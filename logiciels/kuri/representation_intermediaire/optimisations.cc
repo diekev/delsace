@@ -246,11 +246,6 @@ struct CopieuseInstruction {
     }
 };
 
-static bool est_instruction_charge(Atome const *atome)
-{
-    return atome->est_instruction() && atome->comme_instruction()->est_charge();
-}
-
 void performe_enlignage(ConstructriceRI &constructrice,
                         AtomeFonction *fonction_appelée,
                         kuri::tableau<Atome *, int> const &arguments,
@@ -264,7 +259,7 @@ void performe_enlignage(ConstructriceRI &constructrice,
         auto paramètre = fonction_appelée->params_entrée[i];
         auto atome = arguments[i];
 
-        if (est_instruction_charge(atome)) {
+        if (est_charge(atome)) {
             atome = atome->comme_instruction()->comme_charge()->chargée;
             copieuse.ajoute_substitution(paramètre, atome);
         }

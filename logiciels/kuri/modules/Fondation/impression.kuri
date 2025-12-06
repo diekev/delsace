@@ -169,7 +169,7 @@ imprime_dans_enchaineuse :: fonc (enchaineuse: *Enchaineuse, format: chaine, arg
         mot := chaine(*pointeur[début_mot_courant], taille_mot_courant)
         enchaineuse.ajoute_au_tampon(mot)
     }
-}
+} @Imprimeuse
 
 ajoute_tampon :: fonc (enchaineuse: *Enchaineuse) -> *TamponEnchaineuse
 {
@@ -866,18 +866,18 @@ imprime_valeurs_tableau :: fonc (enchaineuse: *Enchaineuse, itératrice: &Itéra
 imprime :: fonc (format: chaine, args: ...eini) -> rien
 {
     _ := tente imprime_dans_fichier(sortie_standarde(), format, ...args) piège nonatteignable
-}
+} @Imprimeuse
 
 imprime_err :: fonc (format: chaine, args: ...eini) -> rien
 {
     _ := tente imprime_dans_fichier(sortie_erreur(), format, ...args) piège nonatteignable
-}
+} @Imprimeuse
 
 imprimeln :: fonc (format: chaine, args: ...eini)
 {
     imprime(format, ...args)
     imprime("\n")
-}
+} @Imprimeuse
 
 imprime_chaine :: fonc (format: chaine, args: ...eini) -> chaine
 {
@@ -886,7 +886,7 @@ imprime_chaine :: fonc (format: chaine, args: ...eini) -> chaine
 
     imprime_dans_enchaineuse(*enchaineuse, format, ...args)
     retourne chaine_depuis_enchaineuse(*enchaineuse)
-}
+} @Imprimeuse
 
 imprime_chaine_temp :: fonc (format: chaine, args: ...eini) -> chaine
 {
@@ -900,7 +900,7 @@ imprime_chaine_temp :: fonc (format: chaine, args: ...eini) -> chaine
     }
 
     retourne résultat
-}
+} @Imprimeuse
 
 imprime_dans_fichier :: fonc (fichier: *Fichier, format: chaine, args: ...eini) -> ErreurFichier
 {
@@ -911,7 +911,7 @@ imprime_dans_fichier :: fonc (fichier: *Fichier, format: chaine, args: ...eini) 
     imprime_dans_enchaineuse(*enchaineuse, format, ...args)
 
     retourne copie_enchaineuse_fichier(*enchaineuse, fichier)
-}
+} @Imprimeuse
 
 imprime_log :: fonc (ident: chaine, mode: ModeLogage, format: chaine, args: ...eini) -> rien
 {
@@ -919,12 +919,12 @@ imprime_log :: fonc (ident: chaine, mode: ModeLogage, format: chaine, args: ...e
     logueur := contexte().logueur
     logueur(message, ident, mode, contexte().données_logueur)
     déloge(message)
-}
+} @Imprimeuse
 
 imprime_log :: fonc (ident: chaine, format: chaine, args: ...eini) -> rien
 {
     imprime_log(ident, ModeLogage.AUCUN, format, ...args)
-}
+} @Imprimeuse
 
 // --------------------------
 

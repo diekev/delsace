@@ -5,9 +5,8 @@
 
 #include <assert.h>
 #include <cstdint>
-#include <cstring>    /* pour la déclaration de std::strlen */
-#include <functional> /* pour la déclaration de std::hash */
-#include <string_view>
+#include <cstring> /* pour la déclaration de std::strlen */
+#include <iosfwd>
 
 namespace kuri {
 
@@ -38,11 +37,11 @@ struct chaine_statique {
     {
     }
 
-    char operator[](int64_t index) const
+    char operator[](int64_t indice) const
     {
-        assert(index >= 0);
-        assert(index < taille());
-        return pointeur_[index];
+        assert(indice >= 0);
+        assert(indice < taille());
+        return pointeur_[indice];
     }
 
     const char *pointeur() const
@@ -60,9 +59,9 @@ struct chaine_statique {
         return taille() != 0;
     }
 
-    chaine_statique sous_chaine(int index) const
+    chaine_statique sous_chaine(int indice) const
     {
-        return chaine_statique(pointeur() + index, taille() - index);
+        return chaine_statique(pointeur() + indice, taille() - indice);
     }
 
     chaine_statique sous_chaine(int64_t début, int64_t fin) const
@@ -118,12 +117,20 @@ std::ostream &operator<<(std::ostream &os, chaine_statique const &vc);
 
 namespace std {
 
+template <typename T>
+struct hash;
+
 template <>
 struct hash<kuri::chaine_statique> {
     std::size_t operator()(kuri::chaine_statique const &chn) const
     {
-        auto h = std::hash<std::string_view>{};
-        return h(std::string_view(chn.pointeur(), static_cast<size_t>(chn.taille())));
+        std::size_t résultat = 5381;
+
+        for (char c : chn) {
+            résultat = ((résultat << 5) + résultat) + std::size_t(c);
+        }
+
+        return résultat;
     }
 };
 

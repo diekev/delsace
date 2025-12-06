@@ -3,6 +3,7 @@
 
 #pragma once
 
+#include <functional>
 #include <utility>
 
 #include "compilation/operateurs.hh"
@@ -19,6 +20,7 @@ struct IdentifiantCode;
 struct NoeudDéclarationType;
 using Type = NoeudDéclarationType;
 
+enum class GenreIntrinsèque : uint8_t;
 enum class VisibilitéSymbole : uint8_t;
 enum class PartageMémoire : uint8_t;
 
@@ -248,11 +250,11 @@ struct AtomeConstanteDonnéesConstantes : public AtomeConstante {
         données.taille = taille;
     }
 
-    AtomeConstanteDonnéesConstantes(Type const *type_, kuri::tableau<char> &&donnees_constantes)
+    AtomeConstanteDonnéesConstantes(Type const *type_, kuri::tableau<char> &&données_constantes)
         : AtomeConstanteDonnéesConstantes(type_)
     {
         auto valeur_tdc = reinterpret_cast<kuri::tableau<char> *>(&this->données);
-        valeur_tdc->permute(donnees_constantes);
+        valeur_tdc->permute(données_constantes);
     }
 
     kuri::tableau_statique<char> donne_données() const
@@ -318,8 +320,8 @@ struct AtomeGlobale : public AtomeConstante {
     /* Pour les InfoTypes, les InfoTypeRubriqueStructures, leurs tableaux, etc. */
     bool est_part_info_type = false;
 
-    // index de la globale pour le code binaire
-    int index = -1;
+    // indice de la globale pour le code binaire
+    int indice = -1;
 
     /* Non nul si la globale est une info type. Dans l'exécution des métaprogrammes, les globales
      * infos types ne sont pas converties en code binaire : nous les substituons par un objet
@@ -375,7 +377,7 @@ struct AccèsIndiceConstant : public AtomeConstante {
     }
 
     AtomeConstante *accédé = nullptr;
-    int64_t index = 0;
+    int64_t indice = 0;
 
     EMPECHE_COPIE(AccèsIndiceConstant);
 
@@ -384,7 +386,7 @@ struct AccèsIndiceConstant : public AtomeConstante {
     {
         this->type = type_;
         this->accédé = accédé_;
-        this->index = indice_;
+        this->indice = indice_;
     }
 
     Type const *donne_type_accédé() const;
@@ -435,6 +437,7 @@ struct AtomeFonction : public AtomeConstante {
     int32_t numérote_instructions() const;
 
     bool est_intrinsèque() const;
+    bool est_intrinsèque(GenreIntrinsèque genre_intrinsèque) const;
 
     EMPECHE_COPIE(AtomeFonction);
 };
@@ -731,8 +734,8 @@ struct InstructionAccèsIndice : public Instruction {
     O(ENTIER_VERS_POINTEUR, entier_vers_pointeur)                                                 \
     O(RÉEL_VERS_ENTIER_RELATIF, réel_vers_relatif)                                                \
     O(RÉEL_VERS_ENTIER_NATUREL, réel_vers_naturel)                                                \
-    O(ENTIER_RELATIF_VERS_REEL, relatif_vers_réel)                                                \
-    O(ENTIER_NATUREL_VERS_REEL, naturel_vers_réel)                                                \
+    O(ENTIER_RELATIF_VERS_RÉEL, relatif_vers_réel)                                                \
+    O(ENTIER_NATUREL_VERS_RÉEL, naturel_vers_réel)                                                \
     O(BITS, transtype_bits)
 
 enum TypeTranstypage {
@@ -856,6 +859,20 @@ Atome const *est_comparaison_inégal_zéro_ou_nul(Instruction const *inst);
 bool est_instruction_comparaison(Atome const *atome);
 
 bool est_volatile(Atome const *atome);
+
+bool est_adresse_globale(Atome const *atome);
+
+bool est_adresse_locale(Atome const *atome);
+
+bool est_adresse(Atome const *atome);
+
+bool est_appel(Atome const *atome);
+
+bool est_charge(Atome const *atome);
+
+bool est_accès_indice(Atome const *atome);
+
+Atome const *donne_source_charge_ou_atome(Atome const *atome);
 
 struct AccèsRubriqueFusionné {
     Atome *accédé = nullptr;

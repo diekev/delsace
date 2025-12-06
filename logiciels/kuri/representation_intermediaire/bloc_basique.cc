@@ -133,11 +133,11 @@ bool Bloc::supprime_instructions_à_supprimer()
     }
 
     auto nouvelle_fin = std::stable_partition(
-        instructions.debut(), instructions.fin(), [](Instruction *inst) {
+        instructions.début(), instructions.fin(), [](Instruction *inst) {
             return !inst->possède_drapeau(DrapeauxAtome::EST_À_SUPPRIMER);
         });
 
-    auto nouvelle_taille = std::distance(instructions.debut(), nouvelle_fin);
+    auto nouvelle_taille = std::distance(instructions.début(), nouvelle_fin);
     instructions.redimensionne(static_cast<int>(nouvelle_taille));
 
     instructions_à_supprimer = false;
@@ -180,7 +180,7 @@ void Bloc::ajoute_parent(Bloc *parent)
 
 static void imprime_bloc(Bloc const *bloc,
                          int décalage_instruction,
-                         bool surligne_inutilisees,
+                         bool surligne_inutilisées,
                          Enchaineuse &os)
 {
     os << "Bloc " << bloc->label->id << ' ';
@@ -210,13 +210,13 @@ static void imprime_bloc(Bloc const *bloc,
     }
 
     imprime_instructions(
-        bloc->instructions, os, OptionsImpressionType::AUCUNE, surligne_inutilisees);
+        bloc->instructions, os, OptionsImpressionType::AUCUNE, surligne_inutilisées);
 }
 
-kuri::chaine imprime_bloc(Bloc const *bloc, int décalage_instruction, bool surligne_inutilisees)
+kuri::chaine imprime_bloc(Bloc const *bloc, int décalage_instruction, bool surligne_inutilisées)
 {
     Enchaineuse sortie;
-    imprime_bloc(bloc, décalage_instruction, surligne_inutilisees, sortie);
+    imprime_bloc(bloc, décalage_instruction, surligne_inutilisées, sortie);
     return sortie.chaine();
 }
 
@@ -268,7 +268,7 @@ static Bloc *crée_bloc_pour_label(kuri::tableau<Bloc *, int> &blocs,
 static void détruit_blocs(kuri::tableau<Bloc *, int> &blocs)
 {
     POUR (blocs) {
-        mémoire::deloge("Bloc", it);
+        mémoire::déloge("Bloc", it);
     }
     blocs.efface();
 }

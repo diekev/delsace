@@ -99,7 +99,7 @@ static void ajoute_broyage_paramètres(Enchaineuse &enchaineuse,
     enchaineuse << "_E" << entête->params.taille() << "_";
 
     for (auto i = 0; i < entête->params.taille(); ++i) {
-        auto param = entête->parametre_entree(i);
+        auto param = entête->paramètre_entrée(i);
 
         auto nom_ascii = param->ident->nom_broye;
         enchaineuse << nom_ascii.taille();
@@ -473,7 +473,7 @@ static const char *nom_pour_opérateur(Lexème const &lexème)
         {
             return "inf";
         }
-        case GenreLexème::INFERIEUR_EGAL:
+        case GenreLexème::INFERIEUR_ÉGAL:
         {
             return "infeg";
         }
@@ -481,7 +481,7 @@ static const char *nom_pour_opérateur(Lexème const &lexème)
         {
             return "sup";
         }
-        case GenreLexème::SUPERIEUR_EGAL:
+        case GenreLexème::SUPERIEUR_ÉGAL:
         {
             return "supeg";
         }
@@ -549,23 +549,23 @@ static const char *nom_pour_opérateur(Lexème const &lexème)
         {
             return "oux";
         }
-        case GenreLexème::PLUS_EGAL:
+        case GenreLexème::PLUS_ÉGAL:
         {
             return "plusegl";
         }
-        case GenreLexème::MOINS_EGAL:
+        case GenreLexème::MOINS_ÉGAL:
         {
             return "moinsegl";
         }
-        case GenreLexème::MULTIPLIE_EGAL:
+        case GenreLexème::MULTIPLIE_ÉGAL:
         {
             return "mulegl";
         }
-        case GenreLexème::DIVISE_EGAL:
+        case GenreLexème::DIVISE_ÉGAL:
         {
             return "divegl";
         }
-        case GenreLexème::MODULO_EGAL:
+        case GenreLexème::MODULO_ÉGAL:
         {
             return "modegl";
         }
@@ -621,7 +621,7 @@ kuri::chaine_statique Broyeuse::broye_nom_fonction(NoeudDéclarationEntêteFonct
         });
 
     for (auto i = 0; i < decl->params.taille(); ++i) {
-        auto param = decl->parametre_entree(i);
+        auto param = decl->paramètre_entrée(i);
         broye_nom_simple(param->ident);
         nom_broyé_type(param->type);
     }

@@ -10,8 +10,8 @@ namespace kuri {
 template <typename T>
 struct pile {
     using type_valeur = T;
-    using type_reference = T &;
-    using type_reference_const = T const &;
+    using type_référence = T &;
+    using type_référence_const = T const &;
     using type_taille = int64_t;
 
   private:
@@ -25,7 +25,7 @@ struct pile {
         m_pile.ajoute(valeur);
     }
 
-    void empile(type_reference_const valeur)
+    void empile(type_référence_const valeur)
     {
         m_pile.ajoute(valeur);
     }
@@ -37,12 +37,12 @@ struct pile {
         return t;
     }
 
-    type_reference haut()
+    type_référence haut()
     {
         return m_pile.dernier_élément();
     }
 
-    type_reference_const haut() const
+    type_référence_const haut() const
     {
         return m_pile.dernier_élément();
     }
@@ -66,54 +66,54 @@ struct pile {
 template <typename T, uint64_t N>
 struct pile_fixe {
     using type_valeur = T;
-    using type_reference = T &;
-    using type_reference_const = T const &;
+    using type_référence = T &;
+    using type_référence_const = T const &;
     using type_taille = int64_t;
 
   private:
     type_valeur m_pile[N];
-    type_taille m_index = -1;
+    type_taille m_indice = -1;
 
   public:
     pile_fixe() = default;
 
-    void empile(type_reference_const valeur)
+    void empile(type_référence_const valeur)
     {
-        if (m_index + 1 < N) {
-            m_pile[++m_index] = valeur;
+        if (m_indice + 1 < N) {
+            m_pile[++m_indice] = valeur;
         }
     }
 
     type_valeur dépile()
     {
         auto t = haut();
-        --m_index;
+        --m_indice;
         return t;
     }
 
-    type_reference haut()
+    type_référence haut()
     {
-        return m_pile[m_index];
+        return m_pile[m_indice];
     }
 
-    type_reference_const haut() const
+    type_référence_const haut() const
     {
-        return m_pile[m_index];
+        return m_pile[m_indice];
     }
 
     bool est_vide() const
     {
-        return m_index < 0;
+        return m_indice < 0;
     }
 
     bool est_pleine() const
     {
-        return m_index == N;
+        return m_indice == N;
     }
 
     type_taille taille() const
     {
-        return m_index + 1;
+        return m_indice + 1;
     }
 };
 

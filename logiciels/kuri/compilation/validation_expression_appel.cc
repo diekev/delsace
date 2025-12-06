@@ -329,11 +329,11 @@ struct ApparieuseParams {
   private:
     kuri::tablet<IdentifiantCode *, 10> m_noms{};
     kuri::tablet<NoeudExpression *, 10> m_slots{};
-    /* Les index sont utilisés pour les rubriques de structures. L'expression de construction de
+    /* Les indices sont utilisés pour les rubriques de structures. L'expression de construction de
      * structure doit avoir le même nombre de paramètres résolus que le nombre de rubriques de la
      * structure, mais, par exemple, les paramètres constants ne doivent pas être appariés, donc
-     * nous stockons les index des rubriques pour chaque slot afin que l'appariement puisse savoir
-     * à quel rubrique réel le slot appartient. */
+     * nous stockons les indices des rubriques pour chaque slot afin que l'appariement puisse
+     * savoir à quel rubrique réel le slot appartient. */
     kuri::tablet<int, 10> m_indice_pour_slot{};
     kuri::ensemblon<IdentifiantCode *, 10> m_args_rencontrés{};
     bool m_arguments_nommés = false;
@@ -341,7 +341,7 @@ struct ApparieuseParams {
     bool m_est_variadique = false;
     bool m_expansion_rencontrée = false;
     ChoseÀApparier m_chose_à_apparier{};
-    int m_index = 0;
+    int m_indice = 0;
     int m_nombre_arg_variadiques_rencontrés = 0;
 
   public:
@@ -354,7 +354,7 @@ struct ApparieuseParams {
     void ajoute_param(IdentifiantCode *ident,
                       NoeudExpression *valeur_défaut,
                       bool est_variadique,
-                      int index = -1)
+                      int indice = -1)
     {
         m_noms.ajoute(ident);
 
@@ -362,7 +362,7 @@ struct ApparieuseParams {
         // car le code d'appariement de type dépend de ce comportement.
         if (!est_variadique) {
             m_slots.ajoute(valeur_défaut);
-            m_indice_pour_slot.ajoute(index);
+            m_indice_pour_slot.ajoute(indice);
         }
 
         m_est_variadique = est_variadique;
@@ -443,12 +443,12 @@ struct ApparieuseParams {
              * utiles pour l'appariement. Ce sont notamment les variables constantes. */
             if (m_chose_à_apparier == ChoseÀApparier::STRUCTURE ||
                 m_chose_à_apparier == ChoseÀApparier::UNION) {
-                while (m_index < m_noms.taille() && m_noms[m_index] == nullptr) {
-                    m_index++;
+                while (m_indice < m_noms.taille() && m_noms[m_indice] == nullptr) {
+                    m_indice++;
                 }
             }
 
-            if (m_dernier_argument_est_variadique || m_index >= m_slots.taille()) {
+            if (m_dernier_argument_est_variadique || m_indice >= m_slots.taille()) {
                 if (m_expansion_rencontrée && m_nombre_arg_variadiques_rencontrés != 0) {
                     erreur = ErreurAppariement::argument_post_expansion_variadique(expr);
                     return false;
@@ -456,11 +456,11 @@ struct ApparieuseParams {
                 m_nombre_arg_variadiques_rencontrés += 1;
                 m_args_rencontrés.insère(m_noms[m_noms.taille() - 1]);
                 ajoute_slot(expr);
-                m_index++;
+                m_indice++;
             }
             else {
-                m_args_rencontrés.insère(m_noms[m_index]);
-                remplis_slot(m_index++, expr);
+                m_args_rencontrés.insère(m_noms[m_indice]);
+                remplis_slot(m_indice++, expr);
             }
         }
 
@@ -587,7 +587,7 @@ static void trouve_candidates_pour_expression(
 {
     auto modules_visités = kuri::ensemblon<Module const *, 10>();
     auto déclarations = kuri::tablet<NoeudDéclaration *, 10>();
-    trouve_declarations_dans_bloc_ou_module(déclarations,
+    trouve_déclarations_dans_bloc_ou_module(déclarations,
                                             modules_visités,
                                             fichier->module,
                                             appelée->bloc_parent,
@@ -602,7 +602,7 @@ static void trouve_candidates_pour_expression(
         auto fichier_site = espace.fichier(site_monomorphisation->lexème->fichier);
 
         if (fichier_site != fichier) {
-            trouve_declarations_dans_bloc_ou_module(déclarations,
+            trouve_déclarations_dans_bloc_ou_module(déclarations,
                                                     modules_visités,
                                                     fichier_site->module,
                                                     site_monomorphisation->bloc_parent,
@@ -635,7 +635,7 @@ static void trouve_candidates_pour_expression(
     }
 }
 
-static ResultatPoidsTransformation apparie_type_paramètre_appel_fonction(
+static RésultatPoidsTransformation apparie_type_paramètre_appel_fonction(
     Typeuse &typeuse,
     NoeudExpression const *slot,
     Type const *type_du_paramètre,
@@ -1011,9 +1011,9 @@ static RésultatAppariement apparie_appel_fonction(
 
     /* mise en cache des paramètres d'entrées, accéder à cette fonction se voit dans les profiles
      */
-    kuri::tablet<BaseDéclarationVariable *, 10> paramètres_entree;
+    kuri::tablet<BaseDéclarationVariable *, 10> paramètres_entrée;
     for (auto i = 0; i < decl->params.taille(); ++i) {
-        paramètres_entree.ajoute(decl->parametre_entree(i));
+        paramètres_entrée.ajoute(decl->paramètre_entrée(i));
     }
 
     auto fonction_variadique_interne = est_variadique && !est_externe;
@@ -1022,7 +1022,7 @@ static RésultatAppariement apparie_appel_fonction(
     // slots.redimensionne(nombre_args - decl->est_variadique);
 
     for (auto i = 0; i < decl->params.taille(); ++i) {
-        auto param = paramètres_entree[i];
+        auto param = paramètres_entrée[i];
         apparieuse_params.ajoute_param(param->ident,
                                        param->expression,
                                        param->possède_drapeau(DrapeauxNoeud::EST_VARIADIQUE));
@@ -1056,7 +1056,7 @@ static RésultatAppariement apparie_appel_fonction(
 
     for (auto i = int64_t(0); i < slots.taille(); ++i) {
         auto indice_arg = std::min(i, static_cast<int64_t>(decl->params.taille() - 1));
-        auto param = paramètres_entree[indice_arg];
+        auto param = paramètres_entrée[indice_arg];
         auto arg = param;
         auto slot = slots[i];
 
@@ -1115,7 +1115,7 @@ static RésultatAppariement apparie_appel_fonction(
     }
 
     if (fonction_variadique_interne) {
-        auto dernier_paramètre = decl->parametre_entree(decl->params.taille() - 1);
+        auto dernier_paramètre = decl->paramètre_entrée(decl->params.taille() - 1);
         auto dernier_type_paramètre = dernier_paramètre->type;
         auto type_données_argument_variadique = type_déréférencé_pour(dernier_type_paramètre);
         auto poids_variadique = POIDS_POUR_ARGUMENT_VARIADIQUE;
@@ -1171,7 +1171,7 @@ static RésultatAppariement apparie_appel_fonction(
     // Il faut supprimer de l'appel les constantes correspondant aux valeur polymorphiques.
     for (auto i = int64_t(0); i < slots.taille(); ++i) {
         auto indice_arg = std::min(i, static_cast<int64_t>(decl->params.taille() - 1));
-        auto param = paramètres_entree[indice_arg];
+        auto param = paramètres_entrée[indice_arg];
 
         if (param->possède_drapeau(DrapeauxNoeud::EST_VALEUR_POLYMORPHIQUE)) {
             continue;
@@ -1283,7 +1283,7 @@ static RésultatAppariement apparie_construction_type_composé_polymorphique(
     // détecte les arguments polymorphiques dans les fonctions polymorphiques
     auto est_type_argument_polymorphique = false;
     POUR (apparieuse_params.slots()) {
-        auto param = params_polymorphiques->rubrique_pour_index(indice_param);
+        auto param = params_polymorphiques->rubrique_pour_indice(indice_param);
         indice_param += 1;
 
         if (!param->possède_drapeau(DrapeauxNoeud::EST_VALEUR_POLYMORPHIQUE)) {
@@ -1326,7 +1326,7 @@ static RésultatAppariement apparie_construction_type_composé_polymorphique(
     }
 
     if (est_type_argument_polymorphique) {
-        auto type_poly = espace.typeuse.type_type_de_donnees(
+        auto type_poly = espace.typeuse.type_type_de_données(
             const_cast<NoeudDéclarationType *>(déclaration_type_composé));
 
         return CandidateAppariement::type_polymorphique(
@@ -1345,20 +1345,20 @@ static RésultatAppariement apparie_construction_type_composé_polymorphique(
 static RésultatAppariement apparie_construction_type_composé(
     NoeudExpressionAppel const *expr,
     NoeudDéclarationType const *déclaration_type_composé,
-    TypeCompose const *type_compose,
+    TypeComposé const *type_compose,
     kuri::tableau<IdentifiantEtExpression> const &arguments)
 {
     auto apparieuse_params = ApparieuseParams(ChoseÀApparier::STRUCTURE);
 
     POUR_INDICE (type_compose->rubriques) {
         /* Ignore les rubriques employés pour le moment. */
-        if (it.possède_drapeau(RubriqueTypeComposé::EST_CONSTANT |
+        if (it.possède_drapeau(RubriqueTypeComposé::EST_CONSTANTE |
                                RubriqueTypeComposé::EST_UN_EMPLOI)) {
             apparieuse_params.ajoute_param(nullptr, nullptr, false, indice_it);
             continue;
         }
 
-        apparieuse_params.ajoute_param(it.nom, it.expression_valeur_defaut, false, indice_it);
+        apparieuse_params.ajoute_param(it.nom, it.expression_valeur_défaut, false, indice_it);
     }
 
     POUR (arguments) {
@@ -1623,10 +1623,10 @@ static CodeRetourValidation trouve_candidates_pour_appel(
             auto accédée = accès->accédée->comme_référence_déclaration();
             auto déclaration_module = accédée->déclaration_référée->comme_déclaration_module();
             auto module = déclaration_module->module;
-            auto declarations = kuri::tablet<NoeudDéclaration *, 10>();
-            trouve_déclarations_dans_module(declarations, module, accès->ident, fichier);
+            auto déclarations = kuri::tablet<NoeudDéclaration *, 10>();
+            trouve_déclarations_dans_module(déclarations, module, accès->ident, fichier);
 
-            POUR (declarations) {
+            POUR (déclarations) {
                 ajoute_candidate_pour_déclaration(candidates, it);
             }
             return CodeRetourValidation::OK;
@@ -2034,7 +2034,7 @@ static RésultatValidation sélectionne_candidate(NoeudExpressionAppel const *ex
         return CodeRetourValidation::Erreur;
     }
 
-    std::sort(état->candidates.debut(), état->candidates.fin(), [](auto &a, auto &b) {
+    std::sort(état->candidates.début(), état->candidates.fin(), [](auto &a, auto &b) {
         return a.poids_args > b.poids_args;
     });
 
@@ -2231,6 +2231,11 @@ RésultatValidation valide_appel_fonction(Compilatrice &compilatrice,
          * les étapes suivantes de compilation. */
         expr->expression->type = expr->noeud_fonction_appelée->type;
 
+        if (expr->expression->est_référence_déclaration()) {
+            expr->expression->comme_référence_déclaration()->déclaration_référée =
+                const_cast<NoeudDéclarationEntêteFonction *>(decl_fonction_appelée);
+        }
+
         if (expr->type == nullptr) {
             expr->type = type_sortie;
         }
@@ -2262,7 +2267,7 @@ RésultatValidation valide_appel_fonction(Compilatrice &compilatrice,
 
         auto copie = monomorphise_au_besoin(
             contexte, decl_struct, expr, std::move(candidate->items_monomorphisation));
-        expr->type = espace.typeuse.type_type_de_donnees(copie);
+        expr->type = espace.typeuse.type_type_de_données(copie);
 
         /* il est possible d'utiliser un type avant sa validation final, par exemple en
          * paramètre d'une fonction de rappel qui est rubrique de la structure */
@@ -2352,7 +2357,7 @@ RésultatValidation valide_appel_fonction(Compilatrice &compilatrice,
         }
 
         expr->noeud_fonction_appelée = const_cast<TypeOpaque *>(type_opaque);
-        expr->type = espace.typeuse.type_type_de_donnees(const_cast<TypeOpaque *>(type_opaque));
+        expr->type = espace.typeuse.type_type_de_données(const_cast<TypeOpaque *>(type_opaque));
         expr->aide_génération_code = MONOMORPHE_TYPE_OPAQUE;
     }
 
@@ -2381,12 +2386,12 @@ static constexpr double poids_pour_origine[NOMBRE_D_ORIGINES] = {
     1.0, 0.9, 0.8, 0.7, 0.6
 };
 
-static double poids_pour_candidate(const DeclarationCandidatePourAppel &declaration_candidate)
+static double poids_pour_candidate(const DeclarationCandidatePourAppel &déclaration_candidate)
 {
-    double résultat = poids_pour_origine(declaration_candidate.origine);
+    double résultat = poids_pour_origine(déclaration_candidate.origine);
 
     /* Pondère avec le poids des expressions passées en paramètres. */
-    POUR (declaration_candidate.expressions) {
+    POUR (déclaration_candidate.expressions) {
         résultat *= it.poids
     }
 
@@ -2395,6 +2400,6 @@ static double poids_pour_candidate(const DeclarationCandidatePourAppel &declarat
 
 struct DeclarationCandidatePourAppel {
     NoeudExpression *site;
-    OrigineDeclaration declaration;
+    OrigineDeclaration déclaration;
 };
 #endif

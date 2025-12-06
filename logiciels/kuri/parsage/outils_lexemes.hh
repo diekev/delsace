@@ -18,7 +18,7 @@ struct PositionLexème {
     int64_t pos = 0;
 };
 
-PositionLexème position_lexeme(Lexème const &lexeme);
+PositionLexème position_lexème(Lexème const &lexème);
 
 GenreLexème operateur_pour_assignation_composee(GenreLexème type);
 

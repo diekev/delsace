@@ -214,8 +214,8 @@ RegistreSymboliqueRI::RegistreSymboliqueRI(Typeuse &typeuse)
 
 RegistreSymboliqueRI::~RegistreSymboliqueRI()
 {
-    mémoire::deloge("Broyeuse", broyeuse);
-    mémoire::deloge("ConstructriceRI", m_constructrice);
+    mémoire::déloge("Broyeuse", broyeuse);
+    mémoire::déloge("ConstructriceRI", m_constructrice);
 }
 
 AtomeFonction *RegistreSymboliqueRI::crée_fonction(kuri::chaine_statique nom_fonction)
@@ -237,7 +237,7 @@ AtomeFonction *RegistreSymboliqueRI::trouve_ou_insère_fonction(
     params.redimensionne(decl->params.taille());
 
     for (auto i = 0; i < decl->params.taille(); ++i) {
-        auto param = decl->parametre_entree(i)->comme_déclaration_variable();
+        auto param = decl->paramètre_entrée(i)->comme_déclaration_variable();
         auto atome = m_constructrice->crée_allocation(param, param->type, param->ident);
         param->atome = atome;
         params[i] = atome;
@@ -404,7 +404,7 @@ InstructionAllocation *ConstructriceRI::crée_allocation(NoeudExpression const *
     return inst;
 }
 
-/* Nous ne pouvons dédupliquer les constantes car la mise à jour des index dans la table de types
+/* Nous ne pouvons dédupliquer les constantes car la mise à jour des indices dans la table de types
  * les modifie... */
 #undef DEDUPLIQUE_CONSTANTE
 
@@ -895,7 +895,7 @@ Atome *ConstructriceRI::crée_op_comparaison(NoeudExpression const *site_,
 
 InstructionAccèsIndice *ConstructriceRI::crée_accès_indice(NoeudExpression const *site_,
                                                            Atome *accédé,
-                                                           Atome *index)
+                                                           Atome *indice)
 {
     auto type_élément = static_cast<Type const *>(nullptr);
     if (accédé->est_constante_tableau() || accédé->est_données_constantes()) {
@@ -918,16 +918,16 @@ InstructionAccèsIndice *ConstructriceRI::crée_accès_indice(NoeudExpression co
 
     auto type = m_typeuse->type_pointeur_pour(type_déréférencé_pour(type_élément), false);
 
-    auto inst = m_accès_indice.ajoute_élément(site_, type, accédé, index);
+    auto inst = m_accès_indice.ajoute_élément(site_, type, accédé, indice);
     insère(inst);
     return inst;
 }
 
 InstructionAccèsRubrique *ConstructriceRI::crée_référence_rubrique(
-    NoeudExpression const *site_, Type const *type, Atome *accédé, int index, bool crée_seulement)
+    NoeudExpression const *site_, Type const *type, Atome *accédé, int indice, bool crée_seulement)
 {
 
-    auto inst = m_accès_rubrique.ajoute_élément(site_, type, accédé, index);
+    auto inst = m_accès_rubrique.ajoute_élément(site_, type, accédé, indice);
     if (!crée_seulement) {
         insère(inst);
     }
@@ -936,7 +936,7 @@ InstructionAccèsRubrique *ConstructriceRI::crée_référence_rubrique(
 
 InstructionAccèsRubrique *ConstructriceRI::crée_référence_rubrique(NoeudExpression const *site_,
                                                                    Atome *accédé,
-                                                                   int index,
+                                                                   int indice,
                                                                    bool crée_seulement)
 {
     assert_rappel(accédé->type->est_type_pointeur() || accédé->type->est_type_référence(),
@@ -954,9 +954,9 @@ InstructionAccèsRubrique *ConstructriceRI::crée_référence_rubrique(NoeudExpr
         type_composé = type_composé->comme_type_union()->type_structure;
     }
 
-    auto type = type_composé->rubriques[index].type;
+    auto type = type_composé->rubriques[indice].type;
     assert_rappel(
-        (type_composé->rubriques[index].drapeaux & RubriqueTypeComposé::PROVIENT_D_UN_EMPOI) == 0,
+        (type_composé->rubriques[indice].drapeaux & RubriqueTypeComposé::PROVIENT_D_UN_EMPOI) == 0,
         [&]() {
             dbg() << chaine_type(type_composé) << '\n'
                   << imprime_site(site_) << '\n'
@@ -965,14 +965,14 @@ InstructionAccèsRubrique *ConstructriceRI::crée_référence_rubrique(NoeudExpr
 
     /* nous retournons un pointeur vers la rubrique */
     type = m_typeuse->type_pointeur_pour(type, false);
-    return crée_référence_rubrique(site_, type, accédé, index, crée_seulement);
+    return crée_référence_rubrique(site_, type, accédé, indice, crée_seulement);
 }
 
-Instruction *ConstructriceRI::crée_reference_rubrique_et_charge(NoeudExpression const *site_,
+Instruction *ConstructriceRI::crée_référence_rubrique_et_charge(NoeudExpression const *site_,
                                                                 Atome *accédé,
-                                                                int index)
+                                                                int indice)
 {
-    auto inst = crée_référence_rubrique(site_, accédé, index);
+    auto inst = crée_référence_rubrique(site_, accédé, indice);
     return crée_charge_mem(site_, inst);
 }
 
@@ -1217,8 +1217,8 @@ ValeurConstanteEntière applique_transtype(Type const *type_source,
         case TypeTranstypage::ENTIER_VERS_POINTEUR:
         case TypeTranstypage::RÉEL_VERS_ENTIER_RELATIF:
         case TypeTranstypage::RÉEL_VERS_ENTIER_NATUREL:
-        case TypeTranstypage::ENTIER_RELATIF_VERS_REEL:
-        case TypeTranstypage::ENTIER_NATUREL_VERS_REEL:
+        case TypeTranstypage::ENTIER_RELATIF_VERS_RÉEL:
+        case TypeTranstypage::ENTIER_NATUREL_VERS_RÉEL:
         {
             break;
         }
@@ -1305,6 +1305,10 @@ Atome *ConstructriceRI::crée_transtype(NoeudExpression const *site_,
                                        Atome *valeur,
                                        TypeTranstypage op)
 {
+    if (type == valeur->type) {
+        return valeur;
+    }
+
     if (valeur->est_constante_nulle()) {
         return crée_constante_nulle(type);
     }
@@ -1358,7 +1362,7 @@ TranstypeConstant *ConstructriceRI::crée_transtype_constant(Type const *type,
 }
 
 AccèsIndiceConstant *ConstructriceRI::crée_accès_indice_constant(AtomeConstante *accédé,
-                                                                 int64_t index)
+                                                                 int64_t indice)
 {
     assert_rappel(accédé->type->est_type_pointeur(),
                   [=]() { dbg() << "Type accédé : '" << chaine_type(accédé->type) << "'"; });
@@ -1371,7 +1375,7 @@ AccèsIndiceConstant *ConstructriceRI::crée_accès_indice_constant(AtomeConstan
     auto type = m_typeuse->type_pointeur_pour(type_déréférencé_pour(type_pointeur->type_pointé),
                                               false);
 
-    return m_accès_indice_constant.ajoute_élément(type, accédé, index);
+    return m_accès_indice_constant.ajoute_élément(type, accédé, indice);
 }
 
 AtomeConstante *ConstructriceRI::crée_initialisation_défaut_pour_type(Type const *type)
@@ -1391,6 +1395,7 @@ AtomeConstante *ConstructriceRI::crée_initialisation_défaut_pour_type(Type con
         case GenreNoeud::RÉFÉRENCE:
         case GenreNoeud::POINTEUR:
         case GenreNoeud::FONCTION:
+        case GenreNoeud::TYPE_DE_DONNÉES:
         case GenreNoeud::TYPE_ADRESSE_FONCTION:
         {
             return crée_constante_nulle(type);
@@ -1398,7 +1403,6 @@ AtomeConstante *ConstructriceRI::crée_initialisation_défaut_pour_type(Type con
         case GenreNoeud::OCTET:
         case GenreNoeud::ENTIER_NATUREL:
         case GenreNoeud::ENTIER_RELATIF:
-        case GenreNoeud::TYPE_DE_DONNÉES:
         {
             return crée_constante_nombre_entier(type, 0);
         }
@@ -1644,7 +1648,7 @@ static kuri::tableau<AtomeGlobale *> donne_globales_à_initialiser(
      * doivent être initialisées après). */
     kuri::rassembleuse<AtomeGlobale *> rassembleuse_atomes;
     {
-        auto graphe = espace->graphe_dépendance.verrou_ecriture();
+        auto graphe = espace->graphe_dépendance.verrou_écriture();
         graphe->prépare_visite();
 
         POUR (globales_avec_déclarations) {
@@ -1705,11 +1709,11 @@ AtomeFonction *CompilatriceRI::génère_fonction_init_globales_et_appel(
     auto ident_nom = m_compilatrice.table_identifiants->identifiant_pour_nouvelle_chaine(
         nom_fonction);
 
-    auto types_entrees = kuri::tablet<Type *, 6>(0);
+    auto types_entrées = kuri::tablet<Type *, 6>(0);
     auto type_sortie = m_espace->typeuse.type_rien;
 
     auto fonction = m_constructrice.crée_fonction(ident_nom->nom);
-    fonction->type = m_espace->typeuse.type_fonction(types_entrees, type_sortie);
+    fonction->type = m_espace->typeuse.type_fonction(types_entrées, type_sortie);
     fonction->param_sortie = m_constructrice.crée_allocation(nullptr, type_sortie, nullptr, true);
 
     définis_fonction_courante(fonction);
@@ -1979,6 +1983,7 @@ void CompilatriceRI::génère_ri_pour_noeud(NoeudExpression *noeud, Atome *place
         case GenreNoeud::INSTRUCTION_TENTE:
         case GenreNoeud::RÉFÉRENCE_OPÉRATEUR_BINAIRE:
         case GenreNoeud::RÉFÉRENCE_OPÉRATEUR_UNAIRE:
+        case GenreNoeud::EXPRESSION_RÉFÉRENCE_CONDITIONNELLE:
         {
             assert_rappel(false, [&]() {
                 dbg() << "Erreur interne : un noeud ne fut pas simplifié !\n"
@@ -2234,7 +2239,7 @@ void CompilatriceRI::génère_ri_pour_noeud(NoeudExpression *noeud, Atome *place
 
             auto info_type = crée_info_type_avec_transtype(type, noeud);
             auto valeur = m_constructrice.crée_transtype_constant(
-                m_espace->typeuse.type_type_de_donnees_, info_type);
+                m_espace->typeuse.type_type_de_données_, info_type);
             empile_valeur(valeur, noeud);
             break;
         }
@@ -2298,7 +2303,7 @@ void CompilatriceRI::génère_ri_pour_noeud(NoeudExpression *noeud, Atome *place
                           << "Le lexème a une chaine taille de " << noeud->lexème->chaine.taille()
                           << " alors que la chaine littérale a une taille de " << chaine.taille()
                           << '\n'
-                          << "L'index de la chaine est de " << lit_chaine->valeur << '\n'
+                          << "L'indice de la chaine est de " << lit_chaine->valeur << '\n'
                           << "La valeur de la chaine du lexème est \"" << noeud->lexème->chaine
                           << "\"\n"
                           << "La valeur de la chaine littérale est \"" << chaine << "\"";
@@ -2325,9 +2330,9 @@ void CompilatriceRI::génère_ri_pour_noeud(NoeudExpression *noeud, Atome *place
         case GenreNoeud::EXPRESSION_LITTÉRALE_CARACTÈRE:
         {
             // À FAIRE : caractères Unicode
-            auto caractere = static_cast<unsigned char>(
+            auto caractère = static_cast<unsigned char>(
                 noeud->comme_littérale_caractère()->valeur);
-            empile_valeur(m_constructrice.crée_constante_caractère(noeud->type, caractere), noeud);
+            empile_valeur(m_constructrice.crée_constante_caractère(noeud->type, caractère), noeud);
             break;
         }
         case GenreNoeud::EXPRESSION_LITTÉRALE_NUL:
@@ -2394,7 +2399,7 @@ void CompilatriceRI::génère_ri_pour_noeud(NoeudExpression *noeud, Atome *place
              */
 
             auto génère_protection_limites =
-                [this, noeud](Atome *acces_taille, Atome *valeur_, AtomeFonction *fonction) {
+                [this, noeud](Atome *accès_taille, Atome *valeur_, AtomeFonction *fonction) {
                     auto label1 = m_constructrice.réserve_label(noeud);
                     auto label2 = m_constructrice.réserve_label(noeud);
                     auto label3 = m_constructrice.réserve_label(noeud);
@@ -2416,7 +2421,7 @@ void CompilatriceRI::génère_ri_pour_noeud(NoeudExpression *noeud, Atome *place
                         m_constructrice.insère_label(label1);
 
                         auto params = kuri::tableau<Atome *, int>(2);
-                        params[0] = acces_taille;
+                        params[0] = accès_taille;
                         params[1] = valeur_;
                         m_constructrice.crée_appel(noeud, fonction, std::move(params));
                         m_constructrice.crée_inatteignable(noeud);
@@ -2425,13 +2430,13 @@ void CompilatriceRI::génère_ri_pour_noeud(NoeudExpression *noeud, Atome *place
                     m_constructrice.insère_label(label2);
 
                     condition = m_constructrice.crée_op_comparaison(
-                        noeud, OpérateurBinaire::Genre::Comp_Sup_Egal, valeur_, acces_taille);
+                        noeud, OpérateurBinaire::Genre::Comp_Sup_Égal, valeur_, accès_taille);
                     m_constructrice.crée_branche_condition(noeud, condition, label3, label4);
 
                     m_constructrice.insère_label(label3);
 
                     auto params = kuri::tableau<Atome *, int>(2);
-                    params[0] = acces_taille;
+                    params[0] = accès_taille;
                     params[1] = valeur_;
                     m_constructrice.crée_appel(noeud, fonction, std::move(params));
                     m_constructrice.crée_inatteignable(noeud);
@@ -2439,20 +2444,20 @@ void CompilatriceRI::génère_ri_pour_noeud(NoeudExpression *noeud, Atome *place
                     m_constructrice.insère_label(label4);
                 };
 
-            auto sans_vlt = noeud->aide_génération_code == IGNORE_VERIFICATION ||
+            auto sans_vlt = noeud->aide_génération_code == IGNORE_VÉRIFICATION ||
                             m_fonction_courante->decl->possède_drapeau(
                                 DrapeauxNoeudFonction::SANS_VLT);
 
-            auto sans_vlc = noeud->aide_génération_code == IGNORE_VERIFICATION ||
+            auto sans_vlc = noeud->aide_génération_code == IGNORE_VÉRIFICATION ||
                             m_fonction_courante->decl->possède_drapeau(
                                 DrapeauxNoeudFonction::SANS_VLC);
 
             if (type_gauche->est_type_tableau_fixe()) {
                 if (!sans_vlt) {
                     auto type_tableau_fixe = type_gauche->comme_type_tableau_fixe();
-                    auto acces_taille = m_constructrice.crée_z64(
+                    auto accès_taille = m_constructrice.crée_z64(
                         static_cast<unsigned>(type_tableau_fixe->taille));
-                    génère_protection_limites(acces_taille,
+                    génère_protection_limites(accès_taille,
                                               valeur,
                                               m_constructrice.trouve_ou_insère_fonction(
                                                   m_espace->interface_kuri->decl_panique_tableau));
@@ -2464,9 +2469,9 @@ void CompilatriceRI::génère_ri_pour_noeud(NoeudExpression *noeud, Atome *place
             if (type_gauche->est_type_tableau_dynamique() || type_gauche->est_type_variadique() ||
                 type_gauche->est_type_tranche()) {
                 if (!sans_vlt) {
-                    auto acces_taille = m_constructrice.crée_reference_rubrique_et_charge(
+                    auto accès_taille = m_constructrice.crée_référence_rubrique_et_charge(
                         noeud, pointeur, 1);
-                    génère_protection_limites(acces_taille,
+                    génère_protection_limites(accès_taille,
                                               valeur,
                                               m_constructrice.trouve_ou_insère_fonction(
                                                   m_espace->interface_kuri->decl_panique_tableau));
@@ -2478,9 +2483,9 @@ void CompilatriceRI::génère_ri_pour_noeud(NoeudExpression *noeud, Atome *place
 
             if (type_gauche->est_type_chaine()) {
                 if (!sans_vlc) {
-                    auto acces_taille = m_constructrice.crée_reference_rubrique_et_charge(
+                    auto accès_taille = m_constructrice.crée_référence_rubrique_et_charge(
                         noeud, pointeur, 1);
-                    génère_protection_limites(acces_taille,
+                    génère_protection_limites(accès_taille,
                                               valeur,
                                               m_constructrice.trouve_ou_insère_fonction(
                                                   m_espace->interface_kuri->decl_panique_chaine));
@@ -2547,7 +2552,7 @@ void CompilatriceRI::génère_ri_pour_noeud(NoeudExpression *noeud, Atome *place
                     auto valeur1 = dépile_valeur();
                     auto valeur2 = m_constructrice.crée_constante_nombre_entier(type_condition, 0);
                     valeur = m_constructrice.crée_op_comparaison(
-                        noeud, OpérateurBinaire::Genre::Comp_Egal, valeur1, valeur2);
+                        noeud, OpérateurBinaire::Genre::Comp_Égal, valeur1, valeur2);
                     break;
                 }
                 case GenreNoeud::BOOL:
@@ -2556,7 +2561,7 @@ void CompilatriceRI::génère_ri_pour_noeud(NoeudExpression *noeud, Atome *place
                     auto valeur1 = dépile_valeur();
                     auto valeur2 = m_constructrice.crée_constante_booléenne(false);
                     valeur = m_constructrice.crée_op_comparaison(
-                        noeud, OpérateurBinaire::Genre::Comp_Egal, valeur1, valeur2);
+                        noeud, OpérateurBinaire::Genre::Comp_Égal, valeur1, valeur2);
                     break;
                 }
                 case GenreNoeud::FONCTION:
@@ -2566,7 +2571,7 @@ void CompilatriceRI::génère_ri_pour_noeud(NoeudExpression *noeud, Atome *place
                     auto valeur1 = dépile_valeur();
                     auto valeur2 = m_constructrice.crée_constante_nulle(type_condition);
                     valeur = m_constructrice.crée_op_comparaison(
-                        noeud, OpérateurBinaire::Genre::Comp_Egal, valeur1, valeur2);
+                        noeud, OpérateurBinaire::Genre::Comp_Égal, valeur1, valeur2);
                     break;
                 }
                 case GenreNoeud::EINI:
@@ -2578,7 +2583,7 @@ void CompilatriceRI::génère_ri_pour_noeud(NoeudExpression *noeud, Atome *place
                     auto valeur1 = m_constructrice.crée_charge_mem(noeud, pointeur_pointeur);
                     auto valeur2 = m_constructrice.crée_constante_nulle(valeur1->type);
                     valeur = m_constructrice.crée_op_comparaison(
-                        noeud, OpérateurBinaire::Genre::Comp_Egal, valeur1, valeur2);
+                        noeud, OpérateurBinaire::Genre::Comp_Égal, valeur1, valeur2);
                     break;
                 }
                 case GenreNoeud::CHAINE:
@@ -2592,7 +2597,7 @@ void CompilatriceRI::génère_ri_pour_noeud(NoeudExpression *noeud, Atome *place
                     auto valeur1 = m_constructrice.crée_charge_mem(noeud, pointeur_taille);
                     auto valeur2 = m_constructrice.crée_z64(0);
                     valeur = m_constructrice.crée_op_comparaison(
-                        noeud, OpérateurBinaire::Genre::Comp_Egal, valeur1, valeur2);
+                        noeud, OpérateurBinaire::Genre::Comp_Égal, valeur1, valeur2);
                     break;
                 }
                 default:
@@ -2884,9 +2889,9 @@ void CompilatriceRI::génère_ri_pour_noeud(NoeudExpression *noeud, Atome *place
                     noeud, type_tableau_dyn, nullptr);
 
                 /* Le pointeur du tableau doit être vers la temporaire. */
-                auto ptr_pointeur_donnees = m_constructrice.crée_référence_rubrique(
+                auto ptr_pointeur_données = m_constructrice.crée_référence_rubrique(
                     noeud, alloc_tableau_dyn, 0);
-                m_constructrice.crée_stocke_mem(noeud, ptr_pointeur_donnees, tmp);
+                m_constructrice.crée_stocke_mem(noeud, ptr_pointeur_données, tmp);
 
                 auto ptr_taille = m_constructrice.crée_référence_rubrique(
                     noeud, alloc_tableau_dyn, 1);
@@ -2900,10 +2905,10 @@ void CompilatriceRI::génère_ri_pour_noeud(NoeudExpression *noeud, Atome *place
             auto pointeur_tableau = m_constructrice.crée_allocation(
                 noeud, type_tableau_fixe, nullptr);
 
-            auto index = 0ul;
+            auto indice = 0ul;
             POUR (noeud_tableau->expressions) {
                 auto indice_tableau = m_constructrice.crée_accès_indice(
-                    noeud, pointeur_tableau, m_constructrice.crée_z64(index++));
+                    noeud, pointeur_tableau, m_constructrice.crée_z64(indice++));
                 génère_ri_pour_expression_droite(it, indice_tableau);
             }
 
@@ -3305,6 +3310,21 @@ void CompilatriceRI::transforme_valeur(NoeudExpression const *noeud,
         case TypeTransformation::CONSTRUIS_UNION:
         {
             auto type_union = transformation.type_cible->comme_type_union();
+            // À FAIRE : fais ceci en amont.
+            auto rubrique = type_union->rubriques[int32_t(transformation.indice_rubrique)];
+
+            if (valeur->type->est_type_entier_constant()) {
+                if (rubrique.type->est_type_réel()) {
+                    auto constante_entière = valeur->comme_constante_entière();
+                    auto valeur_entière = constante_entière->valeur;
+                    auto valeur_réelle = static_cast<double>(valeur_entière);
+                    valeur = m_constructrice.crée_constante_nombre_réel(rubrique.type,
+                                                                        valeur_réelle);
+                }
+                else {
+                    valeur->type = rubrique.type;
+                }
+            }
 
             valeur = crée_temporaire_si_non_chargeable(noeud, valeur);
 
@@ -3329,7 +3349,7 @@ void CompilatriceRI::transforme_valeur(NoeudExpression const *noeud,
             }
             else {
                 /* Pour les unions, nous transtypons la rubrique vers le type cible afin d'éviter
-                 * les problème de surécriture de mémoire dans le cas où le type du rubrique est
+                 * les problème de surécriture de mémoire dans le cas où le type de la rubrique est
                  * plus grand que le type de la valeur. */
                 valeur = m_constructrice.crée_charge_mem(noeud, valeur);
 
@@ -3342,10 +3362,10 @@ void CompilatriceRI::transforme_valeur(NoeudExpression const *noeud,
                 m_constructrice.crée_stocke_mem(noeud, rubrique_transtype, valeur);
 
                 accès_rubrique = m_constructrice.crée_référence_rubrique(noeud, alloc, 1);
-                auto index = m_constructrice.crée_constante_nombre_entier(
+                auto indice = m_constructrice.crée_constante_nombre_entier(
                     m_espace->typeuse.type_z32,
                     static_cast<uint64_t>(transformation.indice_rubrique + 1));
-                m_constructrice.crée_stocke_mem(noeud, accès_rubrique, index);
+                m_constructrice.crée_stocke_mem(noeud, accès_rubrique, indice);
             }
 
             if (place == nullptr) {
@@ -3369,7 +3389,7 @@ void CompilatriceRI::transforme_valeur(NoeudExpression const *noeud,
                     (m_fonction_courante->decl &&
                      m_fonction_courante->decl->possède_drapeau(DrapeauxNoeudFonction::SANS_VRU));
                 if (!sans_vru) {
-                    auto rubrique_active = m_constructrice.crée_reference_rubrique_et_charge(
+                    auto rubrique_active = m_constructrice.crée_référence_rubrique_et_charge(
                         noeud, valeur, 1);
 
                     auto label_si_vrai = m_constructrice.réserve_label(noeud);
@@ -3377,7 +3397,7 @@ void CompilatriceRI::transforme_valeur(NoeudExpression const *noeud,
 
                     auto condition = m_constructrice.crée_op_comparaison(
                         noeud,
-                        OpérateurBinaire::Genre::Comp_Inegal,
+                        OpérateurBinaire::Genre::Comp_Inégal,
                         rubrique_active,
                         m_constructrice.crée_z32(
                             static_cast<unsigned>(transformation.indice_rubrique + 1)));
@@ -3470,25 +3490,29 @@ void CompilatriceRI::transforme_valeur(NoeudExpression const *noeud,
         {
             valeur = crée_charge_mem_si_chargeable(noeud, valeur);
 
-            if (noeud->type->est_type_réel()) {
+            if (valeur->type->est_type_réel()) {
                 valeur = m_constructrice.crée_transtype(
                     noeud, transformation.type_cible, valeur, TypeTranstypage::AUGMENTE_RÉEL);
             }
-            else if (noeud->type->est_type_entier_naturel()) {
+            else if (valeur->type->est_type_entier_naturel()) {
                 valeur = m_constructrice.crée_transtype(
                     noeud, transformation.type_cible, valeur, TypeTranstypage::AUGMENTE_NATUREL);
             }
-            else if (noeud->type->est_type_entier_relatif()) {
+            else if (valeur->type->est_type_entier_relatif()) {
                 valeur = m_constructrice.crée_transtype(
                     noeud, transformation.type_cible, valeur, TypeTranstypage::AUGMENTE_RELATIF);
             }
-            else if (noeud->type->est_type_bool()) {
+            else if (valeur->type->est_type_bool()) {
                 valeur = m_constructrice.crée_transtype(
                     noeud, transformation.type_cible, valeur, TypeTranstypage::AUGMENTE_NATUREL);
             }
-            else if (noeud->type->est_type_octet()) {
+            else if (valeur->type->est_type_octet()) {
                 valeur = m_constructrice.crée_transtype(
                     noeud, transformation.type_cible, valeur, TypeTranstypage::AUGMENTE_NATUREL);
+            }
+            else {
+                assert_rappel(false,
+                              [&] { dbg() << "Type non-géré " << chaine_type(valeur->type); });
             }
 
             break;
@@ -3498,8 +3522,8 @@ void CompilatriceRI::transforme_valeur(NoeudExpression const *noeud,
             valeur = crée_charge_mem_si_chargeable(noeud, valeur);
 
             auto type_transtypage = valeur->type->est_type_entier_naturel() ?
-                                        TypeTranstypage::ENTIER_NATUREL_VERS_REEL :
-                                        TypeTranstypage::ENTIER_RELATIF_VERS_REEL;
+                                        TypeTranstypage::ENTIER_NATUREL_VERS_RÉEL :
+                                        TypeTranstypage::ENTIER_RELATIF_VERS_RÉEL;
 
             valeur = m_constructrice.crée_transtype(
                 noeud, transformation.type_cible, valeur, type_transtypage);
@@ -3521,19 +3545,19 @@ void CompilatriceRI::transforme_valeur(NoeudExpression const *noeud,
         {
             valeur = crée_charge_mem_si_chargeable(noeud, valeur);
 
-            if (noeud->type->est_type_réel()) {
+            if (valeur->type->est_type_réel()) {
                 valeur = m_constructrice.crée_transtype(
                     noeud, transformation.type_cible, valeur, TypeTranstypage::DIMINUE_RÉEL);
             }
-            else if (noeud->type->est_type_entier_naturel()) {
+            else if (valeur->type->est_type_entier_naturel()) {
                 valeur = m_constructrice.crée_transtype(
                     noeud, transformation.type_cible, valeur, TypeTranstypage::DIMINUE_NATUREL);
             }
-            else if (noeud->type->est_type_entier_relatif()) {
+            else if (valeur->type->est_type_entier_relatif()) {
                 valeur = m_constructrice.crée_transtype(
                     noeud, transformation.type_cible, valeur, TypeTranstypage::DIMINUE_RELATIF);
             }
-            else if (noeud->type->est_type_bool()) {
+            else if (valeur->type->est_type_bool()) {
                 valeur = m_constructrice.crée_transtype(
                     noeud, transformation.type_cible, valeur, TypeTranstypage::DIMINUE_NATUREL);
             }
@@ -3637,11 +3661,11 @@ void CompilatriceRI::transforme_valeur(NoeudExpression const *noeud,
                 }
                 case GenreNoeud::CHAINE:
                 {
-                    valeur_pointeur = m_constructrice.crée_reference_rubrique_et_charge(
+                    valeur_pointeur = m_constructrice.crée_référence_rubrique_et_charge(
                         noeud, valeur, 0);
                     valeur_pointeur = m_constructrice.crée_transtype(
                         noeud, type_cible, valeur_pointeur, TypeTranstypage::BITS);
-                    valeur_taille = m_constructrice.crée_reference_rubrique_et_charge(
+                    valeur_taille = m_constructrice.crée_référence_rubrique_et_charge(
                         noeud, valeur, 1);
                     break;
                 }
@@ -3649,11 +3673,11 @@ void CompilatriceRI::transforme_valeur(NoeudExpression const *noeud,
                 {
                     auto type_pointer = noeud->type->comme_type_tableau_dynamique()->type_pointé;
 
-                    valeur_pointeur = m_constructrice.crée_reference_rubrique_et_charge(
+                    valeur_pointeur = m_constructrice.crée_référence_rubrique_et_charge(
                         noeud, valeur, 0);
                     valeur_pointeur = m_constructrice.crée_transtype(
                         noeud, type_cible, valeur_pointeur, TypeTranstypage::BITS);
-                    valeur_taille = m_constructrice.crée_reference_rubrique_et_charge(
+                    valeur_taille = m_constructrice.crée_référence_rubrique_et_charge(
                         noeud, valeur, 1);
 
                     auto taille_type = type_pointer->taille_octet;
@@ -3672,11 +3696,11 @@ void CompilatriceRI::transforme_valeur(NoeudExpression const *noeud,
                 {
                     auto type_élément = noeud->type->comme_type_tranche()->type_élément;
 
-                    valeur_pointeur = m_constructrice.crée_reference_rubrique_et_charge(
+                    valeur_pointeur = m_constructrice.crée_référence_rubrique_et_charge(
                         noeud, valeur, 0);
                     valeur_pointeur = m_constructrice.crée_transtype(
                         noeud, type_cible, valeur_pointeur, TypeTranstypage::BITS);
-                    valeur_taille = m_constructrice.crée_reference_rubrique_et_charge(
+                    valeur_taille = m_constructrice.crée_référence_rubrique_et_charge(
                         noeud, valeur, 1);
 
                     auto taille_type = type_élément->taille_octet;
@@ -3931,8 +3955,8 @@ void CompilatriceRI::génère_ri_pour_accès_rubrique_union(NoeudExpressionRubri
     auto sans_vru = m_fonction_courante->decl &&
                     m_fonction_courante->decl->possède_drapeau(DrapeauxNoeudFonction::SANS_VRU);
     if (!expression_gauche && !sans_vru) {
-        // vérifie l'index du rubrique
-        auto rubrique_active = m_constructrice.crée_reference_rubrique_et_charge(
+        // vérifie l'indice de la rubrique
+        auto rubrique_active = m_constructrice.crée_référence_rubrique_et_charge(
             noeud, ptr_union, 1);
 
         auto label_si_vrai = m_constructrice.réserve_label(noeud);
@@ -3940,7 +3964,7 @@ void CompilatriceRI::génère_ri_pour_accès_rubrique_union(NoeudExpressionRubri
 
         auto condition = m_constructrice.crée_op_comparaison(
             noeud,
-            OpérateurBinaire::Genre::Comp_Inegal,
+            OpérateurBinaire::Genre::Comp_Inégal,
             rubrique_active,
             m_constructrice.crée_z32(static_cast<unsigned>(noeud->indice_rubrique + 1)));
 
@@ -3971,15 +3995,15 @@ void CompilatriceRI::génère_ri_pour_condition(NoeudExpression const *condition
                                               InstructionLabel *label_si_vrai,
                                               InstructionLabel *label_si_faux)
 {
-    auto genre_lexeme = condition->lexème->genre;
+    auto genre_lexème = condition->lexème->genre;
 
-    if (est_opérateur_comparaison(genre_lexeme) ||
+    if (est_opérateur_comparaison(genre_lexème) ||
         condition->possède_drapeau(DrapeauxNoeud::ACCES_EST_ENUM_DRAPEAU)) {
         génère_ri_pour_expression_droite(condition, nullptr);
         auto valeur = dépile_valeur();
         m_constructrice.crée_branche_condition(condition, valeur, label_si_vrai, label_si_faux);
     }
-    else if (genre_lexeme == GenreLexème::ESP_ESP) {
+    else if (genre_lexème == GenreLexème::ESP_ESP) {
         auto expr_bin = condition->comme_expression_logique();
         auto cond1 = expr_bin->opérande_gauche;
         auto cond2 = expr_bin->opérande_droite;
@@ -3989,7 +4013,7 @@ void CompilatriceRI::génère_ri_pour_condition(NoeudExpression const *condition
         m_constructrice.insère_label(nouveau_label);
         génère_ri_pour_condition(cond2, label_si_vrai, label_si_faux);
     }
-    else if (genre_lexeme == GenreLexème::BARRE_BARRE) {
+    else if (genre_lexème == GenreLexème::BARRE_BARRE) {
         auto expr_bin = condition->comme_expression_logique();
         auto cond1 = expr_bin->opérande_gauche;
         auto cond2 = expr_bin->opérande_droite;
@@ -3999,14 +4023,14 @@ void CompilatriceRI::génère_ri_pour_condition(NoeudExpression const *condition
         m_constructrice.insère_label(nouveau_label);
         génère_ri_pour_condition(cond2, label_si_vrai, label_si_faux);
     }
-    else if (genre_lexeme == GenreLexème::EXCLAMATION) {
+    else if (genre_lexème == GenreLexème::EXCLAMATION) {
         auto expr_unaire = condition->comme_négation_logique();
         génère_ri_pour_condition(expr_unaire->opérande, label_si_faux, label_si_vrai);
     }
-    else if (genre_lexeme == GenreLexème::VRAI) {
+    else if (genre_lexème == GenreLexème::VRAI) {
         m_constructrice.crée_branche(condition, label_si_vrai);
     }
-    else if (genre_lexeme == GenreLexème::FAUX) {
+    else if (genre_lexème == GenreLexème::FAUX) {
         m_constructrice.crée_branche(condition, label_si_faux);
     }
     else if (condition->genre == GenreNoeud::EXPRESSION_PARENTHÈSE) {
@@ -4035,7 +4059,7 @@ void CompilatriceRI::génère_ri_pour_condition_implicite(NoeudExpression const 
             auto valeur1 = dépile_valeur();
             auto valeur2 = m_constructrice.crée_constante_nombre_entier(type_condition, 0);
             valeur = m_constructrice.crée_op_comparaison(
-                condition, OpérateurBinaire::Genre::Comp_Inegal, valeur1, valeur2);
+                condition, OpérateurBinaire::Genre::Comp_Inégal, valeur1, valeur2);
             break;
         }
         case GenreNoeud::BOOL:
@@ -4052,7 +4076,7 @@ void CompilatriceRI::génère_ri_pour_condition_implicite(NoeudExpression const 
             auto valeur1 = dépile_valeur();
             auto valeur2 = m_constructrice.crée_constante_nulle(type_condition);
             valeur = m_constructrice.crée_op_comparaison(
-                condition, OpérateurBinaire::Genre::Comp_Inegal, valeur1, valeur2);
+                condition, OpérateurBinaire::Genre::Comp_Inégal, valeur1, valeur2);
             break;
         }
         case GenreNoeud::EINI:
@@ -4064,7 +4088,7 @@ void CompilatriceRI::génère_ri_pour_condition_implicite(NoeudExpression const 
             auto valeur1 = m_constructrice.crée_charge_mem(condition, pointeur_pointeur);
             auto valeur2 = m_constructrice.crée_constante_nulle(valeur1->type);
             valeur = m_constructrice.crée_op_comparaison(
-                condition, OpérateurBinaire::Genre::Comp_Inegal, valeur1, valeur2);
+                condition, OpérateurBinaire::Genre::Comp_Inégal, valeur1, valeur2);
             break;
         }
         case GenreNoeud::CHAINE:
@@ -4077,7 +4101,7 @@ void CompilatriceRI::génère_ri_pour_condition_implicite(NoeudExpression const 
             auto valeur1 = m_constructrice.crée_charge_mem(condition, pointeur_taille);
             auto valeur2 = m_constructrice.crée_z64(0);
             valeur = m_constructrice.crée_op_comparaison(
-                condition, OpérateurBinaire::Genre::Comp_Inegal, valeur1, valeur2);
+                condition, OpérateurBinaire::Genre::Comp_Inégal, valeur1, valeur2);
             break;
         }
         default:
@@ -4369,8 +4393,6 @@ AtomeGlobale *CompilatriceRI::crée_info_type(Type const *type, NoeudExpression 
             type->atome_info_type = globale;
             globale->est_part_info_type = true;
 
-            // ------------------------------------
-            /* pour chaque rubrique cree une instance de InfoTypeRubriqueStructure */
             auto type_struct_rubrique = m_espace->typeuse.type_info_type_rubrique_structure;
 
             kuri::tableau<AtomeConstante *> valeurs_rubriques;
@@ -4455,8 +4477,6 @@ AtomeGlobale *CompilatriceRI::crée_info_type(Type const *type, NoeudExpression 
             type->atome_info_type = globale;
             globale->est_part_info_type = true;
 
-            // ------------------------------------
-            /* pour chaque rubrique cree une instance de InfoTypeRubriqueStructure */
             auto type_struct_rubrique = m_espace->typeuse.type_info_type_rubrique_structure;
 
             kuri::tableau<AtomeConstante *> valeurs_rubriques;
@@ -4676,21 +4696,21 @@ void CompilatriceRI::génère_ri_pour_initialisation_globales(
     termine_espace();
 }
 
-AtomeConstante *CompilatriceRI::crée_constante_info_type_pour_base(GenreInfoType index,
+AtomeConstante *CompilatriceRI::crée_constante_info_type_pour_base(GenreInfoType indice,
                                                                    Type const *pour_type)
 {
     auto rubriques = kuri::tableau<AtomeConstante *>(3);
-    remplis_rubriques_de_bases_info_type(rubriques, index, pour_type);
+    remplis_rubriques_de_bases_info_type(rubriques, indice, pour_type);
     return m_constructrice.crée_constante_structure(m_espace->typeuse.type_info_type_,
                                                     std::move(rubriques));
 }
 
 void CompilatriceRI::remplis_rubriques_de_bases_info_type(kuri::tableau<AtomeConstante *> &valeurs,
-                                                          GenreInfoType index,
+                                                          GenreInfoType indice,
                                                           Type const *pour_type)
 {
     assert(valeurs.taille() == 3);
-    valeurs[0] = m_constructrice.crée_z32(uint32_t(index));
+    valeurs[0] = m_constructrice.crée_z32(uint32_t(indice));
     /* Puisque nous pouvons générer du code pour des architectures avec adressages en 32 ou 64
      * bits, et puisque nous pouvons exécuter sur une machine avec une architecture différente de
      * la cible de compilation, nous générons les constantes pour les taille_de lors de l'émission
@@ -4699,10 +4719,10 @@ void CompilatriceRI::remplis_rubriques_de_bases_info_type(kuri::tableau<AtomeCon
     valeurs[2] = m_constructrice.crée_n32(pour_type->alignement);
 }
 
-AtomeGlobale *CompilatriceRI::crée_info_type_défaut(GenreInfoType index, Type const *pour_type)
+AtomeGlobale *CompilatriceRI::crée_info_type_défaut(GenreInfoType indice, Type const *pour_type)
 {
     auto valeurs = kuri::tableau<AtomeConstante *>(3);
-    remplis_rubriques_de_bases_info_type(valeurs, index, pour_type);
+    remplis_rubriques_de_bases_info_type(valeurs, indice, pour_type);
     return crée_globale_info_type(m_espace->typeuse.type_info_type_, std::move(valeurs));
 }
 
@@ -4943,10 +4963,10 @@ Atome *CompilatriceRI::convertis_vers_tranche(NoeudExpression const *noeud,
         alloc_tranche = m_constructrice.crée_allocation(noeud, type_tranche, nullptr);
     }
 
-    auto ptr_pointeur_donnees = m_constructrice.crée_référence_rubrique(noeud, alloc_tranche, 0);
+    auto ptr_pointeur_données = m_constructrice.crée_référence_rubrique(noeud, alloc_tranche, 0);
     auto premier_elem = m_constructrice.crée_accès_indice(
         noeud, pointeur_tableau_fixe, m_constructrice.crée_z64(0ul));
-    m_constructrice.crée_stocke_mem(noeud, ptr_pointeur_donnees, premier_elem);
+    m_constructrice.crée_stocke_mem(noeud, ptr_pointeur_données, premier_elem);
 
     auto ptr_taille = m_constructrice.crée_référence_rubrique(noeud, alloc_tranche, 1);
     auto constante = m_constructrice.crée_z64(unsigned(type_tableau_fixe->taille));
@@ -4967,13 +4987,13 @@ Atome *CompilatriceRI::convertis_vers_tranche(NoeudExpression const *noeud,
         alloc_tranche = m_constructrice.crée_allocation(noeud, type_tranche, nullptr);
     }
 
-    auto ptr_pointeur_donnees = m_constructrice.crée_référence_rubrique(noeud, alloc_tranche, 0);
-    auto pointeur_éléments = m_constructrice.crée_reference_rubrique_et_charge(
+    auto ptr_pointeur_données = m_constructrice.crée_référence_rubrique(noeud, alloc_tranche, 0);
+    auto pointeur_éléments = m_constructrice.crée_référence_rubrique_et_charge(
         noeud, pointeur_tableau, 0);
-    m_constructrice.crée_stocke_mem(noeud, ptr_pointeur_donnees, pointeur_éléments);
+    m_constructrice.crée_stocke_mem(noeud, ptr_pointeur_données, pointeur_éléments);
 
     auto ptr_taille = m_constructrice.crée_référence_rubrique(noeud, alloc_tranche, 1);
-    auto taille_tableau = m_constructrice.crée_reference_rubrique_et_charge(
+    auto taille_tableau = m_constructrice.crée_référence_rubrique_et_charge(
         noeud, pointeur_tableau, 1);
     m_constructrice.crée_stocke_mem(noeud, ptr_taille, taille_tableau);
 
@@ -4982,7 +5002,7 @@ Atome *CompilatriceRI::convertis_vers_tranche(NoeudExpression const *noeud,
 
 AtomeConstante *CompilatriceRI::crée_constante_pour_chaine(kuri::chaine_statique chaine)
 {
-    auto table_chaines = m_espace->registre_chaines_ri.verrou_ecriture();
+    auto table_chaines = m_espace->registre_chaines_ri.verrou_écriture();
     auto valeur = table_chaines->donne_constante_pour_chaine(chaine);
 
     if (valeur) {
@@ -5027,7 +5047,7 @@ AtomeGlobale *CompilatriceRI::crée_globale_pour_chaine(kuri::chaine_statique ch
 {
     auto constante = crée_constante_pour_chaine(chaine);
 
-    auto table_chaines = m_espace->registre_chaines_ri.verrou_ecriture();
+    auto table_chaines = m_espace->registre_chaines_ri.verrou_écriture();
     auto valeur = table_chaines->donne_globale_pour_chaine(constante);
 
     if (valeur) {
@@ -5091,6 +5111,11 @@ void CompilatriceRI::génère_ri_pour_initialisation_globales(
     fonction_init->instructions.ajoute(di);
 
     définis_fonction_courante(nullptr);
+
+    if (fonction_init->decl &&
+        fonction_init->decl->possède_drapeau(DrapeauxNoeudFonction::CLICHÉ_RI_FINALE_FUT_REQUIS)) {
+        dbg() << imprime_fonction(fonction_init);
+    }
 }
 
 void CompilatriceRI::génère_ri_pour_fonction_métaprogramme(
@@ -5366,7 +5391,7 @@ void CompilatriceRI::ajourne_indice_rubrique_union(NoeudExpression *expression)
     expression_gauche = ancienne_expression_gauche;
 
     auto ptr_union = dépile_valeur();
-    // ajourne l'index du rubrique
+    // ajourne l'indice de la rubrique
     auto rubrique_active = m_constructrice.crée_référence_rubrique(noeud, ptr_union, 1);
     m_constructrice.crée_stocke_mem(
         noeud,
@@ -5395,7 +5420,7 @@ Atome *CompilatriceRI::donne_atome_pour_locale(NoeudExpression *expression)
 }
 
 void CompilatriceRI::génère_ri_pour_assignation_variable(
-    kuri::tableau_compresse<DonneesAssignations, int> const &données_exprs)
+    kuri::tableau_compresse<DonnéesAssignations, int> const &données_exprs)
 {
     if (données_exprs.taille() == 1 && données_exprs[0].variables.taille() == 1) {
         /* Cas simple : a = b ou a := b */
@@ -5605,10 +5630,10 @@ void CompilatriceRI::génère_ri_pour_construction_tableau(
         pointeur_tableau = m_constructrice.crée_allocation(expr, expr->type, nullptr);
     }
 
-    auto index = 0ul;
+    auto indice = 0ul;
     POUR (feuilles->expressions) {
         auto indice_tableau = m_constructrice.crée_accès_indice(
-            expr, pointeur_tableau, m_constructrice.crée_z64(index++));
+            expr, pointeur_tableau, m_constructrice.crée_z64(indice++));
         génère_ri_pour_expression_droite(it, indice_tableau);
     }
 
@@ -5664,12 +5689,12 @@ AtomeGlobale *CompilatriceRI::crée_info_appel_pour_trace_appel(InstructionAppel
     /* Ligne colonne texte. */
     kuri::tableau<AtomeConstante *> valeurs(3);
     if (pour_appel->site) {
-        auto const lexeme = pour_appel->site->lexème;
+        auto const lexème = pour_appel->site->lexème;
         auto const fichier = m_espace->fichier(pour_appel->site->lexème->fichier);
-        auto const texte_ligne = fichier->tampon()[lexeme->ligne];
+        auto const texte_ligne = fichier->tampon()[lexème->ligne];
 
-        valeurs[0] = m_constructrice.crée_z32(uint64_t(lexeme->ligne + 1));
-        valeurs[1] = m_constructrice.crée_z32(uint64_t(lexeme->colonne + 1));
+        valeurs[0] = m_constructrice.crée_z32(uint64_t(lexème->ligne + 1));
+        valeurs[1] = m_constructrice.crée_z32(uint64_t(lexème->colonne + 1));
         valeurs[2] = crée_constante_pour_chaine(
             kuri::chaine_statique(texte_ligne.begin(), texte_ligne.taille()));
     }

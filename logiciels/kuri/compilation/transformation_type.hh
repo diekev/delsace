@@ -130,11 +130,11 @@ struct TransformationType {
 
 std::ostream &operator<<(std::ostream &os, TransformationType type);
 
-using ResultatTransformation = std::variant<TransformationType, Attente>;
+using RésultatTransformation = std::variant<TransformationType, Attente>;
 
-ResultatTransformation cherche_transformation(Type const *type_de, Type const *type_vers);
+RésultatTransformation cherche_transformation(Type const *type_de, Type const *type_vers);
 
-ResultatTransformation cherche_transformation_pour_transtypage(Type const *type_de,
+RésultatTransformation cherche_transformation_pour_transtypage(Type const *type_de,
                                                                Type const *type_vers);
 
 /* Représente une transformation et son poids associé. Le poids peut-être utilisé pour calculer le
@@ -144,15 +144,15 @@ struct PoidsTransformation {
     double poids;
 };
 
-using ResultatPoidsTransformation = std::variant<PoidsTransformation, Attente>;
+using RésultatPoidsTransformation = std::variant<PoidsTransformation, Attente>;
 
 // Vérifie la compatibilité de deux types pour un opérateur.
-ResultatPoidsTransformation vérifie_compatibilité(Type const *type_vers,
+RésultatPoidsTransformation vérifie_compatibilité(Type const *type_vers,
                                                   Type const *type_de,
                                                   bool ignore_entier_constant);
 
 // Vérifie la compatibilité de deux types pour passer une expressions à une expression d'appel.
-ResultatPoidsTransformation vérifie_compatibilité(Type const *type_vers,
+RésultatPoidsTransformation vérifie_compatibilité(Type const *type_vers,
                                                   Type const *type_de,
                                                   NoeudExpression const *noeud,
                                                   bool ignore_entier_constant);

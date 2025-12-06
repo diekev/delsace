@@ -4,8 +4,7 @@ importe Fondation
 importe Processus
 importe SysFichier
 
-compile_bibliothèqe :: fonc ()
-{
+#exécute {
     chemin_courant := #chemin_de_ce_fichier
     dossier := CheminFichier(chemin_courant).chemin_parent()
     diffère détruit_chemin(dossier)
@@ -87,5 +86,3 @@ compile_bibliothèqe :: fonc ()
     module := compilatrice_donne_module(espace, #chemin_de_ce_module)
     ajoute_chaine_au_module(espace, module, sources_extra)
 }
-
-#exécute compile_bibliothèqe()

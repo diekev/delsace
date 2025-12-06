@@ -98,8 +98,8 @@ Compilatrice::Compilatrice(kuri::chaine chemin_racine_kuri, ArgumentsCompilatric
 {
     racine_modules_kuri = racine_kuri / "modules";
 
-    initialise_identifiants_intrinsèques(*table_identifiants.verrou_ecriture());
-    initialise_identifiants_ipa(*table_identifiants.verrou_ecriture());
+    initialise_identifiants_intrinsèques(*table_identifiants.verrou_écriture());
+    initialise_identifiants_ipa(*table_identifiants.verrou_écriture());
 
     broyeuse = mémoire::loge<Broyeuse>("Broyeuse");
 
@@ -108,23 +108,23 @@ Compilatrice::Compilatrice(kuri::chaine chemin_racine_kuri, ArgumentsCompilatric
 
 Compilatrice::~Compilatrice()
 {
-    POUR ((*espaces_de_travail.verrou_ecriture())) {
-        mémoire::deloge("EspaceDeTravail", it);
+    POUR ((*espaces_de_travail.verrou_écriture())) {
+        mémoire::déloge("EspaceDeTravail", it);
     }
 
     POUR (m_états_libres) {
-        mémoire::deloge("ÉtatRésolutionAppel", it);
+        mémoire::déloge("ÉtatRésolutionAppel", it);
     }
 
     POUR (m_sémanticiennes) {
-        mémoire::deloge("Sémanticienne", it);
+        mémoire::déloge("Sémanticienne", it);
     }
 
     POUR (m_convertisseuses_noeud_code) {
-        mémoire::deloge("ConvertisseuseNoeudCode", it);
+        mémoire::déloge("ConvertisseuseNoeudCode", it);
     }
 
-    mémoire::deloge("Broyeuse", broyeuse);
+    mémoire::déloge("Broyeuse", broyeuse);
 }
 
 /* ************************************************************************** */
@@ -148,7 +148,7 @@ std::optional<kuri::chemin_systeme> determine_chemin_absolu(EspaceDeTravail *esp
     return kuri::chemin_systeme::absolu(chemin);
 }
 
-void Compilatrice::ajoute_fichier_a_la_compilation(EspaceDeTravail *espace,
+void Compilatrice::ajoute_fichier_à_la_compilation(EspaceDeTravail *espace,
                                                    EspaceDeTravail *espace_pour_site,
                                                    kuri::chaine_statique nom,
                                                    Module *module,
@@ -174,30 +174,30 @@ void Compilatrice::ajoute_fichier_a_la_compilation(EspaceDeTravail *espace,
 
 /* ************************************************************************** */
 
-int64_t Compilatrice::memoire_utilisee() const
+int64_t Compilatrice::mémoire_utilisée() const
 {
     auto résultat = taille_de(Compilatrice);
 
     résultat += ordonnanceuse->mémoire_utilisée();
-    résultat += table_identifiants->memoire_utilisee();
+    résultat += table_identifiants->mémoire_utilisée();
 
-    résultat += gérante_chaine->memoire_utilisee();
+    résultat += gérante_chaine->mémoire_utilisée();
 
     POUR ((*espaces_de_travail.verrou_lecture())) {
-        résultat += it->memoire_utilisee();
+        résultat += it->mémoire_utilisée();
     }
 
     résultat += messagère->mémoire_utilisée();
 
-    auto metaprogrammes_ = métaprogrammes.verrou_lecture();
-    POUR_TABLEAU_PAGE ((*metaprogrammes_)) {
+    auto métaprogrammes_ = métaprogrammes.verrou_lecture();
+    POUR_TABLEAU_PAGE ((*métaprogrammes_)) {
         résultat += it.programme->mémoire_utilisée();
         résultat += it.données_constantes.taille_mémoire();
         résultat += it.données_globales.taille_mémoire();
         résultat += it.cibles_appels.taille_mémoire();
     }
 
-    résultat += metaprogrammes_->mémoire_utilisée();
+    résultat += métaprogrammes_->mémoire_utilisée();
 
     résultat += chaines_ajoutées_à_la_compilation->mémoire_utilisée();
 
@@ -225,7 +225,7 @@ int64_t Compilatrice::memoire_utilisee() const
 
 void Compilatrice::rassemble_statistiques(Statistiques &stats) const
 {
-    stats.ajoute_mémoire_utilisée("Compilatrice", memoire_utilisee());
+    stats.ajoute_mémoire_utilisée("Compilatrice", mémoire_utilisée());
 
     POUR ((*espaces_de_travail.verrou_lecture())) {
         it->rassemble_statistiques(stats);
@@ -237,8 +237,8 @@ void Compilatrice::rassemble_statistiques(Statistiques &stats) const
 
     gestionnaire_bibliothèques->rassemble_statistiques(stats);
 
-    auto metaprogrammes_ = métaprogrammes.verrou_lecture();
-    POUR_TABLEAU_PAGE ((*metaprogrammes_)) {
+    auto métaprogrammes_ = métaprogrammes.verrou_lecture();
+    POUR_TABLEAU_PAGE ((*métaprogrammes_)) {
         it.programme->rassemble_statistiques(stats);
     }
 
@@ -428,7 +428,7 @@ void Compilatrice::ajoute_fichier_compilation(EspaceDeTravail *espace,
                                               kuri::chaine_statique c,
                                               const NoeudExpression *site)
 {
-    ajoute_fichier_a_la_compilation(espace, espace_pour_site, c, espace->module, site);
+    ajoute_fichier_à_la_compilation(espace, espace_pour_site, c, espace->module, site);
 }
 
 EspaceDeTravail *Compilatrice::espace_défaut_compilation()
@@ -436,12 +436,12 @@ EspaceDeTravail *Compilatrice::espace_défaut_compilation()
     return espace_de_travail_défaut;
 }
 
-static kuri::tableau<kuri::Lexème> convertis_tableau_lexemes(
-    kuri::tableau<Lexème, int> const &lexemes)
+static kuri::tableau<kuri::Lexème> convertis_tableau_lexèmes(
+    kuri::tableau<Lexème, int> const &lexèmes)
 {
-    auto résultat = kuri::tableau<kuri::Lexème>(lexemes.taille());
+    auto résultat = kuri::tableau<kuri::Lexème>(lexèmes.taille());
     auto indice_résultat = 0;
-    POUR (lexemes) {
+    POUR (lexèmes) {
         résultat[indice_résultat++] = {static_cast<int>(it.genre), it.chaine};
     }
     return résultat;
@@ -466,7 +466,7 @@ kuri::tableau_statique<kuri::Lexème> Compilatrice::lexe_fichier(EspaceDeTravail
 
     if (std::holds_alternative<FichierExistant>(résultat)) {
         auto fichier = static_cast<Fichier *>(std::get<FichierExistant>(résultat));
-        auto tableau = convertis_tableau_lexemes(fichier->lexèmes);
+        auto tableau = convertis_tableau_lexèmes(fichier->lexèmes);
         m_tableaux_lexèmes.ajoute(tableau);
         return m_tableaux_lexèmes.dernier_élément();
     }
@@ -479,15 +479,15 @@ kuri::tableau_statique<kuri::Lexème> Compilatrice::lexe_fichier(EspaceDeTravail
         contexte_lexage(espace), fichier, INCLUS_COMMENTAIRES | INCLUS_CARACTERES_BLANC);
     lexeuse.performe_lexage();
 
-    auto tableau = convertis_tableau_lexemes(fichier->lexèmes);
+    auto tableau = convertis_tableau_lexèmes(fichier->lexèmes);
     m_tableaux_lexèmes.ajoute(tableau);
     return m_tableaux_lexèmes.dernier_élément();
 }
 
-MetaProgramme *Compilatrice::metaprogramme_pour_fonction(
+MétaProgramme *Compilatrice::métaprogramme_pour_fonction(
     NoeudDéclarationEntêteFonction const *entête)
 {
-    POUR_TABLEAU_PAGE ((*métaprogrammes.verrou_ecriture())) {
+    POUR_TABLEAU_PAGE ((*métaprogrammes.verrou_écriture())) {
         if (it.fonction == entête) {
             return &it;
         }
@@ -496,21 +496,21 @@ MetaProgramme *Compilatrice::metaprogramme_pour_fonction(
     return nullptr;
 }
 
-Fichier *Compilatrice::crée_fichier_pour_metaprogramme(EspaceDeTravail *espace,
-                                                       MetaProgramme *metaprogramme_)
+Fichier *Compilatrice::crée_fichier_pour_métaprogramme(EspaceDeTravail *espace,
+                                                       MétaProgramme *métaprogramme_)
 {
-    auto const id_source_corps_texte = metaprogramme_->corps_texte->lexème->fichier;
+    auto const id_source_corps_texte = métaprogramme_->corps_texte->lexème->fichier;
     auto fichier_racine = espace->fichier(id_source_corps_texte);
     auto module = fichier_racine->module;
-    auto nom_fichier = enchaine(metaprogramme_);
+    auto nom_fichier = enchaine(métaprogramme_);
     auto résultat_fichier = espace->sys_module->trouve_ou_crée_fichier(
         module, nom_fichier, nom_fichier);
     assert(std::holds_alternative<FichierNeuf>(résultat_fichier));
     auto résultat = static_cast<Fichier *>(std::get<FichierNeuf>(résultat_fichier));
-    résultat->métaprogramme_corps_texte = metaprogramme_;
+    résultat->métaprogramme_corps_texte = métaprogramme_;
     résultat->id_source_corps_texte = id_source_corps_texte;
     résultat->source = SourceFichier::CHAINE_AJOUTÉE;
-    metaprogramme_->fichier = résultat;
+    métaprogramme_->fichier = résultat;
     return résultat;
 }
 
@@ -532,10 +532,10 @@ Fichier *Compilatrice::crée_fichier_pour_insère(EspaceDeTravail *espace,
     return résultat;
 }
 
-MetaProgramme *Compilatrice::crée_metaprogramme(EspaceDeTravail *espace)
+MétaProgramme *Compilatrice::crée_métaprogramme(EspaceDeTravail *espace)
 {
     auto résultat = métaprogrammes->ajoute_élément();
-    résultat->programme = Programme::crée_pour_metaprogramme(espace, résultat);
+    résultat->programme = Programme::crée_pour_métaprogramme(espace, résultat);
     return résultat;
 }
 
@@ -583,17 +583,17 @@ IdentifiantCode *Compilatrice::donne_identifiant_pour_globale(kuri::chaine_stati
     return table_identifiants->identifiant_pour_nouvelle_chaine(nom);
 }
 
-IdentifiantCode *Compilatrice::donne_nom_défaut_valeur_retour(int index)
+IdentifiantCode *Compilatrice::donne_nom_défaut_valeur_retour(int indice)
 {
     std::unique_lock verrouille(m_mutex_noms_valeurs_retours_défaut);
 
-    if (index >= m_noms_valeurs_retours_défaut.taille()) {
+    if (indice >= m_noms_valeurs_retours_défaut.taille()) {
         auto ident = table_identifiants->identifiant_pour_nouvelle_chaine(
-            enchaine("__ret", index));
+            enchaine("__ret", indice));
         m_noms_valeurs_retours_défaut.ajoute(ident);
     }
 
-    return m_noms_valeurs_retours_défaut[index];
+    return m_noms_valeurs_retours_défaut[indice];
 }
 
 Sémanticienne *Compilatrice::donne_sémanticienne_disponible(Contexte *contexte)

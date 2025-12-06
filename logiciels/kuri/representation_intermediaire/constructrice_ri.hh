@@ -15,7 +15,7 @@ class Broyeuse;
 struct Annotation;
 struct Compilatrice;
 struct ConstructriceRI;
-struct DonneesAssignations;
+struct DonnéesAssignations;
 
 using TypeEnum = NoeudEnum;
 using TypeTableauFixe = NoeudDéclarationTypeTableauFixe;
@@ -202,19 +202,19 @@ struct ConstructriceRI {
 
     InstructionAccèsIndice *crée_accès_indice(NoeudExpression const *site_,
                                               Atome *accédé,
-                                              Atome *index);
+                                              Atome *indice);
     InstructionAccèsRubrique *crée_référence_rubrique(NoeudExpression const *site_,
                                                       Type const *type,
                                                       Atome *accédé,
-                                                      int index,
+                                                      int indice,
                                                       bool crée_seulement = false);
     InstructionAccèsRubrique *crée_référence_rubrique(NoeudExpression const *site_,
                                                       Atome *accédé,
-                                                      int index,
+                                                      int indice,
                                                       bool crée_seulement = false);
-    Instruction *crée_reference_rubrique_et_charge(NoeudExpression const *site_,
+    Instruction *crée_référence_rubrique_et_charge(NoeudExpression const *site_,
                                                    Atome *accédé,
-                                                   int index);
+                                                   int indice);
 
     Atome *crée_transtype(NoeudExpression const *site_,
                           Type const *type,
@@ -222,7 +222,7 @@ struct ConstructriceRI {
                           TypeTranstypage op);
 
     TranstypeConstant *crée_transtype_constant(Type const *type, AtomeConstante *valeur);
-    AccèsIndiceConstant *crée_accès_indice_constant(AtomeConstante *accédé, int64_t index);
+    AccèsIndiceConstant *crée_accès_indice_constant(AtomeConstante *accédé, int64_t indice);
 
     AtomeConstante *crée_initialisation_défaut_pour_type(Type const *type);
 
@@ -456,18 +456,18 @@ struct CompilatriceRI {
     void génère_ri_pour_construction_tableau(NoeudExpressionConstructionTableau const *expr,
                                              Atome *place);
     void génère_ri_pour_assignation_variable(
-        kuri::tableau_compresse<DonneesAssignations, int> const &données_exprs);
+        kuri::tableau_compresse<DonnéesAssignations, int> const &données_exprs);
 
     void transforme_valeur(NoeudExpression const *noeud,
                            Atome *valeur,
                            const TransformationType &transformation,
                            Atome *place);
 
-    AtomeConstante *crée_constante_info_type_pour_base(GenreInfoType index, Type const *pour_type);
+    AtomeConstante *crée_constante_info_type_pour_base(GenreInfoType indice, Type const *pour_type);
     void remplis_rubriques_de_bases_info_type(kuri::tableau<AtomeConstante *> &valeurs,
-                                              GenreInfoType index,
+                                              GenreInfoType indice,
                                               Type const *pour_type);
-    AtomeGlobale *crée_info_type_défaut(GenreInfoType index, Type const *pour_type);
+    AtomeGlobale *crée_info_type_défaut(GenreInfoType indice, Type const *pour_type);
     AtomeGlobale *crée_info_type_entier(Type const *pour_type, bool est_relatif);
     AtomeConstante *crée_info_type_avec_transtype(Type const *type, NoeudExpression const *site);
     AtomeGlobale *crée_globale_info_type(Type const *type_info_type,

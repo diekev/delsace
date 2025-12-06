@@ -183,18 +183,18 @@ static int type_informations(const OptionsDeCompilation &options)
 static kuri::tablet<kuri::chaine_statique, 16> divise_chaine_par(kuri::chaine_statique chn,
                                                                  char separateur)
 {
-    kuri::tablet<kuri::chaine_statique, 16> resultat;
+    kuri::tablet<kuri::chaine_statique, 16> résultat;
 
     auto taille = 0;
     auto pointeur = chn.pointeur();
-    auto debut = chn.pointeur();
+    auto début = chn.pointeur();
 
     for (auto i = 0; i < chn.taille(); i++) {
         if (pointeur[i] == separateur) {
-            auto sous_chaine = kuri::chaine_statique(debut, taille);
+            auto sous_chaine = kuri::chaine_statique(début, taille);
             taille = 0;
-            debut = &pointeur[i + 1];
-            resultat.ajoute(sous_chaine);
+            début = &pointeur[i + 1];
+            résultat.ajoute(sous_chaine);
             continue;
         }
 
@@ -202,11 +202,11 @@ static kuri::tablet<kuri::chaine_statique, 16> divise_chaine_par(kuri::chaine_st
     }
 
     if (taille != 0) {
-        auto sous_chaine = kuri::chaine_statique(debut, taille);
-        resultat.ajoute(sous_chaine);
+        auto sous_chaine = kuri::chaine_statique(début, taille);
+        résultat.ajoute(sous_chaine);
     }
 
-    return resultat;
+    return résultat;
 }
 
 static void ajoute_chemins_depuis_env(const char *variable,
@@ -369,22 +369,22 @@ Symbole::type_adresse_objet Symbole::donne_adresse_objet_pour_exécution()
 /** \} */
 
 /* ------------------------------------------------------------------------- */
-/** \name IndexBibliothèque
+/** \name IndiceBibliothèque
  * \{ */
 
-IndexBibliothèque IndexBibliothèque::crée_pour_exécution()
+IndiceBibliothèque IndiceBibliothèque::crée_pour_exécution()
 {
-    IndexBibliothèque résultat;
+    IndiceBibliothèque résultat;
     résultat.plateforme = PLATEFORME_64_BIT;
     résultat.type_liaison = DYNAMIQUE;
     résultat.type_compilation = POUR_PRODUCTION;
     return résultat;
 }
 
-IndexBibliothèque IndexBibliothèque::crée_pour_options(OptionsDeCompilation const &options,
+IndiceBibliothèque IndiceBibliothèque::crée_pour_options(OptionsDeCompilation const &options,
                                                        int type_liaison)
 {
-    IndexBibliothèque résultat;
+    IndiceBibliothèque résultat;
     résultat.plateforme = plateforme_pour_options(options);
     résultat.type_liaison = type_liaison;
     résultat.type_compilation = type_informations(options);
@@ -397,24 +397,24 @@ IndexBibliothèque IndexBibliothèque::crée_pour_options(OptionsDeCompilation c
 /** \name CheminsBibliothèque
  * \{ */
 
-kuri::chaine_statique CheminsBibliothèque::donne_chemin(IndexBibliothèque const index) const
+kuri::chaine_statique CheminsBibliothèque::donne_chemin(IndiceBibliothèque const indice) const
 {
-    auto const &chemins = m_chemins[index.plateforme][index.type_liaison];
+    auto const &chemins = m_chemins[indice.plateforme][indice.type_liaison];
 
     /* Utilise le chemins pour production par défaut. */
-    if (!chemins[index.type_compilation]) {
+    if (!chemins[indice.type_compilation]) {
         return chemins[POUR_PRODUCTION];
     }
 
-    return chemins[index.type_compilation];
+    return chemins[indice.type_compilation];
 }
 
-IndexBibliothèque CheminsBibliothèque::rafine_index(IndexBibliothèque const index) const
+IndiceBibliothèque CheminsBibliothèque::raffine_indice(IndiceBibliothèque const indice) const
 {
-    auto résultat = index;
-    auto const &chemins = m_chemins[index.plateforme][index.type_liaison];
+    auto résultat = indice;
+    auto const &chemins = m_chemins[indice.plateforme][indice.type_liaison];
     /* Utilise le chemins pour production par défaut. */
-    if (!chemins[index.type_compilation]) {
+    if (!chemins[indice.type_compilation]) {
         résultat.type_compilation = POUR_PRODUCTION;
     }
     return résultat;
@@ -533,7 +533,7 @@ bool Bibliothèque::charge(EspaceDeTravail *espace)
         return true;
     }
 
-    auto chemin_dynamique = chemins.donne_chemin(IndexBibliothèque::crée_pour_exécution());
+    auto chemin_dynamique = chemins.donne_chemin(IndiceBibliothèque::crée_pour_exécution());
 
     if (chemin_dynamique == "") {
         espace
@@ -582,19 +582,19 @@ kuri::chaine_statique Bibliothèque::chemin_de_base(const OptionsDeCompilation &
 
 kuri::chaine_statique Bibliothèque::chemin_statique(const OptionsDeCompilation &options) const
 {
-    return chemins.donne_chemin(IndexBibliothèque::crée_pour_options(options, STATIQUE));
+    return chemins.donne_chemin(IndiceBibliothèque::crée_pour_options(options, STATIQUE));
 }
 
 kuri::chaine_statique Bibliothèque::chemin_dynamique(const OptionsDeCompilation &options) const
 {
-    return chemins.donne_chemin(IndexBibliothèque::crée_pour_options(options, DYNAMIQUE));
+    return chemins.donne_chemin(IndiceBibliothèque::crée_pour_options(options, DYNAMIQUE));
 }
 
 kuri::chaine_statique Bibliothèque::nom_pour_liaison(const OptionsDeCompilation &options) const
 {
-    auto index = IndexBibliothèque::crée_pour_options(options, DYNAMIQUE);
-    index = chemins.rafine_index(index);
-    return noms[index.type_compilation];
+    auto indice = IndiceBibliothèque::crée_pour_options(options, DYNAMIQUE);
+    indice = chemins.raffine_indice(indice);
+    return noms[indice.type_compilation];
 }
 
 bool Bibliothèque::peut_lier_statiquement() const
@@ -603,7 +603,7 @@ bool Bibliothèque::peut_lier_statiquement() const
     if (nom == "c" || nom == "m") {
         return false;
     }
-    return chemins.donne_chemin(IndexBibliothèque{PLATEFORME_64_BIT, STATIQUE, POUR_PRODUCTION}) !=
+    return chemins.donne_chemin(IndiceBibliothèque{PLATEFORME_64_BIT, STATIQUE, POUR_PRODUCTION}) !=
            kuri::chaine_statique("");
 }
 
@@ -737,8 +737,8 @@ GestionnaireBibliothèques::GestionnaireBibliothèques(Compilatrice &compilatric
 
 bool GestionnaireBibliothèques::initialise_bibliothèques_pour_exécution(Compilatrice &compilatrice)
 {
-    auto table_idents = compilatrice.table_identifiants.verrou_ecriture();
-    auto gestionnaire = compilatrice.gestionnaire_bibliothèques.verrou_ecriture();
+    auto table_idents = compilatrice.table_identifiants.verrou_écriture();
+    auto gestionnaire = compilatrice.gestionnaire_bibliothèques.verrou_écriture();
     auto espace = compilatrice.espace_défaut_compilation();
 
     /* La bibliothèque C. */
@@ -845,17 +845,17 @@ static bool est_fichier_elf(unsigned char tampon[4])
 
 static int64_t taille_fichier(int fd)
 {
-    auto debut = lseek(fd, 0, SEEK_SET);
+    auto début = lseek(fd, 0, SEEK_SET);
     auto fin = lseek(fd, 0, SEEK_END);
 
     /* Remettons nous au début. */
     lseek(fd, 0, SEEK_SET);
 
-    if (debut == -1 || fin == -1) {
+    if (début == -1 || fin == -1) {
         return -1;
     }
 
-    return fin - debut;
+    return fin - début;
 }
 
 static kuri::chaine_statique explication_errno_ouverture_fichier()
@@ -1056,18 +1056,18 @@ static kuri::chemin_systeme resoud_chemin_dynamique_si_script_ld(
 }
 #endif
 
-struct ResultatRechercheBibliothèque {
+struct RésultatRechercheBibliothèque {
     kuri::chaine_statique chemin_de_base = "";
     kuri::chemin_systeme chemins[NUM_TYPES_BIBLIOTHÈQUE][NUM_TYPES_INFORMATION_BIBLIOTHÈQUE];
 };
 
-static std::optional<ResultatRechercheBibliothèque> recherche_bibliothèque(
+static std::optional<RésultatRechercheBibliothèque> recherche_bibliothèque(
     EspaceDeTravail &espace,
     NoeudExpression *site,
     kuri::tablet<kuri::chaine_statique, 4> const &dossiers,
     kuri::chaine const noms[NUM_TYPES_BIBLIOTHÈQUE][NUM_TYPES_INFORMATION_BIBLIOTHÈQUE])
 {
-    auto résultat = ResultatRechercheBibliothèque();
+    auto résultat = RésultatRechercheBibliothèque();
 
     bool chemin_trouve[NUM_TYPES_BIBLIOTHÈQUE][NUM_TYPES_INFORMATION_BIBLIOTHÈQUE];
 
@@ -1175,7 +1175,7 @@ static kuri::tablet<kuri::chaine_statique, 4> dossiers_recherche_plateforme(
     return dossiers_recherche_64_bits(espace, site);
 }
 
-static void copie_chemins(ResultatRechercheBibliothèque const &résultat,
+static void copie_chemins(RésultatRechercheBibliothèque const &résultat,
                           Bibliothèque *bibliothèque,
                           int plateforme)
 {

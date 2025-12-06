@@ -46,10 +46,10 @@ std::ostream &operator<<(std::ostream &os, Genre genre)
 
 kuri::chaine_statique chaine_expression(EspaceDeTravail const &espace, const NoeudExpression *expr)
 {
-    auto lexeme = expr->lexème;
-    auto fichier = espace.fichier(lexeme->fichier);
+    auto lexème = expr->lexème;
+    auto fichier = espace.fichier(lexème->fichier);
     auto etendue_expr = donne_étendue_source_noeud(expr);
-    auto ligne = fichier->tampon()[lexeme->ligne];
+    auto ligne = fichier->tampon()[lexème->ligne];
     return ligne.sous_chaine(etendue_expr.colonne_début, etendue_expr.colonne_fin);
 }
 
@@ -113,7 +113,7 @@ void lance_erreur_assignation_type_differents(const Type *type_gauche,
         .ajoute_message("Type à droite : ", chaine_type(type_droite), "\n");
 }
 
-void lance_erreur_type_operation(const Type *type_gauche,
+void lance_erreur_type_opération(const Type *type_gauche,
                                  const Type *type_droite,
                                  EspaceDeTravail const &espace,
                                  const NoeudExpression *site)
@@ -148,7 +148,7 @@ static void imprime_erreur_pour_erreur_fonction(Erreur &e,
                 e.ajoute_message("\tLes arguments de la fonction sont : \n");
 
                 for (auto i = 0; i < decl_fonc->params.taille(); ++i) {
-                    auto param = decl_fonc->parametre_entree(i);
+                    auto param = decl_fonc->paramètre_entrée(i);
                     e.ajoute_message("\t\t", param->ident->nom, '\n');
                 }
 
@@ -212,7 +212,7 @@ static void imprime_erreur_pour_erreur_fonction(Erreur &e,
         case RaisonErreurAppariement::TROP_D_EXPRESSION_POUR_UNION:
         {
             e.ajoute_message(
-                "\tOn ne peut initialiser qu'un seul rubrique d'une union à la fois\n");
+                "\tOn ne peut initialiser qu'une seule rubrique d'une union à la fois\n");
             e.genre_erreur(erreur::Genre::NORMAL);
             break;
         }
@@ -307,9 +307,9 @@ void lance_erreur_fonction_inconnue(EspaceDeTravail const &espace,
         e.ajoute_message("\nCandidate :");
 
         if (decl != nullptr) {
-            auto const &lexeme_df = decl->lexème;
-            auto fichier_df = espace.fichier(lexeme_df->fichier);
-            auto pos_df = position_lexeme(*lexeme_df);
+            auto const &lexème_df = decl->lexème;
+            auto fichier_df = espace.fichier(lexème_df->fichier);
+            auto pos_df = position_lexème(*lexème_df);
 
             e.ajoute_message(' ',
                              decl->ident->nom,
@@ -348,11 +348,11 @@ void lance_erreur_fonction_nulctx(EspaceDeTravail const &espace,
         .ajoute_message("\n\n");
 }
 
-void lance_erreur_acces_hors_limites(EspaceDeTravail const &espace,
+void lance_erreur_accès_hors_limites(EspaceDeTravail const &espace,
                                      NoeudExpression const *b,
                                      int64_t taille_tableau,
                                      Type const *type_tableau,
-                                     int64_t indice_acces)
+                                     int64_t indice_accès)
 {
     espace.rapporte_erreur(b, "Accès au tableau hors de ses limites !", Genre::NORMAL)
         .ajoute_message("\tLe tableau a une taille de ",
@@ -360,9 +360,9 @@ void lance_erreur_acces_hors_limites(EspaceDeTravail const &espace,
                         " (de type : ",
                         chaine_type(type_tableau),
                         ").\n")
-        .ajoute_message("\tL'accès se fait à l'index ",
-                        indice_acces,
-                        " (index maximal : ",
+        .ajoute_message("\tL'accès se fait à l'indice ",
+                        indice_accès,
+                        " (indice maximal : ",
                         taille_tableau - 1,
                         ").\n");
 }
@@ -393,10 +393,10 @@ static auto trouve_candidat(kuri::ensemble<kuri::chaine_statique> const &rubriqu
     return candidat;
 }
 
-void rubrique_inconnu(EspaceDeTravail const &espace,
-                      NoeudExpression const *acces,
-                      NoeudExpression const *rubrique,
-                      TypeCompose const *type)
+void rubrique_inconnue(EspaceDeTravail const &espace,
+                       NoeudExpression const *accès,
+                       NoeudExpression const *rubrique,
+                       TypeComposé const *type)
 {
     auto rubriques = kuri::ensemble<kuri::chaine_statique>();
 
@@ -428,7 +428,7 @@ void rubrique_inconnu(EspaceDeTravail const &espace,
     auto candidat = trouve_candidat(rubriques, rubrique->ident->nom);
 
     auto e = espace.rapporte_erreur(
-        acces, "Dans l'expression d'accès de rubrique", Genre::RUBRIQUE_INCONNUE);
+        accès, "Dans l'expression d'accès de rubrique", Genre::RUBRIQUE_INCONNUE);
     e.ajoute_message("Le rubrique « ", rubrique->ident->nom, " » est inconnu !\n\n");
 
     if (rubriques.taille() == 0) {
@@ -485,8 +485,8 @@ void imprime_site(Enchaineuse &enchaineuse,
         return;
     }
 
-    auto lexeme = site->lexème;
-    auto fichier = espace.fichier(lexeme->fichier);
+    auto lexème = site->lexème;
+    auto fichier = espace.fichier(lexème->fichier);
 
     if (fichier->source == SourceFichier::DISQUE) {
         enchaineuse << fichier->chemin();
@@ -494,10 +494,10 @@ void imprime_site(Enchaineuse &enchaineuse,
     else {
         enchaineuse << ".chaine_ajoutées";
     }
-    enchaineuse << ':' << lexeme->ligne + 1 << '\n';
+    enchaineuse << ':' << lexème->ligne + 1 << '\n';
 
     auto const etendue = donne_étendue_source_noeud(site);
-    auto const pos = position_lexeme(*lexeme);
+    auto const pos = position_lexème(*lexème);
     auto const pos_mot = pos.pos;
     auto const ligne = fichier->tampon()[pos.indice_ligne];
     enchaineuse << ligne;

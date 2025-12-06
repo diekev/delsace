@@ -34,20 +34,20 @@
 
 /**
  * Retourne la position de la fin de la prochaine ligne (caractère '\\n') dans
- * la chaîne délimitée par 'debut' et 'fin'.
+ * la chaîne délimitée par 'début' et 'fin'.
  */
-static int64_t trouve_fin_ligne(const char *debut, const char *fin)
+static int64_t trouve_fin_ligne(const char *début, const char *fin)
 {
     int64_t pos = 0;
 
-    while (debut != fin) {
+    while (début != fin) {
         ++pos;
 
-        if (*debut == '\n') {
+        if (*début == '\n') {
             break;
         }
 
-        ++debut;
+        ++début;
     }
 
     return pos;
@@ -92,14 +92,14 @@ TamponSource &TamponSource::operator=(TamponSource &&autre)
     return *this;
 }
 
-const char *TamponSource::debut() const noexcept
+const char *TamponSource::début() const noexcept
 {
     return m_tampon.pointeur();
 }
 
 const char *TamponSource::fin() const noexcept
 {
-    return debut() + m_tampon.taille();
+    return début() + m_tampon.taille();
 }
 
 kuri::chaine_statique TamponSource::operator[](int64_t i) const noexcept
@@ -112,18 +112,18 @@ int64_t TamponSource::nombre_lignes() const noexcept
     return m_lignes.taille();
 }
 
-int64_t TamponSource::taille_donnees() const noexcept
+int64_t TamponSource::taille_données() const noexcept
 {
     return m_tampon.taille() * taille_de(char) +
            nombre_lignes() * taille_de(kuri::chaine_statique);
 }
 
-TamponSource TamponSource::sous_tampon(size_t debut, size_t fin) const
+TamponSource TamponSource::sous_tampon(size_t début, size_t fin) const
 {
-    auto pos = m_lignes[static_cast<int64_t>(debut)].begin();
+    auto pos = m_lignes[static_cast<int64_t>(début)].begin();
     auto taille = int64_t(0);
 
-    for (auto i = debut; i < fin; ++i) {
+    for (auto i = début; i < fin; ++i) {
         taille += m_lignes[static_cast<int64_t>(i)].taille();
     }
 

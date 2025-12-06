@@ -16,7 +16,7 @@ struct NoeudDéclaration;
 struct NoeudDéclarationType;
 struct NoeudDéclarationTypeComposé;
 using Type = NoeudDéclarationType;
-using TypeCompose = NoeudDéclarationTypeComposé;
+using TypeComposé = NoeudDéclarationTypeComposé;
 
 namespace kuri {
 template <class T, uint64_t TAILLE_INITIALE>
@@ -91,7 +91,7 @@ void lance_erreur_assignation_type_differents(const Type *type_gauche,
                                               EspaceDeTravail const &espace,
                                               const NoeudExpression *site);
 
-void lance_erreur_type_operation(const Type *type_gauche,
+void lance_erreur_type_opération(const Type *type_gauche,
                                  const Type *type_droite,
                                  EspaceDeTravail const &espace,
                                  const NoeudExpression *site);
@@ -105,16 +105,16 @@ void lance_erreur_fonction_nulctx(EspaceDeTravail const &espace,
                                   NoeudExpression const *decl_fonc,
                                   NoeudExpression const *decl_appel);
 
-void lance_erreur_acces_hors_limites(EspaceDeTravail const &espace,
+void lance_erreur_accès_hors_limites(EspaceDeTravail const &espace,
                                      NoeudExpression const *b,
                                      int64_t taille_tableau,
                                      Type const *type_tableau,
-                                     int64_t indice_acces);
+                                     int64_t indice_accès);
 
-void rubrique_inconnu(EspaceDeTravail const &espace,
-                      NoeudExpression const *acces,
-                      NoeudExpression const *rubrique,
-                      TypeCompose const *type);
+void rubrique_inconnue(EspaceDeTravail const &espace,
+                       NoeudExpression const *accès,
+                       NoeudExpression const *rubrique,
+                       TypeComposé const *type);
 
 void valeur_manquante_discr(EspaceDeTravail const &espace,
                             NoeudExpression const *expression,
@@ -162,7 +162,7 @@ struct Erreur {
     Erreur &ajoute_conseil(kuri::chaine_statique c);
 
     template <typename Fonction>
-    Erreur &ajoute_donnees(Fonction rappel)
+    Erreur &ajoute_données(Fonction rappel)
     {
         rappel(*this);
         return *this;

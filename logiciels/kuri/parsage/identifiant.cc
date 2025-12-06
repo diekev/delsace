@@ -36,7 +36,7 @@ IdentifiantCode *TableIdentifiant::identifiant_pour_nouvelle_chaine(kuri::chaine
         tampon_courant = enchaineuse.tampon_courant;
     }
 
-    auto ptr = &tampon_courant->donnees[tampon_courant->occupe];
+    auto ptr = &tampon_courant->données[tampon_courant->occupe];
     enchaineuse.ajoute(nom);
 
     auto vue_nom = kuri::chaine_statique(ptr, nom.taille());
@@ -48,7 +48,7 @@ int64_t TableIdentifiant::taille() const
     return table.taille();
 }
 
-int64_t TableIdentifiant::memoire_utilisee() const
+int64_t TableIdentifiant::mémoire_utilisée() const
 {
     auto memoire = int64_t(0);
     memoire += identifiants.mémoire_utilisée();

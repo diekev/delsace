@@ -156,38 +156,39 @@ static void construis_lexèmes(ListeLexèmes &lexèmes)
     lexèmes.ajoute_ponctuation("}", "ACCOLADE_FERMANTE");
     lexèmes.ajoute_ponctuation("~", "TILDE", EST_OPÉRATEUR_UNAIRE);
     lexèmes.ajoute_ponctuation("!=", "DIFFÉRENCE", EST_OPÉRATEUR_COMPARAISON | EST_OPÉRATEUR_BOOL);
-    lexèmes.ajoute_ponctuation("%=", "MODULO_EGAL", EST_ASSIGNATION_COMPOSÉE);
+    lexèmes.ajoute_ponctuation("%=", "MODULO_ÉGAL", EST_ASSIGNATION_COMPOSÉE);
     lexèmes.ajoute_ponctuation("&&", "ESP_ESP", EST_OPÉRATEUR_BOOL);
-    lexèmes.ajoute_ponctuation("&&=", "ESP_ESP_EGAL", EST_ASSIGNATION_COMPOSÉE);
-    lexèmes.ajoute_ponctuation("&=", "ET_EGAL", EST_ASSIGNATION_COMPOSÉE);
+    lexèmes.ajoute_ponctuation("&&=", "ESP_ESP_ÉGAL", EST_ASSIGNATION_COMPOSÉE);
+    lexèmes.ajoute_ponctuation("&=", "ET_ÉGAL", EST_ASSIGNATION_COMPOSÉE);
     lexèmes.ajoute_ponctuation("*/", "FIN_BLOC_COMMENTAIRE");
-    lexèmes.ajoute_ponctuation("*=", "MULTIPLIE_EGAL", EST_ASSIGNATION_COMPOSÉE);
-    lexèmes.ajoute_ponctuation("+=", "PLUS_EGAL", EST_ASSIGNATION_COMPOSÉE);
-    lexèmes.ajoute_ponctuation("-=", "MOINS_EGAL", EST_ASSIGNATION_COMPOSÉE);
+    lexèmes.ajoute_ponctuation("*=", "MULTIPLIE_ÉGAL", EST_ASSIGNATION_COMPOSÉE);
+    lexèmes.ajoute_ponctuation("+=", "PLUS_ÉGAL", EST_ASSIGNATION_COMPOSÉE);
+    lexèmes.ajoute_ponctuation("-=", "MOINS_ÉGAL", EST_ASSIGNATION_COMPOSÉE);
     lexèmes.ajoute_ponctuation("->", "RETOUR_TYPE");
     lexèmes.ajoute_ponctuation("/*", "DEBUT_BLOC_COMMENTAIRE");
     lexèmes.ajoute_ponctuation("//", "DEBUT_LIGNE_COMMENTAIRE");
-    lexèmes.ajoute_ponctuation("/=", "DIVISE_EGAL", EST_ASSIGNATION_COMPOSÉE);
+    lexèmes.ajoute_ponctuation("/=", "DIVISE_ÉGAL", EST_ASSIGNATION_COMPOSÉE);
     lexèmes.ajoute_ponctuation("::", "DECLARATION_CONSTANTE");
     lexèmes.ajoute_ponctuation(":=", "DECLARATION_VARIABLE");
     lexèmes.ajoute_ponctuation("`", "ACCENT_GRAVE", EST_OPÉRATEUR_UNAIRE);
     lexèmes.ajoute_ponctuation("<<", "DECALAGE_GAUCHE");
     lexèmes.ajoute_ponctuation(
-        "<=", "INFERIEUR_EGAL", EST_OPÉRATEUR_COMPARAISON | EST_OPÉRATEUR_BOOL);
+        "<=", "INFERIEUR_ÉGAL", EST_OPÉRATEUR_COMPARAISON | EST_OPÉRATEUR_BOOL);
     lexèmes.ajoute_ponctuation("==", "EGALITE", EST_OPÉRATEUR_COMPARAISON | EST_OPÉRATEUR_BOOL);
     lexèmes.ajoute_ponctuation(
-        ">=", "SUPERIEUR_EGAL", EST_OPÉRATEUR_COMPARAISON | EST_OPÉRATEUR_BOOL);
+        ">=", "SUPERIEUR_ÉGAL", EST_OPÉRATEUR_COMPARAISON | EST_OPÉRATEUR_BOOL);
     lexèmes.ajoute_ponctuation(">>", "DECALAGE_DROITE");
-    lexèmes.ajoute_ponctuation("^=", "OUX_EGAL", EST_ASSIGNATION_COMPOSÉE);
-    lexèmes.ajoute_ponctuation("|=", "OU_EGAL", EST_ASSIGNATION_COMPOSÉE);
+    lexèmes.ajoute_ponctuation("^=", "OUX_ÉGAL", EST_ASSIGNATION_COMPOSÉE);
+    lexèmes.ajoute_ponctuation("|=", "OU_ÉGAL", EST_ASSIGNATION_COMPOSÉE);
     lexèmes.ajoute_ponctuation("||", "BARRE_BARRE", EST_OPÉRATEUR_BOOL);
-    lexèmes.ajoute_ponctuation("||=", "BARRE_BARRE_EGAL", EST_ASSIGNATION_COMPOSÉE);
+    lexèmes.ajoute_ponctuation("||=", "BARRE_BARRE_ÉGAL", EST_ASSIGNATION_COMPOSÉE);
+    lexèmes.ajoute_ponctuation("?.", "ACCÈS_CONDITIONNEL");
     lexèmes.ajoute_ponctuation("---", "NON_INITIALISATION");
     lexèmes.ajoute_ponctuation("...", "TROIS_POINTS", EST_SPÉCIFIANT_TYPE);
     lexèmes.ajoute_ponctuation("..", "DEUX_POINTS", EST_SPÉCIFIANT_TYPE);
-    lexèmes.ajoute_ponctuation("<<=", "DEC_GAUCHE_EGAL", EST_ASSIGNATION_COMPOSÉE);
-    lexèmes.ajoute_ponctuation(">>=", "DEC_DROITE_EGAL", EST_ASSIGNATION_COMPOSÉE);
-    lexèmes.ajoute_extra("", "NOMBRE_REEL");
+    lexèmes.ajoute_ponctuation("<<=", "DEC_GAUCHE_ÉGAL", EST_ASSIGNATION_COMPOSÉE);
+    lexèmes.ajoute_ponctuation(">>=", "DEC_DROITE_ÉGAL", EST_ASSIGNATION_COMPOSÉE);
+    lexèmes.ajoute_extra("", "NOMBRE_RÉEL");
     lexèmes.ajoute_extra("", "NOMBRE_ENTIER");
     lexèmes.ajoute_extra("-", "PLUS_UNAIRE", EST_OPÉRATEUR_UNAIRE);
     lexèmes.ajoute_extra("+", "MOINS_UNAIRE", EST_OPÉRATEUR_UNAIRE);
@@ -304,7 +305,7 @@ static void génère_fichier_entête(const ListeLexèmes &lexèmes, std::ostream
     os << "#include \"plateforme/windows.h\"\n";
     génère_enum(lexèmes, os);
 
-    const char *declarations = R"(
+    const char *déclarations = R"(
 #if defined(__GNUC__)
 #    pragma GCC diagnostic push
 #    pragma GCC diagnostic ignored "-Wpedantic"
@@ -353,7 +354,7 @@ kuri::chaine_statique chaine_du_genre_de_lexème(GenreLexème id);
 kuri::chaine_statique chaine_du_lexème(GenreLexème genre);
 )";
 
-    os << declarations;
+    os << déclarations;
 }
 
 static void génère_fichier_source(const ListeLexèmes &lexèmes, std::ostream &os)
@@ -489,9 +490,9 @@ inline GenreLexème lexème_pour_chaine(kuri::chaine_statique chn)
         return 1;
     }
 
-    std::ifstream fichier_tmp_entree(vers_std_path(empreinte_parfaite_tmp_hh));
+    std::ifstream fichier_tmp_entrée(vers_std_path(empreinte_parfaite_tmp_hh));
 
-    if (!fichier_tmp_entree.is_open()) {
+    if (!fichier_tmp_entrée.is_open()) {
         std::cerr << "Impossible d'ouvrir le fichier " << empreinte_parfaite_tmp_hh << '\n';
         return 1;
     }
@@ -499,7 +500,7 @@ inline GenreLexème lexème_pour_chaine(kuri::chaine_statique chn)
     os << "#pragma once\n\n";
 
     std::string ligne;
-    while (std::getline(fichier_tmp_entree, ligne)) {
+    while (std::getline(fichier_tmp_entrée, ligne)) {
         if (ligne.size() > 5 && ligne.substr(0, 5) == "#line") {
             continue;
         }

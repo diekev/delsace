@@ -3,12 +3,6 @@
 
 #include "coulisse_llvm.hh"
 
-#include "biblinternes/outils/conditions.h"
-
-#include <iostream>
-
-#include "utilitaires/poule_de_taches.hh"
-
 #if defined(__GNUC__)
 #    pragma GCC diagnostic push
 #    pragma GCC diagnostic ignored "-Wclass-memaccess"
@@ -20,6 +14,7 @@
 #    pragma GCC diagnostic ignored "-Wsign-conversion"
 #    pragma GCC diagnostic ignored "-Wuseless-cast"
 #endif
+#include <llvm/Config/llvm-config.h>
 #include <llvm/IR/DIBuilder.h>
 #include <llvm/IR/DebugInfoMetadata.h>
 #include <llvm/IR/IRBuilder.h>
@@ -49,16 +44,19 @@
 #include "structures/chemin_systeme.hh"
 #include "structures/table_hachage.hh"
 
+#include "utilitaires/divers.hh"
+#include "utilitaires/log.hh"
+#include "utilitaires/poule_de_taches.hh"
+
+#include "representation_intermediaire/constructrice_ri.hh"
+#include "representation_intermediaire/impression.hh"
+#include "representation_intermediaire/instructions.hh"
+
 #include "compilatrice.hh"
 #include "environnement.hh"
 #include "espace_de_travail.hh"
 #include "intrinseques.hh"
 #include "programme.hh"
-#include "utilitaires/log.hh"
-
-#include "representation_intermediaire/constructrice_ri.hh"
-#include "representation_intermediaire/impression.hh"
-#include "representation_intermediaire/instructions.hh"
 
 #if defined(__GNUC__)
 #    pragma GCC diagnostic push
@@ -72,8 +70,6 @@ inline bool adresse_est_nulle(void *adresse)
     /* 0xbebebebebebebebe peut être utilisé par les débogueurs. */
     return adresse == nullptr || adresse == reinterpret_cast<void *>(0xbebebebebebebebe);
 }
-
-#undef COMPILE_EN_PLUSIEURS_MODULE
 
 /* ------------------------------------------------------------------------- */
 /** \name Utilitaires locaux.
@@ -94,10 +90,10 @@ static VisibilitéSymbole donne_visibilité_fonction(AtomeFonction const *foncti
         return VisibilitéSymbole::EXPORTÉ;
     }
 
-    if (dls::outils::est_element(fonction->decl->ident,
-                                 ID::__point_d_entree_dynamique,
-                                 ID::__point_d_entree_systeme,
-                                 ID::__point_de_sortie_dynamique)) {
+    if (est_élément(fonction->decl->ident,
+                    ID::__point_d_entree_dynamique,
+                    ID::__point_d_entree_systeme,
+                    ID::__point_de_sortie_dynamique)) {
         return VisibilitéSymbole::EXPORTÉ;
     }
 
@@ -112,24 +108,24 @@ static llvm::GlobalValue::LinkageTypes donne_liaison_fonction(DonnéesModule con
     }
 
     /* Ces fonctions sont appelées depuis les fichiers de point d'entrées C. */
-    if (dls::outils::est_element(fonction->decl->ident,
-                                 ID::__point_d_entree_dynamique,
-                                 ID::__point_d_entree_systeme,
-                                 ID::__point_de_sortie_dynamique)) {
+    if (est_élément(fonction->decl->ident,
+                    ID::__point_d_entree_dynamique,
+                    ID::__point_d_entree_systeme,
+                    ID::__point_de_sortie_dynamique)) {
         return llvm::GlobalValue::ExternalLinkage;
     }
 
-#ifndef COMPILE_EN_PLUSIEURS_MODULE
-    static_cast<void>(module);
-    return llvm::GlobalValue::InternalLinkage;
-#else
-    /* La fonction ne fait pas partie du module. Nous avons une définition ailleurs. */
-    if (!module.fait_partie_du_module(fonction)) {
-        return llvm::GlobalValue::AvailableExternallyLinkage;
+    if (module.le_module_est_unique) {
+        return llvm::GlobalValue::InternalLinkage;
     }
 
-    return llvm::GlobalValue::InternalLinkage;
-#endif
+    /* La fonction ne fait pas partie du module. Nous avons une définition ailleurs. */
+    if (!module.fait_partie_du_module(fonction)) {
+        return llvm::GlobalValue::ExternalLinkage;
+    }
+
+    // À FAIRE : est-ce la bonne valeur ?
+    return llvm::GlobalValue::ExternalLinkage;
 }
 
 static llvm::GlobalValue::LinkageTypes donne_liaison_globale(DonnéesModule const &module,
@@ -139,17 +135,17 @@ static llvm::GlobalValue::LinkageTypes donne_liaison_globale(DonnéesModule cons
         return llvm::GlobalValue::ExternalLinkage;
     }
 
-#ifndef COMPILE_EN_PLUSIEURS_MODULE
-    static_cast<void>(module);
-    return llvm::GlobalValue::InternalLinkage;
-#else
-    /* La globale ne fait pas partie du module. Nous avons une définition ailleurs. */
-    if (!module.fait_partie_du_module(globale)) {
-        return llvm::GlobalValue::AvailableExternallyLinkage;
+    if (module.le_module_est_unique) {
+        return llvm::GlobalValue::InternalLinkage;
     }
 
-    return llvm::GlobalValue::InternalLinkage;
-#endif
+    /* La globale ne fait pas partie du module. Nous avons une définition ailleurs. */
+    if (!module.fait_partie_du_module(globale)) {
+        return llvm::GlobalValue::ExternalLinkage;
+    }
+
+    // À FAIRE : est-ce la bonne valeur ?
+    return llvm::GlobalValue::ExternalLinkage;
 }
 
 /* Retourne vrai si la valeur globale doit être considérer comme locale pour l'exécutable ou la
@@ -217,38 +213,20 @@ static void définis_les_propriétés_globales(llvm::GlobalValue *valeur, AtomeG
 
 /* ************************************************************************** */
 
-static const Logueuse &operator<<(const Logueuse &log_debug, const llvm::Value &llvm_value)
-{
-    std::string str;
-    llvm::raw_string_ostream ss(str);
-    ss << llvm_value;
-    return log_debug << str;
-}
+#define IMPRIME_TYPE_LLVM(TYPE)                                                                   \
+    static const Logueuse &operator<<(const Logueuse &log_debug, const TYPE &llvm_value)          \
+    {                                                                                             \
+        std::string str;                                                                          \
+        llvm::raw_string_ostream ss(str);                                                         \
+        ss << llvm_value;                                                                         \
+        return log_debug << str;                                                                  \
+    }
 
-static const Logueuse &operator<<(const Logueuse &log_debug, const llvm::Constant &llvm_value)
-{
-    std::string str;
-    llvm::raw_string_ostream ss(str);
-    ss << llvm_value;
-    return log_debug << str;
-}
-
-static const Logueuse &operator<<(const Logueuse &log_debug,
-                                  const llvm::GlobalVariable &llvm_value)
-{
-    std::string str;
-    llvm::raw_string_ostream ss(str);
-    ss << llvm_value;
-    return log_debug << str;
-}
-
-static const Logueuse &operator<<(const Logueuse &log_debug, const llvm::Type &llvm_value)
-{
-    std::string str;
-    llvm::raw_string_ostream ss(str);
-    ss << llvm_value;
-    return log_debug << str;
-}
+IMPRIME_TYPE_LLVM(llvm::Value)
+IMPRIME_TYPE_LLVM(llvm::Constant)
+IMPRIME_TYPE_LLVM(llvm::GlobalVariable)
+IMPRIME_TYPE_LLVM(llvm::Type)
+IMPRIME_TYPE_LLVM(llvm::FunctionType)
 
 /* ************************************************************************** */
 
@@ -272,19 +250,19 @@ static auto inst_llvm_depuis_opérateur(OpérateurBinaire::Genre genre)
     switch (genre) {
         case Genre::Addition:
             return llvm::Instruction::Add;
-        case Genre::Addition_Reel:
+        case Genre::Addition_Réel:
             return llvm::Instruction::FAdd;
         case Genre::Soustraction:
             return llvm::Instruction::Sub;
-        case Genre::Soustraction_Reel:
+        case Genre::Soustraction_Réel:
             return llvm::Instruction::FSub;
         case Genre::Multiplication:
             return llvm::Instruction::Mul;
-        case Genre::Multiplication_Reel:
+        case Genre::Multiplication_Réel:
             return llvm::Instruction::FMul;
         case Genre::Division_Naturel:
             return llvm::Instruction::UDiv;
-        case Genre::Division_Reel:
+        case Genre::Division_Réel:
             return llvm::Instruction::FDiv;
         case Genre::Division_Relatif:
             return llvm::Instruction::SDiv;
@@ -305,22 +283,22 @@ static auto inst_llvm_depuis_opérateur(OpérateurBinaire::Genre genre)
         case Genre::Dec_Droite_Logique:
             return llvm::Instruction::LShr;
         case Genre::Invalide:
-        case Genre::Comp_Egal:
-        case Genre::Comp_Inegal:
+        case Genre::Comp_Égal:
+        case Genre::Comp_Inégal:
         case Genre::Comp_Inf:
-        case Genre::Comp_Inf_Egal:
+        case Genre::Comp_Inf_Égal:
         case Genre::Comp_Sup:
-        case Genre::Comp_Sup_Egal:
+        case Genre::Comp_Sup_Égal:
         case Genre::Comp_Inf_Nat:
-        case Genre::Comp_Inf_Egal_Nat:
+        case Genre::Comp_Inf_Égal_Nat:
         case Genre::Comp_Sup_Nat:
-        case Genre::Comp_Sup_Egal_Nat:
-        case Genre::Comp_Egal_Reel:
-        case Genre::Comp_Inegal_Reel:
-        case Genre::Comp_Inf_Reel:
-        case Genre::Comp_Inf_Egal_Reel:
-        case Genre::Comp_Sup_Reel:
-        case Genre::Comp_Sup_Egal_Reel:
+        case Genre::Comp_Sup_Égal_Nat:
+        case Genre::Comp_Égal_Réel:
+        case Genre::Comp_Inégal_Réel:
+        case Genre::Comp_Inf_Réel:
+        case Genre::Comp_Inf_Égal_Réel:
+        case Genre::Comp_Sup_Réel:
+        case Genre::Comp_Sup_Égal_Réel:
         case Genre::Indexage:
             break;
     }
@@ -333,47 +311,47 @@ static auto cmp_llvm_depuis_opérateur(OpérateurBinaire::Genre genre)
     using Genre = OpérateurBinaire::Genre;
 
     switch (genre) {
-        case Genre::Comp_Egal:
+        case Genre::Comp_Égal:
             return llvm::CmpInst::Predicate::ICMP_EQ;
-        case Genre::Comp_Inegal:
+        case Genre::Comp_Inégal:
             return llvm::CmpInst::Predicate::ICMP_NE;
         case Genre::Comp_Inf:
             return llvm::CmpInst::Predicate::ICMP_SLT;
-        case Genre::Comp_Inf_Egal:
+        case Genre::Comp_Inf_Égal:
             return llvm::CmpInst::Predicate::ICMP_SLE;
         case Genre::Comp_Sup:
             return llvm::CmpInst::Predicate::ICMP_SGT;
-        case Genre::Comp_Sup_Egal:
+        case Genre::Comp_Sup_Égal:
             return llvm::CmpInst::Predicate::ICMP_SGE;
         case Genre::Comp_Inf_Nat:
             return llvm::CmpInst::Predicate::ICMP_ULT;
-        case Genre::Comp_Inf_Egal_Nat:
+        case Genre::Comp_Inf_Égal_Nat:
             return llvm::CmpInst::Predicate::ICMP_ULE;
         case Genre::Comp_Sup_Nat:
             return llvm::CmpInst::Predicate::ICMP_UGT;
-        case Genre::Comp_Sup_Egal_Nat:
+        case Genre::Comp_Sup_Égal_Nat:
             return llvm::CmpInst::Predicate::ICMP_UGE;
-        case Genre::Comp_Egal_Reel:
+        case Genre::Comp_Égal_Réel:
             return llvm::CmpInst::Predicate::FCMP_OEQ;
-        case Genre::Comp_Inegal_Reel:
+        case Genre::Comp_Inégal_Réel:
             return llvm::CmpInst::Predicate::FCMP_ONE;
-        case Genre::Comp_Inf_Reel:
+        case Genre::Comp_Inf_Réel:
             return llvm::CmpInst::Predicate::FCMP_OLT;
-        case Genre::Comp_Inf_Egal_Reel:
+        case Genre::Comp_Inf_Égal_Réel:
             return llvm::CmpInst::Predicate::FCMP_OLE;
-        case Genre::Comp_Sup_Reel:
+        case Genre::Comp_Sup_Réel:
             return llvm::CmpInst::Predicate::FCMP_OGT;
-        case Genre::Comp_Sup_Egal_Reel:
+        case Genre::Comp_Sup_Égal_Réel:
             return llvm::CmpInst::Predicate::FCMP_OGE;
         case Genre::Invalide:
         case Genre::Addition:
-        case Genre::Addition_Reel:
+        case Genre::Addition_Réel:
         case Genre::Soustraction:
-        case Genre::Soustraction_Reel:
+        case Genre::Soustraction_Réel:
         case Genre::Multiplication:
-        case Genre::Multiplication_Reel:
+        case Genre::Multiplication_Réel:
         case Genre::Division_Naturel:
-        case Genre::Division_Reel:
+        case Genre::Division_Réel:
         case Genre::Division_Relatif:
         case Genre::Reste_Naturel:
         case Genre::Reste_Relatif:
@@ -419,9 +397,9 @@ static auto convertis_type_transtypage(TypeTranstypage const transtypage,
             return CastOps::FPToSI;
         case TypeTranstypage::RÉEL_VERS_ENTIER_NATUREL:
             return CastOps::FPToUI;
-        case TypeTranstypage::ENTIER_RELATIF_VERS_REEL:
+        case TypeTranstypage::ENTIER_RELATIF_VERS_RÉEL:
             return CastOps::SIToFP;
-        case TypeTranstypage::ENTIER_NATUREL_VERS_REEL:
+        case TypeTranstypage::ENTIER_NATUREL_VERS_RÉEL:
             return CastOps::UIToFP;
         case TypeTranstypage::BITS:
             return CastOps::BitCast;
@@ -503,6 +481,14 @@ struct InfoPositionDébogage {
     uint32_t colonne = 0;
 };
 
+enum class DonneTypePour : int8_t {
+    FONCTION,
+    PARAMÈTRE,
+    RUBRIQUE,
+    SOUS_TYPE,
+    VARIABLE,
+};
+
 struct InfoDébogageLLVM {
     EspaceDeTravail *espace = nullptr;
     llvm::DICompileUnit *unit = nullptr;
@@ -516,11 +502,14 @@ struct InfoDébogageLLVM {
         delete dibuilder;
     }
 
-    llvm::DIType *donne_type(Type const *type)
+    llvm::DIType *donne_type(Type const *type, DonneTypePour donne_type_pour)
     {
         auto ditype = table_types.valeur_ou(type, nullptr);
 
         if (ditype != nullptr) {
+            if (type->est_type_fonction() && donne_type_pour != DonneTypePour::FONCTION) {
+                ditype = dibuilder->createPointerType(ditype, 8 * type->taille_octet);
+            }
             return ditype;
         }
 
@@ -542,7 +531,8 @@ struct InfoDébogageLLVM {
             }
             case GenreNoeud::TYPE_ADRESSE_FONCTION:
             {
-                auto type_pointé = donne_type(espace->typeuse.type_octet);
+                auto type_pointé = donne_type(espace->typeuse.type_octet,
+                                              DonneTypePour::SOUS_TYPE);
                 ditype = dibuilder->createPointerType(type_pointé, 8 * type->taille_octet);
                 break;
             }
@@ -675,7 +665,7 @@ struct InfoDébogageLLVM {
                     type_deref = espace->typeuse.type_z8;
                 }
 
-                auto ditypederef = donne_type(type_deref);
+                auto ditypederef = donne_type(type_deref, DonneTypePour::SOUS_TYPE);
                 ditype = dibuilder->createPointerType(ditypederef, 8 * type->taille_octet);
                 break;
             }
@@ -724,7 +714,7 @@ struct InfoDébogageLLVM {
                         auto décalage_rubrique = 8 * it.décalage;
                         // À FAIRE : llvm::DINode::DIFlags
                         auto flags_rubrique = llvm::DINode::DIFlags(0);
-                        auto type_rubrique = donne_type(it.type);
+                        auto type_rubrique = donne_type(it.type, DonneTypePour::RUBRIQUE);
 
                         auto rubrique = dibuilder->createMemberType(scope,
                                                                     nom_rubrique,
@@ -761,7 +751,7 @@ struct InfoDébogageLLVM {
                 auto type_var = type->comme_type_variadique();
                 /* Utilisons le type tranche afin que le code IR LLVM utilise le type final. */
                 if (type_var->type_tranche != nullptr) {
-                    ditype = donne_type(type_var->type_tranche);
+                    ditype = donne_type(type_var->type_tranche, donne_type_pour);
                 }
                 break;
             }
@@ -781,11 +771,16 @@ struct InfoDébogageLLVM {
 
                 auto size = uint64_t(type_tableau->taille);
                 auto alignement_en_bits = 8 * type->alignement;
-                auto type_élément = donne_type(type_déréférencé_pour(type));
-                auto subscript = llvm::DINodeArray{};
+                auto type_élément = donne_type(type_déréférencé_pour(type),
+                                               DonneTypePour::SOUS_TYPE);
+
+                auto subscript = dibuilder->getOrCreateSubrange(0, type_tableau->taille);
+                auto subscripts = std::vector<llvm::Metadata *>();
+                subscripts.push_back(subscript);
+                auto subscripts_array = dibuilder->getOrCreateArray(subscripts);
 
                 ditype = dibuilder->createArrayType(
-                    size, alignement_en_bits, type_élément, subscript);
+                    size, alignement_en_bits, type_élément, subscripts_array);
                 break;
             }
             case GenreNoeud::DÉCLARATION_ÉNUM:
@@ -799,7 +794,8 @@ struct InfoDébogageLLVM {
                 auto numéro_ligne = uint32_t(type->lexème->ligne + 1);
                 auto taille_en_bits = 8 * type->taille_octet;
                 auto alignement_en_bits = 8 * type->alignement;
-                auto type_sous_jacent = donne_type(type_énum->type_sous_jacent);
+                auto type_sous_jacent = donne_type(type_énum->type_sous_jacent,
+                                                   DonneTypePour::SOUS_TYPE);
 
                 auto éléments = std::vector<llvm::Metadata *>();
 
@@ -821,7 +817,7 @@ struct InfoDébogageLLVM {
                     auto décalage_rubrique = uint32_t(0);
                     // À FAIRE : llvm::DINode::DIFlags
                     auto flags_rubrique = llvm::DINode::DIFlags(0);
-                    auto type_rubrique = donne_type(it.type);
+                    auto type_rubrique = donne_type(it.type, DonneTypePour::RUBRIQUE);
 
                     auto rubrique = dibuilder->createMemberType(scope,
                                                                 nom_rubrique,
@@ -849,7 +845,7 @@ struct InfoDébogageLLVM {
             case GenreNoeud::DÉCLARATION_OPAQUE:
             {
                 auto type_opaque = type->comme_type_opaque();
-                ditype = donne_type(type_opaque->type_opacifié);
+                ditype = donne_type(type_opaque->type_opacifié, DonneTypePour::SOUS_TYPE);
                 break;
             }
             CAS_POUR_NOEUDS_HORS_TYPES:
@@ -862,6 +858,9 @@ struct InfoDébogageLLVM {
 
         table_types.efface(type);
         table_types.insère(type, ditype);
+        if (type->est_type_fonction() && donne_type_pour != DonneTypePour::FONCTION) {
+            ditype = dibuilder->createPointerType(ditype, 8 * type->taille_octet);
+        }
         return ditype;
     }
 
@@ -874,10 +873,10 @@ struct InfoDébogageLLVM {
 
         auto types = std::vector<llvm::Metadata *>();
 
-        types.push_back(donne_type(type->type_sortie));
+        types.push_back(donne_type(type->type_sortie, DonneTypePour::SOUS_TYPE));
 
         POUR (type->types_entrées) {
-            types.push_back(donne_type(it));
+            types.push_back(donne_type(it, DonneTypePour::SOUS_TYPE));
         }
 
         auto ref_array_types = dibuilder->getOrCreateTypeArray(types);
@@ -935,7 +934,7 @@ struct InfoDébogageLLVM {
             auto décalage_rubrique = 8 * it.décalage;
             // À FAIRE : llvm::DINode::DIFlags
             auto flags_rubrique = llvm::DINode::DIFlags(0);
-            auto type_rubrique = donne_type(it.type);
+            auto type_rubrique = donne_type(it.type, DonneTypePour::RUBRIQUE);
 
             auto rubrique = dibuilder->createMemberType(fichier,
                                                         nom_rubrique,
@@ -1009,12 +1008,18 @@ struct GénératriceCodeLLVM {
     kuri::table_hachage<Atome const *, llvm::GlobalVariable *> table_globales{
         "Table valeurs globales LLVM"};
     kuri::table_hachage<Type const *, llvm::Type *> table_types{"Table types LLVM"};
+    kuri::table_hachage<AtomeGlobale const *, uint64_t> table_globales_dc{"Table globales DC"};
     EspaceDeTravail &m_espace;
 
     DonnéesModule &données_module;
 
+    const AtomeFonction *m_atome_fonction_courante = nullptr;
     llvm::Function *m_fonction_courante = nullptr;
+    llvm::Function *m_fonction_atomic_is_lock_free = nullptr;
+    llvm::Value *m_adresse_retour = nullptr;
     llvm::Module *m_module = nullptr;
+    llvm::Type *m_type_données_constantes = nullptr;
+    llvm::GlobalVariable *m_données_constantes = nullptr;
     InfoDébogageLLVM *m_info_débogage = nullptr;
     llvm::LLVMContext &m_contexte_llvm;
     llvm::IRBuilder<> m_builder;
@@ -1037,23 +1042,27 @@ struct GénératriceCodeLLVM {
 
     llvm::FunctionType *convertis_type_fonction(TypeFonction const *type);
 
-    llvm::StructType *convertis_type_composé(TypeCompose const *type, kuri::chaine_statique nom);
+    llvm::StructType *convertis_type_composé(TypeComposé const *type, kuri::chaine_statique nom);
 
-    llvm::Value *génère_code_pour_atome(Atome const *atome, bool pour_globale);
+    llvm::Value *génère_code_pour_atome(Atome const *atome, UtilisationAtome utilisation);
 
     void génère_code_pour_instruction(Instruction const *inst);
 
     void génère_code_pour_appel(InstructionAppel const *inst_appel);
+    llvm::Value *génère_code_pour_appel_impl(InstructionAppel const *inst_appel);
 
     void génère_code_pour_appel_intrinsèque(InstructionAppel const *inst_appel,
                                             DonnéesSymboleExterne const *données_externe);
 
     void génère_code_pour_fonction(const AtomeFonction *atome_fonc);
+    void génère_code_pour_est_adresse_données_constante();
 
     void génère_code_pour_constructeur_global(const AtomeFonction *atome_fonc,
                                               kuri::chaine_statique nom_globale);
 
     llvm::AllocaInst *crée_allocation(InstructionAllocation const *alloc);
+
+    void crée_memcpy(llvm::Value *dst, llvm::Value *src, Type const *type, bool volatile_ = false);
 
     llvm::Value *génère_valeur_données_constantes(
         const AtomeConstanteDonnéesConstantes *constante);
@@ -1061,6 +1070,7 @@ struct GénératriceCodeLLVM {
     void définis_valeur_instruction(Instruction const *inst, llvm::Value *valeur);
 
     llvm::Function *donne_ou_crée_déclaration_fonction(AtomeFonction const *fonction);
+    llvm::Function *donne_fonction_atomic_is_lock_free();
     llvm::GlobalVariable *donne_ou_crée_déclaration_globale(AtomeGlobale const *globale);
 
     void émets_position_courante(NoeudExpression const *site);
@@ -1096,7 +1106,7 @@ GénératriceCodeLLVM::GénératriceCodeLLVM(EspaceDeTravail &espace, DonnéesMo
 
 GénératriceCodeLLVM::~GénératriceCodeLLVM()
 {
-    mémoire::deloge("InfoDébogageLLVM", m_info_débogage);
+    mémoire::déloge("InfoDébogageLLVM", m_info_débogage);
 }
 
 llvm::Type *GénératriceCodeLLVM::convertis_type_llvm(Type const *type)
@@ -1300,10 +1310,32 @@ llvm::Type *GénératriceCodeLLVM::convertis_type_llvm(Type const *type)
     return type_llvm;
 }
 
+enum class MéthodePassageParamètre : int8_t {
+    NORMALE,
+    PAR_ADRESSE,
+};
+
+/* https://yorickpeterse.com/articles/the-mess-that-is-handling-structure-arguments-and-returns-in-llvm/
+ */
+static MéthodePassageParamètre détermine_méthode_passage_paramètre(Type const *type)
+{
+    if (type->taille_octet > 16) {
+        return MéthodePassageParamètre::PAR_ADRESSE;
+    }
+    return MéthodePassageParamètre::NORMALE;
+}
+
 llvm::FunctionType *GénératriceCodeLLVM::convertis_type_fonction(TypeFonction const *type)
 {
     std::vector<llvm::Type *> paramètres;
     paramètres.reserve(static_cast<size_t>(type->types_entrées.taille()));
+
+    auto méthode_retour = détermine_méthode_passage_paramètre(type->type_sortie);
+    if (méthode_retour == MéthodePassageParamètre::PAR_ADRESSE) {
+        auto type_llvm = convertis_type_llvm(type->type_sortie);
+        type_llvm = llvm::PointerType::get(type_llvm, 0);
+        paramètres.push_back(type_llvm);
+    }
 
     auto est_variadique = false;
 
@@ -1317,16 +1349,31 @@ llvm::FunctionType *GénératriceCodeLLVM::convertis_type_fonction(TypeFonction 
             }
         }
 
-        paramètres.push_back(convertis_type_llvm(it));
+        auto type_llvm = convertis_type_llvm(it);
+
+        auto méthode_param = détermine_méthode_passage_paramètre(it);
+        if (méthode_param == MéthodePassageParamètre::PAR_ADRESSE) {
+            type_llvm = llvm::PointerType::get(type_llvm, 0);
+        }
+
+        paramètres.push_back(type_llvm);
     }
 
-    auto type_sortie_llvm = convertis_type_llvm(type->type_sortie);
+    llvm::Type *type_sortie_llvm;
+    if (méthode_retour == MéthodePassageParamètre::PAR_ADRESSE) {
+        type_sortie_llvm = llvm::Type::getVoidTy(m_contexte_llvm);
+    }
+    else {
+        type_sortie_llvm = convertis_type_llvm(type->type_sortie);
+    }
+
     assert(type_sortie_llvm);
 
-    return llvm::FunctionType::get(type_sortie_llvm, paramètres, est_variadique);
+    auto résultat = llvm::FunctionType::get(type_sortie_llvm, paramètres, est_variadique);
+    return résultat;
 }
 
-llvm::StructType *GénératriceCodeLLVM::convertis_type_composé(TypeCompose const *type,
+llvm::StructType *GénératriceCodeLLVM::convertis_type_composé(TypeComposé const *type,
                                                               kuri::chaine_statique classe)
 {
     auto nom = type->ident ? enchaine(classe, ".", type->ident->nom) : kuri::chaine(classe);
@@ -1354,7 +1401,8 @@ llvm::StructType *GénératriceCodeLLVM::convertis_type_composé(TypeCompose con
     return type_opaque;
 }
 
-llvm::Value *GénératriceCodeLLVM::génère_code_pour_atome(Atome const *atome, bool pour_globale)
+llvm::Value *GénératriceCodeLLVM::génère_code_pour_atome(Atome const *atome,
+                                                         UtilisationAtome utilisation)
 {
     // auto incrémentation_temp = Logueuse::IncrémenteuseTemporaire();
     // dbg() << __func__ << ", atome: " << static_cast<int>(atome->genre_atome);
@@ -1368,7 +1416,7 @@ llvm::Value *GénératriceCodeLLVM::génère_code_pour_atome(Atome const *atome,
         case Atome::Genre::TRANSTYPE_CONSTANT:
         {
             auto transtype_const = atome->comme_transtype_constant();
-            auto valeur = génère_code_pour_atome(transtype_const->valeur, pour_globale);
+            auto valeur = génère_code_pour_atome(transtype_const->valeur, utilisation);
             auto valeur_ = llvm::ConstantExpr::getBitCast(llvm::cast<llvm::Constant>(valeur),
                                                           convertis_type_llvm(atome->type));
             // dbg() << "TRANSTYPE_CONSTANT: " << *valeur_;
@@ -1376,30 +1424,53 @@ llvm::Value *GénératriceCodeLLVM::génère_code_pour_atome(Atome const *atome,
         }
         case Atome::Genre::ACCÈS_INDICE_CONSTANT:
         {
-            auto acces = atome->comme_accès_indice_constant();
-            auto index = llvm::ConstantInt::get(llvm::Type::getInt64Ty(m_contexte_llvm),
-                                                uint64_t(acces->index));
-            assert(index);
-            auto accede = génère_code_pour_atome(acces->accédé, pour_globale);
-            assert_rappel(accede, [&]() {
-                dbg() << "L'accédé est de genre " << acces->accédé->genre_atome << " ("
-                      << acces->accédé << ")\n"
-                      << imprime_information_atome(acces->accédé);
+            auto accès = atome->comme_accès_indice_constant();
+
+            if (accès->accédé->genre_atome == Atome::Genre::GLOBALE &&
+                est_globale_pour_tableau_données_constantes(accès->accédé->comme_globale())) {
+                static constexpr auto valeur_nulle = uint64_t(-1);
+                auto décalage = table_globales_dc.valeur_ou(accès->accédé->comme_globale(),
+                                                            valeur_nulle);
+                assert(décalage != valeur_nulle);
+                assert(m_données_constantes != nullptr);
+
+                auto indice = llvm::ConstantInt::get(llvm::Type::getInt64Ty(m_contexte_llvm),
+                                                     décalage);
+
+                auto index_array = llvm::SmallVector<llvm::Value *>();
+                auto type_z32 = llvm::Type::getInt32Ty(m_contexte_llvm);
+                index_array.push_back(llvm::ConstantInt::get(type_z32, 0));
+                index_array.push_back(indice);
+
+                return llvm::ConstantExpr::getInBoundsGetElementPtr(
+                    m_type_données_constantes,
+                    llvm::cast<llvm::Constant>(m_données_constantes),
+                    index_array);
+            }
+
+            auto indice = llvm::ConstantInt::get(llvm::Type::getInt64Ty(m_contexte_llvm),
+                                                 uint64_t(accès->indice));
+            assert(indice);
+            auto accédé = génère_code_pour_atome(accès->accédé, utilisation);
+            assert_rappel(accédé, [&]() {
+                dbg() << "L'accédé est de genre " << accès->accédé->genre_atome << " ("
+                      << accès->accédé << ")\n"
+                      << imprime_information_atome(accès->accédé);
             });
 
             auto index_array = llvm::SmallVector<llvm::Value *>();
-            auto type_accede = acces->donne_type_accédé();
-            if (!est_type_machine_pointeur(type_accede)) {
+            auto type_accédé = accès->donne_type_accédé();
+            if (!est_type_machine_pointeur(type_accédé)) {
                 auto type_z32 = llvm::Type::getInt32Ty(m_contexte_llvm);
                 index_array.push_back(llvm::ConstantInt::get(type_z32, 0));
             }
-            index_array.push_back(index);
+            index_array.push_back(indice);
 
-            // dbg() << "ACCES_INDEX_CONSTANT: index=" << *index << ", accede=" << *accede;
+            // dbg() << "ACCES_INDEX_CONSTANT: indice=" << *indice << ", accédé=" << *accédé;
 
-            auto type_llvm = convertis_type_llvm(type_accede);
+            auto type_llvm = convertis_type_llvm(type_accédé);
             return llvm::ConstantExpr::getInBoundsGetElementPtr(
-                type_llvm, llvm::cast<llvm::Constant>(accede), index_array);
+                type_llvm, llvm::cast<llvm::Constant>(accédé), index_array);
         }
         case Atome::Genre::CONSTANTE_NULLE:
         {
@@ -1452,7 +1523,7 @@ llvm::Value *GénératriceCodeLLVM::génère_code_pour_atome(Atome const *atome,
                 static_cast<void>(it);
                 // dbg() << "Génère code pour le membre " << it.nom->nom;
                 auto valeur = llvm::cast<llvm::Constant>(
-                    génère_code_pour_atome(tableau_valeur[indice_it], pour_globale));
+                    génère_code_pour_atome(tableau_valeur[indice_it], utilisation));
 
                 tableau_membre.push_back(valeur);
             }
@@ -1469,7 +1540,7 @@ llvm::Value *GénératriceCodeLLVM::génère_code_pour_atome(Atome const *atome,
             valeurs.reserve(static_cast<size_t>(éléments.taille()));
 
             POUR (éléments) {
-                auto valeur = génère_code_pour_atome(it, pour_globale);
+                auto valeur = génère_code_pour_atome(it, utilisation);
                 valeurs.push_back(llvm::cast<llvm::Constant>(valeur));
             }
 
@@ -1494,7 +1565,7 @@ llvm::Value *GénératriceCodeLLVM::génère_code_pour_atome(Atome const *atome,
 
             std::vector<llvm::Constant *> valeurs(size_t(type_tableau->taille));
 
-            auto valeur = génère_code_pour_atome(init_tableau->valeur, pour_globale);
+            auto valeur = génère_code_pour_atome(init_tableau->valeur, utilisation);
             POUR (valeurs) {
                 it = llvm::cast<llvm::Constant>(valeur);
             }
@@ -1504,7 +1575,9 @@ llvm::Value *GénératriceCodeLLVM::génère_code_pour_atome(Atome const *atome,
         case Atome::Genre::INSTRUCTION:
         {
             auto inst = atome->comme_instruction();
-            return table_valeurs[inst->numéro];
+            auto résultat = table_valeurs[inst->numéro];
+            assert(résultat);
+            return résultat;
         }
         case Atome::Genre::GLOBALE:
         {
@@ -1539,7 +1612,8 @@ void GénératriceCodeLLVM::génère_code_pour_instruction(const Instruction *in
             if (info_débogage_fonction) {
                 auto alloc_name = vers_string_ref(alloc->ident);
                 auto pos = m_info_débogage->donne_info_position(alloc->site);
-                auto type_alloc = m_info_débogage->donne_type(alloc->donne_type_alloué());
+                auto type_alloc = m_info_débogage->donne_type(alloc->donne_type_alloué(),
+                                                              DonneTypePour::VARIABLE);
                 auto dibuilder = m_info_débogage->dibuilder;
                 auto D = dibuilder->createAutoVariable(
                     info_débogage_fonction, alloc_name, pos.file, pos.ligne, type_alloc, true);
@@ -1572,7 +1646,8 @@ void GénératriceCodeLLVM::génère_code_pour_instruction(const Instruction *in
         case GenreInstruction::BRANCHE_CONDITION:
         {
             auto inst_branche = inst->comme_branche_cond();
-            auto condition = génère_code_pour_atome(inst_branche->condition, false);
+            auto condition = génère_code_pour_atome(inst_branche->condition,
+                                                    UtilisationAtome::POUR_BRANCHE_CONDITION);
             auto bloc_si_vrai = table_blocs[inst_branche->label_si_vrai->id];
             auto bloc_si_faux = table_blocs[inst_branche->label_si_faux->id];
             émets_position_courante(inst->site);
@@ -1587,26 +1662,64 @@ void GénératriceCodeLLVM::génère_code_pour_instruction(const Instruction *in
         case GenreInstruction::CHARGE_MÉMOIRE:
         {
             auto inst_charge = inst->comme_charge();
-            auto chargée = inst_charge->chargée;
-            auto valeur = génère_code_pour_atome(chargée, false);
-            auto volatile_ = est_volatile(chargée);
-            assert(valeur != nullptr);
+            auto méthode = détermine_méthode_passage_paramètre(inst_charge->type);
+            if (méthode != MéthodePassageParamètre::PAR_ADRESSE) {
+                auto chargée = inst_charge->chargée;
+                auto valeur = génère_code_pour_atome(chargée, UtilisationAtome::POUR_LECTURE);
+                auto volatile_ = est_volatile(chargée);
+                assert(valeur != nullptr);
 
-            émets_position_courante(inst->site);
+                émets_position_courante(inst->site);
 
-            auto type_llvm = convertis_type_llvm(inst_charge->type);
-            auto load = m_builder.CreateLoad(type_llvm, valeur, volatile_, "");
-            load->setAlignment(llvm::Align(inst->type->alignement));
-            définis_valeur_instruction(inst, load);
+                auto type_llvm = convertis_type_llvm(inst_charge->type);
+                auto load = m_builder.CreateLoad(type_llvm, valeur, volatile_, "");
+                load->setAlignment(llvm::Align(inst->type->alignement));
+                définis_valeur_instruction(inst, load);
+            }
+            else {
+                définis_valeur_instruction(inst, nullptr);
+            }
             break;
         }
         case GenreInstruction::STOCKE_MÉMOIRE:
         {
             auto inst_stocke = inst->comme_stocke_mem();
-            auto valeur = génère_code_pour_atome(inst_stocke->source, false);
+            auto atome_src = inst_stocke->source;
+            auto const atome_dst = inst_stocke->destination;
+
+            /* Crash si l'alignement n'est pas renseigné. */
+            auto alignement = llvm::MaybeAlign(atome_src->type->alignement);
+
+            auto méthode = détermine_méthode_passage_paramètre(atome_src->type);
+
+            if (méthode == MéthodePassageParamètre::PAR_ADRESSE) {
+                auto atome_src_ou_déref = donne_source_charge_ou_atome(atome_src);
+                if (est_adresse(atome_src_ou_déref) || est_appel(atome_src_ou_déref) ||
+                    est_charge(atome_src_ou_déref)) {
+                    auto src = génère_code_pour_atome(atome_src_ou_déref,
+                                                      UtilisationAtome::POUR_SOURCE_ÉCRITURE);
+                    auto dst = génère_code_pour_atome(atome_dst,
+                                                      UtilisationAtome::POUR_DESTINATION_ÉCRITURE);
+
+                    assert(src != nullptr);
+                    assert(dst != nullptr);
+
+                    crée_memcpy(dst, src, atome_src->type);
+                    break;
+                }
+                // else {
+                //     dbg() << imprime_arbre_instruction(inst_stocke);
+                //     dbg() << "Source charge " << atome_src_ou_déref->genre_atome;
+                //     dbg() << "Source stocke " << atome_src->genre_atome;
+                // }
+            }
+
+            auto valeur = génère_code_pour_atome(atome_src,
+                                                 UtilisationAtome::POUR_SOURCE_ÉCRITURE);
             auto ou = inst_stocke->destination;
             auto volatile_ = est_volatile(ou);
-            auto valeur_ou = génère_code_pour_atome(ou, false);
+            auto valeur_ou = génère_code_pour_atome(ou,
+                                                    UtilisationAtome::POUR_DESTINATION_ÉCRITURE);
 
             émets_position_courante(inst->site);
 
@@ -1618,11 +1731,10 @@ void GénératriceCodeLLVM::génère_code_pour_instruction(const Instruction *in
             assert_rappel(!adresse_est_nulle(valeur), [&]() {
                 dbg() << erreur::imprime_site(m_espace, inst_stocke->site) << '\n'
                       << imprime_atome(inst_stocke) << '\n'
-                      << imprime_information_atome(inst_stocke->source);
+                      << imprime_information_atome(inst_stocke->source) << '\n'
+                      << imprime_arbre_instruction(inst_stocke);
             });
 
-            /* Crash si l'alignement n'est pas renseigné. */
-            auto alignement = llvm::MaybeAlign(inst_stocke->source->type->alignement);
             m_builder.CreateAlignedStore(valeur, valeur_ou, alignement, volatile_);
             break;
         }
@@ -1639,7 +1751,8 @@ void GénératriceCodeLLVM::génère_code_pour_instruction(const Instruction *in
         case GenreInstruction::OPÉRATION_UNAIRE:
         {
             auto inst_un = inst->comme_op_unaire();
-            auto valeur = génère_code_pour_atome(inst_un->valeur, false);
+            auto valeur = génère_code_pour_atome(inst_un->valeur,
+                                                 UtilisationAtome::POUR_OPÉRATEUR);
 
             émets_position_courante(inst->site);
 
@@ -1677,15 +1790,15 @@ void GénératriceCodeLLVM::génère_code_pour_instruction(const Instruction *in
             auto inst_bin = inst->comme_op_binaire();
             auto gauche = inst_bin->valeur_gauche;
             auto droite = inst_bin->valeur_droite;
-            auto valeur_gauche = génère_code_pour_atome(gauche, false);
-            auto valeur_droite = génère_code_pour_atome(droite, false);
+            auto valeur_gauche = génère_code_pour_atome(gauche, UtilisationAtome::POUR_OPÉRATEUR);
+            auto valeur_droite = génère_code_pour_atome(droite, UtilisationAtome::POUR_OPÉRATEUR);
 
             émets_position_courante(inst->site);
 
             llvm::Value *valeur = nullptr;
 
-            if (inst_bin->op >= OpérateurBinaire::Genre::Comp_Egal &&
-                inst_bin->op <= OpérateurBinaire::Genre::Comp_Sup_Egal_Nat) {
+            if (inst_bin->op >= OpérateurBinaire::Genre::Comp_Égal &&
+                inst_bin->op <= OpérateurBinaire::Genre::Comp_Sup_Égal_Nat) {
                 auto cmp = cmp_llvm_depuis_opérateur(inst_bin->op);
 
                 assert_rappel(valeur_gauche->getType() == valeur_droite->getType(), [&]() {
@@ -1703,8 +1816,8 @@ void GénératriceCodeLLVM::génère_code_pour_instruction(const Instruction *in
                                               valeur,
                                               llvm::Type::getInt8Ty(m_module->getContext()));
             }
-            else if (inst_bin->op >= OpérateurBinaire::Genre::Comp_Egal_Reel &&
-                     inst_bin->op <= OpérateurBinaire::Genre::Comp_Sup_Egal_Reel) {
+            else if (inst_bin->op >= OpérateurBinaire::Genre::Comp_Égal_Réel &&
+                     inst_bin->op <= OpérateurBinaire::Genre::Comp_Sup_Égal_Réel) {
                 auto cmp = cmp_llvm_depuis_opérateur(inst_bin->op);
                 valeur = m_builder.CreateFCmp(cmp, valeur_gauche, valeur_droite);
 
@@ -1725,9 +1838,35 @@ void GénératriceCodeLLVM::génère_code_pour_instruction(const Instruction *in
             auto inst_retour = inst->comme_retour();
             if (inst_retour->valeur != nullptr) {
                 auto atome = inst_retour->valeur;
-                auto valeur_retour = génère_code_pour_atome(atome, false);
-                émets_position_courante(inst->site);
-                m_builder.CreateRet(valeur_retour);
+                auto méthode = détermine_méthode_passage_paramètre(atome->type);
+                if (méthode == MéthodePassageParamètre::PAR_ADRESSE) {
+                    if (atome->est_instruction() && atome->comme_instruction()->est_charge()) {
+                        auto chargement = atome->comme_instruction()->comme_charge();
+                        auto valeur_retour = génère_code_pour_atome(
+                            chargement->chargée, UtilisationAtome::POUR_OPÉRANDE);
+                        assert_rappel(m_adresse_retour != nullptr, [&] {
+                            dbg() << "Le type retour est " << chaine_type(atome->type);
+                        });
+
+                        assert(valeur_retour != nullptr);
+
+                        crée_memcpy(m_adresse_retour, valeur_retour, atome->type);
+                        émets_position_courante(inst->site);
+                        m_builder.CreateRet(nullptr);
+                    }
+                    else {
+                        auto valeur_retour = génère_code_pour_atome(
+                            atome, UtilisationAtome::POUR_LECTURE);
+                        émets_position_courante(inst->site);
+                        m_builder.CreateRet(valeur_retour);
+                    }
+                }
+                else {
+                    auto valeur_retour = génère_code_pour_atome(atome,
+                                                                UtilisationAtome::POUR_LECTURE);
+                    émets_position_courante(inst->site);
+                    m_builder.CreateRet(valeur_retour);
+                }
             }
             else {
                 m_builder.CreateRet(nullptr);
@@ -1737,26 +1876,33 @@ void GénératriceCodeLLVM::génère_code_pour_instruction(const Instruction *in
         case GenreInstruction::ACCÈS_INDICE:
         {
             auto inst_accès = inst->comme_accès_indice();
-            auto valeur_accédée = génère_code_pour_atome(inst_accès->accédé, false);
-            auto valeur_indice = génère_code_pour_atome(inst_accès->indice, false);
+            auto valeur_accédée = génère_code_pour_atome(inst_accès->accédé,
+                                                         UtilisationAtome::POUR_LECTURE);
+            auto valeur_indice = génère_code_pour_atome(inst_accès->indice,
+                                                        UtilisationAtome::POUR_LECTURE);
 
             llvm::SmallVector<llvm::Value *, 2> indices;
 
-            auto type_llvm = convertis_type_llvm(
-                inst_accès->accédé->type->comme_type_pointeur()->type_pointé);
+            auto type_accédé = inst_accès->donne_type_accédé();
+            auto type_llvm = convertis_type_llvm(type_accédé);
 
             auto accédée = inst_accès->accédé;
             if (accédée->est_instruction()) {
                 // dbg() << accédé->comme_instruction()->genre << " " <<
                 // *valeur_accédée->getType();
 
-                auto type_accédé = inst_accès->donne_type_accédé();
                 if (est_type_machine_pointeur(type_accédé)) {
                     /* L'accédé est le pointeur vers le pointeur, donc déréférence-le. */
+#if LLVM_VERSION_MAJOR == 14
                     valeur_accédée = m_builder.CreateLoad(
                         valeur_accédée->getType()->getPointerElementType(), valeur_accédée);
                     auto type_pointé = type_déréférencé_pour(type_accédé);
                     type_llvm = convertis_type_llvm(type_pointé);
+#else
+                    // auto type_pointé = type_déréférencé_pour(type_accédé);
+                    // auto type_pointé_llvm = convertis_type_llvm(type_pointé);
+                    valeur_accédée = m_builder.CreateLoad(type_llvm, valeur_accédée);
+#endif
                 }
                 else {
                     /* Tableau fixe ou autre ; accède d'abord l'adresse de base. */
@@ -1785,7 +1931,7 @@ void GénératriceCodeLLVM::génère_code_pour_instruction(const Instruction *in
             auto inst_accès = inst->comme_accès_rubrique();
 
             auto accédé = inst_accès->accédé;
-            auto valeur_accédée = génère_code_pour_atome(accédé, false);
+            auto valeur_accédée = génère_code_pour_atome(accédé, UtilisationAtome::POUR_LECTURE);
 
             auto indice_rubrique = uint32_t(inst_accès->indice);
 
@@ -1841,7 +1987,8 @@ void GénératriceCodeLLVM::génère_code_pour_instruction(const Instruction *in
         case GenreInstruction::TRANSTYPE:
         {
             auto const inst_transtype = inst->comme_transtype();
-            auto const valeur = génère_code_pour_atome(inst_transtype->valeur, false);
+            auto const valeur = génère_code_pour_atome(inst_transtype->valeur,
+                                                       UtilisationAtome::POUR_LECTURE);
             auto const type_de = inst_transtype->valeur->type;
             auto const type_vers = inst_transtype->type;
             auto const type_llvm = convertis_type_llvm(type_vers);
@@ -1860,12 +2007,15 @@ void GénératriceCodeLLVM::génère_code_pour_instruction(const Instruction *in
         case GenreInstruction::SÉLECTION:
         {
             auto sélection = inst->comme_sélection();
-            auto condition = génère_code_pour_atome(sélection->condition, false);
+            auto condition = génère_code_pour_atome(sélection->condition,
+                                                    UtilisationAtome::POUR_BRANCHE_CONDITION);
             condition = m_builder.CreateCast(llvm::Instruction::CastOps::Trunc,
                                              condition,
                                              llvm::Type::getInt1Ty(m_module->getContext()));
-            auto const si_vrai = génère_code_pour_atome(sélection->si_vrai, false);
-            auto const si_faux = génère_code_pour_atome(sélection->si_faux, false);
+            auto const si_vrai = génère_code_pour_atome(sélection->si_vrai,
+                                                        UtilisationAtome::POUR_OPÉRANDE);
+            auto const si_faux = génère_code_pour_atome(sélection->si_faux,
+                                                        UtilisationAtome::POUR_OPÉRANDE);
             émets_position_courante(inst->site);
             auto const résultat = m_builder.CreateSelect(condition, si_vrai, si_faux);
             définis_valeur_instruction(inst, résultat);
@@ -1891,13 +2041,12 @@ void GénératriceCodeLLVM::génère_code_pour_instruction(const Instruction *in
             auto volatile_ = est_volatile(copie_mémoire->source) ||
                              est_volatile(copie_mémoire->destination);
 
-            auto source = génère_code_pour_atome(copie_mémoire->source, false);
-            auto destination = génère_code_pour_atome(copie_mémoire->destination, false);
+            auto source = génère_code_pour_atome(copie_mémoire->source,
+                                                 UtilisationAtome::POUR_OPÉRANDE);
+            auto destination = génère_code_pour_atome(copie_mémoire->destination,
+                                                      UtilisationAtome::POUR_OPÉRANDE);
 
-            auto alignement = llvm::MaybeAlign(type->alignement);
-
-            m_builder.CreateMemCpy(
-                destination, alignement, source, alignement, copie_mémoire->taille, volatile_);
+            crée_memcpy(destination, source, type, volatile_);
             break;
         }
     }
@@ -1910,37 +2059,100 @@ void GénératriceCodeLLVM::génère_code_pour_appel(InstructionAppel const *ins
         return;
     }
 
+    auto résultat = génère_code_pour_appel_impl(inst_appel);
+    définis_valeur_instruction(inst_appel, résultat);
+}
+
+llvm::Value *GénératriceCodeLLVM::génère_code_pour_appel_impl(InstructionAppel const *inst_appel)
+{
     auto arguments = std::vector<llvm::Value *>();
-    POUR (inst_appel->args) {
-        arguments.push_back(génère_code_pour_atome(it, false));
+
+    struct InfoAttribut {
+        uint32_t indice = 0;
+        llvm::Attribute attr{};
+    };
+
+    auto attributs = kuri::tableau<InfoAttribut>();
+
+    auto type_retour = convertis_type_llvm(inst_appel->type);
+
+    auto indice_premier_paramètre = 0;
+
+    llvm::Value *adresse_retour = nullptr;
+    auto méthode_retour = détermine_méthode_passage_paramètre(inst_appel->type);
+    if (méthode_retour == MéthodePassageParamètre::PAR_ADRESSE) {
+        adresse_retour = m_builder.CreateAlloca(type_retour, 0u);
+        arguments.push_back(adresse_retour);
+
+        auto attr = llvm::Attribute::getWithStructRetType(m_module->getContext(), type_retour);
+        attributs.ajoute(InfoAttribut{0, attr});
+        attributs.ajoute(
+            InfoAttribut{0,
+                         llvm::Attribute::getWithAlignment(
+                             m_module->getContext(), llvm::Align(inst_appel->type->alignement))});
+
+        indice_premier_paramètre = 1;
     }
 
-    auto valeur_fonction = génère_code_pour_atome(inst_appel->appelé, false);
+    POUR_INDICE (inst_appel->args) {
+        auto indice_param = uint32_t(indice_it + indice_premier_paramètre);
+        llvm::Value *valeur;
+        auto méthode_passage = détermine_méthode_passage_paramètre(it->type);
+        if (méthode_passage == MéthodePassageParamètre::PAR_ADRESSE) {
+            auto chargement = it->comme_instruction()->comme_charge();
+            valeur = génère_code_pour_atome(chargement->chargée, UtilisationAtome::POUR_OPÉRANDE);
+
+            auto attr = llvm::Attribute::getWithByValType(m_module->getContext(),
+                                                          convertis_type_llvm(it->type));
+            attributs.ajoute(InfoAttribut{indice_param, attr});
+            attributs.ajoute(InfoAttribut{
+                indice_param,
+                llvm::Attribute::get(m_module->getContext(), llvm::Attribute::AttrKind::NoUndef)});
+            /* Alignement pour des pointeurs. */
+            attributs.ajoute(InfoAttribut{
+                indice_param,
+                llvm::Attribute::getWithAlignment(m_module->getContext(), llvm::Align(8))});
+        }
+        else {
+            valeur = génère_code_pour_atome(it, UtilisationAtome::POUR_OPÉRANDE);
+        }
+
+        arguments.push_back(valeur);
+    }
+
+    auto valeur_fonction = génère_code_pour_atome(inst_appel->appelé,
+                                                  UtilisationAtome::POUR_OPÉRANDE);
     assert_rappel(!adresse_est_nulle(valeur_fonction), [&]() {
         dbg() << erreur::imprime_site(m_espace, inst_appel->site) << '\n'
               << imprime_atome(inst_appel->appelé);
     });
 
-    auto type_fonction = convertis_type_llvm(inst_appel->appelé->type)->getPointerElementType();
-
-    auto callee = llvm::FunctionCallee(llvm::cast<llvm::FunctionType>(type_fonction),
-                                       valeur_fonction);
+    auto type_fonction = convertis_type_fonction(inst_appel->appelé->type->comme_type_fonction());
+    auto callee = llvm::FunctionCallee(type_fonction, valeur_fonction);
 
     émets_position_courante(inst_appel->site);
     auto call_inst = m_builder.CreateCall(callee, arguments);
 
+    POUR (attributs) {
+        call_inst->addParamAttr(it.indice, it.attr);
+    }
+
     llvm::Value *résultat = call_inst;
 
-    if (!inst_appel->type->est_type_rien()) {
+    if (!inst_appel->type->est_type_rien() &&
+        méthode_retour != MéthodePassageParamètre::PAR_ADRESSE) {
         /* Crée une temporaire sinon la valeur sera du type fonction... */
-        auto type_retour = convertis_type_llvm(inst_appel->type);
         auto alloca = m_builder.CreateAlloca(type_retour, 0u);
         m_builder.CreateAlignedStore(
             résultat, alloca, llvm::MaybeAlign(inst_appel->type->alignement));
         résultat = m_builder.CreateLoad(type_retour, alloca);
     }
 
-    définis_valeur_instruction(inst_appel, résultat);
+    if (adresse_retour) {
+        résultat = adresse_retour;
+    }
+
+    return résultat;
 }
 
 llvm::AtomicOrdering donne_valeur_pour_ordre_mémoire(Atome const *arg)
@@ -1997,8 +2209,10 @@ void GénératriceCodeLLVM::génère_code_pour_appel_intrinsèque(
     switch (genre_intrinsèque) {
         case GenreIntrinsèque::RÉINITIALISE_TAMPON_INSTRUCTION:
         {
-            auto arg1 = génère_code_pour_atome(inst_appel->args[0], false);
-            auto arg2 = génère_code_pour_atome(inst_appel->args[1], false);
+            auto arg1 = génère_code_pour_atome(inst_appel->args[0],
+                                               UtilisationAtome::POUR_OPÉRANDE);
+            auto arg2 = génère_code_pour_atome(inst_appel->args[1],
+                                               UtilisationAtome::POUR_OPÉRANDE);
             m_builder.CreateBinaryIntrinsic(llvm::Intrinsic::clear_cache, arg1, arg2);
             break;
         }
@@ -2008,7 +2222,7 @@ void GénératriceCodeLLVM::génère_code_pour_appel_intrinsèque(
             llvm::SmallVector<llvm::Value *, 4> args;
 
             POUR (inst_appel->args) {
-                auto arg = génère_code_pour_atome(it, false);
+                auto arg = génère_code_pour_atome(it, UtilisationAtome::POUR_OPÉRANDE);
                 types.push_back(arg->getType());
                 args.push_back(arg);
             }
@@ -2026,8 +2240,10 @@ void GénératriceCodeLLVM::génère_code_pour_appel_intrinsèque(
         }
         case GenreIntrinsèque::PRÉDIT:
         {
-            auto arg1 = génère_code_pour_atome(inst_appel->args[0], false);
-            auto arg2 = génère_code_pour_atome(inst_appel->args[1], false);
+            auto arg1 = génère_code_pour_atome(inst_appel->args[0],
+                                               UtilisationAtome::POUR_OPÉRANDE);
+            auto arg2 = génère_code_pour_atome(inst_appel->args[1],
+                                               UtilisationAtome::POUR_OPÉRANDE);
             valeur_retour = m_builder.CreateBinaryIntrinsic(llvm::Intrinsic::expect, arg1, arg2);
             break;
         }
@@ -2037,7 +2253,7 @@ void GénératriceCodeLLVM::génère_code_pour_appel_intrinsèque(
             llvm::SmallVector<llvm::Value *, 3> args;
 
             POUR (inst_appel->args) {
-                auto arg = génère_code_pour_atome(it, false);
+                auto arg = génère_code_pour_atome(it, UtilisationAtome::POUR_OPÉRANDE);
                 types.push_back(arg->getType());
                 args.push_back(arg);
             }
@@ -2056,7 +2272,8 @@ void GénératriceCodeLLVM::génère_code_pour_appel_intrinsèque(
         case GenreIntrinsèque::TROUVE_PREMIER_ACTIF_32:
         case GenreIntrinsèque::TROUVE_PREMIER_ACTIF_64:
         {
-            auto arg = génère_code_pour_atome(inst_appel->args[0], false);
+            auto arg = génère_code_pour_atome(inst_appel->args[0],
+                                              UtilisationAtome::POUR_OPÉRANDE);
             auto zero_est_poison = llvm::ConstantInt::get(llvm::Type::getInt1Ty(m_contexte_llvm),
                                                           0);
             valeur_retour = m_builder.CreateBinaryIntrinsic(
@@ -2072,7 +2289,8 @@ void GénératriceCodeLLVM::génère_code_pour_appel_intrinsèque(
         case GenreIntrinsèque::COMPTE_ZÉROS_EN_TÊTE_32:
         case GenreIntrinsèque::COMPTE_ZÉROS_EN_TÊTE_64:
         {
-            auto arg = génère_code_pour_atome(inst_appel->args[0], false);
+            auto arg = génère_code_pour_atome(inst_appel->args[0],
+                                              UtilisationAtome::POUR_OPÉRANDE);
             auto zero_est_poison = llvm::ConstantInt::get(llvm::Type::getInt1Ty(m_contexte_llvm),
                                                           1);
             valeur_retour = m_builder.CreateBinaryIntrinsic(
@@ -2082,7 +2300,8 @@ void GénératriceCodeLLVM::génère_code_pour_appel_intrinsèque(
         case GenreIntrinsèque::COMPTE_ZÉROS_EN_FIN_32:
         case GenreIntrinsèque::COMPTE_ZÉROS_EN_FIN_64:
         {
-            auto arg = génère_code_pour_atome(inst_appel->args[0], false);
+            auto arg = génère_code_pour_atome(inst_appel->args[0],
+                                              UtilisationAtome::POUR_OPÉRANDE);
             auto zero_est_poison = llvm::ConstantInt::get(llvm::Type::getInt1Ty(m_contexte_llvm),
                                                           1);
             valeur_retour = m_builder.CreateBinaryIntrinsic(
@@ -2093,7 +2312,8 @@ void GénératriceCodeLLVM::génère_code_pour_appel_intrinsèque(
         case GenreIntrinsèque::COMPTE_REDONDANCE_BIT_SIGNE_64:
         {
             /* Inverse les bits puis compte le nombre de zéro en tête. */
-            auto arg = génère_code_pour_atome(inst_appel->args[0], false);
+            auto arg = génère_code_pour_atome(inst_appel->args[0],
+                                              UtilisationAtome::POUR_OPÉRANDE);
             arg = m_builder.CreateNot(arg);
             auto zero_est_poison = llvm::ConstantInt::get(llvm::Type::getInt1Ty(m_contexte_llvm),
                                                           1);
@@ -2104,7 +2324,8 @@ void GénératriceCodeLLVM::génère_code_pour_appel_intrinsèque(
         case GenreIntrinsèque::COMPTE_BITS_ACTIFS_32:
         case GenreIntrinsèque::COMPTE_BITS_ACTIFS_64:
         {
-            auto arg = génère_code_pour_atome(inst_appel->args[0], false);
+            auto arg = génère_code_pour_atome(inst_appel->args[0],
+                                              UtilisationAtome::POUR_OPÉRANDE);
             valeur_retour = m_builder.CreateUnaryIntrinsic(llvm::Intrinsic::ctpop, arg);
             break;
         }
@@ -2112,7 +2333,8 @@ void GénératriceCodeLLVM::génère_code_pour_appel_intrinsèque(
         case GenreIntrinsèque::PARITÉ_BITS_64:
         {
             /* La parité est le nombre de bits actif modulo 2. */
-            auto arg = génère_code_pour_atome(inst_appel->args[0], false);
+            auto arg = génère_code_pour_atome(inst_appel->args[0],
+                                              UtilisationAtome::POUR_OPÉRANDE);
             valeur_retour = m_builder.CreateUnaryIntrinsic(llvm::Intrinsic::ctpop, arg);
             valeur_retour = m_builder.CreateURem(
                 valeur_retour, llvm::ConstantInt::get(valeur_retour->getType(), 2));
@@ -2122,7 +2344,8 @@ void GénératriceCodeLLVM::génère_code_pour_appel_intrinsèque(
         case GenreIntrinsèque::COMMUTE_OCTETS_32:
         case GenreIntrinsèque::COMMUTE_OCTETS_64:
         {
-            auto arg = génère_code_pour_atome(inst_appel->args[0], false);
+            auto arg = génère_code_pour_atome(inst_appel->args[0],
+                                              UtilisationAtome::POUR_OPÉRANDE);
             valeur_retour = m_builder.CreateUnaryIntrinsic(llvm::Intrinsic::bswap, arg);
             break;
         }
@@ -2142,7 +2365,25 @@ void GénératriceCodeLLVM::génère_code_pour_appel_intrinsèque(
         case GenreIntrinsèque::ATOMIQUE_TOUJOURS_SANS_VERROU:
         case GenreIntrinsèque::ATOMIQUE_EST_SANS_VERROU:
         {
-            /* À FAIRE(LLVM) : __atomic_always_lock_free, __atomic_is_lock_free */
+            // À FAIRE : toujours_sans_verrou est sensée être évaluée lors de la compilation.
+            auto fonction = donne_fonction_atomic_is_lock_free();
+
+            auto callee = llvm::FunctionCallee(fonction);
+
+            auto arguments = std::vector<llvm::Value *>();
+            POUR (inst_appel->args) {
+                arguments.push_back(génère_code_pour_atome(it, UtilisationAtome::POUR_OPÉRANDE));
+            }
+
+            auto call_inst = m_builder.CreateCall(callee, arguments);
+            call_inst->addParamAttr(0, llvm::Attribute::AttrKind::NoUndef);
+            call_inst->addParamAttr(1, llvm::Attribute::AttrKind::NoUndef);
+
+            call_inst->addRetAttr(llvm::Attribute::AttrKind::ZExt);
+
+            valeur_retour = m_builder.CreateCast(llvm::Instruction::CastOps::ZExt,
+                                                 call_inst,
+                                                 llvm::Type::getInt8Ty(m_module->getContext()));
             break;
         }
         case GenreIntrinsèque::ATOMIQUE_CHARGE_BOOL:
@@ -2159,7 +2400,8 @@ void GénératriceCodeLLVM::génère_code_pour_appel_intrinsèque(
         case GenreIntrinsèque::ATOMIQUE_CHARGE_TYPE_DE_DONNÉES:
         case GenreIntrinsèque::ATOMIQUE_CHARGE_ADRESSE_FONCTION:
         {
-            auto arg = génère_code_pour_atome(inst_appel->args[0], false);
+            auto arg = génère_code_pour_atome(inst_appel->args[0],
+                                              UtilisationAtome::POUR_OPÉRANDE);
             auto load = m_builder.CreateLoad(arg->getType(), arg);
             load->setAtomic(donne_valeur_pour_ordre_mémoire(inst_appel->args[1]));
             valeur_retour = load;
@@ -2179,8 +2421,10 @@ void GénératriceCodeLLVM::génère_code_pour_appel_intrinsèque(
         case GenreIntrinsèque::ATOMIQUE_STOCKE_TYPE_DE_DONNÉES:
         case GenreIntrinsèque::ATOMIQUE_STOCKE_ADRESSE_FONCTION:
         {
-            auto arg0 = génère_code_pour_atome(inst_appel->args[0], false);
-            auto arg1 = génère_code_pour_atome(inst_appel->args[1], false);
+            auto arg0 = génère_code_pour_atome(inst_appel->args[0],
+                                               UtilisationAtome::POUR_OPÉRANDE);
+            auto arg1 = génère_code_pour_atome(inst_appel->args[1],
+                                               UtilisationAtome::POUR_OPÉRANDE);
             auto store = m_builder.CreateStore(arg1, arg0);
             store->setAtomic(donne_valeur_pour_ordre_mémoire(inst_appel->args[2]));
             valeur_retour = store;
@@ -2200,7 +2444,16 @@ void GénératriceCodeLLVM::génère_code_pour_appel_intrinsèque(
         case GenreIntrinsèque::ATOMIQUE_ÉCHANGE_TYPE_DE_DONNÉES:
         case GenreIntrinsèque::ATOMIQUE_ÉCHANGE_ADRESSE_FONCTION:
         {
-            /* À FAIRE(llvm) : __atomic_exchange. */
+            auto arg0 = génère_code_pour_atome(inst_appel->args[0],
+                                               UtilisationAtome::POUR_OPÉRANDE);
+            auto arg1 = génère_code_pour_atome(inst_appel->args[1],
+                                               UtilisationAtome::POUR_OPÉRANDE);
+            auto arg3 = inst_appel->args[2];
+            auto align = llvm::MaybeAlign();  // À FAIRE(alignement)
+            auto ordering = donne_valeur_pour_ordre_mémoire(arg3);
+            auto xchg = m_builder.CreateAtomicRMW(
+                llvm::AtomicRMWInst::BinOp::Xchg, arg0, arg1, align, ordering);
+            valeur_retour = xchg;
             break;
         }
         case GenreIntrinsèque::ATOMIQUE_COMPARE_ÉCHANGE_BOOL:
@@ -2217,9 +2470,12 @@ void GénératriceCodeLLVM::génère_code_pour_appel_intrinsèque(
         case GenreIntrinsèque::ATOMIQUE_COMPARE_ÉCHANGE_TYPE_DE_DONNÉES:
         case GenreIntrinsèque::ATOMIQUE_COMPARE_ÉCHANGE_ADRESSE_FONCTION:
         {
-            auto arg0 = génère_code_pour_atome(inst_appel->args[0], false);
-            auto arg1 = génère_code_pour_atome(inst_appel->args[1], false);
-            auto arg2 = génère_code_pour_atome(inst_appel->args[2], false);
+            auto arg0 = génère_code_pour_atome(inst_appel->args[0],
+                                               UtilisationAtome::POUR_OPÉRANDE);
+            auto arg1 = génère_code_pour_atome(inst_appel->args[1],
+                                               UtilisationAtome::POUR_OPÉRANDE);
+            auto arg2 = génère_code_pour_atome(inst_appel->args[2],
+                                               UtilisationAtome::POUR_OPÉRANDE);
             auto arg3 = inst_appel->args[3];
             auto arg4 = inst_appel->args[4];
             auto arg5 = inst_appel->args[5];
@@ -2247,8 +2503,10 @@ void GénératriceCodeLLVM::génère_code_pour_appel_intrinsèque(
         case GenreIntrinsèque::ATOMIQUE_DONNE_PUIS_AJT_TYPE_DE_DONNÉES:
         case GenreIntrinsèque::ATOMIQUE_DONNE_PUIS_AJT_ADRESSE_FONCTION:
         {
-            auto arg0 = génère_code_pour_atome(inst_appel->args[0], false);
-            auto arg1 = génère_code_pour_atome(inst_appel->args[1], false);
+            auto arg0 = génère_code_pour_atome(inst_appel->args[0],
+                                               UtilisationAtome::POUR_OPÉRANDE);
+            auto arg1 = génère_code_pour_atome(inst_appel->args[1],
+                                               UtilisationAtome::POUR_OPÉRANDE);
             auto arg2 = inst_appel->args[0];
             auto align = llvm::MaybeAlign();  // À FAIRE(alignement)
             valeur_retour = m_builder.CreateAtomicRMW(llvm::AtomicRMWInst::Add,
@@ -2271,8 +2529,10 @@ void GénératriceCodeLLVM::génère_code_pour_appel_intrinsèque(
         case GenreIntrinsèque::ATOMIQUE_DONNE_PUIS_SST_TYPE_DE_DONNÉES:
         case GenreIntrinsèque::ATOMIQUE_DONNE_PUIS_SST_ADRESSE_FONCTION:
         {
-            auto arg0 = génère_code_pour_atome(inst_appel->args[0], false);
-            auto arg1 = génère_code_pour_atome(inst_appel->args[1], false);
+            auto arg0 = génère_code_pour_atome(inst_appel->args[0],
+                                               UtilisationAtome::POUR_OPÉRANDE);
+            auto arg1 = génère_code_pour_atome(inst_appel->args[1],
+                                               UtilisationAtome::POUR_OPÉRANDE);
             auto arg2 = inst_appel->args[0];
             auto align = llvm::MaybeAlign();  // À FAIRE(alignement)
             valeur_retour = m_builder.CreateAtomicRMW(llvm::AtomicRMWInst::Sub,
@@ -2295,8 +2555,10 @@ void GénératriceCodeLLVM::génère_code_pour_appel_intrinsèque(
         case GenreIntrinsèque::ATOMIQUE_DONNE_PUIS_ET_TYPE_DE_DONNÉES:
         case GenreIntrinsèque::ATOMIQUE_DONNE_PUIS_ET_ADRESSE_FONCTION:
         {
-            auto arg0 = génère_code_pour_atome(inst_appel->args[0], false);
-            auto arg1 = génère_code_pour_atome(inst_appel->args[1], false);
+            auto arg0 = génère_code_pour_atome(inst_appel->args[0],
+                                               UtilisationAtome::POUR_OPÉRANDE);
+            auto arg1 = génère_code_pour_atome(inst_appel->args[1],
+                                               UtilisationAtome::POUR_OPÉRANDE);
             auto arg2 = inst_appel->args[0];
             auto align = llvm::MaybeAlign();  // À FAIRE(alignement)
             valeur_retour = m_builder.CreateAtomicRMW(llvm::AtomicRMWInst::And,
@@ -2319,8 +2581,10 @@ void GénératriceCodeLLVM::génère_code_pour_appel_intrinsèque(
         case GenreIntrinsèque::ATOMIQUE_DONNE_PUIS_OU_TYPE_DE_DONNÉES:
         case GenreIntrinsèque::ATOMIQUE_DONNE_PUIS_OU_ADRESSE_FONCTION:
         {
-            auto arg0 = génère_code_pour_atome(inst_appel->args[0], false);
-            auto arg1 = génère_code_pour_atome(inst_appel->args[1], false);
+            auto arg0 = génère_code_pour_atome(inst_appel->args[0],
+                                               UtilisationAtome::POUR_OPÉRANDE);
+            auto arg1 = génère_code_pour_atome(inst_appel->args[1],
+                                               UtilisationAtome::POUR_OPÉRANDE);
             auto arg2 = inst_appel->args[0];
             auto align = llvm::MaybeAlign();  // À FAIRE(alignement)
             valeur_retour = m_builder.CreateAtomicRMW(
@@ -2340,8 +2604,10 @@ void GénératriceCodeLLVM::génère_code_pour_appel_intrinsèque(
         case GenreIntrinsèque::ATOMIQUE_DONNE_PUIS_OUX_TYPE_DE_DONNÉES:
         case GenreIntrinsèque::ATOMIQUE_DONNE_PUIS_OUX_ADRESSE_FONCTION:
         {
-            auto arg0 = génère_code_pour_atome(inst_appel->args[0], false);
-            auto arg1 = génère_code_pour_atome(inst_appel->args[1], false);
+            auto arg0 = génère_code_pour_atome(inst_appel->args[0],
+                                               UtilisationAtome::POUR_OPÉRANDE);
+            auto arg1 = génère_code_pour_atome(inst_appel->args[1],
+                                               UtilisationAtome::POUR_OPÉRANDE);
             auto arg2 = inst_appel->args[0];
             auto align = llvm::MaybeAlign();  // À FAIRE(alignement)
             valeur_retour = m_builder.CreateAtomicRMW(llvm::AtomicRMWInst::Xor,
@@ -2364,8 +2630,10 @@ void GénératriceCodeLLVM::génère_code_pour_appel_intrinsèque(
         case GenreIntrinsèque::ATOMIQUE_DONNE_PUIS_NET_TYPE_DE_DONNÉES:
         case GenreIntrinsèque::ATOMIQUE_DONNE_PUIS_NET_ADRESSE_FONCTION:
         {
-            auto arg0 = génère_code_pour_atome(inst_appel->args[0], false);
-            auto arg1 = génère_code_pour_atome(inst_appel->args[1], false);
+            auto arg0 = génère_code_pour_atome(inst_appel->args[0],
+                                               UtilisationAtome::POUR_OPÉRANDE);
+            auto arg1 = génère_code_pour_atome(inst_appel->args[1],
+                                               UtilisationAtome::POUR_OPÉRANDE);
             auto arg2 = inst_appel->args[0];
             auto align = llvm::MaybeAlign();  // À FAIRE(alignement)
             valeur_retour = m_builder.CreateAtomicRMW(llvm::AtomicRMWInst::Nand,
@@ -2377,6 +2645,7 @@ void GénératriceCodeLLVM::génère_code_pour_appel_intrinsèque(
         }
         case GenreIntrinsèque::EST_ADRESSE_DONNÉES_CONSTANTES:
         {
+            valeur_retour = génère_code_pour_appel_impl(inst_appel);
             break;
         }
         case GenreIntrinsèque::LIS_COMPTEUR_TEMPOREL:
@@ -2475,17 +2744,22 @@ llvm::Value *GénératriceCodeLLVM::génère_valeur_données_constantes(
 
 void GénératriceCodeLLVM::définis_valeur_instruction(Instruction const *inst, llvm::Value *valeur)
 {
-    assert_rappel(!adresse_est_nulle(valeur),
-                  [&]() { dbg() << erreur::imprime_site(m_espace, inst->site); });
-
-    assert_rappel(valeur->getType() == convertis_type_llvm(inst->type), [&]() {
-        dbg() << "Le type de l'instruction est " << chaine_type(inst->type) << '\n'
-              << "Le type LLVM est " << *valeur->getType() << '\n'
-              << "Le type espéré serait " << *convertis_type_llvm(inst->type) << '\n'
-              << imprime_arbre_instruction(inst) << '\n'
-              << imprime_commentaire_instruction(inst) << '\n'
-              << erreur::imprime_site(m_espace, inst->site);
+    assert_rappel(!adresse_est_nulle(valeur) || inst->est_charge(), [&]() {
+        dbg() << erreur::imprime_site(m_espace, inst->site);
+        dbg() << imprime_arbre_instruction(inst) << '\n';
+        dbg() << imprime_fonction(m_atome_fonction_courante);
     });
+
+    assert_rappel((valeur == nullptr || valeur->getType() == convertis_type_llvm(inst->type)) ||
+                      inst->est_appel(),
+                  [&]() {
+                      dbg() << "Le type de l'instruction est " << chaine_type(inst->type) << '\n'
+                            << "Le type LLVM est " << *valeur->getType() << '\n'
+                            << "Le type espéré serait " << *convertis_type_llvm(inst->type) << '\n'
+                            << imprime_arbre_instruction(inst) << '\n'
+                            << imprime_commentaire_instruction(inst) << '\n'
+                            << erreur::imprime_site(m_espace, inst->site);
+                  });
 
     table_valeurs[inst->numéro] = valeur;
 }
@@ -2537,7 +2811,35 @@ llvm::Function *GénératriceCodeLLVM::donne_ou_crée_déclaration_fonction(
         résultat->addFnAttr(llvm::Attribute::SanitizeAddress);
     }
 
+    /* Désactivé pour les bibliothèques dynamiques.
+     * https://clang.llvm.org/docs/SafeStack.html#known-compatibility-limitations */
+    if (m_espace.options.protège_pile &&
+        m_espace.options.résultat != RésultatCompilation::BIBLIOTHÈQUE_DYNAMIQUE) {
+        résultat->addFnAttr(llvm::Attribute::SafeStack);
+    }
+
     return résultat;
+}
+
+// À FAIRE : libatomic
+llvm::Function *GénératriceCodeLLVM::donne_fonction_atomic_is_lock_free()
+{
+    if (m_fonction_atomic_is_lock_free == nullptr) {
+        // declare i1 @__atomic_is_lock_free(i64, i8*)
+        std::vector<llvm::Type *> paramètres;
+        paramètres.push_back(llvm::Type::getInt64Ty(m_contexte_llvm));
+        paramètres.push_back(convertis_type_llvm(m_espace.typeuse.type_ptr_rien));
+
+        auto type_sortie_llvm = llvm::Type::getInt1Ty(m_contexte_llvm);
+        auto type_llvm = llvm::FunctionType::get(type_sortie_llvm, paramètres, false);
+        auto liaison = llvm::GlobalValue::ExternalLinkage;
+
+        auto résultat = llvm::Function::Create(
+            type_llvm, liaison, "__atomic_is_lock_free", m_module);
+
+        m_fonction_atomic_is_lock_free = résultat;
+    }
+    return m_fonction_atomic_is_lock_free;
 }
 
 llvm::GlobalVariable *GénératriceCodeLLVM::donne_ou_crée_déclaration_globale(
@@ -2584,7 +2886,7 @@ llvm::GlobalVariable *GénératriceCodeLLVM::donne_ou_crée_déclaration_globale
             numéro_ligne = uint32_t(site->lexème->ligne + 1);
         }
 
-        auto type_dwarf = m_info_débogage->donne_type(type);
+        auto type_dwarf = m_info_débogage->donne_type(type, DonneTypePour::VARIABLE);
 
         // À FAIRE : paramètres supplémentaires
         // bool isDefined = true,
@@ -2618,14 +2920,44 @@ void GénératriceCodeLLVM::génère_code()
     if (données_module.donne_données_constantes()) {
         auto données_constantes = données_module.donne_données_constantes();
 
-        POUR (données_constantes->tableaux_constants) {
-            auto valeur_globale = it.globale;
-            auto valeur_initialisateur = static_cast<llvm::Constant *>(
-                génère_code_pour_atome(valeur_globale->initialisateur, true));
+        auto taille_données = données_constantes->taille_données_tableaux_constants;
+        auto type_octet = convertis_type_llvm(m_espace.typeuse.type_octet);
 
-            auto globale = donne_ou_crée_déclaration_globale(valeur_globale);
-            globale->setInitializer(valeur_initialisateur);
+        auto type_llvm = llvm::ArrayType::get(type_octet, uint64_t(taille_données));
+        m_type_données_constantes = type_llvm;
+        auto nom_globale = vers_string_ref("DC");
+        auto liaison = llvm::GlobalValue::InternalLinkage;
+        auto thread_local_mode = llvm::GlobalValue::ThreadLocalMode::NotThreadLocal;
+
+        auto résultat = new llvm::GlobalVariable(
+            *m_module, type_llvm, true, liaison, nullptr, nom_globale, nullptr, thread_local_mode);
+
+        résultat->setAlignment(llvm::Align(données_constantes->alignement_désiré));
+
+        m_données_constantes = résultat;
+
+        std::vector<uint8_t> données_tableaux;
+        données_tableaux.reserve(size_t(taille_données));
+
+        POUR (données_constantes->tableaux_constants) {
+            auto tableau = it.tableau->donne_données();
+
+            for (auto i = 0; i < it.rembourrage; ++i) {
+                données_tableaux.push_back(0);
+            }
+
+            POUR_NOMME (octet, tableau) {
+                données_tableaux.push_back(uint8_t(octet));
+            }
         }
+
+        résultat->setInitializer(llvm::ConstantDataArray::get(m_contexte_llvm, données_tableaux));
+
+        POUR (données_constantes->tableaux_constants) {
+            table_globales_dc.insère(it.globale, uint64_t(it.décalage_dans_données_constantes));
+        }
+
+        génère_code_pour_est_adresse_données_constante();
     }
 
     POUR (données_module.donne_globales()) {
@@ -2637,8 +2969,8 @@ void GénératriceCodeLLVM::génère_code()
         auto globale = donne_ou_crée_déclaration_globale(valeur_globale);
         if (valeur_globale->est_constante) {
             assert(valeur_globale->initialisateur);
-            auto valeur_initialisateur = static_cast<llvm::Constant *>(
-                génère_code_pour_atome(valeur_globale->initialisateur, true));
+            auto valeur_initialisateur = static_cast<llvm::Constant *>(génère_code_pour_atome(
+                valeur_globale->initialisateur, UtilisationAtome::POUR_GLOBALE));
             globale->setInitializer(valeur_initialisateur);
         }
         else {
@@ -2739,10 +3071,32 @@ void GénératriceCodeLLVM::génère_code_pour_fonction(AtomeFonction const *ato
         génère_code_pour_instruction(inst);
     }
 
-    auto bloc_entree = table_blocs[atome_fonc->instructions[0]->comme_label()->id];
-    m_builder.SetInsertPoint(bloc_entree);
+    auto bloc_entrée = table_blocs[atome_fonc->instructions[0]->comme_label()->id];
+    m_builder.SetInsertPoint(bloc_entrée);
 
     auto valeurs_args = fonction->arg_begin();
+
+    auto type_fonction = atome_fonc->type->comme_type_fonction();
+    auto méthode_retour = détermine_méthode_passage_paramètre(type_fonction->type_sortie);
+    if (méthode_retour == MéthodePassageParamètre::PAR_ADRESSE) {
+        auto valeur = &(*valeurs_args++);
+
+        auto param = atome_fonc->param_sortie;
+        auto arg_name = vers_string_ref(param->ident);
+        valeur->setName(arg_name);
+
+        auto type_llvm_retour = convertis_type_llvm(type_fonction->type_sortie);
+        auto attr = llvm::Attribute::getWithStructRetType(m_module->getContext(),
+                                                          type_llvm_retour);
+        valeur->addAttr(attr);
+        attr = llvm::Attribute::getWithAlignment(
+            m_module->getContext(), llvm::Align(type_fonction->type_sortie->alignement));
+        valeur->addAttr(attr);
+        valeur->addAttr(llvm::Attribute::AttrKind::NoAlias);
+
+        m_adresse_retour = valeur;
+        définis_valeur_instruction(param, m_adresse_retour);
+    }
 
     POUR_INDICE (atome_fonc->params_entrée) {
         auto arg_name = vers_string_ref(it->ident);
@@ -2755,7 +3109,7 @@ void GénératriceCodeLLVM::génère_code_pour_fonction(AtomeFonction const *ato
 
         if (info_débogage_fonction) {
             auto pos = m_info_débogage->donne_info_position(it->site);
-            auto type_param = m_info_débogage->donne_type(type_alloué);
+            auto type_param = m_info_débogage->donne_type(type_alloué, DonneTypePour::PARAMÈTRE);
             auto dibuilder = m_info_débogage->dibuilder;
             auto D = dibuilder->createParameterVariable(info_débogage_fonction,
                                                         arg_name,
@@ -2775,14 +3129,24 @@ void GénératriceCodeLLVM::génère_code_pour_fonction(AtomeFonction const *ato
         }
 
         auto alignement = alloc->getAlign();
-#if 0
-        if (stockage_type_doit_utiliser_memcpy(type_alloué)) {
-            m_builder.CreateMemCpy(
-                alloc, alignement, valeur, alignement, type_alloué->taille_octet);
+
+        auto méthode_passage = détermine_méthode_passage_paramètre(type_alloué);
+        if (méthode_passage == MéthodePassageParamètre::PAR_ADRESSE) {
+            auto type_llvm_param = convertis_type_llvm(type_alloué);
+            auto attr = llvm::Attribute::getWithByValType(m_module->getContext(), type_llvm_param);
+            valeur->addAttr(attr);
+            /* Alignement pour des pointeurs. */
+            attr = llvm::Attribute::getWithAlignment(m_module->getContext(), llvm::Align(8));
+            valeur->addAttr(attr);
+            valeur->addAttr(llvm::Attribute::AttrKind::NoUndef);
+
+            crée_memcpy(alloc, valeur, type_alloué);
         }
-        else
-#endif
-        {
+        else {
+            if (est_type_machine_pointeur(type_alloué)) {
+                auto attr = llvm::Attribute::getWithAlignment(m_module->getContext(), alignement);
+                valeur->addAttr(attr);
+            }
             m_builder.CreateAlignedStore(valeur, alloc, alignement);
         }
 
@@ -2790,8 +3154,8 @@ void GénératriceCodeLLVM::génère_code_pour_fonction(AtomeFonction const *ato
     }
 
     /* crée une variable local pour la valeur de sortie */
-    auto type_fonction = atome_fonc->type->comme_type_fonction();
-    if (!type_fonction->type_sortie->est_type_rien()) {
+    if (!type_fonction->type_sortie->est_type_rien() &&
+        méthode_retour == MéthodePassageParamètre::NORMALE) {
         auto param = atome_fonc->param_sortie;
         crée_allocation(param);
     }
@@ -2803,6 +3167,8 @@ void GénératriceCodeLLVM::génère_code_pour_fonction(AtomeFonction const *ato
                 param->comme_déclaration_variable()->atome->comme_instruction());
         }
     }
+
+    m_atome_fonction_courante = atome_fonc;
 
     for (auto inst : atome_fonc->instructions) {
         // dbg() << imprime_instruction(inst);
@@ -2821,7 +3187,96 @@ void GénératriceCodeLLVM::génère_code_pour_fonction(AtomeFonction const *ato
         // fonction->print(llvm::errs());
     }
 
+    m_atome_fonction_courante = nullptr;
     m_fonction_courante = nullptr;
+    m_adresse_retour = nullptr;
+}
+
+void GénératriceCodeLLVM::génère_code_pour_est_adresse_données_constante()
+{
+    auto atome_fonc = données_module.intrinsèqe_est_adresse_données_constantes;
+    if (atome_fonc == nullptr) {
+        return;
+    }
+
+    assert(m_données_constantes);
+
+    table_valeurs.redimensionne(atome_fonc->numérote_instructions());
+
+    auto fonction = donne_ou_crée_déclaration_fonction(atome_fonc);
+
+    auto bloc = llvm::BasicBlock::Create(m_contexte_llvm, "", fonction);
+    m_builder.SetInsertPoint(bloc);
+
+    auto valeurs_args = fonction->arg_begin();
+    auto param = atome_fonc->params_entrée[0];
+
+    auto arg_name = vers_string_ref(param->ident);
+    auto valeur = &(*valeurs_args++);
+    valeur->setName(arg_name);
+
+    auto type_alloué = param->donne_type_alloué();
+
+    auto alloc = crée_allocation(param);
+    auto alignement = alloc->getAlign();
+    if (est_type_machine_pointeur(type_alloué)) {
+        auto attr = llvm::Attribute::getWithAlignment(m_module->getContext(), alignement);
+        valeur->addAttr(attr);
+    }
+    m_builder.CreateAlignedStore(valeur, alloc, alignement);
+
+    /* valeur_basse := *DC[0] */
+    auto type_llvm = convertis_type_llvm(type_alloué);
+    auto valeur_basse = m_builder.CreateAlloca(type_llvm, 0u);
+    valeur_basse->setAlignment(llvm::Align(type_alloué->alignement));
+    valeur_basse->setName("valeur_basse");
+
+    auto index_array = llvm::SmallVector<llvm::Value *>();
+    auto type_z32 = llvm::Type::getInt32Ty(m_contexte_llvm);
+    auto type_z64 = llvm::Type::getInt64Ty(m_contexte_llvm);
+    index_array.push_back(llvm::ConstantInt::get(type_z32, 0));
+    index_array.push_back(llvm::ConstantInt::get(type_z64, 0));
+
+    auto init_valeur_basse = llvm::ConstantExpr::getInBoundsGetElementPtr(
+        m_type_données_constantes, llvm::cast<llvm::Constant>(m_données_constantes), index_array);
+
+    // auto valeur_init_valeur_basse = m_builder.CreateLoad(type_llvm, init_valeur_basse);
+    m_builder.CreateStore(init_valeur_basse, valeur_basse);
+
+    /* valeur_haute := valeur_basse + taille_données_constantes. */
+    auto valeur_haute = m_builder.CreateAlloca(type_llvm, 0u);
+    valeur_haute->setAlignment(llvm::Align(type_alloué->alignement));
+    valeur_haute->setName("valeur_haute");
+
+    auto données_constantes = données_module.donne_données_constantes();
+    auto taille_données = données_constantes->taille_données_tableaux_constants;
+
+    llvm::Value *valeur_gauche = m_builder.CreateLoad(type_llvm, valeur_basse);
+    valeur_gauche = m_builder.CreateCast(
+        llvm::Instruction::CastOps::PtrToInt, valeur_gauche, type_z64);
+    auto valeur_droite = llvm::ConstantInt::get(type_z64, uint64_t(taille_données));
+    llvm::Value *init_valeur_haute = m_builder.CreateBinOp(
+        llvm::Instruction::Add, valeur_gauche, valeur_droite);
+    init_valeur_haute = m_builder.CreateCast(
+        llvm::Instruction::CastOps::IntToPtr, init_valeur_haute, type_llvm);
+    m_builder.CreateStore(init_valeur_haute, valeur_haute);
+
+    /* résultat := valeur_basse <= adresse & adresse < valeur_haute. */
+
+    auto cmp_droite = m_builder.CreateICmp(llvm::CmpInst::Predicate::ICMP_SLE,
+                                           m_builder.CreateLoad(type_llvm, valeur_basse),
+                                           m_builder.CreateLoad(type_llvm, alloc));
+
+    auto cmp_gauche = m_builder.CreateICmp(llvm::CmpInst::Predicate::ICMP_SLT,
+                                           m_builder.CreateLoad(type_llvm, alloc),
+                                           m_builder.CreateLoad(type_llvm, valeur_haute));
+
+    llvm::Value *résultat = m_builder.CreateBinOp(llvm::Instruction::And, cmp_droite, cmp_gauche);
+
+    résultat = m_builder.CreateCast(
+        llvm::Instruction::CastOps::ZExt, résultat, llvm::Type::getInt8Ty(m_module->getContext()));
+
+    m_builder.CreateRet(résultat);
 }
 
 void GénératriceCodeLLVM::génère_code_pour_constructeur_global(const AtomeFonction *atome_fonc,
@@ -2838,13 +3293,15 @@ void GénératriceCodeLLVM::génère_code_pour_constructeur_global(const AtomeFo
     auto type_int32 = llvm::Type::getInt32Ty(m_contexte_llvm);
 
     /* Le type de la fonction de constrution est void()*. */
-    llvm::FunctionType *CtorFTy = llvm::FunctionType::get(type_void, false);
-    llvm::Type *CtorPFTy = llvm::PointerType::get(CtorFTy, espace_adressage);
+    llvm::FunctionType *type_fonction_constructeur = llvm::FunctionType::get(type_void, false);
+    llvm::Type *type_pointeur_fonction_constructeur = llvm::PointerType::get(
+        type_fonction_constructeur, espace_adressage);
 
     /* Le type d'une entrée dans la liste, { i32, void ()*, i8* }. */
-    llvm::StructType *CtorStructTy = llvm::StructType::get(type_int32, CtorPFTy, type_void_ptr);
+    llvm::StructType *type_struct_constructeur = llvm::StructType::get(
+        type_int32, type_pointeur_fonction_constructeur, type_void_ptr);
 
-    /* Construiction des tableaux de constructeurs/desctructeurs. */
+    /* Construction des tableaux de constructeurs/desctructeurs. */
     std::vector<llvm::Constant *> tableau_constructeurs;
     tableau_constructeurs.reserve(1);
 
@@ -2854,11 +3311,12 @@ void GénératriceCodeLLVM::génère_code_pour_constructeur_global(const AtomeFo
     /* Données associées. Nous n'en avons aucune. */
     tableau_membre.push_back(llvm::ConstantPointerNull::get(type_void_ptr));
 
-    auto constructeur = llvm::ConstantStruct::get(CtorStructTy, tableau_membre);
+    auto constructeur = llvm::ConstantStruct::get(type_struct_constructeur, tableau_membre);
 
     tableau_constructeurs.push_back(constructeur);
 
-    auto type_tableau = llvm::ArrayType::get(CtorStructTy, tableau_constructeurs.size());
+    auto type_tableau = llvm::ArrayType::get(type_struct_constructeur,
+                                             tableau_constructeurs.size());
     auto init_constructeurs = llvm::ConstantArray::get(type_tableau, tableau_constructeurs);
 
     auto nom_globale_llvm = vers_string_ref(nom_globale);
@@ -2886,6 +3344,17 @@ llvm::AllocaInst *GénératriceCodeLLVM::crée_allocation(const InstructionAlloc
 
     définis_valeur_instruction(alloc, alloca);
     return alloca;
+}
+
+void GénératriceCodeLLVM::crée_memcpy(llvm::Value *dst,
+                                      llvm::Value *src,
+                                      Type const *type,
+                                      bool volatile_)
+{
+    if (dst != src) {
+        auto alignement = llvm::Align(type->alignement);
+        m_builder.CreateMemCpy(dst, alignement, src, alignement, type->taille_octet, volatile_);
+    }
 }
 
 bool initialise_llvm()
@@ -2930,22 +3399,22 @@ void issitialise_llvm()
 }
 
 /* Chemin du fichier objet généré par la coulisse. */
-static kuri::chemin_systeme chemin_fichier_objet_llvm(int index)
+static kuri::chemin_systeme chemin_fichier_objet_llvm(int indice)
 {
-    auto nom_de_base = enchaine("kuri", index);
+    auto nom_de_base = enchaine("kuri", indice);
     return chemin_fichier_objet_temporaire_pour(nom_de_base);
 }
 
 /* Chemin du fichier de code binaire LLVM généré par la coulisse. */
-static kuri::chemin_systeme chemin_fichier_bc_llvm(int64_t index)
+static kuri::chemin_systeme chemin_fichier_bc_llvm(int64_t indice)
 {
-    return kuri::chemin_systeme::chemin_temporaire(enchaine("kuri", index, ".bc"));
+    return kuri::chemin_systeme::chemin_temporaire(enchaine("kuri", indice, ".bc"));
 }
 
 /* Chemin du fichier de code LLVM généré par la coulisse. */
-static kuri::chemin_systeme chemin_fichier_ll_llvm(int64_t index)
+static kuri::chemin_systeme chemin_fichier_ll_llvm(int64_t indice)
 {
-    return kuri::chemin_systeme::chemin_temporaire(enchaine("kuri", index, ".ll"));
+    return kuri::chemin_systeme::chemin_temporaire(enchaine("kuri", indice, ".ll"));
 }
 
 static kuri::chaine_statique donne_assembleur_llvm()
@@ -2953,10 +3422,12 @@ static kuri::chaine_statique donne_assembleur_llvm()
     return LLVM_ASSEMBLEUR;
 }
 
-static std::optional<ErreurCommandeExterne> valide_llvm_ir(llvm::Module &module, int64_t index)
+static std::optional<ErreurCommandeExterne> valide_llvm_ir(llvm::Module &module,
+                                                           int64_t indice,
+                                                           bool verbeux)
 {
-    auto const fichier_ll = chemin_fichier_ll_llvm(index);
-    auto const fichier_bc = chemin_fichier_bc_llvm(index);
+    auto const fichier_ll = chemin_fichier_ll_llvm(indice);
+    auto const fichier_bc = chemin_fichier_bc_llvm(indice);
 
     std::error_code ec;
     llvm::raw_fd_ostream dest(vers_string_ref(fichier_ll), ec, llvm::sys::fs::OF_None);
@@ -2965,7 +3436,7 @@ static std::optional<ErreurCommandeExterne> valide_llvm_ir(llvm::Module &module,
     /* Génère le fichier de code binaire depuis le fichier de RI LLVM, ce qui vérifiera que la RI
      * est correcte. */
     auto commande = enchaine(donne_assembleur_llvm(), " ", fichier_ll, " -o ", fichier_bc, '\0');
-    return exécute_commande_externe_erreur(commande, true);
+    return exécute_commande_externe_erreur(commande, verbeux);
 }
 
 CoulisseLLVM::~CoulisseLLVM()
@@ -2973,16 +3444,9 @@ CoulisseLLVM::~CoulisseLLVM()
     POUR (m_modules) {
         delete it->module;
         delete it->contexte_llvm;
-        mémoire::deloge("DonnéesModule", it);
+        mémoire::déloge("DonnéesModule", it);
     }
     delete m_machine_cible;
-}
-
-static bool est_intrinsèque_supportée_par_llvm(IdentifiantCode const *ident)
-{
-    return ident != ID::intrinsèque_est_adresse_données_constantes &&
-           ident != ID::atomique_échange && ident != ID::atomique_toujours_sans_verrou &&
-           ident != ID::atomique_est_sans_verrou;
 }
 
 std::optional<ErreurCoulisse> CoulisseLLVM::génère_code_impl(const ArgsGénérationCode &args)
@@ -2991,16 +3455,13 @@ std::optional<ErreurCoulisse> CoulisseLLVM::génère_code_impl(const ArgsGénér
         return ErreurCoulisse{"Impossible d'intialiser LLVM."};
     }
 
+    auto compilatrice = args.compilatrice;
     auto &espace = *args.espace;
     auto &repr_inter = *args.ri_programme;
 
     POUR (repr_inter.donne_fonctions()) {
-        if (!it->est_intrinsèque()) {
-            continue;
-        }
-
-        if (!est_intrinsèque_supportée_par_llvm(it->decl->ident)) {
-            auto message = enchaine("Utilisation d'une intrinsèque non-implémentée pour LLVM : ",
+        if (it->decl && it->decl->possède_drapeau(DrapeauxNoeudFonction::EST_SSE2)) {
+            auto message = enchaine("Utilisation d'une fonction SSE2 non-implémentée pour LLVM : ",
                                     it->decl->ident->nom,
                                     ".");
             return ErreurCoulisse{message};
@@ -3029,7 +3490,7 @@ std::optional<ErreurCoulisse> CoulisseLLVM::génère_code_impl(const ArgsGénér
     auto RM = llvm::Optional<llvm::Reloc::Model>(llvm::Reloc::PIC_);
     m_machine_cible = cible->createTargetMachine(triplet_cible, CPU, feature, options_cible, RM);
 
-    crée_modules(repr_inter, triplet_cible);
+    crée_modules(repr_inter, triplet_cible, espace.options);
 
     POUR (m_modules) {
         auto generatrice = GénératriceCodeLLVM(espace, *it);
@@ -3038,7 +3499,8 @@ std::optional<ErreurCoulisse> CoulisseLLVM::génère_code_impl(const ArgsGénér
 
     if (true || espace.options.valide_ir_llvm) {
         POUR_INDICE (m_modules) {
-            auto opt_erreur_validation = valide_llvm_ir(*it->module, indice_it);
+            auto opt_erreur_validation = valide_llvm_ir(
+                *it->module, indice_it, compilatrice->arguments.verbeux);
             if (opt_erreur_validation.has_value()) {
                 auto erreur_validation = opt_erreur_validation.value();
                 auto message_erreur = enchaine("Erreur lors de la validation du code LLVM.\n",
@@ -3085,7 +3547,7 @@ std::optional<ErreurCoulisse> CoulisseLLVM::crée_fichier_objet_impl(
     return {};
 }
 
-static kuri::chaine_statique donne_fichier_point_d_entree(OptionsDeCompilation const &options)
+static kuri::chaine_statique donne_fichier_point_d_entrée(OptionsDeCompilation const &options)
 {
     if (options.résultat == RésultatCompilation::BIBLIOTHÈQUE_DYNAMIQUE) {
         return "fichiers/point_d_entree_dynamique.c";
@@ -3101,7 +3563,7 @@ std::optional<ErreurCoulisse> CoulisseLLVM::crée_exécutable_impl(const ArgsLia
 
     kuri::tablet<kuri::chaine_statique, 16> fichiers_objet;
     auto fichier_point_d_entrée_c = compilatrice.racine_kuri /
-                                    donne_fichier_point_d_entree(espace.options);
+                                    donne_fichier_point_d_entrée(espace.options);
     fichiers_objet.ajoute(fichier_point_d_entrée_c);
 
     POUR (m_modules) {
@@ -3110,10 +3572,13 @@ std::optional<ErreurCoulisse> CoulisseLLVM::crée_exécutable_impl(const ArgsLia
 
     auto nom_sortie = nom_sortie_résultat_final(espace.options);
     auto commande = commande_pour_liaison(
-        espace.options, fichiers_objet, m_bibliothèques, nom_sortie);
+        espace.options, fichiers_objet, m_bibliothèques, nom_sortie, true);
 
-    if (!exécute_commande_externe(commande)) {
-        return ErreurCoulisse{"Ne peut pas créer l'executable !"};
+    auto err_commande = exécute_commande_externe_erreur(commande, compilatrice.arguments.verbeux);
+    if (err_commande.has_value()) {
+        auto message = enchaine("Impossible de lier le compilat. Le lieur a retourné :\n\n",
+                                err_commande.value().message);
+        return ErreurCoulisse{message};
     }
 
     return {};
@@ -3137,12 +3602,14 @@ static void ajoute_passes_pour_optimisation(llvm::PassManagerBuilder &builder,
     builder.SLPVectorize = (niveau_optimisation > 1 && niveau_taille < 2);
 }
 
+#if LLVM_VERSION_MAJOR == 14
 static void ajoute_passes_pour_asan(const llvm::PassManagerBuilder & /* builder */,
                                     llvm::legacy::PassManagerBase &pm)
 {
     pm.add(llvm::createAddressSanitizerFunctionPass());
     pm.add(llvm::createModuleAddressSanitizerLegacyPassPass());
 }
+#endif
 
 static void crée_passes(llvm::legacy::FunctionPassManager &fpm,
                         llvm::legacy::PassManager &pm,
@@ -3174,11 +3641,13 @@ static void crée_passes(llvm::legacy::FunctionPassManager &fpm,
             break;
     }
 
+#if LLVM_VERSION_MAJOR == 14
     if (options.utilise_asan) {
         builder.addExtension(llvm::PassManagerBuilder::EP_OptimizerLast, ajoute_passes_pour_asan);
         builder.addExtension(llvm::PassManagerBuilder::EP_EnabledOnOptLevel0,
                              ajoute_passes_pour_asan);
     }
+#endif
 
     builder.populateModulePassManager(pm);
     builder.populateFunctionPassManager(fpm);
@@ -3226,10 +3695,12 @@ void CoulisseLLVM::crée_fichier_objet(DonnéesModule *module, OptionsDeCompilat
 }
 
 void CoulisseLLVM::crée_modules(const ProgrammeRepreInter &repr_inter,
-                                const std::string &triplet_cible)
+                                const std::string &triplet_cible,
+                                OptionsDeCompilation const &options)
 {
     /* Crée un module pour les globales. */
-    auto module = crée_un_module("Globales", triplet_cible);
+    auto module = crée_un_module("Globales", triplet_cible, options);
+    auto module_globales = module;
 
     auto opt_données_constantes = repr_inter.donne_données_constantes();
     if (opt_données_constantes.has_value()) {
@@ -3237,47 +3708,52 @@ void CoulisseLLVM::crée_modules(const ProgrammeRepreInter &repr_inter,
     }
     module->définis_globales(repr_inter.donne_globales());
 
-#ifndef COMPILE_EN_PLUSIEURS_MODULE
-    module->définis_fonctions(repr_inter.donne_fonctions());
-
-    /* À FAIRE : pour la compilation en plusieurs fichiers il faudra proprement
-     * gérer les liaisons des globales, ainsi que leur donner des noms uniques. */
-#else
-    /* Crée des modules pour les fonctions. */
-    constexpr int nombre_instructions_par_module = 10000;
-    int nombre_instructions = 0;
-    int index_première_fonction = 0;
-    auto fonctions = repr_inter.donne_fonctions();
-    for (int i = 0; i < fonctions.taille(); i++) {
-        auto fonction = fonctions[i];
-        nombre_instructions += fonction->nombre_d_instructions_avec_entrées_sorties();
-
-        if (nombre_instructions < nombre_instructions_par_module && i != fonctions.taille() - 1) {
-            continue;
-        }
-
-        // dbg() << "Nombre instructions : " << nombre_instructions;
-
-        auto pointeur_fonction = fonctions.begin() + index_première_fonction;
-        auto taille = i - index_première_fonction + 1;
-
-        auto fonctions_du_modules = kuri::tableau_statique<AtomeFonction *>(pointeur_fonction,
-                                                                            taille);
-
-        module = crée_un_module("Fonction", triplet_cible);
-        module->définis_fonctions(fonctions_du_modules);
-
-        nombre_instructions = 0;
-        index_première_fonction = i + 1;
+    if (!options.parallélise_llvm) {
+        module->définis_fonctions(repr_inter.donne_fonctions());
     }
-#endif
+    else {
+        /* Crée des modules pour les fonctions. */
+        constexpr int nombre_instructions_par_module = 20000;
+        int nombre_instructions = 0;
+        int index_première_fonction = 0;
+        auto fonctions = repr_inter.donne_fonctions();
+        for (int i = 0; i < fonctions.taille(); i++) {
+            auto fonction = fonctions[i];
+            nombre_instructions += fonction->nombre_d_instructions_avec_entrées_sorties();
+
+            if (fonction->est_intrinsèque(GenreIntrinsèque::EST_ADRESSE_DONNÉES_CONSTANTES)) {
+                module_globales->intrinsèqe_est_adresse_données_constantes = fonction;
+            }
+
+            if (nombre_instructions < nombre_instructions_par_module &&
+                i != fonctions.taille() - 1) {
+                continue;
+            }
+
+            // dbg() << "Nombre instructions : " << nombre_instructions;
+
+            auto pointeur_fonction = fonctions.begin() + index_première_fonction;
+            auto taille = i - index_première_fonction + 1;
+
+            auto fonctions_du_modules = kuri::tableau_statique<AtomeFonction *>(pointeur_fonction,
+                                                                                taille);
+
+            module = crée_un_module("Fonction", triplet_cible, options);
+            module->définis_fonctions(fonctions_du_modules);
+
+            nombre_instructions = 0;
+            index_première_fonction = i + 1;
+        }
+    }
 }
 
 DonnéesModule *CoulisseLLVM::crée_un_module(kuri::chaine_statique nom,
-                                            const std::string &triplet_cible)
+                                            const std::string &triplet_cible,
+                                            OptionsDeCompilation const &options)
 {
     auto résultat = mémoire::loge<DonnéesModule>("DonnéesModule");
     résultat->contexte_llvm = new llvm::LLVMContext;
+    résultat->le_module_est_unique = !options.parallélise_llvm;
 
     auto nom_module = enchaine(nom, m_modules.taille());
 
@@ -3288,6 +3764,11 @@ DonnéesModule *CoulisseLLVM::crée_un_module(kuri::chaine_statique nom,
     résultat->module->setPICLevel(llvm::PICLevel::BigPIC);
     résultat->module->setPIELevel(llvm::PIELevel::Large);
     résultat->module->setFramePointer(llvm::FramePointerKind::All);
+
+    if (options.protège_controle_flux) {
+        résultat->module->addModuleFlag(llvm::Module::Override, "cf-protection-return", 1);
+        résultat->module->addModuleFlag(llvm::Module::Override, "cf-protection-branch", 1);
+    }
 
     résultat->chemin_fichier_objet = chemin_fichier_objet_llvm(int32_t(m_modules.taille()));
 

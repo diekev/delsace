@@ -36,7 +36,7 @@ enum class LexèmeType : uint8_t {
     /* ...varidique. */
     VARIADIQUE,
     /* ...type de données. */
-    TYPE_DE_DONNEES,
+    TYPE_DE_DONNÉES,
     /* ...nominal. */
     NOMINAL,
     /* ...de fonction. */
@@ -72,7 +72,7 @@ struct BaseSyntaxeuseRI : public BaseSyntaxeuse {
 
     struct Fonction {
         struct DonnéesLabel {
-            int index;
+            int indice;
             int numéro;
         };
         Lexème *nom = nullptr;
@@ -318,7 +318,7 @@ void BaseSyntaxeuseRI<Impl>::analyse_structure()
         }
 
         if (!apparie(GenreLexème::CHAINE_CARACTERE)) {
-            rapporte_erreur("Attendu une chaine de caractère pour le nom du rubrique.");
+            rapporte_erreur("Attendu une chaine de caractère pour le nom de la rubrique.");
             return;
         }
 
@@ -379,7 +379,7 @@ void BaseSyntaxeuseRI<Impl>::analyse_union(bool est_nonsûre)
         }
 
         if (!apparie(GenreLexème::CHAINE_CARACTERE) && !apparie(GenreLexème::NOMBRE_ENTIER)) {
-            rapporte_erreur("Attendu une chaine de caractère pour le nom du rubrique.");
+            rapporte_erreur("Attendu une chaine de caractère pour le nom de la rubrique.");
             return;
         }
 
@@ -620,7 +620,7 @@ std::optional<LexèmeType> BaseSyntaxeuseRI<Impl>::apparie_lexème_type() const
         return LexèmeType::VARIADIQUE;
     }
     if (apparie(GenreLexème::TYPE_DE_DONNÉES)) {
-        return LexèmeType::TYPE_DE_DONNEES;
+        return LexèmeType::TYPE_DE_DONNÉES;
     }
     if (apparie(GenreLexème::CHAINE_CARACTERE)) {
         return LexèmeType::NOMINAL;
@@ -689,7 +689,7 @@ typename BaseSyntaxeuseRI<Impl>::TypeType BaseSyntaxeuseRI<Impl>::analyse_type()
         {
             return analyse_type_variadique();
         }
-        case LexèmeType::TYPE_DE_DONNEES:
+        case LexèmeType::TYPE_DE_DONNÉES:
         {
             auto lexème = m_lexème_courant;
             consomme();
@@ -890,9 +890,9 @@ typename BaseSyntaxeuseRI<Impl>::TypeAtome BaseSyntaxeuseRI<Impl>::analyse_atome
             }
 
             CONSOMME_IDENTIFIANT(
-                nom_rubrique, "Attendu une chaine de caractère pour le nom du rubrique", {});
+                nom_rubrique, "Attendu une chaine de caractère pour le nom de la rubrique", {});
 
-            CONSOMME_LEXEME(EGAL, "Attendu « = » pour la valeur du rubrique.", {});
+            CONSOMME_LEXEME(EGAL, "Attendu « = » pour la valeur de la rubrique.", {});
 
             auto atome_rubrique = analyse_atome_typé();
 
@@ -918,7 +918,7 @@ typename BaseSyntaxeuseRI<Impl>::TypeAtome BaseSyntaxeuseRI<Impl>::analyse_atome
         return impl()->crée_constante_entière(type, lexème_id);
     }
 
-    if (apparie(GenreLexème::NOMBRE_REEL)) {
+    if (apparie(GenreLexème::NOMBRE_RÉEL)) {
         auto const lexème_id = m_lexème_courant;
         consomme();
         return impl()->crée_constante_réelle(type, lexème_id);
@@ -934,7 +934,7 @@ typename BaseSyntaxeuseRI<Impl>::TypeAtome BaseSyntaxeuseRI<Impl>::analyse_atome
             return impl()->crée_constante_entière(type, lexème_id);
         }
 
-        if (apparie(GenreLexème::NOMBRE_REEL)) {
+        if (apparie(GenreLexème::NOMBRE_RÉEL)) {
             auto const lexème_id = m_lexème_courant;
             m_lexème_courant->valeur_reelle = -m_lexème_courant->valeur_reelle;
             consomme();
@@ -960,11 +960,12 @@ typename BaseSyntaxeuseRI<Impl>::TypeAtome BaseSyntaxeuseRI<Impl>::analyse_atome
             consomme();
             CONSOMME_NOMBRE_ENTIER(
                 indice_accès,
-                "Attendu un nombre entier après le crochet ouvrant de l'accès d'index",
+                "Attendu un nombre entier après le crochet ouvrant de l'accès d'indice",
                 {});
 
-            CONSOMME_LEXEME(
-                CROCHET_FERMANT, "Attendu un crochet pour terminer l'accès d'index constant.", {});
+            CONSOMME_LEXEME(CROCHET_FERMANT,
+                            "Attendu un crochet pour terminer l'accès d'indice constant.",
+                            {});
 
             return impl()->crée_indexage_constant(type, lexème_indice_accès, globale);
         }
@@ -1107,12 +1108,12 @@ void BaseSyntaxeuseRI<Impl>::analyse_index(NomInstruction nom)
 {
     consomme();
     consomme();
-    auto const atome_indexé = analyse_atome_typé();
+    auto const atome_indiceé = analyse_atome_typé();
     CONSOMME_LEXEME(VIRGULE, "attendu une virgule après l'atome de « index »");
-    auto const atome_index = analyse_atome_typé();
+    auto const atome_indice = analyse_atome_typé();
     CONSOMME_POINT_VIRGULE;
 
-    impl()->crée_index(atome_indexé, atome_index);
+    impl()->crée_index(atome_indiceé, atome_indice);
 }
 
 template <typename Impl>
@@ -1121,7 +1122,7 @@ void BaseSyntaxeuseRI<Impl>::analyse_rubrique(NomInstruction nom)
     consomme();
     auto const atome_rubrique = analyse_atome_typé();
     CONSOMME_LEXEME(VIRGULE, "attendu une virgule après l'atome de « rubrique »");
-    REQUIERS_NOMBRE_ENTIER("attendu un nombre entier pour l'index du rubrique");
+    REQUIERS_NOMBRE_ENTIER("attendu un nombre entier pour l'indice de la rubrique");
     auto const indice_rubrique = lexème_courant()->valeur_entiere;
     consomme();
     CONSOMME_POINT_VIRGULE;
@@ -1381,9 +1382,9 @@ class PrésyntaxeuseRI : public BaseSyntaxeuseRI<PrésyntaxeuseRI> {
 
     void crée_index(DescriptionAtome const &indexé, DescriptionAtome const &valeur);
 
-    void crée_label(uint64_t index);
+    void crée_label(uint64_t indice);
 
-    void crée_rubrique(DescriptionAtome const &valeur, uint64_t index);
+    void crée_rubrique(DescriptionAtome const &valeur, uint64_t indice);
 
     void crée_retourne(DescriptionAtome const &valeur);
 
@@ -1560,9 +1561,9 @@ class SyntaxeuseRI : public BaseSyntaxeuseRI<SyntaxeuseRI> {
 
     void crée_index(Atome *indexé, Atome *valeur);
 
-    void crée_label(uint64_t index);
+    void crée_label(uint64_t indice);
 
-    void crée_rubrique(Atome *valeur, uint64_t index);
+    void crée_rubrique(Atome *valeur, uint64_t indice);
 
     void crée_retourne(Atome *valeur);
 

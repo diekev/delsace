@@ -31,7 +31,7 @@ EspaceDeTravail::EspaceDeTravail(Compilatrice &compilatrice,
     programme = Programme::crée_pour_espace(this);
     registre_ri = mémoire::loge<RegistreSymboliqueRI>("RegistreSymboliqueRI", typeuse);
 
-    auto ops = opérateurs.verrou_ecriture();
+    auto ops = opérateurs.verrou_écriture();
     enregistre_opérateurs_basiques(typeuse, *ops);
 
     m_bloc_racine = compilatrice.gestionnaire_code->crée_bloc_racine(typeuse);
@@ -43,8 +43,8 @@ EspaceDeTravail::EspaceDeTravail(Compilatrice &compilatrice,
 
 EspaceDeTravail::~EspaceDeTravail()
 {
-    mémoire::deloge("Programme", programme);
-    mémoire::deloge("RegistreSymboliqueRI", registre_ri);
+    mémoire::déloge("Programme", programme);
+    mémoire::déloge("RegistreSymboliqueRI", registre_ri);
 }
 
 Module *EspaceDeTravail::donne_module(const IdentifiantCode *nom_module) const
@@ -52,14 +52,14 @@ Module *EspaceDeTravail::donne_module(const IdentifiantCode *nom_module) const
     return sys_module->module(nom_module);
 }
 
-const Fichier *EspaceDeTravail::fichier(int64_t index) const
+const Fichier *EspaceDeTravail::fichier(int64_t indice) const
 {
-    return sys_module->fichier(index);
+    return sys_module->fichier(indice);
 }
 
-Fichier *EspaceDeTravail::fichier(int64_t index)
+Fichier *EspaceDeTravail::fichier(int64_t indice)
 {
-    return sys_module->fichier(index);
+    return sys_module->fichier(indice);
 }
 
 Fichier *EspaceDeTravail::fichier(kuri::chaine_statique chemin) const
@@ -67,7 +67,7 @@ Fichier *EspaceDeTravail::fichier(kuri::chaine_statique chemin) const
     return sys_module->fichier(chemin);
 }
 
-int64_t EspaceDeTravail::memoire_utilisee() const
+int64_t EspaceDeTravail::mémoire_utilisée() const
 {
     auto résultat = int64_t(0);
     résultat += programme->mémoire_utilisée();
@@ -241,7 +241,7 @@ bool EspaceDeTravail::peut_génèrer_code_final() const
         return true;
     }
 
-    if (NOMBRE_DE_TACHES(EXECUTION) == 1 && metaprogramme) {
+    if (NOMBRE_DE_TACHES(EXECUTION) == 1 && métaprogramme) {
         return true;
     }
 
@@ -292,13 +292,13 @@ SiteSource EspaceDeTravail::site_source_pour(const NoeudExpression *noeud) const
         return {};
     }
 
-    auto lexeme = noeud->lexème;
-    if (!lexeme && noeud->est_corps_fonction()) {
-        lexeme = noeud->comme_corps_fonction()->entête->lexème;
+    auto lexème = noeud->lexème;
+    if (!lexème && noeud->est_corps_fonction()) {
+        lexème = noeud->comme_corps_fonction()->entête->lexème;
     }
 
-    auto const fichier = this->fichier(lexeme->fichier);
-    return SiteSource::cree(fichier, lexeme);
+    auto const fichier = this->fichier(lexème->fichier);
+    return SiteSource::crée(fichier, lexème);
 }
 
 Erreur EspaceDeTravail::rapporte_avertissement(const NoeudExpression *site,

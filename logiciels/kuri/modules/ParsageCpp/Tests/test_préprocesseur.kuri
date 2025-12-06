@@ -1,0 +1,188 @@
+importe Chaine
+importe Fondation
+importe ParsageCpp
+importe SysFichier
+importe Temps
+
+// À FAIRE :
+// testpour has_include et autres
+// test pour les branchages
+
+principale :: fonc ()
+{
+    args := arguments_ligne_commande()
+
+    si args.taille == 2 {
+        si args[1] != "--ajourne-fichiers" {
+            imprime("Argument '%' inconnu\n", args[1])
+            exit(1)
+        }
+
+        ajourne_fichiers()
+        exit(0)
+    }
+
+    si args.taille > 2 {
+        imprime("Erreur : trop d'arguments.\n")
+        imprime("Utilisation : % [--ajourne-fichiers]\n", args[0])
+        exit(1)
+    }
+
+    exit(test_préprocesseur() comme z32)
+}
+
+test_préprocesseur :: fonc () -> bool
+{
+    début := maintenant_précis()
+
+    chemins_sources := donne_chemins_fichiers_sources()
+    diffère déloge_tableau_et_ses_éléments(chemins_sources, détruit_chemin)
+
+    chemins_sorties := donne_chemins_fichiers_sorties(chemins_sources)
+    diffère déloge_tableau_et_ses_éléments(chemins_sources, détruit_chemin)
+
+    échecs: [..]CheminFichier
+    diffère déloge(échecs)
+
+    nombre_de_tests_passants: z32
+    nombre_de_tests_ignorés: z32
+
+    pour chemins_sources {
+        imprime(".")
+
+        impression := donne_texte_pour_sortie(it)
+        diffère déloge(impression)
+
+        nom_fichier := nom_fichier(it)
+        // À FAIRE : rapporte erreur
+        si fini_par(nom_fichier, "sans-sortie") {
+            nombre_de_tests_passants += 1
+            continue
+        }
+
+        chemin_sortie := chemins_sorties[indice_it]
+
+        succès, sortie_attendue := contenu_fichier_texte(chemin_sortie)
+        saufsi succès {
+            continue
+        }
+        diffère déloge(sortie_attendue)
+
+        si impression != sortie_attendue {
+            tableau_ajoute(*échecs, it)
+        }
+        sinon {
+            nombre_de_tests_passants += 1
+        }
+    }
+
+    imprime("\n")
+
+    fin := début.temps_écoulé_millisecondes()
+
+    si échecs.taille != 0 {
+        pour échecs {
+            imprime("[ \x1b[31mÉCHEC\x1b[37m ] : %\n", it)
+        }
+    }
+    sinon si nombre_de_tests_passants != chemins_sources.taille {
+            imprimeln("[ \x1b[31mÉCHEC\x1b[37m ]\n")
+    }
+    sinon {
+        imprime("[ \x1b[32mPASSE\x1b[37m ]\n")
+    }
+
+    imprime("\n")
+    imprime("Tests    : % réussis, % ignorés, % en tout\n", nombre_de_tests_passants, nombre_de_tests_ignorés, chemins_sources.taille)
+    imprime("Temps    : %ms\n", fin)
+    imprime("\n")
+
+    retourne échecs.taille != 0
+}
+
+ajourne_fichiers :: fonc ()
+{
+    chemins_sources := donne_chemins_fichiers_sources()
+    diffère déloge_tableau_et_ses_éléments(chemins_sources, détruit_chemin)
+
+    chemins_sorties := donne_chemins_fichiers_sorties(chemins_sources)
+    diffère déloge_tableau_et_ses_éléments(chemins_sources, détruit_chemin)
+
+    pour chemins_sources {
+        nom_fichier := nom_fichier(it)
+        si fini_par(nom_fichier, "sans-sortie") {
+            continue
+        }
+
+        impression := donne_texte_pour_sortie(it)
+        diffère déloge(impression)
+
+        chemin_sortie := chemins_sorties[indice_it]
+
+        si est_un_fichier_régulier(chemin_sortie) {
+            succès, original := contenu_fichier_texte(chemin_sortie)
+            diffère déloge(original)
+            si succès && impression == original {
+                continue
+            }
+        }
+
+        saufsi écris_fichier_entier(chemin_sortie, impression) {
+            retourne
+        }
+    }
+}
+
+donne_chemins_fichiers_sources :: fonc () -> [..]CheminFichier
+{
+    résultat: [..]CheminFichier
+
+    dossier_parent := CheminFichier(#chemin_de_ce_fichier).chemin_parent()
+    diffère détruit_chemin(dossier_parent)
+    dossier := dossier_parent / "fichiers/sources"
+
+    visite :: fonc (info: InfoVisiteFichier, fichiers: *[..]CheminFichier) -> DécisionVisiteFichier
+    {
+        saufsi info.est_dossier {
+            chemin := CheminFichier(info.chemin)
+            si chemin.extension() == ".c" || chemin.extension() == ".cc" {
+                tableau_ajoute(fichiers, CheminFichier(copie_chaine(info.chemin)))
+            }
+        }
+        retourne DécisionVisiteFichier.Continue
+    }
+
+    visite_fichiers(dossier, vrai, *résultat, visite)
+
+    retourne résultat
+}
+
+donne_chemins_fichiers_sorties :: fonc (sources: []CheminFichier) -> [..]CheminFichier
+{
+    résultat: [..]CheminFichier
+    tableau_réserve(*résultat, sources.taille)
+
+    pour sources {
+        tableau_ajoute(*résultat, donne_chemin_pour_fichier_sortie(it))
+    }
+
+    retourne résultat
+}
+
+donne_chemin_pour_fichier_sortie :: fonc (chemin: CheminFichier) -> CheminFichier
+{
+    dossier := chemin_parent(chemin)
+    diffère détruit_chemin(dossier)
+
+    tmp := dossier / chemin.nom_fichier_avec_extension()
+    diffère détruit_chemin(tmp)
+
+    résultat: CheminFichier
+    résultat.chn = remplace(tmp.chn, "fichiers/sources", "fichiers/sorties")
+    retourne résultat
+}
+
+donne_texte_pour_sortie :: fonc (chemin: CheminFichier) -> chaine
+{
+    retourne donne_source_préprocédée(chemin.chn)
+}

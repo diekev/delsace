@@ -51,15 +51,15 @@ void visite_opérandes_instruction(Instruction *inst, Rappel &&rappel)
         }
         case GenreInstruction::ACCÈS_INDICE:
         {
-            auto acces = inst->comme_accès_indice();
-            rappel(acces->indice);
-            rappel(acces->accédé);
+            auto accès = inst->comme_accès_indice();
+            rappel(accès->indice);
+            rappel(accès->accédé);
             break;
         }
         case GenreInstruction::ACCÈS_RUBRIQUE:
         {
-            auto acces = inst->comme_accès_rubrique();
-            rappel(acces->accédé);
+            auto accès = inst->comme_accès_rubrique();
+            rappel(accès->accédé);
             break;
         }
         case GenreInstruction::TRANSTYPE:

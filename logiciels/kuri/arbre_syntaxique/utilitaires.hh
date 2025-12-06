@@ -25,11 +25,11 @@ struct Lexème;
 struct OpérateurBinaire;
 struct OpérateurUnaire;
 struct Symbole;
-struct UniteCompilation;
+struct UnitéCompilation;
 using Type = NoeudDéclarationType;
 using TypePointeur = NoeudDéclarationTypePointeur;
 struct Typeuse;
-using TypeCompose = NoeudDéclarationTypeComposé;
+using TypeComposé = NoeudDéclarationTypeComposé;
 
 namespace kuri {
 struct chaine;
@@ -290,16 +290,16 @@ enum class DrapeauxTypes : uint32_t {
     /* Pour les types variadiques externes, et les structures externes opaques (sans bloc). */
     TYPE_NE_REQUIERS_PAS_D_INITIALISATION = (1u << 0),
     TYPE_EST_POLYMORPHIQUE = (1u << 1),
-    INITIALISATION_TYPE_FUT_CREEE = (1u << 2),
-    POSSEDE_TYPE_POINTEUR = (1u << 3),
-    POSSEDE_TYPE_REFERENCE = (1u << 4),
-    POSSEDE_TYPE_TABLEAU_FIXE = (1u << 5),
-    POSSEDE_TYPE_TABLEAU_DYNAMIQUE = (1u << 6),
-    POSSEDE_TYPE_TYPE_DE_DONNEES = (1u << 7),
-    TYPE_POSSEDE_OPERATEURS_DE_BASE = (1u << 8),
+    INITIALISATION_TYPE_FUT_CRÉÉE = (1u << 2),
+    POSSÈDE_TYPE_POINTEUR = (1u << 3),
+    POSSÈDE_TYPE_RÉFÉRENCE = (1u << 4),
+    POSSÈDE_TYPE_TABLEAU_FIXE = (1u << 5),
+    POSSÈDE_TYPE_TABLEAU_DYNAMIQUE = (1u << 6),
+    POSSÈDE_TYPE_TYPE_DE_DONNÉES = (1u << 7),
+    TYPE_POSSÈDE_OPÉRATEURS_DE_BASE = (1u << 8),
     UNITE_POUR_INITIALISATION_FUT_CREE = (1u << 9),
     INITIALISATION_TYPE_FUT_REQUISE = (1u << 10),
-    POSSEDE_TYPE_TRANCHE = (1u << 11),
+    POSSÈDE_TYPE_TRANCHE = (1u << 11),
     INFOS_TYPE_SONT_COMPLÈTES = (1u << 12),
     EST_TYPE_INFO_TYPE = (1u << 13),
 };
@@ -311,9 +311,9 @@ std::ostream &operator<<(std::ostream &os, DrapeauxTypes const drapeaux);
 
 enum {
     /* instruction 'pour' */
-    GENERE_BOUCLE_PLAGE,
-    GENERE_BOUCLE_PLAGE_IMPLICITE,
-    GENERE_BOUCLE_TABLEAU,
+    GÉNÈRE_BOUCLE_PLAGE,
+    GÉNÈRE_BOUCLE_PLAGE_IMPLICITE,
+    GÉNÈRE_BOUCLE_TABLEAU,
     BOUCLE_POUR_OPÉRATEUR,
 
     CONSTRUIS_OPAQUE,
@@ -323,7 +323,7 @@ enum {
 
     /* pour ne pas avoir à générer des conditions de vérification pour par
      * exemple les accès à des rubriques d'unions */
-    IGNORE_VERIFICATION,
+    IGNORE_VÉRIFICATION,
 
     /* instruction 'retourne' */
     REQUIERS_CODE_EXTRA_RETOUR,
@@ -379,7 +379,7 @@ inline bool est_valeur_droite(GenreValeur type_valeur)
     return (type_valeur & GenreValeur::DROITE) != GenreValeur::INVALIDE;
 }
 
-struct DonneesAssignations {
+struct DonnéesAssignations {
     NoeudExpression *expression = nullptr;
     bool multiple_retour = false;
     kuri::tableau_compresse<NoeudExpression *, int> variables{};
@@ -393,7 +393,7 @@ struct DonneesAssignations {
         transformations.efface();
     }
 
-    bool operator==(DonneesAssignations const &autre) const
+    bool operator==(DonnéesAssignations const &autre) const
     {
         if (this == &autre) {
             return true;
@@ -439,7 +439,7 @@ std::ostream &operator<<(std::ostream &os, ÉtatValidationEntête état_validati
 
 /** \} */
 
-void aplatis_arbre(NoeudExpression *declaration, ArbreAplatis *arbre_aplatis);
+void aplatis_arbre(NoeudExpression *déclaration, ArbreAplatis *arbre_aplatis);
 
 NoeudExpressionPriseAdresse *crée_prise_adresse(AssembleuseArbre *assem,
                                                 Lexème const *lexème,
@@ -530,7 +530,7 @@ bool est_déclaration_polymorphique(NoeudDéclaration const *decl);
 
 void imprime_rubriques_blocs_récursifs(NoeudBloc const *bloc);
 
-UniteCompilation **donne_adresse_unité(NoeudExpression *noeud);
+UnitéCompilation **donne_adresse_unité(NoeudExpression *noeud);
 
 struct IdentifiantCode;
 
@@ -538,7 +538,7 @@ struct RubriqueTypeComposé {
     enum {
         // si la rubrique est une constante (par exemple, la définition d'une énumération, ou une
         // simple valeur)
-        EST_CONSTANT = (1 << 0),
+        EST_CONSTANTE = (1 << 0),
         // si la rubrique est défini par la compilatrice (par exemple, « nombre_éléments » des
         // énumérations)
         EST_IMPLICITE = (1 << 1),
@@ -546,11 +546,11 @@ struct RubriqueTypeComposé {
         EST_UN_EMPLOI = (1 << 2),
         // si la rubrique provient d'une instruction empl
         PROVIENT_D_UN_EMPOI = (1 << 3),
-        // si l'expression du rubrique est sur-écrite dans la définition de la structure (x = y,
+        // si l'expression de la rubrique est sur-écrite dans la définition de la structure (x = y,
         // pour x déclaré en amont)
         POSSÈDE_EXPRESSION_SPÉCIALE = (1 << 4),
 
-        RUBRIQUE_NE_DOIT_PAS_ÊTRE_DANS_CODE_MACHINE = (EST_CONSTANT | PROVIENT_D_UN_EMPOI),
+        RUBRIQUE_NE_DOIT_PAS_ÊTRE_DANS_CODE_MACHINE = (EST_CONSTANTE | PROVIENT_D_UN_EMPOI),
     };
 
     BaseDéclarationVariable *decl = nullptr;
@@ -558,7 +558,7 @@ struct RubriqueTypeComposé {
     IdentifiantCode *nom = nullptr;
     unsigned décalage = 0;
     uint64_t valeur = 0;                                  // pour les énumérations
-    NoeudExpression *expression_valeur_defaut = nullptr;  // pour les rubriques des structures
+    NoeudExpression *expression_valeur_défaut = nullptr;  // pour les rubriques des structures
     int drapeaux = 0;
     uint32_t rembourrage = 0;
 
@@ -574,7 +574,7 @@ struct RubriqueTypeComposé {
 
     inline bool est_constant() const
     {
-        return possède_drapeau(EST_CONSTANT);
+        return possède_drapeau(EST_CONSTANTE);
     }
 
     inline bool est_utilisable_pour_discrimination() const
@@ -598,9 +598,9 @@ struct RubriqueTypeComposé {
     }
 };
 
-using RubriqueTypeCompose = RubriqueTypeComposé;
+using RubriqueTypeComposé = RubriqueTypeComposé;
 
-struct InformationRubriqueTypeCompose {
+struct InformationRubriqueTypeComposé {
     RubriqueTypeComposé rubrique{};
     int indice_rubrique = -1;
 };

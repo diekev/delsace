@@ -49,9 +49,9 @@ static constexpr auto table_drapeaux_lexèmes = [] {
                 break;
             }
             case GenreLexème::INFERIEUR:
-            case GenreLexème::INFERIEUR_EGAL:
+            case GenreLexème::INFERIEUR_ÉGAL:
             case GenreLexème::SUPERIEUR:
-            case GenreLexème::SUPERIEUR_EGAL:
+            case GenreLexème::SUPERIEUR_ÉGAL:
             case GenreLexème::DIFFÉRENCE:
             case GenreLexème::EGALITE:
             case GenreLexème::PLUS:
@@ -71,11 +71,11 @@ static constexpr auto table_drapeaux_lexèmes = [] {
             case GenreLexème::CHAPEAU:
             case GenreLexème::CROCHET_OUVRANT:
             case GenreLexème::POUR:
-            case GenreLexème::PLUS_EGAL:
-            case GenreLexème::MOINS_EGAL:
-            case GenreLexème::MULTIPLIE_EGAL:
-            case GenreLexème::DIVISE_EGAL:
-            case GenreLexème::MODULO_EGAL:
+            case GenreLexème::PLUS_ÉGAL:
+            case GenreLexème::MOINS_ÉGAL:
+            case GenreLexème::MULTIPLIE_ÉGAL:
+            case GenreLexème::DIVISE_ÉGAL:
+            case GenreLexème::MODULO_ÉGAL:
             {
                 t[i] |= OPÉRATEUR_EST_SURCHARGEABLE;
                 break;
@@ -126,7 +126,7 @@ static constexpr auto table_drapeaux_lexèmes = [] {
             case GenreLexème::INIT_DE:
             case GenreLexème::MÉMOIRE:
             case GenreLexème::NOMBRE_ENTIER:
-            case GenreLexème::NOMBRE_REEL:
+            case GenreLexème::NOMBRE_RÉEL:
             case GenreLexème::NON_INITIALISATION:
             case GenreLexème::NUL:
             case GenreLexème::OPÉRATEUR:
@@ -188,34 +188,35 @@ static constexpr auto table_drapeaux_lexèmes = [] {
             case GenreLexème::DECALAGE_GAUCHE:
             case GenreLexème::DECLARATION_CONSTANTE:
             case GenreLexème::DECLARATION_VARIABLE:
-            case GenreLexème::DEC_DROITE_EGAL:
-            case GenreLexème::DEC_GAUCHE_EGAL:
+            case GenreLexème::DEC_DROITE_ÉGAL:
+            case GenreLexème::DEC_GAUCHE_ÉGAL:
             case GenreLexème::DIFFÉRENCE:
             case GenreLexème::DIVISE:
-            case GenreLexème::DIVISE_EGAL:
+            case GenreLexème::DIVISE_ÉGAL:
             case GenreLexème::EGAL:
             case GenreLexème::EGALITE:
             case GenreLexème::ESPERLUETTE:
             case GenreLexème::ESP_ESP:
-            case GenreLexème::ET_EGAL:
+            case GenreLexème::ET_ÉGAL:
             case GenreLexème::FOIS:
             case GenreLexème::INFERIEUR:
-            case GenreLexème::INFERIEUR_EGAL:
-            case GenreLexème::MODULO_EGAL:
+            case GenreLexème::INFERIEUR_ÉGAL:
+            case GenreLexème::MODULO_ÉGAL:
             case GenreLexème::MOINS:
-            case GenreLexème::MOINS_EGAL:
-            case GenreLexème::MULTIPLIE_EGAL:
-            case GenreLexème::OUX_EGAL:
-            case GenreLexème::OU_EGAL:
-            case GenreLexème::ESP_ESP_EGAL:
-            case GenreLexème::BARRE_BARRE_EGAL:
+            case GenreLexème::MOINS_ÉGAL:
+            case GenreLexème::MULTIPLIE_ÉGAL:
+            case GenreLexème::OUX_ÉGAL:
+            case GenreLexème::OU_ÉGAL:
+            case GenreLexème::ESP_ESP_ÉGAL:
+            case GenreLexème::BARRE_BARRE_ÉGAL:
             case GenreLexème::PARENTHESE_OUVRANTE:
             case GenreLexème::PLUS:
-            case GenreLexème::PLUS_EGAL:
+            case GenreLexème::PLUS_ÉGAL:
             case GenreLexème::POINT:
+            case GenreLexème::ACCÈS_CONDITIONNEL:
             case GenreLexème::POURCENT:
             case GenreLexème::SUPERIEUR:
-            case GenreLexème::SUPERIEUR_EGAL:
+            case GenreLexème::SUPERIEUR_ÉGAL:
             case GenreLexème::TROIS_POINTS:
             case GenreLexème::VIRGULE:
             case GenreLexème::COMME:
@@ -274,29 +275,29 @@ static constexpr auto table_associativité_lexèmes = [] {
             case GenreLexème::EGAL:
             case GenreLexème::DECLARATION_VARIABLE:
             case GenreLexème::DECLARATION_CONSTANTE:
-            case GenreLexème::PLUS_EGAL:
-            case GenreLexème::MOINS_EGAL:
-            case GenreLexème::DIVISE_EGAL:
-            case GenreLexème::MULTIPLIE_EGAL:
-            case GenreLexème::MODULO_EGAL:
-            case GenreLexème::ET_EGAL:
-            case GenreLexème::OU_EGAL:
-            case GenreLexème::OUX_EGAL:
-            case GenreLexème::DEC_DROITE_EGAL:
-            case GenreLexème::DEC_GAUCHE_EGAL:
+            case GenreLexème::PLUS_ÉGAL:
+            case GenreLexème::MOINS_ÉGAL:
+            case GenreLexème::DIVISE_ÉGAL:
+            case GenreLexème::MULTIPLIE_ÉGAL:
+            case GenreLexème::MODULO_ÉGAL:
+            case GenreLexème::ET_ÉGAL:
+            case GenreLexème::OU_ÉGAL:
+            case GenreLexème::OUX_ÉGAL:
+            case GenreLexème::DEC_DROITE_ÉGAL:
+            case GenreLexème::DEC_GAUCHE_ÉGAL:
             case GenreLexème::BARRE_BARRE:
             case GenreLexème::ESP_ESP:
-            case GenreLexème::ESP_ESP_EGAL:
-            case GenreLexème::BARRE_BARRE_EGAL:
+            case GenreLexème::ESP_ESP_ÉGAL:
+            case GenreLexème::BARRE_BARRE_ÉGAL:
             case GenreLexème::BARRE:
             case GenreLexème::CHAPEAU:
             case GenreLexème::ESPERLUETTE:
             case GenreLexème::DIFFÉRENCE:
             case GenreLexème::EGALITE:
             case GenreLexème::INFERIEUR:
-            case GenreLexème::INFERIEUR_EGAL:
+            case GenreLexème::INFERIEUR_ÉGAL:
             case GenreLexème::SUPERIEUR:
-            case GenreLexème::SUPERIEUR_EGAL:
+            case GenreLexème::SUPERIEUR_ÉGAL:
             case GenreLexème::DECALAGE_GAUCHE:
             case GenreLexème::DECALAGE_DROITE:
             case GenreLexème::PLUS:
@@ -305,6 +306,7 @@ static constexpr auto table_associativité_lexèmes = [] {
             case GenreLexème::DIVISE:
             case GenreLexème::POURCENT:
             case GenreLexème::POINT:
+            case GenreLexème::ACCÈS_CONDITIONNEL:
             case GenreLexème::CROCHET_OUVRANT:
             case GenreLexème::PARENTHESE_OUVRANTE:
             case GenreLexème::COMME:
@@ -335,8 +337,8 @@ static constexpr auto table_associativité_lexèmes = [] {
     return t;
 }();
 
-static constexpr int PRÉCÉDENCE_VIRGULE = 3;
-static constexpr int PRÉCÉDENCE_TYPE = 4;
+static constexpr int PRÉCÉDENCE_VIRGULE = 4;
+static constexpr int PRÉCÉDENCE_TYPE = 3;
 
 static constexpr auto table_précédence_lexèmes = [] {
     std::array<char, 256> t{};
@@ -353,18 +355,18 @@ static constexpr auto table_précédence_lexèmes = [] {
             case GenreLexème::EGAL:
             case GenreLexème::DECLARATION_VARIABLE:
             case GenreLexème::DECLARATION_CONSTANTE:
-            case GenreLexème::PLUS_EGAL:
-            case GenreLexème::MOINS_EGAL:
-            case GenreLexème::DIVISE_EGAL:
-            case GenreLexème::MULTIPLIE_EGAL:
-            case GenreLexème::MODULO_EGAL:
-            case GenreLexème::ET_EGAL:
-            case GenreLexème::OU_EGAL:
-            case GenreLexème::OUX_EGAL:
-            case GenreLexème::DEC_DROITE_EGAL:
-            case GenreLexème::DEC_GAUCHE_EGAL:
-            case GenreLexème::ESP_ESP_EGAL:
-            case GenreLexème::BARRE_BARRE_EGAL:
+            case GenreLexème::PLUS_ÉGAL:
+            case GenreLexème::MOINS_ÉGAL:
+            case GenreLexème::DIVISE_ÉGAL:
+            case GenreLexème::MULTIPLIE_ÉGAL:
+            case GenreLexème::MODULO_ÉGAL:
+            case GenreLexème::ET_ÉGAL:
+            case GenreLexème::OU_ÉGAL:
+            case GenreLexème::OUX_ÉGAL:
+            case GenreLexème::DEC_DROITE_ÉGAL:
+            case GenreLexème::DEC_GAUCHE_ÉGAL:
+            case GenreLexème::ESP_ESP_ÉGAL:
+            case GenreLexème::BARRE_BARRE_ÉGAL:
             {
                 t[i] = 2;
                 break;
@@ -411,9 +413,9 @@ static constexpr auto table_précédence_lexèmes = [] {
                 break;
             }
             case GenreLexème::INFERIEUR:
-            case GenreLexème::INFERIEUR_EGAL:
+            case GenreLexème::INFERIEUR_ÉGAL:
             case GenreLexème::SUPERIEUR:
-            case GenreLexème::SUPERIEUR_EGAL:
+            case GenreLexème::SUPERIEUR_ÉGAL:
             {
                 t[i] = 11;
                 break;
@@ -456,6 +458,7 @@ static constexpr auto table_précédence_lexèmes = [] {
             }
             case GenreLexème::PARENTHESE_OUVRANTE:
             case GenreLexème::POINT:
+            case GenreLexème::ACCÈS_CONDITIONNEL:
             case GenreLexème::CROCHET_OUVRANT:
             {
                 t[i] = 17;
@@ -495,9 +498,9 @@ static inline Associativité associativité_pour_opérateur(GenreLexème genre_o
     return associativité;
 }
 
-Syntaxeuse::Syntaxeuse(Contexte *contexte, UniteCompilation const *unite)
-    : BaseSyntaxeuse(unite->fichier), m_compilatrice(unite->espace->compilatrice()),
-      m_contexte(contexte), m_unité(unite)
+Syntaxeuse::Syntaxeuse(Contexte *contexte, UnitéCompilation const *unité)
+    : BaseSyntaxeuse(unité->fichier), m_compilatrice(unité->espace->compilatrice()),
+      m_contexte(contexte), m_unité(unité)
 {
     auto module = m_fichier->module;
 
@@ -973,7 +976,7 @@ NoeudExpression *Syntaxeuse::analyse_expression_primaire(GenreLexème lexème_fi
             consomme();
             return m_contexte->assembleuse->crée_littérale_entier(lexème);
         }
-        case GenreLexème::NOMBRE_REEL:
+        case GenreLexème::NOMBRE_RÉEL:
         {
             consomme();
             return m_contexte->assembleuse->crée_littérale_réel(lexème);
@@ -1179,7 +1182,7 @@ NoeudExpression *Syntaxeuse::analyse_expression_primaire(GenreLexème lexème_fi
             if (!bloc_constantes_polymorphiques.est_vide()) {
                 auto bloc_constantes = bloc_constantes_polymorphiques.haut();
 
-                if (bloc_constantes->declaration_pour_ident(noeud->ident) != nullptr) {
+                if (bloc_constantes->déclaration_pour_ident(noeud->ident) != nullptr) {
                     recule();
                     rapporte_erreur("redéfinition du type polymorphique");
                 }
@@ -1255,28 +1258,28 @@ NoeudExpression *Syntaxeuse::analyse_expression_secondaire(
         case GenreLexème::CHAPEAU:
         case GenreLexème::DECALAGE_DROITE:
         case GenreLexème::DECALAGE_GAUCHE:
-        case GenreLexème::DEC_DROITE_EGAL:
-        case GenreLexème::DEC_GAUCHE_EGAL:
+        case GenreLexème::DEC_DROITE_ÉGAL:
+        case GenreLexème::DEC_GAUCHE_ÉGAL:
         case GenreLexème::DIFFÉRENCE:
         case GenreLexème::DIVISE:
-        case GenreLexème::DIVISE_EGAL:
+        case GenreLexème::DIVISE_ÉGAL:
         case GenreLexème::EGALITE:
         case GenreLexème::ESPERLUETTE:
-        case GenreLexème::ET_EGAL:
+        case GenreLexème::ET_ÉGAL:
         case GenreLexème::FOIS:
         case GenreLexème::INFERIEUR:
-        case GenreLexème::INFERIEUR_EGAL:
-        case GenreLexème::MODULO_EGAL:
+        case GenreLexème::INFERIEUR_ÉGAL:
+        case GenreLexème::MODULO_ÉGAL:
         case GenreLexème::MOINS:
-        case GenreLexème::MOINS_EGAL:
-        case GenreLexème::MULTIPLIE_EGAL:
-        case GenreLexème::OUX_EGAL:
-        case GenreLexème::OU_EGAL:
+        case GenreLexème::MOINS_ÉGAL:
+        case GenreLexème::MULTIPLIE_ÉGAL:
+        case GenreLexème::OUX_ÉGAL:
+        case GenreLexème::OU_ÉGAL:
         case GenreLexème::PLUS:
-        case GenreLexème::PLUS_EGAL:
+        case GenreLexème::PLUS_ÉGAL:
         case GenreLexème::POURCENT:
         case GenreLexème::SUPERIEUR:
-        case GenreLexème::SUPERIEUR_EGAL:
+        case GenreLexème::SUPERIEUR_ÉGAL:
         {
             consomme();
 
@@ -1294,8 +1297,8 @@ NoeudExpression *Syntaxeuse::analyse_expression_secondaire(
             return m_contexte->assembleuse->crée_expression_logique(
                 lexème, gauche, opérande_droite);
         }
-        case GenreLexème::BARRE_BARRE_EGAL:
-        case GenreLexème::ESP_ESP_EGAL:
+        case GenreLexème::BARRE_BARRE_ÉGAL:
+        case GenreLexème::ESP_ESP_ÉGAL:
         {
             consomme();
 
@@ -1433,6 +1436,14 @@ NoeudExpression *Syntaxeuse::analyse_expression_secondaire(
                         rapporte_erreur_avec_site(
                             it, "Expression inattendue dans l'expression virgule.");
                     }
+
+                    auto decl = m_contexte->assembleuse->crée_déclaration_variable(
+                        it->comme_référence_déclaration());
+                    if (m_contexte->assembleuse->bloc_courant()->type_bloc ==
+                        TypeBloc::IMPÉRATIF) {
+                        decl->drapeaux |= DrapeauxNoeud::EST_LOCALE;
+                    }
+                    decl->drapeaux |= DrapeauxNoeud::EST_DÉCLARATION_EXPRESSION_VIRGULE;
                 }
 
                 auto decl = m_contexte->assembleuse->crée_déclaration_variable_multiple(
@@ -1478,7 +1489,7 @@ NoeudExpression *Syntaxeuse::analyse_expression_secondaire(
         }
         case GenreLexème::DECLARATION_VARIABLE:
         {
-            if (gauche->est_déclaration_variable()) {
+            if (gauche->est_base_déclaration_variable()) {
                 rapporte_erreur_avec_site(
                     gauche, "Utilisation de « := » alors qu'un type fut déclaré avec « : »");
             }
@@ -1549,8 +1560,8 @@ NoeudExpression *Syntaxeuse::analyse_expression_secondaire(
 
             m_noeud_expression_virgule = nullptr;
 
-            if (gauche->est_déclaration_variable()) {
-                auto decl = gauche->comme_déclaration_variable();
+            if (gauche->est_base_déclaration_variable()) {
+                auto decl = gauche->comme_base_déclaration_variable();
                 if (decl->expression) {
                     /* repositionne le lexème courant afin que les messages d'erreurs pointent au
                      * bon endroit */
@@ -1628,6 +1639,17 @@ NoeudExpression *Syntaxeuse::analyse_expression_secondaire(
             consomme();
 
             return m_contexte->assembleuse->crée_référence_rubrique(lexème, gauche);
+        }
+        case GenreLexème::ACCÈS_CONDITIONNEL:
+        {
+            consomme();
+            if (!apparie(GenreLexème::CHAINE_CARACTERE)) {
+                rapporte_erreur("Attendu un identifiant après '?.'");
+            }
+
+            lexème = lexème_courant();
+            consomme();
+            return m_contexte->assembleuse->crée_référence_conditionnelle(lexème, gauche);
         }
         case GenreLexème::TROIS_POINTS:
         {
@@ -1888,7 +1910,7 @@ NoeudBloc *Syntaxeuse::analyse_bloc(TypeBloc type_bloc, bool accolade_requise)
         }
     }
 
-    copie_tablet_tableau(expressions, *bloc->expressions.verrou_ecriture());
+    copie_tablet_tableau(expressions, *bloc->expressions.verrou_écriture());
     m_contexte->assembleuse->dépile_bloc();
 
     if (accolade_requise) {
@@ -2081,14 +2103,14 @@ NoeudExpression *Syntaxeuse::analyse_instruction_pour()
         auto noeud_it = m_contexte->assembleuse->crée_référence_déclaration(noeud->lexème);
         noeud_it->ident = ID::it;
 
-        auto noeud_index = m_contexte->assembleuse->crée_référence_déclaration(noeud->lexème);
-        noeud_index->ident = ID::indice_it;
+        auto noeud_indice = m_contexte->assembleuse->crée_référence_déclaration(noeud->lexème);
+        noeud_indice->ident = ID::indice_it;
 
         auto lexème_virgule = m_contexte->lexèmes_extra->crée_lexème(
             noeud->lexème, GenreLexème::VIRGULE, ",");
         auto noeud_virgule = m_contexte->assembleuse->crée_virgule(lexème_virgule);
         noeud_virgule->expressions.ajoute(noeud_it);
-        noeud_virgule->expressions.ajoute(noeud_index);
+        noeud_virgule->expressions.ajoute(noeud_indice);
         noeud_virgule->drapeaux |= DrapeauxNoeud::EST_IMPLICITE;
 
         noeud->variable = noeud_virgule;
@@ -2556,7 +2578,7 @@ NoeudExpression *Syntaxeuse::analyse_déclaration_enum(Lexème const *lexème_no
         }
     }
 
-    copie_tablet_tableau(expressions, *bloc->expressions.verrou_ecriture());
+    copie_tablet_tableau(expressions, *bloc->expressions.verrou_écriture());
 
     m_contexte->assembleuse->dépile_bloc();
     noeud_decl->bloc = bloc;
@@ -2816,10 +2838,10 @@ NoeudExpression *Syntaxeuse::analyse_déclaration_fonction(Lexème const *lexèm
     /* Faisons ceci à la fin afin que le corps soit disponible lors de la création de la copie pour
      * les différents espaces de travail, évitant une potentielle concurrence critique. */
     if (noeud->ident == ID::__point_d_entree_systeme) {
-        m_contexte->espace->fonction_point_d_entree = noeud;
+        m_contexte->espace->fonction_point_d_entrée = noeud;
     }
     else if (noeud->ident == ID::__point_d_entree_dynamique) {
-        m_contexte->espace->fonction_point_d_entree_dynamique = noeud;
+        m_contexte->espace->fonction_point_d_entrée_dynamique = noeud;
     }
     else if (noeud->ident == ID::__point_de_sortie_dynamique) {
         m_contexte->espace->fonction_point_de_sortie_dynamique = noeud;
@@ -3555,7 +3577,7 @@ void Syntaxeuse::analyse_directives_structure(NoeudStruct *noeud)
                 auto type_pointeur_info_type = m_contexte->espace->typeuse.type_pointeur_pour(
                     noeud);
                 m_contexte->espace->typeuse.type_eini->rubriques[1].type = type_pointeur_info_type;
-                auto type_type_de_données = m_contexte->espace->typeuse.type_type_de_donnees_;
+                auto type_type_de_données = m_contexte->espace->typeuse.type_type_de_données_;
                 type_type_de_données->type_code_machine = type_pointeur_info_type;
                 type_type_de_données->type_code_machine = type_pointeur_info_type;
                 type_type_de_données->taille_octet =
@@ -3788,7 +3810,7 @@ NoeudBloc *Syntaxeuse::analyse_bloc_rubriques_structure_ou_union(
         expressions.ajoute(noeud);
     }
 
-    copie_tablet_tableau(expressions, *bloc->expressions.verrou_ecriture());
+    copie_tablet_tableau(expressions, *bloc->expressions.verrou_écriture());
 
     bloc->lexème_accolade_finale = lexème_courant();
     consomme(GenreLexème::ACCOLADE_FERMANTE,
@@ -3804,7 +3826,7 @@ NoeudBloc *Syntaxeuse::analyse_bloc_rubriques_structure_ou_union(
 void Syntaxeuse::gère_erreur_rapportée(kuri::chaine_statique message_erreur, const Lexème *lexème)
 {
     m_unité->espace->rapporte_erreur(
-        SiteSource::cree(m_fichier, lexème), message_erreur, erreur::Genre::SYNTAXAGE);
+        SiteSource::crée(m_fichier, lexème), message_erreur, erreur::Genre::SYNTAXAGE);
     /* Avance le curseur pour ne pas être bloqué. */
     consomme();
 }
@@ -3822,7 +3844,7 @@ void Syntaxeuse::rapporte_erreur_avec_site(const NoeudExpression *site,
 
 void Syntaxeuse::rapporte_info(kuri::chaine_statique message, const Lexème *lexème)
 {
-    m_unité->espace->rapporte_info(SiteSource::cree(m_fichier, lexème), message);
+    m_unité->espace->rapporte_info(SiteSource::crée(m_fichier, lexème), message);
 }
 
 void Syntaxeuse::requiers_typage(NoeudExpression *noeud)
@@ -3859,7 +3881,7 @@ DEFINIS_OPERATEURS_DRAPEAU(DirectiveDeVariable)
 
 #define EST_DRAPEAU_ACTIF(type, variable, drapeau) (((variable) & type::drapeau) != type::ZÉRO)
 
-void Syntaxeuse::analyse_directive_déclaration_variable(NoeudDéclarationVariable *déclaration)
+void Syntaxeuse::analyse_directive_déclaration_variable(BaseDéclarationVariable *déclaration)
 {
     if (!apparie(GenreLexème::DIRECTIVE)) {
         return;
@@ -4055,6 +4077,6 @@ void Syntaxeuse::recycle_référence(NoeudExpressionRéférence *référence)
 void Syntaxeuse::imprime_ligne_source(const Lexème *lexème, kuri::chaine_statique message)
 {
     Enchaineuse enchaineuse;
-    imprime_ligne_avec_message(enchaineuse, SiteSource::cree(m_fichier, lexème), message);
+    imprime_ligne_avec_message(enchaineuse, SiteSource::crée(m_fichier, lexème), message);
     dbg() << enchaineuse.chaine();
 }

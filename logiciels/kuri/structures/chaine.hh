@@ -3,8 +3,6 @@
 
 #pragma once
 
-#include <cstring>
-
 #include "utilitaires/logeuse_memoire.hh"
 
 #include "chaine_statique.hh"
@@ -22,14 +20,14 @@ namespace kuri {
 
 struct chaine {
   private:
-    using TypeIndex = int64_t;
+    using TypeIndice = int64_t;
 
     char *pointeur_ = nullptr;
-    TypeIndex taille_ = 0;
-    TypeIndex capacite_ = 0;
+    TypeIndice taille_ = 0;
+    TypeIndice capacité_ = 0;
 
   public:
-    static TypeIndex npos;
+    static TypeIndice npos;
 
     chaine() = default;
 
@@ -59,7 +57,7 @@ struct chaine {
     }
 
     template <size_t N>
-    chaine(const char (&c)[N]) : chaine(c, static_cast<TypeIndex>(N))
+    chaine(const char (&c)[N]) : chaine(c, static_cast<TypeIndice>(N))
     {
     }
 
@@ -73,7 +71,7 @@ struct chaine {
 
     ~chaine()
     {
-        mémoire::deloge_tableau("chaine", this->pointeur_, this->capacite_);
+        mémoire::déloge_tableau("chaine", this->pointeur_, this->capacité_);
     }
 
     chaine &operator=(chaine const &autre)
@@ -95,13 +93,13 @@ struct chaine {
         return *this;
     }
 
-    char &operator[](TypeIndex i)
+    char &operator[](TypeIndice i)
     {
         assert(i >= 0 && i < this->taille_);
         return this->pointeur_[i];
     }
 
-    char const &operator[](TypeIndex i) const
+    char const &operator[](TypeIndice i) const
     {
         assert(i >= 0 && i < this->taille_);
         return this->pointeur_[i];
@@ -139,17 +137,17 @@ struct chaine {
         this->taille_ += 1;
     }
 
-    void réserve(TypeIndex nouvelle_taille)
+    void réserve(TypeIndice nouvelle_taille)
     {
-        if (nouvelle_taille <= this->capacite_) {
+        if (nouvelle_taille <= this->capacité_) {
             return;
         }
 
-        mémoire::reloge_tableau("chaine", this->pointeur_, this->capacite_, nouvelle_taille);
-        this->capacite_ = nouvelle_taille;
+        mémoire::reloge_tableau("chaine", this->pointeur_, this->capacité_, nouvelle_taille);
+        this->capacité_ = nouvelle_taille;
     }
 
-    void redimensionne(TypeIndex nouvelle_taille)
+    void redimensionne(TypeIndice nouvelle_taille)
     {
         réserve(nouvelle_taille);
         taille_ = nouvelle_taille;
@@ -170,22 +168,22 @@ struct chaine {
         return pointeur_;
     }
 
-    TypeIndex taille() const
+    TypeIndice taille() const
     {
         return taille_;
     }
 
-    TypeIndex capacite() const
+    TypeIndice capacité() const
     {
-        return capacite_;
+        return capacité_;
     }
 
-    chaine_statique sous_chaine(TypeIndex index) const
+    chaine_statique sous_chaine(TypeIndice indice) const
     {
-        return chaine_statique(this->pointeur() + index, this->taille() - index);
+        return chaine_statique(this->pointeur() + indice, this->taille() - indice);
     }
 
-    chaine_statique sous_chaine(TypeIndex début, TypeIndex fin) const
+    chaine_statique sous_chaine(TypeIndice début, TypeIndice fin) const
     {
         return chaine_statique(this->pointeur() + début, fin - début);
     }
@@ -199,7 +197,7 @@ struct chaine {
     {
         std::swap(pointeur_, autre.pointeur_);
         std::swap(taille_, autre.taille_);
-        std::swap(capacite_, autre.capacite_);
+        std::swap(capacité_, autre.capacité_);
     }
 
     explicit operator bool() const
@@ -207,8 +205,8 @@ struct chaine {
         return taille() != 0;
     }
 
-    TypeIndex trouve(char caractère, TypeIndex pos = 0) const;
-    TypeIndex trouve(kuri::chaine_statique motif) const;
+    TypeIndice trouve(char caractère, TypeIndice pos = 0) const;
+    TypeIndice trouve(kuri::chaine_statique motif) const;
 };
 
 bool operator==(chaine const &chn1, chaine const &chn2);
@@ -245,8 +243,8 @@ template <>
 struct hash<kuri::chaine> {
     std::size_t operator()(kuri::chaine const &chn) const
     {
-        auto h = std::hash<std::string_view>{};
-        return h(std::string_view(chn.pointeur(), static_cast<size_t>(chn.taille())));
+        auto h = std::hash<kuri::chaine_statique>{};
+        return h(kuri::chaine_statique(chn.pointeur(), chn.taille()));
     }
 };
 
@@ -271,7 +269,7 @@ public:
     }
 
     template <typename T>
-    void deloge(T *&ptr)
+    void déloge(T *&ptr)
     {
         delete ptr;
         ptr = nullptr;
@@ -291,7 +289,7 @@ public:
 nouvelle_taille);
 
     template <typename T>
-    void deloge_tableau(T *&ptr, int64_t taille);
+    void déloge_tableau(T *&ptr, int64_t taille);
 
     int64_t nombre_allocation() const
     {

@@ -19,7 +19,7 @@ struct iteratrice_crue {
     using value_type = T;
     using difference_type = std::ptrdiff_t;
     using pointer = T *;
-    using reference = T &;
+    using référence = T &;
 
     iteratrice_crue(T *ptr = nullptr) : m_ptr(ptr)
     {
@@ -443,22 +443,22 @@ class tablet {
         return const_reverse_iterator(&m_mémoire[-1]);
     }
 
-    iterator debut()
+    iterator début()
     {
         return this->begin();
     }
 
-    const_iterator debut() const
+    const_iterator début() const
     {
         return this->cbegin();
     }
 
-    reverse_iterator debut_inverse()
+    reverse_iterator début_inverse()
     {
         return this->rbegin();
     }
 
-    const_reverse_iterator debut_inverse() const
+    const_reverse_iterator début_inverse() const
     {
         return this->crbegin();
     }
@@ -571,7 +571,7 @@ class tablet {
     void supprime_données()
     {
         if (m_mémoire != m_tablet) {
-            mémoire::deloge_tableau("tablet", m_mémoire, m_alloué);
+            mémoire::déloge_tableau("tablet", m_mémoire, m_alloué);
             m_mémoire = m_tablet;
             m_alloué = TAILLE_INITIALE;
         }
@@ -598,10 +598,10 @@ auto crée_tablet(T arg, Ts &&...args)
     return résultat;
 }
 
-template <typename T, uint64_t N, typename TypeIndex>
-static auto copie_tablet_tableau(kuri::tablet<T, N> const &src, kuri::tableau<T, TypeIndex> &dst)
+template <typename T, uint64_t N, typename TypeIndice>
+static auto copie_tablet_tableau(kuri::tablet<T, N> const &src, kuri::tableau<T, TypeIndice> &dst)
 {
-    dst.réserve(static_cast<TypeIndex>(src.taille()));
+    dst.réserve(static_cast<TypeIndice>(src.taille()));
 
     POUR (src) {
         dst.ajoute(it);

@@ -19,12 +19,12 @@
 struct Compilatrice;
 struct EspaceDeTravail;
 struct Lexème;
-struct MetaProgramme;
+struct MétaProgramme;
 struct TransformationType;
-struct UniteCompilation;
+struct UnitéCompilation;
 
 using Type = NoeudDéclarationType;
-using TypeCompose = NoeudDéclarationTypeComposé;
+using TypeComposé = NoeudDéclarationTypeComposé;
 using TypeTableauFixe = NoeudDéclarationTypeTableauFixe;
 
 namespace erreur {
@@ -60,7 +60,7 @@ inline bool est_ok(RésultatValidation const &résultat)
 /* Structure utilisée pour récupérer la mémoire entre plusieurs validations de déclaration,
  * mais également éviter de construire les différentes structures de données y utilisées;
  * ces constructions se voyant dans les profils d'exécution, notamment pour les
- * DonneesAssignations. */
+ * DonnéesAssignations. */
 struct ContexteValidationDéclaration {
     struct DéclarationEtRéférence {
         NoeudExpression *ref_decl = nullptr;
@@ -82,10 +82,10 @@ struct ContexteValidationDéclaration {
 
     /* Les données finales pour les assignations, faisant correspondre les expressions aux
      * variables. */
-    kuri::tablet<DonneesAssignations, 6> données_assignations{};
+    kuri::tablet<DonnéesAssignations, 6> données_assignations{};
 
-    /* Données temporaires pour la constructions des donnees_assignations. */
-    DonneesAssignations données_temp{};
+    /* Données temporaires pour la constructions des données_assignations. */
+    DonnéesAssignations données_temp{};
 };
 
 /* ------------------------------------------------------------------------- */
@@ -96,14 +96,14 @@ struct ContexteValidationDéclaration {
  * mettre en pause la validation, pour la reprendre ultérieurement, nous
  * pouvons simplement retourner d'une fonction, au lieu de se soucier de
  * dépiler toute la pile d'exécution. De même, la reprise de la validation peut
- * se faire en itérant sur l'arbre aplatis à partir de l'index de la dernière
+ * se faire en itérant sur l'arbre aplatis à partir de l'indice de la dernière
  * itération connue.
  * \{ */
 
 struct ArbreAplatis {
     kuri::tableau<NoeudExpression *, int> noeuds{};
-    /* Index courant lors de la validation sémantique. Utilisé pour pouvoir reprendre la validation
-     * en cas d'attente. */
+    /* Indice courant lors de la validation sémantique. Utilisé pour pouvoir reprendre la
+     * validation en cas d'attente. */
     int indice_courant = 0;
 
     void réinitialise()
@@ -121,7 +121,7 @@ struct Sémanticienne {
     Contexte *m_contexte = nullptr;
     AssembleuseArbre *m_assembleuse = nullptr;
 
-    UniteCompilation *m_unité = nullptr;
+    UnitéCompilation *m_unité = nullptr;
     EspaceDeTravail *m_espace = nullptr;
 
     double m_temps_chargement = 0.0;
@@ -148,7 +148,7 @@ struct Sémanticienne {
     void réinitialise();
     void définis_contexte(Contexte *contexte);
 
-    RésultatValidation valide(UniteCompilation *unité);
+    RésultatValidation valide(UnitéCompilation *unité);
 
     NoeudDéclarationEntêteFonction *fonction_courante() const;
 
@@ -178,6 +178,8 @@ struct Sémanticienne {
   private:
     RésultatValidation valide_sémantique_noeud(NoeudExpression *);
     RésultatValidation valide_accès_rubrique(NoeudExpressionRubrique *expression_rubrique);
+    RésultatValidation valide_accès_rubrique_conditionnelle(
+        NoeudRéférenceConditionnelle *référence);
 
     RésultatValidation valide_entête_fonction(NoeudDéclarationEntêteFonction *);
     RésultatValidation valide_entête_opérateur(NoeudDéclarationEntêteFonction *);
@@ -203,8 +205,8 @@ struct Sémanticienne {
     RésultatValidation valide_déclaration_constante(NoeudDéclarationConstante *decl);
     RésultatValidation valide_assignation(NoeudAssignation *inst);
     RésultatValidation valide_assignation_multiple(NoeudAssignationMultiple *inst);
-    RésultatValidation valide_arbre_aplatis(NoeudExpression *declaration);
-    RésultatValidation valide_arbre_aplatis(NoeudExpression *declaration,
+    RésultatValidation valide_arbre_aplatis(NoeudExpression *déclaration);
+    RésultatValidation valide_arbre_aplatis(NoeudExpression *déclaration,
                                             ArbreAplatis *arbre_aplatis);
     RésultatValidation valide_expression_retour(NoeudInstructionRetour *inst_retour);
     RésultatValidation valide_instruction_retourne_multiple(
@@ -222,7 +224,7 @@ struct Sémanticienne {
     RésultatValidation valide_opérateur_binaire_générique(NoeudExpressionBinaire *expr);
     RésultatValidation valide_comparaison_énum_drapeau_bool(
         NoeudExpressionBinaire *expr,
-        NoeudExpression *expr_acces_enum,
+        NoeudExpression *expr_accès_enum,
         NoeudExpressionLittéraleBool *expr_bool);
 
     RésultatValidation valide_expression_logique(NoeudExpressionLogique *logique);
@@ -249,10 +251,10 @@ struct Sémanticienne {
                                         NoeudExpression *noeud);
     void rapporte_erreur_accès_hors_limites(NoeudExpression *b,
                                             TypeTableauFixe *type_tableau,
-                                            int64_t indice_acces);
-    void rapporte_erreur_rubrique_inconnu(NoeudExpression *acces,
-                                          NoeudExpression *rubrique,
-                                          TypeCompose *type);
+                                            int64_t indice_accès);
+    void rapporte_erreur_rubrique_inconnue(NoeudExpression *accès,
+                                           NoeudExpression *rubrique,
+                                           TypeComposé *type);
     void rapporte_erreur_valeur_manquante_discr(
         NoeudExpression *expression,
         const kuri::ensemble<kuri::chaine_statique> &valeurs_manquantes);
@@ -264,7 +266,7 @@ struct Sémanticienne {
         /* Nous essayons de trouver un transtypage implicite pour une expression de test d'une
          * discrimination. */
         POUR_TEST_DISCRIMINATION,
-        /* Nous essayons de trouver un transtypage implicite pour la valeur de l'index d'une
+        /* Nous essayons de trouver un transtypage implicite pour la valeur de l'indice d'une
          * expression d'indexage. */
         POUR_EXPRESSION_INDEXAGE,
         /* Nous essayons de trouver un transtypage implicite pour une valeur de la construction
@@ -277,7 +279,7 @@ struct Sémanticienne {
 
     NoeudExpression *racine_validation() const;
 
-    MetaProgramme *crée_métaprogramme_pour_directive(NoeudDirectiveExécute *directive);
+    MétaProgramme *crée_métaprogramme_pour_directive(NoeudDirectiveExécute *directive);
 
     CodeRetourValidation valide_expression_pour_condition(NoeudExpression const *condition,
                                                           bool permet_déclaration);

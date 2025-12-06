@@ -11,7 +11,7 @@
 BaseSyntaxeuse::BaseSyntaxeuse(Fichier *fichier) : m_lexèmes(fichier->lexèmes), m_fichier(fichier)
 {
     if (m_lexèmes.taille() > 0) {
-        m_lexème_courant = &m_lexèmes[0];
+        m_lexème_courant = const_cast<Lexème *>(&m_lexèmes[0]);
     }
 }
 
@@ -55,13 +55,13 @@ kuri::chaine BaseSyntaxeuse::crée_message_erreur(kuri::chaine_statique message)
     enchaineuse << '\n';
 
     POUR (m_données_état_syntaxage) {
-        auto site = SiteSource::cree(m_fichier, it.lexème);
+        auto site = SiteSource::crée(m_fichier, it.lexème);
         imprime_ligne_avec_message(enchaineuse, site, it.message);
         enchaineuse << '\n';
     }
 
     auto lexème = lexème_courant();
-    auto site = SiteSource::cree(m_fichier, lexème);
+    auto site = SiteSource::crée(m_fichier, lexème);
     imprime_ligne_avec_message(enchaineuse, site, message);
     return enchaineuse.chaine();
 }

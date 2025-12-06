@@ -3,6 +3,8 @@
 
 #pragma once
 
+#include <functional>
+
 #include "arbre_syntaxique/prodeclaration.hh"
 
 #include "parsage/lexemes.hh"
@@ -35,14 +37,14 @@ using TypeFonction = NoeudDéclarationTypeFonction;
 using TypeOpaque = NoeudDéclarationTypeOpaque;
 using TypePointeur = NoeudDéclarationTypePointeur;
 using TypePolymorphique = NoeudDéclarationTypePolymorphique;
-using TypeReference = NoeudDéclarationTypeRéférence;
+using TypeRéférence = NoeudDéclarationTypeRéférence;
 using TypeTableauDynamique = NoeudDéclarationTypeTableauDynamique;
 using TypeTableauFixe = NoeudDéclarationTypeTableauFixe;
 using TypeTuple = NoeudDéclarationTypeTuple;
-using TypeTypeDeDonnees = NoeudDéclarationTypeTypeDeDonnées;
+using TypeTypeDeDonnées = NoeudDéclarationTypeTypeDeDonnées;
 using TypeUnion = NoeudUnion;
 using TypeVariadique = NoeudDéclarationTypeVariadique;
-using TypeCompose = NoeudDéclarationTypeComposé;
+using TypeComposé = NoeudDéclarationTypeComposé;
 
 enum class GenreNoeud : uint8_t;
 enum class DrapeauxNoeud : uint32_t;
@@ -106,13 +108,13 @@ struct Trie {
     Noeud *racine = nullptr;
     kuri::tableau_page<Noeud> noeuds{};
 
-    using TypeResultat = std::variant<Noeud *, TypeFonction *>;
+    using TypeRésultat = std::variant<Noeud *, TypeFonction *>;
 
     /**
      * Retourne soit un TypeFonction existant, soit un Noeud pour insérer un nouveau
      * TypeFonction selon les types entrée et sortie donnés.
      */
-    TypeResultat trouve_type_ou_noeud_insertion(kuri::tablet<Type *, 6> const &entrees,
+    TypeRésultat trouve_type_ou_noeud_insertion(kuri::tablet<Type *, 6> const &entrées,
                                                 Type *type_sortie);
 
   private:
@@ -128,7 +130,7 @@ struct Typeuse {
     kuri::tableau_synchrone<Type *> types_simples{};
     AllocatriceNoeud *alloc = nullptr;
     std::mutex mutex_types_pointeurs{};
-    std::mutex mutex_types_references{};
+    std::mutex mutex_types_références{};
     std::mutex mutex_types_structures{};
     std::mutex mutex_types_enums{};
     std::mutex mutex_types_tableaux_fixes{};
@@ -137,13 +139,13 @@ struct Typeuse {
     std::mutex mutex_types_fonctions{};
     std::mutex mutex_types_variadiques{};
     std::mutex mutex_types_unions{};
-    std::mutex mutex_types_type_de_donnees{};
+    std::mutex mutex_types_type_de_données{};
     std::mutex mutex_types_polymorphiques{};
     std::mutex mutex_types_opaques{};
     std::mutex mutex_types_tuples{};
 
     // mise en cache de plusieurs types pour mieux les trouver
-    TypeTypeDeDonnees *type_type_de_donnees_ = nullptr;
+    TypeTypeDeDonnées *type_type_de_données_ = nullptr;
     Type *type_contexte = nullptr;
     Type *type_info_type_ = nullptr;
     Type *type_info_type_structure = nullptr;
@@ -170,7 +172,7 @@ struct Typeuse {
     /* Trie pour les types fonctions. */
     Trie trie{};
 
-    kuri::table_hachage<Type *, TypeTypeDeDonnees *> table_types_de_donnees{""};
+    kuri::table_hachage<Type *, TypeTypeDeDonnées *> table_types_de_données{""};
 
     /* Sauvegarde des fonctions d'initialisation des types pour les partager entre types.
      * Ces fonctions sont créées avant que tout autre travail de compilation soit effectué, et
@@ -253,36 +255,36 @@ struct Typeuse {
      * celle-ci. */
     static void crée_tâches_précompilation(Compilatrice &compilatrice, EspaceDeTravail *espace);
 
-    Type *type_pour_lexeme(GenreLexème lexeme);
+    Type *type_pour_lexème(GenreLexème lexème);
 
-    TypePointeur *type_pointeur_pour(Type *type, bool insere_dans_graphe = true);
+    TypePointeur *type_pointeur_pour(Type *type, bool insère_dans_graphe = true);
 
-    TypeReference *type_reference_pour(Type *type);
+    TypeRéférence *type_référence_pour(Type *type);
 
     TypeTableauFixe *type_tableau_fixe(Type *type_pointe,
                                        int taille,
-                                       bool insere_dans_graphe = true);
+                                       bool insère_dans_graphe = true);
 
     TypeTableauFixe *type_tableau_fixe(NoeudExpression const *expression_taille,
                                        Type *type_élément);
 
     TypeTableauDynamique *type_tableau_dynamique(Type *type_pointe,
-                                                 bool insere_dans_graphe = true);
+                                                 bool insère_dans_graphe = true);
 
     NoeudDéclarationTypeTranche *crée_type_tranche(Type *type_élément,
                                                    bool insère_dans_graphe = true);
 
     TypeVariadique *type_variadique(Type *type_pointe);
 
-    TypeFonction *discr_type_fonction(TypeFonction *it, kuri::tablet<Type *, 6> const &entrees);
+    TypeFonction *discr_type_fonction(TypeFonction *it, kuri::tablet<Type *, 6> const &entrées);
 
-    TypeFonction *type_fonction(kuri::tablet<Type *, 6> const &entrees, Type *type_sortie);
+    TypeFonction *type_fonction(kuri::tablet<Type *, 6> const &entrées, Type *type_sortie);
 
-    TypeTypeDeDonnees *type_type_de_donnees(Type *type_connu);
+    TypeTypeDeDonnées *type_type_de_données(Type *type_connu);
 
     TypeStructure *réserve_type_structure();
 
-    TypeUnion *union_anonyme(Lexème const *lexeme,
+    TypeUnion *union_anonyme(Lexème const *lexème,
                              NoeudBloc *bloc_parent,
                              const kuri::tablet<RubriqueTypeComposé, 6> &rubriques);
 
@@ -355,7 +357,7 @@ bool peut_construire_union_via_rien(TypeUnion const *type_union);
  * transtyper automatiquement vers le type cible (z64), et nous les gérons séparément. */
 bool est_type_implicitement_utilisable_pour_indexage(Type const *type);
 
-bool peut_etre_type_constante(Type const *type);
+bool peut_être_type_constante(Type const *type);
 
 /**
  * Retourne vrai si type_dest opacifie type_source.
@@ -373,33 +375,33 @@ bool est_type_fondamental(Type const *type);
 /** \name Accès aux rubriques des types composés.
  * \{ */
 
-struct InformationRubriqueTypeCompose;
+struct InformationRubriqueTypeComposé;
 
-std::optional<InformationRubriqueTypeCompose> donne_rubrique_pour_type(
-    TypeCompose const *type_composé, Type const *type);
+std::optional<InformationRubriqueTypeComposé> donne_rubrique_pour_type(
+    TypeComposé const *type_composé, Type const *type);
 
-std::optional<InformationRubriqueTypeCompose> donne_rubrique_pour_nom(
-    TypeCompose const *type_composé, IdentifiantCode const *nom_rubrique);
+std::optional<InformationRubriqueTypeComposé> donne_rubrique_pour_nom(
+    TypeComposé const *type_composé, IdentifiantCode const *nom_rubrique);
 
 template <typename T, int tag>
-struct ValeurOpaqueTaguee {
+struct ValeurOpaqueTaguée {
     T valeur;
 };
 
 enum {
     INDICE_RUBRIQUE = 0,
-    AUCUN_TROUVE = 1,
-    PLUSIEURS_TROUVES = 2,
+    AUCUNE_TROUVÉE = 1,
+    PLUSIEURS_TROUVÉES = 2,
 };
 
-using IndexRubrique = ValeurOpaqueTaguee<int, INDICE_RUBRIQUE>;
-using PlusieursRubriques = ValeurOpaqueTaguee<int, PLUSIEURS_TROUVES>;
-using AucunRubrique = ValeurOpaqueTaguee<int, AUCUN_TROUVE>;
+using IndiceRubrique = ValeurOpaqueTaguée<int, INDICE_RUBRIQUE>;
+using PlusieursRubriques = ValeurOpaqueTaguée<int, PLUSIEURS_TROUVÉES>;
+using AucuneRubrique = ValeurOpaqueTaguée<int, AUCUNE_TROUVÉE>;
 
-using ResultatRechercheRubrique = std::variant<IndexRubrique, PlusieursRubriques, AucunRubrique>;
+using RésultatRechercheRubrique = std::variant<IndiceRubrique, PlusieursRubriques, AucuneRubrique>;
 
-ResultatRechercheRubrique trouve_indice_rubrique_unique_type_compatible(TypeCompose const *type,
-                                                                        Type const *type_a_tester);
+RésultatRechercheRubrique trouve_indice_rubrique_unique_type_compatible(TypeComposé const *type,
+                                                                        Type const *type_à_tester);
 
 /** \} */
 
@@ -430,7 +432,7 @@ kuri::chaine_statique donne_nom_portable(TypeStructure *type);
  * \{ */
 
 void marque_polymorphique(TypeFonction *type);
-void marque_polymorphique(TypeCompose *type);
+void marque_polymorphique(TypeComposé *type);
 
 /** \} */
 
@@ -495,7 +497,7 @@ bool stockage_type_doit_utiliser_memcpy(Type const *type);
  * un type dérivé. */
 bool est_structure_info_type_défaut(GenreNoeud genre);
 
-void calcule_taille_type_composé(TypeCompose *type, bool compacte, uint32_t alignement_desire);
+void calcule_taille_type_composé(TypeComposé *type, bool compacte, uint32_t alignement_desire);
 
 /* Retourne le type à la racine d'une chaine potentielle de types opaques ou le type opacifié s'il
  * n'est pas lui-même un type opaque. */

@@ -38,7 +38,7 @@ static void imprime_entête_fuite_de_mémoire(Enchaineuse &enchaineuse, size_t t
                 << " octets non libérés.\n\n";
 }
 
-static void rapporte_avertissement_pour_fuite_de_mémoire(MetaProgramme *métaprogramme,
+static void rapporte_avertissement_pour_fuite_de_mémoire(MétaProgramme *métaprogramme,
                                                          size_t taille_bloc,
                                                          kuri::tableau<FrameAppel> const &frames)
 {
@@ -61,7 +61,7 @@ void DétectriceFuiteDeMémoire::ajoute_bloc(void *ptr,
     auto info_bloc = InformationsBloc{taille, frame};
 
 #ifdef UTILISE_NOTRE_TABLE
-    table_allocations.insere(ptr, info_bloc);
+    table_allocations.insère(ptr, info_bloc);
 #else
     table_allocations.insert({ptr, info_bloc});
 #endif
@@ -98,7 +98,7 @@ void DétectriceFuiteDeMémoire::réinitialise()
 #endif
 }
 
-void imprime_fuites_de_mémoire(MetaProgramme *métaprogramme)
+void imprime_fuites_de_mémoire(MétaProgramme *métaprogramme)
 {
     auto données = métaprogramme->données_exécution;
     auto taille_non_libérée = size_t(0);
@@ -170,7 +170,7 @@ void DonnéesExécution::imprime_stats_instructions(Enchaineuse &os)
 
     auto taille_max_chaine = int64_t(0);
     POUR (entrées) {
-        auto chaine_code = chaine_code_operation(it.first);
+        auto chaine_code = chaine_code_opération(it.first);
         taille_max_chaine = std::max(taille_max_chaine, chaine_code.taille());
     }
 
@@ -178,8 +178,8 @@ void DonnéesExécution::imprime_stats_instructions(Enchaineuse &os)
     os << "Instructions exécutées : " << nombre_instructions << "\n";
 
     POUR (entrées) {
-        auto chaine_code = chaine_code_operation(it.first);
-        os << "-- " << chaine_code_operation(it.first);
+        auto chaine_code = chaine_code_opération(it.first);
+        os << "-- " << chaine_code_opération(it.first);
 
         for (int i = 0; i < (taille_max_chaine - chaine_code.taille()); i++) {
             os << ' ';
@@ -193,7 +193,7 @@ void DonnéesExécution::imprime_stats_instructions(Enchaineuse &os)
 
 /** \} */
 
-void logue_stats_instructions(MetaProgramme *métaprogramme)
+void logue_stats_instructions(MétaProgramme *métaprogramme)
 {
     auto &logueuse = métaprogramme->donne_logueuse(TypeLogMétaprogramme::STAT_INSTRUCTION);
     métaprogramme->données_exécution->imprime_stats_instructions(logueuse);
@@ -255,7 +255,7 @@ static std::ostream &operator<<(std::ostream &os, MachineVirtuelle::RésultatInt
     else OP_UNAIRE_POUR_TYPE(op, short) else OP_UNAIRE_POUR_TYPE(                                 \
         op, int) else OP_UNAIRE_POUR_TYPE(op, int64_t)
 
-#define OP_UNAIRE_REEL(op)                                                                        \
+#define OP_UNAIRE_RÉEL(op)                                                                        \
     auto taille = LIS_4_OCTETS();                                                                 \
     OP_UNAIRE_POUR_TYPE(op, float)                                                                \
     else OP_UNAIRE_POUR_TYPE(op, double)
@@ -280,7 +280,7 @@ static std::ostream &operator<<(std::ostream &os, MachineVirtuelle::RésultatInt
     else OP_BINAIRE_POUR_TYPE(op, unsigned short) else OP_BINAIRE_POUR_TYPE(                      \
         op, uint32_t) else OP_BINAIRE_POUR_TYPE(op, uint64_t)
 
-#define OP_BINAIRE_REEL(op)                                                                       \
+#define OP_BINAIRE_RÉEL(op)                                                                       \
     auto taille = LIS_4_OCTETS();                                                                 \
     OP_BINAIRE_POUR_TYPE(op, float)                                                               \
     else OP_BINAIRE_POUR_TYPE(op, double)
@@ -459,7 +459,7 @@ static void lis_valeur(octet_t *pointeur, Type const *type, Enchaineuse &os)
     }
 }
 
-static auto imprime_valeurs_entrées(octet_t *pointeur_debut_entree,
+static auto imprime_valeurs_entrées(octet_t *pointeur_début_entrée,
                                     AtomeFonction const *fonction,
                                     int profondeur_appel,
                                     Enchaineuse &logueuse)
@@ -467,7 +467,7 @@ static auto imprime_valeurs_entrées(octet_t *pointeur_debut_entree,
     logueuse << chaine_indentations(profondeur_appel) << "Appel de " << fonction->nom << '\n';
 
     auto type_fonction = fonction->type->comme_type_fonction();
-    auto pointeur_lecture_retour = pointeur_debut_entree;
+    auto pointeur_lecture_retour = pointeur_début_entrée;
     POUR_INDICE (type_fonction->types_entrées) {
         logueuse << chaine_indentations(profondeur_appel) << "-- paramètre " << indice_it << " ("
                  << chaine_type(it) << ") : ";
@@ -478,7 +478,7 @@ static auto imprime_valeurs_entrées(octet_t *pointeur_debut_entree,
     }
 }
 
-static auto imprime_valeurs_sorties(octet_t *pointeur_debut_retour,
+static auto imprime_valeurs_sorties(octet_t *pointeur_début_retour,
                                     AtomeFonction const *fonction,
                                     int profondeur_appel,
                                     Enchaineuse &logueuse)
@@ -492,7 +492,7 @@ static auto imprime_valeurs_sorties(octet_t *pointeur_debut_retour,
     }
 
     logueuse << chaine_indentations(profondeur_appel) << "-- résultat : ";
-    lis_valeur(pointeur_debut_retour, type_sortie, logueuse);
+    lis_valeur(pointeur_début_retour, type_sortie, logueuse);
     logueuse << '\n';
 }
 
@@ -518,9 +518,9 @@ static auto imprime_valeurs_locales(FrameAppel *frame, int profondeur_appel, Enc
     }
 }
 
-static inline void *donne_adresse_locale(FrameAppel *frame, int index)
+static inline void *donne_adresse_locale(FrameAppel *frame, int indice)
 {
-    auto const &locale = frame->fonction->données_exécution->chunk.locales[index];
+    auto const &locale = frame->fonction->données_exécution->chunk.locales[indice];
     return &frame->pointeur_pile[locale.adresse];
 }
 
@@ -562,7 +562,7 @@ MachineVirtuelle::~MachineVirtuelle()
     }
 
     POUR (m_données_exécution_libres) {
-        mémoire::deloge_tableau("MachineVirtuelle::pile", it->pile, TAILLE_PILE);
+        mémoire::déloge_tableau("MachineVirtuelle::pile", it->pile, TAILLE_PILE);
     }
 }
 
@@ -660,7 +660,7 @@ void MachineVirtuelle::appel_fonction_compilatrice(AtomeFonction *ptr_fonction,
         auto &messagère = compilatrice.messagère;
         messagère->commence_interception(espace_reçu, m_métaprogramme);
 
-        espace_reçu->metaprogramme = m_métaprogramme;
+        espace_reçu->métaprogramme = m_métaprogramme;
         static_cast<void>(espace_reçu);
         return;
     }
@@ -670,7 +670,7 @@ void MachineVirtuelle::appel_fonction_compilatrice(AtomeFonction *ptr_fonction,
         auto espace_reçu = compilatrice.donne_espace_de_travail(id_espace_reçu);
         RAPPORTE_ERREUR_SI_NUL(espace_reçu, "Reçu un espace de travail nul");
 
-        if (espace_reçu->metaprogramme != m_métaprogramme) {
+        if (espace_reçu->métaprogramme != m_métaprogramme) {
             auto const site = donne_site_adresse_courante();
             /* L'espace du « site » est celui de métaprogramme, et non
              * l'espace reçu en paramètre. */
@@ -679,7 +679,7 @@ void MachineVirtuelle::appel_fonction_compilatrice(AtomeFonction *ptr_fonction,
                 "Le métaprogramme terminant l'interception n'est pas celui l'ayant commancé !");
         }
 
-        espace_reçu->metaprogramme = nullptr;
+        espace_reçu->métaprogramme = nullptr;
 
         compilatrice.messagère->termine_interception(espace_reçu, m_métaprogramme);
 
@@ -695,8 +695,8 @@ void MachineVirtuelle::appel_fonction_compilatrice(AtomeFonction *ptr_fonction,
         auto const site = donne_site_adresse_courante();
         auto chemin_recu = dépile<kuri::chaine_statique>();
         auto espace = m_métaprogramme->unité->espace;
-        auto lexemes = compilatrice.lexe_fichier(espace, espace, chemin_recu, site);
-        empile(lexemes);
+        auto lexèmes = compilatrice.lexe_fichier(espace, espace, chemin_recu, site);
+        empile(lexèmes);
         return;
     }
 
@@ -1045,14 +1045,14 @@ void MachineVirtuelle::appel_fonction_externe(AtomeFonction *ptr_fonction,
         données_externe.types_entrées.ajoute(nullptr);
 
         auto type_ffi_sortie = convertis_type_ffi(type_fonction->type_sortie);
-        auto ptr_types_entrees = données_externe.types_entrées.données();
+        auto ptr_types_entrées = données_externe.types_entrées.données();
 
         auto status = ffi_prep_cif_var(&données_externe.cif,
                                        FFI_DEFAULT_ABI,
                                        nombre_arguments_fixes,
                                        nombre_arguments_totaux,
                                        type_ffi_sortie,
-                                       ptr_types_entrees);
+                                       ptr_types_entrées);
 
         if (status != FFI_OK) {
             rapporte_erreur_exécution("Erreur interne : impossible de préparer les arguments FFI "
@@ -1137,11 +1137,11 @@ inline void MachineVirtuelle::empile_constante(FrameAppel *frame)
         {
             EMPILE_CONSTANTE(uint64_t)
         }
-        case CONSTANTE_NOMBRE_REEL | BITS_32:
+        case CONSTANTE_NOMBRE_RÉEL | BITS_32:
         {
             EMPILE_CONSTANTE(float)
         }
-        case CONSTANTE_NOMBRE_REEL | BITS_64:
+        case CONSTANTE_NOMBRE_RÉEL | BITS_64:
         {
             EMPILE_CONSTANTE(double)
         }
@@ -1150,7 +1150,7 @@ inline void MachineVirtuelle::empile_constante(FrameAppel *frame)
 #undef EMPILE_CONSTANTE
 }
 
-void MachineVirtuelle::installe_métaprogramme(MetaProgramme *métaprogramme)
+void MachineVirtuelle::installe_métaprogramme(MétaProgramme *métaprogramme)
 {
     auto de = métaprogramme->données_exécution;
     profondeur_appel = de->profondeur_appel;
@@ -1172,12 +1172,12 @@ void MachineVirtuelle::installe_métaprogramme(MetaProgramme *métaprogramme)
     assert(pointeur_pile);
 
     m_métaprogramme = métaprogramme;
-    if (compilatrice.arguments.profile_metaprogrammes) {
+    if (compilatrice.arguments.profile_métaprogrammes) {
         de->profileuse.prépare_pour_profilage();
     }
 }
 
-void MachineVirtuelle::désinstalle_métaprogramme(MetaProgramme *métaprogramme,
+void MachineVirtuelle::désinstalle_métaprogramme(MétaProgramme *métaprogramme,
                                                  int compte_exécutées)
 {
     auto de = métaprogramme->données_exécution;
@@ -1199,7 +1199,7 @@ void MachineVirtuelle::désinstalle_métaprogramme(MetaProgramme *métaprogramme
     m_métaprogramme = nullptr;
 
     de->instructions_exécutées += compte_exécutées;
-    if (compilatrice.arguments.profile_metaprogrammes) {
+    if (compilatrice.arguments.profile_métaprogrammes) {
         de->profileuse.ajoute_échantillon(métaprogramme, compte_exécutées);
     }
 }
@@ -1213,7 +1213,7 @@ MachineVirtuelle::RésultatInterprétation MachineVirtuelle::exécute_instructio
 
     for (auto i = 0; i < INSTRUCTIONS_PAR_LOT; ++i) {
         /* sauvegarde le pointeur si compilatrice_attend_message n'a pas encore de messages */
-        auto pointeur_debut = frame->pointeur;
+        auto pointeur_début = frame->pointeur;
         auto instruction = LIS_OCTET();
 
         switch (instruction) {
@@ -1370,8 +1370,8 @@ MachineVirtuelle::RésultatInterprétation MachineVirtuelle::exécute_instructio
             case OP_INCRÉMENTE_LOCALE:
             {
                 auto taille = LIS_4_OCTETS();
-                auto index = LIS_4_OCTETS();
-                auto adresse_variable = donne_adresse_locale(frame, index);
+                auto indice = LIS_4_OCTETS();
+                auto adresse_variable = donne_adresse_locale(frame, indice);
                 if (taille == 1) {
                     *reinterpret_cast<uint8_t *>(adresse_variable) += 1;
                 }
@@ -1414,9 +1414,9 @@ MachineVirtuelle::RésultatInterprétation MachineVirtuelle::exécute_instructio
                 OP_UNAIRE(-)
                 break;
             }
-            case OP_COMPLEMENT_REEL:
+            case OP_COMPLEMENT_RÉEL:
             {
-                OP_UNAIRE_REEL(-)
+                OP_UNAIRE_RÉEL(-)
                 break;
             }
             case OP_NON_BINAIRE:
@@ -1449,24 +1449,24 @@ MachineVirtuelle::RésultatInterprétation MachineVirtuelle::exécute_instructio
                 OP_BINAIRE(Division)
                 break;
             }
-            case OP_AJOUTE_REEL:
+            case OP_AJOUTE_RÉEL:
             {
-                OP_BINAIRE_REEL(Addition)
+                OP_BINAIRE_RÉEL(Addition)
                 break;
             }
-            case OP_SOUSTRAIT_REEL:
+            case OP_SOUSTRAIT_RÉEL:
             {
-                OP_BINAIRE_REEL(Soustraction)
+                OP_BINAIRE_RÉEL(Soustraction)
                 break;
             }
-            case OP_MULTIPLIE_REEL:
+            case OP_MULTIPLIE_RÉEL:
             {
-                OP_BINAIRE_REEL(Multiplication)
+                OP_BINAIRE_RÉEL(Multiplication)
                 break;
             }
-            case OP_DIVISE_REEL:
+            case OP_DIVISE_RÉEL:
             {
-                OP_BINAIRE_REEL(Division)
+                OP_BINAIRE_RÉEL(Division)
                 break;
             }
             case OP_RESTE_NATUREL:
@@ -1479,12 +1479,12 @@ MachineVirtuelle::RésultatInterprétation MachineVirtuelle::exécute_instructio
                 OP_BINAIRE(Modulo)
                 break;
             }
-            case OP_COMP_EGAL:
+            case OP_COMP_ÉGAL:
             {
                 OP_BINAIRE(Égal)
                 break;
             }
-            case OP_COMP_INEGAL:
+            case OP_COMP_INÉGAL:
             {
                 OP_BINAIRE(Différent)
                 break;
@@ -1494,7 +1494,7 @@ MachineVirtuelle::RésultatInterprétation MachineVirtuelle::exécute_instructio
                 OP_BINAIRE(Inférieur)
                 break;
             }
-            case OP_COMP_INF_EGAL:
+            case OP_COMP_INF_ÉGAL:
             {
                 OP_BINAIRE(InférieurÉgal)
                 break;
@@ -1504,7 +1504,7 @@ MachineVirtuelle::RésultatInterprétation MachineVirtuelle::exécute_instructio
                 OP_BINAIRE(Supérieur)
                 break;
             }
-            case OP_COMP_SUP_EGAL:
+            case OP_COMP_SUP_ÉGAL:
             {
                 OP_BINAIRE(SupérieurÉgal)
                 break;
@@ -1514,7 +1514,7 @@ MachineVirtuelle::RésultatInterprétation MachineVirtuelle::exécute_instructio
                 OP_BINAIRE_NATUREL(Inférieur)
                 break;
             }
-            case OP_COMP_INF_EGAL_NATUREL:
+            case OP_COMP_INF_ÉGAL_NATUREL:
             {
                 OP_BINAIRE_NATUREL(InférieurÉgal)
                 break;
@@ -1524,39 +1524,39 @@ MachineVirtuelle::RésultatInterprétation MachineVirtuelle::exécute_instructio
                 OP_BINAIRE_NATUREL(Supérieur)
                 break;
             }
-            case OP_COMP_SUP_EGAL_NATUREL:
+            case OP_COMP_SUP_ÉGAL_NATUREL:
             {
                 OP_BINAIRE_NATUREL(SupérieurÉgal)
                 break;
             }
-            case OP_COMP_EGAL_REEL:
+            case OP_COMP_ÉGAL_RÉEL:
             {
-                OP_BINAIRE_REEL(Égal)
+                OP_BINAIRE_RÉEL(Égal)
                 break;
             }
-            case OP_COMP_INEGAL_REEL:
+            case OP_COMP_INÉGAL_RÉEL:
             {
-                OP_BINAIRE_REEL(Différent)
+                OP_BINAIRE_RÉEL(Différent)
                 break;
             }
-            case OP_COMP_INF_REEL:
+            case OP_COMP_INF_RÉEL:
             {
-                OP_BINAIRE_REEL(Inférieur)
+                OP_BINAIRE_RÉEL(Inférieur)
                 break;
             }
-            case OP_COMP_INF_EGAL_REEL:
+            case OP_COMP_INF_ÉGAL_RÉEL:
             {
-                OP_BINAIRE_REEL(InférieurÉgal)
+                OP_BINAIRE_RÉEL(InférieurÉgal)
                 break;
             }
-            case OP_COMP_SUP_REEL:
+            case OP_COMP_SUP_RÉEL:
             {
-                OP_BINAIRE_REEL(Supérieur)
+                OP_BINAIRE_RÉEL(Supérieur)
                 break;
             }
-            case OP_COMP_SUP_EGAL_REEL:
+            case OP_COMP_SUP_ÉGAL_RÉEL:
             {
-                OP_BINAIRE_REEL(SupérieurÉgal)
+                OP_BINAIRE_RÉEL(SupérieurÉgal)
                 break;
             }
             case OP_ET_BINAIRE:
@@ -1641,7 +1641,7 @@ MachineVirtuelle::RésultatInterprétation MachineVirtuelle::exécute_instructio
 
                 break;
             }
-            case OP_NATUREL_VERS_REEL:
+            case OP_NATUREL_VERS_RÉEL:
             {
                 auto taille_de = LIS_4_OCTETS();
                 auto taille_vers = LIS_4_OCTETS();
@@ -1651,7 +1651,7 @@ MachineVirtuelle::RésultatInterprétation MachineVirtuelle::exécute_instructio
                 TRANSTYPE_EVR(int64_t)
                 break;
             }
-            case OP_RELATIF_VERS_REEL:
+            case OP_RELATIF_VERS_RÉEL:
             {
                 auto taille_de = LIS_4_OCTETS();
                 auto taille_vers = LIS_4_OCTETS();
@@ -1661,7 +1661,7 @@ MachineVirtuelle::RésultatInterprétation MachineVirtuelle::exécute_instructio
                 TRANSTYPE_EVR(int64_t)
                 break;
             }
-            case OP_REEL_VERS_NATUREL:
+            case OP_RÉEL_VERS_NATUREL:
             {
                 auto taille_de = LIS_4_OCTETS();
                 auto taille_vers = LIS_4_OCTETS();
@@ -1669,7 +1669,7 @@ MachineVirtuelle::RésultatInterprétation MachineVirtuelle::exécute_instructio
                 TRANSTYPE_RVE(double, uint8_t, uint16_t, uint32_t, uint64_t)
                 break;
             }
-            case OP_REEL_VERS_RELATIF:
+            case OP_RÉEL_VERS_RELATIF:
             {
                 auto taille_de = LIS_4_OCTETS();
                 auto taille_vers = LIS_4_OCTETS();
@@ -1683,14 +1683,14 @@ MachineVirtuelle::RésultatInterprétation MachineVirtuelle::exécute_instructio
                  * OP_LOGUE_RETOUR. */
                 auto type_fonction = frame->fonction->type->comme_type_fonction();
                 auto taille_retour = static_cast<int>(type_fonction->type_sortie->taille_octet);
-                auto pointeur_debut_retour = pointeur_pile - taille_retour;
+                auto pointeur_début_retour = pointeur_pile - taille_retour;
 
                 profondeur_appel--;
 
                 if (profondeur_appel == 0) {
                     /* Nous retournons de la fonction principale du métaprogramme. */
                     if (pointeur_pile != pile) {
-                        pointeur_pile = pointeur_debut_retour;
+                        pointeur_pile = pointeur_début_retour;
                     }
 
                     compte_exécutées = i + 1;
@@ -1701,9 +1701,9 @@ MachineVirtuelle::RésultatInterprétation MachineVirtuelle::exécute_instructio
                 pointeur_pile = frame->pointeur_pile;
 
                 /* Empile le résultat de la fonction. */
-                if (taille_retour != 0 && pointeur_pile != pointeur_debut_retour) {
+                if (taille_retour != 0 && pointeur_pile != pointeur_début_retour) {
                     memcpy(pointeur_pile,
-                           pointeur_debut_retour,
+                           pointeur_début_retour,
                            static_cast<unsigned>(taille_retour));
                 }
 
@@ -1772,7 +1772,7 @@ MachineVirtuelle::RésultatInterprétation MachineVirtuelle::exécute_instructio
 
                 if (résultat == RésultatInterprétation::PASSE_AU_SUIVANT ||
                     résultat == RésultatInterprétation::TERMINÉ) {
-                    frame->pointeur = pointeur_debut;
+                    frame->pointeur = pointeur_début;
                     return résultat;
                 }
 
@@ -1806,7 +1806,7 @@ MachineVirtuelle::RésultatInterprétation MachineVirtuelle::exécute_instructio
 
                     if (résultat == RésultatInterprétation::PASSE_AU_SUIVANT ||
                         résultat == RésultatInterprétation::TERMINÉ) {
-                        frame->pointeur = pointeur_debut;
+                        frame->pointeur = pointeur_début;
                         compte_exécutées = i + 1;
                         return résultat;
                     }
@@ -1857,10 +1857,10 @@ MachineVirtuelle::RésultatInterprétation MachineVirtuelle::exécute_instructio
             }
             case OP_ASSIGNE_LOCALE:
             {
-                auto index = LIS_4_OCTETS();
+                auto indice = LIS_4_OCTETS();
                 auto taille = LIS_4_OCTETS();
 
-                auto adresse_ou = donne_adresse_locale(frame, index);
+                auto adresse_ou = donne_adresse_locale(frame, indice);
                 auto adresse_de = static_cast<void *>(this->pointeur_pile - taille);
                 memcpy(adresse_ou, adresse_de, static_cast<size_t>(taille));
 
@@ -1877,9 +1877,9 @@ MachineVirtuelle::RésultatInterprétation MachineVirtuelle::exécute_instructio
             }
             case OP_INIT_LOCALE_ZÉRO:
             {
-                auto index = LIS_4_OCTETS();
+                auto indice = LIS_4_OCTETS();
                 auto taille = LIS_4_OCTETS();
-                auto adresse_ou = donne_adresse_locale(frame, index);
+                auto adresse_ou = donne_adresse_locale(frame, indice);
 
                 switch (taille) {
                     case 1:
@@ -1942,10 +1942,10 @@ MachineVirtuelle::RésultatInterprétation MachineVirtuelle::exécute_instructio
             }
             case OP_CHARGE_LOCALE:
             {
-                auto index = LIS_4_OCTETS();
+                auto indice = LIS_4_OCTETS();
                 auto taille = LIS_4_OCTETS();
 
-                auto adresse_de = donne_adresse_locale(frame, index);
+                auto adresse_de = donne_adresse_locale(frame, indice);
                 auto adresse_ou = static_cast<void *>(this->pointeur_pile);
                 memcpy(adresse_ou, adresse_de, static_cast<size_t>(taille));
 
@@ -1954,24 +1954,24 @@ MachineVirtuelle::RésultatInterprétation MachineVirtuelle::exécute_instructio
             }
             case OP_RÉFÉRENCE_LOCALE:
             {
-                auto index = LIS_4_OCTETS();
-                empile(donne_adresse_locale(frame, index));
+                auto indice = LIS_4_OCTETS();
+                empile(donne_adresse_locale(frame, indice));
                 break;
             }
-            case OP_REFERENCE_GLOBALE:
+            case OP_RÉFÉRENCE_GLOBALE:
             {
-                auto index = LIS_4_OCTETS();
-                auto const &globale = données_constantes->globales[index];
+                auto indice = LIS_4_OCTETS();
+                auto const &globale = données_constantes->globales[indice];
                 empile(&ptr_données_globales[globale.adresse]);
                 break;
             }
-            case OP_REFERENCE_GLOBALE_EXTERNE:
+            case OP_RÉFÉRENCE_GLOBALE_EXTERNE:
             {
                 auto adresse = LIS_8_OCTETS();
                 empile(adresse);
                 break;
             }
-            case OP_REFERENCE_RUBRIQUE:
+            case OP_RÉFÉRENCE_RUBRIQUE:
             {
                 auto décalage = LIS_4_OCTETS();
                 auto adresse_de = dépile<char *>();
@@ -1992,11 +1992,11 @@ MachineVirtuelle::RésultatInterprétation MachineVirtuelle::exécute_instructio
             {
                 auto taille_données = LIS_4_OCTETS();
                 auto adresse = dépile<char *>();
-                auto index = dépile<int64_t>();
-                auto nouvelle_adresse = adresse + index * taille_données;
+                auto indice = dépile<int64_t>();
+                auto nouvelle_adresse = adresse + indice * taille_données;
                 empile(nouvelle_adresse);
                 // dbg() << "nouvelle_adresse : " << static_cast<void *>(nouvelle_adresse) << '\n'
-                //       << "index            : " << index << '\n'
+                //       << "indice            : " << indice << '\n'
                 //       << "taille_données   : " << taille_données;
                 break;
             }
@@ -2047,10 +2047,10 @@ MachineVirtuelle::RésultatInterprétation MachineVirtuelle::exécute_instructio
             {
                 auto type_fonction = frame->fonction->type->comme_type_fonction();
                 auto taille_retour = static_cast<int>(type_fonction->type_sortie->taille_octet);
-                auto pointeur_debut_retour = pointeur_pile - taille_retour;
+                auto pointeur_début_retour = pointeur_pile - taille_retour;
                 auto &logueuse = m_métaprogramme->donne_logueuse(TypeLogMétaprogramme::APPEL);
                 imprime_valeurs_sorties(
-                    pointeur_debut_retour, frame->fonction, profondeur_appel, logueuse);
+                    pointeur_début_retour, frame->fonction, profondeur_appel, logueuse);
                 break;
             }
             case OP_LOGUE_RETOUR:
@@ -2296,7 +2296,7 @@ bool MachineVirtuelle::adressage_est_possible(const void *adresse_ou,
 #if 0
         // À FAIRE : il nous faudrait les adresses des messages, des noeuds codes, etc.
         if (!adresse_est_assignable(adresse_de)) {
-            m_métaprogramme->unite->espace
+            m_métaprogramme->unité->espace
                 ->rapporte_erreur(site, "Copie depuis une adresse non-chargeable !")
                 .ajoute_message("L'adresse est : ", adresse_de, "\n");
             return false;
@@ -2326,14 +2326,14 @@ MachineVirtuelle::RésultatInterprétation MachineVirtuelle::vérifie_cible_appe
             .ajoute_message("Il est possible que l'adresse de la fonction soit invalide : ",
                             static_cast<void *>(ptr_fonction),
                             "\n")
-            .ajoute_donnees([&](Erreur &e) { ajoute_trace_appel(e); });
+            .ajoute_données([&](Erreur &e) { ajoute_trace_appel(e); });
         return RésultatInterprétation::ERREUR;
     }
 
     return RésultatInterprétation::OK;
 }
 
-void MachineVirtuelle::ajoute_métaprogramme(MetaProgramme *métaprogramme)
+void MachineVirtuelle::ajoute_métaprogramme(MétaProgramme *métaprogramme)
 {
     métaprogramme->état = ÉtatMétaprogramme::EN_EXÉCUTION;
     /* Appel le métaprogramme pour initialiser sa frame d'appels, l'installation et la
@@ -2376,14 +2376,14 @@ void MachineVirtuelle::exécute_métaprogrammes_courants()
             // RÀF
         }
         else if (res == RésultatInterprétation::ERREUR) {
-            métaprogramme->résultat = MetaProgramme::RésultatExécution::ERREUR;
+            métaprogramme->résultat = MétaProgramme::RésultatExécution::ERREUR;
             m_métaprogrammes_terminés.ajoute(métaprogramme);
             std::swap(m_métaprogrammes[i], m_métaprogrammes[nombre_métaprogrammes - 1]);
             nombre_métaprogrammes -= 1;
             i -= 1;
         }
         else if (res == RésultatInterprétation::TERMINÉ) {
-            métaprogramme->résultat = MetaProgramme::RésultatExécution::SUCCÈS;
+            métaprogramme->résultat = MétaProgramme::RésultatExécution::SUCCÈS;
             m_métaprogrammes_terminés.ajoute(métaprogramme);
             std::swap(m_métaprogrammes[i], m_métaprogrammes[nombre_métaprogrammes - 1]);
             nombre_métaprogrammes -= 1;
@@ -2393,7 +2393,7 @@ void MachineVirtuelle::exécute_métaprogrammes_courants()
                 logue_stats_instructions(métaprogramme);
             }
 
-            if (compilatrice.arguments.profile_metaprogrammes) {
+            if (compilatrice.arguments.profile_métaprogrammes) {
                 auto &profileuse = métaprogramme->données_exécution->profileuse;
                 profileuse.crée_rapport(métaprogramme,
                                         compilatrice.arguments.format_rapport_profilage);
@@ -2515,7 +2515,7 @@ static bool les_frames_sont_les_mêmes(FrameAppel const *frame1,
     return true;
 }
 
-void Profileuse::ajoute_échantillon(MetaProgramme *métaprogramme, int poids)
+void Profileuse::ajoute_échantillon(MétaProgramme *métaprogramme, int poids)
 {
     if (poids == 0) {
         return;
@@ -2616,7 +2616,7 @@ static void crée_rapport_format_brendan_gregg(
     }
 }
 
-void Profileuse::crée_rapport(MetaProgramme *métaprogramme, FormatRapportProfilage format)
+void Profileuse::crée_rapport(MétaProgramme *métaprogramme, FormatRapportProfilage format)
 {
     auto &logueuse = métaprogramme->donne_logueuse(TypeLogMétaprogramme::PROFILAGE);
 

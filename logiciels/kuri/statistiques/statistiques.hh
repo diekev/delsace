@@ -11,9 +11,9 @@
 #undef STATISTIQUES_DETAILLEES
 
 #ifdef STATISTIQUES_DETAILLEES
-#    define CHRONO_TYPAGE(entrée_stats, index)                                                    \
+#    define CHRONO_TYPAGE(entrée_stats, indice)                                                    \
         kuri::chrono::chrono_rappel_milliseconde VARIABLE_ANONYME(chrono)(                        \
-            [&](double temps) { entrée_stats.fusionne_entrée(index, {"", temps}); })
+            [&](double temps) { entrée_stats.fusionne_entrée(indice, {"", temps}); })
 #else
 #    define CHRONO_TYPAGE(entrée_stats, nom)
 #endif
@@ -198,10 +198,10 @@ struct EntréesStats {
         entrées.ajoute(entrée);
     }
 
-    void fusionne_entrée(int index, T const &entrée)
+    void fusionne_entrée(int indice, T const &entrée)
     {
         totaux += entrée;
-        entrées[index] += entrée;
+        entrées[indice] += entrée;
     }
 };
 
@@ -278,9 +278,9 @@ struct Statistiques {
 
 #define ENTREES_POUR_OPERATEUR_UNAIRE(OP)                                                         \
     OP(OPERATEUR_UNAIRE__TYPE, "opérateur unaire type")                                           \
-    OP(OPERATEUR_UNAIRE__TYPE_DE_DONNEES, "opérateur unaire type (type_type_de_donnees)")         \
+    OP(OPERATEUR_UNAIRE__TYPE_DE_DONNEES, "opérateur unaire type (type_type_de_données)")         \
     OP(OPERATEUR_UNAIRE__POINTEUR, "opérateur unaire type (pointeur)")                            \
-    OP(OPERATEUR_UNAIRE__REFERENCE, "opérateur unaire type (reference)")                          \
+    OP(OPERATEUR_UNAIRE__REFERENCE, "opérateur unaire type (référence)")                          \
     OP(OPERATEUR_UNAIRE__OPERATEUR_UNAIRE, "opérateur unaire")
 
 #define ENTREES_POUR_OPERATEUR_BINAIRE(OP) OP(OPERATEUR_BINAIRE__VALIDATION, "validation")

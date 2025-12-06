@@ -94,7 +94,7 @@ struct OrdonnanceuseTache {
 
     EMPECHE_COPIE(OrdonnanceuseTache);
 
-    void crée_tâche_pour_unité(UniteCompilation *unite);
+    void crée_tâche_pour_unité(UnitéCompilation *unité);
 
     Tâche tâche_suivante(Tâche &tache_terminee, DrapeauxTacheronne drapeaux);
 
@@ -104,14 +104,14 @@ struct OrdonnanceuseTache {
 
     void supprime_toutes_les_tâches();
     void supprime_toutes_les_tâches_pour_espace(EspaceDeTravail const *espace,
-                                                UniteCompilation::État état);
+                                                UnitéCompilation::État état);
 
     void marque_compilation_terminee()
     {
         compilation_terminée = true;
     }
 
-    void imprime_donnees_files(std::ostream &os);
+    void imprime_données_files(std::ostream &os);
 
   private:
     int64_t nombre_de_tâches_en_attente() const;
@@ -163,10 +163,10 @@ struct Tacheronne {
     void initialise_contexte(Contexte *contexte, EspaceDeTravail *espace);
 
   private:
-    void gère_unité_pour_typage(UniteCompilation *unite);
-    bool gère_unité_pour_ri(UniteCompilation *unite);
-    void gère_unité_pour_optimisation(UniteCompilation *unite);
-    void gère_unité_pour_exécution(UniteCompilation *unite);
+    void gère_unité_pour_typage(UnitéCompilation *unité);
+    bool gère_unité_pour_ri(UnitéCompilation *unité);
+    void gère_unité_pour_optimisation(UnitéCompilation *unité);
+    void gère_unité_pour_exécution(UnitéCompilation *unité);
 
     void exécute_métaprogrammes();
 
@@ -174,7 +174,7 @@ struct Tacheronne {
     NoeudExpression *noeud_syntaxique_depuis_résultat(
         EspaceDeTravail *espace,
         NoeudDirectiveExécute *directive,
-        Lexème const *lexeme,
+        Lexème const *lexème,
         Type *type,
         octet_t *pointeur,
         DétectriceFuiteDeMémoire &détectrice_fuites_de_mémoire);

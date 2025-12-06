@@ -3,6 +3,7 @@
 
 #include "infos_types.hh"
 
+#include "compilation/espace_de_travail.hh"
 #include "compilation/typage.hh"
 
 #include "parsage/identifiant.hh"
@@ -10,7 +11,6 @@
 #include "utilitaires/log.hh"
 
 #include "cas_genre_noeud.hh"
-#include "espace_de_travail.hh"
 #include "noeud_code.hh"
 #include "utilitaires.hh"
 
@@ -18,7 +18,7 @@
 /** \name AllocatriceInfosType.
  * \{ */
 
-int64_t AllocatriceInfosType::memoire_utilisee() const
+int64_t AllocatriceInfosType::mémoire_utilisée() const
 {
     auto memoire = int64_t(0);
 #define ENUMERE_TYPES_INFO_TYPE_EX(type__, nom__) memoire += nom__.mémoire_utilisée();
@@ -624,7 +624,7 @@ Type *ConvertisseuseNoeudCode::convertis_info_type(Typeuse &typeuse, InfoType *t
             auto type_pointé = convertis_info_type(typeuse, info_type_pointeur->type_pointé);
 
             if (info_type_pointeur->est_référence) {
-                return typeuse.type_reference_pour(type_pointé);
+                return typeuse.type_référence_pour(type_pointé);
             }
 
             return typeuse.type_pointeur_pour(type_pointé);
@@ -651,7 +651,7 @@ Type *ConvertisseuseNoeudCode::convertis_info_type(Typeuse &typeuse, InfoType *t
         case GenreInfoType::TYPE_DE_DONNÉES:
         {
             // À FAIRE : préserve l'information de type connu
-            return typeuse.type_type_de_donnees(nullptr);
+            return typeuse.type_type_de_données(nullptr);
         }
         case GenreInfoType::FONCTION:
         {

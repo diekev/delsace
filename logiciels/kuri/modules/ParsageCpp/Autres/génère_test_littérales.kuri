@@ -1,0 +1,48 @@
+importe Fondation
+importe SysFichier
+
+principale :: fonc ()
+{
+    littérales_décimales := ["485976", "5", "0x3b24", "0XF96", "0x21", "0x3AA", "0X29b", "0X4bD", "0", "0125", "034673", "03245"]
+    suffixes_décimales_1 := ["l", "ll", "L", "LL"]
+    suffixes_décimales_2 := ["u", "U"]
+
+    indice := 0
+    pour lit dans littérales_décimales {
+        imprimeln("#define LITTERALE_% %", indice, lit)
+        indice += 1
+
+        pour s dans suffixes_décimales_1 {
+            imprimeln("#define LITTERALE_% %%", indice, lit, s)
+            indice += 1
+        }
+
+        pour s dans suffixes_décimales_2 {
+            imprimeln("#define LITTERALE_% %%", indice, lit, s)
+            indice += 1
+        }
+
+        pour s1 dans suffixes_décimales_1 {
+            pour s2 dans suffixes_décimales_2 {
+                imprimeln("#define LITTERALE_% %%%", indice, lit, s1, s2)
+                indice += 1
+
+                imprimeln("#define LITTERALE_% %%%", indice, lit, s2, s1)
+                indice += 1
+            }
+        }
+    }
+
+    littérales_flottantes := ["5.3876e4", ".5", "5.", "4e-11", "1e+5", "7.321E-3", "3.2E+4", "0.5e-6", "0.45", "6.e10", "1e1000"]
+    suffixes_flottantes := ["l", "L", "f", "F"]
+
+    pour lit dans littérales_flottantes {
+        imprimeln("#define LITTERALE_% %", indice, lit)
+        indice += 1
+
+        pour s dans suffixes_flottantes {
+            imprimeln("#define LITTERALE_% %%", indice, lit, s)
+            indice += 1
+        }
+    }
+}

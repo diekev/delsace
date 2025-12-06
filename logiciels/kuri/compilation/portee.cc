@@ -42,7 +42,7 @@ static bool peut_sélectionner_déclaration(NoeudDéclaration const *déclaratio
 
 NoeudDéclaration *trouve_dans_bloc_seul(NoeudBloc const *bloc, IdentifiantCode const *ident)
 {
-    return bloc->declaration_pour_ident(ident);
+    return bloc->déclaration_pour_ident(ident);
 }
 
 static bool la_fonction_courante_a_changé(NoeudDéclarationEntêteFonction const *fonction_courante,
@@ -111,7 +111,7 @@ NoeudDéclaration *trouve_dans_bloc(NoeudBloc const *bloc,
     auto ignore_paramètres_et_locales = false;
 
     while (bloc_courant != bloc_final) {
-        auto autre_decl = bloc_courant->declaration_avec_meme_ident_que(decl);
+        auto autre_decl = bloc_courant->déclaration_avec_meme_ident_que(decl);
         if (autre_decl) {
             if (!(ignore_paramètres_et_locales &&
                   est_locale_ou_paramètre_non_polymorphique(autre_decl))) {
@@ -184,15 +184,15 @@ NoeudDéclaration *trouve_dans_bloc_ou_module(ContexteRechecheSymbole const cont
         contexte.bloc_racine, ident, contexte.fichier, contexte.fonction_courante);
 }
 
-void trouve_déclarations_dans_module(kuri::tablet<NoeudDéclaration *, 10> &declarations,
+void trouve_déclarations_dans_module(kuri::tablet<NoeudDéclaration *, 10> &déclarations,
                                      Module const *module,
                                      IdentifiantCode const *ident,
                                      Fichier const *fichier)
 {
-    trouve_declarations_dans_bloc(declarations, module, module->bloc, ident, fichier);
+    trouve_déclarations_dans_bloc(déclarations, module, module->bloc, ident, fichier);
 }
 
-void trouve_declarations_dans_bloc(kuri::tablet<NoeudDéclaration *, 10> &declarations,
+void trouve_déclarations_dans_bloc(kuri::tablet<NoeudDéclaration *, 10> &déclarations,
                                    Module const *module_du_bloc,
                                    NoeudBloc const *bloc,
                                    IdentifiantCode const *ident,
@@ -201,52 +201,52 @@ void trouve_declarations_dans_bloc(kuri::tablet<NoeudDéclaration *, 10> &declar
     auto bloc_courant = bloc;
 
     while (bloc_courant != nullptr) {
-        auto decl = bloc_courant->declaration_pour_ident(ident);
+        auto decl = bloc_courant->déclaration_pour_ident(ident);
         if (peut_sélectionner_déclaration(decl, module_du_bloc, fichier)) {
             auto déclaration_ajoutée = false;
 
             if (decl->est_entête_fonction()) {
                 auto entête = decl->comme_entête_fonction();
                 POUR (*entête->ensemble_de_surchages.verrou_lecture()) {
-                    declarations.ajoute(it);
+                    déclarations.ajoute(it);
                     déclaration_ajoutée = true;
                 }
             }
             else if (decl->est_déclaration_type()) {
                 auto type = decl->comme_déclaration_type();
                 POUR (*type->ensemble_de_surchages.verrou_lecture()) {
-                    declarations.ajoute(it);
+                    déclarations.ajoute(it);
                     déclaration_ajoutée = true;
                 }
             }
 
             if (!déclaration_ajoutée) {
-                declarations.ajoute(decl);
+                déclarations.ajoute(decl);
             }
         }
         bloc_courant = bloc_courant->bloc_parent;
     }
 }
 
-void trouve_declarations_dans_bloc_ou_module(kuri::tablet<NoeudDéclaration *, 10> &declarations,
+void trouve_déclarations_dans_bloc_ou_module(kuri::tablet<NoeudDéclaration *, 10> &déclarations,
                                              Module const *module_du_bloc,
                                              NoeudBloc const *bloc,
                                              IdentifiantCode const *ident,
                                              Fichier const *fichier)
 {
-    trouve_declarations_dans_bloc(declarations, module_du_bloc, bloc, ident, fichier);
+    trouve_déclarations_dans_bloc(déclarations, module_du_bloc, bloc, ident, fichier);
 
     /* cherche dans les modules importés */
     pour_chaque_élément(fichier->module->modules_importés, [&](auto &module) {
         if (!module.est_employé) {
             return kuri::DécisionItération::Continue;
         }
-        trouve_déclarations_dans_module(declarations, module.module, ident, fichier);
+        trouve_déclarations_dans_module(déclarations, module.module, ident, fichier);
         return kuri::DécisionItération::Continue;
     });
 }
 
-void trouve_declarations_dans_bloc_ou_module(kuri::tablet<NoeudDéclaration *, 10> &declarations,
+void trouve_déclarations_dans_bloc_ou_module(kuri::tablet<NoeudDéclaration *, 10> &déclarations,
                                              kuri::ensemblon<Module const *, 10> &modules_visites,
                                              Module const *module_du_bloc,
                                              NoeudBloc const *bloc,
@@ -254,7 +254,7 @@ void trouve_declarations_dans_bloc_ou_module(kuri::tablet<NoeudDéclaration *, 1
                                              Fichier const *fichier)
 {
     if (!modules_visites.possède(fichier->module)) {
-        trouve_declarations_dans_bloc(declarations, module_du_bloc, bloc, ident, fichier);
+        trouve_déclarations_dans_bloc(déclarations, module_du_bloc, bloc, ident, fichier);
     }
 
     modules_visites.insère(fichier->module);
@@ -268,7 +268,7 @@ void trouve_declarations_dans_bloc_ou_module(kuri::tablet<NoeudDéclaration *, 1
             return kuri::DécisionItération::Continue;
         }
         modules_visites.insère(module.module);
-        trouve_déclarations_dans_module(declarations, module.module, ident, fichier);
+        trouve_déclarations_dans_module(déclarations, module.module, ident, fichier);
         return kuri::DécisionItération::Continue;
     });
 }

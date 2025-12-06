@@ -32,6 +32,19 @@ namespace mémoire {
 
 static void imprime_blocs_memoire();
 
+/**
+ * Convertit le nombre d'octet passé en paramètre en une chaine contenant :
+ * - si la taille est inférieure à 1 Ko : la taille en octets + " o"
+ * - si la taille est inférieure à 1 Mo : la taille en kiloctets + " Ko"
+ * - si la taille est inférieure à 1 Go : la taille en mégaoctets + " Mo"
+ * - sinon, rétourne la taille en gigaoctets + " Go"
+ *
+ * par exemple:
+ * 8564 -> "8 Ko"
+ * 16789432158 -> "15 Go"
+ */
+[[nodiscard]] static std::string formate_taille(int64_t octets);
+
 logeuse_mémoire logeuse_mémoire::m_instance = logeuse_mémoire{};
 
 #undef IMPRIME_ERREUR_MEMOIRE
@@ -39,8 +52,8 @@ logeuse_mémoire logeuse_mémoire::m_instance = logeuse_mémoire{};
 logeuse_mémoire::~logeuse_mémoire()
 {
 #ifdef IMPRIME_ERREUR_MEMOIRE
-    if (memoire_allouee != 0) {
-        std::cerr << "Fuite de mémoire ou désynchronisation : " << formate_taille(memoire_allouee)
+    if (mémoire_allouee != 0) {
+        std::cerr << "Fuite de mémoire ou désynchronisation : " << formate_taille(mémoire_allouee)
                   << '\n';
 
         imprime_blocs_memoire();
@@ -220,7 +233,7 @@ void *logeuse_mémoire::reloge_generique(const char *message,
 #endif
 }
 
-void logeuse_mémoire::deloge_generique(const char *message, void *ptr, int64_t taille)
+void logeuse_mémoire::déloge_generique(const char *message, void *ptr, int64_t taille)
 {
 #ifndef PROTEGE_MEMOIRE
     free(ptr);
@@ -257,13 +270,13 @@ void logeuse_mémoire::deloge_generique(const char *message, void *ptr, int64_t 
 int64_t allouee()
 {
     auto &logeuse = logeuse_mémoire::instance();
-    return logeuse.memoire_allouee.load();
+    return logeuse.mémoire_allouee.load();
 }
 
 int64_t consommee()
 {
     auto &logeuse = logeuse_mémoire::instance();
-    return logeuse.memoire_consommee.load();
+    return logeuse.mémoire_consommee.load();
 }
 
 int64_t nombre_allocations()

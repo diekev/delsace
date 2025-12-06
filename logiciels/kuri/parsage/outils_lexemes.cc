@@ -5,12 +5,12 @@
 
 #include "lexemes.hh"
 
-PositionLexème position_lexeme(Lexème const &lexeme)
+PositionLexème position_lexème(Lexème const &lexème)
 {
     auto pos = PositionLexème{};
-    pos.pos = lexeme.colonne;
-    pos.numéro_ligne = lexeme.ligne + 1;
-    pos.indice_ligne = lexeme.ligne;
+    pos.pos = lexème.colonne;
+    pos.numéro_ligne = lexème.ligne + 1;
+    pos.indice_ligne = lexème.ligne;
     return pos;
 }
 
@@ -21,51 +21,51 @@ GenreLexème operateur_pour_assignation_composee(GenreLexème type)
         {
             return type;
         }
-        case GenreLexème::MOINS_EGAL:
+        case GenreLexème::MOINS_ÉGAL:
         {
             return GenreLexème::MOINS;
         }
-        case GenreLexème::PLUS_EGAL:
+        case GenreLexème::PLUS_ÉGAL:
         {
             return GenreLexème::PLUS;
         }
-        case GenreLexème::MULTIPLIE_EGAL:
+        case GenreLexème::MULTIPLIE_ÉGAL:
         {
             return GenreLexème::FOIS;
         }
-        case GenreLexème::DIVISE_EGAL:
+        case GenreLexème::DIVISE_ÉGAL:
         {
             return GenreLexème::DIVISE;
         }
-        case GenreLexème::MODULO_EGAL:
+        case GenreLexème::MODULO_ÉGAL:
         {
             return GenreLexème::POURCENT;
         }
-        case GenreLexème::ET_EGAL:
+        case GenreLexème::ET_ÉGAL:
         {
             return GenreLexème::ESPERLUETTE;
         }
-        case GenreLexème::OU_EGAL:
+        case GenreLexème::OU_ÉGAL:
         {
             return GenreLexème::BARRE;
         }
-        case GenreLexème::OUX_EGAL:
+        case GenreLexème::OUX_ÉGAL:
         {
             return GenreLexème::CHAPEAU;
         }
-        case GenreLexème::DEC_DROITE_EGAL:
+        case GenreLexème::DEC_DROITE_ÉGAL:
         {
             return GenreLexème::DECALAGE_DROITE;
         }
-        case GenreLexème::DEC_GAUCHE_EGAL:
+        case GenreLexème::DEC_GAUCHE_ÉGAL:
         {
             return GenreLexème::DECALAGE_GAUCHE;
         }
-        case GenreLexème::ESP_ESP_EGAL:
+        case GenreLexème::ESP_ESP_ÉGAL:
         {
             return GenreLexème::ESP_ESP;
         }
-        case GenreLexème::BARRE_BARRE_EGAL:
+        case GenreLexème::BARRE_BARRE_ÉGAL:
         {
             return GenreLexème::BARRE_BARRE;
         }

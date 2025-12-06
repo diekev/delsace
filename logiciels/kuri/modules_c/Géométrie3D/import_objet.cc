@@ -424,7 +424,7 @@ static void charge_STL_ascii(Maillage &maillage, std::ifstream &fichier)
                           tous_les_points.taille());
 
     kuri::tableau<int> sommets_par_polygones(tous_les_triangles.taille());
-    std::fill(sommets_par_polygones.debut(), sommets_par_polygones.fin(), 3);
+    std::fill(sommets_par_polygones.début(), sommets_par_polygones.fin(), 3);
 
     maillage.ajouteListePolygones(reinterpret_cast<int *>(tous_les_triangles.données()),
                                   sommets_par_polygones.données(),

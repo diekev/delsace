@@ -1061,6 +1061,14 @@ static void imprime_arbre(Enchaineuse &enchaineuse,
             imprime_ident(enchaineuse, noeud->ident);
             break;
         }
+        case GenreNoeud::EXPRESSION_RÉFÉRENCE_CONDITIONNELLE:
+        {
+            auto rubrique = noeud->comme_référence_rubrique();
+            imprime_arbre(enchaineuse, état, rubrique->accédée);
+            enchaineuse << "?.";
+            imprime_ident(enchaineuse, noeud->ident);
+            break;
+        }
         case GenreNoeud::EXPRESSION_RÉFÉRENCE_TYPE:
         {
             enchaineuse << noeud->lexème->chaine;
@@ -1299,7 +1307,7 @@ static void imprime_arbre(Enchaineuse &enchaineuse,
         {
             auto lexème = noeud->lexème;
             /* Pour les subsitutition. */
-            if (lexème->genre != GenreLexème::NOMBRE_REEL) {
+            if (lexème->genre != GenreLexème::NOMBRE_RÉEL) {
                 auto littérale = noeud->comme_littérale_réel();
                 enchaineuse << littérale->valeur;
             }

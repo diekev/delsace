@@ -209,20 +209,26 @@ static void ajoute_options_pour_niveau_options(TableauOptions &résultat,
     }
 }
 
-static kuri::chaine_statique donne_compilateur_c()
+static kuri::chaine_statique donne_compilateur_c(bool utilise_clang)
 {
 #ifdef _MSC_VER
     return "cl";
 #else
+    if (utilise_clang) {
+        return COMPILATEUR_C_CLANG;
+    }
     return COMPILATEUR_C_COULISSE_C;
 #endif
 }
 
-static kuri::chaine_statique donne_compilateur_cpp()
+static kuri::chaine_statique donne_compilateur_cpp(bool utilise_clang)
 {
 #ifdef _MSC_VER
     return "cl";
 #else
+    if (utilise_clang) {
+        return COMPILATEUR_CXX_CLANG;
+    }
     return COMPILATEUR_CXX_COULISSE_C;
 #endif
 }
@@ -230,7 +236,8 @@ static kuri::chaine_statique donne_compilateur_cpp()
 /* Pour les options d'avertissements et d'erreurs de GCC, voir :
  * https://gcc.gnu.org/onlinedocs/gcc/Warning-Options.html */
 static TableauOptions options_pour_fichier_objet(kuri::chaine_statique compilateur,
-                                                 OptionsDeCompilation const &options)
+                                                 OptionsDeCompilation const &options,
+                                                 bool utilise_clang)
 {
     TableauOptions résultat;
 
@@ -251,7 +258,7 @@ static TableauOptions options_pour_fichier_objet(kuri::chaine_statique compilate
     /* Désactivation des erreurs concernant le manque de "const" quand
      * on passe des variables générés temporairement par la coulisse à
      * des fonctions qui dont les paramètres ne sont pas constants. */
-    if (compilateur == donne_compilateur_c()) {
+    if (compilateur == donne_compilateur_c(utilise_clang)) {
         résultat.ajoute("-Wno-discarded-qualifiers");
     }
     /* Désactivation des avertissements de passage d'une variable au
@@ -296,6 +303,14 @@ static TableauOptions options_pour_fichier_objet(kuri::chaine_statique compilate
         résultat.ajoute("-fno-stack-protector");
     }
 
+    if (options.protège_controle_flux) {
+        résultat.ajoute("-fcf-protection");
+    }
+
+    if (options.pile_fantôme) {
+        résultat.ajoute("-mshstk");
+    }
+
     if (options.architecture == ArchitectureCible::X86) {
         résultat.ajoute("-m32");
     }
@@ -305,7 +320,8 @@ static TableauOptions options_pour_fichier_objet(kuri::chaine_statique compilate
 }
 
 static TableauOptions options_pour_liaison(kuri::chaine_statique compilateur,
-                                           OptionsDeCompilation const &options)
+                                           OptionsDeCompilation const &options,
+                                           bool utilise_clang)
 {
     TableauOptions résultat;
 
@@ -320,15 +336,40 @@ static TableauOptions options_pour_liaison(kuri::chaine_statique compilateur,
     /* Désactivation des erreurs concernant le manque de "const" quand
      * on passe des variables générés temporairement par la coulisse à
      * des fonctions qui dont les paramètres ne sont pas constants. */
-    if (compilateur == donne_compilateur_c()) {
+    if (compilateur == donne_compilateur_c(utilise_clang)) {
         résultat.ajoute("-Wno-discarded-qualifiers");
     }
     /* Désactivation des avertissements de passage d'une variable au
      * lieu d'une chaine littérale à printf et al. */
     résultat.ajoute("-Wno-format-security");
 
-    if (!options.protège_pile) {
-        résultat.ajoute("-fno-stack-protector");
+    if (utilise_clang) {
+        /* Désactivé pour les bibliothèques dynamiques.
+         * https://clang.llvm.org/docs/SafeStack.html#known-compatibility-limitations
+         *
+         * Solution potentielle de
+         * https://github.com/ossf/wg-best-practices-os-developers/issues/267#issuecomment-1835359166
+         * FWIW, so far as I know the problem isn't hard to fix, there simply hasn't been any
+         * interest. To fix, the .so needs to have a .init function that checks whether there's a
+         * shadow stack present and mmap's one if not, and saves the pointer in the
+         * __safestack_unsafe_stack_ptr thread-local variable. */
+        if (options.protège_pile &&
+            options.résultat != RésultatCompilation::BIBLIOTHÈQUE_DYNAMIQUE) {
+            résultat.ajoute("-fsanitize=safe-stack");
+        }
+    }
+    else {
+        if (!options.protège_pile) {
+            résultat.ajoute("-fno-stack-protector");
+        }
+    }
+
+    if (options.protège_controle_flux) {
+        résultat.ajoute("-fcf-protection");
+    }
+
+    if (options.pile_fantôme) {
+        résultat.ajoute("-mshstk");
     }
 
     if (options.architecture == ArchitectureCible::X86) {
@@ -342,9 +383,10 @@ static TableauOptions options_pour_liaison(kuri::chaine_statique compilateur,
 static kuri::chaine commande_pour_fichier_objet_impl(OptionsDeCompilation const &options,
                                                      kuri::chaine_statique compilateur,
                                                      kuri::chaine_statique fichier_entrée,
-                                                     kuri::chaine_statique fichier_sortie)
+                                                     kuri::chaine_statique fichier_sortie,
+                                                     bool utilise_clang)
 {
-    auto options_compilateur = options_pour_fichier_objet(compilateur, options);
+    auto options_compilateur = options_pour_fichier_objet(compilateur, options, utilise_clang);
 
     Enchaineuse enchaineuse;
     enchaineuse << compilateur << " ";
@@ -368,10 +410,14 @@ static kuri::chaine commande_pour_fichier_objet_impl(OptionsDeCompilation const 
 
 kuri::chaine commande_pour_fichier_objet(OptionsDeCompilation const &options,
                                          kuri::chaine_statique fichier_entrée,
-                                         kuri::chaine_statique fichier_sortie)
+                                         kuri::chaine_statique fichier_sortie,
+                                         bool utilise_clang)
 {
-    return commande_pour_fichier_objet_impl(
-        options, donne_compilateur_c(), fichier_entrée, fichier_sortie);
+    return commande_pour_fichier_objet_impl(options,
+                                            donne_compilateur_c(utilise_clang),
+                                            fichier_entrée,
+                                            fichier_sortie,
+                                            utilise_clang);
 }
 
 static TypeLiaison donne_type_liaison_pour_bibliothèque(
@@ -398,10 +444,11 @@ static kuri::chaine_statique donne_commande_pour_type_liaison(TypeLiaison const 
 kuri::chaine commande_pour_liaison(OptionsDeCompilation const &options,
                                    kuri::tableau_statique<kuri::chaine_statique> fichiers_entrée,
                                    BibliothèquesUtilisées const &bibliothèques,
-                                   kuri::chaine_statique chemin_sortie)
+                                   kuri::chaine_statique chemin_sortie,
+                                   bool utilise_clang)
 {
-    auto compilateur = donne_compilateur_cpp();
-    auto options_compilateur = options_pour_liaison(compilateur, options);
+    auto compilateur = donne_compilateur_cpp(utilise_clang);
+    auto options_compilateur = options_pour_liaison(compilateur, options, utilise_clang);
 
     Enchaineuse enchaineuse;
     enchaineuse << compilateur << " ";
@@ -489,20 +536,22 @@ kuri::chaine commande_pour_liaison(OptionsDeCompilation const &options,
 /* Crée une commande système pour appeler le compilateur natif afin de créer un fichier objet. */
 static kuri::chaine commande_pour_fichier_objet_r16(OptionsDeCompilation const &options,
                                                     kuri::chaine_statique nom_entrée,
-                                                    kuri::chaine_statique nom_sortie)
+                                                    kuri::chaine_statique nom_sortie,
+                                                    bool utilise_clang)
 {
     return commande_pour_fichier_objet_impl(
-        options, donne_compilateur_cpp(), nom_entrée, nom_sortie);
+        options, donne_compilateur_cpp(utilise_clang), nom_entrée, nom_sortie, utilise_clang);
 }
 
 /* Crée une commande système pour appeler le compilateur natif afin de créer une bibliothèque
  * dynamique. */
 static kuri::chaine commande_pour_bibliothèque_dynamique(kuri::chaine_statique nom_entrée,
                                                          kuri::chaine_statique nom_sortie,
-                                                         ArchitectureCible architecture_cible)
+                                                         ArchitectureCible architecture_cible,
+                                                         bool utilise_clang)
 {
     Enchaineuse enchaineuse;
-    enchaineuse << donne_compilateur_cpp();
+    enchaineuse << donne_compilateur_cpp(utilise_clang);
 
 #ifdef _MSC_VER
     enchaineuse << " /D_USRDLL /D_WINDLL " << "\"" << nom_entrée << "\""
@@ -561,7 +610,7 @@ bool precompile_objet_r16(const kuri::chemin_systeme &chemin_racine_kuri)
     kuri::chemin_systeme::crée_dossiers(chemin_objet.chemin_parent());
 
     const auto commande = commande_pour_bibliothèque_dynamique(
-        chemin_fichier, chemin_objet, ArchitectureCible::X64);
+        chemin_fichier, chemin_objet, ArchitectureCible::X64, false);
 
     if (!exécute_commande(commande)) {
         return false;
@@ -591,7 +640,8 @@ bool compile_objet_r16(const kuri::chemin_systeme &chemin_racine_kuri,
     options.résultat = RésultatCompilation::FICHIER_OBJET;
     options.code_indépendent_de_position = true;
 
-    const auto commande = commande_pour_fichier_objet_r16(options, chemin_fichier, chemin_objet);
+    const auto commande = commande_pour_fichier_objet_r16(
+        options, chemin_fichier, chemin_objet, false);
 
     if (!exécute_commande(commande)) {
         return false;

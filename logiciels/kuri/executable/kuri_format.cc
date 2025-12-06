@@ -45,7 +45,7 @@ static void formatte_fichier(kuri::chemin_systeme const chemin_fichier)
     }
 
     /* Syntaxage du fichier. */
-    auto unité = UniteCompilation(&espace);
+    auto unité = UnitéCompilation(&espace);
     unité.fichier = fichier;
 
     auto tacheronne = Tacheronne(compilatrice);
@@ -107,7 +107,7 @@ int main(int argc, char **argv)
 
     if (kuri::chemin_systeme::est_dossier(chemin_fichier)) {
         auto dossier_courant = dossier_origine;
-        auto chemins = kuri::chemin_systeme::fichiers_du_dossier_recursif(chemin_fichier);
+        auto chemins = kuri::chemin_systeme::fichiers_du_dossier_récursif(chemin_fichier);
         POUR (chemins) {
             dossier_courant = change_de_dossier_si_différent(dossier_courant, it.chemin_parent());
 

@@ -24,10 +24,8 @@
 
 #pragma once
 
-#include <algorithm>
 #include <atomic>
 #include <cassert>
-#include <string>
 
 namespace mémoire {
 
@@ -38,8 +36,8 @@ inline constexpr int64_t calcule_memoire(int64_t nombre)
 }
 
 struct logeuse_mémoire {
-    std::atomic_int64_t memoire_consommee = 0;
-    std::atomic_int64_t memoire_allouee = 0;
+    std::atomic_int64_t mémoire_consommee = 0;
+    std::atomic_int64_t mémoire_allouee = 0;
     std::atomic_int64_t nombre_allocations = 0;
     std::atomic_int64_t nombre_reallocations = 0;
     std::atomic_int64_t nombre_deallocations = 0;
@@ -109,13 +107,13 @@ struct logeuse_mémoire {
                 res[i] = std::move(ptr[i]);
             }
 
-            deloge_generique(message, ptr, calcule_memoire<T>(ancienne_taille));
+            déloge_generique(message, ptr, calcule_memoire<T>(ancienne_taille));
             ptr = res;
         }
     }
 
     template <typename T>
-    void deloge(const char *message, T *&ptr)
+    void déloge(const char *message, T *&ptr)
     {
         if (ptr == nullptr) {
             return;
@@ -123,16 +121,16 @@ struct logeuse_mémoire {
 
         ptr->~T();
 
-        deloge_generique(message, ptr, calcule_memoire<T>(1));
+        déloge_generique(message, ptr, calcule_memoire<T>(1));
         ptr = nullptr;
     }
 
     template <typename T>
-    void deloge_tableau(const char *message, T *&ptr, int64_t nombre)
+    void déloge_tableau(const char *message, T *&ptr, int64_t nombre)
     {
         assert(nombre >= 0);
 
-        deloge_generique(message, ptr, calcule_memoire<T>(nombre));
+        déloge_generique(message, ptr, calcule_memoire<T>(nombre));
         ptr = nullptr;
     }
 
@@ -146,14 +144,17 @@ struct logeuse_mémoire {
 
     inline void ajoute_memoire(int64_t taille)
     {
-        this->memoire_allouee += taille;
-        this->memoire_consommee = std::max(this->memoire_allouee.load(),
-                                           this->memoire_consommee.load());
+        this->mémoire_allouee += taille;
+        auto allouée = this->mémoire_allouee.load();
+        auto consommée = this->mémoire_consommee.load();
+        if (allouée > consommée) {
+            this->mémoire_consommee = allouée;
+        }
     }
 
     inline void enleve_memoire(int64_t taille)
     {
-        this->memoire_allouee -= taille;
+        this->mémoire_allouee -= taille;
     }
 
     void *loge_generique(const char *message, int64_t taille);
@@ -163,7 +164,7 @@ struct logeuse_mémoire {
                            int64_t ancienne_taille,
                            int64_t nouvelle_taille);
 
-    void deloge_generique(const char *message, void *ptr, int64_t taille);
+    void déloge_generique(const char *message, void *ptr, int64_t taille);
 };
 
 /**
@@ -181,19 +182,6 @@ struct logeuse_mémoire {
 [[nodiscard]] int64_t nombre_reallocations();
 
 [[nodiscard]] int64_t nombre_deallocations();
-
-/**
- * Convertit le nombre d'octet passé en paramètre en une chaine contenant :
- * - si la taille est inférieure à 1 Ko : la taille en octets + " o"
- * - si la taille est inférieure à 1 Mo : la taille en kiloctets + " Ko"
- * - si la taille est inférieure à 1 Go : la taille en mégaoctets + " Mo"
- * - sinon, rétourne la taille en gigaoctets + " Go"
- *
- * par exemple:
- * 8564 -> "8 Ko"
- * 16789432158 -> "15 Go"
- */
-[[nodiscard]] std::string formate_taille(int64_t octets);
 
 template <typename T, typename... Args>
 [[nodiscard]] T *loge(const char *message, Args &&...args)
@@ -217,17 +205,17 @@ template <typename T>
 }
 
 template <typename T>
-void deloge(const char *message, T *&ptr)
+void déloge(const char *message, T *&ptr)
 {
     auto &logeuse = logeuse_mémoire::instance();
-    logeuse.deloge<T>(message, ptr);
+    logeuse.déloge<T>(message, ptr);
 }
 
 template <typename T>
-void deloge_tableau(const char *message, T *&ptr, int64_t nombre)
+void déloge_tableau(const char *message, T *&ptr, int64_t nombre)
 {
     auto &logeuse = logeuse_mémoire::instance();
-    logeuse.deloge_tableau<T>(message, ptr, nombre);
+    logeuse.déloge_tableau<T>(message, ptr, nombre);
 }
 
 }  // namespace mémoire

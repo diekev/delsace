@@ -16,7 +16,7 @@ namespace kuri {
  */
 struct chemin_systeme {
   private:
-    chaine donnees{};
+    chaine données{};
 
   public:
     chemin_systeme() = default;
@@ -27,7 +27,7 @@ struct chemin_systeme {
 
     chaine_statique donne_chaine() const
     {
-        return donnees;
+        return données;
     }
 
     /**
@@ -63,12 +63,12 @@ struct chemin_systeme {
 
     const char *pointeur() const
     {
-        return donnees.pointeur();
+        return données.pointeur();
     }
 
     int64_t taille() const
     {
-        return donnees.taille();
+        return données.taille();
     }
 
     bool est_vide() const
@@ -78,7 +78,7 @@ struct chemin_systeme {
 
     operator chaine_statique() const
     {
-        return donnees;
+        return données;
     }
 
     operator bool() const
@@ -147,7 +147,7 @@ struct chemin_systeme {
      * Retourne un tableau contenant les chemins des fichiers .kuri du dossier et des sous-dossiers
      * récursivement pointé par chemin.
      */
-    static tablet<chemin_systeme, 16> fichiers_du_dossier_recursif(chaine_statique chemin);
+    static tablet<chemin_systeme, 16> fichiers_du_dossier_récursif(chaine_statique chemin);
 
     /**
      * Supprime le fichier au chemin spécifié. Retourne faux si le fichier ne fut supprimé, ou si

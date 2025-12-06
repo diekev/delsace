@@ -7,6 +7,8 @@
 
 #include "arbre_syntaxique/noeud_expression.hh"
 
+#include "compilation/intrinseques.hh"
+
 #include "parsage/identifiant.hh"
 
 #include "utilitaires/divers.hh"
@@ -30,12 +32,12 @@ std::ostream &operator<<(std::ostream &os, Atome::Genre genre_atome)
 
 AtomeConstanteStructure::~AtomeConstanteStructure()
 {
-    mémoire::deloge_tableau("valeur_structure", données.pointeur, données.capacité);
+    mémoire::déloge_tableau("valeur_structure", données.pointeur, données.capacité);
 }
 
 AtomeConstanteTableauFixe::~AtomeConstanteTableauFixe()
 {
-    mémoire::deloge_tableau("valeur_tableau", données.pointeur, données.capacité);
+    mémoire::déloge_tableau("valeur_tableau", données.pointeur, données.capacité);
 }
 
 const Type *AtomeGlobale::donne_type_alloué() const
@@ -68,7 +70,7 @@ PartageMémoire AtomeGlobale::donne_partage_mémoire() const
 AtomeFonction::~AtomeFonction()
 {
     /* À FAIRE : stocke ça quelque part dans un tableau_page. */
-    mémoire::deloge("DonnéesExécutionFonction", données_exécution);
+    mémoire::déloge("DonnéesExécutionFonction", données_exécution);
 }
 
 Instruction *AtomeFonction::dernière_instruction() const
@@ -120,6 +122,22 @@ bool AtomeFonction::est_intrinsèque() const
 {
     return decl && (decl->possède_drapeau(DrapeauxNoeudFonction::EST_INTRINSÈQUE) ||
                     decl->possède_drapeau(DrapeauxNoeudFonction::EST_SSE2));
+}
+
+bool AtomeFonction::est_intrinsèque(GenreIntrinsèque genre_intrinsèque) const
+{
+    if (!decl || !decl->données_externes) {
+        return false;
+    }
+
+    auto opt_genre_intrinsèque = donne_genre_intrinsèque_pour_identifiant(
+        decl->données_externes->ident_énum_intrinsèque);
+
+    if (!opt_genre_intrinsèque.has_value()) {
+        return false;
+    }
+
+    return genre_intrinsèque == opt_genre_intrinsèque.value();
 }
 
 InstructionAppel::InstructionAppel(NoeudExpression const *site_, Atome *appele_)
@@ -278,7 +296,7 @@ const RubriqueTypeComposé &InstructionAccèsRubrique::donne_rubrique_accédé()
 
     auto type_composé = type_adressé->comme_type_composé();
     /* Pour les unions, l'accès de rubrique se fait via le type structure qui est valeur unie
-     * + index. */
+     * + indice. */
     if (type_composé->est_type_union()) {
         type_composé = type_composé->comme_type_union()->type_structure;
     }
@@ -553,6 +571,59 @@ bool instruction_est_racine(Instruction const *inst)
                        GenreInstruction::COPIE_MÉMOIRE);
 }
 
+bool est_adresse_globale(Atome const *atome)
+{
+    return atome->est_fonction() || atome->est_globale();
+}
+
+bool est_adresse_locale(Atome const *atome)
+{
+    if (!atome->est_instruction()) {
+        return false;
+    }
+
+    auto inst = atome->comme_instruction();
+
+    if (inst->est_alloc() || inst->est_accès_rubrique() || inst->est_accès_indice()) {
+        return true;
+    }
+
+    if (inst->est_transtype()) {
+        auto transtype = inst->comme_transtype();
+        return est_adresse_locale(transtype->valeur);
+    }
+
+    return false;
+}
+
+bool est_adresse(Atome const *atome)
+{
+    return est_adresse_globale(atome) || est_adresse_locale(atome);
+}
+
+bool est_appel(Atome const *atome)
+{
+    return atome->est_instruction() && atome->comme_instruction()->est_appel();
+}
+
+bool est_charge(Atome const *atome)
+{
+    return atome->est_instruction() && atome->comme_instruction()->est_charge();
+}
+
+bool est_accès_indice(Atome const *atome)
+{
+    return atome->est_instruction() && atome->comme_instruction()->est_accès_indice();
+}
+
+Atome const *donne_source_charge_ou_atome(Atome const *atome)
+{
+    if (atome->est_instruction() && atome->comme_instruction()->est_charge()) {
+        return atome->comme_instruction()->comme_charge()->chargée;
+    }
+    return atome;
+}
+
 static Atome const *est_comparaison_avec_zéro_ou_nul(Instruction const *inst,
                                                      OpérateurBinaire::Genre genre_comp)
 {
@@ -575,12 +646,12 @@ static Atome const *est_comparaison_avec_zéro_ou_nul(Instruction const *inst,
 
 Atome const *est_comparaison_égal_zéro_ou_nul(Instruction const *inst)
 {
-    return est_comparaison_avec_zéro_ou_nul(inst, OpérateurBinaire::Genre::Comp_Egal);
+    return est_comparaison_avec_zéro_ou_nul(inst, OpérateurBinaire::Genre::Comp_Égal);
 }
 
 Atome const *est_comparaison_inégal_zéro_ou_nul(Instruction const *inst)
 {
-    return est_comparaison_avec_zéro_ou_nul(inst, OpérateurBinaire::Genre::Comp_Inegal);
+    return est_comparaison_avec_zéro_ou_nul(inst, OpérateurBinaire::Genre::Comp_Inégal);
 }
 
 bool est_instruction_comparaison(Atome const *atome)
@@ -695,8 +766,8 @@ void VisiteuseAtome::visite_atome(Atome *racine,
         }
         case Atome::Genre::ACCÈS_INDICE_CONSTANT:
         {
-            auto inst_acces = racine->comme_accès_indice_constant();
-            visite_atome(inst_acces->accédé, rappel);
+            auto inst_accès = racine->comme_accès_indice_constant();
+            visite_atome(inst_accès->accédé, rappel);
             break;
         }
         case Atome::Genre::CONSTANTE_NULLE:
@@ -791,15 +862,15 @@ void VisiteuseAtome::visite_atome(Atome *racine,
                 }
                 case GenreInstruction::ACCÈS_INDICE:
                 {
-                    auto acces = inst->comme_accès_indice();
-                    visite_atome(acces->indice, rappel);
-                    visite_atome(acces->accédé, rappel);
+                    auto accès = inst->comme_accès_indice();
+                    visite_atome(accès->indice, rappel);
+                    visite_atome(accès->accédé, rappel);
                     break;
                 }
                 case GenreInstruction::ACCÈS_RUBRIQUE:
                 {
-                    auto acces = inst->comme_accès_rubrique();
-                    visite_atome(acces->accédé, rappel);
+                    auto accès = inst->comme_accès_rubrique();
+                    visite_atome(accès->accédé, rappel);
                     break;
                 }
                 case GenreInstruction::TRANSTYPE:

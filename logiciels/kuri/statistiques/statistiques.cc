@@ -360,7 +360,7 @@ const kuri::tableau<MémoireUtilisée> &Statistiques::donne_mémoire_utilisée_p
     ajoute_mémoire_utilisée("Lexèmes", stats_fichiers.totaux.mémoire_lexèmes);
     ajoute_mémoire_utilisée("Tampon", stats_fichiers.totaux.mémoire_tampons);
 
-    std::sort(m_mémoires_utilisées.debut(), m_mémoires_utilisées.fin(), [](auto &a, auto &b) {
+    std::sort(m_mémoires_utilisées.début(), m_mémoires_utilisées.fin(), [](auto &a, auto &b) {
         return a.catégorie < b.catégorie;
     });
 

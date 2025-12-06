@@ -249,7 +249,7 @@ static bool doit_ajouter_point_virgule(GenreLexème dernier_id)
         case GenreLexème::TYPE_DE_DONNÉES:
         /* littérales */
         case GenreLexème::CHAINE_LITTERALE:
-        case GenreLexème::NOMBRE_REEL:
+        case GenreLexème::NOMBRE_RÉEL:
         case GenreLexème::NOMBRE_ENTIER:
         case GenreLexème::CARACTÈRE:
         case GenreLexème::VRAI:
@@ -285,8 +285,8 @@ static int longueur_utf8_depuis_premier_caractère[] = {
 
 Lexeuse::Lexeuse(ContexteLexage contexte, Fichier *données, int drapeaux)
     : m_gérante_chaine(contexte.gérante_chaine), m_table_identifiants(contexte.table_identifiants),
-      m_données(données), m_début_mot(données->tampon().debut()),
-      m_début(données->tampon().debut()), m_fin(données->tampon().fin()), m_drapeaux(drapeaux),
+      m_données(données), m_début_mot(données->tampon().début()),
+      m_début(données->tampon().début()), m_fin(données->tampon().fin()), m_drapeaux(drapeaux),
       m_rappel_erreur(contexte.rappel_erreur)
 {
 }
@@ -320,7 +320,7 @@ Lexème Lexeuse::crée_lexème_littérale_réelle(double valeur)
 {
     Lexème résultat = {mot_courant(),
                        {0ul},
-                       GenreLexème::NOMBRE_REEL,
+                       GenreLexème::NOMBRE_RÉEL,
                        static_cast<int>(m_données->id()),
                        m_compte_ligne,
                        m_pos_mot};
@@ -349,7 +349,7 @@ void Lexeuse::performe_lexage()
 
     // crée les identifiants à la fin pour améliorer la cohérence de cache
     {
-        auto table_identifiants = m_table_identifiants.verrou_ecriture();
+        auto table_identifiants = m_table_identifiants.verrou_écriture();
 
         POUR (m_données->lexèmes) {
             if (it.genre == GenreLexème::SI) {
@@ -366,7 +366,7 @@ void Lexeuse::performe_lexage()
 
     // crée les chaines littérales à la fin pour améliorer la cohérence de cache
     {
-        auto gérante_chaine = m_gérante_chaine.verrou_ecriture();
+        auto gérante_chaine = m_gérante_chaine.verrou_écriture();
 
         /* en dehors de la boucle car nous l'utilisons comme tampon */
         kuri::chaine chaine;
@@ -476,27 +476,27 @@ void Lexeuse::consomme_espaces_blanches()
 
 Lexème Lexeuse::donne_lexème_suivant()
 {
-#define APPARIE_CARACTERE_SIMPLE(caractere, genre_lexeme)                                         \
-    if (c == caractere) {                                                                         \
-        return crée_lexème_opérateur(1, genre_lexeme);                                            \
+#define APPARIE_CARACTERE_SIMPLE(caractère, genre_lexème)                                         \
+    if (c == caractère) {                                                                         \
+        return crée_lexème_opérateur(1, genre_lexème);                                            \
     }
 
-#define APPARIE_CARACTERE_DOUBLE_EGAL(caractere, genre_lexeme, genre_lexeme_avec_egal)            \
-    if (c == caractere) {                                                                         \
+#define APPARIE_CARACTERE_DOUBLE_ÉGAL(caractère, genre_lexème, genre_lexème_avec_egal)            \
+    if (c == caractère) {                                                                         \
         if (caractère_voisin(1) == '=') {                                                         \
-            return crée_lexème_opérateur(2, genre_lexeme_avec_egal);                              \
+            return crée_lexème_opérateur(2, genre_lexème_avec_egal);                              \
         }                                                                                         \
-        return crée_lexème_opérateur(1, genre_lexeme);                                            \
+        return crée_lexème_opérateur(1, genre_lexème);                                            \
     }
 
-#define APPARIE_CARACTERE_SUIVANT(caractere, genre_lexeme)                                        \
-    if (caractère_voisin(1) == caractere) {                                                       \
-        return crée_lexème_opérateur(2, genre_lexeme);                                            \
+#define APPARIE_CARACTERE_SUIVANT(caractère, genre_lexème)                                        \
+    if (caractère_voisin(1) == caractère) {                                                       \
+        return crée_lexème_opérateur(2, genre_lexème);                                            \
     }
 
-#define APPARIE_2_CARACTERES_SUIVANTS(caractere1, caractere2, genre_lexeme)                       \
-    if (caractère_voisin(1) == caractere1 && caractère_voisin(2) == caractere2) {                 \
-        return crée_lexème_opérateur(3, genre_lexeme);                                            \
+#define APPARIE_2_CARACTERES_SUIVANTS(caractère1, caractère2, genre_lexème)                       \
+    if (caractère_voisin(1) == caractère1 && caractère_voisin(2) == caractère2) {                 \
+        return crée_lexème_opérateur(3, genre_lexème);                                            \
     }
 
     auto c = this->caractère_courant();
@@ -519,7 +519,7 @@ Lexème Lexeuse::donne_lexème_suivant()
                 }
 
                 if (this->caractère_voisin(1) == '=') {
-                    return crée_lexème_opérateur(2, GenreLexème::MULTIPLIE_EGAL);
+                    return crée_lexème_opérateur(2, GenreLexème::MULTIPLIE_ÉGAL);
                 }
 
                 return crée_lexème_opérateur(1, GenreLexème::FOIS);
@@ -535,7 +535,7 @@ Lexème Lexeuse::donne_lexème_suivant()
                 }
 
                 if (this->caractère_voisin(1) == '=') {
-                    return crée_lexème_opérateur(2, GenreLexème::DIVISE_EGAL);
+                    return crée_lexème_opérateur(2, GenreLexème::DIVISE_ÉGAL);
                 }
 
                 return crée_lexème_opérateur(1, GenreLexème::DIVISE);
@@ -544,7 +544,7 @@ Lexème Lexeuse::donne_lexème_suivant()
             if (c == '-') {
                 // '-' ou -= ou ---
                 APPARIE_2_CARACTERES_SUIVANTS('-', '-', GenreLexème::NON_INITIALISATION)
-                APPARIE_CARACTERE_SUIVANT('=', GenreLexème::MOINS_EGAL)
+                APPARIE_CARACTERE_SUIVANT('=', GenreLexème::MOINS_ÉGAL)
                 APPARIE_CARACTERE_SUIVANT('>', GenreLexème::RETOUR_TYPE)
                 return crée_lexème_opérateur(1, GenreLexème::MOINS);
             }
@@ -558,17 +558,17 @@ Lexème Lexeuse::donne_lexème_suivant()
 
             if (c == '<') {
                 // <, <=, << ou <<=
-                APPARIE_2_CARACTERES_SUIVANTS('<', '=', GenreLexème::DEC_GAUCHE_EGAL)
+                APPARIE_2_CARACTERES_SUIVANTS('<', '=', GenreLexème::DEC_GAUCHE_ÉGAL)
                 APPARIE_CARACTERE_SUIVANT('<', GenreLexème::DECALAGE_GAUCHE)
-                APPARIE_CARACTERE_SUIVANT('=', GenreLexème::INFERIEUR_EGAL)
+                APPARIE_CARACTERE_SUIVANT('=', GenreLexème::INFERIEUR_ÉGAL)
                 return crée_lexème_opérateur(1, GenreLexème::INFERIEUR);
             }
 
             if (c == '>') {
                 // >, >=, >> ou >>=
-                APPARIE_2_CARACTERES_SUIVANTS('>', '=', GenreLexème::DEC_DROITE_EGAL)
+                APPARIE_2_CARACTERES_SUIVANTS('>', '=', GenreLexème::DEC_DROITE_ÉGAL)
                 APPARIE_CARACTERE_SUIVANT('>', GenreLexème::DECALAGE_DROITE)
-                APPARIE_CARACTERE_SUIVANT('=', GenreLexème::SUPERIEUR_EGAL)
+                APPARIE_CARACTERE_SUIVANT('=', GenreLexème::SUPERIEUR_ÉGAL)
                 return crée_lexème_opérateur(1, GenreLexème::SUPERIEUR);
             }
 
@@ -580,17 +580,23 @@ Lexème Lexeuse::donne_lexème_suivant()
             }
 
             if (c == '&') {
-                APPARIE_2_CARACTERES_SUIVANTS('&', '=', GenreLexème::ESP_ESP_EGAL)
+                APPARIE_2_CARACTERES_SUIVANTS('&', '=', GenreLexème::ESP_ESP_ÉGAL)
                 APPARIE_CARACTERE_SUIVANT('&', GenreLexème::ESP_ESP)
-                APPARIE_CARACTERE_SUIVANT('=', GenreLexème::ET_EGAL)
+                APPARIE_CARACTERE_SUIVANT('=', GenreLexème::ET_ÉGAL)
                 return crée_lexème_opérateur(1, GenreLexème::ESPERLUETTE);
             }
 
             if (c == '|') {
-                APPARIE_2_CARACTERES_SUIVANTS('|', '=', GenreLexème::BARRE_BARRE_EGAL)
+                APPARIE_2_CARACTERES_SUIVANTS('|', '=', GenreLexème::BARRE_BARRE_ÉGAL)
                 APPARIE_CARACTERE_SUIVANT('|', GenreLexème::BARRE_BARRE)
-                APPARIE_CARACTERE_SUIVANT('=', GenreLexème::OU_EGAL)
+                APPARIE_CARACTERE_SUIVANT('=', GenreLexème::OU_ÉGAL)
                 return crée_lexème_opérateur(1, GenreLexème::BARRE);
+            }
+
+            if (c == '?') {
+                APPARIE_CARACTERE_SUIVANT('.', GenreLexème::ACCÈS_CONDITIONNEL);
+                rapporte_erreur("Attendu '.' après '?'");
+                break;
             }
 
             APPARIE_CARACTERE_SIMPLE('`', GenreLexème::ACCENT_GRAVE)
@@ -623,11 +629,11 @@ Lexème Lexeuse::donne_lexème_suivant()
                 return crée_lexème_opérateur(1, GenreLexème::CROCHET_FERMANT);
             }
 
-            APPARIE_CARACTERE_DOUBLE_EGAL('+', GenreLexème::PLUS, GenreLexème::PLUS_EGAL)
-            APPARIE_CARACTERE_DOUBLE_EGAL('!', GenreLexème::EXCLAMATION, GenreLexème::DIFFÉRENCE)
-            APPARIE_CARACTERE_DOUBLE_EGAL('=', GenreLexème::EGAL, GenreLexème::EGALITE)
-            APPARIE_CARACTERE_DOUBLE_EGAL('%', GenreLexème::POURCENT, GenreLexème::MODULO_EGAL)
-            APPARIE_CARACTERE_DOUBLE_EGAL('^', GenreLexème::CHAPEAU, GenreLexème::OUX_EGAL)
+            APPARIE_CARACTERE_DOUBLE_ÉGAL('+', GenreLexème::PLUS, GenreLexème::PLUS_ÉGAL)
+            APPARIE_CARACTERE_DOUBLE_ÉGAL('!', GenreLexème::EXCLAMATION, GenreLexème::DIFFÉRENCE)
+            APPARIE_CARACTERE_DOUBLE_ÉGAL('=', GenreLexème::EGAL, GenreLexème::EGALITE)
+            APPARIE_CARACTERE_DOUBLE_ÉGAL('%', GenreLexème::POURCENT, GenreLexème::MODULO_ÉGAL)
+            APPARIE_CARACTERE_DOUBLE_ÉGAL('^', GenreLexème::CHAPEAU, GenreLexème::OUX_ÉGAL)
 
             if (peut_commencer_identifiant(c)) {
                 return lèxe_identifiant();
@@ -662,7 +668,7 @@ Lexème Lexeuse::donne_lexème_suivant()
     }
 
 #undef APPARIE_CARACTERE_SIMPLE
-#undef APPARIE_CARACTERE_DOUBLE_EGAL
+#undef APPARIE_CARACTERE_DOUBLE_ÉGAL
 #undef APPARIE_CARACTERE_SUIVANT
 #undef APPARIE_2_CARACTERES_SUIVANTS
 
@@ -689,7 +695,14 @@ Lexème Lexeuse::lèxe_chaine_littérale()
     auto const ligne_début = m_compte_ligne;
 
     while (!this->fini()) {
-        if (this->caractère_courant() == '"' && this->caractère_voisin(-1) != '\\') {
+        if (this->caractère_courant() == '\\') {
+            this->avance();
+            this->ajoute_caractère();
+            this->avance();
+            this->ajoute_caractère();
+            continue;
+        }
+        if (this->caractère_courant() == '"') {
             break;
         }
 

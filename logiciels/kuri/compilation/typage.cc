@@ -96,12 +96,12 @@ static void initialise_type_pointeur(Typeuse &typeuse, TypePointeur *résultat, 
             résultat->drapeaux_type |= DrapeauxTypes::TYPE_EST_POLYMORPHIQUE;
         }
 
-        type_pointe_->drapeaux_type |= DrapeauxTypes::POSSEDE_TYPE_POINTEUR;
+        type_pointe_->drapeaux_type |= DrapeauxTypes::POSSÈDE_TYPE_POINTEUR;
     }
 }
 
 static void initialise_type_référence(Typeuse &typeuse,
-                                      TypeReference *résultat,
+                                      TypeRéférence *résultat,
                                       Type *type_pointe_)
 {
     assert(type_pointe_);
@@ -115,16 +115,16 @@ static void initialise_type_référence(Typeuse &typeuse,
         résultat->drapeaux_type |= DrapeauxTypes::TYPE_EST_POLYMORPHIQUE;
     }
 
-    type_pointe_->drapeaux_type |= DrapeauxTypes::POSSEDE_TYPE_REFERENCE;
+    type_pointe_->drapeaux_type |= DrapeauxTypes::POSSÈDE_TYPE_RÉFÉRENCE;
 }
 
 static void initialise_type_fonction(Typeuse &typeuse,
                                      TypeFonction *résultat,
-                                     kuri::tablet<Type *, 6> const &entrees,
+                                     kuri::tablet<Type *, 6> const &entrées,
                                      Type *sortie)
 {
-    résultat->types_entrées.réserve(static_cast<int>(entrees.taille()));
-    POUR (entrees) {
+    résultat->types_entrées.réserve(static_cast<int>(entrées.taille()));
+    POUR (entrées) {
         résultat->types_entrées.ajoute(it);
     }
 
@@ -155,7 +155,7 @@ static void initialise_type_tableau_fixe(TypeTableauFixe *résultat,
         résultat->drapeaux_type |= DrapeauxTypes::TYPE_EST_POLYMORPHIQUE;
     }
 
-    type_pointe_->drapeaux_type |= DrapeauxTypes::POSSEDE_TYPE_TABLEAU_FIXE;
+    type_pointe_->drapeaux_type |= DrapeauxTypes::POSSÈDE_TYPE_TABLEAU_FIXE;
 }
 
 static void initialise_type_tableau_dynamique(TypeTableauDynamique *résultat,
@@ -174,7 +174,7 @@ static void initialise_type_tableau_dynamique(TypeTableauDynamique *résultat,
         résultat->drapeaux_type |= DrapeauxTypes::TYPE_EST_POLYMORPHIQUE;
     }
 
-    type_pointe_->drapeaux_type |= DrapeauxTypes::POSSEDE_TYPE_TABLEAU_DYNAMIQUE;
+    type_pointe_->drapeaux_type |= DrapeauxTypes::POSSÈDE_TYPE_TABLEAU_DYNAMIQUE;
 }
 
 static void initialise_type_tranche(NoeudDéclarationTypeTranche *résultat,
@@ -193,7 +193,7 @@ static void initialise_type_tranche(NoeudDéclarationTypeTranche *résultat,
         résultat->drapeaux_type |= DrapeauxTypes::TYPE_EST_POLYMORPHIQUE;
     }
 
-    type_élément->drapeaux_type |= DrapeauxTypes::POSSEDE_TYPE_TRANCHE;
+    type_élément->drapeaux_type |= DrapeauxTypes::POSSÈDE_TYPE_TRANCHE;
 }
 
 static void initialise_type_variadique(TypeVariadique *résultat,
@@ -213,7 +213,7 @@ static void initialise_type_variadique(TypeVariadique *résultat,
 }
 
 static void initialise_type_type_de_données(Typeuse &typeuse,
-                                            TypeTypeDeDonnees *résultat,
+                                            TypeTypeDeDonnées *résultat,
                                             Type *type_connu_)
 {
     résultat->ident = ID::type_de_données;
@@ -227,7 +227,7 @@ static void initialise_type_type_de_données(Typeuse &typeuse,
     résultat->drapeaux |= (DrapeauxNoeud::DECLARATION_FUT_VALIDEE);
 
     if (type_connu_) {
-        type_connu_->drapeaux_type |= DrapeauxTypes::POSSEDE_TYPE_TYPE_DE_DONNEES;
+        type_connu_->drapeaux_type |= DrapeauxTypes::POSSÈDE_TYPE_TYPE_DE_DONNÉES;
     }
 }
 
@@ -252,9 +252,9 @@ static void initialise_type_opaque(TypeOpaque *résultat, Type *opacifie)
 
 /* ************************************************************************** */
 
-static Type *crée_type_pour_lexeme(GenreLexème lexeme)
+static Type *crée_type_pour_lexème(GenreLexème lexème)
 {
-    switch (lexeme) {
+    switch (lexème) {
         case GenreLexème::BOOL:
         {
             return crée_type_bool();
@@ -321,31 +321,31 @@ Typeuse::Typeuse(kuri::Synchrone<GrapheDépendance> &g) : graphe_(g)
     alloc = mémoire::loge<AllocatriceNoeud>("AllocatriceNoeud");
 
     /* initialise les types communs */
-    type_n8 = crée_type_pour_lexeme(GenreLexème::N8);
+    type_n8 = crée_type_pour_lexème(GenreLexème::N8);
     types_simples->ajoute(type_n8);
-    type_n16 = crée_type_pour_lexeme(GenreLexème::N16);
+    type_n16 = crée_type_pour_lexème(GenreLexème::N16);
     types_simples->ajoute(type_n16);
-    type_n32 = crée_type_pour_lexeme(GenreLexème::N32);
+    type_n32 = crée_type_pour_lexème(GenreLexème::N32);
     types_simples->ajoute(type_n32);
-    type_n64 = crée_type_pour_lexeme(GenreLexème::N64);
+    type_n64 = crée_type_pour_lexème(GenreLexème::N64);
     types_simples->ajoute(type_n64);
-    type_z8 = crée_type_pour_lexeme(GenreLexème::Z8);
+    type_z8 = crée_type_pour_lexème(GenreLexème::Z8);
     types_simples->ajoute(type_z8);
-    type_z16 = crée_type_pour_lexeme(GenreLexème::Z16);
+    type_z16 = crée_type_pour_lexème(GenreLexème::Z16);
     types_simples->ajoute(type_z16);
-    type_z32 = crée_type_pour_lexeme(GenreLexème::Z32);
+    type_z32 = crée_type_pour_lexème(GenreLexème::Z32);
     types_simples->ajoute(type_z32);
-    type_z64 = crée_type_pour_lexeme(GenreLexème::Z64);
+    type_z64 = crée_type_pour_lexème(GenreLexème::Z64);
     types_simples->ajoute(type_z64);
-    type_r16 = crée_type_pour_lexeme(GenreLexème::R16);
+    type_r16 = crée_type_pour_lexème(GenreLexème::R16);
     types_simples->ajoute(type_r16);
-    type_r32 = crée_type_pour_lexeme(GenreLexème::R32);
+    type_r32 = crée_type_pour_lexème(GenreLexème::R32);
     types_simples->ajoute(type_r32);
-    type_r64 = crée_type_pour_lexeme(GenreLexème::R64);
+    type_r64 = crée_type_pour_lexème(GenreLexème::R64);
     types_simples->ajoute(type_r64);
-    type_rien = crée_type_pour_lexeme(GenreLexème::RIEN);
+    type_rien = crée_type_pour_lexème(GenreLexème::RIEN);
     types_simples->ajoute(type_rien);
-    type_bool = crée_type_pour_lexeme(GenreLexème::BOOL);
+    type_bool = crée_type_pour_lexème(GenreLexème::BOOL);
     types_simples->ajoute(type_bool);
 
     type_entier_constant = alloc->m_noeuds_type_entier_constant.ajoute_élément();
@@ -374,9 +374,9 @@ Typeuse::Typeuse(kuri::Synchrone<GrapheDépendance> &g) : graphe_(g)
 
     type_tranche_octet = crée_type_tranche(type_octet, true);
 
-    type_ref_n8 = type_reference_pour(type_n8);
-    type_ref_n64 = type_reference_pour(type_n64);
-    type_ref_z8 = type_reference_pour(type_z8);
+    type_ref_n8 = type_référence_pour(type_n8);
+    type_ref_n64 = type_référence_pour(type_n64);
+    type_ref_z8 = type_référence_pour(type_z8);
 
     type_ptr_n8 = type_pointeur_pour(type_n8);
     type_ptr_z8 = type_pointeur_pour(type_z8);
@@ -386,10 +386,10 @@ Typeuse::Typeuse(kuri::Synchrone<GrapheDépendance> &g) : graphe_(g)
     type_tabl_n8 = type_tableau_dynamique(type_n8);
 
     type_rien->drapeaux_type |= (DrapeauxTypes::TYPE_NE_REQUIERS_PAS_D_INITIALISATION |
-                                 DrapeauxTypes::INITIALISATION_TYPE_FUT_CREEE);
+                                 DrapeauxTypes::INITIALISATION_TYPE_FUT_CRÉÉE);
 
-    type_type_de_donnees_ = alloc->m_noeuds_type_type_de_données.ajoute_élément();
-    initialise_type_type_de_données(*this, type_type_de_donnees_, nullptr);
+    type_type_de_données_ = alloc->m_noeuds_type_type_de_données.ajoute_élément();
+    initialise_type_type_de_données(*this, type_type_de_données_, nullptr);
 
     // nous devons créer le pointeur nul avant les autres types, car nous en avons besoin pour
     // définir les opérateurs pour les pointeurs
@@ -426,16 +426,16 @@ Typeuse::Typeuse(kuri::Synchrone<GrapheDépendance> &g) : graphe_(g)
 
 Typeuse::~Typeuse()
 {
-    for (auto ptr : *types_simples.verrou_ecriture()) {
-        mémoire::deloge("Type", ptr);
+    for (auto ptr : *types_simples.verrou_écriture()) {
+        mémoire::déloge("Type", ptr);
     }
 
-    mémoire::deloge("AllocatriceNoeud", alloc);
+    mémoire::déloge("AllocatriceNoeud", alloc);
 }
 
 void Typeuse::crée_tâches_précompilation(Compilatrice &compilatrice, EspaceDeTravail *espace)
 {
-    auto gestionnaire = compilatrice.gestionnaire_code.verrou_ecriture();
+    auto gestionnaire = compilatrice.gestionnaire_code.verrou_écriture();
 
     /* Crée les fonctions d'initialisations de type qui seront partagées avec d'autres types.
      * Les fonctions pour les entiers sont partagées avec les énums, celle de *rien, avec les
@@ -453,9 +453,9 @@ void Typeuse::crée_tâches_précompilation(Compilatrice &compilatrice, EspaceDe
     gestionnaire->requiers_initialisation_type(espace, espace->typeuse.type_tranche_octet);
 }
 
-Type *Typeuse::type_pour_lexeme(GenreLexème lexeme)
+Type *Typeuse::type_pour_lexème(GenreLexème lexème)
 {
-    switch (lexeme) {
+    switch (lexème) {
         case GenreLexème::BOOL:
         {
             return type_bool;
@@ -522,7 +522,7 @@ Type *Typeuse::type_pour_lexeme(GenreLexème lexeme)
         }
         case GenreLexème::TYPE_DE_DONNÉES:
         {
-            return type_type_de_donnees_;
+            return type_type_de_données_;
         }
         case GenreLexème::ADRESSE_FONCTION:
         {
@@ -535,7 +535,7 @@ Type *Typeuse::type_pour_lexeme(GenreLexème lexeme)
     }
 }
 
-TypePointeur *Typeuse::type_pointeur_pour(Type *type, bool insere_dans_graphe)
+TypePointeur *Typeuse::type_pointeur_pour(Type *type, bool insère_dans_graphe)
 {
     if (!type) {
         return type_ptr_nul;
@@ -550,8 +550,8 @@ TypePointeur *Typeuse::type_pointeur_pour(Type *type, bool insere_dans_graphe)
     auto résultat = alloc->m_noeuds_type_pointeur.ajoute_élément();
     initialise_type_pointeur(*this, résultat, type);
 
-    if (insere_dans_graphe) {
-        auto graphe = graphe_.verrou_ecriture();
+    if (insère_dans_graphe) {
+        auto graphe = graphe_.verrou_écriture();
         graphe->connecte_type_type(résultat, type);
     }
 
@@ -567,11 +567,11 @@ TypePointeur *Typeuse::type_pointeur_pour(Type *type, bool insere_dans_graphe)
     return résultat;
 }
 
-TypeReference *Typeuse::type_reference_pour(Type *type)
+TypeRéférence *Typeuse::type_référence_pour(Type *type)
 {
-    VERROUILLE(types_references);
+    VERROUILLE(types_références);
 
-    if (type->possède_drapeau(DrapeauxTypes::POSSEDE_TYPE_REFERENCE)) {
+    if (type->possède_drapeau(DrapeauxTypes::POSSÈDE_TYPE_RÉFÉRENCE)) {
         POUR_TABLEAU_PAGE (alloc->m_noeuds_type_référence) {
             if (it.type_pointé == type) {
                 return &it;
@@ -582,18 +582,18 @@ TypeReference *Typeuse::type_reference_pour(Type *type)
     auto résultat = alloc->m_noeuds_type_référence.ajoute_élément();
     initialise_type_référence(*this, résultat, type);
 
-    auto graphe = graphe_.verrou_ecriture();
+    auto graphe = graphe_.verrou_écriture();
     graphe->connecte_type_type(résultat, type);
 
     return résultat;
 }
 
-TypeTableauFixe *Typeuse::type_tableau_fixe(Type *type_pointe, int taille, bool insere_dans_graphe)
+TypeTableauFixe *Typeuse::type_tableau_fixe(Type *type_pointe, int taille, bool insère_dans_graphe)
 {
     assert(taille);
     VERROUILLE(types_tableaux_fixes);
 
-    if (type_pointe->possède_drapeau(DrapeauxTypes::POSSEDE_TYPE_TABLEAU_FIXE)) {
+    if (type_pointe->possède_drapeau(DrapeauxTypes::POSSÈDE_TYPE_TABLEAU_FIXE)) {
         POUR_TABLEAU_PAGE (alloc->m_noeuds_type_tableau_fixe) {
             if (it.type_pointé == type_pointe && it.taille == taille) {
                 return &it;
@@ -609,15 +609,15 @@ TypeTableauFixe *Typeuse::type_tableau_fixe(Type *type_pointe, int taille, bool 
                       0,
                       uint64_t(taille),
                       nullptr,
-                      RubriqueTypeComposé::EST_CONSTANT});
+                      RubriqueTypeComposé::EST_CONSTANTE});
 
     auto type = alloc->m_noeuds_type_tableau_fixe.ajoute_élément();
     initialise_type_tableau_fixe(type, type_pointe, taille, std::move(rubriques));
 
     /* À FAIRE: nous pouvons être en train de traverser le graphe lors de la création du type,
      * alors n'essayons pas de créer une dépendance car nous aurions un verrou mort. */
-    if (insere_dans_graphe) {
-        auto graphe = graphe_.verrou_ecriture();
+    if (insère_dans_graphe) {
+        auto graphe = graphe_.verrou_écriture();
         graphe->connecte_type_type(type, type_pointe);
     }
 
@@ -629,7 +629,7 @@ TypeTableauFixe *Typeuse::type_tableau_fixe(NoeudExpression const *expression_ta
 {
     VERROUILLE(types_tableaux_fixes);
 
-    if (type_élément->possède_drapeau(DrapeauxTypes::POSSEDE_TYPE_TABLEAU_FIXE)) {
+    if (type_élément->possède_drapeau(DrapeauxTypes::POSSÈDE_TYPE_TABLEAU_FIXE)) {
         POUR_TABLEAU_PAGE (alloc->m_noeuds_type_tableau_fixe) {
             if (it.expression_taille == expression_taille && it.type_pointé == type_élément) {
                 return &it;
@@ -645,11 +645,11 @@ TypeTableauFixe *Typeuse::type_tableau_fixe(NoeudExpression const *expression_ta
     return type;
 }
 
-TypeTableauDynamique *Typeuse::type_tableau_dynamique(Type *type_pointe, bool insere_dans_graphe)
+TypeTableauDynamique *Typeuse::type_tableau_dynamique(Type *type_pointe, bool insère_dans_graphe)
 {
     VERROUILLE(types_tableaux_dynamiques);
 
-    if (type_pointe->possède_drapeau(DrapeauxTypes::POSSEDE_TYPE_TABLEAU_DYNAMIQUE)) {
+    if (type_pointe->possède_drapeau(DrapeauxTypes::POSSÈDE_TYPE_TABLEAU_DYNAMIQUE)) {
         POUR_TABLEAU_PAGE (alloc->m_noeuds_type_tableau_dynamique) {
             if (it.type_pointé == type_pointe) {
                 return &it;
@@ -660,15 +660,15 @@ TypeTableauDynamique *Typeuse::type_tableau_dynamique(Type *type_pointe, bool in
     auto rubriques = kuri::tableau<RubriqueTypeComposé, int>();
     rubriques.ajoute({nullptr, type_pointeur_pour(type_pointe), ID::pointeur});
     rubriques.ajoute({nullptr, type_z64, ID::taille});
-    rubriques.ajoute({nullptr, type_z64, ID::capacite});
+    rubriques.ajoute({nullptr, type_z64, ID::capacité});
 
     auto type = alloc->m_noeuds_type_tableau_dynamique.ajoute_élément();
     initialise_type_tableau_dynamique(type, type_pointe, std::move(rubriques));
 
     /* À FAIRE: nous pouvons être en train de traverser le graphe lors de la création du type,
      * alors n'essayons pas de créer une dépendance car nous aurions un verrou mort. */
-    if (insere_dans_graphe) {
-        auto graphe = graphe_.verrou_ecriture();
+    if (insère_dans_graphe) {
+        auto graphe = graphe_.verrou_écriture();
         graphe->connecte_type_type(type, type_pointe);
     }
 
@@ -680,7 +680,7 @@ NoeudDéclarationTypeTranche *Typeuse::crée_type_tranche(Type *type_élément,
 {
     VERROUILLE(types_tranches);
 
-    if (type_élément->possède_drapeau(DrapeauxTypes::POSSEDE_TYPE_TRANCHE)) {
+    if (type_élément->possède_drapeau(DrapeauxTypes::POSSÈDE_TYPE_TRANCHE)) {
         POUR_TABLEAU_PAGE (alloc->m_noeuds_type_tranche) {
             if (it.type_élément == type_élément) {
                 return &it;
@@ -698,7 +698,7 @@ NoeudDéclarationTypeTranche *Typeuse::crée_type_tranche(Type *type_élément,
     /* À FAIRE: nous pouvons être en train de traverser le graphe lors de la création du type,
      * alors n'essayons pas de créer une dépendance car nous aurions un verrou mort. */
     if (insère_dans_graphe) {
-        auto graphe = graphe_.verrou_ecriture();
+        auto graphe = graphe_.verrou_écriture();
         graphe->connecte_type_type(type, type_élément);
     }
 
@@ -726,7 +726,7 @@ TypeVariadique *Typeuse::type_variadique(Type *type_pointe)
         /* Crée une tranche correspondante pour la génération de code. */
         auto tranche = crée_type_tranche(type_pointe);
 
-        auto graphe = graphe_.verrou_ecriture();
+        auto graphe = graphe_.verrou_écriture();
         graphe->connecte_type_type(type, type_pointe);
         graphe->connecte_type_type(type, tranche);
 
@@ -735,23 +735,23 @@ TypeVariadique *Typeuse::type_variadique(Type *type_pointe)
     else {
         /* Pour les types variadiques externes, nous ne pouvons générer de fonction
          * d'initialisations.
-         * INITIALISATION_TYPE_FUT_CREEE est à cause de attente_sur_type_si_drapeau_manquant.  */
+         * INITIALISATION_TYPE_FUT_CRÉÉE est à cause de attente_sur_type_si_drapeau_manquant.  */
         type->drapeaux_type |= (DrapeauxTypes::TYPE_NE_REQUIERS_PAS_D_INITIALISATION |
-                                DrapeauxTypes::INITIALISATION_TYPE_FUT_CREEE);
+                                DrapeauxTypes::INITIALISATION_TYPE_FUT_CRÉÉE);
     }
 
     return type;
 }
 
 TypeFonction *Typeuse::discr_type_fonction(TypeFonction *it,
-                                           kuri::tablet<Type *, 6> const &entrees)
+                                           kuri::tablet<Type *, 6> const &entrées)
 {
-    if (it->types_entrées.taille() != entrees.taille()) {
+    if (it->types_entrées.taille() != entrées.taille()) {
         return nullptr;
     }
 
     for (int i = 0; i < it->types_entrées.taille(); ++i) {
-        if (it->types_entrées[i] != entrees[i]) {
+        if (it->types_entrées[i] != entrées[i]) {
             return nullptr;
         }
     }
@@ -759,11 +759,11 @@ TypeFonction *Typeuse::discr_type_fonction(TypeFonction *it,
     return it;
 }
 
-TypeFonction *Typeuse::type_fonction(kuri::tablet<Type *, 6> const &entrees, Type *type_sortie)
+TypeFonction *Typeuse::type_fonction(kuri::tablet<Type *, 6> const &entrées, Type *type_sortie)
 {
     VERROUILLE(types_fonctions);
 
-    auto candidat = trie.trouve_type_ou_noeud_insertion(entrees, type_sortie);
+    auto candidat = trie.trouve_type_ou_noeud_insertion(entrées, type_sortie);
 
     if (std::holds_alternative<TypeFonction *>(candidat)) {
         /* Le type est dans le Trie, retournons-le. */
@@ -772,13 +772,13 @@ TypeFonction *Typeuse::type_fonction(kuri::tablet<Type *, 6> const &entrees, Typ
 
     /* Créons un nouveau type. */
     auto type = alloc->m_noeuds_type_fonction.ajoute_élément();
-    initialise_type_fonction(*this, type, entrees, type_sortie);
+    initialise_type_fonction(*this, type, entrées, type_sortie);
 
     /* Insère le type dans le Trie. */
     auto noeud = std::get<Trie::Noeud *>(candidat);
     noeud->type = type;
 
-    auto graphe = graphe_.verrou_ecriture();
+    auto graphe = graphe_.verrou_écriture();
 
     POUR (type->types_entrées) {
         graphe->connecte_type_type(type, it);
@@ -796,21 +796,21 @@ TypeFonction *Typeuse::type_fonction(kuri::tablet<Type *, 6> const &entrees, Typ
     return type;
 }
 
-TypeTypeDeDonnees *Typeuse::type_type_de_donnees(Type *type_connu)
+TypeTypeDeDonnées *Typeuse::type_type_de_données(Type *type_connu)
 {
     if (type_connu == nullptr) {
-        return type_type_de_donnees_;
+        return type_type_de_données_;
     }
 
-    VERROUILLE(types_type_de_donnees);
+    VERROUILLE(types_type_de_données);
 
-    if (type_connu->possède_drapeau(DrapeauxTypes::POSSEDE_TYPE_TYPE_DE_DONNEES)) {
-        return table_types_de_donnees.valeur_ou(type_connu, nullptr);
+    if (type_connu->possède_drapeau(DrapeauxTypes::POSSÈDE_TYPE_TYPE_DE_DONNÉES)) {
+        return table_types_de_données.valeur_ou(type_connu, nullptr);
     }
 
     auto résultat = alloc->m_noeuds_type_type_de_données.ajoute_élément();
     initialise_type_type_de_données(*this, résultat, type_connu);
-    table_types_de_donnees.insère(type_connu, résultat);
+    table_types_de_données.insère(type_connu, résultat);
     return résultat;
 }
 
@@ -819,7 +819,7 @@ TypeStructure *Typeuse::réserve_type_structure()
     return alloc->m_noeuds_type_structure.ajoute_élément();
 }
 
-TypeUnion *Typeuse::union_anonyme(Lexème const *lexeme,
+TypeUnion *Typeuse::union_anonyme(Lexème const *lexème,
                                   NoeudBloc *bloc_parent,
                                   const kuri::tablet<RubriqueTypeComposé, 6> &rubriques)
 {
@@ -850,7 +850,7 @@ TypeUnion *Typeuse::union_anonyme(Lexème const *lexeme,
 
     auto type = alloc->m_noeuds_type_union.ajoute_élément();
     type->ident = ID::anonyme;
-    type->lexème = lexeme;
+    type->lexème = lexème;
     type->bloc_parent = bloc_parent;
 
     type->rubriques.réserve(static_cast<int>(rubriques.taille()));
@@ -954,7 +954,7 @@ TypeTuple *Typeuse::crée_tuple(const kuri::tablet<RubriqueTypeComposé, 6> &rub
 
     type->drapeaux |= (DrapeauxNoeud::DECLARATION_FUT_VALIDEE);
     type->drapeaux_type |= (DrapeauxTypes::TYPE_NE_REQUIERS_PAS_D_INITIALISATION |
-                            DrapeauxTypes::INITIALISATION_TYPE_FUT_CREEE);
+                            DrapeauxTypes::INITIALISATION_TYPE_FUT_CRÉÉE);
 
     return type;
 }
@@ -971,7 +971,7 @@ void Typeuse::rassemble_statistiques(Statistiques &stats) const
     }
 
     mémoire += m_infos_types_vers_types.taille_mémoire();
-    mémoire += table_types_de_donnees.taille_mémoire();
+    mémoire += table_types_de_données.taille_mémoire();
     mémoire += types_simples->taille_mémoire();
     mémoire += taille_de(AllocatriceNoeud);
 
@@ -1021,7 +1021,7 @@ NoeudDéclarationTypeOpaque *Typeuse::crée_opaque_défaut(Type *type_opacifié,
 void assigne_fonction_init(Type *type, NoeudDéclarationEntêteFonction *fonction)
 {
     type->fonction_init = fonction;
-    type->drapeaux_type |= DrapeauxTypes::INITIALISATION_TYPE_FUT_CREEE;
+    type->drapeaux_type |= DrapeauxTypes::INITIALISATION_TYPE_FUT_CRÉÉE;
 }
 
 /* Retourne vrai si le type à besoin d'une fonction d'initialisation que celle-ci soit partagée
@@ -1043,7 +1043,7 @@ bool requiers_création_fonction_initialisation(Type const *type)
 
     /* #fonction_init peut être non-nulle si seulement l'entête est créée. Le drapeaux n'est
      * mis en place que lorsque la fonction et son corps furent créés. */
-    if (type->possède_drapeau(DrapeauxTypes::INITIALISATION_TYPE_FUT_CREEE)) {
+    if (type->possède_drapeau(DrapeauxTypes::INITIALISATION_TYPE_FUT_CRÉÉE)) {
         return false;
     }
 
@@ -1060,24 +1060,24 @@ bool requiers_création_fonction_initialisation(Type const *type)
 /** \name Accès aux rubriques des types composés.
  * \{ */
 
-std::optional<InformationRubriqueTypeCompose> donne_rubrique_pour_type(
-    TypeCompose const *type_composé, Type const *type)
+std::optional<InformationRubriqueTypeComposé> donne_rubrique_pour_type(
+    TypeComposé const *type_composé, Type const *type)
 {
     POUR_INDICE (type_composé->rubriques) {
         if (it.type == type) {
-            return InformationRubriqueTypeCompose{it, indice_it};
+            return InformationRubriqueTypeComposé{it, indice_it};
         }
     }
 
     return {};
 }
 
-std::optional<InformationRubriqueTypeCompose> donne_rubrique_pour_nom(
-    TypeCompose const *type_composé, IdentifiantCode const *nom_rubrique)
+std::optional<InformationRubriqueTypeComposé> donne_rubrique_pour_nom(
+    TypeComposé const *type_composé, IdentifiantCode const *nom_rubrique)
 {
     POUR_INDICE (type_composé->rubriques) {
         if (it.nom == nom_rubrique) {
-            return InformationRubriqueTypeCompose{it, indice_it};
+            return InformationRubriqueTypeComposé{it, indice_it};
         }
     }
 
@@ -1217,7 +1217,7 @@ void marque_polymorphique(TypeFonction *type)
     }
 }
 
-void marque_polymorphique(TypeCompose *type)
+void marque_polymorphique(TypeComposé *type)
 {
     POUR (type->rubriques) {
         if (it.type->possède_drapeau(DrapeauxTypes::TYPE_EST_POLYMORPHIQUE)) {
@@ -1273,7 +1273,7 @@ void crée_type_structure(Typeuse &typeuse, TypeUnion *type, unsigned alignement
     type->type_structure->union_originelle = type;
     /* L'initialisation est créée avec le type de l'union et non celui de la structure. */
     type->type_structure->drapeaux |= (DrapeauxNoeud::DECLARATION_FUT_VALIDEE);
-    type->type_structure->drapeaux_type |= (DrapeauxTypes::INITIALISATION_TYPE_FUT_CREEE |
+    type->type_structure->drapeaux_type |= (DrapeauxTypes::INITIALISATION_TYPE_FUT_CRÉÉE |
                                             DrapeauxTypes::UNITE_POUR_INITIALISATION_FUT_CREE);
 
     typeuse.graphe_->connecte_type_type(type, type->type_structure);
@@ -1486,7 +1486,7 @@ static void chaine_type(Enchaineuse &enchaineuse, const Type *type, OptionsImpre
         {
             enchaineuse.ajoute(donne_spécifiant_référence(options));
             chaine_type(
-                enchaineuse, static_cast<TypeReference const *>(type)->type_pointé, options);
+                enchaineuse, static_cast<TypeRéférence const *>(type)->type_pointé, options);
             return;
         }
         case GenreNoeud::POINTEUR:
@@ -1617,10 +1617,10 @@ static void chaine_type(Enchaineuse &enchaineuse, const Type *type, OptionsImpre
         }
         case GenreNoeud::TYPE_DE_DONNÉES:
         {
-            auto type_de_donnees = type->comme_type_type_de_données();
+            auto type_de_données = type->comme_type_type_de_données();
             enchaineuse << "type_de_données";
-            if (type_de_donnees->type_connu) {
-                enchaineuse << '(' << chaine_type(type_de_donnees->type_connu) << ')';
+            if (type_de_données->type_connu) {
+                enchaineuse << '(' << chaine_type(type_de_données->type_connu) << ')';
             }
             return;
         }
@@ -1742,7 +1742,7 @@ static inline uint32_t marge_pour_alignement(const uint32_t alignement,
 }
 
 template <bool COMPACTE>
-void calcule_taille_structure(TypeCompose *type, uint32_t alignement_desire)
+void calcule_taille_structure(TypeComposé *type, uint32_t alignement_desire)
 {
     auto décalage = 0u;
     auto alignement_max = 0u;
@@ -1789,7 +1789,7 @@ void calcule_taille_structure(TypeCompose *type, uint32_t alignement_desire)
     type->taille_octet = décalage;
 }
 
-void calcule_taille_type_composé(TypeCompose *type, bool compacte, uint32_t alignement_desire)
+void calcule_taille_type_composé(TypeComposé *type, bool compacte, uint32_t alignement_desire)
 {
     if (type->est_type_union()) {
         auto type_union = type->comme_type_union();
@@ -1836,7 +1836,7 @@ void calcule_taille_type_composé(TypeCompose *type, bool compacte, uint32_t ali
 
             type_union->décalage_indice = taille_union;
 
-            /* ajoute la taille du rubrique actif */
+            /* ajoute la taille de la rubrique actif */
             taille_union += static_cast<unsigned>(taille_de(int));
             max_alignement = std::max(static_cast<unsigned>(taille_de(int)), max_alignement);
 
@@ -2027,21 +2027,21 @@ bool est_type_pointeur_nul(Type const *type)
     return type->est_type_pointeur() && type->comme_type_pointeur()->type_pointé == nullptr;
 }
 
-ResultatRechercheRubrique trouve_indice_rubrique_unique_type_compatible(TypeCompose const *type,
-                                                                        Type const *type_a_tester)
+RésultatRechercheRubrique trouve_indice_rubrique_unique_type_compatible(TypeComposé const *type,
+                                                                        Type const *type_à_tester)
 {
-    auto const pointeur_nul = est_type_pointeur_nul(type_a_tester);
+    auto const pointeur_nul = est_type_pointeur_nul(type_à_tester);
     int indice_rubrique = -1;
     int indice_courant = 0;
     POUR (type->rubriques) {
-        if (it.type == type_a_tester) {
+        if (it.type == type_à_tester) {
             if (indice_rubrique != -1) {
                 return PlusieursRubriques{-1};
             }
 
             indice_rubrique = indice_courant;
         }
-        else if (type_a_tester->est_type_pointeur() && it.type->est_type_pointeur()) {
+        else if (type_à_tester->est_type_pointeur() && it.type->est_type_pointeur()) {
             if (pointeur_nul) {
                 if (indice_rubrique != -1) {
                     return PlusieursRubriques{-1};
@@ -2050,7 +2050,7 @@ ResultatRechercheRubrique trouve_indice_rubrique_unique_type_compatible(TypeComp
                 indice_rubrique = indice_courant;
             }
             else {
-                auto type_pointe_de = type_a_tester->comme_type_pointeur()->type_pointé;
+                auto type_pointe_de = type_à_tester->comme_type_pointeur()->type_pointé;
                 auto type_pointe_vers = it.type->comme_type_pointeur()->type_pointé;
 
                 if (est_type_de_base(type_pointe_de, type_pointe_vers)) {
@@ -2062,7 +2062,7 @@ ResultatRechercheRubrique trouve_indice_rubrique_unique_type_compatible(TypeComp
                 }
             }
         }
-        else if (est_type_entier(it.type) && type_a_tester->est_type_entier_constant()) {
+        else if (est_type_entier(it.type) && type_à_tester->est_type_entier_constant()) {
             if (indice_rubrique != -1) {
                 return PlusieursRubriques{-1};
             }
@@ -2074,10 +2074,10 @@ ResultatRechercheRubrique trouve_indice_rubrique_unique_type_compatible(TypeComp
     }
 
     if (indice_rubrique == -1) {
-        return AucunRubrique{-1};
+        return AucuneRubrique{-1};
     }
 
-    return IndexRubrique{indice_rubrique};
+    return IndiceRubrique{indice_rubrique};
 }
 
 /* Calcule la « profondeur » du type : à savoir, le nombre de déréférencement du type (jusqu'à
@@ -2133,7 +2133,7 @@ bool est_type_implicitement_utilisable_pour_indexage(Type const *type)
     }
 
     if (type->est_type_énum()) {
-        /* Pour l'instant, les énum_drapeaux ne sont pas utilisable, car les index peuvent être
+        /* Pour l'instant, les énum_drapeaux ne sont pas utilisable, car les indices peuvent être
          * arbitrairement larges. */
         return !type->est_type_enum_drapeau();
     }
@@ -2150,7 +2150,7 @@ bool est_type_implicitement_utilisable_pour_indexage(Type const *type)
     return false;
 }
 
-bool peut_etre_type_constante(Type const *type)
+bool peut_être_type_constante(Type const *type)
 {
     switch (type->genre) {
         /* Possible mais non supporté pour le moment. */
@@ -2418,7 +2418,7 @@ Trie::Noeud *Trie::Noeud::trouve_noeud_sortie_pour_type(const Type *type_)
     return enfants_sortie.trouve_noeud_pour_type(type_);
 }
 
-Trie::TypeResultat Trie::trouve_type_ou_noeud_insertion(const kuri::tablet<Type *, 6> &entrees,
+Trie::TypeRésultat Trie::trouve_type_ou_noeud_insertion(const kuri::tablet<Type *, 6> &entrées,
                                                         Type *type_sortie)
 {
     if (racine == nullptr) {
@@ -2426,7 +2426,7 @@ Trie::TypeResultat Trie::trouve_type_ou_noeud_insertion(const kuri::tablet<Type 
     }
 
     auto enfant_courant = racine;
-    POUR (entrees) {
+    POUR (entrées) {
         auto enfant_suivant = enfant_courant->trouve_noeud_pour_type(it);
         if (!enfant_suivant) {
             enfant_suivant = ajoute_enfant(enfant_courant, it, false);
@@ -2514,8 +2514,8 @@ void VisiteuseType::visite_type(Type *type, std::function<void(Type *)> rappel)
         }
         case GenreNoeud::RÉFÉRENCE:
         {
-            auto reference = type->comme_type_référence();
-            visite_type(reference->type_pointé, rappel);
+            auto référence = type->comme_type_référence();
+            visite_type(référence->type_pointé, rappel);
             break;
         }
         case GenreNoeud::POINTEUR:

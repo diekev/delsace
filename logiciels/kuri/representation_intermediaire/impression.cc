@@ -66,13 +66,13 @@ static void imprime_nom_instruction(Instruction const *inst, Enchaineuse &os)
 static void imprime_atome_ex(Atome const *atome,
                              Enchaineuse &os,
                              OptionsImpressionType options,
-                             bool pour_operande)
+                             bool pour_opérande)
 {
     switch (atome->genre_atome) {
         case Atome::Genre::GLOBALE:
         {
             auto globale = atome->comme_globale();
-            if (pour_operande) {
+            if (pour_opérande) {
                 os << chaine_type(globale->type, options) << ' ';
             }
             else {
@@ -86,7 +86,7 @@ static void imprime_atome_ex(Atome const *atome,
                 os << "@globale" << atome;
             }
 
-            if (!pour_operande) {
+            if (!pour_opérande) {
                 os << " = ";
 
                 if (globale->initialisateur) {
@@ -103,7 +103,7 @@ static void imprime_atome_ex(Atome const *atome,
         case Atome::Genre::TRANSTYPE_CONSTANT:
         {
             auto transtype_const = atome->comme_transtype_constant();
-            if (!pour_operande) {
+            if (!pour_opérande) {
                 os << "  ";
             }
             os << chaine_type(atome->type) << " ";
@@ -112,16 +112,16 @@ static void imprime_atome_ex(Atome const *atome,
             imprime_atome_ex(transtype_const->valeur, os, options, true);
             os << " vers " << chaine_type(transtype_const->type, options);
 
-            if (!pour_operande) {
+            if (!pour_opérande) {
                 os << '\n';
             }
             break;
         }
         case Atome::Genre::ACCÈS_INDICE_CONSTANT:
         {
-            auto acces = static_cast<AccèsIndiceConstant const *>(atome);
-            imprime_atome_ex(acces->accédé, os, options, true);
-            os << '[' << acces->index << ']';
+            auto accès = static_cast<AccèsIndiceConstant const *>(atome);
+            imprime_atome_ex(accès->accédé, os, options, true);
+            os << '[' << accès->indice << ']';
             break;
         }
         case Atome::Genre::CONSTANTE_BOOLÉENNE:
@@ -173,7 +173,7 @@ static void imprime_atome_ex(Atome const *atome,
             auto type = atome->type->comme_type_composé();
             auto atomes_rubriques = structure_const->donne_atomes_rubriques();
 
-            if (pour_operande) {
+            if (pour_opérande) {
                 os << chaine_type(atome->type, options) << ' ';
             }
 
@@ -231,7 +231,7 @@ static void imprime_atome_ex(Atome const *atome,
         {
             auto atome_fonction = atome->comme_fonction();
 
-            if (pour_operande) {
+            if (pour_opérande) {
                 os << chaine_type(atome_fonction->type, options) << " ";
             }
 
@@ -394,19 +394,19 @@ static void imprime_instruction_ex(Instruction const *inst,
         }
         case GenreInstruction::ACCÈS_INDICE:
         {
-            auto inst_acces = inst->comme_accès_indice();
+            auto inst_accès = inst->comme_accès_indice();
             os << "index ";
-            imprime_atome_ex(inst_acces->accédé, os, options, true);
+            imprime_atome_ex(inst_accès->accédé, os, options, true);
             os << ", ";
-            imprime_atome_ex(inst_acces->indice, os, options, true);
+            imprime_atome_ex(inst_accès->indice, os, options, true);
             break;
         }
         case GenreInstruction::ACCÈS_RUBRIQUE:
         {
-            auto inst_acces = inst->comme_accès_rubrique();
+            auto inst_accès = inst->comme_accès_rubrique();
             os << "rubrique ";
-            imprime_atome_ex(inst_acces->accédé, os, options, true);
-            os << ", " << inst_acces->indice;
+            imprime_atome_ex(inst_accès->accédé, os, options, true);
+            os << ", " << inst_accès->indice;
             break;
         }
         case GenreInstruction::TRANSTYPE:
@@ -487,11 +487,11 @@ kuri::chaine imprime_arbre_instruction(Instruction const *racine)
 void imprime_instructions(kuri::tableau<Instruction *, int> const &instructions,
                           Enchaineuse &os,
                           OptionsImpressionType options,
-                          bool surligne_inutilisees,
+                          bool surligne_inutilisées,
                           std::function<void(const Instruction &, Enchaineuse &)> rappel)
 {
     POUR (instructions) {
-        if (surligne_inutilisees && !it->possède_drapeau(DrapeauxAtome::EST_UTILISÉ)) {
+        if (surligne_inutilisées && !it->possède_drapeau(DrapeauxAtome::EST_UTILISÉ)) {
             os << "\033[0;31m";
         }
 
@@ -503,7 +503,7 @@ void imprime_instructions(kuri::tableau<Instruction *, int> const &instructions,
 
         os << '\n';
 
-        if (surligne_inutilisees && !it->possède_drapeau(DrapeauxAtome::EST_UTILISÉ)) {
+        if (surligne_inutilisées && !it->possède_drapeau(DrapeauxAtome::EST_UTILISÉ)) {
             os << "\033[0m";
         }
     }
@@ -514,18 +514,18 @@ void imprime_instructions(kuri::tableau<Instruction *, int> const &instructions,
 [[nodiscard]] kuri::chaine imprime_instructions(
     kuri::tableau<Instruction *, int> const &instructions,
     OptionsImpressionType options,
-    bool surligne_inutilisees,
+    bool surligne_inutilisées,
     std::function<void(Instruction const &, Enchaineuse &)> rappel)
 {
     Enchaineuse sortie;
-    imprime_instructions(instructions, sortie, options, surligne_inutilisees, rappel);
+    imprime_instructions(instructions, sortie, options, surligne_inutilisées, rappel);
     return sortie.chaine();
 }
 
 void imprime_fonction(AtomeFonction const *atome_fonc,
                       Enchaineuse &os,
                       OptionsImpressionType options,
-                      bool surligne_inutilisees,
+                      bool surligne_inutilisées,
                       std::function<void(const Instruction &, Enchaineuse &)> rappel)
 {
     os << "fonction " << atome_fonc->nom;
@@ -557,40 +557,40 @@ void imprime_fonction(AtomeFonction const *atome_fonc,
 
     atome_fonc->numérote_instructions();
 
-    imprime_instructions(atome_fonc->instructions, os, options, surligne_inutilisees, rappel);
+    imprime_instructions(atome_fonc->instructions, os, options, surligne_inutilisées, rappel);
 }
 
 [[nodiscard]] kuri::chaine imprime_fonction(
     AtomeFonction const *atome_fonc,
     OptionsImpressionType options,
-    bool surligne_inutilisees,
+    bool surligne_inutilisées,
     std::function<void(Instruction const &, Enchaineuse &)> rappel)
 {
     Enchaineuse sortie;
-    imprime_fonction(atome_fonc, sortie, options, surligne_inutilisees, rappel);
+    imprime_fonction(atome_fonc, sortie, options, surligne_inutilisées, rappel);
     return sortie.chaine();
 }
 
 [[nodiscard]] kuri::chaine imprime_fonction(
     AtomeFonction const *atome_fonc,
-    bool surligne_inutilisees,
+    bool surligne_inutilisées,
     std::function<void(Instruction const &, Enchaineuse &)> rappel)
 {
     return imprime_fonction(
-        atome_fonc, OptionsImpressionType::AUCUNE, surligne_inutilisees, rappel);
+        atome_fonc, OptionsImpressionType::AUCUNE, surligne_inutilisées, rappel);
 }
 
 [[nodiscard]] kuri::chaine imprime_commentaire_instruction(Instruction const *inst)
 {
     Enchaineuse sortie;
     if (inst->est_accès_rubrique()) {
-        auto inst_acces = inst->comme_accès_rubrique();
+        auto inst_accès = inst->comme_accès_rubrique();
         sortie << "Nous accédons à ";
-        if (inst_acces->accédé->est_instruction()) {
-            sortie << inst_acces->accédé->comme_instruction()->genre << '\n';
+        if (inst_accès->accédé->est_instruction()) {
+            sortie << inst_accès->accédé->comme_instruction()->genre << '\n';
         }
         else {
-            imprime_information_atome(inst_acces->accédé, sortie);
+            imprime_information_atome(inst_accès->accédé, sortie);
             sortie << '\n';
         }
     }

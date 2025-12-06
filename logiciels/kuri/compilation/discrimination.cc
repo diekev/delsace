@@ -19,7 +19,7 @@
 static RésultatValidation valide_présence_rubrique(
     EspaceDeTravail *espace,
     NoeudExpression *expression,
-    TypeCompose *type,
+    TypeComposé *type,
     kuri::ensemblon<IdentifiantCode const *, 16> const &rubriques_rencontrés)
 {
     auto valeurs_manquantes = kuri::ensemble<kuri::chaine_statique>();
@@ -71,7 +71,7 @@ RésultatValidation Sémanticienne::valide_discr_énum(NoeudDiscr *inst, Type *t
             auto info_rubrique = donne_rubrique_pour_nom(type_énum, f->ident);
 
             if (!info_rubrique) {
-                rapporte_erreur_rubrique_inconnu(inst, f, type_énum);
+                rapporte_erreur_rubrique_inconnue(inst, f, type_énum);
                 return CodeRetourValidation::Erreur;
             }
 
@@ -157,7 +157,7 @@ static bool crée_variable_pour_expression_test(EspaceDeTravail *espace,
                                                TypeUnion *type_union,
                                                NoeudBloc *bloc_parent,
                                                NoeudPaireDiscr *paire_discr,
-                                               InformationRubriqueTypeCompose const &info_rubrique,
+                                               InformationRubriqueTypeComposé const &info_rubrique,
                                                NoeudExpressionAppel *appel,
                                                NoeudBloc *bloc_final_recherche_variable)
 {
@@ -257,7 +257,7 @@ RésultatValidation Sémanticienne::valide_discr_union(NoeudDiscr *inst, Type *t
         auto info_rubrique = donne_rubrique_pour_nom(type_union, expression_valide->ident);
 
         if (!info_rubrique) {
-            rapporte_erreur_rubrique_inconnu(inst, feuille, type_union);
+            rapporte_erreur_rubrique_inconnue(inst, feuille, type_union);
             return CodeRetourValidation::Erreur;
         }
 
@@ -435,7 +435,7 @@ RésultatValidation Sémanticienne::valide_discr_scalaire(NoeudDiscr *inst, Type
 {
     auto type_pour_la_recherche = type;
     if (type->est_type_type_de_données()) {
-        type_pour_la_recherche = m_espace->typeuse.type_type_de_donnees_;
+        type_pour_la_recherche = m_espace->typeuse.type_type_de_données_;
     }
 
     auto résultat = trouve_opérateur_pour_expression(

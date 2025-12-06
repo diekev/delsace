@@ -110,38 +110,44 @@ donne_données_extraction_sous_chaine :: fonc (flux: &FluxSource) -> DonnéesSou
  * \{ */
 
 FichierSource :: struct {
-    chemin: CheminFichier
-    contenu: chaine
+    chemin: chaine
+    trouvé_dans_dossier: chaine
+    contenu_cru: chaine
+    contenu_prétaité: chaine
+
+    nombre_d_ouvertures: n32
+    est_marqué_pragma_once: bool
 }
 
 construis_fichier_source :: fonc (chemin: CheminFichier) -> Optionnel(FichierSource)
 {
     _, contenu := contenu_fichier_texte(chemin)
-    retourne construis_fichier_source(chemin, contenu)
+    retourne construis_fichier_source(chemin.chn, contenu)
 }
 
 construis_fichier_source :: fonc (contenu: chaine) -> FichierSource
 {
-    retourne construis_fichier_source(CheminFichier("<memoire>"), contenu)
+    retourne construis_fichier_source("<memoire>", contenu)
 }
 
-construis_fichier_source :: fonc (chemin: CheminFichier, contenu: chaine) -> FichierSource
+construis_fichier_source :: fonc (chemin: chaine, contenu: chaine) -> FichierSource
 {
     résultat: FichierSource
-    résultat.chemin = copie_chemin(chemin)
-    résultat.contenu = contenu
+    résultat.chemin = copie_chaine(chemin)
+    résultat.contenu_cru = contenu
     retourne résultat
 }
 
 détruit_données_fichier :: fonc (fichier: *FichierSource)
 {
-    déloge(fichier.contenu)
+    déloge(fichier.contenu_prétaité)
+    déloge(fichier.contenu_cru)
     détruit_chemin(fichier.chemin)
 }
 
 donne_flux_source :: fonc (fichier: *FichierSource) -> FluxSource
 {
-    retourne construis_flux(fichier.contenu)
+    retourne construis_flux(fichier.contenu_cru)
 }
 
 /** \} */

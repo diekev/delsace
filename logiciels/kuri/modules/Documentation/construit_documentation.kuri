@@ -32,8 +32,7 @@ DonnéesDocument :: struct {
     est_commentaire: bool
 }
 
-compile :: fonc ()
-{
+#exécute {
     désactive_compilation_espace_défaut()
 
     lexèmes := compilatrice_lèxe_fichier("doc.kuri")
@@ -132,5 +131,3 @@ compile :: fonc ()
         }
     }
 }
-
-#exécute compile()

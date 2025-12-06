@@ -807,12 +807,12 @@ réinitialise_erreurs :: fonc (noeud: *Noeud)
 ajoute_erreur :: fonc (noeud: *Noeud, format: chaine, args: ...eini)
 {
     ajoute_erreur_impl(noeud, TypeErreurNoeud.GÉNÉRALE, "", format, ...args)
-}
+} @Imprimeuse
 
 ajoute_erreur_paramètre :: fonc (noeud: *Noeud, nom: chaine, format: chaine, args: ...eini)
 {
     ajoute_erreur_impl(noeud, TypeErreurNoeud.PARAMÉTRIQUE, nom, format, ...args)
-}
+} @Imprimeuse
 
 ajoute_erreur_impl :: fonc (noeud: *Noeud, type: TypeErreurNoeud, nom: chaine, format: chaine, args: ...eini)
 {
@@ -824,7 +824,7 @@ ajoute_erreur_impl :: fonc (noeud: *Noeud, type: TypeErreurNoeud, nom: chaine, f
     erreur_noeud.type = type
 
     noeud.envoie_message(MessageObservable(info_de(Noeud), MessageNoeudErreurAjoutée))
-}
+} @Imprimeuse
 
 paramètre_est_erroné :: fonc (noeud: *Noeud, nom: chaine) -> bool
 {
@@ -861,7 +861,7 @@ ajoute_information :: fonc (noeud: *Noeud, type: TypeInformationNoeud, format: c
     pousse_contexte ctx {
         info.texte = imprime_chaine(format, ...args)
     }
-}
+} @Imprimeuse
 
 ajoute_information_mémoire :: fonc (noeud: *Noeud, type: TypeInformationNoeud, quantité: n64)
 {
