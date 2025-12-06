@@ -3,8 +3,7 @@ importe Fondation
 importe SysFichier
 importe Transpilation
 
-compile :: fonc ()
-{
+#exécute {
     désactive_compilation_espace_défaut()
 
     options := OptionsDeCompilation()
@@ -42,5 +41,3 @@ compile :: fonc ()
 
     compilatrice_termine_interception(espace)
 }
-
-#exécute compile()
