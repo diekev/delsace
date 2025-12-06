@@ -801,28 +801,10 @@ struct InfoDébogageLLVM {
 
                 POUR (type_énum->donne_rubriques_pour_code_machine()) {
                     auto nom_rubrique = vers_string_ref(it.nom);
-
-                    auto numéro_ligne_rubrique = uint32_t(0);
-                    if (it.decl) {
-                        numéro_ligne_rubrique = uint32_t(it.decl->lexème->ligne + 1);
-                    }
-
-                    auto taille_rubrique = 8 * it.type->taille_octet;
-                    auto alignement_rubrique = 8 * it.type->alignement;
-                    auto décalage_rubrique = uint32_t(0);
-                    // À FAIRE : llvm::DINode::DIFlags
-                    auto flags_rubrique = llvm::DINode::DIFlags(0);
-                    auto type_rubrique = donne_type(it.type, DonneTypePour::RUBRIQUE);
-
-                    auto rubrique = dibuilder->createMemberType(scope,
-                                                                nom_rubrique,
-                                                                fichier,
-                                                                numéro_ligne_rubrique,
-                                                                taille_rubrique,
-                                                                alignement_rubrique,
-                                                                décalage_rubrique,
-                                                                flags_rubrique,
-                                                                type_rubrique);
+                    auto rubrique = dibuilder->createEnumerator(
+                        nom_rubrique,
+                        it.valeur,
+                        type_énum->type_sous_jacent->est_type_entier_naturel());
                     éléments.push_back(rubrique);
                 }
                 auto node_array_éléments = dibuilder->getOrCreateArray(éléments);
