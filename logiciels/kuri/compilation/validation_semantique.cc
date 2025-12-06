@@ -4668,6 +4668,7 @@ RésultatValidation Sémanticienne::valide_déclaration_variable_multiple(
 
             decls_et_refs[0].ref_decl = variable;
             decls_et_refs[0].decl = variable->déclaration_référée->comme_déclaration_variable();
+            decls_et_refs[0].decl->expression_type = decl->expression_type;
         }
         else {
             for (auto i = 0; i < feuilles_variables.taille(); ++i) {
@@ -4676,6 +4677,7 @@ RésultatValidation Sémanticienne::valide_déclaration_variable_multiple(
                 decls_et_refs[i].ref_decl = variable;
                 decls_et_refs[i].decl =
                     variable->déclaration_référée->comme_déclaration_variable();
+                decls_et_refs[i].decl->expression_type = decl->expression_type;
             }
         }
     }
