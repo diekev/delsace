@@ -136,7 +136,7 @@ struct Syntaxeuse : BaseSyntaxeuse {
 
     bool ignore_point_virgule_implicite();
 
-    void analyse_directive_déclaration_variable(NoeudDéclarationVariable *déclaration);
+    void analyse_directive_déclaration_variable(BaseDéclarationVariable *déclaration);
     void analyse_directive_symbole_externe(NoeudDéclarationSymbole *déclaration_symbole,
                                            NoeudDirectiveFonction *directive);
 

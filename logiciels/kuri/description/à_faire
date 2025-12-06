@@ -13,6 +13,9 @@ diffère { Prof_End() }
 
 pas d'erreur pour foo(a = a = 13)
 
+permet d'avoir des types différents autour de <<, >>
+    car les valeurs n'ont pas la même sémantique
+
 noeud syntaxique distinct pour les expressions si
 
 ajout de #superpose pour superposer des rubriques sur d'autres dans les structures
@@ -131,7 +134,6 @@ bibliohtèques externes/systèmes
 -- GMP
 -- FFMPEG
 -- MySQL
--- OpenGL
 -- OpenSSL
 -- POSIX
 -- Unicode
@@ -155,9 +157,6 @@ ADN pour le code binaire
 ADN pour les directives
 
 // noms des fonctions d'initialisation des globales
-
-compilatrice_notifie_fonctions_parsées
-    // envoie un message pour toutes les fonctions parsées qui n'ont pas encore eu de message
 
 Ajout de IdentifiantCode pour que les métaprogrammes puissent ne comparer qu'un seul pointeur
 --> ident := compilatrice_donne_identifiant_pour("...")
@@ -188,7 +187,6 @@ Ajout de IdentifiantCode pour que les métaprogrammes puissent ne comparer qu'un
 // Directives
 
 - ajout de #convention_c
-- ajout de #macro
 - ajout de #enligne pour les appels de fonctions
 - ajout de #enligne pour les boucles (pour forcer un débouclage)
 - ajout de #horsligne pour les appels de fonctions
@@ -206,9 +204,6 @@ Ajout de IdentifiantCode pour que les métaprogrammes puissent ne comparer qu'un
 - crash dans les exécutables quand nous prenons l'adresse d'une référence
 - compilation infinie si nous n'avons pas de message (voir test_conversion_cpp.kuri)
 - "." à droite de "comme" échoue (peut avec la précédence de !=) : x != 0 comme MonÉnum.Drapeau
-
-Confusion quand plusieurs modules définissent une fonction pré_exécutable du même nom
-    - nous ne devrions utiliser que la fonction du module courant
 
 // ----------------------------------------------------------------------------
 // Gestion
@@ -229,8 +224,6 @@ peut_envoyer_en_conversion_noeud_code
 - ajout de identifiant_pour_nouvelle_chaine(args...) afin d'éviter les allocations temporaires si possible
 - améliorer les message d'erreurs pour les transtypage (x comme MonTypeÉnum, ma_valeur_énum comme type_entier, etc.)
 - pour les messages d'erreurs : ajout d'un contexte au typage (dans le typage de, dans la monomorphisation de..., )
-- trouve une manière de protéger les pointeurs vers les types quand nous les utilisons dans les métaprogrammes à la place des index dans la table de type
-- pouvoir compiler plusieurs exécutables depuis le même espace de travail, par exemple afin de compiler les exécutables pour un système d'exploitation
 - supprime toutes les vérifications sur la taille en octets des types pour discriminer les entiers et les réels
 - ajout d'une fonction visite_noeud :
     -- pour rassembler les intervalles de valeurs des expressions (pour la détection des dépassements de limites, requiers une bibliothèque d'arithmétique d'intervalles)
@@ -250,6 +243,7 @@ peut_envoyer_en_conversion_noeud_code
 - tests des énums drapeaux dans les conditions des boucles
     voir Cycles/parser, p.e. tantque peut_suivre.IDENTIFIANT == vrai
 - génération de code source pour les fonctions créées par la compilatrice (init_de, etc.) afin d'avoir du texte dans les informations de débogage.
+- paramètres pour les modules
 
 Test pour les retours de pointeurs
 
@@ -721,19 +715,9 @@ instructions SIMD
 idée pour sécurité du controle flux : https://msrc-blog.microsoft.com/2020/08/17/control-flow-guard-for-clang-llvm-and-rust/
     -- nécéssite support de la part du système d'exploitation
 
-options de compilation pour la pile inviisble (shadow_stack, -mshstk pour GCC)
-
 génère des statistiques pour chaque espace de travail si demandé, au lieu de statistiques pour toute la compilation
     -- imprime quand même la durée de compilation à la fin?
 
-
-considération des assertions statiques lors de la compilation de plusieurs espaces de travail
-    elles seront éxecutées pour chaque espace
-    vraiment un espace de travail ne définit que ce que l'exécutable final contiendra, et il nous le faut pour les versions 32-bit
-    peut-être qu'un espace devra pouvoir partager le code avec les autres
-    un espace peut avoir un type contexte différent des autres... => stocke le type contexte dans l'espace, mais le code partagé ne pourra pas l'utiliser...
-
-- stack canaries (coulisse LLVM)
 
 - pouvoir passer des expressions à exécuter à la ligne de commande (kuri -exec "..." fichier.kuri)
 - nettoie la génération de code de création de contexte pour la fonction principale pour utiliser le noeud de la création de contexte du module Kuri

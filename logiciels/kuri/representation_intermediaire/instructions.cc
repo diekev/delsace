@@ -7,6 +7,8 @@
 
 #include "arbre_syntaxique/noeud_expression.hh"
 
+#include "compilation/intrinseques.hh"
+
 #include "parsage/identifiant.hh"
 
 #include "utilitaires/divers.hh"
@@ -120,6 +122,22 @@ bool AtomeFonction::est_intrinsèque() const
 {
     return decl && (decl->possède_drapeau(DrapeauxNoeudFonction::EST_INTRINSÈQUE) ||
                     decl->possède_drapeau(DrapeauxNoeudFonction::EST_SSE2));
+}
+
+bool AtomeFonction::est_intrinsèque(GenreIntrinsèque genre_intrinsèque) const
+{
+    if (!decl || !decl->données_externes) {
+        return false;
+    }
+
+    auto opt_genre_intrinsèque = donne_genre_intrinsèque_pour_identifiant(
+        decl->données_externes->ident_énum_intrinsèque);
+
+    if (!opt_genre_intrinsèque.has_value()) {
+        return false;
+    }
+
+    return genre_intrinsèque == opt_genre_intrinsèque.value();
 }
 
 InstructionAppel::InstructionAppel(NoeudExpression const *site_, Atome *appele_)

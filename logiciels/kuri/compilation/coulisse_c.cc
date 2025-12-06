@@ -1229,7 +1229,7 @@ kuri::chaine_statique GénératriceCodeC::génère_code_pour_atome(Atome const *
 
             if (atome_fonc->est_intrinsèque()) {
                 if (atome_fonc->decl->ident == ID::intrinsèque_est_adresse_données_constantes) {
-                    return "intrinseque_est_adresse_données_constantes";
+                    return "intrinseque_est_adresse_donnees_constantes";
                 }
                 if (atome_fonc->decl->ident == ID::intrinsèque_lis_compteur_temporel) {
                     return "intrinseque_lis_compteur_temporel";
@@ -1264,8 +1264,8 @@ kuri::chaine_statique GénératriceCodeC::génère_code_pour_atome(Atome const *
 
             if (inst_accès->accédé->genre_atome == Atome::Genre::GLOBALE &&
                 est_globale_pour_tableau_données_constantes(inst_accès->accédé->comme_globale())) {
-                /* Les tableaux de données constantes doivent toujours être accéder par un indice de
-                 * 0, donc ce doit être légitime de simplement retourné le code de l'atome. */
+                /* Les tableaux de données constantes doivent toujours être accéder par un indice
+                 * de 0, donc ce doit être légitime de simplement retourné le code de l'atome. */
                 return valeur_accédée;
             }
 
@@ -1386,8 +1386,8 @@ kuri::chaine_statique GénératriceCodeC::génère_code_pour_atome(Atome const *
             auto résultat = Enchaineuse();
 
             auto virgule = "{{ ";
-            // ceci car il peut n'y avoir qu'un seul rubrique de type tableau qui
-            // n'est pas initialisé
+            // ceci car il peut n'y avoir qu'une seule rubrique de type tableau qui
+            // n'est pas initialisée
             auto virgule_placee = false;
 
             POUR_INDICE (type->donne_rubriques_pour_code_machine()) {
@@ -2626,7 +2626,7 @@ void GénératriceCodeC::génère_code_pour_tableaux_données_constantes(
     if (pour_entête) {
         os << ";\n";
 
-        os << "static inline bool intrinseque_est_adresse_données_constantes(const void *ptr)\n";
+        os << "static inline bool intrinseque_est_adresse_donnees_constantes(const void *ptr)\n";
         os << "{\n";
         os << "    const uint8_t *ptr_type = (const uint8_t *)ptr;\n";
         os << "    const uint8_t *ptr_base = &DC[0];\n";
@@ -2748,7 +2748,7 @@ std::optional<ErreurCoulisse> CoulisseC::crée_fichier_objet_impl(
             }
 
             auto commande = commande_pour_fichier_objet(
-                espace.options, it.chemin_fichier, nom_sortie);
+                espace.options, it.chemin_fichier, nom_sortie, false);
             exécute_commande_externe_erreur(
                 commande, it.chemin_fichier_erreur_objet, args.compilatrice->arguments.verbeux);
         });
@@ -2818,7 +2818,7 @@ std::optional<ErreurCoulisse> CoulisseC::crée_exécutable_impl(const ArgsLiaiso
         enchaine("kuri-", args.espace->nom, "/", nom_sortie));
 
     auto commande = commande_pour_liaison(
-        espace.options, fichiers_objet, m_bibliothèques, nom_sortie_temporaire);
+        espace.options, fichiers_objet, m_bibliothèques, nom_sortie_temporaire, false);
     auto err_commande = exécute_commande_externe_erreur(commande,
                                                         args.compilatrice->arguments.verbeux);
     if (err_commande.has_value()) {

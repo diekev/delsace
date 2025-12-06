@@ -212,7 +212,7 @@ static void imprime_erreur_pour_erreur_fonction(Erreur &e,
         case RaisonErreurAppariement::TROP_D_EXPRESSION_POUR_UNION:
         {
             e.ajoute_message(
-                "\tOn ne peut initialiser qu'un seul rubrique d'une union à la fois\n");
+                "\tOn ne peut initialiser qu'une seule rubrique d'une union à la fois\n");
             e.genre_erreur(erreur::Genre::NORMAL);
             break;
         }
