@@ -4,8 +4,7 @@ importe Ensemble
 importe Fondation
 importe SysFichier
 
-génère_script :: fonc ()
-{
+#exécute {
     ajoute_module :: fonc (chemin: CheminFichier, ensemble: *[..]chaine)
     {
         interdits := [
@@ -55,5 +54,3 @@ génère_script :: fonc ()
 
     ajoute_chaine_à_la_compilation(compilatrice_espace_courant(), chn)
 }
-
-#exécute génère_script()
