@@ -20,6 +20,7 @@ struct IdentifiantCode;
 struct NoeudDéclarationType;
 using Type = NoeudDéclarationType;
 
+enum class GenreIntrinsèque : uint8_t;
 enum class VisibilitéSymbole : uint8_t;
 enum class PartageMémoire : uint8_t;
 
@@ -438,6 +439,7 @@ struct AtomeFonction : public AtomeConstante {
     int32_t numérote_instructions() const;
 
     bool est_intrinsèque() const;
+    bool est_intrinsèque(GenreIntrinsèque genre_intrinsèque) const;
 
     EMPECHE_COPIE(AtomeFonction);
 };

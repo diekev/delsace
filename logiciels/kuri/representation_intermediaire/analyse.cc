@@ -1784,13 +1784,7 @@ AtomeConstante *évalue_opérateur_binaire(InstructionOpBinaire const *inst,
         }
         case OpérateurBinaire::Genre::Multiplication:
         {
-            // À FAIRE : pourquoi pouvons-nous avoir des nombres réels ?
-            if (inst->valeur_gauche->est_constante_réelle()) {
-                APPLIQUE_OPERATION_RÉEL(Multiplication);
-            }
-            else {
-                APPLIQUE_OPERATION_ENTIER(Multiplication);
-            }
+            APPLIQUE_OPERATION_ENTIER(Multiplication);
         }
         case OpérateurBinaire::Genre::Multiplication_Réel:
         {
