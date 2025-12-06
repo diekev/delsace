@@ -1054,7 +1054,7 @@ struct GénératriceCodeLLVM {
                                             DonnéesSymboleExterne const *données_externe);
 
     void génère_code_pour_fonction(const AtomeFonction *atome_fonc);
-    void génère_code_pour_est_adresse_données_constante(const AtomeFonction *fonction);
+    void génère_code_pour_est_adresse_données_constante();
 
     void génère_code_pour_constructeur_global(const AtomeFonction *atome_fonc,
                                               kuri::chaine_statique nom_globale);
@@ -2906,6 +2906,8 @@ void GénératriceCodeLLVM::génère_code()
         POUR (données_constantes->tableaux_constants) {
             table_globales_dc.insère(it.globale, uint64_t(it.décalage_dans_données_constantes));
         }
+
+        génère_code_pour_est_adresse_données_constante();
     }
 
     POUR (données_module.donne_globales()) {
@@ -2959,10 +2961,6 @@ void GénératriceCodeLLVM::génère_code()
 void GénératriceCodeLLVM::génère_code_pour_fonction(AtomeFonction const *atome_fonc)
 {
     if (atome_fonc->est_externe) {
-        if (atome_fonc->decl &&
-            atome_fonc->decl->ident == ID::intrinsèque_est_adresse_données_constantes) {
-            génère_code_pour_est_adresse_données_constante(atome_fonc);
-        }
         return;
     }
 
@@ -3144,10 +3142,15 @@ void GénératriceCodeLLVM::génère_code_pour_fonction(AtomeFonction const *ato
     m_adresse_retour = nullptr;
 }
 
-void GénératriceCodeLLVM::génère_code_pour_est_adresse_données_constante(
-    const AtomeFonction *atome_fonc)
+void GénératriceCodeLLVM::génère_code_pour_est_adresse_données_constante()
 {
-    // À FAIRE : implémente proprement cette fonction.
+    auto atome_fonc = données_module.intrinsèqe_est_adresse_données_constantes;
+    if (atome_fonc == nullptr) {
+        return;
+    }
+
+    assert(m_données_constantes);
+
     table_valeurs.redimensionne(atome_fonc->numérote_instructions());
 
     auto fonction = donne_ou_crée_déclaration_fonction(atome_fonc);
@@ -3156,25 +3159,74 @@ void GénératriceCodeLLVM::génère_code_pour_est_adresse_données_constante(
     m_builder.SetInsertPoint(bloc);
 
     auto valeurs_args = fonction->arg_begin();
+    auto param = atome_fonc->params_entrée[0];
 
-    POUR (atome_fonc->params_entrée) {
-        auto arg_name = vers_string_ref(it->ident);
-        auto valeur = &(*valeurs_args++);
-        valeur->setName(arg_name);
+    auto arg_name = vers_string_ref(param->ident);
+    auto valeur = &(*valeurs_args++);
+    valeur->setName(arg_name);
 
-        auto type_alloué = it->donne_type_alloué();
+    auto type_alloué = param->donne_type_alloué();
 
-        auto alloc = crée_allocation(it);
-        auto alignement = alloc->getAlign();
-        if (est_type_machine_pointeur(type_alloué)) {
-            auto attr = llvm::Attribute::getWithAlignment(m_module->getContext(), alignement);
-            valeur->addAttr(attr);
-        }
-        m_builder.CreateAlignedStore(valeur, alloc, alignement);
+    auto alloc = crée_allocation(param);
+    auto alignement = alloc->getAlign();
+    if (est_type_machine_pointeur(type_alloué)) {
+        auto attr = llvm::Attribute::getWithAlignment(m_module->getContext(), alignement);
+        valeur->addAttr(attr);
     }
+    m_builder.CreateAlignedStore(valeur, alloc, alignement);
 
-    auto valeur_faux = llvm::ConstantInt::get(convertis_type_llvm(m_espace.typeuse.type_bool), 0);
-    m_builder.CreateRet(valeur_faux);
+    /* valeur_basse := *DC[0] */
+    auto type_llvm = convertis_type_llvm(type_alloué);
+    auto valeur_basse = m_builder.CreateAlloca(type_llvm, 0u);
+    valeur_basse->setAlignment(llvm::Align(type_alloué->alignement));
+    valeur_basse->setName("valeur_basse");
+
+    auto index_array = llvm::SmallVector<llvm::Value *>();
+    auto type_z32 = llvm::Type::getInt32Ty(m_contexte_llvm);
+    auto type_z64 = llvm::Type::getInt64Ty(m_contexte_llvm);
+    index_array.push_back(llvm::ConstantInt::get(type_z32, 0));
+    index_array.push_back(llvm::ConstantInt::get(type_z64, 0));
+
+    auto init_valeur_basse = llvm::ConstantExpr::getInBoundsGetElementPtr(
+        m_type_données_constantes, llvm::cast<llvm::Constant>(m_données_constantes), index_array);
+
+    // auto valeur_init_valeur_basse = m_builder.CreateLoad(type_llvm, init_valeur_basse);
+    m_builder.CreateStore(init_valeur_basse, valeur_basse);
+
+    /* valeur_haute := valeur_basse + taille_données_constantes. */
+    auto valeur_haute = m_builder.CreateAlloca(type_llvm, 0u);
+    valeur_haute->setAlignment(llvm::Align(type_alloué->alignement));
+    valeur_haute->setName("valeur_haute");
+
+    auto données_constantes = données_module.donne_données_constantes();
+    auto taille_données = données_constantes->taille_données_tableaux_constants;
+
+    llvm::Value *valeur_gauche = m_builder.CreateLoad(type_llvm, valeur_basse);
+    valeur_gauche = m_builder.CreateCast(
+        llvm::Instruction::CastOps::PtrToInt, valeur_gauche, type_z64);
+    auto valeur_droite = llvm::ConstantInt::get(type_z64, uint64_t(taille_données));
+    llvm::Value *init_valeur_haute = m_builder.CreateBinOp(
+        llvm::Instruction::Add, valeur_gauche, valeur_droite);
+    init_valeur_haute = m_builder.CreateCast(
+        llvm::Instruction::CastOps::IntToPtr, init_valeur_haute, type_llvm);
+    m_builder.CreateStore(init_valeur_haute, valeur_haute);
+
+    /* résultat := valeur_basse <= adresse & adresse < valeur_haute. */
+
+    auto cmp_droite = m_builder.CreateICmp(llvm::CmpInst::Predicate::ICMP_SLE,
+                                           m_builder.CreateLoad(type_llvm, valeur_basse),
+                                           m_builder.CreateLoad(type_llvm, alloc));
+
+    auto cmp_gauche = m_builder.CreateICmp(llvm::CmpInst::Predicate::ICMP_SLT,
+                                           m_builder.CreateLoad(type_llvm, alloc),
+                                           m_builder.CreateLoad(type_llvm, valeur_haute));
+
+    llvm::Value *résultat = m_builder.CreateBinOp(llvm::Instruction::And, cmp_droite, cmp_gauche);
+
+    résultat = m_builder.CreateCast(
+        llvm::Instruction::CastOps::ZExt, résultat, llvm::Type::getInt8Ty(m_module->getContext()));
+
+    m_builder.CreateRet(résultat);
 }
 
 void GénératriceCodeLLVM::génère_code_pour_constructeur_global(const AtomeFonction *atome_fonc,
@@ -3611,6 +3663,7 @@ void CoulisseLLVM::crée_modules(const ProgrammeRepreInter &repr_inter,
 {
     /* Crée un module pour les globales. */
     auto module = crée_un_module("Globales", triplet_cible, options);
+    auto module_globales = module;
 
     auto opt_données_constantes = repr_inter.donne_données_constantes();
     if (opt_données_constantes.has_value()) {
@@ -3630,6 +3683,11 @@ void CoulisseLLVM::crée_modules(const ProgrammeRepreInter &repr_inter,
         for (int i = 0; i < fonctions.taille(); i++) {
             auto fonction = fonctions[i];
             nombre_instructions += fonction->nombre_d_instructions_avec_entrées_sorties();
+
+            if (fonction->decl &&
+                fonction->decl->ident == ID::intrinsèque_est_adresse_données_constantes) {
+                module_globales->intrinsèqe_est_adresse_données_constantes = fonction;
+            }
 
             if (nombre_instructions < nombre_instructions_par_module &&
                 i != fonctions.taille() - 1) {

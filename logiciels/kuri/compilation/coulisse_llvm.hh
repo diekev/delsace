@@ -30,6 +30,7 @@ class TargetMachine;
 struct DonnéesModule {
     llvm::LLVMContext *contexte_llvm = nullptr;
     llvm::Module *module = nullptr;
+    AtomeFonction *intrinsèqe_est_adresse_données_constantes = nullptr;
 
     kuri::chemin_systeme chemin_fichier_objet{};
 
