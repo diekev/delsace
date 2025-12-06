@@ -1008,6 +1008,7 @@ struct GénératriceCodeLLVM {
     kuri::table_hachage<Atome const *, llvm::GlobalVariable *> table_globales{
         "Table valeurs globales LLVM"};
     kuri::table_hachage<Type const *, llvm::Type *> table_types{"Table types LLVM"};
+    kuri::table_hachage<AtomeGlobale const *, uint64_t> table_globales_dc{"Table globales DC"};
     EspaceDeTravail &m_espace;
 
     DonnéesModule &données_module;
@@ -1016,6 +1017,8 @@ struct GénératriceCodeLLVM {
     llvm::Function *m_fonction_courante = nullptr;
     llvm::Value *m_adresse_retour = nullptr;
     llvm::Module *m_module = nullptr;
+    llvm::Type *m_type_données_constantes = nullptr;
+    llvm::GlobalVariable *m_données_constantes = nullptr;
     InfoDébogageLLVM *m_info_débogage = nullptr;
     llvm::LLVMContext &m_contexte_llvm;
     llvm::IRBuilder<> m_builder;
@@ -1420,6 +1423,29 @@ llvm::Value *GénératriceCodeLLVM::génère_code_pour_atome(Atome const *atome,
         case Atome::Genre::ACCÈS_INDICE_CONSTANT:
         {
             auto accès = atome->comme_accès_indice_constant();
+
+            if (accès->accédé->genre_atome == Atome::Genre::GLOBALE &&
+                est_globale_pour_tableau_données_constantes(accès->accédé->comme_globale())) {
+                static constexpr auto valeur_nulle = uint64_t(-1);
+                auto décalage = table_globales_dc.valeur_ou(accès->accédé->comme_globale(),
+                                                            valeur_nulle);
+                assert(décalage != valeur_nulle);
+                assert(m_données_constantes != nullptr);
+
+                auto indice = llvm::ConstantInt::get(llvm::Type::getInt64Ty(m_contexte_llvm),
+                                                     décalage);
+
+                auto index_array = llvm::SmallVector<llvm::Value *>();
+                auto type_z32 = llvm::Type::getInt32Ty(m_contexte_llvm);
+                index_array.push_back(llvm::ConstantInt::get(type_z32, 0));
+                index_array.push_back(indice);
+
+                return llvm::ConstantExpr::getInBoundsGetElementPtr(
+                    m_type_données_constantes,
+                    llvm::cast<llvm::Constant>(m_données_constantes),
+                    index_array);
+            }
+
             auto indice = llvm::ConstantInt::get(llvm::Type::getInt64Ty(m_contexte_llvm),
                                                  uint64_t(accès->indice));
             assert(indice);
@@ -2844,13 +2870,41 @@ void GénératriceCodeLLVM::génère_code()
     if (données_module.donne_données_constantes()) {
         auto données_constantes = données_module.donne_données_constantes();
 
-        POUR (données_constantes->tableaux_constants) {
-            auto valeur_globale = it.globale;
-            auto valeur_initialisateur = static_cast<llvm::Constant *>(génère_code_pour_atome(
-                valeur_globale->initialisateur, UtilisationAtome::POUR_GLOBALE));
+        auto taille_données = données_constantes->taille_données_tableaux_constants;
+        auto type_octet = convertis_type_llvm(m_espace.typeuse.type_octet);
 
-            auto globale = donne_ou_crée_déclaration_globale(valeur_globale);
-            globale->setInitializer(valeur_initialisateur);
+        auto type_llvm = llvm::ArrayType::get(type_octet, uint64_t(taille_données));
+        m_type_données_constantes = type_llvm;
+        auto nom_globale = vers_string_ref("DC");
+        auto liaison = llvm::GlobalValue::InternalLinkage;
+        auto thread_local_mode = llvm::GlobalValue::ThreadLocalMode::NotThreadLocal;
+
+        auto résultat = new llvm::GlobalVariable(
+            *m_module, type_llvm, true, liaison, nullptr, nom_globale, nullptr, thread_local_mode);
+
+        résultat->setAlignment(llvm::Align(données_constantes->alignement_désiré));
+
+        m_données_constantes = résultat;
+
+        std::vector<uint8_t> données_tableaux;
+        données_tableaux.reserve(size_t(taille_données));
+
+        POUR (données_constantes->tableaux_constants) {
+            auto tableau = it.tableau->donne_données();
+
+            for (auto i = 0; i < it.rembourrage; ++i) {
+                données_tableaux.push_back(0);
+            }
+
+            POUR_NOMME (octet, tableau) {
+                données_tableaux.push_back(uint8_t(octet));
+            }
+        }
+
+        résultat->setInitializer(llvm::ConstantDataArray::get(m_contexte_llvm, données_tableaux));
+
+        POUR (données_constantes->tableaux_constants) {
+            table_globales_dc.insère(it.globale, uint64_t(it.décalage_dans_données_constantes));
         }
     }
 
