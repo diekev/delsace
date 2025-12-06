@@ -699,7 +699,7 @@ struct InfoDébogageLLVM {
                     // À FAIRE : llvm::DINode::DIFlags
                     auto flags = llvm::DINode::DIFlags(0);
 
-                    auto éléments = std::vector<llvm::Metadata *>();
+                    auto éléments = llvm::SmallVector<llvm::Metadata *>();
 
                     POUR (type_union->donne_rubriques_pour_code_machine()) {
                         auto nom_rubrique = vers_string_ref(it.nom);
@@ -775,7 +775,7 @@ struct InfoDébogageLLVM {
                                                DonneTypePour::SOUS_TYPE);
 
                 auto subscript = dibuilder->getOrCreateSubrange(0, type_tableau->taille);
-                auto subscripts = std::vector<llvm::Metadata *>();
+                auto subscripts = llvm::SmallVector<llvm::Metadata *, 1>();
                 subscripts.push_back(subscript);
                 auto subscripts_array = dibuilder->getOrCreateArray(subscripts);
 
@@ -797,7 +797,7 @@ struct InfoDébogageLLVM {
                 auto type_sous_jacent = donne_type(type_énum->type_sous_jacent,
                                                    DonneTypePour::SOUS_TYPE);
 
-                auto éléments = std::vector<llvm::Metadata *>();
+                auto éléments = llvm::SmallVector<llvm::Metadata *>();
 
                 auto type_struct_tmp = dibuilder->createReplaceableCompositeType(
                     llvm::dwarf::DW_TAG_structure_type, name, unit, fichier, numéro_ligne);
@@ -871,7 +871,7 @@ struct InfoDébogageLLVM {
             return static_cast<llvm::DISubroutineType *>(ditype);
         }
 
-        auto types = std::vector<llvm::Metadata *>();
+        auto types = llvm::SmallVector<llvm::Metadata *>();
 
         types.push_back(donne_type(type->type_sortie, DonneTypePour::SOUS_TYPE));
 
@@ -919,7 +919,7 @@ struct InfoDébogageLLVM {
 
         table_types.insère(vrai_type, type_struct_tmp);
 
-        auto éléments = std::vector<llvm::Metadata *>();
+        auto éléments = llvm::SmallVector<llvm::Metadata *>();
 
         POUR (type->donne_rubriques_pour_code_machine()) {
             auto nom_rubrique = vers_string_ref(it.nom);
@@ -1327,7 +1327,7 @@ static MéthodePassageParamètre détermine_méthode_passage_paramètre(Type con
 
 llvm::FunctionType *GénératriceCodeLLVM::convertis_type_fonction(TypeFonction const *type)
 {
-    std::vector<llvm::Type *> paramètres;
+    llvm::SmallVector<llvm::Type *> paramètres;
     paramètres.reserve(static_cast<size_t>(type->types_entrées.taille()));
 
     auto méthode_retour = détermine_méthode_passage_paramètre(type->type_sortie);
@@ -1517,7 +1517,7 @@ llvm::Value *GénératriceCodeLLVM::génère_code_pour_atome(Atome const *atome,
             auto type = structure->type->comme_type_composé();
             auto tableau_valeur = structure->donne_atomes_rubriques();
 
-            auto tableau_membre = std::vector<llvm::Constant *>();
+            auto tableau_membre = llvm::SmallVector<llvm::Constant *>();
 
             POUR_INDICE (type->donne_rubriques_pour_code_machine()) {
                 static_cast<void>(it);
@@ -1536,7 +1536,7 @@ llvm::Value *GénératriceCodeLLVM::génère_code_pour_atome(Atome const *atome,
             auto tableau = atome->comme_constante_tableau();
             auto éléments = tableau->donne_atomes_éléments();
 
-            std::vector<llvm::Constant *> valeurs;
+            llvm::SmallVector<llvm::Constant *> valeurs;
             valeurs.reserve(static_cast<size_t>(éléments.taille()));
 
             POUR (éléments) {
@@ -2065,7 +2065,7 @@ void GénératriceCodeLLVM::génère_code_pour_appel(InstructionAppel const *ins
 
 llvm::Value *GénératriceCodeLLVM::génère_code_pour_appel_impl(InstructionAppel const *inst_appel)
 {
-    auto arguments = std::vector<llvm::Value *>();
+    auto arguments = llvm::SmallVector<llvm::Value *, 6>();
 
     struct InfoAttribut {
         uint32_t indice = 0;
@@ -2370,7 +2370,7 @@ void GénératriceCodeLLVM::génère_code_pour_appel_intrinsèque(
 
             auto callee = llvm::FunctionCallee(fonction);
 
-            auto arguments = std::vector<llvm::Value *>();
+            auto arguments = llvm::SmallVector<llvm::Value *, 2>();
             POUR (inst_appel->args) {
                 arguments.push_back(génère_code_pour_atome(it, UtilisationAtome::POUR_OPÉRANDE));
             }
@@ -2826,7 +2826,7 @@ llvm::Function *GénératriceCodeLLVM::donne_fonction_atomic_is_lock_free()
 {
     if (m_fonction_atomic_is_lock_free == nullptr) {
         // declare i1 @__atomic_is_lock_free(i64, i8*)
-        std::vector<llvm::Type *> paramètres;
+        llvm::SmallVector<llvm::Type *, 2> paramètres;
         paramètres.push_back(llvm::Type::getInt64Ty(m_contexte_llvm));
         paramètres.push_back(convertis_type_llvm(m_espace.typeuse.type_ptr_rien));
 
@@ -3301,11 +3301,8 @@ void GénératriceCodeLLVM::génère_code_pour_constructeur_global(const AtomeFo
     llvm::StructType *type_struct_constructeur = llvm::StructType::get(
         type_int32, type_pointeur_fonction_constructeur, type_void_ptr);
 
-    /* Construction des tableaux de constructeurs/desctructeurs. */
-    std::vector<llvm::Constant *> tableau_constructeurs;
-    tableau_constructeurs.reserve(1);
-
-    auto tableau_membre = std::vector<llvm::Constant *>();
+    /* Construction des tableaux de constructeurs/destructeurs. */
+    auto tableau_membre = llvm::SmallVector<llvm::Constant *, 3>();
     tableau_membre.push_back(llvm::ConstantInt::get(type_int32, 0));
     tableau_membre.push_back(donne_ou_crée_déclaration_fonction(atome_fonc));
     /* Données associées. Nous n'en avons aucune. */
@@ -3313,6 +3310,7 @@ void GénératriceCodeLLVM::génère_code_pour_constructeur_global(const AtomeFo
 
     auto constructeur = llvm::ConstantStruct::get(type_struct_constructeur, tableau_membre);
 
+    llvm::SmallVector<llvm::Constant *, 1> tableau_constructeurs;
     tableau_constructeurs.push_back(constructeur);
 
     auto type_tableau = llvm::ArrayType::get(type_struct_constructeur,
