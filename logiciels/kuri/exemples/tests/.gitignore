@@ -31,4 +31,5 @@ test_structure_poly
 test_sys_fichier
 test_tableaux
 test_valeur_polymorphique_fonction
+test_variables_multiples
 tous_les_modules
