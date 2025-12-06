@@ -799,11 +799,6 @@ struct InfoDébogageLLVM {
 
                 auto éléments = llvm::SmallVector<llvm::Metadata *>();
 
-                auto type_struct_tmp = dibuilder->createReplaceableCompositeType(
-                    llvm::dwarf::DW_TAG_structure_type, name, unit, fichier, numéro_ligne);
-
-                table_types.insère(type, type_struct_tmp);
-
                 POUR (type_énum->donne_rubriques_pour_code_machine()) {
                     auto nom_rubrique = vers_string_ref(it.nom);
 
