@@ -2424,7 +2424,16 @@ void GénératriceCodeLLVM::génère_code_pour_appel_intrinsèque(
         case GenreIntrinsèque::ATOMIQUE_ÉCHANGE_TYPE_DE_DONNÉES:
         case GenreIntrinsèque::ATOMIQUE_ÉCHANGE_ADRESSE_FONCTION:
         {
-            /* À FAIRE(llvm) : __atomic_exchange. */
+            auto arg0 = génère_code_pour_atome(inst_appel->args[0],
+                                               UtilisationAtome::POUR_OPÉRANDE);
+            auto arg1 = génère_code_pour_atome(inst_appel->args[1],
+                                               UtilisationAtome::POUR_OPÉRANDE);
+            auto arg3 = inst_appel->args[2];
+            auto align = llvm::MaybeAlign();  // À FAIRE(alignement)
+            auto ordering = donne_valeur_pour_ordre_mémoire(arg3);
+            auto xchg = m_builder.CreateAtomicRMW(
+                llvm::AtomicRMWInst::BinOp::Xchg, arg0, arg1, align, ordering);
+            valeur_retour = xchg;
             break;
         }
         case GenreIntrinsèque::ATOMIQUE_COMPARE_ÉCHANGE_BOOL:
@@ -3401,8 +3410,7 @@ CoulisseLLVM::~CoulisseLLVM()
 
 static bool est_intrinsèque_supportée_par_llvm(IdentifiantCode const *ident)
 {
-    return ident != ID::atomique_échange && ident != ID::atomique_toujours_sans_verrou &&
-           ident != ID::atomique_est_sans_verrou;
+    return ident != ID::atomique_toujours_sans_verrou && ident != ID::atomique_est_sans_verrou;
 }
 
 std::optional<ErreurCoulisse> CoulisseLLVM::génère_code_impl(const ArgsGénérationCode &args)
