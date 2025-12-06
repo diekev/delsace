@@ -30,8 +30,11 @@ class TargetMachine;
 struct DonnéesModule {
     llvm::LLVMContext *contexte_llvm = nullptr;
     llvm::Module *module = nullptr;
+    AtomeFonction *intrinsèqe_est_adresse_données_constantes = nullptr;
 
     kuri::chemin_systeme chemin_fichier_objet{};
+
+    bool le_module_est_unique = false;
 
   private:
     const DonnéesConstantes *m_données_constantes = nullptr;
@@ -80,9 +83,13 @@ struct CoulisseLLVM final : public Coulisse {
 
     void crée_fichier_objet(DonnéesModule *module, const OptionsDeCompilation &options);
 
-    void crée_modules(ProgrammeRepreInter const &repr_inter, const std::string &triplet_cible);
+    void crée_modules(ProgrammeRepreInter const &repr_inter,
+                      const std::string &triplet_cible,
+                      const OptionsDeCompilation &options);
 
-    DonnéesModule *crée_un_module(kuri::chaine_statique nom, const std::string &triplet_cible);
+    DonnéesModule *crée_un_module(kuri::chaine_statique nom,
+                                  const std::string &triplet_cible,
+                                  const OptionsDeCompilation &options);
 
     int64_t mémoire_utilisée() const override;
 };
