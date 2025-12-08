@@ -63,6 +63,8 @@ static constexpr auto table_drapeaux_lexèmes = [] {
             case GenreLexème::DIVISE:
             case GenreLexème::DECALAGE_DROITE:
             case GenreLexème::DECALAGE_GAUCHE:
+            case GenreLexème::PIVOTE_DROITE:
+            case GenreLexème::PIVOTE_GAUCHE:
             case GenreLexème::POURCENT:
             case GenreLexème::ESPERLUETTE:
             case GenreLexème::BARRE:
@@ -186,6 +188,10 @@ static constexpr auto table_drapeaux_lexèmes = [] {
             case GenreLexème::CROCHET_OUVRANT:
             case GenreLexème::DECALAGE_DROITE:
             case GenreLexème::DECALAGE_GAUCHE:
+            case GenreLexème::PIVOTE_DROITE:
+            case GenreLexème::PIVOTE_GAUCHE:
+            case GenreLexème::PIVOTE_DROITE_ÉGAL:
+            case GenreLexème::PIVOTE_GAUCHE_ÉGAL:
             case GenreLexème::DECLARATION_CONSTANTE:
             case GenreLexème::DECLARATION_VARIABLE:
             case GenreLexème::DEC_DROITE_ÉGAL:
@@ -300,6 +306,10 @@ static constexpr auto table_associativité_lexèmes = [] {
             case GenreLexème::SUPERIEUR_ÉGAL:
             case GenreLexème::DECALAGE_GAUCHE:
             case GenreLexème::DECALAGE_DROITE:
+            case GenreLexème::PIVOTE_DROITE:
+            case GenreLexème::PIVOTE_GAUCHE:
+            case GenreLexème::PIVOTE_DROITE_ÉGAL:
+            case GenreLexème::PIVOTE_GAUCHE_ÉGAL:
             case GenreLexème::PLUS:
             case GenreLexème::MOINS:
             case GenreLexème::FOIS:
@@ -367,6 +377,8 @@ static constexpr auto table_précédence_lexèmes = [] {
             case GenreLexème::DEC_GAUCHE_ÉGAL:
             case GenreLexème::ESP_ESP_ÉGAL:
             case GenreLexème::BARRE_BARRE_ÉGAL:
+            case GenreLexème::PIVOTE_DROITE_ÉGAL:
+            case GenreLexème::PIVOTE_GAUCHE_ÉGAL:
             {
                 t[i] = 2;
                 break;
@@ -422,6 +434,8 @@ static constexpr auto table_précédence_lexèmes = [] {
             }
             case GenreLexème::DECALAGE_GAUCHE:
             case GenreLexème::DECALAGE_DROITE:
+            case GenreLexème::PIVOTE_DROITE:
+            case GenreLexème::PIVOTE_GAUCHE:
             {
                 t[i] = 12;
                 break;
@@ -1260,6 +1274,10 @@ NoeudExpression *Syntaxeuse::analyse_expression_secondaire(
         case GenreLexème::DECALAGE_GAUCHE:
         case GenreLexème::DEC_DROITE_ÉGAL:
         case GenreLexème::DEC_GAUCHE_ÉGAL:
+        case GenreLexème::PIVOTE_DROITE:
+        case GenreLexème::PIVOTE_GAUCHE:
+        case GenreLexème::PIVOTE_DROITE_ÉGAL:
+        case GenreLexème::PIVOTE_GAUCHE_ÉGAL:
         case GenreLexème::DIFFÉRENCE:
         case GenreLexème::DIVISE:
         case GenreLexème::DIVISE_ÉGAL:

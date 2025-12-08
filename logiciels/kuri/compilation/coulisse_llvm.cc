@@ -282,6 +282,8 @@ static auto inst_llvm_depuis_opérateur(OpérateurBinaire::Genre genre)
             return llvm::Instruction::AShr;
         case Genre::Dec_Droite_Logique:
             return llvm::Instruction::LShr;
+        case Genre::Pivote_Gauche:
+        case Genre::Pivote_Droite:
         case Genre::Invalide:
         case Genre::Comp_Égal:
         case Genre::Comp_Inégal:
@@ -362,6 +364,8 @@ static auto cmp_llvm_depuis_opérateur(OpérateurBinaire::Genre genre)
         case Genre::Dec_Droite_Arithm:
         case Genre::Dec_Droite_Logique:
         case Genre::Indexage:
+        case Genre::Pivote_Gauche:
+        case Genre::Pivote_Droite:
             break;
     }
 
