@@ -82,7 +82,7 @@ void Messagère::ajoute_message_espace_créé(EspaceDeTravail *espace, EspaceDeT
 
 Message *Messagère::ajoute_message_typage_code(EspaceDeTravail *espace,
                                                NoeudExpression *noeud,
-                                               UniteCompilation *unité)
+                                               UnitéCompilation *unité)
 {
     if (entreceveurs == 0) {
         return nullptr;
@@ -101,7 +101,7 @@ Message *Messagère::ajoute_message_typage_code(EspaceDeTravail *espace,
     return message;
 }
 
-void Messagère::envoie_message(Message *message, UniteCompilation *unité)
+void Messagère::envoie_message(Message *message, UnitéCompilation *unité)
 {
     InfoMessage info_message;
     info_message.message = message;

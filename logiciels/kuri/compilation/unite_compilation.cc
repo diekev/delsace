@@ -210,7 +210,7 @@ kuri::chaine UnitéCompilation::chaine_attentes_récursives() const
 }
 
 static bool attente_est_résolue(EspaceDeTravail *espace,
-                                UniteCompilation const *unité,
+                                UnitéCompilation const *unité,
                                 Attente &attente)
 {
     if (attente.info && attente.info->est_résolue) {

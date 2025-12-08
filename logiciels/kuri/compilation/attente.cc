@@ -27,13 +27,13 @@ struct UnitéCompilation;
 
 #define NOM_RAPPEL_POUR_COMMENTAIRE(__nom__) commentaire_pour_##__nom__
 #define RAPPEL_POUR_COMMENTAIRE(__nom__)                                                          \
-    kuri::chaine NOM_RAPPEL_POUR_COMMENTAIRE(__nom__)(UniteCompilation const *unité,              \
+    kuri::chaine NOM_RAPPEL_POUR_COMMENTAIRE(__nom__)(UnitéCompilation const *unité,              \
                                                       Attente const &attente)
 
 #define NOM_RAPPEL_POUR_EST_RÉSOLUE(__nom__) est_résolue_sur_##__nom__
 #define RAPPEL_POUR_EST_RÉSOLUE(__nom__)                                                          \
     bool NOM_RAPPEL_POUR_EST_RÉSOLUE(__nom__)(                                                    \
-        EspaceDeTravail * espace, UniteCompilation const *unité, Attente &attente)
+        EspaceDeTravail * espace, UnitéCompilation const *unité, Attente &attente)
 
 #define NOM_RAPPEL_POUR_ERREUR(__nom__) émets_erreur_pour_attente_sur_##__nom__
 #define RAPPEL_POUR_ERREUR(__nom__)                                                               \
@@ -951,7 +951,7 @@ InfoTypeAttente info_type_attente_sur_info_type = {NOM_RAPPEL_POUR_UNITÉ(info_t
 /** \name Attente.
  * \{ */
 
-kuri::chaine Attente::donne_commentaire(UniteCompilation const *unité) const
+kuri::chaine Attente::donne_commentaire(UnitéCompilation const *unité) const
 {
     if (!info) {
         return "Aucune info pour le commentaire de l'attente.";

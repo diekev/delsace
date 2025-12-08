@@ -12,7 +12,7 @@ struct EspaceDeTravail;
 struct MétaProgramme;
 struct Module;
 struct NoeudExpression;
-struct UniteCompilation;
+struct UnitéCompilation;
 
 struct Messagère {
   private:
@@ -51,5 +51,5 @@ struct Messagère {
 
     void termine_interception(EspaceDeTravail *espace, MétaProgramme *métaprogramme);
 
-    void envoie_message(Message *message, UniteCompilation *unité);
+    void envoie_message(Message *message, UnitéCompilation *unité);
 };

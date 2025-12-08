@@ -129,7 +129,7 @@ std::ostream &operator<<(std::ostream &os, ÉtatMétaprogramme état);
 
 struct InfoMessage {
     Message const *message = nullptr;
-    UniteCompilation *unité = nullptr;
+    UnitéCompilation *unité = nullptr;
 };
 
 /** \} */
