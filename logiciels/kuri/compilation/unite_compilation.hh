@@ -210,7 +210,7 @@ struct UnitéCompilation {
         return m_attentes;
     }
 
-    inline Attente *attend_sur_message(Message const *message_)
+    inline Attente *attends_sur_message(Message const *message_)
     {
         POUR (m_attentes) {
             if (it.est<AttenteSurMessage>() && it.message().message == message_) {
@@ -229,7 +229,7 @@ struct UnitéCompilation {
         }
     }
 
-    inline Attente *attend_sur_noeud_code(NoeudExpression *noeud_)
+    inline Attente *attends_sur_noeud_code(NoeudExpression *noeud_)
     {
         POUR (m_attentes) {
             if (it.est<AttenteSurNoeudCode>() && it.noeud_code().noeud == noeud_) {
@@ -239,7 +239,7 @@ struct UnitéCompilation {
         return nullptr;
     }
 
-    inline bool attend_sur_déclaration(NoeudDéclaration *decl)
+    inline bool attends_sur_déclaration(NoeudDéclaration *decl)
     {
         POUR (m_attentes) {
             if (it.est<AttenteSurDéclaration>() && it.déclaration() == decl) {

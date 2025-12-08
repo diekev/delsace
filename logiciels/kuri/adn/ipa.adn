@@ -72,7 +72,7 @@ fonction compilatrice_ajourne_options(OptionsDeCompilation * options) -> void
 
 /* Retourne le dernier message reçu lors de la compilation. Si aucun message
  * n'est disponible, le métaprogramme est mis en pause. */
-fonction compilatrice_attend_message() -> Message *
+fonction compilatrice_attends_message() -> Message *
 @compilatrice
 
 /* Indique à la compilatrice que nous souhaitons recevoir des messages. */

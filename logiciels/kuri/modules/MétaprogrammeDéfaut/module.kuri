@@ -52,7 +52,7 @@ importe GreffeMétaprogramme
     tableau_ajoute(*espaces, espace)
 
     boucle {
-        message := compilatrice_attend_message()
+        message := compilatrice_attends_message()
 
         si message.genre == GenreMessage.ESPACE_CRÉÉ {
             message_espace := message comme *MessageEspaceCréé

@@ -87,6 +87,16 @@ static OpérateurBinaire::Genre genre_op_binaire_pour_lexème(GenreLexème genre
         {
             return OpérateurBinaire::Genre::Dec_Gauche;
         }
+        case GenreLexème::PIVOTE_GAUCHE:
+        case GenreLexème::PIVOTE_GAUCHE_ÉGAL:
+        {
+            return OpérateurBinaire::Genre::Pivote_Gauche;
+        }
+        case GenreLexème::PIVOTE_DROITE:
+        case GenreLexème::PIVOTE_DROITE_ÉGAL:
+        {
+            return OpérateurBinaire::Genre::Pivote_Droite;
+        }
         case GenreLexème::ESPERLUETTE:
         case GenreLexème::ET_ÉGAL:
         {
@@ -267,6 +277,12 @@ std::ostream &operator<<(std::ostream &os, OpérateurBinaire::Genre genre)
 {
     os << chaine_pour_genre_op(genre);
     return os;
+}
+
+bool est_pivot(OpérateurBinaire::Genre genre)
+{
+    return genre == OpérateurBinaire::Genre::Pivote_Droite ||
+           genre == OpérateurBinaire::Genre::Pivote_Gauche;
 }
 
 const char *chaine_pour_genre_op(OpérateurUnaire::Genre genre)
@@ -649,6 +665,12 @@ void RegistreDesOpérateurs::ajoute_opérateurs_entiers(Type *pour_type, IndiceT
         }
         else if (op == GenreLexème::BARRE) {
             table->opérateur_oub = ptr_op;
+        }
+        else if (op == GenreLexème::DECALAGE_DROITE) {
+            table->opérateur_dcd = ptr_op;
+        }
+        else if (op == GenreLexème::DECALAGE_GAUCHE) {
+            table->opérateur_dcg = ptr_op;
         }
     }
 }
@@ -1069,6 +1091,44 @@ void enregistre_opérateurs_basiques(Typeuse &typeuse, RegistreDesOpérateurs &r
         GenreLexème::EGALITE, type_type_de_données, type_bool, IndiceTypeOp::ENTIER_NATUREL);
     registre.op_comp_diff_types = registre.ajoute_basique(
         GenreLexème::DIFFÉRENCE, type_type_de_données, type_bool, IndiceTypeOp::ENTIER_NATUREL);
+
+#define AJOUTE_PIVOT(type1, type2, indice)                                                        \
+    registre.ajoute_basique(GenreLexème::PIVOTE_GAUCHE,                                           \
+                            typeuse.type_##type1,                                                 \
+                            typeuse.type_##type2,                                                 \
+                            typeuse.type_##type1,                                                 \
+                            indice);                                                              \
+    registre.ajoute_basique(GenreLexème::PIVOTE_DROITE,                                           \
+                            typeuse.type_##type1,                                                 \
+                            typeuse.type_##type2,                                                 \
+                            typeuse.type_##type1,                                                 \
+                            indice);
+
+    AJOUTE_PIVOT(octet, octet, IndiceTypeOp::ENTIER_RELATIF);
+    AJOUTE_PIVOT(octet, n8, IndiceTypeOp::ENTIER_RELATIF);
+    AJOUTE_PIVOT(n8, octet, IndiceTypeOp::ENTIER_NATUREL);
+
+    AJOUTE_PIVOT(z8, z8, IndiceTypeOp::ENTIER_RELATIF);
+    AJOUTE_PIVOT(z8, n8, IndiceTypeOp::ENTIER_RELATIF);
+    AJOUTE_PIVOT(n8, z8, IndiceTypeOp::ENTIER_NATUREL);
+    AJOUTE_PIVOT(n8, z32, IndiceTypeOp::ENTIER_NATUREL);
+
+    AJOUTE_PIVOT(z16, z16, IndiceTypeOp::ENTIER_RELATIF);
+    AJOUTE_PIVOT(z16, n16, IndiceTypeOp::ENTIER_RELATIF);
+    AJOUTE_PIVOT(n16, z16, IndiceTypeOp::ENTIER_NATUREL);
+    AJOUTE_PIVOT(n16, z32, IndiceTypeOp::ENTIER_NATUREL);
+
+    AJOUTE_PIVOT(z32, z32, IndiceTypeOp::ENTIER_RELATIF);
+    AJOUTE_PIVOT(z32, n32, IndiceTypeOp::ENTIER_RELATIF);
+    AJOUTE_PIVOT(n32, z32, IndiceTypeOp::ENTIER_NATUREL);
+
+    AJOUTE_PIVOT(z64, z64, IndiceTypeOp::ENTIER_RELATIF);
+    AJOUTE_PIVOT(z64, n64, IndiceTypeOp::ENTIER_RELATIF);
+    AJOUTE_PIVOT(n64, z64, IndiceTypeOp::ENTIER_NATUREL);
+
+    AJOUTE_PIVOT(entier_constant, entier_constant, IndiceTypeOp::ENTIER_NATUREL);
+
+#undef AJOUTE_PIVOT
 }
 
 kuri::chaine_statique donne_chaine_lexème_pour_op_binaire(OpérateurBinaire::Genre op)
@@ -1155,6 +1215,14 @@ kuri::chaine_statique donne_chaine_lexème_pour_op_binaire(OpérateurBinaire::Ge
         {
             return ">>";
         }
+        case OpérateurBinaire::Genre::Pivote_Gauche:
+        {
+            return "<<<";
+        }
+        case OpérateurBinaire::Genre::Pivote_Droite:
+        {
+            return ">>>";
+        }
         case OpérateurBinaire::Genre::Invalide:
         case OpérateurBinaire::Genre::Indexage:
         {
@@ -1187,6 +1255,8 @@ bool est_opérateur_comparaison(OpérateurBinaire::Genre const genre)
         case OpérateurBinaire::Genre::Et_Binaire:
         case OpérateurBinaire::Genre::Ou_Binaire:
         case OpérateurBinaire::Genre::Ou_Exclusif:
+        case OpérateurBinaire::Genre::Pivote_Gauche:
+        case OpérateurBinaire::Genre::Pivote_Droite:
         {
             return false;
         }
@@ -1240,6 +1310,8 @@ bool est_opérateur_comparaison_ordre(OpérateurBinaire::Genre const genre)
         case OpérateurBinaire::Genre::Comp_Égal_Réel:
         case OpérateurBinaire::Genre::Comp_Inégal:
         case OpérateurBinaire::Genre::Comp_Inégal_Réel:
+        case OpérateurBinaire::Genre::Pivote_Gauche:
+        case OpérateurBinaire::Genre::Pivote_Droite:
         {
             return false;
         }
@@ -1278,6 +1350,8 @@ bool peut_permuter_opérandes(OpérateurBinaire::Genre const genre)
         case OpérateurBinaire::Genre::Dec_Droite_Logique:
         case OpérateurBinaire::Genre::Invalide:
         case OpérateurBinaire::Genre::Indexage:
+        case OpérateurBinaire::Genre::Pivote_Gauche:
+        case OpérateurBinaire::Genre::Pivote_Droite:
         {
             return false;
         }
@@ -1328,6 +1402,8 @@ OpérateurBinaire::Genre donne_opérateur_pour_permutation_opérandes(
         case OpérateurBinaire::Genre::Dec_Droite_Logique:
         case OpérateurBinaire::Genre::Invalide:
         case OpérateurBinaire::Genre::Indexage:
+        case OpérateurBinaire::Genre::Pivote_Gauche:
+        case OpérateurBinaire::Genre::Pivote_Droite:
         {
             return OpérateurBinaire::Genre::Invalide;
         }

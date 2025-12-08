@@ -640,7 +640,7 @@ void MachineVirtuelle::appel_fonction_compilatrice(AtomeFonction *ptr_fonction,
         return;
     }
 
-    if (EST_FONCTION_COMPILATRICE(compilatrice_attend_message)) {
+    if (EST_FONCTION_COMPILATRICE(compilatrice_attends_message)) {
         std::unique_lock verrou(m_métaprogramme->mutex_file_message);
         if (m_métaprogramme->file_message.est_vide()) {
             résultat = RésultatInterprétation::PASSE_AU_SUIVANT;
@@ -1205,7 +1205,7 @@ MachineVirtuelle::RésultatInterprétation MachineVirtuelle::exécute_instructio
     auto frame = &frames[profondeur_appel - 1];
 
     for (auto i = 0; i < INSTRUCTIONS_PAR_LOT; ++i) {
-        /* sauvegarde le pointeur si compilatrice_attend_message n'a pas encore de messages */
+        /* sauvegarde le pointeur si compilatrice_attends_message n'a pas encore de messages */
         auto pointeur_début = frame->pointeur;
         auto instruction = LIS_OCTET();
 

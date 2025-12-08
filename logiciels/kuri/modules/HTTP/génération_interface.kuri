@@ -62,7 +62,7 @@ génère_interface_serveuse :: fonc (paramètres: *ParamètresGénérationInterf
     ajoute_fichier_à_la_compilation(espace, fichier_racine)
 
     boucle {
-        message := compilatrice_attend_message()
+        message := compilatrice_attends_message()
         si message.espace != espace {
             continue
         }
