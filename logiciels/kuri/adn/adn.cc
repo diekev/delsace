@@ -519,6 +519,8 @@ void ProtéineÉnum::génère_code_cpp(FluxSortieCPP &os, bool pour_entête)
         os << "};\n\n";
     }
 
+    os << "#define NOMBRE_DE_" << m_nom << " " << m_rubriques.taille() << "\n\n";
+
     if (!pour_entête) {
         os << "static kuri::chaine_statique chaines_rubriques_" << m_nom << "["
            << m_rubriques.taille() << "] = {\n";
