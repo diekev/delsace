@@ -39,6 +39,10 @@ EspaceDeTravail::EspaceDeTravail(Compilatrice &compilatrice,
     POUR (nombre_de_tâches) {
         it = 0;
     }
+
+    for (auto i = 0; i < NOMBRE_DE_PhaseCompilation; i++) {
+        m_phases[i].id = PhaseCompilation(i);
+    }
 }
 
 EspaceDeTravail::~EspaceDeTravail()
@@ -94,21 +98,48 @@ void EspaceDeTravail::rassemble_statistiques(Statistiques &stats) const
 
 void EspaceDeTravail::tâche_ajoutée(GenreTâche genre_tâche, kuri::Synchrone<Messagère> &messagère)
 {
-    nombre_de_tâches[size_t(genre_tâche)] += 1;
-    regresse_phase_pour_tâche_ajoutée(genre_tâche, messagère);
+    auto phase = donne_phase();
+    auto phase_pour_tâche = donne_phase(genre_tâche);
+    phase_pour_tâche->nombre_de_tâches += 1;
+
+    if (phase != phase_pour_tâche) {
+        if (phase->id > phase_pour_tâche->id) {
+            id_phase += 1;
+            change_de_phase(messagère, phase_pour_tâche->id, __func__);
+        }
+    }
 }
 
 void EspaceDeTravail::tâche_terminée(GenreTâche genre_tâche, kuri::Synchrone<Messagère> &messagère)
 {
-    nombre_de_tâches[size_t(genre_tâche)] -= 1;
-    assert(nombre_de_tâches[size_t(genre_tâche)] >= 0);
-    progresse_phase_pour_tâche_terminée(genre_tâche, messagère);
+    auto phase_pour_tâche = donne_phase(genre_tâche);
+    phase_pour_tâche->nombre_de_tâches -= 1;
+    assert_rappel(phase_pour_tâche->nombre_de_tâches >= 0, [&] {
+        dbg() << "La phase est " << phase_pour_tâche->id;
+        dbg() << "La phase courante est " << m_id_phase_courante;
+        dbg() << "La tâche terminée est " << genre_tâche;
+    });
+
+    if (phase_pour_tâche->nombre_de_tâches == 0) {
+        // À FAIRE(phase) : ici nous pouvons aller trop loin...
+        for (auto i = int(m_id_phase_courante) + 1; i < NOMBRE_DE_PhaseCompilation; i++) {
+            auto phase = &m_phases[i];
+
+            change_de_phase(messagère, phase->id, __func__);
+
+            if (phase->nombre_de_tâches != 0) {
+                break;
+            }
+        }
+    }
 }
 
+// nul-geste
+#if 0
 void EspaceDeTravail::progresse_phase_pour_tâche_terminée(GenreTâche genre_tâche,
                                                           kuri::Synchrone<Messagère> &messagère)
 {
-    PhaseCompilation nouvelle_phase = phase;
+    PhaseCompilation nouvelle_phase = m_id_phase_courante;
     switch (genre_tâche) {
         case GenreTâche::CHARGEMENT:
         case GenreTâche::LEXAGE:
@@ -126,7 +157,7 @@ void EspaceDeTravail::progresse_phase_pour_tâche_terminée(GenreTâche genre_t�
         case GenreTâche::TYPAGE:
         {
             if (nombre_de_tâches[size_t(genre_tâche)] == 0 &&
-                phase == PhaseCompilation::PARSAGE_TERMINÉ) {
+                m_id_phase_courante == PhaseCompilation::PARSAGE_TERMINÉ) {
                 nouvelle_phase = PhaseCompilation::TYPAGE_TERMINÉ;
 
                 /* Il est possible que les dernières tâches de typages soient pour des choses qui
@@ -144,7 +175,7 @@ void EspaceDeTravail::progresse_phase_pour_tâche_terminée(GenreTâche genre_t�
         {
             if (nombre_de_tâches[size_t(GenreTâche::GENERATION_RI)] == 0 &&
                 nombre_de_tâches[size_t(GenreTâche::OPTIMISATION)] == 0 &&
-                phase == PhaseCompilation::TYPAGE_TERMINÉ) {
+                m_id_phase_courante == PhaseCompilation::TYPAGE_TERMINÉ) {
                 nouvelle_phase = PhaseCompilation::GÉNÉRATION_CODE_TERMINÉE;
             }
             break;
@@ -165,7 +196,7 @@ void EspaceDeTravail::progresse_phase_pour_tâche_terminée(GenreTâche genre_t�
         }
     }
 
-    if (nouvelle_phase != phase) {
+    if (nouvelle_phase != m_id_phase_courante) {
         change_de_phase(messagère, nouvelle_phase, __func__);
     }
 }
@@ -173,7 +204,7 @@ void EspaceDeTravail::progresse_phase_pour_tâche_terminée(GenreTâche genre_t�
 void EspaceDeTravail::regresse_phase_pour_tâche_ajoutée(GenreTâche genre_tâche,
                                                         kuri::Synchrone<Messagère> &messagère)
 {
-    PhaseCompilation nouvelle_phase = phase;
+    PhaseCompilation nouvelle_phase = m_id_phase_courante;
     switch (genre_tâche) {
         case GenreTâche::CHARGEMENT:
         case GenreTâche::LEXAGE:
@@ -184,7 +215,7 @@ void EspaceDeTravail::regresse_phase_pour_tâche_ajoutée(GenreTâche genre_tâc
         }
         case GenreTâche::TYPAGE:
         {
-            if (phase > PhaseCompilation::PARSAGE_TERMINÉ) {
+            if (m_id_phase_courante > PhaseCompilation::PARSAGE_TERMINÉ) {
                 nouvelle_phase = PhaseCompilation::PARSAGE_TERMINÉ;
             }
             break;
@@ -192,21 +223,21 @@ void EspaceDeTravail::regresse_phase_pour_tâche_ajoutée(GenreTâche genre_tâc
         case GenreTâche::GENERATION_RI:
         case GenreTâche::OPTIMISATION:
         {
-            if (phase > PhaseCompilation::TYPAGE_TERMINÉ) {
+            if (m_id_phase_courante > PhaseCompilation::TYPAGE_TERMINÉ) {
                 nouvelle_phase = PhaseCompilation::TYPAGE_TERMINÉ;
             }
             break;
         }
         case GenreTâche::GENERATION_CODE_MACHINE:
         {
-            if (phase > PhaseCompilation::APRÈS_GÉNÉRATION_OBJET) {
+            if (m_id_phase_courante > PhaseCompilation::APRÈS_GÉNÉRATION_OBJET) {
                 nouvelle_phase = PhaseCompilation::APRÈS_GÉNÉRATION_OBJET;
             }
             break;
         }
         case GenreTâche::LIAISON_PROGRAMME:
         {
-            if (phase > PhaseCompilation::APRÈS_LIAISON_EXÉCUTABLE) {
+            if (m_id_phase_courante > PhaseCompilation::APRÈS_LIAISON_EXÉCUTABLE) {
                 nouvelle_phase = PhaseCompilation::APRÈS_LIAISON_EXÉCUTABLE;
             }
             break;
@@ -225,15 +256,17 @@ void EspaceDeTravail::regresse_phase_pour_tâche_ajoutée(GenreTâche genre_tâc
         }
     }
 
-    if (nouvelle_phase != phase) {
+    if (nouvelle_phase != m_id_phase_courante) {
         id_phase += 1;
         change_de_phase(messagère, nouvelle_phase, __func__);
     }
 }
+#endif
 
+// À FAIRE(phase) : comment détecter la possibilité de générer le code final ?
 bool EspaceDeTravail::peut_génèrer_code_final() const
 {
-    if (phase != PhaseCompilation::GÉNÉRATION_CODE_TERMINÉE) {
+    if (m_id_phase_courante != PhaseCompilation::GÉNÉRATION_CODE_TERMINÉE) {
         return false;
     }
 
@@ -248,10 +281,61 @@ bool EspaceDeTravail::peut_génèrer_code_final() const
     return false;
 }
 
+// nul-geste
+#if 0
 bool EspaceDeTravail::parsage_terminé() const
 {
     return NOMBRE_DE_TACHES(CHARGEMENT) == 0 && NOMBRE_DE_TACHES(LEXAGE) == 0 &&
            NOMBRE_DE_TACHES(PARSAGE) == 0;
+}
+#endif
+
+Phase *EspaceDeTravail::donne_phase()
+{
+    return &m_phases[size_t(m_id_phase_courante)];
+}
+
+Phase *EspaceDeTravail::donne_phase(GenreTâche genre_tâche)
+{
+    switch (genre_tâche) {
+        case GenreTâche::CHARGEMENT:
+        case GenreTâche::LEXAGE:
+        case GenreTâche::PARSAGE:
+        {
+            return &m_phases[size_t(PhaseCompilation::PARSAGE_EN_COURS)];
+        }
+        case GenreTâche::TYPAGE:
+        {
+            return &m_phases[size_t(PhaseCompilation::PARSAGE_TERMINÉ)];
+        }
+        case GenreTâche::GENERATION_RI:
+        case GenreTâche::OPTIMISATION:
+        {
+            return &m_phases[size_t(PhaseCompilation::TYPAGE_TERMINÉ)];
+        }
+        case GenreTâche::GENERATION_CODE_MACHINE:
+        {
+            return &m_phases[size_t(PhaseCompilation::APRÈS_GÉNÉRATION_OBJET)];
+        }
+        case GenreTâche::LIAISON_PROGRAMME:
+        {
+            return &m_phases[size_t(PhaseCompilation::APRÈS_LIAISON_EXÉCUTABLE)];
+        }
+        case GenreTâche::DORS:
+        case GenreTâche::COMPILATION_TERMINÉE:
+        case GenreTâche::CREATION_FONCTION_INIT_TYPE:
+        case GenreTâche::CONVERSION_NOEUD_CODE:
+        case GenreTâche::ENVOIE_MESSAGE:
+        case GenreTâche::EXECUTION:
+        case GenreTâche::NOMBRE_ELEMENTS:
+        case GenreTâche::CALCULE_TAILLE_TYPE:
+        case GenreTâche::SYNTHÉTISATION_OPÉRATEUR:
+        {
+            break;
+        }
+    }
+
+    return donne_phase();
 }
 
 void EspaceDeTravail::imprime_compte_tâches(std::ostream &os) const
@@ -267,20 +351,23 @@ Message *EspaceDeTravail::change_de_phase(kuri::Synchrone<Messagère> &messagèr
 {
 #define IMPRIME_CHANGEMENT_DE_PHASE(nom_espace)                                                   \
     if (nom == nom_espace) {                                                                      \
-        dbg() << __func__ << " depuis " << fonction_appelante << " : " << nouvelle_phase          \
-              << ", id " << id_phase;                                                             \
+        dbg() << __func__ << " depuis " << fonction_appelante << " : de " << m_id_phase_courante  \
+              << " vers " << nouvelle_phase << ", id " << id_phase;                               \
     }
 
-    if (phase == PhaseCompilation::COMPILATION_TERMINÉE) {
-        /* Il est possible qu'un espace ajoute des choses à compiler mais que celui-ci n'utilise
-         * pas le code. Or, les tâches de typage subséquentes feront regresser sa phase de
-         * compilation si la compilation est terminée pour celui-ci. Si tel est le cas, la
-         * compilation sera infinie. Empêchons donc de modifier la phase de compilation de l'espace
-         * si sa compilation fut déjà terminée. */
-        return nullptr;
-    }
+    IMPRIME_CHANGEMENT_DE_PHASE("Espace 1")
 
-    phase = nouvelle_phase;
+    // if (m_id_phase_courante == PhaseCompilation::COMPILATION_TERMINÉE) {
+    //     /* Il est possible qu'un espace ajoute des choses à compiler mais que celui-ci n'utilise
+    //      * pas le code. Or, les tâches de typage subséquentes feront regresser sa phase de
+    //      * compilation si la compilation est terminée pour celui-ci. Si tel est le cas, la
+    //      * compilation sera infinie. Empêchons donc de modifier la phase de compilation de
+    //      l'espace
+    //      * si sa compilation fut déjà terminée. */
+    //     return nullptr;
+    // }
+
+    m_id_phase_courante = nouvelle_phase;
     return messagère->ajoute_message_phase_compilation(this);
 
 #undef IMPRIME_CHANGEMENT_DE_PHASE

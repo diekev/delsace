@@ -29,6 +29,12 @@ struct SiteSource;
 struct Statistiques;
 struct UnitéCompilation;
 
+struct Phase {
+    PhaseCompilation id{};
+    int nombre_de_tâches = 0;
+    int messages_en_attente = 0;
+};
+
 /* IPA :
  * - crée_un_espace_de_travail
  * - espace_de_travail_défaut
@@ -45,7 +51,9 @@ struct EspaceDeTravail {
   private:
     std::atomic<int> nombre_de_tâches[size_t(GenreTâche::NOMBRE_ELEMENTS)] = {};
 
-    PhaseCompilation phase = PhaseCompilation::PARSAGE_EN_COURS;
+    Phase m_phases[NOMBRE_DE_PhaseCompilation] = {};
+
+    PhaseCompilation m_id_phase_courante = PhaseCompilation::PARSAGE_EN_COURS;
     /* Identifiant de la phase de compilation. À chaque fois que nous régressons la phase de
      * compilation, cet identifiant est modifié pour indiquer que la nouvelle phase de compilation
      * est différente de la dernière fois que nous avons eu cette phase. */
@@ -177,7 +185,7 @@ struct EspaceDeTravail {
 
     PhaseCompilation phase_courante() const
     {
-        return phase;
+        return m_id_phase_courante;
     }
 
     int id_phase_courante() const
@@ -225,6 +233,9 @@ struct EspaceDeTravail {
     {
         return m_compilatrice;
     }
+
+    Phase *donne_phase();
+    Phase *donne_phase(GenreTâche genre_tâche);
 
     void imprime_compte_tâches(std::ostream &os) const;
 };
