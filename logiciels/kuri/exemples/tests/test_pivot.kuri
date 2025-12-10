@@ -1,0 +1,37 @@
+importe Fondation
+
+principale :: fonc ()
+{
+    {
+        a : n8 = 0b11001100
+        b := a <<< 2;
+        c := a >>> -2;
+
+        ctx := contexte()
+        ctx.format_entier.base = 2
+        pousse_contexte ctx {
+            imprimeln("a := %", a)
+            imprimeln("b := %", b)
+            imprimeln("c := %", c)
+        }
+
+        assert(b == 0b00110011)
+        assert(c == 0b00110011)
+    }
+    {
+        a : n16 = 0b00011101
+        b := a <<< -2;
+        c := a >>> 2;
+
+        ctx := contexte()
+        ctx.format_entier.base = 2
+        pousse_contexte ctx {
+            imprimeln("a := %", a)
+            imprimeln("b := %", b)
+            imprimeln("c := %", c)
+        }
+
+        assert(b == 0b01000000_00000111)
+        assert(c == 0b01000000_00000111)
+    }
+}
