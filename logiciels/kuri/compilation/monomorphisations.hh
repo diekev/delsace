@@ -97,7 +97,8 @@ std::pair<NoeudDéclarationEntêteFonction *, bool> monomorphise_au_besoin(
     Contexte *contexte,
     NoeudDéclarationEntêteFonction const *decl,
     NoeudExpression *site,
-    kuri::tableau<ItemMonomorphisation, int> &&items_monomorphisation);
+    kuri::tableau<ItemMonomorphisation, int> &&items_monomorphisation,
+    bool pour_cuisson);
 
 NoeudDéclarationClasse *monomorphise_au_besoin(
     Contexte *contexte,
