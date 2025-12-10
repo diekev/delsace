@@ -1,18 +1,47 @@
 importe Fondation
 
+// À FAIRE : test expressions non-constantes
+
+principale :: fonc ()
+{
+    test_cuisson_polymorphe()
+    test_cuisson_monomorphe()
+}
+
 ajoute_x :: fonc (a: $T, b: T) -> T
 {
     retourne a + b
 }
 
-principale :: fonc ()
+test_cuisson_polymorphe :: fonc ()
 {
     ajoute_z32 := #cuisine ajoute_x(T = z32)
     ajoute_r32 := #cuisine ajoute_x(T = r32)
 
     a := ajoute_z32(0, 1)
     imprime("a = %\n", a)
+    assert(a == 1)
 
-    b := ajoute_r32(1.2, 2.4)
+    b := ajoute_r32(1.2, 2.8)
     imprime("b = %\n", b)
+    assert(b == 4.0)
+}
+
+ajoute_monomorphe :: fonc (x: z32, y: z32) -> z32
+{
+    retourne x + y
+}
+
+test_cuisson_monomorphe :: fonc ()
+{
+    ajoute_5 := #cuisine ajoute_monomorphe(x = 5)
+    ajoute_7 := #cuisine ajoute_monomorphe(x = 7)
+
+    a := ajoute_5(10)
+    imprime("a = %\n", a)
+    assert(a == 15)
+
+    b := ajoute_7(10)
+    imprime("b = %\n", b)
+    assert(b == 17)
 }

@@ -3,6 +3,7 @@
 
 #include "monomorphisations.hh"
 
+#include "arbre_syntaxique/assembleuse.hh"
 #include "arbre_syntaxique/copieuse.hh"
 #include "arbre_syntaxique/noeud_expression.hh"
 
@@ -179,7 +180,8 @@ static std::pair<NoeudExpression *, bool> monomorphise_au_besoin(
     AssembleuseArbre *assembleuse,
     NoeudExpression const *a_copier,
     Monomorphisations *monomorphisations,
-    kuri::tableau<ItemMonomorphisation, int> &&items_monomorphisation)
+    kuri::tableau<ItemMonomorphisation, int> &&items_monomorphisation,
+    bool pour_cuisson)
 {
     auto monomorphisation = monomorphisations->trouve_monomorphisation(items_monomorphisation);
     if (monomorphisation) {
@@ -192,8 +194,27 @@ static std::pair<NoeudExpression *, bool> monomorphise_au_besoin(
 
     /* Ajourne les constantes dans le bloc. */
     POUR (items_monomorphisation) {
-        auto decl_constante =
-            trouve_dans_bloc_seul(bloc_constantes, it.ident)->comme_déclaration_constante();
+        auto déclaration = trouve_dans_bloc_seul(bloc_constantes, it.ident);
+        if (!déclaration) {
+            assert(pour_cuisson);
+            assert(a_copier->est_entête_fonction());
+            auto fonction = a_copier->comme_entête_fonction();
+            auto paramètre = trouve_dans_bloc_seul(fonction->bloc_paramètres, it.ident);
+            // À FAIRE : fais ceci dans la copieuse.
+            NoeudDéclarationVariable *déclaration_paramètre = nullptr;
+            if (paramètre->est_empl()) {
+                déclaration_paramètre =
+                    paramètre->comme_empl()->expression->comme_déclaration_variable();
+            }
+            else {
+                déclaration_paramètre = paramètre->comme_déclaration_variable();
+            }
+            déclaration = assembleuse->crée_déclaration_constante(
+                paramètre->lexème, nullptr, déclaration_paramètre->expression_type);
+            bloc_constantes->ajoute_rubrique(déclaration);
+            déclaration->bloc_parent = bloc_constantes;
+        }
+        auto decl_constante = déclaration->comme_déclaration_constante();
         decl_constante->drapeaux |= (DrapeauxNoeud::DECLARATION_FUT_VALIDEE);
         decl_constante->drapeaux &= ~(DrapeauxNoeud::EST_VALEUR_POLYMORPHIQUE |
                                       DrapeauxNoeud::DECLARATION_TYPE_POLYMORPHIQUE);
@@ -212,10 +233,14 @@ std::pair<NoeudDéclarationEntêteFonction *, bool> monomorphise_au_besoin(
     Contexte *contexte,
     NoeudDéclarationEntêteFonction const *decl,
     NoeudExpression *site,
-    kuri::tableau<ItemMonomorphisation, int> &&items_monomorphisation)
+    kuri::tableau<ItemMonomorphisation, int> &&items_monomorphisation,
+    bool pour_cuisson)
 {
-    auto [copie, copie_nouvelle] = monomorphise_au_besoin(
-        contexte->assembleuse, decl, decl->monomorphisations, std::move(items_monomorphisation));
+    auto [copie, copie_nouvelle] = monomorphise_au_besoin(contexte->assembleuse,
+                                                          decl,
+                                                          decl->monomorphisations,
+                                                          std::move(items_monomorphisation),
+                                                          pour_cuisson);
 
     auto entête = copie->comme_entête_fonction();
 
@@ -262,7 +287,8 @@ NoeudDéclarationClasse *monomorphise_au_besoin(
     auto [copie, copie_nouvelle] = monomorphise_au_besoin(contexte->assembleuse,
                                                           decl_struct,
                                                           decl_struct->monomorphisations,
-                                                          std::move(items_monomorphisation));
+                                                          std::move(items_monomorphisation),
+                                                          false);
 
     auto structure = copie->comme_déclaration_classe();
 
