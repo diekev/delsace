@@ -991,7 +991,8 @@ RésultatRechercheOpérateur trouve_opérateur_pour_expression(
             contexte,
             meilleur_candidat->op->decl,
             site,
-            std::move(meilleur_candidat->items_monomorphisation));
+            std::move(meilleur_candidat->items_monomorphisation),
+            false);
 
         if (doit_monomorpher ||
             !noeud_decl->possède_drapeau(DrapeauxNoeud::DECLARATION_FUT_VALIDEE)) {
