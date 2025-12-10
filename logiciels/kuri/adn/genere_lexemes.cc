@@ -172,12 +172,14 @@ static void construis_lexèmes(ListeLexèmes &lexèmes)
     lexèmes.ajoute_ponctuation(":=", "DECLARATION_VARIABLE");
     lexèmes.ajoute_ponctuation("`", "ACCENT_GRAVE", EST_OPÉRATEUR_UNAIRE);
     lexèmes.ajoute_ponctuation("<<", "DECALAGE_GAUCHE");
+    lexèmes.ajoute_ponctuation("<<<", "PIVOTE_GAUCHE");
     lexèmes.ajoute_ponctuation(
         "<=", "INFERIEUR_ÉGAL", EST_OPÉRATEUR_COMPARAISON | EST_OPÉRATEUR_BOOL);
     lexèmes.ajoute_ponctuation("==", "EGALITE", EST_OPÉRATEUR_COMPARAISON | EST_OPÉRATEUR_BOOL);
     lexèmes.ajoute_ponctuation(
         ">=", "SUPERIEUR_ÉGAL", EST_OPÉRATEUR_COMPARAISON | EST_OPÉRATEUR_BOOL);
     lexèmes.ajoute_ponctuation(">>", "DECALAGE_DROITE");
+    lexèmes.ajoute_ponctuation(">>>", "PIVOTE_DROITE");
     lexèmes.ajoute_ponctuation("^=", "OUX_ÉGAL", EST_ASSIGNATION_COMPOSÉE);
     lexèmes.ajoute_ponctuation("|=", "OU_ÉGAL", EST_ASSIGNATION_COMPOSÉE);
     lexèmes.ajoute_ponctuation("||", "BARRE_BARRE", EST_OPÉRATEUR_BOOL);
@@ -188,6 +190,8 @@ static void construis_lexèmes(ListeLexèmes &lexèmes)
     lexèmes.ajoute_ponctuation("..", "DEUX_POINTS", EST_SPÉCIFIANT_TYPE);
     lexèmes.ajoute_ponctuation("<<=", "DEC_GAUCHE_ÉGAL", EST_ASSIGNATION_COMPOSÉE);
     lexèmes.ajoute_ponctuation(">>=", "DEC_DROITE_ÉGAL", EST_ASSIGNATION_COMPOSÉE);
+    lexèmes.ajoute_ponctuation("<<<=", "PIVOTE_GAUCHE_ÉGAL", EST_ASSIGNATION_COMPOSÉE);
+    lexèmes.ajoute_ponctuation(">>>=", "PIVOTE_DROITE_ÉGAL", EST_ASSIGNATION_COMPOSÉE);
     lexèmes.ajoute_extra("", "NOMBRE_RÉEL");
     lexèmes.ajoute_extra("", "NOMBRE_ENTIER");
     lexèmes.ajoute_extra("-", "PLUS_UNAIRE", EST_OPÉRATEUR_UNAIRE);
