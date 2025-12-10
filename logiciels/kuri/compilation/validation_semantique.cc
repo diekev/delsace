@@ -6229,7 +6229,8 @@ static RésultatTypeItérande détermine_typage_itérande(
                     contexte,
                     table_opérateurs->opérateur_pour,
                     const_cast<NoeudExpression *>(itéré),
-                    std::move(items_monomorphisation));
+                    std::move(items_monomorphisation),
+                    false);
 
                 if (doit_monomorpher ||
                     !noeud_decl->possède_drapeau(DrapeauxNoeud::DECLARATION_FUT_VALIDEE)) {
