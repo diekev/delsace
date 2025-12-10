@@ -21,7 +21,7 @@ métaprogramme :: fonc ()
     ajoute_fichier_à_la_compilation(espace, "annotations.kuri")
 
     boucle {
-        message := compilatrice_attend_message()
+        message := compilatrice_attends_message()
         diffère compilatrice_message_reçu(message)
 
         si message.espace != espace {

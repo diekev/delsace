@@ -112,27 +112,34 @@ formatte_lexème :: fonc (enchaineuse: *Enchaineuse, lexème: *Lexème)
         retourne
     }
 
+    // À FAIRE(langage) : messages codes
+    lexème_valeur := convertis_vers_chaine(donne_chaine_utf16(lexème.valeur))
+    diffère déloge(lexème_valeur)
+
+    lexème_unité := convertis_vers_chaine(donne_chaine_utf16(lexème.unité))
+    diffère déloge(lexème_unité)
+
     discr lexème.genre {
         Ident {
-            ajoute_au_tampon(enchaineuse, lexème.valeur)
+            ajoute_au_tampon(enchaineuse, lexème_valeur)
         }
         Function {
-            ajoute_au_tampon(enchaineuse, lexème.valeur, "(")
+            ajoute_au_tampon(enchaineuse, lexème_valeur, "(")
         }
         At_Keyword {
-            ajoute_au_tampon(enchaineuse, "@", lexème.valeur)
+            ajoute_au_tampon(enchaineuse, "@", lexème_valeur)
         }
         Hash {
-            ajoute_au_tampon(enchaineuse, "#", lexème.valeur)
+            ajoute_au_tampon(enchaineuse, "#", lexème_valeur)
         }
         String {
-            ajoute_au_tampon(enchaineuse, "\"", lexème.valeur, "\"")
+            ajoute_au_tampon(enchaineuse, "\"", lexème_valeur, "\"")
         }
         Bad_String {
             ajoute_au_tampon(enchaineuse, "BadString")
         }
         Url {
-            ajoute_au_tampon(enchaineuse, "url(", lexème.valeur, ")")
+            ajoute_au_tampon(enchaineuse, "url(", lexème_valeur, ")")
         }
         Bad_Url {
             ajoute_au_tampon(enchaineuse, "Bad_Url")
@@ -149,7 +156,7 @@ formatte_lexème :: fonc (enchaineuse: *Enchaineuse, lexème: *Lexème)
             ajoute_au_tampon(enchaineuse, lexème.numeric_value, "%")
         }
         Dimension {
-            ajoute_au_tampon(enchaineuse, lexème.numeric_value, lexème.unité)
+            ajoute_au_tampon(enchaineuse, lexème.numeric_value, lexème_unité)
         }
         Whitespace {
             ajoute_au_tampon(enchaineuse, " ")
