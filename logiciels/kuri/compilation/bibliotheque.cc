@@ -384,7 +384,7 @@ IndiceBibliothèque IndiceBibliothèque::crée_pour_exécution()
 }
 
 IndiceBibliothèque IndiceBibliothèque::crée_pour_options(OptionsDeCompilation const &options,
-                                                       int type_liaison)
+                                                         int type_liaison)
 {
     IndiceBibliothèque résultat;
     résultat.plateforme = plateforme_pour_options(options);
@@ -620,8 +620,8 @@ bool Bibliothèque::peut_lier_statiquement() const
     if (nom == "c" || nom == "m") {
         return false;
     }
-    return chemins.donne_chemin(IndiceBibliothèque{PLATEFORME_64_BIT, STATIQUE, POUR_PRODUCTION}) !=
-           kuri::chaine_statique("");
+    return chemins.donne_chemin(IndiceBibliothèque{
+               PLATEFORME_64_BIT, STATIQUE, POUR_PRODUCTION}) != kuri::chaine_statique("");
 }
 
 /** \} */

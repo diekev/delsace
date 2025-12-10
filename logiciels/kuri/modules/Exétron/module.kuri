@@ -71,9 +71,9 @@ contexte_ajoute_tâche :: fonc (rappel: fonc(*$T)(rien), données: *T)
     ajoute_tâche(*__file_globale, rappel comme fonc (arg: *rien), données)
 }
 
-contexte_attend_sur_tâches :: fonc ()
+contexte_attends_sur_tâches :: fonc ()
 {
-    attend_sur_complétion_tâches(*__file_globale)
+    attends_sur_complétion_tâches(*__file_globale)
 }
 
 DonnéesEntréeFileTravail :: struct {
@@ -167,7 +167,7 @@ fonction_fil :: fonc (arg: *rien) -> *rien #sanstrace
     retourne nul
 }
 
-attend_sur_complétion_tâches :: fonc (file: *FileDeTravail)
+attends_sur_complétion_tâches :: fonc (file: *FileDeTravail)
 {
     indice_logique := file.fils_exécution.taille comme z32 - 1
     entrée: EntréeFileTravail
@@ -187,7 +187,7 @@ contexte_boucle_parallèle :: fonc (rappel: fonc(*$T)(rien), tâches: []T)
             contexte_ajoute_tâche(rappel, it)
         }
 
-        contexte_attend_sur_tâches()
+        contexte_attends_sur_tâches()
     }
     sinon {
         plage: PlageExecution
