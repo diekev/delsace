@@ -160,16 +160,16 @@ struct EspaceDeTravail {
 
     void rassemble_statistiques(Statistiques &stats) const;
 
-    void tache_ajoutee(GenreTâche genre_tache, kuri::Synchrone<Messagère> &messagère);
-    void tache_terminee(GenreTâche genre_tache, kuri::Synchrone<Messagère> &messagère);
+    void tâche_ajoutée(GenreTâche genre_tâche, kuri::Synchrone<Messagère> &messagère);
+    void tâche_terminée(GenreTâche genre_tâche, kuri::Synchrone<Messagère> &messagère);
 
-    void progresse_phase_pour_tache_terminee(GenreTâche genre_tache,
+    void progresse_phase_pour_tâche_terminée(GenreTâche genre_tâche,
                                              kuri::Synchrone<Messagère> &messagère);
-    void regresse_phase_pour_tache_ajoutee(GenreTâche genre_tache,
+    void regresse_phase_pour_tâche_ajoutée(GenreTâche genre_tâche,
                                            kuri::Synchrone<Messagère> &messagère);
 
     bool peut_génèrer_code_final() const;
-    bool parsage_termine() const;
+    bool parsage_terminé() const;
 
     Message *change_de_phase(kuri::Synchrone<Messagère> &messagère,
                              PhaseCompilation nouvelle_phase,

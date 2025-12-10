@@ -39,8 +39,8 @@ compilation
 #    define TERMINE_STAT(stat)
 #endif
 
-#define TACHE_AJOUTEE(genre) espace->tache_ajoutee(GenreTâche::genre, m_compilatrice->messagère)
-#define TACHE_TERMINEE(genre) espace->tache_terminee(GenreTâche::genre, m_compilatrice->messagère)
+#define TACHE_AJOUTEE(genre) espace->tâche_ajoutée(GenreTâche::genre, m_compilatrice->messagère)
+#define TACHE_TERMINEE(genre) espace->tâche_terminée(GenreTâche::genre, m_compilatrice->messagère)
 
 /* ------------------------------------------------------------------------- */
 /** \name État chargement fichiers
@@ -135,8 +135,8 @@ void ÉtatChargementFichiers::supprime_unité_pour_chargement_fichier(UnitéComp
 bool ÉtatChargementFichiers::tous_les_fichiers_à_parser_le_sont() const
 {
     const int indice[3] = {int(RaisonDÊtre::CHARGEMENT_FICHIER),
-                          int(RaisonDÊtre::LEXAGE_FICHIER),
-                          int(RaisonDÊtre::PARSAGE_FICHIER)};
+                           int(RaisonDÊtre::LEXAGE_FICHIER),
+                           int(RaisonDÊtre::PARSAGE_FICHIER)};
 
     /* Vérifie s'il n'y a pas d'instructions de chargement ou d'import à gérer et que les unités de
      * chargement/lexage/parsage ont toutes été traitées. */
