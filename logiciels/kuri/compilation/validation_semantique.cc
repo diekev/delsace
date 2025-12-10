@@ -5936,7 +5936,11 @@ static bool est_décalage_bits(GenreLexème genre)
                        GenreLexème::DECALAGE_DROITE,
                        GenreLexème::DECALAGE_GAUCHE,
                        GenreLexème::DEC_DROITE_ÉGAL,
-                       GenreLexème::DEC_GAUCHE_ÉGAL);
+                       GenreLexème::DEC_GAUCHE_ÉGAL,
+                       GenreLexème::PIVOTE_DROITE,
+                       GenreLexème::PIVOTE_GAUCHE,
+                       GenreLexème::PIVOTE_DROITE_ÉGAL,
+                       GenreLexème::PIVOTE_GAUCHE_ÉGAL);
 }
 
 RésultatValidation Sémanticienne::valide_opérateur_binaire_générique(NoeudExpressionBinaire *expr)

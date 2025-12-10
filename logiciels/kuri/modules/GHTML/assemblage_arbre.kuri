@@ -109,11 +109,11 @@ crée_noeud :: fonc (assembleuse: &AssembleuseArbre, type_noeud: TypeNoeud, donn
 
 dépile_noeud :: fonc (assembleuse: &AssembleuseArbre, type_noeud: TypeNoeud) -> rien
 {
-    assembleuse.attend_type(type_noeud)
+    assembleuse.attends_type(type_noeud)
     _ := assembleuse.pile.dépile()
 }
 
-attend_type :: fonc (assembleuse: &AssembleuseArbre, type_noeud: TypeNoeud) -> rien
+attends_type :: fonc (assembleuse: &AssembleuseArbre, type_noeud: TypeNoeud) -> rien
 {
     assert(assembleuse.pile.tête().type == type_noeud)
 }
