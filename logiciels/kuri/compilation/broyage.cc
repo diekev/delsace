@@ -525,6 +525,14 @@ static const char *nom_pour_opérateur(Lexème const &lexème)
         {
             return "dcg";
         }
+        case GenreLexème::PIVOTE_DROITE:
+        {
+            return "pvd";
+        }
+        case GenreLexème::PIVOTE_GAUCHE:
+        {
+            return "pvg";
+        }
         case GenreLexème::POURCENT:
         {
             return "mod";

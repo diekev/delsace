@@ -364,7 +364,7 @@ extrait_texte_noeud :: fonc (noeud: *Node) -> chaine
 
     rassemble_texte_noeud(noeud, rappel_pour_extraction_texte, *extractrice)
 
-    retourne imprime_chaine("%", extractrice.texte)
+    retourne convertis_vers_chaine(extractrice.texte)
 }
 
 /* https://dom.spec.whatwg.org/#concept-child-text-content */
