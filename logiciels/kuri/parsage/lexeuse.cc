@@ -499,6 +499,12 @@ Lexème Lexeuse::donne_lexème_suivant()
         return crée_lexème_opérateur(3, genre_lexème);                                            \
     }
 
+#define APPARIE_3_CARACTERES_SUIVANTS(caractère1, caractère2, caractère3, genre_lexème)           \
+    if (caractère_voisin(1) == caractère1 && caractère_voisin(2) == caractère2 &&                 \
+        caractère_voisin(3) == caractère3) {                                                      \
+        return crée_lexème_opérateur(4, genre_lexème);                                            \
+    }
+
     auto c = this->caractère_courant();
     auto nombre_octet = longueur_utf8_depuis_premier_caractère[static_cast<unsigned char>(c)];
 
@@ -557,7 +563,9 @@ Lexème Lexeuse::donne_lexème_suivant()
             }
 
             if (c == '<') {
-                // <, <=, << ou <<=
+                // <, <=, <<, <<<, <<=, ou <<<=
+                APPARIE_3_CARACTERES_SUIVANTS('<', '<', '=', GenreLexème::PIVOTE_GAUCHE_ÉGAL)
+                APPARIE_2_CARACTERES_SUIVANTS('<', '<', GenreLexème::PIVOTE_GAUCHE)
                 APPARIE_2_CARACTERES_SUIVANTS('<', '=', GenreLexème::DEC_GAUCHE_ÉGAL)
                 APPARIE_CARACTERE_SUIVANT('<', GenreLexème::DECALAGE_GAUCHE)
                 APPARIE_CARACTERE_SUIVANT('=', GenreLexème::INFERIEUR_ÉGAL)
@@ -565,7 +573,9 @@ Lexème Lexeuse::donne_lexème_suivant()
             }
 
             if (c == '>') {
-                // >, >=, >> ou >>=
+                // >, >=, >>, >>>, >>=, ou >>>=
+                APPARIE_3_CARACTERES_SUIVANTS('>', '>', '=', GenreLexème::PIVOTE_DROITE_ÉGAL)
+                APPARIE_2_CARACTERES_SUIVANTS('>', '>', GenreLexème::PIVOTE_DROITE)
                 APPARIE_2_CARACTERES_SUIVANTS('>', '=', GenreLexème::DEC_DROITE_ÉGAL)
                 APPARIE_CARACTERE_SUIVANT('>', GenreLexème::DECALAGE_DROITE)
                 APPARIE_CARACTERE_SUIVANT('=', GenreLexème::SUPERIEUR_ÉGAL)
