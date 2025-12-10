@@ -419,10 +419,6 @@ lambdas
 
     x => x.nom // crée une fonction foo :: (x: $T) -> chaine { retourne x.nom }
 
-currying
-    #cuisine ma_fonction(T = z32) // crée une nouvelle fonction ou le paramètre polymorphique T est remplacé par le type z32
-    #cuisine ma_fonction(x = 5)   // crée une nouvelle fonction ou le paramètre x est remplacé par la constante 5
-
 impression des paramètres dans les messages d'erreur en cas de mésappariement
 
 Résultat de l'algorithme d'unification :
