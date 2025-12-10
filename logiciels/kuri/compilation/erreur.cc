@@ -278,6 +278,12 @@ static void imprime_erreur_pour_erreur_fonction(Erreur &e,
             e.ajoute_message(dc.erreur_monomorphisation.message());
             break;
         }
+        case RaisonErreurAppariement::EXPRESSION_NON_CONSTANTE_POUR_CUISSON:
+        {
+            e.ajoute_message("L'expression n'est pas constante et ne peut être utilisée pour "
+                             "remplacer un paramètre lors de la cuisson.");
+            break;
+        }
         case RaisonErreurAppariement::AUCUNE_RAISON:
         {
             e.ajoute_message("Aucune raison donnée.\n");
