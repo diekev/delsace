@@ -53,6 +53,24 @@ GABARIT_OPERATION_COMPARAISON(InférieurÉgal, <=);
 
 #undef GABARIT_OPERATION_COMPARAISON
 
+struct PivotGauche {
+    template <typename T>
+    static bool applique_opération(T a, T b)
+    {
+        static constexpr auto nombre_de_bits = T(sizeof(T) * 8);
+        return (a << b) | (a >> (nombre_de_bits - b));
+    }
+};
+
+struct PivotDroite {
+    template <typename T>
+    static bool applique_opération(T a, T b)
+    {
+        static constexpr auto nombre_de_bits = T(sizeof(T) * 8);
+        return (a >> b) | (a << (nombre_de_bits - b));
+    }
+};
+
 #if defined(__GNUC__)
 #    pragma GCC diagnostic pop
 #endif

@@ -186,20 +186,10 @@ entropie.énum_aléatoire(TypeEnum)
 
 // https://www.pcg-random.org/
 
-rotation_horaire :: fonc (n: n64, d: n64) -> n64
-{
-    retourne (n >> d) | (n << (64 - d))
-}
-
-rotation_antihoraire :: fonc (n: n64, d: n64) -> n64
-{
-    retourne (n << d) | (n >> (64 - d))
-}
-
 pcg_xsh_rr :: fonc (état: &n64) -> n32
 {
     état_ := xor_shift(état)
-    sortie := rotation_horaire((état_ ^ (état_ >> 18)) >> 27, état_ >> 59)
+    sortie := ((état_ ^ (état_ >> 18)) >> 27) >>> (état_ >> 59)
     retourne sortie comme n32
 }
 

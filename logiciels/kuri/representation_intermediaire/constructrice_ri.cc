@@ -148,7 +148,9 @@ static bool est_type_sous_jacent_énum(Type const *gauche, Type const *droite)
     return type_énum->type_sous_jacent == droite;
 }
 
-static bool sont_types_compatibles_pour_opérateur_binaire(Type const *gauche, Type const *droite)
+static bool sont_types_compatibles_pour_opérateur_binaire(OpérateurBinaire::Genre op,
+                                                          Type const *gauche,
+                                                          Type const *droite)
 {
     if (gauche == droite) {
         return true;
@@ -168,6 +170,10 @@ static bool sont_types_compatibles_pour_opérateur_binaire(Type const *gauche, T
     /* Par exemple des boucles-pour sur énum.nombre_éléments. */
     if (est_type_sous_jacent_énum(gauche, droite) || est_type_sous_jacent_énum(droite, gauche)) {
         return true;
+    }
+    if (est_pivot(op)) {
+        return est_type_entier(donne_type_primitif(gauche)) &&
+               est_type_entier(donne_type_primitif(droite));
     }
     return false;
 }
@@ -855,14 +861,14 @@ Atome *ConstructriceRI::crée_op_binaire(NoeudExpression const *site_,
                                         Atome *valeur_gauche,
                                         Atome *valeur_droite)
 {
-    assert_rappel(
-        sont_types_compatibles_pour_opérateur_binaire(valeur_gauche->type, valeur_droite->type),
-        [&]() {
-            dbg() << imprime_site(site_);
-            dbg() << "Type à gauche " << chaine_type(valeur_gauche->type);
-            dbg() << "Type à droite " << chaine_type(valeur_droite->type);
-            dbg() << "L'opérateur est " << op;
-        });
+    assert_rappel(sont_types_compatibles_pour_opérateur_binaire(
+                      op, valeur_gauche->type, valeur_droite->type),
+                  [&]() {
+                      dbg() << imprime_site(site_);
+                      dbg() << "Type à gauche " << chaine_type(valeur_gauche->type);
+                      dbg() << "Type à droite " << chaine_type(valeur_droite->type);
+                      dbg() << "L'opérateur est " << op;
+                  });
 
     if (valeur_gauche->est_constante() && !valeur_droite->est_constante()) {
         if (op == OpérateurBinaire::Genre::Soustraction &&
