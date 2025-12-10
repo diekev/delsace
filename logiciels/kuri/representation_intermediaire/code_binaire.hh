@@ -132,7 +132,9 @@ using octet_t = unsigned char;
     ENUMERE_CODE_OPERATION_EX(OP_PROFILE_TERMINE_APPEL)                                           \
     ENUMERE_CODE_OPERATION_EX(OP_INATTEIGNABLE)                                                   \
     ENUMERE_CODE_OPERATION_EX(OP_SÉLECTION)                                                       \
-    ENUMERE_CODE_OPERATION_EX(OP_COPIE_MÉMOIRE)
+    ENUMERE_CODE_OPERATION_EX(OP_COPIE_MÉMOIRE)                                                   \
+    ENUMERE_CODE_OPERATION_EX(OP_PIVOTE_GAUCHE)                                                   \
+    ENUMERE_CODE_OPERATION_EX(OP_PIVOTE_DROITE)
 
 enum : octet_t {
 #define ENUMERE_CODE_OPERATION_EX(code) code,

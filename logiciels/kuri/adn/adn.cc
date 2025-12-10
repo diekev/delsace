@@ -309,7 +309,7 @@ void ProtéineStruct::génère_code_cpp(FluxSortieCPP &os, bool pour_entête)
         pour_chaque_rubrique_récursif([&os](Rubrique const &it) {
             if (it.type->est_nominal() && it.type->comme_nominal()->est_protéine &&
                 it.type->comme_nominal()->est_protéine->comme_enum()) {
-                os << "\tif (!est_valeur_legale(valeur." << it.nom << ")) {\n";
+                os << "\tif (!est_valeur_légale(valeur." << it.nom << ")) {\n";
                 os << "\t\treturn false;\n";
                 os << "\t}\n";
             }
@@ -519,6 +519,8 @@ void ProtéineÉnum::génère_code_cpp(FluxSortieCPP &os, bool pour_entête)
         os << "};\n\n";
     }
 
+    os << "#define NOMBRE_DE_" << m_nom << " " << m_rubriques.taille() << "\n\n";
+
     if (!pour_entête) {
         os << "static kuri::chaine_statique chaines_rubriques_" << m_nom << "["
            << m_rubriques.taille() << "] = {\n";
@@ -542,7 +544,7 @@ void ProtéineÉnum::génère_code_cpp(FluxSortieCPP &os, bool pour_entête)
         os << "}\n\n";
     }
 
-    os << "bool est_valeur_legale(" << m_nom << " valeur)";
+    os << "bool est_valeur_légale(" << m_nom << " valeur)";
 
     if (pour_entête) {
         os << ";\n\n";
