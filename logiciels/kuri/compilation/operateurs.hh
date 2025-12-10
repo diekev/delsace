@@ -102,6 +102,8 @@ std::ostream &operator<<(std::ostream &os, OpérateurUnaire::Genre genre);
     ENUMERE_GENRE_OPBINAIRE_EX(Dec_Gauche, decg, OP_DEC_GAUCHE)                                   \
     ENUMERE_GENRE_OPBINAIRE_EX(Dec_Droite_Arithm, decda, OP_DEC_DROITE_ARITHM)                    \
     ENUMERE_GENRE_OPBINAIRE_EX(Dec_Droite_Logique, decdl, OP_DEC_DROITE_LOGIQUE)                  \
+    ENUMERE_GENRE_OPBINAIRE_EX(Pivote_Gauche, pvg, OP_PIVOTE_GAUCHE)                              \
+    ENUMERE_GENRE_OPBINAIRE_EX(Pivote_Droite, pvd, OP_PIVOTE_DROITE)                              \
     ENUMERE_GENRE_OPBINAIRE_EX(Indexage, idx, octet_t(-1))
 
 struct OpérateurBinaire {
@@ -138,6 +140,8 @@ const char *chaine_pour_genre_op(OpérateurBinaire::Genre genre);
 
 std::ostream &operator<<(std::ostream &os, OpérateurBinaire::Genre genre);
 
+bool est_pivot(OpérateurBinaire::Genre genre);
+
 /* Structure stockant les opérateurs binaires pour un Type.
  * Le Type n'est pas stocké ici, mais chaque Type possède une telle table.
  * Une Table stocke les opérateurs binaires pour un Type si celui-ci est le type
@@ -163,6 +167,9 @@ struct TableOpérateurs {
     OpérateurBinaire *opérateur_dif = nullptr;
     OpérateurBinaire *opérateur_mul = nullptr;
     OpérateurBinaire *opérateur_div = nullptr;
+    /* Décalages gauche et droite. */
+    OpérateurBinaire *opérateur_dcg = nullptr;
+    OpérateurBinaire *opérateur_dcd = nullptr;
     OpérateurBinaire *opérateur_indexage = nullptr;
     OpérateurUnaire *opérateur_non = nullptr;
 
