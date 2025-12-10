@@ -69,6 +69,14 @@ GenreLexème operateur_pour_assignation_composee(GenreLexème type)
         {
             return GenreLexème::BARRE_BARRE;
         }
+        case GenreLexème::PIVOTE_DROITE_ÉGAL:
+        {
+            return GenreLexème::PIVOTE_DROITE;
+        }
+        case GenreLexème::PIVOTE_GAUCHE_ÉGAL:
+        {
+            return GenreLexème::PIVOTE_GAUCHE;
+        }
     }
 }
 
