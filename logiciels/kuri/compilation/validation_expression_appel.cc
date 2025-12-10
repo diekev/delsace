@@ -97,6 +97,12 @@ ErreurAppariement ErreurAppariement::renommage_argument(const NoeudExpression *s
     return erreur;
 }
 
+ErreurAppariement ErreurAppariement::expression_non_constante_pour_cuisson(
+    const NoeudExpression *site)
+{
+    return crée_erreur(RaisonErreurAppariement::EXPRESSION_NON_CONSTANTE_POUR_CUISSON, site);
+}
+
 ErreurAppariement ErreurAppariement::crée_erreur(RaisonErreurAppariement raison,
                                                  const NoeudExpression *site)
 {
@@ -949,26 +955,33 @@ static RésultatAppariement apparie_appel_init_de(
 
 /* ************************************************************************** */
 
+struct ItemCuisson {
+    NoeudDéclaration *déclaration_à_remplacer = nullptr;
+    NoeudExpression *expression_de_remplacement = nullptr;
+};
+
 static RésultatAppariement apparie_appel_fonction_pour_cuisson(
     EspaceDeTravail &espace,
     NoeudExpressionAppel const *expr,
     NoeudDéclarationEntêteFonction const *decl,
     kuri::tableau<IdentifiantEtExpression> const &args)
 {
-    if (!decl->possède_drapeau(DrapeauxNoeudFonction::EST_POLYMORPHIQUE)) {
-        return ErreurAppariement::métypage_argument(expr, nullptr, nullptr);
-    }
-
-    auto monomorpheuse = Monomorpheuse(espace, decl);
-
     // À FAIRE : vérifie que toutes les constantes ont été renseignées.
-    // À FAIRE : gère proprement la validation du type de la constante
+    kuri::tablet<ItemCuisson, 6> items_cuisson;
 
-    kuri::tableau<ItemMonomorphisation, int> items_monomorphisation;
+    /* Trouve les déclarations pour chaque expression de remplacement. Valide que les déclarations
+     * existent et ne sont pas remplacées plusieurs fois. */
     auto noms_rencontrés = kuri::ensemblon<IdentifiantCode *, 10>();
     POUR (args) {
         if (!it.ident) {
             return ErreurAppariement::nommage_manquant_pour_cuisson(it.expr);
+        }
+
+        /* Cherche dans les paramètres et les constantes. */
+        auto decl_param = trouve_dans_bloc(
+            decl->bloc_paramètres, it.ident, decl->bloc_parent, decl);
+        if (decl_param == nullptr) {
+            return ErreurAppariement::ménommage_arguments(it.expr, it.ident);
         }
 
         if (noms_rencontrés.possède(it.ident)) {
@@ -976,14 +989,40 @@ static RésultatAppariement apparie_appel_fonction_pour_cuisson(
         }
         noms_rencontrés.insère(it.ident);
 
-        auto item = monomorpheuse.item_pour_ident(it.ident);
-        if (item == nullptr) {
-            return ErreurAppariement::ménommage_arguments(it.expr, it.ident);
-        }
+        items_cuisson.ajoute({decl_param, it.expr});
+    }
 
-        auto type = it.expr->type->comme_type_type_de_données();
-        items_monomorphisation.ajoute(
-            {it.ident, type, ValeurExpression(), GenreItem::TYPE_DE_DONNÉES});
+    /* Vérifie que les expressions sont constantes. */
+    POUR (items_cuisson) {
+        if (auto expr_non_constante = trouve_expression_non_constante(
+                it.expression_de_remplacement)) {
+            return ErreurAppariement::expression_non_constante_pour_cuisson(expr_non_constante);
+        }
+    }
+
+    /* À FAIRE : valide que les expressions sont compatibles avec les déclarations remplacées. */
+
+    kuri::tableau<ItemMonomorphisation, int> items_monomorphisation;
+    POUR (items_cuisson) {
+        if (it.expression_de_remplacement->type->est_type_type_de_données()) {
+            auto type = it.expression_de_remplacement->type->comme_type_type_de_données();
+            items_monomorphisation.ajoute({it.déclaration_à_remplacer->ident,
+                                           type,
+                                           ValeurExpression(),
+                                           GenreItem::TYPE_DE_DONNÉES});
+        }
+        else {
+            auto type = it.expression_de_remplacement->type;
+            auto valeur = évalue_expression(&espace, it.expression_de_remplacement);
+
+            if (valeur.est_erroné) {
+                return ErreurAppariement::expression_non_constante_pour_cuisson(
+                    it.expression_de_remplacement);
+            }
+
+            items_monomorphisation.ajoute(
+                {it.déclaration_à_remplacer->ident, type, valeur.valeur, GenreItem::VALEUR});
+        }
     }
 
     return CandidateAppariement::cuisson_fonction(
@@ -2195,7 +2234,8 @@ RésultatValidation valide_appel_fonction(Compilatrice &compilatrice,
                 contexte,
                 decl_fonction_appelée,
                 expr,
-                std::move(candidate->items_monomorphisation));
+                std::move(candidate->items_monomorphisation),
+                false);
 
             if (doit_monomorpher ||
                 !noeud_decl->possède_drapeau(DrapeauxNoeud::DECLARATION_FUT_VALIDEE)) {
@@ -2243,14 +2283,21 @@ RésultatValidation valide_appel_fonction(Compilatrice &compilatrice,
         }
     }
     else if (candidate->note == CANDIDATE_EST_CUISSON_FONCTION) {
-        auto decl_fonction_appelée = candidate->noeud_decl->comme_entête_fonction();
+        auto decl_fonction_appelée = const_cast<NoeudDéclarationEntêteFonction *>(
+            candidate->noeud_decl->comme_entête_fonction());
 
         if (!candidate->items_monomorphisation.est_vide()) {
+            if (!decl_fonction_appelée->monomorphisations) {
+                decl_fonction_appelée->monomorphisations =
+                    contexte->allocatrice_noeud->crée_monomorphisations_fonction();
+            }
+
             auto [noeud_decl, doit_monomorpher] = monomorphise_au_besoin(
                 contexte,
                 decl_fonction_appelée,
                 expr,
-                std::move(candidate->items_monomorphisation));
+                std::move(candidate->items_monomorphisation),
+                true);
 
             if (doit_monomorpher ||
                 !noeud_decl->possède_drapeau(DrapeauxNoeud::DECLARATION_FUT_VALIDEE)) {
@@ -2261,7 +2308,7 @@ RésultatValidation valide_appel_fonction(Compilatrice &compilatrice,
         }
 
         expr->type = decl_fonction_appelée->type;
-        expr->expression = const_cast<NoeudDéclarationEntêteFonction *>(decl_fonction_appelée);
+        expr->expression = decl_fonction_appelée;
         expr->expression->drapeaux |= DrapeauxNoeud::EST_UTILISEE;
     }
     else if (candidate->note == CANDIDATE_EST_MONOMORPHISATION_STRUCTURE) {
