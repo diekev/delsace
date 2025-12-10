@@ -4,6 +4,7 @@ test_assignation_logique
 test_boucle_pour
 test_chaines_littérales
 test_corps_texte
+test_cuisson
 test_couleur_terminal
 test_dessin_texte
 test_eini
