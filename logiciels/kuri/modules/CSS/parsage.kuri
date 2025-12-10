@@ -65,6 +65,34 @@ ParsedDeclaration :: struct {
     important: bool
 }
 
+// À FAIRE(langage) : messages codes
+imprime_parse_declaration :: fonc (déclaration: *ParsedDeclaration)
+{
+    enchaineuse: Enchaineuse
+    initialise_enchaineuse(*enchaineuse)
+
+    saufsi déclaration {
+        ajoute_au_tampon(*enchaineuse, "déclaration nulle")
+    }
+    sinon {
+        nom := convertis_vers_chaine(donne_chaine_utf16(déclaration.name))
+        diffère déloge(nom)
+        ajoute_au_tampon(*enchaineuse, nom, ": ")
+
+        pour * déclaration.value {
+            formatte_component_value(*enchaineuse, it)
+        }
+
+        si déclaration.important {
+            ajoute_au_tampon(*enchaineuse, " !important")
+        }
+    }
+
+    chn := chaine_depuis_enchaineuse(*enchaineuse)
+    diffère déloge(chn)
+    imprime("%", chn)
+}
+
 formatte_parsed_declaration :: fonc (enchaineuse: *Enchaineuse, déclaration: *ParsedDeclaration)
 {
     saufsi déclaration {
@@ -154,16 +182,23 @@ formatte_component_value :: fonc (enchaineuse: *Enchaineuse, value: *ComponentVa
             // À FAIRE collision de nom dans formattage ajoute_au_tampon(enchaineuse, l)
         }
         function(f) {
-            ajoute_au_tampon(enchaineuse, f.name, "(")
+            // À FAIRE(langage) : messages codes
+            f_name := convertis_vers_chaine(donne_chaine_utf16(f.name))
+            diffère déloge(f_name)
+            ajoute_au_tampon(enchaineuse, f_name, "(")
             pour f.value {
-                ajoute_au_tampon(enchaineuse, it)
+                // À FAIRE(langage) : messages codes
+                // ajoute_au_tampon(enchaineuse, it)
+                formatte_component_value(enchaineuse, *it)
             }
             ajoute_au_tampon(enchaineuse, ")")
         }
         bloc(b) {
             formatte_lexème(enchaineuse, *b.token)
             pour b.value {
-                ajoute_au_tampon(enchaineuse, it)
+                // À FAIRE(langage) : messages codes
+                // ajoute_au_tampon(enchaineuse, it)
+                formatte_component_value(enchaineuse, *it)
             }
             lexème_mirroir := donne_genre_lexème_mirroir(b.token)
             token := b.token
@@ -2233,7 +2268,10 @@ ContexteParsageFeuilleDeStyle :: struct {
 rapporte_propriétés_non_supportées :: fonc (ctx: *ContexteParsageFeuilleDeStyle, fonction: chaine)
 {
     pour ctx.propriétés_non_supportées {
-        imprime("[CSS][%] propriété non-supportée : %\n", fonction, it)
+        // À FAIRE(langage) : messages codes
+        nom_prop := convertis_vers_chaine(donne_chaine_utf16(it))
+        diffère déloge(nom_prop)
+        imprime("[CSS][%] propriété non-supportée : %\n", fonction, nom_prop)
     }
 }
 
@@ -2553,7 +2591,10 @@ rapporte_erreur_de_parsage :: fonc (déclaration: ParsedDeclaration)
         }
     }
 
-    imprime("Impossible de parser : %\n", déclaration)
+    // imprime("Impossible de parser : %\n", déclaration)
+    imprime("Impossible de parser : ")
+    imprime_parse_declaration(*déclaration)
+    imprime("\n")
 }
 
 parse_valeur_propriété :: fonc (info_type_propriété: *InfoTypePropriété, value: []ComponentValue) -> Optionnel(*ValeurDeStyle)

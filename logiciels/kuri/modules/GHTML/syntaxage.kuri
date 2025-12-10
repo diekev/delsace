@@ -88,7 +88,7 @@ performe_syntaxage :: fonc (syntaxeuse: &Syntaxeuse) -> rien
 
     syntaxeuse.analyse_page()
 
-    syntaxeuse.assembleuse.attend_type(TypeNoeud.BLOC)
+    syntaxeuse.assembleuse.attends_type(TypeNoeud.BLOC)
 }
 
 analyse_page :: fonc (syntaxeuse: &Syntaxeuse) -> rien
@@ -204,7 +204,7 @@ analyse_controle :: fonc (syntaxeuse: &Syntaxeuse) -> rien
 
         syntaxeuse.assembleuse.dépile_noeud(TypeNoeud.BLOC)
 
-        syntaxeuse.assembleuse.attend_type(TypeNoeud.SI)
+        syntaxeuse.assembleuse.attends_type(TypeNoeud.SI)
 
         _ := syntaxeuse.assembleuse.empile_noeud(TypeNoeud.BLOC, syntaxeuse.données())
 

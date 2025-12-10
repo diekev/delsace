@@ -2584,6 +2584,58 @@ NoeudExpression *Simplificatrice::simplifie_opérateur_binaire(NoeudExpressionBi
                                                               bool pour_opérande)
 {
     if (expr_bin->op->est_basique) {
+        // À FAIRE : fait persister les pivots jusque dans les coulisses.
+        auto genre = expr_bin->op->genre;
+        if (est_pivot(genre)) {
+            auto lexème = expr_bin->lexème;
+            auto type_résultat = expr_bin->type;
+            auto table = type_résultat->table_opérateurs;
+            auto op_décalage1 = table->opérateur_dcg;
+            auto op_décalage2 = table->opérateur_dcd;
+            if (genre == OpérateurBinaire::Genre::Pivote_Droite) {
+                op_décalage1 = table->opérateur_dcd;
+                op_décalage2 = table->opérateur_dcg;
+            }
+
+            auto op_moins = table->opérateur_sst;
+            auto op_conj = table->opérateur_oub;
+            auto op_disj = table->opérateur_etb;
+
+            auto bits = type_résultat->taille_octet * 8;
+            auto bits_moins_un = bits - 1;
+
+            // b = (b & bits_moins_un) comme type_résultat
+            // (a décalage1 b) | (a décalage2 (bits - b));
+
+            auto a = expr_bin->opérande_gauche;
+            auto b = expr_bin->opérande_droite;
+
+            auto conj = assem->crée_expression_binaire(
+                lexème, op_disj, b, assem->crée_littérale_entier(lexème, b->type, bits_moins_un));
+
+            auto comme = assem->crée_comme(lexème, conj, nullptr);
+            comme->type = type_résultat;
+            comme->transformation = {TypeTransformation::CONVERTIS_VERS_TYPE_CIBLE, type_résultat};
+
+            auto temporaire = crée_déclaration_variable(lexème, type_résultat, comme);
+            temporaire->drapeaux |= DrapeauxNoeud::EST_UTILISEE;
+            ajoute_expression(temporaire);
+            auto ref_temporaire = assem->crée_référence_déclaration(temporaire->lexème,
+                                                                    temporaire);
+
+            b = ref_temporaire;
+
+            auto gauche = assem->crée_expression_binaire(lexème, op_décalage1, a, b);
+
+            auto bits_moins_b = assem->crée_expression_binaire(
+                lexème, op_moins, assem->crée_littérale_entier(lexème, type_résultat, bits), b);
+            auto droite = assem->crée_expression_binaire(lexème, op_décalage2, a, bits_moins_b);
+
+            auto résultat = assem->crée_expression_binaire(lexème, op_conj, gauche, droite);
+
+            return résultat;
+        }
+
         if (!pour_opérande) {
             return nullptr;
         }
