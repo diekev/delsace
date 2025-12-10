@@ -1636,6 +1636,14 @@ AtomeConstante *évalue_opérateur_binaire(InstructionOpBinaire const *inst,
         {
             APPLIQUE_OPERATION_ENTIER(DécalageDroite);
         }
+        case OpérateurBinaire::Genre::Pivote_Gauche:
+        {
+            APPLIQUE_OPERATION_ENTIER(PivotGauche);
+        }
+        case OpérateurBinaire::Genre::Pivote_Droite:
+        {
+            APPLIQUE_OPERATION_ENTIER(PivotDroite);
+        }
         case OpérateurBinaire::Genre::Indexage:
         case OpérateurBinaire::Genre::Invalide:
         {

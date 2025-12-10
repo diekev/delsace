@@ -21,6 +21,7 @@ test_moultfilage
 test_operateur
 test_opérateur_pour
 test_opérateurs_surchargés
+test_pivot
 test_plage_boucle
 test_polymorphisme
 test_pousse_contexte

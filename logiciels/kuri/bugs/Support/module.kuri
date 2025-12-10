@@ -3,10 +3,10 @@ importe Fondation
 
 variable_globale: z32
 
-attend_compilation_terminée :: fonc (espace: EspaceDeTravail)
+attends_compilation_terminée :: fonc (espace: EspaceDeTravail)
 {
     boucle {
-        message := compilatrice_attend_message()
+        message := compilatrice_attends_message()
         diffère compilatrice_message_reçu(message)
 
         si message.espace != espace {
@@ -36,7 +36,7 @@ compile_fichier_erroné :: fonc (chemin: chaine) -> bool
 
     ajoute_fichier_à_la_compilation(espace, chemin)
 
-    attend_compilation_terminée(espace)
+    attends_compilation_terminée(espace)
 
     // À FAIRE : il faudra avoir une IPA pour déterminer l'erreur voulue
     retourne compilatrice_possède_erreur(espace)
@@ -51,7 +51,7 @@ compile_script_erroné :: fonc (script: chaine) -> bool
     compilatrice_commence_interception(espace)
     ajoute_chaine_à_la_compilation(espace, script)
 
-    attend_compilation_terminée(espace)
+    attends_compilation_terminée(espace)
 
     // À FAIRE : il faudra avoir une IPA pour déterminer l'erreur voulue
     retourne compilatrice_possède_erreur(espace)
