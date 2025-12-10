@@ -2874,6 +2874,8 @@ static void donne_registres_pour_opération_binaire(GestionnaireRegistres &regis
             droite = Registre::RCX;
             break;
         }
+        case OpérateurBinaire::Genre::Pivote_Gauche:
+        case OpérateurBinaire::Genre::Pivote_Droite:
         case OpérateurBinaire::Genre::Indexage:
         case OpérateurBinaire::Genre::Invalide:
         {
@@ -3361,6 +3363,8 @@ void GénératriceCodeASM::génère_code_pour_opération_binaire(InstructionOpBi
             GÉNÈRE_CODE_INST_DECALAGE_BIT(shr);
             break;
         }
+        case OpérateurBinaire::Genre::Pivote_Gauche:
+        case OpérateurBinaire::Genre::Pivote_Droite:
         case OpérateurBinaire::Genre::Indexage:
         case OpérateurBinaire::Genre::Invalide:
         {
