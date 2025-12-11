@@ -236,6 +236,12 @@ class GestionnaireCode {
 
     NoeudBloc *crée_bloc_racine(Typeuse &typeuse);
 
+    MétaProgramme *requiers_exécution_pour_ipa(EspaceDeTravail *espace,
+                                               NoeudExpression const *site,
+                                               kuri::chaine_statique texte,
+                                               void *adresse_résultat,
+                                               Type *type_à_retourner);
+
   private:
     void requiers_synthétisation_opérateur(EspaceDeTravail *espace,
                                            OpérateurBinaire *opérateur_binaire);

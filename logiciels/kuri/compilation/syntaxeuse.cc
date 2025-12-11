@@ -558,7 +558,8 @@ void Syntaxeuse::quand_commence()
     /* Nous faisons ça ici afin de ne pas trop avoir de méprédictions de branches
      * dans la boucle principale (qui ne sera alors pas exécutée car les lexèmes
      * auront été consommés). */
-    if (!m_fichier->métaprogramme_corps_texte && !m_fichier->directve_insère) {
+    if (!m_fichier->métaprogramme_corps_texte && !m_fichier->directve_insère &&
+        !m_fichier->fonction_compilatrice_exécute) {
         return;
     }
 
@@ -566,6 +567,14 @@ void Syntaxeuse::quand_commence()
         auto insère = m_fichier->directve_insère;
         m_contexte->assembleuse->bloc_courant(insère->bloc_parent);
         insère->substitution = analyse_bloc(TypeBloc::IMPÉRATIF, false);
+        m_contexte->assembleuse->dépile_bloc();
+        return;
+    }
+
+    if (m_fichier->fonction_compilatrice_exécute) {
+        auto corps = m_fichier->fonction_compilatrice_exécute;
+        m_contexte->assembleuse->bloc_courant(corps->bloc);
+        parse_contenu_bloc(corps->bloc);
         m_contexte->assembleuse->dépile_bloc();
         return;
     }
@@ -1896,6 +1905,22 @@ NoeudBloc *Syntaxeuse::analyse_bloc(TypeBloc type_bloc, bool accolade_requise)
                                                             fonctions_courantes.haut();
     auto bloc = m_contexte->assembleuse->empile_bloc(lexème, fonction_courante, type_bloc);
 
+    parse_contenu_bloc(bloc);
+
+    m_contexte->assembleuse->dépile_bloc();
+
+    if (accolade_requise) {
+        bloc->lexème_accolade_finale = lexème_courant();
+        consomme(GenreLexème::ACCOLADE_FERMANTE, "Attendu une accolade fermante '}'");
+    }
+
+    dépile_état();
+
+    return bloc;
+}
+
+void Syntaxeuse::parse_contenu_bloc(NoeudBloc *bloc)
+{
     auto expressions = kuri::tablet<NoeudExpression *, 32>();
 
     while (!fini() && !apparie(GenreLexème::ACCOLADE_FERMANTE)) {
@@ -1918,7 +1943,7 @@ NoeudBloc *Syntaxeuse::analyse_bloc(TypeBloc type_bloc, bool accolade_requise)
             expressions.ajoute(noeud);
         }
         else if (apparie_commentaire()) {
-            lexème = lexème_courant();
+            auto lexème = lexème_courant();
             auto noeud = m_contexte->assembleuse->crée_commentaire(lexème);
             expressions.ajoute(noeud);
             consomme();
@@ -1929,16 +1954,6 @@ NoeudBloc *Syntaxeuse::analyse_bloc(TypeBloc type_bloc, bool accolade_requise)
     }
 
     copie_tablet_tableau(expressions, *bloc->expressions.verrou_écriture());
-    m_contexte->assembleuse->dépile_bloc();
-
-    if (accolade_requise) {
-        bloc->lexème_accolade_finale = lexème_courant();
-        consomme(GenreLexème::ACCOLADE_FERMANTE, "Attendu une accolade fermante '}'");
-    }
-
-    dépile_état();
-
-    return bloc;
 }
 
 NoeudExpression *Syntaxeuse::analyse_appel_fonction(NoeudExpression *gauche)

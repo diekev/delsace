@@ -10,7 +10,6 @@
 #include "structures/chaine.hh"
 #include "structures/chemin_systeme.hh"
 #include "structures/ensemblon.hh"
-#include "structures/table_hachage.hh"
 #include "structures/tableau.hh"
 #include "structures/tableau_page.hh"
 #include "structures/tablet.hh"
@@ -28,6 +27,7 @@ struct IdentifiantCode;
 struct MétaProgramme;
 struct Module;
 struct NoeudBloc;
+struct NoeudDéclarationCorpsFonction;
 struct NoeudDirectiveInsère;
 struct NoeudDirectivePréExécutable;
 struct NoeudExpression;
@@ -122,6 +122,7 @@ struct Fichier {
     Module *module = nullptr;
     MétaProgramme *métaprogramme_corps_texte = nullptr;
     NoeudDirectiveInsère *directve_insère = nullptr;
+    NoeudDéclarationCorpsFonction *fonction_compilatrice_exécute = nullptr;
 
     /* Pour les fichiers venant de CHAINE_AJOUTEE, le décalage dans le fichier final. */
     int64_t décalage_fichier = 0;
