@@ -10,7 +10,6 @@
 #include "structures/chaine.hh"
 #include "structures/chemin_systeme.hh"
 #include "structures/ensemblon.hh"
-#include "structures/table_hachage.hh"
 #include "structures/tableau.hh"
 #include "structures/tableau_page.hh"
 #include "structures/tablet.hh"
