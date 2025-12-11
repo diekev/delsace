@@ -219,24 +219,6 @@ RésultatValidation Sémanticienne::valide(UnitéCompilation *unité)
 
 MétaProgramme *Sémanticienne::crée_métaprogramme_pour_directive(NoeudDirectiveExécute *directive)
 {
-    assert(m_assembleuse->bloc_courant() == nullptr);
-
-    // crée une fonction pour l'exécution
-    auto decl_entête = m_assembleuse->crée_entête_fonction(directive->lexème);
-    auto decl_corps = decl_entête->corps;
-
-    decl_entête->bloc_parent = directive->bloc_parent;
-    decl_corps->bloc_parent = directive->bloc_parent;
-
-    m_assembleuse->bloc_courant(decl_corps->bloc_parent);
-    decl_entête->bloc_constantes = m_assembleuse->empile_bloc(
-        directive->lexème, decl_entête, TypeBloc::CONSTANTES);
-    decl_entête->bloc_paramètres = m_assembleuse->empile_bloc(
-        directive->lexème, decl_entête, TypeBloc::PARAMÈTRES);
-
-    decl_entête->drapeaux_fonction |= (DrapeauxNoeudFonction::EST_MÉTAPROGRAMME |
-                                       DrapeauxNoeudFonction::FUT_GÉNÉRÉE_PAR_LA_COMPILATRICE);
-
     // le type de la fonction est fonc () -> (type_expression)
     auto expression = directive->expression;
     auto type_expression = expression->type;
@@ -249,45 +231,9 @@ MétaProgramme *Sémanticienne::crée_métaprogramme_pour_directive(NoeudDirecti
         type_expression = m_espace->typeuse.type_rien;
     }
 
-    if (type_expression->est_type_tuple()) {
-        auto tuple = type_expression->comme_type_tuple();
-
-        POUR (tuple->rubriques) {
-            auto decl_sortie = m_assembleuse->crée_déclaration_variable(
-                directive->lexème, nullptr, nullptr);
-            decl_sortie->ident = m_compilatrice.table_identifiants->identifiant_pour_chaine(
-                "__ret0");
-            decl_sortie->type = it.type;
-            decl_sortie->drapeaux |= DrapeauxNoeud::DECLARATION_FUT_VALIDEE;
-            decl_entête->params_sorties.ajoute(decl_sortie);
-        }
-
-        decl_entête->param_sortie = m_assembleuse->crée_déclaration_variable(
-            directive->lexème, nullptr, nullptr);
-        decl_entête->param_sortie->ident =
-            m_compilatrice.table_identifiants->identifiant_pour_chaine("valeur_de_retour");
-        decl_entête->param_sortie->type = type_expression;
-    }
-    else {
-        auto decl_sortie = m_assembleuse->crée_déclaration_variable(
-            directive->lexème, nullptr, nullptr);
-        decl_sortie->ident = m_compilatrice.table_identifiants->identifiant_pour_chaine("__ret0");
-        decl_sortie->type = type_expression;
-        decl_sortie->drapeaux |= DrapeauxNoeud::DECLARATION_FUT_VALIDEE;
-
-        decl_entête->params_sorties.ajoute(decl_sortie);
-        decl_entête->param_sortie = m_assembleuse->crée_déclaration_variable(
-            directive->lexème, nullptr, nullptr);
-        decl_entête->param_sortie->type = type_expression;
-    }
-
-    auto types_entrées = kuri::tablet<Type *, 6>(0);
-
-    auto type_fonction = m_espace->typeuse.type_fonction(types_entrées, type_expression);
-    decl_entête->type = type_fonction;
-
-    decl_corps->bloc = m_assembleuse->empile_bloc(
-        directive->lexème, decl_entête, TypeBloc::IMPÉRATIF);
+    auto decl_entête = crée_fonction_pour_métaprogramme(
+        m_contexte, directive->lexème, directive->bloc_parent, type_expression);
+    auto decl_corps = decl_entête->corps;
 
     auto lexème_retourne = m_contexte->lexèmes_extra->crée_lexème(
         directive->lexème, GenreLexème::RETOURNE, "retourne");
@@ -3595,7 +3541,8 @@ RésultatValidation Sémanticienne::valide_fonction(NoeudDéclarationCorpsFoncti
 
     simplifie_arbre(m_contexte, entête);
 
-    if (est_corps_texte) {
+    if (est_corps_texte ||
+        entête->possède_drapeau(DrapeauxNoeudFonction::EST_POUR_COMPILATRICE_EXÉCUTE)) {
         /* À FAIRE : considère réusiner la gestion des métaprogrammes dans le GestionnaireCode afin
          * de pouvoir requérir la compilation du métaprogramme dès sa création, mais d'attendre que
          * la fonction soit validée afin de le compiler.
