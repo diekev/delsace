@@ -167,3 +167,15 @@ fonction compilatrice_donne_arguments_ligne_de_commande() -> chaine_statique []
 /* Retourne la liste des arguments passés à la ligne de commande de la compilatrice Kuri après "--". */
 fonction compilatrice_donne_fichier_entrée_compilation() -> chaine_statique
 @compilatrice
+
+/* --------------------------------------------------------------------------
+ * Exécution de métaprogramme.
+ */
+
+/* Compile et exécute le texte passé en paramètre et retourne le résultat dans la paramètre de retour.
+ * Le métaprogramme appelant est suspendu tant que le résultat n'est pas disponible.
+ * Le code passé doit avoir la même forme que le code retourné pour un #corps_texte, c'est-à-dire qu'une
+ * instruction de retour doit être explicite.
+ * S'il n'y a aucune valeur à retourner, nul doit être passer pour le résultat. */
+fonction compilatrice_exécute(chaine_statique code, void *résultat)
+@compilatrice
