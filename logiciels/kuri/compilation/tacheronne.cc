@@ -673,6 +673,17 @@ void Tacheronne::exécute_métaprogrammes()
 
                 free(const_cast<char *>(résultat.pointeur()));
             }
+            else if (it->est_pour_compilatrice_exécute) {
+                if (it->adresse_retour) {
+                    assert(it->type_retour != nullptr);
+
+                    auto adresse_résultat = it->données_exécution->pointeur_pile;
+                    memcpy(it->adresse_retour, adresse_résultat, it->type_retour->taille_octet);
+
+                    // À FAIRE : @CompilatriceExécute, rapport de fuite de mémoire.
+                    it->données_exécution->détectrice_fuite_de_mémoire.réinitialise();
+                }
+            }
 
             imprime_fuites_de_mémoire(it);
         }

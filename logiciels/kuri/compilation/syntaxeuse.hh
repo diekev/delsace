@@ -76,6 +76,7 @@ struct Syntaxeuse : BaseSyntaxeuse {
                                                    GenreLexème lexème_final);
 
     NoeudBloc *analyse_bloc(TypeBloc type_bloc, bool accolade_requise = true);
+    void parse_contenu_bloc(NoeudBloc *bloc);
 
     NoeudExpression *analyse_appel_fonction(NoeudExpression *gauche);
 
