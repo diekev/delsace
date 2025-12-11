@@ -7,6 +7,7 @@
 #include "arbre_syntaxique/copieuse.hh"
 
 #include "compilatrice.hh"
+#include "contexte.hh"
 #include "espace_de_travail.hh"
 #include "programme.hh"
 
@@ -1586,6 +1587,47 @@ NoeudBloc *GestionnaireCode::crée_bloc_racine(Typeuse &typeuse)
     return résultat;
 }
 
+MétaProgramme *GestionnaireCode::requiers_exécution_pour_ipa(EspaceDeTravail *espace,
+                                                             NoeudExpression const *site,
+                                                             kuri::chaine_statique texte,
+                                                             void *adresse_résultat,
+                                                             Type *type_à_retourner)
+{
+    auto contexte = Contexte{};
+    contexte.espace = espace;
+    contexte.assembleuse = m_assembleuse;
+    auto fonction = crée_fonction_pour_métaprogramme(
+        &contexte, site->lexème, site->bloc_parent, type_à_retourner);
+    fonction->drapeaux_fonction |= DrapeauxNoeudFonction::EST_POUR_COMPILATRICE_EXÉCUTE;
+    fonction->drapeaux |= DrapeauxNoeud::DECLARATION_FUT_VALIDEE;
+
+    m_assembleuse->dépile_tout();
+
+    auto résultat = m_compilatrice->crée_métaprogramme(espace);
+    résultat->adresse_retour = adresse_résultat;
+    résultat->fonction = fonction;
+    résultat->type_retour = type_à_retourner;
+    résultat->est_pour_compilatrice_exécute = site;
+
+    auto module = espace->module;
+    auto nom_fichier = enchaine(résultat);
+    auto résultat_fichier = espace->sys_module->trouve_ou_crée_fichier(
+        module, nom_fichier, nom_fichier);
+    assert(std::holds_alternative<FichierNeuf>(résultat_fichier));
+    auto fichier = static_cast<Fichier *>(std::get<FichierNeuf>(résultat_fichier));
+    fichier->fonction_compilatrice_exécute = fonction->corps;
+    fichier->source = SourceFichier::CHAINE_AJOUTÉE;
+    fichier->charge_tampon(TamponSource(texte));
+
+    résultat->fichier = fichier;
+
+    requiers_lexage(espace, fichier);
+
+    // NOTE : le typage de la fonction sera requis lorsque le fichier sera parsé.
+
+    return résultat;
+}
+
 void GestionnaireCode::mets_en_attente(UnitéCompilation *unité_attendante, Attente attente)
 {
     assert(attente.est_valide());
@@ -1928,6 +1970,10 @@ void GestionnaireCode::parsage_fichier_terminé(UnitéCompilation *unité)
     m_état_chargement_fichiers.supprime_unité_pour_chargement_fichier(unité);
 
     auto fichier = unité->fichier;
+
+    if (fichier->fonction_compilatrice_exécute) {
+        requiers_typage(espace, fichier->fonction_compilatrice_exécute);
+    }
 
     POUR (fichier->noeuds_à_valider) {
         ajoute_noeud_de_haut_niveau(it, espace, fichier);

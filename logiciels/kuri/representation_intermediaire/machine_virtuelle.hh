@@ -140,6 +140,7 @@ struct MachineVirtuelle {
         COMPILATION_ARRÊTÉE,
         TERMINÉ,
         PASSE_AU_SUIVANT,
+        PASSE_AU_SUIVANT_PRÉSERVE_FRAME,
     };
 
     static constexpr auto TAILLE_PILE = 1024 * 1024;
