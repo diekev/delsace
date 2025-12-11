@@ -129,7 +129,11 @@ kuri::chaine_statique MétaProgramme::donne_nom_pour_fichier_log()
     const NoeudExpression *site = directive;
     if (!site) {
         site = corps_texte;
+        if (!site) {
+            site = est_pour_compilatrice_exécute;
+        }
     }
+    assert(site != nullptr);
     auto const fichier_directive = espace->fichier(site->lexème->fichier);
     auto const hiérarchie = donne_les_noms_de_la_hiérarchie(site->bloc_parent);
     auto const date = espace->compilatrice().donne_date_début_compilation();
@@ -137,7 +141,12 @@ kuri::chaine_statique MétaProgramme::donne_nom_pour_fichier_log()
     imprime_date_format_iso(date, enchaineuse);
     enchaineuse << '_';
 
-    enchaineuse << site->ident->nom;
+    if (site->ident) {
+        enchaineuse << site->ident->nom;
+    }
+    else {
+        enchaineuse << site->genre;
+    }
 
     for (auto i = hiérarchie.taille() - 1; i >= 0; i--) {
         auto nom = hiérarchie[i];
