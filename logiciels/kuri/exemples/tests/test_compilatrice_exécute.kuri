@@ -1,0 +1,44 @@
+importe Fondation
+importe Compilatrice
+
+principale :: fonc ()
+{
+}
+
+#exécute {
+    imprimeln("Avant compilatrice_exécute")
+
+    texte := "imprimeln(\"Bonjour depuis compilatrice_exécute\")"
+    compilatrice_exécute(texte, nul)
+
+    imprimeln("Après compilatrice_exécute")
+
+    texte = "retourne 147"
+    valeur_retournée: z32
+    compilatrice_exécute(texte, *valeur_retournée)
+
+    imprimeln("Le métaprogramme a retourné %", valeur_retournée)
+
+    chns: [..]chaine
+    diffère déloge(chns)
+    tableau_ajoute(*chns, "résultat: [..]z32\n")
+    tableau_ajoute(*chns, "tableau_ajoute(*résultat, 147)\n")
+    tableau_ajoute(*chns, "tableau_ajoute(*résultat, 258)\n")
+    tableau_ajoute(*chns, "tableau_ajoute(*résultat, 789)\n")
+    tableau_ajoute(*chns, "retourne résultat\n")
+
+    texte = enchaine(...chns)
+    diffère déloge(texte)
+
+    imprimeln("------------------")
+    imprimeln("Retour d'un tableau")
+
+    valeurs: [..]z32
+    // À FAIRE : permet de déloger des valeurs qui furent allouées par un autre métaprogramme.
+    // diffère déloge(valeurs)
+    compilatrice_exécute(texte, *valeurs)
+
+    pour valeurs {
+        imprimeln("-- %", it)
+    }
+}
