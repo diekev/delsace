@@ -154,6 +154,12 @@ struct MétaProgramme {
 
     DonnéesExécution *données_exécution = nullptr;
 
+    /* Pour les métaprogrammes créés pour compilatrice_exécute. */
+    NoeudExpression const *est_pour_compilatrice_exécute = nullptr;
+    void *adresse_retour = nullptr;
+    Type *type_retour = nullptr;
+    MétaProgramme *attends_sur_métaprogramme = nullptr;
+
     Programme *programme = nullptr;
 
     /* Pour les exécutions. */

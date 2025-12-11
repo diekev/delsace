@@ -260,9 +260,13 @@ enum class DrapeauxNoeudFonction : uint32_t {
     /* La fonction est une intrinsèque SSE2. */
     EST_SSE2 = (1 << 29),
 
+    /* La fonction fut crée pour compilatrice_exécute. */
+    EST_POUR_COMPILATRICE_EXÉCUTE = (1 << 30),
+
     /* Ne copions pas certains bits. */
     BITS_COPIABLES = ~(EST_POLYMORPHIQUE | EST_VARIADIQUE | EST_MONOMORPHISATION |
-                       EST_INITIALISATION_TYPE | EST_INTRINSÈQUE | EST_MÉTAPROGRAMME),
+                       EST_INITIALISATION_TYPE | EST_INTRINSÈQUE | EST_MÉTAPROGRAMME |
+                       EST_POUR_COMPILATRICE_EXÉCUTE),
 };
 DEFINIS_OPERATEURS_DRAPEAU(DrapeauxNoeudFonction)
 
@@ -637,3 +641,8 @@ MéthodeConstructionGlobale détermine_méthode_construction_globale(
     NoeudExpression const *expression, TransformationType const &transformation);
 
 NoeudBloc *donne_bloc_à_fusionner(NoeudSiStatique const *si_statique);
+
+NoeudDéclarationEntêteFonction *crée_fonction_pour_métaprogramme(Contexte *contexte,
+                                                                 Lexème const *lexème,
+                                                                 NoeudBloc *bloc_parent,
+                                                                 Type *type_retour);

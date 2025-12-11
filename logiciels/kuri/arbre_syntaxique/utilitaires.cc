@@ -3275,3 +3275,71 @@ NoeudBloc *donne_bloc_à_fusionner(NoeudSiStatique const *si_statique)
 
     return nullptr;
 }
+
+NoeudDéclarationEntêteFonction *crée_fonction_pour_métaprogramme(Contexte *contexte,
+                                                                 Lexème const *lexème,
+                                                                 NoeudBloc *bloc_parent,
+                                                                 Type *type_retour)
+{
+    auto assembleuse = contexte->assembleuse;
+    auto espace = contexte->espace;
+    auto compilatrice = &espace->compilatrice();
+
+    assert(assembleuse->bloc_courant() == nullptr);
+
+    auto decl_entête = assembleuse->crée_entête_fonction(lexème);
+    auto decl_corps = decl_entête->corps;
+
+    decl_entête->bloc_parent = bloc_parent;
+    decl_corps->bloc_parent = bloc_parent;
+
+    assembleuse->bloc_courant(decl_corps->bloc_parent);
+    decl_entête->bloc_constantes = assembleuse->empile_bloc(
+        lexème, decl_entête, TypeBloc::CONSTANTES);
+    decl_entête->bloc_paramètres = assembleuse->empile_bloc(
+        lexème, decl_entête, TypeBloc::PARAMÈTRES);
+
+    decl_entête->drapeaux_fonction |= (DrapeauxNoeudFonction::EST_MÉTAPROGRAMME |
+                                       DrapeauxNoeudFonction::FUT_GÉNÉRÉE_PAR_LA_COMPILATRICE);
+
+    // le type de la fonction est fonc () -> (type_retour)
+
+    if (type_retour->est_type_tuple()) {
+        auto tuple = type_retour->comme_type_tuple();
+
+        POUR (tuple->rubriques) {
+            auto decl_sortie = assembleuse->crée_déclaration_variable(lexème, nullptr, nullptr);
+            decl_sortie->ident = compilatrice->table_identifiants->identifiant_pour_chaine(
+                "__ret0");
+            decl_sortie->type = it.type;
+            decl_sortie->drapeaux |= DrapeauxNoeud::DECLARATION_FUT_VALIDEE;
+            decl_entête->params_sorties.ajoute(decl_sortie);
+        }
+
+        decl_entête->param_sortie = assembleuse->crée_déclaration_variable(
+            lexème, nullptr, nullptr);
+        decl_entête->param_sortie->ident =
+            compilatrice->table_identifiants->identifiant_pour_chaine("valeur_de_retour");
+        decl_entête->param_sortie->type = type_retour;
+    }
+    else {
+        auto decl_sortie = assembleuse->crée_déclaration_variable(lexème, nullptr, nullptr);
+        decl_sortie->ident = compilatrice->table_identifiants->identifiant_pour_chaine("__ret0");
+        decl_sortie->type = type_retour;
+        decl_sortie->drapeaux |= DrapeauxNoeud::DECLARATION_FUT_VALIDEE;
+
+        decl_entête->params_sorties.ajoute(decl_sortie);
+        decl_entête->param_sortie = assembleuse->crée_déclaration_variable(
+            lexème, nullptr, nullptr);
+        decl_entête->param_sortie->type = type_retour;
+    }
+
+    auto types_entrées = kuri::tablet<Type *, 6>(0);
+
+    auto type_fonction = espace->typeuse.type_fonction(types_entrées, type_retour);
+    decl_entête->type = type_fonction;
+
+    decl_corps->bloc = assembleuse->empile_bloc(lexème, decl_entête, TypeBloc::IMPÉRATIF);
+
+    return decl_entête;
+}
