@@ -225,6 +225,7 @@ static std::ostream &operator<<(std::ostream &os, MachineVirtuelle::RésultatInt
         CASE(COMPILATION_ARRÊTÉE);
         CASE(TERMINÉ);
         CASE(PASSE_AU_SUIVANT);
+        CASE(PASSE_AU_SUIVANT_PRÉSERVE_FRAME);
     }
 #undef CASE
     return os;
@@ -962,6 +963,41 @@ void MachineVirtuelle::appel_fonction_compilatrice(AtomeFonction *ptr_fonction,
 
     if (EST_FONCTION_COMPILATRICE(compilatrice_donne_fichier_entrée_compilation)) {
         empile(compilatrice.arguments.fichier_entrée_compilation);
+        return;
+    }
+
+    if (EST_FONCTION_COMPILATRICE(compilatrice_exécute)) {
+        auto adresse_résultat = dépile<void *>();
+        auto texte = dépile<kuri::chaine_statique>();
+        auto espace = m_métaprogramme->unité->espace;
+
+        auto site = donne_site_adresse_courante();
+        if (site->genre != GenreNoeud::EXPRESSION_APPEL) {
+            rapporte_erreur_exécution(
+                "le site de compilatrice_exécute n'est pas une expression d'appel");
+            résultat = RésultatInterprétation::ERREUR;
+            return;
+        }
+
+        auto appel = site->comme_appel();
+        auto paramètre = appel->paramètres_résolus[1];
+        if (paramètre->est_comme()) {
+            auto transtypage = paramètre->comme_comme();
+            // À FAIRE : @CompilatriceExécute ce genre de transtypages devrait être implicite.
+            // if (transtypage->possède_drapeau(DrapeauxNoeud::EST_IMPLICITE)) {
+            paramètre = transtypage->expression;
+            //}
+        }
+        auto type_à_retourner = paramètre->type->comme_type_pointeur()->type_pointé;
+        if (type_à_retourner == nullptr) {
+            type_à_retourner = espace->typeuse.type_rien;
+        }
+
+        auto métaprogramme = compilatrice.gestionnaire_code->requiers_exécution_pour_ipa(
+            espace, site, texte, adresse_résultat, type_à_retourner);
+        m_métaprogramme->attends_sur_métaprogramme = métaprogramme;
+
+        résultat = RésultatInterprétation::PASSE_AU_SUIVANT_PRÉSERVE_FRAME;
         return;
     }
 }
@@ -1789,6 +1825,10 @@ MachineVirtuelle::RésultatInterprétation MachineVirtuelle::exécute_instructio
                     return résultat;
                 }
 
+                if (résultat == RésultatInterprétation::PASSE_AU_SUIVANT_PRÉSERVE_FRAME) {
+                    return RésultatInterprétation::PASSE_AU_SUIVANT;
+                }
+
                 break;
             }
             case OP_APPEL_INTRINSÈQUE:
@@ -1822,6 +1862,10 @@ MachineVirtuelle::RésultatInterprétation MachineVirtuelle::exécute_instructio
                         frame->pointeur = pointeur_début;
                         compte_exécutées = i + 1;
                         return résultat;
+                    }
+
+                    if (résultat == RésultatInterprétation::PASSE_AU_SUIVANT_PRÉSERVE_FRAME) {
+                        return RésultatInterprétation::PASSE_AU_SUIVANT;
                     }
                 }
                 else if (ptr_fonction->est_externe) {
@@ -2375,6 +2419,16 @@ void MachineVirtuelle::exécute_métaprogrammes_courants()
 
     for (auto i = 0; i < nombre_métaprogrammes; ++i) {
         auto métaprogramme = m_métaprogrammes[i];
+
+        if (métaprogramme->attends_sur_métaprogramme) {
+            auto attendu = métaprogramme->attends_sur_métaprogramme;
+            if (attendu->état == ÉtatMétaprogramme::EXÉCUTION_TERMINÉE) {
+                métaprogramme->attends_sur_métaprogramme = nullptr;
+            }
+            else {
+                continue;
+            }
+        }
 
         assert(métaprogramme->données_exécution->profondeur_appel >= 1);
 
