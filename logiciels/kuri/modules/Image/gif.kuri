@@ -1,0 +1,646 @@
+/* Original code released in the public domain by
+ * https://github.com/lecram/gifdec
+ * SPDX-License-Identifier: GPL-2.0-or-later
+ * Modifications Copyright (C) 2025 Kévin Dietrich. */
+
+importe Flux
+
+lis_image_gif_fichier :: fonc (chemin: chaine) -> (bool, NouvelleImage)
+{
+    succès, contenu := contenu_fichier_binaire(CheminFichier(chemin))
+    diffère déloge(contenu)
+    retourne lis_image_gif_mémoire(contenu);
+}
+
+lis_image_gif_mémoire :: fonc (données: []octet) -> (bool, NouvelleImage)
+{ 
+    flux := crée_flux_octets(données)
+
+    gif := gd_open_gif(flux);
+    saufsi gif {
+        détruit(flux)
+    }
+
+    retourne lis_frame_gif(gif);
+}
+
+#portée_fichier
+
+lis_frame_gif :: fonc (gif: *gd_GIF) -> (bool, NouvelleImage)
+{
+    xres := gif.width;
+    yres := gif.height;
+
+    desc: DescriptriceImage
+    desc.largeur = xres
+    desc.hauteur = yres
+    desc.format = FormatPixel.RVB_8
+
+    résultat := crée_image(*desc)
+
+    tampon: []octet
+    tampon.pointeur = résultat.données
+    tampon.taille = donne_taille_données(*desc)
+
+    si gd_get_frame(gif) == -1 {
+        imprimeln("[GIF] impossible d'obtenir la frame")
+        gd_close_gif(gif);
+        retourne faux, résultat
+    }
+
+    gd_render_frame(gif, tampon);
+    gd_close_gif(gif);
+
+    // numéro_image := 0
+
+    // tantque est_valide(gif.charge_gif) {
+    //     si gd_get_frame(gif) == -1 {
+    //         imprimeln("[GIF] impossible d'obtenir la frame")
+    //         arrête
+    //     }
+
+    //     gd_render_frame(gif, tampon);
+    //     numéro_image += 1
+    //     imprimeln("numéro_image : %", numéro_image)
+    // }
+
+    retourne vrai, résultat
+}
+
+RVB255 :: struct {
+    r, v, b: n8
+}
+
+gd_Palette :: struct {
+    size: z32
+    colors: [0x100]RVB255
+}
+
+lis_palette :: fonc (flux: *FluxOctets, palette: *gd_Palette)
+{
+    gtc: []octet
+    gtc.pointeur = *palette.colors
+    gtc.taille = 3 * palette.size
+    _ := lis(flux, gtc)
+}
+
+gd_GCE :: struct {
+    delay: n16
+    tindex: n8
+    disposal: n8
+    input: z32
+    transparency: z32
+}
+
+gd_GIF :: struct {
+    charge_gif: *FluxOctets
+    anim_start: PositionFichier // Position dans le FluxOctets
+    width, height: n32
+    depth: n16
+    loop_count: n16
+    gce: gd_GCE
+
+    possède_gct: bool
+    palette: *gd_Palette
+    lct, gct: gd_Palette
+
+    plain_text: fonc (gif: *gd_GIF,
+                      tx: n16,
+                      ty: n16,
+                      tw: n16,
+                      th: n16,
+                      cw: n8,
+                      ch: n8,
+                      fg: n8,
+                      bg: n8);
+    comment: fonc (gif: *gd_GIF);
+    application: fonc (gif: *gd_GIF, id: chaine, auth: chaine);
+    fx, fy, fw, fh: n32
+    bgindex: n8
+    frame: [..]octet
+    canvas: []octet
+}
+
+Entry :: struct {
+    length: n16
+    prefix: n16
+    suffix: n8
+}
+
+Table :: struct {
+    bulk: z32
+    entries: [..]Entry
+}
+
+gd_open_gif :: fonc (charge_gif: *FluxOctets) -> *gd_GIF
+{
+    sigver: [3]z8
+    chn_sigver := chaine(*sigver[0], 3)
+
+    /* Header */
+    _ := lis(charge_gif, sigver)
+    si chn_sigver != "GIF" {
+        imprimeln("[GIF] invalid signature : '%'\n", chn_sigver);
+        retourne nul;
+    }
+    /* Version */
+    _ := lis(charge_gif, sigver)
+    /* À FAIRE : le code fut écris pour 89a, ajout de 87a ici pour charger les fichiers, mais il
+     * faudra comprendre la différence et modifier le code pour prendre en compte la bonne version.
+     */
+    si chn_sigver != "87a" && chn_sigver != "89a" {
+        imprimeln("[GIF] version invalide ou non-supportée : '%'", chn_sigver)
+        retourne nul;
+    }
+    /* Width x Height */
+    width, _ := lis_petit_boutisme(charge_gif, n16)
+    height, _ := lis_petit_boutisme(charge_gif, n16)
+    /* FDSZ */
+    fdsz, _ := lis_petit_boutisme(charge_gif, n8)
+    /* Presence of GCT */
+    possède_gct := (fdsz & 0x80) == 0x80
+    /* Color Space's Depth */
+    depth : n16 = ((fdsz >> 4) & 7) + 1;
+    /* Ignore Sort Flag. */
+    /* GCT Size */
+    gct_sz := 1 << ((fdsz & 0x07) + 1) comme z32;
+    /* Background Color Index */
+    bgidx, _ := lis_petit_boutisme(charge_gif, n8)
+    /* Aspect Ratio */
+    aspect, _ := lis_petit_boutisme(charge_gif, n8)
+    /* Create gd_GIF Structure. */
+    gif := loge(gd_GIF);
+    saufsi gif {
+        retourne nul;
+    }
+    gif.charge_gif = charge_gif;
+    gif.width = width;
+    gif.height = height;
+    gif.depth = depth;
+
+    /* Read GCT */
+    gif.possède_gct = possède_gct
+    si gif.possède_gct {
+        gif.gct.size = gct_sz;
+        lis_palette(charge_gif, *gif.gct)
+        gif.palette = *gif.gct;
+        gif.bgindex = bgidx;
+    }
+
+    tableau_redimensionne(gif.frame, 4 * width comme z32 * height comme z32)
+    tableau_remplis_avec(gif.frame, 0)
+
+    gif.canvas.pointeur = *gif.frame[width comme n32 * height];
+    gif.canvas.taille = 3 * width comme z32 * height comme z32
+
+    si gif.possède_gct {
+        tableau_frame: []n8
+        tableau_frame.pointeur = gif.frame.pointeur comme *n8
+        tableau_frame.taille = width comme z32 * height comme z32
+        tableau_remplis_avec(tableau_frame, gif.bgindex)
+
+        bgcolor := *gif.palette.colors[gif.bgindex];
+        si bgcolor.r || bgcolor.v || bgcolor.b {
+            pour i dans gif.width * gif.height {
+                copie_mem_nonsur(dst = *gif.canvas[i * 3], src = bgcolor, taille = 3);
+            }
+        }
+    }
+    gif.anim_start = donne_position(charge_gif)
+    retourne gif;
+}
+
+/* Return 1 if got a frame; 0 if got GIF trailer; -1 if error. */
+gd_get_frame :: fonc (gif: *gd_GIF) -> z32
+{
+    dispose(gif);
+    sep, _ := lis_petit_boutisme(gif.charge_gif, z8)
+    tantque sep != ',' {
+        si sep == ';' {
+            retourne 0;
+        }
+        si sep == '!' {
+            read_ext(gif);
+        }
+        sinon {
+            retourne -1;
+        }
+        nouveau_sep, _ := lis_petit_boutisme(gif.charge_gif, z8)
+        sep = nouveau_sep
+    }
+    si read_image(gif) == -1 {
+        imprimeln("[GIF] impossible de lire l'image")
+        retourne -1;
+    }
+    retourne 1;
+}
+
+gd_render_frame :: fonc (gif: *gd_GIF, tampon: []octet)
+{
+    copie_mem_nonsur(dst = tampon.pointeur, src = gif.canvas.pointeur, taille = gif.width comme z32 * gif.height comme z32 * 3);
+    render_frame_rect(gif, tampon);
+}
+
+gd_is_bgcolor :: fonc (gif: *gd_GIF, color: RVB255) -> bool
+{
+    retourne gif.palette.colors[gif.bgindex] == color;
+}
+
+gd_rewind :: fonc (gif: *gd_GIF)
+{
+    position(gif.charge_gif, gif.anim_start)
+}
+
+gd_close_gif :: fonc (gif: *gd_GIF)
+{
+    détruit(gif.charge_gif)
+    déloge(gif.frame)
+    déloge(gif);
+}
+
+discard_sub_blocks :: fonc (gif: *gd_GIF)
+{
+    boucle {
+        size, _ := lis_petit_boutisme(gif.charge_gif, n8)
+        si size == 0 {
+            arrête
+        }
+        positionne(gif.charge_gif, PositionRelative(size comme z64))
+    }
+}
+
+read_plain_text_ext :: fonc (gif: *gd_GIF)
+{
+    si gif.plain_text {
+        bloc_size, _ := lis_petit_boutisme(gif.charge_gif, n8)
+        assert(bloc_size == 12)
+
+        tx, _ := lis_petit_boutisme(gif.charge_gif, n16)
+        ty, _ := lis_petit_boutisme(gif.charge_gif, n16)
+        tw, _ := lis_petit_boutisme(gif.charge_gif, n16)
+        th, _ := lis_petit_boutisme(gif.charge_gif, n16)
+        cw, _ := lis_petit_boutisme(gif.charge_gif, n8);
+        ch, _ := lis_petit_boutisme(gif.charge_gif, n8);
+        fg, _ := lis_petit_boutisme(gif.charge_gif, n8);
+        bg, _ := lis_petit_boutisme(gif.charge_gif, n8);
+
+        sub_block := donne_position(gif.charge_gif)
+        gif.plain_text(gif, tx, ty, tw, th, cw, ch, fg, bg);
+        positionne(gif.charge_gif, sub_block)
+    }
+    sinon {
+        /* Discard plain text metadata. */
+        positionne(gif.charge_gif, PositionRelative(13))
+    }
+    /* Discard plain text sub-blocks. */
+    discard_sub_blocks(gif);
+}
+
+read_graphic_control_ext :: fonc (gif: *gd_GIF)
+{
+    bloc_size, _ := lis_petit_boutisme(gif.charge_gif, n8)
+    assert(bloc_size == 0x04)
+
+    rdit, _ := lis_petit_boutisme(gif.charge_gif, n8)
+    delay, _ := lis_petit_boutisme(gif.charge_gif, n16)
+    tindex, _ := lis_petit_boutisme(gif.charge_gif, n8)
+
+    gif.gce.disposal = (rdit >> 2) & 3;
+    gif.gce.input = (rdit & 2) comme z32;
+    gif.gce.transparency = (rdit & 1) comme z32;
+    gif.gce.delay = delay
+    gif.gce.tindex = tindex
+
+    bloc_terminator, _ := lis_petit_boutisme(gif.charge_gif, n8)
+    assert(bloc_terminator == 0)
+}
+
+read_comment_ext :: fonc (gif: *gd_GIF)
+{
+    si gif.comment {
+        position := donne_position(gif.charge_gif)
+        gif.comment(gif);
+        positionne(gif.charge_gif, position)
+    }
+    /* Discard comment sub-blocks. */
+    discard_sub_blocks(gif);
+}
+
+read_application_ext :: fonc (gif: *gd_GIF)
+{
+    app_id: [8]z8
+    chn_app_id := chaine(*app_id[0], app_id.taille)
+
+    app_auth_code: [3]z8
+    chn_app_auth_code := chaine(*app_auth_code[0], app_auth_code.taille)
+
+    /* Discard block size (always 0x0B). */
+    bloc_size, _ := lis_petit_boutisme(gif.charge_gif, n8)
+    assert(bloc_size == 0x0B)
+
+    /* Application Identifier. */
+    _ := lis(gif.charge_gif, app_id)
+    /* Application Authentication Code. */
+    _ := lis(gif.charge_gif, app_auth_code)
+
+    si chn_app_id == "NETSCAPE" {
+        ns_bloc_size, _ := lis_petit_boutisme(gif.charge_gif, n8)
+        constante_byte, _ := lis_petit_boutisme(gif.charge_gif, n8)
+        loop_count, _ := lis_petit_boutisme(gif.charge_gif, n16)
+        bloc_terminator, _ := lis_petit_boutisme(gif.charge_gif, n8)
+        /* Discard block size (0x03) and constant byte (0x01). */
+        assert(ns_bloc_size == 0x03)
+        assert(constante_byte == 0x01)
+        assert(bloc_terminator == 0)
+
+        gif.loop_count = loop_count
+    }
+    sinon si gif.application {
+        sub_block := donne_position(gif.charge_gif)
+        gif.application(gif, chn_app_id, chn_app_auth_code);
+        positionne(gif.charge_gif, sub_block)
+        discard_sub_blocks(gif);
+    }
+    sinon {
+        discard_sub_blocks(gif);
+    }
+}
+
+read_ext :: fonc (gif: *gd_GIF)
+{
+    label, _ := lis_petit_boutisme(gif.charge_gif, n8)
+    discr label {
+        0x01 {
+            read_plain_text_ext(gif);
+        }
+        0xF9 {
+            read_graphic_control_ext(gif);
+        }
+        0xFE {
+            read_comment_ext(gif);
+        }
+        0xFF {
+            read_application_ext(gif);
+        }
+        sinon {
+            imprimeln("[GIF] extension inconnue : %", label)
+        }
+    }
+}
+
+new_table :: fonc (key_size: z32) -> *Table
+{
+    init_bulk := max(1 << (key_size + 1), 0x100);
+    table := loge(Table)
+    si table {
+        tableau_redimensionne(table.entries, init_bulk)
+        table.bulk = init_bulk;
+        table.entries.taille = (1 << key_size) + 2;
+        pour key dans (1 << key_size) {
+            table.entries[key] = Entry(1, 0xFFF, key comme n8)
+        }
+    }
+    retourne table;
+}
+
+détruit :: fonc (table: *Table)
+{
+    déloge(table.entries)
+    déloge(table)
+}
+
+/* Add table entry. Return value:
+ *  0 on success
+ *  +1 if key size must be incremented after this addition
+ *  -1 if could not realloc table */
+add_entry :: fonc (table: *Table, length: n16, prefix: n16, suffix: n8) -> z32
+{
+    si table.entries.taille == table.bulk {
+        table.bulk *= 2;
+        tableau_réserve(*table.entries, table.bulk)
+    }
+    tableau_ajoute(*table.entries, Entry(length, prefix, suffix))
+    si (table.entries.taille & (table.entries.taille - 1)) == 0 {
+        retourne 1;
+    }
+    retourne 0;
+}
+
+get_key :: fonc (gif: *gd_GIF, key_size: z32, sub_len: *n8, shift: *n8, byte: *n8) -> n16
+{
+    bits_read: z32
+    key: n16 = 0;
+    tantque bits_read < key_size {
+        rpad := (mémoire(shift) comme z32 + bits_read) % 8;
+        si rpad == 0 {
+            /* Update byte. */
+            si mémoire(sub_len) == 0 {
+                nouveau_sub_len, _ := lis_petit_boutisme(gif.charge_gif, n8)
+                mémoire(sub_len) = nouveau_sub_len
+                si mémoire(sub_len) == 0 {
+                    retourne 0x1000;
+                }
+            }
+            nouveau_byte, _ := lis_petit_boutisme(gif.charge_gif, n8);
+            mémoire(byte) = nouveau_byte
+
+            mémoire(sub_len) = mémoire(sub_len) - 1
+        }
+        frag_size := min(key_size - bits_read, 8 - rpad);
+        key |= (((mémoire(byte) comme z32 >> rpad)) << bits_read) comme n16;
+        bits_read += frag_size
+    }
+    /* Clear extra bits to the left. */
+    key &= ((1 << key_size) - 1) comme n16;
+    mémoire(shift) = ((mémoire(shift) comme z32 + key_size) % 8) comme n8;
+    retourne key;
+}
+
+/* Compute output index of y-th input line, in frame of height h. */
+interlaced_line_index :: fonc (h: z32, y: z32) -> z32
+{
+    /* number of lines in current pass */
+    p := (h - 1) / 8 + 1;
+    si y < p { /* pass 1 */
+        retourne y * 8;
+    }
+    y -= p;
+    p = (h - 5) / 8 + 1;
+    si y < p { /* pass 2 */
+        retourne y * 8 + 4;
+    }
+    y -= p;
+    p = (h - 3) / 4 + 1;
+    si y < p { /* pass 3 */
+        retourne y * 4 + 2;
+    }
+    y -= p;
+    /* pass 4 */
+    retourne y * 2 + 1;
+}
+
+/* Decompress image pixels.
+ * Return 0 on success or -1 on out-of-memory (w.r.t. LZW code table). */
+read_image_data :: fonc (gif: *gd_GIF, interlace: z32) -> z32
+{
+    byte, _ := lis_petit_boutisme(gif.charge_gif, n8);
+    key_size := byte comme z32
+    si key_size < 2 || key_size > 8 {
+        retourne -1;
+    }
+
+    start := donne_position(gif.charge_gif);
+    discard_sub_blocks(gif);
+    end := donne_position(gif.charge_gif);
+    positionne(gif.charge_gif, start)
+
+    clear := 1 << key_size;
+    stop := clear + 1;
+
+    table := new_table(key_size);
+    diffère détruit(table)
+
+    key_size += 1;
+    init_key_size := key_size;
+    sub_len: n8
+    shift: n8
+    key := get_key(gif, key_size, *sub_len, *shift, *byte); /* clear code */
+    frm_off : n32 = 0;
+    ret := 0;
+    frm_size := gif.fw * gif.fh;
+    table_is_full := faux
+    str_len: n16
+    entry: Entry
+    tantque frm_off < frm_size {
+        si key comme z32 == clear {
+            key_size = init_key_size;
+            table.entries.taille = (1 << (key_size - 1)) + 2;
+            table_is_full = faux;
+        }
+        sinon si !table_is_full {
+            ret = add_entry(table, str_len + 1, key, entry.suffix);
+            si ret == -1 {
+                retourne -1;
+            }
+            si table.entries.taille == 0x1000 {
+                ret = 0;
+                table_is_full = vrai;
+            }
+        }
+        key = get_key(gif, key_size, *sub_len, *shift, *byte);
+        si key comme z32 == clear {
+            continue;
+        }
+        si key comme z32 == stop || key == 0x1000 {
+            arrête;
+        }
+        si ret == 1 {
+            key_size += 1;
+            ret = 0
+        }
+        entry = table.entries[key];
+        str_len = entry.length;
+        pour _ dans str_len {
+            p := frm_off + entry.length - 1;
+            x := p % gif.fw;
+            y := p / gif.fw;
+            si interlace {
+                y = interlaced_line_index(gif.fh comme z32, y comme z32) comme n16;
+            }
+            gif.frame[(gif.fy + y) * gif.width + gif.fx + x] = entry.suffix comme octet;
+            si entry.prefix == 0xFFF {
+                arrête;
+            }
+            sinon {
+                entry = table.entries[entry.prefix]
+            }
+        }
+        frm_off += str_len;
+        si key comme z64 < table.entries.taille - 1 && !table_is_full {
+            table.entries[table.entries.taille - 1].suffix = entry.suffix;
+        }
+    }
+    si key comme z32 == stop {
+        sub_len, _ := lis_petit_boutisme(gif.charge_gif, n8)
+        assert(sub_len == 0) /* Must be zero! */
+    }
+    positionne(gif.charge_gif, end)
+    retourne 0;
+}
+
+/* Read image.
+ * Return 0 on success or -1 on out-of-memory (w.r.t. LZW code table). */
+read_image :: fonc (gif: *gd_GIF) -> z32
+{
+    /* Image Descriptor. */
+    fx, _ := lis_petit_boutisme(gif.charge_gif, n16)
+    fy, _ := lis_petit_boutisme(gif.charge_gif, n16)
+    gif.fx = fx
+    gif.fy = fy
+
+    si gif.fx >= gif.width || gif.fy >= gif.height {
+        retourne -1;
+    }
+
+    fw, _ := lis_petit_boutisme(gif.charge_gif, n16)
+    fh, _ := lis_petit_boutisme(gif.charge_gif, n16)
+    gif.fw = fw
+    gif.fh = fh
+
+    gif.fw = min(gif.fw, gif.width - gif.fx);
+    gif.fh = min(gif.fh, gif.height - gif.fy);
+
+    fisrz, _ := lis_petit_boutisme(gif.charge_gif, n8);
+    interlace := (fisrz comme z32) & 0x40;
+    /* Ignore Sort Flag. */
+    /* Local Color Table? */
+    si (fisrz & 0x80) != 0 {
+        /* Read LCT */
+        gif.lct.size = 1 << ((fisrz & 0x07) + 1) comme z32;
+        lis_palette(gif.charge_gif, *gif.lct)
+        gif.palette = *gif.lct;
+    }
+    sinon si gif.possède_gct {
+        gif.palette = *gif.gct;
+    }
+    /* Image Data. */
+    retourne read_image_data(gif, interlace);
+}
+
+render_frame_rect :: fonc (gif: *gd_GIF, buffer: []octet)
+{
+    i := gif.fy * gif.width + gif.fx;
+    pour j dans gif.fh {
+        pour k dans gif.fw {
+            index := gif.frame[(gif.fy + j) * gif.width + gif.fx + k];
+            si (!gif.gce.transparency || index != gif.gce.tindex) {
+                color := *gif.palette.colors[index];
+                copie_mem_nonsur(src = color, dst = *buffer[(i + k) * 3], taille = 3);
+            }
+        }
+        i += gif.width;
+    }
+}
+
+dispose :: fonc (gif: *gd_GIF)
+{
+    discr gif.gce.disposal {
+        2 { /* Restore to background color. */
+            bgcolor := *gif.palette.colors[gif.bgindex];
+            i := gif.fy * gif.width + gif.fx;
+            pour _ dans gif.fh {
+                pour k dans gif.fw {
+                    copie_mem_nonsur(dst = *gif.canvas[(i + k) * 3], src = bgcolor, taille = 3);
+                }
+                i += gif.width
+            }
+        }
+        3 {
+            /* Restore to previous, i.e., don't update canvas.*/
+        }
+        sinon {
+            /* Add frame non-transparent pixels to canvas. */
+            render_frame_rect(gif, gif.canvas);
+        }
+    }
+}

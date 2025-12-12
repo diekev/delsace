@@ -7,6 +7,8 @@ importe SysFichier
 importe Triage
 importe PThread
 
+charge "gif"
+
 libtbb :: #bibliothèque "tbb"
 
 #dépendance_bibliothèque libmodule_c_image libtbb
@@ -236,18 +238,11 @@ décode_image :: fonc (données: []octet, type_mime: chaine, chemin := "") -> (b
     }
 
     si type_mime == "image/gif" {
-        data := données.pointeur comme *n8
-        data_size := données.taille comme n64
-
-        image: ImageIO
-        résultat_img := IMG_ouvre_gif_depuis_memoire(data, data_size, *image)
-
-        si résultat_img != ResultatOperation.OK {
+        succès_gif, résultat := lis_image_gif_mémoire(données)
+        si succès_gif == faux {
+            détruit_données_image(*résultat)
             retourne faux, NouvelleImage()
         }
-
-        résultat := crée_image_depuis_image_io(*image)
-        IMG_detruit_image(*image)
         retourne vrai, résultat
     }
 
