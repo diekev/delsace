@@ -966,6 +966,11 @@ enum ResultatOperation IMG_ouvre_gif_depuis_memoire(const void *donnees,
 
 ResultatOperation IMG_ecris_image(const char *chemin, ImageIO *image)
 {
+    if (!image || image->donnees == nullptr || image->taille_donnees == 0 || image->hauteur == 0 ||
+        image->largeur == 0) {
+        return ResultatOperation::IMAGE_NULLE;
+    }
+
     auto out = OIIO::ImageOutput::create(chemin);
 
     if (out == nullptr) {
