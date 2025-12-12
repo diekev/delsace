@@ -5,93 +5,6 @@
 
 importe Flux
 
-lis_image_gif_fichier :: fonc (chemin: chaine) -> (bool, NouvelleImage)
-{
-    succès, contenu := contenu_fichier_binaire(CheminFichier(chemin))
-    diffère déloge(contenu)
-    retourne lis_image_gif_mémoire(contenu);
-}
-
-lis_image_gif_mémoire :: fonc (données: []octet) -> (bool, NouvelleImage)
-{ 
-    flux := crée_flux_octets(données)
-
-    gif := gd_open_gif(flux);
-    saufsi gif {
-        détruit(flux)
-    }
-
-    retourne lis_frame_gif(gif);
-}
-
-#portée_fichier
-
-lis_frame_gif :: fonc (gif: *gd_GIF) -> (bool, NouvelleImage)
-{
-    xres := gif.width;
-    yres := gif.height;
-
-    desc: DescriptriceImage
-    desc.largeur = xres
-    desc.hauteur = yres
-    desc.format = FormatPixel.RVB_8
-
-    résultat := crée_image(*desc)
-
-    tampon: []octet
-    tampon.pointeur = résultat.données
-    tampon.taille = donne_taille_données(*desc)
-
-    si gd_get_frame(gif) == -1 {
-        imprimeln("[GIF] impossible d'obtenir la frame")
-        gd_close_gif(gif);
-        retourne faux, résultat
-    }
-
-    gd_render_frame(gif, tampon);
-    gd_close_gif(gif);
-
-    // numéro_image := 0
-
-    // tantque est_valide(gif.charge_gif) {
-    //     si gd_get_frame(gif) == -1 {
-    //         imprimeln("[GIF] impossible d'obtenir la frame")
-    //         arrête
-    //     }
-
-    //     gd_render_frame(gif, tampon);
-    //     numéro_image += 1
-    //     imprimeln("numéro_image : %", numéro_image)
-    // }
-
-    retourne vrai, résultat
-}
-
-RVB255 :: struct {
-    r, v, b: n8
-}
-
-gd_Palette :: struct {
-    size: z32
-    colors: [0x100]RVB255
-}
-
-lis_palette :: fonc (flux: *FluxOctets, palette: *gd_Palette)
-{
-    gtc: []octet
-    gtc.pointeur = *palette.colors
-    gtc.taille = 3 * palette.size
-    _ := lis(flux, gtc)
-}
-
-gd_GCE :: struct {
-    delay: n16
-    tindex: n8
-    disposal: n8
-    input: z32
-    transparency: z32
-}
-
 gd_GIF :: struct {
     charge_gif: *FluxOctets
     anim_start: PositionFichier // Position dans le FluxOctets
@@ -119,6 +32,111 @@ gd_GIF :: struct {
     bgindex: n8
     frame: [..]octet
     canvas: []octet
+}
+
+/* Retourne le temps en millisecondes. */
+donne_temps_par_image :: fonc (gif: *gd_GIF) -> n32
+{
+    si gif.gce.delay == 0 {
+        retourne 100
+    }
+    retourne gif.gce.delay * 10
+}
+
+gd_close_gif :: fonc (gif: *gd_GIF)
+{
+    détruit(gif.charge_gif)
+    déloge(gif.frame)
+    déloge(gif);
+}
+
+lis_image_gif_fichier :: fonc (chemin: chaine) -> (bool, NouvelleImage)
+{
+    succès, contenu := contenu_fichier_binaire(CheminFichier(chemin))
+    diffère déloge(contenu)
+    retourne lis_image_gif_mémoire(contenu);
+}
+
+lis_image_gif_mémoire :: fonc (données: []octet) -> (bool, NouvelleImage)
+{ 
+    flux := crée_flux_octets(données)
+
+    gif := gd_open_gif(flux);
+    saufsi gif {
+        détruit(flux)
+    }
+
+    retourne lis_frame_gif(gif);
+}
+
+/* L'image doit déjà avoir été allouée. */
+lis_frame_gif :: fonc (gif: *gd_GIF, résultat: NouvelleImage) -> bool
+{
+    assert(résultat.données != nul)
+    assert(gif == résultat.gif)
+
+    tampon: []octet
+    tampon.pointeur = résultat.données
+    tampon.taille = donne_taille_données(*résultat.desc)
+
+    saufsi est_valide(gif.charge_gif) {
+        gd_rewind(gif)
+    }
+
+    si est_valide(gif.charge_gif) {
+        si gd_get_frame(gif) == -1 {
+            imprimeln("[GIF] impossible d'obtenir la frame")
+            retourne faux
+        }
+
+        gd_render_frame(gif, tampon);
+    }
+
+    retourne vrai
+}
+
+#portée_fichier
+
+lis_frame_gif :: fonc (gif: *gd_GIF) -> (bool, NouvelleImage)
+{
+    xres := gif.width;
+    yres := gif.height;
+
+    desc: DescriptriceImage
+    desc.largeur = xres
+    desc.hauteur = yres
+    desc.format = FormatPixel.RVB_8
+
+    résultat := crée_image(*desc)
+    résultat.gif = gif
+
+    succès := lis_frame_gif(gif, résultat)
+    retourne succès, résultat
+}
+
+RVB255 :: struct {
+    r, v, b: n8
+}
+
+gd_Palette :: struct {
+    size: z32
+    colors: [0x100]RVB255
+}
+
+lis_palette :: fonc (flux: *FluxOctets, palette: *gd_Palette)
+{
+    gtc: []octet
+    gtc.pointeur = *palette.colors
+    gtc.taille = 3 * palette.size
+    _ := lis(flux, gtc)
+}
+
+gd_GCE :: struct {
+    delay: n16
+    tindex: n8
+    disposal: n8
+    input: z32
+    transparency: z32
 }
 
 Entry :: struct {
@@ -248,14 +266,7 @@ gd_is_bgcolor :: fonc (gif: *gd_GIF, color: RVB255) -> bool
 
 gd_rewind :: fonc (gif: *gd_GIF)
 {
-    position(gif.charge_gif, gif.anim_start)
-}
-
-gd_close_gif :: fonc (gif: *gd_GIF)
-{
-    détruit(gif.charge_gif)
-    déloge(gif.frame)
-    déloge(gif);
+    positionne(gif.charge_gif, gif.anim_start)
 }
 
 discard_sub_blocks :: fonc (gif: *gd_GIF)

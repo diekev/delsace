@@ -92,6 +92,8 @@ NouvelleImage :: struct {
     données: *octet
     desc: DescriptriceImage
     source_données: SourceDonnéesImage
+
+    gif: *gd_GIF
 }
 
 crée_image :: fonc (desc: *DescriptriceImage) -> NouvelleImage
@@ -185,6 +187,11 @@ détruit_données_image :: fonc (image: *NouvelleImage)
 
     déloge(données)
     image.données = nul
+
+    si image.gif {
+        gd_close_gif(image.gif)
+        image.gif = nul
+    }
 }
 
 charge_image :: fonc (chemin: chaine) -> (bool, NouvelleImage)
