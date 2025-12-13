@@ -597,6 +597,7 @@ parse_declarator :: fonc (empl parseuse: *ParseuseC, présence_identifier: Prés
         tantque est_type_qualifier(lexème) {
             consomme(*lexeuse)
             tableau_ajoute(*pointer_courant.qualifiers, donne_texte(lexème))
+            lexème = épie_lexème_suivant(*lexeuse)
         }
 
         si pointer {
