@@ -29,7 +29,7 @@
 /** \name Poids pour les arguments polymorphiques et variadiques.
  * Nous réduisons le poids de ces types d'arguments pour favoriser les fonctions ayant été déjà
  * monomorphées, ou celle de même nom n'ayant pas d'arguments variadiques (p.e. pour favoriser
- * fonc(z32)(rien) par rapport à fonc(...z32)(rien)).
+ * fonc (z32) -> rien par rapport à fonc (...z32) -> rien).
  * \{ */
 
 static constexpr double POIDS_POUR_ARGUMENT_POLYMORPHIQUE = 0.95;
@@ -789,9 +789,9 @@ static RésultatAppariement apparie_appel_pointeur(
 {
     auto type = decl_pointeur_fonction->type;
     // À FAIRE : ceci fut découvert alors que nous avions un type_de_données comme rubrique
-    //    rubrique :: fonc()(rien)
+    //    rubrique :: fonc () -> rien
     // au lieu de
-    //    rubrique : fonc()(rien)
+    //    rubrique : fonc () -> rien
     // il faudra un système plus robuste
     if (!type->est_type_fonction()) {
         return ErreurAppariement::type_non_fonction(b->expression, type);

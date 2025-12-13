@@ -397,7 +397,7 @@ static void aplatis_arbre(NoeudExpression *racine,
                           PositionCodeNoeud position);
 
 /* Fonction pour aplatir l'arbre d'une entête de fonction. Pour les déclarations de types
- * fonctions (fonc()(rien)) l'arbre aplatis est l'arbre du noeud parent (structure, fonction,
+ * fonctions (fonc () -> rien) l'arbre aplatis est l'arbre du noeud parent (structure, fonction,
  * etc.), et non celui de l'entête. */
 static void aplatis_entête_fonction(NoeudDéclarationEntêteFonction *entête,
                                     kuri::tableau<NoeudExpression *, int> &arbre_aplatis)
