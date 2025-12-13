@@ -151,7 +151,7 @@ chemin_normalisé :: fonc (pile: &Pile(chaine), chemin_est_absolu: bool) -> Chem
     initialise_enchaineuse(*enchaineuse)
 
     // Arriver ici veut dire que le chemin est valide, mais que soit les composants du
-    // chemin on tous été supprimés, soit que le chemin fut celui de la racine
+    // chemin ont tous été supprimés, soit que le chemin fut celui de la racine
     si pile_secondaire.est_vide() {
         ajoute_au_tampon(*enchaineuse, séparateur_chemin())
     }
