@@ -477,6 +477,22 @@ donne_source_préprocédée :: fonc (chemin_source: chaine) -> chaine
 
 donne_source_préprocédée :: fonc (préprocesseur: *PréProcesseur, chemin_source: chaine) -> chaine
 {
+    lexèmes := donne_lexèmes_préprocès(préprocesseur, chemin_source)
+    diffère déloge(lexèmes)
+
+    enchaineuse: Enchaineuse
+    initialise_enchaineuse(*enchaineuse)
+
+    pour lexèmes {
+        ajoute_au_tampon(*enchaineuse, donne_texte(it.lexème))
+    }
+
+    résultat := chaine_depuis_enchaineuse(*enchaineuse)
+    retourne résultat
+}
+
+donne_lexèmes_préprocès :: fonc (préprocesseur: *PréProcesseur, chemin_source: chaine) -> [..]LexèmePréprocès
+{
     préprocesseur.compteur = 0
 
     empile_fichier(préprocesseur, chemin_source, "")
@@ -739,15 +755,7 @@ donne_source_préprocédée :: fonc (préprocesseur: *PréProcesseur, chemin_sou
 
     exécute_phase_de_traduction_6(*lexèmes)
 
-    enchaineuse: Enchaineuse
-    initialise_enchaineuse(*enchaineuse)
-
-    pour lexèmes {
-        ajoute_au_tampon(*enchaineuse, donne_texte(it.lexème))
-    }
-
-    résultat := chaine_depuis_enchaineuse(*enchaineuse)
-    retourne résultat
+    retourne lexèmes
 }
 
 /* Phase de traduction 6 : Adjacent string literal tokens are concatenated */
