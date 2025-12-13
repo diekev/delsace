@@ -80,6 +80,9 @@ static std::optional<kuri::chaine_statique> type_paramètre_pour_fonction_clé(
         if (entête->ident->nom == "memcpy" && indice == 1) {
             return "const void *";
         }
+        if (entête->ident->nom == "memcmp" && (indice == 0 || indice == 1)) {
+            return "const void *";
+        }
         if (entête->ident->nom == "strlen" && indice == 0) {
             return "const char *";
         }
