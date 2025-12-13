@@ -1,5 +1,7 @@
 importe Chaine
 importe Ensemble
+importe Sérialisation
+importe Temps
 
 /* ------------------------------------------------------------------------- */
 /** \nom Définition
@@ -159,14 +161,80 @@ sur_développement_line :: fonc (préprocesseur: *PréProcesseur @inutilisée, a
 
 sur_développement_date :: fonc (préprocesseur: *PréProcesseur @inutilisée, arguments: [..][..]Lexème @inutilisée) -> Lexème
 {
-    // À FAIRE
-    retourne crée_lexème_chaine_littérale("")
+    // À FAIRE : If the date of translation is not available, an implementation-defined valid date shall be supplied
+    //           Pour ce faire nous pourrions également avoir une option de compilation pour cacher la date.
+    date := hui_système()
+
+    // "Mmm dd yyyy"
+    Griffonier :: TamponFixe(T = z8, N = 13)
+
+    griffonier: Griffonier
+    ajoute(*griffonier, '"')
+
+    chn_mois := chaine_mois_pour_tm(date.mois - 1)
+    pour chn_mois {
+        ajoute(*griffonier, it)
+    }
+
+    ajoute(*griffonier, ' ')
+
+    si date.jour < 10 {
+        ajoute(*griffonier, ' ')
+        ajoute(*griffonier, '0' + (date.jour % 10) comme z8)
+    }
+    sinon {
+        ajoute(*griffonier, '0' + (date.jour / 10) comme z8)
+        ajoute(*griffonier, '0' + (date.jour % 10) comme z8)
+    }
+
+    ajoute(*griffonier, ' ')
+
+    année := date.année
+    ajoute(*griffonier, '0' + (année / 1000) comme z8)
+    année %= 1000
+    ajoute(*griffonier, '0' + (année / 100) comme z8)
+    année %= 100
+    ajoute(*griffonier, '0' + (année / 10) comme z8)
+    année %= 10
+    ajoute(*griffonier, '0' + (année) comme z8)
+
+    ajoute(*griffonier, '"')
+
+    résultat := chaine(*griffonier.données[0], griffonier.curseur)
+    // @FuiteDeMémoire
+    retourne crée_lexème_chaine_littérale(copie_chaine(résultat))
 }
 
 sur_développement_time :: fonc (préprocesseur: *PréProcesseur @inutilisée, arguments: [..][..]Lexème @inutilisée) -> Lexème
 {
-    // À FAIRE
-    retourne crée_lexème_chaine_littérale("")
+    // À FAIRE : If the time of translation is not available, an implementation-defined valid time shall be supplied.
+    //           Pour ce faire nous pourrions également avoir une option de compilation pour cacher l'heure.
+    date := hui_système()
+
+    // "hh:mm:ss"
+    Griffonier :: TamponFixe(T = z8, N = 10)
+
+    griffonier: Griffonier
+    ajoute(*griffonier, '"')
+
+    ajoute(*griffonier, '0' + (date.heure / 10) comme z8)
+    ajoute(*griffonier, '0' + (date.heure % 10) comme z8)
+
+    ajoute(*griffonier, ':')
+
+    ajoute(*griffonier, '0' + (date.minute / 10) comme z8)
+    ajoute(*griffonier, '0' + (date.minute % 10) comme z8)
+
+    ajoute(*griffonier, ':')
+
+    ajoute(*griffonier, '0' + (date.seconde / 10) comme z8)
+    ajoute(*griffonier, '0' + (date.seconde % 10) comme z8)
+
+    ajoute(*griffonier, '"')
+
+    résultat := chaine(*griffonier.données[0], griffonier.curseur)
+    // @FuiteDeMémoire
+    retourne crée_lexème_chaine_littérale(copie_chaine(résultat))
 }
 
 sur_développement_counter :: fonc (préprocesseur: *PréProcesseur, arguments: [..][..]Lexème @inutilisée) -> Lexème
