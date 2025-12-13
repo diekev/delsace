@@ -469,7 +469,7 @@ RésultatTransformation cherche_transformation(Type const *type_de, Type const *
         }
         case GenreNoeud::FONCTION:
         {
-            /* x : fonc()rien = nul; */
+            /* x : fonc () -> rien = nul; */
             if (type_de->est_type_pointeur() &&
                 type_de->comme_type_pointeur()->type_pointé == nullptr) {
                 return TransformationType{TypeTransformation::CONVERTIS_VERS_TYPE_CIBLE,
@@ -498,8 +498,8 @@ RésultatTransformation cherche_transformation(Type const *type_de, Type const *
              *       structure du type source
              *
              * Soit les deux cas suivants :
-             * - fonc(*rien)() = fonc(*T)()
-             * - fonc(*Base)() = fonc(*Dérivée)()
+             * - fonc (*rien) -> rien = fonc (*T) -> rien
+             * - fonc (*Base) -> rien = fonc (*Dérivée) -> rien
              *
              * Avec pour le deuxième cas :
              *
@@ -539,12 +539,12 @@ RésultatTransformation cherche_transformation(Type const *type_de, Type const *
                     return TransformationType(TypeTransformation::IMPOSSIBLE);
                 }
 
-                /* fonc(*rien)() = fonc(*T)(). */
+                /* fonc (*rien) -> rien = fonc (*T) -> rien. */
                 if (est_type_ptr_rien(type_entrée_vers)) {
                     continue;
                 }
 
-                /* fonc(*TypeBase)() = fonc(*TypeDérivé)(). */
+                /* fonc (*TypeBase) -> rien = fonc (*TypeDérivé) -> rien. */
                 auto type_pointé_de = type_entrée_de->comme_type_pointeur()->type_pointé;
                 auto type_pointé_vers = type_entrée_vers->comme_type_pointeur()->type_pointé;
 

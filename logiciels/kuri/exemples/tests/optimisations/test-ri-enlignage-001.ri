@@ -15,7 +15,7 @@ fonction_à_enligner :: fonc () -> z32 #cliche ri_finale
 
 fonction principale() -> __ret0 z32
 label 0
-  %2 = appel fonc()(z32) fonction_à_enligner()
+  %2 = appel fonc () -> z32 fonction_à_enligner()
   stocke *z32 %__ret0, z32 %2
   %4 = charge *z32 %__ret0
   retourne z32 %4
