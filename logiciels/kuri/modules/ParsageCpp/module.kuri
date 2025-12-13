@@ -163,9 +163,17 @@ FieldDecl :: struct {
     type: *Type
 }
 
+// À FAIRE : fusionne avec l'autre TranslationUnit
+NewTranslationUnit :: struct {
+    external_declarations: [..]*ASTNode
+}
+
 ParseuseC :: struct {
     lexeuse: SimpleLexeuse
     noeuds: [..]*ASTNode
+
+    // À FAIRE : meilleure structure
+    typedef_names: [..]chaine
 
     symbole_non_consommé_lors_du_parsage_de_type: chaine
 }
@@ -173,6 +181,9 @@ ParseuseC :: struct {
 initialise_parseuse :: fonc (parseuse: *ParseuseC)
 {
     initialise_lexeuse_c(*parseuse.lexeuse)
+
+    // À FAIRE : comprend ce que c'est
+    tableau_ajoute(*parseuse.typedef_names, "__builtin_va_list")
 }
 
 crée_noeud :: fonc (parseuse: *ParseuseC, $T: type_de_données) -> *T
@@ -237,6 +248,443 @@ parse_texte :: fonc (parseuse: *ParseuseC, texte: chaine) -> *ASTNode
     consomme_ponctuation(*parseuse.lexeuse, ";")
 
     retourne résultat
+}
+
+/* (6.9) translation-unit:
+    external-declaration
+    translation-unit external-declaration */
+parse_translation_unit :: fonc (empl parseuse: *ParseuseC, texte: chaine) -> *NewTranslationUnit
+{
+    initialise_lexeuse_pour_texte(*parseuse.lexeuse, texte)
+
+    résultat := loge(NewTranslationUnit)
+
+    tantque !fini(*lexeuse) {
+        external_declaration := parse_external_declaration(parseuse)
+        tableau_ajoute(*résultat.external_declarations, external_declaration)
+    }
+
+    retourne résultat
+}
+
+est_storage_class_specifier :: fonc (lexème: Lexème) -> bool
+{
+    mots_clés := ["typedef", "extern", "static", "_Thread_local", "auto", "register"]
+    pour mots_clés {
+        si est_mot_clé(lexème, it) {
+            retourne vrai
+        }
+    }
+    retourne faux
+}
+
+est_type_specifier :: fonc (parseuse: *ParseuseC, lexème: Lexème) -> bool
+{
+    mots_clés := ["void", "char", "short", "int", "long", "float", "double", "signed", "unsigned", "_Bool", "_Complex", "struct", "union", "enum"]
+    
+    pour mots_clés {
+        si est_mot_clé(lexème, it) {
+            retourne vrai
+        }
+    }
+
+    texte := donne_texte(lexème)
+
+    pour parseuse.typedef_names {
+        si it == texte {
+            retourne vrai
+        }
+    }
+
+    si texte == "_Atomic" {
+        lexème_suivant := épie_lexème_suivant(*parseuse.lexeuse)
+        retourne est_ponctuation(lexème_suivant, "(")
+    }
+
+    retourne faux
+}
+
+est_type_qualifier :: fonc (lexème: Lexème) -> bool
+{
+    mots_clés := ["const", "restrict", "volatile", "_Atomic"]
+    pour mots_clés {
+        si est_mot_clé(lexème, it) {
+            retourne vrai
+        }
+    }
+    retourne faux
+}
+
+est_function_specifier :: fonc (lexème: Lexème) -> bool
+{
+    mots_clés := ["inline", "_Noreturn"]
+    pour mots_clés {
+        si est_mot_clé(lexème, it) {
+            retourne vrai
+        }
+    }
+    retourne faux
+}
+
+est_alignment_specifier :: fonc (lexème: Lexème) -> bool
+{
+    retourne est_mot_clé(lexème, "_Alignas")
+}
+
+InfoDéclaration :: struct {
+    storage_class_specifier: chaine
+    type_specifiers: [..]chaine
+    type_qualifiers: [..]chaine
+    function_specifiers: [..]chaine
+}
+
+imprime_infos :: fonc (empl infos: *InfoDéclaration)
+{
+    si storage_class_specifier {
+        imprimeln("storage class : %", storage_class_specifier)
+    }
+
+    si type_specifiers {
+        imprimeln("type specifiers :")
+        pour type_specifiers {
+            imprimeln("-- %", it)
+        }
+    }
+
+    si type_qualifiers {
+        imprimeln("type qualifiers :")
+        pour type_qualifiers {
+            imprimeln("-- %", it)
+        }
+    }
+
+    si function_specifiers {
+        imprimeln("function specifiers :")
+        pour function_specifiers {
+            imprimeln("-- %", it)
+        }
+    }
+}
+
+parse_external_declaration :: fonc (empl parseuse: *ParseuseC) -> *ASTNode
+{
+    déclaration_courante: InfoDéclaration
+    parse_declaration_specifiers(parseuse, *déclaration_courante, faux)
+
+    si est_ponctuation(épie_lexème_suivant(*lexeuse), ";") {
+        // À FAIRE : crée noeud.
+        consomme(*lexeuse)
+        retourne nul
+    }
+
+    declarator := parse_declarator(parseuse)
+    saufsi declarator {
+        rapporte_erreur(parseuse, donne_lexème_suivant(*lexeuse), "Attendu un declarateur")
+        retourne nul
+    }
+
+    lexème := donne_lexème_suivant(*lexeuse)
+    saufsi est_ponctuation(lexème, ";") {
+        rapporte_erreur(parseuse, lexème, "Attendu un ';'")
+        retourne nul
+    }
+
+    imprimeln("-----------")
+    imprime_infos(*déclaration_courante)
+
+    si déclaration_courante.storage_class_specifier == "typedef" {
+        tantque declarator.genre == PointerDeclarator {
+            pointer_decl := declarator comme *PointerDeclarator
+            declarator = pointer_decl.direct
+        }
+
+        // À FAIRE
+        assert(declarator.genre == IdentifierDeclarator)
+        identifier := declarator comme *IdentifierDeclarator
+        tableau_ajoute(*parseuse.typedef_names, donne_texte(identifier.identifiant))
+    }
+
+    // exit(0)
+
+    retourne nul
+}
+
+/*
+    (6.7) declaration-specifiers:
+        storage-class-specifier declaration-specifiersopt
+        type-specifier declaration-specifiersopt
+        type-qualifier declaration-specifiersopt
+        function-specifier declaration-specifiersopt
+        alignment-specifier declaration-specifiersop
+*/
+parse_declaration_specifiers :: fonc (empl parseuse: *ParseuseC, déclaration: *InfoDéclaration, pour_struct_declaration: bool)
+{
+    boucle {
+        lexème := donne_lexème_suivant(*lexeuse)
+        si lexème.type == TypeLexème.FinDeFichier {
+            rapporte_erreur(parseuse, lexème, "Fin inattendu de l'entrée")
+            retourne
+        }
+
+        si est_storage_class_specifier(lexème) {
+            si pour_struct_declaration {
+                rapporte_erreur(parseuse, lexème, "Unexpected storage class specifier '%'", donne_texte(lexème))
+                retourne
+            }
+            déclaration.storage_class_specifier = donne_texte(lexème)
+        }
+        sinon si est_type_specifier(parseuse, lexème) {
+            // À FAIRE : vérifie que l'on peut ajout le spécifiant
+            specifier := donne_texte(lexème)
+
+            si specifier == "struct" || specifier == "union" {
+                si déclaration.type_specifiers.taille != 0 {
+                    rapporte_erreur(parseuse, lexème, "Unexpected type speficier '%'", specifier)
+                    retourne
+                }
+
+                _ := parse_struct_or_union_specifier(parseuse, specifier)
+            }
+            sinon si specifier == "enum" {
+                si déclaration.type_specifiers.taille != 0 {
+                    rapporte_erreur(parseuse, lexème, "Unexpected type speficier '%'", specifier)
+                    retourne
+                }
+
+                rapporte_erreur(parseuse, lexème, "Lexème non-géré '%'", specifier)
+                retourne
+            }
+            sinon si specifier == "_Atomic" {
+                si déclaration.type_specifiers.taille != 0 {
+                    rapporte_erreur(parseuse, lexème, "Unexpected type speficier '%'", specifier)
+                    retourne
+                }
+
+                rapporte_erreur(parseuse, lexème, "Lexème non-géré '%'", specifier)
+                retourne
+            }
+
+            tableau_ajoute(*déclaration.type_specifiers, specifier)
+        }
+        sinon si est_type_qualifier(lexème) {
+            tableau_ajoute(*déclaration.type_qualifiers, donne_texte(lexème))
+        }
+        sinon si est_function_specifier(lexème) {
+            si pour_struct_declaration {
+                rapporte_erreur(parseuse, lexème, "Unexpected function specifier '%'", donne_texte(lexème))
+                retourne
+            }
+            tableau_ajoute(*déclaration.function_specifiers, donne_texte(lexème))
+        }
+        sinon si est_alignment_specifier(lexème) {
+            si pour_struct_declaration {
+                rapporte_erreur(parseuse, lexème, "Unexpected alignment specifier '%'", donne_texte(lexème))
+                retourne
+            }
+            rapporte_erreur(parseuse, lexème, "_Alignas non-supporté")
+            retourne
+        }
+        sinon {
+            reprends_depuis_lexème(*lexeuse, lexème)
+            retourne
+        }
+    }
+}
+
+/* (6.7.6) declarator:
+    pointeropt direct-declarator
+*/
+Declarator :: struct {
+    genre: type_de_données
+}
+
+parse_declarator :: fonc (empl parseuse: *ParseuseC) -> *Declarator
+{
+    pointer: *PointerDeclarator
+
+    lexème := épie_lexème_suivant(*lexeuse)
+    tantque est_ponctuation(lexème, "*") {
+        consomme(*lexeuse)
+
+        pointer_courant := loge(PointerDeclarator)
+
+        lexème = épie_lexème_suivant(*lexeuse)
+        tantque est_type_qualifier(lexème) {
+            consomme(*lexeuse)
+            tableau_ajoute(*pointer_courant.qualifiers, donne_texte(lexème))
+        }
+
+        si pointer {
+            pointer.direct = pointer_courant
+        }
+
+        pointer = pointer_courant
+    }
+
+    résultat := parse_direct_declarator(parseuse)
+    si pointer {
+        pointer.direct = résultat
+        résultat = pointer
+    }
+    retourne résultat
+}
+
+/* direct-declarator:
+    identifier
+    ( declarator )
+    direct-declarator [ type-qualifier-listopt assignment-expressionopt ]
+    direct-declarator [ static type-qualifier-listopt assignment-expression ]
+    direct-declarator [ type-qualifier-list static assignment-expression ]
+    direct-declarator [ type-qualifier-listopt * ]
+    direct-declarator ( parameter-type-list )
+    direct-declarator ( identifier-listopt )
+ */
+IdentifierDeclarator :: struct {
+    empl base: Declarator
+    genre = #type_de_cette_structure
+
+    identifiant: Lexème
+}
+
+ArrayDeclarator :: struct {
+    empl base: Declarator
+    genre = #type_de_cette_structure
+
+    direct: *Declarator
+    taille: Lexème
+}
+
+PointerDeclarator :: struct {
+    empl base: Declarator
+    genre = #type_de_cette_structure
+
+    qualifiers: [..]chaine
+    direct: *Declarator
+}
+
+parse_direct_declarator :: fonc (empl parseuse: *ParseuseC) -> *Declarator
+{
+    lexème := épie_lexème_suivant(*lexeuse)
+
+    direct: *Declarator
+
+    si lexème.type == TypeLexème.Symbole {
+        consomme(*lexeuse)
+
+        identifier := loge(IdentifierDeclarator)
+        identifier.identifiant = lexème
+        direct = identifier
+    }
+    sinon si est_ponctuation(lexème, "(") {
+        consomme(*lexeuse)
+        direct = parse_declarator(parseuse)
+        consomme_ponctuation(*lexeuse, ")")
+    }
+    sinon {
+        rapporte_erreur(parseuse, lexème, "Lexème non-géré pour declarator")
+        retourne nul
+    }
+
+    boucle {
+        lexème = épie_lexème_suivant(*lexeuse)
+
+        si est_ponctuation(lexème, "[") {
+            consomme(*lexeuse)
+
+            lexème = donne_lexème_suivant(*lexeuse)
+            si lexème.type != TypeLexème.LittéraleNombreEntier {
+                rapporte_erreur(parseuse, lexème, "Lexème non-géré pour array declarator")
+            }
+
+            array := loge(ArrayDeclarator)
+            array.direct = direct
+            array.taille = lexème
+            direct = array
+
+            consomme_ponctuation(*lexeuse, "]")
+        }
+        sinon {
+            arrête
+        }
+    }
+
+    retourne direct
+}
+
+/* struct-or-union-specifier:
+    struct-or-union identifieropt { struct-declaration-list }
+    struct-or-union identifier
+ */
+parse_struct_or_union_specifier :: fonc (empl parseuse: *ParseuseC, classe: chaine) -> *Type
+{
+    assert(classe == "struct" || classe == "union")
+
+    lexème := épie_lexème_suivant(*lexeuse)
+
+    eu_nom := faux
+    nom: chaine
+    si lexème.type == TypeLexème.Symbole {
+        consomme_symbole(*lexeuse)
+        nom = donne_texte(lexème)
+        eu_nom = vrai
+
+        lexème = épie_lexème_suivant(*lexeuse)
+    }
+
+    fields: [..]*FieldDecl
+    si est_ponctuation(lexème, "{") {
+        consomme_ponctuation(*lexeuse, "{")
+        parse_struct_declaration_list(parseuse, *fields)
+    }
+    sinon saufsi eu_nom {
+        rapporte_erreur(parseuse, lexème, "Lexème inattendu dans le parsage de la structure : %", donne_texte(lexème))
+        retourne nul
+    }
+
+    si classe == "union" {
+        résultat := crée_noeud(parseuse, UnionDecl)
+        résultat.name = nom
+        résultat.fields = fields
+        retourne résultat
+    }
+
+    résultat := crée_noeud(parseuse, StructDecl)
+    résultat.name = nom
+    résultat.fields = fields
+    retourne résultat
+}
+
+/* struct-declaration:
+    specifier-qualifier-list struct-declarator-listopt ;
+    static_assert-declaration */
+parse_struct_declaration_list :: fonc (empl parseuse: *ParseuseC, fields: *[..]*FieldDecl)
+{
+    boucle {
+        lexème := épie_lexème_suivant(*lexeuse)
+        si lexème.type == TypeLexème.FinDeFichier {
+            rapporte_erreur(parseuse, lexème, "Unexpected end of input")
+            retourne
+        }
+
+        si est_ponctuation(lexème, "}") {
+            consomme(*lexeuse)
+            retourne
+        }
+
+        déclaration_courante: InfoDéclaration
+        parse_declaration_specifiers(parseuse, *déclaration_courante, vrai)
+
+        /* struct-declarator:
+            declarator
+            declaratoropt : constant-expression */
+        _ := parse_declarator(parseuse)
+
+        lexème = donne_lexème_suivant(*lexeuse)
+        saufsi est_ponctuation(lexème, ";") {
+            rapporte_erreur(parseuse, lexème, "Expected a ';'")
+            retourne
+        }
+    }
 }
 
 parse_typedef_decl :: fonc (empl parseuse: *ParseuseC) -> *TypedefDecl
