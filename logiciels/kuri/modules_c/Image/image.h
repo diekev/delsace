@@ -14,6 +14,7 @@ typedef unsigned char bool;
 enum ResultatOperation {
     OK,
     ERREUR_INCONNUE,
+    IMAGE_NULLE,
     IMAGE_INEXISTANTE,
     TYPE_IMAGE_NON_SUPPORTE,
     PROXY_NON_SUPPORTE,
