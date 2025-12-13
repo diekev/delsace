@@ -428,6 +428,8 @@ parse_external_declaration :: fonc (empl parseuse: *ParseuseC) -> *ASTNode
         retourne nul
     }
 
+    parse_attributs_gcc(parseuse)
+
     lexème := donne_lexème_suivant(*lexeuse)
     saufsi est_ponctuation(lexème, ";") {
         rapporte_erreur(parseuse, lexème, "Attendu un ';'")
@@ -452,6 +454,43 @@ parse_external_declaration :: fonc (empl parseuse: *ParseuseC) -> *ASTNode
     // exit(0)
 
     retourne nul
+}
+
+parse_attributs_gcc :: fonc (empl parseuse: *ParseuseC)
+{
+    boucle {
+        lexème := épie_lexème_suivant(*lexeuse)
+        si donne_texte(lexème) != "__attribute__" && donne_texte(lexème) != "__asm__" {
+            arrête
+        }
+
+        consomme(*lexeuse)
+
+        lexème = épie_lexème_suivant(*lexeuse)
+        saufsi est_ponctuation(lexème, "(") {
+            rapporte_erreur(parseuse, lexème, "Attendu un '('")
+            retourne
+        }
+
+        parenthèses := 0
+        boucle {
+            lexème = donne_lexème_suivant(*lexeuse)
+            si lexème.type == TypeLexème.FinDeFichier {
+                rapporte_erreur(parseuse, lexème, "Fin de fichier inattendu")
+                retourne
+            }
+            si est_ponctuation(lexème, "(") {
+                parenthèses += 1
+            }
+            sinon si est_ponctuation(lexème, ")") {
+                parenthèses -= 1
+
+                si parenthèses == 0 {
+                    arrête
+                }
+            }
+        }
+    }
 }
 
 /*
