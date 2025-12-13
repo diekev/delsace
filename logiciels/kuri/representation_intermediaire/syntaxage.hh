@@ -721,13 +721,26 @@ typename BaseSyntaxeuseRI<Impl>::TypeType BaseSyntaxeuseRI<Impl>::analyse_type()
 
             auto types_entrée = analyse_paramètres_type();
 
-            if (!apparie(GenreLexème::PARENTHESE_OUVRANTE)) {
-                rapporte_erreur("Attendu une parenthèse ouvrante pour les paramètres de sortie du "
-                                "type fonction");
-                return {};
+            auto types_sortie = kuri::tablet<BaseSyntaxeuseRI<Impl>::TypeType, 6>();
+
+            if (apparie(GenreLexème::RETOUR_TYPE)) {
+                consomme();
+
+                if (apparie(GenreLexème::PARENTHESE_OUVRANTE)) {
+                    types_sortie = analyse_paramètres_type();
+                }
+                else {
+                    auto type_sortie = analyse_type();
+                    types_sortie.ajoute(type_sortie);
+                }
+            }
+            else {
+                static auto lexème_rien = Lexème{};
+                lexème_rien.genre = GenreLexème::RIEN;
+                auto type_sortie = impl()->crée_type_basique(&lexème_rien);
+                types_sortie.ajoute(type_sortie);
             }
 
-            auto types_sortie = analyse_paramètres_type();
             return impl()->crée_type_fonction(lexème, types_entrée, types_sortie);
         }
         case LexèmeType::TUPLE:
