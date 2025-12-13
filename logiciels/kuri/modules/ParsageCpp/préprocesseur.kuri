@@ -737,6 +737,8 @@ donne_source_préprocédée :: fonc (préprocesseur: *PréProcesseur, chemin_sou
         développe_macro(*lexèmes, préprocesseur, *infos_développement)
     }
 
+    exécute_phase_de_traduction_6(*lexèmes)
+
     enchaineuse: Enchaineuse
     initialise_enchaineuse(*enchaineuse)
 
@@ -746,6 +748,46 @@ donne_source_préprocédée :: fonc (préprocesseur: *PréProcesseur, chemin_sou
 
     résultat := chaine_depuis_enchaineuse(*enchaineuse)
     retourne résultat
+}
+
+/* Phase de traduction 6 : Adjacent string literal tokens are concatenated */
+exécute_phase_de_traduction_6 :: fonc (lexèmes: *[..]LexèmePréprocès)
+{
+    entrée := lexèmes.pointeur
+    sortie := lexèmes.pointeur
+    fin := lexèmes.pointeur + lexèmes.taille
+
+    dernier_lexème_chaine_littérale: *LexèmePréprocès
+
+    tantque entrée < fin {
+        lexème := mémoire(entrée)
+        entrée += 1
+
+        si lexème.lexème.type == TypeLexème.ChaineLittérale {
+            si dernier_lexème_chaine_littérale {
+                texte_a := donne_texte_sans_guillemets(dernier_lexème_chaine_littérale.lexème)
+                texte_b := donne_texte_sans_guillemets(lexème.lexème)
+
+                // @FuiteDeMémoire
+                texte := enchaine("\"", texte_a, texte_b, "\"")
+
+                lexème.lexème = crée_lexème_chaine_littérale(texte)
+
+                sortie = dernier_lexème_chaine_littérale
+            }
+            sinon {
+                dernier_lexème_chaine_littérale = sortie
+            }
+        }
+        sinon si lexème.lexème.type != TypeLexème.EspaceBlanche {
+            dernier_lexème_chaine_littérale = nul
+        }
+
+        mémoire(sortie) = lexème
+        sortie += 1
+    }
+
+    lexèmes.taille = sortie - lexèmes.pointeur
 }
 
 donne_définition :: fonc (préprocesseur: *PréProcesseur, nom: chaine) -> *Définition
