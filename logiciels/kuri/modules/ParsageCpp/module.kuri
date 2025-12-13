@@ -351,7 +351,7 @@ est_type_specifier :: fonc (parseuse: *ParseuseC, lexème: Lexème) -> bool
 
 est_type_qualifier :: fonc (lexème: Lexème) -> bool
 {
-    mots_clés := ["const", "restrict", "volatile", "_Atomic"]
+    mots_clés := ["const", "restrict", "__restrict", "__restrict__", "volatile", "_Atomic"]
     pour mots_clés {
         si est_mot_clé(lexème, it) {
             retourne vrai
