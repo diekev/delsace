@@ -615,6 +615,13 @@ PointerDeclarator :: struct {
     direct: *Declarator
 }
 
+ParameterTypeList :: struct {
+    empl base: Declarator
+    genre = #type_de_cette_structure
+
+    direct: *Declarator
+}
+
 parse_direct_declarator :: fonc (empl parseuse: *ParseuseC, pour_abstract_declarator: bool) -> *Declarator
 {
     lexème := épie_lexème_suivant(*lexeuse)
@@ -662,6 +669,39 @@ parse_direct_declarator :: fonc (empl parseuse: *ParseuseC, pour_abstract_declar
             direct = array
 
             consomme_ponctuation(*lexeuse, "]")
+        }
+        sinon si est_ponctuation(lexème, "(") {
+            consomme(*lexeuse)
+
+            boucle {
+                lexème = épie_lexème_suivant(*lexeuse)
+                si lexème.type == TypeLexème.FinDeFichier {
+                    rapporte_erreur(parseuse, lexème, "Fin de fichier inattendu")
+                    retourne direct
+                }
+
+                si est_ponctuation(lexème, ")") {
+                    arrête
+                }
+
+                déclaration_courante: InfoDéclaration
+                parse_declaration_specifiers(parseuse, *déclaration_courante, faux)
+
+                _ := parse_declarator(parseuse, faux)
+
+                lexème = épie_lexème_suivant(*lexeuse)
+                saufsi est_ponctuation(lexème, ",") {
+                    arrête
+                }
+
+                consomme(*lexeuse)
+            }
+
+            list := loge(ParameterTypeList)
+            list.direct = direct
+            direct = list
+
+            consomme_ponctuation(*lexeuse, ")")
         }
         sinon {
             arrête
