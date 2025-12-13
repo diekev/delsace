@@ -422,7 +422,7 @@ parse_external_declaration :: fonc (empl parseuse: *ParseuseC) -> *ASTNode
         retourne nul
     }
 
-    declarator := parse_declarator(parseuse)
+    declarator := parse_declarator(parseuse, faux)
     saufsi declarator {
         rapporte_erreur(parseuse, donne_lexème_suivant(*lexeuse), "Attendu un declarateur")
         retourne nul
@@ -543,7 +543,7 @@ Declarator :: struct {
     genre: type_de_données
 }
 
-parse_declarator :: fonc (empl parseuse: *ParseuseC) -> *Declarator
+parse_declarator :: fonc (empl parseuse: *ParseuseC, pour_abstract_declarator: bool) -> *Declarator
 {
     pointer: *PointerDeclarator
 
@@ -566,7 +566,7 @@ parse_declarator :: fonc (empl parseuse: *ParseuseC) -> *Declarator
         pointer = pointer_courant
     }
 
-    résultat := parse_direct_declarator(parseuse)
+    résultat := parse_direct_declarator(parseuse, pour_abstract_declarator)
     si pointer {
         pointer.direct = résultat
         résultat = pointer
@@ -583,6 +583,14 @@ parse_declarator :: fonc (empl parseuse: *ParseuseC) -> *Declarator
     direct-declarator [ type-qualifier-listopt * ]
     direct-declarator ( parameter-type-list )
     direct-declarator ( identifier-listopt )
+
+  direct-abstract-declarator:
+    ( abstract-declarator )
+    direct-abstract-declaratoropt [ type-qualifier-listopt assignment-expressionopt ]
+    direct-abstract-declaratoropt [ static type-qualifier-listopt assignment-expression ]
+    direct-abstract-declaratoropt [ type-qualifier-list static assignment-expression ]
+    direct-abstract-declaratoropt [*]
+    direct-abstract-declaratoropt ( parameter-type-listopt )
  */
 IdentifierDeclarator :: struct {
     empl base: Declarator
@@ -607,13 +615,18 @@ PointerDeclarator :: struct {
     direct: *Declarator
 }
 
-parse_direct_declarator :: fonc (empl parseuse: *ParseuseC) -> *Declarator
+parse_direct_declarator :: fonc (empl parseuse: *ParseuseC, pour_abstract_declarator: bool) -> *Declarator
 {
     lexème := épie_lexème_suivant(*lexeuse)
 
     direct: *Declarator
 
     si lexème.type == TypeLexème.Symbole {
+        si pour_abstract_declarator {
+            rapporte_erreur(parseuse, lexème, "Identifiant inattendu")
+            retourne nul
+        }
+
         consomme(*lexeuse)
 
         identifier := loge(IdentifierDeclarator)
@@ -622,10 +635,10 @@ parse_direct_declarator :: fonc (empl parseuse: *ParseuseC) -> *Declarator
     }
     sinon si est_ponctuation(lexème, "(") {
         consomme(*lexeuse)
-        direct = parse_declarator(parseuse)
+        direct = parse_declarator(parseuse, pour_abstract_declarator)
         consomme_ponctuation(*lexeuse, ")")
     }
-    sinon {
+    sinon saufsi pour_abstract_declarator {
         rapporte_erreur(parseuse, lexème, "Lexème non-géré pour declarator")
         retourne nul
     }
@@ -724,7 +737,7 @@ parse_struct_declaration_list :: fonc (empl parseuse: *ParseuseC, fields: *[..]*
         /* struct-declarator:
             declarator
             declaratoropt : constant-expression */
-        _ := parse_declarator(parseuse)
+        _ := parse_declarator(parseuse, faux)
 
         lexème = donne_lexème_suivant(*lexeuse)
         saufsi est_ponctuation(lexème, ";") {
@@ -1367,112 +1380,9 @@ pase_type_name :: fonc (empl parseuse: *ParseuseC) -> *TypeNameExpression
     déclaration_courante: InfoDéclaration
     parse_declaration_specifiers(parseuse, *déclaration_courante, vrai)
 
-    /* struct-declarator:
-        declarator
-        declaratoropt : constant-expression */
-    _ := parse_abstract_declarator(parseuse)
+    _ := parse_declarator(parseuse, vrai)
 
     retourne crée_noeud(parseuse, TypeNameExpression)
-}
-
-AbstractDeclarator :: struct {
-    genre: type_de_données
-}
-
-parse_abstract_declarator :: fonc (empl parseuse: *ParseuseC) -> *AbstractDeclarator
-{
-    pointer: *AbstractPointerDeclarator
-
-    lexème := épie_lexème_suivant(*lexeuse)
-    tantque est_ponctuation(lexème, "*") {
-        consomme(*lexeuse)
-
-        pointer_courant := loge(AbstractPointerDeclarator)
-
-        lexème = épie_lexème_suivant(*lexeuse)
-        tantque est_type_qualifier(lexème) {
-            consomme(*lexeuse)
-            tableau_ajoute(*pointer_courant.qualifiers, donne_texte(lexème))
-        }
-
-        si pointer {
-            pointer.direct = pointer_courant
-        }
-
-        pointer = pointer_courant
-    }
-
-    résultat := parse_direct_abstract_declarator(parseuse)
-    si pointer {
-        pointer.direct = résultat
-        résultat = pointer
-    }
-    retourne résultat
-}
-
-/* direct-abstract-declarator:
-    ( abstract-declarator )
-    direct-abstract-declaratoropt [ type-qualifier-listopt
-    assignment-expressionopt ]
-    direct-abstract-declaratoropt [ static type-qualifier-listopt
-    assignment-expression ]
-    direct-abstract-declaratoropt [ type-qualifier-list static
-    assignment-expression ]
-    direct-abstract-declaratoropt [*]
-    direct-abstract-declaratoropt ( parameter-type-listopt )
- */
-AbstractArrayDeclarator :: struct {
-    empl base: AbstractDeclarator
-    genre = #type_de_cette_structure
-
-    direct: *AbstractDeclarator
-    taille: Lexème
-}
-
-AbstractPointerDeclarator :: struct {
-    empl base: AbstractDeclarator
-    genre = #type_de_cette_structure
-
-    qualifiers: [..]chaine
-    direct: *AbstractDeclarator
-}
-
-parse_direct_abstract_declarator :: fonc (empl parseuse: *ParseuseC) -> *AbstractDeclarator
-{
-    lexème := épie_lexème_suivant(*lexeuse)
-
-    direct: *AbstractDeclarator
-
-    si est_ponctuation(lexème, "(") {
-        consomme(*lexeuse)
-        direct = parse_abstract_declarator(parseuse)
-        consomme_ponctuation(*lexeuse, ")")
-    }
-
-    boucle {
-        lexème = épie_lexème_suivant(*lexeuse)
-
-        si est_ponctuation(lexème, "[") {
-            consomme(*lexeuse)
-
-            lexème = donne_lexème_suivant(*lexeuse)
-            si lexème.type != TypeLexème.LittéraleNombreEntier {
-                rapporte_erreur(parseuse, lexème, "Lexème non-géré pour abstract array declarator")
-            }
-
-            array := loge(AbstractArrayDeclarator)
-            array.direct = direct
-            array.taille = lexème
-            direct = array
-
-            consomme_ponctuation(*lexeuse, "]")
-        }
-        sinon {
-            arrête
-        }
-    }
-
-    retourne direct
 }
 
 /** \} */
