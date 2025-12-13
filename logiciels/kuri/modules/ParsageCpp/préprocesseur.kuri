@@ -224,6 +224,10 @@ PréProcesseur :: struct {
     macros_inconnus: [..]chaine
 }
 
+LexèmePréprocès :: struct {
+    lexème: Lexème
+}
+
 LexeusePréProcès :: struct {
     lexeuse: SimpleLexeuse
     fichier: z64
@@ -477,8 +481,7 @@ donne_source_préprocédée :: fonc (préprocesseur: *PréProcesseur, chemin_sou
 
     empile_fichier(préprocesseur, chemin_source, "")
 
-    enchaineuse: Enchaineuse
-    initialise_enchaineuse(*enchaineuse)
+    lexèmes: [..]LexèmePréprocès
 
     tantque préprocesseur.lexeuses {
         lexeuse_préprocès := donne_lexeuse_courante(préprocesseur)
@@ -677,7 +680,7 @@ donne_source_préprocédée :: fonc (préprocesseur: *PréProcesseur, chemin_sou
                             si lexème.type == TypeLexème.FinDeFichier || est_lexème_nouvelle_ligne(lexème) {
                                 arrête
                             }
-                            ajoute_au_tampon(*enchaineuse, donne_texte(lexème))
+                            tableau_ajoute(*lexèmes, LexèmePréprocès(lexème))
                         }
                     }
                 }
@@ -699,8 +702,7 @@ donne_source_préprocédée :: fonc (préprocesseur: *PréProcesseur, chemin_sou
         lexème_définition := lexème
         définition := donne_définition(préprocesseur, lexème)
         saufsi définition {
-            texte := donne_texte(lexème)
-            ajoute_au_tampon(*enchaineuse, texte)
+            tableau_ajoute(*lexèmes, LexèmePréprocès(lexème))
             continue
         }
 
@@ -708,8 +710,7 @@ donne_source_préprocédée :: fonc (préprocesseur: *PréProcesseur, chemin_sou
         si définition.paramètres {
             lexème = donne_lexème_suivant_sauf_espace_blanche(lexeuse)
             saufsi est_ponctuation(lexème, "(") {
-                texte := donne_texte(lexème_définition)
-                ajoute_au_tampon(*enchaineuse, texte)
+                tableau_ajoute(*lexèmes, LexèmePréprocès(lexème_définition))
                 reprends_depuis_lexème(lexeuse, lexème)
                 continue
             }
@@ -733,7 +734,14 @@ donne_source_préprocédée :: fonc (préprocesseur: *PréProcesseur, chemin_sou
         infos_développement: InfosDéveloppementMacro
         infos_développement.macro = définition
         infos_développement.arguments = arguments
-        développe_macro(*enchaineuse, préprocesseur, *infos_développement)
+        développe_macro(*lexèmes, préprocesseur, *infos_développement)
+    }
+
+    enchaineuse: Enchaineuse
+    initialise_enchaineuse(*enchaineuse)
+
+    pour lexèmes {
+        ajoute_au_tampon(*enchaineuse, donne_texte(it.lexème))
     }
 
     résultat := chaine_depuis_enchaineuse(*enchaineuse)
@@ -872,13 +880,13 @@ InfosDéveloppementMacro :: struct {
     arguments: [..][..]Lexème
 }
 
-développe_macro :: fonc (sortie: *Enchaineuse, préprocesseur: *PréProcesseur, infos: *InfosDéveloppementMacro)
+développe_macro :: fonc (sortie: *[..]LexèmePréprocès, préprocesseur: *PréProcesseur, infos: *InfosDéveloppementMacro)
 {
     lexèmes := développe_macro(préprocesseur, infos)
     diffère déloge(lexèmes)
 
     pour lexèmes {
-        ajoute_au_tampon(sortie, donne_texte(it))
+        tableau_ajoute(sortie, LexèmePréprocès(it))
     }
 }
 
