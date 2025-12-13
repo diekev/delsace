@@ -211,6 +211,15 @@ crée_constant_array :: fonc (parseuse: *ParseuseC, element_type: *Type, size: n
     retourne résultat
 }
 
+rapporte_erreur :: fonc (parseuse: *ParseuseC, lexème: Lexème, format: chaine, args: ...eini)
+{
+    ligne := donne_ligne_pour_erreur(*parseuse.lexeuse)
+    imprimeln("%", ligne.texte)
+    imprimeln("%", lexème.donne_texte())
+    imprimeln(format, ...args)
+    exit(1)
+} @Imprimeuse
+
 parse_texte :: fonc (parseuse: *ParseuseC, texte: chaine) -> *ASTNode
 {
     initialise_lexeuse_pour_texte(*parseuse.lexeuse, texte)
@@ -236,8 +245,8 @@ parse_typedef_decl :: fonc (empl parseuse: *ParseuseC) -> *TypedefDecl
 
     lexème := épie_lexème_suivant(*lexeuse)
     si lexème.type == TypeLexème.FinDeFichier {
-        imprimeln("Fin inattendu de l'entrée")
-        exit(1)
+        rapporte_erreur(parseuse, lexème, "Fin inattendu de l'entrée")
+        retourne nul
     }
 
     underlying_type := parse_type(parseuse)
@@ -254,8 +263,8 @@ parse_typedef_decl :: fonc (empl parseuse: *ParseuseC) -> *TypedefDecl
         parseuse.symbole_non_consommé_lors_du_parsage_de_type = ""
     }
     sinon {
-        imprimeln("Attendu un symbole pour nommé le typedef")
-        exit(1)
+        rapporte_erreur(parseuse, lexème, "Attendu un symbole pour nommé le typedef")
+        retourne nul
     }
 
     résultat := crée_noeud(parseuse, TypedefDecl)
@@ -320,8 +329,8 @@ parse_type :: fonc (empl parseuse: *ParseuseC) -> *Type
             résultat = crée_type(parseuse, TypeKind.UNSIGNED_LONG)
         }
         sinon {
-            imprimeln("Lexème inconnu pour le parsage des typedefs : '%' (%)", donne_texte(lexème), lexème.type)
-            exit(1)
+            rapporte_erreur(parseuse, lexème, "Lexème inconnu pour le parsage des typedefs : '%' (%)", donne_texte(lexème), lexème.type)
+            retourne nul
         }
     }
     sinon si est_mot_clé(lexème, "struct") {
@@ -363,8 +372,8 @@ parse_type :: fonc (empl parseuse: *ParseuseC) -> *Type
 
         lexème = donne_lexème_suivant(*lexeuse)
         si lexème.type != TypeLexème.Symbole {
-            imprimeln("Attendu un symbole dans la définition du pointeur de fonction")
-            exit(1)
+            rapporte_erreur(parseuse, lexème, "Attendu un symbole dans la définition du pointeur de fonction")
+            retourne nul
         }
 
         // À FAIRE : récursion
@@ -437,8 +446,8 @@ parse_struct_decl :: fonc (empl parseuse: *ParseuseC) -> *StructDecl
         fields = parse_fields(parseuse)
     }
     sinon saufsi eu_nom {
-        imprimeln("Lexème inattendu dans le parsage de la structure : %", donne_texte(lexème))
-        exit(1)
+        rapporte_erreur(parseuse, lexème, "Lexème inattendu dans le parsage de la structure : %", donne_texte(lexème))
+        retourne nul
     }
 
     résultat := crée_noeud(parseuse, StructDecl)
@@ -468,8 +477,8 @@ parse_union_decl :: fonc (empl parseuse: *ParseuseC) -> *UnionDecl
         fields = parse_fields(parseuse)
     }
     sinon saufsi eu_nom {
-        imprimeln("Lexème inattendu dans le parsage de l'union : %", donne_texte(lexème))
-        exit(1)
+        rapporte_erreur(parseuse, lexème, "Lexème inattendu dans le parsage de l'union : %", donne_texte(lexème))
+        retourne nul
     }
 
     résultat := crée_noeud(parseuse, UnionDecl)
@@ -492,8 +501,8 @@ parse_fields :: fonc (empl parseuse: *ParseuseC) -> [..]*FieldDecl
 
         lexème = donne_lexème_suivant(*lexeuse)
         si lexème.type != TypeLexème.Symbole {
-            imprimeln("Attendu un symbole, obtenu : % (%)", donne_texte(lexème), lexème.type)
-            exit(1)
+            rapporte_erreur(parseuse, lexème, "Attendu un symbole, obtenu : % (%)", donne_texte(lexème), lexème.type)
+            retourne résultat
         }
 
         lexème_nom := lexème
@@ -521,8 +530,8 @@ parse_fields :: fonc (empl parseuse: *ParseuseC) -> [..]*FieldDecl
 
             lexème = donne_lexème_suivant(*lexeuse)
             si lexème.type != TypeLexème.Symbole {
-                imprimeln("Attendu un symbole, obtenu : % (%)", donne_texte(lexème), lexème.type)
-                exit(1)
+                rapporte_erreur(parseuse, lexème, "Attendu un symbole, obtenu : % (%)", donne_texte(lexème), lexème.type)
+                retourne résultat
             }
 
             field = crée_noeud(parseuse, FieldDecl)
