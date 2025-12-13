@@ -1389,6 +1389,11 @@ ignore_lexèmes_jusque_fin_branche :: fonc (préprocesseur: *PréProcesseur, lex
 
 empile_fichier :: fonc (préprocesseur: *PréProcesseur, chemin: chaine, trouvé_dans_dossier: chaine)
 {
+    chemin_normal := chemin_normalisé(CheminFichier(chemin))
+    diffère détruit_chemin(chemin_normal)
+
+    chemin = chemin_normal.chn
+
     fichier, indice_fichier := donne_fichier_pour_chemin(préprocesseur, chemin)
     saufsi fichier {
         succès, contenu := contenu_fichier_texte(chemin)
