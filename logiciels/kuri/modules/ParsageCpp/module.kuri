@@ -163,6 +163,51 @@ FieldDecl :: struct {
     type: *Type
 }
 
+Expression :: struct {
+    empl node: ASTNode
+    genre = #type_de_cette_structure
+}
+
+IntegerLiteralExpression :: struct {
+    empl expr: Expression
+    genre = #type_de_cette_structure
+
+    lexème: Lexème
+}
+
+BinaryExpression :: struct {
+    empl expr: Expression
+    genre = #type_de_cette_structure
+    
+    // À FAIRE : stocke les lexèmes
+    op: chaine
+    left: *Expression
+    right: *Expression
+}
+
+UnaryExpression :: struct {
+    empl expr: Expression
+    genre = #type_de_cette_structure
+    
+    // À FAIRE : stocke les lexèmes
+    op: chaine
+    operand: *Expression
+}
+
+SizeOfExpression :: struct {
+    empl expr: Expression
+    genre = #type_de_cette_structure
+
+    operand: *Expression
+}
+
+// À FAIRE : déduplique avec TypeRef (ou supprime ce dernier)
+// Expression se trouvant par exemple dans sizeof().
+TypeNameExpression :: struct {
+    empl expr: Expression
+    genre = #type_de_cette_structure
+}
+
 // À FAIRE : fusionne avec l'autre TranslationUnit
 NewTranslationUnit :: struct {
     external_declarations: [..]*ASTNode
@@ -551,7 +596,7 @@ ArrayDeclarator :: struct {
     genre = #type_de_cette_structure
 
     direct: *Declarator
-    taille: Lexème
+    expression: *Expression
 }
 
 PointerDeclarator :: struct {
@@ -591,14 +636,16 @@ parse_direct_declarator :: fonc (empl parseuse: *ParseuseC) -> *Declarator
         si est_ponctuation(lexème, "[") {
             consomme(*lexeuse)
 
-            lexème = donne_lexème_suivant(*lexeuse)
-            si lexème.type != TypeLexème.LittéraleNombreEntier {
-                rapporte_erreur(parseuse, lexème, "Lexème non-géré pour array declarator")
+            expression: *Expression
+
+            lexème = épie_lexème_suivant(*lexeuse)
+            saufsi est_ponctuation(lexème, "]") {
+                expression = parse_expression(parseuse)
             }
 
             array := loge(ArrayDeclarator)
             array.direct = direct
-            array.taille = lexème
+            array.expression = expression
             direct = array
 
             consomme_ponctuation(*lexeuse, "]")
@@ -1149,6 +1196,283 @@ est_structure_ou_union_anonyme :: fonc (type_c: *Type) -> bool
     }
 
     retourne résultat
+}
+
+/** \} */
+
+/* ------------------------------------------------------------------------- */
+/** \nom Parsage des expressions.
+ * \{ */
+
+donne_info_parsage_opérateur_binaire_c :: fonc (texte: chaine) -> (bool, InfoParsageOpérateur)
+{
+    est_opérateur := vrai
+    résultat: InfoParsageOpérateur
+
+    si texte == "," {
+        résultat.précédence = 1
+        résultat.associativité = Associativité.GAUCHE
+    }
+    sinon si texte == "=" || texte == "+=" || texte == "-=" || texte == "*=" || texte == "/=" || texte == "%=" || texte == "<<=" || texte == ">>=" || texte == "&=" || texte == "|=" || texte == "^=" {
+        résultat.précédence = 2
+        résultat.associativité = Associativité.DROITE
+    }
+    sinon si texte == "?" {
+        résultat.précédence = 3
+        résultat.associativité = Associativité.DROITE
+    }
+    sinon si texte == "||" {
+        résultat.précédence = 4
+        résultat.associativité = Associativité.GAUCHE
+    }
+    sinon si texte == "&&" {
+        résultat.précédence = 5
+        résultat.associativité = Associativité.GAUCHE
+    }
+    sinon si texte == "|" {
+        résultat.précédence = 6
+        résultat.associativité = Associativité.GAUCHE
+    }
+    sinon si texte == "^" {
+        résultat.précédence = 7
+        résultat.associativité = Associativité.GAUCHE
+    }
+    sinon si texte == "&" {
+        résultat.précédence = 8
+        résultat.associativité = Associativité.GAUCHE
+    }
+    sinon si texte == "==" || texte == "!=" {
+        résultat.précédence = 9
+        résultat.associativité = Associativité.GAUCHE
+    }
+    sinon si texte == ">" || texte == ">=" || texte == "<" || texte == "<=" {
+        résultat.précédence = 10
+        résultat.associativité = Associativité.GAUCHE
+    }
+    sinon si texte == "<<" || texte == ">>" {
+        résultat.précédence = 11
+        résultat.associativité = Associativité.GAUCHE
+    }
+    sinon si texte == "-" || texte == "+" {
+        résultat.précédence = 12
+        résultat.associativité = Associativité.GAUCHE
+    }
+    sinon si texte == "*" || texte == "/" || texte == "%" {
+        résultat.précédence = 13
+        résultat.associativité = Associativité.GAUCHE
+    }
+    /* la précédence de 14 est réservée pour les opérateurs unaires */
+    sinon si texte == "(" || texte == "[" || texte == "." || texte == "->" {
+        résultat.précédence = 15
+        résultat.associativité = Associativité.GAUCHE
+        // À FAIRE : postfix ++ et --
+    }
+    sinon {
+        est_opérateur = faux
+    }
+
+    retourne est_opérateur, résultat
+}
+
+parse_expression :: fonc (empl parseuse: *ParseuseC) -> *Expression
+{
+    retourne parse_expression(parseuse, InfoParsageOpérateur())
+}
+
+parse_expression :: fonc (empl parseuse: *ParseuseC, info_courante: InfoParsageOpérateur) -> *Expression
+{
+    gauche := parse_expression_primaire(parseuse)
+    saufsi gauche {
+        retourne nul
+    }
+
+    résultat := gauche
+
+    boucle {
+        lexème := épie_lexème_suivant(*lexeuse)
+        si lexème.type == TypeLexème.FinDeFichier {
+            rapporte_erreur(parseuse, lexème, "Unexpected end of input")
+            retourne nul
+        }
+
+        texte := donne_texte(lexème)
+        est_opérateur, info := donne_info_parsage_opérateur_binaire_c(texte)
+        saufsi est_opérateur {
+            arrête
+        }
+
+        si info.précédence < info_courante.précédence {
+            arrête
+        }
+
+        si info.précédence == info_courante.précédence && info_courante.associativité == Associativité.GAUCHE {
+            arrête
+        }
+
+        si texte == ">" || texte == ">=" || texte == "<" || texte == "<=" || texte == "==" || texte == "!=" || texte == "-" || texte == "+" || texte == "*" || texte == "/" || texte == "<<" || texte == ">>" || texte == "&" || texte == "^" || texte == "|" || texte == "%" {
+            consomme(*lexeuse)
+
+            opérateur_binaire := loge(BinaryExpression)
+            opérateur_binaire.op = texte
+            opérateur_binaire.left = résultat
+            opérateur_binaire.right = parse_expression(parseuse, info)
+
+            résultat = opérateur_binaire
+        }
+        sinon {
+            arrête
+        }
+    }
+
+    retourne résultat
+}
+
+parse_expression_primaire :: fonc (empl parseuse: *ParseuseC) -> *Expression
+{
+    résultat: *Expression
+
+    lexème := épie_lexème_suivant(*lexeuse)
+
+    si est_mot_clé(lexème, "sizeof") {
+        consomme(*lexeuse)
+
+        consomme_ponctuation(*lexeuse, "(")
+
+        operand := pase_type_name(parseuse)
+
+        consomme_ponctuation(*lexeuse, ")")
+
+        sizeof := crée_noeud(parseuse, SizeOfExpression)
+        sizeof.operand = operand
+
+        résultat = sizeof
+    }
+    sinon si lexème.type == TypeLexème.LittéraleNombreEntier {
+        consomme(*lexeuse)
+
+        literal := crée_noeud(parseuse, IntegerLiteralExpression)
+        literal.lexème = lexème
+
+        résultat = literal
+    }
+    sinon {
+        rapporte_erreur(parseuse, lexème, "Expected a primary expression")
+    }
+
+    retourne résultat
+}
+
+pase_type_name :: fonc (empl parseuse: *ParseuseC) -> *TypeNameExpression
+{
+    déclaration_courante: InfoDéclaration
+    parse_declaration_specifiers(parseuse, *déclaration_courante, vrai)
+
+    /* struct-declarator:
+        declarator
+        declaratoropt : constant-expression */
+    _ := parse_abstract_declarator(parseuse)
+
+    retourne crée_noeud(parseuse, TypeNameExpression)
+}
+
+AbstractDeclarator :: struct {
+    genre: type_de_données
+}
+
+parse_abstract_declarator :: fonc (empl parseuse: *ParseuseC) -> *AbstractDeclarator
+{
+    pointer: *AbstractPointerDeclarator
+
+    lexème := épie_lexème_suivant(*lexeuse)
+    tantque est_ponctuation(lexème, "*") {
+        consomme(*lexeuse)
+
+        pointer_courant := loge(AbstractPointerDeclarator)
+
+        lexème = épie_lexème_suivant(*lexeuse)
+        tantque est_type_qualifier(lexème) {
+            consomme(*lexeuse)
+            tableau_ajoute(*pointer_courant.qualifiers, donne_texte(lexème))
+        }
+
+        si pointer {
+            pointer.direct = pointer_courant
+        }
+
+        pointer = pointer_courant
+    }
+
+    résultat := parse_direct_abstract_declarator(parseuse)
+    si pointer {
+        pointer.direct = résultat
+        résultat = pointer
+    }
+    retourne résultat
+}
+
+/* direct-abstract-declarator:
+    ( abstract-declarator )
+    direct-abstract-declaratoropt [ type-qualifier-listopt
+    assignment-expressionopt ]
+    direct-abstract-declaratoropt [ static type-qualifier-listopt
+    assignment-expression ]
+    direct-abstract-declaratoropt [ type-qualifier-list static
+    assignment-expression ]
+    direct-abstract-declaratoropt [*]
+    direct-abstract-declaratoropt ( parameter-type-listopt )
+ */
+AbstractArrayDeclarator :: struct {
+    empl base: AbstractDeclarator
+    genre = #type_de_cette_structure
+
+    direct: *AbstractDeclarator
+    taille: Lexème
+}
+
+AbstractPointerDeclarator :: struct {
+    empl base: AbstractDeclarator
+    genre = #type_de_cette_structure
+
+    qualifiers: [..]chaine
+    direct: *AbstractDeclarator
+}
+
+parse_direct_abstract_declarator :: fonc (empl parseuse: *ParseuseC) -> *AbstractDeclarator
+{
+    lexème := épie_lexème_suivant(*lexeuse)
+
+    direct: *AbstractDeclarator
+
+    si est_ponctuation(lexème, "(") {
+        consomme(*lexeuse)
+        direct = parse_abstract_declarator(parseuse)
+        consomme_ponctuation(*lexeuse, ")")
+    }
+
+    boucle {
+        lexème = épie_lexème_suivant(*lexeuse)
+
+        si est_ponctuation(lexème, "[") {
+            consomme(*lexeuse)
+
+            lexème = donne_lexème_suivant(*lexeuse)
+            si lexème.type != TypeLexème.LittéraleNombreEntier {
+                rapporte_erreur(parseuse, lexème, "Lexème non-géré pour abstract array declarator")
+            }
+
+            array := loge(AbstractArrayDeclarator)
+            array.direct = direct
+            array.taille = lexème
+            direct = array
+
+            consomme_ponctuation(*lexeuse, "]")
+        }
+        sinon {
+            arrête
+        }
+    }
+
+    retourne direct
 }
 
 /** \} */
