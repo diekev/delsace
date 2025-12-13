@@ -133,8 +133,9 @@ chaine_statique chemin_systeme::nom_fichier_sans_extension() const
 
 chaine_statique chemin_systeme::extension() const
 {
-    auto début = données.begin();
-    auto fin = données.end();
+    auto nom = nom_fichier();
+    auto début = nom.begin();
+    auto fin = nom.end();
     auto pos = trouve_depuis_la_fin(début, fin, '.');
 
     if (pos == fin) {

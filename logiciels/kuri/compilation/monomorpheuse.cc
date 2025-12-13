@@ -818,7 +818,7 @@ void Monomorpheuse::ajoute_item_pour_constante(NoeudDéclarationConstante *const
             item.genre = GenreItem::TYPE_DE_DONNÉES;
         }
         else {
-            /* Par exemple : $N: z32, ou $F: fonc()(rien). */
+            /* Par exemple : $N: z32, ou $F: fonc () -> rien. */
             item.genre = GenreItem::VALEUR;
             item.type = constante->type;
             item.expression_type = constante->expression_type;
@@ -1113,7 +1113,7 @@ RésultatContrainte Monomorpheuse::applique_contrainte(ItemMonomorphisation cons
     }
 
     if (type_item->possède_drapeau(DrapeauxTypes::TYPE_EST_POLYMORPHIQUE)) {
-        /* Le type peut être polymorphique, par exemple fonc(T)(rien), dans lequel cas il nous
+        /* Le type peut être polymorphique, par exemple fonc (T) -> rien, dans lequel cas il nous
          * faut d'abord résoudre le type final. */
         type_item = résoud_type_final_impl(item.expression_type);
     }

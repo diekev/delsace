@@ -21,7 +21,7 @@ label 0
   %5 = alloue z32
   stocke *z32 %5, z32 2
   %7 = charge *z32 %5
-  %8 = appel fonc(z32, z32)(z32) fonction_à_enligner(z32 %4, z32 %7)
+  %8 = appel fonc (z32, z32) -> z32 fonction_à_enligner(z32 %4, z32 %7)
   stocke *z32 %__ret0, z32 %8
   %10 = charge *z32 %__ret0
   retourne z32 %10

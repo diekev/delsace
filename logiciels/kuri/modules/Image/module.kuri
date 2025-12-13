@@ -989,6 +989,143 @@ WebPGetInfo :: fonc (data: *n8, data_size: n64, width: *z32, height: *z32) -> z3
 WebPDecodeRGBInto :: fonc (data: *n8, data_size: n64, output_buffer: *n8, output_buffer_size: n64, output_stride: z32) -> *n8 #externe libwebp
 WebPDecodeRGBAInto :: fonc (data: *n8, data_size: n64, output_buffer: *n8, output_buffer_size: n64, output_stride: z32) -> *n8 #externe libwebp
 
+WEBP_DECODER_ABI_VERSION :: 0x0209    // MAJOR(8b) + MINOR(8b)
+
+WEBP_CSP_MODE :: énum {
+    MODE_RGB :: 0
+    MODE_RGBA :: 1
+    MODE_BGR :: 2
+    MODE_BGRA :: 3
+    MODE_ARGB :: 4
+    MODE_RGBA_4444 :: 5
+    MODE_RGB_565 :: 6
+    // RGB-premultiplied transparent modes (alpha value is preserved)
+    MODE_rgbA :: 7
+    MODE_bgrA :: 8
+    MODE_Argb :: 9
+    MODE_rgbA_4444 :: 10
+    // YUV modes must come after RGB ones.
+    MODE_YUV :: 11
+    MODE_YUVA :: 12  // yuv 4:2:0
+    MODE_LAST :: 13
+}
+
+VP8StatusCode :: énum {
+    VP8_STATUS_OK :: 0
+    VP8_STATUS_OUT_OF_MEMORY
+    VP8_STATUS_INVALID_PARAM
+    VP8_STATUS_BITSTREAM_ERROR
+    VP8_STATUS_UNSUPPORTED_FEATURE
+    VP8_STATUS_SUSPENDED
+    VP8_STATUS_USER_ABORT
+    VP8_STATUS_NOT_ENOUGH_DATA
+}
+
+WebPRGBABuffer :: struct {    // view as RGBA
+    rgba: *n8;    // pointer to RGBA samples
+    stride: z32;       // stride in bytes from one scanline to the next.
+    size: n64;      // total size of the *rgba buffer.
+}
+
+WebPYUVABuffer :: struct {              // view as YUVA
+    y, u, v, a: *n8;     // pointer to luma, chroma U/V, alpha samples
+    y_stride: z32;               // luma stride
+    u_stride, v_stride: z32;     // chroma strides
+    a_stride: z32;               // alpha stride
+    y_size: n64;              // luma plane size
+    u_size, v_size: n64;      // chroma planes size
+    a_size: n64;              // alpha-plane size
+}
+
+WebPDecBuffer :: struct {
+    colorspace: WEBP_CSP_MODE;  // Colorspace.
+    width, height: z32;         // Dimensions.
+    is_external_memory: z32;    // If non-zero, 'internal_memory' pointer is not
+                                // used. If value is '2' or more, the external
+                                // memory is considered 'slow' and multiple
+                                // read/write will be avoided.
+    U :: union nonsûr {
+        RGBA: WebPRGBABuffer;
+        YUVA: WebPYUVABuffer;
+    }
+    u: U;                       // Nameless union of buffer parameters.
+    pad: [4]n32;     // padding for later use
+
+    private_memory: *n8;   // Internally allocated memory (only when
+                                // is_external_memory is 0). Should not be used
+                                // externally, but accessed via the buffer union.
+}
+
+WebPFreeDecBuffer :: fonc (buffer: *WebPDecBuffer) #externe libwebp
+
+WebPBitstreamFeatures :: struct {
+    width: z32;          // Width in pixels, as read from the bitstream.
+    height: z32;         // Height in pixels, as read from the bitstream.
+    has_alpha: z32;      // True if the bitstream contains an alpha channel.
+    has_animation: z32;  // True if the bitstream is an animation.
+    format: z32;         // 0 = undefined (/mixed), 1 = lossy, 2 = lossless
+
+    pad: [5]n32;    // padding for later use
+}
+
+// Internal, version-checked, entry point
+WebPGetFeaturesInternal :: fonc (data: *n8, data_size: n64, features: *WebPBitstreamFeatures, version: z32) -> VP8StatusCode #externe libwebp
+
+// Retrieve features from the bitstream. The *features structure is filled
+// with information gathered from the bitstream.
+// Returns VP8_STATUS_OK when the features are successfully retrieved. Returns
+// VP8_STATUS_NOT_ENOUGH_DATA when more data is needed to retrieve the
+// features from headers. Returns error in other cases.
+// Note: The following chunk sequences (before the raw VP8/VP8L data) are
+// considered valid by this function:
+// RIFF + VP8(L)
+// RIFF + VP8X + (optional chunks) + VP8(L)
+// ALPH + VP8 <-- Not a valid WebP format: only allowed for internal purpose.
+// VP8(L)     <-- Not a valid WebP format: only allowed for internal purpose.
+WebPGetFeatures :: fonc (data: *n8, data_size: n64, features: *WebPBitstreamFeatures) -> VP8StatusCode
+{
+    retourne WebPGetFeaturesInternal(data, data_size, features, WEBP_DECODER_ABI_VERSION);
+}
+
+WebPDecoderOptions :: struct {
+    bypass_filtering: z32;               // if true, skip the in-loop filtering
+    no_fancy_upsampling: z32;            // if true, use faster pointwise upsampler
+    use_cropping: z32;                   // if true, cropping is applied _first_
+    crop_left, crop_top: z32;            // top-left position for cropping.
+                                        // Will be snapped to even values.
+    crop_width, crop_height: z32;        // dimension of the cropping area
+    use_scaling: z32;                    // if true, scaling is applied _afterward_
+    scaled_width, scaled_height: z32;    // final resolution
+    use_threads: z32;                    // if true, use multi-threaded decoding
+    dithering_strength: z32;             // dithering strength (0=Off, 100=full)
+    flip: z32;                           // if true, flip output vertically
+    alpha_dithering_strength: z32;       // alpha dithering strength in [0..100]
+
+    pad: [5]n32;                    // padding for later use
+}
+
+WebPDecoderConfig :: struct {
+    input: WebPBitstreamFeatures;  // Immutable bitstream features (optional)
+    output: WebPDecBuffer;         // Output buffer (can point to external mem)
+    options: WebPDecoderOptions;   // Decoding options
+}
+
+// Internal, version-checked, entry point
+WebPInitDecoderConfigInternal :: fonc (config: *WebPDecoderConfig, version: z32) -> z32 #externe libwebp
+
+// Initialize the configuration as empty. This function must always be
+// called first, unless WebPGetFeatures() is to be called.
+// Returns false in case of mismatched version.
+WebPInitDecoderConfig :: fonc (config: *WebPDecoderConfig) -> z32
+{
+    retourne WebPInitDecoderConfigInternal(config, WEBP_DECODER_ABI_VERSION);
+}
+
+// Non-incremental version. This version decodes the full data at once, taking
+// 'config' into account. Returns decoding status (which should be VP8_STATUS_OK
+// if the decoding was successful). Note that 'config' cannot be NULL.
+WebPDecode :: fonc (data: *n8, data_size: n64, config: *WebPDecoderConfig) -> VP8StatusCode #externe libwebp;
+
 /** \} */
 
 /* ------------------------------------------------------------------------- */
