@@ -44,7 +44,6 @@ set(SOURCES_ALGORITHMES
     application_fonction.cc
     champs_de_distance.cc
     filtrage.cc
-    gif.cc
     simulation_grain.cc
 
     analyse.hh
@@ -52,7 +51,6 @@ set(SOURCES_ALGORITHMES
     champs_de_distance.hh
     donnees_canal.hh
     filtrage.hh
-    gif.hh
     simulation_grain.hh
 )
 
