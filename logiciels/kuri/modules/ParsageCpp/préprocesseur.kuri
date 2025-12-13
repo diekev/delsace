@@ -254,6 +254,7 @@ initialise_préprocesseur :: fonc (préprocesseur: *PréProcesseur, langage: Lan
             tableau_ajoute(*préprocesseur.chemins_inclusions_système, "/usr/include")
 
             ajoute_définition(préprocesseur, "__cplusplus", 201103)
+            // ajoute_définition(préprocesseur, "__cplusplus", 201703)
             ajoute_définition(préprocesseur, "__GNUG__", 12)
         }
     }
@@ -282,7 +283,6 @@ initialise_préprocesseur :: fonc (préprocesseur: *PréProcesseur, langage: Lan
     ajoute_définition(préprocesseur, "__INT_MAX__", 0x7fffffff)
     ajoute_définition(préprocesseur, "__LONG_MAX__", 0x7fffffffffffffff)
     ajoute_définition(préprocesseur, "__FLT_EVAL_METHOD__", 0)
-    ajoute_définition(préprocesseur, "__cplusplus", 201703)
     ajoute_définition(préprocesseur, "__SCHAR_MAX__", 0x7f)
     ajoute_définition(préprocesseur, "__WCHAR_MAX__", 0x7fffffff)
     ajoute_définition(préprocesseur, "__SHRT_MAX__", 0x7fff)
