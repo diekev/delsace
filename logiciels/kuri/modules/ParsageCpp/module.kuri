@@ -423,7 +423,7 @@ parse_external_declaration :: fonc (empl parseuse: *ParseuseC) -> *ASTNode
         retourne nul
     }
 
-    declarator := parse_declarator(parseuse, faux)
+    declarator := parse_declarator(parseuse, PrésenceIdentifier.OBLIGATOIRE)
     saufsi declarator {
         rapporte_erreur(parseuse, donne_lexème_suivant(*lexeuse), "Attendu un declarateur")
         retourne nul
@@ -583,7 +583,7 @@ Declarator :: struct {
     genre: type_de_données
 }
 
-parse_declarator :: fonc (empl parseuse: *ParseuseC, pour_abstract_declarator: bool) -> *Declarator
+parse_declarator :: fonc (empl parseuse: *ParseuseC, présence_identifier: PrésenceIdentifier) -> *Declarator
 {
     pointer: *PointerDeclarator
 
@@ -606,7 +606,7 @@ parse_declarator :: fonc (empl parseuse: *ParseuseC, pour_abstract_declarator: b
         pointer = pointer_courant
     }
 
-    résultat := parse_direct_declarator(parseuse, pour_abstract_declarator)
+    résultat := parse_direct_declarator(parseuse, présence_identifier)
     si pointer {
         pointer.direct = résultat
         résultat = pointer
@@ -662,14 +662,20 @@ ParameterTypeList :: struct {
     direct: *Declarator
 }
 
-parse_direct_declarator :: fonc (empl parseuse: *ParseuseC, pour_abstract_declarator: bool) -> *Declarator
+PrésenceIdentifier :: énum {
+    OBLIGATOIRE
+    INTERDITE
+    OPTIONNELLE
+}
+
+parse_direct_declarator :: fonc (empl parseuse: *ParseuseC, présence_identifier: PrésenceIdentifier) -> *Declarator
 {
     lexème := épie_lexème_suivant(*lexeuse)
 
     direct: *Declarator
 
     si lexème.type == TypeLexème.Symbole {
-        si pour_abstract_declarator {
+        si présence_identifier == PrésenceIdentifier.INTERDITE {
             rapporte_erreur(parseuse, lexème, "Identifiant inattendu")
             retourne nul
         }
@@ -682,10 +688,10 @@ parse_direct_declarator :: fonc (empl parseuse: *ParseuseC, pour_abstract_declar
     }
     sinon si est_ponctuation(lexème, "(") {
         consomme(*lexeuse)
-        direct = parse_declarator(parseuse, pour_abstract_declarator)
+        direct = parse_declarator(parseuse, présence_identifier)
         consomme_ponctuation(*lexeuse, ")")
     }
-    sinon saufsi pour_abstract_declarator {
+    sinon si présence_identifier == PrésenceIdentifier.OBLIGATOIRE {
         rapporte_erreur(parseuse, lexème, "Lexème non-géré pour declarator")
         retourne nul
     }
@@ -727,7 +733,7 @@ parse_direct_declarator :: fonc (empl parseuse: *ParseuseC, pour_abstract_declar
                 déclaration_courante: InfoDéclaration
                 parse_declaration_specifiers(parseuse, *déclaration_courante, faux)
 
-                _ := parse_declarator(parseuse, faux)
+                _ := parse_declarator(parseuse, PrésenceIdentifier.OPTIONNELLE)
 
                 lexème = épie_lexème_suivant(*lexeuse)
                 saufsi est_ponctuation(lexème, ",") {
@@ -817,7 +823,7 @@ parse_struct_declaration_list :: fonc (empl parseuse: *ParseuseC, fields: *[..]*
         /* struct-declarator:
             declarator
             declaratoropt : constant-expression */
-        _ := parse_declarator(parseuse, faux)
+        _ := parse_declarator(parseuse, PrésenceIdentifier.OBLIGATOIRE)
 
         lexème = donne_lexème_suivant(*lexeuse)
         saufsi est_ponctuation(lexème, ";") {
@@ -1460,7 +1466,7 @@ pase_type_name :: fonc (empl parseuse: *ParseuseC) -> *TypeNameExpression
     déclaration_courante: InfoDéclaration
     parse_declaration_specifiers(parseuse, *déclaration_courante, vrai)
 
-    _ := parse_declarator(parseuse, vrai)
+    _ := parse_declarator(parseuse, PrésenceIdentifier.INTERDITE)
 
     retourne crée_noeud(parseuse, TypeNameExpression)
 }
