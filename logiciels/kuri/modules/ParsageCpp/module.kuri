@@ -263,7 +263,7 @@ parse_typedef_decl :: fonc (empl parseuse: *ParseuseC) -> *TypedefDecl
         parseuse.symbole_non_consommé_lors_du_parsage_de_type = ""
     }
     sinon {
-        rapporte_erreur(parseuse, lexème, "Attendu un symbole pour nommé le typedef")
+        rapporte_erreur(parseuse, lexème, "Attendu un symbole pour nommer le typedef")
         retourne nul
     }
 
