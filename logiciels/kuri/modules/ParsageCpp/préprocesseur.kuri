@@ -395,15 +395,13 @@ initialise_préprocesseur :: fonc (préprocesseur: *PréProcesseur, langage: Lan
     ajoute_définition(préprocesseur, "__INTPTR_TYPE__", "long int")
     ajoute_définition(préprocesseur, "__UINTPTR_TYPE__", "long unsigned int")
 
-    définition := tableau_ajoute_élément(*préprocesseur.définitions)
-    définition.nom = "__has_builtin"
+    définition := crée_définition(préprocesseur, "__has_builtin")
     tableau_ajoute(*définition.paramètres, crée_lexème_symbole("x"))
     lexème := tableau_ajoute_élément(*définition.lexèmes)
     lexème.type = TypeLexème.Nombre
     lexème.nombre.naturel = 0
 
-    définition = tableau_ajoute_élément(*préprocesseur.définitions)
-    définition.nom = "__has_cpp_attribute"
+    définition = crée_définition(préprocesseur, "__has_cpp_attribute")
     tableau_ajoute(*définition.paramètres, crée_lexème_symbole("x"))
     tableau_ajoute(*définition.lexèmes, crée_lexème_nombre_naturel(0))
 
@@ -427,8 +425,7 @@ initialise_préprocesseur :: fonc (préprocesseur: *PréProcesseur, langage: Lan
 
 ajoute_définition :: fonc (préprocesseur: *PréProcesseur, nom: chaine, valeur: n64)
 {
-    définition := tableau_ajoute_élément(*préprocesseur.définitions)
-    définition.nom = nom
+    définition := crée_définition(préprocesseur, nom)
 
     lexème := tableau_ajoute_élément(*définition.lexèmes)
     lexème.type = TypeLexème.Nombre
@@ -442,8 +439,7 @@ ajoute_définition :: fonc (préprocesseur: *PréProcesseur, nom: chaine, valeur
 
 ajoute_définition :: fonc (préprocesseur: *PréProcesseur, nom: chaine, valeur: chaine)
 {
-    définition := tableau_ajoute_élément(*préprocesseur.définitions)
-    définition.nom = nom
+    définition := crée_définition(préprocesseur, nom)
 
     lexème := tableau_ajoute_élément(*définition.lexèmes)
     mémoire(lexème) = crée_lexème_chaine_littérale(valeur)
@@ -451,14 +447,20 @@ ajoute_définition :: fonc (préprocesseur: *PréProcesseur, nom: chaine, valeur
 
 ajoute_définition_intrinsèque :: fonc (préprocesseur: *PréProcesseur, nom: chaine, nombre_arguments: z32, rappel: fonc (préprocesseur: *PréProcesseur, arguments: [..][..]Lexème) -> Lexème)
 {
-    définition := tableau_ajoute_élément(*préprocesseur.définitions)
-    définition.nom = nom
+    définition := crée_définition(préprocesseur, nom)
     définition.est_intrinsèque = vrai
     définition.sur_développement = rappel
 
     pour nombre_arguments {
         tableau_ajoute(*définition.paramètres, crée_lexème_symbole("x"))
     }
+}
+
+crée_définition :: fonc (préprocesseur: *PréProcesseur, nom: chaine) -> *Définition
+{
+    définition := tableau_ajoute_élément(*préprocesseur.définitions)
+    définition.nom = nom
+    retourne définition
 }
 
 donne_source_préprocédée :: fonc (chemin_source: chaine) -> chaine
@@ -1183,8 +1185,7 @@ parse_définition :: fonc (préprocesseur: *PréProcesseur, lexeuse: *SimpleLexe
 
     définition := donne_définition(préprocesseur, texte_définition)
     saufsi définition {
-        définition = tableau_ajoute_élément(*préprocesseur.définitions)
-        définition.nom = texte_définition
+        définition = crée_définition(préprocesseur, texte_définition)
     }
     sinon {
         déloge(définition.paramètres)
