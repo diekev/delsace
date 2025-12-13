@@ -731,6 +731,11 @@ parse_direct_declarator :: fonc (empl parseuse: *ParseuseC, présence_identifier
                     arrête
                 }
 
+                si est_ponctuation(lexème, "...") {
+                    consomme(*lexeuse)
+                    arrête
+                }
+
                 déclaration_courante: InfoDéclaration
                 parse_declaration_specifiers(parseuse, *déclaration_courante, faux)
 
