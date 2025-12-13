@@ -1,5 +1,7 @@
 importe Chaine
 importe Ensemble
+importe Sérialisation
+importe Temps
 
 /* ------------------------------------------------------------------------- */
 /** \nom Définition
@@ -159,14 +161,80 @@ sur_développement_line :: fonc (préprocesseur: *PréProcesseur @inutilisée, a
 
 sur_développement_date :: fonc (préprocesseur: *PréProcesseur @inutilisée, arguments: [..][..]Lexème @inutilisée) -> Lexème
 {
-    // À FAIRE
-    retourne crée_lexème_chaine_littérale("")
+    // À FAIRE : If the date of translation is not available, an implementation-defined valid date shall be supplied
+    //           Pour ce faire nous pourrions également avoir une option de compilation pour cacher la date.
+    date := hui_système()
+
+    // "Mmm dd yyyy"
+    Griffonier :: TamponFixe(T = z8, N = 13)
+
+    griffonier: Griffonier
+    ajoute(*griffonier, '"')
+
+    chn_mois := chaine_mois_pour_tm(date.mois - 1)
+    pour chn_mois {
+        ajoute(*griffonier, it)
+    }
+
+    ajoute(*griffonier, ' ')
+
+    si date.jour < 10 {
+        ajoute(*griffonier, ' ')
+        ajoute(*griffonier, '0' + (date.jour % 10) comme z8)
+    }
+    sinon {
+        ajoute(*griffonier, '0' + (date.jour / 10) comme z8)
+        ajoute(*griffonier, '0' + (date.jour % 10) comme z8)
+    }
+
+    ajoute(*griffonier, ' ')
+
+    année := date.année
+    ajoute(*griffonier, '0' + (année / 1000) comme z8)
+    année %= 1000
+    ajoute(*griffonier, '0' + (année / 100) comme z8)
+    année %= 100
+    ajoute(*griffonier, '0' + (année / 10) comme z8)
+    année %= 10
+    ajoute(*griffonier, '0' + (année) comme z8)
+
+    ajoute(*griffonier, '"')
+
+    résultat := chaine(*griffonier.données[0], griffonier.curseur)
+    // @FuiteDeMémoire
+    retourne crée_lexème_chaine_littérale(copie_chaine(résultat))
 }
 
 sur_développement_time :: fonc (préprocesseur: *PréProcesseur @inutilisée, arguments: [..][..]Lexème @inutilisée) -> Lexème
 {
-    // À FAIRE
-    retourne crée_lexème_chaine_littérale("")
+    // À FAIRE : If the time of translation is not available, an implementation-defined valid time shall be supplied.
+    //           Pour ce faire nous pourrions également avoir une option de compilation pour cacher l'heure.
+    date := hui_système()
+
+    // "hh:mm:ss"
+    Griffonier :: TamponFixe(T = z8, N = 10)
+
+    griffonier: Griffonier
+    ajoute(*griffonier, '"')
+
+    ajoute(*griffonier, '0' + (date.heure / 10) comme z8)
+    ajoute(*griffonier, '0' + (date.heure % 10) comme z8)
+
+    ajoute(*griffonier, ':')
+
+    ajoute(*griffonier, '0' + (date.minute / 10) comme z8)
+    ajoute(*griffonier, '0' + (date.minute % 10) comme z8)
+
+    ajoute(*griffonier, ':')
+
+    ajoute(*griffonier, '0' + (date.seconde / 10) comme z8)
+    ajoute(*griffonier, '0' + (date.seconde % 10) comme z8)
+
+    ajoute(*griffonier, '"')
+
+    résultat := chaine(*griffonier.données[0], griffonier.curseur)
+    // @FuiteDeMémoire
+    retourne crée_lexème_chaine_littérale(copie_chaine(résultat))
 }
 
 sur_développement_counter :: fonc (préprocesseur: *PréProcesseur, arguments: [..][..]Lexème @inutilisée) -> Lexème
@@ -224,6 +292,10 @@ PréProcesseur :: struct {
     macros_inconnus: [..]chaine
 }
 
+LexèmePréprocès :: struct {
+    lexème: Lexème
+}
+
 LexeusePréProcès :: struct {
     lexeuse: SimpleLexeuse
     fichier: z64
@@ -254,6 +326,7 @@ initialise_préprocesseur :: fonc (préprocesseur: *PréProcesseur, langage: Lan
             tableau_ajoute(*préprocesseur.chemins_inclusions_système, "/usr/include")
 
             ajoute_définition(préprocesseur, "__cplusplus", 201103)
+            // ajoute_définition(préprocesseur, "__cplusplus", 201703)
             ajoute_définition(préprocesseur, "__GNUG__", 12)
         }
     }
@@ -282,7 +355,6 @@ initialise_préprocesseur :: fonc (préprocesseur: *PréProcesseur, langage: Lan
     ajoute_définition(préprocesseur, "__INT_MAX__", 0x7fffffff)
     ajoute_définition(préprocesseur, "__LONG_MAX__", 0x7fffffffffffffff)
     ajoute_définition(préprocesseur, "__FLT_EVAL_METHOD__", 0)
-    ajoute_définition(préprocesseur, "__cplusplus", 201703)
     ajoute_définition(préprocesseur, "__SCHAR_MAX__", 0x7f)
     ajoute_définition(préprocesseur, "__WCHAR_MAX__", 0x7fffffff)
     ajoute_définition(préprocesseur, "__SHRT_MAX__", 0x7fff)
@@ -395,15 +467,13 @@ initialise_préprocesseur :: fonc (préprocesseur: *PréProcesseur, langage: Lan
     ajoute_définition(préprocesseur, "__INTPTR_TYPE__", "long int")
     ajoute_définition(préprocesseur, "__UINTPTR_TYPE__", "long unsigned int")
 
-    définition := tableau_ajoute_élément(*préprocesseur.définitions)
-    définition.nom = "__has_builtin"
+    définition := crée_définition(préprocesseur, "__has_builtin")
     tableau_ajoute(*définition.paramètres, crée_lexème_symbole("x"))
     lexème := tableau_ajoute_élément(*définition.lexèmes)
     lexème.type = TypeLexème.Nombre
     lexème.nombre.naturel = 0
 
-    définition = tableau_ajoute_élément(*préprocesseur.définitions)
-    définition.nom = "__has_cpp_attribute"
+    définition = crée_définition(préprocesseur, "__has_cpp_attribute")
     tableau_ajoute(*définition.paramètres, crée_lexème_symbole("x"))
     tableau_ajoute(*définition.lexèmes, crée_lexème_nombre_naturel(0))
 
@@ -427,8 +497,7 @@ initialise_préprocesseur :: fonc (préprocesseur: *PréProcesseur, langage: Lan
 
 ajoute_définition :: fonc (préprocesseur: *PréProcesseur, nom: chaine, valeur: n64)
 {
-    définition := tableau_ajoute_élément(*préprocesseur.définitions)
-    définition.nom = nom
+    définition := crée_définition(préprocesseur, nom)
 
     lexème := tableau_ajoute_élément(*définition.lexèmes)
     lexème.type = TypeLexème.Nombre
@@ -442,8 +511,7 @@ ajoute_définition :: fonc (préprocesseur: *PréProcesseur, nom: chaine, valeur
 
 ajoute_définition :: fonc (préprocesseur: *PréProcesseur, nom: chaine, valeur: chaine)
 {
-    définition := tableau_ajoute_élément(*préprocesseur.définitions)
-    définition.nom = nom
+    définition := crée_définition(préprocesseur, nom)
 
     lexème := tableau_ajoute_élément(*définition.lexèmes)
     mémoire(lexème) = crée_lexème_chaine_littérale(valeur)
@@ -451,14 +519,20 @@ ajoute_définition :: fonc (préprocesseur: *PréProcesseur, nom: chaine, valeur
 
 ajoute_définition_intrinsèque :: fonc (préprocesseur: *PréProcesseur, nom: chaine, nombre_arguments: z32, rappel: fonc (préprocesseur: *PréProcesseur, arguments: [..][..]Lexème) -> Lexème)
 {
-    définition := tableau_ajoute_élément(*préprocesseur.définitions)
-    définition.nom = nom
+    définition := crée_définition(préprocesseur, nom)
     définition.est_intrinsèque = vrai
     définition.sur_développement = rappel
 
     pour nombre_arguments {
         tableau_ajoute(*définition.paramètres, crée_lexème_symbole("x"))
     }
+}
+
+crée_définition :: fonc (préprocesseur: *PréProcesseur, nom: chaine) -> *Définition
+{
+    définition := tableau_ajoute_élément(*préprocesseur.définitions)
+    définition.nom = nom
+    retourne définition
 }
 
 donne_source_préprocédée :: fonc (chemin_source: chaine) -> chaine
@@ -471,12 +545,27 @@ donne_source_préprocédée :: fonc (chemin_source: chaine) -> chaine
 
 donne_source_préprocédée :: fonc (préprocesseur: *PréProcesseur, chemin_source: chaine) -> chaine
 {
+    lexèmes := donne_lexèmes_préprocès(préprocesseur, chemin_source)
+    diffère déloge(lexèmes)
+
+    enchaineuse: Enchaineuse
+    initialise_enchaineuse(*enchaineuse)
+
+    pour lexèmes {
+        ajoute_au_tampon(*enchaineuse, donne_texte(it.lexème))
+    }
+
+    résultat := chaine_depuis_enchaineuse(*enchaineuse)
+    retourne résultat
+}
+
+donne_lexèmes_préprocès :: fonc (préprocesseur: *PréProcesseur, chemin_source: chaine) -> [..]LexèmePréprocès
+{
     préprocesseur.compteur = 0
 
     empile_fichier(préprocesseur, chemin_source, "")
 
-    enchaineuse: Enchaineuse
-    initialise_enchaineuse(*enchaineuse)
+    lexèmes: [..]LexèmePréprocès
 
     tantque préprocesseur.lexeuses {
         lexeuse_préprocès := donne_lexeuse_courante(préprocesseur)
@@ -675,7 +764,7 @@ donne_source_préprocédée :: fonc (préprocesseur: *PréProcesseur, chemin_sou
                             si lexème.type == TypeLexème.FinDeFichier || est_lexème_nouvelle_ligne(lexème) {
                                 arrête
                             }
-                            ajoute_au_tampon(*enchaineuse, donne_texte(lexème))
+                            tableau_ajoute(*lexèmes, LexèmePréprocès(lexème))
                         }
                     }
                 }
@@ -697,8 +786,7 @@ donne_source_préprocédée :: fonc (préprocesseur: *PréProcesseur, chemin_sou
         lexème_définition := lexème
         définition := donne_définition(préprocesseur, lexème)
         saufsi définition {
-            texte := donne_texte(lexème)
-            ajoute_au_tampon(*enchaineuse, texte)
+            tableau_ajoute(*lexèmes, LexèmePréprocès(lexème))
             continue
         }
 
@@ -706,8 +794,7 @@ donne_source_préprocédée :: fonc (préprocesseur: *PréProcesseur, chemin_sou
         si définition.paramètres {
             lexème = donne_lexème_suivant_sauf_espace_blanche(lexeuse)
             saufsi est_ponctuation(lexème, "(") {
-                texte := donne_texte(lexème_définition)
-                ajoute_au_tampon(*enchaineuse, texte)
+                tableau_ajoute(*lexèmes, LexèmePréprocès(lexème_définition))
                 reprends_depuis_lexème(lexeuse, lexème)
                 continue
             }
@@ -731,11 +818,52 @@ donne_source_préprocédée :: fonc (préprocesseur: *PréProcesseur, chemin_sou
         infos_développement: InfosDéveloppementMacro
         infos_développement.macro = définition
         infos_développement.arguments = arguments
-        développe_macro(*enchaineuse, préprocesseur, *infos_développement)
+        développe_macro(*lexèmes, préprocesseur, *infos_développement)
     }
 
-    résultat := chaine_depuis_enchaineuse(*enchaineuse)
-    retourne résultat
+    exécute_phase_de_traduction_6(*lexèmes)
+
+    retourne lexèmes
+}
+
+/* Phase de traduction 6 : Adjacent string literal tokens are concatenated */
+exécute_phase_de_traduction_6 :: fonc (lexèmes: *[..]LexèmePréprocès)
+{
+    entrée := lexèmes.pointeur
+    sortie := lexèmes.pointeur
+    fin := lexèmes.pointeur + lexèmes.taille
+
+    dernier_lexème_chaine_littérale: *LexèmePréprocès
+
+    tantque entrée < fin {
+        lexème := mémoire(entrée)
+        entrée += 1
+
+        si lexème.lexème.type == TypeLexème.ChaineLittérale {
+            si dernier_lexème_chaine_littérale {
+                texte_a := donne_texte_sans_guillemets(dernier_lexème_chaine_littérale.lexème)
+                texte_b := donne_texte_sans_guillemets(lexème.lexème)
+
+                // @FuiteDeMémoire
+                texte := enchaine("\"", texte_a, texte_b, "\"")
+
+                lexème.lexème = crée_lexème_chaine_littérale(texte)
+
+                sortie = dernier_lexème_chaine_littérale
+            }
+            sinon {
+                dernier_lexème_chaine_littérale = sortie
+            }
+        }
+        sinon si lexème.lexème.type != TypeLexème.EspaceBlanche {
+            dernier_lexème_chaine_littérale = nul
+        }
+
+        mémoire(sortie) = lexème
+        sortie += 1
+    }
+
+    lexèmes.taille = sortie - lexèmes.pointeur
 }
 
 donne_définition :: fonc (préprocesseur: *PréProcesseur, nom: chaine) -> *Définition
@@ -870,13 +998,13 @@ InfosDéveloppementMacro :: struct {
     arguments: [..][..]Lexème
 }
 
-développe_macro :: fonc (sortie: *Enchaineuse, préprocesseur: *PréProcesseur, infos: *InfosDéveloppementMacro)
+développe_macro :: fonc (sortie: *[..]LexèmePréprocès, préprocesseur: *PréProcesseur, infos: *InfosDéveloppementMacro)
 {
     lexèmes := développe_macro(préprocesseur, infos)
     diffère déloge(lexèmes)
 
     pour lexèmes {
-        ajoute_au_tampon(sortie, donne_texte(it))
+        tableau_ajoute(sortie, LexèmePréprocès(it))
     }
 }
 
@@ -1183,8 +1311,7 @@ parse_définition :: fonc (préprocesseur: *PréProcesseur, lexeuse: *SimpleLexe
 
     définition := donne_définition(préprocesseur, texte_définition)
     saufsi définition {
-        définition = tableau_ajoute_élément(*préprocesseur.définitions)
-        définition.nom = texte_définition
+        définition = crée_définition(préprocesseur, texte_définition)
     }
     sinon {
         déloge(définition.paramètres)
@@ -1388,6 +1515,11 @@ ignore_lexèmes_jusque_fin_branche :: fonc (préprocesseur: *PréProcesseur, lex
 
 empile_fichier :: fonc (préprocesseur: *PréProcesseur, chemin: chaine, trouvé_dans_dossier: chaine)
 {
+    chemin_normal := chemin_normalisé(CheminFichier(chemin))
+    diffère détruit_chemin(chemin_normal)
+
+    chemin = chemin_normal.chn
+
     fichier, indice_fichier := donne_fichier_pour_chemin(préprocesseur, chemin)
     saufsi fichier {
         succès, contenu := contenu_fichier_texte(chemin)
