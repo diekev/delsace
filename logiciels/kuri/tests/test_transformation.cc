@@ -121,7 +121,7 @@ int main()
     /* test : appel fonction */
     reussite &= verifie_transformation(compilatrice, typeuse.type_r16, typeuse.type_r32, true);
 
-    // test nul -> fonc()
+    // test nul -> fonc () -> rien
 
     return reussite ? 0 : 1;
 }
