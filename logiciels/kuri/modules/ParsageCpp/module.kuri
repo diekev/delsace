@@ -24,64 +24,90 @@ est_fichier_cpp :: fonc (chemin: CheminFichier) -> bool
  * \{ */
 
 ParseuseC :: struct {
-    lexeuse: SimpleLexeuse
+    unit: *TranslationUnit
+    lexèmes: []LexèmePréprocès
+    lexème_courant: z64
+
     créatrice: CréatriceNoeuds
 
     typedef_names: TableDeHachage(chaine, *TypedefDecl)
 }
 
-reprends_depuis_lexème :: fonc (parseuse: *ParseuseC, lexème: Lexème)
-{
-    reprends_depuis_lexème(*parseuse.lexeuse, lexème)
-}
-
 fini :: fonc (parseuse: *ParseuseC) -> bool
 {
-    retourne fini(*parseuse.lexeuse)
+    retourne parseuse.lexème_courant >= parseuse.lexèmes.taille
 }
 
-donne_lexème_suivant :: fonc (parseuse: *ParseuseC) -> Lexème
+donne_lexème_suivant :: fonc (parseuse: *ParseuseC) -> LexèmePréprocès
 {
-    retourne donne_lexème_suivant(*parseuse.lexeuse)
+    si fini(parseuse) {
+        lexème := Lexème(type = TypeLexème.FinDeFichier)
+        retourne LexèmePréprocès(lexème)
+    }
+    résultat := parseuse.lexèmes[parseuse.lexème_courant]
+    parseuse.lexème_courant += 1
+    retourne résultat
 }
 
-épie_lexème_suivant :: fonc (parseuse: *ParseuseC) -> Lexème
+épie_lexème_suivant :: fonc (parseuse: *ParseuseC) -> LexèmePréprocès
 {
-    retourne épie_lexème_suivant(*parseuse.lexeuse)
+    si fini(parseuse) {
+        lexème := Lexème(type = TypeLexème.FinDeFichier)
+        retourne LexèmePréprocès(lexème)
+    }
+    résultat := parseuse.lexèmes[parseuse.lexème_courant]
+    retourne résultat
 }
 
 consomme :: fonc (parseuse: *ParseuseC)
 {
-    consomme(*parseuse.lexeuse)
+    parseuse.lexème_courant += 1
 }
 
 consomme_symbole :: fonc (parseuse: *ParseuseC)
 {
-    consomme_symbole(*parseuse.lexeuse)
+    lexème := donne_lexème_suivant(parseuse)
+    si lexème.lexème.type != TypeLexème.Symbole {
+        rapporte_erreur(parseuse, lexème, "Attendu un symbole")
+    }
 }
 
 consomme_ponctuation :: fonc (parseuse: *ParseuseC, texte: chaine)
 {
-    consomme_ponctuation(*parseuse.lexeuse, texte)
+    lexème := donne_lexème_suivant(parseuse)
+    saufsi est_ponctuation(lexème, texte) {
+        rapporte_erreur(parseuse, lexème, "Attendu '%'", texte)
+    }
 }
 
-initialise_parseuse :: fonc (empl parseuse: *ParseuseC)
+initialise_parseuse :: fonc (parseuse: *ParseuseC, unit: *TranslationUnit)
 {
-    initialise_lexeuse_c(*parseuse.lexeuse)
+    parseuse.unit = unit
+    parseuse.lexèmes = supprime_espace_blanches(*unit.lexèmes_préprocès)
+    parseuse.lexème_courant = 0
 
     // À FAIRE : comprend ce que c'est
-    typedef_decl := crée_noeud(*créatrice, TypedefDecl)
-    typedef_decl.type = crée_type_ref(*créatrice, "__builtin_va_list")
-    typedef_decl.underlying_type = crée_pointer_type(*créatrice, crée_type(*créatrice, TypeKind.VOID))
+    typedef_decl := crée_noeud(*parseuse.créatrice, TypedefDecl)
+    typedef_decl.type = crée_type_ref(*parseuse.créatrice, "__builtin_va_list")
+    typedef_decl.underlying_type = crée_pointer_type(*parseuse.créatrice, crée_type(*parseuse.créatrice, TypeKind.VOID))
 
     _, _ := table_insère_si_non_existant(*parseuse.typedef_names, "__builtin_va_list", typedef_decl)
 }
 
-rapporte_erreur :: fonc (parseuse: *ParseuseC, lexème: Lexème, format: chaine, args: ...eini)
+rapporte_erreur :: fonc (parseuse: *ParseuseC @inutilisée, format: chaine, args: ...eini)
 {
-    ligne := donne_ligne_pour_erreur(*parseuse.lexeuse)
-    imprimeln("%", ligne.texte)
-    imprimeln("%", lexème.donne_texte())
+    imprimeln(format, ...args)
+    exit(1)
+} @Imprimeuse
+
+rapporte_erreur :: fonc (parseuse: *ParseuseC @inutilisée, lexème: LexèmePréprocès, format: chaine, args: ...eini)
+{
+    saufsi est_fin_de_fichier(lexème) {
+        // À FAIRE : restaure ceci
+        // ligne := donne_ligne_pour_erreur(*parseuse.lexeuse)
+        // imprimeln("%", ligne.texte)
+        imprimeln("lexème : % (%)", lexème.donne_texte(), lexème.lexème.type)
+    }
     imprimeln(format, ...args)
     exit(1)
 } @Imprimeuse
@@ -98,28 +124,24 @@ parse_texte :: fonc (parseuse: *ParseuseC, texte: chaine) -> *ASTNode
 /* (6.9) translation-unit:
     external-declaration
     translation-unit external-declaration */
-parse_translation_unit :: fonc (empl parseuse: *ParseuseC, texte: chaine) -> *TranslationUnit
+parse_translation_unit :: fonc (empl parseuse: *ParseuseC)
 {
-    initialise_lexeuse_pour_texte(*parseuse.lexeuse, texte)
-
-    résultat := loge(TranslationUnit)
+    assert(parseuse.unit != nul)
 
     tantque !fini(parseuse) {
         lexème := épie_lexème_suivant(parseuse)
-        si lexème.type == TypeLexème.FinDeFichier {
+        si est_fin_de_fichier(lexème) {
             arrête
         }
         external_declaration := parse_external_declaration(parseuse)
         si external_declaration {
             imprime_arbre(external_declaration)
-            tableau_ajoute(*résultat.declarations, external_declaration)
+            tableau_ajoute(*parseuse.unit.declarations, external_declaration)
         }
     }
-
-    retourne résultat
 }
 
-est_storage_class_specifier :: fonc (lexème: Lexème) -> bool
+est_storage_class_specifier :: fonc (lexème: LexèmePréprocès) -> bool
 {
     mots_clés := ["typedef", "extern", "static", "_Thread_local", "auto", "register"]
     pour mots_clés {
@@ -130,7 +152,7 @@ est_storage_class_specifier :: fonc (lexème: Lexème) -> bool
     retourne faux
 }
 
-est_type_specifier :: fonc (parseuse: *ParseuseC, lexème: Lexème, type_résolu: **Type) -> bool
+est_type_specifier :: fonc (parseuse: *ParseuseC, lexème: LexèmePréprocès, type_résolu: **Type) -> bool
 {
     mots_clés := ["void", "char", "short", "int", "long", "float", "double", "signed", "unsigned", "_Bool", "_Complex", "struct", "union", "enum"]
 
@@ -151,14 +173,14 @@ est_type_specifier :: fonc (parseuse: *ParseuseC, lexème: Lexème, type_résolu
     }
 
     si texte == "_Atomic" {
-        lexème_suivant := épie_lexème_suivant(*parseuse.lexeuse)
+        lexème_suivant := épie_lexème_suivant(parseuse)
         retourne est_ponctuation(lexème_suivant, "(")
     }
 
     retourne faux
 }
 
-est_type_qualifier :: fonc (lexème: Lexème) -> bool
+est_type_qualifier :: fonc (lexème: LexèmePréprocès) -> bool
 {
     mots_clés := ["const", "restrict", "__restrict", "__restrict__", "volatile", "_Atomic"]
     texte := donne_texte(lexème)
@@ -170,7 +192,7 @@ est_type_qualifier :: fonc (lexème: Lexème) -> bool
     retourne faux
 }
 
-est_function_specifier :: fonc (lexème: Lexème) -> bool
+est_function_specifier :: fonc (lexème: LexèmePréprocès) -> bool
 {
     mots_clés := ["inline", "_Noreturn"]
     pour mots_clés {
@@ -181,7 +203,7 @@ est_function_specifier :: fonc (lexème: Lexème) -> bool
     retourne faux
 }
 
-est_alignment_specifier :: fonc (lexème: Lexème) -> bool
+est_alignment_specifier :: fonc (lexème: LexèmePréprocès) -> bool
 {
     retourne est_mot_clé(lexème, "_Alignas")
 }
@@ -274,11 +296,11 @@ crée_déclaration_pour_declarator :: fonc (empl parseuse: *ParseuseC, info: *In
 {
     nom, type := donne_nom_et_type_pour_declarator(parseuse, info, declarator)
     si nom == "" {
-        rapporte_erreur(parseuse, Lexème(type = TypeLexème.FinDeFichier), "Nom nul pour la déclaration");
+        rapporte_erreur(parseuse, "Nom nul pour la déclaration");
         retourne nul
     }
     si type == nul {
-        rapporte_erreur(parseuse, Lexème(type = TypeLexème.FinDeFichier), "Nom nul pour la déclaration");
+        rapporte_erreur(parseuse, "Nom nul pour la déclaration");
         retourne nul
     }
 
@@ -311,7 +333,7 @@ donne_nom_et_type_pour_declarator :: fonc (empl parseuse: *ParseuseC, info: *Inf
 {
     type_de_base := info.type_résolu
     si type_de_base == nul {
-        rapporte_erreur(parseuse, Lexème(type = TypeLexème.FinDeFichier), "Erreur interne : déclaration sans spécifiants de type")
+        rapporte_erreur(parseuse, "Erreur interne : déclaration sans spécifiants de type")
         retourne "", nul
     }
 
@@ -386,7 +408,7 @@ parse_attributs_gcc :: fonc (empl parseuse: *ParseuseC) -> bool
         parenthèses := 0
         boucle {
             lexème = donne_lexème_suivant(parseuse)
-            si lexème.type == TypeLexème.FinDeFichier {
+            si est_fin_de_fichier(lexème) {
                 rapporte_erreur(parseuse, lexème, "Fin de fichier inattendu")
                 retourne eu_attributs
             }
@@ -417,8 +439,8 @@ parse_attributs_gcc :: fonc (empl parseuse: *ParseuseC) -> bool
 parse_declaration_specifiers :: fonc (empl parseuse: *ParseuseC, déclaration: *InfoDéclaration, pour_struct_declaration: bool)
 {
     boucle {
-        lexème := donne_lexème_suivant(parseuse)
-        si lexème.type == TypeLexème.FinDeFichier {
+        lexème := épie_lexème_suivant(parseuse)
+        si est_fin_de_fichier(lexème) {
             rapporte_erreur(parseuse, lexème, "Fin inattendu de l'entrée")
             retourne
         }
@@ -426,6 +448,7 @@ parse_declaration_specifiers :: fonc (empl parseuse: *ParseuseC, déclaration: *
         typedef_decl: *Type
 
         si est_storage_class_specifier(lexème) {
+            consomme(parseuse)
             si pour_struct_declaration {
                 rapporte_erreur(parseuse, lexème, "Unexpected storage class specifier '%'", donne_texte(lexème))
                 retourne
@@ -433,6 +456,7 @@ parse_declaration_specifiers :: fonc (empl parseuse: *ParseuseC, déclaration: *
             déclaration.storage_class_specifier = donne_texte(lexème)
         }
         sinon si est_type_specifier(parseuse, lexème, *typedef_decl) {
+            consomme(parseuse)
             // À FAIRE : vérifie que l'on peut ajout le spécifiant
             specifier := donne_texte(lexème)
 
@@ -599,9 +623,11 @@ parse_declaration_specifiers :: fonc (empl parseuse: *ParseuseC, déclaration: *
             tableau_ajoute(*déclaration.type_specifiers, specifier)
         }
         sinon si est_type_qualifier(lexème) {
+            consomme(parseuse)
             tableau_ajoute(*déclaration.type_qualifiers, donne_texte(lexème))
         }
         sinon si est_function_specifier(lexème) {
+            consomme(parseuse)
             si pour_struct_declaration {
                 rapporte_erreur(parseuse, lexème, "Unexpected function specifier '%'", donne_texte(lexème))
                 retourne
@@ -609,6 +635,7 @@ parse_declaration_specifiers :: fonc (empl parseuse: *ParseuseC, déclaration: *
             tableau_ajoute(*déclaration.function_specifiers, donne_texte(lexème))
         }
         sinon si est_alignment_specifier(lexème) {
+            consomme(parseuse)
             si pour_struct_declaration {
                 rapporte_erreur(parseuse, lexème, "Unexpected alignment specifier '%'", donne_texte(lexème))
                 retourne
@@ -617,7 +644,6 @@ parse_declaration_specifiers :: fonc (empl parseuse: *ParseuseC, déclaration: *
             retourne
         }
         sinon {
-            reprends_depuis_lexème(parseuse, lexème)
             retourne
         }
     }
@@ -684,7 +710,7 @@ IdentifierDeclarator :: struct {
     empl base: Declarator
     genre = #type_de_cette_structure
 
-    identifiant: Lexème
+    identifiant: LexèmePréprocès
 }
 
 ArrayDeclarator :: struct {
@@ -722,7 +748,7 @@ parse_direct_declarator :: fonc (empl parseuse: *ParseuseC, présence_identifier
 
     direct: *Declarator
 
-    si lexème.type == TypeLexème.Symbole {
+    si est_symbole(lexème) {
         si présence_identifier == PrésenceIdentifier.INTERDITE {
             rapporte_erreur(parseuse, lexème, "Identifiant inattendu")
             retourne nul
@@ -769,7 +795,7 @@ parse_direct_declarator :: fonc (empl parseuse: *ParseuseC, présence_identifier
 
             boucle {
                 lexème = épie_lexème_suivant(parseuse)
-                si lexème.type == TypeLexème.FinDeFichier {
+                si est_fin_de_fichier(lexème) {
                     rapporte_erreur(parseuse, lexème, "Fin de fichier inattendu")
                     retourne direct
                 }
@@ -822,7 +848,7 @@ parse_struct_or_union_specifier :: fonc (empl parseuse: *ParseuseC, classe: chai
 
     eu_nom := faux
     nom: chaine
-    si lexème.type == TypeLexème.Symbole {
+    si est_symbole(lexème) {
         consomme_symbole(parseuse)
         nom = donne_texte(lexème)
         eu_nom = vrai
@@ -860,7 +886,7 @@ parse_struct_declaration_list :: fonc (empl parseuse: *ParseuseC, fields: *[..]*
 {
     boucle {
         lexème := épie_lexème_suivant(parseuse)
-        si lexème.type == TypeLexème.FinDeFichier {
+        si est_fin_de_fichier(lexème) {
             rapporte_erreur(parseuse, lexème, "Unexpected end of input")
             retourne
         }
@@ -1044,7 +1070,7 @@ parse_statement_list :: fonc (empl parseuse: *ParseuseC) -> [..]*ASTNode
     accolades := 0
     boucle {
         lexème := donne_lexème_suivant(parseuse)
-        si lexème.type == TypeLexème.FinDeFichier {
+        si est_fin_de_fichier(lexème) {
             rapporte_erreur(parseuse, lexème, "Fin de fichier inattendu")
             retourne résultat
         }
@@ -1154,7 +1180,7 @@ parse_expression :: fonc (empl parseuse: *ParseuseC, info_courante: InfoParsageO
 
     boucle {
         lexème := épie_lexème_suivant(parseuse)
-        si lexème.type == TypeLexème.FinDeFichier {
+        si est_fin_de_fichier(lexème) {
             rapporte_erreur(parseuse, lexème, "Unexpected end of input")
             retourne nul
         }
@@ -1211,7 +1237,7 @@ parse_expression_primaire :: fonc (empl parseuse: *ParseuseC) -> *Expression
 
         résultat = sizeof
     }
-    sinon si lexème.type == TypeLexème.LittéraleNombreEntier {
+    sinon si est_littérale_nombre_entier(lexème) {
         consomme(parseuse)
 
         literal := crée_noeud(*créatrice, IntegerLiteralExpression)

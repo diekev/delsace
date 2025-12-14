@@ -310,6 +310,36 @@ LexèmePréprocès :: struct {
     lexème: Lexème
 }
 
+est_symbole :: fonc (lexème: LexèmePréprocès) -> bool #enligne
+{
+    retourne lexème.lexème.type == TypeLexème.Symbole
+}
+
+est_fin_de_fichier :: fonc (lexème: LexèmePréprocès) -> bool #enligne
+{
+    retourne lexème.lexème.type == TypeLexème.FinDeFichier
+}
+
+est_littérale_nombre_entier :: fonc (lexème: LexèmePréprocès) -> bool #enligne
+{
+    retourne lexème.lexème.type == TypeLexème.LittéraleNombreEntier
+}
+
+est_ponctuation :: fonc (lexème: LexèmePréprocès, texte: chaine) -> bool #enligne
+{
+    retourne est_ponctuation(lexème.lexème, texte)
+}
+
+est_mot_clé :: fonc (lexème: LexèmePréprocès, texte: chaine) -> bool #enligne
+{
+    retourne est_mot_clé(lexème.lexème, texte)
+}
+
+donne_texte :: fonc (lexème: LexèmePréprocès) -> chaine #enligne
+{
+    retourne donne_texte(lexème.lexème)
+}
+
 imprime_lexèmes :: fonc (lexèmes: []LexèmePréprocès) -> chaine
 {
     enchaineuse: Enchaineuse
@@ -321,6 +351,26 @@ imprime_lexèmes :: fonc (lexèmes: []LexèmePréprocès) -> chaine
 
     résultat := chaine_depuis_enchaineuse(*enchaineuse)
     retourne résultat
+}
+
+supprime_espace_blanches :: fonc (lexèmes: *[..]LexèmePréprocès) -> []LexèmePréprocès
+{
+    entrée := lexèmes.pointeur
+    sortie := lexèmes.pointeur
+    fin := lexèmes.pointeur + lexèmes.taille
+
+    tantque entrée < fin {
+        si entrée.lexème.type != TypeLexème.EspaceBlanche {
+            mémoire(sortie) = mémoire(entrée)
+            sortie += 1
+        }
+
+        entrée += 1
+    }
+
+    lexèmes.taille = sortie - lexèmes.pointeur
+
+    retourne mémoire(lexèmes)
 }
 
 LexeusePréProcès :: struct {

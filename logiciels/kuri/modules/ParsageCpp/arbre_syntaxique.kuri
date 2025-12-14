@@ -159,7 +159,7 @@ IntegerLiteralExpression :: struct {
     empl expr: Expression
     genre = #type_de_cette_structure
 
-    lexème: Lexème
+    lexème: LexèmePréprocès
 }
 
 BinaryExpression :: struct {
