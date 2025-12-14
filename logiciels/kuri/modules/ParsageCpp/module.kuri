@@ -688,6 +688,10 @@ parse_declaration_specifiers :: fonc (empl parseuse: *ParseuseC, déclaration: *
         sinon si donne_texte(lexème) == "__attribute__" {
             _ := parse_attributs_gcc(parseuse)
         }
+        sinon si donne_texte(lexème) == "__extension__" {
+            consomme(parseuse)
+            // À FAIRE : comprendre __extension__
+        }
         sinon {
             retourne
         }
