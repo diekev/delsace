@@ -14,9 +14,9 @@ Parseuse :: struct {
     possède_erreur: bool
 
     /* Rappels. */
-    sur_prodéclaration_struct_ou_class: fonc (parseuse: &Parseuse, noeud: *NoeudProdéclarationObjet)
-    sur_définition_classe: fonc (parseuse: &Parseuse, classe: *NoeudDéfinitionClasse)
-    sur_prodéclaration_énum: fonc (parseuse: &Parseuse, noeud: *NoeudProdéclarationÉnum)
+    sur_prodéclaration_struct_ou_class: fonc (parseuse: &Parseuse, noeud: *ASTNode)
+    sur_définition_classe: fonc (parseuse: &Parseuse, classe: *ClassDecl)
+    sur_prodéclaration_énum: fonc (parseuse: &Parseuse, noeud: *ASTNode)
     sur_identifiant: fonc (parseuse: &Parseuse, texte: chaine)
     sur_inclusion: fonc (parseuse: &Parseuse, texte: chaine, système: bool)
 
@@ -50,7 +50,7 @@ dépile_contexte :: fonc (parseuse: &Parseuse)
     parseuse.contextes.taille -= 1
 }
 
-ajoute_au_contexte :: fonc (parseuse: &Parseuse, decl: *NoeudSyntaxique)
+ajoute_au_contexte :: fonc (parseuse: &Parseuse, decl: *ASTNode)
 {
     assert(parseuse.contextes.taille != 0)
     ctx := parseuse.contextes[parseuse.contextes.taille - 1]
@@ -404,7 +404,7 @@ parse_classe :: fonc (parseuse: &Parseuse, clé_classe: CléClasse, contexte_par
     }
 
     si parseuse.sur_définition_classe {
-        noeud := parseuse.créatrice_noeuds.crée_noeud(lexème, NoeudDéfinitionClasse)
+        noeud := parseuse.créatrice_noeuds.crée_noeud(lexème, ClassDecl)
         noeud.nom = nom_struct
         noeud.clé_classe = clé_classe
         noeud.bases = bases
