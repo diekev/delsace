@@ -217,8 +217,7 @@ ParseuseC :: struct {
     lexeuse: SimpleLexeuse
     noeuds: [..]*ASTNode
 
-    // À FAIRE : meilleure structure
-    typedef_names: [..]chaine
+    typedef_names: TableDeHachage(chaine, *TypedefDecl)
 
     symbole_non_consommé_lors_du_parsage_de_type: chaine
 }
@@ -228,7 +227,11 @@ initialise_parseuse :: fonc (parseuse: *ParseuseC)
     initialise_lexeuse_c(*parseuse.lexeuse)
 
     // À FAIRE : comprend ce que c'est
-    tableau_ajoute(*parseuse.typedef_names, "__builtin_va_list")
+    typedef_decl := crée_noeud(parseuse, TypedefDecl)
+    typedef_decl.type = crée_type_ref(parseuse, "__builtin_va_list")
+    typedef_decl.underlying_type = crée_pointer_type(parseuse, crée_type(parseuse, TypeKind.VOID))
+
+    _, _ := table_insère_si_non_existant(*parseuse.typedef_names, "__builtin_va_list", typedef_decl)
 }
 
 crée_noeud :: fonc (parseuse: *ParseuseC, $T: type_de_données) -> *T
@@ -327,10 +330,10 @@ est_storage_class_specifier :: fonc (lexème: Lexème) -> bool
     retourne faux
 }
 
-est_type_specifier :: fonc (parseuse: *ParseuseC, lexème: Lexème) -> bool
+est_type_specifier :: fonc (parseuse: *ParseuseC, lexème: Lexème, type_résolu: **Type) -> bool
 {
     mots_clés := ["void", "char", "short", "int", "long", "float", "double", "signed", "unsigned", "_Bool", "_Complex", "struct", "union", "enum"]
-    
+
     pour mots_clés {
         si est_mot_clé(lexème, it) {
             retourne vrai
@@ -339,10 +342,12 @@ est_type_specifier :: fonc (parseuse: *ParseuseC, lexème: Lexème) -> bool
 
     texte := donne_texte(lexème)
 
-    pour parseuse.typedef_names {
-        si it == texte {
-            retourne vrai
+    typedef_trouvé, typedef := donne_valeur_pour_clé(parseuse.typedef_names, texte)
+    si typedef_trouvé {
+        si type_résolu {
+            mémoire(type_résolu) = typedef
         }
+        retourne vrai
     }
 
     si texte == "_Atomic" {
@@ -384,6 +389,7 @@ est_alignment_specifier :: fonc (lexème: Lexème) -> bool
 InfoDéclaration :: struct {
     storage_class_specifier: chaine
     type_specifiers: [..]chaine
+    type_résolu: *Type
     type_qualifiers: [..]chaine
     function_specifiers: [..]chaine
 }
@@ -445,20 +451,80 @@ parse_external_declaration :: fonc (empl parseuse: *ParseuseC) -> *ASTNode
     imprime_infos(*déclaration_courante)
 
     si déclaration_courante.storage_class_specifier == "typedef" {
-        tantque declarator.genre == PointerDeclarator {
-            pointer_decl := declarator comme *PointerDeclarator
-            declarator = pointer_decl.direct
+        nom, type := donne_nom_et_type_pour_declarator(parseuse, *déclaration_courante, declarator)
+
+        si nom == "" {
+            rapporte_erreur(parseuse, lexème, "Nom nul pour le typedef");
+            retourne nul
         }
 
-        // À FAIRE
-        assert(declarator.genre == IdentifierDeclarator)
-        identifier := declarator comme *IdentifierDeclarator
-        tableau_ajoute(*parseuse.typedef_names, donne_texte(identifier.identifiant))
+        typedef_decl := crée_noeud(parseuse, TypedefDecl)
+        typedef_decl.type = crée_type_ref(parseuse, nom)
+        typedef_decl.underlying_type = type
+        _, _ := table_insère_si_non_existant(*parseuse.typedef_names, nom, typedef_decl)
+
+        retourne typedef_decl;
     }
 
     // exit(0)
 
     retourne nul
+}
+
+donne_nom_et_type_pour_declarator :: fonc (parseuse: *ParseuseC, info: *InfoDéclaration, declarator: *Declarator) -> (chaine, *Type)
+{
+    type_de_base := info.type_résolu
+    si type_de_base == nul {
+        rapporte_erreur(parseuse, Lexème(type = TypeLexème.FinDeFichier), "Erreur interne : déclaration sans spécifiants de type")
+        retourne "", nul
+    }
+
+    // imprimeln("type_de_base : %", type_de_base.kind)
+    // imprime_arbre(type_de_base)
+
+    nom := ""
+    type_final := type_de_base
+
+    tantque declarator {
+        si declarator.genre == IdentifierDeclarator {
+            identifier := declarator comme *IdentifierDeclarator
+            nom = donne_texte(identifier.identifiant)
+            arrête
+        }
+        sinon si declarator.genre == ArrayDeclarator {
+            // À FAIRE : préserve les qualifiers.
+            // À FAIRE : parse la taille
+            array := declarator comme *ArrayDeclarator
+            type_final = crée_constant_array(parseuse, type_final, 0)
+            declarator = array.direct
+        }
+        sinon si declarator.genre == PointerDeclarator {
+            // À FAIRE : préserve les qualifiers.
+            pointer := declarator comme *PointerDeclarator
+            type_final = crée_pointer_type(parseuse, type_final)
+            declarator = pointer.direct
+        }
+        sinon si declarator.genre == ParameterTypeList {
+            // À FAIRE
+            list := declarator comme *ParameterTypeList
+
+            function_type := crée_noeud(parseuse, FunctionType)
+            function_type.return_type = type_final
+            // function_type.parameters = params
+
+            type_final = function_type
+
+            declarator = list.direct
+        }
+        sinon {
+            assert(faux)
+        }
+    }
+
+    // imprimeln("type_final : %", type_final.kind)
+    // imprime_arbre(type_final)
+
+    retourne nom, type_final
 }
 
 parse_attributs_gcc :: fonc (empl parseuse: *ParseuseC)
@@ -515,6 +581,8 @@ parse_declaration_specifiers :: fonc (empl parseuse: *ParseuseC, déclaration: *
             retourne
         }
 
+        typedef_decl: *Type
+
         si est_storage_class_specifier(lexème) {
             si pour_struct_declaration {
                 rapporte_erreur(parseuse, lexème, "Unexpected storage class specifier '%'", donne_texte(lexème))
@@ -522,17 +590,22 @@ parse_declaration_specifiers :: fonc (empl parseuse: *ParseuseC, déclaration: *
             }
             déclaration.storage_class_specifier = donne_texte(lexème)
         }
-        sinon si est_type_specifier(parseuse, lexème) {
+        sinon si est_type_specifier(parseuse, lexème, *typedef_decl) {
             // À FAIRE : vérifie que l'on peut ajout le spécifiant
             specifier := donne_texte(lexème)
 
-            si specifier == "struct" || specifier == "union" {
+            type_résolu: *Type
+
+            si typedef_decl {
+                type_résolu = typedef_decl
+            }
+            sinon si specifier == "struct" || specifier == "union" {
                 si déclaration.type_specifiers.taille != 0 {
                     rapporte_erreur(parseuse, lexème, "Unexpected type speficier '%'", specifier)
                     retourne
                 }
 
-                _ := parse_struct_or_union_specifier(parseuse, specifier)
+                type_résolu = parse_struct_or_union_specifier(parseuse, specifier)
             }
             sinon si specifier == "enum" {
                 si déclaration.type_specifiers.taille != 0 {
@@ -552,6 +625,134 @@ parse_declaration_specifiers :: fonc (empl parseuse: *ParseuseC, déclaration: *
                 rapporte_erreur(parseuse, lexème, "Lexème non-géré '%'", specifier)
                 retourne
             }
+            sinon si specifier == "void" {
+                si déclaration.type_specifiers.taille != 0 {
+                    rapporte_erreur(parseuse, lexème, "Unexpected type speficier '%'", specifier)
+                    retourne
+                }
+
+                type_résolu = crée_type(parseuse, TypeKind.VOID)
+            }
+            sinon si specifier == "char" {
+                si déclaration.type_résolu == nul {
+                    type_résolu = crée_type(parseuse, TypeKind.CHAR)
+                }
+                sinon si déclaration.type_résolu.kind == TypeKind.INT {
+                    type_résolu = crée_type(parseuse, TypeKind.CHAR)
+                }
+                sinon si déclaration.type_résolu.kind == TypeKind.UNSIGNED_INT {
+                    type_résolu = crée_type(parseuse, TypeKind.UNSIGNED_CHAR)
+                }
+                sinon {
+                    rapporte_erreur(parseuse, lexème, "Spécifiant type inattendu")
+                }
+            }
+            sinon si specifier == "short" {
+                si déclaration.type_résolu == nul {
+                    type_résolu = crée_type(parseuse, TypeKind.SHORT)
+                }
+                sinon si déclaration.type_résolu.kind == TypeKind.INT {
+                    type_résolu = crée_type(parseuse, TypeKind.SHORT)
+                }
+                sinon si déclaration.type_résolu.kind == TypeKind.UNSIGNED_INT {
+                    type_résolu = crée_type(parseuse, TypeKind.UNSIGNED_SHORT)
+                }
+                sinon {
+                    rapporte_erreur(parseuse, lexème, "Spécifiant type inattendu")
+                }
+            }
+            sinon si specifier == "int" {
+                si déclaration.type_résolu == nul {
+                    type_résolu = crée_type(parseuse, TypeKind.INT)
+                }
+                sinon si déclaration.type_résolu.kind == TypeKind.INT {
+                    type_résolu = déclaration.type_résolu
+                }
+                sinon si déclaration.type_résolu.kind == TypeKind.UNSIGNED_INT {
+                    type_résolu = déclaration.type_résolu
+                }
+                sinon si déclaration.type_résolu.kind == TypeKind.SHORT {
+                    type_résolu = déclaration.type_résolu
+                }
+                sinon si déclaration.type_résolu.kind == TypeKind.LONG {
+                    type_résolu = déclaration.type_résolu
+                }
+                sinon si déclaration.type_résolu.kind == TypeKind.UNSIGNED_SHORT {
+                    type_résolu = déclaration.type_résolu
+                }
+                sinon si déclaration.type_résolu.kind == TypeKind.UNSIGNED_LONG {
+                    type_résolu = déclaration.type_résolu
+                }
+                sinon {
+                    rapporte_erreur(parseuse, lexème, "Spécifiant type inattendu")
+                }
+            }
+            sinon si specifier == "long" {
+                si déclaration.type_résolu == nul {
+                    type_résolu = crée_type(parseuse, TypeKind.LONG)
+                }
+                sinon si déclaration.type_résolu.kind == TypeKind.INT {
+                    type_résolu = crée_type(parseuse, TypeKind.LONG)
+                }
+                sinon si déclaration.type_résolu.kind == TypeKind.LONG {
+                    type_résolu = crée_type(parseuse, TypeKind.LONG_LONG)
+                }
+                sinon si déclaration.type_résolu.kind == TypeKind.UNSIGNED_INT {
+                    type_résolu = crée_type(parseuse, TypeKind.UNSIGNED_LONG)
+                }
+                sinon si déclaration.type_résolu.kind == TypeKind.UNSIGNED_LONG {
+                    type_résolu = crée_type(parseuse, TypeKind.UNSIGNED_LONG_LONG)
+                }
+                sinon si déclaration.type_résolu.kind == TypeKind.DOUBLE {
+                    type_résolu = crée_type(parseuse, TypeKind.LONG_DOUBLE)
+                }
+                sinon {
+                    rapporte_erreur(parseuse, lexème, "Spécifiant type inattendu")
+                }
+            }
+            sinon si specifier == "unsigned" {
+                si déclaration.type_résolu == nul || déclaration.type_résolu.kind == TypeKind.INT {
+                    type_résolu = crée_type(parseuse, TypeKind.UNSIGNED_INT)
+                }
+                sinon si déclaration.type_résolu.kind == TypeKind.LONG {
+                    type_résolu = crée_type(parseuse, TypeKind.UNSIGNED_LONG)
+                }
+                sinon {
+                    rapporte_erreur(parseuse, lexème, "Spécifiant type inattendu")
+                }
+            }
+            sinon si specifier == "signed" {
+                si déclaration.type_résolu == nul {
+                    type_résolu = crée_type(parseuse, TypeKind.INT)
+                }
+                sinon {
+                    rapporte_erreur(parseuse, lexème, "Spécifiant type inattendu")
+                }
+            }
+            sinon si specifier == "float" {
+                si déclaration.type_résolu == nul {
+                    type_résolu = crée_type(parseuse, TypeKind.FLOAT)
+                }
+                sinon {
+                    rapporte_erreur(parseuse, lexème, "Spécifiant type inattendu")
+                }
+            }
+            sinon si specifier == "double" {
+                si déclaration.type_résolu == nul {
+                    type_résolu = crée_type(parseuse, TypeKind.DOUBLE)
+                }
+                sinon si déclaration.type_résolu.kind == TypeKind.LONG {
+                    type_résolu = crée_type(parseuse, TypeKind.LONG_DOUBLE)
+                }
+                sinon {
+                    rapporte_erreur(parseuse, lexème, "Spécifiant type inattendu")
+                }
+            }
+            sinon {
+                rapporte_erreur(parseuse, lexème, "Erreur interne : spécifiant de type non-géré")
+            }
+
+            déclaration.type_résolu = type_résolu
 
             tableau_ajoute(*déclaration.type_specifiers, specifier)
         }
