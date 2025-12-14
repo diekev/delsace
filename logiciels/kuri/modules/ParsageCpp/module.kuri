@@ -33,7 +33,19 @@ imprime_arbre :: fonc (node: *ASTNode)
     rappel_pour_noeud :: fonc (visiteuse: *VisiteuseArbre(ASTNode), noeud: *ASTNode, info: *InfoTypeStructure) -> VisiteEnfants
     {
         imprime_tabulation(visiteuse.profondeur)
-        imprimeln("%", info.nom)
+        discr noeud.genre {
+            FunctionDecl {
+                function := noeud comme *FunctionDecl
+                imprimeln("% : %", info.nom, function.nom)
+            }
+            VarDecl {
+                var := noeud comme *VarDecl
+                imprimeln("% : %", info.nom, var.nom)
+            }
+            sinon {
+                imprimeln("%", info.nom)
+            }
+        }
         retourne VisiteEnfants.Oui
     }
 
@@ -48,6 +60,23 @@ imprime_arbre :: fonc (node: *ASTNode)
     visiteuse: VisiteuseArbre(ASTNode)
     visiteuse.rappel_pour_noeud = rappel_pour_noeud
     visite_noeud(*visiteuse, node)
+}
+
+VarDecl :: struct {
+    empl node: ASTNode
+    genre = #type_de_cette_structure
+
+    nom: chaine
+    type: *Type
+}
+
+FunctionDecl :: struct {
+    empl node: ASTNode
+    genre = #type_de_cette_structure
+
+    nom: chaine
+    type: *Type
+    params: [..]*ParamDecl
 }
 
 TypeKind :: énum {
@@ -313,7 +342,10 @@ parse_translation_unit :: fonc (empl parseuse: *ParseuseC, texte: chaine) -> *Ne
             arrête
         }
         external_declaration := parse_external_declaration(parseuse)
-        tableau_ajoute(*résultat.external_declarations, external_declaration)
+        si external_declaration {
+            imprime_arbre(external_declaration)
+            tableau_ajoute(*résultat.external_declarations, external_declaration)
+        }
     }
 
     retourne résultat
@@ -447,17 +479,20 @@ parse_external_declaration :: fonc (empl parseuse: *ParseuseC) -> *ASTNode
         retourne nul
     }
 
-    imprimeln("-----------")
-    imprime_infos(*déclaration_courante)
+    // imprimeln("-----------")
+    // imprime_infos(*déclaration_courante)
+
+    nom, type := donne_nom_et_type_pour_declarator(parseuse, *déclaration_courante, declarator)
+    si nom == "" {
+        rapporte_erreur(parseuse, lexème, "Nom nul pour la déclaration");
+        retourne nul
+    }
+    si type == nul {
+        rapporte_erreur(parseuse, lexème, "Nom nul pour la déclaration");
+        retourne nul
+    }
 
     si déclaration_courante.storage_class_specifier == "typedef" {
-        nom, type := donne_nom_et_type_pour_declarator(parseuse, *déclaration_courante, declarator)
-
-        si nom == "" {
-            rapporte_erreur(parseuse, lexème, "Nom nul pour le typedef");
-            retourne nul
-        }
-
         typedef_decl := crée_noeud(parseuse, TypedefDecl)
         typedef_decl.type = crée_type_ref(parseuse, nom)
         typedef_decl.underlying_type = type
@@ -466,9 +501,20 @@ parse_external_declaration :: fonc (empl parseuse: *ParseuseC) -> *ASTNode
         retourne typedef_decl;
     }
 
-    // exit(0)
+    si type.genre == FunctionType {
+        function_type := type comme *FunctionType
+        résultat := crée_noeud(parseuse, FunctionDecl)
+        résultat.params = tableau_copie(function_type.parameters)
+        résultat.nom = nom
+        résultat.type = function_type
+        retourne résultat
+    }
 
-    retourne nul
+    résultat := crée_noeud(parseuse, VarDecl)
+    résultat.nom = nom
+    résultat.type = type
+
+    retourne résultat
 }
 
 donne_nom_et_type_pour_declarator :: fonc (parseuse: *ParseuseC, info: *InfoDéclaration, declarator: *Declarator) -> (chaine, *Type)
