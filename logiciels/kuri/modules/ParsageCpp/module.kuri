@@ -29,6 +29,41 @@ ParseuseC :: struct {
     typedef_names: TableDeHachage(chaine, *TypedefDecl)
 }
 
+reprends_depuis_lexème :: fonc (parseuse: *ParseuseC, lexème: Lexème)
+{
+    reprends_depuis_lexème(*parseuse.lexeuse, lexème)
+}
+
+fini :: fonc (parseuse: *ParseuseC) -> bool
+{
+    retourne fini(*parseuse.lexeuse)
+}
+
+donne_lexème_suivant :: fonc (parseuse: *ParseuseC) -> Lexème
+{
+    retourne donne_lexème_suivant(*parseuse.lexeuse)
+}
+
+épie_lexème_suivant :: fonc (parseuse: *ParseuseC) -> Lexème
+{
+    retourne épie_lexème_suivant(*parseuse.lexeuse)
+}
+
+consomme :: fonc (parseuse: *ParseuseC)
+{
+    consomme(*parseuse.lexeuse)
+}
+
+consomme_symbole :: fonc (parseuse: *ParseuseC)
+{
+    consomme_symbole(*parseuse.lexeuse)
+}
+
+consomme_ponctuation :: fonc (parseuse: *ParseuseC, texte: chaine)
+{
+    consomme_ponctuation(*parseuse.lexeuse, texte)
+}
+
 initialise_parseuse :: fonc (empl parseuse: *ParseuseC)
 {
     initialise_lexeuse_c(*parseuse.lexeuse)
@@ -68,8 +103,8 @@ parse_translation_unit :: fonc (empl parseuse: *ParseuseC, texte: chaine) -> *Tr
 
     résultat := crée_noeud(*créatrice, TranslationUnit)
 
-    tantque !fini(*lexeuse) {
-        lexème := épie_lexème_suivant(*lexeuse)
+    tantque !fini(parseuse) {
+        lexème := épie_lexème_suivant(parseuse)
         si lexème.type == TypeLexème.FinDeFichier {
             arrête
         }
@@ -191,23 +226,23 @@ parse_external_declaration :: fonc (empl parseuse: *ParseuseC) -> *ASTNode
     déclaration_courante: InfoDéclaration
     parse_declaration_specifiers(parseuse, *déclaration_courante, faux)
 
-    si est_ponctuation(épie_lexème_suivant(*lexeuse), ";") {
+    si est_ponctuation(épie_lexème_suivant(parseuse), ";") {
         // À FAIRE : crée noeud.
-        consomme(*lexeuse)
+        consomme(parseuse)
         retourne nul
     }
 
     declarator := parse_declarator(parseuse, PrésenceIdentifier.OBLIGATOIRE)
     saufsi declarator {
-        rapporte_erreur(parseuse, donne_lexème_suivant(*lexeuse), "Attendu un declarateur")
+        rapporte_erreur(parseuse, donne_lexème_suivant(parseuse), "Attendu un declarateur")
         retourne nul
     }
 
     eu_attributs := parse_attributs_gcc(parseuse)
 
-    lexème := épie_lexème_suivant(*lexeuse)
+    lexème := épie_lexème_suivant(parseuse)
     si est_ponctuation(lexème, ";") {
-        consomme(*lexeuse)
+        consomme(parseuse)
         retourne crée_déclaration_pour_declarator(parseuse, *déclaration_courante, declarator)
     }
 
@@ -332,16 +367,16 @@ parse_attributs_gcc :: fonc (empl parseuse: *ParseuseC) -> bool
     eu_attributs := faux
 
     boucle {
-        lexème := épie_lexème_suivant(*lexeuse)
+        lexème := épie_lexème_suivant(parseuse)
         si donne_texte(lexème) != "__attribute__" && donne_texte(lexème) != "__asm__" {
             arrête
         }
 
         eu_attributs = vrai
 
-        consomme(*lexeuse)
+        consomme(parseuse)
 
-        lexème = épie_lexème_suivant(*lexeuse)
+        lexème = épie_lexème_suivant(parseuse)
         saufsi est_ponctuation(lexème, "(") {
             rapporte_erreur(parseuse, lexème, "Attendu un '('")
             arrête
@@ -349,7 +384,7 @@ parse_attributs_gcc :: fonc (empl parseuse: *ParseuseC) -> bool
 
         parenthèses := 0
         boucle {
-            lexème = donne_lexème_suivant(*lexeuse)
+            lexème = donne_lexème_suivant(parseuse)
             si lexème.type == TypeLexème.FinDeFichier {
                 rapporte_erreur(parseuse, lexème, "Fin de fichier inattendu")
                 retourne eu_attributs
@@ -381,7 +416,7 @@ parse_attributs_gcc :: fonc (empl parseuse: *ParseuseC) -> bool
 parse_declaration_specifiers :: fonc (empl parseuse: *ParseuseC, déclaration: *InfoDéclaration, pour_struct_declaration: bool)
 {
     boucle {
-        lexème := donne_lexème_suivant(*lexeuse)
+        lexème := donne_lexème_suivant(parseuse)
         si lexème.type == TypeLexème.FinDeFichier {
             rapporte_erreur(parseuse, lexème, "Fin inattendu de l'entrée")
             retourne
@@ -581,7 +616,7 @@ parse_declaration_specifiers :: fonc (empl parseuse: *ParseuseC, déclaration: *
             retourne
         }
         sinon {
-            reprends_depuis_lexème(*lexeuse, lexème)
+            reprends_depuis_lexème(parseuse, lexème)
             retourne
         }
     }
@@ -598,17 +633,17 @@ parse_declarator :: fonc (empl parseuse: *ParseuseC, présence_identifier: Prés
 {
     pointer: *PointerDeclarator
 
-    lexème := épie_lexème_suivant(*lexeuse)
+    lexème := épie_lexème_suivant(parseuse)
     tantque est_ponctuation(lexème, "*") {
-        consomme(*lexeuse)
+        consomme(parseuse)
 
         pointer_courant := loge(PointerDeclarator)
 
-        lexème = épie_lexème_suivant(*lexeuse)
+        lexème = épie_lexème_suivant(parseuse)
         tantque est_type_qualifier(lexème) {
-            consomme(*lexeuse)
+            consomme(parseuse)
             tableau_ajoute(*pointer_courant.qualifiers, donne_texte(lexème))
-            lexème = épie_lexème_suivant(*lexeuse)
+            lexème = épie_lexème_suivant(parseuse)
         }
 
         si pointer {
@@ -682,7 +717,7 @@ PrésenceIdentifier :: énum {
 
 parse_direct_declarator :: fonc (empl parseuse: *ParseuseC, présence_identifier: PrésenceIdentifier) -> *Declarator
 {
-    lexème := épie_lexème_suivant(*lexeuse)
+    lexème := épie_lexème_suivant(parseuse)
 
     direct: *Declarator
 
@@ -692,16 +727,16 @@ parse_direct_declarator :: fonc (empl parseuse: *ParseuseC, présence_identifier
             retourne nul
         }
 
-        consomme(*lexeuse)
+        consomme(parseuse)
 
         identifier := loge(IdentifierDeclarator)
         identifier.identifiant = lexème
         direct = identifier
     }
     sinon si est_ponctuation(lexème, "(") {
-        consomme(*lexeuse)
+        consomme(parseuse)
         direct = parse_declarator(parseuse, présence_identifier)
-        consomme_ponctuation(*lexeuse, ")")
+        consomme_ponctuation(parseuse, ")")
     }
     sinon si présence_identifier == PrésenceIdentifier.OBLIGATOIRE {
         rapporte_erreur(parseuse, lexème, "Lexème non-géré pour declarator")
@@ -709,14 +744,14 @@ parse_direct_declarator :: fonc (empl parseuse: *ParseuseC, présence_identifier
     }
 
     boucle {
-        lexème = épie_lexème_suivant(*lexeuse)
+        lexème = épie_lexème_suivant(parseuse)
 
         si est_ponctuation(lexème, "[") {
-            consomme(*lexeuse)
+            consomme(parseuse)
 
             expression: *Expression
 
-            lexème = épie_lexème_suivant(*lexeuse)
+            lexème = épie_lexème_suivant(parseuse)
             saufsi est_ponctuation(lexème, "]") {
                 expression = parse_expression(parseuse)
             }
@@ -726,13 +761,13 @@ parse_direct_declarator :: fonc (empl parseuse: *ParseuseC, présence_identifier
             array.expression = expression
             direct = array
 
-            consomme_ponctuation(*lexeuse, "]")
+            consomme_ponctuation(parseuse, "]")
         }
         sinon si est_ponctuation(lexème, "(") {
-            consomme(*lexeuse)
+            consomme(parseuse)
 
             boucle {
-                lexème = épie_lexème_suivant(*lexeuse)
+                lexème = épie_lexème_suivant(parseuse)
                 si lexème.type == TypeLexème.FinDeFichier {
                     rapporte_erreur(parseuse, lexème, "Fin de fichier inattendu")
                     retourne direct
@@ -743,7 +778,7 @@ parse_direct_declarator :: fonc (empl parseuse: *ParseuseC, présence_identifier
                 }
 
                 si est_ponctuation(lexème, "...") {
-                    consomme(*lexeuse)
+                    consomme(parseuse)
                     arrête
                 }
 
@@ -752,19 +787,19 @@ parse_direct_declarator :: fonc (empl parseuse: *ParseuseC, présence_identifier
 
                 _ := parse_declarator(parseuse, PrésenceIdentifier.OPTIONNELLE)
 
-                lexème = épie_lexème_suivant(*lexeuse)
+                lexème = épie_lexème_suivant(parseuse)
                 saufsi est_ponctuation(lexème, ",") {
                     arrête
                 }
 
-                consomme(*lexeuse)
+                consomme(parseuse)
             }
 
             list := loge(ParameterTypeList)
             list.direct = direct
             direct = list
 
-            consomme_ponctuation(*lexeuse, ")")
+            consomme_ponctuation(parseuse, ")")
         }
         sinon {
             arrête
@@ -782,21 +817,21 @@ parse_struct_or_union_specifier :: fonc (empl parseuse: *ParseuseC, classe: chai
 {
     assert(classe == "struct" || classe == "union")
 
-    lexème := épie_lexème_suivant(*lexeuse)
+    lexème := épie_lexème_suivant(parseuse)
 
     eu_nom := faux
     nom: chaine
     si lexème.type == TypeLexème.Symbole {
-        consomme_symbole(*lexeuse)
+        consomme_symbole(parseuse)
         nom = donne_texte(lexème)
         eu_nom = vrai
 
-        lexème = épie_lexème_suivant(*lexeuse)
+        lexème = épie_lexème_suivant(parseuse)
     }
 
     fields: [..]*FieldDecl
     si est_ponctuation(lexème, "{") {
-        consomme_ponctuation(*lexeuse, "{")
+        consomme_ponctuation(parseuse, "{")
         parse_struct_declaration_list(parseuse, *fields)
     }
     sinon saufsi eu_nom {
@@ -823,14 +858,14 @@ parse_struct_or_union_specifier :: fonc (empl parseuse: *ParseuseC, classe: chai
 parse_struct_declaration_list :: fonc (empl parseuse: *ParseuseC, fields: *[..]*FieldDecl)
 {
     boucle {
-        lexème := épie_lexème_suivant(*lexeuse)
+        lexème := épie_lexème_suivant(parseuse)
         si lexème.type == TypeLexème.FinDeFichier {
             rapporte_erreur(parseuse, lexème, "Unexpected end of input")
             retourne
         }
 
         si est_ponctuation(lexème, "}") {
-            consomme(*lexeuse)
+            consomme(parseuse)
             retourne
         }
 
@@ -842,7 +877,7 @@ parse_struct_declaration_list :: fonc (empl parseuse: *ParseuseC, fields: *[..]*
             declaratoropt : constant-expression */
         _ := parse_declarator(parseuse, PrésenceIdentifier.OBLIGATOIRE)
 
-        lexème = donne_lexème_suivant(*lexeuse)
+        lexème = donne_lexème_suivant(parseuse)
         saufsi est_ponctuation(lexème, ";") {
             rapporte_erreur(parseuse, lexème, "Expected a ';'")
             retourne
@@ -1007,7 +1042,7 @@ parse_statement_list :: fonc (empl parseuse: *ParseuseC) -> [..]*ASTNode
     résultat: [..]*ASTNode
     accolades := 0
     boucle {
-        lexème := donne_lexème_suivant(*lexeuse)
+        lexème := donne_lexème_suivant(parseuse)
         si lexème.type == TypeLexème.FinDeFichier {
             rapporte_erreur(parseuse, lexème, "Fin de fichier inattendu")
             retourne résultat
@@ -1117,7 +1152,7 @@ parse_expression :: fonc (empl parseuse: *ParseuseC, info_courante: InfoParsageO
     résultat := gauche
 
     boucle {
-        lexème := épie_lexème_suivant(*lexeuse)
+        lexème := épie_lexème_suivant(parseuse)
         si lexème.type == TypeLexème.FinDeFichier {
             rapporte_erreur(parseuse, lexème, "Unexpected end of input")
             retourne nul
@@ -1138,7 +1173,7 @@ parse_expression :: fonc (empl parseuse: *ParseuseC, info_courante: InfoParsageO
         }
 
         si texte == ">" || texte == ">=" || texte == "<" || texte == "<=" || texte == "==" || texte == "!=" || texte == "-" || texte == "+" || texte == "*" || texte == "/" || texte == "<<" || texte == ">>" || texte == "&" || texte == "^" || texte == "|" || texte == "%" {
-            consomme(*lexeuse)
+            consomme(parseuse)
 
             opérateur_binaire := loge(BinaryExpression)
             opérateur_binaire.op = texte
@@ -1159,16 +1194,16 @@ parse_expression_primaire :: fonc (empl parseuse: *ParseuseC) -> *Expression
 {
     résultat: *Expression
 
-    lexème := épie_lexème_suivant(*lexeuse)
+    lexème := épie_lexème_suivant(parseuse)
 
     si est_mot_clé(lexème, "sizeof") {
-        consomme(*lexeuse)
+        consomme(parseuse)
 
-        consomme_ponctuation(*lexeuse, "(")
+        consomme_ponctuation(parseuse, "(")
 
         operand := pase_type_name(parseuse)
 
-        consomme_ponctuation(*lexeuse, ")")
+        consomme_ponctuation(parseuse, ")")
 
         sizeof := crée_noeud(*créatrice, SizeOfExpression)
         sizeof.operand = operand
@@ -1176,7 +1211,7 @@ parse_expression_primaire :: fonc (empl parseuse: *ParseuseC) -> *Expression
         résultat = sizeof
     }
     sinon si lexème.type == TypeLexème.LittéraleNombreEntier {
-        consomme(*lexeuse)
+        consomme(parseuse)
 
         literal := crée_noeud(*créatrice, IntegerLiteralExpression)
         literal.lexème = lexème
