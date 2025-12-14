@@ -232,17 +232,6 @@ DeclContext :: struct {
 /** \} */
 
 /* ------------------------------------------------------------------------- */
-/** \nom TranslationUnit
- * \{ */
-
-TranslationUnit :: struct {
-    empl base: DeclContext
-    genre = #type_de_cette_structure
-}
-
-/** \} */
-
-/* ------------------------------------------------------------------------- */
 /** \nom NamespaceDecl
  * \{ */
 

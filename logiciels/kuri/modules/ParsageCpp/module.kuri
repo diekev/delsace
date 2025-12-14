@@ -11,6 +11,7 @@ charge "arbre_syntaxique"
 charge "fichier_source"
 charge "préprocesseur"
 charge "parseuse"
+charge "unit"
 
 est_fichier_cpp :: fonc (chemin: CheminFichier) -> bool
 {
@@ -101,7 +102,7 @@ parse_translation_unit :: fonc (empl parseuse: *ParseuseC, texte: chaine) -> *Tr
 {
     initialise_lexeuse_pour_texte(*parseuse.lexeuse, texte)
 
-    résultat := crée_noeud(*créatrice, TranslationUnit)
+    résultat := loge(TranslationUnit)
 
     tantque !fini(parseuse) {
         lexème := épie_lexème_suivant(parseuse)

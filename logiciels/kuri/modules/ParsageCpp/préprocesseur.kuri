@@ -272,7 +272,7 @@ détermine_langage_pour_fichier :: fonc (chemin: chaine) -> Langage
  * \{ */
 
 PréProcesseur :: struct {
-    fichiers: [..]FichierSource
+    unit: *TranslationUnit
 
     chemins_inclusions_système: [..]chaine
     chemins_inclusions_local: [..]chaine
@@ -292,8 +292,35 @@ PréProcesseur :: struct {
     macros_inconnus: [..]chaine
 }
 
+détruit_données :: fonc (préprocesseur: *PréProcesseur)
+{
+    préprocesseur.unit = nul
+    déloge(préprocesseur.chemins_inclusions_système)
+    déloge(préprocesseur.chemins_inclusions_local)
+    pour * préprocesseur.lexeuses {
+        déloge(it.lexeuse.lexèmes_extras)
+    }
+    déloge(préprocesseur.lexeuses)
+    déloge(préprocesseur.définitions)
+    déloge(préprocesseur.pile_branches)
+    déloge(préprocesseur.macros_inconnus)
+}
+
 LexèmePréprocès :: struct {
     lexème: Lexème
+}
+
+imprime_lexèmes :: fonc (lexèmes: []LexèmePréprocès) -> chaine
+{
+    enchaineuse: Enchaineuse
+    initialise_enchaineuse(*enchaineuse)
+
+    pour lexèmes {
+        ajoute_au_tampon(*enchaineuse, donne_texte(it.lexème))
+    }
+
+    résultat := chaine_depuis_enchaineuse(*enchaineuse)
+    retourne résultat
 }
 
 LexeusePréProcès :: struct {
@@ -301,9 +328,13 @@ LexeusePréProcès :: struct {
     fichier: z64
 }
 
-initialise_préprocesseur :: fonc (préprocesseur: *PréProcesseur, langage: Langage)
+initialise_préprocesseur :: fonc (préprocesseur: *PréProcesseur, unit: *TranslationUnit)
 {
-    discr langage {
+    assert(unit != nul)
+
+    préprocesseur.unit = unit
+
+    discr préprocesseur.unit.langage {
         C {
             // GCC 12
             // echo | gcc -x c -E -v -
@@ -537,33 +568,31 @@ crée_définition :: fonc (préprocesseur: *PréProcesseur, nom: chaine) -> *Dé
 
 donne_source_préprocédée :: fonc (chemin_source: chaine) -> chaine
 {
-    langage := détermine_langage_pour_fichier(chemin_source)
+    unit := crée_translation_unit_pour_fichier(chemin_source)
+    diffère détruit(unit)
     préprocesseur: PréProcesseur
-    initialise_préprocesseur(*préprocesseur, langage)
-    retourne donne_source_préprocédée(*préprocesseur, chemin_source)
+    diffère détruit_données(*préprocesseur)
+    initialise_préprocesseur(*préprocesseur, unit)
+    retourne donne_source_préprocédée(*préprocesseur)
 }
 
-donne_source_préprocédée :: fonc (préprocesseur: *PréProcesseur, chemin_source: chaine) -> chaine
+donne_source_préprocédée :: fonc (préprocesseur: *PréProcesseur) -> chaine
 {
-    lexèmes := donne_lexèmes_préprocès(préprocesseur, chemin_source)
-    diffère déloge(lexèmes)
-
-    enchaineuse: Enchaineuse
-    initialise_enchaineuse(*enchaineuse)
-
-    pour lexèmes {
-        ajoute_au_tampon(*enchaineuse, donne_texte(it.lexème))
-    }
-
-    résultat := chaine_depuis_enchaineuse(*enchaineuse)
-    retourne résultat
+    exécute_préprocesseur(préprocesseur)
+    retourne imprime_lexèmes(préprocesseur.unit.lexèmes_préprocès)
 }
 
-donne_lexèmes_préprocès :: fonc (préprocesseur: *PréProcesseur, chemin_source: chaine) -> [..]LexèmePréprocès
+exécute_préprocesseur :: fonc (préprocesseur: *PréProcesseur)
+{
+    assert(préprocesseur.unit != nul)
+    préprocesseur.unit.lexèmes_préprocès = donne_lexèmes_préprocès(préprocesseur)
+}
+
+donne_lexèmes_préprocès :: fonc (préprocesseur: *PréProcesseur) -> [..]LexèmePréprocès
 {
     préprocesseur.compteur = 0
 
-    empile_fichier(préprocesseur, chemin_source, "")
+    empile_fichier(préprocesseur, préprocesseur.unit.chemin_racine, "")
 
     lexèmes: [..]LexèmePréprocès
 
@@ -769,7 +798,7 @@ donne_lexèmes_préprocès :: fonc (préprocesseur: *PréProcesseur, chemin_sour
                     }
                 }
                 sinon si texte == "once" {
-                    fichier := *préprocesseur.fichiers[lexeuse_préprocès.fichier]
+                    fichier := *préprocesseur.unit.fichiers[lexeuse_préprocès.fichier]
                     fichier.est_marqué_pragma_once = vrai
                 }
                 sinon {
@@ -898,13 +927,13 @@ donne_lexeuse_courante :: fonc (préprocesseur: *PréProcesseur) -> *LexeusePré
 donne_fichier_courant :: fonc (préprocesseur: *PréProcesseur) -> *FichierSource
 {
     lexeuse := donne_lexeuse_courante(préprocesseur)
-    fichier := *préprocesseur.fichiers[lexeuse.fichier]
+    fichier := *préprocesseur.unit.fichiers[lexeuse.fichier]
     retourne fichier
 }
 
 donne_fichier_pour_chemin :: fonc (préprocesseur: *PréProcesseur, chemin: chaine) -> (*FichierSource, z64)
 {
-    pour * préprocesseur.fichiers {
+    pour * préprocesseur.unit.fichiers {
         si it.chemin == chemin {
             retourne it, indice_it
         }
@@ -1527,8 +1556,8 @@ empile_fichier :: fonc (préprocesseur: *PréProcesseur, chemin: chaine, trouvé
             exit(1)
         }
 
-        indice_fichier = préprocesseur.fichiers.taille
-        fichier = tableau_ajoute_élément(*préprocesseur.fichiers)
+        indice_fichier = préprocesseur.unit.fichiers.taille
+        fichier = tableau_ajoute_élément(*préprocesseur.unit.fichiers)
         fichier.chemin = copie_chaine(chemin)
         fichier.contenu_cru = contenu
         fichier.contenu_prétaité = prétraite_fichier(fichier.contenu_cru)
