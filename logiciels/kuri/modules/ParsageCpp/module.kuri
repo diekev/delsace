@@ -579,10 +579,16 @@ parse_declaration_specifiers :: fonc (empl parseuse: *ParseuseC, déclaration: *
                 sinon si déclaration.type_résolu.kind == TypeKind.LONG {
                     type_résolu = déclaration.type_résolu
                 }
+                sinon si déclaration.type_résolu.kind == TypeKind.LONG_LONG {
+                    type_résolu = déclaration.type_résolu
+                }
                 sinon si déclaration.type_résolu.kind == TypeKind.UNSIGNED_SHORT {
                     type_résolu = déclaration.type_résolu
                 }
                 sinon si déclaration.type_résolu.kind == TypeKind.UNSIGNED_LONG {
+                    type_résolu = déclaration.type_résolu
+                }
+                sinon si déclaration.type_résolu.kind == TypeKind.UNSIGNED_LONG_LONG {
                     type_résolu = déclaration.type_résolu
                 }
                 sinon {
