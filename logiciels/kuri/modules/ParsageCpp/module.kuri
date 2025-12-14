@@ -27,8 +27,6 @@ ParseuseC :: struct {
     créatrice: CréatriceNoeuds
 
     typedef_names: TableDeHachage(chaine, *TypedefDecl)
-
-    symbole_non_consommé_lors_du_parsage_de_type: chaine
 }
 
 initialise_parseuse :: fonc (empl parseuse: *ParseuseC)
