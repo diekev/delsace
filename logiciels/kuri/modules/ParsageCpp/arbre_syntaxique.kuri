@@ -63,6 +63,8 @@ TypeKind :: énum {
 
     FUNCTION
     CONSTANT_ARRAY
+
+    ENUM
 }
 
 Type :: struct {
@@ -140,6 +142,23 @@ UnionDecl :: struct {
 
     name: chaine
     fields: [..]*FieldDecl
+}
+
+EnumDecl :: struct {
+    empl base_type: Type
+    genre = #type_de_cette_structure
+    kind = TypeKind.ENUM
+
+    name: chaine
+    enumerators: [..]*EnumeratorDecl
+}
+
+EnumeratorDecl :: struct {
+    empl base_type: Type
+    genre = #type_de_cette_structure
+
+    identifier: LexèmePréprocès
+    expression: *Expression
 }
 
 FieldDecl :: struct {

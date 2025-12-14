@@ -516,8 +516,7 @@ parse_declaration_specifiers :: fonc (empl parseuse: *ParseuseC, déclaration: *
                     retourne
                 }
 
-                rapporte_erreur(parseuse, lexème, "Lexème non-géré '%'", specifier)
-                retourne
+                type_résolu = parse_enum_specifier(parseuse)
             }
             sinon si specifier == "_Atomic" {
                 si déclaration.type_specifiers.taille != 0 {
@@ -952,6 +951,72 @@ parse_struct_declaration_list :: fonc (empl parseuse: *ParseuseC, fields: *[..]*
     }
 }
 
+parse_enum_specifier :: fonc (parseuse: *ParseuseC) -> *EnumDecl
+{
+    lexème := épie_lexème_suivant(parseuse)
+
+    eu_nom := faux
+    nom: chaine
+    si est_symbole(lexème) {
+        consomme_symbole(parseuse)
+        nom = donne_texte(lexème)
+        eu_nom = vrai
+
+        lexème = épie_lexème_suivant(parseuse)
+    }
+
+    enumerators: [..]*EnumeratorDecl
+    si est_ponctuation(lexème, "{") {
+        consomme_ponctuation(parseuse, "{")
+
+        tantque !fini(parseuse) {
+            lexème = épie_lexème_suivant(parseuse)
+            si est_ponctuation(lexème, "}") {
+                arrête
+            }
+
+            saufsi est_symbole(lexème) {
+                rapporte_erreur(parseuse, lexème, "Attendu un symbole")
+                arrête
+            }
+
+            identifier := lexème
+            consomme(parseuse)
+
+            expression: *Expression
+            lexème = épie_lexème_suivant(parseuse)
+            si est_ponctuation(lexème, "=") {
+                consomme(parseuse)
+                expression = parse_constant_expression(parseuse)
+            }
+
+            enumerator := crée_noeud(*parseuse.créatrice, EnumeratorDecl)
+            enumerator.identifier = identifier
+            enumerator.expression = expression
+
+            tableau_ajoute(*enumerators, enumerator)
+
+            lexème = épie_lexème_suivant(parseuse)
+            saufsi est_ponctuation(lexème, ",") {
+                arrête
+            }
+
+            consomme(parseuse)
+        }
+
+        consomme_ponctuation(parseuse, "}")
+    }
+    sinon saufsi eu_nom {
+        rapporte_erreur(parseuse, lexème, "Lexème inattendu dans le parsage de l'énumération : %", donne_texte(lexème))
+        retourne nul
+    }
+
+    résultat := crée_noeud(*parseuse.créatrice, EnumDecl)
+    résultat.enumerators = enumerators
+    résultat.name = nom
+    retourne résultat
+}
+
 imprime_type_kuri :: fonc (enchaineuse: *Enchaineuse, type_c: *Type)
 {
     discr type_c.kind {
@@ -1204,12 +1269,18 @@ donne_info_parsage_opérateur_binaire_c :: fonc (texte: chaine) -> (bool, InfoPa
     retourne est_opérateur, résultat
 }
 
-parse_expression :: fonc (empl parseuse: *ParseuseC) -> *Expression
+// À FAIRE : supprime la valeur défaut pour virgule_est_permise
+parse_expression :: fonc (empl parseuse: *ParseuseC, virgule_est_permise := vrai) -> *Expression
 {
-    retourne parse_expression(parseuse, InfoParsageOpérateur())
+    retourne parse_expression(parseuse, InfoParsageOpérateur(), virgule_est_permise)
 }
 
-parse_expression :: fonc (empl parseuse: *ParseuseC, info_courante: InfoParsageOpérateur) -> *Expression
+parse_constant_expression :: fonc (parseuse: *ParseuseC) -> *Expression
+{
+    retourne parse_expression(parseuse, InfoParsageOpérateur(), faux)
+}
+
+parse_expression :: fonc (empl parseuse: *ParseuseC, info_courante: InfoParsageOpérateur, virgule_est_permise := vrai) -> *Expression
 {
     gauche := parse_expression_primaire(parseuse)
     saufsi gauche {
@@ -1245,9 +1316,17 @@ parse_expression :: fonc (empl parseuse: *ParseuseC, info_courante: InfoParsageO
             opérateur_binaire := loge(BinaryExpression)
             opérateur_binaire.op = texte
             opérateur_binaire.left = résultat
-            opérateur_binaire.right = parse_expression(parseuse, info)
+            opérateur_binaire.right = parse_expression(parseuse, info, virgule_est_permise)
 
             résultat = opérateur_binaire
+        }
+        sinon si texte == "," {
+            si virgule_est_permise {
+                rapporte_erreur(parseuse, lexème, "Erreur interne : virgule non-gérée")
+            }
+            sinon {
+                arrête
+            }
         }
         sinon {
             arrête
