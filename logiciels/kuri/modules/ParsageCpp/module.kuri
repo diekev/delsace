@@ -38,6 +38,10 @@ imprime_arbre :: fonc (node: *ASTNode)
                 function := noeud comme *FunctionDecl
                 imprimeln("% : %", info.nom, function.nom)
             }
+            FunctionDefinition {
+                function := noeud comme *FunctionDefinition
+                imprimeln("% : %", info.nom, function.nom)
+            }
             VarDecl {
                 var := noeud comme *VarDecl
                 imprimeln("% : %", info.nom, var.nom)
@@ -77,6 +81,16 @@ FunctionDecl :: struct {
     nom: chaine
     type: *Type
     params: [..]*ParamDecl
+}
+
+FunctionDefinition :: struct {
+    empl node: ASTNode
+    genre = #type_de_cette_structure
+
+    nom: chaine
+    type: *Type
+    params: [..]*ParamDecl
+    statements: [..]*ASTNode
 }
 
 TypeKind :: énum {
@@ -471,28 +485,50 @@ parse_external_declaration :: fonc (empl parseuse: *ParseuseC) -> *ASTNode
         retourne nul
     }
 
-    parse_attributs_gcc(parseuse)
+    eu_attributs := parse_attributs_gcc(parseuse)
 
-    lexème := donne_lexème_suivant(*lexeuse)
-    saufsi est_ponctuation(lexème, ";") {
-        rapporte_erreur(parseuse, lexème, "Attendu un ';'")
-        retourne nul
+    lexème := épie_lexème_suivant(*lexeuse)
+    si est_ponctuation(lexème, ";") {
+        consomme(*lexeuse)
+        retourne crée_déclaration_pour_declarator(parseuse, *déclaration_courante, declarator)
     }
 
-    // imprimeln("-----------")
-    // imprime_infos(*déclaration_courante)
-
     nom, type := donne_nom_et_type_pour_declarator(parseuse, *déclaration_courante, declarator)
+
+    si type.genre == FunctionType {
+        saufsi est_ponctuation(lexème, "{") {
+            rapporte_erreur(parseuse, lexème, "Attendu '{'");
+            retourne nul
+        }
+
+        statement_list := parse_statement_list(parseuse)
+
+        function_type := type comme *FunctionType
+        résultat := crée_noeud(parseuse, FunctionDefinition)
+        résultat.params = tableau_copie(function_type.parameters)
+        résultat.nom = nom
+        résultat.type = function_type
+        résultat.statements = statement_list
+        retourne résultat
+    }
+
+    rapporte_erreur(parseuse, lexème, "Lexème inattendu")
+    retourne nul
+}
+
+crée_déclaration_pour_declarator :: fonc (parseuse: *ParseuseC, info: *InfoDéclaration, declarator: *Declarator) -> *ASTNode
+{
+    nom, type := donne_nom_et_type_pour_declarator(parseuse, info, declarator)
     si nom == "" {
-        rapporte_erreur(parseuse, lexème, "Nom nul pour la déclaration");
+        rapporte_erreur(parseuse, Lexème(type = TypeLexème.FinDeFichier), "Nom nul pour la déclaration");
         retourne nul
     }
     si type == nul {
-        rapporte_erreur(parseuse, lexème, "Nom nul pour la déclaration");
+        rapporte_erreur(parseuse, Lexème(type = TypeLexème.FinDeFichier), "Nom nul pour la déclaration");
         retourne nul
     }
 
-    si déclaration_courante.storage_class_specifier == "typedef" {
+    si info.storage_class_specifier == "typedef" {
         typedef_decl := crée_noeud(parseuse, TypedefDecl)
         typedef_decl.type = crée_type_ref(parseuse, nom)
         typedef_decl.underlying_type = type
@@ -573,20 +609,24 @@ donne_nom_et_type_pour_declarator :: fonc (parseuse: *ParseuseC, info: *InfoDéc
     retourne nom, type_final
 }
 
-parse_attributs_gcc :: fonc (empl parseuse: *ParseuseC)
+parse_attributs_gcc :: fonc (empl parseuse: *ParseuseC) -> bool
 {
+    eu_attributs := faux
+
     boucle {
         lexème := épie_lexème_suivant(*lexeuse)
         si donne_texte(lexème) != "__attribute__" && donne_texte(lexème) != "__asm__" {
             arrête
         }
 
+        eu_attributs = vrai
+
         consomme(*lexeuse)
 
         lexème = épie_lexème_suivant(*lexeuse)
         saufsi est_ponctuation(lexème, "(") {
             rapporte_erreur(parseuse, lexème, "Attendu un '('")
-            retourne
+            arrête
         }
 
         parenthèses := 0
@@ -594,7 +634,7 @@ parse_attributs_gcc :: fonc (empl parseuse: *ParseuseC)
             lexème = donne_lexème_suivant(*lexeuse)
             si lexème.type == TypeLexème.FinDeFichier {
                 rapporte_erreur(parseuse, lexème, "Fin de fichier inattendu")
-                retourne
+                retourne eu_attributs
             }
             si est_ponctuation(lexème, "(") {
                 parenthèses += 1
@@ -608,6 +648,8 @@ parse_attributs_gcc :: fonc (empl parseuse: *ParseuseC)
             }
         }
     }
+
+    retourne eu_attributs
 }
 
 /*
@@ -1551,6 +1593,30 @@ est_structure_ou_union_anonyme :: fonc (type_c: *Type) -> bool
         résultat = union_decl.name == ""
     }
 
+    retourne résultat
+}
+
+parse_statement_list :: fonc (empl parseuse: *ParseuseC) -> [..]*ASTNode
+{
+    résultat: [..]*ASTNode
+    accolades := 0
+    boucle {
+        lexème := donne_lexème_suivant(*lexeuse)
+        si lexème.type == TypeLexème.FinDeFichier {
+            rapporte_erreur(parseuse, lexème, "Fin de fichier inattendu")
+            retourne résultat
+        }
+        si est_ponctuation(lexème, "{") {
+            accolades += 1
+        }
+        sinon si est_ponctuation(lexème, "}") {
+            accolades -= 1
+
+            si accolades == 0 {
+                arrête
+            }
+        }
+    }
     retourne résultat
 }
 
