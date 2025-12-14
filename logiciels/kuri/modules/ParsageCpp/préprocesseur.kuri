@@ -308,6 +308,7 @@ détruit_données :: fonc (préprocesseur: *PréProcesseur)
 
 LexèmePréprocès :: struct {
     lexème: Lexème
+    fichier: z64 = -1
 }
 
 est_symbole :: fonc (lexème: LexèmePréprocès) -> bool #enligne
@@ -446,6 +447,7 @@ donne_lexème_suivant :: fonc (lexeuse: *LexeusePréProcès) -> LexèmePréproc�
 {
     résultat: LexèmePréprocès
     résultat.lexème = donne_lexème_suivant(*lexeuse.lexeuse)
+    résultat.fichier = lexeuse.fichier
     retourne résultat
 }
 
