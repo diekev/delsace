@@ -239,7 +239,7 @@ parse_external_declaration :: fonc (empl parseuse: *ParseuseC) -> *ASTNode
         retourne nul
     }
 
-    eu_attributs := parse_attributs_gcc(parseuse)
+    _ := parse_attributs_gcc(parseuse)
 
     lexème := épie_lexème_suivant(parseuse)
     si est_ponctuation(lexème, ";") {
@@ -856,7 +856,7 @@ parse_struct_or_union_specifier :: fonc (empl parseuse: *ParseuseC, classe: chai
 /* struct-declaration:
     specifier-qualifier-list struct-declarator-listopt ;
     static_assert-declaration */
-parse_struct_declaration_list :: fonc (empl parseuse: *ParseuseC, fields: *[..]*FieldDecl)
+parse_struct_declaration_list :: fonc (empl parseuse: *ParseuseC, fields: *[..]*FieldDecl @inutilisée)
 {
     boucle {
         lexème := épie_lexème_suivant(parseuse)
