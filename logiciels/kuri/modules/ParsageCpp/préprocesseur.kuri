@@ -464,39 +464,39 @@ initialise_préprocesseur :: fonc (préprocesseur: *PréProcesseur, unit: *Trans
     ajoute_définition(préprocesseur, "__ORDER_BIG_ENDIAN__", 4321)
     ajoute_définition(préprocesseur, "__ORDER_PDP_ENDIAN__", 3412)
     ajoute_définition(préprocesseur, "__FLOAT_WORD_ORDER__", 1234)
-    ajoute_définition(préprocesseur, "__SIZE_TYPE__", "long unsigned int")
-    ajoute_définition(préprocesseur, "__PTRDIFF_TYPE__", "long int")
-    ajoute_définition(préprocesseur, "__WCHAR_TYPE__", "int")
-    ajoute_définition(préprocesseur, "__WINT_TYPE__", "unsigned int")
-    ajoute_définition(préprocesseur, "__INTMAX_TYPE__", "long int")
-    ajoute_définition(préprocesseur, "__UINTMAX_TYPE__", "long unsigned int")
-    ajoute_définition(préprocesseur, "__SIG_ATOMIC_TYPE__", "int")
-    ajoute_définition(préprocesseur, "__INT8_TYPE__", "signed char")
-    ajoute_définition(préprocesseur, "__INT16_TYPE__", "short int")
-    ajoute_définition(préprocesseur, "__INT32_TYPE__", "int")
-    ajoute_définition(préprocesseur, "__INT64_TYPE__", "long int")
-    ajoute_définition(préprocesseur, "__UINT8_TYPE__", "unsigned char")
-    ajoute_définition(préprocesseur, "__UINT16_TYPE__", "short unsigned int")
-    ajoute_définition(préprocesseur, "__UINT32_TYPE__", "unsigned int")
-    ajoute_définition(préprocesseur, "__UINT64_TYPE__", "long unsigned int")
-    ajoute_définition(préprocesseur, "__INT_LEAST8_TYPE__", "signed char")
-    ajoute_définition(préprocesseur, "__INT_LEAST16_TYPE__", "short int")
-    ajoute_définition(préprocesseur, "__INT_LEAST32_TYPE__", "int")
-    ajoute_définition(préprocesseur, "__INT_LEAST64_TYPE__", "long int")
-    ajoute_définition(préprocesseur, "__UINT_LEAST8_TYPE__", "unsigned char")
-    ajoute_définition(préprocesseur, "__UINT_LEAST16_TYPE__", "short unsigned int")
-    ajoute_définition(préprocesseur, "__UINT_LEAST32_TYPE__", "unsigned int")
-    ajoute_définition(préprocesseur, "__UINT_LEAST64_TYPE__", "long unsigned int")
-    ajoute_définition(préprocesseur, "__INT_FAST8_TYPE__", "signed char")
-    ajoute_définition(préprocesseur, "__INT_FAST16_TYPE__", "long int")
-    ajoute_définition(préprocesseur, "__INT_FAST32_TYPE__", "long int")
-    ajoute_définition(préprocesseur, "__INT_FAST64_TYPE__", "long int")
-    ajoute_définition(préprocesseur, "__UINT_FAST8_TYPE__", "unsigned char")
-    ajoute_définition(préprocesseur, "__UINT_FAST16_TYPE__", "long unsigned int")
-    ajoute_définition(préprocesseur, "__UINT_FAST32_TYPE__", "long unsigned int")
-    ajoute_définition(préprocesseur, "__UINT_FAST64_TYPE__", "long unsigned int")
-    ajoute_définition(préprocesseur, "__INTPTR_TYPE__", "long int")
-    ajoute_définition(préprocesseur, "__UINTPTR_TYPE__", "long unsigned int")
+    ajoute_définition_lexèmes(préprocesseur, "__SIZE_TYPE__", "long unsigned int")
+    ajoute_définition_lexèmes(préprocesseur, "__PTRDIFF_TYPE__", "long int")
+    ajoute_définition_lexèmes(préprocesseur, "__WCHAR_TYPE__", "int")
+    ajoute_définition_lexèmes(préprocesseur, "__WINT_TYPE__", "unsigned int")
+    ajoute_définition_lexèmes(préprocesseur, "__INTMAX_TYPE__", "long int")
+    ajoute_définition_lexèmes(préprocesseur, "__UINTMAX_TYPE__", "long unsigned int")
+    ajoute_définition_lexèmes(préprocesseur, "__SIG_ATOMIC_TYPE__", "int")
+    ajoute_définition_lexèmes(préprocesseur, "__INT8_TYPE__", "signed char")
+    ajoute_définition_lexèmes(préprocesseur, "__INT16_TYPE__", "short int")
+    ajoute_définition_lexèmes(préprocesseur, "__INT32_TYPE__", "int")
+    ajoute_définition_lexèmes(préprocesseur, "__INT64_TYPE__", "long int")
+    ajoute_définition_lexèmes(préprocesseur, "__UINT8_TYPE__", "unsigned char")
+    ajoute_définition_lexèmes(préprocesseur, "__UINT16_TYPE__", "short unsigned int")
+    ajoute_définition_lexèmes(préprocesseur, "__UINT32_TYPE__", "unsigned int")
+    ajoute_définition_lexèmes(préprocesseur, "__UINT64_TYPE__", "long unsigned int")
+    ajoute_définition_lexèmes(préprocesseur, "__INT_LEAST8_TYPE__", "signed char")
+    ajoute_définition_lexèmes(préprocesseur, "__INT_LEAST16_TYPE__", "short int")
+    ajoute_définition_lexèmes(préprocesseur, "__INT_LEAST32_TYPE__", "int")
+    ajoute_définition_lexèmes(préprocesseur, "__INT_LEAST64_TYPE__", "long int")
+    ajoute_définition_lexèmes(préprocesseur, "__UINT_LEAST8_TYPE__", "unsigned char")
+    ajoute_définition_lexèmes(préprocesseur, "__UINT_LEAST16_TYPE__", "short unsigned int")
+    ajoute_définition_lexèmes(préprocesseur, "__UINT_LEAST32_TYPE__", "unsigned int")
+    ajoute_définition_lexèmes(préprocesseur, "__UINT_LEAST64_TYPE__", "long unsigned int")
+    ajoute_définition_lexèmes(préprocesseur, "__INT_FAST8_TYPE__", "signed char")
+    ajoute_définition_lexèmes(préprocesseur, "__INT_FAST16_TYPE__", "long int")
+    ajoute_définition_lexèmes(préprocesseur, "__INT_FAST32_TYPE__", "long int")
+    ajoute_définition_lexèmes(préprocesseur, "__INT_FAST64_TYPE__", "long int")
+    ajoute_définition_lexèmes(préprocesseur, "__UINT_FAST8_TYPE__", "unsigned char")
+    ajoute_définition_lexèmes(préprocesseur, "__UINT_FAST16_TYPE__", "long unsigned int")
+    ajoute_définition_lexèmes(préprocesseur, "__UINT_FAST32_TYPE__", "long unsigned int")
+    ajoute_définition_lexèmes(préprocesseur, "__UINT_FAST64_TYPE__", "long unsigned int")
+    ajoute_définition_lexèmes(préprocesseur, "__INTPTR_TYPE__", "long int")
+    ajoute_définition_lexèmes(préprocesseur, "__UINTPTR_TYPE__", "long unsigned int")
 
     définition := crée_définition(préprocesseur, "__has_builtin")
     tableau_ajoute(*définition.paramètres, crée_lexème_symbole("x"))
@@ -546,6 +546,26 @@ ajoute_définition :: fonc (préprocesseur: *PréProcesseur, nom: chaine, valeur
 
     lexème := tableau_ajoute_élément(*définition.lexèmes)
     mémoire(lexème) = crée_lexème_chaine_littérale(valeur)
+}
+
+ajoute_définition_lexèmes :: fonc (préprocesseur: *PréProcesseur, nom: chaine, valeur: chaine)
+{
+    définition := crée_définition(préprocesseur, nom)
+
+    lexeuse: SimpleLexeuse
+    initialise_lexeuse_c(*lexeuse)
+    lexeuse.options.INCLUS_TOUT = vrai
+
+    initialise_lexeuse_pour_texte(*lexeuse, valeur)
+
+    boucle {
+        lexème := donne_lexème_suivant(*lexeuse)
+        si lexème.type == TypeLexème.FinDeFichier {
+            arrête
+        }
+
+        tableau_ajoute(*définition.lexèmes, lexème)
+    }
 }
 
 ajoute_définition_intrinsèque :: fonc (préprocesseur: *PréProcesseur, nom: chaine, nombre_arguments: z32, rappel: fonc (préprocesseur: *PréProcesseur, arguments: [..][..]Lexème) -> Lexème)
