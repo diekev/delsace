@@ -680,6 +680,9 @@ parse_declaration_specifiers :: fonc (empl parseuse: *ParseuseC, déclaration: *
             rapporte_erreur(parseuse, lexème, "_Alignas non-supporté")
             retourne
         }
+        sinon si donne_texte(lexème) == "__attribute__" {
+            _ := parse_attributs_gcc(parseuse)
+        }
         sinon {
             retourne
         }
