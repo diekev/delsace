@@ -305,6 +305,10 @@ parse_translation_unit :: fonc (empl parseuse: *ParseuseC, texte: chaine) -> *Ne
     résultat := loge(NewTranslationUnit)
 
     tantque !fini(*lexeuse) {
+        lexème := épie_lexème_suivant(*lexeuse)
+        si lexème.type == TypeLexème.FinDeFichier {
+            arrête
+        }
         external_declaration := parse_external_declaration(parseuse)
         tableau_ajoute(*résultat.external_declarations, external_declaration)
     }
