@@ -1359,6 +1359,7 @@ parse_expression :: fonc (empl parseuse: *ParseuseC, info_courante: InfoParsageO
             résultat = opérateur_binaire
         }
         sinon {
+            rapporte_erreur(parseuse, lexème, "Erreur interne : opérateur non-géré")
             arrête
         }
     }
