@@ -422,12 +422,8 @@ parse_attributs_gcc :: fonc (empl parseuse: *ParseuseC) -> bool
         }
 
         parenthèses := 0
-        boucle {
+        tantque !fini(parseuse) {
             lexème = donne_lexème_suivant(parseuse)
-            si est_fin_de_fichier(lexème) {
-                rapporte_erreur(parseuse, lexème, "Fin de fichier inattendu")
-                retourne eu_attributs
-            }
             si est_ponctuation(lexème, "(") {
                 parenthèses += 1
             }
@@ -821,12 +817,8 @@ parse_direct_declarator :: fonc (empl parseuse: *ParseuseC, présence_identifier
         sinon si est_ponctuation(lexème, "(") {
             consomme(parseuse)
 
-            boucle {
+            tantque !fini(parseuse) {
                 lexème = épie_lexème_suivant(parseuse)
-                si est_fin_de_fichier(lexème) {
-                    rapporte_erreur(parseuse, lexème, "Fin de fichier inattendu")
-                    retourne direct
-                }
 
                 si est_ponctuation(lexème, ")") {
                     arrête
