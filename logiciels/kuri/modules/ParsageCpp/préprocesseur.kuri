@@ -1278,6 +1278,9 @@ développe_lexèmes :: fonc (sortie: *[..]LexèmePréprocès, préprocesseur: *P
                 avance(*parseuse)
                 paramètres_définition = parse_tranche_arguments(*parseuse)
             }
+            sinon {
+                restaure_position(*parseuse)
+            }
 
             pour * paramètres_définition {
                 tmp := mémoire(it)
@@ -1475,6 +1478,9 @@ développe_arguments :: fonc (préprocesseur: *PréProcesseur, arguments: *[..]L
                 saufsi peut_accepter_arguments(définition, arguments_définition.taille) {
                     rapporte_erreur_mécomptage_arguments(préprocesseur, définition, arguments_définition.taille)
                 }
+            }
+            sinon {
+                restaure_position(*parseuse)
             }
 
             infos_développement: InfosDéveloppementMacro
