@@ -1378,7 +1378,14 @@ parse_expression_primaire :: fonc (empl parseuse: *ParseuseC) -> *Expression
 
         consomme_ponctuation(parseuse, "(")
 
-        operand := parse_type_name(parseuse)
+        operand: *Expression        
+        lexème_suivant := épie_lexème_suivant(parseuse)
+        si est_type_specifier(parseuse, lexème_suivant, nul) || est_type_qualifier(donne_texte(lexème)) {
+            operand = parse_type_name(parseuse)
+        }
+        sinon {
+            operand = parse_expression(parseuse)
+        }
 
         consomme_ponctuation(parseuse, ")")
 
