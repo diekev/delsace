@@ -315,6 +315,11 @@ est_littérale_nombre_entier :: fonc (lexème: LexèmePréprocès) -> bool #enli
     retourne lexème.lexème.type == TypeLexème.LittéraleNombreEntier
 }
 
+est_littérale_nombre_réel :: fonc (lexème: LexèmePréprocès) -> bool #enligne
+{
+    retourne lexème.lexème.type == TypeLexème.LittéraleNombreRéel
+}
+
 est_ponctuation :: fonc (lexème: LexèmePréprocès, texte: chaine) -> bool #enligne
 {
     retourne est_ponctuation(lexème.lexème, texte)

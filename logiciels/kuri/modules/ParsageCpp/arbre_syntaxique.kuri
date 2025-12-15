@@ -181,6 +181,13 @@ IntegerLiteralExpression :: struct {
     lexème: LexèmePréprocès
 }
 
+FloatLiteralExpression :: struct {
+    empl expr: Expression
+    genre = #type_de_cette_structure
+
+    lexème: LexèmePréprocès
+}
+
 BinaryExpression :: struct {
     empl expr: Expression
     genre = #type_de_cette_structure

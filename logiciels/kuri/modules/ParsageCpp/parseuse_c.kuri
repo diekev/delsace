@@ -1421,6 +1421,14 @@ parse_expression_primaire :: fonc (empl parseuse: *ParseuseC) -> *Expression
 
         résultat = literal
     }
+    sinon si est_littérale_nombre_réel(lexème) {
+        consomme(parseuse)
+
+        literal := crée_noeud(*créatrice, FloatLiteralExpression)
+        literal.lexème = lexème
+
+        résultat = literal
+    }
     sinon si est_ponctuation(lexème, "-") || est_ponctuation(lexème, "+") || est_ponctuation(lexème, "!") || est_ponctuation(lexème, "~") || est_ponctuation(lexème, "*") || est_ponctuation(lexème, "&") {
         consomme(parseuse)
         info := donne_info_parsage_opérateur_unaire_c()
