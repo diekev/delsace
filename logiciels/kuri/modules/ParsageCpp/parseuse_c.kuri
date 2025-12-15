@@ -607,12 +607,8 @@ parse_declaration_specifiers :: fonc (empl parseuse: *ParseuseC, déclaration: *
 {
     déclaration.lexème = épie_lexème_suivant(parseuse)
 
-    boucle {
+    tantque !fini(parseuse) {
         lexème := épie_lexème_suivant(parseuse)
-        si est_fin_de_fichier(lexème) {
-            rapporte_erreur(parseuse, lexème, "Fin inattendu de l'entrée")
-            retourne
-        }
 
         typedef_decl: *Type
 
@@ -1089,13 +1085,8 @@ parse_struct_or_union_specifier :: fonc (empl parseuse: *ParseuseC, classe: chai
     static_assert-declaration */
 parse_struct_declaration_list :: fonc (empl parseuse: *ParseuseC, fields: *[..]*FieldDecl @inutilisée)
 {
-    boucle {
+    tantque !fini(parseuse) {
         lexème := épie_lexème_suivant(parseuse)
-        si est_fin_de_fichier(lexème) {
-            rapporte_erreur(parseuse, lexème, "Unexpected end of input")
-            retourne
-        }
-
         si est_ponctuation(lexème, "}") {
             consomme(parseuse)
             retourne
@@ -1527,12 +1518,8 @@ parse_expression :: fonc (empl parseuse: *ParseuseC, info_courante: InfoParsageO
 
     résultat := gauche
 
-    boucle {
+    tantque !fini(parseuse) {
         lexème := épie_lexème_suivant(parseuse)
-        si est_fin_de_fichier(lexème) {
-            rapporte_erreur(parseuse, lexème, "Unexpected end of input")
-            retourne nul
-        }
 
         texte := donne_texte(lexème)
         est_opérateur, info := donne_info_parsage_opérateur_binaire_c(texte)
