@@ -1336,7 +1336,7 @@ parse_statement :: fonc (parseuse: *ParseuseC) -> *ASTNode
         consomme_ponctuation(parseuse, ";")
 
         lexème_suivant = épie_lexème_suivant(parseuse)
-        saufsi est_ponctuation(lexème_suivant, ";") {
+        saufsi est_ponctuation(lexème_suivant, ")") {
             update = parse_expression(parseuse)
         }
 
