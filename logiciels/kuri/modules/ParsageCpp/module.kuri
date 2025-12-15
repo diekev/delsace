@@ -10,8 +10,8 @@ importe SysFichier
 charge "arbre_syntaxique"
 charge "fichier_source"
 charge "préprocesseur"
-charge "parseuse"
 charge "parseuse_c"
+charge "parseuse_cpp"
 charge "unit"
 
 /* ------------------------------------------------------------------------- */
