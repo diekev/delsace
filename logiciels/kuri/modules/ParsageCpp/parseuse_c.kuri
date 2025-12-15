@@ -514,12 +514,11 @@ donne_nom_et_type_pour_declarator :: fonc (empl parseuse: *ParseuseC, info: *Inf
             declarator = pointer.direct
         }
         sinon si declarator.genre == ParameterTypeList {
-            // À FAIRE
             list := declarator comme *ParameterTypeList
 
             function_type := crée_noeud(*créatrice, FunctionType)
             function_type.return_type = type_final
-            // function_type.parameters = params
+            function_type.parameters = list.parameters
 
             type_final = function_type
 
@@ -939,6 +938,7 @@ ParameterTypeList :: struct {
     genre = #type_de_cette_structure
 
     direct: *Declarator
+    parameters: [..]*ParamDecl
 }
 
 PrésenceIdentifier :: énum {
@@ -998,6 +998,8 @@ parse_direct_declarator :: fonc (empl parseuse: *ParseuseC, présence_identifier
         sinon si est_ponctuation(lexème, "(") {
             consomme(parseuse)
 
+            paramètres: [..]*ParamDecl
+
             tantque !fini(parseuse) {
                 lexème = épie_lexème_suivant(parseuse)
 
@@ -1010,10 +1012,27 @@ parse_direct_declarator :: fonc (empl parseuse: *ParseuseC, présence_identifier
                     arrête
                 }
 
-                déclaration_courante: InfoDéclaration
-                parse_declaration_specifiers(parseuse, *déclaration_courante, faux)
+                spécifiants: InfoDéclaration
+                parse_declaration_specifiers(parseuse, *spécifiants, faux)
 
-                _ := parse_declarator(parseuse, PrésenceIdentifier.OPTIONNELLE)
+                si spécifiants.storage_class_specifier && spécifiants.storage_class_specifier != "register" {
+                    // À FAIRE : lexème pour l'erreur
+                    rapporte_erreur(parseuse, lexème, "Stockage de classe '%' invalide", spécifiants.storage_class_specifier)
+                }
+
+                declarator := parse_declarator(parseuse, PrésenceIdentifier.OPTIONNELLE)
+
+                nom, type := donne_nom_et_type_pour_declarator(parseuse, *spécifiants, declarator)
+                saufsi type {
+                    // À FAIRE : lexème pour l'erreur
+                    rapporte_erreur(parseuse, lexème, "Erreur interne : type nul pour le paramètre")
+                }
+
+                param := crée_noeud(*créatrice, ParamDecl)
+                param.name = nom
+                param.type = type
+
+                tableau_ajoute(*paramètres, param)
 
                 lexème = épie_lexème_suivant(parseuse)
                 saufsi est_ponctuation(lexème, ",") {
@@ -1025,6 +1044,7 @@ parse_direct_declarator :: fonc (empl parseuse: *ParseuseC, présence_identifier
 
             list := loge(ParameterTypeList)
             list.direct = direct
+            list.parameters = paramètres
             direct = list
 
             consomme_ponctuation(parseuse, ")")

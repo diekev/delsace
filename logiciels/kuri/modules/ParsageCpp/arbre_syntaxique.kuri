@@ -526,6 +526,14 @@ imprime_arbre :: fonc (node: *ASTNode)
                 var := noeud comme *VarDecl
                 imprimeln("% : %", info.nom, var.nom)
             }
+            ParamDecl {
+                param := noeud comme *ParamDecl
+                imprimeln("% : %", info.nom, param.name)
+            }
+            Type {
+                type := noeud comme *Type
+                imprimeln("% : %", info.nom, type.kind)
+            }
             sinon {
                 imprimeln("%", info.nom)
             }
