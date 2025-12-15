@@ -1301,26 +1301,26 @@ donne_info_parsage_opérateur_unaire_c :: fonc () -> InfoParsageOpérateur
     retourne résultat
 }
 
-// À FAIRE : supprime la valeur défaut pour virgule_est_permise
-parse_expression :: fonc (empl parseuse: *ParseuseC, virgule_est_permise := vrai) -> *Expression
+parse_expression :: fonc (empl parseuse: *ParseuseC) -> *Expression
 {
-    retourne parse_expression(parseuse, InfoParsageOpérateur(), virgule_est_permise)
+    retourne parse_expression(parseuse, InfoParsageOpérateur())
 }
 
 parse_constant_expression :: fonc (parseuse: *ParseuseC) -> *Expression
 {
-    retourne parse_expression(parseuse, InfoParsageOpérateur(), faux)
+    _, info := donne_info_parsage_opérateur_binaire_c("?")
+    retourne parse_expression(parseuse, info)
 }
 
 parse_assignment_expression :: fonc (parseuse: *ParseuseC) -> *Expression
 {
     _, info := donne_info_parsage_opérateur_binaire_c("=")
-    retourne parse_expression(parseuse, info, faux)
+    retourne parse_expression(parseuse, info)
 }
 
-parse_expression :: fonc (empl parseuse: *ParseuseC, info_courante: InfoParsageOpérateur, virgule_est_permise := vrai) -> *Expression
+parse_expression :: fonc (empl parseuse: *ParseuseC, info_courante: InfoParsageOpérateur) -> *Expression
 {
-    gauche := parse_expression_primaire(parseuse, virgule_est_permise)
+    gauche := parse_expression_primaire(parseuse)
     saufsi gauche {
         retourne nul
     }
@@ -1354,17 +1354,9 @@ parse_expression :: fonc (empl parseuse: *ParseuseC, info_courante: InfoParsageO
             opérateur_binaire := loge(BinaryExpression)
             opérateur_binaire.op = texte
             opérateur_binaire.left = résultat
-            opérateur_binaire.right = parse_expression(parseuse, info, virgule_est_permise)
+            opérateur_binaire.right = parse_expression(parseuse, info)
 
             résultat = opérateur_binaire
-        }
-        sinon si texte == "," {
-            si virgule_est_permise {
-                rapporte_erreur(parseuse, lexème, "Erreur interne : virgule non-gérée")
-            }
-            sinon {
-                arrête
-            }
         }
         sinon {
             arrête
@@ -1374,7 +1366,7 @@ parse_expression :: fonc (empl parseuse: *ParseuseC, info_courante: InfoParsageO
     retourne résultat
 }
 
-parse_expression_primaire :: fonc (empl parseuse: *ParseuseC, virgule_est_permise: bool) -> *Expression
+parse_expression_primaire :: fonc (empl parseuse: *ParseuseC) -> *Expression
 {
     résultat: *Expression
 
@@ -1406,7 +1398,7 @@ parse_expression_primaire :: fonc (empl parseuse: *ParseuseC, virgule_est_permis
         consomme(parseuse)
         info := donne_info_parsage_opérateur_unaire_c()
 
-        operand := parse_expression(parseuse, info, virgule_est_permise)
+        operand := parse_expression(parseuse, info)
 
         unary := crée_noeud(*créatrice, UnaryExpression)
         unary.op = donne_texte(lexème)
