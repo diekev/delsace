@@ -365,6 +365,14 @@ WhileStatement :: struct {
     statement: *ASTNode
 }
 
+DoWhileStatement :: struct {
+    empl node: ASTNode
+    genre = #type_de_cette_structure
+
+    statement: *ASTNode
+    expression: *Expression
+}
+
 ForStatement :: struct {
     empl node: ASTNode
     genre = #type_de_cette_structure

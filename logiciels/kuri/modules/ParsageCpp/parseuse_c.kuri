@@ -83,6 +83,14 @@ consomme_symbole :: fonc (parseuse: *ParseuseC)
     }
 }
 
+consomme_mot_clé :: fonc (parseuse: *ParseuseC, texte: chaine)
+{
+    lexème := donne_lexème_suivant(parseuse)
+    saufsi est_mot_clé(lexème, texte) {
+        rapporte_erreur(parseuse, lexème, "Attendu '%'", texte)
+    }
+}
+
 consomme_ponctuation :: fonc (parseuse: *ParseuseC, texte: chaine)
 {
     lexème := donne_lexème_suivant(parseuse)
@@ -1190,8 +1198,20 @@ parse_statement :: fonc (parseuse: *ParseuseC) -> *ASTNode
     }
 
     si est_mot_clé(lexème, "do") {
-        rapporte_erreur(parseuse, lexème, "'do' non-géré")
-        retourne nul
+        consomme(parseuse)
+
+        statement := parse_statement(parseuse)
+
+        consomme_mot_clé(parseuse, "while")
+        consomme_ponctuation(parseuse, "(")
+        expression := parse_expression(parseuse)
+        consomme_ponctuation(parseuse, ")")
+        consomme_ponctuation(parseuse, ";")
+
+        do_while_statement := crée_noeud(*parseuse.créatrice, DoWhileStatement)
+        do_while_statement.statement = statement
+        do_while_statement.expression = expression
+        retourne do_while_statement
     }
 
     si est_mot_clé(lexème, "for") {
