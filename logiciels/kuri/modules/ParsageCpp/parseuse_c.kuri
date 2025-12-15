@@ -116,9 +116,19 @@ rapporte_erreur :: fonc (parseuse: *ParseuseC, lexème: LexèmePréprocès, form
     si lexème.fichier != -1 {
         fichier := *parseuse.unit.fichiers[lexème.fichier]
         imprimeln("%", fichier.chemin)
-        texte_ligne := donne_ligne_pour_erreur(fichier.contenu_prétaité, donne_texte(lexème))
+        texte_lexème := donne_texte(lexème)
+        texte_ligne := donne_ligne_pour_erreur(fichier.contenu_prétaité, texte_lexème)
         si texte_ligne {
             imprimeln("%", texte_ligne)
+            décalage := texte_lexème.pointeur - texte_ligne.pointeur
+            pour décalage {
+                imprime(" ")
+            }
+            imprime("^")
+            pour texte_lexème.taille - 1 {
+                imprime("~")
+            }
+            imprime("\n")
         }
         sinon {
             imprimeln("lexème : % (%)", lexème.donne_texte(), lexème.lexème.type)
