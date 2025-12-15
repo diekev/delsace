@@ -208,6 +208,14 @@ MemberAccessExpression :: struct {
     right: *Expression
 }
 
+IndexExpression :: struct {
+    empl expr: Expression
+    genre = #type_de_cette_structure
+
+    left: *Expression
+    right: *Expression
+}
+
 AssignmentExpression :: struct {
     empl expr: Expression
     genre = #type_de_cette_structure

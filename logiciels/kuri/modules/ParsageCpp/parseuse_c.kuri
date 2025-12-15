@@ -1515,6 +1515,17 @@ parse_expression :: fonc (empl parseuse: *ParseuseC, info_courante: InfoParsageO
 
             résultat = update
         }
+        sinon si texte == "[" {
+            consomme(parseuse)
+
+            index := crée_noeud(*créatrice, IndexExpression)
+            index.left = résultat
+            index.right = parse_expression(parseuse)
+
+            résultat = index
+
+            consomme_ponctuation(parseuse, "]")
+        }
         sinon {
             rapporte_erreur(parseuse, lexème, "Erreur interne : opérateur non-géré")
             arrête
