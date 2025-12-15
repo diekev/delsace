@@ -345,34 +345,55 @@ parse_declaration :: fonc (empl parseuse: *ParseuseC) -> *ASTNode
         retourne nul
     }
 
-    declarator := parse_declarator(parseuse, PrésenceIdentifier.OBLIGATOIRE)
-    saufsi declarator {
-        rapporte_erreur(parseuse, donne_lexème_suivant(parseuse), "Attendu un declarateur")
-        retourne nul
-    }
+    declarators: [..]*ASTNode
 
-    // À FAIRE : { initializer-list }
-    initializer: *Expression
-    lexème_suivant := épie_lexème_suivant(parseuse)
-    si est_ponctuation(lexème_suivant, "=") {
-        consomme(parseuse)
-        initializer = parse_assignment_expression(parseuse)
-    }
+    tantque !fini(parseuse) {
+        declarator := parse_declarator(parseuse, PrésenceIdentifier.OBLIGATOIRE)
+        saufsi declarator {
+            rapporte_erreur(parseuse, donne_lexème_suivant(parseuse), "Attendu un declarateur")
+            arrête
+        }
 
-    résultat := crée_déclaration_pour_declarator(parseuse, *déclaration_courante, declarator)
-    si résultat {
-        si initializer  {
-            si résultat.genre != VarDecl {
-                rapporte_erreur(parseuse, lexème_suivant, "Lexème inattendu")
-                retourne nul
+        // À FAIRE : { initializer-list }
+        initializer: *Expression
+        lexème_suivant := épie_lexème_suivant(parseuse)
+        si est_ponctuation(lexème_suivant, "=") {
+            consomme(parseuse)
+            initializer = parse_assignment_expression(parseuse)
+        }
+
+        résultat := crée_déclaration_pour_declarator(parseuse, *déclaration_courante, declarator)
+        si résultat {
+            si initializer  {
+                si résultat.genre != VarDecl {
+                    rapporte_erreur(parseuse, lexème_suivant, "Lexème inattendu")
+                    arrête
+                }
+
+                var_decl := résultat comme *VarDecl
+                var_decl.initializer = initializer
             }
 
-            var_decl := résultat comme *VarDecl
-            var_decl.initializer = initializer
+            tableau_ajoute(*declarators, résultat)
         }
+
+        lexème_suivant = épie_lexème_suivant(parseuse)
+        saufsi est_ponctuation(lexème_suivant, ",") {
+            arrête
+        }
+
+        consomme(parseuse)
     }
 
     consomme_ponctuation(parseuse, ";")
+
+    si declarators.taille == 1 {
+        diffère déloge(declarators)
+        retourne declarators[0]
+    }
+
+    résultat := crée_noeud(*créatrice, Declaration)
+    résultat.declarators = declarators
     retourne résultat
 }
 

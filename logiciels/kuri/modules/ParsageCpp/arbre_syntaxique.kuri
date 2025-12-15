@@ -10,6 +10,13 @@ ASTNode :: struct {
 
 /** \} */
 
+Declaration :: struct {
+    empl node: ASTNode
+    genre = #type_de_cette_structure
+
+    declarators: [..]*ASTNode
+}
+
 VarDecl :: struct {
     empl node: ASTNode
     genre = #type_de_cette_structure
