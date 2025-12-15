@@ -272,6 +272,14 @@ StringLiteral :: struct {
     lexème: LexèmePréprocès
 }
 
+PrefixUpdateExpression :: struct {
+    empl expr: Expression
+    genre = #type_de_cette_structure
+
+    op: chaine
+    operand: *Expression
+}
+
 PostFixUpdateExpression :: struct {
     empl expr: Expression
     genre = #type_de_cette_structure

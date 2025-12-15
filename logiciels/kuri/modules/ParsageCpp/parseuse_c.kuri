@@ -1631,6 +1631,18 @@ parse_expression_primaire :: fonc (empl parseuse: *ParseuseC) -> *Expression
             consomme_ponctuation(parseuse, ")")
         }
     }
+    sinon si est_ponctuation(lexème, "++") || est_ponctuation(lexème, "--") {
+        consomme(parseuse)
+
+        info := donne_info_parsage_opérateur_unaire_c()
+        operand := parse_expression(parseuse, info)
+
+        update := crée_noeud(*créatrice, PrefixUpdateExpression)
+        update.op = donne_texte(lexème)
+        update.operand = operand
+
+        résultat = update
+    }
     sinon {
         rapporte_erreur(parseuse, lexème, "Expected a primary expression")
     }
