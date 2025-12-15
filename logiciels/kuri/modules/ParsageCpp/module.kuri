@@ -829,7 +829,7 @@ parse_direct_declarator :: fonc (empl parseuse: *ParseuseC, présence_identifier
 
             lexème = épie_lexème_suivant(parseuse)
             saufsi est_ponctuation(lexème, "]") {
-                expression = parse_expression(parseuse)
+                expression = parse_assignment_expression(parseuse)
             }
 
             array := loge(ArrayDeclarator)
@@ -1310,6 +1310,12 @@ parse_expression :: fonc (empl parseuse: *ParseuseC, virgule_est_permise := vrai
 parse_constant_expression :: fonc (parseuse: *ParseuseC) -> *Expression
 {
     retourne parse_expression(parseuse, InfoParsageOpérateur(), faux)
+}
+
+parse_assignment_expression :: fonc (parseuse: *ParseuseC) -> *Expression
+{
+    _, info := donne_info_parsage_opérateur_binaire_c("=")
+    retourne parse_expression(parseuse, info, faux)
 }
 
 parse_expression :: fonc (empl parseuse: *ParseuseC, info_courante: InfoParsageOpérateur, virgule_est_permise := vrai) -> *Expression
