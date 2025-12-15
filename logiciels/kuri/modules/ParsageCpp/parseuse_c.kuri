@@ -1737,6 +1737,10 @@ parse_expression_primaire :: fonc (empl parseuse: *ParseuseC) -> *Expression
 
         résultat = crée_noeud(*créatrice, InlineAsmExpression)
     }
+    sinon si donne_texte(lexème) == "__extension__" {
+        consomme(parseuse)
+        résultat = parse_expression_primaire(parseuse)
+    }
     sinon si est_symbole(lexème) {
         consomme(parseuse)
 
