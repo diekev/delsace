@@ -270,6 +270,15 @@ ReturnStatement :: struct {
     expression: *Expression
 }
 
+IfStatement :: struct {
+    empl node: ASTNode
+    genre = #type_de_cette_structure
+
+    expression: *Expression
+    statement: *ASTNode
+    else_statement: *ASTNode
+}
+
 /* ------------------------------------------------------------------------- */
 /** \nom ClassDecl
  * \{ */

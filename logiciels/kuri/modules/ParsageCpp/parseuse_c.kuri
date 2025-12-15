@@ -1067,8 +1067,26 @@ parse_statement :: fonc (parseuse: *ParseuseC) -> *ASTNode
     /* selection-statement */
 
     si est_mot_clé(lexème, "if") {
-        rapporte_erreur(parseuse, lexème, "'if' non-géré")
-        retourne nul
+        consomme(parseuse)
+
+        consomme_ponctuation(parseuse, "(")
+        expression := parse_expression(parseuse)
+        consomme_ponctuation(parseuse, ")")
+
+        statement := parse_statement(parseuse)
+
+        else_statement: *ASTNode
+        lexème_suivant := épie_lexème_suivant(parseuse)
+        si est_mot_clé(lexème_suivant, "else") {
+            consomme(parseuse)
+            else_statement = parse_statement(parseuse)
+        }
+
+        if_statement := crée_noeud(*parseuse.créatrice, IfStatement)
+        if_statement.expression = expression
+        if_statement.statement = statement
+        if_statement.else_statement = else_statement
+        retourne if_statement
     }
 
     si est_mot_clé(lexème, "switch") {
