@@ -1535,6 +1535,12 @@ parse_assignment_expression :: fonc (parseuse: *ParseuseC) -> *Expression
     retourne parse_expression(parseuse, info)
 }
 
+parse_unary_expression :: fonc (parseuse: *ParseuseC) -> *Expression
+{
+    info := donne_info_parsage_opérateur_unaire_c()
+    retourne parse_expression(parseuse, info)
+}
+
 parse_expression :: fonc (empl parseuse: *ParseuseC, info_courante: InfoParsageOpérateur) -> *Expression
 {
     gauche := parse_expression_primaire(parseuse)
@@ -1685,18 +1691,25 @@ parse_expression_primaire :: fonc (empl parseuse: *ParseuseC) -> *Expression
     si est_mot_clé(lexème, "sizeof") {
         consomme(parseuse)
 
-        consomme_ponctuation(parseuse, "(")
+        operand: *Expression
 
-        operand: *Expression        
         lexème_suivant := épie_lexème_suivant(parseuse)
-        si est_type_specifier(parseuse, lexème_suivant, nul) || est_type_qualifier(donne_texte(lexème)) {
-            operand = parse_type_name(parseuse)
+        si est_ponctuation(lexème_suivant, "(") {
+            consomme(parseuse)
+
+            lexème_suivant = épie_lexème_suivant(parseuse)
+            si est_type_specifier(parseuse, lexème_suivant, nul) || est_type_qualifier(donne_texte(lexème)) {
+                operand = parse_type_name(parseuse)
+            }
+            sinon {
+                operand = parse_expression(parseuse)
+            }
+
+            consomme_ponctuation(parseuse, ")")
         }
         sinon {
-            operand = parse_expression(parseuse)
+            operand = parse_unary_expression(parseuse)
         }
-
-        consomme_ponctuation(parseuse, ")")
 
         sizeof := crée_noeud(*créatrice, SizeOfExpression)
         sizeof.operand = operand
@@ -1721,9 +1734,8 @@ parse_expression_primaire :: fonc (empl parseuse: *ParseuseC) -> *Expression
     }
     sinon si est_ponctuation(lexème, "-") || est_ponctuation(lexème, "+") || est_ponctuation(lexème, "!") || est_ponctuation(lexème, "~") || est_ponctuation(lexème, "*") || est_ponctuation(lexème, "&") {
         consomme(parseuse)
-        info := donne_info_parsage_opérateur_unaire_c()
 
-        operand := parse_expression(parseuse, info)
+        operand := parse_unary_expression(parseuse)
 
         unary := crée_noeud(*créatrice, UnaryExpression)
         unary.op = donne_texte(lexème)
@@ -1793,8 +1805,7 @@ parse_expression_primaire :: fonc (empl parseuse: *ParseuseC) -> *Expression
 
             consomme_ponctuation(parseuse, ")")
 
-            info := donne_info_parsage_opérateur_unaire_c()
-            operand := parse_expression(parseuse, info)
+            operand := parse_unary_expression(parseuse)
 
             cast := crée_noeud(*créatrice, CastExpression)
             cast.cast_type = type_name
@@ -1811,8 +1822,7 @@ parse_expression_primaire :: fonc (empl parseuse: *ParseuseC) -> *Expression
     sinon si est_ponctuation(lexème, "++") || est_ponctuation(lexème, "--") {
         consomme(parseuse)
 
-        info := donne_info_parsage_opérateur_unaire_c()
-        operand := parse_expression(parseuse, info)
+        operand := parse_unary_expression(parseuse)
 
         update := crée_noeud(*créatrice, PrefixUpdateExpression)
         update.op = donne_texte(lexème)
