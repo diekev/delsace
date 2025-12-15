@@ -296,41 +296,83 @@ parse_external_declaration :: fonc (empl parseuse: *ParseuseC) -> *ASTNode
         retourne nul
     }
 
-    declarator := parse_declarator(parseuse, PrésenceIdentifier.OBLIGATOIRE)
-    saufsi declarator {
-        rapporte_erreur(parseuse, donne_lexème_suivant(parseuse), "Attendu un declarateur")
-        retourne nul
-    }
+    declarators: [..]*ASTNode
 
-    _ := parse_attributs_gcc(parseuse)
+    tantque !fini(parseuse) {
+        lexème := épie_lexème_suivant(parseuse)
+        si est_ponctuation(lexème, ";") {
+            arrête
+        }
 
-    lexème := épie_lexème_suivant(parseuse)
-    si est_ponctuation(lexème, ";") {
-        consomme(parseuse)
-        retourne crée_déclaration_pour_declarator(parseuse, *déclaration_courante, declarator)
-    }
-
-    nom, type := donne_nom_et_type_pour_declarator(parseuse, *déclaration_courante, declarator)
-
-    si type.genre == FunctionType {
-        saufsi est_ponctuation(lexème, "{") {
-            rapporte_erreur(parseuse, lexème, "Attendu '{'");
+        declarator := parse_declarator(parseuse, PrésenceIdentifier.OBLIGATOIRE)
+        saufsi declarator {
+            rapporte_erreur(parseuse, donne_lexème_suivant(parseuse), "Attendu un declarateur")
             retourne nul
         }
 
-        statement := parse_compound_statement(parseuse)
+        _ := parse_attributs_gcc(parseuse)
 
-        function_type := type comme *FunctionType
-        résultat := crée_noeud(*créatrice, FunctionDefinition)
-        résultat.params = tableau_copie(function_type.parameters)
-        résultat.nom = nom
-        résultat.type = function_type
-        résultat.statement = statement
+        lexème = épie_lexème_suivant(parseuse)
+        lexème_init := lexème
+
+        initializer: *Expression
+        si est_ponctuation(lexème, "=") {
+            consomme(parseuse)
+            initializer = parse_initializer(parseuse)
+
+            lexème = épie_lexème_suivant(parseuse)
+        }
+
+        déclaration := crée_déclaration_pour_declarator(parseuse, *déclaration_courante, declarator)
+        si déclaration {
+            si initializer {
+                si déclaration.genre != VarDecl {
+                    rapporte_erreur(parseuse, lexème_init, "Lexème inattendu")
+                    arrête
+                }
+
+                var_decl := déclaration comme *VarDecl
+                var_decl.initializer = initializer
+            }
+
+            tableau_ajoute(*declarators, déclaration)
+        }
+
+        saufsi est_ponctuation(lexème, ",") {
+            arrête
+        }
+
+        consomme(parseuse)
+    }
+
+    si declarators.taille > 1 {
+        consomme_ponctuation(parseuse, ";")
+        résultat := crée_noeud(*créatrice, Declaration)
+        résultat.declarators = declarators
         retourne résultat
     }
 
-    rapporte_erreur(parseuse, lexème, "Lexème inattendu")
-    retourne nul
+    diffère déloge(declarators)
+
+    déclaration := declarators[0]
+
+    si déclaration.genre == FunctionDecl {
+        lexème := épie_lexème_suivant(parseuse)
+        si est_ponctuation(lexème, "{") {
+            function_decl := déclaration comme *FunctionDecl
+            statement := parse_compound_statement(parseuse)
+
+            résultat := crée_noeud(*créatrice, FunctionDefinition)
+            résultat.params = tableau_copie(function_decl.params)
+            résultat.nom = function_decl.nom
+            résultat.type = function_decl.type
+            résultat.statement = statement
+            retourne résultat
+        }
+    }
+
+    consomme_ponctuation(parseuse, ";")
+    retourne déclaration
 }
 
 parse_declaration :: fonc (empl parseuse: *ParseuseC) -> *ASTNode
@@ -353,12 +395,11 @@ parse_declaration :: fonc (empl parseuse: *ParseuseC) -> *ASTNode
             arrête
         }
 
-        // À FAIRE : { initializer-list }
         initializer: *Expression
         lexème_suivant := épie_lexème_suivant(parseuse)
         si est_ponctuation(lexème_suivant, "=") {
             consomme(parseuse)
-            initializer = parse_assignment_expression(parseuse)
+            initializer = parse_initializer(parseuse)
         }
 
         résultat := crée_déclaration_pour_declarator(parseuse, *déclaration_courante, declarator)
@@ -394,6 +435,12 @@ parse_declaration :: fonc (empl parseuse: *ParseuseC) -> *ASTNode
     résultat := crée_noeud(*créatrice, Declaration)
     résultat.declarators = declarators
     retourne résultat
+}
+
+// À FAIRE : { initializer-list }
+parse_initializer :: fonc (parseuse: *ParseuseC) -> *Expression
+{
+    retourne parse_assignment_expression(parseuse)
 }
 
 crée_déclaration_pour_declarator :: fonc (empl parseuse: *ParseuseC, info: *InfoDéclaration, declarator: *Declarator) -> *ASTNode
