@@ -1276,7 +1276,7 @@ parse_expression :: fonc (empl parseuse: *ParseuseC, info_courante: InfoParsageO
             arrête
         }
 
-        si texte == ">" || texte == ">=" || texte == "<" || texte == "<=" || texte == "==" || texte == "!=" || texte == "-" || texte == "+" || texte == "*" || texte == "/" || texte == "<<" || texte == ">>" || texte == "&" || texte == "^" || texte == "|" || texte == "%" {
+        si texte == ">" || texte == ">=" || texte == "<" || texte == "<=" || texte == "==" || texte == "!=" || texte == "-" || texte == "+" || texte == "*" || texte == "/" || texte == "<<" || texte == ">>" || texte == "&" || texte == "^" || texte == "|" || texte == "%" || texte == "||" || texte == "&&" {
             consomme(parseuse)
 
             opérateur_binaire := crée_noeud(*créatrice, BinaryExpression)
