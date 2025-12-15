@@ -60,6 +60,8 @@ TypeKind :: énum {
     DOUBLE
     LONG_DOUBLE
 
+    FLOAT128 // extension de GCC
+
     POINTER
 
     VOID

@@ -193,15 +193,14 @@ est_storage_class_specifier :: fonc (lexème: LexèmePréprocès) -> bool
 
 est_type_specifier :: fonc (parseuse: *ParseuseC, lexème: LexèmePréprocès, type_résolu: **Type) -> bool
 {
-    mots_clés := ["void", "char", "short", "int", "long", "float", "double", "signed", "unsigned", "_Bool", "_Complex", "struct", "union", "enum"]
+    mots_clés := ["void", "char", "short", "int", "long", "float", "double", "signed", "unsigned", "_Bool", "_Complex", "struct", "union", "enum", "_Float128", "__float128"]
 
+    texte := donne_texte(lexème)
     pour mots_clés {
-        si est_mot_clé(lexème, it) {
+        si texte == it {
             retourne vrai
         }
     }
-
-    texte := donne_texte(lexème)
 
     typedef_trouvé, typedef := donne_valeur_pour_clé(parseuse.typedef_names, texte)
     si typedef_trouvé {
@@ -757,6 +756,14 @@ parse_declaration_specifiers :: fonc (empl parseuse: *ParseuseC, déclaration: *
                 }
                 sinon si déclaration.type_résolu.kind == TypeKind.LONG_DOUBLE {
                     type_résolu = crée_type(*créatrice, TypeKind.COMPLEX_LONG_DOUBLE)
+                }
+                sinon {
+                    rapporte_erreur(parseuse, lexème, "Spécifiant type inattendu")
+                }
+            }
+            sinon si specifier == "_Float128" || specifier == "__float128" {
+                si déclaration.type_résolu == nul {
+                    type_résolu = crée_type(*créatrice, TypeKind.FLOAT128)
                 }
                 sinon {
                     rapporte_erreur(parseuse, lexème, "Spécifiant type inattendu")
