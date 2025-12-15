@@ -207,6 +207,28 @@ SizeOfExpression :: struct {
     operand: *Expression
 }
 
+DeclarationReference :: struct {
+    empl expr: Expression
+    genre = #type_de_cette_structure
+
+    lexème: LexèmePréprocès
+}
+
+CallExpression :: struct {
+    empl expr: Expression
+    genre = #type_de_cette_structure
+
+    callee: *Expression
+    arguments: [..]*Expression
+}
+
+StringLiteral :: struct {
+    empl expr: Expression
+    genre = #type_de_cette_structure
+
+    lexème: LexèmePréprocès
+}
+
 // À FAIRE : déduplique avec TypeRef (ou supprime ce dernier)
 // Expression se trouvant par exemple dans sizeof().
 TypeNameExpression :: struct {
@@ -218,7 +240,26 @@ CompoundStatement :: struct {
     empl node: ASTNode
     genre = #type_de_cette_structure
 
-    statements: [..]*ASTNode
+    items: [..]*ASTNode
+}
+
+NullStatement :: struct {
+    empl node: ASTNode
+    genre = #type_de_cette_structure
+}
+
+ExpressionStatement :: struct {
+    empl node: ASTNode
+    genre = #type_de_cette_structure
+
+    expression: *Expression
+}
+
+ReturnStatement :: struct {
+    empl node: ASTNode
+    genre = #type_de_cette_structure
+
+    expression: *Expression
 }
 
 /* ------------------------------------------------------------------------- */

@@ -1197,30 +1197,133 @@ parse_compound_statement :: fonc (empl parseuse: *ParseuseC) -> *CompoundStateme
 {
     consomme_ponctuation(parseuse, "{")
 
-    accolades := 1
-    tantque !fini(parseuse) {
-        lexème := épie_lexème_suivant(parseuse)
-        si est_ponctuation(lexème, "{") {
-            consomme(parseuse)
-            accolades += 1
-        }
-        sinon si est_ponctuation(lexème, "}") {
-            accolades -= 1
+    items: [..]*ASTNode
 
-            si accolades == 0 {
-                arrête
-            }
-            consomme(parseuse)
+    tantque !fini(parseuse) {
+        lexème_suivant := épie_lexème_suivant(parseuse)
+        si est_ponctuation(lexème_suivant, "}") {
+            arrête
         }
-        sinon {
-            consomme(parseuse)
+
+        statement := parse_statement(parseuse)
+        saufsi statement {
+            arrête
         }
+
+        tableau_ajoute(*items, statement)
     }
 
     consomme_ponctuation(parseuse, "}")
 
     résultat := crée_noeud(*créatrice, CompoundStatement)
+    résultat.items = items
     retourne résultat
+}
+
+parse_statement :: fonc (parseuse: *ParseuseC) -> *ASTNode
+{
+    lexème := épie_lexème_suivant(parseuse)
+
+    si est_ponctuation(lexème, ";") {
+        consomme(parseuse)
+        retourne crée_noeud(*parseuse.créatrice, NullStatement)
+    }
+
+    /* compound-statement */
+
+    si est_ponctuation(lexème, "{") {
+        retourne parse_compound_statement(parseuse)
+    }
+
+    /* selection-statement */
+
+    si est_mot_clé(lexème, "if") {
+        rapporte_erreur(parseuse, lexème, "'if' non-géré")
+        retourne nul
+    }
+
+    si est_mot_clé(lexème, "switch") {
+        rapporte_erreur(parseuse, lexème, "'switch' non-géré")
+        retourne nul
+    }
+
+    /* iteration-statement */
+
+    si est_mot_clé(lexème, "while") {
+        rapporte_erreur(parseuse, lexème, "'while' non-géré")
+        retourne nul
+    }
+
+    si est_mot_clé(lexème, "do") {
+        rapporte_erreur(parseuse, lexème, "'do' non-géré")
+        retourne nul
+    }
+
+    si est_mot_clé(lexème, "for") {
+        rapporte_erreur(parseuse, lexème, "'for' non-géré")
+        retourne nul
+    }
+
+    /* jump-statement */
+
+    si est_mot_clé(lexème, "goto") {
+        rapporte_erreur(parseuse, lexème, "'goto' non-géré")
+        retourne nul
+    }
+
+    si est_mot_clé(lexème, "continue") {
+        rapporte_erreur(parseuse, lexème, "'continue' non-géré")
+        retourne nul
+    }
+
+    si est_mot_clé(lexème, "break") {
+        rapporte_erreur(parseuse, lexème, "'break' non-géré")
+        retourne nul
+    }
+
+    si est_mot_clé(lexème, "return") {
+        consomme(parseuse)
+
+        expression: *Expression
+
+        lexème = épie_lexème_suivant(parseuse)
+        saufsi est_ponctuation(lexème, ";") {
+            expression = parse_expression(parseuse)
+        }
+
+        consomme_ponctuation(parseuse, ";")
+
+        résultat := crée_noeud(*parseuse.créatrice, ReturnStatement)
+        résultat.expression = expression
+        retourne résultat
+    }
+
+    /* labeled-statement */
+
+    si est_mot_clé(lexème, "case") {
+        rapporte_erreur(parseuse, lexème, "'case' non-géré")
+        retourne nul
+    }
+
+    si est_mot_clé(lexème, "default") {
+        rapporte_erreur(parseuse, lexème, "'default' non-géré")
+        retourne nul
+    }
+
+    // À FAIRE : identifier : statement
+
+    /* expression-statement */
+
+    expression := parse_expression(parseuse)
+    si expression {
+        consomme_ponctuation(parseuse, ";")
+
+        résultat := crée_noeud(*parseuse.créatrice, ExpressionStatement)
+        résultat.expression = expression
+        retourne résultat
+    }
+
+    retourne nul
 }
 
 /** \} */
@@ -1364,6 +1467,40 @@ parse_expression :: fonc (empl parseuse: *ParseuseC, info_courante: InfoParsageO
 
             résultat = opérateur_binaire
         }
+        sinon si texte == "(" {
+            consomme(parseuse)
+
+            arguments: [..]*Expression
+
+            tantque !fini(parseuse) {
+                lexème_suivant := épie_lexème_suivant(parseuse)
+                si est_ponctuation(lexème_suivant, ")") {
+                    arrête
+                }
+
+                argument := parse_assignment_expression(parseuse)
+                saufsi argument {
+                    arrête
+                }
+
+                tableau_ajoute(*arguments, argument)
+
+                lexème_suivant = épie_lexème_suivant(parseuse)
+                saufsi est_ponctuation(lexème_suivant, ",") {
+                    arrête
+                }
+
+                consomme(parseuse)
+            }
+
+            consomme_ponctuation(parseuse, ")")
+
+            call := crée_noeud(*créatrice, CallExpression)
+            call.callee = résultat
+            call.arguments = arguments
+
+            résultat = call
+        }
         sinon {
             rapporte_erreur(parseuse, lexème, "Erreur interne : opérateur non-géré")
             arrête
@@ -1412,6 +1549,22 @@ parse_expression_primaire :: fonc (empl parseuse: *ParseuseC) -> *Expression
         unary.operand = operand
 
         résultat = unary
+    }
+    sinon si est_symbole(lexème) {
+        consomme(parseuse)
+
+        reference := crée_noeud(*créatrice, DeclarationReference)
+        reference.lexème = lexème
+
+        résultat = reference
+    }
+    sinon si est_chaine_littérale(lexème) {
+        consomme(parseuse)
+
+        literal := crée_noeud(*créatrice, StringLiteral)
+        literal.lexème = lexème
+
+        résultat = literal
     }
     sinon {
         rapporte_erreur(parseuse, lexème, "Expected a primary expression")
