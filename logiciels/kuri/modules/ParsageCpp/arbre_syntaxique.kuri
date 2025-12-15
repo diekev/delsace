@@ -264,6 +264,14 @@ StringLiteral :: struct {
     lexème: LexèmePréprocès
 }
 
+PostFixUpdateExpression :: struct {
+    empl expr: Expression
+    genre = #type_de_cette_structure
+
+    op: chaine
+    operand: *Expression
+}
+
 // À FAIRE : déduplique avec TypeRef (ou supprime ce dernier)
 // Expression se trouvant par exemple dans sizeof().
 TypeNameExpression :: struct {

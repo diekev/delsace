@@ -1320,10 +1320,9 @@ donne_info_parsage_opérateur_binaire_c :: fonc (texte: chaine) -> (bool, InfoPa
         résultat.associativité = Associativité.GAUCHE
     }
     /* la précédence de 14 est réservée pour les opérateurs unaires */
-    sinon si texte == "(" || texte == "[" || texte == "." || texte == "->" {
+    sinon si texte == "(" || texte == "[" || texte == "." || texte == "->" || texte == "++" || texte == "--" {
         résultat.précédence = 15
         résultat.associativité = Associativité.GAUCHE
-        // À FAIRE : postfix ++ et --
     }
     sinon {
         est_opérateur = faux
@@ -1459,6 +1458,15 @@ parse_expression :: fonc (empl parseuse: *ParseuseC, info_courante: InfoParsageO
             assignment.right = parse_expression(parseuse, info)
 
             résultat = assignment
+        }
+        sinon si texte == "++" || texte == "--" {
+            consomme(parseuse)
+
+            update := crée_noeud(*créatrice, PostFixUpdateExpression)
+            update.op = texte
+            update.operand = résultat
+
+            résultat = update
         }
         sinon {
             rapporte_erreur(parseuse, lexème, "Erreur interne : opérateur non-géré")
