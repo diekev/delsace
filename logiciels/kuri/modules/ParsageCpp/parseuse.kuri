@@ -1,10 +1,10 @@
 importe SimpleLexage
 
 /* ------------------------------------------------------------------------- */
-/** \nom Parseuse
+/** \nom ParseuseCPP C++
  * \{ */
 
-Parseuse :: struct {
+ParseuseCPP :: struct {
     fichier: *FichierSource
     lexeuse: SimpleLexeuse
     lexeuse_sauvegardée: SimpleLexeuse
@@ -14,50 +14,50 @@ Parseuse :: struct {
     possède_erreur: bool
 
     /* Rappels. */
-    sur_prodéclaration_struct_ou_class: fonc (parseuse: &Parseuse, noeud: *ASTNode)
-    sur_définition_classe: fonc (parseuse: &Parseuse, classe: *ClassDecl)
-    sur_prodéclaration_énum: fonc (parseuse: &Parseuse, noeud: *ASTNode)
-    sur_identifiant: fonc (parseuse: &Parseuse, texte: chaine)
-    sur_inclusion: fonc (parseuse: &Parseuse, texte: chaine, système: bool)
+    sur_prodéclaration_struct_ou_class: fonc (parseuse: &ParseuseCPP, noeud: *ASTNode)
+    sur_définition_classe: fonc (parseuse: &ParseuseCPP, classe: *ClassDecl)
+    sur_prodéclaration_énum: fonc (parseuse: &ParseuseCPP, noeud: *ASTNode)
+    sur_identifiant: fonc (parseuse: &ParseuseCPP, texte: chaine)
+    sur_inclusion: fonc (parseuse: &ParseuseCPP, texte: chaine, système: bool)
 
     contextes: [..]*DeclContext
 }
 
-initialise_parseuse :: fonc (parseuse: &Parseuse, fichier: *FichierSource)
+initialise_parseuse :: fonc (parseuse: &ParseuseCPP, fichier: *FichierSource)
 {
     parseuse.fichier = fichier
     initialise_lexeuse_cpp(*parseuse.lexeuse)
     initialise_lexeuse_pour_texte(*parseuse.lexeuse, parseuse.fichier.contenu_cru)
 }
 
-sauvegarde_position :: fonc (parseuse: &Parseuse)
+sauvegarde_position :: fonc (parseuse: &ParseuseCPP)
 {
     parseuse.lexeuse_sauvegardée = parseuse.lexeuse
 }
 
-restaure_position :: fonc (parseuse: &Parseuse)
+restaure_position :: fonc (parseuse: &ParseuseCPP)
 {
     parseuse.lexeuse = parseuse.lexeuse_sauvegardée
 }
 
-empile_contexte :: fonc (parseuse: &Parseuse, ctx: *DeclContext)
+empile_contexte :: fonc (parseuse: &ParseuseCPP, ctx: *DeclContext)
 {
     tableau_ajoute(*parseuse.contextes, ctx)
 }
 
-dépile_contexte :: fonc (parseuse: &Parseuse)
+dépile_contexte :: fonc (parseuse: &ParseuseCPP)
 {
     parseuse.contextes.taille -= 1
 }
 
-ajoute_au_contexte :: fonc (parseuse: &Parseuse, decl: *ASTNode)
+ajoute_au_contexte :: fonc (parseuse: &ParseuseCPP, decl: *ASTNode)
 {
     assert(parseuse.contextes.taille != 0)
     ctx := parseuse.contextes[parseuse.contextes.taille - 1]
     tableau_ajoute(*ctx.déclarations, decl)
 }
 
-rapporte_erreur :: fonc (parseuse: &Parseuse, message: chaine, lexème: Lexème)
+rapporte_erreur :: fonc (parseuse: &ParseuseCPP, message: chaine, lexème: Lexème)
 {
     si parseuse.possède_erreur {
         retourne
@@ -72,12 +72,12 @@ rapporte_erreur :: fonc (parseuse: &Parseuse, message: chaine, lexème: Lexème)
     parseuse.possède_erreur = vrai
 }
 
-fini :: fonc (parseuse: &Parseuse) -> bool
+fini :: fonc (parseuse: &ParseuseCPP) -> bool
 {
     retourne parseuse.possède_erreur || fini(*parseuse.lexeuse)
 }
 
-apparie :: fonc (parseuse: &Parseuse, c: z8) -> bool
+apparie :: fonc (parseuse: &ParseuseCPP, c: z8) -> bool
 {
     lexème := donne_lexème_suivant(*parseuse.lexème)
     diffère parseuse.lexeuse.début = lexème.début
@@ -95,7 +95,7 @@ apparie :: fonc (parseuse: &Parseuse, c: z8) -> bool
     retourne vrai
 }
 
-consomme_ou_rapporte_erreur :: fonc (parseuse: &Parseuse, c: z8)
+consomme_ou_rapporte_erreur :: fonc (parseuse: &ParseuseCPP, c: z8)
 {
     lexème := donne_lexème_suivant(*parseuse.lexème)
     si lexème.type != TypeLexème.Symbole {
@@ -113,7 +113,7 @@ consomme_ou_rapporte_erreur :: fonc (parseuse: &Parseuse, c: z8)
     }
 }
 
-consomme_ident :: fonc (parseuse: &Parseuse) -> chaine
+consomme_ident :: fonc (parseuse: &ParseuseCPP) -> chaine
 {
     lexème := donne_lexème_suivant(*parseuse.lexeuse)
     si lexème.type == TypeLexème.FinDeFichier {
@@ -133,7 +133,7 @@ CléClasse :: énum {
 }
 
 /* A.13 Grammar */
-parse_translation_unit :: fonc (parseuse: &Parseuse)
+parse_translation_unit :: fonc (parseuse: &ParseuseCPP)
 {
     assert(parseuse.contextes.taille == 0)
     translation_unit := crée_noeud(parseuse.créatrice_noeuds, TranslationUnit)
@@ -144,7 +144,7 @@ parse_translation_unit :: fonc (parseuse: &Parseuse)
     }
 }
 
-parse_external_declaration :: fonc (parseuse: &Parseuse)
+parse_external_declaration :: fonc (parseuse: &ParseuseCPP)
 {
     lexème := donne_lexème_suivant(*parseuse.lexeuse)
 
@@ -241,7 +241,7 @@ est_type_qualifier :: fonc (texte: chaine) -> bool
     retourne fait_partie_de(texte, "const", "volatile")
 }
 
-parse_décalaration_haut_niveau :: fonc (parseuse: &Parseuse)
+parse_décalaration_haut_niveau :: fonc (parseuse: &ParseuseCPP)
 {
     lexème := donne_lexème_suivant(*parseuse.lexeuse)
 
@@ -334,7 +334,7 @@ crée_données_parsage_classe :: fonc (nom: chaine, clé_classe: CléClasse) -> 
     retourne résultat
 }
 
-parse_classe :: fonc (parseuse: &Parseuse, clé_classe: CléClasse, contexte_parsage: ContexteParsageClasse)
+parse_classe :: fonc (parseuse: &ParseuseCPP, clé_classe: CléClasse, contexte_parsage: ContexteParsageClasse)
 {
     /* Nous sommes sur le mot-clé. */
     lexème := parseuse.lexème_courant()
@@ -415,7 +415,7 @@ parse_classe :: fonc (parseuse: &Parseuse, clé_classe: CléClasse, contexte_par
 
 /** \} */
 
-parse_spécification_accès :: fonc (parseuse: &Parseuse) -> Optionnel(SpécificationAccès)
+parse_spécification_accès :: fonc (parseuse: &ParseuseCPP) -> Optionnel(SpécificationAccès)
 {
     si parseuse.apparie_mot_clé("public") {
         parseuse.avance()
@@ -439,7 +439,7 @@ parse_spécification_accès :: fonc (parseuse: &Parseuse) -> Optionnel(Spécific
  * \{ */
 
 /* base-class */
-parse_spécification_base :: fonc (parseuse: &Parseuse, données_parsage_classe: DonnéesParsageClasse, bases: *[..]SpécificationBase)
+parse_spécification_base :: fonc (parseuse: &ParseuseCPP, données_parsage_classe: DonnéesParsageClasse, bases: *[..]SpécificationBase)
 {
     accès_courant := données_parsage_classe.spécification_accès_défaut
 
@@ -492,7 +492,7 @@ parse_spécification_base :: fonc (parseuse: &Parseuse, données_parsage_classe:
  * - nested-name-specifier `template` simple-template-id
  * - decltype-specifier (C++11)
  */
-parse_classe_ou_decltype :: fonc (parseuse: &Parseuse) -> chaine
+parse_classe_ou_decltype :: fonc (parseuse: &ParseuseCPP) -> chaine
 {
     // À FAIRE : decltype
     // https://en.cppreference.com/w/cpp/language/decltype
@@ -547,7 +547,7 @@ parse_classe_ou_decltype :: fonc (parseuse: &Parseuse) -> chaine
 /** \nom Spécification des rubriques des classes.
  * \{ */
 
-parse_spécification_rubrique :: fonc (parseuse: &Parseuse, données_parsage_classe: DonnéesParsageClasse)
+parse_spécification_rubrique :: fonc (parseuse: &ParseuseCPP, données_parsage_classe: DonnéesParsageClasse)
 {
     accès_courant := données_parsage_classe.spécification_accès_défaut
 
@@ -605,7 +605,7 @@ parse_spécification_rubrique :: fonc (parseuse: &Parseuse, données_parsage_cla
     }
 }
 
-parse_constructeur :: fonc (parseuse: &Parseuse)
+parse_constructeur :: fonc (parseuse: &ParseuseCPP)
 {
     /* Nous sommes sur la parenthèse. */
     assert(parseuse.apparie('('))
@@ -704,7 +704,7 @@ parse_constructeur :: fonc (parseuse: &Parseuse)
     parseuse.parse_bloc()
 }
 
-parse_bloc :: fonc (parseuse: &Parseuse)
+parse_bloc :: fonc (parseuse: &ParseuseCPP)
 {
     /* Nous sommes sur l'accolade ouvrante. */
     parseuse.avance()
@@ -727,7 +727,7 @@ parse_bloc :: fonc (parseuse: &Parseuse)
 
 /** \} */
 
-parse_enum :: fonc (parseuse: &Parseuse)
+parse_enum :: fonc (parseuse: &ParseuseCPP)
 {
     est_énum_class := faux
 
@@ -779,7 +779,7 @@ parse_enum :: fonc (parseuse: &Parseuse)
     }
 }
 
-parse_directive_préprocesseur :: fonc (parseuse: &Parseuse)
+parse_directive_préprocesseur :: fonc (parseuse: &ParseuseCPP)
 {
     directive := donne_lexème_suivant(*parseuse.lexeuse)
     si directive.donne_texte() == "include" {
@@ -816,7 +816,7 @@ parse_directive_préprocesseur :: fonc (parseuse: &Parseuse)
 /** \nom Parsage typedef.
  * \{ */
 
-parse_typedef :: fonc (parseuse: &Parseuse)
+parse_typedef :: fonc (parseuse: &ParseuseCPP)
 {
     /* Nous sommes sur le mot clé. */
     parseuse.avance()
@@ -868,7 +868,7 @@ parse_typedef :: fonc (parseuse: &Parseuse)
 
 /** \} */
 
-parse_template :: fonc (parseuse: &Parseuse)
+parse_template :: fonc (parseuse: &ParseuseCPP)
 {
     /* Nous sommes sur le mot-clé. */
     _ := parseuse.lexème_courant()
@@ -887,7 +887,7 @@ parse_template :: fonc (parseuse: &Parseuse)
     consomme_ou_rapporte_erreur(parseuse, '>')
 }
 
-parse_using :: fonc (parseuse: &Parseuse)
+parse_using :: fonc (parseuse: &ParseuseCPP)
 {
     parseuse.avance()
 
@@ -904,12 +904,12 @@ parse_using :: fonc (parseuse: &Parseuse)
     consomme_ou_rapporte_erreur(parseuse, ';')
 }
 
-parse_référence_type :: fonc (parseuse: &Parseuse)
+parse_référence_type :: fonc (parseuse: &ParseuseCPP)
 {
     _ := parseuse.consomme_ident()
 }
 
-parse_décalaration_namespace :: fonc (parseuse: &Parseuse)
+parse_décalaration_namespace :: fonc (parseuse: &ParseuseCPP)
 {
     namespace := crée_noeud(parseuse.créatrice_noeuds, NamespaceDecl)
     ajoute_au_contexte(parseuse, namespace)
