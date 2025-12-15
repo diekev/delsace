@@ -191,6 +191,15 @@ BinaryExpression :: struct {
     right: *Expression
 }
 
+MemberAccessExpression :: struct {
+    empl expr: Expression
+    genre = #type_de_cette_structure
+
+    is_arrow: bool
+    left: *Expression
+    right: *Expression
+}
+
 UnaryExpression :: struct {
     empl expr: Expression
     genre = #type_de_cette_structure

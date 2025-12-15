@@ -1348,6 +1348,16 @@ parse_expression :: fonc (empl parseuse: *ParseuseC, info_courante: InfoParsageO
 
             résultat = call
         }
+        sinon si texte == "." || texte == "->" {
+            consomme(parseuse)
+
+            member_access := crée_noeud(*créatrice, MemberAccessExpression)
+            member_access.is_arrow = texte == "->" 
+            member_access.left = résultat
+            member_access.right = parse_expression(parseuse, info)
+
+            résultat = member_access
+        }
         sinon {
             rapporte_erreur(parseuse, lexème, "Erreur interne : opérateur non-géré")
             arrête
