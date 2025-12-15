@@ -314,6 +314,14 @@ IfStatement :: struct {
     else_statement: *ASTNode
 }
 
+WhileStatement :: struct {
+    empl node: ASTNode
+    genre = #type_de_cette_structure
+
+    expression: *Expression
+    statement: *ASTNode
+}
+
 /* ------------------------------------------------------------------------- */
 /** \nom ClassDecl
  * \{ */

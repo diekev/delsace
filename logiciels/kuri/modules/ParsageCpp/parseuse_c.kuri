@@ -1170,8 +1170,18 @@ parse_statement :: fonc (parseuse: *ParseuseC) -> *ASTNode
     /* iteration-statement */
 
     si est_mot_clé(lexème, "while") {
-        rapporte_erreur(parseuse, lexème, "'while' non-géré")
-        retourne nul
+        consomme(parseuse)
+
+        consomme_ponctuation(parseuse, "(")
+        expression := parse_expression(parseuse)
+        consomme_ponctuation(parseuse, ")")
+
+        statement := parse_statement(parseuse)
+
+        while_statement := crée_noeud(*parseuse.créatrice, WhileStatement)
+        while_statement.expression = expression
+        while_statement.statement = statement
+        retourne while_statement
     }
 
     si est_mot_clé(lexème, "do") {
