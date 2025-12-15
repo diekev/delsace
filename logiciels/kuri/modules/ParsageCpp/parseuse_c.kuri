@@ -714,8 +714,28 @@ parse_declaration_specifiers :: fonc (empl parseuse: *ParseuseC, déclaration: *
                 si déclaration.type_résolu == nul {
                     type_résolu = crée_type(*créatrice, TypeKind.DOUBLE)
                 }
+                sinon si déclaration.type_résolu.kind == TypeKind.COMPLEX {
+                    type_résolu = crée_type(*créatrice, TypeKind.COMPLEX_DOUBLE)
+                }
                 sinon si déclaration.type_résolu.kind == TypeKind.LONG {
                     type_résolu = crée_type(*créatrice, TypeKind.LONG_DOUBLE)
+                }
+                sinon {
+                    rapporte_erreur(parseuse, lexème, "Spécifiant type inattendu")
+                }
+            }
+            sinon si specifier == "_Complex" {
+                si déclaration.type_résolu == nul {
+                    type_résolu = crée_type(*créatrice, TypeKind.COMPLEX)
+                }
+                sinon si déclaration.type_résolu.kind == TypeKind.FLOAT {
+                    type_résolu = crée_type(*créatrice, TypeKind.COMPLEX)
+                }
+                sinon si déclaration.type_résolu.kind == TypeKind.DOUBLE {
+                    type_résolu = crée_type(*créatrice, TypeKind.COMPLEX_DOUBLE)
+                }
+                sinon si déclaration.type_résolu.kind == TypeKind.LONG_DOUBLE {
+                    type_résolu = crée_type(*créatrice, TypeKind.COMPLEX_LONG_DOUBLE)
                 }
                 sinon {
                     rapporte_erreur(parseuse, lexème, "Spécifiant type inattendu")

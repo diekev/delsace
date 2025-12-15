@@ -65,6 +65,10 @@ TypeKind :: énum {
     FUNCTION
     CONSTANT_ARRAY
 
+    COMPLEX
+    COMPLEX_DOUBLE
+    COMPLEX_LONG_DOUBLE
+
     ENUM
 }
 
