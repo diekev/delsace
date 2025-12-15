@@ -225,9 +225,10 @@ est_type_qualifier :: fonc (lexème: LexèmePréprocès) -> bool
 
 est_function_specifier :: fonc (lexème: LexèmePréprocès) -> bool
 {
-    mots_clés := ["inline", "_Noreturn"]
+    mots_clés := ["inline", "_Noreturn", "__inline"]
+    texte := donne_texte(lexème)
     pour mots_clés {
-        si est_mot_clé(lexème, it) {
+        si texte == it {
             retourne vrai
         }
     }
