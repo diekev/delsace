@@ -16,6 +16,7 @@ VarDecl :: struct {
 
     nom: chaine
     type: *Type
+    initializer: *Expression
 }
 
 FunctionDecl :: struct {

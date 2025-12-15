@@ -122,7 +122,12 @@ rapporte_erreur :: fonc (parseuse: *ParseuseC, lexème: LexèmePréprocès, form
             imprimeln("%", texte_ligne)
             décalage := texte_lexème.pointeur - texte_ligne.pointeur
             pour décalage {
-                imprime(" ")
+                si texte_ligne[it] == '\t' {
+                    imprime("\t")
+                }
+                sinon {
+                    imprime(" ")
+                }
             }
             imprime("^")
             pour texte_lexème.taille - 1 {
@@ -318,6 +323,48 @@ parse_external_declaration :: fonc (empl parseuse: *ParseuseC) -> *ASTNode
     retourne nul
 }
 
+parse_declaration :: fonc (empl parseuse: *ParseuseC) -> *ASTNode
+{
+    déclaration_courante: InfoDéclaration
+    parse_declaration_specifiers(parseuse, *déclaration_courante, faux)
+
+    si est_ponctuation(épie_lexème_suivant(parseuse), ";") {
+        // À FAIRE : crée noeud.
+        consomme(parseuse)
+        retourne nul
+    }
+
+    declarator := parse_declarator(parseuse, PrésenceIdentifier.OBLIGATOIRE)
+    saufsi declarator {
+        rapporte_erreur(parseuse, donne_lexème_suivant(parseuse), "Attendu un declarateur")
+        retourne nul
+    }
+
+    // À FAIRE : { initializer-list }
+    initializer: *Expression
+    lexème_suivant := épie_lexème_suivant(parseuse)
+    si est_ponctuation(lexème_suivant, "=") {
+        consomme(parseuse)
+        initializer = parse_assignment_expression(parseuse)
+    }
+
+    résultat := crée_déclaration_pour_declarator(parseuse, *déclaration_courante, declarator)
+    si résultat {
+        si initializer  {
+            si résultat.genre != VarDecl {
+                rapporte_erreur(parseuse, lexème_suivant, "Lexème inattendu")
+                retourne nul
+            }
+
+            var_decl := résultat comme *VarDecl
+            var_decl.initializer = initializer
+        }
+    }
+
+    consomme_ponctuation(parseuse, ";")
+    retourne résultat
+}
+
 crée_déclaration_pour_declarator :: fonc (empl parseuse: *ParseuseC, info: *InfoDéclaration, declarator: *Declarator) -> *ASTNode
 {
     nom, type := donne_nom_et_type_pour_declarator(parseuse, info, declarator)
@@ -458,6 +505,26 @@ parse_attributs_gcc :: fonc (empl parseuse: *ParseuseC) -> bool
         function-specifier declaration-specifiersopt
         alignment-specifier declaration-specifiersop
 */
+est_declaration_specifier :: fonc (parseuse: *ParseuseC, lexème: LexèmePréprocès) -> bool
+{
+    si est_storage_class_specifier(lexème) {
+        retourne vrai
+    }
+    si est_type_specifier(parseuse, lexème, nul) {
+        retourne vrai
+    }
+    si est_type_qualifier(lexème) {
+        retourne vrai
+    }
+    si est_function_specifier(lexème) {
+        retourne vrai
+    }
+    si est_alignment_specifier(lexème) {
+        retourne vrai
+    }
+    retourne faux
+}
+
 parse_declaration_specifiers :: fonc (empl parseuse: *ParseuseC, déclaration: *InfoDéclaration, pour_struct_declaration: bool)
 {
     boucle {
@@ -1032,6 +1099,12 @@ parse_compound_statement :: fonc (empl parseuse: *ParseuseC) -> *CompoundStateme
         lexème_suivant := épie_lexème_suivant(parseuse)
         si est_ponctuation(lexème_suivant, "}") {
             arrête
+        }
+
+        si est_declaration_specifier(parseuse, lexème_suivant) {
+            declaration := parse_declaration(parseuse)
+            tableau_ajoute(*items, declaration)
+            continue
         }
 
         statement := parse_statement(parseuse)
