@@ -1240,13 +1240,17 @@ parse_statement :: fonc (parseuse: *ParseuseC) -> *ASTNode
     }
 
     si est_mot_clé(lexème, "continue") {
-        rapporte_erreur(parseuse, lexème, "'continue' non-géré")
-        retourne nul
+        consomme(parseuse)
+        consomme_ponctuation(parseuse, ";")
+        résultat := crée_noeud(*parseuse.créatrice, ContinueStatement)
+        retourne résultat
     }
 
     si est_mot_clé(lexème, "break") {
-        rapporte_erreur(parseuse, lexème, "'break' non-géré")
-        retourne nul
+        consomme(parseuse)
+        consomme_ponctuation(parseuse, ";")
+        résultat := crée_noeud(*parseuse.créatrice, BreakStatement)
+        retourne résultat
     }
 
     si est_mot_clé(lexème, "return") {

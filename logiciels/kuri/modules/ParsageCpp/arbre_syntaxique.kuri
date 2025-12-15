@@ -306,6 +306,16 @@ ExpressionStatement :: struct {
     expression: *Expression
 }
 
+ContinueStatement :: struct {
+    empl node: ASTNode
+    genre = #type_de_cette_structure
+}
+
+BreakStatement :: struct {
+    empl node: ASTNode
+    genre = #type_de_cette_structure
+}
+
 ReturnStatement :: struct {
     empl node: ASTNode
     genre = #type_de_cette_structure
