@@ -1494,7 +1494,33 @@ donne_info_parsage_opérateur_unaire_c :: fonc () -> InfoParsageOpérateur
 
 parse_expression :: fonc (empl parseuse: *ParseuseC) -> *Expression
 {
-    retourne parse_expression(parseuse, InfoParsageOpérateur())
+    résultat := parse_assignment_expression(parseuse)
+
+    lexème := épie_lexème_suivant(parseuse)
+    si est_ponctuation(lexème, ",") {
+        consomme(parseuse)
+
+        expressions: [..]*Expression
+        tableau_ajoute(*expressions, résultat)
+
+        tantque !fini(parseuse) {
+            expression := parse_assignment_expression(parseuse)
+            tableau_ajoute(*expressions, expression)
+
+            lexème = épie_lexème_suivant(parseuse)
+            saufsi est_ponctuation(lexème, ",") {
+                arrête
+            }
+            consomme(parseuse)
+        }
+
+        comma := crée_noeud(*créatrice, CommaExpression)
+        comma.expressions = expressions
+
+        résultat = comma
+    }
+
+    retourne résultat
 }
 
 parse_constant_expression :: fonc (parseuse: *ParseuseC) -> *Expression

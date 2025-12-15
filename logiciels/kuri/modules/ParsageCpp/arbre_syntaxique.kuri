@@ -188,6 +188,13 @@ Expression :: struct {
     genre = #type_de_cette_structure
 }
 
+CommaExpression :: struct {
+    empl expr: Expression
+    genre = #type_de_cette_structure
+
+    expressions: [..]*Expression
+}
+
 IntegerLiteralExpression :: struct {
     empl expr: Expression
     genre = #type_de_cette_structure
