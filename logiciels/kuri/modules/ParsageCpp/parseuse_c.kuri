@@ -1385,6 +1385,31 @@ parse_expression_primaire :: fonc (empl parseuse: *ParseuseC) -> *Expression
 
         résultat = literal
     }
+    sinon si est_ponctuation(lexème, "(") {
+        consomme(parseuse)
+
+        lexème_suivant := épie_lexème_suivant(parseuse)
+
+        si est_type_specifier(parseuse, lexème_suivant, nul) || est_type_qualifier(donne_texte(lexème)) {
+            type_name := parse_type_name(parseuse)
+
+            consomme_ponctuation(parseuse, ")")
+
+            info := donne_info_parsage_opérateur_unaire_c()
+            operand := parse_expression(parseuse, info)
+
+            cast := crée_noeud(*créatrice, CastExpression)
+            cast.cast_type = type_name
+            cast.expression = operand
+            
+            résultat = cast
+        }
+        sinon {
+            // À FAIRE : note que l'expression possède des parenthèses
+            résultat = parse_expression(parseuse)
+            consomme_ponctuation(parseuse, ")")
+        }
+    }
     sinon {
         rapporte_erreur(parseuse, lexème, "Expected a primary expression")
     }

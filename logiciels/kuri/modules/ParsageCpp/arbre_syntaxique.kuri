@@ -236,6 +236,14 @@ TypeNameExpression :: struct {
     genre = #type_de_cette_structure
 }
 
+CastExpression :: struct {
+    empl expr: Expression
+    genre = #type_de_cette_structure
+
+    cast_type: *TypeNameExpression
+    expression: *Expression
+}
+
 CompoundStatement :: struct {
     empl node: ASTNode
     genre = #type_de_cette_structure
