@@ -79,6 +79,8 @@ TypeKind :: énum {
     COMPLEX_LONG_DOUBLE
 
     ENUM
+
+    VARIADIC
 }
 
 Type :: struct {

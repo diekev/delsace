@@ -1009,6 +1009,10 @@ parse_direct_declarator :: fonc (empl parseuse: *ParseuseC, présence_identifier
 
                 si est_ponctuation(lexème, "...") {
                     consomme(parseuse)
+                    type := crée_type(*créatrice, TypeKind.VARIADIC)
+                    param := crée_noeud(*créatrice, ParamDecl)
+                    param.type = type
+                    tableau_ajoute(*paramètres, param)
                     arrête
                 }
 
