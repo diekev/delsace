@@ -288,6 +288,15 @@ PostFixUpdateExpression :: struct {
     operand: *Expression
 }
 
+TernaryExpression :: struct {
+    empl expr: Expression
+    genre = #type_de_cette_structure
+
+    test: *Expression
+    consequent: *Expression
+    alternate: *Expression
+}
+
 // À FAIRE : déduplique avec TypeRef (ou supprime ce dernier)
 // Expression se trouvant par exemple dans sizeof().
 TypeNameExpression :: struct {

@@ -1526,6 +1526,19 @@ parse_expression :: fonc (empl parseuse: *ParseuseC, info_courante: InfoParsageO
 
             consomme_ponctuation(parseuse, "]")
         }
+        sinon si texte == "?" {
+            consomme(parseuse)
+            consequent := parse_expression(parseuse)
+            consomme_ponctuation(parseuse, ":")
+            alternate := parse_expression(parseuse, info)
+
+            ternary := crée_noeud(*créatrice, TernaryExpression)
+            ternary.test = résultat
+            ternary.consequent = consequent
+            ternary.alternate = alternate
+
+            résultat = ternary
+        }
         sinon {
             rapporte_erreur(parseuse, lexème, "Erreur interne : opérateur non-géré")
             arrête
