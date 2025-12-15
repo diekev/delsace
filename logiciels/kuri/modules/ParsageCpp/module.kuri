@@ -314,14 +314,14 @@ parse_external_declaration :: fonc (empl parseuse: *ParseuseC) -> *ASTNode
             retourne nul
         }
 
-        statement_list := parse_statement_list(parseuse)
+        statement := parse_compound_statement(parseuse)
 
         function_type := type comme *FunctionType
         résultat := crée_noeud(*créatrice, FunctionDefinition)
         résultat.params = tableau_copie(function_type.parameters)
         résultat.nom = nom
         résultat.type = function_type
-        résultat.statements = statement_list
+        résultat.statement = statement
         retourne résultat
     }
 
@@ -1193,17 +1193,15 @@ est_structure_ou_union_anonyme :: fonc (type_c: *Type) -> bool
     retourne résultat
 }
 
-parse_statement_list :: fonc (empl parseuse: *ParseuseC) -> [..]*ASTNode
+parse_compound_statement :: fonc (empl parseuse: *ParseuseC) -> *CompoundStatement
 {
-    résultat: [..]*ASTNode
-    accolades := 0
-    boucle {
-        lexème := donne_lexème_suivant(parseuse)
-        si est_fin_de_fichier(lexème) {
-            rapporte_erreur(parseuse, lexème, "Fin de fichier inattendu")
-            retourne résultat
-        }
+    consomme_ponctuation(parseuse, "{")
+
+    accolades := 1
+    tantque !fini(parseuse) {
+        lexème := épie_lexème_suivant(parseuse)
         si est_ponctuation(lexème, "{") {
+            consomme(parseuse)
             accolades += 1
         }
         sinon si est_ponctuation(lexème, "}") {
@@ -1212,8 +1210,16 @@ parse_statement_list :: fonc (empl parseuse: *ParseuseC) -> [..]*ASTNode
             si accolades == 0 {
                 arrête
             }
+            consomme(parseuse)
+        }
+        sinon {
+            consomme(parseuse)
         }
     }
+
+    consomme_ponctuation(parseuse, "}")
+
+    résultat := crée_noeud(*créatrice, CompoundStatement)
     retourne résultat
 }
 

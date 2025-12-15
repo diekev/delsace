@@ -34,7 +34,7 @@ FunctionDefinition :: struct {
     nom: chaine
     type: *Type
     params: [..]*ParamDecl
-    statements: [..]*ASTNode
+    statement: *CompoundStatement
 }
 
 TypeKind :: énum {
@@ -212,6 +212,13 @@ SizeOfExpression :: struct {
 TypeNameExpression :: struct {
     empl expr: Expression
     genre = #type_de_cette_structure
+}
+
+CompoundStatement :: struct {
+    empl node: ASTNode
+    genre = #type_de_cette_structure
+
+    statements: [..]*ASTNode
 }
 
 /* ------------------------------------------------------------------------- */
