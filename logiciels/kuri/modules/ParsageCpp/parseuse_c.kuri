@@ -1358,6 +1358,25 @@ parse_expression :: fonc (empl parseuse: *ParseuseC, info_courante: InfoParsageO
 
             résultat = member_access
         }
+        sinon si texte == "=" {
+            consomme(parseuse)
+
+            assignment := crée_noeud(*créatrice, AssignmentExpression)
+            assignment.left = résultat
+            assignment.right = parse_expression(parseuse, info)
+
+            résultat = assignment
+        }
+        sinon si texte == "+=" || texte == "-=" || texte == "*=" || texte == "/=" || texte == "%=" || texte == "<<=" || texte == ">>=" || texte == "&=" || texte == "|=" || texte == "^=" {
+            consomme(parseuse)
+
+            assignment := crée_noeud(*créatrice, CompoundAssignmentExpression)
+            assignment.op = texte
+            assignment.left = résultat
+            assignment.right = parse_expression(parseuse, info)
+
+            résultat = assignment
+        }
         sinon {
             rapporte_erreur(parseuse, lexème, "Erreur interne : opérateur non-géré")
             arrête

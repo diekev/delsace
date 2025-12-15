@@ -200,6 +200,24 @@ MemberAccessExpression :: struct {
     right: *Expression
 }
 
+AssignmentExpression :: struct {
+    empl expr: Expression
+    genre = #type_de_cette_structure
+
+    left: *Expression
+    right: *Expression
+}
+
+CompoundAssignmentExpression :: struct {
+    empl expr: Expression
+    genre = #type_de_cette_structure
+
+    // À FAIRE : stocke les lexèmes
+    op: chaine
+    left: *Expression
+    right: *Expression
+}
+
 UnaryExpression :: struct {
     empl expr: Expression
     genre = #type_de_cette_structure
