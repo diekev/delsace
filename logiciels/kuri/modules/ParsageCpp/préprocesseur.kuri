@@ -1525,6 +1525,8 @@ parse_définition :: fonc (préprocesseur: *PréProcesseur, lexeuse: *LexeusePr�
     //     }
     // }
 
+    lexème_suivant := épie_lexème_suivant(*lexeuse.lexeuse)
+
     saute_espaces_blanches_sauf_nouvelle_ligne(lexeuse)
 
     prélexeuse := mémoire(lexeuse)
@@ -1534,6 +1536,13 @@ parse_définition :: fonc (préprocesseur: *PréProcesseur, lexeuse: *LexeusePr�
     lexème := donne_lexème_suivant(lexeuse)
     si est_lexème_nouvelle_ligne(lexème) {
         retourne
+    }
+
+    si lexème_suivant.type == TypeLexème.EspaceBlanche {
+        si drapeaux.POSSÈDE_ARGUMENTS == vrai && drapeaux.POSSÈDE_CORPS == faux {
+            drapeaux.POSSÈDE_ARGUMENTS = faux
+            drapeaux.POSSÈDE_CORPS = vrai
+        }
     }
 
     // imprimeln("drapeaux %", drapeaux)
