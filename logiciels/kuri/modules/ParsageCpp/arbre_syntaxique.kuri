@@ -323,6 +323,11 @@ CastExpression :: struct {
     expression: *Expression
 }
 
+InlineAsmExpression :: struct {
+    empl expr: Expression
+    genre = #type_de_cette_structure
+}
+
 CompoundStatement :: struct {
     empl node: ASTNode
     genre = #type_de_cette_structure

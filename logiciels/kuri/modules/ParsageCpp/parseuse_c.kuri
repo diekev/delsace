@@ -1664,6 +1664,38 @@ parse_expression_primaire :: fonc (empl parseuse: *ParseuseC) -> *Expression
 
         résultat = unary
     }
+    sinon si donne_texte(lexème) == "__asm__" {
+        consomme(parseuse)
+
+        lexème_suivant := épie_lexème_suivant(parseuse)
+        si donne_texte(lexème_suivant) == "__volatile__" {
+            consomme(parseuse)
+
+            lexème_suivant = épie_lexème_suivant(parseuse)
+        }
+
+        saufsi est_ponctuation(lexème_suivant, "(") {
+            rapporte_erreur(parseuse, lexème_suivant, "Attendu '('")
+            retourne nul
+        }
+
+        parenthèses := 0
+        tantque !fini(parseuse) {
+            lexème = donne_lexème_suivant(parseuse)
+            si est_ponctuation(lexème, "(") {
+                parenthèses += 1
+            }
+            sinon si est_ponctuation(lexème, ")") {
+                parenthèses -= 1
+
+                si parenthèses == 0 {
+                    arrête
+                }
+            }
+        }
+
+        résultat = crée_noeud(*créatrice, InlineAsmExpression)
+    }
     sinon si est_symbole(lexème) {
         consomme(parseuse)
 
