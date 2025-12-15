@@ -241,6 +241,8 @@ est_alignment_specifier :: fonc (lexème: LexèmePréprocès) -> bool
 }
 
 InfoDéclaration :: struct {
+    lexème: LexèmePréprocès
+
     storage_class_specifier: chaine
     type_specifiers: [..]chaine
     type_résolu: *Type
@@ -370,11 +372,11 @@ crée_déclaration_pour_declarator :: fonc (empl parseuse: *ParseuseC, info: *In
 {
     nom, type := donne_nom_et_type_pour_declarator(parseuse, info, declarator)
     si nom == "" {
-        rapporte_erreur(parseuse, "Nom nul pour la déclaration");
+        rapporte_erreur(parseuse, info.lexème, "Nom nul pour la déclaration");
         retourne nul
     }
     si type == nul {
-        rapporte_erreur(parseuse, "Nom nul pour la déclaration");
+        rapporte_erreur(parseuse, info.lexème, "Nom nul pour la déclaration");
         retourne nul
     }
 
@@ -407,7 +409,7 @@ donne_nom_et_type_pour_declarator :: fonc (empl parseuse: *ParseuseC, info: *Inf
 {
     type_de_base := info.type_résolu
     si type_de_base == nul {
-        rapporte_erreur(parseuse, "Erreur interne : déclaration sans spécifiants de type")
+        rapporte_erreur(parseuse, info.lexème, "Erreur interne : déclaration sans spécifiants de type")
         retourne "", nul
     }
 
@@ -528,6 +530,8 @@ est_declaration_specifier :: fonc (parseuse: *ParseuseC, lexème: LexèmePrépro
 
 parse_declaration_specifiers :: fonc (empl parseuse: *ParseuseC, déclaration: *InfoDéclaration, pour_struct_declaration: bool)
 {
+    déclaration.lexème = épie_lexème_suivant(parseuse)
+
     boucle {
         lexème := épie_lexème_suivant(parseuse)
         si est_fin_de_fichier(lexème) {
