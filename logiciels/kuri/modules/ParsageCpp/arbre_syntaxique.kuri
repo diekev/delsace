@@ -330,6 +330,17 @@ WhileStatement :: struct {
     statement: *ASTNode
 }
 
+ForStatement :: struct {
+    empl node: ASTNode
+    genre = #type_de_cette_structure
+
+    initializer: *ASTNode
+    test: *Expression
+    update: *Expression
+
+    statement: *ASTNode
+}
+
 /* ------------------------------------------------------------------------- */
 /** \nom ClassDecl
  * \{ */

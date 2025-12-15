@@ -1190,8 +1190,46 @@ parse_statement :: fonc (parseuse: *ParseuseC) -> *ASTNode
     }
 
     si est_mot_clé(lexème, "for") {
-        rapporte_erreur(parseuse, lexème, "'for' non-géré")
-        retourne nul
+        consomme(parseuse)
+
+        consomme_ponctuation(parseuse, "(")
+
+        initializer: *ASTNode
+        test: *Expression
+        update: *Expression
+
+        lexème_suivant := épie_lexème_suivant(parseuse)
+        si est_declaration_specifier(parseuse, lexème_suivant) {
+            initializer = parse_declaration(parseuse)
+        }
+        sinon {
+            saufsi est_ponctuation(lexème_suivant, ";") {
+                initializer = parse_expression(parseuse)
+            }
+            consomme_ponctuation(parseuse, ";")
+        }
+
+        lexème_suivant = épie_lexème_suivant(parseuse)
+        saufsi est_ponctuation(lexème_suivant, ";") {
+            test = parse_expression(parseuse)
+        }
+        consomme_ponctuation(parseuse, ";")
+
+        lexème_suivant = épie_lexème_suivant(parseuse)
+        saufsi est_ponctuation(lexème_suivant, ";") {
+            update = parse_expression(parseuse)
+        }
+
+        consomme_ponctuation(parseuse, ")")
+
+        statement := parse_statement(parseuse)
+
+        for_statement := crée_noeud(*parseuse.créatrice, ForStatement)
+        for_statement.initializer = initializer
+        for_statement.test = test
+        for_statement.update = update
+        for_statement.statement = statement
+        retourne for_statement
     }
 
     /* jump-statement */
