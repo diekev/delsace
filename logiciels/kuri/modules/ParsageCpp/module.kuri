@@ -14,6 +14,27 @@ charge "parseuse"
 charge "parseuse_c"
 charge "unit"
 
+/* ------------------------------------------------------------------------- */
+/** \nom Langage
+ * \{ */
+
+Langage :: énum {
+    C
+    CPP
+}
+
+détermine_langage_pour_fichier :: fonc (chemin: chaine) -> Langage
+{
+    ext := extension(CheminFichier(chemin))
+    si ext == ".cpp" || ext == ".cc" {
+        retourne Langage.CPP
+    }
+
+    retourne Langage.C
+}
+
+/** \} */
+
 est_fichier_cpp :: fonc (chemin: CheminFichier) -> bool
 {
     extension := chemin.extension()

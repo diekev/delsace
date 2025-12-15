@@ -247,27 +247,6 @@ sur_développement_counter :: fonc (préprocesseur: *PréProcesseur, arguments: 
 /** \} */
 
 /* ------------------------------------------------------------------------- */
-/** \nom FichierSource
- * \{ */
-
-Langage :: énum {
-    C
-    CPP
-}
-
-détermine_langage_pour_fichier :: fonc (chemin: chaine) -> Langage
-{
-    ext := extension(CheminFichier(chemin))
-    si ext == ".cpp" || ext == ".cc" {
-        retourne Langage.CPP
-    }
-
-    retourne Langage.C
-}
-
-/** \} */
-
-/* ------------------------------------------------------------------------- */
 /** \nom Préprocesseur
  * \{ */
 
