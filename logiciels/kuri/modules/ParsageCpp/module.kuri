@@ -1521,7 +1521,7 @@ parse_expression_primaire :: fonc (empl parseuse: *ParseuseC) -> *Expression
 
         consomme_ponctuation(parseuse, "(")
 
-        operand := pase_type_name(parseuse)
+        operand := parse_type_name(parseuse)
 
         consomme_ponctuation(parseuse, ")")
 
@@ -1573,7 +1573,7 @@ parse_expression_primaire :: fonc (empl parseuse: *ParseuseC) -> *Expression
     retourne résultat
 }
 
-pase_type_name :: fonc (empl parseuse: *ParseuseC) -> *TypeNameExpression
+parse_type_name :: fonc (empl parseuse: *ParseuseC) -> *TypeNameExpression
 {
     déclaration_courante: InfoDéclaration
     parse_declaration_specifiers(parseuse, *déclaration_courante, vrai)
