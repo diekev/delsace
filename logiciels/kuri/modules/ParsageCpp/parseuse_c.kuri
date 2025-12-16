@@ -42,6 +42,8 @@ ParseuseC :: struct {
     créatrice: CréatriceNoeuds
 
     typedef_names: TableDeHachage(chaine, *TypedefDecl)
+
+    messagère: *Messagère
 }
 
 fini :: fonc (parseuse: *ParseuseC) -> bool
@@ -174,7 +176,9 @@ parse_translation_unit :: fonc (empl parseuse: *ParseuseC)
         }
         external_declaration := parse_external_declaration(parseuse)
         si external_declaration {
-            imprime_arbre(external_declaration)
+            si parseuse.messagère {
+                envoie_message_déclaration_parsée(parseuse.messagère, parseuse.unit, external_declaration)
+            }
             tableau_ajoute(*parseuse.unit.declarations, external_declaration)
         }
     }

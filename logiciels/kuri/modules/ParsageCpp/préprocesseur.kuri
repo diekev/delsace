@@ -265,7 +265,8 @@ PréProcesseur :: struct {
     /* Pour __COUNTER__ */
     compteur: n64
 
-    envoie_messages_fichiers_ouverts: bool
+    messagère: *Messagère
+
     avertis_sur_macro_non_définis: bool
 
     macros_inconnus: [..]chaine
@@ -753,13 +754,17 @@ exécute_préprocesseur :: fonc (préprocesseur: *PréProcesseur)
 {
     assert(préprocesseur.unit != nul)
     préprocesseur.unit.lexèmes_préprocès = donne_lexèmes_préprocès(préprocesseur)
+
+    si préprocesseur.messagère {
+        envoie_message_fin_préprocès(préprocesseur.messagère, préprocesseur.unit)
+    }
 }
 
 donne_lexèmes_préprocès :: fonc (préprocesseur: *PréProcesseur) -> [..]LexèmePréprocès
 {
     préprocesseur.compteur = 0
 
-    empile_fichier(préprocesseur, préprocesseur.unit.chemin_racine, "")
+    empile_fichier(préprocesseur, préprocesseur.unit.chemin_racine, "", faux)
 
     lexèmes: [..]LexèmePréprocès
 
@@ -768,6 +773,10 @@ donne_lexèmes_préprocès :: fonc (préprocesseur: *PréProcesseur) -> [..]Lex�
 
         lexème := donne_lexème_suivant(lexeuse)
         si est_fin_de_fichier(lexème) {
+            si préprocesseur.messagère {
+                fichier_courant := donne_fichier_courant(préprocesseur)
+                envoie_message_fichier_fermé(préprocesseur.messagère, préprocesseur.unit, fichier_courant.chemin)
+            }
             préprocesseur.lexeuses.taille -= 1
             continue
         }
@@ -1724,7 +1733,7 @@ ignore_lexèmes_jusque_fin_branche :: fonc (préprocesseur: *PréProcesseur, lex
     }
 }
 
-empile_fichier :: fonc (préprocesseur: *PréProcesseur, chemin: chaine, trouvé_dans_dossier: chaine)
+empile_fichier :: fonc (préprocesseur: *PréProcesseur, chemin: chaine, trouvé_dans_dossier: chaine, pour_include: bool)
 {
     chemin_normal := chemin_normalisé(CheminFichier(chemin))
     diffère détruit_chemin(chemin_normal)
@@ -1752,8 +1761,8 @@ empile_fichier :: fonc (préprocesseur: *PréProcesseur, chemin: chaine, trouvé
 
     fichier.nombre_d_ouvertures += 1
 
-    si préprocesseur.envoie_messages_fichiers_ouverts {
-        envoie_message_fichier_ouvert(chemin, fichier.nombre_d_ouvertures)
+    si préprocesseur.messagère {
+        envoie_message_fichier_ouvert(préprocesseur.messagère, préprocesseur.unit, chemin, fichier.nombre_d_ouvertures, pour_include)
     }
 
     lexeuse := tableau_ajoute_élément(*préprocesseur.lexeuses)
@@ -1783,7 +1792,7 @@ empile_fichier_pour_include :: fonc (préprocesseur: *PréProcesseur, chemin_fic
     }
 
     chemin_fichier_abs := donne_chaine_statique(*chemin_fichier_test)
-    empile_fichier(préprocesseur, chemin_fichier_abs, dossier)
+    empile_fichier(préprocesseur, chemin_fichier_abs, dossier, vrai)
 }
 
 détermine_chemin_pour_inclusion :: fonc (préprocesseur: *PréProcesseur, chemin_fichier: chaine, include_next: bool, est_système: bool, chemin_fichier_test: *TamponChemin) -> (bool, chaine)
@@ -1927,11 +1936,6 @@ prétraite_fichier :: fonc (contenu: chaine) -> chaine
 
     résultat := chaine_depuis_enchaineuse(*enchaineuse)
     retourne résultat
-}
-
-envoie_message_fichier_ouvert :: fonc (chemin: chaine, nombre_d_ouvertures: n32)
-{
-    imprimeln("Ouverture de '%' (%)", chemin, nombre_d_ouvertures)
 }
 
 /** \} */

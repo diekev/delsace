@@ -1,0 +1,97 @@
+
+MessageKind :: énum {
+    FILE_OPENED
+    FILE_CLOSED
+    PREPROCESSING_DONE
+    DECLARATION_PARSED
+}
+
+Message :: struct {
+    kind: MessageKind
+    source_unit: *TranslationUnit
+}
+
+MessageFileOpened :: struct {
+    empl message: Message
+    kind = MessageKind.FILE_OPENED
+
+    filepath: chaine
+    open_count: n32
+    for_include: bool
+}
+
+MessageFileClosed :: struct {
+    empl message: Message
+    kind = MessageKind.FILE_CLOSED
+
+    filepath: chaine
+}
+
+MessagePreProcessingDone :: struct {
+    empl message: Message
+    kind = MessageKind.PREPROCESSING_DONE
+}
+
+MessageDeclarationParsed :: struct {
+    empl message: Message
+    kind = MessageKind.DECLARATION_PARSED
+
+    node: *ASTNode
+}
+
+Messagère :: struct {
+    gère_message: fonc (message: *Message)
+}
+
+envoie_message_fichier_ouvert :: fonc (messagère: *Messagère, unit: *TranslationUnit, chemin: chaine, open_count: n32, for_include: bool)
+{
+    saufsi messagère && messagère.gère_message {
+        retourne
+    }
+
+    message: MessageFileOpened
+    message.source_unit = unit
+    message.filepath = chemin
+    message.open_count = open_count
+    message.for_include = for_include
+
+    messagère.gère_message(*message)
+}
+
+envoie_message_fichier_fermé :: fonc (messagère: *Messagère, unit: *TranslationUnit, chemin: chaine)
+{
+    saufsi messagère && messagère.gère_message {
+        retourne
+    }
+
+    message: MessageFileClosed
+    message.source_unit = unit
+    message.filepath = chemin
+
+    messagère.gère_message(*message)
+}
+
+envoie_message_fin_préprocès :: fonc (messagère: *Messagère, unit: *TranslationUnit)
+{
+    saufsi messagère && messagère.gère_message {
+        retourne
+    }
+
+    message: MessagePreProcessingDone
+    message.source_unit = unit
+
+    messagère.gère_message(*message)
+}
+
+envoie_message_déclaration_parsée :: fonc (messagère: *Messagère, unit: *TranslationUnit, node: *ASTNode)
+{
+    saufsi messagère && messagère.gère_message {
+        retourne
+    }
+
+    message: MessageDeclarationParsed
+    message.source_unit = unit
+    message.node = node
+
+    messagère.gère_message(*message)
+}
