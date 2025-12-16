@@ -1149,7 +1149,7 @@ parse_struct_or_union_specifier :: fonc (empl parseuse: *ParseuseC, classe: chai
 /* struct-declaration:
     specifier-qualifier-list struct-declarator-listopt ;
     static_assert-declaration */
-parse_struct_declaration_list :: fonc (empl parseuse: *ParseuseC, fields: *[..]*FieldDecl @inutilisée)
+parse_struct_declaration_list :: fonc (empl parseuse: *ParseuseC, fields: *[..]*FieldDecl)
 {
     tantque !fini(parseuse) {
         lexème := épie_lexème_suivant(parseuse)
@@ -1176,11 +1176,20 @@ parse_struct_declaration_list :: fonc (empl parseuse: *ParseuseC, fields: *[..]*
                 lexème = épie_lexème_suivant(parseuse)
             }
 
-            bit_field_expression: *Expression
+            bitfield_expression: *Expression
             si est_ponctuation(lexème, ":") {
                 consomme(parseuse)
-                bit_field_expression = parse_constant_expression(parseuse)
+                bitfield_expression = parse_constant_expression(parseuse)
             }
+
+            nom, type := donne_nom_et_type_pour_declarator(parseuse, *déclaration_courante, declarator)
+
+            field := crée_noeud(*créatrice, FieldDecl)
+            field.name = nom
+            field.type = type
+            field.bitfield_expression = bitfield_expression
+
+            tableau_ajoute(fields, field)
 
             lexème = épie_lexème_suivant(parseuse)
             saufsi est_ponctuation(lexème, ",") {

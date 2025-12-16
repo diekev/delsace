@@ -183,6 +183,7 @@ FieldDecl :: struct {
 
     name: chaine
     type: *Type
+    bitfield_expression: *Expression
 }
 
 Expression :: struct {
