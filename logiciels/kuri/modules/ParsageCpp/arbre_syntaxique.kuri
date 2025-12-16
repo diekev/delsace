@@ -138,7 +138,7 @@ TypedefDecl :: struct {
     genre = #type_de_cette_structure
     kind = TypeKind.TYPEDEF
 
-    type: *Type
+    name: chaine
     underlying_type: *Type
 }
 
@@ -538,6 +538,10 @@ imprime_arbre :: fonc (node: *ASTNode)
             ParamDecl {
                 param := noeud comme *ParamDecl
                 imprimeln("% : %", info.nom, param.name)
+            }
+            TypedefDecl {
+                typedef := noeud comme *TypedefDecl
+                imprimeln("% : %", info.nom, typedef.name)
             }
             Type {
                 type := noeud comme *Type

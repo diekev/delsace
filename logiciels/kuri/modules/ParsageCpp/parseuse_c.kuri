@@ -109,7 +109,7 @@ initialise_parseuse :: fonc (parseuse: *ParseuseC, unit: *TranslationUnit)
 
     // À FAIRE : comprend ce que c'est
     typedef_decl := crée_noeud(*parseuse.créatrice, TypedefDecl)
-    typedef_decl.type = crée_type_ref(*parseuse.créatrice, "__builtin_va_list")
+    typedef_decl.name = "__builtin_va_list"
     typedef_decl.underlying_type = crée_pointer_type(*parseuse.créatrice, crée_type(*parseuse.créatrice, TypeKind.VOID))
 
     _, _ := table_insère_si_non_existant(*parseuse.typedef_names, "__builtin_va_list", typedef_decl)
@@ -499,7 +499,7 @@ crée_déclaration_pour_declarator :: fonc (empl parseuse: *ParseuseC, info: *In
 
     si info.storage_class_specifier == "typedef" {
         typedef_decl := crée_noeud(*créatrice, TypedefDecl)
-        typedef_decl.type = crée_type_ref(*créatrice, nom)
+        typedef_decl.name = nom
         typedef_decl.underlying_type = type
         _, _ := table_insère_si_non_existant(*parseuse.typedef_names, nom, typedef_decl)
 
