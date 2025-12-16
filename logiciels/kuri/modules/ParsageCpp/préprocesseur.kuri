@@ -963,6 +963,10 @@ donne_lexèmes_préprocès :: fonc (préprocesseur: *PréProcesseur) -> [..]Lex�
                         arrête
                     }
                 }
+
+                si préprocesseur.messagère {
+                    envoie_message_macro_indéfini(préprocesseur.messagère, préprocesseur.unit, texte_définition)
+                }
             }
             sinon si texte == "error" {
                 texte = donne_texte_jusque_nouvelle_ligne(lexeuse)
@@ -1558,6 +1562,10 @@ parse_définition :: fonc (préprocesseur: *PréProcesseur, lexeuse: *LexeusePr�
     définition := donne_définition(préprocesseur, texte_définition)
     saufsi définition {
         définition = crée_définition(préprocesseur, texte_définition)
+
+        si préprocesseur.messagère {
+            envoie_message_macro_défini(préprocesseur.messagère, préprocesseur.unit, texte_définition)
+        }
     }
     sinon {
         déloge(définition.paramètres)
