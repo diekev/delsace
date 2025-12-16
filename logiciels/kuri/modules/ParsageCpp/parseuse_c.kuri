@@ -293,6 +293,11 @@ imprime_infos :: fonc (empl infos: *InfoDéclaration)
 
 parse_external_declaration :: fonc (empl parseuse: *ParseuseC) -> *ASTNode
 {
+    lexème_suivant := épie_lexème_suivant(parseuse)
+    si est_mot_clé(lexème_suivant, "_Static_assert") {
+        retourne parse_static_assert_declaration(parseuse)
+    }
+
     déclaration_courante: InfoDéclaration
     parse_declaration_specifiers(parseuse, *déclaration_courante, faux)
 
@@ -386,6 +391,11 @@ parse_external_declaration :: fonc (empl parseuse: *ParseuseC) -> *ASTNode
 
 parse_declaration :: fonc (empl parseuse: *ParseuseC) -> *ASTNode
 {
+    lexème_suivant := épie_lexème_suivant(parseuse)
+    si est_mot_clé(lexème_suivant, "_Static_assert") {
+        retourne parse_static_assert_declaration(parseuse)
+    }
+
     déclaration_courante: InfoDéclaration
     parse_declaration_specifiers(parseuse, *déclaration_courante, faux)
 
@@ -408,7 +418,7 @@ parse_declaration :: fonc (empl parseuse: *ParseuseC) -> *ASTNode
         }
 
         initializer: *Expression
-        lexème_suivant := épie_lexème_suivant(parseuse)
+        lexème_suivant = épie_lexème_suivant(parseuse)
         si est_ponctuation(lexème_suivant, "=") {
             consomme(parseuse)
             initializer = parse_initializer(parseuse)
@@ -446,6 +456,29 @@ parse_declaration :: fonc (empl parseuse: *ParseuseC) -> *ASTNode
 
     résultat := crée_noeud(*créatrice, Declaration)
     résultat.declarators = declarators
+    retourne résultat
+}
+
+parse_static_assert_declaration :: fonc (parseuse: *ParseuseC) -> *StaticAssert
+{
+    consomme(parseuse)
+    consomme_ponctuation(parseuse, "(")
+
+    expression := parse_constant_expression(parseuse)
+
+    consomme_ponctuation(parseuse, ",")
+
+    lexème := donne_lexème_suivant(parseuse)
+    saufsi est_chaine_littérale(lexème) {
+        rapporte_erreur(parseuse, lexème, "Attendu une chaine littérale")
+    }
+
+    consomme_ponctuation(parseuse, ")")
+    consomme_ponctuation(parseuse, ";")
+
+    résultat := crée_noeud(*parseuse.créatrice, StaticAssert)
+    résultat.expression = expression
+    résultat.message = donne_texte(lexème)
     retourne résultat
 }
 
@@ -1171,10 +1204,10 @@ parse_struct_or_union_specifier :: fonc (empl parseuse: *ParseuseC, classe: chai
         lexème = épie_lexème_suivant(parseuse)
     }
 
-    fields: [..]*FieldDecl
+    declarations: [..]*ASTNode
     si est_ponctuation(lexème, "{") {
         consomme_ponctuation(parseuse, "{")
-        parse_struct_declaration_list(parseuse, *fields)
+        parse_struct_declaration_list(parseuse, *declarations)
     }
     sinon saufsi eu_nom {
         rapporte_erreur(parseuse, lexème, "Lexème inattendu dans le parsage de la structure : %", donne_texte(lexème))
@@ -1184,26 +1217,32 @@ parse_struct_or_union_specifier :: fonc (empl parseuse: *ParseuseC, classe: chai
     si classe == "union" {
         résultat := crée_noeud(*créatrice, UnionDecl)
         résultat.name = nom
-        résultat.fields = fields
+        résultat.declarations = declarations
         retourne résultat
     }
 
     résultat := crée_noeud(*créatrice, StructDecl)
     résultat.name = nom
-    résultat.fields = fields
+    résultat.declarations = declarations
     retourne résultat
 }
 
 /* struct-declaration:
     specifier-qualifier-list struct-declarator-listopt ;
     static_assert-declaration */
-parse_struct_declaration_list :: fonc (empl parseuse: *ParseuseC, fields: *[..]*FieldDecl)
+parse_struct_declaration_list :: fonc (empl parseuse: *ParseuseC, declarations: *[..]*ASTNode)
 {
     tantque !fini(parseuse) {
         lexème := épie_lexème_suivant(parseuse)
         si est_ponctuation(lexème, "}") {
             consomme(parseuse)
             retourne
+        }
+
+        si est_mot_clé(lexème, "_Static_assert") {
+            decl := parse_static_assert_declaration(parseuse)
+            tableau_ajoute(declarations, decl)
+            continue
         }
 
         déclaration_courante: InfoDéclaration
@@ -1237,7 +1276,7 @@ parse_struct_declaration_list :: fonc (empl parseuse: *ParseuseC, fields: *[..]*
             field.type = type
             field.bitfield_expression = bitfield_expression
 
-            tableau_ajoute(fields, field)
+            tableau_ajoute(declarations, field)
 
             lexème = épie_lexème_suivant(parseuse)
             saufsi est_ponctuation(lexème, ",") {
@@ -1333,7 +1372,7 @@ parse_compound_statement :: fonc (empl parseuse: *ParseuseC) -> *CompoundStateme
             arrête
         }
 
-        si est_declaration_specifier(parseuse, lexème_suivant) {
+        si est_declaration_specifier(parseuse, lexème_suivant) || est_mot_clé(lexème_suivant, "_Static_assert") {
             declaration := parse_declaration(parseuse)
             tableau_ajoute(*items, declaration)
             continue

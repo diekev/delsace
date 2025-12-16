@@ -17,6 +17,14 @@ Declaration :: struct {
     declarators: [..]*ASTNode
 }
 
+StaticAssert :: struct {
+    empl node: ASTNode
+    genre = #type_de_cette_structure
+
+    expression: *Expression
+    message: chaine
+}
+
 VarDecl :: struct {
     empl node: ASTNode
     genre = #type_de_cette_structure
@@ -148,7 +156,7 @@ StructDecl :: struct {
     kind = TypeKind.RECORD
 
     name: chaine
-    fields: [..]*FieldDecl
+    declarations: [..]*ASTNode
 }
 
 UnionDecl :: struct {
@@ -157,7 +165,7 @@ UnionDecl :: struct {
     kind = TypeKind.RECORD
 
     name: chaine
-    fields: [..]*FieldDecl
+    declarations: [..]*ASTNode
 }
 
 EnumDecl :: struct {
