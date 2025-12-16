@@ -1,4 +1,4 @@
-# http://www.ioccc.org/2012/endoh1/endoh1.c
+// http://www.ioccc.org/2012/endoh1/endoh1.c
 #  include<stdio.h>
 #  include <unistd.h>
 #  include<complex.h>
