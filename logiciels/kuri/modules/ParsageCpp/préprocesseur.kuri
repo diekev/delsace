@@ -503,6 +503,8 @@ initialise_préprocesseur :: fonc (préprocesseur: *PréProcesseur, unit: *Trans
             tableau_ajoute(*préprocesseur.chemins_inclusions_système, "/usr/local/include")
             tableau_ajoute(*préprocesseur.chemins_inclusions_système, "/usr/include/x86_64-linux-gnu")
             tableau_ajoute(*préprocesseur.chemins_inclusions_système, "/usr/include")
+
+            ajoute_définition(préprocesseur, "__STDC_VERSION__", 201112)
         }
         CPP {
             // G++ 12
