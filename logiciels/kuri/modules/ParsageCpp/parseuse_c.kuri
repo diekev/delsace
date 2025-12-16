@@ -1128,7 +1128,17 @@ parse_struct_declaration_list :: fonc (empl parseuse: *ParseuseC, fields: *[..]*
                 arrête
             }
 
-            _ := parse_declarator(parseuse, PrésenceIdentifier.OBLIGATOIRE)
+            declarator: *Declarator
+            saufsi est_ponctuation(lexème, ":") {
+                declarator = parse_declarator(parseuse, PrésenceIdentifier.OBLIGATOIRE)
+                lexème = épie_lexème_suivant(parseuse)
+            }
+
+            bit_field_expression: *Expression
+            si est_ponctuation(lexème, ":") {
+                consomme(parseuse)
+                bit_field_expression = parse_constant_expression(parseuse)
+            }
 
             lexème = épie_lexème_suivant(parseuse)
             saufsi est_ponctuation(lexème, ",") {
