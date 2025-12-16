@@ -259,6 +259,8 @@ InfoDéclaration :: struct {
     type_résolu: *Type
     type_qualifiers: [..]chaine
     function_specifiers: [..]chaine
+
+    type_spécifié: *Type
 }
 
 imprime_infos :: fonc (empl infos: *InfoDéclaration)
@@ -295,8 +297,11 @@ parse_external_declaration :: fonc (empl parseuse: *ParseuseC) -> *ASTNode
     parse_declaration_specifiers(parseuse, *déclaration_courante, faux)
 
     si est_ponctuation(épie_lexème_suivant(parseuse), ";") {
-        // À FAIRE : crée noeud.
         consomme(parseuse)
+        si déclaration_courante.type_spécifié {
+            retourne déclaration_courante.type_spécifié
+        }
+        rapporte_erreur(parseuse, déclaration_courante.lexème, "Attendu une déclaration")
         retourne nul
     }
 
@@ -385,8 +390,11 @@ parse_declaration :: fonc (empl parseuse: *ParseuseC) -> *ASTNode
     parse_declaration_specifiers(parseuse, *déclaration_courante, faux)
 
     si est_ponctuation(épie_lexème_suivant(parseuse), ";") {
-        // À FAIRE : crée noeud.
         consomme(parseuse)
+        si déclaration_courante.type_spécifié {
+            retourne déclaration_courante.type_spécifié
+        }
+        rapporte_erreur(parseuse, déclaration_courante.lexème, "Attendu une déclaration")
         retourne nul
     }
 
@@ -678,6 +686,7 @@ parse_declaration_specifiers :: fonc (empl parseuse: *ParseuseC, déclaration: *
                 }
 
                 type_résolu = parse_struct_or_union_specifier(parseuse, specifier)
+                déclaration.type_spécifié = type_résolu
             }
             sinon si specifier == "enum" {
                 si déclaration.type_specifiers.taille != 0 {
@@ -686,6 +695,7 @@ parse_declaration_specifiers :: fonc (empl parseuse: *ParseuseC, déclaration: *
                 }
 
                 type_résolu = parse_enum_specifier(parseuse)
+                déclaration.type_spécifié = type_résolu
             }
             sinon si specifier == "_Atomic" {
                 si déclaration.type_specifiers.taille != 0 {
