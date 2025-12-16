@@ -728,6 +728,11 @@ crée_définition :: fonc (préprocesseur: *PréProcesseur, nom: chaine) -> *Dé
     retourne définition
 }
 
+ajoute_inclusion :: fonc (préprocesseur: *PréProcesseur, chemin: chaine)
+{
+    tableau_ajoute(*préprocesseur.chemins_inclusions_système, chemin)
+}
+
 donne_source_préprocédée :: fonc (chemin_source: chaine) -> chaine
 {
     unit := crée_translation_unit_pour_fichier(chemin_source)
