@@ -117,6 +117,10 @@ FichierSource :: struct {
 
     nombre_d_ouvertures: n32
     est_marqué_pragma_once: bool
+
+    /* Si le fichier est gardé contre de multiples inclusions via #ifndef __garde__ / #endif,
+     * ceci est la __garde__. */
+    garde_inclusion: chaine
 }
 
 construis_fichier_source :: fonc (chemin: CheminFichier) -> Optionnel(FichierSource)
