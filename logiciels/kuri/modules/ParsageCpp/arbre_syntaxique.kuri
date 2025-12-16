@@ -213,6 +213,14 @@ InitializerList :: struct {
     initializers: [..]*Expression
 }
 
+IdentifierDesignator :: struct {
+    empl expr: Expression
+    genre = #type_de_cette_structure
+
+    identifier: chaine
+    initializer: *Expression
+}
+
 IntegerLiteralExpression :: struct {
     empl expr: Expression
     genre = #type_de_cette_structure

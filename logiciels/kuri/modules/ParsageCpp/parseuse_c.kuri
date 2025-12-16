@@ -505,13 +505,30 @@ parse_initializer :: fonc (parseuse: *ParseuseC) -> *Expression
                 arrête
             }
 
-            si est_ponctuation(lexème_suivant, ".") || est_ponctuation(lexème_suivant, "[") {
-                rapporte_erreur(parseuse, lexème_suivant, "Erreur interne : désignation non-supportée")
-                arrête
-            }
+            si est_ponctuation(lexème_suivant, ".") {
+                consomme(parseuse)
+                lexème_suivant = épie_lexème_suivant(parseuse)
+                saufsi est_symbole(lexème_suivant) {
+                    rapporte_erreur(parseuse, lexème_suivant, "Attendu un identifiant")
+                }
+                consomme(parseuse)
+                consomme_ponctuation(parseuse, "=")
 
-            initializer := parse_initializer(parseuse)
-            tableau_ajoute(*initializers, initializer)
+                initializer := parse_initializer(parseuse)
+
+                designator := crée_noeud(*parseuse.créatrice, IdentifierDesignator)
+                designator.identifier = donne_texte(lexème_suivant)
+                designator.initializer = initializer
+
+                tableau_ajoute(*initializers, designator)
+            }
+            sinon si est_ponctuation(lexème_suivant, "[") {
+                rapporte_erreur(parseuse, lexème_suivant, "Erreur interne : désignation non-supportée")
+            }
+            sinon {
+                initializer := parse_initializer(parseuse)
+                tableau_ajoute(*initializers, initializer)
+            }
 
             lexème_suivant = épie_lexème_suivant(parseuse)
             saufsi est_ponctuation(lexème_suivant, ",") {
