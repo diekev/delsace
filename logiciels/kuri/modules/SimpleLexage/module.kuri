@@ -1202,7 +1202,7 @@ __ponctuation_cpp := [
 __commentaires_ligne_singulière_c := [ "//" ]
 __commentaires_multi_lignes_c := [ ["/*", "*/"] ]
 
-__suffixes_nombres_littéraux_c := ["f", "u", "U", "l", "L", "ll", "LL", "llu", "LLU", "z", "Z"]
+__suffixes_nombres_littéraux_c := ["f", "F", "u", "U", "l", "L", "ll", "LL", "llu", "LLU", "z", "Z", "i", "I", "j", "J", "iF", "IF", "if", "If", "Fi", "FI", "fi", "fI"]
 
 __préfixes_constantes_de_caractères_c := ["L", "u", "U"]
 __préfixes_chaines_littérales_c := ["u8", "u", "U", "L"]
@@ -1341,10 +1341,23 @@ parse_lexème_numérique_c :: fonc (lexeuse: *SimpleLexeuse) -> Lexème
         }
 
         suffixe: chaine
-        si c == 'f' || c == 'F' || c == 'l' || c == 'L' {
+        si c == 'f' || c == 'F' || c == 'l' || c == 'L' || c == 'i' || c == 'I' || c == 'j' || c == 'J' {
             suffixe = chaine(fin_lexème, 1)
             fin_lexème += 1
             avance(lexeuse)
+
+            tantque !fini(lexeuse) {
+                c = donne_caractère_courant(lexeuse)
+                saufsi (c == 'f' || c == 'F' || c == 'l' || c == 'L' || c == 'i' || c == 'I' || c == 'j' || c == 'J') {
+                    arrête
+                }
+
+                suffixe.taille += 1
+                fin_lexème += 1
+                avance(lexeuse)
+            }
+
+            // À FAIRE : valide suffixe
         }
 
         résultat.type = TypeLexème.LittéraleNombreRéel
