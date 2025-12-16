@@ -585,40 +585,78 @@ donne_nom_et_type_pour_declarator :: fonc (empl parseuse: *ParseuseC, info: *Inf
     retourne nom, type_final
 }
 
+Attribut :: struct {
+    name: chaine
+}
+
 parse_attributs_gcc :: fonc (empl parseuse: *ParseuseC) -> bool
 {
     eu_attributs := faux
 
     boucle {
         lexème := épie_lexème_suivant(parseuse)
-        si donne_texte(lexème) != "__attribute__" && donne_texte(lexème) != "__asm__" {
+        texte := donne_texte(lexème)
+
+        si texte == "__asm__" {
+            eu_attributs = vrai
+
+            consomme(parseuse)
+            consomme_ponctuation(parseuse, "(")
+
+            lexème = donne_lexème_suivant(parseuse)
+            saufsi est_chaine_littérale(lexème) {
+                rapporte_erreur(parseuse, lexème, "Attendu une chaine littérale")
+            }
+
+            consomme_ponctuation(parseuse, ")")
+            continue
+        }
+
+        si texte != "__attribute__" {
             arrête
         }
 
         eu_attributs = vrai
 
         consomme(parseuse)
+        consomme_ponctuation(parseuse, "(")
+        consomme_ponctuation(parseuse, "(")
 
-        lexème = épie_lexème_suivant(parseuse)
-        saufsi est_ponctuation(lexème, "(") {
-            rapporte_erreur(parseuse, lexème, "Attendu un '('")
-            arrête
-        }
-
-        parenthèses := 0
         tantque !fini(parseuse) {
-            lexème = donne_lexème_suivant(parseuse)
-            si est_ponctuation(lexème, "(") {
-                parenthèses += 1
+            lexème = épie_lexème_suivant(parseuse)
+            si est_ponctuation(lexème, ")") {
+                arrête
             }
-            sinon si est_ponctuation(lexème, ")") {
-                parenthèses -= 1
 
-                si parenthèses == 0 {
-                    arrête
+            lexème = donne_lexème_suivant(parseuse)
+
+            lexème = épie_lexème_suivant(parseuse)
+            si est_ponctuation(lexème, "(") {
+                consomme(parseuse)
+
+                tantque !fini(parseuse) {
+                    lexème = épie_lexème_suivant(parseuse)
+                    si est_ponctuation(lexème, ")") {
+                        arrête
+                    }
+
+                    consomme(parseuse)
                 }
+
+                consomme_ponctuation(parseuse, ")")
+
+                lexème = épie_lexème_suivant(parseuse)
             }
+
+            saufsi est_ponctuation(lexème, ",") {
+                arrête
+            }
+
+            consomme(parseuse)
         }
+
+        consomme_ponctuation(parseuse, ")")
+        consomme_ponctuation(parseuse, ")")
     }
 
     retourne eu_attributs
