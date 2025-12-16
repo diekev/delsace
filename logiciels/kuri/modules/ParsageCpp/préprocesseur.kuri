@@ -428,26 +428,30 @@ LexeusePréProcès :: struct {
     fichier: z64
 }
 
-donne_lexème_suivant :: fonc (lexeuse: *LexeusePréProcès) -> LexèmePréprocès
+émets_lexème :: fonc (lexeuse: *LexeusePréProcès, lexème: Lexème) -> LexèmePréprocès
 {
     résultat: LexèmePréprocès
-    résultat.lexème = donne_lexème_suivant(*lexeuse.lexeuse)
+    résultat.lexème = lexème
     résultat.fichier = lexeuse.fichier
     retourne résultat
 }
 
+donne_lexème_suivant :: fonc (lexeuse: *LexeusePréProcès) -> LexèmePréprocès
+{
+    lexème := donne_lexème_suivant(*lexeuse.lexeuse)
+    retourne émets_lexème(lexeuse, lexème)
+}
+
 donne_lexème_suivant_sauf_espace_blanche :: fonc (lexeuse: *LexeusePréProcès) -> LexèmePréprocès
 {
-    résultat: LexèmePréprocès
-    résultat.lexème = donne_lexème_suivant_sauf_espace_blanche(*lexeuse.lexeuse)
-    retourne résultat
+    lexème := donne_lexème_suivant_sauf_espace_blanche(*lexeuse.lexeuse)
+    retourne émets_lexème(lexeuse, lexème)
 }
 
 donne_lexème_suivant_sauf_espace_blanche_hors_nouvelle_ligne :: fonc (lexeuse: *LexeusePréProcès) -> LexèmePréprocès
 {
-    résultat: LexèmePréprocès
-    résultat.lexème = donne_lexème_suivant_sauf_espace_blanche_hors_nouvelle_ligne(*lexeuse.lexeuse)
-    retourne résultat
+    lexème := donne_lexème_suivant_sauf_espace_blanche_hors_nouvelle_ligne(*lexeuse.lexeuse)
+    retourne émets_lexème(lexeuse, lexème)
 }
 
 donne_texte_jusque_nouvelle_ligne :: fonc (lexeuse: *LexeusePréProcès) -> chaine
