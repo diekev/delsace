@@ -1525,8 +1525,15 @@ parse_statement :: fonc (parseuse: *ParseuseC) -> *ASTNode
     /* jump-statement */
 
     si est_mot_clé(lexème, "goto") {
-        rapporte_erreur(parseuse, lexème, "'goto' non-géré")
-        retourne nul
+        consomme(parseuse)
+        lexème = donne_lexème_suivant(parseuse)
+        saufsi est_symbole(lexème) {
+            rapporte_erreur(parseuse, lexème, "Attendu un symbole")
+        }
+        consomme_ponctuation(parseuse, ";")
+        résultat := crée_noeud(*parseuse.créatrice, GotoStatement)
+        résultat.identifier = donne_texte(lexème)
+        retourne résultat
     }
 
     si est_mot_clé(lexème, "continue") {

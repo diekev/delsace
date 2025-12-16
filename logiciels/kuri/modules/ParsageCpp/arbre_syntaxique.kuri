@@ -374,6 +374,13 @@ ExpressionStatement :: struct {
     expression: *Expression
 }
 
+GotoStatement :: struct {
+    empl node: ASTNode
+    genre = #type_de_cette_structure
+
+    identifier: chaine
+}
+
 ContinueStatement :: struct {
     empl node: ASTNode
     genre = #type_de_cette_structure
