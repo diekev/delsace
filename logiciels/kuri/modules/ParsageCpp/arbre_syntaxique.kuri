@@ -1,50 +1,425 @@
+importe Introspection
+
 /* ------------------------------------------------------------------------- */
 /** \nom Noeud de base pour tous les noeuds syntaxique.
  * \{ */
 
-NoeudSyntaxique :: struct {
+ASTNode :: struct {
+    genre := #type_de_cette_structure
 }
 
 /** \} */
 
-/* ------------------------------------------------------------------------- */
-/** \nom Noeud pour référencer un symbole.
- * \{ */
+Declaration :: struct {
+    empl node: ASTNode
+    genre = #type_de_cette_structure
 
-NoeudRéférenceSymbole :: struct {
-    empl base: NoeudSyntaxique
+    declarators: [..]*ASTNode
 }
 
-/** \} */
+VarDecl :: struct {
+    empl node: ASTNode
+    genre = #type_de_cette_structure
 
-/* ------------------------------------------------------------------------- */
-/** \nom Noeud représentation un instruction de prodéclaration de type.
- * \{ */
-
-NoeudProdéclarationObjet :: struct {
-    empl base: NoeudSyntaxique
-
-    nom_objet: chaine
-    est_struct: bool
+    nom: chaine
+    type: *Type
+    initializer: *Expression
 }
 
-/** \} */
+FunctionDecl :: struct {
+    empl node: ASTNode
+    genre = #type_de_cette_structure
 
-/* ------------------------------------------------------------------------- */
-/** \nom NoeudProdéclarationÉnum
- * \{ */
-
-NoeudProdéclarationÉnum :: struct {
-    empl base: NoeudSyntaxique
-
-    nom_énum: chaine
-    expression_type: *NoeudSyntaxique
+    nom: chaine
+    type: *Type
+    params: [..]*ParamDecl
 }
 
-/** \} */
+FunctionDefinition :: struct {
+    empl node: ASTNode
+    genre = #type_de_cette_structure
+
+    nom: chaine
+    type: *Type
+    params: [..]*ParamDecl
+    statement: *CompoundStatement
+}
+
+TypeKind :: énum {
+    CHAR
+    UNSIGNED_CHAR
+    SHORT
+    UNSIGNED_SHORT
+    INT
+    UNSIGNED_INT
+    LONG
+    UNSIGNED_LONG
+    LONG_LONG
+    UNSIGNED_LONG_LONG
+    FLOAT
+    DOUBLE
+    LONG_DOUBLE
+
+    FLOAT128 // extension de GCC
+
+    POINTER
+
+    VOID
+
+    RECORD
+    REFERENCE // Pour TypeRef
+
+    TYPEDEF
+
+    FUNCTION
+    CONSTANT_ARRAY
+
+    COMPLEX
+    COMPLEX_DOUBLE
+    COMPLEX_LONG_DOUBLE
+
+    ENUM
+
+    VARIADIC
+}
+
+Type :: struct {
+    empl node: ASTNode
+    genre = #type_de_cette_structure
+
+    kind: TypeKind
+}
+
+TypeRef :: struct {
+    empl base_type: Type
+    genre = #type_de_cette_structure
+    kind = TypeKind.REFERENCE
+
+    // À FAIRE : type référencé
+    nom: chaine
+}
+
+PointerType :: struct {
+    empl base_type: Type
+    genre = #type_de_cette_structure
+    kind = TypeKind.POINTER
+
+    pointed_to: *Type
+}
+
+FunctionType :: struct {
+    empl base_type: Type
+    genre = #type_de_cette_structure
+    kind = TypeKind.FUNCTION
+
+    return_type: *Type
+    parameters: [..]*ParamDecl
+}
+
+ParamDecl :: struct {
+    empl base: ASTNode
+    genre = #type_de_cette_structure
+
+    name: chaine
+    type: *Type
+}
+
+ConstantArray :: struct {
+    empl base_type: Type
+    genre = #type_de_cette_structure
+    kind = TypeKind.CONSTANT_ARRAY
+
+    size: n64
+    element_type: *Type
+}
+
+TypedefDecl :: struct {
+    empl base_type: Type
+    genre = #type_de_cette_structure
+    kind = TypeKind.TYPEDEF
+
+    type: *Type
+    underlying_type: *Type
+}
+
+StructDecl :: struct {
+    empl base_type: Type
+    genre = #type_de_cette_structure
+    kind = TypeKind.RECORD
+
+    name: chaine
+    fields: [..]*FieldDecl
+}
+
+UnionDecl :: struct {
+    empl base_type: Type
+    genre = #type_de_cette_structure
+    kind = TypeKind.RECORD
+
+    name: chaine
+    fields: [..]*FieldDecl
+}
+
+EnumDecl :: struct {
+    empl base_type: Type
+    genre = #type_de_cette_structure
+    kind = TypeKind.ENUM
+
+    name: chaine
+    enumerators: [..]*EnumeratorDecl
+}
+
+EnumeratorDecl :: struct {
+    empl base_type: Type
+    genre = #type_de_cette_structure
+
+    identifier: LexèmePréprocès
+    expression: *Expression
+}
+
+FieldDecl :: struct {
+    empl node: ASTNode
+    genre = #type_de_cette_structure
+
+    name: chaine
+    type: *Type
+}
+
+Expression :: struct {
+    empl node: ASTNode
+    genre = #type_de_cette_structure
+}
+
+CommaExpression :: struct {
+    empl expr: Expression
+    genre = #type_de_cette_structure
+
+    expressions: [..]*Expression
+}
+
+InitializerList :: struct {
+    empl expr: Expression
+    genre = #type_de_cette_structure
+
+    initializers: [..]*Expression
+}
+
+IntegerLiteralExpression :: struct {
+    empl expr: Expression
+    genre = #type_de_cette_structure
+
+    lexème: LexèmePréprocès
+}
+
+FloatLiteralExpression :: struct {
+    empl expr: Expression
+    genre = #type_de_cette_structure
+
+    lexème: LexèmePréprocès
+}
+
+BinaryExpression :: struct {
+    empl expr: Expression
+    genre = #type_de_cette_structure
+    
+    // À FAIRE : stocke les lexèmes
+    op: chaine
+    left: *Expression
+    right: *Expression
+}
+
+MemberAccessExpression :: struct {
+    empl expr: Expression
+    genre = #type_de_cette_structure
+
+    is_arrow: bool
+    left: *Expression
+    right: *Expression
+}
+
+IndexExpression :: struct {
+    empl expr: Expression
+    genre = #type_de_cette_structure
+
+    left: *Expression
+    right: *Expression
+}
+
+AssignmentExpression :: struct {
+    empl expr: Expression
+    genre = #type_de_cette_structure
+
+    left: *Expression
+    right: *Expression
+}
+
+CompoundAssignmentExpression :: struct {
+    empl expr: Expression
+    genre = #type_de_cette_structure
+
+    // À FAIRE : stocke les lexèmes
+    op: chaine
+    left: *Expression
+    right: *Expression
+}
+
+UnaryExpression :: struct {
+    empl expr: Expression
+    genre = #type_de_cette_structure
+    
+    // À FAIRE : stocke les lexèmes
+    op: chaine
+    operand: *Expression
+}
+
+SizeOfExpression :: struct {
+    empl expr: Expression
+    genre = #type_de_cette_structure
+
+    operand: *Expression
+}
+
+DeclarationReference :: struct {
+    empl expr: Expression
+    genre = #type_de_cette_structure
+
+    lexème: LexèmePréprocès
+}
+
+CallExpression :: struct {
+    empl expr: Expression
+    genre = #type_de_cette_structure
+
+    callee: *Expression
+    arguments: [..]*Expression
+}
+
+StringLiteral :: struct {
+    empl expr: Expression
+    genre = #type_de_cette_structure
+
+    lexème: LexèmePréprocès
+}
+
+PrefixUpdateExpression :: struct {
+    empl expr: Expression
+    genre = #type_de_cette_structure
+
+    op: chaine
+    operand: *Expression
+}
+
+PostFixUpdateExpression :: struct {
+    empl expr: Expression
+    genre = #type_de_cette_structure
+
+    op: chaine
+    operand: *Expression
+}
+
+TernaryExpression :: struct {
+    empl expr: Expression
+    genre = #type_de_cette_structure
+
+    test: *Expression
+    consequent: *Expression
+    alternate: *Expression
+}
+
+// À FAIRE : déduplique avec TypeRef (ou supprime ce dernier)
+// Expression se trouvant par exemple dans sizeof().
+TypeNameExpression :: struct {
+    empl expr: Expression
+    genre = #type_de_cette_structure
+}
+
+CastExpression :: struct {
+    empl expr: Expression
+    genre = #type_de_cette_structure
+
+    cast_type: *TypeNameExpression
+    expression: *Expression
+}
+
+InlineAsmExpression :: struct {
+    empl expr: Expression
+    genre = #type_de_cette_structure
+}
+
+CompoundStatement :: struct {
+    empl node: ASTNode
+    genre = #type_de_cette_structure
+
+    items: [..]*ASTNode
+}
+
+NullStatement :: struct {
+    empl node: ASTNode
+    genre = #type_de_cette_structure
+}
+
+ExpressionStatement :: struct {
+    empl node: ASTNode
+    genre = #type_de_cette_structure
+
+    expression: *Expression
+}
+
+ContinueStatement :: struct {
+    empl node: ASTNode
+    genre = #type_de_cette_structure
+}
+
+BreakStatement :: struct {
+    empl node: ASTNode
+    genre = #type_de_cette_structure
+}
+
+ReturnStatement :: struct {
+    empl node: ASTNode
+    genre = #type_de_cette_structure
+
+    expression: *Expression
+}
+
+IfStatement :: struct {
+    empl node: ASTNode
+    genre = #type_de_cette_structure
+
+    expression: *Expression
+    statement: *ASTNode
+    else_statement: *ASTNode
+}
+
+WhileStatement :: struct {
+    empl node: ASTNode
+    genre = #type_de_cette_structure
+
+    expression: *Expression
+    statement: *ASTNode
+}
+
+DoWhileStatement :: struct {
+    empl node: ASTNode
+    genre = #type_de_cette_structure
+
+    statement: *ASTNode
+    expression: *Expression
+}
+
+ForStatement :: struct {
+    empl node: ASTNode
+    genre = #type_de_cette_structure
+
+    initializer: *ASTNode
+    test: *Expression
+    update: *Expression
+
+    statement: *ASTNode
+}
 
 /* ------------------------------------------------------------------------- */
-/** \nom NoeudDéfinitionClasse
+/** \nom ClassDecl
  * \{ */
 
 SpécificationBase :: struct {
@@ -53,8 +428,10 @@ SpécificationBase :: struct {
     nom: chaine
 }
 
-NoeudDéfinitionClasse :: struct {
-    empl base: NoeudSyntaxique
+// Utilisée par Cycles
+ClassDecl :: struct {
+    empl node: ASTNode
+    genre = #type_de_cette_structure
 
     nom: chaine
     clé_classe: CléClasse
@@ -69,18 +446,10 @@ NoeudDéfinitionClasse :: struct {
  * \{ */
 
 DeclContext :: struct {
-    empl noeud: NoeudSyntaxique
-    déclarations: [..]*NoeudSyntaxique
-}
+    empl node: ASTNode
+    genre = #type_de_cette_structure
 
-/** \} */
-
-/* ------------------------------------------------------------------------- */
-/** \nom TranslationUnit
- * \{ */
-
-TranslationUnit :: struct {
-    empl base: DeclContext
+    declarations: [..]*ASTNode
 }
 
 /** \} */
@@ -91,6 +460,7 @@ TranslationUnit :: struct {
 
 NamespaceDecl :: struct {
     empl base: DeclContext
+    genre = #type_de_cette_structure
 
     identifiant: chaine
 }
@@ -102,14 +472,95 @@ NamespaceDecl :: struct {
  * \{ */
 
 CréatriceNoeuds :: struct {
-    noeuds: [..]*NoeudSyntaxique
+    noeuds: [..]*ASTNode
 }
 
-crée_noeud :: fonc (créatrice: &CréatriceNoeuds, $TypeNoeud: type_de_données) -> *TypeNoeud
+crée_noeud :: fonc (créatrice: *CréatriceNoeuds, $T: type_de_données) -> *T
 {
-    noeud := loge(TypeNoeud)
-    tableau_ajoute(*créatrice.noeuds, noeud)
-    retourne noeud
+    résultat := loge(T)
+    tableau_ajoute(*créatrice.noeuds, résultat)
+    retourne résultat
+}
+
+crée_type :: fonc (créatrice: *CréatriceNoeuds, kind: TypeKind) -> *Type
+{
+    résultat := crée_noeud(créatrice, Type)
+    résultat.kind = kind
+    retourne résultat
+}
+
+crée_type_ref :: fonc (créatrice: *CréatriceNoeuds, nom: chaine) -> *TypeRef
+{
+    résultat := crée_noeud(créatrice, TypeRef)
+    résultat.nom = nom
+    retourne résultat
+}
+
+crée_pointer_type :: fonc (créatrice: *CréatriceNoeuds, pointed_to: *Type) -> *PointerType
+{
+    résultat := crée_noeud(créatrice, PointerType)
+    résultat.pointed_to = pointed_to
+    retourne résultat
+}
+
+crée_constant_array :: fonc (créatrice: *CréatriceNoeuds, element_type: *Type, size: n64) -> *ConstantArray
+{
+    résultat := crée_noeud(créatrice, ConstantArray)
+    résultat.element_type = element_type
+    résultat.size = size
+    retourne résultat
+}
+
+/** \} */
+
+/* ------------------------------------------------------------------------- */
+/** \nom Utilitaires
+ * \{ */
+
+imprime_arbre :: fonc (node: *ASTNode)
+{
+    rappel_pour_noeud :: fonc (visiteuse: *VisiteuseArbre(ASTNode), noeud: *ASTNode, info: *InfoTypeStructure) -> VisiteEnfants
+    {
+        imprime_tabulation(visiteuse.profondeur)
+        discr noeud.genre {
+            FunctionDecl {
+                function := noeud comme *FunctionDecl
+                imprimeln("% : %", info.nom, function.nom)
+            }
+            FunctionDefinition {
+                function := noeud comme *FunctionDefinition
+                imprimeln("% : %", info.nom, function.nom)
+            }
+            VarDecl {
+                var := noeud comme *VarDecl
+                imprimeln("% : %", info.nom, var.nom)
+            }
+            ParamDecl {
+                param := noeud comme *ParamDecl
+                imprimeln("% : %", info.nom, param.name)
+            }
+            Type {
+                type := noeud comme *Type
+                imprimeln("% : %", info.nom, type.kind)
+            }
+            sinon {
+                imprimeln("%", info.nom)
+            }
+        }
+        retourne VisiteEnfants.Oui
+    }
+
+    rappel_pour_tableau :: fonc (visiteuse: *VisiteuseArbre(ASTNode), tableau: [..]*ASTNode)
+    {
+        pour tableau {
+            info := it.genre comme *InfoTypeStructure
+            rappel_pour_noeud(visiteuse, it, info)
+        }
+    }
+
+    visiteuse: VisiteuseArbre(ASTNode)
+    visiteuse.rappel_pour_noeud = rappel_pour_noeud
+    visite_noeud(*visiteuse, node)
 }
 
 /** \} */
