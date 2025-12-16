@@ -1174,6 +1174,8 @@ parse_direct_declarator :: fonc (empl parseuse: *ParseuseC, présence_identifier
                     rapporte_erreur(parseuse, lexème, "Erreur interne : type nul pour le paramètre")
                 }
 
+                _ := parse_attributs_gcc(parseuse)
+
                 param := crée_noeud(*créatrice, ParamDecl)
                 param.name = nom
                 param.type = type
