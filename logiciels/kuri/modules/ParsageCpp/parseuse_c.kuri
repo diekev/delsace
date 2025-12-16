@@ -437,9 +437,47 @@ parse_declaration :: fonc (empl parseuse: *ParseuseC) -> *ASTNode
     retourne résultat
 }
 
-// À FAIRE : { initializer-list }
 parse_initializer :: fonc (parseuse: *ParseuseC) -> *Expression
 {
+    lexème_suivant := épie_lexème_suivant(parseuse)
+    si est_ponctuation(lexème_suivant, "{") {
+        consomme(parseuse)
+
+        initializers: [..]*Expression
+
+        tantque !fini(parseuse) {
+            lexème_suivant = épie_lexème_suivant(parseuse)
+            si est_ponctuation(lexème_suivant, "}") {
+                arrête
+            }
+
+            si est_ponctuation(lexème_suivant, ".") || est_ponctuation(lexème_suivant, "[") {
+                rapporte_erreur(parseuse, lexème_suivant, "Erreur interne : désignation non-supportée")
+                arrête
+            }
+
+            initializer := parse_initializer(parseuse)
+            tableau_ajoute(*initializers, initializer)
+
+            lexème_suivant = épie_lexème_suivant(parseuse)
+            saufsi est_ponctuation(lexème_suivant, ",") {
+                arrête
+            }
+
+            consomme(parseuse)
+        }
+
+        saufsi initializers {
+            rapporte_erreur(parseuse, lexème_suivant, "Un initialisateur ne peut pas être vide.")
+        }
+
+        consomme_ponctuation(parseuse, "}")
+
+        résultat := crée_noeud(*parseuse.créatrice, InitializerList)
+        résultat.initializers = initializers
+        retourne résultat
+    }
+
     retourne parse_assignment_expression(parseuse)
 }
 
