@@ -544,6 +544,22 @@ imprime_arbre :: fonc (node: *ASTNode)
                 typedef := noeud comme *TypedefDecl
                 imprimeln("% : %", info.nom, typedef.name)
             }
+            StructDecl {
+                struct_decl := noeud comme *StructDecl
+                imprimeln("% : %", info.nom, struct_decl.name)
+            }
+            UnionDecl {
+                union_decl := noeud comme *UnionDecl
+                imprimeln("% : %", info.nom, union_decl.name)
+            }
+            EnumDecl {
+                enum_decl := noeud comme *EnumDecl
+                imprimeln("% : %", info.nom, enum_decl.name)
+            }
+            FieldDecl {
+                field_decl := noeud comme *FieldDecl
+                imprimeln("% : %", info.nom, field_decl.name)
+            }
             Type {
                 type := noeud comme *Type
                 imprimeln("% : %", info.nom, type.kind)
