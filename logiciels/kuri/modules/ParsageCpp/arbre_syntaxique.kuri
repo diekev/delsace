@@ -434,6 +434,14 @@ ForStatement :: struct {
     statement: *ASTNode
 }
 
+LabelStatement :: struct {
+    empl node: ASTNode
+    genre = #type_de_cette_structure
+
+    identifier: chaine
+    statement: *ASTNode
+}
+
 /* ------------------------------------------------------------------------- */
 /** \nom ClassDecl
  * \{ */

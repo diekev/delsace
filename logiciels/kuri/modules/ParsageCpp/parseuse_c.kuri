@@ -1579,7 +1579,25 @@ parse_statement :: fonc (parseuse: *ParseuseC) -> *ASTNode
         retourne nul
     }
 
-    // À FAIRE : identifier : statement
+    si est_symbole(lexème) {
+        sauvegarde := parseuse.lexème_courant
+        consomme(parseuse)
+
+        lexème_suivant := épie_lexème_suivant(parseuse)
+        si est_ponctuation(lexème_suivant, ":") {
+            consomme(parseuse)
+
+            statement := parse_statement(parseuse)
+
+            résultat := crée_noeud(*parseuse.créatrice, LabelStatement)
+            résultat.identifier = donne_texte(lexème)
+            résultat.statement = statement
+            retourne résultat
+        }
+        sinon {
+            parseuse.lexème_courant = sauvegarde
+        }
+    }
 
     /* expression-statement */
 
