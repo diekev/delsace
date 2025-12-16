@@ -221,6 +221,14 @@ IdentifierDesignator :: struct {
     initializer: *Expression
 }
 
+IndexDesignator :: struct {
+    empl expr: Expression
+    genre = #type_de_cette_structure
+
+    index: *Expression
+    initializer: *Expression
+}
+
 IntegerLiteralExpression :: struct {
     empl expr: Expression
     genre = #type_de_cette_structure

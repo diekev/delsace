@@ -523,7 +523,18 @@ parse_initializer :: fonc (parseuse: *ParseuseC) -> *Expression
                 tableau_ajoute(*initializers, designator)
             }
             sinon si est_ponctuation(lexème_suivant, "[") {
-                rapporte_erreur(parseuse, lexème_suivant, "Erreur interne : désignation non-supportée")
+                consomme(parseuse)
+                expression := parse_constant_expression(parseuse)
+                consomme_ponctuation(parseuse, "]")
+                consomme_ponctuation(parseuse, "=")
+
+                initializer := parse_initializer(parseuse)
+
+                designator := crée_noeud(*parseuse.créatrice, IndexDesignator)
+                designator.index = expression
+                designator.initializer = initializer
+
+                tableau_ajoute(*initializers, designator)
             }
             sinon {
                 initializer := parse_initializer(parseuse)
