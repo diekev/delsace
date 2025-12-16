@@ -426,10 +426,24 @@ supprime_espace_blanches_autour :: fonc (lexèmes: *[..]LexèmePréprocès)
 LexeusePréProcès :: struct {
     lexeuse: SimpleLexeuse
     fichier: z64
+
+    /* Pour détecter si une garde d'inclusion nous permettrait de ne pas retraiter
+     * un fichier donné, il nous faut prendre en compte plusieurs choses :
+     * - la première directive est #ifndef
+     * - la dernière directive est le #endif correspondant
+     * - il ne doit pas y avoir de branches entre les deux
+     */
+    texte_garde_inclusion := ""
+    dernier_lexème_non_espace_blanche := ""
+    est_première_directive := vrai
+    une_branche_fut_rencontrée := faux
 }
 
 émets_lexème :: fonc (lexeuse: *LexeusePréProcès, lexème: Lexème) -> LexèmePréprocès
 {
+    si lexème.type != TypeLexème.EspaceBlanche && lexème.type != TypeLexème.FinDeFichier {
+        lexeuse.dernier_lexème_non_espace_blanche = donne_texte(lexème)
+    }
     résultat: LexèmePréprocès
     résultat.lexème = lexème
     résultat.fichier = lexeuse.fichier
@@ -777,8 +791,15 @@ donne_lexèmes_préprocès :: fonc (préprocesseur: *PréProcesseur) -> [..]Lex�
 
         lexème := donne_lexème_suivant(lexeuse)
         si est_fin_de_fichier(lexème) {
+            fichier_courant := donne_fichier_courant(préprocesseur)
+
+            si lexeuse.texte_garde_inclusion && !lexeuse.une_branche_fut_rencontrée {
+                si lexeuse.dernier_lexème_non_espace_blanche == "endif" {
+                    fichier_courant.garde_inclusion = lexeuse.texte_garde_inclusion
+                }
+            }
+
             si préprocesseur.messagère {
-                fichier_courant := donne_fichier_courant(préprocesseur)
                 envoie_message_fichier_fermé(préprocesseur.messagère, préprocesseur.unit, fichier_courant.chemin)
             }
             préprocesseur.lexeuses.taille -= 1
@@ -841,6 +862,10 @@ donne_lexèmes_préprocès :: fonc (préprocesseur: *PréProcesseur) -> [..]Lex�
                 texte_définition := donne_texte(lexème)
                 définition := donne_définition(préprocesseur, texte_définition)
 
+                si lexeuse.est_première_directive {
+                    lexeuse.texte_garde_inclusion = texte_définition
+                }
+
                 si définition {
                     ignore_lexèmes_jusque_fin_branche(préprocesseur, lexeuse)
                 }
@@ -876,6 +901,7 @@ donne_lexèmes_préprocès :: fonc (préprocesseur: *PréProcesseur) -> [..]Lex�
                 préprocesseur.niveau_branchage += 1
             }
             sinon si texte == "elif" {
+                lexeuse.une_branche_fut_rencontrée = vrai
                 si préprocesseur.niveau_branchage == 0 {
                     rapporte_erreur(préprocesseur, "#endif sans #if")
                 }
@@ -900,6 +926,7 @@ donne_lexèmes_préprocès :: fonc (préprocesseur: *PréProcesseur) -> [..]Lex�
                 }
             }
             sinon si texte == "else" {
+                lexeuse.une_branche_fut_rencontrée = vrai
                 si préprocesseur.niveau_branchage == 0 {
                     rapporte_erreur(préprocesseur, "#else sans #if")
                 }
@@ -987,6 +1014,8 @@ donne_lexèmes_préprocès :: fonc (préprocesseur: *PréProcesseur) -> [..]Lex�
             sinon si texte != "" {
                 rapporte_erreur(préprocesseur, "Directive inconnue : %", texte)
             }
+
+            lexeuse.est_première_directive = faux
 
             continue
         }
@@ -1761,6 +1790,13 @@ empile_fichier :: fonc (préprocesseur: *PréProcesseur, chemin: chaine, trouvé
 
     si fichier.est_marqué_pragma_once {
         retourne
+    }
+
+    si fichier.garde_inclusion {
+        définition := donne_définition(préprocesseur, fichier.garde_inclusion)
+        si définition {
+            retourne
+        }
     }
 
     fichier.nombre_d_ouvertures += 1
