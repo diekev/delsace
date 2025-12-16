@@ -1732,7 +1732,7 @@ parse_expression_primaire :: fonc (empl parseuse: *ParseuseC) -> *Expression
             consomme(parseuse)
 
             lexème_suivant = épie_lexème_suivant(parseuse)
-            si est_type_specifier(parseuse, lexème_suivant, nul) || est_type_qualifier(donne_texte(lexème)) {
+            si est_type_specifier(parseuse, lexème_suivant, nul) || est_type_qualifier(lexème) {
                 operand = parse_type_name(parseuse)
             }
             sinon {
@@ -1834,7 +1834,7 @@ parse_expression_primaire :: fonc (empl parseuse: *ParseuseC) -> *Expression
 
         lexème_suivant := épie_lexème_suivant(parseuse)
 
-        si est_type_specifier(parseuse, lexème_suivant, nul) || est_type_qualifier(donne_texte(lexème)) {
+        si est_type_specifier(parseuse, lexème_suivant, nul) || est_type_qualifier(lexème) {
             type_name := parse_type_name(parseuse)
 
             consomme_ponctuation(parseuse, ")")
