@@ -664,6 +664,9 @@ initialise_préprocesseur :: fonc (préprocesseur: *PréProcesseur, unit: *Trans
      * https://gcc.gnu.org/onlinedocs/cpp/Common-Predefined-Macros.html
      * https://learn.microsoft.com/fr-fr/cpp/preprocessor/predefined-macros?view=msvc-170 */
     ajoute_définition_intrinsèque(préprocesseur, "__COUNTER__", 0, sur_développement_counter)
+
+    /* Voir https://gcc.gnu.org/onlinedocs/gcc-8.3.0/gccint/Instruction-Output.html */
+    ajoute_définition(préprocesseur, "__USER_LABEL_PREFIX__", "")
 }
 
 ajoute_définition :: fonc (préprocesseur: *PréProcesseur, nom: chaine, valeur: n64)
