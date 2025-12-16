@@ -192,6 +192,13 @@ est_storage_class_specifier :: fonc (lexème: LexèmePréprocès) -> bool
             retourne vrai
         }
     }
+    autres_mots_clés := ["__thread"]
+    texte := donne_texte(lexème)
+    pour autres_mots_clés {
+        si texte == it {
+            retourne vrai
+        }
+    }
     retourne faux
 }
 
