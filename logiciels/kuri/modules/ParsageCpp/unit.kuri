@@ -1,0 +1,31 @@
+/* ------------------------------------------------------------------------- */
+/** \nom TranslationUnit
+ * \{ */
+
+TranslationUnit :: struct {
+    chemin_racine: chaine
+    langage: Langage
+    fichiers: [..]FichierSource
+    lexèmes_préprocès: [..]LexèmePréprocès
+
+    declarations: [..]*ASTNode
+}
+
+crée_translation_unit_pour_fichier :: fonc (chemin: chaine) -> *TranslationUnit
+{
+    langage := détermine_langage_pour_fichier(chemin)
+
+    résultat := loge(TranslationUnit)
+    résultat.chemin_racine = chemin
+    résultat.langage = langage
+    retourne résultat
+}
+
+détruit :: fonc (unit: *TranslationUnit)
+{
+    déloge(unit.lexèmes_préprocès)
+    déloge(unit.fichiers)
+    déloge(unit)
+}
+
+/** \} */
