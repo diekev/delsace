@@ -1421,7 +1421,7 @@ parse_compound_statement :: fonc (empl parseuse: *ParseuseC) -> *CompoundStateme
             arrête
         }
 
-        si est_declaration_specifier(parseuse, lexème_suivant) || est_mot_clé(lexème_suivant, "_Static_assert") {
+        si est_declaration_specifier(parseuse, lexème_suivant) || est_mot_clé(lexème_suivant, "_Static_assert") || donne_texte(lexème_suivant) == "__attribute__" {
             declaration := parse_declaration(parseuse)
             tableau_ajoute(*items, declaration)
             continue
