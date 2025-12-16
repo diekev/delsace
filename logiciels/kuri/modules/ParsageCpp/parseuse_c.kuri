@@ -193,7 +193,7 @@ est_storage_class_specifier :: fonc (lexème: LexèmePréprocès) -> bool
 
 est_type_specifier :: fonc (parseuse: *ParseuseC, lexème: LexèmePréprocès, type_résolu: **Type) -> bool
 {
-    mots_clés := ["void", "char", "short", "int", "long", "float", "double", "signed", "unsigned", "_Bool", "_Complex", "struct", "union", "enum", "_Float128", "__float128"]
+    mots_clés := ["void", "char", "short", "int", "long", "float", "double", "signed", "__signed__", "unsigned", "_Bool", "_Complex", "struct", "union", "enum", "_Float32", "_Float64", "_Float32x", "_Float64x", "_Float128", "__float128"]
 
     texte := donne_texte(lexème)
     pour mots_clés {
@@ -756,7 +756,7 @@ parse_declaration_specifiers :: fonc (empl parseuse: *ParseuseC, déclaration: *
                     rapporte_erreur(parseuse, lexème, "Spécifiant de type inattendu")
                 }
             }
-            sinon si specifier == "signed" {
+            sinon si specifier == "signed" || specifier == "__signed__" {
                 si déclaration.type_résolu == nul {
                     type_résolu = crée_type(*créatrice, TypeKind.INT)
                 }
@@ -764,7 +764,7 @@ parse_declaration_specifiers :: fonc (empl parseuse: *ParseuseC, déclaration: *
                     rapporte_erreur(parseuse, lexème, "Spécifiant de type inattendu")
                 }
             }
-            sinon si specifier == "float" {
+            sinon si specifier == "float" || specifier == "_Float32" {
                 si déclaration.type_résolu == nul {
                     type_résolu = crée_type(*créatrice, TypeKind.FLOAT)
                 }
@@ -772,7 +772,7 @@ parse_declaration_specifiers :: fonc (empl parseuse: *ParseuseC, déclaration: *
                     rapporte_erreur(parseuse, lexème, "Spécifiant de type inattendu")
                 }
             }
-            sinon si specifier == "double" {
+            sinon si specifier == "double" || specifier == "_Float64" || specifier == "_Float32x" {
                 si déclaration.type_résolu == nul {
                     type_résolu = crée_type(*créatrice, TypeKind.DOUBLE)
                 }
@@ -803,7 +803,7 @@ parse_declaration_specifiers :: fonc (empl parseuse: *ParseuseC, déclaration: *
                     rapporte_erreur(parseuse, lexème, "Spécifiant de type inattendu")
                 }
             }
-            sinon si specifier == "_Float128" || specifier == "__float128" {
+            sinon si specifier == "_Float128" || specifier == "__float128" || specifier == "_Float64x" {
                 si déclaration.type_résolu == nul {
                     type_résolu = crée_type(*créatrice, TypeKind.FLOAT128)
                 }
