@@ -423,6 +423,14 @@ IfStatement :: struct {
     else_statement: *ASTNode
 }
 
+SwitchStatement :: struct {
+    empl node: ASTNode
+    genre = #type_de_cette_structure
+
+    expression: *Expression
+    statement: *ASTNode
+}
+
 WhileStatement :: struct {
     empl node: ASTNode
     genre = #type_de_cette_structure
@@ -446,6 +454,21 @@ ForStatement :: struct {
     initializer: *ASTNode
     test: *Expression
     update: *Expression
+
+    statement: *ASTNode
+}
+
+CaseClause :: struct {
+    empl node: ASTNode
+    genre = #type_de_cette_structure
+
+    expression: *Expression
+    statement: *ASTNode
+}
+
+DefaultClause :: struct {
+    empl node: ASTNode
+    genre = #type_de_cette_structure
 
     statement: *ASTNode
 }

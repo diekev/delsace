@@ -1483,8 +1483,18 @@ parse_statement :: fonc (parseuse: *ParseuseC) -> *ASTNode
     }
 
     si est_mot_clé(lexème, "switch") {
-        rapporte_erreur(parseuse, lexème, "'switch' non-géré")
-        retourne nul
+        consomme(parseuse)
+
+        consomme_ponctuation(parseuse, "(")
+        expression := parse_expression(parseuse)
+        consomme_ponctuation(parseuse, ")")
+
+        statement := parse_statement(parseuse)
+
+        switch_statement := crée_noeud(*parseuse.créatrice, SwitchStatement)
+        switch_statement.expression = expression
+        switch_statement.statement = statement
+        retourne switch_statement
     }
 
     /* iteration-statement */
@@ -1612,13 +1622,28 @@ parse_statement :: fonc (parseuse: *ParseuseC) -> *ASTNode
     /* labeled-statement */
 
     si est_mot_clé(lexème, "case") {
-        rapporte_erreur(parseuse, lexème, "'case' non-géré")
-        retourne nul
+        consomme(parseuse)
+
+        expression := parse_constant_expression(parseuse)
+        consomme_ponctuation(parseuse, ":")
+
+        statement := parse_statement(parseuse)
+
+        case_clause := crée_noeud(*parseuse.créatrice, CaseClause)
+        case_clause.expression = expression
+        case_clause.statement = statement
+        retourne case_clause
     }
 
     si est_mot_clé(lexème, "default") {
-        rapporte_erreur(parseuse, lexème, "'default' non-géré")
-        retourne nul
+        consomme(parseuse)
+        consomme_ponctuation(parseuse, ":")
+
+        statement := parse_statement(parseuse)
+
+        default_clause := crée_noeud(*parseuse.créatrice, DefaultClause)
+        default_clause.statement = statement
+        retourne default_clause
     }
 
     si est_symbole(lexème) {
