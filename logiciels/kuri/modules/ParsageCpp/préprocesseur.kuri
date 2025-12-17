@@ -274,7 +274,10 @@ PréProcesseur :: struct {
     chemins_inclusions_système: [..]chaine
     chemins_inclusions_local: [..]chaine
     lexeuses: [..]LexeusePréProcès
+
     définitions: [..]Définition
+    // Table d'indices dans définitions.
+    table_définitions: TableDeHachage(chaine, z64)
 
     niveau_branchage: z32
     // Une nouvelle est empilée à chaque #if, #elif, etc. pour déterminer si la branche #else, #elif doit être considérée
@@ -307,6 +310,7 @@ détruit_données :: fonc (préprocesseur: *PréProcesseur)
     déloge(préprocesseur.définitions)
     déloge(préprocesseur.pile_branches)
     déloge(préprocesseur.macros_inconnus)
+    détruit_données(*préprocesseur.table_définitions)
 }
 
 initialise_préprocesseur :: fonc (préprocesseur: *PréProcesseur, unit: *TranslationUnit)
@@ -582,6 +586,8 @@ ajoute_définition_intrinsèque :: fonc (préprocesseur: *PréProcesseur, nom: c
 
 crée_définition :: fonc (préprocesseur: *PréProcesseur, nom: chaine) -> *Définition
 {
+    indice := préprocesseur.définitions.taille
+    _, _ := table_insère_si_non_existant(*préprocesseur.table_définitions, nom, indice)
     définition := tableau_ajoute_élément(*préprocesseur.définitions)
     définition.nom = nom
     retourne définition
@@ -589,13 +595,26 @@ crée_définition :: fonc (préprocesseur: *PréProcesseur, nom: chaine) -> *Dé
 
 supprime_définition :: fonc (préprocesseur: *PréProcesseur, nom: chaine)
 {
-    pour préprocesseur.définitions {
-        si it.nom == nom {
-            // À FAIRE : gestion de la mémoire
-            tableau_supprime_indice(*préprocesseur.définitions, indice_it)
-            arrête
-        }
+    _, _ := table_supprime(*préprocesseur.table_définitions, nom)
+}
+
+donne_définition :: fonc (préprocesseur: *PréProcesseur, nom: chaine) -> *Définition
+{
+    trouvée, indice := donne_valeur_pour_clé(préprocesseur.table_définitions, nom)
+    si trouvée {
+        retourne *préprocesseur.définitions[indice]
     }
+    retourne nul
+}
+
+donne_définition :: fonc (préprocesseur: *PréProcesseur, lexème: LexèmePréprocès) -> *Définition
+{
+    résultat: *Définition
+    si est_symbole(lexème) || est_mot_clé(lexème) {
+        texte := donne_texte(lexème)
+        résultat = donne_définition(préprocesseur, texte)
+    }
+    retourne résultat
 }
 
 ajoute_inclusion :: fonc (préprocesseur: *PréProcesseur, chemin: chaine)
@@ -918,26 +937,6 @@ exécute_phase_de_traduction_6 :: fonc (lexèmes: *[..]LexèmePréprocès)
     }
 
     lexèmes.taille = sortie - lexèmes.pointeur
-}
-
-donne_définition :: fonc (préprocesseur: *PréProcesseur, nom: chaine) -> *Définition
-{
-    pour * préprocesseur.définitions {
-        si it.nom == nom {
-            retourne it
-        }
-    }
-    retourne nul
-}
-
-donne_définition :: fonc (préprocesseur: *PréProcesseur, lexème: LexèmePréprocès) -> *Définition
-{
-    résultat: *Définition
-    si est_symbole(lexème) || est_mot_clé(lexème) {
-        texte := donne_texte(lexème)
-        résultat = donne_définition(préprocesseur, texte)
-    }
-    retourne résultat
 }
 
 donne_lexeuse_courante :: fonc (préprocesseur: *PréProcesseur) -> *LexeusePréProcès
