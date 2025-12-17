@@ -181,7 +181,7 @@ EnumeratorDecl :: struct {
     empl base_type: Type
     genre = #type_de_cette_structure
 
-    identifier: LexèmePréprocès
+    identifier: Token
     expression: *Expression
 }
 
@@ -233,14 +233,14 @@ IntegerLiteralExpression :: struct {
     empl expr: Expression
     genre = #type_de_cette_structure
 
-    lexème: LexèmePréprocès
+    lexème: Token
 }
 
 FloatLiteralExpression :: struct {
     empl expr: Expression
     genre = #type_de_cette_structure
 
-    lexème: LexèmePréprocès
+    lexème: Token
 }
 
 BinaryExpression :: struct {
@@ -308,7 +308,7 @@ DeclarationReference :: struct {
     empl expr: Expression
     genre = #type_de_cette_structure
 
-    lexème: LexèmePréprocès
+    lexème: Token
 }
 
 CallExpression :: struct {
@@ -323,7 +323,7 @@ StringLiteral :: struct {
     empl expr: Expression
     genre = #type_de_cette_structure
 
-    lexème: LexèmePréprocès
+    lexème: Token
 }
 
 PrefixUpdateExpression :: struct {

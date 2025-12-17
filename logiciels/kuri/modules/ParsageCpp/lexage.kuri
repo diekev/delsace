@@ -1,5 +1,6 @@
 /* ------------------------------------------------------------------------- */
 /** \nom LexèmePréProcès
+ * Lexèmes pour le préprocesseur.
  * \{ */
 
 LexèmePréprocès :: struct {
@@ -137,6 +138,106 @@ supprime_espace_blanches_autour :: fonc (lexèmes: *[..]LexèmePréprocès)
     }
 
     lexèmes.taille = tmp.taille
+}
+
+/** \} */
+
+/* ------------------------------------------------------------------------- */
+/** \nom Token
+ * \{ */
+
+TokenForm :: énum n8 {
+    KEYWORD
+    IDENTIFIER
+    CONSTANT
+    STRING_LITERAL
+    PONCTUATOR
+}
+
+Token :: struct {
+    form: TokenForm
+    lexème: Lexème
+    fichier: z64 = -1
+}
+
+convertis_en_tokens :: fonc (lexèmes_préprocès: []LexèmePréprocès) -> [..]Token
+{
+    résultat: [..]Token
+
+    pour * lexèmes_préprocès {
+        si it.lexème.type == TypeLexème.EspaceBlanche {
+            continue
+        }
+
+        token := tableau_ajoute_élément(*résultat)
+        token.lexème = it.lexème
+        token.fichier = it.fichier
+
+        discr it.lexème.type {
+            MotClé {
+                token.form = TokenForm.KEYWORD
+            }
+            Symbole {
+                token.form = TokenForm.IDENTIFIER
+            }
+            Ponctuation {
+                token.form = TokenForm.PONCTUATOR
+            }
+            ChaineLittérale {
+                token.form = TokenForm.STRING_LITERAL
+            }
+            LittéraleNombreEntier,
+            LittéraleNombreRéel,
+            CaractèreConstant {
+                token.form = TokenForm.CONSTANT
+            }
+            sinon {
+                panique("type de lexème non-géré : %", it.lexème.type)
+            }
+        }
+    }
+
+    retourne résultat
+}
+
+est_fin_de_fichier :: fonc (token: Token) -> bool #enligne
+{
+    retourne token.lexème.type == TypeLexème.FinDeFichier
+}
+
+est_mot_clé :: fonc (token: Token, texte: chaine) -> bool #enligne
+{
+    retourne est_mot_clé(token.lexème, texte)
+}
+
+est_symbole :: fonc (token: Token) -> bool #enligne
+{
+    retourne token.form == TokenForm.IDENTIFIER
+}
+
+est_ponctuation :: fonc (token: Token, texte: chaine) -> bool #enligne
+{
+    retourne est_ponctuation(token.lexème, texte)
+}
+
+est_chaine_littérale :: fonc (token: Token) -> bool #enligne
+{
+    retourne token.form == TokenForm.STRING_LITERAL
+}
+
+est_littérale_nombre_entier :: fonc (token: Token) -> bool #enligne
+{
+    retourne token.lexème.type == TypeLexème.LittéraleNombreEntier
+}
+
+est_littérale_nombre_réel :: fonc (token: Token) -> bool #enligne
+{
+    retourne token.lexème.type == TypeLexème.LittéraleNombreRéel
+}
+
+donne_texte :: fonc (token: Token) -> chaine #enligne
+{
+    retourne donne_texte(token.lexème)
 }
 
 /** \} */

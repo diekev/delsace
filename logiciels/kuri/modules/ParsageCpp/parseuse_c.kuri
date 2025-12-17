@@ -36,7 +36,7 @@ donne_ligne_pour_erreur :: fonc (texte: chaine, mot: chaine) -> chaine
 
 ParseuseC :: struct {
     unit: *TranslationUnit
-    lexèmes: []LexèmePréprocès
+    lexèmes: []Token
     lexème_courant: z64
 
     créatrice: CréatriceNoeuds
@@ -51,22 +51,22 @@ fini :: fonc (parseuse: *ParseuseC) -> bool
     retourne parseuse.lexème_courant >= parseuse.lexèmes.taille
 }
 
-donne_lexème_suivant :: fonc (parseuse: *ParseuseC) -> LexèmePréprocès
+donne_lexème_suivant :: fonc (parseuse: *ParseuseC) -> Token
 {
     si fini(parseuse) {
         lexème := Lexème(type = TypeLexème.FinDeFichier)
-        retourne LexèmePréprocès(lexème)
+        retourne Token(lexème = lexème)
     }
     résultat := parseuse.lexèmes[parseuse.lexème_courant]
     parseuse.lexème_courant += 1
     retourne résultat
 }
 
-épie_lexème_suivant :: fonc (parseuse: *ParseuseC) -> LexèmePréprocès
+épie_lexème_suivant :: fonc (parseuse: *ParseuseC) -> Token
 {
     si fini(parseuse) {
         lexème := Lexème(type = TypeLexème.FinDeFichier)
-        retourne LexèmePréprocès(lexème)
+        retourne Token(lexème = lexème)
     }
     résultat := parseuse.lexèmes[parseuse.lexème_courant]
     retourne résultat
@@ -104,7 +104,7 @@ consomme_ponctuation :: fonc (parseuse: *ParseuseC, texte: chaine)
 initialise_parseuse :: fonc (parseuse: *ParseuseC, unit: *TranslationUnit)
 {
     parseuse.unit = unit
-    parseuse.lexèmes = supprime_espace_blanches(*unit.lexèmes_préprocès)
+    parseuse.lexèmes = convertis_en_tokens(unit.lexèmes_préprocès)
     parseuse.lexème_courant = 0
 
     // À FAIRE : comprend ce que c'est
@@ -121,7 +121,7 @@ rapporte_erreur :: fonc (parseuse: *ParseuseC @inutilisée, format: chaine, args
     exit(1)
 } @Imprimeuse
 
-rapporte_erreur :: fonc (parseuse: *ParseuseC, lexème: LexèmePréprocès, format: chaine, args: ...eini)
+rapporte_erreur :: fonc (parseuse: *ParseuseC, lexème: Token, format: chaine, args: ...eini)
 {
     si lexème.fichier != -1 {
         fichier := *parseuse.unit.fichiers[lexème.fichier]
@@ -184,7 +184,7 @@ parse_translation_unit :: fonc (empl parseuse: *ParseuseC)
     }
 }
 
-est_storage_class_specifier :: fonc (lexème: LexèmePréprocès) -> bool
+est_storage_class_specifier :: fonc (lexème: Token) -> bool
 {
     mots_clés := ["typedef", "extern", "static", "_Thread_local", "auto", "register"]
     pour mots_clés {
@@ -202,7 +202,7 @@ est_storage_class_specifier :: fonc (lexème: LexèmePréprocès) -> bool
     retourne faux
 }
 
-est_type_specifier :: fonc (parseuse: *ParseuseC, lexème: LexèmePréprocès, type_résolu: **Type) -> bool
+est_type_specifier :: fonc (parseuse: *ParseuseC, lexème: Token, type_résolu: **Type) -> bool
 {
     mots_clés := ["void", "char", "short", "int", "long", "float", "double", "signed", "__signed__", "unsigned", "_Bool", "_Complex", "struct", "union", "enum", "_Float32", "_Float64", "_Float32x", "_Float64x", "_Float128", "__float128"]
 
@@ -229,7 +229,7 @@ est_type_specifier :: fonc (parseuse: *ParseuseC, lexème: LexèmePréprocès, t
     retourne faux
 }
 
-est_type_qualifier :: fonc (lexème: LexèmePréprocès) -> bool
+est_type_qualifier :: fonc (lexème: Token) -> bool
 {
     mots_clés := ["const", "restrict", "__restrict", "__restrict__", "volatile", "_Atomic"]
     texte := donne_texte(lexème)
@@ -241,7 +241,7 @@ est_type_qualifier :: fonc (lexème: LexèmePréprocès) -> bool
     retourne faux
 }
 
-est_function_specifier :: fonc (lexème: LexèmePréprocès) -> bool
+est_function_specifier :: fonc (lexème: Token) -> bool
 {
     mots_clés := ["inline", "_Noreturn", "__inline"]
     texte := donne_texte(lexème)
@@ -253,13 +253,13 @@ est_function_specifier :: fonc (lexème: LexèmePréprocès) -> bool
     retourne faux
 }
 
-est_alignment_specifier :: fonc (lexème: LexèmePréprocès) -> bool
+est_alignment_specifier :: fonc (lexème: Token) -> bool
 {
     retourne est_mot_clé(lexème, "_Alignas")
 }
 
 InfoDéclaration :: struct {
-    lexème: LexèmePréprocès
+    lexème: Token
 
     storage_class_specifier: chaine
     type_specifiers: [..]chaine
@@ -740,7 +740,7 @@ parse_attributs_gcc :: fonc (empl parseuse: *ParseuseC) -> bool
         function-specifier declaration-specifiersopt
         alignment-specifier declaration-specifiersop
 */
-est_declaration_specifier :: fonc (parseuse: *ParseuseC, lexème: LexèmePréprocès) -> bool
+est_declaration_specifier :: fonc (parseuse: *ParseuseC, lexème: Token) -> bool
 {
     si est_storage_class_specifier(lexème) {
         retourne vrai
@@ -1084,7 +1084,7 @@ IdentifierDeclarator :: struct {
     empl base: Declarator
     genre = #type_de_cette_structure
 
-    identifiant: LexèmePréprocès
+    identifiant: Token
 }
 
 ArrayDeclarator :: struct {
