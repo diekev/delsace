@@ -1071,8 +1071,7 @@ développe_macro :: fonc (sortie: *[..]LexèmePréprocès, préprocesseur: *Pré
 
     développe_macro_impl(*résultat, préprocesseur, infos, 0)
 
-    // À FAIRE : détermine proprement quand redévelopper les lexèmes.
-    développe_lexèmes(sortie, préprocesseur, infos, 0, résultat)
+    tableau_ajoute(sortie, ...résultat)
 }
 
 développe_macro_impl :: fonc (sortie: *[..]LexèmePréprocès, préprocesseur: *PréProcesseur, infos: *InfosDéveloppementMacro, profondeur: z32)
@@ -1101,18 +1100,16 @@ développe_macro_impl :: fonc (sortie: *[..]LexèmePréprocès, préprocesseur: 
     //     imprimeln("")
     // }
 
-    développe_lexèmes(sortie, préprocesseur, infos, profondeur, infos.macro.lexèmes)
+    liste_de_remplacement: [..]LexèmePréprocès
+    diffère déloge(liste_de_remplacement)
 
-    // liste_de_remplacement: [..]LexèmePréprocès
-    // diffère déloge(liste_de_remplacement)
-
-    // possède_collage := substitue_arguments_dans_liste_de_remplacement(*liste_de_remplacement, infos)
-    // si possède_collage {
-    //     liste_finale: [..]LexèmePréprocès
-    //     applique_opérateurs_de_collage(préprocesseur, *liste_finale, infos, liste_de_remplacement)
-    //     déloge(liste_de_remplacement)
-    //     liste_de_remplacement = liste_finale
-    // }
+    possède_collage := substitue_arguments_dans_liste_de_remplacement(*liste_de_remplacement, infos)
+    si possède_collage {
+        liste_finale: [..]LexèmePréprocès
+        applique_opérateurs_de_collage(préprocesseur, *liste_finale, infos, liste_de_remplacement)
+        déloge(liste_de_remplacement)
+        liste_de_remplacement = liste_finale
+    }
 
     // imprimeln("liste de remplacement pour : %", infos.macro.nom)
     // pour liste_de_remplacement {
@@ -1125,12 +1122,12 @@ développe_macro_impl :: fonc (sortie: *[..]LexèmePréprocès, préprocesseur: 
     // }
     // imprime("\n")
 
-    // pour liste_de_remplacement {
-    //     si it.placemarker {
-    //         continue
-    //     }
-    //     tableau_ajoute(sortie, it)
-    // }
+    pour liste_de_remplacement {
+        si it.placemarker {
+            continue
+        }
+        tableau_ajoute(sortie, it)
+    }
 }
 
 substitue_arguments_dans_liste_de_remplacement :: fonc (sortie: *[..]LexèmePréprocès, infos: *InfosDéveloppementMacro) -> bool
@@ -2884,112 +2881,114 @@ imprime_arbre :: fonc (noeud: *ExpressionPréProc)
 
 donne_lexème_suivant_développé :: fonc (préprocesseur: *PréProcesseur, lexeuse: *LexeusePréProcès) -> LexèmePréprocès
 {
-    résultat := donne_lexème_suivant(préprocesseur, lexeuse)
+    boucle {
+        résultat := donne_lexème_suivant(préprocesseur, lexeuse)
 
-    saufsi est_symbole(résultat) || est_mot_clé(résultat) {
-        retourne résultat
-    }
+        saufsi est_symbole(résultat) || est_mot_clé(résultat) {
+            retourne résultat
+        }
 
-    texte := donne_texte(résultat)
+        texte := donne_texte(résultat)
 
-    définition := donne_définition(préprocesseur, texte)
-    saufsi définition {
-        retourne résultat
-    }
+        définition := donne_définition(préprocesseur, texte)
+        saufsi définition {
+            retourne résultat
+        }
 
-    saufsi définition.est_semble_fonction {
+        saufsi définition.est_semble_fonction {
+            infos_développement: InfosDéveloppementMacro
+            infos_développement.macro = définition
+            // @Vitesse
+            liste_de_remplacement: [..]LexèmePréprocès
+            diffère déloge(liste_de_remplacement)
+            développe_macro(*liste_de_remplacement, préprocesseur, *infos_développement)
+            pour > liste_de_remplacement {
+                tableau_ajoute(*préprocesseur.lexèmes_développés, it)
+            }
+            continue
+        }
+
+        /* Cherche la parenthèse. */
+        // @Vitesse
+        griffonier: [..]LexèmePréprocès
+        diffère déloge(griffonier)
+
+        lexème := donne_lexème_suivant(préprocesseur, lexeuse)
+        tantque est_espace_blanche(lexème) {
+            tableau_ajoute(*griffonier, lexème)
+            lexème = donne_lexème_suivant(préprocesseur, lexeuse)
+        }
+
+        saufsi est_ponctuation(lexème, "(") {
+            pour > griffonier {
+                tableau_ajoute(*préprocesseur.lexèmes_développés, it)
+            }
+            retourne résultat
+        }
+
+        /* Parse les paramètres. */
+        déloge(griffonier)
+
+        niveau_parenthèse := 0
+        boucle {
+            lexème = donne_lexème_suivant(préprocesseur, lexeuse)
+            si est_fin_de_fichier(lexème) {
+                rapporte_erreur(préprocesseur, "Fin de fichier inattendu dans %", #nom_de_cette_fonction)
+            }
+            tableau_ajoute(*griffonier, lexème)
+            si est_ponctuation(lexème, "(") {
+                niveau_parenthèse += 1
+            }
+            sinon si est_ponctuation(lexème, ")") {
+                si niveau_parenthèse == 0 {
+                    arrête
+                }
+                niveau_parenthèse -= 1
+            }
+        }
+
+        // imprimeln("-- paramètres")
+        // pour griffonier {
+        //     imprimeln("---- %", donne_texte(it))
+        // }
+
+        parseuse: SimpleParseuse
+        parseuse.lexèmes = griffonier
+
+        arguments := parse_tranche_arguments(*parseuse, définition)
+        saufsi peut_accepter_arguments(définition, arguments.taille) {
+            rapporte_erreur_mécomptage_arguments(préprocesseur, définition, arguments.taille)
+        }
+
+        // imprimeln("-- arguments")
+        // pour args, indice_args dans arguments {
+        //     imprimeln("  -- args %", indice_args)
+        //     pour args {
+        //         imprimeln("    -- %", donne_texte(it))
+        //     }
+        // }
+
         infos_développement: InfosDéveloppementMacro
         infos_développement.macro = définition
+        infos_développement.arguments = arguments
+
         // @Vitesse
         liste_de_remplacement: [..]LexèmePréprocès
         diffère déloge(liste_de_remplacement)
+
         développe_macro(*liste_de_remplacement, préprocesseur, *infos_développement)
+
+        // imprimeln("-- liste de remplacement")
+        // pour liste_de_remplacement {
+        //     imprimeln("  -- %", donne_texte(it))
+        // }
+
         pour > liste_de_remplacement {
             tableau_ajoute(*préprocesseur.lexèmes_développés, it)
         }
-        retourne donne_lexème_suivant(préprocesseur, lexeuse)
     }
 
-    /* Cherche la parenthèse. */
-    // @Vitesse
-    griffonier: [..]LexèmePréprocès
-    diffère déloge(griffonier)
-
-    lexème := donne_lexème_suivant(préprocesseur, lexeuse)
-    tantque est_espace_blanche(lexème) {
-        tableau_ajoute(*griffonier, lexème)
-        lexème = donne_lexème_suivant(préprocesseur, lexeuse)
-    }
-
-    saufsi est_ponctuation(lexème, "(") {
-        pour > griffonier {
-            tableau_ajoute(*préprocesseur.lexèmes_développés, it)
-        }
-        retourne résultat
-    }
-
-    /* Parse les paramètres. */
-    déloge(griffonier)
-
-    niveau_parenthèse := 0
-    boucle {
-        lexème = donne_lexème_suivant(préprocesseur, lexeuse)
-        si est_fin_de_fichier(lexème) {
-            rapporte_erreur(préprocesseur, "Fin de fichier inattendu dans %", #nom_de_cette_fonction)
-        }
-        tableau_ajoute(*griffonier, lexème)
-        si est_ponctuation(lexème, "(") {
-            niveau_parenthèse += 1
-        }
-        sinon si est_ponctuation(lexème, ")") {
-            si niveau_parenthèse == 0 {
-                arrête
-            }
-            niveau_parenthèse -= 1
-        }
-    }
-
-    // imprimeln("-- paramètres")
-    // pour griffonier {
-    //     imprimeln("---- %", donne_texte(it))
-    // }
-
-    parseuse: SimpleParseuse
-    parseuse.lexèmes = griffonier
-
-    arguments := parse_tranche_arguments(*parseuse, définition)
-    saufsi peut_accepter_arguments(définition, arguments.taille) {
-        rapporte_erreur_mécomptage_arguments(préprocesseur, définition, arguments.taille)
-    }
-
-    // imprimeln("-- arguments")
-    // pour args, indice_args dans arguments {
-    //     imprimeln("  -- args %", indice_args)
-    //     pour args {
-    //         imprimeln("    -- %", donne_texte(it))
-    //     }
-    // }
-
-    infos_développement: InfosDéveloppementMacro
-    infos_développement.macro = définition
-    infos_développement.arguments = arguments
-
-    // @Vitesse
-    liste_de_remplacement: [..]LexèmePréprocès
-    diffère déloge(liste_de_remplacement)
-
-    développe_macro(*liste_de_remplacement, préprocesseur, *infos_développement)
-
-    // imprimeln("-- liste de remplacement")
-    // pour liste_de_remplacement {
-    //     imprimeln("  -- %", donne_texte(it))
-    // }
-
-    pour > liste_de_remplacement {
-        tableau_ajoute(*préprocesseur.lexèmes_développés, it)
-    }
-
-    retourne donne_lexème_suivant(préprocesseur, lexeuse)
+    panique("Nous ne devrions pas être ici")
 }
 
 donne_lexème_suivant :: fonc (préprocesseur: *PréProcesseur, lexeuse: *LexeusePréProcès) -> LexèmePréprocès
