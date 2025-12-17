@@ -1252,7 +1252,9 @@ parse_lexème_numérique_c :: fonc (lexeuse: *SimpleLexeuse) -> Lexème
 
                     fin_lexème += 1
                     lexeuse.avance()
-                    c = donne_caractère_courant(lexeuse)
+                    saufsi fini(lexeuse) {
+                        c = donne_caractère_courant(lexeuse)
+                    }
                 }
             }
         }
@@ -1264,6 +1266,10 @@ parse_lexème_numérique_c :: fonc (lexeuse: *SimpleLexeuse) -> Lexème
 
             fin_lexème += 1
             lexeuse.avance()
+            si fini(lexeuse) {
+                arrête
+            }
+
             c = donne_caractère_courant(lexeuse)
         }
     }
