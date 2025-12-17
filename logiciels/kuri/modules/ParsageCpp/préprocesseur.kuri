@@ -55,6 +55,9 @@ donne_indice_paramètre :: fonc (définition: *Définition, param: chaine) -> z6
             retourne indice_it
         }
     }
+    si param == "__VA_ARG__" && est_variadique(définition) {
+        retourne définition.paramètres.taille - 1
+    }
     retourne -1
 }
 
@@ -257,7 +260,7 @@ sur_développement_counter :: fonc (préprocesseur: *PréProcesseur, arguments: 
 /** \} */
 
 /* ------------------------------------------------------------------------- */
-/** \nom Préprocesseur
+/** \nom PréProcesseur
  * \{ */
 
 PréProcesseur :: struct {
@@ -1123,6 +1126,254 @@ développe_macro_impl :: fonc (sortie: *[..]LexèmePréprocès, préprocesseur: 
     // }
 
     développe_lexèmes(sortie, préprocesseur, infos, profondeur, infos.macro.lexèmes)
+
+    // liste_de_remplacement: [..]LexèmePréprocès
+    // diffère déloge(liste_de_remplacement)
+
+    // possède_collage := substitue_arguments_dans_liste_de_remplacement(*liste_de_remplacement, infos)
+    // si possède_collage {
+    //     liste_finale: [..]LexèmePréprocès
+    //     applique_opérateurs_de_collage(préprocesseur, *liste_finale, infos, liste_de_remplacement)
+    //     déloge(liste_de_remplacement)
+    //     liste_de_remplacement = liste_finale
+    // }
+
+    // imprimeln("liste de remplacement pour : %", infos.macro.nom)
+    // pour liste_de_remplacement {
+    //     si it.placemarker {
+    //         imprime("<placemarker>")
+    //     }
+    //     sinon {
+    //         imprime("%", donne_texte(it))
+    //     }
+    // }
+    // imprime("\n")
+
+    // tableau_ajoute(sortie, ...liste_de_remplacement)
+}
+
+substitue_arguments_dans_liste_de_remplacement :: fonc (sortie: *[..]LexèmePréprocès, infos: *InfosDéveloppementMacro) -> bool
+{
+    parseuse: SimpleParseuse
+    parseuse.lexèmes = infos.macro.lexèmes
+
+    possède_collage := faux
+
+    tantque !fini(*parseuse) {
+        lexème := donne_lexème_suivant(*parseuse)
+        avance(*parseuse)
+
+        texte := donne_texte(lexème)
+        indice_param := donne_indice_paramètre(infos.macro, texte)
+        si indice_param == -1 {
+            possède_collage ||= (est_ponctuation(lexème, "#") || est_ponctuation(lexème, "##"))
+            tableau_ajoute(sortie, lexème)
+            continue
+        }
+
+        _, lexème_précédent := donne_dernier_lexème_hors_espace_blanche(mémoire(sortie))
+        si est_ponctuation(lexème_précédent, "#") {
+            possède_collage = vrai
+            tableau_ajoute(sortie, lexème)
+            continue
+        }
+
+        si est_ponctuation(lexème_précédent, "##") {
+            possède_collage = vrai
+            si indice_param < infos.arguments.taille {
+                arguments := infos.arguments[indice_param]
+                si arguments.taille == 0 {
+                    tableau_ajoute(sortie, LexèmePréprocès(placemarker = vrai))
+                }
+                sinon {
+                    pour arguments {
+                        it.vient_d_un_argument = vrai
+                        tableau_ajoute(sortie, it)
+                    }
+                }
+            }
+            sinon {
+                tableau_ajoute(sortie, LexèmePréprocès(placemarker = vrai))
+            }
+            continue
+        }
+
+        parseuse_locale := parseuse
+        tantque !fini(*parseuse_locale) {
+            lexème_suivant := donne_lexème_suivant(*parseuse_locale)
+            saufsi est_espace_blanche(lexème_suivant) {
+                arrête
+            }
+            avance(*parseuse_locale)
+        }
+
+        lexème_suivant := donne_lexème_suivant(*parseuse_locale)
+        si est_ponctuation(lexème_suivant, "##") {
+            possède_collage = vrai
+            si indice_param < infos.arguments.taille {
+                arguments := infos.arguments[indice_param]
+                si arguments.taille == 0 {
+                    tableau_ajoute(sortie, LexèmePréprocès(placemarker = vrai))
+                }
+                sinon {
+                    pour arguments {
+                        it.vient_d_un_argument = vrai
+                        tableau_ajoute(sortie, it)
+                    }
+                }
+            }
+            sinon {
+                tableau_ajoute(sortie, LexèmePréprocès(placemarker = vrai))
+            }
+            continue
+        }
+
+        si indice_param < infos.arguments.taille {
+            pour infos.arguments[indice_param] {
+                it.vient_d_un_argument = vrai
+                tableau_ajoute(sortie, it)
+            }
+            continue
+        }
+
+        imprimeln("un paramètre ne fut pas remplacé : %", donne_texte(lexème))
+        exit(1)
+    }
+
+    retourne possède_collage
+}
+
+applique_opérateurs_de_collage :: fonc (préprocesseur: *PréProcesseur, sortie: *[..]LexèmePréprocès, infos: *InfosDéveloppementMacro, lexèmes: []LexèmePréprocès)
+{
+    parseuse: SimpleParseuse
+    parseuse.lexèmes = lexèmes
+
+    tantque !fini(*parseuse) {
+        lexème := donne_lexème_suivant(*parseuse)
+        avance(*parseuse)
+
+        si est_ponctuation(lexème, "#") {
+            parseuse_locale := parseuse
+            tantque !fini(*parseuse_locale) {
+                lexème_suivant := donne_lexème_suivant(*parseuse_locale)
+                saufsi est_espace_blanche(lexème_suivant) {
+                    arrête
+                }
+                avance(*parseuse_locale)
+            }
+
+            lexème_suivant := donne_lexème_suivant(*parseuse_locale)
+            indice_param := donne_indice_paramètre(infos.macro, donne_texte(lexème_suivant))
+            si indice_param == -1 {
+                tableau_ajoute(sortie, lexème)
+                continue
+            }
+
+            avance(*parseuse_locale)
+            parseuse = parseuse_locale
+
+            textes: [..]chaine
+            diffère déloge(textes)
+
+            tableau_ajoute(*textes, "\"")
+
+            si indice_param < infos.arguments.taille {
+                pour infos.arguments[indice_param] {
+                    tableau_ajoute(*textes, donne_texte(it))
+                }
+            }
+
+            tableau_ajoute(*textes, "\"")
+
+            // @FuiteDeMémoire
+            nouveau_texte := enchaine(...textes)
+            lexème = crée_lexème_chaine_littérale(nouveau_texte)
+            tableau_ajoute(sortie, lexème)
+            continue
+        }
+
+        si est_ponctuation(lexème, "##") && !lexème.vient_d_un_argument {
+            tantque sortie.taille > 0 {
+                si est_espace_blanche(sortie.pointeur[sortie.taille - 1]) {
+                    sortie.taille -= 1
+                }
+                sinon {
+                    arrête
+                }
+            }
+
+            si sortie.taille > 0 {
+                lexème_précédent := sortie.pointeur[sortie.taille - 1]
+                sortie.taille -= 1
+
+                tantque !fini(*parseuse) {
+                    lexème_suivant := donne_lexème_suivant(*parseuse)
+
+                    si est_fin_de_fichier(lexème_suivant) {
+                        rapporte_erreur(préprocesseur, "Fin de fichier inattendu")
+                        arrête
+                    }
+
+                    saufsi est_espace_blanche(lexème_suivant) {
+                        arrête
+                    }
+
+                    avance(*parseuse)
+                }
+
+                lexème_suivant := donne_lexème_suivant(*parseuse)
+                avance(*parseuse)
+
+                si lexème_précédent.placemarker && lexème_suivant.placemarker {
+                    tableau_ajoute(sortie, lexème_suivant)
+                    continue
+                }
+
+                si lexème_précédent.placemarker {
+                    tableau_ajoute(sortie, lexème_suivant)
+                    continue
+                }
+
+                si lexème_suivant.placemarker {
+                    tableau_ajoute(sortie, lexème_précédent)
+                    continue
+                }
+
+                // @FuiteDeMémoire
+                nouveau_texte := enchaine(donne_texte(lexème_précédent), donne_texte(lexème_suivant))
+
+                lexeuse: SimpleLexeuse
+                initialise_lexeuse_c(*lexeuse)
+                initialise_lexeuse_pour_texte(*lexeuse, nouveau_texte)
+                // À FAIRE : position code
+                lexème.lexème = donne_lexème_suivant(*lexeuse)
+                tableau_ajoute(sortie, lexème)
+            }
+            sinon {
+                // À FAIRE : erreur ?
+            }
+
+            continue
+        }
+
+        tableau_ajoute(sortie, lexème)
+    }
+}
+
+donne_dernier_lexème_hors_espace_blanche :: fonc (lexèmes: []LexèmePréprocès) -> (bool, LexèmePréprocès)
+{
+    possède_lexème := faux
+    résultat: LexèmePréprocès
+
+    pour > lexèmes {
+        saufsi est_espace_blanche(it) {
+            possède_lexème = vrai
+            résultat = it
+            arrête
+        }
+    }
+
+    retourne possède_lexème, résultat
 }
 
 développe_lexèmes :: fonc (sortie: *[..]LexèmePréprocès, préprocesseur: *PréProcesseur, infos: *InfosDéveloppementMacro, profondeur: z32, lexèmes: []LexèmePréprocès)

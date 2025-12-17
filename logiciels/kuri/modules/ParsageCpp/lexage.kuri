@@ -1,11 +1,13 @@
 /* ------------------------------------------------------------------------- */
-/** \nom LexèmePréProcès
+/** \nom LexèmePréprocès
  * Lexèmes pour le préprocesseur.
  * \{ */
 
 LexèmePréprocès :: struct {
     lexème: Lexème
     fichier: z64 = -1
+    placemarker: bool
+    vient_d_un_argument: bool
 }
 
 est_symbole :: fonc (lexème: LexèmePréprocès) -> bool #enligne
