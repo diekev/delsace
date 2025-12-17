@@ -2670,7 +2670,7 @@ donne_lexème_suivant_développé :: fonc (préprocesseur: *PréProcesseur, lexe
         si résultat.commence_à_ignorer {
             résultat.commence_à_ignorer.doit_être_ignorée = vrai
         }
-        si résultat.cesse_d_ignorer {
+        diffère si résultat.cesse_d_ignorer {
             résultat.cesse_d_ignorer.doit_être_ignorée = faux
         }
 
