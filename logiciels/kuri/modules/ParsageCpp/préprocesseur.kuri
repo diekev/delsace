@@ -1902,7 +1902,8 @@ empile_fichier :: fonc (préprocesseur: *PréProcesseur, chemin: chaine, trouvé
         fichier = tableau_ajoute_élément(*préprocesseur.unit.fichiers)
         fichier.chemin = copie_chaine(chemin)
         fichier.contenu_cru = contenu
-        fichier.contenu_prétaité = prétraite_fichier(fichier.contenu_cru)
+        fichier.tampon_contenu_prétaité = prétraite_fichier(fichier.contenu_cru)
+        fichier.contenu_prétaité = chaine_depuis_tranche_octets(fichier.tampon_contenu_prétaité)
         fichier.trouvé_dans_dossier = trouvé_dans_dossier
     }
 
@@ -2055,47 +2056,40 @@ détermine_chemin_absolu :: fonc (préprocesseur: *PréProcesseur, chemins: []ch
     retourne faux, ""
 }
 
-prétraite_fichier :: fonc (contenu: chaine) -> chaine
+prétraite_fichier :: fonc (contenu: chaine) -> [..]octet
 {
-    lexeuse: SimpleLexeuse
-    initialise_lexeuse_c(*lexeuse)
-    lexeuse.options.INCLUS_TOUT = vrai
+    résultat: [..]octet
+    tableau_redimensionne_sans_init(résultat, contenu.taille)
 
-    initialise_lexeuse_pour_texte(*lexeuse, contenu)
+    entrée := contenu.pointeur
+    sortie := résultat.pointeur comme *z8
+    fin := contenu.pointeur + contenu.taille
 
-    enchaineuse: Enchaineuse
-    initialise_enchaineuse(*enchaineuse)
+    tantque entrée < fin {
+        c := mémoire(entrée)
 
-    boucle {
-        lexème := donne_lexème_suivant(*lexeuse)
-        si lexème.type == TypeLexème.FinDeFichier {
-            arrête
-        }
+        si c == '\\' {
+            sauvegarde := entrée
+            entrée += 1
 
-        si lexème.type == TypeLexème.Commentaire {
-            ajoute_au_tampon(*enchaineuse, " ")
-            continue
-        }
+            si entrée < fin {
+                c = mémoire(entrée)
+                entrée += 1
 
-        texte := donne_texte(lexème)
-
-        si est_ponctuation(lexème, "\\") {
-            lexème = épie_lexème_suivant(*lexeuse)
-            si est_lexème_nouvelle_ligne(lexème) {
-                boucle {
-                    lexème = donne_lexème_suivant(*lexeuse)
-                    si est_lexème_nouvelle_ligne(lexème) {
-                        arrête
-                    }
+                si c == '\n' {
+                    continue
                 }
-                continue
             }
+
+            entrée = sauvegarde
         }
 
-        ajoute_au_tampon(*enchaineuse, texte)
+        mémoire(sortie) = mémoire(entrée)
+        entrée += 1
+        sortie += 1
     }
 
-    résultat := chaine_depuis_enchaineuse(*enchaineuse)
+    résultat.taille = (sortie comme *octet) - résultat.pointeur
     retourne résultat
 }
 

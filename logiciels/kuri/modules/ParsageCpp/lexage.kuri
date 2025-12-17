@@ -266,6 +266,12 @@ LexeusePréProcès :: struct {
 
 émets_lexème :: fonc (lexeuse: *LexeusePréProcès, lexème: Lexème) -> LexèmePréprocès
 {
+    si lexème.type == TypeLexème.Commentaire {
+        lexème.type = TypeLexème.EspaceBlanche
+        espace_blanche := " "
+        lexème.début = espace_blanche.pointeur
+        lexème.fin = espace_blanche.pointeur + espace_blanche.taille
+    }
     si lexème.type != TypeLexème.EspaceBlanche && lexème.type != TypeLexème.FinDeFichier {
         lexeuse.dernier_lexème_non_espace_blanche = donne_texte(lexème)
     }
