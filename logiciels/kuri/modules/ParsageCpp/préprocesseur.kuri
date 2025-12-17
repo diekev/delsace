@@ -515,9 +515,6 @@ initialise_préprocesseur :: fonc (préprocesseur: *PréProcesseur, unit: *Trans
     ajoute_définition_intrinsèque(préprocesseur, "__LINE__", 0, sur_développement_line)
     ajoute_définition_intrinsèque(préprocesseur, "__DATE__", 0, sur_développement_date)
     ajoute_définition_intrinsèque(préprocesseur, "__TIME__", 0, sur_développement_time)
-    // ajoute_définition(préprocesseur, "__STDC__", 1)
-    // ajoute_définition(préprocesseur, "__STDC_VERSION__", 1)
-    // ajoute_définition(préprocesseur, "__STDC_HOSTED__", 1)
 
     /* Autres macros.
      * https://gcc.gnu.org/onlinedocs/cpp/Common-Predefined-Macros.html
