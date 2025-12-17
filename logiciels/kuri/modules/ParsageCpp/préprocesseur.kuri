@@ -270,11 +270,14 @@ PréProcesseur :: struct {
     avertis_sur_macro_non_définis: bool
 
     macros_inconnus: [..]chaine
+
+    macros_indéfinissables: [..]chaine
 }
 
 détruit_données :: fonc (préprocesseur: *PréProcesseur)
 {
     préprocesseur.unit = nul
+    déloge(préprocesseur.macros_indéfinissables)
     déloge(préprocesseur.chemins_inclusions_système)
     déloge(préprocesseur.chemins_inclusions_local)
     pour * préprocesseur.lexeuses {
@@ -303,6 +306,23 @@ initialise_préprocesseur :: fonc (préprocesseur: *PréProcesseur, unit: *Trans
             tableau_ajoute(*préprocesseur.chemins_inclusions_système, "/usr/include")
 
             ajoute_définition(préprocesseur, "__STDC_VERSION__", 201112)
+
+            interdits := [
+                "defined", "__DATE__", "__FILE__", "__LINE__", "__STDC__", "__STDC_HOSTED__",
+                "__STDC_VERSION__", "__TIME__", "__STDC_MB_MIGHT_NEQ_WC__",
+                "__STDC_UTF_16__", "__STDC_UTF_32__", "__STDC_ANALYZABLE__",
+                "__STDC_LIB_EXT1__", "__STDC_NO_ATOMICS__", "__STDC_NO_COMPLEX__", "__STDC_NO_THREADS__", "__STDC_NO_VLA__"
+            ]
+
+            /* À FAIRE : Les macros suivants sont conditionnellement définis par stdc-predef.h
+             * Ils ne devraient pas être indéfinis. */
+            // "__STDC_IEC_559__",
+            // "__STDC_IEC_559_COMPLEX__",
+            // "__STDC_ISO_10646__",
+
+            pour interdits {
+                ensemble_ajoute(*préprocesseur.macros_indéfinissables, it)
+            }
         }
         CPP {
             // G++ 12
@@ -752,7 +772,10 @@ donne_lexèmes_préprocès :: fonc (préprocesseur: *PréProcesseur) -> [..]Lex�
                 lexème = donne_lexème_suivant_sauf_espace_blanche(lexeuse)
                 texte_définition := donne_texte(lexème)
 
-                // imprimeln("undef '%'", texte_définition)
+                si ensemble_possède(préprocesseur.macros_indéfinissables, texte_définition) {
+                    rapporte_erreur(préprocesseur, "Impossible d'indéfinir le macros prédéfini '%'", texte_définition)
+                    arrête
+                }
 
                 pour préprocesseur.définitions {
                     si it.nom == texte_définition {
@@ -1356,6 +1379,11 @@ parse_définition :: fonc (préprocesseur: *PréProcesseur, lexeuse: *LexeusePr�
     // imprimeln("--------------------------------")
     // imprimeln("%", ligne.texte)
     // imprimeln("define '%'", texte_définition)
+
+    si ensemble_possède(préprocesseur.macros_indéfinissables, texte_définition) {
+        rapporte_erreur(préprocesseur, "Impossible de redéfinir le macros prédéfini '%'", texte_définition)
+        retourne
+    }
 
     définition := donne_définition(préprocesseur, texte_définition)
     saufsi définition {
