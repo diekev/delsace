@@ -285,6 +285,8 @@ PréProcesseur :: struct {
     macros_inconnus: [..]chaine
 
     macros_indéfinissables: [..]chaine
+
+    lexèmes_développés: [..]LexèmePréprocès
 }
 
 détruit_données :: fonc (préprocesseur: *PréProcesseur)
@@ -622,7 +624,7 @@ donne_lexèmes_préprocès :: fonc (préprocesseur: *PréProcesseur) -> [..]Lex�
     tantque préprocesseur.lexeuses {
         lexeuse := donne_lexeuse_courante(préprocesseur)
 
-        lexème := donne_lexème_suivant(lexeuse)
+        lexème := donne_lexème_suivant_développé(préprocesseur, lexeuse)
         si est_fin_de_fichier(lexème) {
             fichier_courant := donne_fichier_courant(préprocesseur)
 
@@ -860,42 +862,7 @@ donne_lexèmes_préprocès :: fonc (préprocesseur: *PréProcesseur) -> [..]Lex�
             continue
         }
 
-        lexème_définition := lexème
-        définition := donne_définition(préprocesseur, lexème)
-        saufsi définition {
-            tableau_ajoute(*lexèmes, lexème)
-            continue
-        }
-
-        arguments: [..][..]LexèmePréprocès
-        si définition.paramètres {
-            lexème = donne_lexème_suivant_sauf_espace_blanche(lexeuse)
-            saufsi est_ponctuation(lexème, "(") {
-                tableau_ajoute(*lexèmes, lexème_définition)
-                reprends_depuis_lexème(lexeuse, lexème)
-                continue
-            }
-
-            lexèmes_paramètres := parse_lexèmes_entre_parenthèses(préprocesseur, lexeuse)
-            diffère déloge(lexèmes_paramètres)
-
-            // imprimeln("-- paramètres")
-            // pour lexèmes_paramètres {
-            //     imprimeln("---- %", donne_texte(it))
-            // }
-
-            parseuse: SimpleParseuse
-            parseuse.lexèmes = lexèmes_paramètres
-
-            arguments = parse_tranche_arguments(*parseuse, définition)
-            saufsi peut_accepter_arguments(définition, arguments.taille) {
-                rapporte_erreur_mécomptage_arguments(préprocesseur, définition, arguments.taille)
-            }
-        }
-        infos_développement: InfosDéveloppementMacro
-        infos_développement.macro = définition
-        infos_développement.arguments = arguments
-        développe_macro(*lexèmes, préprocesseur, *infos_développement)
+        tableau_ajoute(*lexèmes, lexème)
     }
 
     exécute_phase_de_traduction_6(*lexèmes)
@@ -2946,3 +2913,124 @@ imprime_arbre :: fonc (noeud: *ExpressionPréProc)
 }
 
 /** \} */
+
+donne_lexème_suivant_développé :: fonc (préprocesseur: *PréProcesseur, lexeuse: *LexeusePréProcès) -> LexèmePréprocès
+{
+    résultat := donne_lexème_suivant(préprocesseur, lexeuse)
+
+    saufsi est_symbole(résultat) || est_mot_clé(résultat) {
+        retourne résultat
+    }
+
+    texte := donne_texte(résultat)
+
+    définition := donne_définition(préprocesseur, texte)
+    saufsi définition {
+        retourne résultat
+    }
+
+    saufsi définition.paramètres {
+        infos_développement: InfosDéveloppementMacro
+        infos_développement.macro = définition
+        // @Vitesse
+        liste_de_remplacement: [..]LexèmePréprocès
+        diffère déloge(liste_de_remplacement)
+        développe_macro(*liste_de_remplacement, préprocesseur, *infos_développement)
+        pour > liste_de_remplacement {
+            tableau_ajoute(*préprocesseur.lexèmes_développés, it)
+        }
+        retourne donne_lexème_suivant(préprocesseur, lexeuse)
+    }
+
+    /* Cherche la parenthèse. */
+    // @Vitesse
+    griffonier: [..]LexèmePréprocès
+    diffère déloge(griffonier)
+
+    lexème := donne_lexème_suivant(préprocesseur, lexeuse)
+    tantque est_espace_blanche(lexème) {
+        tableau_ajoute(*griffonier, lexème)
+        lexème = donne_lexème_suivant(préprocesseur, lexeuse)
+    }
+
+    saufsi est_ponctuation(lexème, "(") {
+        pour > griffonier {
+            tableau_ajoute(*préprocesseur.lexèmes_développés, it)
+        }
+        retourne résultat
+    }
+
+    /* Parse les paramètres. */
+    déloge(griffonier)
+
+    niveau_parenthèse := 0
+    boucle {
+        lexème = donne_lexème_suivant(préprocesseur, lexeuse)
+        si est_fin_de_fichier(lexème) {
+            rapporte_erreur(préprocesseur, "Fin de fichier inattendu dans %", #nom_de_cette_fonction)
+        }
+        tableau_ajoute(*griffonier, lexème)
+        si est_ponctuation(lexème, "(") {
+            niveau_parenthèse += 1
+        }
+        sinon si est_ponctuation(lexème, ")") {
+            si niveau_parenthèse == 0 {
+                arrête
+            }
+            niveau_parenthèse -= 1
+        }
+    }
+
+    // imprimeln("-- paramètres")
+    // pour griffonier {
+    //     imprimeln("---- %", donne_texte(it))
+    // }
+
+    parseuse: SimpleParseuse
+    parseuse.lexèmes = griffonier
+
+    arguments := parse_tranche_arguments(*parseuse, définition)
+    saufsi peut_accepter_arguments(définition, arguments.taille) {
+        rapporte_erreur_mécomptage_arguments(préprocesseur, définition, arguments.taille)
+    }
+
+    // imprimeln("-- arguments")
+    // pour args, indice_args dans arguments {
+    //     imprimeln("  -- args %", indice_args)
+    //     pour args {
+    //         imprimeln("    -- %", donne_texte(it))
+    //     }
+    // }
+
+    infos_développement: InfosDéveloppementMacro
+    infos_développement.macro = définition
+    infos_développement.arguments = arguments
+
+    // @Vitesse
+    liste_de_remplacement: [..]LexèmePréprocès
+    diffère déloge(liste_de_remplacement)
+
+    développe_macro(*liste_de_remplacement, préprocesseur, *infos_développement)
+
+    // imprimeln("-- liste de remplacement")
+    // pour liste_de_remplacement {
+    //     imprimeln("  -- %", donne_texte(it))
+    // }
+
+    pour > liste_de_remplacement {
+        tableau_ajoute(*préprocesseur.lexèmes_développés, it)
+    }
+
+    retourne donne_lexème_suivant(préprocesseur, lexeuse)
+}
+
+donne_lexème_suivant :: fonc (préprocesseur: *PréProcesseur, lexeuse: *LexeusePréProcès) -> LexèmePréprocès
+{
+    si préprocesseur.lexèmes_développés {
+        résultat := préprocesseur.lexèmes_développés[préprocesseur.lexèmes_développés.taille - 1]
+        préprocesseur.lexèmes_développés.taille -= 1
+        retourne résultat
+    }
+
+    retourne donne_lexème_suivant(lexeuse)
+}
