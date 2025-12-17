@@ -1125,7 +1125,12 @@ développe_macro_impl :: fonc (sortie: *[..]LexèmePréprocès, préprocesseur: 
     // }
     // imprime("\n")
 
-    // tableau_ajoute(sortie, ...liste_de_remplacement)
+    // pour liste_de_remplacement {
+    //     si it.placemarker {
+    //         continue
+    //     }
+    //     tableau_ajoute(sortie, it)
+    // }
 }
 
 substitue_arguments_dans_liste_de_remplacement :: fonc (sortie: *[..]LexèmePréprocès, infos: *InfosDéveloppementMacro) -> bool
@@ -1183,25 +1188,27 @@ substitue_arguments_dans_liste_de_remplacement :: fonc (sortie: *[..]LexèmePré
             avance(*parseuse_locale)
         }
 
-        lexème_suivant := donne_lexème_suivant(*parseuse_locale)
-        si est_ponctuation(lexème_suivant, "##") {
-            possède_collage = vrai
-            si indice_param < infos.arguments.taille {
-                arguments := infos.arguments[indice_param]
-                si arguments.taille == 0 {
-                    tableau_ajoute(sortie, LexèmePréprocès(placemarker = vrai))
-                }
-                sinon {
-                    pour arguments {
-                        it.vient_d_un_argument = vrai
-                        tableau_ajoute(sortie, it)
+        saufsi fini(*parseuse_locale) {
+            lexème_suivant := donne_lexème_suivant(*parseuse_locale)
+            si est_ponctuation(lexème_suivant, "##") {
+                possède_collage = vrai
+                si indice_param < infos.arguments.taille {
+                    arguments := infos.arguments[indice_param]
+                    si arguments.taille == 0 {
+                        tableau_ajoute(sortie, LexèmePréprocès(placemarker = vrai))
+                    }
+                    sinon {
+                        pour arguments {
+                            it.vient_d_un_argument = vrai
+                            tableau_ajoute(sortie, it)
+                        }
                     }
                 }
+                sinon {
+                    tableau_ajoute(sortie, LexèmePréprocès(placemarker = vrai))
+                }
+                continue
             }
-            sinon {
-                tableau_ajoute(sortie, LexèmePréprocès(placemarker = vrai))
-            }
-            continue
         }
 
         si indice_param < infos.arguments.taille {
@@ -1211,9 +1218,6 @@ substitue_arguments_dans_liste_de_remplacement :: fonc (sortie: *[..]LexèmePré
             }
             continue
         }
-
-        imprimeln("un paramètre ne fut pas remplacé : %", donne_texte(lexème))
-        exit(1)
     }
 
     retourne possède_collage
