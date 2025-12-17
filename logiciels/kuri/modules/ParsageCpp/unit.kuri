@@ -7,6 +7,8 @@ TranslationUnit :: struct {
     langage: Langage
     fichiers: [..]FichierSource
     lexèmes_préprocès: [..]LexèmePréprocès
+    /* Les lexèmes_préprocès sont convertis en tokens par la parseuse avant le parsage. */
+    tokens: [..]Token
 
     declarations: [..]*ASTNode
 }
@@ -24,6 +26,7 @@ crée_translation_unit_pour_fichier :: fonc (chemin: chaine) -> *TranslationUnit
 détruit :: fonc (unit: *TranslationUnit)
 {
     déloge(unit.lexèmes_préprocès)
+    déloge(unit.tokens)
     déloge(unit.fichiers)
     déloge(unit)
 }
