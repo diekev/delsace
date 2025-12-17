@@ -278,6 +278,8 @@ PréProcesseur :: struct {
     définitions: [..]Définition
     // Table d'indices dans définitions.
     table_définitions: TableDeHachage(chaine, z64)
+    taille_nom_définition_min: z64 = 0x7fffffffffffffff
+    taille_nom_définition_max: z64
 
     niveau_branchage: z32
     // Une nouvelle est empilée à chaque #if, #elif, etc. pour déterminer si la branche #else, #elif doit être considérée
@@ -586,6 +588,13 @@ ajoute_définition_intrinsèque :: fonc (préprocesseur: *PréProcesseur, nom: c
 
 crée_définition :: fonc (préprocesseur: *PréProcesseur, nom: chaine) -> *Définition
 {
+    si nom.taille < préprocesseur.taille_nom_définition_min {
+        préprocesseur.taille_nom_définition_min = nom.taille
+    }
+    si nom.taille > préprocesseur.taille_nom_définition_max {
+        préprocesseur.taille_nom_définition_max = nom.taille
+    }
+
     indice := préprocesseur.définitions.taille
     _, _ := table_insère_si_non_existant(*préprocesseur.table_définitions, nom, indice)
     définition := tableau_ajoute_élément(*préprocesseur.définitions)
@@ -600,6 +609,10 @@ supprime_définition :: fonc (préprocesseur: *PréProcesseur, nom: chaine)
 
 donne_définition :: fonc (préprocesseur: *PréProcesseur, nom: chaine) -> *Définition
 {
+    si nom.taille < préprocesseur.taille_nom_définition_min || nom.taille > préprocesseur.taille_nom_définition_max {
+        retourne nul
+    }
+
     trouvée, indice := donne_valeur_pour_clé(préprocesseur.table_définitions, nom)
     si trouvée {
         retourne *préprocesseur.définitions[indice]
