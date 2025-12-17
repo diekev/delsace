@@ -38,6 +38,16 @@ est_variadique :: fonc (définition: *Définition) -> bool
     retourne est_ponctuation(dernier_paramètre, "...")
 }
 
+donne_nombre_de_paramètres_hors_variadique :: fonc (définition: *Définition) -> n64
+{
+    résultat := définition.paramètres.taille comme n64
+    si est_variadique(définition) {
+        assert(résultat != 0)
+        résultat -= 1
+    }
+    retourne résultat
+}
+
 donne_indice_paramètre :: fonc (définition: *Définition, param: chaine) -> z64
 {
     pour définition.paramètres {
@@ -874,7 +884,7 @@ donne_lexèmes_préprocès :: fonc (préprocesseur: *PréProcesseur) -> [..]Lex�
             parseuse: SimpleParseuse
             parseuse.lexèmes = lexèmes_paramètres
 
-            arguments = parse_tranche_arguments(*parseuse)
+            arguments = parse_tranche_arguments(*parseuse, définition)
             saufsi peut_accepter_arguments(définition, arguments.taille) {
                 rapporte_erreur_mécomptage_arguments(préprocesseur, définition, arguments.taille)
             }
@@ -1153,7 +1163,7 @@ développe_lexèmes :: fonc (sortie: *[..]LexèmePréprocès, préprocesseur: *P
                     rapporte_erreur(préprocesseur, "Arguments manquant dans le développement de '%'", définition.nom)
                 }
                 avance(*parseuse)
-                paramètres_définition = parse_tranche_arguments(*parseuse)
+                paramètres_définition = parse_tranche_arguments(*parseuse, définition)
             }
             sinon {
                 restaure_position(*parseuse)
@@ -1194,6 +1204,13 @@ développe_lexèmes :: fonc (sortie: *[..]LexèmePréprocès, préprocesseur: *P
     indice_param := donne_indice_paramètre(infos.macro, donne_texte(lexème))
     si indice_param != -1 && indice_param < infos.arguments.taille {
         tableau_ajoute(sortie, ...infos.arguments[indice_param])
+        retourne
+    }
+
+    si est_symbole(lexème.lexème, "__VA_ARGS__") {
+        si infos.arguments.taille != 0 {
+            tableau_ajoute(sortie, ...infos.arguments[infos.arguments.taille - 1])
+        }
         retourne
     }
 
@@ -1297,6 +1314,27 @@ développe_lexèmes :: fonc (sortie: *[..]LexèmePréprocès, préprocesseur: *P
             nouveau_texte := enchaine(...textes)
             lexème = crée_lexème_chaine_littérale(nouveau_texte)
         }
+        sinon si lexème_suivant == "__VA_ARGS__" {
+            si infos.arguments.taille != 0 {
+                textes: [..]chaine
+                diffère déloge(textes)
+
+                tableau_ajoute(*textes, "\"")
+
+                pour infos.arguments[infos.arguments.taille - 1] {
+                    tableau_ajoute(*textes, donne_texte(it))
+                }
+
+                tableau_ajoute(*textes, "\"")
+
+                // @FuiteDeMémoire
+                nouveau_texte := enchaine(...textes)
+                lexème = crée_lexème_chaine_littérale(nouveau_texte)
+            }
+            sinon {
+                lexème = crée_lexème_chaine_littérale("")
+            }
+        }
         sinon {
             // @FuiteDeMémoire
             nouveau_texte := enchaine("\"", lexème_suivant, "\"")
@@ -1350,7 +1388,7 @@ développe_arguments :: fonc (préprocesseur: *PréProcesseur, arguments: *[..]L
                     rapporte_erreur(préprocesseur, "Arguments manquant dans le développement de '%'", définition.nom)
                 }
                 avance(*parseuse)
-                arguments_définition = parse_tranche_arguments(*parseuse)
+                arguments_définition = parse_tranche_arguments(*parseuse, définition)
 
                 saufsi peut_accepter_arguments(définition, arguments_définition.taille) {
                     rapporte_erreur_mécomptage_arguments(préprocesseur, définition, arguments_définition.taille)
@@ -2077,11 +2115,13 @@ saute_espaces_blanches_sauf_nouvelle_ligne :: fonc (parseuse: *SimpleParseuse)
     }
 }
 
-parse_tranche_arguments :: fonc (parseuse: *SimpleParseuse) -> [..][..]LexèmePréprocès
+parse_tranche_arguments :: fonc (parseuse: *SimpleParseuse, définition: *Définition) -> [..][..]LexèmePréprocès
 {
     résultat: [..][..]LexèmePréprocès
 
     tranche_courante: [..]LexèmePréprocès
+
+    nombre_de_paramètres := donne_nombre_de_paramètres_hors_variadique(définition)
 
     niveau_parenthèse := 0
     tantque !fini(parseuse) {
@@ -2098,7 +2138,8 @@ parse_tranche_arguments :: fonc (parseuse: *SimpleParseuse) -> [..][..]LexèmePr
             tableau_ajoute(*tranche_courante, lexème)
             continue
         }
-        si est_ponctuation(lexème, ",") && niveau_parenthèse == 0 {
+        si est_ponctuation(lexème, ",") && niveau_parenthèse == 0 && nombre_de_paramètres > 0 {
+            nombre_de_paramètres -= 1
             tableau_ajoute(*résultat, tranche_courante)
             init_de([..]LexèmePréprocès)(*tranche_courante)
             continue
@@ -2410,7 +2451,7 @@ parse_expression_primaire :: fonc (préprocesseur: *PréProcesseur, parseuse: *S
             }
             avance(parseuse)
 
-            tranches_paramètres := parse_tranche_arguments(parseuse)
+            tranches_paramètres := parse_tranche_arguments(parseuse, définition)
             diffère déloge_tableau_et_ses_éléments(tranches_paramètres)
 
             saufsi peut_accepter_arguments(définition, tranches_paramètres.taille) {
