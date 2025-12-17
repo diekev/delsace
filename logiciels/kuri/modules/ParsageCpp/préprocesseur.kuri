@@ -499,11 +499,13 @@ initialise_préprocesseur :: fonc (préprocesseur: *PréProcesseur, unit: *Trans
     ajoute_définition_lexèmes(préprocesseur, "__UINTPTR_TYPE__", "long unsigned int")
 
     définition := crée_définition(préprocesseur, "__has_builtin")
+    définition.est_semble_fonction = vrai
     tableau_ajoute(*définition.paramètres, crée_lexème_symbole("x"))
     lexème := tableau_ajoute_élément(*définition.lexèmes)
     mémoire(lexème) = crée_lexème_nombre_naturel(0)
 
     définition = crée_définition(préprocesseur, "__has_cpp_attribute")
+    définition.est_semble_fonction = vrai
     tableau_ajoute(*définition.paramètres, crée_lexème_symbole("x"))
     tableau_ajoute(*définition.lexèmes, crée_lexème_nombre_naturel(0))
 
@@ -571,6 +573,7 @@ ajoute_définition_intrinsèque :: fonc (préprocesseur: *PréProcesseur, nom: c
     définition := crée_définition(préprocesseur, nom)
     définition.est_intrinsèque = vrai
     définition.sur_développement = rappel
+    définition.est_semble_fonction = nombre_arguments != 0
 
     pour nombre_arguments {
         tableau_ajoute(*définition.paramètres, crée_lexème_symbole("x"))
