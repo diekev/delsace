@@ -582,6 +582,17 @@ crée_définition :: fonc (préprocesseur: *PréProcesseur, nom: chaine) -> *Dé
     retourne définition
 }
 
+supprime_définition :: fonc (préprocesseur: *PréProcesseur, nom: chaine)
+{
+    pour préprocesseur.définitions {
+        si it.nom == nom {
+            // À FAIRE : gestion de la mémoire
+            tableau_supprime_indice(*préprocesseur.définitions, indice_it)
+            arrête
+        }
+    }
+}
+
 ajoute_inclusion :: fonc (préprocesseur: *PréProcesseur, chemin: chaine)
 {
     tableau_ajoute(*préprocesseur.chemins_inclusions_système, chemin)
@@ -792,13 +803,7 @@ donne_lexèmes_préprocès :: fonc (préprocesseur: *PréProcesseur) -> [..]Lex�
                     arrête
                 }
 
-                pour préprocesseur.définitions {
-                    si it.nom == texte_définition {
-                        // À FAIRE : gestion de la mémoire
-                        tableau_supprime_indice(*préprocesseur.définitions, indice_it)
-                        arrête
-                    }
-                }
+                supprime_définition(préprocesseur, texte_définition)
 
                 si préprocesseur.messagère {
                     envoie_message_macro_indéfini(préprocesseur.messagère, préprocesseur.unit, texte_définition)
