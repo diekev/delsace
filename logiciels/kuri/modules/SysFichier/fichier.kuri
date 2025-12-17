@@ -381,7 +381,7 @@ lis_tout :: fonc (fichier: *Fichier, résultat: &[..]octet) -> ErreurFichier
 
         si octets_lus > 0 {
             ancienne_taille := résultat.taille
-            tableau_redimensionne(résultat, résultat.taille + octets_lus)
+            tableau_redimensionne_sans_init(résultat, résultat.taille + octets_lus)
             copie_mem_nonsur(src = *tampon[0], dst = *résultat[ancienne_taille], taille = octets_lus)
 
             si octets_lus < TAILLE_MAX {

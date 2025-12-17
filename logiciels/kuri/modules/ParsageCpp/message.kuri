@@ -2,6 +2,8 @@
 MessageKind :: énum {
     FILE_OPENED
     FILE_CLOSED
+    MACRO_DEFINED
+    MACRO_UNDEFINED
     PREPROCESSING_DONE
     DECLARATION_PARSED
 }
@@ -25,6 +27,20 @@ MessageFileClosed :: struct {
     kind = MessageKind.FILE_CLOSED
 
     filepath: chaine
+}
+
+MessageMacroDefined :: struct {
+    empl message: Message
+    kind = MessageKind.MACRO_DEFINED
+
+    name: chaine
+}
+
+MessageMacroUndefined :: struct {
+    empl message: Message
+    kind = MessageKind.MACRO_UNDEFINED
+
+    name: chaine
 }
 
 MessagePreProcessingDone :: struct {
@@ -67,6 +83,32 @@ envoie_message_fichier_fermé :: fonc (messagère: *Messagère, unit: *Translati
     message: MessageFileClosed
     message.source_unit = unit
     message.filepath = chemin
+
+    messagère.gère_message(*message)
+}
+
+envoie_message_macro_défini :: fonc (messagère: *Messagère, unit: *TranslationUnit, name: chaine)
+{
+    saufsi messagère && messagère.gère_message {
+        retourne
+    }
+
+    message: MessageMacroDefined
+    message.source_unit = unit
+    message.name = name
+
+    messagère.gère_message(*message)
+}
+
+envoie_message_macro_indéfini :: fonc (messagère: *Messagère, unit: *TranslationUnit, name: chaine)
+{
+    saufsi messagère && messagère.gère_message {
+        retourne
+    }
+
+    message: MessageMacroUndefined
+    message.source_unit = unit
+    message.name = name
 
     messagère.gère_message(*message)
 }

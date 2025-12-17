@@ -17,6 +17,14 @@ Declaration :: struct {
     declarators: [..]*ASTNode
 }
 
+StaticAssert :: struct {
+    empl node: ASTNode
+    genre = #type_de_cette_structure
+
+    expression: *Expression
+    message: chaine
+}
+
 VarDecl :: struct {
     empl node: ASTNode
     genre = #type_de_cette_structure
@@ -138,7 +146,7 @@ TypedefDecl :: struct {
     genre = #type_de_cette_structure
     kind = TypeKind.TYPEDEF
 
-    type: *Type
+    name: chaine
     underlying_type: *Type
 }
 
@@ -148,7 +156,7 @@ StructDecl :: struct {
     kind = TypeKind.RECORD
 
     name: chaine
-    fields: [..]*FieldDecl
+    declarations: [..]*ASTNode
 }
 
 UnionDecl :: struct {
@@ -157,7 +165,7 @@ UnionDecl :: struct {
     kind = TypeKind.RECORD
 
     name: chaine
-    fields: [..]*FieldDecl
+    declarations: [..]*ASTNode
 }
 
 EnumDecl :: struct {
@@ -173,7 +181,7 @@ EnumeratorDecl :: struct {
     empl base_type: Type
     genre = #type_de_cette_structure
 
-    identifier: LexèmePréprocès
+    identifier: Token
     expression: *Expression
 }
 
@@ -183,6 +191,7 @@ FieldDecl :: struct {
 
     name: chaine
     type: *Type
+    bitfield_expression: *Expression
 }
 
 Expression :: struct {
@@ -204,18 +213,34 @@ InitializerList :: struct {
     initializers: [..]*Expression
 }
 
+IdentifierDesignator :: struct {
+    empl expr: Expression
+    genre = #type_de_cette_structure
+
+    identifier: chaine
+    initializer: *Expression
+}
+
+IndexDesignator :: struct {
+    empl expr: Expression
+    genre = #type_de_cette_structure
+
+    index: *Expression
+    initializer: *Expression
+}
+
 IntegerLiteralExpression :: struct {
     empl expr: Expression
     genre = #type_de_cette_structure
 
-    lexème: LexèmePréprocès
+    lexème: Token
 }
 
 FloatLiteralExpression :: struct {
     empl expr: Expression
     genre = #type_de_cette_structure
 
-    lexème: LexèmePréprocès
+    lexème: Token
 }
 
 BinaryExpression :: struct {
@@ -283,7 +308,7 @@ DeclarationReference :: struct {
     empl expr: Expression
     genre = #type_de_cette_structure
 
-    lexème: LexèmePréprocès
+    lexème: Token
 }
 
 CallExpression :: struct {
@@ -298,7 +323,7 @@ StringLiteral :: struct {
     empl expr: Expression
     genre = #type_de_cette_structure
 
-    lexème: LexèmePréprocès
+    lexème: Token
 }
 
 PrefixUpdateExpression :: struct {
@@ -365,6 +390,13 @@ ExpressionStatement :: struct {
     expression: *Expression
 }
 
+GotoStatement :: struct {
+    empl node: ASTNode
+    genre = #type_de_cette_structure
+
+    identifier: chaine
+}
+
 ContinueStatement :: struct {
     empl node: ASTNode
     genre = #type_de_cette_structure
@@ -391,6 +423,14 @@ IfStatement :: struct {
     else_statement: *ASTNode
 }
 
+SwitchStatement :: struct {
+    empl node: ASTNode
+    genre = #type_de_cette_structure
+
+    expression: *Expression
+    statement: *ASTNode
+}
+
 WhileStatement :: struct {
     empl node: ASTNode
     genre = #type_de_cette_structure
@@ -415,6 +455,29 @@ ForStatement :: struct {
     test: *Expression
     update: *Expression
 
+    statement: *ASTNode
+}
+
+CaseClause :: struct {
+    empl node: ASTNode
+    genre = #type_de_cette_structure
+
+    expression: *Expression
+    statement: *ASTNode
+}
+
+DefaultClause :: struct {
+    empl node: ASTNode
+    genre = #type_de_cette_structure
+
+    statement: *ASTNode
+}
+
+LabelStatement :: struct {
+    empl node: ASTNode
+    genre = #type_de_cette_structure
+
+    identifier: chaine
     statement: *ASTNode
 }
 
@@ -538,6 +601,26 @@ imprime_arbre :: fonc (node: *ASTNode)
             ParamDecl {
                 param := noeud comme *ParamDecl
                 imprimeln("% : %", info.nom, param.name)
+            }
+            TypedefDecl {
+                typedef := noeud comme *TypedefDecl
+                imprimeln("% : %", info.nom, typedef.name)
+            }
+            StructDecl {
+                struct_decl := noeud comme *StructDecl
+                imprimeln("% : %", info.nom, struct_decl.name)
+            }
+            UnionDecl {
+                union_decl := noeud comme *UnionDecl
+                imprimeln("% : %", info.nom, union_decl.name)
+            }
+            EnumDecl {
+                enum_decl := noeud comme *EnumDecl
+                imprimeln("% : %", info.nom, enum_decl.name)
+            }
+            FieldDecl {
+                field_decl := noeud comme *FieldDecl
+                imprimeln("% : %", info.nom, field_decl.name)
             }
             Type {
                 type := noeud comme *Type
