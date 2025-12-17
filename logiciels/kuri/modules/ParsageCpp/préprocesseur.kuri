@@ -1123,6 +1123,11 @@ développe_macro_impl :: fonc (sortie: *[..]LexèmePréprocès, préprocesseur: 
     // }
     // imprime("\n")
 
+    si liste_de_remplacement {
+        liste_de_remplacement[0].commence_à_ignorer = infos.macro
+        liste_de_remplacement[liste_de_remplacement.taille - 1].cesse_d_ignorer = infos.macro
+    }
+
     pour liste_de_remplacement {
         si it.placemarker {
             continue
@@ -2662,9 +2667,11 @@ donne_lexème_suivant_développé :: fonc (préprocesseur: *PréProcesseur, lexe
     boucle {
         résultat := donne_lexème_suivant(préprocesseur, lexeuse)
 
-        si résultat.marqueur_fin_exclusion_macro {
-            résultat.marqueur_fin_exclusion_macro.doit_être_ignorée = faux
-            continue
+        si résultat.commence_à_ignorer {
+            résultat.commence_à_ignorer.doit_être_ignorée = vrai
+        }
+        si résultat.cesse_d_ignorer {
+            résultat.cesse_d_ignorer.doit_être_ignorée = faux
         }
 
         saufsi est_symbole(résultat) || est_mot_clé(résultat) {
@@ -2695,7 +2702,7 @@ donne_lexème_suivant_développé :: fonc (préprocesseur: *PréProcesseur, lexe
         diffère déloge(griffonier)
 
         lexème := donne_lexème_suivant(préprocesseur, lexeuse)
-        tantque est_espace_blanche(lexème) || lexème.marqueur_fin_exclusion_macro {
+        tantque est_espace_blanche(lexème) {
             tableau_ajoute(*griffonier, lexème)
             lexème = donne_lexème_suivant(préprocesseur, lexeuse)
         }
@@ -2709,13 +2716,14 @@ donne_lexème_suivant_développé :: fonc (préprocesseur: *PréProcesseur, lexe
 
         /* Parse les paramètres. */
         pour griffonier {
-            si it.marqueur_fin_exclusion_macro {
-                it.marqueur_fin_exclusion_macro.doit_être_ignorée = faux
+            si it.cesse_d_ignorer {
+                it.cesse_d_ignorer.doit_être_ignorée = faux
             }
         }
         déloge(griffonier)
 
         niveau_parenthèse := 0
+        lexème_fin_paramètre: LexèmePréprocès
         boucle {
             lexème = donne_lexème_suivant(préprocesseur, lexeuse)
             si est_fin_de_fichier(lexème) {
@@ -2727,6 +2735,7 @@ donne_lexème_suivant_développé :: fonc (préprocesseur: *PréProcesseur, lexe
             }
             sinon si est_ponctuation(lexème, ")") {
                 si niveau_parenthèse == 0 {
+                    lexème_fin_paramètre = lexème
                     arrête
                 }
                 niveau_parenthèse -= 1
@@ -2764,6 +2773,15 @@ donne_lexème_suivant_développé :: fonc (préprocesseur: *PréProcesseur, lexe
 
         développe_macro(*liste_de_remplacement, préprocesseur, *infos_développement)
 
+        pour griffonier {
+            si it.cesse_d_ignorer {
+                it.cesse_d_ignorer.doit_être_ignorée = faux
+            }
+        }
+        si lexème_fin_paramètre.cesse_d_ignorer {
+            lexème_fin_paramètre.cesse_d_ignorer.doit_être_ignorée = faux
+        }
+
         ajoute_liste_de_remplacement(préprocesseur, liste_de_remplacement, définition)
     }
 
@@ -2788,10 +2806,10 @@ ajoute_liste_de_remplacement :: fonc (préprocesseur: *PréProcesseur, liste: []
     //     imprimeln("  -- %", donne_texte(it))
     // }
 
-    marqueur: LexèmePréprocès
-    marqueur.marqueur_fin_exclusion_macro = définition
-    définition.doit_être_ignorée = vrai
-    tableau_ajoute(*préprocesseur.lexèmes_développés, marqueur)
+    si liste {
+        liste[0].commence_à_ignorer = définition
+        liste[liste.taille - 1].cesse_d_ignorer = définition
+    }
 
     pour > liste {
         tableau_ajoute(*préprocesseur.lexèmes_développés, it)
