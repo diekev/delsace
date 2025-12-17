@@ -60,7 +60,7 @@ donne_indice_paramètre :: fonc (définition: *Définition, param: chaine) -> z6
             retourne indice_it
         }
     }
-    si param == "__VA_ARG__" && est_variadique(définition) {
+    si param == "__VA_ARGS__" && est_variadique(définition) {
         retourne définition.paramètres.taille - 1
     }
     retourne -1
