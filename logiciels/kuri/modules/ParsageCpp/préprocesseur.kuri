@@ -1798,13 +1798,16 @@ prétraite_fichier :: fonc (contenu: chaine) -> chaine
         texte := donne_texte(lexème)
 
         si est_ponctuation(lexème, "\\") {
-            boucle {
-                lexème = donne_lexème_suivant(*lexeuse)
-                si est_lexème_nouvelle_ligne(lexème) {
-                    arrête
+            lexème = épie_lexème_suivant(*lexeuse)
+            si est_lexème_nouvelle_ligne(lexème) {
+                boucle {
+                    lexème = donne_lexème_suivant(*lexeuse)
+                    si est_lexème_nouvelle_ligne(lexème) {
+                        arrête
+                    }
                 }
+                continue
             }
-            continue
         }
 
         ajoute_au_tampon(*enchaineuse, texte)
