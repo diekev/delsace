@@ -114,6 +114,7 @@ FichierSource :: struct {
     trouvé_dans_dossier: chaine
     contenu_cru: chaine
     contenu_prétaité: chaine
+    tampon_contenu_prétaité: [..]octet
 
     nombre_d_ouvertures: n32
     est_marqué_pragma_once: bool
@@ -144,7 +145,7 @@ construis_fichier_source :: fonc (chemin: chaine, contenu: chaine) -> FichierSou
 
 détruit_données_fichier :: fonc (fichier: *FichierSource)
 {
-    déloge(fichier.contenu_prétaité)
+    déloge(fichier.tampon_contenu_prétaité)
     déloge(fichier.contenu_cru)
     détruit_chemin(fichier.chemin)
 }
