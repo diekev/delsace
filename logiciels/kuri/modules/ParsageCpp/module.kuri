@@ -9,6 +9,7 @@ importe SysFichier
 
 charge "arbre_syntaxique"
 charge "fichier_source"
+charge "lexage"
 charge "message"
 charge "préprocesseur"
 charge "parseuse_c"
