@@ -2391,6 +2391,7 @@ parse_tranche_arguments :: fonc (parseuse: *SimpleParseuse, définition: *Défin
 
 parse_expression_if :: fonc (préprocesseur: *PréProcesseur, lexeuse: *LexeusePréProcès) -> *ExpressionPréProc
 {
+    // @Vitesse
     lexèmes: [..]LexèmePréprocès
     diffère déloge(lexèmes)
 
@@ -2398,7 +2399,7 @@ parse_expression_if :: fonc (préprocesseur: *PréProcesseur, lexeuse: *LexeuseP
     // imprimeln("%", ligne.texte)
 
     boucle {
-        lexème := donne_lexème_suivant(lexeuse)
+        lexème := donne_lexème_suivant_développé(préprocesseur, lexeuse)
         si est_fin_de_fichier(lexème) {
             rapporte_erreur(préprocesseur, "Fin de fichier inattendu dans %", #nom_de_cette_fonction)
         }
@@ -2411,9 +2412,39 @@ parse_expression_if :: fonc (préprocesseur: *PréProcesseur, lexeuse: *LexeuseP
             continue
         }
 
+        /* Ne developpons pas le contenu de "defined". */
+        si donne_texte(lexème) == "defined" {
+            tableau_ajoute(*lexèmes, lexème)
+
+            lexème = donne_lexème_suivant(préprocesseur, lexeuse)
+            tantque est_espace_blanche(lexème) {
+                lexème = donne_lexème_suivant(préprocesseur, lexeuse)
+            }
+            tableau_ajoute(*lexèmes, lexème)
+            
+            saufsi est_ponctuation(lexème, "(") {
+                continue
+            }
+
+            lexème = donne_lexème_suivant(préprocesseur, lexeuse)
+            tantque est_espace_blanche(lexème) {
+                lexème = donne_lexème_suivant(préprocesseur, lexeuse)
+            }
+            tableau_ajoute(*lexèmes, lexème)
+
+            lexème = donne_lexème_suivant(préprocesseur, lexeuse)
+            tantque est_espace_blanche(lexème) {
+                lexème = donne_lexème_suivant(préprocesseur, lexeuse)
+            }
+            tableau_ajoute(*lexèmes, lexème)
+            continue
+        }
+
         tableau_ajoute(*lexèmes, lexème)
         // imprimeln("-- %", donne_texte(lexème))
     }
+
+    assert(préprocesseur.lexèmes_développés.taille == 0)
 
     parseuse: SimpleParseuse
     parseuse.lexèmes = lexèmes
@@ -2655,85 +2686,11 @@ parse_expression_primaire :: fonc (préprocesseur: *PréProcesseur, parseuse: *S
 
         texte = donne_texte(lexème)
 
-        définition := donne_définition(préprocesseur, texte)
-        saute_espaces_blanches_sauf_nouvelle_ligne(parseuse)
-
-        saufsi fini(parseuse) {
-            lexème = donne_lexème_suivant(parseuse)
-        }
-        
-        si est_ponctuation(lexème, "(") {
-            saufsi définition {
-                rapporte_erreur(préprocesseur, "Macro inconnu : %", texte)
-                retourne nul
-            }
-            avance(parseuse)
-
-            tranches_paramètres := parse_tranche_arguments(parseuse, définition)
-            diffère déloge_tableau_et_ses_éléments(tranches_paramètres)
-
-            saufsi peut_accepter_arguments(définition, tranches_paramètres.taille) {
-                rapporte_erreur_mécomptage_arguments(préprocesseur, définition, tranches_paramètres.taille)
-            }
-
-            infos: InfosDéveloppementMacro
-            infos.macro = définition
-            infos.arguments = tranches_paramètres
-            lexèmes := développe_macro(préprocesseur, *infos)
-            diffère déloge(lexèmes)
-
-            // supprime espace blanches
-            début := lexèmes.pointeur
-            fin := lexèmes.pointeur + lexèmes.taille
-            insertion := début
-            tantque début < fin {
-                lexème = mémoire(début)
-                saufsi est_espace_blanche(lexème) {
-                    mémoire(insertion) = lexème
-                    insertion += 1
-                }
-                début += 1
-            }
-            lexèmes.taille = insertion - lexèmes.pointeur
-
-            // imprimeln("-- développement")
-            // pour lexèmes {
-            //     imprimeln("-- % (%)", donne_texte(it), it.type)
-            // }
-
-            sous_parseuse: SimpleParseuse
-            sous_parseuse.lexèmes = lexèmes
-
-            résultat = parse_expression(préprocesseur, *sous_parseuse)
-        }
-        sinon si définition {
-            si définition.paramètres.taille != 0 {
-                rapporte_erreur(préprocesseur, "Attendu des arguments pour l'invocation de '%'", texte)
-                retourne nul
-            }
-
-            lexèmes: [..]LexèmePréprocès
-            diffère déloge(lexèmes)
-
-            pour définition.lexèmes {
-                si est_espace_blanche(it) {
-                    continue
-                }
-                tableau_ajoute(*lexèmes, it)
-            }
-
-            sous_parseuse: SimpleParseuse
-            sous_parseuse.lexèmes = lexèmes
-
-            résultat = parse_expression(préprocesseur, *sous_parseuse)
-        }
-        sinon {
-            // Nous n'avons de définition pour ce symbole.
-            // Ce n'est pas une erreur car nous pourrions être dans une branche qui ne sera pas évalué.
-            symbole := loge(Symbole)
-            symbole.texte = texte
-            résultat = symbole
-        }
+        // Nous n'avons de définition pour ce symbole.
+        // Ce n'est pas une erreur car nous pourrions être dans une branche qui ne sera pas évalué.
+        symbole := loge(Symbole)
+        symbole.texte = texte
+        résultat = symbole
     }
     sinon si lexème.lexème.type == TypeLexème.Nombre {
         avance(parseuse)
