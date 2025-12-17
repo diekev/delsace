@@ -13,6 +13,7 @@ Définition :: struct {
     paramètres: [..]LexèmePréprocès
     lexèmes: [..]LexèmePréprocès
 
+    doit_être_ignorée := faux
     est_intrinsèque: bool
     sur_développement: fonc (préprocesseur: *PréProcesseur, arguments: [..][..]LexèmePréprocès) -> LexèmePréprocès
 }
@@ -1365,7 +1366,7 @@ développe_arguments :: fonc (préprocesseur: *PréProcesseur, arguments: *[..]L
         avance(*parseuse)
 
         définition := donne_définition(préprocesseur, lexème)
-        si définition {
+        si définition && !définition.doit_être_ignorée {
             si macro_ne_définis_que_son_nom(définition) {
                 tableau_ajoute(*résultat, lexème)
                 continue
@@ -2661,6 +2662,11 @@ donne_lexème_suivant_développé :: fonc (préprocesseur: *PréProcesseur, lexe
     boucle {
         résultat := donne_lexème_suivant(préprocesseur, lexeuse)
 
+        si résultat.marqueur_fin_exclusion_macro {
+            résultat.marqueur_fin_exclusion_macro.doit_être_ignorée = faux
+            continue
+        }
+
         saufsi est_symbole(résultat) || est_mot_clé(résultat) {
             retourne résultat
         }
@@ -2668,7 +2674,7 @@ donne_lexème_suivant_développé :: fonc (préprocesseur: *PréProcesseur, lexe
         texte := donne_texte(résultat)
 
         définition := donne_définition(préprocesseur, texte)
-        saufsi définition {
+        si définition == nul || définition.doit_être_ignorée {
             retourne résultat
         }
 
@@ -2679,9 +2685,7 @@ donne_lexème_suivant_développé :: fonc (préprocesseur: *PréProcesseur, lexe
             liste_de_remplacement: [..]LexèmePréprocès
             diffère déloge(liste_de_remplacement)
             développe_macro(*liste_de_remplacement, préprocesseur, *infos_développement)
-            pour > liste_de_remplacement {
-                tableau_ajoute(*préprocesseur.lexèmes_développés, it)
-            }
+            ajoute_liste_de_remplacement(préprocesseur, liste_de_remplacement, définition)
             continue
         }
 
@@ -2691,7 +2695,7 @@ donne_lexème_suivant_développé :: fonc (préprocesseur: *PréProcesseur, lexe
         diffère déloge(griffonier)
 
         lexème := donne_lexème_suivant(préprocesseur, lexeuse)
-        tantque est_espace_blanche(lexème) {
+        tantque est_espace_blanche(lexème) || lexème.marqueur_fin_exclusion_macro {
             tableau_ajoute(*griffonier, lexème)
             lexème = donne_lexème_suivant(préprocesseur, lexeuse)
         }
@@ -2704,6 +2708,11 @@ donne_lexème_suivant_développé :: fonc (préprocesseur: *PréProcesseur, lexe
         }
 
         /* Parse les paramètres. */
+        pour griffonier {
+            si it.marqueur_fin_exclusion_macro {
+                it.marqueur_fin_exclusion_macro.doit_être_ignorée = faux
+            }
+        }
         déloge(griffonier)
 
         niveau_parenthèse := 0
@@ -2755,14 +2764,7 @@ donne_lexème_suivant_développé :: fonc (préprocesseur: *PréProcesseur, lexe
 
         développe_macro(*liste_de_remplacement, préprocesseur, *infos_développement)
 
-        // imprimeln("-- liste de remplacement")
-        // pour liste_de_remplacement {
-        //     imprimeln("  -- %", donne_texte(it))
-        // }
-
-        pour > liste_de_remplacement {
-            tableau_ajoute(*préprocesseur.lexèmes_développés, it)
-        }
+        ajoute_liste_de_remplacement(préprocesseur, liste_de_remplacement, définition)
     }
 
     panique("Nous ne devrions pas être ici")
@@ -2777,4 +2779,21 @@ donne_lexème_suivant :: fonc (préprocesseur: *PréProcesseur, lexeuse: *Lexeus
     }
 
     retourne donne_lexème_suivant(lexeuse)
+}
+
+ajoute_liste_de_remplacement :: fonc (préprocesseur: *PréProcesseur, liste: []LexèmePréprocès, définition: *Définition)
+{
+    // imprimeln("-- liste de remplacement")
+    // pour liste {
+    //     imprimeln("  -- %", donne_texte(it))
+    // }
+
+    marqueur: LexèmePréprocès
+    marqueur.marqueur_fin_exclusion_macro = définition
+    définition.doit_être_ignorée = vrai
+    tableau_ajoute(*préprocesseur.lexèmes_développés, marqueur)
+
+    pour > liste {
+        tableau_ajoute(*préprocesseur.lexèmes_développés, it)
+    }
 }
