@@ -1066,26 +1066,13 @@ InfosDéveloppementMacro :: struct {
 
 développe_macro :: fonc (sortie: *[..]LexèmePréprocès, préprocesseur: *PréProcesseur, infos: *InfosDéveloppementMacro)
 {
-    lexèmes := développe_macro(préprocesseur, infos)
-    diffère déloge(lexèmes)
-
-    pour lexèmes {
-        tableau_ajoute(sortie, it)
-    }
-}
-
-développe_macro :: fonc (préprocesseur: *PréProcesseur, infos: *InfosDéveloppementMacro) -> [..]LexèmePréprocès
-{
     résultat: [..]LexèmePréprocès
+    diffère déloge(résultat)
+
     développe_macro_impl(*résultat, préprocesseur, infos, 0)
 
     // À FAIRE : détermine proprement quand redévelopper les lexèmes.
-    tmp: [..]LexèmePréprocès
-    développe_lexèmes(*tmp, préprocesseur, infos, 0, résultat)
-
-    déloge(résultat)
-
-    retourne tmp
+    développe_lexèmes(sortie, préprocesseur, infos, 0, résultat)
 }
 
 développe_macro_impl :: fonc (sortie: *[..]LexèmePréprocès, préprocesseur: *PréProcesseur, infos: *InfosDéveloppementMacro, profondeur: z32)
