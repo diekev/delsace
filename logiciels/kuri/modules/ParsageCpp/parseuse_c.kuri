@@ -2003,6 +2003,14 @@ parse_expression_primaire :: fonc (empl parseuse: *ParseuseC) -> *Expression
 
         résultat = literal
     }
+    sinon si est_littérale_caractère(lexème) {
+        consomme(parseuse)
+
+        literal := crée_noeud(*créatrice, CharacterConstant)
+        literal.lexème = lexème
+
+        résultat = literal
+    }
     sinon si est_ponctuation(lexème, "-") || est_ponctuation(lexème, "+") || est_ponctuation(lexème, "!") || est_ponctuation(lexème, "~") || est_ponctuation(lexème, "*") || est_ponctuation(lexème, "&") {
         consomme(parseuse)
 

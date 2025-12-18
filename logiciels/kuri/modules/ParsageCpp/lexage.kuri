@@ -239,6 +239,11 @@ est_littérale_nombre_réel :: fonc (token: Token) -> bool #enligne
     retourne token.lexème.type == TypeLexème.LittéraleNombreRéel
 }
 
+est_littérale_caractère :: fonc (token: Token) -> bool #enligne
+{
+    retourne token.lexème.type == TypeLexème.CaractèreConstant
+}
+
 donne_texte :: fonc (token: Token) -> chaine #enligne
 {
     retourne donne_texte(token.lexème)

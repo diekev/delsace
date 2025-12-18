@@ -229,6 +229,13 @@ IndexDesignator :: struct {
     initializer: *Expression
 }
 
+CharacterConstant :: struct {
+    empl expr: Expression
+    genre = #type_de_cette_structure
+
+    lexème: Token
+}
+
 IntegerLiteralExpression :: struct {
     empl expr: Expression
     genre = #type_de_cette_structure
