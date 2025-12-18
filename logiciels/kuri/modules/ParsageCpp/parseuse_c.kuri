@@ -656,19 +656,30 @@ donne_nom_et_type_pour_declarator :: fonc (empl parseuse: *ParseuseC, info: *Inf
 }
 
 Attribut :: struct {
-    name: chaine
+    précédent: *Attribut
+
+    nom: chaine
+    tokens: [..]Token
 }
 
-parse_attributs_gcc :: fonc (empl parseuse: *ParseuseC) -> bool
+crée_attribut :: fonc (nom: chaine, précédent: *Attribut) -> *Attribut
 {
-    eu_attributs := faux
+    résultat := loge(Attribut)
+    résultat.nom = nom
+    résultat.précédent = précédent
+    retourne résultat
+}
+
+parse_attributs_gcc :: fonc (empl parseuse: *ParseuseC) -> *Attribut
+{
+    résultat: *Attribut
 
     boucle {
         lexème := épie_lexème_suivant(parseuse)
         texte := donne_texte(lexème)
 
         si texte == "__asm__" {
-            eu_attributs = vrai
+            résultat = crée_attribut(texte, résultat)
 
             consomme(parseuse)
             consomme_ponctuation(parseuse, "(")
@@ -678,6 +689,8 @@ parse_attributs_gcc :: fonc (empl parseuse: *ParseuseC) -> bool
                 rapporte_erreur(parseuse, lexème, "Attendu une chaine littérale")
             }
 
+            tableau_ajoute(*résultat.tokens, lexème)
+
             consomme_ponctuation(parseuse, ")")
             continue
         }
@@ -685,8 +698,6 @@ parse_attributs_gcc :: fonc (empl parseuse: *ParseuseC) -> bool
         si texte != "__attribute__" {
             arrête
         }
-
-        eu_attributs = vrai
 
         consomme(parseuse)
         consomme_ponctuation(parseuse, "(")
@@ -700,15 +711,26 @@ parse_attributs_gcc :: fonc (empl parseuse: *ParseuseC) -> bool
 
             lexème = donne_lexème_suivant(parseuse)
 
+            résultat = crée_attribut(donne_texte(lexème), résultat)
+
             lexème = épie_lexème_suivant(parseuse)
             si est_ponctuation(lexème, "(") {
                 consomme(parseuse)
 
+                parenthèse := 0
                 tantque !fini(parseuse) {
                     lexème = épie_lexème_suivant(parseuse)
-                    si est_ponctuation(lexème, ")") {
-                        arrête
+                    si est_ponctuation(lexème, "(") {
+                        parenthèse += 1
                     }
+                    si est_ponctuation(lexème, ")") {
+                        si parenthèse == 0 {
+                            arrête
+                        }
+                        parenthèse -= 1
+                    }
+
+                    tableau_ajoute(*résultat.tokens, lexème)
 
                     consomme(parseuse)
                 }
@@ -729,7 +751,7 @@ parse_attributs_gcc :: fonc (empl parseuse: *ParseuseC) -> bool
         consomme_ponctuation(parseuse, ")")
     }
 
-    retourne eu_attributs
+    retourne résultat
 }
 
 /*
