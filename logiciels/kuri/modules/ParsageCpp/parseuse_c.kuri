@@ -1990,7 +1990,7 @@ parse_expression_primaire :: fonc (empl parseuse: *ParseuseC) -> *Expression
     sinon si est_littérale_nombre_entier(lexème) {
         consomme(parseuse)
 
-        literal := crée_noeud(*créatrice, IntegerLiteralExpression)
+        literal := crée_noeud(*créatrice, IntegerConstant)
         literal.lexème = lexème
 
         résultat = literal
@@ -1998,7 +1998,7 @@ parse_expression_primaire :: fonc (empl parseuse: *ParseuseC) -> *Expression
     sinon si est_littérale_nombre_réel(lexème) {
         consomme(parseuse)
 
-        literal := crée_noeud(*créatrice, FloatLiteralExpression)
+        literal := crée_noeud(*créatrice, FloatingConstant)
         literal.lexème = lexème
 
         résultat = literal

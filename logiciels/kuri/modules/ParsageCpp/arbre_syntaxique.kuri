@@ -236,14 +236,14 @@ CharacterConstant :: struct {
     lexème: Token
 }
 
-IntegerLiteralExpression :: struct {
+IntegerConstant :: struct {
     empl expr: Expression
     genre = #type_de_cette_structure
 
     lexème: Token
 }
 
-FloatLiteralExpression :: struct {
+FloatingConstant :: struct {
     empl expr: Expression
     genre = #type_de_cette_structure
 
