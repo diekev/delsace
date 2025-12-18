@@ -172,6 +172,25 @@ sur_développement_file :: fonc (préprocesseur: *PréProcesseur, arguments: [..
     retourne crée_lexème_chaine_littérale(chemin)
 }
 
+sur_développement_base_file :: fonc (préprocesseur: *PréProcesseur, arguments: [..][..]LexèmePréprocès @inutilisée) -> LexèmePréprocès
+{
+    fichier := *préprocesseur.unit.fichiers[0]
+    // @FuiteDeMémoire
+    chemin := enchaine("\"", fichier.chemin, "\"")
+    retourne crée_lexème_chaine_littérale(chemin)
+}
+
+sur_développement_file_name :: fonc (préprocesseur: *PréProcesseur, arguments: [..][..]LexèmePréprocès @inutilisée) -> LexèmePréprocès
+{
+    fichier := donne_fichier_courant(préprocesseur)
+    chemin := CheminFichier(fichier.chemin)
+    nom := nom_fichier_avec_extension(chemin)
+
+    // @FuiteDeMémoire
+    résultat := enchaine("\"", nom, "\"")
+    retourne crée_lexème_chaine_littérale(résultat)
+}
+
 sur_développement_line :: fonc (préprocesseur: *PréProcesseur @inutilisée, arguments: [..][..]LexèmePréprocès @inutilisée) -> LexèmePréprocès
 {
     // À FAIRE
@@ -260,6 +279,12 @@ sur_développement_counter :: fonc (préprocesseur: *PréProcesseur, arguments: 
 {
     résultat := crée_lexème_nombre_naturel(préprocesseur.compteur)
     préprocesseur.compteur += 1
+    retourne résultat
+}
+
+sur_développement_include_level :: fonc (préprocesseur: *PréProcesseur, arguments: [..][..]LexèmePréprocès @inutilisée) -> LexèmePréprocès
+{
+    résultat := crée_lexème_nombre_naturel((préprocesseur.lexeuses.taille - 1) comme n64)
     retourne résultat
 }
 
@@ -529,6 +554,9 @@ initialise_préprocesseur :: fonc (préprocesseur: *PréProcesseur, unit: *Trans
      * https://gcc.gnu.org/onlinedocs/cpp/Common-Predefined-Macros.html
      * https://learn.microsoft.com/fr-fr/cpp/preprocessor/predefined-macros?view=msvc-170 */
     ajoute_définition_intrinsèque(préprocesseur, "__COUNTER__", 0, sur_développement_counter)
+    ajoute_définition_intrinsèque(préprocesseur, "__INCLUDE_LEVEL__", 0, sur_développement_include_level)
+    ajoute_définition_intrinsèque(préprocesseur, "__BASE_FILE__", 0, sur_développement_base_file)
+    ajoute_définition_intrinsèque(préprocesseur, "__FILE_NAME__", 0, sur_développement_file_name)
 
     /* Voir https://gcc.gnu.org/onlinedocs/gcc-8.3.0/gccint/Instruction-Output.html */
     ajoute_définition(préprocesseur, "__USER_LABEL_PREFIX__", "")
