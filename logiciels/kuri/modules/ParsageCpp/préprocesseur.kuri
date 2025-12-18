@@ -1473,14 +1473,14 @@ parse_définition :: fonc (préprocesseur: *PréProcesseur, lexeuse: *LexeusePr�
     définition := donne_définition(préprocesseur, texte_définition)
     saufsi définition {
         définition = crée_définition(préprocesseur, texte_définition)
-
-        si préprocesseur.messagère {
-            envoie_message_macro_défini(préprocesseur.messagère, préprocesseur.unit, texte_définition)
-        }
     }
     sinon {
         déloge(définition.paramètres)
         déloge(définition.lexèmes)
+    }
+
+    diffère si préprocesseur.messagère {
+        envoie_message_macro_défini(préprocesseur.messagère, préprocesseur.unit, définition)
     }
 
     // diffère {
