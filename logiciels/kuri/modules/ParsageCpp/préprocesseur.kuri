@@ -101,18 +101,18 @@ sur_développement_has_include_impl :: fonc (préprocesseur: *PréProcesseur, ar
 {
     si arguments.taille == 0 {
         rapporte_erreur(préprocesseur, "Argument manquant pour __has_include")
-        retourne crée_lexème_nombre_naturel(0)
+        retourne crée_lexème_nombre_naturel(préprocesseur, 0)
     }
 
     si arguments.taille > 1 {
         rapporte_erreur(préprocesseur, "Trop d'arguments pour __has_include")
-        retourne crée_lexème_nombre_naturel(0)
+        retourne crée_lexème_nombre_naturel(préprocesseur, 0)
     }
 
     arg := supprime_espace_blanches_autour(arguments[0])
     si arg.taille == 0 {
         rapporte_erreur(préprocesseur, "Argument manquant pour __has_include")
-        retourne crée_lexème_nombre_naturel(0)
+        retourne crée_lexème_nombre_naturel(préprocesseur, 0)
     }
 
     parseuse: SimpleParseuse
@@ -134,7 +134,7 @@ sur_développement_has_include_impl :: fonc (préprocesseur: *PréProcesseur, ar
             }
             sinon {
                 rapporte_erreur(préprocesseur, "Aucun chemin fichier spécifié")
-                retourne crée_lexème_nombre_naturel(0)
+                retourne crée_lexème_nombre_naturel(préprocesseur, 0)
             }
         }
         sinon si est_ponctuation(lexème, "<") {
@@ -148,16 +148,16 @@ sur_développement_has_include_impl :: fonc (préprocesseur: *PréProcesseur, ar
         }
         sinon {
             rapporte_erreur(préprocesseur, "Argument inconnu pour __has_include")
-            retourne crée_lexème_nombre_naturel(0)
+            retourne crée_lexème_nombre_naturel(préprocesseur, 0)
         }
     }
 
     saufsi fini(*parseuse) {
         rapporte_erreur(préprocesseur, "Trop d'opérandes pour __has_include")
-        retourne crée_lexème_nombre_naturel(0)
+        retourne crée_lexème_nombre_naturel(préprocesseur, 0)
     }
 
-    retourne crée_lexème_nombre_naturel(résultat)
+    retourne crée_lexème_nombre_naturel(préprocesseur, résultat)
 }
 
 sur_développement_file :: fonc (préprocesseur: *PréProcesseur, arguments: [..][..]LexèmePréprocès @inutilisée) -> LexèmePréprocès
@@ -191,10 +191,10 @@ sur_développement_file_name :: fonc (préprocesseur: *PréProcesseur, arguments
     retourne crée_lexème_chaine_littérale(résultat)
 }
 
-sur_développement_line :: fonc (préprocesseur: *PréProcesseur @inutilisée, arguments: [..][..]LexèmePréprocès @inutilisée) -> LexèmePréprocès
+sur_développement_line :: fonc (préprocesseur: *PréProcesseur, arguments: [..][..]LexèmePréprocès @inutilisée) -> LexèmePréprocès
 {
     // À FAIRE
-    retourne crée_lexème_nombre_naturel(0)
+    retourne crée_lexème_nombre_naturel(préprocesseur, 0)
 }
 
 sur_développement_date :: fonc (préprocesseur: *PréProcesseur @inutilisée, arguments: [..][..]LexèmePréprocès @inutilisée) -> LexèmePréprocès
@@ -277,14 +277,14 @@ sur_développement_time :: fonc (préprocesseur: *PréProcesseur @inutilisée, a
 
 sur_développement_counter :: fonc (préprocesseur: *PréProcesseur, arguments: [..][..]LexèmePréprocès @inutilisée) -> LexèmePréprocès
 {
-    résultat := crée_lexème_nombre_naturel(préprocesseur.compteur)
+    résultat := crée_lexème_nombre_naturel(préprocesseur, préprocesseur.compteur)
     préprocesseur.compteur += 1
     retourne résultat
 }
 
 sur_développement_include_level :: fonc (préprocesseur: *PréProcesseur, arguments: [..][..]LexèmePréprocès @inutilisée) -> LexèmePréprocès
 {
-    résultat := crée_lexème_nombre_naturel((préprocesseur.lexeuses.taille - 1) comme n64)
+    résultat := crée_lexème_nombre_naturel(préprocesseur, (préprocesseur.lexeuses.taille - 1) comme n64)
     retourne résultat
 }
 
@@ -534,12 +534,12 @@ initialise_préprocesseur :: fonc (préprocesseur: *PréProcesseur, unit: *Trans
     définition.est_semble_fonction = vrai
     tableau_ajoute(*définition.paramètres, crée_lexème_symbole("x"))
     lexème := tableau_ajoute_élément(*définition.lexèmes)
-    mémoire(lexème) = crée_lexème_nombre_naturel(0)
+    mémoire(lexème) = crée_lexème_nombre_naturel(préprocesseur, 0)
 
     définition = crée_définition(préprocesseur, "__has_cpp_attribute")
     définition.est_semble_fonction = vrai
     tableau_ajoute(*définition.paramètres, crée_lexème_symbole("x"))
-    tableau_ajoute(*définition.lexèmes, crée_lexème_nombre_naturel(0))
+    tableau_ajoute(*définition.lexèmes, crée_lexème_nombre_naturel(préprocesseur, 0))
 
     ajoute_définition_intrinsèque(préprocesseur, "__has_include", 1, sur_développement_has_include)
     ajoute_définition_intrinsèque(préprocesseur, "__has_include_next", 1, sur_développement_has_include_next)
@@ -567,12 +567,7 @@ ajoute_définition :: fonc (préprocesseur: *PréProcesseur, nom: chaine, valeur
     définition := crée_définition(préprocesseur, nom)
 
     lexème := tableau_ajoute_élément(*définition.lexèmes)
-    mémoire(lexème) = crée_lexème_nombre_naturel(valeur)
-
-    // @FuiteDeMémoire
-    texte := imprime_chaine("%", valeur)
-    lexème.lexème.début = texte.pointeur
-    lexème.lexème.fin = texte.pointeur + texte.taille
+    mémoire(lexème) = crée_lexème_nombre_naturel(préprocesseur, valeur)
 }
 
 ajoute_définition :: fonc (préprocesseur: *PréProcesseur, nom: chaine, valeur: chaine)
@@ -656,6 +651,18 @@ donne_définition :: fonc (préprocesseur: *PréProcesseur, lexème: LexèmePré
         texte := donne_texte(lexème)
         résultat = donne_définition(préprocesseur, texte)
     }
+    retourne résultat
+}
+
+crée_lexème_nombre_naturel :: fonc (préprocesseur: *PréProcesseur @inutilisée, valeur: n64) -> LexèmePréprocès
+{
+    résultat := crée_lexème_nombre_naturel(valeur)
+
+    // @FuiteDeMémoire
+    texte := imprime_chaine("%", valeur)
+    résultat.lexème.début = texte.pointeur
+    résultat.lexème.fin = texte.pointeur + texte.taille
+
     retourne résultat
 }
 
