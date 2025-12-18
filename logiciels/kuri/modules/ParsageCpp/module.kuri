@@ -35,6 +35,102 @@ détermine_langage_pour_fichier :: fonc (chemin: chaine) -> Langage
     retourne Langage.C
 }
 
+InfoLangage :: struct {
+    langage: Langage
+    dialecte: chaine
+    standard: n32
+}
+
+est_valide :: fonc (info: InfoLangage) -> bool
+{
+    succès, info_valide := donne_info_langage_pour_dialecte(info.dialecte)
+    saufsi succès {
+        retourne faux
+    }
+
+    si info_valide.standard != info.standard {
+        retourne faux
+    }
+
+    retourne vrai
+}
+
+donne_info_langage_valide :: fonc (info: InfoLangage) -> InfoLangage
+{
+    saufsi est_valide(info) {
+        retourne donne_info_langage_pour_langage(info.langage)
+    }
+    retourne info
+}
+
+donne_info_langage_pour_langage :: fonc (langage: Langage) -> InfoLangage
+{
+    dialecte: chaine
+
+    discr langage {
+        CPP {
+            dialecte = "c++"
+        }
+        C {
+            dialecte = "c"
+        }
+    }
+
+    _, résultat := donne_info_langage_pour_dialecte("c")
+    assert(est_valide(résultat))
+    retourne résultat
+}
+
+donne_info_langage_pour_fichier :: fonc (chemin: chaine) -> InfoLangage
+{
+    langage := détermine_langage_pour_fichier(chemin)
+    retourne donne_info_langage_pour_langage(langage)
+}
+
+donne_info_langage_pour_dialecte :: fonc (dialecte: chaine) -> (bool, InfoLangage)
+{
+    infos := [
+        InfoLangage(Langage.C, "c", 201112),
+        // InfoLangage(Langage.C, "c89", 1990),
+        // InfoLangage(Langage.C, "c90", 1990),
+        // InfoLangage(Langage.C, "c99", 1999),
+        InfoLangage(Langage.C, "c11", 201112),
+        // InfoLangage(Langage.C, "c17", 2017),
+        // InfoLangage(Langage.C, "c18", 2017),
+        // InfoLangage(Langage.C, "c23", 2023),
+        // InfoLangage(Langage.C, "c2x", 2023),
+
+        InfoLangage(Langage.CPP, "c++", 201402),
+        // InfoLangage(Langage.CPP, "c++98", 2003),
+        // InfoLangage(Langage.CPP, "c++03", 2003),
+        InfoLangage(Langage.CPP, "c++11", 201103),
+        InfoLangage(Langage.CPP, "c++0x", 201103),
+        InfoLangage(Langage.CPP, "c++14", 201402),
+        InfoLangage(Langage.CPP, "c++1y", 201402),
+        InfoLangage(Langage.CPP, "c++17", 201703),
+        InfoLangage(Langage.CPP, "c++1z", 201703),
+        // InfoLangage(Langage.CPP, "c++20", 2020),
+        // InfoLangage(Langage.CPP, "c++2a", 2020),
+        // InfoLangage(Langage.CPP, "c++23", 2023),
+        // InfoLangage(Langage.CPP, "c++2b", 2023),
+        // InfoLangage(Langage.CPP, "c++26", 2026),
+        // InfoLangage(Langage.CPP, "c++2c", 2026),
+    ]
+
+    succès: bool
+    résultat: InfoLangage
+
+    pour infos {
+        si it.dialecte == dialecte {
+            succès = vrai
+            résultat = it
+            arrête
+        }
+    }
+
+    retourne succès, résultat
+}
+
 /** \} */
 
 est_fichier_cpp :: fonc (chemin: CheminFichier) -> bool

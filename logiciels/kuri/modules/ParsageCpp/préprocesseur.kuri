@@ -357,7 +357,7 @@ initialise_préprocesseur :: fonc (préprocesseur: *PréProcesseur, unit: *Trans
 
     préprocesseur.unit = unit
 
-    discr préprocesseur.unit.langage {
+    discr préprocesseur.unit.info_langage.langage {
         C {
             // GCC 12
             // echo | gcc -x c -E -v -
@@ -367,7 +367,7 @@ initialise_préprocesseur :: fonc (préprocesseur: *PréProcesseur, unit: *Trans
             tableau_ajoute(*préprocesseur.chemins_inclusions_système, "/usr/include/x86_64-linux-gnu")
             tableau_ajoute(*préprocesseur.chemins_inclusions_système, "/usr/include")
 
-            ajoute_définition(préprocesseur, "__STDC_VERSION__", 201112)
+            ajoute_définition(préprocesseur, "__STDC_VERSION__", préprocesseur.unit.info_langage.standard)
 
             interdits := [
                 "defined", "__DATE__", "__FILE__", "__LINE__", "__STDC__", "__STDC_HOSTED__",
@@ -398,8 +398,7 @@ initialise_préprocesseur :: fonc (préprocesseur: *PréProcesseur, unit: *Trans
             tableau_ajoute(*préprocesseur.chemins_inclusions_système, "/usr/include/x86_64-linux-gnu")
             tableau_ajoute(*préprocesseur.chemins_inclusions_système, "/usr/include")
 
-            ajoute_définition(préprocesseur, "__cplusplus", 201103)
-            // ajoute_définition(préprocesseur, "__cplusplus", 201703)
+            ajoute_définition(préprocesseur, "__cplusplus", préprocesseur.unit.info_langage.standard)
             ajoute_définition(préprocesseur, "__GNUG__", 12)
         }
     }

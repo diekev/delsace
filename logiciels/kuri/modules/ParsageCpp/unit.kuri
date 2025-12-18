@@ -4,7 +4,7 @@
 
 TranslationUnit :: struct {
     chemin_racine: chaine
-    langage: Langage
+    info_langage: InfoLangage
     fichiers: [..]FichierSource
     lexèmes_préprocès: [..]LexèmePréprocès
     /* Les lexèmes_préprocès sont convertis en tokens par la parseuse avant le parsage. */
@@ -15,11 +15,17 @@ TranslationUnit :: struct {
 
 crée_translation_unit_pour_fichier :: fonc (chemin: chaine) -> *TranslationUnit
 {
-    langage := détermine_langage_pour_fichier(chemin)
+    info_langage := donne_info_langage_pour_fichier(chemin)
+    retourne crée_translation_unit_pour_fichier(chemin, info_langage)
+}
+
+crée_translation_unit_pour_fichier :: fonc (chemin: chaine, info: InfoLangage) -> *TranslationUnit
+{
+    info_langage := donne_info_langage_valide(info)
 
     résultat := loge(TranslationUnit)
     résultat.chemin_racine = chemin
-    résultat.langage = langage
+    résultat.info_langage = info_langage
     retourne résultat
 }
 
