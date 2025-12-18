@@ -2011,6 +2011,59 @@ parse_expression_primaire :: fonc (empl parseuse: *ParseuseC) -> *Expression
 
         résultat = sizeof
     }
+    sinon si est_mot_clé(lexème, "_Generic") {
+        consomme(parseuse)
+        consomme_ponctuation(parseuse, "(")
+
+        expression := parse_assignment_expression(parseuse)
+        consomme_ponctuation(parseuse, ",")
+
+        generic_assoc_list: [..]*GenericAssociation
+
+        eu_default := faux
+
+        tantque !fini(parseuse) {
+            lexème = épie_lexème_suivant(parseuse)
+            si est_ponctuation(lexème, ")") {
+                arrête
+            }
+
+            type_name: *Expression
+            si est_mot_clé(lexème, "default") {
+                si eu_default {
+                    rapporte_erreur(parseuse, lexème, "Redéfinition de l'association 'default'")
+                }
+                consomme(parseuse)
+                eu_default = vrai
+            }
+            sinon {
+                type_name = parse_type_name(parseuse)
+            }
+
+            consomme_ponctuation(parseuse, ":")
+            assoc_expr := parse_assignment_expression(parseuse)
+
+            assoc := crée_noeud(*créatrice, GenericAssociation)
+            assoc.type_name = type_name
+            assoc.expression = assoc_expr
+            tableau_ajoute(*generic_assoc_list, assoc)
+
+            lexème = épie_lexème_suivant(parseuse)
+            saufsi est_ponctuation(lexème, ",") {
+                arrête
+            }
+
+            consomme(parseuse)
+        }
+
+        consomme_ponctuation(parseuse, ")")
+
+        generic := crée_noeud(*créatrice, GenericSelection)
+        generic.expression = expression
+        generic.generic_assoc_list = generic_assoc_list
+
+        résultat = generic
+    }
     sinon si est_littérale_nombre_entier(lexème) {
         consomme(parseuse)
 
