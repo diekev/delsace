@@ -160,6 +160,16 @@ sur_développement_has_include_impl :: fonc (préprocesseur: *PréProcesseur, ar
     retourne crée_lexème_nombre_naturel(préprocesseur, résultat)
 }
 
+sur_développement_has_builtin :: fonc (préprocesseur: *PréProcesseur, arguments: [..][..]LexèmePréprocès @inutilisée) -> LexèmePréprocès
+{
+    retourne crée_lexème_nombre_naturel(préprocesseur, 0)
+}
+
+sur_développement_has_cpp_attribute :: fonc (préprocesseur: *PréProcesseur, arguments: [..][..]LexèmePréprocès @inutilisée) -> LexèmePréprocès
+{
+    retourne crée_lexème_nombre_naturel(préprocesseur, 0)
+}
+
 sur_développement_file :: fonc (préprocesseur: *PréProcesseur, arguments: [..][..]LexèmePréprocès @inutilisée) -> LexèmePréprocès
 {
     fichier := donne_fichier_courant(préprocesseur)
@@ -530,16 +540,8 @@ initialise_préprocesseur :: fonc (préprocesseur: *PréProcesseur, unit: *Trans
     ajoute_définition_lexèmes(préprocesseur, "__INTPTR_TYPE__", "long int")
     ajoute_définition_lexèmes(préprocesseur, "__UINTPTR_TYPE__", "long unsigned int")
 
-    définition := crée_définition(préprocesseur, "__has_builtin")
-    définition.est_semble_fonction = vrai
-    tableau_ajoute(*définition.paramètres, crée_lexème_symbole("x"))
-    lexème := tableau_ajoute_élément(*définition.lexèmes)
-    mémoire(lexème) = crée_lexème_nombre_naturel(préprocesseur, 0)
-
-    définition = crée_définition(préprocesseur, "__has_cpp_attribute")
-    définition.est_semble_fonction = vrai
-    tableau_ajoute(*définition.paramètres, crée_lexème_symbole("x"))
-    tableau_ajoute(*définition.lexèmes, crée_lexème_nombre_naturel(préprocesseur, 0))
+    ajoute_définition_intrinsèque(préprocesseur, "__has_builtin", 1, sur_développement_has_builtin)
+    ajoute_définition_intrinsèque(préprocesseur, "__has_cpp_attribute", 1, sur_développement_has_cpp_attribute)
 
     ajoute_définition_intrinsèque(préprocesseur, "__has_include", 1, sur_développement_has_include)
     ajoute_définition_intrinsèque(préprocesseur, "__has_include_next", 1, sur_développement_has_include_next)
