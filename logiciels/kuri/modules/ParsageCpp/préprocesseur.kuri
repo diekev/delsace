@@ -1584,34 +1584,6 @@ préparse_définition :: fonc (préprocesseur: *PréProcesseur, lexeuse: *Lexeus
     retourne résultat
 }
 
-parse_lexèmes_entre_parenthèses :: fonc (préprocesseur: *PréProcesseur, lexeuse: *LexeusePréProcès) -> [..]LexèmePréprocès
-{
-    résultat: [..]LexèmePréprocès
-    parse_lexèmes_entre_parenthèses(préprocesseur, lexeuse, *résultat)
-    retourne résultat
-}
-
-parse_lexèmes_entre_parenthèses :: fonc (préprocesseur: *PréProcesseur, lexeuse: *LexeusePréProcès, résultat: *[..]LexèmePréprocès)
-{
-    niveau_parenthèse := 0
-    boucle {
-        lexème := donne_lexème_suivant(lexeuse)
-        si est_fin_de_fichier(lexème) {
-            rapporte_erreur(préprocesseur, "Fin de fichier inattendu dans %", #nom_de_cette_fonction)
-        }
-        tableau_ajoute(résultat, lexème)
-        si est_ponctuation(lexème, "(") {
-            niveau_parenthèse += 1
-        }
-        sinon si est_ponctuation(lexème, ")") {
-            si niveau_parenthèse == 0 {
-                arrête
-            }
-            niveau_parenthèse -= 1
-        }
-    }
-}
-
 ignore_lexèmes_jusque_fin_branche :: fonc (préprocesseur: *PréProcesseur, lexeuse: *LexeusePréProcès)
 {
     niveau_branchage_orig := préprocesseur.niveau_branchage
