@@ -1357,6 +1357,8 @@ parse_struct_declaration_list :: fonc (empl parseuse: *ParseuseC, declarations: 
             consomme(parseuse)
         }
 
+        _ := parse_attributs_gcc(parseuse)
+
         lexème = donne_lexème_suivant(parseuse)
         saufsi est_ponctuation(lexème, ";") {
             rapporte_erreur(parseuse, lexème, "Attendu un ';'")
