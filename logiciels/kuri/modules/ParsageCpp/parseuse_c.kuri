@@ -115,12 +115,6 @@ initialise_parseuse :: fonc (parseuse: *ParseuseC, unit: *TranslationUnit)
     _, _ := table_insère_si_non_existant(*parseuse.typedef_names, "__builtin_va_list", typedef_decl)
 }
 
-rapporte_erreur :: fonc (parseuse: *ParseuseC @inutilisée, format: chaine, args: ...eini)
-{
-    imprimeln(format, ...args)
-    exit(1)
-} @Imprimeuse
-
 rapporte_erreur :: fonc (parseuse: *ParseuseC, lexème: Token, format: chaine, args: ...eini)
 {
     si est_valide(lexème.plage_source) {
