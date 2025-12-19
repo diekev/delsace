@@ -123,15 +123,13 @@ rapporte_erreur :: fonc (parseuse: *ParseuseC @inutilisée, format: chaine, args
 
 rapporte_erreur :: fonc (parseuse: *ParseuseC, lexème: Token, format: chaine, args: ...eini)
 {
-    si lexème.fichier != -1 {
-        fichier := *parseuse.unit.fichiers[lexème.fichier]
-        imprimeln("%", fichier.chemin)
-        texte_lexème := donne_texte(lexème)
-        texte_ligne := donne_ligne_pour_erreur(fichier.contenu_prétaité, texte_lexème)
+    si est_valide(lexème.plage_source) {
+        empl plage_source_résolue := résoud_plage_source(parseuse.unit, lexème)
+        imprimeln("%", plage_source_résolue.fichier)
         si texte_ligne {
             imprimeln("%", texte_ligne)
-            décalage := texte_lexème.pointeur - texte_ligne.pointeur
-            pour décalage {
+            assert(numéro_colonne > 0)
+            pour numéro_colonne - 1 {
                 si texte_ligne[it] == '\t' {
                     imprime("\t")
                 }
@@ -140,7 +138,7 @@ rapporte_erreur :: fonc (parseuse: *ParseuseC, lexème: Token, format: chaine, a
                 }
             }
             imprime("^")
-            pour texte_lexème.taille - 1 {
+            pour numéro_colonne + 1 ... numéro_colonne_fin - 1 {
                 imprime("~")
             }
             imprime("\n")

@@ -37,4 +37,25 @@ détruit :: fonc (unit: *TranslationUnit)
     déloge(unit)
 }
 
+résoud_plage_source :: fonc (unit: *TranslationUnit, lexème: Token) -> PlageSourceRésolue
+{
+    assert(est_valide(lexème.plage_source))
+    
+    fichier := *unit.fichiers[lexème.plage_source.début.fichier]
+
+    texte_lexème := donne_texte(lexème)
+    texte_ligne := donne_ligne_pour_erreur(fichier.contenu_prétaité, texte_lexème)
+
+    résultat: PlageSourceRésolue
+    résultat.fichier = fichier.chemin
+
+    si texte_ligne {
+        résultat.texte_ligne = texte_ligne
+        résultat.numéro_colonne = (texte_lexème.pointeur - texte_ligne.pointeur) comme n64 + 1
+        résultat.numéro_colonne_fin = résultat.numéro_colonne + texte_lexème.taille comme n64
+    }
+
+    retourne résultat
+}
+
 /** \} */

@@ -3,9 +3,33 @@
  * Lexèmes pour le préprocesseur.
  * \{ */
 
+LieuSource :: struct {
+    fichier: z64 = -1
+}
+
+PlageSource :: struct {
+    début: LieuSource
+    fin: LieuSource
+}
+
+PlageSourceRésolue :: struct {
+    fichier: chaine
+    texte_ligne: chaine
+
+    /* Ces deux valeurs commencent à 1. Des valeurs de 0 indique qu'elles n'ont pas pu être résolue. */
+    numéro_ligne: n64
+    numéro_colonne: n64
+    numéro_colonne_fin: n64
+}
+
+est_valide :: fonc (plage: PlageSource) -> bool
+{
+    retourne plage.début.fichier != -1 && plage.fin.fichier != -1
+}
+
 LexèmePréprocès :: struct {
     lexème: Lexème
-    fichier: z64 = -1
+    plage_source: PlageSource
     placemarker: bool
     vient_d_un_argument: bool
     ne_développe_pas: bool
@@ -203,7 +227,7 @@ TokenForm :: énum n8 {
 Token :: struct {
     form: TokenForm
     lexème: Lexème
-    fichier: z64 = -1
+    plage_source: PlageSource
 }
 
 convertis_en_tokens :: fonc (lexèmes_préprocès: []LexèmePréprocès) -> [..]Token
@@ -217,7 +241,7 @@ convertis_en_tokens :: fonc (lexèmes_préprocès: []LexèmePréprocès) -> [..]
 
         token := tableau_ajoute_élément(*résultat)
         token.lexème = it.lexème
-        token.fichier = it.fichier
+        token.plage_source = it.plage_source
 
         discr it.lexème.type {
             MotClé {
@@ -326,7 +350,10 @@ LexeusePréProcès :: struct {
     }
     résultat: LexèmePréprocès
     résultat.lexème = lexème
-    résultat.fichier = lexeuse.fichier
+    plage_source: PlageSource = ---
+    plage_source.début.fichier = lexeuse.fichier
+    plage_source.fin.fichier = lexeuse.fichier
+    résultat.plage_source = plage_source
     retourne résultat
 }
 
