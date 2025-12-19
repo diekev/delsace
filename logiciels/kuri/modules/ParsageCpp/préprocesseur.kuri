@@ -1714,7 +1714,7 @@ empile_fichier :: fonc (préprocesseur: *PréProcesseur, chemin: chaine, trouvé
     fichier.nombre_d_ouvertures += 1
 
     si préprocesseur.messagère {
-        envoie_message_fichier_ouvert(préprocesseur.messagère, préprocesseur.unit, chemin, fichier.nombre_d_ouvertures, pour_include)
+        envoie_message_fichier_ouvert(préprocesseur.messagère, préprocesseur.unit, fichier.chemin, fichier.nombre_d_ouvertures, pour_include)
     }
 
     lexeuse := tableau_ajoute_élément(*préprocesseur.lexeuses)
