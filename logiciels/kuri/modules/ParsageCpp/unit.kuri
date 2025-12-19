@@ -43,7 +43,9 @@ résoud_plage_source :: fonc (unit: *TranslationUnit, lexème: Token) -> PlageSo
     
     fichier := *unit.fichiers[lexème.plage_source.début.fichier]
 
-    texte_lexème := donne_texte(lexème)
+    assert(lexème.plage_source.début.fichier == lexème.plage_source.fin.fichier)
+
+    texte_lexème := chaine(fichier.contenu_prétaité.pointeur + lexème.plage_source.début.décalage, lexème.plage_source.fin.décalage - lexème.plage_source.début.décalage) // donne_texte(lexème)
     texte_ligne := donne_ligne_pour_erreur(fichier.contenu_prétaité, texte_lexème)
 
     résultat: PlageSourceRésolue
