@@ -674,20 +674,20 @@ ajoute_inclusion :: fonc (préprocesseur: *PréProcesseur, chemin: chaine)
     tableau_ajoute(*préprocesseur.chemins_inclusions_système, chemin)
 }
 
-donne_source_préprocédée :: fonc (chemin_source: chaine) -> chaine
+donne_source_préprocédée :: fonc (chemin_source: chaine, collapse_espaces_blanches := faux) -> chaine
 {
     unit := crée_translation_unit_pour_fichier(chemin_source)
     diffère détruit(unit)
     préprocesseur: PréProcesseur
     diffère détruit_données(*préprocesseur)
     initialise_préprocesseur(*préprocesseur, unit)
-    retourne donne_source_préprocédée(*préprocesseur)
+    retourne donne_source_préprocédée(*préprocesseur, collapse_espaces_blanches)
 }
 
-donne_source_préprocédée :: fonc (préprocesseur: *PréProcesseur) -> chaine
+donne_source_préprocédée :: fonc (préprocesseur: *PréProcesseur, collapse_espaces_blanches := faux) -> chaine
 {
     exécute_préprocesseur(préprocesseur)
-    retourne imprime_lexèmes(préprocesseur.unit.lexèmes_préprocès)
+    retourne imprime_lexèmes(préprocesseur.unit.lexèmes_préprocès, collapse_espaces_blanches)
 }
 
 exécute_préprocesseur :: fonc (préprocesseur: *PréProcesseur)

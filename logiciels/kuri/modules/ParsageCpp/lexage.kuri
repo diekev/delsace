@@ -71,8 +71,51 @@ donne_texte_sans_guillemets :: fonc (lexème: LexèmePréprocès) -> chaine #enl
     retourne donne_texte_sans_guillemets(lexème.lexème)
 }
 
-imprime_lexèmes :: fonc (lexèmes: []LexèmePréprocès) -> chaine
+imprime_lexèmes :: fonc (lexèmes: []LexèmePréprocès, collapse_espaces_blanches: bool) -> chaine
 {
+    tmp: [..]LexèmePréprocès
+    diffère déloge(tmp)
+
+    si collapse_espaces_blanches {
+        lexèmes = supprime_espace_blanches_autour(lexèmes)
+
+        tmp = tableau_copie(lexèmes)
+        lexèmes = tmp
+
+        début := lexèmes.pointeur
+        fin := lexèmes.pointeur + lexèmes.taille
+        sortie := début
+
+        tantque début < fin {
+            lexème := mémoire(début)
+
+            si est_lexème_nouvelle_ligne(lexème) {
+                tantque sortie > lexèmes.pointeur {
+                    lexème_précédent := mémoire(sortie - 1)
+                    saufsi est_espace_blanche(lexème_précédent) {
+                        arrête
+                    }
+                    sortie -= 1
+                }
+            }
+            sinon si est_espace_blanche(lexème) {
+                tantque début < fin {
+                    lexème_suivant := mémoire(début + 1)
+                    saufsi est_espace_blanche(lexème_suivant) && !est_lexème_nouvelle_ligne(lexème_suivant) {
+                        arrête
+                    }
+                    début += 1
+                }
+            }
+
+            mémoire(sortie) = lexème
+            sortie += 1
+            début += 1
+        }
+
+        lexèmes.taille = sortie - lexèmes.pointeur
+    }
+
     enchaineuse: Enchaineuse
     initialise_enchaineuse(*enchaineuse)
 
