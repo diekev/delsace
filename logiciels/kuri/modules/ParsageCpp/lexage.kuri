@@ -8,8 +8,7 @@ LexèmePréprocès :: struct {
     fichier: z64 = -1
     placemarker: bool
     vient_d_un_argument: bool
-    commence_à_ignorer: *Définition
-    cesse_d_ignorer: *Définition
+    ne_développe_pas: bool
 }
 
 est_symbole :: fonc (lexème: LexèmePréprocès) -> bool #enligne

@@ -13,7 +13,6 @@ Définition :: struct {
     paramètres: [..]LexèmePréprocès
     lexèmes: [..]LexèmePréprocès
 
-    doit_être_ignorée := faux
     est_intrinsèque: bool
     sur_développement: fonc (préprocesseur: *PréProcesseur, arguments: [..][..]LexèmePréprocès) -> LexèmePréprocès
 }
@@ -333,6 +332,8 @@ PréProcesseur :: struct {
     macros_indéfinissables: [..]chaine
 
     lexèmes_développés: [..]LexèmePréprocès
+
+    macros_en_développement: [..]*Définition
 }
 
 détruit_données :: fonc (préprocesseur: *PréProcesseur)
@@ -348,6 +349,7 @@ détruit_données :: fonc (préprocesseur: *PréProcesseur)
     déloge(préprocesseur.définitions)
     déloge(préprocesseur.pile_branches)
     déloge(préprocesseur.macros_inconnus)
+    déloge(préprocesseur.macros_en_développement)
     détruit_données(*préprocesseur.table_définitions)
 }
 
@@ -1147,6 +1149,9 @@ développe_macro_impl :: fonc (sortie: *[..]LexèmePréprocès, préprocesseur: 
         liste_de_remplacement = liste_finale
     }
 
+    tableau_ajoute(*préprocesseur.macros_en_développement, infos.macro)
+    diffère préprocesseur.macros_en_développement.taille -= 1
+
     // imprimeln("liste de remplacement pour : %", infos.macro.nom)
     // pour liste_de_remplacement {
     //     si it.placemarker {
@@ -1158,15 +1163,20 @@ développe_macro_impl :: fonc (sortie: *[..]LexèmePréprocès, préprocesseur: 
     // }
     // imprime("\n")
 
-    si liste_de_remplacement {
-        liste_de_remplacement[0].commence_à_ignorer = infos.macro
-        liste_de_remplacement[liste_de_remplacement.taille - 1].cesse_d_ignorer = infos.macro
-    }
-
     pour liste_de_remplacement {
         si it.placemarker {
             continue
         }
+
+        définition := donne_définition(préprocesseur, donne_texte(it))
+        si définition {
+            pour macro dans préprocesseur.macros_en_développement {
+                si macro == définition {
+                    it.ne_développe_pas = vrai
+                }
+            }
+        }
+
         tableau_ajoute(sortie, it)
     }
 }
@@ -1411,7 +1421,7 @@ développe_arguments :: fonc (préprocesseur: *PréProcesseur, arguments: *[..]L
         avance(*parseuse)
 
         définition := donne_définition(préprocesseur, lexème)
-        si définition && !définition.doit_être_ignorée {
+        si définition && !lexème.ne_développe_pas {
             si macro_ne_définis_que_son_nom(définition) {
                 tableau_ajoute(*résultat, lexème)
                 continue
@@ -2679,13 +2689,6 @@ donne_lexème_suivant_développé :: fonc (préprocesseur: *PréProcesseur, lexe
     boucle {
         résultat := donne_lexème_suivant(préprocesseur, lexeuse)
 
-        si résultat.commence_à_ignorer {
-            résultat.commence_à_ignorer.doit_être_ignorée = vrai
-        }
-        diffère si résultat.cesse_d_ignorer {
-            résultat.cesse_d_ignorer.doit_être_ignorée = faux
-        }
-
         saufsi est_symbole(résultat) || est_mot_clé(résultat) {
             retourne résultat
         }
@@ -2693,7 +2696,7 @@ donne_lexème_suivant_développé :: fonc (préprocesseur: *PréProcesseur, lexe
         texte := donne_texte(résultat)
 
         définition := donne_définition(préprocesseur, texte)
-        si définition == nul || définition.doit_être_ignorée {
+        si définition == nul || résultat.ne_développe_pas {
             retourne résultat
         }
 
@@ -2704,7 +2707,7 @@ donne_lexème_suivant_développé :: fonc (préprocesseur: *PréProcesseur, lexe
             liste_de_remplacement: [..]LexèmePréprocès
             diffère déloge(liste_de_remplacement)
             développe_macro(*liste_de_remplacement, préprocesseur, *infos_développement)
-            ajoute_liste_de_remplacement(préprocesseur, liste_de_remplacement, définition)
+            ajoute_liste_de_remplacement(préprocesseur, liste_de_remplacement)
             continue
         }
 
@@ -2727,11 +2730,6 @@ donne_lexème_suivant_développé :: fonc (préprocesseur: *PréProcesseur, lexe
         }
 
         /* Parse les paramètres. */
-        pour griffonier {
-            si it.cesse_d_ignorer {
-                it.cesse_d_ignorer.doit_être_ignorée = faux
-            }
-        }
         déloge(griffonier)
 
         niveau_parenthèse := 0
@@ -2785,16 +2783,7 @@ donne_lexème_suivant_développé :: fonc (préprocesseur: *PréProcesseur, lexe
 
         développe_macro(*liste_de_remplacement, préprocesseur, *infos_développement)
 
-        pour griffonier {
-            si it.cesse_d_ignorer {
-                it.cesse_d_ignorer.doit_être_ignorée = faux
-            }
-        }
-        si lexème_fin_paramètre.cesse_d_ignorer {
-            lexème_fin_paramètre.cesse_d_ignorer.doit_être_ignorée = faux
-        }
-
-        ajoute_liste_de_remplacement(préprocesseur, liste_de_remplacement, définition)
+        ajoute_liste_de_remplacement(préprocesseur, liste_de_remplacement)
     }
 
     panique("Nous ne devrions pas être ici")
@@ -2811,17 +2800,12 @@ donne_lexème_suivant :: fonc (préprocesseur: *PréProcesseur, lexeuse: *Lexeus
     retourne donne_lexème_suivant(lexeuse)
 }
 
-ajoute_liste_de_remplacement :: fonc (préprocesseur: *PréProcesseur, liste: []LexèmePréprocès, définition: *Définition)
+ajoute_liste_de_remplacement :: fonc (préprocesseur: *PréProcesseur, liste: []LexèmePréprocès)
 {
     // imprimeln("-- liste de remplacement")
     // pour liste {
     //     imprimeln("  -- %", donne_texte(it))
     // }
-
-    si liste {
-        liste[0].commence_à_ignorer = définition
-        liste[liste.taille - 1].cesse_d_ignorer = définition
-    }
 
     pour > liste {
         tableau_ajoute(*préprocesseur.lexèmes_développés, it)
