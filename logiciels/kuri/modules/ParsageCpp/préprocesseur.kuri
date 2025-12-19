@@ -1117,11 +1117,10 @@ développe_macro_impl :: fonc (sortie: *[..]LexèmePréprocès, préprocesseur: 
         rapporte_erreur(préprocesseur, "Profondeur de développement maximale atteinte")
     }
 
-    pour * infos.arguments {
-        développe_arguments(préprocesseur, it, profondeur + 1)
-    }
-
     si infos.macro.est_intrinsèque {
+        pour * infos.arguments {
+            développe_arguments(préprocesseur, it, profondeur + 1)
+        }
         résultat := infos.macro.sur_développement(préprocesseur, infos.arguments)
         tableau_ajoute(sortie, résultat)
         retourne
@@ -1140,7 +1139,7 @@ développe_macro_impl :: fonc (sortie: *[..]LexèmePréprocès, préprocesseur: 
     liste_de_remplacement: [..]LexèmePréprocès
     diffère déloge(liste_de_remplacement)
 
-    possède_collage := substitue_arguments_dans_liste_de_remplacement(*liste_de_remplacement, infos)
+    possède_collage := substitue_arguments_dans_liste_de_remplacement(préprocesseur, *liste_de_remplacement, infos, profondeur)
     si possède_collage {
         liste_finale: [..]LexèmePréprocès
         applique_opérateurs_de_collage(préprocesseur, *liste_finale, infos, liste_de_remplacement)
@@ -1172,7 +1171,7 @@ développe_macro_impl :: fonc (sortie: *[..]LexèmePréprocès, préprocesseur: 
     }
 }
 
-substitue_arguments_dans_liste_de_remplacement :: fonc (sortie: *[..]LexèmePréprocès, infos: *InfosDéveloppementMacro) -> bool
+substitue_arguments_dans_liste_de_remplacement :: fonc (préprocesseur: *PréProcesseur, sortie: *[..]LexèmePréprocès, infos: *InfosDéveloppementMacro, profondeur: z32) -> bool
 {
     parseuse: SimpleParseuse
     parseuse.lexèmes = infos.macro.lexèmes
@@ -1251,7 +1250,12 @@ substitue_arguments_dans_liste_de_remplacement :: fonc (sortie: *[..]LexèmePré
         }
 
         si indice_param < infos.arguments.taille {
-            pour infos.arguments[indice_param] {
+            arguments := infos.arguments[indice_param]
+            tmp := tableau_copie(arguments)
+            diffère déloge(tmp)
+            développe_arguments(préprocesseur, *tmp, profondeur + 1)
+
+            pour tmp {
                 it.vient_d_un_argument = vrai
                 tableau_ajoute(sortie, it)
             }
