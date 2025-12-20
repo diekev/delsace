@@ -855,7 +855,7 @@ parse_declaration_specifiers :: fonc (empl parseuse: *ParseuseC, déclaration: *
                     retourne
                 }
 
-                type_résolu = parse_enum_specifier(parseuse)
+                type_résolu = parse_enum_specifier(parseuse, lexème)
                 déclaration.type_spécifié = type_résolu
             }
             sinon si specifier == "_Atomic" {
@@ -1418,9 +1418,11 @@ parse_struct_declaration_list :: fonc (empl parseuse: *ParseuseC, declarations: 
     }
 }
 
-parse_enum_specifier :: fonc (parseuse: *ParseuseC) -> *EnumDecl
+parse_enum_specifier :: fonc (parseuse: *ParseuseC, token: Token) -> *EnumDecl
 {
     lexème := épie_lexème_suivant(parseuse)
+
+    token_tag := token
 
     eu_nom := faux
     nom: chaine
@@ -1428,6 +1430,7 @@ parse_enum_specifier :: fonc (parseuse: *ParseuseC) -> *EnumDecl
         consomme_symbole(parseuse)
         nom = donne_texte(lexème)
         eu_nom = vrai
+        token_tag = lexème
 
         lexème = épie_lexème_suivant(parseuse)
     }
@@ -1472,6 +1475,10 @@ parse_enum_specifier :: fonc (parseuse: *ParseuseC) -> *EnumDecl
         }
 
         consomme_ponctuation(parseuse, "}")
+
+        si enumerators.taille == 0 {
+            rapporte_erreur(parseuse, token_tag, "une enum doit avoir au moins 1 (un) énumérateur")
+        }
     }
     sinon saufsi eu_nom {
         rapporte_erreur(parseuse, lexème, "Lexème inattendu dans le parsage de l'énumération : %", donne_texte(lexème))
