@@ -1042,12 +1042,12 @@ donne_fichier_pour_chemin :: fonc (préprocesseur: *PréProcesseur, chemin: chai
 
 rapporte_erreur :: fonc (préprocesseur: *PréProcesseur, lexème: LexèmePréprocès, format: chaine, args: ...eini)
 {
-    rapporte_diagnostique(préprocesseur.unit, TypeDiagnostique.ERREUR, lexème, format, args)
+    rapporte_diagnostique(préprocesseur.unit, TypeDiagnostique.ERREUR, lexème, format, ...args)
 } @Imprimeuse
 
 rapporte_avertissement :: fonc (préprocesseur: *PréProcesseur, lexème: LexèmePréprocès, format: chaine, args: ...eini)
 {
-    rapporte_diagnostique(préprocesseur.unit, TypeDiagnostique.AVERTISSEMENT, lexème, format, args)
+    rapporte_diagnostique(préprocesseur.unit, TypeDiagnostique.AVERTISSEMENT, lexème, format, ...args)
 } @Imprimeuse
 
 rapporte_erreur :: fonc (préprocesseur: *PréProcesseur, format: chaine, args: ...eini)

@@ -80,12 +80,12 @@ TypeDiagnostique :: énum {
 
 rapporte_diagnostique :: fonc (unit: *TranslationUnit, type: TypeDiagnostique, lexème: LexèmePréprocès, format: chaine, args: ...eini)
 {
-    rapporte_diagnostique(unit, type, lexème.plage_source, format, args)
+    rapporte_diagnostique(unit, type, lexème.plage_source, format, ...args)
 }
 
 rapporte_diagnostique :: fonc (unit: *TranslationUnit, type: TypeDiagnostique, token: Token, format: chaine, args: ...eini)
 {
-    rapporte_diagnostique(unit, type, token.plage_source, format, args)
+    rapporte_diagnostique(unit, type, token.plage_source, format, ...args)
 }
 
 rapporte_diagnostique :: fonc (unit: *TranslationUnit, type: TypeDiagnostique, plage_source: PlageSource, format: chaine, args: ...eini)
@@ -114,7 +114,7 @@ rapporte_diagnostique :: fonc (unit: *TranslationUnit, type: TypeDiagnostique, p
         empl plage_source_résolue := résoud_plage_source(unit, plage_source)
         imprime("\x1b[1m%:%:% ", plage_source_résolue.fichier, numéro_ligne, numéro_colonne)
         imprime("%% : \x1b[00m", couleur, intitulé)
-        imprimeln(format, args)
+        imprimeln(format, ...args)
 
         si texte_ligne {
             assert(numéro_colonne > 0)
@@ -165,12 +165,12 @@ rapporte_diagnostique :: fonc (unit: *TranslationUnit, type: TypeDiagnostique, p
         }
         sinon {
             imprime("\x1b[1m%% : \x1b[00m", couleur, intitulé)
-            imprimeln(format, args)
+            imprimeln(format, ...args)
         }
     }
     sinon {
         imprime("\x1b[1m%% : \x1b[00m", couleur, intitulé)
-        imprimeln(format, args)
+        imprimeln(format, ...args)
     }
 
     exit(1)
