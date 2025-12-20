@@ -93,10 +93,10 @@ donne_info_langage_pour_dialecte :: fonc (dialecte: chaine) -> (bool, InfoLangag
         InfoLangage(Langage.C, "c", 201112),
         // InfoLangage(Langage.C, "c89", 1990),
         // InfoLangage(Langage.C, "c90", 1990),
-        // InfoLangage(Langage.C, "c99", 1999),
+        // InfoLangage(Langage.C, "c99", 199901),
         InfoLangage(Langage.C, "c11", 201112),
-        // InfoLangage(Langage.C, "c17", 2017),
-        // InfoLangage(Langage.C, "c18", 2017),
+        // InfoLangage(Langage.C, "c17", 201710),
+        // InfoLangage(Langage.C, "c18", 201710),
         // InfoLangage(Langage.C, "c23", 2023),
         // InfoLangage(Langage.C, "c2x", 2023),
 
