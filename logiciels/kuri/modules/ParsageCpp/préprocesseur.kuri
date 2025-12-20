@@ -28,11 +28,12 @@ peut_accepter_arguments :: fonc (définition: *Définition, arguments: z64) -> b
         retourne arguments == 0
     }
 
-    si arguments <= définition.paramètres.taille {
-        retourne vrai
+    paramètres_requis := définition.paramètres.taille
+    si est_variadique(définition) {
+        retourne arguments >= paramètres_requis - 1
     }
 
-    retourne est_variadique(définition)
+    retourne arguments == paramètres_requis
 }
 
 est_variadique :: fonc (définition: *Définition) -> bool
