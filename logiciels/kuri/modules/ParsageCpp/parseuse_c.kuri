@@ -120,12 +120,12 @@ initialise_parseuse :: fonc (parseuse: *ParseuseC, unit: *TranslationUnit)
 
 rapporte_erreur_interne :: fonc (parseuse: *ParseuseC, lexème: Token, format: chaine, args: ...eini)
 {
-    rapporte_diagnostique(parseuse.unit, TypeDiagnostique.ERREUR_INTERNE, lexème, format, args)
+    rapporte_diagnostique(parseuse.unit, TypeDiagnostique.ERREUR_INTERNE, lexème, format, ...args)
 } @Imprimeuse
 
 rapporte_erreur :: fonc (parseuse: *ParseuseC, lexème: Token, format: chaine, args: ...eini)
 {
-    rapporte_diagnostique(parseuse.unit, TypeDiagnostique.ERREUR, lexème, format, args)
+    rapporte_diagnostique(parseuse.unit, TypeDiagnostique.ERREUR, lexème, format, ...args)
 } @Imprimeuse
 
 parse_texte :: fonc (parseuse: *ParseuseC, texte: chaine) -> *ASTNode
