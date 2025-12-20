@@ -887,9 +887,10 @@ donne_lexèmes_préprocès :: fonc (préprocesseur: *PréProcesseur) -> [..]Lex�
             }
             sinon si texte == "error" {
                 texte = donne_texte_jusque_nouvelle_ligne(lexeuse)
-                rapporte_erreur(préprocesseur, "%", texte)
+                rapporte_erreur(préprocesseur, lexème, "%", texte)
             }
             sinon si texte == "pragma" {
+                lexème_pragma := lexème
                 lexème = donne_lexème_suivant_sauf_espace_blanche(lexeuse)
                 texte = donne_texte(lexème)
                 si texte == "GCC" {
@@ -912,8 +913,30 @@ donne_lexèmes_préprocès :: fonc (préprocesseur: *PréProcesseur) -> [..]Lex�
                         consomme_jusque_nouvelle_ligne(lexeuse)
                     }
                     sinon si texte == "error" {
-                        // une seule chaine littérale
-                        consomme_jusque_nouvelle_ligne(lexeuse)
+                        lexème = donne_lexème_suivant_sauf_espace_blanche(lexeuse)
+                        saufsi est_chaine_littérale(lexème) {
+                            rapporte_erreur(préprocesseur, lexème, "attendu une chaine littérale")
+                        }
+                        sinon {
+                            message_erreur := donne_texte_sans_guillemets(lexème)
+
+                            boucle {
+                                // À FAIRE : épie
+                                lexème = donne_lexème_suivant(lexeuse)
+                                si est_fin_de_fichier(lexème) {
+                                    arrête
+                                }
+                                si est_lexème_nouvelle_ligne(lexème) {
+                                    arrête
+                                }
+
+                                saufsi est_espace_blanche(lexème) {
+                                    rapporte_erreur(préprocesseur, lexème, "lexème superflux après le message d'erreur")
+                                }
+                            }
+
+                            rapporte_erreur(préprocesseur, lexème_pragma, message_erreur)
+                        }
                     }
                     sinon {
                         reprends_depuis_lexème(lexeuse, lexème_directive)
@@ -931,11 +954,11 @@ donne_lexèmes_préprocès :: fonc (préprocesseur: *PréProcesseur) -> [..]Lex�
                     fichier.est_marqué_pragma_once = vrai
                 }
                 sinon {
-                    rapporte_erreur(préprocesseur, "#pragma inconnu")
+                    rapporte_erreur(préprocesseur, lexème_pragma, "#pragma inconnu")
                 }
             }
             sinon si texte != "" {
-                rapporte_erreur(préprocesseur, "Directive inconnue : %", texte)
+                rapporte_erreur(préprocesseur, lexème, "directive inconnue")
             }
 
             lexeuse.est_première_directive = faux
@@ -1017,6 +1040,16 @@ donne_fichier_pour_chemin :: fonc (préprocesseur: *PréProcesseur, chemin: chai
     retourne nul, -1
 }
 
+rapporte_erreur :: fonc (préprocesseur: *PréProcesseur, lexème: LexèmePréprocès, format: chaine, args: ...eini)
+{
+    rapporte_diagnostique(préprocesseur.unit, TypeDiagnostique.ERREUR, lexème, format, args)
+} @Imprimeuse
+
+rapporte_avertissement :: fonc (préprocesseur: *PréProcesseur, lexème: LexèmePréprocès, format: chaine, args: ...eini)
+{
+    rapporte_diagnostique(préprocesseur.unit, TypeDiagnostique.AVERTISSEMENT, lexème, format, args)
+} @Imprimeuse
+
 rapporte_erreur :: fonc (préprocesseur: *PréProcesseur, format: chaine, args: ...eini)
 {
     rapporte_diagnostique(préprocesseur, "erreur", format, ...args)
@@ -1049,11 +1082,6 @@ rapporte_erreur_mécomptage_arguments :: fonc (préprocesseur: *PréProcesseur, 
     message := chaine_depuis_enchaineuse(*enchaineuse)
     rapporte_erreur(préprocesseur, "%", message)
 }
-
-rapporte_avertissement :: fonc (préprocesseur: *PréProcesseur, format: chaine, args: ...eini)
-{
-    rapporte_diagnostique(préprocesseur, "avertissement", format, ...args)
-} @Imprimeuse
 
 rapporte_diagnostique :: fonc (préprocesseur: *PréProcesseur, type: chaine, format: chaine, args: ...eini)
 {
@@ -1343,7 +1371,7 @@ applique_opérateurs_de_collage :: fonc (préprocesseur: *PréProcesseur, sortie
                     lexème_suivant := donne_lexème_suivant(*parseuse)
 
                     si est_fin_de_fichier(lexème_suivant) {
-                        rapporte_erreur(préprocesseur, "Fin de fichier inattendu")
+                        rapporte_erreur(préprocesseur, parseuse.lexèmes[parseuse.lexèmes.taille - 1], "fin de fichier inattendu")
                         arrête
                     }
 
@@ -1446,7 +1474,7 @@ développe_arguments :: fonc (préprocesseur: *PréProcesseur, arguments: *[..]L
                     lexème = donne_lexème_suivant(*parseuse)
                 }
                 saufsi est_ponctuation(lexème, "(") {
-                    rapporte_erreur(préprocesseur, "Arguments manquant dans le développement de '%'", définition.nom)
+                    rapporte_erreur(préprocesseur, lexème, "arguments manquant dans le développement de '%'", définition.nom)
                 }
                 avance(*parseuse)
                 arguments_définition = parse_tranche_arguments(*parseuse, définition)
@@ -1930,7 +1958,7 @@ Symbole :: struct {
     empl base: ExpressionPréProc
     type = #type_de_cette_structure
 
-    texte: chaine
+    lexème: LexèmePréprocès
 }
 
 OpérateurBinaire :: struct {
@@ -2005,10 +2033,10 @@ ExpressionTernaire :: struct {
             symbole := expression comme *Symbole
 
             si préprocesseur.avertis_sur_macro_non_définis {
-                rapporte_avertissement(préprocesseur, "Évaluation d'un symbole '%'", symbole.texte)
+                rapporte_avertissement(préprocesseur, symbole.lexème, "macro inconnu")
             }
 
-            ensemble_ajoute(*préprocesseur.macros_inconnus, symbole.texte)
+            ensemble_ajoute(*préprocesseur.macros_inconnus, donne_texte(symbole.lexème))
         }
         OpérateurBinaire {
             opérateur_binaire := expression comme *OpérateurBinaire
@@ -2425,9 +2453,7 @@ parse_expression :: fonc (préprocesseur: *PréProcesseur, parseuse: *SimplePars
 
             lexème = donne_lexème_suivant(parseuse)
             saufsi est_ponctuation(lexème, ":") {
-                // ligne := donne_ligne_pour_erreur(parseuse)
-                // imprimeln("%", ligne.texte)
-                rapporte_erreur(préprocesseur, "Attendu ':', obtenu '%' (%)", donne_texte(lexème), lexème.lexème.type)
+                rapporte_erreur(préprocesseur, lexème, "attendu ':'")
             }
 
             avance(parseuse)
@@ -2469,7 +2495,7 @@ parse_expression_primaire :: fonc (préprocesseur: *PréProcesseur, parseuse: *S
         si eu_parenthèse {
             lexème = donne_lexème_suivant(parseuse)
             saufsi est_ponctuation(lexème, ")") {
-                rapporte_erreur(préprocesseur, "Attendu une parenthèse fermante pour l'expression de defined")
+                rapporte_erreur(préprocesseur, lexème, "attendu ')' pour fermer defined")
             }
             avance(parseuse)
         }
@@ -2482,9 +2508,7 @@ parse_expression_primaire :: fonc (préprocesseur: *PréProcesseur, parseuse: *S
 
         lexème = donne_lexème_suivant(parseuse)
         saufsi est_ponctuation(lexème, ")") {
-            // ligne := donne_ligne_pour_erreur(parseuse)
-            // imprimeln("%", ligne.texte)
-            rapporte_erreur(préprocesseur, "Attendu ')' pour terminer l'expression, obtenu '%' (%)", donne_texte(lexème), lexème.lexème.type)
+            rapporte_erreur(préprocesseur, lexème, "attendu ')'")
         }
         avance(parseuse)
     }
@@ -2497,12 +2521,10 @@ parse_expression_primaire :: fonc (préprocesseur: *PréProcesseur, parseuse: *S
     sinon si est_symbole(lexème) {
         avance(parseuse)
 
-        texte = donne_texte(lexème)
-
         // Nous n'avons de définition pour ce symbole.
         // Ce n'est pas une erreur car nous pourrions être dans une branche qui ne sera pas évalué.
         symbole := loge(Symbole)
-        symbole.texte = texte
+        symbole.lexème = lexème
         résultat = symbole
     }
     sinon si lexème.lexème.type == TypeLexème.Nombre {
@@ -2542,7 +2564,7 @@ parse_expression_primaire :: fonc (préprocesseur: *PréProcesseur, parseuse: *S
                             nombre.nombre += (it - 'A')
                         }
                         sinon {
-                            rapporte_erreur(préprocesseur, "Caractère constant invalide")
+                            rapporte_erreur(préprocesseur, lexème, "Caractère constant invalide")
                         }
                     }
 
@@ -2600,18 +2622,18 @@ parse_expression_primaire :: fonc (préprocesseur: *PréProcesseur, parseuse: *S
                             nombre.nombre += (it - '0')
                         }
                         sinon {
-                            rapporte_erreur(préprocesseur, "Caractère constant invalide")
+                            rapporte_erreur(préprocesseur, lexème, "Caractère constant invalide")
                         }
                     }
 
                     texte_caractère = avance(texte_caractère, texte_caractère.taille)
                 }
                 sinon {
-                    rapporte_erreur(préprocesseur, "Séquence d'échappement invalide")
+                    rapporte_erreur(préprocesseur, lexème, "Séquence d'échappement invalide")
                 }
 
                 si texte_caractère {
-                    rapporte_erreur(préprocesseur, "Trop de caractères dans la constante de caractère")
+                    rapporte_erreur(préprocesseur, lexème, "Trop de caractères dans la constante de caractère")
                 }
             }
         }
@@ -2632,7 +2654,7 @@ parse_expression_primaire :: fonc (préprocesseur: *PréProcesseur, parseuse: *S
         résultat = parse_expression(préprocesseur, parseuse, info_opérateur)
     }
     sinon {
-        rapporte_erreur(préprocesseur, "Lexème pour expression inconnu : '%' (%)", texte, lexème.lexème.type)
+        rapporte_erreur(préprocesseur, lexème, "lexème inattendu")
     }
 
     retourne résultat
@@ -2661,7 +2683,7 @@ imprime_arbre :: fonc (noeud: *ExpressionPréProc)
             }
             Symbole {
                 symbole := noeud comme *Symbole
-                imprime("% : %\n", info.nom, symbole.texte)
+                imprime("% : %\n", info.nom, donne_texte(symbole.lexème))
             }
             OpérateurBinaire {
                 opérateur_binaire := noeud comme *OpérateurBinaire

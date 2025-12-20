@@ -37,15 +37,15 @@ détruit :: fonc (unit: *TranslationUnit)
     déloge(unit)
 }
 
-résoud_plage_source :: fonc (unit: *TranslationUnit, lexème: Token) -> PlageSourceRésolue
+résoud_plage_source :: fonc (unit: *TranslationUnit, plage_source: PlageSource) -> PlageSourceRésolue
 {
-    assert(est_valide(lexème.plage_source))
+    assert(est_valide(plage_source))
     
-    fichier := *unit.fichiers[lexème.plage_source.début.fichier]
+    fichier := *unit.fichiers[plage_source.début.fichier]
 
-    assert(lexème.plage_source.début.fichier == lexème.plage_source.fin.fichier)
+    assert(plage_source.début.fichier == plage_source.fin.fichier)
 
-    texte_lexème := chaine(fichier.contenu_prétaité.pointeur + lexème.plage_source.début.décalage, lexème.plage_source.fin.décalage - lexème.plage_source.début.décalage) // donne_texte(lexème)
+    texte_lexème := chaine(fichier.contenu_prétaité.pointeur + plage_source.début.décalage, plage_source.fin.décalage - plage_source.début.décalage)
     texte_ligne := donne_ligne_pour_erreur(fichier.contenu_prétaité, texte_lexème)
 
     résultat: PlageSourceRésolue
@@ -78,7 +78,17 @@ TypeDiagnostique :: énum {
     AVERTISSEMENT
 }
 
+rapporte_diagnostique :: fonc (unit: *TranslationUnit, type: TypeDiagnostique, lexème: LexèmePréprocès, format: chaine, args: ...eini)
+{
+    rapporte_diagnostique(unit, type, lexème.plage_source, format, args)
+}
+
 rapporte_diagnostique :: fonc (unit: *TranslationUnit, type: TypeDiagnostique, token: Token, format: chaine, args: ...eini)
+{
+    rapporte_diagnostique(unit, type, token.plage_source, format, args)
+}
+
+rapporte_diagnostique :: fonc (unit: *TranslationUnit, type: TypeDiagnostique, plage_source: PlageSource, format: chaine, args: ...eini)
 {
     couleur: chaine = ---
     intitulé: chaine = ---
@@ -100,8 +110,8 @@ rapporte_diagnostique :: fonc (unit: *TranslationUnit, type: TypeDiagnostique, t
         }
     }
 
-    si est_valide(token.plage_source) {
-        empl plage_source_résolue := résoud_plage_source(unit, token)
+    si est_valide(plage_source) {
+        empl plage_source_résolue := résoud_plage_source(unit, plage_source)
         imprime("\x1b[1m%:%:% ", plage_source_résolue.fichier, numéro_ligne, numéro_colonne)
         imprime("%% : \x1b[00m", couleur, intitulé)
         imprimeln(format, args)
@@ -154,7 +164,8 @@ rapporte_diagnostique :: fonc (unit: *TranslationUnit, type: TypeDiagnostique, t
             imprime("\x1b[00m\n")
         }
         sinon {
-            imprimeln("lexème : % (%)", donne_texte(token), token.lexème.type)
+            imprime("\x1b[1m%% : \x1b[00m", couleur, intitulé)
+            imprimeln(format, args)
         }
     }
     sinon {
