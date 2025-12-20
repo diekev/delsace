@@ -5,6 +5,7 @@
 InvocationMacro :: struct {
     lexème: LexèmePréprocès
     macro: *Définition
+    lexèmes_résultants: [..]LexèmePréprocès
 }
 
 TranslationUnit :: struct {
@@ -38,6 +39,9 @@ crée_translation_unit_pour_fichier :: fonc (chemin: chaine, info: InfoLangage) 
 
 détruit :: fonc (unit: *TranslationUnit)
 {
+    pour unit.invocations_macros {
+        déloge(it.lexèmes_résultantss)
+    }
     déloge(unit.invocations_macros)
     déloge(unit.lexèmes_préprocès)
     déloge(unit.tokens)
@@ -178,10 +182,7 @@ rapporte_diagnostique :: fonc (unit: *TranslationUnit, type: TypeDiagnostique, p
                 imprimeln("%", texte_ligne)
             }
 
-            pour largeur_goutière {
-                imprime(" ")
-            }
-            imprime("| ")
+            imprime_gouttière(largeur_goutière)
 
             si type != TypeDiagnostique.NOTE {
                 pour numéro_colonne - 1 {
@@ -198,6 +199,74 @@ rapporte_diagnostique :: fonc (unit: *TranslationUnit, type: TypeDiagnostique, p
                 }
             }
             imprime("\x1b[00m\n")
+
+            premier_développement := vrai
+
+            plage_macro := plage_source
+            plage_pour_sousligner := plage_source
+
+            tantque plage_macro.début.invocation != -1 {
+                invocation := *unit.invocations_macros[plage_macro.début.invocation]
+
+                imprime_gouttière(largeur_goutière)
+                imprimeln("")
+
+                imprime_gouttière(largeur_goutière)
+
+                si premier_développement {
+                    premier_développement = faux
+                    imprime("Le diagnostique est dans le ")
+                }
+                sinon {
+                    imprime("... qui provient du ")
+                }
+
+                imprimeln("développement de la macro « % » qui donna le résultat suivant :", invocation.macro.nom)
+
+                imprime_gouttière(largeur_goutière)
+                imprimeln("")
+
+                lexème_à_souligner: z64 = -1
+
+                imprime_gouttière(largeur_goutière)
+                imprime("   ")
+                pour invocation.lexèmes_résultants {
+                    est_l_intéressé := sont_même_plage_fichier(it.plage_source, plage_pour_sousligner)
+
+                    si est_l_intéressé {
+                        imprime("%", couleur)
+                    }
+
+                    imprime("%", donne_texte(it))
+
+                    si est_l_intéressé {
+                        imprime("\x1b[00m")
+                        lexème_à_souligner = indice_it
+                    }
+                }
+                imprimeln("")
+
+                si lexème_à_souligner != -1 {
+                    imprime_gouttière(largeur_goutière)
+                    imprime("   %", couleur)
+                    pour invocation.lexèmes_résultants {
+                        si lexème_à_souligner == indice_it {
+                            imprime_tildes_pour_texte(donne_texte(it))
+                            arrête
+                        }
+                        sinon {
+                            imprime_espaces_pour_texte(donne_texte(it))
+                        }
+                    }
+                    imprimeln("\x1b[00m")
+                }
+
+                imprime_gouttière(largeur_goutière)
+                imprimeln("")
+
+                plage_macro = invocation.lexème.plage_source
+                plage_pour_sousligner = plage_macro
+            }
         }
         sinon {
             imprime("\x1b[1m%% : \x1b[00m", couleur, intitulé)
@@ -213,5 +282,44 @@ rapporte_diagnostique :: fonc (unit: *TranslationUnit, type: TypeDiagnostique, p
         exit(1)
     }
 } @Imprimeuse
+
+#portée_fichier
+
+imprime_gouttière :: fonc (largeur: n64)
+{
+    pour largeur {
+        imprime(" ")
+    }
+    imprime("| ")
+}
+
+imprime_espaces_pour_texte :: fonc (texte: chaine)
+{
+    pour texte {
+        si it == '\t' {
+            imprime("\t")
+        }
+        sinon {
+            imprime(" ")
+        }
+    }
+}
+
+imprime_tildes_pour_texte :: fonc (texte: chaine)
+{
+    pour texte {
+        imprime("~")
+    }
+}
+
+sont_même_plage_fichier :: fonc (a: PlageSource, b: PlageSource) -> bool
+{
+    retourne sont_même_lieu_source_fichier(a.début, b.début) && sont_même_lieu_source_fichier(a.fin, b.fin)
+}
+
+sont_même_lieu_source_fichier :: fonc (a: LieuSource, b: LieuSource) -> bool
+{
+    retourne a.fichier == b.fichier && a.décalage == b.décalage
+}
 
 /** \} */

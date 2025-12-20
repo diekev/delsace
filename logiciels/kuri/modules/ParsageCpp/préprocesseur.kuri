@@ -1158,6 +1158,10 @@ développe_macro_impl :: fonc (sortie: *[..]LexèmePréprocès, préprocesseur: 
         résultat := infos.macro.sur_développement(préprocesseur, infos.arguments)
         résultat.plage_source.début.invocation = indice_invocation
         résultat.plage_source.fin.invocation = indice_invocation
+
+        invocation := *préprocesseur.unit.invocations_macros[indice_invocation]
+        tableau_ajoute(*invocation.lexèmes_résultants, résultat)
+
         tableau_ajoute(sortie, résultat)
         retourne
     }
@@ -1197,6 +1201,8 @@ développe_macro_impl :: fonc (sortie: *[..]LexèmePréprocès, préprocesseur: 
     // }
     // imprime("\n")
 
+    invocation := *préprocesseur.unit.invocations_macros[indice_invocation]
+
     pour liste_de_remplacement {
         si it.placemarker {
             continue
@@ -1215,6 +1221,8 @@ développe_macro_impl :: fonc (sortie: *[..]LexèmePréprocès, préprocesseur: 
             it.plage_source.début.invocation = indice_invocation
             it.plage_source.fin.invocation = indice_invocation
         }
+
+        tableau_ajoute(*invocation.lexèmes_résultants, it)
 
         tableau_ajoute(sortie, it)
     }
