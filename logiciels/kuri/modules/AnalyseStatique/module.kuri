@@ -40,9 +40,9 @@ greffon_analyse_sur_message :: fonc (greffon: *GreffonAnalyse, message: *Message
 {
     si message.genre == GenreMessage.TYPAGE_CODE_TERMINÉ {
         message_typage := message comme *MessageTypageCodeTerminé
-        si greffon.options.imprimeuses {
-            vérifie_appels_imprimeuses(message.espace, message_typage.code)
-        }
+
+        vérifie_appels(message.espace, message_typage.code, greffon.options.imprimeuses)
+
         si greffon.options.ligne_de_cache {
             vérifie_dépassement_ligne_de_cache(message_typage.code, greffon.options)
         }
@@ -71,7 +71,7 @@ greffon_analyse_sur_destruction :: fonc (greffon: *GreffonAnalyse)
     déloge(greffon)
 }
 
-vérifie_appels_imprimeuses :: fonc (espace: EspaceDeTravail, code: *NoeudCode)
+vérifie_appels :: fonc (espace: EspaceDeTravail, code: *NoeudCode, vérifie_imprimeuses: bool)
 {
     si code.genre != GenreNoeud.DÉCLARATION_CORPS_FONCTION {
         retourne
@@ -87,8 +87,40 @@ vérifie_appels_imprimeuses :: fonc (espace: EspaceDeTravail, code: *NoeudCode)
             }
 
             référence := appel.expression comme *NoeudCodeRéférenceDéclaration
-            entête_imprimeuse := est_fonction_imprimeuse(référence.déclaration_référée)
-            saufsi entête_imprimeuse {
+
+            déclaration_référée := référence.déclaration_référée
+            saufsi déclaration_référée {
+                // À FAIRE : parfois nous avons une référence nulle
+                continue
+            }
+
+            si déclaration_référée.genre != GenreNoeud.DÉCLARATION_ENTÊTE_FONCTION {
+                continue
+            }
+
+            entête := déclaration_référée comme *NoeudCodeEntêteFonction
+            entête_imprimeuse: *NoeudCodeEntêteFonction
+            pour entête.annotations {
+                si it.nom == "Imprimeuse" {
+                    entête_imprimeuse = entête
+                }
+                sinon si it.nom == "Obsolète" {
+                    message_avertissement := "Appel d'une fonction obsolète"
+                    compilatrice_rapporte_avertissement(espace, appel, message_avertissement)
+                    si it.valeur {
+                        compilatrice_rapporte_info(espace, appel.nom_fichier, appel.numéro_ligne, it.valeur)
+                    }
+                }
+                sinon si it.nom == "Avertis" {
+                    message_avertissement := "Je doit avertir mais je ne sais pas pourquoi..."
+                    si it.valeur {
+                        message_avertissement = it.valeur
+                    }
+                    compilatrice_rapporte_avertissement(espace, appel, message_avertissement)
+                }
+            }
+
+            saufsi entête_imprimeuse && vérifie_imprimeuses {
                 continue
             }
 
@@ -142,19 +174,7 @@ vérifie_appels_imprimeuses :: fonc (espace: EspaceDeTravail, code: *NoeudCode)
 
 est_fonction_imprimeuse :: fonc (code: *NoeudCode) -> *NoeudCodeEntêteFonction
 {
-    si code == nul {
-        // À FAIRE : parfois nous avons une référence nulle
-        retourne nul
-    }
-
-    si code.genre != GenreNoeud.DÉCLARATION_ENTÊTE_FONCTION {
-        retourne nul
-    }
-
-    entête := code comme *NoeudCodeEntêteFonction
-    saufsi fonction_possède_annotation(entête, "Imprimeuse") {
-        retourne nul
-    }
+    
 
     retourne entête
 }
