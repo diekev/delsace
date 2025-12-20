@@ -53,6 +53,18 @@ résoud_plage_source :: fonc (unit: *TranslationUnit, lexème: Token) -> PlageSo
 
     si texte_ligne {
         résultat.texte_ligne = texte_ligne
+        résultat.numéro_ligne = 1
+
+        début := fichier.contenu_prétaité.pointeur
+        fin := texte_ligne.pointeur
+
+        tantque début < fin {
+            si mémoire(début) == '\n' {
+                résultat.numéro_ligne += 1
+            }
+            début += 1
+        }
+
         résultat.numéro_colonne = (texte_lexème.pointeur - texte_ligne.pointeur) comme n64 + 1
         résultat.numéro_colonne_fin = résultat.numéro_colonne + texte_lexème.taille comme n64
     }

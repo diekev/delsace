@@ -1,3 +1,6 @@
+importe Math // pour max
+importe Numérique // pour magnitude_décimale
+
 // @copié de JSON
 donne_ligne_pour_erreur :: fonc (texte: chaine, mot: chaine) -> chaine
 {
@@ -117,12 +120,45 @@ initialise_parseuse :: fonc (parseuse: *ParseuseC, unit: *TranslationUnit)
 
 rapporte_erreur :: fonc (parseuse: *ParseuseC, lexème: Token, format: chaine, args: ...eini)
 {
+    message := imprime_chaine(format, ...args)
+    diffère déloge(message)
+
     si est_valide(lexème.plage_source) {
         empl plage_source_résolue := résoud_plage_source(parseuse.unit, lexème)
-        imprimeln("%", plage_source_résolue.fichier)
+        imprimeln("\x1b[1m%:%:% \x1b[31merreur :\x1b[00m %", plage_source_résolue.fichier, numéro_ligne, numéro_colonne, message)
         si texte_ligne {
-            imprimeln("%", texte_ligne)
             assert(numéro_colonne > 0)
+
+            largeur_numéro_ligne := magnitude_décimale(numéro_ligne)
+            largeur_goutière := max(6 comme n64, largeur_numéro_ligne + 2)
+
+            pour largeur_goutière - largeur_numéro_ligne - 1 {
+                imprime(" ")
+            }
+
+            imprime("% | ", numéro_ligne)
+
+            texte_avant_erreur := texte_ligne
+            texte_avant_erreur.taille = numéro_colonne comme z64 - 1
+
+            si texte_avant_erreur {
+                imprime("%", texte_avant_erreur)
+            }
+
+            texte_à_surligner := avance(texte_ligne, numéro_colonne comme z64 - 1)
+            texte_à_surligner.taille = (numéro_colonne_fin - numéro_colonne) comme z64
+
+            imprime("\x1b[1m\x1b[31m%\x1b[00m", texte_à_surligner)
+
+            texte_restant := avance(texte_ligne, numéro_colonne_fin comme z64 - 1)
+
+            imprimeln("%", texte_restant)
+
+            pour largeur_goutière {
+                imprime(" ")
+            }
+            imprime("| ")
+
             pour numéro_colonne - 1 {
                 si texte_ligne[it] == '\t' {
                     imprime("\t")
@@ -131,17 +167,20 @@ rapporte_erreur :: fonc (parseuse: *ParseuseC, lexème: Token, format: chaine, a
                     imprime(" ")
                 }
             }
-            imprime("^")
+            imprime("\x1b[1m\x1b[31m^")
             pour numéro_colonne + 1 ... numéro_colonne_fin - 1 {
                 imprime("~")
             }
-            imprime("\n")
+            imprime("\x1b[00m\n")
         }
         sinon {
             imprimeln("lexème : % (%)", lexème.donne_texte(), lexème.lexème.type)
         }
     }
-    imprimeln(format, ...args)
+    sinon {
+        imprimeln("\x1b[1m\x1b[31merreur :\x1b[00m %", message)
+    }
+
     exit(1)
 } @Imprimeuse
 
