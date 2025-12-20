@@ -2776,6 +2776,7 @@ donne_lexème_suivant_développé :: fonc (préprocesseur: *PréProcesseur, lexe
         lexème_appel := lexème
 
         saufsi est_ponctuation(lexème, "(") {
+            tableau_ajoute(*préprocesseur.lexèmes_développés, lexème)
             pour > griffonier {
                 tableau_ajoute(*préprocesseur.lexèmes_développés, it)
             }
