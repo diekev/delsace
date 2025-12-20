@@ -1499,11 +1499,7 @@ développe_arguments :: fonc (préprocesseur: *PréProcesseur, arguments: *[..]L
                     rapporte_erreur(préprocesseur, lexème, "arguments manquant dans le développement de '%'", définition.nom)
                 }
                 avance(*parseuse)
-                arguments_définition = parse_tranche_arguments(*parseuse, définition)
-
-                saufsi peut_accepter_arguments(définition, arguments_définition.taille) {
-                    rapporte_erreur_mécomptage_arguments(préprocesseur, définition, lexème_appel, arguments_définition.taille)
-                }
+                arguments_définition = parse_tranche_arguments(*parseuse, préprocesseur, définition, lexème_appel)
             }
             sinon {
                 restaure_position(*parseuse)
@@ -2201,7 +2197,7 @@ saute_espaces_blanches_sauf_nouvelle_ligne :: fonc (parseuse: *SimpleParseuse)
     }
 }
 
-parse_tranche_arguments :: fonc (parseuse: *SimpleParseuse, définition: *Définition) -> [..][..]LexèmePréprocès
+parse_tranche_arguments :: fonc (parseuse: *SimpleParseuse, préprocesseur: *PréProcesseur, définition: *Définition, lexème_appel: LexèmePréprocès) -> [..][..]LexèmePréprocès
 {
     résultat: [..][..]LexèmePréprocès
 
@@ -2218,6 +2214,7 @@ parse_tranche_arguments :: fonc (parseuse: *SimpleParseuse, définition: *Défin
         }
         si est_ponctuation(lexème, ")") {
             si niveau_parenthèse == 0 {
+                tableau_ajoute(*résultat, tranche_courante)
                 arrête
             }
             niveau_parenthèse -= 1
@@ -2233,12 +2230,12 @@ parse_tranche_arguments :: fonc (parseuse: *SimpleParseuse, définition: *Défin
         tableau_ajoute(*tranche_courante, lexème)
     }
 
-    si tranche_courante {
-        tableau_ajoute(*résultat, tranche_courante)
-    }
-
     pour * résultat {
         supprime_espace_blanches_autour(it)
+    }
+
+    si résultat.taille == 1 && résultat[0].taille == 0 && nombre_de_paramètres == 0 {
+        résultat.taille = 0
     }
 
     // pour résultat {
@@ -2247,6 +2244,10 @@ parse_tranche_arguments :: fonc (parseuse: *SimpleParseuse, définition: *Défin
     //         imprimeln("-- %", donne_texte(l))
     //     }
     // }
+
+    saufsi peut_accepter_arguments(définition, résultat.taille) {
+        rapporte_erreur_mécomptage_arguments(préprocesseur, définition, lexème_appel, résultat.taille)
+    }
 
     retourne résultat
 }
@@ -2812,10 +2813,7 @@ donne_lexème_suivant_développé :: fonc (préprocesseur: *PréProcesseur, lexe
         parseuse: SimpleParseuse
         parseuse.lexèmes = griffonier
 
-        arguments := parse_tranche_arguments(*parseuse, définition)
-        saufsi peut_accepter_arguments(définition, arguments.taille) {
-            rapporte_erreur_mécomptage_arguments(préprocesseur, définition, lexème_appel, arguments.taille)
-        }
+        arguments := parse_tranche_arguments(*parseuse, préprocesseur, définition, lexème_appel)
 
         // imprimeln("-- arguments")
         // pour args, indice_args dans arguments {
