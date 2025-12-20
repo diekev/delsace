@@ -1128,6 +1128,7 @@ extrait_chemin_inclusion_système :: fonc (préprocesseur: *PréProcesseur, pars
 }
 
 InfosDéveloppementMacro :: struct {
+    lexème: LexèmePréprocès
     macro: *Définition
     arguments: [..][..]LexèmePréprocès
 }
@@ -1148,11 +1149,15 @@ développe_macro_impl :: fonc (sortie: *[..]LexèmePréprocès, préprocesseur: 
         rapporte_erreur(préprocesseur, "Profondeur de développement maximale atteinte")
     }
 
+    indice_invocation := crée_invocation_de_macro(préprocesseur.unit, infos.lexème, infos.macro)
+
     si infos.macro.est_intrinsèque {
         pour * infos.arguments {
             développe_arguments(préprocesseur, it, profondeur + 1)
         }
         résultat := infos.macro.sur_développement(préprocesseur, infos.arguments)
+        résultat.plage_source.début.invocation = indice_invocation
+        résultat.plage_source.fin.invocation = indice_invocation
         tableau_ajoute(sortie, résultat)
         retourne
     }
@@ -1204,6 +1209,11 @@ développe_macro_impl :: fonc (sortie: *[..]LexèmePréprocès, préprocesseur: 
                     it.ne_développe_pas = vrai
                 }
             }
+        }
+
+        si it.plage_source.début.invocation == -1 {
+            it.plage_source.début.invocation = indice_invocation
+            it.plage_source.fin.invocation = indice_invocation
         }
 
         tableau_ajoute(sortie, it)
@@ -1462,6 +1472,8 @@ développe_arguments :: fonc (préprocesseur: *PréProcesseur, arguments: *[..]L
             sauvegarde_position(*parseuse)
             saute_espaces_blanches_sauf_nouvelle_ligne(*parseuse)
 
+            lexème_appel := lexème
+
             si définition.est_semble_fonction {
                 si fini(*parseuse) || !est_ponctuation(donne_lexème_suivant(*parseuse), "(") {
                     restaure_position(*parseuse)
@@ -1474,7 +1486,7 @@ développe_arguments :: fonc (préprocesseur: *PréProcesseur, arguments: *[..]L
                     avance(*parseuse)
                     lexème = donne_lexème_suivant(*parseuse)
                 }
-                lexème_appel := lexème
+                lexème_appel = lexème
                 saufsi est_ponctuation(lexème, "(") {
                     rapporte_erreur(préprocesseur, lexème, "arguments manquant dans le développement de '%'", définition.nom)
                 }
@@ -1490,6 +1502,7 @@ développe_arguments :: fonc (préprocesseur: *PréProcesseur, arguments: *[..]L
             }
 
             infos_développement: InfosDéveloppementMacro
+            infos_développement.lexème = lexème_appel
             infos_développement.macro = définition
             infos_développement.arguments = arguments_définition
             développe_macro_impl(*résultat, préprocesseur, *infos_développement, profondeur + 1)
@@ -2730,6 +2743,7 @@ donne_lexème_suivant_développé :: fonc (préprocesseur: *PréProcesseur, lexe
 
         saufsi définition.est_semble_fonction {
             infos_développement: InfosDéveloppementMacro
+            infos_développement.lexème = résultat
             infos_développement.macro = définition
             // @Vitesse
             liste_de_remplacement: [..]LexèmePréprocès
@@ -2804,6 +2818,7 @@ donne_lexème_suivant_développé :: fonc (préprocesseur: *PréProcesseur, lexe
         // }
 
         infos_développement: InfosDéveloppementMacro
+        infos_développement.lexème = lexème_appel
         infos_développement.macro = définition
         infos_développement.arguments = arguments
 

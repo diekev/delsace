@@ -2,6 +2,11 @@
 /** \nom TranslationUnit
  * \{ */
 
+InvocationMacro :: struct {
+    lexème: LexèmePréprocès
+    macro: *Définition
+}
+
 TranslationUnit :: struct {
     chemin_racine: chaine
     info_langage: InfoLangage
@@ -11,6 +16,8 @@ TranslationUnit :: struct {
     tokens: [..]Token
 
     declarations: [..]*ASTNode
+
+    invocations_macros: [..]InvocationMacro
 }
 
 crée_translation_unit_pour_fichier :: fonc (chemin: chaine) -> *TranslationUnit
@@ -31,16 +38,32 @@ crée_translation_unit_pour_fichier :: fonc (chemin: chaine, info: InfoLangage) 
 
 détruit :: fonc (unit: *TranslationUnit)
 {
+    déloge(unit.invocations_macros)
     déloge(unit.lexèmes_préprocès)
     déloge(unit.tokens)
     déloge(unit.fichiers)
     déloge(unit)
 }
 
+crée_invocation_de_macro :: fonc (unit: *TranslationUnit, lexème: LexèmePréprocès, macro: *Définition) -> z64
+{
+    résultat := tableau_ajoute_élément(*unit.invocations_macros)
+    résultat.lexème = lexème
+    résultat.macro = macro
+    retourne unit.invocations_macros.taille - 1
+}
+
 résoud_plage_source :: fonc (unit: *TranslationUnit, plage_source: PlageSource) -> PlageSourceRésolue
 {
     assert(est_valide(plage_source))
-    
+
+    tantque plage_source.début.invocation != -1 {
+        assert(plage_source.début.invocation == plage_source.fin.invocation)
+        invocation := unit.invocations_macros[plage_source.début.invocation]
+        plage_source = invocation.lexème.plage_source
+        assert(est_valide(plage_source))
+    }
+
     fichier := *unit.fichiers[plage_source.début.fichier]
 
     assert(plage_source.début.fichier == plage_source.fin.fichier)
