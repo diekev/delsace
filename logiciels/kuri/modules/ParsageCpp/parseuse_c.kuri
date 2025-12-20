@@ -846,7 +846,7 @@ parse_declaration_specifiers :: fonc (empl parseuse: *ParseuseC, déclaration: *
                     retourne
                 }
 
-                type_résolu = parse_struct_or_union_specifier(parseuse, specifier)
+                type_résolu = parse_struct_or_union_specifier(parseuse, lexème)
                 déclaration.type_spécifié = type_résolu
             }
             sinon si specifier == "enum" {
@@ -1290,11 +1290,14 @@ parse_direct_declarator :: fonc (empl parseuse: *ParseuseC, présence_identifier
     struct-or-union identifieropt { struct-declaration-list }
     struct-or-union identifier
  */
-parse_struct_or_union_specifier :: fonc (empl parseuse: *ParseuseC, classe: chaine) -> *Type
+parse_struct_or_union_specifier :: fonc (empl parseuse: *ParseuseC, token: Token) -> *Type
 {
+    classe := donne_texte(token)
     assert(classe == "struct" || classe == "union")
 
     lexème := épie_lexème_suivant(parseuse)
+
+    token_tag := token
 
     eu_nom := faux
     nom: chaine
@@ -1303,6 +1306,8 @@ parse_struct_or_union_specifier :: fonc (empl parseuse: *ParseuseC, classe: chai
         nom = donne_texte(lexème)
         eu_nom = vrai
 
+        token_tag = lexème
+
         lexème = épie_lexème_suivant(parseuse)
     }
 
@@ -1310,6 +1315,21 @@ parse_struct_or_union_specifier :: fonc (empl parseuse: *ParseuseC, classe: chai
     si est_ponctuation(lexème, "{") {
         consomme_ponctuation(parseuse, "{")
         parse_struct_declaration_list(parseuse, *declarations)
+
+        pour declarations {
+            si it.genre == FieldDecl {
+                arrête
+            }
+        }
+        sansarrêt {
+            texte_classe := si classe == "union" {
+                "l'union"
+            }
+            sinon {
+                "la structure"
+            }
+            rapporte_erreur(parseuse, token_tag, "% n'a aucune rubrique", texte_classe)
+        }
     }
     sinon saufsi eu_nom {
         rapporte_erreur(parseuse, lexème, "Lexème inattendu dans le parsage de la structure : %", donne_texte(lexème))
