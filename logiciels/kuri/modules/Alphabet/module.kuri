@@ -14,7 +14,7 @@ détruit_alphabet :: fonc (alphabet: &Alphabet)
     déloge(alphabet.caractères)
 }
 
-taille_alphabet :: fonc (alphabet: &Alphabet) -> z64
+taille_alphabet :: fonc (alphabet: Alphabet) -> z64
 {
     retourne alphabet.caractères.taille
 }
