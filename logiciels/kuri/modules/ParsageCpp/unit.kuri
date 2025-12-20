@@ -4,8 +4,11 @@
 
 InvocationMacro :: struct {
     lexème: LexèmePréprocès
-    macro: *Définition
     lexèmes_résultants: [..]LexèmePréprocès
+
+    /* Données copiées de Définition. */
+    lexème_macro: LexèmePréprocès
+    nom_macro: chaine
 }
 
 TranslationUnit :: struct {
@@ -53,7 +56,8 @@ crée_invocation_de_macro :: fonc (unit: *TranslationUnit, lexème: LexèmePrép
 {
     résultat := tableau_ajoute_élément(*unit.invocations_macros)
     résultat.lexème = lexème
-    résultat.macro = macro
+    résultat.lexème_macro = macro.lexème
+    résultat.nom_macro = macro.nom
     retourne unit.invocations_macros.taille - 1
 }
 
@@ -221,7 +225,7 @@ rapporte_diagnostique :: fonc (unit: *TranslationUnit, type: TypeDiagnostique, p
                     imprime("... qui provient du ")
                 }
 
-                imprimeln("développement de la macro « % » qui donna le résultat suivant :", invocation.macro.nom)
+                imprimeln("développement de la macro « % » qui donna le résultat suivant :", invocation.nom_macro)
 
                 imprime_gouttière(largeur_goutière)
                 imprimeln("")
