@@ -43,7 +43,7 @@ crée_translation_unit_pour_fichier :: fonc (chemin: chaine, info: InfoLangage) 
 détruit :: fonc (unit: *TranslationUnit)
 {
     pour unit.invocations_macros {
-        déloge(it.lexèmes_résultantss)
+        déloge(it.lexèmes_résultants)
     }
     déloge(unit.invocations_macros)
     déloge(unit.lexèmes_préprocès)
