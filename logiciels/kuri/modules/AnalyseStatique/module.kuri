@@ -100,6 +100,7 @@ vérifie_appels :: fonc (espace: EspaceDeTravail, code: *NoeudCode, vérifie_imp
 
             entête := déclaration_référée comme *NoeudCodeEntêteFonction
             entête_imprimeuse: *NoeudCodeEntêteFonction
+            première_lettre_en_minuscule := faux
             pour entête.annotations {
                 si it.nom == "Imprimeuse" {
                     entête_imprimeuse = entête
@@ -117,6 +118,9 @@ vérifie_appels :: fonc (espace: EspaceDeTravail, code: *NoeudCode, vérifie_imp
                         message_avertissement = it.valeur
                     }
                     compilatrice_rapporte_avertissement(espace, appel, message_avertissement)
+                }
+                sinon si it.nom == "PremièreLettreEnMinuscule" {
+                    première_lettre_en_minuscule = vrai
                 }
             }
 
@@ -157,6 +161,12 @@ vérifie_appels :: fonc (espace: EspaceDeTravail, code: *NoeudCode, vérifie_imp
             pour chn {
                 si it == '%' {
                     nombre_de_pourcentages += 1
+                }
+            }
+
+            si première_lettre_en_minuscule && chn {
+                saufsi 'a' <= chn[0] <= 'z' || chn[0] == '%' {
+                    compilatrice_rapporte_erreur(espace, appel, "La première doit être en minuscule")
                 }
             }
 
