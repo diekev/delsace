@@ -8,6 +8,7 @@ importe Temps
  * \{ */
 
 Définition :: struct {
+    lexème: LexèmePréprocès
     nom: chaine
     est_semble_fonction: bool
     paramètres: [..]LexèmePréprocès
@@ -867,8 +868,7 @@ donne_lexèmes_préprocès :: fonc (préprocesseur: *PréProcesseur) -> [..]Lex�
             }
             sinon si texte == "define" {
                 lexème = donne_lexème_suivant_sauf_espace_blanche(lexeuse)
-                texte_définition := donne_texte(lexème)
-                parse_définition(préprocesseur, lexeuse, texte_définition)
+                parse_définition(préprocesseur, lexeuse, lexème)
             }
             sinon si texte == "undef" {
                 lexème = donne_lexème_suivant_sauf_espace_blanche(lexeuse)
@@ -1056,31 +1056,31 @@ rapporte_erreur :: fonc (préprocesseur: *PréProcesseur, format: chaine, args: 
     exit(1)
 } @Imprimeuse
 
-rapporte_erreur_mécomptage_arguments :: fonc (préprocesseur: *PréProcesseur, définition: *Définition, arguments_données: z64)
+rapporte_erreur_mécomptage_arguments :: fonc (préprocesseur: *PréProcesseur, définition: *Définition, lexème: LexèmePréprocès, arguments_données: z64)
 {
-    enchaineuse: Enchaineuse
-    initialise_enchaineuse(*enchaineuse)
-    imprime_dans_enchaineuse(*enchaineuse, "trop de paramètres pour '%', voulu %, obtenu %\n", définition.nom, définition.paramètres.taille, arguments_données)
-    imprime_dans_enchaineuse(*enchaineuse, "% fut défini comme tel :\n", définition.nom)
-    // À FAIRE : ligne exacte
-    ajoute_au_tampon(*enchaineuse, "#define ", définition.nom)
-    si définition.est_semble_fonction {
-        virgule := "("
-        pour définition.paramètres {
-            ajoute_au_tampon(*enchaineuse, virgule, donne_texte(it))
-            virgule = ", "
-        }
-        ajoute_au_tampon(*enchaineuse, ")")
+    pluriel := si arguments_données > 1 {
+        "s"
     }
-    si définition.lexèmes {
-        ajoute_au_tampon(*enchaineuse, " ")
-        pour définition.lexèmes {
-            ajoute_au_tampon(*enchaineuse, donne_texte(it))
+
+    saufsi définition.est_intrinsèque {
+        // À FAIRE : rapporte la note après l'erreur
+        rapporte_diagnostique(préprocesseur.unit, TypeDiagnostique.NOTE, définition.lexème, "la macro \"%\" fut définie ici", définition.nom)
+    }
+
+    si définition.paramètres.taille == 0 {
+        rapporte_erreur(préprocesseur, lexème, "la macro \"%\" reçue % argument%, mais n'en prends aucun", définition.nom, arguments_données, pluriel)
+    }
+    sinon si arguments_données == 0 {
+        rapporte_erreur(préprocesseur, lexème, "la macro \"%\" requiers % argument%, mais n'en a reçu aucun", définition.nom, définition.paramètres.taille, pluriel)
+    }
+    sinon {
+        si arguments_données < définition.paramètres.taille {
+            rapporte_erreur(préprocesseur, lexème, "la macro \"%\" requiers % argument%, mais n'en a reçu que %", définition.nom, définition.paramètres.taille, pluriel, arguments_données)
+        }
+        sinon {
+            rapporte_erreur(préprocesseur, lexème, "la macro \"%\" reçue % argument%, mais n'en prends que %", définition.nom, arguments_données, pluriel, définition.paramètres.taille)
         }
     }
-    ajoute_au_tampon(*enchaineuse, "\n")
-    message := chaine_depuis_enchaineuse(*enchaineuse)
-    rapporte_erreur(préprocesseur, "%", message)
 }
 
 rapporte_diagnostique :: fonc (préprocesseur: *PréProcesseur, type: chaine, format: chaine, args: ...eini)
@@ -1473,6 +1473,7 @@ développe_arguments :: fonc (préprocesseur: *PréProcesseur, arguments: *[..]L
                     avance(*parseuse)
                     lexème = donne_lexème_suivant(*parseuse)
                 }
+                lexème_appel := lexème
                 saufsi est_ponctuation(lexème, "(") {
                     rapporte_erreur(préprocesseur, lexème, "arguments manquant dans le développement de '%'", définition.nom)
                 }
@@ -1480,7 +1481,7 @@ développe_arguments :: fonc (préprocesseur: *PréProcesseur, arguments: *[..]L
                 arguments_définition = parse_tranche_arguments(*parseuse, définition)
 
                 saufsi peut_accepter_arguments(définition, arguments_définition.taille) {
-                    rapporte_erreur_mécomptage_arguments(préprocesseur, définition, arguments_définition.taille)
+                    rapporte_erreur_mécomptage_arguments(préprocesseur, définition, lexème_appel, arguments_définition.taille)
                 }
             }
             sinon {
@@ -1500,8 +1501,10 @@ développe_arguments :: fonc (préprocesseur: *PréProcesseur, arguments: *[..]L
     mémoire(arguments) = résultat
 }
 
-parse_définition :: fonc (préprocesseur: *PréProcesseur, lexeuse: *LexeusePréProcès, texte_définition: chaine)
+parse_définition :: fonc (préprocesseur: *PréProcesseur, lexeuse: *LexeusePréProcès, lexème_source: LexèmePréprocès)
 {
+    texte_définition := donne_texte(lexème_source)
+
     // ligne := donne_ligne_pour_erreur(lexeuse)
     // imprimeln("--------------------------------")
     // imprimeln("%", ligne.texte)
@@ -1520,6 +1523,8 @@ parse_définition :: fonc (préprocesseur: *PréProcesseur, lexeuse: *LexeusePr�
         déloge(définition.paramètres)
         déloge(définition.lexèmes)
     }
+
+    définition.lexème = lexème_source
 
     diffère si préprocesseur.messagère {
         envoie_message_macro_défini(préprocesseur.messagère, préprocesseur.unit, définition)
@@ -2744,6 +2749,8 @@ donne_lexème_suivant_développé :: fonc (préprocesseur: *PréProcesseur, lexe
             lexème = donne_lexème_suivant(préprocesseur, lexeuse)
         }
 
+        lexème_appel := lexème
+
         saufsi est_ponctuation(lexème, "(") {
             pour > griffonier {
                 tableau_ajoute(*préprocesseur.lexèmes_développés, it)
@@ -2784,7 +2791,7 @@ donne_lexème_suivant_développé :: fonc (préprocesseur: *PréProcesseur, lexe
 
         arguments := parse_tranche_arguments(*parseuse, définition)
         saufsi peut_accepter_arguments(définition, arguments.taille) {
-            rapporte_erreur_mécomptage_arguments(préprocesseur, définition, arguments.taille)
+            rapporte_erreur_mécomptage_arguments(préprocesseur, définition, lexème_appel, arguments.taille)
         }
 
         // imprimeln("-- arguments")
