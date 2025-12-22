@@ -4035,7 +4035,7 @@ static void rapporte_erreur_inclusion_récursive_type(EspaceDeTravail *espace,
     if (expression_rubrique->est_déclaration_variable()) {
         auto déclaration_variable = expression_rubrique->comme_déclaration_variable();
         if (déclaration_variable->déclaration_vient_d_un_emploi) {
-            e.ajoute_message("Le rubrique fut inclus via l'emploi suivant :\n")
+            e.ajoute_message("La rubrique fut inclus via l'emploi suivant :\n")
                 .ajoute_site(déclaration_variable->déclaration_vient_d_un_emploi);
         }
     }
@@ -7040,7 +7040,7 @@ RésultatValidation Sémanticienne::valide_instruction_empl_énum(
                                   "existe déjà dans le bloc.")
                 .ajoute_message("La déclaration existante est :\n")
                 .ajoute_site(decl_existante)
-                .ajoute_message("Le rubrique en conflit est :\n")
+                .ajoute_message("La rubrique en conflit est :\n")
                 .ajoute_site(it.decl);
             return CodeRetourValidation::Erreur;
         }
@@ -7118,7 +7118,7 @@ RésultatValidation Sémanticienne::valide_instruction_empl_déclaration(
                                   "existe déjà dans le bloc.")
                 .ajoute_message("La déclaration existante est :\n")
                 .ajoute_site(decl_existante)
-                .ajoute_message("Le rubrique en conflit est :\n")
+                .ajoute_message("La rubrique en conflit est :\n")
                 .ajoute_site(it.decl);
             return CodeRetourValidation::Erreur;
         }
