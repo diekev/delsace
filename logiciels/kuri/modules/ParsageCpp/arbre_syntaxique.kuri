@@ -229,18 +229,42 @@ IndexDesignator :: struct {
     initializer: *Expression
 }
 
-IntegerLiteralExpression :: struct {
+CharacterConstant :: struct {
     empl expr: Expression
     genre = #type_de_cette_structure
 
     lexème: Token
 }
 
-FloatLiteralExpression :: struct {
+IntegerConstant :: struct {
     empl expr: Expression
     genre = #type_de_cette_structure
 
     lexème: Token
+}
+
+FloatingConstant :: struct {
+    empl expr: Expression
+    genre = #type_de_cette_structure
+
+    lexème: Token
+}
+
+GenericSelection :: struct {
+    empl expr: Expression
+    genre = #type_de_cette_structure
+
+    expression: *Expression
+    generic_assoc_list: [..]*GenericAssociation
+}
+
+GenericAssociation :: struct {
+    empl expr: Expression
+    genre = #type_de_cette_structure
+
+    // Si nul, nous avons default:
+    type_name: *Expression
+    expression: *Expression
 }
 
 BinaryExpression :: struct {
