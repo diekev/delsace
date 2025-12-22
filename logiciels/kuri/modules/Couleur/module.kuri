@@ -479,6 +479,8 @@ linéaire_vers_srgb :: fonc (couleur: CouleurRVBA) -> CouleurRVBA
     retourne résultat
 }
 
+/* Approximations de http://chilliant.blogspot.com/2012/08/srgb-approximations-for-hlsl.html */
+
 linéaire_vers_srgb :: fonc (valeur: n8) -> n8 #enligne
 {
     retourne (linéaire_vers_srgb(valeur comme r32 / 255.0) * 255.0 + 0.5) comme n8
