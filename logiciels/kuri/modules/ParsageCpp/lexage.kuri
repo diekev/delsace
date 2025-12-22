@@ -3,13 +3,38 @@
  * Lexèmes pour le préprocesseur.
  * \{ */
 
+LieuSource :: struct {
+    invocation: z64 = -1
+    fichier: z64 = -1
+    décalage: z64
+}
+
+PlageSource :: struct {
+    début: LieuSource
+    fin: LieuSource
+}
+
+PlageSourceRésolue :: struct {
+    fichier: chaine
+    texte_ligne: chaine
+
+    /* Ces deux valeurs commencent à 1. Des valeurs de 0 indique qu'elles n'ont pas pu être résolue. */
+    numéro_ligne: n64
+    numéro_colonne: n64
+    numéro_colonne_fin: n64
+}
+
+est_valide :: fonc (plage: PlageSource) -> bool
+{
+    retourne plage.début.fichier != -1 && plage.fin.fichier != -1
+}
+
 LexèmePréprocès :: struct {
     lexème: Lexème
-    fichier: z64 = -1
+    plage_source: PlageSource
     placemarker: bool
     vient_d_un_argument: bool
-    commence_à_ignorer: *Définition
-    cesse_d_ignorer: *Définition
+    ne_développe_pas: bool
 }
 
 est_symbole :: fonc (lexème: LexèmePréprocès) -> bool #enligne
@@ -72,8 +97,51 @@ donne_texte_sans_guillemets :: fonc (lexème: LexèmePréprocès) -> chaine #enl
     retourne donne_texte_sans_guillemets(lexème.lexème)
 }
 
-imprime_lexèmes :: fonc (lexèmes: []LexèmePréprocès) -> chaine
+imprime_lexèmes :: fonc (lexèmes: []LexèmePréprocès, collapse_espaces_blanches: bool) -> chaine
 {
+    tmp: [..]LexèmePréprocès
+    diffère déloge(tmp)
+
+    si collapse_espaces_blanches {
+        lexèmes = supprime_espace_blanches_autour(lexèmes)
+
+        tmp = tableau_copie(lexèmes)
+        lexèmes = tmp
+
+        début := lexèmes.pointeur
+        fin := lexèmes.pointeur + lexèmes.taille
+        sortie := début
+
+        tantque début < fin {
+            lexème := mémoire(début)
+
+            si est_lexème_nouvelle_ligne(lexème) {
+                tantque sortie > lexèmes.pointeur {
+                    lexème_précédent := mémoire(sortie - 1)
+                    saufsi est_espace_blanche(lexème_précédent) {
+                        arrête
+                    }
+                    sortie -= 1
+                }
+            }
+            sinon si est_espace_blanche(lexème) {
+                tantque début < fin {
+                    lexème_suivant := mémoire(début + 1)
+                    saufsi est_espace_blanche(lexème_suivant) && !est_lexème_nouvelle_ligne(lexème_suivant) {
+                        arrête
+                    }
+                    début += 1
+                }
+            }
+
+            mémoire(sortie) = lexème
+            sortie += 1
+            début += 1
+        }
+
+        lexèmes.taille = sortie - lexèmes.pointeur
+    }
+
     enchaineuse: Enchaineuse
     initialise_enchaineuse(*enchaineuse)
 
@@ -161,7 +229,7 @@ TokenForm :: énum n8 {
 Token :: struct {
     form: TokenForm
     lexème: Lexème
-    fichier: z64 = -1
+    plage_source: PlageSource
 }
 
 convertis_en_tokens :: fonc (lexèmes_préprocès: []LexèmePréprocès) -> [..]Token
@@ -175,7 +243,7 @@ convertis_en_tokens :: fonc (lexèmes_préprocès: []LexèmePréprocès) -> [..]
 
         token := tableau_ajoute_élément(*résultat)
         token.lexème = it.lexème
-        token.fichier = it.fichier
+        token.plage_source = it.plage_source
 
         discr it.lexème.type {
             MotClé {
@@ -239,6 +307,11 @@ est_littérale_nombre_réel :: fonc (token: Token) -> bool #enligne
     retourne token.lexème.type == TypeLexème.LittéraleNombreRéel
 }
 
+est_littérale_caractère :: fonc (token: Token) -> bool #enligne
+{
+    retourne token.lexème.type == TypeLexème.CaractèreConstant
+}
+
 donne_texte :: fonc (token: Token) -> chaine #enligne
 {
     retourne donne_texte(token.lexème)
@@ -277,9 +350,20 @@ LexeusePréProcès :: struct {
     si lexème.type != TypeLexème.EspaceBlanche && lexème.type != TypeLexème.FinDeFichier {
         lexeuse.dernier_lexème_non_espace_blanche = donne_texte(lexème)
     }
+
+    // À FAIRE : ceci n'est pas propre.
+    décalage_début_lexème := lexème.début - lexeuse.lexeuse.texte.pointeur
+    décalage_fin_lexème := lexème.fin - lexeuse.lexeuse.texte.pointeur
+
+    plage_source: PlageSource
+    plage_source.début.fichier = lexeuse.fichier
+    plage_source.début.décalage = décalage_début_lexème
+    plage_source.fin.fichier = lexeuse.fichier
+    plage_source.fin.décalage = décalage_fin_lexème
+
     résultat: LexèmePréprocès
     résultat.lexème = lexème
-    résultat.fichier = lexeuse.fichier
+    résultat.plage_source = plage_source
     retourne résultat
 }
 
