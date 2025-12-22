@@ -1131,6 +1131,7 @@ InfosDéveloppementMacro :: struct {
     lexème: LexèmePréprocès
     macro: *Définition
     arguments: [..][..]LexèmePréprocès
+    arguments_développés: [..][..]LexèmePréprocès
 }
 
 développe_macro :: fonc (sortie: *[..]LexèmePréprocès, préprocesseur: *PréProcesseur, infos: *InfosDéveloppementMacro)
@@ -1151,10 +1152,12 @@ développe_macro_impl :: fonc (sortie: *[..]LexèmePréprocès, préprocesseur: 
 
     indice_invocation := crée_invocation_de_macro(préprocesseur.unit, infos.lexème, infos.macro)
 
+    pour infos.arguments {
+        développé := développe_arguments(préprocesseur, it, profondeur + 1)
+        tableau_ajoute(*infos.arguments_développés, développé)
+    }
+
     si infos.macro.est_intrinsèque {
-        pour * infos.arguments {
-            développe_arguments(préprocesseur, it, profondeur + 1)
-        }
         résultat := infos.macro.sur_développement(préprocesseur, infos.arguments)
         résultat.plage_source.début.invocation = indice_invocation
         résultat.plage_source.fin.invocation = indice_invocation
@@ -1179,7 +1182,7 @@ développe_macro_impl :: fonc (sortie: *[..]LexèmePréprocès, préprocesseur: 
     liste_de_remplacement: [..]LexèmePréprocès
     diffère déloge(liste_de_remplacement)
 
-    possède_collage := substitue_arguments_dans_liste_de_remplacement(préprocesseur, *liste_de_remplacement, infos, profondeur)
+    possède_collage := substitue_arguments_dans_liste_de_remplacement(*liste_de_remplacement, infos)
     si possède_collage {
         liste_finale: [..]LexèmePréprocès
         applique_opérateurs_de_collage(préprocesseur, *liste_finale, infos, liste_de_remplacement)
@@ -1190,6 +1193,7 @@ développe_macro_impl :: fonc (sortie: *[..]LexèmePréprocès, préprocesseur: 
     tableau_ajoute(*préprocesseur.macros_en_développement, infos.macro)
     diffère préprocesseur.macros_en_développement.taille -= 1
 
+    // imprimeln("[%] %", profondeur, #nom_de_cette_fonction)
     // imprimeln("liste de remplacement pour : %", infos.macro.nom)
     // pour liste_de_remplacement {
     //     si it.placemarker {
@@ -1228,7 +1232,7 @@ développe_macro_impl :: fonc (sortie: *[..]LexèmePréprocès, préprocesseur: 
     }
 }
 
-substitue_arguments_dans_liste_de_remplacement :: fonc (préprocesseur: *PréProcesseur, sortie: *[..]LexèmePréprocès, infos: *InfosDéveloppementMacro, profondeur: z32) -> bool
+substitue_arguments_dans_liste_de_remplacement :: fonc (sortie: *[..]LexèmePréprocès, infos: *InfosDéveloppementMacro) -> bool
 {
     parseuse: SimpleParseuse
     parseuse.lexèmes = infos.macro.lexèmes
@@ -1307,12 +1311,8 @@ substitue_arguments_dans_liste_de_remplacement :: fonc (préprocesseur: *PréPro
         }
 
         si indice_param < infos.arguments.taille {
-            arguments := infos.arguments[indice_param]
-            tmp := tableau_copie(arguments)
-            diffère déloge(tmp)
-            développe_arguments(préprocesseur, *tmp, profondeur + 1)
-
-            pour tmp {
+            arguments := infos.arguments_développés[indice_param]
+            pour arguments {
                 it.vient_d_un_argument = vrai
                 tableau_ajoute(sortie, it)
             }
@@ -1456,10 +1456,10 @@ donne_dernier_lexème_hors_espace_blanche :: fonc (lexèmes: []LexèmePréprocè
     retourne possède_lexème, résultat
 }
 
-développe_arguments :: fonc (préprocesseur: *PréProcesseur, arguments: *[..]LexèmePréprocès, profondeur: z32)
+développe_arguments :: fonc (préprocesseur: *PréProcesseur, arguments: []LexèmePréprocès, profondeur: z32) -> [..]LexèmePréprocès
 {
     parseuse: SimpleParseuse
-    parseuse.lexèmes = mémoire(arguments)
+    parseuse.lexèmes = arguments
 
     résultat: [..]LexèmePréprocès
 
@@ -1516,7 +1516,7 @@ développe_arguments :: fonc (préprocesseur: *PréProcesseur, arguments: *[..]L
         }
     }
 
-    mémoire(arguments) = résultat
+    retourne résultat
 }
 
 parse_définition :: fonc (préprocesseur: *PréProcesseur, lexeuse: *LexeusePréProcès, lexème_source: LexèmePréprocès)
