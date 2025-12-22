@@ -7,7 +7,7 @@ AdresseCourriel :: struct {
     hôte: chaine @accessible
 }
 
-est_valide :: fonc (courriel: &AdresseCourriel) -> bool
+est_valide :: fonc (courriel: AdresseCourriel) -> bool
 {
     retourne courriel.chn != ""
 }
@@ -44,7 +44,7 @@ génère_adresse_courriel_aléatoire :: fonc (gna: *GNA, alphabet: &Alphabet.Alp
     retourne courriel
 }
 
-génère_adresse_courriel_aléatoire :: fonc (génératrice: &GénératriceDonnéesAléatoire) -> AdresseCourriel
+génère_adresse_courriel_aléatoire :: fonc (génératrice: GénératriceDonnéesAléatoire) -> AdresseCourriel
 {
     alphabet := crée_alphabet_ascii_courriel()
     diffère détruit_alphabet(alphabet)
