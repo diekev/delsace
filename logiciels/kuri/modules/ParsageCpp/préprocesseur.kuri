@@ -2264,9 +2264,6 @@ parse_expression_if :: fonc (préprocesseur: *PréProcesseur, lexeuse: *LexeuseP
     lexèmes: [..]LexèmePréprocès
     diffère déloge(lexèmes)
 
-    // ligne := donne_ligne_pour_erreur(lexeuse)
-    // imprimeln("%", ligne.texte)
-
     boucle {
         lexème := donne_lexème_suivant_développé(préprocesseur, lexeuse)
         si est_fin_de_fichier(lexème) {
