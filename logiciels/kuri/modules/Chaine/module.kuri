@@ -264,6 +264,9 @@ est_vide :: fonc (chn: chaine) -> bool
 
 avance :: fonc (ligne: chaine, compte: z64) -> chaine
 {
+    si compte > ligne.taille {
+        retourne ""
+    }
     retourne chaine(ligne.pointeur + compte, ligne.taille - compte)
 }
 
