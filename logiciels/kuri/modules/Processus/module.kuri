@@ -307,6 +307,9 @@ exécute_commande_externe :: fonc (commande: chaine) -> bool
         retourne faux
     }
 
+    commande_non_suffixé := recule(commande, 1)
+    imprimeln("Exécution de : %", commande_non_suffixé)
+
     si system(ChaineC(commande.pointeur)) != 0 {
         retourne faux
     }
