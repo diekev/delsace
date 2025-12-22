@@ -55,7 +55,7 @@ détruit_chaine_c :: fonc (chn: &ChaineC)
     chn = ChaineC(ptr)
 }
 
-taille_chaine_c :: fonc (chn: &ChaineC) -> z64
+taille_chaine_c :: fonc (chn: ChaineC) -> z64
 {
     ptr := chn comme *z8
 

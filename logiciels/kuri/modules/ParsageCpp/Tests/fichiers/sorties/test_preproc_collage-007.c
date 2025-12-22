@@ -1,2 +1,1 @@
- 
-char p[] = "x ## y";  
+char p[] = "x ## y";
