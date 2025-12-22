@@ -1,4 +1,3 @@
-
 const char *nuanceur = "\x23version core\n
     void main()
     {

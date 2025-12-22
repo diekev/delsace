@@ -8,12 +8,12 @@ importe Temps
  * \{ */
 
 Définition :: struct {
+    lexème: LexèmePréprocès
     nom: chaine
     est_semble_fonction: bool
     paramètres: [..]LexèmePréprocès
     lexèmes: [..]LexèmePréprocès
 
-    doit_être_ignorée := faux
     est_intrinsèque: bool
     sur_développement: fonc (préprocesseur: *PréProcesseur, arguments: [..][..]LexèmePréprocès) -> LexèmePréprocès
 }
@@ -28,11 +28,12 @@ peut_accepter_arguments :: fonc (définition: *Définition, arguments: z64) -> b
         retourne arguments == 0
     }
 
-    si arguments <= définition.paramètres.taille {
-        retourne vrai
+    paramètres_requis := définition.paramètres.taille
+    si est_variadique(définition) {
+        retourne arguments >= paramètres_requis - 1
     }
 
-    retourne est_variadique(définition)
+    retourne arguments == paramètres_requis
 }
 
 est_variadique :: fonc (définition: *Définition) -> bool
@@ -101,18 +102,18 @@ sur_développement_has_include_impl :: fonc (préprocesseur: *PréProcesseur, ar
 {
     si arguments.taille == 0 {
         rapporte_erreur(préprocesseur, "Argument manquant pour __has_include")
-        retourne crée_lexème_nombre_naturel(0)
+        retourne crée_lexème_nombre_naturel(préprocesseur, 0)
     }
 
     si arguments.taille > 1 {
         rapporte_erreur(préprocesseur, "Trop d'arguments pour __has_include")
-        retourne crée_lexème_nombre_naturel(0)
+        retourne crée_lexème_nombre_naturel(préprocesseur, 0)
     }
 
     arg := supprime_espace_blanches_autour(arguments[0])
     si arg.taille == 0 {
         rapporte_erreur(préprocesseur, "Argument manquant pour __has_include")
-        retourne crée_lexème_nombre_naturel(0)
+        retourne crée_lexème_nombre_naturel(préprocesseur, 0)
     }
 
     parseuse: SimpleParseuse
@@ -134,7 +135,7 @@ sur_développement_has_include_impl :: fonc (préprocesseur: *PréProcesseur, ar
             }
             sinon {
                 rapporte_erreur(préprocesseur, "Aucun chemin fichier spécifié")
-                retourne crée_lexème_nombre_naturel(0)
+                retourne crée_lexème_nombre_naturel(préprocesseur, 0)
             }
         }
         sinon si est_ponctuation(lexème, "<") {
@@ -148,16 +149,26 @@ sur_développement_has_include_impl :: fonc (préprocesseur: *PréProcesseur, ar
         }
         sinon {
             rapporte_erreur(préprocesseur, "Argument inconnu pour __has_include")
-            retourne crée_lexème_nombre_naturel(0)
+            retourne crée_lexème_nombre_naturel(préprocesseur, 0)
         }
     }
 
     saufsi fini(*parseuse) {
         rapporte_erreur(préprocesseur, "Trop d'opérandes pour __has_include")
-        retourne crée_lexème_nombre_naturel(0)
+        retourne crée_lexème_nombre_naturel(préprocesseur, 0)
     }
 
-    retourne crée_lexème_nombre_naturel(résultat)
+    retourne crée_lexème_nombre_naturel(préprocesseur, résultat)
+}
+
+sur_développement_has_builtin :: fonc (préprocesseur: *PréProcesseur, arguments: [..][..]LexèmePréprocès @inutilisée) -> LexèmePréprocès
+{
+    retourne crée_lexème_nombre_naturel(préprocesseur, 0)
+}
+
+sur_développement_has_cpp_attribute :: fonc (préprocesseur: *PréProcesseur, arguments: [..][..]LexèmePréprocès @inutilisée) -> LexèmePréprocès
+{
+    retourne crée_lexème_nombre_naturel(préprocesseur, 0)
 }
 
 sur_développement_file :: fonc (préprocesseur: *PréProcesseur, arguments: [..][..]LexèmePréprocès @inutilisée) -> LexèmePréprocès
@@ -172,10 +183,29 @@ sur_développement_file :: fonc (préprocesseur: *PréProcesseur, arguments: [..
     retourne crée_lexème_chaine_littérale(chemin)
 }
 
-sur_développement_line :: fonc (préprocesseur: *PréProcesseur @inutilisée, arguments: [..][..]LexèmePréprocès @inutilisée) -> LexèmePréprocès
+sur_développement_base_file :: fonc (préprocesseur: *PréProcesseur, arguments: [..][..]LexèmePréprocès @inutilisée) -> LexèmePréprocès
+{
+    fichier := *préprocesseur.unit.fichiers[0]
+    // @FuiteDeMémoire
+    chemin := enchaine("\"", fichier.chemin, "\"")
+    retourne crée_lexème_chaine_littérale(chemin)
+}
+
+sur_développement_file_name :: fonc (préprocesseur: *PréProcesseur, arguments: [..][..]LexèmePréprocès @inutilisée) -> LexèmePréprocès
+{
+    fichier := donne_fichier_courant(préprocesseur)
+    chemin := CheminFichier(fichier.chemin)
+    nom := nom_fichier_avec_extension(chemin)
+
+    // @FuiteDeMémoire
+    résultat := enchaine("\"", nom, "\"")
+    retourne crée_lexème_chaine_littérale(résultat)
+}
+
+sur_développement_line :: fonc (préprocesseur: *PréProcesseur, arguments: [..][..]LexèmePréprocès @inutilisée) -> LexèmePréprocès
 {
     // À FAIRE
-    retourne crée_lexème_nombre_naturel(0)
+    retourne crée_lexème_nombre_naturel(préprocesseur, 0)
 }
 
 sur_développement_date :: fonc (préprocesseur: *PréProcesseur @inutilisée, arguments: [..][..]LexèmePréprocès @inutilisée) -> LexèmePréprocès
@@ -258,8 +288,14 @@ sur_développement_time :: fonc (préprocesseur: *PréProcesseur @inutilisée, a
 
 sur_développement_counter :: fonc (préprocesseur: *PréProcesseur, arguments: [..][..]LexèmePréprocès @inutilisée) -> LexèmePréprocès
 {
-    résultat := crée_lexème_nombre_naturel(préprocesseur.compteur)
+    résultat := crée_lexème_nombre_naturel(préprocesseur, préprocesseur.compteur)
     préprocesseur.compteur += 1
+    retourne résultat
+}
+
+sur_développement_include_level :: fonc (préprocesseur: *PréProcesseur, arguments: [..][..]LexèmePréprocès @inutilisée) -> LexèmePréprocès
+{
+    résultat := crée_lexème_nombre_naturel(préprocesseur, (préprocesseur.lexeuses.taille - 1) comme n64)
     retourne résultat
 }
 
@@ -298,6 +334,8 @@ PréProcesseur :: struct {
     macros_indéfinissables: [..]chaine
 
     lexèmes_développés: [..]LexèmePréprocès
+
+    macros_en_développement: [..]*Définition
 }
 
 détruit_données :: fonc (préprocesseur: *PréProcesseur)
@@ -313,6 +351,7 @@ détruit_données :: fonc (préprocesseur: *PréProcesseur)
     déloge(préprocesseur.définitions)
     déloge(préprocesseur.pile_branches)
     déloge(préprocesseur.macros_inconnus)
+    déloge(préprocesseur.macros_en_développement)
     détruit_données(*préprocesseur.table_définitions)
 }
 
@@ -322,7 +361,7 @@ initialise_préprocesseur :: fonc (préprocesseur: *PréProcesseur, unit: *Trans
 
     préprocesseur.unit = unit
 
-    discr préprocesseur.unit.langage {
+    discr préprocesseur.unit.info_langage.langage {
         C {
             // GCC 12
             // echo | gcc -x c -E -v -
@@ -332,7 +371,7 @@ initialise_préprocesseur :: fonc (préprocesseur: *PréProcesseur, unit: *Trans
             tableau_ajoute(*préprocesseur.chemins_inclusions_système, "/usr/include/x86_64-linux-gnu")
             tableau_ajoute(*préprocesseur.chemins_inclusions_système, "/usr/include")
 
-            ajoute_définition(préprocesseur, "__STDC_VERSION__", 201112)
+            ajoute_définition(préprocesseur, "__STDC_VERSION__", préprocesseur.unit.info_langage.standard)
 
             interdits := [
                 "defined", "__DATE__", "__FILE__", "__LINE__", "__STDC__", "__STDC_HOSTED__",
@@ -363,8 +402,7 @@ initialise_préprocesseur :: fonc (préprocesseur: *PréProcesseur, unit: *Trans
             tableau_ajoute(*préprocesseur.chemins_inclusions_système, "/usr/include/x86_64-linux-gnu")
             tableau_ajoute(*préprocesseur.chemins_inclusions_système, "/usr/include")
 
-            ajoute_définition(préprocesseur, "__cplusplus", 201103)
-            // ajoute_définition(préprocesseur, "__cplusplus", 201703)
+            ajoute_définition(préprocesseur, "__cplusplus", préprocesseur.unit.info_langage.standard)
             ajoute_définition(préprocesseur, "__GNUG__", 12)
         }
     }
@@ -505,16 +543,8 @@ initialise_préprocesseur :: fonc (préprocesseur: *PréProcesseur, unit: *Trans
     ajoute_définition_lexèmes(préprocesseur, "__INTPTR_TYPE__", "long int")
     ajoute_définition_lexèmes(préprocesseur, "__UINTPTR_TYPE__", "long unsigned int")
 
-    définition := crée_définition(préprocesseur, "__has_builtin")
-    définition.est_semble_fonction = vrai
-    tableau_ajoute(*définition.paramètres, crée_lexème_symbole("x"))
-    lexème := tableau_ajoute_élément(*définition.lexèmes)
-    mémoire(lexème) = crée_lexème_nombre_naturel(0)
-
-    définition = crée_définition(préprocesseur, "__has_cpp_attribute")
-    définition.est_semble_fonction = vrai
-    tableau_ajoute(*définition.paramètres, crée_lexème_symbole("x"))
-    tableau_ajoute(*définition.lexèmes, crée_lexème_nombre_naturel(0))
+    ajoute_définition_intrinsèque(préprocesseur, "__has_builtin", 1, sur_développement_has_builtin)
+    ajoute_définition_intrinsèque(préprocesseur, "__has_cpp_attribute", 1, sur_développement_has_cpp_attribute)
 
     ajoute_définition_intrinsèque(préprocesseur, "__has_include", 1, sur_développement_has_include)
     ajoute_définition_intrinsèque(préprocesseur, "__has_include_next", 1, sur_développement_has_include_next)
@@ -529,6 +559,9 @@ initialise_préprocesseur :: fonc (préprocesseur: *PréProcesseur, unit: *Trans
      * https://gcc.gnu.org/onlinedocs/cpp/Common-Predefined-Macros.html
      * https://learn.microsoft.com/fr-fr/cpp/preprocessor/predefined-macros?view=msvc-170 */
     ajoute_définition_intrinsèque(préprocesseur, "__COUNTER__", 0, sur_développement_counter)
+    ajoute_définition_intrinsèque(préprocesseur, "__INCLUDE_LEVEL__", 0, sur_développement_include_level)
+    ajoute_définition_intrinsèque(préprocesseur, "__BASE_FILE__", 0, sur_développement_base_file)
+    ajoute_définition_intrinsèque(préprocesseur, "__FILE_NAME__", 0, sur_développement_file_name)
 
     /* Voir https://gcc.gnu.org/onlinedocs/gcc-8.3.0/gccint/Instruction-Output.html */
     ajoute_définition(préprocesseur, "__USER_LABEL_PREFIX__", "")
@@ -539,12 +572,7 @@ ajoute_définition :: fonc (préprocesseur: *PréProcesseur, nom: chaine, valeur
     définition := crée_définition(préprocesseur, nom)
 
     lexème := tableau_ajoute_élément(*définition.lexèmes)
-    mémoire(lexème) = crée_lexème_nombre_naturel(valeur)
-
-    // @FuiteDeMémoire
-    texte := imprime_chaine("%", valeur)
-    lexème.lexème.début = texte.pointeur
-    lexème.lexème.fin = texte.pointeur + texte.taille
+    mémoire(lexème) = crée_lexème_nombre_naturel(préprocesseur, valeur)
 }
 
 ajoute_définition :: fonc (préprocesseur: *PréProcesseur, nom: chaine, valeur: chaine)
@@ -631,25 +659,37 @@ donne_définition :: fonc (préprocesseur: *PréProcesseur, lexème: LexèmePré
     retourne résultat
 }
 
+crée_lexème_nombre_naturel :: fonc (préprocesseur: *PréProcesseur @inutilisée, valeur: n64) -> LexèmePréprocès
+{
+    résultat := crée_lexème_nombre_naturel(valeur)
+
+    // @FuiteDeMémoire
+    texte := imprime_chaine("%", valeur)
+    résultat.lexème.début = texte.pointeur
+    résultat.lexème.fin = texte.pointeur + texte.taille
+
+    retourne résultat
+}
+
 ajoute_inclusion :: fonc (préprocesseur: *PréProcesseur, chemin: chaine)
 {
     tableau_ajoute(*préprocesseur.chemins_inclusions_système, chemin)
 }
 
-donne_source_préprocédée :: fonc (chemin_source: chaine) -> chaine
+donne_source_préprocédée :: fonc (chemin_source: chaine, collapse_espaces_blanches := faux) -> chaine
 {
     unit := crée_translation_unit_pour_fichier(chemin_source)
     diffère détruit(unit)
     préprocesseur: PréProcesseur
     diffère détruit_données(*préprocesseur)
     initialise_préprocesseur(*préprocesseur, unit)
-    retourne donne_source_préprocédée(*préprocesseur)
+    retourne donne_source_préprocédée(*préprocesseur, collapse_espaces_blanches)
 }
 
-donne_source_préprocédée :: fonc (préprocesseur: *PréProcesseur) -> chaine
+donne_source_préprocédée :: fonc (préprocesseur: *PréProcesseur, collapse_espaces_blanches := faux) -> chaine
 {
     exécute_préprocesseur(préprocesseur)
-    retourne imprime_lexèmes(préprocesseur.unit.lexèmes_préprocès)
+    retourne imprime_lexèmes(préprocesseur.unit.lexèmes_préprocès, collapse_espaces_blanches)
 }
 
 exécute_préprocesseur :: fonc (préprocesseur: *PréProcesseur)
@@ -829,8 +869,7 @@ donne_lexèmes_préprocès :: fonc (préprocesseur: *PréProcesseur) -> [..]Lex�
             }
             sinon si texte == "define" {
                 lexème = donne_lexème_suivant_sauf_espace_blanche(lexeuse)
-                texte_définition := donne_texte(lexème)
-                parse_définition(préprocesseur, lexeuse, texte_définition)
+                parse_définition(préprocesseur, lexeuse, lexème)
             }
             sinon si texte == "undef" {
                 lexème = donne_lexème_suivant_sauf_espace_blanche(lexeuse)
@@ -849,9 +888,10 @@ donne_lexèmes_préprocès :: fonc (préprocesseur: *PréProcesseur) -> [..]Lex�
             }
             sinon si texte == "error" {
                 texte = donne_texte_jusque_nouvelle_ligne(lexeuse)
-                rapporte_erreur(préprocesseur, "%", texte)
+                rapporte_erreur(préprocesseur, lexème, "%", texte)
             }
             sinon si texte == "pragma" {
+                lexème_pragma := lexème
                 lexème = donne_lexème_suivant_sauf_espace_blanche(lexeuse)
                 texte = donne_texte(lexème)
                 si texte == "GCC" {
@@ -874,8 +914,30 @@ donne_lexèmes_préprocès :: fonc (préprocesseur: *PréProcesseur) -> [..]Lex�
                         consomme_jusque_nouvelle_ligne(lexeuse)
                     }
                     sinon si texte == "error" {
-                        // une seule chaine littérale
-                        consomme_jusque_nouvelle_ligne(lexeuse)
+                        lexème = donne_lexème_suivant_sauf_espace_blanche(lexeuse)
+                        saufsi est_chaine_littérale(lexème) {
+                            rapporte_erreur(préprocesseur, lexème, "attendu une chaine littérale")
+                        }
+                        sinon {
+                            message_erreur := donne_texte_sans_guillemets(lexème)
+
+                            boucle {
+                                // À FAIRE : épie
+                                lexème = donne_lexème_suivant(lexeuse)
+                                si est_fin_de_fichier(lexème) {
+                                    arrête
+                                }
+                                si est_lexème_nouvelle_ligne(lexème) {
+                                    arrête
+                                }
+
+                                saufsi est_espace_blanche(lexème) {
+                                    rapporte_erreur(préprocesseur, lexème, "lexème superflux après le message d'erreur")
+                                }
+                            }
+
+                            rapporte_erreur(préprocesseur, lexème_pragma, message_erreur)
+                        }
                     }
                     sinon {
                         reprends_depuis_lexème(lexeuse, lexème_directive)
@@ -893,11 +955,11 @@ donne_lexèmes_préprocès :: fonc (préprocesseur: *PréProcesseur) -> [..]Lex�
                     fichier.est_marqué_pragma_once = vrai
                 }
                 sinon {
-                    rapporte_erreur(préprocesseur, "#pragma inconnu")
+                    rapporte_erreur(préprocesseur, lexème_pragma, "#pragma inconnu")
                 }
             }
             sinon si texte != "" {
-                rapporte_erreur(préprocesseur, "Directive inconnue : %", texte)
+                rapporte_erreur(préprocesseur, lexème, "directive inconnue")
             }
 
             lexeuse.est_première_directive = faux
@@ -979,43 +1041,48 @@ donne_fichier_pour_chemin :: fonc (préprocesseur: *PréProcesseur, chemin: chai
     retourne nul, -1
 }
 
+rapporte_erreur :: fonc (préprocesseur: *PréProcesseur, lexème: LexèmePréprocès, format: chaine, args: ...eini)
+{
+    rapporte_diagnostique(préprocesseur.unit, TypeDiagnostique.ERREUR, lexème, format, ...args)
+} @Imprimeuse
+
+rapporte_avertissement :: fonc (préprocesseur: *PréProcesseur, lexème: LexèmePréprocès, format: chaine, args: ...eini)
+{
+    rapporte_diagnostique(préprocesseur.unit, TypeDiagnostique.AVERTISSEMENT, lexème, format, ...args)
+} @Imprimeuse
+
 rapporte_erreur :: fonc (préprocesseur: *PréProcesseur, format: chaine, args: ...eini)
 {
     rapporte_diagnostique(préprocesseur, "erreur", format, ...args)
     exit(1)
 } @Imprimeuse
 
-rapporte_erreur_mécomptage_arguments :: fonc (préprocesseur: *PréProcesseur, définition: *Définition, arguments_données: z64)
+rapporte_erreur_mécomptage_arguments :: fonc (préprocesseur: *PréProcesseur, définition: *Définition, lexème: LexèmePréprocès, arguments_données: z64)
 {
-    enchaineuse: Enchaineuse
-    initialise_enchaineuse(*enchaineuse)
-    imprime_dans_enchaineuse(*enchaineuse, "trop de paramètres pour '%', voulu %, obtenu %\n", définition.nom, définition.paramètres.taille, arguments_données)
-    imprime_dans_enchaineuse(*enchaineuse, "% fut défini comme tel :\n", définition.nom)
-    // À FAIRE : ligne exacte
-    ajoute_au_tampon(*enchaineuse, "#define ", définition.nom)
-    si définition.est_semble_fonction {
-        virgule := "("
-        pour définition.paramètres {
-            ajoute_au_tampon(*enchaineuse, virgule, donne_texte(it))
-            virgule = ", "
-        }
-        ajoute_au_tampon(*enchaineuse, ")")
+    pluriel := si arguments_données > 1 {
+        "s"
     }
-    si définition.lexèmes {
-        ajoute_au_tampon(*enchaineuse, " ")
-        pour définition.lexèmes {
-            ajoute_au_tampon(*enchaineuse, donne_texte(it))
-        }
-    }
-    ajoute_au_tampon(*enchaineuse, "\n")
-    message := chaine_depuis_enchaineuse(*enchaineuse)
-    rapporte_erreur(préprocesseur, "%", message)
-}
 
-rapporte_avertissement :: fonc (préprocesseur: *PréProcesseur, format: chaine, args: ...eini)
-{
-    rapporte_diagnostique(préprocesseur, "avertissement", format, ...args)
-} @Imprimeuse
+    saufsi définition.est_intrinsèque {
+        // À FAIRE : rapporte la note après l'erreur
+        rapporte_diagnostique(préprocesseur.unit, TypeDiagnostique.NOTE, définition.lexème, "la macro \"%\" fut définie ici", définition.nom)
+    }
+
+    si définition.paramètres.taille == 0 {
+        rapporte_erreur(préprocesseur, lexème, "la macro \"%\" reçue % argument%, mais n'en prends aucun", définition.nom, arguments_données, pluriel)
+    }
+    sinon si arguments_données == 0 {
+        rapporte_erreur(préprocesseur, lexème, "la macro \"%\" requiers % argument%, mais n'en a reçu aucun", définition.nom, définition.paramètres.taille, pluriel)
+    }
+    sinon {
+        si arguments_données < définition.paramètres.taille {
+            rapporte_erreur(préprocesseur, lexème, "la macro \"%\" requiers % argument%, mais n'en a reçu que %", définition.nom, définition.paramètres.taille, pluriel, arguments_données)
+        }
+        sinon {
+            rapporte_erreur(préprocesseur, lexème, "la macro \"%\" reçue % argument%, mais n'en prends que %", définition.nom, arguments_données, pluriel, définition.paramètres.taille)
+        }
+    }
+}
 
 rapporte_diagnostique :: fonc (préprocesseur: *PréProcesseur, type: chaine, format: chaine, args: ...eini)
 {
@@ -1061,8 +1128,10 @@ extrait_chemin_inclusion_système :: fonc (préprocesseur: *PréProcesseur, pars
 }
 
 InfosDéveloppementMacro :: struct {
+    lexème: LexèmePréprocès
     macro: *Définition
     arguments: [..][..]LexèmePréprocès
+    arguments_développés: [..][..]LexèmePréprocès
 }
 
 développe_macro :: fonc (sortie: *[..]LexèmePréprocès, préprocesseur: *PréProcesseur, infos: *InfosDéveloppementMacro)
@@ -1081,12 +1150,21 @@ développe_macro_impl :: fonc (sortie: *[..]LexèmePréprocès, préprocesseur: 
         rapporte_erreur(préprocesseur, "Profondeur de développement maximale atteinte")
     }
 
-    pour * infos.arguments {
-        développe_arguments(préprocesseur, it, profondeur + 1)
+    indice_invocation := crée_invocation_de_macro(préprocesseur.unit, infos.lexème, infos.macro)
+
+    pour infos.arguments {
+        développé := développe_arguments(préprocesseur, it, profondeur + 1)
+        tableau_ajoute(*infos.arguments_développés, développé)
     }
 
     si infos.macro.est_intrinsèque {
         résultat := infos.macro.sur_développement(préprocesseur, infos.arguments)
+        résultat.plage_source.début.invocation = indice_invocation
+        résultat.plage_source.fin.invocation = indice_invocation
+
+        invocation := *préprocesseur.unit.invocations_macros[indice_invocation]
+        tableau_ajoute(*invocation.lexèmes_résultants, résultat)
+
         tableau_ajoute(sortie, résultat)
         retourne
     }
@@ -1112,6 +1190,10 @@ développe_macro_impl :: fonc (sortie: *[..]LexèmePréprocès, préprocesseur: 
         liste_de_remplacement = liste_finale
     }
 
+    tableau_ajoute(*préprocesseur.macros_en_développement, infos.macro)
+    diffère préprocesseur.macros_en_développement.taille -= 1
+
+    // imprimeln("[%] %", profondeur, #nom_de_cette_fonction)
     // imprimeln("liste de remplacement pour : %", infos.macro.nom)
     // pour liste_de_remplacement {
     //     si it.placemarker {
@@ -1123,15 +1205,29 @@ développe_macro_impl :: fonc (sortie: *[..]LexèmePréprocès, préprocesseur: 
     // }
     // imprime("\n")
 
-    si liste_de_remplacement {
-        liste_de_remplacement[0].commence_à_ignorer = infos.macro
-        liste_de_remplacement[liste_de_remplacement.taille - 1].cesse_d_ignorer = infos.macro
-    }
+    invocation := *préprocesseur.unit.invocations_macros[indice_invocation]
 
     pour liste_de_remplacement {
         si it.placemarker {
             continue
         }
+
+        définition := donne_définition(préprocesseur, donne_texte(it))
+        si définition {
+            pour macro dans préprocesseur.macros_en_développement {
+                si macro == définition {
+                    it.ne_développe_pas = vrai
+                }
+            }
+        }
+
+        si it.plage_source.début.invocation == -1 {
+            it.plage_source.début.invocation = indice_invocation
+            it.plage_source.fin.invocation = indice_invocation
+        }
+
+        tableau_ajoute(*invocation.lexèmes_résultants, it)
+
         tableau_ajoute(sortie, it)
     }
 }
@@ -1215,7 +1311,8 @@ substitue_arguments_dans_liste_de_remplacement :: fonc (sortie: *[..]LexèmePré
         }
 
         si indice_param < infos.arguments.taille {
-            pour infos.arguments[indice_param] {
+            arguments := infos.arguments_développés[indice_param]
+            pour arguments {
                 it.vient_d_un_argument = vrai
                 tableau_ajoute(sortie, it)
             }
@@ -1293,7 +1390,7 @@ applique_opérateurs_de_collage :: fonc (préprocesseur: *PréProcesseur, sortie
                     lexème_suivant := donne_lexème_suivant(*parseuse)
 
                     si est_fin_de_fichier(lexème_suivant) {
-                        rapporte_erreur(préprocesseur, "Fin de fichier inattendu")
+                        rapporte_erreur(préprocesseur, parseuse.lexèmes[parseuse.lexèmes.taille - 1], "fin de fichier inattendu")
                         arrête
                     }
 
@@ -1359,10 +1456,10 @@ donne_dernier_lexème_hors_espace_blanche :: fonc (lexèmes: []LexèmePréprocè
     retourne possède_lexème, résultat
 }
 
-développe_arguments :: fonc (préprocesseur: *PréProcesseur, arguments: *[..]LexèmePréprocès, profondeur: z32)
+développe_arguments :: fonc (préprocesseur: *PréProcesseur, arguments: []LexèmePréprocès, profondeur: z32) -> [..]LexèmePréprocès
 {
     parseuse: SimpleParseuse
-    parseuse.lexèmes = mémoire(arguments)
+    parseuse.lexèmes = arguments
 
     résultat: [..]LexèmePréprocès
 
@@ -1371,7 +1468,7 @@ développe_arguments :: fonc (préprocesseur: *PréProcesseur, arguments: *[..]L
         avance(*parseuse)
 
         définition := donne_définition(préprocesseur, lexème)
-        si définition && !définition.doit_être_ignorée {
+        si définition && !lexème.ne_développe_pas {
             si macro_ne_définis_que_son_nom(définition) {
                 tableau_ajoute(*résultat, lexème)
                 continue
@@ -1382,6 +1479,8 @@ développe_arguments :: fonc (préprocesseur: *PréProcesseur, arguments: *[..]L
 
             sauvegarde_position(*parseuse)
             saute_espaces_blanches_sauf_nouvelle_ligne(*parseuse)
+
+            lexème_appel := lexème
 
             si définition.est_semble_fonction {
                 si fini(*parseuse) || !est_ponctuation(donne_lexème_suivant(*parseuse), "(") {
@@ -1395,21 +1494,19 @@ développe_arguments :: fonc (préprocesseur: *PréProcesseur, arguments: *[..]L
                     avance(*parseuse)
                     lexème = donne_lexème_suivant(*parseuse)
                 }
+                lexème_appel = lexème
                 saufsi est_ponctuation(lexème, "(") {
-                    rapporte_erreur(préprocesseur, "Arguments manquant dans le développement de '%'", définition.nom)
+                    rapporte_erreur(préprocesseur, lexème, "arguments manquant dans le développement de '%'", définition.nom)
                 }
                 avance(*parseuse)
-                arguments_définition = parse_tranche_arguments(*parseuse, définition)
-
-                saufsi peut_accepter_arguments(définition, arguments_définition.taille) {
-                    rapporte_erreur_mécomptage_arguments(préprocesseur, définition, arguments_définition.taille)
-                }
+                arguments_définition = parse_tranche_arguments(*parseuse, préprocesseur, définition, lexème_appel)
             }
             sinon {
                 restaure_position(*parseuse)
             }
 
             infos_développement: InfosDéveloppementMacro
+            infos_développement.lexème = lexème_appel
             infos_développement.macro = définition
             infos_développement.arguments = arguments_définition
             développe_macro_impl(*résultat, préprocesseur, *infos_développement, profondeur + 1)
@@ -1419,11 +1516,13 @@ développe_arguments :: fonc (préprocesseur: *PréProcesseur, arguments: *[..]L
         }
     }
 
-    mémoire(arguments) = résultat
+    retourne résultat
 }
 
-parse_définition :: fonc (préprocesseur: *PréProcesseur, lexeuse: *LexeusePréProcès, texte_définition: chaine)
+parse_définition :: fonc (préprocesseur: *PréProcesseur, lexeuse: *LexeusePréProcès, lexème_source: LexèmePréprocès)
 {
+    texte_définition := donne_texte(lexème_source)
+
     // ligne := donne_ligne_pour_erreur(lexeuse)
     // imprimeln("--------------------------------")
     // imprimeln("%", ligne.texte)
@@ -1437,14 +1536,16 @@ parse_définition :: fonc (préprocesseur: *PréProcesseur, lexeuse: *LexeusePr�
     définition := donne_définition(préprocesseur, texte_définition)
     saufsi définition {
         définition = crée_définition(préprocesseur, texte_définition)
-
-        si préprocesseur.messagère {
-            envoie_message_macro_défini(préprocesseur.messagère, préprocesseur.unit, texte_définition)
-        }
     }
     sinon {
         déloge(définition.paramètres)
         déloge(définition.lexèmes)
+    }
+
+    définition.lexème = lexème_source
+
+    diffère si préprocesseur.messagère {
+        envoie_message_macro_défini(préprocesseur.messagère, préprocesseur.unit, définition)
     }
 
     // diffère {
@@ -1584,34 +1685,6 @@ préparse_définition :: fonc (préprocesseur: *PréProcesseur, lexeuse: *Lexeus
     retourne résultat
 }
 
-parse_lexèmes_entre_parenthèses :: fonc (préprocesseur: *PréProcesseur, lexeuse: *LexeusePréProcès) -> [..]LexèmePréprocès
-{
-    résultat: [..]LexèmePréprocès
-    parse_lexèmes_entre_parenthèses(préprocesseur, lexeuse, *résultat)
-    retourne résultat
-}
-
-parse_lexèmes_entre_parenthèses :: fonc (préprocesseur: *PréProcesseur, lexeuse: *LexeusePréProcès, résultat: *[..]LexèmePréprocès)
-{
-    niveau_parenthèse := 0
-    boucle {
-        lexème := donne_lexème_suivant(lexeuse)
-        si est_fin_de_fichier(lexème) {
-            rapporte_erreur(préprocesseur, "Fin de fichier inattendu dans %", #nom_de_cette_fonction)
-        }
-        tableau_ajoute(résultat, lexème)
-        si est_ponctuation(lexème, "(") {
-            niveau_parenthèse += 1
-        }
-        sinon si est_ponctuation(lexème, ")") {
-            si niveau_parenthèse == 0 {
-                arrête
-            }
-            niveau_parenthèse -= 1
-        }
-    }
-}
-
 ignore_lexèmes_jusque_fin_branche :: fonc (préprocesseur: *PréProcesseur, lexeuse: *LexeusePréProcès)
 {
     niveau_branchage_orig := préprocesseur.niveau_branchage
@@ -1692,7 +1765,7 @@ empile_fichier :: fonc (préprocesseur: *PréProcesseur, chemin: chaine, trouvé
     fichier.nombre_d_ouvertures += 1
 
     si préprocesseur.messagère {
-        envoie_message_fichier_ouvert(préprocesseur.messagère, préprocesseur.unit, chemin, fichier.nombre_d_ouvertures, pour_include)
+        envoie_message_fichier_ouvert(préprocesseur.messagère, préprocesseur.unit, fichier.chemin, fichier.nombre_d_ouvertures, pour_include)
     }
 
     lexeuse := tableau_ajoute_élément(*préprocesseur.lexeuses)
@@ -1908,7 +1981,7 @@ Symbole :: struct {
     empl base: ExpressionPréProc
     type = #type_de_cette_structure
 
-    texte: chaine
+    lexème: LexèmePréprocès
 }
 
 OpérateurBinaire :: struct {
@@ -1983,10 +2056,10 @@ ExpressionTernaire :: struct {
             symbole := expression comme *Symbole
 
             si préprocesseur.avertis_sur_macro_non_définis {
-                rapporte_avertissement(préprocesseur, "Évaluation d'un symbole '%'", symbole.texte)
+                rapporte_avertissement(préprocesseur, symbole.lexème, "macro inconnu")
             }
 
-            ensemble_ajoute(*préprocesseur.macros_inconnus, symbole.texte)
+            ensemble_ajoute(*préprocesseur.macros_inconnus, donne_texte(symbole.lexème))
         }
         OpérateurBinaire {
             opérateur_binaire := expression comme *OpérateurBinaire
@@ -2124,7 +2197,7 @@ saute_espaces_blanches_sauf_nouvelle_ligne :: fonc (parseuse: *SimpleParseuse)
     }
 }
 
-parse_tranche_arguments :: fonc (parseuse: *SimpleParseuse, définition: *Définition) -> [..][..]LexèmePréprocès
+parse_tranche_arguments :: fonc (parseuse: *SimpleParseuse, préprocesseur: *PréProcesseur, définition: *Définition, lexème_appel: LexèmePréprocès) -> [..][..]LexèmePréprocès
 {
     résultat: [..][..]LexèmePréprocès
 
@@ -2141,6 +2214,7 @@ parse_tranche_arguments :: fonc (parseuse: *SimpleParseuse, définition: *Défin
         }
         si est_ponctuation(lexème, ")") {
             si niveau_parenthèse == 0 {
+                tableau_ajoute(*résultat, tranche_courante)
                 arrête
             }
             niveau_parenthèse -= 1
@@ -2156,12 +2230,12 @@ parse_tranche_arguments :: fonc (parseuse: *SimpleParseuse, définition: *Défin
         tableau_ajoute(*tranche_courante, lexème)
     }
 
-    si tranche_courante {
-        tableau_ajoute(*résultat, tranche_courante)
-    }
-
     pour * résultat {
         supprime_espace_blanches_autour(it)
+    }
+
+    si résultat.taille == 1 && résultat[0].taille == 0 && nombre_de_paramètres == 0 {
+        résultat.taille = 0
     }
 
     // pour résultat {
@@ -2170,6 +2244,10 @@ parse_tranche_arguments :: fonc (parseuse: *SimpleParseuse, définition: *Défin
     //         imprimeln("-- %", donne_texte(l))
     //     }
     // }
+
+    saufsi peut_accepter_arguments(définition, résultat.taille) {
+        rapporte_erreur_mécomptage_arguments(préprocesseur, définition, lexème_appel, résultat.taille)
+    }
 
     retourne résultat
 }
@@ -2185,9 +2263,6 @@ parse_expression_if :: fonc (préprocesseur: *PréProcesseur, lexeuse: *LexeuseP
     // @Vitesse
     lexèmes: [..]LexèmePréprocès
     diffère déloge(lexèmes)
-
-    // ligne := donne_ligne_pour_erreur(lexeuse)
-    // imprimeln("%", ligne.texte)
 
     boucle {
         lexème := donne_lexème_suivant_développé(préprocesseur, lexeuse)
@@ -2403,9 +2478,7 @@ parse_expression :: fonc (préprocesseur: *PréProcesseur, parseuse: *SimplePars
 
             lexème = donne_lexème_suivant(parseuse)
             saufsi est_ponctuation(lexème, ":") {
-                // ligne := donne_ligne_pour_erreur(parseuse)
-                // imprimeln("%", ligne.texte)
-                rapporte_erreur(préprocesseur, "Attendu ':', obtenu '%' (%)", donne_texte(lexème), lexème.lexème.type)
+                rapporte_erreur(préprocesseur, lexème, "attendu ':'")
             }
 
             avance(parseuse)
@@ -2447,7 +2520,7 @@ parse_expression_primaire :: fonc (préprocesseur: *PréProcesseur, parseuse: *S
         si eu_parenthèse {
             lexème = donne_lexème_suivant(parseuse)
             saufsi est_ponctuation(lexème, ")") {
-                rapporte_erreur(préprocesseur, "Attendu une parenthèse fermante pour l'expression de defined")
+                rapporte_erreur(préprocesseur, lexème, "attendu ')' pour fermer defined")
             }
             avance(parseuse)
         }
@@ -2460,9 +2533,7 @@ parse_expression_primaire :: fonc (préprocesseur: *PréProcesseur, parseuse: *S
 
         lexème = donne_lexème_suivant(parseuse)
         saufsi est_ponctuation(lexème, ")") {
-            // ligne := donne_ligne_pour_erreur(parseuse)
-            // imprimeln("%", ligne.texte)
-            rapporte_erreur(préprocesseur, "Attendu ')' pour terminer l'expression, obtenu '%' (%)", donne_texte(lexème), lexème.lexème.type)
+            rapporte_erreur(préprocesseur, lexème, "attendu ')'")
         }
         avance(parseuse)
     }
@@ -2475,12 +2546,10 @@ parse_expression_primaire :: fonc (préprocesseur: *PréProcesseur, parseuse: *S
     sinon si est_symbole(lexème) {
         avance(parseuse)
 
-        texte = donne_texte(lexème)
-
         // Nous n'avons de définition pour ce symbole.
         // Ce n'est pas une erreur car nous pourrions être dans une branche qui ne sera pas évalué.
         symbole := loge(Symbole)
-        symbole.texte = texte
+        symbole.lexème = lexème
         résultat = symbole
     }
     sinon si lexème.lexème.type == TypeLexème.Nombre {
@@ -2520,7 +2589,7 @@ parse_expression_primaire :: fonc (préprocesseur: *PréProcesseur, parseuse: *S
                             nombre.nombre += (it - 'A')
                         }
                         sinon {
-                            rapporte_erreur(préprocesseur, "Caractère constant invalide")
+                            rapporte_erreur(préprocesseur, lexème, "Caractère constant invalide")
                         }
                     }
 
@@ -2578,18 +2647,18 @@ parse_expression_primaire :: fonc (préprocesseur: *PréProcesseur, parseuse: *S
                             nombre.nombre += (it - '0')
                         }
                         sinon {
-                            rapporte_erreur(préprocesseur, "Caractère constant invalide")
+                            rapporte_erreur(préprocesseur, lexème, "Caractère constant invalide")
                         }
                     }
 
                     texte_caractère = avance(texte_caractère, texte_caractère.taille)
                 }
                 sinon {
-                    rapporte_erreur(préprocesseur, "Séquence d'échappement invalide")
+                    rapporte_erreur(préprocesseur, lexème, "Séquence d'échappement invalide")
                 }
 
                 si texte_caractère {
-                    rapporte_erreur(préprocesseur, "Trop de caractères dans la constante de caractère")
+                    rapporte_erreur(préprocesseur, lexème, "Trop de caractères dans la constante de caractère")
                 }
             }
         }
@@ -2610,7 +2679,7 @@ parse_expression_primaire :: fonc (préprocesseur: *PréProcesseur, parseuse: *S
         résultat = parse_expression(préprocesseur, parseuse, info_opérateur)
     }
     sinon {
-        rapporte_erreur(préprocesseur, "Lexème pour expression inconnu : '%' (%)", texte, lexème.lexème.type)
+        rapporte_erreur(préprocesseur, lexème, "lexème inattendu")
     }
 
     retourne résultat
@@ -2639,7 +2708,7 @@ imprime_arbre :: fonc (noeud: *ExpressionPréProc)
             }
             Symbole {
                 symbole := noeud comme *Symbole
-                imprime("% : %\n", info.nom, symbole.texte)
+                imprime("% : %\n", info.nom, donne_texte(symbole.lexème))
             }
             OpérateurBinaire {
                 opérateur_binaire := noeud comme *OpérateurBinaire
@@ -2667,13 +2736,6 @@ donne_lexème_suivant_développé :: fonc (préprocesseur: *PréProcesseur, lexe
     boucle {
         résultat := donne_lexème_suivant(préprocesseur, lexeuse)
 
-        si résultat.commence_à_ignorer {
-            résultat.commence_à_ignorer.doit_être_ignorée = vrai
-        }
-        diffère si résultat.cesse_d_ignorer {
-            résultat.cesse_d_ignorer.doit_être_ignorée = faux
-        }
-
         saufsi est_symbole(résultat) || est_mot_clé(résultat) {
             retourne résultat
         }
@@ -2681,18 +2743,19 @@ donne_lexème_suivant_développé :: fonc (préprocesseur: *PréProcesseur, lexe
         texte := donne_texte(résultat)
 
         définition := donne_définition(préprocesseur, texte)
-        si définition == nul || définition.doit_être_ignorée {
+        si définition == nul || résultat.ne_développe_pas {
             retourne résultat
         }
 
         saufsi définition.est_semble_fonction {
             infos_développement: InfosDéveloppementMacro
+            infos_développement.lexème = résultat
             infos_développement.macro = définition
             // @Vitesse
             liste_de_remplacement: [..]LexèmePréprocès
             diffère déloge(liste_de_remplacement)
             développe_macro(*liste_de_remplacement, préprocesseur, *infos_développement)
-            ajoute_liste_de_remplacement(préprocesseur, liste_de_remplacement, définition)
+            ajoute_liste_de_remplacement(préprocesseur, liste_de_remplacement)
             continue
         }
 
@@ -2707,7 +2770,10 @@ donne_lexème_suivant_développé :: fonc (préprocesseur: *PréProcesseur, lexe
             lexème = donne_lexème_suivant(préprocesseur, lexeuse)
         }
 
+        lexème_appel := lexème
+
         saufsi est_ponctuation(lexème, "(") {
+            tableau_ajoute(*préprocesseur.lexèmes_développés, lexème)
             pour > griffonier {
                 tableau_ajoute(*préprocesseur.lexèmes_développés, it)
             }
@@ -2715,11 +2781,6 @@ donne_lexème_suivant_développé :: fonc (préprocesseur: *PréProcesseur, lexe
         }
 
         /* Parse les paramètres. */
-        pour griffonier {
-            si it.cesse_d_ignorer {
-                it.cesse_d_ignorer.doit_être_ignorée = faux
-            }
-        }
         déloge(griffonier)
 
         niveau_parenthèse := 0
@@ -2750,10 +2811,7 @@ donne_lexème_suivant_développé :: fonc (préprocesseur: *PréProcesseur, lexe
         parseuse: SimpleParseuse
         parseuse.lexèmes = griffonier
 
-        arguments := parse_tranche_arguments(*parseuse, définition)
-        saufsi peut_accepter_arguments(définition, arguments.taille) {
-            rapporte_erreur_mécomptage_arguments(préprocesseur, définition, arguments.taille)
-        }
+        arguments := parse_tranche_arguments(*parseuse, préprocesseur, définition, lexème_appel)
 
         // imprimeln("-- arguments")
         // pour args, indice_args dans arguments {
@@ -2764,6 +2822,7 @@ donne_lexème_suivant_développé :: fonc (préprocesseur: *PréProcesseur, lexe
         // }
 
         infos_développement: InfosDéveloppementMacro
+        infos_développement.lexème = lexème_appel
         infos_développement.macro = définition
         infos_développement.arguments = arguments
 
@@ -2773,16 +2832,7 @@ donne_lexème_suivant_développé :: fonc (préprocesseur: *PréProcesseur, lexe
 
         développe_macro(*liste_de_remplacement, préprocesseur, *infos_développement)
 
-        pour griffonier {
-            si it.cesse_d_ignorer {
-                it.cesse_d_ignorer.doit_être_ignorée = faux
-            }
-        }
-        si lexème_fin_paramètre.cesse_d_ignorer {
-            lexème_fin_paramètre.cesse_d_ignorer.doit_être_ignorée = faux
-        }
-
-        ajoute_liste_de_remplacement(préprocesseur, liste_de_remplacement, définition)
+        ajoute_liste_de_remplacement(préprocesseur, liste_de_remplacement)
     }
 
     panique("Nous ne devrions pas être ici")
@@ -2799,17 +2849,12 @@ donne_lexème_suivant :: fonc (préprocesseur: *PréProcesseur, lexeuse: *Lexeus
     retourne donne_lexème_suivant(lexeuse)
 }
 
-ajoute_liste_de_remplacement :: fonc (préprocesseur: *PréProcesseur, liste: []LexèmePréprocès, définition: *Définition)
+ajoute_liste_de_remplacement :: fonc (préprocesseur: *PréProcesseur, liste: []LexèmePréprocès)
 {
     // imprimeln("-- liste de remplacement")
     // pour liste {
     //     imprimeln("  -- %", donne_texte(it))
     // }
-
-    si liste {
-        liste[0].commence_à_ignorer = définition
-        liste[liste.taille - 1].cesse_d_ignorer = définition
-    }
 
     pour > liste {
         tableau_ajoute(*préprocesseur.lexèmes_développés, it)
