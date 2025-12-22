@@ -199,21 +199,23 @@ consomme_espaces_blanches :: fonc (chn: chaine) -> chaine
     retourne chn
 }
 
+donne_sous_chaine_jusque :: fonc (texte: chaine, caractère: z8) -> (résultat: chaine, reste: chaine)
+{
+    pos := trouve_caractère_depuis_le_début(texte, caractère)
+    si pos == -1 {
+        résultat = texte
+        reste = ""
+    }
+    sinon {
+        résultat = sous_chaine(texte, 0, pos)
+        reste = avance(texte, pos + 1)
+    }
+    retourne résultat, reste
+}
+
 consomme_jusque :: fonc (chn: chaine, c: z8) -> (part: chaine, reste: chaine)
 {
-    résultat := chn
-    résultat.taille = 0
-
-    tantque chn.taille != 0 {
-        si chn[0] == c {
-            arrête
-        }
-        chn.taille -= 1
-        chn.pointeur += 1
-        résultat.taille += 1
-    }
-
-    retourne résultat, chn
+    retourne donne_sous_chaine_jusque(chn, c)
 }
 
 consomme_jusque_espace_blanche :: fonc (chn: chaine) -> (part: chaine, reste: chaine)
