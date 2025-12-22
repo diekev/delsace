@@ -184,5 +184,5 @@ donne_chemin_pour_fichier_sortie :: fonc (chemin: CheminFichier) -> CheminFichie
 
 donne_texte_pour_sortie :: fonc (chemin: CheminFichier) -> chaine
 {
-    retourne donne_source_préprocédée(chemin.chn)
+    retourne donne_source_préprocédée(chemin.chn, vrai)
 }
