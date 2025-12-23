@@ -4184,6 +4184,8 @@ RésultatValidation Sémanticienne::valide_structure(NoeudStruct *decl)
         return CodeRetourValidation::OK;
     }
 
+    auto type_composé = decl->comme_type_composé();
+
     if (decl->est_polymorphe) {
         TENTE(valide_arbre_aplatis(decl));
 
@@ -4192,7 +4194,15 @@ RésultatValidation Sémanticienne::valide_structure(NoeudStruct *decl)
                 m_contexte->allocatrice_noeud->crée_monomorphisations_struct();
         }
 
-        // nous validerons les rubriques lors de la monomorphisation
+        ConstructriceRubriquesTypeComposé constructrice(*type_composé, decl->bloc);
+
+        POUR (*decl->bloc_constantes->rubriques.verrou_lecture()) {
+            constructrice.ajoute_constante(it->comme_déclaration_constante());
+        }
+
+        constructrice.finalise();
+
+        // Nous validerons les autres rubriques lors de la monomorphisation.
         decl->drapeaux |= DrapeauxNoeud::DECLARATION_FUT_VALIDEE;
         decl->drapeaux_type |= DrapeauxTypes::TYPE_EST_POLYMORPHIQUE;
         return CodeRetourValidation::OK;
@@ -4203,8 +4213,6 @@ RésultatValidation Sémanticienne::valide_structure(NoeudStruct *decl)
     TENTE(valide_arbre_aplatis(decl));
 
     CHRONO_TYPAGE(m_stats_typage.structures, STRUCTURE__VALIDATION);
-
-    auto type_composé = decl->comme_type_composé();
 
     ConstructriceRubriquesTypeComposé constructrice(*type_composé, decl->bloc);
 
@@ -4373,6 +4381,8 @@ RésultatValidation Sémanticienne::valide_union(NoeudUnion *decl)
         return CodeRetourValidation::OK;
     }
 
+    auto type_composé = decl->comme_type_composé();
+
     if (decl->est_polymorphe) {
         TENTE(valide_arbre_aplatis(decl));
 
@@ -4381,7 +4391,15 @@ RésultatValidation Sémanticienne::valide_union(NoeudUnion *decl)
                 m_contexte->allocatrice_noeud->crée_monomorphisations_union();
         }
 
-        // nous validerons les rubriques lors de la monomorphisation
+        ConstructriceRubriquesTypeComposé constructrice(*type_composé, decl->bloc);
+
+        POUR (*decl->bloc_constantes->rubriques.verrou_lecture()) {
+            constructrice.ajoute_constante(it->comme_déclaration_constante());
+        }
+
+        constructrice.finalise();
+
+        // Nous validerons les autres rubriques lors de la monomorphisation.
         decl->drapeaux |= DrapeauxNoeud::DECLARATION_FUT_VALIDEE;
         decl->drapeaux_type |= DrapeauxTypes::TYPE_EST_POLYMORPHIQUE;
         return CodeRetourValidation::OK;
@@ -4405,7 +4423,6 @@ RésultatValidation Sémanticienne::valide_union(NoeudUnion *decl)
         }
     }
 
-    auto type_composé = decl->comme_type_composé();
     auto constructrice = ConstructriceRubriquesTypeComposé(*type_composé, decl->bloc);
 
     auto type_union = decl;
