@@ -2164,7 +2164,7 @@ NoeudExpressionRéférence *Simplificatrice::génère_simplification_constructio
         if (rubrique.drapeaux & RubriqueTypeComposé::PROVIENT_D_UN_EMPOI) {
             if (it == nullptr || (!rubrique.expression_initialisation_est_spéciale() &&
                                   it == rubrique.expression_valeur_défaut)) {
-                /* Le rubrique de base ayant ajouté ce rubrique est également initialisé, il est
+                /* La rubrique de base ayant ajouté ce rubrique est également initialisé, il est
                  * donc inutile ce rubrique s'il n'y a pas d'expression pour lui. */
                 continue;
             }
