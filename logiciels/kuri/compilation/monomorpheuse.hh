@@ -327,6 +327,7 @@ class Monomorpheuse {
         const NoeudExpressionTypeTableauDynamique *expr_tableau_dynamique);
     Type *résoud_type_final_pour_déclaration_tableau_fixe(
         const NoeudExpressionTypeTableauFixe *expr_tableau_fixe);
+    Type *résoud_type_final_pour_référence_rubrique(const NoeudExpressionRubrique *rubrique);
     Type *résoud_type_final_pour_expansion_variadique(
         const NoeudExpressionExpansionVariadique *expansion);
 

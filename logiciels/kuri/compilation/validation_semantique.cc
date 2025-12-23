@@ -1802,6 +1802,15 @@ RésultatValidation Sémanticienne::valide_accès_rubrique(
         expression_rubrique->type = info_rubrique->rubrique.type;
         expression_rubrique->indice_rubrique = indice_rubrique;
 
+        /* Détecte les cas comme :
+         *    fonction :: fonc (v: Vecteur, v.T)
+         * où Vecteur est polymorphique sur T. */
+        if (info_rubrique->rubrique.decl && info_rubrique->rubrique.decl->possède_drapeau(
+                                                DrapeauxNoeud::EST_VALEUR_POLYMORPHIQUE)) {
+            auto type_poly = m_espace->typeuse.crée_polymorphique(expression_rubrique->ident);
+            expression_rubrique->type = m_espace->typeuse.type_type_de_données(type_poly);
+        }
+
         if (type->est_type_énum() || type->est_type_erreur()) {
             expression_rubrique->genre_valeur = GenreValeur::DROITE;
 
