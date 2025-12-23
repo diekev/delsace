@@ -149,8 +149,8 @@ chaine_statique chemin_systeme::extension() const
     }
 
     auto distance = std::distance(début, pos);
-    auto taille = std::distance(pos, données.end());
-    return {données.pointeur() + distance, taille};
+    auto taille = std::distance(pos, nom.end());
+    return {nom.pointeur() + distance, taille};
 }
 
 chaine_statique chemin_systeme::chemin_parent() const
