@@ -135,6 +135,7 @@ principale :: fonc ()
     test_tranche_polymorphique()
     test_imprime_tableau_fixe_polymorphique()
     test_contraintes()
+    test_appel_polymorphe_paramètres_implicites()
 }
 
 imprime_tranche_polymorphique :: fonc (tranche: []$T)
@@ -210,6 +211,32 @@ test_contraintes :: fonc ()
 
     c := ContrainteStructurePolymorphique(z32)(5)
     contrainte_structure_polymorphique(c)
+}
+
+/** \} */
+
+/* ------------------------------------------------------------------------- */
+/** \nom Utilisation de structures polymorphiques dans les paramètres, sans
+ * déclarer les paramètres de la structure.
+ * \{ */
+
+Vecteur :: struct (T: type_de_données) {
+    x, y, z: T
+}
+
+définis_x :: fonc (v: *Vecteur, x: z32)
+{
+    v.x = x
+}
+
+test_appel_polymorphe_paramètres_implicites :: fonc ()
+{
+    imprimeln("-------------------------------")
+    imprimeln("  -- paramètres implicites --")
+
+    v: Vecteur(z32)
+    définis_x(*v, 123)
+    imprimeln("%", v)
 }
 
 /** \} */
