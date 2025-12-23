@@ -435,7 +435,7 @@ void rubrique_inconnue(EspaceDeTravail const &espace,
 
     auto e = espace.rapporte_erreur(
         accès, "Dans l'expression d'accès de rubrique", Genre::RUBRIQUE_INCONNUE);
-    e.ajoute_message("Le rubrique « ", rubrique->ident->nom, " » est inconnu !\n\n");
+    e.ajoute_message("La rubrique « ", rubrique->ident->nom, " » est inconnu !\n\n");
 
     if (rubriques.taille() == 0) {
         e.ajoute_message("Aucune rubrique connu !\n");
