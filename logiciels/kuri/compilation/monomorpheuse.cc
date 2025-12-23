@@ -385,23 +385,6 @@ void Monomorpheuse::ajoute_candidats_depuis_déclaration_structure(const NoeudSt
         erreur_genre_type(nullptr, type_reçu, "n'est pas une forme du polymorphe");
         return;
     }
-
-    POUR (*decl_struct->bloc_constantes->rubriques.verrou_lecture()) {
-        auto param_poly = trouve_dans_bloc(structure->bloc_constantes, it->ident);
-
-        if (param_poly->possède_drapeau(DrapeauxNoeud::EST_VALEUR_POLYMORPHIQUE)) {
-            if (it->type->est_type_type_de_données()) {
-                ajoute_candidat(it->ident, it->type);
-            }
-            else {
-                ajoute_candidat_valeur(
-                    it->ident, it->type, it->comme_déclaration_constante()->valeur_expression);
-            }
-        }
-        else if (param_poly->possède_drapeau(DrapeauxNoeud::DECLARATION_TYPE_POLYMORPHIQUE)) {
-            ajoute_candidat(it->ident, it->type);
-        }
-    }
 }
 
 static NoeudDéclaration *rubrique_pour_ident_ou_index(NoeudBloc *bloc,
