@@ -2222,6 +2222,10 @@ RésultatValidation Sémanticienne::valide_paramètres_fonction(NoeudDéclaratio
 
         noms.insère(param->ident);
 
+        if (param->type->possède_drapeau(DrapeauxTypes::TYPE_EST_POLYMORPHIQUE)) {
+            decl->drapeaux_fonction |= DrapeauxNoeudFonction::EST_POLYMORPHIQUE;
+        }
+
         if (param->type->est_type_variadique()) {
             param->drapeaux |= DrapeauxNoeud::EST_VARIADIQUE;
             decl->drapeaux_fonction |= DrapeauxNoeudFonction::EST_VARIADIQUE;
@@ -2236,6 +2240,13 @@ RésultatValidation Sémanticienne::valide_paramètres_fonction(NoeudDéclaratio
                                 param);
                 return CodeRetourValidation::Erreur;
             }
+        }
+    }
+
+    if (decl->possède_drapeau(DrapeauxNoeudFonction::EST_POLYMORPHIQUE)) {
+        if (!decl->monomorphisations) {
+            decl->monomorphisations =
+                m_contexte->allocatrice_noeud->crée_monomorphisations_fonction();
         }
     }
 
@@ -2953,7 +2964,8 @@ static bool est_référence_déclaration_valide(EspaceDeTravail *espace,
     if (est_déclaration_polymorphique(decl) &&
         !expr->possède_drapeau(PositionCodeNoeud::GAUCHE_EXPRESSION_APPEL |
                                PositionCodeNoeud::DROITE_CONTRAINTE_POLYMORPHIQUE |
-                               PositionCodeNoeud::EXPRESSION_INFO_DE)) {
+                               PositionCodeNoeud::EXPRESSION_INFO_DE |
+                               PositionCodeNoeud::EXPRESSION_TYPE)) {
         espace
             ->rapporte_erreur(expr,
                               "Référence d'une déclaration polymorphique en dehors d'une "
@@ -3244,6 +3256,70 @@ RésultatValidation Sémanticienne::valide_référence_déclaration(NoeudExpress
                 .ajoute_site(déclaration_pour_marquée_inutilisée);
         }
         return CodeRetourValidation::Erreur;
+    }
+
+    if (est_déclaration_polymorphique(decl)) {
+        if (expr->possède_drapeau(PositionCodeNoeud::EXPRESSION_TYPE) &&
+            !expr->possède_drapeau(PositionCodeNoeud::GAUCHE_EXPRESSION_APPEL |
+                                   PositionCodeNoeud::DROITE_CONTRAINTE_POLYMORPHIQUE |
+                                   PositionCodeNoeud::EXPRESSION_INFO_DE)) {
+            auto fonction = fonction_courante();
+            if (!fonction) {
+                m_espace->rapporte_erreur(
+                    expr, "Référence d'une déclaration polymorphique crue hors d'une fonction");
+                return CodeRetourValidation::Erreur;
+            }
+
+            if (fonction->état_validation != ÉtatValidationEntête::ARBRE_APLATIS) {
+                m_espace->rapporte_erreur(expr,
+                                          "Référence d'une déclaration polymorphique crue hors "
+                                          "des paramètres d'une fonction");
+                return CodeRetourValidation::Erreur;
+            }
+
+            if (fonction->possède_drapeau(DrapeauxNoeudFonction::EST_MONOMORPHISATION)) {
+                m_espace->rapporte_erreur(expr,
+                                          "Référence d'une déclaration polymorphique crue dans "
+                                          "une une fonction monomorphée");
+                return CodeRetourValidation::Erreur;
+            }
+
+            // Nous avons une déclaration comme-ci :
+            //
+            //    ma_fonction :: fonc (a: StructPolymorphique)
+            //
+            // Aucun paramètre polymorphique pour la fonction ne fut
+            // définit via StructPolymorphique, alors que le reste de la
+            // compilation (notamment la monomorphisation) présuppose que
+            // la fonction a des paramètres pour pouvoir proprement
+            // monomorpher les appels à cette fonction, et détecter
+            // le monomorphisations existantes afin de ne pas dupliquer
+            // des efforts.
+            //
+            // Ici nous créons donc un paramètre pour que le reste du
+            // code soit content comme si la fonction fut déclarée
+            // comme-ci :
+            //
+            //    ma_fonction :: fonc (a: $StructPolymorphique/StructPolymorphique)
+            //
+            // Ce paramètre pointera vers la déclaration de la structure.
+            auto nouvelle_référence = m_contexte->assembleuse->crée_référence_déclaration(
+                expr->lexème);
+            nouvelle_référence->déclaration_référée = decl;
+            nouvelle_référence->type = expr->type;
+
+            auto déclaration_constante = m_contexte->assembleuse->crée_déclaration_constante(
+                expr->lexème, nullptr, nouvelle_référence);
+            déclaration_constante->bloc_parent = fonction->bloc_constantes;
+            déclaration_constante->type = expr->type;
+            déclaration_constante->drapeaux |= DrapeauxNoeud::DECLARATION_FUT_VALIDEE;
+            déclaration_constante->drapeaux |= DrapeauxNoeud::DECLARATION_TYPE_POLYMORPHIQUE;
+            déclaration_constante->drapeaux |= DrapeauxNoeud::EXPRESSION_TYPE_EST_CONTRAINTE_POLY;
+            fonction->bloc_constantes->ajoute_rubrique(déclaration_constante);
+
+            // Faisons pointer la référence originelle vers la nouvelle déclaration.
+            expr->déclaration_référée = déclaration_constante;
+        }
     }
 
     return CodeRetourValidation::OK;
@@ -4030,7 +4106,7 @@ static void rapporte_erreur_inclusion_récursive_type(EspaceDeTravail *espace,
     if (expression_rubrique->est_déclaration_variable()) {
         auto déclaration_variable = expression_rubrique->comme_déclaration_variable();
         if (déclaration_variable->déclaration_vient_d_un_emploi) {
-            e.ajoute_message("Le rubrique fut inclus via l'emploi suivant :\n")
+            e.ajoute_message("La rubrique fut inclus via l'emploi suivant :\n")
                 .ajoute_site(déclaration_variable->déclaration_vient_d_un_emploi);
         }
     }
@@ -7035,7 +7111,7 @@ RésultatValidation Sémanticienne::valide_instruction_empl_énum(
                                   "existe déjà dans le bloc.")
                 .ajoute_message("La déclaration existante est :\n")
                 .ajoute_site(decl_existante)
-                .ajoute_message("Le rubrique en conflit est :\n")
+                .ajoute_message("La rubrique en conflit est :\n")
                 .ajoute_site(it.decl);
             return CodeRetourValidation::Erreur;
         }
@@ -7113,7 +7189,7 @@ RésultatValidation Sémanticienne::valide_instruction_empl_déclaration(
                                   "existe déjà dans le bloc.")
                 .ajoute_message("La déclaration existante est :\n")
                 .ajoute_site(decl_existante)
-                .ajoute_message("Le rubrique en conflit est :\n")
+                .ajoute_message("La rubrique en conflit est :\n")
                 .ajoute_site(it.decl);
             return CodeRetourValidation::Erreur;
         }
