@@ -435,10 +435,10 @@ void rubrique_inconnue(EspaceDeTravail const &espace,
 
     auto e = espace.rapporte_erreur(
         accès, "Dans l'expression d'accès de rubrique", Genre::RUBRIQUE_INCONNUE);
-    e.ajoute_message("La rubrique « ", rubrique->ident->nom, " » est inconnu !\n\n");
+    e.ajoute_message("La rubrique « ", rubrique->ident->nom, " » est inconnue !\n\n");
 
     if (rubriques.taille() == 0) {
-        e.ajoute_message("Aucune rubrique connu !\n");
+        e.ajoute_message("Aucune rubrique connue !\n");
     }
     else {
         if (rubriques.taille() <= 32) {
@@ -450,7 +450,7 @@ void rubrique_inconnue(EspaceDeTravail const &espace,
         else {
             /* Évitons de spammer la sortie. */
             e.ajoute_message("Note : la structure possède un nombre de rubriques trop important "
-                             "pour tous les afficher.\n");
+                             "pour toutes les afficher.\n");
         }
 
         e.ajoute_message("\nCandidat possible : ", candidat.chaine, "\n");
