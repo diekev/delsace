@@ -275,7 +275,7 @@ static void imprime_erreur_pour_erreur_fonction(Erreur &e,
         }
         case RaisonErreurAppariement::MONOMORPHISATION:
         {
-            e.ajoute_message(dc.erreur_monomorphisation.message());
+            e.ajoute_message(dc.erreur_monomorphisation.message(espace));
             break;
         }
         case RaisonErreurAppariement::EXPRESSION_NON_CONSTANTE_POUR_CUISSON:

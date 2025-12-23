@@ -28,7 +28,7 @@ static kuri::chaine_statique commentaire_pour_genre(ItemMonomorphisation const &
     return "indéfini";
 }
 
-kuri::chaine ErreurMonomorphisation::message() const
+kuri::chaine ErreurMonomorphisation::message(EspaceDeTravail const &espace) const
 {
 #define SI_ERREUR_EST(Type)                                                                       \
     if (std::holds_alternative<Type>(this->données)) {                                            \
@@ -104,7 +104,12 @@ kuri::chaine ErreurMonomorphisation::message() const
 
     SI_ERREUR_EST(DonnéesErreurInterne)
     {
-        return enchaine(données_erreur.message);
+        if (site) {
+            enchaineuse << erreur::imprime_site(espace, site);
+        }
+
+        enchaineuse << "\t" << données_erreur.message;
+        return enchaineuse.chaine();
     }
     FIN_ERREUR(DonnéesErreurInterne)
 
@@ -751,6 +756,10 @@ RésultatRésolutionType Monomorpheuse::résoud_type_final(
     profondeur_appariement_type = 0;
     auto type = résoud_type_final_impl(expression_polymorphique);
 
+    if (!type) {
+        erreur_interne(expression_polymorphique, "impossible de résoudre le type");
+    }
+
     if (a_une_erreur()) {
         return erreur().value();
     }
@@ -774,7 +783,7 @@ void Monomorpheuse::logue() const
     }
 
     if (a_une_erreur()) {
-        sortie << "Erreur de monomorphisation : " << erreur_courante->message() << '\n';
+        sortie << "Erreur de monomorphisation : " << erreur_courante->message(espace) << '\n';
     }
 
     sortie << "\n";

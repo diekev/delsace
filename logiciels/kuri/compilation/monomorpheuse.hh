@@ -123,7 +123,7 @@ struct ErreurMonomorphisation {
     const NoeudExpression *site = nullptr;
     DonnéesErreur données = {};
 
-    kuri::chaine message() const;
+    kuri::chaine message(const EspaceDeTravail &espace) const;
 };
 
 /** \} */
