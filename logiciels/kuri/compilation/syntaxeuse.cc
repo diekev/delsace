@@ -3729,14 +3729,43 @@ void Syntaxeuse::analyse_paramètres_polymorphiques_structure_ou_union(
 
     consomme();
 
-    while (!fini() && !apparie(GenreLexème::PARENTHESE_FERMANTE)) {
-        auto expression = analyse_expression({}, GenreLexème::VIRGULE);
-
-        if (!expression->est_déclaration_constante()) {
-            rapporte_erreur_avec_site(expression,
-                                      "Attendu une déclaration constante dans les "
-                                      "paramètres polymorphiques de la structure");
+    while (!fini()) {
+        auto lexème = lexème_courant();
+        if (lexème->genre == GenreLexème::PARENTHESE_FERMANTE) {
+            break;
         }
+
+        if (lexème->genre == GenreLexème::DOLLAR) {
+            // À FAIRE : rapporte un avertissement, car ceci sera supprimé.
+            consomme();
+            if (fini()) {
+                break;
+            }
+
+            lexème = lexème_courant();
+        }
+
+        if (lexème->genre != GenreLexème::CHAINE_CARACTERE) {
+            rapporte_erreur("attendu un identifiant", lexème);
+            break;
+        }
+
+        auto lexème_identifiant = lexème;
+        consomme();
+
+        if (!apparie(GenreLexème::DOUBLE_POINTS)) {
+            rapporte_erreur("attendu ':'", lexème);
+            break;
+        }
+        consomme();
+
+        auto expression_type = parse_expression_type(GenreLexème::VIRGULE);
+
+        auto decl_constante = m_contexte->assembleuse->crée_déclaration_constante(
+            lexème_identifiant, nullptr, expression_type);
+        decl_constante->drapeaux |= DrapeauxNoeud::EST_VALEUR_POLYMORPHIQUE;
+
+        noeud->bloc_constantes->ajoute_rubrique(decl_constante);
 
         if (!apparie(GenreLexème::VIRGULE)) {
             break;
@@ -3745,7 +3774,7 @@ void Syntaxeuse::analyse_paramètres_polymorphiques_structure_ou_union(
         consomme();
     }
 
-    consomme();
+    consomme(GenreLexème::PARENTHESE_FERMANTE, "attendu une parenthèse fermante");
 }
 
 void Syntaxeuse::analyse_rubriques_structure_ou_union(NoeudDéclarationClasse *decl_struct)
