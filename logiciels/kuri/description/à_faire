@@ -52,8 +52,6 @@ crash
 
 typage des indices selon le type itéré
 
-mémoire(fonction_retournant_pointeur()) ne fonctionne pas
-
 //////////// fonctionnalités
 
 assignation dans l'initialisaiton de tableau :
