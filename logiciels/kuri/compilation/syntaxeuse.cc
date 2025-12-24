@@ -3485,7 +3485,8 @@ void Syntaxeuse::parse_paramètres_de_sortie(kuri::tablet<NoeudExpression *, 16>
     m_nous_sommes_dans_type = true;
 
     while (!fini()) {
-        auto decl_sortie = analyse_expression({}, GenreLexème::VIRGULE);
+        auto précédence = précédence_pour_opérateur(GenreLexème::EGAL);
+        auto decl_sortie = analyse_expression({précédence}, GenreLexème::VIRGULE);
 
         if (!decl_sortie) {
             /* Nous avons une erreur, nous pouvons retourner. */
