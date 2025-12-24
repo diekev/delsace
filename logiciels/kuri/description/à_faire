@@ -9,8 +9,6 @@ diffère { Prof_End() }
 // À FAIRE(langage) : la compilation n'attend pas sur les messages
 // retourne imprime_chaine("%", chn)
 
-/* À FAIRE(langage) : enveloppable: *$T/Enveloppable */
-
 pas d'erreur pour foo(a = a = 13)
 
 permet d'avoir des types différents autour de <<, >>

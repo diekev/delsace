@@ -5854,6 +5854,14 @@ RésultatValidation Sémanticienne::valide_opérateur_binaire_type(NoeudExpressi
             }
 
             /* Nous sommes dans un polymorphe ou autre chose : validons. */
+            if (gauche->est_prise_adresse()) {
+                auto prise_adresse = gauche->comme_prise_adresse();
+                gauche = prise_adresse->opérande;
+            }
+            else if (gauche->est_prise_référence()) {
+                auto prise_référence = gauche->comme_prise_référence();
+                gauche = prise_référence->opérande;
+            }
 
             if (!gauche->est_référence_déclaration() ||
                 !gauche->possède_drapeau(DrapeauxNoeud::DECLARATION_TYPE_POLYMORPHIQUE)) {
