@@ -21,8 +21,6 @@ opérateur non trouvé s'il y a une attente non résolue
 
 empl => ajoute erreur si nom variable est nom d'un membre
 
-MonÉnum(-1) => erreur sur fonction inconnue, doit être sur "type non constructible"
-
 erreur de compilation
 // retourne donne_eini_valeur_énum_index(info_destination_type, index_it) comme Request.DestinationType
 

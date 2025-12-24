@@ -203,6 +203,22 @@ static void imprime_erreur_pour_erreur_fonction(Erreur &e,
             e.genre_erreur(erreur::Genre::ARGUMENT_INCONNU);
             break;
         }
+        case RaisonErreurAppariement::TYPE_N_EST_PAS_CONSTRUCTIBLE:
+        {
+            auto type = dc.type;
+            if (type->est_type_type_de_données()) {
+                auto type_connu = type->comme_type_type_de_données()->type_connu;
+                if (type_connu) {
+                    type = type_connu;
+                }
+            }
+
+            e.ajoute_message("\tLe type ",
+                             chaine_type(type),
+                             " n'est pas utilisable comme cible d'une expression d'appel.\n");
+            e.genre_erreur(erreur::Genre::FONCTION_INCONNUE);
+            break;
+        }
         case RaisonErreurAppariement::TYPE_N_EST_PAS_FONCTION:
         {
             e.ajoute_message("\tAppel d'une variable n'étant pas un pointeur de fonction\n");
