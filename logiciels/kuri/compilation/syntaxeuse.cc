@@ -787,7 +787,7 @@ bool Syntaxeuse::apparie_instruction() const
 
 NoeudExpression *Syntaxeuse::parse_expression_virgule(GenreLexème lexème_final)
 {
-    return analyse_expression(DonnéesPrécédence{PRÉCÉDENCE_VIRGULE}, GenreLexème::INCONNU);
+    return analyse_expression(DonnéesPrécédence{PRÉCÉDENCE_VIRGULE}, lexème_final);
 }
 
 NoeudExpression *Syntaxeuse::analyse_expression(DonnéesPrécédence const &données_précédence,
