@@ -785,6 +785,11 @@ bool Syntaxeuse::apparie_instruction() const
     return (table_drapeaux_lexèmes[static_cast<size_t>(genre)] & EST_INSTRUCTION) != 0;
 }
 
+NoeudExpression *Syntaxeuse::parse_expression_virgule(GenreLexème lexème_final)
+{
+    return analyse_expression(DonnéesPrécédence{PRÉCÉDENCE_VIRGULE}, GenreLexème::INCONNU);
+}
+
 NoeudExpression *Syntaxeuse::analyse_expression(DonnéesPrécédence const &données_précédence,
                                                 GenreLexème lexème_final)
 {
@@ -1583,9 +1588,14 @@ NoeudExpression *Syntaxeuse::analyse_expression_secondaire(
         }
         case GenreLexème::EGAL:
         {
-            consomme();
+            if (gauche->est_assignation_variable() || gauche->est_assignation_logique() ||
+                gauche->est_assignation_multiple()) {
+                rapporte_erreur("utilisation de '=' alors que nous somme à droite de '='");
+            }
 
             m_noeud_expression_virgule = nullptr;
+
+            consomme();
 
             if (gauche->est_base_déclaration_variable()) {
                 auto decl = gauche->comme_base_déclaration_variable();
@@ -1596,7 +1606,7 @@ NoeudExpression *Syntaxeuse::analyse_expression_secondaire(
                     rapporte_erreur("utilisation de '=' alors que nous somme à droite de ':='");
                 }
 
-                decl->expression = analyse_expression(données_précédence, lexème_final);
+                decl->expression = parse_expression_virgule(lexème_final);
 
                 m_noeud_expression_virgule = nullptr;
 
@@ -1620,7 +1630,7 @@ NoeudExpression *Syntaxeuse::analyse_expression_secondaire(
                     }
                 }
 
-                auto expression = analyse_expression(données_précédence, lexème_final);
+                auto expression = parse_expression_virgule(lexème_final);
                 auto noeud = m_contexte->assembleuse->crée_assignation_multiple(
                     lexème, noeud_virgule, expression);
 
@@ -1628,7 +1638,7 @@ NoeudExpression *Syntaxeuse::analyse_expression_secondaire(
                 return noeud;
             }
 
-            auto expression = analyse_expression(données_précédence, lexème_final);
+            auto expression = parse_expression_virgule(lexème_final);
             auto noeud = m_contexte->assembleuse->crée_assignation_variable(
                 lexème, gauche, expression);
 

@@ -9,8 +9,6 @@ diffère { Prof_End() }
 // À FAIRE(langage) : la compilation n'attend pas sur les messages
 // retourne imprime_chaine("%", chn)
 
-pas d'erreur pour foo(a = a = 13)
-
 permet d'avoir des types différents autour de <<, >>
     car les valeurs n'ont pas la même sémantique
 
