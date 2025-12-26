@@ -110,7 +110,7 @@ static constexpr auto table_drapeaux_lexèmes = [] {
             }
         }
 
-        // expresssion
+        // expression
         switch (static_cast<GenreLexème>(i)) {
             case GenreLexème::CARACTÈRE:
             case GenreLexème::CHAINE_CARACTERE:
@@ -150,7 +150,7 @@ static constexpr auto table_drapeaux_lexèmes = [] {
             }
         }
 
-        // expresssion type
+        // expression type
         switch (static_cast<GenreLexème>(i)) {
             case GenreLexème::N8:
             case GenreLexème::N16:
@@ -180,7 +180,7 @@ static constexpr auto table_drapeaux_lexèmes = [] {
                 break;
         }
 
-        // expresssion secondaire
+        // expression secondaire
         switch (static_cast<GenreLexème>(i)) {
             case GenreLexème::BARRE:
             case GenreLexème::BARRE_BARRE:
