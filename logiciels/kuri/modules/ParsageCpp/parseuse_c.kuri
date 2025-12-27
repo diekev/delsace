@@ -1164,6 +1164,7 @@ Declarator :: struct {
 
 parse_declarator :: fonc (empl parseuse: *ParseuseC, présence_identifier: PrésenceIdentifier) -> *Declarator
 {
+    pointer_racine: *PointerDeclarator
     pointer: *PointerDeclarator
 
     lexème := épie_lexème_suivant(parseuse)
@@ -1171,6 +1172,9 @@ parse_declarator :: fonc (empl parseuse: *ParseuseC, présence_identifier: Prés
         consomme(parseuse)
 
         pointer_courant := loge(PointerDeclarator)
+        saufsi pointer_racine {
+            pointer_racine = pointer_courant
+        }
 
         lexème = épie_lexème_suivant(parseuse)
         tantque est_type_qualifier(lexème) {
@@ -1190,6 +1194,9 @@ parse_declarator :: fonc (empl parseuse: *ParseuseC, présence_identifier: Prés
     si pointer {
         pointer.direct = résultat
         résultat = pointer
+        si pointer_racine {
+            résultat = pointer_racine
+        }
     }
     retourne résultat
 }
