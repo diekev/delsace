@@ -597,9 +597,8 @@ donne_nom_et_type_pour_declarator :: fonc (empl parseuse: *ParseuseC, info: *Inf
         }
         sinon si declarator.genre == ArrayDeclarator {
             // À FAIRE : préserve les qualifiers.
-            // À FAIRE : parse la taille
             array := declarator comme *ArrayDeclarator
-            type_final = crée_constant_array(*créatrice, type_final, 0)
+            type_final = crée_constant_array(*créatrice, type_final, array.expression)
             declarator = array.direct
         }
         sinon si declarator.genre == PointerDeclarator {

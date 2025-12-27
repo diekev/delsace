@@ -137,7 +137,7 @@ ConstantArray :: struct {
     genre = #type_de_cette_structure
     kind = TypeKind.CONSTANT_ARRAY
 
-    size: n64
+    size_expression: *Expression
     element_type: *Type
 }
 
@@ -590,11 +590,11 @@ crée_pointer_type :: fonc (créatrice: *CréatriceNoeuds, pointed_to: *Type) ->
     retourne résultat
 }
 
-crée_constant_array :: fonc (créatrice: *CréatriceNoeuds, element_type: *Type, size: n64) -> *ConstantArray
+crée_constant_array :: fonc (créatrice: *CréatriceNoeuds, element_type: *Type, size_expression: *Expression) -> *ConstantArray
 {
     résultat := crée_noeud(créatrice, ConstantArray)
     résultat.element_type = element_type
-    résultat.size = size
+    résultat.size_expression = size_expression
     retourne résultat
 }
 
