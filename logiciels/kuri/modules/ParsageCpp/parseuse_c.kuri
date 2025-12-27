@@ -132,6 +132,23 @@ initialise_parseuse :: fonc (parseuse: *ParseuseC, unit: *TranslationUnit)
     unit.void_ptr_type = crée_pointer_type(*parseuse.créatrice, unit.void_type)
     unit.variadic_type = crée_type(*parseuse.créatrice, TypeKind.VARIADIC)
 
+    unit.char_type.taille_en_octet = 1
+    unit.char_unsigned_type.taille_en_octet = 1
+    unit.short_signed_type.taille_en_octet = 2
+    unit.short_unsigned_type.taille_en_octet = 2
+    unit.int_signed_type.taille_en_octet = 4
+    unit.int_unsigned_type.taille_en_octet = 4
+    unit.int_long_signed_type.taille_en_octet = 8
+    unit.int_long_unsigned_type.taille_en_octet = 8
+    unit.float_type.taille_en_octet = 4
+    unit.double_type.taille_en_octet = 8
+    // unit.double_long_type.taille_en_octet = 
+    // unit.float128_type.taille_en_octet = 
+    // unit.complex_float_type.taille_en_octet = 
+    // unit.complex_double_type.taille_en_octet = 
+    // unit.complex_double_long_type.taille_en_octet = 
+    unit.void_ptr_type.taille_en_octet = 8
+
     // À FAIRE : comprend ce que c'est
     typedef_decl := crée_noeud(*parseuse.créatrice, TypedefDecl)
     typedef_decl.name = "__builtin_va_list"

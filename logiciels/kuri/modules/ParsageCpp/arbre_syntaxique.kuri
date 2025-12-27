@@ -95,6 +95,7 @@ Type :: struct {
     genre = #type_de_cette_structure
 
     kind: TypeKind
+    taille_en_octet: n32
 }
 
 PointerType :: struct {
