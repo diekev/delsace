@@ -30,7 +30,7 @@ VarDecl :: struct {
     genre = #type_de_cette_structure
 
     nom: chaine
-    type: *Type
+    type_expression: *Expression
     initializer: *Expression
 }
 
@@ -39,7 +39,7 @@ FunctionDecl :: struct {
     genre = #type_de_cette_structure
 
     nom: chaine
-    type: *Type
+    type_expression: *FunctionTypeExpression
     params: [..]*ParamDecl
 }
 
@@ -48,7 +48,7 @@ FunctionDefinition :: struct {
     genre = #type_de_cette_structure
 
     nom: chaine
-    type: *Type
+    type_expression: *FunctionTypeExpression
     params: [..]*ParamDecl
     statement: *CompoundStatement
 }
@@ -75,7 +75,6 @@ TypeKind :: énum {
     VOID
 
     RECORD
-    REFERENCE // Pour TypeRef
 
     TYPEDEF
 
@@ -98,15 +97,6 @@ Type :: struct {
     kind: TypeKind
 }
 
-TypeRef :: struct {
-    empl base_type: Type
-    genre = #type_de_cette_structure
-    kind = TypeKind.REFERENCE
-
-    // À FAIRE : type référencé
-    nom: chaine
-}
-
 PointerType :: struct {
     empl base_type: Type
     genre = #type_de_cette_structure
@@ -115,12 +105,27 @@ PointerType :: struct {
     pointed_to: *Type
 }
 
+PointerTypeExpression :: struct {
+    empl expr: Expression
+    genre = #type_de_cette_structure
+
+    pointed_to: *Expression
+}
+
 FunctionType :: struct {
     empl base_type: Type
     genre = #type_de_cette_structure
     kind = TypeKind.FUNCTION
 
     return_type: *Type
+    parameters: [..]*Type
+}
+
+FunctionTypeExpression :: struct {
+    empl expr: Expression
+    genre = #type_de_cette_structure
+
+    return_type: *Expression
     parameters: [..]*ParamDecl
 }
 
@@ -129,7 +134,7 @@ ParamDecl :: struct {
     genre = #type_de_cette_structure
 
     name: chaine
-    type: *Type
+    type_expression: *Expression
 }
 
 ConstantArray :: struct {
@@ -137,8 +142,16 @@ ConstantArray :: struct {
     genre = #type_de_cette_structure
     kind = TypeKind.CONSTANT_ARRAY
 
-    size_expression: *Expression
+    size: n64
     element_type: *Type
+}
+
+ConstantArrayExpression :: struct {
+    empl expr: Expression
+    genre = #type_de_cette_structure
+
+    size_expression: *Expression
+    element_type: *Expression
 }
 
 TypedefDecl :: struct {
@@ -147,7 +160,7 @@ TypedefDecl :: struct {
     kind = TypeKind.TYPEDEF
 
     name: chaine
-    underlying_type: *Type
+    underlying_type: *Expression
 }
 
 StructDecl :: struct {
@@ -190,13 +203,20 @@ FieldDecl :: struct {
     genre = #type_de_cette_structure
 
     name: chaine
-    type: *Type
+    type_expression: *Expression
     bitfield_expression: *Expression
 }
 
 Expression :: struct {
     empl node: ASTNode
     genre = #type_de_cette_structure
+}
+
+TypeRef :: struct {
+    empl expr: Expression
+    genre = #type_de_cette_structure
+
+    reference_type: *Type
 }
 
 CommaExpression :: struct {
@@ -375,7 +395,6 @@ TernaryExpression :: struct {
     alternate: *Expression
 }
 
-// À FAIRE : déduplique avec TypeRef (ou supprime ce dernier)
 // Expression se trouvant par exemple dans sizeof().
 TypeNameExpression :: struct {
     empl expr: Expression
@@ -576,10 +595,10 @@ crée_type :: fonc (créatrice: *CréatriceNoeuds, kind: TypeKind) -> *Type
     retourne résultat
 }
 
-crée_type_ref :: fonc (créatrice: *CréatriceNoeuds, nom: chaine) -> *TypeRef
+crée_type_ref :: fonc (créatrice: *CréatriceNoeuds, type: *Type) -> *TypeRef
 {
     résultat := crée_noeud(créatrice, TypeRef)
-    résultat.nom = nom
+    résultat.reference_type = type
     retourne résultat
 }
 
@@ -590,9 +609,16 @@ crée_pointer_type :: fonc (créatrice: *CréatriceNoeuds, pointed_to: *Type) ->
     retourne résultat
 }
 
-crée_constant_array :: fonc (créatrice: *CréatriceNoeuds, element_type: *Type, size_expression: *Expression) -> *ConstantArray
+crée_pointer_type :: fonc (créatrice: *CréatriceNoeuds, pointed_to: *Expression) -> *PointerTypeExpression
 {
-    résultat := crée_noeud(créatrice, ConstantArray)
+    résultat := crée_noeud(créatrice, PointerTypeExpression)
+    résultat.pointed_to = pointed_to
+    retourne résultat
+}
+
+crée_constant_array :: fonc (créatrice: *CréatriceNoeuds, element_type: *Expression, size_expression: *Expression) -> *ConstantArrayExpression
+{
+    résultat := crée_noeud(créatrice, ConstantArrayExpression)
     résultat.element_type = element_type
     résultat.size_expression = size_expression
     retourne résultat
