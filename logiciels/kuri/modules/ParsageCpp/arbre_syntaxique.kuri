@@ -7,6 +7,7 @@ importe Introspection
 ASTNode :: struct {
     genre := #type_de_cette_structure
 
+    token: Token
     type: *Type
 }
 
@@ -255,22 +256,16 @@ IndexDesignator :: struct {
 CharacterConstant :: struct {
     empl expr: Expression
     genre = #type_de_cette_structure
-
-    lexème: Token
 }
 
 IntegerConstant :: struct {
     empl expr: Expression
     genre = #type_de_cette_structure
-
-    lexème: Token
 }
 
 FloatingConstant :: struct {
     empl expr: Expression
     genre = #type_de_cette_structure
-
-    lexème: Token
 }
 
 GenericSelection :: struct {
@@ -354,8 +349,6 @@ SizeOfExpression :: struct {
 DeclarationReference :: struct {
     empl expr: Expression
     genre = #type_de_cette_structure
-
-    lexème: Token
 }
 
 CallExpression :: struct {
@@ -369,8 +362,6 @@ CallExpression :: struct {
 StringLiteral :: struct {
     empl expr: Expression
     genre = #type_de_cette_structure
-
-    lexème: Token
 }
 
 PrefixUpdateExpression :: struct {
@@ -586,44 +577,45 @@ CréatriceNoeuds :: struct {
     noeuds: [..]*ASTNode
 }
 
-crée_noeud :: fonc (créatrice: *CréatriceNoeuds, $T: type_de_données) -> *T
+crée_noeud :: fonc (créatrice: *CréatriceNoeuds, token: Token, $T: type_de_données) -> *T
 {
     résultat := loge(T)
     tableau_ajoute(*créatrice.noeuds, résultat)
+    résultat.token = token
     retourne résultat
 }
 
 crée_type :: fonc (créatrice: *CréatriceNoeuds, kind: TypeKind) -> *Type
 {
-    résultat := crée_noeud(créatrice, Type)
+    résultat := crée_noeud(créatrice, Token(), Type)
     résultat.kind = kind
     retourne résultat
 }
 
-crée_type_ref :: fonc (créatrice: *CréatriceNoeuds, type: *Type) -> *TypeRef
+crée_type_ref :: fonc (créatrice: *CréatriceNoeuds, token: Token, type: *Type) -> *TypeRef
 {
-    résultat := crée_noeud(créatrice, TypeRef)
+    résultat := crée_noeud(créatrice, token, TypeRef)
     résultat.reference_type = type
     retourne résultat
 }
 
 crée_pointer_type :: fonc (créatrice: *CréatriceNoeuds, pointed_to: *Type) -> *PointerType
 {
-    résultat := crée_noeud(créatrice, PointerType)
+    résultat := crée_noeud(créatrice, Token(), PointerType)
     résultat.pointed_to = pointed_to
     retourne résultat
 }
 
-crée_pointer_type :: fonc (créatrice: *CréatriceNoeuds, pointed_to: *Expression) -> *PointerTypeExpression
+crée_pointer_type :: fonc (créatrice: *CréatriceNoeuds, token: Token, pointed_to: *Expression) -> *PointerTypeExpression
 {
-    résultat := crée_noeud(créatrice, PointerTypeExpression)
+    résultat := crée_noeud(créatrice, token, PointerTypeExpression)
     résultat.pointed_to = pointed_to
     retourne résultat
 }
 
-crée_constant_array :: fonc (créatrice: *CréatriceNoeuds, element_type: *Expression, size_expression: *Expression) -> *ConstantArrayExpression
+crée_constant_array :: fonc (créatrice: *CréatriceNoeuds, token: Token, element_type: *Expression, size_expression: *Expression) -> *ConstantArrayExpression
 {
-    résultat := crée_noeud(créatrice, ConstantArrayExpression)
+    résultat := crée_noeud(créatrice, token, ConstantArrayExpression)
     résultat.element_type = element_type
     résultat.size_expression = size_expression
     retourne résultat
