@@ -6,6 +6,8 @@ importe Introspection
 
 ASTNode :: struct {
     genre := #type_de_cette_structure
+
+    type: *Type
 }
 
 /** \} */
