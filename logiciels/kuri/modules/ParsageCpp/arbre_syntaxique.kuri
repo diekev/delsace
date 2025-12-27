@@ -399,6 +399,8 @@ TernaryExpression :: struct {
 TypeNameExpression :: struct {
     empl expr: Expression
     genre = #type_de_cette_structure
+
+    type_expression: *Expression
 }
 
 CastExpression :: struct {

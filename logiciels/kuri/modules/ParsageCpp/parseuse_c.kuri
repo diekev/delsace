@@ -2339,12 +2339,21 @@ parse_expression_primaire :: fonc (empl parseuse: *ParseuseC) -> *Expression
 
 parse_type_name :: fonc (empl parseuse: *ParseuseC) -> *TypeNameExpression
 {
+    lexème := épie_lexème_suivant(parseuse)
+
     déclaration_courante: InfoDéclaration
     parse_declaration_specifiers(parseuse, *déclaration_courante, vrai)
 
-    _ := parse_declarator(parseuse, PrésenceIdentifier.INTERDITE)
+    declarator := parse_declarator(parseuse, PrésenceIdentifier.INTERDITE)
 
-    retourne crée_noeud(*créatrice, TypeNameExpression)
+    _, type := donne_nom_et_type_pour_declarator(parseuse, *déclaration_courante, declarator)
+    saufsi type {
+        rapporte_erreur_interne(parseuse, lexème, "type nul")
+    }
+
+    résultat := crée_noeud(*créatrice, TypeNameExpression)
+    résultat.type_expression = type
+    retourne résultat
 }
 
 /** \} */
