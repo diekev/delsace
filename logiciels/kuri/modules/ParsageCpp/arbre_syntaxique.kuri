@@ -349,6 +349,8 @@ SizeOfExpression :: struct {
 DeclarationReference :: struct {
     empl expr: Expression
     genre = #type_de_cette_structure
+
+    referred_declaration: *ASTNode
 }
 
 CallExpression :: struct {
