@@ -303,6 +303,9 @@ donne_épelage_type :: fonc (enchaineuse: *Enchaineuse, type: *Type)
         CHAR {
             ajoute_au_tampon(enchaineuse, "char")
         }
+        SIGNED_CHAR {
+            ajoute_au_tampon(enchaineuse, "signed char")
+        }
         UNSIGNED_CHAR {
             ajoute_au_tampon(enchaineuse, "unsigned char")
         }
@@ -413,6 +416,11 @@ résoud_type_final :: fonc (empl sémanticienne: *SémanticienneC, node: *ASTNod
 
             taille := évalue_expression_constante(sémanticienne, constant_array.size_expression)
             type_élément := résoud_type_final(sémanticienne, constant_array.element_type)
+
+            saufsi type_élément.drapeaux.COMPLET {
+                rapporte_erreur(sémanticienne, node.token, "impossible de créer un tableau depuis le type incomplet '%'", donne_épelage_type(type_élément))
+                retourne nul
+            }
 
             retourne crée_type_tableau(*unit.maçonne_type, type_élément, taille)
         }
@@ -550,36 +558,42 @@ Maçonne_Type :: struct {
 
 initialise_types_fondamenteaux :: fonc (empl maçonne: *Maçonne_Type)
 {
-    char_type = crée_type_fondamental(*créatrice, TypeKind.CHAR, 1)
-    char_signed_type = char_type
-    char_unsigned_type = crée_type_fondamental(*créatrice, TypeKind.UNSIGNED_CHAR, 1)
-    short_signed_type = crée_type_fondamental(*créatrice, TypeKind.SHORT, 2)
-    short_unsigned_type = crée_type_fondamental(*créatrice, TypeKind.UNSIGNED_SHORT, 2)
-    int_signed_type = crée_type_fondamental(*créatrice, TypeKind.INT, 4)
-    int_unsigned_type = crée_type_fondamental(*créatrice, TypeKind.UNSIGNED_INT, 4)
-    int_long_signed_type = crée_type_fondamental(*créatrice, TypeKind.LONG, 8)
-    int_long_unsigned_type = crée_type_fondamental(*créatrice, TypeKind.UNSIGNED_LONG, 8)
+    empl Drapeaux_Type
+
+    char_type = crée_type_fondamental(*créatrice, TypeKind.CHAR, 1, CHARACTER)
+    char_signed_type = crée_type_fondamental(*créatrice, TypeKind.SIGNED_CHAR, 1, CHARACTER | STANDARD | SIGNED_INTEGER)
+    char_unsigned_type = crée_type_fondamental(*créatrice, TypeKind.UNSIGNED_CHAR, 1, CHARACTER | STANDARD | UNSIGNED_INTEGER)
+    short_signed_type = crée_type_fondamental(*créatrice, TypeKind.SHORT, 2, STANDARD | SIGNED_INTEGER)
+    short_unsigned_type = crée_type_fondamental(*créatrice, TypeKind.UNSIGNED_SHORT, 2, STANDARD | UNSIGNED_INTEGER)
+    int_signed_type = crée_type_fondamental(*créatrice, TypeKind.INT, 4, STANDARD | SIGNED_INTEGER)
+    int_unsigned_type = crée_type_fondamental(*créatrice, TypeKind.UNSIGNED_INT, 4, STANDARD | UNSIGNED_INTEGER)
+    int_long_signed_type = crée_type_fondamental(*créatrice, TypeKind.LONG, 8, STANDARD | SIGNED_INTEGER)
+    int_long_unsigned_type = crée_type_fondamental(*créatrice, TypeKind.UNSIGNED_LONG, 8, STANDARD | UNSIGNED_INTEGER)
     int_long_long_signed_type = int_long_signed_type
     int_long_long_unsigned_type = int_long_unsigned_type
-    float_type = crée_type_fondamental(*créatrice, TypeKind.FLOAT, 4)
-    double_type = crée_type_fondamental(*créatrice, TypeKind.DOUBLE, 8)
-    double_long_type = crée_type_fondamental(*créatrice, TypeKind.LONG_DOUBLE, 16)
-    float128_type = crée_type_fondamental(*créatrice, TypeKind.FLOAT128, 16)
-    complex_float_type = crée_type_fondamental(*créatrice, TypeKind.COMPLEX, 8)
-    complex_double_type = crée_type_fondamental(*créatrice, TypeKind.COMPLEX_DOUBLE, 16)
-    complex_double_long_type = crée_type_fondamental(*créatrice, TypeKind.COMPLEX_LONG_DOUBLE, 32)
+    float_type = crée_type_fondamental(*créatrice, TypeKind.FLOAT, 4, REAL_FLOATING)
+    double_type = crée_type_fondamental(*créatrice, TypeKind.DOUBLE, 8, REAL_FLOATING)
+    double_long_type = crée_type_fondamental(*créatrice, TypeKind.LONG_DOUBLE, 16, REAL_FLOATING)
+    float128_type = crée_type_fondamental(*créatrice, TypeKind.FLOAT128, 16, Drapeaux_Type.zéro)
+    complex_float_type = crée_type_fondamental(*créatrice, TypeKind.COMPLEX, 8, COMPLEX)
+    complex_double_type = crée_type_fondamental(*créatrice, TypeKind.COMPLEX_DOUBLE, 16, COMPLEX)
+    complex_double_long_type = crée_type_fondamental(*créatrice, TypeKind.COMPLEX_LONG_DOUBLE, 32, COMPLEX)
 
     variadic_type = crée_type(*créatrice, TypeKind.VARIADIC)
+    assert(variadic_type.drapeaux.COMPLET == faux)
 
     void_type = crée_type(*créatrice, TypeKind.VOID)
+    assert(void_type.drapeaux.COMPLET == faux)
     void_ptr_type = crée_type_pointeur(maçonne, void_type)
 }
 
-crée_type_fondamental :: fonc (créatrice: *CréatriceNoeuds, kind: TypeKind, taille_en_octet: n32) -> *Type
+crée_type_fondamental :: fonc (créatrice: *CréatriceNoeuds, kind: TypeKind, taille_en_octet: n32, drapeaux: Drapeaux_Type) -> *Type
 {
     résultat := crée_type(créatrice, kind)
     résultat.taille_en_octet = taille_en_octet
     résultat.alignement = taille_en_octet
+    résultat.drapeaux |= drapeaux
+    résultat.drapeaux.COMPLET = vrai
     retourne résultat
 }
 
@@ -622,12 +636,15 @@ crée_type_tableau :: fonc (empl maçonne: *Maçonne_Type, element_type: *Type, 
         }
     }
 
+    assert(element_type.drapeaux.COMPLET == vrai)
+
     résultat := crée_noeud(*créatrice, Token(), ConstantArray);
     résultat.element_type = element_type;
     résultat.size = size;
     // À FAIRE : vérifie le nombre d'éléments
     résultat.taille_en_octet = (element_type.taille_en_octet * size) comme n32;
     résultat.alignement = element_type.alignement
+    résultat.drapeaux.COMPLET = vrai
 
     tableau_ajoute(*types_tableaux, résultat);
     tableau_ajoute(*types, résultat);
@@ -647,6 +664,7 @@ crée_type_pointeur :: fonc (empl maçonne: *Maçonne_Type, pointed_to: *Type) -
     résultat.pointed_to = pointed_to;
     résultat.taille_en_octet = 8;
     résultat.alignement = 8;
+    résultat.drapeaux.COMPLET = vrai
 
     tableau_ajoute(*types_pointeurs, résultat);
     tableau_ajoute(*types, résultat);

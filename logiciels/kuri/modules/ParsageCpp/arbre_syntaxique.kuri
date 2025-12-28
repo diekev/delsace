@@ -58,6 +58,7 @@ FunctionDefinition :: struct {
 
 TypeKind :: énum {
     CHAR
+    SIGNED_CHAR
     UNSIGNED_CHAR
     SHORT
     UNSIGNED_SHORT
@@ -93,11 +94,46 @@ TypeKind :: énum {
     VARIADIC
 }
 
+/* 6.2.5 Types. */
+Drapeaux_Type :: énum_drapeau {
+    COMPLET
+
+    STANDARD
+
+    CHARACTER
+    SIGNED_INTEGER
+    UNSIGNED_INTEGER
+    REAL_FLOATING
+    COMPLEX
+    ENUMERATED
+    VOID
+    POINTER
+    ARRAY
+    STRUCTURE
+    UNION
+    FUNCTION
+
+    FLOATING :: REAL_FLOATING | COMPLEX
+    BASIC :: CHARACTER | SIGNED_INTEGER | UNSIGNED_INTEGER | FLOATING
+    INTEGER :: CHARACTER | SIGNED_INTEGER | UNSIGNED_INTEGER | ENUMERATED
+
+    REAL :: INTEGER | REAL_FLOATING
+
+    // À FAIRE : type domain
+    ARITHMETIC :: INTEGER | FLOATING
+
+    SCALAR :: ARITHMETIC | POINTER
+
+    AGGREGATE :: ARRAY | STRUCTURE
+}
+
 Type :: struct {
     empl node: ASTNode
     genre = #type_de_cette_structure
 
     kind: TypeKind
+    drapeaux: Drapeaux_Type
+
     taille_en_octet: n32
     alignement: n32
 }

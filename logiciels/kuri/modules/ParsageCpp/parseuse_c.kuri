@@ -1076,8 +1076,11 @@ parse_declaration_specifiers :: fonc (empl parseuse: *ParseuseC, déclaration: *
             si type_specifiers.UNSIGNED {
                 déclaration.type_résolu = crée_type_ref(*créatrice, Token(), parseuse.unit.maçonne_type.char_unsigned_type)
             }
-            sinon {
+            sinon si type_specifiers.SIGNED {
                 déclaration.type_résolu = crée_type_ref(*créatrice, Token(), parseuse.unit.maçonne_type.char_signed_type)
+            }
+            sinon {
+                déclaration.type_résolu = crée_type_ref(*créatrice, Token(), parseuse.unit.maçonne_type.char_type)
             }
         }
         sinon si type_specifiers.SHORT {
