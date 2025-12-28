@@ -258,6 +258,64 @@ valide_sémantique_noeud :: fonc (empl sémanticienne: *SémanticienneC, node: *
                 retourne
             }
         }
+        ForStatement {
+            for := node comme *ForStatement
+
+            empile_bloc(*table_de_symboles)
+            diffère dépile_bloc(*table_de_symboles)
+
+            si for.initializer {
+                valide_sémantique_noeud(sémanticienne, for.initializer)
+            }
+
+            si for.test {
+                valide_sémantique_noeud(sémanticienne, for.test)
+
+                si for.test.type.drapeaux.SCALAR == faux {
+                    rapporte_erreur(sémanticienne, for.test.token, "l'expression controlante d'une boucle-for doit être de type scalaire")
+                }
+            }
+
+            si for.update {
+                valide_sémantique_noeud(sémanticienne, for.update)
+            }
+
+            valide_sémantique_noeud(sémanticienne, for.statement)
+        }
+        BinaryExpression {
+            binary := node comme *BinaryExpression
+            valide_sémantique_noeud(sémanticienne, binary.left)
+            valide_sémantique_noeud(sémanticienne, binary.right)
+
+            saufsi binary.left.type.kind == TypeKind.INT {
+                rapporte_erreur_interne(sémanticienne, binary.left.token, "type non int non-supporté pour le moment")
+            }
+            saufsi binary.right.type.kind == TypeKind.INT {
+                rapporte_erreur_interne(sémanticienne, binary.right.token, "type non int non-supporté pour le moment")
+            }
+
+            si binary.op == "<" {
+                binary.type = unit.maçonne_type.int_signed_type
+            }
+            sinon {
+                rapporte_erreur_interne(sémanticienne, binary.right.token, "opérateur non-supporté")
+            }
+        }
+        PostFixUpdateExpression {
+            postfix := node comme *PostFixUpdateExpression
+
+            valide_sémantique_noeud(sémanticienne, postfix.operand)
+
+            operand_type := postfix.operand.type
+
+            si operand_type.drapeaux.REAL == faux && operand_type.drapeaux.POINTER == faux {
+                rapporte_erreur(sémanticienne, postfix.operand.token, "l'opérateur postfixe '%' ne peut s'appliquer que sur des types réels ou pointeurs", postfix.op)
+            }
+
+            // À FAIRE : and shall be a modifiable lvalue.
+
+            postfix.type = operand_type
+        }
         PointerType {
 
         }
