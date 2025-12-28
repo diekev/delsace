@@ -1,0 +1,698 @@
+
+/* ------------------------------------------------------------------------- */
+/** \nom Sémanticienne C
+ * \{ */
+
+SémanticienneC :: struct {
+    unit: *TranslationUnit
+    messagère: *Messagère
+
+    table_de_symboles: Table_De_Symboles
+
+    maçonne: Maçonne_Type
+
+    fonction_courante: *FunctionDefinition
+}
+
+rapporte_erreur_interne :: fonc (sémanticienne: *SémanticienneC, lexème: Token, format: chaine, args: ...eini)
+{
+    rapporte_diagnostique(sémanticienne.unit, TypeDiagnostique.ERREUR_INTERNE, lexème, format, ...args)
+} @Imprimeuse
+
+rapporte_erreur :: fonc (sémanticienne: *SémanticienneC, lexème: Token, format: chaine, args: ...eini)
+{
+    rapporte_diagnostique(sémanticienne.unit, TypeDiagnostique.ERREUR, lexème, format, ...args)
+} @Imprimeuse
+
+rapporte_note :: fonc (sémanticienne: *SémanticienneC, lexème: Token, format: chaine, args: ...eini)
+{
+    rapporte_diagnostique(sémanticienne.unit, TypeDiagnostique.NOTE, lexème, format, ...args)
+} @Imprimeuse
+
+sémantise_translation_unit_c :: fonc (sémanticienne: *SémanticienneC, unit: *TranslationUnit)
+{
+    sémanticienne.unit = unit
+
+    pour unit.declarations {
+        valide_sémantique_noeud(sémanticienne, it)
+    }
+}
+
+#portée_fichier
+
+valide_sémantique_noeud :: fonc (empl sémanticienne: *SémanticienneC, node: *ASTNode)
+{
+    discr node.genre {
+        TypedefDecl {
+            typedef := node comme *TypedefDecl
+            valide_sémantique_noeud(sémanticienne, typedef.underlying_type)
+
+            underlying_type := résoud_type_final(sémanticienne, typedef.underlying_type)
+            typedef.underlying_type.type = underlying_type
+            typedef.taille_en_octet = underlying_type.taille_en_octet
+            typedef.alignement = underlying_type.alignement
+
+            // À FAIRE : redéfinition
+
+            insère_symbole(*table_de_symboles, typedef.name, typedef.underlying_type)
+        }
+        StructDecl {
+            struct_decl := node comme *StructDecl
+
+            pour struct_decl.declarations {
+                valide_sémantique_noeud(sémanticienne, it)
+            }
+
+            si struct_decl.name {
+                insère_symbole(*table_de_symboles, struct_decl.name, struct_decl)
+            }
+
+            // À FAIRE : redéfinition
+            // À FAIRE : calcul taille
+        }
+        VarDecl {
+            var_decl := node comme *VarDecl
+
+            var_decl.type = résoud_type_final(sémanticienne, var_decl.type_expression)
+
+            var_existante := donne_symbole(table_de_symboles, var_decl.nom)
+            si var_existante {
+                rapporte_erreur(sémanticienne, var_decl.token, "redéclaration de la variable '%'", var_decl.nom)
+            }
+
+            si var_decl.initializer {
+                valide_sémantique_noeud(sémanticienne, var_decl.initializer)
+            }
+
+            insère_symbole(*table_de_symboles, var_decl.nom, var_decl)
+        }
+        FieldDecl {
+            field := node comme *FieldDecl
+            _ := résoud_type_final(sémanticienne, field.type_expression)
+        }
+        TypeRef {
+            type_ref := node comme *TypeRef
+            valide_sémantique_noeud(sémanticienne, type_ref.reference_type)
+        }
+        FunctionDecl {
+            function := node comme *FunctionDecl
+
+            insère_symbole(*table_de_symboles, function.nom, function)
+
+            empile_bloc(*table_de_symboles)
+
+            pour function.params {
+                valide_sémantique_noeud(sémanticienne, it)
+            }
+
+            function.type = résoud_type_final(sémanticienne, function.type_expression)
+
+            dépile_bloc(*table_de_symboles)
+        }
+        FunctionDefinition {
+            function := node comme *FunctionDefinition
+
+            insère_symbole(*table_de_symboles, function.nom, function)
+
+            empile_bloc(*table_de_symboles)
+
+            pour function.params {
+                valide_sémantique_noeud(sémanticienne, it)
+            }
+
+            function.type = résoud_type_final(sémanticienne, function.type_expression)
+
+            fonction_courante = function
+            diffère fonction_courante = nul
+
+            valide_sémantique_noeud(sémanticienne, function.statement)
+
+            dépile_bloc(*table_de_symboles)
+        }
+        ParamDecl {
+            // À FAIRE : vérifie duplication
+            param := node comme *ParamDecl
+            param.type = résoud_type_final(sémanticienne, param.type_expression)
+
+            insère_symbole(*table_de_symboles, param.name, param)
+        }
+        CompoundStatement {
+            compound := node comme *CompoundStatement
+            pour compound.items {
+                valide_sémantique_noeud(sémanticienne, it)
+            }
+        }
+        ExpressionStatement {
+            statement := node comme *ExpressionStatement
+            valide_sémantique_noeud(sémanticienne, statement.expression)
+        }
+        CallExpression {
+            call := node comme *CallExpression
+
+            pour call.arguments {
+                valide_sémantique_noeud(sémanticienne, it)
+            }
+
+            valide_sémantique_noeud(sémanticienne, call.callee)
+
+            saufsi call.callee.type {
+                rapporte_erreur_interne(sémanticienne, call.callee.token, "la déclaration n'a pas de type")
+                retourne
+            }
+
+            callee_type := call.callee.type
+            saufsi callee_type.kind == TypeKind.FUNCTION {
+                rapporte_note(sémanticienne, call.callee.token, "le type de l'expression est '%'", donne_épelage_type(callee_type))
+                rapporte_erreur_interne(sémanticienne, call.callee.token, "l'expression d'appel n'est pas de type fonction")
+                retourne
+            }
+
+            function_type := callee_type comme *FunctionType
+
+            call.type = function_type.return_type
+
+            arguments_voulus : []*Type = function_type.parameters
+            arguments_donnés : []*Expression = call.arguments
+
+            boucle {
+                si arguments_voulus.taille == 0 || arguments_donnés.taille == 0 {
+                    arrête
+                }
+
+                argument_donné := arguments_donnés[0]
+
+                type_voulu := arguments_voulus[0]
+                type_donné := argument_donné.type
+
+                saufsi types_sont_compatibles_pour_appel(type_voulu, type_donné) {
+                    rapporte_erreur(sémanticienne, argument_donné.token, "types incompatibles pour l'argument : '%' vs '%'", donne_épelage_type(type_voulu), donne_épelage_type(type_donné))
+                    retourne
+                }
+
+                arguments_donnés = tableau_avance(arguments_donnés)
+
+                si type_voulu.kind != TypeKind.VARIADIC || arguments_donnés.taille == 0 {
+                    arguments_voulus = tableau_avance(arguments_voulus)
+                }
+            }
+
+            si arguments_voulus.taille == 1 && arguments_voulus[0].kind == TypeKind.VARIADIC {
+                arguments_voulus = tableau_avance(arguments_voulus)
+            }
+
+            si arguments_donnés.taille > arguments_voulus.taille {
+                rapporte_erreur(sémanticienne, call.token, "trop d'arguments pour l'appel : voulu %, obtenu %", function_type.parameters.taille, call.arguments.taille)
+            }
+            sinon si arguments_donnés.taille < arguments_voulus.taille {
+                rapporte_erreur(sémanticienne, call.token, "pas assez d'arguments pour l'appel : voulu %, obtenu %", function_type.parameters.taille, call.arguments.taille)
+            }
+            sinon si arguments_donnés.taille != 0 {
+                rapporte_erreur_interne(sémanticienne, call.token, "des arguments ne furent pas validés")
+            }
+        }
+        StringLiteral {
+            // À FAIRE : const
+            node.type = crée_type_pointeur(*maçonne, unit.char_type)
+        }
+        IntegerConstant {
+            // À FAIRE : suffixes, validation taille
+            node.type = unit.int_signed_type
+        }
+        DeclarationReference {
+            reference := node comme *DeclarationReference
+
+            texte := donne_texte(reference.token)
+
+            var_existante := donne_symbole(table_de_symboles, texte)
+            saufsi var_existante {
+                rapporte_erreur(sémanticienne, reference.token, "identifiant '%' inconnu", texte)
+                retourne
+            }
+
+            saufsi var_existante.type {
+                rapporte_erreur_interne(sémanticienne, var_existante.token, "la déclaration n'a pas de type")
+                retourne
+            }
+
+            reference.referred_declaration = var_existante
+            reference.type = var_existante.type
+        }
+        ReturnStatement {
+            statement := node comme *ReturnStatement
+
+            return_type := unit.void_type
+
+            si statement.expression {
+                valide_sémantique_noeud(sémanticienne, statement.expression)
+
+                return_type = statement.expression.type
+                saufsi return_type {
+                    rapporte_erreur_interne(sémanticienne, statement.expression.token, "impossible de détermine le type de retour")
+                    retourne
+                }
+            }
+
+            expected_return_type := (fonction_courante.type comme *FunctionType).return_type
+
+            // À FAIRE : note les transtypages potentiels
+            saufsi types_sont_compatibles_pour_retour(expected_return_type, return_type) {
+                rapporte_erreur(sémanticienne, statement.token, "types incompatibles pour l'instruction return : '%' vs '%'", donne_épelage_type(expected_return_type), donne_épelage_type(return_type))
+                retourne
+            }
+        }
+        PointerType {
+
+        }
+        Type {
+            // Rien à faire.
+        }
+        PointerTypeExpression {
+
+        }
+        sinon {
+            info := node.genre comme *InfoTypeStructure
+            panique("Noeud non-géré %", info.nom)
+        }
+    }
+}
+
+types_sont_compatibles_pour_retour :: fonc (attendu: *Type, obtenu: *Type) -> bool
+{
+    retourne attendu == obtenu
+}
+
+types_sont_compatibles_pour_appel :: fonc (attendu: *Type, obtenu: *Type) -> bool
+{
+    si attendu == obtenu {
+        retourne vrai
+    }
+    retourne attendu.kind == TypeKind.VARIADIC
+}
+
+donne_épelage_type :: fonc (type: *Type) -> chaine
+{
+    enchaineuse: Enchaineuse
+    initialise_enchaineuse(*enchaineuse)
+
+    donne_épelage_type(*enchaineuse, type)
+
+    retourne chaine_depuis_enchaineuse(*enchaineuse)
+}
+
+donne_épelage_type :: fonc (enchaineuse: *Enchaineuse, type: *Type)
+{
+    discr type.kind {
+        CHAR {
+            ajoute_au_tampon(enchaineuse, "char")
+        }
+        UNSIGNED_CHAR {
+            ajoute_au_tampon(enchaineuse, "unsigned char")
+        }
+        SHORT {
+            ajoute_au_tampon(enchaineuse, "short")
+        }
+        UNSIGNED_SHORT {
+            ajoute_au_tampon(enchaineuse, "unsigned short")
+        }
+        INT {
+            ajoute_au_tampon(enchaineuse, "int")
+        }
+        UNSIGNED_INT {
+            ajoute_au_tampon(enchaineuse, "unsigned int")
+        }
+        LONG {
+            ajoute_au_tampon(enchaineuse, "long")
+        }
+        UNSIGNED_LONG {
+            ajoute_au_tampon(enchaineuse, "unsigned long long")
+        }
+        UNSIGNED_LONG_LONG {
+            ajoute_au_tampon(enchaineuse, "long long")
+        }
+        FLOAT {
+            ajoute_au_tampon(enchaineuse, "float")
+        }
+        DOUBLE {
+            ajoute_au_tampon(enchaineuse, "double")
+        }
+        LONG_DOUBLE {
+            ajoute_au_tampon(enchaineuse, "long double")
+        }
+        FLOAT128 {
+            ajoute_au_tampon(enchaineuse, "float128")
+        }
+        POINTER {
+            pointer := type comme *PointerType
+            donne_épelage_type(enchaineuse, pointer.pointed_to)
+            ajoute_au_tampon(enchaineuse, "*")
+        }
+        VOID {
+            ajoute_au_tampon(enchaineuse, "void")
+        }
+        RECORD {
+            si type.genre == StructDecl {
+                struct_decl := type comme *StructDecl
+                ajoute_au_tampon(enchaineuse, "struct ", struct_decl.name)
+            }
+            sinon {
+                assert(type.genre == UnionDecl)
+                union_decl := type comme *UnionDecl
+                ajoute_au_tampon(enchaineuse, "union ", union_decl.name)
+            }
+        }
+        TYPEDEF {
+            typedef := type comme *TypedefDecl
+            ajoute_au_tampon(enchaineuse, typedef.name)
+
+            ajoute_au_tampon(enchaineuse, " (aka '")
+            donne_épelage_type(enchaineuse, typedef.underlying_type.type)
+            ajoute_au_tampon(enchaineuse, "')")
+        }
+        FUNCTION {
+            function := type comme *FunctionType
+            donne_épelage_type(enchaineuse, function.return_type)
+
+            virgule := "("
+            pour function.parameters {
+                ajoute_au_tampon(enchaineuse, virgule)
+                donne_épelage_type(enchaineuse, it)
+                virgule = ", "
+            }
+            saufsi function.parameters {
+                ajoute_au_tampon(enchaineuse, "(")
+            }
+            ajoute_au_tampon(enchaineuse, ")")
+        }
+        CONSTANT_ARRAY {
+            array := type comme *ConstantArray
+            donne_épelage_type(enchaineuse, array.element_type)
+            imprime_dans_enchaineuse(enchaineuse, "[%]", array.size)
+        }
+        COMPLEX {
+            ajoute_au_tampon(enchaineuse, "_Complex")
+        }
+        COMPLEX_DOUBLE {
+            ajoute_au_tampon(enchaineuse, "_Complex double")
+        }
+        COMPLEX_LONG_DOUBLE {
+            ajoute_au_tampon(enchaineuse, "_Complex long double")
+        }
+        ENUM {
+            enum_type := type comme *EnumDecl
+            ajoute_au_tampon(enchaineuse, "enum ", enum_type.name)
+        }
+        VARIADIC {
+            ajoute_au_tampon(enchaineuse, "...")
+        }
+    }
+}
+
+résoud_type_final :: fonc (empl sémanticienne: *SémanticienneC, node: *ASTNode) -> *Type
+{
+    discr node.genre {
+        ConstantArrayExpression {
+            constant_array := node comme *ConstantArrayExpression
+
+            taille := évalue_expression_constante(sémanticienne, constant_array.size_expression)
+            type_élément := résoud_type_final(sémanticienne, constant_array.element_type)
+
+            retourne crée_type_tableau(*maçonne, type_élément, taille)
+        }
+        TypeRef {
+            type_ref := node comme *TypeRef
+            retourne type_ref.reference_type
+        }
+        PointerTypeExpression {
+            pointer := node comme *PointerTypeExpression
+            pointee_type := résoud_type_final(sémanticienne, pointer.pointed_to)
+            retourne crée_type_pointeur(*maçonne, pointee_type)
+        }
+        TypeNameExpression {
+            type_name := node comme *TypeNameExpression
+            retourne résoud_type_final(sémanticienne, type_name.type_expression)
+        }
+        FunctionTypeExpression {
+            function_type_expr := node comme *FunctionTypeExpression
+
+            // @Vitesse
+            types_arguments: [..]*Type
+            diffère déloge(types_arguments)
+
+            pour function_type_expr.parameters {
+                saufsi it.type {
+                    rapporte_erreur_interne(sémanticienne, it.token, "impossible de définir le type")
+                }
+                tableau_ajoute(*types_arguments, it.type)
+            }
+
+            return_type := résoud_type_final(sémanticienne, function_type_expr.return_type)
+            saufsi return_type {
+                rapporte_erreur_interne(sémanticienne, function_type_expr.return_type.token, "impossible de définir le type")
+            }
+
+            résultat := crée_type_fonction(*maçonne, return_type, types_arguments)
+            retourne résultat
+        }
+        sinon {
+            info := node.genre comme *InfoTypeStructure
+            // panique("Noeud non-géré %", info.nom)
+            imprimeln("Noeud non-géré %", info.nom)
+            assert(faux)
+        }
+    }
+
+    retourne nul
+}
+
+évalue_expression_constante :: fonc (empl sémanticienne: *SémanticienneC, node: *ASTNode) -> n64
+{
+    discr node.genre {
+        IntegerConstant {
+            integer := node comme *IntegerConstant
+            retourne integer.token.lexème.nombre.naturel
+        }
+        BinaryExpression {
+            binary := node comme *BinaryExpression
+
+            valeur_gauche := évalue_expression_constante(sémanticienne, binary.left)
+            valeur_droite := évalue_expression_constante(sémanticienne, binary.right)
+
+            si binary.op == "-" {
+                retourne valeur_gauche - valeur_droite
+            }
+            si binary.op == "*" {
+                retourne valeur_gauche * valeur_droite
+            }
+
+            imprimeln("binary %", binary.op)
+            assert(faux)
+        }
+        SizeOfExpression {
+            sizeof := node comme *SizeOfExpression
+            operand := sizeof.operand
+
+            si operand.genre == TypeNameExpression {
+                type := résoud_type_final(sémanticienne, operand)
+                assert(type != nul)
+                assert(type.taille_en_octet != 0)
+                retourne type.taille_en_octet
+            }
+            sinon {
+                info := operand.genre comme *InfoTypeStructure
+                panique("Noeud non-géré %", info.nom)
+            }
+        }
+        sinon {
+            info := node.genre comme *InfoTypeStructure
+            panique("Noeud non-géré %", info.nom)
+        }
+    }
+
+    retourne 0
+}
+
+/** \} */
+
+/* ------------------------------------------------------------------------- */
+/** \nom Maçonne_Type
+ * \{ */
+
+Maçonne_Type :: struct {
+    types: [..]*Type;
+    types_tableaux: [..]*ConstantArray;
+    types_pointeurs: [..]*PointerType;
+    types_fonctions: [..]*FunctionType;
+
+    créatrice: CréatriceNoeuds;
+}
+
+crée_type_fonction :: fonc (empl maçonne: *Maçonne_Type, return_type: *Type, arguments_types: []*Type) -> *FunctionType
+{
+    pour types_fonctions {
+        si it.return_type != return_type {
+            continue
+        }
+
+        si it.parameters.taille != arguments_types.taille {
+            continue
+        }
+
+        pour param, indice_param dans it.parameters {
+            si param != arguments_types[indice_param] {
+                arrête
+            }
+        }
+        sansarrêt {
+            retourne it
+        }
+    }
+
+    résultat := crée_noeud(*créatrice, Token(), FunctionType);
+    résultat.return_type = return_type;
+    résultat.parameters = tableau_copie(arguments_types);
+
+    tableau_ajoute(*types_fonctions, résultat);
+    tableau_ajoute(*types, résultat);
+
+    retourne résultat;
+}
+
+crée_type_tableau :: fonc (empl maçonne: *Maçonne_Type, element_type: *Type, size: n64) -> *ConstantArray
+{
+    pour types_tableaux {
+        si it.element_type == element_type && it.size == size {
+            retourne it;
+        }
+    }
+
+    résultat := crée_noeud(*créatrice, Token(), ConstantArray);
+    résultat.element_type = element_type;
+    résultat.size = size;
+    // À FAIRE : vérifie le nombre d'éléments
+    résultat.taille_en_octet = (element_type.taille_en_octet * size) comme n32;
+    résultat.alignement = element_type.alignement
+
+    tableau_ajoute(*types_tableaux, résultat);
+    tableau_ajoute(*types, résultat);
+
+    retourne résultat;
+}
+
+crée_type_pointeur :: fonc (empl maçonne: *Maçonne_Type, pointed_to: *Type) -> *PointerType
+{
+    pour types_pointeurs {
+        si it.pointed_to == pointed_to {
+            retourne it;
+        }
+    }
+
+    résultat := crée_noeud(*créatrice, Token(), PointerType);
+    résultat.pointed_to = pointed_to;
+    résultat.taille_en_octet = 8;
+    résultat.alignement = 8;
+
+    tableau_ajoute(*types_pointeurs, résultat);
+    tableau_ajoute(*types, résultat);
+
+    retourne résultat;
+}
+
+/** \} */
+
+/* ------------------------------------------------------------------------- */
+/** \nom Table_De_Symboles
+ * \{ */
+
+/* 6.2.1 Scopes of identifiers */
+Scope :: énum {
+    BLOCK
+    FILE
+    FUNCTION
+    FUNCTION_PROTOTYPE
+}
+
+Table_De_Symboles :: struct {
+    Bloc :: struct {
+        parent: *Bloc
+        symboles: TableDeHachage(chaine, *ASTNode)
+    }
+
+    bloc_courant: *Bloc
+    bloc_libres: *Bloc
+}
+
+table_de_symboles_réinitialise :: fonc (empl table: *Table_De_Symboles)
+{
+    détruit_blocs :: fonc (bloc: *Table_De_Symboles.Bloc)
+    {
+        tantque bloc != nul {
+            bloc_suivant := bloc.parent
+
+            détruit_données(*bloc.symboles)
+            déloge(bloc)
+
+            bloc = bloc_suivant
+        }
+    }
+
+    détruit_blocs(bloc_courant)
+    bloc_courant = nul
+
+    détruit_blocs(bloc_libres)
+    bloc_libres = nul
+}
+
+empile_bloc :: fonc (empl table: *Table_De_Symboles)
+{
+    bloc: *Table_De_Symboles.Bloc
+    si bloc_libres {
+        bloc = bloc_libres
+        bloc_libres = bloc.parent
+    }
+    sinon {
+        bloc = loge(Table_De_Symboles.Bloc)
+    }
+
+    bloc.parent = bloc_courant
+    bloc_courant = bloc
+}
+
+dépile_bloc :: fonc (empl table: *Table_De_Symboles)
+{
+    assert(bloc_courant != nul)
+
+    ancien_bloc := bloc_courant
+    bloc_courant = bloc_courant.parent
+
+    ancien_bloc.parent = bloc_libres
+    bloc_libres = ancien_bloc
+
+    détruit_données(*ancien_bloc.symboles)
+}
+
+insère_symbole :: fonc (empl table: *Table_De_Symboles, nom: chaine, noeud: *ASTNode)
+{
+    saufsi bloc_courant {
+        empile_bloc(table)
+        assert(bloc_courant != nul)
+    }
+
+    table_insère(*bloc_courant.symboles, nom, noeud)
+}
+
+donne_symbole :: fonc (table: Table_De_Symboles, nom: chaine) -> *ASTNode
+{
+    bloc_courant := table.bloc_courant
+    tantque bloc_courant != nul {
+        trouvé, symbole := donne_valeur_pour_clé(bloc_courant.symboles, nom)
+        si trouvé {
+            retourne symbole
+        }
+
+        bloc_courant = bloc_courant.parent
+    }
+
+    retourne nul
+}
+
+/** \} */
