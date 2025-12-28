@@ -99,6 +99,7 @@ Type :: struct {
 
     kind: TypeKind
     taille_en_octet: n32
+    alignement: n32
 }
 
 PointerType :: struct {

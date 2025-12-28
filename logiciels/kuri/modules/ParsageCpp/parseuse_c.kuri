@@ -133,21 +133,32 @@ initialise_parseuse :: fonc (parseuse: *ParseuseC, unit: *TranslationUnit)
     unit.variadic_type = crée_type(*parseuse.créatrice, TypeKind.VARIADIC)
 
     unit.char_type.taille_en_octet = 1
+    unit.char_type.alignement = 1
     unit.char_unsigned_type.taille_en_octet = 1
+    unit.char_unsigned_type.alignement = 1
     unit.short_signed_type.taille_en_octet = 2
+    unit.short_signed_type.alignement = 2
     unit.short_unsigned_type.taille_en_octet = 2
+    unit.short_unsigned_type.alignement = 2
     unit.int_signed_type.taille_en_octet = 4
+    unit.int_signed_type.alignement = 4
     unit.int_unsigned_type.taille_en_octet = 4
+    unit.int_unsigned_type.alignement = 4
     unit.int_long_signed_type.taille_en_octet = 8
+    unit.int_long_signed_type.alignement = 8
     unit.int_long_unsigned_type.taille_en_octet = 8
+    unit.int_long_unsigned_type.alignement = 8
     unit.float_type.taille_en_octet = 4
+    unit.float_type.alignement = 4
     unit.double_type.taille_en_octet = 8
+    unit.double_type.alignement = 8
     // unit.double_long_type.taille_en_octet = 
     // unit.float128_type.taille_en_octet = 
     // unit.complex_float_type.taille_en_octet = 
     // unit.complex_double_type.taille_en_octet = 
     // unit.complex_double_long_type.taille_en_octet = 
     unit.void_ptr_type.taille_en_octet = 8
+    unit.void_ptr_type.alignement = 8
 
     // À FAIRE : comprend ce que c'est
     typedef_decl := crée_noeud(*parseuse.créatrice, Token(), TypedefDecl)
