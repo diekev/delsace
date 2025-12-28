@@ -110,60 +110,12 @@ initialise_parseuse :: fonc (parseuse: *ParseuseC, unit: *TranslationUnit)
     parseuse.lexèmes = convertis_en_tokens(unit.lexèmes_préprocès)
     parseuse.lexème_courant = 0
 
-    unit.char_type = crée_type(*parseuse.créatrice, TypeKind.CHAR)
-    unit.char_signed_type = unit.char_type
-    unit.char_unsigned_type = crée_type(*parseuse.créatrice, TypeKind.UNSIGNED_CHAR)
-    unit.short_signed_type = crée_type(*parseuse.créatrice, TypeKind.SHORT)
-    unit.short_unsigned_type = crée_type(*parseuse.créatrice, TypeKind.UNSIGNED_SHORT)
-    unit.int_signed_type = crée_type(*parseuse.créatrice, TypeKind.INT)
-    unit.int_unsigned_type = crée_type(*parseuse.créatrice, TypeKind.UNSIGNED_INT)
-    unit.int_long_signed_type = crée_type(*parseuse.créatrice, TypeKind.LONG)
-    unit.int_long_unsigned_type = crée_type(*parseuse.créatrice, TypeKind.UNSIGNED_LONG)
-    unit.int_long_long_signed_type = unit.int_long_signed_type
-    unit.int_long_long_unsigned_type = unit.int_long_unsigned_type
-    unit.float_type = crée_type(*parseuse.créatrice, TypeKind.FLOAT)
-    unit.double_type = crée_type(*parseuse.créatrice, TypeKind.DOUBLE)
-    unit.double_long_type = crée_type(*parseuse.créatrice, TypeKind.LONG_DOUBLE)
-    unit.float128_type = crée_type(*parseuse.créatrice, TypeKind.FLOAT128)
-    unit.complex_float_type = crée_type(*parseuse.créatrice, TypeKind.COMPLEX)
-    unit.complex_double_type = crée_type(*parseuse.créatrice, TypeKind.COMPLEX_DOUBLE)
-    unit.complex_double_long_type = crée_type(*parseuse.créatrice, TypeKind.COMPLEX_LONG_DOUBLE)
-    unit.void_type = crée_type(*parseuse.créatrice, TypeKind.VOID)
-    unit.void_ptr_type = crée_pointer_type(*parseuse.créatrice, unit.void_type)
-    unit.variadic_type = crée_type(*parseuse.créatrice, TypeKind.VARIADIC)
-
-    unit.char_type.taille_en_octet = 1
-    unit.char_type.alignement = 1
-    unit.char_unsigned_type.taille_en_octet = 1
-    unit.char_unsigned_type.alignement = 1
-    unit.short_signed_type.taille_en_octet = 2
-    unit.short_signed_type.alignement = 2
-    unit.short_unsigned_type.taille_en_octet = 2
-    unit.short_unsigned_type.alignement = 2
-    unit.int_signed_type.taille_en_octet = 4
-    unit.int_signed_type.alignement = 4
-    unit.int_unsigned_type.taille_en_octet = 4
-    unit.int_unsigned_type.alignement = 4
-    unit.int_long_signed_type.taille_en_octet = 8
-    unit.int_long_signed_type.alignement = 8
-    unit.int_long_unsigned_type.taille_en_octet = 8
-    unit.int_long_unsigned_type.alignement = 8
-    unit.float_type.taille_en_octet = 4
-    unit.float_type.alignement = 4
-    unit.double_type.taille_en_octet = 8
-    unit.double_type.alignement = 8
-    // unit.double_long_type.taille_en_octet = 
-    // unit.float128_type.taille_en_octet = 
-    // unit.complex_float_type.taille_en_octet = 
-    // unit.complex_double_type.taille_en_octet = 
-    // unit.complex_double_long_type.taille_en_octet = 
-    unit.void_ptr_type.taille_en_octet = 8
-    unit.void_ptr_type.alignement = 8
+    initialise_types_fondamenteaux(*unit.maçonne_type)
 
     // À FAIRE : comprend ce que c'est
     typedef_decl := crée_noeud(*parseuse.créatrice, Token(), TypedefDecl)
     typedef_decl.name = "__builtin_va_list"
-    typedef_decl.underlying_type = crée_type_ref(*parseuse.créatrice, Token(), unit.void_ptr_type)
+    typedef_decl.underlying_type = crée_type_ref(*parseuse.créatrice, Token(), unit.maçonne_type.void_ptr_type)
 
     _, _ := table_insère_si_non_existant(*parseuse.typedef_names, "__builtin_va_list", typedef_decl)
 }
@@ -1118,72 +1070,72 @@ parse_declaration_specifiers :: fonc (empl parseuse: *ParseuseC, déclaration: *
     }
     sinon {
         si type_specifiers.VOID {
-            déclaration.type_résolu = crée_type_ref(*créatrice, Token(), parseuse.unit.void_type)
+            déclaration.type_résolu = crée_type_ref(*créatrice, Token(), parseuse.unit.maçonne_type.void_type)
         }
         sinon si type_specifiers.CHAR {
             si type_specifiers.UNSIGNED {
-                déclaration.type_résolu = crée_type_ref(*créatrice, Token(), parseuse.unit.char_unsigned_type)
+                déclaration.type_résolu = crée_type_ref(*créatrice, Token(), parseuse.unit.maçonne_type.char_unsigned_type)
             }
             sinon {
-                déclaration.type_résolu = crée_type_ref(*créatrice, Token(), parseuse.unit.char_signed_type)
+                déclaration.type_résolu = crée_type_ref(*créatrice, Token(), parseuse.unit.maçonne_type.char_signed_type)
             }
         }
         sinon si type_specifiers.SHORT {
             si type_specifiers.UNSIGNED {
-                déclaration.type_résolu = crée_type_ref(*créatrice, Token(), parseuse.unit.short_unsigned_type)
+                déclaration.type_résolu = crée_type_ref(*créatrice, Token(), parseuse.unit.maçonne_type.short_unsigned_type)
             }
             sinon {
-                déclaration.type_résolu = crée_type_ref(*créatrice, Token(), parseuse.unit.short_signed_type)
+                déclaration.type_résolu = crée_type_ref(*créatrice, Token(), parseuse.unit.maçonne_type.short_signed_type)
             }
         }
         sinon si type_specifiers.LONG_LONG {
             si type_specifiers.UNSIGNED {
-                déclaration.type_résolu = crée_type_ref(*créatrice, Token(), parseuse.unit.int_long_long_unsigned_type)
+                déclaration.type_résolu = crée_type_ref(*créatrice, Token(), parseuse.unit.maçonne_type.int_long_long_unsigned_type)
             }
             sinon {
-                déclaration.type_résolu = crée_type_ref(*créatrice, Token(), parseuse.unit.int_long_long_signed_type)
+                déclaration.type_résolu = crée_type_ref(*créatrice, Token(), parseuse.unit.maçonne_type.int_long_long_signed_type)
             }
         }
         sinon si type_specifiers.LONG {
             si type_specifiers.UNSIGNED {
-                déclaration.type_résolu = crée_type_ref(*créatrice, Token(), parseuse.unit.int_long_unsigned_type)
+                déclaration.type_résolu = crée_type_ref(*créatrice, Token(), parseuse.unit.maçonne_type.int_long_unsigned_type)
             }
             sinon {
-                déclaration.type_résolu = crée_type_ref(*créatrice, Token(), parseuse.unit.int_long_signed_type)
+                déclaration.type_résolu = crée_type_ref(*créatrice, Token(), parseuse.unit.maçonne_type.int_long_signed_type)
             }
         }
         sinon si type_specifiers.INT {
             si type_specifiers.UNSIGNED {
-                déclaration.type_résolu = crée_type_ref(*créatrice, Token(), parseuse.unit.int_unsigned_type)
+                déclaration.type_résolu = crée_type_ref(*créatrice, Token(), parseuse.unit.maçonne_type.int_unsigned_type)
             }
             sinon {
-                déclaration.type_résolu = crée_type_ref(*créatrice, Token(), parseuse.unit.int_signed_type)
+                déclaration.type_résolu = crée_type_ref(*créatrice, Token(), parseuse.unit.maçonne_type.int_signed_type)
             }
         }
         sinon si type_specifiers.COMPLEX {
             si type_specifiers.LONG {
-                déclaration.type_résolu = crée_type_ref(*créatrice, Token(), parseuse.unit.complex_double_long_type)
+                déclaration.type_résolu = crée_type_ref(*créatrice, Token(), parseuse.unit.maçonne_type.complex_double_long_type)
             }
             sinon si type_specifiers.DOUBLE {
-                déclaration.type_résolu = crée_type_ref(*créatrice, Token(), parseuse.unit.complex_double_type)
+                déclaration.type_résolu = crée_type_ref(*créatrice, Token(), parseuse.unit.maçonne_type.complex_double_type)
             }
             sinon {
-                déclaration.type_résolu = crée_type_ref(*créatrice, Token(), parseuse.unit.complex_float_type)
+                déclaration.type_résolu = crée_type_ref(*créatrice, Token(), parseuse.unit.maçonne_type.complex_float_type)
             }
         }
         sinon si type_specifiers.DOUBLE {
             si type_specifiers.LONG {
-                déclaration.type_résolu = crée_type_ref(*créatrice, Token(), parseuse.unit.double_long_type)
+                déclaration.type_résolu = crée_type_ref(*créatrice, Token(), parseuse.unit.maçonne_type.double_long_type)
             }
             sinon {
-                déclaration.type_résolu = crée_type_ref(*créatrice, Token(), parseuse.unit.double_type)
+                déclaration.type_résolu = crée_type_ref(*créatrice, Token(), parseuse.unit.maçonne_type.double_type)
             }
         }
         sinon si type_specifiers.FLOAT {
-            déclaration.type_résolu = crée_type_ref(*créatrice, Token(), parseuse.unit.float_type)
+            déclaration.type_résolu = crée_type_ref(*créatrice, Token(), parseuse.unit.maçonne_type.float_type)
         }
         sinon si type_specifiers.FLOAT128 {
-            déclaration.type_résolu = crée_type_ref(*créatrice, Token(), parseuse.unit.float128_type)
+            déclaration.type_résolu = crée_type_ref(*créatrice, Token(), parseuse.unit.maçonne_type.float128_type)
         }
         sinon {
             panique("type_specifiers non-gérés : %", type_specifiers)
@@ -1360,7 +1312,7 @@ parse_direct_declarator :: fonc (empl parseuse: *ParseuseC, présence_identifier
 
                 si est_ponctuation(lexème, "...") {
                     consomme(parseuse)
-                    type := crée_type_ref(*créatrice, lexème, parseuse.unit.variadic_type)
+                    type := crée_type_ref(*créatrice, lexème, parseuse.unit.maçonne_type.variadic_type)
                     param := crée_noeud(*créatrice, lexème, ParamDecl)
                     param.type_expression = type
                     tableau_ajoute(*paramètres, param)

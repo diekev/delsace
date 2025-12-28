@@ -9,8 +9,6 @@ SémanticienneC :: struct {
 
     table_de_symboles: Table_De_Symboles
 
-    maçonne: Maçonne_Type
-
     fonction_courante: *FunctionDefinition
 }
 
@@ -212,11 +210,11 @@ valide_sémantique_noeud :: fonc (empl sémanticienne: *SémanticienneC, node: *
         }
         StringLiteral {
             // À FAIRE : const
-            node.type = crée_type_pointeur(*maçonne, unit.char_type)
+            node.type = crée_type_pointeur(*unit.maçonne_type, unit.maçonne_type.char_type)
         }
         IntegerConstant {
             // À FAIRE : suffixes, validation taille
-            node.type = unit.int_signed_type
+            node.type = unit.maçonne_type.int_signed_type
         }
         DeclarationReference {
             reference := node comme *DeclarationReference
@@ -240,7 +238,7 @@ valide_sémantique_noeud :: fonc (empl sémanticienne: *SémanticienneC, node: *
         ReturnStatement {
             statement := node comme *ReturnStatement
 
-            return_type := unit.void_type
+            return_type := unit.maçonne_type.void_type
 
             si statement.expression {
                 valide_sémantique_noeud(sémanticienne, statement.expression)
@@ -416,7 +414,7 @@ résoud_type_final :: fonc (empl sémanticienne: *SémanticienneC, node: *ASTNod
             taille := évalue_expression_constante(sémanticienne, constant_array.size_expression)
             type_élément := résoud_type_final(sémanticienne, constant_array.element_type)
 
-            retourne crée_type_tableau(*maçonne, type_élément, taille)
+            retourne crée_type_tableau(*unit.maçonne_type, type_élément, taille)
         }
         TypeRef {
             type_ref := node comme *TypeRef
@@ -425,7 +423,7 @@ résoud_type_final :: fonc (empl sémanticienne: *SémanticienneC, node: *ASTNod
         PointerTypeExpression {
             pointer := node comme *PointerTypeExpression
             pointee_type := résoud_type_final(sémanticienne, pointer.pointed_to)
-            retourne crée_type_pointeur(*maçonne, pointee_type)
+            retourne crée_type_pointeur(*unit.maçonne_type, pointee_type)
         }
         TypeNameExpression {
             type_name := node comme *TypeNameExpression
@@ -450,7 +448,7 @@ résoud_type_final :: fonc (empl sémanticienne: *SémanticienneC, node: *ASTNod
                 rapporte_erreur_interne(sémanticienne, function_type_expr.return_type.token, "impossible de définir le type")
             }
 
-            résultat := crée_type_fonction(*maçonne, return_type, types_arguments)
+            résultat := crée_type_fonction(*unit.maçonne_type, return_type, types_arguments)
             retourne résultat
         }
         sinon {
@@ -517,6 +515,8 @@ résoud_type_final :: fonc (empl sémanticienne: *SémanticienneC, node: *ASTNod
 /** \nom Maçonne_Type
  * \{ */
 
+#portée_module
+
 Maçonne_Type :: struct {
     types: [..]*Type;
     types_tableaux: [..]*ConstantArray;
@@ -524,6 +524,63 @@ Maçonne_Type :: struct {
     types_fonctions: [..]*FunctionType;
 
     créatrice: CréatriceNoeuds;
+
+    char_type: *Type
+    char_signed_type: *Type
+    char_unsigned_type: *Type
+    short_signed_type: *Type
+    short_unsigned_type: *Type
+    int_signed_type: *Type
+    int_unsigned_type: *Type
+    int_long_signed_type: *Type
+    int_long_unsigned_type: *Type
+    int_long_long_signed_type: *Type
+    int_long_long_unsigned_type: *Type
+    float_type: *Type
+    double_type: *Type
+    double_long_type: *Type
+    float128_type: *Type
+    complex_float_type: *Type
+    complex_double_type: *Type
+    complex_double_long_type: *Type
+    void_type: *Type
+    void_ptr_type: *Type
+    variadic_type: *Type
+}
+
+initialise_types_fondamenteaux :: fonc (empl maçonne: *Maçonne_Type)
+{
+    char_type = crée_type_fondamental(*créatrice, TypeKind.CHAR, 1)
+    char_signed_type = char_type
+    char_unsigned_type = crée_type_fondamental(*créatrice, TypeKind.UNSIGNED_CHAR, 1)
+    short_signed_type = crée_type_fondamental(*créatrice, TypeKind.SHORT, 2)
+    short_unsigned_type = crée_type_fondamental(*créatrice, TypeKind.UNSIGNED_SHORT, 2)
+    int_signed_type = crée_type_fondamental(*créatrice, TypeKind.INT, 4)
+    int_unsigned_type = crée_type_fondamental(*créatrice, TypeKind.UNSIGNED_INT, 4)
+    int_long_signed_type = crée_type_fondamental(*créatrice, TypeKind.LONG, 8)
+    int_long_unsigned_type = crée_type_fondamental(*créatrice, TypeKind.UNSIGNED_LONG, 8)
+    int_long_long_signed_type = int_long_signed_type
+    int_long_long_unsigned_type = int_long_unsigned_type
+    float_type = crée_type_fondamental(*créatrice, TypeKind.FLOAT, 4)
+    double_type = crée_type_fondamental(*créatrice, TypeKind.DOUBLE, 8)
+    double_long_type = crée_type_fondamental(*créatrice, TypeKind.LONG_DOUBLE, 16)
+    float128_type = crée_type_fondamental(*créatrice, TypeKind.FLOAT128, 16)
+    complex_float_type = crée_type_fondamental(*créatrice, TypeKind.COMPLEX, 8)
+    complex_double_type = crée_type_fondamental(*créatrice, TypeKind.COMPLEX_DOUBLE, 16)
+    complex_double_long_type = crée_type_fondamental(*créatrice, TypeKind.COMPLEX_LONG_DOUBLE, 32)
+
+    variadic_type = crée_type(*créatrice, TypeKind.VARIADIC)
+
+    void_type = crée_type(*créatrice, TypeKind.VOID)
+    void_ptr_type = crée_type_pointeur(maçonne, void_type)
+}
+
+crée_type_fondamental :: fonc (créatrice: *CréatriceNoeuds, kind: TypeKind, taille_en_octet: n32) -> *Type
+{
+    résultat := crée_type(créatrice, kind)
+    résultat.taille_en_octet = taille_en_octet
+    résultat.alignement = taille_en_octet
+    retourne résultat
 }
 
 crée_type_fonction :: fonc (empl maçonne: *Maçonne_Type, return_type: *Type, arguments_types: []*Type) -> *FunctionType

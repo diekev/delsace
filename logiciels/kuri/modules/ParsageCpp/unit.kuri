@@ -23,28 +23,7 @@ TranslationUnit :: struct {
 
     invocations_macros: [..]InvocationMacro
 
-    // À FAIRE : bouge ça d'ici
-    char_type: *Type
-    char_signed_type: *Type
-    char_unsigned_type: *Type
-    short_signed_type: *Type
-    short_unsigned_type: *Type
-    int_signed_type: *Type
-    int_unsigned_type: *Type
-    int_long_signed_type: *Type
-    int_long_unsigned_type: *Type
-    int_long_long_signed_type: *Type
-    int_long_long_unsigned_type: *Type
-    float_type: *Type
-    double_type: *Type
-    double_long_type: *Type
-    float128_type: *Type
-    complex_float_type: *Type
-    complex_double_type: *Type
-    complex_double_long_type: *Type
-    void_type: *Type
-    void_ptr_type: *Type
-    variadic_type: *Type
+    maçonne_type: Maçonne_Type
 }
 
 crée_translation_unit_pour_fichier :: fonc (chemin: chaine) -> *TranslationUnit
