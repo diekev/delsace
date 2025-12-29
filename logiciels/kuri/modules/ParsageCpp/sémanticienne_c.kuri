@@ -948,7 +948,7 @@ résoud_type_final :: fonc (empl sémanticienne: *SémanticienneC, node: *ASTNod
 
             pour function_type_expr.parameters {
                 saufsi it.type {
-                    rapporte_erreur_interne(sémanticienne, it.token, "impossible de définir le type")
+                    it.type = résoud_type_final(sémanticienne, it)
                 }
                 tableau_ajoute(*types_arguments, it.type)
             }
@@ -960,6 +960,11 @@ résoud_type_final :: fonc (empl sémanticienne: *SémanticienneC, node: *ASTNod
 
             résultat := crée_type_fonction(*unit.maçonne_type, return_type, types_arguments)
             retourne résultat
+        }
+        ParamDecl {
+            param := node comme *ParamDecl
+            param.type = résoud_type_final(sémanticienne, param.type_expression)
+            retourne param.type
         }
         sinon {
             info := node.genre comme *InfoTypeStructure
