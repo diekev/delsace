@@ -277,6 +277,20 @@ valide_sémantique_noeud :: fonc (empl sémanticienne: *SémanticienneC, node: *
                 retourne
             }
         }
+        IfStatement {
+            if := node comme *IfStatement
+
+            valide_sémantique_noeud(sémanticienne, if.expression)
+            si if.expression.type.drapeaux.SCALAR == faux {
+                rapporte_erreur(sémanticienne, if.expression, "l'expression controlante d'une instruction-si doit être de type scalaire")
+            }
+
+            valide_sémantique_noeud(sémanticienne, if.statement)
+
+            si if.else_statement {
+                valide_sémantique_noeud(sémanticienne, if.else_statement)
+            }
+        }
         ForStatement {
             for := node comme *ForStatement
 
@@ -305,7 +319,7 @@ valide_sémantique_noeud :: fonc (empl sémanticienne: *SémanticienneC, node: *
             while := node comme *WhileStatement
             valide_sémantique_noeud(sémanticienne, while.expression)
             si while.expression.type.drapeaux.SCALAR == faux {
-                rapporte_erreur(sémanticienne, while.expression.token, "l'expression controlante d'une boucle-for doit être de type scalaire")
+                rapporte_erreur(sémanticienne, while.expression.token, "l'expression controlante d'une boucle-while doit être de type scalaire")
             }
             valide_sémantique_noeud(sémanticienne, while.statement)
         }
@@ -314,7 +328,7 @@ valide_sémantique_noeud :: fonc (empl sémanticienne: *SémanticienneC, node: *
             valide_sémantique_noeud(sémanticienne, do_while.statement)
             valide_sémantique_noeud(sémanticienne, do_while.expression)
             si do_while.expression.type.drapeaux.SCALAR == faux {
-                rapporte_erreur(sémanticienne, do_while.expression.token, "l'expression controlante d'une boucle-for doit être de type scalaire")
+                rapporte_erreur(sémanticienne, do_while.expression.token, "l'expression controlante d'une boucle-do-while doit être de type scalaire")
             }
         }
         BinaryExpression {
