@@ -1032,6 +1032,7 @@ résoud_type_final :: fonc (empl sémanticienne: *SémanticienneC, node: *ASTNod
         }
         sinon {
             info := node.genre comme *InfoTypeStructure
+            rapporte_note(sémanticienne, node, "noeud non-géré pour l'expression constante")
             panique("Noeud non-géré %", info.nom)
         }
     }
