@@ -332,8 +332,17 @@ valide_sémantique_noeud :: fonc (empl sémanticienne: *SémanticienneC, node: *
             si binary.op == "<" {
                 binary.type = unit.maçonne_type.int_signed_type
             }
+            sinon si binary.op == "+" {
+                binary.type = unit.maçonne_type.int_signed_type
+            }
+            sinon si binary.op == "%" {
+                binary.type = unit.maçonne_type.int_signed_type
+            }
+            sinon si binary.op == "==" {
+                binary.type = unit.maçonne_type.int_signed_type
+            }
             sinon {
-                rapporte_erreur_interne(sémanticienne, binary.right.token, "opérateur non-supporté")
+                rapporte_erreur_interne(sémanticienne, binary, "opérateur non-supporté")
             }
         }
         PostFixUpdateExpression {
@@ -654,6 +663,18 @@ résoud_type_final :: fonc (empl sémanticienne: *SémanticienneC, node: *ASTNod
             }
             si binary.op == "*" {
                 retourne valeur_gauche * valeur_droite
+            }
+            si binary.op == "+" {
+                retourne valeur_gauche + valeur_droite
+            }
+            si binary.op == "%" {
+                retourne valeur_gauche % valeur_droite
+            }
+            si binary.op == "==" {
+                si valeur_gauche == valeur_droite {
+                    retourne 1
+                }
+                retourne 0
             }
 
             imprimeln("binary %", binary.op)
