@@ -2182,6 +2182,7 @@ parse_expression_primaire :: fonc (empl parseuse: *ParseuseC) -> *Expression
             }
 
             type_name: *Expression
+            // A generic selection shall have no more than one default generic association.
             si est_mot_clé(lexème, "default") {
                 si eu_default {
                     rapporte_erreur(parseuse, lexème, "redéfinition de l'association 'default'")

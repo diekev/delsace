@@ -311,6 +311,9 @@ GenericSelection :: struct {
 
     expression: *Expression
     generic_assoc_list: [..]*GenericAssociation
+
+    /* Mise en place après la validation sémantique. */
+    selected_expression: *Expression
 }
 
 GenericAssociation :: struct {

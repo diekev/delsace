@@ -17,14 +17,29 @@ rapporte_erreur_interne :: fonc (sémanticienne: *SémanticienneC, lexème: Toke
     rapporte_diagnostique(sémanticienne.unit, TypeDiagnostique.ERREUR_INTERNE, lexème, format, ...args)
 } @Imprimeuse
 
+rapporte_erreur_interne :: fonc (sémanticienne: *SémanticienneC, node: *ASTNode, format: chaine, args: ...eini)
+{
+    rapporte_diagnostique(sémanticienne.unit, TypeDiagnostique.ERREUR_INTERNE, node.token, format, ...args)
+} @Imprimeuse
+
 rapporte_erreur :: fonc (sémanticienne: *SémanticienneC, lexème: Token, format: chaine, args: ...eini)
 {
     rapporte_diagnostique(sémanticienne.unit, TypeDiagnostique.ERREUR, lexème, format, ...args)
 } @Imprimeuse
 
+rapporte_erreur :: fonc (sémanticienne: *SémanticienneC, node: *ASTNode, format: chaine, args: ...eini)
+{
+    rapporte_diagnostique(sémanticienne.unit, TypeDiagnostique.ERREUR, node.token, format, ...args)
+} @Imprimeuse
+
 rapporte_note :: fonc (sémanticienne: *SémanticienneC, lexème: Token, format: chaine, args: ...eini)
 {
     rapporte_diagnostique(sémanticienne.unit, TypeDiagnostique.NOTE, lexème, format, ...args)
+} @Imprimeuse
+
+rapporte_note :: fonc (sémanticienne: *SémanticienneC, node: *ASTNode, format: chaine, args: ...eini)
+{
+    rapporte_diagnostique(sémanticienne.unit, TypeDiagnostique.NOTE, node.token, format, ...args)
 } @Imprimeuse
 
 sémantise_translation_unit_c :: fonc (sémanticienne: *SémanticienneC, unit: *TranslationUnit)
@@ -216,6 +231,10 @@ valide_sémantique_noeud :: fonc (empl sémanticienne: *SémanticienneC, node: *
             // À FAIRE : suffixes, validation taille
             node.type = unit.maçonne_type.int_signed_type
         }
+        FloatingConstant {
+            // À FAIRE : suffixes, validation taille
+            node.type = unit.maçonne_type.float_type
+        }
         DeclarationReference {
             reference := node comme *DeclarationReference
 
@@ -332,6 +351,10 @@ valide_sémantique_noeud :: fonc (empl sémanticienne: *SémanticienneC, node: *
 
             postfix.type = operand_type
         }
+        GenericSelection {
+            generic := node comme *GenericSelection
+            valide_sémantique_generic(sémanticienne, generic)
+        }
         PointerType {
 
         }
@@ -346,6 +369,75 @@ valide_sémantique_noeud :: fonc (empl sémanticienne: *SémanticienneC, node: *
             panique("Noeud non-géré %", info.nom)
         }
     }
+}
+
+valide_sémantique_generic :: fonc (sémanticienne: *SémanticienneC, generic: *GenericSelection)
+{
+    valide_sémantique_noeud(sémanticienne, generic.expression)
+
+    default: *Expression
+    selected_association: *GenericAssociation
+
+    pour generic.generic_assoc_list {
+        si it.type_name {
+            it.type_name.type = résoud_type_final(sémanticienne, it.type_name)
+            saufsi it.type_name.type {
+                rapporte_erreur_interne(sémanticienne, it.type_name, "impossible de déterminer le type de l'expression")
+            }
+
+            // The type name in a generic association shall specify a complete object type
+            // other than a variably modified type.
+            si it.type_name.type.drapeaux.COMPLET == faux {
+                rapporte_erreur(sémanticienne, it.type_name, "impossible d'utiliser le type incomplet '%' pour l'association générique", donne_épelage_type(it.type_name.type))
+            }
+            si est_type_variablement_modifié(it.type_name.type) {
+                rapporte_erreur(sémanticienne, it.type_name, "impossible d'utiliser un type variablement modifié pour l'association générique")
+            }
+
+            si types_sont_compatibles(generic.expression.type, it.type_name.type) {
+                // The controlling expression of a generic selection shall have type
+                // compatible with at most one of the types named in its generic
+                // association list.
+                si selected_association {
+                    rapporte_note(sémanticienne, selected_association.type_name, "ce type est compatible...")
+                    rapporte_note(sémanticienne, it.type_name, "... ainsi que ce type")
+                    rapporte_erreur(sémanticienne, generic, "plusieurs types sont compatibles avec le type de l'expression")
+                }
+                selected_association = it
+            }
+        }
+        sinon {
+            default = it.expression
+        }
+    }
+
+    // À FAIRE : No two generic associations in the same generic selection shall specify compatible types.
+
+    // If a generic selection has no default generic association, its controlling expression shall have type compatible with exactly one of the types named in its generic association list.
+    si selected_association {
+        generic.selected_expression = selected_association.expression
+    }
+    sinon si default {
+        generic.selected_expression = default
+    }
+    sinon {
+        rapporte_erreur(sémanticienne, generic, "le type de l'expression '%' n'est compatible avec aucune des associations", donne_épelage_type(generic.expression.type))
+    }
+
+    generic.type = generic.expression.type
+
+    valide_sémantique_noeud(sémanticienne, generic.selected_expression)
+}
+
+est_type_variablement_modifié :: fonc (type: *Type @inutilisée) -> bool
+{
+    // À FAIRE : type contenant un tableau variable
+    retourne faux
+}
+
+types_sont_compatibles :: fonc (a: *Type, b: *Type) -> bool
+{
+    retourne a == b
 }
 
 types_sont_compatibles_pour_retour :: fonc (attendu: *Type, obtenu: *Type) -> bool
