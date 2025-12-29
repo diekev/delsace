@@ -282,6 +282,14 @@ valide_sémantique_noeud :: fonc (empl sémanticienne: *SémanticienneC, node: *
 
             valide_sémantique_noeud(sémanticienne, for.statement)
         }
+        WhileStatement {
+            while := node comme *WhileStatement
+            valide_sémantique_noeud(sémanticienne, while.expression)
+            si while.expression.type.drapeaux.SCALAR == faux {
+                rapporte_erreur(sémanticienne, while.expression.token, "l'expression controlante d'une boucle-for doit être de type scalaire")
+            }
+            valide_sémantique_noeud(sémanticienne, while.statement)
+        }
         BinaryExpression {
             binary := node comme *BinaryExpression
             valide_sémantique_noeud(sémanticienne, binary.left)
