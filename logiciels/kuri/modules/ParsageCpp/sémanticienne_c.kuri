@@ -455,6 +455,33 @@ valide_sémantique_noeud :: fonc (empl sémanticienne: *SémanticienneC, node: *
                 rapporte_erreur(sémanticienne, static_assert, static_assert.message)
             }
         }
+        CastExpression {
+            cast := node comme *CastExpression
+
+            cast.type = résoud_type_final(sémanticienne, cast.cast_type)
+            valide_sémantique_noeud(sémanticienne, cast.expression)
+
+            si cast.type.kind != TypeKind.VOID {
+                type_dst := cast.type
+                type_src := cast.expression.type
+
+                si type_dst.drapeaux.SCALAR == faux {
+                    rapporte_erreur(sémanticienne, cast.cast_type, "une expression de transtypage doit avoir un type scalaire comme cible")
+                }
+
+                si type_src.drapeaux.SCALAR == faux {
+                    rapporte_erreur(sémanticienne, cast.expression, "une expression de transtypage doit avoir un type scalaire comme source")
+                }
+
+                si type_dst.drapeaux.POINTER && type_src.drapeaux.FLOATING {
+                    rapporte_erreur(sémanticienne, cast, "impossible de transtyper un type flottant vers un type pointeur")
+                }
+
+                si type_src.drapeaux.POINTER && type_dst.drapeaux.FLOATING {
+                    rapporte_erreur(sémanticienne, cast, "impossible de transtyper un type pointeur vers un type flottant")
+                }
+            }
+        }
         PointerType {
 
         }
@@ -466,6 +493,7 @@ valide_sémantique_noeud :: fonc (empl sémanticienne: *SémanticienneC, node: *
         }
         sinon {
             info := node.genre comme *InfoTypeStructure
+            rapporte_note(sémanticienne, node, "noeud non-géré '%' pour la validation sémantique", info.nom)
             panique("Noeud non-géré %", info.nom)
         }
     }
