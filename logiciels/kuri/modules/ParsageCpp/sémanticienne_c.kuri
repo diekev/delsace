@@ -402,27 +402,37 @@ valide_sémantique_noeud :: fonc (empl sémanticienne: *SémanticienneC, node: *
             valide_sémantique_noeud(sémanticienne, binary.left)
             valide_sémantique_noeud(sémanticienne, binary.right)
 
-            saufsi binary.left.type.kind == TypeKind.INT {
-                rapporte_erreur_interne(sémanticienne, binary.left.token, "type non int non-supporté pour le moment")
-            }
-            saufsi binary.right.type.kind == TypeKind.INT {
-                rapporte_erreur_interne(sémanticienne, binary.right.token, "type non int non-supporté pour le moment")
-            }
-
-            si binary.op == "<" {
-                binary.type = unit.maçonne_type.int_signed_type
+            si binary.op == "<" || binary.op == ">" || binary.op == "<=" || binary.op == ">=" {
+                valide_opérateur_relationnel(sémanticienne, binary)
             }
             sinon si binary.op == "+" {
-                binary.type = unit.maçonne_type.int_signed_type
+                valide_opérateur_addition(sémanticienne, binary)
+            }
+            sinon si binary.op == "*" || binary.op == "/" {
+                valide_opérateur_multiplicatif(sémanticienne, binary)
             }
             sinon si binary.op == "%" {
-                binary.type = unit.maçonne_type.int_signed_type
+                valide_opérateur_modulo(sémanticienne, binary)
             }
-            sinon si binary.op == "==" {
-                binary.type = unit.maçonne_type.int_signed_type
+            sinon si binary.op == "==" || binary.op == "!=" {
+                valide_opérateur_égalité(sémanticienne, binary)
+            }
+            sinon si binary.op == "<<" || binary.op == ">>" {
+                valide_opérateur_décalage(sémanticienne, binary)
+            }
+            sinon si binary.op == "|" || binary.op == "&" || binary.op == "^" {
+                valide_opérateur_bital(sémanticienne, binary)
+            }
+            sinon si binary.op == "&&" || binary.op == "||" {
+                valide_opérateur_logique(sémanticienne, binary)
             }
             sinon {
                 rapporte_erreur_interne(sémanticienne, binary, "opérateur non-supporté")
+            }
+
+            saufsi binary.type {
+                /* Garantis un type. */
+                binary.type = unit.maçonne_type.int_signed_type
             }
         }
         PostFixUpdateExpression {
@@ -497,6 +507,204 @@ valide_sémantique_noeud :: fonc (empl sémanticienne: *SémanticienneC, node: *
             panique("Noeud non-géré %", info.nom)
         }
     }
+}
+
+valide_opérateur_multiplicatif :: fonc (empl sémanticienne: *SémanticienneC, binary: *BinaryExpression)
+{
+    type_gauche := binary.left.type
+    type_droite := binary.right.type
+
+    si type_gauche.drapeaux.ARITHMETIC && type_droite.drapeaux.ARITHMETIC {
+        // À FAIRE : usual arithmetic conversions
+        binary.type = unit.maçonne_type.int_signed_type
+    }
+    sinon {
+        rapporte_erreur_types_incompatibles(sémanticienne, binary)
+    }
+}
+
+valide_opérateur_modulo :: fonc (empl sémanticienne: *SémanticienneC, binary: *BinaryExpression)
+{
+    type_gauche := binary.left.type
+    type_droite := binary.right.type
+
+    si type_gauche.drapeaux.INTEGER && type_droite.drapeaux.INTEGER {
+        // À FAIRE : usual arithmetic conversions
+        binary.type = unit.maçonne_type.int_signed_type
+    }
+    sinon {
+        chn_type_gauche := donne_épelage_type(type_gauche)
+        diffère déloge(chn_type_gauche)
+        chn_type_droite := donne_épelage_type(type_droite)
+        diffère déloge(chn_type_droite)
+
+        si type_gauche.drapeaux.INTEGER {
+            rapporte_erreur(sémanticienne, binary.right, "l'opérande droite d'un opérateur de modulo doit être de type entier : obtenu '%'", chn_type_droite)
+        }
+        sinon si type_droite.drapeaux.INTEGER {
+            rapporte_erreur(sémanticienne, binary.left, "l'opérande gauche d'un opérateur de modulo doit être de type entier : obtenu '%'", chn_type_gauche)
+        }
+        sinon {
+            rapporte_erreur(sémanticienne, binary, "l'opérateur doit avoir des types entiers comme opérandes : obtenu '%' et '%'", chn_type_gauche, chn_type_droite)
+        }
+    }
+}
+
+valide_opérateur_addition :: fonc (empl sémanticienne: *SémanticienneC, binary: *BinaryExpression)
+{
+    type_gauche := binary.left.type
+    type_droite := binary.right.type
+
+    si type_gauche.drapeaux.ARITHMETIC && type_droite.drapeaux.ARITHMETIC {
+        // À FAIRE : usual arithmetic conversions
+        binary.type = unit.maçonne_type.int_signed_type
+    }
+    sinon si (type_gauche.drapeaux.POINTER && type_droite.drapeaux.INTEGER) {
+        // À FAIRE : pointer to complete object type
+        binary.type = type_gauche
+    }
+    sinon si (type_gauche.drapeaux.INTEGER && type_droite.drapeaux.POINTER) {
+        // À FAIRE : pointer to complete object type
+        // À FAIRE : complete object types
+        binary.type = type_droite
+    }
+    sinon {
+        rapporte_erreur_types_incompatibles(sémanticienne, binary)
+    }
+}
+
+valide_opérateur_soustraction :: fonc (empl sémanticienne: *SémanticienneC, binary: *BinaryExpression)
+{
+    type_gauche := binary.left.type
+    type_droite := binary.right.type
+
+    si type_gauche.drapeaux.ARITHMETIC && type_droite.drapeaux.ARITHMETIC {
+        // À FAIRE : usual arithmetic conversions
+        binary.type = unit.maçonne_type.int_signed_type
+    }
+    sinon si (type_gauche.drapeaux.POINTER && type_droite.drapeaux.POINTER) {
+        pointeur_gauche := type_gauche comme *PointerType
+        pointeur_droite := type_droite comme *PointerType
+
+        // À FAIRE : complete object types
+        // À FAIRE : qualified or unqualified versions
+        saufsi types_sont_compatibles(pointeur_gauche.pointed_to, pointeur_droite.pointed_to) {
+            rapporte_erreur_types_incompatibles(sémanticienne, binary)
+        }
+
+        // À FAIRE : ptrdiff_t (nous n'avons peut-être pas le fichier inclus)
+        binary.type = unit.maçonne_type.int_long_signed_type
+    }
+    sinon si (type_gauche.drapeaux.POINTER && type_droite.drapeaux.INTEGER) {
+        // À FAIRE : pointer to complete object type
+        binary.type = type_gauche
+    }
+    sinon {
+        rapporte_erreur_types_incompatibles(sémanticienne, binary)
+    }
+}
+
+valide_opérateur_décalage :: fonc (empl sémanticienne: *SémanticienneC, binary: *BinaryExpression)
+{
+    type_gauche := binary.left.type
+    type_droite := binary.right.type
+
+    si type_gauche.drapeaux.INTEGER && type_droite.drapeaux.INTEGER {
+        // À FAIRE : integer promotions
+        binary.type = type_gauche
+    }
+    sinon {
+        rapporte_erreur_types_incompatibles(sémanticienne, binary)
+    }
+}
+
+valide_opérateur_relationnel :: fonc (empl sémanticienne: *SémanticienneC, binary: *BinaryExpression)
+{
+    type_gauche := binary.left.type
+    type_droite := binary.right.type
+
+    si type_gauche.drapeaux.REAL && type_droite.drapeaux.REAL {
+        // À FAIRE : usual arithmetic conversions
+    }
+    sinon si type_gauche.drapeaux.POINTER && type_droite.drapeaux.POINTER {
+        pointeur_gauche := type_gauche comme *PointerType
+        pointeur_droite := type_droite comme *PointerType
+
+        // À FAIRE : qualified or unqualified versions
+        saufsi types_sont_compatibles(pointeur_gauche.pointed_to, pointeur_droite.pointed_to) {
+            rapporte_erreur_types_incompatibles(sémanticienne, binary)
+        }
+    }
+    sinon {
+        rapporte_erreur_types_incompatibles(sémanticienne, binary)
+    }
+
+    binary.type = unit.maçonne_type.int_signed_type
+}
+
+valide_opérateur_égalité :: fonc (empl sémanticienne: *SémanticienneC, binary: *BinaryExpression)
+{
+    type_gauche := binary.left.type
+    type_droite := binary.right.type
+
+    si type_gauche.drapeaux.REAL && type_droite.drapeaux.REAL {
+        // À FAIRE : usual arithmetic conversions
+    }
+    sinon si type_gauche.drapeaux.POINTER && type_droite.drapeaux.POINTER {
+        pointeur_gauche := type_gauche comme *PointerType
+        pointeur_droite := type_droite comme *PointerType
+
+        // À FAIRE : qualified or unqualified versions
+        saufsi types_sont_compatibles(pointeur_gauche.pointed_to, pointeur_droite.pointed_to) {
+            rapporte_erreur_types_incompatibles(sémanticienne, binary)
+        }
+
+        // À FAIRE : pointer to an object type vs void*
+        // À FAIRE : pointer vs (void *)0
+    }
+    sinon {
+        rapporte_erreur_types_incompatibles(sémanticienne, binary)
+    }
+
+    binary.type = unit.maçonne_type.int_signed_type
+}
+
+valide_opérateur_bital :: fonc (empl sémanticienne: *SémanticienneC, binary: *BinaryExpression)
+{
+    type_gauche := binary.left.type
+    type_droite := binary.right.type
+
+    si type_gauche.drapeaux.INTEGER && type_droite.drapeaux.INTEGER {
+        // À FAIRE : usual arithmetic conversions
+        binary.type = type_gauche
+    }
+    sinon {
+        rapporte_erreur_types_incompatibles(sémanticienne, binary)
+    }
+}
+
+valide_opérateur_logique :: fonc (empl sémanticienne: *SémanticienneC, binary: *BinaryExpression)
+{
+    type_gauche := binary.left.type
+    type_droite := binary.right.type
+
+    si type_gauche.drapeaux.SCALAR == faux || type_droite.drapeaux.SCALAR == faux {
+        rapporte_erreur(sémanticienne, binary, "des types scalaires sont requis autour de l'opérateur logique")
+    }
+
+    binary.type = unit.maçonne_type.int_signed_type
+}
+
+rapporte_erreur_types_incompatibles :: fonc (sémanticienne: *SémanticienneC, binary: *BinaryExpression)
+{
+    type_gauche := binary.left.type
+    type_droite := binary.right.type
+
+    chn_type_gauche := donne_épelage_type(type_gauche)
+    diffère déloge(chn_type_gauche)
+    chn_type_droite := donne_épelage_type(type_droite)
+    diffère déloge(chn_type_droite)
+    rapporte_erreur(sémanticienne, binary, "types incompatibles pour l'opérateur : obtenu '%' et '%'", chn_type_gauche, chn_type_droite)
 }
 
 valide_sémantique_generic :: fonc (sémanticienne: *SémanticienneC, generic: *GenericSelection)
