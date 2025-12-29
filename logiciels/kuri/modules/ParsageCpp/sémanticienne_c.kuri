@@ -364,6 +364,17 @@ valide_sémantique_noeud :: fonc (empl sémanticienne: *SémanticienneC, node: *
             generic := node comme *GenericSelection
             valide_sémantique_generic(sémanticienne, generic)
         }
+        StaticAssert {
+            static_assert := node comme *StaticAssert
+
+            valide_sémantique_noeud(sémanticienne, static_assert.expression)
+
+            résultat := évalue_expression_constante(sémanticienne, static_assert.expression)
+
+            si résultat == 0 {
+                rapporte_erreur(sémanticienne, static_assert, static_assert.message)
+            }
+        }
         PointerType {
 
         }
