@@ -408,6 +408,9 @@ valide_sémantique_noeud :: fonc (empl sémanticienne: *SémanticienneC, node: *
             sinon si binary.op == "+" {
                 valide_opérateur_addition(sémanticienne, binary)
             }
+            sinon si binary.op == "-" {
+                valide_opérateur_soustraction(sémanticienne, binary)
+            }
             sinon si binary.op == "*" || binary.op == "/" {
                 valide_opérateur_multiplicatif(sémanticienne, binary)
             }
