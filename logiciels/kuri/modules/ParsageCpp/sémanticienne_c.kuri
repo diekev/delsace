@@ -1184,6 +1184,7 @@ crée_type_pointeur :: fonc (empl maçonne: *Maçonne_Type, pointed_to: *Type) -
     résultat.taille_en_octet = 8;
     résultat.alignement = 8;
     résultat.drapeaux.COMPLET = vrai
+    résultat.drapeaux.POINTER = vrai
 
     tableau_ajoute(*types_pointeurs, résultat);
     tableau_ajoute(*types, résultat);
