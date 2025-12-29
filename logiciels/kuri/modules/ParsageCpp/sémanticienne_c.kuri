@@ -10,6 +10,9 @@ SémanticienneC :: struct {
     table_de_symboles: Table_De_Symboles
 
     fonction_courante: *FunctionDefinition
+
+    switchs_courants: [..]*SwitchStatement
+    cible_break: [..]*ASTNode
 }
 
 rapporte_erreur_interne :: fonc (sémanticienne: *SémanticienneC, lexème: Token, format: chaine, args: ...eini)
@@ -289,6 +292,69 @@ valide_sémantique_noeud :: fonc (empl sémanticienne: *SémanticienneC, node: *
 
             si if.else_statement {
                 valide_sémantique_noeud(sémanticienne, if.else_statement)
+            }
+        }
+        SwitchStatement {
+            switch := node comme *SwitchStatement
+
+            valide_sémantique_noeud(sémanticienne, switch.expression)
+            // À FAIRE : integer promotion
+            si switch.expression.type.drapeaux.INTEGER == faux {
+                rapporte_erreur(sémanticienne, switch.expression, "l'expression controlante d'une instruction-switch doit être de type entier")
+            }
+
+            tableau_ajoute(*switchs_courants, switch)
+            tableau_ajoute(*cible_break, switch)
+            valide_sémantique_noeud(sémanticienne, switch.statement)
+            cible_break.taille -= 1
+            switchs_courants.taille -= 1
+        }
+        CaseClause {
+            si switchs_courants.taille == 0 {
+                rapporte_erreur(sémanticienne, node, "'case' en dehors d'un 'switch'")
+                retourne
+            }
+
+            case := node comme *CaseClause
+
+            // À FAIRE : integer promotion
+
+            valide_sémantique_noeud(sémanticienne, case.expression)
+            si case.expression.type.drapeaux.INTEGER == faux {
+                rapporte_erreur(sémanticienne, case.expression, "l'expression constante d'un case doit être de type entier")
+            }
+
+            valeur := évalue_expression_constante(sémanticienne, case.expression)
+            case.valeur = valeur
+
+            // À FAIRE : vérifie qu'il n'y a pas de valeurs dupliquées
+            switch := switchs_courants[switchs_courants.taille - 1]
+            tableau_ajoute(*switch.labels, case)
+
+            valide_sémantique_noeud(sémanticienne, case.statement)
+        }
+        DefaultClause {
+            si switchs_courants.taille == 0 {
+                rapporte_erreur(sémanticienne, node, "'default' en dehors d'un 'switch'")
+                retourne
+            }
+
+            default_clause := node comme *DefaultClause
+
+            switch := switchs_courants[switchs_courants.taille - 1]
+            si switch.default_clause {
+                rapporte_note(sémanticienne, switch.default_clause, "le précédence 'defaut' fut définis ici")
+                rapporte_erreur(sémanticienne, default_clause, "'default' dupliqué dans le corps du 'switch'")
+            }
+            switch.default_clause = default_clause
+            tableau_ajoute(*switch.labels, default_clause)
+
+            valide_sémantique_noeud(sémanticienne, default_clause.statement)
+        }
+        BreakStatement {
+            si cible_break.taille == 0 {
+                rapporte_erreur(sémanticienne, node, "'break' en dehors d'un 'switch'")
+                retourne
             }
         }
         ForStatement {

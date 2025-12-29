@@ -510,6 +510,9 @@ SwitchStatement :: struct {
 
     expression: *Expression
     statement: *ASTNode
+
+    labels: [..]*ASTNode
+    default_clause: *DefaultClause
 }
 
 WhileStatement :: struct {
@@ -545,6 +548,8 @@ CaseClause :: struct {
 
     expression: *Expression
     statement: *ASTNode
+
+    valeur: n64
 }
 
 DefaultClause :: struct {
