@@ -274,6 +274,13 @@ valide_sémantique_noeud :: fonc (empl sémanticienne: *SémanticienneC, node: *
 
             expected_return_type := (fonction_courante.type comme *FunctionType).return_type
 
+            si expected_return_type.kind == TypeKind.VOID && statement.expression {
+                rapporte_erreur(sémanticienne, statement.expression, "impossible de retourner une expression d'une fonction qui retourne 'void'")
+            }
+            sinon si expected_return_type.kind != TypeKind.VOID && statement.expression == nul {
+                rapporte_erreur(sémanticienne, statement, "expression de retour manquante")
+            }
+
             // À FAIRE : note les transtypages potentiels
             saufsi types_sont_compatibles_pour_retour(expected_return_type, return_type) {
                 rapporte_erreur(sémanticienne, statement.token, "types incompatibles pour l'instruction return : '%' vs '%'", donne_épelage_type(expected_return_type), donne_épelage_type(return_type))
@@ -781,7 +788,62 @@ types_sont_compatibles :: fonc (a: *Type, b: *Type) -> bool
 
 types_sont_compatibles_pour_retour :: fonc (attendu: *Type, obtenu: *Type) -> bool
 {
-    retourne attendu == obtenu
+    si attendu == obtenu {
+        retourne vrai
+    }
+
+    // The return statement is not an assignment. The overlap restriction of subclause 6.5.16.1 does not
+    // apply to the case of function return. The representation of floating-point values may have wider range
+    // or precision than implied by the type; a cast may be used to remove this extra range and precision
+    retourne types_sont_compatibles_pour_assignation_simple(attendu, obtenu)
+}
+
+types_sont_compatibles_pour_assignation_simple :: fonc (gauche: *Type, droite: *Type) -> bool
+{
+    // — the left operand has atomic, qualified, or unqualified arithmetic type, and the right has
+    // arithmetic type;
+    si gauche.drapeaux.ARITHMETIC && droite.drapeaux.ARITHMETIC {
+        retourne vrai
+    }
+
+    // — the left operand has an atomic, qualified, or unqualified version of a structure or union
+    // type compatible with the type of the right;
+    si gauche.drapeaux.STRUCTURE || gauche.drapeaux.UNION {
+        retourne types_sont_compatibles(gauche, droite)
+    }
+
+    si gauche.drapeaux.POINTER && droite.drapeaux.POINTER {
+        pointeur_gauche := gauche comme *PointerType
+        pointeur_droite := droite comme *PointerType
+
+        // — the left operand has atomic, qualified, or unqualified pointer type, and (considering
+        // the type the left operand would have after lvalue conversion) both operands are
+        // pointers to qualified or unqualified versions of compatible types, and the type pointed
+        // to by the left has all the qualifiers of the type pointed to by the right;
+        // À FAIRE : qualifiers
+        si types_sont_compatibles(pointeur_gauche.pointed_to, pointeur_droite.pointed_to) {
+            retourne vrai
+        }
+
+        // — the left operand has atomic, qualified, or unqualified pointer type, and (considering
+        // the type the left operand would have after lvalue conversion) one operand is a pointer
+        // to an object type, and the other is a pointer to a qualified or unqualified version of
+        // void, and the type pointed to by the left has all the qualifiers of the type pointed to
+        // by the right;
+        // À FAIRE : object type
+        // À FAIRE : qualifiers
+        si pointeur_droite.pointed_to.kind == TypeKind.VOID || pointeur_gauche.pointed_to.kind == TypeKind.VOID {
+            retourne vrai
+        }
+
+        // — the left operand is an atomic, qualified, or unqualified pointer, and the right is a null
+        // pointer constant; or
+        // À FAIRE : null pointer constant
+    }
+
+    // À FAIRE : — the left operand has type atomic, qualified, or unqualified _Bool, and the right is a
+    // pointer
+    retourne faux
 }
 
 types_sont_compatibles_pour_appel :: fonc (attendu: *Type, obtenu: *Type) -> bool
