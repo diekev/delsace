@@ -49,6 +49,10 @@ sémantise_translation_unit_c :: fonc (sémanticienne: *SémanticienneC, unit: *
 {
     sémanticienne.unit = unit
 
+    pour unit.builtin_functions {
+        insère_symbole(*sémanticienne.table_de_symboles, it.nom, it)
+    }
+
     pour unit.declarations {
         valide_sémantique_noeud(sémanticienne, it)
     }

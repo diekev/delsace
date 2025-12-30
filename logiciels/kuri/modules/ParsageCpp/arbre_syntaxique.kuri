@@ -37,9 +37,19 @@ VarDecl :: struct {
     initializer: *Expression
 }
 
+BuiltinFunctionType :: énum {
+    NONE
+
+    BSWAP16
+    BSWAP32
+    BSWAP64
+}
+
 FunctionDecl :: struct {
     empl node: ASTNode
     genre = #type_de_cette_structure
+
+    builtin_function_type: BuiltinFunctionType
 
     nom: chaine
     type_expression: *FunctionTypeExpression

@@ -112,6 +112,26 @@ initialise_parseuse :: fonc (parseuse: *ParseuseC, unit: *TranslationUnit)
 
     initialise_types_fondamenteaux(*unit.maçonne_type)
 
+    {
+        builtin_bswap16 := crée_noeud(*parseuse.créatrice, Token(), FunctionDecl)
+        builtin_bswap16.builtin_function_type = BuiltinFunctionType.BSWAP16
+        builtin_bswap16.nom = "__builtin_bswap16"
+        builtin_bswap16.type = crée_type_fonction(*unit.maçonne_type, unit.maçonne_type.short_unsigned_type, [unit.maçonne_type.short_unsigned_type])
+        tableau_ajoute(*unit.builtin_functions, builtin_bswap16)
+
+        builtin_bswap32 := crée_noeud(*parseuse.créatrice, Token(), FunctionDecl)
+        builtin_bswap32.builtin_function_type = BuiltinFunctionType.BSWAP32
+        builtin_bswap32.nom = "__builtin_bswap32"
+        builtin_bswap32.type = crée_type_fonction(*unit.maçonne_type, unit.maçonne_type.int_unsigned_type, [unit.maçonne_type.int_unsigned_type])
+        tableau_ajoute(*unit.builtin_functions, builtin_bswap32)
+
+        builtin_bswap64 := crée_noeud(*parseuse.créatrice, Token(), FunctionDecl)
+        builtin_bswap64.builtin_function_type = BuiltinFunctionType.BSWAP64
+        builtin_bswap64.nom = "__builtin_bswap64"
+        builtin_bswap64.type = crée_type_fonction(*unit.maçonne_type, unit.maçonne_type.int_long_unsigned_type, [unit.maçonne_type.int_long_unsigned_type])
+        tableau_ajoute(*unit.builtin_functions, builtin_bswap64)
+    }
+
     // À FAIRE : comprend ce que c'est
     typedef_decl := crée_noeud(*parseuse.créatrice, Token(), TypedefDecl)
     typedef_decl.name = "__builtin_va_list"
