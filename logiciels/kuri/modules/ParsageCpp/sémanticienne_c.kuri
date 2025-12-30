@@ -69,6 +69,7 @@ valide_sémantique_noeud :: fonc (empl sémanticienne: *SémanticienneC, node: *
 
             underlying_type := résoud_type_final(sémanticienne, typedef.underlying_type)
             typedef.underlying_type.type = underlying_type
+            typedef.drapeaux |= underlying_type.drapeaux
             typedef.taille_en_octet = underlying_type.taille_en_octet
             typedef.alignement = underlying_type.alignement
 

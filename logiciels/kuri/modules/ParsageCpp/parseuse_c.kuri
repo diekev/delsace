@@ -136,6 +136,7 @@ initialise_parseuse :: fonc (parseuse: *ParseuseC, unit: *TranslationUnit)
     typedef_decl := crée_noeud(*parseuse.créatrice, Token(), TypedefDecl)
     typedef_decl.name = "__builtin_va_list"
     typedef_decl.underlying_type = crée_type_ref(*parseuse.créatrice, Token(), unit.maçonne_type.void_ptr_type)
+    typedef_decl.drapeaux |= unit.maçonne_type.void_ptr_type.drapeaux
 
     _, _ := table_insère_si_non_existant(*parseuse.typedef_names, "__builtin_va_list", typedef_decl)
 }
