@@ -1118,6 +1118,11 @@ résoud_type_final :: fonc (empl sémanticienne: *SémanticienneC, node: *ASTNod
                 panique("Noeud non-géré %", info.nom)
             }
         }
+        CastExpression {
+            // À FAIRE : tient trace du type
+            cast := node comme *CastExpression
+            retourne évalue_expression_constante(sémanticienne, cast.expression)
+        }
         sinon {
             info := node.genre comme *InfoTypeStructure
             rapporte_note(sémanticienne, node, "noeud non-géré pour l'expression constante")
