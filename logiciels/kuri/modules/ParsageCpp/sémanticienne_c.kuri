@@ -1118,6 +1118,7 @@ Maçonne_Type :: struct {
 
     créatrice: CréatriceNoeuds;
 
+    bool_type: *Type
     char_type: *Type
     char_signed_type: *Type
     char_unsigned_type: *Type
@@ -1145,6 +1146,7 @@ initialise_types_fondamenteaux :: fonc (empl maçonne: *Maçonne_Type)
 {
     empl Drapeaux_Type
 
+    bool_type = crée_type_fondamental(*créatrice, TypeKind.BOOL, 1, STANDARD | UNSIGNED_INTEGER)
     char_type = crée_type_fondamental(*créatrice, TypeKind.CHAR, 1, CHARACTER)
     char_signed_type = crée_type_fondamental(*créatrice, TypeKind.SIGNED_CHAR, 1, CHARACTER | STANDARD | SIGNED_INTEGER)
     char_unsigned_type = crée_type_fondamental(*créatrice, TypeKind.UNSIGNED_CHAR, 1, CHARACTER | STANDARD | UNSIGNED_INTEGER)

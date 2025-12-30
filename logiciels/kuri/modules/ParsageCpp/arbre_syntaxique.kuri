@@ -57,6 +57,7 @@ FunctionDefinition :: struct {
 }
 
 TypeKind :: énum {
+    BOOL
     CHAR
     SIGNED_CHAR
     UNSIGNED_CHAR

@@ -236,6 +236,7 @@ est_alignment_specifier :: fonc (lexème: Token) -> bool
 }
 
 TypeSpecifier :: énum_drapeau {
+    BOOL
     CHAR
     SHORT
     INT
@@ -1015,6 +1016,19 @@ parse_declaration_specifiers :: fonc (empl parseuse: *ParseuseC, déclaration: *
 
                 type_specifiers.FLOAT128 = vrai
             }
+            sinon si specifier == "_Bool" {
+                si type_specifiers.BOOL {
+                    rapporte_erreur(parseuse, lexème, "redéfinition de '_Bool'")
+                    retourne
+                }
+
+                si type_specifiers != TypeSpecifier.zéro {
+                    rapporte_erreur(parseuse, lexème, "spécifiant de type inattendu '%'", specifier)
+                    retourne
+                }
+
+                type_specifiers.BOOL = vrai
+            }
             sinon {
                 rapporte_erreur_interne(parseuse, lexème, "spécifiant de type non-géré")
             }
@@ -1071,6 +1085,9 @@ parse_declaration_specifiers :: fonc (empl parseuse: *ParseuseC, déclaration: *
     sinon {
         si type_specifiers.VOID {
             déclaration.type_résolu = crée_type_ref(*créatrice, Token(), parseuse.unit.maçonne_type.void_type)
+        }
+        sinon si type_specifiers.BOOL {
+            déclaration.type_résolu = crée_type_ref(*créatrice, Token(), parseuse.unit.maçonne_type.bool_type)
         }
         sinon si type_specifiers.CHAR {
             si type_specifiers.UNSIGNED {
