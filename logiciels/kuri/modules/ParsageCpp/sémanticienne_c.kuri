@@ -788,7 +788,24 @@ est_type_variablement_modifié :: fonc (type: *Type @inutilisée) -> bool
 
 types_sont_compatibles :: fonc (a: *Type, b: *Type) -> bool
 {
-    retourne a == b
+    si a == b {
+        retourne vrai
+    }
+
+    type_sous_jacent_a := donne_type_sous_jacent(a)
+    type_sous_jacent_b := donne_type_sous_jacent(b)
+    retourne type_sous_jacent_a == type_sous_jacent_b
+}
+
+donne_type_sous_jacent :: fonc (type: *Type) -> *Type
+{
+    si type.genre == TypedefDecl {
+        tantque type.genre == TypedefDecl {
+            typedef := type comme *TypedefDecl
+            type = typedef.underlying_type.type
+        }
+    }
+    retourne type
 }
 
 types_sont_compatibles_pour_retour :: fonc (attendu: *Type, obtenu: *Type) -> bool
@@ -853,7 +870,7 @@ types_sont_compatibles_pour_assignation_simple :: fonc (gauche: *Type, droite: *
 
 types_sont_compatibles_pour_appel :: fonc (attendu: *Type, obtenu: *Type) -> bool
 {
-    si attendu == obtenu {
+    si types_sont_compatibles(attendu, obtenu) {
         retourne vrai
     }
     retourne attendu.kind == TypeKind.VARIADIC
