@@ -95,6 +95,7 @@ TypeKind :: énum {
 
     FUNCTION
     CONSTANT_ARRAY
+    INCOMPLETE_ARRAY
 
     COMPLEX
     COMPLEX_DOUBLE
@@ -187,6 +188,14 @@ ParamDecl :: struct {
 
     name: chaine
     type_expression: *Expression
+}
+
+IncompleteArray :: struct {
+    empl base_type: Type
+    genre = #type_de_cette_structure
+    kind = TypeKind.INCOMPLETE_ARRAY
+
+    element_type: *Type
 }
 
 ConstantArray :: struct {

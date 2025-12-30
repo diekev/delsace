@@ -1016,16 +1016,18 @@ résoud_type_final :: fonc (empl sémanticienne: *SémanticienneC, node: *ASTNod
     discr node.genre {
         ConstantArrayExpression {
             constant_array := node comme *ConstantArrayExpression
-
-            taille := évalue_expression_constante(sémanticienne, constant_array.size_expression)
+            
             type_élément := résoud_type_final(sémanticienne, constant_array.element_type)
-
             saufsi type_élément.drapeaux.COMPLET {
                 rapporte_erreur(sémanticienne, node.token, "impossible de créer un tableau depuis le type incomplet '%'", donne_épelage_type(type_élément))
                 retourne nul
             }
 
-            retourne crée_type_tableau(*unit.maçonne_type, type_élément, taille)
+            si constant_array.size_expression {
+                taille := évalue_expression_constante(sémanticienne, constant_array.size_expression)
+                retourne crée_type_tableau(*unit.maçonne_type, type_élément, taille)
+            }            
+            retourne crée_type_tableau_incomplet(*unit.maçonne_type, type_élément)
         }
         TypeRef {
             type_ref := node comme *TypeRef
@@ -1158,6 +1160,7 @@ résoud_type_final :: fonc (empl sémanticienne: *SémanticienneC, node: *ASTNod
 Maçonne_Type :: struct {
     types: [..]*Type;
     types_tableaux: [..]*ConstantArray;
+    types_tableaux_incomplets: [..]*IncompleteArray;
     types_pointeurs: [..]*PointerType;
     types_fonctions: [..]*FunctionType;
 
@@ -1279,6 +1282,25 @@ crée_type_tableau :: fonc (empl maçonne: *Maçonne_Type, element_type: *Type, 
     résultat.drapeaux.COMPLET = vrai
 
     tableau_ajoute(*types_tableaux, résultat);
+    tableau_ajoute(*types, résultat);
+
+    retourne résultat;
+}
+
+crée_type_tableau_incomplet :: fonc (empl maçonne: *Maçonne_Type, element_type: *Type) -> *IncompleteArray
+{
+    pour types_tableaux_incomplets {
+        si it.element_type == element_type {
+            retourne it;
+        }
+    }
+
+    assert(element_type.drapeaux.COMPLET == vrai)
+
+    résultat := crée_noeud(*créatrice, Token(), IncompleteArray);
+    résultat.element_type = element_type;
+
+    tableau_ajoute(*types_tableaux_incomplets, résultat);
     tableau_ajoute(*types, résultat);
 
     retourne résultat;
