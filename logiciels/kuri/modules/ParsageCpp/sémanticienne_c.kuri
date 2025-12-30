@@ -1083,6 +1083,9 @@ résoud_type_final :: fonc (empl sémanticienne: *SémanticienneC, node: *ASTNod
             si binary.op == "*" {
                 retourne valeur_gauche * valeur_droite
             }
+            si binary.op == "/" {
+                retourne valeur_gauche * valeur_droite
+            }
             si binary.op == "+" {
                 retourne valeur_gauche + valeur_droite
             }
@@ -1096,6 +1099,7 @@ résoud_type_final :: fonc (empl sémanticienne: *SémanticienneC, node: *ASTNod
                 retourne 0
             }
 
+            rapporte_note(sémanticienne, node, "opérateur non-géré pour l'expression constante")
             imprimeln("binary %", binary.op)
             assert(faux)
         }
