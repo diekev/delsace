@@ -91,6 +91,20 @@ valide_sémantique_noeud :: fonc (empl sémanticienne: *SémanticienneC, node: *
             // À FAIRE : redéfinition
             // À FAIRE : calcul taille
         }
+        UnionDecl {
+            union_decl := node comme *UnionDecl
+
+            pour union_decl.declarations {
+                valide_sémantique_noeud(sémanticienne, it)
+            }
+
+            si union_decl.name {
+                insère_symbole(*table_de_symboles, union_decl.name, union_decl)
+            }
+
+            // À FAIRE : redéfinition
+            // À FAIRE : calcul taille
+        }
         VarDecl {
             var_decl := node comme *VarDecl
 
