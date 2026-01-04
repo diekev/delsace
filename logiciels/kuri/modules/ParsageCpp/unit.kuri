@@ -22,6 +22,10 @@ TranslationUnit :: struct {
     declarations: [..]*ASTNode
 
     invocations_macros: [..]InvocationMacro
+
+    maçonne_type: Maçonne_Type
+
+    builtin_functions: [..]*FunctionDecl
 }
 
 crée_translation_unit_pour_fichier :: fonc (chemin: chaine) -> *TranslationUnit

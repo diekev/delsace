@@ -3,15 +3,14 @@ IPA
 Supprime les tableaux (utilise des tranches, et supprime tableau_statique::capacite)
 Remplace *Module par un ID
 
+// énum drapeau
+    ~variable.DRAPEAU modifie la variable
+
 // À FAIRE(langage) : compilation infinie si un macro est utilisé en expression de diffère
 diffère { Prof_End() }
 
 // À FAIRE(langage) : la compilation n'attend pas sur les messages
 // retourne imprime_chaine("%", chn)
-
-/* À FAIRE(langage) : enveloppable: *$T/Enveloppable */
-
-pas d'erreur pour foo(a = a = 13)
 
 permet d'avoir des types différents autour de <<, >>
     car les valeurs n'ont pas la même sémantique
@@ -24,8 +23,6 @@ opérateur non trouvé s'il y a une attente non résolue
     => l'erreur devrait être sur l'attente de l'opérateur
 
 empl => ajoute erreur si nom variable est nom d'un membre
-
-MonÉnum(-1) => erreur sur fonction inconnue, doit être sur "type non constructible"
 
 erreur de compilation
 // retourne donne_eini_valeur_énum_index(info_destination_type, index_it) comme Request.DestinationType
@@ -55,8 +52,6 @@ crash
     a = (b, c, d)
 
 typage des indices selon le type itéré
-
-mémoire(fonction_retournant_pointeur()) ne fonctionne pas
 
 //////////// fonctionnalités
 
