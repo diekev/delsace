@@ -28,7 +28,7 @@ static kuri::chaine_statique commentaire_pour_genre(ItemMonomorphisation const &
     return "indéfini";
 }
 
-kuri::chaine ErreurMonomorphisation::message() const
+kuri::chaine ErreurMonomorphisation::message(EspaceDeTravail const &espace) const
 {
 #define SI_ERREUR_EST(Type)                                                                       \
     if (std::holds_alternative<Type>(this->données)) {                                            \
@@ -104,7 +104,12 @@ kuri::chaine ErreurMonomorphisation::message() const
 
     SI_ERREUR_EST(DonnéesErreurInterne)
     {
-        return enchaine(données_erreur.message);
+        if (site) {
+            enchaineuse << erreur::imprime_site(espace, site);
+        }
+
+        enchaineuse << "\t" << données_erreur.message;
+        return enchaineuse.chaine();
     }
     FIN_ERREUR(DonnéesErreurInterne)
 
@@ -629,7 +634,7 @@ void Monomorpheuse::parse_candidats(const NoeudExpression *expression_polymorphi
         ajoute_candidats_depuis_expansion_variadique(expansion, site, type_reçu);
     }
     else if (expression_polymorphique->est_référence_rubrique()) {
-        erreur_interne(site, "les références de rubrique ne sont pas encore implémentées");
+        /* Rien à faire ? */
     }
     else if (expression_polymorphique->est_référence_type()) {
         /* Rien à faire. */
@@ -724,8 +729,8 @@ Type *Monomorpheuse::résoud_type_final_impl(const NoeudExpression *expression_p
         return résoud_type_final_pour_expansion_variadique(expansion);
     }
     else if (expression_polymorphique->est_référence_rubrique()) {
-        erreur_interne(expression_polymorphique,
-                       "les références de rubrique ne sont pas encore implémentées");
+        auto référence = expression_polymorphique->comme_référence_rubrique();
+        return résoud_type_final_pour_référence_rubrique(référence);
     }
     else if (expression_polymorphique->est_référence_type()) {
         return expression_polymorphique->type->comme_type_type_de_données()->type_connu;
@@ -751,6 +756,10 @@ RésultatRésolutionType Monomorpheuse::résoud_type_final(
     profondeur_appariement_type = 0;
     auto type = résoud_type_final_impl(expression_polymorphique);
 
+    if (!type) {
+        erreur_interne(expression_polymorphique, "impossible de résoudre le type");
+    }
+
     if (a_une_erreur()) {
         return erreur().value();
     }
@@ -774,7 +783,7 @@ void Monomorpheuse::logue() const
     }
 
     if (a_une_erreur()) {
-        sortie << "Erreur de monomorphisation : " << erreur_courante->message() << '\n';
+        sortie << "Erreur de monomorphisation : " << erreur_courante->message(espace) << '\n';
     }
 
     sortie << "\n";
@@ -826,6 +835,12 @@ Type *Monomorpheuse::résoud_type_final_pour_référence_déclaration(
     const NoeudExpressionRéférence *référence)
 {
     auto decl_référée = référence->déclaration_référée;
+
+    if (decl_référée->possède_drapeau(DrapeauxNoeud::EST_PARAMETRE)) {
+        auto paramètre = decl_référée->comme_déclaration_variable();
+        /* fonction :: fonc (v: Vecteur, x: v.T) */
+        return résoud_type_final_impl(paramètre->expression_type);
+    }
 
     if (!decl_référée->possède_drapeau(DrapeauxNoeud::DECLARATION_TYPE_POLYMORPHIQUE)) {
         if (decl_référée->est_déclaration_type()) {
@@ -1028,6 +1043,32 @@ Type *Monomorpheuse::résoud_type_final_pour_déclaration_tableau_fixe(
         return nullptr;
     }
     return typeuse.type_tableau_fixe(type_pointe, static_cast<int>(valeur_taille.entière()));
+}
+
+Type *Monomorpheuse::résoud_type_final_pour_référence_rubrique(
+    const NoeudExpressionRubrique *rubrique)
+{
+    auto type_accédé = résoud_type_final_impl(rubrique->accédée);
+    if (!type_accédé) {
+        return nullptr;
+    }
+
+    type_accédé = donne_type_accédé_effectif(type_accédé);
+    auto type_composé = type_accédé->comme_type_composé();
+
+    POUR (type_composé->rubriques) {
+        if (it.nom == rubrique->ident) {
+            if (it.type->est_type_type_de_données()) {
+                auto type_de_données = it.type->comme_type_type_de_données();
+                if (type_de_données->type_connu) {
+                    return type_de_données->type_connu;
+                }
+            }
+            return it.type;
+        }
+    }
+
+    return nullptr;
 }
 
 Type *Monomorpheuse::résoud_type_final_pour_expansion_variadique(

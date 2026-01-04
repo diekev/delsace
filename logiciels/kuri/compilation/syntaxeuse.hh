@@ -65,15 +65,16 @@ struct Syntaxeuse : BaseSyntaxeuse {
     bool apparie_expression_secondaire() const;
     bool apparie_instruction() const;
 
-    /* NOTE: lexème_final n'est utilisé que pour éviter de traiter les virgules comme des
-     * opérateurs dans les expressions des appels et déclarations de paramètres de fonctions. */
-    NoeudExpression *analyse_expression(DonnéesPrécédence const &données_precedence,
-                                        GenreLexème lexème_final);
-    NoeudExpression *analyse_expression_unaire(GenreLexème lexème_final);
-    NoeudExpression *analyse_expression_primaire(GenreLexème lexème_final);
+    NoeudExpression *parse_expression_virgule();
+    NoeudExpression *parse_expression_ellipse();
+    NoeudExpression *parse_déclaration_paramètre(bool type_seul_autorisé);
+    NoeudDéclarationVariable *parse_un_paramètre_de_sortie(int32_t indice);
+    NoeudExpression *parse_un_argument_appel();
+    NoeudExpression *analyse_expression(DonnéesPrécédence const &données_precedence);
+    NoeudExpression *analyse_expression_unaire();
+    NoeudExpression *analyse_expression_primaire();
     NoeudExpression *analyse_expression_secondaire(NoeudExpression *gauche,
-                                                   DonnéesPrécédence const &données_precedence,
-                                                   GenreLexème lexème_final);
+                                                   DonnéesPrécédence const &données_precedence);
 
     NoeudBloc *analyse_bloc(TypeBloc type_bloc, bool accolade_requise = true);
     void parse_contenu_bloc(NoeudBloc *bloc);
@@ -111,16 +112,13 @@ struct Syntaxeuse : BaseSyntaxeuse {
     NoeudExpression *analyse_instruction_tantque();
 
     /* Analyse une série d'expressions séparées par des virgules. */
-    NoeudExpression *analyse_expression_avec_virgule(bool force_noeud_virgule,
-                                                     GenreLexème lexème_final);
+    NoeudExpression *analyse_expression_avec_virgule(bool force_noeud_virgule);
 
     bool est_déclaration_type_tableau();
 
-    NoeudExpression *analyse_expression_crochet_ouvrant(Lexème const *lexème,
-                                                        GenreLexème lexème_final);
+    NoeudExpression *analyse_expression_crochet_ouvrant(Lexème const *lexème);
 
-    NoeudExpressionTypeTableauFixe *parse_type_tableau_fixe(Lexème const *lexème,
-                                                            GenreLexème lexème_final);
+    NoeudExpressionTypeTableauFixe *parse_type_tableau_fixe(Lexème const *lexème);
 
     NoeudExpressionConstructionTableau *parse_construction_tableau(Lexème const *lexème);
 
@@ -145,7 +143,7 @@ struct Syntaxeuse : BaseSyntaxeuse {
 
     NoeudInstructionImporte *analyse_importe(Lexème const *lexème, Lexème const *lexème_référence);
 
-    NoeudExpression *parse_expression_type(GenreLexème lexème_final);
+    NoeudExpression *parse_expression_type();
 
     void recycle_référence(NoeudExpressionRéférence *référence);
     void imprime_ligne_source(const Lexème *lexème, kuri::chaine_statique message);
