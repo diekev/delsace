@@ -224,9 +224,14 @@ Vecteur :: struct (T: type_de_données) {
     x, y, z: T
 }
 
-définis_x :: fonc (v: *Vecteur, x: z32)
+définis_x :: fonc (v: *Vecteur, x: v.T)
 {
     v.x = x
+}
+
+donne_x :: fonc (v: *Vecteur) -> v.T
+{
+    retourne v.x
 }
 
 test_appel_polymorphe_paramètres_implicites :: fonc ()
@@ -237,6 +242,8 @@ test_appel_polymorphe_paramètres_implicites :: fonc ()
     v: Vecteur(z32)
     définis_x(*v, 123)
     imprimeln("%", v)
+    définis_x(*v, 456)
+    imprimeln("x = %", donne_x(*v))
 }
 
 /** \} */
