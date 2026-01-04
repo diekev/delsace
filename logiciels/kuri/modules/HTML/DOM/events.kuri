@@ -1009,7 +1009,7 @@ inner_invoke :: fonc (event: *Event, listeners: []EventTarget.EventListenerEntry
         // 10. If global is a Window object, then record timing info for event listener given event and listener.
 
         // 11. Call a user object’s operation with listener’s callback, "handleEvent", « event », and event’s currentTarget attribute value.
-        _ := call_a_user_object_operation(JS.Valeur(Object = it.callback.object), arguments, JS.Valeur(Object = event.current_target))
+        _ := call_a_user_object_operation(it.callback, "handleEvent", arguments, JS.Valeur(Object = event.current_target))
 
         // If this throws an exception exception:
         si JS.possède_exception(it.callback.object) {
