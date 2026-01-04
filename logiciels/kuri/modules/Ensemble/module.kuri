@@ -150,6 +150,17 @@ détruit_données :: fonc (table: *TableDeHachage($Clé, $Valeur))
     déloge(table.valeurs)
 }
 
+table_insère :: fonc (table: *TableDeHachage($Clé, $Valeur), clé: Clé, valeur: Valeur)
+{
+    indice := ensemble_possède_retourne_indice(table.clés, clé)
+    si indice == -1 {
+        indice = ensemble_ajoute_retourne_indice(*table.clés, clé)
+        tableau_insère_indice(*table.valeurs, valeur, indice)
+        retourne
+    }
+    table.valeurs[indice] = valeur
+}
+
 table_insère_si_non_existant :: fonc (table: *TableDeHachage($Clé, $Valeur), clé: Clé, valeur: Valeur) -> (existait: bool, valeur_insérée: Valeur)
 {
     indice := ensemble_possède_retourne_indice(table.clés, clé)

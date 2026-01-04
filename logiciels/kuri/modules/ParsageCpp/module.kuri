@@ -14,6 +14,7 @@ charge "message"
 charge "préprocesseur"
 charge "parseuse_c"
 charge "parseuse_cpp"
+charge "sémanticienne_c"
 charge "unit"
 
 /* ------------------------------------------------------------------------- */

@@ -70,6 +70,14 @@ ErreurAppariement ErreurAppariement::monomorphisation(
     return erreur;
 }
 
+ErreurAppariement ErreurAppariement::type_non_constructible(const NoeudExpression *site,
+                                                            Type *type)
+{
+    auto erreur = crée_erreur(RaisonErreurAppariement::TYPE_N_EST_PAS_CONSTRUCTIBLE, site);
+    erreur.type = type;
+    return erreur;
+}
+
 ErreurAppariement ErreurAppariement::type_non_fonction(const NoeudExpression *site, Type *type)
 {
     auto erreur = crée_erreur(RaisonErreurAppariement::TYPE_N_EST_PAS_FONCTION, site);
@@ -1799,6 +1807,20 @@ static std::optional<Attente> apparies_candidates(EspaceDeTravail &espace,
                 else {
                     état->résultats.ajoute(ErreurAppariement::type_non_fonction(expr, type));
                 }
+            }
+            else if (decl->est_déclaration_type()) {
+                if (!decl->type) {
+                    return Attente::sur_type_déclaration(decl->comme_déclaration_type());
+                }
+                état->résultats.ajoute(
+                    ErreurAppariement::type_non_constructible(expr, decl->type));
+            }
+            else if (decl->est_référence_type()) {
+                état->résultats.ajoute(
+                    ErreurAppariement::type_non_constructible(expr, decl->type));
+            }
+            else {
+                état->résultats.ajoute(ErreurAppariement::type_non_fonction(expr, decl->type));
             }
         }
         else if (it.quoi == CANDIDATE_EST_INIT_DE) {

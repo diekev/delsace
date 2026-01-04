@@ -1780,8 +1780,8 @@ RésultatValidation Sémanticienne::valide_accès_rubrique(
             return Attente::sur_type(type);
         }
 
-        auto type_compose = type->comme_type_composé();
-        auto info_rubrique = donne_rubrique_pour_nom(type_compose, expression_rubrique->ident);
+        auto type_composé = type->comme_type_composé();
+        auto info_rubrique = donne_rubrique_pour_nom(type_composé, expression_rubrique->ident);
         if (!info_rubrique.has_value()) {
             if (expression_rubrique->possède_drapeau(PositionCodeNoeud::GAUCHE_EXPRESSION_APPEL)) {
                 /* Laisse la validation d'appel gérer ce cas. */
@@ -1790,7 +1790,7 @@ RésultatValidation Sémanticienne::valide_accès_rubrique(
             }
 
             rapporte_erreur_rubrique_inconnue(
-                expression_rubrique, expression_rubrique, type_compose);
+                expression_rubrique, expression_rubrique, type_composé);
             return CodeRetourValidation::Erreur;
         }
 
@@ -1802,6 +1802,15 @@ RésultatValidation Sémanticienne::valide_accès_rubrique(
 
         expression_rubrique->type = info_rubrique->rubrique.type;
         expression_rubrique->indice_rubrique = indice_rubrique;
+
+        /* Détecte les cas comme :
+         *    fonction :: fonc (v: Vecteur, v.T)
+         * où Vecteur est polymorphique sur T. */
+        if (info_rubrique->rubrique.decl && info_rubrique->rubrique.decl->possède_drapeau(
+                                                DrapeauxNoeud::EST_VALEUR_POLYMORPHIQUE)) {
+            auto type_poly = m_espace->typeuse.crée_polymorphique(expression_rubrique->ident);
+            expression_rubrique->type = m_espace->typeuse.type_type_de_données(type_poly);
+        }
 
         if (type->est_type_énum() || type->est_type_erreur()) {
             expression_rubrique->genre_valeur = GenreValeur::DROITE;
@@ -4185,6 +4194,8 @@ RésultatValidation Sémanticienne::valide_structure(NoeudStruct *decl)
         return CodeRetourValidation::OK;
     }
 
+    auto type_composé = decl->comme_type_composé();
+
     if (decl->est_polymorphe) {
         TENTE(valide_arbre_aplatis(decl));
 
@@ -4193,7 +4204,15 @@ RésultatValidation Sémanticienne::valide_structure(NoeudStruct *decl)
                 m_contexte->allocatrice_noeud->crée_monomorphisations_struct();
         }
 
-        // nous validerons les rubriques lors de la monomorphisation
+        ConstructriceRubriquesTypeComposé constructrice(*type_composé, decl->bloc);
+
+        POUR (*decl->bloc_constantes->rubriques.verrou_lecture()) {
+            constructrice.ajoute_constante(it->comme_déclaration_constante());
+        }
+
+        constructrice.finalise();
+
+        // Nous validerons les autres rubriques lors de la monomorphisation.
         decl->drapeaux |= DrapeauxNoeud::DECLARATION_FUT_VALIDEE;
         decl->drapeaux_type |= DrapeauxTypes::TYPE_EST_POLYMORPHIQUE;
         return CodeRetourValidation::OK;
@@ -4205,9 +4224,7 @@ RésultatValidation Sémanticienne::valide_structure(NoeudStruct *decl)
 
     CHRONO_TYPAGE(m_stats_typage.structures, STRUCTURE__VALIDATION);
 
-    auto type_compose = decl->comme_type_composé();
-
-    ConstructriceRubriquesTypeComposé constructrice(*type_compose, decl->bloc);
+    ConstructriceRubriquesTypeComposé constructrice(*type_composé, decl->bloc);
 
     if (decl->est_monomorphisation) {
         POUR (*decl->bloc_constantes->rubriques.verrou_lecture()) {
@@ -4242,8 +4259,8 @@ RésultatValidation Sémanticienne::valide_structure(NoeudStruct *decl)
 
             // À FAIRE(emploi) : préserve l'emploi dans les données types
             if (decl_var->déclaration_vient_d_un_emploi) {
-                if (la_rubrique_référence_le_type_par_valeur(type_compose, decl_var)) {
-                    rapporte_erreur_inclusion_récursive_type(m_espace, type_compose, decl_var);
+                if (la_rubrique_référence_le_type_par_valeur(type_composé, decl_var)) {
+                    rapporte_erreur_inclusion_récursive_type(m_espace, type_composé, decl_var);
                     return CodeRetourValidation::Erreur;
                 }
 
@@ -4252,12 +4269,12 @@ RésultatValidation Sémanticienne::valide_structure(NoeudStruct *decl)
             }
 
             if (!est_type_valide_pour_rubrique(decl_var->type)) {
-                rapporte_erreur_type_rubrique_invalide(m_espace, type_compose, decl_var);
+                rapporte_erreur_type_rubrique_invalide(m_espace, type_composé, decl_var);
                 return CodeRetourValidation::Erreur;
             }
 
-            if (la_rubrique_référence_le_type_par_valeur(type_compose, decl_var)) {
-                rapporte_erreur_inclusion_récursive_type(m_espace, type_compose, decl_var);
+            if (la_rubrique_référence_le_type_par_valeur(type_composé, decl_var)) {
+                rapporte_erreur_inclusion_récursive_type(m_espace, type_composé, decl_var);
                 return CodeRetourValidation::Erreur;
             }
 
@@ -4276,7 +4293,7 @@ RésultatValidation Sémanticienne::valide_structure(NoeudStruct *decl)
                 auto var = données.variables[i];
 
                 if (!est_type_valide_pour_rubrique(var->type)) {
-                    rapporte_erreur_type_rubrique_invalide(m_espace, type_compose, var);
+                    rapporte_erreur_type_rubrique_invalide(m_espace, type_composé, var);
                     return CodeRetourValidation::Erreur;
                 }
 
@@ -4287,8 +4304,8 @@ RésultatValidation Sémanticienne::valide_structure(NoeudStruct *decl)
                     return CodeRetourValidation::Erreur;
                 }
 
-                if (la_rubrique_référence_le_type_par_valeur(type_compose, var)) {
-                    rapporte_erreur_inclusion_récursive_type(m_espace, type_compose, var);
+                if (la_rubrique_référence_le_type_par_valeur(type_composé, var)) {
+                    rapporte_erreur_inclusion_récursive_type(m_espace, type_composé, var);
                     return CodeRetourValidation::Erreur;
                 }
 
@@ -4319,7 +4336,7 @@ RésultatValidation Sémanticienne::valide_structure(NoeudStruct *decl)
         auto expr_assign = it->comme_assignation_variable();
         auto variable = expr_assign->assignée;
 
-        for (auto &rubrique : type_compose->rubriques) {
+        for (auto &rubrique : type_composé->rubriques) {
             if (rubrique.nom != variable->ident) {
                 continue;
             }
@@ -4330,20 +4347,20 @@ RésultatValidation Sémanticienne::valide_structure(NoeudStruct *decl)
         }
     }
 
-    for (auto &rubrique : type_compose->rubriques) {
+    for (auto &rubrique : type_composé->rubriques) {
         if (rubrique.expression_valeur_défaut) {
             rubrique.expression_valeur_défaut->drapeaux |= DrapeauxNoeud::EST_EXPRESSION_DÉFAUT;
         }
     }
 
     /* Valide les types avant le calcul de la taille des types. */
-    TENTE(valide_types_pour_calcule_taille_type(m_espace, type_compose));
+    TENTE(valide_types_pour_calcule_taille_type(m_espace, type_composé));
 
     if (constructrice.donne_compte_rubriques_non_constant() == 0) {
         assert(decl->est_externe);
     }
     else {
-        calcule_taille_type_composé(type_compose, decl->est_compacte, decl->alignement_desire);
+        calcule_taille_type_composé(type_composé, decl->est_compacte, decl->alignement_desire);
     }
 
     auto type_struct = decl;
@@ -4374,6 +4391,8 @@ RésultatValidation Sémanticienne::valide_union(NoeudUnion *decl)
         return CodeRetourValidation::OK;
     }
 
+    auto type_composé = decl->comme_type_composé();
+
     if (decl->est_polymorphe) {
         TENTE(valide_arbre_aplatis(decl));
 
@@ -4382,7 +4401,15 @@ RésultatValidation Sémanticienne::valide_union(NoeudUnion *decl)
                 m_contexte->allocatrice_noeud->crée_monomorphisations_union();
         }
 
-        // nous validerons les rubriques lors de la monomorphisation
+        ConstructriceRubriquesTypeComposé constructrice(*type_composé, decl->bloc);
+
+        POUR (*decl->bloc_constantes->rubriques.verrou_lecture()) {
+            constructrice.ajoute_constante(it->comme_déclaration_constante());
+        }
+
+        constructrice.finalise();
+
+        // Nous validerons les autres rubriques lors de la monomorphisation.
         decl->drapeaux |= DrapeauxNoeud::DECLARATION_FUT_VALIDEE;
         decl->drapeaux_type |= DrapeauxTypes::TYPE_EST_POLYMORPHIQUE;
         return CodeRetourValidation::OK;
@@ -4406,8 +4433,7 @@ RésultatValidation Sémanticienne::valide_union(NoeudUnion *decl)
         }
     }
 
-    auto type_compose = decl->comme_type_composé();
-    auto constructrice = ConstructriceRubriquesTypeComposé(*type_compose, decl->bloc);
+    auto constructrice = ConstructriceRubriquesTypeComposé(*type_composé, decl->bloc);
 
     auto type_union = decl;
     type_union->est_nonsure = decl->est_nonsure;
@@ -4428,8 +4454,8 @@ RésultatValidation Sémanticienne::valide_union(NoeudUnion *decl)
 
             // À FAIRE(emploi) : préserve l'emploi dans les données types
             if (decl_var->déclaration_vient_d_un_emploi) {
-                if (la_rubrique_référence_le_type_par_valeur(type_compose, decl_var)) {
-                    rapporte_erreur_inclusion_récursive_type(m_espace, type_compose, decl_var);
+                if (la_rubrique_référence_le_type_par_valeur(type_composé, decl_var)) {
+                    rapporte_erreur_inclusion_récursive_type(m_espace, type_composé, decl_var);
                     return CodeRetourValidation::Erreur;
                 }
 
@@ -4445,12 +4471,12 @@ RésultatValidation Sémanticienne::valide_union(NoeudUnion *decl)
             }
 
             if (decl_var->type->est_type_variadique()) {
-                rapporte_erreur_type_rubrique_invalide(m_espace, type_compose, decl_var);
+                rapporte_erreur_type_rubrique_invalide(m_espace, type_composé, decl_var);
                 return CodeRetourValidation::Erreur;
             }
 
-            if (la_rubrique_référence_le_type_par_valeur(type_compose, decl_var)) {
-                rapporte_erreur_inclusion_récursive_type(m_espace, type_compose, decl_var);
+            if (la_rubrique_référence_le_type_par_valeur(type_composé, decl_var)) {
+                rapporte_erreur_inclusion_récursive_type(m_espace, type_composé, decl_var);
                 return CodeRetourValidation::Erreur;
             }
 
@@ -4477,7 +4503,7 @@ RésultatValidation Sémanticienne::valide_union(NoeudUnion *decl)
                 }
 
                 if (var->type->est_type_variadique()) {
-                    rapporte_erreur_type_rubrique_invalide(m_espace, type_compose, var);
+                    rapporte_erreur_type_rubrique_invalide(m_espace, type_composé, var);
                     return CodeRetourValidation::Erreur;
                 }
 
@@ -4488,7 +4514,7 @@ RésultatValidation Sémanticienne::valide_union(NoeudUnion *decl)
                 }
 
                 if (la_rubrique_référence_le_type_par_valeur(type_union, var)) {
-                    rapporte_erreur_inclusion_récursive_type(m_espace, type_compose, var);
+                    rapporte_erreur_inclusion_récursive_type(m_espace, type_composé, var);
                     return CodeRetourValidation::Erreur;
                 }
 
@@ -4506,7 +4532,7 @@ RésultatValidation Sémanticienne::valide_union(NoeudUnion *decl)
     constructrice.finalise();
 
     /* Valide les types avant le calcul de la taille des types. */
-    TENTE(valide_types_pour_calcule_taille_type(m_espace, type_compose));
+    TENTE(valide_types_pour_calcule_taille_type(m_espace, type_composé));
 
     calcule_taille_type_composé(type_union, false, 0);
 
@@ -5829,6 +5855,14 @@ RésultatValidation Sémanticienne::valide_opérateur_binaire_type(NoeudExpressi
             }
 
             /* Nous sommes dans un polymorphe ou autre chose : validons. */
+            if (gauche->est_prise_adresse()) {
+                auto prise_adresse = gauche->comme_prise_adresse();
+                gauche = prise_adresse->opérande;
+            }
+            else if (gauche->est_prise_référence()) {
+                auto prise_référence = gauche->comme_prise_référence();
+                gauche = prise_référence->opérande;
+            }
 
             if (!gauche->est_référence_déclaration() ||
                 !gauche->possède_drapeau(DrapeauxNoeud::DECLARATION_TYPE_POLYMORPHIQUE)) {
