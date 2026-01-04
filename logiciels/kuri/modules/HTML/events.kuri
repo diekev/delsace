@@ -318,7 +318,7 @@ process_event_handler :: fonc (event_target: *EventTarget, nom: DOMString, event
 
         this_value := JS.Valeur(Object = event.current_target)
 
-        return_value = call_a_user_object_operation(JS.Valeur(Object = callback.object), args, this_value)
+        return_value = call_a_user_object_operation(callback, "", args, this_value)
     }
 
     // 5. Process return value as follows:

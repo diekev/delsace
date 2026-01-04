@@ -84,10 +84,9 @@ test_ptr_fonction_ret_moult :: fonc () -> rien
     imprime("---------------------------\n")
     imprime("pointeur fonc ret multiple\n")
 
-    // À FAIRE(langage) : erreur pour x : fonc (a: z32) -> z32 = nul
-    x : fonc(z32)(z32) = nul
-    y : fonc(z32)(z32) = nul
-    z : fonc(z32)(z32, z32) = nul
+    x : fonc (z32) -> z32 = nul
+    y : fonc (z32) -> z32 = nul
+    z : fonc (z32) -> (z32, z32) = nul
 
     test___(x, y, z, 90)
 

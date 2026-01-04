@@ -203,6 +203,22 @@ static void imprime_erreur_pour_erreur_fonction(Erreur &e,
             e.genre_erreur(erreur::Genre::ARGUMENT_INCONNU);
             break;
         }
+        case RaisonErreurAppariement::TYPE_N_EST_PAS_CONSTRUCTIBLE:
+        {
+            auto type = dc.type;
+            if (type->est_type_type_de_données()) {
+                auto type_connu = type->comme_type_type_de_données()->type_connu;
+                if (type_connu) {
+                    type = type_connu;
+                }
+            }
+
+            e.ajoute_message("\tLe type ",
+                             chaine_type(type),
+                             " n'est pas utilisable comme cible d'une expression d'appel.\n");
+            e.genre_erreur(erreur::Genre::FONCTION_INCONNUE);
+            break;
+        }
         case RaisonErreurAppariement::TYPE_N_EST_PAS_FONCTION:
         {
             e.ajoute_message("\tAppel d'une variable n'étant pas un pointeur de fonction\n");
@@ -275,7 +291,7 @@ static void imprime_erreur_pour_erreur_fonction(Erreur &e,
         }
         case RaisonErreurAppariement::MONOMORPHISATION:
         {
-            e.ajoute_message(dc.erreur_monomorphisation.message());
+            e.ajoute_message(dc.erreur_monomorphisation.message(espace));
             break;
         }
         case RaisonErreurAppariement::EXPRESSION_NON_CONSTANTE_POUR_CUISSON:
@@ -435,10 +451,10 @@ void rubrique_inconnue(EspaceDeTravail const &espace,
 
     auto e = espace.rapporte_erreur(
         accès, "Dans l'expression d'accès de rubrique", Genre::RUBRIQUE_INCONNUE);
-    e.ajoute_message("La rubrique « ", rubrique->ident->nom, " » est inconnu !\n\n");
+    e.ajoute_message("La rubrique « ", rubrique->ident->nom, " » est inconnue !\n\n");
 
     if (rubriques.taille() == 0) {
-        e.ajoute_message("Aucune rubrique connu !\n");
+        e.ajoute_message("Aucune rubrique connue !\n");
     }
     else {
         if (rubriques.taille() <= 32) {
@@ -450,7 +466,7 @@ void rubrique_inconnue(EspaceDeTravail const &espace,
         else {
             /* Évitons de spammer la sortie. */
             e.ajoute_message("Note : la structure possède un nombre de rubriques trop important "
-                             "pour tous les afficher.\n");
+                             "pour toutes les afficher.\n");
         }
 
         e.ajoute_message("\nCandidat possible : ", candidat.chaine, "\n");
