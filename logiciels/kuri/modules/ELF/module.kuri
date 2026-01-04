@@ -3,6 +3,7 @@ importe Flux
 importe Fondation
 
 charge "interface"
+charge "maçonne"
 
 /* Module de travail et d'analyse de fichiers ELF.
  * Pour le moment, seuls les fichiers 64-bits sont supportés.
