@@ -110,10 +110,33 @@ initialise_parseuse :: fonc (parseuse: *ParseuseC, unit: *TranslationUnit)
     parseuse.lexèmes = convertis_en_tokens(unit.lexèmes_préprocès)
     parseuse.lexème_courant = 0
 
+    initialise_types_fondamenteaux(*unit.maçonne_type)
+
+    {
+        builtin_bswap16 := crée_noeud(*parseuse.créatrice, Token(), FunctionDecl)
+        builtin_bswap16.builtin_function_type = BuiltinFunctionType.BSWAP16
+        builtin_bswap16.nom = "__builtin_bswap16"
+        builtin_bswap16.type = crée_type_fonction(*unit.maçonne_type, unit.maçonne_type.short_unsigned_type, [unit.maçonne_type.short_unsigned_type])
+        tableau_ajoute(*unit.builtin_functions, builtin_bswap16)
+
+        builtin_bswap32 := crée_noeud(*parseuse.créatrice, Token(), FunctionDecl)
+        builtin_bswap32.builtin_function_type = BuiltinFunctionType.BSWAP32
+        builtin_bswap32.nom = "__builtin_bswap32"
+        builtin_bswap32.type = crée_type_fonction(*unit.maçonne_type, unit.maçonne_type.int_unsigned_type, [unit.maçonne_type.int_unsigned_type])
+        tableau_ajoute(*unit.builtin_functions, builtin_bswap32)
+
+        builtin_bswap64 := crée_noeud(*parseuse.créatrice, Token(), FunctionDecl)
+        builtin_bswap64.builtin_function_type = BuiltinFunctionType.BSWAP64
+        builtin_bswap64.nom = "__builtin_bswap64"
+        builtin_bswap64.type = crée_type_fonction(*unit.maçonne_type, unit.maçonne_type.int_long_unsigned_type, [unit.maçonne_type.int_long_unsigned_type])
+        tableau_ajoute(*unit.builtin_functions, builtin_bswap64)
+    }
+
     // À FAIRE : comprend ce que c'est
-    typedef_decl := crée_noeud(*parseuse.créatrice, TypedefDecl)
+    typedef_decl := crée_noeud(*parseuse.créatrice, Token(), TypedefDecl)
     typedef_decl.name = "__builtin_va_list"
-    typedef_decl.underlying_type = crée_pointer_type(*parseuse.créatrice, crée_type(*parseuse.créatrice, TypeKind.VOID))
+    typedef_decl.underlying_type = crée_type_ref(*parseuse.créatrice, Token(), unit.maçonne_type.void_ptr_type)
+    typedef_decl.drapeaux |= unit.maçonne_type.void_ptr_type.drapeaux
 
     _, _ := table_insère_si_non_existant(*parseuse.typedef_names, "__builtin_va_list", typedef_decl)
 }
@@ -233,12 +256,47 @@ est_alignment_specifier :: fonc (lexème: Token) -> bool
     retourne est_mot_clé(lexème, "_Alignas")
 }
 
+TypeSpecifier :: énum_drapeau {
+    BOOL
+    CHAR
+    SHORT
+    INT
+    SIGNED
+    UNSIGNED
+    LONG
+    LONG_LONG
+
+    FLOAT
+    DOUBLE
+    FLOAT128
+
+    COMPLEX
+
+    VOID
+
+    ENUM
+    STRUCT
+    UNION
+
+    ATOMIC
+
+    CHAR_SPECIFIERS :: CHAR | SIGNED | UNSIGNED
+    SHORT_SPECIFIERS :: SHORT | SIGNED | UNSIGNED | INT
+    INT_SPECIFIERS :: INT | SIGNED | UNSIGNED | INT | SHORT | LONG | LONG_LONG
+    LONG_SPECIFIERS :: LONG | SIGNED | UNSIGNED | INT
+    SIGNED_SPECIFIERS :: LONG | SIGNED | INT | SHORT | CHAR | LONG_LONG
+    UNSIGNED_SPECIFIERS :: LONG | UNSIGNED | INT | SHORT | CHAR | LONG_LONG
+
+    DOUBLE_SPECIFIERS :: DOUBLE | LONG
+    COMPLEX_SPECIFIERS :: COMPLEX | DOUBLE | LONG
+}
+
 InfoDéclaration :: struct {
     lexème: Token
 
     storage_class_specifier: chaine
     type_specifiers: [..]chaine
-    type_résolu: *Type
+    type_résolu: *Expression
     type_qualifiers: [..]chaine
     function_specifiers: [..]chaine
 
@@ -296,6 +354,8 @@ parse_external_declaration :: fonc (empl parseuse: *ParseuseC) -> *ASTNode
 
     declarators: [..]*ASTNode
 
+    token := épie_lexème_suivant(parseuse)
+
     tantque !fini(parseuse) {
         lexème := épie_lexème_suivant(parseuse)
         si est_ponctuation(lexème, ";") {
@@ -345,7 +405,7 @@ parse_external_declaration :: fonc (empl parseuse: *ParseuseC) -> *ASTNode
 
     si declarators.taille > 1 {
         consomme_ponctuation(parseuse, ";")
-        résultat := crée_noeud(*créatrice, Declaration)
+        résultat := crée_noeud(*créatrice, token, Declaration)
         résultat.declarators = declarators
         retourne résultat
     }
@@ -360,10 +420,10 @@ parse_external_declaration :: fonc (empl parseuse: *ParseuseC) -> *ASTNode
             function_decl := déclaration comme *FunctionDecl
             statement := parse_compound_statement(parseuse)
 
-            résultat := crée_noeud(*créatrice, FunctionDefinition)
+            résultat := crée_noeud(*créatrice, token, FunctionDefinition)
             résultat.params = tableau_copie(function_decl.params)
             résultat.nom = function_decl.nom
-            résultat.type = function_decl.type
+            résultat.type_expression = function_decl.type_expression
             résultat.statement = statement
             retourne résultat
         }
@@ -393,6 +453,8 @@ parse_declaration :: fonc (empl parseuse: *ParseuseC) -> *ASTNode
     }
 
     declarators: [..]*ASTNode
+
+    token := épie_lexème_suivant(parseuse)
 
     tantque !fini(parseuse) {
         declarator := parse_declarator(parseuse, PrésenceIdentifier.OBLIGATOIRE)
@@ -438,13 +500,15 @@ parse_declaration :: fonc (empl parseuse: *ParseuseC) -> *ASTNode
         retourne declarators[0]
     }
 
-    résultat := crée_noeud(*créatrice, Declaration)
+    résultat := crée_noeud(*créatrice, token, Declaration)
     résultat.declarators = declarators
     retourne résultat
 }
 
 parse_static_assert_declaration :: fonc (parseuse: *ParseuseC) -> *StaticAssert
 {
+    token := épie_lexème_suivant(parseuse)
+
     consomme(parseuse)
     consomme_ponctuation(parseuse, "(")
 
@@ -460,7 +524,7 @@ parse_static_assert_declaration :: fonc (parseuse: *ParseuseC) -> *StaticAssert
     consomme_ponctuation(parseuse, ")")
     consomme_ponctuation(parseuse, ";")
 
-    résultat := crée_noeud(*parseuse.créatrice, StaticAssert)
+    résultat := crée_noeud(*parseuse.créatrice, token, StaticAssert)
     résultat.expression = expression
     résultat.message = donne_texte(lexème)
     retourne résultat
@@ -470,6 +534,7 @@ parse_initializer :: fonc (parseuse: *ParseuseC) -> *Expression
 {
     lexème_suivant := épie_lexème_suivant(parseuse)
     si est_ponctuation(lexème_suivant, "{") {
+        token := lexème_suivant
         consomme(parseuse)
 
         initializers: [..]*Expression
@@ -491,7 +556,7 @@ parse_initializer :: fonc (parseuse: *ParseuseC) -> *Expression
 
                 initializer := parse_initializer(parseuse)
 
-                designator := crée_noeud(*parseuse.créatrice, IdentifierDesignator)
+                designator := crée_noeud(*parseuse.créatrice, lexème_suivant, IdentifierDesignator)
                 designator.identifier = donne_texte(lexème_suivant)
                 designator.initializer = initializer
 
@@ -505,7 +570,7 @@ parse_initializer :: fonc (parseuse: *ParseuseC) -> *Expression
 
                 initializer := parse_initializer(parseuse)
 
-                designator := crée_noeud(*parseuse.créatrice, IndexDesignator)
+                designator := crée_noeud(*parseuse.créatrice, lexème_suivant, IndexDesignator)
                 designator.index = expression
                 designator.initializer = initializer
 
@@ -530,7 +595,7 @@ parse_initializer :: fonc (parseuse: *ParseuseC) -> *Expression
 
         consomme_ponctuation(parseuse, "}")
 
-        résultat := crée_noeud(*parseuse.créatrice, InitializerList)
+        résultat := crée_noeud(*parseuse.créatrice, token, InitializerList)
         résultat.initializers = initializers
         retourne résultat
     }
@@ -551,7 +616,8 @@ crée_déclaration_pour_declarator :: fonc (empl parseuse: *ParseuseC, info: *In
     }
 
     si info.storage_class_specifier == "typedef" {
-        typedef_decl := crée_noeud(*créatrice, TypedefDecl)
+        // À FAIRE : token storage class
+        typedef_decl := crée_noeud(*créatrice, declarator.token, TypedefDecl)
         typedef_decl.name = nom
         typedef_decl.underlying_type = type
         _, _ := table_insère_si_non_existant(*parseuse.typedef_names, nom, typedef_decl)
@@ -559,28 +625,32 @@ crée_déclaration_pour_declarator :: fonc (empl parseuse: *ParseuseC, info: *In
         retourne typedef_decl;
     }
 
-    si type.genre == FunctionType {
-        function_type := type comme *FunctionType
-        résultat := crée_noeud(*créatrice, FunctionDecl)
+    si type.genre == FunctionTypeExpression {
+        function_type := type comme *FunctionTypeExpression
+        résultat := crée_noeud(*créatrice, declarator.token, FunctionDecl)
         résultat.params = tableau_copie(function_type.parameters)
         résultat.nom = nom
-        résultat.type = function_type
+        résultat.type_expression = function_type
         retourne résultat
     }
 
-    résultat := crée_noeud(*créatrice, VarDecl)
+    résultat := crée_noeud(*créatrice, declarator.token, VarDecl)
     résultat.nom = nom
-    résultat.type = type
+    résultat.type_expression = type
 
     retourne résultat
 }
 
-donne_nom_et_type_pour_declarator :: fonc (empl parseuse: *ParseuseC, info: *InfoDéclaration, declarator: *Declarator) -> (chaine, *Type)
+donne_nom_et_type_pour_declarator :: fonc (empl parseuse: *ParseuseC, info: *InfoDéclaration, declarator: *Declarator) -> (chaine, *Expression)
 {
-    type_de_base := info.type_résolu
-    si type_de_base == nul {
+    si info.type_résolu == nul && info.type_spécifié == nul {
         rapporte_erreur_interne(parseuse, info.lexème, "déclaration sans spécifiants de type")
         retourne "", nul
+    }
+
+    type_de_base := info.type_résolu
+    si info.type_résolu == nul {
+        type_de_base = crée_type_ref(*créatrice, Token(), info.type_spécifié)
     }
 
     // imprimeln("type_de_base : %", type_de_base.kind)
@@ -597,21 +667,20 @@ donne_nom_et_type_pour_declarator :: fonc (empl parseuse: *ParseuseC, info: *Inf
         }
         sinon si declarator.genre == ArrayDeclarator {
             // À FAIRE : préserve les qualifiers.
-            // À FAIRE : parse la taille
             array := declarator comme *ArrayDeclarator
-            type_final = crée_constant_array(*créatrice, type_final, 0)
+            type_final = crée_constant_array(*créatrice, declarator.token, type_final, array.expression)
             declarator = array.direct
         }
         sinon si declarator.genre == PointerDeclarator {
             // À FAIRE : préserve les qualifiers.
             pointer := declarator comme *PointerDeclarator
-            type_final = crée_pointer_type(*créatrice, type_final)
+            type_final = crée_pointer_type(*créatrice, declarator.token, type_final)
             declarator = pointer.direct
         }
         sinon si declarator.genre == ParameterTypeList {
             list := declarator comme *ParameterTypeList
 
-            function_type := crée_noeud(*créatrice, FunctionType)
+            function_type := crée_noeud(*créatrice, declarator.token, FunctionTypeExpression)
             function_type.return_type = type_final
             function_type.parameters = list.parameters
 
@@ -761,6 +830,8 @@ parse_declaration_specifiers :: fonc (empl parseuse: *ParseuseC, déclaration: *
 {
     déclaration.lexème = épie_lexème_suivant(parseuse)
 
+    type_specifiers: TypeSpecifier
+
     tantque !fini(parseuse) {
         lexème := épie_lexème_suivant(parseuse)
 
@@ -779,19 +850,26 @@ parse_declaration_specifiers :: fonc (empl parseuse: *ParseuseC, déclaration: *
             // À FAIRE : vérifie que l'on peut ajout le spécifiant
             specifier := donne_texte(lexème)
 
-            type_résolu: *Type
-
             si typedef_decl {
-                type_résolu = typedef_decl
+                déclaration.type_résolu = crée_type_ref(*créatrice, lexème, typedef_decl)
             }
-            sinon si specifier == "struct" || specifier == "union" {
+            sinon si specifier == "struct" {
                 si déclaration.type_specifiers.taille != 0 {
                     rapporte_erreur(parseuse, lexème, "spécifiant de type inattendu '%'", specifier)
                     retourne
                 }
 
-                type_résolu = parse_struct_or_union_specifier(parseuse, lexème)
-                déclaration.type_spécifié = type_résolu
+                type_specifiers.STRUCT = vrai
+                déclaration.type_spécifié = parse_struct_or_union_specifier(parseuse, lexème)
+            }
+            sinon si specifier == "union" {
+                si déclaration.type_specifiers.taille != 0 {
+                    rapporte_erreur(parseuse, lexème, "spécifiant de type inattendu '%'", specifier)
+                    retourne
+                }
+
+                type_specifiers.UNION = vrai
+                déclaration.type_spécifié = parse_struct_or_union_specifier(parseuse, lexème)
             }
             sinon si specifier == "enum" {
                 si déclaration.type_specifiers.taille != 0 {
@@ -799,8 +877,8 @@ parse_declaration_specifiers :: fonc (empl parseuse: *ParseuseC, déclaration: *
                     retourne
                 }
 
-                type_résolu = parse_enum_specifier(parseuse, lexème)
-                déclaration.type_spécifié = type_résolu
+                type_specifiers.ENUM = vrai
+                déclaration.type_spécifié = parse_enum_specifier(parseuse, lexème)
             }
             sinon si specifier == "_Atomic" {
                 si déclaration.type_specifiers.taille != 0 {
@@ -817,162 +895,164 @@ parse_declaration_specifiers :: fonc (empl parseuse: *ParseuseC, déclaration: *
                     retourne
                 }
 
-                type_résolu = crée_type(*créatrice, TypeKind.VOID)
+                type_specifiers.VOID = vrai
             }
             sinon si specifier == "char" {
-                si déclaration.type_résolu == nul {
-                    type_résolu = crée_type(*créatrice, TypeKind.CHAR)
+                si type_specifiers.CHAR {
+                    rapporte_erreur(parseuse, lexème, "redéfinition de 'char'")
+                    retourne
                 }
-                sinon si déclaration.type_résolu.kind == TypeKind.INT {
-                    type_résolu = crée_type(*créatrice, TypeKind.CHAR)
+
+                si (type_specifiers & (~TypeSpecifier.CHAR_SPECIFIERS)) != type_specifiers.zéro {
+                    rapporte_erreur(parseuse, lexème, "spécifiant de type inattendu '%'", specifier)
+                    retourne
                 }
-                sinon si déclaration.type_résolu.kind == TypeKind.UNSIGNED_INT {
-                    type_résolu = crée_type(*créatrice, TypeKind.UNSIGNED_CHAR)
-                }
-                sinon {
-                    rapporte_erreur(parseuse, lexème, "spécifiant de type inattendu")
-                }
+
+                type_specifiers.CHAR = vrai
             }
             sinon si specifier == "short" {
-                si déclaration.type_résolu == nul {
-                    type_résolu = crée_type(*créatrice, TypeKind.SHORT)
+                si type_specifiers.SHORT {
+                    rapporte_erreur(parseuse, lexème, "redéfinition de 'short'")
+                    retourne
                 }
-                sinon si déclaration.type_résolu.kind == TypeKind.INT {
-                    type_résolu = crée_type(*créatrice, TypeKind.SHORT)
+
+                si (type_specifiers & (~TypeSpecifier.SHORT_SPECIFIERS)) != type_specifiers.zéro {
+                    rapporte_erreur(parseuse, lexème, "spécifiant de type inattendu '%'", specifier)
+                    retourne
                 }
-                sinon si déclaration.type_résolu.kind == TypeKind.UNSIGNED_INT {
-                    type_résolu = crée_type(*créatrice, TypeKind.UNSIGNED_SHORT)
-                }
-                sinon {
-                    rapporte_erreur(parseuse, lexème, "spécifiant de type inattendu")
-                }
+
+                type_specifiers.SHORT = vrai
             }
             sinon si specifier == "int" {
-                si déclaration.type_résolu == nul {
-                    type_résolu = crée_type(*créatrice, TypeKind.INT)
+                si type_specifiers.INT {
+                    rapporte_erreur(parseuse, lexème, "redéfinition de 'int'")
+                    retourne
                 }
-                sinon si déclaration.type_résolu.kind == TypeKind.INT {
-                    type_résolu = déclaration.type_résolu
+
+                si (type_specifiers & (~TypeSpecifier.INT_SPECIFIERS)) != type_specifiers.zéro {
+                    rapporte_erreur(parseuse, lexème, "spécifiant de type inattendu '%'", specifier)
+                    retourne
                 }
-                sinon si déclaration.type_résolu.kind == TypeKind.UNSIGNED_INT {
-                    type_résolu = déclaration.type_résolu
-                }
-                sinon si déclaration.type_résolu.kind == TypeKind.SHORT {
-                    type_résolu = déclaration.type_résolu
-                }
-                sinon si déclaration.type_résolu.kind == TypeKind.LONG {
-                    type_résolu = déclaration.type_résolu
-                }
-                sinon si déclaration.type_résolu.kind == TypeKind.LONG_LONG {
-                    type_résolu = déclaration.type_résolu
-                }
-                sinon si déclaration.type_résolu.kind == TypeKind.UNSIGNED_SHORT {
-                    type_résolu = déclaration.type_résolu
-                }
-                sinon si déclaration.type_résolu.kind == TypeKind.UNSIGNED_LONG {
-                    type_résolu = déclaration.type_résolu
-                }
-                sinon si déclaration.type_résolu.kind == TypeKind.UNSIGNED_LONG_LONG {
-                    type_résolu = déclaration.type_résolu
-                }
-                sinon {
-                    rapporte_erreur(parseuse, lexème, "spécifiant de type inattendu")
-                }
+
+                type_specifiers.INT = vrai
             }
             sinon si specifier == "long" {
-                si déclaration.type_résolu == nul {
-                    type_résolu = crée_type(*créatrice, TypeKind.LONG)
+                si type_specifiers.LONG_LONG {
+                    rapporte_erreur(parseuse, lexème, "redéfinition de 'long'")
+                    retourne
                 }
-                sinon si déclaration.type_résolu.kind == TypeKind.INT {
-                    type_résolu = crée_type(*créatrice, TypeKind.LONG)
+
+                si (type_specifiers & (~TypeSpecifier.LONG_SPECIFIERS)) != type_specifiers.zéro {
+                    rapporte_erreur(parseuse, lexème, "spécifiant de type inattendu '%'", specifier)
+                    retourne
                 }
-                sinon si déclaration.type_résolu.kind == TypeKind.LONG {
-                    type_résolu = crée_type(*créatrice, TypeKind.LONG_LONG)
-                }
-                sinon si déclaration.type_résolu.kind == TypeKind.UNSIGNED_INT {
-                    type_résolu = crée_type(*créatrice, TypeKind.UNSIGNED_LONG)
-                }
-                sinon si déclaration.type_résolu.kind == TypeKind.UNSIGNED_LONG {
-                    type_résolu = crée_type(*créatrice, TypeKind.UNSIGNED_LONG_LONG)
-                }
-                sinon si déclaration.type_résolu.kind == TypeKind.DOUBLE {
-                    type_résolu = crée_type(*créatrice, TypeKind.LONG_DOUBLE)
+
+                si type_specifiers.LONG {
+                    si type_specifiers.DOUBLE {
+                        rapporte_erreur(parseuse, lexème, "spécifiant de type inattendu '%'", specifier)
+                        retourne
+                    }
+
+                    type_specifiers.LONG_LONG = vrai
                 }
                 sinon {
-                    rapporte_erreur(parseuse, lexème, "spécifiant de type inattendu")
+                    type_specifiers.LONG = vrai
                 }
             }
             sinon si specifier == "unsigned" {
-                si déclaration.type_résolu == nul || déclaration.type_résolu.kind == TypeKind.INT {
-                    type_résolu = crée_type(*créatrice, TypeKind.UNSIGNED_INT)
+                si type_specifiers.UNSIGNED {
+                    rapporte_erreur(parseuse, lexème, "redéfinition de 'unsigned'")
+                    retourne
                 }
-                sinon si déclaration.type_résolu.kind == TypeKind.LONG {
-                    type_résolu = crée_type(*créatrice, TypeKind.UNSIGNED_LONG)
+
+                si (type_specifiers & (~TypeSpecifier.UNSIGNED_SPECIFIERS)) != type_specifiers.zéro {
+                    rapporte_erreur(parseuse, lexème, "spécifiant de type inattendu '%' (%)", specifier, type_specifiers)
+                    retourne
                 }
-                sinon {
-                    rapporte_erreur(parseuse, lexème, "spécifiant de type inattendu")
-                }
+
+                type_specifiers.UNSIGNED = vrai
             }
             sinon si specifier == "signed" || specifier == "__signed__" {
-                si déclaration.type_résolu == nul {
-                    type_résolu = crée_type(*créatrice, TypeKind.INT)
+                si type_specifiers.SIGNED {
+                    rapporte_erreur(parseuse, lexème, "redéfinition de 'signed'")
+                    retourne
                 }
-                sinon {
-                    rapporte_erreur(parseuse, lexème, "spécifiant de type inattendu")
+
+                si (type_specifiers & (~TypeSpecifier.SIGNED_SPECIFIERS)) != type_specifiers.zéro {
+                    rapporte_erreur(parseuse, lexème, "spécifiant de type inattendu '%'", specifier)
+                    retourne
                 }
+
+                type_specifiers.SIGNED = vrai
             }
             sinon si specifier == "float" || specifier == "_Float32" {
-                si déclaration.type_résolu == nul {
-                    type_résolu = crée_type(*créatrice, TypeKind.FLOAT)
+                si type_specifiers.FLOAT {
+                    rapporte_erreur(parseuse, lexème, "redéfinition de 'float'")
+                    retourne
                 }
-                sinon {
-                    rapporte_erreur(parseuse, lexème, "spécifiant de type inattendu")
+
+                si (type_specifiers & (~TypeSpecifier.FLOAT)) != type_specifiers.zéro {
+                    rapporte_erreur(parseuse, lexème, "spécifiant de type inattendu '%'", specifier)
+                    retourne
                 }
+
+                type_specifiers.FLOAT = vrai
             }
             sinon si specifier == "double" || specifier == "_Float64" || specifier == "_Float32x" {
-                si déclaration.type_résolu == nul {
-                    type_résolu = crée_type(*créatrice, TypeKind.DOUBLE)
+                si type_specifiers.DOUBLE {
+                    rapporte_erreur(parseuse, lexème, "redéfinition de 'double'")
+                    retourne
                 }
-                sinon si déclaration.type_résolu.kind == TypeKind.COMPLEX {
-                    type_résolu = crée_type(*créatrice, TypeKind.COMPLEX_DOUBLE)
+
+                si (type_specifiers & (~TypeSpecifier.DOUBLE_SPECIFIERS)) != type_specifiers.zéro {
+                    rapporte_erreur(parseuse, lexème, "spécifiant de type inattendu '%'", specifier)
+                    retourne
                 }
-                sinon si déclaration.type_résolu.kind == TypeKind.LONG {
-                    type_résolu = crée_type(*créatrice, TypeKind.LONG_DOUBLE)
-                }
-                sinon {
-                    rapporte_erreur(parseuse, lexème, "spécifiant de type inattendu")
-                }
+
+                type_specifiers.DOUBLE = vrai
             }
             sinon si specifier == "_Complex" {
-                si déclaration.type_résolu == nul {
-                    type_résolu = crée_type(*créatrice, TypeKind.COMPLEX)
+                si type_specifiers.COMPLEX {
+                    rapporte_erreur(parseuse, lexème, "redéfinition de '_Complex'")
+                    retourne
                 }
-                sinon si déclaration.type_résolu.kind == TypeKind.FLOAT {
-                    type_résolu = crée_type(*créatrice, TypeKind.COMPLEX)
+
+                si (type_specifiers & (~TypeSpecifier.COMPLEX_SPECIFIERS)) != type_specifiers.zéro {
+                    rapporte_erreur(parseuse, lexème, "spécifiant de type inattendu '%'", specifier)
+                    retourne
                 }
-                sinon si déclaration.type_résolu.kind == TypeKind.DOUBLE {
-                    type_résolu = crée_type(*créatrice, TypeKind.COMPLEX_DOUBLE)
-                }
-                sinon si déclaration.type_résolu.kind == TypeKind.LONG_DOUBLE {
-                    type_résolu = crée_type(*créatrice, TypeKind.COMPLEX_LONG_DOUBLE)
-                }
-                sinon {
-                    rapporte_erreur(parseuse, lexème, "spécifiant de type inattendu")
-                }
+
+                type_specifiers.COMPLEX = vrai
             }
             sinon si specifier == "_Float128" || specifier == "__float128" || specifier == "_Float64x" {
-                si déclaration.type_résolu == nul {
-                    type_résolu = crée_type(*créatrice, TypeKind.FLOAT128)
+                si type_specifiers.FLOAT128 {
+                    rapporte_erreur(parseuse, lexème, "redéfinition de '_Complex'")
+                    retourne
                 }
-                sinon {
-                    rapporte_erreur(parseuse, lexème, "spécifiant de type inattendu")
+
+                si (type_specifiers & (~TypeSpecifier.FLOAT128)) != type_specifiers.zéro {
+                    rapporte_erreur(parseuse, lexème, "spécifiant de type inattendu '%'", specifier)
+                    retourne
                 }
+
+                type_specifiers.FLOAT128 = vrai
+            }
+            sinon si specifier == "_Bool" {
+                si type_specifiers.BOOL {
+                    rapporte_erreur(parseuse, lexème, "redéfinition de '_Bool'")
+                    retourne
+                }
+
+                si type_specifiers != TypeSpecifier.zéro {
+                    rapporte_erreur(parseuse, lexème, "spécifiant de type inattendu '%'", specifier)
+                    retourne
+                }
+
+                type_specifiers.BOOL = vrai
             }
             sinon {
                 rapporte_erreur_interne(parseuse, lexème, "spécifiant de type non-géré")
             }
-
-            déclaration.type_résolu = type_résolu
 
             tableau_ajoute(*déclaration.type_specifiers, specifier)
         }
@@ -1015,7 +1095,91 @@ parse_declaration_specifiers :: fonc (empl parseuse: *ParseuseC, déclaration: *
             // À FAIRE : comprendre __extension__
         }
         sinon {
-            retourne
+            arrête
+        }
+    }
+
+    si déclaration.type_résolu {
+    }
+    sinon si déclaration.type_spécifié {
+    }
+    sinon {
+        si type_specifiers.VOID {
+            déclaration.type_résolu = crée_type_ref(*créatrice, Token(), parseuse.unit.maçonne_type.void_type)
+        }
+        sinon si type_specifiers.BOOL {
+            déclaration.type_résolu = crée_type_ref(*créatrice, Token(), parseuse.unit.maçonne_type.bool_type)
+        }
+        sinon si type_specifiers.CHAR {
+            si type_specifiers.UNSIGNED {
+                déclaration.type_résolu = crée_type_ref(*créatrice, Token(), parseuse.unit.maçonne_type.char_unsigned_type)
+            }
+            sinon si type_specifiers.SIGNED {
+                déclaration.type_résolu = crée_type_ref(*créatrice, Token(), parseuse.unit.maçonne_type.char_signed_type)
+            }
+            sinon {
+                déclaration.type_résolu = crée_type_ref(*créatrice, Token(), parseuse.unit.maçonne_type.char_type)
+            }
+        }
+        sinon si type_specifiers.SHORT {
+            si type_specifiers.UNSIGNED {
+                déclaration.type_résolu = crée_type_ref(*créatrice, Token(), parseuse.unit.maçonne_type.short_unsigned_type)
+            }
+            sinon {
+                déclaration.type_résolu = crée_type_ref(*créatrice, Token(), parseuse.unit.maçonne_type.short_signed_type)
+            }
+        }
+        sinon si type_specifiers.LONG_LONG {
+            si type_specifiers.UNSIGNED {
+                déclaration.type_résolu = crée_type_ref(*créatrice, Token(), parseuse.unit.maçonne_type.int_long_long_unsigned_type)
+            }
+            sinon {
+                déclaration.type_résolu = crée_type_ref(*créatrice, Token(), parseuse.unit.maçonne_type.int_long_long_signed_type)
+            }
+        }
+        sinon si type_specifiers.LONG {
+            si type_specifiers.UNSIGNED {
+                déclaration.type_résolu = crée_type_ref(*créatrice, Token(), parseuse.unit.maçonne_type.int_long_unsigned_type)
+            }
+            sinon {
+                déclaration.type_résolu = crée_type_ref(*créatrice, Token(), parseuse.unit.maçonne_type.int_long_signed_type)
+            }
+        }
+        sinon si type_specifiers.INT {
+            si type_specifiers.UNSIGNED {
+                déclaration.type_résolu = crée_type_ref(*créatrice, Token(), parseuse.unit.maçonne_type.int_unsigned_type)
+            }
+            sinon {
+                déclaration.type_résolu = crée_type_ref(*créatrice, Token(), parseuse.unit.maçonne_type.int_signed_type)
+            }
+        }
+        sinon si type_specifiers.COMPLEX {
+            si type_specifiers.LONG {
+                déclaration.type_résolu = crée_type_ref(*créatrice, Token(), parseuse.unit.maçonne_type.complex_double_long_type)
+            }
+            sinon si type_specifiers.DOUBLE {
+                déclaration.type_résolu = crée_type_ref(*créatrice, Token(), parseuse.unit.maçonne_type.complex_double_type)
+            }
+            sinon {
+                déclaration.type_résolu = crée_type_ref(*créatrice, Token(), parseuse.unit.maçonne_type.complex_float_type)
+            }
+        }
+        sinon si type_specifiers.DOUBLE {
+            si type_specifiers.LONG {
+                déclaration.type_résolu = crée_type_ref(*créatrice, Token(), parseuse.unit.maçonne_type.double_long_type)
+            }
+            sinon {
+                déclaration.type_résolu = crée_type_ref(*créatrice, Token(), parseuse.unit.maçonne_type.double_type)
+            }
+        }
+        sinon si type_specifiers.FLOAT {
+            déclaration.type_résolu = crée_type_ref(*créatrice, Token(), parseuse.unit.maçonne_type.float_type)
+        }
+        sinon si type_specifiers.FLOAT128 {
+            déclaration.type_résolu = crée_type_ref(*créatrice, Token(), parseuse.unit.maçonne_type.float128_type)
+        }
+        sinon {
+            panique("type_specifiers non-gérés : %", type_specifiers)
         }
     }
 }
@@ -1024,11 +1188,13 @@ parse_declaration_specifiers :: fonc (empl parseuse: *ParseuseC, déclaration: *
     pointeropt direct-declarator
 */
 Declarator :: struct {
+    token: Token
     genre: type_de_données
 }
 
 parse_declarator :: fonc (empl parseuse: *ParseuseC, présence_identifier: PrésenceIdentifier) -> *Declarator
 {
+    pointer_racine: *PointerDeclarator
     pointer: *PointerDeclarator
 
     lexème := épie_lexème_suivant(parseuse)
@@ -1036,6 +1202,10 @@ parse_declarator :: fonc (empl parseuse: *ParseuseC, présence_identifier: Prés
         consomme(parseuse)
 
         pointer_courant := loge(PointerDeclarator)
+        pointer_courant.token = lexème
+        saufsi pointer_racine {
+            pointer_racine = pointer_courant
+        }
 
         lexème = épie_lexème_suivant(parseuse)
         tantque est_type_qualifier(lexème) {
@@ -1055,6 +1225,9 @@ parse_declarator :: fonc (empl parseuse: *ParseuseC, présence_identifier: Prés
     si pointer {
         pointer.direct = résultat
         résultat = pointer
+        si pointer_racine {
+            résultat = pointer_racine
+        }
     }
     retourne résultat
 }
@@ -1129,6 +1302,7 @@ parse_direct_declarator :: fonc (empl parseuse: *ParseuseC, présence_identifier
         consomme(parseuse)
 
         identifier := loge(IdentifierDeclarator)
+        identifier.token = lexème
         identifier.identifiant = lexème
         direct = identifier
     }
@@ -1146,6 +1320,7 @@ parse_direct_declarator :: fonc (empl parseuse: *ParseuseC, présence_identifier
         lexème = épie_lexème_suivant(parseuse)
 
         si est_ponctuation(lexème, "[") {
+            token := lexème
             consomme(parseuse)
 
             expression: *Expression
@@ -1156,6 +1331,7 @@ parse_direct_declarator :: fonc (empl parseuse: *ParseuseC, présence_identifier
             }
 
             array := loge(ArrayDeclarator)
+            array.token = token
             array.direct = direct
             array.expression = expression
             direct = array
@@ -1163,6 +1339,7 @@ parse_direct_declarator :: fonc (empl parseuse: *ParseuseC, présence_identifier
             consomme_ponctuation(parseuse, "]")
         }
         sinon si est_ponctuation(lexème, "(") {
+            token := lexème
             consomme(parseuse)
 
             paramètres: [..]*ParamDecl
@@ -1176,12 +1353,14 @@ parse_direct_declarator :: fonc (empl parseuse: *ParseuseC, présence_identifier
 
                 si est_ponctuation(lexème, "...") {
                     consomme(parseuse)
-                    type := crée_type(*créatrice, TypeKind.VARIADIC)
-                    param := crée_noeud(*créatrice, ParamDecl)
-                    param.type = type
+                    type := crée_type_ref(*créatrice, lexème, parseuse.unit.maçonne_type.variadic_type)
+                    param := crée_noeud(*créatrice, lexème, ParamDecl)
+                    param.type_expression = type
                     tableau_ajoute(*paramètres, param)
                     arrête
                 }
+
+                token_param := épie_lexème_suivant(parseuse)
 
                 spécifiants: InfoDéclaration
                 parse_declaration_specifiers(parseuse, *spécifiants, faux)
@@ -1201,9 +1380,9 @@ parse_direct_declarator :: fonc (empl parseuse: *ParseuseC, présence_identifier
 
                 _ := parse_attributs_gcc(parseuse)
 
-                param := crée_noeud(*créatrice, ParamDecl)
+                param := crée_noeud(*créatrice, token_param, ParamDecl)
                 param.name = nom
-                param.type = type
+                param.type_expression = type
 
                 tableau_ajoute(*paramètres, param)
 
@@ -1216,6 +1395,7 @@ parse_direct_declarator :: fonc (empl parseuse: *ParseuseC, présence_identifier
             }
 
             list := loge(ParameterTypeList)
+            list.token = token
             list.direct = direct
             list.parameters = paramètres
             direct = list
@@ -1281,13 +1461,13 @@ parse_struct_or_union_specifier :: fonc (empl parseuse: *ParseuseC, token: Token
     }
 
     si classe == "union" {
-        résultat := crée_noeud(*créatrice, UnionDecl)
+        résultat := crée_noeud(*créatrice, token, UnionDecl)
         résultat.name = nom
         résultat.declarations = declarations
         retourne résultat
     }
 
-    résultat := crée_noeud(*créatrice, StructDecl)
+    résultat := crée_noeud(*créatrice, token, StructDecl)
     résultat.name = nom
     résultat.declarations = declarations
     retourne résultat
@@ -1337,9 +1517,9 @@ parse_struct_declaration_list :: fonc (empl parseuse: *ParseuseC, declarations: 
 
             nom, type := donne_nom_et_type_pour_declarator(parseuse, *déclaration_courante, declarator)
 
-            field := crée_noeud(*créatrice, FieldDecl)
+            field := crée_noeud(*créatrice, lexème, FieldDecl)
             field.name = nom
-            field.type = type
+            field.type_expression = type
             field.bitfield_expression = bitfield_expression
 
             tableau_ajoute(declarations, field)
@@ -1404,7 +1584,7 @@ parse_enum_specifier :: fonc (parseuse: *ParseuseC, token: Token) -> *EnumDecl
                 expression = parse_constant_expression(parseuse)
             }
 
-            enumerator := crée_noeud(*parseuse.créatrice, EnumeratorDecl)
+            enumerator := crée_noeud(*parseuse.créatrice, identifier, EnumeratorDecl)
             enumerator.identifier = identifier
             enumerator.expression = expression
 
@@ -1429,7 +1609,7 @@ parse_enum_specifier :: fonc (parseuse: *ParseuseC, token: Token) -> *EnumDecl
         retourne nul
     }
 
-    résultat := crée_noeud(*parseuse.créatrice, EnumDecl)
+    résultat := crée_noeud(*parseuse.créatrice, token, EnumDecl)
     résultat.enumerators = enumerators
     résultat.name = nom
     retourne résultat
@@ -1437,6 +1617,7 @@ parse_enum_specifier :: fonc (parseuse: *ParseuseC, token: Token) -> *EnumDecl
 
 parse_compound_statement :: fonc (empl parseuse: *ParseuseC) -> *CompoundStatement
 {
+    lexème := épie_lexème_suivant(parseuse)
     consomme_ponctuation(parseuse, "{")
 
     items: [..]*ASTNode
@@ -1463,7 +1644,7 @@ parse_compound_statement :: fonc (empl parseuse: *ParseuseC) -> *CompoundStateme
 
     consomme_ponctuation(parseuse, "}")
 
-    résultat := crée_noeud(*créatrice, CompoundStatement)
+    résultat := crée_noeud(*créatrice, lexème, CompoundStatement)
     résultat.items = items
     retourne résultat
 }
@@ -1474,7 +1655,7 @@ parse_statement :: fonc (parseuse: *ParseuseC) -> *ASTNode
 
     si est_ponctuation(lexème, ";") {
         consomme(parseuse)
-        retourne crée_noeud(*parseuse.créatrice, NullStatement)
+        retourne crée_noeud(*parseuse.créatrice, lexème, NullStatement)
     }
 
     /* compound-statement */
@@ -1501,7 +1682,7 @@ parse_statement :: fonc (parseuse: *ParseuseC) -> *ASTNode
             else_statement = parse_statement(parseuse)
         }
 
-        if_statement := crée_noeud(*parseuse.créatrice, IfStatement)
+        if_statement := crée_noeud(*parseuse.créatrice, lexème, IfStatement)
         if_statement.expression = expression
         if_statement.statement = statement
         if_statement.else_statement = else_statement
@@ -1517,7 +1698,7 @@ parse_statement :: fonc (parseuse: *ParseuseC) -> *ASTNode
 
         statement := parse_statement(parseuse)
 
-        switch_statement := crée_noeud(*parseuse.créatrice, SwitchStatement)
+        switch_statement := crée_noeud(*parseuse.créatrice, lexème, SwitchStatement)
         switch_statement.expression = expression
         switch_statement.statement = statement
         retourne switch_statement
@@ -1534,13 +1715,14 @@ parse_statement :: fonc (parseuse: *ParseuseC) -> *ASTNode
 
         statement := parse_statement(parseuse)
 
-        while_statement := crée_noeud(*parseuse.créatrice, WhileStatement)
+        while_statement := crée_noeud(*parseuse.créatrice, lexème, WhileStatement)
         while_statement.expression = expression
         while_statement.statement = statement
         retourne while_statement
     }
 
     si est_mot_clé(lexème, "do") {
+        lexème_do := lexème
         consomme(parseuse)
 
         statement := parse_statement(parseuse)
@@ -1551,13 +1733,14 @@ parse_statement :: fonc (parseuse: *ParseuseC) -> *ASTNode
         consomme_ponctuation(parseuse, ")")
         consomme_ponctuation(parseuse, ";")
 
-        do_while_statement := crée_noeud(*parseuse.créatrice, DoWhileStatement)
+        do_while_statement := crée_noeud(*parseuse.créatrice, lexème_do, DoWhileStatement)
         do_while_statement.statement = statement
         do_while_statement.expression = expression
         retourne do_while_statement
     }
 
     si est_mot_clé(lexème, "for") {
+        lexème_for := lexème
         consomme(parseuse)
 
         consomme_ponctuation(parseuse, "(")
@@ -1592,7 +1775,7 @@ parse_statement :: fonc (parseuse: *ParseuseC) -> *ASTNode
 
         statement := parse_statement(parseuse)
 
-        for_statement := crée_noeud(*parseuse.créatrice, ForStatement)
+        for_statement := crée_noeud(*parseuse.créatrice, lexème_for, ForStatement)
         for_statement.initializer = initializer
         for_statement.test = test
         for_statement.update = update
@@ -1603,13 +1786,14 @@ parse_statement :: fonc (parseuse: *ParseuseC) -> *ASTNode
     /* jump-statement */
 
     si est_mot_clé(lexème, "goto") {
+        lexème_goto := lexème
         consomme(parseuse)
         lexème = donne_lexème_suivant(parseuse)
         saufsi est_symbole(lexème) {
             rapporte_erreur(parseuse, lexème, "attendu un symbole")
         }
         consomme_ponctuation(parseuse, ";")
-        résultat := crée_noeud(*parseuse.créatrice, GotoStatement)
+        résultat := crée_noeud(*parseuse.créatrice, lexème_goto, GotoStatement)
         résultat.identifier = donne_texte(lexème)
         retourne résultat
     }
@@ -1617,18 +1801,19 @@ parse_statement :: fonc (parseuse: *ParseuseC) -> *ASTNode
     si est_mot_clé(lexème, "continue") {
         consomme(parseuse)
         consomme_ponctuation(parseuse, ";")
-        résultat := crée_noeud(*parseuse.créatrice, ContinueStatement)
+        résultat := crée_noeud(*parseuse.créatrice, lexème, ContinueStatement)
         retourne résultat
     }
 
     si est_mot_clé(lexème, "break") {
         consomme(parseuse)
         consomme_ponctuation(parseuse, ";")
-        résultat := crée_noeud(*parseuse.créatrice, BreakStatement)
+        résultat := crée_noeud(*parseuse.créatrice, lexème, BreakStatement)
         retourne résultat
     }
 
     si est_mot_clé(lexème, "return") {
+        lexème_return := lexème
         consomme(parseuse)
 
         expression: *Expression
@@ -1640,7 +1825,7 @@ parse_statement :: fonc (parseuse: *ParseuseC) -> *ASTNode
 
         consomme_ponctuation(parseuse, ";")
 
-        résultat := crée_noeud(*parseuse.créatrice, ReturnStatement)
+        résultat := crée_noeud(*parseuse.créatrice, lexème_return, ReturnStatement)
         résultat.expression = expression
         retourne résultat
     }
@@ -1655,7 +1840,7 @@ parse_statement :: fonc (parseuse: *ParseuseC) -> *ASTNode
 
         statement := parse_statement(parseuse)
 
-        case_clause := crée_noeud(*parseuse.créatrice, CaseClause)
+        case_clause := crée_noeud(*parseuse.créatrice, lexème, CaseClause)
         case_clause.expression = expression
         case_clause.statement = statement
         retourne case_clause
@@ -1667,7 +1852,7 @@ parse_statement :: fonc (parseuse: *ParseuseC) -> *ASTNode
 
         statement := parse_statement(parseuse)
 
-        default_clause := crée_noeud(*parseuse.créatrice, DefaultClause)
+        default_clause := crée_noeud(*parseuse.créatrice, lexème, DefaultClause)
         default_clause.statement = statement
         retourne default_clause
     }
@@ -1682,7 +1867,7 @@ parse_statement :: fonc (parseuse: *ParseuseC) -> *ASTNode
 
             statement := parse_statement(parseuse)
 
-            résultat := crée_noeud(*parseuse.créatrice, LabelStatement)
+            résultat := crée_noeud(*parseuse.créatrice, lexème, LabelStatement)
             résultat.identifier = donne_texte(lexème)
             résultat.statement = statement
             retourne résultat
@@ -1696,9 +1881,10 @@ parse_statement :: fonc (parseuse: *ParseuseC) -> *ASTNode
 
     expression := parse_expression(parseuse)
     si expression {
+        lexème = épie_lexème_suivant(parseuse)
         consomme_ponctuation(parseuse, ";")
 
-        résultat := crée_noeud(*parseuse.créatrice, ExpressionStatement)
+        résultat := crée_noeud(*parseuse.créatrice, lexème, ExpressionStatement)
         résultat.expression = expression
         retourne résultat
     }
@@ -1795,6 +1981,7 @@ parse_expression :: fonc (empl parseuse: *ParseuseC) -> *Expression
 
     lexème := épie_lexème_suivant(parseuse)
     si est_ponctuation(lexème, ",") {
+        lexème_comma := lexème
         consomme(parseuse)
 
         expressions: [..]*Expression
@@ -1811,7 +1998,7 @@ parse_expression :: fonc (empl parseuse: *ParseuseC) -> *Expression
             consomme(parseuse)
         }
 
-        comma := crée_noeud(*créatrice, CommaExpression)
+        comma := crée_noeud(*créatrice, lexème_comma, CommaExpression)
         comma.expressions = expressions
 
         résultat = comma
@@ -1867,7 +2054,7 @@ parse_expression :: fonc (empl parseuse: *ParseuseC, info_courante: InfoParsageO
         si texte == ">" || texte == ">=" || texte == "<" || texte == "<=" || texte == "==" || texte == "!=" || texte == "-" || texte == "+" || texte == "*" || texte == "/" || texte == "<<" || texte == ">>" || texte == "&" || texte == "^" || texte == "|" || texte == "%" || texte == "||" || texte == "&&" {
             consomme(parseuse)
 
-            opérateur_binaire := crée_noeud(*créatrice, BinaryExpression)
+            opérateur_binaire := crée_noeud(*créatrice, lexème, BinaryExpression)
             opérateur_binaire.op = texte
             opérateur_binaire.left = résultat
             opérateur_binaire.right = parse_expression(parseuse, info)
@@ -1902,7 +2089,7 @@ parse_expression :: fonc (empl parseuse: *ParseuseC, info_courante: InfoParsageO
 
             consomme_ponctuation(parseuse, ")")
 
-            call := crée_noeud(*créatrice, CallExpression)
+            call := crée_noeud(*créatrice, lexème, CallExpression)
             call.callee = résultat
             call.arguments = arguments
 
@@ -1911,7 +2098,7 @@ parse_expression :: fonc (empl parseuse: *ParseuseC, info_courante: InfoParsageO
         sinon si texte == "." || texte == "->" {
             consomme(parseuse)
 
-            member_access := crée_noeud(*créatrice, MemberAccessExpression)
+            member_access := crée_noeud(*créatrice, lexème, MemberAccessExpression)
             member_access.is_arrow = texte == "->" 
             member_access.left = résultat
             member_access.right = parse_expression(parseuse, info)
@@ -1921,7 +2108,7 @@ parse_expression :: fonc (empl parseuse: *ParseuseC, info_courante: InfoParsageO
         sinon si texte == "=" {
             consomme(parseuse)
 
-            assignment := crée_noeud(*créatrice, AssignmentExpression)
+            assignment := crée_noeud(*créatrice, lexème, AssignmentExpression)
             assignment.left = résultat
             assignment.right = parse_expression(parseuse, info)
 
@@ -1930,7 +2117,7 @@ parse_expression :: fonc (empl parseuse: *ParseuseC, info_courante: InfoParsageO
         sinon si texte == "+=" || texte == "-=" || texte == "*=" || texte == "/=" || texte == "%=" || texte == "<<=" || texte == ">>=" || texte == "&=" || texte == "|=" || texte == "^=" {
             consomme(parseuse)
 
-            assignment := crée_noeud(*créatrice, CompoundAssignmentExpression)
+            assignment := crée_noeud(*créatrice, lexème, CompoundAssignmentExpression)
             assignment.op = texte
             assignment.left = résultat
             assignment.right = parse_expression(parseuse, info)
@@ -1940,7 +2127,7 @@ parse_expression :: fonc (empl parseuse: *ParseuseC, info_courante: InfoParsageO
         sinon si texte == "++" || texte == "--" {
             consomme(parseuse)
 
-            update := crée_noeud(*créatrice, PostFixUpdateExpression)
+            update := crée_noeud(*créatrice, lexème, PostFixUpdateExpression)
             update.op = texte
             update.operand = résultat
 
@@ -1949,7 +2136,7 @@ parse_expression :: fonc (empl parseuse: *ParseuseC, info_courante: InfoParsageO
         sinon si texte == "[" {
             consomme(parseuse)
 
-            index := crée_noeud(*créatrice, IndexExpression)
+            index := crée_noeud(*créatrice, lexème, IndexExpression)
             index.left = résultat
             index.right = parse_expression(parseuse)
 
@@ -1963,7 +2150,7 @@ parse_expression :: fonc (empl parseuse: *ParseuseC, info_courante: InfoParsageO
             consomme_ponctuation(parseuse, ":")
             alternate := parse_expression(parseuse, info)
 
-            ternary := crée_noeud(*créatrice, TernaryExpression)
+            ternary := crée_noeud(*créatrice, lexème, TernaryExpression)
             ternary.test = résultat
             ternary.consequent = consequent
             ternary.alternate = alternate
@@ -2008,12 +2195,14 @@ parse_expression_primaire :: fonc (empl parseuse: *ParseuseC) -> *Expression
             operand = parse_unary_expression(parseuse)
         }
 
-        sizeof := crée_noeud(*créatrice, SizeOfExpression)
+        sizeof := crée_noeud(*créatrice, lexème, SizeOfExpression)
         sizeof.operand = operand
 
         résultat = sizeof
     }
     sinon si est_mot_clé(lexème, "_Generic") {
+        lexème_generic := lexème
+
         consomme(parseuse)
         consomme_ponctuation(parseuse, "(")
 
@@ -2031,6 +2220,7 @@ parse_expression_primaire :: fonc (empl parseuse: *ParseuseC) -> *Expression
             }
 
             type_name: *Expression
+            // A generic selection shall have no more than one default generic association.
             si est_mot_clé(lexème, "default") {
                 si eu_default {
                     rapporte_erreur(parseuse, lexème, "redéfinition de l'association 'default'")
@@ -2042,10 +2232,11 @@ parse_expression_primaire :: fonc (empl parseuse: *ParseuseC) -> *Expression
                 type_name = parse_type_name(parseuse)
             }
 
+            lexème_assoc := épie_lexème_suivant(parseuse)
             consomme_ponctuation(parseuse, ":")
             assoc_expr := parse_assignment_expression(parseuse)
 
-            assoc := crée_noeud(*créatrice, GenericAssociation)
+            assoc := crée_noeud(*créatrice, lexème_assoc, GenericAssociation)
             assoc.type_name = type_name
             assoc.expression = assoc_expr
             tableau_ajoute(*generic_assoc_list, assoc)
@@ -2060,7 +2251,7 @@ parse_expression_primaire :: fonc (empl parseuse: *ParseuseC) -> *Expression
 
         consomme_ponctuation(parseuse, ")")
 
-        generic := crée_noeud(*créatrice, GenericSelection)
+        generic := crée_noeud(*créatrice, lexème_generic, GenericSelection)
         generic.expression = expression
         generic.generic_assoc_list = generic_assoc_list
 
@@ -2069,24 +2260,21 @@ parse_expression_primaire :: fonc (empl parseuse: *ParseuseC) -> *Expression
     sinon si est_littérale_nombre_entier(lexème) {
         consomme(parseuse)
 
-        literal := crée_noeud(*créatrice, IntegerConstant)
-        literal.lexème = lexème
+        literal := crée_noeud(*créatrice, lexème, IntegerConstant)
 
         résultat = literal
     }
     sinon si est_littérale_nombre_réel(lexème) {
         consomme(parseuse)
 
-        literal := crée_noeud(*créatrice, FloatingConstant)
-        literal.lexème = lexème
+        literal := crée_noeud(*créatrice, lexème, FloatingConstant)
 
         résultat = literal
     }
     sinon si est_littérale_caractère(lexème) {
         consomme(parseuse)
 
-        literal := crée_noeud(*créatrice, CharacterConstant)
-        literal.lexème = lexème
+        literal := crée_noeud(*créatrice, lexème, CharacterConstant)
 
         résultat = literal
     }
@@ -2095,7 +2283,7 @@ parse_expression_primaire :: fonc (empl parseuse: *ParseuseC) -> *Expression
 
         operand := parse_unary_expression(parseuse)
 
-        unary := crée_noeud(*créatrice, UnaryExpression)
+        unary := crée_noeud(*créatrice, lexème, UnaryExpression)
         unary.op = donne_texte(lexème)
         unary.operand = operand
 
@@ -2103,6 +2291,7 @@ parse_expression_primaire :: fonc (empl parseuse: *ParseuseC) -> *Expression
     }
     sinon si donne_texte(lexème) == "__asm__" {
         consomme(parseuse)
+        lexème_asm := lexème
 
         lexème_suivant := épie_lexème_suivant(parseuse)
         si donne_texte(lexème_suivant) == "__volatile__" {
@@ -2131,7 +2320,7 @@ parse_expression_primaire :: fonc (empl parseuse: *ParseuseC) -> *Expression
             }
         }
 
-        résultat = crée_noeud(*créatrice, InlineAsmExpression)
+        résultat = crée_noeud(*créatrice, lexème_asm, InlineAsmExpression)
     }
     sinon si donne_texte(lexème) == "__extension__" {
         consomme(parseuse)
@@ -2140,16 +2329,14 @@ parse_expression_primaire :: fonc (empl parseuse: *ParseuseC) -> *Expression
     sinon si est_symbole(lexème) {
         consomme(parseuse)
 
-        reference := crée_noeud(*créatrice, DeclarationReference)
-        reference.lexème = lexème
+        reference := crée_noeud(*créatrice, lexème, DeclarationReference)
 
         résultat = reference
     }
     sinon si est_chaine_littérale(lexème) {
         consomme(parseuse)
 
-        literal := crée_noeud(*créatrice, StringLiteral)
-        literal.lexème = lexème
+        literal := crée_noeud(*créatrice, lexème, StringLiteral)
 
         résultat = literal
     }
@@ -2165,7 +2352,7 @@ parse_expression_primaire :: fonc (empl parseuse: *ParseuseC) -> *Expression
 
             operand := parse_unary_expression(parseuse)
 
-            cast := crée_noeud(*créatrice, CastExpression)
+            cast := crée_noeud(*créatrice, lexème, CastExpression)
             cast.cast_type = type_name
             cast.expression = operand
             
@@ -2182,7 +2369,7 @@ parse_expression_primaire :: fonc (empl parseuse: *ParseuseC) -> *Expression
 
         operand := parse_unary_expression(parseuse)
 
-        update := crée_noeud(*créatrice, PrefixUpdateExpression)
+        update := crée_noeud(*créatrice, lexème, PrefixUpdateExpression)
         update.op = donne_texte(lexème)
         update.operand = operand
 
@@ -2197,12 +2384,21 @@ parse_expression_primaire :: fonc (empl parseuse: *ParseuseC) -> *Expression
 
 parse_type_name :: fonc (empl parseuse: *ParseuseC) -> *TypeNameExpression
 {
+    lexème := épie_lexème_suivant(parseuse)
+
     déclaration_courante: InfoDéclaration
     parse_declaration_specifiers(parseuse, *déclaration_courante, vrai)
 
-    _ := parse_declarator(parseuse, PrésenceIdentifier.INTERDITE)
+    declarator := parse_declarator(parseuse, PrésenceIdentifier.INTERDITE)
 
-    retourne crée_noeud(*créatrice, TypeNameExpression)
+    _, type := donne_nom_et_type_pour_declarator(parseuse, *déclaration_courante, declarator)
+    saufsi type {
+        rapporte_erreur_interne(parseuse, lexème, "type nul")
+    }
+
+    résultat := crée_noeud(*créatrice, lexème, TypeNameExpression)
+    résultat.type_expression = type
+    retourne résultat
 }
 
 /** \} */

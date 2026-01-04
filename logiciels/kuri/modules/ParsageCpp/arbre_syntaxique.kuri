@@ -6,6 +6,9 @@ importe Introspection
 
 ASTNode :: struct {
     genre := #type_de_cette_structure
+
+    token: Token
+    type: *Type
 }
 
 /** \} */
@@ -30,16 +33,26 @@ VarDecl :: struct {
     genre = #type_de_cette_structure
 
     nom: chaine
-    type: *Type
+    type_expression: *Expression
     initializer: *Expression
+}
+
+BuiltinFunctionType :: énum {
+    NONE
+
+    BSWAP16
+    BSWAP32
+    BSWAP64
 }
 
 FunctionDecl :: struct {
     empl node: ASTNode
     genre = #type_de_cette_structure
 
+    builtin_function_type: BuiltinFunctionType
+
     nom: chaine
-    type: *Type
+    type_expression: *FunctionTypeExpression
     params: [..]*ParamDecl
 }
 
@@ -48,13 +61,15 @@ FunctionDefinition :: struct {
     genre = #type_de_cette_structure
 
     nom: chaine
-    type: *Type
+    type_expression: *FunctionTypeExpression
     params: [..]*ParamDecl
     statement: *CompoundStatement
 }
 
 TypeKind :: énum {
+    BOOL
     CHAR
+    SIGNED_CHAR
     UNSIGNED_CHAR
     SHORT
     UNSIGNED_SHORT
@@ -75,12 +90,12 @@ TypeKind :: énum {
     VOID
 
     RECORD
-    REFERENCE // Pour TypeRef
 
     TYPEDEF
 
     FUNCTION
     CONSTANT_ARRAY
+    INCOMPLETE_ARRAY
 
     COMPLEX
     COMPLEX_DOUBLE
@@ -91,20 +106,48 @@ TypeKind :: énum {
     VARIADIC
 }
 
+/* 6.2.5 Types. */
+Drapeaux_Type :: énum_drapeau {
+    COMPLET
+
+    STANDARD
+
+    CHARACTER
+    SIGNED_INTEGER
+    UNSIGNED_INTEGER
+    REAL_FLOATING
+    COMPLEX
+    ENUMERATED
+    VOID
+    POINTER
+    ARRAY
+    STRUCTURE
+    UNION
+    FUNCTION
+
+    FLOATING :: REAL_FLOATING | COMPLEX
+    BASIC :: CHARACTER | SIGNED_INTEGER | UNSIGNED_INTEGER | FLOATING
+    INTEGER :: CHARACTER | SIGNED_INTEGER | UNSIGNED_INTEGER | ENUMERATED
+
+    REAL :: INTEGER | REAL_FLOATING
+
+    // À FAIRE : type domain
+    ARITHMETIC :: INTEGER | FLOATING
+
+    SCALAR :: ARITHMETIC | POINTER
+
+    AGGREGATE :: ARRAY | STRUCTURE
+}
+
 Type :: struct {
     empl node: ASTNode
     genre = #type_de_cette_structure
 
     kind: TypeKind
-}
+    drapeaux: Drapeaux_Type
 
-TypeRef :: struct {
-    empl base_type: Type
-    genre = #type_de_cette_structure
-    kind = TypeKind.REFERENCE
-
-    // À FAIRE : type référencé
-    nom: chaine
+    taille_en_octet: n32
+    alignement: n32
 }
 
 PointerType :: struct {
@@ -115,12 +158,27 @@ PointerType :: struct {
     pointed_to: *Type
 }
 
+PointerTypeExpression :: struct {
+    empl expr: Expression
+    genre = #type_de_cette_structure
+
+    pointed_to: *Expression
+}
+
 FunctionType :: struct {
     empl base_type: Type
     genre = #type_de_cette_structure
     kind = TypeKind.FUNCTION
 
     return_type: *Type
+    parameters: [..]*Type
+}
+
+FunctionTypeExpression :: struct {
+    empl expr: Expression
+    genre = #type_de_cette_structure
+
+    return_type: *Expression
     parameters: [..]*ParamDecl
 }
 
@@ -129,7 +187,15 @@ ParamDecl :: struct {
     genre = #type_de_cette_structure
 
     name: chaine
-    type: *Type
+    type_expression: *Expression
+}
+
+IncompleteArray :: struct {
+    empl base_type: Type
+    genre = #type_de_cette_structure
+    kind = TypeKind.INCOMPLETE_ARRAY
+
+    element_type: *Type
 }
 
 ConstantArray :: struct {
@@ -141,13 +207,21 @@ ConstantArray :: struct {
     element_type: *Type
 }
 
+ConstantArrayExpression :: struct {
+    empl expr: Expression
+    genre = #type_de_cette_structure
+
+    size_expression: *Expression
+    element_type: *Expression
+}
+
 TypedefDecl :: struct {
     empl base_type: Type
     genre = #type_de_cette_structure
     kind = TypeKind.TYPEDEF
 
     name: chaine
-    underlying_type: *Type
+    underlying_type: *Expression
 }
 
 StructDecl :: struct {
@@ -190,13 +264,20 @@ FieldDecl :: struct {
     genre = #type_de_cette_structure
 
     name: chaine
-    type: *Type
+    type_expression: *Expression
     bitfield_expression: *Expression
 }
 
 Expression :: struct {
     empl node: ASTNode
     genre = #type_de_cette_structure
+}
+
+TypeRef :: struct {
+    empl expr: Expression
+    genre = #type_de_cette_structure
+
+    reference_type: *Type
 }
 
 CommaExpression :: struct {
@@ -232,22 +313,16 @@ IndexDesignator :: struct {
 CharacterConstant :: struct {
     empl expr: Expression
     genre = #type_de_cette_structure
-
-    lexème: Token
 }
 
 IntegerConstant :: struct {
     empl expr: Expression
     genre = #type_de_cette_structure
-
-    lexème: Token
 }
 
 FloatingConstant :: struct {
     empl expr: Expression
     genre = #type_de_cette_structure
-
-    lexème: Token
 }
 
 GenericSelection :: struct {
@@ -256,6 +331,9 @@ GenericSelection :: struct {
 
     expression: *Expression
     generic_assoc_list: [..]*GenericAssociation
+
+    /* Mise en place après la validation sémantique. */
+    selected_expression: *Expression
 }
 
 GenericAssociation :: struct {
@@ -332,7 +410,7 @@ DeclarationReference :: struct {
     empl expr: Expression
     genre = #type_de_cette_structure
 
-    lexème: Token
+    referred_declaration: *ASTNode
 }
 
 CallExpression :: struct {
@@ -346,8 +424,6 @@ CallExpression :: struct {
 StringLiteral :: struct {
     empl expr: Expression
     genre = #type_de_cette_structure
-
-    lexème: Token
 }
 
 PrefixUpdateExpression :: struct {
@@ -375,11 +451,12 @@ TernaryExpression :: struct {
     alternate: *Expression
 }
 
-// À FAIRE : déduplique avec TypeRef (ou supprime ce dernier)
 // Expression se trouvant par exemple dans sizeof().
 TypeNameExpression :: struct {
     empl expr: Expression
     genre = #type_de_cette_structure
+
+    type_expression: *Expression
 }
 
 CastExpression :: struct {
@@ -453,6 +530,9 @@ SwitchStatement :: struct {
 
     expression: *Expression
     statement: *ASTNode
+
+    labels: [..]*ASTNode
+    default_clause: *DefaultClause
 }
 
 WhileStatement :: struct {
@@ -488,6 +568,8 @@ CaseClause :: struct {
 
     expression: *Expression
     statement: *ASTNode
+
+    valeur: n64
 }
 
 DefaultClause :: struct {
@@ -562,39 +644,47 @@ CréatriceNoeuds :: struct {
     noeuds: [..]*ASTNode
 }
 
-crée_noeud :: fonc (créatrice: *CréatriceNoeuds, $T: type_de_données) -> *T
+crée_noeud :: fonc (créatrice: *CréatriceNoeuds, token: Token, $T: type_de_données) -> *T
 {
     résultat := loge(T)
     tableau_ajoute(*créatrice.noeuds, résultat)
+    résultat.token = token
     retourne résultat
 }
 
 crée_type :: fonc (créatrice: *CréatriceNoeuds, kind: TypeKind) -> *Type
 {
-    résultat := crée_noeud(créatrice, Type)
+    résultat := crée_noeud(créatrice, Token(), Type)
     résultat.kind = kind
     retourne résultat
 }
 
-crée_type_ref :: fonc (créatrice: *CréatriceNoeuds, nom: chaine) -> *TypeRef
+crée_type_ref :: fonc (créatrice: *CréatriceNoeuds, token: Token, type: *Type) -> *TypeRef
 {
-    résultat := crée_noeud(créatrice, TypeRef)
-    résultat.nom = nom
+    résultat := crée_noeud(créatrice, token, TypeRef)
+    résultat.reference_type = type
     retourne résultat
 }
 
 crée_pointer_type :: fonc (créatrice: *CréatriceNoeuds, pointed_to: *Type) -> *PointerType
 {
-    résultat := crée_noeud(créatrice, PointerType)
+    résultat := crée_noeud(créatrice, Token(), PointerType)
     résultat.pointed_to = pointed_to
     retourne résultat
 }
 
-crée_constant_array :: fonc (créatrice: *CréatriceNoeuds, element_type: *Type, size: n64) -> *ConstantArray
+crée_pointer_type :: fonc (créatrice: *CréatriceNoeuds, token: Token, pointed_to: *Expression) -> *PointerTypeExpression
 {
-    résultat := crée_noeud(créatrice, ConstantArray)
+    résultat := crée_noeud(créatrice, token, PointerTypeExpression)
+    résultat.pointed_to = pointed_to
+    retourne résultat
+}
+
+crée_constant_array :: fonc (créatrice: *CréatriceNoeuds, token: Token, element_type: *Expression, size_expression: *Expression) -> *ConstantArrayExpression
+{
+    résultat := crée_noeud(créatrice, token, ConstantArrayExpression)
     résultat.element_type = element_type
-    résultat.size = size
+    résultat.size_expression = size_expression
     retourne résultat
 }
 
