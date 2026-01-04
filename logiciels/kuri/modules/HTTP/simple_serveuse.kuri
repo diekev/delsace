@@ -52,6 +52,12 @@ crée_simple_serveuse :: fonc (adresse: chaine) -> (succès: bool, serveuse: *Si
         retourne faux, nul
     }
 
+    enable := 1
+    si setsockopt(prise, SOL_SOCKET, SO_REUSEADDR, *enable, taille_de(z32)) < 0 {
+        _ := close(prise)
+        retourne faux, nul
+    }
+
     mon_addresse: sockaddr_in
     mon_addresse.sin_family = AF_INET comme n16
     mon_addresse.sin_port = htons(port)

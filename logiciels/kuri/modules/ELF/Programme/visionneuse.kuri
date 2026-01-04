@@ -1059,7 +1059,7 @@ donne_tabuleuse_rela :: fonc (fichier: *DonnéesFichier, fonte: *Fonte, tabuleus
             relas.pointeur = données.pointeur comme *Elf64_Rela
             relas.taille = données.taille / (taille_de(Elf64_Rela) comme z64)
 
-            initialise_tabuleuse(tabuleuse, "Décalage", "Type", "Symbole", "Addende")
+            initialise_tabuleuse(tabuleuse, "Décalage", "Type", "Symbole", "Indice Sym.", "Section Sym.", "Addende")
 
             pour relas {
                 type := ELF64_R_TYPE(it.r_info)
@@ -1067,8 +1067,9 @@ donne_tabuleuse_rela :: fonc (fichier: *DonnéesFichier, fonte: *Fonte, tabuleus
 
                 symbole := donne_symbole(*table, indice_symbole comme z64)
                 nom_symbole := donne_nom_symbole(*table, symbole)
+                nom_section_sym := donne_nom_section_symbole(*table, symbole)
 
-                ajoute_ligne(tabuleuse, it.r_offset, type, nom_symbole, it.r_addend)
+                ajoute_ligne(tabuleuse, it.r_offset, type, nom_symbole, indice_symbole, nom_section_sym, it.r_addend)
             }
 
             initialise_tailles_max_colonnes(tabuleuse, fonte)
