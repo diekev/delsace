@@ -43,6 +43,7 @@ enum class RaisonErreurAppariement : uint8_t {
     RENOMMAGE_ARG,
     TROP_D_EXPRESSION_POUR_UNION,
     TYPE_N_EST_PAS_FONCTION,
+    TYPE_N_EST_PAS_CONSTRUCTIBLE,
     EXPANSION_VARIADIQUE_FONCTION_EXTERNE,
     MULTIPLE_EXPANSIONS_VARIADIQUES,
     EXPANSION_VARIADIQUE_APRÈS_ARGUMENTS_VARIADIQUES,
@@ -102,6 +103,8 @@ struct ErreurAppariement {
 
     static ErreurAppariement monomorphisation(NoeudExpression const *site,
                                               ErreurMonomorphisation erreur_monomorphisation);
+
+    static ErreurAppariement type_non_constructible(const NoeudExpression *site, Type *type);
 
     static ErreurAppariement type_non_fonction(NoeudExpression const *site, Type *type);
 
