@@ -1,0 +1,422 @@
+importe Ensemble
+importe SysFichier
+importe Math
+
+/* ------------------------------------------------------------------------- */
+/** \nom Maçonne_ELF64
+ * \{ */
+
+Données_Section_ELF64 :: struct {
+    nom: chaine
+    type: TypeSection
+    entête: *Elf64_Shdr
+
+    alignement: Elf64_Xword
+
+    lien: *Données_Section_ELF64
+
+    /* Utilisée pour les sections de chaines ou de symboles. */
+    table_de_chaines: TableDeHachage(chaine, Elf64_Word)
+
+    /* Données de la section. */
+    fichier: Fichier_Pagé
+}
+
+donne_ou_ajoute_chaine :: fonc (empl section: *Données_Section_ELF64, chn: chaine) -> Elf64_Word
+{
+    assert(type == SHT_STRTAB)
+
+    trouvée, indice := donne_valeur_pour_clé(table_de_chaines, chn)
+    si trouvée {
+        retourne indice
+    }
+
+    // @Vitesse
+    résultat := donne_taille(*fichier) comme Elf64_Word
+    écris(*fichier, chn, vrai)
+
+    _, _ := table_insère_si_non_existant(*table_de_chaines, chn, résultat)
+
+    retourne résultat 
+}
+
+donne_valeur_sh_info :: fonc (section: *Données_Section_ELF64) -> Elf64_Word
+{
+    résultat: Elf64_Word
+
+    si section.type == SHT_SYMTAB {
+        // @Validation,linux
+        // One greater than the symbol table index of the last local symbol (binding STB_LOCAL)
+
+        pour section.fichier.pages {
+            symboles := donne_données_typées(it, Elf64_Sym)
+
+            pour * sym dans symboles {
+                liaison := donne_liaison(sym)
+                si liaison != LiaisonSymbole.LOCAL {
+                    arrête
+                }
+
+                résultat += 1
+            }
+        }
+    }
+    sinon si section.type == SHT_DYNSYM {
+        // One greater than the symbol table index of the last local symbol (binding STB_LOCAL)
+        assert(faux)
+    }
+    sinon si section.type == SHT_REL || section.type == SHT_RELA {
+        // The section header index of the section to which the relocation applies.
+        assert(faux)
+    }
+
+    retourne résultat
+}
+
+Maçonne_ELF64 :: struct {
+    sections: [..]*Données_Section_ELF64
+    type_fichier: TypeFichierObjet
+}
+
+initialise_maçonne_pour_fichier_objet :: fonc (maçonne: *Maçonne_ELF64)
+{
+    réinitialise(maçonne);
+
+    maçonne.type_fichier = TypeFichierObjet.REL;
+
+    _ := crée_section(maçonne, "", SHT_NULL);
+
+    text := crée_section(maçonne, ".text", SHT_PROGBITS);
+    text.alignement = 16
+
+    symtab := crée_section(maçonne, ".symtab", SHT_SYMTAB);
+    symtab.alignement = 8
+
+    strtab := crée_section(maçonne, ".strtab", SHT_STRTAB);
+    strtab.alignement = 1
+
+    shstrtab := crée_section(maçonne, ".shstrtab", SHT_STRTAB);
+    shstrtab.alignement = 1
+
+    // @Validation,linux définis sh_link
+    symtab.lien = strtab
+    // .dynsym The section header index of the associated string table
+    // .rel, .rela The section header index of the associated symbol table.
+
+    // @Validation
+    // Alloue le symbole indéfini
+    _ := loge_en_un_seul_morceau(*symtab.fichier, Elf64_Sym);
+
+    // @Validation
+    // Alloue les chaines nulles
+    _ := donne_ou_ajoute_chaine(strtab, "");
+    _ := donne_ou_ajoute_chaine(shstrtab, "");
+}
+
+réinitialise :: fonc (empl maçonne: *Maçonne_ELF64)
+{
+    pour sections {
+        détruit_données(*it.table_de_chaines)
+        fichier_pagé_réinitialise(*it.fichier)
+        déloge(it);
+    }
+    déloge(sections);
+}
+
+crée_section :: fonc (empl maçonne: *Maçonne_ELF64, nom: chaine, type: TypeSection) -> *Données_Section_ELF64
+{
+    résultat := loge(Données_Section_ELF64)
+    résultat.nom = nom
+    résultat.type = type
+    tableau_ajoute(*sections, résultat)
+    retourne résultat
+}
+
+donne_section :: fonc (empl maçonne: *Maçonne_ELF64, nom: chaine) -> *Données_Section_ELF64
+{
+    pour sections {
+        si it.nom == nom {
+            retourne it
+        }
+    }
+    retourne nul
+}
+
+donne_indice_section :: fonc (empl maçonne: *Maçonne_ELF64, nom: chaine) -> z64
+{
+    pour sections {
+        si it.nom == nom {
+            retourne indice_it
+        }
+    }
+    retourne -1
+}
+
+// @Validation À FAIRE : In each symbol table, all symbols with STB_LOCAL binding precede the weak and global symbols.
+donne_ou_crée_symbole :: fonc (empl maçonne: *Maçonne_ELF64, nom: chaine, type: TypeSymbole, liaison: LiaisonSymbole, section: *Données_Section_ELF64) -> *Elf64_Sym
+{
+    symtab := donne_section(maçonne, ".symtab")
+
+    strtab := donne_section(maçonne, ".strtab")
+    indice_nom := donne_ou_ajoute_chaine(strtab, nom)
+
+    résultat: *Elf64_Sym
+
+    trouvée, indice_symbole := donne_valeur_pour_clé(symtab.table_de_chaines, nom)
+    si trouvée {
+        nombre_d_entrée_par_page := TAILLE_PAGE / taille_de(Elf64_Sym)
+        indice_page := indice_symbole / nombre_d_entrée_par_page
+        indice_entrée := (indice_symbole % nombre_d_entrée_par_page) * taille_de(Elf64_Sym)
+
+        page := *symtab.fichier.pages[indice_page]
+        résultat = *page.données[indice_entrée] comme *Elf64_Sym
+
+        assert(résultat.st_name == indice_nom)
+        assert(donne_type(résultat) == type)
+        assert(donne_liaison(résultat) == liaison)
+    }
+    sinon {
+        indice_symbole = (donne_taille(*symtab.fichier) / taille_de(Elf64_Sym)) comme Elf64_Word
+        _, _ := table_insère_si_non_existant(*symtab.table_de_chaines, nom, indice_symbole)
+
+        résultat = loge_en_un_seul_morceau(*symtab.fichier, Elf64_Sym)
+        résultat.st_name = indice_nom
+        résultat.st_info = (liaison comme n8 << 4) | (type comme n8 & 0xf)
+        // st_other: n8 /* Symbol visibility */
+        si section {
+            résultat.st_shndx = donne_indice_section(maçonne, section.nom) comme Elf64_Section
+        }
+        // st_value: Elf64_Addr /* Symbol value */
+        // st_size: Elf64_Xword /* Symbol size */
+    }
+
+    retourne résultat
+}
+
+écris_fichier :: fonc (fichier: *Maçonne_ELF64, chemin: chaine)
+{
+    fichier_pagé: Fichier_Pagé;
+    diffère fichier_pagé_réinitialise(*fichier_pagé)
+
+    /* Entête fichier. */
+    entête_fichier := loge_en_un_seul_morceau(*fichier_pagé, Elf64_Ehdr);
+
+    entête_fichier.e_ident[EI_MAG0] = ELFMAG0;
+    entête_fichier.e_ident[EI_MAG1] = ELFMAG1;
+    entête_fichier.e_ident[EI_MAG2] = ELFMAG2;
+    entête_fichier.e_ident[EI_MAG3] = ELFMAG3;
+    entête_fichier.e_ident[EI_CLASS] = ELFCLASS64;
+    entête_fichier.e_ident[EI_DATA] = ELFDATA2LSB;
+    entête_fichier.e_ident[EI_VERSION] = EV_CURRENT;
+    entête_fichier.e_ident[EI_OSABI] = ELFOSABI_SYSV;
+    entête_fichier.e_ident[EI_ABIVERSION] = 0;
+
+    entête_fichier.e_type = fichier.type_fichier comme n16;
+    entête_fichier.e_machine = EM_X86_64;
+    entête_fichier.e_version = EV_CURRENT;
+    entête_fichier.e_flags = 0;
+    entête_fichier.e_ehsize = taille_de(Elf64_Ehdr) comme n16;
+    entête_fichier.e_shentsize = taille_de(Elf64_Shdr) comme n16;
+    entête_fichier.e_shnum = fichier.sections.taille comme Elf64_Half;
+    entête_fichier.e_shstrndx = donne_indice_section(fichier, ".shstrtab") comme n16;
+
+    // Les rubriques suivantes ne sont que pour les exécutables et fichiers dynamiques.
+    assert(fichier.type_fichier != TypeFichierObjet.EXEC && fichier.type_fichier != TypeFichierObjet.DYN)
+    entête_fichier.e_entry = 0;
+    entête_fichier.e_phoff = 0;
+    entête_fichier.e_phentsize = 0;
+    entête_fichier.e_phnum = 0;
+
+    /* Entêtes sections. */
+    entête_fichier.e_shoff = donne_taille(*fichier_pagé);
+
+    section_shstrtab := donne_section(fichier, ".shstrtab");
+
+    pour fichier.sections {
+        entête_section := loge_en_un_seul_morceau(*fichier_pagé, Elf64_Shdr);
+        entête_section.sh_name = donne_ou_ajoute_chaine(section_shstrtab, it.nom);
+        entête_section.sh_type = it.type comme n32;
+
+        si it.nom == ".text" {
+            // Si ALLOC est manquant, nm rapporte que le symbole est un symbole de débogage.
+            // Si EXECINSTR, nm rapporte que le symbole est un dans une section en lecture-seule.
+            entête_section.sh_flags = (DrapeauxSection.ALLOC | DrapeauxSection.EXECINSTR) comme n64;
+        }
+        sinon si it.nom == ".bss" || it.nom == ".data" || it.nom == ".data1" {
+            entête_section.sh_flags = (DrapeauxSection.ALLOC | DrapeauxSection.WRITE) comme n64;
+        }
+        sinon si it.nom == ".hash" || it.nom == ".rodata" || it.nom == ".rodata1" {
+            entête_section.sh_flags = (DrapeauxSection.ALLOC) comme n64;
+        }
+        // À FAIRE : .dynamic peut avoir ALLOC ou WRITE dans certains cas
+        sinon {
+            entête_section.sh_flags = 0;
+        }
+
+        entête_section.sh_addr = 0;
+        entête_section.sh_offset = 0;
+        entête_section.sh_size = 0;
+
+        si it.lien {
+            entête_section.sh_link = donne_indice_section(fichier, it.lien.nom) comme n32;
+        }
+
+        entête_section.sh_info = donne_valeur_sh_info(it);
+        entête_section.sh_addralign = it.alignement;
+
+        // @Validation
+        si it.type == SHT_SYMTAB {
+            entête_section.sh_entsize = taille_de(Elf64_Sym);
+        }
+        sinon {
+            entête_section.sh_entsize = 0;
+        }
+
+        it.entête = entête_section;
+    }
+
+    décalage_section := donne_taille(*fichier_pagé);
+
+    /* Sections. */
+    pour fichier.sections {
+        it.entête.sh_size = donne_taille(*it.fichier);
+
+        it.entête.sh_offset = décalage_section;
+        décalage_section += it.entête.sh_size;
+
+        pour page dans it.fichier.pages {
+            page.données.taille = page.occupé comme z64
+            écris(*fichier_pagé, page.données)
+        }
+    }
+
+    /* Écriture du fichier. */
+    sortie := tente ouvre_fichier_crée_si_non_existant(CheminFichier(chemin), pour_écriture_tronquée) piège nonatteignable
+    diffère _ := ferme(*sortie)
+
+    pour fichier_pagé.pages {
+        it.données.taille = it.occupé comme z64
+        _ := tente écris(*sortie, it.données) piège nonatteignable
+    }
+}
+
+/** \} */
+
+/* ------------------------------------------------------------------------- */
+/** \nom Fichier_Pagé
+ * \{ */
+
+TAILLE_PAGE : n64 : 16 * 1024;
+
+Fichier_Pagé :: struct {
+    Page :: struct {
+        données: [..]octet;
+        occupé: n64;
+    }
+
+    pages: [..]Page;
+}
+
+fichier_pagé_réinitialise :: fonc (empl fichier: *Fichier_Pagé)
+{
+    pour pages {
+        déloge(it.données);
+    }
+    déloge(pages);
+}
+
+donne_taille :: fonc (empl fichier: *Fichier_Pagé) -> n64
+{
+    résultat: n64;
+
+    pour pages {
+        résultat += it.occupé;
+    }
+
+    retourne résultat;
+}
+
+donne_données_typées :: fonc (page: Fichier_Pagé.Page, $T: type_de_données) -> []T
+{
+    assert(page.occupé % taille_de(T) == 0)
+
+    résultat: []T = ---
+    résultat.pointeur = page.données.pointeur comme *T
+    résultat.taille = (page.occupé / taille_de(T)) comme z64
+    retourne résultat
+}
+
+loge_en_un_seul_morceau :: fonc (empl fichier: *Fichier_Pagé, $T: type_de_données) -> *T
+{
+    page := donne_page_courante(fichier);
+    assert(page.occupé + taille_de(T) < TAILLE_PAGE)
+    résultat := (page.données.pointeur + page.occupé) comme *T;
+    page.occupé += taille_de(T);
+    init_de(T)(résultat)
+    retourne résultat;
+}
+
+écris :: fonc (empl fichier: *Fichier_Pagé, chn: chaine, avec_terminateur: bool)
+{
+    écris(fichier, chn);
+
+    si avec_terminateur {
+        écris_octet(fichier, 0x0);
+    }
+}
+
+écris :: fonc (empl fichier: *Fichier_Pagé, données: []octet)
+{
+    taille_données := données.taille comme n64
+
+    page := donne_page_courante(fichier);
+    source := données.pointeur;
+    tantque taille_données != 0 {
+        taille_restante := TAILLE_PAGE - page.occupé;
+        si taille_restante == 0 {
+            ajoute_page(fichier);
+            page = donne_page_courante(fichier);
+            taille_restante = TAILLE_PAGE;
+        }
+
+        taille_à_écrire := min(taille_données, taille_restante);
+        copie_mem_nonsur(dst = page.données.pointeur + page.occupé, src = source, taille = taille_à_écrire comme z64);
+
+        page.occupé += taille_à_écrire;
+        source += taille_à_écrire;
+        taille_données -= taille_à_écrire;
+    }
+}
+
+écris_octet :: fonc (fichier: *Fichier_Pagé, o: octet)
+{
+    page := donne_page_courante(fichier);
+    si page.occupé == TAILLE_PAGE {
+        ajoute_page(fichier);
+        page = donne_page_courante(fichier);
+    }
+
+    page.données[page.occupé] = o;
+    page.occupé += 1;
+}
+
+#portée_fichier
+
+donne_page_courante :: fonc (empl fichier: *Fichier_Pagé) -> *Fichier_Pagé.Page
+{
+    si pages.taille == 0 || pages[pages.taille - 1].occupé == TAILLE_PAGE {
+        ajoute_page(fichier);
+    }
+
+    retourne *pages[pages.taille - 1];
+}
+
+ajoute_page :: fonc (empl fichier: *Fichier_Pagé)
+{
+    page := tableau_ajoute_élément(*pages) 
+    page.données = loge_tableau(octet, TAILLE_PAGE comme z64)
+    page.données.taille = page.données.capacité
+    page.occupé = 0;
+}
+
+/** \} */
