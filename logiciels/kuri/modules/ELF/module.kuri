@@ -102,6 +102,58 @@ IdentifiantELF :: énum {
     NIDENT :: 16
 }
 
+EI_MAG0  :: 0    /* File identification byte 0 index */
+ELFMAG0  : n8 : 0x7f    /* Magic number byte 0 */
+
+EI_MAG1  :: 1    /* File identification byte 1 index */
+ELFMAG1  : n8 : 'E' comme n8    /* Magic number byte 1 */
+
+EI_MAG2  :: 2    /* File identification byte 2 index */
+ELFMAG2  : n8 : 'L' comme n8    /* Magic number byte 2 */
+
+EI_MAG3 :: 3  /* File identification byte 3 index */
+ELFMAG3 : n8 : 'F' comme n8    /* Magic number byte 3 */
+
+/* Conglomeration of the identification bytes, for easy testing as a word.  */
+ELFMAG  :: "\x7fELF"
+SELFMAG :: 4
+
+
+EI_CLASS :: 4    /* File class byte index */
+ELFCLASSNONE : n8 : 0    /* Invalid class */
+ELFCLASS32 : n8 : 1    /* 32-bit objects */
+ELFCLASS64 : n8 : 2    /* 64-bit objects */
+ELFCLASSNUM : n8 : 3
+
+EI_DATA :: 5    /* Data encoding byte index */
+ELFDATANONE : n8 : 0    /* Invalid data encoding */
+ELFDATA2LSB : n8 : 1    /* 2's complement, little endian */
+ELFDATA2MSB : n8 : 2    /* 2's complement, big endian */
+ELFDATANUM : n8 : 3
+
+EI_VERSION :: 6    /* File version byte index */
+        	/* Value must be EV_CURRENT */
+
+EI_OSABI :: 7    /* OS ABI identification */
+ELFOSABI_SYSV : n8 : 0
+
+EI_ABIVERSION :: 8    /* ABI version */
+
+EI_PAD :: 9    /* Byte index of padding bytes */
+
+ET_NONE : n8 :  0    /* No file type */
+ET_REL  : n8 :  1    /* Relocatable file */
+ET_EXEC : n8 :  2    /* Executable file */
+ET_DYN  : n8 :  3    /* Shared object file */
+ET_CORE : n8 :  4    /* Core file */
+ET_NUM  : n8 :  5    /* Number of defined types */
+ET_LOOS ::  0xfe00    /* OS-specific range start */
+ET_HIOS ::  0xfeff    /* OS-specific range end */
+ET_LOPROC   :: 0xff00    /* Processor-specific range start */
+ET_HIPROC   :: 0xffff    /* Processor-specific range end */
+
+EM_X86_64 : n8 : 62 /* AMD x86-64 architecture */
+
 EntêteELF64 :: Elf64_Ehdr
 
 TypeFichierObjet :: énum Elf64_Half {
@@ -330,6 +382,43 @@ TypeSection :: énum Elf64_Word {
     ProcBas :: 0x70000000
     ProcHaut :: 0x7FFFFFFF
 }
+
+SHT_NULL :: TypeSection.Nulle
+SHT_PROGBITS :: TypeSection.BitsProgramme
+SHT_SYMTAB :: TypeSection.TableSymbole
+SHT_STRTAB :: TypeSection.TableChaine
+SHT_RELA :: TypeSection.Rela
+SHT_HASH :: TypeSection.HachageSymbole
+SHT_DYNAMIC :: TypeSection.Dynamique
+SHT_NOTE :: TypeSection.Note
+SHT_NOBITS :: TypeSection.AucunBits
+SHT_REL :: TypeSection.Rel
+SHT_SHLIB :: TypeSection.ShLib
+SHT_DYNSYM :: TypeSection.SymboleDynamique
+SHT_INIT_ARRAY :: 14		/* Array of constructors */
+SHT_FINI_ARRAY :: 15		/* Array of destructors */
+SHT_PREINIT_ARRAY :: 16		/* Array of pre-constructors */
+SHT_GROUP :: 17		/* Section group */
+SHT_SYMTAB_SHNDX :: 18		/* Extended section indices */
+SHT_NUM ::  19		/* Number of defined types.  */
+SHT_LOOS :: TypeSection.SysExpBas
+SHT_GNU_ATTRIBUTES :: 0x6ffffff5	/* Object attributes.  */
+SHT_GNU_HASH :: 0x6ffffff6	/* GNU-style hash table.  */
+SHT_GNU_LIBLIST :: 0x6ffffff7	/* Prelink library list */
+SHT_CHECKSUM :: 0x6ffffff8	/* Checksum for DSO content.  */
+SHT_LOSUNW :: 0x6ffffffa	/* Sun-specific low bound.  */
+SHT_SUNW_move :: 0x6ffffffa
+SHT_SUNW_COMDAT :: 0x6ffffffb
+SHT_SUNW_syminfo :: 0x6ffffffc
+SHT_GNU_verdef :: 0x6ffffffd	/* Version definition section.  */
+SHT_GNU_verneed :: 0x6ffffffe	/* Version needs section.  */
+SHT_GNU_versym :: 0x6fffffff	/* Version symbol table.  */
+SHT_HISUNW :: 0x6fffffff	/* Sun-specific high bound.  */
+SHT_HIOS :: TypeSection.SysExpHaut
+SHT_LOPROC :: TypeSection.ProcBas
+SHT_HIPROC :: TypeSection.ProcHaut
+SHT_LOUSER :: 0x80000000	/* Start of application-specific */
+SHT_HIUSER :: 0x8fffffff	/* End of application-specific */
 
 DrapeauxSection :: énum_drapeau Elf64_Xword {
     WRITE :: 0x1
