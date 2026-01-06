@@ -15,6 +15,10 @@ Données_Section_ELF64 :: struct {
 
     lien: *Données_Section_ELF64
 
+    /* Si la section est une section de réadressage, ceci doit être la section
+     * sur laquelle le réadressage doit s'appliquer. */
+    destination_rel: *Données_Section_ELF64
+
     /* Utilisée pour les sections de chaines ou de symboles. */
     table_de_chaines: TableDeHachage(chaine, Elf64_Word)
 
@@ -40,7 +44,7 @@ donne_ou_ajoute_chaine :: fonc (empl section: *Données_Section_ELF64, chn: chai
     retourne résultat 
 }
 
-donne_valeur_sh_info :: fonc (section: *Données_Section_ELF64) -> Elf64_Word
+donne_valeur_sh_info :: fonc (maçonne: *Maçonne_ELF64, section: *Données_Section_ELF64) -> Elf64_Word
 {
     résultat: Elf64_Word
 
@@ -66,8 +70,11 @@ donne_valeur_sh_info :: fonc (section: *Données_Section_ELF64) -> Elf64_Word
         assert(faux)
     }
     sinon si section.type == SHT_REL || section.type == SHT_RELA {
+        // @Validation
+        assert(section.destination_rel != nul)
+
         // The section header index of the section to which the relocation applies.
-        assert(faux)
+        résultat = donne_indice_section(maçonne, section.destination_rel) comme n32
     }
 
     retourne résultat
@@ -101,7 +108,6 @@ initialise_maçonne_pour_fichier_objet :: fonc (maçonne: *Maçonne_ELF64)
     // @Validation,linux définis sh_link
     symtab.lien = strtab
     // .dynsym The section header index of the associated string table
-    // .rel, .rela The section header index of the associated symbol table.
 
     // @Validation
     // Alloue le symbole indéfini
@@ -132,6 +138,22 @@ crée_section :: fonc (empl maçonne: *Maçonne_ELF64, nom: chaine, type: TypeSe
     retourne résultat
 }
 
+crée_section_de_réadressage :: fonc (empl maçonne: *Maçonne_ELF64, nom: chaine, type: TypeSection, table_de_symboles: *Données_Section_ELF64, destination: *Données_Section_ELF64) -> *Données_Section_ELF64
+{
+    assert(type == SHT_REL || type == SHT_RELA)
+    assert(table_de_symboles != nul)
+    assert(destination != nul)
+
+    résultat := crée_section(maçonne, nom, type)
+    résultat.alignement = 8
+    // @Validation,linux définis sh_link
+    // .rel, .rela The section header index of the associated symbol table.
+    résultat.lien = table_de_symboles
+    résultat.destination_rel = destination
+
+    retourne résultat
+}
+
 donne_section :: fonc (empl maçonne: *Maçonne_ELF64, nom: chaine) -> *Données_Section_ELF64
 {
     pour sections {
@@ -140,6 +162,16 @@ donne_section :: fonc (empl maçonne: *Maçonne_ELF64, nom: chaine) -> *Données
         }
     }
     retourne nul
+}
+
+donne_indice_section :: fonc (empl maçonne: *Maçonne_ELF64, section: *Données_Section_ELF64) -> z64
+{
+    pour sections {
+        si it == section {
+            retourne indice_it
+        }
+    }
+    retourne -1
 }
 
 donne_indice_section :: fonc (empl maçonne: *Maçonne_ELF64, nom: chaine) -> z64
@@ -191,6 +223,23 @@ donne_ou_crée_symbole :: fonc (empl maçonne: *Maçonne_ELF64, nom: chaine, typ
     }
 
     retourne résultat
+}
+
+donne_indice_symbole :: fonc (fichier: *Maçonne_ELF64, symbole: *Elf64_Sym) -> z64
+{
+    symtab := donne_section(fichier, ".symtab")
+
+    pour symtab.fichier.pages {
+        début := it.données.pointeur
+        fin := it.données.pointeur + it.données.taille
+
+        si début <= symbole < fin {
+            décalage := symbole - début
+            retourne décalage / taille_de(Elf64_Sym) comme z64
+        }
+    }
+    
+    retourne -1
 }
 
 écris_fichier :: fonc (fichier: *Maçonne_ELF64, chemin: chaine)
@@ -258,15 +307,21 @@ donne_ou_crée_symbole :: fonc (empl maçonne: *Maçonne_ELF64, nom: chaine, typ
         entête_section.sh_size = 0;
 
         si it.lien {
-            entête_section.sh_link = donne_indice_section(fichier, it.lien.nom) comme n32;
+            entête_section.sh_link = donne_indice_section(fichier, it.lien) comme n32;
         }
 
-        entête_section.sh_info = donne_valeur_sh_info(it);
+        entête_section.sh_info = donne_valeur_sh_info(fichier, it);
         entête_section.sh_addralign = it.alignement;
 
         // @Validation
         si it.type == SHT_SYMTAB {
             entête_section.sh_entsize = taille_de(Elf64_Sym);
+        }
+        sinon si it.type == SHT_REL {
+            entête_section.sh_entsize = taille_de(Elf64_Rel)
+        }
+        sinon si it.type == SHT_RELA {
+            entête_section.sh_entsize = taille_de(Elf64_Rela)
         }
         sinon {
             entête_section.sh_entsize = 0;
