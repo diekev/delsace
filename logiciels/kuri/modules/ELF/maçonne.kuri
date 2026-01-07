@@ -363,6 +363,11 @@ donne_indice_symbole :: fonc (fichier: *Maçonne_ELF64, symbole: *Elf64_Sym) -> 
 
 TAILLE_PAGE : n64 : 16 * 1024;
 
+Adresse_Page :: struct {
+    indice: n64
+    décalage: n64
+}
+
 Fichier_Pagé :: struct {
     Page :: struct {
         données: [..]octet;
@@ -389,6 +394,23 @@ donne_taille :: fonc (empl fichier: *Fichier_Pagé) -> n64
     }
 
     retourne résultat;
+}
+
+donne_adresse_pour_décalage :: fonc (empl fichier: *Fichier_Pagé, décalage: n64) -> Adresse_Page
+{
+    résultat: Adresse_Page
+
+    pour pages {
+        si décalage == 0 || it.occupé > décalage {
+            résultat.indice = indice_it comme n64
+            résultat.décalage = décalage
+            arrête
+        }
+
+        décalage -= it.occupé
+    }
+
+    retourne résultat
 }
 
 donne_données_typées :: fonc (page: Fichier_Pagé.Page, $T: type_de_données) -> []T
@@ -455,6 +477,40 @@ loge_en_un_seul_morceau :: fonc (empl fichier: *Fichier_Pagé, $T: type_de_donn�
     page.occupé += 1;
 }
 
+écris :: fonc (empl fichier: *Fichier_Pagé, adresse: Adresse_Page, données: []octet)
+{
+    taille_données := données.taille comme n64
+
+    page := *fichier.pages[adresse.indice];
+    source := données.pointeur;
+    tantque taille_données != 0 {
+        taille_restante := TAILLE_PAGE - adresse.décalage;
+        si taille_restante == 0 {
+            page, adresse = donne_page_suivante(fichier, adresse);
+            taille_restante = TAILLE_PAGE;
+        }
+
+        taille_à_écrire := min(taille_données, taille_restante);
+        copie_mem_nonsur(dst = page.données.pointeur + adresse.décalage, src = source, taille = taille_à_écrire comme z64);
+
+        page.occupé = max(page.occupé, adresse.décalage + taille_à_écrire);
+        adresse.décalage += taille_à_écrire;
+        source += taille_à_écrire;
+        taille_données -= taille_à_écrire;
+    }
+}
+
+écris_octet :: fonc (fichier: *Fichier_Pagé, adresse: Adresse_Page, o: octet)
+{
+    page := *fichier.pages[adresse.indice];
+    si adresse.décalage == TAILLE_PAGE {
+        page, adresse = donne_page_suivante(fichier, adresse);
+    }
+
+    page.données[adresse.décalage] = o;
+    page.occupé = max(page.occupé, adresse.décalage + 1);
+}
+
 #portée_fichier
 
 donne_page_courante :: fonc (empl fichier: *Fichier_Pagé) -> *Fichier_Pagé.Page
@@ -464,6 +520,18 @@ donne_page_courante :: fonc (empl fichier: *Fichier_Pagé) -> *Fichier_Pagé.Pag
     }
 
     retourne *pages[pages.taille - 1];
+}
+
+donne_page_suivante :: fonc (empl fichier: *Fichier_Pagé, adresse: Adresse_Page) -> (*Fichier_Pagé.Page, Adresse_Page)
+{
+    assert(pages.taille > 0);
+    si adresse.indice comme z64 == pages.taille - 1 {
+        ajoute_page(fichier);
+    }
+
+    adresse.indice += 1
+    adresse.décalage = 0
+    retourne *pages[pages.taille - 1], adresse
 }
 
 ajoute_page :: fonc (empl fichier: *Fichier_Pagé)
