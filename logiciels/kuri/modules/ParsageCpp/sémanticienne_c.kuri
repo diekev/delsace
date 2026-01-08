@@ -479,6 +479,43 @@ valide_sémantique_noeud :: fonc (empl sémanticienne: *SémanticienneC, node: *
 
             postfix.type = operand_type
         }
+        IndexExpression {
+            index := node comme *IndexExpression
+
+            valide_sémantique_noeud(sémanticienne, index.left)
+            valide_sémantique_noeud(sémanticienne, index.right)
+
+            // À FAIRE : gestion des arrays
+            si index.left.type.drapeaux.POINTER && index.right.type.drapeaux.INTEGER {
+                type_pointeur := index.left.type comme *PointerType
+                type_pointé := type_pointeur.pointed_to
+
+                // À FAIRE : type objet
+                saufsi type_pointé.drapeaux.COMPLET {
+                    rapporte_erreur(sémanticienne, index.right, "impossible de déréférencé le type incomplet '%'", donne_épelage_type(type_pointé))
+                }
+
+                index.type = type_pointé
+            }
+            sinon si index.right.type.drapeaux.POINTER && index.left.type.drapeaux.INTEGER {
+                type_pointeur := index.right.type comme *PointerType
+                type_pointé := type_pointeur.pointed_to
+
+                // À FAIRE : type objet
+                saufsi type_pointé.drapeaux.COMPLET {
+                    rapporte_erreur(sémanticienne, index.right, "impossible de déréférencé le type incomplet '%'", donne_épelage_type(type_pointé))
+                }
+
+                index.type = type_pointé
+            }
+            sinon {
+                rapporte_note(sémanticienne, index.left, "le type à gauche est '%'", donne_épelage_type(index.left.type))
+                rapporte_note(sémanticienne, index.left, "le type à droite est '%'", donne_épelage_type(index.right.type))
+                rapporte_erreur(sémanticienne, index, "types invalides pour les opérandes de l'indexage")
+
+                index.type = unit.maçonne_type.int_signed_type
+            }
+        }
         GenericSelection {
             generic := node comme *GenericSelection
             valide_sémantique_generic(sémanticienne, generic)
