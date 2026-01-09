@@ -268,9 +268,15 @@ FieldDecl :: struct {
     bitfield_expression: *Expression
 }
 
+Drapeaux_Expression :: énum_drapeau {
+    LVALUE
+}
+
 Expression :: struct {
     empl node: ASTNode
     genre = #type_de_cette_structure
+
+    drapeaux: Drapeaux_Expression
 }
 
 TypeRef :: struct {

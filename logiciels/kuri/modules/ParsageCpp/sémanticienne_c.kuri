@@ -275,6 +275,10 @@ valide_sémantique_noeud :: fonc (empl sémanticienne: *SémanticienneC, node: *
 
             reference.referred_declaration = var_existante
             reference.type = var_existante.type
+
+            si reference.type.drapeaux.FUNCTION == faux {
+                reference.drapeaux.LVALUE = vrai
+            }
         }
         ReturnStatement {
             statement := node comme *ReturnStatement
@@ -475,7 +479,9 @@ valide_sémantique_noeud :: fonc (empl sémanticienne: *SémanticienneC, node: *
                 rapporte_erreur(sémanticienne, postfix.operand.token, "l'opérateur postfixe '%' ne peut s'appliquer que sur des types réels ou pointeurs", postfix.op)
             }
 
-            // À FAIRE : and shall be a modifiable lvalue.
+            saufsi est_modifiable_lvalue(postfix.operand) {
+                rapporte_erreur(sémanticienne, postfix.operand, "l'opérateur postfixe '%' requiers une valeur-gauche modifiable comme opérande", postfix.op)
+            }
 
             postfix.type = operand_type
         }
@@ -829,6 +835,45 @@ valide_sémantique_generic :: fonc (sémanticienne: *SémanticienneC, generic: *
     generic.type = generic.expression.type
 
     valide_sémantique_noeud(sémanticienne, generic.selected_expression)
+}
+
+/* 6.3.2.1 Lvalues, arrays, and function designators */
+est_lvalue :: fonc (expression: *Expression) -> bool
+{
+    si expression.drapeaux.LVALUE == faux {
+        retourne faux
+    }
+
+    // À FAIRE : object type
+    retourne expression.type.kind != TypeKind.VOID
+}
+
+est_modifiable_lvalue :: fonc (expression: *Expression) -> bool
+{
+    // A modifiable lvalue is an lvalue that...
+    saufsi est_lvalue(expression) {
+        retourne faux
+    }
+
+    type := expression.type
+
+    // ...does not have array type
+    si type.drapeaux.ARRAY {
+        retourne faux
+    }
+
+    // ...does not have an incomplete type
+    si type.drapeaux.COMPLET == faux {
+        retourne faux
+    }
+
+    // À FAIRE : does not have a const-qualified type
+    /*
+    À FAIRE : and if it is a structure or union, does not have any member (including,
+    recursively, any member or element of all contained aggregates or unions) with a const-
+    qualified type.
+    */
+    retourne vrai
 }
 
 est_type_variablement_modifié :: fonc (type: *Type @inutilisée) -> bool
