@@ -1074,6 +1074,11 @@ donne_épelage_type :: fonc (enchaineuse: *Enchaineuse, type: *Type)
             donne_épelage_type(enchaineuse, array.element_type)
             imprime_dans_enchaineuse(enchaineuse, "[%]", array.size)
         }
+        INCOMPLETE_ARRAY {
+            array := type comme *IncompleteArray
+            donne_épelage_type(enchaineuse, array.element_type)
+            ajoute_au_tampon(enchaineuse, "[]")
+        }
         COMPLEX {
             ajoute_au_tampon(enchaineuse, "_Complex")
         }
