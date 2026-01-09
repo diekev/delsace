@@ -276,7 +276,27 @@ valide_sémantique_noeud :: fonc (empl sémanticienne: *SémanticienneC, node: *
             reference.referred_declaration = var_existante
             reference.type = var_existante.type
 
-            si reference.type.drapeaux.FUNCTION == faux {
+            si reference.type.drapeaux.ARRAY {
+                // À FAIRE : Except when it is the operand of the sizeof operator,
+                //           the _Alignof operator, or the unary & operator, or is a
+                //           string literal used to initialize an array
+                si reference.type.kind == TypeKind.INCOMPLETE_ARRAY {
+                    array := reference.type comme *IncompleteArray
+                    type_élément := array.element_type
+                    reference.type = crée_type_pointeur(*unit.maçonne_type, type_élément)
+                }
+                sinon si reference.type.kind == TypeKind.CONSTANT_ARRAY {
+                    array := reference.type comme *ConstantArray
+                    type_élément := array.element_type
+                    reference.type = crée_type_pointeur(*unit.maçonne_type, type_élément)
+                }
+                sinon {
+                    panique("type array non-géré : '%'", donne_épelage_type(reference.type))
+                }
+
+                reference.drapeaux.LVALUE = faux
+            }
+            sinon si reference.type.drapeaux.FUNCTION == faux {
                 reference.drapeaux.LVALUE = vrai
             }
         }
@@ -491,7 +511,6 @@ valide_sémantique_noeud :: fonc (empl sémanticienne: *SémanticienneC, node: *
             valide_sémantique_noeud(sémanticienne, index.left)
             valide_sémantique_noeud(sémanticienne, index.right)
 
-            // À FAIRE : gestion des arrays
             si index.left.type.drapeaux.POINTER && index.right.type.drapeaux.INTEGER {
                 type_pointeur := index.left.type comme *PointerType
                 type_pointé := type_pointeur.pointed_to
@@ -1367,6 +1386,7 @@ crée_type_tableau :: fonc (empl maçonne: *Maçonne_Type, element_type: *Type, 
     résultat.taille_en_octet = (element_type.taille_en_octet * size) comme n32;
     résultat.alignement = element_type.alignement
     résultat.drapeaux.COMPLET = vrai
+    résultat.drapeaux.ARRAY = vrai
 
     tableau_ajoute(*types_tableaux, résultat);
     tableau_ajoute(*types, résultat);
@@ -1385,7 +1405,10 @@ crée_type_tableau_incomplet :: fonc (empl maçonne: *Maçonne_Type, element_typ
     assert(element_type.drapeaux.COMPLET == vrai)
 
     résultat := crée_noeud(*créatrice, Token(), IncompleteArray);
+    résultat.taille_en_octet = 8;
+    résultat.alignement = 8;
     résultat.element_type = element_type;
+    résultat.drapeaux.ARRAY = vrai
 
     tableau_ajoute(*types_tableaux_incomplets, résultat);
     tableau_ajoute(*types, résultat);
