@@ -447,6 +447,29 @@ valide_sémantique_noeud :: fonc (empl sémanticienne: *SémanticienneC, node: *
                 rapporte_erreur(sémanticienne, do_while.expression.token, "l'expression controlante d'une boucle-do-while doit être de type scalaire")
             }
         }
+        AssignmentExpression {
+            assignment := node comme *AssignmentExpression
+
+            valide_sémantique_noeud(sémanticienne, assignment.left)
+            valide_sémantique_noeud(sémanticienne, assignment.right)
+
+            saufsi est_modifiable_lvalue(assignment.left) {
+                rapporte_erreur(sémanticienne, assignment.left, "une valeur-gauche modifiable est requise à gauche de l'assignement")
+            }
+
+            type_gauche := assignment.left.type
+            type_droite := assignment.right.type
+
+            saufsi types_sont_compatibles_pour_assignation_simple(type_gauche, type_droite) {
+                rapporte_note(sémanticienne, assignment.left, "le type à gauche est '%'", donne_épelage_type(type_gauche))
+                rapporte_note(sémanticienne, assignment.left, "le type à droite est '%'", donne_épelage_type(type_droite))
+                rapporte_erreur(sémanticienne, assignment, "types incompatibles pour l'assignement")
+            }
+
+            type := donne_lvalue_conversion_type(sémanticienne, assignment.left.type)
+            assignment.type = type
+            assignment.drapeaux.LVALUE = faux
+        }
         BinaryExpression {
             binary := node comme *BinaryExpression
             valide_sémantique_noeud(sémanticienne, binary.left)
@@ -893,6 +916,12 @@ est_modifiable_lvalue :: fonc (expression: *Expression) -> bool
     qualified type.
     */
     retourne vrai
+}
+
+donne_lvalue_conversion_type :: fonc (sémanticienne: *SémanticienneC @inutilisée, type: *Type) -> *Type
+{
+    // À FAIRE
+    retourne type
 }
 
 est_type_variablement_modifié :: fonc (type: *Type @inutilisée) -> bool
