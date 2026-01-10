@@ -227,6 +227,29 @@ donne_ou_crée_symbole :: fonc (empl maçonne: *Maçonne_ELF64, nom: chaine, typ
     retourne résultat
 }
 
+donne_symbole :: fonc (empl fichier: *Maçonne_ELF64, nom: chaine) -> *Elf64_Sym
+{
+    symtab := donne_section(fichier, ".symtab")
+
+    trouvé, indice_symbole := donne_valeur_pour_clé(symtab.table_de_chaines, nom)
+    saufsi trouvé {
+        retourne nul
+    }
+
+    strtab := donne_section(fichier, ".strtab")
+    indice_nom := donne_ou_ajoute_chaine(strtab, nom)
+
+    nombre_d_entrée_par_page := TAILLE_PAGE / taille_de(Elf64_Sym)
+    indice_page := indice_symbole / nombre_d_entrée_par_page
+    indice_entrée := (indice_symbole % nombre_d_entrée_par_page) * taille_de(Elf64_Sym)
+
+    page := *symtab.fichier.pages[indice_page]
+    résultat := *page.données[indice_entrée] comme *Elf64_Sym
+
+    assert(résultat.st_name == indice_nom)
+    retourne résultat
+}
+
 donne_indice_symbole :: fonc (fichier: *Maçonne_ELF64, symbole: *Elf64_Sym) -> z64
 {
     symtab := donne_section(fichier, ".symtab")
