@@ -390,6 +390,7 @@ parse_external_declaration :: fonc (empl parseuse: *ParseuseC) -> *ASTNode
                 }
 
                 var_decl := déclaration comme *VarDecl
+                var_decl.storage_class_specifier = déclaration_courante.storage_class_specifier
                 var_decl.initializer = initializer
             }
 
@@ -425,8 +426,18 @@ parse_external_declaration :: fonc (empl parseuse: *ParseuseC) -> *ASTNode
             résultat.nom = function_decl.nom
             résultat.type_expression = function_decl.type_expression
             résultat.statement = statement
+            résultat.storage_class_specifier = déclaration_courante.storage_class_specifier
             retourne résultat
         }
+    }
+
+    si déclaration.genre == VarDecl {
+        var_decl := déclaration comme *VarDecl
+        var_decl.storage_class_specifier = déclaration_courante.storage_class_specifier
+    }
+    sinon si déclaration.genre == FunctionDecl {
+        function_decl := déclaration comme *FunctionDecl
+        function_decl.storage_class_specifier = déclaration_courante.storage_class_specifier
     }
 
     consomme_ponctuation(parseuse, ";")

@@ -28,6 +28,20 @@ StaticAssert :: struct {
     message: chaine
 }
 
+Linkage :: énum n8 {
+    NONE
+    EXTERNAL
+    INTERNAL
+}
+
+/* 6.2.4 Storage durations of objects */
+Storage_Duration :: énum n8 {
+    AUTOMATIC
+    ALLOCATED
+    STATIC
+    THREAD
+}
+
 VarDecl :: struct {
     empl node: ASTNode
     genre = #type_de_cette_structure
@@ -35,6 +49,10 @@ VarDecl :: struct {
     nom: chaine
     type_expression: *Expression
     initializer: *Expression
+
+    storage_class_specifier: chaine
+    storage_duration: Storage_Duration
+    linkage: Linkage
 }
 
 BuiltinFunctionType :: énum {
@@ -54,6 +72,8 @@ FunctionDecl :: struct {
     nom: chaine
     type_expression: *FunctionTypeExpression
     params: [..]*ParamDecl
+    storage_class_specifier: chaine
+    linkage: Linkage
 }
 
 FunctionDefinition :: struct {
@@ -63,6 +83,8 @@ FunctionDefinition :: struct {
     nom: chaine
     type_expression: *FunctionTypeExpression
     params: [..]*ParamDecl
+    storage_class_specifier: chaine
+    linkage: Linkage
     statement: *CompoundStatement
 }
 

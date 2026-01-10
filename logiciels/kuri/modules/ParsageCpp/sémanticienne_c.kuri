@@ -119,6 +119,19 @@ valide_sémantique_noeud :: fonc (empl sémanticienne: *SémanticienneC, node: *
                 valide_sémantique_noeud(sémanticienne, var_decl.initializer)
             }
 
+            si var_decl.storage_class_specifier == "static" {
+                var_decl.linkage = Linkage.INTERNAL
+                var_decl.storage_duration = Storage_Duration.STATIC
+            }
+            sinon si var_decl.storage_class_specifier == "extern" {
+                var_decl.linkage = Linkage.EXTERNAL
+            }
+            sinon si var_decl.storage_class_specifier == "" {
+                saufsi fonction_courante {
+                    var_decl.linkage = Linkage.EXTERNAL
+                }
+            }
+
             insère_symbole(*table_de_symboles, var_decl.nom, var_decl)
         }
         FieldDecl {
@@ -142,6 +155,16 @@ valide_sémantique_noeud :: fonc (empl sémanticienne: *SémanticienneC, node: *
 
             function.type = résoud_type_final(sémanticienne, function.type_expression)
 
+            si function.storage_class_specifier == "static" {
+                function.linkage = Linkage.INTERNAL
+            }
+            sinon si function.storage_class_specifier == "extern" {
+                function.linkage = Linkage.EXTERNAL
+            }
+            sinon si function.storage_class_specifier == "" {
+                function.linkage = Linkage.EXTERNAL
+            }
+
             dépile_bloc(*table_de_symboles)
         }
         FunctionDefinition {
@@ -159,6 +182,16 @@ valide_sémantique_noeud :: fonc (empl sémanticienne: *SémanticienneC, node: *
 
             fonction_courante = function
             diffère fonction_courante = nul
+
+            si function.storage_class_specifier == "static" {
+                function.linkage = Linkage.INTERNAL
+            }
+            sinon si function.storage_class_specifier == "extern" {
+                function.linkage = Linkage.EXTERNAL
+            }
+            sinon si function.storage_class_specifier == "" {
+                function.linkage = Linkage.EXTERNAL
+            }
 
             valide_sémantique_noeud(sémanticienne, function.statement)
 
