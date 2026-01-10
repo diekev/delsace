@@ -191,7 +191,8 @@ donne_ou_crée_symbole :: fonc (empl maçonne: *Maçonne_ELF64, nom: chaine, typ
 {
     symtab := donne_section(maçonne, ".symtab")
 
-    strtab := donne_section(maçonne, ".strtab")
+    assert(symtab.lien != nul)
+    strtab := symtab.lien
     indice_nom := donne_ou_ajoute_chaine(strtab, nom)
 
     résultat: *Elf64_Sym
@@ -236,7 +237,8 @@ donne_symbole :: fonc (empl fichier: *Maçonne_ELF64, nom: chaine) -> *Elf64_Sym
         retourne nul
     }
 
-    strtab := donne_section(fichier, ".strtab")
+    assert(symtab.lien != nul)
+    strtab := symtab.lien
     indice_nom := donne_ou_ajoute_chaine(strtab, nom)
 
     nombre_d_entrée_par_page := TAILLE_PAGE / taille_de(Elf64_Sym)
