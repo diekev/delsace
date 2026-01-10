@@ -24,6 +24,8 @@ Données_Section_ELF64 :: struct {
 
     /* Données de la section. */
     fichier: Fichier_Pagé
+    /* Pour les sections n'ayant aucune données (par exemple .bss) */
+    taille_réservée: n32
 }
 
 donne_ou_ajoute_chaine :: fonc (empl section: *Données_Section_ELF64, chn: chaine) -> Elf64_Word
@@ -334,10 +336,15 @@ donne_indice_symbole :: fonc (fichier: *Maçonne_ELF64, symbole: *Elf64_Sym) -> 
 
     /* Sections. */
     pour fichier.sections {
-        it.entête.sh_size = donne_taille(*it.fichier);
-
         it.entête.sh_offset = décalage_section;
-        décalage_section += it.entête.sh_size;
+
+        si it.type == TypeSection.AucunBits {
+            it.entête.sh_size = it.taille_réservée
+        }
+        sinon {
+            it.entête.sh_size = donne_taille(*it.fichier);
+            décalage_section += it.entête.sh_size;
+        }
 
         pour page dans it.fichier.pages {
             page.données.taille = page.occupé comme z64
