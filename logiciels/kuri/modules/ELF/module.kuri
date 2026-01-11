@@ -40,10 +40,15 @@ entête_fichier :: fonc (fichier: *FichierELF) -> *EntêteELF64
     retourne fichier.contenu.pointeur comme *EntêteELF64
 }
 
-entête_section :: fonc (fichier: *FichierELF, indice: Elf32_Half) -> *EntêteSectionELF64
+entête_section :: fonc (fichier: *FichierELF, indice: Elf64_Word) -> *EntêteSectionELF64
 {
     entête := fichier.entête_fichier()
-    retourne (fichier.contenu.pointeur + entête.e_shoff + indice * taille_de(EntêteSectionELF64)) comme *EntêteSectionELF64
+    décalage := entête.e_shoff + indice * taille_de(EntêteSectionELF64)
+    si décalage comme z64 >= fichier.contenu.taille {
+        imprimeln("La section à l'indice '%' est hors des limites du fichier.", indice)
+        retourne nul
+    }
+    retourne (fichier.contenu.pointeur + décalage) comme *EntêteSectionELF64
 }
 
 trouve_section :: fonc (fichier: *FichierELF, type: TypeSection) -> *EntêteSectionELF64
