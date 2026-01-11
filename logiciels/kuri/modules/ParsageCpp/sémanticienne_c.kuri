@@ -116,7 +116,12 @@ valide_sémantique_noeud :: fonc (empl sémanticienne: *SémanticienneC, node: *
             }
 
             si var_decl.initializer {
-                valide_sémantique_noeud(sémanticienne, var_decl.initializer)
+                si var_decl.initializer.genre == InitializerList {
+                    valide_initializer_list(sémanticienne, var_decl, var_decl.type, var_decl.initializer comme *InitializerList)
+                }
+                sinon {
+                    valide_sémantique_noeud(sémanticienne, var_decl.initializer)
+                }
             }
 
             si var_decl.storage_class_specifier == "static" {
@@ -938,6 +943,47 @@ valide_sémantique_generic :: fonc (sémanticienne: *SémanticienneC, generic: *
     valide_sémantique_noeud(sémanticienne, generic.selected_expression)
 }
 
+valide_initializer_list :: fonc (empl sémanticienne: *SémanticienneC, objet_racine: *VarDecl, type_objet: *Type, initializer: *InitializerList)
+{
+    si type_objet.kind != TypeKind.INCOMPLETE_ARRAY && type_objet.drapeaux.COMPLET == faux {
+        rapporte_erreur(sémanticienne, initializer, "impossible d'initialiser un objet du type incomplet '%'", donne_épelage_type(type_objet))
+    }
+
+    si type_objet.kind == TypeKind.CONSTANT_ARRAY {
+        type_array := type_objet comme *ConstantArray
+        type_élément := type_array.element_type
+
+        si initializer.initializers.taille > type_array.size comme z64 {
+            rapporte_erreur(sémanticienne, initializer, "trop d'éléments pour le type à initialiser : attendus au plus %, obtenus %", type_array.size, initializer.initializers.taille);
+        }
+
+        pour initializer.initializers {
+            valide_sémantique_noeud(sémanticienne, it)
+
+            saufsi types_sont_compatibles_pour_assignation_simple(type_élément, it.type) {
+                rapporte_erreur(sémanticienne, it, "types incompatibles pour l'initialisation : '%' et '%'", donne_épelage_type(type_élément), donne_épelage_type(it.type))
+            }
+        }
+    }
+    sinon si type_objet.kind == TypeKind.INCOMPLETE_ARRAY {
+        type_array := type_objet comme *IncompleteArray
+        type_élément := type_array.element_type
+
+        pour initializer.initializers {
+            valide_sémantique_noeud(sémanticienne, it)
+
+            saufsi types_sont_compatibles_pour_assignation_simple(type_élément, it.type) {
+                rapporte_erreur(sémanticienne, it, "types incompatibles pour l'initialisation : '%' et '%'", donne_épelage_type(type_élément), donne_épelage_type(it.type))
+            }
+        }
+
+        objet_racine.type = crée_type_tableau(*unit.maçonne_type, type_élément, initializer.initializers.taille comme n64)
+    }
+    sinon {
+        rapporte_erreur_interne(sémanticienne, initializer, "initialisateur pour type '%' non-supporté", donne_épelage_type(type_objet))
+    }
+}
+
 /* 6.3.2.1 Lvalues, arrays, and function designators */
 est_lvalue :: fonc (expression: *Expression) -> bool
 {
@@ -1508,6 +1554,8 @@ crée_type_tableau_incomplet :: fonc (empl maçonne: *Maçonne_Type, element_typ
     retourne résultat;
 }
 
+#portée_export
+
 crée_type_pointeur :: fonc (empl maçonne: *Maçonne_Type, pointed_to: *Type) -> *PointerType
 {
     pour types_pointeurs {
@@ -1528,6 +1576,8 @@ crée_type_pointeur :: fonc (empl maçonne: *Maçonne_Type, pointed_to: *Type) -
 
     retourne résultat;
 }
+
+#portée_module
 
 /** \} */
 
