@@ -1190,7 +1190,7 @@ parse_declaration_specifiers :: fonc (empl parseuse: *ParseuseC, déclaration: *
             déclaration.type_résolu = crée_type_ref(*créatrice, Token(), parseuse.unit.maçonne_type.float128_type)
         }
         sinon {
-            panique("type_specifiers non-gérés : %", type_specifiers)
+            rapporte_erreur(parseuse, épie_lexème_suivant(parseuse), "attendu un spécifiant de type")
         }
     }
 }
