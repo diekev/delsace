@@ -357,7 +357,9 @@ donne_indice_symbole :: fonc (fichier: *Maçonne_ELF64, symbole: *Elf64_Sym) -> 
 
     /* Sections. */
     pour fichier.sections {
-        it.entête.sh_offset = décalage_section;
+        si indice_it > 0 {
+            it.entête.sh_offset = décalage_section;
+        }
 
         si it.type == TypeSection.AucunBits {
             it.entête.sh_size = it.taille_réservée
