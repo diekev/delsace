@@ -646,29 +646,32 @@ donne_nom_section_symbole :: fonc (empl table: *TableDesSymboles, symbole: *Symb
     index_entête_section := symbole.st_shndx
 
     discr index_entête_section {
-        0 {
-            // SHN_UNDEF
+        SHN_UNDEF {
             retourne "UND"
         }
-        0xff00 {
-            // SHN_LORESERVE ou SHN_LOPROC
+        SHN_LORESERVE, SHN_LOPROC {
             retourne "LOP"
         }
-        0xff1f {
-            // SHN_HIPROC
+        SHN_HIPROC {
             retourne "HIP"
         }
-        0xfff1 {
-            // SHN_ABS
+        SHN_LOOS {
+            retourne "LOOS"
+        }
+        SHN_HIOS {
+            retourne "HIOS"
+        }
+        SHN_ABS {
             retourne "ABS"
         }
-        0xfff2 {
-            // SHN_COMMON
+        SHN_COMMON {
             retourne "COM"
         }
-        0xffff {
-            // SHN_HIRESERVE
-            retourne "HIR"
+        SHN_XINDEX {
+            retourne "XINDEX"
+        }
+        SHN_HIRESERVE {
+            retourne "HIRESERVE"
         }
         sinon {}
     }

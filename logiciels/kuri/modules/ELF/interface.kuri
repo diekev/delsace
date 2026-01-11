@@ -37,6 +37,17 @@ Elf64_Versym :: Elf64_Half
 
 /** \} */
 
+SHN_UNDEF : Elf32_Section : 0
+SHN_LORESERVE : Elf32_Section : 0xff00
+SHN_LOPROC : Elf32_Section : 0xff00
+SHN_HIPROC : Elf32_Section : 0xff1f
+SHN_LOOS : Elf32_Section : 0xff20
+SHN_HIOS : Elf32_Section : 0xff3f
+SHN_ABS : Elf32_Section : 0xfff1
+SHN_COMMON : Elf32_Section : 0xfff2
+SHN_XINDEX : Elf32_Section : 0xffff
+SHN_HIRESERVE : Elf32_Section : 0xffff
+
 /* The ELF file header.  This appears at the start of every ELF file.  */
 
 EI_NIDENT :: 16
