@@ -463,7 +463,7 @@ donne_nom_macro_type_section :: fonc (type_section: TypeSection) -> chaine
         ShLib { retourne "SHLIB" }
         SymboleDynamique { retourne "DYNSYM" }
         TableConstructeurs { retourne "INIT_ARRAY" }
-        TableDesctructeurs { retourne "FINI_ARRAY" }
+        TableDestructeurs { retourne "FINI_ARRAY" }
         TablePréConstructeurs { retourne "À FAIRE" }
         GroupeDeSection { retourne "À FAIRE" }
         IndexSectionÉtendue { retourne "À FAIRE" }
