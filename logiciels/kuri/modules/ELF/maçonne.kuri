@@ -92,7 +92,7 @@ initialise_maçonne_pour_fichier_objet :: fonc (maçonne: *Maçonne_ELF64)
 
     maçonne.type_fichier = TypeFichierObjet.REL;
 
-    _ := crée_section(maçonne, "", SHT_NULL);
+    section_zéro := crée_section(maçonne, "", SHT_NULL);
 
     text := crée_section(maçonne, ".text", SHT_PROGBITS);
     text.alignement = 16
@@ -105,6 +105,7 @@ initialise_maçonne_pour_fichier_objet :: fonc (maçonne: *Maçonne_ELF64)
 
     shstrtab := crée_section(maçonne, ".shstrtab", SHT_STRTAB);
     shstrtab.alignement = 1
+    section_zéro.lien = shstrtab
 
     symtab.lien = strtab
 
