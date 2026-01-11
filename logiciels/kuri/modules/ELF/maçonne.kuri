@@ -51,7 +51,6 @@ donne_valeur_sh_info :: fonc (maçonne: *Maçonne_ELF64, section: *Données_Sect
     résultat: Elf64_Word
 
     si section.type == SHT_SYMTAB {
-        // @Validation,linux
         // One greater than the symbol table index of the last local symbol (binding STB_LOCAL)
 
         pour section.fichier.pages {
@@ -68,11 +67,11 @@ donne_valeur_sh_info :: fonc (maçonne: *Maçonne_ELF64, section: *Données_Sect
         }
     }
     sinon si section.type == SHT_DYNSYM {
+        // @Validation,linux
         // One greater than the symbol table index of the last local symbol (binding STB_LOCAL)
         assert(faux)
     }
     sinon si section.type == SHT_REL || section.type == SHT_RELA {
-        // @Validation
         assert(section.destination_rel != nul)
 
         // The section header index of the section to which the relocation applies.
@@ -107,15 +106,14 @@ initialise_maçonne_pour_fichier_objet :: fonc (maçonne: *Maçonne_ELF64)
     shstrtab := crée_section(maçonne, ".shstrtab", SHT_STRTAB);
     shstrtab.alignement = 1
 
-    // @Validation,linux définis sh_link
     symtab.lien = strtab
+
+    // @Validation,linux définis sh_link
     // .dynsym The section header index of the associated string table
 
-    // @Validation
     // Alloue le symbole indéfini
     _ := loge_en_un_seul_morceau(*symtab.fichier, Elf64_Sym);
 
-    // @Validation
     // Alloue les chaines nulles
     _ := donne_ou_ajoute_chaine(strtab, "");
     _ := donne_ou_ajoute_chaine(shstrtab, "");
@@ -148,7 +146,6 @@ crée_section_de_réadressage :: fonc (empl maçonne: *Maçonne_ELF64, nom: chai
 
     résultat := crée_section(maçonne, nom, type)
     résultat.alignement = 8
-    // @Validation,linux définis sh_link
     // .rel, .rela The section header index of the associated symbol table.
     résultat.lien = table_de_symboles
     résultat.destination_rel = destination
@@ -186,7 +183,7 @@ donne_indice_section :: fonc (empl maçonne: *Maçonne_ELF64, nom: chaine) -> z6
     retourne -1
 }
 
-// @Validation À FAIRE : In each symbol table, all symbols with STB_LOCAL binding precede the weak and global symbols.
+// À FAIRE : In each symbol table, all symbols with STB_LOCAL binding precede the weak and global symbols.
 donne_ou_crée_symbole :: fonc (empl maçonne: *Maçonne_ELF64, nom: chaine, type: TypeSymbole, liaison: LiaisonSymbole, section: *Données_Section_ELF64) -> *Elf64_Sym
 {
     symtab := donne_section(maçonne, ".symtab")
@@ -340,7 +337,6 @@ donne_indice_symbole :: fonc (fichier: *Maçonne_ELF64, symbole: *Elf64_Sym) -> 
         entête_section.sh_info = donne_valeur_sh_info(fichier, it);
         entête_section.sh_addralign = it.alignement;
 
-        // @Validation
         si it.type == SHT_SYMTAB {
             entête_section.sh_entsize = taille_de(Elf64_Sym);
         }
