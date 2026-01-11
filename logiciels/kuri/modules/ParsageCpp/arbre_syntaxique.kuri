@@ -292,6 +292,8 @@ FieldDecl :: struct {
 
 Drapeaux_Expression :: énum_drapeau {
     LVALUE
+
+    OPÉRANDE_SIZEOF
 }
 
 Expression :: struct {

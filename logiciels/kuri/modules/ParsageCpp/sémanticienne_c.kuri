@@ -309,7 +309,7 @@ valide_sémantique_noeud :: fonc (empl sémanticienne: *SémanticienneC, node: *
             reference.referred_declaration = var_existante
             reference.type = var_existante.type
 
-            si reference.type.drapeaux.ARRAY {
+            si reference.type.drapeaux.ARRAY && reference.drapeaux.OPÉRANDE_SIZEOF == faux {
                 // À FAIRE : Except when it is the operand of the sizeof operator,
                 //           the _Alignof operator, or the unary & operator, or is a
                 //           string literal used to initialize an array
@@ -638,6 +638,32 @@ valide_sémantique_noeud :: fonc (empl sémanticienne: *SémanticienneC, node: *
                     rapporte_erreur(sémanticienne, cast, "impossible de transtyper un type pointeur vers un type flottant")
                 }
             }
+        }
+        SizeOfExpression {
+            sizeof := node comme *SizeOfExpression
+
+            /* Nous le mettons en place ici afin de ne pas compliquer la parseuse. */
+            sizeof.operand.drapeaux.OPÉRANDE_SIZEOF = vrai
+
+            si sizeof.operand.genre == TypeNameExpression {
+                sizeof.operand.type = résoud_type_final(sémanticienne, sizeof.operand);
+            }
+            sinon {
+                valide_sémantique_noeud(sémanticienne, sizeof.operand);
+            }
+
+            type_opérande := sizeof.operand.type
+
+            si type_opérande.drapeaux.FUNCTION {
+                rapporte_erreur(sémanticienne, sizeof.operand, "impossible d'utiliser sizeof sur un type fonction");
+            }
+            sinon si type_opérande.drapeaux.COMPLET == faux {
+                rapporte_erreur(sémanticienne, sizeof.operand, "impossible d'utiliser sizeof sur le type incomplet '%'", donne_épelage_type(type_opérande))
+            }
+            // À FAIRE : or to an expression that designates a bit-field member.
+            // À FAIRE : variable length array
+
+            sizeof.type = unit.maçonne_type.size_t_type
         }
         PointerType {
 
@@ -1356,6 +1382,8 @@ Maçonne_Type :: struct {
     void_type: *Type
     void_ptr_type: *Type
     variadic_type: *Type
+
+    size_t_type: *Type
 }
 
 initialise_types_fondamenteaux :: fonc (empl maçonne: *Maçonne_Type)
@@ -1388,6 +1416,8 @@ initialise_types_fondamenteaux :: fonc (empl maçonne: *Maçonne_Type)
     void_type = crée_type(*créatrice, TypeKind.VOID)
     assert(void_type.drapeaux.COMPLET == faux)
     void_ptr_type = crée_type_pointeur(maçonne, void_type)
+
+    size_t_type = int_long_unsigned_type
 }
 
 crée_type_fondamental :: fonc (créatrice: *CréatriceNoeuds, kind: TypeKind, taille_en_octet: n32, drapeaux: Drapeaux_Type) -> *Type
