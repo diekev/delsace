@@ -21,6 +21,34 @@ FichierELF :: struct {
     contenu: []octet
 }
 
+est_fichier_elf :: fonc (contenu: []octet) -> bool
+{
+    si contenu.taille < taille_de(Elf64_Ehdr) comme z64 {
+        imprimeln("Fichier trop petit.");
+        retourne faux;
+    }
+
+    entête := contenu.pointeur comme *Elf64_Ehdr;
+
+    magique := [ELFMAG0, ELFMAG1, ELFMAG2, ELFMAG3];
+    pour magique {
+        si entête.e_ident[indice_it] != it {
+            imprimeln("Pas un fichier ELF.");
+            retourne faux;
+        }
+    }
+
+    version := donne_version_fichier(entête);
+    saufsi version == EV_CURRENT {
+        imprimeln("Version ELF '%' non-supportée.", version)
+        retourne faux;
+    }
+
+    // À FAIRE : valide le reste de l'entête
+
+    retourne vrai;
+}
+
 /* Crée un fichier ELF à partir du contenu de fichier donné.
  *
  * NOTE : le code de ce module suppose que le contenu du fichier survie à
