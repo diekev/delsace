@@ -246,6 +246,14 @@ TypedefDecl :: struct {
     underlying_type: *Expression
 }
 
+Field_Info :: struct {
+    decl: *FieldDecl
+    nom: chaine
+    type: *Type
+    décalage: n32
+    est_rembourrage: bool
+}
+
 StructDecl :: struct {
     empl base_type: Type
     genre = #type_de_cette_structure
@@ -253,6 +261,8 @@ StructDecl :: struct {
 
     name: chaine
     declarations: [..]*ASTNode
+
+    field_infos: [..]Field_Info
 }
 
 UnionDecl :: struct {
@@ -262,6 +272,8 @@ UnionDecl :: struct {
 
     name: chaine
     declarations: [..]*ASTNode
+
+    field_infos: [..]Field_Info
 }
 
 EnumDecl :: struct {

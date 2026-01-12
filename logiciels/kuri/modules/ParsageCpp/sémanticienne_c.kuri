@@ -80,30 +80,121 @@ valide_sémantique_noeud :: fonc (empl sémanticienne: *SémanticienneC, node: *
         StructDecl {
             struct_decl := node comme *StructDecl
 
+            field_infos: [..]Field_Info
+            diffère déloge(field_infos)
+
             pour struct_decl.declarations {
                 valide_sémantique_noeud(sémanticienne, it)
+
+                si it.genre == FieldDecl {
+                    info := tableau_ajoute_élément(*field_infos);
+                    info.decl = it comme *FieldDecl;
+                    info.nom = info.decl.name;
+                    info.type = info.decl.type;
+                }
+            }
+
+            // À FAIRE : valide proprement (redéfinition, typages, etc.)
+
+            si field_infos {
+                taille_courante: n32;
+                alignement_max: n32;
+
+                pour field_infos {
+                    si it.type.drapeaux.COMPLET == faux {
+                        rapporte_erreur(sémanticienne, it.decl, "une structure ne peut avoir de rubrique du type incomplet '%'", donne_épelage_type(it.type));
+                    }
+
+                    si it.type.alignement == 0 {
+                        rapporte_erreur_interne(sémanticienne, it.decl, "impossible de déterminer l'alignement du type");
+                    }
+
+                    rembourrage := (it.type.alignement - taille_courante % it.type.alignement) % it.type.alignement;
+                    si rembourrage {
+                        info := tableau_ajoute_élément(*struct_decl.field_infos);
+                        info.est_rembourrage = vrai
+                        info.type = crée_type_tableau(*unit.maçonne_type, unit.maçonne_type.char_unsigned_type, rembourrage)
+                        info.décalage = taille_courante
+                    }
+
+                    taille_courante += rembourrage;
+                    it.décalage = taille_courante;
+
+                    taille_courante += it.type.taille_en_octet;
+
+                    si it.type.alignement > alignement_max {
+                        alignement_max = it.type.alignement;
+                    }
+
+                    tableau_ajoute(*struct_decl.field_infos, it);
+                }
+
+                si alignement_max != 0 {
+                    rembourrage := (alignement_max - taille_courante % alignement_max) % alignement_max;
+                    si rembourrage {
+                        info := tableau_ajoute_élément(*struct_decl.field_infos);
+                        info.est_rembourrage = vrai
+                        info.type = crée_type_tableau(*unit.maçonne_type, unit.maçonne_type.char_unsigned_type, rembourrage)
+                        info.décalage = taille_courante
+                    }
+                    taille_courante += rembourrage;
+                }
+
+                struct_decl.taille_en_octet = taille_courante;
+                struct_decl.alignement = alignement_max;
+                struct_decl.drapeaux.COMPLET = vrai;
             }
 
             si struct_decl.name {
                 insère_symbole(*table_de_symboles, struct_decl.name, struct_decl)
             }
-
-            // À FAIRE : redéfinition
-            // À FAIRE : calcul taille
         }
         UnionDecl {
             union_decl := node comme *UnionDecl
 
             pour union_decl.declarations {
                 valide_sémantique_noeud(sémanticienne, it)
+
+                si it.genre == FieldDecl {
+                    info := tableau_ajoute_élément(*union_decl.field_infos);
+                    info.decl = it comme *FieldDecl;
+                    info.nom = info.decl.name;
+                    info.type = info.decl.type;
+                }
+            }
+
+            // À FAIRE : valide proprement (redéfinition, typages, etc.)
+
+            si union_decl.field_infos {
+                taille_max: n32
+                alignement_max: n32
+
+                pour * union_decl.field_infos {
+                    si it.type.drapeaux.COMPLET == faux {
+                        rapporte_erreur(sémanticienne, it.decl, "une union ne peut avoir de rubrique du type incomplet '%'", donne_épelage_type(it.type))
+                    }
+
+                    si it.type.alignement == 0 {
+                        rapporte_erreur_interne(sémanticienne, it.decl, "Impossible de déterminer l'alignement du type")
+                    }
+
+                    si it.type.taille_en_octet > taille_max {
+                        taille_max = it.type.taille_en_octet
+                    }
+
+                    si it.type.alignement > alignement_max {
+                        alignement_max = it.type.alignement
+                    }
+                }
+
+                union_decl.taille_en_octet = taille_max
+                union_decl.alignement = alignement_max
+                union_decl.drapeaux.COMPLET = vrai;
             }
 
             si union_decl.name {
                 insère_symbole(*table_de_symboles, union_decl.name, union_decl)
             }
-
-            // À FAIRE : redéfinition
-            // À FAIRE : calcul taille
         }
         VarDecl {
             var_decl := node comme *VarDecl
@@ -141,7 +232,8 @@ valide_sémantique_noeud :: fonc (empl sémanticienne: *SémanticienneC, node: *
         }
         FieldDecl {
             field := node comme *FieldDecl
-            _ := résoud_type_final(sémanticienne, field.type_expression)
+            valide_sémantique_noeud(sémanticienne, field.type_expression)
+            field.type = résoud_type_final(sémanticienne, field.type_expression)
         }
         TypeRef {
             type_ref := node comme *TypeRef
@@ -678,6 +770,11 @@ valide_sémantique_noeud :: fonc (empl sémanticienne: *SémanticienneC, node: *
         }
         PointerTypeExpression {
 
+        }
+        ConstantArrayExpression {
+            constant_array := node comme *ConstantArrayExpression;
+            valide_sémantique_noeud(sémanticienne, constant_array.size_expression);
+            valide_sémantique_noeud(sémanticienne, constant_array.element_type);
         }
         sinon {
             info := node.genre comme *InfoTypeStructure
