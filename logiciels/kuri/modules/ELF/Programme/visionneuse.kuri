@@ -19,6 +19,20 @@ importe Tabulation
 importe Triage
 importe Typographie
 
+/*
+
+À FAIRE :
+
+ - cliquer sur un symbole pour afficher sa section (au bon décalage ?)
+ - désassemblage des sections EXECINSTR
+ - affichage des propriétés des sections dans une barre latérale
+ - utilisation des bonnes sections de table de symboles, etc.
+ - affichage des liens entre sections
+ - affichage d'une visualisation binaires des données hex
+ - filtrage, triage des colonnes
+
+*/
+
 principale :: fonc ()
 {
     TAILLE_ARÈNE_TRANSIENTE :: 32 * 1024 * 1024
