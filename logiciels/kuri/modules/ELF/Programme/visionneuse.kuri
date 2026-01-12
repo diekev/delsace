@@ -7,6 +7,7 @@ importe DWARF
 importe ELF
 importe Flux
 importe Fondation
+importe Image
 importe InfosInterface
 importe Guettage
 importe Krypto
@@ -19,16 +20,32 @@ importe Tabulation
 importe Triage
 importe Typographie
 
+/*
+
+À FAIRE :
+
+ - cliquer sur un symbole pour afficher sa section (au bon décalage ?)
+ - désassemblage des sections EXECINSTR
+ - affichage des propriétés des sections dans une barre latérale
+ - utilisation des bonnes sections de table de symboles, etc.
+ - affichage des liens entre sections
+ - filtrage, triage des colonnes
+
+*/
+
 principale :: fonc ()
 {
+    TAILLE_ARÈNE_PERMANENTE :: 32 * 1024 * 1024
     TAILLE_ARÈNE_TRANSIENTE :: 32 * 1024 * 1024
-    taille_mémoire_application := TAILLE_ARÈNE_TRANSIENTE
+    taille_mémoire_application := TAILLE_ARÈNE_TRANSIENTE + TAILLE_ARÈNE_PERMANENTE
     mémoire_application := loge_tableau(octet, taille_mémoire_application)
 
     visionneuse: VisionneuseELF
     diffère détruit_données(*visionneuse)
 
-    mémoire_arène_transiente := mémoire_application.pointeur
+    mémoire_arène_permanente := mémoire_application.pointeur
+    mémoire_arène_transiente := mémoire_application.pointeur + TAILLE_ARÈNE_PERMANENTE
+    initialise_arène(*visionneuse.arène, mémoire_arène_permanente, TAILLE_ARÈNE_PERMANENTE comme n64)
     initialise_arène(*visionneuse.arène_transiente, mémoire_arène_transiente, TAILLE_ARÈNE_TRANSIENTE comme n64)
 
     args := tableau_avance(arguments_ligne_commande())
@@ -54,6 +71,24 @@ principale :: fonc ()
             si it.type == TypeÉvènement.Fermeture {
                 doit_fermer = vrai
                 arrête
+            }
+
+            si it.type == TypeÉvènement.Déposage {
+                pour mime dans it.mimes {
+                    si mime.type == "text/uri-list" {
+                        fichiers := divise(mime.données, "\r\n")
+                        diffère déloge(fichiers)
+                        pour fichier dans fichiers {
+                            schéma := "file://"
+                            si commence_par(fichier, schéma) {
+                                fichier = avance(fichier, schéma.taille)
+                            }
+                            ouvre_fichier_elf(*visionneuse, CheminFichier(fichier))
+                        }
+                    }
+                }
+
+                continue
             }
 
             // si app.guetteuse && gère_évènement(app.guetteuse, it) == ÉtatÉvènement.CONSOMMÉ {
@@ -82,6 +117,67 @@ Onglet :: struct {
     nom: chaine
     type_section: TypeSection
     tabuleuse: Tabuleuse
+    image_binaire: NouvelleImage
+}
+
+donne_image_visualisation_binaire :: fonc (visionneuse: *VisionneuseELF, onglet: *Onglet, données: []octet) -> NouvelleImage
+{
+    si onglet.image_binaire.desc.largeur == 0 {
+        desc: DescriptriceImage
+        desc.largeur = 256
+        desc.hauteur = 256
+        desc.format = FormatPixel.Gris_8
+        desc.direction = DirectionImage.BasEnHaut
+
+        taille_pixels := donne_taille_données(*desc)
+
+        pixels := loge_tableau(*visionneuse.arène, taille_pixels comme n32, octet)
+        tableau_remplis_avec(pixels, 0)
+
+        onglet.image_binaire.desc = desc
+        onglet.image_binaire.données = pixels.pointeur
+        onglet.image_binaire.source_données = SourceDonnéesImage.Externe
+
+        mémoire_temporaire := commence_mémoire_temporaire(*visionneuse.arène_transiente)
+        diffère termine_mémoire_temporaire(mémoire_temporaire)
+
+        compteurs := loge_tableau(*visionneuse.arène_transiente, taille_pixels comme n32, n32)
+        tableau_remplis_avec(compteurs, 0)
+        compteur_max : n32 = 0
+
+        ptr_octet1 := données.pointeur
+        ptr_octet2 := ptr_octet1 + 1
+
+        pour données.taille - 1 {
+            octet1 := mémoire(ptr_octet1) comme n32
+            octet2 := mémoire(ptr_octet2) comme n32
+
+            indice := octet1 + octet2 * 256
+
+            compteurs[indice] += 1
+
+            si compteurs[indice] > compteur_max {
+                compteur_max = compteurs[indice]
+            }
+
+            ptr_octet1 += 1
+            ptr_octet2 += 1
+        }
+
+        si compteur_max >= 1 {
+            log_compteur_max := log(compteur_max comme r32)
+
+            pour compteurs {
+                si it >= 1 {
+                    valeur := log(it comme r32) / log_compteur_max
+                    // À FAIRE(langage) : permet de convertir r32 vers octet
+                    pixels[indice_it] = (valeur * 255.0 + 0.5) comme n8 comme octet
+                }
+            }
+        }
+    }
+
+    retourne onglet.image_binaire
 }
 
 /** \} */
@@ -91,6 +187,7 @@ Onglet :: struct {
  * \{ */
 
 DonnéesFichier :: struct {
+    chemin: CheminFichier
     fichier: *FichierELF
     contenu: [..]octet
 
@@ -157,6 +254,7 @@ initialise_tailles_max_colonnes :: fonc (tabuleuse: *Tabuleuse, fonte: *Fonte)
 VisionneuseELF :: struct {
     fichiers: [..]DonnéesFichier
 
+    arène: ArèneMémoire
     arène_transiente: ArèneMémoire
     fichier_courant: z32
 
@@ -177,13 +275,31 @@ détruit_données :: fonc (visionneuse: *VisionneuseELF)
 
 ouvre_fichier_elf :: fonc (visionneuse: *VisionneuseELF, chemin: CheminFichier)
 {
-    _, contenu := contenu_fichier_binaire(chemin)
-    fichier := loge(FichierELF)
+    pour visionneuse.fichiers {
+        si it.chemin.chn == chemin.chn {
+            visionneuse.fichier_courant = (indice_it comme z32)
+            retourne
+        }
+    }
+
+    succès, contenu := contenu_fichier_binaire(chemin)
+    saufsi succès {
+        rapporte_erreur(visionneuse, "Impossible de lire le fichier")
+        retourne
+    }
+
+    saufsi est_fichier_elf(contenu) {
+        rapporte_erreur(visionneuse, "Pas un fichier ELF")
+        retourne
+    }
+
+    fichier := loge(*visionneuse.arène, FichierELF)
     initialise_fichier_elf(fichier, contenu)
 
     visionneuse.fichier_courant = (visionneuse.fichiers.taille comme z32)
 
     données_fichier := tableau_ajoute_élément(*visionneuse.fichiers)
+    données_fichier.chemin = copie_chemin(chemin)
     données_fichier.fichier = fichier
     données_fichier.contenu = contenu
 
@@ -193,6 +309,12 @@ ouvre_fichier_elf :: fonc (visionneuse: *VisionneuseELF, chemin: CheminFichier)
     onglet = tableau_ajoute_élément(*données_fichier.onglets)
     onglet.nom = "Sections"
 }
+
+rapporte_erreur :: fonc (visionneuse: *VisionneuseELF @inutilisée, format: chaine, args: ...eini)
+{
+    // À FAIRE : affiche l'erreur dans l'interface
+    imprimeln(format, ...args)
+} @Imprimeuse
 
 supprime_fichier_à_l_indice :: fonc (visionneuse: *VisionneuseELF, indice: z32)
 {
@@ -214,6 +336,7 @@ donne_fichier_courant :: fonc (visionneuse: *VisionneuseELF) -> *DonnéesFichier
 
 COULEUR_FOND := vers_couleur_rvba(CouleurRVBAN8(18, 18, 18, 255))
 COULEUR_ARRIÈRE_PLAN := vers_couleur_rvba(CouleurRVBAN8(22, 22, 22, 255))
+COULEUR_ITEM_ACTIVE := vers_couleur_rvba(CouleurRVBAN8(32, 32, 32, 255))
 COULEUR_TEXTE := vers_couleur_rvba(CouleurRVBAN8(205, 170, 125, 255))
 COULEUR_TEXTE_SURVOLÉ := vers_couleur_rvba(CouleurRVBAN8(125, 170, 205, 255))
 
@@ -253,16 +376,87 @@ crée_interface :: fonc (empl visionneuse: *VisionneuseELF, largeur: z32, hauteu
 
         si fichiers.taille == 0 {
             définis_disposition(cotation = Cotation(CROISSANTE(), CROISSANTE()), alignement_horizontal = AlignementEnfant.Milieu, alignement_vertical = AlignementEnfant.Milieu)
-            dispose_texte("Aucun fichier ouvert", config_texte_défaut)
+            dispose_texte("Glissez-déposez un ou plusieurs fichiers pour les ouvrir", config_texte_défaut)
         }
         sinon {
-            définis_disposition(cotation = Cotation(CROISSANTE(), CROISSANTE()))
+            définis_cotation(Cotation(CROISSANTE(), CROISSANTE()))
+            définis_direction(Direction.Horizontale)
+
+            espace_liste_fichiers := espace
+            espace_liste_fichiers.largeur = 300
+
+            // À FAIRE : barre de défilement
+            // À FAIRE : permet de redimensionner
+            // À FAIRE : affichage du chemin complet
+            dispose_rectangle()
+            {
+                définis_cotation(donne_cotation(espace_liste_fichiers))
+                définis_arrière_plan(COULEUR_ARRIÈRE_PLAN)
+                définis_direction(Direction.Verticale)
+                ajoute_bordure_droite(2.0, COULEUR_FOND)
+
+                métriques := donne_métriques_fonte(config_texte_défaut.fonte)
+                hauteur_de_ligne := métriques.donne_hauteur_ligne() comme z32
+                rembourrage := 8
+                hauteur_de_ligne += rembourrage * 2
+
+                dispose_rectangle()
+                {
+                    définis_cotation(CROISSANTE(), FIXE(hauteur_de_ligne))
+                    définis_rembourrage(RembourrageDifforme(rembourrage comme r32, rembourrage comme r32))
+                    ajoute_bordure_bas(2.0, COULEUR_FOND)
+
+                    texte := si visionneuse.fichiers.taille > 1 {
+                        "Fichiers ouverts"
+                    }
+                    sinon {
+                        "Fichier ouvert"
+                    }
+
+                    dispose_texte(texte, config_texte_défaut)
+                }
+                termine_rectangle()
+
+                pour visionneuse.fichiers {
+                    dispose_rectangle()
+                    {
+                        définis_cotation(CROISSANTE(), FIXE(hauteur_de_ligne))
+                        définis_rembourrage(RembourrageDifforme(rembourrage comme r32, rembourrage comme r32))
+                        ajoute_bordure_bas(2.0, COULEUR_FOND)
+
+                        si indice_it == visionneuse.fichier_courant {
+                            définis_arrière_plan(COULEUR_ITEM_ACTIVE)
+                        }
+
+                        sur_pression_souris(définis_fichier_courant, visionneuse, indice_it comme z32)
+
+                        nom := nom_fichier_avec_extension(it.chemin)
+                        dispose_texte(nom, config_texte_défaut)
+                    }
+                    termine_rectangle()
+                }
+            }
+            termine_rectangle()
+
+            espace.largeur = soustraction_sure(espace.largeur, espace_liste_fichiers.largeur)
             dessine_panneau_fichier(visionneuse, espace)
         }
     }
     termine_rectangle()
 
     retourne termine_disposition(*emboiteuse)
+}
+
+définis_fichier_courant :: fonc (vionneuse: *VisionneuseELF, souris: ClicSouris, id: n64 @inutilisée, indice_fichier: z32) -> ÉtatÉvènement
+{
+    résultat := ÉtatÉvènement.PASSE_AU_PARENT
+    si souris.bouton == BoutonSouris.PRIMAIRE {
+        si indice_fichier >= 0 && indice_fichier < vionneuse.fichiers.taille {
+            vionneuse.fichier_courant = indice_fichier
+            résultat = ÉtatÉvènement.CONSOMMÉ
+        }
+    }
+    retourne résultat
 }
 
 /** \} */
@@ -547,6 +741,7 @@ dessine_panneau_sections :: fonc (visionneuse: *VisionneuseELF, fichier: *Donné
 dessine_onglet_section :: fonc (visionneuse: *VisionneuseELF, fichier: *DonnéesFichier, onglet: *Onglet, espace: EspaceDisponible)
 {
     config_texte := config_texte_défaut
+    données_hex := faux
 
     si onglet.type_section == TypeSection.TableSymbole {
         donne_tabuleuse_symboles(fichier, visionneuse.fonte, *onglet.tabuleuse)
@@ -558,6 +753,7 @@ dessine_onglet_section :: fonc (visionneuse: *VisionneuseELF, fichier: *Données
         sinon si onglet.nom == ".rodata" {
             donne_tabuleuse_données_hex(fichier, visionneuse.fonte_mono, *onglet.tabuleuse, ".rodata")
             config_texte = config_texte_mono
+            données_hex = vrai
         }
         sinon si onglet.nom == ".eh_frame" {
             donne_tabuleuse_eh_frame(fichier, visionneuse.fonte_mono, *onglet.tabuleuse)
@@ -596,6 +792,7 @@ dessine_onglet_section :: fonc (visionneuse: *VisionneuseELF, fichier: *Données
         sinon {
             donne_tabuleuse_données_hex(fichier, visionneuse.fonte_mono, *onglet.tabuleuse, onglet.nom)
             config_texte = config_texte_mono
+            données_hex = vrai
         }
     }
     sinon si onglet.type_section == TypeSection.Dynamique {
@@ -616,13 +813,59 @@ dessine_onglet_section :: fonc (visionneuse: *VisionneuseELF, fichier: *Données
     sinon {
         donne_tabuleuse_données_hex(fichier, visionneuse.fonte_mono, *onglet.tabuleuse, onglet.nom)
         config_texte = config_texte_mono
+        données_hex = vrai
     }
 
-    _, barre := dispose_rectangle_défilable(espace, COULEUR_FOND)
+    dispose_rectangle()
     {
-        dessine_tabuleuse(visionneuse, *onglet.tabuleuse, vrai, config_texte, espace, barre.défilage)
+        définis_direction(Direction.Horizontale)
+
+        si données_hex {
+            espace.largeur = soustraction_sure(espace.largeur, 300)
+        }
+
+        _, barre := dispose_rectangle_défilable(espace, COULEUR_FOND)
+        {
+            dessine_tabuleuse(visionneuse, *onglet.tabuleuse, vrai, config_texte, espace, barre.défilage)
+        }
+        termine_rectangle_défilable()
+
+        si données_hex {
+            espace.largeur = 300
+
+            dispose_rectangle()
+            {
+                espace = ajoute_rembourage(espace, 8)
+                définis_cotation(donne_cotation(espace))
+                ajoute_bordure_gauche(2.0, COULEUR_FOND)
+                définis_direction(Direction.Verticale)
+
+                image_binaire: NouvelleImage
+
+                entête := entête_fichier(fichier.fichier)
+                si entête {
+                    section := trouve_section(fichier.fichier, onglet.nom)
+
+                    si section {
+                        données := donne_données_section(fichier.fichier, section)
+                        image_binaire = donne_image_visualisation_binaire(visionneuse, onglet, données)
+                    }
+                }
+
+                dispose_texte("Visualisation binaire", config_texte_défaut)
+
+                dispose_rectangle()
+                {
+                    définis_cotation(FIXE(espace.largeur), FIXE(284))
+                    définis_alignement(Alignement.Milieu)
+                    dispose_image(image_binaire, Cotation(FIXE(256), FIXE(256)))
+                }
+                termine_rectangle()
+            }
+            termine_rectangle()
+        }
     }
-    termine_rectangle_défilable()
+    termine_rectangle()
 }
 
 /* ------------------------------------------------------------------------- */
