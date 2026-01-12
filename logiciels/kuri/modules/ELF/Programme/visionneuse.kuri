@@ -177,7 +177,17 @@ détruit_données :: fonc (visionneuse: *VisionneuseELF)
 
 ouvre_fichier_elf :: fonc (visionneuse: *VisionneuseELF, chemin: CheminFichier)
 {
-    _, contenu := contenu_fichier_binaire(chemin)
+    succès, contenu := contenu_fichier_binaire(chemin)
+    saufsi succès {
+        rapporte_erreur(visionneuse, "Impossible de lire le fichier")
+        retourne
+    }
+
+    saufsi est_fichier_elf(contenu) {
+        rapporte_erreur(visionneuse, "Pas un fichier ELF")
+        retourne
+    }
+
     fichier := loge(FichierELF)
     initialise_fichier_elf(fichier, contenu)
 
@@ -193,6 +203,12 @@ ouvre_fichier_elf :: fonc (visionneuse: *VisionneuseELF, chemin: CheminFichier)
     onglet = tableau_ajoute_élément(*données_fichier.onglets)
     onglet.nom = "Sections"
 }
+
+rapporte_erreur :: fonc (visionneuse: *VisionneuseELF @inutilisée, format: chaine, args: ...eini)
+{
+    // À FAIRE : affiche l'erreur dans l'interface
+    imprimeln(format, ...args)
+} @Imprimeuse
 
 supprime_fichier_à_l_indice :: fonc (visionneuse: *VisionneuseELF, indice: z32)
 {
