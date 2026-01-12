@@ -110,6 +110,11 @@ espace_disque_disponible :: fonc (chemin: CheminFichier) -> Optionnel(n64)
     retourne système_espace_disque_disponible(chemin)
 }
 
+contenu_fichier_binaire :: fonc (chemin: chaine) -> (succès: bool, résultat: [..]octet)
+{
+    retourne contenu_fichier_binaire(CheminFichier(chemin))
+}
+
 contenu_fichier_binaire :: fonc (chemin: CheminFichier) -> (succès: bool, résultat: [..]octet)
 {
     contenu: [..]octet
