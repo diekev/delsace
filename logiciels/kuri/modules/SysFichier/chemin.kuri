@@ -313,6 +313,27 @@ chemins_sont_équivalents :: fonc (chemin1: CheminFichier, chemin2: CheminFichie
     retourne chemin1_normalisé == chemin2_normalisé
 }
 
+donne_chemin_absolu :: fonc (feuille: chaine) -> chaine
+{
+    chm := CheminFichier(feuille)
+    résultat := donne_chemin_absolu(chm)
+    retourne résultat.chn
+}
+
+donne_chemin_absolu :: fonc (feuille: CheminFichier) -> CheminFichier
+{
+    si est_absolu(feuille) {
+        retourne copie_chemin(feuille)
+    }
+
+    chemin_courant := tente donne_chemin_courant() piège err {
+        imprimeln("Impossible de déterminer le chemin courant : '%'", err)
+        retourne copie_chemin(feuille)
+    }
+
+    retourne crée_chemin_absolu(chemin_courant, feuille)
+}
+
 crée_chemin_absolu :: fonc (base: CheminFichier, feuille: CheminFichier) -> CheminFichier
 {
     si est_absolu(feuille) {
