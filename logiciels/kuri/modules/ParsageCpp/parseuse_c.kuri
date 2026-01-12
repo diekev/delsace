@@ -390,6 +390,7 @@ parse_external_declaration :: fonc (empl parseuse: *ParseuseC) -> *ASTNode
                 }
 
                 var_decl := déclaration comme *VarDecl
+                var_decl.storage_class_specifier = déclaration_courante.storage_class_specifier
                 var_decl.initializer = initializer
             }
 
@@ -425,8 +426,18 @@ parse_external_declaration :: fonc (empl parseuse: *ParseuseC) -> *ASTNode
             résultat.nom = function_decl.nom
             résultat.type_expression = function_decl.type_expression
             résultat.statement = statement
+            résultat.storage_class_specifier = déclaration_courante.storage_class_specifier
             retourne résultat
         }
+    }
+
+    si déclaration.genre == VarDecl {
+        var_decl := déclaration comme *VarDecl
+        var_decl.storage_class_specifier = déclaration_courante.storage_class_specifier
+    }
+    sinon si déclaration.genre == FunctionDecl {
+        function_decl := déclaration comme *FunctionDecl
+        function_decl.storage_class_specifier = déclaration_courante.storage_class_specifier
     }
 
     consomme_ponctuation(parseuse, ";")
@@ -1179,7 +1190,7 @@ parse_declaration_specifiers :: fonc (empl parseuse: *ParseuseC, déclaration: *
             déclaration.type_résolu = crée_type_ref(*créatrice, Token(), parseuse.unit.maçonne_type.float128_type)
         }
         sinon {
-            panique("type_specifiers non-gérés : %", type_specifiers)
+            rapporte_erreur(parseuse, épie_lexème_suivant(parseuse), "attendu un spécifiant de type")
         }
     }
 }

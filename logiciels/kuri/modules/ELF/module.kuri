@@ -21,6 +21,34 @@ FichierELF :: struct {
     contenu: []octet
 }
 
+est_fichier_elf :: fonc (contenu: []octet) -> bool
+{
+    si contenu.taille < taille_de(Elf64_Ehdr) comme z64 {
+        imprimeln("Fichier trop petit.");
+        retourne faux;
+    }
+
+    entête := contenu.pointeur comme *Elf64_Ehdr;
+
+    magique := [ELFMAG0, ELFMAG1, ELFMAG2, ELFMAG3];
+    pour magique {
+        si entête.e_ident[indice_it] != it {
+            imprimeln("Pas un fichier ELF.");
+            retourne faux;
+        }
+    }
+
+    version := donne_version_fichier(entête);
+    saufsi version == EV_CURRENT {
+        imprimeln("Version ELF '%' non-supportée.", version)
+        retourne faux;
+    }
+
+    // À FAIRE : valide le reste de l'entête
+
+    retourne vrai;
+}
+
 /* Crée un fichier ELF à partir du contenu de fichier donné.
  *
  * NOTE : le code de ce module suppose que le contenu du fichier survie à
@@ -40,10 +68,15 @@ entête_fichier :: fonc (fichier: *FichierELF) -> *EntêteELF64
     retourne fichier.contenu.pointeur comme *EntêteELF64
 }
 
-entête_section :: fonc (fichier: *FichierELF, indice: Elf32_Half) -> *EntêteSectionELF64
+entête_section :: fonc (fichier: *FichierELF, indice: Elf64_Word) -> *EntêteSectionELF64
 {
     entête := fichier.entête_fichier()
-    retourne (fichier.contenu.pointeur + entête.e_shoff + indice * taille_de(EntêteSectionELF64)) comme *EntêteSectionELF64
+    décalage := entête.e_shoff + indice * taille_de(EntêteSectionELF64)
+    si décalage comme z64 >= fichier.contenu.taille {
+        imprimeln("La section à l'indice '%' est hors des limites du fichier.", indice)
+        retourne nul
+    }
+    retourne (fichier.contenu.pointeur + décalage) comme *EntêteSectionELF64
 }
 
 trouve_section :: fonc (fichier: *FichierELF, type: TypeSection) -> *EntêteSectionELF64
@@ -458,7 +491,7 @@ donne_nom_macro_type_section :: fonc (type_section: TypeSection) -> chaine
         ShLib { retourne "SHLIB" }
         SymboleDynamique { retourne "DYNSYM" }
         TableConstructeurs { retourne "INIT_ARRAY" }
-        TableDesctructeurs { retourne "FINI_ARRAY" }
+        TableDestructeurs { retourne "FINI_ARRAY" }
         TablePréConstructeurs { retourne "À FAIRE" }
         GroupeDeSection { retourne "À FAIRE" }
         IndexSectionÉtendue { retourne "À FAIRE" }
@@ -641,29 +674,32 @@ donne_nom_section_symbole :: fonc (empl table: *TableDesSymboles, symbole: *Symb
     index_entête_section := symbole.st_shndx
 
     discr index_entête_section {
-        0 {
-            // SHN_UNDEF
+        SHN_UNDEF {
             retourne "UND"
         }
-        0xff00 {
-            // SHN_LORESERVE ou SHN_LOPROC
+        SHN_LORESERVE, SHN_LOPROC {
             retourne "LOP"
         }
-        0xff1f {
-            // SHN_HIPROC
+        SHN_HIPROC {
             retourne "HIP"
         }
-        0xfff1 {
-            // SHN_ABS
+        SHN_LOOS {
+            retourne "LOOS"
+        }
+        SHN_HIOS {
+            retourne "HIOS"
+        }
+        SHN_ABS {
             retourne "ABS"
         }
-        0xfff2 {
-            // SHN_COMMON
+        SHN_COMMON {
             retourne "COM"
         }
-        0xffff {
-            // SHN_HIRESERVE
-            retourne "HIR"
+        SHN_XINDEX {
+            retourne "XINDEX"
+        }
+        SHN_HIRESERVE {
+            retourne "HIRESERVE"
         }
         sinon {}
     }
