@@ -109,6 +109,7 @@ Onglet :: struct {
  * \{ */
 
 DonnéesFichier :: struct {
+    chemin: CheminFichier
     fichier: *FichierELF
     contenu: [..]octet
 
@@ -212,6 +213,7 @@ ouvre_fichier_elf :: fonc (visionneuse: *VisionneuseELF, chemin: CheminFichier)
     visionneuse.fichier_courant = (visionneuse.fichiers.taille comme z32)
 
     données_fichier := tableau_ajoute_élément(*visionneuse.fichiers)
+    données_fichier.chemin = copie_chemin(chemin)
     données_fichier.fichier = fichier
     données_fichier.contenu = contenu
 
@@ -248,6 +250,7 @@ donne_fichier_courant :: fonc (visionneuse: *VisionneuseELF) -> *DonnéesFichier
 
 COULEUR_FOND := vers_couleur_rvba(CouleurRVBAN8(18, 18, 18, 255))
 COULEUR_ARRIÈRE_PLAN := vers_couleur_rvba(CouleurRVBAN8(22, 22, 22, 255))
+COULEUR_ITEM_ACTIVE := vers_couleur_rvba(CouleurRVBAN8(32, 32, 32, 255))
 COULEUR_TEXTE := vers_couleur_rvba(CouleurRVBAN8(205, 170, 125, 255))
 COULEUR_TEXTE_SURVOLÉ := vers_couleur_rvba(CouleurRVBAN8(125, 170, 205, 255))
 
@@ -290,13 +293,84 @@ crée_interface :: fonc (empl visionneuse: *VisionneuseELF, largeur: z32, hauteu
             dispose_texte("Glissez-déposez un ou plusieurs fichiers pour les ouvrir", config_texte_défaut)
         }
         sinon {
-            définis_disposition(cotation = Cotation(CROISSANTE(), CROISSANTE()))
+            définis_cotation(Cotation(CROISSANTE(), CROISSANTE()))
+            définis_direction(Direction.Horizontale)
+
+            espace_liste_fichiers := espace
+            espace_liste_fichiers.largeur = 300
+
+            // À FAIRE : barre de défilement
+            // À FAIRE : permet de redimensionner
+            // À FAIRE : affichage du chemin complet
+            dispose_rectangle()
+            {
+                définis_cotation(donne_cotation(espace_liste_fichiers))
+                définis_arrière_plan(COULEUR_ARRIÈRE_PLAN)
+                définis_direction(Direction.Verticale)
+                ajoute_bordure_droite(2.0, COULEUR_FOND)
+
+                métriques := donne_métriques_fonte(config_texte_défaut.fonte)
+                hauteur_de_ligne := métriques.donne_hauteur_ligne() comme z32
+                rembourrage := 8
+                hauteur_de_ligne += rembourrage * 2
+
+                dispose_rectangle()
+                {
+                    définis_cotation(CROISSANTE(), FIXE(hauteur_de_ligne))
+                    définis_rembourrage(RembourrageDifforme(rembourrage comme r32, rembourrage comme r32))
+                    ajoute_bordure_bas(2.0, COULEUR_FOND)
+
+                    texte := si visionneuse.fichiers.taille > 1 {
+                        "Fichiers ouverts"
+                    }
+                    sinon {
+                        "Fichier ouvert"
+                    }
+
+                    dispose_texte(texte, config_texte_défaut)
+                }
+                termine_rectangle()
+
+                pour visionneuse.fichiers {
+                    dispose_rectangle()
+                    {
+                        définis_cotation(CROISSANTE(), FIXE(hauteur_de_ligne))
+                        définis_rembourrage(RembourrageDifforme(rembourrage comme r32, rembourrage comme r32))
+                        ajoute_bordure_bas(2.0, COULEUR_FOND)
+
+                        si indice_it == visionneuse.fichier_courant {
+                            définis_arrière_plan(COULEUR_ITEM_ACTIVE)
+                        }
+
+                        sur_pression_souris(définis_fichier_courant, visionneuse, indice_it comme z32)
+
+                        nom := nom_fichier_avec_extension(it.chemin)
+                        dispose_texte(nom, config_texte_défaut)
+                    }
+                    termine_rectangle()
+                }
+            }
+            termine_rectangle()
+
+            espace.largeur = soustraction_sure(espace.largeur, espace_liste_fichiers.largeur)
             dessine_panneau_fichier(visionneuse, espace)
         }
     }
     termine_rectangle()
 
     retourne termine_disposition(*emboiteuse)
+}
+
+définis_fichier_courant :: fonc (vionneuse: *VisionneuseELF, souris: ClicSouris, id: n64 @inutilisée, indice_fichier: z32) -> ÉtatÉvènement
+{
+    résultat := ÉtatÉvènement.PASSE_AU_PARENT
+    si souris.bouton == BoutonSouris.PRIMAIRE {
+        si indice_fichier >= 0 && indice_fichier < vionneuse.fichiers.taille {
+            vionneuse.fichier_courant = indice_fichier
+            résultat = ÉtatÉvènement.CONSOMMÉ
+        }
+    }
+    retourne résultat
 }
 
 /** \} */
