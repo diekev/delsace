@@ -56,6 +56,24 @@ principale :: fonc ()
                 arrête
             }
 
+            si it.type == TypeÉvènement.Déposage {
+                pour mime dans it.mimes {
+                    si mime.type == "text/uri-list" {
+                        fichiers := divise(mime.données, "\r\n")
+                        diffère déloge(fichiers)
+                        pour fichier dans fichiers {
+                            schéma := "file://"
+                            si commence_par(fichier, schéma) {
+                                fichier = avance(fichier, schéma.taille)
+                            }
+                            ouvre_fichier_elf(*visionneuse, CheminFichier(fichier))
+                        }
+                    }
+                }
+
+                continue
+            }
+
             // si app.guetteuse && gère_évènement(app.guetteuse, it) == ÉtatÉvènement.CONSOMMÉ {
             //     continue
             // }
@@ -269,7 +287,7 @@ crée_interface :: fonc (empl visionneuse: *VisionneuseELF, largeur: z32, hauteu
 
         si fichiers.taille == 0 {
             définis_disposition(cotation = Cotation(CROISSANTE(), CROISSANTE()), alignement_horizontal = AlignementEnfant.Milieu, alignement_vertical = AlignementEnfant.Milieu)
-            dispose_texte("Aucun fichier ouvert", config_texte_défaut)
+            dispose_texte("Glissez-déposez un ou plusieurs fichiers pour les ouvrir", config_texte_défaut)
         }
         sinon {
             définis_disposition(cotation = Cotation(CROISSANTE(), CROISSANTE()))
