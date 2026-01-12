@@ -37,57 +37,68 @@ Elf64_Versym :: Elf64_Half
 
 /** \} */
 
+SHN_UNDEF : Elf32_Section : 0
+SHN_LORESERVE : Elf32_Section : 0xff00
+SHN_LOPROC : Elf32_Section : 0xff00
+SHN_HIPROC : Elf32_Section : 0xff1f
+SHN_LOOS : Elf32_Section : 0xff20
+SHN_HIOS : Elf32_Section : 0xff3f
+SHN_ABS : Elf32_Section : 0xfff1
+SHN_COMMON : Elf32_Section : 0xfff2
+SHN_XINDEX : Elf32_Section : 0xffff
+SHN_HIRESERVE : Elf32_Section : 0xffff
+
 /* The ELF file header.  This appears at the start of every ELF file.  */
 
 EI_NIDENT :: 16
 
 Elf32_Ehdr :: struct {
-  e_ident: [EI_NIDENT]n8	/* Magic number and other info */
-  e_type: Elf32_Half			/* Object file type */
-  e_machine: Elf32_Half		/* Architecture */
-  e_version: Elf32_Word		/* Object file version */
-  e_entry: Elf32_Addr		/* Entry point virtual address */
-  e_phoff: Elf32_Off		/* Program header table file offset */
-  e_shoff: Elf32_Off		/* Section header table file offset */
-  e_flags: Elf32_Word		/* Processor-specific flags */
-  e_ehsize: Elf32_Half		/* ELF header size in bytes */
-  e_phentsize: Elf32_Half		/* Program header table entry size */
-  e_phnum: Elf32_Half		/* Program header table entry count */
-  e_shentsize: Elf32_Half		/* Section header table entry size */
-  e_shnum: Elf32_Half		/* Section header table entry count */
-  e_shstrndx: Elf32_Half		/* Section header string table index */
+  e_ident: [EI_NIDENT]n8    /* Magic number and other info */
+  e_type: Elf32_Half            /* Object file type */
+  e_machine: Elf32_Half        /* Architecture */
+  e_version: Elf32_Word        /* Object file version */
+  e_entry: Elf32_Addr        /* Entry point virtual address */
+  e_phoff: Elf32_Off        /* Program header table file offset */
+  e_shoff: Elf32_Off        /* Section header table file offset */
+  e_flags: Elf32_Word        /* Processor-specific flags */
+  e_ehsize: Elf32_Half        /* ELF header size in bytes */
+  e_phentsize: Elf32_Half        /* Program header table entry size */
+  e_phnum: Elf32_Half        /* Program header table entry count */
+  e_shentsize: Elf32_Half        /* Section header table entry size */
+  e_shnum: Elf32_Half        /* Section header table entry count */
+  e_shstrndx: Elf32_Half        /* Section header string table index */
 }
 
 Elf64_Ehdr :: struct {
-    e_ident: [EI_NIDENT]n8	/* Magic number and other info */
-    e_type: Elf64_Half			/* Object file type */
-    e_machine: Elf64_Half		/* Architecture */
-    e_version: Elf64_Word		/* Object file version */
-    e_entry: Elf64_Addr		/* Entry point virtual address */
-    e_phoff: Elf64_Off		/* Program header table file offset */
-    e_shoff: Elf64_Off		/* Section header table file offset */
-    e_flags: Elf64_Word		/* Processor-specific flags */
-    e_ehsize: Elf64_Half		/* ELF header size in bytes */
-    e_phentsize: Elf64_Half		/* Program header table entry size */
-    e_phnum: Elf64_Half		/* Program header table entry count */
-    e_shentsize: Elf64_Half		/* Section header table entry size */
-    e_shnum: Elf64_Half		/* Section header table entry count */
-    e_shstrndx: Elf64_Half		/* Section header string table index */
+    e_ident: [EI_NIDENT]n8    /* Magic number and other info */
+    e_type: Elf64_Half            /* Object file type */
+    e_machine: Elf64_Half        /* Architecture */
+    e_version: Elf64_Word        /* Object file version */
+    e_entry: Elf64_Addr        /* Entry point virtual address */
+    e_phoff: Elf64_Off        /* Program header table file offset */
+    e_shoff: Elf64_Off        /* Section header table file offset */
+    e_flags: Elf64_Word        /* Processor-specific flags */
+    e_ehsize: Elf64_Half        /* ELF header size in bytes */
+    e_phentsize: Elf64_Half        /* Program header table entry size */
+    e_phnum: Elf64_Half        /* Program header table entry count */
+    e_shentsize: Elf64_Half        /* Section header table entry size */
+    e_shnum: Elf64_Half        /* Section header table entry count */
+    e_shstrndx: Elf64_Half        /* Section header string table index */
 }
 
 /* Section header.  */
 
 Elf32_Shdr :: struct {
-    sh_name: Elf32_Word		/* Section name (string tbl index) */
-    sh_type: Elf32_Word		/* Section type */
-    sh_flags: Elf32_Word		/* Section flags */
-    sh_addr: Elf32_Addr		/* Section virtual addr at execution */
-    sh_offset: Elf32_Off		/* Section file offset */
-    sh_size: Elf32_Word		/* Section size in bytes */
-    sh_link: Elf32_Word		/* Link to another section */
-    sh_info: Elf32_Word		/* Additional section information */
-    sh_addralign: Elf32_Word		/* Section alignment */
-    sh_entsize: Elf32_Word		/* Entry size if section holds table */
+    sh_name: Elf32_Word        /* Section name (string tbl index) */
+    sh_type: Elf32_Word        /* Section type */
+    sh_flags: Elf32_Word        /* Section flags */
+    sh_addr: Elf32_Addr        /* Section virtual addr at execution */
+    sh_offset: Elf32_Off        /* Section file offset */
+    sh_size: Elf32_Word        /* Section size in bytes */
+    sh_link: Elf32_Word        /* Link to another section */
+    sh_info: Elf32_Word        /* Additional section information */
+    sh_addralign: Elf32_Word        /* Section alignment */
+    sh_entsize: Elf32_Word        /* Entry size if section holds table */
 }
 
 Elf64_Shdr :: struct {
@@ -106,12 +117,12 @@ Elf64_Shdr :: struct {
 /* Symbol table entry.  */
 
 Elf32_Sym :: struct {
-    st_name: Elf32_Word		/* Symbol name (string tbl index) */
-    st_value: Elf32_Addr		/* Symbol value */
-    st_size: Elf32_Word		/* Symbol size */
-    st_info: n8		/* Symbol type and binding */
-    st_other: n8		/* Symbol visibility */
-    st_shndx: Elf32_Section		/* Section index */
+    st_name: Elf32_Word        /* Symbol name (string tbl index) */
+    st_value: Elf32_Addr        /* Symbol value */
+    st_size: Elf32_Word        /* Symbol size */
+    st_info: n8        /* Symbol type and binding */
+    st_other: n8        /* Symbol visibility */
+    st_shndx: Elf32_Section        /* Section index */
 }
 
 Elf64_Sym :: struct {
@@ -502,3 +513,49 @@ ELF64_R_INFO :: fonc (sym: Elf64_Xword, type: Elf64_Xword) -> Elf64_Xword #enlig
 {
     retourne (sym << 32) + type
 }
+
+/* AMD x86-64 relocations.  */
+R_X86_64_NONE ::     0    /* No reloc */
+R_X86_64_64 ::     1    /* Direct 64 bit  */
+R_X86_64_PC32 ::     2    /* PC relative 32 bit signed */
+R_X86_64_GOT32 ::     3    /* 32 bit GOT entry */
+R_X86_64_PLT32 ::     4    /* 32 bit PLT address */
+R_X86_64_COPY ::     5    /* Copy symbol at runtime */
+R_X86_64_GLOB_DAT :: 6    /* Create GOT entry */
+R_X86_64_JUMP_SLOT :: 7    /* Create PLT entry */
+R_X86_64_RELATIVE :: 8    /* Adjust by program base */
+R_X86_64_GOTPCREL :: 9    /* 32 bit signed PC relative offset to GOT */
+R_X86_64_32 ::     10    /* Direct 32 bit zero extended */
+R_X86_64_32S ::     11    /* Direct 32 bit sign extended */
+R_X86_64_16 ::     12    /* Direct 16 bit zero extended */
+R_X86_64_PC16 ::     13    /* 16 bit sign extended pc relative */
+R_X86_64_8 ::     14    /* Direct 8 bit sign extended  */
+R_X86_64_PC8 ::     15    /* 8 bit sign extended pc relative */
+R_X86_64_DTPMOD64 :: 16    /* ID of module containing symbol */
+R_X86_64_DTPOFF64 :: 17    /* Offset in module's TLS block */
+R_X86_64_TPOFF64 :: 18    /* Offset in initial TLS block */
+R_X86_64_TLSGD ::     19    /* 32 bit signed PC relative offset to two GOT entries for GD symbol */
+R_X86_64_TLSLD ::     20    /* 32 bit signed PC relative offset to two GOT entries for LD symbol */
+R_X86_64_DTPOFF32 :: 21    /* Offset in TLS block */
+R_X86_64_GOTTPOFF :: 22    /* 32 bit signed PC relative offset to GOT entry for IE symbol */
+R_X86_64_TPOFF32 :: 23    /* Offset in initial TLS block */
+R_X86_64_PC64 ::     24    /* PC relative 64 bit */
+R_X86_64_GOTOFF64 :: 25    /* 64 bit offset to GOT */
+R_X86_64_GOTPC32 :: 26    /* 32 bit signed pc relative offset to GOT */
+R_X86_64_GOT64 ::     27    /* 64-bit GOT entry offset */
+R_X86_64_GOTPCREL64 :: 28    /* 64-bit PC relative offset to GOT entry */
+R_X86_64_GOTPC64 :: 29    /* 64-bit PC relative offset to GOT */
+R_X86_64_GOTPLT64 :: 30     /* like GOT64, says PLT entry needed */
+R_X86_64_PLTOFF64 :: 31    /* 64-bit GOT relative offset to PLT entry */
+R_X86_64_SIZE32 ::     32    /* Size of symbol plus 32-bit addend */
+R_X86_64_SIZE64 ::     33    /* Size of symbol plus 64-bit addend */
+R_X86_64_GOTPC32_TLSDESC :: 34    /* GOT offset for TLS descriptor.  */
+R_X86_64_TLSDESC_CALL :: 35    /* Marker for call through TLS descriptor.  */
+R_X86_64_TLSDESC ::     36    /* TLS descriptor.  */
+R_X86_64_IRELATIVE :: 37    /* Adjust indirectly by program base */
+R_X86_64_RELATIVE64 :: 38    /* 64-bit adjust by program base */
+                    /* 39 Reserved was R_X86_64_PC32_BND */
+                    /* 40 Reserved was R_X86_64_PLT32_BND */
+R_X86_64_GOTPCRELX ::  41    /* Load from 32 bit signed pc relative offset to GOT entry without REX prefix, relaxable.  */
+R_X86_64_REX_GOTPCRELX :: 42    /* Load from 32 bit signed pc relative offset to GOT entry with REX prefix, relaxable.  */
+R_X86_64_NUM ::      43

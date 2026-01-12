@@ -15,11 +15,17 @@ Données_Section_ELF64 :: struct {
 
     lien: *Données_Section_ELF64
 
+    /* Si la section est une section de réadressage, ceci doit être la section
+     * sur laquelle le réadressage doit s'appliquer. */
+    destination_rel: *Données_Section_ELF64
+
     /* Utilisée pour les sections de chaines ou de symboles. */
     table_de_chaines: TableDeHachage(chaine, Elf64_Word)
 
     /* Données de la section. */
     fichier: Fichier_Pagé
+    /* Pour les sections n'ayant aucune données (par exemple .bss) */
+    taille_réservée: n32
 }
 
 donne_ou_ajoute_chaine :: fonc (empl section: *Données_Section_ELF64, chn: chaine) -> Elf64_Word
@@ -40,12 +46,11 @@ donne_ou_ajoute_chaine :: fonc (empl section: *Données_Section_ELF64, chn: chai
     retourne résultat 
 }
 
-donne_valeur_sh_info :: fonc (section: *Données_Section_ELF64) -> Elf64_Word
+donne_valeur_sh_info :: fonc (maçonne: *Maçonne_ELF64, section: *Données_Section_ELF64) -> Elf64_Word
 {
     résultat: Elf64_Word
 
     si section.type == SHT_SYMTAB {
-        // @Validation,linux
         // One greater than the symbol table index of the last local symbol (binding STB_LOCAL)
 
         pour section.fichier.pages {
@@ -62,12 +67,15 @@ donne_valeur_sh_info :: fonc (section: *Données_Section_ELF64) -> Elf64_Word
         }
     }
     sinon si section.type == SHT_DYNSYM {
+        // @Validation,linux
         // One greater than the symbol table index of the last local symbol (binding STB_LOCAL)
         assert(faux)
     }
     sinon si section.type == SHT_REL || section.type == SHT_RELA {
+        assert(section.destination_rel != nul)
+
         // The section header index of the section to which the relocation applies.
-        assert(faux)
+        résultat = donne_indice_section(maçonne, section.destination_rel) comme n32
     }
 
     retourne résultat
@@ -84,33 +92,16 @@ initialise_maçonne_pour_fichier_objet :: fonc (maçonne: *Maçonne_ELF64)
 
     maçonne.type_fichier = TypeFichierObjet.REL;
 
-    _ := crée_section(maçonne, "", SHT_NULL);
+    section_zéro := crée_section(maçonne, "", SHT_NULL);
+    section_zéro.lien = crée_section_strtab(maçonne, ".shstrtab");
+
+    _ := crée_section_symtab(maçonne, nul);
 
     text := crée_section(maçonne, ".text", SHT_PROGBITS);
     text.alignement = 16
 
-    symtab := crée_section(maçonne, ".symtab", SHT_SYMTAB);
-    symtab.alignement = 8
-
-    strtab := crée_section(maçonne, ".strtab", SHT_STRTAB);
-    strtab.alignement = 1
-
-    shstrtab := crée_section(maçonne, ".shstrtab", SHT_STRTAB);
-    shstrtab.alignement = 1
-
     // @Validation,linux définis sh_link
-    symtab.lien = strtab
     // .dynsym The section header index of the associated string table
-    // .rel, .rela The section header index of the associated symbol table.
-
-    // @Validation
-    // Alloue le symbole indéfini
-    _ := loge_en_un_seul_morceau(*symtab.fichier, Elf64_Sym);
-
-    // @Validation
-    // Alloue les chaines nulles
-    _ := donne_ou_ajoute_chaine(strtab, "");
-    _ := donne_ou_ajoute_chaine(shstrtab, "");
 }
 
 réinitialise :: fonc (empl maçonne: *Maçonne_ELF64)
@@ -132,6 +123,44 @@ crée_section :: fonc (empl maçonne: *Maçonne_ELF64, nom: chaine, type: TypeSe
     retourne résultat
 }
 
+crée_section_de_réadressage :: fonc (empl maçonne: *Maçonne_ELF64, nom: chaine, type: TypeSection, table_de_symboles: *Données_Section_ELF64, destination: *Données_Section_ELF64) -> *Données_Section_ELF64
+{
+    assert(type == SHT_REL || type == SHT_RELA)
+    assert(table_de_symboles != nul)
+    assert(destination != nul)
+
+    résultat := crée_section(maçonne, nom, type)
+    résultat.alignement = 8
+    // .rel, .rela The section header index of the associated symbol table.
+    résultat.lien = table_de_symboles
+    résultat.destination_rel = destination
+
+    retourne résultat
+}
+
+crée_section_symtab :: fonc (maçonne: *Maçonne_ELF64, strtab: *Données_Section_ELF64) -> *Données_Section_ELF64
+{
+    saufsi strtab {
+        strtab = crée_section_strtab(maçonne, ".strtab");
+    }
+
+    résultat := crée_section(maçonne, ".symtab", SHT_SYMTAB);
+    résultat.alignement = 8;
+    résultat.lien = strtab;
+    // Alloue le symbole indéfini
+    _ := loge_en_un_seul_morceau(*résultat.fichier, Elf64_Sym);
+    retourne résultat
+}
+
+crée_section_strtab :: fonc (maçonne: *Maçonne_ELF64, nom: chaine) -> *Données_Section_ELF64
+{
+    résultat := crée_section(maçonne, nom, SHT_STRTAB);
+    résultat.alignement = 1;
+    // Alloue la chaine nulle
+    _ := donne_ou_ajoute_chaine(résultat, "");
+    retourne résultat;
+}
+
 donne_section :: fonc (empl maçonne: *Maçonne_ELF64, nom: chaine) -> *Données_Section_ELF64
 {
     pour sections {
@@ -140,6 +169,16 @@ donne_section :: fonc (empl maçonne: *Maçonne_ELF64, nom: chaine) -> *Données
         }
     }
     retourne nul
+}
+
+donne_indice_section :: fonc (empl maçonne: *Maçonne_ELF64, section: *Données_Section_ELF64) -> z64
+{
+    pour sections {
+        si it == section {
+            retourne indice_it
+        }
+    }
+    retourne -1
 }
 
 donne_indice_section :: fonc (empl maçonne: *Maçonne_ELF64, nom: chaine) -> z64
@@ -152,12 +191,13 @@ donne_indice_section :: fonc (empl maçonne: *Maçonne_ELF64, nom: chaine) -> z6
     retourne -1
 }
 
-// @Validation À FAIRE : In each symbol table, all symbols with STB_LOCAL binding precede the weak and global symbols.
+// À FAIRE : In each symbol table, all symbols with STB_LOCAL binding precede the weak and global symbols.
 donne_ou_crée_symbole :: fonc (empl maçonne: *Maçonne_ELF64, nom: chaine, type: TypeSymbole, liaison: LiaisonSymbole, section: *Données_Section_ELF64) -> *Elf64_Sym
 {
     symtab := donne_section(maçonne, ".symtab")
 
-    strtab := donne_section(maçonne, ".strtab")
+    assert(symtab.lien != nul)
+    strtab := symtab.lien
     indice_nom := donne_ou_ajoute_chaine(strtab, nom)
 
     résultat: *Elf64_Sym
@@ -191,6 +231,47 @@ donne_ou_crée_symbole :: fonc (empl maçonne: *Maçonne_ELF64, nom: chaine, typ
     }
 
     retourne résultat
+}
+
+donne_symbole :: fonc (empl fichier: *Maçonne_ELF64, nom: chaine) -> *Elf64_Sym
+{
+    symtab := donne_section(fichier, ".symtab")
+
+    trouvé, indice_symbole := donne_valeur_pour_clé(symtab.table_de_chaines, nom)
+    saufsi trouvé {
+        retourne nul
+    }
+
+    assert(symtab.lien != nul)
+    strtab := symtab.lien
+    indice_nom := donne_ou_ajoute_chaine(strtab, nom)
+
+    nombre_d_entrée_par_page := TAILLE_PAGE / taille_de(Elf64_Sym)
+    indice_page := indice_symbole / nombre_d_entrée_par_page
+    indice_entrée := (indice_symbole % nombre_d_entrée_par_page) * taille_de(Elf64_Sym)
+
+    page := *symtab.fichier.pages[indice_page]
+    résultat := *page.données[indice_entrée] comme *Elf64_Sym
+
+    assert(résultat.st_name == indice_nom)
+    retourne résultat
+}
+
+donne_indice_symbole :: fonc (fichier: *Maçonne_ELF64, symbole: *Elf64_Sym) -> z64
+{
+    symtab := donne_section(fichier, ".symtab")
+
+    pour symtab.fichier.pages {
+        début := it.données.pointeur
+        fin := it.données.pointeur + it.données.taille
+
+        si début <= symbole < fin {
+            décalage := symbole - début
+            retourne décalage / taille_de(Elf64_Sym) comme z64
+        }
+    }
+    
+    retourne -1
 }
 
 écris_fichier :: fonc (fichier: *Maçonne_ELF64, chemin: chaine)
@@ -258,15 +339,20 @@ donne_ou_crée_symbole :: fonc (empl maçonne: *Maçonne_ELF64, nom: chaine, typ
         entête_section.sh_size = 0;
 
         si it.lien {
-            entête_section.sh_link = donne_indice_section(fichier, it.lien.nom) comme n32;
+            entête_section.sh_link = donne_indice_section(fichier, it.lien) comme n32;
         }
 
-        entête_section.sh_info = donne_valeur_sh_info(it);
+        entête_section.sh_info = donne_valeur_sh_info(fichier, it);
         entête_section.sh_addralign = it.alignement;
 
-        // @Validation
         si it.type == SHT_SYMTAB {
             entête_section.sh_entsize = taille_de(Elf64_Sym);
+        }
+        sinon si it.type == SHT_REL {
+            entête_section.sh_entsize = taille_de(Elf64_Rel)
+        }
+        sinon si it.type == SHT_RELA {
+            entête_section.sh_entsize = taille_de(Elf64_Rela)
         }
         sinon {
             entête_section.sh_entsize = 0;
@@ -279,10 +365,17 @@ donne_ou_crée_symbole :: fonc (empl maçonne: *Maçonne_ELF64, nom: chaine, typ
 
     /* Sections. */
     pour fichier.sections {
-        it.entête.sh_size = donne_taille(*it.fichier);
+        si indice_it > 0 {
+            it.entête.sh_offset = décalage_section;
+        }
 
-        it.entête.sh_offset = décalage_section;
-        décalage_section += it.entête.sh_size;
+        si it.type == TypeSection.AucunBits {
+            it.entête.sh_size = it.taille_réservée
+        }
+        sinon {
+            it.entête.sh_size = donne_taille(*it.fichier);
+            décalage_section += it.entête.sh_size;
+        }
 
         pour page dans it.fichier.pages {
             page.données.taille = page.occupé comme z64
@@ -307,6 +400,11 @@ donne_ou_crée_symbole :: fonc (empl maçonne: *Maçonne_ELF64, nom: chaine, typ
  * \{ */
 
 TAILLE_PAGE : n64 : 16 * 1024;
+
+Adresse_Page :: struct {
+    indice: n64
+    décalage: n64
+}
 
 Fichier_Pagé :: struct {
     Page :: struct {
@@ -334,6 +432,23 @@ donne_taille :: fonc (empl fichier: *Fichier_Pagé) -> n64
     }
 
     retourne résultat;
+}
+
+donne_adresse_pour_décalage :: fonc (empl fichier: *Fichier_Pagé, décalage: n64) -> Adresse_Page
+{
+    résultat: Adresse_Page
+
+    pour pages {
+        si décalage == 0 || it.occupé > décalage {
+            résultat.indice = indice_it comme n64
+            résultat.décalage = décalage
+            arrête
+        }
+
+        décalage -= it.occupé
+    }
+
+    retourne résultat
 }
 
 donne_données_typées :: fonc (page: Fichier_Pagé.Page, $T: type_de_données) -> []T
@@ -400,6 +515,40 @@ loge_en_un_seul_morceau :: fonc (empl fichier: *Fichier_Pagé, $T: type_de_donn�
     page.occupé += 1;
 }
 
+écris :: fonc (empl fichier: *Fichier_Pagé, adresse: Adresse_Page, données: []octet)
+{
+    taille_données := données.taille comme n64
+
+    page := *fichier.pages[adresse.indice];
+    source := données.pointeur;
+    tantque taille_données != 0 {
+        taille_restante := TAILLE_PAGE - adresse.décalage;
+        si taille_restante == 0 {
+            page, adresse = donne_page_suivante(fichier, adresse);
+            taille_restante = TAILLE_PAGE;
+        }
+
+        taille_à_écrire := min(taille_données, taille_restante);
+        copie_mem_nonsur(dst = page.données.pointeur + adresse.décalage, src = source, taille = taille_à_écrire comme z64);
+
+        page.occupé = max(page.occupé, adresse.décalage + taille_à_écrire);
+        adresse.décalage += taille_à_écrire;
+        source += taille_à_écrire;
+        taille_données -= taille_à_écrire;
+    }
+}
+
+écris_octet :: fonc (fichier: *Fichier_Pagé, adresse: Adresse_Page, o: octet)
+{
+    page := *fichier.pages[adresse.indice];
+    si adresse.décalage == TAILLE_PAGE {
+        page, adresse = donne_page_suivante(fichier, adresse);
+    }
+
+    page.données[adresse.décalage] = o;
+    page.occupé = max(page.occupé, adresse.décalage + 1);
+}
+
 #portée_fichier
 
 donne_page_courante :: fonc (empl fichier: *Fichier_Pagé) -> *Fichier_Pagé.Page
@@ -409,6 +558,18 @@ donne_page_courante :: fonc (empl fichier: *Fichier_Pagé) -> *Fichier_Pagé.Pag
     }
 
     retourne *pages[pages.taille - 1];
+}
+
+donne_page_suivante :: fonc (empl fichier: *Fichier_Pagé, adresse: Adresse_Page) -> (*Fichier_Pagé.Page, Adresse_Page)
+{
+    assert(pages.taille > 0);
+    si adresse.indice comme z64 == pages.taille - 1 {
+        ajoute_page(fichier);
+    }
+
+    adresse.indice += 1
+    adresse.décalage = 0
+    retourne *pages[pages.taille - 1], adresse
 }
 
 ajoute_page :: fonc (empl fichier: *Fichier_Pagé)
