@@ -1,0 +1,270 @@
+importe ELF
+importe Fondation
+importe LigneDeCommande
+importe SysFichier
+
+principale :: fonc ()
+{
+    chemin := parse_argument_chemin();
+    saufsi chemin {
+        exit(1);
+    }
+
+    succès, contenu := contenu_fichier_binaire(chemin);
+    saufsi succès {
+        exit(1);
+    }
+    diffère déloge(contenu);
+
+    saufsi est_fichier_elf(contenu) {
+        exit(1);
+    }
+
+    fichier := crée_fichier_elf(contenu);
+
+    entête := entête_fichier(*fichier);
+
+    nombre_de_sections := entête.e_shnum
+    // À FAIRE : le nombre de sections peut être 0 si nous avons plus de SHN_LORESERVE sections
+    si nombre_de_sections != 0 {
+        première_section := entête_section(*fichier, SHN_UNDEF);
+        saufsi première_section {
+            exit(1);
+        }
+
+        si première_section.sh_name != 0 {
+            imprimeln("La valeur sh_name de l'entrée de la table de section à l'indice 0 doit être de 0.");
+            exit(1);
+        }
+        si première_section.sh_type != 0 {
+            imprimeln("La valeur sh_type de l'entrée de la table de section à l'indice 0 doit être de 0.");
+            exit(1);
+        }
+        si première_section.sh_flags != 0 {
+            imprimeln("La valeur sh_flags de l'entrée de la table de section à l'indice 0 doit être de 0.");
+            exit(1);
+        }
+        si première_section.sh_addr != 0 {
+            imprimeln("La valeur sh_addr de l'entrée de la table de section à l'indice 0 doit être de 0.");
+            exit(1);
+        }
+        si première_section.sh_offset != 0 {
+            imprimeln("La valeur sh_offset de l'entrée de la table de section à l'indice 0 doit être de 0.");
+            exit(1);
+        }
+        si première_section.sh_info != 0 {
+            imprimeln("La valeur sh_info de l'entrée de la table de section à l'indice 0 doit être de 0.");
+            exit(1);
+        }
+        si première_section.sh_addralign != 0 {
+            imprimeln("La valeur sh_addralign de l'entrée de la table de section à l'indice 0 doit être de 0.");
+            exit(1);
+        }
+        si première_section.sh_entsize != 0 {
+            imprimeln("La valeur sh_addralign de l'entrée de la table de section à l'indice 0 doit être de 0.");
+            exit(1);
+        }
+
+        si première_section.sh_size != 0 {
+            // À FAIRE : ceci peut être le nombre d'entrée si e_shnum est de 0
+            imprimeln("La valeur sh_size de l'entrée de la table de section à l'indice 0 doit être de 0.");
+            exit(1);
+        }
+
+        si première_section.sh_link != 0 {
+            section_liée := entête_section(*fichier, première_section.sh_link comme Elf64_Half);
+            saufsi section_liée {
+                exit(1);
+            }
+
+            si section_liée.sh_type comme TypeSection != SHT_STRTAB {
+                imprimeln("Si non 0, la valeur sh_type de l'entrée de la table de section à l'indice 0 doit être l'indice vers la table de chaine d'entête de section.");
+                exit(1);
+            }
+        }
+
+        pour nombre_de_sections {
+            section := entête_section(*fichier, it);
+            saufsi section {
+                exit(1);
+            }
+
+            type_section := section.sh_type comme TypeSection
+
+            si type_section == SHT_SYMTAB {
+                valide_symtab(*fichier, section, it);
+            }
+            sinon si type_section == SHT_REL {
+                valide_section_rel(*fichier, section, it);
+            }
+            sinon si type_section == SHT_RELA {
+                valide_section_rela(*fichier, section, it);
+            }
+            sinon si type_section == SHT_STRTAB {
+                valide_section_strtab(*fichier, section, it);
+            }
+            sinon si type_section == SHT_NOBITS {
+                // À FAIRE : validation de la taille ? Cela peut se faire via la validation de la taille de symbole.
+            }
+            sinon si type_section != SHT_NULL {
+                nom_macro_section := donne_nom_macro_type_section(type_section);
+                imprimeln("Ignorant la section '%' à l'indice %", nom_macro_section, it);
+            }
+        }
+    }
+}
+
+valide_symtab :: fonc (fichier: *FichierELF, symtab: *Elf64_Shdr, indice_section: Elf64_Half)
+{
+    valide_entsize(symtab, indice_section, taille_de(Elf64_Sym));
+
+    _ := valide_lien_vers_section(fichier, symtab, indice_section, "sh_link", SHT_STRTAB);
+
+    // À FAIRE : erreur
+    // À FAIRE : version spécifiant le type des données
+    données_crues := donne_données_section(fichier, symtab);
+
+    symboles: []Elf64_Sym
+    symboles.pointeur = données_crues.pointeur comme *Elf64_Sym
+    symboles.taille = données_crues.taille / taille_de(Elf64_Sym) comme z64
+
+    si symboles {
+        // Le premier symbole doit être nul.
+        premier_symbole := symboles[0]
+
+        si premier_symbole.st_name != 0 ||
+           premier_symbole.st_info != 0 ||
+           premier_symbole.st_other != 0 ||
+           premier_symbole.st_shndx != 0 ||
+           premier_symbole.st_value != 0 ||
+           premier_symbole.st_size != 0 {
+            imprimeln("La première entrée de la table de symboles à l'indice % doit être nulle.", indice_section)
+            exit(1);
+        }
+
+        // À FAIRE : valide st_name, st_shndx
+
+        // In each symbol table, all symbols with STB_LOCAL binding precede the weak and global symbols.
+        indice_premier_symbole_weak_ou_global: z64 = -1;
+        indice_dernier_symbole_local: z64 = -1;
+
+        pour * symboles {
+            liaison := donne_liaison(it);
+            si liaison == LiaisonSymbole.GLOBAL || liaison == LiaisonSymbole.WEAK {
+                si indice_premier_symbole_weak_ou_global == -1 {
+                    indice_premier_symbole_weak_ou_global = indice_it;
+                }
+            }
+            sinon si liaison == LiaisonSymbole.LOCAL {
+                indice_dernier_symbole_local = indice_it;
+            }
+        }
+
+        si indice_premier_symbole_weak_ou_global != -1 && indice_dernier_symbole_local > indice_premier_symbole_weak_ou_global {
+            imprimeln("Dans la table de symboles à l'indice %, un symbole LOCAL se trouve après un symbole WEAK ou GLOBAL.", indice_section);
+            exit(1)
+        }
+
+        si symtab.sh_info comme z64 != indice_dernier_symbole_local + 1 {
+            imprimeln("La valeur sh_info de l'entête de la table de symboles à l'indice % n'est pas celle attendue. Attendue %, obtenue %", indice_section, indice_dernier_symbole_local + 1, symtab.sh_info);
+            exit(1);
+        }
+    }
+}
+
+valide_section_rel :: fonc (fichier: *FichierELF, rel: *Elf64_Shdr, indice_section: Elf64_Half)
+{
+    valide_entsize(rel, indice_section, taille_de(Elf64_Rel));
+    _ := valide_lien_vers_section(fichier, rel, indice_section, "sh_link", SHT_SYMTAB);
+    valide_lien_vers_section(fichier, rel, indice_section, "sh_info");
+}
+
+valide_section_rela :: fonc (fichier: *FichierELF, rela: *Elf64_Shdr, indice_section: Elf64_Half)
+{
+    valide_entsize(rela, indice_section, taille_de(Elf64_Rela));
+    _ := valide_lien_vers_section(fichier, rela, indice_section, "sh_link", SHT_SYMTAB);
+    valide_lien_vers_section(fichier, rela, indice_section, "sh_info");
+}
+
+valide_section_strtab :: fonc (fichier: *FichierELF, strtab: *Elf64_Shdr, indice_section: Elf64_Half)
+{
+    données_crues := donne_données_section(fichier, strtab);
+    si données_crues.taille != 0 {
+        si données_crues[0] != 0 {
+            imprimeln("La table de chaine à l'indice % doit avoir un caractère nul comme premier caractère.", indice_section);
+            exit(1);
+        }
+
+        si données_crues[données_crues.taille - 1] != 0 {
+            imprimeln("La table de chaine à l'indice % doit avoir un caractère nul comme dernier caractère.", indice_section);
+            exit(1);
+        }
+    }
+    sinon si strtab.sh_size != 0 {
+        imprimeln("La table de chaine à l'indice % est invalide (les données sont peut-être tronquées).", indice_section);
+        exit(1);
+    }
+}
+
+valide_entsize :: fonc (section: *Elf64_Shdr, indice_section: Elf64_Half, voulu: n32)
+{
+    si section.sh_entsize != voulu {
+        nom_macro_section := donne_nom_macro_type_section(section.sh_type comme TypeSection);
+        imprimeln("La valeur 'sh_entsize' de la section '%' à l'indice % doit être de '%'", nom_macro_section, indice_section, voulu)
+        exit(1);
+    }
+}
+
+valide_lien_vers_section :: fonc (fichier: *FichierELF, section: *Elf64_Shdr, indice_section: Elf64_Half, rubrique: chaine)
+{
+    assert(rubrique != "");
+
+    valeur_rubrique: Elf64_Word 
+    si rubrique == "sh_link" {
+        valeur_rubrique = section.sh_link
+    }
+    sinon si rubrique == "sh_info" {
+        valeur_rubrique = section.sh_info
+    }
+    sinon {
+        panique("Rubrique inconnue '%'", rubrique)
+    }
+
+    section_liée := entête_section(fichier, valeur_rubrique)
+    saufsi section_liée {
+        nom_macro_section := donne_nom_macro_type_section(section.sh_type comme TypeSection);
+        imprimeln("La valeur '%' de la section '%' à l'indice % ne pointe pas vers une section existante", rubrique, nom_macro_section, indice_section);
+        exit(1);
+    }
+}
+
+valide_lien_vers_section :: fonc (fichier: *FichierELF, section: *Elf64_Shdr, indice_section: Elf64_Half, rubrique: chaine, type_voulu: TypeSection) -> *Elf64_Shdr
+{
+    assert(rubrique != "");
+
+    valeur_rubrique: Elf64_Word 
+    si rubrique == "sh_link" {
+        valeur_rubrique = section.sh_link
+    }
+    sinon si rubrique == "sh_info" {
+        valeur_rubrique = section.sh_info
+    }
+    sinon {
+        panique("Rubrique inconnue '%'", rubrique)
+    }
+
+    section_liée := entête_section(fichier, valeur_rubrique)
+    saufsi section_liée {
+        nom_macro_section := donne_nom_macro_type_section(section.sh_type comme TypeSection);
+        imprimeln("La valeur '%' de la section '%' à l'indice % ne pointe pas vers une section existante", rubrique, nom_macro_section, indice_section);
+        exit(1);
+    }
+    si section_liée.sh_type comme TypeSection != type_voulu {
+        nom_macro_section := donne_nom_macro_type_section(section.sh_type comme TypeSection);
+        nom_sh_type := donne_nom_macro_type_section(section_liée.sh_type comme TypeSection);
+        nom_type_voulu := donne_nom_macro_type_section(type_voulu);
+        imprimeln("La valeur '%' de la section '%' à l'indice % ne pointe pas vers une section '%', mais une section '%'", rubrique, nom_macro_section, indice_section, nom_type_voulu, nom_sh_type);
+        exit(1);
+    }
+    retourne section_liée
+}
