@@ -35,14 +35,17 @@ importe Typographie
 
 principale :: fonc ()
 {
+    TAILLE_ARÈNE_PERMANENTE :: 32 * 1024 * 1024
     TAILLE_ARÈNE_TRANSIENTE :: 32 * 1024 * 1024
-    taille_mémoire_application := TAILLE_ARÈNE_TRANSIENTE
+    taille_mémoire_application := TAILLE_ARÈNE_TRANSIENTE + TAILLE_ARÈNE_PERMANENTE
     mémoire_application := loge_tableau(octet, taille_mémoire_application)
 
     visionneuse: VisionneuseELF
     diffère détruit_données(*visionneuse)
 
-    mémoire_arène_transiente := mémoire_application.pointeur
+    mémoire_arène_permanente := mémoire_application.pointeur
+    mémoire_arène_transiente := mémoire_application.pointeur + TAILLE_ARÈNE_PERMANENTE
+    initialise_arène(*visionneuse.arène, mémoire_arène_permanente, TAILLE_ARÈNE_PERMANENTE comme n64)
     initialise_arène(*visionneuse.arène_transiente, mémoire_arène_transiente, TAILLE_ARÈNE_TRANSIENTE comme n64)
 
     args := tableau_avance(arguments_ligne_commande())
@@ -190,6 +193,7 @@ initialise_tailles_max_colonnes :: fonc (tabuleuse: *Tabuleuse, fonte: *Fonte)
 VisionneuseELF :: struct {
     fichiers: [..]DonnéesFichier
 
+    arène: ArèneMémoire
     arène_transiente: ArèneMémoire
     fichier_courant: z32
 
@@ -228,7 +232,7 @@ ouvre_fichier_elf :: fonc (visionneuse: *VisionneuseELF, chemin: CheminFichier)
         retourne
     }
 
-    fichier := loge(FichierELF)
+    fichier := loge(*visionneuse.arène, FichierELF)
     initialise_fichier_elf(fichier, contenu)
 
     visionneuse.fichier_courant = (visionneuse.fichiers.taille comme z32)
