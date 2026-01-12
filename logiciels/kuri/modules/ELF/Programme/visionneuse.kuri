@@ -196,6 +196,13 @@ détruit_données :: fonc (visionneuse: *VisionneuseELF)
 
 ouvre_fichier_elf :: fonc (visionneuse: *VisionneuseELF, chemin: CheminFichier)
 {
+    pour visionneuse.fichiers {
+        si it.chemin.chn == chemin.chn {
+            visionneuse.fichier_courant = (indice_it comme z32)
+            retourne
+        }
+    }
+
     succès, contenu := contenu_fichier_binaire(chemin)
     saufsi succès {
         rapporte_erreur(visionneuse, "Impossible de lire le fichier")
