@@ -14,6 +14,12 @@ importe Compilatrice
         ajoute_fichier_à_la_compilation(espace, "console.kuri")
     }
     {
+        options: OptionsDeCompilation
+        options.nom_sortie = "valideuse"
+        espace := démarre_un_espace_de_travail("valideuse", *options)
+        ajoute_fichier_à_la_compilation(espace, "valideuse.kuri")
+    }
+    {
         options := compilatrice_donne_options()
         options.résultat = RésultatCompilation.RIEN
         compilatrice_ajourne_options(options)
