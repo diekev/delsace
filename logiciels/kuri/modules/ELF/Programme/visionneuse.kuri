@@ -1426,11 +1426,13 @@ donne_tabuleuse_rela :: fonc (fichier: *DonnéesFichier, fonte: *Fonte, tabuleus
                 type := ELF64_R_TYPE(it.r_info)
                 indice_symbole := ELF64_R_SYM(it.r_info)
 
+                chn_type := donne_chaine_pour_réadressage_x86_64(type)
+
                 symbole := donne_symbole(*table, indice_symbole comme z64)
                 nom_symbole := donne_nom_symbole(*table, symbole)
                 nom_section_sym := donne_nom_section_symbole(*table, symbole)
 
-                ajoute_ligne(tabuleuse, it.r_offset, type, nom_symbole, indice_symbole, nom_section_sym, it.r_addend)
+                ajoute_ligne(tabuleuse, it.r_offset, chn_type, nom_symbole, indice_symbole, nom_section_sym, it.r_addend)
             }
 
             initialise_tailles_max_colonnes(tabuleuse, fonte)
