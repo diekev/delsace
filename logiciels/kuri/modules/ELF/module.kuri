@@ -68,6 +68,34 @@ entête_fichier :: fonc (fichier: *FichierELF) -> *EntêteELF64
     retourne fichier.contenu.pointeur comme *EntêteELF64
 }
 
+donne_nombre_de_sections :: fonc (fichier: *FichierELF) -> Elf64_Xword
+{
+    entête := fichier.entête_fichier();
+    saufsi entête {
+        retourne 0;
+    }
+
+    si entête.e_shnum == 0 {
+        si entête.e_shoff == 0 {
+            retourne 0;
+        }
+
+        si entête.e_shoff comme z64 >= fichier.contenu.taille {
+            // @Erreur : fichier corrompus
+            retourne 0;
+        }
+
+        première_section := donne_entête_section(fichier, 0);
+        saufsi première_section {
+            retourne 0;
+        }
+
+        retourne première_section.sh_size;
+    }
+
+    retourne entête.e_shnum;
+}
+
 donne_entête_section :: fonc (fichier: *FichierELF, indice: Elf64_Word) -> *EntêteSectionELF64
 {
     entête := fichier.entête_fichier()
@@ -81,9 +109,7 @@ donne_entête_section :: fonc (fichier: *FichierELF, indice: Elf64_Word) -> *Ent
 
 trouve_section :: fonc (fichier: *FichierELF, type: TypeSection) -> *EntêteSectionELF64
 {
-    entête := fichier.entête_fichier()
-    table_symbole_entêtes := fichier.donne_entête_section(entête.e_shstrndx)
-    nombre_de_sections := entête.e_shnum
+    nombre_de_sections := donne_nombre_de_sections(fichier);
 
     pour nombre_de_sections {
         section := fichier.donne_entête_section(it)
@@ -97,14 +123,21 @@ trouve_section :: fonc (fichier: *FichierELF, type: TypeSection) -> *EntêteSect
 
 trouve_section :: fonc (fichier: *FichierELF, nom: chaine) -> *EntêteSectionELF64
 {
-    entête := fichier.entête_fichier()
-    table_symbole_entêtes := fichier.donne_entête_section(entête.e_shstrndx)
-    nombre_de_sections := entête.e_shnum
+    entête := fichier.entête_fichier();
+    saufsi entête {
+        retourne nul;
+    }
+
+    succès_table_chaines, table_chaines := donne_string_table(fichier, entête.e_shstrndx);
+    saufsi succès_table_chaines {
+        retourne nul;
+    }
+
+    nombre_de_sections := donne_nombre_de_sections(fichier);
 
     pour nombre_de_sections {
-        section := fichier.donne_entête_section(it)
-        nom_section_c := (fichier.contenu.pointeur + table_symbole_entêtes.sh_offset + section.sh_name) comme *z8
-        nom_section := convertis_chaine_c_statique(ChaineC(nom_section_c))
+        section := donne_entête_section(fichier, it comme Elf64_Word);
+        nom_section := donne_chaine(table_chaines, section.sh_name);
 
         si nom_section == nom {
             retourne section
