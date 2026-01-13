@@ -28,7 +28,7 @@ importe Typographie
  - désassemblage des sections EXECINSTR
  - affichage des propriétés des sections dans une barre latérale
  - utilisation des bonnes sections de table de symboles, etc.
- - affichage des liens entre sections
+ - affichage des propriétés des sections
  - filtrage, triage des colonnes
 
 */
@@ -878,7 +878,7 @@ donne_tabuleuse_sections :: fonc (fichier: *DonnéesFichier, fonte: *Fonte, tabu
     // nom = "Sections"
 
     si entête && tabuleuse.lignes.taille == 0 {
-        initialise_tabuleuse(tabuleuse, "Nom", "Adresse", "Décalage", "Taille", "Alignement", "Type", "Drapeaux")
+        initialise_tabuleuse(tabuleuse, "Nom", "Lien", "Adresse", "Décalage", "Taille", "Alignement", "Type", "Drapeaux")
 
         succès_table_symbole, table_symbole := donne_string_table(fichier.fichier, entête.e_shstrndx)
         saufsi succès_table_symbole {
@@ -918,8 +918,21 @@ donne_tabuleuse_sections :: fonc (fichier: *DonnéesFichier, fonte: *Fonte, tabu
                 continue
             }
 
+            nom_section_liée := "";
+            entête_section_liée: *Elf64_Shdr;
+            si entête_section.sh_link != 0 {
+                entête_section_liée = donne_entête_section(fichier.fichier, entête_section.sh_link);
+                si entête_section_liée {
+                    nom_section_liée = donne_chaine(table_symbole, entête_section_liée.sh_name);
+                }
+                sinon {
+                    // À FAIRE : erreur
+                }
+            }
+
             ajoute_ligne(tabuleuse,
                          nom_section,
+                         nom_section_liée,
                          entête_section.sh_addr,
                          entête_section.sh_offset,
                          entête_section.sh_size,
@@ -929,6 +942,10 @@ donne_tabuleuse_sections :: fonc (fichier: *DonnéesFichier, fonte: *Fonte, tabu
 
             si entête_section.sh_size != 0 && donne_type_section(entête_section) != TypeSection.AucunBits {
                 définis_commande(tabuleuse, indice_ligne, 0, "affiche_données_section", nom_section)
+            }
+
+            si entête_section_liée && entête_section_liée.sh_size != 0 && donne_type_section(entête_section_liée) != TypeSection.AucunBits {
+                définis_commande(tabuleuse, indice_ligne, 1, "affiche_données_section", nom_section_liée)
             }
 
             indice_ligne += 1
