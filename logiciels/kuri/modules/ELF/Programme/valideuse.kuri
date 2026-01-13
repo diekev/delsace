@@ -91,7 +91,7 @@ principale :: fonc ()
 
             type_section := section.sh_type comme TypeSection
 
-            si type_section == SHT_SYMTAB {
+            si type_section == SHT_SYMTAB || type_section == SHT_DYNSYM {
                 valide_symtab(*fichier, section, it);
             }
             sinon si type_section == SHT_REL {
