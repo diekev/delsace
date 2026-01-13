@@ -23,6 +23,7 @@ principale :: fonc ()
     fichier := crée_fichier_elf(contenu);
 
     entête := entête_fichier(*fichier);
+    type_fichier := donne_type_fichier_objet(entête);
 
     nombre_de_sections := entête.e_shnum
     // À FAIRE : le nombre de sections peut être 0 si nous avons plus de SHN_LORESERVE sections
@@ -90,6 +91,17 @@ principale :: fonc ()
             }
 
             type_section := section.sh_type comme TypeSection
+
+            drapeaux := donne_drapeaux(section);
+
+            si drapeaux.COMPRESSED {
+                si drapeaux.ALLOC && (type_fichier == TypeFichierObjet.EXEC || type_fichier == TypeFichierObjet.DYN) {
+                    imprimeln("La section à l'indice '%', qui doit être allouée, ne peut être compressée dans un fichier exécutable ou dynamique.", it);
+                }
+                si type_section == SHT_NOBITS {
+                    imprimeln("La section à l'indice '%', de type 'NOBITS' ne peut être compressée", it);
+                }
+            }
 
             si type_section == SHT_SYMTAB || type_section == SHT_DYNSYM {
                 valide_symtab(*fichier, section, it);
