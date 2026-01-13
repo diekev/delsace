@@ -869,7 +869,7 @@ dessine_onglet_section :: fonc (visionneuse: *VisionneuseELF, fichier: *Données
 }
 
 /* ------------------------------------------------------------------------- */
-/** \name QAbstractTableModel pour afficher les sections.
+/** \name Liste de toutes les sections.
  * \{ */
 
 donne_tabuleuse_sections :: fonc (fichier: *DonnéesFichier, fonte: *Fonte, tabuleuse: *Tabuleuse)
