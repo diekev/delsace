@@ -170,14 +170,14 @@ valide_symtab :: fonc (fichier: *FichierELF, symtab: *Elf64_Shdr, indice_section
 valide_section_rel :: fonc (fichier: *FichierELF, rel: *Elf64_Shdr, indice_section: Elf64_Half)
 {
     valide_entsize(rel, indice_section, taille_de(Elf64_Rel));
-    _ := valide_lien_vers_section(fichier, rel, indice_section, "sh_link", SHT_SYMTAB);
+    _ := valide_lien_vers_section(fichier, rel, indice_section, "sh_link", SHT_SYMTAB, SHT_DYNSYM);
     valide_lien_vers_section(fichier, rel, indice_section, "sh_info");
 }
 
 valide_section_rela :: fonc (fichier: *FichierELF, rela: *Elf64_Shdr, indice_section: Elf64_Half)
 {
     valide_entsize(rela, indice_section, taille_de(Elf64_Rela));
-    _ := valide_lien_vers_section(fichier, rela, indice_section, "sh_link", SHT_SYMTAB);
+    _ := valide_lien_vers_section(fichier, rela, indice_section, "sh_link", SHT_SYMTAB, SHT_DYNSYM);
     valide_lien_vers_section(fichier, rela, indice_section, "sh_info");
 }
 
@@ -233,7 +233,7 @@ valide_lien_vers_section :: fonc (fichier: *FichierELF, section: *Elf64_Shdr, in
     }
 }
 
-valide_lien_vers_section :: fonc (fichier: *FichierELF, section: *Elf64_Shdr, indice_section: Elf64_Half, rubrique: chaine, type_voulu: TypeSection) -> *Elf64_Shdr
+valide_lien_vers_section :: fonc (fichier: *FichierELF, section: *Elf64_Shdr, indice_section: Elf64_Half, rubrique: chaine, types_possibles: ...TypeSection) -> *Elf64_Shdr
 {
     assert(rubrique != "");
 
@@ -254,11 +254,24 @@ valide_lien_vers_section :: fonc (fichier: *FichierELF, section: *Elf64_Shdr, in
         imprimeln("La valeur '%' de la section '%' à l'indice % ne pointe pas vers une section existante", rubrique, nom_macro_section, indice_section);
         exit(1);
     }
-    si section_liée.sh_type comme TypeSection != type_voulu {
+    pour types_possibles {
+        si section_liée.sh_type comme TypeSection == it {
+            arrête
+        }
+    }
+    sansarrêt {
         nom_macro_section := donne_nom_macro_type_section(section.sh_type comme TypeSection);
+        imprime("La valeur '%' de la section '%' à l'indice % ne pointe pas vers une section ", rubrique, nom_macro_section, indice_section);
+
+        virgule := "de type"
+        pour types_possibles {
+            nom_type_voulu := donne_nom_macro_type_section(it);
+            imprime("% '%'", virgule, nom_type_voulu)
+            virgule = ", ou de type"
+        }
+
         nom_sh_type := donne_nom_macro_type_section(section_liée.sh_type comme TypeSection);
-        nom_type_voulu := donne_nom_macro_type_section(type_voulu);
-        imprimeln("La valeur '%' de la section '%' à l'indice % ne pointe pas vers une section '%', mais une section '%'", rubrique, nom_macro_section, indice_section, nom_type_voulu, nom_sh_type);
+        imprimeln(" mais une section '%'", nom_sh_type);
         exit(1);
     }
     retourne section_liée
