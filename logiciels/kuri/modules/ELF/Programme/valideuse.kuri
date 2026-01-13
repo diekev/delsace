@@ -27,7 +27,7 @@ principale :: fonc ()
     nombre_de_sections := entête.e_shnum
     // À FAIRE : le nombre de sections peut être 0 si nous avons plus de SHN_LORESERVE sections
     si nombre_de_sections != 0 {
-        première_section := entête_section(*fichier, SHN_UNDEF);
+        première_section := donne_entête_section(*fichier, SHN_UNDEF);
         saufsi première_section {
             exit(1);
         }
@@ -72,7 +72,7 @@ principale :: fonc ()
         }
 
         si première_section.sh_link != 0 {
-            section_liée := entête_section(*fichier, première_section.sh_link comme Elf64_Half);
+            section_liée := donne_entête_section(*fichier, première_section.sh_link comme Elf64_Half);
             saufsi section_liée {
                 exit(1);
             }
@@ -84,7 +84,7 @@ principale :: fonc ()
         }
 
         pour nombre_de_sections {
-            section := entête_section(*fichier, it);
+            section := donne_entête_section(*fichier, it);
             saufsi section {
                 exit(1);
             }
@@ -230,7 +230,7 @@ valide_lien_vers_section :: fonc (fichier: *FichierELF, section: *Elf64_Shdr, in
         panique("Rubrique inconnue '%'", rubrique)
     }
 
-    section_liée := entête_section(fichier, valeur_rubrique)
+    section_liée := donne_entête_section(fichier, valeur_rubrique)
     saufsi section_liée {
         nom_macro_section := donne_nom_macro_type_section(section.sh_type comme TypeSection);
         imprimeln("La valeur '%' de la section '%' à l'indice % ne pointe pas vers une section existante", rubrique, nom_macro_section, indice_section);
@@ -253,7 +253,7 @@ valide_lien_vers_section :: fonc (fichier: *FichierELF, section: *Elf64_Shdr, in
         panique("Rubrique inconnue '%'", rubrique)
     }
 
-    section_liée := entête_section(fichier, valeur_rubrique)
+    section_liée := donne_entête_section(fichier, valeur_rubrique)
     saufsi section_liée {
         nom_macro_section := donne_nom_macro_type_section(section.sh_type comme TypeSection);
         imprimeln("La valeur '%' de la section '%' à l'indice % ne pointe pas vers une section existante", rubrique, nom_macro_section, indice_section);

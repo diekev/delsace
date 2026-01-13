@@ -68,7 +68,7 @@ entête_fichier :: fonc (fichier: *FichierELF) -> *EntêteELF64
     retourne fichier.contenu.pointeur comme *EntêteELF64
 }
 
-entête_section :: fonc (fichier: *FichierELF, indice: Elf64_Word) -> *EntêteSectionELF64
+donne_entête_section :: fonc (fichier: *FichierELF, indice: Elf64_Word) -> *EntêteSectionELF64
 {
     entête := fichier.entête_fichier()
     décalage := entête.e_shoff + indice * taille_de(EntêteSectionELF64)
@@ -82,11 +82,11 @@ entête_section :: fonc (fichier: *FichierELF, indice: Elf64_Word) -> *EntêteSe
 trouve_section :: fonc (fichier: *FichierELF, type: TypeSection) -> *EntêteSectionELF64
 {
     entête := fichier.entête_fichier()
-    table_symbole_entêtes := fichier.entête_section(entête.e_shstrndx)
+    table_symbole_entêtes := fichier.donne_entête_section(entête.e_shstrndx)
     nombre_de_sections := entête.e_shnum
 
     pour nombre_de_sections {
-        section := fichier.entête_section(it)
+        section := fichier.donne_entête_section(it)
         si section.type == type {
             retourne section
         }
@@ -98,11 +98,11 @@ trouve_section :: fonc (fichier: *FichierELF, type: TypeSection) -> *EntêteSect
 trouve_section :: fonc (fichier: *FichierELF, nom: chaine) -> *EntêteSectionELF64
 {
     entête := fichier.entête_fichier()
-    table_symbole_entêtes := fichier.entête_section(entête.e_shstrndx)
+    table_symbole_entêtes := fichier.donne_entête_section(entête.e_shstrndx)
     nombre_de_sections := entête.e_shnum
 
     pour nombre_de_sections {
-        section := fichier.entête_section(it)
+        section := fichier.donne_entête_section(it)
         nom_section_c := (fichier.contenu.pointeur + table_symbole_entêtes.sh_offset + section.sh_name) comme *z8
         nom_section := convertis_chaine_c_statique(ChaineC(nom_section_c))
 
@@ -600,13 +600,13 @@ donne_table_des_symboles :: fonc (fichier: *FichierELF) -> Optionnel(TableDesSym
     }
 
     // Pour trouver les noms des sections
-    table_symbole_entêtes := fichier.entête_section(entête.e_shstrndx)
+    table_symbole_entêtes := fichier.donne_entête_section(entête.e_shstrndx)
 
     entête_section_table_symbole: *EntêteSectionELF64
     table_des_chaines := fichier.trouve_section(".strtab")
 
     pour entête.e_shnum {
-        section := fichier.entête_section(it)
+        section := fichier.donne_entête_section(it)
 
         si donne_type_section(section) == TypeSection.TableSymbole {
             entête_section_table_symbole = section
@@ -704,7 +704,7 @@ donne_nom_section_symbole :: fonc (empl table: *TableDesSymboles, symbole: *Symb
         sinon {}
     }
 
-    section := fichier.entête_section(index_entête_section)
+    section := fichier.donne_entête_section(index_entête_section)
     base := fichier.contenu.pointeur + table_symbole_entêtes.sh_offset + section.sh_name
     retourne convertis_chaine_c_statique(ChaineC(base comme *z8))
 }
