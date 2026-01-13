@@ -708,3 +708,24 @@ PF_MASKPROC : Elf32_Word :  0xf0000000  /* Processor-specific */
 
 // NT_VERSION ::  1    /* Contains a version string.  */
 
+/* Compression header. */
+
+Elf32_Chdr :: struct {
+    ch_type: Elf32_Word; /* compression algorithm */
+    ch_size: Elf32_Word; /* size in bytes of the uncompressed data */
+    ch_addralign: Elf32_Word; /* required alignment for the uncompressed data */
+}
+
+Elf64_Chdr :: struct {
+    ch_type: Elf64_Word; /* compression algorithm */
+    ch_reserved: Elf64_Word;
+    ch_size: Elf64_Xword; /* size in bytes of the uncompressed data */
+    ch_addralign: Elf64_Xword; /* required alignment for the uncompressed data */
+}
+
+ELFCOMPRESS_ZLIB : Elf32_Word : 1;
+ELFCOMPRESS_ZSTD : Elf32_Word : 2;
+ELFCOMPRESS_LOOS : Elf32_Word : 0x60000000;
+ELFCOMPRESS_HIOS : Elf32_Word : 0x6fffffff;
+ELFCOMPRESS_LOPROC : Elf32_Word : 0x70000000;
+ELFCOMPRESS_HIPROC : Elf32_Word : 0x7fffffff;
