@@ -582,6 +582,47 @@ donne_visibilité :: fonc (symbole: *SymboleELF64) -> VisibilitéSymbole
 /** \} */
 
 /* ------------------------------------------------------------------------- */
+/** \nom String_Table_ELF64
+ * \{ */
+
+String_Table_ELF64 :: struct {
+    entête: *Elf64_Shdr;
+    données: []octet;
+}
+
+donne_chaine :: fonc (table: String_Table_ELF64, décalage: Elf64_Word) -> chaine
+{
+    résultat: chaine;
+    si décalage comme z64 < table.données.taille {
+        nom_c := table.données.pointeur + décalage;
+        résultat = convertis_chaine_c_statique(ChaineC(nom_c comme *z8));
+    }
+    retourne résultat
+}
+
+donne_string_table :: fonc (fichier: *FichierELF, indice_section: Elf64_Word) -> (bool, String_Table_ELF64)
+{
+    entête := donne_entête_section(fichier, indice_section);
+    saufsi entête {
+        retourne faux, String_Table_ELF64();
+    }
+
+    si entête.sh_type comme TypeSection != SHT_STRTAB {
+        imprimeln("La section à l'indice '%' n'est pas une table de chaine", indice_section);
+        retourne faux, String_Table_ELF64();
+    }
+
+    données_section := donne_données_section(fichier, entête);
+
+    résultat: String_Table_ELF64;
+    résultat.entête = entête;
+    résultat.données = données_section;
+    retourne vrai, résultat;
+}
+
+/** \} */
+
+/* ------------------------------------------------------------------------- */
 /** \nom Table de symboles.
  * \{ */
 
