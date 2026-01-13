@@ -1376,10 +1376,7 @@ donne_tabuleuse_rel :: fonc (fichier: *DonnéesFichier, fonte: *Fonte, tabuleuse
         si section && table_potentielle.possède_valeur() {
             table := table_potentielle.Quelque
 
-            données := donne_données_section(fichier.fichier, section)
-            relas: []Elf64_Rel
-            relas.pointeur = données.pointeur comme *Elf64_Rel
-            relas.taille = données.taille / (taille_de(Elf64_Rel) comme z64)
+            relas := donne_données_section(fichier.fichier, section, Elf64_Rel)
 
             initialise_tabuleuse(tabuleuse, "Décalage", "Type", "Symbole")
 
@@ -1415,10 +1412,7 @@ donne_tabuleuse_rela :: fonc (fichier: *DonnéesFichier, fonte: *Fonte, tabuleus
         si section && table_potentielle.possède_valeur() {
             table := table_potentielle.Quelque
 
-            données := donne_données_section(fichier.fichier, section)
-            relas: []Elf64_Rela
-            relas.pointeur = données.pointeur comme *Elf64_Rela
-            relas.taille = données.taille / (taille_de(Elf64_Rela) comme z64)
+            relas := donne_données_section(fichier.fichier, section, Elf64_Rela)
 
             initialise_tabuleuse(tabuleuse, "Décalage", "Type", "Symbole", "Indice Sym.", "Section Sym.", "Addende")
 

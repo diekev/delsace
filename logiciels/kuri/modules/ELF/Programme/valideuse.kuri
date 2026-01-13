@@ -121,12 +121,7 @@ valide_symtab :: fonc (fichier: *FichierELF, symtab: *Elf64_Shdr, indice_section
     _ := valide_lien_vers_section(fichier, symtab, indice_section, "sh_link", SHT_STRTAB);
 
     // À FAIRE : erreur
-    // À FAIRE : version spécifiant le type des données
-    données_crues := donne_données_section(fichier, symtab);
-
-    symboles: []Elf64_Sym
-    symboles.pointeur = données_crues.pointeur comme *Elf64_Sym
-    symboles.taille = données_crues.taille / taille_de(Elf64_Sym) comme z64
+    symboles := donne_données_section(fichier, symtab, Elf64_Sym);
 
     si symboles {
         // Le premier symbole doit être nul.

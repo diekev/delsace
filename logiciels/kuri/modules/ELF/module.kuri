@@ -571,6 +571,15 @@ donne_données_section :: fonc (fichier: *FichierELF, section: *EntêteSectionEL
     retourne résultat
 }
 
+donne_données_section :: fonc (fichier: *FichierELF, section: *EntêteSectionELF64, $T: type_de_données) -> []T
+{
+    données := donne_données_section(fichier, section);
+    résultat: []T = ---
+    résultat.pointeur = données.pointeur comme *T
+    résultat.taille = données.taille / taille_de(T) comme z64
+    retourne résultat
+}
+
 /** \} */
 
 /* ------------------------------------------------------------------------- */
