@@ -307,6 +307,9 @@ ouvre_fichier_elf :: fonc (visionneuse: *VisionneuseELF, chemin: CheminFichier)
     onglet.nom = "Informations"
 
     onglet = tableau_ajoute_élément(*données_fichier.onglets)
+    onglet.nom = "Entêtes Programme"
+
+    onglet = tableau_ajoute_élément(*données_fichier.onglets)
     onglet.nom = "Sections"
 }
 
@@ -507,6 +510,9 @@ dessine_panneau_fichier :: fonc (visionneuse: *VisionneuseELF, espace: EspaceDis
             }
             sinon si onglet.nom == "Sections" {
                 dessine_panneau_sections(visionneuse, fichier, onglet, espace)
+            }
+            sinon si onglet.nom == "Entêtes Programme" {
+                dessine_panneau_entêtes_programme(visionneuse, fichier, onglet, espace)
             }
             sinon {
                 dessine_onglet_section(visionneuse, fichier, onglet, espace)
@@ -724,6 +730,23 @@ sur_pression_entête_section :: fonc (empl info: *InfoCommande, clic: ClicSouris
 /** \} */
 
 /* ------------------------------------------------------------------------- */
+/** \name Entêtes de programme
+ * \{ */
+
+dessine_panneau_entêtes_programme :: fonc (visionneuse: *VisionneuseELF, fichier: *DonnéesFichier, onglet: *Onglet, espace: EspaceDisponible)
+{
+    donne_tabuleuse_entêtes_programme(fichier, visionneuse.fonte, *onglet.tabuleuse)
+
+    _, barre := dispose_rectangle_défilable(espace, COULEUR_FOND)
+    {
+        dessine_tabuleuse(visionneuse, *onglet.tabuleuse, vrai, config_texte_défaut, espace, barre.défilage)
+    }
+    termine_rectangle_défilable()
+}
+
+/** \} */
+
+/* ------------------------------------------------------------------------- */
 /** \name PanneauVueTables
  * \{ */
 
@@ -867,6 +890,81 @@ dessine_onglet_section :: fonc (visionneuse: *VisionneuseELF, fichier: *Données
     }
     termine_rectangle()
 }
+
+/* ------------------------------------------------------------------------- */
+/** \name Liste de toutes les entêtes de programme.
+ * \{ */
+
+donne_tabuleuse_entêtes_programme :: fonc (fichier: *DonnéesFichier, fonte: *Fonte, tabuleuse: *Tabuleuse)
+{
+    entêtes_programme := donne_entêtes_de_programme(fichier.fichier);
+
+    si entêtes_programme && tabuleuse.lignes.taille == 0 {
+        initialise_tabuleuse(tabuleuse, "Type", "Drapeaux", "Décalage", "Adr. Virtuelle", "Adr. Physique", "Taille Fichier", "Taille Mémoire", "Alignement")
+
+        pour entêtes_programme {
+            type := donne_chaine_pour_type_entête_programme(it.p_type);
+            flags := donne_chaine_pour_drapeaux_entête_programme(it.p_flags);
+
+            ajoute_ligne(tabuleuse,
+                         type,
+                         flags,
+                         it.p_offset,
+                         it.p_vaddr,
+                         it.p_paddr,
+                         it.p_filesz,
+                         it.p_memsz,
+                         it.p_align);
+        }
+
+        initialise_tailles_max_colonnes(tabuleuse, fonte);
+    }
+}
+
+donne_chaine_pour_type_entête_programme :: fonc (type: Elf32_Word) -> chaine
+{
+    si type == PT_NULL { retourne "NULL" }
+    si type == PT_LOAD { retourne "LOAD" }
+    si type == PT_DYNAMIC { retourne "DYNAMIC" }
+    si type == PT_INTERP { retourne "INTERP" }
+    si type == PT_NOTE { retourne "NOTE" }
+    si type == PT_SHLIB { retourne "SHLIB" }
+    si type == PT_PHDR { retourne "PHDR" }
+    si type == PT_TLS { retourne "TLS" }
+    si type == PT_NUM { retourne "NUM" }
+    si type == PT_LOOS { retourne "LOOS" }
+    si type == PT_GNU_EH_FRAME { retourne "GNU_EH_FRAME" }
+    si type == PT_GNU_STACK { retourne "GNU_STACK" }
+    si type == PT_GNU_RELRO { retourne "GNU_RELRO" }
+    si type == PT_GNU_PROPERTY { retourne "GNU_PROPERTY" }
+    si type == PT_LOSUNW { retourne "LOSUNW" }
+    si type == PT_SUNWBSS { retourne "SUNWBSS" }
+    si type == PT_SUNWSTACK { retourne "SUNWSTACK" }
+    si type == PT_HISUNW { retourne "HISUNW" }
+    si type == PT_HIOS { retourne "HIOS" }
+    si type == PT_LOPROC { retourne "LOPROC" }
+    si type == PT_HIPROC { retourne "HIPROC" }
+
+    retourne "INVALIDE"
+}
+
+donne_chaine_pour_drapeaux_entête_programme :: fonc (flag: Elf32_Word) -> chaine
+{
+    drapeaux := [
+        "",
+        "X",
+        "W",
+        "W | X",
+        "R",
+        "R | X",
+        "R | W",
+        "R | W | X",
+    ];
+
+    retourne drapeaux[flag & 0x7];
+}
+
+/** \} */
 
 /* ------------------------------------------------------------------------- */
 /** \name Liste de toutes les sections.

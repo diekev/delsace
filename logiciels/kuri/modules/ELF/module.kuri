@@ -68,6 +68,22 @@ entête_fichier :: fonc (fichier: *FichierELF) -> *EntêteELF64
     retourne fichier.contenu.pointeur comme *EntêteELF64
 }
 
+donne_entêtes_de_programme :: fonc (fichier: *FichierELF) -> []Elf64_Phdr
+{
+    résultat: []Elf64_Phdr
+
+    entête := fichier.entête_fichier();
+    si entête {
+        si entête.e_phoff > 0 && entête.e_phoff comme z64 < fichier.contenu.taille {
+            résultat.pointeur = (fichier.contenu.pointeur + entête.e_phoff) comme *Elf64_Phdr
+            // À FAIRE : validation
+            résultat.taille = entête.e_phnum comme z64
+        }
+    }
+
+    retourne résultat
+}
+
 donne_nombre_de_sections :: fonc (fichier: *FichierELF) -> Elf64_Xword
 {
     entête := fichier.entête_fichier();
