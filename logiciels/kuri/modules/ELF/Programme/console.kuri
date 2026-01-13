@@ -165,18 +165,21 @@ imprime_entête_fichier :: fonc (fichier: *FichierELF)
 
 imprime_noms_sections :: fonc (fichier: *FichierELF)
 {
-    entête := fichier.contenu.pointeur comme *EntêteELF64
-    table_symbole := (fichier.contenu.pointeur + entête.e_shoff + entête.e_shstrndx * taille_de(EntêteSectionELF64)) comme *EntêteSectionELF64
+    entête := entête_fichier(fichier);
+    succès_table_chaines, table_chaines := donne_string_table(fichier, entête.e_shstrndx);
+    saufsi succès_table_chaines {
+        imprimeln("Impossible d'obtenir la table de noms des sections");
+        retourne;
+    }
 
-    nombre_de_sections := entête.e_shnum
+    nombre_de_sections := donne_nombre_de_sections(fichier);
 
     imprime("il y a % sections :\n", nombre_de_sections)
 
     pour 0 ... nombre_de_sections - 1 {
-        entête_section := (fichier.contenu.pointeur + entête.e_shoff + it * taille_de(EntêteSectionELF64)) comme *EntêteSectionELF64
+        entête_section := donne_entête_section(fichier, it comme Elf64_Word);
 
-        nom_section_c := (fichier.contenu.pointeur + table_symbole.sh_offset + entête_section.sh_name) comme *z8
-        nom_section := convertis_chaine_c_statique(ChaineC(nom_section_c))
+        nom_section := donne_chaine(table_chaines, entête_section.sh_name);
         imprime("[%] %\n", it, nom_section)
         imprime("-- adresse  : %\n", FormatEntier(valeur = entête_section.sh_addr, base = 16))
         imprime("-- décalage : %\n", FormatEntier(valeur = entête_section.sh_offset, base = 16))

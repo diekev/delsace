@@ -880,20 +880,25 @@ donne_tabuleuse_sections :: fonc (fichier: *DonnéesFichier, fonte: *Fonte, tabu
     si entête && tabuleuse.lignes.taille == 0 {
         initialise_tabuleuse(tabuleuse, "Nom", "Adresse", "Décalage", "Taille", "Alignement", "Type", "Drapeaux")
 
-        table_symbole := (fichier.contenu.pointeur + entête.e_shoff + entête.e_shstrndx * taille_de(EntêteSectionELF64)) comme *EntêteSectionELF64
+        succès_table_symbole, table_symbole := donne_string_table(fichier.fichier, entête.e_shstrndx)
+        saufsi succès_table_symbole {
+            // À FAIRE : erreur
+            retourne
+        }
 
         indice_ligne : z64 = 1
 
         noms_entêtes: [..]chaine
         diffère déloge(noms_entêtes)
 
-        // @IPA
-        pour entête.e_shnum {
-            entête_section := (fichier.fichier.contenu.pointeur + entête.e_shoff + indice_it comme n32 * taille_de(EntêteSectionELF64)) comme *EntêteSectionELF64
-
-            nom_section_c := (fichier.fichier.contenu.pointeur + table_symbole.sh_offset + entête_section.sh_name) comme *z8
-            nom_section := convertis_chaine_c_statique(ChaineC(nom_section_c))
-
+        nombre_de_sections := donne_nombre_de_sections(fichier.fichier) comme Elf64_Word
+        pour nombre_de_sections {
+            entête_section := donne_entête_section(fichier.fichier, indice_it)
+            saufsi entête_section {
+                // À FAIRE : erreur
+                arrête
+            }
+            nom_section := donne_chaine(table_symbole, entête_section.sh_name)
             tableau_ajoute(*noms_entêtes, nom_section)
         }
 
@@ -905,11 +910,9 @@ donne_tabuleuse_sections :: fonc (fichier: *DonnéesFichier, fonte: *Fonte, tabu
         tri_rapide(indices_entêtes, noms_entêtes, compare_chaine)
 
         pour indices_entêtes {
-            // @IPA
-            entête_section := (fichier.fichier.contenu.pointeur + entête.e_shoff + it * taille_de(EntêteSectionELF64)) comme *EntêteSectionELF64
-
-            nom_section_c := (fichier.fichier.contenu.pointeur + table_symbole.sh_offset + entête_section.sh_name) comme *z8
-            nom_section := convertis_chaine_c_statique(ChaineC(nom_section_c))
+            entête_section := donne_entête_section(fichier.fichier, it)
+            assert(entête_section != nul)
+            nom_section := donne_chaine(table_symbole, entête_section.sh_name)
 
             si nom_section == "" {
                 continue
