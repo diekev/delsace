@@ -766,8 +766,8 @@ dessine_onglet_section :: fonc (visionneuse: *VisionneuseELF, fichier: *Données
     config_texte := config_texte_défaut
     données_hex := faux
 
-    si onglet.type_section == TypeSection.TableSymbole {
-        donne_tabuleuse_symboles(fichier, visionneuse.fonte, *onglet.tabuleuse)
+    si onglet.type_section == SHT_SYMTAB || onglet.type_section == SHT_DYNSYM {
+        donne_tabuleuse_symboles(fichier, visionneuse.fonte, *onglet.tabuleuse, onglet.nom)
     }
     sinon si onglet.type_section == TypeSection.BitsProgramme {
         si onglet.nom == ".comment" {
@@ -1059,36 +1059,35 @@ donne_tabuleuse_sections :: fonc (fichier: *DonnéesFichier, fonte: *Fonte, tabu
 /** \name Table Symboles.
  * \{ */
 
-donne_tabuleuse_symboles :: fonc (fichier: *DonnéesFichier, fonte: *Fonte, tabuleuse: *Tabuleuse)
+donne_tabuleuse_symboles :: fonc (fichier: *DonnéesFichier, fonte: *Fonte, tabuleuse: *Tabuleuse, nom_section: chaine)
 {
-    entête := entête_fichier(fichier.fichier)
+    entête := entête_fichier(fichier.fichier);
 
     si entête && tabuleuse.lignes.taille == 0 {
         initialise_tabuleuse(tabuleuse, "Valeur", "Taille", "Type", "Lien", "Visibilité", "Section", "Nom")
 
-        table_potentielle := donne_table_des_symboles(fichier.fichier)
-        si table_potentielle.possède_valeur() {
-            table := table_potentielle.Quelque
-            nombre_de_symboles := donne_nombre_de_symboles(*table)
-
-            pour nombre_de_symboles {
-                symbole := donne_symbole(*table, indice_it)
-
-                nom_section := donne_nom_section_symbole(*table, symbole)
-                nom_symbole := donne_nom_symbole(*table, symbole)
-                ajoute_ligne(tabuleuse,
-                             symbole.st_value,
-                             symbole.st_size,
-                             symbole.donne_type(),
-                             symbole.donne_liaison(),
-                             symbole.donne_visibilité(),
-                             nom_section,
-                             nom_symbole)
-            }
+        succès_table, table := donne_symbol_table(fichier.fichier, nom_section);
+        saufsi succès_table {
+            retourne;
         }
-        sinon {
+
+        succès_table_nom_section, table_nom_section := donne_string_table(fichier.fichier, entête.e_shstrndx);
+        saufsi succès_table_nom_section {
             // À FAIRE : erreur
-            imprime("Aucune table de symbole trouvée.")
+            retourne;
+        }
+
+        pour * table.symboles {
+            nom_section_symbole := donne_nom_section_symbole(*table, it);
+            nom_symbole := donne_chaine(table.string_table, it.st_name);
+            ajoute_ligne(tabuleuse,
+                         it.st_value,
+                         it.st_size,
+                         it.donne_type(),
+                         it.donne_liaison(),
+                         it.donne_visibilité(),
+                         nom_section_symbole,
+                         nom_symbole);
         }
 
         initialise_tailles_max_colonnes(tabuleuse, fonte)
