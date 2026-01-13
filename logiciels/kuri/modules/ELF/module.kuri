@@ -681,6 +681,97 @@ donne_string_table :: fonc (fichier: *FichierELF, indice_section: Elf64_Word) ->
 /** \} */
 
 /* ------------------------------------------------------------------------- */
+/** \nom Symbol_Table_ELF64.
+ * \{ */
+
+Symbol_Table_ELF64 :: struct {
+    fichier: *FichierELF
+    entête: *Elf64_Shdr;
+    symboles: []Elf64_Sym;
+
+    string_table: String_Table_ELF64;
+    section_header_string_table: String_Table_ELF64;
+}
+
+donne_symbol_table :: fonc (fichier: *FichierELF, nom: chaine) -> (bool, Symbol_Table_ELF64)
+{
+    section := trouve_section(fichier, nom);
+    saufsi section {
+        imprimeln("Impossible de trouver la section '%'", nom);
+        retourne faux, Symbol_Table_ELF64();
+    }
+    saufsi (section.sh_type comme TypeSection == SHT_SYMTAB || section.sh_type comme TypeSection == SHT_DYNSYM) {
+        imprimeln("La section '%' n'est pas une table de symboles", nom);
+        retourne faux, Symbol_Table_ELF64();
+    }
+
+    succès_string_table, string_table := donne_string_table(fichier, section.sh_link);
+    saufsi succès_string_table {
+        retourne faux, Symbol_Table_ELF64();
+    }
+
+    entête := entête_fichier(fichier);
+    assert(entête != nul);
+
+    succès_shstrtab, shstrtab := donne_string_table(fichier, entête.e_shstrndx);
+    saufsi succès_shstrtab {
+        retourne faux, Symbol_Table_ELF64();
+    }
+
+    résultat: Symbol_Table_ELF64 = ---;
+    résultat.fichier = fichier;
+    résultat.entête = section;
+    résultat.symboles = donne_données_section(fichier, section, Elf64_Sym);
+    résultat.string_table = string_table;
+    résultat.section_header_string_table = shstrtab;
+    retourne vrai, résultat;
+}
+
+donne_nom_section_symbole :: fonc (empl table: *Symbol_Table_ELF64, symbole: *SymboleELF64) -> chaine
+{
+    index_entête_section := symbole.st_shndx
+
+    discr index_entête_section {
+        SHN_UNDEF {
+            retourne "UND"
+        }
+        SHN_LORESERVE, SHN_LOPROC {
+            retourne "LOP"
+        }
+        SHN_HIPROC {
+            retourne "HIP"
+        }
+        SHN_LOOS {
+            retourne "LOOS"
+        }
+        SHN_HIOS {
+            retourne "HIOS"
+        }
+        SHN_ABS {
+            retourne "ABS"
+        }
+        SHN_COMMON {
+            retourne "COM"
+        }
+        SHN_XINDEX {
+            retourne "XINDEX"
+        }
+        SHN_HIRESERVE {
+            retourne "HIRESERVE"
+        }
+        sinon {}
+    }
+    
+    section := donne_entête_section(fichier, index_entête_section);
+    saufsi section {
+        retourne ""
+    }
+    retourne donne_chaine(section_header_string_table, section.sh_name)
+}
+
+/** \} */
+
+/* ------------------------------------------------------------------------- */
 /** \nom Table de symboles.
  * \{ */
 
