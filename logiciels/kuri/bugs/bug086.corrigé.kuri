@@ -4,7 +4,7 @@
 
 fonction_polymorphique :: fonc (rappel: fonc($T)(rien), données_rappel: T)
 {
-    rappel(données)
+    rappel(données);
 }
 
 principale :: fonc ()

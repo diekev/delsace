@@ -3,21 +3,21 @@
  * Catégorie : [génération code, tableau fixe]
  */
 
-importe Fondation
+importe Fondation;
 
-tableau_fixe :: [ 0, 1, 2, 3, 4 ]
+tableau_fixe :: [ 0, 1, 2, 3, 4 ];
 
 passe_tableau_fixe :: fonc (args: ...z32)
 {
-    assert(args.taille == 5)
-    assert(args[0] == 0)
-    assert(args[1] == 1)
-    assert(args[2] == 2)
-    assert(args[3] == 3)
-    assert(args[4] == 4)
+    assert(args.taille == 5);
+    assert(args[0] == 0);
+    assert(args[1] == 1);
+    assert(args[2] == 2);
+    assert(args[3] == 3);
+    assert(args[4] == 4);
 }
 
 principale :: fonc ()
 {
-    passe_tableau_fixe(...tableau_fixe)
+    passe_tableau_fixe(...tableau_fixe);
 }

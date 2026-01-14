@@ -3,90 +3,90 @@
  * \{ */
 
 PanneauBouton :: struct {
-    empl base: Panneau
+    empl base: Panneau;
 
-    bouton: *Bouton
-    souris_dans_rect := faux
-    souris_pressée := faux
+    bouton: *Bouton;
+    souris_dans_rect := faux;
+    souris_pressée := faux;
 }
 
 crée_panneau_bouton :: fonc (ctx: *ContexteInterface, parent: *Panneau, bouton: *Bouton) -> *PanneauBouton
 {
-    sur_déplacement_souris :: fonc (panneau_bouton: *PanneauBouton, souris: ÉtatSouris)
+    sur_déplacement_souris :: fonc (panneau_bouton: *PanneauBouton, souris: ÉtatSouris);
     {
-        panneau_bouton.souris_dans_rect = panneau_bouton.rect.contient(souris.où)
+        panneau_bouton.souris_dans_rect = panneau_bouton.rect.contient(souris.où);
     }
 
-    sur_clic_souris :: fonc (panneau_bouton: *PanneauBouton, clic: ClicSouris) -> bool
+    sur_clic_souris :: fonc (panneau_bouton: *PanneauBouton, clic: ClicSouris) -> bool;
     {
         saufsi panneau_bouton.rect.contient(clic.état.où) {
-            retourne faux
+            retourne faux;
         }
 
         si clic.action == ActionSouris.PRESSÉE {
-            panneau_bouton.souris_pressée = vrai
-            guetteuse: GuetteusePanneauBouton
-            guetteuse.panneau_bouton = panneau_bouton
-            commence_guettage(*guetteuse, panneau_bouton.contexte)
+            panneau_bouton.souris_pressée = vrai;
+            guetteuse: GuetteusePanneauBouton;
+            guetteuse.panneau_bouton = panneau_bouton;
+            commence_guettage(*guetteuse, panneau_bouton.contexte);
         }
 
-        retourne vrai
+        retourne vrai;
     }
 
-    sur_dessin :: fonc (panneau_bouton: *PanneauBouton, ctx: *ContexteAffichage)
+    sur_dessin :: fonc (panneau_bouton: *PanneauBouton, ctx: *ContexteAffichage);
     {
-        peintre := ctx.peintre
-        thème := ctx.thème
+        peintre := ctx.peintre;
+        thème := ctx.thème;
 
-        fonte := panneau_bouton.contexte.fonte
-        métriques := donne_métriques_fonte(fonte)
+        fonte := panneau_bouton.contexte.fonte;
+        métriques := donne_métriques_fonte(fonte);
 
         /* Calcul rect. */
-        hauteur_de_ligne := métriques.donne_hauteur_ligne() comme z32
-        hauteur_bouton := hauteur_de_ligne + 10
-        espaçage := donne_largeur_texte(fonte, "0") comme z32
-        largeur_texte := fonte.donne_largeur_texte(panneau_bouton.bouton.texte) comme z32
+        hauteur_de_ligne := métriques.donne_hauteur_ligne() comme z32;
+        hauteur_bouton := hauteur_de_ligne + 10;
+        espaçage := donne_largeur_texte(fonte, "0") comme z32;
+        largeur_texte := fonte.donne_largeur_texte(panneau_bouton.bouton.texte) comme z32;
 
-        largeur_bouton := largeur_texte + espaçage * 2
+        largeur_bouton := largeur_texte + espaçage * 2;
 
         // À FAIRE : codé en dur !
-        rect_parent := panneau_bouton.rect
-        rect := rect_parent
+        rect_parent := panneau_bouton.rect;
+        rect := rect_parent;
         // rect.x = rect_parent.largeur - largeur_bouton - 10
         // rect.y = rect_parent.hauteur - hauteur_bouton - 64 - 10
-        rect.largeur = largeur_bouton
-        rect.hauteur = hauteur_bouton
+        rect.largeur = largeur_bouton;
+        rect.hauteur = hauteur_bouton;
 
-        panneau_bouton.rect = rect
+        panneau_bouton.rect = rect;
 
-        couleur := thème.couleur_bouton
+        couleur := thème.couleur_bouton;
         si panneau_bouton.souris_pressée {
-            couleur = thème.couleur_bouton_pressé
+            couleur = thème.couleur_bouton_pressé;
         }
         sinon si panneau_bouton.souris_dans_rect {
-            couleur = thème.couleur_bouton_survolé
+            couleur = thème.couleur_bouton_survolé;
         }
 
-        peintre.remplis_rectangle(panneau_bouton.rect, couleur)
+        peintre.remplis_rectangle(panneau_bouton.rect, couleur);
 
-        rect_texte := rect
-        rect_texte.x += espaçage
-        rect_texte.y += 5
+        rect_texte := rect;
+        rect_texte.x += espaçage;
+        rect_texte.y += 5;
 
-        peintre.dessine_texte(fonte, panneau_bouton.bouton.texte, rect_texte, thème.couleur_texte)
+        peintre.dessine_texte(fonte, panneau_bouton.bouton.texte, rect_texte, thème.couleur_texte);
     }
 
-    résultat := ctx.crée_panneau(PanneauBouton)
-    résultat.bouton = bouton
+    résultat := ctx.crée_panneau(PanneauBouton);
+    résultat.bouton = bouton;
 
     si parent {
-        ajoute_enfant(parent, résultat)
+        ajoute_enfant(parent, résultat);
     }
 
-    résultat.sur_déplacement_souris = sur_déplacement_souris
-    résultat.sur_clic_souris = sur_clic_souris
-    résultat.sur_dessin = sur_dessin
-    retourne résultat
+    résultat.sur_déplacement_souris = sur_déplacement_souris;
+    résultat.sur_clic_souris = sur_clic_souris;
+    résultat.sur_dessin = sur_dessin;
+    retourne résultat;
 }
 
 /** \} */
@@ -98,33 +98,33 @@ crée_panneau_bouton :: fonc (ctx: *ContexteInterface, parent: *Panneau, bouton:
 #portée_fichier
 
 GuetteusePanneauBouton :: struct {
-    empl base: Guetteuse
+    empl base: Guetteuse;
 
-    panneau_bouton: *PanneauBouton
+    panneau_bouton: *PanneauBouton;
 
-    sur_clic = guetteuse_bouton_sur_clic
+    sur_clic = guetteuse_bouton_sur_clic;
 }
 
 guetteuse_bouton_sur_clic :: fonc (base: *Guetteuse, clic: ClicSouris) -> ÉtatÉvènement
 {
-    empl guetteuse := base comme *GuetteusePanneauBouton
+    empl guetteuse := base comme *GuetteusePanneauBouton;
 
-    panneau_bouton.souris_dans_rect = panneau_bouton.rect.contient(clic.état.où)
+    panneau_bouton.souris_dans_rect = panneau_bouton.rect.contient(clic.état.où);
 
     si clic.action == ActionSouris.RELACHÉE {
-        panneau_bouton.souris_pressée = faux
+        panneau_bouton.souris_pressée = faux;
 
         si panneau_bouton.souris_dans_rect {
-            bouton := panneau_bouton.bouton
+            bouton := panneau_bouton.bouton;
             si bouton.sur_clic {
-                bouton.sur_clic(bouton)
+                bouton.sur_clic(bouton);
             }
         }
 
-        termine_guettage(guetteuse)
+        termine_guettage(guetteuse);
     }
 
-    retourne ÉtatÉvènement.CONSOMMÉ
+    retourne ÉtatÉvènement.CONSOMMÉ;
 }
 
 /** \} */

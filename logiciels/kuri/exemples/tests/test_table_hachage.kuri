@@ -1,14 +1,14 @@
-importe Fondation
-importe TableHachage
+importe Fondation;
+importe TableHachage;
 
 principale :: fonc ()
 {
-    table := crée_table_hachage()
-    diffère décrée_table_hachage(table)
+    table := crée_table_hachage();
+    diffère décrée_table_hachage(table);
 
-    insère(table, "Accept", "text/html")
-    insère(table, "Accept-Charset", "utf-8, iso-8859-1;q=0.5")
-    insère(table, "Accept-Encoding", "identity")
+    insère(table, "Accept", "text/html");
+    insère(table, "Accept-Charset", "utf-8, iso-8859-1;q=0.5");
+    insère(table, "Accept-Encoding", "identity");
 
     //cherche_noeud(table, "Accept")
     //cherche_noeud(table, "Accept-Charset")
@@ -16,7 +16,7 @@ principale :: fonc ()
     //cherche_noeud(table, "Quelque Chose")
 
     pour noeud dans chaque_noeud(table) {
-        imprime("noeud : %\n", noeud)
-        imprime("%: %\r\n", noeud.clé, noeud.valeur)
+        imprime("noeud : %\n", noeud);
+        imprime("%: %\r\n", noeud.clé, noeud.valeur);
     }
 }

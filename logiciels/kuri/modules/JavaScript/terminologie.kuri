@@ -1,122 +1,122 @@
-Compilatrice :: importe Compilatrice
+Compilatrice :: importe Compilatrice;
 
 /* Fichier déclarant des chaines connues lors de la compilation. */
 
-STR_abs : ChaineUTF16Unique = ---
-STR_bigint : ChaineUTF16Unique = ---
-STR_boolean : ChaineUTF16Unique = ---
-STR_call : ChaineUTF16Unique = ---
-STR_ceil : ChaineUTF16Unique = ---
-STR_constructor : ChaineUTF16Unique = ---
-STR_cos : ChaineUTF16Unique = ---
-STR_create : ChaineUTF16Unique = ---
-STR_done : ChaineUTF16Unique = ---
-STR_encodeURIComponent : ChaineUTF16Unique = ---
-STR_eval : ChaineUTF16Unique = ---
-STR_exp : ChaineUTF16Unique = ---
-STR_false : ChaineUTF16Unique = ---
-STR_fill : ChaineUTF16Unique = ---
-STR_floor : ChaineUTF16Unique = ---
-STR_function : ChaineUTF16Unique = ---
-STR_get : ChaineUTF16Unique = ---
-STR_getTime : ChaineUTF16Unique = ---
-STR_globalThis : ChaineUTF16Unique = ---
-STR_getPrototypeOf : ChaineUTF16Unique = ---
-STR_hasOwnProperty : ChaineUTF16Unique = ---
-STR_indexOf : ChaineUTF16Unique = ---
-STR_isNaN : ChaineUTF16Unique = ---
-STR_join : ChaineUTF16Unique = ---
-STR_length : ChaineUTF16Unique = ---
-STR_log : ChaineUTF16Unique = ---
-STR_max : ChaineUTF16Unique = ---
-STR_message : ChaineUTF16Unique = ---
-STR_min : ChaineUTF16Unique = ---
-STR_name : ChaineUTF16Unique = ---
-STR_next : ChaineUTF16Unique = ---
-STR_null : ChaineUTF16Unique = ---
-STR_number : ChaineUTF16Unique = ---
-STR_object : ChaineUTF16Unique = ---
-STR_parse : ChaineUTF16Unique = ---
-STR_parseInt : ChaineUTF16Unique = ---
-STR_pow : ChaineUTF16Unique = ---
-STR_prototype : ChaineUTF16Unique = ---
-STR_push : ChaineUTF16Unique = ---
-STR_random : ChaineUTF16Unique = ---
-STR_replace : ChaineUTF16Unique = ---
-STR_round : ChaineUTF16Unique = ---
-STR_setPrototypeOf : ChaineUTF16Unique = ---
-STR_sin : ChaineUTF16Unique = ---
-STR_sqrt : ChaineUTF16Unique = ---
-STR_string : ChaineUTF16Unique = ---
-STR_substring : ChaineUTF16Unique = ---
-STR_symbol : ChaineUTF16Unique = ---
-STR_toString : ChaineUTF16Unique = ---
-STR_true : ChaineUTF16Unique = ---
-STR_undefined : ChaineUTF16Unique = ---
-STR_value : ChaineUTF16Unique = ---
-STR_values : ChaineUTF16Unique = ---
-STR_valueOf : ChaineUTF16Unique = ---
-STR_Array : ChaineUTF16Unique = ---
-STR_Boolean : ChaineUTF16Unique = ---
-STR_Date : ChaineUTF16Unique = ---
-STR_Error : ChaineUTF16Unique = ---
-STR_EvalError : ChaineUTF16Unique = ---
-STR_Function : ChaineUTF16Unique = ---
-STR_Infinity : ChaineUTF16Unique = ---
-STR_JSON : ChaineUTF16Unique = ---
-STR_LN2 : ChaineUTF16Unique = ---
-STR_Math : ChaineUTF16Unique = ---
-STR_NaN : ChaineUTF16Unique = ---
-STR_Number : ChaineUTF16Unique = ---
-STR_Object : ChaineUTF16Unique = ---
-STR_PI : ChaineUTF16Unique = ---
-STR_RangeError : ChaineUTF16Unique = ---
-STR_ReferenceError : ChaineUTF16Unique = ---
-STR_String : ChaineUTF16Unique = ---
-STR_SyntaxError : ChaineUTF16Unique = ---
-STR_TypeError : ChaineUTF16Unique = ---
-STR_URIError : ChaineUTF16Unique = ---
-STR___proto__ : ChaineUTF16Unique = ---
+STR_abs : ChaineUTF16Unique = ---;
+STR_bigint : ChaineUTF16Unique = ---;
+STR_boolean : ChaineUTF16Unique = ---;
+STR_call : ChaineUTF16Unique = ---;
+STR_ceil : ChaineUTF16Unique = ---;
+STR_constructor : ChaineUTF16Unique = ---;
+STR_cos : ChaineUTF16Unique = ---;
+STR_create : ChaineUTF16Unique = ---;
+STR_done : ChaineUTF16Unique = ---;
+STR_encodeURIComponent : ChaineUTF16Unique = ---;
+STR_eval : ChaineUTF16Unique = ---;
+STR_exp : ChaineUTF16Unique = ---;
+STR_false : ChaineUTF16Unique = ---;
+STR_fill : ChaineUTF16Unique = ---;
+STR_floor : ChaineUTF16Unique = ---;
+STR_function : ChaineUTF16Unique = ---;
+STR_get : ChaineUTF16Unique = ---;
+STR_getTime : ChaineUTF16Unique = ---;
+STR_globalThis : ChaineUTF16Unique = ---;
+STR_getPrototypeOf : ChaineUTF16Unique = ---;
+STR_hasOwnProperty : ChaineUTF16Unique = ---;
+STR_indexOf : ChaineUTF16Unique = ---;
+STR_isNaN : ChaineUTF16Unique = ---;
+STR_join : ChaineUTF16Unique = ---;
+STR_length : ChaineUTF16Unique = ---;
+STR_log : ChaineUTF16Unique = ---;
+STR_max : ChaineUTF16Unique = ---;
+STR_message : ChaineUTF16Unique = ---;
+STR_min : ChaineUTF16Unique = ---;
+STR_name : ChaineUTF16Unique = ---;
+STR_next : ChaineUTF16Unique = ---;
+STR_null : ChaineUTF16Unique = ---;
+STR_number : ChaineUTF16Unique = ---;
+STR_object : ChaineUTF16Unique = ---;
+STR_parse : ChaineUTF16Unique = ---;
+STR_parseInt : ChaineUTF16Unique = ---;
+STR_pow : ChaineUTF16Unique = ---;
+STR_prototype : ChaineUTF16Unique = ---;
+STR_push : ChaineUTF16Unique = ---;
+STR_random : ChaineUTF16Unique = ---;
+STR_replace : ChaineUTF16Unique = ---;
+STR_round : ChaineUTF16Unique = ---;
+STR_setPrototypeOf : ChaineUTF16Unique = ---;
+STR_sin : ChaineUTF16Unique = ---;
+STR_sqrt : ChaineUTF16Unique = ---;
+STR_string : ChaineUTF16Unique = ---;
+STR_substring : ChaineUTF16Unique = ---;
+STR_symbol : ChaineUTF16Unique = ---;
+STR_toString : ChaineUTF16Unique = ---;
+STR_true : ChaineUTF16Unique = ---;
+STR_undefined : ChaineUTF16Unique = ---;
+STR_value : ChaineUTF16Unique = ---;
+STR_values : ChaineUTF16Unique = ---;
+STR_valueOf : ChaineUTF16Unique = ---;
+STR_Array : ChaineUTF16Unique = ---;
+STR_Boolean : ChaineUTF16Unique = ---;
+STR_Date : ChaineUTF16Unique = ---;
+STR_Error : ChaineUTF16Unique = ---;
+STR_EvalError : ChaineUTF16Unique = ---;
+STR_Function : ChaineUTF16Unique = ---;
+STR_Infinity : ChaineUTF16Unique = ---;
+STR_JSON : ChaineUTF16Unique = ---;
+STR_LN2 : ChaineUTF16Unique = ---;
+STR_Math : ChaineUTF16Unique = ---;
+STR_NaN : ChaineUTF16Unique = ---;
+STR_Number : ChaineUTF16Unique = ---;
+STR_Object : ChaineUTF16Unique = ---;
+STR_PI : ChaineUTF16Unique = ---;
+STR_RangeError : ChaineUTF16Unique = ---;
+STR_ReferenceError : ChaineUTF16Unique = ---;
+STR_String : ChaineUTF16Unique = ---;
+STR_SyntaxError : ChaineUTF16Unique = ---;
+STR_TypeError : ChaineUTF16Unique = ---;
+STR_URIError : ChaineUTF16Unique = ---;
+STR___proto__ : ChaineUTF16Unique = ---;
 
 // À FAIRE
-Symbol_asyncIterator: Symbol = ---
-Symbol_iterator: Symbol = ---
+Symbol_asyncIterator: Symbol = ---;
+Symbol_iterator: Symbol = ---;
 
 /* Ceci doit être après les tags, car nous l'utilions comme sentinelle dans les
  * métaprogrammes plus bas. */
-terminologie_initialisée := faux
+terminologie_initialisée := faux;
 
 initialise_terminologie :: fonc ()
 #corps_texte {
-    retourne génère_fonction_pour_tags()
+    retourne génère_fonction_pour_tags();
 }
 
-#ajoute_init initialise_terminologie()
+#ajoute_init initialise_terminologie();
 
 génère_fonction_pour_tags :: fonc () -> chaine
 {
-    enchaineuse: Enchaineuse
-    initialise_enchaineuse(*enchaineuse)
+    enchaineuse: Enchaineuse;
+    initialise_enchaineuse(*enchaineuse);
 
-    ajoute_au_tampon(*enchaineuse, "    si terminologie_initialisée { retourne }\n")
-    ajoute_au_tampon(*enchaineuse, "    terminologie_initialisée = vrai\n")
+    ajoute_au_tampon(*enchaineuse, "    si terminologie_initialisée { retourne }\n");
+    ajoute_au_tampon(*enchaineuse, "    terminologie_initialisée = vrai\n");
 
-    lexèmes := Compilatrice.compilatrice_lèxe_fichier(#chemin_de_ce_fichier)
+    lexèmes := Compilatrice.compilatrice_lèxe_fichier(#chemin_de_ce_fichier);
 
     pour lexèmes {
         si it.genre != Compilatrice.GenreLexème.CHAINE_CARACTERE {
-            continue
+            continue;
         }
 
         si it.texte == "terminologie_initialisée" {
-            arrête
+            arrête;
         }
 
         si it.texte.commence_par("STR_") {
-            nom_chn := it.texte.avance(4)
-            ajoute_au_tampon(*enchaineuse, "    ", it.texte, " = crée_chaine_utf16_unique(\"", nom_chn, "\")\n")
+            nom_chn := it.texte.avance(4);
+            ajoute_au_tampon(*enchaineuse, "    ", it.texte, " = crée_chaine_utf16_unique(\"", nom_chn, "\")\n");
         }
     }
 
-    retourne chaine_depuis_enchaineuse(*enchaineuse)
+    retourne chaine_depuis_enchaineuse(*enchaineuse);
 }

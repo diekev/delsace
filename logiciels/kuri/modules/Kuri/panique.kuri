@@ -1,128 +1,128 @@
 // nous importons Fondation car il nous faut le code d'impression, ce serait bien de ne pas avoir à faire cela afin que Kuri soit sans aucune dépendances...
-importe SysFichier
-importe Unicode
+importe SysFichier;
+importe Unicode;
 
 imprime_trace_appel :: fonc () #sanstrace
 {
-    trace := contexte().trace_appel
+    trace := contexte().trace_appel;
 
     /* Il est possible de ne pas avoir de trace d'appel.
      * La trace du contexte est toujours valide, mais la trace précédente est alors nulle. */
     saufsi trace && trace.précédente {
-        imprime("Aucune trace d'appel disponible\n\n")
-        retourne
+        imprime("Aucune trace d'appel disponible\n\n");
+        retourne;
     }
 
     tantque trace != nul {
-        info_fonction := trace.info_fonction
-        info_appel := trace.info_appel
+        info_fonction := trace.info_fonction;
+        info_appel := trace.info_appel;
 
-        imprime("%:%:% : dans % (%)\n", info_fonction.fichier, info_appel.ligne, info_appel.colonne, info_fonction.nom, info_fonction.adresse)
-        imprime("%", info_appel.texte)
+        imprime("%:%:% : dans % (%)\n", info_fonction.fichier, info_appel.ligne, info_appel.colonne, info_fonction.nom, info_fonction.adresse);
+        imprime("%", info_appel.texte);
 
-        i := 0
+        i := 0;
         tantque i < info_appel.colonne - 1 {
-            imprime(" ")
-            i += nombre_octets_utf8(*info_appel.texte[i])
+            imprime(" ");
+            i += nombre_octets_utf8(*info_appel.texte[i]);
         }
 
         si POSIX.isatty(sortie_standarde().desc) {
-            imprime("\x1b[1;31m^\x1b[0m\n\n")
+            imprime("\x1b[1;31m^\x1b[0m\n\n");
         }
         sinon {
-            imprime("^\n\n")
+            imprime("^\n\n");
         }
 
-        trace = trace.précédente
+        trace = trace.précédente;
     }
 }
 
-appelé_depuis_signal_système := faux
-nous_sommes_dans_une_panique := faux
+appelé_depuis_signal_système := faux;
+nous_sommes_dans_une_panique := faux;
 
 imprime_panique :: fonc () -> rien #sanstrace #sansretour
 {
-    imprime_trace_appel()
-    imprime("\nL'exécution du programme a été arrêtée à cause d'une panique.\n")
+    imprime_trace_appel();
+    imprime("\nL'exécution du programme a été arrêtée à cause d'une panique.\n");
     saufsi appelé_depuis_signal_système {
-        exit(1)
+        exit(1);
     }
 }
 
 panique :: fonc (message: chaine, args: ...eini) -> rien #sanstrace #interface #sansretour
 {
     si nous_sommes_dans_une_panique {
-        exit(1)
-        retourne
+        exit(1);
+        retourne;
     }
 
-    nous_sommes_dans_une_panique = vrai
+    nous_sommes_dans_une_panique = vrai;
 
-    rappel := contexte().rappel_panique
+    rappel := contexte().rappel_panique;
     si rappel != nul {
-        rappel()
+        rappel();
     }
 
     si POSIX.isatty(sortie_standarde().desc) {
-        imprime("\n\x1b[1;31mErreur :\x1b[0m ")
+        imprime("\n\x1b[1;31mErreur :\x1b[0m ");
     }
     sinon {
-        imprime("Erreur : ")
+        imprime("Erreur : ");
     }
 
-    imprime(message, ...args)
-    imprime("\n\n")
-    imprime_panique()
+    imprime(message, ...args);
+    imprime("\n\n");
+    imprime_panique();
 }
 
 panique_dépassement_limites_tableau :: fonc (taille: z64, indice: z64) -> rien #sanstrace #interface #sansretour
 {
-    panique("dépassement des limites du tableau, la taille est de % mais l'indice est de %", taille, indice)
+    panique("dépassement des limites du tableau, la taille est de % mais l'indice est de %", taille, indice);
 }
 
 panique_dépassement_limites_chaine :: fonc (taille: z64, indice: z64) -> rien #sanstrace #interface #sansretour
 {
-    panique("dépassement des limites de la chaine, la taille est de % mais l'indice est de %", taille, indice)
+    panique("dépassement des limites de la chaine, la taille est de % mais l'indice est de %", taille, indice);
 }
 
 panique_rubrique_union :: fonc () -> rien #sanstrace #interface #sansretour
 {
-    panique("utilisation de la rubrique non-active d'une union")
+    panique("utilisation de la rubrique non-active d'une union");
 }
 
 panique_hors_mémoire :: fonc () -> rien #sanstrace #interface #sansretour
 {
-    panique("impossible d'allouer de la mémoire")
+    panique("impossible d'allouer de la mémoire");
 }
 
 panique_erreur_non_gérée :: fonc () -> rien #sanstrace #interface #sansretour
 {
-    panique("une erreur n'a pas été piégée")
+    panique("une erreur n'a pas été piégée");
 }
 
 vérifie_typage_extraction_eini :: fonc (info_eini: *InfoType, info_cible: *InfoType) #sanstrace #interface
 {
     si info_eini == info_cible {
-        retourne
+        retourne;
     }
 
-    info_eini_pointe_structure := est_pointeur_de_structure(info_eini)
-    info_cible_pointe_structure := est_pointeur_de_structure(info_cible)
+    info_eini_pointe_structure := est_pointeur_de_structure(info_eini);
+    info_cible_pointe_structure := est_pointeur_de_structure(info_cible);
 
     si info_eini_pointe_structure && info_cible_pointe_structure {
         si est_struct_ou_employeuse_de(info_cible_pointe_structure, info_eini_pointe_structure) {
-            retourne
+            retourne;
         }
     }
     sinon si info_eini.id == GenreInfoType.ENTIER && info_cible.id == GenreInfoType.ÉNUM {
-        info_énum := info_cible comme *InfoTypeÉnum
+        info_énum := info_cible comme *InfoTypeÉnum;
         si info_énum.type_sous_jacent == info_eini {
-            retourne
+            retourne;
         }
     }
     sinon si info_eini.id == GenreInfoType.TYPE_DE_DONNÉES && info_cible.id == GenreInfoType.TYPE_DE_DONNÉES {
-        retourne
+        retourne;
     }
 
-    panique("extraction d'une valeur depuis un eini avec le mauvais type\n  Le type contenu par l'eini est '%' alors que le type cible de l'extraction est '%'", chaine_pour_type(info_eini), chaine_pour_type(info_cible))
+    panique("extraction d'une valeur depuis un eini avec le mauvais type\n  Le type contenu par l'eini est '%' alors que le type cible de l'extraction est '%'", chaine_pour_type(info_eini), chaine_pour_type(info_cible));
 }

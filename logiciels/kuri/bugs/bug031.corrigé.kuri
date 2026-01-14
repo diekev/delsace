@@ -4,10 +4,10 @@
  */
 
 Struct :: struct {
-    x: z32
+    x: z32;
 }
 
 principale :: fonc ()
 {
-    _: ...Struct
+    _: ...Struct;
 }

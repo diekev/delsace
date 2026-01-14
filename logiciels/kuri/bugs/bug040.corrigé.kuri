@@ -3,7 +3,7 @@
  * Catégorie : [validation sémantique, redéfinition symbole]
  */
 
-importe Support
+importe Support;
 
 principale :: fonc ()
 {
@@ -18,9 +18,9 @@ principale :: fonc ()
         foo()
         exit(0)
     }
-    ")
+    ");
 
     saufsi erreur_survenue {
-        exit(1)
+        exit(1);
     }
 }

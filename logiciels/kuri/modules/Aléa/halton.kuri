@@ -4,120 +4,120 @@
  * https://www.cg.tuwien.ac.at/courses/RendEng/2015/RendEng-2016-01-11-InstantRadiosity.pdf */
 halton_suivant :: fonc (inverse_n_premier: r64, décalage: r64) -> r64
 {
-    e := abs(1.0 comme r64 - décalage - 1e-10 comme r64)
+    e := abs(1.0 comme r64 - décalage - 1e-10 comme r64);
 
     si inverse_n_premier < e {
-        décalage += inverse_n_premier
+        décalage += inverse_n_premier;
     }
     sinon {
-        dernier_h : r64 = ---
-        h := inverse_n_premier
+        dernier_h : r64 = ---;
+        h := inverse_n_premier;
 
         répète {
-            dernier_h = h
-            h *= inverse_n_premier
-        } tantque h >= e
+            dernier_h = h;
+            h *= inverse_n_premier;
+        } tantque h >= e;
 
-        décalage += ((dernier_h + h) - 1.0)
+        décalage += ((dernier_h + h) - 1.0);
     }
 
-    retourne décalage
+    retourne décalage;
 }
 
 SérieHalton :: struct {
-    nombre_premier: n32
-    premier_inverse: r64
-    décalage : r64 = 0.0
+    nombre_premier: n32;
+    premier_inverse: r64;
+    décalage : r64 = 0.0;
 }
 
 init_halton :: fonc (premier: n32) -> SérieHalton
 {
-    série: SérieHalton
-    série.nombre_premier = premier
-    série.premier_inverse = 1.0 comme r64 / (premier comme r64)
+    série: SérieHalton;
+    série.nombre_premier = premier;
+    série.premier_inverse = 1.0 comme r64 / (premier comme r64);
 
     // jète les 20 premier éléments de la séquence
     pour 0 ... 19 {
-        série.décalage = halton_suivant(série.premier_inverse, série.décalage)
+        série.décalage = halton_suivant(série.premier_inverse, série.décalage);
     }
 
-    retourne série
+    retourne série;
 }
 
 aléatoire_unilatérale :: fonc (série: &SérieHalton) -> r64
 {
-    résultat : r64 = 0.0
-    série.décalage = halton_suivant(série.premier_inverse, série.décalage)
-    retourne série.décalage
+    résultat : r64 = 0.0;
+    série.décalage = halton_suivant(série.premier_inverse, série.décalage);
+    retourne série.décalage;
 }
 
 SérieHalton2D :: struct {
-    nombre_premier: [2]n32
-    premier_inverse: [2]r64
-    décalage: [2]r64
+    nombre_premier: [2]n32;
+    premier_inverse: [2]r64;
+    décalage: [2]r64;
 }
 
 init_halton :: fonc (premier1: n32, premier2: n32) -> SérieHalton2D
 {
-    série: SérieHalton2D
-    série.décalage[0] = 0.0
-    série.décalage[1] = 0.0
+    série: SérieHalton2D;
+    série.décalage[0] = 0.0;
+    série.décalage[1] = 0.0;
 
-    série.nombre_premier[0] = premier1
-    série.premier_inverse[0] = 1.0 comme r64 / (premier1 comme r64)
-    série.nombre_premier[1] = premier2
-    série.premier_inverse[1] = 1.0 comme r64 / (premier2 comme r64)
+    série.nombre_premier[0] = premier1;
+    série.premier_inverse[0] = 1.0 comme r64 / (premier1 comme r64);
+    série.nombre_premier[1] = premier2;
+    série.premier_inverse[1] = 1.0 comme r64 / (premier2 comme r64);
 
     // jète les 20 premier éléments de la séquence
     pour 0 ... 19 {
-        série.décalage[0] = halton_suivant(série.premier_inverse[0], série.décalage[0])
-        série.décalage[1] = halton_suivant(série.premier_inverse[1], série.décalage[1])
+        série.décalage[0] = halton_suivant(série.premier_inverse[0], série.décalage[0]);
+        série.décalage[1] = halton_suivant(série.premier_inverse[1], série.décalage[1]);
     }
 
-    retourne série
+    retourne série;
 }
 
 aléatoire_unilatérale :: fonc (série: &SérieHalton2D) -> [2]r64
 {
-    série.décalage[0] = halton_suivant(série.premier_inverse[0], série.décalage[0])
-    série.décalage[1] = halton_suivant(série.premier_inverse[1], série.décalage[1])
-    retourne série.décalage
+    série.décalage[0] = halton_suivant(série.premier_inverse[0], série.décalage[0]);
+    série.décalage[1] = halton_suivant(série.premier_inverse[1], série.décalage[1]);
+    retourne série.décalage;
 }
 
 SérieHalton3D :: struct {
-    nombre_premier: [3]n32
-    premier_inverse: [3]r64
-    décalage: [3]r64
+    nombre_premier: [3]n32;
+    premier_inverse: [3]r64;
+    décalage: [3]r64;
 }
 
 init_halton :: fonc (premier1: n32, premier2: n32, premier3: n32) -> SérieHalton3D
 {
-    série: SérieHalton3D
-    série.décalage[0] = 0.0
-    série.décalage[1] = 0.0
-    série.décalage[2] = 0.0
+    série: SérieHalton3D;
+    série.décalage[0] = 0.0;
+    série.décalage[1] = 0.0;
+    série.décalage[2] = 0.0;
 
-    série.nombre_premier[0] = premier1
-    série.premier_inverse[0] = 1.0 comme r64 / (premier1 comme r64)
-    série.nombre_premier[1] = premier2
-    série.premier_inverse[1] = 1.0 comme r64 / (premier2 comme r64)
-    série.nombre_premier[2] = premier3
-    série.premier_inverse[2] = 1.0 comme r64 / (premier3 comme r64)
+    série.nombre_premier[0] = premier1;
+    série.premier_inverse[0] = 1.0 comme r64 / (premier1 comme r64);
+    série.nombre_premier[1] = premier2;
+    série.premier_inverse[1] = 1.0 comme r64 / (premier2 comme r64);
+    série.nombre_premier[2] = premier3;
+    série.premier_inverse[2] = 1.0 comme r64 / (premier3 comme r64);
 
     // jète les 20 premier éléments de la séquence
     pour 0 ... 19 {
-        série.décalage[0] = halton_suivant(série.premier_inverse[0], série.décalage[0])
-        série.décalage[1] = halton_suivant(série.premier_inverse[1], série.décalage[1])
-        série.décalage[2] = halton_suivant(série.premier_inverse[2], série.décalage[2])
+        série.décalage[0] = halton_suivant(série.premier_inverse[0], série.décalage[0]);
+        série.décalage[1] = halton_suivant(série.premier_inverse[1], série.décalage[1]);
+        série.décalage[2] = halton_suivant(série.premier_inverse[2], série.décalage[2]);
     }
 
-    retourne série
+    retourne série;
 }
 
 aléatoire_unilatérale :: fonc (série: &SérieHalton3D) -> [3]r64
 {
-    série.décalage[0] = halton_suivant(série.premier_inverse[0], série.décalage[0])
-    série.décalage[1] = halton_suivant(série.premier_inverse[1], série.décalage[1])
-    série.décalage[2] = halton_suivant(série.premier_inverse[2], série.décalage[2])
-    retourne série.décalage
+    série.décalage[0] = halton_suivant(série.premier_inverse[0], série.décalage[0]);
+    série.décalage[1] = halton_suivant(série.premier_inverse[1], série.décalage[1]);
+    série.décalage[2] = halton_suivant(série.premier_inverse[2], série.décalage[2]);
+    retourne série.décalage;
 }

@@ -1,11 +1,11 @@
-importe Math
+importe Math;
 
 /* ------------------------------------------------------------------------- */
 /** \nom Contexte de rendu pour HTMLCanvasElement
  * \{ */
 
 RenderingContext :: struct {
-    empl platform_objet: PlatformObject
+    empl platform_objet: PlatformObject;
 }
 
 /** \} */
@@ -15,33 +15,33 @@ RenderingContext :: struct {
  * \{ */
 
 CanvasRenderingContext2D :: struct {
-    empl rendering_context: RenderingContext
-    table = *table_virtuelle_canvas_rendering_context_2d
+    empl rendering_context: RenderingContext;
+    table = *table_virtuelle_canvas_rendering_context_2d;
 
-    canvas: *HTMLCanvasElement
-    fill_style_string := CSS.COL_black
-    fill_style: CouleurRVBAN8
+    canvas: *HTMLCanvasElement;
+    fill_style_string := CSS.COL_black;
+    fill_style: CouleurRVBAN8;
 
-    matrice := matrice_neutre(3, r64)
+    matrice := matrice_neutre(3, r64);
 }
 
 crée_canvas_rendering_context_2d :: fonc (canvas: *HTMLCanvasElement) -> *CanvasRenderingContext2D
 {
-    résultat := crée_platform_object(canvas, CanvasRenderingContext2D)
-    résultat.canvas = canvas
-    retourne résultat
+    résultat := crée_platform_object(canvas, CanvasRenderingContext2D);
+    résultat.canvas = canvas;
+    retourne résultat;
 }
 
 donne_canvas :: fonc (ctx: *CanvasRenderingContext2D) -> *HTMLCanvasElement
 {
-    retourne ctx.canvas
+    retourne ctx.canvas;
 }
 
 #portée_fichier
 
 table_virtuelle_canvas_rendering_context_2d := TableVirtuellePlatformObject(
     classe = CanvasRenderingContext2D
-)
+);
 
 #portée_export
 
@@ -49,18 +49,18 @@ table_virtuelle_canvas_rendering_context_2d := TableVirtuellePlatformObject(
 définis_fill_style :: fonc (ctx: *CanvasRenderingContext2D, style: DOMString)
 {
     // À FAIRE : standardise
-    opt_couleur := CSS.parse_a_css_color(style, ctx.canvas)
+    opt_couleur := CSS.parse_a_css_color(style, ctx.canvas);
     saufsi opt_couleur.possède_valeur() {
-        retourne
+        retourne;
     }
 
-    ctx.fill_style_string = style
-    ctx.fill_style = opt_couleur.Quelque
+    ctx.fill_style_string = style;
+    ctx.fill_style = opt_couleur.Quelque;
 }
 
 donne_fill_style :: fonc (ctx: *CanvasRenderingContext2D) -> DOMString
 {
-    retourne ctx.fill_style_string
+    retourne ctx.fill_style_string;
 }
 
 /* NOTE : cette interface n'est pas standarde, mais est utilisée par certains
@@ -68,72 +68,72 @@ donne_fill_style :: fonc (ctx: *CanvasRenderingContext2D) -> DOMString
  * setFillStyle. */
 set_fill_color :: fonc (ctx: *CanvasRenderingContext2D, r: r64, v: r64, b: r64)
 {
-    convertis_canal :: fonc (v: r64) -> n8 #enligne
+    convertis_canal :: fonc (v: r64) -> n8 #enligne;
     {
         si v < 0.0 {
-            retourne 0
+            retourne 0;
         }
         si v > 1.0 {
-            retourne 255
+            retourne 255;
         }
-        retourne (v * 255.0) comme n8
+        retourne (v * 255.0) comme n8;
     }
 
-    ctx.fill_style.r = convertis_canal(r)
-    ctx.fill_style.v = convertis_canal(v)
-    ctx.fill_style.b = convertis_canal(b)
-    ctx.fill_style.a = 255
+    ctx.fill_style.r = convertis_canal(r);
+    ctx.fill_style.v = convertis_canal(v);
+    ctx.fill_style.b = convertis_canal(b);
+    ctx.fill_style.a = 255;
 }
 
 fill_rect :: fonc (ctx: *CanvasRenderingContext2D, x: r64, y: r64, w: r64, h: r64)
 {
     saufsi ctx.canvas {
-        retourne
+        retourne;
     }
 
-    p0 := VecteurN(3, r64)(x, y, 1.0)
-    p1 := VecteurN(3, r64)(x + w, y + h, 1.0)
+    p0 := VecteurN(3, r64)(x, y, 1.0);
+    p1 := VecteurN(3, r64)(x + w, y + h, 1.0);
 
-    p0 = transforme(ctx.matrice, p0)
-    p1 = transforme(ctx.matrice, p1)
+    p0 = transforme(ctx.matrice, p0);
+    p1 = transforme(ctx.matrice, p1);
 
-    x0 := p0.x
-    x1 := p1.x
+    x0 := p0.x;
+    x1 := p1.x;
     si x1 < x0 {
-        tmp := x0
-        x0 = x1
-        x1 = tmp
+        tmp := x0;
+        x0 = x1;
+        x1 = tmp;
     }
 
-    y0 := p0.y
-    y1 := p1.y
+    y0 := p0.y;
+    y1 := p1.y;
     si y1 < y0 {
-        tmp := y0
-        y0 = y1
-        y1 = tmp
+        tmp := y0;
+        y0 = y1;
+        y1 = tmp;
     }
 
-    x = x0
-    y = y0
+    x = x0;
+    y = y0;
 
-    w = x1 - x0
-    h = y1 - y0
+    w = x1 - x0;
+    h = y1 - y0;
 
-    rect: RectanglePosDim(z32)
-    rect.x = x comme z32
-    rect.y = y comme z32
-    rect.largeur = w comme z32
-    rect.hauteur = h comme z32
+    rect: RectanglePosDim(z32);
+    rect.x = x comme z32;
+    rect.y = y comme z32;
+    rect.largeur = w comme z32;
+    rect.hauteur = h comme z32;
 
-    tampon := ctx.canvas.donne_tampon_de_rendu()
+    tampon := ctx.canvas.donne_tampon_de_rendu();
 
-    peintre: PeintreDessin
-    initialise_peintre_dessin(*peintre)
-    peintre.tampon_de_rendu = tampon
-    remplis_rectangle(*peintre, rect, ctx.fill_style)
+    peintre: PeintreDessin;
+    initialise_peintre_dessin(*peintre);
+    peintre.tampon_de_rendu = tampon;
+    remplis_rectangle(*peintre, rect, ctx.fill_style);
 
-    document := ctx.canvas.document
-    requiers_redessin(document)
+    document := ctx.canvas.document;
+    requiers_redessin(document);
 }
 
 /* https://html.spec.whatwg.org/multipage/canvas.html#dom-context-2d-scale */
@@ -141,18 +141,18 @@ scale :: fonc (ctx: *CanvasRenderingContext2D, x: r64, y: r64)
 {
     // 1. If either of the arguments are infinite or NaN, then return.
     si est_infini_ou_nan(x) || est_infini_ou_nan(y) {
-        retourne
+        retourne;
     }
 
     // 2. Add the scaling transformation described by the arguments to the
     //    current transformation matrix. The x argument represents the scale
     //    factor in the horizontal direction and the y argument represents
     //    the scale factor in the vertical direction. The factors are multiples.
-    mat := matrice_neutre(3, r64)
-    mat.m[0][0] *= x
-    mat.m[1][1] *= y
+    mat := matrice_neutre(3, r64);
+    mat.m[0][0] *= x;
+    mat.m[1][1] *= y;
 
-    ctx.matrice = multiplie(ctx.matrice, mat)
+    ctx.matrice = multiplie(ctx.matrice, mat);
 }
 
 /* https://html.spec.whatwg.org/multipage/canvas.html#dom-context-2d-translate */
@@ -160,7 +160,7 @@ translate :: fonc (ctx: *CanvasRenderingContext2D, x: r64, y: r64)
 {
     // 1. If either of the arguments are infinite or NaN, then return.
     si est_infini_ou_nan(x) || est_infini_ou_nan(y) {
-        retourne
+        retourne;
     }
 
     // 2. Add the translation transformation described by the arguments to
@@ -168,11 +168,11 @@ translate :: fonc (ctx: *CanvasRenderingContext2D, x: r64, y: r64)
     //    translation distance in the horizontal direction and the y argument
     //    represents the translation distance in the vertical direction.
     //    The arguments are in coordinate space units.
-    mat := matrice_neutre(3, r64)
-    mat.m[2][0] += x
-    mat.m[2][1] += y
+    mat := matrice_neutre(3, r64);
+    mat.m[2][0] += x;
+    mat.m[2][1] += y;
 
-    ctx.matrice = multiplie(ctx.matrice, mat)
+    ctx.matrice = multiplie(ctx.matrice, mat);
 }
 
 /** \} */

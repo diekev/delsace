@@ -1,21 +1,21 @@
-importe Fondation
+importe Fondation;
 
 ma_plage :: fonc (début: z32, fin: z32, pas: z32) -> z32
 {
-    taille := (fin - début) / pas
-    val := début
+    taille := (fin - début) / pas;
+    val := début;
 
     pour i dans 0 ... taille {
-        retiens val
-        val += pas
+        retiens val;
+        val += pas;
     }
 
-    imprime("Fin coroutine\n")
+    imprime("Fin coroutine\n");
 }
 
 principale :: fonc ()
 {
     pour i dans ma_plage(0, 10, 1) {
-        imprime("Valeur = %\n", i)
+        imprime("Valeur = %\n", i);
     }
 }

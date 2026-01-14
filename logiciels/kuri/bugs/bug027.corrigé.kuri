@@ -2,21 +2,21 @@
  * Catégorie : [génération code, expression déloge, type tableau]
  */
 
-importe Fondation
+importe Fondation;
 
 principale :: fonc ()
 {
-    tabl: [..]z32
+    tabl: [..]z32;
 
-    tableau_ajoute(*tabl, 1)
-    tableau_ajoute(*tabl, 1)
-    tableau_ajoute(*tabl, 1)
-    tableau_ajoute(*tabl, 1)
+    tableau_ajoute(*tabl, 1);
+    tableau_ajoute(*tabl, 1);
+    tableau_ajoute(*tabl, 1);
+    tableau_ajoute(*tabl, 1);
 
-    déloge(tabl)
+    déloge(tabl);
 
     tableau_ajoute(*tabl, 1) // crash
-    tableau_ajoute(*tabl, 1)
+    tableau_ajoute(*tabl, 1);
 
-    déloge(tabl)
+    déloge(tabl);
 }

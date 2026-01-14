@@ -6,29 +6,29 @@
  * Catégorie : [exécution, génération code, énum drapeau]
  */
 
-importe Fondation
+importe Fondation;
 
 Structure :: struct {
-    x: *z32
+    x: *z32;
 }
 
 ÉnumDrapeau :: énum_drapeau {
-    VALEUR1
-    VALEUR2
+    VALEUR1;
+    VALEUR2;
 }
 
 imprime_énum_drapeau :: fonc ()
 {
-    s: Structure
+    s: Structure;
 
-    e: ÉnumDrapeau
-    e.VALEUR1 = s.x != nul
-    e.VALEUR2 = s.x == nul
+    e: ÉnumDrapeau;
+    e.VALEUR1 = s.x != nul;
+    e.VALEUR2 = s.x == nul;
 }
 
-#exécute imprime_énum_drapeau()
+#exécute imprime_énum_drapeau();
 
 principale :: fonc ()
 {
-    imprime_énum_drapeau()
+    imprime_énum_drapeau();
 }

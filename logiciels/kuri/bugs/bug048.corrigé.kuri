@@ -4,7 +4,7 @@
  */
 
 // puisque fonc est malécrit, ceci est considéré comme un appel, mais les appels ne doivent pas pouvoir déclarer de type !
-fonction :: fon (a: z32)
+fonction :: fon (a: z32);
 {
 }
 

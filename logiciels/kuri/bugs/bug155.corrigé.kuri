@@ -3,18 +3,18 @@
  * Catégories : [canonicalisation]
  */
 
-importe Fondation
+importe Fondation;
 
 U :: struct {
-    données: *rien
+    données: *rien;
 }
 
 passe_structure_par_valeur_défaut :: fonc (u := U())
 {
-    assert(u.données == nul)
+    assert(u.données == nul);
 }
 
 principale :: fonc ()
 {
-    passe_structure_par_valeur_défaut()
+    passe_structure_par_valeur_défaut();
 }
