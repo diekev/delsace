@@ -4,16 +4,16 @@
  */
 
 Union :: union {
-    A: z32
-    B: r32
+    A: z32;
+    B: r32;
 }
 
 Structure :: struct {
-    u: Union
+    u: Union;
 }
 
 principale :: fonc ()
 {
-    s: Structure
-    s.u.A = 5
+    s: Structure;
+    s.u.A = 5;
 }

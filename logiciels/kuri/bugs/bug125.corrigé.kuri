@@ -3,23 +3,23 @@
  * Catégorie : [validation sémantique, discr]
  */
 
-importe Fondation
+importe Fondation;
 
 principale :: fonc ()
 {
-    v : Optionnel(z32) = 2
+    v : Optionnel(z32) = 2;
 
     discr v {
         Quelque(valeur) {
-            imprime("valeur : %\n", valeur)
+            imprime("valeur : %\n", valeur);
         }
         sinon {
-            panique("v devrait avoir une valeur")
+            panique("v devrait avoir une valeur");
         }
     }
 }
 
 valeur :: fonc () -> z32
 {
-    retourne 123
+    retourne 123;
 }

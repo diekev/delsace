@@ -4,25 +4,25 @@
  * Catégorie : [exécution code, arithmétique pointeur]
  */
 
-importe Support
+importe Support;
 
 test_arithmétique_pointeur :: fonc () -> bool
 {
-    x: [3]z32
-    y := *x[0]
+    x: [3]z32;
+    y := *x[0];
 
-    mémoire(y) = 1
-    y += 1
+    mémoire(y) = 1;
+    y += 1;
 
-    mémoire(y) = 2
+    mémoire(y) = 2;
 
-    retourne x[0] == 1 && x[1] == 2
+    retourne x[0] == 1 && x[1] == 2;
 }
 
 principale :: fonc ()
 {
-    succès := #exécute test_arithmétique_pointeur()
+    succès := #exécute test_arithmétique_pointeur();
     saufsi succès {
-        exit(1)
+        exit(1);
     }
 }

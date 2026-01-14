@@ -1,95 +1,95 @@
-importe Fondation
+importe Fondation;
 
 test_plage_typée :: fonc () -> rien
 {
-    imprime("boucle de caractères :\n")
+    imprime("boucle de caractères :\n");
 
     pour i dans 'a' ... 'z' {
-        imprime("% ", i)
+        imprime("% ", i);
     }
 
-    imprime("\n")
+    imprime("\n");
 
-    imprime("boucle de nombres entier r32 :\n")
+    imprime("boucle de nombres entier r32 :\n");
 
     pour i dans 0 ... 10 {
-        imprime("% ", i)
+        imprime("% ", i);
     }
 
-    imprime("\n")
+    imprime("\n");
 
-    imprime("boucle de nombres entier n32 :\n")
+    imprime("boucle de nombres entier n32 :\n");
 
-    debutn32 : n32 = 0
-    finn32 : n32 = 10
+    debutn32 : n32 = 0;
+    finn32 : n32 = 10;
 
     pour i dans debutn32 ... finn32 {
-        imprime("% ", i)
+        imprime("% ", i);
     }
 
-    imprime("\n")
+    imprime("\n");
 
-    imprime("boucle de nombres réels r64 :\n")
+    imprime("boucle de nombres réels r64 :\n");
 
     pour i dans 0.5 ... 25.5 {
-        imprime("% ", i)
+        imprime("% ", i);
     }
-    imprime("\n")
+    imprime("\n");
 
-    debut := 0.5 comme r32
-    fin := 9.5 comme r32
+    debut := 0.5 comme r32;
+    fin := 9.5 comme r32;
 
-    imprime("boucle de nombres réels r32 [%, %]:\n", debut, fin)
+    imprime("boucle de nombres réels r32 [%, %]:\n", debut, fin);
     pour i dans debut ... fin {
-        imprime("% ", i)
+        imprime("% ", i);
     }
-    imprime("\n")
+    imprime("\n");
 
-    retourne
+    retourne;
 }
 
 test_génération_séquence :: fonc () -> rien
 {
-    debut := 10
-    fin := 0
+    debut := 10;
+    fin := 0;
 
-    imprime(format = "Plage de % à %\n", args = debut, fin)
-
-    pour x dans debut ... fin {
-        imprime("% ", x)
-    }
-
-    imprime("\n")
-
-    debut = 0
-    fin = 10
-
-    imprime(format = "Plage de % à %\n", args = fin, args = debut)
+    imprime(format = "Plage de % à %\n", args = debut, fin);
 
     pour x dans debut ... fin {
-        imprime("% ", fin - x)
+        imprime("% ", x);
     }
 
-    imprime("\n")
+    imprime("\n");
 
-    debut = 0
-    fin = 10
+    debut = 0;
+    fin = 10;
 
-    plage := (fin - debut)
-    demi_plage := plage / 2
-
-    imprime(args = -demi_plage, demi_plage, format = "Plage de % à %\n")
+    imprime(format = "Plage de % à %\n", args = fin, args = debut);
 
     pour x dans debut ... fin {
-        imprime("% ", x - demi_plage)
+        imprime("% ", fin - x);
     }
 
-    imprime("\n")
+    imprime("\n");
 
-    retourne
+    debut = 0;
+    fin = 10;
+
+    plage := (fin - debut);
+    demi_plage := plage / 2;
+
+    imprime(args = -demi_plage, demi_plage, format = "Plage de % à %\n");
+
+    pour x dans debut ... fin {
+        imprime("% ", x - demi_plage);
+    }
+
+    imprime("\n");
+
+    retourne;
 }
 
 principale :: fonc ()
 {
-    test_génération_séquence()
+    test_génération_séquence();
 }

@@ -6,26 +6,26 @@ La serveuse peut être créée pour le Gestionnaire seul, ou peut être une serv
 
  */
 
-importe ConnexionTCP
-importe ServeuseTCP
+importe ConnexionTCP;
+importe ServeuseTCP;
 
 // -----------------------------------------------------
 
 MessageClienteSMTP :: struct {
-    texte: chaine
+    texte: chaine;
 }
 
 MessageServeuseSMTP :: struct {
-    texte: chaine
+    texte: chaine;
 }
 
 MessageSMTP :: union {
-    Client: MessageClienteSMTP
-    Serveur: MessageServeuseSMTP
+    Client: MessageClienteSMTP;
+    Serveur: MessageServeuseSMTP;
 }
 
 HistoriqueEnvoiCourriel :: struct {
-    messages: [..]MessageSMTP
+    messages: [..]MessageSMTP;
 }
 
 détruit_historique :: fonc (historique: &HistoriqueEnvoiCourriel)
@@ -34,162 +34,162 @@ détruit_historique :: fonc (historique: &HistoriqueEnvoiCourriel)
         discr it {
             Client(message_client) {
                 // imprime("C: %", message_client.texte)
-                déloge(message_client.texte)
+                déloge(message_client.texte);
             }
             Serveur(message_serveur) {
                 // imprime("S: %", message_serveur.texte)
-                déloge(message_serveur.texte)
+                déloge(message_serveur.texte);
             }
             sinon {
-                continue
+                continue;
             }
         }
     }
 
-    déloge(historique.messages)
+    déloge(historique.messages);
 }
 
 ajoute_message_cliente :: fonc (historique: &HistoriqueEnvoiCourriel, texte: chaine)
 {
     // imprime("C: %", texte)
-    message : MessageSMTP = MessageClienteSMTP(copie_chaine(texte))
-    tableau_ajoute(*historique.messages, message)
+    message : MessageSMTP = MessageClienteSMTP(copie_chaine(texte));
+    tableau_ajoute(*historique.messages, message);
 }
 
 ajoute_message_serveuse :: fonc (historique: &HistoriqueEnvoiCourriel, texte: chaine)
 {
     // imprime("S: %", texte)
-    message : MessageSMTP = MessageServeuseSMTP(copie_chaine(texte))
-    tableau_ajoute(*historique.messages, message)
+    message : MessageSMTP = MessageServeuseSMTP(copie_chaine(texte));
+    tableau_ajoute(*historique.messages, message);
 }
 
 // -----------------------------------------------------
 
 GestionnaireEnvoiCourriel :: struct {
-    config: ConfigurationCourriel
-    boucle_évènements: *Boucle
-    ctx: *Contexte
+    config: ConfigurationCourriel;
+    boucle_évènements: *Boucle;
+    ctx: *Contexte;
 
-    boucle_nous_appartient: bool
+    boucle_nous_appartient: bool;
 }
 
 détruit_gestionnaire :: fonc (gestionnaire: &GestionnaireEnvoiCourriel)
 {
-    détruit_contexte(gestionnaire.ctx)
+    détruit_contexte(gestionnaire.ctx);
 
     si gestionnaire.boucle_nous_appartient {
-        détruit_boucle(gestionnaire.boucle_évènements)
+        détruit_boucle(gestionnaire.boucle_évènements);
     }
 }
 
 uri_depuis_configuration :: fonc (config: ConfigurationCourriel) -> URI
 {
-    résultat: URI
-    résultat.hôte = config.serveur
+    résultat: URI;
+    résultat.hôte = config.serveur;
 
     // À FAIRE : utilise un URI dans la configuration, ou utilise un n16 dans URI directement pour stocker le port
     si config.utilise_ssl {
         si config.port_chiffré == 465 {
-            résultat.port = "465"
+            résultat.port = "465";
         }
         sinon {
-            résultat.port = "0"
+            résultat.port = "0";
         }
     }
     sinon {
         si config.port_non_chiffré == 587 {
-            résultat.port = "587"
+            résultat.port = "587";
         }
         sinon {
-            résultat.port = "25"
+            résultat.port = "25";
         }
     }
-    retourne résultat
+    retourne résultat;
 }
 
 crée_gestionnaire_courriel :: fonc (config: ConfigurationCourriel) -> GestionnaireEnvoiCourriel
 {
-    boucle_évènements := crée_boucle()
-    gestionnaire := crée_gestionnaire_courriel(boucle_évènements, config)
-    gestionnaire.boucle_nous_appartient = vrai
-    retourne gestionnaire
+    boucle_évènements := crée_boucle();
+    gestionnaire := crée_gestionnaire_courriel(boucle_évènements, config);
+    gestionnaire.boucle_nous_appartient = vrai;
+    retourne gestionnaire;
 }
 
 crée_gestionnaire_courriel :: fonc (boucle_évènements: *Boucle, config: ConfigurationCourriel) -> GestionnaireEnvoiCourriel
 {
-    gestionnaire: GestionnaireEnvoiCourriel
-    gestionnaire.config = config
-    gestionnaire.boucle_évènements = boucle_évènements
-    gestionnaire.ctx = crée_contexte_smtp(boucle_évènements)
-    retourne gestionnaire
+    gestionnaire: GestionnaireEnvoiCourriel;
+    gestionnaire.config = config;
+    gestionnaire.boucle_évènements = boucle_évènements;
+    gestionnaire.ctx = crée_contexte_smtp(boucle_évènements);
+    retourne gestionnaire;
 }
 
 DonnéesPriseEnvoiCourriel :: struct {
-    courriel: Courriel
-    état: ÉtatEnvoiCourriel
-    config: ConfigurationCourriel
+    courriel: Courriel;
+    état: ÉtatEnvoiCourriel;
+    config: ConfigurationCourriel;
 
-    historique: HistoriqueEnvoiCourriel
+    historique: HistoriqueEnvoiCourriel;
 
-    commande_courante: chaine
-    taille_envoyée: z32
+    commande_courante: chaine;
+    taille_envoyée: z32;
 }
 
 détruit_données_prise :: fonc (données: *DonnéesPriseEnvoiCourriel)
 {
-    déloge(données.commande_courante)
-    détruit_historique(données.historique)
+    déloge(données.commande_courante);
+    détruit_historique(données.historique);
 }
 
 envoie_courriel :: fonc (gestionnaire: &GestionnaireEnvoiCourriel, courriel: Courriel) -> bool
 {
-    uri := uri_depuis_configuration(gestionnaire.config)
-    prise := crée_prise_connexion(gestionnaire.ctx, uri, DonnéesPriseEnvoiCourriel)
+    uri := uri_depuis_configuration(gestionnaire.config);
+    prise := crée_prise_connexion(gestionnaire.ctx, uri, DonnéesPriseEnvoiCourriel);
 
     saufsi prise {
-        retourne faux
+        retourne faux;
     }
 
-    données := prise.données_utilisateur(DonnéesPriseEnvoiCourriel)
-    init_de(DonnéesPriseEnvoiCourriel)(données)
-    données.courriel = courriel
-    données.config = gestionnaire.config
+    données := prise.données_utilisateur(DonnéesPriseEnvoiCourriel);
+    init_de(DonnéesPriseEnvoiCourriel)(données);
+    données.courriel = courriel;
+    données.config = gestionnaire.config;
 
     si gestionnaire.boucle_nous_appartient {
-        gestionnaire.boucle_évènements.lance()
+        gestionnaire.boucle_évènements.lance();
     }
 
-    retourne vrai
+    retourne vrai;
 }
 
 crée_contexte_smtp :: fonc (boucle_évènements: *Boucle) -> *Contexte
 {
-    ctx := crée_contexte_vide(boucle_évènements, nul, GestionnaireEnvoiCourriel)
-    ctx.mute_quand_ouverture(quand_ouverture)
-    ctx.mute_quand_données_reçues(quand_données_reçues)
-    ctx.mute_quand_fermeture(quand_fermeture)
-    ctx.mute_quand_écriture(quand_écriture)
-    retourne ctx
+    ctx := crée_contexte_vide(boucle_évènements, nul, GestionnaireEnvoiCourriel);
+    ctx.mute_quand_ouverture(quand_ouverture);
+    ctx.mute_quand_données_reçues(quand_données_reçues);
+    ctx.mute_quand_fermeture(quand_fermeture);
+    ctx.mute_quand_écriture(quand_écriture);
+    retourne ctx;
 }
 
 quand_ouverture :: fonc (prise: *Prise, est_client: bool @inutilisée)
 {
-    données := prise.données_utilisateur(DonnéesPriseEnvoiCourriel)
-    commande := commande_suivante(données.état, données.config, données.courriel)
+    données := prise.données_utilisateur(DonnéesPriseEnvoiCourriel);
+    commande := commande_suivante(données.état, données.config, données.courriel);
     // À FAIRE : gestion de la mémoire
     //diffère déloge(commande)
-    écris_commande(prise, données, commande)
+    écris_commande(prise, données, commande);
 }
 
 quand_données_reçues :: fonc (prise: *Prise, données: []octet)
 {
-    contenu := chaine_depuis_tranche_octets(données)
+    contenu := chaine_depuis_tranche_octets(données);
 
-    données_prise := prise.données_utilisateur(DonnéesPriseEnvoiCourriel)
-    données_prise.historique.ajoute_message_serveuse(contenu)
+    données_prise := prise.données_utilisateur(DonnéesPriseEnvoiCourriel);
+    données_prise.historique.ajoute_message_serveuse(contenu);
 
-    réponse := parse_réponse_serveuse(contenu)
-    diffère détruit_réponse(réponse)
+    réponse := parse_réponse_serveuse(contenu);
+    diffère détruit_réponse(réponse);
 
     // si !réponse.est_valide() {
     //     //imprime("réponse invalide !\n")
@@ -198,41 +198,41 @@ quand_données_reçues :: fonc (prise: *Prise, données: []octet)
     // }
 
     si réponse.status >= 500 {
-        données_prise.état.étape = ÉtapeEnvoiCourriel.EnvoiTerminé
-        écris_commande(prise, données_prise, chaine_pour_commande("QUIT"))
-        retourne
+        données_prise.état.étape = ÉtapeEnvoiCourriel.EnvoiTerminé;
+        écris_commande(prise, données_prise, chaine_pour_commande("QUIT"));
+        retourne;
     }
 
-    commande := commande_suivante(données_prise.état, données_prise.config, données_prise.courriel)
+    commande := commande_suivante(données_prise.état, données_prise.config, données_prise.courriel);
     // À FAIRE : gestion de la mémoire
     //diffère déloge(commande)
-    écris_commande(prise, données_prise, chaine_pour_commande(commande))
+    écris_commande(prise, données_prise, chaine_pour_commande(commande));
 }
 
 quand_fermeture :: fonc (prise: *Prise)
 {
     //imprime("quand_fermeture !\n")
     // À FAIRE : notifie que le message fut envoyé ou non
-    données_prise := prise.données_utilisateur(DonnéesPriseEnvoiCourriel)
-    détruit_données_prise(données_prise)
+    données_prise := prise.données_utilisateur(DonnéesPriseEnvoiCourriel);
+    détruit_données_prise(données_prise);
 }
 
 quand_écriture :: fonc (prise: *Prise)
 {
     //imprime("quand_écriture\n")
-    données_prise := prise.données_utilisateur(DonnéesPriseEnvoiCourriel)
-    commande := avance(données_prise.commande_courante, données_prise.taille_envoyée)
-    données_prise.taille_envoyée += prise.écris(commande)
+    données_prise := prise.données_utilisateur(DonnéesPriseEnvoiCourriel);
+    commande := avance(données_prise.commande_courante, données_prise.taille_envoyée);
+    données_prise.taille_envoyée += prise.écris(commande);
 }
 
 écris_commande :: fonc (prise: *Prise, données: *DonnéesPriseEnvoiCourriel, commande: chaine)
 {
-    déloge(données.commande_courante)
-    données.commande_courante = commande
-    données.taille_envoyée = prise.écris(commande)
-    données.historique.ajoute_message_cliente(commande)
+    déloge(données.commande_courante);
+    données.commande_courante = commande;
+    données.taille_envoyée = prise.écris(commande);
+    données.historique.ajoute_message_cliente(commande);
 
     si données.état.est_terminé() {
-        prise.ferme()
+        prise.ferme();
     }
 }

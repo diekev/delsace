@@ -1,180 +1,180 @@
 // Encodage/Décodage de données dans certaines bases (64 seulement pour l'instant)
 
-importe Compilatrice
-importe Fondation
+importe Compilatrice;
+importe Fondation;
 
-charge "format_url"
+charge "format_url";
 
-table_défaut :: "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/"
-table_url :: "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789-_"
+table_défaut :: "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/";
+table_url :: "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789-_";
 
 est_base64_url :: fonc (c: z8) -> bool
 {
-    retourne ('A' <= c <= 'Z') || ('a' <= c <= 'z') || ('0' <= c <= '9') || (c == '-') || (c == '_')
+    retourne ('A' <= c <= 'Z') || ('a' <= c <= 'z') || ('0' <= c <= '9') || (c == '-') || (c == '_');
 }
 
 est_base64_url :: fonc (chn: chaine) -> bool
 {
     saufsi chn {
-        retourne faux
+        retourne faux;
     }
 
     pour chn {
         saufsi est_base64_url(it) {
-            retourne faux
+            retourne faux;
         }
     }
 
-    retourne vrai
+    retourne vrai;
 }
 
 est_base64 :: fonc (c: z8) -> bool
 {
-    retourne ('A' <= c <= 'Z') || ('a' <= c <= 'z') || ('0' <= c <= '9') || (c == '+') || (c == '/')
+    retourne ('A' <= c <= 'Z') || ('a' <= c <= 'z') || ('0' <= c <= '9') || (c == '+') || (c == '/');
 }
 
 est_base64 :: fonc (chn: chaine) -> bool
 {
     saufsi chn {
-        retourne faux
+        retourne faux;
     }
 
     pour chn {
         saufsi est_base64(it) {
-            retourne faux
+            retourne faux;
         }
     }
 
-    retourne vrai
+    retourne vrai;
 }
 
 /* ------------------------------------------------------------------------- */
 
 donne_taille_base64 :: fonc (src: []octet) -> z64
 {
-    résultat := src.taille / 3
-    taille_mod_3 := src.taille % 3
+    résultat := src.taille / 3;
+    taille_mod_3 := src.taille % 3;
     si taille_mod_3 != 0 {
-        résultat += 1
+        résultat += 1;
     }
-    retourne résultat * 4
+    retourne résultat * 4;
 }
 
 encode_base64 :: fonc (src: []octet, dst: []octet)
 {
-    assert(dst.taille == donne_taille_base64(src))
+    assert(dst.taille == donne_taille_base64(src));
 
-    ptr_src := src.pointeur
-    fin_src := src.pointeur + src.taille
+    ptr_src := src.pointeur;
+    fin_src := src.pointeur + src.taille;
 
-    ptr_dst := dst.pointeur
+    ptr_dst := dst.pointeur;
 
-    char_array_3: [3]n8
+    char_array_3: [3]n8;
 
     tantque (ptr_src + 3) < fin_src {
-        char_array_3[0] = ptr_src[0] comme n8
-        char_array_3[1] = ptr_src[1] comme n8
-        char_array_3[2] = ptr_src[2] comme n8
+        char_array_3[0] = ptr_src[0] comme n8;
+        char_array_3[1] = ptr_src[1] comme n8;
+        char_array_3[2] = ptr_src[2] comme n8;
 
-        char_array_4 := encode_trois_caractères_base64(char_array_3)
+        char_array_4 := encode_trois_caractères_base64(char_array_3);
 
-        ptr_dst[0] = table_défaut[char_array_4[0]] comme octet
-        ptr_dst[1] = table_défaut[char_array_4[1]] comme octet
-        ptr_dst[2] = table_défaut[char_array_4[2]] comme octet
-        ptr_dst[3] = table_défaut[char_array_4[3]] comme octet
+        ptr_dst[0] = table_défaut[char_array_4[0]] comme octet;
+        ptr_dst[1] = table_défaut[char_array_4[1]] comme octet;
+        ptr_dst[2] = table_défaut[char_array_4[2]] comme octet;
+        ptr_dst[3] = table_défaut[char_array_4[3]] comme octet;
 
-        ptr_src += 3
-        ptr_dst += 4
+        ptr_src += 3;
+        ptr_dst += 4;
     }
 
     si ptr_src >= fin_src {
-        retourne
+        retourne;
     }
 
-    char_array_3[0] = '\0' comme n8
-    char_array_3[1] = '\0' comme n8
-    char_array_3[2] = '\0' comme n8
+    char_array_3[0] = '\0' comme n8;
+    char_array_3[1] = '\0' comme n8;
+    char_array_3[2] = '\0' comme n8;
 
-    i := 0
+    i := 0;
     tantque ptr_src < fin_src {
-        char_array_3[i] = mémoire(ptr_src) comme n8
-        i += 1
-        ptr_src += 1
+        char_array_3[i] = mémoire(ptr_src) comme n8;
+        i += 1;
+        ptr_src += 1;
     }
 
-    char_array_4 := encode_trois_caractères_base64(char_array_3)
+    char_array_4 := encode_trois_caractères_base64(char_array_3);
 
     pour i + 1 {
-        mémoire(ptr_dst) = table_défaut[char_array_4[it]] comme octet
-        ptr_dst += 1
+        mémoire(ptr_dst) = table_défaut[char_array_4[it]] comme octet;
+        ptr_dst += 1;
     }
 
     pour 3 - i {
-        mémoire(ptr_dst) = '=' comme octet
-        ptr_dst += 1
+        mémoire(ptr_dst) = '=' comme octet;
+        ptr_dst += 1;
     }
 }
 
 encode_base64_impl :: fonc (chn: chaine, table: chaine) -> chaine
 {
-    i := 0
-    char_array_3: [3]n8
+    i := 0;
+    char_array_3: [3]n8;
 
-    enchaineuse: Enchaineuse
-    initialise_enchaineuse(*enchaineuse)
+    enchaineuse: Enchaineuse;
+    initialise_enchaineuse(*enchaineuse);
 
     pour c dans chn {
-        char_array_3[i] = c comme n8
+        char_array_3[i] = c comme n8;
 
-        i += 1
+        i += 1;
 
         si i == 3 {
-            char_array_4 := encode_trois_caractères_base64(char_array_3)
+            char_array_4 := encode_trois_caractères_base64(char_array_3);
             pour j dans 0 ... 3 {
-                ajoute_au_tampon(*enchaineuse, table[char_array_4[j]])
+                ajoute_au_tampon(*enchaineuse, table[char_array_4[j]]);
             }
 
-            i = 0
+            i = 0;
         }
     }
 
     si i != 0 {
         pour j dans i ... 2 {
-            char_array_3[j] = '\0' comme n8
+            char_array_3[j] = '\0' comme n8;
         }
 
-        char_array_4 := encode_trois_caractères_base64(char_array_3)
+        char_array_4 := encode_trois_caractères_base64(char_array_3);
         pour j dans 0 ... i {
-            ajoute_au_tampon(*enchaineuse, table[char_array_4[j]])
+            ajoute_au_tampon(*enchaineuse, table[char_array_4[j]]);
         }
 
         tantque i < 3 {
-            ajoute_au_tampon(*enchaineuse, '=')
-            i += 1
+            ajoute_au_tampon(*enchaineuse, '=');
+            i += 1;
         }
     }
 
-    retourne chaine_depuis_enchaineuse(*enchaineuse)
+    retourne chaine_depuis_enchaineuse(*enchaineuse);
 }
 
 encode_trois_caractères_base64 :: fonc (src: [3]n8) -> [4]n8 #enligne
 {
-    résultat: [4]n8 = ---
-    résultat[0] = (src[0] & 0xfc) >> 2 comme n8
-    résultat[1] = ((src[0] & 0x03) << 4) | ((src[1] & 0xf0) >> 4)
-    résultat[2] = ((src[1] & 0x0f) << 2) | ((src[2] & 0xc0) >> 6)
-    résultat[3] = src[2] & 0x3f comme n8
-    retourne résultat
+    résultat: [4]n8 = ---;
+    résultat[0] = (src[0] & 0xfc) >> 2 comme n8;
+    résultat[1] = ((src[0] & 0x03) << 4) | ((src[1] & 0xf0) >> 4);
+    résultat[2] = ((src[1] & 0x0f) << 2) | ((src[2] & 0xc0) >> 6);
+    résultat[3] = src[2] & 0x3f comme n8;
+    retourne résultat;
 }
 
 encode_base64 :: fonc (chn: chaine) -> chaine
 {
-    retourne encode_base64_impl(chn, table_défaut)
+    retourne encode_base64_impl(chn, table_défaut);
 }
 
 encode_base64_pour_url :: fonc (chn: chaine) -> chaine
 {
-    retourne encode_base64_impl(chn, table_url)
+    retourne encode_base64_impl(chn, table_url);
 }
 
 /* ------------------------------------------------------------------------- */
@@ -182,83 +182,83 @@ encode_base64_pour_url :: fonc (chn: chaine) -> chaine
 // implémentation tirée de https://en.wikibooks.org/wiki/Algorithm_Implementation/Miscellaneous/Base64
 décode_base64 :: fonc (chn: chaine) -> chaine
 {
-    enchaineuse: Enchaineuse
-    initialise_enchaineuse(*enchaineuse)
+    enchaineuse: Enchaineuse;
+    initialise_enchaineuse(*enchaineuse);
 
-    temp := 0
-    curseur := chn.pointeur
-    fin := chn.pointeur + chn.taille
+    temp := 0;
+    curseur := chn.pointeur;
+    fin := chn.pointeur + chn.taille;
 
     tantque curseur < fin {
         pour 0 ... 3 {
-            temp <<= 6
-            caractère := mémoire(curseur)
+            temp <<= 6;
+            caractère := mémoire(curseur);
 
             si caractère >= 'A' && caractère <= 'Z' {
-                temp |= caractère - 0x41
+                temp |= caractère - 0x41;
             }
             sinon si caractère >= 'a' && caractère <= 'z' {
-                temp |= caractère - 0x47
+                temp |= caractère - 0x47;
             }
             sinon si caractère >= '0' && caractère <= '9' {
-                temp |= caractère + 0x04
+                temp |= caractère + 0x04;
             }
             sinon si caractère == '+' || caractère == '-' {
-                temp |= 0x3E
+                temp |= 0x3E;
             }
             sinon si caractère == '/' || caractère == '_' {
-                temp |= 0x3F
+                temp |= 0x3F;
             }
             sinon si caractère == '=' {
-                reste := (fin - curseur)
+                reste := (fin - curseur);
 
                 si reste == 1 {
-                    ajoute_au_tampon(*enchaineuse, ((temp >> 16) & 0xff) comme z8)
-                    ajoute_au_tampon(*enchaineuse, ((temp >> 8) & 0xff) comme z8)
+                    ajoute_au_tampon(*enchaineuse, ((temp >> 16) & 0xff) comme z8);
+                    ajoute_au_tampon(*enchaineuse, ((temp >> 8) & 0xff) comme z8);
                 }
                 sinon si reste == 2 {
-                    ajoute_au_tampon(*enchaineuse, ((temp >> 10) & 0xff) comme z8)
+                    ajoute_au_tampon(*enchaineuse, ((temp >> 10) & 0xff) comme z8);
                 }
                 sinon {
                     // @erreur
                 }
 
-                retourne chaine_depuis_enchaineuse(*enchaineuse)
+                retourne chaine_depuis_enchaineuse(*enchaineuse);
             }
             sinon {
                 // @erreur
             }
 
-            curseur += 1
+            curseur += 1;
         }
 
-        ajoute_au_tampon(*enchaineuse, ((temp >> 16) & 0xff) comme z8)
-        ajoute_au_tampon(*enchaineuse, ((temp >> 8) & 0xff) comme z8)
-        ajoute_au_tampon(*enchaineuse, ((temp) & 0xff) comme z8)
+        ajoute_au_tampon(*enchaineuse, ((temp >> 16) & 0xff) comme z8);
+        ajoute_au_tampon(*enchaineuse, ((temp >> 8) & 0xff) comme z8);
+        ajoute_au_tampon(*enchaineuse, ((temp) & 0xff) comme z8);
     }
 
-    retourne chaine_depuis_enchaineuse(*enchaineuse)
+    retourne chaine_depuis_enchaineuse(*enchaineuse);
 }
 
 CodecBase64 :: struct {
-    encode: fonc (chn: chaine) -> chaine
-    décode: fonc (chn: chaine) -> chaine
+    encode: fonc (chn: chaine) -> chaine;
+    décode: fonc (chn: chaine) -> chaine;
 }
 
 crée_codec_base64 :: fonc () -> CodecBase64
 {
-    codec : CodecBase64 = ---
-    codec.encode = encode_base64
-    codec.décode = décode_base64
-    retourne codec
+    codec : CodecBase64 = ---;
+    codec.encode = encode_base64;
+    codec.décode = décode_base64;
+    retourne codec;
 }
 
 crée_codec_base64_url :: fonc () -> CodecBase64
 {
-    codec : CodecBase64 = ---
-    codec.encode = encode_base64_pour_url
-    codec.décode = décode_base64
-    retourne codec
+    codec : CodecBase64 = ---;
+    codec.encode = encode_base64_pour_url;
+    codec.décode = décode_base64;
+    retourne codec;
 }
 
 // -------------------------------------------------------------------
@@ -267,65 +267,65 @@ crée_codec_base64_url :: fonc () -> CodecBase64
 
 encode_par_différence_en_place :: fonc (données: []$T)
 {
-    précédent: T
+    précédent: T;
 
     pour & données {
-        temp := précédent
-        précédent = it
+        temp := précédent;
+        précédent = it;
 
-        it -= temp
+        it -= temp;
     }
 }
 
 encode_par_différence :: fonc (données: []$T) -> [..]T
 {
-    résultat: [..]T
+    résultat: [..]T;
 
     saufsi données {
-        retourne résultat
+        retourne résultat;
     }
 
-    tableau_redimensionne(résultat, données.taille)
+    tableau_redimensionne(résultat, données.taille);
 
-    précédent: T
+    précédent: T;
 
     pour données {
-        résultat[indice_it] = it - précédent
-        précédent = it
+        résultat[indice_it] = it - précédent;
+        précédent = it;
     }
 
-    retourne résultat
+    retourne résultat;
 }
 
 décode_par_différence_en_place :: fonc (données: []$T)
 {
-    précédent: T
+    précédent: T;
 
     pour & données {
-        it += précédent
-        précédent = it
+        it += précédent;
+        précédent = it;
     }
 }
 
 décode_par_différence :: fonc (données: []$T) -> [..]T
 {
-    résultat: [..]T
+    résultat: [..]T;
 
     saufsi données {
-        retourne résultat
+        retourne résultat;
     }
 
-    tableau_redimensionne(résultat, données.taille)
+    tableau_redimensionne(résultat, données.taille);
 
-    précédent: T
+    précédent: T;
 
     pour données {
-        temp := it + précédent
-        résultat[indice_it] = temp
-        précédent = temp
+        temp := it + précédent;
+        résultat[indice_it] = temp;
+        précédent = temp;
     }
 
-    retourne résultat
+    retourne résultat;
 }
 
 // -------------------------------------------------------------------
@@ -334,63 +334,63 @@ décode_par_différence :: fonc (données: []$T) -> [..]T
 
 encode_par_plages :: fonc (données: []$T) -> [..]T
 {
-    résultat: [..]T
+    résultat: [..]T;
     saufsi données {
-        retourne résultat
+        retourne résultat;
     }
 
-    tableau_réserve(*résultat, données.taille)
+    tableau_réserve(*résultat, données.taille);
 
-    dernière_valeur := données[0]
-    occurences : T = 1
+    dernière_valeur := données[0];
+    occurences : T = 1;
 
-    tableau_ajoute(*résultat, dernière_valeur)
+    tableau_ajoute(*résultat, dernière_valeur);
 
     pour 1 ... données.taille - 1 {
-        valeur := données[it]
+        valeur := données[it];
 
         si valeur != dernière_valeur {
-            tableau_ajoute(*résultat, occurences)
+            tableau_ajoute(*résultat, occurences);
 
-            dernière_valeur = valeur
-            occurences = 1
-            tableau_ajoute(*résultat, valeur)
-            continue
+            dernière_valeur = valeur;
+            occurences = 1;
+            tableau_ajoute(*résultat, valeur);
+            continue;
         }
 
-        occurences += 1
+        occurences += 1;
     }
 
     /* Occurence de la dernière valeur. */
-    tableau_ajoute(*résultat, occurences)
+    tableau_ajoute(*résultat, occurences);
 
-    retourne résultat
+    retourne résultat;
 }
 
 décode_par_plages :: fonc (données: []$T) -> [..]T
 {
-    résultat: [..]T
+    résultat: [..]T;
 
     saufsi données {
-        retourne résultat
+        retourne résultat;
     }
 
-    tableau_réserve(*résultat, données.taille)
+    tableau_réserve(*résultat, données.taille);
 
-    indice := 0
+    indice := 0;
 
     tantque indice < données.taille {
-        valeur := données[indice]
-        compte := données[indice + 1]
+        valeur := données[indice];
+        compte := données[indice + 1];
 
         pour compte {
-            tableau_ajoute(*résultat, valeur)
+            tableau_ajoute(*résultat, valeur);
         }
 
-        indice += 2
+        indice += 2;
     }
 
-    retourne résultat
+    retourne résultat;
 }
 
 /* ------------------------------------------------------------------------- */
@@ -399,63 +399,63 @@ décode_par_plages :: fonc (données: []$T) -> [..]T
 
 imprime_tableaux :: fonc (sortie_voulue: []z32, sortie_reçue: []z32)
 {
-    imprime_tableau(sortie_voulue, message = "Sortie voulue")
-    imprime_tableau(sortie_reçue, message = "Sortie reçue")
+    imprime_tableau(sortie_voulue, message = "Sortie voulue");
+    imprime_tableau(sortie_reçue, message = "Sortie reçue");
 }
 
 test_fonction_codec :: fonc (entrée: []z32, sortie: []z32, fonction_codec: fonc (tableau: []z32) -> [..]z32) -> bool
 {
-    résultat := fonction_codec(entrée)
-    diffère déloge(résultat)
+    résultat := fonction_codec(entrée);
+    diffère déloge(résultat);
 
     saufsi tableaux_sont_égaux(sortie, résultat) {
-        imprime_tableaux(sortie, résultat)
-        retourne faux
+        imprime_tableaux(sortie, résultat);
+        retourne faux;
     }
 
-    retourne vrai
+    retourne vrai;
 }
 
 test_encodage_par_plages :: fonc (entrée: []z32, sortie: []z32) -> bool
 {
-    fonction_codec := #cuisine encode_par_plages(T = z32)
-    retourne test_fonction_codec(entrée, sortie, fonction_codec)
+    fonction_codec := #cuisine encode_par_plages(T = z32);
+    retourne test_fonction_codec(entrée, sortie, fonction_codec);
 }
 
 test_décodage_par_plages :: fonc (entrée: []z32, sortie: []z32) -> bool
 {
-    fonction_codec := #cuisine décode_par_plages(T = z32)
-    retourne test_fonction_codec(entrée, sortie, fonction_codec)
+    fonction_codec := #cuisine décode_par_plages(T = z32);
+    retourne test_fonction_codec(entrée, sortie, fonction_codec);
 }
 
 test_encodage_par_différence :: fonc (entrée: []z32, sortie: []z32) -> bool
 {
-    fonction_codec := #cuisine encode_par_différence(T = z32)
-    retourne test_fonction_codec(entrée, sortie, fonction_codec)
+    fonction_codec := #cuisine encode_par_différence(T = z32);
+    retourne test_fonction_codec(entrée, sortie, fonction_codec);
 }
 
 test_décodage_par_différence :: fonc (entrée: []z32, sortie: []z32) -> bool
 {
-    fonction_codec := #cuisine décode_par_différence(T = z32)
-    retourne test_fonction_codec(entrée, sortie, fonction_codec)
+    fonction_codec := #cuisine décode_par_différence(T = z32);
+    retourne test_fonction_codec(entrée, sortie, fonction_codec);
 }
 
 test_encodage_plages_après_différence :: fonc (entrée: []z32, sortie: []z32) -> bool
 {
-    encodé_par_différence := encode_par_différence(entrée)
-    diffère déloge(encodé_par_différence)
+    encodé_par_différence := encode_par_différence(entrée);
+    diffère déloge(encodé_par_différence);
 
-    fonction_codec := #cuisine encode_par_plages(T = z32)
-    retourne test_fonction_codec(encodé_par_différence, sortie, fonction_codec)
+    fonction_codec := #cuisine encode_par_plages(T = z32);
+    retourne test_fonction_codec(encodé_par_différence, sortie, fonction_codec);
 }
 
 test_décodage_plages_après_différence :: fonc (entrée: []z32, sortie: []z32) -> bool
 {
-    encodé_par_différence := décode_par_plages(entrée)
-    diffère déloge(encodé_par_différence)
+    encodé_par_différence := décode_par_plages(entrée);
+    diffère déloge(encodé_par_différence);
 
-    fonction_codec := #cuisine décode_par_différence(T = z32)
-    retourne test_fonction_codec(encodé_par_différence, sortie, fonction_codec)
+    fonction_codec := #cuisine décode_par_différence(T = z32);
+    retourne test_fonction_codec(encodé_par_différence, sortie, fonction_codec);
 }
 
 /* D'autres idées :
@@ -464,27 +464,27 @@ test_décodage_plages_après_différence :: fonc (entrée: []z32, sortie: []z32)
  */
 #test {
     {
-        entrée : []z32 = [ 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 2, 1, 1, 1, 1 ]
-        sortie : []z32 = [ 1, 10, 2, 1, 1, 4 ]
+        entrée : []z32 = [ 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 2, 1, 1, 1, 1 ];
+        sortie : []z32 = [ 1, 10, 2, 1, 1, 4 ];
 
-        compilatrice_vérifie(test_encodage_par_plages(entrée, sortie))
-        compilatrice_vérifie(test_décodage_par_plages(sortie, entrée))
+        compilatrice_vérifie(test_encodage_par_plages(entrée, sortie));
+        compilatrice_vérifie(test_décodage_par_plages(sortie, entrée));
     }
 
     {
-        entrée : []z32 = [ 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 12, 13, 14, 15, 16 ]
-        sortie : []z32 = [ 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 2, 1, 1, 1, 1 ]
+        entrée : []z32 = [ 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 12, 13, 14, 15, 16 ];
+        sortie : []z32 = [ 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 2, 1, 1, 1, 1 ];
 
-        compilatrice_vérifie(test_encodage_par_différence(entrée, sortie))
-        compilatrice_vérifie(test_décodage_par_différence(sortie, entrée))
+        compilatrice_vérifie(test_encodage_par_différence(entrée, sortie));
+        compilatrice_vérifie(test_décodage_par_différence(sortie, entrée));
     }
 
     {
-        entrée : []z32 = [ 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 12, 13, 14, 15, 16 ]
-        sortie : []z32 = [ 1, 10, 2, 1, 1, 4 ]
+        entrée : []z32 = [ 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 12, 13, 14, 15, 16 ];
+        sortie : []z32 = [ 1, 10, 2, 1, 1, 4 ];
 
-        compilatrice_vérifie(test_encodage_plages_après_différence(entrée, sortie))
-        compilatrice_vérifie(test_décodage_plages_après_différence(sortie, entrée))
+        compilatrice_vérifie(test_encodage_plages_après_différence(entrée, sortie));
+        compilatrice_vérifie(test_décodage_plages_après_différence(sortie, entrée));
     }
 }
 
@@ -494,126 +494,126 @@ test_décodage_plages_après_différence :: fonc (entrée: []z32, sortie: []z32)
 
 encode_hexadécimal :: fonc (entrée: []octet) -> chaine
 {
-    enchaineuse: Enchaineuse
-    initialise_enchaineuse(*enchaineuse)
+    enchaineuse: Enchaineuse;
+    initialise_enchaineuse(*enchaineuse);
 
-    encode_hexadécimal(*enchaineuse, entrée)
-    retourne chaine_depuis_enchaineuse(*enchaineuse)
+    encode_hexadécimal(*enchaineuse, entrée);
+    retourne chaine_depuis_enchaineuse(*enchaineuse);
 }
 
 encode_hexadécimal :: fonc (enchaineuse: *Enchaineuse, entrée: []octet)
 {
     pour entrée {
-        encode_hexadécimal_minuscule(enchaineuse, it)
+        encode_hexadécimal_minuscule(enchaineuse, it);
     }
 }
 
 encode_hexadécimal_minuscule :: fonc (enchaineuse: *Enchaineuse, entrée: octet)
 {
-    a := (entrée >> 4) & 0xf
-    b := entrée & 0xf
+    a := (entrée >> 4) & 0xf;
+    b := entrée & 0xf;
 
-    ajoute_au_tampon(enchaineuse, caractères_hex_minuscules[a])
-    ajoute_au_tampon(enchaineuse, caractères_hex_minuscules[b])
+    ajoute_au_tampon(enchaineuse, caractères_hex_minuscules[a]);
+    ajoute_au_tampon(enchaineuse, caractères_hex_minuscules[b]);
 }
 
 décode_hexadécimal :: fonc (entrée: []octet) -> chaine
 {
-    enchaineuse: Enchaineuse
-    initialise_enchaineuse(*enchaineuse)
+    enchaineuse: Enchaineuse;
+    initialise_enchaineuse(*enchaineuse);
 
-    indice := 0
+    indice := 0;
 
     tantque indice < entrée.taille {
-        a := entrée[indice]
-        b := entrée[indice + 1]
+        a := entrée[indice];
+        b := entrée[indice + 1];
 
-        na := donne_valeur_hex(a comme z8) comme n8
-        nb := donne_valeur_hex(b comme z8) comme n8
+        na := donne_valeur_hex(a comme z8) comme n8;
+        nb := donne_valeur_hex(b comme z8) comme n8;
 
-        c := na << 4 | nb
+        c := na << 4 | nb;
 
-        ajoute_au_tampon(*enchaineuse, c comme z8)
+        ajoute_au_tampon(*enchaineuse, c comme z8);
 
-        indice += 2
+        indice += 2;
     }
 
-    retourne chaine_depuis_enchaineuse(*enchaineuse)
+    retourne chaine_depuis_enchaineuse(*enchaineuse);
 }
 
 // -------------------------------------------------------------------
 
 encode_base96 :: fonc (message: []octet) -> chaine
 {
-    base := «abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789,?;.:/!%*$\\+-/=<>&~#"'{}()|@[]^` _»
+    base := «abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789,?;.:/!%*$\\+-/=<>&~#"'{}()|@[]^` _»;
 
-    enchaineuse: Enchaineuse
-    initialise_enchaineuse(*enchaineuse)
-    indice : n64 = 0
+    enchaineuse: Enchaineuse;
+    initialise_enchaineuse(*enchaineuse);
+    indice : n64 = 0;
 
     pour message {
-        indice %= 6
+        indice %= 6;
 
-        n := it comme n8
+        n := it comme n8;
 
-        a := (n >> 4) & 0xf
-        b := n & 0xf
+        a := (n >> 4) & 0xf;
+        b := n & 0xf;
 
-        ca := base[16 * indice + a]
-        ajoute_au_tampon(*enchaineuse, ca)
-        indice += 1
+        ca := base[16 * indice + a];
+        ajoute_au_tampon(*enchaineuse, ca);
+        indice += 1;
 
-        cb := base[16 * indice + b]
-        ajoute_au_tampon(*enchaineuse, cb)
-        indice += 1
+        cb := base[16 * indice + b];
+        ajoute_au_tampon(*enchaineuse, cb);
+        indice += 1;
     }
 
-    retourne chaine_depuis_enchaineuse(*enchaineuse)
+    retourne chaine_depuis_enchaineuse(*enchaineuse);
 }
 
 // -------------------------------------------------------------------
 
 FluxEncodage :: struct {
     /* Écris une chaine native, encodée en UTF-8, dans le flux. */
-    écris_chaine: fonc (flux: &FluxEncodage, données: chaine, avec_encodage: bool)
+    écris_chaine: fonc (flux: &FluxEncodage, données: chaine, avec_encodage: bool);
 
     /* Écris un point de code UTF-32 dans le flux. */
-    écris_utf32: fonc (flux: &FluxEncodage, point_de_code: n32, avec_encodage: bool)
+    écris_utf32: fonc (flux: &FluxEncodage, point_de_code: n32, avec_encodage: bool);
 
     /* Écris un point de code UTF-8 dans le flux. */
-    écris_utf8: fonc (flux: &FluxEncodage, caractère: z8, avec_encodage: bool)
+    écris_utf8: fonc (flux: &FluxEncodage, caractère: z8, avec_encodage: bool);
 
-    enchaineuse: *Enchaineuse
+    enchaineuse: *Enchaineuse;
 }
 
 écris :: fonc (flux: &FluxEncodage, chn: chaine)
 {
-    flux.écris_chaine(flux, chn, vrai)
+    flux.écris_chaine(flux, chn, vrai);
 }
 
 écris :: fonc (flux: &FluxEncodage, point_de_code: n32)
 {
-    flux.écris_utf32(flux, point_de_code, vrai)
+    flux.écris_utf32(flux, point_de_code, vrai);
 }
 
 écris :: fonc (flux: &FluxEncodage, point_de_code: z8)
 {
-    flux.écris_utf8(flux, chn, vrai)
+    flux.écris_utf8(flux, chn, vrai);
 }
 
 écris_sans_encodage :: fonc (flux: &FluxEncodage, chn: chaine)
 {
-    flux.écris_chaine(flux, chn, faux)
+    flux.écris_chaine(flux, chn, faux);
 }
 
 écris_sans_encodage :: fonc (flux: &FluxEncodage, point_de_code: n32)
 {
-    flux.écris_utf32(flux, point_de_code, faux)
+    flux.écris_utf32(flux, point_de_code, faux);
 }
 
 écris_sans_encodage :: fonc (flux: &FluxEncodage, point_de_code: z8)
 {
-    flux.écris_utf8(flux, chn, faux)
+    flux.écris_utf8(flux, chn, faux);
 }
 
 
@@ -624,50 +624,50 @@ FluxEncodage :: struct {
 /* https://www.charset.org/charsets/iso-8859-1 */
 convertis_iso_8859_1_vers_utf8 :: fonc (texte: chaine) -> chaine
 {
-    taille_résultat := texte.taille
+    taille_résultat := texte.taille;
 
     pour texte {
         si it < 0 {
-            taille_résultat += 1
+            taille_résultat += 1;
         }
     }
 
     si taille_résultat == texte.taille {
-        retourne copie_chaine(texte)
+        retourne copie_chaine(texte);
     }
 
-    résultat := loge_chaine(taille_résultat)
+    résultat := loge_chaine(taille_résultat);
 
-    ptr_sortie := résultat.pointeur comme *n8
+    ptr_sortie := résultat.pointeur comme *n8;
 
     pour texte {
         si it >= 0 {
-            mémoire(ptr_sortie) = it comme n8
-            ptr_sortie += 1
-            continue
+            mémoire(ptr_sortie) = it comme n8;
+            ptr_sortie += 1;
+            continue;
         }
 
-        naturel := it comme n8
+        naturel := it comme n8;
 
         si 0xA0 <= naturel <= 0xBF {
-            mémoire(ptr_sortie) = 0xC2
-            ptr_sortie += 1
-            mémoire(ptr_sortie) = naturel
-            ptr_sortie += 1
+            mémoire(ptr_sortie) = 0xC2;
+            ptr_sortie += 1;
+            mémoire(ptr_sortie) = naturel;
+            ptr_sortie += 1;
         }
         sinon si naturel >= 0xA0 {
-            mémoire(ptr_sortie) = 0xC3
-            ptr_sortie += 1
-            mémoire(ptr_sortie) = naturel - 0x40
-            ptr_sortie += 1
+            mémoire(ptr_sortie) = 0xC3;
+            ptr_sortie += 1;
+            mémoire(ptr_sortie) = naturel - 0x40;
+            ptr_sortie += 1;
         }
         sinon {
-            imprime("%\n", naturel)
-            assert(faux)
+            imprime("%\n", naturel);
+            assert(faux);
         }
     }
 
-    retourne résultat
+    retourne résultat;
 }
 
 /** \} */

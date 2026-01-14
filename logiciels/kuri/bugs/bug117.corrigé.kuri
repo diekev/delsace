@@ -2,12 +2,12 @@
  * Catégorie : [directive exécute, variable globale]
  */
 
-importe Fondation
+importe Fondation;
 
 /* À FAIRE(langage) : typage des entiers constants */
-a := #exécute (4 comme z32 * 5 comme z32)
+a := #exécute (4 comme z32 * 5 comme z32);
 
 principale :: fonc ()
 {
-    assert(a == 20)
+    assert(a == 20);
 }

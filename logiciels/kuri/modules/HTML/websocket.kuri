@@ -1,5 +1,5 @@
 
-WS :: importe WebSocket
+WS :: importe WebSocket;
 
 /* ------------------------------------------------------------------------- */
 /** \nom WebSocket
@@ -7,33 +7,33 @@ WS :: importe WebSocket
  * \{ */
 
 BinaryType :: énum {
-    blob
-    arraybuffer
+    blob;
+    arraybuffer;
 }
 
 WebSocket :: struct {
-    empl event_target: EventTarget
-    table = *table_virtuelle_web_socket
+    empl event_target: EventTarget;
+    table = *table_virtuelle_web_socket;
 
-    CONNECTING : n16 : 0
-    OPEN : n16 : 1
-    CLOSING : n16 : 2
-    CLOSED : n16 : 3
+    CONNECTING : n16 : 0;
+    OPEN : n16 : 1;
+    CLOSING : n16 : 2;
+    CLOSED : n16 : 3;
 
-    url: *URL
-    ready_state := CONNECTING
-    binary_type: BinaryType
+    url: *URL;
+    ready_state := CONNECTING;
+    binary_type: BinaryType;
 }
 
 #portée_fichier
 
-table_virtuelle_web_socket := TableVirtuelleEventTarget(classe = WebSocket, sur_destruction = web_socket_sur_destruction)
+table_virtuelle_web_socket := TableVirtuelleEventTarget(classe = WebSocket, sur_destruction = web_socket_sur_destruction);
 
 web_socket_sur_destruction :: fonc (base: *JS.Cellule)
 {
-    web_socket := base comme *WebSocket
-    event_target_sur_destruction(web_socket)
-    détruit_url(web_socket.url)
+    web_socket := base comme *WebSocket;
+    event_target_sur_destruction(web_socket);
+    détruit_url(web_socket.url);
 }
 
 #portée_module
@@ -41,44 +41,44 @@ web_socket_sur_destruction :: fonc (base: *JS.Cellule)
 /* https://websockets.spec.whatwg.org/#dom-websocket-websocket */
 web_socket_construct :: fonc (interpréteuse: *JS.Interpréteuse, web_socket: *WebSocket, url: DOMString) -> JS.Valeur
 {
-    realm := JS.donne_realm(interpréteuse)
-    settings := web_socket.donne_relevant_settings_object()
+    realm := JS.donne_realm(interpréteuse);
+    settings := web_socket.donne_relevant_settings_object();
 
-    window := JS.vérifie_comme(realm.global_object, Window)
-    user_agent := window.document.donne_user_agent()
+    window := JS.vérifie_comme(realm.global_object, Window);
+    user_agent := window.document.donne_user_agent();
 
     // 1. Let baseURL be this's relevant settings object's API base URL.
-    base_url := settings.donne_api_base_url()
+    base_url := settings.donne_api_base_url();
 
     // 2. Let urlRecord be the result of applying the URL parser to url with baseURL.
     // @fuite-de-mémoire si une exception est lancée
-    url_record := url_parser(user_agent, url, base = base_url)
+    url_record := url_parser(user_agent, url, base = base_url);
 
     // 3. If urlRecord is failure, then throw a "SyntaxError" DOMException.
     si is_failure(url_record) {
-        throw_dom_exception(interpréteuse, "SyntaxError", "Invalid URL")
-        retourne JS.js_undefined
+        throw_dom_exception(interpréteuse, "SyntaxError", "Invalid URL");
+        retourne JS.js_undefined;
     }
 
     // 4. If urlRecord’s scheme is "http", then set urlRecord’s scheme to "ws".
     si url_record.scheme == "http" {
-        url_record.définis_schéma("ws")
+        url_record.définis_schéma("ws");
     }
     // 5. Otherwise, if urlRecord’s scheme is "https", set urlRecord’s scheme to "wss".
     sinon si url_record.scheme == "https" {
-        url_record.définis_schéma("wss")
+        url_record.définis_schéma("wss");
     }
 
     // 6. If urlRecord’s scheme is not "ws" or "wss", then throw a "SyntaxError" DOMException.
     saufsi url_record.scheme == "ws" || url_record.scheme == "wss" {
-        throw_dom_exception(interpréteuse, "SyntaxError", "Invalid schema for WebSocket connection")
-        retourne JS.js_undefined
+        throw_dom_exception(interpréteuse, "SyntaxError", "Invalid schema for WebSocket connection");
+        retourne JS.js_undefined;
     }
 
     // 7. If urlRecord’s fragment is non-null, then throw a "SyntaxError" DOMException.
     si url_record.fragment.possède_valeur() {
-        throw_dom_exception(interpréteuse, "SyntaxError", "WebSocket URLs should not have fragments")
-        retourne JS.js_undefined
+        throw_dom_exception(interpréteuse, "SyntaxError", "WebSocket URLs should not have fragments");
+        retourne JS.js_undefined;
     }
 
     // À FAIRE 8. If protocols is a string, set protocols to a sequence consisting of just that string.
@@ -86,44 +86,44 @@ web_socket_construct :: fonc (interpréteuse: *JS.Interpréteuse, web_socket: *W
     // 9. If any of the values in protocols occur more than once or otherwise fail to match the requirements for elements that comprise the value of `Sec-WebSocket-Protocol` fields as defined by The WebSocket protocol, then throw a "SyntaxError" DOMException. [WSP]
 
     // 10. Set this's url to urlRecord.
-    web_socket.url = url_record
+    web_socket.url = url_record;
 
     // 11. Let client be this's relevant settings object.
-    client := settings
+    client := settings;
 
-    imprime("WebSocket : %\n", web_socket)
+    imprime("WebSocket : %\n", web_socket);
 
     // 12. Run this step in parallel:
-    lance_tâche_pour_établir_connexion_websocket(user_agent, web_socket, client)
+    lance_tâche_pour_établir_connexion_websocket(user_agent, web_socket, client);
 
-    retourne web_socket
+    retourne web_socket;
 }
 
 #portée_fichier
 
 lance_tâche_pour_établir_connexion_websocket :: fonc (user_agent: *UserAgent, web_socket: *WebSocket, client: *EnvironmentSettings)
 {
-    imprime("[%]\n", #nom_de_cette_fonction)
+    imprime("[%]\n", #nom_de_cette_fonction);
 
     Tâche :: struct {
-        empl base: Algorithm
-        user_agent: *UserAgent
-        web_socket: *WebSocket
-        client: *EnvironmentSettings
+        empl base: Algorithm;
+        user_agent: *UserAgent;
+        web_socket: *WebSocket;
+        client: *EnvironmentSettings;
     }
 
-    sur_run :: fonc (empl tâche: *Tâche)
+    sur_run :: fonc (empl tâche: *Tâche);
     {
         // À FAIRE : Establish a WebSocket connection given urlRecord, protocols, and client. [FETCH]
-        user_agent.lance_requête_websocket(web_socket, client)
+        user_agent.lance_requête_websocket(web_socket, client);
     }
 
-    tâche := crée_algorithm(sur_run, Tâche)
-    tâche.user_agent = user_agent
-    tâche.web_socket = web_socket
-    tâche.client = client
+    tâche := crée_algorithm(sur_run, Tâche);
+    tâche.user_agent = user_agent;
+    tâche.web_socket = web_socket;
+    tâche.client = client;
 
-    user_agent.lance_en_parallèle(tâche)
+    user_agent.lance_en_parallèle(tâche);
 }
 
 #portée_module
@@ -134,21 +134,21 @@ send :: fonc (web_socket: *WebSocket, data: DOMString)
     // If this's ready state is CONNECTING
     si web_socket.ready_state == WebSocket.CONNECTING {
         // then throw an "InvalidStateError" DOMException.
-        throw_dom_exception(web_socket.realm, "InvalidStateError", "La websocket n'est pas prête pour l'écriture")
-        retourne
+        throw_dom_exception(web_socket.realm, "InvalidStateError", "La websocket n'est pas prête pour l'écriture");
+        retourne;
     }
 
-    chaine_native := convertis_vers_chaine(data.donne_chaine_utf16())
-    données: [..]octet
-    données.pointeur = chaine_native.pointeur
-    données.taille = chaine_native.taille
-    données.capacité = données.taille
+    chaine_native := convertis_vers_chaine(data.donne_chaine_utf16());
+    données: [..]octet;
+    données.pointeur = chaine_native.pointeur;
+    données.taille = chaine_native.taille;
+    données.capacité = données.taille;
 
-    global_object := web_socket.realm.global_object
-    window := JS.vérifie_comme(global_object, Window)
-    user_agent := window.document.donne_user_agent()
+    global_object := web_socket.realm.global_object;
+    window := JS.vérifie_comme(global_object, Window);
+    user_agent := window.document.donne_user_agent();
 
-    user_agent.envoie_message_websocket(web_socket, WS.OpCode.FRAME_DE_TEXTE, données)
+    user_agent.envoie_message_websocket(web_socket, WS.OpCode.FRAME_DE_TEXTE, données);
 }
 
 send :: fonc (web_socket: *WebSocket, data: *JS.ArrayBuffer)
@@ -156,17 +156,17 @@ send :: fonc (web_socket: *WebSocket, data: *JS.ArrayBuffer)
     // If this's ready state is CONNECTING
     si web_socket.ready_state == WebSocket.CONNECTING {
         // then throw an "InvalidStateError" DOMException.
-        throw_dom_exception(web_socket.realm, "InvalidStateError", "La websocket n'est pas prête pour l'écriture")
-        retourne
+        throw_dom_exception(web_socket.realm, "InvalidStateError", "La websocket n'est pas prête pour l'écriture");
+        retourne;
     }
 
-    données := tableau_copie(data.bytes)
+    données := tableau_copie(data.bytes);
 
-    global_object := web_socket.realm.global_object
-    window := JS.vérifie_comme(global_object, Window)
-    user_agent := window.document.donne_user_agent()
+    global_object := web_socket.realm.global_object;
+    window := JS.vérifie_comme(global_object, Window);
+    user_agent := window.document.donne_user_agent();
 
-    user_agent.envoie_message_websocket(web_socket, WS.OpCode.FRAME_BINAIRE, données)
+    user_agent.envoie_message_websocket(web_socket, WS.OpCode.FRAME_BINAIRE, données);
 }
 
 send :: fonc (web_socket: *WebSocket, data: *Blob)
@@ -174,17 +174,17 @@ send :: fonc (web_socket: *WebSocket, data: *Blob)
     // If this's ready state is CONNECTING
     si web_socket.ready_state == WebSocket.CONNECTING {
         // then throw an "InvalidStateError" DOMException.
-        throw_dom_exception(web_socket.realm, "InvalidStateError", "La websocket n'est pas prête pour l'écriture")
-        retourne
+        throw_dom_exception(web_socket.realm, "InvalidStateError", "La websocket n'est pas prête pour l'écriture");
+        retourne;
     }
 
-    données := tableau_copie(data.bytes)
+    données := tableau_copie(data.bytes);
 
-    global_object := web_socket.realm.global_object
-    window := JS.vérifie_comme(global_object, Window)
-    user_agent := window.document.donne_user_agent()
+    global_object := web_socket.realm.global_object;
+    window := JS.vérifie_comme(global_object, Window);
+    user_agent := window.document.donne_user_agent();
 
-    user_agent.envoie_message_websocket(web_socket, WS.OpCode.FRAME_BINAIRE, données)
+    user_agent.envoie_message_websocket(web_socket, WS.OpCode.FRAME_BINAIRE, données);
 }
 
 // close :: fonc ()
@@ -204,133 +204,133 @@ send :: fonc (web_socket: *WebSocket, data: *Blob)
 crée_tâche_pour_connexion_websocket_établis :: fonc (user_agent: *UserAgent, web_socket: *WebSocket)
 {
     Tâche :: struct {
-        empl base: Algorithm
+        empl base: Algorithm;
 
-        web_socket: *WebSocket
+        web_socket: *WebSocket;
     }
 
-    sur_run :: fonc (empl tâche: *Tâche)
+    sur_run :: fonc (empl tâche: *Tâche);
     {
         // 1. Change the ready state to OPEN (1).
-        web_socket.ready_state = WebSocket.OPEN
+        web_socket.ready_state = WebSocket.OPEN;
 
         // À FAIRE 2. Change the extensions attribute’s value to the extensions in use, if it is not the null value. [WSP]
 
         // 3. Change the protocol attribute’s value to the subprotocol in use, if it is not the null value. [WSP]
 
         // 4. Fire an event named open at the WebSocket object.
-        _ := fire_an_event(web_socket, EventType.open)
+        _ := fire_an_event(web_socket, EventType.open);
     }
 
-    tâche := crée_algorithm(sur_run, Tâche)
-    tâche.web_socket = web_socket
+    tâche := crée_algorithm(sur_run, Tâche);
+    tâche.web_socket = web_socket;
 
-    user_agent.enfile_une_tâche(SourceDeTâche.WebSocket, tâche)
+    user_agent.enfile_une_tâche(SourceDeTâche.WebSocket, tâche);
 }
 
 crée_tâche_pour_message_websocket :: fonc (user_agent: *UserAgent, web_socket: *WebSocket, type: WS.OpCode, données: []octet)
 {
     Tâche :: struct {
-        empl base: Algorithm
+        empl base: Algorithm;
 
-        web_socket: *WebSocket
-        type: WS.OpCode
-        données: [..]octet
+        web_socket: *WebSocket;
+        type: WS.OpCode;
+        données: [..]octet;
     }
 
-    sur_run :: fonc (empl tâche: *Tâche)
+    sur_run :: fonc (empl tâche: *Tâche);
     {
         // 1. If ready state is not OPEN (1), then return.
         si web_socket.ready_state != WebSocket.OPEN {
-            retourne
+            retourne;
         }
 
-        message_event := crée_platform_object(web_socket, MessageEvent)
+        message_event := crée_platform_object(web_socket, MessageEvent);
 
         // 2. Let dataForEvent be determined by switching on type and binary type:
         // type indicates that the data is Text
         si type == WS.OpCode.FRAME_DE_TEXTE {
             // a new DOMString containing data
-            chn := chaine_depuis_tranche_octets(données)
-            chn_unique := crée_chaine_utf16_unique(chn)
-            message_event.data.String = JS.crée_chaine(web_socket.realm, chn_unique)
-            déloge(données)
+            chn := chaine_depuis_tranche_octets(données);
+            chn_unique := crée_chaine_utf16_unique(chn);
+            message_event.data.String = JS.crée_chaine(web_socket.realm, chn_unique);
+            déloge(données);
         }
         // type indicates that the data is Binary and binary type is "blob"
         sinon si type == WS.OpCode.FRAME_BINAIRE && web_socket.binary_type == BinaryType.blob {
             // a new Blob object, created in the relevant Realm of the WebSocket object, that represents data as its raw data [FILEAPI]
-            blob := crée_platform_object(web_socket, Blob)
-            blob.bytes = données
-            message_event.data.Object = blob
+            blob := crée_platform_object(web_socket, Blob);
+            blob.bytes = données;
+            message_event.data.Object = blob;
         }
         // type indicates that the data is Binary and binary type is "arraybuffer"
         sinon si type == WS.OpCode.FRAME_BINAIRE && web_socket.binary_type == BinaryType.arraybuffer {
             // a new ArrayBuffer object, created in the relevant Realm of the WebSocket object, whose contents are data
-            array_buffer := JS.crée_array_buffer(web_socket.realm, données)
-            message_event.data.Object = array_buffer
+            array_buffer := JS.crée_array_buffer(web_socket.realm, données);
+            message_event.data.Object = array_buffer;
         }
 
         // 3. Fire an event named message at the WebSocket object, using MessageEvent,
         // with the origin attribute initialized to the serialization of the WebSocket object’s url's origin,
         // and the data attribute initialized to dataForEvent.
-        origin := donne_origin(web_socket.url)
+        origin := donne_origin(web_socket.url);
 
-        url_origin: URL
-        url_origin.scheme = origin.scheme
-        url_origin.host = origin.host
-        url_origin.port = origin.port
+        url_origin: URL;
+        url_origin.scheme = origin.scheme;
+        url_origin.host = origin.host;
+        url_origin.port = origin.port;
 
-        serialized_origin := url_serializer(*url_origin)
-        diffère déloge(serialized_origin)
+        serialized_origin := url_serializer(*url_origin);
+        diffère déloge(serialized_origin);
 
-        message_event.origin = crée_chaine_utf16_unique(serialized_origin)
-        _ := dispatch(message_event, web_socket)
+        message_event.origin = crée_chaine_utf16_unique(serialized_origin);
+        _ := dispatch(message_event, web_socket);
     }
 
-    tâche := crée_algorithm(sur_run, Tâche)
-    tâche.web_socket = web_socket
-    tâche.type = type
-    tâche.données = tableau_copie(données)
+    tâche := crée_algorithm(sur_run, Tâche);
+    tâche.web_socket = web_socket;
+    tâche.type = type;
+    tâche.données = tableau_copie(données);
 
-    user_agent.enfile_une_tâche(SourceDeTâche.WebSocket, tâche)
+    user_agent.enfile_une_tâche(SourceDeTâche.WebSocket, tâche);
 }
 
 crée_tâche_pour_début_fermeture_websocket :: fonc (user_agent: *UserAgent, web_socket: *WebSocket)
 {
-    imprime("[%]\n", #nom_de_cette_fonction)
+    imprime("[%]\n", #nom_de_cette_fonction);
 
     Tâche :: struct {
-        empl base: Algorithm
-        web_socket: *WebSocket
+        empl base: Algorithm;
+        web_socket: *WebSocket;
     }
 
-    sur_run :: fonc (empl tâche: *Tâche)
+    sur_run :: fonc (empl tâche: *Tâche);
     {
-        imprime("[%] fermeture_websocket\n", #nom_de_cette_fonction)
-        web_socket.ready_state = WebSocket.CLOSING
+        imprime("[%] fermeture_websocket\n", #nom_de_cette_fonction);
+        web_socket.ready_state = WebSocket.CLOSING;
     }
 
-    tâche := crée_algorithm(sur_run, Tâche)
-    tâche.web_socket = web_socket
+    tâche := crée_algorithm(sur_run, Tâche);
+    tâche.web_socket = web_socket;
 
-    user_agent.enfile_une_tâche(SourceDeTâche.WebSocket, tâche)
+    user_agent.enfile_une_tâche(SourceDeTâche.WebSocket, tâche);
 }
 
 crée_tâche_pour_connexion_websocket_fermée :: fonc (user_agent: *UserAgent, web_socket: *WebSocket)
 {
-    imprime("[%]\n", #nom_de_cette_fonction)
+    imprime("[%]\n", #nom_de_cette_fonction);
 
     Tâche :: struct {
-        empl base: Algorithm
-        web_socket: *WebSocket
+        empl base: Algorithm;
+        web_socket: *WebSocket;
     }
 
-    sur_run :: fonc (empl tâche: *Tâche)
+    sur_run :: fonc (empl tâche: *Tâche);
     {
-        imprime("[%] websocket_fermée\n", #nom_de_cette_fonction)
+        imprime("[%] websocket_fermée\n", #nom_de_cette_fonction);
 
         // 1. Change the ready state to CLOSED (3).
-        web_socket.ready_state = WebSocket.CLOSED
+        web_socket.ready_state = WebSocket.CLOSED;
 
         // À FAIRE : 2. If the user agent was required to fail the WebSocket connection,
         // or if the WebSocket connection was closed after being flagged as full,
@@ -342,13 +342,13 @@ crée_tâche_pour_connexion_websocket_fermée :: fonc (user_agent: *UserAgent, w
         // to the WebSocket connection close code, and the reason attribute initialized
         // to the result of applying UTF-8 decode without BOM to the WebSocket connection
         // close reason. [WSP]
-        _ := fire_an_event(web_socket, EventType.close)
+        _ := fire_an_event(web_socket, EventType.close);
     }
 
-    tâche := crée_algorithm(sur_run, Tâche)
-    tâche.web_socket = web_socket
+    tâche := crée_algorithm(sur_run, Tâche);
+    tâche.web_socket = web_socket;
 
-    user_agent.enfile_une_tâche(SourceDeTâche.WebSocket, tâche)
+    user_agent.enfile_une_tâche(SourceDeTâche.WebSocket, tâche);
 }
 
 /** \} */

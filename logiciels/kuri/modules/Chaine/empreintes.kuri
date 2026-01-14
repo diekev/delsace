@@ -12,36 +12,36 @@
  */
 calcule_empreinte_djb2 :: fonc (chn: chaine, semence: n64) -> n64
 {
-    empreinte : n64 = 5381 + semence
+    empreinte : n64 = 5381 + semence;
 
     pour chn {
         /* empreinte * 33 + c */
-        empreinte = ((empreinte << 5) + empreinte) + it comme n64
+        empreinte = ((empreinte << 5) + empreinte) + it comme n64;
     }
 
-    retourne empreinte
+    retourne empreinte;
 }
 
 calcule_empreinte_djb2 :: fonc (chn: chaine) -> n64
 {
-    retourne calcule_empreinte_djb2(chn, 0)
+    retourne calcule_empreinte_djb2(chn, 0);
 }
 
 calcule_empreinte_djb2 :: fonc (chn: ChaineUTF32, semence: n64) -> n64
 {
-    empreinte : n64 = 5381 + semence
+    empreinte : n64 = 5381 + semence;
 
     pour chn.points_de_code {
         /* empreinte * 33 + c */
-        empreinte = ((empreinte << 5) + empreinte) + it comme n64
+        empreinte = ((empreinte << 5) + empreinte) + it comme n64;
     }
 
-    retourne empreinte
+    retourne empreinte;
 }
 
 calcule_empreinte_djb2 :: fonc (chn: ChaineUTF32) -> n64
 {
-    retourne calcule_empreinte_djb2(chn, 0)
+    retourne calcule_empreinte_djb2(chn, 0);
 }
 
 /* Calcule l'empreinte en utilisant l'algorithme DJB2a.
@@ -54,19 +54,19 @@ calcule_empreinte_djb2 :: fonc (chn: ChaineUTF32) -> n64
  */
 calcule_empreinte_djb2a :: fonc (chn: chaine, semence: n64) -> n64
 {
-    empreinte : n64 = 5381 + semence
+    empreinte : n64 = 5381 + semence;
 
     pour chn {
-        valeur := it comme n64
-        résultat = ((résultat << 5) + résultat) ^ valeur
+        valeur := it comme n64;
+        résultat = ((résultat << 5) + résultat) ^ valeur;
     }
 
-    retourne résultat
+    retourne résultat;
 }
 
 calcule_empreinte_djb2a :: fonc (chn: chaine) -> n64
 {
-    retourne calcule_empreinte_djb2a(chn, 0)
+    retourne calcule_empreinte_djb2a(chn, 0);
 }
 
 /* Calcule l'empreinte en utilisant l'algorithme SDBM.
@@ -78,19 +78,19 @@ calcule_empreinte_djb2a :: fonc (chn: chaine) -> n64
  */
 calcule_empreinte_sdbm :: fonc (chn: chaine, semence: n64) -> n64
 {
-    résultat := semence
+    résultat := semence;
 
     pour chn {
-        valeur := it comme n64
-        résultat = valeur + (résultat << 6) + (résultat << 16) - résultat
+        valeur := it comme n64;
+        résultat = valeur + (résultat << 6) + (résultat << 16) - résultat;
     }
 
-    retourne résultat
+    retourne résultat;
 }
 
 calcule_empreinte_sdbm :: fonc (chn: chaine) -> n64
 {
-    retourne calcule_empreinte_sdbm(chn, 0)
+    retourne calcule_empreinte_sdbm(chn, 0);
 }
 
 /* Calcule l'empreinte en utilisant l'algorithme FNV-1.
@@ -102,20 +102,20 @@ calcule_empreinte_sdbm :: fonc (chn: chaine) -> n64
  */
 calcule_empreinte_fnv_1 :: fonc (chn: chaine, semence: n64) -> n64
 {
-    résultat := 14695981039346656037 comme n64 + semence
+    résultat := 14695981039346656037 comme n64 + semence;
 
     pour chn {
-        valeur := it comme n64
-        résultat *= 1099511628211
-        résultat ^= valeur
+        valeur := it comme n64;
+        résultat *= 1099511628211;
+        résultat ^= valeur;
     }
 
-    retourne résultat
+    retourne résultat;
 }
 
 calcule_empreinte_fnv_1 :: fonc (chn: chaine) -> n64
 {
-    retourne calcule_empreinte_fnv_1(chn, 0)
+    retourne calcule_empreinte_fnv_1(chn, 0);
 }
 
 /* Calcule l'empreinte en utilisant l'algorithme FNV-1a.
@@ -128,20 +128,20 @@ calcule_empreinte_fnv_1 :: fonc (chn: chaine) -> n64
  */
 calcule_empreinte_fnv_1a :: fonc (chn: chaine, semence: n64) -> n64
 {
-    résultat := 14695981039346656037 comme n64 + semence
+    résultat := 14695981039346656037 comme n64 + semence;
 
     pour chn {
-        valeur := it comme n64
-        résultat ^= valeur
-        résultat *= 1099511628211
+        valeur := it comme n64;
+        résultat ^= valeur;
+        résultat *= 1099511628211;
     }
 
-    retourne résultat
+    retourne résultat;
 }
 
 calcule_empreinte_fnv_1a :: fonc (chn: chaine) -> n64
 {
-    retourne calcule_empreinte_fnv_1a(chn, 0)
+    retourne calcule_empreinte_fnv_1a(chn, 0);
 }
 
 /* \} */

@@ -1,67 +1,67 @@
-importe Algorithmes
+importe Algorithmes;
 
 /* ------------------------------------------------------------------------- */
 /** \nom ContexteDeFormattage
  * \{ */
 
 ModeDeFormattage :: énum {
-    Normal
+    Normal;
     /* Pour le calcul de la largeur « préférée ». */
-    BrisureDeLigneExplicite
+    BrisureDeLigneExplicite;
     /* Pour le calcul de la largeur « minimale préférée ». */
-    ToutesLesBrisuresDeLigne
+    ToutesLesBrisuresDeLigne;
 }
 
 BoiteAbsolue :: struct {
-    box: *BlockBox
-    containing_block: *Box
-    pos_x_statique: r64
-    pos_y_statique: r64
-    fut_disposée: bool
+    box: *BlockBox;
+    containing_block: *Box;
+    pos_x_statique: r64;
+    pos_y_statique: r64;
+    fut_disposée: bool;
 }
 
 GardeBoitesAbsolues :: struct {
-    boites: [..]BoiteAbsolue
+    boites: [..]BoiteAbsolue;
 }
 
 ContexteDeFormattage :: struct {
-    type: type_de_données
-    parent: *ContexteDeFormattage
+    type: type_de_données;
+    parent: *ContexteDeFormattage;
 
-    sur_formatte: fonc (ctx: *ContexteDeFormattage, box: *BlockBox, mode: ModeDeFormattage, space: AvailableSpace)
+    sur_formatte: fonc (ctx: *ContexteDeFormattage, box: *BlockBox, mode: ModeDeFormattage, space: AvailableSpace);
 
-    globales: *GlobalesDessin
-    arbre: *ArbreDeDisposition
-    initial_containing_block: *ContainingBlock
+    globales: *GlobalesDessin;
+    arbre: *ArbreDeDisposition;
+    initial_containing_block: *ContainingBlock;
 
     /* Pour la résolution des pourcentages. */
-    ctx_calcul_style: *ContexteCalculStyle
+    ctx_calcul_style: *ContexteCalculStyle;
 
     /* Pour la disposition des boites absolues. */
-    boites_absolues: *GardeBoitesAbsolues
+    boites_absolues: *GardeBoitesAbsolues;
 
     /* https://html.spec.whatwg.org/multipage/rendering.html#align-descendants */
-    doit_aligner_les_descendants: Optionnel(AlignementTexte)
+    doit_aligner_les_descendants: Optionnel(AlignementTexte);
 }
 
 initialise_depuis_parent :: fonc (ctx: *ContexteDeFormattage, parent: *ContexteDeFormattage)
 {
-    ctx.parent = parent
-    ctx.arbre = parent.arbre
-    ctx.globales = parent.globales
-    ctx.initial_containing_block = parent.initial_containing_block
-    ctx.boites_absolues = parent.boites_absolues
-    ctx.ctx_calcul_style = parent.ctx_calcul_style
+    ctx.parent = parent;
+    ctx.arbre = parent.arbre;
+    ctx.globales = parent.globales;
+    ctx.initial_containing_block = parent.initial_containing_block;
+    ctx.boites_absolues = parent.boites_absolues;
+    ctx.ctx_calcul_style = parent.ctx_calcul_style;
 }
 
 donne_initial_containing_block :: fonc (ctx: *ContexteDeFormattage) -> ContainingBlock
 {
-    retourne mémoire(ctx.initial_containing_block)
+    retourne mémoire(ctx.initial_containing_block);
 }
 
 formatte :: fonc (contexte: *ContexteDeFormattage, box: *BlockBox, mode: ModeDeFormattage, available: AvailableSpace)
 {
-    contexte.sur_formatte(contexte, box, mode, available)
+    contexte.sur_formatte(contexte, box, mode, available);
 }
 
 /* https://drafts.csswg.org/css-display-4/#establish-an-independent-formatting-context
@@ -69,43 +69,43 @@ formatte :: fonc (contexte: *ContexteDeFormattage, box: *BlockBox, mode: ModeDeF
 requiers_contexte_de_formattage_indépendant :: fonc (box: *Box) -> bool
 {
     si box.parent == nul {
-        retourne vrai
+        retourne vrai;
     }
 
     // elements made to float using float
-    float := box.propriétés.donne_valeur_calculée(IDPropriété.Float)
+    float := box.propriétés.donne_valeur_calculée(IDPropriété.Float);
     saufsi float.est_none() {
-        retourne vrai
+        retourne vrai;
     }
 
     // absolutely positioned elements
-    position := box.propriétés.donne_valeur_calculée(IDPropriété.Position)
+    position := box.propriétés.donne_valeur_calculée(IDPropriété.Position);
     si position.est_mot_clé(PROP_absolute) {
-        retourne vrai
+        retourne vrai;
     }
 
     // table cells or elements with display: table-cell, including anonymous table cells created when using the display: table-* properties
     si box.table_virtuelle.type == TableCellBox {
-        retourne vrai
+        retourne vrai;
     }
 
     // table captions or elements with display: table-caption
     si box.table_virtuelle.type == CaptionBox {
-        retourne vrai
+        retourne vrai;
     }
 
     // block elements where overflow has a value other than visible
-    overflow_x := box.propriétés.donne_valeur_calculée(IDPropriété.OverflowX)
-    overflow_y := box.propriétés.donne_valeur_calculée(IDPropriété.OverflowY)
+    overflow_x := box.propriétés.donne_valeur_calculée(IDPropriété.OverflowX);
+    overflow_y := box.propriétés.donne_valeur_calculée(IDPropriété.OverflowY);
     si !overflow_x.est_mot_clé(PROP_visible) || !overflow_y.est_mot_clé(PROP_visible) {
-        retourne vrai
+        retourne vrai;
     }
 
     // elements with display: inline-block
     // elements with display: flow-root or display: flow-root list-item
-    display := box.propriétés.donne_valeur_calculée(IDPropriété.Display).donne_display()
+    display := box.propriétés.donne_valeur_calculée(IDPropriété.Display).donne_display();
     si display.inner_type == Display.Type.FlowRoot {
-        retourne vrai
+        retourne vrai;
     }
 
     // À FAIRE : elements with contain: layout, content, or strict
@@ -114,7 +114,7 @@ requiers_contexte_de_formattage_indépendant :: fonc (box: *Box) -> bool
     si box.parent.donne_display().inner_type == Display.Type.Flex {
         // À FAIRE : autres cas
         si box.donne_display().inner_type != Display.Type.Flex {
-            retourne vrai
+            retourne vrai;
         }
     }
 
@@ -122,7 +122,7 @@ requiers_contexte_de_formattage_indépendant :: fonc (box: *Box) -> bool
     // À FAIRE : multicol containers
     // À FAIRE : elements with column-span set to all
 
-    retourne faux
+    retourne faux;
 }
 
 /** \} */
@@ -132,143 +132,143 @@ requiers_contexte_de_formattage_indépendant :: fonc (box: *Box) -> bool
  * \{ */
 
 BoiteFlottante :: struct {
-    box: *Box
-    position_x: r32
-    position_y: r32
-    hauteur: r32
-    largeur: r32
+    box: *Box;
+    position_x: r32;
+    position_y: r32;
+    hauteur: r32;
+    largeur: r32;
 }
 
 crée_boite_flottante :: fonc (box: *Box) -> BoiteFlottante
 {
-    résultat: BoiteFlottante
-    résultat.box = box
-    résultat.position_x = box.modèle_de_boite.marge.x
-    résultat.position_y = box.modèle_de_boite.marge.y
-    résultat.hauteur = box.modèle_de_boite.marge.hauteur
-    résultat.largeur = box.modèle_de_boite.marge.largeur
-    retourne résultat
+    résultat: BoiteFlottante;
+    résultat.box = box;
+    résultat.position_x = box.modèle_de_boite.marge.x;
+    résultat.position_y = box.modèle_de_boite.marge.y;
+    résultat.hauteur = box.modèle_de_boite.marge.hauteur;
+    résultat.largeur = box.modèle_de_boite.marge.largeur;
+    retourne résultat;
 }
 
 donne_rectangle :: fonc (boite: BoiteFlottante) -> RectanglePosDim(r64)
 {
-    résultat: RectanglePosDim(r64)
-    résultat.x = boite.position_x
-    résultat.y = boite.position_y
-    résultat.hauteur = boite.hauteur
-    résultat.largeur = boite.largeur
-    retourne résultat
+    résultat: RectanglePosDim(r64);
+    résultat.x = boite.position_x;
+    résultat.y = boite.position_y;
+    résultat.hauteur = boite.hauteur;
+    résultat.largeur = boite.largeur;
+    retourne résultat;
 }
 
 LigneDeFlottants :: struct {
-    boites: [..]BoiteFlottante
-    rect: RectanglePosDim(r64)
+    boites: [..]BoiteFlottante;
+    rect: RectanglePosDim(r64);
 }
 
 détruit_donnée_ligne :: fonc (ligne: *LigneDeFlottants)
 {
-    déloge(ligne.boites)
+    déloge(ligne.boites);
 }
 
 ajoute_boite :: fonc (ligne: *LigneDeFlottants, boite: BoiteFlottante)
 {
-    tableau_ajoute(*ligne.boites, boite)
+    tableau_ajoute(*ligne.boites, boite);
     si ligne.boites.taille == 1 {
-        ligne.rect = boite.donne_rectangle()
+        ligne.rect = boite.donne_rectangle();
     }
     sinon {
-        ligne.rect = donne_union(ligne.rect, boite.donne_rectangle())
+        ligne.rect = donne_union(ligne.rect, boite.donne_rectangle());
     }
 }
 
 donne_position_la_plus_à_gauche :: fonc (ligne: *LigneDeFlottants) -> r64
 {
-    résultat := ligne.rect.x
+    résultat := ligne.rect.x;
 
     pour > ligne.boites {
         si it.hauteur == 0.0 {
-            continue
+            continue;
         }
 
-        résultat = it.position_x + it.largeur
-        arrête
+        résultat = it.position_x + it.largeur;
+        arrête;
     }
 
-    retourne résultat
+    retourne résultat;
 }
 
 donne_position_la_plus_à_droite :: fonc (ligne: *LigneDeFlottants) -> r64
 {
-    résultat := ligne.rect.x
+    résultat := ligne.rect.x;
 
     pour > ligne.boites {
         si it.hauteur == 0.0 {
-            continue
+            continue;
         }
 
-        résultat = it.position_x
-        arrête
+        résultat = it.position_x;
+        arrête;
     }
 
-    retourne résultat
+    retourne résultat;
 }
 
 ContenantLignesDeFlottants :: struct {
-    lignes: [..]LigneDeFlottants
-    réinitialise_pour_clear: bool
+    lignes: [..]LigneDeFlottants;
+    réinitialise_pour_clear: bool;
 }
 
 détruit_données_lignes :: fonc (contenant: *ContenantLignesDeFlottants)
 {
     pour * contenant.lignes {
-        détruit_donnée_ligne(it)
+        détruit_donnée_ligne(it);
     }
-    déloge(contenant.lignes)
+    déloge(contenant.lignes);
 }
 
 donne_dernière_ligne :: fonc (contenant: *ContenantLignesDeFlottants, containing_block: &ContainingBlock, gauche: bool) -> *LigneDeFlottants
 {
     si contenant.lignes.taille == 0 || contenant.réinitialise_pour_clear {
-        contenant.réinitialise_pour_clear = faux
-        retourne ajoute_une_ligne(contenant, containing_block, gauche)
+        contenant.réinitialise_pour_clear = faux;
+        retourne ajoute_une_ligne(contenant, containing_block, gauche);
     }
 
-    résultat := *contenant.lignes[contenant.lignes.taille - 1]
+    résultat := *contenant.lignes[contenant.lignes.taille - 1];
 
     /* Ajoute une nouvelle ligne s'il n'y a pas d'intersection possible avec la dernière ligne. */
     si résultat.boites.taille != 0 && (résultat.rect.y + résultat.rect.hauteur <= containing_block.rect.y) {
-        résultat = ajoute_une_ligne(contenant, containing_block, gauche)
+        résultat = ajoute_une_ligne(contenant, containing_block, gauche);
     }
 
-    retourne résultat
+    retourne résultat;
 }
 
 ajoute_une_ligne :: fonc (contenant: *ContenantLignesDeFlottants, containing_block: &ContainingBlock, gauche: bool) -> *LigneDeFlottants
 {
-    résultat := tableau_ajoute_élément(*contenant.lignes)
-    résultat.rect.x = containing_block.rect.x
+    résultat := tableau_ajoute_élément(*contenant.lignes);
+    résultat.rect.x = containing_block.rect.x;
     saufsi gauche {
-        résultat.rect.x += containing_block.rect.largeur
+        résultat.rect.x += containing_block.rect.largeur;
     }
 
     si contenant.lignes.taille > 1 {
-        dernière_ligne := contenant.lignes[contenant.lignes.taille - 2]
-        résultat.rect.y = dernière_ligne.rect.y + dernière_ligne.rect.hauteur
+        dernière_ligne := contenant.lignes[contenant.lignes.taille - 2];
+        résultat.rect.y = dernière_ligne.rect.y + dernière_ligne.rect.hauteur;
     }
     sinon {
-        résultat.rect.y = containing_block.rect.y
+        résultat.rect.y = containing_block.rect.y;
     }
 
-    retourne résultat
+    retourne résultat;
 }
 
 DonnéesMarge :: struct {
-    box: *Box
+    box: *Box;
     /* Pour différencier entre margin-top et margin-bottom */
-    id_propriété: IDPropriété
-    taille: r32
-    y_min: r32
-    y_max: r32
+    id_propriété: IDPropriété;
+    taille: r32;
+    y_min: r32;
+    y_max: r32;
 }
 
 marges_sont_adjointes :: fonc (a: *DonnéesMarge, b: *DonnéesMarge) -> bool
@@ -277,7 +277,7 @@ marges_sont_adjointes :: fonc (a: *DonnéesMarge, b: *DonnéesMarge) -> bool
      * l'adjonction ne peut se faire via p.e. a.y_max == b.y_min. En effet,
      * suite au déplacement, les marges peuvent se superposer. */
     saufsi a.y_min <= b.y_min <= a.y_max || a.y_min <= b.y_max <= a.y_max {
-        retourne faux
+        retourne faux;
     }
 
     /* Par contre, puisqu'il y a une superposition, nous devons tester que les
@@ -287,201 +287,201 @@ marges_sont_adjointes :: fonc (a: *DonnéesMarge, b: *DonnéesMarge) -> bool
 
     si a.box == b.box {
         /* Nous devons être vide. */
-        retourne a.box.modèle_de_boite.contenu.hauteur == 0.0
+        retourne a.box.modèle_de_boite.contenu.hauteur == 0.0;
     }
 
     /* Nous sommes adèlphes. */
     si a.box.parent == b.box.parent {
         si a.id_propriété == IDPropriété.MarginBottom {
             /* Soit nous fusionnons avec la marge haute, ou s'il n'y a pas de marge haute, le contenu du box doit être vide. */
-            retourne b.id_propriété == IDPropriété.MarginTop || b.box.modèle_de_boite.contenu.hauteur == 0.0
+            retourne b.id_propriété == IDPropriété.MarginTop || b.box.modèle_de_boite.contenu.hauteur == 0.0;
         }
 
         /* Nous devons être vide. */
-        retourne a.box.modèle_de_boite.contenu.hauteur == 0.0
+        retourne a.box.modèle_de_boite.contenu.hauteur == 0.0;
     }
 
-    retourne vrai
+    retourne vrai;
 }
 
 ContexteDeFormattageBloc :: struct {
-    empl base: ContexteDeFormattage
-    type = #type_de_cette_structure
-    sur_formatte = contexte_formattage_bloc_sur_formatte
+    empl base: ContexteDeFormattage;
+    type = #type_de_cette_structure;
+    sur_formatte = contexte_formattage_bloc_sur_formatte;
 
-    racine: *BlockBox
+    racine: *BlockBox;
 
     /* Pour la disposition des floats. */
-    lignes_boites_flottantes_gauche: ContenantLignesDeFlottants
-    lignes_boites_flottantes_droite: ContenantLignesDeFlottants
-    rect_boites_flottantes_gauches: RectanglePosDim(r64)
-    rect_boites_flottantes_droites: RectanglePosDim(r64)
+    lignes_boites_flottantes_gauche: ContenantLignesDeFlottants;
+    lignes_boites_flottantes_droite: ContenantLignesDeFlottants;
+    rect_boites_flottantes_gauches: RectanglePosDim(r64);
+    rect_boites_flottantes_droites: RectanglePosDim(r64);
 
     /* Pour le collapsage des marges. */
-    marges: [..]DonnéesMarge
+    marges: [..]DonnéesMarge;
 }
 
 détruit_données_contexte :: fonc (ctx: *ContexteDeFormattageBloc)
 {
-    déloge(ctx.marges)
-    détruit_données_lignes(*ctx.lignes_boites_flottantes_gauche)
-    détruit_données_lignes(*ctx.lignes_boites_flottantes_droite)
+    déloge(ctx.marges);
+    détruit_données_lignes(*ctx.lignes_boites_flottantes_gauche);
+    détruit_données_lignes(*ctx.lignes_boites_flottantes_droite);
 }
 
 ParamètresPositionnementBoite :: struct {
-    décalage_hors_float := 0.0
-    décalage_pour_floats_gauche := 0.0
-    décalage_pour_floats_droite := 0.0
+    décalage_hors_float := 0.0;
+    décalage_pour_floats_gauche := 0.0;
+    décalage_pour_floats_droite := 0.0;
 }
 
 contexte_formattage_bloc_sur_formatte :: fonc (base: *ContexteDeFormattage, box: *BlockBox, mode: ModeDeFormattage, available: AvailableSpace)
 {
-    ctx := base comme *ContexteDeFormattageBloc
+    ctx := base comme *ContexteDeFormattageBloc;
 
-    ajoute_marge(ctx, box, IDPropriété.MarginTop)
+    ajoute_marge(ctx, box, IDPropriété.MarginTop);
 
     /* Pour le collapsage des marges :
      * https://www.w3.org/TR/CSS2/box.html#collapsing-margins */
-    dernier_enfant_in_flow: *Box = nul
+    dernier_enfant_in_flow: *Box = nul;
 
-    décalage_x := box.modèle_de_boite.contenu.x
-    décalage_y := box.modèle_de_boite.contenu.y
+    décalage_x := box.modèle_de_boite.contenu.x;
+    décalage_y := box.modèle_de_boite.contenu.y;
 
-    params_position: ParamètresPositionnementBoite
+    params_position: ParamètresPositionnementBoite;
 
     pour box.enfants {
-        position := it.propriétés.donne_valeur_utilisée(IDPropriété.Position)
+        position := it.propriétés.donne_valeur_utilisée(IDPropriété.Position);
         si position.est_mot_clé(PROP_absolute) {
-            ctx.dispose_boite_absolute(it comme *BlockBox, décalage_x, décalage_y + params_position.décalage_hors_float, mode)
-            continue
+            ctx.dispose_boite_absolute(it comme *BlockBox, décalage_x, décalage_y + params_position.décalage_hors_float, mode);
+            continue;
         }
 
         si position.est_mot_clé(PROP_fixed) {
-            ctx.dispose_boite_fixed(it comme *BlockBox, décalage_x, décalage_y + params_position.décalage_hors_float)
-            continue
+            ctx.dispose_boite_fixed(it comme *BlockBox, décalage_x, décalage_y + params_position.décalage_hors_float);
+            continue;
         }
 
-        clear := it.propriétés.donne_valeur_utilisée(IDPropriété.Clear)
-        applique_clearance(ctx, *params_position, clear, décalage_y)
+        clear := it.propriétés.donne_valeur_utilisée(IDPropriété.Clear);
+        applique_clearance(ctx, *params_position, clear, décalage_y);
 
-        float := it.propriétés.donne_valeur_utilisée(IDPropriété.Float)
+        float := it.propriétés.donne_valeur_utilisée(IDPropriété.Float);
         si float.est_mot_clé(PROP_left) {
-            it.définis_position(décalage_x, décalage_y + params_position.décalage_pour_floats_gauche)
-            it.mesure(ctx, mode, PersonnalisationCotation(), available)
-            ctx.ajoute_boite_flottante_gauche(it, mode)
-            continue
+            it.définis_position(décalage_x, décalage_y + params_position.décalage_pour_floats_gauche);
+            it.mesure(ctx, mode, PersonnalisationCotation(), available);
+            ctx.ajoute_boite_flottante_gauche(it, mode);
+            continue;
         }
         si float.est_mot_clé(PROP_right) {
-            it.définis_position(décalage_x, décalage_y + params_position.décalage_pour_floats_droite)
-            it.mesure(ctx, mode, PersonnalisationCotation(), available)
-            ctx.ajoute_boite_flottante_droite(it, mode)
-            continue
+            it.définis_position(décalage_x, décalage_y + params_position.décalage_pour_floats_droite);
+            it.mesure(ctx, mode, PersonnalisationCotation(), available);
+            ctx.ajoute_boite_flottante_droite(it, mode);
+            continue;
         }
 
         /* Sauvegarde la position des floats pour le collapsage des marges.
          * Si la propriété clear du box nous force à le décaler sous les floats,
          * nous ne voulons pas qu'il soit décalé sous ses descendants. */
-        position_basse_floats_gauches := ctx.donne_décalage_floats_gauche()
-        position_basse_floats_droites := ctx.donne_décalage_floats_droite()
+        position_basse_floats_gauches := ctx.donne_décalage_floats_gauche();
+        position_basse_floats_droites := ctx.donne_décalage_floats_droite();
 
         // AD-HOC : si la boite doit avoir un contexte de formattage indépendant,
         // nous la décalons afin qu'elle ne soit pas derrière les floats de ce contexte.
         // À FAIRE : largeur disponible = largeur contenaining block - floats
-        position_x := décalage_x
-        position_y := décalage_y + params_position.décalage_hors_float
+        position_x := décalage_x;
+        position_y := décalage_y + params_position.décalage_hors_float;
         si it.requiers_contexte_de_formattage_indépendant() && ctx.lignes_boites_flottantes_gauche.lignes {
-            position_max_float_gauche := donne_décalage_horizontal_floats_gauche(ctx, position_y)
+            position_max_float_gauche := donne_décalage_horizontal_floats_gauche(ctx, position_y);
             si position_x < position_max_float_gauche {
-                position_x += position_max_float_gauche - position_x
+                position_x += position_max_float_gauche - position_x;
             }
         }
 
-        it.définis_position(position_x, position_y)
-        it.mesure(ctx, mode, PersonnalisationCotation(), available)
-        ajoute_marge(ctx, it, IDPropriété.MarginBottom)
+        it.définis_position(position_x, position_y);
+        it.mesure(ctx, mode, PersonnalisationCotation(), available);
+        ajoute_marge(ctx, it, IDPropriété.MarginBottom);
 
-        hauteur_enfant := it.modèle_de_boite.marge.hauteur
+        hauteur_enfant := it.modèle_de_boite.marge.hauteur;
 
-        marge_collapsée_opt := donne_marge_collapsée(ctx, it, dernier_enfant_in_flow)
+        marge_collapsée_opt := donne_marge_collapsée(ctx, it, dernier_enfant_in_flow);
         si marge_collapsée_opt.possède_valeur() {
-            marge_collapsée := marge_collapsée_opt.Quelque
+            marge_collapsée := marge_collapsée_opt.Quelque;
 
-            nouvelle_position_bordure := marge_collapsée.bord_référence + marge_collapsée.taille
+            nouvelle_position_bordure := marge_collapsée.bord_référence + marge_collapsée.taille;
 
             si clear.est_mot_clé(PROP_left) {
-                nouvelle_position_bordure = max(nouvelle_position_bordure, position_basse_floats_gauches)
+                nouvelle_position_bordure = max(nouvelle_position_bordure, position_basse_floats_gauches);
             }
             sinon si clear.est_mot_clé(PROP_right) {
-                nouvelle_position_bordure = max(nouvelle_position_bordure, position_basse_floats_droites)
+                nouvelle_position_bordure = max(nouvelle_position_bordure, position_basse_floats_droites);
             }
             sinon si clear.est_mot_clé(PROP_both) {
-                décalage := max(position_basse_floats_gauches, position_basse_floats_droites)
-                nouvelle_position_bordure = max(nouvelle_position_bordure, décalage)
+                décalage := max(position_basse_floats_gauches, position_basse_floats_droites);
+                nouvelle_position_bordure = max(nouvelle_position_bordure, décalage);
             }
 
-            décalage := nouvelle_position_bordure - it.modèle_de_boite.bordure.y
+            décalage := nouvelle_position_bordure - it.modèle_de_boite.bordure.y;
 
             si décalage != 0.0 {
-                it.décale(0.0, décalage)
+                it.décale(0.0, décalage);
 
                 /* À FAIRE : généralise. */
                 pour * boite dans ctx.boites_absolues.boites {
                     si boite.box.parent == it {
-                        boite.pos_y_statique += décalage
+                        boite.pos_y_statique += décalage;
                     }
                 }
 
-                hauteur_enfant += décalage
+                hauteur_enfant += décalage;
             }
         }
 
         /* Les boxes anonymes pour les espaces blanches entre éléments interfèrent avec le collapsage des marges. */
         saufsi it.est_espace_blanche_document() {
-            dernier_enfant_in_flow = it
+            dernier_enfant_in_flow = it;
         }
 
-        params_position.décalage_hors_float += hauteur_enfant
+        params_position.décalage_hors_float += hauteur_enfant;
 
         /* Les blocs dont le formatte interne est inline ne doivent pas déplacer les floats. */
-        méthode_de_formattage := donne_méthode_de_formattage_intérieur(it)
+        méthode_de_formattage := donne_méthode_de_formattage_intérieur(it);
         si méthode_de_formattage != MéthodeDeFormattage.Inline {
-            params_position.décalage_pour_floats_gauche = params_position.décalage_hors_float
-            params_position.décalage_pour_floats_droite = params_position.décalage_hors_float
+            params_position.décalage_pour_floats_gauche = params_position.décalage_hors_float;
+            params_position.décalage_pour_floats_droite = params_position.décalage_hors_float;
         }
     }
 
     pour box.enfants {
-        position := it.propriétés.donne_valeur_utilisée(IDPropriété.Position)
+        position := it.propriétés.donne_valeur_utilisée(IDPropriété.Position);
         /* À FAIRE : https://drafts.csswg.org/css-position/#relpos-insets */
         si position.est_mot_clé(PROP_relative) {
-            résoud_pourcentage_insets(it, ctx)
-            top := it.donne_décalage_top_pour_relative()
-            left := it.donne_décalage_left_pour_relative()
-            it.décale(left, top)
+            résoud_pourcentage_insets(it, ctx);
+            top := it.donne_décalage_top_pour_relative();
+            left := it.donne_décalage_left_pour_relative();
+            it.décale(left, top);
         }
     }
 
     discr mode {
         BrisureDeLigneExplicite,
         ToutesLesBrisuresDeLigne {
-            largeur_max_enfant : r64 = 0.0
+            largeur_max_enfant : r64 = 0.0;
             pour box.enfants {
-                position := it.propriétés.donne_valeur_utilisée(IDPropriété.Position)
+                position := it.propriétés.donne_valeur_utilisée(IDPropriété.Position);
                 si position.est_mot_clé(PROP_absolute) || position.est_mot_clé(PROP_fixed) {
-                    continue
+                    continue;
                 }
 
-                largeur_enfant := it.modèle_de_boite.marge.largeur
-                largeur_max_enfant = max(largeur_max_enfant, largeur_enfant)
+                largeur_enfant := it.modèle_de_boite.marge.largeur;
+                largeur_max_enfant = max(largeur_max_enfant, largeur_enfant);
             }
 
-            largeur_max_enfant = max(largeur_max_enfant, ctx.rect_boites_flottantes_gauches.largeur)
-            largeur_max_enfant = max(largeur_max_enfant, ctx.rect_boites_flottantes_droites.largeur)
+            largeur_max_enfant = max(largeur_max_enfant, ctx.rect_boites_flottantes_gauches.largeur);
+            largeur_max_enfant = max(largeur_max_enfant, ctx.rect_boites_flottantes_droites.largeur);
 
-            prop_largeur := box.propriétés.donne_valeur_calculée(IDPropriété.Width)
+            prop_largeur := box.propriétés.donne_valeur_calculée(IDPropriété.Width);
             si prop_largeur.est_auto() {
-                box.propriétés.définis_valeur_utilisée(IDPropriété.Width, crée_valeur_pixels(largeur_max_enfant))
-                ajourne_boite_pour_calcul_largeur(box)
+                box.propriétés.définis_valeur_utilisée(IDPropriété.Width, crée_valeur_pixels(largeur_max_enfant));
+                ajourne_boite_pour_calcul_largeur(box);
             }
         }
         sinon {}
@@ -490,43 +490,43 @@ contexte_formattage_bloc_sur_formatte :: fonc (base: *ContexteDeFormattage, box:
 
 marges_sont_adjointes :: fonc (box: *Box) -> bool
 {
-    retourne box.modèle_de_boite.bordure.y == box.modèle_de_boite.bordure.y + box.modèle_de_boite.bordure.hauteur
+    retourne box.modèle_de_boite.bordure.y == box.modèle_de_boite.bordure.y + box.modèle_de_boite.bordure.hauteur;
 }
 
 ajoute_marge :: fonc (ctx: *ContexteDeFormattageBloc, box: *Box, id: IDPropriété)
 {
-    assert(id == IDPropriété.MarginTop || id == IDPropriété.MarginBottom)
+    assert(id == IDPropriété.MarginTop || id == IDPropriété.MarginBottom);
 
-    taille := box.propriétés.donne_valeur_utilisée(id).donne_pixels() comme r32
+    taille := box.propriétés.donne_valeur_utilisée(id).donne_pixels() comme r32;
     si taille == 0.0 && est_espace_blanche_document(box) {
-        retourne
+        retourne;
     }
 
-    marge := tableau_ajoute_élément(*ctx.marges)
-    marge.box = box
-    marge.id_propriété = id
-    marge.taille = taille
-    ajourne_min_max(marge)
+    marge := tableau_ajoute_élément(*ctx.marges);
+    marge.box = box;
+    marge.id_propriété = id;
+    marge.taille = taille;
+    ajourne_min_max(marge);
 }
 
 ajourne_min_max :: fonc (marge: *DonnéesMarge)
 {
-    box := marge.box
+    box := marge.box;
 
     si marge.id_propriété == IDPropriété.MarginTop {
-        marge.y_min = box.modèle_de_boite.marge.y
-        marge.y_max = box.modèle_de_boite.bordure.y
+        marge.y_min = box.modèle_de_boite.marge.y;
+        marge.y_max = box.modèle_de_boite.bordure.y;
     }
     sinon {
-        marge.y_min = box.modèle_de_boite.bordure.y + box.modèle_de_boite.bordure.hauteur
-        marge.y_max = box.modèle_de_boite.marge.y + box.modèle_de_boite.marge.hauteur
+        marge.y_min = box.modèle_de_boite.bordure.y + box.modèle_de_boite.bordure.hauteur;
+        marge.y_max = box.modèle_de_boite.marge.y + box.modèle_de_boite.marge.hauteur;
     }
 
     /* Pour les marges négatives. */
     si marge.y_max < marge.y_min {
-        tmp := marge.y_min
-        marge.y_min = marge.y_max
-        marge.y_max = tmp
+        tmp := marge.y_min;
+        marge.y_min = marge.y_max;
+        marge.y_max = tmp;
     }
 }
 
@@ -535,10 +535,10 @@ MargeCollapsée :: struct {
      * ou le bord bas du contenu d'un ainé. L'ainé en question n'est pas forcément
      * l'élément précédent puisque celui peut être vide et nous pourrions collapser
      * à travers lui. */
-    bord_référence: r32
+    bord_référence: r32;
 
     /* La taille de la marge. */
-    taille: r32
+    taille: r32;
 }
 
 donne_marge_collapsée :: fonc (ctx: *ContexteDeFormattageBloc, box: *Box, dernier_enfant_in_flow: *Box) -> Optionnel(MargeCollapsée)
@@ -547,446 +547,446 @@ donne_marge_collapsée :: fonc (ctx: *ContexteDeFormattageBloc, box: *Box, derni
         /* Nous collapsons avec la marge du parent, sauf s'il est la racine du contexte (les floats,
          * le box racine, etc., ne collapsent pas leurs marges avec leurs enfants). */
         si box.parent == ctx.racine {
-            retourne
+            retourne;
         }
 
-        index_marge_parent := donne_index_marge(ctx, box.parent, IDPropriété.MarginTop)
-        index_marge := donne_index_marge(ctx, box, IDPropriété.MarginTop)
+        index_marge_parent := donne_index_marge(ctx, box.parent, IDPropriété.MarginTop);
+        index_marge := donne_index_marge(ctx, box, IDPropriété.MarginTop);
 
         si index_marge_parent == -1 || index_marge == -1 {
             /* Nous ne pouvons collapser avec le parent, la position est inchangée. */
-            retourne
+            retourne;
         }
 
         /* Si le parent possède une bordure, on ne peut pas collapser. */
         si box.parent.modèle_de_boite.bordure.hauteur != box.parent.modèle_de_boite.contenu.hauteur {
-            retourne
+            retourne;
         }
 
-        marge_parent := ctx.marges[index_marge_parent]
-        marge := ctx.marges[index_marge]
+        marge_parent := ctx.marges[index_marge_parent];
+        marge := ctx.marges[index_marge];
 
         taille := si marge_parent.taille < 0.0 && marge.taille < 0.0 {
-            0.0 - max(abs(marge.taille), abs(marge_parent.taille))
+            0.0 - max(abs(marge.taille), abs(marge_parent.taille));
         }
         sinon si marge_parent.taille < 0.0 {
-            (marge.taille - abs(marge_parent.taille))
+            (marge.taille - abs(marge_parent.taille));
         }
         sinon si marge.taille < 0.0 {
-            (marge_parent.taille - abs(marge.taille))
+            (marge_parent.taille - abs(marge.taille));
         }
         sinon {
-            max(marge_parent.taille, marge.taille)
+            max(marge_parent.taille, marge.taille);
         }
 
-        résultat: MargeCollapsée
-        résultat.taille = taille
-        résultat.bord_référence = box.parent.modèle_de_boite.marge.y
-        retourne résultat
+        résultat: MargeCollapsée;
+        résultat.taille = taille;
+        résultat.bord_référence = box.parent.modèle_de_boite.marge.y;
+        retourne résultat;
     }
 
     si marges_sont_adjointes(box) {
-        retourne donne_marge_collapsée_depuis(ctx, box, IDPropriété.MarginBottom)
+        retourne donne_marge_collapsée_depuis(ctx, box, IDPropriété.MarginBottom);
     }
-    retourne donne_marge_collapsée_depuis(ctx, box, IDPropriété.MarginTop)
+    retourne donne_marge_collapsée_depuis(ctx, box, IDPropriété.MarginTop);
 }
 
 donne_index_marge :: fonc (ctx: *ContexteDeFormattageBloc, box: *Box, id: IDPropriété) -> z64
 {
     pour ctx.marges {
         si it.box == box && it.id_propriété == id {
-            retourne indice_it
+            retourne indice_it;
         }
     }
 
-    retourne -1
+    retourne -1;
 }
 
 donne_marge_collapsée_depuis :: fonc (ctx: *ContexteDeFormattageBloc, box: *Box, id: IDPropriété) -> Optionnel(MargeCollapsée)
 {
-    indice := donne_index_marge(ctx, box, id)
+    indice := donne_index_marge(ctx, box, id);
     si indice == -1 {
-        retourne
+        retourne;
     }
 
-    dernier := *ctx.marges[indice]
-    premier := dernier
-    début := *ctx.marges[0]
+    dernier := *ctx.marges[indice];
+    premier := dernier;
+    début := *ctx.marges[0];
 
     tantque premier >= début {
-        ajourne_min_max(premier)
+        ajourne_min_max(premier);
 
         si premier < dernier {
             saufsi marges_sont_adjointes(premier, premier + 1) {
-                premier += 1
-                arrête
+                premier += 1;
+                arrête;
             }
         }
 
-        premier -= 1
+        premier -= 1;
     }
 
     si premier < début {
-        premier = début
+        premier = début;
     }
 
     si premier == dernier {
         /* La seule marge existante est la nôtre : nous ne la collapsons pas. */
-        assert(premier.box == box)
-        retourne
+        assert(premier.box == box);
+        retourne;
     }
 
-    résultat: MargeCollapsée
+    résultat: MargeCollapsée;
     si premier.id_propriété == IDPropriété.MarginTop {
-        résultat.bord_référence = premier.y_min
+        résultat.bord_référence = premier.y_min;
     }
     sinon {
-        résultat.bord_référence = premier.box.modèle_de_boite.bordure.y + premier.box.modèle_de_boite.bordure.hauteur
+        résultat.bord_référence = premier.box.modèle_de_boite.bordure.y + premier.box.modèle_de_boite.bordure.hauteur;
     }
 
-    nombre_positives := 0
-    nombre_négatives := 0
+    nombre_positives := 0;
+    nombre_négatives := 0;
 
-    max_positives := 0.0
-    max_négatives := 0.0
+    max_positives := 0.0;
+    max_négatives := 0.0;
 
     tantque premier <= dernier {
-        taille := premier.taille
+        taille := premier.taille;
 
         si taille < 0.0 {
-            nombre_négatives += 1
-            max_négatives = max(max_négatives, abs(taille))
+            nombre_négatives += 1;
+            max_négatives = max(max_négatives, abs(taille));
         }
         sinon {
-            nombre_positives += 1
-            max_positives = max(max_positives, taille)
+            nombre_positives += 1;
+            max_positives = max(max_positives, taille);
         }
 
-        premier += 1
+        premier += 1;
     }
 
     résultat.taille = si nombre_positives == 0 {
-        0.0 - max_négatives
+        0.0 - max_négatives;
     }
     sinon si nombre_négatives == 0 {
-        max_positives
+        max_positives;
     }
     sinon {
-        max_positives - max_négatives
+        max_positives - max_négatives;
     }
 
-    retourne résultat
+    retourne résultat;
 }
 
 applique_clearance :: fonc (ctx: *ContexteDeFormattageBloc, empl params: *ParamètresPositionnementBoite, clear: *ValeurDeStyle, décalage_y: r32)
 {
     si clear.est_mot_clé(PROP_left) {
-        hauteur_float_left := ctx.donne_décalage_floats_gauche() - décalage_y
+        hauteur_float_left := ctx.donne_décalage_floats_gauche() - décalage_y;
 
         si décalage_hors_float < hauteur_float_left {
-            décalage_hors_float = hauteur_float_left
+            décalage_hors_float = hauteur_float_left;
         }
 
         si décalage_pour_floats_gauche < hauteur_float_left {
-            décalage_pour_floats_gauche = hauteur_float_left
+            décalage_pour_floats_gauche = hauteur_float_left;
         }
 
-        ctx.lignes_boites_flottantes_gauche.réinitialise_pour_clear = vrai
+        ctx.lignes_boites_flottantes_gauche.réinitialise_pour_clear = vrai;
     }
     sinon si clear.est_mot_clé(PROP_right) {
-        hauteur_float_right := ctx.donne_décalage_floats_droite() - décalage_y
+        hauteur_float_right := ctx.donne_décalage_floats_droite() - décalage_y;
 
         si décalage_hors_float < hauteur_float_right {
-            décalage_hors_float = hauteur_float_right
+            décalage_hors_float = hauteur_float_right;
         }
 
         si décalage_pour_floats_droite < hauteur_float_right {
-            décalage_pour_floats_droite = hauteur_float_right
+            décalage_pour_floats_droite = hauteur_float_right;
         }
 
-        ctx.lignes_boites_flottantes_droite.réinitialise_pour_clear = vrai
+        ctx.lignes_boites_flottantes_droite.réinitialise_pour_clear = vrai;
     }
     sinon si clear.est_mot_clé(PROP_both) {
-        hauteur_float_right := ctx.donne_décalage_floats_droite() - décalage_y
-        hauteur_float_left := ctx.donne_décalage_floats_gauche() - décalage_y
-        hauteur_float_both := max(hauteur_float_left, hauteur_float_right)
+        hauteur_float_right := ctx.donne_décalage_floats_droite() - décalage_y;
+        hauteur_float_left := ctx.donne_décalage_floats_gauche() - décalage_y;
+        hauteur_float_both := max(hauteur_float_left, hauteur_float_right);
 
         si décalage_hors_float < hauteur_float_both {
-            décalage_hors_float = hauteur_float_both
+            décalage_hors_float = hauteur_float_both;
         }
 
         si décalage_pour_floats_gauche < hauteur_float_both {
-            décalage_pour_floats_gauche = hauteur_float_both
+            décalage_pour_floats_gauche = hauteur_float_both;
         }
 
         si décalage_pour_floats_droite < hauteur_float_both {
-            décalage_pour_floats_droite = hauteur_float_both
+            décalage_pour_floats_droite = hauteur_float_both;
         }
 
-        ctx.lignes_boites_flottantes_gauche.réinitialise_pour_clear = vrai
-        ctx.lignes_boites_flottantes_droite.réinitialise_pour_clear = vrai
+        ctx.lignes_boites_flottantes_gauche.réinitialise_pour_clear = vrai;
+        ctx.lignes_boites_flottantes_droite.réinitialise_pour_clear = vrai;
     }
 }
 
 dispose_boite_fixed :: fonc (empl ctx: *ContexteDeFormattageBloc, box: *BlockBox, pos_x_statique: r64, pos_y_statique: r64)
 {
-    boite_absolue: BoiteAbsolue
-    boite_absolue.containing_block = ctx.donne_initial_containing_block().box
-    boite_absolue.box = box
-    boite_absolue.pos_x_statique = pos_x_statique
-    boite_absolue.pos_y_statique = pos_y_statique
+    boite_absolue: BoiteAbsolue;
+    boite_absolue.containing_block = ctx.donne_initial_containing_block().box;
+    boite_absolue.box = box;
+    boite_absolue.pos_x_statique = pos_x_statique;
+    boite_absolue.pos_y_statique = pos_y_statique;
 
-    dispose_boite_absolute(ctx, *boite_absolue)
+    dispose_boite_absolute(ctx, *boite_absolue);
 }
 
 dispose_boite_absolute :: fonc (empl ctx: *ContexteDeFormattage, box: *BlockBox, pos_x_statique: r64, pos_y_statique: r64, mode: ModeDeFormattage)
 {
     si mode != ModeDeFormattage.Normal {
-        retourne
+        retourne;
     }
 
-    containing_block := donne_containing_block(box, ctx)
+    containing_block := donne_containing_block(box, ctx);
 
-    boite_absolue := tableau_ajoute_élément(*ctx.boites_absolues.boites)
-    boite_absolue.box = box
-    boite_absolue.containing_block = containing_block.box
-    boite_absolue.pos_x_statique = pos_x_statique
-    boite_absolue.pos_y_statique = pos_y_statique
+    boite_absolue := tableau_ajoute_élément(*ctx.boites_absolues.boites);
+    boite_absolue.box = box;
+    boite_absolue.containing_block = containing_block.box;
+    boite_absolue.pos_x_statique = pos_x_statique;
+    boite_absolue.pos_y_statique = pos_y_statique;
 }
 
 dispose_les_boites_absolues :: fonc (ctx: *ContexteDeFormattage, containing_block: *Box)
 {
-    boites_à_disposer: [..]BoiteAbsolue
-    diffère déloge(boites_à_disposer)
+    boites_à_disposer: [..]BoiteAbsolue;
+    diffère déloge(boites_à_disposer);
 
     pour ctx.boites_absolues.boites {
         si it.containing_block != containing_block {
-            continue
+            continue;
         }
 
-        tableau_ajoute(*boites_à_disposer, it)
+        tableau_ajoute(*boites_à_disposer, it);
 
         si indice_it < ctx.boites_absolues.boites.taille - 1 {
-            ctx.boites_absolues.boites[indice_it] = ctx.boites_absolues.boites[ctx.boites_absolues.boites.taille - 1]
-            ctx.boites_absolues.boites.taille -= 1
-            reprends it
+            ctx.boites_absolues.boites[indice_it] = ctx.boites_absolues.boites[ctx.boites_absolues.boites.taille - 1];
+            ctx.boites_absolues.boites.taille -= 1;
+            reprends it;
         }
     }
 
     pour * boites_à_disposer {
-        dispose_boite_absolute(ctx, it)
+        dispose_boite_absolute(ctx, it);
     }
 }
 
 /* À FAIRE : https://drafts.csswg.org/css-position/#abspos-layout */
 dispose_boite_absolute :: fonc (empl ctx: *ContexteDeFormattage, boite: *BoiteAbsolue)
 {
-    box := boite.box
+    box := boite.box;
 
-    containing_block := donne_containing_block(box, ctx)
-    assert(containing_block.box == boite.containing_block)
+    containing_block := donne_containing_block(box, ctx);
+    assert(containing_block.box == boite.containing_block);
 
-    args := crée_arguments_dimensionnement_largeur(ctx, box, containing_block, PersonnalisationCotation(), ModeDeFormattage.Normal)
-    args.pos_x_statique = boite.pos_x_statique
-    args.pos_y_statique = boite.pos_y_statique
-    calcule_largeur_et_marges(*args)
-    état_calcul_hauteur := calcule_hauteur_et_marges(*args)
+    args := crée_arguments_dimensionnement_largeur(ctx, box, containing_block, PersonnalisationCotation(), ModeDeFormattage.Normal);
+    args.pos_x_statique = boite.pos_x_statique;
+    args.pos_y_statique = boite.pos_y_statique;
+    calcule_largeur_et_marges(*args);
+    état_calcul_hauteur := calcule_hauteur_et_marges(*args);
 
     si état_calcul_hauteur != ÉtatCalculHauteur.HauteurDépendSurContenu {
-        position_boite_absolue(box, containing_block, faux)
+        position_boite_absolue(box, containing_block, faux);
     }
 
-    available : AvailableSpace = ---
-    available.width = crée_definite_size(containing_block.box.modèle_de_boite.contenu.largeur)
-    available.height = crée_definite_size(containing_block.box.modèle_de_boite.contenu.hauteur)
+    available : AvailableSpace = ---;
+    available.width = crée_definite_size(containing_block.box.modèle_de_boite.contenu.largeur);
+    available.height = crée_definite_size(containing_block.box.modèle_de_boite.contenu.hauteur);
 
-    formatte_intérieur(box, ctx, ModeDeFormattage.Normal, available)
+    formatte_intérieur(box, ctx, ModeDeFormattage.Normal, available);
 
     si état_calcul_hauteur == ÉtatCalculHauteur.HauteurDépendSurContenu {
-        args.calcul_hauteur_après_contenu = vrai
-        _ := calcule_hauteur_et_marges(*args)
+        args.calcul_hauteur_après_contenu = vrai;
+        _ := calcule_hauteur_et_marges(*args);
 
-        position_boite_absolue(box, containing_block, vrai)
+        position_boite_absolue(box, containing_block, vrai);
     }
 
-    ctx.dispose_les_boites_absolues(box)
+    ctx.dispose_les_boites_absolues(box);
 }
 
 position_boite_absolue :: fonc (box: *Box, containing_block: &ContainingBlock, décale: bool)
 {
-    bord_gauche := containing_block.rect.x
-    bord_haut := containing_block.rect.y
+    bord_gauche := containing_block.rect.x;
+    bord_haut := containing_block.rect.y;
 
-    top := box.propriétés.donne_valeur_utilisée(IDPropriété.Top)
-    left := box.propriétés.donne_valeur_utilisée(IDPropriété.Left)
+    top := box.propriétés.donne_valeur_utilisée(IDPropriété.Top);
+    left := box.propriétés.donne_valeur_utilisée(IDPropriété.Left);
 
-    x := bord_gauche + left.donne_pixels() comme r32
-    y := bord_haut + top.donne_pixels() comme r32
+    x := bord_gauche + left.donne_pixels() comme r32;
+    y := bord_haut + top.donne_pixels() comme r32;
 
     si décale {
-        box.décale_vers_position(x, y)
+        box.décale_vers_position(x, y);
     }
     sinon {
-        box.définis_position(x, y)
+        box.définis_position(x, y);
     }
 }
 
 ajoute_boite_flottante_gauche :: fonc (empl ctx: *ContexteDeFormattageBloc, box: *Box, mode: ModeDeFormattage)
 {
-    containing_block := donne_containing_block(box, ctx)
-    largeur_disponible := containing_block.donne_largeur()
+    containing_block := donne_containing_block(box, ctx);
+    largeur_disponible := containing_block.donne_largeur();
 
-    bord_gauche := containing_block.rect.x
-    bord_droit := bord_gauche + largeur_disponible
+    bord_gauche := containing_block.rect.x;
+    bord_droit := bord_gauche + largeur_disponible;
 
-    boite := crée_boite_flottante(box)
+    boite := crée_boite_flottante(box);
 
-    ligne := donne_dernière_ligne(*ctx.lignes_boites_flottantes_gauche, containing_block, vrai)
+    ligne := donne_dernière_ligne(*ctx.lignes_boites_flottantes_gauche, containing_block, vrai);
 
     boucle {
-        boite.position_x = ligne.donne_position_la_plus_à_gauche() comme r32
-        boite.position_y = max(ligne.rect.y comme r32, boite.position_y)
+        boite.position_x = ligne.donne_position_la_plus_à_gauche() comme r32;
+        boite.position_y = max(ligne.rect.y comme r32, boite.position_y);
 
         si mode == ModeDeFormattage.BrisureDeLigneExplicite || (boite.position_x + boite.largeur <= bord_droit || boite.position_x <= bord_gauche) {
-            arrête
+            arrête;
         }
 
-        ligne = ajoute_une_ligne(*ctx.lignes_boites_flottantes_gauche, containing_block, vrai)
+        ligne = ajoute_une_ligne(*ctx.lignes_boites_flottantes_gauche, containing_block, vrai);
     }
 
     si mode != ModeDeFormattage.BrisureDeLigneExplicite && instersecte_hors_touche(boite.donne_rectangle(), ctx.rect_boites_flottantes_droites) {
         pour ligne_droite dans ctx.lignes_boites_flottantes_droite.lignes {
             saufsi instersecte_hors_touche(boite.donne_rectangle(), ligne_droite.rect) {
-                continue
+                continue;
             }
 
             pour boite_droite dans ligne_droite.boites {
                 saufsi instersecte_hors_touche(boite.donne_rectangle(), boite_droite.donne_rectangle()) {
-                    continue
+                    continue;
                 }
 
                 si ligne.boites.taille != 0 {
-                    ligne = ajoute_une_ligne(*ctx.lignes_boites_flottantes_gauche, containing_block, vrai)
+                    ligne = ajoute_une_ligne(*ctx.lignes_boites_flottantes_gauche, containing_block, vrai);
                 }
 
-                boite.position_y = max(boite_droite.position_y + boite_droite.hauteur, ligne.rect.y comme r32)
-                boite.position_x = ligne.donne_position_la_plus_à_gauche() comme r32
+                boite.position_y = max(boite_droite.position_y + boite_droite.hauteur, ligne.rect.y comme r32);
+                boite.position_x = ligne.donne_position_la_plus_à_gauche() comme r32;
             }
         }
     }
 
-    ligne.ajoute_boite(boite)
+    ligne.ajoute_boite(boite);
 
     si ctx.lignes_boites_flottantes_gauche.lignes.taille == 1 && ligne.boites.taille == 1 {
-        ctx.rect_boites_flottantes_gauches = boite.donne_rectangle()
+        ctx.rect_boites_flottantes_gauches = boite.donne_rectangle();
     }
     sinon {
-        ctx.rect_boites_flottantes_gauches = donne_union(ctx.rect_boites_flottantes_gauches, boite.donne_rectangle())
+        ctx.rect_boites_flottantes_gauches = donne_union(ctx.rect_boites_flottantes_gauches, boite.donne_rectangle());
     }
 
-    box.décale_vers_position(boite.position_x, boite.position_y)
+    box.décale_vers_position(boite.position_x, boite.position_y);
 }
 
 ajoute_boite_flottante_droite :: fonc (empl ctx: *ContexteDeFormattageBloc, box: *Box, mode: ModeDeFormattage)
 {
-    containing_block := donne_containing_block(box, ctx)
-    largeur_disponible := containing_block.donne_largeur()
+    containing_block := donne_containing_block(box, ctx);
+    largeur_disponible := containing_block.donne_largeur();
 
-    bord_gauche := containing_block.rect.x
-    bord_droit := bord_gauche + largeur_disponible
+    bord_gauche := containing_block.rect.x;
+    bord_droit := bord_gauche + largeur_disponible;
 
-    boite := crée_boite_flottante(box)
+    boite := crée_boite_flottante(box);
 
-    ligne := donne_dernière_ligne(*ctx.lignes_boites_flottantes_droite, containing_block, faux)
+    ligne := donne_dernière_ligne(*ctx.lignes_boites_flottantes_droite, containing_block, faux);
 
     boucle {
-        boite.position_x = ligne.donne_position_la_plus_à_droite() comme r32 - boite.largeur
-        boite.position_y = max(ligne.rect.y comme r32, boite.position_y)
+        boite.position_x = ligne.donne_position_la_plus_à_droite() comme r32 - boite.largeur;
+        boite.position_y = max(ligne.rect.y comme r32, boite.position_y);
 
         si mode == ModeDeFormattage.BrisureDeLigneExplicite || boite.position_x >= bord_gauche || boite.position_x + boite.largeur >= bord_droit {
-            arrête
+            arrête;
         }
 
-        ligne = ajoute_une_ligne(*ctx.lignes_boites_flottantes_droite, containing_block, faux)
+        ligne = ajoute_une_ligne(*ctx.lignes_boites_flottantes_droite, containing_block, faux);
     }
 
     si mode != ModeDeFormattage.BrisureDeLigneExplicite && instersecte_hors_touche(boite.donne_rectangle(), ctx.rect_boites_flottantes_gauches) {
         pour ligne_gauche dans ctx.lignes_boites_flottantes_gauche.lignes {
             saufsi instersecte_hors_touche(boite.donne_rectangle(), ligne_gauche.rect) {
-                continue
+                continue;
             }
 
             pour boite_gauche dans ligne_gauche.boites {
                 saufsi instersecte_hors_touche(boite.donne_rectangle(), boite_gauche.donne_rectangle()) {
-                    continue
+                    continue;
                 }
 
                 si ligne.boites.taille != 0 {
-                    ligne = ajoute_une_ligne(*ctx.lignes_boites_flottantes_droite, containing_block, faux)
+                    ligne = ajoute_une_ligne(*ctx.lignes_boites_flottantes_droite, containing_block, faux);
                 }
 
-                boite.position_y = max(boite_gauche.position_y + boite_gauche.hauteur, ligne.rect.y comme r32)
-                boite.position_x = ligne.donne_position_la_plus_à_droite() comme r32 - boite.largeur
+                boite.position_y = max(boite_gauche.position_y + boite_gauche.hauteur, ligne.rect.y comme r32);
+                boite.position_x = ligne.donne_position_la_plus_à_droite() comme r32 - boite.largeur;
             }
         }
     }
 
-    ligne.ajoute_boite(boite)
+    ligne.ajoute_boite(boite);
 
     si ctx.lignes_boites_flottantes_droite.lignes.taille == 1 && ligne.boites.taille == 1 {
-        ctx.rect_boites_flottantes_droites = boite.donne_rectangle()
+        ctx.rect_boites_flottantes_droites = boite.donne_rectangle();
     }
     sinon {
-        ctx.rect_boites_flottantes_droites = donne_union(ctx.rect_boites_flottantes_droites, boite.donne_rectangle())
+        ctx.rect_boites_flottantes_droites = donne_union(ctx.rect_boites_flottantes_droites, boite.donne_rectangle());
     }
 
-    box.décale_vers_position(boite.position_x, boite.position_y)
+    box.décale_vers_position(boite.position_x, boite.position_y);
 }
 
 /* Retourne faux si les rectangles ne font que se toucher. */
 instersecte_hors_touche :: fonc (rect1: RectanglePosDim(r64), rect2: RectanglePosDim(r64)) -> bool
 {
     saufsi intersecte(rect1, rect2) {
-        retourne faux
+        retourne faux;
     }
 
     si abs(rect1.y + rect1.hauteur - rect2.y) <= 0.00001 {
-        retourne faux
+        retourne faux;
     }
 
     si abs(rect2.y + rect2.hauteur - rect1.y) <= 0.00001 {
-        retourne faux
+        retourne faux;
     }
 
     si abs(rect1.x + rect1.largeur - rect2.x) <= 0.00001 {
-        retourne faux
+        retourne faux;
     }
 
     si abs(rect2.x + rect2.largeur - rect1.x) <= 0.00001 {
-        retourne faux
+        retourne faux;
     }
 
-    retourne vrai
+    retourne vrai;
 }
 
 donne_décalage_floats_gauche :: fonc (empl ctx: *ContexteDeFormattageBloc) -> r32
 {
-    retourne (ctx.rect_boites_flottantes_gauches.y + ctx.rect_boites_flottantes_gauches.hauteur) comme r32
+    retourne (ctx.rect_boites_flottantes_gauches.y + ctx.rect_boites_flottantes_gauches.hauteur) comme r32;
 }
 
 donne_décalage_floats_droite :: fonc (empl ctx: *ContexteDeFormattageBloc) -> r32
 {
-    retourne (ctx.rect_boites_flottantes_droites.y + ctx.rect_boites_flottantes_droites.hauteur) comme r32
+    retourne (ctx.rect_boites_flottantes_droites.y + ctx.rect_boites_flottantes_droites.hauteur) comme r32;
 }
 
 donne_décalage_horizontal_floats_gauche :: fonc (empl ctx: *ContexteDeFormattageBloc, position_y: r32) -> r32
 {
     pour ctx.lignes_boites_flottantes_gauche.lignes {
         si it.rect.y <= position_y <= it.rect.y + it.rect.hauteur {
-            retourne (it.rect.x + it.rect.largeur) comme r32
+            retourne (it.rect.x + it.rect.largeur) comme r32;
         }
     }
-    retourne 0.0
+    retourne 0.0;
 }
 
 /** \} */
@@ -996,30 +996,30 @@ donne_décalage_horizontal_floats_gauche :: fonc (empl ctx: *ContexteDeFormattag
  * \{ */
 
 InfoBoiteEnlignée :: struct {
-    box: *Box
-    premier_fragment: z64
-    dernier_fragment: z64
+    box: *Box;
+    premier_fragment: z64;
+    dernier_fragment: z64;
 }
 
 ContexteDeFormattageInline :: struct {
-    empl base: ContexteDeFormattage
-    type = #type_de_cette_structure
-    sur_formatte = contexte_formattage_inline_sur_formatte
+    empl base: ContexteDeFormattage;
+    type = #type_de_cette_structure;
+    sur_formatte = contexte_formattage_inline_sur_formatte;
 
-    racine: *BlockBox
+    racine: *BlockBox;
 
-    boites_enlignées: [..]InfoBoiteEnlignée
+    boites_enlignées: [..]InfoBoiteEnlignée;
 }
 
 donne_position_et_largeur_ligne :: fonc (ctx: *ContexteDeFormattageInline, x_min: r32, x_max: r32, position_y: r32) -> (position: r32, largeur: r32)
 {
     si ctx.parent && ctx.parent.type == ContexteDeFormattageBloc {
-        ctx_bloc := ctx.parent comme *ContexteDeFormattageBloc
+        ctx_bloc := ctx.parent comme *ContexteDeFormattageBloc;
 
         pour ligne dans ctx_bloc.lignes_boites_flottantes_gauche.lignes {
             pour ligne.boites {
                 si contient(it.donne_rectangle(), x_min, position_y) {
-                    x_min += it.largeur
+                    x_min += it.largeur;
                 }
             }
         }
@@ -1027,139 +1027,139 @@ donne_position_et_largeur_ligne :: fonc (ctx: *ContexteDeFormattageInline, x_min
         pour ligne dans ctx_bloc.lignes_boites_flottantes_droite.lignes {
             pour ligne.boites {
                 si contient(it.donne_rectangle(), x_max, position_y) {
-                    x_max -= it.largeur
+                    x_max -= it.largeur;
                 }
             }
         }
     }
 
-    position = x_min
-    largeur = x_max - x_min
+    position = x_min;
+    largeur = x_max - x_min;
 
     si largeur < 0.0 {
-        largeur = 0.0
+        largeur = 0.0;
     }
 
-    retourne position, largeur
+    retourne position, largeur;
 }
 
 AlignementTexte :: énum {
-    Gauche
-    Droite
-    Centre
-    Justifié
+    Gauche;
+    Droite;
+    Centre;
+    Justifié;
 }
 
 donne_alignement_texte :: fonc (box: *BlockBox) -> AlignementTexte
 {
-    text_align := box.propriétés.donne_valeur_utilisée(IDPropriété.TextAlignAll)
+    text_align := box.propriétés.donne_valeur_utilisée(IDPropriété.TextAlignAll);
 
     si text_align.est_mot_clé(PROP_start) {
-        retourne AlignementTexte.Gauche
+        retourne AlignementTexte.Gauche;
     }
 
     si text_align.est_mot_clé(PROP_end) {
-        retourne AlignementTexte.Droite
+        retourne AlignementTexte.Droite;
     }
 
     si text_align.est_mot_clé(PROP_left) {
-        retourne AlignementTexte.Gauche
+        retourne AlignementTexte.Gauche;
     }
 
     si text_align.est_mot_clé(PROP_right) {
-        retourne AlignementTexte.Droite
+        retourne AlignementTexte.Droite;
     }
 
     si text_align.est_mot_clé(PROP_center) {
-        retourne AlignementTexte.Centre
+        retourne AlignementTexte.Centre;
     }
 
     si text_align.est_mot_clé(PROP_justify) {
-        retourne AlignementTexte.Justifié
+        retourne AlignementTexte.Justifié;
     }
 
-    retourne AlignementTexte.Gauche
+    retourne AlignementTexte.Gauche;
 }
 
 contexte_formattage_inline_sur_formatte :: fonc (base: *ContexteDeFormattage, box: *BlockBox, mode: ModeDeFormattage, available: AvailableSpace @inutilisée)
 {
-    ctx := base comme *ContexteDeFormattageInline
+    ctx := base comme *ContexteDeFormattageInline;
 
     si ctx.parent && ctx.parent.type == ContexteDeFormattageBloc {
-        ctx_bloc := ctx.parent comme *ContexteDeFormattageBloc
-        ctx_bloc.ajoute_marge(box, IDPropriété.MarginTop)
+        ctx_bloc := ctx.parent comme *ContexteDeFormattageBloc;
+        ctx_bloc.ajoute_marge(box, IDPropriété.MarginTop);
     }
 
-    line_height := donne_line_height(box, ctx)
+    line_height := donne_line_height(box, ctx);
 
-    enligneuse: Enligneuse
-    enligneuse.ctx = ctx
-    divise_en_lignes(*enligneuse, box, mode)
+    enligneuse: Enligneuse;
+    enligneuse.ctx = ctx;
+    divise_en_lignes(*enligneuse, box, mode);
 
-    alignement := donne_alignement_texte(box)
+    alignement := donne_alignement_texte(box);
     si ctx.doit_aligner_les_descendants.possède_valeur() {
-        alignement = ctx.doit_aligner_les_descendants.Quelque
+        alignement = ctx.doit_aligner_les_descendants.Quelque;
     }
 
-    lignes_tenante := box.lignes_tenante
+    lignes_tenante := box.lignes_tenante;
 
     // imprimeln("----------------------------")
 
     pour * lignes_tenante.lignes {
-        fragments := donne_fragments_ligne(lignes_tenante, it)
+        fragments := donne_fragments_ligne(lignes_tenante, it);
 
-        it.top = it.position_y
+        it.top = it.position_y;
 
         si fragments.taille == 0 {
-            continue
+            continue;
         }
 
         si it.hauteur_contenu != 0.0 && it.hauteur_contenu < line_height {
-            it.hauteur_contenu = line_height
+            it.hauteur_contenu = line_height;
         }
 
-        largeur_disponible := it.largeur_max
+        largeur_disponible := it.largeur_max;
 
-        décalage_pour_alignement := 0.0
+        décalage_pour_alignement := 0.0;
         si alignement == AlignementTexte.Droite {
-            décalage_pour_alignement = largeur_disponible - it.largeur_courante
+            décalage_pour_alignement = largeur_disponible - it.largeur_courante;
         }
         sinon si alignement == AlignementTexte.Centre {
-            décalage_pour_alignement = (largeur_disponible - it.largeur_courante) / 2.0
+            décalage_pour_alignement = (largeur_disponible - it.largeur_courante) / 2.0;
         }
         sinon si alignement == AlignementTexte.Justifié {
             /* À FAIRE : ignore l'espace finale. */
-            décalage_pour_alignement = (largeur_disponible - it.largeur_courante) / ((fragments.taille - 1) comme r32)
+            décalage_pour_alignement = (largeur_disponible - it.largeur_courante) / ((fragments.taille - 1) comme r32);
         }
 
         /* Alignement horizontal. */
         pour * fragment, index_fragment dans fragments {
-            décalage_fragment_x := 0.0
+            décalage_fragment_x := 0.0;
             si alignement == AlignementTexte.Justifié {
                 si index_fragment != 0 && indice_it != (lignes_tenante.lignes.taille - 1) {
-                    décalage_fragment_x += décalage_pour_alignement * (index_fragment comme r32)
+                    décalage_fragment_x += décalage_pour_alignement * (index_fragment comme r32);
                 }
             }
             sinon {
-                décalage_fragment_x += décalage_pour_alignement
+                décalage_fragment_x += décalage_pour_alignement;
             }
 
-            fragment.x += décalage_fragment_x
+            fragment.x += décalage_fragment_x;
         }
 
         // imprimeln("-- hauteur ligne : %", it.hauteur_contenu)
 
         /* Alignement vertical. */
         pour * fragment dans fragments {
-            propriétés_fragment := donne_propriétés(fragment.box)
-            vertical_align := propriétés_fragment.donne_valeur_utilisée(IDPropriété.VerticalAlign)
+            propriétés_fragment := donne_propriétés(fragment.box);
+            vertical_align := propriétés_fragment.donne_valeur_utilisée(IDPropriété.VerticalAlign);
 
             si vertical_align.est_mot_clé(PROP_baseline) || vertical_align.est_mot_clé(PROP_bottom) {
-                baseline_box := fragment.box.donne_baseline()
+                baseline_box := fragment.box.donne_baseline();
                 si baseline_box.possède_valeur() {
                     // À FAIRE : décalage pour la baseline de la boite
-                    info_ligne_de_base := baseline_box.Quelque
-                    it.baseline = max(it.baseline, it.top + info_ligne_de_base.position - info_ligne_de_base.origine)
+                    info_ligne_de_base := baseline_box.Quelque;
+                    it.baseline = max(it.baseline, it.top + info_ligne_de_base.position - info_ligne_de_base.origine);
                 }
             }
 
@@ -1169,77 +1169,77 @@ contexte_formattage_inline_sur_formatte :: fonc (base: *ContexteDeFormattage, bo
         // imprimeln("  -- top %, baseline %, bottom %", it.top, it.baseline, it.bottom)
 
         pour * fragment dans fragments {
-            propriétés_fragment := donne_propriétés(fragment.box)
-            vertical_align := propriétés_fragment.donne_valeur_utilisée(IDPropriété.VerticalAlign)
+            propriétés_fragment := donne_propriétés(fragment.box);
+            vertical_align := propriétés_fragment.donne_valeur_utilisée(IDPropriété.VerticalAlign);
 
             si vertical_align.est_mot_clé(PROP_baseline) || vertical_align.est_mot_clé(PROP_bottom) {
-                baseline_box := fragment.box.donne_baseline()
+                baseline_box := fragment.box.donne_baseline();
                 si baseline_box.possède_valeur() {
-                    position_y := fragment.y + fragment.hauteur
+                    position_y := fragment.y + fragment.hauteur;
                     delta := it.baseline - position_y 
-                    fragment.y += delta comme r32
+                    fragment.y += delta comme r32;
                 }
             }
         }
     }
 
     pour lignes_tenante.fragments {
-        info_boite := donne_info_boite_enlignée(ctx, it.box)
-        info_boite.premier_fragment = min(info_boite.premier_fragment, indice_it)
-        info_boite.dernier_fragment = max(info_boite.dernier_fragment, indice_it + 1)
+        info_boite := donne_info_boite_enlignée(ctx, it.box);
+        info_boite.premier_fragment = min(info_boite.premier_fragment, indice_it);
+        info_boite.dernier_fragment = max(info_boite.dernier_fragment, indice_it + 1);
     }
 
     pour ctx.boites_enlignées {
-        fragments := lignes_tenante.donne_fragments(it.premier_fragment, it.dernier_fragment)
+        fragments := lignes_tenante.donne_fragments(it.premier_fragment, it.dernier_fragment);
         si fragments.taille == 0 {
-            continue
+            continue;
         }
 
         si fragments.taille == 1 {
-            fragment := fragments[0]
+            fragment := fragments[0];
 
             si fragment.type == Fragment.Type.InlineBlock || fragment.type == Fragment.Type.NouvelleLigne {
-                it.box.décale_vers_position(fragment.x, fragment.y)
-                continue
+                it.box.décale_vers_position(fragment.x, fragment.y);
+                continue;
             }
         }
 
         // À FAIRE : ceci supprime les marges, etc.
-        init_de(ModèleDeBoite)(*it.box.modèle_de_boite)
+        init_de(ModèleDeBoite)(*it.box.modèle_de_boite);
 
-        min_x := R64_INFINITÉ
-        min_y := R64_INFINITÉ
-        max_x := R64_INFINITÉ_NÉGATIVE
-        max_y := R64_INFINITÉ_NÉGATIVE
+        min_x := R64_INFINITÉ;
+        min_y := R64_INFINITÉ;
+        max_x := R64_INFINITÉ_NÉGATIVE;
+        max_y := R64_INFINITÉ_NÉGATIVE;
 
         pour * fragment dans fragments {
-            min_x = min(min_x, fragment.x)
-            min_y = min(min_y, fragment.y)
-            max_x = max(max_x, fragment.x + fragment.largeur)
-            max_y = max(max_y, fragment.y + fragment.hauteur)
+            min_x = min(min_x, fragment.x);
+            min_y = min(min_y, fragment.y);
+            max_x = max(max_x, fragment.x + fragment.largeur);
+            max_y = max(max_y, fragment.y + fragment.hauteur);
         }
 
-        it.box.décale_vers_position(min_x comme r32, min_y comme r32)
-        it.box.modèle_de_boite.définis_largeur_contenu((max_x - min_x) comme r32)
-        it.box.modèle_de_boite.définis_hauteur_contenu((max_y - min_y) comme r32)
+        it.box.décale_vers_position(min_x comme r32, min_y comme r32);
+        it.box.modèle_de_boite.définis_largeur_contenu((max_x - min_x) comme r32);
+        it.box.modèle_de_boite.définis_hauteur_contenu((max_y - min_y) comme r32);
     }
 
-    déloge(ctx.boites_enlignées)
+    déloge(ctx.boites_enlignées);
 
     discr mode {
         BrisureDeLigneExplicite,
         ToutesLesBrisuresDeLigne {
-            largeur_max_enfant : r64 = 0.0
+            largeur_max_enfant : r64 = 0.0;
             pour lignes_tenante.lignes {
-                largeur_max_enfant = max(largeur_max_enfant, it.largeur_courante comme r64)
+                largeur_max_enfant = max(largeur_max_enfant, it.largeur_courante comme r64);
             }
 
-            largeur := box.propriétés.donne_valeur_calculée(IDPropriété.Width)
+            largeur := box.propriétés.donne_valeur_calculée(IDPropriété.Width);
             si largeur.est_auto() {
-                valeur_largeur_enfant := crée_outrepas_pour_coter_contenu(largeur_max_enfant)
+                valeur_largeur_enfant := crée_outrepas_pour_coter_contenu(largeur_max_enfant);
                 /* Utilise cette fonction pour résoudre les valeurs 'auto' pour les autres propriétés. */
-                args := ArgumentsDimensionnement(ctx, box, width_of_containing_block = 0.0, outrepas_largeur = valeur_largeur_enfant)
-                calcule_largeur_et_marges(*args, calcule_largeur_et_marges_inline_non_replaced_element)
+                args := ArgumentsDimensionnement(ctx, box, width_of_containing_block = 0.0, outrepas_largeur = valeur_largeur_enfant);
+                calcule_largeur_et_marges(*args, calcule_largeur_et_marges_inline_non_replaced_element);
             }
         }
         sinon {}
@@ -1250,14 +1250,14 @@ donne_info_boite_enlignée :: fonc (ctx: *ContexteDeFormattageInline, box: *Box)
 {
     pour * ctx.boites_enlignées {
         si it.box == box {
-            retourne it
+            retourne it;
         }
     }
 
-    résultat := tableau_ajoute_élément(*ctx.boites_enlignées)
-    résultat.box = box
-    résultat.premier_fragment = (1 comme z64 << 32)
-    retourne résultat
+    résultat := tableau_ajoute_élément(*ctx.boites_enlignées);
+    résultat.box = box;
+    résultat.premier_fragment = (1 comme z64 << 32);
+    retourne résultat;
 }
 
 /** \} */
@@ -1270,646 +1270,646 @@ donne_info_boite_enlignée :: fonc (ctx: *ContexteDeFormattageInline, box: *Box)
 est_espace_blanche_document :: fonc (base: *Box) -> bool
 {
     si base.table_virtuelle.type == TextBox {
-        box := base comme *TextBox
-        retourne est_vide_ou_uniquement_espaces_blanches(box.texte_original)
+        box := base comme *TextBox;
+        retourne est_vide_ou_uniquement_espaces_blanches(box.texte_original);
     }
 
     si base.table_virtuelle.type == BlockBox || base.table_virtuelle.type == InlineBox {
-        box := base comme *BlockBox
+        box := base comme *BlockBox;
 
         si box.noeud != nul {
             /* Nous voulons un box anonyme. */
-            retourne faux
+            retourne faux;
         }
 
         /* Généralement, nous n'avons qu'un seul enfant. Mais s'il y a des commentaires, nous aurons plusieurs enfants.
          * Ainsi, nous devons vérifier tous les enfants. */
         pour box.enfants {
             saufsi est_espace_blanche_document(box.enfants[0]) {
-                retourne faux
+                retourne faux;
             }
         }
 
-        retourne vrai
+        retourne vrai;
     }
 
-    retourne faux
+    retourne faux;
 }
 
 restreint_taille :: fonc (size: r64, min_size: *ValeurDeStyle, max_size: *ValeurDeStyle, params_box_sizing: *ParamètresBoxSizing) -> r64
 {
     si params_box_sizing && params_box_sizing.applique_delta_à_taille_de_base {
-        size = applique_box_sizing(params_box_sizing, size)
+        size = applique_box_sizing(params_box_sizing, size);
     }
 
     si min_size.est_pixels() {
-        min_size_pixels := min_size.donne_pixels()
+        min_size_pixels := min_size.donne_pixels();
         si params_box_sizing {
-            min_size_pixels = applique_box_sizing(params_box_sizing, min_size_pixels)
+            min_size_pixels = applique_box_sizing(params_box_sizing, min_size_pixels);
         }
 
         si size < min_size_pixels {
-            size = min_size_pixels
+            size = min_size_pixels;
         }
     }
 
     si max_size.est_pixels() {
-        max_size_pixels := max_size.donne_pixels()
+        max_size_pixels := max_size.donne_pixels();
         si params_box_sizing {
-            max_size_pixels = applique_box_sizing(params_box_sizing, max_size_pixels)
+            max_size_pixels = applique_box_sizing(params_box_sizing, max_size_pixels);
         }
 
         si size > max_size_pixels {
-            size = max_size_pixels
+            size = max_size_pixels;
         }
     }
 
-    retourne size
+    retourne size;
 }
 
 restreint_main_size :: fonc (ctx: *ContexteDeFormattageFlex, box: *Box, size: r64, applique_box_sizing: bool) -> r64
 {
-    min_main_size := donne_min_main_size_prop(ctx, box)
-    max_main_size := donne_max_main_size_prop(ctx, box)
+    min_main_size := donne_min_main_size_prop(ctx, box);
+    max_main_size := donne_max_main_size_prop(ctx, box);
     si applique_box_sizing {
-        params_box_sizing := donne_paramètres_box_sizing_main_size(ctx, box)
-        params_box_sizing.applique_delta_à_taille_de_base = faux
-        retourne restreint_taille(size, min_main_size, max_main_size, *params_box_sizing)
+        params_box_sizing := donne_paramètres_box_sizing_main_size(ctx, box);
+        params_box_sizing.applique_delta_à_taille_de_base = faux;
+        retourne restreint_taille(size, min_main_size, max_main_size, *params_box_sizing);
     }
-    retourne restreint_taille(size, min_main_size, max_main_size, nul)
+    retourne restreint_taille(size, min_main_size, max_main_size, nul);
 }
 
 restreint_cross_size :: fonc (ctx: *ContexteDeFormattageFlex, box: *Box, size: r64, applique_box_sizing: bool) -> r64
 {
-    min_cross_size := donne_min_cross_size_prop(ctx, box)
-    max_cross_size := donne_max_cross_size_prop(ctx, box)
+    min_cross_size := donne_min_cross_size_prop(ctx, box);
+    max_cross_size := donne_max_cross_size_prop(ctx, box);
     si applique_box_sizing {
-        params_box_sizing := donne_paramètres_box_sizing_cross_size(ctx, box)
-        params_box_sizing.applique_delta_à_taille_de_base = faux
-        retourne restreint_taille(size, min_cross_size, max_cross_size, *params_box_sizing)
+        params_box_sizing := donne_paramètres_box_sizing_cross_size(ctx, box);
+        params_box_sizing.applique_delta_à_taille_de_base = faux;
+        retourne restreint_taille(size, min_cross_size, max_cross_size, *params_box_sizing);
     }
-    retourne restreint_taille(size, min_cross_size, max_cross_size, nul)
+    retourne restreint_taille(size, min_cross_size, max_cross_size, nul);
 }
 
 DirectionFlex :: énum {
-    Horizontale
-    Verticale
+    Horizontale;
+    Verticale;
 }
 
 ItemFlex :: struct {
-    box: *Box
+    box: *Box;
 
-    position_finale: [DirectionFlex.nombre_éléments]r32
+    position_finale: [DirectionFlex.nombre_éléments]r32;
 
-    frozen: bool
-    flex_base_size: r64
+    frozen: bool;
+    flex_base_size: r64;
 
-    hypothetical_main_size: r64
-    used_main_size: r64
-    target_main_size: r64
+    hypothetical_main_size: r64;
+    used_main_size: r64;
+    target_main_size: r64;
 
-    hypothetical_cross_size: r64
-    used_cross_size: r64
+    hypothetical_cross_size: r64;
+    used_cross_size: r64;
 
-    scaled_flex_shrink_factor: r64
-    violation: r64
+    scaled_flex_shrink_factor: r64;
+    violation: r64;
 }
 
 freeze :: fonc (item: *ItemFlex)
 {
-    item.frozen = vrai
-    item.target_main_size = item.hypothetical_main_size
+    item.frozen = vrai;
+    item.target_main_size = item.hypothetical_main_size;
 }
 
 donne_inner_flex_base_size :: fonc (item: *ItemFlex) -> r64
 {
-    retourne item.flex_base_size
+    retourne item.flex_base_size;
 }
 
 donne_outer_flex_base_size :: fonc (item: *ItemFlex, ctx: *ContexteDeFormattageFlex) -> r64
 {
-    retourne donne_outer_main_size(item, ctx, item.flex_base_size)
+    retourne donne_outer_main_size(item, ctx, item.flex_base_size);
 }
 
 donne_outer_target_main_size :: fonc (item: *ItemFlex, ctx: *ContexteDeFormattageFlex) -> r64
 {
-    retourne donne_outer_main_size(item, ctx, item.target_main_size)
+    retourne donne_outer_main_size(item, ctx, item.target_main_size);
 }
 
 donne_outer_hypothetical_main_size :: fonc (item: *ItemFlex, ctx: *ContexteDeFormattageFlex) -> r64
 {
-    retourne donne_outer_main_size(item, ctx, item.hypothetical_main_size)
+    retourne donne_outer_main_size(item, ctx, item.hypothetical_main_size);
 }
 
 donne_outer_main_size :: fonc (item: *ItemFlex, ctx: *ContexteDeFormattageFlex, inner_size: r64) -> r64
 {
-    margin_start := donne_main_margin_start_prop(ctx, item.box)
-    margin_end := donne_main_margin_end_prop(ctx, item.box)
-    padding_start := donne_used_main_padding_start_prop(ctx, item.box)
-    padding_end := donne_used_main_padding_end_prop(ctx, item.box)
-    border_width_start := donne_used_main_border_start_prop(ctx, item.box)
-    border_width_end := donne_used_main_border_end_prop(ctx, item.box)
+    margin_start := donne_main_margin_start_prop(ctx, item.box);
+    margin_end := donne_main_margin_end_prop(ctx, item.box);
+    padding_start := donne_used_main_padding_start_prop(ctx, item.box);
+    padding_end := donne_used_main_padding_end_prop(ctx, item.box);
+    border_width_start := donne_used_main_border_start_prop(ctx, item.box);
+    border_width_end := donne_used_main_border_end_prop(ctx, item.box);
 
-    résultat := inner_size
-    résultat += padding_start.donne_pixels()
-    résultat += padding_end.donne_pixels()
-    résultat += border_width_start.donne_pixels()
-    résultat += border_width_end.donne_pixels()
+    résultat := inner_size;
+    résultat += padding_start.donne_pixels();
+    résultat += padding_end.donne_pixels();
+    résultat += border_width_start.donne_pixels();
+    résultat += border_width_end.donne_pixels();
     si margin_start.est_pixels() {
-        résultat += margin_start.donne_pixels()
+        résultat += margin_start.donne_pixels();
     }
     si margin_end.est_pixels() {
-        résultat += margin_end.donne_pixels()
+        résultat += margin_end.donne_pixels();
     }
-    retourne résultat
+    retourne résultat;
 }
 
 définis_inner_cross_size :: fonc (item: *ItemFlex, inner_size: r64, ctx: *ContexteDeFormattageFlex)
 {
-    item.used_cross_size = inner_size
-    item.box.propriétés.définis_valeur_utilisée(ctx.ids_props[CROSS_INDEX].size, crée_valeur_pixels(inner_size))
+    item.used_cross_size = inner_size;
+    item.box.propriétés.définis_valeur_utilisée(ctx.ids_props[CROSS_INDEX].size, crée_valeur_pixels(inner_size));
 }
 
 définis_outer_cross_size :: fonc (item: *ItemFlex, outer_size: r64, ctx: *ContexteDeFormattageFlex)
 {
-    margin_start := donne_used_cross_margin_start_prop(ctx, item.box)
-    margin_end := donne_used_cross_margin_end_prop(ctx, item.box)
-    padding_start := donne_used_cross_padding_start_prop(ctx, item.box)
-    padding_end := donne_used_cross_padding_end_prop(ctx, item.box)
-    border_width_start := donne_used_cross_border_start_prop(ctx, item.box)
-    border_width_end := donne_used_cross_border_end_prop(ctx, item.box)
+    margin_start := donne_used_cross_margin_start_prop(ctx, item.box);
+    margin_end := donne_used_cross_margin_end_prop(ctx, item.box);
+    padding_start := donne_used_cross_padding_start_prop(ctx, item.box);
+    padding_end := donne_used_cross_padding_end_prop(ctx, item.box);
+    border_width_start := donne_used_cross_border_start_prop(ctx, item.box);
+    border_width_end := donne_used_cross_border_end_prop(ctx, item.box);
 
-    outer_size -= margin_start.donne_pixels()
-    outer_size -= margin_end.donne_pixels()
-    outer_size -= padding_start.donne_pixels()
-    outer_size -= padding_end.donne_pixels()
-    outer_size -= border_width_start.donne_pixels()
-    outer_size -= border_width_end.donne_pixels()
+    outer_size -= margin_start.donne_pixels();
+    outer_size -= margin_end.donne_pixels();
+    outer_size -= padding_start.donne_pixels();
+    outer_size -= padding_end.donne_pixels();
+    outer_size -= border_width_start.donne_pixels();
+    outer_size -= border_width_end.donne_pixels();
 
-    définis_inner_cross_size(item, outer_size, ctx)
+    définis_inner_cross_size(item, outer_size, ctx);
 }
 
 donne_outer_cross_size :: fonc (item: *ItemFlex, ctx: *ContexteDeFormattageFlex) -> r64
 {
-    margin_start := donne_cross_margin_start_prop(ctx, item.box)
-    margin_end := donne_cross_margin_end_prop(ctx, item.box)
-    padding_start := donne_used_cross_padding_start_prop(ctx, item.box)
-    padding_end := donne_used_cross_padding_end_prop(ctx, item.box)
-    border_width_start := donne_used_cross_border_start_prop(ctx, item.box)
-    border_width_end := donne_used_cross_border_end_prop(ctx, item.box)
+    margin_start := donne_cross_margin_start_prop(ctx, item.box);
+    margin_end := donne_cross_margin_end_prop(ctx, item.box);
+    padding_start := donne_used_cross_padding_start_prop(ctx, item.box);
+    padding_end := donne_used_cross_padding_end_prop(ctx, item.box);
+    border_width_start := donne_used_cross_border_start_prop(ctx, item.box);
+    border_width_end := donne_used_cross_border_end_prop(ctx, item.box);
 
-    résultat := item.used_cross_size
+    résultat := item.used_cross_size;
     si margin_start.est_pixels() {
-        résultat += margin_start.donne_pixels()
+        résultat += margin_start.donne_pixels();
     }
     si margin_end.est_pixels() {
-        résultat += margin_end.donne_pixels()
+        résultat += margin_end.donne_pixels();
     }
-    résultat += padding_start.donne_pixels()
-    résultat += padding_end.donne_pixels()
-    résultat += border_width_start.donne_pixels()
-    résultat += border_width_end.donne_pixels()
-    retourne résultat
+    résultat += padding_start.donne_pixels();
+    résultat += padding_end.donne_pixels();
+    résultat += border_width_start.donne_pixels();
+    résultat += border_width_end.donne_pixels();
+    retourne résultat;
 }
 
 donne_outer_hypothetical_cross_size :: fonc (item: *ItemFlex, ctx: *ContexteDeFormattageFlex) -> r64
 {
-    margin_start := donne_used_cross_margin_start_prop(ctx, item.box)
-    margin_end := donne_used_cross_margin_end_prop(ctx, item.box)
-    padding_start := donne_used_cross_padding_start_prop(ctx, item.box)
-    padding_end := donne_used_cross_padding_end_prop(ctx, item.box)
-    border_width_start := donne_used_cross_border_start_prop(ctx, item.box)
-    border_width_end := donne_used_cross_border_end_prop(ctx, item.box)
+    margin_start := donne_used_cross_margin_start_prop(ctx, item.box);
+    margin_end := donne_used_cross_margin_end_prop(ctx, item.box);
+    padding_start := donne_used_cross_padding_start_prop(ctx, item.box);
+    padding_end := donne_used_cross_padding_end_prop(ctx, item.box);
+    border_width_start := donne_used_cross_border_start_prop(ctx, item.box);
+    border_width_end := donne_used_cross_border_end_prop(ctx, item.box);
 
-    résultat := item.hypothetical_cross_size
-    résultat += margin_start.donne_pixels()
-    résultat += margin_end.donne_pixels()
-    résultat += padding_start.donne_pixels()
-    résultat += padding_end.donne_pixels()
-    résultat += border_width_start.donne_pixels()
-    résultat += border_width_end.donne_pixels()
-    retourne résultat
+    résultat := item.hypothetical_cross_size;
+    résultat += margin_start.donne_pixels();
+    résultat += margin_end.donne_pixels();
+    résultat += padding_start.donne_pixels();
+    résultat += padding_end.donne_pixels();
+    résultat += border_width_start.donne_pixels();
+    résultat += border_width_end.donne_pixels();
+    retourne résultat;
 }
 
 LigneFlex :: struct {
-    items: []ItemFlex
-    main_size: r64
-    used_cross_size: r64
+    items: []ItemFlex;
+    main_size: r64;
+    used_cross_size: r64;
 }
 
 toutes_les_items_sont_gelés :: fonc (ligne: *LigneFlex) -> bool
 {
     pour ligne.items {
         saufsi it.frozen {
-            retourne faux
+            retourne faux;
         }
     }
-    retourne vrai
+    retourne vrai;
 }
 
 ContexteDeFormattageFlex :: struct {
-    empl base: ContexteDeFormattage
-    type = #type_de_cette_structure
-    sur_formatte = contexte_formattage_flex_sur_formatte
+    empl base: ContexteDeFormattage;
+    type = #type_de_cette_structure;
+    sur_formatte = contexte_formattage_flex_sur_formatte;
 
-    contenant: *Box
+    contenant: *Box;
 
-    items: [..]ItemFlex
-    lignes: [..]LigneFlex
+    items: [..]ItemFlex;
+    lignes: [..]LigneFlex;
 
-    main_axis: DirectionFlex
-    cross_axis: DirectionFlex
-    est_direction_row := vrai
-    est_reverse := faux
+    main_axis: DirectionFlex;
+    cross_axis: DirectionFlex;
+    est_direction_row := vrai;
+    est_reverse := faux;
 
-    main_size: Size
-    inner_main_size: Size
-    cross_size: Size
-    inner_cross_size: Size
+    main_size: Size;
+    inner_main_size: Size;
+    cross_size: Size;
+    inner_cross_size: Size;
 
-    available_space: AvailableSpace
+    available_space: AvailableSpace;
 
     IDSPropriétés :: struct {
-        size: IDPropriété
-        min_size: IDPropriété
-        max_size: IDPropriété
-        margin_start: IDPropriété
-        margin_end: IDPropriété
-        padding_start: IDPropriété
-        padding_end: IDPropriété
-        border_width_start: IDPropriété
-        border_width_end: IDPropriété
+        size: IDPropriété;
+        min_size: IDPropriété;
+        max_size: IDPropriété;
+        margin_start: IDPropriété;
+        margin_end: IDPropriété;
+        padding_start: IDPropriété;
+        padding_end: IDPropriété;
+        border_width_start: IDPropriété;
+        border_width_end: IDPropriété;
     }
 
-    ids_props : [2]IDSPropriétés
+    ids_props : [2]IDSPropriétés;
 }
 
-MAIN_INDEX :: 0
-CROSS_INDEX :: 1
+MAIN_INDEX :: 0;
+CROSS_INDEX :: 1;
 
 est_nowrap :: fonc (ctx: *ContexteDeFormattageFlex) -> bool
 {
-    flex_wrap := ctx.contenant.propriétés.donne_valeur_utilisée(IDPropriété.FlexWrap).donne_mot_clé()
-    retourne flex_wrap == PROP_nowrap
+    flex_wrap := ctx.contenant.propriétés.donne_valeur_utilisée(IDPropriété.FlexWrap).donne_mot_clé();
+    retourne flex_wrap == PROP_nowrap;
 }
 
 est_single_line :: fonc (ctx: *ContexteDeFormattageFlex) -> bool
 {
-    retourne ctx.lignes.taille == 1 || est_nowrap(ctx)
+    retourne ctx.lignes.taille == 1 || est_nowrap(ctx);
 }
 
 donne_outer_main_size :: fonc (ctx: *ContexteDeFormattageFlex) -> r32
 {
     si ctx.main_axis == DirectionFlex.Verticale {
-        retourne ctx.contenant.modèle_de_boite.marge.hauteur
+        retourne ctx.contenant.modèle_de_boite.marge.hauteur;
     }
 
-    retourne ctx.contenant.modèle_de_boite.marge.largeur
+    retourne ctx.contenant.modèle_de_boite.marge.largeur;
 }
 
 donne_inner_main_size :: fonc (ctx: *ContexteDeFormattageFlex) -> r32
 {
     si ctx.main_axis == DirectionFlex.Verticale {
-        retourne ctx.contenant.modèle_de_boite.contenu.hauteur
+        retourne ctx.contenant.modèle_de_boite.contenu.hauteur;
     }
 
-    retourne ctx.contenant.modèle_de_boite.contenu.largeur
+    retourne ctx.contenant.modèle_de_boite.contenu.largeur;
 }
 
 initialise_id_propriétés :: fonc (empl ctx: *ContexteDeFormattageFlex)
 {
-    horizontal := MAIN_INDEX
-    vertical   := CROSS_INDEX
+    horizontal := MAIN_INDEX;
+    vertical   := CROSS_INDEX;
     saufsi ctx.est_direction_row {
-        horizontal = CROSS_INDEX
-        vertical = MAIN_INDEX
+        horizontal = CROSS_INDEX;
+        vertical = MAIN_INDEX;
     }
 
-    ids_props[horizontal].size = IDPropriété.Width
-    ids_props[horizontal].min_size = IDPropriété.MinWidth
-    ids_props[horizontal].max_size = IDPropriété.MaxWidth
-    ids_props[horizontal].margin_start = IDPropriété.MarginLeft
-    ids_props[horizontal].margin_end = IDPropriété.MarginRight
-    ids_props[horizontal].padding_start = IDPropriété.PaddingLeft
-    ids_props[horizontal].padding_end = IDPropriété.PaddingRight
-    ids_props[horizontal].border_width_start = IDPropriété.BorderWidthLeft
-    ids_props[horizontal].border_width_end = IDPropriété.BorderWidthRight
+    ids_props[horizontal].size = IDPropriété.Width;
+    ids_props[horizontal].min_size = IDPropriété.MinWidth;
+    ids_props[horizontal].max_size = IDPropriété.MaxWidth;
+    ids_props[horizontal].margin_start = IDPropriété.MarginLeft;
+    ids_props[horizontal].margin_end = IDPropriété.MarginRight;
+    ids_props[horizontal].padding_start = IDPropriété.PaddingLeft;
+    ids_props[horizontal].padding_end = IDPropriété.PaddingRight;
+    ids_props[horizontal].border_width_start = IDPropriété.BorderWidthLeft;
+    ids_props[horizontal].border_width_end = IDPropriété.BorderWidthRight;
 
-    ids_props[vertical].size = IDPropriété.Height
-    ids_props[vertical].min_size = IDPropriété.MinHeight
-    ids_props[vertical].max_size = IDPropriété.MaxHeight
-    ids_props[vertical].margin_start = IDPropriété.MarginTop
-    ids_props[vertical].margin_end = IDPropriété.MarginBottom
-    ids_props[vertical].padding_start = IDPropriété.PaddingTop
-    ids_props[vertical].padding_end = IDPropriété.PaddingBottom
-    ids_props[vertical].border_width_start = IDPropriété.BorderWidthTop
-    ids_props[vertical].border_width_end = IDPropriété.BorderWidthBottom
+    ids_props[vertical].size = IDPropriété.Height;
+    ids_props[vertical].min_size = IDPropriété.MinHeight;
+    ids_props[vertical].max_size = IDPropriété.MaxHeight;
+    ids_props[vertical].margin_start = IDPropriété.MarginTop;
+    ids_props[vertical].margin_end = IDPropriété.MarginBottom;
+    ids_props[vertical].padding_start = IDPropriété.PaddingTop;
+    ids_props[vertical].padding_end = IDPropriété.PaddingBottom;
+    ids_props[vertical].border_width_start = IDPropriété.BorderWidthTop;
+    ids_props[vertical].border_width_end = IDPropriété.BorderWidthBottom;
 }
 
 donne_paramètres_box_sizing_main_size :: fonc (ctx: *ContexteDeFormattageFlex, box: *Box) -> ParamètresBoxSizing
 {
     si ctx.main_axis == DirectionFlex.Horizontale {
-        retourne donne_paramètres_box_sizing_pour_largeur(box.propriétés)
+        retourne donne_paramètres_box_sizing_pour_largeur(box.propriétés);
     }
-    retourne donne_paramètres_box_sizing_pour_hauteur(box.propriétés)
+    retourne donne_paramètres_box_sizing_pour_hauteur(box.propriétés);
 }
 
 donne_paramètres_box_sizing_cross_size :: fonc (ctx: *ContexteDeFormattageFlex, box: *Box) -> ParamètresBoxSizing
 {
     si ctx.main_axis == DirectionFlex.Horizontale {
-        retourne donne_paramètres_box_sizing_pour_hauteur(box.propriétés)
+        retourne donne_paramètres_box_sizing_pour_hauteur(box.propriétés);
     }
-    retourne donne_paramètres_box_sizing_pour_largeur(box.propriétés)
+    retourne donne_paramètres_box_sizing_pour_largeur(box.propriétés);
 }
 
 donne_cross_size_prop :: fonc (ctx: *ContexteDeFormattageFlex) -> *ValeurDeStyle
 {
-    retourne ctx.contenant.propriétés.donne_valeur_calculée(ctx.ids_props[CROSS_INDEX].size)
+    retourne ctx.contenant.propriétés.donne_valeur_calculée(ctx.ids_props[CROSS_INDEX].size);
 }
 
 définis_used_cross_size :: fonc (ctx: *ContexteDeFormattageFlex, valeur: r64)
 {
     si ctx.est_direction_row {
-        ctx.contenant.propriétés.définis_valeur_utilisée(IDPropriété.Height, crée_valeur_pixels(valeur))
-        retourne
+        ctx.contenant.propriétés.définis_valeur_utilisée(IDPropriété.Height, crée_valeur_pixels(valeur));
+        retourne;
     }
 
-    ctx.contenant.propriétés.définis_valeur_utilisée(IDPropriété.Width, crée_valeur_pixels(valeur))
-    ctx.contenant.ajourne_boite_pour_calcul_largeur()
+    ctx.contenant.propriétés.définis_valeur_utilisée(IDPropriété.Width, crée_valeur_pixels(valeur));
+    ctx.contenant.ajourne_boite_pour_calcul_largeur();
 }
 
 donne_inner_cross_size :: fonc (ctx: *ContexteDeFormattageFlex) -> r32
 {
     si ctx.est_direction_row {
-        retourne ctx.contenant.modèle_de_boite.contenu.hauteur
+        retourne ctx.contenant.modèle_de_boite.contenu.hauteur;
     }
 
-    retourne ctx.contenant.modèle_de_boite.contenu.largeur
+    retourne ctx.contenant.modèle_de_boite.contenu.largeur;
 }
 
 donne_min_cross_size_prop :: fonc (ctx: *ContexteDeFormattageFlex) -> *ValeurDeStyle
 {
-    retourne ctx.contenant.propriétés.donne_valeur_utilisée(ctx.ids_props[CROSS_INDEX].min_size)
+    retourne ctx.contenant.propriétés.donne_valeur_utilisée(ctx.ids_props[CROSS_INDEX].min_size);
 }
 
 donne_max_cross_size_prop :: fonc (ctx: *ContexteDeFormattageFlex) -> *ValeurDeStyle
 {
-    retourne ctx.contenant.propriétés.donne_valeur_utilisée(ctx.ids_props[CROSS_INDEX].max_size)
+    retourne ctx.contenant.propriétés.donne_valeur_utilisée(ctx.ids_props[CROSS_INDEX].max_size);
 }
 
 donne_inner_main_size :: fonc (ctx: *ContexteDeFormattageFlex, box: *Box) -> r32
 {
     si ctx.est_direction_row {
-        retourne box.modèle_de_boite.contenu.largeur
+        retourne box.modèle_de_boite.contenu.largeur;
     }
 
-    retourne box.modèle_de_boite.contenu.hauteur
+    retourne box.modèle_de_boite.contenu.hauteur;
 }
 
 donne_main_size :: fonc (ctx: *ContexteDeFormattageFlex, box: *Box) -> r32
 {
     si ctx.est_direction_row {
-        retourne box.modèle_de_boite.marge.largeur
+        retourne box.modèle_de_boite.marge.largeur;
     }
 
-    retourne box.modèle_de_boite.marge.hauteur
+    retourne box.modèle_de_boite.marge.hauteur;
 }
 
 donne_used_outer_main_size :: fonc (ctx: *ContexteDeFormattageFlex, box: *Box) -> r32
 {
     si ctx.main_axis == DirectionFlex.Horizontale {
-        retourne box.modèle_de_boite.marge.largeur
+        retourne box.modèle_de_boite.marge.largeur;
     }
 
-    retourne box.modèle_de_boite.marge.hauteur
+    retourne box.modèle_de_boite.marge.hauteur;
 }
 
 donne_used_cross_size :: fonc (ctx: *ContexteDeFormattageFlex, box: *Box) -> r64
 {
-    retourne box.propriétés.donne_valeur_utilisée(ctx.ids_props[CROSS_INDEX].size).donne_pixels()
+    retourne box.propriétés.donne_valeur_utilisée(ctx.ids_props[CROSS_INDEX].size).donne_pixels();
 }
 
 donne_main_size_prop :: fonc (ctx: *ContexteDeFormattageFlex, box: *Box) -> *ValeurDeStyle
 {
-    retourne box.propriétés.donne_valeur_calculée(ctx.ids_props[MAIN_INDEX].size)
+    retourne box.propriétés.donne_valeur_calculée(ctx.ids_props[MAIN_INDEX].size);
 }
 
 donne_min_main_size_prop :: fonc (ctx: *ContexteDeFormattageFlex, box: *Box) -> *ValeurDeStyle
 {
-    retourne box.propriétés.donne_valeur_utilisée(ctx.ids_props[MAIN_INDEX].min_size)
+    retourne box.propriétés.donne_valeur_utilisée(ctx.ids_props[MAIN_INDEX].min_size);
 }
 
 donne_max_main_size_prop :: fonc (ctx: *ContexteDeFormattageFlex, box: *Box) -> *ValeurDeStyle
 {
-    retourne box.propriétés.donne_valeur_utilisée(ctx.ids_props[MAIN_INDEX].max_size)
+    retourne box.propriétés.donne_valeur_utilisée(ctx.ids_props[MAIN_INDEX].max_size);
 }
 
 donne_main_margin_start_prop :: fonc (ctx: *ContexteDeFormattageFlex, box: *Box) -> *ValeurDeStyle
 {
-    retourne box.propriétés.donne_valeur_calculée(ctx.ids_props[MAIN_INDEX].margin_start)
+    retourne box.propriétés.donne_valeur_calculée(ctx.ids_props[MAIN_INDEX].margin_start);
 }
 
 donne_main_margin_end_prop :: fonc (ctx: *ContexteDeFormattageFlex, box: *Box) -> *ValeurDeStyle
 {
-    retourne box.propriétés.donne_valeur_calculée(ctx.ids_props[MAIN_INDEX].margin_end)
+    retourne box.propriétés.donne_valeur_calculée(ctx.ids_props[MAIN_INDEX].margin_end);
 }
 
 donne_used_main_padding_start_prop :: fonc (ctx: *ContexteDeFormattageFlex, box: *Box) -> *ValeurDeStyle
 {
-    retourne box.propriétés.donne_valeur_utilisée(ctx.ids_props[MAIN_INDEX].padding_start)
+    retourne box.propriétés.donne_valeur_utilisée(ctx.ids_props[MAIN_INDEX].padding_start);
 }
 
 donne_used_main_padding_end_prop :: fonc (ctx: *ContexteDeFormattageFlex, box: *Box) -> *ValeurDeStyle
 {
-    retourne box.propriétés.donne_valeur_utilisée(ctx.ids_props[MAIN_INDEX].padding_end)
+    retourne box.propriétés.donne_valeur_utilisée(ctx.ids_props[MAIN_INDEX].padding_end);
 }
 
 donne_used_main_border_start_prop :: fonc (ctx: *ContexteDeFormattageFlex, box: *Box) -> *ValeurDeStyle
 {
-    retourne box.propriétés.donne_valeur_utilisée(ctx.ids_props[MAIN_INDEX].border_width_start)
+    retourne box.propriétés.donne_valeur_utilisée(ctx.ids_props[MAIN_INDEX].border_width_start);
 }
 
 donne_used_main_border_end_prop :: fonc (ctx: *ContexteDeFormattageFlex, box: *Box) -> *ValeurDeStyle
 {
-    retourne box.propriétés.donne_valeur_utilisée(ctx.ids_props[MAIN_INDEX].border_width_end)
+    retourne box.propriétés.donne_valeur_utilisée(ctx.ids_props[MAIN_INDEX].border_width_end);
 }
 
 donne_cross_size_prop :: fonc (ctx: *ContexteDeFormattageFlex, box: *Box) -> *ValeurDeStyle
 {
-    retourne box.propriétés.donne_valeur_calculée(ctx.ids_props[CROSS_INDEX].size)
+    retourne box.propriétés.donne_valeur_calculée(ctx.ids_props[CROSS_INDEX].size);
 }
 
 donne_min_cross_size_prop :: fonc (ctx: *ContexteDeFormattageFlex, box: *Box) -> *ValeurDeStyle
 {
-    retourne box.propriétés.donne_valeur_utilisée(ctx.ids_props[CROSS_INDEX].min_size)
+    retourne box.propriétés.donne_valeur_utilisée(ctx.ids_props[CROSS_INDEX].min_size);
 }
 
 donne_max_cross_size_prop :: fonc (ctx: *ContexteDeFormattageFlex, box: *Box) -> *ValeurDeStyle
 {
-    retourne box.propriétés.donne_valeur_utilisée(ctx.ids_props[CROSS_INDEX].max_size)
+    retourne box.propriétés.donne_valeur_utilisée(ctx.ids_props[CROSS_INDEX].max_size);
 }
 
 donne_cross_margin_start_prop :: fonc (ctx: *ContexteDeFormattageFlex, box: *Box) -> *ValeurDeStyle
 {
-    retourne box.propriétés.donne_valeur_calculée(ctx.ids_props[CROSS_INDEX].margin_start)
+    retourne box.propriétés.donne_valeur_calculée(ctx.ids_props[CROSS_INDEX].margin_start);
 }
 
 donne_cross_margin_end_prop :: fonc (ctx: *ContexteDeFormattageFlex, box: *Box) -> *ValeurDeStyle
 {
-    retourne box.propriétés.donne_valeur_calculée(ctx.ids_props[CROSS_INDEX].margin_end)
+    retourne box.propriétés.donne_valeur_calculée(ctx.ids_props[CROSS_INDEX].margin_end);
 }
 
 donne_used_cross_margin_start_prop :: fonc (ctx: *ContexteDeFormattageFlex, box: *Box) -> *ValeurDeStyle
 {
-    retourne box.propriétés.donne_valeur_utilisée(ctx.ids_props[CROSS_INDEX].margin_start)
+    retourne box.propriétés.donne_valeur_utilisée(ctx.ids_props[CROSS_INDEX].margin_start);
 }
 
 donne_used_cross_margin_end_prop :: fonc (ctx: *ContexteDeFormattageFlex, box: *Box) -> *ValeurDeStyle
 {
-    retourne box.propriétés.donne_valeur_utilisée(ctx.ids_props[CROSS_INDEX].margin_end)
+    retourne box.propriétés.donne_valeur_utilisée(ctx.ids_props[CROSS_INDEX].margin_end);
 }
 
 donne_used_cross_padding_start_prop :: fonc (ctx: *ContexteDeFormattageFlex, box: *Box) -> *ValeurDeStyle
 {
-    retourne box.propriétés.donne_valeur_utilisée(ctx.ids_props[CROSS_INDEX].padding_start)
+    retourne box.propriétés.donne_valeur_utilisée(ctx.ids_props[CROSS_INDEX].padding_start);
 }
 
 donne_used_cross_padding_end_prop :: fonc (ctx: *ContexteDeFormattageFlex, box: *Box) -> *ValeurDeStyle
 {
-    retourne box.propriétés.donne_valeur_utilisée(ctx.ids_props[CROSS_INDEX].padding_end)
+    retourne box.propriétés.donne_valeur_utilisée(ctx.ids_props[CROSS_INDEX].padding_end);
 }
 
 donne_used_cross_border_start_prop :: fonc (ctx: *ContexteDeFormattageFlex, box: *Box) -> *ValeurDeStyle
 {
-    retourne box.propriétés.donne_valeur_utilisée(ctx.ids_props[CROSS_INDEX].border_width_start)
+    retourne box.propriétés.donne_valeur_utilisée(ctx.ids_props[CROSS_INDEX].border_width_start);
 }
 
 donne_used_cross_border_end_prop :: fonc (ctx: *ContexteDeFormattageFlex, box: *Box) -> *ValeurDeStyle
 {
-    retourne box.propriétés.donne_valeur_utilisée(ctx.ids_props[CROSS_INDEX].border_width_end)
+    retourne box.propriétés.donne_valeur_utilisée(ctx.ids_props[CROSS_INDEX].border_width_end);
 }
 
 contexte_formattage_flex_sur_formatte :: fonc (base: *ContexteDeFormattage, box: *BlockBox, mode: ModeDeFormattage, available: AvailableSpace)
 {
-    ctx := base comme *ContexteDeFormattageFlex
-    ctx.contenant = box
+    ctx := base comme *ContexteDeFormattageFlex;
+    ctx.contenant = box;
 
     diffère {
-        déloge(ctx.items)
-        déloge(ctx.lignes)
+        déloge(ctx.items);
+        déloge(ctx.lignes);
     }
 
-    direction := box.propriétés.donne_valeur_calculée(IDPropriété.FlexDirection).donne_mot_clé()
-    ctx.est_direction_row = direction == PROP_row || direction == PROP_row_reverse
+    direction := box.propriétés.donne_valeur_calculée(IDPropriété.FlexDirection).donne_mot_clé();
+    ctx.est_direction_row = direction == PROP_row || direction == PROP_row_reverse;
     si ctx.est_direction_row {
-        ctx.main_axis = DirectionFlex.Horizontale
-        ctx.cross_axis = DirectionFlex.Verticale
+        ctx.main_axis = DirectionFlex.Horizontale;
+        ctx.cross_axis = DirectionFlex.Verticale;
 
-        ctx.available_space.width = available.width
-        ctx.available_space.height = available.height
+        ctx.available_space.width = available.width;
+        ctx.available_space.height = available.height;
     }
     sinon {
-        ctx.main_axis = DirectionFlex.Verticale
-        ctx.cross_axis = DirectionFlex.Horizontale
+        ctx.main_axis = DirectionFlex.Verticale;
+        ctx.cross_axis = DirectionFlex.Horizontale;
 
-        ctx.available_space.width = available.height
-        ctx.available_space.height = available.width
+        ctx.available_space.width = available.height;
+        ctx.available_space.height = available.width;
     }
 
-    ctx.est_reverse = direction == PROP_row_reverse || direction == PROP_column_reverse
+    ctx.est_reverse = direction == PROP_row_reverse || direction == PROP_column_reverse;
 
-    flex_layout_algorithm(ctx, box, mode)
+    flex_layout_algorithm(ctx, box, mode);
 }
 
 /* https://drafts.csswg.org/css-flexbox-1/#layout-algorithm */
 flex_layout_algorithm :: fonc (ctx: *ContexteDeFormattageFlex, box: *BlockBox, mode: ModeDeFormattage)
 {
-    assert(est_valide(ctx.available_space))
+    assert(est_valide(ctx.available_space));
 
-    initialise_id_propriétés(ctx)
+    initialise_id_propriétés(ctx);
 
     saufsi box.propriétés.donne_valeur_calculée(ctx.ids_props[CROSS_INDEX].size).est_auto() {
         si ctx.cross_axis == DirectionFlex.Verticale {
-            ctx.cross_size.Definite = box.modèle_de_boite.marge.hauteur
-            ctx.inner_cross_size.Definite = box.modèle_de_boite.contenu.hauteur
+            ctx.cross_size.Definite = box.modèle_de_boite.marge.hauteur;
+            ctx.inner_cross_size.Definite = box.modèle_de_boite.contenu.hauteur;
         }
         sinon {
-            ctx.cross_size.Definite = box.modèle_de_boite.marge.largeur
-            ctx.inner_cross_size.Definite = box.modèle_de_boite.contenu.largeur
+            ctx.cross_size.Definite = box.modèle_de_boite.marge.largeur;
+            ctx.inner_cross_size.Definite = box.modèle_de_boite.contenu.largeur;
         }
     }
 
     // 1. Generate anonymous flex items as described in §4 Flex Items.
-    construis_liste_items(ctx, box, mode)
+    construis_liste_items(ctx, box, mode);
 
     // 2. Determine the available main and cross space for the flex items.
-    determine_the_available_main_and_cross_space(ctx, mode)
+    determine_the_available_main_and_cross_space(ctx, mode);
 
     // 3. Determine the flex base size and hypothetical main size of each item
-    determine_the_flex_base_size_and_hypothetical_main_size_of_each_item(ctx, mode)
+    determine_the_flex_base_size_and_hypothetical_main_size_of_each_item(ctx, mode);
 
     // 4. Determine the main size of the flex container
-    determine_the_main_size_of_the_flex_container(ctx, mode)
+    determine_the_main_size_of_the_flex_container(ctx, mode);
 
     // 5. Collect flex items into flex lines
-    collect_flex_items_into_flex_lines(ctx)
+    collect_flex_items_into_flex_lines(ctx);
 
     // 6. Resolve the flexible lengths
-    resolve_flexible_lengths(ctx)
+    resolve_flexible_lengths(ctx);
 
     // 7. Determine the hypothetical cross size of each item by performing layout
     // with the used main size À FAIRE : and the available space, À FAIRE : treating auto as fit-content.
     pour * ctx.items {
-        personnalisation: PersonnalisationCotation
-        outrepas := crée_outrepas_pour_coter_contenu(it.used_main_size)
+        personnalisation: PersonnalisationCotation;
+        outrepas := crée_outrepas_pour_coter_contenu(it.used_main_size);
         si ctx.est_direction_row {
-            personnalisation.outrepas_largeur = *outrepas
+            personnalisation.outrepas_largeur = *outrepas;
         }
         sinon {
-            personnalisation.outrepas_hauteur = *outrepas
+            personnalisation.outrepas_hauteur = *outrepas;
         }
 
         // À FAIRE : doit on utiliser le mode de formattage courant ?
-        it.box.mesure(ctx, ModeDeFormattage.Normal, personnalisation, ctx.available_space)
-        it.hypothetical_cross_size = donne_used_cross_size(ctx, it.box)
+        it.box.mesure(ctx, ModeDeFormattage.Normal, personnalisation, ctx.available_space);
+        it.hypothetical_cross_size = donne_used_cross_size(ctx, it.box);
     }
 
     // 8. Calculate the cross size of each flex line.
-    calculate_the_cross_size_of_each_flex_line(ctx)
+    calculate_the_cross_size_of_each_flex_line(ctx);
 
     // 9. Handle 'align-content: stretch'
-    handle_align_content_stretch(ctx)
+    handle_align_content_stretch(ctx);
 
     // À FAIRE 10. Collapse visibility:collapse items
 
     // 11. Determine the used cross size of each flex item
-    determine_the_used_cross_size_of_each_flex_item(ctx)
+    determine_the_used_cross_size_of_each_flex_item(ctx);
 
     // 12. Distribute any remaining free space.
-    distribute_any_remaining_free_space(ctx)
+    distribute_any_remaining_free_space(ctx);
 
     // 13. Resolve cross-axis auto margins.
-    resolve_cross_axis_auto_margins(ctx)
+    resolve_cross_axis_auto_margins(ctx);
 
     // 14. Align all flex items along the cross-axis
-    align_all_flex_items_along_the_cross_axis(ctx)
+    align_all_flex_items_along_the_cross_axis(ctx);
 
     // 15. Determine the flex container’s used cross size:
-    determine_the_flex_container_used_cross_size(ctx)
+    determine_the_flex_container_used_cross_size(ctx);
 
     // 16. Align all flex lines per align-content.
-    align_all_flex_lines_per_align_content(ctx)
+    align_all_flex_lines_per_align_content(ctx);
 
     // ---------------------------------------------
     pour * ctx.items {
-        it.box.ajourne_boite_pour_calcul_largeur()
-        it.box.ajourne_boite_pour_calcul_hauteur()
+        it.box.ajourne_boite_pour_calcul_largeur();
+        it.box.ajourne_boite_pour_calcul_hauteur();
 
         /* Nous disposons les boites absolues du box avant de le décaler car les positions statiques
          * enregistrées ne sont pas décalées... */
-        ctx.dispose_les_boites_absolues(it.box)
+        ctx.dispose_les_boites_absolues(it.box);
 
-        décale_vers_position(it.box, it.position_finale[0], it.position_finale[1])
+        décale_vers_position(it.box, it.position_finale[0], it.position_finale[1]);
     }
 }
 
@@ -1917,18 +1917,18 @@ construis_liste_items :: fonc (ctx: *ContexteDeFormattageFlex, box: *BlockBox, m
 {
     pour box.enfants {
         si !it.est_pseudo_element && est_espace_blanche_document(it) {
-            it.traite_comme_display_none = vrai
-            continue
+            it.traite_comme_display_none = vrai;
+            continue;
         }
 
         /* À FAIRE : les boites fixed doivent être disposé autrement. */
-        position := it.propriétés.donne_valeur_utilisée(IDPropriété.Position)
+        position := it.propriétés.donne_valeur_utilisée(IDPropriété.Position);
         si position.est_mot_clé(PROP_absolute) || position.est_mot_clé(PROP_fixed) {
-            ctx.dispose_boite_absolute(it comme *BlockBox, box.modèle_de_boite.contenu.x, box.modèle_de_boite.contenu.y, mode)
-            continue
+            ctx.dispose_boite_absolute(it comme *BlockBox, box.modèle_de_boite.contenu.x, box.modèle_de_boite.contenu.y, mode);
+            continue;
         }
 
-        tableau_ajoute(*ctx.items, ItemFlex(it))
+        tableau_ajoute(*ctx.items, ItemFlex(it));
     }
 }
 
@@ -1947,27 +1947,27 @@ determine_the_available_main_and_cross_space :: fonc (ctx: *ContexteDeFormattage
 /* https://drafts.csswg.org/css-flexbox-1/#algo-main-item */
 determine_the_flex_base_size_and_hypothetical_main_size_of_each_item :: fonc (ctx: *ContexteDeFormattageFlex, mode: ModeDeFormattage)
 {
-    largeur_disponible := ctx.donne_inner_main_size()
+    largeur_disponible := ctx.donne_inner_main_size();
 
     pour * ctx.items {
-        flex_basis := résoud_flex_basis(ctx, it.box)
+        flex_basis := résoud_flex_basis(ctx, it.box);
 
         // A. If the item has a definite used flex basis, that’s the flex base size. 
         si flex_basis.est_percentage() || flex_basis.est_calc() {
-            définis_propriétés(ctx.ctx_calcul_style, it.box.propriétés)
-            base := calcule_pourcentage(ctx.ctx_calcul_style, flex_basis, largeur_disponible).donne_pixels()
-            params_box_sizing := donne_paramètres_box_sizing_main_size(ctx, it.box)
-            it.flex_base_size = applique_box_sizing(*params_box_sizing, base)
-            continue
+            définis_propriétés(ctx.ctx_calcul_style, it.box.propriétés);
+            base := calcule_pourcentage(ctx.ctx_calcul_style, flex_basis, largeur_disponible).donne_pixels();
+            params_box_sizing := donne_paramètres_box_sizing_main_size(ctx, it.box);
+            it.flex_base_size = applique_box_sizing(*params_box_sizing, base);
+            continue;
         }
 
         si flex_basis.est_pixels() {
-            params_box_sizing := donne_paramètres_box_sizing_main_size(ctx, it.box)
-            it.flex_base_size = applique_box_sizing(*params_box_sizing, flex_basis.donne_pixels())
-            continue
+            params_box_sizing := donne_paramètres_box_sizing_main_size(ctx, it.box);
+            it.flex_base_size = applique_box_sizing(*params_box_sizing, flex_basis.donne_pixels());
+            continue;
         }
 
-        assert(flex_basis.est_mot_clé(PROP_content))
+        assert(flex_basis.est_mot_clé(PROP_content));
 
         // À FAIRE : B. If the flex item has ...
         //     an intrinsic aspect ratio,
@@ -1979,9 +1979,9 @@ determine_the_flex_base_size_and_hypothetical_main_size_of_each_item :: fonc (ct
         //    sized under a min-content or max-content constraint (e.g. when performing automatic table layout [CSS21]),
         //    size the item under that constraint. The flex base size is the item’s resulting main size.
         si mode != ModeDeFormattage.Normal {
-            it.box.mesure(ctx, mode, PersonnalisationCotation(ignore_min_max = vrai, ignore_plancher_border_box = vrai), ctx.available_space)
-            it.flex_base_size = donne_inner_main_size(ctx, it.box)
-            continue
+            it.box.mesure(ctx, mode, PersonnalisationCotation(ignore_min_max = vrai, ignore_plancher_border_box = vrai), ctx.available_space);
+            it.flex_base_size = donne_inner_main_size(ctx, it.box);
+            continue;
         }
 
         // À FAIRE : D. Otherwise, if the used flex basis is content or depends on its available space, the available main size
@@ -1994,15 +1994,15 @@ determine_the_flex_base_size_and_hypothetical_main_size_of_each_item :: fonc (ct
         //    when the flex item’s main size is in its block axis) and the flex item’s cross size is auto and not
         //    definite, in this calculation use fit-content as the flex item’s cross size. The flex base size is the
         //    item’s resulting main size.
-        available := ctx.available_space
+        available := ctx.available_space;
         si ctx.est_direction_row {
-            available.width = crée_max_content_size()
+            available.width = crée_max_content_size();
         }
         sinon {
-            available.height = crée_max_content_size()
+            available.height = crée_max_content_size();
         }
-        it.box.mesure(ctx, ModeDeFormattage.BrisureDeLigneExplicite, PersonnalisationCotation(ignore_min_max = vrai, ignore_plancher_border_box = vrai), available)
-        it.flex_base_size = donne_inner_main_size(ctx, it.box)
+        it.box.mesure(ctx, ModeDeFormattage.BrisureDeLigneExplicite, PersonnalisationCotation(ignore_min_max = vrai, ignore_plancher_border_box = vrai), available);
+        it.flex_base_size = donne_inner_main_size(ctx, it.box);
     }
 
     // À FAIRE(direction) : When determining the flex base size, the item’s min and max main sizes are ignored (no clamping occurs).
@@ -2013,9 +2013,9 @@ determine_the_flex_base_size_and_hypothetical_main_size_of_each_item :: fonc (ct
     // The hypothetical main size is the item’s flex base size clamped according to its used min and max main
     // sizes (À FAIRE : and flooring the content box size at zero).
     pour * ctx.items {
-        it.hypothetical_main_size = restreint_main_size(ctx, it.box, it.flex_base_size, faux)
+        it.hypothetical_main_size = restreint_main_size(ctx, it.box, it.flex_base_size, faux);
         si it.hypothetical_main_size < 0.0 {
-            it.hypothetical_main_size = 0.0
+            it.hypothetical_main_size = 0.0;
         }
     }
 }
@@ -2023,19 +2023,19 @@ determine_the_flex_base_size_and_hypothetical_main_size_of_each_item :: fonc (ct
 /* https://drafts.csswg.org/css-flexbox-1/#valdef-flex-flex-basis */
 résoud_flex_basis :: fonc (ctx: *ContexteDeFormattageFlex, box: *Box) -> *ValeurDeStyle
 {
-    flex_basis := box.propriétés.donne_valeur_utilisée(IDPropriété.FlexBasis)
+    flex_basis := box.propriétés.donne_valeur_utilisée(IDPropriété.FlexBasis);
 
     si flex_basis.est_mot_clé(PROP_auto) {
-        size := donne_main_size_prop(ctx, box)
+        size := donne_main_size_prop(ctx, box);
 
         si size.est_auto() {
-            retourne donne_valeur_content()
+            retourne donne_valeur_content();
         }
 
-        retourne size
+        retourne size;
     }
 
-    retourne flex_basis
+    retourne flex_basis;
 }
 
 /* https://drafts.csswg.org/css-flexbox-1/#algo-main-container */
@@ -2048,80 +2048,80 @@ determine_the_main_size_of_the_flex_container :: fonc (ctx: *ContexteDeFormattag
 
     /* Determine the main size of the flex container using the rules of the formatting context in which it participates.
      * NOTE : The automatic block size of a block-level flex container is its max-content size. */
-    prop_size := donne_main_size_prop(ctx, ctx.contenant)
+    prop_size := donne_main_size_prop(ctx, ctx.contenant);
     saufsi prop_size.est_auto() {
-        retourne
+        retourne;
     }
 
     si ctx.est_direction_row && ctx.available_space.width.est_definite() {
-        retourne
+        retourne;
     }
 
-    main_size: r64
+    main_size: r64;
 
     pour ctx.items {
-        margin_start_prop := donne_main_margin_start_prop(ctx, it.box)
-        margin_end_prop := donne_main_margin_end_prop(ctx, it.box)
-        padding_start_prop := donne_used_main_padding_start_prop(ctx, it.box)
-        padding_end_prop := donne_used_main_padding_end_prop(ctx, it.box)
-        border_start_prop := donne_used_main_border_start_prop(ctx, it.box)
-        border_end_prop := donne_used_main_border_end_prop(ctx, it.box)
+        margin_start_prop := donne_main_margin_start_prop(ctx, it.box);
+        margin_end_prop := donne_main_margin_end_prop(ctx, it.box);
+        padding_start_prop := donne_used_main_padding_start_prop(ctx, it.box);
+        padding_end_prop := donne_used_main_padding_end_prop(ctx, it.box);
+        border_start_prop := donne_used_main_border_start_prop(ctx, it.box);
+        border_end_prop := donne_used_main_border_end_prop(ctx, it.box);
 
-        main_size += it.hypothetical_main_size
+        main_size += it.hypothetical_main_size;
 
         // À FAIRE : pourcentages, calc, etc.
         si margin_start_prop.est_pixels() {
-            main_size += margin_start_prop.donne_pixels()
+            main_size += margin_start_prop.donne_pixels();
         }
         si margin_end_prop.est_pixels() {
-            main_size += margin_end_prop.donne_pixels()
+            main_size += margin_end_prop.donne_pixels();
         }
 
-        main_size += padding_start_prop.donne_pixels()
-        main_size += padding_end_prop.donne_pixels()
-        main_size += border_start_prop.donne_pixels()
-        main_size += border_end_prop.donne_pixels()
+        main_size += padding_start_prop.donne_pixels();
+        main_size += padding_end_prop.donne_pixels();
+        main_size += border_start_prop.donne_pixels();
+        main_size += border_end_prop.donne_pixels();
     }
 
-    main_size = restreint_main_size(ctx, ctx.contenant, main_size, faux)
+    main_size = restreint_main_size(ctx, ctx.contenant, main_size, faux);
 
-    ctx.contenant.propriétés.définis_valeur_utilisée(ctx.ids_props[MAIN_INDEX].size, crée_valeur_pixels(main_size))
+    ctx.contenant.propriétés.définis_valeur_utilisée(ctx.ids_props[MAIN_INDEX].size, crée_valeur_pixels(main_size));
     si ctx.main_axis == DirectionFlex.Horizontale {
-        ctx.contenant.ajourne_boite_pour_calcul_largeur()
+        ctx.contenant.ajourne_boite_pour_calcul_largeur();
     }
     sinon {
-        ctx.contenant.ajourne_boite_pour_calcul_hauteur()
+        ctx.contenant.ajourne_boite_pour_calcul_hauteur();
     }
 }
 
 /* https://drafts.csswg.org/css-flexbox-1/#algo-line-break */
 collect_flex_items_into_flex_lines :: fonc (ctx: *ContexteDeFormattageFlex)
 {
-    espace_disponible := ctx.donne_inner_main_size()
+    espace_disponible := ctx.donne_inner_main_size();
 
-    ligne_courante := tableau_ajoute_élément(*ctx.lignes)
-    ligne_courante.items.pointeur = ctx.items.pointeur
+    ligne_courante := tableau_ajoute_élément(*ctx.lignes);
+    ligne_courante.items.pointeur = ctx.items.pointeur;
 
-    plusieurs_lignes := !est_nowrap(ctx)
+    plusieurs_lignes := !est_nowrap(ctx);
 
     pour * ctx.items {
-        main_size := it.donne_outer_hypothetical_main_size(ctx)
+        main_size := it.donne_outer_hypothetical_main_size(ctx);
 
         si plusieurs_lignes && (ligne_courante.main_size + main_size) > espace_disponible {
-            ligne_courante = tableau_ajoute_élément(*ctx.lignes)
-            ligne_courante.items.pointeur = ctx.items.pointeur + indice_it
+            ligne_courante = tableau_ajoute_élément(*ctx.lignes);
+            ligne_courante.items.pointeur = ctx.items.pointeur + indice_it;
         }
 
-        ligne_courante.main_size += main_size
-        ligne_courante.items.taille += 1
+        ligne_courante.main_size += main_size;
+        ligne_courante.items.taille += 1;
     }
 
     saufsi ctx.est_reverse {
-        retourne
+        retourne;
     }
 
     pour * ctx.lignes {
-        tableau_inverse(it.items)
+        tableau_inverse(it.items);
     }
 }
 
@@ -2129,7 +2129,7 @@ collect_flex_items_into_flex_lines :: fonc (ctx: *ContexteDeFormattageFlex)
 resolve_flexible_lengths :: fonc (ctx: *ContexteDeFormattageFlex)
 {
     pour * ctx.lignes {
-        resolve_flexible_lengths(ctx, it)
+        resolve_flexible_lengths(ctx, it);
     }
 }
 
@@ -2139,77 +2139,77 @@ resolve_flexible_lengths :: fonc (ctx: *ContexteDeFormattageFlex, ligne: *LigneF
     //    items on the line. If the sum is less than the flex container’s inner main size,
     //    use the flex grow factor for the rest of this algorithm; otherwise, use the
     //    flex shrink factor.
-    somme_items_sizes : r64 = 0.0
+    somme_items_sizes : r64 = 0.0;
     pour ligne.items {
-        somme_items_sizes += it.hypothetical_main_size
+        somme_items_sizes += it.hypothetical_main_size;
     }
 
     used_flex_factor := si somme_items_sizes < ctx.donne_inner_main_size() {
-        IDPropriété.FlexGrow
+        IDPropriété.FlexGrow;
     }
     sinon {
-        IDPropriété.FlexShrink
+        IDPropriété.FlexShrink;
     }
 
     // 2. Each item in the flex line has a target main size, initially set to its flex base size.
     //    Each item is initially unfrozen and may become frozen.
     pour * ligne.items {
-        it.target_main_size = it.flex_base_size
+        it.target_main_size = it.flex_base_size;
     }
 
     // 3. Size inflexible items. Freeze, setting its target main size to its hypothetical main size…
     pour * ligne.items {
-        doit_geler := faux
+        doit_geler := faux;
 
         // any item that has a flex factor of zero
-        flex_factor := it.box.propriétés.donne_valeur_utilisée(used_flex_factor)
+        flex_factor := it.box.propriétés.donne_valeur_utilisée(used_flex_factor);
         si flex_factor.donne_number() == 0.0 {
-            doit_geler = vrai
+            doit_geler = vrai;
         }
         // if using the flex grow factor: any item that has a flex base size greater than its hypothetical main size
         sinon si used_flex_factor == IDPropriété.FlexGrow {
-            doit_geler = it.flex_base_size > it.hypothetical_main_size
+            doit_geler = it.flex_base_size > it.hypothetical_main_size;
         }
         // if using the flex shrink factor: any item that has a flex base size smaller than its hypothetical main size
         sinon {
-            doit_geler = it.flex_base_size < it.hypothetical_main_size
+            doit_geler = it.flex_base_size < it.hypothetical_main_size;
         }
 
         si doit_geler {
-            it.freeze()
+            it.freeze();
         }
     }
 
     // 4. Calculate initial free space. Sum the outer sizes of all items on the line, and subtract this
     //    from the flex container’s inner main size. For frozen items, use their outer target main size;
     //    for other items, use their outer flex base size.
-    initial_free_space := calcule_espace_libre_items_gelés(ctx, ligne)
+    initial_free_space := calcule_espace_libre_items_gelés(ctx, ligne);
 
     // 5. Loop:
     boucle {
         // a. Check for flexible items. If all the flex items on the line are frozen, free space has been
         //    distributed; exit this loop. 
         si ligne.toutes_les_items_sont_gelés() {
-            arrête
+            arrête;
         }
 
         // b. Calculate the remaining free space as for initial free space, above.
         //    If the sum of the unfrozen flex items’ flex factors is less than one, multiply the initial
         //    free space by this sum. If the magnitude of this value is less than the magnitude of the
         //    remaining free space, use this as the remaining free space.
-        remaining_free_space := calcule_espace_libre_items_gelés(ctx, ligne)
-        somme_flex_factors : r64 = 0.0
+        remaining_free_space := calcule_espace_libre_items_gelés(ctx, ligne);
+        somme_flex_factors : r64 = 0.0;
         pour * ligne.items {
             si it.frozen {
-                continue
+                continue;
             }
-            somme_flex_factors += it.box.propriétés.donne_valeur_utilisée(used_flex_factor).donne_number()
+            somme_flex_factors += it.box.propriétés.donne_valeur_utilisée(used_flex_factor).donne_number();
         }
 
         si somme_flex_factors < 1.0 {
-            initial_free_space_pondéré := initial_free_space * somme_flex_factors
+            initial_free_space_pondéré := initial_free_space * somme_flex_factors;
             si initial_free_space_pondéré < remaining_free_space {
-                remaining_free_space = initial_free_space_pondéré
+                remaining_free_space = initial_free_space_pondéré;
             }
         }
 
@@ -2221,38 +2221,38 @@ resolve_flexible_lengths :: fonc (ctx: *ContexteDeFormattageFlex, ligne: *LigneF
                 // items on the line. Set the item’s target main size to its flex base size plus a fraction of the
                 // remaining free space proportional to the ratio.
                 pour * ligne.items {
-                    flex_factor := it.box.propriétés.donne_valeur_utilisée(used_flex_factor).donne_number()
-                    ratio := flex_factor / somme_flex_factors
-                    it.target_main_size = it.flex_base_size + remaining_free_space * ratio
+                    flex_factor := it.box.propriétés.donne_valeur_utilisée(used_flex_factor).donne_number();
+                    ratio := flex_factor / somme_flex_factors;
+                    it.target_main_size = it.flex_base_size + remaining_free_space * ratio;
                 }
             }
             // If using the flex shrink factor
             sinon {
-                assert(used_flex_factor == IDPropriété.FlexShrink)
+                assert(used_flex_factor == IDPropriété.FlexShrink);
                 // For every unfrozen item on the line, multiply its flex shrink factor by its inner flex base size,
                 // and note this as its scaled flex shrink factor. Find the ratio of the item’s scaled flex shrink
                 // factor to the sum of the scaled flex shrink factors of all unfrozen items on the line.
                 // Set the item’s target main size to its flex base size minus a fraction of the absolute value of
                 // the remaining free space proportional to the ratio. Note this may result in a negative inner main
                 // size; it will be corrected in the next step.
-                somme_scaled_flex_shrink_factors : r64 = 0.0
+                somme_scaled_flex_shrink_factors : r64 = 0.0;
                 pour * ligne.items {
                     si it.frozen {
-                        continue
+                        continue;
                     }
 
-                    flex_factor := it.box.propriétés.donne_valeur_utilisée(used_flex_factor).donne_number()
-                    it.scaled_flex_shrink_factor = it.donne_inner_flex_base_size() * flex_factor
-                    somme_scaled_flex_shrink_factors += it.scaled_flex_shrink_factor
+                    flex_factor := it.box.propriétés.donne_valeur_utilisée(used_flex_factor).donne_number();
+                    it.scaled_flex_shrink_factor = it.donne_inner_flex_base_size() * flex_factor;
+                    somme_scaled_flex_shrink_factors += it.scaled_flex_shrink_factor;
                 }
 
                 pour * ligne.items {
                     si it.frozen {
-                        continue
+                        continue;
                     }
 
-                    ratio := it.scaled_flex_shrink_factor / somme_scaled_flex_shrink_factors
-                    it.target_main_size = it.flex_base_size - abs(remaining_free_space * ratio)
+                    ratio := it.scaled_flex_shrink_factor / somme_scaled_flex_shrink_factors;
+                    it.target_main_size = it.flex_base_size - abs(remaining_free_space * ratio);
                 }
             }
         }
@@ -2260,16 +2260,16 @@ resolve_flexible_lengths :: fonc (ctx: *ContexteDeFormattageFlex, ligne: *LigneF
         // d. Fix min/max violations. Clamp each non-frozen item’s target main size by its used min and max main
         //    sizes and floor its content-box size at zero. If the item’s target main size was made smaller by this,
         //    it’s a max violation. If the item’s target main size was made larger by this, it’s a min violation.
-        violations := 0.0
+        violations := 0.0;
         pour * ligne.items {
             si it.frozen {
-                continue
+                continue;
             }
 
-            target_main_size := restreint_main_size(ctx, it.box, it.target_main_size, faux)
+            target_main_size := restreint_main_size(ctx, it.box, it.target_main_size, faux);
 
-            it.violation = target_main_size - it.target_main_size
-            it.target_main_size = target_main_size
+            it.violation = target_main_size - it.target_main_size;
+            it.target_main_size = target_main_size;
         }
 
         // e.  Freeze over-flexed items. The total violation is the sum of the adjustments from the previous step
@@ -2277,14 +2277,14 @@ resolve_flexible_lengths :: fonc (ctx: *ContexteDeFormattageFlex, ligne: *LigneF
         si violations == 0.0 {
             // Freeze all items.
             pour * ligne.items {
-                it.frozen = vrai
+                it.frozen = vrai;
             }
         }
         sinon si violations > 0.0 {
             // Freeze all the items with min violations. 
             pour * ligne.items {
                 si it.violation > 0.0 {
-                    it.frozen = vrai
+                    it.frozen = vrai;
                 }
             }
         }
@@ -2292,7 +2292,7 @@ resolve_flexible_lengths :: fonc (ctx: *ContexteDeFormattageFlex, ligne: *LigneF
             // Freeze all the items with max violations.
             pour * ligne.items {
                 si it.violation < 0.0 {
-                    it.frozen = vrai
+                    it.frozen = vrai;
                 }
             }
         }
@@ -2302,23 +2302,23 @@ resolve_flexible_lengths :: fonc (ctx: *ContexteDeFormattageFlex, ligne: *LigneF
 
     // 6. Set each item’s used main size to its target main size.
     pour * ligne.items {
-        it.used_main_size = it.target_main_size
+        it.used_main_size = it.target_main_size;
     }
 }
 
 calcule_espace_libre_items_gelés :: fonc (ctx: *ContexteDeFormattageFlex, ligne: *LigneFlex) -> r64
 {
-    outer_sizes : r64 = 0.0
+    outer_sizes : r64 = 0.0;
     pour * ligne.items {
         si it.frozen {
-            outer_sizes += it.donne_outer_target_main_size(ctx)
+            outer_sizes += it.donne_outer_target_main_size(ctx);
         }
         sinon {
-            outer_sizes += it.donne_outer_flex_base_size(ctx)
+            outer_sizes += it.donne_outer_flex_base_size(ctx);
         }
     }
 
-    retourne ctx.donne_inner_main_size() - outer_sizes
+    retourne ctx.donne_inner_main_size() - outer_sizes;
 }
 
 /* https://drafts.csswg.org/css-flexbox-1/#algo-cross-line */
@@ -2327,7 +2327,7 @@ calculate_the_cross_size_of_each_flex_line :: fonc (ctx: *ContexteDeFormattageFl
     // If the flex container is single-line and has a definite cross size,
     si ctx.est_single_line() && ctx.cross_size.est_definite() {
         // the cross size of the flex line is the flex container’s inner cross size.
-        ctx.lignes[0].used_cross_size = ctx.inner_cross_size.Definite
+        ctx.lignes[0].used_cross_size = ctx.inner_cross_size.Definite;
     }
     // Otherwise, for each flex line:
     sinon pour * ctx.lignes {
@@ -2342,15 +2342,15 @@ calculate_the_cross_size_of_each_flex_line :: fonc (ctx: *ContexteDeFormattageFl
         // 3. The used cross-size of the flex line is the largest of the numbers found in the previous two steps and zero.
 
         pour * item dans it.items {
-            it.used_cross_size = max(it.used_cross_size, item.donne_outer_hypothetical_cross_size(ctx))
+            it.used_cross_size = max(it.used_cross_size, item.donne_outer_hypothetical_cross_size(ctx));
         }
     }
 
     // If the flex container is single-line, then clamp the line’s cross-size to be within the
     // container’s computed min and max cross sizes.
     si ctx.est_single_line() {
-        ligne := *ctx.lignes[0]
-        ligne.used_cross_size = restreint_cross_size(ctx, ctx.contenant, ligne.used_cross_size, vrai)
+        ligne := *ctx.lignes[0];
+        ligne.used_cross_size = restreint_cross_size(ctx, ctx.contenant, ligne.used_cross_size, vrai);
     }
 }
 
@@ -2363,35 +2363,35 @@ handle_align_content_stretch :: fonc (ctx: *ContexteDeFormattageFlex)
      * such that the sum of their cross sizes exactly equals the flex container’s
      * inner cross size. */
     saufsi ctx.cross_size.est_definite() {
-        retourne
+        retourne;
     }
 
-    align_content := ctx.contenant.propriétés.donne_valeur_utilisée(IDPropriété.AlignContent).donne_mot_clé()
+    align_content := ctx.contenant.propriétés.donne_valeur_utilisée(IDPropriété.AlignContent).donne_mot_clé();
     saufsi align_content == PROP_stretch {
-        retourne
+        retourne;
     }
 
-    somme_cross_sizes: r64
+    somme_cross_sizes: r64;
     pour ctx.lignes {
-        somme_cross_sizes += it.used_cross_size
+        somme_cross_sizes += it.used_cross_size;
     }
 
     si somme_cross_sizes >= ctx.inner_cross_size.Definite {
-        retourne
+        retourne;
     }
 
-    delta := ctx.inner_cross_size.Definite - somme_cross_sizes
-    delta /= (ctx.lignes.taille comme r64)
+    delta := ctx.inner_cross_size.Definite - somme_cross_sizes;
+    delta /= (ctx.lignes.taille comme r64);
 
     pour * ctx.lignes {
-        it.used_cross_size += delta
+        it.used_cross_size += delta;
     }
 }
 
 /* https://drafts.csswg.org/css-flexbox-1/#algo-stretch */
 determine_the_used_cross_size_of_each_flex_item :: fonc (ctx: *ContexteDeFormattageFlex)
 {
-    align_items := ctx.contenant.propriétés.donne_valeur_utilisée(IDPropriété.AlignItems).donne_mot_clé()
+    align_items := ctx.contenant.propriétés.donne_valeur_utilisée(IDPropriété.AlignItems).donne_mot_clé();
 
     pour * ligne dans ctx.lignes {
         pour * ctx.items {
@@ -2399,24 +2399,24 @@ determine_the_used_cross_size_of_each_flex_item :: fonc (ctx: *ContexteDeFormatt
             // and neither of its cross-axis margins are auto, the used outer cross size is the
             // used cross size of its flex line, clamped according to the item’s used min and max
             // cross sizes. Otherwise, the used cross size is the item’s hypothetical cross size.
-            align_self := it.box.propriétés.donne_valeur_utilisée(IDPropriété.AlignSelf).donne_mot_clé()
+            align_self := it.box.propriétés.donne_valeur_utilisée(IDPropriété.AlignSelf).donne_mot_clé();
             si align_self == PROP_auto {
-                align_self = align_items
+                align_self = align_items;
             }
             sinon si align_self == PROP_normal {
-                align_self = PROP_stretch
+                align_self = PROP_stretch;
             }
 
-            cross_size := donne_cross_size_prop(ctx, it.box)
-            cross_margin_start := donne_cross_margin_start_prop(ctx, it.box)
-            cross_margin_end := donne_cross_margin_end_prop(ctx, it.box)
+            cross_size := donne_cross_size_prop(ctx, it.box);
+            cross_margin_start := donne_cross_margin_start_prop(ctx, it.box);
+            cross_margin_end := donne_cross_margin_end_prop(ctx, it.box);
 
             si align_self == PROP_stretch && cross_size.est_auto() && !cross_margin_start.est_auto() && !cross_margin_end.est_auto() {
-                outer_cross_size := restreint_cross_size(ctx, it.box, ligne.used_cross_size, faux)
-                it.définis_outer_cross_size(outer_cross_size, ctx)
+                outer_cross_size := restreint_cross_size(ctx, it.box, ligne.used_cross_size, faux);
+                it.définis_outer_cross_size(outer_cross_size, ctx);
             }
             sinon {
-                it.définis_inner_cross_size(it.hypothetical_cross_size, ctx)
+                it.définis_inner_cross_size(it.hypothetical_cross_size, ctx);
             }
 
             // If the flex item has align-self: stretch, redo layout for its contents, À FAIRE treating
@@ -2424,16 +2424,16 @@ determine_the_used_cross_size_of_each_flex_item :: fonc (ctx: *ContexteDeFormatt
             // resolved.
             si align_self == PROP_stretch {
                 // À FAIRE : calcule proprement ces valeurs
-                available: AvailableSpace = ---
+                available: AvailableSpace = ---;
                 si ctx.est_direction_row {
-                    available.width = it.used_main_size
-                    available.height = it.used_cross_size
+                    available.width = it.used_main_size;
+                    available.height = it.used_cross_size;
                 }
                 sinon {
-                    available.width = it.used_cross_size
-                    available.height = it.used_main_size
+                    available.width = it.used_cross_size;
+                    available.height = it.used_main_size;
                 }
-                formatte_intérieur(it.box comme *BlockBox, ctx, ModeDeFormattage.Normal, available)
+                formatte_intérieur(it.box comme *BlockBox, ctx, ModeDeFormattage.Normal, available);
             }
         }
     }
@@ -2442,100 +2442,100 @@ determine_the_used_cross_size_of_each_flex_item :: fonc (ctx: *ContexteDeFormatt
 /* https://drafts.csswg.org/css-flexbox-1/#algo-main-align */
 distribute_any_remaining_free_space :: fonc (ctx: *ContexteDeFormattageFlex)
 {
-    décalages : [DirectionFlex.nombre_éléments]r32 = ---
-    décalages[DirectionFlex.Horizontale] = ctx.contenant.modèle_de_boite.contenu.x
-    décalages[DirectionFlex.Verticale] = ctx.contenant.modèle_de_boite.contenu.y
+    décalages : [DirectionFlex.nombre_éléments]r32 = ---;
+    décalages[DirectionFlex.Horizontale] = ctx.contenant.modèle_de_boite.contenu.x;
+    décalages[DirectionFlex.Verticale] = ctx.contenant.modèle_de_boite.contenu.y;
 
-    justify_content := ctx.contenant.propriétés.donne_valeur_utilisée(IDPropriété.JustifyContent).donne_mot_clé()
+    justify_content := ctx.contenant.propriétés.donne_valeur_utilisée(IDPropriété.JustifyContent).donne_mot_clé();
 
     // For each flex line:
     pour * ctx.lignes {
-        remaining_free_space := ctx.donne_inner_main_size()
-        auto_margins := 0
+        remaining_free_space := ctx.donne_inner_main_size();
+        auto_margins := 0;
         pour * item dans it.items {
-            remaining_free_space -= donne_used_outer_main_size(ctx, item.box)
+            remaining_free_space -= donne_used_outer_main_size(ctx, item.box);
 
-            margin_start_prop := donne_main_margin_start_prop(ctx, item.box)
-            margin_end_prop := donne_main_margin_end_prop(ctx, item.box)
-            auto_margins += margin_start_prop.est_auto() comme z32
-            auto_margins += margin_end_prop.est_auto() comme z32
+            margin_start_prop := donne_main_margin_start_prop(ctx, item.box);
+            margin_end_prop := donne_main_margin_end_prop(ctx, item.box);
+            auto_margins += margin_start_prop.est_auto() comme z32;
+            auto_margins += margin_end_prop.est_auto() comme z32;
         }
 
         // If the remaining free space is positive and at least one main-axis margin on this line is auto,
         // distribute the free space equally among these margins. Otherwise, set all auto margins to zero.
         si remaining_free_space <= 0.0 {
             si auto_margins > 0 {
-                définis_main_auto_margins(ctx, it, 0.0)
+                définis_main_auto_margins(ctx, it, 0.0);
             }
         }
         sinon {
             si auto_margins > 0 {
-                delta := remaining_free_space / auto_margins comme r32
-                définis_main_auto_margins(ctx, it, delta)
-                remaining_free_space = 0.0
+                delta := remaining_free_space / auto_margins comme r32;
+                définis_main_auto_margins(ctx, it, delta);
+                remaining_free_space = 0.0;
             }
         }
 
         // Align the items along the main-axis per justify-content.
-        décalage_main_item := décalages[ctx.main_axis]
+        décalage_main_item := décalages[ctx.main_axis];
 
-        décalage_pre := 0.0
-        décalage_post := 0.0
+        décalage_pre := 0.0;
+        décalage_post := 0.0;
 
         si justify_content == PROP_flex_start || justify_content == PROP_start {
             si ctx.est_reverse {
-                décalage_main_item += remaining_free_space
+                décalage_main_item += remaining_free_space;
             }
         }
         sinon si justify_content == PROP_center {
-            décalage_main_item += remaining_free_space * 0.5
+            décalage_main_item += remaining_free_space * 0.5;
         }
         sinon si justify_content == PROP_flex_end || justify_content == PROP_end {
             saufsi ctx.est_reverse {
-                décalage_main_item += remaining_free_space
+                décalage_main_item += remaining_free_space;
             }
         }
         sinon si justify_content == PROP_space_between {
-            décalage_post = remaining_free_space / (it.items.taille - 1) comme r32
+            décalage_post = remaining_free_space / (it.items.taille - 1) comme r32;
         }
         sinon si justify_content == PROP_space_around || justify_content == PROP_space_evenly {
             /* À FAIRE : space-evely doit prendre en compte les marges entre éléments ? */
-            espace_par_bloc := remaining_free_space / (it.items.taille) comme r32
-            décalage_pre = espace_par_bloc * 0.5
-            décalage_post = décalage_pre
+            espace_par_bloc := remaining_free_space / (it.items.taille) comme r32;
+            décalage_pre = espace_par_bloc * 0.5;
+            décalage_post = décalage_pre;
         }
 
         pour * item dans it.items {
-            item.position_finale[ctx.main_axis] = décalage_pre + décalage_main_item
-            item.position_finale[ctx.cross_axis] = décalages[ctx.cross_axis]
+            item.position_finale[ctx.main_axis] = décalage_pre + décalage_main_item;
+            item.position_finale[ctx.cross_axis] = décalages[ctx.cross_axis];
 
-            décalage_main_item += décalage_pre + donne_used_outer_main_size(ctx, item.box) + décalage_post
+            décalage_main_item += décalage_pre + donne_used_outer_main_size(ctx, item.box) + décalage_post;
         }
 
-        décalages[ctx.cross_axis] += it.used_cross_size comme r32
+        décalages[ctx.cross_axis] += it.used_cross_size comme r32;
     }
 }
 
 définis_main_auto_margins :: fonc (ctx: *ContexteDeFormattageFlex, ligne: *LigneFlex, valeur: r64)
 {
     pour * item dans ligne.items {
-        margin_start_prop := donne_main_margin_start_prop(ctx, item.box)
-        margin_end_prop := donne_main_margin_end_prop(ctx, item.box)
-        changé := faux
+        margin_start_prop := donne_main_margin_start_prop(ctx, item.box);
+        margin_end_prop := donne_main_margin_end_prop(ctx, item.box);
+        changé := faux;
         si margin_start_prop.est_auto() {
-            définis_valeur_utilisée(item.box.propriétés, ctx.ids_props[MAIN_INDEX].margin_start, crée_valeur_pixels(valeur))
-            changé = vrai
+            définis_valeur_utilisée(item.box.propriétés, ctx.ids_props[MAIN_INDEX].margin_start, crée_valeur_pixels(valeur));
+            changé = vrai;
         }
         si margin_end_prop.est_auto() {
-            définis_valeur_utilisée(item.box.propriétés, ctx.ids_props[MAIN_INDEX].margin_end, crée_valeur_pixels(valeur))
-            changé = vrai
+            définis_valeur_utilisée(item.box.propriétés, ctx.ids_props[MAIN_INDEX].margin_end, crée_valeur_pixels(valeur));
+            changé = vrai;
         }
         si changé {
             si ctx.est_direction_row {
-                ajourne_boite_pour_calcul_largeur(item.box)
+                ajourne_boite_pour_calcul_largeur(item.box);
             }
             sinon {
-                ajourne_boite_pour_calcul_hauteur(item.box)
+                ajourne_boite_pour_calcul_hauteur(item.box);
             }
         }
     }
@@ -2547,36 +2547,36 @@ resolve_cross_axis_auto_margins :: fonc (ctx: *ContexteDeFormattageFlex)
     pour * ligne dans ctx.lignes {
         pour * ligne.items {
             // If a flex item has auto cross-axis margins:
-            margin_start := donne_cross_margin_start_prop(ctx, it.box)
-            margin_end := donne_cross_margin_end_prop(ctx, it.box)
+            margin_start := donne_cross_margin_start_prop(ctx, it.box);
+            margin_end := donne_cross_margin_end_prop(ctx, it.box);
 
             si !margin_start.est_auto() && !margin_end.est_auto() {
-                continue
+                continue;
             }
 
             // If its outer cross size (treating those auto margins as zero) is less than the cross size of its flex line, distribute the difference in those sizes equally to the auto margins.
-            outer_cross_size := donne_outer_cross_size(it, ctx)
+            outer_cross_size := donne_outer_cross_size(it, ctx);
             si outer_cross_size < ligne.used_cross_size {
-                delta := ligne.used_cross_size - outer_cross_size
+                delta := ligne.used_cross_size - outer_cross_size;
 
                 si margin_start.est_auto() && margin_end.est_auto() {
-                    it.box.propriétés.définis_valeur_utilisée(ctx.ids_props[CROSS_INDEX].margin_start, crée_valeur_pixels(delta * 0.5))
-                    it.box.propriétés.définis_valeur_utilisée(ctx.ids_props[CROSS_INDEX].margin_end, crée_valeur_pixels(delta * 0.5))
+                    it.box.propriétés.définis_valeur_utilisée(ctx.ids_props[CROSS_INDEX].margin_start, crée_valeur_pixels(delta * 0.5));
+                    it.box.propriétés.définis_valeur_utilisée(ctx.ids_props[CROSS_INDEX].margin_end, crée_valeur_pixels(delta * 0.5));
                 }
                 sinon si margin_start.est_auto() {
-                    it.box.propriétés.définis_valeur_utilisée(ctx.ids_props[CROSS_INDEX].margin_start, crée_valeur_pixels(delta))
+                    it.box.propriétés.définis_valeur_utilisée(ctx.ids_props[CROSS_INDEX].margin_start, crée_valeur_pixels(delta));
                 }
                 sinon {
-                    assert(margin_end.est_auto())
-                    it.box.propriétés.définis_valeur_utilisée(ctx.ids_props[CROSS_INDEX].margin_end, crée_valeur_pixels(delta))
+                    assert(margin_end.est_auto());
+                    it.box.propriétés.définis_valeur_utilisée(ctx.ids_props[CROSS_INDEX].margin_end, crée_valeur_pixels(delta));
                 }
             }
             // Otherwise, if the block-start or inline-start margin (whichever is in the cross axis) is auto, set it to zero. Set the opposite margin so that the outer cross size of the item equals the cross size of its flex line.
             // À FAIRE(writing mode)
             sinon si margin_start.est_auto() {
-                it.box.propriétés.définis_valeur_utilisée(ctx.ids_props[CROSS_INDEX].margin_start, donne_valeur_pixels_zéro())
-                delta := outer_cross_size - ligne.used_cross_size
-                it.box.propriétés.définis_valeur_utilisée(ctx.ids_props[CROSS_INDEX].margin_end, crée_valeur_pixels(delta))
+                it.box.propriétés.définis_valeur_utilisée(ctx.ids_props[CROSS_INDEX].margin_start, donne_valeur_pixels_zéro());
+                delta := outer_cross_size - ligne.used_cross_size;
+                it.box.propriétés.définis_valeur_utilisée(ctx.ids_props[CROSS_INDEX].margin_end, crée_valeur_pixels(delta));
             }
         }
     }
@@ -2585,51 +2585,51 @@ resolve_cross_axis_auto_margins :: fonc (ctx: *ContexteDeFormattageFlex)
 /* https://drafts.csswg.org/css-flexbox-1/#algo-cross-align */
 align_all_flex_items_along_the_cross_axis :: fonc (ctx: *ContexteDeFormattageFlex)
 {
-    align_items := ctx.contenant.propriétés.donne_valeur_utilisée(IDPropriété.AlignItems).donne_mot_clé()
+    align_items := ctx.contenant.propriétés.donne_valeur_utilisée(IDPropriété.AlignItems).donne_mot_clé();
 
     /* Align all flex items along the cross-axis per align-self, if neither of the item’s cross-axis margins are auto. */
     pour * ctx.lignes {
         pour * item dans it.items {
-            margin_start_prop := donne_cross_margin_start_prop(ctx, item.box)
-            margin_end_prop := donne_cross_margin_end_prop(ctx, item.box)
+            margin_start_prop := donne_cross_margin_start_prop(ctx, item.box);
+            margin_end_prop := donne_cross_margin_end_prop(ctx, item.box);
             si margin_start_prop.est_auto() || margin_end_prop.est_auto() {
-                continue
+                continue;
             }
 
-            espace_disponible := it.used_cross_size - item.used_cross_size
+            espace_disponible := it.used_cross_size - item.used_cross_size;
             si espace_disponible == 0.0 {
-                continue
+                continue;
             }
 
-            align_self := item.box.propriétés.donne_valeur_utilisée(IDPropriété.AlignSelf).donne_mot_clé()
+            align_self := item.box.propriétés.donne_valeur_utilisée(IDPropriété.AlignSelf).donne_mot_clé();
             si align_self == PROP_auto {
-                align_self = align_items
+                align_self = align_items;
             }
 
             si align_self == PROP_flex_start || align_self == PROP_self_start || align_self == PROP_start {
                 /* Rien à faire. */
             }
             sinon si align_self == PROP_flex_end || align_self == PROP_self_end || align_self == PROP_end {
-                item.position_finale[ctx.cross_axis] += espace_disponible comme r32
+                item.position_finale[ctx.cross_axis] += espace_disponible comme r32;
             }
             sinon si align_self == PROP_center {
-                item.position_finale[ctx.cross_axis] += espace_disponible comme r32 * 0.5
+                item.position_finale[ctx.cross_axis] += espace_disponible comme r32 * 0.5;
             }
             sinon si align_self == PROP_baseline {
                 /* À FAIRE */
             }
             sinon si align_self == PROP_stretch || align_self == PROP_normal {
-                cross_size_prop := donne_cross_size_prop(ctx, item.box)
-                cross_margin_start := donne_cross_margin_start_prop(ctx, item.box)
-                cross_margin_end := donne_cross_margin_end_prop(ctx, item.box)
+                cross_size_prop := donne_cross_size_prop(ctx, item.box);
+                cross_margin_start := donne_cross_margin_start_prop(ctx, item.box);
+                cross_margin_end := donne_cross_margin_end_prop(ctx, item.box);
 
                 si cross_size_prop.est_auto() && !cross_margin_start.est_auto() && !cross_margin_end.est_auto() {
-                    outer_cross_size := item.donne_outer_cross_size(ctx)
+                    outer_cross_size := item.donne_outer_cross_size(ctx);
                     si outer_cross_size < it.used_cross_size {
-                        delta := it.used_cross_size - outer_cross_size
+                        delta := it.used_cross_size - outer_cross_size;
                         // À FAIRE : min/max
 
-                        item.box.propriétés.définis_valeur_utilisée(ctx.ids_props[CROSS_INDEX].size, crée_valeur_pixels(item.used_cross_size + delta))
+                        item.box.propriétés.définis_valeur_utilisée(ctx.ids_props[CROSS_INDEX].size, crée_valeur_pixels(item.used_cross_size + delta));
                     }
                 }
             }
@@ -2640,34 +2640,34 @@ align_all_flex_items_along_the_cross_axis :: fonc (ctx: *ContexteDeFormattageFle
 /* https://drafts.csswg.org/css-flexbox-1/#algo-cross-container */
 determine_the_flex_container_used_cross_size :: fonc (ctx: *ContexteDeFormattageFlex)
 {
-    cross_size_prop := donne_cross_size_prop(ctx)
+    cross_size_prop := donne_cross_size_prop(ctx);
 
-    used_cross_size: r64
+    used_cross_size: r64;
 
     // If the cross size property is a definite size, use that, clamped by the used min and max cross sizes of the flex container.
     // À FAIRE : pourcentage, calc...
     si cross_size_prop.est_pixels() {
-        used_cross_size = cross_size_prop.donne_pixels()
+        used_cross_size = cross_size_prop.donne_pixels();
     }
     // Otherwise, use the sum of the flex lines' cross sizes, clamped by the used min and max cross sizes of the flex container.
     sinon {
         pour ctx.lignes {
-            used_cross_size += it.used_cross_size
+            used_cross_size += it.used_cross_size;
         }
     }
 
-    used_cross_size = restreint_cross_size(ctx, ctx.contenant, used_cross_size, vrai)
+    used_cross_size = restreint_cross_size(ctx, ctx.contenant, used_cross_size, vrai);
 
-    définis_used_cross_size(ctx, used_cross_size)
+    définis_used_cross_size(ctx, used_cross_size);
 
     // À FAIRE : il faudrait éviter ce travail redondant. Pour inline-flex, il faudrait plutôt prendre la fonction de calcul de inline-block ?
     si ctx.est_direction_row {
-        hauteur_finale := crée_outrepas_pour_coter_contenu(used_cross_size)
-        containing_block := donne_containing_block(ctx.contenant, ctx)
-        personnalisation: PersonnalisationCotation
-        personnalisation.outrepas_hauteur = *hauteur_finale
-        args := crée_arguments_dimensionnement_hauteur(ctx, ctx.contenant, containing_block, personnalisation)
-        _ := calcule_hauteur_et_marges(*args)
+        hauteur_finale := crée_outrepas_pour_coter_contenu(used_cross_size);
+        containing_block := donne_containing_block(ctx.contenant, ctx);
+        personnalisation: PersonnalisationCotation;
+        personnalisation.outrepas_hauteur = *hauteur_finale;
+        args := crée_arguments_dimensionnement_hauteur(ctx, ctx.contenant, containing_block, personnalisation);
+        _ := calcule_hauteur_et_marges(*args);
     }
 }
 
@@ -2675,19 +2675,19 @@ determine_the_flex_container_used_cross_size :: fonc (ctx: *ContexteDeFormattage
 align_all_flex_lines_per_align_content :: fonc (ctx: *ContexteDeFormattageFlex)
 {
     si ctx.est_single_line() {
-        retourne
+        retourne;
     }
 
-    align_content := ctx.contenant.propriétés.donne_valeur_utilisée(IDPropriété.AlignContent).donne_mot_clé()
+    align_content := ctx.contenant.propriétés.donne_valeur_utilisée(IDPropriété.AlignContent).donne_mot_clé();
 
-    espace_disponible := ctx.donne_inner_cross_size()
+    espace_disponible := ctx.donne_inner_cross_size();
 
     pour *ctx.lignes {
-        espace_disponible -= it.used_cross_size comme r32
+        espace_disponible -= it.used_cross_size comme r32;
     }
 
     si espace_disponible == 0.0 {
-        retourne
+        retourne;
     }
 
     si align_content == PROP_flex_start {
@@ -2695,41 +2695,41 @@ align_all_flex_lines_per_align_content :: fonc (ctx: *ContexteDeFormattageFlex)
     }
     sinon si align_content == PROP_flex_end {
         pour * ctx.items {
-            it.position_finale[ctx.cross_axis] += espace_disponible
+            it.position_finale[ctx.cross_axis] += espace_disponible;
         }
     }
     sinon si align_content == PROP_center {
-        espace_disponible /= 2.0
+        espace_disponible /= 2.0;
         pour * ctx.items {
-            it.position_finale[ctx.cross_axis] += espace_disponible
+            it.position_finale[ctx.cross_axis] += espace_disponible;
         }
     }
     sinon si align_content == PROP_space_around {
-        espace_par_ligne := espace_disponible / (ctx.lignes.taille) comme r32
-        décalage_pre := espace_par_ligne * 0.5
-        décalage_post := décalage_pre
+        espace_par_ligne := espace_disponible / (ctx.lignes.taille) comme r32;
+        décalage_pre := espace_par_ligne * 0.5;
+        décalage_post := décalage_pre;
 
-        décalage := 0.0
+        décalage := 0.0;
         pour * ctx.lignes {
-            décalage += décalage_pre
+            décalage += décalage_pre;
 
             pour * item dans it.items {
-                item.position_finale[ctx.cross_axis] += décalage
+                item.position_finale[ctx.cross_axis] += décalage;
             }
 
-            décalage += décalage_post
+            décalage += décalage_post;
         }
     }
     sinon si align_content == PROP_space_between {
-        espace_entre := espace_disponible / (ctx.lignes.taille - 1) comme r32
+        espace_entre := espace_disponible / (ctx.lignes.taille - 1) comme r32;
 
-        décalage := 0.0
+        décalage := 0.0;
         pour * ctx.lignes {
             pour * item dans it.items {
-                item.position_finale[ctx.cross_axis] += décalage
+                item.position_finale[ctx.cross_axis] += décalage;
             }
 
-            décalage += espace_entre
+            décalage += espace_entre;
         }
     }
     sinon si align_content == PROP_stretch {
@@ -2744,193 +2744,193 @@ align_all_flex_lines_per_align_content :: fonc (ctx: *ContexteDeFormattageFlex)
  * \{ */
 
 AlignementCellule :: énum {
-    BaseLine
-    Top
-    Bottom
-    Middle
+    BaseLine;
+    Top;
+    Bottom;
+    Middle;
 }
 
 DonnéesCellule :: struct {
-    box: *TableCellBox
-    colonne: z64
-    ligne: z64
-    colspan: n32
+    box: *TableCellBox;
+    colonne: z64;
+    ligne: z64;
+    colspan: n32;
 
-    minimum_content_width: r64
-    maximum_content_width: r64
+    minimum_content_width: r64;
+    maximum_content_width: r64;
 
-    largeur_est_en_pourcentage: bool
-    pourcentage: r64
+    largeur_est_en_pourcentage: bool;
+    pourcentage: r64;
 
-    position_x_finale: r32
-    largeur_finale: r32
+    position_x_finale: r32;
+    largeur_finale: r32;
 
-    baseline: r32
+    baseline: r32;
 }
 
 donne_alignement_vertical :: fonc (cellule: *DonnéesCellule) -> AlignementCellule
 {
-    vertical_align := cellule.box.propriétés.donne_valeur_utilisée(IDPropriété.VerticalAlign)
+    vertical_align := cellule.box.propriétés.donne_valeur_utilisée(IDPropriété.VerticalAlign);
     si vertical_align.est_mot_clé(PROP_top) {
-        retourne AlignementCellule.Top
+        retourne AlignementCellule.Top;
     }
     si vertical_align.est_mot_clé(PROP_middle) {
-        retourne AlignementCellule.Middle
+        retourne AlignementCellule.Middle;
     }
     si vertical_align.est_mot_clé(PROP_bottom) {
-        retourne AlignementCellule.Bottom
+        retourne AlignementCellule.Bottom;
     }
-    retourne AlignementCellule.BaseLine
+    retourne AlignementCellule.BaseLine;
 }
 
 donne_bottom :: fonc (cellule: *DonnéesCellule) -> r32 #enligne
 {
-    retourne cellule.box.modèle_de_boite.marge.y + cellule.box.modèle_de_boite.marge.hauteur
+    retourne cellule.box.modèle_de_boite.marge.y + cellule.box.modèle_de_boite.marge.hauteur;
 }
 
 donne_middle :: fonc (cellule: *DonnéesCellule) -> r32
 {
-    box := cellule.box
+    box := cellule.box;
 
     si box.lignes_tenante {
-        y_min := R64_INFINITÉ
-        y_max := R64_INFINITÉ_NÉGATIVE
+        y_min := R64_INFINITÉ;
+        y_max := R64_INFINITÉ_NÉGATIVE;
 
         pour box.lignes_tenante.lignes {
-            y_min_enfant := it.position_y
-            y_max_enfant := it.position_y + it.hauteur_contenu
+            y_min_enfant := it.position_y;
+            y_max_enfant := it.position_y + it.hauteur_contenu;
 
-            y_min = min(y_min, y_min_enfant comme r64)
-            y_max = max(y_max, y_max_enfant comme r64)
+            y_min = min(y_min, y_min_enfant comme r64);
+            y_max = max(y_max, y_max_enfant comme r64);
         }
 
-        retourne (y_min + (y_max - y_min) * 0.5) comme r32
+        retourne (y_min + (y_max - y_min) * 0.5) comme r32;
     }
 
     si box.enfants {
-        y_min := R64_INFINITÉ
-        y_max := R64_INFINITÉ_NÉGATIVE
+        y_min := R64_INFINITÉ;
+        y_max := R64_INFINITÉ_NÉGATIVE;
 
         pour box.enfants {
-            y_min_enfant := it.modèle_de_boite.marge.y
-            y_max_enfant := it.modèle_de_boite.marge.y + it.modèle_de_boite.marge.hauteur
+            y_min_enfant := it.modèle_de_boite.marge.y;
+            y_max_enfant := it.modèle_de_boite.marge.y + it.modèle_de_boite.marge.hauteur;
 
-            y_min = min(y_min, y_min_enfant comme r64)
-            y_max = max(y_max, y_max_enfant comme r64)
+            y_min = min(y_min, y_min_enfant comme r64);
+            y_max = max(y_max, y_max_enfant comme r64);
         }
 
-        retourne (y_min + (y_max - y_min) * 0.5) comme r32
+        retourne (y_min + (y_max - y_min) * 0.5) comme r32;
     }
 
-    retourne box.modèle_de_boite.contenu.y + box.modèle_de_boite.contenu.hauteur * 0.5
+    retourne box.modèle_de_boite.contenu.y + box.modèle_de_boite.contenu.hauteur * 0.5;
 }
 
 donne_hauteur :: fonc (cellule: *DonnéesCellule) -> r32 #enligne
 {
-    retourne cellule.box.modèle_de_boite.marge.hauteur
+    retourne cellule.box.modèle_de_boite.marge.hauteur;
 }
 
-R64_INFINITÉ : r64 : 0r7ff0000000000000
-R64_INFINITÉ_NÉGATIVE : r64 : 0rfff0000000000000
+R64_INFINITÉ : r64 : 0r7ff0000000000000;
+R64_INFINITÉ_NÉGATIVE : r64 : 0rfff0000000000000;
 
 DonnéesColonne :: struct {
-    minimum_width := R64_INFINITÉ_NÉGATIVE
-    maximum_width := R64_INFINITÉ_NÉGATIVE
-    final_width: r64
+    minimum_width := R64_INFINITÉ_NÉGATIVE;
+    maximum_width := R64_INFINITÉ_NÉGATIVE;
+    final_width: r64;
 }
 
 LigneDeCellules :: struct {
-    row: *TableRowBox
-    index_première_cellule: z32
-    nombre_de_cellules: z32
-    hauteur_finale: r32
+    row: *TableRowBox;
+    index_première_cellule: z32;
+    nombre_de_cellules: z32;
+    hauteur_finale: r32;
 
-    hauteur: r32
-    top: r32
-    bottom: r32
-    baseline: r32
+    hauteur: r32;
+    top: r32;
+    bottom: r32;
+    baseline: r32;
 }
 
 donne_cellules :: fonc (ligne: *LigneDeCellules, ctx: *ContexteDeFormattageTable) -> []DonnéesCellule
 {
-    résultat: []DonnéesCellule
-    résultat.pointeur = ctx.cellules.pointeur + ligne.index_première_cellule
-    résultat.taille = ligne.nombre_de_cellules
-    retourne résultat
+    résultat: []DonnéesCellule;
+    résultat.pointeur = ctx.cellules.pointeur + ligne.index_première_cellule;
+    résultat.taille = ligne.nombre_de_cellules;
+    retourne résultat;
 }
 
 GroupeDeLignes :: struct {
-    group_box: *TableRowGroupBox
-    index_première_ligne: z32
-    nombre_de_lignes: z32
+    group_box: *TableRowGroupBox;
+    index_première_ligne: z32;
+    nombre_de_lignes: z32;
 }
 
 donne_lignes :: fonc (groupe: *GroupeDeLignes, ctx: *ContexteDeFormattageTable) -> []LigneDeCellules
 {
-    résultat: []LigneDeCellules
-    résultat.pointeur = ctx.lignes.pointeur + groupe.index_première_ligne
-    résultat.taille = groupe.nombre_de_lignes
-    retourne résultat
+    résultat: []LigneDeCellules;
+    résultat.pointeur = ctx.lignes.pointeur + groupe.index_première_ligne;
+    résultat.taille = groupe.nombre_de_lignes;
+    retourne résultat;
 }
 
 ContexteDeFormattageTable :: struct {
-    empl base: ContexteDeFormattage
-    type = #type_de_cette_structure
+    empl base: ContexteDeFormattage;
+    type = #type_de_cette_structure;
 
-    cellules: [..]DonnéesCellule
-    lignes: [..]LigneDeCellules
-    groupes_de_lignes: [..]GroupeDeLignes
-    colonnes_cellules: [..]z64
+    cellules: [..]DonnéesCellule;
+    lignes: [..]LigneDeCellules;
+    groupes_de_lignes: [..]GroupeDeLignes;
+    colonnes_cellules: [..]z64;
 
-    données_colonnes: [..]DonnéesColonne
+    données_colonnes: [..]DonnéesColonne;
 
-    nombre_de_lignes: z64
-    nombre_de_colonnes: z64
+    nombre_de_lignes: z64;
+    nombre_de_colonnes: z64;
 }
 
 formatte_table :: fonc (ctx: *ContexteDeFormattageTable, table: *TableBox, available: AvailableSpace)
 {
-    initialise_données_cellules(ctx, table)
+    initialise_données_cellules(ctx, table);
 
-    possède_cellule_avec_largeur_en_pourcentage := faux
+    possède_cellule_avec_largeur_en_pourcentage := faux;
 
     pour * ctx.cellules {
-        width := it.box.propriétés.donne_valeur_calculée(IDPropriété.Width)
+        width := it.box.propriétés.donne_valeur_calculée(IDPropriété.Width);
         si width.est_percentage() {
-            possède_cellule_avec_largeur_en_pourcentage = vrai
-            it.largeur_est_en_pourcentage = vrai
-            it.pourcentage = width.donne_percentage() / 100.0
-            continue
+            possède_cellule_avec_largeur_en_pourcentage = vrai;
+            it.largeur_est_en_pourcentage = vrai;
+            it.pourcentage = width.donne_percentage() / 100.0;
+            continue;
         }
 
-        mesure(it.box, ctx, ModeDeFormattage.ToutesLesBrisuresDeLigne, PersonnalisationCotation(), available)
-        it.minimum_content_width = it.box.modèle_de_boite.bordure.largeur
+        mesure(it.box, ctx, ModeDeFormattage.ToutesLesBrisuresDeLigne, PersonnalisationCotation(), available);
+        it.minimum_content_width = it.box.modèle_de_boite.bordure.largeur;
 
-        mesure(it.box, ctx, ModeDeFormattage.BrisureDeLigneExplicite, PersonnalisationCotation(), available)
-        it.maximum_content_width = it.box.modèle_de_boite.bordure.largeur
+        mesure(it.box, ctx, ModeDeFormattage.BrisureDeLigneExplicite, PersonnalisationCotation(), available);
+        it.maximum_content_width = it.box.modèle_de_boite.bordure.largeur;
 
-        containing_block := donne_containing_block(it.box, ctx)
-        résoud_pourcentage_largeurs(ctx, it.box, containing_block)
+        containing_block := donne_containing_block(it.box, ctx);
+        résoud_pourcentage_largeurs(ctx, it.box, containing_block);
 
-        width = it.box.propriétés.donne_valeur_calculée(IDPropriété.Width)
+        width = it.box.propriétés.donne_valeur_calculée(IDPropriété.Width);
         si width.est_pixels() {
             si width.donne_pixels() > it.minimum_content_width {
-                it.minimum_content_width = width.donne_pixels()
+                it.minimum_content_width = width.donne_pixels();
             }
 
             si width.donne_pixels() > it.maximum_content_width {
-                it.maximum_content_width = width.donne_pixels()
+                it.maximum_content_width = width.donne_pixels();
             }
         }
 
-        min_width := it.box.propriétés.donne_valeur_calculée(IDPropriété.MinWidth)
+        min_width := it.box.propriétés.donne_valeur_calculée(IDPropriété.MinWidth);
         si min_width.est_pixels() {
             si min_width.donne_pixels() > it.minimum_content_width {
-                it.minimum_content_width = min_width.donne_pixels()
+                it.minimum_content_width = min_width.donne_pixels();
             }
 
             si min_width.donne_pixels() > it.maximum_content_width {
-                it.maximum_content_width = min_width.donne_pixels()
+                it.maximum_content_width = min_width.donne_pixels();
             }
         }
 
@@ -2938,246 +2938,246 @@ formatte_table :: fonc (ctx: *ContexteDeFormattageTable, table: *TableBox, avail
     }
 
     si possède_cellule_avec_largeur_en_pourcentage {
-        pourcentage_à_allouer : r64 = 0.0
-        minimum_content_width_hors_pourcentage : r64 = 0
-        maximum_content_width_hors_pourcentage : r64 = 0
+        pourcentage_à_allouer : r64 = 0.0;
+        minimum_content_width_hors_pourcentage : r64 = 0;
+        maximum_content_width_hors_pourcentage : r64 = 0;
 
         pour * ctx.cellules {
             si it.largeur_est_en_pourcentage {
-                pourcentage_à_allouer += it.pourcentage
-                continue
+                pourcentage_à_allouer += it.pourcentage;
+                continue;
             }
 
-            minimum_content_width_hors_pourcentage += it.minimum_content_width
-            maximum_content_width_hors_pourcentage += it.maximum_content_width
+            minimum_content_width_hors_pourcentage += it.minimum_content_width;
+            maximum_content_width_hors_pourcentage += it.maximum_content_width;
         }
 
-        pourcentage_occupé := 1.0 - pourcentage_à_allouer
+        pourcentage_occupé := 1.0 - pourcentage_à_allouer;
 
-        minimum_content_width := minimum_content_width_hors_pourcentage / pourcentage_occupé
-        maximum_content_width := maximum_content_width_hors_pourcentage / pourcentage_occupé
+        minimum_content_width := minimum_content_width_hors_pourcentage / pourcentage_occupé;
+        maximum_content_width := maximum_content_width_hors_pourcentage / pourcentage_occupé;
 
         pour * ctx.cellules {
             saufsi it.largeur_est_en_pourcentage {
-                continue
+                continue;
             }
 
-            it.minimum_content_width = minimum_content_width * it.pourcentage
-            it.maximum_content_width = maximum_content_width * it.pourcentage
+            it.minimum_content_width = minimum_content_width * it.pourcentage;
+            it.maximum_content_width = maximum_content_width * it.pourcentage;
         }
     }
 
     pour ctx.colonnes_cellules.taille / 2 {
-        indice_colonne := ctx.colonnes_cellules[it * 2]
-        index_cellule := ctx.colonnes_cellules[it * 2 + 1]
+        indice_colonne := ctx.colonnes_cellules[it * 2];
+        index_cellule := ctx.colonnes_cellules[it * 2 + 1];
 
-        cellule := ctx.cellules[index_cellule]
+        cellule := ctx.cellules[index_cellule];
 
         si cellule.colspan == 1 {
-            données_colonnes := *ctx.données_colonnes[indice_colonne]
+            données_colonnes := *ctx.données_colonnes[indice_colonne];
 
             si données_colonnes.minimum_width < cellule.minimum_content_width {
-                données_colonnes.minimum_width = cellule.minimum_content_width
+                données_colonnes.minimum_width = cellule.minimum_content_width;
             }
 
             si données_colonnes.maximum_width < cellule.maximum_content_width {
-                données_colonnes.maximum_width = cellule.maximum_content_width
+                données_colonnes.maximum_width = cellule.maximum_content_width;
             }
         }
         sinon {
-            largeur_min_colonnes : r64 = 0.0
-            largeur_max_colonnes : r64 = 0.0
+            largeur_min_colonnes : r64 = 0.0;
+            largeur_max_colonnes : r64 = 0.0;
 
             pour idx dans indice_colonne ... indice_colonne + (cellule.colspan comme z32) - 1 {
-                assert(idx < ctx.données_colonnes.taille)
-                données_colonnes := *ctx.données_colonnes[idx]
+                assert(idx < ctx.données_colonnes.taille);
+                données_colonnes := *ctx.données_colonnes[idx];
 
-                largeur_min_colonnes += données_colonnes.minimum_width
-                largeur_max_colonnes += données_colonnes.maximum_width
+                largeur_min_colonnes += données_colonnes.minimum_width;
+                largeur_max_colonnes += données_colonnes.maximum_width;
             }
 
             si largeur_min_colonnes < cellule.minimum_content_width {
-                delta := (cellule.minimum_content_width - largeur_min_colonnes) / cellule.colspan comme r64
+                delta := (cellule.minimum_content_width - largeur_min_colonnes) / cellule.colspan comme r64;
 
                 pour idx dans indice_colonne ... indice_colonne + (cellule.colspan comme z32) - 1 {
-                    données_colonnes := *ctx.données_colonnes[idx]
-                    données_colonnes.minimum_width += delta
+                    données_colonnes := *ctx.données_colonnes[idx];
+                    données_colonnes.minimum_width += delta;
                 }
             }
 
             si largeur_max_colonnes < cellule.maximum_content_width {
-                delta := (cellule.maximum_content_width - largeur_max_colonnes) / cellule.colspan comme r64
+                delta := (cellule.maximum_content_width - largeur_max_colonnes) / cellule.colspan comme r64;
 
                 pour idx dans indice_colonne ... indice_colonne + (cellule.colspan comme z32) - 1 {
-                    données_colonnes := *ctx.données_colonnes[idx]
-                    données_colonnes.maximum_width += delta
+                    données_colonnes := *ctx.données_colonnes[idx];
+                    données_colonnes.maximum_width += delta;
                 }
             }
         }
     }
 
-    largeur := calcule_largeur_table(ctx, table)
-    largeur_du_contenu := largeur
+    largeur := calcule_largeur_table(ctx, table);
+    largeur_du_contenu := largeur;
 
-    border_spacing := table.propriétés.donne_valeur_calculée(IDPropriété.BorderSpacing).donne_pixels()
-    border_collapse := table.propriétés.donne_valeur_calculée(IDPropriété.BorderCollapse)
+    border_spacing := table.propriétés.donne_valeur_calculée(IDPropriété.BorderSpacing).donne_pixels();
+    border_collapse := table.propriétés.donne_valeur_calculée(IDPropriété.BorderCollapse);
 
-    utilise_border_spacing := border_collapse.est_mot_clé(PROP_separate)
+    utilise_border_spacing := border_collapse.est_mot_clé(PROP_separate);
     si utilise_border_spacing {
-        largeur += border_spacing * (2.0 + ctx.données_colonnes.taille comme r32)
-        largeur_du_contenu += border_spacing * (ctx.données_colonnes.taille comme r32)
+        largeur += border_spacing * (2.0 + ctx.données_colonnes.taille comme r32);
+        largeur_du_contenu += border_spacing * (ctx.données_colonnes.taille comme r32);
     }
 
-    outrepas_largeur := crée_outrepas_pour_coter_contenu(largeur)
-    containing_block := donne_containing_block(table, ctx)
-    personnalisation: PersonnalisationCotation
-    personnalisation.outrepas_largeur = *outrepas_largeur
-    args := crée_arguments_dimensionnement_largeur(ctx, table, containing_block, personnalisation, ModeDeFormattage.Normal)
-    calcule_largeur_et_marges(*args)
-    _ := calcule_hauteur_et_marges(*args)
+    outrepas_largeur := crée_outrepas_pour_coter_contenu(largeur);
+    containing_block := donne_containing_block(table, ctx);
+    personnalisation: PersonnalisationCotation;
+    personnalisation.outrepas_largeur = *outrepas_largeur;
+    args := crée_arguments_dimensionnement_largeur(ctx, table, containing_block, personnalisation, ModeDeFormattage.Normal);
+    calcule_largeur_et_marges(*args);
+    _ := calcule_hauteur_et_marges(*args);
 
     /* Nous utilisons la bordure et non le contenu car la bordure et le rembourrage
      * sont géré par le TableWrapperBox parent : nous risquerions de décaler inutilement le contenu. */
-    décalage_x := table.modèle_de_boite.bordure.x
-    décalage_y := table.modèle_de_boite.bordure.y
+    décalage_x := table.modèle_de_boite.bordure.x;
+    décalage_y := table.modèle_de_boite.bordure.y;
 
     si utilise_border_spacing {
-        décalage_x += border_spacing comme r32
-        décalage_y += border_spacing comme r32
+        décalage_x += border_spacing comme r32;
+        décalage_y += border_spacing comme r32;
     }
 
-    params: ParamsDispositionCellules
-    params.utilise_border_spacing = utilise_border_spacing
-    params.border_spacing = border_spacing
-    params.décalage_x = décalage_x
-    params.décalage_y_ligne = décalage_y
-    params.largeur_du_contenu = largeur_du_contenu
+    params: ParamsDispositionCellules;
+    params.utilise_border_spacing = utilise_border_spacing;
+    params.border_spacing = border_spacing;
+    params.décalage_x = décalage_x;
+    params.décalage_y_ligne = décalage_y;
+    params.largeur_du_contenu = largeur_du_contenu;
 
     pour * ctx.lignes {
-        _ := dispose_cellules_ligne(ctx, it, *params)
+        _ := dispose_cellules_ligne(ctx, it, *params);
     }
 
     pour * ctx.groupes_de_lignes {
-        lignes := it.donne_lignes(ctx)
+        lignes := it.donne_lignes(ctx);
 
-        x_min := R64_INFINITÉ
-        x_max := R64_INFINITÉ_NÉGATIVE
-        y_min := R64_INFINITÉ
-        y_max := R64_INFINITÉ_NÉGATIVE
+        x_min := R64_INFINITÉ;
+        x_max := R64_INFINITÉ_NÉGATIVE;
+        y_min := R64_INFINITÉ;
+        y_max := R64_INFINITÉ_NÉGATIVE;
 
         pour * ligne dans lignes {
-            cellules := ligne.donne_cellules(ctx)
+            cellules := ligne.donne_cellules(ctx);
 
             pour * cellule dans cellules {
-                box := cellule.box
+                box := cellule.box;
 
-                x_min_cellule := box.modèle_de_boite.marge.x
-                x_max_cellule := box.modèle_de_boite.marge.x + box.modèle_de_boite.marge.largeur
-                y_min_cellule := box.modèle_de_boite.marge.y
-                y_max_cellule := box.modèle_de_boite.marge.y + box.modèle_de_boite.marge.hauteur
+                x_min_cellule := box.modèle_de_boite.marge.x;
+                x_max_cellule := box.modèle_de_boite.marge.x + box.modèle_de_boite.marge.largeur;
+                y_min_cellule := box.modèle_de_boite.marge.y;
+                y_max_cellule := box.modèle_de_boite.marge.y + box.modèle_de_boite.marge.hauteur;
 
-                x_min = min(x_min, x_min_cellule comme r64)
-                x_max = max(x_max, x_max_cellule comme r64)
-                y_min = min(y_min, y_min_cellule comme r64)
-                y_max = max(y_max, y_max_cellule comme r64)
+                x_min = min(x_min, x_min_cellule comme r64);
+                x_max = max(x_max, x_max_cellule comme r64);
+                y_min = min(y_min, y_min_cellule comme r64);
+                y_max = max(y_max, y_max_cellule comme r64);
             }
         }
 
-        group_box := it.group_box
-        définis_position(group_box, x_min comme r32, y_min comme r32)
-        définis_largeur_contenu(group_box.modèle_de_boite, (x_max - x_min) comme r32)
-        définis_hauteur_contenu(group_box.modèle_de_boite, (y_max - y_min) comme r32)
+        group_box := it.group_box;
+        définis_position(group_box, x_min comme r32, y_min comme r32);
+        définis_largeur_contenu(group_box.modèle_de_boite, (x_max - x_min) comme r32);
+        définis_hauteur_contenu(group_box.modèle_de_boite, (y_max - y_min) comme r32);
     }
 
-    hauteur_du_contenu := params.décalage_y_ligne - décalage_y
+    hauteur_du_contenu := params.décalage_y_ligne - décalage_y;
     si utilise_border_spacing {
-        hauteur_du_contenu += border_spacing comme r32
+        hauteur_du_contenu += border_spacing comme r32;
     }
 
-    outrepas_hauteur := crée_outrepas_pour_coter_contenu(hauteur_du_contenu)
-    personnalisation.outrepas_hauteur = *outrepas_hauteur
-    args = crée_arguments_dimensionnement_hauteur(ctx, table, containing_block, personnalisation)
-    _ := calcule_hauteur_et_marges(*args)
+    outrepas_hauteur := crée_outrepas_pour_coter_contenu(hauteur_du_contenu);
+    personnalisation.outrepas_hauteur = *outrepas_hauteur;
+    args = crée_arguments_dimensionnement_hauteur(ctx, table, containing_block, personnalisation);
+    _ := calcule_hauteur_et_marges(*args);
 }
 
 initialise_données_cellules :: fonc (ctx: *ContexteDeFormattageTable, table: *TableBox)
 {
-    indice_ligne: z64
+    indice_ligne: z64;
 
     pour table.enfants {
         si it.table_virtuelle.type == TableRowBox {
-            récolte_cellules_sur_table_row(ctx, it comme *TableRowBox, indice_ligne)
-            indice_ligne += 1
-            continue
+            récolte_cellules_sur_table_row(ctx, it comme *TableRowBox, indice_ligne);
+            indice_ligne += 1;
+            continue;
         }
 
         saufsi est_row_group_box(it) {
-            continue
+            continue;
         }
 
-        groupe := tableau_ajoute_élément(*ctx.groupes_de_lignes)
-        groupe.group_box = it comme *TableRowGroupBox
-        groupe.index_première_ligne = ctx.lignes.taille comme z32
+        groupe := tableau_ajoute_élément(*ctx.groupes_de_lignes);
+        groupe.group_box = it comme *TableRowGroupBox;
+        groupe.index_première_ligne = ctx.lignes.taille comme z32;
 
         pour enfant_row_group dans it.enfants {
             saufsi enfant_row_group.table_virtuelle.type == TableRowBox {
-                continue
+                continue;
             }
 
-            récolte_cellules_sur_table_row(ctx, enfant_row_group comme *TableRowBox, indice_ligne)
-            indice_ligne += 1
+            récolte_cellules_sur_table_row(ctx, enfant_row_group comme *TableRowBox, indice_ligne);
+            indice_ligne += 1;
 
-            groupe.nombre_de_lignes += 1
+            groupe.nombre_de_lignes += 1;
         }
     }
 
-    ctx.nombre_de_lignes = indice_ligne
+    ctx.nombre_de_lignes = indice_ligne;
 
-    tableau_redimensionne(ctx.données_colonnes, ctx.nombre_de_colonnes)
+    tableau_redimensionne(ctx.données_colonnes, ctx.nombre_de_colonnes);
 
     // imprime("lignes : %, colones : %\n", indice_ligne, ctx.nombre_de_colonnes)
 }
 
 récolte_cellules_sur_table_row :: fonc (ctx: *ContexteDeFormattageTable, row: *TableRowBox, indice_ligne: z64)
 {
-    indice_colonne: z64
-    cellules_sur_ligne: z32
+    indice_colonne: z64;
+    cellules_sur_ligne: z32;
 
-    ligne := tableau_ajoute_élément(*ctx.lignes)
-    ligne.row = row
-    ligne.index_première_cellule = ctx.cellules.taille comme z32
+    ligne := tableau_ajoute_élément(*ctx.lignes);
+    ligne.row = row;
+    ligne.index_première_cellule = ctx.cellules.taille comme z32;
 
     pour enfant_row dans row.enfants {
         saufsi enfant_row.table_virtuelle.type == TableCellBox {
-            continue
+            continue;
         }
 
-        cell := enfant_row comme *TableCellBox
+        cell := enfant_row comme *TableCellBox;
 
-        index_cellule := ctx.cellules.taille
+        index_cellule := ctx.cellules.taille;
 
-        cellule := tableau_ajoute_élément(*ctx.cellules)
-        cellule.box = cell
-        cellule.colonne = indice_colonne
-        cellule.ligne = indice_ligne
+        cellule := tableau_ajoute_élément(*ctx.cellules);
+        cellule.box = cell;
+        cellule.colonne = indice_colonne;
+        cellule.ligne = indice_ligne;
 
         si cell.donne_élément() {
-            cellule.colspan = HTML.donne_colspan(cell.donne_élément())
+            cellule.colspan = HTML.donne_colspan(cell.donne_élément());
         }
         sinon {
-            cellule.colspan = 1
+            cellule.colspan = 1;
         }
 
-        ligne.nombre_de_cellules += 1
+        ligne.nombre_de_cellules += 1;
 
-        tableau_ajoute(*ctx.colonnes_cellules, indice_colonne)
-        tableau_ajoute(*ctx.colonnes_cellules, index_cellule)
+        tableau_ajoute(*ctx.colonnes_cellules, indice_colonne);
+        tableau_ajoute(*ctx.colonnes_cellules, index_cellule);
 
-        indice_colonne += cellule.colspan comme z64
-        cellules_sur_ligne += 1
+        indice_colonne += cellule.colspan comme z64;
+        cellules_sur_ligne += 1;
 
         si ctx.nombre_de_colonnes < indice_colonne {
-            ctx.nombre_de_colonnes = indice_colonne
+            ctx.nombre_de_colonnes = indice_colonne;
         }
     }
 }
@@ -3185,283 +3185,283 @@ récolte_cellules_sur_table_row :: fonc (ctx: *ContexteDeFormattageTable, row: *
 /* https://www.w3.org/TR/2011/REC-CSS2-20110607/tables.html#auto-table-layout */
 calcule_largeur_table :: fonc (ctx: *ContexteDeFormattageTable, table: *TableBox) -> r64
 {
-    containing_block := donne_containing_block(table, ctx)
-    résoud_pourcentage_largeurs(ctx, table, containing_block)
-    width := table.propriétés.donne_valeur_calculée(IDPropriété.Width)
+    containing_block := donne_containing_block(table, ctx);
+    résoud_pourcentage_largeurs(ctx, table, containing_block);
+    width := table.propriétés.donne_valeur_calculée(IDPropriété.Width);
 
     // À FAIRE : CAPMIN
-    CAPMIN : r64 = 0.0
-    possède_captions := faux
+    CAPMIN : r64 = 0.0;
+    possède_captions := faux;
     // À FAIRE : cell spacing and borders
 
-    MIN: r64
+    MIN: r64;
     pour ctx.données_colonnes {
-        MIN += it.minimum_width
+        MIN += it.minimum_width;
     }
 
     saufsi width.est_auto() {
-        W := width.donne_pixels()
-        used_width := max(W, CAPMIN, MIN)
+        W := width.donne_pixels();
+        used_width := max(W, CAPMIN, MIN);
 
         si used_width > MIN {
-            delta := (used_width - MIN)
+            delta := (used_width - MIN);
 
-            MAX: r64
+            MAX: r64;
             pour ctx.données_colonnes {
-                MAX += it.maximum_width
+                MAX += it.maximum_width;
             }
 
             si MAX == used_width {
                 pour * ctx.données_colonnes {
-                    it.final_width = it.maximum_width
+                    it.final_width = it.maximum_width;
                 }
             }
             sinon si MAX < used_width {
-                delta = (used_width - MAX)
+                delta = (used_width - MAX);
                 pour * ctx.données_colonnes {
-                    it.final_width = it.maximum_width + delta * (it.maximum_width / MAX)
+                    it.final_width = it.maximum_width + delta * (it.maximum_width / MAX);
                 }
             }
             sinon si MIN == 0.0 {
                 pour * ctx.données_colonnes {
-                    it.final_width = delta / ctx.données_colonnes.taille comme r64
+                    it.final_width = delta / ctx.données_colonnes.taille comme r64;
                 }
             }
             sinon {
                 pour * ctx.données_colonnes {
-                    it.final_width = it.minimum_width + delta * (it.minimum_width / MIN)
+                    it.final_width = it.minimum_width + delta * (it.minimum_width / MIN);
                 }
             }
         }
         sinon {
             pour * ctx.données_colonnes {
-                it.final_width = it.minimum_width
+                it.final_width = it.minimum_width;
             }
         }
 
-        retourne used_width
+        retourne used_width;
     }
 
-    largeur_containing_block := containing_block.donne_largeur()
+    largeur_containing_block := containing_block.donne_largeur();
 
-    MAX: r64
+    MAX: r64;
     pour ctx.données_colonnes {
-        MAX += it.maximum_width
+        MAX += it.maximum_width;
     }
 
     si (possède_captions && CAPMIN < largeur_containing_block) || MAX < largeur_containing_block {
         pour * ctx.données_colonnes {
-            it.final_width = it.maximum_width
+            it.final_width = it.maximum_width;
         }
 
-        retourne max(MAX, CAPMIN)
+        retourne max(MAX, CAPMIN);
     }
 
-    résultat := max(largeur_containing_block comme r64, CAPMIN, MIN)
+    résultat := max(largeur_containing_block comme r64, CAPMIN, MIN);
 
     si résultat > MIN {
         pour * ctx.données_colonnes {
-            it.final_width = résultat * (it.minimum_width / MIN)
+            it.final_width = résultat * (it.minimum_width / MIN);
         }
     }
     sinon {
         pour * ctx.données_colonnes {
-            it.final_width = it.minimum_width
+            it.final_width = it.minimum_width;
         }
     }
 
-    retourne résultat
+    retourne résultat;
 }
 
 ParamsDispositionCellules :: struct {
-    utilise_border_spacing: bool
-    décalage_x: r32
-    border_spacing: r64
-    décalage_y_ligne: r32
-    largeur_du_contenu: r64
+    utilise_border_spacing: bool;
+    décalage_x: r32;
+    border_spacing: r64;
+    décalage_y_ligne: r32;
+    largeur_du_contenu: r64;
 }
 
 dispose_cellules_ligne :: fonc (ctx: *ContexteDeFormattageTable, ligne: *LigneDeCellules, empl params: *ParamsDispositionCellules) -> r64
 {
     // imprime("[%]\n", #nom_de_cette_fonction)
-    calcule_largeurs_cellules(ctx, ligne, params)
+    calcule_largeurs_cellules(ctx, ligne, params);
 
-    ligne.top = décalage_y_ligne
-    dispose_cellules_ligne(ctx, ligne)
+    ligne.top = décalage_y_ligne;
+    dispose_cellules_ligne(ctx, ligne);
 
-    aligne_cellules_verticalement(ctx, ligne, AlignementCellule.BaseLine)
-    aligne_cellules_verticalement(ctx, ligne, AlignementCellule.Top)
+    aligne_cellules_verticalement(ctx, ligne, AlignementCellule.BaseLine);
+    aligne_cellules_verticalement(ctx, ligne, AlignementCellule.Top);
 
-    cellules := ligne.donne_cellules(ctx)
+    cellules := ligne.donne_cellules(ctx);
 
     pour * cellules {
-        alignement := it.donne_alignement_vertical()
+        alignement := it.donne_alignement_vertical();
         // imprime("-- %\n", alignement)
         si alignement != AlignementCellule.Middle && alignement != AlignementCellule.Bottom {
-            continue
+            continue;
         }
 
-        ligne.hauteur = max(ligne.hauteur, it.donne_hauteur())
+        ligne.hauteur = max(ligne.hauteur, it.donne_hauteur());
     }
 
-    row := ligne.row
+    row := ligne.row;
 
     // À FAIRE : résoud ceci proprement
-    prop_height := row.propriétés.donne_valeur_calculée(IDPropriété.Height)
+    prop_height := row.propriétés.donne_valeur_calculée(IDPropriété.Height);
     si prop_height.est_pixels() && ligne.hauteur < prop_height.donne_pixels() {
-        ligne.hauteur = prop_height.donne_pixels() comme r32
+        ligne.hauteur = prop_height.donne_pixels() comme r32;
     }
 
-    aligne_cellules_verticalement(ctx, ligne, AlignementCellule.Bottom)
-    aligne_cellules_verticalement(ctx, ligne, AlignementCellule.Middle)
+    aligne_cellules_verticalement(ctx, ligne, AlignementCellule.Bottom);
+    aligne_cellules_verticalement(ctx, ligne, AlignementCellule.Middle);
 
-    hauteur_ligne := ligne.hauteur
+    hauteur_ligne := ligne.hauteur;
 
     /* "Cell boxes that are smaller than the height of the row receive extra top or bottom padding."
      * https://www.w3.org/TR/2011/REC-CSS2-20110607/tables.html#height-layout */
     pour row.enfants {
         saufsi it.table_virtuelle.type == TableCellBox {
-            continue
+            continue;
         }
 
         saufsi it.modèle_de_boite.marge.hauteur < hauteur_ligne {
-            continue
+            continue;
         }
 
         // À FAIRE : il faudrait plustôt ajuster la hauteur puis déplacer les enfants selon l'alignement de la cellule.
-        it.modèle_de_boite.définis_hauteur_contenu(hauteur_ligne)
+        it.modèle_de_boite.définis_hauteur_contenu(hauteur_ligne);
     }
 
-    définis_position(row, décalage_x, décalage_y_ligne)
-    définis_largeur_contenu(row.modèle_de_boite, largeur_du_contenu comme r32)
-    définis_hauteur_contenu(row.modèle_de_boite, hauteur_ligne)
+    définis_position(row, décalage_x, décalage_y_ligne);
+    définis_largeur_contenu(row.modèle_de_boite, largeur_du_contenu comme r32);
+    définis_hauteur_contenu(row.modèle_de_boite, hauteur_ligne);
 
-    décalage_y_ligne += hauteur_ligne
+    décalage_y_ligne += hauteur_ligne;
 
     si utilise_border_spacing {
-        décalage_y_ligne += border_spacing comme r32
+        décalage_y_ligne += border_spacing comme r32;
     }
 
-    ligne.hauteur_finale = hauteur_ligne
+    ligne.hauteur_finale = hauteur_ligne;
 
-    retourne hauteur_ligne
+    retourne hauteur_ligne;
 }
 
 dispose_cellules_ligne :: fonc (ctx: *ContexteDeFormattageTable, ligne: *LigneDeCellules)
 {
-    cellules := ligne.donne_cellules(ctx)
+    cellules := ligne.donne_cellules(ctx);
     pour * cellule dans cellules {
-        définis_position(cellule.box, cellule.position_x_finale, ligne.top)
-        outrepas_largeur := crée_outrepas_pour_coter_contenu(donne_largeur_contenu(cellule.box, cellule.largeur_finale))
-        personnalisation: PersonnalisationCotation
-        personnalisation.outrepas_largeur = *outrepas_largeur
+        définis_position(cellule.box, cellule.position_x_finale, ligne.top);
+        outrepas_largeur := crée_outrepas_pour_coter_contenu(donne_largeur_contenu(cellule.box, cellule.largeur_finale));
+        personnalisation: PersonnalisationCotation;
+        personnalisation.outrepas_largeur = *outrepas_largeur;
 
-        available : AvailableSpace = ---
-        available.width = crée_definite_size(cellule.largeur_finale)
-        available.height = crée_indefinite_size()
-        mesure(cellule.box, ctx, ModeDeFormattage.Normal, personnalisation, available)
+        available : AvailableSpace = ---;
+        available.width = crée_definite_size(cellule.largeur_finale);
+        available.height = crée_indefinite_size();
+        mesure(cellule.box, ctx, ModeDeFormattage.Normal, personnalisation, available);
     }
 }
 
 aligne_cellules_verticalement :: fonc (ctx: *ContexteDeFormattageTable, ligne: *LigneDeCellules, alignement: AlignementCellule)
 {
-    cellules := ligne.donne_cellules(ctx)
+    cellules := ligne.donne_cellules(ctx);
     si alignement == AlignementCellule.BaseLine {
         pour * cellules {
             si it.donne_alignement_vertical() != alignement {
-                continue
+                continue;
             }
-            it.baseline = donne_baseline(it.box).Quelque.position
-            ligne.baseline = max(ligne.baseline, it.baseline)
+            it.baseline = donne_baseline(it.box).Quelque.position;
+            ligne.baseline = max(ligne.baseline, it.baseline);
         }
     
         pour * cellules {
             si it.donne_alignement_vertical() != alignement {
-                continue
+                continue;
             }
 
             // imprime("baseline ligne % cellule %\n", ligne.baseline, it.baseline)
 
             si it.baseline != ligne.baseline {
-                delta := ligne.baseline - it.baseline
-                it.box.décale_contenu(0.0, delta)
+                delta := ligne.baseline - it.baseline;
+                it.box.décale_contenu(0.0, delta);
             }
 
-            ligne.hauteur = max(ligne.hauteur, it.donne_bottom() - ligne.top)
+            ligne.hauteur = max(ligne.hauteur, it.donne_bottom() - ligne.top);
         }
 
-        retourne
+        retourne;
     }
 
     si alignement == AlignementCellule.Top {
         pour * cellules {
             si it.donne_alignement_vertical() != alignement {
-                continue
+                continue;
             }
 
-            ligne.hauteur = max(ligne.hauteur, it.donne_bottom() - ligne.top)
+            ligne.hauteur = max(ligne.hauteur, it.donne_bottom() - ligne.top);
         }
 
-        retourne
+        retourne;
     }
 
     si alignement == AlignementCellule.Bottom {
         pour * cellules {
             si it.donne_alignement_vertical() != alignement {
-                continue
+                continue;
             }
 
             si it.donne_bottom() != ligne.bottom {
-                delta := it.donne_bottom() - ligne.bottom
-                it.box.décale_contenu(0.0, delta)
+                delta := it.donne_bottom() - ligne.bottom;
+                it.box.décale_contenu(0.0, delta);
             }
         }
 
-        retourne
+        retourne;
     }
 
-    assert(alignement == AlignementCellule.Middle)
-    middle := ligne.top + ligne.hauteur * 0.5
+    assert(alignement == AlignementCellule.Middle);
+    middle := ligne.top + ligne.hauteur * 0.5;
 
     pour * cellules {
         si it.donne_alignement_vertical() != alignement {
-            continue
+            continue;
         }
 
-        middle_cellule := it.donne_middle()
+        middle_cellule := it.donne_middle();
 
         // imprime("middle ligne % cellule %\n", middle, middle_cellule)
 
         si middle_cellule != middle {
-            delta := middle - middle_cellule
-            it.box.décale_contenu(0.0, delta)
+            delta := middle - middle_cellule;
+            it.box.décale_contenu(0.0, delta);
         }
     }
 }
 
 calcule_largeurs_cellules :: fonc (ctx: *ContexteDeFormattageTable, ligne: *LigneDeCellules, empl params: *ParamsDispositionCellules)
 {
-    décalage_x_colonne := décalage_x
+    décalage_x_colonne := décalage_x;
 
-    cellules := ligne.donne_cellules(ctx)
+    cellules := ligne.donne_cellules(ctx);
 
     pour * cellule dans cellules {
-        données_colonnes := *ctx.données_colonnes[cellule.colonne]
+        données_colonnes := *ctx.données_colonnes[cellule.colonne];
 
-        largeur_cellule := données_colonnes.final_width
+        largeur_cellule := données_colonnes.final_width;
         si cellule.colspan > 1 {
             pour idx dans cellule.colonne + 1 ... cellule.colonne + (cellule.colspan comme z32) - 1 {
-                données_colonnes = *ctx.données_colonnes[idx]
-                largeur_cellule += données_colonnes.final_width
+                données_colonnes = *ctx.données_colonnes[idx];
+                largeur_cellule += données_colonnes.final_width;
             }
         }
 
-        cellule.position_x_finale = décalage_x_colonne
-        cellule.largeur_finale = largeur_cellule comme r32
+        cellule.position_x_finale = décalage_x_colonne;
+        cellule.largeur_finale = largeur_cellule comme r32;
 
-        décalage_x_colonne += largeur_cellule comme r32
+        décalage_x_colonne += largeur_cellule comme r32;
         si utilise_border_spacing {
-            décalage_x_colonne += border_spacing comme r32
+            décalage_x_colonne += border_spacing comme r32;
         }
     }
 }

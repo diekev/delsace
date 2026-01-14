@@ -1,21 +1,21 @@
-importe Compilatrice
+importe Compilatrice;
 
 #exécute {
     {
-        options: OptionsDeCompilation
-        options.nom_sortie = "fenêtre"
-        espace := démarre_un_espace_de_travail("fenêtre", *options)
-        ajoute_fichier_à_la_compilation(espace, "fenêtre.kuri")
+        options: OptionsDeCompilation;
+        options.nom_sortie = "fenêtre";
+        espace := démarre_un_espace_de_travail("fenêtre", *options);
+        ajoute_fichier_à_la_compilation(espace, "fenêtre.kuri");
     }
     {
-        options: OptionsDeCompilation
-        options.nom_sortie = "console"
-        espace := démarre_un_espace_de_travail("console", *options)
-        ajoute_fichier_à_la_compilation(espace, "console.kuri")
+        options: OptionsDeCompilation;
+        options.nom_sortie = "console";
+        espace := démarre_un_espace_de_travail("console", *options);
+        ajoute_fichier_à_la_compilation(espace, "console.kuri");
     }
     {
-        options := compilatrice_donne_options()
-        options.résultat = RésultatCompilation.RIEN
-        compilatrice_ajourne_options(options)
+        options := compilatrice_donne_options();
+        options.résultat = RésultatCompilation.RIEN;
+        compilatrice_ajourne_options(options);
     }
 }

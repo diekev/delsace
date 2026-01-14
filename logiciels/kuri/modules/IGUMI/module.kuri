@@ -1,15 +1,15 @@
-importe Compilatrice
-importe Chaine
-importe Couleur
-importe Fondation
-importe Image
-importe InfosInterface
-importe Math
-importe OpenGL
-importe Structures
-importe SysFichier
-importe Typographie
-importe Vision
+importe Compilatrice;
+importe Chaine;
+importe Couleur;
+importe Fondation;
+importe Image;
+importe InfosInterface;
+importe Math;
+importe OpenGL;
+importe Structures;
+importe SysFichier;
+importe Typographie;
+importe Vision;
 
 /* ------------------------------------------------------------------------- */
 /** \nom Initialisation et issitialisation.
@@ -17,79 +17,79 @@ importe Vision
 
 initialise_igumi :: fonc ()
 {
-    __ctx_courant = *__ctx_défaut
-    initialise_contexte(*__ctx_défaut)
+    __ctx_courant = *__ctx_défaut;
+    initialise_contexte(*__ctx_défaut);
 }
 
 issitialise_igumi :: fonc ()
 {
-    issitialise_ctx(*__ctx_défaut)
+    issitialise_ctx(*__ctx_défaut);
 }
 
 définis_fenêtre :: fonc (x: z32, y: z32, largeur: z32, hauteur: z32)
 {
-    glViewport(x, y, largeur, hauteur)
-    __ctx_courant.largeur_canevas = largeur
-    __ctx_courant.hauteur_canevas = hauteur
-    __ctx_courant.projection = crée_matrice_projection_orthographique(0, largeur comme r32, 0, hauteur comme r32, -1.0, 1.0)
+    glViewport(x, y, largeur, hauteur);
+    __ctx_courant.largeur_canevas = largeur;
+    __ctx_courant.hauteur_canevas = hauteur;
+    __ctx_courant.projection = crée_matrice_projection_orthographique(0, largeur comme r32, 0, hauteur comme r32, -1.0, 1.0);
 }
 
 donne_largeur_canevas :: fonc () -> z32
 {
-    retourne __ctx_courant.largeur_canevas
+    retourne __ctx_courant.largeur_canevas;
 }
 
 donne_hauteur_canevas :: fonc () -> z32
 {
-    retourne __ctx_courant.hauteur_canevas
+    retourne __ctx_courant.hauteur_canevas;
 }
 
 efface_cible_rendu :: fonc (couleur := CouleurRVBA(0.0, 0.0, 0.0, 1.0))
 {
-    glClearColor(couleur.r, couleur.v, couleur.b, couleur.a)
-    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT)
+    glClearColor(couleur.r, couleur.v, couleur.b, couleur.a);
+    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 }
 
 commence_2d :: fonc (caméra: *Caméra2D, x := 0, y := 0)
 {
-    termine_immédiat()
+    termine_immédiat();
 
-    assert(__ctx_courant.caméra_2d == nul)
-    __ctx_courant.caméra_2d = caméra
+    assert(__ctx_courant.caméra_2d == nul);
+    __ctx_courant.caméra_2d = caméra;
 
-    glViewport(x, y, caméra.largeur, caméra.hauteur)
+    glViewport(x, y, caméra.largeur, caméra.hauteur);
 }
 
 termine_2d :: fonc ()
 {
-    termine_immédiat()
+    termine_immédiat();
 
-    assert(__ctx_courant.caméra_2d != nul)
-    __ctx_courant.caméra_2d = nul
+    assert(__ctx_courant.caméra_2d != nul);
+    __ctx_courant.caméra_2d = nul;
 
     // À FAIRE : restaure proprement la position
-    glViewport(0, 0, __ctx_courant.largeur_canevas, __ctx_courant.hauteur_canevas)
+    glViewport(0, 0, __ctx_courant.largeur_canevas, __ctx_courant.hauteur_canevas);
 }
 
 commence_3d :: fonc (caméra: *Caméra3D)
 {
-    termine_immédiat()
+    termine_immédiat();
 
-    assert(__ctx_courant.caméra_2d == nul)
-    assert(__ctx_courant.caméra_3d == nul)
-    __ctx_courant.caméra_3d = caméra
+    assert(__ctx_courant.caméra_2d == nul);
+    assert(__ctx_courant.caméra_3d == nul);
+    __ctx_courant.caméra_3d = caméra;
 
-    glViewport(0, 0, caméra.largeur, caméra.hauteur)
+    glViewport(0, 0, caméra.largeur, caméra.hauteur);
 }
 
 termine_3d :: fonc ()
 {
-    termine_immédiat()
+    termine_immédiat();
 
-    assert(__ctx_courant.caméra_3d != nul)
-    __ctx_courant.caméra_3d = nul
+    assert(__ctx_courant.caméra_3d != nul);
+    __ctx_courant.caméra_3d = nul;
 
-    glViewport(0, 0, __ctx_courant.largeur_canevas, __ctx_courant.hauteur_canevas)
+    glViewport(0, 0, __ctx_courant.largeur_canevas, __ctx_courant.hauteur_canevas);
 }
 
 /** \} */
@@ -99,117 +99,117 @@ termine_3d :: fonc ()
  * \{ */
 
 NuanceurGL :: struct {
-    nom: chaine
-    programme: n32
+    nom: chaine;
+    programme: n32;
 
     /* stocke les locations pour les attributes pour les nuanceurs de bases */
-    loc_position : z32 = -1
-    loc_normal : z32 = -1
-    loc_couleur : z32 = -1
-    loc_uv : z32 = -1
-    loc_atlas : z32 = -1
-    loc_projection : z32 = -1
-    adresse_image : z32 = -1
-    adresse_teinte : z32 = -1
-    loc_id : z32 = -1
+    loc_position : z32 = -1;
+    loc_normal : z32 = -1;
+    loc_couleur : z32 = -1;
+    loc_uv : z32 = -1;
+    loc_atlas : z32 = -1;
+    loc_projection : z32 = -1;
+    adresse_image : z32 = -1;
+    adresse_teinte : z32 = -1;
+    loc_id : z32 = -1;
 }
 
 crée_nuanceur :: fonc (source_vertex: chaine, source_fragment: chaine) -> *NuanceurGL
 {
-    nuanceur := loge(NuanceurGL)
-    recharge_nuanceur(nuanceur, source_vertex, source_fragment)
-    retourne nuanceur
+    nuanceur := loge(NuanceurGL);
+    recharge_nuanceur(nuanceur, source_vertex, source_fragment);
+    retourne nuanceur;
 }
 
 crée_nuanceur_depuis_fichier :: fonc (source_vertex: chaine, source_fragment: chaine) -> *NuanceurGL
 {
-    _, contenu_source_vertex := contenu_fichier_texte(source_vertex)
-    diffère déloge(contenu_source_vertex)
-    _, contenu_source_fragment := contenu_fichier_texte(source_fragment)
-    diffère déloge(contenu_source_fragment)
+    _, contenu_source_vertex := contenu_fichier_texte(source_vertex);
+    diffère déloge(contenu_source_vertex);
+    _, contenu_source_fragment := contenu_fichier_texte(source_fragment);
+    diffère déloge(contenu_source_fragment);
 
-    retourne crée_nuanceur_depuis_sources(contenu_source_vertex, contenu_source_fragment)
+    retourne crée_nuanceur_depuis_sources(contenu_source_vertex, contenu_source_fragment);
 }
 
 crée_nuanceur_depuis_sources :: fonc (source_vertex: chaine, source_fragment: chaine) -> *NuanceurGL
 {
-    nuanceur := crée_nuanceur(source_vertex, source_fragment)
+    nuanceur := crée_nuanceur(source_vertex, source_fragment);
 
-    glUseProgram(nuanceur.programme)
+    glUseProgram(nuanceur.programme);
 
-    nuanceur.loc_position = donne_adresse_attribut(nuanceur.programme, "position")
-    nuanceur.loc_couleur = donne_adresse_attribut(nuanceur.programme, "couleur")
-    nuanceur.loc_uv = donne_adresse_attribut(nuanceur.programme, "uv")
-    nuanceur.loc_normal = donne_adresse_attribut(nuanceur.programme, "normal")
-    nuanceur.loc_atlas = donne_adresse_uniforme(nuanceur.programme, "atlas")
-    nuanceur.loc_projection = donne_adresse_uniforme(nuanceur.programme, "projection")
-    nuanceur.adresse_image = donne_adresse_uniforme(nuanceur.programme, "image")
-    nuanceur.adresse_teinte = donne_adresse_uniforme(nuanceur.programme, "teinte")
-    nuanceur.loc_id = donne_adresse_attribut(nuanceur.programme, "id")
+    nuanceur.loc_position = donne_adresse_attribut(nuanceur.programme, "position");
+    nuanceur.loc_couleur = donne_adresse_attribut(nuanceur.programme, "couleur");
+    nuanceur.loc_uv = donne_adresse_attribut(nuanceur.programme, "uv");
+    nuanceur.loc_normal = donne_adresse_attribut(nuanceur.programme, "normal");
+    nuanceur.loc_atlas = donne_adresse_uniforme(nuanceur.programme, "atlas");
+    nuanceur.loc_projection = donne_adresse_uniforme(nuanceur.programme, "projection");
+    nuanceur.adresse_image = donne_adresse_uniforme(nuanceur.programme, "image");
+    nuanceur.adresse_teinte = donne_adresse_uniforme(nuanceur.programme, "teinte");
+    nuanceur.loc_id = donne_adresse_attribut(nuanceur.programme, "id");
 
-    glUseProgram(0)
+    glUseProgram(0);
 
-    retourne nuanceur
+    retourne nuanceur;
 }
 
 recharge_nuanceur :: fonc (nuanceur: *NuanceurGL, source_vertex: chaine, source_fragment: chaine)
 {
-    détruit_données_nuanceur(nuanceur)
-    opt_programme := compile_un_programme(source_vertex, source_fragment)
+    détruit_données_nuanceur(nuanceur);
+    opt_programme := compile_un_programme(source_vertex, source_fragment);
     saufsi opt_programme.possède_valeur() {
-        retourne
+        retourne;
     }
-    nuanceur.programme = opt_programme.Quelque
+    nuanceur.programme = opt_programme.Quelque;
 }
 
 détruit_données_nuanceur :: fonc (nuanceur: *NuanceurGL)
 {
-    détruit_programme(nuanceur.programme)
+    détruit_programme(nuanceur.programme);
 }
 
 détruit_nuanceur :: fonc (nuanceur: *NuanceurGL)
 {
     saufsi nuanceur {
-        retourne
+        retourne;
     }
-    détruit_programme(nuanceur.programme)
-    déloge(nuanceur)
+    détruit_programme(nuanceur.programme);
+    déloge(nuanceur);
 }
 
 // À FAIRE : meilleure IPA
 définis_uniforme :: fonc (id_nuanceur: IDNuanceur, nom: chaine, valeur: $T)
 {
-    nuanceur := __ctx_courant.nuanceurs[id_nuanceur]
+    nuanceur := __ctx_courant.nuanceurs[id_nuanceur];
 
-    glUseProgram(nuanceur.programme)
-    définis_uniforme(nuanceur.programme, nom, valeur)
+    glUseProgram(nuanceur.programme);
+    définis_uniforme(nuanceur.programme, nom, valeur);
 }
 
 CheminsNuanceurs :: struct {
-    chemin_vertex_texte: chaine
-    chemin_fragment_texte: chaine
-    chemin_vertex_base: chaine
-    chemin_fragment_base: chaine
-    chemin_vertex_image: chaine
-    chemin_fragment_image: chaine
-    chemin_vertex_id: chaine
-    chemin_fragment_id: chaine
+    chemin_vertex_texte: chaine;
+    chemin_fragment_texte: chaine;
+    chemin_vertex_base: chaine;
+    chemin_fragment_base: chaine;
+    chemin_vertex_image: chaine;
+    chemin_fragment_image: chaine;
+    chemin_vertex_id: chaine;
+    chemin_fragment_id: chaine;
 }
 
 donne_chemins_nuanceurs :: fonc () -> CheminsNuanceurs
 {
-    chemin_module := CheminFichier(#chemin_de_ce_module)
+    chemin_module := CheminFichier(#chemin_de_ce_module);
 
-    résultat: CheminsNuanceurs
-    résultat.chemin_vertex_texte = (chemin_module / "nuanceurs/nuanceur_texte_vertex.glsl").chn
-    résultat.chemin_fragment_texte = (chemin_module / "nuanceurs/nuanceur_texte_fragment.glsl").chn
-    résultat.chemin_vertex_base = (chemin_module / "nuanceurs/nuanceur_base_vertex.glsl").chn
-    résultat.chemin_fragment_base = (chemin_module / "nuanceurs/nuanceur_base_fragment.glsl").chn
-    résultat.chemin_vertex_image = (chemin_module / "nuanceurs/nuanceur_image_vertex.glsl").chn
-    résultat.chemin_fragment_image = (chemin_module / "nuanceurs/nuanceur_image_fragment.glsl").chn
-    résultat.chemin_vertex_id = (chemin_module / "nuanceurs/nuanceur_id_vertex.glsl").chn
-    résultat.chemin_fragment_id = (chemin_module / "nuanceurs/nuanceur_id_fragment.glsl").chn
-    retourne résultat
+    résultat: CheminsNuanceurs;
+    résultat.chemin_vertex_texte = (chemin_module / "nuanceurs/nuanceur_texte_vertex.glsl").chn;
+    résultat.chemin_fragment_texte = (chemin_module / "nuanceurs/nuanceur_texte_fragment.glsl").chn;
+    résultat.chemin_vertex_base = (chemin_module / "nuanceurs/nuanceur_base_vertex.glsl").chn;
+    résultat.chemin_fragment_base = (chemin_module / "nuanceurs/nuanceur_base_fragment.glsl").chn;
+    résultat.chemin_vertex_image = (chemin_module / "nuanceurs/nuanceur_image_vertex.glsl").chn;
+    résultat.chemin_fragment_image = (chemin_module / "nuanceurs/nuanceur_image_fragment.glsl").chn;
+    résultat.chemin_vertex_id = (chemin_module / "nuanceurs/nuanceur_id_vertex.glsl").chn;
+    résultat.chemin_fragment_id = (chemin_module / "nuanceurs/nuanceur_id_fragment.glsl").chn;
+    retourne résultat;
 }
 
 /** \} */
@@ -219,169 +219,169 @@ donne_chemins_nuanceurs :: fonc () -> CheminsNuanceurs
  * \{ */
 
 IDNuanceur :: énum {
-    Basique
-    Texte
-    Image
-    Id
+    Basique;
+    Texte;
+    Image;
+    Id;
 }
 
 FormatVertexXCNU :: struct {
-    position: Vec3
-    couleur: CouleurRVBA
-    normal: Vec3
-    uv: Vec2
+    position: Vec3;
+    couleur: CouleurRVBA;
+    normal: Vec3;
+    uv: Vec2;
 }
 
-DÉCALAGE_SOMMETS :: 0
-DÉCALAGE_COULEUR :: 12
-DÉCALAGE_NORMAL :: 28
-DÉCALAGE_UV :: 40
+DÉCALAGE_SOMMETS :: 0;
+DÉCALAGE_COULEUR :: 12;
+DÉCALAGE_NORMAL :: 28;
+DÉCALAGE_UV :: 40;
 
-MAX_SOMMETS_IMMÉDIAT :: 2400
+MAX_SOMMETS_IMMÉDIAT :: 2400;
 
 DonnéesImmédiatesXCNU :: struct {
-    sommets_immédiat : [MAX_SOMMETS_IMMÉDIAT]FormatVertexXCNU = ---
-    num_sommets : z32 = 0
+    sommets_immédiat : [MAX_SOMMETS_IMMÉDIAT]FormatVertexXCNU = ---;
+    num_sommets : z32 = 0;
 
-    va_immédiat: n32
-    vbo_immédiat: n32
-    vbo_immédiat_index: n32
-    données_tampon_initialisées: bool
+    va_immédiat: n32;
+    vbo_immédiat: n32;
+    vbo_immédiat_index: n32;
+    données_tampon_initialisées: bool;
 }
 
-DÉCALAGE_ID :: 12
+DÉCALAGE_ID :: 12;
 
 DonnéesImmédiatesXId :: struct {
-    sommets : [MAX_SOMMETS_IMMÉDIAT]FormatVertexXId = ---
-    num_sommets : z32 = 0
+    sommets : [MAX_SOMMETS_IMMÉDIAT]FormatVertexXId = ---;
+    num_sommets : z32 = 0;
 
-    va_immédiat: n32
-    vbo_immédiat: n32
-    vbo_immédiat_index: n32
-    données_tampon_initialisées: bool
+    va_immédiat: n32;
+    vbo_immédiat: n32;
+    vbo_immédiat_index: n32;
+    données_tampon_initialisées: bool;
 }
 
 FormatVertexXId :: struct {
-    position: Vec3
-    id: n32
+    position: Vec3;
+    id: n32;
 }
 
 DonnéesContexteGL :: struct {
-    initialisé := faux
-    utilisateurs := 0
+    initialisé := faux;
+    utilisateurs := 0;
 
-    projection: Mat4r
-    largeur_canevas: z32
-    hauteur_canevas: z32
+    projection: Mat4r;
+    largeur_canevas: z32;
+    hauteur_canevas: z32;
 
-    caméra_2d: *Caméra2D
-    caméra_3d: *Caméra3D
+    caméra_2d: *Caméra2D;
+    caméra_3d: *Caméra3D;
 
-    nuanceurs: [..]*NuanceurGL
+    nuanceurs: [..]*NuanceurGL;
 
-    fonte_globale: *Fonte
+    fonte_globale: *Fonte;
 
-    données_tampon_xcnu: DonnéesImmédiatesXCNU
-    données_tampon_id: DonnéesImmédiatesXId
+    données_tampon_xcnu: DonnéesImmédiatesXCNU;
+    données_tampon_id: DonnéesImmédiatesXId;
 
-    dernier_mode: ModeImmédiat
-    dernier_nuanceur := (-1 comme IDNuanceur)
-    dernière_fonte: *Fonte
-    fontes_utilisées: [..]*Fonte
+    dernier_mode: ModeImmédiat;
+    dernier_nuanceur := (-1 comme IDNuanceur);
+    dernière_fonte: *Fonte;
+    fontes_utilisées: [..]*Fonte;
 
-    dernier_mode_id: ModeImmédiat
-    dernier_nuanceur_id := (-1 comme IDNuanceur)
+    dernier_mode_id: ModeImmédiat;
+    dernier_nuanceur_id := (-1 comme IDNuanceur);
 }
 
 #portée_fichier
 
-__ctx_défaut: DonnéesContexteGL
-__ctx_courant: *DonnéesContexteGL
+__ctx_défaut: DonnéesContexteGL;
+__ctx_courant: *DonnéesContexteGL;
 
 #portée_export
 
 initialise_contexte :: fonc (empl ctx: *DonnéesContexteGL)
 {
-    utilisateurs += 1
+    utilisateurs += 1;
 
     si initialisé {
-        retourne
+        retourne;
     }
-    initialisé = vrai
+    initialisé = vrai;
 
-    chemins := #exécute donne_chemins_nuanceurs()
+    chemins := #exécute donne_chemins_nuanceurs();
 
-    tableau_redimensionne(ctx.nuanceurs, IDNuanceur.nombre_éléments)
-    nuanceurs[IDNuanceur.Texte] = crée_nuanceur_depuis_fichier(chemins.chemin_vertex_texte, chemins.chemin_fragment_texte)
-    nuanceurs[IDNuanceur.Texte].nom = "texte"
-    nuanceurs[IDNuanceur.Basique] = crée_nuanceur_depuis_fichier(chemins.chemin_vertex_base, chemins.chemin_fragment_base)
-    nuanceurs[IDNuanceur.Basique].nom = "base"
-    nuanceurs[IDNuanceur.Image] = crée_nuanceur_depuis_fichier(chemins.chemin_vertex_image, chemins.chemin_fragment_image)
-    nuanceurs[IDNuanceur.Image].nom = "image"
-    nuanceurs[IDNuanceur.Id] = crée_nuanceur_depuis_fichier(chemins.chemin_vertex_id, chemins.chemin_fragment_id)
-    nuanceurs[IDNuanceur.Id].nom = "id"
+    tableau_redimensionne(ctx.nuanceurs, IDNuanceur.nombre_éléments);
+    nuanceurs[IDNuanceur.Texte] = crée_nuanceur_depuis_fichier(chemins.chemin_vertex_texte, chemins.chemin_fragment_texte);
+    nuanceurs[IDNuanceur.Texte].nom = "texte";
+    nuanceurs[IDNuanceur.Basique] = crée_nuanceur_depuis_fichier(chemins.chemin_vertex_base, chemins.chemin_fragment_base);
+    nuanceurs[IDNuanceur.Basique].nom = "base";
+    nuanceurs[IDNuanceur.Image] = crée_nuanceur_depuis_fichier(chemins.chemin_vertex_image, chemins.chemin_fragment_image);
+    nuanceurs[IDNuanceur.Image].nom = "image";
+    nuanceurs[IDNuanceur.Id] = crée_nuanceur_depuis_fichier(chemins.chemin_vertex_id, chemins.chemin_fragment_id);
+    nuanceurs[IDNuanceur.Id].nom = "id";
 
-    fonte_globale = donne_fonte_mono_défaut(14.0)
+    fonte_globale = donne_fonte_mono_défaut(14.0);
 
-    glGenVertexArrays(1, *données_tampon_xcnu.va_immédiat)
-    glGenBuffers(1, *données_tampon_xcnu.vbo_immédiat)
-    glGenBuffers(1, *données_tampon_xcnu.vbo_immédiat_index)
-    vérifie_erreur("création des VBO immédiats")
+    glGenVertexArrays(1, *données_tampon_xcnu.va_immédiat);
+    glGenBuffers(1, *données_tampon_xcnu.vbo_immédiat);
+    glGenBuffers(1, *données_tampon_xcnu.vbo_immédiat_index);
+    vérifie_erreur("création des VBO immédiats");
 
-    glGenVertexArrays(1, *données_tampon_id.va_immédiat)
-    glGenBuffers(1, *données_tampon_id.vbo_immédiat)
-    glGenBuffers(1, *données_tampon_id.vbo_immédiat_index)
-    vérifie_erreur("création des VBO immédiats (ID)")
+    glGenVertexArrays(1, *données_tampon_id.va_immédiat);
+    glGenBuffers(1, *données_tampon_id.vbo_immédiat);
+    glGenBuffers(1, *données_tampon_id.vbo_immédiat_index);
+    vérifie_erreur("création des VBO immédiats (ID)");
 }
 
 issitialise_ctx :: fonc (empl ctx: *DonnéesContexteGL)
 {
-    utilisateurs -= 1
+    utilisateurs -= 1;
     si utilisateurs > 0 {
-        retourne
+        retourne;
     }
 
-    glDeleteVertexArrays(1, *données_tampon_xcnu.va_immédiat)
-    glDeleteBuffers(1, *données_tampon_xcnu.vbo_immédiat)
-    glDeleteBuffers(1, *données_tampon_xcnu.vbo_immédiat_index)
+    glDeleteVertexArrays(1, *données_tampon_xcnu.va_immédiat);
+    glDeleteBuffers(1, *données_tampon_xcnu.vbo_immédiat);
+    glDeleteBuffers(1, *données_tampon_xcnu.vbo_immédiat_index);
 
-    glDeleteVertexArrays(1, *données_tampon_id.va_immédiat)
-    glDeleteBuffers(1, *données_tampon_id.vbo_immédiat)
-    glDeleteBuffers(1, *données_tampon_id.vbo_immédiat_index)
+    glDeleteVertexArrays(1, *données_tampon_id.va_immédiat);
+    glDeleteBuffers(1, *données_tampon_id.vbo_immédiat);
+    glDeleteBuffers(1, *données_tampon_id.vbo_immédiat_index);
 
     si fonte_globale {
-        détruit_fonte(fonte_globale)
-        fonte_globale = nul
+        détruit_fonte(fonte_globale);
+        fonte_globale = nul;
     }
 
     pour ctx.nuanceurs {
-        détruit_nuanceur(it)
+        détruit_nuanceur(it);
     }
 
-    déloge(ctx.nuanceurs)
+    déloge(ctx.nuanceurs);
 
     si ctx == *__ctx_défaut {
-        détruit(__frame_buffers)
+        détruit(__frame_buffers);
     }
 }
 
 donne_contexte_courant :: fonc () -> *DonnéesContexteGL
 {
-    retourne __ctx_courant
+    retourne __ctx_courant;
 }
 
 définis_contexte_courant :: fonc (ctx: *DonnéesContexteGL)
 {
-    __ctx_courant = ctx
+    __ctx_courant = ctx;
 }
 
 enregistre_nuanceur_personnalisé :: fonc (source_vertex: chaine, source_fragment: chaine) -> IDNuanceur
 {
-    résultat := __ctx_courant.nuanceurs.taille comme z32 comme IDNuanceur
-    nuanceur := crée_nuanceur_depuis_sources(source_vertex, source_fragment)
-    vérifie_erreur(#nom_de_cette_fonction)
-    tableau_ajoute(*__ctx_courant.nuanceurs, nuanceur)
-    retourne résultat
+    résultat := __ctx_courant.nuanceurs.taille comme z32 comme IDNuanceur;
+    nuanceur := crée_nuanceur_depuis_sources(source_vertex, source_fragment);
+    vérifie_erreur(#nom_de_cette_fonction);
+    tableau_ajoute(*__ctx_courant.nuanceurs, nuanceur);
+    retourne résultat;
 }
 
 /** \} */
@@ -394,14 +394,14 @@ réinitialise_données :: fonc ()
 {
     empl __ctx_courant;
 
-    dernier_nuanceur = (-1 comme IDNuanceur)
-    dernière_fonte = nul
+    dernier_nuanceur = (-1 comme IDNuanceur);
+    dernière_fonte = nul;
     pour fontes_utilisées {
         si glIsTexture(it.atlas.id) {
-            glDeleteTextures(1, *it.atlas.id)
+            glDeleteTextures(1, *it.atlas.id);
         }
     }
-    fontes_utilisées.taille = 0
+    fontes_utilisées.taille = 0;
 }
 
 commence_immédiat :: fonc (mode: ModeImmédiat, id_nuanceur: IDNuanceur, fonte : *Fonte = nul)
@@ -409,17 +409,17 @@ commence_immédiat :: fonc (mode: ModeImmédiat, id_nuanceur: IDNuanceur, fonte 
     empl __ctx_courant;
 
     si mode != dernier_mode || id_nuanceur != dernier_nuanceur || fonte != dernière_fonte || données_tampon_xcnu.num_sommets == MAX_SOMMETS_IMMÉDIAT {
-        termine_immédiat()
+        termine_immédiat();
 
-        dernier_mode = mode
-        dernier_nuanceur = id_nuanceur
-        dernière_fonte = fonte
+        dernier_mode = mode;
+        dernier_nuanceur = id_nuanceur;
+        dernière_fonte = fonte;
     }
 }
 
 ModeImmédiat :: énum {
-    TRIANGLES
-    LIGNES
+    TRIANGLES;
+    LIGNES;
 }
 
 termine_immédiat :: fonc ()
@@ -427,100 +427,100 @@ termine_immédiat :: fonc ()
     empl __ctx_courant;
 
     si !données_tampon_xcnu.num_sommets {
-        retourne
+        retourne;
     }
 
     si dernier_nuanceur == (-1 comme IDNuanceur) {
         si données_tampon_xcnu.num_sommets {
-            panique("tentative d'utiliser termine_immédiat alors qu'aucun nuanceur n'est installé")
+            panique("tentative d'utiliser termine_immédiat alors qu'aucun nuanceur n'est installé");
         }
 
-        données_tampon_xcnu.num_sommets = 0
-        retourne
+        données_tampon_xcnu.num_sommets = 0;
+        retourne;
     }
 
-    nuanceur := nuanceurs[dernier_nuanceur]
+    nuanceur := nuanceurs[dernier_nuanceur];
 
-    s : []FormatVertexXCNU = données_tampon_xcnu.sommets_immédiat
-    compte := données_tampon_xcnu.num_sommets comme n64
+    s : []FormatVertexXCNU = données_tampon_xcnu.sommets_immédiat;
+    compte := données_tampon_xcnu.num_sommets comme n64;
 
-    glUseProgram(nuanceur.programme)
-    vérifie_erreur("termine_immédiat.glUseProgram")
+    glUseProgram(nuanceur.programme);
+    vérifie_erreur("termine_immédiat.glUseProgram");
 
-    glBindVertexArray(données_tampon_xcnu.va_immédiat)
+    glBindVertexArray(données_tampon_xcnu.va_immédiat);
 
-    glBindBuffer(GL_ARRAY_BUFFER, données_tampon_xcnu.vbo_immédiat)
-    vérifie_erreur("termine_immédiat.glBindBuffer")
+    glBindBuffer(GL_ARRAY_BUFFER, données_tampon_xcnu.vbo_immédiat);
+    vérifie_erreur("termine_immédiat.glBindBuffer");
 
     si __ctx_courant.caméra_2d {
-        __ctx_courant.caméra_2d.ajourne_matrice()
-        définis_uniforme(nuanceur.loc_projection, __ctx_courant.caméra_2d.modèle_vue_projection())
+        __ctx_courant.caméra_2d.ajourne_matrice();
+        définis_uniforme(nuanceur.loc_projection, __ctx_courant.caméra_2d.modèle_vue_projection());
     }
     sinon si __ctx_courant.caméra_3d {
-        __ctx_courant.caméra_3d.ajourne()
-        MVP := __ctx_courant.caméra_3d.projection * __ctx_courant.caméra_3d.MV()
-        définis_uniforme(nuanceur.loc_projection, MVP)
+        __ctx_courant.caméra_3d.ajourne();
+        MVP := __ctx_courant.caméra_3d.projection * __ctx_courant.caméra_3d.MV();
+        définis_uniforme(nuanceur.loc_projection, MVP);
     }
     sinon {
-        définis_uniforme(nuanceur.loc_projection, projection)
+        définis_uniforme(nuanceur.loc_projection, projection);
     }
 
-    installe_format_xcnu(nuanceur)
+    installe_format_xcnu(nuanceur);
 
     saufsi données_tampon_xcnu.données_tampon_initialisées {
-        glBufferData(GL_ARRAY_BUFFER, ((MAX_SOMMETS_IMMÉDIAT comme n32) * taille_de(FormatVertexXCNU)) comme GLsizei, s.pointeur, GL_DYNAMIC_DRAW)
-        vérifie_erreur("termine_immédiat.glBufferData")
-        données_tampon_xcnu.données_tampon_initialisées = vrai
+        glBufferData(GL_ARRAY_BUFFER, ((MAX_SOMMETS_IMMÉDIAT comme n32) * taille_de(FormatVertexXCNU)) comme GLsizei, s.pointeur, GL_DYNAMIC_DRAW);
+        vérifie_erreur("termine_immédiat.glBufferData");
+        données_tampon_xcnu.données_tampon_initialisées = vrai;
     }
 
-    glBufferSubData(GL_ARRAY_BUFFER, 0, (compte * taille_de(FormatVertexXCNU)) comme GLsizei, s.pointeur)
-    vérifie_erreur("termine_immédiat_id.glBufferSubData")
+    glBufferSubData(GL_ARRAY_BUFFER, 0, (compte * taille_de(FormatVertexXCNU)) comme GLsizei, s.pointeur);
+    vérifie_erreur("termine_immédiat_id.glBufferSubData");
 
     si dernier_mode == ModeImmédiat.TRIANGLES {
-        glDrawArrays(GL_TRIANGLES, 0, compte comme GLsizei)
+        glDrawArrays(GL_TRIANGLES, 0, compte comme GLsizei);
     }
     sinon {
-        glDrawArrays(GL_LINES, 0, compte comme GLsizei)
+        glDrawArrays(GL_LINES, 0, compte comme GLsizei);
     }
 
     // nettoyage
-    glUseProgram(0)
-    glBindVertexArray(0)
-    données_tampon_xcnu.num_sommets = 0
+    glUseProgram(0);
+    glBindVertexArray(0);
+    données_tampon_xcnu.num_sommets = 0;
 
-    vérifie_erreur("termine_immédiat")
+    vérifie_erreur("termine_immédiat");
 }
 
 installe_format_xcnu :: fonc (nuanceur: *NuanceurGL)
 {
-    stride := taille_de(FormatVertexXCNU)
+    stride := taille_de(FormatVertexXCNU);
 
     si nuanceur.loc_position != -1 {
-        glVertexAttribPointer(nuanceur.loc_position comme GLuint, 3, GL_FLOAT, GL_FALSE comme GLboolean, stride comme GLsizei, DÉCALAGE_SOMMETS comme *rien)
-        vérifie_erreur("glVertexAttribPointer nuanceur.loc_position")
-        glEnableVertexAttribArray(nuanceur.loc_position comme GLuint)
-        vérifie_erreur("glEnableVertexAttribArray nuanceur.loc_position")
+        glVertexAttribPointer(nuanceur.loc_position comme GLuint, 3, GL_FLOAT, GL_FALSE comme GLboolean, stride comme GLsizei, DÉCALAGE_SOMMETS comme *rien);
+        vérifie_erreur("glVertexAttribPointer nuanceur.loc_position");
+        glEnableVertexAttribArray(nuanceur.loc_position comme GLuint);
+        vérifie_erreur("glEnableVertexAttribArray nuanceur.loc_position");
     }
 
     si nuanceur.loc_couleur != -1 {
-        glVertexAttribPointer(nuanceur.loc_couleur comme GLuint, 4, GL_FLOAT, GL_FALSE comme GLboolean, stride comme GLsizei, DÉCALAGE_COULEUR comme *rien)
-        vérifie_erreur("glVertexAttribPointer nuanceur.loc_couleur")
-        glEnableVertexAttribArray(nuanceur.loc_couleur comme GLuint)
-        vérifie_erreur("glEnableVertexAttribArray nuanceur.loc_couleur")
+        glVertexAttribPointer(nuanceur.loc_couleur comme GLuint, 4, GL_FLOAT, GL_FALSE comme GLboolean, stride comme GLsizei, DÉCALAGE_COULEUR comme *rien);
+        vérifie_erreur("glVertexAttribPointer nuanceur.loc_couleur");
+        glEnableVertexAttribArray(nuanceur.loc_couleur comme GLuint);
+        vérifie_erreur("glEnableVertexAttribArray nuanceur.loc_couleur");
     }
 
     si nuanceur.loc_normal != -1 {
-        glEnableVertexAttribArray(nuanceur.loc_normal comme GLuint)
-        vérifie_erreur("glEnableVertexAttribArray nuanceur.loc_normal")
-        glVertexAttribPointer(nuanceur.loc_normal comme GLuint, 3, GL_FLOAT, GL_FALSE comme GLboolean, stride comme GLsizei, DÉCALAGE_NORMAL comme *rien)
-        vérifie_erreur("glVertexAttribPointer nuanceur.loc_normal")
+        glEnableVertexAttribArray(nuanceur.loc_normal comme GLuint);
+        vérifie_erreur("glEnableVertexAttribArray nuanceur.loc_normal");
+        glVertexAttribPointer(nuanceur.loc_normal comme GLuint, 3, GL_FLOAT, GL_FALSE comme GLboolean, stride comme GLsizei, DÉCALAGE_NORMAL comme *rien);
+        vérifie_erreur("glVertexAttribPointer nuanceur.loc_normal");
     }
 
     si nuanceur.loc_uv != -1 {
-        glEnableVertexAttribArray(nuanceur.loc_uv comme GLuint)
-        vérifie_erreur("glEnableVertexAttribArray nuanceur.loc_uv")
-        glVertexAttribPointer(nuanceur.loc_uv comme GLuint, 2, GL_FLOAT, GL_FALSE comme GLboolean, stride comme GLsizei, DÉCALAGE_UV comme *rien)
-        vérifie_erreur("glVertexAttribPointer nuanceur.loc_uv")
+        glEnableVertexAttribArray(nuanceur.loc_uv comme GLuint);
+        vérifie_erreur("glEnableVertexAttribArray nuanceur.loc_uv");
+        glVertexAttribPointer(nuanceur.loc_uv comme GLuint, 2, GL_FLOAT, GL_FALSE comme GLboolean, stride comme GLsizei, DÉCALAGE_UV comme *rien);
+        vérifie_erreur("glVertexAttribPointer nuanceur.loc_uv");
     }
 }
 
@@ -529,12 +529,12 @@ ajoute_sommets :: fonc (pos: Vec3, couleur: CouleurRVBA)
     empl __ctx_courant;
 
     si données_tampon_xcnu.num_sommets >= MAX_SOMMETS_IMMÉDIAT {
-        termine_immédiat()
+        termine_immédiat();
     }
 
-    données_tampon_xcnu.sommets_immédiat[données_tampon_xcnu.num_sommets].position = pos
-    données_tampon_xcnu.sommets_immédiat[données_tampon_xcnu.num_sommets].couleur = couleur
-    données_tampon_xcnu.num_sommets += 1
+    données_tampon_xcnu.sommets_immédiat[données_tampon_xcnu.num_sommets].position = pos;
+    données_tampon_xcnu.sommets_immédiat[données_tampon_xcnu.num_sommets].couleur = couleur;
+    données_tampon_xcnu.num_sommets += 1;
 }
 
 ajoute_sommets :: fonc (pos: Vec3, uv: Vec2, couleur: CouleurRVBA)
@@ -542,13 +542,13 @@ ajoute_sommets :: fonc (pos: Vec3, uv: Vec2, couleur: CouleurRVBA)
     empl __ctx_courant;
 
     si données_tampon_xcnu.num_sommets >= MAX_SOMMETS_IMMÉDIAT {
-        termine_immédiat()
+        termine_immédiat();
     }
 
-    données_tampon_xcnu.sommets_immédiat[données_tampon_xcnu.num_sommets].position = pos
-    données_tampon_xcnu.sommets_immédiat[données_tampon_xcnu.num_sommets].couleur = couleur
-    données_tampon_xcnu.sommets_immédiat[données_tampon_xcnu.num_sommets].uv = uv
-    données_tampon_xcnu.num_sommets += 1
+    données_tampon_xcnu.sommets_immédiat[données_tampon_xcnu.num_sommets].position = pos;
+    données_tampon_xcnu.sommets_immédiat[données_tampon_xcnu.num_sommets].couleur = couleur;
+    données_tampon_xcnu.sommets_immédiat[données_tampon_xcnu.num_sommets].uv = uv;
+    données_tampon_xcnu.num_sommets += 1;
 }
 
 /** \} */
@@ -559,9 +559,9 @@ ajoute_sommets :: fonc (pos: Vec3, uv: Vec2, couleur: CouleurRVBA)
 
 triangle_immédiat :: fonc (p0: Vec3, p1: Vec3, p2: Vec3, couleur: CouleurRVBA)
 {
-    ajoute_sommets(p0, couleur)
-    ajoute_sommets(p1, couleur)
-    ajoute_sommets(p2, couleur)
+    ajoute_sommets(p0, couleur);
+    ajoute_sommets(p1, couleur);
+    ajoute_sommets(p2, couleur);
 }
 
 /** \} */
@@ -572,34 +572,34 @@ triangle_immédiat :: fonc (p0: Vec3, p1: Vec3, p2: Vec3, couleur: CouleurRVBA)
 
 quad_immédiat :: fonc (x: r32, y: r32, largeur: r32, hauteur: r32, couleur: CouleurRVBA)
 {
-    p0 := Vec3(x = x, y = y)
-    p1 := Vec3(x = x + largeur, y = y)
-    p2 := Vec3(x = x + largeur, y = y + hauteur)
-    p3 := Vec3(x = x, y = y + hauteur)
+    p0 := Vec3(x = x, y = y);
+    p1 := Vec3(x = x + largeur, y = y);
+    p2 := Vec3(x = x + largeur, y = y + hauteur);
+    p3 := Vec3(x = x, y = y + hauteur);
 
-    quad_immédiat(p0, p1, p2, p3, couleur)
+    quad_immédiat(p0, p1, p2, p3, couleur);
 }
 
 quad_immédiat :: fonc (p0: Vec3, p1: Vec3, p2: Vec3, p3: Vec3, couleur: CouleurRVBA)
 {
-    ajoute_sommets(p0, couleur)
-    ajoute_sommets(p1, couleur)
-    ajoute_sommets(p2, couleur)
+    ajoute_sommets(p0, couleur);
+    ajoute_sommets(p1, couleur);
+    ajoute_sommets(p2, couleur);
 
-    ajoute_sommets(p0, couleur)
-    ajoute_sommets(p2, couleur)
-    ajoute_sommets(p3, couleur)
+    ajoute_sommets(p0, couleur);
+    ajoute_sommets(p2, couleur);
+    ajoute_sommets(p3, couleur);
 }
 
 quad_immédiat :: fonc (p0: Vec3, p1: Vec3, p2: Vec3, p3: Vec3, uv0: Vec2, uv1: Vec2, uv2: Vec2, uv3: Vec2, couleur: CouleurRVBA)
 {
-    ajoute_sommets(p0, uv0, couleur)
-    ajoute_sommets(p1, uv1, couleur)
-    ajoute_sommets(p2, uv2, couleur)
+    ajoute_sommets(p0, uv0, couleur);
+    ajoute_sommets(p1, uv1, couleur);
+    ajoute_sommets(p2, uv2, couleur);
 
-    ajoute_sommets(p0, uv0, couleur)
-    ajoute_sommets(p2, uv2, couleur)
-    ajoute_sommets(p3, uv3, couleur)
+    ajoute_sommets(p0, uv0, couleur);
+    ajoute_sommets(p2, uv2, couleur);
+    ajoute_sommets(p3, uv3, couleur);
 }
 
 /** \} */
@@ -610,11 +610,11 @@ quad_immédiat :: fonc (p0: Vec3, p1: Vec3, p2: Vec3, p3: Vec3, uv0: Vec2, uv1: 
 
 segment_immédiat :: fonc (x0: r32, y0: r32, x1: r32, y1: r32, couleur: CouleurRVBA)
 {
-    p0 := Vec3(x0, y0)
-    p1 := Vec3(x1, y1)
+    p0 := Vec3(x0, y0);
+    p1 := Vec3(x1, y1);
 
-    ajoute_sommets(p0, couleur)
-    ajoute_sommets(p1, couleur)
+    ajoute_sommets(p0, couleur);
+    ajoute_sommets(p1, couleur);
 }
 
 /** \} */
@@ -624,57 +624,57 @@ segment_immédiat :: fonc (x0: r32, y0: r32, x1: r32, y1: r32, couleur: CouleurR
  * \{ */
 
 // À FAIRE : trouve une manière de mieux déterminer ceci.
-NOMBRE_SEGMENTS_CERCLE :: 64
+NOMBRE_SEGMENTS_CERCLE :: 64;
 
 ellipse_immédiat :: fonc (ellipse: Ellipse(r32), couleur: CouleurRVBA, ajoute_centre: bool)
 {
-    ellipse_immédiat(ellipse.x, ellipse.y, ellipse.rayon_x, ellipse.rayon_y, couleur, ajoute_centre)
+    ellipse_immédiat(ellipse.x, ellipse.y, ellipse.rayon_x, ellipse.rayon_y, couleur, ajoute_centre);
 }
 
 ellipse_immédiat :: fonc (cx: r32, cy: r32, rx: r32, ry: r32, couleur: CouleurRVBA, ajoute_centre: bool)
 {
-    segs := NOMBRE_SEGMENTS_CERCLE
-    phi := 0.0
-    cercle_immédiat_impl(cx, cy, rx, ry, segs, phi, couleur, ajoute_centre)
+    segs := NOMBRE_SEGMENTS_CERCLE;
+    phi := 0.0;
+    cercle_immédiat_impl(cx, cy, rx, ry, segs, phi, couleur, ajoute_centre);
 }
 
 cercle_immédiat :: fonc (cx: r32, cy: r32, r: r32, couleur: CouleurRVBA, ajoute_centre: bool)
 {
-    segs := NOMBRE_SEGMENTS_CERCLE
-    phi := 0.0
-    cercle_immédiat_impl(cx, cy, r, r, segs, phi, couleur, ajoute_centre)
+    segs := NOMBRE_SEGMENTS_CERCLE;
+    phi := 0.0;
+    cercle_immédiat_impl(cx, cy, r, r, segs, phi, couleur, ajoute_centre);
 }
 
 quadrant_cercle_immédiat :: fonc (cx: r32, cy: r32, r: r32, quadrant: z32, couleur: CouleurRVBA, ajoute_centre: bool)
 {
-    segs := NOMBRE_SEGMENTS_CERCLE / 4
-    phi := quadrant comme r32 * (Constantes(r32).PI / 2.0)
-    cercle_immédiat_impl(cx, cy, r, r, segs, phi, couleur, ajoute_centre)
+    segs := NOMBRE_SEGMENTS_CERCLE / 4;
+    phi := quadrant comme r32 * (Constantes(r32).PI / 2.0);
+    cercle_immédiat_impl(cx, cy, r, r, segs, phi, couleur, ajoute_centre);
 }
 
 cercle_immédiat_impl :: fonc (cx: r32, cy: r32, rx: r32, ry: r32, segs: z32, phi: r32, couleur: CouleurRVBA, ajoute_centre: bool)
 {
-    p0 := Vec3(cx, cy, 0.0)
-    phi_delta := Constantes(r32).TAU / segs comme r32
+    p0 := Vec3(cx, cy, 0.0);
+    phi_delta := Constantes(r32).TAU / segs comme r32;
 
     pour segs {
-        ca0 := cx + cosinus(phi) * rx
-        sa0 := cy + sinus(phi) * ry
+        ca0 := cx + cosinus(phi) * rx;
+        sa0 := cy + sinus(phi) * ry;
 
-        phi += phi_delta
+        phi += phi_delta;
 
-        ca1 := cx + cosinus(phi) * rx
-        sa1 := cy + sinus(phi) * ry
+        ca1 := cx + cosinus(phi) * rx;
+        sa1 := cy + sinus(phi) * ry;
 
-        p1 := Vec3(ca0, sa0, 0.0)
-        p2 := Vec3(ca1, sa1, 0.0)
+        p1 := Vec3(ca0, sa0, 0.0);
+        p2 := Vec3(ca1, sa1, 0.0);
 
         si ajoute_centre {
-            ajoute_sommets(p0, couleur)
+            ajoute_sommets(p0, couleur);
         }
 
-        ajoute_sommets(p1, couleur)
-        ajoute_sommets(p2, couleur)
+        ajoute_sommets(p1, couleur);
+        ajoute_sommets(p2, couleur);
     }
 }
 
@@ -711,126 +711,126 @@ quad_arrondi_immédiat :: fonc (pos_x: r32, pos_y: r32, largeur: r32, hauteur: r
      *  0,0 --- 1,0 --- 2,4 --- 3,4
      */
 
-    rayon_sûr := min(largeur * 0.5, hauteur * 0.5)
-    restreint_rayons(*rayons, rayon_sûr)
+    rayon_sûr := min(largeur * 0.5, hauteur * 0.5);
+    restreint_rayons(*rayons, rayon_sûr);
 
-    points_x: [8]r32 = ---
-    points_y: [8]r32 = ---
+    points_x: [8]r32 = ---;
+    points_y: [8]r32 = ---;
 
     /* Coordonnées x pour les deux lignes du bas. */
-    points_x[0] = pos_x
-    points_x[1] = pos_x + rayons.bas_gauche
-    points_x[2] = pos_x + largeur - rayons.bas_droite
-    points_x[3] = pos_x + largeur
+    points_x[0] = pos_x;
+    points_x[1] = pos_x + rayons.bas_gauche;
+    points_x[2] = pos_x + largeur - rayons.bas_droite;
+    points_x[3] = pos_x + largeur;
 
     /* Coordonnées x pour les deux lignes du haut */
-    points_x[4] = pos_x
-    points_x[5] = pos_x + rayons.haut_gauche
-    points_x[6] = pos_x + largeur - rayons.haut_droite
-    points_x[7] = pos_x + largeur
+    points_x[4] = pos_x;
+    points_x[5] = pos_x + rayons.haut_gauche;
+    points_x[6] = pos_x + largeur - rayons.haut_droite;
+    points_x[7] = pos_x + largeur;
 
     /* Coordonnées y pour les deux colonnes de gauche. */
-    points_y[0] = pos_y
-    points_y[1] = pos_y + rayons.bas_gauche
-    points_y[2] = pos_y + hauteur - rayons.haut_gauche
-    points_y[3] = pos_y + hauteur
+    points_y[0] = pos_y;
+    points_y[1] = pos_y + rayons.bas_gauche;
+    points_y[2] = pos_y + hauteur - rayons.haut_gauche;
+    points_y[3] = pos_y + hauteur;
 
     /* Coordonnées y pour les deux colonnes de droite. */
-    points_y[4] = pos_y
-    points_y[5] = pos_y + rayons.bas_droite
-    points_y[6] = pos_y + hauteur - rayons.haut_droite
-    points_y[7] = pos_y + hauteur
+    points_y[4] = pos_y;
+    points_y[5] = pos_y + rayons.bas_droite;
+    points_y[6] = pos_y + hauteur - rayons.haut_droite;
+    points_y[7] = pos_y + hauteur;
 
-    points: [16]Vec3 = ---
+    points: [16]Vec3 = ---;
 
     /* Ligne du bas */
-    points[0] = Vec3(x = points_x[0], y = points_y[0])
-    points[1] = Vec3(x = points_x[1], y = points_y[0])
-    points[2] = Vec3(x = points_x[2], y = points_y[4])
-    points[3] = Vec3(x = points_x[3], y = points_y[4])
+    points[0] = Vec3(x = points_x[0], y = points_y[0]);
+    points[1] = Vec3(x = points_x[1], y = points_y[0]);
+    points[2] = Vec3(x = points_x[2], y = points_y[4]);
+    points[3] = Vec3(x = points_x[3], y = points_y[4]);
 
-    points[4] = Vec3(x = points_x[0], y = points_y[1])
-    points[5] = Vec3(x = points_x[1], y = points_y[1])
-    points[6] = Vec3(x = points_x[2], y = points_y[5])
-    points[7] = Vec3(x = points_x[3], y = points_y[5])
+    points[4] = Vec3(x = points_x[0], y = points_y[1]);
+    points[5] = Vec3(x = points_x[1], y = points_y[1]);
+    points[6] = Vec3(x = points_x[2], y = points_y[5]);
+    points[7] = Vec3(x = points_x[3], y = points_y[5]);
 
     /* Ligne du haut */
-    points[8] = Vec3(x = points_x[4], y = points_y[2])
-    points[9] = Vec3(x = points_x[5], y = points_y[2])
-    points[10] = Vec3(x = points_x[6], y = points_y[6])
-    points[11] = Vec3(x = points_x[7], y = points_y[6])
+    points[8] = Vec3(x = points_x[4], y = points_y[2]);
+    points[9] = Vec3(x = points_x[5], y = points_y[2]);
+    points[10] = Vec3(x = points_x[6], y = points_y[6]);
+    points[11] = Vec3(x = points_x[7], y = points_y[6]);
 
-    points[12] = Vec3(x = points_x[4], y = points_y[3])
-    points[13] = Vec3(x = points_x[5], y = points_y[3])
-    points[14] = Vec3(x = points_x[6], y = points_y[7])
-    points[15] = Vec3(x = points_x[7], y = points_y[7])
+    points[12] = Vec3(x = points_x[4], y = points_y[3]);
+    points[13] = Vec3(x = points_x[5], y = points_y[3]);
+    points[14] = Vec3(x = points_x[6], y = points_y[7]);
+    points[15] = Vec3(x = points_x[7], y = points_y[7]);
 
     /* Peinture des rectangles et quandrants de cercle. */
 
     /* Centre. */
-    quad_immédiat(points[5], points[6], points[10], points[9], couleur)
+    quad_immédiat(points[5], points[6], points[10], points[9], couleur);
     /* Rectangle gauche. */
-    quad_immédiat(points[4], points[5], points[9], points[8], couleur)
+    quad_immédiat(points[4], points[5], points[9], points[8], couleur);
     /* Rectangle droite. */
-    quad_immédiat(points[6], points[7], points[11], points[10], couleur)
+    quad_immédiat(points[6], points[7], points[11], points[10], couleur);
     /* Rectangle haut. */
-    quad_immédiat(points[9], points[10], points[14], points[13], couleur)
+    quad_immédiat(points[9], points[10], points[14], points[13], couleur);
     /* Rectangle bas. */
-    quad_immédiat(points[1], points[2], points[6], points[5], couleur)
+    quad_immédiat(points[1], points[2], points[6], points[5], couleur);
 
     si rayons.haut_gauche > 0.0 {
-        quadrant_cercle_immédiat(points[9].x, points[9].y, rayons.haut_gauche, 1, couleur, vrai)
+        quadrant_cercle_immédiat(points[9].x, points[9].y, rayons.haut_gauche, 1, couleur, vrai);
     }
     sinon {
-        quad_immédiat(points[8], points[9], points[13], points[12], couleur)
+        quad_immédiat(points[8], points[9], points[13], points[12], couleur);
     }
 
     si rayons.haut_droite > 0.0 {
-        quadrant_cercle_immédiat(points[10].x, points[10].y, rayons.haut_droite, 0, couleur, vrai)
+        quadrant_cercle_immédiat(points[10].x, points[10].y, rayons.haut_droite, 0, couleur, vrai);
     }
     sinon {
-        quad_immédiat(points[10], points[11], points[15], points[14], couleur)
+        quad_immédiat(points[10], points[11], points[15], points[14], couleur);
     }
 
     si rayons.bas_gauche > 0.0 {
-        quadrant_cercle_immédiat(points[5].x, points[5].y, rayons.bas_gauche, 2, couleur, vrai)
+        quadrant_cercle_immédiat(points[5].x, points[5].y, rayons.bas_gauche, 2, couleur, vrai);
     }
     sinon {
-        quad_immédiat(points[0], points[1], points[5], points[4], couleur)
+        quad_immédiat(points[0], points[1], points[5], points[4], couleur);
     }
 
     si rayons.bas_droite > 0.0 {
-        quadrant_cercle_immédiat(points[6].x, points[6].y, rayons.bas_droite, 3, couleur, vrai)
+        quadrant_cercle_immédiat(points[6].x, points[6].y, rayons.bas_droite, 3, couleur, vrai);
     }
     sinon {
-        quad_immédiat(points[2], points[3], points[7], points[6], couleur)
+        quad_immédiat(points[2], points[3], points[7], points[6], couleur);
     }
 }
 
 contour_quad_arrondi_immédiat :: fonc (pos_x: r32, pos_y: r32, largeur: r32, hauteur: r32, rayon: r32, couleur: CouleurRVBA)
 {
-    px := pos_x + rayon
-    py := pos_y + rayon
-    tx := largeur - 2.0 * rayon
-    ty := hauteur - 2.0 * rayon
+    px := pos_x + rayon;
+    py := pos_y + rayon;
+    tx := largeur - 2.0 * rayon;
+    ty := hauteur - 2.0 * rayon;
 
     /* Haut. */
-    segment_immédiat(px, pos_y, px + tx, pos_y, couleur)
+    segment_immédiat(px, pos_y, px + tx, pos_y, couleur);
     /* Bas. */
-    segment_immédiat(px, pos_y + hauteur, px + tx, pos_y + hauteur, couleur)
+    segment_immédiat(px, pos_y + hauteur, px + tx, pos_y + hauteur, couleur);
     /* Gauche. */
-    segment_immédiat(pos_x, py, pos_x, py + ty, couleur)
+    segment_immédiat(pos_x, py, pos_x, py + ty, couleur);
     /* Droite. */
-    segment_immédiat(pos_x + largeur, py, pos_x + largeur, py + ty, couleur)
+    segment_immédiat(pos_x + largeur, py, pos_x + largeur, py + ty, couleur);
 
     /* Haut gauche. */
-    quadrant_cercle_immédiat(px, py + ty, rayon, 1, couleur, faux)
+    quadrant_cercle_immédiat(px, py + ty, rayon, 1, couleur, faux);
     /* Haut droite. */
-    quadrant_cercle_immédiat(px + tx, py + ty, rayon, 0, couleur, faux)
+    quadrant_cercle_immédiat(px + tx, py + ty, rayon, 0, couleur, faux);
     /* Bas gauche. */
-    quadrant_cercle_immédiat(px, py, rayon, 2, couleur, faux)
+    quadrant_cercle_immédiat(px, py, rayon, 2, couleur, faux);
     /* Bas droite. */
-    quadrant_cercle_immédiat(px + tx, py, rayon, 3, couleur, faux)
+    quadrant_cercle_immédiat(px + tx, py, rayon, 3, couleur, faux);
 }
 
 /** \} */
@@ -841,16 +841,16 @@ contour_quad_arrondi_immédiat :: fonc (pos_x: r32, pos_y: r32, largeur: r32, ha
 
 donne_paramètres_texture_atlas_fonte :: fonc (atlas: *texture_atlas_t) -> ParamètresTexture2D
 {
-    résultat: ParamètresTexture2D
-    résultat.largeur = atlas.width comme z32
-    résultat.hauteur = atlas.height comme z32
-    résultat.données = atlas.data.pointeur
-    résultat.bordure = 0
-    résultat.type = GL_UNSIGNED_BYTE
-    résultat.format = GL_RED
-    résultat.wrap_s = GL_CLAMP_TO_EDGE
-    résultat.wrap_t = GL_CLAMP_TO_EDGE
-    retourne résultat
+    résultat: ParamètresTexture2D;
+    résultat.largeur = atlas.width comme z32;
+    résultat.hauteur = atlas.height comme z32;
+    résultat.données = atlas.data.pointeur;
+    résultat.bordure = 0;
+    résultat.type = GL_UNSIGNED_BYTE;
+    résultat.format = GL_RED;
+    résultat.wrap_s = GL_CLAMP_TO_EDGE;
+    résultat.wrap_t = GL_CLAMP_TO_EDGE;
+    retourne résultat;
 }
 
 /*
@@ -862,73 +862,73 @@ donne_paramètres_texture_atlas_fonte :: fonc (atlas: *texture_atlas_t) -> Param
 */
 dessine_texte :: fonc (fonte: *Fonte, texte: chaine, x: r32, y: r32, couleur: CouleurRVBA)
 {
-    glyphes := donne_glyphes(fonte, texte)
-    dessine_glyphes(glyphes, fonte, x, y, couleur, nul)
+    glyphes := donne_glyphes(fonte, texte);
+    dessine_glyphes(glyphes, fonte, x, y, couleur, nul);
 }
 
 dessine_texte :: fonc (fonte: *Fonte, texte: ChaineUTF16, x: r32, y: r32, couleur: CouleurRVBA, effets: *EffetsTexte)
 {
-    glyphes := donne_glyphes(fonte, texte)
-    dessine_glyphes(glyphes, fonte, x, y, couleur, effets)
+    glyphes := donne_glyphes(fonte, texte);
+    dessine_glyphes(glyphes, fonte, x, y, couleur, effets);
 }
 
 dessine_texte :: fonc (fonte: *Fonte, texte: ChaineUTF32, x: r32, y: r32, couleur: CouleurRVBA, effets: *EffetsTexte)
 {
-    glyphes := donne_glyphes(fonte, texte)
-    dessine_glyphes(glyphes, fonte, x, y, couleur, effets)
+    glyphes := donne_glyphes(fonte, texte);
+    dessine_glyphes(glyphes, fonte, x, y, couleur, effets);
 }
 
 dessine_glyphes :: fonc (glyphes: []*texture_glyph_t, fonte: *Fonte, x: r32, y: r32, couleur: CouleurRVBA, effets: *EffetsTexte)
 {
     empl __ctx_courant;
-    nuanceur_texte := nuanceurs[IDNuanceur.Texte]
+    nuanceur_texte := nuanceurs[IDNuanceur.Texte];
 
-    métriques := donne_métriques_fonte(fonte)
-    y -= métriques.jambage_inférieur
+    métriques := donne_métriques_fonte(fonte);
+    y -= métriques.jambage_inférieur;
 
-    commence_immédiat(ModeImmédiat.TRIANGLES, IDNuanceur.Texte, fonte)
+    commence_immédiat(ModeImmédiat.TRIANGLES, IDNuanceur.Texte, fonte);
 
     // ancienne_fonction_mélange: z32
     // glGetIntegerv(GL_BLEND_SRC_ALPHA, *ancienne_fonction_mélange)
     // diffère glBlendFunc(GL_SRC_ALPHA, ancienne_fonction_mélange comme n32)
-    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA)
+    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
     // gl_blend_est_actif := glIsEnabled(GL_BLEND) != 0
     // diffère saufsi gl_blend_est_actif { glDisable(GL_BLEND) }
-    glEnable(GL_BLEND)
+    glEnable(GL_BLEND);
 
-    garantis_texture_pour_atlas(fonte)
+    garantis_texture_pour_atlas(fonte);
 
-    glUseProgram(nuanceur_texte.programme)
+    glUseProgram(nuanceur_texte.programme);
 
-    glBindTexture(GL_TEXTURE_2D, fonte.atlas.id)
+    glBindTexture(GL_TEXTURE_2D, fonte.atlas.id);
 
-    définis_uniforme(nuanceur_texte.loc_atlas, 0 comme z32)
+    définis_uniforme(nuanceur_texte.loc_atlas, 0 comme z32);
 
-    caractère_nul := fonte.donne_glyphe_nul()
+    caractère_nul := fonte.donne_glyphe_nul();
 
-    dernier_caractère : *texture_glyph_t = nul
+    dernier_caractère : *texture_glyph_t = nul;
     pour glyphes {
-        kerning := it.donne_crénage_avec(dernier_caractère)
-        x += kerning
+        kerning := it.donne_crénage_avec(dernier_caractère);
+        x += kerning;
 
-        glyphe_immédiat(it, x, y, couleur)
+        glyphe_immédiat(it, x, y, couleur);
 
         si effets {
             si effets.surlignage {
-                surlignage_glyphe_immédiat(fonte, it, caractère_nul, x - kerning, y, effets.couleur_surlignage)
+                surlignage_glyphe_immédiat(fonte, it, caractère_nul, x - kerning, y, effets.couleur_surlignage);
             }
             si effets.souslignage {
-                souslignage_glyphe_immédiat(fonte, it, caractère_nul, x - kerning, y, effets.couleur_souslignage)
+                souslignage_glyphe_immédiat(fonte, it, caractère_nul, x - kerning, y, effets.couleur_souslignage);
             }
             si effets.barrage {
-                barrage_glyphe_immédiat(fonte, it, caractère_nul, x - kerning, y, effets.couleur_barrage)
+                barrage_glyphe_immédiat(fonte, it, caractère_nul, x - kerning, y, effets.couleur_barrage);
             }
         }
 
-        x += it.advance_x
+        x += it.advance_x;
 
-        dernier_caractère = it
+        dernier_caractère = it;
     }
 }
 
@@ -937,80 +937,80 @@ garantis_texture_pour_atlas :: fonc (fonte: *Fonte)
     empl __ctx_courant;
 
     saufsi glIsTexture(fonte.atlas.id) {
-        glGenTextures(1, *fonte.atlas.id)
-        tableau_ajoute(*fontes_utilisées, fonte)
-        fonte.atlas.dirty = 1
+        glGenTextures(1, *fonte.atlas.id);
+        tableau_ajoute(*fontes_utilisées, fonte);
+        fonte.atlas.dirty = 1;
     }
 
     si fonte.atlas.dirty {
-        params := donne_paramètres_texture_atlas_fonte(fonte.atlas)
-        définis_texture_2d(fonte.atlas.id, *params)
-        fonte.atlas.dirty = 0
+        params := donne_paramètres_texture_atlas_fonte(fonte.atlas);
+        définis_texture_2d(fonte.atlas.id, *params);
+        fonte.atlas.dirty = 0;
     }
 }
 
 glyphe_immédiat :: fonc (glyph: *texture_glyph_t, x: r32, y: r32, couleur: CouleurRVBA)
 {
     /* Arrondis les valeurs pour éviter d'interpoler ou rendre des données nulles (l'espace entre les glyphes). */
-    x0 := plancher(x + glyph.offset_x comme r32)
-    y0 := plancher(y + glyph.offset_y comme r32)
-    x1 := plancher(x0 + glyph.width comme r32)
-    y1 := plancher(y0 - glyph.height comme r32)
-    s0 := glyph.s0
-    t0 := glyph.t0
-    s1 := glyph.s1
-    t1 := glyph.t1
+    x0 := plancher(x + glyph.offset_x comme r32);
+    y0 := plancher(y + glyph.offset_y comme r32);
+    x1 := plancher(x0 + glyph.width comme r32);
+    y1 := plancher(y0 - glyph.height comme r32);
+    s0 := glyph.s0;
+    t0 := glyph.t0;
+    s1 := glyph.s1;
+    t1 := glyph.t1;
 
-    p0 := Vec3(x = x0, y = y0)
-    p1 := Vec3(x = x0, y = y1)
-    p2 := Vec3(x = x1, y = y1)
-    p3 := Vec3(x = x1, y = y0)
+    p0 := Vec3(x = x0, y = y0);
+    p1 := Vec3(x = x0, y = y1);
+    p2 := Vec3(x = x1, y = y1);
+    p3 := Vec3(x = x1, y = y0);
 
-    uv0 := Vec2(x = s0, y = t0)
-    uv1 := Vec2(x = s0, y = t1)
-    uv2 := Vec2(x = s1, y = t1)
-    uv3 := Vec2(x = s1, y = t0)
+    uv0 := Vec2(x = s0, y = t0);
+    uv1 := Vec2(x = s0, y = t1);
+    uv2 := Vec2(x = s1, y = t1);
+    uv3 := Vec2(x = s1, y = t0);
 
-    quad_immédiat(p0, p1, p2, p3, uv0, uv1, uv2, uv3, couleur)
+    quad_immédiat(p0, p1, p2, p3, uv0, uv1, uv2, uv3, couleur);
 }
 
 souslignage_glyphe_immédiat :: fonc (fonte: *Fonte, glyph: *texture_glyph_t, caractère_nul: *texture_glyph_t, x: r32, y: r32, couleur: CouleurRVBA)
 {
-    ligne_glyphe_immédiate(fonte, glyph, caractère_nul, x, y + fonte.underline_position, couleur)
+    ligne_glyphe_immédiate(fonte, glyph, caractère_nul, x, y + fonte.underline_position, couleur);
 }
 
 surlignage_glyphe_immédiat :: fonc (fonte: *Fonte, glyph: *texture_glyph_t, caractère_nul: *texture_glyph_t, x: r32, y: r32, couleur: CouleurRVBA)
 {
-    ligne_glyphe_immédiate(fonte, glyph, caractère_nul, x, y + fonte.ascender, couleur)
+    ligne_glyphe_immédiate(fonte, glyph, caractère_nul, x, y + fonte.ascender, couleur);
 }
 
 barrage_glyphe_immédiat :: fonc (fonte: *Fonte, glyph: *texture_glyph_t, caractère_nul: *texture_glyph_t, x: r32, y: r32, couleur: CouleurRVBA)
 {
-    ligne_glyphe_immédiate(fonte, glyph, caractère_nul, x, y + fonte.ascender * 0.33, couleur)
+    ligne_glyphe_immédiate(fonte, glyph, caractère_nul, x, y + fonte.ascender * 0.33, couleur);
 }
 
 ligne_glyphe_immédiate :: fonc (fonte: *Fonte, glyph: *texture_glyph_t, caractère_nul: *texture_glyph_t, x: r32, y: r32, couleur: CouleurRVBA)
 {
-    x0 := x
-    y0 := y
-    x1 := x0 + glyph.advance_x
-    y1 := y0 - fonte.underline_thickness
-    s0 := caractère_nul.s0
-    t0 := caractère_nul.t0
-    s1 := caractère_nul.s1
-    t1 := caractère_nul.t1
+    x0 := x;
+    y0 := y;
+    x1 := x0 + glyph.advance_x;
+    y1 := y0 - fonte.underline_thickness;
+    s0 := caractère_nul.s0;
+    t0 := caractère_nul.t0;
+    s1 := caractère_nul.s1;
+    t1 := caractère_nul.t1;
 
-    p0 := Vec3(x = x0, y = y0)
-    p1 := Vec3(x = x0, y = y1)
-    p2 := Vec3(x = x1, y = y1)
-    p3 := Vec3(x = x1, y = y0)
+    p0 := Vec3(x = x0, y = y0);
+    p1 := Vec3(x = x0, y = y1);
+    p2 := Vec3(x = x1, y = y1);
+    p3 := Vec3(x = x1, y = y0);
 
-    uv0 := Vec2(x = s0, y = t0)
-    uv1 := Vec2(x = s0, y = t1)
-    uv2 := Vec2(x = s1, y = t1)
-    uv3 := Vec2(x = s1, y = t0)
+    uv0 := Vec2(x = s0, y = t0);
+    uv1 := Vec2(x = s0, y = t1);
+    uv2 := Vec2(x = s1, y = t1);
+    uv3 := Vec2(x = s1, y = t0);
 
-    quad_immédiat(p0, p1, p2, p3, uv0, uv1, uv2, uv3, couleur)
+    quad_immédiat(p0, p1, p2, p3, uv0, uv1, uv2, uv3, couleur);
 }
 
 /** \} */
@@ -1021,96 +1021,96 @@ ligne_glyphe_immédiate :: fonc (fonte: *Fonte, glyph: *texture_glyph_t, caract�
 
 image_immédiat :: fonc (image: *NouvelleImage, rect_image: RectanglePosDim(r32), rect: RectanglePosDim(r32), paramètres: ParamètresRenduImage, teinte := CouleurRVBA(1.0, 1.0, 1.0, 1.0), id_nuanceur := IDNuanceur.Image)
 {
-    params := donne_paramètres_texture_pour_image(image, paramètres)
-    image_immédiat(*params, rect_image, rect, teinte, id_nuanceur)
+    params := donne_paramètres_texture_pour_image(image, paramètres);
+    image_immédiat(*params, rect_image, rect, teinte, id_nuanceur);
 }
 
 image_immédiat :: fonc (image: TamponImageGrise8Bit, rect_image: RectanglePosDim(r32), rect: RectanglePosDim(r32), paramètres: ParamètresRenduImage, id_nuanceur := IDNuanceur.Image)
 {
     /* À FAIRE : dessine en noir et blanc. */
-    params := donne_paramètres_texture_pour_image(image, paramètres)
-    image_immédiat(*params, rect_image, rect, id_nuanceur = id_nuanceur)
+    params := donne_paramètres_texture_pour_image(image, paramètres);
+    image_immédiat(*params, rect_image, rect, id_nuanceur = id_nuanceur);
 }
 
 image_immédiat :: fonc (image: TamponImageRVBA8Bit, rect_image: RectanglePosDim(r32), rect: RectanglePosDim(r32), paramètres: ParamètresRenduImage, id_nuanceur := IDNuanceur.Image)
 {
-    params := donne_paramètres_texture_pour_image(image, paramètres)
-    image_immédiat(*params, rect_image, rect, id_nuanceur = id_nuanceur)
+    params := donne_paramètres_texture_pour_image(image, paramètres);
+    image_immédiat(*params, rect_image, rect, id_nuanceur = id_nuanceur);
 }
 
 image_immédiat :: fonc (image: TamponImageRVBA32Bit, rect_image: RectanglePosDim(r32), rect: RectanglePosDim(r32), paramètres: ParamètresRenduImage, id_nuanceur := IDNuanceur.Image)
 {
-    params := donne_paramètres_texture_pour_image(image, paramètres)
-    image_immédiat(*params, rect_image, rect, id_nuanceur = id_nuanceur)
+    params := donne_paramètres_texture_pour_image(image, paramètres);
+    image_immédiat(*params, rect_image, rect, id_nuanceur = id_nuanceur);
 }
 
 image_immédiat :: fonc (params: *ParamètresTexture2D, rect_image: RectanglePosDim(r32), rect: RectanglePosDim(r32), teinte := CouleurRVBA(1.0, 1.0, 1.0, 1.0), id_nuanceur := IDNuanceur.Image)
 {
     empl __ctx_courant;
-    nuanceur_image := nuanceurs[id_nuanceur]
+    nuanceur_image := nuanceurs[id_nuanceur];
 
-    commence_immédiat(ModeImmédiat.TRIANGLES, id_nuanceur)
+    commence_immédiat(ModeImmédiat.TRIANGLES, id_nuanceur);
 
     // ancienne_fonction_mélange: z32
     // glGetIntegerv(GL_BLEND_SRC_ALPHA, *ancienne_fonction_mélange)
     // diffère glBlendFunc(GL_SRC_ALPHA, ancienne_fonction_mélange comme n32)
-    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA)
+    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
     // gl_blend_est_actif := glIsEnabled(GL_BLEND) != 0
     // diffère saufsi gl_blend_est_actif { glDisable(GL_BLEND) }
-    glEnable(GL_BLEND)
+    glEnable(GL_BLEND);
 
-    code_texture: n32
-    glGenTextures(1, *code_texture)
-    diffère glDeleteTextures(1, *code_texture)
-    définis_texture_2d(code_texture, params)
+    code_texture: n32;
+    glGenTextures(1, *code_texture);
+    diffère glDeleteTextures(1, *code_texture);
+    définis_texture_2d(code_texture, params);
 
-    glUseProgram(nuanceur_image.programme)
-    diffère glUseProgram(0)
+    glUseProgram(nuanceur_image.programme);
+    diffère glUseProgram(0);
 
-    glBindTexture(GL_TEXTURE_2D, code_texture)
-    définis_uniforme(nuanceur_image.adresse_image, 0 comme z32)
-    définis_uniforme(nuanceur_image.adresse_teinte, teinte)
+    glBindTexture(GL_TEXTURE_2D, code_texture);
+    définis_uniforme(nuanceur_image.adresse_image, 0 comme z32);
+    définis_uniforme(nuanceur_image.adresse_teinte, teinte);
 
-    x := rect.x
-    y := rect.y
-    largeur := rect.largeur
-    hauteur := rect.hauteur
+    x := rect.x;
+    y := rect.y;
+    largeur := rect.largeur;
+    hauteur := rect.hauteur;
 
-    p0 := Vec3(x = x, y = y)
-    p1 := Vec3(x = x + largeur, y = y)
-    p2 := Vec3(x = x + largeur, y = y + hauteur)
-    p3 := Vec3(x = x, y = y + hauteur)
+    p0 := Vec3(x = x, y = y);
+    p1 := Vec3(x = x + largeur, y = y);
+    p2 := Vec3(x = x + largeur, y = y + hauteur);
+    p3 := Vec3(x = x, y = y + hauteur);
 
-    x_min_image := rect_image.x
-    y_min_image := rect_image.y
+    x_min_image := rect_image.x;
+    y_min_image := rect_image.y;
 
-    x_min_rect := rect.x
-    x_max_rect := rect.x + rect.largeur
-    y_min_rect := rect.y
-    y_max_rect := rect.y + rect.hauteur
+    x_min_rect := rect.x;
+    x_max_rect := rect.x + rect.largeur;
+    y_min_rect := rect.y;
+    y_max_rect := rect.y + rect.hauteur;
 
-    ux_min := (x_min_rect - x_min_image) / rect_image.largeur
-    ux_max := (x_max_rect - x_min_image) / rect_image.largeur
+    ux_min := (x_min_rect - x_min_image) / rect_image.largeur;
+    ux_max := (x_max_rect - x_min_image) / rect_image.largeur;
 
-    uy_min := (y_min_rect - y_min_image) / rect_image.hauteur
-    uy_max := (y_max_rect - y_min_image) / rect_image.hauteur
+    uy_min := (y_min_rect - y_min_image) / rect_image.hauteur;
+    uy_max := (y_max_rect - y_min_image) / rect_image.hauteur;
 
-    u0 := Vec2(ux_min, uy_min)
-    u1 := Vec2(ux_max, uy_min)
-    u2 := Vec2(ux_max, uy_max)
-    u3 := Vec2(ux_min, uy_max)
+    u0 := Vec2(ux_min, uy_min);
+    u1 := Vec2(ux_max, uy_min);
+    u2 := Vec2(ux_max, uy_max);
+    u3 := Vec2(ux_min, uy_max);
 
     si params.direction == DirectionImage.BasEnHaut {
-        u0.y = 1.0 - u0.y
-        u1.y = 1.0 - u1.y
-        u2.y = 1.0 - u2.y
-        u3.y = 1.0 - u3.y
+        u0.y = 1.0 - u0.y;
+        u1.y = 1.0 - u1.y;
+        u2.y = 1.0 - u2.y;
+        u3.y = 1.0 - u3.y;
     }
 
-    quad_immédiat(p0, p1, p2, p3, u0, u1, u2, u3, CouleurRVBA())
+    quad_immédiat(p0, p1, p2, p3, u0, u1, u2, u3, CouleurRVBA());
 
-    termine_immédiat()
+    termine_immédiat();
 }
 
 /** \} */
@@ -1120,62 +1120,62 @@ image_immédiat :: fonc (params: *ParamètresTexture2D, rect_image: RectanglePos
  * \{ */
 
 FrameBuffer :: struct {
-    fbo: GLuint
-    buffer: GLuint
-    texture: GLuint
+    fbo: GLuint;
+    buffer: GLuint;
+    texture: GLuint;
 }
 
-__frame_buffers: Pile(FrameBuffer)
+__frame_buffers: Pile(FrameBuffer);
 
 commence_frame_buffer :: fonc ()
 {
-    termine_immédiat()
-    réinitialise_données()
+    termine_immédiat();
+    réinitialise_données();
 
-    hauteur_canevas := donne_hauteur_canevas()
-    largeur_canevas := donne_largeur_canevas()
+    hauteur_canevas := donne_hauteur_canevas();
+    largeur_canevas := donne_largeur_canevas();
 
-    fb: FrameBuffer
+    fb: FrameBuffer;
 
-    glGenFramebuffers(1, *fb.fbo)
-    glGenTextures(1, *fb.texture)
-    glGenRenderbuffers(1, *fb.buffer)
+    glGenFramebuffers(1, *fb.fbo);
+    glGenTextures(1, *fb.texture);
+    glGenRenderbuffers(1, *fb.buffer);
 
-    glBindFramebuffer(GL_FRAMEBUFFER, fb.fbo)
+    glBindFramebuffer(GL_FRAMEBUFFER, fb.fbo);
 
-    glBindTexture(GL_TEXTURE_2D, fb.texture)
-    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, largeur_canevas, hauteur_canevas, 0, GL_RGBA, GL_FLOAT, nul)
+    glBindTexture(GL_TEXTURE_2D, fb.texture);
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, largeur_canevas, hauteur_canevas, 0, GL_RGBA, GL_FLOAT, nul);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
     glFramebufferTexture2D(GL_DRAW_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, fb.texture, 0);
 
-    glBindRenderbuffer(GL_RENDERBUFFER, fb.buffer)
-    glRenderbufferStorage(GL_RENDERBUFFER, GL_RGBA, largeur_canevas, hauteur_canevas)
-    glFramebufferRenderbuffer(GL_DRAW_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_RENDERBUFFER, fb.buffer)
-    vérifie_erreur(#nom_de_cette_fonction)
+    glBindRenderbuffer(GL_RENDERBUFFER, fb.buffer);
+    glRenderbufferStorage(GL_RENDERBUFFER, GL_RGBA, largeur_canevas, hauteur_canevas);
+    glFramebufferRenderbuffer(GL_DRAW_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_RENDERBUFFER, fb.buffer);
+    vérifie_erreur(#nom_de_cette_fonction);
 
-    gl_check_framebuffer_status()
+    gl_check_framebuffer_status();
 
-    __frame_buffers.empile(fb)
+    __frame_buffers.empile(fb);
 }
 
 termine_frame_buffer :: fonc (opacité: r32 @inutilisée)
 {
-    termine_immédiat()
+    termine_immédiat();
 
-    fb := __frame_buffers.dépile()
+    fb := __frame_buffers.dépile();
 
-    prev_draw_buffer : GLuint = 0
-    prev_render_buffer : GLuint = 0
+    prev_draw_buffer : GLuint = 0;
+    prev_render_buffer : GLuint = 0;
     si __frame_buffers.taille() {
-        prev_draw_buffer = __frame_buffers.tête().fbo
-        prev_render_buffer = __frame_buffers.tête().buffer
+        prev_draw_buffer = __frame_buffers.tête().fbo;
+        prev_render_buffer = __frame_buffers.tête().buffer;
     }
 
     glBindFramebuffer(GL_FRAMEBUFFER, 0);
 
-    glBindFramebuffer(GL_DRAW_FRAMEBUFFER, prev_draw_buffer)
-    glBindFramebuffer(GL_READ_FRAMEBUFFER, fb.fbo)
+    glBindFramebuffer(GL_DRAW_FRAMEBUFFER, prev_draw_buffer);
+    glBindFramebuffer(GL_READ_FRAMEBUFFER, fb.fbo);
 
     // /* Dessine texture. */
     // glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA)
@@ -1198,41 +1198,41 @@ termine_frame_buffer :: fonc (opacité: r32 @inutilisée)
     // image_immédiat(image, rect, rect, ParamètresRenduImage())
 
     empl __ctx_courant;
-    nuanceur_image := nuanceurs[IDNuanceur.Image]
-    commence_immédiat(ModeImmédiat.TRIANGLES, IDNuanceur.Image)
+    nuanceur_image := nuanceurs[IDNuanceur.Image];
+    commence_immédiat(ModeImmédiat.TRIANGLES, IDNuanceur.Image);
 
-    glUseProgram(nuanceur_image.programme)
-    diffère glUseProgram(0)
+    glUseProgram(nuanceur_image.programme);
+    diffère glUseProgram(0);
 
-    glBindTexture(GL_TEXTURE_2D, fb.texture)
-    définis_uniforme(nuanceur_image.adresse_image, 0 comme z32)
+    glBindTexture(GL_TEXTURE_2D, fb.texture);
+    définis_uniforme(nuanceur_image.adresse_image, 0 comme z32);
 
-    x := 0.0
-    y := 0.0
-    largeur := largeur_canevas comme r32
-    hauteur := hauteur_canevas comme r32
+    x := 0.0;
+    y := 0.0;
+    largeur := largeur_canevas comme r32;
+    hauteur := hauteur_canevas comme r32;
 
-    p0 := Vec3(x = x, y = y)
-    p1 := Vec3(x = largeur, y = y)
-    p2 := Vec3(x = x + largeur, y = y + hauteur)
-    p3 := Vec3(x = x, y = y + hauteur)
+    p0 := Vec3(x = x, y = y);
+    p1 := Vec3(x = largeur, y = y);
+    p2 := Vec3(x = x + largeur, y = y + hauteur);
+    p3 := Vec3(x = x, y = y + hauteur);
 
-    u0 := Vec2(0.0, 0.0)
-    u1 := Vec2(1.0, 0.0)
-    u2 := Vec2(1.0, 1.0)
-    u3 := Vec2(0.0, 1.0)
+    u0 := Vec2(0.0, 0.0);
+    u1 := Vec2(1.0, 0.0);
+    u2 := Vec2(1.0, 1.0);
+    u3 := Vec2(0.0, 1.0);
 
-    quad_immédiat(p0, p1, p2, p3, u0, u1, u2, u3, CouleurRVBA(1.0, 0.0, 1.0, 1.0))
+    quad_immédiat(p0, p1, p2, p3, u0, u1, u2, u3, CouleurRVBA(1.0, 0.0, 1.0, 1.0));
 
-    termine_immédiat()
+    termine_immédiat();
 
     /* Nettoyage. */
-    glBindFramebuffer(GL_READ_FRAMEBUFFER, 0)
-    glBindRenderbuffer(GL_RENDERBUFFER, prev_render_buffer)
+    glBindFramebuffer(GL_READ_FRAMEBUFFER, 0);
+    glBindRenderbuffer(GL_RENDERBUFFER, prev_render_buffer);
 
-    glDeleteFramebuffers(1, *fb.fbo)
-    glDeleteRenderbuffers(1, *fb.buffer)
-    glDeleteTextures(1, *fb.texture)
+    glDeleteFramebuffers(1, *fb.fbo);
+    glDeleteRenderbuffers(1, *fb.buffer);
+    glDeleteTextures(1, *fb.texture);
 }
 
 /** \} */
@@ -1243,7 +1243,7 @@ termine_frame_buffer :: fonc (opacité: r32 @inutilisée)
 
 réinitialise_données_id :: fonc ()
 {
-    __ctx_courant.dernier_nuanceur_id = (-1 comme IDNuanceur)
+    __ctx_courant.dernier_nuanceur_id = (-1 comme IDNuanceur);
 }
 
 commence_immédiat_id :: fonc (mode: ModeImmédiat)
@@ -1251,10 +1251,10 @@ commence_immédiat_id :: fonc (mode: ModeImmédiat)
     empl __ctx_courant;
 
     si mode != dernier_mode_id || dernier_nuanceur_id == (-1 comme IDNuanceur) || données_tampon_id.num_sommets == MAX_SOMMETS_IMMÉDIAT {
-        dernier_mode_id = mode
-        dernier_nuanceur_id = IDNuanceur.Id
+        dernier_mode_id = mode;
+        dernier_nuanceur_id = IDNuanceur.Id;
 
-        termine_immédiat_id()
+        termine_immédiat_id();
     }
 }
 
@@ -1263,76 +1263,76 @@ termine_immédiat_id :: fonc ()
     empl __ctx_courant;
 
     saufsi données_tampon_id.num_sommets {
-        retourne
+        retourne;
     }
 
     si dernier_nuanceur_id == (-1 comme IDNuanceur) {
         si données_tampon_id.num_sommets {
-            panique("tentative d'utiliser termine_immédiat alors qu'aucun nuanceur n'est installé")
+            panique("tentative d'utiliser termine_immédiat alors qu'aucun nuanceur n'est installé");
         }
 
-        données_tampon_id.num_sommets = 0
-        retourne
+        données_tampon_id.num_sommets = 0;
+        retourne;
     }
 
-    nuanceur := nuanceurs[dernier_nuanceur_id]
+    nuanceur := nuanceurs[dernier_nuanceur_id];
 
-    s : []FormatVertexXId = données_tampon_id.sommets
-    compte := données_tampon_id.num_sommets comme n64
+    s : []FormatVertexXId = données_tampon_id.sommets;
+    compte := données_tampon_id.num_sommets comme n64;
 
-    glUseProgram(nuanceur.programme)
-    vérifie_erreur("termine_immédiat_id.glUseProgram")
+    glUseProgram(nuanceur.programme);
+    vérifie_erreur("termine_immédiat_id.glUseProgram");
 
-    glBindVertexArray(données_tampon_id.va_immédiat)
+    glBindVertexArray(données_tampon_id.va_immédiat);
 
-    glBindBuffer(GL_ARRAY_BUFFER, données_tampon_id.vbo_immédiat)
-    vérifie_erreur("termine_immédiat_id.glBindBuffer")
+    glBindBuffer(GL_ARRAY_BUFFER, données_tampon_id.vbo_immédiat);
+    vérifie_erreur("termine_immédiat_id.glBindBuffer");
 
-    définis_uniforme(nuanceur.loc_projection, projection)
+    définis_uniforme(nuanceur.loc_projection, projection);
 
-    installe_format_xid(nuanceur)
+    installe_format_xid(nuanceur);
 
     saufsi données_tampon_id.données_tampon_initialisées {
-        glBufferData(GL_ARRAY_BUFFER, ((MAX_SOMMETS_IMMÉDIAT comme n32) * taille_de(FormatVertexXId)) comme GLsizei, s.pointeur, GL_DYNAMIC_DRAW)
-        vérifie_erreur("termine_immédiat.glBufferData")
-        données_tampon_id.données_tampon_initialisées = vrai
+        glBufferData(GL_ARRAY_BUFFER, ((MAX_SOMMETS_IMMÉDIAT comme n32) * taille_de(FormatVertexXId)) comme GLsizei, s.pointeur, GL_DYNAMIC_DRAW);
+        vérifie_erreur("termine_immédiat.glBufferData");
+        données_tampon_id.données_tampon_initialisées = vrai;
     }
 
-    glBufferSubData(GL_ARRAY_BUFFER, 0, (compte * taille_de(FormatVertexXId)) comme GLsizei, s.pointeur)
-    vérifie_erreur("termine_immédiat_id.glBufferSubData")
+    glBufferSubData(GL_ARRAY_BUFFER, 0, (compte * taille_de(FormatVertexXId)) comme GLsizei, s.pointeur);
+    vérifie_erreur("termine_immédiat_id.glBufferSubData");
 
     si dernier_mode_id == ModeImmédiat.TRIANGLES {
-        glDrawArrays(GL_TRIANGLES, 0, compte comme GLsizei)
+        glDrawArrays(GL_TRIANGLES, 0, compte comme GLsizei);
     }
     sinon {
-        glDrawArrays(GL_LINES, 0, compte comme GLsizei)
+        glDrawArrays(GL_LINES, 0, compte comme GLsizei);
     }
 
     // nettoyage
-    glUseProgram(0)
-    glBindVertexArray(0)
-    données_tampon_id.num_sommets = 0
+    glUseProgram(0);
+    glBindVertexArray(0);
+    données_tampon_id.num_sommets = 0;
 
-    vérifie_erreur(#nom_de_cette_fonction)
+    vérifie_erreur(#nom_de_cette_fonction);
 }
 
 installe_format_xid :: fonc (nuanceur: *NuanceurGL)
 {
-    stride := taille_de(FormatVertexXId)
+    stride := taille_de(FormatVertexXId);
 
     si nuanceur.loc_position != -1 {
-        glEnableVertexAttribArray(nuanceur.loc_position comme GLuint)
-        vérifie_erreur("glEnableVertexAttribArray nuanceur.loc_position")
-        glVertexAttribPointer(nuanceur.loc_position comme GLuint, 3, GL_FLOAT, GL_FALSE comme GLboolean, stride comme GLint, DÉCALAGE_SOMMETS comme *rien)
-        vérifie_erreur("glVertexAttribPointer nuanceur.loc_position")
+        glEnableVertexAttribArray(nuanceur.loc_position comme GLuint);
+        vérifie_erreur("glEnableVertexAttribArray nuanceur.loc_position");
+        glVertexAttribPointer(nuanceur.loc_position comme GLuint, 3, GL_FLOAT, GL_FALSE comme GLboolean, stride comme GLint, DÉCALAGE_SOMMETS comme *rien);
+        vérifie_erreur("glVertexAttribPointer nuanceur.loc_position");
     }
 
     si nuanceur.loc_id != -1 {
-        glEnableVertexAttribArray(nuanceur.loc_id comme GLuint)
-        vérifie_erreur("glEnableVertexAttribArray nuanceur.loc_id")
-        glVertexAttribIPointer(nuanceur.loc_id comme GLuint, 1, GL_UNSIGNED_INT, stride comme GLint, DÉCALAGE_ID comme *rien)
+        glEnableVertexAttribArray(nuanceur.loc_id comme GLuint);
+        vérifie_erreur("glEnableVertexAttribArray nuanceur.loc_id");
+        glVertexAttribIPointer(nuanceur.loc_id comme GLuint, 1, GL_UNSIGNED_INT, stride comme GLint, DÉCALAGE_ID comme *rien);
         // glVertexAttribPointer(nuanceur.loc_id comme GLuint, 1, GL_FLOAT, GL_FALSE, stride, DÉCALAGE_SOMMETS comme *rien)
-        vérifie_erreur("glVertexAttribPointer nuanceur.loc_id")
+        vérifie_erreur("glVertexAttribPointer nuanceur.loc_id");
     }
 }
 
@@ -1344,23 +1344,23 @@ installe_format_xid :: fonc (nuanceur: *NuanceurGL)
 
 quad_immédiat_id :: fonc (x: r32, y: r32, largeur: r32, hauteur: r32, id: n32)
 {
-    p0 := Vec3(x = x, y = y)
-    p1 := Vec3(x = x + largeur, y = y)
-    p2 := Vec3(x = x + largeur, y = y + hauteur)
-    p3 := Vec3(x = x, y = y + hauteur)
+    p0 := Vec3(x = x, y = y);
+    p1 := Vec3(x = x + largeur, y = y);
+    p2 := Vec3(x = x + largeur, y = y + hauteur);
+    p3 := Vec3(x = x, y = y + hauteur);
 
-    quad_immédiat_id(p0, p1, p2, p3, id)
+    quad_immédiat_id(p0, p1, p2, p3, id);
 }
 
 quad_immédiat_id :: fonc (p0: Vec3, p1: Vec3, p2: Vec3, p3: Vec3, id: n32)
 {
-    ajoute_sommets_id(p0, id)
-    ajoute_sommets_id(p1, id)
-    ajoute_sommets_id(p2, id)
+    ajoute_sommets_id(p0, id);
+    ajoute_sommets_id(p1, id);
+    ajoute_sommets_id(p2, id);
 
-    ajoute_sommets_id(p0, id)
-    ajoute_sommets_id(p2, id)
-    ajoute_sommets_id(p3, id)
+    ajoute_sommets_id(p0, id);
+    ajoute_sommets_id(p2, id);
+    ajoute_sommets_id(p3, id);
 }
 
 ajoute_sommets_id :: fonc (pos: Vec3, id: n32)
@@ -1368,12 +1368,12 @@ ajoute_sommets_id :: fonc (pos: Vec3, id: n32)
     empl __ctx_courant;
 
     si données_tampon_id.num_sommets >= MAX_SOMMETS_IMMÉDIAT {
-        termine_immédiat_id()
+        termine_immédiat_id();
     }
 
-    données_tampon_id.sommets[données_tampon_id.num_sommets].position = pos
-    données_tampon_id.sommets[données_tampon_id.num_sommets].id = id
-    données_tampon_id.num_sommets += 1
+    données_tampon_id.sommets[données_tampon_id.num_sommets].position = pos;
+    données_tampon_id.sommets[données_tampon_id.num_sommets].id = id;
+    données_tampon_id.num_sommets += 1;
 }
 
 /** \} */

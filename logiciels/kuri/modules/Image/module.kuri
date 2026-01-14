@@ -1,87 +1,87 @@
-importe Chaine
-importe Couleur
-importe Fondation
-importe Math
-importe MIME
-importe SysFichier
-importe Triage
-importe PThread
+importe Chaine;
+importe Couleur;
+importe Fondation;
+importe Math;
+importe MIME;
+importe SysFichier;
+importe Triage;
+importe PThread;
 
-charge "gif"
+charge "gif";
 
-libtbb :: #bibliothèque "tbb"
+libtbb :: #bibliothèque "tbb";
 
-#dépendance_bibliothèque libmodule_c_image libtbb
+#dépendance_bibliothèque libmodule_c_image libtbb;
 
 FormatPixel :: énum n16 {
-    Gris_8
-    Gris_32
+    Gris_8;
+    Gris_32;
 
-    RVB_8
-    RVB_32
+    RVB_8;
+    RVB_32;
 
-    RVBA_8
-    RVBA_32
+    RVBA_8;
+    RVBA_32;
 }
 
 DirectionImage :: énum n16 {
     /* L'image a son point d'origine en haut : la première ligne de l'image est celle du haut. */
-    HautEnBas
+    HautEnBas;
     /* L'image a son point d'origine en bas : la première ligne de l'image est celle du bas. */
-    BasEnHaut
+    BasEnHaut;
 }
 
 DescriptriceImage :: struct {
-    largeur: n32
-    hauteur: n32
-    format: FormatPixel
-    direction: DirectionImage
+    largeur: n32;
+    hauteur: n32;
+    format: FormatPixel;
+    direction: DirectionImage;
 }
 
 donne_taille_données :: fonc (desc: *DescriptriceImage) -> z64
 {
-    résultat := (desc.largeur comme n64) * (desc.hauteur comme n64)
-    résultat *= donne_taille_octet_pixel(mémoire(desc))
-    retourne résultat comme z64
+    résultat := (desc.largeur comme n64) * (desc.hauteur comme n64);
+    résultat *= donne_taille_octet_pixel(mémoire(desc));
+    retourne résultat comme z64;
 }
 
 donne_taille_octet_pixel :: fonc (desc: DescriptriceImage) -> n32
 {
     discr desc.format {
         Gris_8 {
-            retourne taille_de(n8)
+            retourne taille_de(n8);
         }
         Gris_32 {
-            retourne taille_de(r32)
+            retourne taille_de(r32);
         }
         RVB_8 {
-            retourne taille_de(n8) * 3
+            retourne taille_de(n8) * 3;
         }
         RVB_32 {
-            retourne taille_de(r32) * 3
+            retourne taille_de(r32) * 3;
         }
         RVBA_8 {
-            retourne taille_de(n8) * 4
+            retourne taille_de(n8) * 4;
         }
         RVBA_32 {
-            retourne taille_de(r32) * 4
+            retourne taille_de(r32) * 4;
         }
     }
 
-    panique("format invalide")
+    panique("format invalide");
 }
 
 donne_nombre_de_pixels :: fonc (desc: DescriptriceImage) -> n64
 {
-    retourne desc.largeur * desc.hauteur
+    retourne desc.largeur * desc.hauteur;
 }
 
 SourceDonnéesImage :: énum n8 {
     /* L'image possède les données. */
-    Interne
+    Interne;
     /* Les données de l'image appartiennent à quelqu'un d'autres et ne peuvent
      * être détruites avec l'image. */
-    Externe
+    Externe;
 }
 
 /* ------------------------------------------------------------------------- */
@@ -89,345 +89,345 @@ SourceDonnéesImage :: énum n8 {
  * \{ */
 
 NouvelleImage :: struct {
-    données: *octet
-    desc: DescriptriceImage
-    source_données: SourceDonnéesImage
+    données: *octet;
+    desc: DescriptriceImage;
+    source_données: SourceDonnéesImage;
 
-    gif: *gd_GIF
+    gif: *gd_GIF;
 }
 
 crée_image :: fonc (desc: *DescriptriceImage) -> NouvelleImage
 {
-    taille_données := donne_taille_données(desc)
-    données := loge_tableau(octet, taille_données)
+    taille_données := donne_taille_données(desc);
+    données := loge_tableau(octet, taille_données);
 
-    résultat: NouvelleImage
-    résultat.données = données.pointeur
-    résultat.desc = mémoire(desc)
-    résultat.source_données = SourceDonnéesImage.Interne
-    retourne résultat
+    résultat: NouvelleImage;
+    résultat.données = données.pointeur;
+    résultat.desc = mémoire(desc);
+    résultat.source_données = SourceDonnéesImage.Interne;
+    retourne résultat;
 }
 
 crée_image_pour_données_externe :: fonc (données: *octet, largeur: n32, hauteur: n32, format: FormatPixel, direction := DirectionImage.HautEnBas) -> NouvelleImage
 {
-    résultat: NouvelleImage
-    résultat.données = données
-    résultat.desc.largeur = largeur
-    résultat.desc.hauteur = hauteur
-    résultat.desc.format = format
-    résultat.desc.direction = direction
-    résultat.source_données = SourceDonnéesImage.Externe
-    retourne résultat
+    résultat: NouvelleImage;
+    résultat.données = données;
+    résultat.desc.largeur = largeur;
+    résultat.desc.hauteur = hauteur;
+    résultat.desc.format = format;
+    résultat.desc.direction = direction;
+    résultat.source_données = SourceDonnéesImage.Externe;
+    retourne résultat;
 }
 
 crée_image_depuis_image_io :: fonc (image: *ImageIO) -> NouvelleImage
 {
-    desc := donne_descriptice_depuis_image_io(image)
-    résultat := crée_image(*desc)
-    copie_mem_nonsur(src = image.donnees, dst = résultat.données, taille = donne_taille_données(*desc))
-    retourne résultat
+    desc := donne_descriptice_depuis_image_io(image);
+    résultat := crée_image(*desc);
+    copie_mem_nonsur(src = image.donnees, dst = résultat.données, taille = donne_taille_données(*desc));
+    retourne résultat;
 }
 
 donne_descriptice_depuis_image_io :: fonc (image: *ImageIO) -> DescriptriceImage
 {
-    desc: DescriptriceImage
-    desc.largeur = image.largeur comme n32
-    desc.hauteur = image.hauteur comme n32
+    desc: DescriptriceImage;
+    desc.largeur = image.largeur comme n32;
+    desc.hauteur = image.hauteur comme n32;
 
     si image.nombre_composants == 1 {
         si image.format == ImageIO_DataType.UINT8 || image.format == ImageIO_DataType.INT8 {
-            desc.format = FormatPixel.Gris_8
+            desc.format = FormatPixel.Gris_8;
         }
         sinon si image.format == ImageIO_DataType.FLOAT {
-            desc.format = FormatPixel.Gris_32
+            desc.format = FormatPixel.Gris_32;
         }
         sinon {
-            panique("type image non supporté : %", image.format)
+            panique("type image non supporté : %", image.format);
         }
     }
     sinon si image.nombre_composants == 3 {
         si image.format == ImageIO_DataType.UINT8 || image.format == ImageIO_DataType.INT8 {
-            desc.format = FormatPixel.RVB_8
+            desc.format = FormatPixel.RVB_8;
         }
         sinon si image.format == ImageIO_DataType.FLOAT {
-            desc.format = FormatPixel.RVB_32
+            desc.format = FormatPixel.RVB_32;
         }
         sinon {
-            panique("type image non supporté : %", image.format)
+            panique("type image non supporté : %", image.format);
         }
     }
     sinon si image.nombre_composants == 4 {
         si image.format == ImageIO_DataType.UINT8 || image.format == ImageIO_DataType.INT8 {
-            desc.format = FormatPixel.RVBA_8
+            desc.format = FormatPixel.RVBA_8;
         }
         sinon si image.format == ImageIO_DataType.FLOAT {
-            desc.format = FormatPixel.RVBA_32
+            desc.format = FormatPixel.RVBA_32;
         }
         sinon {
-            panique("type image non supporté : %", image.format)
+            panique("type image non supporté : %", image.format);
         }
     }
     sinon {
-        panique("nombre de composant non-géré : %", image.nombre_composants)
+        panique("nombre de composant non-géré : %", image.nombre_composants);
     }
 
-    retourne desc
+    retourne desc;
 }
 
 détruit_données_image :: fonc (image: *NouvelleImage)
 {
     si image.source_données == SourceDonnéesImage.Externe {
-        retourne
+        retourne;
     }
 
-    taille_données := donne_taille_données(*image.desc)
-    données: [..]octet
-    données.pointeur = image.données
-    données.capacité = taille_données
+    taille_données := donne_taille_données(*image.desc);
+    données: [..]octet;
+    données.pointeur = image.données;
+    données.capacité = taille_données;
 
-    déloge(données)
-    image.données = nul
+    déloge(données);
+    image.données = nul;
 
     si image.gif {
-        gd_close_gif(image.gif)
-        image.gif = nul
+        gd_close_gif(image.gif);
+        image.gif = nul;
     }
 }
 
 charge_image :: fonc (chemin: chaine) -> (bool, NouvelleImage)
 {
-    _, contenu := contenu_fichier_binaire(CheminFichier(chemin))
-    diffère déloge(contenu)
-    retourne décode_image(contenu, "", chemin)
+    _, contenu := contenu_fichier_binaire(CheminFichier(chemin));
+    diffère déloge(contenu);
+    retourne décode_image(contenu, "", chemin);
 }
 
 décode_image :: fonc (données: []octet, type_mime: chaine, chemin := "") -> (bool, NouvelleImage)
 {
     si type_mime == "" {
         si chemin == "" {
-            panique("Aucun type mime ou chemin pour décoder l'image.")
+            panique("Aucun type mime ou chemin pour décoder l'image.");
         }
 
-        chm := CheminFichier(chemin)
-        type_mime = type_mime_pour_extension(chm.extension())
+        chm := CheminFichier(chemin);
+        type_mime = type_mime_pour_extension(chm.extension());
     }
 
     si type_mime == "image/webp" {
-        data := données.pointeur comme *n8
-        data_size := données.taille comme n64
+        data := données.pointeur comme *n8;
+        data_size := données.taille comme n64;
 
-        hauteur: z32
-        largeur: z32
-        résultat_info := WebPGetInfo(data, data_size, *largeur, *hauteur)
+        hauteur: z32;
+        largeur: z32;
+        résultat_info := WebPGetInfo(data, data_size, *largeur, *hauteur);
         si résultat_info == 0 {
-            imprime("Impossible de lire l'image WebP.")
-            retourne faux, NouvelleImage()
+            imprime("Impossible de lire l'image WebP.");
+            retourne faux, NouvelleImage();
         }
 
-        tampon := loge_tableau(octet, hauteur comme z64 * largeur comme z64 * 4)
+        tampon := loge_tableau(octet, hauteur comme z64 * largeur comme z64 * 4);
 
-        output_buffer := tampon.pointeur comme *n8
-        output_buffer_size := tampon.capacité comme n64
+        output_buffer := tampon.pointeur comme *n8;
+        output_buffer_size := tampon.capacité comme n64;
 
-        résultat_décodage := WebPDecodeRGBAInto(data, data_size, output_buffer, output_buffer_size, largeur * 4)
+        résultat_décodage := WebPDecodeRGBAInto(data, data_size, output_buffer, output_buffer_size, largeur * 4);
         saufsi résultat_décodage {
-            imprime("Impossible de décoder l'image WebP.")
-            retourne faux, NouvelleImage()
+            imprime("Impossible de décoder l'image WebP.");
+            retourne faux, NouvelleImage();
         }
-        assert(résultat_décodage == output_buffer)
+        assert(résultat_décodage == output_buffer);
 
-        résultat: NouvelleImage
-        résultat.desc.hauteur = hauteur comme n32
-        résultat.desc.largeur = largeur comme n32
-        résultat.desc.format = FormatPixel.RVBA_8
-        résultat.données = tampon.pointeur
-        retourne vrai, résultat
+        résultat: NouvelleImage;
+        résultat.desc.hauteur = hauteur comme n32;
+        résultat.desc.largeur = largeur comme n32;
+        résultat.desc.format = FormatPixel.RVBA_8;
+        résultat.données = tampon.pointeur;
+        retourne vrai, résultat;
     }
 
     si type_mime == "image/gif" {
-        succès_gif, résultat := lis_image_gif_mémoire(données)
+        succès_gif, résultat := lis_image_gif_mémoire(données);
         si succès_gif == faux {
-            détruit_données_image(*résultat)
-            retourne faux, NouvelleImage()
+            détruit_données_image(*résultat);
+            retourne faux, NouvelleImage();
         }
-        retourne vrai, résultat
+        retourne vrai, résultat;
     }
 
     si type_mime == MIME_image_svg {
-        chaine_c := crée_chaine_c(chaine(données.pointeur comme *z8, données.taille))
-        diffère détruit_chaine_c(chaine_c)
+        chaine_c := crée_chaine_c(chaine(données.pointeur comme *z8, données.taille));
+        diffère détruit_chaine_c(chaine_c);
 
-        image_svg: SVGImage
+        image_svg: SVGImage;
         saufsi SVG_parse_image_depuis_contenu(chaine_c comme *z8, *image_svg) {
-            retourne faux, NouvelleImage()
+            retourne faux, NouvelleImage();
         }
-        diffère SVG_image_detruit(*image_svg)
+        diffère SVG_image_detruit(*image_svg);
 
-        desc: DescriptriceImage
-        desc.largeur = image_svg.width comme n32
-        desc.hauteur = image_svg.height comme n32
-        desc.format = FormatPixel.RVBA_8
+        desc: DescriptriceImage;
+        desc.largeur = image_svg.width comme n32;
+        desc.hauteur = image_svg.height comme n32;
+        desc.format = FormatPixel.RVBA_8;
 
-        résultat := crée_image(*desc)
-        SVG_image_ratisse(*image_svg, résultat.données comme *n8, desc.largeur comme z32, desc.hauteur comme z32)
-        retourne vrai, résultat
+        résultat := crée_image(*desc);
+        SVG_image_ratisse(*image_svg, résultat.données comme *n8, desc.largeur comme z32, desc.hauteur comme z32);
+        retourne vrai, résultat;
     }
 
     si chemin == "" {
         si type_mime == "image/png" {
-            chemin = "image.png"
+            chemin = "image.png";
         }
         sinon si type_mime == "image/jpeg" {
-            chemin = "image.jpeg"
+            chemin = "image.jpeg";
         }
         sinon {
-            panique("chemin image non résolvable")
+            panique("chemin image non résolvable");
         }
     }
 
-    proxy_image := IMG_cree_proxy_memoire(données.pointeur, données.taille comme n64)
-    diffère IMG_detruit_proxy(proxy_image)
+    proxy_image := IMG_cree_proxy_memoire(données.pointeur, données.taille comme n64);
+    diffère IMG_detruit_proxy(proxy_image);
 
-    chn_c_chemin := crée_chaine_c(chemin)
-    diffère détruit_chaine_c(chn_c_chemin)
+    chn_c_chemin := crée_chaine_c(chemin);
+    diffère détruit_chaine_c(chn_c_chemin);
 
-    image: ImageIO
-    résultat_lecture_image := IMG_ouvre_image_avec_proxy(chn_c_chemin, *image, proxy_image, ImageIO_DataType.UNKNOWN)
+    image: ImageIO;
+    résultat_lecture_image := IMG_ouvre_image_avec_proxy(chn_c_chemin, *image, proxy_image, ImageIO_DataType.UNKNOWN);
     si résultat_lecture_image != ResultatOperation.OK {
-        imprime("Impossible de lire l'image : %\n", résultat_lecture_image)
-        retourne faux, NouvelleImage()
+        imprime("Impossible de lire l'image : %\n", résultat_lecture_image);
+        retourne faux, NouvelleImage();
     }
 
-    résultat := crée_image_depuis_image_io(*image)
-    IMG_detruit_image(*image)
-    retourne vrai, résultat
+    résultat := crée_image_depuis_image_io(*image);
+    IMG_detruit_image(*image);
+    retourne vrai, résultat;
 }
 
 échantillonne_prochain :: fonc (image: *NouvelleImage, pos: *Vec2) -> CouleurRVBA
 {
-    largeur := image.desc.largeur comme z32
-    hauteur := image.desc.hauteur comme z32
+    largeur := image.desc.largeur comme z32;
+    hauteur := image.desc.hauteur comme z32;
 
-    x := pos.x * largeur comme r32
-    y := pos.y * hauteur comme r32
+    x := pos.x * largeur comme r32;
+    y := pos.y * hauteur comme r32;
 
-    xi := x comme z32
-    yi := y comme z32
+    xi := x comme z32;
+    yi := y comme z32;
 
-    restreint(*xi, 0 comme z32, largeur - 1)
-    restreint(*yi, 0 comme z32, hauteur - 1)
+    restreint(*xi, 0 comme z32, largeur - 1);
+    restreint(*yi, 0 comme z32, hauteur - 1);
 
-    indice := xi + yi * largeur
+    indice := xi + yi * largeur;
     si image.desc.format == FormatPixel.RVBA_32 {
-        couleurs := image.données comme *CouleurRVBA
-        retourne couleurs[indice]
+        couleurs := image.données comme *CouleurRVBA;
+        retourne couleurs[indice];
     }
 
-    assert(image.desc.format == FormatPixel.RVBA_8)
-    couleurs := image.données comme *CouleurRVBAN8
-    résultat := vers_couleur_rvba(couleurs[indice])
-    retourne résultat
+    assert(image.desc.format == FormatPixel.RVBA_8);
+    couleurs := image.données comme *CouleurRVBAN8;
+    résultat := vers_couleur_rvba(couleurs[indice]);
+    retourne résultat;
 }
 
 pixels_comme :: fonc (image: NouvelleImage, $T: type_de_données) -> []T
 {
-    tableau : []T = ---
-    tableau.pointeur = image.données comme *T
-    tableau.taille = image.hauteur * image.largeur
-    retourne tableau
+    tableau : []T = ---;
+    tableau.pointeur = image.données comme *T;
+    tableau.taille = image.hauteur * image.largeur;
+    retourne tableau;
 }
 
 pixel_à_la_position :: fonc (image: NouvelleImage, x: z32, y: z32, $T: type_de_données) -> *T
 {
-    largeur := image.desc.largeur comme z32
-    indice := y * largeur + x
-    retourne (*image.données[0] comme *T) + indice
+    largeur := image.desc.largeur comme z32;
+    indice := y * largeur + x;
+    retourne (*image.données[0] comme *T) + indice;
 }
 
 crée_icone :: fonc (image: NouvelleImage, hauteur: z32) -> NouvelleImage
 {
-    largeur := 0
+    largeur := 0;
 
     si image.desc.largeur > image.desc.hauteur {
-        largeur = hauteur
-        hauteur = image.desc.hauteur comme z32 * largeur / image.desc.largeur comme z32
+        largeur = hauteur;
+        hauteur = image.desc.hauteur comme z32 * largeur / image.desc.largeur comme z32;
     }
     sinon si image.desc.hauteur > image.desc.largeur {
-        largeur = image.desc.largeur comme z32 * hauteur / image.desc.hauteur comme z32
+        largeur = image.desc.largeur comme z32 * hauteur / image.desc.hauteur comme z32;
     }
     sinon {
-        largeur = hauteur
+        largeur = hauteur;
     }
 
-    desc := DescriptriceImage(largeur comme n32, hauteur comme n32, image.desc.format)
-    résultat := crée_image(*desc)
+    desc := DescriptriceImage(largeur comme n32, hauteur comme n32, image.desc.format);
+    résultat := crée_image(*desc);
 
     discr image.desc.format {
         Gris_8 {
-            tampon := donne_tampon_gris_8bit(image)
-            tampon_icone := donne_tampon_gris_8bit(résultat)
-            rééchantillonne_prochain_voisin(tampon, *tampon_icone)
+            tampon := donne_tampon_gris_8bit(image);
+            tampon_icone := donne_tampon_gris_8bit(résultat);
+            rééchantillonne_prochain_voisin(tampon, *tampon_icone);
         }
         RVB_8 {
-            tampon := donne_tampon_rvb_8bit(image)
-            tampon_icone := donne_tampon_rvb_8bit(résultat)
-            rééchantillonne_prochain_voisin(tampon, *tampon_icone)
+            tampon := donne_tampon_rvb_8bit(image);
+            tampon_icone := donne_tampon_rvb_8bit(résultat);
+            rééchantillonne_prochain_voisin(tampon, *tampon_icone);
         }
         RVBA_8 {
-            tampon := donne_tampon_rvba_8bit(image)
-            tampon_icone := donne_tampon_rvba_8bit(résultat)
-            rééchantillonne_prochain_voisin(tampon, *tampon_icone)
+            tampon := donne_tampon_rvba_8bit(image);
+            tampon_icone := donne_tampon_rvba_8bit(résultat);
+            rééchantillonne_prochain_voisin(tampon, *tampon_icone);
         }
         Gris_32 {
-            tampon := donne_tampon_gris(image)
-            tampon_icone := donne_tampon_gris(résultat)
-            rééchantillonne_prochain_voisin(tampon, *tampon_icone)
+            tampon := donne_tampon_gris(image);
+            tampon_icone := donne_tampon_gris(résultat);
+            rééchantillonne_prochain_voisin(tampon, *tampon_icone);
         }
         RVB_32 {
-            tampon := donne_tampon_spectre(image)
-            tampon_icone := donne_tampon_spectre(résultat)
-            rééchantillonne_prochain_voisin(tampon, *tampon_icone)
+            tampon := donne_tampon_spectre(image);
+            tampon_icone := donne_tampon_spectre(résultat);
+            rééchantillonne_prochain_voisin(tampon, *tampon_icone);
         }
         RVBA_32 {
-            tampon := donne_tampon_rvba(image)
-            tampon_icone := donne_tampon_rvba(résultat)
-            rééchantillonne_prochain_voisin(tampon, *tampon_icone)
+            tampon := donne_tampon_rvba(image);
+            tampon_icone := donne_tampon_rvba(résultat);
+            rééchantillonne_prochain_voisin(tampon, *tampon_icone);
         }
         sinon {
-            panique("image non supportée : %", image.desc.format)
+            panique("image non supportée : %", image.desc.format);
         }
     }
 
-    retourne résultat
+    retourne résultat;
 }
 
 crée_icone_pour_image_invalide :: fonc (taille_icone: z32) -> NouvelleImage
 {
-    desc := DescriptriceImage(taille_icone comme n32, taille_icone comme n32, FormatPixel.RVB_32)
-    résultat := crée_image(*desc)
-    remplis_tampon(résultat.donne_tampon_spectre(), Spectre(1.0, 0.0, 1.0))
-    retourne résultat
+    desc := DescriptriceImage(taille_icone comme n32, taille_icone comme n32, FormatPixel.RVB_32);
+    résultat := crée_image(*desc);
+    remplis_tampon(résultat.donne_tampon_spectre(), Spectre(1.0, 0.0, 1.0));
+    retourne résultat;
 }
 
 crée_icone_depuis_chemin :: fonc (chemin: CheminFichier, taille_icone: z32) -> NouvelleImage
 {
-    icone: NouvelleImage
+    icone: NouvelleImage;
 
-    succès, image := charge_image(chemin.chn)
+    succès, image := charge_image(chemin.chn);
     si succès {
-        icone = crée_icone(image, taille_icone)
-        détruit_données_image(*image)
+        icone = crée_icone(image, taille_icone);
+        détruit_données_image(*image);
     }
 
-    retourne icone
+    retourne icone;
 }
 
 /** \} */
 
-charge "interface_image"
+charge "interface_image";
 
-liboiio :: #bibliothèque "OpenImageIO"
-liboiio_util :: #bibliothèque "OpenImageIO_Util"
+liboiio :: #bibliothèque "OpenImageIO";
+liboiio_util :: #bibliothèque "OpenImageIO_Util";
 // libjpeg :: #bibliothèque "jpeg"
 // libpugixml :: #bibliothèque "pugixml"
 // libtiff :: #bibliothèque "tiff"
@@ -450,93 +450,93 @@ liboiio_util :: #bibliothèque "OpenImageIO_Util"
 // #dépendance_bibliothèque liboiio libpugixml
 // #dépendance_bibliothèque liboiio libjpeg
 // #dépendance_bibliothèque liboiio libopenjp2
-#dépendance_bibliothèque liboiio liboiio_util
+#dépendance_bibliothèque liboiio liboiio_util;
 // #dépendance_bibliothèque libmodule_c_image libboost_thread
 // #dépendance_bibliothèque libmodule_c_image libboost_system
 // #dépendance_bibliothèque libmodule_c_image libboost_filesystem
-#dépendance_bibliothèque libmodule_c_image liboiio
+#dépendance_bibliothèque libmodule_c_image liboiio;
 
 écris_image :: fonc (chemin: chaine, image: NouvelleImage)
 {
-    écris_image(CheminFichier(chemin), image)
+    écris_image(CheminFichier(chemin), image);
 }
 
 écris_image :: fonc (chemin: CheminFichier, image: NouvelleImage)
 {
-    image_io: ImageIO = ---
-    image_io.largeur = image.desc.largeur comme z32
-    image_io.hauteur = image.desc.hauteur comme z32
-    image_io.donnees = image.données comme *n8
+    image_io: ImageIO = ---;
+    image_io.largeur = image.desc.largeur comme z32;
+    image_io.hauteur = image.desc.hauteur comme z32;
+    image_io.donnees = image.données comme *n8;
 
     discr image.desc.format {
         Gris_8 {
-            image_io.format = ImageIO_DataType.UINT8
-            image_io.nombre_composants = 1
+            image_io.format = ImageIO_DataType.UINT8;
+            image_io.nombre_composants = 1;
         }
         RVB_8 {
-            image_io.format = ImageIO_DataType.UINT8
-            image_io.nombre_composants = 3
+            image_io.format = ImageIO_DataType.UINT8;
+            image_io.nombre_composants = 3;
         }
         RVBA_8 {
-            image_io.format = ImageIO_DataType.UINT8
-            image_io.nombre_composants = 4
+            image_io.format = ImageIO_DataType.UINT8;
+            image_io.nombre_composants = 4;
         }
         Gris_32 {
-            image_io.format = ImageIO_DataType.FLOAT
-            image_io.nombre_composants = 1
+            image_io.format = ImageIO_DataType.FLOAT;
+            image_io.nombre_composants = 1;
         }
         RVB_32 {
-            image_io.format = ImageIO_DataType.FLOAT
-            image_io.nombre_composants = 3
+            image_io.format = ImageIO_DataType.FLOAT;
+            image_io.nombre_composants = 3;
         }
         RVBA_32 {
-            image_io.format = ImageIO_DataType.FLOAT
-            image_io.nombre_composants = 4
+            image_io.format = ImageIO_DataType.FLOAT;
+            image_io.nombre_composants = 4;
         }
     }
 
-    chn_c_sortie := crée_chaine_c(chemin.chn)
-    diffère détruit_chaine_c(chn_c_sortie)
+    chn_c_sortie := crée_chaine_c(chemin.chn);
+    diffère détruit_chaine_c(chn_c_sortie);
 
-    _ := IMG_ecris_image(chn_c_sortie comme *z8, *image_io)
+    _ := IMG_ecris_image(chn_c_sortie comme *z8, *image_io);
 }
 
 calcule_empreinte_floue :: fonc (image: NouvelleImage, composants_x: z32, composants_y: z32) -> chaine
 {
-    tampon: [2 + 4 + (9 * 9 - 1) * 2 + 1]z8
-    taille_résultat: z64
+    tampon: [2 + 4 + (9 * 9 - 1) * 2 + 1]z8;
+    taille_résultat: z64;
 
     discr image.desc.format {
         Gris_8 {
-            panique("non-implémenté")
+            panique("non-implémenté");
         }
         RVB_8 {
-            panique("non-implémenté")
+            panique("non-implémenté");
         }
         RVBA_8 {
-            panique("non-implémenté")
+            panique("non-implémenté");
         }
         Gris_32 {
-            tampon_img := image.donne_tampon_gris()
-            IMG_calcule_empreinte_floue_reel(tampon_img.données, tampon_img.largeur, tampon_img.hauteur, 1, composants_x, composants_y, *tampon[0], *taille_résultat)
+            tampon_img := image.donne_tampon_gris();
+            IMG_calcule_empreinte_floue_reel(tampon_img.données, tampon_img.largeur, tampon_img.hauteur, 1, composants_x, composants_y, *tampon[0], *taille_résultat);
         }
         RVB_32 {
-            tampon_img := image.donne_tampon_spectre()
-            IMG_calcule_empreinte_floue_reel(tampon_img.données comme *r32, tampon_img.largeur, tampon_img.hauteur, 3, composants_x, composants_y, *tampon[0], *taille_résultat)
+            tampon_img := image.donne_tampon_spectre();
+            IMG_calcule_empreinte_floue_reel(tampon_img.données comme *r32, tampon_img.largeur, tampon_img.hauteur, 3, composants_x, composants_y, *tampon[0], *taille_résultat);
         }
         RVBA_32 {
-            tampon_img := image.donne_tampon_rvba()
-            IMG_calcule_empreinte_floue_reel(tampon_img.données comme *r32, tampon_img.largeur, tampon_img.hauteur, 4, composants_x, composants_y, *tampon[0], *taille_résultat)
+            tampon_img := image.donne_tampon_rvba();
+            IMG_calcule_empreinte_floue_reel(tampon_img.données comme *r32, tampon_img.largeur, tampon_img.hauteur, 4, composants_x, composants_y, *tampon[0], *taille_résultat);
         }
     }
 
-    résultat := loge_chaine(taille_résultat)
+    résultat := loge_chaine(taille_résultat);
 
     pour 0 ... taille_résultat - 1 {
-        résultat[it] = tampon[it]
+        résultat[it] = tampon[it];
     }
 
-    retourne résultat
+    retourne résultat;
 }
 
 /* ------------------------------------------------------------------------- */
@@ -557,37 +557,37 @@ calcule_empreinte_floue :: fonc (image: NouvelleImage, composants_x: z32, compos
 
 calcule_empreinte_différentielle :: fonc (image: NouvelleImage) -> n64
 {
-    gris := convertis_en_nuances_de_gris(image)
-    diffère détruit_données_image(*gris)
+    gris := convertis_en_nuances_de_gris(image);
+    diffère détruit_données_image(*gris);
 
-    tampon_gris := gris.donne_tampon_gris()
+    tampon_gris := gris.donne_tampon_gris();
 
-    sortie: [9 * 8]r32 = ---
-    largeur_empreinte := 9
-    hauteur_empreinte := 8
-    tampon_empreinte: TamponImage(r32)
-    tampon_empreinte.données = *sortie[0]
-    tampon_empreinte.largeur = largeur_empreinte
-    tampon_empreinte.hauteur = hauteur_empreinte
+    sortie: [9 * 8]r32 = ---;
+    largeur_empreinte := 9;
+    hauteur_empreinte := 8;
+    tampon_empreinte: TamponImage(r32);
+    tampon_empreinte.données = *sortie[0];
+    tampon_empreinte.largeur = largeur_empreinte;
+    tampon_empreinte.hauteur = hauteur_empreinte;
 
-    rééchantillonne_prochain_voisin(tampon_gris, *tampon_empreinte)
+    rééchantillonne_prochain_voisin(tampon_gris, *tampon_empreinte);
 
-    empreinte: n64
-    bit : n64 = 63
+    empreinte: n64;
+    bit : n64 = 63;
 
     pour y dans hauteur_empreinte {
         pour x dans largeur_empreinte - 1 {
-            indice := y * largeur_empreinte + x
+            indice := y * largeur_empreinte + x;
             
             si sortie[indice] < sortie[indice + 1] {
                 empreinte |= (1 << bit) 
             }
 
-            bit -= 1
+            bit -= 1;
         }
     }
 
-    retourne empreinte
+    retourne empreinte;
 }
 
 /** \} */
@@ -608,320 +608,320 @@ calcule_empreinte_différentielle :: fonc (image: NouvelleImage) -> n64
 
 calcule_empreinte_moyenne :: fonc (image: NouvelleImage) -> n64
 {
-    gris := convertis_en_nuances_de_gris(image)
-    diffère détruit_données_image(*gris)
+    gris := convertis_en_nuances_de_gris(image);
+    diffère détruit_données_image(*gris);
 
-    tampon_gris := gris.donne_tampon_gris()
+    tampon_gris := gris.donne_tampon_gris();
 
-    sortie: [8 * 8]r32 = ---
-    largeur_empreinte := 8
-    hauteur_empreinte := 8
-    tampon_empreinte: TamponImage(r32)
-    tampon_empreinte.données = *sortie[0]
-    tampon_empreinte.largeur = largeur_empreinte
-    tampon_empreinte.hauteur = hauteur_empreinte
+    sortie: [8 * 8]r32 = ---;
+    largeur_empreinte := 8;
+    hauteur_empreinte := 8;
+    tampon_empreinte: TamponImage(r32);
+    tampon_empreinte.données = *sortie[0];
+    tampon_empreinte.largeur = largeur_empreinte;
+    tampon_empreinte.hauteur = hauteur_empreinte;
 
-    rééchantillonne_prochain_voisin(tampon_gris, *tampon_empreinte)
+    rééchantillonne_prochain_voisin(tampon_gris, *tampon_empreinte);
 
-    moyenne: r32
+    moyenne: r32;
     pour sortie {
-        moyenne += it
+        moyenne += it;
     }
-    moyenne /= sortie.taille comme r32
+    moyenne /= sortie.taille comme r32;
 
-    empreinte: n64
-    bit : n64 = 63
+    empreinte: n64;
+    bit : n64 = 63;
 
     pour sortie {
         si it < moyenne {
             empreinte |= (1 << bit) 
         }
 
-        bit -= 1
+        bit -= 1;
     }
 
-    retourne empreinte
+    retourne empreinte;
 }
 
 /** \} */
 
 convertis_en_nuances_de_gris :: fonc (image: NouvelleImage) -> NouvelleImage
 {
-    résultat: NouvelleImage
-    desc := image.desc
-    nombre_de_pixels := desc.largeur * desc.hauteur
+    résultat: NouvelleImage;
+    desc := image.desc;
+    nombre_de_pixels := desc.largeur * desc.hauteur;
 
     discr image.desc.format {
         Gris_8, Gris_32 {
-            résultat = image
-            résultat.source_données = SourceDonnéesImage.Externe
+            résultat = image;
+            résultat.source_données = SourceDonnéesImage.Externe;
         }
         RVB_8 {
-            desc.format = FormatPixel.Gris_8
-            résultat = crée_image(*desc)
+            desc.format = FormatPixel.Gris_8;
+            résultat = crée_image(*desc);
 
-            pixels_entrée := image.données comme *n8
-            pixels_sortie := résultat.données comme *n8
+            pixels_entrée := image.données comme *n8;
+            pixels_sortie := résultat.données comme *n8;
 
             pour nombre_de_pixels {
-                r := mémoire(pixels_entrée) comme r32 / 255.0
-                v := mémoire(pixels_entrée + 1) comme r32 / 255.0
-                b := mémoire(pixels_entrée + 2) comme r32 / 255.0
+                r := mémoire(pixels_entrée) comme r32 / 255.0;
+                v := mémoire(pixels_entrée + 1) comme r32 / 255.0;
+                b := mémoire(pixels_entrée + 2) comme r32 / 255.0;
 
-                l := luminance(CouleurRVBA(r, v, b))
-                mémoire(pixels_sortie) = (l * 255.0) comme n8
+                l := luminance(CouleurRVBA(r, v, b));
+                mémoire(pixels_sortie) = (l * 255.0) comme n8;
 
-                pixels_entrée += 3
-                pixels_sortie += 1
+                pixels_entrée += 3;
+                pixels_sortie += 1;
             }
         }
         RVB_32 {
-            desc.format = FormatPixel.Gris_32
-            résultat = crée_image(*desc)
+            desc.format = FormatPixel.Gris_32;
+            résultat = crée_image(*desc);
 
-            pixels_entrée := image.données comme *r32
-            pixels_sortie := résultat.données comme *r32
+            pixels_entrée := image.données comme *r32;
+            pixels_sortie := résultat.données comme *r32;
 
             pour nombre_de_pixels {
-                r := mémoire(pixels_entrée)
-                v := mémoire(pixels_entrée + 1)
-                b := mémoire(pixels_entrée + 2)
+                r := mémoire(pixels_entrée);
+                v := mémoire(pixels_entrée + 1);
+                b := mémoire(pixels_entrée + 2);
 
-                l := luminance(CouleurRVBA(r, v, b))
-                mémoire(pixels_sortie) = l
+                l := luminance(CouleurRVBA(r, v, b));
+                mémoire(pixels_sortie) = l;
 
-                pixels_entrée += 3
-                pixels_sortie += 1
+                pixels_entrée += 3;
+                pixels_sortie += 1;
             }
         }
         RVBA_8 {
-            desc.format = FormatPixel.Gris_8
-            résultat = crée_image(*desc)
+            desc.format = FormatPixel.Gris_8;
+            résultat = crée_image(*desc);
 
-            pixels_entrée := image.données comme *n8
-            pixels_sortie := résultat.données comme *n8
+            pixels_entrée := image.données comme *n8;
+            pixels_sortie := résultat.données comme *n8;
 
             pour nombre_de_pixels {
-                r := mémoire(pixels_entrée) comme r32 / 255.0
-                v := mémoire(pixels_entrée + 1) comme r32 / 255.0
-                b := mémoire(pixels_entrée + 2) comme r32 / 255.0
+                r := mémoire(pixels_entrée) comme r32 / 255.0;
+                v := mémoire(pixels_entrée + 1) comme r32 / 255.0;
+                b := mémoire(pixels_entrée + 2) comme r32 / 255.0;
 
-                l := luminance(CouleurRVBA(r, v, b))
-                mémoire(pixels_sortie) = (l * 255.0) comme n8
+                l := luminance(CouleurRVBA(r, v, b));
+                mémoire(pixels_sortie) = (l * 255.0) comme n8;
 
-                pixels_entrée += 4
-                pixels_sortie += 1
+                pixels_entrée += 4;
+                pixels_sortie += 1;
             }
         }
         RVBA_32 {
-            desc.format = FormatPixel.Gris_32
-            résultat = crée_image(*desc)
+            desc.format = FormatPixel.Gris_32;
+            résultat = crée_image(*desc);
 
-            pixels_entrée := image.données comme *r32
-            pixels_sortie := résultat.données comme *r32
+            pixels_entrée := image.données comme *r32;
+            pixels_sortie := résultat.données comme *r32;
 
             pour nombre_de_pixels {
-                r := mémoire(pixels_entrée)
-                v := mémoire(pixels_entrée + 1)
-                b := mémoire(pixels_entrée + 2)
+                r := mémoire(pixels_entrée);
+                v := mémoire(pixels_entrée + 1);
+                b := mémoire(pixels_entrée + 2);
 
-                l := luminance(CouleurRVBA(r, v, b))
-                mémoire(pixels_sortie) = l
+                l := luminance(CouleurRVBA(r, v, b));
+                mémoire(pixels_sortie) = l;
 
-                pixels_entrée += 4
-                pixels_sortie += 1
+                pixels_entrée += 4;
+                pixels_sortie += 1;
             }
         }
     }
 
-    retourne résultat
+    retourne résultat;
 }
 
 TamponImage :: struct ($T: type_de_données) {
-    données: *T
-    largeur: z32
-    hauteur: z32
+    données: *T;
+    largeur: z32;
+    hauteur: z32;
 }
 
 remplis_tampon :: fonc (image: TamponImage($T), valeur: T)
 {
-    nombre_de_pixels := image.largeur * image.hauteur
+    nombre_de_pixels := image.largeur * image.hauteur;
     pour nombre_de_pixels {
-        image.données[it] = valeur
+        image.données[it] = valeur;
     }
 }
 
-TamponImageGrise8Bit :: TamponImage(n8)
-TamponImageGrise32Bit :: TamponImage(n32)
-TamponImageRVBA8Bit :: TamponImage(CouleurRVBAN8)
-TamponImageRVBA32Bit :: TamponImage(CouleurRVBA)
+TamponImageGrise8Bit :: TamponImage(n8);
+TamponImageGrise32Bit :: TamponImage(n32);
+TamponImageRVBA8Bit :: TamponImage(CouleurRVBAN8);
+TamponImageRVBA32Bit :: TamponImage(CouleurRVBA);
 
 donne_tampon_gris :: fonc (image: NouvelleImage) -> TamponImage(r32)
 {
-    assert(image.desc.format == FormatPixel.Gris_32)
-    résultat: TamponImage(r32) = ---
-    résultat.données = image.données comme *r32
-    résultat.largeur = image.desc.largeur comme z32
-    résultat.hauteur = image.desc.hauteur comme z32
-    retourne résultat
+    assert(image.desc.format == FormatPixel.Gris_32);
+    résultat: TamponImage(r32) = ---;
+    résultat.données = image.données comme *r32;
+    résultat.largeur = image.desc.largeur comme z32;
+    résultat.hauteur = image.desc.hauteur comme z32;
+    retourne résultat;
 }
 
 donne_tampon_gris_8bit :: fonc (image: NouvelleImage) -> TamponImage(n8)
 {
-    assert(image.desc.format == FormatPixel.Gris_8)
-    résultat: TamponImage(n8) = ---
-    résultat.données = image.données comme *n8
-    résultat.largeur = image.desc.largeur comme z32
-    résultat.hauteur = image.desc.hauteur comme z32
-    retourne résultat
+    assert(image.desc.format == FormatPixel.Gris_8);
+    résultat: TamponImage(n8) = ---;
+    résultat.données = image.données comme *n8;
+    résultat.largeur = image.desc.largeur comme z32;
+    résultat.hauteur = image.desc.hauteur comme z32;
+    retourne résultat;
 }
 
 donne_tampon_spectre :: fonc (image: NouvelleImage) -> TamponImage(Spectre)
 {
-    assert(image.desc.format == FormatPixel.RVB_32)
-    résultat: TamponImage(Spectre) = ---
-    résultat.données = image.données comme *Spectre
-    résultat.largeur = image.desc.largeur comme z32
-    résultat.hauteur = image.desc.hauteur comme z32
-    retourne résultat
+    assert(image.desc.format == FormatPixel.RVB_32);
+    résultat: TamponImage(Spectre) = ---;
+    résultat.données = image.données comme *Spectre;
+    résultat.largeur = image.desc.largeur comme z32;
+    résultat.hauteur = image.desc.hauteur comme z32;
+    retourne résultat;
 }
 
 donne_tampon_rvb_8bit :: fonc (image: NouvelleImage) -> TamponImage(CouleurRVBN8)
 {
-    assert(image.desc.format == FormatPixel.RVB_8)
-    résultat: TamponImage(CouleurRVBN8) = ---
-    résultat.données = image.données comme *CouleurRVBN8
-    résultat.largeur = image.desc.largeur comme z32
-    résultat.hauteur = image.desc.hauteur comme z32
-    retourne résultat
+    assert(image.desc.format == FormatPixel.RVB_8);
+    résultat: TamponImage(CouleurRVBN8) = ---;
+    résultat.données = image.données comme *CouleurRVBN8;
+    résultat.largeur = image.desc.largeur comme z32;
+    résultat.hauteur = image.desc.hauteur comme z32;
+    retourne résultat;
 }
 
 donne_tampon_rvba :: fonc (image: NouvelleImage) -> TamponImage(CouleurRVBA)
 {
-    assert(image.desc.format == FormatPixel.RVBA_32)
-    résultat: TamponImage(CouleurRVBA) = ---
-    résultat.données = image.données comme *CouleurRVBA
-    résultat.largeur = image.desc.largeur comme z32
-    résultat.hauteur = image.desc.hauteur comme z32
-    retourne résultat
+    assert(image.desc.format == FormatPixel.RVBA_32);
+    résultat: TamponImage(CouleurRVBA) = ---;
+    résultat.données = image.données comme *CouleurRVBA;
+    résultat.largeur = image.desc.largeur comme z32;
+    résultat.hauteur = image.desc.hauteur comme z32;
+    retourne résultat;
 }
 
 donne_tampon_rvba_8bit :: fonc (image: NouvelleImage) -> TamponImage(CouleurRVBAN8)
 {
-    assert(image.desc.format == FormatPixel.RVBA_8)
-    résultat: TamponImage(CouleurRVBAN8) = ---
-    résultat.données = image.données comme *CouleurRVBAN8
-    résultat.largeur = image.desc.largeur comme z32
-    résultat.hauteur = image.desc.hauteur comme z32
-    retourne résultat
+    assert(image.desc.format == FormatPixel.RVBA_8);
+    résultat: TamponImage(CouleurRVBAN8) = ---;
+    résultat.données = image.données comme *CouleurRVBAN8;
+    résultat.largeur = image.desc.largeur comme z32;
+    résultat.hauteur = image.desc.hauteur comme z32;
+    retourne résultat;
 }
 
 rééchantillonne_prochain_voisin :: fonc (entrée: TamponImage($T), sortie: *TamponImage(T))
 {
-    dlargeur := (entrée.largeur comme r32) / (sortie.largeur comme r32)
-    dhauteur := (entrée.hauteur comme r32) / (sortie.hauteur comme r32)
+    dlargeur := (entrée.largeur comme r32) / (sortie.largeur comme r32);
+    dhauteur := (entrée.hauteur comme r32) / (sortie.hauteur comme r32);
 
-    indice_sortie := 0
+    indice_sortie := 0;
 
-    pixels_entrée := entrée.données
-    pixels_sortie := sortie.données
+    pixels_entrée := entrée.données;
+    pixels_sortie := sortie.données;
 
     pour y dans sortie.hauteur {
         pour x dans sortie.largeur {
-            position_x := (x comme r32 * dlargeur) comme z32
-            position_y := (y comme r32 * dhauteur) comme z32
+            position_x := (x comme r32 * dlargeur) comme z32;
+            position_y := (y comme r32 * dhauteur) comme z32;
 
-            indice_entrée := position_y * entrée.largeur + position_x
+            indice_entrée := position_y * entrée.largeur + position_x;
 
-            pixels_sortie[indice_sortie] = pixels_entrée[indice_entrée]
-            indice_sortie += 1
+            pixels_sortie[indice_sortie] = pixels_entrée[indice_entrée];
+            indice_sortie += 1;
         }
     }
 }
 
 rééchantillonne_linéaire :: fonc (entrée: TamponImage($T), sortie: *TamponImage(T))
 {
-    indice_sortie := 0
-    pixels_sortie := sortie.données
+    indice_sortie := 0;
+    pixels_sortie := sortie.données;
 
-    échelle_x := (entrée.largeur comme r32) / (sortie.largeur comme r32)
-    échelle_y := (entrée.hauteur comme r32) / (sortie.hauteur comme r32)
+    échelle_x := (entrée.largeur comme r32) / (sortie.largeur comme r32);
+    échelle_y := (entrée.hauteur comme r32) / (sortie.hauteur comme r32);
 
     pour sy dans sortie.hauteur {
-        yc := sy comme r32 * échelle_y
-        frac_y := part_réelle(yc)
-        j0 := part_entière(yc)
-        j1 := j0 + 1
+        yc := sy comme r32 * échelle_y;
+        frac_y := part_réelle(yc);
+        j0 := part_entière(yc);
+        j1 := j0 + 1;
 
-        décalage_j0 := j0 * entrée.largeur
-        décalage_j1 := j1 * entrée.largeur
+        décalage_j0 := j0 * entrée.largeur;
+        décalage_j1 := j1 * entrée.largeur;
 
         pour sx dans sortie.largeur {
-            xc := sx comme r32 * échelle_x
-            frac_x := part_réelle(xc)
-            i0 := part_entière(xc)
-            i1 := i0 + 1
+            xc := sx comme r32 * échelle_x;
+            frac_x := part_réelle(xc);
+            i0 := part_entière(xc);
+            i1 := i0 + 1;
 
-            idx0 := i0 + décalage_j0
-            idx1 := i1 + décalage_j0
-            idx2 := i0 + décalage_j1
-            idx3 := i1 + décalage_j1
+            idx0 := i0 + décalage_j0;
+            idx1 := i1 + décalage_j0;
+            idx2 := i0 + décalage_j1;
+            idx3 := i1 + décalage_j1;
 
-            grille := entrée.données
+            grille := entrée.données;
 
-            résultat: T
-            résultat += frac_x * frac_y * grille[idx0]
-            résultat += (1.0 - frac_x) * frac_y * grille[idx1]
-            résultat += frac_x * (1.0 - frac_y) * grille[idx2]
-            résultat += (1.0 - frac_x) * (1.0 - frac_y) * grille[idx3]
+            résultat: T;
+            résultat += frac_x * frac_y * grille[idx0];
+            résultat += (1.0 - frac_x) * frac_y * grille[idx1];
+            résultat += frac_x * (1.0 - frac_y) * grille[idx2];
+            résultat += (1.0 - frac_x) * (1.0 - frac_y) * grille[idx3];
 
-            pixels_sortie[indice_sortie] = résultat
-            indice_sortie += 1
+            pixels_sortie[indice_sortie] = résultat;
+            indice_sortie += 1;
         }
     }
 }
 
 échantillon_linéaire :: fonc (entrée: TamponImage($T), x: r32, y: r32) -> T
 {
-    rx := entrée.largeur
-    ry := entrée.hauteur
+    rx := entrée.largeur;
+    ry := entrée.hauteur;
 
     /* Enveloppe pour que 0 <= (x, y) < 1. */
-    x = enveloppe(x)
-    y = enveloppe(y)
+    x = enveloppe(x);
+    y = enveloppe(y);
 
     /* Convertis la position dans l'espace continu. */
-    xc := x * rx comme r32
-    yc := y * ry comme r32
+    xc := x * rx comme r32;
+    yc := y * ry comme r32;
 
-    i0 := part_entière(xc)
-    j0 := part_entière(yc)
+    i0 := part_entière(xc);
+    j0 := part_entière(yc);
 
-    i1 := i0 + 1
-    j1 := j0 + 1
+    i1 := i0 + 1;
+    j1 := j0 + 1;
 
-    frac_x := part_réelle(xc)
-    frac_y := part_réelle(yc)
+    frac_x := part_réelle(xc);
+    frac_y := part_réelle(yc);
 
-    i0 %= rx
-    j0 %= ry
+    i0 %= rx;
+    j0 %= ry;
 
-    i1 %= rx
-    j1 %= ry
+    i1 %= rx;
+    j1 %= ry;
 
-    idx0 := i0 + j0 * rx
-    idx1 := i1 + j0 * rx
-    idx2 := i0 + j1 * rx
-    idx3 := i1 + j1 * rx
+    idx0 := i0 + j0 * rx;
+    idx1 := i1 + j0 * rx;
+    idx2 := i0 + j1 * rx;
+    idx3 := i1 + j1 * rx;
 
-    grille := entrée.données
+    grille := entrée.données;
 
-    résultat: T
-    résultat += frac_x * frac_y * grille[idx0]
-    résultat += (1.0 - frac_x) * frac_y * grille[idx1]
-    résultat += frac_x * (1.0 - frac_y) * grille[idx2]
-    résultat += (1.0 - frac_x) * (1.0 - frac_y) * grille[idx3]
-    retourne résultat
+    résultat: T;
+    résultat += frac_x * frac_y * grille[idx0];
+    résultat += (1.0 - frac_x) * frac_y * grille[idx1];
+    résultat += frac_x * (1.0 - frac_y) * grille[idx2];
+    résultat += (1.0 - frac_x) * (1.0 - frac_y) * grille[idx3];
+    retourne résultat;
 }
 
 /* ------------------------------------------------------------------------- */
@@ -934,36 +934,36 @@ rééchantillonne_linéaire :: fonc (entrée: TamponImage($T), sortie: *TamponIm
  * https://drafts.csswg.org/css-backgrounds-3/#background-repeat */
 GenreRépétitionImage :: énum n8 {
     /* L'image ne doit être répétée. */
-    Aucune
+    Aucune;
     /* L'image doit être répétée, et peut apparaître coupée. */
-    Normale
+    Normale;
     /* L'image doit être mise à l'échelle et répétée afin de couvrir son aire de dessin. */
-    Arrondis
+    Arrondis;
     /* L'image doit être répétée sans être coupée dans son aire de dessin.
      * Si possible, de l'espace est introduit entre les répétitions. */
-    Espacé
+    Espacé;
 }
 
 /* Définis la manière de répéter une image sur chacun des axes lors de son image. */
 RépétitionImage :: struct {
-    x: GenreRépétitionImage
-    y: GenreRépétitionImage
+    x: GenreRépétitionImage;
+    y: GenreRépétitionImage;
 }
 
 GenreÉchantillonnageImage :: énum n8 {
-    Linéaire
-    Prochain
+    Linéaire;
+    Prochain;
 }
 
 /* Définis la manière d'échantillonner une image pour la minification ou la magnification. */
 ÉchantillonnageImage :: struct {
-    pour_minification: GenreÉchantillonnageImage
-    pour_magnification: GenreÉchantillonnageImage
+    pour_minification: GenreÉchantillonnageImage;
+    pour_magnification: GenreÉchantillonnageImage;
 }
 
 ParamètresRenduImage :: struct {
-    répétition: RépétitionImage
-    échantillonnage: ÉchantillonnageImage
+    répétition: RépétitionImage;
+    échantillonnage: ÉchantillonnageImage;
 }
 
 /** \} */
@@ -973,52 +973,52 @@ ParamètresRenduImage :: struct {
  * libwebp version 1.4
  * \{ */
 
-libwebp :: #bibliothèque "webp"
-libsharpyuv :: #bibliothèque "sharpyuv"
-libwebpdemux :: #bibliothèque "webpdemux"
-libwebpmux :: #bibliothèque "webpmux"
+libwebp :: #bibliothèque "webp";
+libsharpyuv :: #bibliothèque "sharpyuv";
+libwebpdemux :: #bibliothèque "webpdemux";
+libwebpmux :: #bibliothèque "webpmux";
 
-#dépendance_bibliothèque libwebp libsharpyuv
-#dépendance_bibliothèque libwebp libwebpdemux
-#dépendance_bibliothèque libwebp libwebpmux
+#dépendance_bibliothèque libwebp libsharpyuv;
+#dépendance_bibliothèque libwebp libwebpdemux;
+#dépendance_bibliothèque libwebp libwebpmux;
 
-#dépendance_bibliothèque libwebp libpthread
+#dépendance_bibliothèque libwebp libpthread;
 
-WebPGetInfo :: fonc (data: *n8, data_size: n64, width: *z32, height: *z32) -> z32 #externe libwebp
+WebPGetInfo :: fonc (data: *n8, data_size: n64, width: *z32, height: *z32) -> z32 #externe libwebp;
 
-WebPDecodeRGBInto :: fonc (data: *n8, data_size: n64, output_buffer: *n8, output_buffer_size: n64, output_stride: z32) -> *n8 #externe libwebp
-WebPDecodeRGBAInto :: fonc (data: *n8, data_size: n64, output_buffer: *n8, output_buffer_size: n64, output_stride: z32) -> *n8 #externe libwebp
+WebPDecodeRGBInto :: fonc (data: *n8, data_size: n64, output_buffer: *n8, output_buffer_size: n64, output_stride: z32) -> *n8 #externe libwebp;
+WebPDecodeRGBAInto :: fonc (data: *n8, data_size: n64, output_buffer: *n8, output_buffer_size: n64, output_stride: z32) -> *n8 #externe libwebp;
 
 WEBP_DECODER_ABI_VERSION :: 0x0209    // MAJOR(8b) + MINOR(8b)
 
 WEBP_CSP_MODE :: énum {
-    MODE_RGB :: 0
-    MODE_RGBA :: 1
-    MODE_BGR :: 2
-    MODE_BGRA :: 3
-    MODE_ARGB :: 4
-    MODE_RGBA_4444 :: 5
-    MODE_RGB_565 :: 6
+    MODE_RGB :: 0;
+    MODE_RGBA :: 1;
+    MODE_BGR :: 2;
+    MODE_BGRA :: 3;
+    MODE_ARGB :: 4;
+    MODE_RGBA_4444 :: 5;
+    MODE_RGB_565 :: 6;
     // RGB-premultiplied transparent modes (alpha value is preserved)
-    MODE_rgbA :: 7
-    MODE_bgrA :: 8
-    MODE_Argb :: 9
-    MODE_rgbA_4444 :: 10
+    MODE_rgbA :: 7;
+    MODE_bgrA :: 8;
+    MODE_Argb :: 9;
+    MODE_rgbA_4444 :: 10;
     // YUV modes must come after RGB ones.
-    MODE_YUV :: 11
+    MODE_YUV :: 11;
     MODE_YUVA :: 12  // yuv 4:2:0
-    MODE_LAST :: 13
+    MODE_LAST :: 13;
 }
 
 VP8StatusCode :: énum {
-    VP8_STATUS_OK :: 0
-    VP8_STATUS_OUT_OF_MEMORY
-    VP8_STATUS_INVALID_PARAM
-    VP8_STATUS_BITSTREAM_ERROR
-    VP8_STATUS_UNSUPPORTED_FEATURE
-    VP8_STATUS_SUSPENDED
-    VP8_STATUS_USER_ABORT
-    VP8_STATUS_NOT_ENOUGH_DATA
+    VP8_STATUS_OK :: 0;
+    VP8_STATUS_OUT_OF_MEMORY;
+    VP8_STATUS_INVALID_PARAM;
+    VP8_STATUS_BITSTREAM_ERROR;
+    VP8_STATUS_UNSUPPORTED_FEATURE;
+    VP8_STATUS_SUSPENDED;
+    VP8_STATUS_USER_ABORT;
+    VP8_STATUS_NOT_ENOUGH_DATA;
 }
 
 WebPRGBABuffer :: struct {    // view as RGBA
@@ -1056,7 +1056,7 @@ WebPDecBuffer :: struct {
                                 // externally, but accessed via the buffer union.
 }
 
-WebPFreeDecBuffer :: fonc (buffer: *WebPDecBuffer) #externe libwebp
+WebPFreeDecBuffer :: fonc (buffer: *WebPDecBuffer) #externe libwebp;
 
 WebPBitstreamFeatures :: struct {
     width: z32;          // Width in pixels, as read from the bitstream.
@@ -1069,7 +1069,7 @@ WebPBitstreamFeatures :: struct {
 }
 
 // Internal, version-checked, entry point
-WebPGetFeaturesInternal :: fonc (data: *n8, data_size: n64, features: *WebPBitstreamFeatures, version: z32) -> VP8StatusCode #externe libwebp
+WebPGetFeaturesInternal :: fonc (data: *n8, data_size: n64, features: *WebPBitstreamFeatures, version: z32) -> VP8StatusCode #externe libwebp;
 
 // Retrieve features from the bitstream. The *features structure is filled
 // with information gathered from the bitstream.
@@ -1111,7 +1111,7 @@ WebPDecoderConfig :: struct {
 }
 
 // Internal, version-checked, entry point
-WebPInitDecoderConfigInternal :: fonc (config: *WebPDecoderConfig, version: z32) -> z32 #externe libwebp
+WebPInitDecoderConfigInternal :: fonc (config: *WebPDecoderConfig, version: z32) -> z32 #externe libwebp;
 
 // Initialize the configuration as empty. This function must always be
 // called first, unless WebPGetFeatures() is to be called.
@@ -1133,21 +1133,21 @@ WebPDecode :: fonc (data: *n8, data_size: n64, config: *WebPDecoderConfig) -> VP
  * \{ */
 
 InfoFormatImageSupporté :: struct {
-    nom_format: chaine
+    nom_format: chaine;
     /* Les extensions ne contiennent pas le point. */
-    extensions: [..]chaine
+    extensions: [..]chaine;
     /* Vrai si supporté pour lecture. */
-    pour_lecture: bool
+    pour_lecture: bool;
     /* Vrai si supporté pour écriture. */
-    pour_écriture: bool
+    pour_écriture: bool;
 }
 
 détruit_infos :: fonc (infos: [..]InfoFormatImageSupporté)
 {
     pour infos {
-        déloge(it.extensions)
+        déloge(it.extensions);
     }
-    déloge(infos)
+    déloge(infos);
 }
 
 compare_info_image_supportée_par_nom :: fonc (a: InfoFormatImageSupporté, b: InfoFormatImageSupporté) -> z32
@@ -1157,135 +1157,135 @@ compare_info_image_supportée_par_nom :: fonc (a: InfoFormatImageSupporté, b: I
 
 donne_infos_formats_images_supportés :: fonc () -> [..]InfoFormatImageSupporté
 {
-    liste_extensions := IMG_donne_liste_extensions()
-    chn_liste_extensions := chaine(liste_extensions.caractères, liste_extensions.taille comme z64)
+    liste_extensions := IMG_donne_liste_extensions();
+    chn_liste_extensions := chaine(liste_extensions.caractères, liste_extensions.taille comme z64);
 
-    nombre_de_doubles_points := compte_occurences_de(chn_liste_extensions, ':')
-    nombre_de_virgules := compte_occurences_de(chn_liste_extensions, ',')
+    nombre_de_doubles_points := compte_occurences_de(chn_liste_extensions, ':');
+    nombre_de_virgules := compte_occurences_de(chn_liste_extensions, ',');
 
-    nombre_d_extensions := nombre_de_virgules + nombre_de_doubles_points
+    nombre_d_extensions := nombre_de_virgules + nombre_de_doubles_points;
 
-    résultat: [..]InfoFormatImageSupporté
+    résultat: [..]InfoFormatImageSupporté;
     /* + 3 pour SVG, GIF, et WebP */
-    tableau_réserve(*résultat, nombre_de_doubles_points + 3)
+    tableau_réserve(*résultat, nombre_de_doubles_points + 3);
 
-    paires_type_extensions := divise(chn_liste_extensions, ';')
-    diffère déloge(paires_type_extensions)
+    paires_type_extensions := divise(chn_liste_extensions, ';');
+    diffère déloge(paires_type_extensions);
 
     type_et_extensions: [..]chaine 
-    tableau_réserve(*type_et_extensions, nombre_d_extensions)
-    diffère déloge(type_et_extensions)
+    tableau_réserve(*type_et_extensions, nombre_d_extensions);
+    diffère déloge(type_et_extensions);
 
     extensions: [..]chaine 
-    tableau_réserve(*extensions, nombre_d_extensions)
-    diffère déloge(extensions)
+    tableau_réserve(*extensions, nombre_d_extensions);
+    diffère déloge(extensions);
 
     pour paires_type_extensions {
-        divise(it, ':', *type_et_extensions)
+        divise(it, ':', *type_et_extensions);
         si type_et_extensions.taille != 2 {
-            continue
+            continue;
         }
 
-        divise(type_et_extensions[1], ',', *extensions)
+        divise(type_et_extensions[1], ',', *extensions);
 
-        info := tableau_ajoute_élément(*résultat)
-        info.nom_format = type_et_extensions[0]
-        info.pour_lecture = vrai
-        info.pour_écriture = vrai
-        info.extensions = tableau_copie(extensions)
+        info := tableau_ajoute_élément(*résultat);
+        info.nom_format = type_et_extensions[0];
+        info.pour_lecture = vrai;
+        info.pour_écriture = vrai;
+        info.extensions = tableau_copie(extensions);
     }
 
-    info := tableau_ajoute_élément(*résultat)
-    info.nom_format = "gif"
-    info.pour_lecture = vrai
-    info.pour_écriture = faux
-    tableau_ajoute(*info.extensions, "gif")
+    info := tableau_ajoute_élément(*résultat);
+    info.nom_format = "gif";
+    info.pour_lecture = vrai;
+    info.pour_écriture = faux;
+    tableau_ajoute(*info.extensions, "gif");
 
-    info = tableau_ajoute_élément(*résultat)
-    info.nom_format = "svg"
-    info.pour_lecture = vrai
-    info.pour_écriture = faux
-    tableau_ajoute(*info.extensions, "svg")
+    info = tableau_ajoute_élément(*résultat);
+    info.nom_format = "svg";
+    info.pour_lecture = vrai;
+    info.pour_écriture = faux;
+    tableau_ajoute(*info.extensions, "svg");
 
-    info = tableau_ajoute_élément(*résultat)
-    info.nom_format = "webp"
-    info.pour_lecture = vrai
-    info.pour_écriture = faux
-    tableau_ajoute(*info.extensions, "webp")
+    info = tableau_ajoute_élément(*résultat);
+    info.nom_format = "webp";
+    info.pour_lecture = vrai;
+    info.pour_écriture = faux;
+    tableau_ajoute(*info.extensions, "webp");
 
-    tri_rapide(résultat, compare_info_image_supportée_par_nom)
+    tri_rapide(résultat, compare_info_image_supportée_par_nom);
 
-    retourne résultat
+    retourne résultat;
 }
 
 /* Imprime une chaine utilisable par les explorateurs de fichiers afin de filtrer les éléments selon les extensions. */
 imprime_filtre_extensions :: fonc (enchaineuse: *Enchaineuse, infos: []InfoFormatImageSupporté, pour_lecture: bool)
 {
-    ajoute_au_tampon(enchaineuse, "Images (")
+    ajoute_au_tampon(enchaineuse, "Images (");
 
     pour infos {
         si pour_lecture == faux && it.pour_écriture == faux {
-            continue
+            continue;
         }
 
         pour ext dans it.extensions {
-            ajoute_au_tampon(enchaineuse, "*.", ext, " ")
+            ajoute_au_tampon(enchaineuse, "*.", ext, " ");
         }
     }
 
-    ajoute_au_tampon(enchaineuse, ")")
+    ajoute_au_tampon(enchaineuse, ")");
 
     pour infos {
         si pour_lecture == faux && it.pour_écriture == faux {
-            continue
+            continue;
         }
 
-        ajoute_au_tampon(enchaineuse, ";;", it.nom_format)
+        ajoute_au_tampon(enchaineuse, ";;", it.nom_format);
 
-        séparateur := " ("
+        séparateur := " (";
         pour ext dans it.extensions {
-            ajoute_au_tampon(enchaineuse, séparateur, "*.", ext)
-            séparateur = " "
+            ajoute_au_tampon(enchaineuse, séparateur, "*.", ext);
+            séparateur = " ";
         }
-        ajoute_au_tampon(enchaineuse, ")")
+        ajoute_au_tampon(enchaineuse, ")");
     }
 }
 
 donne_chaine_filtre_extensions_images :: fonc (pour_lecture: bool) -> chaine
 {
-    infos := donne_infos_formats_images_supportés()
-    diffère détruit_infos(infos)
+    infos := donne_infos_formats_images_supportés();
+    diffère détruit_infos(infos);
 
-    enchaineuse: Enchaineuse
-    initialise_enchaineuse(*enchaineuse)
+    enchaineuse: Enchaineuse;
+    initialise_enchaineuse(*enchaineuse);
 
-    imprime_filtre_extensions(*enchaineuse, infos, pour_lecture)
+    imprime_filtre_extensions(*enchaineuse, infos, pour_lecture);
 
-    retourne chaine_depuis_enchaineuse(*enchaineuse)
+    retourne chaine_depuis_enchaineuse(*enchaineuse);
 }
 
 est_image_supportée_pour_lecture :: fonc (extension: chaine)
 {
-    infos := donne_infos_formats_images_supportés()
-    diffère détruit_infos(infos)
-    retourne est_image_supportée_pour_lecture(infos, extension)
+    infos := donne_infos_formats_images_supportés();
+    diffère détruit_infos(infos);
+    retourne est_image_supportée_pour_lecture(infos, extension);
 }
 
 est_image_supportée_pour_écriture :: fonc (extension: chaine) -> bool
 {
-    infos := donne_infos_formats_images_supportés()
-    diffère détruit_infos(infos)
-    retourne est_image_supportée_pour_écriture(infos, extension)
+    infos := donne_infos_formats_images_supportés();
+    diffère détruit_infos(infos);
+    retourne est_image_supportée_pour_écriture(infos, extension);
 }
 
 est_image_supportée_pour_lecture :: fonc (infos: []InfoFormatImageSupporté, extension: chaine) -> bool
 {
-    retourne est_image_supportée(infos, extension, vrai)
+    retourne est_image_supportée(infos, extension, vrai);
 }
 
 est_image_supportée_pour_écriture :: fonc (infos: []InfoFormatImageSupporté, extension: chaine) -> bool
 {
-    retourne est_image_supportée(infos, extension, faux)
+    retourne est_image_supportée(infos, extension, faux);
 }
 
 #portée_fichier
@@ -1293,25 +1293,25 @@ est_image_supportée_pour_écriture :: fonc (infos: []InfoFormatImageSupporté, 
 est_image_supportée :: fonc (infos: []InfoFormatImageSupporté, extension: chaine, pour_lecture: bool) -> bool
 {
     saufsi extension {
-        retourne faux
+        retourne faux;
     }
 
     si extension[0] == '.' {
-        extension = avance(extension, 1)
+        extension = avance(extension, 1);
     }
 
     pour infos {
         si pour_lecture && it.pour_lecture == faux {
-            continue
+            continue;
         }
         si pour_lecture == faux && it.pour_écriture == faux {
-            continue
+            continue;
         }
         si est_une_extension_parmi(extension, it.extensions) {
-            retourne vrai
+            retourne vrai;
         }
     }
-    retourne faux
+    retourne faux;
 }
 
 /** \} */

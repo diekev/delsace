@@ -1,77 +1,77 @@
-importe Périphériques
+importe Périphériques;
 
-charge "interface"
+charge "interface";
 
-Bool :: z32
-Status :: z32
-False :: 0
-True :: 1
+Bool :: z32;
+Status :: z32;
+False :: 0;
+True :: 1;
 
 x11_imprime_erreur :: fonc (code: z32, message: chaine)
 {
-    chaine_code := ""
+    chaine_code := "";
 
     discr code {
         Success {
-            retourne
+            retourne;
         }
         BadRequest {
-            chaine_code = "mauvaise requête"
+            chaine_code = "mauvaise requête";
         }
         BadValue {
-            chaine_code = "mauvaise valeur"
+            chaine_code = "mauvaise valeur";
         }
         BadWindow {
-            chaine_code = "mauvaise fenêtre"
+            chaine_code = "mauvaise fenêtre";
         }
         BadPixmap {
-            chaine_code = "mauvaise pixmap"
+            chaine_code = "mauvaise pixmap";
         }
         BadAtom {
-            chaine_code = "mauvais atome"
+            chaine_code = "mauvais atome";
         }
         BadCursor {
-            chaine_code = "mauvais curseur"
+            chaine_code = "mauvais curseur";
         }
         BadFont {
-            chaine_code = "mauvaise fonte"
+            chaine_code = "mauvaise fonte";
         }
         BadMatch {
-            chaine_code = "mauvais appariement"
+            chaine_code = "mauvais appariement";
         }
         BadDrawable {
-            chaine_code = "mauvais dessinable"
+            chaine_code = "mauvais dessinable";
         }
         BadAccess {
-            chaine_code = "mauvais accès"
+            chaine_code = "mauvais accès";
         }
         BadAlloc {
-            chaine_code = "mauvaise allocation"
+            chaine_code = "mauvaise allocation";
         }
         BadColor {
-            chaine_code = "mauvaise couleur"
+            chaine_code = "mauvaise couleur";
         }
         BadGC {
-            chaine_code = "le paramètre n'est pas un contexte de graphisme"
+            chaine_code = "le paramètre n'est pas un contexte de graphisme";
         }
         BadIDChoice {
-            chaine_code = "l'identifiant choisit n'est hors de portée ou déjà pris"
+            chaine_code = "l'identifiant choisit n'est hors de portée ou déjà pris";
         }
         BadName {
-            chaine_code = "le nom n'existe pas"
+            chaine_code = "le nom n'existe pas";
         }
         BadLength {
-            chaine_code = "taille incorrecte"
+            chaine_code = "taille incorrecte";
         }
         BadImplementation {
-            chaine_code = "défut du serveur"
+            chaine_code = "défut du serveur";
         }
         sinon {
-            chaine_code = "erreur inconnue"
+            chaine_code = "erreur inconnue";
         }
     }
 
-    imprimeln("X11 : % : %", message, chaine_code)
+    imprimeln("X11 : % : %", message, chaine_code);
 }
 
 /* ------------------------------------------------------------------------- */
@@ -112,107 +112,107 @@ NoSymbol : z64 :	     0	/* special KeySym */
 /* Input Event Masks. Used as event-mask window attribute and as arguments
    to Grab requests.  Not to be confused with event names.  */
 
-NoEventMask : z64 :			0
-KeyPressMask : z64 :			(1<<0)
-KeyReleaseMask : z64 :			(1<<1)
-ButtonPressMask : z64 :			(1<<2)
-ButtonReleaseMask : z64 :		(1<<3)
-EnterWindowMask : z64 :			(1<<4)
-LeaveWindowMask : z64 :			(1<<5)
-PointerMotionMask : z64 :		(1<<6)
-PointerMotionHintMask : z64 :		(1<<7)
-Button1MotionMask : z64 :		(1<<8)
-Button2MotionMask : z64 :		(1<<9)
-Button3MotionMask : z64 :		(1<<10)
-Button4MotionMask : z64 :		(1<<11)
-Button5MotionMask : z64 :		(1<<12)
-ButtonMotionMask : z64 :		(1<<13)
-KeymapStateMask : z64 :			(1<<14)
-ExposureMask : z64 :			(1<<15)
-VisibilityChangeMask : z64 :		(1<<16)
-StructureNotifyMask : z64 :		(1<<17)
-ResizeRedirectMask : z64 :		(1<<18)
-SubstructureNotifyMask : z64 :		(1<<19)
-SubstructureRedirectMask : z64 :	(1<<20)
-FocusChangeMask : z64 :			(1<<21)
-PropertyChangeMask : z64 :		(1<<22)
-ColormapChangeMask : z64 :		(1<<23)
-OwnerGrabButtonMask : z64 :		(1<<24)
+NoEventMask : z64 :			0;
+KeyPressMask : z64 :			(1<<0);
+KeyReleaseMask : z64 :			(1<<1);
+ButtonPressMask : z64 :			(1<<2);
+ButtonReleaseMask : z64 :		(1<<3);
+EnterWindowMask : z64 :			(1<<4);
+LeaveWindowMask : z64 :			(1<<5);
+PointerMotionMask : z64 :		(1<<6);
+PointerMotionHintMask : z64 :		(1<<7);
+Button1MotionMask : z64 :		(1<<8);
+Button2MotionMask : z64 :		(1<<9);
+Button3MotionMask : z64 :		(1<<10);
+Button4MotionMask : z64 :		(1<<11);
+Button5MotionMask : z64 :		(1<<12);
+ButtonMotionMask : z64 :		(1<<13);
+KeymapStateMask : z64 :			(1<<14);
+ExposureMask : z64 :			(1<<15);
+VisibilityChangeMask : z64 :		(1<<16);
+StructureNotifyMask : z64 :		(1<<17);
+ResizeRedirectMask : z64 :		(1<<18);
+SubstructureNotifyMask : z64 :		(1<<19);
+SubstructureRedirectMask : z64 :	(1<<20);
+FocusChangeMask : z64 :			(1<<21);
+PropertyChangeMask : z64 :		(1<<22);
+ColormapChangeMask : z64 :		(1<<23);
+OwnerGrabButtonMask : z64 :		(1<<24);
 
 /* Event names.  Used in "type" field in XEvent structures.  Not to be
 confused with event masks above.  They start from 2 because 0 and 1
 are reserved in the protocol for errors and replies. */
 
-KeyPress ::		2
-KeyRelease ::		3
-ButtonPress ::		4
-ButtonRelease ::		5
-MotionNotify ::		6
-EnterNotify ::		7
-LeaveNotify ::		8
-FocusIn ::			9
-FocusOut ::		10
-KeymapNotify ::		11
-Expose ::			12
-GraphicsExpose ::		13
-NoExpose ::		14
-VisibilityNotify ::	15
-CreateNotify ::		16
-DestroyNotify ::		17
-UnmapNotify ::		18
-MapNotify ::		19
-MapRequest ::		20
-ReparentNotify ::		21
-ConfigureNotify ::		22
-ConfigureRequest ::	23
-GravityNotify ::		24
-ResizeRequest ::		25
-CirculateNotify ::		26
-CirculateRequest ::	27
-PropertyNotify ::		28
-SelectionClear ::		29
-SelectionRequest ::	30
-SelectionNotify ::		31
-ColormapNotify ::		32
-ClientMessage ::		33
-MappingNotify ::		34
-GenericEvent ::		35
+KeyPress ::		2;
+KeyRelease ::		3;
+ButtonPress ::		4;
+ButtonRelease ::		5;
+MotionNotify ::		6;
+EnterNotify ::		7;
+LeaveNotify ::		8;
+FocusIn ::			9;
+FocusOut ::		10;
+KeymapNotify ::		11;
+Expose ::			12;
+GraphicsExpose ::		13;
+NoExpose ::		14;
+VisibilityNotify ::	15;
+CreateNotify ::		16;
+DestroyNotify ::		17;
+UnmapNotify ::		18;
+MapNotify ::		19;
+MapRequest ::		20;
+ReparentNotify ::		21;
+ConfigureNotify ::		22;
+ConfigureRequest ::	23;
+GravityNotify ::		24;
+ResizeRequest ::		25;
+CirculateNotify ::		26;
+CirculateRequest ::	27;
+PropertyNotify ::		28;
+SelectionClear ::		29;
+SelectionRequest ::	30;
+SelectionNotify ::		31;
+ColormapNotify ::		32;
+ClientMessage ::		33;
+MappingNotify ::		34;
+GenericEvent ::		35;
 LASTEvent ::		36	/* must be bigger than any event # */
 
 
 /* Key masks. Used as modifiers to GrabButton and GrabKey, results of QueryPointer,
    state in various key-, mouse-, and button-related events. */
 
-ShiftMask ::		(1<<0)
-LockMask ::		(1<<1)
-ControlMask ::		(1<<2)
-Mod1Mask ::		(1<<3)
-Mod2Mask ::		(1<<4)
-Mod3Mask ::		(1<<5)
-Mod4Mask ::		(1<<6)
-Mod5Mask ::		(1<<7)
+ShiftMask ::		(1<<0);
+LockMask ::		(1<<1);
+ControlMask ::		(1<<2);
+Mod1Mask ::		(1<<3);
+Mod2Mask ::		(1<<4);
+Mod3Mask ::		(1<<5);
+Mod4Mask ::		(1<<6);
+Mod5Mask ::		(1<<7);
 
 /* modifier names.  Used to build a SetModifierMapping request or
    to read a GetModifierMapping request.  These correspond to the
    masks defined above. */
-ShiftMapIndex ::		0
-LockMapIndex ::		1
-ControlMapIndex ::		2
-Mod1MapIndex ::		3
-Mod2MapIndex ::		4
-Mod3MapIndex ::		5
-Mod4MapIndex ::		6
-Mod5MapIndex ::		7
+ShiftMapIndex ::		0;
+LockMapIndex ::		1;
+ControlMapIndex ::		2;
+Mod1MapIndex ::		3;
+Mod2MapIndex ::		4;
+Mod3MapIndex ::		5;
+Mod4MapIndex ::		6;
+Mod5MapIndex ::		7;
 
 
 /* button masks.  Used in same manner as Key masks above. Not to be confused
    with button names below. */
 
-Button1Mask ::		(1<<8)
-Button2Mask ::		(1<<9)
-Button3Mask ::		(1<<10)
-Button4Mask ::		(1<<11)
-Button5Mask ::		(1<<12)
+Button1Mask ::		(1<<8);
+Button2Mask ::		(1<<9);
+Button3Mask ::		(1<<10);
+Button4Mask ::		(1<<11);
+Button5Mask ::		(1<<12);
 
 AnyModifier ::		(1<<15)  /* used in GrabButton, GrabKey */
 
@@ -221,92 +221,92 @@ AnyModifier ::		(1<<15)  /* used in GrabButton, GrabKey */
    and ButtonRelease events.  Not to be confused with button masks above.
    Note that 0 is already defined above as "AnyButton".  */
 
-Button1 : n32 :			1
-Button2 : n32 :			2
-Button3 : n32 :			3
-Button4 : n32 :			4
-Button5 : n32 :			5
+Button1 : n32 :			1;
+Button2 : n32 :			2;
+Button3 : n32 :			3;
+Button4 : n32 :			4;
+Button5 : n32 :			5;
 
 /* Notify modes */
 
-NotifyNormal ::		0
-NotifyGrab ::		1
-NotifyUngrab ::		2
-NotifyWhileGrabbed ::	3
+NotifyNormal ::		0;
+NotifyGrab ::		1;
+NotifyUngrab ::		2;
+NotifyWhileGrabbed ::	3;
 
 NotifyHint ::		1	/* for MotionNotify events */
 
 /* Notify detail */
 
-NotifyAncestor ::		0
-NotifyVirtual ::		1
-NotifyInferior ::		2
-NotifyNonlinear ::		3
-NotifyNonlinearVirtual ::	4
-NotifyPointer ::		5
-NotifyPointerRoot ::	6
-NotifyDetailNone ::	7
+NotifyAncestor ::		0;
+NotifyVirtual ::		1;
+NotifyInferior ::		2;
+NotifyNonlinear ::		3;
+NotifyNonlinearVirtual ::	4;
+NotifyPointer ::		5;
+NotifyPointerRoot ::	6;
+NotifyDetailNone ::	7;
 
 /* Visibility notify */
 
-VisibilityUnobscured ::		0
-VisibilityPartiallyObscured ::	1
-VisibilityFullyObscured ::		2
+VisibilityUnobscured ::		0;
+VisibilityPartiallyObscured ::	1;
+VisibilityFullyObscured ::		2;
 
 /* Circulation request */
 
-PlaceOnTop ::		0
-PlaceOnBottom ::		1
+PlaceOnTop ::		0;
+PlaceOnBottom ::		1;
 
 /* protocol families */
 
 FamilyInternet ::		0	/* IPv4 */
-FamilyDECnet ::		1
-FamilyChaos ::		2
+FamilyDECnet ::		1;
+FamilyChaos ::		2;
 FamilyInternet6 ::		6	/* IPv6 */
 
 /* authentication families not tied to a specific protocol */
-FamilyServerInterpreted :: 5
+FamilyServerInterpreted :: 5;
 
 /* Property notification */
 
-PropertyNewValue ::	0
-PropertyDelete ::		1
+PropertyNewValue ::	0;
+PropertyDelete ::		1;
 
 /* Color Map notification */
 
-ColormapUninstalled ::	0
-ColormapInstalled ::	1
+ColormapUninstalled ::	0;
+ColormapInstalled ::	1;
 
 /* GrabPointer, GrabButton, GrabKeyboard, GrabKey Modes */
 
-GrabModeSync ::		0
-GrabModeAsync ::		1
+GrabModeSync ::		0;
+GrabModeAsync ::		1;
 
 /* GrabPointer, GrabKeyboard reply status */
 
-GrabSuccess ::		0
-AlreadyGrabbed ::		1
-GrabInvalidTime ::		2
-GrabNotViewable ::		3
-GrabFrozen ::		4
+GrabSuccess ::		0;
+AlreadyGrabbed ::		1;
+GrabInvalidTime ::		2;
+GrabNotViewable ::		3;
+GrabFrozen ::		4;
 
 /* AllowEvents modes */
 
-AsyncPointer ::		0
-SyncPointer ::		1
-ReplayPointer ::		2
-AsyncKeyboard ::		3
-SyncKeyboard ::		4
-ReplayKeyboard ::		5
-AsyncBoth ::		6
-SyncBoth ::		7
+AsyncPointer ::		0;
+SyncPointer ::		1;
+ReplayPointer ::		2;
+AsyncKeyboard ::		3;
+SyncKeyboard ::		4;
+ReplayKeyboard ::		5;
+AsyncBoth ::		6;
+SyncBoth ::		7;
 
 /* Used in SetInputFocus, GetInputFocus */
 
-RevertToNone ::		None comme z32
-RevertToPointerRoot ::	PointerRoot comme z32
-RevertToParent ::		2
+RevertToNone ::		None comme z32;
+RevertToPointerRoot ::	PointerRoot comme z32;
+RevertToParent ::		2;
 
 /*****************************************************************
  * ERROR CODES
@@ -339,8 +339,8 @@ BadName ::		  15	/* font or color name doesn't exist */
 BadLength ::	  16	/* Request length incorrect */
 BadImplementation :: 17	/* server is defective */
 
-FirstExtensionError ::	128
-LastExtensionError ::	255
+FirstExtensionError ::	128;
+LastExtensionError ::	255;
 
 /*****************************************************************
  * WINDOW DEFINITIONS
@@ -349,97 +349,97 @@ LastExtensionError ::	255
 /* Window classes used by CreateWindow */
 /* Note that CopyFromParent is already defined as 0 above */
 
-InputOutput ::		1
-InputOnly ::		2
+InputOutput ::		1;
+InputOnly ::		2;
 
 /* Window attributes for CreateWindow and ChangeWindowAttributes */
 
-CWBackPixmap : z64 :		(1<<0)
-CWBackPixel : z64 :		(1<<1)
-CWBorderPixmap : z64 :		(1<<2)
-CWBorderPixel : z64 :           (1<<3)
-CWBitGravity : z64 :		(1<<4)
-CWWinGravity : z64 :		(1<<5)
-CWBackingStore : z64 :          (1<<6)
-CWBackingPlanes : z64 :	        (1<<7)
-CWBackingPixel : z64 :	        (1<<8)
-CWOverrideRedirect : z64 :	(1<<9)
-CWSaveUnder : z64 :		(1<<10)
-CWEventMask : z64 :		(1<<11)
-CWDontPropagate : z64 :	        (1<<12)
-CWColormap : z64 :		(1<<13)
-CWCursor : z64 :	        (1<<14)
+CWBackPixmap : z64 :		(1<<0);
+CWBackPixel : z64 :		(1<<1);
+CWBorderPixmap : z64 :		(1<<2);
+CWBorderPixel : z64 :           (1<<3);
+CWBitGravity : z64 :		(1<<4);
+CWWinGravity : z64 :		(1<<5);
+CWBackingStore : z64 :          (1<<6);
+CWBackingPlanes : z64 :	        (1<<7);
+CWBackingPixel : z64 :	        (1<<8);
+CWOverrideRedirect : z64 :	(1<<9);
+CWSaveUnder : z64 :		(1<<10);
+CWEventMask : z64 :		(1<<11);
+CWDontPropagate : z64 :	        (1<<12);
+CWColormap : z64 :		(1<<13);
+CWCursor : z64 :	        (1<<14);
 
 /* ConfigureWindow structure */
 
-CWX ::			(1<<0)
-CWY ::			(1<<1)
-CWWidth ::			(1<<2)
-CWHeight ::		(1<<3)
-CWBorderWidth ::		(1<<4)
-CWSibling ::		(1<<5)
-CWStackMode ::		(1<<6)
+CWX ::			(1<<0);
+CWY ::			(1<<1);
+CWWidth ::			(1<<2);
+CWHeight ::		(1<<3);
+CWBorderWidth ::		(1<<4);
+CWSibling ::		(1<<5);
+CWStackMode ::		(1<<6);
 
 
 /* Bit Gravity */
 
-ForgetGravity ::		0
-NorthWestGravity ::	1
-NorthGravity ::		2
-NorthEastGravity ::	3
-WestGravity ::		4
-CenterGravity ::		5
-EastGravity ::		6
-SouthWestGravity ::	7
-SouthGravity ::		8
-SouthEastGravity ::	9
-StaticGravity ::		10
+ForgetGravity ::		0;
+NorthWestGravity ::	1;
+NorthGravity ::		2;
+NorthEastGravity ::	3;
+WestGravity ::		4;
+CenterGravity ::		5;
+EastGravity ::		6;
+SouthWestGravity ::	7;
+SouthGravity ::		8;
+SouthEastGravity ::	9;
+StaticGravity ::		10;
 
 /* Window gravity + bit gravity above */
 
-UnmapGravity ::		0
+UnmapGravity ::		0;
 
 /* Used in CreateWindow for backing-store hint */
 
-NotUseful ::               0
-WhenMapped ::              1
-Always ::                  2
+NotUseful ::               0;
+WhenMapped ::              1;
+Always ::                  2;
 
 /* Used in GetWindowAttributes reply */
 
-IsUnmapped ::		0
-IsUnviewable ::		1
-IsViewable ::		2
+IsUnmapped ::		0;
+IsUnviewable ::		1;
+IsViewable ::		2;
 
 /* Used in ChangeSaveSet */
 
-SetModeInsert ::           0
-SetModeDelete ::           1
+SetModeInsert ::           0;
+SetModeDelete ::           1;
 
 /* Used in ChangeCloseDownMode */
 
-DestroyAll ::              0
-RetainPermanent ::         1
-RetainTemporary ::         2
+DestroyAll ::              0;
+RetainPermanent ::         1;
+RetainTemporary ::         2;
 
 /* Window stacking method (in configureWindow) */
 
-Above ::                   0
-Below ::                   1
-TopIf ::                   2
-BottomIf ::                3
-Opposite ::                4
+Above ::                   0;
+Below ::                   1;
+TopIf ::                   2;
+BottomIf ::                3;
+Opposite ::                4;
 
 /* Circulation direction */
 
-RaiseLowest ::             0
-LowerHighest ::            1
+RaiseLowest ::             0;
+LowerHighest ::            1;
 
 /* Property modes */
 
-PropModeReplace ::         0
-PropModePrepend ::         1
-PropModeAppend ::          2
+PropModeReplace ::         0;
+PropModePrepend ::         1;
+PropModeAppend ::          2;
 
 /*****************************************************************
  * GRAPHICS DEFINITIONS
@@ -466,46 +466,46 @@ GXset ::			0xf		/* 1 */
 
 /* LineStyle */
 
-LineSolid ::		0
-LineOnOffDash ::		1
-LineDoubleDash ::		2
+LineSolid ::		0;
+LineOnOffDash ::		1;
+LineDoubleDash ::		2;
 
 /* capStyle */
 
-CapNotLast ::		0
-CapButt ::			1
-CapRound ::		2
-CapProjecting ::		3
+CapNotLast ::		0;
+CapButt ::			1;
+CapRound ::		2;
+CapProjecting ::		3;
 
 /* joinStyle */
 
-JoinMiter ::		0
-JoinRound ::		1
-JoinBevel ::		2
+JoinMiter ::		0;
+JoinRound ::		1;
+JoinBevel ::		2;
 
 /* fillStyle */
 
-FillSolid ::		0
-FillTiled ::		1
-FillStippled ::		2
-FillOpaqueStippled ::	3
+FillSolid ::		0;
+FillTiled ::		1;
+FillStippled ::		2;
+FillOpaqueStippled ::	3;
 
 /* fillRule */
 
-EvenOddRule ::		0
-WindingRule ::		1
+EvenOddRule ::		0;
+WindingRule ::		1;
 
 /* subwindow mode */
 
-ClipByChildren ::		0
-IncludeInferiors ::	1
+ClipByChildren ::		0;
+IncludeInferiors ::	1;
 
 /* SetClipRectangles ordering */
 
-Unsorted ::		0
-YSorted ::			1
-YXSorted ::		2
-YXBanded ::		3
+Unsorted ::		0;
+YSorted ::			1;
+YXSorted ::		2;
+YXBanded ::		3;
 
 /* CoordinateMode for drawing routines */
 
@@ -526,41 +526,41 @@ ArcPieSlice ::		1	/* join endpoints to center of arc */
 /* GC components: masks used in CreateGC, CopyGC, ChangeGC, OR'ed into
    GC.stateChanges */
 
-GCFunction : z64 :              (1<<0)
-GCPlaneMask : z64 :             (1<<1)
-GCForeground : z64 :            (1<<2)
-GCBackground : z64 :            (1<<3)
-GCLineWidth : z64 :             (1<<4)
-GCLineStyle : z64 :             (1<<5)
-GCCapStyle : z64 :              (1<<6)
-GCJoinStyle : z64 :		(1<<7)
-GCFillStyle : z64 :		(1<<8)
-GCFillRule : z64 :		(1<<9)
-GCTile : z64 :			(1<<10)
-GCStipple : z64 :		(1<<11)
-GCTileStipXOrigin : z64 :	(1<<12)
-GCTileStipYOrigin : z64 :	(1<<13)
-GCFont : z64 : 			(1<<14)
-GCSubwindowMode : z64 :		(1<<15)
-GCGraphicsExposures : z64 :     (1<<16)
-GCClipXOrigin : z64 :		(1<<17)
-GCClipYOrigin : z64 :		(1<<18)
-GCClipMask : z64 :		(1<<19)
-GCDashOffset : z64 :		(1<<20)
-GCDashList : z64 :		(1<<21)
-GCArcMode : z64 :		(1<<22)
+GCFunction : z64 :              (1<<0);
+GCPlaneMask : z64 :             (1<<1);
+GCForeground : z64 :            (1<<2);
+GCBackground : z64 :            (1<<3);
+GCLineWidth : z64 :             (1<<4);
+GCLineStyle : z64 :             (1<<5);
+GCCapStyle : z64 :              (1<<6);
+GCJoinStyle : z64 :		(1<<7);
+GCFillStyle : z64 :		(1<<8);
+GCFillRule : z64 :		(1<<9);
+GCTile : z64 :			(1<<10);
+GCStipple : z64 :		(1<<11);
+GCTileStipXOrigin : z64 :	(1<<12);
+GCTileStipYOrigin : z64 :	(1<<13);
+GCFont : z64 : 			(1<<14);
+GCSubwindowMode : z64 :		(1<<15);
+GCGraphicsExposures : z64 :     (1<<16);
+GCClipXOrigin : z64 :		(1<<17);
+GCClipYOrigin : z64 :		(1<<18);
+GCClipMask : z64 :		(1<<19);
+GCDashOffset : z64 :		(1<<20);
+GCDashList : z64 :		(1<<21);
+GCArcMode : z64 :		(1<<22);
 
-GCLastBit ::		22
+GCLastBit ::		22;
 /*****************************************************************
  * FONTS
  *****************************************************************/
 
 /* used in QueryFont -- draw direction */
 
-FontLeftToRight ::		0
-FontRightToLeft ::		1
+FontLeftToRight ::		0;
+FontRightToLeft ::		1;
 
-FontChange ::		255
+FontChange ::		255;
 
 /*****************************************************************
  *  IMAGING
@@ -584,9 +584,9 @@ AllocAll ::		1	/* allocate entire map writeable */
 
 /* Flags used in StoreNamedColor, StoreColors */
 
-DoRed ::			(1<<0)
-DoGreen ::			(1<<1)
-DoBlue ::			(1<<2)
+DoRed ::			(1<<0);
+DoGreen ::			(1<<1);
+DoBlue ::			(1<<2);
 
 /*****************************************************************
  * CURSOR STUFF
@@ -602,51 +602,51 @@ StippleShape ::		2	/* size stippled fastest */
  * KEYBOARD/POINTER STUFF
  *****************************************************************/
 
-AutoRepeatModeOff ::	0
-AutoRepeatModeOn ::	1
-AutoRepeatModeDefault ::	2
+AutoRepeatModeOff ::	0;
+AutoRepeatModeOn ::	1;
+AutoRepeatModeDefault ::	2;
 
-LedModeOff ::		0
-LedModeOn ::		1
+LedModeOff ::		0;
+LedModeOn ::		1;
 
 /* masks for ChangeKeyboardControl */
 
-KBKeyClickPercent : z64 :	(1<<0)
-KBBellPercent : z64 :		(1<<1)
-KBBellPitch : z64 :		(1<<2)
-KBBellDuration : z64 :		(1<<3)
-KBLed : z64 :			(1<<4)
-KBLedMode : z64 :		(1<<5)
-KBKey : z64 :			(1<<6)
-KBAutoRepeatMode : z64 :	(1<<7)
+KBKeyClickPercent : z64 :	(1<<0);
+KBBellPercent : z64 :		(1<<1);
+KBBellPitch : z64 :		(1<<2);
+KBBellDuration : z64 :		(1<<3);
+KBLed : z64 :			(1<<4);
+KBLedMode : z64 :		(1<<5);
+KBKey : z64 :			(1<<6);
+KBAutoRepeatMode : z64 :	(1<<7);
 
-MappingSuccess ::     	0
-MappingBusy ::        	1
-MappingFailed ::		2
+MappingSuccess ::     	0;
+MappingBusy ::        	1;
+MappingFailed ::		2;
 
-MappingModifier ::		0
-MappingKeyboard ::		1
-MappingPointer ::		2
+MappingModifier ::		0;
+MappingKeyboard ::		1;
+MappingPointer ::		2;
 
 /*****************************************************************
  * SCREEN SAVER STUFF
  *****************************************************************/
 
-DontPreferBlanking ::	0
-PreferBlanking ::		1
-DefaultBlanking ::		2
+DontPreferBlanking ::	0;
+PreferBlanking ::		1;
+DefaultBlanking ::		2;
 
-DisableScreenSaver ::	0
-DisableScreenInterval ::	0
+DisableScreenSaver ::	0;
+DisableScreenInterval ::	0;
 
-DontAllowExposures ::	0
-AllowExposures ::		1
-DefaultExposures ::	2
+DontAllowExposures ::	0;
+AllowExposures ::		1;
+DefaultExposures ::	2;
 
 /* for ForceScreenSaver */
 
-ScreenSaverReset :: 0
-ScreenSaverActive :: 1
+ScreenSaverReset :: 0;
+ScreenSaverActive :: 1;
 
 /*****************************************************************
  * HOSTS AND CONNECTIONS
@@ -654,30 +654,30 @@ ScreenSaverActive :: 1
 
 /* for ChangeHosts */
 
-HostInsert ::		0
-HostDelete ::		1
+HostInsert ::		0;
+HostDelete ::		1;
 
 /* for ChangeAccessControl */
 
-EnableAccess ::		1
-DisableAccess ::		0
+EnableAccess ::		1;
+DisableAccess ::		0;
 
 /* Display classes  used in opening the connection
  * Note that the statically allocated ones are even numbered and the
  * dynamically changeable ones are odd numbered */
 
-StaticGray ::		0
-GrayScale ::		1
-StaticColor ::		2
-PseudoColor ::		3
-TrueColor ::		4
-DirectColor ::		5
+StaticGray ::		0;
+GrayScale ::		1;
+StaticColor ::		2;
+PseudoColor ::		3;
+TrueColor ::		4;
+DirectColor ::		5;
 
 
 /* Byte order  used in imageByteOrder and bitmapBitOrder */
 
-LSBFirst ::		0
-MSBFirst ::		1
+LSBFirst ::		0;
+MSBFirst ::		1;
 
 /** \} */
 
@@ -685,22 +685,22 @@ MSBFirst ::		1
 /** \nom Définitions et macros définis par Xlib.h
  * \{ */
 
-XlibSpecificationRelease :: 6
+XlibSpecificationRelease :: 6;
 
-QueuedAlready :: 0
-QueuedAfterReading :: 1
-QueuedAfterFlush :: 2
+QueuedAlready :: 0;
+QueuedAfterReading :: 1;
+QueuedAfterFlush :: 2;
 
 // #define ConnectionNumber(dpy) 	(((_XPrivDisplay)(dpy))->fd)
 
 RootWindow :: fonc (display: *Display, parent: z32) -> n64 #enligne
 {
-    retourne XScreenOfDisplay(display, parent).root
+    retourne XScreenOfDisplay(display, parent).root;
 }
 
 DefaultScreen :: fonc (display: *Display) -> z32 #enligne
 {
-    retourne XDefaultScreen(display)
+    retourne XDefaultScreen(display);
 }
 
 // #define DefaultRootWindow(dpy) 	(ScreenOfDisplay(dpy,DefaultScreen(dpy))->root)
@@ -708,17 +708,17 @@ DefaultScreen :: fonc (display: *Display) -> z32 #enligne
 
 DefaultGC :: fonc (display: *Display, s: z32) -> *_XGC #enligne
 {
-    retourne XScreenOfDisplay(display, s).default_gc
+    retourne XScreenOfDisplay(display, s).default_gc;
 }
 
 BlackPixel :: fonc (display: *Display, s: z32) -> n64 #enligne
 {
-    retourne XScreenOfDisplay(display, s).black_pixel
+    retourne XScreenOfDisplay(display, s).black_pixel;
 }
 
 WhitePixel :: fonc (display: *Display, s: z32) -> n64 #enligne
 {
-    retourne XScreenOfDisplay(display, s).white_pixel
+    retourne XScreenOfDisplay(display, s).white_pixel;
 }
 
 // #define AllPlanes 		((unsigned long)~0L)
@@ -773,76 +773,76 @@ WhitePixel :: fonc (display: *Display, s: z32) -> n64 #enligne
 /** \nom Définitions de Xatom.h
  * \{ */
 
-XA_PRIMARY : Atom : 1
-XA_SECONDARY : Atom : 2
-XA_ARC : Atom : 3
-XA_ATOM : Atom : 4
-XA_BITMAP : Atom : 5
-XA_CARDINAL : Atom : 6
-XA_COLORMAP : Atom : 7
-XA_CURSOR : Atom : 8
-XA_CUT_BUFFER0 : Atom : 9
-XA_CUT_BUFFER1 : Atom : 10
-XA_CUT_BUFFER2 : Atom : 11
-XA_CUT_BUFFER3 : Atom : 12
-XA_CUT_BUFFER4 : Atom : 13
-XA_CUT_BUFFER5 : Atom : 14
-XA_CUT_BUFFER6 : Atom : 15
-XA_CUT_BUFFER7 : Atom : 16
-XA_DRAWABLE : Atom : 17
-XA_FONT : Atom : 18
-XA_INTEGER : Atom : 19
-XA_PIXMAP : Atom : 20
-XA_POINT : Atom : 21
-XA_RECTANGLE : Atom : 22
-XA_RESOURCE_MANAGER : Atom : 23
-XA_RGB_COLOR_MAP : Atom : 24
-XA_RGB_BEST_MAP : Atom : 25
-XA_RGB_BLUE_MAP : Atom : 26
-XA_RGB_DEFAULT_MAP : Atom : 27
-XA_RGB_GRAY_MAP : Atom : 28
-XA_RGB_GREEN_MAP : Atom : 29
-XA_RGB_RED_MAP : Atom : 30
-XA_STRING : Atom : 31
-XA_VISUALID : Atom : 32
-XA_WINDOW : Atom : 33
-XA_WM_COMMAND : Atom : 34
-XA_WM_HINTS : Atom : 35
-XA_WM_CLIENT_MACHINE : Atom : 36
-XA_WM_ICON_NAME : Atom : 37
-XA_WM_ICON_SIZE : Atom : 38
-XA_WM_NAME : Atom : 39
-XA_WM_NORMAL_HINTS : Atom : 40
-XA_WM_SIZE_HINTS : Atom : 41
-XA_WM_ZOOM_HINTS : Atom : 42
-XA_MIN_SPACE : Atom : 43
-XA_NORM_SPACE : Atom : 44
-XA_MAX_SPACE : Atom : 45
-XA_END_SPACE : Atom : 46
-XA_SUPERSCRIPT_X : Atom : 47
-XA_SUPERSCRIPT_Y : Atom : 48
-XA_SUBSCRIPT_X : Atom : 49
-XA_SUBSCRIPT_Y : Atom : 50
-XA_UNDERLINE_POSITION : Atom : 51
-XA_UNDERLINE_THICKNESS : Atom : 52
-XA_STRIKEOUT_ASCENT : Atom : 53
-XA_STRIKEOUT_DESCENT : Atom : 54
-XA_ITALIC_ANGLE : Atom : 55
-XA_X_HEIGHT : Atom : 56
-XA_QUAD_WIDTH : Atom : 57
-XA_WEIGHT : Atom : 58
-XA_POINT_SIZE : Atom : 59
-XA_RESOLUTION : Atom : 60
-XA_COPYRIGHT : Atom : 61
-XA_NOTICE : Atom : 62
-XA_FONT_NAME : Atom : 63
-XA_FAMILY_NAME : Atom : 64
-XA_FULL_NAME : Atom : 65
-XA_CAP_HEIGHT : Atom : 66
-XA_WM_CLASS : Atom : 67
-XA_WM_TRANSIENT_FOR : Atom : 68
+XA_PRIMARY : Atom : 1;
+XA_SECONDARY : Atom : 2;
+XA_ARC : Atom : 3;
+XA_ATOM : Atom : 4;
+XA_BITMAP : Atom : 5;
+XA_CARDINAL : Atom : 6;
+XA_COLORMAP : Atom : 7;
+XA_CURSOR : Atom : 8;
+XA_CUT_BUFFER0 : Atom : 9;
+XA_CUT_BUFFER1 : Atom : 10;
+XA_CUT_BUFFER2 : Atom : 11;
+XA_CUT_BUFFER3 : Atom : 12;
+XA_CUT_BUFFER4 : Atom : 13;
+XA_CUT_BUFFER5 : Atom : 14;
+XA_CUT_BUFFER6 : Atom : 15;
+XA_CUT_BUFFER7 : Atom : 16;
+XA_DRAWABLE : Atom : 17;
+XA_FONT : Atom : 18;
+XA_INTEGER : Atom : 19;
+XA_PIXMAP : Atom : 20;
+XA_POINT : Atom : 21;
+XA_RECTANGLE : Atom : 22;
+XA_RESOURCE_MANAGER : Atom : 23;
+XA_RGB_COLOR_MAP : Atom : 24;
+XA_RGB_BEST_MAP : Atom : 25;
+XA_RGB_BLUE_MAP : Atom : 26;
+XA_RGB_DEFAULT_MAP : Atom : 27;
+XA_RGB_GRAY_MAP : Atom : 28;
+XA_RGB_GREEN_MAP : Atom : 29;
+XA_RGB_RED_MAP : Atom : 30;
+XA_STRING : Atom : 31;
+XA_VISUALID : Atom : 32;
+XA_WINDOW : Atom : 33;
+XA_WM_COMMAND : Atom : 34;
+XA_WM_HINTS : Atom : 35;
+XA_WM_CLIENT_MACHINE : Atom : 36;
+XA_WM_ICON_NAME : Atom : 37;
+XA_WM_ICON_SIZE : Atom : 38;
+XA_WM_NAME : Atom : 39;
+XA_WM_NORMAL_HINTS : Atom : 40;
+XA_WM_SIZE_HINTS : Atom : 41;
+XA_WM_ZOOM_HINTS : Atom : 42;
+XA_MIN_SPACE : Atom : 43;
+XA_NORM_SPACE : Atom : 44;
+XA_MAX_SPACE : Atom : 45;
+XA_END_SPACE : Atom : 46;
+XA_SUPERSCRIPT_X : Atom : 47;
+XA_SUPERSCRIPT_Y : Atom : 48;
+XA_SUBSCRIPT_X : Atom : 49;
+XA_SUBSCRIPT_Y : Atom : 50;
+XA_UNDERLINE_POSITION : Atom : 51;
+XA_UNDERLINE_THICKNESS : Atom : 52;
+XA_STRIKEOUT_ASCENT : Atom : 53;
+XA_STRIKEOUT_DESCENT : Atom : 54;
+XA_ITALIC_ANGLE : Atom : 55;
+XA_X_HEIGHT : Atom : 56;
+XA_QUAD_WIDTH : Atom : 57;
+XA_WEIGHT : Atom : 58;
+XA_POINT_SIZE : Atom : 59;
+XA_RESOLUTION : Atom : 60;
+XA_COPYRIGHT : Atom : 61;
+XA_NOTICE : Atom : 62;
+XA_FONT_NAME : Atom : 63;
+XA_FAMILY_NAME : Atom : 64;
+XA_FULL_NAME : Atom : 65;
+XA_CAP_HEIGHT : Atom : 66;
+XA_WM_CLASS : Atom : 67;
+XA_WM_TRANSIENT_FOR : Atom : 68;
 
-XA_LAST_PREDEFINED : Atom : 68
+XA_LAST_PREDEFINED : Atom : 68;
 
 /** \} */
 
@@ -850,65 +850,65 @@ XA_LAST_PREDEFINED : Atom : 68
 /** \nom Définitions de Xlib.h
  * \{ */
 
-XIMPreeditArea		 : z64 : 0x0001
-XIMPreeditCallbacks	 : z64 : 0x0002
-XIMPreeditPosition	 : z64 : 0x0004
-XIMPreeditNothing	 : z64 : 0x0008
-XIMPreeditNone		 : z64 : 0x0010
-XIMStatusArea		 : z64 : 0x0100
-XIMStatusCallbacks	 : z64 : 0x0200
-XIMStatusNothing	 : z64 : 0x0400
-XIMStatusNone		 : z64 : 0x0800
+XIMPreeditArea		 : z64 : 0x0001;
+XIMPreeditCallbacks	 : z64 : 0x0002;
+XIMPreeditPosition	 : z64 : 0x0004;
+XIMPreeditNothing	 : z64 : 0x0008;
+XIMPreeditNone		 : z64 : 0x0010;
+XIMStatusArea		 : z64 : 0x0100;
+XIMStatusCallbacks	 : z64 : 0x0200;
+XIMStatusNothing	 : z64 : 0x0400;
+XIMStatusNone		 : z64 : 0x0800;
 
-XNVaNestedList :: "XNVaNestedList"
-XNQueryInputStyle :: "queryInputStyle"
-XNClientWindow :: "clientWindow"
-XNInputStyle :: "inputStyle"
-XNFocusWindow :: "focusWindow"
-XNResourceName :: "resourceName"
-XNResourceClass :: "resourceClass"
-XNGeometryCallback :: "geometryCallback"
-XNDestroyCallback :: "destroyCallback"
-XNFilterEvents :: "filterEvents"
-XNPreeditStartCallback :: "preeditStartCallback"
-XNPreeditDoneCallback :: "preeditDoneCallback"
-XNPreeditDrawCallback :: "preeditDrawCallback"
-XNPreeditCaretCallback :: "preeditCaretCallback"
-XNPreeditStateNotifyCallback :: "preeditStateNotifyCallback"
-XNPreeditAttributes :: "preeditAttributes"
-XNStatusStartCallback :: "statusStartCallback"
-XNStatusDoneCallback :: "statusDoneCallback"
-XNStatusDrawCallback :: "statusDrawCallback"
-XNStatusAttributes :: "statusAttributes"
-XNArea :: "area"
-XNAreaNeeded :: "areaNeeded"
-XNSpotLocation :: "spotLocation"
-XNColormap :: "colorMap"
-XNStdColormap :: "stdColorMap"
-XNForeground :: "foreground"
-XNBackground :: "background"
-XNBackgroundPixmap :: "backgroundPixmap"
-XNFontSet :: "fontSet"
-XNLineSpace :: "lineSpace"
-XNCursor :: "cursor"
+XNVaNestedList :: "XNVaNestedList";
+XNQueryInputStyle :: "queryInputStyle";
+XNClientWindow :: "clientWindow";
+XNInputStyle :: "inputStyle";
+XNFocusWindow :: "focusWindow";
+XNResourceName :: "resourceName";
+XNResourceClass :: "resourceClass";
+XNGeometryCallback :: "geometryCallback";
+XNDestroyCallback :: "destroyCallback";
+XNFilterEvents :: "filterEvents";
+XNPreeditStartCallback :: "preeditStartCallback";
+XNPreeditDoneCallback :: "preeditDoneCallback";
+XNPreeditDrawCallback :: "preeditDrawCallback";
+XNPreeditCaretCallback :: "preeditCaretCallback";
+XNPreeditStateNotifyCallback :: "preeditStateNotifyCallback";
+XNPreeditAttributes :: "preeditAttributes";
+XNStatusStartCallback :: "statusStartCallback";
+XNStatusDoneCallback :: "statusDoneCallback";
+XNStatusDrawCallback :: "statusDrawCallback";
+XNStatusAttributes :: "statusAttributes";
+XNArea :: "area";
+XNAreaNeeded :: "areaNeeded";
+XNSpotLocation :: "spotLocation";
+XNColormap :: "colorMap";
+XNStdColormap :: "stdColorMap";
+XNForeground :: "foreground";
+XNBackground :: "background";
+XNBackgroundPixmap :: "backgroundPixmap";
+XNFontSet :: "fontSet";
+XNLineSpace :: "lineSpace";
+XNCursor :: "cursor";
 
-XNQueryIMValuesList :: "queryIMValuesList"
-XNQueryICValuesList :: "queryICValuesList"
-XNVisiblePosition :: "visiblePosition"
-XNR6PreeditCallback :: "r6PreeditCallback"
-XNStringConversionCallback :: "stringConversionCallback"
-XNStringConversion :: "stringConversion"
-XNResetState :: "resetState"
-XNHotKey :: "hotKey"
-XNHotKeyState :: "hotKeyState"
-XNPreeditState :: "preeditState"
-XNSeparatorofNestedList :: "separatorofNestedList"
+XNQueryIMValuesList :: "queryIMValuesList";
+XNQueryICValuesList :: "queryICValuesList";
+XNVisiblePosition :: "visiblePosition";
+XNR6PreeditCallback :: "r6PreeditCallback";
+XNStringConversionCallback :: "stringConversionCallback";
+XNStringConversion :: "stringConversion";
+XNResetState :: "resetState";
+XNHotKey :: "hotKey";
+XNHotKeyState :: "hotKeyState";
+XNPreeditState :: "preeditState";
+XNSeparatorofNestedList :: "separatorofNestedList";
 
-XBufferOverflow		:: -1
-XLookupNone		:: 1
-XLookupChars		:: 2
-XLookupKeySym		:: 3
-XLookupBoth		:: 4
+XBufferOverflow		:: -1;
+XLookupNone		:: 1;
+XLookupChars		:: 2;
+XLookupKeySym		:: 3;
+XLookupBoth		:: 4;
 
 /** \} */
 
@@ -926,14 +926,14 @@ XK_VoidSymbol       : KeySym : 0xffffff  /* Void symbol */
  */
 
 XK_BackSpace          : KeySym : 0xff08  /* Back space, back char */
-XK_Tab                : KeySym : 0xff09
+XK_Tab                : KeySym : 0xff09;
 XK_Linefeed           : KeySym : 0xff0a  /* Linefeed, LF */
-XK_Clear              : KeySym : 0xff0b
+XK_Clear              : KeySym : 0xff0b;
 XK_Return             : KeySym : 0xff0d  /* Return, enter */
 XK_Pause              : KeySym : 0xff13  /* Pause, hold */
-XK_Scroll_Lock        : KeySym : 0xff14
-XK_Sys_Req            : KeySym : 0xff15
-XK_Escape             : KeySym : 0xff1b
+XK_Scroll_Lock        : KeySym : 0xff14;
+XK_Sys_Req            : KeySym : 0xff15;
+XK_Escape             : KeySym : 0xff1b;
 XK_Delete             : KeySym : 0xffff  /* Delete, rubout */
 
 
@@ -941,10 +941,10 @@ XK_Delete             : KeySym : 0xffff  /* Delete, rubout */
 /* International & multi-key character composition */
 
 XK_Multi_key          : KeySym : 0xff20  /* Multi-key character compose */
-XK_Codeinput          : KeySym : 0xff37
-XK_SingleCandidate    : KeySym : 0xff3c
-XK_MultipleCandidate  : KeySym : 0xff3d
-XK_PreviousCandidate  : KeySym : 0xff3e
+XK_Codeinput          : KeySym : 0xff37;
+XK_SingleCandidate    : KeySym : 0xff3c;
+XK_MultipleCandidate  : KeySym : 0xff3d;
+XK_PreviousCandidate  : KeySym : 0xff3e;
 
 /* Japanese keyboard support */
 
@@ -973,15 +973,15 @@ XK_Mae_Koho           : KeySym : 0xff3e  /* Previous Candidate */
 
 /* Cursor control & motion */
 
-XK_Home               : KeySym : 0xff50
+XK_Home               : KeySym : 0xff50;
 XK_Left               : KeySym : 0xff51  /* Move left, left arrow */
 XK_Up                 : KeySym : 0xff52  /* Move up, up arrow */
 XK_Right              : KeySym : 0xff53  /* Move right, right arrow */
 XK_Down               : KeySym : 0xff54  /* Move down, down arrow */
 XK_Prior              : KeySym : 0xff55  /* Prior, previous */
-XK_Page_Up            : KeySym : 0xff55
+XK_Page_Up            : KeySym : 0xff55;
 XK_Next               : KeySym : 0xff56  /* Next */
-XK_Page_Down          : KeySym : 0xff56
+XK_Page_Down          : KeySym : 0xff56;
 XK_End                : KeySym : 0xff57  /* EOL */
 XK_Begin              : KeySym : 0xff58  /* BOL */
 
@@ -989,60 +989,60 @@ XK_Begin              : KeySym : 0xff58  /* BOL */
 /* Misc functions */
 
 XK_Select             : KeySym : 0xff60  /* Select, mark */
-XK_Print              : KeySym : 0xff61
+XK_Print              : KeySym : 0xff61;
 XK_Execute            : KeySym : 0xff62  /* Execute, run, do */
 XK_Insert             : KeySym : 0xff63  /* Insert, insert here */
-XK_Undo               : KeySym : 0xff65
+XK_Undo               : KeySym : 0xff65;
 XK_Redo               : KeySym : 0xff66  /* Redo, again */
-XK_Menu               : KeySym : 0xff67
+XK_Menu               : KeySym : 0xff67;
 XK_Find               : KeySym : 0xff68  /* Find, search */
 XK_Cancel             : KeySym : 0xff69  /* Cancel, stop, abort, exit */
 XK_Help               : KeySym : 0xff6a  /* Help */
-XK_Break              : KeySym : 0xff6b
+XK_Break              : KeySym : 0xff6b;
 XK_Mode_switch        : KeySym : 0xff7e  /* Character set switch */
 XK_script_switch      : KeySym : 0xff7e  /* Alias for mode_switch */
-XK_Num_Lock           : KeySym : 0xff7f
+XK_Num_Lock           : KeySym : 0xff7f;
 
 /* Keypad functions, keypad numbers cleverly chosen to map to ASCII */
 
 XK_KP_Space           : KeySym : 0xff80  /* Space */
-XK_KP_Tab             : KeySym : 0xff89
+XK_KP_Tab             : KeySym : 0xff89;
 XK_KP_Enter           : KeySym : 0xff8d  /* Enter */
 XK_KP_F1              : KeySym : 0xff91  /* PF1, KP_A, ... */
-XK_KP_F2              : KeySym : 0xff92
-XK_KP_F3              : KeySym : 0xff93
-XK_KP_F4              : KeySym : 0xff94
-XK_KP_Home            : KeySym : 0xff95
-XK_KP_Left            : KeySym : 0xff96
-XK_KP_Up              : KeySym : 0xff97
-XK_KP_Right           : KeySym : 0xff98
-XK_KP_Down            : KeySym : 0xff99
-XK_KP_Prior           : KeySym : 0xff9a
-XK_KP_Page_Up         : KeySym : 0xff9a
-XK_KP_Next            : KeySym : 0xff9b
-XK_KP_Page_Down       : KeySym : 0xff9b
-XK_KP_End             : KeySym : 0xff9c
-XK_KP_Begin           : KeySym : 0xff9d
-XK_KP_Insert          : KeySym : 0xff9e
-XK_KP_Delete          : KeySym : 0xff9f
+XK_KP_F2              : KeySym : 0xff92;
+XK_KP_F3              : KeySym : 0xff93;
+XK_KP_F4              : KeySym : 0xff94;
+XK_KP_Home            : KeySym : 0xff95;
+XK_KP_Left            : KeySym : 0xff96;
+XK_KP_Up              : KeySym : 0xff97;
+XK_KP_Right           : KeySym : 0xff98;
+XK_KP_Down            : KeySym : 0xff99;
+XK_KP_Prior           : KeySym : 0xff9a;
+XK_KP_Page_Up         : KeySym : 0xff9a;
+XK_KP_Next            : KeySym : 0xff9b;
+XK_KP_Page_Down       : KeySym : 0xff9b;
+XK_KP_End             : KeySym : 0xff9c;
+XK_KP_Begin           : KeySym : 0xff9d;
+XK_KP_Insert          : KeySym : 0xff9e;
+XK_KP_Delete          : KeySym : 0xff9f;
 XK_KP_Equal           : KeySym : 0xffbd  /* Equals */
-XK_KP_Multiply        : KeySym : 0xffaa
-XK_KP_Add             : KeySym : 0xffab
+XK_KP_Multiply        : KeySym : 0xffaa;
+XK_KP_Add             : KeySym : 0xffab;
 XK_KP_Separator       : KeySym : 0xffac  /* Separator, often comma */
-XK_KP_Subtract        : KeySym : 0xffad
-XK_KP_Decimal         : KeySym : 0xffae
-XK_KP_Divide          : KeySym : 0xffaf
+XK_KP_Subtract        : KeySym : 0xffad;
+XK_KP_Decimal         : KeySym : 0xffae;
+XK_KP_Divide          : KeySym : 0xffaf;
 
-XK_KP_0               : KeySym : 0xffb0
-XK_KP_1               : KeySym : 0xffb1
-XK_KP_2               : KeySym : 0xffb2
-XK_KP_3               : KeySym : 0xffb3
-XK_KP_4               : KeySym : 0xffb4
-XK_KP_5               : KeySym : 0xffb5
-XK_KP_6               : KeySym : 0xffb6
-XK_KP_7               : KeySym : 0xffb7
-XK_KP_8               : KeySym : 0xffb8
-XK_KP_9               : KeySym : 0xffb9
+XK_KP_0               : KeySym : 0xffb0;
+XK_KP_1               : KeySym : 0xffb1;
+XK_KP_2               : KeySym : 0xffb2;
+XK_KP_3               : KeySym : 0xffb3;
+XK_KP_4               : KeySym : 0xffb4;
+XK_KP_5               : KeySym : 0xffb5;
+XK_KP_6               : KeySym : 0xffb6;
+XK_KP_7               : KeySym : 0xffb7;
+XK_KP_8               : KeySym : 0xffb8;
+XK_KP_9               : KeySym : 0xffb9;
 
 
 
@@ -1053,66 +1053,66 @@ XK_KP_9               : KeySym : 0xffb9
  * We've not found a keyboard with more than 35 function keys total.
  */
 
-XK_F1                 : KeySym : 0xffbe
-XK_F2                 : KeySym : 0xffbf
-XK_F3                 : KeySym : 0xffc0
-XK_F4                 : KeySym : 0xffc1
-XK_F5                 : KeySym : 0xffc2
-XK_F6                 : KeySym : 0xffc3
-XK_F7                 : KeySym : 0xffc4
-XK_F8                 : KeySym : 0xffc5
-XK_F9                 : KeySym : 0xffc6
-XK_F10                : KeySym : 0xffc7
-XK_F11                : KeySym : 0xffc8
-XK_L1                 : KeySym : 0xffc8
-XK_F12                : KeySym : 0xffc9
-XK_L2                 : KeySym : 0xffc9
-XK_F13                : KeySym : 0xffca
-XK_L3                 : KeySym : 0xffca
-XK_F14                : KeySym : 0xffcb
-XK_L4                 : KeySym : 0xffcb
-XK_F15                : KeySym : 0xffcc
-XK_L5                 : KeySym : 0xffcc
-XK_F16                : KeySym : 0xffcd
-XK_L6                 : KeySym : 0xffcd
-XK_F17                : KeySym : 0xffce
-XK_L7                 : KeySym : 0xffce
-XK_F18                : KeySym : 0xffcf
-XK_L8                 : KeySym : 0xffcf
-XK_F19                : KeySym : 0xffd0
-XK_L9                 : KeySym : 0xffd0
-XK_F20                : KeySym : 0xffd1
-XK_L10                : KeySym : 0xffd1
-XK_F21                : KeySym : 0xffd2
-XK_R1                 : KeySym : 0xffd2
-XK_F22                : KeySym : 0xffd3
-XK_R2                 : KeySym : 0xffd3
-XK_F23                : KeySym : 0xffd4
-XK_R3                 : KeySym : 0xffd4
-XK_F24                : KeySym : 0xffd5
-XK_R4                 : KeySym : 0xffd5
-XK_F25                : KeySym : 0xffd6
-XK_R5                 : KeySym : 0xffd6
-XK_F26                : KeySym : 0xffd7
-XK_R6                 : KeySym : 0xffd7
-XK_F27                : KeySym : 0xffd8
-XK_R7                 : KeySym : 0xffd8
-XK_F28                : KeySym : 0xffd9
-XK_R8                 : KeySym : 0xffd9
-XK_F29                : KeySym : 0xffda
-XK_R9                 : KeySym : 0xffda
-XK_F30                : KeySym : 0xffdb
-XK_R10                : KeySym : 0xffdb
-XK_F31                : KeySym : 0xffdc
-XK_R11                : KeySym : 0xffdc
-XK_F32                : KeySym : 0xffdd
-XK_R12                : KeySym : 0xffdd
-XK_F33                : KeySym : 0xffde
-XK_R13                : KeySym : 0xffde
-XK_F34                : KeySym : 0xffdf
-XK_R14                : KeySym : 0xffdf
-XK_F35                : KeySym : 0xffe0
-XK_R15                : KeySym : 0xffe0
+XK_F1                 : KeySym : 0xffbe;
+XK_F2                 : KeySym : 0xffbf;
+XK_F3                 : KeySym : 0xffc0;
+XK_F4                 : KeySym : 0xffc1;
+XK_F5                 : KeySym : 0xffc2;
+XK_F6                 : KeySym : 0xffc3;
+XK_F7                 : KeySym : 0xffc4;
+XK_F8                 : KeySym : 0xffc5;
+XK_F9                 : KeySym : 0xffc6;
+XK_F10                : KeySym : 0xffc7;
+XK_F11                : KeySym : 0xffc8;
+XK_L1                 : KeySym : 0xffc8;
+XK_F12                : KeySym : 0xffc9;
+XK_L2                 : KeySym : 0xffc9;
+XK_F13                : KeySym : 0xffca;
+XK_L3                 : KeySym : 0xffca;
+XK_F14                : KeySym : 0xffcb;
+XK_L4                 : KeySym : 0xffcb;
+XK_F15                : KeySym : 0xffcc;
+XK_L5                 : KeySym : 0xffcc;
+XK_F16                : KeySym : 0xffcd;
+XK_L6                 : KeySym : 0xffcd;
+XK_F17                : KeySym : 0xffce;
+XK_L7                 : KeySym : 0xffce;
+XK_F18                : KeySym : 0xffcf;
+XK_L8                 : KeySym : 0xffcf;
+XK_F19                : KeySym : 0xffd0;
+XK_L9                 : KeySym : 0xffd0;
+XK_F20                : KeySym : 0xffd1;
+XK_L10                : KeySym : 0xffd1;
+XK_F21                : KeySym : 0xffd2;
+XK_R1                 : KeySym : 0xffd2;
+XK_F22                : KeySym : 0xffd3;
+XK_R2                 : KeySym : 0xffd3;
+XK_F23                : KeySym : 0xffd4;
+XK_R3                 : KeySym : 0xffd4;
+XK_F24                : KeySym : 0xffd5;
+XK_R4                 : KeySym : 0xffd5;
+XK_F25                : KeySym : 0xffd6;
+XK_R5                 : KeySym : 0xffd6;
+XK_F26                : KeySym : 0xffd7;
+XK_R6                 : KeySym : 0xffd7;
+XK_F27                : KeySym : 0xffd8;
+XK_R7                 : KeySym : 0xffd8;
+XK_F28                : KeySym : 0xffd9;
+XK_R8                 : KeySym : 0xffd9;
+XK_F29                : KeySym : 0xffda;
+XK_R9                 : KeySym : 0xffda;
+XK_F30                : KeySym : 0xffdb;
+XK_R10                : KeySym : 0xffdb;
+XK_F31                : KeySym : 0xffdc;
+XK_R11                : KeySym : 0xffdc;
+XK_F32                : KeySym : 0xffdd;
+XK_R12                : KeySym : 0xffdd;
+XK_F33                : KeySym : 0xffde;
+XK_R13                : KeySym : 0xffde;
+XK_F34                : KeySym : 0xffdf;
+XK_R14                : KeySym : 0xffdf;
+XK_F35                : KeySym : 0xffe0;
+XK_R15                : KeySym : 0xffe0;
 
 /* Modifiers */
 
@@ -1359,7 +1359,7 @@ XK_ydiaeresis                 : KeySym : 0x00ff  /* U+00FF LATIN SMALL LETTER Y 
 /* XK_LATIN1 */
 
 /* XK_XKB_KEYS */
-XK_ISO_Left_Tab                : KeySym : 0xfe20
+XK_ISO_Left_Tab                : KeySym : 0xfe20;
 /* XK_XKB_KEYS */
 
 /** \} */
@@ -1370,27 +1370,27 @@ XK_ISO_Left_Tab                : KeySym : 0xfe20
 
 XDestroyImage :: fonc (ximage: *XImage) -> z32
 {
-    retourne ximage.f.destroy_image(ximage)
+    retourne ximage.f.destroy_image(ximage);
 }
 
 XGetPixel :: fonc (ximage: *XImage, x: z32, y: z32) -> n64
 {
-    retourne ximage.f.get_pixel(ximage, x, y)
+    retourne ximage.f.get_pixel(ximage, x, y);
 }
 
 XPutPixel :: fonc (ximage: *XImage, x: z32, y: z32, pixel: n64) -> z32
 {
-    retourne ximage.f.put_pixel(ximage, x, y, pixel)
+    retourne ximage.f.put_pixel(ximage, x, y, pixel);
 }
 
 XSubImage :: fonc (ximage: *XImage, x: z32, y: z32, width: n32, height: n32) -> *XImage
 {
-    retourne ximage.f.sub_image(ximage, x, y, width, height)
+    retourne ximage.f.sub_image(ximage, x, y, width, height);
 }
 
 XAddPixel :: fonc (ximage: *XImage, value: z64) -> z32
 {
-    retourne ximage.f.add_pixel(ximage, value)
+    retourne ximage.f.add_pixel(ximage, value);
 }
 
 /** \} */
@@ -1399,9 +1399,9 @@ XAddPixel :: fonc (ximage: *XImage, value: z64) -> z32
 /** \nom Fonctions externes.
  * \{ */
 
-XComposeStatus :: struct #externe
+XComposeStatus :: struct #externe;
 
-XLookupString :: fonc (xkey_event: *XKeyEvent, buffer_return: *z8, bytes_buffer: z32, keysym_ret: *KeySym, status_in_out: *XComposeStatus) -> z32 #externe libX11
+XLookupString :: fonc (xkey_event: *XKeyEvent, buffer_return: *z8, bytes_buffer: z32, keysym_ret: *KeySym, status_in_out: *XComposeStatus) -> z32 #externe libX11;
 
 /** \} */
 
@@ -1411,85 +1411,85 @@ XLookupString :: fonc (xkey_event: *XKeyEvent, buffer_return: *z8, bytes_buffer:
 
 initialise_évènement_depuis_xmotion_event :: fonc (xmotion_event: *XMotionEvent, résultat: *Évènement)
 {
-    init_de(Évènement)(résultat)
+    init_de(Évènement)(résultat);
 
-    état: ÉtatSouris
-    état.où.x = xmotion_event.x
-    état.où.y = xmotion_event.y
-    état.modificateur = convertis_modificateurs_clavier(xmotion_event.state)
+    état: ÉtatSouris;
+    état.où.x = xmotion_event.x;
+    état.où.y = xmotion_event.y;
+    état.modificateur = convertis_modificateurs_clavier(xmotion_event.state);
 
-    résultat.type = TypeÉvènement.Souris
-    résultat.état_souris = état
-    résultat.action_souris = ActionSouris.DÉPLACÉE
-    résultat.bouton_souris = BoutonSouris.AUCUN
+    résultat.type = TypeÉvènement.Souris;
+    résultat.état_souris = état;
+    résultat.action_souris = ActionSouris.DÉPLACÉE;
+    résultat.bouton_souris = BoutonSouris.AUCUN;
 }
 
 initialise_évènement_depuis_xbutton_event :: fonc (xbutton_event: *XButtonEvent, résultat: *Évènement)
 {
-    init_de(Évènement)(résultat)
+    init_de(Évènement)(résultat);
  
-    état: ÉtatSouris
-    état.où.x = xbutton_event.x
-    état.où.y = xbutton_event.y
-    état.modificateur = convertis_modificateurs_clavier(xbutton_event.state)
+    état: ÉtatSouris;
+    état.où.x = xbutton_event.x;
+    état.où.y = xbutton_event.y;
+    état.modificateur = convertis_modificateurs_clavier(xbutton_event.state);
 
-    résultat.type = TypeÉvènement.Souris
-    résultat.état_souris = état
+    résultat.type = TypeÉvènement.Souris;
+    résultat.état_souris = état;
     résultat.action_souris = si xbutton_event.type == ButtonPress {
-        ActionSouris.PRESSÉE
+        ActionSouris.PRESSÉE;
     }
     sinon {
-        assert(xbutton_event.type == ButtonRelease)
-        ActionSouris.RELACHÉE
+        assert(xbutton_event.type == ButtonRelease);
+        ActionSouris.RELACHÉE;
     }
     résultat.bouton_souris = si xbutton_event.button == Button1 {
-        BoutonSouris.PRIMAIRE
+        BoutonSouris.PRIMAIRE;
     }
     sinon si xbutton_event.button == Button2 {
-        BoutonSouris.MOLETTE
+        BoutonSouris.MOLETTE;
     }
     sinon si xbutton_event.button == Button3 {
-        BoutonSouris.CONTEXTUEL
+        BoutonSouris.CONTEXTUEL;
     }
     sinon si xbutton_event.button == Button4 && xbutton_event.type == ButtonPress {
-        résultat.action_souris = ActionSouris.ROULEMENT
-        résultat.delta_souris = -1
-        BoutonSouris.MOLETTE
+        résultat.action_souris = ActionSouris.ROULEMENT;
+        résultat.delta_souris = -1;
+        BoutonSouris.MOLETTE;
     }
     sinon si xbutton_event.button == Button5 && xbutton_event.type == ButtonPress {
-        résultat.action_souris = ActionSouris.ROULEMENT
-        résultat.delta_souris = 1
-        BoutonSouris.MOLETTE
+        résultat.action_souris = ActionSouris.ROULEMENT;
+        résultat.delta_souris = 1;
+        BoutonSouris.MOLETTE;
     }
     sinon {
-        BoutonSouris.AUCUN
+        BoutonSouris.AUCUN;
     }
 }
 
 initialise_évènement_depuis_xkey_event :: fonc (xkey_event: *XKeyEvent, est_répétée: bool, résultat: *Évènement)
 {
-    init_de(Évènement)(résultat)
+    init_de(Évènement)(résultat);
 
-    résultat.type = TypeÉvènement.Clavier
-    résultat.touche_pressée = xkey_event.type == KeyPress
-    résultat.est_répétée = est_répétée
-    résultat.code_scan_natif = xkey_event.keycode
+    résultat.type = TypeÉvènement.Clavier;
+    résultat.touche_pressée = xkey_event.type == KeyPress;
+    résultat.est_répétée = est_répétée;
+    résultat.code_scan_natif = xkey_event.keycode;
 
-    keysym := XLookupKeysym(xkey_event, 0)
-    résultat.clé_virtuelle_native = keysym comme n32
+    keysym := XLookupKeysym(xkey_event, 0);
+    résultat.clé_virtuelle_native = keysym comme n32;
    
-    ascii: z8
-    key_sym_str: KeySym
+    ascii: z8;
+    key_sym_str: KeySym;
     saufsi XLookupString(xkey_event, *ascii, 1, *key_sym_str, nul) {
         ascii = '\0';
     }
 
     // verrouillage_casse est LockMask
     // alt_gr est Mod5Mask
-    verrouillage_numérique_est_actif := (xkey_event.state & Mod2Mask comme n32) != 0
+    verrouillage_numérique_est_actif := (xkey_event.state & Mod2Mask comme n32) != 0;
 
     /* Seule une sélection de touches passe par XLookupKeysym, les autres par XLookupString. */
-    résultat.touche = touche_clavier_depuis_keysym(keysym, verrouillage_numérique_est_actif)
+    résultat.touche = touche_clavier_depuis_keysym(keysym, verrouillage_numérique_est_actif);
     discr résultat.touche {
         ALT_DROITE,
         ALT_GAUCHE,
@@ -1538,27 +1538,27 @@ initialise_évènement_depuis_xkey_event :: fonc (xkey_event: *XKeyEvent, est_r�
         PAVÉ_NUM_PAGE_HAUT,
         PAVÉ_NUM_SUPPR {}
         sinon {
-            touche := touche_clavier_depuis_keysym(key_sym_str, verrouillage_numérique_est_actif)
+            touche := touche_clavier_depuis_keysym(key_sym_str, verrouillage_numérique_est_actif);
             si touche != ToucheClavier.INCONNUE {
-                résultat.touche = touche
+                résultat.touche = touche;
             }
         }
     }
 
     si (xkey_event.state & ShiftMask comme n32) != 0 {
-        résultat.modificateurs.MAJUSCULE = vrai
+        résultat.modificateurs.MAJUSCULE = vrai;
     }
 
     si (xkey_event.state & ControlMask comme n32) != 0 {
-        résultat.modificateurs.CONTROL = vrai
+        résultat.modificateurs.CONTROL = vrai;
     }
 
     si (xkey_event.state & Mod1Mask comme n32) != 0 {
-        résultat.modificateurs.ALT = vrai
+        résultat.modificateurs.ALT = vrai;
     }
 
-    résultat.modificateurs = convertis_modificateurs_clavier(xkey_event.state)
-    résultat.modificateurs_natifs = xkey_event.state
+    résultat.modificateurs = convertis_modificateurs_clavier(xkey_event.state);
+    résultat.modificateurs_natifs = xkey_event.state;
 
     // texte: chaine
     // compte: z32
@@ -1566,40 +1566,40 @@ initialise_évènement_depuis_xkey_event :: fonc (xkey_event: *XKeyEvent, est_r�
 
 convertis_modificateurs_clavier :: fonc (state: n32) -> ModificateurClavier
 {
-    résultat: ModificateurClavier
+    résultat: ModificateurClavier;
     si (state & ShiftMask comme n32) != 0 {
-        résultat.MAJUSCULE = vrai
+        résultat.MAJUSCULE = vrai;
     }
 
     si (state & ControlMask comme n32) != 0 {
-        résultat.CONTROL = vrai
+        résultat.CONTROL = vrai;
     }
 
     si (state & Mod1Mask comme n32) != 0 {
-        résultat.ALT = vrai
+        résultat.ALT = vrai;
     }
-    retourne résultat
+    retourne résultat;
 }
 
 /* Media keys in some keyboards and laptops with XFree86/XORG. */
-AVEC_XF86KEYSYM :: vrai
+AVEC_XF86KEYSYM :: vrai;
 
 touche_clavier_depuis_keysym :: fonc (key: KeySym, verrouillage_numérique_est_actif: bool) -> ToucheClavier
 {
     si key >= XK_A && key <= XK_Z {
-        retourne ((key - XK_A) comme z32 + ToucheClavier.A comme z32) comme ToucheClavier
+        retourne ((key - XK_A) comme z32 + ToucheClavier.A comme z32) comme ToucheClavier;
     }
 
     si key >= XK_a && key <= XK_z {
-        retourne ((key - XK_a) comme z32 + ToucheClavier.A comme z32) comme ToucheClavier
+        retourne ((key - XK_a) comme z32 + ToucheClavier.A comme z32) comme ToucheClavier;
     }
 
     si key >= XK_0 && key <= XK_9 {
-        retourne ((key - XK_0) comme z32 + ToucheClavier._0 comme z32) comme ToucheClavier
+        retourne ((key - XK_0) comme z32 + ToucheClavier._0 comme z32) comme ToucheClavier;
     }
 
     si key >= XK_F1 && key <= XK_F24 {
-        retourne ((key - XK_F1) comme z32 + ToucheClavier.F1 comme z32) comme ToucheClavier
+        retourne ((key - XK_F1) comme z32 + ToucheClavier.F1 comme z32) comme ToucheClavier;
     }
 
     si key == XK_parenleft { retourne ToucheClavier.PARENTHÈSE_GAUCHE }
@@ -1725,7 +1725,7 @@ touche_clavier_depuis_keysym :: fonc (key: KeySym, verrouillage_numérique_est_a
         si key == XF86XK_AudioForward { retourne ToucheClavier.AVANCE_MÉDIA }
     }
 
-    retourne ToucheClavier.INCONNUE
+    retourne ToucheClavier.INCONNUE;
 }
 
 /** \} */
@@ -1734,11 +1734,11 @@ touche_clavier_depuis_keysym :: fonc (key: KeySym, verrouillage_numérique_est_a
 /** \nom Xfixes.h
  * \{ */
 
-libXfixes :: #bibliothèque "Xfixes"
+libXfixes :: #bibliothèque "Xfixes";
 
-XFixesHideCursor :: fonc (dpy: *Display, win: Window) -> rien #externe libXfixes
+XFixesHideCursor :: fonc (dpy: *Display, win: Window) -> rien #externe libXfixes;
 
-XFixesShowCursor :: fonc (dpy: *Display, win: Window) -> rien #externe libXfixes
+XFixesShowCursor :: fonc (dpy: *Display, win: Window) -> rien #externe libXfixes;
 
 /** \} */
 
@@ -1746,32 +1746,32 @@ XFixesShowCursor :: fonc (dpy: *Display, win: Window) -> rien #externe libXfixes
 /** \nom Xutil.h
  * \{ */
 
-VisualNoMask		:: 0x0
-VisualIDMask 		:: 0x1
-VisualScreenMask	:: 0x2
-VisualDepthMask		:: 0x4
-VisualClassMask		:: 0x8
-VisualRedMaskMask	:: 0x10
-VisualGreenMaskMask	:: 0x20
-VisualBlueMaskMask	:: 0x40
-VisualColormapSizeMask	:: 0x80
-VisualBitsPerRGBMask	:: 0x100
-VisualAllMask		:: 0x1FF
+VisualNoMask		:: 0x0;
+VisualIDMask 		:: 0x1;
+VisualScreenMask	:: 0x2;
+VisualDepthMask		:: 0x4;
+VisualClassMask		:: 0x8;
+VisualRedMaskMask	:: 0x10;
+VisualGreenMaskMask	:: 0x20;
+VisualBlueMaskMask	:: 0x40;
+VisualColormapSizeMask	:: 0x80;
+VisualBitsPerRGBMask	:: 0x100;
+VisualAllMask		:: 0x1FF;
 
 XVisualInfo :: struct {
-    visual: *Visual
-    visualid: VisualID
-    screen: z32
-    depth: z32
-    class: z32
-    red_mask: n64
-    green_mask: n64
-    blue_mask: n64
-    colormap_size: z32
-    bits_per_rgb: z32
+    visual: *Visual;
+    visualid: VisualID;
+    screen: z32;
+    depth: z32;
+    class: z32;
+    red_mask: n64;
+    green_mask: n64;
+    blue_mask: n64;
+    colormap_size: z32;
+    bits_per_rgb: z32;
 }
 
-XGetVisualInfo :: fonc (display: *Display, vinfo_mask: z64, vinfo_template: *XVisualInfo, nitems_return: *z32) -> *XVisualInfo #externe libX11
+XGetVisualInfo :: fonc (display: *Display, vinfo_mask: z64, vinfo_template: *XVisualInfo, nitems_return: *z32) -> *XVisualInfo #externe libX11;
 
 /** \} */
 
@@ -1781,130 +1781,130 @@ XGetVisualInfo :: fonc (display: *Display, vinfo_mask: z64, vinfo_template: *XVi
 /** \nom Test pour se connecter directement au serveur X.
  * \{ */
 
-importe Fondation
-importe POSIX
-importe Sérialisation
-importe SysFichier
+importe Fondation;
+importe POSIX;
+importe Sérialisation;
+importe SysFichier;
 
-AUTH_ENTRY_FAMILY_LOCAL : n16 : 1
-AUTH_ENTRY_MAGIC_COOKIE :: "MIT-MAGIC-COOKIE-1"
+AUTH_ENTRY_FAMILY_LOCAL : n16 : 1;
+AUTH_ENTRY_MAGIC_COOKIE :: "MIT-MAGIC-COOKIE-1";
 
-AuthToken :: [16]n8
+AuthToken :: [16]n8;
 
 AuthEntry :: struct {
-	family: n16
-	auth_name: []octet
-	auth_data: []octet
+	family: n16;
+	auth_name: []octet;
+	auth_data: []octet;
 }
 
 donne_chemin_fichier_xauthority :: fonc () -> CheminFichier
 {
-	chemin_env := chaine_environnement("XAUTHORITY")
+	chemin_env := chaine_environnement("XAUTHORITY");
     si chemin_env {
-        retourne CheminFichier(chemin_env)
+        retourne CheminFichier(chemin_env);
     }
 
-    répertoire_personnel := chemin_répertoire_personnel()
+    répertoire_personnel := chemin_répertoire_personnel();
     saufsi répertoire_personnel.possède_valeur() {
-        retourne CheminFichier()
+        retourne CheminFichier();
     }
 
-    retourne répertoire_personnel.Quelque / ".Xauthority"
+    retourne répertoire_personnel.Quelque / ".Xauthority";
 }
 
 load_x11_auth_token :: fonc () -> Optionnel(AuthToken)
 {
-    chemin := donne_chemin_fichier_xauthority()
+    chemin := donne_chemin_fichier_xauthority();
     saufsi fichier_existe(chemin) {
-        retourne
+        retourne;
     }
-    diffère détruit_chemin(chemin)
+    diffère détruit_chemin(chemin);
 
-    imprime("%\n", chemin.chn)
+    imprime("%\n", chemin.chn);
 
-    succès, contenu := contenu_fichier_binaire(chemin)
+    succès, contenu := contenu_fichier_binaire(chemin);
     si succès == faux || contenu.taille == 0 {
-        retourne
+        retourne;
     }
-    diffère déloge(contenu)
+    diffère déloge(contenu);
 
-    tampon : []octet = contenu
+    tampon : []octet = contenu;
 
 	boucle {
         si tampon.taille == 0 {
-            arrête
+            arrête;
         }
 
-		auth_entry: AuthEntry
-        auth_entry, tampon = read_x11_auth_entry(tampon)
+		auth_entry: AuthEntry;
+        auth_entry, tampon = read_x11_auth_entry(tampon);
 
-        imprime("tampon.taille\n", auth_entry)
+        imprime("tampon.taille\n", auth_entry);
 
         si auth_entry.family != AUTH_ENTRY_FAMILY_LOCAL {
-            continue
+            continue;
         }
 
-        cookie := chaine_depuis_tranche_octets(auth_entry.auth_name)
+        cookie := chaine_depuis_tranche_octets(auth_entry.auth_name);
         si cookie != AUTH_ENTRY_MAGIC_COOKIE {
-            continue
+            continue;
         }
 
         si auth_entry.auth_data.taille != taille_de(AuthToken) comme z64 {
-            continue
+            continue;
         }
 
-        auth_token := mémoire(auth_entry.auth_data.pointeur comme *AuthToken)
-        retourne auth_token
+        auth_token := mémoire(auth_entry.auth_data.pointeur comme *AuthToken);
+        retourne auth_token;
 	}
 }
 
 read_x11_auth_entry :: fonc (tampon: []octet) -> (AuthEntry, []octet)
 {
-	entry := AuthEntry()
+	entry := AuthEntry();
 
-    entry.family, tampon = lis_petit_boutisme(tampon, n16)
+    entry.family, tampon = lis_petit_boutisme(tampon, n16);
 
-    imprime("entry.family : %, tampon.taille %\n", entry.family, tampon.taille)
+    imprime("entry.family : %, tampon.taille %\n", entry.family, tampon.taille);
 
-    taille_adresse: n16
-    taille_adresse, tampon = lis_grand_boutisme(tampon, n16)
+    taille_adresse: n16;
+    taille_adresse, tampon = lis_grand_boutisme(tampon, n16);
 
-    adresse: []octet
-    adresse.pointeur = tampon.pointeur
-    adresse.taille = taille_adresse comme z64
-    tampon = avance(tampon, taille_adresse comme z64)
+    adresse: []octet;
+    adresse.pointeur = tampon.pointeur;
+    adresse.taille = taille_adresse comme z64;
+    tampon = avance(tampon, taille_adresse comme z64);
 
-    imprime("taille_adresse : %, tampon.taille %\n", taille_adresse, tampon.taille)
+    imprime("taille_adresse : %, tampon.taille %\n", taille_adresse, tampon.taille);
 
-    taille_display_number: n16
-    taille_display_number, tampon = lis_grand_boutisme(tampon, n16)
+    taille_display_number: n16;
+    taille_display_number, tampon = lis_grand_boutisme(tampon, n16);
 
-    display_number: []octet
-    display_number.pointeur = tampon.pointeur
-    display_number.taille = taille_display_number comme z64
-    tampon = avance(tampon, taille_display_number comme z64)
+    display_number: []octet;
+    display_number.pointeur = tampon.pointeur;
+    display_number.taille = taille_display_number comme z64;
+    tampon = avance(tampon, taille_display_number comme z64);
 
-    taille_auth_name: n16
-    taille_auth_name, tampon = lis_grand_boutisme(tampon, n16)
+    taille_auth_name: n16;
+    taille_auth_name, tampon = lis_grand_boutisme(tampon, n16);
 
-    auth_name: []octet
-    auth_name.pointeur = tampon.pointeur
-    auth_name.taille = taille_auth_name comme z64
-    tampon = avance(tampon, taille_auth_name comme z64)
+    auth_name: []octet;
+    auth_name.pointeur = tampon.pointeur;
+    auth_name.taille = taille_auth_name comme z64;
+    tampon = avance(tampon, taille_auth_name comme z64);
 
-    entry.auth_name = auth_name
+    entry.auth_name = auth_name;
 
-    taille_auth_data: n16
-    taille_auth_data, tampon = lis_grand_boutisme(tampon, n16)
+    taille_auth_data: n16;
+    taille_auth_data, tampon = lis_grand_boutisme(tampon, n16);
 
-    auth_data: []octet
-    auth_data.pointeur = tampon.pointeur
-    auth_data.taille = taille_auth_data comme z64
-    tampon = avance(tampon, taille_auth_data comme z64)
+    auth_data: []octet;
+    auth_data.pointeur = tampon.pointeur;
+    auth_data.taille = taille_auth_data comme z64;
+    tampon = avance(tampon, taille_auth_data comme z64);
 
-    entry.auth_data = auth_data
+    entry.auth_data = auth_data;
 
-    retourne entry, tampon
+    retourne entry, tampon;
 }
 
 /** \} */

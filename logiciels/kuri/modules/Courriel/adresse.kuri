@@ -1,28 +1,28 @@
-importe Chaine
+importe Chaine;
 
 /* Représentation d'une adresse courriel. Contient la chaine originelle, et ses composants de nom et d'hôte. */
 AdresseCourriel :: struct {
-    chn: chaine
-    nom: chaine @accessible
-    hôte: chaine @accessible
+    chn: chaine;
+    nom: chaine @accessible;
+    hôte: chaine @accessible;
 }
 
 est_valide :: fonc (courriel: AdresseCourriel) -> bool
 {
-    retourne courriel.chn != ""
+    retourne courriel.chn != "";
 }
 
 /* Fonction auxilliaire pour parser un courriel pour les FonctionParsages du module Introspection. */
 parse_courriel_pour_info_type :: fonc (chn: chaine) -> (bool, AdresseCourriel)
 {
-    courriel := parse_adresse_courriel(copie_chaine(chn))
-    retourne courriel.est_valide(), courriel
+    courriel := parse_adresse_courriel(copie_chaine(chn));
+    retourne courriel.est_valide(), courriel;
 } @ParsageURL @ParsageJSON
 
 imprime_adresse_courriel :: fonc (enchaineuse: *Enchaineuse, adresse: *AdresseCourriel)
 {
     si adresse {
-        ajoute_au_tampon(enchaineuse, adresse.nom, "@", adresse.hôte)
+        ajoute_au_tampon(enchaineuse, adresse.nom, "@", adresse.hôte);
     }
 } @FormattageImpression
 
@@ -32,137 +32,137 @@ génère_adresse_courriel_aléatoire :: fonc (gna: *GNA, alphabet: &Alphabet.Alp
 {
     // À FAIRE: 256 pour la part locale
     // À FAIRE: forward path @domaine1@domaine2:nom_utilisateur@domaine_final
-    nom := chaine_aléatoire(gna, alphabet, 1, 64)
+    nom := chaine_aléatoire(gna, alphabet, 1, 64);
     // À FAIRE: domaine aléatoire: domaine valide, IPv4, ou IPv6
-    hôte := chaine_aléatoire(gna, alphabet, 1, 64)
-    adresse := enchaine(nom, "@", hôte)
+    hôte := chaine_aléatoire(gna, alphabet, 1, 64);
+    adresse := enchaine(nom, "@", hôte);
 
-    courriel : AdresseCourriel = ---
-    courriel.chn = adresse
-    courriel.nom = nom
-    courriel.hôte = adresse
-    retourne courriel
+    courriel : AdresseCourriel = ---;
+    courriel.chn = adresse;
+    courriel.nom = nom;
+    courriel.hôte = adresse;
+    retourne courriel;
 }
 
 génère_adresse_courriel_aléatoire :: fonc (génératrice: GénératriceDonnéesAléatoire) -> AdresseCourriel
 {
-    alphabet := crée_alphabet_ascii_courriel()
-    diffère détruit_alphabet(alphabet)
-    retourne génère_adresse_courriel_aléatoire(génératrice.gna, alphabet)
+    alphabet := crée_alphabet_ascii_courriel();
+    diffère détruit_alphabet(alphabet);
+    retourne génère_adresse_courriel_aléatoire(génératrice.gna, alphabet);
 }
 
 rappel_génère_adresse_courriel_aléatoire :: fonc (génératrice: &GénératriceDonnéesAléatoire, ptr: *AdresseCourriel)
 {
-    adresse := génère_adresse_courriel_aléatoire(génératrice)
-    mémoire(ptr) = adresse
+    adresse := génère_adresse_courriel_aléatoire(génératrice);
+    mémoire(ptr) = adresse;
 } @FonctionGNA
 
 // -----------------------------------------------------
 // Parsage.
 
 DrapeauxCaractères :: énum_drapeau {
-    EST_AROBASE
+    EST_AROBASE;
     EST_SÉPARATEUR_RELAI // , ou :
     EST_SÉPARATEUR_ATOME // . ou @
-    EST_POINT
-    EST_CARACTÈRE_LOCAL_VALIDE
-    EST_CARACTÈRE_SPÉCIAL
-    EST_GUILLEMET
-    EST_ÉCHAPPEMENT
-    EST_CROCHET_OUVRANT
-    EST_CROCHET_FERMANT
+    EST_POINT;
+    EST_CARACTÈRE_LOCAL_VALIDE;
+    EST_CARACTÈRE_SPÉCIAL;
+    EST_GUILLEMET;
+    EST_ÉCHAPPEMENT;
+    EST_CROCHET_OUVRANT;
+    EST_CROCHET_FERMANT;
 
-    PEUT_ÊTRE_DANS_LABEL
-    PEUT_COMMENCER_OU_TERMINER_LABEL
+    PEUT_ÊTRE_DANS_LABEL;
+    PEUT_COMMENCER_OU_TERMINER_LABEL;
 }
 
 ParseAdresseCourriel :: énum {
     /* Parse l'adresse courriel selon les différentes RFC, les deux RFC principalement
      * utilisées ici sont RFC5321 et RFC5322. */
-    SelonRFC
+    SelonRFC;
     /* Parse l'adresse courriel selon la spécification HTML de WHATWG :
      * https://html.spec.whatwg.org/multipage/input.html#valid-e-mail-address */
-    SelonHTML5
+    SelonHTML5;
 }
 
 // À FAIRE : valeur globale
 construis_table_caractères :: fonc () -> [256]DrapeauxCaractères
 {
-    table_caractères: [256]DrapeauxCaractères
+    table_caractères: [256]DrapeauxCaractères;
 
     /* Selon RFC5322, section 3.2.3
      * https://datatracker.ietf.org/doc/html/rfc5322.html#section-3.2.3
      */
 
     pour "abcdefghijklmnopqrstuvwxyz" {
-        table_caractères[it comme n8].EST_CARACTÈRE_LOCAL_VALIDE = vrai
-        table_caractères[it comme n8].PEUT_COMMENCER_OU_TERMINER_LABEL = vrai
-        table_caractères[it comme n8].PEUT_ÊTRE_DANS_LABEL = vrai
+        table_caractères[it comme n8].EST_CARACTÈRE_LOCAL_VALIDE = vrai;
+        table_caractères[it comme n8].PEUT_COMMENCER_OU_TERMINER_LABEL = vrai;
+        table_caractères[it comme n8].PEUT_ÊTRE_DANS_LABEL = vrai;
     }
 
     pour "ABCDEFGHIJKLMNOPQRSTUVWXYZ" {
-        table_caractères[it comme n8].EST_CARACTÈRE_LOCAL_VALIDE = vrai
-        table_caractères[it comme n8].PEUT_COMMENCER_OU_TERMINER_LABEL = vrai
-        table_caractères[it comme n8].PEUT_ÊTRE_DANS_LABEL = vrai
+        table_caractères[it comme n8].EST_CARACTÈRE_LOCAL_VALIDE = vrai;
+        table_caractères[it comme n8].PEUT_COMMENCER_OU_TERMINER_LABEL = vrai;
+        table_caractères[it comme n8].PEUT_ÊTRE_DANS_LABEL = vrai;
     }
 
     pour "0123456789" {
-        table_caractères[it comme n8].EST_CARACTÈRE_LOCAL_VALIDE = vrai
-        table_caractères[it comme n8].PEUT_COMMENCER_OU_TERMINER_LABEL = vrai
-        table_caractères[it comme n8].PEUT_ÊTRE_DANS_LABEL = vrai
+        table_caractères[it comme n8].EST_CARACTÈRE_LOCAL_VALIDE = vrai;
+        table_caractères[it comme n8].PEUT_COMMENCER_OU_TERMINER_LABEL = vrai;
+        table_caractères[it comme n8].PEUT_ÊTRE_DANS_LABEL = vrai;
     }
 
     pour "!#$%&'*+-/=?^_`{|}~" {
-        table_caractères[it comme n8].EST_CARACTÈRE_LOCAL_VALIDE = vrai
+        table_caractères[it comme n8].EST_CARACTÈRE_LOCAL_VALIDE = vrai;
     }
 
     pour "()<>[..]:;@\\,.\"" {
-        table_caractères[it comme n8].EST_CARACTÈRE_SPÉCIAL = vrai
+        table_caractères[it comme n8].EST_CARACTÈRE_SPÉCIAL = vrai;
     }
 
-    table_caractères['-'].PEUT_ÊTRE_DANS_LABEL = vrai
-    table_caractères['@'].EST_AROBASE = vrai
-    table_caractères['.'].EST_POINT = vrai
-    table_caractères[','].EST_SÉPARATEUR_RELAI = vrai
-    table_caractères[':'].EST_SÉPARATEUR_RELAI = vrai
-    table_caractères['['].EST_CROCHET_OUVRANT = vrai
-    table_caractères[']'].EST_CROCHET_FERMANT = vrai
-    table_caractères['"'].EST_GUILLEMET = vrai
-    table_caractères['\\'].EST_ÉCHAPPEMENT = vrai
-    table_caractères['@'].EST_SÉPARATEUR_ATOME = vrai
-    table_caractères['.'].EST_SÉPARATEUR_ATOME = vrai
+    table_caractères['-'].PEUT_ÊTRE_DANS_LABEL = vrai;
+    table_caractères['@'].EST_AROBASE = vrai;
+    table_caractères['.'].EST_POINT = vrai;
+    table_caractères[','].EST_SÉPARATEUR_RELAI = vrai;
+    table_caractères[':'].EST_SÉPARATEUR_RELAI = vrai;
+    table_caractères['['].EST_CROCHET_OUVRANT = vrai;
+    table_caractères[']'].EST_CROCHET_FERMANT = vrai;
+    table_caractères['"'].EST_GUILLEMET = vrai;
+    table_caractères['\\'].EST_ÉCHAPPEMENT = vrai;
+    table_caractères['@'].EST_SÉPARATEUR_ATOME = vrai;
+    table_caractères['.'].EST_SÉPARATEUR_ATOME = vrai;
 
-    retourne table_caractères
+    retourne table_caractères;
 }
 
 ParseuseAdresseCourriel :: struct {
-    empl base: ParseuseChaine
+    empl base: ParseuseChaine;
 
-    table_caractères: [256]DrapeauxCaractères
+    table_caractères: [256]DrapeauxCaractères;
 
-    part_locale: chaine
-    part_domaine: chaine
+    part_locale: chaine;
+    part_domaine: chaine;
 
-    drapeaux_part_locale: DrapeauxCaractères
-    drapeaux_part_domaine: DrapeauxCaractères
+    drapeaux_part_locale: DrapeauxCaractères;
+    drapeaux_part_domaine: DrapeauxCaractères;
 }
 
 drapeau_pour_caractère :: fonc (parseuse: *ParseuseAdresseCourriel, c: z8) -> DrapeauxCaractères #enligne
 {
-    retourne parseuse.table_caractères[c comme n8]
+    retourne parseuse.table_caractères[c comme n8];
 }
 
 parse_adresse_courriel :: fonc (texte: chaine, méthode := ParseAdresseCourriel.SelonRFC) -> AdresseCourriel
 {
     discr méthode {
         SelonRFC {
-            retourne parse_adresse_courriel_selon_rfc(texte)
+            retourne parse_adresse_courriel_selon_rfc(texte);
         }
         SelonHTML5 {
-            retourne parse_adresse_courriel_selon_html(texte)
+            retourne parse_adresse_courriel_selon_html(texte);
         }
         sinon {
-            retourne AdresseCourriel()
+            retourne AdresseCourriel();
         }
     }
 }
@@ -170,361 +170,361 @@ parse_adresse_courriel :: fonc (texte: chaine, méthode := ParseAdresseCourriel.
 parse_adresse_courriel_selon_html :: fonc (texte: chaine) -> AdresseCourriel
 {
     saufsi texte {
-        retourne AdresseCourriel()
+        retourne AdresseCourriel();
     }
 
-    parseuse: ParseuseAdresseCourriel
-    parseuse.chn = texte
-    parseuse.table_caractères = construis_table_caractères()
+    parseuse: ParseuseAdresseCourriel;
+    parseuse.chn = texte;
+    parseuse.table_caractères = construis_table_caractères();
 
     saufsi parse_part_locale_html(*parseuse) {
-        retourne AdresseCourriel()
+        retourne AdresseCourriel();
     }
 
     saufsi apparie(*parseuse, '@') {
-        retourne AdresseCourriel()
+        retourne AdresseCourriel();
     }
-    avance(*parseuse, 1)
+    avance(*parseuse, 1);
 
     saufsi parse_part_domaine_html(*parseuse) {
-        retourne AdresseCourriel()
+        retourne AdresseCourriel();
     }
 
-    adresse: AdresseCourriel
-    adresse.chn = texte
-    adresse.nom = parseuse.part_locale
-    adresse.hôte = parseuse.part_domaine
-    retourne adresse
+    adresse: AdresseCourriel;
+    adresse.chn = texte;
+    adresse.nom = parseuse.part_locale;
+    adresse.hôte = parseuse.part_domaine;
+    retourne adresse;
 }
 
 parse_adresse_courriel_selon_rfc :: fonc (texte: chaine) -> AdresseCourriel
 {
     saufsi texte {
-        retourne AdresseCourriel()
+        retourne AdresseCourriel();
     }
 
-    parseuse: ParseuseAdresseCourriel
-    parseuse.chn = texte
-    parseuse.table_caractères = construis_table_caractères()
+    parseuse: ParseuseAdresseCourriel;
+    parseuse.chn = texte;
+    parseuse.table_caractères = construis_table_caractères();
 
-    c := caractère_courant(*parseuse)
+    c := caractère_courant(*parseuse);
     si c == '@' {
-        parse_relais(*parseuse)
+        parse_relais(*parseuse);
     }
 
-    parse_commentaire_au_besoin(*parseuse)
+    parse_commentaire_au_besoin(*parseuse);
 
     saufsi parse_part_locale(*parseuse) {
-        retourne AdresseCourriel()
+        retourne AdresseCourriel();
     }
 
     saufsi apparie(*parseuse, '@') {
-        retourne AdresseCourriel()
+        retourne AdresseCourriel();
     }
-    avance(*parseuse, 1)
+    avance(*parseuse, 1);
 
     saufsi parse_part_domaine(*parseuse) {
-        retourne AdresseCourriel()
+        retourne AdresseCourriel();
     }
 
-    parse_commentaire_au_besoin(*parseuse)
+    parse_commentaire_au_besoin(*parseuse);
 
-    adresse: AdresseCourriel
-    adresse.chn = texte
-    adresse.nom = parseuse.part_locale
-    adresse.hôte = parseuse.part_domaine
-    retourne adresse
+    adresse: AdresseCourriel;
+    adresse.chn = texte;
+    adresse.nom = parseuse.part_locale;
+    adresse.hôte = parseuse.part_domaine;
+    retourne adresse;
 }
 
 parse_relais :: fonc (parseuse: *ParseuseAdresseCourriel)
 {
     tantque !parseuse.fini() {
-        c := parseuse.caractère_courant()
-        drapeau := parseuse.drapeau_pour_caractère(c)
+        c := parseuse.caractère_courant();
+        drapeau := parseuse.drapeau_pour_caractère(c);
 
         si drapeau.EST_SÉPARATEUR_RELAI {
             si c == ':' {
-                parseuse.avance(1)
-                retourne
+                parseuse.avance(1);
+                retourne;
             }
         }
 
-        parseuse.avance(1)
+        parseuse.avance(1);
     }
 }
 
 parse_commentaire_au_besoin :: fonc (parseuse: *ParseuseAdresseCourriel)
 {
     si parseuse.fini() {
-        retourne
+        retourne;
     }
 
-    c := parseuse.caractère_courant()
+    c := parseuse.caractère_courant();
     si c != '(' {
-        retourne
+        retourne;
     }
 
-    parseuse.avance(1)
+    parseuse.avance(1);
     tantque !parseuse.fini() {
-        c = parseuse.caractère_courant()
-        parseuse.avance(1)
+        c = parseuse.caractère_courant();
+        parseuse.avance(1);
 
         si c == ')' {
-            retourne
+            retourne;
         }
     }
 }
 
 parse_part_locale :: fonc (parseuse: *ParseuseAdresseCourriel) -> bool
 {
-    position : z64 = parseuse.curseur
-    taille_part_locale : z64 = 0
+    position : z64 = parseuse.curseur;
+    taille_part_locale : z64 = 0;
 
     diffère {
-        parseuse.part_locale.pointeur = parseuse.chn.pointeur + position
-        parseuse.part_locale.taille = taille_part_locale
+        parseuse.part_locale.pointeur = parseuse.chn.pointeur + position;
+        parseuse.part_locale.taille = taille_part_locale;
     }
 
     tantque !parseuse.fini() {
-        c := parseuse.caractère_courant()
-        drapeau := parseuse.drapeau_pour_caractère(c)
+        c := parseuse.caractère_courant();
+        drapeau := parseuse.drapeau_pour_caractère(c);
 
         si drapeau.EST_SÉPARATEUR_ATOME {
             si taille_part_locale == 0 {
-                retourne faux
+                retourne faux;
             }
 
             si c == '@' {
-                retourne vrai
+                retourne vrai;
             }
 
-            parseuse.avance(1)
+            parseuse.avance(1);
 
-            taille_atome := parseuse.parse_atome()
+            taille_atome := parseuse.parse_atome();
             si taille_atome == 0 {
-                retourne faux
+                retourne faux;
             }
 
-            taille_part_locale += taille_atome + 1
+            taille_part_locale += taille_atome + 1;
         }
         sinon si drapeau.EST_GUILLEMET {
-            taille_atome := parseuse.parse_atome()
+            taille_atome := parseuse.parse_atome();
             si taille_atome == 0 {
-                retourne faux
+                retourne faux;
             }
 
-            taille_part_locale += taille_atome
+            taille_part_locale += taille_atome;
         }
         sinon si drapeau.EST_CARACTÈRE_LOCAL_VALIDE {
-            parseuse.avance(1)
-            taille_part_locale += 1
+            parseuse.avance(1);
+            taille_part_locale += 1;
         }
         sinon {
-            retourne faux
+            retourne faux;
         }
     }
 
     /* Nous devons avoir trouvé un arobase. */
-    retourne faux
+    retourne faux;
 }
 
 parse_atome :: fonc (parseuse: *ParseuseAdresseCourriel) -> z64
 {
     si parseuse.fini() {
-        retourne 0
+        retourne 0;
     }
 
-    taille_atome := 0
+    taille_atome := 0;
 
-    c := parseuse.caractère_courant()
+    c := parseuse.caractère_courant();
     si c == '"' {
-        taille_atome += 1
-        parseuse.avance(1)
+        taille_atome += 1;
+        parseuse.avance(1);
 
         tantque !parseuse.fini() {
-            c = parseuse.caractère_courant()
+            c = parseuse.caractère_courant();
 
             si c == '\\' {
-                taille_atome += 2
-                parseuse.avance(2)
-                continue
+                taille_atome += 2;
+                parseuse.avance(2);
+                continue;
             }
 
-            taille_atome += 1
-            parseuse.avance(1)
+            taille_atome += 1;
+            parseuse.avance(1);
 
             si c == '"' {
-                arrête
+                arrête;
             }
         }
 
         si parseuse.fini() {
-            retourne 0
+            retourne 0;
         }
 
-        c = parseuse.caractère_courant()
-        drapeau := parseuse.drapeau_pour_caractère(c)
+        c = parseuse.caractère_courant();
+        drapeau := parseuse.drapeau_pour_caractère(c);
 
         saufsi drapeau.EST_SÉPARATEUR_ATOME {
-            retourne 0
+            retourne 0;
         }
 
-        retourne taille_atome
+        retourne taille_atome;
     }
 
     tantque !parseuse.fini() {
-        c = parseuse.caractère_courant()
-        drapeau := parseuse.drapeau_pour_caractère(c)
+        c = parseuse.caractère_courant();
+        drapeau := parseuse.drapeau_pour_caractère(c);
 
         si drapeau.EST_SÉPARATEUR_ATOME {
             /* Laisse la fonction appelante déterminer ce que nous avons. */
-            arrête
+            arrête;
         }
 
         saufsi drapeau.EST_CARACTÈRE_LOCAL_VALIDE {
-            retourne 0
+            retourne 0;
         }
 
-        taille_atome += 1
-        parseuse.avance(1)
+        taille_atome += 1;
+        parseuse.avance(1);
     }
 
-    retourne taille_atome
+    retourne taille_atome;
 }
 
 parse_part_domaine :: fonc (parseuse: *ParseuseAdresseCourriel) -> bool
 {
-    position : z64 = parseuse.curseur
-    taille_domaine : z64 = 0
+    position : z64 = parseuse.curseur;
+    taille_domaine : z64 = 0;
 
     diffère {
-        parseuse.part_domaine.pointeur = parseuse.chn.pointeur + position
-        parseuse.part_domaine.taille = taille_domaine
+        parseuse.part_domaine.pointeur = parseuse.chn.pointeur + position;
+        parseuse.part_domaine.taille = taille_domaine;
     }
 
     tantque !parseuse.fini() {
-        c := parseuse.caractère_courant()
+        c := parseuse.caractère_courant();
 
         si c == '@' {
-            retourne faux
+            retourne faux;
         }
 
         si c == '(' {
-            retourne vrai
+            retourne vrai;
         }
 
-        taille_domaine += 1
-        parseuse.avance(1)
+        taille_domaine += 1;
+        parseuse.avance(1);
     }
 
-    retourne taille_domaine != 0
+    retourne taille_domaine != 0;
 }
 
 parse_part_locale_html :: fonc (parseuse: *ParseuseAdresseCourriel) -> bool
 {
-    position : z64 = parseuse.curseur
-    taille_part_locale : z64 = 0
+    position : z64 = parseuse.curseur;
+    taille_part_locale : z64 = 0;
 
     diffère {
-        parseuse.part_locale.pointeur = parseuse.chn.pointeur + position
-        parseuse.part_locale.taille = taille_part_locale
+        parseuse.part_locale.pointeur = parseuse.chn.pointeur + position;
+        parseuse.part_locale.taille = taille_part_locale;
     }
 
     tantque !parseuse.fini() {
-        c := parseuse.caractère_courant()
-        drapeau := parseuse.drapeau_pour_caractère(c)
+        c := parseuse.caractère_courant();
+        drapeau := parseuse.drapeau_pour_caractère(c);
 
         si drapeau.EST_AROBASE {
-            retourne vrai
+            retourne vrai;
         }
 
         si drapeau.EST_CARACTÈRE_LOCAL_VALIDE || drapeau.EST_POINT {
-            parseuse.avance(1)
-            taille_part_locale += 1
+            parseuse.avance(1);
+            taille_part_locale += 1;
         }
         sinon {
-            retourne faux
+            retourne faux;
         }
     }
 
     /* Nous devons avoir trouvé un arobase. */
-    retourne faux
+    retourne faux;
 }
 
 parse_part_domaine_html :: fonc (parseuse: *ParseuseAdresseCourriel) -> bool
 {
-    position : z64 = parseuse.curseur
-    taille_domaine : z64 = 0
+    position : z64 = parseuse.curseur;
+    taille_domaine : z64 = 0;
 
     // Les labels sont limités à une taille de 63 octets.
     // https://tools.ietf.org/html/rfc1034#section-3.5
-    TAILLE_MAX_LABEL :: 63
-    taille_label := 0
+    TAILLE_MAX_LABEL :: 63;
+    taille_label := 0;
 
     tantque !parseuse.fini() {
-        c := parseuse.caractère_courant()
-        drapeau := parseuse.drapeau_pour_caractère(c)
+        c := parseuse.caractère_courant();
+        drapeau := parseuse.drapeau_pour_caractère(c);
 
         si drapeau.EST_POINT {
             /* Une taille label de zéro veut dire que nous avons un point au début, ou plusieurs points à la suite. */
             si taille_label > TAILLE_MAX_LABEL || taille_label == 0 {
-                retourne faux
+                retourne faux;
             }
 
-            taille_label = 0
-            taille_domaine += 1
-            parseuse.avance(1)
-            continue
+            taille_label = 0;
+            taille_domaine += 1;
+            parseuse.avance(1);
+            continue;
         }
 
         saufsi drapeau.PEUT_ÊTRE_DANS_LABEL {
-            retourne faux
+            retourne faux;
         }
 
-        taille_label += 1
-        taille_domaine += 1
-        parseuse.avance(1)
+        taille_label += 1;
+        taille_domaine += 1;
+        parseuse.avance(1);
     }
 
     /* Une taille label de zéro veut dire que nous avons un point à la fin. */
     si taille_label > TAILLE_MAX_LABEL || taille_label == 0 {
-        retourne faux
+        retourne faux;
     }
 
-    parseuse.part_domaine.pointeur = parseuse.chn.pointeur + position
-    parseuse.part_domaine.taille = taille_domaine
-    retourne taille_domaine != 0
+    parseuse.part_domaine.pointeur = parseuse.chn.pointeur + position;
+    parseuse.part_domaine.taille = taille_domaine;
+    retourne taille_domaine != 0;
 }
 
 // --------------------------------------------
 
 test_adresse_email_valide :: fonc (texte: chaine, part_locale: chaine, part_domaine: chaine)
 {
-    adresse := parse_adresse_courriel(texte)
+    adresse := parse_adresse_courriel(texte);
 
     saufsi adresse.est_valide() {
-        imprime("ERREUR ! L'ADRESSE DOIT ÊTRE VALIDE : %\n", texte)
-        retourne
+        imprime("ERREUR ! L'ADRESSE DOIT ÊTRE VALIDE : %\n", texte);
+        retourne;
     }
 
     si adresse.nom != part_locale {
-        imprime("ERREUR ! DIFFÉRENCE DE PARTS LOCALES : % CONTRE %\n", adresse.nom, part_locale)
-        retourne
+        imprime("ERREUR ! DIFFÉRENCE DE PARTS LOCALES : % CONTRE %\n", adresse.nom, part_locale);
+        retourne;
     }
 
     si adresse.hôte != part_domaine {
-        imprime("ERREUR ! DIFFÉRENCE DE PARTS DOMAINES : % CONTRE %\n", adresse.hôte, part_domaine)
-        retourne
+        imprime("ERREUR ! DIFFÉRENCE DE PARTS DOMAINES : % CONTRE %\n", adresse.hôte, part_domaine);
+        retourne;
     }
 }
 
 test_adresse_email_invalide :: fonc (texte: chaine)
 {
-    adresse := parse_adresse_courriel(texte)
+    adresse := parse_adresse_courriel(texte);
 
     si adresse.est_valide() {
-        imprime("ERREUR ! L'ADRESSE NE DOIT PAS ÊTRE VALIDE : %\n", texte)
-        retourne
+        imprime("ERREUR ! L'ADRESSE NE DOIT PAS ÊTRE VALIDE : %\n", texte);
+        retourne;
     }
 }
 
@@ -539,14 +539,14 @@ tests_validité_adresses :: fonc ()
     // - «user%final.domain@1st.relay» l'adresse doit être user@final.domain relayer par 1st.relay
     // Mais ceci sont des formes plus ou moins archaïques
 
-    parts_locales_valides : []chaine = [ "salut", "salut+toi", "sal.ut", «"[IPv6:::1]"», «"сайт"», «"🌮"», «"💩"», «"🍺🕺🎉"», «"josé.arrañoça"», "~", "~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~", "#$%!^/&", "f*ck", "stavros", «"hi@you"», «"hi you"», «"<>"», «" "», «".jdoe"», «"jdoe."», «"jd..oe"», «hi."@".you», «"<\\"@\\\\".!.#%$», "我買", "1", "'*+-/=?^_`{|}~#$" ]
-    parts_domaines_valides : []chaine = [ "stavros.io", "[dead::beef]", "[IPv6:::1]", "[IPv6:2001:470:30:84:e276:63ff:fe72:3900]", "[166.84.7.99]", "tt", "ws", "ai", "io", "屋企.香港", "[23456789]", "gtfcy37qyzor7kb6blz2buwuu5u7qjkycasjdf3yaslibkbyhsxub4yd.onion", "xn--ls8h.la", «💩.la», «i❤️tacos.ws», «شبكةمايستر..شبكة» ]
+    parts_locales_valides : []chaine = [ "salut", "salut+toi", "sal.ut", «"[IPv6:::1]"», «"сайт"», «"🌮"», «"💩"», «"🍺🕺🎉"», «"josé.arrañoça"», "~", "~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~", "#$%!^/&", "f*ck", "stavros", «"hi@you"», «"hi you"», «"<>"», «" "», «".jdoe"», «"jdoe."», «"jd..oe"», «hi."@".you», «"<\\"@\\\\".!.#%$», "我買", "1", "'*+-/=?^_`{|}~#$" ];
+    parts_domaines_valides : []chaine = [ "stavros.io", "[dead::beef]", "[IPv6:::1]", "[IPv6:2001:470:30:84:e276:63ff:fe72:3900]", "[166.84.7.99]", "tt", "ws", "ai", "io", "屋企.香港", "[23456789]", "gtfcy37qyzor7kb6blz2buwuu5u7qjkycasjdf3yaslibkbyhsxub4yd.onion", "xn--ls8h.la", «💩.la», «i❤️tacos.ws», «شبكةمايستر..شبكة» ];
 
-    parts_locales_invalides : []chaine = [ "", ".jdoe", "stavros.", "stavros..k", "!#$%&'*(-/=?", "h(a)i", "ema@il", «"<\\"@\\".!#%$», «<\\"@\\\\".!#%$», «hi"@"you», «hi\\ there», "<>" ]
+    parts_locales_invalides : []chaine = [ "", ".jdoe", "stavros.", "stavros..k", "!#$%&'*(-/=?", "h(a)i", "ema@il", «"<\\"@\\".!#%$», «<\\"@\\\\".!#%$», «hi"@"you», «hi\\ there», "<>" ];
 
     // Pour les domaines, nous devrons peut-être savoir si le domaine peut-être résolus, mais c'est possible qu'il ne soit pas encore enregistré...
     // Un domaine tel que 23456789 ne drevrait pas être valide, mais il est possible qu'un tel TLD soit enregistré dans le future.
-    parts_domaines_invalides : []chaine = [ "", "il@stavros.io" ]
+    parts_domaines_invalides : []chaine = [ "", "il@stavros.io" ];
 
     // commentaires := ["(sta)", "(io)"]
 
@@ -554,51 +554,51 @@ tests_validité_adresses :: fonc ()
     // @qqaazz1122wwssxx33eeddcc44rrffvv55ttggbb66yyhhnn77uujjmm88iikk99ooll00ppQQAAZZ1122WWSSXX33EEDDCC44RRFFVV55TTGGBB66YYHHNN77UUJJMM88IIKK99OOLL00PPQWERTYUIOPASDFGHJKLZXCVBNMpoiuytrewqasdfghjklmnbv.com
     // est valide, pourtant ce devrait être un domaine...
 
-    gna := crée_gna(123)
+    gna := crée_gna(123);
 
     /* Test des adresses valides */
     pour 2000 {
-        part_locale := gna.choisit(parts_locales_valides)
-        part_domaine := gna.choisit(parts_domaines_valides)
+        part_locale := gna.choisit(parts_locales_valides);
+        part_domaine := gna.choisit(parts_domaines_valides);
 
-        adresse := enchaine(part_locale, "@", part_domaine)
-        diffère déloge(adresse)
+        adresse := enchaine(part_locale, "@", part_domaine);
+        diffère déloge(adresse);
 
-        test_adresse_email_valide(adresse, part_locale, part_domaine)
+        test_adresse_email_valide(adresse, part_locale, part_domaine);
     }
 
     /* Test des adresses invalides. */
 
     /* Locale et domaine invalides. */
     pour 2000 {
-        part_locale := gna.choisit(parts_locales_invalides)
-        part_domaine := gna.choisit(parts_domaines_invalides)
+        part_locale := gna.choisit(parts_locales_invalides);
+        part_domaine := gna.choisit(parts_domaines_invalides);
 
-        adresse := enchaine(part_locale, "@", part_domaine)
-        diffère déloge(adresse)
+        adresse := enchaine(part_locale, "@", part_domaine);
+        diffère déloge(adresse);
 
-        test_adresse_email_invalide(adresse)
+        test_adresse_email_invalide(adresse);
     }
 
     /* Locale valide, domaine invalide. */
     pour 2000 {
-        part_locale := gna.choisit(parts_locales_valides)
-        part_domaine := gna.choisit(parts_domaines_invalides)
+        part_locale := gna.choisit(parts_locales_valides);
+        part_domaine := gna.choisit(parts_domaines_invalides);
 
-        adresse := enchaine(part_locale, "@", part_domaine)
-        diffère déloge(adresse)
+        adresse := enchaine(part_locale, "@", part_domaine);
+        diffère déloge(adresse);
 
-        test_adresse_email_invalide(adresse)
+        test_adresse_email_invalide(adresse);
     }
 
     /* Locale invalide, domaine valide. */
     pour 2000 {
-        part_locale := gna.choisit(parts_locales_invalides)
-        part_domaine := gna.choisit(parts_domaines_valides)
+        part_locale := gna.choisit(parts_locales_invalides);
+        part_domaine := gna.choisit(parts_domaines_valides);
 
-        adresse := enchaine(part_locale, "@", part_domaine)
-        diffère déloge(adresse)
+        adresse := enchaine(part_locale, "@", part_domaine);
+        diffère déloge(adresse);
 
-        test_adresse_email_invalide(adresse)
+        test_adresse_email_invalide(adresse);
     }
 }

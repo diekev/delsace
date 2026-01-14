@@ -8,10 +8,10 @@ stat :: fonc ()
 }
 
 stat :: struct {
-    i: z32
+    i: z32;
 }
 
 principale :: fonc ()
 {
-    s: stat
+    s: stat;
 }

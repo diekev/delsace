@@ -1,124 +1,124 @@
 
 ÉtapeEnvoiCourriel :: énum {
-    EnvoiNonCommencé
-    ConnexionOuverte
-    HELOEnvoyé
-    AuthentificationCommencée
-    IdentifiantEnvoyé
-    AuthentificationTerminée
-    ExpéditeurRenseigné
-    DestinataireRenseigné
-    CopieCarboneRenseignée
-    CopieCarboneBRenseignée
-    PrêtÀEnvoyéeDonnées
-    DonnéesEnvoyées
-    EnvoiTerminé
+    EnvoiNonCommencé;
+    ConnexionOuverte;
+    HELOEnvoyé;
+    AuthentificationCommencée;
+    IdentifiantEnvoyé;
+    AuthentificationTerminée;
+    ExpéditeurRenseigné;
+    DestinataireRenseigné;
+    CopieCarboneRenseignée;
+    CopieCarboneBRenseignée;
+    PrêtÀEnvoyéeDonnées;
+    DonnéesEnvoyées;
+    EnvoiTerminé;
 }
 
 ÉtatEnvoiCourriel :: struct {
-    étape: ÉtapeEnvoiCourriel
+    étape: ÉtapeEnvoiCourriel;
 
-    index_destinataire_courant : z64 = 0
-    index_cc_courant : z64 = 0
-    index_bcc_courant : z64 = 0
+    index_destinataire_courant : z64 = 0;
+    index_cc_courant : z64 = 0;
+    index_bcc_courant : z64 = 0;
 }
 
 est_terminé :: fonc (état: ÉtatEnvoiCourriel) -> bool #enligne
 {
-    retourne état.étape == ÉtapeEnvoiCourriel.EnvoiTerminé
+    retourne état.étape == ÉtapeEnvoiCourriel.EnvoiTerminé;
 }
 
 commande_suivante :: fonc (état: &ÉtatEnvoiCourriel, config: &ConfigurationCourriel, courriel: &Courriel) -> chaine
 {
     discr état.étape {
         EnvoiNonCommencé {
-            état.étape = ÉtapeEnvoiCourriel.ConnexionOuverte
+            état.étape = ÉtapeEnvoiCourriel.ConnexionOuverte;
             // 220 ok
-            retourne copie_chaine("")
+            retourne copie_chaine("");
         }
         ConnexionOuverte {
-            état.étape = ÉtapeEnvoiCourriel.HELOEnvoyé
+            état.étape = ÉtapeEnvoiCourriel.HELOEnvoyé;
             // 250 ok
             retourne copie_chaine("EHLO delsace.fr") // À FAIRE : paramètre le domaine
         }
         HELOEnvoyé {
-            état.étape = ÉtapeEnvoiCourriel.AuthentificationCommencée
+            état.étape = ÉtapeEnvoiCourriel.AuthentificationCommencée;
 
             si config.utilisateur {
-                état.étape = ÉtapeEnvoiCourriel.AuthentificationCommencée
-                retourne copie_chaine("AUTH LOGIN")
+                état.étape = ÉtapeEnvoiCourriel.AuthentificationCommencée;
+                retourne copie_chaine("AUTH LOGIN");
             }
 
-            état.étape = ÉtapeEnvoiCourriel.AuthentificationTerminée
-            retourne commande_suivante(état, config, courriel)
+            état.étape = ÉtapeEnvoiCourriel.AuthentificationTerminée;
+            retourne commande_suivante(état, config, courriel);
         }
         AuthentificationCommencée {
             // réponse : 334 VXNlcm5hbWU6
-            état.étape = ÉtapeEnvoiCourriel.IdentifiantEnvoyé
-            retourne encode_base64(config.utilisateur)
+            état.étape = ÉtapeEnvoiCourriel.IdentifiantEnvoyé;
+            retourne encode_base64(config.utilisateur);
         }
         IdentifiantEnvoyé {
             // réponse : 334 UGFzc3dvcmQ6
-            état.étape = ÉtapeEnvoiCourriel.AuthentificationTerminée
-            retourne encode_base64(config.mot_de_passe)
+            état.étape = ÉtapeEnvoiCourriel.AuthentificationTerminée;
+            retourne encode_base64(config.mot_de_passe);
         }
         AuthentificationTerminée {
             // 235 2.7.0 Authentication successful
-            état.étape = ÉtapeEnvoiCourriel.ExpéditeurRenseigné
+            état.étape = ÉtapeEnvoiCourriel.ExpéditeurRenseigné;
             // 530 5.7.1 Client was not authenticated
             // 250 2.1.0 Ok
-            retourne imprime_chaine("MAIL FROM: <%>", courriel.expéditeur.adresse)
+            retourne imprime_chaine("MAIL FROM: <%>", courriel.expéditeur.adresse);
         }
         ExpéditeurRenseigné {
             // 530 5.7.1 Client was not authenticated
             // 250 2.1.0 Ok
             si état.index_destinataire_courant >= courriel.destinataires.taille {
-                état.étape = ÉtapeEnvoiCourriel.DestinataireRenseigné
-                retourne commande_suivante(état, config, courriel)
+                état.étape = ÉtapeEnvoiCourriel.DestinataireRenseigné;
+                retourne commande_suivante(état, config, courriel);
             }
 
-            adresse := courriel.destinataires[état.index_destinataire_courant]
-            état.index_destinataire_courant += 1
-            retourne imprime_chaine("RCPT TO: <%>", adresse)
+            adresse := courriel.destinataires[état.index_destinataire_courant];
+            état.index_destinataire_courant += 1;
+            retourne imprime_chaine("RCPT TO: <%>", adresse);
         }
         DestinataireRenseigné {
             si état.index_cc_courant >= courriel.destinataires_cc.taille {
-                état.étape = ÉtapeEnvoiCourriel.CopieCarboneRenseignée
-                retourne commande_suivante(état, config, courriel)
+                état.étape = ÉtapeEnvoiCourriel.CopieCarboneRenseignée;
+                retourne commande_suivante(état, config, courriel);
             }
 
-            adresse := courriel.destinataires_cc[état.index_cc_courant]
-            état.index_cc_courant += 1
-            retourne imprime_chaine("RCPT TO: <%>", adresse)
+            adresse := courriel.destinataires_cc[état.index_cc_courant];
+            état.index_cc_courant += 1;
+            retourne imprime_chaine("RCPT TO: <%>", adresse);
         }
         CopieCarboneRenseignée {
             si état.index_bcc_courant >= courriel.destinataires_bcc.taille {
-                état.étape = ÉtapeEnvoiCourriel.CopieCarboneBRenseignée
-                retourne commande_suivante(état, config, courriel)
+                état.étape = ÉtapeEnvoiCourriel.CopieCarboneBRenseignée;
+                retourne commande_suivante(état, config, courriel);
             }
 
-            adresse := courriel.destinataires_bcc[état.index_bcc_courant]
-            état.index_bcc_courant += 1
-            retourne imprime_chaine("RCPT TO: <%>", adresse)
+            adresse := courriel.destinataires_bcc[état.index_bcc_courant];
+            état.index_bcc_courant += 1;
+            retourne imprime_chaine("RCPT TO: <%>", adresse);
         }
         CopieCarboneBRenseignée {
             // 503 Bad sequence of commands
             // 354 End data with <CR><LF>.<CR><LF>
-            état.étape = ÉtapeEnvoiCourriel.PrêtÀEnvoyéeDonnées
-            retourne imprime_chaine("DATA")
+            état.étape = ÉtapeEnvoiCourriel.PrêtÀEnvoyéeDonnées;
+            retourne imprime_chaine("DATA");
         }
         PrêtÀEnvoyéeDonnées {
             // 530 5.7.1 Client was not authenticated
             // 250 2.0.0 Ok: queued as ...
-            état.étape = ÉtapeEnvoiCourriel.DonnéesEnvoyées
-            retourne crée_corps_message(courriel)
+            état.étape = ÉtapeEnvoiCourriel.DonnéesEnvoyées;
+            retourne crée_corps_message(courriel);
         }
         DonnéesEnvoyées {
-            état.étape = ÉtapeEnvoiCourriel.EnvoiTerminé
-            retourne copie_chaine("QUIT")
+            état.étape = ÉtapeEnvoiCourriel.EnvoiTerminé;
+            retourne copie_chaine("QUIT");
         }
         EnvoiTerminé {
-            retourne copie_chaine("")
+            retourne copie_chaine("");
         }
     }
 }

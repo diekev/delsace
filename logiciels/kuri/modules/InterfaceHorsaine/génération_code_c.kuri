@@ -1,28 +1,28 @@
 /* Génération de code C, et de fonctions Kuri ayant la même IBA afin de proprement
  * appeler les fonctions depuis C. */
 
-importe Bits
-importe Chaine
-importe Triage
+importe Bits;
+importe Chaine;
+importe Triage;
 
 /* ------------------------------------------------------------------------- */
 /** \nom Génération code C.
  * \{ */
 
 GénératriceCodeC :: struct {
-    ipa: IPA
-    système_type: SystèmeTypeC
+    ipa: IPA;
+    système_type: SystèmeTypeC;
 
     /* Préfixe utiliser pour toutes les fonctions et tous les types, ainsi que
      * pour les fonctions d'initialisation et d'issitialisation de la
      * bibliothèque générée. */
-    espace_de_nom: chaine
+    espace_de_nom: chaine;
 
     /* Le nom utilisé pour les fichiers de sortie, par exemple "nom_module.h". */
-    nom_module: chaine
+    nom_module: chaine;
 
     /* Le dossier où seront créés les fichiers. */
-    dossier_sortie: chaine
+    dossier_sortie: chaine;
 }
 
 /** \} */
@@ -30,81 +30,81 @@ GénératriceCodeC :: struct {
 /* ------------------------------------------------------------------------- */
 
 InfoTypeC :: struct {
-    type_kuri: *InfoType
-    nom_type_c: chaine
-    nom_type_c_élément_tableau: chaine
-    nom_type_cpp: chaine
+    type_kuri: *InfoType;
+    nom_type_c: chaine;
+    nom_type_c_élément_tableau: chaine;
+    nom_type_cpp: chaine;
     /* Le nom du type dans le code support Kuri. */
-    nom_type_kuri_c: chaine
+    nom_type_kuri_c: chaine;
 
-    transtype_c_vers_cpp: chaine
-    transtype_cpp_vers_c: chaine
+    transtype_c_vers_cpp: chaine;
+    transtype_cpp_vers_c: chaine;
 
-    type_kuri_requiers_conversion_tableau: bool
+    type_kuri_requiers_conversion_tableau: bool;
 }
 
 détruit_type_c :: fonc (type: *InfoTypeC)
 {
-    déloge(type.nom_type_c)
-    déloge(type.nom_type_c_élément_tableau)
-    déloge(type.nom_type_cpp)
-    déloge(type.nom_type_kuri_c)
-    déloge(type.transtype_c_vers_cpp)
-    déloge(type.transtype_cpp_vers_c)
-    déloge(type)
+    déloge(type.nom_type_c);
+    déloge(type.nom_type_c_élément_tableau);
+    déloge(type.nom_type_cpp);
+    déloge(type.nom_type_kuri_c);
+    déloge(type.transtype_c_vers_cpp);
+    déloge(type.transtype_cpp_vers_c);
+    déloge(type);
 }
 
 supprime_points_et_parenthèses :: fonc (chn: *chaine)
 {
-    caractères := ".()"
+    caractères := ".()";
 
     pour caractères {
-        remplace_sans_copie(chn, it, '_')
+        remplace_sans_copie(chn, it, '_');
     }
 }
 
 assainie_noms :: fonc (type: *InfoTypeC)
 {
-    remplace_caractères_accentués(*type.nom_type_c)
-    remplace_caractères_accentués(*type.nom_type_c_élément_tableau)
-    remplace_caractères_accentués(*type.transtype_cpp_vers_c)
+    remplace_caractères_accentués(*type.nom_type_c);
+    remplace_caractères_accentués(*type.nom_type_c_élément_tableau);
+    remplace_caractères_accentués(*type.transtype_cpp_vers_c);
 
     si type.type_kuri_requiers_conversion_tableau {
-        remplace_caractères_accentués(*type.nom_type_kuri_c)
+        remplace_caractères_accentués(*type.nom_type_kuri_c);
     }
 }
 
 SystèmeTypeC :: struct {
-    types: [..]*InfoTypeC
-    tables_des_types: TableDeHachage(*InfoType, z64)
+    types: [..]*InfoTypeC;
+    tables_des_types: TableDeHachage(*InfoType, z64);
 
     /* Espace de nom, hérité de la génératrice. */
-    espace_de_nom: chaine
+    espace_de_nom: chaine;
 }
 
 détruit_données_système_type :: fonc (système: *SystèmeTypeC)
 {
-    déloge_tableau_et_ses_éléments(système.types, détruit_type_c)
+    déloge_tableau_et_ses_éléments(système.types, détruit_type_c);
 }
 
 initialise_système_type :: fonc (ipa: &IPA, espace_de_nom: chaine) -> SystèmeTypeC
 {
-    résultat: SystèmeTypeC
-    résultat.espace_de_nom = espace_de_nom
+    résultat: SystèmeTypeC;
+    résultat.espace_de_nom = espace_de_nom;
 
     pour ipa.types {
-        _ := ajoute_type(*résultat, ipa, it.infos)
+        _ := ajoute_type(*résultat, ipa, it.infos);
 
         pour f dans it.fonctions {
-            ajoute_type_depuis_fonction(*résultat, ipa, f)
+            ajoute_type_depuis_fonction(*résultat, ipa, f);
         }
     }
 
     pour ipa.fonctions {
-        ajoute_type_depuis_fonction(*résultat, ipa, it)
+        ajoute_type_depuis_fonction(*résultat, ipa, it);
     }
 
-    retourne résultat
+    retourne résultat;
 }
 
 type_requiers_conversion_entre_c_et_cpp :: fonc (type: *InfoType) -> bool
@@ -113,284 +113,284 @@ type_requiers_conversion_entre_c_et_cpp :: fonc (type: *InfoType) -> bool
         ENTIER,
         RÉEL,
         RIEN {
-            retourne faux
+            retourne faux;
         }
         sinon {}
     }
 
-    retourne vrai
+    retourne vrai;
 }
 
 ajoute_type :: fonc (système: *SystèmeTypeC, ipa: &IPA, type: *InfoType) -> *InfoTypeC
 {
-    type_existant := trouve_type(système, type)
+    type_existant := trouve_type(système, type);
     si type_existant {
-        retourne type_existant
+        retourne type_existant;
     }
 
-    indice_dans_table_des_types := système.types.taille
+    indice_dans_table_des_types := système.types.taille;
 
-    nouveau_type := loge(InfoTypeC)
-    nouveau_type.type_kuri = type
-    tableau_ajoute(*système.types, nouveau_type)
+    nouveau_type := loge(InfoTypeC);
+    nouveau_type.type_kuri = type;
+    tableau_ajoute(*système.types, nouveau_type);
 
-    table_insère_si_non_existant(*système.table_des_types, type, indice_dans_table_des_types)
+    table_insère_si_non_existant(*système.table_des_types, type, indice_dans_table_des_types);
 
-    requiers_assainissement_nom := faux
+    requiers_assainissement_nom := faux;
 
     discr type.id {
         ENTIER {
-            info_entier := type comme *InfoTypeEntier
-            indice_nom := indice_bit_taille_octet(info_entier.taille_en_octet)
-            noms_signed := [ "int8_t", "int16_t", "int32_t", "int64_t" ]
+            info_entier := type comme *InfoTypeEntier;
+            indice_nom := indice_bit_taille_octet(info_entier.taille_en_octet);
+            noms_signed := [ "int8_t", "int16_t", "int32_t", "int64_t" ];
 
             si info_entier.est_signé {
-                nouveau_type.nom_type_c = copie_chaine(noms_signed[indice_nom])
-                nouveau_type.nom_type_cpp = copie_chaine(noms_signed[indice_nom])
-                nouveau_type.nom_type_c_élément_tableau = copie_chaine(noms_signed[indice_nom])
+                nouveau_type.nom_type_c = copie_chaine(noms_signed[indice_nom]);
+                nouveau_type.nom_type_cpp = copie_chaine(noms_signed[indice_nom]);
+                nouveau_type.nom_type_c_élément_tableau = copie_chaine(noms_signed[indice_nom]);
             }
             sinon {
-                nouveau_type.nom_type_c = enchaine("u", noms_signed[indice_nom])
-                nouveau_type.nom_type_cpp = enchaine("u", noms_signed[indice_nom])
-                nouveau_type.nom_type_c_élément_tableau = enchaine("u", noms_signed[indice_nom])
+                nouveau_type.nom_type_c = enchaine("u", noms_signed[indice_nom]);
+                nouveau_type.nom_type_cpp = enchaine("u", noms_signed[indice_nom]);
+                nouveau_type.nom_type_c_élément_tableau = enchaine("u", noms_signed[indice_nom]);
             }
         }
         RÉEL {
-            indice_nom := indice_bit_taille_octet(type.taille_en_octet)
-            noms_types := [ "", "r16", "float", "double" ]
-            nouveau_type.nom_type_c = copie_chaine(noms_types[indice_nom])
-            nouveau_type.nom_type_cpp = copie_chaine(noms_types[indice_nom])
-            nouveau_type.nom_type_c_élément_tableau = copie_chaine(noms_types[indice_nom])
+            indice_nom := indice_bit_taille_octet(type.taille_en_octet);
+            noms_types := [ "", "r16", "float", "double" ];
+            nouveau_type.nom_type_c = copie_chaine(noms_types[indice_nom]);
+            nouveau_type.nom_type_cpp = copie_chaine(noms_types[indice_nom]);
+            nouveau_type.nom_type_c_élément_tableau = copie_chaine(noms_types[indice_nom]);
         }
         BOOLÉEN {
-            nouveau_type.nom_type_c = copie_chaine("bool")
-            nouveau_type.nom_type_cpp = copie_chaine("bool")
-            nouveau_type.nom_type_c_élément_tableau = copie_chaine("bool")
+            nouveau_type.nom_type_c = copie_chaine("bool");
+            nouveau_type.nom_type_cpp = copie_chaine("bool");
+            nouveau_type.nom_type_c_élément_tableau = copie_chaine("bool");
         }
         OCTET {
-            nouveau_type.nom_type_c = copie_chaine("uint8_t")
-            nouveau_type.nom_type_cpp = copie_chaine("uint8_t")
-            nouveau_type.nom_type_c_élément_tableau = copie_chaine("uint8_t")
+            nouveau_type.nom_type_c = copie_chaine("uint8_t");
+            nouveau_type.nom_type_cpp = copie_chaine("uint8_t");
+            nouveau_type.nom_type_c_élément_tableau = copie_chaine("uint8_t");
         }
         CHAINE {
-            nouveau_type.nom_type_c = enchaine(système.espace_de_nom, "_Chaine")
-            nouveau_type.nom_type_c_élément_tableau = copie_chaine(nouveau_type.nom_type_c)
-            nouveau_type.nom_type_cpp = copie_chaine("Chaine")
-            nouveau_type.nom_type_kuri_c = copie_chaine("ChaineIPA")
+            nouveau_type.nom_type_c = enchaine(système.espace_de_nom, "_Chaine");
+            nouveau_type.nom_type_c_élément_tableau = copie_chaine(nouveau_type.nom_type_c);
+            nouveau_type.nom_type_cpp = copie_chaine("Chaine");
+            nouveau_type.nom_type_kuri_c = copie_chaine("ChaineIPA");
         }
         STRUCTURE {
-            info_struct := type comme *InfoTypeStructure
+            info_struct := type comme *InfoTypeStructure;
 
-            nom_struct := copie_chaine(info_struct.nom)
-            supprime_points_et_parenthèses(*nom_struct)
+            nom_struct := copie_chaine(info_struct.nom);
+            supprime_points_et_parenthèses(*nom_struct);
 
-            nouveau_type.nom_type_c = enchaine(système.espace_de_nom, "_", nom_struct)
-            nouveau_type.nom_type_c_élément_tableau = copie_chaine(nouveau_type.nom_type_c)
-            nouveau_type.nom_type_cpp = nom_struct
+            nouveau_type.nom_type_c = enchaine(système.espace_de_nom, "_", nom_struct);
+            nouveau_type.nom_type_c_élément_tableau = copie_chaine(nouveau_type.nom_type_c);
+            nouveau_type.nom_type_cpp = nom_struct;
 
-            type_ipa := trouve_type_ipa(ipa, info_struct)
+            type_ipa := trouve_type_ipa(ipa, info_struct);
 
             saufsi type_ipa.drapeaux.TOUJOURS_COMME_POINTEUR {
-                nouveau_type.nom_type_kuri_c = copie_chaine(nouveau_type.nom_type_c)
-                nouveau_type.type_kuri_requiers_conversion_tableau = vrai
+                nouveau_type.nom_type_kuri_c = copie_chaine(nouveau_type.nom_type_c);
+                nouveau_type.type_kuri_requiers_conversion_tableau = vrai;
             }
 
-            requiers_assainissement_nom = vrai
+            requiers_assainissement_nom = vrai;
         }
         UNION {
-            compilatrice_rapporte_erreur("Les types « union » ne sont pas convertibles vers C/C++ pour le moment")
+            compilatrice_rapporte_erreur("Les types « union » ne sont pas convertibles vers C/C++ pour le moment");
         }
         POINTEUR {
-            info_pointeur := type comme *InfoTypePointeur
-            type_c_pointé := ajoute_type(système, ipa, info_pointeur.type_pointé)
+            info_pointeur := type comme *InfoTypePointeur;
+            type_c_pointé := ajoute_type(système, ipa, info_pointeur.type_pointé);
 
-            nouveau_type.nom_type_c = enchaine(type_c_pointé.nom_type_c, "*")
-            nouveau_type.nom_type_cpp = enchaine(type_c_pointé.nom_type_cpp, "*")
-            nouveau_type.nom_type_c_élément_tableau = enchaine(type_c_pointé.nom_type_c, "_Ptr")
+            nouveau_type.nom_type_c = enchaine(type_c_pointé.nom_type_c, "*");
+            nouveau_type.nom_type_cpp = enchaine(type_c_pointé.nom_type_cpp, "*");
+            nouveau_type.nom_type_c_élément_tableau = enchaine(type_c_pointé.nom_type_c, "_Ptr");
 
-            type_ipa_pointé := trouve_type_ipa(ipa, info_pointeur.type_pointé)
+            type_ipa_pointé := trouve_type_ipa(ipa, info_pointeur.type_pointé);
 
             saufsi type_ipa_pointé.drapeaux.TOUJOURS_COMME_POINTEUR || !type_requiers_conversion_entre_c_et_cpp(info_pointeur.type_pointé) {
-                nouveau_type.transtype_c_vers_cpp = enchaine("(", nouveau_type.nom_type_cpp, ")")
-                nouveau_type.transtype_cpp_vers_c = enchaine("(", nouveau_type.nom_type_c, ")")
+                nouveau_type.transtype_c_vers_cpp = enchaine("(", nouveau_type.nom_type_cpp, ")");
+                nouveau_type.transtype_cpp_vers_c = enchaine("(", nouveau_type.nom_type_c, ")");
             }
         }
         FONCTION {
-            info_fonction := type comme *InfoTypeFonction
+            info_fonction := type comme *InfoTypeFonction;
 
             si info_fonction.types_sortie.taille > 1 {
-                compilatrice_rapporte_erreur("Les types fonctions avec plusieurs valeurs de retour ne sont pas convertibles en C/C++.")
+                compilatrice_rapporte_erreur("Les types fonctions avec plusieurs valeurs de retour ne sont pas convertibles en C/C++.");
             }
 
-            nom_type_c := imprime_chaine("Fonction%", info_fonction)
+            nom_type_c := imprime_chaine("Fonction%", info_fonction);
 
-            nouveau_type.nom_type_c = enchaine(système.espace_de_nom, "_", nom_type_c)
-            nouveau_type.nom_type_cpp = nom_type_c
-            nouveau_type.nom_type_c_élément_tableau = copie_chaine(nouveau_type.nom_type_c)
-            nouveau_type.transtype_c_vers_cpp = enchaine("(", nouveau_type.nom_type_cpp, ")")
-            nouveau_type.transtype_cpp_vers_c = enchaine("(", nouveau_type.nom_type_c, ")")
+            nouveau_type.nom_type_c = enchaine(système.espace_de_nom, "_", nom_type_c);
+            nouveau_type.nom_type_cpp = nom_type_c;
+            nouveau_type.nom_type_c_élément_tableau = copie_chaine(nouveau_type.nom_type_c);
+            nouveau_type.transtype_c_vers_cpp = enchaine("(", nouveau_type.nom_type_cpp, ")");
+            nouveau_type.transtype_cpp_vers_c = enchaine("(", nouveau_type.nom_type_c, ")");
         }
         OPAQUE {
-            compilatrice_rapporte_erreur("Les types « opaque » ne sont pas convertibles vers C/C++ pour le moment")
+            compilatrice_rapporte_erreur("Les types « opaque » ne sont pas convertibles vers C/C++ pour le moment");
         }
         TABLEAU {
-            info_tableau := type comme *InfoTypeTableau
+            info_tableau := type comme *InfoTypeTableau;
 
-            type_pointé := info_tableau.type_pointé
-            type_c_pointé := ajoute_type(système, ipa, type_pointé)
-            type_ipa_pointé := convertis_vers_type_ipa(ipa, type_pointé)
+            type_pointé := info_tableau.type_pointé;
+            type_c_pointé := ajoute_type(système, ipa, type_pointé);
+            type_ipa_pointé := convertis_vers_type_ipa(ipa, type_pointé);
 
             /* Si le type est toujours un pointeur, le type C++ doit être celui
              * sans le pointeur afin que la conversion vers la classe enveloppe
              * se fasse correctement. */
-            type_c_pointé_pour_cpp := type_c_pointé
+            type_c_pointé_pour_cpp := type_c_pointé;
 
             si type_est_toujours_pointeur(type_ipa_pointé) {
-                type_pointé = (type_pointé comme *InfoTypePointeur).type_pointé
-                type_c_pointé_pour_cpp = ajoute_type(système, ipa, type_pointé)
+                type_pointé = (type_pointé comme *InfoTypePointeur).type_pointé;
+                type_c_pointé_pour_cpp = ajoute_type(système, ipa, type_pointé);
             }
 
-            nouveau_type.nom_type_c = enchaine("Tableau_", type_c_pointé.nom_type_c_élément_tableau)
-            nouveau_type.nom_type_c_élément_tableau = copie_chaine(nouveau_type.nom_type_c)
-            nouveau_type.nom_type_cpp = enchaine("tableau<", type_c_pointé.nom_type_c, ", ", type_c_pointé_pour_cpp.nom_type_cpp, ">")
-            nouveau_type.nom_type_kuri_c = copie_chaine("TableauGénériqueIPA")
+            nouveau_type.nom_type_c = enchaine("Tableau_", type_c_pointé.nom_type_c_élément_tableau);
+            nouveau_type.nom_type_c_élément_tableau = copie_chaine(nouveau_type.nom_type_c);
+            nouveau_type.nom_type_cpp = enchaine("tableau<", type_c_pointé.nom_type_c, ", ", type_c_pointé_pour_cpp.nom_type_cpp, ">");
+            nouveau_type.nom_type_kuri_c = copie_chaine("TableauGénériqueIPA");
         }
         TABLEAU_FIXE {
-            compilatrice_rapporte_erreur("Les types tableaux fixe ne sont pas convertibles vers Python pour le moment")
+            compilatrice_rapporte_erreur("Les types tableaux fixe ne sont pas convertibles vers Python pour le moment");
         }
         TRANCHE {
-            info_tranche := type comme *InfoTypeTranche
+            info_tranche := type comme *InfoTypeTranche;
 
-            type_élément := info_tranche.type_élément
-            type_c_pointé := ajoute_type(système, ipa, type_élément)
-            type_ipa_pointé := convertis_vers_type_ipa(ipa, type_élément)
+            type_élément := info_tranche.type_élément;
+            type_c_pointé := ajoute_type(système, ipa, type_élément);
+            type_ipa_pointé := convertis_vers_type_ipa(ipa, type_élément);
 
             /* Si le type est toujours un pointeur, le type C++ doit être celui
              * sans le pointeur afin que la conversion vers la classe enveloppe
              * se fasse correctement. */
-            type_c_pointé_pour_cpp := type_c_pointé
+            type_c_pointé_pour_cpp := type_c_pointé;
 
             si type_est_toujours_pointeur(type_ipa_pointé) {
-                type_élément = (type_élément comme *InfoTypePointeur).type_pointé
-                type_c_pointé_pour_cpp = ajoute_type(système, ipa, type_élément)
+                type_élément = (type_élément comme *InfoTypePointeur).type_pointé;
+                type_c_pointé_pour_cpp = ajoute_type(système, ipa, type_élément);
             }
 
-            nouveau_type.nom_type_c = enchaine("Tranche_", type_c_pointé.nom_type_c_élément_tableau)
-            nouveau_type.nom_type_c_élément_tableau = copie_chaine(nouveau_type.nom_type_c)
-            nouveau_type.nom_type_cpp = enchaine("tableau<", type_c_pointé.nom_type_c, ", ", type_c_pointé_pour_cpp.nom_type_cpp, ">")
-            nouveau_type.nom_type_kuri_c = copie_chaine("TableauGénériqueIPA")
+            nouveau_type.nom_type_c = enchaine("Tranche_", type_c_pointé.nom_type_c_élément_tableau);
+            nouveau_type.nom_type_c_élément_tableau = copie_chaine(nouveau_type.nom_type_c);
+            nouveau_type.nom_type_cpp = enchaine("tableau<", type_c_pointé.nom_type_c, ", ", type_c_pointé_pour_cpp.nom_type_cpp, ">");
+            nouveau_type.nom_type_kuri_c = copie_chaine("TableauGénériqueIPA");
         }
         RIEN {
-            nouveau_type.nom_type_c = copie_chaine("void")
-            nouveau_type.nom_type_cpp = copie_chaine("void")
-            nouveau_type.nom_type_c_élément_tableau = copie_chaine("void")
+            nouveau_type.nom_type_c = copie_chaine("void");
+            nouveau_type.nom_type_cpp = copie_chaine("void");
+            nouveau_type.nom_type_c_élément_tableau = copie_chaine("void");
         }
         TYPE_DE_DONNÉES {
-            compilatrice_rapporte_erreur("Les types « type_de_données » ne sont pas convertibles vers C/C++ pour le moment")
+            compilatrice_rapporte_erreur("Les types « type_de_données » ne sont pas convertibles vers C/C++ pour le moment");
         }
         ÉNUM {
-            info_énum := type comme *InfoTypeÉnum
+            info_énum := type comme *InfoTypeÉnum;
 
-            nom_énum := copie_chaine(info_énum.nom)
-            supprime_points_et_parenthèses(*nom_énum)
+            nom_énum := copie_chaine(info_énum.nom);
+            supprime_points_et_parenthèses(*nom_énum);
 
-            nouveau_type.nom_type_c = enchaine(système.espace_de_nom, "_", nom_énum)
-            nouveau_type.nom_type_cpp = nom_énum
-            nouveau_type.nom_type_c_élément_tableau = copie_chaine(nouveau_type.nom_type_c)
-            nouveau_type.transtype_c_vers_cpp = enchaine("(", nouveau_type.nom_type_cpp, ")")
-            nouveau_type.transtype_cpp_vers_c = enchaine("(", nouveau_type.nom_type_c, ")")
+            nouveau_type.nom_type_c = enchaine(système.espace_de_nom, "_", nom_énum);
+            nouveau_type.nom_type_cpp = nom_énum;
+            nouveau_type.nom_type_c_élément_tableau = copie_chaine(nouveau_type.nom_type_c);
+            nouveau_type.transtype_c_vers_cpp = enchaine("(", nouveau_type.nom_type_cpp, ")");
+            nouveau_type.transtype_cpp_vers_c = enchaine("(", nouveau_type.nom_type_c, ")");
 
-            requiers_assainissement_nom = vrai
+            requiers_assainissement_nom = vrai;
         }
         EINI {
-            compilatrice_rapporte_erreur("Les types « eini » ne sont pas convertibles vers C/C++ pour le moment")
+            compilatrice_rapporte_erreur("Les types « eini » ne sont pas convertibles vers C/C++ pour le moment");
         }
         VARIADIQUE {
-            compilatrice_rapporte_erreur("Les types « variadiques » ne sont pas convertibles vers C/C++ pour le moment")
+            compilatrice_rapporte_erreur("Les types « variadiques » ne sont pas convertibles vers C/C++ pour le moment");
         }
         ADRESSE_FONCTION {
-            compilatrice_rapporte_erreur("Les types adresse_fonction ne sont pas convertibles vers Python pour le moment")
+            compilatrice_rapporte_erreur("Les types adresse_fonction ne sont pas convertibles vers Python pour le moment");
         }
         POLYMORPHIQUE {
-            compilatrice_rapporte_erreur("Les types polymorpiques ne sont pas convertibles vers Python pour le moment")
+            compilatrice_rapporte_erreur("Les types polymorpiques ne sont pas convertibles vers Python pour le moment");
         }
     }
 
     si nouveau_type.nom_type_kuri_c == "" {
-        nouveau_type.nom_type_kuri_c = chaine_pour_type(type)
+        nouveau_type.nom_type_kuri_c = chaine_pour_type(type);
     }
 
     si requiers_assainissement_nom {
-        assainie_noms(nouveau_type)
+        assainie_noms(nouveau_type);
     }
 
-    retourne nouveau_type
+    retourne nouveau_type;
 }
 
 trouve_type :: fonc (système: *SystèmeTypeC, type: *InfoType) -> *InfoTypeC
 {
-    résultat: *InfoTypeC
-    trouvée, indice_dans_table_des_types := donne_valeur_pour_clé(système.table_des_types, type)
+    résultat: *InfoTypeC;
+    trouvée, indice_dans_table_des_types := donne_valeur_pour_clé(système.table_des_types, type);
     si trouvée {
-        résultat = système.types[indice_dans_table_des_types]
+        résultat = système.types[indice_dans_table_des_types];
     }
-    retourne résultat
+    retourne résultat;
 }
 
 ajoute_type_depuis_fonction :: fonc (système: *SystèmeTypeC, ipa: &IPA, fonction: MéthodeIPA)
 {
     pour fonction.entrées {
-        _ := ajoute_type(système, ipa, it.type)
+        _ := ajoute_type(système, ipa, it.type);
     }
 
     pour fonction.sorties {
-        _ := ajoute_type(système, ipa, it.type)
+        _ := ajoute_type(système, ipa, it.type);
     }
 }
 
 génère_ipa_cpp :: fonc (génératrice: *GénératriceCodeC, espace: EspaceDeTravail)
 {
-    table_ipa := construis_table_ipa(génératrice)
-    diffère détruit_données_table_ipa(*table_ipa)
+    table_ipa := construis_table_ipa(génératrice);
+    diffère détruit_données_table_ipa(*table_ipa);
 
-    génératrice.système_type = initialise_système_type(génératrice.ipa, génératrice.espace_de_nom)
-    système_type := *génératrice.système_type
-    diffère détruit_données_système_type(système_type)
+    génératrice.système_type = initialise_système_type(génératrice.ipa, génératrice.espace_de_nom);
+    système_type := *génératrice.système_type;
+    diffère détruit_données_système_type(système_type);
 
-    chaine_chemin_entête_c := imprime_chaine("%/%.h", génératrice.dossier_sortie, génératrice.nom_module)
-    diffère déloge(chaine_chemin_entête_c)
+    chaine_chemin_entête_c := imprime_chaine("%/%.h", génératrice.dossier_sortie, génératrice.nom_module);
+    diffère déloge(chaine_chemin_entête_c);
 
-    chaine_chemin_entête_cpp := imprime_chaine("%/%.hh", génératrice.dossier_sortie, génératrice.nom_module)
-    diffère déloge(chaine_chemin_entête_cpp)
+    chaine_chemin_entête_cpp := imprime_chaine("%/%.hh", génératrice.dossier_sortie, génératrice.nom_module);
+    diffère déloge(chaine_chemin_entête_cpp);
 
-    chaine_chemin_source_cpp := imprime_chaine("%/%.cc", génératrice.dossier_sortie, génératrice.nom_module)
-    diffère déloge(chaine_chemin_source_cpp)
+    chaine_chemin_source_cpp := imprime_chaine("%/%.cc", génératrice.dossier_sortie, génératrice.nom_module);
+    diffère déloge(chaine_chemin_source_cpp);
 
-    chaine_chemin_entête_table := enchaine(génératrice.dossier_sortie, "/table_types.h")
-    diffère déloge(chaine_chemin_entête_table)
+    chaine_chemin_entête_table := enchaine(génératrice.dossier_sortie, "/table_types.h");
+    diffère déloge(chaine_chemin_entête_table);
 
-    chaine_chemin_source_table := enchaine(génératrice.dossier_sortie, "/table_types.c")
-    diffère déloge(chaine_chemin_source_table)
+    chaine_chemin_source_table := enchaine(génératrice.dossier_sortie, "/table_types.c");
+    diffère déloge(chaine_chemin_source_table);
 
-    ipa := génératrice.ipa
+    ipa := génératrice.ipa;
 
-    génère_code_entête_table(génératrice, *table_ipa, CheminFichier(chaine_chemin_entête_table))
-    génère_code_source_table(génératrice, *table_ipa, CheminFichier(chaine_chemin_source_table))
-    génère_code_c(système_type, *table_ipa, CheminFichier(chaine_chemin_entête_c))
-    génère_code_cpp(génératrice, CheminFichier(chaine_chemin_entête_cpp))
-    génère_code_source_cpp(génératrice, CheminFichier(chaine_chemin_source_cpp))
-    génère_code_support_kuri(espace, ipa, système_type)
+    génère_code_entête_table(génératrice, *table_ipa, CheminFichier(chaine_chemin_entête_table));
+    génère_code_source_table(génératrice, *table_ipa, CheminFichier(chaine_chemin_source_table));
+    génère_code_c(système_type, *table_ipa, CheminFichier(chaine_chemin_entête_c));
+    génère_code_cpp(génératrice, CheminFichier(chaine_chemin_entête_cpp));
+    génère_code_source_cpp(génératrice, CheminFichier(chaine_chemin_source_cpp));
+    génère_code_support_kuri(espace, ipa, système_type);
 
     /* Copie le fichier de support C++. */
-    chemin_module := #chemin_de_ce_module
-    chemin_fichier_support := CheminFichier(chemin_module) / "support_ipa_cpp.h"
-    diffère détruit_chemin(chemin_fichier_support)
+    chemin_module := #chemin_de_ce_module;
+    chemin_fichier_support := CheminFichier(chemin_module) / "support_ipa_cpp.h";
+    diffère détruit_chemin(chemin_fichier_support);
 
-    chemin_destination_fichier_support := CheminFichier(génératrice.dossier_sortie) / "support_ipa_cpp.h"
-    diffère détruit_chemin(chemin_destination_fichier_support)
+    chemin_destination_fichier_support := CheminFichier(génératrice.dossier_sortie) / "support_ipa_cpp.h";
+    diffère détruit_chemin(chemin_destination_fichier_support);
 
     saufsi copie_fichier(chemin_fichier_support, chemin_destination_fichier_support) {
-        compilatrice_rapporte_erreur("Impossible de copier le fichier de support C++")
+        compilatrice_rapporte_erreur("Impossible de copier le fichier de support C++");
     }
 }
 
@@ -398,121 +398,121 @@ génère_ipa_cpp :: fonc (génératrice: *GénératriceCodeC, espace: EspaceDeTr
 
 génère_code_c :: fonc (système_type: *SystèmeTypeC, table_ipa: *TableIPA, chemin: CheminFichier)
 {
-    enchaineuse: Enchaineuse
-    initialise_enchaineuse(*enchaineuse)
-    diffère détruit_tampons(*enchaineuse)
+    enchaineuse: Enchaineuse;
+    initialise_enchaineuse(*enchaineuse);
+    diffère détruit_tampons(*enchaineuse);
 
-    ajoute_au_tampon(*enchaineuse, "#pragma once\n\n")
-    ajoute_au_tampon(*enchaineuse, "#include \"table_types.h\"\n\n")
+    ajoute_au_tampon(*enchaineuse, "#pragma once\n\n");
+    ajoute_au_tampon(*enchaineuse, "#include \"table_types.h\"\n\n");
 
-    ajoute_au_tampon(*enchaineuse, "#ifdef __cplusplus\nextern \"C\" {\n#endif\n\n")
+    ajoute_au_tampon(*enchaineuse, "#ifdef __cplusplus\nextern \"C\" {\n#endif\n\n");
 
     /* Définis les fonctions de la table. */
     pour table_ipa.fonctions {
-        génère_code_fonction_c(*enchaineuse, système_type, it)
+        génère_code_fonction_c(*enchaineuse, système_type, it);
     }
 
-    ajoute_au_tampon(*enchaineuse, "#ifdef __cplusplus\n}\n#endif\n\n")
+    ajoute_au_tampon(*enchaineuse, "#ifdef __cplusplus\n}\n#endif\n\n");
 
-    copie_enchaineuse_fichier_ex(*enchaineuse, chemin)
+    copie_enchaineuse_fichier_ex(*enchaineuse, chemin);
 }
 
 génère_code_fonction_c :: fonc (enchaineuse: *Enchaineuse, système: *SystèmeTypeC, fonction: MéthodeIPA)
 {
-    ajoute_au_tampon(enchaineuse, "// ", fonction.nom, "\n")
-    ajoute_au_tampon(enchaineuse, "inline ")
+    ajoute_au_tampon(enchaineuse, "// ", fonction.nom, "\n");
+    ajoute_au_tampon(enchaineuse, "inline ");
 
     si fonction.sorties.taille == 1 {
-        type_c := trouve_type(système, fonction.sorties[0].type)
-        ajoute_au_tampon(enchaineuse, type_c.nom_type_c, " ")
+        type_c := trouve_type(système, fonction.sorties[0].type);
+        ajoute_au_tampon(enchaineuse, type_c.nom_type_c, " ");
     }
     sinon {
         // À FAIRE : multiple retour
-        ajoute_au_tampon(enchaineuse, "void ")
+        ajoute_au_tampon(enchaineuse, "void ");
     }
 
     // À FAIRE : typage et conversion des paramètres (chaines, tableaux), valeurs de sorties.
-    ajoute_au_tampon(enchaineuse, fonction.nom_pour_fonction_c)
+    ajoute_au_tampon(enchaineuse, fonction.nom_pour_fonction_c);
 
-    virgule := "("
+    virgule := "(";
     pour fonction.entrées {
         /* Pour les accès rubrique le type doit être un pointeur. */
-        pointeur := ""
+        pointeur := "";
         si fonction.est_accès_rubrique && indice_it == 0 {
-            pointeur = "*"
+            pointeur = "*";
         }
 
-        type_c := trouve_type(système, it.type)
-        ajoute_au_tampon(enchaineuse, virgule, type_c.nom_type_c, pointeur, " ", it.nom)
-        virgule = ", "
+        type_c := trouve_type(système, it.type);
+        ajoute_au_tampon(enchaineuse, virgule, type_c.nom_type_c, pointeur, " ", it.nom);
+        virgule = ", ";
     }
 
     si fonction.entrées.taille == 0 {
-        ajoute_au_tampon(enchaineuse, "(")
+        ajoute_au_tampon(enchaineuse, "(");
     }
 
-    ajoute_au_tampon(enchaineuse, ")\n")
-    ajoute_au_tampon(enchaineuse, "{\n")
+    ajoute_au_tampon(enchaineuse, ")\n");
+    ajoute_au_tampon(enchaineuse, "{\n");
 
-    ajoute_au_tampon(enchaineuse, "    return TABLE_IPA.", fonction.nom_rappel_pour_table)
-    virgule = "("
+    ajoute_au_tampon(enchaineuse, "    return TABLE_IPA.", fonction.nom_rappel_pour_table);
+    virgule = "(";
     pour fonction.entrées {
-        ajoute_au_tampon(enchaineuse, virgule, it.nom)
-        virgule = ", "
+        ajoute_au_tampon(enchaineuse, virgule, it.nom);
+        virgule = ", ";
     }
     si fonction.entrées.taille == 0 {
-        ajoute_au_tampon(enchaineuse, "(")
+        ajoute_au_tampon(enchaineuse, "(");
     }
-    ajoute_au_tampon(enchaineuse, ");\n")
-    ajoute_au_tampon(enchaineuse, "}\n\n")
+    ajoute_au_tampon(enchaineuse, ");\n");
+    ajoute_au_tampon(enchaineuse, "}\n\n");
 }
 
 /* ------------------------------------------------------------------------- */
 
 génère_code_source_cpp :: fonc (génératrice: *GénératriceCodeC, chemin: CheminFichier)
 {
-    ipa := génératrice.ipa
+    ipa := génératrice.ipa;
 
-    enchaineuse: Enchaineuse
-    initialise_enchaineuse(*enchaineuse)
-    diffère détruit_tampons(*enchaineuse)
+    enchaineuse: Enchaineuse;
+    initialise_enchaineuse(*enchaineuse);
+    diffère détruit_tampons(*enchaineuse);
 
-    ajoute_au_tampon(*enchaineuse, "#include \"", génératrice.nom_module, ".hh\"\n\n")
-    ajoute_au_tampon(*enchaineuse, "namespace ", génératrice.espace_de_nom, " {\n\n")
+    ajoute_au_tampon(*enchaineuse, "#include \"", génératrice.nom_module, ".hh\"\n\n");
+    ajoute_au_tampon(*enchaineuse, "namespace ", génératrice.espace_de_nom, " {\n\n");
 
     /* Définit les fonctions qui ne peuvent pas être dans une entête. */
 
     pour ipa.types {
         si it.drapeaux.TYPE_EST_ABSTRAIT {
-            définis_rappel_fonction_virtuelle_classe_abstraite(*enchaineuse, it, génératrice, faux)
-            continue
+            définis_rappel_fonction_virtuelle_classe_abstraite(*enchaineuse, it, génératrice, faux);
+            continue;
         }
     }
 
-    ajoute_au_tampon(*enchaineuse, "} // namespace ", génératrice.espace_de_nom, "\n\n")
+    ajoute_au_tampon(*enchaineuse, "} // namespace ", génératrice.espace_de_nom, "\n\n");
 
-    copie_enchaineuse_fichier_ex(*enchaineuse, chemin)
+    copie_enchaineuse_fichier_ex(*enchaineuse, chemin);
 }
 
 /* ------------------------------------------------------------------------- */
 
 génère_code_cpp :: fonc (génératrice: *GénératriceCodeC, chemin: CheminFichier)
 {
-    ipa := génératrice.ipa
-    système := *génératrice.système_type
+    ipa := génératrice.ipa;
+    système := *génératrice.système_type;
 
-    enchaineuse: Enchaineuse
-    initialise_enchaineuse(*enchaineuse)
-    diffère détruit_tampons(*enchaineuse)
+    enchaineuse: Enchaineuse;
+    initialise_enchaineuse(*enchaineuse);
+    diffère détruit_tampons(*enchaineuse);
 
-    ajoute_au_tampon(*enchaineuse, "#pragma once\n\n")
-    ajoute_au_tampon(*enchaineuse, "#include \"", génératrice.nom_module, ".h\"\n\n")
-    ajoute_au_tampon(*enchaineuse, "#define ESPACE_DE_NOM ", génératrice.espace_de_nom, "\n")
-    ajoute_au_tampon(*enchaineuse, "#include \"support_ipa_cpp.h\"\n")
-    ajoute_au_tampon(*enchaineuse, "#undef ESPACE_DE_NOM\n\n")
-    ajoute_au_tampon(*enchaineuse, "#include <optional>\n\n")
-    ajoute_au_tampon(*enchaineuse, "#include <string>\n\n")
-    ajoute_au_tampon(*enchaineuse, "namespace ", génératrice.espace_de_nom, " {\n\n")
+    ajoute_au_tampon(*enchaineuse, "#pragma once\n\n");
+    ajoute_au_tampon(*enchaineuse, "#include \"", génératrice.nom_module, ".h\"\n\n");
+    ajoute_au_tampon(*enchaineuse, "#define ESPACE_DE_NOM ", génératrice.espace_de_nom, "\n");
+    ajoute_au_tampon(*enchaineuse, "#include \"support_ipa_cpp.h\"\n");
+    ajoute_au_tampon(*enchaineuse, "#undef ESPACE_DE_NOM\n\n");
+    ajoute_au_tampon(*enchaineuse, "#include <optional>\n\n");
+    ajoute_au_tampon(*enchaineuse, "#include <string>\n\n");
+    ajoute_au_tampon(*enchaineuse, "namespace ", génératrice.espace_de_nom, " {\n\n");
 
     définition_classe_chaine := «
 class Chaine : public %_Chaine {
@@ -540,551 +540,551 @@ public:
     }
 };
 
-»
+»;
 
-    imprime_dans_enchaineuse(*enchaineuse, définition_classe_chaine, génératrice.espace_de_nom, génératrice.espace_de_nom)
+    imprime_dans_enchaineuse(*enchaineuse, définition_classe_chaine, génératrice.espace_de_nom, génératrice.espace_de_nom);
 
     /* Déclare les classes. */
     pour ipa.types {
-        prédéclare_type_cpp(*enchaineuse, it, système)
+        prédéclare_type_cpp(*enchaineuse, it, système);
     }
-    ajoute_au_tampon(*enchaineuse, "\n")
+    ajoute_au_tampon(*enchaineuse, "\n");
 
     /* Définit les classes. */
     pour ipa.types {
-        définis_classe_cpp(*enchaineuse, it, génératrice)
+        définis_classe_cpp(*enchaineuse, it, génératrice);
     }
 
     pour ipa.types {
         si it.drapeaux.TYPE_EST_ABSTRAIT {
-            continue
+            continue;
         }
 
         pour f dans it.fonctions {
-            génère_code_fonction_cpp(*enchaineuse, système, f, it, faux)
+            génère_code_fonction_cpp(*enchaineuse, système, f, it, faux);
         }
     }
 
     pour ipa.fonctions {
-        génère_code_fonction_cpp(*enchaineuse, système, it, nul, faux)
+        génère_code_fonction_cpp(*enchaineuse, système, it, nul, faux);
     }
 
-    ajoute_au_tampon(*enchaineuse, "} // namespace ", génératrice.espace_de_nom, "\n\n")
+    ajoute_au_tampon(*enchaineuse, "} // namespace ", génératrice.espace_de_nom, "\n\n");
 
-    copie_enchaineuse_fichier_ex(*enchaineuse, chemin)
+    copie_enchaineuse_fichier_ex(*enchaineuse, chemin);
 }
 
 prédéclare_type_cpp :: fonc (enchaineuse: *Enchaineuse, type: *TypeIPA, système: *SystèmeTypeC)
 {
     si type.drapeaux.TYPE_EST_BASIQUE || type.drapeaux.TYPE_EST_TABLEAU || type.drapeaux.TYPE_EST_TRANCHE {
-        retourne
+        retourne;
     }
 
     si type.infos.id == GenreInfoType.CHAINE {
-        retourne
+        retourne;
     }
 
     si type.drapeaux.DÉCLARATION_TYPE_CPP_FUT_GÉNÉRÉE {
-        retourne
+        retourne;
     }
 
-    diffère type.drapeaux.DÉCLARATION_TYPE_CPP_FUT_GÉNÉRÉE = vrai
+    diffère type.drapeaux.DÉCLARATION_TYPE_CPP_FUT_GÉNÉRÉE = vrai;
 
     si type.infos.id == GenreInfoType.FONCTION {
         pour type.types_entrée {
-            type_entrée := it
+            type_entrée := it;
             /* Garantis que le type pointé est prédéclaré. */
             si it.drapeaux.TYPE_EST_POINTEUR {
-                type_entrée = it.type_pointé
+                type_entrée = it.type_pointé;
             }
-            prédéclare_type_cpp(enchaineuse, type_entrée, système)
+            prédéclare_type_cpp(enchaineuse, type_entrée, système);
         }
 
         pour type.types_sortie {
-            prédéclare_type_cpp(enchaineuse, it, système)
+            prédéclare_type_cpp(enchaineuse, it, système);
         }
 
-        type_c := trouve_type(système, type.infos)
-        ajoute_au_tampon(enchaineuse, "using ", type_c.nom_type_cpp, " = ")
+        type_c := trouve_type(système, type.infos);
+        ajoute_au_tampon(enchaineuse, "using ", type_c.nom_type_cpp, " = ");
 
-        type_c_sortie := trouve_type(système, type.types_sortie[0].infos)
-        ajoute_au_tampon(enchaineuse, type_c_sortie.nom_type_cpp, "(*)")
+        type_c_sortie := trouve_type(système, type.types_sortie[0].infos);
+        ajoute_au_tampon(enchaineuse, type_c_sortie.nom_type_cpp, "(*)");
 
-        virgule := "("
+        virgule := "(";
         saufsi type.types_entrée {
-            ajoute_au_tampon(enchaineuse, virgule)
+            ajoute_au_tampon(enchaineuse, virgule);
         }
         sinon pour entrée dans type.types_entrée {
-            type_c_entrée := trouve_type(système, entrée.infos)
-            ajoute_au_tampon(enchaineuse, virgule, type_c_entrée.nom_type_cpp)
-            virgule = ", "
+            type_c_entrée := trouve_type(système, entrée.infos);
+            ajoute_au_tampon(enchaineuse, virgule, type_c_entrée.nom_type_cpp);
+            virgule = ", ";
         }
 
-        ajoute_au_tampon(enchaineuse, ");\n")
-        retourne
+        ajoute_au_tampon(enchaineuse, ");\n");
+        retourne;
     }
 
     si type.drapeaux.TYPE_EST_ÉNUM {
-        type_énum := type.infos comme *InfoTypeÉnum
-        type_c := trouve_type(système, type_énum)
-        type_c_sous_jacent := trouve_type(système, type_énum.type_sous_jacent)
+        type_énum := type.infos comme *InfoTypeÉnum;
+        type_c := trouve_type(système, type_énum);
+        type_c_sous_jacent := trouve_type(système, type_énum.type_sous_jacent);
 
-        ajoute_au_tampon(enchaineuse, "enum class ", type_c.nom_type_cpp, " : ", type_c_sous_jacent.nom_type_cpp, " {\n")
+        ajoute_au_tampon(enchaineuse, "enum class ", type_c.nom_type_cpp, " : ", type_c_sous_jacent.nom_type_cpp, " {\n");
 
         pour nom, indice_nom dans type_énum.noms {
-            ajoute_au_tampon(enchaineuse, "    ", nom, " = ")
-            eini_valeur := donne_eini_valeur_énum_indice(type_énum, indice_nom)
-            imprime_valeur(enchaineuse, eini_valeur, faux)
-            ajoute_au_tampon(enchaineuse, ",\n")
+            ajoute_au_tampon(enchaineuse, "    ", nom, " = ");
+            eini_valeur := donne_eini_valeur_énum_indice(type_énum, indice_nom);
+            imprime_valeur(enchaineuse, eini_valeur, faux);
+            ajoute_au_tampon(enchaineuse, ",\n");
         }
 
-        ajoute_au_tampon(enchaineuse, "};\n")
+        ajoute_au_tampon(enchaineuse, "};\n");
         //si type_énum.est_drapeau {
-        ajoute_au_tampon(enchaineuse, "DEFINIS_OPERATEURS_DRAPEAU(", type_c.nom_type_cpp, ")\n")
+        ajoute_au_tampon(enchaineuse, "DEFINIS_OPERATEURS_DRAPEAU(", type_c.nom_type_cpp, ")\n");
         //}
-        retourne
+        retourne;
     }
 
-    type_c := trouve_type(système, type.infos)
+    type_c := trouve_type(système, type.infos);
     // ajoute_au_tampon(*enchaineuse, "// ")
     // imprime_type(*enchaineuse, type.infos)
     // ajoute_au_tampon(*enchaineuse, "\n")
-    ajoute_au_tampon(enchaineuse, "class ", type_c.nom_type_cpp, ";\n")
+    ajoute_au_tampon(enchaineuse, "class ", type_c.nom_type_cpp, ";\n");
 }
 
 définis_classe_cpp :: fonc (enchaineuse: *Enchaineuse, type: *TypeIPA, génératrice: *GénératriceCodeC)
 {
     si type.drapeaux.TYPE_EST_BASIQUE || type.drapeaux.TYPE_EST_TABLEAU || type.drapeaux.TYPE_EST_ÉNUM || type.drapeaux.TYPE_EST_TRANCHE {
-        retourne
+        retourne;
     }
 
     si type.infos.id == GenreInfoType.CHAINE {
-        retourne
+        retourne;
     }
 
     si type.infos.id == GenreInfoType.FONCTION {
-        retourne
+        retourne;
     }
 
     si type.drapeaux.DÉFINITION_TYPE_CPP_FUT_GÉNÉRÉE {
-        retourne
+        retourne;
     }
 
-    diffère type.drapeaux.DÉFINITION_TYPE_CPP_FUT_GÉNÉRÉE = vrai
+    diffère type.drapeaux.DÉFINITION_TYPE_CPP_FUT_GÉNÉRÉE = vrai;
 
-    système := *génératrice.système_type
+    système := *génératrice.système_type;
 
     si type.type_base {
-        définis_classe_cpp(enchaineuse, type.type_base, génératrice)
+        définis_classe_cpp(enchaineuse, type.type_base, génératrice);
     }
 
     si type.drapeaux.TYPE_EST_ABSTRAIT {
-        définis_classe_abstraite(enchaineuse, type, génératrice)
-        retourne
+        définis_classe_abstraite(enchaineuse, type, génératrice);
+        retourne;
     }
 
-    type_c := trouve_type(système, type.infos)
+    type_c := trouve_type(système, type.infos);
 
-    ajoute_au_tampon(enchaineuse, "class ", type_c.nom_type_cpp)
+    ajoute_au_tampon(enchaineuse, "class ", type_c.nom_type_cpp);
 
     si type.type_base {
-        type_c_base := trouve_type(système, type.type_base.infos)
-        ajoute_au_tampon(enchaineuse, " : public ", type_c_base.nom_type_cpp)
+        type_c_base := trouve_type(système, type.type_base.infos);
+        ajoute_au_tampon(enchaineuse, " : public ", type_c_base.nom_type_cpp);
     }
 
-    ajoute_au_tampon(enchaineuse, " {\n")
+    ajoute_au_tampon(enchaineuse, " {\n");
 
-    ajoute_au_tampon(enchaineuse, "protected:\n")
+    ajoute_au_tampon(enchaineuse, "protected:\n");
 
     chaine_pointeur := si type.drapeaux.TOUJOURS_COMME_POINTEUR {
-        "*"
+        "*";
     }
     sinon {
-        ""
+        "";
     }
 
     saufsi type.type_base {
         /* mutable pour éviter d'avoir des const_cast<> dans les fonctions d'accès de rubriques. */
-        ajoute_au_tampon(enchaineuse, "    mutable ", type_c.nom_type_c, chaine_pointeur, " m_poignee;\n\n")
+        ajoute_au_tampon(enchaineuse, "    mutable ", type_c.nom_type_c, chaine_pointeur, " m_poignee;\n\n");
     }
 
-    ajoute_au_tampon(enchaineuse, "public:\n")
+    ajoute_au_tampon(enchaineuse, "public:\n");
 
     si type.constructrice.possède_valeur() {
-        constructrice := type.constructrice.Quelque
+        constructrice := type.constructrice.Quelque;
 
         /* À FAIRE : paramètres. */
-        ajoute_au_tampon(enchaineuse, "    static std::optional<", type_c.nom_type_cpp, "> construit")
-        génère_liste_paramètres_pour_fonction_cpp(enchaineuse, système, *constructrice, vrai)
-        ajoute_au_tampon(enchaineuse, "\n    {\n")
-        ajoute_au_tampon(enchaineuse, "         ", type_c.nom_type_cpp, " résultat({});\n")
+        ajoute_au_tampon(enchaineuse, "    static std::optional<", type_c.nom_type_cpp, "> construit");
+        génère_liste_paramètres_pour_fonction_cpp(enchaineuse, système, *constructrice, vrai);
+        ajoute_au_tampon(enchaineuse, "\n    {\n");
+        ajoute_au_tampon(enchaineuse, "         ", type_c.nom_type_cpp, " résultat({});\n");
 
         /* À FAIRE : les types toujours accédés par pointeur devraient avoir une initialisation différente. */
-        prise_adresse := "&"
+        prise_adresse := "&";
         si type.drapeaux.TOUJOURS_COMME_POINTEUR {
-            prise_adresse = ""
+            prise_adresse = "";
         }
 
-        ajoute_au_tampon(enchaineuse, "         if (!", constructrice.nom_pour_fonction_c, "(", prise_adresse, "résultat.poignee()")
+        ajoute_au_tampon(enchaineuse, "         if (!", constructrice.nom_pour_fonction_c, "(", prise_adresse, "résultat.poignee()");
 
-        virgule := ", "
+        virgule := ", ";
         pour 1 ... constructrice.entrées.taille - 1 {
-            entrée := constructrice.entrées[it]
-            ajoute_au_tampon(enchaineuse, virgule, entrée.nom)
+            entrée := constructrice.entrées[it];
+            ajoute_au_tampon(enchaineuse, virgule, entrée.nom);
         }
 
-        ajoute_au_tampon(enchaineuse, ")) {\n")
-        ajoute_au_tampon(enchaineuse, "             return {};\n")
-        ajoute_au_tampon(enchaineuse, "         }\n")
-        ajoute_au_tampon(enchaineuse, "         return résultat;\n")
-        ajoute_au_tampon(enchaineuse, "    }\n")
+        ajoute_au_tampon(enchaineuse, ")) {\n");
+        ajoute_au_tampon(enchaineuse, "             return {};\n");
+        ajoute_au_tampon(enchaineuse, "         }\n");
+        ajoute_au_tampon(enchaineuse, "         return résultat;\n");
+        ajoute_au_tampon(enchaineuse, "    }\n");
     }
 
     si type.type_base {
-        type_c_base := trouve_type(système, type.type_base.infos)
-        ajoute_au_tampon(enchaineuse, "    ", type_c.nom_type_cpp, "(", type_c.nom_type_c, chaine_pointeur, " poignee) : ", type_c_base.nom_type_cpp, "(reinterpret_cast<", type_c_base.nom_type_c, "*>(poignee)) {}\n\n")
-        ajoute_au_tampon(enchaineuse, "    operator ", type_c.nom_type_c, chaine_pointeur, "() { return reinterpret_cast<", type_c.nom_type_c, "*>(this->m_poignee); }\n\n")
-        ajoute_au_tampon(enchaineuse, "    ", type_c.nom_type_c, chaine_pointeur, " poignee() { return reinterpret_cast<", type_c.nom_type_c, "*>(this->m_poignee); }\n\n")
-        ajoute_au_tampon(enchaineuse, "    ", type_c.nom_type_c, chaine_pointeur, " poignee() const { return reinterpret_cast<", type_c.nom_type_c, "*>(this->m_poignee); }\n\n")
+        type_c_base := trouve_type(système, type.type_base.infos);
+        ajoute_au_tampon(enchaineuse, "    ", type_c.nom_type_cpp, "(", type_c.nom_type_c, chaine_pointeur, " poignee) : ", type_c_base.nom_type_cpp, "(reinterpret_cast<", type_c_base.nom_type_c, "*>(poignee)) {}\n\n");
+        ajoute_au_tampon(enchaineuse, "    operator ", type_c.nom_type_c, chaine_pointeur, "() { return reinterpret_cast<", type_c.nom_type_c, "*>(this->m_poignee); }\n\n");
+        ajoute_au_tampon(enchaineuse, "    ", type_c.nom_type_c, chaine_pointeur, " poignee() { return reinterpret_cast<", type_c.nom_type_c, "*>(this->m_poignee); }\n\n");
+        ajoute_au_tampon(enchaineuse, "    ", type_c.nom_type_c, chaine_pointeur, " poignee() const { return reinterpret_cast<", type_c.nom_type_c, "*>(this->m_poignee); }\n\n");
     }
     sinon {
-        ajoute_au_tampon(enchaineuse, "    ", type_c.nom_type_cpp, "(", type_c.nom_type_c, chaine_pointeur, " poignee) : m_poignee(poignee) {}\n\n")
-        ajoute_au_tampon(enchaineuse, "    operator ", type_c.nom_type_c, chaine_pointeur, "() { return this->m_poignee; }\n\n")
-        ajoute_au_tampon(enchaineuse, "    ", type_c.nom_type_c, chaine_pointeur, "&poignee() { return this->m_poignee; }\n\n")
-        ajoute_au_tampon(enchaineuse, "    ", type_c.nom_type_c, chaine_pointeur, "&poignee() const { return this->m_poignee; }\n\n")
+        ajoute_au_tampon(enchaineuse, "    ", type_c.nom_type_cpp, "(", type_c.nom_type_c, chaine_pointeur, " poignee) : m_poignee(poignee) {}\n\n");
+        ajoute_au_tampon(enchaineuse, "    operator ", type_c.nom_type_c, chaine_pointeur, "() { return this->m_poignee; }\n\n");
+        ajoute_au_tampon(enchaineuse, "    ", type_c.nom_type_c, chaine_pointeur, "&poignee() { return this->m_poignee; }\n\n");
+        ajoute_au_tampon(enchaineuse, "    ", type_c.nom_type_c, chaine_pointeur, "&poignee() const { return this->m_poignee; }\n\n");
     }
 
     si type.drapeaux.TOUJOURS_COMME_POINTEUR && type.type_base == nul {
-        ajoute_au_tampon(enchaineuse, "    bool operator == (std::nullptr_t) const { return this->m_poignee == nullptr; }\n\n")
-        ajoute_au_tampon(enchaineuse, "    bool operator != (std::nullptr_t) const { return this->m_poignee != nullptr; }\n\n")
+        ajoute_au_tampon(enchaineuse, "    bool operator == (std::nullptr_t) const { return this->m_poignee == nullptr; }\n\n");
+        ajoute_au_tampon(enchaineuse, "    bool operator != (std::nullptr_t) const { return this->m_poignee != nullptr; }\n\n");
     }
 
     pour f dans type.fonctions {
-        génère_code_fonction_cpp(enchaineuse, système, f, type, vrai)
+        génère_code_fonction_cpp(enchaineuse, système, f, type, vrai);
     }
 
-    ajoute_au_tampon(enchaineuse, "};\n\n")
+    ajoute_au_tampon(enchaineuse, "};\n\n");
 
     /* Fonctions de transtypage entre base et dérivée. */
 
     /* Déclaration du prototype pour toutes les bases. */
     si type.drapeaux.TYPE_EST_DÉRIVÉ == vrai {
-        type_base_c := trouve_type(système, type.infos)
-        ajoute_au_tampon(enchaineuse, "template <typename TypeDérivé>")
-        ajoute_au_tampon(enchaineuse, "inline TypeDérivé transtype(", type_base_c.nom_type_cpp, " base);\n\n")
+        type_base_c := trouve_type(système, type.infos);
+        ajoute_au_tampon(enchaineuse, "template <typename TypeDérivé>");
+        ajoute_au_tampon(enchaineuse, "inline TypeDérivé transtype(", type_base_c.nom_type_cpp, " base);\n\n");
     }
 
     /* Définition pour toutes les dérivées. */
     si type.type_base {
-        type_base_c := trouve_type(système, type.type_base.infos)
-        ajoute_au_tampon(enchaineuse, "template <>\n")
-        ajoute_au_tampon(enchaineuse, "inline ", type_c.nom_type_cpp, " transtype(", type_base_c.nom_type_cpp, " base)\n")
-        ajoute_au_tampon(enchaineuse, "{\n")
-        ajoute_au_tampon(enchaineuse, "    return ", type_c.nom_type_cpp, "(reinterpret_cast<", type_c.nom_type_c, " *>(base.poignee()));\n")
-        ajoute_au_tampon(enchaineuse, "}\n\n")
+        type_base_c := trouve_type(système, type.type_base.infos);
+        ajoute_au_tampon(enchaineuse, "template <>\n");
+        ajoute_au_tampon(enchaineuse, "inline ", type_c.nom_type_cpp, " transtype(", type_base_c.nom_type_cpp, " base)\n");
+        ajoute_au_tampon(enchaineuse, "{\n");
+        ajoute_au_tampon(enchaineuse, "    return ", type_c.nom_type_cpp, "(reinterpret_cast<", type_c.nom_type_c, " *>(base.poignee()));\n");
+        ajoute_au_tampon(enchaineuse, "}\n\n");
     }
 }
 
 définis_classe_abstraite :: fonc (enchaineuse: *Enchaineuse, type: *TypeIPA, génératrice: *GénératriceCodeC)
 {
-    système := *génératrice.système_type
-    type_c := trouve_type(système, type.infos)
+    système := *génératrice.système_type;
+    type_c := trouve_type(système, type.infos);
 
-    ajoute_au_tampon(enchaineuse, "class ", type_c.nom_type_cpp, " {\n")
+    ajoute_au_tampon(enchaineuse, "class ", type_c.nom_type_cpp, " {\n");
     /* mutable pour éviter d'avoir des const_cast<> dans les fonctions d'accès de rubriques. */
-    ajoute_au_tampon(enchaineuse, "    mutable ", type_c.nom_type_c, " m_poignee;\n\n")
+    ajoute_au_tampon(enchaineuse, "    mutable ", type_c.nom_type_c, " m_poignee;\n\n");
 
     /* Pour chaque rappel rubrique, ajout d'un fonction statique qui appelera la fonction virtuelle. */
-    définis_rappel_fonction_virtuelle_classe_abstraite(enchaineuse, type, génératrice, vrai)
+    définis_rappel_fonction_virtuelle_classe_abstraite(enchaineuse, type, génératrice, vrai);
 
     /* Constructeur. */
 
-    ajoute_au_tampon(enchaineuse, "  protected:\n")
-    ajoute_au_tampon(enchaineuse, "    ", type_c.nom_type_cpp, "()\n")
-    ajoute_au_tampon(enchaineuse, "    {\n")
+    ajoute_au_tampon(enchaineuse, "  protected:\n");
+    ajoute_au_tampon(enchaineuse, "    ", type_c.nom_type_cpp, "()\n");
+    ajoute_au_tampon(enchaineuse, "    {\n");
 
     /* Saute l'espace de nom; +1 pour le tiret bas.. */
-    taille_espace_de_nom := génératrice.espace_de_nom.taille + 1
-    nom_type := avance(type_c.nom_type_c, taille_espace_de_nom)
+    taille_espace_de_nom := génératrice.espace_de_nom.taille + 1;
+    nom_type := avance(type_c.nom_type_c, taille_espace_de_nom);
 
     /* Renseigne les rappels. */
     pour type.rubriques {
         saufsi it.type_ipa.drapeaux.TYPE_EST_FONCTION {
-            continue
+            continue;
         }
 
-        nom_fonction := it.nom
-        type_fonction := it.type_ipa
-        type_c_fonction := trouve_type(système, type_fonction.infos)
+        nom_fonction := it.nom;
+        type_fonction := it.type_ipa;
+        type_c_fonction := trouve_type(système, type_fonction.infos);
 
-        fonction_écriture := type.fonctions[it.indice_fonction_écriture]
-        ajoute_au_tampon(enchaineuse, "        ", fonction_écriture.nom_pour_fonction_c, "(&m_poignee, ", type_c_fonction.transtype_cpp_vers_c, "rappel_", nom_fonction, ");\n")
+        fonction_écriture := type.fonctions[it.indice_fonction_écriture];
+        ajoute_au_tampon(enchaineuse, "        ", fonction_écriture.nom_pour_fonction_c, "(&m_poignee, ", type_c_fonction.transtype_cpp_vers_c, "rappel_", nom_fonction, ");\n");
     }
     /* Renseigne le pointeur de données. */
-    ajoute_au_tampon(enchaineuse, "        ", génératrice.espace_de_nom, "_", nom_type, "_definis_donnees(&m_poignee, this);\n")
-    ajoute_au_tampon(enchaineuse, "    }\n\n")
+    ajoute_au_tampon(enchaineuse, "        ", génératrice.espace_de_nom, "_", nom_type, "_definis_donnees(&m_poignee, this);\n");
+    ajoute_au_tampon(enchaineuse, "    }\n\n");
 
     /* Interface publique. */
-    ajoute_au_tampon(enchaineuse, "  public:\n")
-    ajoute_au_tampon(enchaineuse, "     virtual ~", type_c.nom_type_cpp, "() = default;\n\n")
+    ajoute_au_tampon(enchaineuse, "  public:\n");
+    ajoute_au_tampon(enchaineuse, "     virtual ~", type_c.nom_type_cpp, "() = default;\n\n");
 
-    ajoute_au_tampon(enchaineuse, "    operator ", type_c.nom_type_c, "() { return this->m_poignee; }\n\n")
-    ajoute_au_tampon(enchaineuse, "    ", type_c.nom_type_c, "&poignee() { return this->m_poignee; }\n\n")
-    ajoute_au_tampon(enchaineuse, "    ", type_c.nom_type_c, "&poignee() const { return this->m_poignee; }\n\n")
+    ajoute_au_tampon(enchaineuse, "    operator ", type_c.nom_type_c, "() { return this->m_poignee; }\n\n");
+    ajoute_au_tampon(enchaineuse, "    ", type_c.nom_type_c, "&poignee() { return this->m_poignee; }\n\n");
+    ajoute_au_tampon(enchaineuse, "    ", type_c.nom_type_c, "&poignee() const { return this->m_poignee; }\n\n");
 
     /* Fonctions virtuelles pour chaque rubrique. */
     pour type.rubriques {
         saufsi it.type_ipa.drapeaux.TYPE_EST_FONCTION {
-            continue
+            continue;
         }
 
-        nom_fonction := it.nom
+        nom_fonction := it.nom;
 
-        type_fonction := it.type_ipa
-        type_sortie := type_fonction.types_sortie[0]
+        type_fonction := it.type_ipa;
+        type_sortie := type_fonction.types_sortie[0];
 
-        type_c_sortie := trouve_type(système, type_sortie.infos)
+        type_c_sortie := trouve_type(système, type_sortie.infos);
 
-        ajoute_au_tampon(enchaineuse, "    virtual ", type_c_sortie.nom_type_cpp, " ", nom_fonction)
+        ajoute_au_tampon(enchaineuse, "    virtual ", type_c_sortie.nom_type_cpp, " ", nom_fonction);
 
-        virgule := "("
+        virgule := "(";
         saufsi type_fonction.types_entrée.taille > 1 {
-            ajoute_au_tampon(enchaineuse, virgule)
+            ajoute_au_tampon(enchaineuse, virgule);
         }
         sinon pour indice_entrée dans 1 ... type_fonction.types_entrée.taille - 1 {
-            entrée := type_fonction.types_entrée[indice_entrée]
-            type_c_entrée := trouve_type(système, entrée.infos)
-            nom_type = type_c_entrée.nom_type_cpp
+            entrée := type_fonction.types_entrée[indice_entrée];
+            type_c_entrée := trouve_type(système, entrée.infos);
+            nom_type = type_c_entrée.nom_type_cpp;
             si type_est_toujours_pointeur(entrée) {
-                nom_type = recule(nom_type, 1)
+                nom_type = recule(nom_type, 1);
             }
-            imprime_dans_enchaineuse(enchaineuse, "%% param%", virgule, nom_type, indice_entrée)
-            virgule = ", "
+            imprime_dans_enchaineuse(enchaineuse, "%% param%", virgule, nom_type, indice_entrée);
+            virgule = ", ";
         }
-        ajoute_au_tampon(enchaineuse, ") = 0;\n\n")
+        ajoute_au_tampon(enchaineuse, ") = 0;\n\n");
     }
 
-    ajoute_au_tampon(enchaineuse, "};\n\n")
+    ajoute_au_tampon(enchaineuse, "};\n\n");
 }
 
 définis_rappel_fonction_virtuelle_classe_abstraite :: fonc (enchaineuse: *Enchaineuse, type: *TypeIPA, génératrice: *GénératriceCodeC, pour_déclaration: bool)
 {
-    système := *génératrice.système_type
-    type_c := trouve_type(système, type.infos)
+    système := *génératrice.système_type;
+    type_c := trouve_type(système, type.infos);
 
-    indentation := ""
+    indentation := "";
     si pour_déclaration {
-        indentation = "    "
+        indentation = "    ";
     }
 
     pour type.rubriques {
         saufsi it.type_ipa.drapeaux.TYPE_EST_FONCTION {
-            continue
+            continue;
         }
 
-        nom_fonction := it.nom
+        nom_fonction := it.nom;
 
-        type_fonction := it.type_ipa
-        type_sortie := type_fonction.types_sortie[0]
+        type_fonction := it.type_ipa;
+        type_sortie := type_fonction.types_sortie[0];
 
-        type_c_sortie := trouve_type(système, type_sortie.infos)
+        type_c_sortie := trouve_type(système, type_sortie.infos);
 
         si pour_déclaration {
-            ajoute_au_tampon(enchaineuse, indentation, "static ")
+            ajoute_au_tampon(enchaineuse, indentation, "static ");
         }
 
-        ajoute_au_tampon(enchaineuse, indentation, type_c_sortie.nom_type_cpp, " ")
+        ajoute_au_tampon(enchaineuse, indentation, type_c_sortie.nom_type_cpp, " ");
 
         saufsi pour_déclaration {
-            ajoute_au_tampon(enchaineuse, type_c.nom_type_cpp, "::")
+            ajoute_au_tampon(enchaineuse, type_c.nom_type_cpp, "::");
         }
 
-        ajoute_au_tampon(enchaineuse, indentation, "rappel_", nom_fonction)
+        ajoute_au_tampon(enchaineuse, indentation, "rappel_", nom_fonction);
 
-        virgule := "("
+        virgule := "(";
         saufsi type_fonction.types_entrée {
-            ajoute_au_tampon(enchaineuse, virgule)
+            ajoute_au_tampon(enchaineuse, virgule);
         }
         sinon pour entrée, indice_entrée dans type_fonction.types_entrée {
-            type_c_entrée := trouve_type(système, entrée.infos)
-            imprime_dans_enchaineuse(enchaineuse, "%% param%", virgule, type_c_entrée.nom_type_c, indice_entrée)
-            virgule = ", "
+            type_c_entrée := trouve_type(système, entrée.infos);
+            imprime_dans_enchaineuse(enchaineuse, "%% param%", virgule, type_c_entrée.nom_type_c, indice_entrée);
+            virgule = ", ";
         }
-        ajoute_au_tampon(enchaineuse, ")")
+        ajoute_au_tampon(enchaineuse, ")");
 
         si pour_déclaration {
-            ajoute_au_tampon(enchaineuse, ";\n")
-            continue
+            ajoute_au_tampon(enchaineuse, ";\n");
+            continue;
         }
 
-        ajoute_au_tampon(enchaineuse, "\n{\n")
-        ajoute_au_tampon(enchaineuse, "    auto données = static_cast<", type_c.nom_type_cpp, " *>(param0);\n")
-        ajoute_au_tampon(enchaineuse, "    return données->", nom_fonction)
+        ajoute_au_tampon(enchaineuse, "\n{\n");
+        ajoute_au_tampon(enchaineuse, "    auto données = static_cast<", type_c.nom_type_cpp, " *>(param0);\n");
+        ajoute_au_tampon(enchaineuse, "    return données->", nom_fonction);
 
-        virgule = "("
+        virgule = "(";
         si type_fonction.types_entrée.taille <= 1 {
-            ajoute_au_tampon(enchaineuse, virgule)
+            ajoute_au_tampon(enchaineuse, virgule);
         }
         sinon pour indice_entrée dans 1 ... type_fonction.types_entrée.taille - 1 {
-            entrée := type_fonction.types_entrée[indice_entrée]
-            type_c_entrée := trouve_type(système, entrée.infos)
-            nom_type := type_c_entrée.nom_type_cpp
+            entrée := type_fonction.types_entrée[indice_entrée];
+            type_c_entrée := trouve_type(système, entrée.infos);
+            nom_type := type_c_entrée.nom_type_cpp;
             si type_est_toujours_pointeur(entrée) {
-                nom_type = recule(nom_type, 1)
+                nom_type = recule(nom_type, 1);
             }
             sinon saufsi type_requiers_conversion_entre_c_et_cpp(entrée.infos) {
-                nom_type = ""
+                nom_type = "";
             }
-            imprime_dans_enchaineuse(enchaineuse, "%%(param%)", virgule, nom_type, indice_entrée)
-            virgule = ", "
+            imprime_dans_enchaineuse(enchaineuse, "%%(param%)", virgule, nom_type, indice_entrée);
+            virgule = ", ";
         }
-        ajoute_au_tampon(enchaineuse, ");\n")
-        ajoute_au_tampon(enchaineuse, "}\n\n")
+        ajoute_au_tampon(enchaineuse, ");\n");
+        ajoute_au_tampon(enchaineuse, "}\n\n");
     }
 
     si pour_déclaration {
-        ajoute_au_tampon(enchaineuse, "\n")
+        ajoute_au_tampon(enchaineuse, "\n");
     }
 }
 
 type_est_toujours_pointeur :: fonc (type: *TypeIPA) -> bool
 {
-    retourne type.type_pointé && type.type_pointé.drapeaux.TOUJOURS_COMME_POINTEUR
+    retourne type.type_pointé && type.type_pointé.drapeaux.TOUJOURS_COMME_POINTEUR;
 }
 
 génère_code_fonction_cpp :: fonc (enchaineuse: *Enchaineuse, système: *SystèmeTypeC, fonction: MéthodeIPA, est_méthode_classe: *TypeIPA, est_pour_déclaration: bool)
 {
     indentation := si est_méthode_classe != nul && est_pour_déclaration {
-        "    "
+        "    ";
     }
     sinon {
-        ""
+        "";
     }
 
-    ajoute_au_tampon(enchaineuse, indentation, "inline ")
+    ajoute_au_tampon(enchaineuse, indentation, "inline ");
 
     si fonction.sorties.taille == 1 {
-        type_sortie := fonction.sorties[0].type
-        type_c := trouve_type(système, type_sortie)
-        nom_type := type_c.nom_type_cpp
+        type_sortie := fonction.sorties[0].type;
+        type_c := trouve_type(système, type_sortie);
+        nom_type := type_c.nom_type_cpp;
 
-        type_ipa_sortie := fonction.sorties[0].type_ipa
+        type_ipa_sortie := fonction.sorties[0].type_ipa;
 
         si type_est_toujours_pointeur(type_ipa_sortie) {
-            nom_type = recule(nom_type, 1)
+            nom_type = recule(nom_type, 1);
         }
 
-        ajoute_au_tampon(enchaineuse, nom_type, " ")
+        ajoute_au_tampon(enchaineuse, nom_type, " ");
     }
     sinon {
         // À FAIRE : multiple retour
-        ajoute_au_tampon(enchaineuse, "void ")
+        ajoute_au_tampon(enchaineuse, "void ");
     }
 
     si est_pour_déclaration == faux && est_méthode_classe != nul {
-        type_c := trouve_type(système, est_méthode_classe.infos)
-        ajoute_au_tampon(enchaineuse, type_c.nom_type_cpp, "::")
+        type_c := trouve_type(système, est_méthode_classe.infos);
+        ajoute_au_tampon(enchaineuse, type_c.nom_type_cpp, "::");
     }
 
-    ajoute_au_tampon(enchaineuse, fonction.nom)
+    ajoute_au_tampon(enchaineuse, fonction.nom);
 
-    génère_liste_paramètres_pour_fonction_cpp(enchaineuse, système, *fonction, est_méthode_classe != nul)
+    génère_liste_paramètres_pour_fonction_cpp(enchaineuse, système, *fonction, est_méthode_classe != nul);
 
     si fonction.est_accès_rubrique && fonction.entrées.taille == 1 {
-        ajoute_au_tampon(enchaineuse, " const")
+        ajoute_au_tampon(enchaineuse, " const");
     }
 
     si est_pour_déclaration {
-        ajoute_au_tampon(enchaineuse, ";\n")
-        retourne
+        ajoute_au_tampon(enchaineuse, ";\n");
+        retourne;
     }
 
-    ajoute_au_tampon(enchaineuse, indentation, "\n{\n")
+    ajoute_au_tampon(enchaineuse, indentation, "\n{\n");
 
-    fonction_ne_retourne_rien := fonction.sorties.taille == 0 || fonction.sorties[0].type.id == GenreInfoType.RIEN
+    fonction_ne_retourne_rien := fonction.sorties.taille == 0 || fonction.sorties[0].type.id == GenreInfoType.RIEN;
 
-    ajoute_au_tampon(enchaineuse, "    ")
+    ajoute_au_tampon(enchaineuse, "    ");
 
     saufsi fonction_ne_retourne_rien {
-        ajoute_au_tampon(enchaineuse, "auto valeur_de_retour = ")
+        ajoute_au_tampon(enchaineuse, "auto valeur_de_retour = ");
     }
 
-    ajoute_au_tampon(enchaineuse, fonction.nom_pour_fonction_c)
+    ajoute_au_tampon(enchaineuse, fonction.nom_pour_fonction_c);
 
-    virgule := "("
+    virgule := "(";
     pour fonction.entrées {
         si est_méthode_classe && indice_it == 0 {
             /* Pour les accès rubrique le type doit être un pointeur. */
-            prise_adresse := ""
+            prise_adresse := "";
             si (fonction.est_accès_rubrique && est_méthode_classe.drapeaux.TOUJOURS_COMME_POINTEUR == faux) || (it.type_ipa.drapeaux.TYPE_EST_POINTEUR && !type_est_toujours_pointeur(it.type_ipa)) {
-                prise_adresse = "&"
+                prise_adresse = "&";
             }
-            ajoute_au_tampon(enchaineuse, virgule, prise_adresse, "poignee()")
-            virgule = ", "
-            continue
+            ajoute_au_tampon(enchaineuse, virgule, prise_adresse, "poignee()");
+            virgule = ", ";
+            continue;
         }
 
         si it.type_ipa.drapeaux.TYPE_EST_POINTEUR && !type_est_toujours_pointeur(it.type_ipa) && it.type_ipa.infos != info_de(*rien) {
-            ajoute_au_tampon(enchaineuse, virgule, "&", it.nom, "->poignee()")
+            ajoute_au_tampon(enchaineuse, virgule, "&", it.nom, "->poignee()");
         }
         sinon {
-            type_c := trouve_type(système, it.type)
-            ajoute_au_tampon(enchaineuse, virgule, type_c.transtype_cpp_vers_c, it.nom)
+            type_c := trouve_type(système, it.type);
+            ajoute_au_tampon(enchaineuse, virgule, type_c.transtype_cpp_vers_c, it.nom);
         }
 
-        virgule = ", "
+        virgule = ", ";
     }
 
     si fonction.entrées.taille == 0 {
-        ajoute_au_tampon(enchaineuse, "(")
+        ajoute_au_tampon(enchaineuse, "(");
     }
-    ajoute_au_tampon(enchaineuse, ");\n")
+    ajoute_au_tampon(enchaineuse, ");\n");
 
     saufsi fonction_ne_retourne_rien {
-        type_sortie := fonction.sorties[0].type
-        type_c := trouve_type(système, type_sortie)
-        type_ipa_sortie := fonction.sorties[0].type_ipa
+        type_sortie := fonction.sorties[0].type;
+        type_c := trouve_type(système, type_sortie);
+        type_ipa_sortie := fonction.sorties[0].type_ipa;
 
         si type_ipa_sortie.drapeaux.TYPE_EST_TABLEAU || type_ipa_sortie.drapeaux.TYPE_EST_TRANCHE {
-            ajoute_au_tampon(enchaineuse, "    return ", type_c.nom_type_cpp, "(valeur_de_retour.éléments, valeur_de_retour.compte);\n")
+            ajoute_au_tampon(enchaineuse, "    return ", type_c.nom_type_cpp, "(valeur_de_retour.éléments, valeur_de_retour.compte);\n");
         }
         sinon {
-            ajoute_au_tampon(enchaineuse, "    return ", type_c.transtype_c_vers_cpp, "valeur_de_retour;\n")
+            ajoute_au_tampon(enchaineuse, "    return ", type_c.transtype_c_vers_cpp, "valeur_de_retour;\n");
         }
     }
 
-    ajoute_au_tampon(enchaineuse, indentation, "}\n\n")
+    ajoute_au_tampon(enchaineuse, indentation, "}\n\n");
 }
 
 génère_liste_paramètres_pour_fonction_cpp :: fonc (enchaineuse: *Enchaineuse, système: *SystèmeTypeC, fonction: *MéthodeIPA, saute_premier_param: bool)
 {
-    virgule := "("
-    nombre_params := 0
+    virgule := "(";
+    nombre_params := 0;
     pour fonction.entrées {
         si saute_premier_param && indice_it == 0 {
-            continue
+            continue;
         }
 
-        nombre_params += 1
+        nombre_params += 1;
 
-        type_c := trouve_type(système, it.type)
+        type_c := trouve_type(système, it.type);
 
-        nom_type := type_c.nom_type_cpp
-        référence := ""
+        nom_type := type_c.nom_type_cpp;
+        référence := "";
         si type_est_toujours_pointeur(it.type_ipa) {
-            nom_type = recule(nom_type, 1)
-            référence = "&"
+            nom_type = recule(nom_type, 1);
+            référence = "&";
         }
 
-        ajoute_au_tampon(enchaineuse, virgule, nom_type, référence, " ", it.nom)
-        virgule = ", "
+        ajoute_au_tampon(enchaineuse, virgule, nom_type, référence, " ", it.nom);
+        virgule = ", ";
     }
 
     si nombre_params == 0 {
-        ajoute_au_tampon(enchaineuse, "(")
+        ajoute_au_tampon(enchaineuse, "(");
     }
 
-    ajoute_au_tampon(enchaineuse, ")")
+    ajoute_au_tampon(enchaineuse, ")");
 }
 
 /* ------------------------------------------------------------------------- */
@@ -1092,107 +1092,107 @@ génère_liste_paramètres_pour_fonction_cpp :: fonc (enchaineuse: *Enchaineuse,
 génère_code_déclaration_type_c :: fonc (enchaineuse: *Enchaineuse, ipa: &IPA, type_courant: *TypeIPA, système_type: *SystèmeTypeC)
 {
     si type_courant.drapeaux.TYPE_EST_BASIQUE {
-        retourne
+        retourne;
     }
 
     si type_courant.infos.id == GenreInfoType.CHAINE {
-        retourne
+        retourne;
     }
 
     si type_courant.drapeaux.DÉCLARATION_TYPE_C_FUT_GÉNÉRÉE {
-        retourne
+        retourne;
     }
 
-    diffère type_courant.drapeaux.DÉCLARATION_TYPE_C_FUT_GÉNÉRÉE = vrai
+    diffère type_courant.drapeaux.DÉCLARATION_TYPE_C_FUT_GÉNÉRÉE = vrai;
 
-    infos_type_courant := type_courant.infos
-    type_c := trouve_type(système_type, infos_type_courant)
+    infos_type_courant := type_courant.infos;
+    type_c := trouve_type(système_type, infos_type_courant);
 
     si type_courant.drapeaux.TYPE_EST_FONCTION {
         pour type_courant.types_entrée {
-            type_entrée := it
+            type_entrée := it;
             /* Garantis que le type pointé est prédéclaré. */
             si it.drapeaux.TYPE_EST_POINTEUR {
-                type_entrée = it.type_pointé
+                type_entrée = it.type_pointé;
             }
-            génère_code_déclaration_type_c(enchaineuse, ipa, type_entrée, système_type)
+            génère_code_déclaration_type_c(enchaineuse, ipa, type_entrée, système_type);
         }
 
         pour type_courant.types_sortie {
-            génère_code_déclaration_type_c(enchaineuse, ipa, it, système_type)
+            génère_code_déclaration_type_c(enchaineuse, ipa, it, système_type);
         }
 
-        ajoute_au_tampon(enchaineuse, "typedef ")
+        ajoute_au_tampon(enchaineuse, "typedef ");
 
-        type_c_sortie := trouve_type(système_type, type_courant.types_sortie[0].infos)
-        ajoute_au_tampon(enchaineuse, type_c_sortie.nom_type_c)
+        type_c_sortie := trouve_type(système_type, type_courant.types_sortie[0].infos);
+        ajoute_au_tampon(enchaineuse, type_c_sortie.nom_type_c);
 
-        type_c_courant := trouve_type(système_type, type_courant.infos)
-        ajoute_au_tampon(enchaineuse, "(*", type_c_courant.nom_type_c, ")")
+        type_c_courant := trouve_type(système_type, type_courant.infos);
+        ajoute_au_tampon(enchaineuse, "(*", type_c_courant.nom_type_c, ")");
 
-        virgule := "("
+        virgule := "(";
         saufsi type_courant.types_entrée {
-            ajoute_au_tampon(enchaineuse, virgule)
+            ajoute_au_tampon(enchaineuse, virgule);
         }
         sinon pour type_courant.types_entrée {
-            type_c_entrée := trouve_type(système_type, it.infos)
-            ajoute_au_tampon(enchaineuse, virgule, type_c_entrée.nom_type_c)
-            virgule = ", "
+            type_c_entrée := trouve_type(système_type, it.infos);
+            ajoute_au_tampon(enchaineuse, virgule, type_c_entrée.nom_type_c);
+            virgule = ", ";
         }
-        ajoute_au_tampon(enchaineuse, ");\n\n")
+        ajoute_au_tampon(enchaineuse, ");\n\n");
 
-        retourne
+        retourne;
     }
 
     si type_courant.drapeaux.TYPE_EST_TABLEAU || type_courant.drapeaux.TYPE_EST_TRANCHE {
-        type_tableau := infos_type_courant comme *InfoTypeTableau
+        type_tableau := infos_type_courant comme *InfoTypeTableau;
 
-        type_ipa_type_pointé := trouve_type_ipa(ipa, type_tableau.type_pointé)
+        type_ipa_type_pointé := trouve_type_ipa(ipa, type_tableau.type_pointé);
 
-        génère_code_déclaration_type_c(enchaineuse, ipa, type_ipa_type_pointé, système_type)
+        génère_code_déclaration_type_c(enchaineuse, ipa, type_ipa_type_pointé, système_type);
 
-        type_c_type_pointé := trouve_type(système_type, type_tableau.type_pointé)
+        type_c_type_pointé := trouve_type(système_type, type_tableau.type_pointé);
 
-        ajoute_au_tampon(enchaineuse, "typedef struct ", type_c.nom_type_c, " {\n")
-        ajoute_au_tampon(enchaineuse, "    ", type_c_type_pointé.nom_type_c, " *éléments;\n")
-        ajoute_au_tampon(enchaineuse, "    long compte;\n")
-        ajoute_au_tampon(enchaineuse, "} ", type_c.nom_type_c, ";\n\n")
-        retourne
+        ajoute_au_tampon(enchaineuse, "typedef struct ", type_c.nom_type_c, " {\n");
+        ajoute_au_tampon(enchaineuse, "    ", type_c_type_pointé.nom_type_c, " *éléments;\n");
+        ajoute_au_tampon(enchaineuse, "    long compte;\n");
+        ajoute_au_tampon(enchaineuse, "} ", type_c.nom_type_c, ";\n\n");
+        retourne;
     }
 
     si type_courant.drapeaux.TYPE_EST_ÉNUM {
-        type_énum := infos_type_courant comme *InfoTypeÉnum
+        type_énum := infos_type_courant comme *InfoTypeÉnum;
 
-        ajoute_au_tampon(enchaineuse, "typedef enum ", type_c.nom_type_c, " {\n")
+        ajoute_au_tampon(enchaineuse, "typedef enum ", type_c.nom_type_c, " {\n");
 
         pour type_énum.noms {
-            ajoute_au_tampon(enchaineuse, "    ", type_c.nom_type_c, "_", it, " = ")
-            eini_valeur := donne_eini_valeur_énum_indice(type_énum, indice_it)
-            imprime_valeur(enchaineuse, eini_valeur, faux)
-            ajoute_au_tampon(enchaineuse, ",\n")
+            ajoute_au_tampon(enchaineuse, "    ", type_c.nom_type_c, "_", it, " = ");
+            eini_valeur := donne_eini_valeur_énum_indice(type_énum, indice_it);
+            imprime_valeur(enchaineuse, eini_valeur, faux);
+            ajoute_au_tampon(enchaineuse, ",\n");
         }
 
-        ajoute_au_tampon(enchaineuse, "} ", type_c.nom_type_c, ";\n\n")
-        retourne
+        ajoute_au_tampon(enchaineuse, "} ", type_c.nom_type_c, ";\n\n");
+        retourne;
     }
 
     si type_courant.drapeaux.TOUJOURS_COMME_POINTEUR {
-        ajoute_au_tampon(enchaineuse, "typedef struct ", type_c.nom_type_c, " ", type_c.nom_type_c, ";\n\n")
+        ajoute_au_tampon(enchaineuse, "typedef struct ", type_c.nom_type_c, " ", type_c.nom_type_c, ";\n\n");
     }
     sinon {
-        ajoute_au_tampon(enchaineuse, "typedef struct ", type_c.nom_type_c, " { char données[", infos_type_courant.taille_en_octet, "]; } ", type_c.nom_type_c, ";\n\n")
+        ajoute_au_tampon(enchaineuse, "typedef struct ", type_c.nom_type_c, " { char données[", infos_type_courant.taille_en_octet, "]; } ", type_c.nom_type_c, ";\n\n");
     }
 }
 
 TableIPA :: struct {
-    fonctions: [..]MéthodeIPA
+    fonctions: [..]MéthodeIPA;
 }
 
 construis_table_ipa :: fonc (génératrice: *GénératriceCodeC) -> TableIPA
 {
-    résultat: TableIPA
+    résultat: TableIPA;
 
-    ipa := génératrice.ipa
+    ipa := génératrice.ipa;
 
     // tri_rapide(ipa.types, compare_types_par_nom)
     // À FAIRE : restaure cice
@@ -1205,156 +1205,156 @@ construis_table_ipa :: fonc (génératrice: *GénératriceCodeC) -> TableIPA
     /* Rappel pour chaque fonction des types. */
     pour ipa.types {
         pour f dans it.fonctions {
-            tableau_ajoute(*résultat.fonctions, f)
+            tableau_ajoute(*résultat.fonctions, f);
         }
 
         si it.constructrice.possède_valeur() {
-            tableau_ajoute(*résultat.fonctions, it.constructrice.Quelque)
+            tableau_ajoute(*résultat.fonctions, it.constructrice.Quelque);
         }
     }
 
     /* Rappel pour chaque fonction libre de l'IPA. */
     pour ipa.fonctions {
-        tableau_ajoute(*résultat.fonctions, it)
+        tableau_ajoute(*résultat.fonctions, it);
     }
 
-    tri_rapide(résultat.fonctions, compare_fonction_par_nom_rappel_pour_table)
+    tri_rapide(résultat.fonctions, compare_fonction_par_nom_rappel_pour_table);
 
-    retourne résultat
+    retourne résultat;
 }
 
 compare_fonction_par_nom_rappel_pour_table :: fonc (fa: MéthodeIPA, fb: MéthodeIPA) -> z32
 {
-    retourne compare_chaine(fa.nom_rappel_pour_table, fb.nom_rappel_pour_table)
+    retourne compare_chaine(fa.nom_rappel_pour_table, fb.nom_rappel_pour_table);
 }
 
 compare_types_par_nom_sélection :: fonc (a: *TypeIPA, b: *TypeIPA) -> bool
 {
-    retourne compare_chaine(a.nom, b.nom) < 0
+    retourne compare_chaine(a.nom, b.nom) < 0;
 }
 
 détruit_données_table_ipa :: fonc (table: *TableIPA)
 {
-    déloge(table.fonctions)
+    déloge(table.fonctions);
 }
 
 génère_code_entête_table :: fonc (génératrice: *GénératriceCodeC, table_ipa: *TableIPA, chemin: CheminFichier)
 {
-    ipa := génératrice.ipa
-    système_type := *génératrice.système_type
+    ipa := génératrice.ipa;
+    système_type := *génératrice.système_type;
 
-    enchaineuse: Enchaineuse
-    initialise_enchaineuse(*enchaineuse)
-    diffère détruit_tampons(*enchaineuse)
+    enchaineuse: Enchaineuse;
+    initialise_enchaineuse(*enchaineuse);
+    diffère détruit_tampons(*enchaineuse);
 
     /* Début du fichier. */
-    ajoute_au_tampon(*enchaineuse, "#pragma once\n\n")
-    ajoute_au_tampon(*enchaineuse, "#include <stdint.h>\n\n")
-    ajoute_au_tampon(*enchaineuse, "#ifdef __cplusplus\nextern \"C\" {\n#endif\n\n")
+    ajoute_au_tampon(*enchaineuse, "#pragma once\n\n");
+    ajoute_au_tampon(*enchaineuse, "#include <stdint.h>\n\n");
+    ajoute_au_tampon(*enchaineuse, "#ifdef __cplusplus\nextern \"C\" {\n#endif\n\n");
 
     /* Déclare les types. */
-    ajoute_au_tampon(*enchaineuse, "typedef struct { char *pointeur; long taille; } ", génératrice.espace_de_nom, "_Chaine;\n\n")
+    ajoute_au_tampon(*enchaineuse, "typedef struct { char *pointeur; long taille; } ", génératrice.espace_de_nom, "_Chaine;\n\n");
 
     /* Deux passes pour les typedefs des tableaux se fassent après les types qu'ils utilisent. */
     pour ipa.types {
         si it.drapeaux.TYPE_EST_TABLEAU || it.drapeaux.TYPE_EST_TRANCHE {
-            continue
+            continue;
         }
-        génère_code_déclaration_type_c(*enchaineuse, ipa, it, système_type)
+        génère_code_déclaration_type_c(*enchaineuse, ipa, it, système_type);
     }
     pour ipa.types {
         saufsi it.drapeaux.TYPE_EST_TABLEAU || it.drapeaux.TYPE_EST_TRANCHE {
-            continue
+            continue;
         }
-        génère_code_déclaration_type_c(*enchaineuse, ipa, it, système_type)
+        génère_code_déclaration_type_c(*enchaineuse, ipa, it, système_type);
     }
 
     /* Déclare la structure pour la table. */
-    ajoute_au_tampon(*enchaineuse, "typedef struct TableIPA {\n")
+    ajoute_au_tampon(*enchaineuse, "typedef struct TableIPA {\n");
 
     /* Rappel pour chaque fonction de l'IPA. */
     pour table_ipa.fonctions {
-        génère_rappel_fonction(*enchaineuse, système_type, it)
+        génère_rappel_fonction(*enchaineuse, système_type, it);
     }
 
-    ajoute_au_tampon(*enchaineuse, "} TableIPA;\n\n")
+    ajoute_au_tampon(*enchaineuse, "} TableIPA;\n\n");
 
     /* Déclaration de la table globale. */
-    ajoute_au_tampon(*enchaineuse, "extern TableIPA TABLE_IPA;\n\n")
+    ajoute_au_tampon(*enchaineuse, "extern TableIPA TABLE_IPA;\n\n");
 
     /* Déclaration de la fonction d'initialisation de Jorjala. */
-    ajoute_au_tampon(*enchaineuse, "bool ", génératrice.espace_de_nom, "_initialise(const char *chemin_bibliotheque);\n\n")
-    ajoute_au_tampon(*enchaineuse, "void ", génératrice.espace_de_nom, "_issitialise(void);\n\n")
+    ajoute_au_tampon(*enchaineuse, "bool ", génératrice.espace_de_nom, "_initialise(const char *chemin_bibliotheque);\n\n");
+    ajoute_au_tampon(*enchaineuse, "void ", génératrice.espace_de_nom, "_issitialise(void);\n\n");
 
     /* Fin du fichier. */
-    ajoute_au_tampon(*enchaineuse, "#ifdef __cplusplus\n}\n#endif\n\n")
+    ajoute_au_tampon(*enchaineuse, "#ifdef __cplusplus\n}\n#endif\n\n");
 
-    copie_enchaineuse_fichier_ex(*enchaineuse, chemin)
+    copie_enchaineuse_fichier_ex(*enchaineuse, chemin);
 }
 
 génère_rappel_fonction :: fonc (enchaineuse: *Enchaineuse, système_type: *SystèmeTypeC, fonction: MéthodeIPA)
 {
-    indentation := "    "
+    indentation := "    ";
 
-    ajoute_au_tampon(enchaineuse, indentation)
+    ajoute_au_tampon(enchaineuse, indentation);
 
     si fonction.sorties.taille == 1 {
-        type_c := trouve_type(système_type, fonction.sorties[0].type)
-        ajoute_au_tampon(enchaineuse, type_c.nom_type_c, " ")
+        type_c := trouve_type(système_type, fonction.sorties[0].type);
+        ajoute_au_tampon(enchaineuse, type_c.nom_type_c, " ");
     }
     sinon {
         // À FAIRE : multiple retour
-        ajoute_au_tampon(enchaineuse, "void ")
+        ajoute_au_tampon(enchaineuse, "void ");
     }
 
-    ajoute_au_tampon(enchaineuse, "(*", fonction.nom_rappel_pour_table, ")")
-    virgule := "("
+    ajoute_au_tampon(enchaineuse, "(*", fonction.nom_rappel_pour_table, ")");
+    virgule := "(";
     pour fonction.entrées {
         /* Pour les accès rubrique le type doit être un pointeur. */
-        pointeur := ""
+        pointeur := "";
         si fonction.est_accès_rubrique && indice_it == 0 {
-            pointeur = "*"
+            pointeur = "*";
         }
-        type_c := trouve_type(système_type, it.type)
-        ajoute_au_tampon(enchaineuse, virgule, type_c.nom_type_c, pointeur, " ", it.nom)
-        virgule = ", "
+        type_c := trouve_type(système_type, it.type);
+        ajoute_au_tampon(enchaineuse, virgule, type_c.nom_type_c, pointeur, " ", it.nom);
+        virgule = ", ";
     }
 
     si fonction.entrées.taille == 0 {
-        ajoute_au_tampon(enchaineuse, "(")
+        ajoute_au_tampon(enchaineuse, "(");
     }
 
-    ajoute_au_tampon(enchaineuse, ");\n")
+    ajoute_au_tampon(enchaineuse, ");\n");
 }
 
 /* ------------------------------------------------------------------------- */
 
 génère_code_source_table :: fonc (génératrice: *GénératriceCodeC, table_ipa: *TableIPA, chemin: CheminFichier)
 {
-    enchaineuse: Enchaineuse
-    initialise_enchaineuse(*enchaineuse)
-    diffère détruit_tampons(*enchaineuse)
+    enchaineuse: Enchaineuse;
+    initialise_enchaineuse(*enchaineuse);
+    diffère détruit_tampons(*enchaineuse);
 
     /* Début du fichier. */
-    ajoute_au_tampon(*enchaineuse, "#include \"table_types.h\"\n\n")
-    ajoute_au_tampon(*enchaineuse, "#include <dlfcn.h>\n\n")
-    ajoute_au_tampon(*enchaineuse, "#include <stdio.h>\n\n")
+    ajoute_au_tampon(*enchaineuse, "#include \"table_types.h\"\n\n");
+    ajoute_au_tampon(*enchaineuse, "#include <dlfcn.h>\n\n");
+    ajoute_au_tampon(*enchaineuse, "#include <stdio.h>\n\n");
 
     /* Définition de la table globale. */
-    ajoute_au_tampon(*enchaineuse, "TableIPA TABLE_IPA;\n")
+    ajoute_au_tampon(*enchaineuse, "TableIPA TABLE_IPA;\n");
 
     /* Table des noms de fonctions. */
-    ajoute_au_tampon(*enchaineuse, "static const char *noms_fonctions[] = {\n")
+    ajoute_au_tampon(*enchaineuse, "static const char *noms_fonctions[] = {\n");
 
-    nombre_de_fonctions := 0
+    nombre_de_fonctions := 0;
 
     /* Nom pour chaque fonction de la table d'IPA. */
     pour table_ipa.fonctions {
-        ajoute_au_tampon(*enchaineuse, "    \"enveloppe_", it.nom_rappel_pour_table, "\",\n")
-        nombre_de_fonctions += 1
+        ajoute_au_tampon(*enchaineuse, "    \"enveloppe_", it.nom_rappel_pour_table, "\",\n");
+        nombre_de_fonctions += 1;
     }
 
-    ajoute_au_tampon(*enchaineuse, "};\n\n")
+    ajoute_au_tampon(*enchaineuse, "};\n\n");
 
     /* Définition de la fonction d'initialisation de la table. */
 
@@ -1426,19 +1426,19 @@ static void imprime_erreur()
         fprintf(stderr, "%s\\n", err);
     }
 }
-»
+»;
 
-    imprime_dans_enchaineuse(*enchaineuse, fonction_initilisation, nombre_de_fonctions, génératrice.espace_de_nom, génératrice.espace_de_nom)
+    imprime_dans_enchaineuse(*enchaineuse, fonction_initilisation, nombre_de_fonctions, génératrice.espace_de_nom, génératrice.espace_de_nom);
 
-    copie_enchaineuse_fichier_ex(*enchaineuse, chemin)
+    copie_enchaineuse_fichier_ex(*enchaineuse, chemin);
 }
 
 /* ------------------------------------------------------------------------- */
 
 génère_code_support_kuri :: fonc (espace: EspaceDeTravail, ipa: &IPA, système_type: *SystèmeTypeC)
 {
-    enchaineuse: Enchaineuse
-    initialise_enchaineuse(*enchaineuse)
+    enchaineuse: Enchaineuse;
+    initialise_enchaineuse(*enchaineuse);
 
     /* Types pour les chaines et les tableaux.
      * Pour les tableaux, il est inutile d'avoir des types distincts tant que
@@ -1454,21 +1454,21 @@ TableauGénériqueIPA :: struct {
     pointeur: *rien
     taille: z64
 }
-»
+»;
 
-    modules_utilisés := détermine_modules_utilisés(espace, ipa)
-    diffère détruit(*modules_utilisés)
+    modules_utilisés := détermine_modules_utilisés(espace, ipa);
+    diffère détruit(*modules_utilisés);
 
-    _ := génère_instructions_importe(*modules_utilisés, *enchaineuse)
+    _ := génère_instructions_importe(*modules_utilisés, *enchaineuse);
 
-    ajoute_au_tampon(*enchaineuse, types_support)
+    ajoute_au_tampon(*enchaineuse, types_support);
 
     pour ipa.types {
         /* Les structures n'étant pas toujours accéder via des pointeurs sont définis comme des tableaux de leur taille en octet en C.
          * Nous également utiliser de tels tableaux afin de garantir une correspondance des types pour l'interface binaire. */
         si it.infos.id == GenreInfoType.STRUCTURE && it.drapeaux.TOUJOURS_COMME_POINTEUR == faux {
-            type_c := trouve_type(système_type, it.infos)
-            ajoute_au_tampon(*enchaineuse, type_c.nom_type_kuri_c, " :: [", it.infos.taille_en_octet, "]octet\n\n")
+            type_c := trouve_type(système_type, it.infos);
+            ajoute_au_tampon(*enchaineuse, type_c.nom_type_kuri_c, " :: [", it.infos.taille_en_octet, "]octet\n\n");
         }
     }
 
@@ -1476,107 +1476,107 @@ TableauGénériqueIPA :: struct {
 
     pour ipa.types {
         pour f dans it.fonctions {
-            génère_fonction_enveloppe_kuri(*enchaineuse, système_type, f)
+            génère_fonction_enveloppe_kuri(*enchaineuse, système_type, f);
         }
 
         si it.constructrice.possède_valeur() {
-            génère_fonction_enveloppe_kuri(*enchaineuse, système_type, it.constructrice.Quelque)
+            génère_fonction_enveloppe_kuri(*enchaineuse, système_type, it.constructrice.Quelque);
         }
     }
 
     pour ipa.fonctions {
-        génère_fonction_enveloppe_kuri(*enchaineuse, système_type, it)
+        génère_fonction_enveloppe_kuri(*enchaineuse, système_type, it);
     }
 
     // copie_enchaineuse_fichier_ex(*enchaineuse, chemin)
-    code := chaine_depuis_enchaineuse(*enchaineuse)
-    diffère déloge(code)
+    code := chaine_depuis_enchaineuse(*enchaineuse);
+    diffère déloge(code);
 
-    ajoute_chaine_à_la_compilation(compilatrice_espace_courant(), code)
+    ajoute_chaine_à_la_compilation(compilatrice_espace_courant(), code);
 }
 
 génère_fonction_enveloppe_kuri :: fonc (enchaineuse: *Enchaineuse, système_type: *SystèmeTypeC, fonction: MéthodeIPA)
 {
     /* Nom de la fonction et paramètres. */
-    fonction_ne_retourne_rien := fonction.sorties.taille == 0 || fonction.sorties[0].type.id == GenreInfoType.RIEN
+    fonction_ne_retourne_rien := fonction.sorties.taille == 0 || fonction.sorties[0].type.id == GenreInfoType.RIEN;
 
-    ajoute_au_tampon(enchaineuse, "enveloppe_", fonction.nom_rappel_pour_table, " :: fonc ")
+    ajoute_au_tampon(enchaineuse, "enveloppe_", fonction.nom_rappel_pour_table, " :: fonc ");
 
-    virgule := "("
+    virgule := "(";
     pour fonction.entrées {
         /* Pour les accès rubrique le type doit être un pointeur. */
-        pointeur := ""
+        pointeur := "";
         si fonction.est_accès_rubrique && indice_it == 0 {
-            pointeur = "*"
+            pointeur = "*";
         }
-        type_c := trouve_type(système_type, it.type)
-        ajoute_au_tampon(enchaineuse, virgule, it.nom, ": ", pointeur, type_c.nom_type_kuri_c)
-        virgule = ", "
+        type_c := trouve_type(système_type, it.type);
+        ajoute_au_tampon(enchaineuse, virgule, it.nom, ": ", pointeur, type_c.nom_type_kuri_c);
+        virgule = ", ";
     }
 
     si fonction.entrées.taille == 0 {
-        ajoute_au_tampon(enchaineuse, "(")
+        ajoute_au_tampon(enchaineuse, "(");
     }
-    ajoute_au_tampon(enchaineuse, ") -> ")
+    ajoute_au_tampon(enchaineuse, ") -> ");
 
     si fonction.sorties.taille == 1 {
-        type_c := trouve_type(système_type, fonction.sorties[0].type)
-        ajoute_au_tampon(enchaineuse, type_c.nom_type_kuri_c, " ")
+        type_c := trouve_type(système_type, fonction.sorties[0].type);
+        ajoute_au_tampon(enchaineuse, type_c.nom_type_kuri_c, " ");
     }
     sinon {
         // À FAIRE : multiple retour
-        ajoute_au_tampon(enchaineuse, "rien")
+        ajoute_au_tampon(enchaineuse, "rien");
     }
 
-    ajoute_au_tampon(enchaineuse, "#racine #sansbroyage #exporte\n")
+    ajoute_au_tampon(enchaineuse, "#racine #sansbroyage #exporte\n");
 
-    ajoute_au_tampon(enchaineuse, "{\n")
+    ajoute_au_tampon(enchaineuse, "{\n");
 
     /* Convertis les paramètres en valeurs de types Kuri. */
 
     pour fonction.entrées {
-        type_c := trouve_type(système_type, it.type)
-        convertis_variable_type_c_vers_type_kuri(enchaineuse, it.type, type_c, it.nom, fonction.est_accès_rubrique)
+        type_c := trouve_type(système_type, it.type);
+        convertis_variable_type_c_vers_type_kuri(enchaineuse, it.type, type_c, it.nom, fonction.est_accès_rubrique);
     }
 
-    ajoute_au_tampon(enchaineuse, "    ")
+    ajoute_au_tampon(enchaineuse, "    ");
 
     saufsi fonction_ne_retourne_rien {
-        ajoute_au_tampon(enchaineuse, "valeur_retour_kuri := ")
+        ajoute_au_tampon(enchaineuse, "valeur_retour_kuri := ");
     }
 
     /* Appel la fonction. */
     si fonction.est_accès_rubrique {
-        ajoute_au_tampon(enchaineuse, "moi_kuri.", fonction.est_accès_rubrique.nom)
+        ajoute_au_tampon(enchaineuse, "moi_kuri.", fonction.est_accès_rubrique.nom);
         si fonction.entrées.taille == 2 {
             /* Modification de la valeur. */
-            ajoute_au_tampon(enchaineuse, " = valeur_kuri")
+            ajoute_au_tampon(enchaineuse, " = valeur_kuri");
         }
-        ajoute_au_tampon(enchaineuse, "\n")
+        ajoute_au_tampon(enchaineuse, "\n");
     }
     sinon {
-        ajoute_au_tampon(enchaineuse, fonction.noeud_code.nom)
+        ajoute_au_tampon(enchaineuse, fonction.noeud_code.nom);
 
-        virgule = "("
+        virgule = "(";
         pour fonction.entrées {
-            ajoute_au_tampon(enchaineuse, virgule, it.nom, "_kuri")
-            virgule = ", "
+            ajoute_au_tampon(enchaineuse, virgule, it.nom, "_kuri");
+            virgule = ", ";
         }
 
         si fonction.entrées.taille == 0 {
-            ajoute_au_tampon(enchaineuse, "(")
+            ajoute_au_tampon(enchaineuse, "(");
         }
-        ajoute_au_tampon(enchaineuse, ")\n")
+        ajoute_au_tampon(enchaineuse, ")\n");
     }
 
     saufsi fonction_ne_retourne_rien {
-        type_sortie := fonction.sorties[0].type
-        type_sortie_c := trouve_type(système_type, type_sortie)
-        variable_retour := convertis_variable_type_kuri_vers_type_c(enchaineuse, type_sortie, type_sortie_c, "valeur_retour_kuri", "valeur_retour")
-        ajoute_au_tampon(enchaineuse, "    retourne ", variable_retour, "\n")
+        type_sortie := fonction.sorties[0].type;
+        type_sortie_c := trouve_type(système_type, type_sortie);
+        variable_retour := convertis_variable_type_kuri_vers_type_c(enchaineuse, type_sortie, type_sortie_c, "valeur_retour_kuri", "valeur_retour");
+        ajoute_au_tampon(enchaineuse, "    retourne ", variable_retour, "\n");
     }
 
-    ajoute_au_tampon(enchaineuse, "}\n")
+    ajoute_au_tampon(enchaineuse, "}\n");
 }
 
 /* Génère le code de conversion d'une variable de type Kuri vers une variable du type de l'IPA C correspondant.
@@ -1604,35 +1604,35 @@ convertis_variable_type_kuri_vers_type_c :: fonc (enchaineuse: *Enchaineuse, typ
         STRUCTURE {
             si type_c.type_kuri_requiers_conversion_tableau {
                 /* Copie les octets du tableau d'octets vers la structure Kuri. */
-                ajoute_au_tampon(enchaineuse, "    ", nom_nouvelle_variable, " := mémoire(*", nom_variable, " comme *", type_c.nom_type_c, ")\n")
-                retourne nom_nouvelle_variable
+                ajoute_au_tampon(enchaineuse, "    ", nom_nouvelle_variable, " := mémoire(*", nom_variable, " comme *", type_c.nom_type_c, ")\n");
+                retourne nom_nouvelle_variable;
             }
         }
         CHAINE {
-            ajoute_au_tampon(enchaineuse, "    ", nom_nouvelle_variable, " : ChaineIPA\n")
-            ajoute_au_tampon(enchaineuse, "    ", nom_nouvelle_variable, ".pointeur = ", nom_variable, ".pointeur\n")
-            ajoute_au_tampon(enchaineuse, "    ", nom_nouvelle_variable, ".taille = ", nom_variable, ".taille\n")
-            retourne nom_nouvelle_variable
+            ajoute_au_tampon(enchaineuse, "    ", nom_nouvelle_variable, " : ChaineIPA\n");
+            ajoute_au_tampon(enchaineuse, "    ", nom_nouvelle_variable, ".pointeur = ", nom_variable, ".pointeur\n");
+            ajoute_au_tampon(enchaineuse, "    ", nom_nouvelle_variable, ".taille = ", nom_variable, ".taille\n");
+            retourne nom_nouvelle_variable;
         }
         TABLEAU {
-            ajoute_au_tampon(enchaineuse, "    ", nom_nouvelle_variable, " : TableauGénériqueIPA\n")
-            ajoute_au_tampon(enchaineuse, "    ", nom_nouvelle_variable, ".pointeur = ", nom_variable, ".pointeur comme *rien\n")
-            ajoute_au_tampon(enchaineuse, "    ", nom_nouvelle_variable, ".taille = ", nom_variable, ".taille\n")
-            retourne nom_nouvelle_variable
+            ajoute_au_tampon(enchaineuse, "    ", nom_nouvelle_variable, " : TableauGénériqueIPA\n");
+            ajoute_au_tampon(enchaineuse, "    ", nom_nouvelle_variable, ".pointeur = ", nom_variable, ".pointeur comme *rien\n");
+            ajoute_au_tampon(enchaineuse, "    ", nom_nouvelle_variable, ".taille = ", nom_variable, ".taille\n");
+            retourne nom_nouvelle_variable;
         }
         TABLEAU_FIXE {
             /* Non-supportés. */
-            retourne nom_variable
+            retourne nom_variable;
         }
         TRANCHE {
-            ajoute_au_tampon(enchaineuse, "    ", nom_nouvelle_variable, " : TableauGénériqueIPA\n")
-            ajoute_au_tampon(enchaineuse, "    ", nom_nouvelle_variable, ".pointeur = ", nom_variable, ".pointeur comme *rien\n")
-            ajoute_au_tampon(enchaineuse, "    ", nom_nouvelle_variable, ".taille = ", nom_variable, ".taille\n")
-            retourne nom_nouvelle_variable
+            ajoute_au_tampon(enchaineuse, "    ", nom_nouvelle_variable, " : TableauGénériqueIPA\n");
+            ajoute_au_tampon(enchaineuse, "    ", nom_nouvelle_variable, ".pointeur = ", nom_variable, ".pointeur comme *rien\n");
+            ajoute_au_tampon(enchaineuse, "    ", nom_nouvelle_variable, ".taille = ", nom_variable, ".taille\n");
+            retourne nom_nouvelle_variable;
         }
     }
 
-    retourne nom_variable
+    retourne nom_variable;
 }
 
 /* Génère le code de conversion d'une variable de type de l'IPA C vers une variable du type Kuri correspondant. */
@@ -1653,49 +1653,49 @@ convertis_variable_type_c_vers_type_kuri :: fonc (enchaineuse: *Enchaineuse, typ
         EINI,
         VARIADIQUE {
             /* Rien à faire. */
-            ajoute_au_tampon(enchaineuse, "    ", nom_variable, "_kuri := ", nom_variable, "\n")
+            ajoute_au_tampon(enchaineuse, "    ", nom_variable, "_kuri := ", nom_variable, "\n");
         }
         STRUCTURE {
             si type_c.type_kuri_requiers_conversion_tableau {
-                type_struct := type_kuri comme *InfoTypeStructure
+                type_struct := type_kuri comme *InfoTypeStructure;
                 /* Copie structure Kuri vers les octets du tableau d'octets.
                  * Pour les accès de rubrique, la structure accédée est déjà un
                  * pointeur, donc nous ne copions pas les octets, vers
                  * simplement transtypons le type du pointeur. */
                 si est_accès_rubrique && type_kuri != est_accès_rubrique.type_ipa.infos {
                     /* Type accédé. */
-                    ajoute_au_tampon(enchaineuse, "    ", nom_variable, "_kuri := (", nom_variable, " comme *", type_struct.nom, ")\n")
+                    ajoute_au_tampon(enchaineuse, "    ", nom_variable, "_kuri := (", nom_variable, " comme *", type_struct.nom, ")\n");
                 }
                 sinon {
                     /* Variable à convertir. */
-                    ajoute_au_tampon(enchaineuse, "    ", nom_variable, "_kuri := mémoire(*", nom_variable, " comme *", type_struct.nom, ")\n")
+                    ajoute_au_tampon(enchaineuse, "    ", nom_variable, "_kuri := mémoire(*", nom_variable, " comme *", type_struct.nom, ")\n");
                 }
             }
             sinon {
-                ajoute_au_tampon(enchaineuse, "    ", nom_variable, "_kuri := ", nom_variable, "\n")
+                ajoute_au_tampon(enchaineuse, "    ", nom_variable, "_kuri := ", nom_variable, "\n");
             }
         }
         CHAINE {
-            ajoute_au_tampon(enchaineuse, "    ", nom_variable, "_kuri : chaine\n")
-            ajoute_au_tampon(enchaineuse, "    ", nom_variable, "_kuri.pointeur = ", nom_variable, ".pointeur\n")
-            ajoute_au_tampon(enchaineuse, "    ", nom_variable, "_kuri.taille = ", nom_variable, ".taille\n")
+            ajoute_au_tampon(enchaineuse, "    ", nom_variable, "_kuri : chaine\n");
+            ajoute_au_tampon(enchaineuse, "    ", nom_variable, "_kuri.pointeur = ", nom_variable, ".pointeur\n");
+            ajoute_au_tampon(enchaineuse, "    ", nom_variable, "_kuri.taille = ", nom_variable, ".taille\n");
         }
         TABLEAU {
-            ajoute_au_tampon(enchaineuse, "    ", nom_variable, "_kuri : ")
-            imprime_type(enchaineuse, type_kuri)
-            ajoute_au_tampon(enchaineuse, "\n")
-            ajoute_au_tampon(enchaineuse, "    ", nom_variable, "_kuri.pointeur = ", nom_variable, ".pointeur\n")
-            ajoute_au_tampon(enchaineuse, "    ", nom_variable, "_kuri.taille = ", nom_variable, ".taille\n")
+            ajoute_au_tampon(enchaineuse, "    ", nom_variable, "_kuri : ");
+            imprime_type(enchaineuse, type_kuri);
+            ajoute_au_tampon(enchaineuse, "\n");
+            ajoute_au_tampon(enchaineuse, "    ", nom_variable, "_kuri.pointeur = ", nom_variable, ".pointeur\n");
+            ajoute_au_tampon(enchaineuse, "    ", nom_variable, "_kuri.taille = ", nom_variable, ".taille\n");
         }
         TABLEAU_FIXE {
             /* Non-supportés. */
         }
         TRANCHE {
-            ajoute_au_tampon(enchaineuse, "    ", nom_variable, "_kuri : ")
-            imprime_type(enchaineuse, type_kuri)
-            ajoute_au_tampon(enchaineuse, "\n")
-            ajoute_au_tampon(enchaineuse, "    ", nom_variable, "_kuri.pointeur = ", nom_variable, ".pointeur\n")
-            ajoute_au_tampon(enchaineuse, "    ", nom_variable, "_kuri.taille = ", nom_variable, ".taille\n")
+            ajoute_au_tampon(enchaineuse, "    ", nom_variable, "_kuri : ");
+            imprime_type(enchaineuse, type_kuri);
+            ajoute_au_tampon(enchaineuse, "\n");
+            ajoute_au_tampon(enchaineuse, "    ", nom_variable, "_kuri.pointeur = ", nom_variable, ".pointeur\n");
+            ajoute_au_tampon(enchaineuse, "    ", nom_variable, "_kuri.taille = ", nom_variable, ".taille\n");
         }
         ADRESSE_FONCTION {
             /* Non-supportés. */
@@ -1708,13 +1708,13 @@ convertis_variable_type_c_vers_type_kuri :: fonc (enchaineuse: *Enchaineuse, typ
 
 détermine_modules_utilisés :: fonc (espace: EspaceDeTravail, ipa: &IPA) -> EnsembleDeModules
 {
-    résultat: EnsembleDeModules
-    initialise_ensemble_de_modules(espace, *résultat)
+    résultat: EnsembleDeModules;
+    initialise_ensemble_de_modules(espace, *résultat);
 
     pour ipa.types {
-        module := compilatrice_module_pour_type(it.infos)
-        ajoute_module(*résultat, module)
+        module := compilatrice_module_pour_type(it.infos);
+        ajoute_module(*résultat, module);
     }
 
-    retourne résultat
+    retourne résultat;
 }

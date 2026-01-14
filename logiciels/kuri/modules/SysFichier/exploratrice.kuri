@@ -1,11 +1,11 @@
 ouvre_dossier :: fonc (chemin: CheminFichier) -> Optionnel(TypePoignéeDossier)
 {
-    retourne système_ouvre_dossier(chemin)
+    retourne système_ouvre_dossier(chemin);
 }
 
 chemin_pour_dossier :: fonc (dir: TypePoignéeEntréeDossier) -> CheminFichier
 {
-    retourne système_chemin_pour_dossier(dir)
+    retourne système_chemin_pour_dossier(dir);
 }
 
 /* Exploratrice de système de fichier pour visiter des dossiers depuis un chemin racine.
@@ -14,36 +14,36 @@ chemin_pour_dossier :: fonc (dir: TypePoignéeEntréeDossier) -> CheminFichier
  * https://ensiwiki.ensimag.fr/index.php?title=Towards_a_better_libc_primitive_for_handling_path_names */
 
 DonnéesDossierCourant :: struct {
-    dir: TypePoignéeDossier
-    chemin_complet: CheminFichier
+    dir: TypePoignéeDossier;
+    chemin_complet: CheminFichier;
 }
 
 ExploratriceFichier :: struct {
     // Le dossier racine où commencer l'exploration
-    racine: CheminFichier
+    racine: CheminFichier;
 
-    pile_dossiers: Pile(DonnéesDossierCourant)
+    pile_dossiers: Pile(DonnéesDossierCourant);
 
-    filtre_chemin: fonc (chemin: CheminFichier) -> bool
+    filtre_chemin: fonc (chemin: CheminFichier) -> bool;
 
     /* Pour la construction des chemins, afin de réutiliser la mémoire. */
-    pile: Pile(chaine)
+    pile: Pile(chaine);
 }
 
 détruit :: fonc (exploratrice: &ExploratriceFichier)
 {
-    détruit(exploratrice.pile_dossiers)
-    détruit(exploratrice.pile)
+    détruit(exploratrice.pile_dossiers);
+    détruit(exploratrice.pile);
 }
 
 crée_exploratrice_fichier :: fonc (chemin: CheminFichier) -> ExploratriceFichier
 {
-    exploratrice: ExploratriceFichier
+    exploratrice: ExploratriceFichier;
     si est_un_dossier(chemin) {
-        exploratrice.racine = chemin
-        empile_dossier(exploratrice, chemin)
+        exploratrice.racine = chemin;
+        empile_dossier(exploratrice, chemin);
     }
-    retourne exploratrice
+    retourne exploratrice;
 }
 
 /* Retourne le prochain chemin dans le dossier courant de l'exploration.
@@ -52,26 +52,26 @@ crée_exploratrice_fichier :: fonc (chemin: CheminFichier) -> ExploratriceFichie
 chemin_suivant :: fonc (exploratrice: &ExploratriceFichier) -> Optionnel(CheminFichier)
 {
     tantque !exploration_finie(exploratrice) {
-        dossier_courant := exploratrice.pile_dossiers.tête()
-        entrée := système_lis_une_entrée_du_dossier(dossier_courant.dir)
+        dossier_courant := exploratrice.pile_dossiers.tête();
+        entrée := système_lis_une_entrée_du_dossier(dossier_courant.dir);
 
         discr entrée {
             Quelque(e) {
-                chemin_entrée := chemin_pour_dossier(e)
+                chemin_entrée := chemin_pour_dossier(e);
 
                 si chemin_entrée.chn == "." || chemin_entrée.chn == ".." {
-                    continue
+                    continue;
                 }
 
                 si exploratrice.filtre_chemin && !exploratrice.filtre_chemin(chemin_entrée) {
-                    continue
+                    continue;
                 }
 
-                exploratrice.pile.données.taille = 0
-                retourne crée_chemin_absolu(exploratrice.pile, dossier_courant.chemin_complet, chemin_entrée)
+                exploratrice.pile.données.taille = 0;
+                retourne crée_chemin_absolu(exploratrice.pile, dossier_courant.chemin_complet, chemin_entrée);
             }
             sinon {
-                dépile_dossier(exploratrice)
+                dépile_dossier(exploratrice);
             }
         }
     }
@@ -79,14 +79,14 @@ chemin_suivant :: fonc (exploratrice: &ExploratriceFichier) -> Optionnel(CheminF
 
 exploration_finie :: fonc (exploratrice: &ExploratriceFichier) -> bool
 {
-    retourne exploratrice.pile_dossiers.est_vide()
+    retourne exploratrice.pile_dossiers.est_vide();
 }
 
 empile_dossier :: fonc (exploratrice: &ExploratriceFichier, chemin: CheminFichier)
 {
     discr ouvre_dossier(chemin) {
         Quelque(dir) {
-            exploratrice.pile_dossiers.empile(DonnéesDossierCourant(dir, chemin))
+            exploratrice.pile_dossiers.empile(DonnéesDossierCourant(dir, chemin));
         }
         sinon {}
     }
@@ -94,22 +94,22 @@ empile_dossier :: fonc (exploratrice: &ExploratriceFichier, chemin: CheminFichie
 
 dépile_dossier :: fonc (exploratrice: &ExploratriceFichier)
 {
-    données := exploratrice.pile_dossiers.dépile()
-    système_ferme_dossier(données.dir)
+    données := exploratrice.pile_dossiers.dépile();
+    système_ferme_dossier(données.dir);
 }
 
 // -----------------------------------------------------------------------
 
 pour_chaque_chemin :: fonc (chemin: CheminFichier, données: *$T, rappel: fonc (chemin: CheminFichier, données: *T))
 {
-    exploratrice := crée_exploratrice_fichier(chemin)
-    diffère détruit(exploratrice)
+    exploratrice := crée_exploratrice_fichier(chemin);
+    diffère détruit(exploratrice);
 
     tantque !exploratrice.exploration_finie() {
         discr exploratrice.chemin_suivant() {
             Quelque(chm) {
-                rappel(chm, données)
-                détruit_chemin(chm)
+                rappel(chm, données);
+                détruit_chemin(chm);
             }
             sinon {
             }
@@ -121,106 +121,106 @@ pour_chaque_chemin :: fonc (chemin: CheminFichier, données: *$T, rappel: fonc (
 
 opérateur pour :: (exploratrice: ExploratriceFichier) -> CheminFichier
 {
-    exploratrice = crée_exploratrice_fichier(exploratrice.racine)
-    diffère détruit(exploratrice)
+    exploratrice = crée_exploratrice_fichier(exploratrice.racine);
+    diffère détruit(exploratrice);
 
-    indice := 0
+    indice := 0;
 
     tantque !exploratrice.exploration_finie() {
-        chemin: CheminFichier
+        chemin: CheminFichier;
         discr exploratrice.chemin_suivant() {
             Quelque(chm) {
-                chemin = chm
+                chemin = chm;
             }
             sinon {
-                continue
+                continue;
             }
         }
 
-        `it = chemin
-        `indice_it = indice
+        `it = chemin;
+        `indice_it = indice;
 
-        indice += 1
-        diffère détruit_chemin(chemin)
+        indice += 1;
+        diffère détruit_chemin(chemin);
 
-        #corps_boucle
+        #corps_boucle;
     }
 }
 
 DécisionVisiteFichier :: énum {
     // Si le fichier visité est un dossier, retourner cette valeur indique que nous le visiterons.
     // Pour un fichier, la valeur est ignorée.
-    Continue
+    Continue;
     // Ignore le dossier même si la visite est récursive.
-    NeDescendPasDansLeDossier
+    NeDescendPasDansLeDossier;
 }
 
 InfoVisiteFichier :: struct {
-    chemin: chaine
-    nom: chaine
+    chemin: chaine;
+    nom: chaine;
 
     // temps_de_modification: ...
 
     // eu_erreur: bool
 
-    est_dossier: bool
+    est_dossier: bool;
     // est_symbolique: bool
 }
 
 FichiersÀVisiter :: énum_drapeau {
-    Fichiers
-    Dossiers
+    Fichiers;
+    Dossiers;
 }
 
 visite_fichiers :: fonc (dossier: CheminFichier, récursif: bool, données: $T, procédure: fonc (info: InfoVisiteFichier, données: T) -> DécisionVisiteFichier, fichiers_à_visiter := FichiersÀVisiter.Fichiers | FichiersÀVisiter.Dossiers)
 {
-    visite_fichiers(dossier.chn, récursif, données, procédure, fichiers_à_visiter)
+    visite_fichiers(dossier.chn, récursif, données, procédure, fichiers_à_visiter);
 }
 
 visite_fichiers :: fonc (dossier: chaine, récursif: bool, données: $T, procédure: fonc (info: InfoVisiteFichier, données: T) -> DécisionVisiteFichier, fichiers_à_visiter := FichiersÀVisiter.Fichiers | FichiersÀVisiter.Dossiers)
 {
-    dossiers_à_visiter: Pile(CheminFichier)
-    diffère détruit(dossiers_à_visiter)
-    dossiers_à_visiter.empile(CheminFichier(copie_chaine(dossier))) 
+    dossiers_à_visiter: Pile(CheminFichier);
+    diffère détruit(dossiers_à_visiter);
+    dossiers_à_visiter.empile(CheminFichier(copie_chaine(dossier)));
 
-    info : InfoVisiteFichier = ---
+    info : InfoVisiteFichier = ---;
 
     tantque !dossiers_à_visiter.est_vide() {
-        dossier_courant := dossiers_à_visiter.dépile()
-        diffère détruit_chemin(dossier_courant)
+        dossier_courant := dossiers_à_visiter.dépile();
+        diffère détruit_chemin(dossier_courant);
 
         pour ExploratriceFichier(dossier_courant) {
             // À FAIRE : eu_erreur
-            info.chemin = it.chn
-            info.nom = it.nom_fichier_avec_extension()
+            info.chemin = it.chn;
+            info.nom = it.nom_fichier_avec_extension();
 
             si it.est_un_dossier() {
                 si it.nom_fichier() == "." || it.nom_fichier() == ".." {
-                    continue
+                    continue;
                 }
 
-                descends_dans_le_dossier := récursif
+                descends_dans_le_dossier := récursif;
 
                 si fichiers_à_visiter.Dossiers {
-                    info.est_dossier = vrai
-                    décision := procédure(info, données)
+                    info.est_dossier = vrai;
+                    décision := procédure(info, données);
 
                     si descends_dans_le_dossier {
-                        descends_dans_le_dossier = (décision == DécisionVisiteFichier.Continue)
+                        descends_dans_le_dossier = (décision == DécisionVisiteFichier.Continue);
                     }
                 }
 
                 si descends_dans_le_dossier {
-                    dossiers_à_visiter.empile(copie_chemin(it))
+                    dossiers_à_visiter.empile(copie_chemin(it));
                 }
 
-                continue
+                continue;
             }
 
             si fichiers_à_visiter.Fichiers && it.est_un_fichier_régulier() {
-                info.est_dossier = faux
+                info.est_dossier = faux;
                 // À FAIRE : symlink
-                _ := procédure(info, données)
+                _ := procédure(info, données);
             }
         }
     }
@@ -228,22 +228,22 @@ visite_fichiers :: fonc (dossier: chaine, récursif: bool, données: $T, procéd
 
 donne_fichiers_du_dossier :: fonc (dossier: CheminFichier, récursif := faux) -> [..]chaine
 {
-    retourne donne_fichiers_du_dossier(dossier.chn, récursif)
+    retourne donne_fichiers_du_dossier(dossier.chn, récursif);
 }
 
 donne_fichiers_du_dossier :: fonc (dossier: chaine, récursif := faux) -> [..]chaine
 {
-    résultat: [..]chaine
+    résultat: [..]chaine;
 
-    visite :: fonc (info: InfoVisiteFichier, fichiers: *[..]chaine) -> DécisionVisiteFichier
+    visite :: fonc (info: InfoVisiteFichier, fichiers: *[..]chaine) -> DécisionVisiteFichier;
     {
         saufsi info.est_dossier {
-            tableau_ajoute(fichiers, copie_chaine(info.chemin))
+            tableau_ajoute(fichiers, copie_chaine(info.chemin));
         }
-        retourne DécisionVisiteFichier.Continue
+        retourne DécisionVisiteFichier.Continue;
     }
 
-    visite_fichiers(dossier, récursif, *résultat, visite)
+    visite_fichiers(dossier, récursif, *résultat, visite);
 
-    retourne résultat
+    retourne résultat;
 }

@@ -1,16 +1,16 @@
-importe Math
+importe Math;
 
-Température :: #opaque r32
+Température :: #opaque r32;
 
-Celsius :: #opaque Température
-Kelvin :: #opaque Température
-Farenheit :: #opaque Température
-Rankin :: #opaque Température
+Celsius :: #opaque Température;
+Kelvin :: #opaque Température;
+Farenheit :: #opaque Température;
+Rankin :: #opaque Température;
 
 // https://www.evanmiller.org/rank-hotness-with-newtons-law-of-cooling.html
 calcule_température_courante :: fonc (dernière_température: Kelvin, temps_depuis_dernière_activité: r32, taux_refroidissement: r32) -> Kelvin
 {
     // dernière_température * exp(-temps_depuis_dernière_activité * taux_refroidissement)
 
-    retourne Kelvin(Température(dernière_température comme Température comme r32 * exp(-temps_depuis_dernière_activité * taux_refroidissement)))
+    retourne Kelvin(Température(dernière_température comme Température comme r32 * exp(-temps_depuis_dernière_activité * taux_refroidissement)));
 }

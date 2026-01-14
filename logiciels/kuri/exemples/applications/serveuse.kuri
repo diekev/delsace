@@ -1,129 +1,129 @@
-importe Chaine
-importe Fondation
-importe POSIX
-importe Internet
-importe SysFichier
+importe Chaine;
+importe Fondation;
+importe POSIX;
+importe Internet;
+importe SysFichier;
 
 /* ------------------------------------------------------------------------- */
 
-CONNEXIONS_MAX := 1000
+CONNEXIONS_MAX := 1000;
 
 Serveuse :: struct {
-    prise := -1
+    prise := -1;
 }
 
 construis_serveuse :: fonc (serveuse: &Serveuse, port: n16) -> chaine
 {
-    serveuse.prise = socket(AF_INET, SOCK_STREAM, 0)
+    serveuse.prise = socket(AF_INET, SOCK_STREAM, 0);
 
     si serveuse.prise == -1 {
-        retourne "erreur lors de la création de la prise"
+        retourne "erreur lors de la création de la prise";
     }
 
-    mon_addresse: sockaddr_in
-    mon_addresse.sin_family = AF_INET comme n16
-    mon_addresse.sin_port = htons(port)
+    mon_addresse: sockaddr_in;
+    mon_addresse.sin_family = AF_INET comme n16;
+    mon_addresse.sin_port = htons(port);
     // trouve notre propre addresse
-    mon_addresse.sin_addr.s_addr = 0
-    mon_addresse.sin_zero[0] = 0
-    mon_addresse.sin_zero[1] = 0
-    mon_addresse.sin_zero[2] = 0
-    mon_addresse.sin_zero[3] = 0
-    mon_addresse.sin_zero[4] = 0
-    mon_addresse.sin_zero[5] = 0
-    mon_addresse.sin_zero[6] = 0
-    mon_addresse.sin_zero[7] = 0
+    mon_addresse.sin_addr.s_addr = 0;
+    mon_addresse.sin_zero[0] = 0;
+    mon_addresse.sin_zero[1] = 0;
+    mon_addresse.sin_zero[2] = 0;
+    mon_addresse.sin_zero[3] = 0;
+    mon_addresse.sin_zero[4] = 0;
+    mon_addresse.sin_zero[5] = 0;
+    mon_addresse.sin_zero[6] = 0;
+    mon_addresse.sin_zero[7] = 0;
 
-    err := bind(serveuse.prise, *mon_addresse comme *sockaddr, taille_de(sockaddr) comme n64)
-
-    si err == -1 {
-        retourne "erreur lors de la liaison"
-    }
-
-    err = listen(serveuse.prise, CONNEXIONS_MAX)
+    err := bind(serveuse.prise, *mon_addresse comme *sockaddr, taille_de(sockaddr) comme n64);
 
     si err == -1 {
-        retourne "erreur lors de l'écoute"
+        retourne "erreur lors de la liaison";
     }
 
-    retourne ""
+    err = listen(serveuse.prise, CONNEXIONS_MAX);
+
+    si err == -1 {
+        retourne "erreur lors de l'écoute";
+    }
+
+    retourne "";
 }
 
 détruit_serveuse :: fonc (serveuse: &Serveuse)
 {
     si serveuse.prise == -1 {
-        retourne
+        retourne;
     }
 
-    _ := close(serveuse.prise)
+    _ := close(serveuse.prise);
 }
 
 charge_donnees_requete :: fonc (prise: z32, mon_addresse: &sockaddr_in @inutilisée) -> chaine
 {
     //ip = convertis_chaine_c(inet_ntoa(mon_addresse.sin_addr))
     //imprime("serveur: Reçu connexion de ", ip, '\n')
-    fichier := Fichier(TypePoignéeFichier(prise))
+    fichier := Fichier(TypePoignéeFichier(prise));
 
     requête := tente lis_tout(*fichier) piège err {
-        imprime("Erreur lors de la lecture de la prise : %\n", err)
-        retourne ""
-    }
+        imprime("Erreur lors de la lecture de la prise : %\n", err);
+        retourne "";
+    };
 
-    retourne requête
+    retourne requête;
 }
 
 démarre :: fonc (serveuse: &Serveuse) -> rien
 {
     si serveuse.prise == -1 {
-        retourne
+        retourne;
     }
 
     mon_addresse: sockaddr_in // Adresse du connecté
-    sin_size := taille_de(sockaddr_in)
+    sin_size := taille_de(sockaddr_in);
 
     boucle {
-        prise := accept(serveuse.prise, *mon_addresse comme *sockaddr, *sin_size)
+        prise := accept(serveuse.prise, *mon_addresse comme *sockaddr, *sin_size);
 
         si prise == -1 {
-            perror(ChaineC("accept".pointeur))
-            continue
+            perror(ChaineC("accept".pointeur));
+            continue;
         }
 
         si fork() == 0 {
-            requete := charge_donnees_requete(prise, mon_addresse)
-            imprime("requête :\n%\n", requete)
+            requete := charge_donnees_requete(prise, mon_addresse);
+            imprime("requête :\n%\n", requete);
 
             //reponse = repond_requete(requete)
 
-            enchaineuse: Enchaineuse
-            initialise_enchaineuse(*enchaineuse)
+            enchaineuse: Enchaineuse;
+            initialise_enchaineuse(*enchaineuse);
 
-            contenu := "<p>ma réponse</p>"
+            contenu := "<p>ma réponse</p>";
 
-            ajoute_au_tampon(*enchaineuse, "HTTP/1.1 200 OK\r\n")
-            ajoute_au_tampon(*enchaineuse, "Content-Length ")
-            ajoute_au_tampon(*enchaineuse, "18")
-            ajoute_au_tampon(*enchaineuse, "\r\n")
-            ajoute_au_tampon(*enchaineuse, "Content-Type: text/html; charset=utf-8\r\n")
-            ajoute_au_tampon(*enchaineuse, "\r\n")
-            ajoute_au_tampon(*enchaineuse, contenu)
+            ajoute_au_tampon(*enchaineuse, "HTTP/1.1 200 OK\r\n");
+            ajoute_au_tampon(*enchaineuse, "Content-Length ");
+            ajoute_au_tampon(*enchaineuse, "18");
+            ajoute_au_tampon(*enchaineuse, "\r\n");
+            ajoute_au_tampon(*enchaineuse, "Content-Type: text/html; charset=utf-8\r\n");
+            ajoute_au_tampon(*enchaineuse, "\r\n");
+            ajoute_au_tampon(*enchaineuse, contenu);
 
-            chaine_reponse := chaine_depuis_enchaineuse(*enchaineuse)
+            chaine_reponse := chaine_depuis_enchaineuse(*enchaineuse);
 
             //chaine_reponse = construis_reponse(reponse)
 
             si send(prise, chaine_reponse.pointeur, chaine_reponse.taille comme n64, 0) == -1 {
-                perror(ChaineC("send".pointeur))
+                perror(ChaineC("send".pointeur));
             }
 
-            déloge(chaine_reponse)
+            déloge(chaine_reponse);
 
-            _ := close(prise)
-            exit(0)
+            _ := close(prise);
+            exit(0);
         }
 
         // le parent n'a pas besoin de cela
-        _ := close(prise)
+        _ := close(prise);
 
         // nettoyage des processus fils
         tantque waitpid(-1, nul, WNOHANG) > 0 {}
@@ -135,8 +135,8 @@ démarre :: fonc (serveuse: &Serveuse) -> rien
 // commentaire
 principale :: fonc ()
 {
-    serveuse: Serveuse
-    _ := construis_serveuse(serveuse, 5009)
+    serveuse: Serveuse;
+    _ := construis_serveuse(serveuse, 5009);
 
-    démarre(serveuse)
+    démarre(serveuse);
 }

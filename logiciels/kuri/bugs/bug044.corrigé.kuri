@@ -4,9 +4,9 @@
  * Catégorie : [validation sémantique, redéfinition symbole externe]
  */
 
-libc :: #bibliothèque "c"
-send :: fonc (a: z32) #externe libc
-send :: fonc (b: z64) #externe libc
+libc :: #bibliothèque "c";
+send :: fonc (a: z32) #externe libc;
+send :: fonc (b: z64) #externe libc;
 
 principale :: fonc ()
 {
