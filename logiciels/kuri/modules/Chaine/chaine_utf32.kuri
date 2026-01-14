@@ -1,216 +1,216 @@
 ChaineUTF32 :: struct {
-    points_de_code: [..]n32
+    points_de_code: [..]n32;
 }
 
 copie_chaine :: fonc (chn: ChaineUTF32) -> ChaineUTF32
 {
-    résultat : ChaineUTF32 = ---
-    résultat.points_de_code = tableau_copie(chn.points_de_code)
-    retourne résultat
+    résultat : ChaineUTF32 = ---;
+    résultat.points_de_code = tableau_copie(chn.points_de_code);
+    retourne résultat;
 }
 
 détruit_chaine :: fonc (chn: &ChaineUTF32) #enligne
 {
-    déloge(chn.points_de_code)
+    déloge(chn.points_de_code);
 }
 
 taille :: fonc (chn: ChaineUTF32) -> z64 #enligne
 {
-    retourne chn.points_de_code.taille
+    retourne chn.points_de_code.taille;
 }
 
 est_vide :: fonc (chn: ChaineUTF32) -> bool #enligne
 {
-    retourne chn.taille() == 0
+    retourne chn.taille() == 0;
 }
 
 avance :: fonc (chn: ChaineUTF32, n: z32) -> ChaineUTF32
 {
-    assert(chn.taille() >= n)
-    résultat := chn
-    résultat.points_de_code.pointeur += n
-    résultat.points_de_code.taille -= n
+    assert(chn.taille() >= n);
+    résultat := chn;
+    résultat.points_de_code.pointeur += n;
+    résultat.points_de_code.taille -= n;
     si résultat.points_de_code.taille <= 0 {
-        résultat.points_de_code.pointeur = nul
-        résultat.points_de_code.taille = 0
+        résultat.points_de_code.pointeur = nul;
+        résultat.points_de_code.taille = 0;
     }
-    retourne résultat
+    retourne résultat;
 }
 
 chaine_ajoute :: fonc (chn: *ChaineUTF32, point_de_code: n32) #enligne
 {
-    tableau_ajoute(*chn.points_de_code, point_de_code)
+    tableau_ajoute(*chn.points_de_code, point_de_code);
 }
 
 réinitialise :: fonc (chn: &ChaineUTF32) #enligne
 {
-    chn.points_de_code.taille = 0
+    chn.points_de_code.taille = 0;
 }
 
 convertis_vers_chaine :: fonc (chn: ChaineUTF32) -> chaine
 {
     // À FAIRE(langage) : la compilation n'attend pas sur les messages
     // retourne imprime_chaine("%", chn)
-    enchaineuse: Enchaineuse
-    initialise_enchaineuse(*enchaineuse)
-    séquence: [4]n8
+    enchaineuse: Enchaineuse;
+    initialise_enchaineuse(*enchaineuse);
+    séquence: [4]n8;
     pour chn.points_de_code {
-        taille := point_de_code_vers_utf8(it, *séquence[0])
+        taille := point_de_code_vers_utf8(it, *séquence[0]);
 
-        tmp  := chaine(*séquence[0] comme *z8, taille)
-        ajoute_au_tampon(*enchaineuse, tmp)
+        tmp  := chaine(*séquence[0] comme *z8, taille);
+        ajoute_au_tampon(*enchaineuse, tmp);
     }
-    retourne chaine_depuis_enchaineuse(*enchaineuse)
+    retourne chaine_depuis_enchaineuse(*enchaineuse);
 }
 
 crée_chaine_utf32 :: fonc (chn: chaine) -> ChaineUTF32
 {
-    résultat: ChaineUTF32
-    crée_chaine_utf32(chn, *résultat)
-    retourne résultat
+    résultat: ChaineUTF32;
+    crée_chaine_utf32(chn, *résultat);
+    retourne résultat;
 }
 
 crée_chaine_utf32 :: fonc (chn: chaine, résultat: *ChaineUTF32)
 {
-    tableau_réserve(*résultat.points_de_code, chn.taille)
+    tableau_réserve(*résultat.points_de_code, chn.taille);
 
-    ptr_source := chn.pointeur
-    curseur := 0
+    ptr_source := chn.pointeur;
+    curseur := 0;
 
-    ptr_résultat := résultat.points_de_code.pointeur
-    taille : z64 = 0
+    ptr_résultat := résultat.points_de_code.pointeur;
+    taille : z64 = 0;
 
     tantque curseur < chn.taille {
-        no := nombre_octets_utf8_rapide(*ptr_source[curseur])
+        no := nombre_octets_utf8_rapide(*ptr_source[curseur]);
 
         si no == 0 {
-            curseur += 1
-            continue
+            curseur += 1;
+            continue;
         }
 
-        ptr_résultat[taille] = convertis_utf8_utf32(*ptr_source[curseur], no) comme n32
+        ptr_résultat[taille] = convertis_utf8_utf32(*ptr_source[curseur], no) comme n32;
 
-        taille += 1
-        curseur += no comme z32
+        taille += 1;
+        curseur += no comme z32;
     }
 
-    résultat.points_de_code.taille = taille
+    résultat.points_de_code.taille = taille;
 }
 
 opérateur pour :: (chn: ChaineUTF32) -> n32
 {
     pour chn.points_de_code {
-        `it = it
-        `indice_it = indice_it
-        #corps_boucle
+        `it = it;
+        `indice_it = indice_it;
+        #corps_boucle;
     }
 }
 
 opérateur == :: (a: ChaineUTF32, b: ChaineUTF32) -> bool
 {
     si a.taille() != b.taille() {
-        retourne faux
+        retourne faux;
     }
 
     pour a.points_de_code {
         si it != b.points_de_code[indice_it] {
-            retourne faux
+            retourne faux;
         }
     }
 
-    retourne vrai
+    retourne vrai;
 }
 
 opérateur == :: (chn_utf32: ChaineUTF32, chn_native: chaine) -> bool
 {
     si chn_utf32.taille() > chn_native.taille {
-        retourne faux
+        retourne faux;
     }
 
-    curseur_chn_native := 0
-    curseur_chn_utf32 := 0
+    curseur_chn_native := 0;
+    curseur_chn_utf32 := 0;
 
-    ptr_natif := chn_native.pointeur
+    ptr_natif := chn_native.pointeur;
 
     tantque curseur_chn_native < chn_native.taille {
         si curseur_chn_utf32 >= chn_utf32.taille() {
-            retourne faux
+            retourne faux;
         }
 
-        no := nombre_octets_utf8_rapide(*ptr_natif[curseur_chn_native])
+        no := nombre_octets_utf8_rapide(*ptr_natif[curseur_chn_native]);
 
         si no == 0 {
-            retourne faux
+            retourne faux;
         }
 
-        point_de_code := convertis_utf8_utf32(*ptr_natif[curseur_chn_native]) comme n32
+        point_de_code := convertis_utf8_utf32(*ptr_natif[curseur_chn_native]) comme n32;
 
         si point_de_code != chn_utf32.points_de_code[curseur_chn_utf32] {
-            retourne faux
+            retourne faux;
         }
 
-        curseur_chn_native += no comme z32
-        curseur_chn_utf32 += 1
+        curseur_chn_native += no comme z32;
+        curseur_chn_utf32 += 1;
     }
 
-    retourne vrai
+    retourne vrai;
 }
 
 opérateur [] :: (chn_utf32: ChaineUTF32, indice: z64) -> n32
 {
-    retourne chn_utf32.points_de_code[indice]
+    retourne chn_utf32.points_de_code[indice];
 }
 
 est_valide :: fonc (chn_utf32: ChaineUTF32) -> bool
 {
     pour chn_utf32.points_de_code {
         saufsi est_point_de_code_valide(it) {
-            retourne faux
+            retourne faux;
         }
     }
 
-    retourne vrai
+    retourne vrai;
 }
 
 imprime_chaine_utf32 :: fonc (enchaineuse: *Enchaineuse, chn: *ChaineUTF32)
 {
     saufsi chn {
-        retourne
+        retourne;
     }
 
-    séquence: [4]n8
+    séquence: [4]n8;
     pour chn.points_de_code {
-        taille := point_de_code_vers_utf8(it, *séquence[0])
+        taille := point_de_code_vers_utf8(it, *séquence[0]);
 
-        tmp  := chaine(*séquence[0] comme *z8, taille)
-        ajoute_au_tampon(enchaineuse, tmp)
+        tmp  := chaine(*séquence[0] comme *z8, taille);
+        ajoute_au_tampon(enchaineuse, tmp);
     }
 } @FormattageImpression
 
 sous_chaine :: fonc (chn: ChaineUTF32, début: z64, fin: z64) -> ChaineUTF32
 {
-    assert(début >= 0)
-    assert(début < chn.taille())
-    assert(fin >= début)
-    assert(fin < chn.taille())
+    assert(début >= 0);
+    assert(début < chn.taille());
+    assert(fin >= début);
+    assert(fin < chn.taille());
 
-    résultat: ChaineUTF32
-    résultat.points_de_code.pointeur = chn.points_de_code.pointeur + début
-    résultat.points_de_code.taille = (fin - début) + 1
-    retourne résultat
+    résultat: ChaineUTF32;
+    résultat.points_de_code.pointeur = chn.points_de_code.pointeur + début;
+    résultat.points_de_code.taille = (fin - début) + 1;
+    retourne résultat;
 }
 
 en_minuscule_sur_place :: fonc (chn: &ChaineUTF32)
 {
     pour & chn.points_de_code {
-        it = transforme_point_de_code_en_minuscule(it)
+        it = transforme_point_de_code_en_minuscule(it);
     }
 }
 
 en_majuscule_sur_place :: fonc (chn: &ChaineUTF32)
 {
     pour & chn.points_de_code {
-        it = transforme_point_de_code_en_majuscule(it)
+        it = transforme_point_de_code_en_majuscule(it);
     }
 }
 

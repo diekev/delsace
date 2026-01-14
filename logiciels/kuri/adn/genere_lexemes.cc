@@ -407,12 +407,12 @@ static void génère_fichier_kuri(const ListeLexèmes &lexèmes, std::ostream &o
     os << "/* Fichier générer automatiquement, NE PAS ÉDITER ! */\n\n";
     os << "GenreLexème :: énum n32 {\n";
     POUR (lexèmes.lexèmes) {
-        os << "\t" << it.nom_énum_final << '\n';
+        os << "\t" << it.nom_énum_final << ";\n";
     }
     os << "}\n\n";
     os << "Lexème :: struct {\n";
-    os << "\tgenre: GenreLexème\n";
-    os << "\ttexte: chaine\n";
+    os << "\tgenre: GenreLexème;\n";
+    os << "\ttexte: chaine;\n";
     os << "}\n\n";
     génère_fonction_kuri_pour_drapeau(lexèmes, "est_mot_clé", EST_MOT_CLÉ, os);
     génère_fonction_kuri_pour_drapeau(

@@ -5,10 +5,10 @@
  * \{ */
 
 Enveloppable :: struct {
-    enveloppe: *Enveloppe
+    enveloppe: *Enveloppe;
 
     /* Appelé lors de la création de l'enveloppe. */
-    sur_création_enveloppe: fonc (enveloppable: *Enveloppable, enveloppe: *Enveloppe)
+    sur_création_enveloppe: fonc (enveloppable: *Enveloppable, enveloppe: *Enveloppe);
 }
 
 /** \} */
@@ -20,52 +20,52 @@ Enveloppable :: struct {
 
 #portée_fichier
 
-table_virtuelle_enveloppe := TableVirtuelleObject(classe = Enveloppe, sur_destruction = enveloppe_sur_destruction)
+table_virtuelle_enveloppe := TableVirtuelleObject(classe = Enveloppe, sur_destruction = enveloppe_sur_destruction);
 
 #portée_export
 
 Enveloppe :: struct {
-    empl objet: Object
-    table = *table_virtuelle_enveloppe
+    empl objet: Object;
+    table = *table_virtuelle_enveloppe;
 
-    enveloppable: *Enveloppable
+    enveloppable: *Enveloppable;
 }
 
 crée_enveloppe :: fonc (tas_de_mémoire: *TasDeMémoire, objet: *Enveloppable) -> *Enveloppe
 {
     si objet.enveloppe {
-        assert(objet.enveloppe.enveloppable == objet)
-        retourne objet.enveloppe
+        assert(objet.enveloppe.enveloppable == objet);
+        retourne objet.enveloppe;
     }
 
-    résultat := tas_de_mémoire.alloue(Enveloppe)
-    objet.enveloppe = résultat
-    résultat.enveloppable = objet
+    résultat := tas_de_mémoire.alloue(Enveloppe);
+    objet.enveloppe = résultat;
+    résultat.enveloppable = objet;
 
     si objet.sur_création_enveloppe {
-        objet.sur_création_enveloppe(objet, résultat)
+        objet.sur_création_enveloppe(objet, résultat);
     }
 
-    retourne résultat
+    retourne résultat;
 }
 
 enveloppe_sur_destruction :: fonc (base: *Cellule)
 {
-    enveloppe := base.vérifie_comme(Enveloppe)
-    sur_destruction_objet(enveloppe)
-    enveloppe.enveloppable.enveloppe = nul
+    enveloppe := base.vérifie_comme(Enveloppe);
+    sur_destruction_objet(enveloppe);
+    enveloppe.enveloppable.enveloppe = nul;
 }
 
 ajoute_objet_natif :: fonc (object: *Object, nom: ECMAString, enveloppable: *Enveloppable)
 {
-    tas_de_mémoire := object.donne_tas_de_mémoire()
-    enveloppe := crée_enveloppe(tas_de_mémoire, enveloppable)
-    ajoute_propriété(object, nom, Valeur(Object = enveloppe), DrapeauxPropriété.zéro)
+    tas_de_mémoire := object.donne_tas_de_mémoire();
+    enveloppe := crée_enveloppe(tas_de_mémoire, enveloppable);
+    ajoute_propriété(object, nom, Valeur(Object = enveloppe), DrapeauxPropriété.zéro);
 }
 
 ajoute_objet_natif :: fonc (object: *Object, nom: chaine, enveloppable: *Enveloppable)
 {
-    ajoute_objet_natif(object, crée_chaine_utf16_unique(nom), enveloppable)
+    ajoute_objet_natif(object, crée_chaine_utf16_unique(nom), enveloppable);
 }
 
 /** \} */

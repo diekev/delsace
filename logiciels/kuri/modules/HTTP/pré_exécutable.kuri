@@ -1,7 +1,7 @@
 génère_fonctions_de_parsages :: fonc ()
 {
-    génère_initialisation_parsage_url()
-    génère_initialisation_routes()
+    génère_initialisation_parsage_url();
+    génère_initialisation_routes();
 }
 
 // #pré_exécutable génère_fonctions_de_parsages()

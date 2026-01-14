@@ -359,7 +359,7 @@ unicode_casefold : []PermutationCasse = [
     PermutationCasse(min = 93792, max = 93823, delta = -32),
     PermutationCasse(min = 125184, max = 125217, delta = 34),
     PermutationCasse(min = 125218, max = 125251, delta = -34)
-]
+];
 
 // 1384 groups, 1414 pairs, 200 ranges
 unicode_tolower : []PermutationCasse = [
@@ -563,7 +563,7 @@ unicode_tolower : []PermutationCasse = [
     PermutationCasse(min = 71840, max = 71871, delta = 32),
     PermutationCasse(min = 93760, max = 93791, delta = 32),
     PermutationCasse(min = 125184, max = 125217, delta = 34)
-]
+];
 
 // À FAIRE : table correcte, ceci est une adaption de la table des permutations vers minuscule
 unicode_toupper : []PermutationCasse = [
@@ -743,4 +743,4 @@ unicode_toupper : []PermutationCasse = [
     PermutationCasse(min = 71872, max = 71903, delta = -32),
     PermutationCasse(min = 93792, max = 93823, delta = -32),
     PermutationCasse(min = 125218, max = 125251, delta = -34)
-]
+];

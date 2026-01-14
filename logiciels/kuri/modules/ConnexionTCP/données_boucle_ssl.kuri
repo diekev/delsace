@@ -1,4 +1,4 @@
-importe Chaine
+importe Chaine;
 
 // -------------------------------------------------------
 // BIO personnalisé pour tenir les données des prises.
@@ -9,84 +9,84 @@ importe Chaine
 
 rappel_personnalisé_création_bio :: fonc (bio: *BIO) -> z32
 {
-    BIO_set_init(bio, 1)
-    retourne 1
+    BIO_set_init(bio, 1);
+    retourne 1;
 }
 
 rappel_personnalisé_controle_bio :: fonc (bio: *BIO @inutilisée, cmd: z32, num: z64 @inutilisée, user: *rien @inutilisée) -> z64
 {
     si cmd == BIO_CTRL_FLUSH {
-        retourne 1
+        retourne 1;
     }
-    retourne 0
+    retourne 0;
 }
 
 rappel_personnalisé_écriture_bio :: fonc (bio: *BIO, données: *octet, length: z32) -> z32
 {
-    données_ssl_boucle := BIO_get_data(bio) comme *DonnéesSSLBoucle
-    prise := données_ssl_boucle.prise_ssl
+    données_ssl_boucle := BIO_get_data(bio) comme *DonnéesSSLBoucle;
+    prise := données_ssl_boucle.prise_ssl;
 
     // À FAIRE : détermine ce que c'est et passe à prise.écris
     // données_ssl_boucle.last_write_was_msg_more = données_ssl_boucle.msg_more || length == 16413
-    données_chn := chaine(données comme *z8, length)
-    octets_écris := prise.écris_final(données_chn)
+    données_chn := chaine(données comme *z8, length);
+    octets_écris := prise.écris_final(données_chn);
 
     saufsi octets_écris {
-        BIO_set_retry_write(bio)
-        retourne -1
+        BIO_set_retry_write(bio);
+        retourne -1;
     }
 
-    retourne octets_écris
+    retourne octets_écris;
 }
 
 rappel_personnalisé_lecture_bio :: fonc (bio: *BIO, dst: *octet, length: z32) -> z32
 {
-    données_ssl_boucle := BIO_get_data(bio) comme *DonnéesSSLBoucle
+    données_ssl_boucle := BIO_get_data(bio) comme *DonnéesSSLBoucle;
 
     saufsi données_ssl_boucle.ssl_read_input_length {
-        BIO_set_retry_read(bio)
-        retourne -1
+        BIO_set_retry_read(bio);
+        retourne -1;
     }
 
     si length > données_ssl_boucle.ssl_read_input_length {
-        length = données_ssl_boucle.ssl_read_input_length
+        length = données_ssl_boucle.ssl_read_input_length;
     }
 
-    copie_mem_nonsur(dst = dst, src = données_ssl_boucle.ssl_read_input + données_ssl_boucle.ssl_read_input_offset, taille = length)
+    copie_mem_nonsur(dst = dst, src = données_ssl_boucle.ssl_read_input + données_ssl_boucle.ssl_read_input_offset, taille = length);
 
-    données_ssl_boucle.ssl_read_input_offset += length
-    données_ssl_boucle.ssl_read_input_length -= length
-    retourne length
+    données_ssl_boucle.ssl_read_input_offset += length;
+    données_ssl_boucle.ssl_read_input_length -= length;
+    retourne length;
 }
 
 // -------------------------------------------------------
 
-POIGNÉES_MAXIMUM_PAR_ITÉRATION_DE_LA_BOUCLE :: 5
+POIGNÉES_MAXIMUM_PAR_ITÉRATION_DE_LA_BOUCLE :: 5;
 
 DonnéesSSLBoucle :: struct {
-    méthode_bio_mémoire: *BIO_METHOD
+    méthode_bio_mémoire: *BIO_METHOD;
 
-    bio_partagé_lecture: *BIO
-    bio_partagé_écriture: *BIO
+    bio_partagé_lecture: *BIO;
+    bio_partagé_écriture: *BIO;
 
     /* La prise courante. */
-    prise_ssl: *PriseSSL
+    prise_ssl: *PriseSSL;
 
     /* L'indice de la dernière fois que la boucle évènements fut exécuté. */
-    index_dernière_itération: z32
+    index_dernière_itération: z32;
 
     /* Nous avons une limite quant au nombre de serrage de main effectué
      * par itération afin de ne pas trop passé de temps à en faire.
      * Les serrages de mains en trop seront exécutés dans l'itération suivante,
      * ce qui permet de laisser le processeur s'occuper d'autres tâches (comme
      * continuer de répondre à des requêtes en cours). */
-    budget_serrage_de_main: z32
+    budget_serrage_de_main: z32;
 
-    ssl_read_output: *octet
+    ssl_read_output: *octet;
 
-    ssl_read_input: *octet
-    ssl_read_input_length: z32
-    ssl_read_input_offset: z32
+    ssl_read_input: *octet;
+    ssl_read_input_length: z32;
+    ssl_read_input_offset: z32;
 }
 
 /* Cette fonction initialise la bibliothèque OpenSSL et ne devrait être appelée qu'une seule fois ! */
@@ -96,42 +96,42 @@ crée_données_ssl_boucle :: fonc () -> *DonnéesSSLBoucle
     //     retourne nul
     // }
 
-    SSL_library_init()
-    OpenSSL_add_all_algorithms()
-    SSL_load_error_strings()
+    SSL_library_init();
+    OpenSSL_add_all_algorithms();
+    SSL_load_error_strings();
 
-    données_ssl_boucle := loge(DonnéesSSLBoucle)
-    données_ssl_boucle.ssl_read_output = loge_mémoire(TAILLE_TAMPON_RÉCEPTION_DONNÉES + MARGE_TAMPON_RÉCEPTION * 2, info_de(*octet), #position_code_source)
+    données_ssl_boucle := loge(DonnéesSSLBoucle);
+    données_ssl_boucle.ssl_read_output = loge_mémoire(TAILLE_TAMPON_RÉCEPTION_DONNÉES + MARGE_TAMPON_RÉCEPTION * 2, info_de(*octet), #position_code_source);
 
-    méthode_bio_mémoire := BIO_meth_new(BIO_TYPE_MEM, ChaineC("BIO ConnexionTCP\0".pointeur))
-    BIO_meth_set_create(méthode_bio_mémoire, rappel_personnalisé_création_bio)
-    BIO_meth_set_write(méthode_bio_mémoire, rappel_personnalisé_écriture_bio)
-    BIO_meth_set_read(méthode_bio_mémoire, rappel_personnalisé_lecture_bio)
-    BIO_meth_set_ctrl(méthode_bio_mémoire, rappel_personnalisé_controle_bio)
+    méthode_bio_mémoire := BIO_meth_new(BIO_TYPE_MEM, ChaineC("BIO ConnexionTCP\0".pointeur));
+    BIO_meth_set_create(méthode_bio_mémoire, rappel_personnalisé_création_bio);
+    BIO_meth_set_write(méthode_bio_mémoire, rappel_personnalisé_écriture_bio);
+    BIO_meth_set_read(méthode_bio_mémoire, rappel_personnalisé_lecture_bio);
+    BIO_meth_set_ctrl(méthode_bio_mémoire, rappel_personnalisé_controle_bio);
 
-    données_ssl_boucle.méthode_bio_mémoire = méthode_bio_mémoire
+    données_ssl_boucle.méthode_bio_mémoire = méthode_bio_mémoire;
 
-    données_ssl_boucle.bio_partagé_lecture = BIO_new(méthode_bio_mémoire)
-    données_ssl_boucle.bio_partagé_écriture = BIO_new(méthode_bio_mémoire)
-    BIO_set_data(données_ssl_boucle.bio_partagé_lecture, données_ssl_boucle)
-    BIO_set_data(données_ssl_boucle.bio_partagé_écriture, données_ssl_boucle)
+    données_ssl_boucle.bio_partagé_lecture = BIO_new(méthode_bio_mémoire);
+    données_ssl_boucle.bio_partagé_écriture = BIO_new(méthode_bio_mémoire);
+    BIO_set_data(données_ssl_boucle.bio_partagé_lecture, données_ssl_boucle);
+    BIO_set_data(données_ssl_boucle.bio_partagé_écriture, données_ssl_boucle);
 
-    données_ssl_boucle.index_dernière_itération = 0
-    données_ssl_boucle.budget_serrage_de_main = POIGNÉES_MAXIMUM_PAR_ITÉRATION_DE_LA_BOUCLE
+    données_ssl_boucle.index_dernière_itération = 0;
+    données_ssl_boucle.budget_serrage_de_main = POIGNÉES_MAXIMUM_PAR_ITÉRATION_DE_LA_BOUCLE;
 
-    retourne données_ssl_boucle
+    retourne données_ssl_boucle;
 }
 
 détruit_données_ssl_boucle :: fonc (données_ssl_boucle: *DonnéesSSLBoucle)
 {
-    déloge_mémoire(TAILLE_TAMPON_RÉCEPTION_DONNÉES + MARGE_TAMPON_RÉCEPTION * 2, données_ssl_boucle.ssl_read_output, info_de(*rien), #position_code_source)
+    déloge_mémoire(TAILLE_TAMPON_RÉCEPTION_DONNÉES + MARGE_TAMPON_RÉCEPTION * 2, données_ssl_boucle.ssl_read_output, info_de(*rien), #position_code_source);
 
-    _ := BIO_free(données_ssl_boucle.bio_partagé_lecture)
-    _ := BIO_free(données_ssl_boucle.bio_partagé_écriture)
+    _ := BIO_free(données_ssl_boucle.bio_partagé_lecture);
+    _ := BIO_free(données_ssl_boucle.bio_partagé_écriture);
 
-    BIO_meth_free(données_ssl_boucle.méthode_bio_mémoire)
+    BIO_meth_free(données_ssl_boucle.méthode_bio_mémoire);
 
-    déloge(données_ssl_boucle)
+    déloge(données_ssl_boucle);
 }
 
 // -------------------------------------------------------
@@ -140,18 +140,18 @@ détruit_données_ssl_boucle :: fonc (données_ssl_boucle: *DonnéesSSLBoucle)
 initialise_données_ssl_boucle :: fonc (boucle_évènements: *Boucle)
 {
     si boucle_évènements.données_ssl {
-        retourne
+        retourne;
     }
 
-    boucle_évènements.données_ssl = crée_données_ssl_boucle()
+    boucle_évènements.données_ssl = crée_données_ssl_boucle();
 }
 
 /* Détruit les données SSL de la boucle si présentes. */
 détruit_données_ssl_boucle :: fonc (boucle_évènements: *Boucle)
 {
     saufsi boucle_évènements.données_ssl {
-        retourne
+        retourne;
     }
 
-    détruit_données_ssl_boucle(boucle_évènements.données_ssl)
+    détruit_données_ssl_boucle(boucle_évènements.données_ssl);
 }

@@ -7,48 +7,48 @@
 
 #portée_fichier
 
-__table_virtuelle_dom_exception := TableVirtuellePlatformObject(classe = DOMException)
+__table_virtuelle_dom_exception := TableVirtuellePlatformObject(classe = DOMException);
 
 #portée_export
 
 DOMException :: struct {
-    empl platform_object: PlatformObject
-    table = *__table_virtuelle_dom_exception
+    empl platform_object: PlatformObject;
+    table = *__table_virtuelle_dom_exception;
 
-    name: DOMString
-    message: DOMString
+    name: DOMString;
+    message: DOMString;
 
-    js_message: *JS.PrimitiveChaine @slot "[[ErrorData]]"
+    js_message: *JS.PrimitiveChaine @slot "[[ErrorData]]";
 }
 
 crée_dom_exception :: fonc (realm: *JS.Realm, name: chaine, message: chaine) -> *DOMException
 {
-    tas_de_mémoire := JS.donne_tas_de_mémoire(realm)
+    tas_de_mémoire := JS.donne_tas_de_mémoire(realm);
 
-    résultat := JS.alloue(tas_de_mémoire, DOMException)
-    résultat.prototype = realm.intrinsics.error_prototype
+    résultat := JS.alloue(tas_de_mémoire, DOMException);
+    résultat.prototype = realm.intrinsics.error_prototype;
 
-    JS.initialise_error_object(realm, résultat, crée_chaine_utf16_unique(name), message)
+    JS.initialise_error_object(realm, résultat, crée_chaine_utf16_unique(name), message);
 
-    retourne résultat
+    retourne résultat;
 }
 
 throw_dom_exception :: fonc (interpréteuse: *JS.Interpréteuse, name: chaine, message: chaine)
 {
-    exception := crée_dom_exception(JS.donne_realm(interpréteuse), name, message)
-    JS.définis_exception(interpréteuse, exception)
+    exception := crée_dom_exception(JS.donne_realm(interpréteuse), name, message);
+    JS.définis_exception(interpréteuse, exception);
 }
 
 throw_dom_exception :: fonc (realm: *JS.Realm, name: chaine, message: chaine)
 {
-    exception := crée_dom_exception(realm, name, message)
-    JS.définis_exception(realm, exception)
+    exception := crée_dom_exception(realm, name, message);
+    JS.définis_exception(realm, exception);
 }
 
 throw_dom_exception :: fonc (object: *PlatformObject, name: chaine, message: chaine)
 {
-    exception := crée_dom_exception(object.realm, name, message)
-    JS.définis_exception(object.realm, exception)
+    exception := crée_dom_exception(object.realm, name, message);
+    JS.définis_exception(object.realm, exception);
 }
 
 /** \} */
@@ -59,10 +59,10 @@ throw_dom_exception :: fonc (object: *PlatformObject, name: chaine, message: cha
  * \{ */
 
 CallbackType :: struct {
-    empl cellule: JS.Cellule
+    empl cellule: JS.Cellule;
 
-    object: *JS.Object
-    callback_context: *EnvironmentSettings
+    object: *JS.Object;
+    callback_context: *EnvironmentSettings;
 }
 
 /* https://webidl.spec.whatwg.org/#call-a-user-objects-operation
@@ -71,18 +71,18 @@ call_a_user_object_operation :: fonc (value: *CallbackType, op_name: chaine @inu
 {
     // imprime("À FAIRE : [%]\n", #nom_de_cette_fonction)
 
-    target := JS.donne_objet(this_arg) comme *PlatformObject
+    target := JS.donne_objet(this_arg) comme *PlatformObject;
 
-    realm := target.realm
-    settings := JS.donne_données(realm.host_defined, EnvironmentSettings)
+    realm := target.realm;
+    settings := JS.donne_données(realm.host_defined, EnvironmentSettings);
 
-    prepare_to_run_script(settings)
+    prepare_to_run_script(settings);
 
-    evaluation_status := JS.call(JS.donne_mv(realm), JS.Valeur(Object = value.object), this_arg, args)
+    evaluation_status := JS.call(JS.donne_mv(realm), JS.Valeur(Object = value.object), this_arg, args);
 
-    cleanup_after_running_script(settings)
+    cleanup_after_running_script(settings);
 
-    retourne evaluation_status
+    retourne evaluation_status;
 
     /*
     // 1. Let completion be an uninitialized variable.
@@ -182,48 +182,48 @@ call_a_user_object_operation :: fonc (value: *CallbackType, op_name: chaine @inu
 #portée_module
 
 TableVirtuellePlatformObject :: struct {
-    empl object: JS.TableVirtuelleObject
+    empl object: JS.TableVirtuelleObject;
 
-    sur_destruction = platform_object_sur_destruction
+    sur_destruction = platform_object_sur_destruction;
 }
 
 platform_object_sur_destruction :: fonc (base: *JS.Cellule)
 {
-    JS.sur_destruction_objet(base)
+    JS.sur_destruction_objet(base);
 }
 
 #portée_export
 
 PlatformObject :: struct {
-    empl objet: JS.Object
-    realm: *JS.Realm
+    empl objet: JS.Object;
+    realm: *JS.Realm;
 }
 
 donne_tas_de_mémoire :: fonc (object: *PlatformObject) -> *JS.TasDeMémoire
 {
-    retourne JS.donne_tas_de_mémoire(object)
+    retourne JS.donne_tas_de_mémoire(object);
 }
 
 crée_platform_object :: fonc (référence: *PlatformObject, $T: type_de_données) -> *T
 {
-    retourne crée_platform_object(référence.donne_tas_de_mémoire(), référence.realm, T)
+    retourne crée_platform_object(référence.donne_tas_de_mémoire(), référence.realm, T);
 }
 
 crée_platform_object :: fonc (tas_de_mémoire: *JS.TasDeMémoire, realm: *JS.Realm, $T: type_de_données) -> *T
 {
-    résultat := JS.alloue(tas_de_mémoire, T)
-    résultat.realm = realm
-    définis_prototype(résultat, T)
-    retourne résultat
+    résultat := JS.alloue(tas_de_mémoire, T);
+    résultat.realm = realm;
+    définis_prototype(résultat, T);
+    retourne résultat;
 }
 
 /* https://html.spec.whatwg.org/multipage/nav-history-apis.html#isplatformobjectsameorigin-(-o-) */
 is_platform_object_same_origin :: fonc (object: *PlatformObject) -> bool
 {
     // 1. Return true if the current settings object's origin is same origin-domain with O's relevant settings object's origin, and false otherwise.
-    current := donne_current_settings_object(object)
-    relevant := donne_relevant_settings_object(object)
-    retourne sont_même_domaine_origine(current.donne_origin(), relevant.donne_origin())
+    current := donne_current_settings_object(object);
+    relevant := donne_relevant_settings_object(object);
+    retourne sont_même_domaine_origine(current.donne_origin(), relevant.donne_origin());
 }
 
 /** \} */

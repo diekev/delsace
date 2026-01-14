@@ -1,27 +1,27 @@
-importe FontConfig
-importe SysFichier
+importe FontConfig;
+importe SysFichier;
 
 /* ------------------------------------------------------------------------- */
 /** \nom GlobalesDessin
  * \{ */
 
 GlobalesDessin :: struct {
-    fontconfig: *FcConfig
+    fontconfig: *FcConfig;
 
     /* Correspond à 1em. */
-    taille_fonte_défaut := 16.0
+    taille_fonte_défaut := 16.0;
 
     FonteEnCache :: struct {
-        famille: CSSOMString
-        style: chaine
-        graisse: GraisseFonte
-        taille: r32
-        fonte: *Fonte
+        famille: CSSOMString;
+        style: chaine;
+        graisse: GraisseFonte;
+        taille: r32;
+        fonte: *Fonte;
     }
 
-    fontes_en_cache: [..]FonteEnCache
+    fontes_en_cache: [..]FonteEnCache;
 
-    image_checkbox: NouvelleImage
+    image_checkbox: NouvelleImage;
 }
 
 données_image_checkbox := n8.[
@@ -36,55 +36,55 @@ données_image_checkbox := n8.[
     131, 0, 0, 0, 3, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 15, 15, 15, 60, 59, 59, 59, 236,
     38, 38, 38, 152, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
     0, 7, 7, 7, 28, 3, 3, 3, 13, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-    0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
+    0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0];
 
 crée_globales_dessin :: fonc () -> *GlobalesDessin
 {
-    fontconfig := FcInitLoadConfigAndFonts()
+    fontconfig := FcInitLoadConfigAndFonts();
     saufsi fontconfig {
-        imprimeln("Impossible de créer une configuration pour fontconfig")
-        exit(1)
+        imprimeln("Impossible de créer une configuration pour fontconfig");
+        exit(1);
     }
 
-    résultat := loge(GlobalesDessin)
+    résultat := loge(GlobalesDessin);
 
-    résultat.image_checkbox.desc.hauteur = 10
-    résultat.image_checkbox.desc.largeur = 10
-    résultat.image_checkbox.desc.format = FormatPixel.RVBA_8
-    résultat.image_checkbox.source_données = SourceDonnéesImage.Externe
-    résultat.image_checkbox.données = *données_image_checkbox[0]
+    résultat.image_checkbox.desc.hauteur = 10;
+    résultat.image_checkbox.desc.largeur = 10;
+    résultat.image_checkbox.desc.format = FormatPixel.RVBA_8;
+    résultat.image_checkbox.source_données = SourceDonnéesImage.Externe;
+    résultat.image_checkbox.données = *données_image_checkbox[0];
 
-    résultat.fontconfig = fontconfig
+    résultat.fontconfig = fontconfig;
 
-    retourne résultat
+    retourne résultat;
 }
 
 détruit_globales_dessin :: fonc (globales: *GlobalesDessin)
 {
     saufsi globales {
-        retourne
+        retourne;
     }
 
     pour globales.fontes_en_cache {
-        détruit_fonte(it.fonte)
+        détruit_fonte(it.fonte);
     }
 
-    déloge(globales.fontes_en_cache)
-    FcConfigDestroy(globales.fontconfig)
-    déloge(globales)
+    déloge(globales.fontes_en_cache);
+    FcConfigDestroy(globales.fontconfig);
+    déloge(globales);
 }
 
 GraisseFonte :: énum {
-    Fine
-    UltraLégère
-    Légère
-    Normale
-    Medium
-    SemiGrasse
-    Grasse
-    UltraGrasse
-    Noire
-    ExtraNoire
+    Fine;
+    UltraLégère;
+    Légère;
+    Normale;
+    Medium;
+    SemiGrasse;
+    Grasse;
+    UltraGrasse;
+    Noire;
+    ExtraNoire;
 }
 
 /* https://developer.mozilla.org/en-US/docs/Web/CSS/font-weight#common_weight_name_mapping */ 
@@ -99,7 +99,7 @@ donne_graisse_fonte_depuis_poids :: fonc (poids: r64) -> GraisseFonte
     si poids < 800.0 { retourne GraisseFonte.Grasse }
     si poids < 900.0 { retourne GraisseFonte.UltraGrasse }
     si poids < 950.0 { retourne GraisseFonte.Noire }
-    retourne GraisseFonte.ExtraNoire
+    retourne GraisseFonte.ExtraNoire;
 }
 
 donne_fontconfig_weight :: fonc (graisse: GraisseFonte) -> z32
@@ -117,95 +117,95 @@ donne_fontconfig_weight :: fonc (graisse: GraisseFonte) -> z32
         ExtraNoire { retourne FC_WEIGHT_EXTRABLACK }
     }
 
-    assert(faux)
-    retourne FC_WEIGHT_REGULAR
+    assert(faux);
+    retourne FC_WEIGHT_REGULAR;
 }
 
 donne_fonte_défaut :: fonc (ctx: *GlobalesDessin) -> *Fonte
 {
-    résultat := ctx.donne_fonte(PROP_serif, "normal", GraisseFonte.Normale, ctx.taille_fonte_défaut)
+    résultat := ctx.donne_fonte(PROP_serif, "normal", GraisseFonte.Normale, ctx.taille_fonte_défaut);
     saufsi résultat {
-        imprimeln("Impossible de trouver la fonte défaut")
-        exit(1)
+        imprimeln("Impossible de trouver la fonte défaut");
+        exit(1);
     }
-    retourne résultat
+    retourne résultat;
 }
 
 donne_fonte :: fonc (ctx: *GlobalesDessin, famille: CSSOMString, style: chaine, graisse: GraisseFonte, taille: r32, replis_sur_défaut := vrai) -> *Fonte
 {
-    existante := ctx.donne_fonte_en_cache(famille, style, graisse, taille)
+    existante := ctx.donne_fonte_en_cache(famille, style, graisse, taille);
     si existante {
-        retourne existante
+        retourne existante;
     }
 
-    chemin := donne_chemin_fonte(ctx, famille, style, graisse)
+    chemin := donne_chemin_fonte(ctx, famille, style, graisse);
 
-    fonte := crée_fonte(CheminFichier(chemin), taille)
+    fonte := crée_fonte(CheminFichier(chemin), taille);
     saufsi fonte {
         si replis_sur_défaut {
-            retourne donne_fonte_défaut(ctx)
+            retourne donne_fonte_défaut(ctx);
         }
-        retourne nul
+        retourne nul;
     }
 
-    fonte_en_cache := GlobalesDessin.FonteEnCache(famille, style, graisse, taille, fonte)
-    tableau_ajoute(*ctx.fontes_en_cache, fonte_en_cache)
+    fonte_en_cache := GlobalesDessin.FonteEnCache(famille, style, graisse, taille, fonte);
+    tableau_ajoute(*ctx.fontes_en_cache, fonte_en_cache);
 
-    retourne fonte
+    retourne fonte;
 }
 
 donne_fonte_en_cache :: fonc (ctx: *GlobalesDessin, famille: CSSOMString, style: chaine, graisse: GraisseFonte, taille: r32) -> *Fonte
 {
     pour ctx.fontes_en_cache {
         si it.famille == famille && it.style == style && it.graisse == graisse && it.taille == taille {
-            retourne it.fonte
+            retourne it.fonte;
         }
     }
-    retourne nul
+    retourne nul;
 }
 
 donne_chemin_fonte :: fonc (ctx: *GlobalesDessin, famille: CSSOMString, style: chaine, graisse: GraisseFonte) -> chaine
 {
-    assert(ctx.fontconfig != nul)
+    assert(ctx.fontconfig != nul);
 
-    pattern := FcPatternCreate()
-    diffère FcPatternDestroy(pattern)
+    pattern := FcPatternCreate();
+    diffère FcPatternDestroy(pattern);
 
-    chn_famille := convertis_vers_chaine(famille.donne_chaine_utf16())
-    diffère déloge(chn_famille)
+    chn_famille := convertis_vers_chaine(famille.donne_chaine_utf16());
+    diffère déloge(chn_famille);
 
-    chaine_c_famille := crée_chaine_c(chn_famille)
-    diffère détruit_chaine_c(chaine_c_famille)
+    chaine_c_famille := crée_chaine_c(chn_famille);
+    diffère détruit_chaine_c(chaine_c_famille);
 
     _ := FcPatternAddString(pattern, FC_FAMILY.pointeur, chaine_c_famille comme *z8 comme *FcChar8);
 
     si style == "italic" {
-        _ := FcPatternAddInteger(pattern, FC_SLANT.pointeur, FC_SLANT_ITALIC)
+        _ := FcPatternAddInteger(pattern, FC_SLANT.pointeur, FC_SLANT_ITALIC);
     }
     sinon {
-        assert(style == "normal")
+        assert(style == "normal");
     }
 
-    _ := FcPatternAddInteger(pattern, FC_WEIGHT.pointeur, donne_fontconfig_weight(graisse))
+    _ := FcPatternAddInteger(pattern, FC_WEIGHT.pointeur, donne_fontconfig_weight(graisse));
 
     _ := FcConfigSubstitute(ctx.fontconfig, pattern, FcMatchKind.FcMatchPattern);
     FcDefaultSubstitute(pattern);
 
-    result: FcResult
-    match := FcFontMatch(ctx.fontconfig, pattern, *result)
+    result: FcResult;
+    match := FcFontMatch(ctx.fontconfig, pattern, *result);
     saufsi match {
-        retourne ""
+        retourne "";
     }
-    diffère FcPatternDestroy(match)
+    diffère FcPatternDestroy(match);
 
     value: FcValue;
-    résultat := FcPatternGet(match, FC_FILE.pointeur, 0, *value)
+    résultat := FcPatternGet(match, FC_FILE.pointeur, 0, *value);
     si résultat == FcResult.FcResultMatch {
-        chemin := convertis_chaine_c(ChaineC(value.u.f comme *z8))
-        retourne copie_chaine(chemin)
+        chemin := convertis_chaine_c(ChaineC(value.u.f comme *z8));
+        retourne copie_chaine(chemin);
     }
 
-    retourne ""
+    retourne "";
 }
 
 /** \} */

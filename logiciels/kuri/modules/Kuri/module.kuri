@@ -1,14 +1,14 @@
-importe Fondation
+importe Fondation;
 
-GlibC :: importe GlibC
+GlibC :: importe GlibC;
 
-POSIX :: importe POSIX
-exit :: POSIX.exit
+POSIX :: importe POSIX;
+exit :: POSIX.exit;
 
-charge "bibliothèques"
-charge "infos_types"
-charge "intrinseques"
-charge "r16"
+charge "bibliothèques";
+charge "infos_types";
+charge "intrinseques";
+charge "r16";
 
 // Ce fichier est utiliser pour définir des variables et fonctions de
 // bases (« connus par le compilateur ») que tous les modules doivent importer.
@@ -22,8 +22,8 @@ charge "r16"
 // À FAIRE(langage) : valeur défaut pour les tableaux (p.e. t := [..]z32())
 valeur_nulle :: fonc ($T: type_de_données) -> T
 {
-    v: T
-    retourne v
+    v: T;
+    retourne v;
 }
 
 // --------------------------
@@ -34,32 +34,32 @@ valeur_nulle :: fonc ($T: type_de_données) -> T
 // construction.
 PositionCodeSource :: struct #interface {
     // le nom du fichier où se trouve l'objet
-    fichier: chaine
+    fichier: chaine;
     // le nom de la fonction où se trouve l'objet, vide si variable globale
-    fonction: chaine
+    fonction: chaine;
     // la ligne où se trouve l'objet
-    ligne: z32
+    ligne: z32;
     // la colonne où se trouve l'objet
-    colonne: z32
+    colonne: z32;
 }
 
 // ----------------------------
 
 SystèmeExploitation :: énum {
-    AUCUN
-    LINUX
-    ANDROIDE
-    WINDOWS
-    MACOS
+    AUCUN;
+    LINUX;
+    ANDROIDE;
+    WINDOWS;
+    MACOS;
 }
 
 // ----------------------------
 
 ModeLogage :: énum z32 {
-    AUCUN
-    MINIMAL
-    JOURNALIER
-    VERBEUX
+    AUCUN;
+    MINIMAL;
+    JOURNALIER;
+    VERBEUX;
 }
 
 // ----------------------------
@@ -67,26 +67,26 @@ ModeLogage :: énum z32 {
 // Le StockageTemporaire est un stockage mis en place par le compilateur, qui réserve
 // une certaine taille dans l'exécutable où mettre des données temporaire.
 StockageTemporaire :: struct #interface {
-    données: *octet
-    taille: z32
-    occupé: z32
-    occupation_maximale: z32
+    données: *octet;
+    taille: z32;
+    occupé: z32;
+    occupation_maximale: z32;
 
     MémoireDébordante :: struct {
-        adresse: *rien
-        taille: z64
-        marque: z32
+        adresse: *rien;
+        taille: z64;
+        marque: z32;
     }
 
-    mémoire_débordante: [..]MémoireDébordante
+    mémoire_débordante: [..]MémoireDébordante;
 }
 
 // ----------------------------
 
 InfoFonctionTraceAppel :: struct #interface {
-    nom: chaine
-    fichier: chaine
-    adresse: adresse_fonction
+    nom: chaine;
+    fichier: chaine;
+    adresse: adresse_fonction;
     // peut-être que nous pourrions avoir ceci dans le future, en fonction des besoins
     // position: PositionCodeSource
     // desc_type: *InfoTypeFonction
@@ -94,16 +94,16 @@ InfoFonctionTraceAppel :: struct #interface {
 
 // redondance : peut être remplacé par PositionCodeSource
 InfoAppelTraceAppel :: struct #interface {
-    ligne: z32
-    colonne: z32
-    texte: chaine
+    ligne: z32;
+    colonne: z32;
+    texte: chaine;
 }
 
 TraceAppel :: struct #interface {
-    précédente: *TraceAppel
-    info_fonction: *InfoFonctionTraceAppel
-    info_appel: *InfoAppelTraceAppel
-    profondeur: z32
+    précédente: *TraceAppel;
+    info_fonction: *InfoFonctionTraceAppel;
+    info_appel: *InfoAppelTraceAppel;
+    profondeur: z32;
 }
 
 /* ------------------------------------------------------------------------- */
@@ -129,43 +129,43 @@ TraceAppel :: struct #interface {
  * \{ */
 
 FormatEntier :: struct {
-    valeur: eini
-    ajoute_zéros_début := faux
-    nombre_zéros := 0
-    base := 10
-    séparation := 0
+    valeur: eini;
+    ajoute_zéros_début := faux;
+    nombre_zéros := 0;
+    base := 10;
+    séparation := 0;
 }
 
 FormatRéel :: struct {
-    valeur: eini
-    précision := 6
+    valeur: eini;
+    précision := 6;
 }
 
 /** \} */
 
 ContexteProgramme :: struct {
-    allocatrice := allocatrice_défaut
-    données_allocatrice : *BaseAllocatrice = nul
+    allocatrice := allocatrice_défaut;
+    données_allocatrice : *BaseAllocatrice = nul;
 
-    logueur := __logueur_défaut
-    données_logueur : *rien = nul
+    logueur := __logueur_défaut;
+    données_logueur : *rien = nul;
 
-    stockage_temporaire: *StockageTemporaire
+    stockage_temporaire: *StockageTemporaire;
 
-    trace_appel: *TraceAppel
+    trace_appel: *TraceAppel;
 
-    rappel_panique := __rappel_panique_défaut
-    données_rappel_panique: *rien
+    rappel_panique := __rappel_panique_défaut;
+    données_rappel_panique: *rien;
 
     /* Formats pour les nombres entiers et réels. */
-    format_entier: FormatEntier
-    format_réel: FormatRéel
+    format_entier: FormatEntier;
+    format_réel: FormatRéel;
 }
 
-__contexte_fil_principal : ContexteProgramme #mémoire_locale = ---
-__arguments_ligne_commande : []*z8 = ---
-__tampon_stockage_tamporaire : [16384]z8 #mémoire_locale = ---
-__table_des_types: []*InfoType
+__contexte_fil_principal : ContexteProgramme #mémoire_locale = ---;
+__arguments_ligne_commande : []*z8 = ---;
+__tampon_stockage_tamporaire : [16384]z8 #mémoire_locale = ---;
+__table_des_types: []*InfoType;
 
 // Ceci sera remplacé par la fonction principale ou par les métaprogrammes
-__principale :: fonc () #principale
+__principale :: fonc () #principale;

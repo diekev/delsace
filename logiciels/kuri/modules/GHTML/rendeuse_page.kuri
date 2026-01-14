@@ -1,137 +1,137 @@
 
-charge "catalogue_fichier"
+charge "catalogue_fichier";
 
 RendeusePage :: struct {
-    catalogue: CatalogueFichier
-    cache_page: [..]PageGabarit
-    dossier: chaine
+    catalogue: CatalogueFichier;
+    cache_page: [..]PageGabarit;
+    dossier: chaine;
 }
 
 détruit_rendeuse :: fonc (rendeuse_gabarit: *RendeusePage) -> rien
 {
     pour * page dans rendeuse_gabarit.cache_page {
-        détruit_page_gabarit(page)
+        détruit_page_gabarit(page);
     }
 
-    détruit_catalogue(*rendeuse_gabarit.catalogue)
+    détruit_catalogue(*rendeuse_gabarit.catalogue);
 
-    déloge(rendeuse_gabarit.cache_page)
+    déloge(rendeuse_gabarit.cache_page);
 }
 
 PageGabarit :: struct {
-    fichier: *FichierTexte
-    lexeuse: Lexeuse
-    syntaxeuse: Syntaxeuse
-    racine: *NoeudSyntaxique
+    fichier: *FichierTexte;
+    lexeuse: Lexeuse;
+    syntaxeuse: Syntaxeuse;
+    racine: *NoeudSyntaxique;
 }
 
 détruit_page_gabarit :: fonc (page: *PageGabarit) -> rien
 {
-    détruit_lexeuse(page.lexeuse)
-    détruit_assembleuse(page.syntaxeuse.assembleuse)
-    détruit_syntaxeuse(page.syntaxeuse)
+    détruit_lexeuse(page.lexeuse);
+    détruit_assembleuse(page.syntaxeuse.assembleuse);
+    détruit_syntaxeuse(page.syntaxeuse);
 }
 
 RésultatRequêteCache :: union {
-    page: *PageGabarit
-    erreur_: chaine
+    page: *PageGabarit;
+    erreur_: chaine;
 }
 
 trouve_dans_cache :: fonc (rendeuse_gabarit: *RendeusePage, nom_court: chaine) -> RésultatRequêteCache
 {
     pour * page dans rendeuse_gabarit.cache_page {
         si page.fichier.nom_court == nom_court {
-            retourne page
+            retourne page;
         }
     }
 
-    fichier := trouve_fichier(*rendeuse_gabarit.catalogue, nom_court)
+    fichier := trouve_fichier(*rendeuse_gabarit.catalogue, nom_court);
 
     si fichier == nul {
-        retourne enchaine("Impossible de trouver le fichier « ", nom_court, " » !")
+        retourne enchaine("Impossible de trouver le fichier « ", nom_court, " » !");
     }
 
     si fichier.données.taille == 0 {
-        commence_fichier(fichier)
+        commence_fichier(fichier);
     }
 
     si fichier.succès == faux {
-        retourne enchaine("Impossible de lire le fichier « ", nom_court, " », de chemin « ", fichier.chemin, " »")
+        retourne enchaine("Impossible de lire le fichier « ", nom_court, " », de chemin « ", fichier.chemin, " »");
     }
 
-    lexeuse := construis_lexeuse(fichier.données)
-    lexeuse.performe_lexage()
+    lexeuse := construis_lexeuse(fichier.données);
+    lexeuse.performe_lexage();
 
-    syntaxeuse := construis_syntaxeuse(lexeuse.lexèmes)
-    syntaxeuse.performe_syntaxage()
+    syntaxeuse := construis_syntaxeuse(lexeuse.lexèmes);
+    syntaxeuse.performe_syntaxage();
 
     si syntaxeuse.erreurs {
-        retourne copie_chaine("erreurs de syntaxage")
+        retourne copie_chaine("erreurs de syntaxage");
     }
 
-    racine : *NoeudSyntaxique = nul
+    racine : *NoeudSyntaxique = nul;
 
     /* le fichier est vide */
     saufsi syntaxeuse.assembleuse.pile.est_vide() {
-        racine = syntaxeuse.assembleuse.pile.tête()
+        racine = syntaxeuse.assembleuse.pile.tête();
     }
 
     si syntaxeuse.est_extension {
-        recherche_page_étendue := trouve_dans_cache(rendeuse_gabarit, syntaxeuse.fichier_étendu)
+        recherche_page_étendue := trouve_dans_cache(rendeuse_gabarit, syntaxeuse.fichier_étendu);
 
         discr recherche_page_étendue {
             page {
-                page_étendue := recherche_page_étendue.page
-                nouvelle_racine := copie_noeud(syntaxeuse.assembleuse, page_étendue.racine)
+                page_étendue := recherche_page_étendue.page;
+                nouvelle_racine := copie_noeud(syntaxeuse.assembleuse, page_étendue.racine);
 
-                blocs: [..]*NoeudSyntaxique
-                rassemble_blocs(racine, *blocs)
-                remplace_blocs(nouvelle_racine, blocs)
-                déloge(blocs)
+                blocs: [..]*NoeudSyntaxique;
+                rassemble_blocs(racine, *blocs);
+                remplace_blocs(nouvelle_racine, blocs);
+                déloge(blocs);
 
-                racine = nouvelle_racine
+                racine = nouvelle_racine;
             }
             erreur_ {
-                retourne recherche_page_étendue.erreur_
+                retourne recherche_page_étendue.erreur_;
             }
             sinon {
-                retourne "erreur inconnue"
+                retourne "erreur inconnue";
             }
         }
     }
 
     pour & syntaxeuse.inclusions {
-        recherche_page_incluse := trouve_dans_cache(rendeuse_gabarit, it.nom)
+        recherche_page_incluse := trouve_dans_cache(rendeuse_gabarit, it.nom);
 
         discr recherche_page_incluse {
             page {
-                remplace_enfant(it.parent, it, recherche_page_incluse.page.racine)
+                remplace_enfant(it.parent, it, recherche_page_incluse.page.racine);
             }
             erreur_ {
-                retourne recherche_page_incluse.erreur_
+                retourne recherche_page_incluse.erreur_;
             }
             sinon {
-                retourne "erreur inconnue"
+                retourne "erreur inconnue";
             }
         }
     }
 
-    page: PageGabarit
-    page.fichier = fichier
-    page.lexeuse = lexeuse
-    page.syntaxeuse = syntaxeuse
-    page.racine = racine
+    page: PageGabarit;
+    page.fichier = fichier;
+    page.lexeuse = lexeuse;
+    page.syntaxeuse = syntaxeuse;
+    page.racine = racine;
 
-    tableau_ajoute(*rendeuse_gabarit.cache_page, page)
+    tableau_ajoute(*rendeuse_gabarit.cache_page, page);
 
-    retourne *rendeuse_gabarit.cache_page[rendeuse_gabarit.cache_page.taille - 1]
+    retourne *rendeuse_gabarit.cache_page[rendeuse_gabarit.cache_page.taille - 1];
 } @FonctionLongue
 
 remplace_enfant :: fonc (parent: *NoeudSyntaxique, enfant: *NoeudSyntaxique, par: *NoeudSyntaxique)
 {
     pour & parent.enfants {
         si it == enfant {
-            it = par
+            it = par;
         }
     }
 }
@@ -139,11 +139,11 @@ remplace_enfant :: fonc (parent: *NoeudSyntaxique, enfant: *NoeudSyntaxique, par
 rassemble_blocs :: fonc (racine: *NoeudSyntaxique, blocs: *[..]*NoeudSyntaxique)
 {
     si racine.type == TypeNoeud.BLOC && racine.nom != "" {
-        tableau_ajoute(blocs, racine)
+        tableau_ajoute(blocs, racine);
     }
 
     pour racine.enfants {
-        rassemble_blocs(it, blocs)
+        rassemble_blocs(it, blocs);
     }
 }
 
@@ -154,22 +154,22 @@ rassemble_blocs :: fonc (racine: *NoeudSyntaxique, blocs: *[..]*NoeudSyntaxique)
 remplace_blocs :: fonc (nouvelle_racine: *NoeudSyntaxique, blocs: []*NoeudSyntaxique)
 {
     saufsi blocs {
-        retourne
+        retourne;
     }
 
     pour & nouvelle_racine.enfants {
         si it.type == TypeNoeud.BLOC && it.nom != "" {
             pour bloc dans blocs {
                 si it.nom == bloc.nom {
-                    it = bloc
-                    arrête
+                    it = bloc;
+                    arrête;
                 }
             }
 
-            continue
+            continue;
         }
 
-        remplace_blocs(it, blocs)
+        remplace_blocs(it, blocs);
     }
 }
 
@@ -178,75 +178,75 @@ rends_page :: fonc (rendeuse_gabarit: *RendeusePage, nom_court: chaine, données
     //temps := maintenant_précis()
     //diffère { imprime_log("", "Durée rendu gabarit : %µs", temps.temps_écoulé_microsecondes()) }
 
-    recherche_page := trouve_dans_cache(rendeuse_gabarit, nom_court)
+    recherche_page := trouve_dans_cache(rendeuse_gabarit, nom_court);
 
     discr recherche_page {
         page {}
         erreur_ {
-            retourne enchaine("<h1>Erreur GHTML</h1><div><pre>", recherche_page.erreur_, "</pre><div>")
+            retourne enchaine("<h1>Erreur GHTML</h1><div><pre>", recherche_page.erreur_, "</pre><div>");
         }
         sinon {
-            retourne enchaine("<p>Erreur interne</p>")
+            retourne enchaine("<p>Erreur interne</p>");
         }
     }
 
-    page := recherche_page.page
+    page := recherche_page.page;
 
     /* la page est vide */
     saufsi page.racine {
-        retourne copie_chaine("<p>La page est vide</p>")
+        retourne copie_chaine("<p>La page est vide</p>");
     }
 
-    données_génération: DonnéesGénération
-    données_génération.nom_court_page = nom_court
-    données_génération.valeur = données
+    données_génération: DonnéesGénération;
+    données_génération.nom_court_page = nom_court;
+    données_génération.valeur = données;
 
-    enchaineuse: Enchaineuse
-    initialise_enchaineuse(*enchaineuse)
+    enchaineuse: Enchaineuse;
+    initialise_enchaineuse(*enchaineuse);
 
-    erreur_ := génère_page(*données_génération, page.racine, *enchaineuse)
+    erreur_ := génère_page(*données_génération, page.racine, *enchaineuse);
 
     si erreur_ {
-        diffère déloge(erreur_)
-        retourne enchaine("<h1>Erreur GHTML</h1><div><pre>", erreur_, "</pre><div>")
+        diffère déloge(erreur_);
+        retourne enchaine("<h1>Erreur GHTML</h1><div><pre>", erreur_, "</pre><div>");
     }
 
-    retourne chaine_depuis_enchaineuse(*enchaineuse)
+    retourne chaine_depuis_enchaineuse(*enchaineuse);
 }
 
 rappel_ajoute_fichier :: fonc (chemin: CheminFichier, rendeuse_page: *RendeusePage)
 {
     si chemin.chn == ".." || chemin.chn == "." {
-        retourne
+        retourne;
     }
 
-    ext := chemin.extension()
+    ext := chemin.extension();
 
     si ext != ".html" {
-        retourne
+        retourne;
     }
 
-    nom := chemin.nom_fichier()
+    nom := chemin.nom_fichier();
 
     // À FAIRE : chemin absolu
 
-    ajoute_fichier(*rendeuse_page.catalogue, copie_chaine(nom), copie_chaine(chemin.chn))
+    ajoute_fichier(*rendeuse_page.catalogue, copie_chaine(nom), copie_chaine(chemin.chn));
 }
 
 initialise_depuis_dossier :: fonc (rendeuse_page: *RendeusePage, chemin: CheminFichier)
 {
-    rendeuse_page.dossier = chemin.chn
-    pour_chaque_chemin(chemin, rendeuse_page, rappel_ajoute_fichier)
+    rendeuse_page.dossier = chemin.chn;
+    pour_chaque_chemin(chemin, rendeuse_page, rappel_ajoute_fichier);
 }
 
 ajoute_page_pour_formulaire :: fonc (rendeuse_page: *RendeusePage, nom_court: chaine, $T: type_de_données, nom_formulaire: chaine, méthode: chaine, cible: chaine)
 {
-    fichier: FichierTexte
-    fichier.nom_court = nom_court
-    fichier.succès = vrai
+    fichier: FichierTexte;
+    fichier.nom_court = nom_court;
+    fichier.succès = vrai;
 
-    valeur: T
-    fichier.données = génère_formulaire_depuis_struct(valeur, nom_formulaire, méthode, cible)
+    valeur: T;
+    fichier.données = génère_formulaire_depuis_struct(valeur, nom_formulaire, méthode, cible);
 
-    tableau_ajoute(*rendeuse_page.catalogue.fichiers, fichier)
+    tableau_ajoute(*rendeuse_page.catalogue.fichiers, fichier);
 }

@@ -1,74 +1,74 @@
-importe Fondation
-importe POSIX
-importe Temps
+importe Fondation;
+importe POSIX;
+importe Temps;
 
 // fonction pour générer des IDS, peut-être utilisée en parallèle ou sur différent serveurs si les paramètres sont uniques
 // adapté de SnowFlake de Twitter
 
-ÉPOQUE_DLS :: 1546322400000 comme z64
+ÉPOQUE_DLS :: 1546322400000 comme z64;
 
-BITS_ID_TRAVAILLEUR :: 5
-BITS_ID_CENTRE_DONNÉES :: 5
-ID_TRAVAILLEUR_MAX :: -1 ^ (-1 << BITS_ID_TRAVAILLEUR)
-ID_CENTRE_DONNÉES_MAX :: -1 ^ (-1 << BITS_ID_CENTRE_DONNÉES)
-BITS_SÉQUENCE :: 12
+BITS_ID_TRAVAILLEUR :: 5;
+BITS_ID_CENTRE_DONNÉES :: 5;
+ID_TRAVAILLEUR_MAX :: -1 ^ (-1 << BITS_ID_TRAVAILLEUR);
+ID_CENTRE_DONNÉES_MAX :: -1 ^ (-1 << BITS_ID_CENTRE_DONNÉES);
+BITS_SÉQUENCE :: 12;
 
-DÉCALAGE_ID_TRAVAILLEUR :: BITS_SÉQUENCE
-DÉCALAGE_ID_CENTRE_DONNÉES :: BITS_SÉQUENCE + BITS_ID_TRAVAILLEUR
-DÉCALAGE_GAUCHE_HORODOTAGE :: BITS_SÉQUENCE + BITS_ID_TRAVAILLEUR + BITS_ID_CENTRE_DONNÉES
-MASQUE_SÉQUENCE :: -1 ^ (-1 << BITS_SÉQUENCE)
+DÉCALAGE_ID_TRAVAILLEUR :: BITS_SÉQUENCE;
+DÉCALAGE_ID_CENTRE_DONNÉES :: BITS_SÉQUENCE + BITS_ID_TRAVAILLEUR;
+DÉCALAGE_GAUCHE_HORODOTAGE :: BITS_SÉQUENCE + BITS_ID_TRAVAILLEUR + BITS_ID_CENTRE_DONNÉES;
+MASQUE_SÉQUENCE :: -1 ^ (-1 << BITS_SÉQUENCE);
 
 génère_temps :: fonc () -> z64
 {
-    retourne maintenant_système_précis().millisecondes()
+    retourne maintenant_système_précis().millisecondes();
 }
 
 ParamètresFlocon :: struct {
-    flocon_travailleur : z64 = 0
-    flocon_centre_données : z64 = 0
-    séquence : z64 = 0
-    dernier_horodotage : z64 = -1
+    flocon_travailleur : z64 = 0;
+    flocon_centre_données : z64 = 0;
+    séquence : z64 = 0;
+    dernier_horodotage : z64 = -1;
 }
 
-Flocon :: #opaque z64
-Délai :: #opaque z64
+Flocon :: #opaque z64;
+Délai :: #opaque z64;
 
 flocon_suivant :: fonc (empl paramètres: &ParamètresFlocon) -> Flocon | Délai
 {
-    horodotage := génère_temps()
+    horodotage := génère_temps();
 
     si horodotage < dernier_horodotage {
         // Le temps recule, retourne un délai pour indiquer le temps à attendre pour générer un nouvel Flocon
-        retourne Délai(dernier_horodotage - horodotage)
+        retourne Délai(dernier_horodotage - horodotage);
     }
 
     si dernier_horodotage == horodotage {
-        séquence = (séquence + 1) & MASQUE_SÉQUENCE
+        séquence = (séquence + 1) & MASQUE_SÉQUENCE;
 
         si séquence == 0 {
-            horodotage = jusque_prochaine_millis(dernier_horodotage)
+            horodotage = jusque_prochaine_millis(dernier_horodotage);
         }
     }
     sinon {
-        séquence = 0
+        séquence = 0;
     }
 
-    dernier_horodotage = horodotage
+    dernier_horodotage = horodotage;
 
-    résultat := ((horodotage - ÉPOQUE_DLS) << DÉCALAGE_GAUCHE_HORODOTAGE) | (flocon_centre_données << DÉCALAGE_ID_CENTRE_DONNÉES) | (flocon_travailleur << DÉCALAGE_ID_TRAVAILLEUR) | séquence
+    résultat := ((horodotage - ÉPOQUE_DLS) << DÉCALAGE_GAUCHE_HORODOTAGE) | (flocon_centre_données << DÉCALAGE_ID_CENTRE_DONNÉES) | (flocon_travailleur << DÉCALAGE_ID_TRAVAILLEUR) | séquence;
 
-    retourne Flocon(résultat)
+    retourne Flocon(résultat);
 }
 
 jusque_prochaine_millis :: fonc (dernier_horodotage: z64) -> z64
 {
-    horodotage := génère_temps()
+    horodotage := génère_temps();
 
     tantque horodotage <= dernier_horodotage {
-        horodotage = génère_temps()
+        horodotage = génère_temps();
     }
 
-    retourne horodotage
+    retourne horodotage;
 }
 
 /*

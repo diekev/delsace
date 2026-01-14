@@ -1,60 +1,60 @@
-importe Compilatrice
-importe Chaine
-importe Fondation
+importe Compilatrice;
+importe Chaine;
+importe Fondation;
 
 foo :: fonc (b: z32, c: z32) -> z32 #enligne
 {
-    retourne b + c
+    retourne b + c;
 }
 
 Vecteur3 :: struct {
-    x := 0
-    y := 1
-    z := 2
+    x := 0;
+    y := 1;
+    z := 2;
 }
 
 /* tous les opérateurs sont implicitement enlignés, sauf si volontairement horslignés */
 opérateur + :: (v0: Vecteur3, v1: Vecteur3) -> Vecteur3
 {
-    résultat : Vecteur3 = ---
-    résultat.x = v0.x + v1.x
-    résultat.y = v0.y + v1.y
-    résultat.z = v0.z + v1.z
-    retourne résultat
+    résultat : Vecteur3 = ---;
+    résultat.x = v0.x + v1.x;
+    résultat.y = v0.y + v1.y;
+    résultat.z = v0.z + v1.z;
+    retourne résultat;
 }
 
 opérateur == :: (v0: Vecteur3, v1: Vecteur3) -> bool
 {
-    retourne v0.x == v1.x && v0.y == v1.y && v0.z == v1.z
+    retourne v0.x == v1.x && v0.y == v1.y && v0.z == v1.z;
 }
 
 produit_scalaire :: fonc (v0: Vecteur3, v1: Vecteur3) -> z32 #enligne
 {
-    retourne v0.x * v1.x + v0.y * v1.y + v0.z * v1.z
+    retourne v0.x * v1.x + v0.y * v1.y + v0.z * v1.z;
 }
 
 débouclement_tableau_fixe :: fonc ()
 {
-    tableau_fixe: [3]z32
+    tableau_fixe: [3]z32;
 
     pour tableau_dynamique {
-        it = 4
+        it = 4;
     }
 }
 
 débouclement_tableau_dynamique_depuis_fixe :: fonc ()
 {
-    tableau_fixe: [3]z32
-    tableau_dynamique : []z32 = tableau_fixe
+    tableau_fixe: [3]z32;
+    tableau_dynamique : []z32 = tableau_fixe;
 
     pour tableau_dynamique {
-        it = 5
+        it = 5;
     }
 }
 
 enlignage_fonction_initialisation :: fonc ()
 {
-    v: Vecteur3
+    v: Vecteur3;
 }
 
 /* optimisations assez correctes, la propagation des valeurs des rubriques ne
@@ -82,12 +82,12 @@ principale :: fonc ()
     }
     */
 
-    a := 4
-    b := 10
-    c := 15
+    a := 4;
+    b := 10;
+    c := 15;
 
     si a <= b <= c {
-        exit(1)
+        exit(1);
     }
 
     /*
@@ -112,7 +112,7 @@ principale :: fonc ()
 /* À FAIRE : échec assertion lors de la suppression d'un enfant */
 déduplique_condition :: fonc ()
 {
-    a := 4
+    a := 4;
 
     si a == 5 {
         si a == 5 {
@@ -122,56 +122,56 @@ déduplique_condition :: fonc ()
 
 test_discr :: fonc () -> z32
 {
-    a := 5
-    b := 5
+    a := 5;
+    b := 5;
 
     discr a {
         5 {
             si b == a {
-                retourne 3
+                retourne 3;
             }
 
-            retourne 1
+            retourne 1;
         }
         sinon {
-            retourne 0
+            retourne 0;
         }
     }
 
-    retourne 2
+    retourne 2;
 }
 
 test_conditions :: fonc () -> z32
 {
     // bloc_condition_vide_si()
     si a == a {
-        retourne 1
+        retourne 1;
     }
 
-    bloc_condition_vide_si_sinon
+    bloc_condition_vide_si_sinon;
     si a == 5 {
     }
     sinon {
     }
 
-    bloc_condition_vide_sinon
+    bloc_condition_vide_sinon;
     si a == 5 {
-        b = 5
+        b = 5;
     }
     sinon {
     }
 
-    retourne 1
+    retourne 1;
 }
 
 test_indirection_pointeur :: fonc () -> z32
 {
-    a := 5
-    a = 6
-    b := *a
-    c := mémoire(b)
+    a := 5;
+    a = 6;
+    b := *a;
+    c := mémoire(b);
 
-    retourne c
+    retourne c;
 }
 
 tests :: fonc ()
@@ -212,46 +212,46 @@ tests :: fonc ()
  */
 test_parseuse_chaine :: fonc () -> z32
 {
-    parseuse := ParseuseChaine(chn = "mlqksjdfmqsjf")
+    parseuse := ParseuseChaine(chn = "mlqksjdfmqsjf");
 
-    taille_entête := 0
-    début_entête := parseuse.curseur
+    taille_entête := 0;
+    début_entête := parseuse.curseur;
 
     tantque !fini(*parseuse) {
         si apparie(*parseuse, '\r') {
-            avance(*parseuse, 1)
-            continue
+            avance(*parseuse, 1);
+            continue;
         }
 
         si apparie(*parseuse, '\n') {
-            avance(*parseuse, 1)
+            avance(*parseuse, 1);
 
             // dernière ligne, les données suivent
             si taille_entête == 0 {
-                arrête
+                arrête;
             }
 
-            curseur := parseuse.curseur
+            curseur := parseuse.curseur;
 
-            positionne(*parseuse, début_entête)
-            entête := sous_chaine_jusque_indice(*parseuse, début_entête + taille_entête)
+            positionne(*parseuse, début_entête);
+            entête := sous_chaine_jusque_indice(*parseuse, début_entête + taille_entête);
 
-            imprime_log("[post_page_image]", "entête    : %\n", entête)
+            imprime_log("[post_page_image]", "entête    : %\n", entête);
 
-            taille_entête = 0
-            début_entête = curseur
-            positionne(*parseuse, curseur)
-            continue
+            taille_entête = 0;
+            début_entête = curseur;
+            positionne(*parseuse, curseur);
+            continue;
         }
 
-        taille_entête += 1
-        avance(*parseuse, 1)
+        taille_entête += 1;
+        avance(*parseuse, 1);
     }
 
-    retourne taille_entête
+    retourne taille_entête;
 }
 
 principale2 :: fonc () -> z32
 {
-    retourne 0
+    retourne 0;
 }

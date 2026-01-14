@@ -1,4 +1,4 @@
-importe CodecDonnées
+importe CodecDonnées;
 
 /* ------------------------------------------------------------------------- */
 /** \nom 2.1 URL
@@ -8,25 +8,25 @@ importe CodecDonnées
 /* https://fetch.spec.whatwg.org/#local-scheme */
 is_local_scheme :: fonc (scheme: chaine) -> bool
 {
-    retourne scheme == "about" || scheme == "blob" || scheme == "data"
+    retourne scheme == "about" || scheme == "blob" || scheme == "data";
 }
 
 /* https://fetch.spec.whatwg.org/#is-local */
 is_local :: fonc (url: *URL) -> bool
 {
-    retourne is_local_scheme(url.scheme)
+    retourne is_local_scheme(url.scheme);
 }
 
 /* https://fetch.spec.whatwg.org/#http-scheme */
 is_http_scheme :: fonc (scheme: chaine) -> bool
 {
-    retourne scheme == "http" || scheme == "https"
+    retourne scheme == "http" || scheme == "https";
 }
 
 /* https://fetch.spec.whatwg.org/#fetch-scheme */
 is_fetch_scheme :: fonc (scheme: chaine) -> bool
 {
-    retourne scheme == "about" || scheme == "blob" || scheme == "data" || scheme == "file" || is_http_scheme(scheme)
+    retourne scheme == "about" || scheme == "blob" || scheme == "data" || scheme == "file" || is_http_scheme(scheme);
 }
 
 /** \} */
@@ -39,13 +39,13 @@ is_fetch_scheme :: fonc (scheme: chaine) -> bool
 /* https://fetch.spec.whatwg.org/#redirect-status */
 is_redirect_status :: fonc (status: z32) -> bool
 {
-    retourne status == 301 || status == 302 || status == 303 || status == 307 || status == 308
+    retourne status == 301 || status == 302 || status == 303 || status == 307 || status == 308;
 }
 
 /* https://fetch.spec.whatwg.org/#ok-status */
 is_ok_status :: fonc (status: z32) -> bool
 {
-    retourne 200 <= status <= 299
+    retourne 200 <= status <= 299;
 }
 
 /** \} */
@@ -57,132 +57,132 @@ is_ok_status :: fonc (status: z32) -> bool
 
 /* https://fetch.spec.whatwg.org/#concept-request-policy-container */
 RequestPolicyContainer :: union {
-    chn: chaine
-    policy_container: *PolicyContainer
+    chn: chaine;
+    policy_container: *PolicyContainer;
 }
 
 opérateur == :: (policy_container: RequestPolicyContainer, chn: chaine) -> bool
 {
     discr policy_container {
         chn(c) {
-            retourne c == chn
+            retourne c == chn;
         }
         sinon {
-            retourne faux
+            retourne faux;
         }
     }
 }
 
 donne_referrer_policy :: fonc (policy_container: RequestPolicyContainer) -> ReferrerPolicy
 {
-    retourne policy_container.policy_container.referrer_policy
+    retourne policy_container.policy_container.referrer_policy;
 }
 
 RequestTraversable :: énum {
-    Client
-    NoTraversable
+    Client;
+    NoTraversable;
 }
 
 RequestTraversableType :: union {
-    E: RequestTraversable
-    T: *TraversableNavigable
+    E: RequestTraversable;
+    T: *TraversableNavigable;
 }
 
 est_client :: fonc (request_traversable: RequestTraversableType) -> bool
 {
     discr request_traversable {
         E(e) {
-            retourne e == RequestTraversable.Client
+            retourne e == RequestTraversable.Client;
         }
         sinon {
-            retourne faux
+            retourne faux;
         }
     }
 }
 
 RequestOrigin :: énum {
-    Client
+    Client;
 }
 
 /* https://fetch.spec.whatwg.org/#concept-request-origin */
 RequestOriginType :: union {
-    C: RequestOrigin
-    O: Origin
+    C: RequestOrigin;
+    O: Origin;
 }
 
 est_client :: fonc (origin: RequestOriginType) -> bool
 {
     discr origin {
         C(c) {
-            retourne c == RequestOrigin.Client
+            retourne c == RequestOrigin.Client;
         }
         sinon {
-            retourne faux
+            retourne faux;
         }
     }
 }
 
 Header :: struct {
-    name: chaine
-    value: chaine
+    name: chaine;
+    value: chaine;
 }
 
 Request :: struct {
     Drapeaux :: énum_drapeau n32 {
         /* https://fetch.spec.whatwg.org/#local-urls-only-flag
          * A request has an associated local-URLs-only flag. Unless stated otherwise it is unset. */
-        LOCAL_URLS_ONLY
+        LOCAL_URLS_ONLY;
         /* https://fetch.spec.whatwg.org/#unsafe-request-flag
          * A request has an associated unsafe-request flag. Unless stated otherwise it is unset. */
-        UNSAFE_REQUEST
+        UNSAFE_REQUEST;
         /* https://fetch.spec.whatwg.org/#request-keepalive-flag
          * A request has an associated boolean keepalive. Unless stated otherwise it is false. */
-        KEEPALIVE
+        KEEPALIVE;
         /* https://fetch.spec.whatwg.org/#use-cors-preflight-flag
          * A request has an associated use-CORS-preflight flag. Unless stated otherwise, it is unset. */
-        USE_CORS_PREFLIGHT
+        USE_CORS_PREFLIGHT;
         /* https://fetch.spec.whatwg.org/#concept-request-use-url-credentials-flag
          * A request has an associated use-URL-credentials flag. Unless stated otherwise, it is unset. */
-        USE_URL_CREDENTIALS
+        USE_URL_CREDENTIALS;
         /* https://fetch.spec.whatwg.org/#concept-request-reload-navigation-flag
          * A request has an associated reload-navigation flag. Unless stated otherwise, it is unset. */
-        RELOAD_NAVIGATION
+        RELOAD_NAVIGATION;
         /* https://fetch.spec.whatwg.org/#concept-request-history-navigation-flag
          * A request has an associated history-navigation flag. Unless stated otherwise, it is unset. */
-        HISTORY_NAVIGATION
+        HISTORY_NAVIGATION;
         /* https://fetch.spec.whatwg.org/#request-user-activation
          * A request has an associated boolean user-activation. Unless stated otherwise, it is false. */
-        USER_ACTIVATION
+        USER_ACTIVATION;
         /* https://fetch.spec.whatwg.org/#request-render-blocking
          * A request has an associated boolean render-blocking. Unless stated otherwise, it is false. */
-        RENDER_BLOCKING
+        RENDER_BLOCKING;
         /* https://fetch.spec.whatwg.org/#no-cache-prevent-cache-control
          * A request has an associated prevent no-cache cache-control header modification flag. Unless stated otherwise, it is unset. */
-        PREVENT_NO_CACHE_CACHE_CONTROL_HEADER_MODIFICATION
+        PREVENT_NO_CACHE_CACHE_CONTROL_HEADER_MODIFICATION;
         /* https://fetch.spec.whatwg.org/#done-flag
          * A request has an associated done flag. Unless stated otherwise, it is unset. */
-        DONE
+        DONE;
         /* https://fetch.spec.whatwg.org/#timing-allow-failed
          * A request has an associated timing allow failed flag. Unless stated otherwise, it is unset. */
-        TIMING_ALLOW_FAILED
+        TIMING_ALLOW_FAILED;
         /* https://fetch.spec.whatwg.org/#synchronous-flag
          * @spec-bug : manquant */
-        SYNCHRONOUS
+        SYNCHRONOUS;
     }
 
-    drapeaux: Drapeaux
+    drapeaux: Drapeaux;
 
     /* https://fetch.spec.whatwg.org/#concept-request-method
      * A request has an associated method (a method). Unless stated otherwise it is `GET`. */
-    method := "GET"
+    method := "GET";
 
     /* https://fetch.spec.whatwg.org/#concept-request-url
      * A request has an associated URL (a URL). */
-    url: *URL
+    url: *URL;
 
     /* https://fetch.spec.whatwg.org/#concept-request-header-list
      * A request has an associated header list (a header list). Unless stated otherwise it is « ». */
-    header_list: [..]Header
+    header_list: [..]Header;
 
     /* https://fetch.spec.whatwg.org/#concept-request-body
      * A request has an associated body (null, a byte sequence, or a body). Unless stated otherwise it is null. */
@@ -190,21 +190,21 @@ Request :: struct {
 
     /* https://fetch.spec.whatwg.org/#concept-request-client
      * A request has an associated client (null or an environment settings object). */
-    client: *EnvironmentSettings
+    client: *EnvironmentSettings;
 
     /* https://fetch.spec.whatwg.org/#concept-request-reserved-client
      * A request has an associated reserved client (null, an environment, or an environment settings object). Unless stated otherwise it is null. */
-    reserved_client: *Environment
+    reserved_client: *Environment;
 
     /* https://fetch.spec.whatwg.org/#concept-request-replaces-client-id
      * A request has an associated replaces client id (a string). Unless stated otherwise it is the empty string. */
-    replaces_client_id: chaine
+    replaces_client_id: chaine;
 
     /* https://fetch.spec.whatwg.org/#concept-request-window
      * A request has an associated traversable for user prompts,
      * that is "no-traversable", "client", or a traversable navigable.
      * Unless stated otherwise it is "client". */
-    traversable_for_user_prompts: RequestTraversableType = RequestTraversable.Client
+    traversable_for_user_prompts: RequestTraversableType = RequestTraversable.Client;
 
     /* https://fetch.spec.whatwg.org/#request-initiator-type
      * A request has an associated initiator type, which is null, "audio",
@@ -212,54 +212,54 @@ Request :: struct {
      * "iframe", "image", "img", "input", "link", "object", "ping", "script",
      * "track", "video", "xmlhttprequest", or "other". Unless stated otherwise it is null.  */
     InitiatorType :: énum n8 {
-        Null
+        Null;
 
-        Audio
+        Audio;
         Beacon 
-        Body
-        CSS
-        Early_Hints
-        Embed
-        Fetch
-        Font
-        Frame
-        Iframe
-        Image
-        Img
-        Input
-        Link
-        Object
-        Ping
-        Script
-        Track
-        Video
-        XMLHTTPRequest
-        Other
+        Body;
+        CSS;
+        Early_Hints;
+        Embed;
+        Fetch;
+        Font;
+        Frame;
+        Iframe;
+        Image;
+        Img;
+        Input;
+        Link;
+        Object;
+        Ping;
+        Script;
+        Track;
+        Video;
+        XMLHTTPRequest;
+        Other;
     }
-    initiator_type: InitiatorType
+    initiator_type: InitiatorType;
 
     /* https://fetch.spec.whatwg.org/#request-service-workers-mode
      * A request has an associated service-workers mode, that is "all" or "none". Unless stated otherwise it is "all". */
     ServiceWorkersMode :: énum n8 {
-        All
-        None
+        All;
+        None;
     }
-    service_workers_mode: ServiceWorkersMode
+    service_workers_mode: ServiceWorkersMode;
 
     /* https://fetch.spec.whatwg.org/#concept-request-initiator
      * A request has an associated initiator, which is the empty string,
      * "download", "imageset", "manifest", "prefetch", "prerender", or "xslt".
      * Unless stated otherwise it is the empty string. */
     Initiator :: énum n8 {
-        EmptyString
-        Download
-        ImageSet
-        Manifest
-        Prefetch
-        Prerender
-        XSLT
+        EmptyString;
+        Download;
+        ImageSet;
+        Manifest;
+        Prefetch;
+        Prerender;
+        XSLT;
     }
-    initiator: Initiator
+    initiator: Initiator;
 
     /* https://fetch.spec.whatwg.org/#destination-type
      * A destination type is one of: the empty string, "audio", "audioworklet",
@@ -267,221 +267,221 @@ Request :: struct {
      * "object", "paintworklet", "report", "script", "serviceworker", "sharedworker",
      * "style", "track", "video", "webidentity", "worker", or "xslt". */
     DestinationType :: énum n8 {
-        EmptyString
+        EmptyString;
 
-        Audio
-        AudioWorklet
-        Document
-        Embed
-        Font
-        Frame
-        Iframe
-        Image
-        JSON
-        Manifest
-        Object
-        PaintWorklet
-        Report
-        Script
-        ServiceWorker
-        SharedWorker
-        Style
-        Track
-        Video
-        WebIdentity
-        Worker
-        XSLT
+        Audio;
+        AudioWorklet;
+        Document;
+        Embed;
+        Font;
+        Frame;
+        Iframe;
+        Image;
+        JSON;
+        Manifest;
+        Object;
+        PaintWorklet;
+        Report;
+        Script;
+        ServiceWorker;
+        SharedWorker;
+        Style;
+        Track;
+        Video;
+        WebIdentity;
+        Worker;
+        XSLT;
     }
 
     /* https://fetch.spec.whatwg.org/#concept-request-destination
      * A request has an associated destination, which is destination type. Unless stated otherwise it is the empty string. */
-    destination: DestinationType
+    destination: DestinationType;
 
     /* https://fetch.spec.whatwg.org/#request-priority
      * A request has an associated priority, which is "high", "low", or "auto". Unless stated otherwise it is "auto". */
     Priority :: énum n8 {
-        Auto
-        High
-        Low
+        Auto;
+        High;
+        Low;
     }
-    priority: Priority
+    priority: Priority;
 
     /* https://fetch.spec.whatwg.org/#request-internal-priority
      * A request has an associated internal priority (null or an implementation-defined object). Unless otherwise stated it is null. */
     // @ImplementationDefined
-    internal_priority: *rien
+    internal_priority: *rien;
 
     /* https://fetch.spec.whatwg.org/#concept-request-origin
      * A request has an associated origin, which is "client" or an origin. Unless stated otherwise it is "client". */
-    origin : RequestOriginType = RequestOrigin.Client
+    origin : RequestOriginType = RequestOrigin.Client;
 
     /* https://fetch.spec.whatwg.org/#request-top-level-navigation-initiator-origin
      * A request has an associated top-level navigation initiator origin, which is an origin or null. Unless stated otherwise it is null. */
-    top_level_initiator_origin: Optionnel(Origin)
+    top_level_initiator_origin: Optionnel(Origin);
 
     /* https://fetch.spec.whatwg.org/#concept-request-policy-container
      * A request has an associated policy container, which is "client" or a policy container. Unless stated otherwise it is "client". */
-    policy_container : RequestPolicyContainer = "client"
+    policy_container : RequestPolicyContainer = "client";
 
     /* https://fetch.spec.whatwg.org/#concept-request-referrer
      * A request has an associated referrer, which is "no-referrer", "client", or a URL.
      * Unless stated otherwise it is "client". */
-    referrer := "client"
+    referrer := "client";
 
     /* https://fetch.spec.whatwg.org/#concept-request-referrer-policy
      * A request has an associated referrer policy, which is a referrer policy.
      * Unless stated otherwise it is the empty string. */
-    referrer_policy := ReferrerPolicy.EmptyString
+    referrer_policy := ReferrerPolicy.EmptyString;
 
     /* https://fetch.spec.whatwg.org/#concept-request-mode
      * A request has an associated mode, which is "same-origin", "cors", "no-cors", "navigate", or "websocket".
      * Unless stated otherwise, it is "no-cors". */
     Mode :: énum n8 {
-        No_CORS
-        Same_Origin
-        CORS
-        Navigate
-        WebSocket
+        No_CORS;
+        Same_Origin;
+        CORS;
+        Navigate;
+        WebSocket;
     }
-    mode: Mode
+    mode: Mode;
 
     /* https://fetch.spec.whatwg.org/#concept-request-credentials-mode
      * A request has an associated credentials mode, which is "omit", "same-origin", or "include". Unless stated otherwise, it is "same-origin". */
     CredentialsMode :: énum n8 {
-        Same_Origin
-        Omit
-        Include
+        Same_Origin;
+        Omit;
+        Include;
     }
-    credentials_mode: CredentialsMode
+    credentials_mode: CredentialsMode;
 
     /* https://fetch.spec.whatwg.org/#concept-request-cache-mode
      * A request has an associated cache mode, which is "default",
      * "no-store", "reload", "no-cache", "force-cache", or "only-if-cached".
      * Unless stated otherwise, it is "default". */
     CacheMode :: énum n8 {
-        Default
-        No_Store
-        Reload
-        No_Cache
-        Force_Cache
-        Only_If_Cached
+        Default;
+        No_Store;
+        Reload;
+        No_Cache;
+        Force_Cache;
+        Only_If_Cached;
     }
-    cache_mode: CacheMode
+    cache_mode: CacheMode;
 
     /* https://fetch.spec.whatwg.org/#concept-request-redirect-mode
      * A request has an associated redirect mode, which is "follow", "error", or "manual".
      * Unless stated otherwise, it is "follow". */
     RedirectMode :: énum n8 {
-        Follow
-        Error
-        Manual
+        Follow;
+        Error;
+        Manual;
     }
-    redirect_mode: RedirectMode
+    redirect_mode: RedirectMode;
 
     /* https://fetch.spec.whatwg.org/#concept-request-integrity-metadata
      * A request has associated integrity metadata (a string). Unless stated otherwise, it is the empty string. */
-    integrity_metadata := crée_chaine_utf16_unique_vide()
+    integrity_metadata := crée_chaine_utf16_unique_vide();
 
     /* https://fetch.spec.whatwg.org/#concept-request-nonce-metadata
      * A request has associated cryptographic nonce metadata (a string). Unless stated otherwise, it is the empty string. */
-    cryptographic_nonce: DOMString
+    cryptographic_nonce: DOMString;
 
     /* https://fetch.spec.whatwg.org/#concept-request-parser-metadata
      * A request has associated parser metadata which is the empty string, "parser-inserted", or "not-parser-inserted".
      * Unless otherwise stated, it is the empty string. */
     ParserMetadata :: énum n8 {
-        EmptyString
-        Parser_Inserted
-        Not_Parser_Inserted
+        EmptyString;
+        Parser_Inserted;
+        Not_Parser_Inserted;
     }
-    parser_metadata: ParserMetadata
+    parser_metadata: ParserMetadata;
 
     /* https://fetch.spec.whatwg.org/#concept-request-url-list
      * A request has an associated URL list (a list of one or more URLs). Unless stated otherwise, it is a list containing a copy of request’s URL. */
-    url_list: [..]*URL
+    url_list: [..]*URL;
 
     /* https://fetch.spec.whatwg.org/#concept-request-redirect-count
      * A request has an associated redirect count. Unless stated otherwise, it is zero. */
-    redirect_count := 0
+    redirect_count := 0;
 
     /* https://fetch.spec.whatwg.org/#concept-request-response-tainting
      * A request has an associated response tainting, which is "basic", "cors", or "opaque". Unless stated otherwise, it is "basic". */
     ResponseTainting :: énum n8 {
-        Basic
-        CORS
-        Opaque
+        Basic;
+        CORS;
+        Opaque;
     }
-    response_tainting: ResponseTainting
+    response_tainting: ResponseTainting;
 }
 
 définis_url :: fonc (request: *Request, url: *URL)
 {
-    tableau_ajoute(*request.url_list, url)
+    tableau_ajoute(*request.url_list, url);
 }
 
 détruit_request :: fonc (request: *Request)
 {
-    déloge(request.header_list)
+    déloge(request.header_list);
     pour request.url_list {
-        détruit_url(it)
+        détruit_url(it);
     }
     discr request.policy_container {
         policy_container(p) {
-            détruit_policy_container(p)
+            détruit_policy_container(p);
         }
         sinon {}
     }
-    déloge(request.url_list)
-    déloge(request)
+    déloge(request.url_list);
+    déloge(request);
 }
 
 donne_url_courant :: fonc (request: *Request) -> *URL
 {
-    retourne request.url_list[request.url_list.taille - 1]
+    retourne request.url_list[request.url_list.taille - 1];
 }
 
 possède_entête :: fonc (request: *Request, nom: chaine) -> bool
 {
     pour request.header_list {
         si compare_ascii_insensible_à_la_casse(it.name, nom) {
-            retourne vrai
+            retourne vrai;
         }
     }
-    retourne faux
+    retourne faux;
 }
 
 ajoute_entête :: fonc (request: *Request, nom: chaine, valeur: chaine)
 {
-    entête := Header(nom, valeur)
-    tableau_ajoute(*request.header_list, entête)
+    entête := Header(nom, valeur);
+    tableau_ajoute(*request.header_list, entête);
 }
 
 ajoute_entête_si_inexistante :: fonc (request: *Request, nom: chaine, valeur: chaine)
 {
     saufsi possède_entête(request, nom) {
-        ajoute_entête(request, nom, valeur)
+        ajoute_entête(request, nom, valeur);
     }
 }
 
 /* https://fetch.spec.whatwg.org/#subresource-request */
 is_subressource :: fonc (request: *Request) -> bool
 {
-    destinations := ["audio", "audioworklet", "font", "image", "json", "manifest", "paintworklet", "script", "style", "track", "video", "xslt", ""]
-    retourne tableau_possède_élément(destinations, request.destination)
+    destinations := ["audio", "audioworklet", "font", "image", "json", "manifest", "paintworklet", "script", "style", "track", "video", "xslt", ""];
+    retourne tableau_possède_élément(destinations, request.destination);
 }
 
 /* https://fetch.spec.whatwg.org/#non-subresource-request */
 is_non_subressource :: fonc (request: *Request) -> bool
 {
-    destinations := ["document", "embed", "frame", "iframe", "object", "report", "serviceworker", "sharedworker", "worker"]
-    retourne tableau_possède_élément(destinations, request.destination)
+    destinations := ["document", "embed", "frame", "iframe", "object", "report", "serviceworker", "sharedworker", "worker"];
+    retourne tableau_possède_élément(destinations, request.destination);
 }
 
 /* https://fetch.spec.whatwg.org/#navigation-request */
 is_navigation :: fonc (request: *Request) -> bool
 {
-    destinations := ["document", "embed", "frame", "iframe", "object"]
-    retourne tableau_possède_élément(destinations, request.destination)
+    destinations := ["document", "embed", "frame", "iframe", "object"];
+    retourne tableau_possède_élément(destinations, request.destination);
 }
 
 /** \} */
@@ -492,39 +492,39 @@ is_navigation :: fonc (request: *Request) -> bool
  * \{ */
 
 ResponseBodyInfo :: struct {
-    encoded_size: z32
-    decodede_size: z32
-    content_type: chaine
+    encoded_size: z32;
+    decodede_size: z32;
+    content_type: chaine;
 }
 
 Response :: struct {
     /* "basic", "cors", "default", "error", "opaque", or "opaqueredirect" */
-    type := "default"
-    aborted_flag: bool
+    type := "default";
+    aborted_flag: bool;
 
-    url_list: [..]*URL
+    url_list: [..]*URL;
 
     /* Entre 0 et 999. */
-    status: z32
+    status: z32;
 
-    status_message: chaine
+    status_message: chaine;
 
-    header_list: [..]Header
+    header_list: [..]Header;
 
     body: Optionnel(chaine) // À FAIRE : plus complexe
 
     /* the empty string, "local", or "validated" */
-    cache_state: chaine
+    cache_state: chaine;
 
-    cors_exposed_header_name_list: [..]chaine
+    cors_exposed_header_name_list: [..]chaine;
 
-    range_requested_flag: bool
+    range_requested_flag: bool;
 
-    request_includes_credentials: bool
+    request_includes_credentials: bool;
 
-    timing_allow_passed_flag: bool
+    timing_allow_passed_flag: bool;
 
-    body_info: *ResponseBodyInfo
+    body_info: *ResponseBodyInfo;
 
     // A response has an associated service worker timing info (null or a service worker timing info), which is initially null.
     // A response has an associated has-cross-origin-redirects (a boolean), which is initially false.
@@ -532,122 +532,122 @@ Response :: struct {
 
 crée_réponse :: fonc (requête: *Request) -> *Response
 {
-    résultat := loge(Response)
-    résultat.définis_url(requête.donne_url_courant())
-    retourne résultat
+    résultat := loge(Response);
+    résultat.définis_url(requête.donne_url_courant());
+    retourne résultat;
 }
 
 détruit_response :: fonc (response: *Response)
 {
     si response.body.possède_valeur() {
-        body := response.body.Quelque
-        déloge(body)
+        body := response.body.Quelque;
+        déloge(body);
     }
 
     si response.body_info {
-        déloge_si_logée(response.body_info.content_type)
+        déloge_si_logée(response.body_info.content_type);
     }
 
-    déloge(response.body_info)
-    déloge(response)
+    déloge(response.body_info);
+    déloge(response);
 }
 
 définis_url :: fonc (response: *Response, url: *URL)
 {
-    tableau_ajoute(*response.url_list, url)
+    tableau_ajoute(*response.url_list, url);
 }
 
 /* https://fetch.spec.whatwg.org/#concept-response-url */
 donne_url :: fonc (response: *Response) -> *URL
 {
     si response.url_list.taille == 0 {
-        retourne nul
+        retourne nul;
     }
-    retourne response.url_list[response.url_list.taille - 1]
+    retourne response.url_list[response.url_list.taille - 1];
 }
 
 ajoute_entête :: fonc (response: *Response, nom: chaine, valeur: chaine)
 {
-    entête := Header(nom, valeur)
-    tableau_ajoute(*response.header_list, entête)
+    entête := Header(nom, valeur);
+    tableau_ajoute(*response.header_list, entête);
 }
 
 donne_mime_type :: fonc (response: *Response) -> chaine
 {
     si response.body_info {
-        retourne response.body_info.content_type
+        retourne response.body_info.content_type;
     }
 
-    imprime("À FAIRE : %\n", #nom_de_cette_fonction)
-    retourne ""
+    imprime("À FAIRE : %\n", #nom_de_cette_fonction);
+    retourne "";
 }
 
 possède_entête :: fonc (response: *Response, nom: chaine) -> bool
 {
     pour response.header_list {
         si compare_ascii_insensible_à_la_casse(it.name, nom) {
-            retourne vrai
+            retourne vrai;
         }
     }
-    retourne faux
+    retourne faux;
 }
 
 possède_entête :: fonc (response: *Response, nom: chaine, valeur: chaine) -> bool
 {
     pour response.header_list {
         saufsi compare_ascii_insensible_à_la_casse(it.name, nom) {
-            retourne faux
+            retourne faux;
         }
 
-        valeur_entête := it.value
-        morceaux := divise(valeur_entête, ';')
-        diffère déloge(morceaux)
+        valeur_entête := it.value;
+        morceaux := divise(valeur_entête, ';');
+        diffère déloge(morceaux);
 
         pour morceau dans morceaux {
-            morceau = supprime_espaces_blancs(morceau)
+            morceau = supprime_espaces_blancs(morceau);
             si compare_ascii_insensible_à_la_casse(valeur, morceau) {
-                retourne vrai
+                retourne vrai;
             }
         }
     }
-    retourne faux
+    retourne faux;
 }
 
 /* https://fetch.spec.whatwg.org/#concept-network-error */
 network_error :: fonc (requête: *Request) -> *Response
 {
-    résultat := crée_réponse(requête)
-    résultat.type = "error"
-    résultat.status = 0
-    résultat.body_info = loge(ResponseBodyInfo)
-    retourne résultat
+    résultat := crée_réponse(requête);
+    résultat.type = "error";
+    résultat.status = 0;
+    résultat.body_info = loge(ResponseBodyInfo);
+    retourne résultat;
 }
 
 /* https://fetch.spec.whatwg.org/#concept-aborted-network-error */
 aborted_network_error :: fonc (requête: *Request) -> *Response
 {
-    résultat := network_error(requête)
-    résultat.aborted_flag = vrai
-    retourne résultat
+    résultat := network_error(requête);
+    résultat.aborted_flag = vrai;
+    retourne résultat;
 }
 
 /* https://fetch.spec.whatwg.org/#appropriate-network-error */
 appropriate_network_error :: fonc (fetch_params: *FetchParams) -> *Response
 {
     // 1. Assert: fetchParams is canceled.
-    assert(fetch_params.is_canceled())
+    assert(fetch_params.is_canceled());
 
     // 2. Return an aborted network error if fetchParams is aborted; otherwise return a network error.
     si fetch_params.is_aborted() {
-        retourne aborted_network_error(fetch_params.request)
+        retourne aborted_network_error(fetch_params.request);
     }
 
-    retourne network_error(fetch_params.request)
+    retourne network_error(fetch_params.request);
 }
 
 est_network_error :: fonc (response: *Response) -> bool
 {
-    retourne response.status == 0 && response.type == "error"
+    retourne response.status == 0 && response.type == "error";
 }
 
 /* https://fetch.spec.whatwg.org/#concept-response-location-url */
@@ -655,53 +655,53 @@ donne_location_url :: fonc (response: *Response, user_agent: *UserAgent, fragmen
 {
     // 1. If response’s status is not a redirect status, then return null.
     saufsi is_redirect_status(response.status) {
-        retourne nul
+        retourne nul;
     }
 
     // À FAIRE : 2. Let location be the result of extracting header list values given `Location` and response’s header list.
 
-    location_url: chaine
+    location_url: chaine;
     pour response.header_list {
         si compare_ascii_insensible_à_la_casse(it.name, "Location") {
-            location_url = it.value
-            arrête
+            location_url = it.value;
+            arrête;
         }
     }
     sansarrêt {
-        retourne nul
+        retourne nul;
     }
 
     // 3. If location is a header value, then set location to the result of parsing location with response’s URL.
-    location := url_parser(user_agent, location_url, response.donne_url())
+    location := url_parser(user_agent, location_url, response.donne_url());
     si location == nul {
-        retourne nul
+        retourne nul;
     }
 
     // 4. If location is a URL whose fragment is null, then set location’s fragment to requestFragment.
     saufsi location.fragment.possède_valeur() {
-        location.fragment = fragment
+        location.fragment = fragment;
     }
 
     // 5. Return location.
-    retourne location
+    retourne location;
 }
 
 /* https://fetch.spec.whatwg.org/#concept-internal-response */
 donne_internal_response :: fonc (response: *Response) -> *Response
 {
-    imprimeln("À FAIRE : [%]", #nom_de_cette_fonction)
-    retourne response
+    imprimeln("À FAIRE : [%]", #nom_de_cette_fonction);
+    retourne response;
 }
 
 /* https://html.spec.whatwg.org/multipage/urls-and-fetching.html#unsafe-response */
 donne_unsafe_response :: fonc (response: *Response) -> *Response
 {
     // A response's unsafe response is its internal response if it has one, and the response itself otherwise.
-    internal := donne_internal_response(response)
+    internal := donne_internal_response(response);
     si internal {
-        retourne internal
+        retourne internal;
     }
-    retourne response
+    retourne response;
 }
 
 /** \} */
@@ -712,56 +712,56 @@ donne_unsafe_response :: fonc (response: *Response) -> *Response
 
 crée_réponse_pour_hôte_introuvable :: fonc (request: *Request) -> *Response
 {
-    chemin_parent_ci_fichier := CheminFichier(#chemin_de_ce_fichier).chemin_parent()
-    diffère détruit_chemin(chemin_parent_ci_fichier)
+    chemin_parent_ci_fichier := CheminFichier(#chemin_de_ce_fichier).chemin_parent();
+    diffère détruit_chemin(chemin_parent_ci_fichier);
 
-    chemin_fichier := chemin_parent_ci_fichier / "Fichiers/erreur-hôte-introuvable.html"
-    diffère détruit_chemin(chemin_fichier)
+    chemin_fichier := chemin_parent_ci_fichier / "Fichiers/erreur-hôte-introuvable.html";
+    diffère détruit_chemin(chemin_fichier);
 
-    _, contenu := contenu_fichier_texte(chemin_fichier)
-    retourne crée_réponse_pour_fichier(request, "text/html", contenu, 0)
+    _, contenu := contenu_fichier_texte(chemin_fichier);
+    retourne crée_réponse_pour_fichier(request, "text/html", contenu, 0);
 }
 
 crée_réponse_pour_hôte_ferma_connexion :: fonc (request: *Request) -> *Response
 {
-    chemin_parent_ci_fichier := CheminFichier(#chemin_de_ce_fichier).chemin_parent()
-    diffère détruit_chemin(chemin_parent_ci_fichier)
+    chemin_parent_ci_fichier := CheminFichier(#chemin_de_ce_fichier).chemin_parent();
+    diffère détruit_chemin(chemin_parent_ci_fichier);
 
-    chemin_fichier := chemin_parent_ci_fichier / "Fichiers/erreur-hôte-ferma-connexion.html"
-    diffère détruit_chemin(chemin_fichier)
+    chemin_fichier := chemin_parent_ci_fichier / "Fichiers/erreur-hôte-ferma-connexion.html";
+    diffère détruit_chemin(chemin_fichier);
 
-    _, contenu := contenu_fichier_texte(chemin_fichier)
-    retourne crée_réponse_pour_fichier(request, "text/html", contenu, 0)
+    _, contenu := contenu_fichier_texte(chemin_fichier);
+    retourne crée_réponse_pour_fichier(request, "text/html", contenu, 0);
 }
 
 crée_réponse_pour_erreur_inconnue :: fonc (request: *Request, détail: chaine) -> *Response
 {
-    chemin_parent_ci_fichier := CheminFichier(#chemin_de_ce_fichier).chemin_parent()
-    diffère détruit_chemin(chemin_parent_ci_fichier)
+    chemin_parent_ci_fichier := CheminFichier(#chemin_de_ce_fichier).chemin_parent();
+    diffère détruit_chemin(chemin_parent_ci_fichier);
 
-    chemin_fichier := chemin_parent_ci_fichier / "Fichiers/erreur-inconnue.html"
-    diffère détruit_chemin(chemin_fichier)
+    chemin_fichier := chemin_parent_ci_fichier / "Fichiers/erreur-inconnue.html";
+    diffère détruit_chemin(chemin_fichier);
 
-    _, contenu := contenu_fichier_texte(chemin_fichier)
+    _, contenu := contenu_fichier_texte(chemin_fichier);
 
-    nouveau_contenu := remplace(contenu, "{{détail}}", détail)
-    déloge(contenu)
-    contenu = nouveau_contenu
+    nouveau_contenu := remplace(contenu, "{{détail}}", détail);
+    déloge(contenu);
+    contenu = nouveau_contenu;
 
-    retourne crée_réponse_pour_fichier(request, "text/html", contenu, 0)
+    retourne crée_réponse_pour_fichier(request, "text/html", contenu, 0);
 }
 
 crée_réponse_pour_trop_de_redirections :: fonc (request: *Request) -> *Response
 {
-    chemin_parent_ci_fichier := CheminFichier(#chemin_de_ce_fichier).chemin_parent()
-    diffère détruit_chemin(chemin_parent_ci_fichier)
+    chemin_parent_ci_fichier := CheminFichier(#chemin_de_ce_fichier).chemin_parent();
+    diffère détruit_chemin(chemin_parent_ci_fichier);
 
-    chemin_fichier := chemin_parent_ci_fichier / "Fichiers/erreur-trop-de-redirections.html"
-    diffère détruit_chemin(chemin_fichier)
+    chemin_fichier := chemin_parent_ci_fichier / "Fichiers/erreur-trop-de-redirections.html";
+    diffère détruit_chemin(chemin_fichier);
 
-    _, contenu := contenu_fichier_texte(chemin_fichier)
-    résultat := crée_réponse_pour_fichier(request, "text/html", contenu, 0)
-    retourne résultat
+    _, contenu := contenu_fichier_texte(chemin_fichier);
+    résultat := crée_réponse_pour_fichier(request, "text/html", contenu, 0);
+    retourne résultat;
 }
 
 /** \} */
@@ -773,112 +773,112 @@ crée_réponse_pour_trop_de_redirections :: fonc (request: *Request) -> *Respons
 
 /* must be an algorithm accepting an integer representing the number of bytes transmitted */
 BaseProcessRequestBodyChunkLength :: struct {
-    sur_rappel: fonc (base: *BaseProcessRequestBodyChunkLength, size: n64)
-    sur_destruction: fonc (base: *BaseProcessRequestBodyChunkLength)
+    sur_rappel: fonc (base: *BaseProcessRequestBodyChunkLength, size: n64);
+    sur_destruction: fonc (base: *BaseProcessRequestBodyChunkLength);
 } 
 
 /* must be an algorithm accepting no arguments */
 BaseProcessRequestEndOfBody :: struct {
-    sur_rappel: fonc (base: *BaseProcessRequestEndOfBody)
-    sur_destruction: fonc (base: *BaseProcessRequestEndOfBody)
+    sur_rappel: fonc (base: *BaseProcessRequestEndOfBody);
+    sur_destruction: fonc (base: *BaseProcessRequestEndOfBody);
 }
 
 /* must be an algorithm accepting a response */
 BaseProcessEarlyHintsResponse :: struct {
-    sur_rappel: fonc (base: *BaseProcessEarlyHintsResponse, response: *Response)
-    sur_destruction: fonc (base: *BaseProcessEarlyHintsResponse)
+    sur_rappel: fonc (base: *BaseProcessEarlyHintsResponse, response: *Response);
+    sur_destruction: fonc (base: *BaseProcessEarlyHintsResponse);
 }
 
 /* must be an algorithm accepting a response */
 BaseProcessResponse :: struct {
-    sur_rappel: fonc (base: *BaseProcessResponse, response: *Response)
-    sur_destruction: fonc (base: *BaseProcessResponse)
+    sur_rappel: fonc (base: *BaseProcessResponse, response: *Response);
+    sur_destruction: fonc (base: *BaseProcessResponse);
 }
 
 /* must be an algorithm accepting a response */
 BaseProcessResponseEndOfBody :: struct {
-    sur_rappel: fonc (base: *BaseProcessResponseEndOfBody, response: *Response)
-    sur_destruction: fonc (base: *BaseProcessResponseEndOfBody)
+    sur_rappel: fonc (base: *BaseProcessResponseEndOfBody, response: *Response);
+    sur_destruction: fonc (base: *BaseProcessResponseEndOfBody);
 }
 
 /* must be an algorithm accepting a response and null, failure, or a byte sequence */
 BaseProcessResponseConsumeBody :: struct {
     /* À FAIRE : null, failure, or a byte sequence  */
-    sur_rappel: fonc (base: *BaseProcessResponseConsumeBody, response: *Response, données: Optionnel([]octet))
-    sur_destruction: fonc (base: *BaseProcessResponseConsumeBody)
+    sur_rappel: fonc (base: *BaseProcessResponseConsumeBody, response: *Response, données: Optionnel([]octet));
+    sur_destruction: fonc (base: *BaseProcessResponseConsumeBody);
 }
 
 FetchParams :: struct {
-    request: *Request
+    request: *Request;
 
     /* Null or an algorithm. */
-    process_request_body_chunk_length: *BaseProcessRequestBodyChunkLength
-    process_request_end_of_body: *BaseProcessRequestEndOfBody
-    process_early_hints_response: *BaseProcessEarlyHintsResponse
-    process_response: *BaseProcessResponse
-    process_response_end_of_body: *BaseProcessResponseEndOfBody
-    process_response_consume_body: *BaseProcessResponseConsumeBody
+    process_request_body_chunk_length: *BaseProcessRequestBodyChunkLength;
+    process_request_end_of_body: *BaseProcessRequestEndOfBody;
+    process_early_hints_response: *BaseProcessEarlyHintsResponse;
+    process_response: *BaseProcessResponse;
+    process_response_end_of_body: *BaseProcessResponseEndOfBody;
+    process_response_consume_body: *BaseProcessResponseConsumeBody;
 
     /* Null, a global object, or a parallel queue. */
-    task_destination: *rien
+    task_destination: *rien;
 
-    cross_origin_isolated_capability: bool
+    cross_origin_isolated_capability: bool;
 
-    controller: *FetchController
+    controller: *FetchController;
 
-    timing_info: FetchTimingInfo
+    timing_info: FetchTimingInfo;
 
     /* Null, "pending", or a response. */
-    preloaded_response_candidate: *rien
+    preloaded_response_candidate: *rien;
 }
 
 détruit_fetch_params :: fonc (empl fetch_params: *FetchParams)
 {
     si process_request_body_chunk_length && process_request_body_chunk_length.sur_destruction {
-        process_request_body_chunk_length.sur_destruction(process_request_body_chunk_length)
+        process_request_body_chunk_length.sur_destruction(process_request_body_chunk_length);
     }
 
     si process_request_end_of_body && process_request_end_of_body.sur_destruction {
-        process_request_end_of_body.sur_destruction(process_request_end_of_body)
+        process_request_end_of_body.sur_destruction(process_request_end_of_body);
     }
 
     si process_early_hints_response && process_early_hints_response.sur_destruction {
-        process_early_hints_response.sur_destruction(process_early_hints_response)
+        process_early_hints_response.sur_destruction(process_early_hints_response);
     }
 
     si process_response && process_response.sur_destruction {
-        process_response.sur_destruction(process_response)
+        process_response.sur_destruction(process_response);
     }
 
     si process_response_end_of_body && process_response_end_of_body.sur_destruction {
-        process_response_end_of_body.sur_destruction(process_response_end_of_body)
+        process_response_end_of_body.sur_destruction(process_response_end_of_body);
     }
 
     si process_response_consume_body && process_response_consume_body.sur_destruction {
-        process_response_consume_body.sur_destruction(process_response_consume_body)
+        process_response_consume_body.sur_destruction(process_response_consume_body);
     }
 
-    déloge(fetch_params)
+    déloge(fetch_params);
 }
 
 /* https://fetch.spec.whatwg.org/#fetch-params-aborted */
 is_aborted :: fonc (fetch_params: *FetchParams) -> bool
 {
     saufsi fetch_params.controller {
-        retourne faux
+        retourne faux;
     }
-    state := fetch_params.controller.state
-    retourne state == "aborted"
+    state := fetch_params.controller.state;
+    retourne state == "aborted";
 }
 
 /* https://fetch.spec.whatwg.org/#fetch-params-canceled */
 is_canceled :: fonc (fetch_params: *FetchParams) -> bool
 {
     saufsi fetch_params.controller {
-        retourne faux
+        retourne faux;
     }
-    state := fetch_params.controller.state
-    retourne state == "aborted" || state == "terminated"
+    state := fetch_params.controller.state;
+    retourne state == "aborted" || state == "terminated";
 }
 
 /** \} */
@@ -890,34 +890,34 @@ is_canceled :: fonc (fetch_params: *FetchParams) -> bool
 
 FetchController :: struct {
     /* "ongoing", "terminated", or "aborted" */
-    state := "ongoing"
+    state := "ongoing";
 
-    full_timing_info: Optionnel(FetchTimingInfo)
+    full_timing_info: Optionnel(FetchTimingInfo);
 
     /* Null or an algorithm accepting a global object. */
-    report_timing_steps: *rien
+    report_timing_steps: *rien;
 
     /* Null or a Record (result of StructuredSerialize). */
-    serialized_abort_reason: *rien
+    serialized_abort_reason: *rien;
 
     /* https://fetch.spec.whatwg.org/#fetch-controller-next-manual-redirect-steps
      * Null or an algorithm accepting nothing. */
-    next_manual_redirect_steps: *Algorithm
+    next_manual_redirect_steps: *Algorithm;
 }
 
 détruit_fetch_controller :: fonc (fetch_controller: *FetchController)
 {
-    déloge(fetch_controller)
+    déloge(fetch_controller);
 }
 
 /* https://fetch.spec.whatwg.org/#fetch-controller-process-the-next-manual-redirect */
 process_the_next_manual_redirect :: fonc (controller: *FetchController)
 {
     // 1. Assert: controller’s next manual redirect steps is non-null.
-    assert(controller.next_manual_redirect_steps != nul)
+    assert(controller.next_manual_redirect_steps != nul);
 
     // 2. Call controller’s next manual redirect steps.
-    run(controller.next_manual_redirect_steps)
+    run(controller.next_manual_redirect_steps);
 }
 
 /** \} */
@@ -928,22 +928,22 @@ process_the_next_manual_redirect :: fonc (controller: *FetchController)
  * \{ */
 
 FetchTimingInfo :: struct {
-    start_time: DOMHighResTimeStamp
-    redirect_start_time: DOMHighResTimeStamp
-    redirect_end_time: DOMHighResTimeStamp
-    post_redirect_start_time: DOMHighResTimeStamp
-    final_service_worker_start_time: DOMHighResTimeStamp
-    final_network_request_start_time: DOMHighResTimeStamp
-    first_interim_network_response_start_time: DOMHighResTimeStamp
-    final_network_response_start_time: DOMHighResTimeStamp
-    end_time: DOMHighResTimeStamp
+    start_time: DOMHighResTimeStamp;
+    redirect_start_time: DOMHighResTimeStamp;
+    redirect_end_time: DOMHighResTimeStamp;
+    post_redirect_start_time: DOMHighResTimeStamp;
+    final_service_worker_start_time: DOMHighResTimeStamp;
+    final_network_request_start_time: DOMHighResTimeStamp;
+    first_interim_network_response_start_time: DOMHighResTimeStamp;
+    final_network_response_start_time: DOMHighResTimeStamp;
+    end_time: DOMHighResTimeStamp;
 
     /* Null or a connection timing info. */
     // final connection timing info (default null)
 
-    server_timing_headers: [..]chaine
+    server_timing_headers: [..]chaine;
 
-    render_blocking: bool
+    render_blocking: bool;
 }
 
 /** } */
@@ -965,16 +965,16 @@ fetch :: fonc (user_agent: *UserAgent,
                use_parallel_queue := faux) -> *FetchController
 {
     // 1. Assert: request’s mode is "navigate" or processEarlyHintsResponse is null.
-    assert(request.mode == Request.Mode.Navigate || process_early_hints_response == nul)
+    assert(request.mode == Request.Mode.Navigate || process_early_hints_response == nul);
 
     // 2. Let taskDestination be null.
-    task_destination: *rien
+    task_destination: *rien;
 
     // 3. Let crossOriginIsolatedCapability be false.
-    cross_origin_isolated_capability := faux
+    cross_origin_isolated_capability := faux;
 
     // 4. Populate request from client given request.
-    populate_request_from_client(request)
+    populate_request_from_client(request);
 
     // 5. If request’s client is non-null, then:
 
@@ -984,38 +984,38 @@ fetch :: fonc (user_agent: *UserAgent,
 
     // 6. If useParallelQueue is true, then set taskDestination to the result of starting a new parallel queue.
     si use_parallel_queue {
-        panique("parallel queue non-implémentée")
+        panique("parallel queue non-implémentée");
     }
 
     // À FAIRE : 7. Let timingInfo be a new fetch timing info whose start time and post-redirect start time are the coarsened shared current time given crossOriginIsolatedCapability, and render-blocking is set to request’s render-blocking.
-    timing_info: FetchTimingInfo
-    timing_info.render_blocking = request.drapeaux.RENDER_BLOCKING == vrai
+    timing_info: FetchTimingInfo;
+    timing_info.render_blocking = request.drapeaux.RENDER_BLOCKING == vrai;
 
     // 8. Let fetchParams be a new fetch params whose
-    fetch_params := loge(FetchParams)
+    fetch_params := loge(FetchParams);
     // À FAIRE : trouve quand détruire ces fetch_params
     // diffère détruit_fetch_params(fetch_params)
-    fetch_params.controller = loge(FetchController)
+    fetch_params.controller = loge(FetchController);
     //    request is request,
-    fetch_params.request = request
+    fetch_params.request = request;
     //    timing info is timingInfo,
-    fetch_params.timing_info = timing_info
+    fetch_params.timing_info = timing_info;
     //    process request body chunk length is processRequestBodyChunkLength,
-    fetch_params.process_request_body_chunk_length = process_request_body_chunk_length
+    fetch_params.process_request_body_chunk_length = process_request_body_chunk_length;
     //    process request end-of-body is processRequestEndOfBody,
-    fetch_params.process_request_end_of_body = process_request_end_of_body
+    fetch_params.process_request_end_of_body = process_request_end_of_body;
     //    process early hints response is processEarlyHintsResponse,
-    fetch_params.process_early_hints_response = process_early_hints_response
+    fetch_params.process_early_hints_response = process_early_hints_response;
     //    process response is processResponse,
-    fetch_params.process_response = process_response
+    fetch_params.process_response = process_response;
     //    process response consume body is processResponseConsumeBody,
-    fetch_params.process_response_consume_body = process_response_consume_body
+    fetch_params.process_response_consume_body = process_response_consume_body;
     //    process response end-of-body is processResponseEndOfBody,
-    fetch_params.process_response_end_of_body = process_response_end_of_body
+    fetch_params.process_response_end_of_body = process_response_end_of_body;
     //    task destination is taskDestination, and
-    fetch_params.task_destination = task_destination
+    fetch_params.task_destination = task_destination;
     //    cross-origin isolated capability is crossOriginIsolatedCapability.
-    fetch_params.cross_origin_isolated_capability = cross_origin_isolated_capability
+    fetch_params.cross_origin_isolated_capability = cross_origin_isolated_capability;
 
     // 9. If request’s body is a byte sequence, then set request’s body to request’s body as a body.
 
@@ -1038,11 +1038,11 @@ fetch :: fonc (user_agent: *UserAgent,
     // 11. If request’s header list does not contain `Accept`, then:
     saufsi possède_entête(request, "Accept") {
         // 1. Let value be `*/*`.
-        value := "*/*"
+        value := "*/*";
 
         // 2. If request’s initiator is "prefetch", then set value to the document `Accept` header value.
         si request.initiator == Request.Initiator.Prefetch {
-            value = donne_document_accept_header_value()
+            value = donne_document_accept_header_value();
         }
         // 3. Otherwise, the user agent should set value to the first matching statement, if any, switching on request’s destination:
         //     "document"
@@ -1058,23 +1058,23 @@ fetch :: fonc (user_agent: *UserAgent,
         sinon {
             discr request.destination {
                 Document, Frame, Iframe {
-                    value = donne_document_accept_header_value()
+                    value = donne_document_accept_header_value();
                 }
                 Image {
-                    value = "image/png,image/svg+xml,image/*;q=0.8,*/*;q=0.5"
+                    value = "image/png,image/svg+xml,image/*;q=0.8,*/*;q=0.5";
                 }
                 JSON {
-                    value = "application/json,*/*;q=0.5"
+                    value = "application/json,*/*;q=0.5";
                 }
                 Style {
-                    value = "text/css,*/*;q=0.1"
+                    value = "text/css,*/*;q=0.1";
                 }
                 sinon {}
             }
         }
 
         // 4. Append (`Accept`, value) to request’s header list.
-        ajoute_entête(request, "Accept", value)
+        ajoute_entête(request, "Accept", value);
     }
 
     // 12. If request’s header list does not contain `Accept-Language`, then user agents should append (`Accept-Language, an appropriate header value) to request’s header list.
@@ -1090,10 +1090,10 @@ fetch :: fonc (user_agent: *UserAgent,
     //}
 
     // 15. Run main fetch given fetchParams.
-    main_fetch(user_agent, fetch_params)
+    main_fetch(user_agent, fetch_params);
 
     // 16. Return fetchParams’s controller.
-    retourne fetch_params.controller
+    retourne fetch_params.controller;
 }
 
 /* https://fetch.spec.whatwg.org/#populate-request-from-client */
@@ -1103,7 +1103,7 @@ populate_request_from_client :: fonc (request: *Request)
     si request.traversable_for_user_prompts.est_client() {
 
         // 1. Set request’s traversable for user prompts to "no-traversable".
-        request.traversable_for_user_prompts = RequestTraversable.NoTraversable
+        request.traversable_for_user_prompts = RequestTraversable.NoTraversable;
 
         // 2. If request’s client is non-null:
         si request.client != nul {
@@ -1117,21 +1117,21 @@ populate_request_from_client :: fonc (request: *Request)
     // 2. If request’s origin is "client":
     si request.origin.est_client() {
         // 1. Assert: request’s client is non-null.
-        assert(request.client != nul)
+        assert(request.client != nul);
 
         // 2. Set request’s origin to request’s client’s origin.
-        request.origin = request.client.donne_origin()
+        request.origin = request.client.donne_origin();
     }
 
     // 3. If request’s policy container is "client":
     si request.policy_container == "client" {
         // 1. If request’s client is non-null, then set request’s policy container to a clone of request’s client’s policy container. [HTML]
         si request.client != nul {
-            request.policy_container = clone(request.client.donne_policy_container())
+            request.policy_container = clone(request.client.donne_policy_container());
         }
         // 2. Otherwise, set request’s policy container to a new policy container.
         sinon {
-            request.policy_container = loge(PolicyContainer)
+            request.policy_container = loge(PolicyContainer);
         }
     }
 }
@@ -1139,7 +1139,7 @@ populate_request_from_client :: fonc (request: *Request)
 /* https://fetch.spec.whatwg.org/#document-accept-header-value */
 donne_document_accept_header_value :: fonc () -> chaine
 {
-    retourne "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8"
+    retourne "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8";
 }
 
 /** \} */
@@ -1152,14 +1152,14 @@ donne_document_accept_header_value :: fonc () -> chaine
 main_fetch :: fonc (user_agent: *UserAgent, fetch_params: *FetchParams, recursive := faux)
 {
     // 1. Let request be fetchParams’s request.
-    request := fetch_params.request
+    request := fetch_params.request;
 
     // 2. Let response be null.
-    response: *Response
+    response: *Response;
 
     // 3. If request’s local-URLs-only flag is set and request’s current URL is not local, then set response to a network error.
     si request.drapeaux.LOCAL_URLS_ONLY && !is_local(request.donne_url_courant()) {
-        response = network_error(request)
+        response = network_error(request);
     }
 
     // 4. Run report Content Security Policy violations for request.
@@ -1173,7 +1173,7 @@ main_fetch :: fonc (user_agent: *UserAgent, fetch_params: *FetchParams, recursiv
     // 8. If request’s referrer policy is the empty string, then set request’s
     //    referrer policy to request’s policy container’s referrer policy.
     si request.referrer_policy == ReferrerPolicy.EmptyString {
-        request.referrer_policy = request.policy_container.donne_referrer_policy()
+        request.referrer_policy = request.policy_container.donne_referrer_policy();
     }
 
     // 9. If request’s referrer is not "no-referrer", then set request’s referrer to the result of invoking determine request’s referrer. [REFERRER]
@@ -1184,28 +1184,28 @@ main_fetch :: fonc (user_agent: *UserAgent, fetch_params: *FetchParams, recursiv
     //     Matching request’s current URL’s host per Known HSTS Host Domain Name Matching results in either a superdomain match with an asserted includeSubDomains directive or a congruent match (with or without an asserted includeSubDomains directive) [HSTS]; or DNS resolution for the request finds a matching HTTPS RR per section 9.5 of [SVCB]. [HSTS] [SVCB]
 
     // 11. If recursive is false, then run the remaining steps in parallel.
-    params: ParamètresMainFetch
-    params.user_agent = user_agent
-    params.request = request
-    params.response = response
-    params.fetch_params = fetch_params
-    params.recursive = recursive
+    params: ParamètresMainFetch;
+    params.user_agent = user_agent;
+    params.request = request;
+    params.response = response;
+    params.fetch_params = fetch_params;
+    params.recursive = recursive;
 
     saufsi recursive {
-        tâche := crée_algorithm_pour_fonction(*params, main_fetch_parallel_steps)
-        user_agent.lance_en_parallèle(tâche)
-        retourne
+        tâche := crée_algorithm_pour_fonction(*params, main_fetch_parallel_steps);
+        user_agent.lance_en_parallèle(tâche);
+        retourne;
     }
 
-    main_fetch_parallel_steps(*params)
+    main_fetch_parallel_steps(*params);
 }
 
 ParamètresMainFetch :: struct {
-    user_agent: *UserAgent
-    request: *Request
-    response: *Response
-    fetch_params: *FetchParams
-    recursive: bool
+    user_agent: *UserAgent;
+    request: *Request;
+    response: *Response;
+    fetch_params: *FetchParams;
+    recursive: bool;
 }
 
 main_fetch_parallel_steps :: fonc (empl params: *ParamètresMainFetch)
@@ -1214,7 +1214,7 @@ main_fetch_parallel_steps :: fonc (empl params: *ParamètresMainFetch)
     si response == nul {
         // fetchParams’s preloaded response candidate is non-null
         si fetch_params.preloaded_response_candidate {
-            panique("non-implémenté")
+            panique("non-implémenté");
             // Wait until fetchParams’s preloaded response candidate is not "pending".
 
             // Assert: fetchParams’s preloaded response candidate is a response.
@@ -1228,37 +1228,37 @@ main_fetch_parallel_steps :: fonc (empl params: *ParamètresMainFetch)
         si (request.donne_url_courant().scheme == "data") ||
            (request.mode == Request.Mode.Navigate || request.mode == Request.Mode.WebSocket) {
             // Set request’s response tainting to "basic".
-            request.response_tainting = Request.ResponseTainting.Basic
+            request.response_tainting = Request.ResponseTainting.Basic;
 
             // Return the result of running scheme fetch given fetchParams.
-            response = scheme_fetch(user_agent, fetch_params)
+            response = scheme_fetch(user_agent, fetch_params);
         }
 
         // request’s mode is "same-origin"
         sinon si request.mode == Request.Mode.Same_Origin {
             // Return a network error.
-            response = network_error(request)
+            response = network_error(request);
         }
 
         // request’s mode is "no-cors"
         sinon si request.mode == Request.Mode.No_CORS {
             // If request’s redirect mode is not "follow", then return a network error.
             si request.redirect_mode != Request.RedirectMode.Follow {
-                response = network_error(request)
+                response = network_error(request);
             }
             sinon {
                 // Set request’s response tainting to "opaque".
-                request.response_tainting = Request.ResponseTainting.Opaque
+                request.response_tainting = Request.ResponseTainting.Opaque;
 
                 // Return the result of running scheme fetch given fetchParams.
-                response = scheme_fetch(user_agent, fetch_params)
+                response = scheme_fetch(user_agent, fetch_params);
             }
         }
 
         // request’s current URL’s scheme is not an HTTP(S) scheme
         sinon si !is_http_scheme(request.donne_url_courant().scheme) {
             // Return a network error.
-            response = network_error(request)
+            response = network_error(request);
         }
 
         // request’s use-CORS-preflight flag is set
@@ -1274,17 +1274,17 @@ main_fetch_parallel_steps :: fonc (empl params: *ParamètresMainFetch)
         // Otherwise
         sinon {
             // Set request’s response tainting to "cors".
-            request.response_tainting = Request.ResponseTainting.CORS
+            request.response_tainting = Request.ResponseTainting.CORS;
 
             // Return the result of running HTTP fetch given fetchParams.
-            response = http_fetch(user_agent, fetch_params)
-            retourne
+            response = http_fetch(user_agent, fetch_params);
+            retourne;
         }
     }
 
     // 13. If recursive is true, then return response.
     si recursive {
-        retourne
+        retourne;
     }
 
     // 14. If response is not a network error and response is not a filtered response, then:
@@ -1341,7 +1341,7 @@ main_fetch_parallel_steps :: fonc (empl params: *ParamètresMainFetch)
         // 4. Fully read response’s body given processBody and processBodyError.
 
     // 23. Otherwise, run fetch response handover given fetchParams and response.
-    fetch_response_handover(user_agent, fetch_params, response)
+    fetch_response_handover(user_agent, fetch_params, response);
 }
 
 /* https://fetch.spec.whatwg.org/#fetch-finale */
@@ -1356,11 +1356,11 @@ fetch_response_handover :: fonc (user_agent: *UserAgent, fetch_params: *FetchPar
     // 3. If fetchParams’s request’s destination is "document",
     si fetch_params.request.destination == Request.DestinationType.Document {
         // then set fetchParams’s controller’s full timing info to fetchParams’s timing info.
-        fetch_params.controller.full_timing_info = fetch_params.timing_info
+        fetch_params.controller.full_timing_info = fetch_params.timing_info;
     }
 
     // 4. Let processResponseEndOfBody be the following steps:
-    process_response_end_of_body :: fonc (user_agent: *UserAgent, fetch_params: *FetchParams, reponse: *Response)
+    process_response_end_of_body :: fonc (user_agent: *UserAgent, fetch_params: *FetchParams, reponse: *Response);
     {
         // 1. Let unsafeEndTime be the unsafe shared current time.
         // unsafe_end_time := unsafe_shared_current_time()
@@ -1390,28 +1390,28 @@ fetch_response_handover :: fonc (user_agent: *UserAgent, fetch_params: *FetchPar
             // 8. If fetchParams’s request’s initiator type is non-null, then mark resource timing given timingInfo, fetchParams’s request’s URL, fetchParams’s request’s initiator type, global, cacheState, bodyInfo, and responseStatus.
 
         // 3. Let processResponseEndOfBodyTask be the following steps:
-        process_response_end_of_body_task := crée_process_response_end_of_body_task(fetch_params, reponse)
+        process_response_end_of_body_task := crée_process_response_end_of_body_task(fetch_params, reponse);
 
         // 4. Queue a fetch task to run processResponseEndOfBodyTask with fetchParams’s task destination.
-        queue_a_fetch_task(user_agent, process_response_end_of_body_task, fetch_params.task_destination)
+        queue_a_fetch_task(user_agent, process_response_end_of_body_task, fetch_params.task_destination);
     }
 
     // 5. If fetchParams’s process response is non-null, then queue a fetch task to run fetchParams’s process response given response, with fetchParams’s task destination.
     si fetch_params.process_response {
-        queue_a_fetch_task_to_run_process_response(user_agent, fetch_params, response)
+        queue_a_fetch_task_to_run_process_response(user_agent, fetch_params, response);
     }
 
     // 6. Let internalResponse be response, if response is a network error; otherwise response’s internal response.
     internal_response := si est_network_error(response) {
-        response
+        response;
     }
     sinon {
-        response.donne_internal_response()
+        response.donne_internal_response();
     }
 
     // 7. If internalResponse’s body is null, then run processResponseEndOfBody.
     saufsi internal_response.body.possède_valeur() {
-        process_response_end_of_body(user_agent, fetch_params, internal_response)
+        process_response_end_of_body(user_agent, fetch_params, internal_response);
     }
     // 8. Otherwise:
     sinon {
@@ -1422,7 +1422,7 @@ fetch_response_handover :: fonc (user_agent: *UserAgent, fetch_params: *FetchPar
         // 3. Set up transformStream with transformAlgorithm set to identityTransformAlgorithm and flushAlgorithm set to processResponseEndOfBody.
 
         // 4. Set internalResponse’s body’s stream to the result of internalResponse’s body’s stream piped through transformStream.
-        process_response_end_of_body(user_agent, fetch_params, internal_response)
+        process_response_end_of_body(user_agent, fetch_params, internal_response);
     }
 
     // 9. If fetchParams’s process response consume body is non-null, then:
@@ -1434,64 +1434,64 @@ fetch_response_handover :: fonc (user_agent: *UserAgent, fetch_params: *FetchPar
         // 3. If internalResponse’s body is null, then queue a fetch task to run processBody given null, with fetchParams’s task destination.
 
         // 4. Otherwise, fully read internalResponse’s body given processBody, processBodyError, and fetchParams’s task destination.
-        null_or_bytes: Optionnel([]octet)
+        null_or_bytes: Optionnel([]octet);
         si internal_response.body.possède_valeur() {
-            bytes : []octet = internal_response.body.Quelque
-            null_or_bytes = bytes
+            bytes : []octet = internal_response.body.Quelque;
+            null_or_bytes = bytes;
         }
-        fetch_params.process_response_consume_body.sur_rappel(fetch_params.process_response_consume_body, internal_response, null_or_bytes)
+        fetch_params.process_response_consume_body.sur_rappel(fetch_params.process_response_consume_body, internal_response, null_or_bytes);
     }
 }
 
 queue_a_fetch_task_to_run_process_response :: fonc (user_agent: *UserAgent, fetch_params: *FetchParams, response: *Response)
 {
     Tâche :: struct {
-        empl base: Algorithm
+        empl base: Algorithm;
 
-        fetch_params: *FetchParams
-        response: *Response
+        fetch_params: *FetchParams;
+        response: *Response;
     }
 
-    sur_run :: fonc (base: *Algorithm)
+    sur_run :: fonc (base: *Algorithm);
     {
-        empl tâche := base comme *Tâche
-        fetch_params.process_response.sur_rappel(fetch_params.process_response, response)
+        empl tâche := base comme *Tâche;
+        fetch_params.process_response.sur_rappel(fetch_params.process_response, response);
     }
 
-    tâche := crée_algorithm(sur_run, Tâche)
-    tâche.fetch_params = fetch_params
-    tâche.response = response
-    queue_a_fetch_task(user_agent, tâche, fetch_params.task_destination)
+    tâche := crée_algorithm(sur_run, Tâche);
+    tâche.fetch_params = fetch_params;
+    tâche.response = response;
+    queue_a_fetch_task(user_agent, tâche, fetch_params.task_destination);
 }
 
 crée_process_response_end_of_body_task :: fonc (fetch_params: *FetchParams, response: *Response) -> *Algorithm
 {
     Tâche :: struct {
-        empl base: Algorithm
+        empl base: Algorithm;
 
-        fetch_params: *FetchParams
-        response: *Response
+        fetch_params: *FetchParams;
+        response: *Response;
     }
 
-    sur_run :: fonc (base: *Algorithm)
+    sur_run :: fonc (base: *Algorithm);
     {
-        empl tâche := base comme *Tâche
+        empl tâche := base comme *Tâche;
 
         // 1. Set fetchParams’s request’s done flag.
-        fetch_params.request.drapeaux.DONE = vrai
+        fetch_params.request.drapeaux.DONE = vrai;
 
         // 2. If fetchParams’s process response end-of-body is non-null, then run fetchParams’s process response end-of-body given response.
         si fetch_params.process_response_end_of_body {
-            fetch_params.process_response_end_of_body.sur_rappel(fetch_params.process_response_end_of_body, response)
+            fetch_params.process_response_end_of_body.sur_rappel(fetch_params.process_response_end_of_body, response);
         }
 
         // À FAIRE : 3. If fetchParams’s request’s initiator type is non-null and fetchParams’s request’s client’s global object is fetchParams’s task destination, then run fetchParams’s controller’s report timing steps given fetchParams’s request’s client’s global object.
     }
 
-    tâche := crée_algorithm(sur_run, Tâche)
-    tâche.fetch_params = fetch_params
-    tâche.response = response
-    retourne tâche
+    tâche := crée_algorithm(sur_run, Tâche);
+    tâche.fetch_params = fetch_params;
+    tâche.response = response;
+    retourne tâche;
 }
 
 /* https://fetch.spec.whatwg.org/#queue-a-fetch-task */
@@ -1502,7 +1502,7 @@ queue_a_fetch_task :: fonc (user_agent: *UserAgent, algorithm: *Algorithm, task_
     // 1. If taskDestination is a parallel queue, then enqueue algorithm to taskDestination.
 
     // 2. Otherwise, queue a global task on the networking task source with taskDestination and algorithm.
-    queue_a_global_task(user_agent, SourceDeTâche.Réseautage, task_destination comme *JS.Object, algorithm)
+    queue_a_global_task(user_agent, SourceDeTâche.Réseautage, task_destination comme *JS.Object, algorithm);
 }
 
 /** \} */
@@ -1516,128 +1516,128 @@ scheme_fetch :: fonc (user_agent: *UserAgent, fetch_params: *FetchParams) -> *Re
 {
     // 1. If fetchParams is canceled, then retun the appropriate network error for fetchParams.
     si fetch_params.is_canceled() {
-        retourne appropriate_network_error(fetch_params)
+        retourne appropriate_network_error(fetch_params);
     }
 
     // 2. Let request be fetchParams’s request.
-    request := fetch_params.request
+    request := fetch_params.request;
 
     // 3. Switch on request’s current URL’s scheme and run the associated steps:
-    schéma := request.donne_url_courant().scheme
+    schéma := request.donne_url_courant().scheme;
 
     si schéma == "about" {
-        panique("about non-implémenté")
+        panique("about non-implémenté");
     }
     sinon si schéma == "blob" {
-        retourne scheme_fetch_blob(request)
+        retourne scheme_fetch_blob(request);
     }
     sinon si schéma == "data" {
         // 1. Let dataURLStruct be the result of running the data: URL processor on request’s current URL.
-        opt_data_url_struct := data_url_processor(request.donne_url_courant())
+        opt_data_url_struct := data_url_processor(request.donne_url_courant());
 
         // 2. If dataURLStruct is failure, then return a network error.
         saufsi opt_data_url_struct.possède_valeur() {
-            retourne network_error(request)
+            retourne network_error(request);
         }
 
-        data_url_struct := opt_data_url_struct.Quelque
+        data_url_struct := opt_data_url_struct.Quelque;
 
         // À FAIRE 3. Let mimeType be dataURLStruct’s MIME type, serialized.
-        mime_type := data_url_struct.mime_type
+        mime_type := data_url_struct.mime_type;
 
         // 4. Return a new response whose status message is `OK`, header list is « (`Content-Type`, mimeType) », and body is dataURLStruct’s body as a body.
         // À FAIRE : entêtes pour les réponses.
-        contenu := data_url_struct.body
+        contenu := data_url_struct.body;
 
-        response := crée_réponse(request)
-        response.status = 200
+        response := crée_réponse(request);
+        response.status = 200;
 
-        body_info := loge(ResponseBodyInfo)
-        body_info.decodede_size = contenu.taille comme z32
-        body_info.content_type = copie_chaine(mime_type)
+        body_info := loge(ResponseBodyInfo);
+        body_info.decodede_size = contenu.taille comme z32;
+        body_info.content_type = copie_chaine(mime_type);
 
-        response.body_info = body_info
-        response.body = contenu
+        response.body_info = body_info;
+        response.body = contenu;
 
-        retourne response
+        retourne response;
     }
     sinon si schéma == "file" {
-        chaine_chemin := donne_chaine_chemin(request.donne_url_courant())
-        diffère déloge(chaine_chemin)
+        chaine_chemin := donne_chaine_chemin(request.donne_url_courant());
+        diffère déloge(chaine_chemin);
 
-        chaine_chemin_ := résoud_échappement_url(chaine_chemin)
-        diffère déloge(chaine_chemin_)
+        chaine_chemin_ := résoud_échappement_url(chaine_chemin);
+        diffère déloge(chaine_chemin_);
 
-        chemin := CheminFichier(chaine_chemin_)
+        chemin := CheminFichier(chaine_chemin_);
 
         saufsi fichier_existe(chemin) {
-            chemin_parent_ci_fichier := CheminFichier(#chemin_de_ce_fichier).chemin_parent()
-            diffère détruit_chemin(chemin_parent_ci_fichier)
+            chemin_parent_ci_fichier := CheminFichier(#chemin_de_ce_fichier).chemin_parent();
+            diffère détruit_chemin(chemin_parent_ci_fichier);
 
-            chemin_erreur_404 := chemin_parent_ci_fichier / "Fichiers/erreur-404.html"
-            diffère détruit_chemin(chemin_erreur_404)
+            chemin_erreur_404 := chemin_parent_ci_fichier / "Fichiers/erreur-404.html";
+            diffère détruit_chemin(chemin_erreur_404);
 
-            _, contenu := contenu_fichier_texte(chemin_erreur_404)
+            _, contenu := contenu_fichier_texte(chemin_erreur_404);
 
-            nouveau_contenu := remplace(contenu, "{{nom-navigateur}}", user_agent.nom_navigateur)
-            déloge(contenu)
-            contenu = nouveau_contenu
+            nouveau_contenu := remplace(contenu, "{{nom-navigateur}}", user_agent.nom_navigateur);
+            déloge(contenu);
+            contenu = nouveau_contenu;
 
-            nouveau_contenu = remplace(contenu, "{{url}}", chemin.chn)
-            déloge(contenu)
-            contenu = nouveau_contenu
+            nouveau_contenu = remplace(contenu, "{{url}}", chemin.chn);
+            déloge(contenu);
+            contenu = nouveau_contenu;
 
-            retourne crée_réponse_pour_fichier(request, "text/html", contenu, 404)
+            retourne crée_réponse_pour_fichier(request, "text/html", contenu, 404);
         }
 
         /* À FAIRE : permissions. */
         si est_un_fichier_régulier(chemin) {
-            retourne crée_réponse_pour_fichier(request, chemin, 200)
+            retourne crée_réponse_pour_fichier(request, chemin, 200);
         }
 
-        retourne network_error(request)
+        retourne network_error(request);
     }
     sinon si schéma == "http" || schéma == "https" {
-        retourne http_fetch(user_agent, fetch_params)
+        retourne http_fetch(user_agent, fetch_params);
     }
 
-    retourne network_error(request)
+    retourne network_error(request);
 }
 
 crée_réponse_pour_fichier :: fonc (request: *Request, chemin: CheminFichier, status: z32) -> *Response
 {
-    type_mime := type_mime_pour_extension(chemin.extension())
-    _, contenu := contenu_fichier_texte(chemin)
-    retourne crée_réponse_pour_fichier(request, type_mime, contenu, status)
+    type_mime := type_mime_pour_extension(chemin.extension());
+    _, contenu := contenu_fichier_texte(chemin);
+    retourne crée_réponse_pour_fichier(request, type_mime, contenu, status);
 }
 
 crée_réponse_pour_fichier :: fonc (request: *Request, type_mime: chaine, contenu: chaine, status: z32) -> *Response
 {
-    response := crée_réponse(request)
-    response.status = status
+    response := crée_réponse(request);
+    response.status = status;
 
-    body_info := loge(ResponseBodyInfo)
-    body_info.decodede_size = contenu.taille comme z32
-    body_info.content_type = type_mime
+    body_info := loge(ResponseBodyInfo);
+    body_info.decodede_size = contenu.taille comme z32;
+    body_info.content_type = type_mime;
 
-    response.body_info = body_info
-    response.body = contenu
+    response.body_info = body_info;
+    response.body = contenu;
 
-    retourne response
+    retourne response;
 }
 
 scheme_fetch_blob :: fonc (request: *Request) -> *Response
 {
     // 1. Let blobURLEntry be request’s current URL’s blob URL entry.
-    blob_url_entry := request.donne_url_courant().blob_url_entry
+    blob_url_entry := request.donne_url_courant().blob_url_entry;
 
     // 2. If request’s method is not `GET`, blobURLEntry is null, or blobURLEntry’s object is not a Blob object, then return a network error. [FILEAPI]
     si request.method != "GET" || blob_url_entry == nul || !blob_url_entry.object.est_blob() {
-        retourne network_error(request)
+        retourne network_error(request);
     }
 
     // 3. Let blob be blobURLEntry’s object.
-    panique("blob url non-implémenté")
+    panique("blob url non-implémenté");
 
     // 4. Let response be a new response.
 
@@ -1711,11 +1711,11 @@ scheme_fetch_blob :: fonc (request: *Request) -> *Response
 http_fetch :: fonc (user_agent: *UserAgent, fetch_params: *FetchParams) -> *Response
 {
     // 1. Let request be fetchParams’s request.
-    request := fetch_params.request
+    request := fetch_params.request;
     
     // 2. Let response and internalResponse be null.
-    response: *Response
-    internal_response: *Response
+    response: *Response;
+    internal_response: *Response;
 
     // 3. If request’s service-workers mode is "all", then:
     // si request.service_workers_mode == Request.ServiceWorkersMode.All {
@@ -1735,12 +1735,12 @@ http_fetch :: fonc (user_agent: *UserAgent, fetch_params: *FetchParams) -> *Resp
 
         // 2. If request’s redirect mode is "follow", then set request’s service-workers mode to "none".
         si request.redirect_mode == Request.RedirectMode.Follow {
-            request.service_workers_mode = Request.ServiceWorkersMode.None
+            request.service_workers_mode = Request.ServiceWorkersMode.None;
         }
 
         // 3. Set response and internalResponse to the result of running HTTP-network-or-cache fetch given fetchParams.
-        response = http_network_or_cache_fetch(user_agent, fetch_params)
-        internal_response = response
+        response = http_network_or_cache_fetch(user_agent, fetch_params);
+        internal_response = response;
 
         // 4. If request’s response tainting is "cors" and a CORS check for request and response returns failure, then return a network error.
 
@@ -1760,51 +1760,51 @@ http_fetch :: fonc (user_agent: *UserAgent, fetch_params: *FetchParams) -> *Resp
         discr request.redirect_mode {
             Error {
                 // Set response to a network error.
-                response = network_error(request)
+                response = network_error(request);
             }
             Manual {
                 // If request’s mode is "navigate", then set fetchParams’s controller’s next manual redirect steps to run HTTP-redirect fetch given fetchParams and response.
                 si request.mode == Request.Mode.Navigate {
                     NextManualRedirect :: struct {
-                        empl base: Algorithm
-                        user_agent: *UserAgent
-                        fetch_params: *FetchParams
-                        response: *Response
+                        empl base: Algorithm;
+                        user_agent: *UserAgent;
+                        fetch_params: *FetchParams;
+                        response: *Response;
                     }
 
-                    sur_next_manual_redirect :: fonc (base: *Algorithm)
+                    sur_next_manual_redirect :: fonc (base: *Algorithm);
                     {
-                        empl params := base comme *NextManualRedirect
-                        nouvelle_réponse := http_redirect_fetch(user_agent, fetch_params, response)
+                        empl params := base comme *NextManualRedirect;
+                        nouvelle_réponse := http_redirect_fetch(user_agent, fetch_params, response);
                         si fetch_params.process_response {
-                            fetch_params.process_response.sur_rappel(fetch_params.process_response, nouvelle_réponse)
+                            fetch_params.process_response.sur_rappel(fetch_params.process_response, nouvelle_réponse);
                         }
                     }
 
-                    next_manual_redirect := crée_algorithm(sur_next_manual_redirect, NextManualRedirect)
-                    next_manual_redirect.user_agent = user_agent
-                    next_manual_redirect.fetch_params = fetch_params
-                    next_manual_redirect.response = response
+                    next_manual_redirect := crée_algorithm(sur_next_manual_redirect, NextManualRedirect);
+                    next_manual_redirect.user_agent = user_agent;
+                    next_manual_redirect.fetch_params = fetch_params;
+                    next_manual_redirect.response = response;
 
-                    fetch_params.controller.next_manual_redirect_steps = next_manual_redirect
+                    fetch_params.controller.next_manual_redirect_steps = next_manual_redirect;
                 }
                 // Otherwise, set response to an opaque-redirect filtered response whose internal response is internalResponse.
                 sinon {
-                    panique("non-implémenté")
+                    panique("non-implémenté");
                 }
             }
             Follow {
                 // Set response to the result of running HTTP-redirect fetch given fetchParams and response.
-                response = http_redirect_fetch(user_agent, fetch_params, response)
+                response = http_redirect_fetch(user_agent, fetch_params, response);
             }
             sinon {
-                panique("request.redirect_mode inconnu : '%'", request.redirect_mode)
+                panique("request.redirect_mode inconnu : '%'", request.redirect_mode);
             }
         }
     }
 
     // 7. Return response.
-    retourne response
+    retourne response;
 }
 
 /** \} */
@@ -1819,37 +1819,37 @@ http_fetch :: fonc (user_agent: *UserAgent, fetch_params: *FetchParams) -> *Resp
 http_redirect_fetch :: fonc (user_agent: *UserAgent, fetch_params: *FetchParams, response: *Response) -> *Response
 {
     // 1. Let request be fetchParams’s request.
-    request := fetch_params.request
+    request := fetch_params.request;
 
     // À FAIRE 2. Let internalResponse be response, if response is not a filtered response; otherwise response’s internal response.
-    internal_reponse := response
+    internal_reponse := response;
 
     // 3. Let locationURL be internalResponse’s location URL given request’s current URL’s fragment.
-    current_url := request.donne_url_courant()
-    location_url := donne_location_url(internal_reponse, user_agent, current_url.fragment)
+    current_url := request.donne_url_courant();
+    location_url := donne_location_url(internal_reponse, user_agent, current_url.fragment);
 
     // 4. If locationURL is null, then return response.
     si location_url == nul {
-        retourne response
+        retourne response;
     }
 
     // 5. If locationURL is failure, then return a network error.
     si is_failure(location_url) {
-        retourne network_error(request)
+        retourne network_error(request);
     }
 
     // 6. If locationURL’s scheme is not an HTTP(S) scheme, then return a network error.
     saufsi is_http_scheme(location_url.scheme) {
-        retourne network_error(request)
+        retourne network_error(request);
     }
 
     // 7. If request’s redirect count is 20, then return a network error.
     si request.redirect_count == 20 {
-        retourne crée_réponse_pour_trop_de_redirections(request)
+        retourne crée_réponse_pour_trop_de_redirections(request);
     }
 
     // 8. Increase request’s redirect count by 1.
-    request.redirect_count += 1
+    request.redirect_count += 1;
 
     // 9. If request’s mode is "cors", locationURL includes credentials, and request’s origin is not same origin with locationURL’s origin, then return a network error.
 
@@ -1877,26 +1877,26 @@ http_redirect_fetch :: fonc (user_agent: *UserAgent, fetch_params: *FetchParams,
     // 17. If timingInfo’s redirect start time is 0, then set timingInfo’s redirect start time to timingInfo’s start time.
 
     // 18. Append locationURL to request’s URL list.
-    request.définis_url(location_url)
+    request.définis_url(location_url);
 
     // 19. Invoke set request’s referrer policy on redirect on request and internalResponse. [REFERRER]
 
     // 20. Let recursive be true.
-    recursive := vrai
+    recursive := vrai;
 
     // 21. If request’s redirect mode is "manual", then:
     si request.redirect_mode == Request.RedirectMode.Manual {
         // 1. Assert: request’s mode is "navigate".
-        assert(request.mode == Request.Mode.Navigate)
+        assert(request.mode == Request.Mode.Navigate);
 
         // 2. Set recursive to false.
-        recursive = faux
+        recursive = faux;
     }
 
     // 22. Return the result of running main fetch given fetchParams and recursive.
     // À FAIRE : retourne une réponse
-    main_fetch(user_agent, fetch_params, recursive)
-    retourne nul
+    main_fetch(user_agent, fetch_params, recursive);
+    retourne nul;
 }
 
 /** \} */
@@ -1909,39 +1909,39 @@ http_redirect_fetch :: fonc (user_agent: *UserAgent, fetch_params: *FetchParams,
 http_network_or_cache_fetch :: fonc (user_agent: *UserAgent, fetch_params: *FetchParams) -> *Response
 {
     // À FAIRE : standardise
-    request := fetch_params.request
+    request := fetch_params.request;
 
-    uri := donne_url_courant(request)
+    uri := donne_url_courant(request);
 
     si possède_valeur(uri.host) {
-        chaine_host: chaine
+        chaine_host: chaine;
         si possède_valeur(uri.port) && !est_port_défaut(uri.scheme, uri.port.Quelque) {
             chaine_host = imprime_chaine("%:%", uri.host.Quelque, uri.port.Quelque) // @FuiteDeMémoire
         }
         sinon {
             chaine_host = copie_chaine(uri.host.Quelque) // @FuiteDeMémoire
         }
-        ajoute_entête_si_inexistante(request, "Host", chaine_host)
+        ajoute_entête_si_inexistante(request, "Host", chaine_host);
     }
 
-    ajoute_entête_si_inexistante(request, "Accept-Encoding", "identity")
+    ajoute_entête_si_inexistante(request, "Accept-Encoding", "identity");
 
     si request.drapeaux.KEEPALIVE {
-        ajoute_entête_si_inexistante(request, "Connection", "keep-alive")
+        ajoute_entête_si_inexistante(request, "Connection", "keep-alive");
     }
     sinon {
-        ajoute_entête_si_inexistante(request, "Connection", "close")
+        ajoute_entête_si_inexistante(request, "Connection", "close");
     }
 
     chaine_user_agent := convertis_vers_chaine(donne_chaine_utf16(user_agent.user_agent_string)) // @FuiteDeMémoire
     saufsi chaine_user_agent {
-        chaine_user_agent = "Mozilla/5.0 (X11; Linux x86_64) UserAgent/1.0"
+        chaine_user_agent = "Mozilla/5.0 (X11; Linux x86_64) UserAgent/1.0";
     }
 
-    ajoute_entête_si_inexistante(request, "User-Agent", chaine_user_agent)
+    ajoute_entête_si_inexistante(request, "User-Agent", chaine_user_agent);
 
-    response := lance_requête(user_agent, request)
-    retourne response
+    response := lance_requête(user_agent, request);
+    retourne response;
 }
 
 /** \} */
@@ -1953,73 +1953,73 @@ http_network_or_cache_fetch :: fonc (user_agent: *UserAgent, fetch_params: *Fetc
 
 /* https://fetch.spec.whatwg.org/#data-url-struct */
 DataURLStruct :: struct {
-    mime_type: chaine
-    body: chaine
+    mime_type: chaine;
+    body: chaine;
 }
 
 /* https://fetch.spec.whatwg.org/#data-url-processor */
 data_url_processor :: fonc (url: *URL) -> Optionnel(DataURLStruct)
 {
     // 1. Assert: dataURL’s scheme is "data".
-    assert(url.scheme == "data")
+    assert(url.scheme == "data");
 
     // 2. Let input be the result of running the URL serializer on dataURL with exclude fragment set to true.
-    input := url_serializer(url)
-    input_orig := input
-    diffère déloge(input_orig)
+    input := url_serializer(url);
+    input_orig := input;
+    diffère déloge(input_orig);
 
     // 3. Remove the leading "data:" from input.
-    input = avance(input, 5)
+    input = avance(input, 5);
 
     // 4. Let position point at the start of input.
-    position : z64 = 0
+    position : z64 = 0;
 
     // 5. Let mimeType be the result of collecting a sequence of code points that are not equal to U+002C (,), given position.
-    position_virgule := trouve_caractère_depuis_le_début(input, ',')
+    position_virgule := trouve_caractère_depuis_le_début(input, ',');
     si position_virgule == -1 {
-        position_virgule = input.taille
+        position_virgule = input.taille;
     }
-    mimetype := input.sous_chaine(position, position_virgule)
-    position = position_virgule
+    mimetype := input.sous_chaine(position, position_virgule);
+    position = position_virgule;
 
     // 6. Strip leading and trailing ASCII whitespace from mimeType.
-    mimetype = supprime_espaces_blancs(mimetype)
+    mimetype = supprime_espaces_blancs(mimetype);
 
     // 7. If position is past the end of input, then return failure.
     si position >= input.taille {
-        retourne
+        retourne;
     }
 
     // 8. Advance position by 1.
-    position += 1
+    position += 1;
 
     // 9. Let encodedBody be the remainder of input.
-    encoded_body := avance(input, position)
+    encoded_body := avance(input, position);
 
     // 10. Let body be the percent-decoding of encodedBody.
-    body := résoud_échappement_url(encoded_body)
-    diffère déloge(body)
+    body := résoud_échappement_url(encoded_body);
+    diffère déloge(body);
 
     // 11. If mimeType ends with U+003B (;), followed by zero or more U+0020 SPACE, followed by an ASCII case-insensitive match for "base64", then:
     si mime_type_fini_par_base64(mimetype) {
         // À FAIRE 1. Let stringBody be the isomorphic decode of body.
-        string_body := body
+        string_body := body;
 
         // 2. Set body to the forgiving-base64 decode of stringBody.
-        nouveau_body := décode_base64(string_body)
-        déloge(body)
-        body = nouveau_body
+        nouveau_body := décode_base64(string_body);
+        déloge(body);
+        body = nouveau_body;
 
         // À FAIRE : 3. If body is failure, then return failure.
 
         // 4. Remove the last 6 code points from mimeType.
-        mimetype.taille -= 6
+        mimetype.taille -= 6;
 
         // 5. Remove trailing U+0020 SPACE code points from mimeType, if any.
-        mimetype = supprime_espaces_blancs_à_la_fin(mimetype)
+        mimetype = supprime_espaces_blancs_à_la_fin(mimetype);
 
         // 6. Remove the last U+003B (;) from mimeType.
-        mimetype.taille -= 1
+        mimetype.taille -= 1;
     }
 
     // À FAIRE : 12. If mimeType starts with ";", then prepend "text/plain" to mimeType.
@@ -2031,22 +2031,22 @@ data_url_processor :: fonc (url: *URL) -> Optionnel(DataURLStruct)
     // À FAIRE : 14. If mimeTypeRecord is failure, then set mimeTypeRecord to text/plain;charset=US-ASCII.
 
     // 15. Return a new data: URL struct whose MIME type is mimeTypeRecord and body is body.
-    résultat: DataURLStruct
-    résultat.mime_type = copie_chaine(mimetype)
-    résultat.body = copie_chaine(body)
-    retourne résultat
+    résultat: DataURLStruct;
+    résultat.mime_type = copie_chaine(mimetype);
+    résultat.body = copie_chaine(body);
+    retourne résultat;
 }
 
 mime_type_fini_par_base64 :: fonc (mime_type: chaine) -> bool
 {
-    position_point_virgule := trouve_caractère_depuis_la_fin(mime_type, ';')
+    position_point_virgule := trouve_caractère_depuis_la_fin(mime_type, ';');
     si position_point_virgule == -1 {
-        retourne faux
+        retourne faux;
     }
 
-    dernier_paramètre := mime_type.sous_chaine(position_point_virgule + 1, mime_type.taille)
-    dernier_paramètre = supprime_espaces_blancs_au_début(dernier_paramètre)
-    retourne compare_ascii_insensible_à_la_casse(dernier_paramètre, "base64")
+    dernier_paramètre := mime_type.sous_chaine(position_point_virgule + 1, mime_type.taille);
+    dernier_paramètre = supprime_espaces_blancs_au_début(dernier_paramètre);
+    retourne compare_ascii_insensible_à_la_casse(dernier_paramètre, "base64");
 }
 
 /** \} */

@@ -1,61 +1,61 @@
-importe Fondation
+importe Fondation;
 
 Vec3 :: struct ($T: type_de_données) {
-    x: T
-    y: T
-    z: T
+    x: T;
+    y: T;
+    z: T;
 }
 
 Tablet :: struct ($N: z32, $T: type_de_données) {
-    valeurs: [N]T
+    valeurs: [N]T;
 }
 
 Option :: union ($T0: type_de_données, $T1: type_de_données) {
-    t0: T0
-    t1: T1
+    t0: T0;
+    t1: T1;
 }
 
 principale :: fonc ()
 {
-    u : Vec3(T = r32) = ---
-    u.x = 1.0
-    u.y = 2.0
-    u.z = 3.0
+    u : Vec3(T = r32) = ---;
+    u.x = 1.0;
+    u.y = 2.0;
+    u.z = 3.0;
 
-    imprime("%\n", u)
+    imprime("%\n", u);
 
-    v : Vec3(T = r32) = ---
-    v.x = 2.0
-    v.y = 4.0
-    v.z = 9.0
+    v : Vec3(T = r32) = ---;
+    v.x = 2.0;
+    v.y = 4.0;
+    v.z = 9.0;
 
-    imprime("%\n", v)
+    imprime("%\n", v);
 
-    w := Vec3(T = r32)(x = 1.0, y = 2.0, z = 3.0)
-    imprime("%\n", w)
+    w := Vec3(T = r32)(x = 1.0, y = 2.0, z = 3.0);
+    imprime("%\n", w);
 
-    x: Tablet(N = 5, T = z32)
+    x: Tablet(N = 5, T = z32);
 
     pour & x.valeurs {
-        it = indice_it comme z32
+        it = indice_it comme z32;
     }
 
     pour x.valeurs {
-        imprime("x[%] = %\n", indice_it, it)
+        imprime("x[%] = %\n", indice_it, it);
     }
 
-    y: Tablet(N = 10, T = z32)
+    y: Tablet(N = 10, T = z32);
 
     pour & y.valeurs {
-        it = indice_it comme z32
+        it = indice_it comme z32;
     }
 
     pour y.valeurs {
-        imprime("y[%] = %\n", indice_it, it)
+        imprime("y[%] = %\n", indice_it, it);
     }
 
-    o: Option(T0 = z32, T1 = r32)
-    o = 6
+    o: Option(T0 = z32, T1 = r32);
+    o = 6;
 
-    imprime("%\n", o)
+    imprime("%\n", o);
 }

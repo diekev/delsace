@@ -1,20 +1,20 @@
 // https://blog.gopheracademy.com/advent-2017/mphf/
 
-importe Fondation
+importe Fondation;
 
 empreinte :: fonc (c: chaine, facteur: n32, nombre_de_slots: n32) -> n32
 {
-    z : n32 = 0
+    z : n32 = 0;
 
     pour c {
-        z *= 33
-        z += it comme n32
+        z *= 33;
+        z += it comme n32;
     }
 
-    z *= facteur
-    z >>= 28
+    z *= facteur;
+    z >>= 28;
 
-    retourne z % nombre_de_slots
+    retourne z % nombre_de_slots;
 }
 
 principale :: fonc ()
@@ -84,39 +84,39 @@ principale :: fonc ()
         "comme",
         "init_de",
         "type_de_données"
-    ]
+    ];
 
-    imprime("nombre de commandes %\n", commandes.taille)
+    imprime("nombre de commandes %\n", commandes.taille);
 
-    nombre_de_slots := commandes.taille * 2
-    slots := loge_tableau(bool, nombre_de_slots)
-    slots.taille = nombre_de_slots
-    facteur : n32 = 0
+    nombre_de_slots := commandes.taille * 2;
+    slots := loge_tableau(bool, nombre_de_slots);
+    slots.taille = nombre_de_slots;
+    facteur : n32 = 0;
 
     boucle {
         pour & slots {
-            it = faux
+            it = faux;
         }
 
         pour commandes {
-            e := empreinte(it, facteur, nombre_de_slots comme n32)
+            e := empreinte(it, facteur, nombre_de_slots comme n32);
 
             si slots[e] {
-                arrête
+                arrête;
             }
 
-            slots[e] = vrai
+            slots[e] = vrai;
         }
         sansarrêt {
-            imprime("trouvé une empreinte parfaite avec le facteur : %\n", facteur)
-            arrête
+            imprime("trouvé une empreinte parfaite avec le facteur : %\n", facteur);
+            arrête;
         }
 
-        facteur += 1
+        facteur += 1;
     }
 
     pour commandes {
-        x := empreinte(it, facteur, nombre_de_slots comme n32)
-        imprime("empreinte pour % : %\n", it, x)
+        x := empreinte(it, facteur, nombre_de_slots comme n32);
+        imprime("empreinte pour % : %\n", it, x);
     }
 }

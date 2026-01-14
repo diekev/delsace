@@ -2,19 +2,19 @@
  * Catégories : [validation sémantique]
  */
 
-importe Chaine
-importe Fondation
+importe Chaine;
+importe Fondation;
 
 fonction_corps_texte :: fonc ()
 #corps_texte {
-    retourne copie_chaine("imprime(\"%\", message)")
+    retourne copie_chaine("imprime(\"%\", message)");
 }
 
 principale :: fonc ()
 {
-    fonction_corps_texte()
+    fonction_corps_texte();
 }
 
 #portée_fichier
 
-message :: "ok"
+message :: "ok";
