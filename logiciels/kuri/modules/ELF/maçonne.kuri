@@ -50,7 +50,7 @@ donne_valeur_sh_info :: fonc (maçonne: *Maçonne_ELF64, section: *Données_Sect
 {
     résultat: Elf64_Word
 
-    si section.type == SHT_SYMTAB {
+    si section.type == SHT_SYMTAB || section.type == SHT_DYNSYM {
         // One greater than the symbol table index of the last local symbol (binding STB_LOCAL)
 
         pour section.fichier.pages {
@@ -65,11 +65,6 @@ donne_valeur_sh_info :: fonc (maçonne: *Maçonne_ELF64, section: *Données_Sect
                 résultat += 1
             }
         }
-    }
-    sinon si section.type == SHT_DYNSYM {
-        // @Validation,linux
-        // One greater than the symbol table index of the last local symbol (binding STB_LOCAL)
-        assert(faux)
     }
     sinon si section.type == SHT_REL || section.type == SHT_RELA {
         assert(section.destination_rel != nul)
