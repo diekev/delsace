@@ -34,43 +34,17 @@ principale :: fonc ()
             exit(1);
         }
 
-        si première_section.sh_name != 0 {
-            imprimeln("La valeur sh_name de l'entrée de la table de section à l'indice 0 doit être de 0.");
-            exit(1);
-        }
-        si première_section.sh_type != 0 {
-            imprimeln("La valeur sh_type de l'entrée de la table de section à l'indice 0 doit être de 0.");
-            exit(1);
-        }
-        si première_section.sh_flags != 0 {
-            imprimeln("La valeur sh_flags de l'entrée de la table de section à l'indice 0 doit être de 0.");
-            exit(1);
-        }
-        si première_section.sh_addr != 0 {
-            imprimeln("La valeur sh_addr de l'entrée de la table de section à l'indice 0 doit être de 0.");
-            exit(1);
-        }
-        si première_section.sh_offset != 0 {
-            imprimeln("La valeur sh_offset de l'entrée de la table de section à l'indice 0 doit être de 0.");
-            exit(1);
-        }
-        si première_section.sh_info != 0 {
-            imprimeln("La valeur sh_info de l'entrée de la table de section à l'indice 0 doit être de 0.");
-            exit(1);
-        }
-        si première_section.sh_addralign != 0 {
-            imprimeln("La valeur sh_addralign de l'entrée de la table de section à l'indice 0 doit être de 0.");
-            exit(1);
-        }
-        si première_section.sh_entsize != 0 {
-            imprimeln("La valeur sh_addralign de l'entrée de la table de section à l'indice 0 doit être de 0.");
-            exit(1);
-        }
+        vérifie_valeur_zéro(première_section.sh_name, "sh_name", 0);
+        vérifie_valeur_zéro(première_section.sh_type, "sh_type", 0);
+        vérifie_valeur_zéro(première_section.sh_flags, "sh_flags", 0);
+        vérifie_valeur_zéro(première_section.sh_addr, "sh_addr", 0);
+        vérifie_valeur_zéro(première_section.sh_offset, "sh_offset", 0);
+        vérifie_valeur_zéro(première_section.sh_info, "sh_info", 0);
+        vérifie_valeur_zéro(première_section.sh_addralign, "sh_addralign", 0);
+        vérifie_valeur_zéro(première_section.sh_entsize, "sh_entsize", 0);
 
-        si première_section.sh_size != 0 {
-            // À FAIRE : ceci peut être le nombre d'entrée si e_shnum est de 0
-            imprimeln("La valeur sh_size de l'entrée de la table de section à l'indice 0 doit être de 0.");
-            exit(1);
+        si entête.e_shnum != 0 {
+            vérifie_valeur_zéro(première_section.sh_size, "sh_size", 0);
         }
 
         si première_section.sh_link != 0 {
@@ -164,6 +138,14 @@ principale :: fonc ()
                 imprimeln("Ignorant la section '%' à l'indice %", nom_macro_section, it);
             }
         }
+    }
+}
+
+vérifie_valeur_zéro :: fonc (valeur: $T, nom_rubrique: chaine, indice_section: Elf64_Word)
+{
+    si valeur != 0 {
+        imprimeln("La valeur '%' de l'entrée de la table de section à l'indice % doit être de 0 (obtenu : '%').", nom_rubrique, indice_section, valeur);
+        exit(1);
     }
 }
 
