@@ -26,8 +26,7 @@ principale :: fonc ()
     entête := entête_fichier(*fichier);
     type_fichier := donne_type_fichier_objet(entête);
 
-    nombre_de_sections := entête.e_shnum
-    // À FAIRE : le nombre de sections peut être 0 si nous avons plus de SHN_LORESERVE sections
+    nombre_de_sections := donne_nombre_de_sections(*fichier) comme Elf64_Word;
     si nombre_de_sections != 0 {
         première_section := donne_entête_section(*fichier, SHN_UNDEF);
         saufsi première_section {
@@ -149,7 +148,7 @@ vérifie_valeur_zéro :: fonc (valeur: $T, nom_rubrique: chaine, indice_section:
     }
 }
 
-valide_symtab :: fonc (fichier: *FichierELF, symtab: *Elf64_Shdr, indice_section: Elf64_Half)
+valide_symtab :: fonc (fichier: *FichierELF, symtab: *Elf64_Shdr, indice_section: Elf64_Word)
 {
     valide_entsize(symtab, indice_section, taille_de(Elf64_Sym));
 
@@ -202,21 +201,21 @@ valide_symtab :: fonc (fichier: *FichierELF, symtab: *Elf64_Shdr, indice_section
     }
 }
 
-valide_section_rel :: fonc (fichier: *FichierELF, rel: *Elf64_Shdr, indice_section: Elf64_Half)
+valide_section_rel :: fonc (fichier: *FichierELF, rel: *Elf64_Shdr, indice_section: Elf64_Word)
 {
     valide_entsize(rel, indice_section, taille_de(Elf64_Rel));
     _ := valide_lien_vers_section(fichier, rel, indice_section, "sh_link", SHT_SYMTAB, SHT_DYNSYM);
     valide_lien_vers_section(fichier, rel, indice_section, "sh_info");
 }
 
-valide_section_rela :: fonc (fichier: *FichierELF, rela: *Elf64_Shdr, indice_section: Elf64_Half)
+valide_section_rela :: fonc (fichier: *FichierELF, rela: *Elf64_Shdr, indice_section: Elf64_Word)
 {
     valide_entsize(rela, indice_section, taille_de(Elf64_Rela));
     _ := valide_lien_vers_section(fichier, rela, indice_section, "sh_link", SHT_SYMTAB, SHT_DYNSYM);
     valide_lien_vers_section(fichier, rela, indice_section, "sh_info");
 }
 
-valide_section_strtab :: fonc (fichier: *FichierELF, strtab: *Elf64_Shdr, indice_section: Elf64_Half)
+valide_section_strtab :: fonc (fichier: *FichierELF, strtab: *Elf64_Shdr, indice_section: Elf64_Word)
 {
     données_crues := donne_données_section(fichier, strtab);
     si données_crues.taille != 0 {
@@ -236,7 +235,7 @@ valide_section_strtab :: fonc (fichier: *FichierELF, strtab: *Elf64_Shdr, indice
     }
 }
 
-valide_entsize :: fonc (section: *Elf64_Shdr, indice_section: Elf64_Half, voulu: n32)
+valide_entsize :: fonc (section: *Elf64_Shdr, indice_section: Elf64_Word, voulu: n32)
 {
     si section.sh_entsize != voulu {
         nom_macro_section := donne_nom_macro_type_section(section.sh_type comme TypeSection);
@@ -245,7 +244,7 @@ valide_entsize :: fonc (section: *Elf64_Shdr, indice_section: Elf64_Half, voulu:
     }
 }
 
-valide_lien_vers_section :: fonc (fichier: *FichierELF, section: *Elf64_Shdr, indice_section: Elf64_Half, rubrique: chaine)
+valide_lien_vers_section :: fonc (fichier: *FichierELF, section: *Elf64_Shdr, indice_section: Elf64_Word, rubrique: chaine)
 {
     assert(rubrique != "");
 
@@ -268,7 +267,7 @@ valide_lien_vers_section :: fonc (fichier: *FichierELF, section: *Elf64_Shdr, in
     }
 }
 
-valide_lien_vers_section :: fonc (fichier: *FichierELF, section: *Elf64_Shdr, indice_section: Elf64_Half, rubrique: chaine, types_possibles: ...TypeSection) -> *Elf64_Shdr
+valide_lien_vers_section :: fonc (fichier: *FichierELF, section: *Elf64_Shdr, indice_section: Elf64_Word, rubrique: chaine, types_possibles: ...TypeSection) -> *Elf64_Shdr
 {
     assert(rubrique != "");
 
