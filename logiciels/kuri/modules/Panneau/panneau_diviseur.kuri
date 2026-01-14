@@ -3,129 +3,129 @@
  * \{ */
 
 PanneauDiviseur :: struct {
-    empl base: Panneau
+    empl base: Panneau;
 
     /* Rect du diviseur pour le dessin hors survol/modification. */
-    rect_diviseur: RectanglePosDim(z32)
+    rect_diviseur: RectanglePosDim(z32);
 
     /* Rect du diviseur pour le dessin lors de survol/modification. */
-    rect_édition: RectanglePosDim(z32)
+    rect_édition: RectanglePosDim(z32);
 
     /* Le rect passé à sur_redimension. Notre rect sera uniquement le rect
      * utilisé pour les survols de souris et l'édition. */
-    rect_orig: RectanglePosDim(z32)
+    rect_orig: RectanglePosDim(z32);
 
-    position_relative : r32 = 0.5
-    est_survolé: bool
-    souris_pressée: bool
+    position_relative : r32 = 0.5;
+    est_survolé: bool;
+    souris_pressée: bool;
 }
 
 crée_panneau_diviseur :: fonc (ctx: *ContexteInterface) -> *PanneauDiviseur
 {
-    sur_déplacement_souris :: fonc (panneau_diviseur: *PanneauDiviseur, souris: ÉtatSouris)
+    sur_déplacement_souris :: fonc (panneau_diviseur: *PanneauDiviseur, souris: ÉtatSouris);
     {
-        panneau_diviseur.est_survolé = panneau_diviseur.souris_pressée || panneau_diviseur.rect.contient(souris.où)
+        panneau_diviseur.est_survolé = panneau_diviseur.souris_pressée || panneau_diviseur.rect.contient(souris.où);
 
         si panneau_diviseur.souris_pressée {
             /* À FAIRE : position relative de la souris dans le rect parent ! */
-            panneau_diviseur.position_relative = souris.où.x comme r32 / panneau_diviseur.rect_orig.largeur comme r32
-            panneau_diviseur.besoin_ajournement_disposition = vrai
+            panneau_diviseur.position_relative = souris.où.x comme r32 / panneau_diviseur.rect_orig.largeur comme r32;
+            panneau_diviseur.besoin_ajournement_disposition = vrai;
         }
     }
 
-    sur_clic_souris :: fonc (panneau_diviseur: *PanneauDiviseur, clic: ClicSouris) -> bool
+    sur_clic_souris :: fonc (panneau_diviseur: *PanneauDiviseur, clic: ClicSouris) -> bool;
     {
         saufsi panneau_diviseur.rect.contient(clic.état.où) {
-            panneau_diviseur.souris_pressée = faux
-            retourne faux
+            panneau_diviseur.souris_pressée = faux;
+            retourne faux;
         }
 
         si clic.action == ActionSouris.PRESSÉE {
-            panneau_diviseur.souris_pressée = vrai
+            panneau_diviseur.souris_pressée = vrai;
         }
         sinon si clic.action == ActionSouris.RELACHÉE {
-            panneau_diviseur.souris_pressée = faux
+            panneau_diviseur.souris_pressée = faux;
         }
 
-        retourne vrai
+        retourne vrai;
     }
 
-    sur_début_survol :: fonc (empl panneau_diviseur: *PanneauDiviseur)
+    sur_début_survol :: fonc (empl panneau_diviseur: *PanneauDiviseur);
     {
-        contexte.définis_curseur_souris(TypeCurseurSystème.REDIMENSIONNEMENT_EST_OUEST)
+        contexte.définis_curseur_souris(TypeCurseurSystème.REDIMENSIONNEMENT_EST_OUEST);
     }
 
-    sur_fin_survol :: fonc (empl panneau_diviseur: *PanneauDiviseur)
+    sur_fin_survol :: fonc (empl panneau_diviseur: *PanneauDiviseur);
     {
-        contexte.définis_curseur_souris(TypeCurseurSystème.FLÈCHE)
+        contexte.définis_curseur_souris(TypeCurseurSystème.FLÈCHE);
     }
 
-    sur_dessin :: fonc (panneau_diviseur: *PanneauDiviseur, ctx: *ContexteAffichage)
+    sur_dessin :: fonc (panneau_diviseur: *PanneauDiviseur, ctx: *ContexteAffichage);
     {
-        ajourne_disposition(panneau_diviseur)
+        ajourne_disposition(panneau_diviseur);
 
-        peintre := ctx.peintre
-        thème := ctx.thème
+        peintre := ctx.peintre;
+        thème := ctx.thème;
 
         couleur := si panneau_diviseur.est_survolé {
-            thème.couleur_diviseur_survolé
+            thème.couleur_diviseur_survolé;
         }
         sinon {
-            thème.couleur_diviseur
+            thème.couleur_diviseur;
         }
 
-        peintre.remplis_rectangle(panneau_diviseur.rect_diviseur, couleur)
+        peintre.remplis_rectangle(panneau_diviseur.rect_diviseur, couleur);
     }
 
-    sur_redimension :: fonc (panneau: *Panneau, rect_disponible: RectanglePosDim(z32))
+    sur_redimension :: fonc (panneau: *Panneau, rect_disponible: RectanglePosDim(z32));
     {
-        panneau.rect = rect_disponible
-        panneau_diviseur := panneau comme *PanneauDiviseur
-        panneau_diviseur.besoin_ajournement_disposition = vrai
-        panneau_diviseur.rect_orig = panneau.rect
-        ajourne_disposition(panneau_diviseur)
+        panneau.rect = rect_disponible;
+        panneau_diviseur := panneau comme *PanneauDiviseur;
+        panneau_diviseur.besoin_ajournement_disposition = vrai;
+        panneau_diviseur.rect_orig = panneau.rect;
+        ajourne_disposition(panneau_diviseur);
     }
 
-    résultat := ctx.crée_panneau(PanneauDiviseur)
-    tableau_ajoute(*ctx.diviseurs, résultat)
-    résultat.sur_déplacement_souris = sur_déplacement_souris
-    résultat.sur_clic_souris = sur_clic_souris
-    résultat.sur_dessin = sur_dessin
-    résultat.sur_redimension = sur_redimension
-    résultat.sur_début_survol = sur_début_survol
-    résultat.sur_fin_survol = sur_fin_survol
-    retourne résultat
+    résultat := ctx.crée_panneau(PanneauDiviseur);
+    tableau_ajoute(*ctx.diviseurs, résultat);
+    résultat.sur_déplacement_souris = sur_déplacement_souris;
+    résultat.sur_clic_souris = sur_clic_souris;
+    résultat.sur_dessin = sur_dessin;
+    résultat.sur_redimension = sur_redimension;
+    résultat.sur_début_survol = sur_début_survol;
+    résultat.sur_fin_survol = sur_fin_survol;
+    retourne résultat;
 }
 
 ajourne_disposition :: fonc (panneau: *PanneauDiviseur)
 {
     saufsi panneau.besoin_ajournement_disposition {
-        retourne
+        retourne;
     }
-    diffère panneau.besoin_ajournement_disposition = faux
+    diffère panneau.besoin_ajournement_disposition = faux;
 
-    rect_diviseur := donne_rect_interne_vertical(panneau.rect_orig, panneau.position_relative, 3)
-    rect_gauche, rect_droit := divise_verticalement(panneau.rect_orig, rect_diviseur)
+    rect_diviseur := donne_rect_interne_vertical(panneau.rect_orig, panneau.position_relative, 3);
+    rect_gauche, rect_droit := divise_verticalement(panneau.rect_orig, rect_diviseur);
 
-    rect_édition := rect_diviseur
-    rect_édition.x -= 1
-    rect_édition.largeur += 2
+    rect_édition := rect_diviseur;
+    rect_édition.x -= 1;
+    rect_édition.largeur += 2;
 
-    panneau.rect_diviseur = rect_diviseur
-    panneau.rect_édition = rect_édition
-    panneau.rect = rect_édition
+    panneau.rect_diviseur = rect_diviseur;
+    panneau.rect_édition = rect_édition;
+    panneau.rect = rect_édition;
 
-    nombre_enfants := panneau.enfants.taille
+    nombre_enfants := panneau.enfants.taille;
     si nombre_enfants == 0 {
         /* Rien à faire. */
     }
     sinon si nombre_enfants == 1 {
         /* Place l'enfant dans le rect de gauche. */
-        redimensionne_panneau(panneau.enfants[0], rect_gauche)
+        redimensionne_panneau(panneau.enfants[0], rect_gauche);
     }
     sinon {
-        redimensionne_panneau(panneau.enfants[0], rect_gauche)
-        redimensionne_panneau(panneau.enfants[1], rect_droit)
+        redimensionne_panneau(panneau.enfants[0], rect_gauche);
+        redimensionne_panneau(panneau.enfants[1], rect_droit);
     }
 }
 

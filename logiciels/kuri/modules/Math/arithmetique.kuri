@@ -1,143 +1,143 @@
-importe Bits
+importe Bits;
 
-libcmath :: #bibliothèque "m"
-#dépendance_bibliothèque libcmath libc
+libcmath :: #bibliothèque "m";
+#dépendance_bibliothèque libcmath libc;
 
 /* Fonctions trigonométriques. */
 
-cosinus :: fonc (a: r32) -> r32 #externe libcmath "cosf"
-cosinus :: fonc (a: r64) -> r64 #externe libcmath "cos"
-sinus :: fonc (a: r32) -> r32 #externe libcmath "sinf"
-sinus :: fonc (a: r64) -> r64 #externe libcmath "sin"
-tangeante :: fonc (a: r32) -> r32 #externe libcmath "tanf"
-tangeante :: fonc (a: r64) -> r64 #externe libcmath "tan"
-arc_cosinus :: fonc (a: r32) -> r32 #externe libcmath "acosf"
-arc_cosinus :: fonc (a: r64) -> r64 #externe libcmath "acos"
-arc_sinus :: fonc (a: r32) -> r32 #externe libcmath "asinf"
-arc_sinus :: fonc (a: r64) -> r64 #externe libcmath "asin"
-arc_tangeante :: fonc (a: r32) -> r32 #externe libcmath "atanf"
-arc_tangeante :: fonc (a: r64) -> r64 #externe libcmath "atan"
-arc_tangeante2 :: fonc (a: r32, b: r32) -> r32 #externe libcmath "atan2f"
-arc_tangeante2 :: fonc (a: r64, b: r64) -> r64 #externe libcmath "atan2"
-arc_cosinus_hyperbolique :: fonc (a: r32) -> r32 #externe libcmath "acoshf"
-arc_cosinus_hyperbolique :: fonc (a: r64) -> r64 #externe libcmath "acosh"
-arc_sinus_hyperbolique :: fonc (a: r32) -> r32 #externe libcmath "asinhf"
-arc_sinus_hyperbolique :: fonc (a: r64) -> r64 #externe libcmath "asinh"
-arc_tangeante_hyperbolique :: fonc (a: r32) -> r32 #externe libcmath "atanhf"
-arc_tangeante_hyperbolique :: fonc (a: r64) -> r64 #externe libcmath "atanh"
+cosinus :: fonc (a: r32) -> r32 #externe libcmath "cosf";
+cosinus :: fonc (a: r64) -> r64 #externe libcmath "cos";
+sinus :: fonc (a: r32) -> r32 #externe libcmath "sinf";
+sinus :: fonc (a: r64) -> r64 #externe libcmath "sin";
+tangeante :: fonc (a: r32) -> r32 #externe libcmath "tanf";
+tangeante :: fonc (a: r64) -> r64 #externe libcmath "tan";
+arc_cosinus :: fonc (a: r32) -> r32 #externe libcmath "acosf";
+arc_cosinus :: fonc (a: r64) -> r64 #externe libcmath "acos";
+arc_sinus :: fonc (a: r32) -> r32 #externe libcmath "asinf";
+arc_sinus :: fonc (a: r64) -> r64 #externe libcmath "asin";
+arc_tangeante :: fonc (a: r32) -> r32 #externe libcmath "atanf";
+arc_tangeante :: fonc (a: r64) -> r64 #externe libcmath "atan";
+arc_tangeante2 :: fonc (a: r32, b: r32) -> r32 #externe libcmath "atan2f";
+arc_tangeante2 :: fonc (a: r64, b: r64) -> r64 #externe libcmath "atan2";
+arc_cosinus_hyperbolique :: fonc (a: r32) -> r32 #externe libcmath "acoshf";
+arc_cosinus_hyperbolique :: fonc (a: r64) -> r64 #externe libcmath "acosh";
+arc_sinus_hyperbolique :: fonc (a: r32) -> r32 #externe libcmath "asinhf";
+arc_sinus_hyperbolique :: fonc (a: r64) -> r64 #externe libcmath "asinh";
+arc_tangeante_hyperbolique :: fonc (a: r32) -> r32 #externe libcmath "atanhf";
+arc_tangeante_hyperbolique :: fonc (a: r64) -> r64 #externe libcmath "atanh";
 
 /* Fonctions de calcul d'arrondis. */
 
-plafond :: fonc (a: r32) -> r32 #externe libcmath "ceilf"
-plafond :: fonc (a: r64) -> r64 #externe libcmath "ceil"
-plancher :: fonc (a: r32) -> r32 #externe libcmath "floorf"
-plancher :: fonc (a: r64) -> r64 #externe libcmath "floor"
-arrondis :: fonc (a: r32) -> r32 #externe libcmath "roundf"
-arrondis :: fonc (a: r64) -> r64 #externe libcmath "round"
-tronque :: fonc (a: r32) -> r32 #externe libcmath "truncf"
-tronque :: fonc (a: r64) -> r64 #externe libcmath "trunc"
+plafond :: fonc (a: r32) -> r32 #externe libcmath "ceilf";
+plafond :: fonc (a: r64) -> r64 #externe libcmath "ceil";
+plancher :: fonc (a: r32) -> r32 #externe libcmath "floorf";
+plancher :: fonc (a: r64) -> r64 #externe libcmath "floor";
+arrondis :: fonc (a: r32) -> r32 #externe libcmath "roundf";
+arrondis :: fonc (a: r64) -> r64 #externe libcmath "round";
+tronque :: fonc (a: r32) -> r32 #externe libcmath "truncf";
+tronque :: fonc (a: r64) -> r64 #externe libcmath "trunc";
 
 /* Autres fonctions. */
 
-racine_carrée :: fonc (n: r32) -> r32 #externe libcmath "sqrtf"
-racine_carrée :: fonc (n: r64) -> r64 #externe libcmath "sqrt"
-racine_cubique :: fonc (n: r32) -> r32 #externe libcmath "cbrtf"
-racine_cubique :: fonc (n: r64) -> r64 #externe libcmath "cbrt"
-puissance :: fonc (a: r32, b: r32) -> r32 #externe libcmath "powf"
-puissance :: fonc (a: r64, b: r64) -> r64 #externe libcmath "pow"
-différence_positive :: fonc (x: r32, y: r32) -> r32 #externe libcmath "fdimf"
-différence_positive :: fonc (x: r64, y: r64) -> r64 #externe libcmath "fdim"
-copie_signe :: fonc (a: r32, b: r32) -> r32 #externe libcmath "copysignf"
-copie_signe :: fonc (a: r64, b: r64) -> r64 #externe libcmath "copysign"
-log :: fonc (a: r32) -> r32 #externe libcmath "logf"
-log :: fonc (a: r64) -> r64 #externe libcmath
-log2 :: fonc (a: r64) -> r64 #externe libcmath
-log10 :: fonc (a: r32) -> r32 #externe libcmath "log10f"
-log10 :: fonc (a: r64) -> r64 #externe libcmath
-exp :: fonc (a: r32) -> r32 #externe libcmath "expf"
-exp :: fonc (a: r64) -> r64 #externe libcmath
-mod :: fonc (a: r32, b: r32) -> r32 #externe libcmath "fmodf"
-mod :: fonc (a: r64, b: r64) -> r64 #externe libcmath "fmod"
+racine_carrée :: fonc (n: r32) -> r32 #externe libcmath "sqrtf";
+racine_carrée :: fonc (n: r64) -> r64 #externe libcmath "sqrt";
+racine_cubique :: fonc (n: r32) -> r32 #externe libcmath "cbrtf";
+racine_cubique :: fonc (n: r64) -> r64 #externe libcmath "cbrt";
+puissance :: fonc (a: r32, b: r32) -> r32 #externe libcmath "powf";
+puissance :: fonc (a: r64, b: r64) -> r64 #externe libcmath "pow";
+différence_positive :: fonc (x: r32, y: r32) -> r32 #externe libcmath "fdimf";
+différence_positive :: fonc (x: r64, y: r64) -> r64 #externe libcmath "fdim";
+copie_signe :: fonc (a: r32, b: r32) -> r32 #externe libcmath "copysignf";
+copie_signe :: fonc (a: r64, b: r64) -> r64 #externe libcmath "copysign";
+log :: fonc (a: r32) -> r32 #externe libcmath "logf";
+log :: fonc (a: r64) -> r64 #externe libcmath;
+log2 :: fonc (a: r64) -> r64 #externe libcmath;
+log10 :: fonc (a: r32) -> r32 #externe libcmath "log10f";
+log10 :: fonc (a: r64) -> r64 #externe libcmath;
+exp :: fonc (a: r32) -> r32 #externe libcmath "expf";
+exp :: fonc (a: r64) -> r64 #externe libcmath;
+mod :: fonc (a: r32, b: r32) -> r32 #externe libcmath "fmodf";
+mod :: fonc (a: r64, b: r64) -> r64 #externe libcmath "fmod";
 
-est_nan :: fonc (a: r64) -> z32 #externe libcmath "isnan"
-est_infini :: fonc (a: r64) -> z32 #externe libcmath "isinf"
+est_nan :: fonc (a: r64) -> z32 #externe libcmath "isnan";
+est_infini :: fonc (a: r64) -> z32 #externe libcmath "isinf";
 
 est_fini :: fonc (a: r64) -> bool
 {
-    retourne est_infini(a) == 0
+    retourne est_infini(a) == 0;
 }
 
 est_infini_ou_nan :: fonc (a: r64) -> bool
 {
-    retourne est_infini(a) || est_nan(a)
+    retourne est_infini(a) || est_nan(a);
 }
 
 arc_sinus_borné :: fonc (a: $T) -> T #enligne
 {
     si a <= -1.0 {
-        retourne -Constantes(T).PI_2
+        retourne -Constantes(T).PI_2;
     }
     si a >= 1.0 {
-        retourne Constantes(T).PI_2
+        retourne Constantes(T).PI_2;
     }
-    retourne arc_sinus(a)
+    retourne arc_sinus(a);
 }
 
 racine :: fonc (a: $T, indice: T) -> T
 {
     si indice <= 0 {
-        retourne 0
+        retourne 0;
     }
 
-    retourne puissance(a, 1.0 / indice)
+    retourne puissance(a, 1.0 / indice);
 }
 
 /* Calcul de la racine N d'un nombre réel selon la méthode approximative de Newton. */
 racine_selon_newton :: fonc (n: $T, N: r64) -> T
 {
     si n == 0.0 {
-        retourne 0.0
+        retourne 0.0;
     }
 
     si n == 1.0 {
-        retourne 1.0
+        retourne 1.0;
     }
 
-    PRÉCISION : r64 : 0.0000001
-    limite_basse: r64
-    limite_haute: r64
+    PRÉCISION : r64 : 0.0000001;
+    limite_basse: r64;
+    limite_haute: r64;
 
     si n < 1.0 {
-        limite_basse = n
-        limite_haute = 1.0
+        limite_basse = n;
+        limite_haute = 1.0;
     }
     sinon {
-        limite_basse = 1.0
-        limite_haute = n
+        limite_basse = 1.0;
+        limite_haute = n;
     }
 
     tantque (limite_haute - limite_basse) > PRÉCISION {
-        prédiction := (limite_basse + limite_haute) * 0.5
+        prédiction := (limite_basse + limite_haute) * 0.5;
 
         si puissance(prédiction, N) > n {
-            limite_haute = prédiction
+            limite_haute = prédiction;
         }
         sinon {
-            limite_basse = prédiction
+            limite_basse = prédiction;
         }
     }
 
-    retourne ((limite_basse + limite_haute) * 0.5) comme T
+    retourne ((limite_basse + limite_haute) * 0.5) comme T;
 }
 
 racine_carrée_newton :: fonc (n: $T) -> T
 {
-    retourne racine_selon_newton(n, 2.0)
+    retourne racine_selon_newton(n, 2.0);
 }
 
 racine_cubique_newton :: fonc (n: r64) -> r64
 {
-    retourne racine_selon_newton(n, 3.0)
+    retourne racine_selon_newton(n, 3.0);
 }
 
 // À FAIRE : certaines fonctions n'ont de sens que pour les nombres relatifs ou réels
@@ -156,15 +156,15 @@ min :: fonc (a: $T, b: T) -> T #enligne
 
 min :: fonc (val: $T, vals: ...T) -> T
 {
-    résultat := val
+    résultat := val;
 
     pour vals {
         si it < résultat {
-            résultat = it
+            résultat = it;
         }
     }
 
-    retourne résultat
+    retourne résultat;
 }
 
 max :: fonc (a: $T, b: T) -> T #enligne
@@ -175,24 +175,24 @@ max :: fonc (a: $T, b: T) -> T #enligne
 
 max :: fonc (val: $T, vals: ...T) -> T
 {
-    résultat := val
+    résultat := val;
 
     pour vals {
         si it > résultat {
-            résultat = it
+            résultat = it;
         }
     }
 
-    retourne résultat
+    retourne résultat;
 }
 
 restreint :: fonc (x: *$T, min: T, max: T) -> rien #enligne
 {
     si mémoire(x) <= min {
-        mémoire(x) = min
+        mémoire(x) = min;
     }
     si mémoire(x) >= max {
-        mémoire(x) = max
+        mémoire(x) = max;
     }
 }
 
@@ -200,134 +200,134 @@ restreint :: fonc (x: *$T, min: T, max: T) -> rien #enligne
 grandissime_diviseur_commun :: fonc (a: z32, b: z32) -> z32
 {
     tantque b != 0 {
-        t := b
-        b = a % b
-        a = t
+        t := b;
+        b = a % b;
+        a = t;
     }
 
-    retourne a
+    retourne a;
 }
 
 /* Trouve le plus petit commun multiple */
 petitissime_multiple_commun :: fonc (a: z32, b: z32) -> z32
 {
     si a == 0 || b == 0 {
-        retourne 0
+        retourne 0;
     }
 
-    retourne abs(a * b) / grandissime_diviseur_commun(a, b)
+    retourne abs(a * b) / grandissime_diviseur_commun(a, b);
 }
 
 surarrondis_vers_multiple :: fonc (n: $T, multiple: T) -> T
 {
-    retourne ((n + multiple - 1) / multiple) * multiple
+    retourne ((n + multiple - 1) / multiple) * multiple;
 }
 
 sousarrondis_vers_multiple :: fonc (n: $T, multiple: T) -> T
 {
-    retourne (n / multiple) * multiple
+    retourne (n / multiple) * multiple;
 }
 
 divise_avec_surarrondis :: fonc (numérateur: n64, dénominateur: n64) -> n64
 {
     si dénominateur == 0 {
-        retourne 0
+        retourne 0;
     }
 
-    résultat := numérateur / dénominateur
+    résultat := numérateur / dénominateur;
 
     si (numérateur % dénominateur) != 0 {
-        résultat += 1
+        résultat += 1;
     }
 
-    retourne résultat
+    retourne résultat;
 }
 
 /* Exponentiation binaire suivie d'un modulo : b ^ exp % mod. */
 exp_mod :: fonc (b: n64, exp: n64, mod: n64) -> n64
 {
-    début := indice_premier_bit_actif_gauche(exp)
-    résultat : n64 = 1
+    début := indice_premier_bit_actif_gauche(exp);
+    résultat : n64 = 1;
 
     pour début {
         si bit_est_actif(exp, début - it) {
-            résultat *= résultat
-            résultat *= b
+            résultat *= résultat;
+            résultat *= b;
         }
         sinon {
-            résultat *= résultat
+            résultat *= résultat;
         }
 
-        résultat %= mod
+        résultat %= mod;
     }
 
-    retourne résultat
+    retourne résultat;
 }
 
 bilatéral_de :: fonc (x: r32) -> r32 #enligne
 {
-    retourne x * 2.0 - 1.0
+    retourne x * 2.0 - 1.0;
 }
 
 unilatéral_de :: fonc (x: r32) -> r32 #enligne
 {
-    retourne (x + 1.0) * 0.5
+    retourne (x + 1.0) * 0.5;
 }
 
 relatif_bilatérale :: fonc (x: z32, taille: z32) -> r32 #enligne
 {
-    retourne 2.0 * (x comme r32 / taille comme r32) - 1.0
+    retourne 2.0 * (x comme r32 / taille comme r32) - 1.0;
 }
 
 enveloppe :: fonc (v: r32) -> r32 #enligne
 {
-    v = mod(v, 1.0)
+    v = mod(v, 1.0);
     si v < 0.0 {
-        v += 1.0
+        v += 1.0;
     }
-    retourne v
+    retourne v;
 }
 
 part_entière :: fonc (v: r32) -> z32 #enligne
 {
-    retourne v comme z32
+    retourne v comme z32;
 }
 
 part_réelle :: fonc (v: r32) -> r32 #enligne
 {
-    retourne v - part_entière(v) comme r32
+    retourne v - part_entière(v) comme r32;
 }
 
 restreint :: fonc (min: $T, valeur: T, max: T) -> T #enligne
 {
     si valeur <= min {
-        retourne min
+        retourne min;
     }
     si valeur < max {
-        retourne valeur
+        retourne valeur;
     }
-    retourne max
+    retourne max;
 }
 
 est_nombre_premier :: fonc (n: z32) -> bool
 {
     si n <= 3 {
-        retourne n > 1
+        retourne n > 1;
     }
 
     si (n % 2 == 0) || (n % 3 == 0) {
-        retourne faux
+        retourne faux;
     }
 
-    i := 5
+    i := 5;
 
     tantque i * i <= n {
         si (n % i == 0) || (n % (i + 2) == 0) {
-            retourne faux
+            retourne faux;
         }
 
-        i += 6
+        i += 6;
     }
 
-    retourne vrai
+    retourne vrai;
 }

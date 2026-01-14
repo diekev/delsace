@@ -1,180 +1,180 @@
-importe Chaine
-importe POSIX
+importe Chaine;
+importe POSIX;
 
 CheminFichier :: struct {
-    chn: chaine
+    chn: chaine;
 }
 
 copie_chemin :: fonc (chm: CheminFichier) -> CheminFichier
 {
-    retourne CheminFichier(copie_chaine(chm.chn))
+    retourne CheminFichier(copie_chaine(chm.chn));
 }
 
 new_chemin_fichier_pour_python :: fonc (chm: *CheminFichier, chn: chaine) -> bool
 {
-    chm.chn = copie_chaine(chn)
-    retourne vrai
+    chm.chn = copie_chaine(chn);
+    retourne vrai;
 } @Python "new"
 
 str_chemin_fichier_pour_python :: fonc (chm: *CheminFichier) -> chaine
 {
-    retourne copie_chaine(chm.chn)
+    retourne copie_chaine(chm.chn);
 } @Python "str"
 
 détruit_chemin :: fonc (chemin: &CheminFichier)
 {
-    déloge(chemin.chn)
+    déloge(chemin.chn);
 }
 
 est_vide :: fonc (chemin: CheminFichier) -> bool
 {
-    retourne chemin.chn.taille == 0
+    retourne chemin.chn.taille == 0;
 } @Python "méthode"
 
 imprime_chemin_fichier :: fonc (enchaineuse: *Enchaineuse, chemin: *CheminFichier)
 {
     si chemin {
-        ajoute_au_tampon(enchaineuse, chemin.chn)
+        ajoute_au_tampon(enchaineuse, chemin.chn);
     }
 } @FormattageImpression
 
 séparateur_chemin :: fonc () -> z8 #enligne
 {
-    retourne système_séparateur_chemin_préféré()
+    retourne système_séparateur_chemin_préféré();
 }
 
 extension :: fonc (chemin: CheminFichier) -> chaine
 {
-    résultat := nom_fichier_avec_extension(chemin)
+    résultat := nom_fichier_avec_extension(chemin);
     saufsi résultat {
-        retourne ""
+        retourne "";
     }
 
     si résultat == "." || résultat == ".." {
-        retourne ""
+        retourne "";
     }
 
     si résultat[0] == '.' {
-        résultat = avance(résultat, 1)
+        résultat = avance(résultat, 1);
     }
 
-    pos := trouve_caractère_depuis_la_fin(résultat, '.')
+    pos := trouve_caractère_depuis_la_fin(résultat, '.');
 
     si pos < 0 {
-        retourne ""
+        retourne "";
     }
 
-    retourne sous_chaine(résultat, pos, résultat.taille)
+    retourne sous_chaine(résultat, pos, résultat.taille);
 }
 
 nom_fichier :: fonc (chemin: CheminFichier) -> chaine
 {
-    résultat := nom_fichier_avec_extension(chemin)
+    résultat := nom_fichier_avec_extension(chemin);
 
-    pos := trouve_caractère_depuis_la_fin(résultat, '.')
+    pos := trouve_caractère_depuis_la_fin(résultat, '.');
 
     si pos <= 0 {
-        retourne résultat
+        retourne résultat;
     }
 
-    retourne sous_chaine(résultat, 0, pos)
+    retourne sous_chaine(résultat, 0, pos);
 }
 
 nom_fichier_avec_extension :: fonc (chemin: CheminFichier) -> chaine
 {
-    pos := trouve_caractère_depuis_la_fin(chemin.chn, séparateur_chemin())
+    pos := trouve_caractère_depuis_la_fin(chemin.chn, séparateur_chemin());
 
     si pos < 0 {
-        retourne chemin.chn
+        retourne chemin.chn;
     }
 
     si pos > 0 {
-        pos += 1
+        pos += 1;
     }
 
     si pos >= chemin.chn.taille {
-        retourne ""
+        retourne "";
     }
 
-    retourne sous_chaine(chemin.chn, pos, chemin.chn.taille)
+    retourne sous_chaine(chemin.chn, pos, chemin.chn.taille);
 }
 
 divise_et_empile_chemin :: fonc (pile: &Pile(chaine), chemin: CheminFichier)
 {
-    divise(chemin.chn, séparateur_chemin(), *pile.données, faux)
+    divise(chemin.chn, séparateur_chemin(), *pile.données, faux);
 }
 
 divise_et_empile_chemin :: fonc (chemin: CheminFichier) -> Pile(chaine)
 {
-    résultat: Pile(chaine)
-    divise_et_empile_chemin(résultat, chemin)
-    retourne résultat
+    résultat: Pile(chaine);
+    divise_et_empile_chemin(résultat, chemin);
+    retourne résultat;
 }
 
 chemin_normalisé :: fonc (pile: &Pile(chaine), chemin_est_absolu: bool) -> CheminFichier
 {
     /* À FAIRE : structure dédiée. */
-    tampon: [16]chaine
-    utilise_tampon := pile.taille() < 16
+    tampon: [16]chaine;
+    utilise_tampon := pile.taille() < 16;
 
-    pile_secondaire: Pile(chaine)
+    pile_secondaire: Pile(chaine);
     si utilise_tampon {
-        pile_secondaire.données.pointeur = *tampon[0]
-        pile_secondaire.données.capacité = 16
+        pile_secondaire.données.pointeur = *tampon[0];
+        pile_secondaire.données.capacité = 16;
     }
 
     diffère saufsi utilise_tampon { détruit(pile_secondaire) }
 
-    pile.renverse()
+    pile.renverse();
 
     tantque !pile.est_vide() {
-        morceau_courant := pile.dépile()
+        morceau_courant := pile.dépile();
 
         si morceau_courant == "." {
-            continue
+            continue;
         }
 
         si morceau_courant == ".." {
             // À FAIRE : si la pile est vide, retourne un chemin invalide
             saufsi pile_secondaire.est_vide() {
-                _ := pile_secondaire.dépile()
+                _ := pile_secondaire.dépile();
             }
-            continue
+            continue;
         }
 
-        pile_secondaire.empile(morceau_courant)
+        pile_secondaire.empile(morceau_courant);
     }
 
-    pile_secondaire.renverse()
+    pile_secondaire.renverse();
 
-    enchaineuse: Enchaineuse
-    initialise_enchaineuse(*enchaineuse)
+    enchaineuse: Enchaineuse;
+    initialise_enchaineuse(*enchaineuse);
 
     // Arriver ici veut dire que le chemin est valide, mais que soit les composants du
     // chemin ont tous été supprimés, soit que le chemin fut celui de la racine
     si pile_secondaire.est_vide() {
-        ajoute_au_tampon(*enchaineuse, séparateur_chemin())
+        ajoute_au_tampon(*enchaineuse, séparateur_chemin());
     }
 
-    premier_slash := vrai
+    premier_slash := vrai;
 
     tantque !pile_secondaire.est_vide() {
-        morceau_courant := pile_secondaire.dépile()
+        morceau_courant := pile_secondaire.dépile();
         si !premier_slash || chemin_est_absolu {
-            ajoute_au_tampon(*enchaineuse, séparateur_chemin())
+            ajoute_au_tampon(*enchaineuse, séparateur_chemin());
         }
-        ajoute_au_tampon(*enchaineuse, morceau_courant)
-        premier_slash = faux
+        ajoute_au_tampon(*enchaineuse, morceau_courant);
+        premier_slash = faux;
     }
 
-    retourne CheminFichier(chaine_depuis_enchaineuse(*enchaineuse))
+    retourne CheminFichier(chaine_depuis_enchaineuse(*enchaineuse));
 }
 
 chemin_normalisé :: fonc (chemin: CheminFichier) -> CheminFichier
 {
-    pile := divise_et_empile_chemin(chemin)
-    diffère détruit(pile)
-    retourne chemin_normalisé(pile, chemin.chn.commence_par(séparateur_chemin()))
+    pile := divise_et_empile_chemin(chemin);
+    diffère détruit(pile);
+    retourne chemin_normalisé(pile, chemin.chn.commence_par(séparateur_chemin()));
 }
 
 /* Retourne le chemin relatif de chemin_cible par rapport à chemin_racine.
@@ -188,204 +188,204 @@ chemin_normalisé :: fonc (chemin: CheminFichier) -> CheminFichier
 chemin_relatif_à :: fonc (chemin_cible: CheminFichier, chemin_racine: CheminFichier) -> Résultat(CheminFichier, ErreurFichier)
 {
     saufsi est_un_dossier(chemin_racine) {
-        retourne ErreurFichier.NEstPasUnDossier
+        retourne ErreurFichier.NEstPasUnDossier;
     }
 
     saufsi est_absolu(chemin_cible) && est_absolu(chemin_racine) {
-        retourne ErreurFichier.CheminNonAbsolu
+        retourne ErreurFichier.CheminNonAbsolu;
     }
 
-    pile_racine := divise_et_empile_chemin(chemin_racine)
-    diffère détruit(pile_racine)
+    pile_racine := divise_et_empile_chemin(chemin_racine);
+    diffère détruit(pile_racine);
 
-    pile_cible := divise_et_empile_chemin(chemin_cible)
-    diffère détruit(pile_cible)
+    pile_cible := divise_et_empile_chemin(chemin_cible);
+    diffère détruit(pile_cible);
 
-    cible_est_fichier := est_un_fichier_régulier(chemin_cible)
+    cible_est_fichier := est_un_fichier_régulier(chemin_cible);
 
     /* Renverse les deux piles afin que la comparaison commence par les dossiers racines. */
-    pile_racine.renverse()
-    pile_cible.renverse()
+    pile_racine.renverse();
+    pile_cible.renverse();
 
     boucle {
         si pile_racine.est_vide() || pile_cible.est_vide() {
-            arrête
+            arrête;
         }
 
-        nom_racine := pile_racine.tête()
-        nom_cible := pile_cible.tête()
+        nom_racine := pile_racine.tête();
+        nom_cible := pile_cible.tête();
 
         si nom_cible != nom_racine {
-            arrête
+            arrête;
         }
 
-        _ := pile_racine.dépile()
-        _ := pile_cible.dépile()
+        _ := pile_racine.dépile();
+        _ := pile_cible.dépile();
     }
 
     /* Renverse la pile cible afin que l'empilement se fasse dans le « bon » ordre. */
-    pile_cible.renverse()
+    pile_cible.renverse();
 
-    pile_résultat: Pile(chaine)
-    diffère détruit(pile_résultat)
+    pile_résultat: Pile(chaine);
+    diffère détruit(pile_résultat);
 
     tantque !pile_cible.est_vide() {
-        pile_résultat.empile(pile_cible.dépile())
+        pile_résultat.empile(pile_cible.dépile());
     }
 
     tantque !pile_racine.est_vide() {
-        pile_résultat.empile("..")
-        _ := pile_racine.dépile()
+        pile_résultat.empile("..");
+        _ := pile_racine.dépile();
     }
 
-    enchaineuse: Enchaineuse
-    initialise_enchaineuse(*enchaineuse)
+    enchaineuse: Enchaineuse;
+    initialise_enchaineuse(*enchaineuse);
 
     tantque !pile_résultat.est_vide() {
-        ajoute_au_tampon(*enchaineuse, pile_résultat.dépile())
+        ajoute_au_tampon(*enchaineuse, pile_résultat.dépile());
 
         /* N'ajoute pas de séparateur à la fin des noms de fichiers. */
         si cible_est_fichier && pile_résultat.est_vide() {
-            arrête
+            arrête;
         }
 
-        ajoute_au_tampon(*enchaineuse, séparateur_chemin())
+        ajoute_au_tampon(*enchaineuse, séparateur_chemin());
     }
 
-    résultat := chaine_depuis_enchaineuse(*enchaineuse)
-    retourne CheminFichier(résultat)
+    résultat := chaine_depuis_enchaineuse(*enchaineuse);
+    retourne CheminFichier(résultat);
 }
 
 /* Retourne vrai si le \a chemin_cible est relatif au \a chemin_racine. */
 est_chemin_relatif_à :: fonc (chemin_cible: CheminFichier, chemin_racine: CheminFichier) -> bool
 {
-    absolu := crée_chemin_absolu(chemin_racine, chemin_cible)
-    diffère détruit_chemin(absolu)
-    retourne fichier_existe(absolu)
+    absolu := crée_chemin_absolu(chemin_racine, chemin_cible);
+    diffère détruit_chemin(absolu);
+    retourne fichier_existe(absolu);
 }
 
 opérateur == :: (chemin1: CheminFichier, chemin2: CheminFichier) -> bool
 {
-    retourne chemin1.chn == chemin2.chn
+    retourne chemin1.chn == chemin2.chn;
 }
 
 opérateur == :: (chemin: CheminFichier, chn: chaine) -> bool
 {
-    retourne chemin.chn == chn
+    retourne chemin.chn == chn;
 }
 
 opérateur / :: (chemin_base: CheminFichier, feuille: CheminFichier) -> CheminFichier
 {
-    retourne crée_chemin_absolu(chemin_base, feuille)
+    retourne crée_chemin_absolu(chemin_base, feuille);
 }
 
 opérateur / :: (chemin_base: CheminFichier, feuille: chaine) -> CheminFichier
 {
-    retourne crée_chemin_absolu(chemin_base, CheminFichier(feuille))
+    retourne crée_chemin_absolu(chemin_base, CheminFichier(feuille));
 }
 
 opérateur < :: (chm1: CheminFichier, chm2: CheminFichier) -> bool
 {
-    retourne chm1.chn < chm2.chn
+    retourne chm1.chn < chm2.chn;
 }
 
 opérateur <= :: (chm1: CheminFichier, chm2: CheminFichier) -> bool
 {
-    retourne chm1.chn <= chm2.chn
+    retourne chm1.chn <= chm2.chn;
 }
 
 opérateur > :: (chm1: CheminFichier, chm2: CheminFichier) -> bool
 {
-    retourne chm1.chn > chm2.chn
+    retourne chm1.chn > chm2.chn;
 }
 
 opérateur >= :: (chm1: CheminFichier, chm2: CheminFichier) -> bool
 {
-    retourne chm1.chn >= chm2.chn
+    retourne chm1.chn >= chm2.chn;
 }
 
 chemins_sont_équivalents :: fonc (chemin1: CheminFichier, chemin2: CheminFichier) -> bool
 {
-    chemin1_normalisé := chemin_normalisé(chemin1, chemin1.chn.commence_par(séparateur_chemin()))
-    chemin2_normalisé := chemin_normalisé(chemin2, chemin2.chn.commence_par(séparateur_chemin()))
-    diffère déloge(chemin1_normalisé.chn)
-    diffère déloge(chemin2_normalisé.chn)
-    retourne chemin1_normalisé == chemin2_normalisé
+    chemin1_normalisé := chemin_normalisé(chemin1, chemin1.chn.commence_par(séparateur_chemin()));
+    chemin2_normalisé := chemin_normalisé(chemin2, chemin2.chn.commence_par(séparateur_chemin()));
+    diffère déloge(chemin1_normalisé.chn);
+    diffère déloge(chemin2_normalisé.chn);
+    retourne chemin1_normalisé == chemin2_normalisé;
 }
 
 donne_chemin_absolu :: fonc (feuille: chaine) -> chaine
 {
-    chm := CheminFichier(feuille)
-    résultat := donne_chemin_absolu(chm)
-    retourne résultat.chn
+    chm := CheminFichier(feuille);
+    résultat := donne_chemin_absolu(chm);
+    retourne résultat.chn;
 }
 
 donne_chemin_absolu :: fonc (feuille: CheminFichier) -> CheminFichier
 {
     si est_absolu(feuille) {
-        retourne copie_chemin(feuille)
+        retourne copie_chemin(feuille);
     }
 
     chemin_courant := tente donne_chemin_courant() piège err {
-        imprimeln("Impossible de déterminer le chemin courant : '%'", err)
-        retourne copie_chemin(feuille)
+        imprimeln("Impossible de déterminer le chemin courant : '%'", err);
+        retourne copie_chemin(feuille);
     }
 
-    retourne crée_chemin_absolu(chemin_courant, feuille)
+    retourne crée_chemin_absolu(chemin_courant, feuille);
 }
 
 crée_chemin_absolu :: fonc (base: CheminFichier, feuille: CheminFichier) -> CheminFichier
 {
     si est_absolu(feuille) {
-        retourne copie_chemin(feuille)
+        retourne copie_chemin(feuille);
     }
 
     // divise selon le séparateur du système
-    pile: Pile(chaine)
-    diffère détruit(pile)
-    retourne crée_chemin_absolu(pile, base, feuille)
+    pile: Pile(chaine);
+    diffère détruit(pile);
+    retourne crée_chemin_absolu(pile, base, feuille);
 }
 
 crée_chemin_absolu :: fonc (pile: &Pile(chaine), base: CheminFichier, feuille: CheminFichier) -> CheminFichier
 {
-    divise_et_empile_chemin(pile, base)
-    divise_et_empile_chemin(pile, feuille)
-    retourne chemin_normalisé(pile, base.chn.commence_par(séparateur_chemin()))
+    divise_et_empile_chemin(pile, base);
+    divise_et_empile_chemin(pile, feuille);
+    retourne chemin_normalisé(pile, base.chn.commence_par(séparateur_chemin()));
 }
 
 est_absolu :: fonc (chm: CheminFichier) -> bool
 {
-    retourne système_est_chemin_absolu(chm)
+    retourne système_est_chemin_absolu(chm);
 }
 
 est_relatif :: fonc (chm: CheminFichier) -> bool
 {
-    retourne !est_absolu(chm)
+    retourne !est_absolu(chm);
 }
 
 nom_dossier_parent :: fonc (chm: CheminFichier) -> chaine
 {
-    pile := divise_et_empile_chemin(chm)
-    diffère détruit(pile)
+    pile := divise_et_empile_chemin(chm);
+    diffère détruit(pile);
 
     /* Dépile le nom du fichier ou du fichier parent. */
-    _ := pile.dépile()
+    _ := pile.dépile();
 
     si pile.est_vide() {
-        retourne ""
+        retourne "";
     }
 
-    retourne pile.dépile()
+    retourne pile.dépile();
 }
 
 chemin_parent :: fonc (chm: CheminFichier) -> CheminFichier
 {
-    pile := divise_et_empile_chemin(chm)
-    diffère détruit(pile)
+    pile := divise_et_empile_chemin(chm);
+    diffère détruit(pile);
 
-    pile.empile("..")
+    pile.empile("..");
 
-    retourne chemin_normalisé(pile, chm.chn.commence_par(séparateur_chemin()))
+    retourne chemin_normalisé(pile, chm.chn.commence_par(séparateur_chemin()));
 }
 
 /* Retourne le nom du premier dossier après le dossier de base.
@@ -394,41 +394,41 @@ chemin_parent :: fonc (chm: CheminFichier) -> CheminFichier
  * À FAIRE : crée un test. */
 premier_dossier_après :: fonc (base: CheminFichier, chm: CheminFichier) -> chaine
 {
-    chm.chn = avance(chm.chn, base.chn.taille)
+    chm.chn = avance(chm.chn, base.chn.taille);
 
-    pile := divise_et_empile_chemin(chm)
-    diffère détruit(pile)
+    pile := divise_et_empile_chemin(chm);
+    diffère détruit(pile);
 
     tantque pile.taille() != 1 {
-        _ := pile.dépile()
+        _ := pile.dépile();
     }
 
-    retourne pile.dépile()
+    retourne pile.dépile();
 }
 
 /* Retourne vrai si le chemin `base` est un chemin parent de `chemin`. */
 est_chemin_parent_de :: fonc (base: CheminFichier, chemin: CheminFichier) -> bool
 {
-    pile_base := divise_et_empile_chemin(base)
-    diffère détruit(pile_base)
+    pile_base := divise_et_empile_chemin(base);
+    diffère détruit(pile_base);
 
-    pile_chemin := divise_et_empile_chemin(chemin)
-    diffère détruit(pile_chemin)
+    pile_chemin := divise_et_empile_chemin(chemin);
+    diffère détruit(pile_chemin);
 
     /* Renverse les deux piles afin que la comparaison commence par les dossiers racines. */
-    pile_base.renverse()
-    pile_chemin.renverse()
+    pile_base.renverse();
+    pile_chemin.renverse();
 
     tantque !pile_base.est_vide() {
-        dossier_base := pile_base.dépile()
-        dossier_chemin := pile_chemin.dépile()
+        dossier_base := pile_base.dépile();
+        dossier_chemin := pile_chemin.dépile();
 
         si dossier_base != dossier_chemin {
-            retourne faux
+            retourne faux;
         }
     }
 
-    retourne vrai
+    retourne vrai;
 }
 
 
@@ -454,93 +454,93 @@ est_chemin_parent_de :: fonc (base: CheminFichier, chemin: CheminFichier) -> boo
  */
 développe_variables :: fonc (chemin: CheminFichier) -> Résultat(CheminFichier, chaine)
 {
-    tampon: TamponChemin
+    tampon: TamponChemin;
 
-    chn := chemin.chn
+    chn := chemin.chn;
 
-    indice : z64 = 0
+    indice : z64 = 0;
     tantque indice < chn.taille {
-        it := chn.pointeur[indice]
+        it := chn.pointeur[indice];
 
         si it != '$' {
             saufsi ajoute(*tampon, it) {
-                retourne copie_chaine("Résultat trop grand pour la sortie")
+                retourne copie_chaine("Résultat trop grand pour la sortie");
             }
-            indice += 1
-            continue
+            indice += 1;
+            continue;
         }
 
-        indice += 1
+        indice += 1;
         si indice >= chn.taille {
-            retourne copie_chaine("Entrée tronquée après '$'")
+            retourne copie_chaine("Entrée tronquée après '$'");
         }
 
-        it = chn.pointeur[indice]
+        it = chn.pointeur[indice];
 
         si it == '{' {
-            indice += 1
+            indice += 1;
             si indice >= chn.taille {
-                retourne copie_chaine("Entrée tronquée après '{'")
+                retourne copie_chaine("Entrée tronquée après '{'");
             }
 
-            début_variable := indice
-            taille_mot := 0
+            début_variable := indice;
+            taille_mot := 0;
 
-            accolade_fermante_trouvée := faux
+            accolade_fermante_trouvée := faux;
             tantque indice < chn.taille {
-                it = chn.pointeur[indice]
+                it = chn.pointeur[indice];
 
                 si it == '}' {
-                    accolade_fermante_trouvée = vrai
-                    indice += 1
-                    arrête
+                    accolade_fermante_trouvée = vrai;
+                    indice += 1;
+                    arrête;
                 }
 
-                indice += 1
-                taille_mot += 1
+                indice += 1;
+                taille_mot += 1;
             }
 
             saufsi accolade_fermante_trouvée {
-                retourne copie_chaine("Entrée tronquée. Aucune accolade fermante trouvée après '{'")
+                retourne copie_chaine("Entrée tronquée. Aucune accolade fermante trouvée après '{'");
             }
 
-            mot := chn.sous_chaine(début_variable, début_variable + taille_mot)
+            mot := chn.sous_chaine(début_variable, début_variable + taille_mot);
             si mot == "" {
-                retourne copie_chaine("Nom de variable vide entre '{}'")
+                retourne copie_chaine("Nom de variable vide entre '{}'");
             }
 
-            opt_erreur := copie_variable_environnement(*tampon, mot)
+            opt_erreur := copie_variable_environnement(*tampon, mot);
             si opt_erreur.possède_valeur() {
-                retourne opt_erreur.Quelque
+                retourne opt_erreur.Quelque;
             }
-            continue
+            continue;
         }
 
-        début_variable := indice
-        taille_mot := 0
+        début_variable := indice;
+        taille_mot := 0;
         tantque indice < chn.taille {
-            it = chn.pointeur[indice]
+            it = chn.pointeur[indice];
 
             si it == séparateur_chemin() {
-                arrête
+                arrête;
             }
 
-            indice += 1
-            taille_mot += 1
+            indice += 1;
+            taille_mot += 1;
         }
 
-        mot := chn.sous_chaine(début_variable, début_variable + taille_mot)
+        mot := chn.sous_chaine(début_variable, début_variable + taille_mot);
         si mot == "" {
-            retourne copie_chaine("Nom de variable vide entre '$/'")
+            retourne copie_chaine("Nom de variable vide entre '$/'");
         }
 
-        opt_erreur := copie_variable_environnement(*tampon, mot)
+        opt_erreur := copie_variable_environnement(*tampon, mot);
         si opt_erreur.possède_valeur() {
-            retourne opt_erreur.Quelque
+            retourne opt_erreur.Quelque;
         }
     }
 
-    retourne donne_copie_chemin(*tampon)
+    retourne donne_copie_chemin(*tampon);
 }
 
 /* Copie la valeur de la variable d'environnement dans le tampon.
@@ -548,13 +548,13 @@ développe_variables :: fonc (chemin: CheminFichier) -> Résultat(CheminFichier,
  */
 copie_variable_environnement :: fonc (tampon: *TamponChemin, variable: chaine) -> Optionnel(chaine)
 {
-    valeur := chaine_environnement(variable)
+    valeur := chaine_environnement(variable);
     saufsi valeur {
-        retourne imprime_chaine("Variable d'environnement '%' introuvable", valeur)
+        retourne imprime_chaine("Variable d'environnement '%' introuvable", valeur);
     }
 
     saufsi ajoute(tampon, valeur) {
-        retourne imprime_chaine("Variable d'environnement '%' trop longue pour la sortie", valeur)
+        retourne imprime_chaine("Variable d'environnement '%' trop longue pour la sortie", valeur);
     }
 }
 
@@ -571,124 +571,124 @@ copie_variable_environnement :: fonc (tampon: *TamponChemin, variable: chaine) -
 
 TamponChemin :: struct {
     /* +1 pour le terminateur des chaines C */
-    données : [TAILLE_MAX_CHEMIN + 1]z8 = ---
-    occupés: z32
-    sauvegarde: z32
+    données : [TAILLE_MAX_CHEMIN + 1]z8 = ---;
+    occupés: z32;
+    sauvegarde: z32;
 }
 
 réinitialise :: fonc (tampon: *TamponChemin)
 {
-    init_de(TamponChemin)(tampon)
+    init_de(TamponChemin)(tampon);
 }
 
 donne_copie_chemin :: fonc (tampon: *TamponChemin) -> CheminFichier
 {
-    retourne CheminFichier(copie_chaine(donne_chaine_statique(tampon)))
+    retourne CheminFichier(copie_chaine(donne_chaine_statique(tampon)));
 }
 
 donne_chemin_statique :: fonc (tampon: *TamponChemin) -> CheminFichier
 {
-    retourne CheminFichier(chaine(*tampon.données[0], tampon.occupés))
+    retourne CheminFichier(chaine(*tampon.données[0], tampon.occupés));
 }
 
 donne_chaine_statique :: fonc (tampon: *TamponChemin) -> chaine
 {
-    retourne chaine(*tampon.données[0], tampon.occupés)
+    retourne chaine(*tampon.données[0], tampon.occupés);
 }
 
 donne_chaine_c_statique :: fonc (tampon: *TamponChemin) -> ChaineC
 {
-    tampon.données[tampon.occupés] = '\0'
-    retourne ChaineC(*tampon.données[0])
+    tampon.données[tampon.occupés] = '\0';
+    retourne ChaineC(*tampon.données[0]);
 }
 
 ajoute :: fonc (tampon: *TamponChemin, chns: ...chaine) -> bool
 {
     pour chns {
         saufsi ajoute(tampon, it) {
-            retourne faux
+            retourne faux;
         }
     }
-    retourne vrai
+    retourne vrai;
 }
 
 ajoute :: fonc (tampon: *TamponChemin, chemin: CheminFichier) -> bool
 {
-    retourne ajoute(tampon, chemin.chn)
+    retourne ajoute(tampon, chemin.chn);
 }
 
 ajoute :: fonc (tampon: *TamponChemin, chn: chaine) -> bool
 {
     saufsi chn {
-        retourne vrai
+        retourne vrai;
     }
 
     si chn[0] == séparateur_chemin() && donne_dernier_caractère(tampon) == séparateur_chemin() {
-        chn = avance(chn, 1)
+        chn = avance(chn, 1);
     }
 
     saufsi chn {
-        retourne vrai
+        retourne vrai;
     }
 
     si tampon.occupés + chn.taille > TAILLE_MAX_CHEMIN {
-        retourne faux
+        retourne faux;
     }
 
-    src := chn.pointeur
-    dst := *tampon.données[tampon.occupés]
-    taille := chn.taille
+    src := chn.pointeur;
+    dst := *tampon.données[tampon.occupés];
+    taille := chn.taille;
 
-    copie_mem_nonsur(src = src, dst = dst, taille = taille)
+    copie_mem_nonsur(src = src, dst = dst, taille = taille);
 
-    tampon.occupés += chn.taille comme z32
-    retourne vrai
+    tampon.occupés += chn.taille comme z32;
+    retourne vrai;
 }
 
 ajoute :: fonc (tampon: *TamponChemin, caractère: z8) -> bool
 {
     si caractère == séparateur_chemin() && tampon.donne_dernier_caractère() == caractère {
-        retourne vrai
+        retourne vrai;
     }
 
     si tampon.occupés + 1 > TAILLE_MAX_CHEMIN {
-        retourne faux
+        retourne faux;
     }
 
-    tampon.données[tampon.occupés] = caractère
-    tampon.occupés += 1
-    retourne vrai
+    tampon.données[tampon.occupés] = caractère;
+    tampon.occupés += 1;
+    retourne vrai;
 }
 
 ajoute_avec_séparateur :: fonc (tampon: *TamponChemin, chemin: CheminFichier) -> bool
 {
-    retourne ajoute_avec_séparateur(tampon, chemin.chn)
+    retourne ajoute_avec_séparateur(tampon, chemin.chn);
 }
 
 ajoute_avec_séparateur :: fonc (tampon: *TamponChemin, chn: chaine) -> bool
 {
     saufsi ajoute(tampon, séparateur_chemin()) {
-        retourne faux
+        retourne faux;
     }
-    retourne ajoute(tampon, chn)
+    retourne ajoute(tampon, chn);
 }
 
 donne_dernier_caractère :: fonc (tampon: *TamponChemin) -> z8
 {
     si tampon.occupés == 0 {
-        retourne 0
+        retourne 0;
     }
-    retourne tampon.données[tampon.occupés - 1]
+    retourne tampon.données[tampon.occupés - 1];
 }
 
 sauvegarde_position :: fonc (tampon: *TamponChemin)
 {
-    tampon.sauvegarde = tampon.occupés
+    tampon.sauvegarde = tampon.occupés;
 }
 
 restore_position :: fonc (tampon: *TamponChemin)
 {
-    tampon.occupés = tampon.sauvegarde
+    tampon.occupés = tampon.sauvegarde;
 }
 
 /** \} */

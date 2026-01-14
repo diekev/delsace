@@ -1,135 +1,135 @@
-importe BoiteFlexible
-importe Chaine
-importe CodecDonnées
-importe Couleur
-importe CréationFenêtre
-importe ÉditionTexte
-importe Fondation
-importe Guettage
-importe HTML
-importe HTTP
-importe Image
-importe InfosInterface
-importe LigneDeCommande
-importe Math
-importe OpenGL
-importe PeintureInterface
-importe Périphériques
-importe Qt
-importe SysFichier
-importe Temps
-importe Typographie
+importe BoiteFlexible;
+importe Chaine;
+importe CodecDonnées;
+importe Couleur;
+importe CréationFenêtre;
+importe ÉditionTexte;
+importe Fondation;
+importe Guettage;
+importe HTML;
+importe HTTP;
+importe Image;
+importe InfosInterface;
+importe LigneDeCommande;
+importe Math;
+importe OpenGL;
+importe PeintureInterface;
+importe Périphériques;
+importe Qt;
+importe SysFichier;
+importe Temps;
+importe Typographie;
 
-CHAINE_USER_AGENT :: "Mozilla/5.0 (X11; Linux x86_64) Version/0.0 (KHTML, like Gecko) VueHTML/0.0"
+CHAINE_USER_AGENT :: "Mozilla/5.0 (X11; Linux x86_64) Version/0.0 (KHTML, like Gecko) VueHTML/0.0";
 
 principale :: fonc ()
 {
-    succès, arguments := parse_arguments()
+    succès, arguments := parse_arguments();
     saufsi succès {
-        exit(1)
+        exit(1);
     }
 
-    vue_html: VueHTML
-    vue_html.fonte = donne_fonte_défaut(14.0)
-    vue_html.nom_navigateur = "VueHTML"
-    vue_html.supporte_scripting = arguments.utilise_javascript
-    vue_html.user_agent_string = crée_chaine_utf16_unique(CHAINE_USER_AGENT)
-    initialise_user_agent(*vue_html)
+    vue_html: VueHTML;
+    vue_html.fonte = donne_fonte_défaut(14.0);
+    vue_html.nom_navigateur = "VueHTML";
+    vue_html.supporte_scripting = arguments.utilise_javascript;
+    vue_html.user_agent_string = crée_chaine_utf16_unique(CHAINE_USER_AGENT);
+    initialise_user_agent(*vue_html);
 
-    fenêtre := crée_fenêtre(800, 600, "VueHTML", vrai)
+    fenêtre := crée_fenêtre(800, 600, "VueHTML", vrai);
 
-    rappels_user_agent: RappelsInterfaceVueHTML
-    initialise_rappels_interface(*rappels_user_agent, *vue_html, fenêtre)
-    définis_rappels_interface(*vue_html, *rappels_user_agent)
+    rappels_user_agent: RappelsInterfaceVueHTML;
+    initialise_rappels_interface(*rappels_user_agent, *vue_html, fenêtre);
+    définis_rappels_interface(*vue_html, *rappels_user_agent);
 
     si arguments.chemin {
-        ouvre_page(*vue_html, arguments.chemin)
+        ouvre_page(*vue_html, arguments.chemin);
     }
 
-    doit_fermer := faux
+    doit_fermer := faux;
 
     tantque !doit_fermer {
-        évènements := ajourne_évènements_fenêtre(fenêtre)
+        évènements := ajourne_évènements_fenêtre(fenêtre);
 
-        largeur, hauteur := donne_taille_fenêtre(fenêtre)
+        largeur, hauteur := donne_taille_fenêtre(fenêtre);
 
         pour évènements {
             si it.type == TypeÉvènement.Fermeture {
-                doit_fermer = vrai
-                arrête
+                doit_fermer = vrai;
+                arrête;
             }
 
             si vue_html.guetteuse {
-                évènement_sauvagardé := it
+                évènement_sauvagardé := it;
                 si vue_html.guetteuse_est_dans_page {
-                    clic := donne_clic_souris(it)
-                    corrige_souris_pour_page(*vue_html, *clic)
-                    it.état_souris = clic.état
+                    clic := donne_clic_souris(it);
+                    corrige_souris_pour_page(*vue_html, *clic);
+                    it.état_souris = clic.état;
                 }
                 si gère_évènement(vue_html.guetteuse, it) == ÉtatÉvènement.CONSOMMÉ {
-                    continue
+                    continue;
                 }
-                it = évènement_sauvagardé
+                it = évènement_sauvagardé;
             } 
 
-            gère_évènement(*vue_html.emboiteuse, it)
+            gère_évènement(*vue_html.emboiteuse, it);
         }
 
         si vue_html.file_de_tâche {
-            tâche := vue_html.file_de_tâche[0]
-            tableau_supprime_indice(*vue_html.file_de_tâche, 0)
-            run(tâche.algorithm)
+            tâche := vue_html.file_de_tâche[0];
+            tableau_supprime_indice(*vue_html.file_de_tâche, 0);
+            run(tâche.algorithm);
         }
 
         si vue_html.page_web.navigable {
-            document := donne_document(*vue_html.page_web)
+            document := donne_document(*vue_html.page_web);
             si document {
                 // À FAIRE : meilleure mise en cache
                 saufsi vue_html.adresse_en_édition {
-                    chaine_url := url_serializer(document.url)
+                    chaine_url := url_serializer(document.url);
                     si chaine_url != vue_html.adresse_courante {
-                        déloge(vue_html.adresse_courante)
-                        vue_html.adresse_courante = chaine_url
+                        déloge(vue_html.adresse_courante);
+                        vue_html.adresse_courante = chaine_url;
                     }
                     sinon {
-                        déloge(chaine_url)
+                        déloge(chaine_url);
                     }
                 }
 
-                définis_titre_fenêtre(*vue_html, fenêtre, document)
+                définis_titre_fenêtre(*vue_html, fenêtre, document);
 
-                window := document.realm.global_object comme *Window
-                exécute_animation_frames(window)
+                window := document.realm.global_object comme *Window;
+                exécute_animation_frames(window);
             }
         }
 
-        vue_html.page_est_survolée = faux
+        vue_html.page_est_survolée = faux;
 
-        dessine_fenêtre(*vue_html, largeur, hauteur)
+        dessine_fenêtre(*vue_html, largeur, hauteur);
 
-        curseur := TypeCurseurSystème.FLÈCHE
+        curseur := TypeCurseurSystème.FLÈCHE;
 
         si vue_html.page_est_survolée {
-            document := donne_document(*vue_html.page_web)
+            document := donne_document(*vue_html.page_web);
             si document {
-                élément := document.noeud_survolé
+                élément := document.noeud_survolé;
                 si élément && élément.box {
-                    curseur_css := CSS.donne_curseur(élément.box)
+                    curseur_css := CSS.donne_curseur(élément.box);
                     si curseur_css == CSS.CursorType.auto {
                         si élément.local_name == HTML.TAG_input && is_text_entry_widget(élément comme *HTMLInputElement) {
-                            curseur = TypeCurseurSystème.TEXTE_VERTICAL
+                            curseur = TypeCurseurSystème.TEXTE_VERTICAL;
                         }
                     }
                     sinon {
-                        curseur = CSS.donne_cursor_système(curseur_css)
+                        curseur = CSS.donne_cursor_système(curseur_css);
                     }
                 }
             }
         }
 
-        définis_curseur(fenêtre, curseur)
+        définis_curseur(fenêtre, curseur);
 
-        permute_tampons_fenêtre(fenêtre)
+        permute_tampons_fenêtre(fenêtre);
     }
 }
 
@@ -138,66 +138,66 @@ principale :: fonc ()
  * \{ */
 
 EntréeFileDeTâche :: struct {
-    source: SourceDeTâche
-    algorithm: *Algorithm
+    source: SourceDeTâche;
+    algorithm: *Algorithm;
 }
 
 VueHTML :: struct {
-    empl base: UserAgent
+    empl base: UserAgent;
 
-    avoirs: Avoirs
+    avoirs: Avoirs;
 
-    page_web: PageWeb
-    page_est_survolée: bool
-    rect_page: RectanglePosDim(r32)
-    adresse_courante: chaine
-    adresse_en_édition: bool
-    titre_fenêtre: chaine
+    page_web: PageWeb;
+    page_est_survolée: bool;
+    rect_page: RectanglePosDim(r32);
+    adresse_courante: chaine;
+    adresse_en_édition: bool;
+    titre_fenêtre: chaine;
 
-    emboiteuse: Emboiteuse
-    peintre: *Peintre
-    peintre_id: *Peintre
-    fonte: *Fonte
+    emboiteuse: Emboiteuse;
+    peintre: *Peintre;
+    peintre_id: *Peintre;
+    fonte: *Fonte;
 
-    guetteuse: *Guetteuse
-    guetteuse_est_dans_page: bool
+    guetteuse: *Guetteuse;
+    guetteuse_est_dans_page: bool;
 
-    file_de_tâche: [..]EntréeFileDeTâche
+    file_de_tâche: [..]EntréeFileDeTâche;
 }
 
 ouvre_page :: fonc (vue_html: *VueHTML, chaine_uri: chaine)
 {
     si est_un_fichier_régulier(CheminFichier(chaine_uri)) {
-        chaine_uri = enchaine("file://", chaine_uri)
+        chaine_uri = enchaine("file://", chaine_uri);
     }
 
-    uri := url_parser(vue_html, chaine_uri)
-    assert(uri != nul)
+    uri := url_parser(vue_html, chaine_uri);
+    assert(uri != nul);
 
-    navigable := crée_un_fresh_top_level_traversable(vue_html, uri) comme *TraversableNavigable
+    navigable := crée_un_fresh_top_level_traversable(vue_html, uri) comme *TraversableNavigable;
 
-    vue_html.page_web = crée_page_web(navigable)
+    vue_html.page_web = crée_page_web(navigable);
 }
 
 définis_titre_fenêtre :: fonc (vue_html: *VueHTML, fenêtre: TypeFenêtre, document: *Document)
 {
-    titre := "VueHTML"
+    titre := "VueHTML";
 
-    élément_title := document.donne_title_element()
+    élément_title := document.donne_title_element();
     si élément_title {
-        texte_titre := donne_contenu_texte_descandants(élément_title)
-        diffère détruit_chaine(texte_titre)
+        texte_titre := donne_contenu_texte_descandants(élément_title);
+        diffère détruit_chaine(texte_titre);
 
-        texte_filtré := supprime_espace_blanches_autour(texte_titre)
-        diffère détruit_chaine(texte_filtré)
+        texte_filtré := supprime_espace_blanches_autour(texte_titre);
+        diffère détruit_chaine(texte_filtré);
 
-        titre = imprime_chaine("% - VueHTML", texte_filtré)
+        titre = imprime_chaine("% - VueHTML", texte_filtré);
     }
 
     si titre != vue_html.titre_fenêtre {
-        déloge_si_logée(vue_html.titre_fenêtre)
-        vue_html.titre_fenêtre = titre
-        définis_titre_fenêtre(fenêtre, titre)
+        déloge_si_logée(vue_html.titre_fenêtre);
+        vue_html.titre_fenêtre = titre;
+        définis_titre_fenêtre(fenêtre, titre);
     }
 }
 
@@ -208,30 +208,30 @@ définis_titre_fenêtre :: fonc (vue_html: *VueHTML, fenêtre: TypeFenêtre, doc
  * \{ */
 
 Arguments :: struct {
-    utilise_javascript: bool @NomArgument "js"
-    chemin: chaine @anonyme
+    utilise_javascript: bool @NomArgument "js";
+    chemin: chaine @anonyme;
 }
 
 parse_arguments :: fonc () -> (bool, Arguments)
 {
-    args_ok, résultat, _ := parse_ligne_de_commande(Arguments)
+    args_ok, résultat, _ := parse_ligne_de_commande(Arguments);
 
     si résultat.chemin {    
         chemin_courant := tente donne_chemin_courant() piège nonatteignable
-        diffère déloge(chemin_courant.chn)
+        diffère déloge(chemin_courant.chn);
 
-        chm_abs := crée_chemin_absolu(chemin_courant, CheminFichier(résultat.chemin))
+        chm_abs := crée_chemin_absolu(chemin_courant, CheminFichier(résultat.chemin));
 
         si est_un_fichier_régulier(chm_abs) {
-            résultat.chemin = chm_abs.chn
+            résultat.chemin = chm_abs.chn;
         }
         sinon {
-            résultat.chemin = copie_chaine(résultat.chemin)
-            déloge(chm_abs.chn)
+            résultat.chemin = copie_chaine(résultat.chemin);
+            déloge(chm_abs.chn);
         }
     }
 
-    retourne args_ok, résultat
+    retourne args_ok, résultat;
 }
 
 /** \} */
@@ -241,10 +241,10 @@ parse_arguments :: fonc () -> (bool, Arguments)
  * \{ */
 
 Avoir :: struct {
-    nom_court: chaine
-    image: NouvelleImage
-    largeur: n32
-    hauteur: n32
+    nom_court: chaine;
+    image: NouvelleImage;
+    largeur: n32;
+    hauteur: n32;
 }
 
 /** \} */
@@ -254,67 +254,67 @@ Avoir :: struct {
  * \{ */
 
 Avoirs :: struct {
-    avoirs: [..]Avoir
+    avoirs: [..]Avoir;
 }
 
 détruit_données :: fonc (avoirs: *Avoirs)
 {
     pour avoirs.avoirs {
-        détruit_données_image(*it.image)
-        déloge_si_logée(it.nom_court)
+        détruit_données_image(*it.image);
+        déloge_si_logée(it.nom_court);
     }
-    déloge(avoirs.avoirs)
+    déloge(avoirs.avoirs);
 }
 
 donne_avoir :: fonc (avoirs: *Avoirs, nom_court: chaine) -> *Avoir
 {
     pour * avoirs.avoirs {
         si it.nom_court == nom_court {
-            retourne it
+            retourne it;
         }
     }
-    retourne nul
+    retourne nul;
 }
 
 donne_image_avec_taille :: fonc (avoirs: *Avoirs, nom_court: chaine, cotation: n32) -> Avoir
 {
-    retourne donne_image_avec_taille(avoirs, nom_court, cotation, cotation)
+    retourne donne_image_avec_taille(avoirs, nom_court, cotation, cotation);
 }
 
 donne_image_avec_taille :: fonc (avoirs: *Avoirs, nom_court: chaine, largeur: n32, hauteur: n32) -> Avoir
 {
     pour avoirs.avoirs {
         si it.nom_court == nom_court && it.image.desc.largeur == largeur && it.image.desc.hauteur == hauteur {
-            retourne it
+            retourne it;
         }
     }
 
-    chemin := imprime_chaine("Icones/%.svg", nom_court)
-    diffère déloge(chemin)
+    chemin := imprime_chaine("Icones/%.svg", nom_court);
+    diffère déloge(chemin);
 
-    résultat := tableau_ajoute_élément(*avoirs.avoirs)
-    résultat.nom_court = nom_court
+    résultat := tableau_ajoute_élément(*avoirs.avoirs);
+    résultat.nom_court = nom_court;
 
-    _, contenu := contenu_fichier_binaire(CheminFichier(chemin))
-    diffère déloge(contenu)
+    _, contenu := contenu_fichier_binaire(CheminFichier(chemin));
+    diffère déloge(contenu);
 
-    chaine_c := crée_chaine_c(chaine(contenu.pointeur comme *z8, contenu.taille))
-    diffère détruit_chaine_c(chaine_c)
+    chaine_c := crée_chaine_c(chaine(contenu.pointeur comme *z8, contenu.taille));
+    diffère détruit_chaine_c(chaine_c);
 
-    image_svg: SVGImage
+    image_svg: SVGImage;
     si SVG_parse_image_depuis_contenu(chaine_c comme *z8, *image_svg) {
-        desc: DescriptriceImage
-        desc.largeur = largeur
-        desc.hauteur = hauteur
-        desc.format = FormatPixel.RVBA_8
+        desc: DescriptriceImage;
+        desc.largeur = largeur;
+        desc.hauteur = hauteur;
+        desc.format = FormatPixel.RVBA_8;
 
-        résultat.image = crée_image(*desc)
-        SVG_image_ratisse(*image_svg, résultat.image.données comme *n8, desc.largeur comme z32, desc.hauteur comme z32)
+        résultat.image = crée_image(*desc);
+        SVG_image_ratisse(*image_svg, résultat.image.données comme *n8, desc.largeur comme z32, desc.hauteur comme z32);
 
-        SVG_image_detruit(*image_svg)
+        SVG_image_detruit(*image_svg);
     }
 
-    retourne mémoire(résultat)
+    retourne mémoire(résultat);
 }
 
 /** \} */
@@ -325,275 +325,275 @@ donne_image_avec_taille :: fonc (avoirs: *Avoirs, nom_court: chaine, largeur: n3
 
 dessine_fenêtre :: fonc (empl vue_html: *VueHTML, largeur: z32, hauteur: z32)
 {
-    taille_canevas := Taille(largeur = Largeur(largeur), hauteur = Hauteur(hauteur))
+    taille_canevas := Taille(largeur = Largeur(largeur), hauteur = Hauteur(hauteur));
     saufsi vue_html.peintre {
-        peintre = crée_peintre_igumi(taille_canevas)
-        peintre_id = crée_peintre_igumi(taille_canevas)
+        peintre = crée_peintre_igumi(taille_canevas);
+        peintre_id = crée_peintre_igumi(taille_canevas);
     }
 
-    peintre.définis_taille_canevas(taille_canevas)
-    peintre_id.définis_taille_canevas(taille_canevas)
-    peintre.efface_cible_rendu(CouleurRVBA(1.0, 1.0, 1.0, 1.0))
+    peintre.définis_taille_canevas(taille_canevas);
+    peintre_id.définis_taille_canevas(taille_canevas);
+    peintre.efface_cible_rendu(CouleurRVBA(1.0, 1.0, 1.0, 1.0));
 
-    commandes := crée_interface(vue_html, largeur, hauteur)
-    dessine_commandes(peintre, *commandes)
+    commandes := crée_interface(vue_html, largeur, hauteur);
+    dessine_commandes(peintre, *commandes);
 }
 
-GRIS_157 := CouleurRVBA(0.157, 0.157, 0.157, 1.0)
-GRIS_227 := CouleurRVBA(0.227, 0.227, 0.227, 1.0)
-GRIS_275 := CouleurRVBA(0.275, 0.275, 0.275, 1.0)
-GRIS_325 := CouleurRVBA(0.325, 0.325, 0.325, 1.0)
+GRIS_157 := CouleurRVBA(0.157, 0.157, 0.157, 1.0);
+GRIS_227 := CouleurRVBA(0.227, 0.227, 0.227, 1.0);
+GRIS_275 := CouleurRVBA(0.275, 0.275, 0.275, 1.0);
+GRIS_325 := CouleurRVBA(0.325, 0.325, 0.325, 1.0);
 
-TEXTE_ACTIF := CouleurRVBA(0.900, 0.900, 0.900, 1.0)
-TEXTE_INACTIF := CouleurRVBA(0.660, 0.660, 0.660, 1.0)
+TEXTE_ACTIF := CouleurRVBA(0.900, 0.900, 0.900, 1.0);
+TEXTE_INACTIF := CouleurRVBA(0.660, 0.660, 0.660, 1.0);
 
-BOUTON_ACTIF := CouleurRVBA(0.900, 0.900, 0.900, 1.0)
-BOUTON_INACTIF := CouleurRVBA(0.450, 0.450, 0.450, 1.0)
+BOUTON_ACTIF := CouleurRVBA(0.900, 0.900, 0.900, 1.0);
+BOUTON_INACTIF := CouleurRVBA(0.450, 0.450, 0.450, 1.0);
 
-ARRIÈRE_PLAN_PAGE := GRIS_157
+ARRIÈRE_PLAN_PAGE := GRIS_157;
 
 crée_interface :: fonc (vue_html: *VueHTML, largeur: z32, hauteur: z32) -> CommandesDeRendu
 {
-    emboiteuse := *vue_html.emboiteuse
+    emboiteuse := *vue_html.emboiteuse;
 
-    espace: EspaceDisponible = ---
-    espace.largeur = largeur comme n32
-    espace.hauteur = hauteur comme n32
+    espace: EspaceDisponible = ---;
+    espace.largeur = largeur comme n32;
+    espace.hauteur = hauteur comme n32;
 
-    commence_disposition(emboiteuse, largeur, hauteur)
+    commence_disposition(emboiteuse, largeur, hauteur);
 
-    dispose_rectangle()
+    dispose_rectangle();
     {
-        définis_cotation(CROISSANTE(), CROISSANTE())
-        définis_direction(Direction.Verticale)
+        définis_cotation(CROISSANTE(), CROISSANTE());
+        définis_direction(Direction.Verticale);
 
-        métriques := donne_métriques_fonte(vue_html.fonte)
-        hauteur_de_ligne := donne_hauteur_ligne(métriques) comme n32
-        rembourrage_barre : n32 = 8
-        rembourrage_entrée_recherche : n32 = 8
-        hauteur_barre_de_recherche : n32 = hauteur_de_ligne + 2 * (rembourrage_barre + rembourrage_entrée_recherche)
+        métriques := donne_métriques_fonte(vue_html.fonte);
+        hauteur_de_ligne := donne_hauteur_ligne(métriques) comme n32;
+        rembourrage_barre : n32 = 8;
+        rembourrage_entrée_recherche : n32 = 8;
+        hauteur_barre_de_recherche : n32 = hauteur_de_ligne + 2 * (rembourrage_barre + rembourrage_entrée_recherche);
 
         // barre de recherche
-        dispose_rectangle()
+        dispose_rectangle();
         {
-            définis_cotation(CROISSANTE(), FIXE(hauteur_barre_de_recherche))
-            définis_arrière_plan(GRIS_227)
-            définis_alignement_vertical(AlignementEnfant.Milieu)
-            définis_séparation_enfant(rembourrage_barre comme r32)
-            définis_rembourrage(RembourrageUniforme(rembourrage_barre comme r32))
+            définis_cotation(CROISSANTE(), FIXE(hauteur_barre_de_recherche));
+            définis_arrière_plan(GRIS_227);
+            définis_alignement_vertical(AlignementEnfant.Milieu);
+            définis_séparation_enfant(rembourrage_barre comme r32);
+            définis_rembourrage(RembourrageUniforme(rembourrage_barre comme r32));
 
-            cotation_icone := hauteur_de_ligne + rembourrage_barre
+            cotation_icone := hauteur_de_ligne + rembourrage_barre;
 
-            couleur_reculer := TEXTE_INACTIF
-            couleur_avancer := TEXTE_INACTIF
-            couleur_recharger := TEXTE_INACTIF
+            couleur_reculer := TEXTE_INACTIF;
+            couleur_avancer := TEXTE_INACTIF;
+            couleur_recharger := TEXTE_INACTIF;
 
-            action_reculer: TypeRappelSouris
-            action_avancer: TypeRappelSouris
-            action_recharger: TypeRappelSouris
+            action_reculer: TypeRappelSouris;
+            action_avancer: TypeRappelSouris;
+            action_recharger: TypeRappelSouris;
 
             si vue_html.page_web.navigable {
-                traversable := vue_html.page_web.navigable
-                indice_courant := traversable.current_session_history_entry_step comme z64
-                indice_max := traversable.session_history_entries.taille - 1
+                traversable := vue_html.page_web.navigable;
+                indice_courant := traversable.current_session_history_entry_step comme z64;
+                indice_max := traversable.session_history_entries.taille - 1;
 
                 si indice_courant < indice_max {
-                    action_avancer = sur_pression_bouton_avancer
-                    couleur_avancer = TEXTE_ACTIF
+                    action_avancer = sur_pression_bouton_avancer;
+                    couleur_avancer = TEXTE_ACTIF;
                 }
                 si indice_courant > 0 {
-                    action_reculer = sur_pression_bouton_reculer
-                    couleur_reculer = TEXTE_ACTIF
+                    action_reculer = sur_pression_bouton_reculer;
+                    couleur_reculer = TEXTE_ACTIF;
                 }
                 si indice_max >= 0 {
-                    action_recharger = sur_pression_bouton_recharger
-                    couleur_recharger = TEXTE_ACTIF
+                    action_recharger = sur_pression_bouton_recharger;
+                    couleur_recharger = TEXTE_ACTIF;
                 }
             }
 
-            icone_reculer := donne_image_avec_taille(*vue_html.avoirs, "icone-historique-reculer", cotation_icone)
-            dispose_bouton(vue_html.fonte, CouleurRVBA(), icone_reculer.image, couleur_reculer, cotation_icone, action_reculer, vue_html)
+            icone_reculer := donne_image_avec_taille(*vue_html.avoirs, "icone-historique-reculer", cotation_icone);
+            dispose_bouton(vue_html.fonte, CouleurRVBA(), icone_reculer.image, couleur_reculer, cotation_icone, action_reculer, vue_html);
 
-            icone_avancer := donne_image_avec_taille(*vue_html.avoirs, "icone-historique-avancer", cotation_icone)
-            dispose_bouton(vue_html.fonte, CouleurRVBA(), icone_avancer.image, couleur_avancer, cotation_icone, action_avancer, vue_html)
+            icone_avancer := donne_image_avec_taille(*vue_html.avoirs, "icone-historique-avancer", cotation_icone);
+            dispose_bouton(vue_html.fonte, CouleurRVBA(), icone_avancer.image, couleur_avancer, cotation_icone, action_avancer, vue_html);
 
-            icone_recharger := donne_image_avec_taille(*vue_html.avoirs, "icone-historique-recharger", cotation_icone)
-            dispose_bouton(vue_html.fonte, CouleurRVBA(), icone_recharger.image, couleur_recharger, cotation_icone, action_recharger, vue_html)
+            icone_recharger := donne_image_avec_taille(*vue_html.avoirs, "icone-historique-recharger", cotation_icone);
+            dispose_bouton(vue_html.fonte, CouleurRVBA(), icone_recharger.image, couleur_recharger, cotation_icone, action_recharger, vue_html);
 
-            dispose_rectangle()
+            dispose_rectangle();
             {
-                définis_cotation(CROISSANTE(), FIXE(hauteur_de_ligne + 2 * rembourrage_entrée_recherche))
-                définis_rembourrage(RembourrageUniforme(rembourrage_entrée_recherche comme r32))
-                définis_arrière_plan(GRIS_157)
-                définis_couleur_curseur_texte(TEXTE_ACTIF)
+                définis_cotation(CROISSANTE(), FIXE(hauteur_de_ligne + 2 * rembourrage_entrée_recherche));
+                définis_rembourrage(RembourrageUniforme(rembourrage_entrée_recherche comme r32));
+                définis_arrière_plan(GRIS_157);
+                définis_couleur_curseur_texte(TEXTE_ACTIF);
 
-                sur_pression_souris(démarre_édition_texte_navigation, vue_html, 0)
+                sur_pression_souris(démarre_édition_texte_navigation, vue_html, 0);
 
-                texte := vue_html.adresse_courante
-                couleur_texte := TEXTE_ACTIF
+                texte := vue_html.adresse_courante;
+                couleur_texte := TEXTE_ACTIF;
                 si texte == "" {
-                    texte = "Saisir une adresse"
-                    couleur_texte = TEXTE_INACTIF
+                    texte = "Saisir une adresse";
+                    couleur_texte = TEXTE_INACTIF;
                 }
 
-                dispose_texte(texte, ConfigurationTexte(vue_html.fonte, couleur_texte))
+                dispose_texte(texte, ConfigurationTexte(vue_html.fonte, couleur_texte));
             }
-            termine_rectangle()
+            termine_rectangle();
         }
-        termine_rectangle()
+        termine_rectangle();
 
         // page
-        espace_page := enlève_hauteur(espace, hauteur_barre_de_recherche)
-        dispose_procédure(dessine_page, vue_html, cotation = donne_cotation(espace_page))
+        espace_page := enlève_hauteur(espace, hauteur_barre_de_recherche);
+        dispose_procédure(dessine_page, vue_html, cotation = donne_cotation(espace_page));
         {
-            sur_pression_souris(sur_pression_souris_page, vue_html, 0)
-            sur_relâchement_souris(sur_relâchement_souris_page, vue_html, 0)
-            sur_molette_souris(sur_molette_souris_page, vue_html, 0)
+            sur_pression_souris(sur_pression_souris_page, vue_html, 0);
+            sur_relâchement_souris(sur_relâchement_souris_page, vue_html, 0);
+            sur_molette_souris(sur_molette_souris_page, vue_html, 0);
 
             si est_survolée() {
-                souris: ClicSouris
-                corrige_souris_pour_page(vue_html, *souris)
-                _ := gère_mouvement_souris(*vue_html.page_web, *souris)
-                vue_html.page_est_survolée = vrai
+                souris: ClicSouris;
+                corrige_souris_pour_page(vue_html, *souris);
+                _ := gère_mouvement_souris(*vue_html.page_web, *souris);
+                vue_html.page_est_survolée = vrai;
             }
         }
-        termine_procédure()
+        termine_procédure();
     }
-    termine_rectangle()
+    termine_rectangle();
 
-    retourne termine_disposition(emboiteuse)
+    retourne termine_disposition(emboiteuse);
 }
 
 sur_pression_bouton_reculer :: fonc (vue_html: *VueHTML, souris: ClicSouris, id: n64 @inutilisée, indice: z32 @inutilisée) -> ÉtatÉvènement
 {
-    résultat := ÉtatÉvènement.PASSE_AU_PARENT
+    résultat := ÉtatÉvènement.PASSE_AU_PARENT;
     si souris.bouton == BoutonSouris.PRIMAIRE {
-        page_web := vue_html.page_web
-        traversable := page_web.navigable
-        traverse_the_history_by_a_delta(vue_html, traversable, -1)
+        page_web := vue_html.page_web;
+        traversable := page_web.navigable;
+        traverse_the_history_by_a_delta(vue_html, traversable, -1);
 
-        résultat = ÉtatÉvènement.CONSOMMÉ
+        résultat = ÉtatÉvènement.CONSOMMÉ;
     }
-    retourne résultat
+    retourne résultat;
 }
 
 sur_pression_bouton_avancer :: fonc (vue_html: *VueHTML, souris: ClicSouris, id: n64 @inutilisée, indice: z32 @inutilisée) -> ÉtatÉvènement
 {
-    résultat := ÉtatÉvènement.PASSE_AU_PARENT
+    résultat := ÉtatÉvènement.PASSE_AU_PARENT;
     si souris.bouton == BoutonSouris.PRIMAIRE {
-        page_web := vue_html.page_web
-        traversable := page_web.navigable
-        traverse_the_history_by_a_delta(vue_html, traversable, 1)
+        page_web := vue_html.page_web;
+        traversable := page_web.navigable;
+        traverse_the_history_by_a_delta(vue_html, traversable, 1);
 
-        résultat = ÉtatÉvènement.CONSOMMÉ
+        résultat = ÉtatÉvènement.CONSOMMÉ;
     }
-    retourne résultat
+    retourne résultat;
 }
 
 sur_pression_bouton_recharger :: fonc (vue_html: *VueHTML, souris: ClicSouris, id: n64 @inutilisée, indice: z32 @inutilisée) -> ÉtatÉvènement
 {
-    résultat := ÉtatÉvènement.PASSE_AU_PARENT
+    résultat := ÉtatÉvènement.PASSE_AU_PARENT;
     si souris.bouton == BoutonSouris.PRIMAIRE {
-        page_web := vue_html.page_web
-        traversable := page_web.navigable
-        reload(vue_html, traversable, UserNavigationInvolvement.BrowserUI)
+        page_web := vue_html.page_web;
+        traversable := page_web.navigable;
+        reload(vue_html, traversable, UserNavigationInvolvement.BrowserUI);
 
-        résultat = ÉtatÉvènement.CONSOMMÉ
+        résultat = ÉtatÉvènement.CONSOMMÉ;
     }
-    retourne résultat
+    retourne résultat;
 }
 
 dessine_page :: fonc (vue_html: *VueHTML, rect: RectanglePosDim(r32))
 {
-    vue_html.rect_page = rect
+    vue_html.rect_page = rect;
 
-    IGUMI.quad_immédiat(rect.x, rect.y, rect.largeur, rect.hauteur, CouleurRVBA(1.0, 1.0, 1.0, 1.0))
-    IGUMI.termine_immédiat()
+    IGUMI.quad_immédiat(rect.x, rect.y, rect.largeur, rect.hauteur, CouleurRVBA(1.0, 1.0, 1.0, 1.0));
+    IGUMI.termine_immédiat();
 
-    vue_html.peintre.définis_ciseau(rect)
-    diffère vue_html.peintre.restaure_ciseau()
+    vue_html.peintre.définis_ciseau(rect);
+    diffère vue_html.peintre.restaure_ciseau();
 
-    largeur := rect.largeur comme z32
-    hauteur := rect.hauteur comme z32
+    largeur := rect.largeur comme z32;
+    hauteur := rect.hauteur comme z32;
 
-    page := *vue_html.page_web
+    page := *vue_html.page_web;
 
-    arbre := donne_arbre_de_disposition(page)
+    arbre := donne_arbre_de_disposition(page);
     si arbre && (arbre.hauteur_vue != hauteur || arbre.largeur_vue != largeur) {
-        redimensionne(page, largeur, hauteur)
+        redimensionne(page, largeur, hauteur);
     }
 
-    dessine_tampon_id := faux
-    commandes := dessine(page, largeur, hauteur, dessine_tampon_id)
+    dessine_tampon_id := faux;
+    commandes := dessine(page, largeur, hauteur, dessine_tampon_id);
     saufsi commandes {
-        retourne
+        retourne;
     }
     
-    dessine_commandes(vue_html.peintre, commandes, faux)
+    dessine_commandes(vue_html.peintre, commandes, faux);
 
-    document := page.donne_document()
-    lien_survolé := document.donne_lien_survolé()
+    document := page.donne_document();
+    lien_survolé := document.donne_lien_survolé();
     si lien_survolé {
-        href := lien_survolé.donne_href()
+        href := lien_survolé.donne_href();
 
         saufsi href.est_vide() {
-            texte := href.donne_chaine_utf16()
-            fonte := CSS.donne_fonte_défaut(document.globales_dessin)
-            métriques := fonte.donne_métriques_fonte()
+            texte := href.donne_chaine_utf16();
+            fonte := CSS.donne_fonte_défaut(document.globales_dessin);
+            métriques := fonte.donne_métriques_fonte();
 
-            rect_lien: RectanglePosDim(r32)
-            rect_lien.y = 0
-            rect_lien.hauteur = métriques.donne_hauteur_ligne()
-            rect_lien.largeur = fonte.donne_largeur_texte(texte) + 2.0 * métriques.largeur_moyenne
+            rect_lien: RectanglePosDim(r32);
+            rect_lien.y = 0;
+            rect_lien.hauteur = métriques.donne_hauteur_ligne();
+            rect_lien.largeur = fonte.donne_largeur_texte(texte) + 2.0 * métriques.largeur_moyenne;
 
-            couleur := CouleurRVBAN8(255, 255, 255, 255)
-            vue_html.peintre.remplis_rectangle(rect_lien, couleur)
+            couleur := CouleurRVBAN8(255, 255, 255, 255);
+            vue_html.peintre.remplis_rectangle(rect_lien, couleur);
 
-            couleur = CouleurRVBAN8(0, 0, 0, 255)
-            rect_lien.x = métriques.largeur_moyenne
-            vue_html.peintre.dessine_texte(fonte, texte, rect_lien, couleur, nul)
+            couleur = CouleurRVBAN8(0, 0, 0, 255);
+            rect_lien.x = métriques.largeur_moyenne;
+            vue_html.peintre.dessine_texte(fonte, texte, rect_lien, couleur, nul);
 
-            vue_html.peintre.termine_dessin()
+            vue_html.peintre.termine_dessin();
         }
     }
 }
 
 sur_pression_souris_page :: fonc (vue_html: *VueHTML, souris: ClicSouris, id: n64 @inutilisée, indice: z32 @inutilisée) -> ÉtatÉvènement
 {
-    résultat := ÉtatÉvènement.CONSOMMÉ
-    corrige_souris_pour_page(vue_html, *souris)
-    gère_pression_souris(*vue_html.page_web, *souris)
-    retourne résultat
+    résultat := ÉtatÉvènement.CONSOMMÉ;
+    corrige_souris_pour_page(vue_html, *souris);
+    gère_pression_souris(*vue_html.page_web, *souris);
+    retourne résultat;
 }
 
 sur_relâchement_souris_page :: fonc (vue_html: *VueHTML, souris: ClicSouris, id: n64 @inutilisée, indice: z32 @inutilisée) -> ÉtatÉvènement
 {
-    résultat := ÉtatÉvènement.PASSE_AU_PARENT
-    corrige_souris_pour_page(vue_html, *souris)
+    résultat := ÉtatÉvènement.PASSE_AU_PARENT;
+    corrige_souris_pour_page(vue_html, *souris);
     si gère_relâchement_souris(*vue_html.page_web, *souris) {
-        résultat = ÉtatÉvènement.CONSOMMÉ
+        résultat = ÉtatÉvènement.CONSOMMÉ;
     }
-    retourne résultat
+    retourne résultat;
 }
 
 sur_molette_souris_page :: fonc (vue_html: *VueHTML, souris: ClicSouris, id: n64 @inutilisée, indice: z32 @inutilisée) -> ÉtatÉvènement
 {
-    résultat := ÉtatÉvènement.PASSE_AU_PARENT
-    corrige_souris_pour_page(vue_html, *souris)
+    résultat := ÉtatÉvènement.PASSE_AU_PARENT;
+    corrige_souris_pour_page(vue_html, *souris);
     si gère_molette_souris(*vue_html.page_web, *souris) {
-        résultat = ÉtatÉvènement.CONSOMMÉ
+        résultat = ÉtatÉvènement.CONSOMMÉ;
     }
-    retourne résultat
+    retourne résultat;
 }
 
 corrige_souris_pour_page :: fonc (vue_html: *VueHTML, souris: *ClicSouris)
 {
-    position := donne_position_souris(*vue_html.emboiteuse, vrai)
-    position.x -= vue_html.rect_page.x
-    position.y = vue_html.rect_page.hauteur - position.y + vue_html.rect_page.y
+    position := donne_position_souris(*vue_html.emboiteuse, vrai);
+    position.x -= vue_html.rect_page.x;
+    position.y = vue_html.rect_page.hauteur - position.y + vue_html.rect_page.y;
 
-    souris.état.où.x = position.x comme z32
-    souris.état.où.y = position.y comme z32
+    souris.état.où.x = position.x comme z32;
+    souris.état.où.y = position.y comme z32;
 }
 
 /** \} */
@@ -604,42 +604,42 @@ corrige_souris_pour_page :: fonc (vue_html: *VueHTML, souris: *ClicSouris)
 
 donne_cotation_pour_texte :: fonc (fonte: *Fonte, texte: chaine) -> Cotation
 {
-    retourne Cotation(FIXE(largeur_texte comme z32), FIXE(hauteur_de_ligne))
+    retourne Cotation(FIXE(largeur_texte comme z32), FIXE(hauteur_de_ligne));
 }
 
 dispose_bouton :: fonc (fonte: *Fonte, couleur: CouleurRVBA, icone: NouvelleImage, teinte_icone: CouleurRVBA, taille_icone: n32, sur_pression: TypeRappelSouris = nul, données_sur_pression: *rien = nul)
 {
-    dispose_bouton(fonte, couleur, "", CouleurRVBA(), icone, teinte_icone, taille_icone, sur_pression, données_sur_pression)
+    dispose_bouton(fonte, couleur, "", CouleurRVBA(), icone, teinte_icone, taille_icone, sur_pression, données_sur_pression);
 }
 
 dispose_bouton :: fonc (fonte: *Fonte, couleur: CouleurRVBA, texte: chaine, couleur_texte: CouleurRVBA, icone: NouvelleImage, teinte_icone: CouleurRVBA, taille_icone: n32, sur_pression: TypeRappelSouris = nul, données_sur_pression: *rien = nul)
 {
-    largeur_texte := donne_largeur_texte(fonte, texte)
-    rembourrage := donne_largeur_texte(fonte, "0")
-    largeur_texte += rembourrage * 2
+    largeur_texte := donne_largeur_texte(fonte, texte);
+    rembourrage := donne_largeur_texte(fonte, "0");
+    largeur_texte += rembourrage * 2;
 
-    cotation := Cotation(FIXE(largeur_texte comme n32 + taille_icone), FIXE(taille_icone + rembourrage comme n32))
-    cotation_icone := Cotation(FIXE(taille_icone), FIXE(taille_icone))
+    cotation := Cotation(FIXE(largeur_texte comme n32 + taille_icone), FIXE(taille_icone + rembourrage comme n32));
+    cotation_icone := Cotation(FIXE(taille_icone), FIXE(taille_icone));
 
-    dispose_rectangle()
+    dispose_rectangle();
     {
-        définis_cotation(cotation)
-        définis_alignement(AlignementEnfant.Milieu)
-        définis_arrière_plan(couleur)
+        définis_cotation(cotation);
+        définis_alignement(AlignementEnfant.Milieu);
+        définis_arrière_plan(couleur);
 
         si sur_pression {
-            sur_pression_souris(sur_pression, données_sur_pression, 0)
+            sur_pression_souris(sur_pression, données_sur_pression, 0);
         }
 
         si icone.données {
-            dispose_image(icone, cotation_icone, teinte_icone)
+            dispose_image(icone, cotation_icone, teinte_icone);
         }
 
         si texte {
-            dispose_texte(texte, ConfigurationTexte(fonte, couleur_texte))
+            dispose_texte(texte, ConfigurationTexte(fonte, couleur_texte));
         }
     }
-    termine_rectangle()
+    termine_rectangle();
 }
 
 /** \} */
@@ -650,90 +650,90 @@ dispose_bouton :: fonc (fonte: *Fonte, couleur: CouleurRVBA, texte: chaine, coul
 
 démarre_édition_texte_navigation :: fonc (vue_html: *VueHTML, souris: ClicSouris, id: n64, indice: z32 @inutilisée) -> ÉtatÉvènement
 {
-    résultat := ÉtatÉvènement.PASSE_AU_PARENT
+    résultat := ÉtatÉvènement.PASSE_AU_PARENT;
     si souris.bouton == BoutonSouris.PRIMAIRE {
-        rappels_édition_texte := loge(RappelsÉditionTexteNavigation)
-        rappels_édition_texte.sur_édition = sur_édition_texte_navigation
-        rappels_édition_texte.sur_fin_édition = sur_fin_édition_texte_navigation
-        rappels_édition_texte.vue_html = vue_html
+        rappels_édition_texte := loge(RappelsÉditionTexteNavigation);
+        rappels_édition_texte.sur_édition = sur_édition_texte_navigation;
+        rappels_édition_texte.sur_fin_édition = sur_fin_édition_texte_navigation;
+        rappels_édition_texte.vue_html = vue_html;
 
-        rect := donne_rect(*vue_html.emboiteuse, id)
-        rectz := convertis_type(rect, z32)
+        rect := donne_rect(*vue_html.emboiteuse, id);
+        rectz := convertis_type(rect, z32);
 
-        éditrice := loge(ÉditriceTexte)
-        initialise_éditrice(éditrice, vue_html.fonte, vue_html.adresse_courante, rappels_édition_texte)
+        éditrice := loge(ÉditriceTexte);
+        initialise_éditrice(éditrice, vue_html.fonte, vue_html.adresse_courante, rappels_édition_texte);
 
-        définis_éditrice_texte(*vue_html.emboiteuse, id, éditrice)
+        définis_éditrice_texte(*vue_html.emboiteuse, id, éditrice);
 
-        guetteuse := loge(GuetteuseÉditionTexteVueHTML)
-        guetteuse.rappels = rappels_édition_texte
-        guetteuse.vue_html = vue_html
-        guetteuse.éditrice = éditrice
-        guetteuse.id_boite = id
-        guetteuse.sur_destruction = guetteuse_édition_texte_sur_destruction
+        guetteuse := loge(GuetteuseÉditionTexteVueHTML);
+        guetteuse.rappels = rappels_édition_texte;
+        guetteuse.vue_html = vue_html;
+        guetteuse.éditrice = éditrice;
+        guetteuse.id_boite = id;
+        guetteuse.sur_destruction = guetteuse_édition_texte_sur_destruction;
 
-        initialise_guetteuse_édition_texte(guetteuse, éditrice, rectz, rectz)
+        initialise_guetteuse_édition_texte(guetteuse, éditrice, rectz, rectz);
 
-        vue_html.adresse_en_édition = vrai
-        vue_html.guetteuse = guetteuse
-        vue_html.guetteuse_est_dans_page = faux
+        vue_html.adresse_en_édition = vrai;
+        vue_html.guetteuse = guetteuse;
+        vue_html.guetteuse_est_dans_page = faux;
 
-        résultat = ÉtatÉvènement.CONSOMMÉ
+        résultat = ÉtatÉvènement.CONSOMMÉ;
     }
-    retourne résultat
+    retourne résultat;
 }
 
 RappelsÉditionTexteNavigation :: struct {
-    empl base: RappelsÉditionTexte
+    empl base: RappelsÉditionTexte;
 
-    vue_html: *VueHTML
+    vue_html: *VueHTML;
 }
 
 sur_édition_texte_navigation :: fonc (empl rappels: *RappelsÉditionTexteNavigation, chn: chaine)
 {
-    déloge(vue_html.adresse_courante)
-    vue_html.adresse_courante = copie_chaine(chn)
+    déloge(vue_html.adresse_courante);
+    vue_html.adresse_courante = copie_chaine(chn);
 }
 
 sur_fin_édition_texte_navigation :: fonc (empl rappels: *RappelsÉditionTexteNavigation, chn: chaine, fut_causée_par_touche_entrée: bool @inutilisée)
 {
-    déloge(vue_html.adresse_courante)
-    vue_html.adresse_courante = copie_chaine(chn)
-    vue_html.adresse_en_édition = faux
+    déloge(vue_html.adresse_courante);
+    vue_html.adresse_courante = copie_chaine(chn);
+    vue_html.adresse_en_édition = faux;
 
     si vue_html.adresse_courante {
-        url := url_parser(vue_html, vue_html.adresse_courante)
+        url := url_parser(vue_html, vue_html.adresse_courante);
         si url {
-            page_web := vue_html.page_web
+            page_web := vue_html.page_web;
             si page_web.navigable {
-                params: ParamètresNavigationNavigable
-                params.url = url
-                params.source_document = donne_document(*page_web)
-                navigate(vue_html, page_web.navigable, params)
+                params: ParamètresNavigationNavigable;
+                params.url = url;
+                params.source_document = donne_document(*page_web);
+                navigate(vue_html, page_web.navigable, params);
             }
             sinon {
-                navigable := crée_un_fresh_top_level_traversable(vue_html, url) comme *TraversableNavigable
-                vue_html.page_web = crée_page_web(navigable)
+                navigable := crée_un_fresh_top_level_traversable(vue_html, url) comme *TraversableNavigable;
+                vue_html.page_web = crée_page_web(navigable);
             }
         }
     }
 }
 
 GuetteuseÉditionTexteVueHTML :: struct {
-    empl get: GuetteuseÉditionTexte
+    empl get: GuetteuseÉditionTexte;
 
-    vue_html: *VueHTML
-    rappels: *RappelsÉditionTexteNavigation
-    id_boite: n64
+    vue_html: *VueHTML;
+    rappels: *RappelsÉditionTexteNavigation;
+    id_boite: n64;
 }
 
 guetteuse_édition_texte_sur_destruction :: fonc (guetteuse: *GuetteuseÉditionTexteVueHTML)
 {
-    guetteuse.vue_html.guetteuse = nul
-    définis_éditrice_texte(*guetteuse.vue_html.emboiteuse, guetteuse.id_boite, nul)
-    déloge(guetteuse.rappels)
-    déloge(guetteuse.éditrice)
-    déloge(guetteuse)
+    guetteuse.vue_html.guetteuse = nul;
+    définis_éditrice_texte(*guetteuse.vue_html.emboiteuse, guetteuse.id_boite, nul);
+    déloge(guetteuse.rappels);
+    déloge(guetteuse.éditrice);
+    déloge(guetteuse);
 }
 
 /** \} */
@@ -743,245 +743,245 @@ guetteuse_édition_texte_sur_destruction :: fonc (guetteuse: *GuetteuseÉditionT
  * \{ */
 
 RappelsInterfaceVueHTML :: struct {
-    empl base: RappelsInterface
+    empl base: RappelsInterface;
     
-    vue_html: *VueHTML
-    fenêtre: TypeFenêtre
-    window: *QT_Window
+    vue_html: *VueHTML;
+    fenêtre: TypeFenêtre;
+    window: *QT_Window;
 
-    files_parallèles: [..]FileParallèle
-    files_parallèle_pour_traversable: [..]FileParallèle
+    files_parallèles: [..]FileParallèle;
+    files_parallèle_pour_traversable: [..]FileParallèle;
 
     DonnéesTimer :: struct {
-        timer: *QT_Timer
-        id: z32
+        timer: *QT_Timer;
+        id: z32;
     }
 
-    timers: [..]DonnéesTimer
-    id_timer: z32
+    timers: [..]DonnéesTimer;
+    id_timer: z32;
 }
 
-évènement_sur_tâche_parallèle := -1
-évènement_sur_tâche_traversable := -1
+évènement_sur_tâche_parallèle := -1;
+évènement_sur_tâche_traversable := -1;
 
 initialise_rappels_interface :: fonc (résultat: *RappelsInterfaceVueHTML, vue_html: *VueHTML, fenêtre: TypeFenêtre)
 {
-    résultat.fenêtre = fenêtre
-    résultat.window = donne_qt_window(fenêtre)
-    résultat.vue_html = vue_html
+    résultat.fenêtre = fenêtre;
+    résultat.window = donne_qt_window(fenêtre);
+    résultat.vue_html = vue_html;
 
-    résultat.sur_destruction = rappels_interface_sur_destruction
-    résultat.sur_lancement_requête = rappels_interface_sur_lancement_requête
-    résultat.sur_spin_event_loop = rappels_interface_sur_spin_event_loop
-    résultat.sur_enfile_une_tâche = rappels_interface_sur_enfile_une_tâche
-    résultat.sur_tâche_parallèle = rappels_interface_sur_tâche_parallèle
-    résultat.sur_tâche_traversable = rappels_interface_sur_tâche_traversable
-    résultat.sur_est_exécuté_sur_fil_principal = rappels_interface_sur_est_exécuté_sur_fil_principal
-    résultat.sur_est_exécuté_en_parallèle = rappels_interface_sur_est_exécuté_en_parallèle
-    résultat.sur_est_exécuté_sur_file_parallèle = rappels_interface_sur_est_exécuté_sur_file_parallèle
-    résultat.sur_création_file_parallèle_pour_traversable = rappels_interface_crée_file_parallèle_pour_traversable
-    résultat.sur_affichage_alerte = rappels_interface_sur_affichage_alerte
-    résultat.sur_création_timeout = rappels_interface_sur_création_timeout
-    résultat.sur_destruction_timeout = rappels_interface_sur_destruction_timeout
+    résultat.sur_destruction = rappels_interface_sur_destruction;
+    résultat.sur_lancement_requête = rappels_interface_sur_lancement_requête;
+    résultat.sur_spin_event_loop = rappels_interface_sur_spin_event_loop;
+    résultat.sur_enfile_une_tâche = rappels_interface_sur_enfile_une_tâche;
+    résultat.sur_tâche_parallèle = rappels_interface_sur_tâche_parallèle;
+    résultat.sur_tâche_traversable = rappels_interface_sur_tâche_traversable;
+    résultat.sur_est_exécuté_sur_fil_principal = rappels_interface_sur_est_exécuté_sur_fil_principal;
+    résultat.sur_est_exécuté_en_parallèle = rappels_interface_sur_est_exécuté_en_parallèle;
+    résultat.sur_est_exécuté_sur_file_parallèle = rappels_interface_sur_est_exécuté_sur_file_parallèle;
+    résultat.sur_création_file_parallèle_pour_traversable = rappels_interface_crée_file_parallèle_pour_traversable;
+    résultat.sur_affichage_alerte = rappels_interface_sur_affichage_alerte;
+    résultat.sur_création_timeout = rappels_interface_sur_création_timeout;
+    résultat.sur_destruction_timeout = rappels_interface_sur_destruction_timeout;
 
-    nombres_de_threads := 2
+    nombres_de_threads := 2;
 
-    évènement_sur_tâche_parallèle = QT_enregistre_evenement_personnel()
-    évènement_sur_tâche_traversable = QT_enregistre_evenement_personnel()
+    évènement_sur_tâche_parallèle = QT_enregistre_evenement_personnel();
+    évènement_sur_tâche_traversable = QT_enregistre_evenement_personnel();
 
-    params: ParamètresFileParallèle
-    params.type_évènement = évènement_sur_tâche_parallèle
-    params.sur_évènement = file_parallèle_sur_évènement
+    params: ParamètresFileParallèle;
+    params.type_évènement = évènement_sur_tâche_parallèle;
+    params.sur_évènement = file_parallèle_sur_évènement;
 
     pour nombres_de_threads {
-        file := crée_file_parallèle(params)
-        tableau_ajoute(*résultat.files_parallèles, file)
+        file := crée_file_parallèle(params);
+        tableau_ajoute(*résultat.files_parallèles, file);
     }
 }
 
 file_parallèle_sur_évènement :: fonc (évènement: *QT_Evenement)
 {
-    algorithm := QT_event_perso_donne_donnees(évènement) comme *Algorithm
-    run(algorithm)
+    algorithm := QT_event_perso_donne_donnees(évènement) comme *Algorithm;
+    run(algorithm);
 }
 
 rappels_interface_sur_destruction :: fonc (rappels: *RappelsInterfaceVueHTML)
 {
     pour rappels.files_parallèles {
-        QT_thread_quit(it.thread)
-        QT_thread_wait(it.thread)
+        QT_thread_quit(it.thread);
+        QT_thread_wait(it.thread);
     }
 
     pour rappels.files_parallèle_pour_traversable {
-        QT_thread_quit(it.thread)
-        QT_thread_wait(it.thread)
+        QT_thread_quit(it.thread);
+        QT_thread_wait(it.thread);
     }
 
     pour rappels.timers {
-        QT_timer_arrete(it.timer)
+        QT_timer_arrete(it.timer);
     }
 
-    déloge(rappels.files_parallèle_pour_traversable)
-    déloge(rappels.timers)
+    déloge(rappels.files_parallèle_pour_traversable);
+    déloge(rappels.timers);
 }
 
 RappelsRequête :: struct {
-    empl base: QT_Rappels_Socket
+    empl base: QT_Rappels_Socket;
 
-    requête: *Request
-    parseuse: ParseuseMessageServeuseHTTP
-    response: *Response
+    requête: *Request;
+    parseuse: ParseuseMessageServeuseHTTP;
+    response: *Response;
 
-    temps_parsage_http: z64
-    début_requête: Instantané
+    temps_parsage_http: z64;
+    début_requête: Instantané;
 }
 
 rappels_interface_sur_lancement_requête :: fonc (rappels: *RappelsInterfaceVueHTML, requête: *Request) -> *Response
 {
-    rappels_socket := crée_rappel_socket_pour_requête(requête)
-    diffère déloge(rappels_socket)
+    rappels_socket := crée_rappel_socket_pour_requête(requête);
+    diffère déloge(rappels_socket);
 
     /* Parent nul pour éviter les problèmes si nous ne sommes dans le fil principal. */
-    parent : *QT_Object = nul
+    parent : *QT_Object = nul;
 
-    uri := requête.donne_url_courant()
-    hôte := uri.host
-    port := donne_port_ou_défaut(uri)
+    uri := requête.donne_url_courant();
+    hôte := uri.host;
+    port := donne_port_ou_défaut(uri);
 
     si uri.scheme == "http" {
-        prise := QT_cree_ssl_socket_rappels(parent, rappels_socket)
-        QT_abstract_socket_connect_to_host(prise, hôte.vers_qt(), port)
+        prise := QT_cree_ssl_socket_rappels(parent, rappels_socket);
+        QT_abstract_socket_connect_to_host(prise, hôte.vers_qt(), port);
     }
     sinon {
-        assert(uri.scheme == "https")
-        prise := QT_cree_ssl_socket_rappels(parent, rappels_socket)
-        QT_ssl_socket_connect_to_host_encrypted(prise, hôte.vers_qt(), port)
+        assert(uri.scheme == "https");
+        prise := QT_cree_ssl_socket_rappels(parent, rappels_socket);
+        QT_ssl_socket_connect_to_host_encrypted(prise, hôte.vers_qt(), port);
     }
 
     tantque rappels_socket.response == nul {
-        rappels_interface_sur_spin_event_loop(rappels)
+        rappels_interface_sur_spin_event_loop(rappels);
     }
 
-    retourne rappels_socket.response
+    retourne rappels_socket.response;
 }
 
 crée_rappel_socket_pour_requête :: fonc (requête: *Request) -> *RappelsRequête
 {
-    sur_connexion :: fonc (base: *QT_Rappels_Socket)
+    sur_connexion :: fonc (base: *QT_Rappels_Socket);
     {
-        rappels := base comme *RappelsRequête
+        rappels := base comme *RappelsRequête;
 
-        rappels.début_requête = maintenant_précis()
+        rappels.début_requête = maintenant_précis();
 
-        enchaineuse: Enchaineuse
-        initialise_enchaineuse(*enchaineuse)
+        enchaineuse: Enchaineuse;
+        initialise_enchaineuse(*enchaineuse);
 
-        uri := rappels.requête.donne_url_courant()
+        uri := rappels.requête.donne_url_courant();
 
-        ajoute_au_tampon(*enchaineuse, rappels.requête.method, " ")
-        sérialise_chemin(*enchaineuse, uri)
-        sérialise_requête(*enchaineuse, uri)
+        ajoute_au_tampon(*enchaineuse, rappels.requête.method, " ");
+        sérialise_chemin(*enchaineuse, uri);
+        sérialise_requête(*enchaineuse, uri);
 
-        ajoute_au_tampon(*enchaineuse, " HTTP/1.1\r\n")
+        ajoute_au_tampon(*enchaineuse, " HTTP/1.1\r\n");
 
         pour rappels.requête.header_list {
-            ajoute_au_tampon(*enchaineuse, it.name, ": ", it.value, "\r\n")
+            ajoute_au_tampon(*enchaineuse, it.name, ": ", it.value, "\r\n");
         }
 
-        ajoute_au_tampon(*enchaineuse, "\r\n")
+        ajoute_au_tampon(*enchaineuse, "\r\n");
 
-        texte_requête := chaine_depuis_enchaineuse(*enchaineuse)
-        diffère déloge(texte_requête)
+        texte_requête := chaine_depuis_enchaineuse(*enchaineuse);
+        diffère déloge(texte_requête);
 
-        _ := QT_abstract_socket_write(rappels.socket, texte_requête.pointeur, texte_requête.taille)
+        _ := QT_abstract_socket_write(rappels.socket, texte_requête.pointeur, texte_requête.taille);
         // imprime("Écris : % / %\n", écris, texte_requête.taille)
     }
 
-    sur_erreur :: fonc (base: *QT_Rappels_Socket, error: QT_Socket_Error)
+    sur_erreur :: fonc (base: *QT_Rappels_Socket, error: QT_Socket_Error);
     {
-        rappels := base comme *RappelsRequête
-        imprime("Erreur %\n", error)
-        rappels.response = network_error(rappels.requête)
+        rappels := base comme *RappelsRequête;
+        imprime("Erreur %\n", error);
+        rappels.response = network_error(rappels.requête);
     }
 
-    sur_prêt_à_lire :: fonc (base: *QT_Rappels_Socket)
+    sur_prêt_à_lire :: fonc (base: *QT_Rappels_Socket);
     {
-        rappels := base comme *RappelsRequête
-        parseuse := *rappels.parseuse
+        rappels := base comme *RappelsRequête;
+        parseuse := *rappels.parseuse;
 
-        enchaineuse: Enchaineuse
-        initialise_enchaineuse(*enchaineuse)
+        enchaineuse: Enchaineuse;
+        initialise_enchaineuse(*enchaineuse);
 
-        octets_lu := QT_abstract_socket_read(rappels.socket, *enchaineuse.tampon_courant.données[0], TAILLE_TAMPON_ENCHAINEUSE)
+        octets_lu := QT_abstract_socket_read(rappels.socket, *enchaineuse.tampon_courant.données[0], TAILLE_TAMPON_ENCHAINEUSE);
 
-        enchaineuse.tampon_courant.occupé = octets_lu comme z32
+        enchaineuse.tampon_courant.occupé = octets_lu comme z32;
 
-        lu := chaine_depuis_enchaineuse(*enchaineuse)
+        lu := chaine_depuis_enchaineuse(*enchaineuse);
 
-        début_parsage_http := maintenant_précis()
-        ajourne_données(parseuse, lu)
-        rappels.temps_parsage_http += début_parsage_http.temps_écoulé_microsecondes()
+        début_parsage_http := maintenant_précis();
+        ajourne_données(parseuse, lu);
+        rappels.temps_parsage_http += début_parsage_http.temps_écoulé_microsecondes();
 
         si message_est_erroné(parseuse) {
-            imprime("Erreur de parsage")
-            QT_abstract_socket_close(rappels.socket)
-            retourne
+            imprime("Erreur de parsage");
+            QT_abstract_socket_close(rappels.socket);
+            retourne;
         }
 
         saufsi message_prêt_pour_finalisation(parseuse) {
-            retourne
+            retourne;
         }
 
-        imprime("Temps de parsage HTTP : %\n", rappels.temps_parsage_http)
-        imprime("Temps requête         : %\n", rappels.début_requête.temps_écoulé_microsecondes())
+        imprime("Temps de parsage HTTP : %\n", rappels.temps_parsage_http);
+        imprime("Temps requête         : %\n", rappels.début_requête.temps_écoulé_microsecondes());
 
-        message := finalise_message(parseuse)
+        message := finalise_message(parseuse);
 
-        contenu := copie_chaine(message.contenu)
-        content_type := donne_type_contenu(*message)
-        charset := donne_charset(*message)
+        contenu := copie_chaine(message.contenu);
+        content_type := donne_type_contenu(*message);
+        charset := donne_charset(*message);
 
         si compare_ascii_insensible_à_la_casse(charset, "ISO-8859-1") {
-            nouveau_contenu := convertis_iso_8859_1_vers_utf8(message.contenu)
-            déloge(contenu)
-            contenu = nouveau_contenu
+            nouveau_contenu := convertis_iso_8859_1_vers_utf8(message.contenu);
+            déloge(contenu);
+            contenu = nouveau_contenu;
         }
 
-        response := crée_réponse(rappels.requête)
-        response.status = message.status
+        response := crée_réponse(rappels.requête);
+        response.status = message.status;
 
-        body_info := loge(ResponseBodyInfo)
-        body_info.decodede_size = message.contenu.taille comme z32
-        body_info.content_type = copie_chaine(content_type)
+        body_info := loge(ResponseBodyInfo);
+        body_info.decodede_size = message.contenu.taille comme z32;
+        body_info.content_type = copie_chaine(content_type);
 
-        response.body_info = body_info
-        response.body = contenu
+        response.body_info = body_info;
+        response.body = contenu;
 
-        rappels.response = response
+        rappels.response = response;
 
-        réinitialise(parseuse)
+        réinitialise(parseuse);
 
-        QT_abstract_socket_close(rappels.socket)
+        QT_abstract_socket_close(rappels.socket);
     }
 
-    rappels := loge(RappelsRequête)
-    rappels.requête = requête
-    rappels.sur_pret_a_lire = sur_prêt_à_lire
-    rappels.sur_connexion = sur_connexion
-    rappels.sur_erreur = sur_erreur
-    retourne rappels
+    rappels := loge(RappelsRequête);
+    rappels.requête = requête;
+    rappels.sur_pret_a_lire = sur_prêt_à_lire;
+    rappels.sur_connexion = sur_connexion;
+    rappels.sur_erreur = sur_erreur;
+    retourne rappels;
 }
 
 rappels_interface_sur_spin_event_loop :: fonc (rappels: *RappelsInterfaceVueHTML @inutilisée)
 {
-    QT_application_process_events()
+    QT_application_process_events();
 }
 
 rappels_interface_sur_enfile_une_tâche :: fonc (rappels: *RappelsInterfaceVueHTML, source: SourceDeTâche, algorithm: *Algorithm)
 {
-    tâche := tableau_ajoute_élément(*rappels.vue_html.file_de_tâche)
-    tâche.source = source
-    tâche.algorithm = algorithm
+    tâche := tableau_ajoute_élément(*rappels.vue_html.file_de_tâche);
+    tâche.source = source;
+    tâche.algorithm = algorithm;
 }
 
 rappels_interface_sur_tâche_parallèle :: fonc (rappels: *RappelsInterfaceVueHTML, algorithm: *Algorithm)
@@ -989,100 +989,100 @@ rappels_interface_sur_tâche_parallèle :: fonc (rappels: *RappelsInterfaceVueHT
     /* Donne la tâche au premier thread qui n'est pas le nôtre. */
     pour rappels.files_parallèles {
         si it.thread != QT_thread_courant() {
-            QT_application_poste_evenement_et_donnees(it.filtre_évènement, évènement_sur_tâche_parallèle, algorithm)
-            retourne
+            QT_application_poste_evenement_et_donnees(it.filtre_évènement, évènement_sur_tâche_parallèle, algorithm);
+            retourne;
         }
     }
 
-    panique("pas assez de threads")
+    panique("pas assez de threads");
 }
 
 rappels_interface_sur_tâche_traversable :: fonc (rappels: *RappelsInterfaceVueHTML, traversable: *TraversableNavigable, algorithm: *Algorithm)
 {
-    file := rappels.files_parallèle_pour_traversable[traversable.indice_file_parallèle]
-    QT_application_poste_evenement_et_donnees(file.filtre_évènement, évènement_sur_tâche_traversable, algorithm)
+    file := rappels.files_parallèle_pour_traversable[traversable.indice_file_parallèle];
+    QT_application_poste_evenement_et_donnees(file.filtre_évènement, évènement_sur_tâche_traversable, algorithm);
 }
 
 rappels_interface_sur_est_exécuté_sur_fil_principal :: fonc (rappels: *RappelsInterfaceVueHTML @inutilisée) -> bool
 {
-    retourne QT_thread_courant() == QT_application_thread()
+    retourne QT_thread_courant() == QT_application_thread();
 }
 
 rappels_interface_sur_est_exécuté_en_parallèle :: fonc (rappels: *RappelsInterfaceVueHTML @inutilisée) -> bool
 {
-    retourne QT_thread_courant() != QT_application_thread()
+    retourne QT_thread_courant() != QT_application_thread();
 }
 
 rappels_interface_sur_est_exécuté_sur_file_parallèle :: fonc (rappels: *RappelsInterfaceVueHTML, traversable: *TraversableNavigable) -> bool
 {
-    file := rappels.files_parallèle_pour_traversable[traversable.indice_file_parallèle]
-    retourne QT_thread_courant() == file.thread
+    file := rappels.files_parallèle_pour_traversable[traversable.indice_file_parallèle];
+    retourne QT_thread_courant() == file.thread;
 }
 
 rappels_interface_crée_file_parallèle_pour_traversable :: fonc (rappels: *RappelsInterfaceVueHTML) -> z64
 {
-    résultat := rappels.files_parallèle_pour_traversable.taille
+    résultat := rappels.files_parallèle_pour_traversable.taille;
 
-    params: ParamètresFileParallèle
-    params.type_évènement = évènement_sur_tâche_traversable
-    params.sur_évènement = file_parallèle_sur_évènement
+    params: ParamètresFileParallèle;
+    params.type_évènement = évènement_sur_tâche_traversable;
+    params.sur_évènement = file_parallèle_sur_évènement;
 
-    file := crée_file_parallèle(params)
-    tableau_ajoute(*rappels.files_parallèle_pour_traversable, file)
+    file := crée_file_parallèle(params);
+    tableau_ajoute(*rappels.files_parallèle_pour_traversable, file);
 
-    retourne résultat
+    retourne résultat;
 }
 
 rappels_interface_sur_affichage_alerte :: fonc (rappels: *RappelsInterfaceVueHTML @inutilisée, message: DOMString)
 {
-    chn_message := convertis_vers_chaine(message.donne_chaine_utf16())
-    diffère déloge(chn_message)
+    chn_message := convertis_vers_chaine(message.donne_chaine_utf16());
+    diffère déloge(chn_message);
 
-    parent: QT_Generic_Widget
-    _ := QT_message_box_affiche_avertissement(parent, vers_qt("Alerte"), vers_qt(chn_message), QT_StandardButton.OK)
+    parent: QT_Generic_Widget;
+    _ := QT_message_box_affiche_avertissement(parent, vers_qt("Alerte"), vers_qt(chn_message), QT_StandardButton.OK);
 }
 
 rappels_interface_sur_création_timeout :: fonc (rappels: *RappelsInterfaceVueHTML, algorithm: *Algorithm, time_out: z32, se_répète: bool) -> z32
 {
     RappelTimer :: struct {
-        empl base: QT_Rappels_Timer
-        algorithm: *Algorithm
+        empl base: QT_Rappels_Timer;
+        algorithm: *Algorithm;
     }
 
-    sur_timeout :: fonc (base: *QT_Rappels_Timer)
+    sur_timeout :: fonc (base: *QT_Rappels_Timer);
     {
-        rappel := base comme *RappelTimer
+        rappel := base comme *RappelTimer;
         si rappel.algorithm.sur_run {
-            rappel.algorithm.sur_run(rappel.algorithm)
+            rappel.algorithm.sur_run(rappel.algorithm);
         }
     }
 
-    rappel_timer := QT_loge_rappel(RappelTimer)
-    rappel_timer.algorithm = algorithm
-    rappel_timer.sur_timeout = sur_timeout
+    rappel_timer := QT_loge_rappel(RappelTimer);
+    rappel_timer.algorithm = algorithm;
+    rappel_timer.sur_timeout = sur_timeout;
 
-    timer := QT_cree_timer(rappel_timer)
-    QT_timer_definis_se_repete(timer, se_répète)
+    timer := QT_cree_timer(rappel_timer);
+    QT_timer_definis_se_repete(timer, se_répète);
 
-    id := rappels.id_timer
-    rappels.id_timer += 1
+    id := rappels.id_timer;
+    rappels.id_timer += 1;
 
-    données := tableau_ajoute_élément(*rappels.timers)
-    données.timer = timer
-    données.id = id
+    données := tableau_ajoute_élément(*rappels.timers);
+    données.timer = timer;
+    données.id = id;
 
-    QT_timer_debute(timer, time_out)
+    QT_timer_debute(timer, time_out);
 
-    retourne id
+    retourne id;
 }
 
 rappels_interface_sur_destruction_timeout :: fonc (rappels: *RappelsInterfaceVueHTML, id: z32)
 {
     pour rappels.timers {
         si it.id == id {
-            QT_timer_arrete(it.timer)
-            tableau_supprime_indice(*rappels.timers, indice_it)
-            retourne
+            QT_timer_arrete(it.timer);
+            tableau_supprime_indice(*rappels.timers, indice_it);
+            retourne;
         }
     }
 }

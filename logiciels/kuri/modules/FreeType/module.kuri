@@ -1,6 +1,6 @@
-importe Fondation
+importe Fondation;
 
-charge "interface"
+charge "interface";
 
 /*
 
@@ -22,7 +22,7 @@ char *FT_Error_String(FT_Error error_code)
 
 imprime_erreur_freetype :: fonc (error: FT_Error @inutilisée, position := #position_code_source @inutilisée)
 {
-    imprimeln("ERREUR ::::::::::::: !!!")
+    imprimeln("ERREUR ::::::::::::: !!!");
     // fprintf(stderr, "FT_Error (line %d, 0x%02x) : %s\n", __LINE__, error, FT_Error_String(error));
 }
 
@@ -30,13 +30,13 @@ imprime_erreur_freetype :: fonc (error: FT_Error @inutilisée, position := #posi
 /** \nom Constantes et macros définis par freetype.
  * \{ */
 
-ft_sfnt_head :: FT_Sfnt_Tag.FT_SFNT_HEAD
-ft_sfnt_maxp :: FT_Sfnt_Tag.FT_SFNT_MAXP
-ft_sfnt_os2  :: FT_Sfnt_Tag.FT_SFNT_OS2
-ft_sfnt_hhea :: FT_Sfnt_Tag.FT_SFNT_HHEA
-ft_sfnt_vhea :: FT_Sfnt_Tag.FT_SFNT_VHEA
-ft_sfnt_post :: FT_Sfnt_Tag.FT_SFNT_POST
-ft_sfnt_pclt :: FT_Sfnt_Tag.FT_SFNT_PCLT
+ft_sfnt_head :: FT_Sfnt_Tag.FT_SFNT_HEAD;
+ft_sfnt_maxp :: FT_Sfnt_Tag.FT_SFNT_MAXP;
+ft_sfnt_os2  :: FT_Sfnt_Tag.FT_SFNT_OS2;
+ft_sfnt_hhea :: FT_Sfnt_Tag.FT_SFNT_HHEA;
+ft_sfnt_vhea :: FT_Sfnt_Tag.FT_SFNT_VHEA;
+ft_sfnt_post :: FT_Sfnt_Tag.FT_SFNT_POST;
+ft_sfnt_pclt :: FT_Sfnt_Tag.FT_SFNT_PCLT;
 
   /**************************************************************************
    *
@@ -218,31 +218,31 @@ ft_sfnt_pclt :: FT_Sfnt_Tag.FT_SFNT_PCLT
    *   results.
    *
    */
-FT_LOAD_DEFAULT                      : FT_Int32 : 0x0
-FT_LOAD_NO_SCALE                     : FT_Int32 : ( 1 << 0 )
-FT_LOAD_NO_HINTING                   : FT_Int32 : ( 1 << 1 )
-FT_LOAD_RENDER                       : FT_Int32 : ( 1 << 2 )
-FT_LOAD_NO_BITMAP                    : FT_Int32 : ( 1 << 3 )
-FT_LOAD_VERTICAL_LAYOUT              : FT_Int32 : ( 1 << 4 )
-FT_LOAD_FORCE_AUTOHINT               : FT_Int32 : ( 1 << 5 )
-FT_LOAD_CROP_BITMAP                  : FT_Int32 : ( 1 << 6 )
-FT_LOAD_PEDANTIC                     : FT_Int32 : ( 1 << 7 )
-FT_LOAD_IGNORE_GLOBAL_ADVANCE_WIDTH  : FT_Int32 : ( 1 << 9 )
-FT_LOAD_NO_RECURSE                   : FT_Int32 : ( 1 << 10 )
-FT_LOAD_IGNORE_TRANSFORM             : FT_Int32 : ( 1 << 11 )
-FT_LOAD_MONOCHROME                   : FT_Int32 : ( 1 << 12 )
-FT_LOAD_LINEAR_DESIGN                : FT_Int32 : ( 1 << 13 )
-FT_LOAD_NO_AUTOHINT                  : FT_Int32 : ( 1 << 15 )
+FT_LOAD_DEFAULT                      : FT_Int32 : 0x0;
+FT_LOAD_NO_SCALE                     : FT_Int32 : ( 1 << 0 );
+FT_LOAD_NO_HINTING                   : FT_Int32 : ( 1 << 1 );
+FT_LOAD_RENDER                       : FT_Int32 : ( 1 << 2 );
+FT_LOAD_NO_BITMAP                    : FT_Int32 : ( 1 << 3 );
+FT_LOAD_VERTICAL_LAYOUT              : FT_Int32 : ( 1 << 4 );
+FT_LOAD_FORCE_AUTOHINT               : FT_Int32 : ( 1 << 5 );
+FT_LOAD_CROP_BITMAP                  : FT_Int32 : ( 1 << 6 );
+FT_LOAD_PEDANTIC                     : FT_Int32 : ( 1 << 7 );
+FT_LOAD_IGNORE_GLOBAL_ADVANCE_WIDTH  : FT_Int32 : ( 1 << 9 );
+FT_LOAD_NO_RECURSE                   : FT_Int32 : ( 1 << 10 );
+FT_LOAD_IGNORE_TRANSFORM             : FT_Int32 : ( 1 << 11 );
+FT_LOAD_MONOCHROME                   : FT_Int32 : ( 1 << 12 );
+FT_LOAD_LINEAR_DESIGN                : FT_Int32 : ( 1 << 13 );
+FT_LOAD_NO_AUTOHINT                  : FT_Int32 : ( 1 << 15 );
   /* Bits 16-19 are used by `FT_LOAD_TARGET_` */
-FT_LOAD_COLOR                        : FT_Int32 : ( 1 << 20 )
-FT_LOAD_COMPUTE_METRICS              : FT_Int32 : ( 1 << 21 )
-FT_LOAD_BITMAP_METRICS_ONLY          : FT_Int32 : ( 1 << 22 )
+FT_LOAD_COLOR                        : FT_Int32 : ( 1 << 20 );
+FT_LOAD_COMPUTE_METRICS              : FT_Int32 : ( 1 << 21 );
+FT_LOAD_BITMAP_METRICS_ONLY          : FT_Int32 : ( 1 << 22 );
 
   /* */
 
   /* used internally only by certain font drivers */
-FT_LOAD_ADVANCE_ONLY                 : FT_Int32 : ( 1 << 8 )
-FT_LOAD_SBITS_ONLY                   : FT_Int32 : ( 1 << 14 )
+FT_LOAD_ADVANCE_ONLY                 : FT_Int32 : ( 1 << 8 );
+FT_LOAD_SBITS_ONLY                   : FT_Int32 : ( 1 << 14 );
 
   /**************************************************************************
    *
@@ -333,32 +333,32 @@ FT_LOAD_SBITS_ONLY                   : FT_Int32 : ( 1 << 14 )
    */
 FT_LOAD_TARGET_ :: fonc (x: FT_Int32) -> FT_Int32 #enligne
 {
-    retourne (x & 15) << 16
+    retourne (x & 15) << 16;
 }
 
 FT_LOAD_TARGET_NORMAL :: fonc () -> FT_Int32 #enligne
 {
-    retourne FT_LOAD_TARGET_(FT_Render_Mode.NORMAL comme n32 comme FT_Int32)
+    retourne FT_LOAD_TARGET_(FT_Render_Mode.NORMAL comme n32 comme FT_Int32);
 }
 
 FT_LOAD_TARGET_LIGHT :: fonc () -> FT_Int32 #enligne
 {
-    retourne FT_LOAD_TARGET_(FT_Render_Mode.LIGHT comme n32 comme FT_Int32)
+    retourne FT_LOAD_TARGET_(FT_Render_Mode.LIGHT comme n32 comme FT_Int32);
 }
 
 FT_LOAD_TARGET_MONO :: fonc () -> FT_Int32 #enligne
 {
-    retourne FT_LOAD_TARGET_(FT_Render_Mode.MONO comme n32 comme FT_Int32)
+    retourne FT_LOAD_TARGET_(FT_Render_Mode.MONO comme n32 comme FT_Int32);
 }
 
 FT_LOAD_TARGET_LCD :: fonc () -> FT_Int32 #enligne
 {
-    retourne FT_LOAD_TARGET_(FT_Render_Mode.LCD comme n32 comme FT_Int32)
+    retourne FT_LOAD_TARGET_(FT_Render_Mode.LCD comme n32 comme FT_Int32);
 }
 
 FT_LOAD_TARGET_LCD_V :: fonc () -> FT_Int32 #enligne
 {
-    retourne FT_LOAD_TARGET_(FT_Render_Mode.LCD_V comme n32 comme FT_Int32)
+    retourne FT_LOAD_TARGET_(FT_Render_Mode.LCD_V comme n32 comme FT_Int32);
 }
 
   /**************************************************************************
@@ -373,7 +373,7 @@ FT_LOAD_TARGET_LCD_V :: fonc () -> FT_Int32 #enligne
    */
 FT_LOAD_TARGET_MODE :: fonc (x: FT_Int32) -> FT_Render_Mode #enligne
 {
-    retourne ((x >> 16) & 15) comme FT_Render_Mode
+    retourne ((x >> 16) & 15) comme FT_Render_Mode;
 }
 
 /** \} */
@@ -385,13 +385,13 @@ FT_LOAD_TARGET_MODE :: fonc (x: FT_Int32) -> FT_Render_Mode #enligne
 F26Dot6_vers_r32 :: fonc (valeur: FT_F26Dot6) -> r32
 {
     /* 64 = 2^6, pour les 6 derniers bits de FT_F26Dot6 */
-    retourne (valeur comme r32) / 64.0
+    retourne (valeur comme r32) / 64.0;
 }
 
 r32_vers_F26Dot6 :: fonc (valeur: r32) -> FT_F26Dot6
 {
     /* 64 = 2^6, pour les 6 derniers bits de FT_F26Dot6 */
-    retourne (valeur * 64.0)  comme FT_F26Dot6
+    retourne (valeur * 64.0)  comme FT_F26Dot6;
 }
 
 /** \} */

@@ -4,23 +4,23 @@
  * \{ */
 
 ContenuHTTP :: struct {
-    type: chaine
-    contenu: chaine
+    type: chaine;
+    contenu: chaine;
 }
 
 contenu_url_form_encoded :: fonc (chn: chaine) -> ContenuHTTP
 {
-    retourne ContenuHTTP("application/x-www-form-urlencoded", chn)
+    retourne ContenuHTTP("application/x-www-form-urlencoded", chn);
 }
 
 contenu_html :: fonc (html: chaine) -> ContenuHTTP
 {
-    retourne ContenuHTTP("text/html;charset=utf-8", html)
+    retourne ContenuHTTP("text/html;charset=utf-8", html);
 }
 
 contenu_json :: fonc (json: chaine) -> ContenuHTTP
 {
-    retourne ContenuHTTP("application/json;charset=utf-8", json)
+    retourne ContenuHTTP("application/json;charset=utf-8", json);
 }
 
 /** \} */
@@ -30,158 +30,158 @@ contenu_json :: fonc (json: chaine) -> ContenuHTTP
  * \{ */
 
 MessageHTTP :: struct {
-    version: chaine
-    entêtes: [..]Entête
-    contenu: chaine
+    version: chaine;
+    entêtes: [..]Entête;
+    contenu: chaine;
 
-    cookies: [..]Cookie
+    cookies: [..]Cookie;
 }
 
 détruit_message :: fonc (message: *MessageHTTP)
 {
     pour message.cookies {
-        détruit_cookie(it)
+        détruit_cookie(it);
     }
 
-    déloge(message.cookies)
-    déloge(message.entêtes)
+    déloge(message.cookies);
+    déloge(message.entêtes);
 }
 
 ajoute_cookie :: fonc (message: *MessageHTTP, cookie: Cookie)
 {
-    tableau_ajoute(*message.cookies, cookie)
+    tableau_ajoute(*message.cookies, cookie);
 }
 
 est_type_contenu :: fonc (message: *MessageHTTP, type_contenu: chaine) -> bool
 {
-    entête_type_contenu := entête(message, "Content-Type")
+    entête_type_contenu := entête(message, "Content-Type");
 
     saufsi entête_type_contenu {
-        retourne faux
+        retourne faux;
     }
 
-    retourne entête_type_contenu.valeur == type_contenu
+    retourne entête_type_contenu.valeur == type_contenu;
 }
 
 /* Liste des médias de l'IANA :
  * https://www.iana.org/assignments/media-types/media-types.xhtml?utm_source=localhost%3A8080 */
 donne_type_contenu :: fonc (message: *MessageHTTP) -> chaine
 {
-    entête_content_type := entête(message, "Content-Type")
+    entête_content_type := entête(message, "Content-Type");
     saufsi entête_content_type {
-        retourne ""
+        retourne "";
     }
 
-    valeur := entête_content_type.valeur
-    morceaux := divise(valeur, ';')
-    diffère déloge(morceaux)
+    valeur := entête_content_type.valeur;
+    morceaux := divise(valeur, ';');
+    diffère déloge(morceaux);
 
-    résultat: chaine
+    résultat: chaine;
 
     si morceaux {
-        résultat = morceaux[0]
+        résultat = morceaux[0];
     }
     sinon {
-        résultat = valeur
+        résultat = valeur;
     }
 
-    retourne supprime_espaces_blancs(résultat)
+    retourne supprime_espaces_blancs(résultat);
 }
 
 donne_charset :: fonc (message: *MessageHTTP) -> chaine
 {
-    entête_content_type := entête(message, "Content-Type")
+    entête_content_type := entête(message, "Content-Type");
     saufsi entête_content_type {
-        retourne ""
+        retourne "";
     }
 
-    valeur := entête_content_type.valeur
-    morceaux := divise(valeur, ';')
-    diffère déloge(morceaux)
+    valeur := entête_content_type.valeur;
+    morceaux := divise(valeur, ';');
+    diffère déloge(morceaux);
 
-    résultat: chaine
+    résultat: chaine;
 
     si morceaux {
         pour 1 ... morceaux.taille - 1 {
-            morceaux_attribut := divise(morceaux[it], '=')
+            morceaux_attribut := divise(morceaux[it], '=');
             // À FAIRE(langage)
             // diffère déloge(morceaux_attribut)
 
             si morceaux_attribut.taille != 2 {
-                continue
+                continue;
             }
 
             saufsi compare_ascii_insensible_à_la_casse(morceaux_attribut[0], "charset") {
-                continue
+                continue;
             }
 
-            résultat = morceaux_attribut[1]
-            arrête
+            résultat = morceaux_attribut[1];
+            arrête;
         }
     }
 
-    retourne supprime_espaces_blancs(résultat)
+    retourne supprime_espaces_blancs(résultat);
 }
 
 valeur_entête_ou :: fonc (message: *MessageHTTP, nom: chaine, défaut: chaine) -> chaine
 {
-    entête_pour_nom := entête(message, nom)
+    entête_pour_nom := entête(message, nom);
 
     saufsi entête_pour_nom {
-        retourne défaut
+        retourne défaut;
     }
 
-    retourne entête_pour_nom.valeur
+    retourne entête_pour_nom.valeur;
 }
 
 possède_entête :: fonc (message: &MessageHTTP, nom: chaine) -> bool
 {
-    retourne entête(message, nom) != nul
+    retourne entête(message, nom) != nul;
 }
 
 entête :: fonc (message: &MessageHTTP, nom: chaine) -> *Entête
 {
     pour * message.entêtes {
         si compare_ascii_insensible_à_la_casse(it.nom, nom) {
-            retourne it
+            retourne it;
         }
     }
 
-    retourne nul
+    retourne nul;
 }
 
 possède_entête :: fonc (message: *MessageHTTP, nom: chaine) -> bool
 {
-    retourne entête(message, nom) != nul
+    retourne entête(message, nom) != nul;
 }
 
 entête :: fonc (message: *MessageHTTP, nom: chaine) -> *Entête
 {
     pour * message.entêtes {
         si compare_ascii_insensible_à_la_casse(it.nom, nom) {
-            retourne it
+            retourne it;
         }
     }
 
-    retourne nul
+    retourne nul;
 }
 
 fusionne_entête :: fonc (message: *MessageHTTP, nom: chaine, valeur: chaine)
 {
-    entête_existant := message.entête(nom)
+    entête_existant := message.entête(nom);
 
     si entête_existant {
-        entête_existant.valeur = valeur
-        retourne
+        entête_existant.valeur = valeur;
+        retourne;
     }
 
-    ajoute_entête(message, nom, valeur)
+    ajoute_entête(message, nom, valeur);
 }
 
 ajoute_entête :: fonc (message: *MessageHTTP, nom: chaine, valeur: chaine)
 {
-    entête := Entête(nom, valeur)
-    tableau_ajoute(*message.entêtes, entête)
+    entête := Entête(nom, valeur);
+    tableau_ajoute(*message.entêtes, entête);
 }
 
 /** \} */
@@ -191,67 +191,67 @@ ajoute_entête :: fonc (message: *MessageHTTP, nom: chaine, valeur: chaine)
  * \{ */
 
 MessageClienteHTTP :: struct {
-    empl base: MessageHTTP
+    empl base: MessageHTTP;
 
-    méthode: chaine
-    requête: chaine
+    méthode: chaine;
+    requête: chaine;
 
-    uri: URI
+    uri: URI;
 }
 
 initialise_depuis_message :: fonc (message_serveuse: *MessageClienteHTTP, message: MessageHTTP)
 {
-    mémoire(message_serveuse comme *MessageHTTP) = message
+    mémoire(message_serveuse comme *MessageHTTP) = message;
 }
 
 crée_message_cliente_avec_contenu :: fonc (contenu: ContenuHTTP) -> MessageClienteHTTP
 {
-    message: MessageClienteHTTP
-    message.version = "HTTP/1.1"
-    message.contenu = contenu.contenu
-    ajoute_entête(*message, "Content-Type", contenu.type)
+    message: MessageClienteHTTP;
+    message.version = "HTTP/1.1";
+    message.contenu = contenu.contenu;
+    ajoute_entête(*message, "Content-Type", contenu.type);
 
-    retourne message
+    retourne message;
 }
 
 parse_contenu_message_url_encoded :: fonc (message: &MessageClienteHTTP, $T: type_de_données) -> (bool, T)
 {
     //  À FAIRE : message.parse_contenu() -> Contenu(type_contenu, chaine) | Rien
     si !possède_entête(message, "Content-Length") {
-        retourne faux, T()
+        retourne faux, T();
     }
 
     si !possède_entête(message, "Content-Type") {
-        retourne faux, T()
+        retourne faux, T();
     }
 
-    chn_taille_contenu := entête(message, "Content-Length").valeur
+    chn_taille_contenu := entête(message, "Content-Length").valeur;
 
     taille_contenu := tente extrait_z32(chn_taille_contenu) piège err {
-        retourne faux, T()
+        retourne faux, T();
     }
 
-    type_contenu := entête(message, "Content-Type").valeur
+    type_contenu := entête(message, "Content-Type").valeur;
 
     si type_contenu != "application/x-www-form-urlencoded" {
-        retourne faux, T()
+        retourne faux, T();
     }
 
     si taille_contenu != message.contenu.taille {
-        retourne faux, T()
+        retourne faux, T();
     }
 
-    raison, résultat_parsage, info := parse_texte_format_url(message.contenu, T)
+    raison, résultat_parsage, info := parse_texte_format_url(message.contenu, T);
 
     si raison != RésultatParsage.Succès {
-        retourne faux, T()
+        retourne faux, T();
     }
 
     si !tous_les_champs_sont_renseignés(résultat_parsage) {
-        retourne faux, T()
+        retourne faux, T();
     }
 
-    retourne vrai, info
+    retourne vrai, info;
 }
 
 /** \} */
@@ -261,48 +261,48 @@ parse_contenu_message_url_encoded :: fonc (message: &MessageClienteHTTP, $T: typ
  * \{ */
 
 MessageServeuseHTTP :: struct {
-    empl base: MessageHTTP
+    empl base: MessageHTTP;
 
-    status: z32
-    code_état: CodeÉtatHTTP
+    status: z32;
+    code_état: CodeÉtatHTTP;
 }
 
 initialise_depuis_message :: fonc (message_serveuse: *MessageServeuseHTTP, message: MessageHTTP)
 {
-    mémoire(message_serveuse comme *MessageHTTP) = message
+    mémoire(message_serveuse comme *MessageHTTP) = message;
 }
 
 crée_message_avec_contenu :: fonc (code_état: CodeÉtatHTTP, contenu: ContenuHTTP) -> MessageServeuseHTTP
 {
-    message: MessageServeuseHTTP
-    message.version = "HTTP/1.1"
-    message.contenu = contenu.contenu
-    ajoute_entête(*message, "Content-Type", contenu.type)
-    ajoute_entête(*message, "Content-Length", imprime_chaine("%", contenu.contenu.taille))
-    message.code_état = code_état
+    message: MessageServeuseHTTP;
+    message.version = "HTTP/1.1";
+    message.contenu = contenu.contenu;
+    ajoute_entête(*message, "Content-Type", contenu.type);
+    ajoute_entête(*message, "Content-Length", imprime_chaine("%", contenu.contenu.taille));
+    message.code_état = code_état;
 
-    retourne message
+    retourne message;
 }
 
 chaine_pour_message_serveuse :: fonc (message: &MessageServeuseHTTP) -> chaine
 {
-    enchaineuse: Enchaineuse
-    initialise_enchaineuse(*enchaineuse)
+    enchaineuse: Enchaineuse;
+    initialise_enchaineuse(*enchaineuse);
 
-    assert(message.version.taille != 0)
+    assert(message.version.taille != 0);
 
-    imprime_dans_enchaineuse(*enchaineuse, "% %\r\n", message.version, chaine_code_état_http(message.code_état))
+    imprime_dans_enchaineuse(*enchaineuse, "% %\r\n", message.version, chaine_code_état_http(message.code_état));
 
     pour message.entêtes {
-        imprime_dans_enchaineuse(*enchaineuse, "%: %\r\n", it.nom, it.valeur)
+        imprime_dans_enchaineuse(*enchaineuse, "%: %\r\n", it.nom, it.valeur);
     }
 
     // imprime_cookie_client(*enchaineuse, message.cookies, vrai)
 
-    ajoute_au_tampon(*enchaineuse, "\r\n")
-    ajoute_au_tampon(*enchaineuse, message.contenu)
+    ajoute_au_tampon(*enchaineuse, "\r\n");
+    ajoute_au_tampon(*enchaineuse, message.contenu);
 
-    retourne chaine_depuis_enchaineuse(*enchaineuse)
+    retourne chaine_depuis_enchaineuse(*enchaineuse);
 }
 
 /** \} */
@@ -312,36 +312,36 @@ chaine_pour_message_serveuse :: fonc (message: &MessageServeuseHTTP) -> chaine
 
 chaine_pour_message_cliente :: fonc (message: &MessageClienteHTTP) -> chaine
 {
-    enchaineuse: Enchaineuse
-    initialise_enchaineuse(*enchaineuse)
+    enchaineuse: Enchaineuse;
+    initialise_enchaineuse(*enchaineuse);
 
-    imprime_dans_enchaineuse(*enchaineuse, "% % HTTP/1.1\r\n", message.méthode, message.uri.chemin_complet)
-    ajoute_au_tampon(*enchaineuse, "Host: ", message.uri.hôte)
+    imprime_dans_enchaineuse(*enchaineuse, "% % HTTP/1.1\r\n", message.méthode, message.uri.chemin_complet);
+    ajoute_au_tampon(*enchaineuse, "Host: ", message.uri.hôte);
 
-    port := port_pour_uri(message.uri)
+    port := port_pour_uri(message.uri);
     si port != 80 && port != 443 {
-        ajoute_au_tampon(*enchaineuse, ":", message.uri.port)
+        ajoute_au_tampon(*enchaineuse, ":", message.uri.port);
     }
 
-    ajoute_au_tampon(*enchaineuse, "\r\n")
+    ajoute_au_tampon(*enchaineuse, "\r\n");
 
     pour message.entêtes {
-        imprime_dans_enchaineuse(*enchaineuse, "%: %\r\n", it.nom, it.valeur)
+        imprime_dans_enchaineuse(*enchaineuse, "%: %\r\n", it.nom, it.valeur);
     }
 
-    entête_connection := cherche_entête(message.entêtes, "Connection")
+    entête_connection := cherche_entête(message.entêtes, "Connection");
     saufsi entête_connection {
-        imprime_dans_enchaineuse(*enchaineuse, "Connection: close\r\n")
+        imprime_dans_enchaineuse(*enchaineuse, "Connection: close\r\n");
     }
 
-    imprime_cookie_client(*enchaineuse, message.cookies, vrai)
+    imprime_cookie_client(*enchaineuse, message.cookies, vrai);
 
     si message.contenu {
-        imprime_dans_enchaineuse(*enchaineuse, "Content-Length: %\r\n", message.contenu.taille)
+        imprime_dans_enchaineuse(*enchaineuse, "Content-Length: %\r\n", message.contenu.taille);
     }
 
-    ajoute_au_tampon(*enchaineuse, "\r\n")
-    ajoute_au_tampon(*enchaineuse, message.contenu)
+    ajoute_au_tampon(*enchaineuse, "\r\n");
+    ajoute_au_tampon(*enchaineuse, message.contenu);
 
-    retourne chaine_depuis_enchaineuse(*enchaineuse)
+    retourne chaine_depuis_enchaineuse(*enchaineuse);
 }

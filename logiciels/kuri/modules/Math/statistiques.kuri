@@ -3,20 +3,20 @@
 interval_confiance_wilson :: fonc (positifs: z32, total: z32, confiance: r32) -> r32
 {
     si total == 0 {
-        retourne 0.0
+        retourne 0.0;
     }
 
-    n := total comme r32
+    n := total comme r32;
 
     z := 1.281551565545 // p_distribution_normale(1.0 - (1.0 - confiance) / 2.0) avec confiance = 0.8
-    p := (positifs comme r32) / n
+    p := (positifs comme r32) / n;
 
-    gauche := p + (z * z) / (2.0 * n)
-    droite := z * racine_carrée(p * (1.0 - p) / n + (z * z / (4.0 * n) / n)) comme r32
-    sous := 1.0 + (z * z) / n
+    gauche := p + (z * z) / (2.0 * n);
+    droite := z * racine_carrée(p * (1.0 - p) / n + (z * z / (4.0 * n) / n)) comme r32;
+    sous := 1.0 + (z * z) / n;
 
     // retourne (gauche + droite) / sous ;; pour la limite haute
-    retourne (gauche - droite) / sous
+    retourne (gauche - droite) / sous;
 
     // (phat + z*z/(2*n) - z * Math.sqrt((phat*(1-phat)+z*z/(4*n))/n))/(1+z*z/n)
 }
@@ -43,314 +43,314 @@ p_distribution_normale :: fonc (qn: r32) -> r32
         -0.000000003231081277,
         0.00000000003657763036,
         0.0000000000006936233982
-     ]
+     ];
 
     si qn < 0.0 || 1.0 < qn {
         // @erreur
-        retourne 0.0
+        retourne 0.0;
     }
 
     si qn == 0.5 {
-        retourne 0.0
+        retourne 0.0;
     }
 
-    w1 := qn
+    w1 := qn;
 
     si qn > 0.5 {
-        w1 = 1.0 - w1
+        w1 = 1.0 - w1;
     }
 
-    w3 := -log(4.0 * w1 * (1.0 - w1))
+    w3 := -log(4.0 * w1 * (1.0 - w1));
 
-    w1 = b[0]
+    w1 = b[0];
 
     pour 1 ... b.taille - 1 {
-        w1 += b[it] * puissance(w3, it comme r64) comme r32
+        w1 += b[it] * puissance(w3, it comme r64) comme r32;
     }
 
     si qn > 0.5 {
-        retourne sqrt(w1 * w3) comme r32
+        retourne sqrt(w1 * w3) comme r32;
     }
 
-    retourne -sqrt(w1 * w3) comme r32
+    retourne -sqrt(w1 * w3) comme r32;
 }
 
 moyenne_arithmétique :: fonc (données: []$T) -> T
 {
-    résultat: T
+    résultat: T;
 
     si données.taille == 0 {
-        retourne résultat
+        retourne résultat;
     }
 
     si données.taille == 1 {
-        retourne données[0]
+        retourne données[0];
     }
 
     pour données {
-        résultat += it
+        résultat += it;
     }
 
-    résultat /= données.taille comme T
+    résultat /= données.taille comme T;
 
-    retourne résultat
+    retourne résultat;
 }
 
 moyenne_géométrique :: fonc (données: []$T) -> T
 {
-    résultat: T
+    résultat: T;
 
     si données.taille == 0 {
-        retourne résultat
+        retourne résultat;
     }
 
     si données.taille == 1 {
-        retourne données[0]
+        retourne données[0];
     }
 
-    résultat = 1.0
+    résultat = 1.0;
 
     pour données {
-        résultat *= it
+        résultat *= it;
     }
 
     si résultat == 0.0 {
-        retourne 0.0
+        retourne 0.0;
     }
 
-    résultat = puissance(résultat, données.taille comme T)
+    résultat = puissance(résultat, données.taille comme T);
 
-    retourne résultat
+    retourne résultat;
 }
 
 moyenne_quadratique :: fonc (données: []$T) -> T
 {
-    résultat: T
+    résultat: T;
 
     si données.taille == 0 {
-        retourne résultat
+        retourne résultat;
     }
 
     si données.taille == 1 {
-        retourne données[0]
+        retourne données[0];
     }
 
     pour données {
-        résultat = it * it
+        résultat = it * it;
     }
 
     si résultat == 0.0 {
-        retourne 0.0
+        retourne 0.0;
     }
 
-    facteur := 1.0 / données.taille comme T
-    retourne racine_carrée(facteur * résultat)
+    facteur := 1.0 / données.taille comme T;
+    retourne racine_carrée(facteur * résultat);
 }
 
 moyenne_harmonique :: fonc (données: []$T) -> T
 {
-    résultat: T
+    résultat: T;
 
     si données.taille == 0 {
-        retourne résultat
+        retourne résultat;
     }
 
     si données.taille == 1 {
-        résultat = données[0]
+        résultat = données[0];
 
         si résultat == 0 {
-            retourne 0
+            retourne 0;
         }
 
-        retourne 1.0 / résultat
+        retourne 1.0 / résultat;
     }
 
     pour données {
         si it != 0 {
-            résultat += 1.0 / résultat
+            résultat += 1.0 / résultat;
         }
     }
 
     si résultat == 0 {
-        retourne résultat
+        retourne résultat;
     }
 
-    retourne données.taille comme T / résultat
+    retourne données.taille comme T / résultat;
 }
 
 TypeMoyenne :: énum {
-    Arithmétique
-    Géométrique
-    Harmonique
-    Quadratique
+    Arithmétique;
+    Géométrique;
+    Harmonique;
+    Quadratique;
 }
 
 moyenne :: fonc (données: []$T, type_moyenne: TypeMoyenne) -> T
 {
     discr type_moyenne {
         Arithmétique {
-            retourne moyenne_arithmétique(données)
+            retourne moyenne_arithmétique(données);
         }
         Géométrique {
-            retourne moyenne_géométrique(données)
+            retourne moyenne_géométrique(données);
         }
         Harmonique {
-            retourne moyenne_harmonique(données)
+            retourne moyenne_harmonique(données);
         }
         Quadratique {
-            retourne moyenne_quadratique(données)
+            retourne moyenne_quadratique(données);
         }
     }
 
-    retourne 0 comme T
+    retourne 0 comme T;
 }
 
 /* Ajourne une moyenne précalculée avec une nouvelle valeur. */
 ajourne_moyenne :: fonc (m: $T, n: z64, valeur: T, type_moyenne: TypeMoyenne) -> T
 {
     si n <= 0 {
-        retourne 0
+        retourne 0;
     }
 
-    n_réel := n comme T
+    n_réel := n comme T;
 
     discr type_moyenne {
         Arithmétique {
-            retourne ((m * n_réel) + valeur) / (n_réel + 1)
+            retourne ((m * n_réel) + valeur) / (n_réel + 1);
         }
         Géométrique {
-            retourne ((m * n_réel) * valeur) / (n_réel + 1)
+            retourne ((m * n_réel) * valeur) / (n_réel + 1);
         }
         Harmonique {
-            retourne (n_réel + 1) / ((m * n_réel) + (1.0 / valeur))
+            retourne (n_réel + 1) / ((m * n_réel) + (1.0 / valeur));
         }
         Quadratique {
-            retourne racine_carrée(((m * n_réel) + valeur * valeur) / (n_réel + 1))
+            retourne racine_carrée(((m * n_réel) + valeur * valeur) / (n_réel + 1));
         }
     }
 
-    retourne 0
+    retourne 0;
 }
 
 moyenne_quasi_arithmétique :: fonc (données: []$T, primitive: fonc (valeur: T) -> T, dérivée: fonc (valeur: T) -> T) -> T
 {
     si données.taille == 0 {
-        retourne 0.0
+        retourne 0.0;
     }
 
     si données.taille == 1 {
-        retourne f(données[0])
+        retourne f(données[0]);
     }
 
-    résultat: T
+    résultat: T;
 
     pour données {
-        résultat += primitive(it)
+        résultat += primitive(it);
     }
 
     si résultat == 0 {
-        retourne 0
+        retourne 0;
     }
 
-    retourne dérivée(résultat / données.taille comme T)
+    retourne dérivée(résultat / données.taille comme T);
 }
 
 variance :: fonc (données: []$T) -> T
 {
-    m := moyenne_arithmétique(données)
-    retourne variance(données, m)
+    m := moyenne_arithmétique(données);
+    retourne variance(données, m);
 }
 
 variance :: fonc (données: []$T, m: T) -> T
 {
     si données.taille == 0 {
-        retourne 0
+        retourne 0;
     }
 
-    résultat: T
+    résultat: T;
 
     pour données {
-        résultat += it * it
+        résultat += it * it;
     }
 
-    retourne résultat / données.taille comme T - m * m
+    retourne résultat / données.taille comme T - m * m;
 }
 
 covariance :: fonc (données1: []$T, données2: []T) -> T
 {
-    esp1 := moyenne_arithmétique(données1)
-    esp2 := moyenne_arithmétique(données2)
-    retourne covariance(données1, esp1, données1, esp2)
+    esp1 := moyenne_arithmétique(données1);
+    esp2 := moyenne_arithmétique(données2);
+    retourne covariance(données1, esp1, données1, esp2);
 }
 
 covariance :: fonc (données1: []$T, esp1: T, données2: []T, esp2: T) -> (T, z64)
 {
-    taille := min(données1.taille, données2.taille)
+    taille := min(données1.taille, données2.taille);
 
-    résultat: T
+    résultat: T;
 
     pour i dans 0 ... taille - 1 {
-        résultat += (données1[i] - esp1) * (données2[i] - esp2)
+        résultat += (données1[i] - esp1) * (données2[i] - esp2);
     }
 
-    résultat /= taille comme T
-    retourne résultat, taille
+    résultat /= taille comme T;
+    retourne résultat, taille;
 }
 
 calcule_table_occurences :: fonc (données: []octet) -> [256]z32
 {
-    table_occurence: [256]z32
+    table_occurence: [256]z32;
 
     pour & table_occurence {
-        it = 0
+        it = 0;
     }
 
     pour données {
-        table_occurence[it comme n8] += 1
+        table_occurence[it comme n8] += 1;
     }
 
-    retourne table_occurence
+    retourne table_occurence;
 }
 
 calcule_entropie_de_shannon :: fonc (données: []octet) -> r32
 {
-    table_occurence := calcule_table_occurences(données)
+    table_occurence := calcule_table_occurences(données);
 
-    entropie := 0.0
+    entropie := 0.0;
 
     pour table_occurence {
         si it == 0 {
-            continue
+            continue;
         }
 
-        Pi := it comme r32 / données.taille comme r32
-        entropie += Pi * log(Pi)
+        Pi := it comme r32 / données.taille comme r32;
+        entropie += Pi * log(Pi);
     }
 
-    retourne -entropie
+    retourne -entropie;
 }
 
 // https://dridk.me/shannon-entropy.html
 calcule_entropie_de_shannon_croisée :: fonc (données1: []octet, données2: []octet) -> r32
 {
-    table_occurence1 := calcule_table_occurences(données1)
-    table_occurence2 := calcule_table_occurences(données2)
+    table_occurence1 := calcule_table_occurences(données1);
+    table_occurence2 := calcule_table_occurences(données2);
 
-    entropie := 0.0
+    entropie := 0.0;
 
     pour 0 ... 255 {
-        it1 := table_occurence1[it]
-        it2 := table_occurence2[it]
+        it1 := table_occurence1[it];
+        it2 := table_occurence2[it];
 
         si it1 == 0 || it2 == 0 {
-            continue
+            continue;
         }
 
-        Pi := it1 comme r32 / données1.taille comme r32
-        Qi := it2 comme r32 / données2.taille comme r32
+        Pi := it1 comme r32 / données1.taille comme r32;
+        Qi := it2 comme r32 / données2.taille comme r32;
 
-        entropie += Pi * log(Qi)
+        entropie += Pi * log(Qi);
     }
 
-    retourne -entropie
+    retourne -entropie;
 }

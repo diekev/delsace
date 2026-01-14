@@ -1,8 +1,8 @@
-importe Chaine
-importe CodecDonnées
-importe Fondation
-importe Krypto
-importe Temps
+importe Chaine;
+importe CodecDonnées;
+importe Fondation;
+importe Krypto;
+importe Temps;
 
 /* Module d'authentification de données chiffrées et signées.
  *
@@ -14,39 +14,39 @@ importe Temps
 
 /* Structure pour paramétrer l'algorithme utiliser pour vérifier et créer une signature. */
 AlgorithmeSignature :: struct {
-    vérifie_signature: fonc (clé: chaine, valeur: chaine, signature: chaine) -> bool
-    crée_signature: fonc (clé: chaine, valeur: chaine) -> chaine
+    vérifie_signature: fonc (clé: chaine, valeur: chaine, signature: chaine) -> bool;
+    crée_signature: fonc (clé: chaine, valeur: chaine) -> chaine;
 }
 
 /* Vérifie une signature en utilisant HMAC. */
 vérifie_signature_hmac :: fonc (clé: chaine, valeur: chaine, signature: chaine) -> bool
 {
-    retourne compare_condensat(signature, crée_signature_hmac(clé, valeur))
+    retourne compare_condensat(signature, crée_signature_hmac(clé, valeur));
 }
 
 /* Créer une signature en utilisant HMAC. */
 crée_signature_hmac :: fonc (clé: chaine, valeur: chaine) -> chaine
 {
-    hmac := crée_hmac(clé, TypeHMAC.SHA256)
-    ajourne(hmac, valeur)
-    résultat := condensat(hmac)
-    détruit(hmac)
-    retourne résultat
+    hmac := crée_hmac(clé, TypeHMAC.SHA256);
+    ajourne(hmac, valeur);
+    résultat := condensat(hmac);
+    détruit(hmac);
+    retourne résultat;
 }
 
 /* Auxilliaire pour créer un AlgorithmeSignature utilisant HMAC */
 crée_algorithme_hmac :: fonc () -> AlgorithmeSignature
 {
-    résultat : AlgorithmeSignature = ---
-    résultat.vérifie_signature = vérifie_signature_hmac
-    résultat.crée_signature = crée_signature_hmac
-    retourne résultat
+    résultat : AlgorithmeSignature = ---;
+    résultat.vérifie_signature = vérifie_signature_hmac;
+    résultat.crée_signature = crée_signature_hmac;
+    retourne résultat;
 }
 
 /* Erreur pouvant être générées par les Signataires lors de la vérification. */
 ErreurSignature :: erreur {
-    SéparateurIntrouvable
-    MauvaiseSignature
+    SéparateurIntrouvable;
+    MauvaiseSignature;
 }
 
 /* Signataire, paramètre la génération de signature pour protéger un message.
@@ -61,62 +61,62 @@ ErreurSignature :: erreur {
  * À FAIRE : paramétrise la méthode de dérivation de clé, HMAC pour le moment
  */
 Signataire :: struct {
-    clés_secrètes: [..]chaine
-    sel: chaine
-    séparateur: chaine
-    algorithme: AlgorithmeSignature
-    codec_base_64: CodecBase64
+    clés_secrètes: [..]chaine;
+    sel: chaine;
+    séparateur: chaine;
+    algorithme: AlgorithmeSignature;
+    codec_base_64: CodecBase64;
 }
 
 crée_signataire :: fonc (clés_secrètes: [..]chaine, sel: chaine, séparateur: chaine, algorithme: AlgorithmeSignature, codec_base_64: CodecBase64) -> Signataire
 {
-    signataire: Signataire
-    signataire.clés_secrètes = clés_secrètes
-    signataire.sel = sel
-    signataire.séparateur = séparateur
-    signataire.algorithme = algorithme
-    signataire.codec_base_64 = codec_base_64
-    retourne signataire
+    signataire: Signataire;
+    signataire.clés_secrètes = clés_secrètes;
+    signataire.sel = sel;
+    signataire.séparateur = séparateur;
+    signataire.algorithme = algorithme;
+    signataire.codec_base_64 = codec_base_64;
+    retourne signataire;
 }
 
 /* Crée une signature pour le message passé. */
 crée_signature :: fonc (signataire: &Signataire, message: chaine) -> chaine
 {
-    clé := signataire.dérive_clé(signataire.clés_secrètes[signataire.clés_secrètes.taille - 1])
-    sig := signataire.algorithme.crée_signature(clé, message)
-    retourne signataire.codec_base_64.encode(sig)
+    clé := signataire.dérive_clé(signataire.clés_secrètes[signataire.clés_secrètes.taille - 1]);
+    sig := signataire.algorithme.crée_signature(clé, message);
+    retourne signataire.codec_base_64.encode(sig);
 }
 
 /* Signe un message. */
 signe :: fonc (signataire: &Signataire, message: chaine) -> chaine
 {
-    retourne enchaine(message, signataire.séparateur, signataire.crée_signature(message))
+    retourne enchaine(message, signataire.séparateur, signataire.crée_signature(message));
 }
 
 /* Dérive une clé pour la clé_secrète donnée. */
 dérive_clé :: fonc (signataire: &Signataire, clé_secrète: chaine) -> chaine
 {
-    hmac := crée_hmac(clé_secrète)
-    ajourne(hmac, signataire.sel)
-    résultat := condensat(hmac)
-    détruit(hmac)
-    retourne résultat
+    hmac := crée_hmac(clé_secrète);
+    ajourne(hmac, signataire.sel);
+    résultat := condensat(hmac);
+    détruit(hmac);
+    retourne résultat;
 }
 
 /* Retourne vrai si la signature vient de ce Signataire, selon ses clés_secrètes, retourne faux le cas échéant. */
 vérifie_signature :: fonc (signataire: &Signataire, valeur: chaine, signature: chaine) -> bool
 {
-    sig := signataire.codec_base_64.décode(signature)
+    sig := signataire.codec_base_64.décode(signature);
 
     pour signataire.clés_secrètes {
-        clé := signataire.dérive_clé(it)
+        clé := signataire.dérive_clé(it);
 
         si signataire.algorithme.vérifie_signature(clé, valeur, sig) {
-            retourne vrai
+            retourne vrai;
         }
     }
 
-    retourne faux
+    retourne faux;
 }
 
 /* Dissigne un message depuis une valeur_signée en séparant la valeur_signée en un message et une signature.
@@ -125,32 +125,32 @@ vérifie_signature :: fonc (signataire: &Signataire, valeur: chaine, signature: 
 dissigne :: fonc (signataire: &Signataire, valeur_signée: chaine) -> ErreurSignature | chaine
 {
     si !valeur_signée.trouve_motif_dans_chaine(signataire.séparateur) {
-        retourne ErreurSignature.SéparateurIntrouvable
+        retourne ErreurSignature.SéparateurIntrouvable;
     }
 
-    morceaux := divise_depuis_la_fin(valeur_signée, signataire.séparateur, 1)
+    morceaux := divise_depuis_la_fin(valeur_signée, signataire.séparateur, 1);
 
     si morceaux.taille != 2 {
-        retourne ErreurSignature.SéparateurIntrouvable
+        retourne ErreurSignature.SéparateurIntrouvable;
     }
 
-    valeur, signature := morceaux[0], morceaux[1]
+    valeur, signature := morceaux[0], morceaux[1];
 
     si signataire.vérifie_signature(valeur, signature) {
-        retourne valeur
+        retourne valeur;
     }
 
-    retourne ErreurSignature.MauvaiseSignature
+    retourne ErreurSignature.MauvaiseSignature;
 }
 
 /* Retourne vrai si la valeur_signée fut signée par ce Signataire. */
 valide :: fonc (signataire: &Signataire, valeur_signée: chaine) -> bool
 {
     valeur := tente signataire.dissigne(valeur_signée) piège err {
-        retourne faux
+        retourne faux;
     }
 
-    retourne vrai
+    retourne vrai;
 }
 
 /* SignataireHorodoté.
@@ -160,32 +160,32 @@ valide :: fonc (signataire: &Signataire, valeur_signée: chaine) -> bool
  * À FAIRE: l'horodotage ne prend pas en compte les fuseaux horaires, ou le fait que le temps système peut retourner en arrière.
  */
 SignataireHorodoté :: struct {
-    signataire: Signataire
+    signataire: Signataire;
 }
 
 crée_signataire_horodoté :: fonc (clés_secrètes: [..]chaine, sel: chaine, séparateur: chaine, algorithme: AlgorithmeSignature, codec_base_64: CodecBase64) -> SignataireHorodoté
 {
-    signataire: SignataireHorodoté
-    signataire.signataire = crée_signataire(clés_secrètes, sel, séparateur, algorithme, codec_base_64)
-    retourne signataire
+    signataire: SignataireHorodoté;
+    signataire.signataire = crée_signataire(clés_secrètes, sel, séparateur, algorithme, codec_base_64);
+    retourne signataire;
 }
 
 /* Signe un message en lui ajoutant le temps de création de celui-ci. */
 signe :: fonc (signataire: &SignataireHorodoté, valeur: chaine) -> chaine
 {
     // génère un Intanstané
-    temps := maintenant_précis().millisecondes()
+    temps := maintenant_précis().millisecondes();
 
     // converti en chaine, À FAIRE : ceci est absolument merdique
-    chn := chaine(*temps comme *z8, 8)
+    chn := chaine(*temps comme *z8, 8);
 
     // encode en base64
-    base64 := signataire.signataire.codec_base_64.encode(chn)
+    base64 := signataire.signataire.codec_base_64.encode(chn);
 
     // enchaine valeur sép encodé
-    valeur = enchaine(valeur, signataire.signataire.séparateur, base64)
+    valeur = enchaine(valeur, signataire.signataire.séparateur, base64);
 
-    retourne signataire.signataire.signe(valeur)
+    retourne signataire.signataire.signe(valeur);
 }
 
 /* Dissigne le message d'une valeur_signée en vérifiant que le message fut généré dans un laps de temps inférieur à âge_max, en millisecondes.
@@ -194,43 +194,43 @@ signe :: fonc (signataire: &SignataireHorodoté, valeur: chaine) -> chaine
 dissigne :: fonc (signataire: &SignataireHorodoté, valeur_signée: chaine, âge_max: z64) -> ErreurSignature | chaine
 {
     valeur_ := tente signataire.signataire.dissigne(valeur_signée) piège err {
-        retourne err
+        retourne err;
     }
 
-    morceaux := divise_depuis_la_fin(valeur_, signataire.signataire.séparateur, 1)
+    morceaux := divise_depuis_la_fin(valeur_, signataire.signataire.séparateur, 1);
 
     si morceaux.taille != 2 {
-        retourne ErreurSignature.SéparateurIntrouvable
+        retourne ErreurSignature.SéparateurIntrouvable;
     }
 
-    valeur, signature := morceaux[0], morceaux[1]
+    valeur, signature := morceaux[0], morceaux[1];
 
     // décode base 64
-    décodé := signataire.signataire.codec_base_64.décode(signature)
+    décodé := signataire.signataire.codec_base_64.décode(signature);
 
     // convertis en entier, À FAIRE : ceci est absolument merdique
-    temps := mémoire(décodé.pointeur comme *z64)
+    temps := mémoire(décodé.pointeur comme *z64);
 
     // compare le temps avec max_age
-    temps_courant := maintenant_précis().millisecondes()
+    temps_courant := maintenant_précis().millisecondes();
 
     si (temps_courant - temps) >= âge_max {
-        retourne ErreurSignature.MauvaiseSignature
+        retourne ErreurSignature.MauvaiseSignature;
     }
 
     si temps < 0 {
-        retourne ErreurSignature.MauvaiseSignature
+        retourne ErreurSignature.MauvaiseSignature;
     }
 
-    retourne valeur
+    retourne valeur;
 }
 
 /* Retourne vrai si la valeur_signée fut générée par ce SignataireHorodoté et que le message n'est pas périmé. */
 valide :: fonc (signataire: &SignataireHorodoté, valeur_signée: chaine, âge_max: z64) -> bool
 {
     valeur := tente signataire.dissigne(valeur_signée, âge_max) piège err {
-        retourne faux
+        retourne faux;
     }
 
-    retourne vrai
+    retourne vrai;
 }

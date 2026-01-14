@@ -1,136 +1,136 @@
-importe Aléa
+importe Aléa;
 
 ContexteEntropisation :: struct {
-    document: *Document
-    gna: *GNA
+    document: *Document;
+    gna: *GNA;
 
-    profondeur: z32
-    éléments_créés: z32
+    profondeur: z32;
+    éléments_créés: z32;
 
-    profondeur_max: z32
-    nombre_enfants_max: z32
-    nombre_éléments_max: z32
+    profondeur_max: z32;
+    nombre_enfants_max: z32;
+    nombre_éléments_max: z32;
 }
 
 choisis_un_de :: fonc (gna: *GNA, tags: ...DOMString) -> DOMString
 {
-    indice := gna.uniforme(0.0, (tags.taille) comme r32) comme z64
-    retourne tags[indice]
+    indice := gna.uniforme(0.0, (tags.taille) comme r32) comme z64;
+    retourne tags[indice];
 }
 
 tag_enfant_possible :: fonc (gna: *GNA, tag: DOMString) -> DOMString
 {
     si tag == TAG_head {
-        retourne gna.choisis_un_de(TAG_base, TAG_basefont, TAG_bgsound, TAG_link, TAG_meta, TAG_noframes, TAG_script, TAG_style, TAG_template, TAG_title, TAG_noscript)
+        retourne gna.choisis_un_de(TAG_base, TAG_basefont, TAG_bgsound, TAG_link, TAG_meta, TAG_noframes, TAG_script, TAG_style, TAG_template, TAG_title, TAG_noscript);
     }
 
     si tag == TAG_table {
-        retourne TAG_tbody
+        retourne TAG_tbody;
     }
 
-    retourne gna.choisis_un_de(TAG_script, TAG_aside, TAG_div, TAG_nav, TAG_article, TAG_footer, TAG_p, TAG_table)
+    retourne gna.choisis_un_de(TAG_script, TAG_aside, TAG_div, TAG_nav, TAG_article, TAG_footer, TAG_p, TAG_table);
 }
 
 nombre_enfants_possibles :: fonc (gna: *GNA, tag: DOMString) -> z32
 {
     si tag == TAG_table {
-        retourne 1
+        retourne 1;
     }
 
-    retourne gna.uniforme(0.0, 10.0) comme z32
+    retourne gna.uniforme(0.0, 10.0) comme z32;
 }
 
 génère_enfants_récusifs :: fonc (ctx_entropie: &ContexteEntropisation, parent: *Element)
 {
     si ctx_entropie.profondeur >= ctx_entropie.profondeur_max {
-        retourne
+        retourne;
     }
 
     si ctx_entropie.éléments_créés >= ctx_entropie.nombre_éléments_max {
-        retourne
+        retourne;
     }
 
-    gna := ctx_entropie.gna
+    gna := ctx_entropie.gna;
 
-    doit_faire_des_enfants := gna.uniforme(0.0, 1.0) >= (ctx_entropie.profondeur comme r32) * (1.0 / ctx_entropie.profondeur_max comme r32)
+    doit_faire_des_enfants := gna.uniforme(0.0, 1.0) >= (ctx_entropie.profondeur comme r32) * (1.0 / ctx_entropie.profondeur_max comme r32);
     saufsi doit_faire_des_enfants {
-        retourne
+        retourne;
     }
 
-    nombre_enfants := nombre_enfants_possibles(gna, parent.local_name)
+    nombre_enfants := nombre_enfants_possibles(gna, parent.local_name);
     pour 0 ... nombre_enfants - 1 {
-        enfant := create_element(ctx_entropie.document, tag_enfant_possible(gna, parent.local_name))
-        ctx_entropie.éléments_créés += 1
-        ajoute_enfant(parent, enfant)
+        enfant := create_element(ctx_entropie.document, tag_enfant_possible(gna, parent.local_name));
+        ctx_entropie.éléments_créés += 1;
+        ajoute_enfant(parent, enfant);
     }
 
-    ctx_entropie.profondeur += 1
+    ctx_entropie.profondeur += 1;
     pour parent.enfants {
         saufsi it.est_élément() {
-            continue
+            continue;
         }
 
-        élément_enfant := it comme *Element
+        élément_enfant := it comme *Element;
 
         saufsi !est_tag_auto_fermant(élément_enfant.local_name) {
-            continue
+            continue;
         }
 
         si élément_enfant.local_name == TAG_script {
-            continue
+            continue;
         }
 
-        génère_enfants_récusifs(ctx_entropie, élément_enfant)
+        génère_enfants_récusifs(ctx_entropie, élément_enfant);
     }
-    ctx_entropie.profondeur -= 1
+    ctx_entropie.profondeur -= 1;
 }
 
 ParamètresEntropisation :: struct {
-    limite_basse_enfants: z32
-    limite_haute_enfants: z32
+    limite_basse_enfants: z32;
+    limite_haute_enfants: z32;
 
-    limite_basse_profondeur: z32
-    limite_haute_profondeur: z32
+    limite_basse_profondeur: z32;
+    limite_haute_profondeur: z32;
 
-    limite_basse_éléments: z32
-    limite_haute_éléments: z32
+    limite_basse_éléments: z32;
+    limite_haute_éléments: z32;
 
-    graine: n32
+    graine: n32;
 
-    fichier_sortie: CheminFichier
+    fichier_sortie: CheminFichier;
 }
 
 ouvre_fichier_sortie :: fonc (paramètres: &ParamètresEntropisation) -> *Fichier
 {
     si paramètres.fichier_sortie.chn == "" {
-        retourne sortie_standarde()
+        retourne sortie_standarde();
     }
 
     fichier := tente ouvre_fichier_pour_lecture(paramètres.fichier_sortie) piège nonatteignable
 
-    résultat := loge(Fichier)
-    mémoire(résultat) = fichier
-    retourne résultat
+    résultat := loge(Fichier);
+    mémoire(résultat) = fichier;
+    retourne résultat;
 }
 
 détruit_fichier :: fonc (paramètres: &ParamètresEntropisation, fichier: *Fichier)
 {
     si paramètres.fichier_sortie.chn != "" {
-        _ := ferme(fichier)
-        déloge(fichier)
+        _ := ferme(fichier);
+        déloge(fichier);
     }
 }
 
 programme_entropisation :: fonc (paramètres: ParamètresEntropisation, mv: *JS.MachineVirtuelle)
 {
-    diffère détruit_chaines_internées()
+    diffère détruit_chaines_internées();
 
-    document := crée_document_aléatoire(paramètres, mv)
+    document := crée_document_aléatoire(paramètres, mv);
 
-    fichier := paramètres.ouvre_fichier_sortie()
-    diffère détruit_fichier(paramètres, fichier)
+    fichier := paramètres.ouvre_fichier_sortie();
+    diffère détruit_fichier(paramètres, fichier);
 
-    _ := formatte_document(document, fichier)
+    _ := formatte_document(document, fichier);
 }
 
 /* Crée un document aléatoire selon les paramètres, la fonction appelante a pour responsabilité
@@ -138,33 +138,33 @@ programme_entropisation :: fonc (paramètres: ParamètresEntropisation, mv: *JS.
  * soit valide jusqu'à sa desctruction. */
 crée_document_aléatoire :: fonc (paramètres: ParamètresEntropisation, mv: *JS.MachineVirtuelle) -> *Document
 {
-    gna : *GNA = crée_gna(paramètres.graine)
-    diffère détruit_gna(gna)
+    gna : *GNA = crée_gna(paramètres.graine);
+    diffère détruit_gna(gna);
 
-    document := crée_noeud_document(*mv.tas_de_mémoire, nul)
+    document := crée_noeud_document(*mv.tas_de_mémoire, nul);
 
-    doctype := crée_noeud_doctype(document)
+    doctype := crée_noeud_doctype(document);
 
-    html := create_element(document, TAG_html)
-    head := create_element(document, TAG_head)
-    body := create_element(document, TAG_body)
+    html := create_element(document, TAG_html);
+    head := create_element(document, TAG_head);
+    body := create_element(document, TAG_body);
 
-    ajoute_enfant(document, doctype)
-    ajoute_enfant(document, html)
-    ajoute_enfant(html, head)
-    ajoute_enfant(html, body)
+    ajoute_enfant(document, doctype);
+    ajoute_enfant(document, html);
+    ajoute_enfant(html, head);
+    ajoute_enfant(html, body);
 
-    profondeur_max := gna.uniforme(0.0, paramètres.limite_haute_profondeur comme r32) comme z32
+    profondeur_max := gna.uniforme(0.0, paramètres.limite_haute_profondeur comme r32) comme z32;
 
-    ctx_entropie: ContexteEntropisation
-    ctx_entropie.document = document
-    ctx_entropie.gna = gna
-    ctx_entropie.profondeur_max = profondeur_max
-    ctx_entropie.nombre_enfants_max = paramètres.limite_haute_enfants
-    ctx_entropie.nombre_éléments_max = paramètres.limite_haute_éléments
+    ctx_entropie: ContexteEntropisation;
+    ctx_entropie.document = document;
+    ctx_entropie.gna = gna;
+    ctx_entropie.profondeur_max = profondeur_max;
+    ctx_entropie.nombre_enfants_max = paramètres.limite_haute_enfants;
+    ctx_entropie.nombre_éléments_max = paramètres.limite_haute_éléments;
 
-    génère_enfants_récusifs(ctx_entropie, head)
-    génère_enfants_récusifs(ctx_entropie, body)
+    génère_enfants_récusifs(ctx_entropie, head);
+    génère_enfants_récusifs(ctx_entropie, body);
 
-    retourne document
+    retourne document;
 }

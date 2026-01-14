@@ -1,6 +1,6 @@
-ChaineC :: Chaine.ChaineC
+ChaineC :: Chaine.ChaineC;
 
-off_t :: z64
+off_t :: z64;
 
 // <aio.h>
 
@@ -8,15 +8,15 @@ off_t :: z64
 /** \nom arpa/inet.h
  * \{ */
 
-inet_ntoa :: fonc (addr: in_addr) -> ChaineC #externe libc
+inet_ntoa :: fonc (addr: in_addr) -> ChaineC #externe libc;
 
-htonl :: fonc (hostlong: n32) -> n32 #externe libc
+htonl :: fonc (hostlong: n32) -> n32 #externe libc;
 
-htons :: fonc (hostshort: n16) -> n16 #externe libc
+htons :: fonc (hostshort: n16) -> n16 #externe libc;
 
-ntohl :: fonc (netlong: n32) -> n32 #externe libc
+ntohl :: fonc (netlong: n32) -> n32 #externe libc;
 
-ntohs :: fonc (netshort: n16) -> n16 #externe libc
+ntohs :: fonc (netshort: n16) -> n16 #externe libc;
 
 /** \} */
 
@@ -28,7 +28,7 @@ ntohs :: fonc (netshort: n16) -> n16 #externe libc
 /** \nom ctype.h
  * \{ */
 
-iscntrl :: fonc (c: z32) -> z32 #externe libc
+iscntrl :: fonc (c: z32) -> z32 #externe libc;
 
 /** \} */
 
@@ -37,31 +37,31 @@ iscntrl :: fonc (c: z32) -> z32 #externe libc
  * \{ */
 
 /* File types for `d_type'.  */
-DT_UNKNOWN :: 0
-DT_FIFO :: 1
-DT_CHR :: 2
-DT_DIR :: 4
-DT_BLK :: 6
-DT_REG :: 8
-DT_LNK :: 10
-DT_SOCK :: 12
-DT_WHT :: 14
+DT_UNKNOWN :: 0;
+DT_FIFO :: 1;
+DT_CHR :: 2;
+DT_DIR :: 4;
+DT_BLK :: 6;
+DT_REG :: 8;
+DT_LNK :: 10;
+DT_SOCK :: 12;
+DT_WHT :: 14;
 
-DIR :: struct #externe
+DIR :: struct #externe;
 
 dirent :: struct #externe {
-    d_ino: n64
-    d_off: n64
-    d_reclen: n16
-    d_type: n8
-    d_name: [256]z8
+    d_ino: n64;
+    d_off: n64;
+    d_reclen: n16;
+    d_type: n8;
+    d_name: [256]z8;
 }
 
-opendir :: fonc (chemin: ChaineC) -> *DIR #externe libc
+opendir :: fonc (chemin: ChaineC) -> *DIR #externe libc;
 
-closedir :: fonc (d: *DIR) -> z32 #externe libc
+closedir :: fonc (d: *DIR) -> z32 #externe libc;
 
-readdir :: fonc (d: *DIR) -> *dirent #externe libc
+readdir :: fonc (d: *DIR) -> *dirent #externe libc;
 
 /** \} */
 
@@ -70,46 +70,46 @@ readdir :: fonc (d: *DIR) -> *dirent #externe libc
 /** \nom 
  * \{ */
 
-libdl :: #bibliothèque "dl"
+libdl :: #bibliothèque "dl";
 
-RTLD_LOCAL :: 0
-RTLD_LAZY :: 0x00001
-RTLD_NOW :: 0x00002
-RTLD_NOLOAD :: 0x00004
-RTLD_DEEPBIND :: 0x00008
-RTLD_GLOBAL :: 0x00100
-RTLD_NODELETE :: 0x01000
+RTLD_LOCAL :: 0;
+RTLD_LAZY :: 0x00001;
+RTLD_NOW :: 0x00002;
+RTLD_NOLOAD :: 0x00004;
+RTLD_DEEPBIND :: 0x00008;
+RTLD_GLOBAL :: 0x00100;
+RTLD_NODELETE :: 0x01000;
 
 /* If the first argument of `dlsym' or `dlvsym' is set to RTLD_NEXT
    the run-time address of the symbol called NAME in the next shared
    object is returned.  The "next" relation is defined by the order
    the shared objects were loaded.  */
-RTLD_NEXT :: (-1 comme *rien)
+RTLD_NEXT :: (-1 comme *rien);
 
 /* If the first argument to `dlsym' or `dlvsym' is set to RTLD_DEFAULT
    the run-time address of the symbol called NAME in the global scope
    is returned.  */
-RTLD_DEFAULT :: (0 comme *rien)
+RTLD_DEFAULT :: (0 comme *rien);
 
 /* Open the shared object FILE and map it in; return a handle that can be
    passed to `dlsym' to get symbol values from it.  */
-dlopen :: fonc (__file: ChaineC, __mode: z32) -> *rien #externe libdl
+dlopen :: fonc (__file: ChaineC, __mode: z32) -> *rien #externe libdl;
 
 /* Unmap and close a shared object opened by `dlopen'.
    The handle cannot be used again after calling `dlclose'.  */
-dlclose :: fonc (__handle: *rien) -> z32 #externe libdl
+dlclose :: fonc (__handle: *rien) -> z32 #externe libdl;
 
 /* Find the run-time address in the shared object HANDLE refers to
    of the symbol called NAME.  */
-dlsym :: fonc (__handle: *rien, __name: ChaineC) -> *rien #externe libdl
+dlsym :: fonc (__handle: *rien, __name: ChaineC) -> *rien #externe libdl;
 
 /* Version différente de dlsym pour pouvoir transtyper le résultat vers un type de fonction. */
-dlsym_func :: fonc (__handle: *rien, __name: ChaineC) -> adresse_fonction #externe libdl "dlsym"
+dlsym_func :: fonc (__handle: *rien, __name: ChaineC) -> adresse_fonction #externe libdl "dlsym";
 
 /* When any of the above functions fails, call this function
    to return a string describing the error.  Each call resets
    the error string so that a following call returns null.  */
-dlerror :: fonc () -> ChaineC #externe libdl
+dlerror :: fonc () -> ChaineC #externe libdl;
 
 /** \} */
 
@@ -117,9 +117,9 @@ dlerror :: fonc () -> ChaineC #externe libdl
 /** \nom errno.h
  * \{ */
 
-charge "errno"
+charge "errno";
 
-perror :: fonc (ptr: ChaineC) -> rien #externe libc
+perror :: fonc (ptr: ChaineC) -> rien #externe libc;
 
 /** \} */
 
@@ -127,33 +127,33 @@ perror :: fonc (ptr: ChaineC) -> rien #externe libc
 /** \nom fcntl.h
  * \{ */
 
-MODE_ACCÈS :: 0o003
-LECTURE_SEULE :: 0o0
-ÉCRITURE_SEULE :: 0o1
-LECTURE_ÉCRITURE :: 0o2
-CREATION :: 0o100
-EXCLUSION :: 0o200
-NOCTTY :: 0o400
-TRONCAGE :: 0o1000
-APPEND :: 0o2000
-NONBLOCK :: 0o4000
-NDELAY :: 0o4000
-SYNC :: 0o4010000
-FSYNC :: 0o4010000
-ASYNC :: 0o20000
-LARGEFILE :: 0o100000
-DIRECTORY :: 0o200000
-NOFOLLOW :: 0o400000
-CLOEXEC :: 0o2000000
-DIRECT :: 0o40000
-NOATIME :: 0o1000000
-PATH :: 0o10000000
-DSYNC :: 0o10000
-TMPFILE :: (0o20000000 | 0o200000)
+MODE_ACCÈS :: 0o003;
+LECTURE_SEULE :: 0o0;
+ÉCRITURE_SEULE :: 0o1;
+LECTURE_ÉCRITURE :: 0o2;
+CREATION :: 0o100;
+EXCLUSION :: 0o200;
+NOCTTY :: 0o400;
+TRONCAGE :: 0o1000;
+APPEND :: 0o2000;
+NONBLOCK :: 0o4000;
+NDELAY :: 0o4000;
+SYNC :: 0o4010000;
+FSYNC :: 0o4010000;
+ASYNC :: 0o20000;
+LARGEFILE :: 0o100000;
+DIRECTORY :: 0o200000;
+NOFOLLOW :: 0o400000;
+CLOEXEC :: 0o2000000;
+DIRECT :: 0o40000;
+NOATIME :: 0o1000000;
+PATH :: 0o10000000;
+DSYNC :: 0o10000;
+TMPFILE :: (0o20000000 | 0o200000);
 
-O_NONBLOCK :: 0o04000
+O_NONBLOCK :: 0o04000;
 
-open :: fonc (chemin: ChaineC, drapeaux: z32, args: ...) -> z32 #externe libc
+open :: fonc (chemin: ChaineC, drapeaux: z32, args: ...) -> z32 #externe libc;
 
 F_DUPFD :: 0 /* Duplicate file descriptor.  */
 F_GETFD :: 1 /* Get file descriptor flags.  */
@@ -161,7 +161,7 @@ F_SETFD :: 2 /* Set file descriptor flags.  */
 F_GETFL :: 3 /* Get file status flags.  */
 F_SETFL :: 4 /* Set file status flags.  */
 
-fcntl :: fonc (fd: z32, cmd: z32, args: ...) -> z32 #externe libc
+fcntl :: fonc (fd: z32, cmd: z32, args: ...) -> z32 #externe libc;
 
 /** \} */
 
@@ -182,7 +182,7 @@ fcntl :: fonc (fd: z32, cmd: z32, args: ...) -> z32 #externe libc
 /** \nom limits.h
  * \{ */
 
-TAILLE_MAX_CHEMIN :: 4096
+TAILLE_MAX_CHEMIN :: 4096;
 
 /** \} */
 
@@ -199,23 +199,23 @@ TAILLE_MAX_CHEMIN :: 4096
  * \{ */
 
 addrinfo :: struct #externe {
-    ai_flags: z32
-    ai_family: z32
-    ai_socktype: z32
-    ai_protocol: z32
-    ai_addrlen: n32
-    ai_addr: *sockaddr
-    ai_canonname: *z8
-    ai_next: *addrinfo
+    ai_flags: z32;
+    ai_family: z32;
+    ai_socktype: z32;
+    ai_protocol: z32;
+    ai_addrlen: n32;
+    ai_addr: *sockaddr;
+    ai_canonname: *z8;
+    ai_next: *addrinfo;
 }
 
-getaddrinfo :: fonc (node: ChaineC, service: ChaineC, hints: *addrinfo, res: **addrinfo) -> z32 #externe libc
+getaddrinfo :: fonc (node: ChaineC, service: ChaineC, hints: *addrinfo, res: **addrinfo) -> z32 #externe libc;
 
-freeaddrinfo :: fonc (res: *addrinfo) -> rien #externe libc
+freeaddrinfo :: fonc (res: *addrinfo) -> rien #externe libc;
 
-gai_strerror :: fonc (errcode: z32) -> *z8 #externe libc
+gai_strerror :: fonc (errcode: z32) -> *z8 #externe libc;
 
-gethostbyname :: fonc (arg: ChaineC) -> *hostent #externe libc
+gethostbyname :: fonc (arg: ChaineC) -> *hostent #externe libc;
 
 /** \} */
 
@@ -224,46 +224,46 @@ gethostbyname :: fonc (arg: ChaineC) -> *hostent #externe libc
  * \{ */
 
 /* Address to accept any incoming messages.  */
-INADDR_ANY :: 0x00000000 comme n32
+INADDR_ANY :: 0x00000000 comme n32;
 /* Address to send to all hosts.  */
-INADDR_BROADCAST :: 0xffffffff comme n32
+INADDR_BROADCAST :: 0xffffffff comme n32;
 /* Address indicating an error return.  */
-INADDR_NONE :: 0xffffffff comme n32
+INADDR_NONE :: 0xffffffff comme n32;
 
 hostent :: struct #externe {
-    h_name: ChaineC
-    h_aliases: *ChaineC
-    h_addrtype: z32
-    h_length: z32
-    h_addr_list: *ChaineC
+    h_name: ChaineC;
+    h_aliases: *ChaineC;
+    h_addrtype: z32;
+    h_length: z32;
+    h_addr_list: *ChaineC;
 }
 
 in_addr :: struct #externe {
-    s_addr: n32
+    s_addr: n32;
 }
 
 sockaddr_in :: struct #externe {
-    sin_family: n16
-    sin_port: n16
-    sin_addr: in_addr
-    sin_zero: [8]n8
+    sin_family: n16;
+    sin_port: n16;
+    sin_addr: in_addr;
+    sin_zero: [8]n8;
 }
 
 in6_addr :: struct #externe {
-    s6_addr: [16]n8
+    s6_addr: [16]n8;
     /* IPv6 address */
 }
 
 sockaddr_in6 :: struct #externe {
-    sin6_len: n8
+    sin6_len: n8;
     /* length of this structure */
-    sin6_family: n8
+    sin6_family: n8;
     /* AF_INET6                 */
-    sin6_port: n16
+    sin6_port: n16;
     /* Transport layer port #   */
-    sin6_flowinfo: n32
+    sin6_flowinfo: n32;
     /* IPv6 flow information    */
-    sin6_addr: in6_addr
+    sin6_addr: in6_addr;
     /* IPv6 address             */
 }
 
@@ -308,9 +308,9 @@ TCP_FASTOPEN_CONNECT :: 30 /* Attempt FastOpen with connect.  */
 TCP_ULP :: 31 /* Attach a ULP to a TCP connection.  */
 TCP_MD5SIG_EXT :: 32 /* TCP MD5 Signature with extensions.  */
 
-SOL_TCP :: 6
+SOL_TCP :: 6;
 
-IPPROTO_TCP :: 6
+IPPROTO_TCP :: 6;
 
 /** \} */
 
@@ -332,16 +332,16 @@ IPPROTO_TCP :: 6
 // #else
 // # define __SIZEOF_SEM_T	16
 // #endif
-__SIZEOF_SEM_T :: 32
+__SIZEOF_SEM_T :: 32;
 
 sem_t :: union nonsûr {
-    __size: [__SIZEOF_SEM_T]z8
-    __align: z64
+    __size: [__SIZEOF_SEM_T]z8;
+    __align: z64;
 }
 
-sem_init :: fonc (sem: *sem_t, pshared: z32, value: n32) -> z32 #externe libpthread
-sem_post :: fonc (sem: *sem_t) -> z32 #externe libpthread
-sem_wait :: fonc (sem: *sem_t) -> z32 #externe libpthread
+sem_init :: fonc (sem: *sem_t, pshared: z32, value: n32) -> z32 #externe libpthread;
+sem_post :: fonc (sem: *sem_t) -> z32 #externe libpthread;
+sem_wait :: fonc (sem: *sem_t) -> z32 #externe libpthread;
 
 /** \} */
 
@@ -360,12 +360,12 @@ __jmp_buf_tag :: struct {
 }
 
 __sigset_t :: struct {
-    __val: [16]n64
+    __val: [16]n64;
 }
 
-__jmp_buf :: [8]n64
+__jmp_buf :: [8]n64;
 
-setjmp :: fonc (buf: *__jmp_buf_tag) -> z32 #externe libc
+setjmp :: fonc (buf: *__jmp_buf_tag) -> z32 #externe libc;
 
 /** \} */
 
@@ -427,47 +427,47 @@ SIGUSR2 :: 31 /* User-defined signal 2.  */
    (including both BSD and Linux).  */
 SIGWINCH :: 28 /* Window size change (4.3 BSD, Sun).  */
 
-signal :: fonc (numéro_signal: z32, rappel: fonc (signal: z32)) -> rien #externe libc
+signal :: fonc (numéro_signal: z32, rappel: fonc (signal: z32)) -> rien #externe libc;
 
-pid_t :: z32
+pid_t :: z32;
 
-kill :: fonc (pid: pid_t, sig: z32) -> z32 #externe libc
+kill :: fonc (pid: pid_t, sig: z32) -> z32 #externe libc;
 
-sighandler_t :: fonc (signal: z32)
+sighandler_t :: fonc (signal: z32);
 sigset_t :: struct #externe {
-    __val: [1024 / (8 * taille_de(n64))]n64
+    __val: [1024 / (8 * taille_de(n64))]n64;
 }
 
 sigaction_struct :: struct {
-    sa_handler: sighandler_t
+    sa_handler: sighandler_t;
 
     /* Additional set of signals to be blocked.  */
-    sa_mask: sigset_t
+    sa_mask: sigset_t;
 
     /* Special flags.  */
-    sa_flags: z32
+    sa_flags: z32;
 
     /* Restore handler.  */
-    sa_restorer: fonc ()
+    sa_restorer: fonc ();
 }
 
-sigaction :: fonc (sig: z32, new_act: *sigaction_struct, old_act: *sigaction_struct) -> z32 #externe libc
+sigaction :: fonc (sig: z32, new_act: *sigaction_struct, old_act: *sigaction_struct) -> z32 #externe libc;
 
-__SI_MAX_SIZE : n32 : 128
+__SI_MAX_SIZE : n32 : 128;
 // #if __WORDSIZE == 64
-__SI_PAD_SIZE :: ((__SI_MAX_SIZE / taille_de(z32)) - 4)
+__SI_PAD_SIZE :: ((__SI_MAX_SIZE / taille_de(z32)) - 4);
 // #else
 // __SI_PAD_SIZE :: ((__SI_MAX_SIZE / taille_de(z32)) - 3)
 // #endif
 
-__pid_t :: z32
-__uid_t :: z32
-__clock_t :: z64
-__SI_CLOCK_T :: __clock_t
+__pid_t :: z32;
+__uid_t :: z32;
+__clock_t :: z64;
+__SI_CLOCK_T :: __clock_t;
 
 __sigval_t :: union nonsûr {
-    __sival_int: z32
-    __sival_ptr: *rien
+    __sival_int: z32;
+    __sival_ptr: *rien;
 }
 
 siginfo_t :: struct {
@@ -479,14 +479,14 @@ siginfo_t :: struct {
     __pad0: z32;      /* Explicit padding.  */
 
     __sifield_t :: union nonsûr {
-	    _pad: [__SI_PAD_SIZE]z32
+	    _pad: [__SI_PAD_SIZE]z32;
 
         /* kill().  */
         kill_info_t :: struct {
             si_pid: __pid_t;	/* Sending process ID.  */
             si_uid: __uid_t;	/* Real user ID of sending process.  */
         }
-        _kill: kill_info_t
+        _kill: kill_info_t;
 
         /* POSIX.1b timers.  */
         time_info_t :: struct {
@@ -494,7 +494,7 @@ siginfo_t :: struct {
             si_overrun: z32;	/* Overrun count.  */
             si_sigval: __sigval_t;	/* Signal value.  */
         }
-        _timer: time_info_t
+        _timer: time_info_t;
 
         /* POSIX.1b signals.  */
         signal_info_t :: struct {
@@ -552,7 +552,7 @@ siginfo_t :: struct {
     // #endif
     }
 
-    _sifields: __sifield_t
+    _sifields: __sifield_t;
 }
 
 // <bits/siginfo-consts.h>
@@ -587,23 +587,23 @@ TRAP_UNK :: 5  /* Undiagnosed trap.  */
  * \{ */
 
 // Valeur des descripteurs fichiers pour les flux standards.
-STDIN_FILENO :: 0
-STDOUT_FILENO :: 1
-STDERR_FILENO :: 2
+STDIN_FILENO :: 0;
+STDOUT_FILENO :: 1;
+STDERR_FILENO :: 2;
 
-printf :: fonc (fmt: ChaineC, args: ...) -> z32 #externe libc
+printf :: fonc (fmt: ChaineC, args: ...) -> z32 #externe libc;
 
-sprintf :: fonc (tmp: ChaineC, fmt: ChaineC, args: ...) -> z32 #externe libc
+sprintf :: fonc (tmp: ChaineC, fmt: ChaineC, args: ...) -> z32 #externe libc;
 
-remove :: fonc (chemin: ChaineC) -> z32 #externe libc
+remove :: fonc (chemin: ChaineC) -> z32 #externe libc;
 
-rename :: fonc (orig: ChaineC, dest: ChaineC) -> z32 #externe libc
+rename :: fonc (orig: ChaineC, dest: ChaineC) -> z32 #externe libc;
 
-FILE :: struct #externe
+FILE :: struct #externe;
 
-fopen :: fonc (__filename: ChaineC, __modes: ChaineC) -> *FILE #externe libc
+fopen :: fonc (__filename: ChaineC, __modes: ChaineC) -> *FILE #externe libc;
 
-fclose :: fonc (__file: *FILE) -> z32 #externe libc
+fclose :: fonc (__file: *FILE) -> z32 #externe libc;
 
 /** \} */
 
@@ -611,27 +611,27 @@ fclose :: fonc (__file: *FILE) -> z32 #externe libc
 /** \nom stdlib.h
  * \{ */
 
-abort :: fonc () -> rien #externe libc #sansretour
+abort :: fonc () -> rien #externe libc #sansretour;
 
-exit :: fonc (id: z32) -> rien #externe libc #sansretour
+exit :: fonc (id: z32) -> rien #externe libc #sansretour;
 
-malloc :: fonc (taille: n64) -> *rien #externe libc
+malloc :: fonc (taille: n64) -> *rien #externe libc;
 
-realloc :: fonc (ptr: *rien, taille: n64) -> *rien #externe libc
+realloc :: fonc (ptr: *rien, taille: n64) -> *rien #externe libc;
 
-free :: fonc (ptr: *rien) -> rien #externe libc
+free :: fonc (ptr: *rien) -> rien #externe libc;
 
-qsort :: fonc (liste: *rien, taille_liste: n64, taille_element: n64, fonction_comparaison: fonc (a: *rien, b: *rien) -> z32) -> rien #externe libc
+qsort :: fonc (liste: *rien, taille_liste: n64, taille_element: n64, fonction_comparaison: fonc (a: *rien, b: *rien) -> z32) -> rien #externe libc;
 
-getenv :: fonc (nom: ChaineC) -> ChaineC #externe libc
+getenv :: fonc (nom: ChaineC) -> ChaineC #externe libc;
 
-setenv :: fonc (nom: ChaineC, valeur: ChaineC, remplace: z32) -> z32 #externe libc
+setenv :: fonc (nom: ChaineC, valeur: ChaineC, remplace: z32) -> z32 #externe libc;
 
-unsetenv :: fonc (nom: ChaineC) -> z32 #externe libc
+unsetenv :: fonc (nom: ChaineC) -> z32 #externe libc;
 
-realpath :: fonc (path: ChaineC, resolved_path: ChaineC) -> ChaineC #externe libc
+realpath :: fonc (path: ChaineC, resolved_path: ChaineC) -> ChaineC #externe libc;
 
-system :: fonc (command: ChaineC) -> z32 #externe libc
+system :: fonc (command: ChaineC) -> z32 #externe libc;
 
 /** \} */
 
@@ -639,15 +639,15 @@ system :: fonc (command: ChaineC) -> z32 #externe libc
 /** \nom string.h
  * \{ */
 
-memset :: fonc (ptr: *rien, valeur: z32, taille: n64) -> *rien #externe libc
+memset :: fonc (ptr: *rien, valeur: z32, taille: n64) -> *rien #externe libc;
 
-memcpy :: fonc (ptr: *rien, src: *rien, taille: n64) -> *rien #externe libc
+memcpy :: fonc (ptr: *rien, src: *rien, taille: n64) -> *rien #externe libc;
 
-memmove :: fonc (ptr: *rien, src: *rien, taille: n64) -> *rien #externe libc
+memmove :: fonc (ptr: *rien, src: *rien, taille: n64) -> *rien #externe libc;
 
-strerror :: fonc (args: z32) -> ChaineC #externe libc
+strerror :: fonc (args: z32) -> ChaineC #externe libc;
 
-strlen :: fonc (str: *z8) -> n64 #externe libc
+strlen :: fonc (str: *z8) -> n64 #externe libc;
 
 /** \} */
 
@@ -685,22 +685,22 @@ rusage :: struct {
 /* Whose usage statistics do you want?  */
 __rusage_who :: énum z32 {
     /* The calling process.  */
-    RUSAGE_SELF :: 0
+    RUSAGE_SELF :: 0;
 
     /* All of its terminated child processes.  */
-    RUSAGE_CHILDREN :: -1
+    RUSAGE_CHILDREN :: -1;
 
     /* The calling thread.  */
-    RUSAGE_THREAD :: 1
+    RUSAGE_THREAD :: 1;
 }
 
-RUSAGE_SELF :: __rusage_who.RUSAGE_SELF
-RUSAGE_CHILDREN :: __rusage_who.RUSAGE_CHILDREN
-RUSAGE_THREAD :: __rusage_who.RUSAGE_THREAD
+RUSAGE_SELF :: __rusage_who.RUSAGE_SELF;
+RUSAGE_CHILDREN :: __rusage_who.RUSAGE_CHILDREN;
+RUSAGE_THREAD :: __rusage_who.RUSAGE_THREAD;
   /* Name for the same functionality on Solaris.  */
-RUSAGE_LWP :: __rusage_who.RUSAGE_THREAD
+RUSAGE_LWP :: __rusage_who.RUSAGE_THREAD;
 
-getrusage :: fonc (who: __rusage_who, usage: *rusage) -> z32 #externe libc
+getrusage :: fonc (who: __rusage_who, usage: *rusage) -> z32 #externe libc;
 
 /** \} */
 
@@ -714,10 +714,10 @@ getrusage :: fonc (who: __rusage_who, usage: *rusage) -> z32 #externe libc
  *       bits/socket.h
  * \{ */
 
-sa_family_t :: n16
+sa_family_t :: n16;
 
 /* Size of struct sockaddr_storage.  */
-_SS_SIZE :: 128
+_SS_SIZE :: 128;
 
 PF_UNSPEC :: 0 /* Unspecified.  */
 PF_LOCAL :: 1 /* Local to host (pipes and file-domain).  */
@@ -737,7 +737,7 @@ PF_DECnet :: 12 /* Reserved for DECnet project.  */
 PF_NETBEUI :: 13 /* Reserved for 802.2LLC project.  */
 PF_SECURITY :: 14 /* Security callback pseudo AF.  */
 PF_KEY :: 15 /* PF_KEY key management API.  */
-PF_NETLINK :: 16
+PF_NETLINK :: 16;
 PF_ROUTE :: PF_NETLINK /* Alias to emulate 4.4BSD.  */
 PF_PACKET :: 17 /* Packet family.  */
 PF_ASH :: 18 /* Ash.  */
@@ -769,76 +769,76 @@ PF_SMC :: 43 /* SMC sockets.  */
 PF_XDP :: 44 /* XDP sockets.  */
 PF_MAX :: 45 /* For now..  */
 
-AF_UNSPEC :: PF_UNSPEC
-AF_LOCAL :: PF_LOCAL
-AF_UNIX :: PF_UNIX
-AF_FILE :: PF_FILE
-AF_INET :: PF_INET
-AF_AX25 :: PF_AX25
-AF_IPX :: PF_IPX
-AF_APPLETALK :: PF_APPLETALK
-AF_NETROM :: PF_NETROM
-AF_BRIDGE :: PF_BRIDGE
-AF_ATMPVC :: PF_ATMPVC
-AF_X25 :: PF_X25
-AF_INET6 :: PF_INET6
-AF_ROSE :: PF_ROSE
-AF_DECnet :: PF_DECnet
-AF_NETBEUI :: PF_NETBEUI
-AF_SECURITY :: PF_SECURITY
-AF_KEY :: PF_KEY
-AF_NETLINK :: PF_NETLINK
-AF_ROUTE :: PF_ROUTE
-AF_PACKET :: PF_PACKET
-AF_ASH :: PF_ASH
-AF_ECONET :: PF_ECONET
-AF_ATMSVC :: PF_ATMSVC
-AF_RDS :: PF_RDS
-AF_SNA :: PF_SNA
-AF_IRDA :: PF_IRDA
-AF_PPPOX :: PF_PPPOX
-AF_WANPIPE :: PF_WANPIPE
-AF_LLC :: PF_LLC
-AF_IB :: PF_IB
-AF_MPLS :: PF_MPLS
-AF_CAN :: PF_CAN
-AF_TIPC :: PF_TIPC
-AF_BLUETOOTH :: PF_BLUETOOTH
-AF_IUCV :: PF_IUCV
-AF_RXRPC :: PF_RXRPC
-AF_ISDN :: PF_ISDN
-AF_PHONET :: PF_PHONET
-AF_IEEE802154 :: PF_IEEE802154
-AF_CAIF :: PF_CAIF
-AF_ALG :: PF_ALG
-AF_NFC :: PF_NFC
-AF_VSOCK :: PF_VSOCK
-AF_KCM :: PF_KCM
-AF_QIPCRTR :: PF_QIPCRTR
-AF_SMC :: PF_SMC
-AF_XDP :: PF_XDP
-AF_MAX :: PF_MAX
+AF_UNSPEC :: PF_UNSPEC;
+AF_LOCAL :: PF_LOCAL;
+AF_UNIX :: PF_UNIX;
+AF_FILE :: PF_FILE;
+AF_INET :: PF_INET;
+AF_AX25 :: PF_AX25;
+AF_IPX :: PF_IPX;
+AF_APPLETALK :: PF_APPLETALK;
+AF_NETROM :: PF_NETROM;
+AF_BRIDGE :: PF_BRIDGE;
+AF_ATMPVC :: PF_ATMPVC;
+AF_X25 :: PF_X25;
+AF_INET6 :: PF_INET6;
+AF_ROSE :: PF_ROSE;
+AF_DECnet :: PF_DECnet;
+AF_NETBEUI :: PF_NETBEUI;
+AF_SECURITY :: PF_SECURITY;
+AF_KEY :: PF_KEY;
+AF_NETLINK :: PF_NETLINK;
+AF_ROUTE :: PF_ROUTE;
+AF_PACKET :: PF_PACKET;
+AF_ASH :: PF_ASH;
+AF_ECONET :: PF_ECONET;
+AF_ATMSVC :: PF_ATMSVC;
+AF_RDS :: PF_RDS;
+AF_SNA :: PF_SNA;
+AF_IRDA :: PF_IRDA;
+AF_PPPOX :: PF_PPPOX;
+AF_WANPIPE :: PF_WANPIPE;
+AF_LLC :: PF_LLC;
+AF_IB :: PF_IB;
+AF_MPLS :: PF_MPLS;
+AF_CAN :: PF_CAN;
+AF_TIPC :: PF_TIPC;
+AF_BLUETOOTH :: PF_BLUETOOTH;
+AF_IUCV :: PF_IUCV;
+AF_RXRPC :: PF_RXRPC;
+AF_ISDN :: PF_ISDN;
+AF_PHONET :: PF_PHONET;
+AF_IEEE802154 :: PF_IEEE802154;
+AF_CAIF :: PF_CAIF;
+AF_ALG :: PF_ALG;
+AF_NFC :: PF_NFC;
+AF_VSOCK :: PF_VSOCK;
+AF_KCM :: PF_KCM;
+AF_QIPCRTR :: PF_QIPCRTR;
+AF_SMC :: PF_SMC;
+AF_XDP :: PF_XDP;
+AF_MAX :: PF_MAX;
 
 sockaddr :: struct #externe {
-    sa_family: n16
-    sa_data: [14]z8
+    sa_family: n16;
+    sa_data: [14]z8;
 }
 
-socket :: fonc (a: z32, b: z32, c: z32) -> z32 #externe libc
+socket :: fonc (a: z32, b: z32, c: z32) -> z32 #externe libc;
 
-bind :: fonc (prise: z32, addr: *sockaddr, taille: n64) -> z32 #externe libc
+bind :: fonc (prise: z32, addr: *sockaddr, taille: n64) -> z32 #externe libc;
 
-connect :: fonc (prise: z32, addr: *sockaddr, taille: z64) -> z32 #externe libc
+connect :: fonc (prise: z32, addr: *sockaddr, taille: z64) -> z32 #externe libc;
 
-send :: fonc (prise: z32, tampon: *rien, taille: n64, flags: z32) -> z64 #externe libc
+send :: fonc (prise: z32, tampon: *rien, taille: n64, flags: z32) -> z64 #externe libc;
 
-recv :: fonc (prise: z32, tampon: *z8, taille: n64, flags: z32) -> z64 #externe libc
+recv :: fonc (prise: z32, tampon: *z8, taille: n64, flags: z32) -> z64 #externe libc;
 
-setsockopt :: fonc (sockfd: z32, level: z32, optname: z32, optval: *rien, optlen: n64) -> z32 #externe libc
+setsockopt :: fonc (sockfd: z32, level: z32, optname: z32, optval: *rien, optlen: n64) -> z32 #externe libc;
 
-listen :: fonc (prise: z32, connexions: z32) -> z32 #externe libc
+listen :: fonc (prise: z32, connexions: z32) -> z32 #externe libc;
 
-accept :: fonc (prise: z32, addr: *sockaddr, taille: *n32) -> z32 #externe libc
+accept :: fonc (prise: z32, addr: *sockaddr, taille: *n32) -> z32 #externe libc;
 
 linger :: struct #externe {
     l_onoff: z32 /* Nonzero to linger on close.  */
@@ -846,81 +846,81 @@ linger :: struct #externe {
 }
 
 // asm-generic/socket.h
-SOL_SOCKET :: 1
+SOL_SOCKET :: 1;
 
-SO_DEBUG :: 1
-SO_REUSEADDR :: 2
-SO_TYPE :: 3
-SO_ERROR :: 4
-SO_DONTROUTE :: 5
-SO_BROADCAST :: 6
-SO_SNDBUF :: 7
-SO_RCVBUF :: 8
-SO_SNDBUFFORCE :: 32
-SO_RCVBUFFORCE :: 33
-SO_KEEPALIVE :: 9
-SO_OOBINLINE :: 10
-SO_NO_CHECK :: 11
-SO_PRIORITY :: 12
-SO_LINGER :: 13
-SO_BSDCOMPAT :: 14
-SO_REUSEPORT :: 15
+SO_DEBUG :: 1;
+SO_REUSEADDR :: 2;
+SO_TYPE :: 3;
+SO_ERROR :: 4;
+SO_DONTROUTE :: 5;
+SO_BROADCAST :: 6;
+SO_SNDBUF :: 7;
+SO_RCVBUF :: 8;
+SO_SNDBUFFORCE :: 32;
+SO_RCVBUFFORCE :: 33;
+SO_KEEPALIVE :: 9;
+SO_OOBINLINE :: 10;
+SO_NO_CHECK :: 11;
+SO_PRIORITY :: 12;
+SO_LINGER :: 13;
+SO_BSDCOMPAT :: 14;
+SO_REUSEPORT :: 15;
 
 /* powerpc only differs in these */
-SO_PASSCRED :: 16
-SO_PEERCRED :: 17
-SO_RCVLOWAT :: 18
-SO_SNDLOWAT :: 19
-SO_RCVTIMEO :: 20
-SO_SNDTIMEO :: 21
+SO_PASSCRED :: 16;
+SO_PEERCRED :: 17;
+SO_RCVLOWAT :: 18;
+SO_SNDLOWAT :: 19;
+SO_RCVTIMEO :: 20;
+SO_SNDTIMEO :: 21;
 
 /* Security levels - as per NRL IPv6 - don't actually do anything */
-SO_SECURITY_AUTHENTICATION :: 22
-SO_SECURITY_ENCRYPTION_TRANSPORT :: 23
-SO_SECURITY_ENCRYPTION_NETWORK :: 24
-SO_BINDTODEVICE :: 25
+SO_SECURITY_AUTHENTICATION :: 22;
+SO_SECURITY_ENCRYPTION_TRANSPORT :: 23;
+SO_SECURITY_ENCRYPTION_NETWORK :: 24;
+SO_BINDTODEVICE :: 25;
 /* Socket filtering */
-SO_ATTACH_FILTER :: 26
-SO_DETACH_FILTER :: 27
-SO_GET_FILTER :: SO_ATTACH_FILTER
-SO_PEERNAME :: 28
-SO_TIMESTAMP :: 29
-SCM_TIMESTAMP :: SO_TIMESTAMP
-SO_ACCEPTCONN :: 30
-SO_PEERSEC :: 31
-SO_PASSSEC :: 34
-SO_TIMESTAMPNS :: 35
-SCM_TIMESTAMPNS :: SO_TIMESTAMPNS
-SO_MARK :: 36
-SO_TIMESTAMPING :: 37
-SCM_TIMESTAMPING :: SO_TIMESTAMPING
-SO_PROTOCOL :: 38
-SO_DOMAIN :: 39
-SO_RXQ_OVFL :: 40
-SO_WIFI_STATUS :: 41
-SCM_WIFI_STATUS :: SO_WIFI_STATUS
-SO_PEEK_OFF :: 42
+SO_ATTACH_FILTER :: 26;
+SO_DETACH_FILTER :: 27;
+SO_GET_FILTER :: SO_ATTACH_FILTER;
+SO_PEERNAME :: 28;
+SO_TIMESTAMP :: 29;
+SCM_TIMESTAMP :: SO_TIMESTAMP;
+SO_ACCEPTCONN :: 30;
+SO_PEERSEC :: 31;
+SO_PASSSEC :: 34;
+SO_TIMESTAMPNS :: 35;
+SCM_TIMESTAMPNS :: SO_TIMESTAMPNS;
+SO_MARK :: 36;
+SO_TIMESTAMPING :: 37;
+SCM_TIMESTAMPING :: SO_TIMESTAMPING;
+SO_PROTOCOL :: 38;
+SO_DOMAIN :: 39;
+SO_RXQ_OVFL :: 40;
+SO_WIFI_STATUS :: 41;
+SCM_WIFI_STATUS :: SO_WIFI_STATUS;
+SO_PEEK_OFF :: 42;
 
 /* Instruct lower device to use last 4-bytes of skb data as FCS */
-SO_NOFCS :: 43
-SO_LOCK_FILTER :: 44
-SO_SELECT_ERR_QUEUE :: 45
-SO_BUSY_POLL :: 46
-SO_MAX_PACING_RATE :: 47
-SO_BPF_EXTENSIONS :: 48
-SO_INCOMING_CPU :: 49
-SO_ATTACH_BPF :: 50
-SO_DETACH_BPF :: SO_DETACH_FILTER
-SO_ATTACH_REUSEPORT_CBPF :: 51
-SO_ATTACH_REUSEPORT_EBPF :: 52
-SO_CNX_ADVICE :: 53
-SCM_TIMESTAMPING_OPT_STATS :: 54
-SO_MEMINFO :: 55
-SO_INCOMING_NAPI_ID :: 56
-SO_COOKIE :: 57
-SCM_TIMESTAMPING_PKTINFO :: 58
-SO_PEERGROUPS :: 59
-SO_ZEROCOPY :: 60
+SO_NOFCS :: 43;
+SO_LOCK_FILTER :: 44;
+SO_SELECT_ERR_QUEUE :: 45;
+SO_BUSY_POLL :: 46;
+SO_MAX_PACING_RATE :: 47;
+SO_BPF_EXTENSIONS :: 48;
+SO_INCOMING_CPU :: 49;
+SO_ATTACH_BPF :: 50;
+SO_DETACH_BPF :: SO_DETACH_FILTER;
+SO_ATTACH_REUSEPORT_CBPF :: 51;
+SO_ATTACH_REUSEPORT_EBPF :: 52;
+SO_CNX_ADVICE :: 53;
+SCM_TIMESTAMPING_OPT_STATS :: 54;
+SO_MEMINFO :: 55;
+SO_INCOMING_NAPI_ID :: 56;
+SO_COOKIE :: 57;
+SCM_TIMESTAMPING_PKTINFO :: 58;
+SO_PEERGROUPS :: 59;
+SO_ZEROCOPY :: 60;
 
 // sys/socket_types.h
 SOCK_STREAM :: 1 /* Sequenced, reliable, connection-based byte streams.  */
@@ -942,7 +942,7 @@ SOCK_NONBLOCK :: 0o00004000 /* Atomically mark descriptor(s) as non-blocking.  *
  * \{ */
 
 // bits pour déterminer le type de fichier
-__S_IFMT :: 0o170000 comme n32
+__S_IFMT :: 0o170000 comme n32;
 
 /* Types de fichier  */
 __S_IFDIR :: 0o040000 comme n32 /* Directory.  */
@@ -969,35 +969,35 @@ struct_stat :: struct #externe {
     st_rdev: n64 // device ID (if special file)
     st_size: z64 // total size, in bytes
     st_blksize: z64 // blocksize for file system I/O
-    st_blocks: z64
+    st_blocks: z64;
     st_atime: z64 // time of last access
     st_atimensec: z64 // Nsecs of last access
     st_mtime: z64 // time of last modification
     st_mtimensec: z64 // Nsecs of last modification
     st_ctime: z64 // time of last status change
     st_ctimensec: z64 // Nsecs of last status change
-    __glibc_reserved: [3]z64
+    __glibc_reserved: [3]z64;
 }
 
 // NOTE : puisque stat n'est pas dans l'interface binaire de la bibliothèque C, nous ne pouvons ni trouver son symbole dans libc
 //        ni l'appeler dans les métaprogrammes, donc nous utilisons __xstat qui se trouve dans l'interface binaire, mais non dans
 //        l'interface de programme
 //        Voir http://refspecs.linux-foundation.org/LSB_4.0.0/LSB-Core-generic/LSB-Core-generic/baselib---xstat.html
-__xstat :: fonc (__ver: z32, __filename: ChaineC, __stat_buf: *struct_stat) -> z32 #externe libc
+__xstat :: fonc (__ver: z32, __filename: ChaineC, __stat_buf: *struct_stat) -> z32 #externe libc;
 
-STAT_VER_KERNEL :: 0
-STAT_VER_LINUX :: 1
-STAT_VER :: STAT_VER_LINUX
+STAT_VER_KERNEL :: 0;
+STAT_VER_LINUX :: 1;
+STAT_VER :: STAT_VER_LINUX;
 
 stat :: fonc (chemin: ChaineC, buf: *rien) -> z32
 {
-    retourne __xstat(STAT_VER, chemin, buf)
+    retourne __xstat(STAT_VER, chemin, buf);
 }
 
-fstat :: fonc (fd: z32, s: *struct_stat) -> z32 #externe libc
-lstat :: fonc (a: ChaineC, s: *struct_stat) -> z32 #externe libc
+fstat :: fonc (fd: z32, s: *struct_stat) -> z32 #externe libc;
+lstat :: fonc (a: ChaineC, s: *struct_stat) -> z32 #externe libc;
 
-mkdir :: fonc (chemin: ChaineC, mode: z32) -> z32 #externe libc
+mkdir :: fonc (chemin: ChaineC, mode: z32) -> z32 #externe libc;
 
 /** \} */
 
@@ -1005,7 +1005,7 @@ mkdir :: fonc (chemin: ChaineC, mode: z32) -> z32 #externe libc
 /** \nom sys/statvfs.h
  * \{ */
 
-fsblkcnt_t :: n64
+fsblkcnt_t :: n64;
 
 struct_statvfs :: struct #externe {
     f_bsize: n64 /* filesystem block size */
@@ -1019,10 +1019,10 @@ struct_statvfs :: struct #externe {
     f_fsid: n64 /* filesystem ID */
     f_flag: n64 /* mount flags */
     f_namemax: n64 /* maximum filename length */
-    __f_spare: [6]z32
+    __f_spare: [6]z32;
 }
 
-statvfs :: fonc (path: ChaineC, s: *struct_statvfs) -> z32 #externe libc
+statvfs :: fonc (path: ChaineC, s: *struct_statvfs) -> z32 #externe libc;
 
 /** \} */
 
@@ -1036,7 +1036,7 @@ statvfs :: fonc (path: ChaineC, s: *struct_statvfs) -> z32 #externe libc
  * \{ */
 
 sockaddr_un :: struct #externe {
-    sun_family: sa_family_t
+    sun_family: sa_family_t;
     sun_path: [108]z8		/* Path name.  */
 }
 
@@ -1049,109 +1049,109 @@ sockaddr_un :: struct #externe {
  *       sys/waitflags.h
  * \{ */
 
-WNOHANG :: 1
-WUNTRACED :: 2
+WNOHANG :: 1;
+WUNTRACED :: 2;
 
-waitpid :: fonc (id: z32, ptr: *z32, options: z32) -> z32 #externe libc
+waitpid :: fonc (id: z32, ptr: *z32, options: z32) -> z32 #externe libc;
 
-wait :: fonc (status: *z32) -> z32 #externe libc
+wait :: fonc (status: *z32) -> z32 #externe libc;
 
 /* If WIFEXITED(STATUS), the low-order 8 bits of the status.  */
 __WEXITSTATUS :: fonc (status: z32) -> z32 #enligne
 {
-    retourne (((status) & 0xff00) >> 8)
+    retourne (((status) & 0xff00) >> 8);
 }
 
 /* If WIFSIGNALED(STATUS), the terminating signal.  */
 __WTERMSIG :: fonc (status: z32) -> z32 #enligne
 {
-    retourne ((status) & 0x7f)
+    retourne ((status) & 0x7f);
 }
 
 /* If WIFSTOPPED(STATUS), the signal that stopped the child.  */
 __WSTOPSIG :: fonc (status: z32) -> z32 #enligne
 {
-    retourne __WEXITSTATUS(status)
+    retourne __WEXITSTATUS(status);
 }
 
 /* Nonzero if STATUS indicates normal termination.  */
 __WIFEXITED :: fonc (status: z32) -> bool #enligne
 {
-    retourne (__WTERMSIG(status) == 0)
+    retourne (__WTERMSIG(status) == 0);
 }
 
 /* Nonzero if STATUS indicates termination by a signal.  */
 __WIFSIGNALED :: fonc (status: z32) -> bool #enligne
 {
-    retourne (((((status) & 0x7f) + 1) comme z8 >> 1) > 0)
+    retourne (((((status) & 0x7f) + 1) comme z8 >> 1) > 0);
 }
 
 /* Nonzero if STATUS indicates the child is stopped.  */
 __WIFSTOPPED :: fonc (status: z32) -> bool #enligne
 {
-    retourne (((status) & 0xff) == 0x7f)
+    retourne (((status) & 0xff) == 0x7f);
 }
 
 /* Nonzero if STATUS indicates the child continued after a stop.  We only
    define this if <bits/waitflags.h> provides the WCONTINUED flag bit.  */
 __WIFCONTINUED :: fonc (status: z32) -> bool #enligne
 {
-    retourne ((status) == __W_CONTINUED)
+    retourne ((status) == __W_CONTINUED);
 }
 
 /* Nonzero if STATUS indicates the child dumped core.  */
 __WCOREDUMP :: fonc (status: z32) -> z32 #enligne
 {
-    retourne ((status) & __WCOREFLAG)
+    retourne ((status) & __WCOREFLAG);
 }
 
 /* Macros for constructing status values.  */
 __W_EXITCODE :: fonc (ret: z32, sig: z32) -> z32 #enligne
 {
-    retourne ((ret) << 8 | (sig))
+    retourne ((ret) << 8 | (sig));
 }
 
 __W_STOPCODE :: fonc (sig: z32) -> z32 #enligne
 {
-    retourne ((sig) << 8 | 0x7f)
+    retourne ((sig) << 8 | 0x7f);
 }
 
-__W_CONTINUED :: 0xffff
-__WCOREFLAG :: 0x80
+__W_CONTINUED :: 0xffff;
+__WCOREFLAG :: 0x80;
 
 WEXITSTATUS :: fonc (status: z32) -> z32 #enligne
 {
-    retourne __WEXITSTATUS(status)
+    retourne __WEXITSTATUS(status);
 }
 
 WTERMSIG :: fonc (status: z32) -> z32 #enligne
 {
-    retourne __WTERMSIG(status)
+    retourne __WTERMSIG(status);
 }
 
 WSTOPSIG :: fonc (status: z32) -> z32 #enligne
 {
-    retourne __WSTOPSIG(status)
+    retourne __WSTOPSIG(status);
 }
 
 WIFEXITED :: fonc (status: z32) -> bool #enligne
 {
-    retourne __WIFEXITED(status)
+    retourne __WIFEXITED(status);
 }
 
 WIFSIGNALED :: fonc (status: z32) -> bool #enligne
 {
-    retourne __WIFSIGNALED(status)
+    retourne __WIFSIGNALED(status);
 }
 
 WIFSTOPPED :: fonc (status: z32) -> bool #enligne
 {
-    retourne __WIFSTOPPED(status)
+    retourne __WIFSTOPPED(status);
 }
 
 WIFCONTINUED :: fonc (status: z32) -> bool #enligne
 {
-    retourne __WIFCONTINUED(status)
+    retourne __WIFCONTINUED(status);
 }
 
 /** \} */
@@ -1163,61 +1163,61 @@ WIFCONTINUED :: fonc (status: z32) -> bool #enligne
 /** \nom termios.h
  * \{ */
 
-VINTR :: 0
-VQUIT :: 1
-VERASE :: 2
-VKILL :: 3
-VEOF :: 4
-VTIME :: 5
-VMIN :: 6
-VSWTC :: 7
-VSTART :: 8
-VSTOP :: 9
-VSUSP :: 10
-VEOL :: 11
-VREPRINT :: 12
-VDISCARD :: 13
-VWERASE :: 14
-VLNEXT :: 15
-VEOL2 :: 16
+VINTR :: 0;
+VQUIT :: 1;
+VERASE :: 2;
+VKILL :: 3;
+VEOF :: 4;
+VTIME :: 5;
+VMIN :: 6;
+VSWTC :: 7;
+VSTART :: 8;
+VSTOP :: 9;
+VSUSP :: 10;
+VEOL :: 11;
+VREPRINT :: 12;
+VDISCARD :: 13;
+VWERASE :: 14;
+VLNEXT :: 15;
+VEOL2 :: 16;
 
-IGNBRK :: 0o0000001 comme n32
-BRKINT :: 0o0000002 comme n32
-IGNPAR :: 0o0000004 comme n32
-PARMRK :: 0o0000010 comme n32
-INPCK :: 0o0000020 comme n32
-ISTRIP :: 0o0000040 comme n32
-INLCR :: 0o0000100 comme n32
-IGNCR :: 0o0000200 comme n32
-ICRNL :: 0o0000400 comme n32
-IUCLC :: 0o0001000 comme n32
-IXON :: 0o0002000 comme n32
-IXANY :: 0o0004000 comme n32
-IXOFF :: 0o0010000 comme n32
-IMAXBEL :: 0o0020000 comme n32
-IUTF8 :: 0o0040000 comme n32
+IGNBRK :: 0o0000001 comme n32;
+BRKINT :: 0o0000002 comme n32;
+IGNPAR :: 0o0000004 comme n32;
+PARMRK :: 0o0000010 comme n32;
+INPCK :: 0o0000020 comme n32;
+ISTRIP :: 0o0000040 comme n32;
+INLCR :: 0o0000100 comme n32;
+IGNCR :: 0o0000200 comme n32;
+ICRNL :: 0o0000400 comme n32;
+IUCLC :: 0o0001000 comme n32;
+IXON :: 0o0002000 comme n32;
+IXANY :: 0o0004000 comme n32;
+IXOFF :: 0o0010000 comme n32;
+IMAXBEL :: 0o0020000 comme n32;
+IUTF8 :: 0o0040000 comme n32;
 
-OPOST :: 0o0000001 comme n32
-OLCUC :: 0o0000002 comme n32
-ONLCR :: 0o0000004 comme n32
-OCRNL :: 0o0000010 comme n32
-ONOCR :: 0o0000020 comme n32
-ONLRET :: 0o0000040 comme n32
-OFILL :: 0o0000100 comme n32
-OFDEL :: 0o0000200 comme n32
+OPOST :: 0o0000001 comme n32;
+OLCUC :: 0o0000002 comme n32;
+ONLCR :: 0o0000004 comme n32;
+OCRNL :: 0o0000010 comme n32;
+ONOCR :: 0o0000020 comme n32;
+ONLRET :: 0o0000040 comme n32;
+OFILL :: 0o0000100 comme n32;
+OFDEL :: 0o0000200 comme n32;
 
-CS8 :: 0o0000060 comme n32
+CS8 :: 0o0000060 comme n32;
 
-ISIG :: 0o0000001 comme n32
-ICANON :: 0o0000002 comme n32
-ECHO :: 0o0000010 comme n32
-IEXTEN :: 0o0100000 comme n32
+ISIG :: 0o0000001 comme n32;
+ICANON :: 0o0000002 comme n32;
+ECHO :: 0o0000010 comme n32;
+IEXTEN :: 0o0100000 comme n32;
 
-TCSANOW :: 0
-TCSADRAIN :: 1
-TCSAFLUSH :: 2
+TCSANOW :: 0;
+TCSADRAIN :: 1;
+TCSAFLUSH :: 2;
 
-NCCS :: 32
+NCCS :: 32;
 
 termios :: struct #externe {
     c_iflag: n32 /* input mode flags */
@@ -1230,8 +1230,8 @@ termios :: struct #externe {
     c_ospeed: n32 /* output speed */
 }
 
-tcgetattr :: fonc (fd: z32, t: *termios) -> rien #externe libc
-tcsetattr :: fonc (fd: z32, drapeaux: z32, t: *termios) -> rien #externe libc
+tcgetattr :: fonc (fd: z32, t: *termios) -> rien #externe libc;
+tcsetattr :: fonc (fd: z32, drapeaux: z32, t: *termios) -> rien #externe libc;
 
 /** \} */
 
@@ -1241,9 +1241,9 @@ tcsetattr :: fonc (fd: z32, drapeaux: z32, t: *termios) -> rien #externe libc
 /** \nom time.h
  * \{ */
 
-time_t :: z64
+time_t :: z64;
 
-time :: fonc (tloc: *time_t) -> z64 #externe libc
+time :: fonc (tloc: *time_t) -> z64 #externe libc;
 
 /* ISO C `broken-down time' structure.  */
 tm :: struct #externe {
@@ -1260,43 +1260,43 @@ tm :: struct #externe {
     tm_zone: ChaineC /* Timezone abbreviation.  */
 }
 
-localtime :: fonc (tloc: *z64) -> *tm #externe libc
+localtime :: fonc (tloc: *z64) -> *tm #externe libc;
 
 /* Identifier for system-wide realtime clock.  */
-CLOCK_REALTIME :: 0
+CLOCK_REALTIME :: 0;
 /* Monotonic system-wide clock.  */
-CLOCK_MONOTONIC :: 1
+CLOCK_MONOTONIC :: 1;
 /* High-resolution timer from the CPU.  */
-CLOCK_PROCESS_CPUTIME_ID :: 2
+CLOCK_PROCESS_CPUTIME_ID :: 2;
 /* Thread-specific CPU-time clock.  */
-CLOCK_THREAD_CPUTIME_ID :: 3
+CLOCK_THREAD_CPUTIME_ID :: 3;
 /* Monotonic system-wide clock, not adjusted for frequency scaling.  */
-CLOCK_MONOTONIC_RAW :: 4
+CLOCK_MONOTONIC_RAW :: 4;
 /* Identifier for system-wide realtime clock, updated only on ticks.  */
-CLOCK_REALTIME_COARSE :: 5
+CLOCK_REALTIME_COARSE :: 5;
 /* Monotonic system-wide clock, updated only on ticks.  */
-CLOCK_MONOTONIC_COARSE :: 6
+CLOCK_MONOTONIC_COARSE :: 6;
 /* Monotonic system-wide clock that includes time spent in suspension.  */
-CLOCK_BOOTTIME :: 7
+CLOCK_BOOTTIME :: 7;
 /* Like CLOCK_REALTIME but also wakes suspended system.  */
-CLOCK_REALTIME_ALARM :: 8
+CLOCK_REALTIME_ALARM :: 8;
 /* Like CLOCK_BOOTTIME but also wakes suspended system.  */
-CLOCK_BOOTTIME_ALARM :: 9
+CLOCK_BOOTTIME_ALARM :: 9;
 /* Like CLOCK_REALTIME but in International Atomic Time.  */
-CLOCK_TAI :: 11
+CLOCK_TAI :: 11;
 
 timespec :: struct #externe {
-    tv_sec: z64
-    tv_nsec: z64
+    tv_sec: z64;
+    tv_nsec: z64;
 }
 
-clock_gettime :: fonc (clock_id: z32, res: *timespec) -> z32 #externe libc
-clock_settime :: fonc (clock_id: z32, res: *timespec) -> z32 #externe libc
-clock_getres :: fonc (clock_id: z32, res: *timespec) -> z32 #externe libc
+clock_gettime :: fonc (clock_id: z32, res: *timespec) -> z32 #externe libc;
+clock_settime :: fonc (clock_id: z32, res: *timespec) -> z32 #externe libc;
+clock_getres :: fonc (clock_id: z32, res: *timespec) -> z32 #externe libc;
 
 timeval :: struct #externe {
-    tv_sec: z64
-    tv_usec: z64
+    tv_sec: z64;
+    tv_usec: z64;
 }
 
 // À FAIRE : déprécié
@@ -1305,9 +1305,9 @@ timezone :: struct #externe {
     tz_dsttime: z64 // Nonzéro si DST est en effet
 }
 
-gettimeofday :: fonc (val_temps: *timeval, zone_temps: *timezone) -> rien #externe libc
+gettimeofday :: fonc (val_temps: *timeval, zone_temps: *timezone) -> rien #externe libc;
 
-nanosleep :: fonc (req: *timespec, rem: *timespec) -> z32 #externe libc
+nanosleep :: fonc (req: *timespec, rem: *timespec) -> z32 #externe libc;
 
 /** \} */
 
@@ -1318,7 +1318,7 @@ nanosleep :: fonc (req: *timespec, rem: *timespec) -> z32 #externe libc
 /** \nom unistd.h
  * \{ */
 
-charge "confname"
+charge "confname";
 
 SEEK_SET :: 0 /* Seek from beginning of file.  */
 SEEK_CUR :: 1 /* Seek from current position.  */
@@ -1327,53 +1327,53 @@ SEEK_END :: 2 /* Seek from end of file.  */
 SEEK_DATA :: 3 /* Seek to next data. */
 SEEK_HOLE :: 4 /* Seek to next hole. */
 
-lseek :: fonc (fd: z32, offset: z64, whence: z32) -> z64 #externe libc
+lseek :: fonc (fd: z32, offset: z64, whence: z32) -> z64 #externe libc;
 
-close :: fonc (fd: z32) -> z32 #externe libc
+close :: fonc (fd: z32) -> z32 #externe libc;
 
-read :: fonc (fd: z32, tampon: *z8, taille: n64) -> z64 #externe libc
+read :: fonc (fd: z32, tampon: *z8, taille: n64) -> z64 #externe libc;
 
-write :: fonc (fd: z32, tampon: *z8, taille: z64) -> z32 #externe libc
+write :: fonc (fd: z32, tampon: *z8, taille: z64) -> z32 #externe libc;
 
-pipe :: fonc (fd_pair: *z32) -> z32 #externe libc
+pipe :: fonc (fd_pair: *z32) -> z32 #externe libc;
 
-sleep :: fonc (temps: z32) -> rien #externe libc
+sleep :: fonc (temps: z32) -> rien #externe libc;
 
-usleep :: fonc (µsec: n32) -> z32 #externe libc
+usleep :: fonc (µsec: n32) -> z32 #externe libc;
 
-chdir :: fonc (ptr: ChaineC) -> z32 #externe libc
+chdir :: fonc (ptr: ChaineC) -> z32 #externe libc;
 
-getcwd :: fonc (ptr: ChaineC, taille: z64) -> ChaineC #externe libc
+getcwd :: fonc (ptr: ChaineC, taille: z64) -> ChaineC #externe libc;
 
-dup :: fonc (oldfd: z32) -> z32 #externe libc
+dup :: fonc (oldfd: z32) -> z32 #externe libc;
 
-dup2 :: fonc (oldfd: z32, newfd: z32) -> z32 #externe libc
+dup2 :: fonc (oldfd: z32, newfd: z32) -> z32 #externe libc;
 
-execvp :: fonc (file: ChaineC, argv: *ChaineC) -> z32 #externe libc
+execvp :: fonc (file: ChaineC, argv: *ChaineC) -> z32 #externe libc;
 
-execl :: fonc (pathname: *z8, arg: *z8, args: ... /* (char  *) NULL */) -> z32 #externe libc
+execl :: fonc (pathname: *z8, arg: *z8, args: ... /* (char  *) NULL */) -> z32 #externe libc;
 
-sysconf :: fonc (nom: SysConf) -> z64 #externe libc
+sysconf :: fonc (nom: SysConf) -> z64 #externe libc;
 
-getpid :: fonc () -> z32 #externe libc
+getpid :: fonc () -> z32 #externe libc;
 
-getuid :: fonc () -> z32 #externe libc
+getuid :: fonc () -> z32 #externe libc;
 
-fork :: fonc () -> z32 #externe libc
+fork :: fonc () -> z32 #externe libc;
 
-isatty :: fonc (a: z32) -> bool #externe libc
+isatty :: fonc (a: z32) -> bool #externe libc;
 
-unlink :: fonc (chemin: ChaineC) -> z32 #externe libc
+unlink :: fonc (chemin: ChaineC) -> z32 #externe libc;
 
-fsync :: fonc (fd: z32) -> z32 #externe libc
+fsync :: fonc (fd: z32) -> z32 #externe libc;
 
-ftruncate :: fonc (a: z32, f: z32) -> z32 #externe libc
+ftruncate :: fonc (a: z32, f: z32) -> z32 #externe libc;
 
-fdatasync :: fonc (fd: z32) -> z32 #externe libc
+fdatasync :: fonc (fd: z32) -> z32 #externe libc;
 
-readlink :: fonc (pathname: ChaineC, tampon: *z8, taille_tampon: n64) -> z64 #externe libc
+readlink :: fonc (pathname: ChaineC, tampon: *z8, taille_tampon: n64) -> z64 #externe libc;
 
-symlink :: fonc (target: ChaineC, linkpath: ChaineC) -> z32 #externe libc
+symlink :: fonc (target: ChaineC, linkpath: ChaineC) -> z32 #externe libc;
 
 /** \} */
 

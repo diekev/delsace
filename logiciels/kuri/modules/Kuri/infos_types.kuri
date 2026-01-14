@@ -1,413 +1,413 @@
 // Structures de bases pour contenir les informations d'un type.
 
 GenreInfoType :: énum z32 {
-    ENTIER :: 0
-    RÉEL :: 1
-    BOOLÉEN :: 2
-    CHAINE :: 3
-    POINTEUR :: 4
-    STRUCTURE :: 5
-    FONCTION :: 6
-    TABLEAU :: 7
-    EINI :: 8
-    RIEN :: 9
-    ÉNUM :: 10
-    OCTET :: 11
-    TYPE_DE_DONNÉES :: 12
-    UNION :: 13
-    OPAQUE :: 14
-    VARIADIQUE :: 15
-    TRANCHE :: 16
-    TABLEAU_FIXE :: 17
-    ADRESSE_FONCTION :: 18
-    POLYMORPHIQUE :: 19
+    ENTIER :: 0;
+    RÉEL :: 1;
+    BOOLÉEN :: 2;
+    CHAINE :: 3;
+    POINTEUR :: 4;
+    STRUCTURE :: 5;
+    FONCTION :: 6;
+    TABLEAU :: 7;
+    EINI :: 8;
+    RIEN :: 9;
+    ÉNUM :: 10;
+    OCTET :: 11;
+    TYPE_DE_DONNÉES :: 12;
+    UNION :: 13;
+    OPAQUE :: 14;
+    VARIADIQUE :: 15;
+    TRANCHE :: 16;
+    TABLEAU_FIXE :: 17;
+    ADRESSE_FONCTION :: 18;
+    POLYMORPHIQUE :: 19;
 }
 
 Annotation :: struct #interface {
-    nom: chaine
-    valeur: chaine
+    nom: chaine;
+    valeur: chaine;
 }
 
 InfoType :: struct #interface {
-    id: GenreInfoType
-    taille_en_octet: n32
-    alignement: n32
+    id: GenreInfoType;
+    taille_en_octet: n32;
+    alignement: n32;
 }
 
 InfoTypeEntier :: struct #interface {
-    empl base: InfoType
+    empl base: InfoType;
 
-    est_signé: bool
+    est_signé: bool;
 }
 
 InfoTypePointeur :: struct #interface {
-    empl base: InfoType
+    empl base: InfoType;
 
-    est_référence: bool
-    type_pointé: *InfoType
+    est_référence: bool;
+    type_pointé: *InfoType;
 }
 
 InfoTypeTableau :: struct #interface {
-    empl base: InfoType
+    empl base: InfoType;
 
-    type_pointé: *InfoType
+    type_pointé: *InfoType;
 }
 
 InfoTypeTableauFixe :: struct #interface {
-    empl base: InfoType
+    empl base: InfoType;
 
-    nombre_éléments: n32
-    type_pointé: *InfoType
+    nombre_éléments: n32;
+    type_pointé: *InfoType;
 }
 
 InfoTypeTranche :: struct #interface {
-    empl base: InfoType
+    empl base: InfoType;
 
-    type_élément: *InfoType
+    type_élément: *InfoType;
 }
 
 possède_annotation :: fonc (annotations: []*Annotation, nom: chaine) -> bool
 {
-    retourne trouve_annotation(annotations, nom) != nul
+    retourne trouve_annotation(annotations, nom) != nul;
 }
 
 trouve_annotation :: fonc (annotations: []*Annotation, nom: chaine) -> *Annotation
 {
     pour annotations {
         si it.nom == nom {
-            retourne it
+            retourne it;
         }
     }
 
-    retourne nul
+    retourne nul;
 }
 
 InfoTypeRubriqueStructure :: struct #interface {
     Drapeaux :: énum_drapeau {
-        EST_CONSTANTE
-        EST_IMPLICITE
-        EST_UN_EMPLOI
+        EST_CONSTANTE;
+        EST_IMPLICITE;
+        EST_UN_EMPLOI;
     }
 
-    nom: chaine
-    id: *InfoType
+    nom: chaine;
+    id: *InfoType;
     décalage: z32 // décalage en octets dans la structure
-    drapeaux: Drapeaux
-    annotations: []*Annotation
+    drapeaux: Drapeaux;
+    annotations: []*Annotation;
 
- 	chemin_fichier: chaine
-    nom_fichier: chaine
-    numéro_ligne: z32
-    numéro_colonne: z32
+ 	chemin_fichier: chaine;
+    nom_fichier: chaine;
+    numéro_ligne: z32;
+    numéro_colonne: z32;
 }
 
 possède_annotation :: fonc (info: *InfoTypeRubriqueStructure, nom: chaine) -> bool
 {
-    retourne possède_annotation(info.annotations, nom)
+    retourne possède_annotation(info.annotations, nom);
 }
 
 trouve_annotation :: fonc (info: *InfoTypeRubriqueStructure, nom: chaine) -> *Annotation
 {
-    retourne trouve_annotation(info.annotations, nom)
+    retourne trouve_annotation(info.annotations, nom);
 }
 
 InfoTypeStructure :: struct #interface {
-    empl base: InfoType
+    empl base: InfoType;
 
-    est_polymorphique: bool
-    nom: chaine
-    rubriques: []*InfoTypeRubriqueStructure
-    structs_employées: []*InfoTypeStructure
-    annotations: []*Annotation
-    polymorphe_de_base: *InfoTypeStructure
+    est_polymorphique: bool;
+    nom: chaine;
+    rubriques: []*InfoTypeRubriqueStructure;
+    structs_employées: []*InfoTypeStructure;
+    annotations: []*Annotation;
+    polymorphe_de_base: *InfoTypeStructure;
 }
 
 possède_annotation :: fonc (info: *InfoTypeStructure, nom: chaine) -> bool
 {
-    retourne possède_annotation(info.annotations, nom)
+    retourne possède_annotation(info.annotations, nom);
 }
 
 trouve_annotation :: fonc (info: *InfoTypeStructure, nom: chaine) -> *Annotation
 {
-    retourne trouve_annotation(info.annotations, nom)
+    retourne trouve_annotation(info.annotations, nom);
 }
 
 InfoTypeUnion :: struct #interface {
-    empl base: InfoType
+    empl base: InfoType;
 
-    est_sûre: bool
-    est_polymorphique: bool
-    nom: chaine
-    rubriques: []*InfoTypeRubriqueStructure
-    type_le_plus_grand: *InfoType
-    décalage_indice: z64
-    annotations: []*Annotation
-    polymorphe_de_base: *InfoTypeUnion
+    est_sûre: bool;
+    est_polymorphique: bool;
+    nom: chaine;
+    rubriques: []*InfoTypeRubriqueStructure;
+    type_le_plus_grand: *InfoType;
+    décalage_indice: z64;
+    annotations: []*Annotation;
+    polymorphe_de_base: *InfoTypeUnion;
 }
 
 possède_annotation :: fonc (info: *InfoTypeUnion, nom: chaine) -> bool
 {
-    retourne possède_annotation(info.annotations, nom)
+    retourne possède_annotation(info.annotations, nom);
 }
 
 trouve_annotation :: fonc (info: *InfoTypeUnion, nom: chaine) -> *Annotation
 {
-    retourne trouve_annotation(info.annotations, nom)
+    retourne trouve_annotation(info.annotations, nom);
 }
 
 InfoTypeFonction :: struct #interface {
-    empl base: InfoType
+    empl base: InfoType;
 
-    types_entrée: []*InfoType
-    types_sortie: []*InfoType
+    types_entrée: []*InfoType;
+    types_sortie: []*InfoType;
 }
 
 /* Retourne vrai si les d'entrée et de sortie de l'InfoTypeFonction sont les
  * mêmes que ceux données en paramtères. */
 apparie_type_fonction :: fonc (info_type: *InfoTypeFonction, types_entrée: []*InfoType, types_sortie: []*InfoType) -> bool
 {
-    retourne tableaux_sont_égaux(info_type.types_entrée, types_entrée) && tableaux_sont_égaux(info_type.types_sortie, types_sortie)
+    retourne tableaux_sont_égaux(info_type.types_entrée, types_entrée) && tableaux_sont_égaux(info_type.types_sortie, types_sortie);
 }
 
 InfoTypeÉnum :: struct #interface {
-    empl base: InfoType
+    empl base: InfoType;
 
-    est_drapeau: bool
-    nom: chaine
-    valeurs: []octet
-    noms: []chaine
-    type_sous_jacent: *InfoTypeEntier
+    est_drapeau: bool;
+    nom: chaine;
+    valeurs: []octet;
+    noms: []chaine;
+    type_sous_jacent: *InfoTypeEntier;
 }
 
 donne_valeur_énum_pour_nom :: fonc (info: *InfoTypeÉnum, nom: chaine) -> (eini, bool)
 {
     pour info.noms {
         si it == nom {
-            retourne donne_eini_valeur_énum_indice(info, indice_it), vrai
+            retourne donne_eini_valeur_énum_indice(info, indice_it), vrai;
         }
     }
 
-    résultat: eini
-    retourne résultat, faux
+    résultat: eini;
+    retourne résultat, faux;
 }
 
 donne_nom_énum_pour_valeur :: fonc (valeur: eini) -> chaine
 {
-    indice := donne_indice_valeur_énum(valeur)
-    résultat := ""
+    indice := donne_indice_valeur_énum(valeur);
+    résultat := "";
     si indice != -1 {
-        infos := valeur.info comme *InfoTypeÉnum
-        résultat = infos.noms[indice]
+        infos := valeur.info comme *InfoTypeÉnum;
+        résultat = infos.noms[indice];
     }
-    retourne résultat
+    retourne résultat;
 }
 
 donne_nom_énum_pour_valeur :: fonc (info: *InfoTypeÉnum, valeur: $T) -> chaine
 {
     pour info.donne_valeurs_typées(T) {
         si it == valeur {
-            retourne info.noms[indice_it]
+            retourne info.noms[indice_it];
         }
     }
 
-    retourne ""
+    retourne "";
 }
 
 donne_indice_valeur_énum :: fonc (valeur: eini) -> z64
 {
-    infos := valeur.info comme *InfoTypeÉnum
-    type_sous_jacent := infos.type_sous_jacent
+    infos := valeur.info comme *InfoTypeÉnum;
+    type_sous_jacent := infos.type_sous_jacent;
 
     si type_sous_jacent.est_signé {
         si type_sous_jacent.taille_en_octet == 1 {
-            valeur_énum := mémoire(valeur.pointeur comme *z8)
-            retourne donne_indice_valeur_énum(infos, valeur_énum)
+            valeur_énum := mémoire(valeur.pointeur comme *z8);
+            retourne donne_indice_valeur_énum(infos, valeur_énum);
         }
         si type_sous_jacent.taille_en_octet == 2 {
-            valeur_énum := mémoire(valeur.pointeur comme *z16)
-            retourne donne_indice_valeur_énum(infos, valeur_énum)
+            valeur_énum := mémoire(valeur.pointeur comme *z16);
+            retourne donne_indice_valeur_énum(infos, valeur_énum);
         }
         si type_sous_jacent.taille_en_octet == 4 {
-            valeur_énum := mémoire(valeur.pointeur comme *z32)
-            retourne donne_indice_valeur_énum(infos, valeur_énum)
+            valeur_énum := mémoire(valeur.pointeur comme *z32);
+            retourne donne_indice_valeur_énum(infos, valeur_énum);
         }
-        valeur_énum := mémoire(valeur.pointeur comme *z64)
-        retourne donne_indice_valeur_énum(infos, valeur_énum)
+        valeur_énum := mémoire(valeur.pointeur comme *z64);
+        retourne donne_indice_valeur_énum(infos, valeur_énum);
     }
     si type_sous_jacent.taille_en_octet == 1 {
-        valeur_énum := mémoire(valeur.pointeur comme *n8)
-        retourne donne_indice_valeur_énum(infos, valeur_énum)
+        valeur_énum := mémoire(valeur.pointeur comme *n8);
+        retourne donne_indice_valeur_énum(infos, valeur_énum);
     }
     si type_sous_jacent.taille_en_octet == 2 {
-        valeur_énum := mémoire(valeur.pointeur comme *n16)
-        retourne donne_indice_valeur_énum(infos, valeur_énum)
+        valeur_énum := mémoire(valeur.pointeur comme *n16);
+        retourne donne_indice_valeur_énum(infos, valeur_énum);
     }
     si type_sous_jacent.taille_en_octet == 4 {
-        valeur_énum := mémoire(valeur.pointeur comme *n32)
-        retourne donne_indice_valeur_énum(infos, valeur_énum)
+        valeur_énum := mémoire(valeur.pointeur comme *n32);
+        retourne donne_indice_valeur_énum(infos, valeur_énum);
     }
-    valeur_énum := mémoire(valeur.pointeur comme *n64)
-    retourne donne_indice_valeur_énum(infos, valeur_énum)
+    valeur_énum := mémoire(valeur.pointeur comme *n64);
+    retourne donne_indice_valeur_énum(infos, valeur_énum);
 }
 
 donne_indice_valeur_énum :: fonc (info: *InfoTypeÉnum, valeur: $T) -> z64
 {
     pour info.donne_valeurs_typées(T) {
         si it == valeur {
-            retourne indice_it
+            retourne indice_it;
         }
     }
 
-    retourne -1
+    retourne -1;
 }
 
 donne_eini_valeur_énum_indice :: fonc (info: *InfoTypeÉnum, indice: z64) -> eini
 {
-    résultat : eini = ---
-    résultat.pointeur = *info.valeurs[indice * info.taille_en_octet comme z64]
-    résultat.info = info.type_sous_jacent
-    retourne résultat
+    résultat : eini = ---;
+    résultat.pointeur = *info.valeurs[indice * info.taille_en_octet comme z64];
+    résultat.info = info.type_sous_jacent;
+    retourne résultat;
 }
 
 donne_valeurs_typées :: fonc (info: *InfoTypeÉnum, $T: type_de_données) -> []T
 {
-    résultat : []T = ---
-    résultat.pointeur = info.valeurs.pointeur comme *T
-    résultat.taille = info.valeurs.taille / (info.taille_en_octet comme z64)
-    retourne résultat
+    résultat : []T = ---;
+    résultat.pointeur = info.valeurs.pointeur comme *T;
+    résultat.taille = info.valeurs.taille / (info.taille_en_octet comme z64);
+    retourne résultat;
 }
 
 InfoTypeOpaque :: struct #interface {
-    empl base: InfoType
+    empl base: InfoType;
 
-    nom: chaine
-    type_opacifié: *InfoType
+    nom: chaine;
+    type_opacifié: *InfoType;
 }
 
 InfoTypeVariadique :: struct #interface {
-    empl base: InfoType
+    empl base: InfoType;
 
-    type_élément: *InfoType
+    type_élément: *InfoType;
 }
 
 InfoTypePolymorphique :: struct #interface {
-    empl base: InfoType
+    empl base: InfoType;
 
-    ident: chaine
+    ident: chaine;
 }
 
 est_référence_vers :: fonc (info: *InfoType, type_pointé: *InfoType) -> bool
 {
     si info.id != GenreInfoType.POINTEUR {
-        retourne faux
+        retourne faux;
     }
 
-    référence := info comme *InfoTypePointeur
+    référence := info comme *InfoTypePointeur;
     saufsi référence.est_référence {
-        retourne faux
+        retourne faux;
     }
 
-    retourne référence.type_pointé == type_pointé
+    retourne référence.type_pointé == type_pointé;
 }
 
 est_pointeur_vers :: fonc (info: *InfoType, type_pointé: *InfoType) -> bool
 {
     si info.id != GenreInfoType.POINTEUR {
-        retourne faux
+        retourne faux;
     }
 
-    pointeur := info comme *InfoTypePointeur
+    pointeur := info comme *InfoTypePointeur;
     si pointeur.est_référence {
-        retourne faux
+        retourne faux;
     }
 
-    retourne pointeur.type_pointé == type_pointé
+    retourne pointeur.type_pointé == type_pointé;
 }
 
 est_struct_ou_employeuse_de :: fonc (info: *InfoTypeStructure, base: *InfoTypeStructure) -> bool
 {
     si info == base {
-        retourne vrai
+        retourne vrai;
     }
 
     pour info.structs_employées {
         si est_struct_ou_employeuse_de(it, base) {
-            retourne vrai
+            retourne vrai;
         }
     }
 
-    retourne faux
+    retourne faux;
 }
 
 est_struct_ou_employeuse_de :: fonc (info: *InfoTypeStructure, nom: chaine) -> bool
 {
     si info.nom == nom {
-        retourne vrai
+        retourne vrai;
     }
 
     pour info.structs_employées {
         si est_struct_ou_employeuse_de(it, nom) {
-            retourne vrai
+            retourne vrai;
         }
     }
 
-    retourne faux
+    retourne faux;
 }
 
 est_type_structure_nommée :: fonc (info: *InfoType, nom: chaine) -> bool
 {
-    résultat := faux
+    résultat := faux;
     si info.id == GenreInfoType.STRUCTURE {
-        info_structure := info comme *InfoTypeStructure
-        résultat = info_structure.nom == nom
+        info_structure := info comme *InfoTypeStructure;
+        résultat = info_structure.nom == nom;
     }
-    retourne résultat
+    retourne résultat;
 }
 
 est_pointeur_de :: fonc (info: *InfoType) -> *InfoType
 {
     si info == nul {
-        retourne nul
+        retourne nul;
     }
 
     si info.id != GenreInfoType.POINTEUR {
-        retourne nul
+        retourne nul;
     }
 
-    info_pointeur := info comme *InfoTypePointeur
+    info_pointeur := info comme *InfoTypePointeur;
     si info_pointeur.est_référence {
-        retourne nul
+        retourne nul;
     }
 
-    retourne info_pointeur.type_pointé
+    retourne info_pointeur.type_pointé;
 }
 
 est_pointeur_de_structure :: fonc (info: *InfoType) -> *InfoTypeStructure
 {
-    type_pointé := est_pointeur_de(info)
+    type_pointé := est_pointeur_de(info);
 
     si !type_pointé {
-        retourne nul
+        retourne nul;
     }
 
     si type_pointé.id != GenreInfoType.STRUCTURE {
-        retourne nul
+        retourne nul;
     }
 
-    retourne type_pointé comme *InfoTypeStructure
+    retourne type_pointé comme *InfoTypeStructure;
 }
 
 est_pointeur_de_structure_ou_union :: fonc (info: *InfoType) -> *InfoType
 {
-    type_pointé := est_pointeur_de(info)
+    type_pointé := est_pointeur_de(info);
 
     si !type_pointé {
-        retourne nul
+        retourne nul;
     }
 
     si type_pointé.id != GenreInfoType.STRUCTURE && type_pointé.id != GenreInfoType.UNION {
-        retourne nul
+        retourne nul;
     }
 
-    retourne type_pointé
+    retourne type_pointé;
 }

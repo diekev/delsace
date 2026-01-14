@@ -1,11 +1,11 @@
 /* Extensions de l'interface de Python pour nos types.
  * Définitions des macros de Python. */
 
-importe Chaine
-importe Fondation
-importe Math
+importe Chaine;
+importe Fondation;
+importe Math;
 
-charge "interface"
+charge "interface";
 
 /*
 Type flags (tp_flags)
@@ -28,50 +28,50 @@ given type object has a specified feature.
 */
 
 /* Set if the type object is dynamically allocated */
-Py_TPFLAGS_HEAPTYPE : n64 : 1 << 9
+Py_TPFLAGS_HEAPTYPE : n64 : 1 << 9;
 
 /* Set if the type allows subclassing */
-Py_TPFLAGS_BASETYPE : n64 : 1 << 10
+Py_TPFLAGS_BASETYPE : n64 : 1 << 10;
 
 /* Set if the type implements the vectorcall protocol (PEP 590) */
 // #ifndef Py_LIMITED_API
-Py_TPFLAGS_HAVE_VECTORCALL : n64 : 1 << 11
+Py_TPFLAGS_HAVE_VECTORCALL : n64 : 1 << 11;
 
 /* Set if the type is 'ready' -- fully initialized */
-Py_TPFLAGS_READY : n64 : 1 << 12
+Py_TPFLAGS_READY : n64 : 1 << 12;
 
 /* Set while the type is being 'readied', to prevent recursive ready calls */
-Py_TPFLAGS_READYING : n64 : 1 << 13
+Py_TPFLAGS_READYING : n64 : 1 << 13;
 
 /* Objects support garbage collection (see objimpl.h) */
-Py_TPFLAGS_HAVE_GC : n64 : 1 << 14
+Py_TPFLAGS_HAVE_GC : n64 : 1 << 14;
 
 /* These two bits are preserved for Stackless Python, next after this is 17 */
 // #ifdef STACKLESS
 // Py_TPFLAGS_HAVE_STACKLESS_EXTENSION : n64 : 3 << 15
-Py_TPFLAGS_HAVE_STACKLESS_EXTENSION : n64 : 0
+Py_TPFLAGS_HAVE_STACKLESS_EXTENSION : n64 : 0;
 
 /* Objects behave like an unbound method */
-Py_TPFLAGS_METHOD_DESCRIPTOR : n64 : 1  << 17
+Py_TPFLAGS_METHOD_DESCRIPTOR : n64 : 1  << 17;
 
 /* Objects support type attribute cache */
-Py_TPFLAGS_HAVE_VERSION_TAG : n64 : 1  << 18
-Py_TPFLAGS_VALID_VERSION_TAG : n64 : 1  << 19
+Py_TPFLAGS_HAVE_VERSION_TAG : n64 : 1  << 18;
+Py_TPFLAGS_VALID_VERSION_TAG : n64 : 1  << 19;
 
 /* Type is abstract and cannot be instantiated */
-Py_TPFLAGS_IS_ABSTRACT : n64 : 1  << 20
+Py_TPFLAGS_IS_ABSTRACT : n64 : 1  << 20;
 
 /* These flags are used to determine if a type is a subclass. */
-Py_TPFLAGS_LONG_SUBCLASS : n64 : 1  << 24
-Py_TPFLAGS_LIST_SUBCLASS : n64 : 1  << 25
-Py_TPFLAGS_TUPLE_SUBCLASS : n64 : 1  << 26
-Py_TPFLAGS_BYTES_SUBCLASS : n64 : 1  << 27
-Py_TPFLAGS_UNICODE_SUBCLASS : n64 : 1  << 28
-Py_TPFLAGS_DICT_SUBCLASS : n64 : 1  << 29
-Py_TPFLAGS_BASE_EXC_SUBCLASS : n64 : 1  << 30
-Py_TPFLAGS_TYPE_SUBCLASS : n64 : 1  << 31
+Py_TPFLAGS_LONG_SUBCLASS : n64 : 1  << 24;
+Py_TPFLAGS_LIST_SUBCLASS : n64 : 1  << 25;
+Py_TPFLAGS_TUPLE_SUBCLASS : n64 : 1  << 26;
+Py_TPFLAGS_BYTES_SUBCLASS : n64 : 1  << 27;
+Py_TPFLAGS_UNICODE_SUBCLASS : n64 : 1  << 28;
+Py_TPFLAGS_DICT_SUBCLASS : n64 : 1  << 29;
+Py_TPFLAGS_BASE_EXC_SUBCLASS : n64 : 1  << 30;
+Py_TPFLAGS_TYPE_SUBCLASS : n64 : 1  << 31;
 
-Py_TPFLAGS_DEFAULT :: Py_TPFLAGS_HAVE_STACKLESS_EXTENSION | Py_TPFLAGS_HAVE_VERSION_TAG
+Py_TPFLAGS_DEFAULT :: Py_TPFLAGS_HAVE_STACKLESS_EXTENSION | Py_TPFLAGS_HAVE_VERSION_TAG;
 
 /* NOTE: The following flags reuse lower bits (removed as part of the
  * Python 3.0 transition). */
@@ -82,34 +82,34 @@ Py_TPFLAGS_DEFAULT :: Py_TPFLAGS_HAVE_STACKLESS_EXTENSION | Py_TPFLAGS_HAVE_VERS
  */
 
 /* Type structure has tp_finalize member (3.4) */
-Py_TPFLAGS_HAVE_FINALIZE : n64 : 1 << 0
+Py_TPFLAGS_HAVE_FINALIZE : n64 : 1 << 0;
 
 /* Flag passed to newmethodobject */
 /* METH_OLDARGS  0x0000   -- unsupported now */
-METH_VARARGS  :: 0x0001
-METH_KEYWORDS :: 0x0002
+METH_VARARGS  :: 0x0001;
+METH_KEYWORDS :: 0x0002;
 /* METH_NOARGS and METH_O must not be combined with the flags above. */
-METH_NOARGS   :: 0x0004
-METH_O        :: 0x0008
+METH_NOARGS   :: 0x0004;
+METH_O        :: 0x0008;
 
 /* METH_CLASS and METH_STATIC are a little different; these control
    the construction of methods for a class.  These cannot be used for
    functions in modules. */
-METH_CLASS    :: 0x0010
+METH_CLASS    :: 0x0010;
 // #ifndef Py_LIMITED_API
-METH_STATIC   :: 0x0020
+METH_STATIC   :: 0x0020;
 
 /* METH_COEXIST allows a method to be entered even though a slot has
    already filled the entry.  When defined, the flag allows a separate
    method, "__contains__" for example, to coexist with a defined
    slot like sq_contains. */
 
-METH_COEXIST   :: 0x0040
-METH_FASTCALL  :: 0x0080
+METH_COEXIST   :: 0x0040;
+METH_FASTCALL  :: 0x0080;
 
 /* This bit is preserved for Stackless Python */
 // #ifdef PYTHON_STACKLESS
-METH_STACKLESS :: 0x0100
+METH_STACKLESS :: 0x0100;
 
 /* METH_METHOD means the function stores an
  * additional reference to the class that defines it;
@@ -119,111 +119,111 @@ METH_STACKLESS :: 0x0100
  */
 
 //#if !defined(Py_LIMITED_API) || Py_LIMITED_API+0 >= 0x03090000
-METH_METHOD :: 0x0200
+METH_METHOD :: 0x0200;
 
-PYTHON_API_VERSION :: 1013
+PYTHON_API_VERSION :: 1013;
 
-Py_None : *PyObject = *_Py_NoneStruct
+Py_None : *PyObject = *_Py_NoneStruct;
 
 python_retourne_rien :: fonc () -> *PyObject
 {
-    Py_INCREF(Py_None)
-    retourne Py_None
+    Py_INCREF(Py_None);
+    retourne Py_None;
 }
 
-Py_False : *PyObject = *_Py_FalseStruct
+Py_False : *PyObject = *_Py_FalseStruct;
 
 python_retourne_faux :: fonc () -> *PyObject
 {
-    Py_INCREF(Py_False)
-    retourne Py_False
+    Py_INCREF(Py_False);
+    retourne Py_False;
 }
 
-Py_True : *PyObject = *_Py_TrueStruct
+Py_True : *PyObject = *_Py_TrueStruct;
 
 python_retourne_true :: fonc () -> *PyObject
 {
-    Py_INCREF(Py_True)
-    retourne Py_True
+    Py_INCREF(Py_True);
+    retourne Py_True;
 }
 
-Py_NotImplemented : *PyObject = *_Py_NotImplementedStruct
+Py_NotImplemented : *PyObject = *_Py_NotImplementedStruct;
 
 // ---------------------------------------------------
 // Références
 
 Py_INCREF :: fonc (ob: *PyObject)
 {
-    ob.ob_refcnt += 1
+    ob.ob_refcnt += 1;
 }
 
 Py_XINCREF :: fonc (ob: *PyObject)
 {
     si ob {
-        Py_INCREF(ob)
+        Py_INCREF(ob);
     }
 }
 
 Py_DECREF :: fonc (ob: *PyObject)
 {
-    ob.ob_refcnt -= 1
+    ob.ob_refcnt -= 1;
     si ob.ob_refcnt == 0 {
-        _Py_Dealloc(ob)
+        _Py_Dealloc(ob);
     }
 }
 
 Py_XDECREF :: fonc (ob: *PyObject)
 {
     saufsi ob {
-        retourne
+        retourne;
     }
 
-    Py_DECREF(ob)
+    Py_DECREF(ob);
 }
 
 Py_NewRef :: fonc (ob: *PyObject) -> *PyObject
 {
-    Py_INCREF(ob)
-    retourne ob
+    Py_INCREF(ob);
+    retourne ob;
 }
 
 Py_XNewRef :: fonc (ob: *PyObject) -> *PyObject
 {
-    Py_XINCREF(ob)
-    retourne ob
+    Py_XINCREF(ob);
+    retourne ob;
 }
 
 // ---------------------------------------------------
 /* Rich comparison opcodes */
-Py_LT :: 0
-Py_LE :: 1
-Py_EQ :: 2
-Py_NE :: 3
-Py_GT :: 4
-Py_GE :: 5
+Py_LT :: 0;
+Py_LE :: 1;
+Py_EQ :: 2;
+Py_NE :: 3;
+Py_GT :: 4;
+Py_GE :: 5;
 
 // ---------------------------------------------------
 // Objet
 
 PyType_HasFeature :: fonc (type: *PyTypeObject, feature: n64) -> bool #enligne
 {
-    flags := type.tp_flags
-    retourne (flags & feature) != 0
+    flags := type.tp_flags;
+    retourne (flags & feature) != 0;
 }
 
 PyType_FastSubclass :: fonc (type: *PyTypeObject, feature: n64) -> bool #enligne
 {
-    retourne PyType_HasFeature(type, feature)
+    retourne PyType_HasFeature(type, feature);
 }
 
 _Py_IS_TYPE :: fonc (ob: *PyObject, type: *PyTypeObject) -> bool
 {
-    retourne ob.ob_type == type
+    retourne ob.ob_type == type;
 }
 
 PyObject_TypeCheck :: fonc (ob: *PyObject, type: *PyTypeObject) -> bool
 {
-    retourne _Py_IS_TYPE(ob, type) || (PyType_IsSubtype(ob.ob_type, type) != 0)
+    retourne _Py_IS_TYPE(ob, type) || (PyType_IsSubtype(ob.ob_type, type) != 0);
 }
 
 // ---------------------------------------------------
@@ -231,20 +231,20 @@ PyObject_TypeCheck :: fonc (ob: *PyObject, type: *PyTypeObject) -> bool
 
 PyBool_Check :: fonc (ob: *PyObject) -> bool
 {
-    retourne PyObject_TypeCheck(ob, *PyBool_Type)
+    retourne PyObject_TypeCheck(ob, *PyBool_Type);
 }
 
 PyBool_AsBool :: fonc (ob: *PyObject) -> bool
 {
-    retourne ob == Py_True
+    retourne ob == Py_True;
 }
 
 PyBool_FromBool :: fonc (valeur: bool) -> *PyObject
 {
     si valeur {
-        retourne python_retourne_true()
+        retourne python_retourne_true();
     }
-    retourne python_retourne_faux()
+    retourne python_retourne_faux();
 }
 
 // ---------------------------------------------------
@@ -252,62 +252,62 @@ PyBool_FromBool :: fonc (valeur: bool) -> *PyObject
 
 PyLong_Check :: fonc (ob: *PyObject) -> bool
 {
-    retourne PyType_FastSubclass(ob.ob_type, Py_TPFLAGS_LONG_SUBCLASS)
+    retourne PyType_FastSubclass(ob.ob_type, Py_TPFLAGS_LONG_SUBCLASS);
 }
 
 PyLong_AsZ8 :: fonc (ob: *PyObject) -> z8
 {
-    retourne PyLong_AsLong(ob) comme z8
+    retourne PyLong_AsLong(ob) comme z8;
 }
 
 PyLong_AsZ16 :: fonc (ob: *PyObject) -> z16
 {
-    retourne PyLong_AsLong(ob) comme z16
+    retourne PyLong_AsLong(ob) comme z16;
 }
 
 PyLong_AsZ32 :: fonc (ob: *PyObject) -> z32
 {
-    retourne PyLong_AsLong(ob) comme z32
+    retourne PyLong_AsLong(ob) comme z32;
 }
 
 PyLong_AsN8 :: fonc (ob: *PyObject) -> n8
 {
-    retourne PyLong_AsLong(ob) comme n8
+    retourne PyLong_AsLong(ob) comme n8;
 }
 
 PyLong_AsN16 :: fonc (ob: *PyObject) -> n16
 {
-    retourne PyLong_AsLong(ob) comme n16
+    retourne PyLong_AsLong(ob) comme n16;
 }
 
 PyLong_AsN32 :: fonc (ob: *PyObject) -> n32
 {
-    retourne PyLong_AsLong(ob) comme n32
+    retourne PyLong_AsLong(ob) comme n32;
 }
 
 PyLong_AsN64 :: fonc (ob: *PyObject) -> n64
 {
-    retourne PyLong_AsLong(ob) comme n64
+    retourne PyLong_AsLong(ob) comme n64;
 }
 
 PyLong_FromN8 :: fonc (l: n8) -> *PyObject
 {
-    retourne PyLong_FromLong(l comme z64)
+    retourne PyLong_FromLong(l comme z64);
 }
 
 PyLong_FromN16 :: fonc (l: n16) -> *PyObject
 {
-    retourne PyLong_FromLong(l comme z64)
+    retourne PyLong_FromLong(l comme z64);
 }
 
 PyLong_FromN32 :: fonc (l: n32) -> *PyObject
 {
-    retourne PyLong_FromLong(l comme z64)
+    retourne PyLong_FromLong(l comme z64);
 }
 
 PyLong_FromN64 :: fonc (l: n64) -> *PyObject
 {
-    retourne PyLong_FromLong(l comme z64)
+    retourne PyLong_FromLong(l comme z64);
 }
 
 // ---------------------------------------------------
@@ -315,17 +315,17 @@ PyLong_FromN64 :: fonc (l: n64) -> *PyObject
 
 PyFloat_Check :: fonc (ob: *PyObject) -> bool
 {
-    retourne PyObject_TypeCheck(ob, *PyFloat_Type)
+    retourne PyObject_TypeCheck(ob, *PyFloat_Type);
 }
 
 PyFloat_AsR32 :: fonc (ob: *PyObject) -> r32
 {
-    retourne PyFloat_AsDouble(ob) comme r32
+    retourne PyFloat_AsDouble(ob) comme r32;
 }
 
 PyFloat_AsR16 :: fonc (ob: *PyObject) -> r16
 {
-    retourne PyFloat_AsDouble(ob) comme r16
+    retourne PyFloat_AsDouble(ob) comme r16;
 }
 
 // ---------------------------------------------------
@@ -333,59 +333,59 @@ PyFloat_AsR16 :: fonc (ob: *PyObject) -> r16
 
 PyUnicode_Check :: fonc (ob: *PyObject) -> bool
 {
-    retourne PyType_FastSubclass(ob.ob_type, Py_TPFLAGS_UNICODE_SUBCLASS)
+    retourne PyType_FastSubclass(ob.ob_type, Py_TPFLAGS_UNICODE_SUBCLASS);
 }
 
 PyUnicode_CheckExact :: fonc (ob: *PyObject) -> bool
 {
-    retourne PyObject_TypeCheck(ob, *PyUnicode_Type)
+    retourne PyObject_TypeCheck(ob, *PyUnicode_Type);
 }
 
 PyUnicode_AsChaine :: fonc (unicode: *PyObject) -> chaine
 {
-    résultat : chaine = ---
-    résultat.pointeur = PyUnicode_AsUTF8AndSize(unicode, *résultat.taille)
-    retourne résultat
+    résultat : chaine = ---;
+    résultat.pointeur = PyUnicode_AsUTF8AndSize(unicode, *résultat.taille);
+    retourne résultat;
 }
 
 PyUnicode_FromChaine :: fonc (chn: chaine) -> *PyObject
 {
-    retourne PyUnicode_FromStringAndSize(chn.pointeur, chn.taille)
+    retourne PyUnicode_FromStringAndSize(chn.pointeur, chn.taille);
 }
 
 // ---------------------------------------------------
 // Buffer Interface
 
 /* Maximum number of dimensions */
-PyBUF_MAX_NDIM :: 64
+PyBUF_MAX_NDIM :: 64;
 
 /* Flags for getting buffers */
-PyBUF_SIMPLE :: 0
-PyBUF_WRITABLE :: 0x0001
+PyBUF_SIMPLE :: 0;
+PyBUF_WRITABLE :: 0x0001;
 /*  we used to include an E, backwards compatible alias  */
-PyBUF_WRITEABLE :: PyBUF_WRITABLE
-PyBUF_FORMAT :: 0x0004
-PyBUF_ND :: 0x0008
-PyBUF_STRIDES :: (0x0010 | PyBUF_ND)
-PyBUF_C_CONTIGUOUS :: (0x0020 | PyBUF_STRIDES)
-PyBUF_F_CONTIGUOUS :: (0x0040 | PyBUF_STRIDES)
-PyBUF_ANY_CONTIGUOUS :: (0x0080 | PyBUF_STRIDES)
-PyBUF_INDIRECT :: (0x0100 | PyBUF_STRIDES)
+PyBUF_WRITEABLE :: PyBUF_WRITABLE;
+PyBUF_FORMAT :: 0x0004;
+PyBUF_ND :: 0x0008;
+PyBUF_STRIDES :: (0x0010 | PyBUF_ND);
+PyBUF_C_CONTIGUOUS :: (0x0020 | PyBUF_STRIDES);
+PyBUF_F_CONTIGUOUS :: (0x0040 | PyBUF_STRIDES);
+PyBUF_ANY_CONTIGUOUS :: (0x0080 | PyBUF_STRIDES);
+PyBUF_INDIRECT :: (0x0100 | PyBUF_STRIDES);
 
-PyBUF_CONTIG :: (PyBUF_ND | PyBUF_WRITABLE)
-PyBUF_CONTIG_RO :: (PyBUF_ND)
+PyBUF_CONTIG :: (PyBUF_ND | PyBUF_WRITABLE);
+PyBUF_CONTIG_RO :: (PyBUF_ND);
 
-PyBUF_STRIDED :: (PyBUF_STRIDES | PyBUF_WRITABLE)
-PyBUF_STRIDED_RO :: (PyBUF_STRIDES)
+PyBUF_STRIDED :: (PyBUF_STRIDES | PyBUF_WRITABLE);
+PyBUF_STRIDED_RO :: (PyBUF_STRIDES);
 
-PyBUF_RECORDS :: (PyBUF_STRIDES | PyBUF_WRITABLE | PyBUF_FORMAT)
-PyBUF_RECORDS_RO :: (PyBUF_STRIDES | PyBUF_FORMAT)
+PyBUF_RECORDS :: (PyBUF_STRIDES | PyBUF_WRITABLE | PyBUF_FORMAT);
+PyBUF_RECORDS_RO :: (PyBUF_STRIDES | PyBUF_FORMAT);
 
-PyBUF_FULL :: (PyBUF_INDIRECT | PyBUF_WRITABLE | PyBUF_FORMAT)
-PyBUF_FULL_RO :: (PyBUF_INDIRECT | PyBUF_FORMAT)
+PyBUF_FULL :: (PyBUF_INDIRECT | PyBUF_WRITABLE | PyBUF_FORMAT);
+PyBUF_FULL_RO :: (PyBUF_INDIRECT | PyBUF_FORMAT);
 
-PyBUF_READ  :: 0x100
-PyBUF_WRITE :: 0x200
+PyBUF_READ  :: 0x100;
+PyBUF_WRITE :: 0x200;
 
 // ---------------------------------------------------
 // Fonctions pour générer les itérateurs pour infos types.
@@ -394,9 +394,9 @@ PyBUF_WRITE :: 0x200
 
 /* Objet Python pour un itérateur sur InfoType */
 PyItérateurInfoType :: struct {
-    empl base: PyObject
-    infos: *InfoTypeStructure
-    index_courant: z64
+    empl base: PyObject;
+    infos: *InfoTypeStructure;
+    index_courant: z64;
 }
 
 /* Type objet Python pour un itérateur sur InfoType. */
@@ -410,21 +410,21 @@ PyTypeItérateurPourInfoType := PyTypeObject(
     tp_iternext = iternext_pour_itérateur_infos_type,
     tp_base = *PyBaseObject_Type,
     tp_hash = PyObject_HashNotImplemented
-)
+);
 
 /* Retourne vrai si la rubrique est accessible via Python, et donc dont le nom
  * peut être retourné via l'itérateur. */
 rubrique_est_accessible_via_itération :: fonc (rubrique: *InfoTypeRubriqueStructure) -> bool
 {
     si possède_annotation(rubrique, "accessible") {
-        retourne vrai
+        retourne vrai;
     }
 
     si possède_annotation(rubrique, "mutable") {
-        retourne vrai
+        retourne vrai;
     }
 
-    retourne faux
+    retourne faux;
 }
 
 /* Les itérateurs peuvent définir un PyTypeObject.tp_iter, et dans ce cas doivent
@@ -435,7 +435,7 @@ rubrique_est_accessible_via_itération :: fonc (rubrique: *InfoTypeRubriqueStruc
  * https://docs.python.org/3/c-api/typeobj.html#c.PyTypeObject.tp_iter */
 iter_pour_type_itérateur :: fonc (self: *PyObject) -> *PyObject
 {
-    retourne self
+    retourne self;
 }
 
 /* Retourne le nom du prochain rubrique de la structure, ou nul si l'itérateur est
@@ -444,32 +444,32 @@ iter_pour_type_itérateur :: fonc (self: *PyObject) -> *PyObject
  * https://docs.python.org/3/c-api/typeobj.html#c.PyTypeObject.tp_iternext */
 iternext_pour_itérateur_infos_type :: fonc (self: *PyObject) -> *PyObject
 {
-    py_self := self comme *PyItérateurInfoType
+    py_self := self comme *PyItérateurInfoType;
 
-    index_courant := py_self.index_courant
-    infos := py_self.infos
+    index_courant := py_self.index_courant;
+    infos := py_self.infos;
 
     pour index_courant ... infos.rubriques.taille - 1 {
-        info_rubrique := infos.rubriques[it]
+        info_rubrique := infos.rubriques[it];
         saufsi rubrique_est_accessible_via_itération(info_rubrique) {
-            continue
+            continue;
         }
-        py_self.index_courant = it + 1
-        retourne PyUnicode_FromChaine(info_rubrique.nom)
+        py_self.index_courant = it + 1;
+        retourne PyUnicode_FromChaine(info_rubrique.nom);
     }
 
-    retourne nul
+    retourne nul;
 }
 
 /* Retourne un PyItérateurInfoType pour les infos données. */
 itérateur_pour_infos_type :: fonc (infos: *InfoTypeStructure) -> *PyObject
 {
-    type_itérateur := *PyTypeItérateurPourInfoType
-    py_itérateur_ := type_itérateur.tp_alloc(type_itérateur, 1)
-    py_itérateur := py_itérateur_ comme *PyItérateurInfoType
-    py_itérateur.infos = infos
-    py_itérateur.index_courant = 0
-    retourne py_itérateur comme *PyObject
+    type_itérateur := *PyTypeItérateurPourInfoType;
+    py_itérateur_ := type_itérateur.tp_alloc(type_itérateur, 1);
+    py_itérateur := py_itérateur_ comme *PyItérateurInfoType;
+    py_itérateur.infos = infos;
+    py_itérateur.index_courant = 0;
+    retourne py_itérateur comme *PyObject;
 }
 
 // ---------------------------------------------------
@@ -477,12 +477,12 @@ itérateur_pour_infos_type :: fonc (infos: *InfoTypeStructure) -> *PyObject
 
 /* Structure de base pour les objets supportant le protocol de tampon. */
 BasePyBuffer :: struct {
-    empl base: PyObject
+    empl base: PyObject;
 
     /* Nombre de fois que le tampon fut exporté. */
-    exports: z32
+    exports: z32;
 
-    remplis_champs_requis_py_buffer: fonc (base_buffer: *BasePyBuffer, buffer: *Py_buffer)
+    remplis_champs_requis_py_buffer: fonc (base_buffer: *BasePyBuffer, buffer: *Py_buffer);
 }
 
 /* Détermine la chaine de formattage pour un type de données, selon
@@ -493,106 +493,106 @@ format_tampon_pour_info_type :: fonc (info: *InfoType) -> chaine
 {
     discr info.id {
         ENTIER {
-            info_entier := info comme *InfoTypeEntier
+            info_entier := info comme *InfoTypeEntier;
             si info_entier.est_signé {
                 si info_entier.taille_en_octet == 1 {
-                    retourne "b\0"
+                    retourne "b\0";
                 }
 
                 si info_entier.taille_en_octet == 2 {
-                    retourne "h\0"
+                    retourne "h\0";
                 }
 
                 si info_entier.taille_en_octet == 4 {
-                    retourne "i\0"
+                    retourne "i\0";
                 }
 
                 si info_entier.taille_en_octet == 8 {
-                    retourne "l\0"
+                    retourne "l\0";
                 }
             }
             sinon {
                 si info_entier.taille_en_octet == 1 {
-                    retourne "B\0"
+                    retourne "B\0";
                 }
 
                 si info_entier.taille_en_octet == 2 {
-                    retourne "H\0"
+                    retourne "H\0";
                 }
 
                 si info_entier.taille_en_octet == 4 {
-                    retourne "I\0"
+                    retourne "I\0";
                 }
 
                 si info_entier.taille_en_octet == 8 {
-                    retourne "L\0"
+                    retourne "L\0";
                 }
             }
         }
         RÉEL {
             si info.taille_en_octet == 2 {
-                retourne "e\0"
+                retourne "e\0";
             }
 
             si info.taille_en_octet == 4 {
-                retourne "f\0"
+                retourne "f\0";
             }
 
             si info.taille_en_octet == 8 {
-                retourne "d\0"
+                retourne "d\0";
             }
         }
         BOOLÉEN,
         OCTET {
-            retourne "b\0"
+            retourne "b\0";
         }
         TYPE_DE_DONNÉES {
-            retourne "L\0"
+            retourne "L\0";
         }
         UNION {
             // À FAIRE
         }
         STRUCTURE {
-            info_struct := info comme *InfoTypeStructure
+            info_struct := info comme *InfoTypeStructure;
 
             si info_struct.rubriques.taille == 0 {
-                retourne "b\0"
+                retourne "b\0";
             }
 
-            type_premier_rubrique := info_struct.rubriques[0].id
+            type_premier_rubrique := info_struct.rubriques[0].id;
             pour info_struct.rubriques {
                 si type_premier_rubrique != it.id {
-                    arrête
+                    arrête;
                 }
             }
             sansarrêt {
                 /* Si toutes les rubriques ont le même type (p.e. nous avons un vecteur),
                  * utilisons le format du type partagé par toutes les rubriques. */
-                retourne format_tampon_pour_info_type(type_premier_rubrique)
+                retourne format_tampon_pour_info_type(type_premier_rubrique);
             }
 
             /* Sinon, retourne le formattage pour des octets. */
-            retourne "b\0"
+            retourne "b\0";
         }
         ÉNUM {
-            info_énum := info comme *InfoTypeÉnum
-            retourne format_tampon_pour_info_type(info_énum.type_sous_jacent)
+            info_énum := info comme *InfoTypeÉnum;
+            retourne format_tampon_pour_info_type(info_énum.type_sous_jacent);
         }
         OPAQUE {
-            opaque := info comme *InfoTypeOpaque
-            retourne format_tampon_pour_info_type(opaque.type_opacifié)
+            opaque := info comme *InfoTypeOpaque;
+            retourne format_tampon_pour_info_type(opaque.type_opacifié);
         }
         TABLEAU {
-            tableau := info comme *InfoTypeTableau
-            retourne format_tampon_pour_info_type(tableau.type_pointé)
+            tableau := info comme *InfoTypeTableau;
+            retourne format_tampon_pour_info_type(tableau.type_pointé);
         }
         TABLEAU_FIXE {
-            tableau := info comme *InfoTypeTableauFixe
-            retourne format_tampon_pour_info_type(tableau.type_pointé)
+            tableau := info comme *InfoTypeTableauFixe;
+            retourne format_tampon_pour_info_type(tableau.type_pointé);
         }
         TRANCHE {
-            tranche := info comme *InfoTypeTranche
-            retourne format_tampon_pour_info_type(tranche.type_élément)
+            tranche := info comme *InfoTypeTranche;
+            retourne format_tampon_pour_info_type(tranche.type_élément);
         }
         CHAINE,
         RIEN,
@@ -604,94 +604,94 @@ format_tampon_pour_info_type :: fonc (info: *InfoType) -> chaine
         FONCTION,
         POINTEUR,
         ADRESSE_FONCTION {
-            retourne "P\0"
+            retourne "P\0";
         }
     }
 
     /* Retourne des octets par défaut. */
-    retourne "B\0"
+    retourne "B\0";
 }
 
 remplis_champs_requis_py_buffer_générique :: fonc (view: *Py_buffer, tableau: []$T)
 {
-    view.buf = tableau.pointeur
-    view.itemsize = taille_de(T) comme Py_ssize_t
-    view.len = (tableau.taille comme n32 * taille_de(T)) comme Py_ssize_t
-    view.format = format_tampon_pour_info_type(info_de(T)).pointeur
+    view.buf = tableau.pointeur;
+    view.itemsize = taille_de(T) comme Py_ssize_t;
+    view.len = (tableau.taille comme n32 * taille_de(T)) comme Py_ssize_t;
+    view.format = format_tampon_pour_info_type(info_de(T)).pointeur;
 
     // À FAIRE : tableau de tableau
-    view.ndim = 1
-    view.shape = loge(Py_ssize_t)
-    mémoire(view.shape) = tableau.taille
+    view.ndim = 1;
+    view.shape = loge(Py_ssize_t);
+    mémoire(view.shape) = tableau.taille;
 
-    view.strides = loge(Py_ssize_t)
-    mémoire(view.strides) = taille_de(T) comme Py_ssize_t
+    view.strides = loge(Py_ssize_t);
+    mémoire(view.strides) = taille_de(T) comme Py_ssize_t;
 
-    view.suboffsets = loge(Py_ssize_t)
-    mémoire(view.suboffsets) = 0
+    view.suboffsets = loge(Py_ssize_t);
+    mémoire(view.suboffsets) = 0;
 }
 
 erreur_export_tampon :: fonc (view: *Py_buffer, message: chaine) -> z32
 {
-    view.obj = nul
-    PyErr_SetObject(PyExc_BufferError, PyUnicode_FromChaine(message))
-    retourne -1
+    view.obj = nul;
+    PyErr_SetObject(PyExc_BufferError, PyUnicode_FromChaine(message));
+    retourne -1;
 }
 
 possède_drapeau :: fonc (drapeaux: n64, valeur: n64) -> bool
 {
-    retourne (drapeaux & valeur) != 0
+    retourne (drapeaux & valeur) != 0;
 }
 
 /* https://docs.python.org/3/c-api/typeobj.html#c.PyBufferProcs.bf_getbuffer */
 impl_get_buffer_proc :: fonc (exporter: *PyObject, view: *Py_buffer, flags: z32) -> z32
 {
-    objet_tampon := exporter comme *BasePyBuffer
+    objet_tampon := exporter comme *BasePyBuffer;
 
     /* 1. Check if the request can be met. If not, raise PyExc_BufferError, set view->obj to NULL and return -1. */
-    view.readonly = 1
+    view.readonly = 1;
     si possède_drapeau(flags comme n64, PyBUF_WRITABLE comme n64) {
-        retourne erreur_export_tampon(view, "Impossible d'exporter le tampon pour une écriture")
+        retourne erreur_export_tampon(view, "Impossible d'exporter le tampon pour une écriture");
     }
 
     /* 2. Fill in the requested fields. */
-    objet_tampon.remplis_champs_requis_py_buffer(objet_tampon, view)
+    objet_tampon.remplis_champs_requis_py_buffer(objet_tampon, view);
 
     saufsi possède_drapeau(flags comme n64, PyBUF_FORMAT comme n64) {
-        view.format = nul
+        view.format = nul;
     }
 
     /* 3. Increment an internal counter for the number of exports. */
-    objet_tampon.exports += 1
+    objet_tampon.exports += 1;
 
     /* 4. Set view->obj to exporter and increment view->obj. */
-    view.obj = exporter
-    Py_INCREF(view.obj)
+    view.obj = exporter;
+    Py_INCREF(view.obj);
 
     /* 5. Return 0. */
-    retourne 0
+    retourne 0;
 }
 
 impl_release_buffer_proc :: fonc (exporter: *PyObject, view: *Py_buffer)
 {
-    objet_tampon := exporter comme *BasePyBuffer
-    objet_tampon.exports -= 1
+    objet_tampon := exporter comme *BasePyBuffer;
+    objet_tampon.exports -= 1;
 
     si objet_tampon.exports == 0 {
-        déloge(view.shape)
-        déloge(view.strides)
-        déloge(view.suboffsets)
+        déloge(view.shape);
+        déloge(view.strides);
+        déloge(view.suboffsets);
     }
 }
 
 /* Globale pour les fonctions fonctions génériques de protocol de tampon. */
-Py_BufferProtocol_Défaut : PyBufferProcs
+Py_BufferProtocol_Défaut : PyBufferProcs;
 
 protocol_tampon_défaut :: fonc () -> *PyBufferProcs
 {
-    Py_BufferProtocol_Défaut.bf_getbuffer = impl_get_buffer_proc
-    Py_BufferProtocol_Défaut.bf_releasebuffer = impl_release_buffer_proc
-    retourne *Py_BufferProtocol_Défaut
+    Py_BufferProtocol_Défaut.bf_getbuffer = impl_get_buffer_proc;
+    Py_BufferProtocol_Défaut.bf_releasebuffer = impl_release_buffer_proc;
+    retourne *Py_BufferProtocol_Défaut;
 }
 
 // ---------------------------------------------------
@@ -699,74 +699,74 @@ protocol_tampon_défaut :: fonc () -> *PyBufferProcs
 
 PyType_ChaineNom :: fonc (obj: *PyObject) -> chaine
 {
-    retourne convertis_chaine_c(ChaineC(obj.ob_type.tp_name))
+    retourne convertis_chaine_c(ChaineC(obj.ob_type.tp_name));
 }
 
 PyUnicodeEnum_Check :: fonc (object: *PyObject, info: *InfoTypeÉnum) -> bool
 {
     saufsi PyUnicode_Check(object) {
-        retourne faux
+        retourne faux;
     }
 
-    chn := PyUnicode_AsChaine(object)
+    chn := PyUnicode_AsChaine(object);
 
     pour info.noms {
         si it == chn {
-            retourne vrai
+            retourne vrai;
         }
     }
 
-    retourne faux
+    retourne faux;
 }
 
 PyUnicodeEnum_Value :: fonc (object: *PyObject, info: *InfoTypeÉnum) -> z32
 {
-    chn := PyUnicode_AsChaine(object)
-    valeur, trouvée := donne_valeur_énum_pour_nom(info, chn)
+    chn := PyUnicode_AsChaine(object);
+    valeur, trouvée := donne_valeur_énum_pour_nom(info, chn);
     si trouvée {
-        retourne valeur
+        retourne valeur;
     }
-    retourne 0
+    retourne 0;
 }
 
 PyUnicodeEnum_Value_z8 :: fonc (object: *PyObject, info: *InfoTypeÉnum) -> z8
 {
-    retourne PyUnicodeEnum_Value(object, info) comme z8
+    retourne PyUnicodeEnum_Value(object, info) comme z8;
 }
 
 PyUnicodeEnum_Value_z16 :: fonc (object: *PyObject, info: *InfoTypeÉnum) -> z16
 {
-    retourne PyUnicodeEnum_Value(object, info) comme z16
+    retourne PyUnicodeEnum_Value(object, info) comme z16;
 }
 
 PyUnicodeEnum_Value_z32 :: fonc (object: *PyObject, info: *InfoTypeÉnum) -> z32
 {
-    retourne PyUnicodeEnum_Value(object, info)
+    retourne PyUnicodeEnum_Value(object, info);
 }
 
 PyUnicodeEnum_Value_z64 :: fonc (object: *PyObject, info: *InfoTypeÉnum) -> z64
 {
-    retourne PyUnicodeEnum_Value(object, info) comme z64
+    retourne PyUnicodeEnum_Value(object, info) comme z64;
 }
 
 PyUnicodeEnum_Value_n8 :: fonc (object: *PyObject, info: *InfoTypeÉnum) -> n8
 {
-    retourne PyUnicodeEnum_Value(object, info) comme n8
+    retourne PyUnicodeEnum_Value(object, info) comme n8;
 }
 
 PyUnicodeEnum_Value_n16 :: fonc (object: *PyObject, info: *InfoTypeÉnum) -> n16
 {
-    retourne PyUnicodeEnum_Value(object, info) comme n16
+    retourne PyUnicodeEnum_Value(object, info) comme n16;
 }
 
 PyUnicodeEnum_Value_n32 :: fonc (object: *PyObject, info: *InfoTypeÉnum) -> n32
 {
-    retourne PyUnicodeEnum_Value(object, info) comme n32
+    retourne PyUnicodeEnum_Value(object, info) comme n32;
 }
 
 PyUnicodeEnum_Value_n64 :: fonc (object: *PyObject, info: *InfoTypeÉnum) -> n64
 {
-    retourne PyUnicodeEnum_Value(object, info) comme n64
+    retourne PyUnicodeEnum_Value(object, info) comme n64;
 }
 
 // ---------------------------------------------------
@@ -775,125 +775,125 @@ PyUnicodeEnum_Value_n64 :: fonc (object: *PyObject, info: *InfoTypeÉnum) -> n64
 /* Fonctions d'erreur pour le code généré. */
 
 ErreurPython :: struct {
-    type: *PyObject
-    valeur: *PyObject
-    traceback: *PyObject
+    type: *PyObject;
+    valeur: *PyObject;
+    traceback: *PyObject;
 }
 
 PyErr_DonneErreur :: fonc () -> ErreurPython
 {
-    type: *PyObject
-    valeur: *PyObject
-    traceback: *PyObject
+    type: *PyObject;
+    valeur: *PyObject;
+    traceback: *PyObject;
 
-    PyErr_Fetch(*type, *valeur, *traceback)
-    PyErr_NormalizeException(*type, *valeur, *traceback)
+    PyErr_Fetch(*type, *valeur, *traceback);
+    PyErr_NormalizeException(*type, *valeur, *traceback);
 
     si traceback {
-        _ := PyException_SetTraceback(valeur, traceback)
+        _ := PyException_SetTraceback(valeur, traceback);
     }
 
-    retourne ErreurPython(type, valeur, traceback)
+    retourne ErreurPython(type, valeur, traceback);
 }
 
 PyErr_DonneChaineErreur :: fonc () -> chaine
 {
-    e := PyErr_DonneErreur()
+    e := PyErr_DonneErreur();
 
-    chn_type := donne_chaine_object(e.type)
-    diffère déloge(chn_type)
+    chn_type := donne_chaine_object(e.type);
+    diffère déloge(chn_type);
 
-    chn_valeur := donne_chaine_object(e.valeur)
-    diffère déloge(chn_valeur)
+    chn_valeur := donne_chaine_object(e.valeur);
+    diffère déloge(chn_valeur);
 
-    chn_traceback := donne_chaine_object(e.traceback)
-    diffère déloge(chn_traceback)
+    chn_traceback := donne_chaine_object(e.traceback);
+    diffère déloge(chn_traceback);
 
-    retourne enchaine("Erreur Python :\n", chn_type, "\n", chn_valeur, "\n", chn_traceback)
+    retourne enchaine("Erreur Python :\n", chn_type, "\n", chn_valeur, "\n", chn_traceback);
 }
 
 PyErr_PrintErreur :: fonc (e: ErreurPython)
 {
-    PyErr_Restore(e.type, e.valeur, e.traceback)
-    PyErr_Print()
+    PyErr_Restore(e.type, e.valeur, e.traceback);
+    PyErr_Print();
 }
 
 PyErr_Raise_Erreur :: fonc (e: ErreurPython) -> *PyObject
 {
-    PyErr_Restore(e.type, e.valeur, e.traceback)
-    retourne nul
+    PyErr_Restore(e.type, e.valeur, e.traceback);
+    retourne nul;
 }
 
 PyErr_Raise_Generic :: fonc (message: chaine) -> *PyObject
 {
-    PyErr_SetObject(PyExc_Exception, PyUnicode_FromChaine(message))
-    retourne nul
+    PyErr_SetObject(PyExc_Exception, PyUnicode_FromChaine(message));
+    retourne nul;
 }
 
 /* Erreur si le type d'un argument d'un appel de fonction n'est pas le bon. */
 PyErr_MauvaisTypeArgument :: fonc (argument: *PyObject, nom_argument_attendu: chaine, type_argument_attendu: chaine) -> *PyObject
 {
-    chn_type := PyType_ChaineNom(argument)
-    chn_erreur := enchaine("Mauvais type pour l'argument « ", nom_argument_attendu, " » ! Attendu : ", type_argument_attendu, ", obtenu : ", chn_type, " !")
-    PyErr_SetObject(PyExc_TypeError, PyUnicode_FromChaine(chn_erreur))
-    déloge(chn_type)
-    déloge(chn_erreur)
-    retourne nul
+    chn_type := PyType_ChaineNom(argument);
+    chn_erreur := enchaine("Mauvais type pour l'argument « ", nom_argument_attendu, " » ! Attendu : ", type_argument_attendu, ", obtenu : ", chn_type, " !");
+    PyErr_SetObject(PyExc_TypeError, PyUnicode_FromChaine(chn_erreur));
+    déloge(chn_type);
+    déloge(chn_erreur);
+    retourne nul;
 }
 
 /* Erreur si nous ne pouvons comparer deux valeurs de deux types différents. */
 PyErr_ComparaisonImpossible :: fonc (opérande: *PyObject, type_autre_opérande: chaine) -> *PyObject
 {
-    chn_type := PyType_ChaineNom(opérande)
-    chn_erreur := enchaine("Ne peut comparer un objet de type ", type_autre_opérande, " avec un objet de type", chn_type, " !")
-    PyErr_SetObject(PyExc_TypeError, PyUnicode_FromChaine(chn_erreur))
-    déloge(chn_type)
-    déloge(chn_erreur)
-    retourne nul
+    chn_type := PyType_ChaineNom(opérande);
+    chn_erreur := enchaine("Ne peut comparer un objet de type ", type_autre_opérande, " avec un objet de type", chn_type, " !");
+    PyErr_SetObject(PyExc_TypeError, PyUnicode_FromChaine(chn_erreur));
+    déloge(chn_type);
+    déloge(chn_erreur);
+    retourne nul;
 }
 
 /* Erreur si une valeur assignée n'a pas un type compatible avec celui de la variable. */
 PyErr_MauvaisTypeAssignement :: fonc (valeur: *PyObject, type_variable: chaine) -> z32
 {
-    chn_type := PyType_ChaineNom(valeur)
-    chn_erreur := enchaine("Ne peut assigner un objet de type '", chn_type, "' à un objet de type '", type_variable, "'")
-    PyErr_SetObject(PyExc_TypeError, PyUnicode_FromChaine(chn_erreur))
-    déloge(chn_type)
-    déloge(chn_erreur)
-    retourne -1
+    chn_type := PyType_ChaineNom(valeur);
+    chn_erreur := enchaine("Ne peut assigner un objet de type '", chn_type, "' à un objet de type '", type_variable, "'");
+    PyErr_SetObject(PyExc_TypeError, PyUnicode_FromChaine(chn_erreur));
+    déloge(chn_type);
+    déloge(chn_erreur);
+    retourne -1;
 }
 
 /* Erreur si un objet n'a pas de rubrique du nom de la clé, pour l'accès via o[clé]. */
 PyErr_CléInconnue :: fonc (objet: *PyObject, clé: chaine) -> *PyObject
 {
-    chn_type := PyType_ChaineNom(objet)
-    chn_erreur := enchaine("Attribut '", clé, "' inconnue pour l'objet de type ", chn_type)
-    PyErr_SetObject(PyExc_KeyError, PyUnicode_FromChaine(chn_erreur))
-    déloge(chn_type)
-    déloge(chn_erreur)
-    retourne nul
+    chn_type := PyType_ChaineNom(objet);
+    chn_erreur := enchaine("Attribut '", clé, "' inconnue pour l'objet de type ", chn_type);
+    PyErr_SetObject(PyExc_KeyError, PyUnicode_FromChaine(chn_erreur));
+    déloge(chn_type);
+    déloge(chn_erreur);
+    retourne nul;
 }
 
 /* Erreur si l'attribut n'est pas mutable, pour l'assignation via o[clé] = v. */
 PyErr_AttributNonMutable :: fonc (objet: *PyObject, clé: chaine) -> z32
 {
-    chn_type := PyType_ChaineNom(objet)
-    chn_erreur := enchaine("Attribut '", clé, "' de '", chn_type, "' n'est pas écrivable")
-    PyErr_SetObject(PyExc_AttributeError, PyUnicode_FromChaine(chn_erreur))
-    déloge(chn_type)
-    déloge(chn_erreur)
-    retourne -1
+    chn_type := PyType_ChaineNom(objet);
+    chn_erreur := enchaine("Attribut '", clé, "' de '", chn_type, "' n'est pas écrivable");
+    PyErr_SetObject(PyExc_AttributeError, PyUnicode_FromChaine(chn_erreur));
+    déloge(chn_type);
+    déloge(chn_erreur);
+    retourne -1;
 }
 
 /* Erreur si l'on tente du supprimé un attribut, par exemple via del o[clé]. */
 PyErr_AttributNonSupprimable :: fonc (objet: *PyObject, clé: chaine) -> z32
 {
-    chn_type := PyType_ChaineNom(objet)
-    chn_erreur := enchaine("Attribut '", clé, "' de '", chn_type, "' n'est pas supprimable")
-    PyErr_SetObject(PyExc_AttributeError, PyUnicode_FromChaine(chn_erreur))
-    déloge(chn_type)
-    déloge(chn_erreur)
-    retourne -1
+    chn_type := PyType_ChaineNom(objet);
+    chn_erreur := enchaine("Attribut '", clé, "' de '", chn_type, "' n'est pas supprimable");
+    PyErr_SetObject(PyExc_AttributeError, PyUnicode_FromChaine(chn_erreur));
+    déloge(chn_type);
+    déloge(chn_erreur);
+    retourne -1;
 }
 
 /* Fonctions de comparaison d'énum pour le code généré. */
@@ -902,63 +902,63 @@ Py_compare_énum_énum :: fonc (valeur1: $T, op: z32, valeur2: T) -> *PyObject
 {
     si op == Py_EQ {
         si valeur1 == valeur2 {
-            retourne Py_NewRef(Py_True)
+            retourne Py_NewRef(Py_True);
         }
-        retourne Py_NewRef(Py_False)
+        retourne Py_NewRef(Py_False);
     }
 
     si op == Py_NE {
         si valeur1 != valeur2 {
-            retourne Py_NewRef(Py_True)
+            retourne Py_NewRef(Py_True);
         }
-        retourne Py_NewRef(Py_False)
+        retourne Py_NewRef(Py_False);
     }
 
-    retourne Py_NewRef(Py_NotImplemented)
+    retourne Py_NewRef(Py_NotImplemented);
 }
 
 Py_compare_énum_chaine :: fonc (valeur_énum: $T, op: z32, valeur_chaine: chaine) -> *PyObject
 {
-    infos := info_de(T)
-    valeur_énum_comme_chaine := donne_nom_énum_pour_valeur(infos, valeur_énum)
+    infos := info_de(T);
+    valeur_énum_comme_chaine := donne_nom_énum_pour_valeur(infos, valeur_énum);
 
     si op == Py_EQ {
         si valeur_chaine == valeur_énum_comme_chaine {
-            retourne Py_NewRef(Py_True)
+            retourne Py_NewRef(Py_True);
         }
-        retourne Py_NewRef(Py_False)
+        retourne Py_NewRef(Py_False);
     }
 
     si op == Py_NE {
         si valeur_chaine != valeur_énum_comme_chaine {
-            retourne Py_NewRef(Py_True)
+            retourne Py_NewRef(Py_True);
         }
-        retourne Py_NewRef(Py_False)
+        retourne Py_NewRef(Py_False);
     }
 
-    retourne Py_NewRef(Py_NotImplemented)
+    retourne Py_NewRef(Py_NotImplemented);
 }
 
 /* Auxilliaire pour assigner une chaine à un énum. */
 
 Py_AssigneChaineÉnum :: fonc (valeur_énum: &$T, valeur_chaine: chaine) -> z32
 {
-    infos := info_de(T)
-    valeur, trouvée := donne_valeur_énum_pour_nom(infos, valeur_chaine)
+    infos := info_de(T);
+    valeur, trouvée := donne_valeur_énum_pour_nom(infos, valeur_chaine);
     si trouvée {
-        valeur_énum = valeur comme T
-        retourne 0
+        valeur_énum = valeur comme T;
+        retourne 0;
     }
 
-    PyErr_SetObject(PyExc_ValueError, PyUnicode_FromChaine("Valeur invalide pour l'énumération"))
-    retourne -1
+    PyErr_SetObject(PyExc_ValueError, PyUnicode_FromChaine("Valeur invalide pour l'énumération"));
+    retourne -1;
 }
 
 /* Auxilliaire pour ajouter les types au module lors de l'initialisation. */
 
 DonnéesAjoutType :: struct {
-    type: *PyTypeObject
-    nom: ChaineC
+    type: *PyTypeObject;
+    nom: ChaineC;
 }
 
 Py_AjouteTypesAuModule :: fonc (module: *PyObject, types: []DonnéesAjoutType) -> *PyObject
@@ -966,12 +966,12 @@ Py_AjouteTypesAuModule :: fonc (module: *PyObject, types: []DonnéesAjoutType) -
     /* Initialisation des types. */
     pour types {
         saufsi it.type {
-            continue
+            continue;
         }
 
         si PyType_Ready(it.type) == -1 {
-            Py_DECREF(module)
-            retourne python_retourne_rien()
+            Py_DECREF(module);
+            retourne python_retourne_rien();
         }
     }
 
@@ -982,14 +982,14 @@ Py_AjouteTypesAuModule :: fonc (module: *PyObject, types: []DonnéesAjoutType) -
      */
     pour types {
         saufsi it.type {
-            continue
+            continue;
         }
 
-        Py_INCREF(it.type)
-        _ := PyModule_AddObject(module, it.nom, it.type)
+        Py_INCREF(it.type);
+        _ := PyModule_AddObject(module, it.nom, it.type);
     }
 
-    retourne module
+    retourne module;
 }
 
 /* ------------------------------------------------------------------------- */
@@ -997,45 +997,45 @@ Py_AjouteTypesAuModule :: fonc (module: *PyObject, types: []DonnéesAjoutType) -
  * \{ */
 
 DonnéesCréationObjet :: struct {
-    type_python: *PyTypeObject
-    info_type: *InfoType
-    fonction: fonc (valeur: eini) -> *PyObject
+    type_python: *PyTypeObject;
+    info_type: *InfoType;
+    fonction: fonc (valeur: eini) -> *PyObject;
 }
 
-__table_création_objet: [..]DonnéesCréationObjet
+__table_création_objet: [..]DonnéesCréationObjet;
 
 crée_objet_python_pour :: fonc (valeur: eini) -> *PyObject
 {
     pour __table_création_objet {
         saufsi it.info_type == valeur.info {
-            continue
+            continue;
         }
 
-        type := it.type_python
+        type := it.type_python;
         saufsi initialise_type_python(type) {
-            retourne nul
+            retourne nul;
         }
 
-        retourne it.fonction(valeur)
+        retourne it.fonction(valeur);
     }
 
-    retourne nul
+    retourne nul;
 }
 
 initialise_type_python :: fonc (type: *PyTypeObject) -> bool
 {
     si type.tp_flags & Py_TPFLAGS_READY {
-        retourne vrai
+        retourne vrai;
     }
 
-    retourne PyType_Ready(type) == 0
+    retourne PyType_Ready(type) == 0;
 }
 
 initialise_types_table_création_objet :: fonc ()
 {
     pour __table_création_objet {
         saufsi initialise_type_python(it.type_python) {
-            retourne
+            retourne;
         }
     }
 }
@@ -1044,13 +1044,13 @@ donne_type_python_pour :: fonc (info: *InfoType) -> *PyTypeObject
 {
     pour __table_création_objet {
         saufsi it.info_type == info {
-            continue
+            continue;
         }
 
-        retourne it.type_python
+        retourne it.type_python;
     }
 
-    retourne nul
+    retourne nul;
 }
 
 /** \} */
@@ -1061,21 +1061,21 @@ donne_type_python_pour :: fonc (info: *InfoType) -> *PyTypeObject
 
 /* The start symbol from the Python grammar for isolated expressions;
  * for use with Py_CompileString(). */
-Py_eval_input :: 258
+Py_eval_input :: 258;
 
 /* The start symbol from the Python grammar for sequences of statements as read
  * from a file or other source; for use with Py_CompileString(). This is the
  * symbol to use when compiling arbitrarily long Python source code. */
-Py_file_input :: 257
+Py_file_input :: 257;
 
 /* The start symbol from the Python grammar for a single statement;
  * for use with Py_CompileString(). This is the symbol used for the interactive
  * interpreter loop. */
-Py_single_input :: 256
+Py_single_input :: 256;
 
-Py_func_type_input :: 345
+Py_func_type_input :: 345;
 
-Py_fstring_input :: 800
+Py_fstring_input :: 800;
 
 /** } */
 
@@ -1085,15 +1085,15 @@ Py_fstring_input :: 800
 
 PyRun_SimpleString :: fonc (command: chaine) -> bool
 {
-    command_c := crée_chaine_c(command)
-    diffère détruit_chaine_c(command_c)
+    command_c := crée_chaine_c(command);
+    diffère détruit_chaine_c(command_c);
 
-    retourne PyRun_SimpleString(command_c) == 0
+    retourne PyRun_SimpleString(command_c) == 0;
 }
 
 PyEval_EvalCodeEx :: fonc (co: *PyObject, globals: *PyObject, locals: *PyObject, args: []*PyObject, kws: []*PyObject, defs: []*PyObject, kwdefs: *PyObject, closure: *PyObject) -> *PyObject
 {
-    retourne PyEval_EvalCodeEx(co, globals, locals, args.pointeur, args.taille comme z32, kws.pointeur, kws.taille comme z32, defs.pointeur, defs.taille comme z32)
+    retourne PyEval_EvalCodeEx(co, globals, locals, args.pointeur, args.taille comme z32, kws.pointeur, kws.taille comme z32, defs.pointeur, defs.taille comme z32);
 }
 
 /** } */
@@ -1105,25 +1105,25 @@ PyEval_EvalCodeEx :: fonc (co: *PyObject, globals: *PyObject, locals: *PyObject,
 
 donne_chaine_object :: fonc (o: *PyObject) -> chaine
 {
-    str := PyObject_Str(o)
-    diffère Py_DECREF(str)
+    str := PyObject_Str(o);
+    diffère Py_DECREF(str);
 
-    retourne copie_chaine(PyUnicode_AsChaine(str))
+    retourne copie_chaine(PyUnicode_AsChaine(str));
 }
 
 imprime_object :: fonc (format: chaine, object: *PyObject)
 {
-    chn := donne_chaine_object(object)
-    diffère déloge(chn)
-    imprime(format, chn)
+    chn := donne_chaine_object(object);
+    diffère déloge(chn);
+    imprime(format, chn);
 }
 
 donne_attribut :: fonc (o: *PyObject, nom_attribut: chaine) -> *PyObject
 {
-    nom_attribut_c := crée_chaine_c(nom_attribut)
-    diffère détruit_chaine_c(nom_attribut_c)
+    nom_attribut_c := crée_chaine_c(nom_attribut);
+    diffère détruit_chaine_c(nom_attribut_c);
 
-    retourne PyObject_GetAttrString(o, nom_attribut_c)
+    retourne PyObject_GetAttrString(o, nom_attribut_c);
 }
 
 /** } */
@@ -1135,7 +1135,7 @@ donne_attribut :: fonc (o: *PyObject, nom_attribut: chaine) -> *PyObject
 
 PyFunction_Check :: fonc (ob: *PyObject) -> bool
 {
-    retourne PyObject_TypeCheck(ob, *PyFunction_Type)
+    retourne PyObject_TypeCheck(ob, *PyFunction_Type);
 }
 
 /** \} */
@@ -1147,8 +1147,8 @@ PyFunction_Check :: fonc (ob: *PyObject) -> bool
 
 PyDict_SetItem :: fonc (p: *PyObject, key: chaine, val: *PyObject) -> z32
 {
-    ckey := PyUnicode_FromChaine(key)
-    retourne PyDict_SetItem(p, ckey, val)
+    ckey := PyUnicode_FromChaine(key);
+    retourne PyDict_SetItem(p, ckey, val);
 }
 
 /** } */
@@ -1160,9 +1160,9 @@ PyDict_SetItem :: fonc (p: *PyObject, key: chaine, val: *PyObject) -> z32
 
 PyModule_New :: fonc (name: chaine) -> *PyObject
 {
-    chn_c_name := crée_chaine_c(name)
-    diffère détruit_chaine_c(chn_c_name)
-    retourne PyModule_New(chn_c_name)
+    chn_c_name := crée_chaine_c(name);
+    diffère détruit_chaine_c(chn_c_name);
+    retourne PyModule_New(chn_c_name);
 }
 
 /** } */
@@ -1173,10 +1173,10 @@ PyModule_New :: fonc (name: chaine) -> *PyObject
 
 importe_module :: fonc (name: chaine) -> *PyObject
 {
-    chn_c := crée_chaine_c(name)
-    diffère détruit_chaine_c(chn_c)
+    chn_c := crée_chaine_c(name);
+    diffère détruit_chaine_c(chn_c);
 
-    retourne PyImport_ImportModule(chn_c)
+    retourne PyImport_ImportModule(chn_c);
 }
 
 /** } */
@@ -1188,7 +1188,7 @@ importe_module :: fonc (name: chaine) -> *PyObject
 
 PyTuple_Check :: fonc (ob: *PyObject) -> bool
 {
-    retourne PyObject_TypeCheck(ob, *PyTuple_Type)
+    retourne PyObject_TypeCheck(ob, *PyTuple_Type);
 }
 
 /** } */
@@ -1200,13 +1200,13 @@ PyTuple_Check :: fonc (ob: *PyObject) -> bool
 PyConfig_AddModuleSearchPath :: fonc (config: *PyConfig, chemin: chaine)
 {
     /* Met en place les chemins. */
-    chemin_recherche := crée_chaine_utf32(chemin)
-    diffère détruit_chaine(chemin_recherche)
+    chemin_recherche := crée_chaine_utf32(chemin);
+    diffère détruit_chaine(chemin_recherche);
     /* Ajout terminateur nul. */
-    chaine_ajoute(*chemin_recherche, 0)
+    chaine_ajoute(*chemin_recherche, 0);
 
-    _ := PyWideStringList_Append(*config.module_search_paths, chemin_recherche.points_de_code.pointeur comme *z32)
-    config.module_search_paths_set = 1
+    _ := PyWideStringList_Append(*config.module_search_paths, chemin_recherche.points_de_code.pointeur comme *z32);
+    config.module_search_paths_set = 1;
 }
 
 /** } */

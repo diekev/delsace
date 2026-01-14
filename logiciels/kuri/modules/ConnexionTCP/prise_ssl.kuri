@@ -1,31 +1,31 @@
 
 PriseSSL :: struct {
-    empl base: Prise
+    empl base: Prise;
 
-    ssl: *SSL
+    ssl: *SSL;
 
-    écriture_ssl_veut_lire: bool
-    lecture_ssl_veut_écrire: bool
+    écriture_ssl_veut_lire: bool;
+    lecture_ssl_veut_écrire: bool;
 }
 
 écris :: fonc (prise: *PriseSSL, données: chaine /* msg_more: bool */) -> z32
 {
     si prise.est_fermée() /* || us_internal_ssl_socket_is_shut_down(s))*/ {
-        retourne 0
+        retourne 0;
     }
 
-    ctx_prise_ssl := prise.contexte_ comme *ContextePriseSSL
-    boucle_ := ctx_prise_ssl.boucle_prises
-    données_ssl_boucle := boucle_.données_ssl
+    ctx_prise_ssl := prise.contexte_ comme *ContextePriseSSL;
+    boucle_ := ctx_prise_ssl.boucle_prises;
+    données_ssl_boucle := boucle_.données_ssl;
 
     // it makes literally no sense to touch this here! it should start at 0 and ONLY be set and reset by the on_data function!
     // the way is is now, triggering a write from a read will essentially delete all input data!
     // what we need to do is to check if this ever is non-zero and print a warning
-    données_ssl_boucle.ssl_read_input_length = 0
-    données_ssl_boucle.prise_ssl = prise
+    données_ssl_boucle.ssl_read_input_length = 0;
+    données_ssl_boucle.prise_ssl = prise;
     // données_ssl_boucle.msg_more = msg_more
     // données_ssl_boucle.last_write_was_msg_more = 0
-    octets_écris := SSL_write(prise.ssl, données.pointeur, données.taille comme z32)
+    octets_écris := SSL_write(prise.ssl, données.pointeur, données.taille comme z32);
     // données_ssl_boucle.msg_more = 0;
 
     // À FAIRE
@@ -34,19 +34,19 @@ PriseSSL :: struct {
     // }
 
     si octets_écris > 0 {
-        retourne octets_écris
+        retourne octets_écris;
     }
 
-    err := SSL_get_error(prise.ssl, octets_écris)
+    err := SSL_get_error(prise.ssl, octets_écris);
     si err == SSL_ERROR_WANT_READ {
         // here we need to trigger writable event next ssl_read!
-        prise.écriture_ssl_veut_lire = vrai
+        prise.écriture_ssl_veut_lire = vrai;
     }
     sinon {
         /* Si nous avons des erreurs pouvant être dans la file du fil d'exécution local,
          * effaçons-les. Tout autre erreur est critique et ne devrait pas arrivé. */
-        efface_file_erreur_locale(err)
+        efface_file_erreur_locale(err);
     }
 
-    retourne 0
+    retourne 0;
 }

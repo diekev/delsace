@@ -1,6 +1,6 @@
 // définitions des interfaces de la bibliothèques C pour GNU/Linux
 
-importe POSIX
+importe POSIX;
 
 /* ------------------------------------------------------------------------- */
 /** \nom C89
@@ -9,9 +9,9 @@ importe POSIX
 // À FAIRE : vérifie la taille sur les différentes plateformes.
 // 24 octets pour GCC (version 12.3.0)
 va_list :: struct {
-    data1: *rien
-    data2: *rien
-    data3: *rien
+    data1: *rien;
+    data2: *rien;
+    data3: *rien;
 }
 
 /** \} */
@@ -20,7 +20,7 @@ va_list :: struct {
 /** \nom C11
  * \{ */
 
-aligned_alloc :: fonc (alignment: n64, taille: n64) -> *rien #externe libc
+aligned_alloc :: fonc (alignment: n64, taille: n64) -> *rien #externe libc;
 
 /** \} */
 
@@ -29,21 +29,21 @@ aligned_alloc :: fonc (alignment: n64, taille: n64) -> *rien #externe libc
  * \{ */
 
 EPOLL_EVENTS :: énum_drapeau n32 {
-    EPOLLIN :: 0x001
-    EPOLLPRI :: 0x002
-    EPOLLOUT :: 0x004
-    EPOLLRDNORM :: 0x040
-    EPOLLRDBAND :: 0x080
-    EPOLLWRNORM :: 0x100
-    EPOLLWRBAND :: 0x200
-    EPOLLMSG :: 0x400
-    EPOLLERR :: 0x008
-    EPOLLHUP :: 0x010
-    EPOLLRDHUP :: 0x2000
-    EPOLLEXCLUSIVE :: 1 << 28
-    EPOLLWAKEUP :: 1 << 29
-    EPOLLONESHOT :: 1 << 30
-    EPOLLET :: 1 << 31
+    EPOLLIN :: 0x001;
+    EPOLLPRI :: 0x002;
+    EPOLLOUT :: 0x004;
+    EPOLLRDNORM :: 0x040;
+    EPOLLRDBAND :: 0x080;
+    EPOLLWRNORM :: 0x100;
+    EPOLLWRBAND :: 0x200;
+    EPOLLMSG :: 0x400;
+    EPOLLERR :: 0x008;
+    EPOLLHUP :: 0x010;
+    EPOLLRDHUP :: 0x2000;
+    EPOLLEXCLUSIVE :: 1 << 28;
+    EPOLLWAKEUP :: 1 << 29;
+    EPOLLONESHOT :: 1 << 30;
+    EPOLLET :: 1 << 31;
 }
 
 /* Valid opcodes ( "op" parameter ) to issue to epoll_ctl().  */
@@ -54,10 +54,10 @@ EPOLL_CTL_OP :: énum z32 {
 }
 
 epoll_data :: union nonsûr #externe {
-    ptr: *rien
-    fd: z32
-    u32: n32
-    u64: n64
+    ptr: *rien;
+    fd: z32;
+    u32: n32;
+    u64: n64;
 }
 
 epoll_event :: struct #externe #compacte {
@@ -65,13 +65,13 @@ epoll_event :: struct #externe #compacte {
     data: epoll_data /* User data variable */
 }
 
-epoll_create :: fonc (size: z32) -> z32 #externe libc
-epoll_create1 :: fonc (flags: z32) -> z32 #externe libc
+epoll_create :: fonc (size: z32) -> z32 #externe libc;
+epoll_create1 :: fonc (flags: z32) -> z32 #externe libc;
 
-epoll_ctl :: fonc (epfd: z32, op: EPOLL_CTL_OP, fd: z32, event: *epoll_event) -> z32 #externe libc
+epoll_ctl :: fonc (epfd: z32, op: EPOLL_CTL_OP, fd: z32, event: *epoll_event) -> z32 #externe libc;
 
-epoll_wait :: fonc (epfd: z32, events: *epoll_event, maxevents: z32, timeout: z32) -> z32 #externe libc
-epoll_pwait :: fonc (epfd: z32, events: *epoll_event, maxevents: z32, timeout: z32, sigmask: *sigset_t) -> z32 #externe libc
+epoll_wait :: fonc (epfd: z32, events: *epoll_event, maxevents: z32, timeout: z32) -> z32 #externe libc;
+epoll_pwait :: fonc (epfd: z32, events: *epoll_event, maxevents: z32, timeout: z32, sigmask: *sigset_t) -> z32 #externe libc;
 
 /** \} */
 
@@ -89,7 +89,7 @@ LOCK_NB :: 4 /* Don't block when locking.  */
 
 /* Apply or remove an advisory lock, according to OPERATION,
  * on the file FD refers to.  */
-flock :: fonc (__fd: z32, __operation: z32) -> z32 #externe libc
+flock :: fonc (__fd: z32, __operation: z32) -> z32 #externe libc;
 
 /** \} */
 
@@ -98,15 +98,15 @@ flock :: fonc (__fd: z32, __operation: z32) -> z32 #externe libc
  * \{ */
 
 winsize :: struct #externe {
-    ws_row: n16
-    ws_col: n16
-    ws_xpixel: n16
-    ws_ypixel: n16
+    ws_row: n16;
+    ws_col: n16;
+    ws_xpixel: n16;
+    ws_ypixel: n16;
 }
 
-TIOCGWINSZ :: 0x5413 comme n64
+TIOCGWINSZ :: 0x5413 comme n64;
 
-ioctl :: fonc (fd: z32, request: n64, args: ...) -> z32 #externe libc
+ioctl :: fonc (fd: z32, request: n64, args: ...) -> z32 #externe libc;
 
 /** \} */
 
@@ -115,19 +115,19 @@ ioctl :: fonc (fd: z32, request: n64, args: ...) -> z32 #externe libc
  * Spécifique à Linux.
  * \{ */
 
-UNAME26 : n64 : 0x0020000
-ADDR_NO_RANDOMIZE : n64 : 0x0040000
-FDPIC_FUNCPTRS : n64 : 0x0080000
-MMAP_PAGE_ZERO : n64 : 0x0100000
-ADDR_COMPAT_LAYOUT : n64 : 0x0200000
-READ_IMPLIES_EXEC : n64 : 0x0400000
-ADDR_LIMIT_32BIT : n64 : 0x0800000
-SHORT_INODE : n64 : 0x1000000
-WHOLE_SECONDS : n64 : 0x2000000
-STICKY_TIMEOUTS : n64 : 0x4000000
-ADDR_LIMIT_3GB : n64 : 0x800000
+UNAME26 : n64 : 0x0020000;
+ADDR_NO_RANDOMIZE : n64 : 0x0040000;
+FDPIC_FUNCPTRS : n64 : 0x0080000;
+MMAP_PAGE_ZERO : n64 : 0x0100000;
+ADDR_COMPAT_LAYOUT : n64 : 0x0200000;
+READ_IMPLIES_EXEC : n64 : 0x0400000;
+ADDR_LIMIT_32BIT : n64 : 0x0800000;
+SHORT_INODE : n64 : 0x1000000;
+WHOLE_SECONDS : n64 : 0x2000000;
+STICKY_TIMEOUTS : n64 : 0x4000000;
+ADDR_LIMIT_3GB : n64 : 0x800000;
 
-personality :: fonc (persona: n64) -> z32 #externe libc
+personality :: fonc (persona: n64) -> z32 #externe libc;
 
 /** \} */
 
@@ -135,23 +135,23 @@ personality :: fonc (persona: n64) -> z32 #externe libc
 /** \nom sys/timerfd.h
  * \{ */
 
-TFD_CLOEXEC :: 0o02000000
-TFD_NONBLOCK :: 0o00004000
+TFD_CLOEXEC :: 0o02000000;
+TFD_NONBLOCK :: 0o00004000;
 
-TFD_TIMER_ABSTIME :: 1 << 0
-TFD_TIMER_CANCEL_ON_SET :: 1 << 1
+TFD_TIMER_ABSTIME :: 1 << 0;
+TFD_TIMER_CANCEL_ON_SET :: 1 << 1;
 
 itimerspec :: struct #externe {
     /* interval du chronomètre */
-    it_interval: timespec
+    it_interval: timespec;
     /* expiration du chronomètre */
-    it_value: timespec
+    it_value: timespec;
 }
 
-timerfd_create :: fonc (clockid: z32, flags: z32) -> z32 #externe libc
+timerfd_create :: fonc (clockid: z32, flags: z32) -> z32 #externe libc;
 
-timerfd_settime :: fonc (fd: z32, flags: z32, new_value: *itimerspec, old_value: *itimerspec) -> z32 #externe libc
+timerfd_settime :: fonc (fd: z32, flags: z32, new_value: *itimerspec, old_value: *itimerspec) -> z32 #externe libc;
 
-timerfd_gettime :: fonc (fd: z32, curr_value: *itimerspec) -> z32 #externe libc
+timerfd_gettime :: fonc (fd: z32, curr_value: *itimerspec) -> z32 #externe libc;
 
 /** \} */

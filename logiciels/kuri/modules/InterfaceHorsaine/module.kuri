@@ -1,27 +1,27 @@
 /* Module de création d'interface de programmation pour d'autres langages.
  * À utiliser dans des métaprogrammes. */
 
-importe Compilatrice
-importe Ensemble
-importe Fondation
-importe SysFichier
-importe Unicode
+importe Compilatrice;
+importe Ensemble;
+importe Fondation;
+importe SysFichier;
+importe Unicode;
 
-charge "génération_code_c"
-charge "génération_code_cpp"
-charge "utilitaires"
+charge "génération_code_c";
+charge "génération_code_cpp";
+charge "utilitaires";
 
 /* ------------------------------------------------------------------------- */
 
 /* Discrimination des annotations @Python pouvant se trouver sur des fonctions. */
 
 AnnotationIPA :: énum {
-    NON_TROUVÉE
-    INVALIDE
-    TROUVÉE_SANS_PARAMÈTRE
-    MULTIPLES_ANNOTATIONS
-    POUR_MÉTHODE
-    POUR_NEW
+    NON_TROUVÉE;
+    INVALIDE;
+    TROUVÉE_SANS_PARAMÈTRE;
+    MULTIPLES_ANNOTATIONS;
+    POUR_MÉTHODE;
+    POUR_NEW;
 }
 
 /* Retourne la valeur de l'énumération correspondant à une chaine de
@@ -29,311 +29,311 @@ AnnotationIPA :: énum {
 annotation_python_pour_chaine :: fonc (chn: chaine) -> AnnotationIPA
 {
     si chn == "méthode" {
-        retourne AnnotationIPA.POUR_MÉTHODE
+        retourne AnnotationIPA.POUR_MÉTHODE;
     }
 
     si chn == "new" {
-        retourne AnnotationIPA.POUR_NEW
+        retourne AnnotationIPA.POUR_NEW;
     }
 
     si chn == "" {
-        retourne AnnotationIPA.TROUVÉE_SANS_PARAMÈTRE
+        retourne AnnotationIPA.TROUVÉE_SANS_PARAMÈTRE;
     }
 
-    retourne AnnotationIPA.INVALIDE
+    retourne AnnotationIPA.INVALIDE;
 }
 
 /* Retourne la valeur de l'énumération correspondant à l'annotation, ou
  * le manque d'annotation, @Python de la fonction */
 annotation_pour_python :: fonc (entête: *NoeudCodeEntêteFonction) -> AnnotationIPA
 {
-    annotation_trouvée := AnnotationIPA.NON_TROUVÉE
+    annotation_trouvée := AnnotationIPA.NON_TROUVÉE;
 
     pour entête.annotations {
         si it.nom != "Python" {
-            continue
+            continue;
         }
 
         si annotation_trouvée != AnnotationIPA.NON_TROUVÉE {
-            retourne AnnotationIPA.MULTIPLES_ANNOTATIONS
+            retourne AnnotationIPA.MULTIPLES_ANNOTATIONS;
         }
 
-        annotation_trouvée = annotation_python_pour_chaine(it.valeur)
+        annotation_trouvée = annotation_python_pour_chaine(it.valeur);
 
         si annotation_trouvée == AnnotationIPA.INVALIDE {
-            arrête
+            arrête;
         }
     }
 
-    retourne annotation_trouvée
+    retourne annotation_trouvée;
 }
 
 ConfidentialitéTypeIPA :: énum {
     /* Les rubriques du type peuvent être accédées. */
-    ACCESSIBLE
+    ACCESSIBLE;
     /* Les rubriques du type peuvent être mutées, ceci implique qu'elles sont également ACCESSIBLE. */
-    MUTABLE
+    MUTABLE;
     /* Les rubriques du type ne sont pas ni accessible, ni mutable. */
-    OPAQUE
+    OPAQUE;
 }
 
 confidentialité_pour_annotation :: fonc (annotations: []*Annotation) -> ConfidentialitéTypeIPA
 {
     pour annotations {
         si it.nom == "privé" {
-            retourne ConfidentialitéTypeIPA.OPAQUE
+            retourne ConfidentialitéTypeIPA.OPAQUE;
         }
 
         si it.nom == "mutable" {
-            retourne ConfidentialitéTypeIPA.MUTABLE
+            retourne ConfidentialitéTypeIPA.MUTABLE;
         }
 
         si it.nom == "accessible" {
-            retourne ConfidentialitéTypeIPA.ACCESSIBLE
+            retourne ConfidentialitéTypeIPA.ACCESSIBLE;
         }
     }
 
     /* Par défaut, les rubriques sont opaques. */
-    retourne ConfidentialitéTypeIPA.OPAQUE
+    retourne ConfidentialitéTypeIPA.OPAQUE;
 }
 
 RubriqueTypeIPA :: struct {
-    nom: chaine
-    confidentialité: ConfidentialitéTypeIPA
-    type: *InfoType
-    type_ipa: *TypeIPA
+    nom: chaine;
+    confidentialité: ConfidentialitéTypeIPA;
+    type: *InfoType;
+    type_ipa: *TypeIPA;
 
     /* Indices des fonctions de lecture et d'écriture de la rubrique dans la liste des
      * méthodes du type parent. */
-    indice_fonction_écriture : z64 = -1
-    indice_fonction_lecture : z64 = -1
+    indice_fonction_écriture : z64 = -1;
+    indice_fonction_lecture : z64 = -1;
 }
 
 DrapeauxTypeIPA :: énum_drapeau {
-    TYPE_EST_BASIQUE
-    TYPE_EST_TABLEAU
-    TYPE_EST_TRANCHE
-    TYPE_EST_ÉNUM
-    TYPE_EST_POINTEUR
-    TYPE_EST_FONCTION
-    TOUJOURS_COMME_POINTEUR
-    REQUIERS_RAFINAGE
+    TYPE_EST_BASIQUE;
+    TYPE_EST_TABLEAU;
+    TYPE_EST_TRANCHE;
+    TYPE_EST_ÉNUM;
+    TYPE_EST_POINTEUR;
+    TYPE_EST_FONCTION;
+    TOUJOURS_COMME_POINTEUR;
+    REQUIERS_RAFINAGE;
 
     /* Si le type possède des types dérivés. */
-    TYPE_EST_DÉRIVÉ
+    TYPE_EST_DÉRIVÉ;
 
     /* Définit si une classe virtuelle doit être généré.
      * Ceci est pour les structures avec fonctions rappels. */
-    TYPE_EST_ABSTRAIT
+    TYPE_EST_ABSTRAIT;
 
     /* Pour la génération de code. */
-    DÉCLARATION_TYPE_C_FUT_GÉNÉRÉE
-    DÉCLARATION_TYPE_CPP_FUT_GÉNÉRÉE
-    DÉFINITION_TYPE_CPP_FUT_GÉNÉRÉE
+    DÉCLARATION_TYPE_C_FUT_GÉNÉRÉE;
+    DÉCLARATION_TYPE_CPP_FUT_GÉNÉRÉE;
+    DÉFINITION_TYPE_CPP_FUT_GÉNÉRÉE;
 }
 
 /* Informations pour un type faisant partie de l'IPA. */
 TypeIPA :: struct {
-    infos: *InfoType
-    nom: chaine
-    fonctions: [..]MéthodeIPA
-    drapeaux: DrapeauxTypeIPA
+    infos: *InfoType;
+    nom: chaine;
+    fonctions: [..]MéthodeIPA;
+    drapeaux: DrapeauxTypeIPA;
 
-    constructrice: Optionnel(MéthodeIPA)
+    constructrice: Optionnel(MéthodeIPA);
 
     /* Pour les pointeurs, le type pointé. */
-    type_pointé: *TypeIPA
+    type_pointé: *TypeIPA;
 
-    rubriques: [..]RubriqueTypeIPA
+    rubriques: [..]RubriqueTypeIPA;
 
     /* Type de base. */
-    type_base: *TypeIPA
+    type_base: *TypeIPA;
 
     /* Pour les fonctions. */
-    types_entrée: [..]*TypeIPA
-    types_sortie: [..]*TypeIPA
+    types_entrée: [..]*TypeIPA;
+    types_sortie: [..]*TypeIPA;
 }
 
 détruit_type_ipa :: fonc (type: *TypeIPA)
 {
-    déloge(type.rubriques)
-    déloge(type.types_entrée)
-    déloge(type.types_sortie)
-    déloge_tableau_et_ses_éléments(type.fonctions, détruit_données_méthode_ipa)
+    déloge(type.rubriques);
+    déloge(type.types_entrée);
+    déloge(type.types_sortie);
+    déloge_tableau_et_ses_éléments(type.fonctions, détruit_données_méthode_ipa);
 
     discr type.constructrice {
         Quelque(méthode) {
-            détruit_données_méthode_ipa(méthode)
+            détruit_données_méthode_ipa(méthode);
         }
         sinon {}
     }
 
-    déloge(type)
+    déloge(type);
 }
 
 /* Informations pour un type faisant partie de l'IPA. */
 MéthodeIPA :: struct {
     Paramètre :: struct {
-        type: *InfoType
-        type_ipa: *TypeIPA
-        nom: chaine
+        type: *InfoType;
+        type_ipa: *TypeIPA;
+        nom: chaine;
     }
 
-    noeud_code: *NoeudCodeEntêteFonction
-    est_accès_rubrique: *RubriqueTypeIPA
+    noeud_code: *NoeudCodeEntêteFonction;
+    est_accès_rubrique: *RubriqueTypeIPA;
 
-    nom: chaine
-    nom_pour_fonction_c: chaine
-    nom_rappel_pour_table: chaine
+    nom: chaine;
+    nom_pour_fonction_c: chaine;
+    nom_rappel_pour_table: chaine;
 
-    entrées: [..]Paramètre
-    sorties: [..]Paramètre
+    entrées: [..]Paramètre;
+    sorties: [..]Paramètre;
 }
 
 /* Par valeur pour déloge_tableau_et_ses_éléments. */
 détruit_données_méthode_ipa :: fonc (méthode: MéthodeIPA)
 {
-    déloge(méthode.entrées)
-    déloge(méthode.sorties)
-    déloge(méthode.nom_pour_fonction_c)
-    déloge(méthode.nom_rappel_pour_table)
+    déloge(méthode.entrées);
+    déloge(méthode.sorties);
+    déloge(méthode.nom_pour_fonction_c);
+    déloge(méthode.nom_rappel_pour_table);
 
     si méthode.est_accès_rubrique {
-        déloge(méthode.nom)
+        déloge(méthode.nom);
     }
 }
 
 convertis_paramètre :: fonc (param: *NoeudCode) -> MéthodeIPA.Paramètre
 {
     si param.genre == GenreNoeud.INSTRUCTION_EMPL {
-        param = (param comme *NoeudCodeEmpl).expression
+        param = (param comme *NoeudCodeEmpl).expression;
     }
 
-    résultat: MéthodeIPA.Paramètre
-    résultat.nom = param.nom
-    résultat.type = param.type
-    retourne résultat
+    résultat: MéthodeIPA.Paramètre;
+    résultat.nom = param.nom;
+    résultat.type = param.type;
+    retourne résultat;
 }
 
 nom_pour_info_récursif :: fonc (info: *InfoType) -> chaine
 {
     si info.id == GenreInfoType.STRUCTURE {
-        retourne (info comme *InfoTypeStructure).nom
+        retourne (info comme *InfoTypeStructure).nom;
     }
 
     si info.id == GenreInfoType.POINTEUR {
-        retourne nom_pour_info_récursif((info comme *InfoTypePointeur).type_pointé)
+        retourne nom_pour_info_récursif((info comme *InfoTypePointeur).type_pointé);
     }
 
-    retourne ""
+    retourne "";
 }
 
 nom_pour_premier_param :: fonc (entête: *NoeudCodeEntêteFonction) -> chaine
 {
     si entête.params.taille > 0 {
-        type_premier_param := entête.params[0].type
-        retourne nom_pour_info_récursif(type_premier_param)
+        type_premier_param := entête.params[0].type;
+        retourne nom_pour_info_récursif(type_premier_param);
     }
 
-    retourne ""
+    retourne "";
 }
 
 assainie_nom_fonction_interface :: fonc (fonction: *MéthodeIPA)
 {
-    remplace_sans_copie(*fonction.nom_pour_fonction_c, '.', '_')
-    remplace_sans_copie(*fonction.nom_rappel_pour_table, '.', '_')
+    remplace_sans_copie(*fonction.nom_pour_fonction_c, '.', '_');
+    remplace_sans_copie(*fonction.nom_rappel_pour_table, '.', '_');
 
-    remplace_caractères_accentués(*fonction.nom_pour_fonction_c)
-    remplace_caractères_accentués(*fonction.nom_rappel_pour_table)
+    remplace_caractères_accentués(*fonction.nom_pour_fonction_c);
+    remplace_caractères_accentués(*fonction.nom_rappel_pour_table);
 }
 
 convertis_entête_en_méthode_ipa :: fonc (entête: *NoeudCodeEntêteFonction, type_méthode: *TypeIPA, espace_de_nom: chaine) -> MéthodeIPA
 {
-    résultat := MéthodeIPA(noeud_code = entête)
-    résultat.nom = entête.nom
+    résultat := MéthodeIPA(noeud_code = entête);
+    résultat.nom = entête.nom;
     si type_méthode {
-        nom_type := copie_chaine(type_méthode.nom)
-        diffère déloge(nom_type)
-        supprime_points_et_parenthèses(*nom_type)
-        résultat.nom_rappel_pour_table = enchaine(nom_type, "_", entête.nom)
-        résultat.nom_pour_fonction_c = enchaine(espace_de_nom, "_", nom_type, "_", entête.nom)
+        nom_type := copie_chaine(type_méthode.nom);
+        diffère déloge(nom_type);
+        supprime_points_et_parenthèses(*nom_type);
+        résultat.nom_rappel_pour_table = enchaine(nom_type, "_", entête.nom);
+        résultat.nom_pour_fonction_c = enchaine(espace_de_nom, "_", nom_type, "_", entête.nom);
     }
     sinon {
-        nom_premier_param := nom_pour_premier_param(entête)
-        résultat.nom_rappel_pour_table = enchaine("IPA_", nom_premier_param, "_", entête.nom)
-        résultat.nom_pour_fonction_c = enchaine(espace_de_nom, "_", nom_premier_param, "_", entête.nom)
+        nom_premier_param := nom_pour_premier_param(entête);
+        résultat.nom_rappel_pour_table = enchaine("IPA_", nom_premier_param, "_", entête.nom);
+        résultat.nom_pour_fonction_c = enchaine(espace_de_nom, "_", nom_premier_param, "_", entête.nom);
     }
 
-    assainie_nom_fonction_interface(*résultat)
+    assainie_nom_fonction_interface(*résultat);
 
     pour entête.params {
-        tableau_ajoute(*résultat.entrées, convertis_paramètre(it))
+        tableau_ajoute(*résultat.entrées, convertis_paramètre(it));
     }
 
     pour entête.params_sorties {
-        tableau_ajoute(*résultat.sorties, convertis_paramètre(it))
+        tableau_ajoute(*résultat.sorties, convertis_paramètre(it));
     }
 
-    retourne résultat
+    retourne résultat;
 }
 
 /* Informations sur l'IPA. */
 IPA :: struct {
-    types: [..]*TypeIPA
-    table_des_types: TableDeHachage(*InfoType, z64)
-    fonctions: [..]MéthodeIPA
+    types: [..]*TypeIPA;
+    table_des_types: TableDeHachage(*InfoType, z64);
+    fonctions: [..]MéthodeIPA;
 
-    espace_de_nom: chaine
-    nom_module: chaine
-    dossier_sortie: chaine
+    espace_de_nom: chaine;
+    nom_module: chaine;
+    dossier_sortie: chaine;
 }
 
 détruit_données_ipa :: fonc (ipa: &IPA)
 {
-    déloge_tableau_et_ses_éléments(ipa.types, détruit_type_ipa)
-    déloge_tableau_et_ses_éléments(ipa.fonctions, détruit_données_méthode_ipa)
-    détruit_données(*ipa.table_des_types)
+    déloge_tableau_et_ses_éléments(ipa.types, détruit_type_ipa);
+    déloge_tableau_et_ses_éléments(ipa.fonctions, détruit_données_méthode_ipa);
+    détruit_données(*ipa.table_des_types);
 }
 
 initialise_ipa :: fonc (espace_de_nom: chaine, nom_module: chaine, dossier_sortie: chaine) -> IPA
 {
-    résultat: IPA
-    résultat.espace_de_nom = espace_de_nom
-    résultat.nom_module = nom_module
-    résultat.dossier_sortie = dossier_sortie
-    retourne résultat
+    résultat: IPA;
+    résultat.espace_de_nom = espace_de_nom;
+    résultat.nom_module = nom_module;
+    résultat.dossier_sortie = dossier_sortie;
+    retourne résultat;
 }
 
 initialise_génératrice_code_c :: fonc (ipa: &IPA) -> GénératriceCodeC
 {
-    résultat: GénératriceCodeC
-    résultat.ipa = ipa
-    résultat.espace_de_nom = ipa.espace_de_nom
-    résultat.nom_module = ipa.nom_module
-    résultat.dossier_sortie = ipa.dossier_sortie
-    retourne résultat
+    résultat: GénératriceCodeC;
+    résultat.ipa = ipa;
+    résultat.espace_de_nom = ipa.espace_de_nom;
+    résultat.nom_module = ipa.nom_module;
+    résultat.dossier_sortie = ipa.dossier_sortie;
+    retourne résultat;
 }
 
 ajoute_type :: fonc (ipa: &IPA, type: *InfoType, drapeaux : DrapeauxTypeIPA = DrapeauxTypeIPA.zéro)
 {
-    résultat := convertis_vers_type_ipa(ipa, type)
-    résultat.drapeaux |= drapeaux
+    résultat := convertis_vers_type_ipa(ipa, type);
+    résultat.drapeaux |= drapeaux;
 }
 
 convertis_vers_type_ipa :: fonc (ipa: &IPA, type: *InfoType) -> *TypeIPA
 {
-    type_existant := trouve_type_ipa(ipa, type)
+    type_existant := trouve_type_ipa(ipa, type);
     si type_existant {
-        retourne type_existant
+        retourne type_existant;
     }
 
-    indice_dans_table_des_types := ipa.types.taille
+    indice_dans_table_des_types := ipa.types.taille;
 
-    résultat := loge(TypeIPA)
-    résultat.infos = type
-    tableau_ajoute(*ipa.types, résultat)
+    résultat := loge(TypeIPA);
+    résultat.infos = type;
+    tableau_ajoute(*ipa.types, résultat);
 
-    table_insère_si_non_existant(*ipa.table_des_types, type, indice_dans_table_des_types)
+    table_insère_si_non_existant(*ipa.table_des_types, type, indice_dans_table_des_types);
 
     discr type.id {
         ENTIER,
@@ -341,281 +341,281 @@ convertis_vers_type_ipa :: fonc (ipa: &IPA, type: *InfoType) -> *TypeIPA
         BOOLÉEN,
         OCTET,
         RIEN {
-            résultat.drapeaux.TYPE_EST_BASIQUE = vrai
+            résultat.drapeaux.TYPE_EST_BASIQUE = vrai;
         }
         ÉNUM {
-            résultat.drapeaux.TYPE_EST_ÉNUM = vrai
-            type_sous_jacent := (type comme *InfoTypeÉnum).type_sous_jacent
-            _ := convertis_vers_type_ipa(ipa, type_sous_jacent)
+            résultat.drapeaux.TYPE_EST_ÉNUM = vrai;
+            type_sous_jacent := (type comme *InfoTypeÉnum).type_sous_jacent;
+            _ := convertis_vers_type_ipa(ipa, type_sous_jacent);
         }
         CHAINE {
         }
         POINTEUR {
-            info_pointeur := type comme *InfoTypePointeur
-            résultat.drapeaux.TYPE_EST_BASIQUE = vrai
-            résultat.drapeaux.TYPE_EST_POINTEUR = vrai
-            résultat.type_pointé = convertis_vers_type_ipa(ipa, info_pointeur.type_pointé)
+            info_pointeur := type comme *InfoTypePointeur;
+            résultat.drapeaux.TYPE_EST_BASIQUE = vrai;
+            résultat.drapeaux.TYPE_EST_POINTEUR = vrai;
+            résultat.type_pointé = convertis_vers_type_ipa(ipa, info_pointeur.type_pointé);
         }
         STRUCTURE {
-            info_struct := type comme *InfoTypeStructure
-            résultat.nom = info_struct.nom
+            info_struct := type comme *InfoTypeStructure;
+            résultat.nom = info_struct.nom;
 
             pour info_struct.rubriques {
-                confidentialité := confidentialité_pour_annotation(it.annotations)
+                confidentialité := confidentialité_pour_annotation(it.annotations);
 
                 si confidentialité == ConfidentialitéTypeIPA.OPAQUE {
-                    continue
+                    continue;
                 }
 
-                rubrique := tableau_ajoute_élément(*résultat.rubriques)
-                rubrique.nom = it.nom
-                rubrique.confidentialité = confidentialité
-                rubrique.type = it.id
-                rubrique.type_ipa = ipa.convertis_vers_type_ipa(it.id)
+                rubrique := tableau_ajoute_élément(*résultat.rubriques);
+                rubrique.nom = it.nom;
+                rubrique.confidentialité = confidentialité;
+                rubrique.type = it.id;
+                rubrique.type_ipa = ipa.convertis_vers_type_ipa(it.id);
             }
         }
         UNION {
-            compilatrice_rapporte_erreur("Les types « union » ne sont pas convertibles vers C/C++ pour le moment")
+            compilatrice_rapporte_erreur("Les types « union » ne sont pas convertibles vers C/C++ pour le moment");
         }
         FONCTION {
-            info_fonction := type comme *InfoTypeFonction
+            info_fonction := type comme *InfoTypeFonction;
 
             si info_fonction.types_sortie.taille > 1 {
-                compilatrice_rapporte_erreur("Les types fonctions avec plusieurs valeurs de retour ne sont pas convertibles en C/C++.")
+                compilatrice_rapporte_erreur("Les types fonctions avec plusieurs valeurs de retour ne sont pas convertibles en C/C++.");
             }
 
-            résultat.drapeaux.TYPE_EST_FONCTION = vrai
+            résultat.drapeaux.TYPE_EST_FONCTION = vrai;
 
             pour info_fonction.types_entrée {
                 /* À FAIRE : pointeurs de tableaux. */
                 si it.id == GenreInfoType.TABLEAU {
-                    compilatrice_rapporte_erreur("Les types tableaux en entrée de fonction ne sont pas convertibles en C++ pour l'instant.")
+                    compilatrice_rapporte_erreur("Les types tableaux en entrée de fonction ne sont pas convertibles en C++ pour l'instant.");
                 }
 
-                tableau_ajoute(*résultat.types_entrée, ipa.convertis_vers_type_ipa(it))
+                tableau_ajoute(*résultat.types_entrée, ipa.convertis_vers_type_ipa(it));
             }
 
             pour info_fonction.types_sortie {
                 /* À FAIRE : pointeurs de tableaux. */
                 si it.id == GenreInfoType.TABLEAU {
-                    compilatrice_rapporte_erreur("Les types tableaux en sortie de fonction ne sont pas convertibles en C++ pour l'instant.")
+                    compilatrice_rapporte_erreur("Les types tableaux en sortie de fonction ne sont pas convertibles en C++ pour l'instant.");
                 }
 
-                tableau_ajoute(*résultat.types_sortie, ipa.convertis_vers_type_ipa(it))
+                tableau_ajoute(*résultat.types_sortie, ipa.convertis_vers_type_ipa(it));
             }
         }
         OPAQUE {
-            compilatrice_rapporte_erreur("Les types « opaque » ne sont pas convertibles vers C/C++ pour le moment")
+            compilatrice_rapporte_erreur("Les types « opaque » ne sont pas convertibles vers C/C++ pour le moment");
         }
         TABLEAU {
-            info_tableau := type comme *InfoTypeTableau
-            résultat.drapeaux.TYPE_EST_TABLEAU = vrai
-            ajoute_type(ipa, info_tableau.type_pointé)
+            info_tableau := type comme *InfoTypeTableau;
+            résultat.drapeaux.TYPE_EST_TABLEAU = vrai;
+            ajoute_type(ipa, info_tableau.type_pointé);
         }
         TABLEAU_FIXE {
-            compilatrice_rapporte_erreur("Les types tableaux fixe ne sont pas convertibles vers Python pour le moment")
+            compilatrice_rapporte_erreur("Les types tableaux fixe ne sont pas convertibles vers Python pour le moment");
         }
         TRANCHE {
-            info_tranche := type comme *InfoTypeTranche
-            résultat.drapeaux.TYPE_EST_TRANCHE = vrai
-            ajoute_type(ipa, info_tranche.type_élément)
+            info_tranche := type comme *InfoTypeTranche;
+            résultat.drapeaux.TYPE_EST_TRANCHE = vrai;
+            ajoute_type(ipa, info_tranche.type_élément);
         }
         TYPE_DE_DONNÉES {
-            compilatrice_rapporte_erreur("Les types « type_de_données » ne sont pas convertibles vers C/C++ pour le moment")
+            compilatrice_rapporte_erreur("Les types « type_de_données » ne sont pas convertibles vers C/C++ pour le moment");
         }
         EINI {
-            compilatrice_rapporte_erreur("Les types « eini » ne sont pas convertibles vers C/C++ pour le moment")
+            compilatrice_rapporte_erreur("Les types « eini » ne sont pas convertibles vers C/C++ pour le moment");
         }
         VARIADIQUE {
-            compilatrice_rapporte_erreur("Les types « variadiques » ne sont pas convertibles vers C/C++ pour le moment")
+            compilatrice_rapporte_erreur("Les types « variadiques » ne sont pas convertibles vers C/C++ pour le moment");
         }
         ADRESSE_FONCTION {
-            compilatrice_rapporte_erreur("Les types « adresse_fonction » ne sont pas convertibles vers C/C++ pour le moment")
+            compilatrice_rapporte_erreur("Les types « adresse_fonction » ne sont pas convertibles vers C/C++ pour le moment");
         }
         POLYMORPHIQUE {
-            compilatrice_rapporte_erreur("Les types « polymorphiques » ne sont pas convertibles vers C/C++ pour le moment")
+            compilatrice_rapporte_erreur("Les types « polymorphiques » ne sont pas convertibles vers C/C++ pour le moment");
         }
     }
 
-    retourne résultat
+    retourne résultat;
 }
 
 trouve_type_ipa :: fonc (ipa: &IPA, type: *InfoType) -> *TypeIPA
 {
-    résultat: *TypeIPA
-    trouvée, indice_dans_table_des_types := donne_valeur_pour_clé(ipa.table_des_types, type)
+    résultat: *TypeIPA;
+    trouvée, indice_dans_table_des_types := donne_valeur_pour_clé(ipa.table_des_types, type);
     si trouvée {
-        résultat = ipa.types[indice_dans_table_des_types]
+        résultat = ipa.types[indice_dans_table_des_types];
     }
-    retourne résultat
+    retourne résultat;
 }
 
 ajoute_méthode :: fonc (ipa: &IPA, noeud_code: *NoeudCodeEntêteFonction)
 {
-    annotation := annotation_pour_python(noeud_code)
+    annotation := annotation_pour_python(noeud_code);
 
     discr annotation {
         NON_TROUVÉE,
         INVALIDE,
         MULTIPLES_ANNOTATIONS {
-            retourne
+            retourne;
         }
         TROUVÉE_SANS_PARAMÈTRE {
-            ajoute_méthode(ipa, noeud_code, nul)
-            retourne
+            ajoute_méthode(ipa, noeud_code, nul);
+            retourne;
         }
         POUR_MÉTHODE {
-            premier_type := noeud_code.params[0].type
+            premier_type := noeud_code.params[0].type;
 
             si premier_type.id == GenreInfoType.POINTEUR {
-                premier_type = (premier_type comme *InfoTypePointeur).type_pointé
+                premier_type = (premier_type comme *InfoTypePointeur).type_pointé;
             }
 
-            type_ipa := trouve_type_ipa(ipa, premier_type comme *InfoTypeStructure)
-            ajoute_méthode(ipa, noeud_code, type_ipa)
-            retourne
+            type_ipa := trouve_type_ipa(ipa, premier_type comme *InfoTypeStructure);
+            ajoute_méthode(ipa, noeud_code, type_ipa);
+            retourne;
         }
         POUR_NEW {
             /* À FAIRE : valide */
-            premier_type := noeud_code.params[0].type
+            premier_type := noeud_code.params[0].type;
 
             si premier_type.id == GenreInfoType.POINTEUR {
-                premier_type = (premier_type comme *InfoTypePointeur).type_pointé
+                premier_type = (premier_type comme *InfoTypePointeur).type_pointé;
             }
 
-            type_ipa := convertis_vers_type_ipa(ipa, premier_type comme *InfoTypeStructure)
-            ajoute_méthode_new(ipa, noeud_code, type_ipa)
-            retourne
+            type_ipa := convertis_vers_type_ipa(ipa, premier_type comme *InfoTypeStructure);
+            ajoute_méthode_new(ipa, noeud_code, type_ipa);
+            retourne;
         }
         sinon {
-            retourne
+            retourne;
         }
     }
 }
 
 ajoute_fonction_accès_rubrique :: fonc (type: *TypeIPA, rubrique: *RubriqueTypeIPA, pour_lecture: bool) -> *MéthodeIPA
 {
-    fonction := tableau_ajoute_élément(*type.fonctions)
+    fonction := tableau_ajoute_élément(*type.fonctions);
     si pour_lecture {
-        fonction.nom = enchaine("donne_", rubrique.nom)
+        fonction.nom = enchaine("donne_", rubrique.nom);
     }
     sinon {
-        fonction.nom = enchaine("définis_", rubrique.nom)
+        fonction.nom = enchaine("définis_", rubrique.nom);
     }
-    fonction.est_accès_rubrique = rubrique
-    retourne fonction
+    fonction.est_accès_rubrique = rubrique;
+    retourne fonction;
 }
 
 ajoute_entrée :: fonc (fonction: *MéthodeIPA, nom: chaine, type: *InfoType, type_ipa: *TypeIPA)
 {
-    entrée := tableau_ajoute_élément(*fonction.entrées)
-    entrée.nom = nom
-    entrée.type = type
-    entrée.type_ipa = type_ipa
+    entrée := tableau_ajoute_élément(*fonction.entrées);
+    entrée.nom = nom;
+    entrée.type = type;
+    entrée.type_ipa = type_ipa;
 }
 
 ajoute_sortie :: fonc (fonction: *MéthodeIPA, nom: chaine, type: *InfoType, type_ipa: *TypeIPA)
 {
-    sortie := tableau_ajoute_élément(*fonction.sorties)
-    sortie.nom = nom
-    sortie.type = type
-    sortie.type_ipa = type_ipa
+    sortie := tableau_ajoute_élément(*fonction.sorties);
+    sortie.nom = nom;
+    sortie.type = type;
+    sortie.type_ipa = type_ipa;
 }
 
 ajoute_méthodes_pour_rubriques_types :: fonc (ipa: &IPA)
 {
     pour ipa.types {
-        nom_type := copie_chaine(it.nom)
-        diffère déloge(nom_type)
+        nom_type := copie_chaine(it.nom);
+        diffère déloge(nom_type);
 
-        supprime_points_et_parenthèses(*nom_type)
+        supprime_points_et_parenthèses(*nom_type);
 
         pour * rubrique dans it.rubriques {
             /* Fonction lecture. */
-            fonction := ajoute_fonction_accès_rubrique(it, rubrique, vrai)
-            rubrique.indice_fonction_lecture = it.fonctions.taille - 1
-            fonction.nom_rappel_pour_table = enchaine(ipa.espace_de_nom, "_", nom_type, "_donne_", rubrique.nom)
-            fonction.nom_pour_fonction_c = copie_chaine(fonction.nom_rappel_pour_table)
+            fonction := ajoute_fonction_accès_rubrique(it, rubrique, vrai);
+            rubrique.indice_fonction_lecture = it.fonctions.taille - 1;
+            fonction.nom_rappel_pour_table = enchaine(ipa.espace_de_nom, "_", nom_type, "_donne_", rubrique.nom);
+            fonction.nom_pour_fonction_c = copie_chaine(fonction.nom_rappel_pour_table);
 
-            ajoute_entrée(fonction, "moi", it.infos, it)
-            ajoute_sortie(fonction, "résultat", rubrique.type, rubrique.type_ipa)
+            ajoute_entrée(fonction, "moi", it.infos, it);
+            ajoute_sortie(fonction, "résultat", rubrique.type, rubrique.type_ipa);
 
-            assainie_nom_fonction_interface(fonction)
+            assainie_nom_fonction_interface(fonction);
 
             saufsi rubrique.confidentialité == ConfidentialitéTypeIPA.MUTABLE {
-                continue
+                continue;
             }
 
             /* Fonction écriture. */
-            fonction = ajoute_fonction_accès_rubrique(it, rubrique, faux)
-            rubrique.indice_fonction_écriture = it.fonctions.taille - 1
-            fonction.nom_rappel_pour_table = enchaine(ipa.espace_de_nom, "_", nom_type, "_definis_", rubrique.nom)
-            fonction.nom_pour_fonction_c = copie_chaine(fonction.nom_rappel_pour_table)
+            fonction = ajoute_fonction_accès_rubrique(it, rubrique, faux);
+            rubrique.indice_fonction_écriture = it.fonctions.taille - 1;
+            fonction.nom_rappel_pour_table = enchaine(ipa.espace_de_nom, "_", nom_type, "_definis_", rubrique.nom);
+            fonction.nom_pour_fonction_c = copie_chaine(fonction.nom_rappel_pour_table);
 
-            ajoute_entrée(fonction, "moi", it.infos, it)
-            ajoute_entrée(fonction, "valeur", rubrique.type, rubrique.type_ipa)
-            ajoute_sortie(fonction, "résultat", info_de(rien), ipa.convertis_vers_type_ipa(info_de(rien)))
+            ajoute_entrée(fonction, "moi", it.infos, it);
+            ajoute_entrée(fonction, "valeur", rubrique.type, rubrique.type_ipa);
+            ajoute_sortie(fonction, "résultat", info_de(rien), ipa.convertis_vers_type_ipa(info_de(rien)));
 
-            assainie_nom_fonction_interface(fonction)
+            assainie_nom_fonction_interface(fonction);
         }
     }
 }
 
 finalise_informations_types :: fonc (ipa: &IPA)
 {
-    ajoute_méthodes_pour_rubriques_types(ipa)
+    ajoute_méthodes_pour_rubriques_types(ipa);
 
     pour ipa.types {
-        infos := it.infos
+        infos := it.infos;
 
         saufsi infos.id == GenreInfoType.STRUCTURE {
-            continue
+            continue;
         }
 
-        info_struct := infos comme *InfoTypeStructure
+        info_struct := infos comme *InfoTypeStructure;
 
         saufsi info_struct.structs_employées {
-            continue
+            continue;
         }
 
-        type_base := ipa.convertis_vers_type_ipa(info_struct.structs_employées[0])
+        type_base := ipa.convertis_vers_type_ipa(info_struct.structs_employées[0]);
         si type_base.drapeaux.TOUJOURS_COMME_POINTEUR {
-            it.drapeaux.TOUJOURS_COMME_POINTEUR = vrai
+            it.drapeaux.TOUJOURS_COMME_POINTEUR = vrai;
         }
 
-        it.type_base = type_base
-        type_base.drapeaux.TYPE_EST_DÉRIVÉ = vrai
+        it.type_base = type_base;
+        type_base.drapeaux.TYPE_EST_DÉRIVÉ = vrai;
     }
 }
 
 ajoute_méthode :: fonc (ipa: &IPA, noeud_code: *NoeudCodeEntêteFonction, type_méthode: *TypeIPA)
 {
-    résultat := convertis_entête_en_méthode_ipa(noeud_code, type_méthode, ipa.espace_de_nom)
+    résultat := convertis_entête_en_méthode_ipa(noeud_code, type_méthode, ipa.espace_de_nom);
 
     si type_méthode {
-        tableau_ajoute(*type_méthode.fonctions, résultat)
+        tableau_ajoute(*type_méthode.fonctions, résultat);
     }
     sinon {
-        tableau_ajoute(*ipa.fonctions, résultat)
+        tableau_ajoute(*ipa.fonctions, résultat);
     }
 
-    convertis_types_params_méthode(ipa, *résultat)
+    convertis_types_params_méthode(ipa, *résultat);
 }
 
 ajoute_méthode_new :: fonc (ipa: &IPA, noeud_code: *NoeudCodeEntêteFonction, type_méthode: *TypeIPA)
 {
-    résultat := convertis_entête_en_méthode_ipa(noeud_code, nul, ipa.espace_de_nom)
-    convertis_types_params_méthode(ipa, *résultat)
-    type_méthode.constructrice = résultat
+    résultat := convertis_entête_en_méthode_ipa(noeud_code, nul, ipa.espace_de_nom);
+    convertis_types_params_méthode(ipa, *résultat);
+    type_méthode.constructrice = résultat;
 }
 
 convertis_types_params_méthode :: fonc (ipa: &IPA, méthode: *MéthodeIPA)
 {
     pour & méthode.entrées {
-        it.type_ipa = convertis_vers_type_ipa(ipa, it.type)
+        it.type_ipa = convertis_vers_type_ipa(ipa, it.type);
     }
 
     pour & méthode.sorties {
-        it.type_ipa = convertis_vers_type_ipa(ipa, it.type)
+        it.type_ipa = convertis_vers_type_ipa(ipa, it.type);
     }
 }

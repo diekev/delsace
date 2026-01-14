@@ -19,66 +19,66 @@ Constantes :: struct ($T: type_de_données) {
 
 /* --------------------------------------------------------- */
 
-Degrés :: #opaque $T
-Radians :: #opaque $T
+Degrés :: #opaque $T;
+Radians :: #opaque $T;
 
 vers_degrés :: fonc (a: Radians($T)) -> Degrés(T) #enligne
 {
-    retourne Degrés(a comme T * 180.0 / Constantes(T).PI)
+    retourne Degrés(a comme T * 180.0 / Constantes(T).PI);
 }
 
 // À FAIRE(langage) : collision entre polymorphes
 vers_degrés :: fonc (a: r32) -> r32 #enligne
 {
-    retourne a * 180.0 / Constantes(r32).PI
+    retourne a * 180.0 / Constantes(r32).PI;
 }
 
 vers_radians :: fonc (a: Degrés($T)) -> Radians(T) #enligne
 {
-    retourne Radians(a comme T * Constantes(T).PI / 180.0)
+    retourne Radians(a comme T * Constantes(T).PI / 180.0);
 }
 
 // À FAIRE(langage) : collision entre polymorphes
 vers_radians :: fonc (a: r32) -> r32 #enligne
 {
-    retourne a * Constantes(r32).PI / 180.0
+    retourne a * Constantes(r32).PI / 180.0;
 }
 
 /* Retourne des degrés entre 0 et 360. Par exemple, si les degrés == 360, retourne 10. */
 normalise :: fonc (d: Degrés($T)) -> Degrés(T) #enligne
 {
-    v := d comme T
-    v /= 360.0
-    _, fraction := part_entière_et_fraction(v)
-    retourne Degrés(fraction * 360.0)
+    v := d comme T;
+    v /= 360.0;
+    _, fraction := part_entière_et_fraction(v);
+    retourne Degrés(fraction * 360.0);
 }
 
 infinité_négative :: fonc ($T: type_de_données) -> T
 {
     #si T == r32 {
-        R32_INFINITÉ_NÉGATIVE :: 0rff800000
-        retourne R32_INFINITÉ_NÉGATIVE
+        R32_INFINITÉ_NÉGATIVE :: 0rff800000;
+        retourne R32_INFINITÉ_NÉGATIVE;
     }
     sinon si T == r64 {
-        R64_INFINITÉ_NÉGATIVE :: 0rfff0000000000000
-        retourne R64_INFINITÉ_NÉGATIVE
+        R64_INFINITÉ_NÉGATIVE :: 0rfff0000000000000;
+        retourne R64_INFINITÉ_NÉGATIVE;
     }
     sinon {
-        panique("infinité_négative non-implémentée")
+        panique("infinité_négative non-implémentée");
     }
 }
 
 infinité_positive :: fonc ($T: type_de_données) -> T
 {
     #si T == r32 {
-        R32_INFINITÉ :: 0r7f800000
-        retourne R32_INFINITÉ
+        R32_INFINITÉ :: 0r7f800000;
+        retourne R32_INFINITÉ;
     }
     sinon si T == r64 {
-        R64_INFINITÉ :: 0r7ff0000000000000
-        retourne R64_INFINITÉ
+        R64_INFINITÉ :: 0r7ff0000000000000;
+        retourne R64_INFINITÉ;
     }
     sinon {
-        panique("infinité_positive non-implémentée")
+        panique("infinité_positive non-implémentée");
     }
 }

@@ -1,10 +1,10 @@
-importe Chaine
-importe Fondation
-importe Numérique
+importe Chaine;
+importe Fondation;
+importe Numérique;
 
-charge "connexion"
-charge "linux"
-charge "uri"
+charge "connexion";
+charge "linux";
+charge "uri";
 
 /*
     Bibliothèque de parsage et formattage d'adresses IP v4 et v6.
@@ -29,170 +29,170 @@ charge "uri"
  */
 
 ErreurParsageIP :: erreur {
-    NombreÉlémentsIncorrect
-    CaractèreInvalide
+    NombreÉlémentsIncorrect;
+    CaractèreInvalide;
 }
 
-AdresseIPv4 :: #opaque [4]n8
-AdresseIPv6 :: #opaque [8]n16
+AdresseIPv4 :: #opaque [4]n8;
+AdresseIPv6 :: #opaque [8]n16;
 
 AdresseIP :: union {
-    ipv4 : AdresseIPv4
-    ipv6 : AdresseIPv6
+    ipv4 : AdresseIPv4;
+    ipv6 : AdresseIPv6;
 }
 
 chaine_depuis_ip :: fonc (adresse: AdresseIP) -> chaine
 {
     discr adresse {
         ipv4 {
-            retourne chaine_depuis_ipv4(adresse.ipv4)
+            retourne chaine_depuis_ipv4(adresse.ipv4);
         }
         ipv6 {
-            retourne chaine_depuis_ipv6(adresse.ipv6)
+            retourne chaine_depuis_ipv6(adresse.ipv6);
         }
         sinon {
-            retourne copie_chaine("")
+            retourne copie_chaine("");
         }
     }
 
-    retourne copie_chaine("")
+    retourne copie_chaine("");
 }
 
 parse_adresse_ip :: fonc (chn: chaine) -> (bool, AdresseIP)
 {
-    résultat : AdresseIP
+    résultat : AdresseIP;
 
     ipv4 := tente parse_ipv4(chn) piège _ {
         ipv6 := tente parse_ipv6(chn) piège _ {
-            retourne faux, résultat
+            retourne faux, résultat;
         }
 
-        résultat = ipv6
-        retourne vrai, résultat
+        résultat = ipv6;
+        retourne vrai, résultat;
     }
 
-    résultat = ipv4
-    retourne vrai, résultat
+    résultat = ipv4;
+    retourne vrai, résultat;
 } @ParsageJSON
 
 parse_ipv4_pour_ipv6 :: fonc (chn: chaine, addr: *AdresseIPv4) -> bool
 {
     ipv4 := tente parse_ipv4(chn) piège _ {
-        retourne faux
+        retourne faux;
     }
 
-    mémoire(addr) = ipv4
+    mémoire(addr) = ipv4;
 
-    retourne vrai
+    retourne vrai;
 }
 
 parse_ipv6 :: fonc (chn: chaine) -> AdresseIPv6 | ErreurParsageIP
 {
     // prend en compte les chaines provenant des URI entre crochets : [...]
     saufsi chn {
-        retourne ErreurParsageIP.NombreÉlémentsIncorrect
+        retourne ErreurParsageIP.NombreÉlémentsIncorrect;
     }
 
     si chn[0] == '[' {
-        chn = avance(chn, 1)
+        chn = avance(chn, 1);
     }
 
     saufsi chn {
-        retourne ErreurParsageIP.NombreÉlémentsIncorrect
+        retourne ErreurParsageIP.NombreÉlémentsIncorrect;
     }
 
     si chn[chn.taille - 1] == ']' {
-        chn = recule(chn, 1)
+        chn = recule(chn, 1);
     }
 
     // il ne peut y avoir qu'un seul :: par chaine
-    morceaux := divise(chn, "::")
+    morceaux := divise(chn, "::");
     diffère { déloge(morceaux) }
 
     si morceaux.taille > 2 {
-        retourne ErreurParsageIP.NombreÉlémentsIncorrect
+        retourne ErreurParsageIP.NombreÉlémentsIncorrect;
     }
 
-    possède_raccourci := morceaux.taille == 2
+    possède_raccourci := morceaux.taille == 2;
 
-    morceaux_nombre := divise(morceaux[0], ':')
+    morceaux_nombre := divise(morceaux[0], ':');
     diffère { déloge(morceaux_nombre) }
 
-    possède_ipv4 := faux
-    ipv4 : AdresseIPv4 = ---
+    possède_ipv4 := faux;
+    ipv4 : AdresseIPv4 = ---;
 
-    chaines : [8]chaine
+    chaines : [8]chaine;
 
     pour & chaines {
-        it = ""
+        it = "";
     }
 
     si !possède_raccourci {
         si morceaux_nombre.taille < 8 {
             si morceaux_nombre.taille == 7 {
-                possède_ipv4 = parse_ipv4_pour_ipv6(morceaux_nombre[6], *ipv4)
-                morceaux_nombre[6] = ""
+                possède_ipv4 = parse_ipv4_pour_ipv6(morceaux_nombre[6], *ipv4);
+                morceaux_nombre[6] = "";
             }
 
             si !possède_ipv4 {
-                retourne ErreurParsageIP.NombreÉlémentsIncorrect
+                retourne ErreurParsageIP.NombreÉlémentsIncorrect;
             }
         }
     }
 
     pour morceaux_nombre {
-        chaines[indice_it] = it
+        chaines[indice_it] = it;
     }
 
     si possède_raccourci {
-        déloge(morceaux_nombre)
-        morceaux_nombre = divise(morceaux[1], ':')
+        déloge(morceaux_nombre);
+        morceaux_nombre = divise(morceaux[1], ':');
 
-        possède_ipv4 = parse_ipv4_pour_ipv6(morceaux_nombre[morceaux_nombre.taille - 1], *ipv4)
+        possède_ipv4 = parse_ipv4_pour_ipv6(morceaux_nombre[morceaux_nombre.taille - 1], *ipv4);
 
-        indice_début := 8 - morceaux_nombre.taille
+        indice_début := 8 - morceaux_nombre.taille;
 
         si possède_ipv4 {
-            indice_début -= 1
-            morceaux_nombre[morceaux_nombre.taille - 1] = ""
+            indice_début -= 1;
+            morceaux_nombre[morceaux_nombre.taille - 1] = "";
         }
 
         pour morceaux_nombre {
-            chaines[indice_début + indice_it] = it
+            chaines[indice_début + indice_it] = it;
         }
     }
 
-    ipv6 : AdresseIPv6 = ---
+    ipv6 : AdresseIPv6 = ---;
 
     pour & ipv6 {
-        it = 0
+        it = 0;
     }
 
     pour chaines {
         si !it {
-            continue
+            continue;
         }
 
         ipv6[indice_it] = tente parse_hexadécimal_n16(it) piège _ {
             // À FAIRE : erreur pour les dépassements de limites
-            retourne ErreurParsageIP.CaractèreInvalide
+            retourne ErreurParsageIP.CaractèreInvalide;
         }
     }
 
     si possède_ipv4 {
-        ipv6[6] = (ipv4[0] comme n16 << 8) | ipv4[1]
-        ipv6[7] = (ipv4[2] comme n16 << 8) | ipv4[3]
+        ipv6[6] = (ipv4[0] comme n16 << 8) | ipv4[1];
+        ipv6[7] = (ipv4[2] comme n16 << 8) | ipv4[3];
     }
 
-    retourne ipv6
+    retourne ipv6;
 } @FonctionLongue
 
 chaine_depuis_ipv6 :: fonc (ipv6: AdresseIPv6) -> chaine
 {
-    enchaineuse : Enchaineuse
-    initialise_enchaineuse(*enchaineuse)
-    formatte_ipv6(*enchaineuse, *ipv6)
-    retourne chaine_depuis_enchaineuse(*enchaineuse)
+    enchaineuse : Enchaineuse;
+    initialise_enchaineuse(*enchaineuse);
+    formatte_ipv6(*enchaineuse, *ipv6);
+    retourne chaine_depuis_enchaineuse(*enchaineuse);
 }
 
 // Structure pour tenir des informations sur les séquences de '0' d'une adresse IPv6
@@ -200,9 +200,9 @@ chaine_depuis_ipv6 :: fonc (ipv6: AdresseIPv6) -> chaine
 // indice_début et indice_fin sont les position dans les éléments de la séquence.
 // nombre_de_zéros est pour la taille de la taille de séquence.
 SéquenceDeZéros :: struct {
-    indice_début  : z64
-    indice_fin    : z64
-    nombre_zéros : z32
+    indice_début  : z64;
+    indice_fin    : z64;
+    nombre_zéros : z32;
 }
 
 // il ne peut y avoir qu'au maximum 4 séquences de 1 zéros :
@@ -210,104 +210,104 @@ SéquenceDeZéros :: struct {
 // 0:1:0:1:0:1:0:1
 détermine_séquences_de_zéros :: fonc (ipv6: AdresseIPv6) -> ([4]SéquenceDeZéros, z64)
 {
-    séquences : [4]SéquenceDeZéros
-    nombre_zéros := 0
+    séquences : [4]SéquenceDeZéros;
+    nombre_zéros := 0;
 
-    séquence : SéquenceDeZéros
-    nombre_de_séquences : z64 = 0
+    séquence : SéquenceDeZéros;
+    nombre_de_séquences : z64 = 0;
 
     pour ipv6 {
         si it == 0 {
             si nombre_zéros == 0 {
-                séquence.indice_début = indice_it
+                séquence.indice_début = indice_it;
             }
 
-            nombre_zéros += 1
+            nombre_zéros += 1;
         }
         sinon si nombre_zéros != 0 {
-            séquence.nombre_zéros = nombre_zéros
-            séquence.indice_fin = indice_it
+            séquence.nombre_zéros = nombre_zéros;
+            séquence.indice_fin = indice_it;
 
-            séquences[nombre_de_séquences] = séquence
-            nombre_de_séquences += 1
-            nombre_zéros = 0
+            séquences[nombre_de_séquences] = séquence;
+            nombre_de_séquences += 1;
+            nombre_zéros = 0;
         }
     }
 
     si nombre_zéros != 0 {
-        séquence.nombre_zéros = nombre_zéros
-        séquence.indice_fin = 8
+        séquence.nombre_zéros = nombre_zéros;
+        séquence.indice_fin = 8;
 
-        séquences[nombre_de_séquences] = séquence
-        nombre_de_séquences += 1
+        séquences[nombre_de_séquences] = séquence;
+        nombre_de_séquences += 1;
     }
 
-    retourne séquences, nombre_de_séquences
+    retourne séquences, nombre_de_séquences;
 }
 
 détermine_séquence_la_plus_longue :: fonc (séquences: [4]SéquenceDeZéros, nombre_de_séquences: z64) -> SéquenceDeZéros
 {
-    séquence_la_plus_longue := séquences[0]
+    séquence_la_plus_longue := séquences[0];
 
     pour 1 ... nombre_de_séquences - 1 {
         si séquences[it].nombre_zéros > séquence_la_plus_longue.nombre_zéros {
-            séquence_la_plus_longue = séquences[it]
+            séquence_la_plus_longue = séquences[it];
         }
     }
 
     si séquence_la_plus_longue.nombre_zéros < 2 {
-        séquence_la_plus_longue.nombre_zéros = 0
-        séquence_la_plus_longue.indice_début = 0
-        séquence_la_plus_longue.indice_fin = 0
+        séquence_la_plus_longue.nombre_zéros = 0;
+        séquence_la_plus_longue.indice_début = 0;
+        séquence_la_plus_longue.indice_fin = 0;
     }
 
-    retourne séquence_la_plus_longue
+    retourne séquence_la_plus_longue;
 }
 
 // À FAIRE : généralise
 Tamponet :: struct {
-    données: [39]z8
-    taille: z64
+    données: [39]z8;
+    taille: z64;
 }
 
 ajoute_au_tampon :: fonc (tampon: &Tamponet, c: z8)
 {
-    tampon.données[tampon.taille] = c
-    tampon.taille += 1
+    tampon.données[tampon.taille] = c;
+    tampon.taille += 1;
 }
 
 chaine_depuis_tamponet :: fonc (tampon: &Tamponet) -> chaine
 {
-    retourne chaine(*tampon.données[0], tampon.taille)
+    retourne chaine(*tampon.données[0], tampon.taille);
 }
 
 /* Auxilliaire pour le formattage d'une adresse IPv6. */
 formatte_champs :: fonc (tampon: &Tamponet, champs: n16)
 {
     si champs == 0 {
-        ajoute_au_tampon(tampon, '0')
-        retourne
+        ajoute_au_tampon(tampon, '0');
+        retourne;
     }
 
-    caractères_hex :: "0123456789abcdef"
+    caractères_hex :: "0123456789abcdef";
 
-    a := (champs >> 12) & 0xf
+    a := (champs >> 12) & 0xf;
     si a != 0 {
-        ajoute_au_tampon(tampon, caractères_hex[a comme z64])
+        ajoute_au_tampon(tampon, caractères_hex[a comme z64]);
     }
 
-    b := (champs >> 8) & 0xf
+    b := (champs >> 8) & 0xf;
     si b != 0 || a != 0 {
-        ajoute_au_tampon(tampon, caractères_hex[b comme z64])
+        ajoute_au_tampon(tampon, caractères_hex[b comme z64]);
     }
 
-    c := (champs >> 4) & 0xf
+    c := (champs >> 4) & 0xf;
     si c != 0 || b != 0 || a != 0 {
-        ajoute_au_tampon(tampon, caractères_hex[c comme z64])
+        ajoute_au_tampon(tampon, caractères_hex[c comme z64]);
     }
 
-    d := champs & 0xf
-    ajoute_au_tampon(tampon, caractères_hex[d comme z64])
+    d := champs & 0xf;
+    ajoute_au_tampon(tampon, caractères_hex[d comme z64]);
 }
 
 /* Les champs doivent être écrits sans 0 au début
@@ -331,305 +331,305 @@ formatte_champs :: fonc (tampon: &Tamponet, champs: n16)
 formatte_ipv6 :: fonc (enchaineuse: *Enchaineuse, ptr_ipv6: *AdresseIPv6)
 {
     saufsi ptr_ipv6 {
-        retourne
+        retourne;
     }
 
-    ipv6 := mémoire(ptr_ipv6)
+    ipv6 := mémoire(ptr_ipv6);
 
-    séquences, nombre_de_séquences := détermine_séquences_de_zéros(ipv6)
-    séquence_la_plus_longue := détermine_séquence_la_plus_longue(séquences, nombre_de_séquences)
+    séquences, nombre_de_séquences := détermine_séquences_de_zéros(ipv6);
+    séquence_la_plus_longue := détermine_séquence_la_plus_longue(séquences, nombre_de_séquences);
 
     /* S'il n'existe qu'une seule séquence, raccourcissons toute l'adresse. */
     si séquence_la_plus_longue.nombre_zéros == 8 {
-        ajoute_au_tampon(enchaineuse, "::")
-        retourne
+        ajoute_au_tampon(enchaineuse, "::");
+        retourne;
     }
 
-    tampon : Tamponet
+    tampon : Tamponet;
 
     /* Ignore la séquence de zéros (remplace par un simple ':'). */
     si séquence_la_plus_longue.indice_début == 0 && séquence_la_plus_longue.nombre_zéros > 1 {
-        ajoute_au_tampon(tampon, ':')
+        ajoute_au_tampon(tampon, ':');
     }
     /* Formatte jusqu'au début de la séquence de zéros. */
     sinon pour séquence_la_plus_longue.indice_début {
         si it != 0 {
-            ajoute_au_tampon(tampon, ':')
+            ajoute_au_tampon(tampon, ':');
         }
-        formatte_champs(tampon, ipv6[it])
+        formatte_champs(tampon, ipv6[it]);
     }
 
     /* Ignore les séquences entre deux séquences non-égales à zéro (remplace par un simple ':'). */
     si séquence_la_plus_longue.indice_début != 0 && séquence_la_plus_longue.nombre_zéros != 0 {
-        ajoute_au_tampon(tampon, ':')
+        ajoute_au_tampon(tampon, ':');
     }
 
     /* Ignore la séquence de zéros (remplace par un simple ':'). */
     si séquence_la_plus_longue.indice_fin == 8 {
-        ajoute_au_tampon(tampon, ':')
+        ajoute_au_tampon(tampon, ':');
     }
     /* Formatte depuis la fin de la séquence de zéros. */
     sinon pour séquence_la_plus_longue.indice_fin ... 7 {
         si it != 0 {
-            ajoute_au_tampon(tampon, ':')
+            ajoute_au_tampon(tampon, ':');
         }
-        formatte_champs(tampon, ipv6[it])
+        formatte_champs(tampon, ipv6[it]);
     }
 
-    ajoute_au_tampon(enchaineuse, chaine_depuis_tamponet(tampon))
+    ajoute_au_tampon(enchaineuse, chaine_depuis_tamponet(tampon));
 } @FormattageImpression
 
 adresse_ipv4_depuis_entier_simple :: fonc (valeur: n32) -> AdresseIPv4
 {
-    données : [4]n8 = ---
-    données[0] = ((valeur >> 24) & 0xff) comme n8
-    données[1] = ((valeur >> 16) & 0xff) comme n8
-    données[2] = ((valeur >>  8) & 0xff) comme n8
-    données[3] = ((valeur      ) & 0xff) comme n8
-    retourne AdresseIPv4(données = données)
+    données : [4]n8 = ---;
+    données[0] = ((valeur >> 24) & 0xff) comme n8;
+    données[1] = ((valeur >> 16) & 0xff) comme n8;
+    données[2] = ((valeur >>  8) & 0xff) comme n8;
+    données[3] = ((valeur      ) & 0xff) comme n8;
+    retourne AdresseIPv4(données = données);
 }
 
 parse_ipv4 :: fonc (chn: chaine) -> AdresseIPv4 | ErreurParsageIP
 {
-    morceaux := divise(chn, '.')
+    morceaux := divise(chn, '.');
     diffère { déloge(morceaux) }
 
     // il est possible d'obtenir des chaines contenant l'adresse au format décimale :
     // x * 256 ^ 3 + y * 256 ^ 2 + z * 256 + w
     si morceaux.taille == 1 {
         valeur := tente extrait_n32(chn) piège _ {
-            retourne ErreurParsageIP.CaractèreInvalide
+            retourne ErreurParsageIP.CaractèreInvalide;
         }
 
-        retourne adresse_ipv4_depuis_entier_simple(valeur)
+        retourne adresse_ipv4_depuis_entier_simple(valeur);
     }
 
     si morceaux.taille != 4 {
-        retourne ErreurParsageIP.NombreÉlémentsIncorrect
+        retourne ErreurParsageIP.NombreÉlémentsIncorrect;
     }
 
-    données : [4]n8
+    données : [4]n8;
 
     pour morceaux {
         valeur := tente extrait_n8(it) piège _ {
             // À FAIRE : erreur spéciale en cas de dépassement de la taille du nombre
-            retourne ErreurParsageIP.CaractèreInvalide
+            retourne ErreurParsageIP.CaractèreInvalide;
         }
 
-        données[indice_it] = valeur
+        données[indice_it] = valeur;
     }
 
-    retourne AdresseIPv4(données = données)
+    retourne AdresseIPv4(données = données);
 }
 
 chaine_depuis_ipv4 :: fonc (ipv4: AdresseIPv4) -> chaine
 {
-    enchaineuse : Enchaineuse
-    initialise_enchaineuse(*enchaineuse)
-    formatte_ipv4(*enchaineuse, *ipv4)
-    retourne chaine_depuis_enchaineuse(*enchaineuse)
+    enchaineuse : Enchaineuse;
+    initialise_enchaineuse(*enchaineuse);
+    formatte_ipv4(*enchaineuse, *ipv4);
+    retourne chaine_depuis_enchaineuse(*enchaineuse);
 }
 
 formatte_ipv4 :: fonc (enchaineuse: *Enchaineuse, ptr_ipv4: *AdresseIPv4)
 {
     saufsi ptr_ipv4 {
-        retourne
+        retourne;
     }
 
-    ipv4 := mémoire(ptr_ipv4)
+    ipv4 := mémoire(ptr_ipv4);
     tampon : Tamponet // 15 valeurs maximales
 
     pour ipv4 {
-        d := it
+        d := it;
 
-        centaine := it / 100
+        centaine := it / 100;
         si centaine != 0 {
-            ajoute_au_tampon(tampon, (centaine + 0x30) comme z8)
-            d %= 100
+            ajoute_au_tampon(tampon, (centaine + 0x30) comme z8);
+            d %= 100;
         }
 
-        dizaine := d / 10
+        dizaine := d / 10;
         si dizaine != 0 || centaine != 0 {
-            ajoute_au_tampon(tampon, (dizaine + 0x30) comme z8)
-            d %= 10
+            ajoute_au_tampon(tampon, (dizaine + 0x30) comme z8);
+            d %= 10;
         }
 
-        ajoute_au_tampon(tampon, (d + 0x30) comme z8)
+        ajoute_au_tampon(tampon, (d + 0x30) comme z8);
 
         si indice_it < 3 {
-            ajoute_au_tampon(tampon, '.')
+            ajoute_au_tampon(tampon, '.');
         }
     }
 
-    ajoute_au_tampon(enchaineuse, chaine_depuis_tamponet(tampon))
+    ajoute_au_tampon(enchaineuse, chaine_depuis_tamponet(tampon));
 } @FormattageImpression
 
 ErreurConversionIP :: erreur {
-    AdresseIPv6NEstPasIPv4
+    AdresseIPv6NEstPasIPv4;
 }
 
 ipv4_depuis_ipv6 :: fonc (ipv6: AdresseIPv6) -> AdresseIPv4 | ErreurConversionIP
 {
     pour 0 ... 4 {
         si ipv6[it] != 0 {
-            retourne ErreurConversionIP.AdresseIPv6NEstPasIPv4
+            retourne ErreurConversionIP.AdresseIPv6NEstPasIPv4;
         }
     }
 
     si ipv6[5] != 0xffff {
-        retourne ErreurConversionIP.AdresseIPv6NEstPasIPv4
+        retourne ErreurConversionIP.AdresseIPv6NEstPasIPv4;
     }
 
-    ipv4 : AdresseIPv4 = ---
+    ipv4 : AdresseIPv4 = ---;
 
-    ipv4[0] = (ipv6[6] >> 8) comme n8
-    ipv4[1] = ((ipv6[6]) & 0xff) comme n8
-    ipv4[2] = (ipv6[7] >> 8) comme n8
-    ipv4[3] = ((ipv6[7]) & 0xff) comme n8
+    ipv4[0] = (ipv6[6] >> 8) comme n8;
+    ipv4[1] = ((ipv6[6]) & 0xff) comme n8;
+    ipv4[2] = (ipv6[7] >> 8) comme n8;
+    ipv4[3] = ((ipv6[7]) & 0xff) comme n8;
 
-    retourne ipv4
+    retourne ipv4;
 }
 
 // 127.0.0.1 -> 0:0:0:0:0:ffff:127.0.0.1 ou 0:0:0:0:0:ffff:7f00:1
 ipv6_depuis_ipv4 :: fonc (ipv4: AdresseIPv4) -> AdresseIPv6
 {
-    ipv6 : AdresseIPv6 = ---
+    ipv6 : AdresseIPv6 = ---;
 
     pour 0 ... 4 {
-        ipv6[it] = 0
+        ipv6[it] = 0;
     }
 
-    ipv6[5] = 0xffff
-    ipv6[6] = ipv4[0] comme n16 << 8 | ipv4[1] comme n16
-    ipv6[7] = ipv4[2] comme n16 << 8 | ipv4[3] comme n16
+    ipv6[5] = 0xffff;
+    ipv6[6] = ipv4[0] comme n16 << 8 | ipv4[1] comme n16;
+    ipv6[7] = ipv4[2] comme n16 << 8 | ipv4[3] comme n16;
 
-    retourne ipv6
+    retourne ipv6;
 }
 
 // --------------------------------------------------------------------------------
 // Tests
 
-importe Compilatrice
+importe Compilatrice;
 
 test_raccourcissement_ipv6 :: fonc (donnée: chaine, attendue: chaine, pos := #position_code_source)
 {
     ipv6 := tente parse_ipv6(donnée) piège err {
-        espace := compilatrice_espace_courant()
+        espace := compilatrice_espace_courant();
 
         discr err {
             NombreÉlémentsIncorrect {
-                compilatrice_rapporte_erreur(espace, pos.fichier, pos.ligne, "l'adresse IPv6 n'a pas le nombre correcte de morceaux")
+                compilatrice_rapporte_erreur(espace, pos.fichier, pos.ligne, "l'adresse IPv6 n'a pas le nombre correcte de morceaux");
             }
             CaractèreInvalide {
-                compilatrice_rapporte_erreur(espace, pos.fichier, pos.ligne, "l'adresse IPv6 contient des caractères non-hexadécimaux")
+                compilatrice_rapporte_erreur(espace, pos.fichier, pos.ligne, "l'adresse IPv6 contient des caractères non-hexadécimaux");
             }
         }
 
-        compilatrice_rapporte_erreur(espace, pos.fichier, pos.ligne, "une erreur inconnue de parsage IPv4 est survenue")
+        compilatrice_rapporte_erreur(espace, pos.fichier, pos.ligne, "une erreur inconnue de parsage IPv4 est survenue");
     }
 
-    chn_ipv6 := chaine_depuis_ipv6(ipv6)
-    compilatrice_vérifie_égalité(chn_ipv6, attendue, pos)
-    déloge(chn_ipv6)
+    chn_ipv6 := chaine_depuis_ipv6(ipv6);
+    compilatrice_vérifie_égalité(chn_ipv6, attendue, pos);
+    déloge(chn_ipv6);
 }
 
 #test {
-    test_raccourcissement_ipv6("2001:db8:0:0:1:1:1:1", "2001:db8::1:1:1:1")
-    test_raccourcissement_ipv6("2001:db8:0:0:1:0:0:1", "2001:db8::1:0:0:1")
-    test_raccourcissement_ipv6("0:1:0:1:0:1:0:1", "0:1:0:1:0:1:0:1")
-    test_raccourcissement_ipv6("1:0:1:0:1:0:1:0", "1:0:1:0:1:0:1:0")
-    test_raccourcissement_ipv6("0:0:0:0:0:0:0:0", "::")
-    test_raccourcissement_ipv6("1:0:0:0:0:0:0:0", "1::")
-    test_raccourcissement_ipv6("0:0:0:0:0:0:0:1", "::1")
-    test_raccourcissement_ipv6("ff01:0:0:0:0:0:0:101", "ff01::101")
-    test_raccourcissement_ipv6("0:0:0:0:0:ffff:7f00:1", "::ffff:7f00:1")
-    test_raccourcissement_ipv6("2001:0:0:1:0:0:0:1", "2001:0:0:1::1")
-    test_raccourcissement_ipv6("2001:0:0:1::1", "2001:0:0:1::1")
-    test_raccourcissement_ipv6("[2001:db8::7]", "2001:db8::7")
+    test_raccourcissement_ipv6("2001:db8:0:0:1:1:1:1", "2001:db8::1:1:1:1");
+    test_raccourcissement_ipv6("2001:db8:0:0:1:0:0:1", "2001:db8::1:0:0:1");
+    test_raccourcissement_ipv6("0:1:0:1:0:1:0:1", "0:1:0:1:0:1:0:1");
+    test_raccourcissement_ipv6("1:0:1:0:1:0:1:0", "1:0:1:0:1:0:1:0");
+    test_raccourcissement_ipv6("0:0:0:0:0:0:0:0", "::");
+    test_raccourcissement_ipv6("1:0:0:0:0:0:0:0", "1::");
+    test_raccourcissement_ipv6("0:0:0:0:0:0:0:1", "::1");
+    test_raccourcissement_ipv6("ff01:0:0:0:0:0:0:101", "ff01::101");
+    test_raccourcissement_ipv6("0:0:0:0:0:ffff:7f00:1", "::ffff:7f00:1");
+    test_raccourcissement_ipv6("2001:0:0:1:0:0:0:1", "2001:0:0:1::1");
+    test_raccourcissement_ipv6("2001:0:0:1::1", "2001:0:0:1::1");
+    test_raccourcissement_ipv6("[2001:db8::7]", "2001:db8::7");
 }
 
 test_parsage_ipv4_impl :: fonc (chn_donnée: chaine, chn_attendue: chaine, pos : PositionCodeSource)
 {
     ipv4 := tente parse_ipv4(chn_donnée) piège err {
-        espace := compilatrice_espace_courant()
+        espace := compilatrice_espace_courant();
 
         discr err {
             NombreÉlémentsIncorrect {
-                compilatrice_rapporte_erreur(espace, pos.fichier, pos.ligne, "l'adresse IPv4 n'a pas le nombre correcte de morceaux")
+                compilatrice_rapporte_erreur(espace, pos.fichier, pos.ligne, "l'adresse IPv4 n'a pas le nombre correcte de morceaux");
             }
             CaractèreInvalide {
-                compilatrice_rapporte_erreur(espace, pos.fichier, pos.ligne, "l'adresse IPv4 contient des caractères non-décimaux")
+                compilatrice_rapporte_erreur(espace, pos.fichier, pos.ligne, "l'adresse IPv4 contient des caractères non-décimaux");
 
             }
         }
 
-        compilatrice_rapporte_erreur(espace, pos.fichier, pos.ligne, "une erreur inconnue de parsage IPv4 est survenue")
+        compilatrice_rapporte_erreur(espace, pos.fichier, pos.ligne, "une erreur inconnue de parsage IPv4 est survenue");
     }
 
-    chn_ipv4 := chaine_depuis_ipv4(ipv4)
-    compilatrice_vérifie_égalité(chn_ipv4, chn_attendue)
-    déloge(chn_ipv4)
+    chn_ipv4 := chaine_depuis_ipv4(ipv4);
+    compilatrice_vérifie_égalité(chn_ipv4, chn_attendue);
+    déloge(chn_ipv4);
 }
 
 test_parsage_ipv4 :: fonc (chn: chaine, pos := #position_code_source)
 {
-    test_parsage_ipv4_impl(chn, chn, pos)
+    test_parsage_ipv4_impl(chn, chn, pos);
 }
 
 test_parsage_ipv4_décimale :: fonc (chn_décimale: chaine, chn_attendue: chaine, pos := #position_code_source)
 {
-    test_parsage_ipv4_impl(chn_décimale, chn_attendue, pos)
+    test_parsage_ipv4_impl(chn_décimale, chn_attendue, pos);
 }
 
 #test {
-    test_parsage_ipv4("8.8.8.8")
-    test_parsage_ipv4_décimale("2815984929", "167.216.133.33")
-    test_parsage_ipv4_décimale("0", "0.0.0.0")
+    test_parsage_ipv4("8.8.8.8");
+    test_parsage_ipv4_décimale("2815984929", "167.216.133.33");
+    test_parsage_ipv4_décimale("0", "0.0.0.0");
 }
 
 test_ipv6_depuis_ipv4 :: fonc (chn_ipv4: chaine, chn_ipv6: chaine, pos := #position_code_source)
 {
     ipv4 := tente parse_ipv4(chn_ipv4) piège err {
-        espace := compilatrice_espace_courant()
-        compilatrice_rapporte_erreur(espace, pos.fichier, pos.ligne, "une erreur de parsage IPv4 est survenue")
+        espace := compilatrice_espace_courant();
+        compilatrice_rapporte_erreur(espace, pos.fichier, pos.ligne, "une erreur de parsage IPv4 est survenue");
     }
 
-    ipv6 := ipv6_depuis_ipv4(ipv4)
+    ipv6 := ipv6_depuis_ipv4(ipv4);
 
-    chn := chaine_depuis_ipv6(ipv6)
-    compilatrice_vérifie_égalité(chn, chn_ipv6, pos)
-    déloge(chn)
+    chn := chaine_depuis_ipv6(ipv6);
+    compilatrice_vérifie_égalité(chn, chn_ipv6, pos);
+    déloge(chn);
 }
 
 #test {
-    test_ipv6_depuis_ipv4("127.0.0.1", "::ffff:7f00:1")
+    test_ipv6_depuis_ipv4("127.0.0.1", "::ffff:7f00:1");
 }
 
 test_ipv4_depuis_ipv6 :: fonc (chn_ipv6: chaine, chn_ipv4: chaine, pos := #position_code_source)
 {
     ipv6 := tente parse_ipv6(chn_ipv6) piège err {
-        espace := compilatrice_espace_courant()
+        espace := compilatrice_espace_courant();
 
         discr err {
             NombreÉlémentsIncorrect {
-                compilatrice_rapporte_erreur(espace, pos.fichier, pos.ligne, "l'adresse IPv6 n'a pas le nombre correcte de morceaux")
+                compilatrice_rapporte_erreur(espace, pos.fichier, pos.ligne, "l'adresse IPv6 n'a pas le nombre correcte de morceaux");
             }
             CaractèreInvalide {
-                compilatrice_rapporte_erreur(espace, pos.fichier, pos.ligne, "l'adresse IPv6 contient des caractères non-hexadécimaux")
+                compilatrice_rapporte_erreur(espace, pos.fichier, pos.ligne, "l'adresse IPv6 contient des caractères non-hexadécimaux");
             }
         }
 
-        compilatrice_rapporte_erreur(espace, pos.fichier, pos.ligne, "une erreur de parsage IPv6 est survenue")
+        compilatrice_rapporte_erreur(espace, pos.fichier, pos.ligne, "une erreur de parsage IPv6 est survenue");
     }
 
-    ipv4 := ipv4_depuis_ipv6(ipv6)
+    ipv4 := ipv4_depuis_ipv6(ipv6);
 
-    chn := chaine_depuis_ipv4(ipv4)
-    compilatrice_vérifie_égalité(chn, chn_ipv4, pos)
-    déloge(chn)
+    chn := chaine_depuis_ipv4(ipv4);
+    compilatrice_vérifie_égalité(chn, chn_ipv4, pos);
+    déloge(chn);
 }
 
 #test {
-    test_ipv4_depuis_ipv6("0:0:0:0:0:ffff:127.0.0.1", "127.0.0.1")
-    test_ipv4_depuis_ipv6("::ffff:127.0.0.1", "127.0.0.1")
+    test_ipv4_depuis_ipv6("0:0:0:0:0:ffff:127.0.0.1", "127.0.0.1");
+    test_ipv4_depuis_ipv6("::ffff:127.0.0.1", "127.0.0.1");
 }

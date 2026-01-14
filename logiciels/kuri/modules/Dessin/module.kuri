@@ -1,87 +1,87 @@
 /* Module pour dessiner des formes dans un tampon de rendu. */
 
 importe Algorithmes // pour permute
-importe Couleur
-importe Fondation
-importe Image
-importe InfosInterface
-importe Math
+importe Couleur;
+importe Fondation;
+importe Image;
+importe InfosInterface;
+importe Math;
 
-charge "tampon_texture"
-charge "texte"
+charge "tampon_texture";
+charge "texte";
 
 /* ------------------------------------------------------------------------- */
 /** \nom Tampon de rendu.
  * \{ */
 
 TamponDeRendu :: struct {
-    rect: RectanglePosDim(z32)
-    rect_ciseau: RectanglePosDim(z32)
-    données: [..]CouleurRVBAN8
+    rect: RectanglePosDim(z32);
+    rect_ciseau: RectanglePosDim(z32);
+    données: [..]CouleurRVBAN8;
 }
 
 crée_tampon_de_rendu :: fonc (rect: RectanglePosDim(z32)) -> TamponDeRendu
 {
-    résultat: TamponDeRendu
-    redimensionne_tampon_de_rendu(*résultat, rect)
-    retourne résultat
+    résultat: TamponDeRendu;
+    redimensionne_tampon_de_rendu(*résultat, rect);
+    retourne résultat;
 }
 
 redimensionne_tampon_de_rendu :: fonc (tampon: *TamponDeRendu, rect: RectanglePosDim(z32))
 {
-    tampon.rect = rect
-    tampon.rect_ciseau = rect
-    tableau_redimensionne(tampon.données, rect.hauteur * rect.largeur)
+    tampon.rect = rect;
+    tampon.rect_ciseau = rect;
+    tableau_redimensionne(tampon.données, rect.hauteur * rect.largeur);
 }
 
 définis_rect_ciseau :: fonc (tampon: *TamponDeRendu, rect: RectanglePosDim(z32))
 {
-    tampon.rect_ciseau = tampon.rect
-    rect = tampon.donne_rect_sûr(rect)
-    tampon.rect_ciseau = rect
+    tampon.rect_ciseau = tampon.rect;
+    rect = tampon.donne_rect_sûr(rect);
+    tampon.rect_ciseau = rect;
 }
 
 donne_nouvelle_image_depuis_données :: fonc (tampon: *TamponDeRendu) -> NouvelleImage
 {
-    retourne crée_image_pour_données_externe(tampon.données.pointeur, tampon.rect.largeur comme n32, tampon.rect.hauteur comme n32, FormatPixel.RVBA_8, DirectionImage.BasEnHaut)
+    retourne crée_image_pour_données_externe(tampon.données.pointeur, tampon.rect.largeur comme n32, tampon.rect.hauteur comme n32, FormatPixel.RVBA_8, DirectionImage.BasEnHaut);
 }
 
 /* Ceci remplis inconditionnellement le tampon avec la couleur (pas de fusion, etc.).
  * Cette fonction est à utiliser pour réinitialiser le tampon. */
 remplis_avec :: fonc (tampon: *TamponDeRendu, couleur: CouleurRVBAN8)
 {
-    pointeur := tampon.données.pointeur
-    taille := tampon.données.taille
+    pointeur := tampon.données.pointeur;
+    taille := tampon.données.taille;
 
     /* Déroulage manuel. */
     pour taille / 8 {
         /* À FAIRE(langage) : erreur de compilation C si mémoire(pointeur + x) = y */
-        pointeur[0] = couleur
-        pointeur[1] = couleur
-        pointeur[2] = couleur
-        pointeur[3] = couleur
-        pointeur[4] = couleur
-        pointeur[5] = couleur
-        pointeur[6] = couleur
-        pointeur[7] = couleur
+        pointeur[0] = couleur;
+        pointeur[1] = couleur;
+        pointeur[2] = couleur;
+        pointeur[3] = couleur;
+        pointeur[4] = couleur;
+        pointeur[5] = couleur;
+        pointeur[6] = couleur;
+        pointeur[7] = couleur;
 
-        pointeur += 8
+        pointeur += 8;
     }
 
     pour taille % 8 {
-        mémoire(pointeur) = couleur
-        pointeur += 1
+        mémoire(pointeur) = couleur;
+        pointeur += 1;
     }
 }
 
 détruit_tampon_de_rendu :: fonc (tampon: *TamponDeRendu)
 {
-    déloge(tampon.données)
+    déloge(tampon.données);
 }
 
 donne_rect_sûr :: fonc (tampon: *TamponDeRendu, rect: RectanglePosDim(z32)) -> RectanglePosDim(z32)
 {
-    retourne donne_intersection(tampon.rect_ciseau, rect)
+    retourne donne_intersection(tampon.rect_ciseau, rect);
 }
 
 /** \} */
@@ -95,61 +95,61 @@ donne_rect_sûr :: fonc (tampon: *TamponDeRendu, rect: RectanglePosDim(z32)) -> 
 fusionne_pixels :: fonc (src: CouleurRVBAN8, dst: *CouleurRVBAN8)
 {
     si src.a == 0 {
-        retourne
+        retourne;
     }
 
     si src.a == 255 {
-        mémoire(dst) = src
-        retourne
+        mémoire(dst) = src;
+        retourne;
     }
 
-    r_dest := (dst.r comme r32) / 255.0
-    v_dest := (dst.v comme r32) / 255.0
-    b_dest := (dst.b comme r32) / 255.0
+    r_dest := (dst.r comme r32) / 255.0;
+    v_dest := (dst.v comme r32) / 255.0;
+    b_dest := (dst.b comme r32) / 255.0;
 
-    r_source := (src.r comme r32) / 255.0
-    v_source := (src.v comme r32) / 255.0
-    b_source := (src.b comme r32) / 255.0
+    r_source := (src.r comme r32) / 255.0;
+    v_source := (src.v comme r32) / 255.0;
+    b_source := (src.b comme r32) / 255.0;
 
-    alpha := (src.a comme r32) / 255.0
+    alpha := (src.a comme r32) / 255.0;
 
-    r := (((1.0 - alpha) * r_dest + alpha * r_source) * 255.0) comme n8
-    v := (((1.0 - alpha) * v_dest + alpha * v_source) * 255.0) comme n8
-    b := (((1.0 - alpha) * b_dest + alpha * b_source) * 255.0) comme n8
-    a := 255 comme n8
+    r := (((1.0 - alpha) * r_dest + alpha * r_source) * 255.0) comme n8;
+    v := (((1.0 - alpha) * v_dest + alpha * v_source) * 255.0) comme n8;
+    b := (((1.0 - alpha) * b_dest + alpha * b_source) * 255.0) comme n8;
+    a := 255 comme n8;
 
-    mémoire(dst) = CouleurRVBAN8(r, v, b, a)
+    mémoire(dst) = CouleurRVBAN8(r, v, b, a);
 }
 
 fusionne_pixels_et_alpha :: fonc (src: CouleurRVBAN8, dst: *CouleurRVBAN8)
 {
     si src.a == 0 {
-        retourne
+        retourne;
     }
 
     si src.a == 255 {
-        mémoire(dst) = src
-        retourne
+        mémoire(dst) = src;
+        retourne;
     }
 
-    r_dest := (dst.r comme r32) / 255.0
-    v_dest := (dst.v comme r32) / 255.0
-    b_dest := (dst.b comme r32) / 255.0
-    a_dest := (dst.a comme r32) / 255.0
+    r_dest := (dst.r comme r32) / 255.0;
+    v_dest := (dst.v comme r32) / 255.0;
+    b_dest := (dst.b comme r32) / 255.0;
+    a_dest := (dst.a comme r32) / 255.0;
 
-    r_source := (src.r comme r32) / 255.0
-    v_source := (src.v comme r32) / 255.0
-    b_source := (src.b comme r32) / 255.0
-    a_source := (src.a comme r32) / 255.0
+    r_source := (src.r comme r32) / 255.0;
+    v_source := (src.v comme r32) / 255.0;
+    b_source := (src.b comme r32) / 255.0;
+    a_source := (src.a comme r32) / 255.0;
 
-    alpha := (src.a comme r32) / 255.0
+    alpha := (src.a comme r32) / 255.0;
 
-    r := (((1.0 - alpha) * r_dest + alpha * r_source) * 255.0) comme n8
-    v := (((1.0 - alpha) * v_dest + alpha * v_source) * 255.0) comme n8
-    b := (((1.0 - alpha) * b_dest + alpha * b_source) * 255.0) comme n8
-    a := (((1.0 - alpha) * a_dest + alpha * a_source) * 255.0) comme n8
+    r := (((1.0 - alpha) * r_dest + alpha * r_source) * 255.0) comme n8;
+    v := (((1.0 - alpha) * v_dest + alpha * v_source) * 255.0) comme n8;
+    b := (((1.0 - alpha) * b_dest + alpha * b_source) * 255.0) comme n8;
+    a := (((1.0 - alpha) * a_dest + alpha * a_source) * 255.0) comme n8;
 
-    mémoire(dst) = CouleurRVBAN8(r, v, b, a)
+    mémoire(dst) = CouleurRVBAN8(r, v, b, a);
 }
 
 #portée_export
@@ -164,50 +164,50 @@ dessine_ligne :: fonc (tampon_de_rendu: *TamponDeRendu, ligne: Ligne(z32), coule
 {
     si ligne.p0 == ligne.p1 {
         // À FAIRE : dessine point
-        retourne
+        retourne;
     }
 
-    x_min := ligne.p0.x
-    x_max := ligne.p1.x
-    y_min := ligne.p0.y
-    y_max := ligne.p1.y
+    x_min := ligne.p0.x;
+    x_max := ligne.p1.x;
+    y_min := ligne.p0.y;
+    y_max := ligne.p1.y;
 
-    restreint(*x_min, 0, tampon_de_rendu.rect.largeur - 1)
-    restreint(*x_max, 0, tampon_de_rendu.rect.largeur - 1)
-    restreint(*y_min, 0, tampon_de_rendu.rect.hauteur - 1)
-    restreint(*y_max, 0, tampon_de_rendu.rect.hauteur - 1)
+    restreint(*x_min, 0, tampon_de_rendu.rect.largeur - 1);
+    restreint(*x_max, 0, tampon_de_rendu.rect.largeur - 1);
+    restreint(*y_min, 0, tampon_de_rendu.rect.hauteur - 1);
+    restreint(*y_max, 0, tampon_de_rendu.rect.hauteur - 1);
 
     si x_min == x_max {
         /* Ligne(z32) verticale. */
         si y_min > y_max {
-            permute(y_min, y_max)
+            permute(y_min, y_max);
         }
 
-        dest := tampon_de_rendu.données.pointeur + y_min * tampon_de_rendu.rect.largeur + x_min
+        dest := tampon_de_rendu.données.pointeur + y_min * tampon_de_rendu.rect.largeur + x_min;
 
         tantque y_min < y_max {
-            fusionne_pixels(couleur, dest)
-            dest += tampon_de_rendu.rect.largeur
-            y_min += 1
+            fusionne_pixels(couleur, dest);
+            dest += tampon_de_rendu.rect.largeur;
+            y_min += 1;
         }
     }
     sinon si y_min == y_max {
         /* Ligne(z32) horizontale. */
         si x_min > x_max {
-            permute(x_min, x_max)
+            permute(x_min, x_max);
         }
 
-        dest := tampon_de_rendu.données.pointeur + y_min * tampon_de_rendu.rect.largeur + x_min
+        dest := tampon_de_rendu.données.pointeur + y_min * tampon_de_rendu.rect.largeur + x_min;
 
         tantque x_min < x_max {
-            fusionne_pixels(couleur, dest)
-            dest += 1
-            x_min += 1
+            fusionne_pixels(couleur, dest);
+            dest += 1;
+            x_min += 1;
         }
     }
     sinon {
         /* Diagonale. */
-        dessine_ligne_bresenham(tampon_de_rendu, x_min, y_min, x_max, y_max, couleur)
+        dessine_ligne_bresenham(tampon_de_rendu, x_min, y_min, x_max, y_max, couleur);
     }
 }
 
@@ -222,36 +222,36 @@ dessine_ligne_bresenham :: fonc (
     y2: z32,
     couleur: CouleurRVBAN8)
 {
-    dx := (x2 - x1) comme r32
-    dy := (y2 - y1) comme r32
-    enjambée: r32
+    dx := (x2 - x1) comme r32;
+    dy := (y2 - y1) comme r32;
+    enjambée: r32;
 
     si abs(dx) >= abs(dy) {
-        enjambée = abs(dx)
+        enjambée = abs(dx);
     }
     sinon {
-        enjambée = abs(dy)
+        enjambée = abs(dy);
     }
 
-    dx /= enjambée
-    dy /= enjambée
-    x := x1 comme r32
-    y := y1 comme r32
-    i := 0
-    enjambée_i := enjambée comme z32
+    dx /= enjambée;
+    dy /= enjambée;
+    x := x1 comme r32;
+    y := y1 comme r32;
+    i := 0;
+    enjambée_i := enjambée comme z32;
 
-    dest := tampon_de_rendu.données.pointeur
-    enjambée_dest := tampon_de_rendu.rect.largeur
+    dest := tampon_de_rendu.données.pointeur;
+    enjambée_dest := tampon_de_rendu.rect.largeur;
 
     tantque i < enjambée_i {
-        xi := x comme z32
-        yi := y comme z32
-        indice := xi + yi * enjambée_dest
-        fusionne_pixels(couleur, dest + indice)
+        xi := x comme z32;
+        yi := y comme z32;
+        indice := xi + yi * enjambée_dest;
+        fusionne_pixels(couleur, dest + indice);
 
-        x += dx
-        y += dy
-        i += 1
+        x += dx;
+        y += dy;
+        i += 1;
     }
 }
 
@@ -263,9 +263,9 @@ dessine_ligne_bresenham :: fonc (
 
 dessine_triangle :: fonc (tampon_de_rendu: *TamponDeRendu, triangle: Triangle(z32), couleur: CouleurRVBAN8)
 {
-    dessine_ligne(tampon_de_rendu, Ligne(z32)(triangle.p0, triangle.p1), couleur)
-    dessine_ligne(tampon_de_rendu, Ligne(z32)(triangle.p1, triangle.p2), couleur)
-    dessine_ligne(tampon_de_rendu, Ligne(z32)(triangle.p2, triangle.p0), couleur)
+    dessine_ligne(tampon_de_rendu, Ligne(z32)(triangle.p0, triangle.p1), couleur);
+    dessine_ligne(tampon_de_rendu, Ligne(z32)(triangle.p1, triangle.p2), couleur);
+    dessine_ligne(tampon_de_rendu, Ligne(z32)(triangle.p2, triangle.p0), couleur);
 }
 
 /** \} */
@@ -276,147 +276,147 @@ dessine_triangle :: fonc (tampon_de_rendu: *TamponDeRendu, triangle: Triangle(z3
 
 dessine_rectangle :: fonc (tampon_de_rendu: *TamponDeRendu, rect: RectanglePosDim(z32), couleur: CouleurRVBAN8)
 {
-    p0 := Point2D(z32)(rect.x, rect.y)
-    p1 := Point2D(z32)(rect.x + rect.largeur, rect.y)
-    p2 := Point2D(z32)(rect.x + rect.largeur, rect.y + rect.hauteur)
-    p3 := Point2D(z32)(rect.x, rect.y + rect.hauteur)
+    p0 := Point2D(z32)(rect.x, rect.y);
+    p1 := Point2D(z32)(rect.x + rect.largeur, rect.y);
+    p2 := Point2D(z32)(rect.x + rect.largeur, rect.y + rect.hauteur);
+    p3 := Point2D(z32)(rect.x, rect.y + rect.hauteur);
 
-    dessine_ligne(tampon_de_rendu, Ligne(z32)(p0, p1), couleur)
-    dessine_ligne(tampon_de_rendu, Ligne(z32)(p1, p2), couleur)
-    dessine_ligne(tampon_de_rendu, Ligne(z32)(p2, p3), couleur)
-    dessine_ligne(tampon_de_rendu, Ligne(z32)(p3, p0), couleur)
+    dessine_ligne(tampon_de_rendu, Ligne(z32)(p0, p1), couleur);
+    dessine_ligne(tampon_de_rendu, Ligne(z32)(p1, p2), couleur);
+    dessine_ligne(tampon_de_rendu, Ligne(z32)(p2, p3), couleur);
+    dessine_ligne(tampon_de_rendu, Ligne(z32)(p3, p0), couleur);
 }
 
 remplis_rectangle :: fonc (tampon_de_rendu: *TamponDeRendu, rect: RectanglePosDim(z32), couleur: CouleurRVBAN8)
 {
-    rect_sauf := donne_rect_sûr(tampon_de_rendu, rect)
+    rect_sauf := donne_rect_sûr(tampon_de_rendu, rect);
     si rect_sauf.largeur == 0 || rect_sauf.hauteur == 0 {
-        retourne
+        retourne;
     }
 
     si couleur.a == 0 {
-        retourne
+        retourne;
     }
 
     si couleur.a == 255 {
-        remplis_rectangle_couleur_opaque(tampon_de_rendu, rect_sauf, couleur)
-        retourne
+        remplis_rectangle_couleur_opaque(tampon_de_rendu, rect_sauf, couleur);
+        retourne;
     }
 
-    enjambée_dest := tampon_de_rendu.rect.largeur
-    ligne_dest := tampon_de_rendu.données.pointeur + rect_sauf.y * enjambée_dest + rect_sauf.x
+    enjambée_dest := tampon_de_rendu.rect.largeur;
+    ligne_dest := tampon_de_rendu.données.pointeur + rect_sauf.y * enjambée_dest + rect_sauf.x;
 
     pour _ dans rect_sauf.y ... rect_sauf.y + rect_sauf.hauteur - 1 {
-        pixel_dest := ligne_dest
+        pixel_dest := ligne_dest;
 
         pour _ dans rect_sauf.x ... rect_sauf.x + rect_sauf.largeur - 1 {
-            fusionne_pixels(couleur, pixel_dest)
-            pixel_dest += 1
+            fusionne_pixels(couleur, pixel_dest);
+            pixel_dest += 1;
         }
 
-        ligne_dest += enjambée_dest
+        ligne_dest += enjambée_dest;
     }
 }
 
 remplis_rectangle_couleur_opaque :: fonc (tampon_de_rendu: *TamponDeRendu, rect: RectanglePosDim(z32), couleur: CouleurRVBAN8)
 {
-    enjambée_dest := tampon_de_rendu.rect.largeur
-    ligne_dest := tampon_de_rendu.données.pointeur + rect.y * enjambée_dest + rect.x
+    enjambée_dest := tampon_de_rendu.rect.largeur;
+    ligne_dest := tampon_de_rendu.données.pointeur + rect.y * enjambée_dest + rect.x;
 
     pour _ dans rect.y ... rect.y + rect.hauteur - 1 {
-        pixel_dest := ligne_dest
+        pixel_dest := ligne_dest;
 
-        taille := rect.largeur
+        taille := rect.largeur;
 
         /* Déroulage manuel. */
         pour taille / 8 {
-            pixel_dest[0] = couleur
-            pixel_dest[1] = couleur
-            pixel_dest[2] = couleur
-            pixel_dest[3] = couleur
-            pixel_dest[4] = couleur
-            pixel_dest[5] = couleur
-            pixel_dest[6] = couleur
-            pixel_dest[7] = couleur
+            pixel_dest[0] = couleur;
+            pixel_dest[1] = couleur;
+            pixel_dest[2] = couleur;
+            pixel_dest[3] = couleur;
+            pixel_dest[4] = couleur;
+            pixel_dest[5] = couleur;
+            pixel_dest[6] = couleur;
+            pixel_dest[7] = couleur;
 
-            pixel_dest += 8
+            pixel_dest += 8;
         }
 
         pour taille % 8 {
-            mémoire(pixel_dest) = couleur
-            pixel_dest += 1
+            mémoire(pixel_dest) = couleur;
+            pixel_dest += 1;
         }
 
-        ligne_dest += enjambée_dest
+        ligne_dest += enjambée_dest;
     }
 }
 
 remplis_rectangle_arrondi :: fonc (tampon_de_rendu: *TamponDeRendu, rect: RectanglePosDim(z32), rayons: RayonsRectangle, couleur: CouleurRVBAN8)
 {
     si couleur.a == 0 {
-        retourne
+        retourne;
     }
 
     si rayons.haut_gauche == 0.0 && rayons.bas_gauche == 0.0 && rayons.haut_droite == 0.0 && rayons.bas_droite == 0.0 {
-        remplis_rectangle(tampon_de_rendu, rect, couleur)
-        retourne
+        remplis_rectangle(tampon_de_rendu, rect, couleur);
+        retourne;
     }
 
     /* À FAIRE : implémente proprement et optimise */
-    rayons_z32 := [rayons.haut_gauche comme z32, rayons.haut_droite comme z32, rayons.bas_droite comme z32, rayons.bas_gauche comme z32]
+    rayons_z32 := [rayons.haut_gauche comme z32, rayons.haut_droite comme z32, rayons.bas_droite comme z32, rayons.bas_gauche comme z32];
 
-    cercle: Cercle(z32)
+    cercle: Cercle(z32);
     /* Bas gauche. */
-    cercle.centre_x = rect.x + rayons_z32[3]
-    cercle.centre_y = rect.y + rayons_z32[3]
-    cercle.rayon = rayons_z32[3]
+    cercle.centre_x = rect.x + rayons_z32[3];
+    cercle.centre_y = rect.y + rayons_z32[3];
+    cercle.rayon = rayons_z32[3];
 
-    remplis_cercle(tampon_de_rendu, cercle, couleur)
+    remplis_cercle(tampon_de_rendu, cercle, couleur);
 
     /* Bas droit. */
-    cercle.centre_x = rect.x + rect.largeur - rayons_z32[2]
-    cercle.centre_y = rect.y + rayons_z32[2]
-    cercle.rayon = rayons_z32[2]
+    cercle.centre_x = rect.x + rect.largeur - rayons_z32[2];
+    cercle.centre_y = rect.y + rayons_z32[2];
+    cercle.rayon = rayons_z32[2];
 
-    remplis_cercle(tampon_de_rendu, cercle, couleur)
+    remplis_cercle(tampon_de_rendu, cercle, couleur);
 
     /* Haut gauche. */
-    cercle.centre_x = rect.x + rayons_z32[0]
-    cercle.centre_y = rect.y + rect.hauteur - rayons_z32[0]
-    cercle.rayon = rayons_z32[0]
+    cercle.centre_x = rect.x + rayons_z32[0];
+    cercle.centre_y = rect.y + rect.hauteur - rayons_z32[0];
+    cercle.rayon = rayons_z32[0];
 
-    remplis_cercle(tampon_de_rendu, cercle, couleur)
+    remplis_cercle(tampon_de_rendu, cercle, couleur);
 
     /* Haut droit. */
-    cercle.centre_x = rect.x + rect.largeur -  rayons_z32[1]
-    cercle.centre_y = rect.y + rect.hauteur - rayons_z32[1]
-    cercle.rayon = rayons_z32[1]
+    cercle.centre_x = rect.x + rect.largeur -  rayons_z32[1];
+    cercle.centre_y = rect.y + rect.hauteur - rayons_z32[1];
+    cercle.rayon = rayons_z32[1];
 
-    remplis_cercle(tampon_de_rendu, cercle, couleur)
+    remplis_cercle(tampon_de_rendu, cercle, couleur);
 
-    rectangle_central: RectanglePosDim(z32)
-    rectangle_central.x = rect.x
-    rectangle_central.y = rect.y + rayons_z32[3]
-    rectangle_central.largeur = rect.largeur
-    rectangle_central.hauteur = rect.hauteur - rayons_z32[3] - rayons_z32[0]
+    rectangle_central: RectanglePosDim(z32);
+    rectangle_central.x = rect.x;
+    rectangle_central.y = rect.y + rayons_z32[3];
+    rectangle_central.largeur = rect.largeur;
+    rectangle_central.hauteur = rect.hauteur - rayons_z32[3] - rayons_z32[0];
 
-    remplis_rectangle(tampon_de_rendu, rectangle_central, couleur)
+    remplis_rectangle(tampon_de_rendu, rectangle_central, couleur);
 
-    rectangle_haut: RectanglePosDim(z32)
-    rectangle_haut.x = rect.x + rayons_z32[0]
-    rectangle_haut.y = rect.y + rect.hauteur - rayons_z32[3]
-    rectangle_haut.largeur = rect.largeur - rayons_z32[3] - rayons_z32[0]
-    rectangle_haut.hauteur = rayons_z32[3]
+    rectangle_haut: RectanglePosDim(z32);
+    rectangle_haut.x = rect.x + rayons_z32[0];
+    rectangle_haut.y = rect.y + rect.hauteur - rayons_z32[3];
+    rectangle_haut.largeur = rect.largeur - rayons_z32[3] - rayons_z32[0];
+    rectangle_haut.hauteur = rayons_z32[3];
 
-    remplis_rectangle(tampon_de_rendu, rectangle_haut, couleur)
+    remplis_rectangle(tampon_de_rendu, rectangle_haut, couleur);
 
-    rectangle_bas: RectanglePosDim(z32)
-    rectangle_bas.x = rect.x + rayons_z32[0]
-    rectangle_bas.y = rect.y
-    rectangle_bas.largeur = rect.largeur - rayons_z32[3] - rayons_z32[0]
-    rectangle_bas.hauteur = rayons_z32[3]
+    rectangle_bas: RectanglePosDim(z32);
+    rectangle_bas.x = rect.x + rayons_z32[0];
+    rectangle_bas.y = rect.y;
+    rectangle_bas.largeur = rect.largeur - rayons_z32[3] - rayons_z32[0];
+    rectangle_bas.hauteur = rayons_z32[3];
 
-    remplis_rectangle(tampon_de_rendu, rectangle_bas, couleur)
+    remplis_rectangle(tampon_de_rendu, rectangle_bas, couleur);
 }
 
 /** \} */
@@ -427,42 +427,42 @@ remplis_rectangle_arrondi :: fonc (tampon_de_rendu: *TamponDeRendu, rect: Rectan
 
 dessine_cercle :: fonc (tampon_de_rendu: *TamponDeRendu, cercle: Cercle(z32), couleur: CouleurRVBAN8)
 {
-    cx := cercle.centre_x
-    cy := cercle.centre_y
-    r := cercle.rayon
+    cx := cercle.centre_x;
+    cy := cercle.centre_y;
+    r := cercle.rayon;
 
     si r == 0 {
-        retourne
+        retourne;
     }
 
-    rect: RectanglePosDim(z32)
-    rect.x = cx - r
-    rect.y = cy - r
-    rect.largeur = r + r
-    rect.hauteur = r + r
+    rect: RectanglePosDim(z32);
+    rect.x = cx - r;
+    rect.y = cy - r;
+    rect.largeur = r + r;
+    rect.hauteur = r + r;
 
-    rect_sauf := donne_rect_sûr(tampon_de_rendu, rect)
+    rect_sauf := donne_rect_sûr(tampon_de_rendu, rect);
     si rect_sauf.largeur == 0 || rect_sauf.hauteur == 0 {
-        retourne
+        retourne;
     }
 
     // À FAIRE : dessin partiel
     si rect_sauf.x != rect.x || rect_sauf.y != rect.y || rect_sauf.largeur != rect.largeur || rect_sauf.hauteur != rect.hauteur {
-        retourne
+        retourne;
     }
 
-    pointeur_source := tampon_de_rendu.données.pointeur
-    largeur_source := tampon_de_rendu.rect.largeur
-    index_centre_cercle := cy * largeur_source + cx
+    pointeur_source := tampon_de_rendu.données.pointeur;
+    largeur_source := tampon_de_rendu.rect.largeur;
+    index_centre_cercle := cy * largeur_source + cx;
 
     /* Boucle pour dessiner le cercle. */
-    r2 := r + r
+    r2 := r + r;
 
-    x := r
-    y := 0
-    dx := r2 + r2 - 4
-    dy := -2
-    d := r2 - 1
+    x := r;
+    y := 0;
+    dx := r2 + r2 - 4;
+    dy := -2;
+    d := r2 - 1;
 
     tantque y <= x {
         /* Dessine les octants du cercle dans cet ordre :
@@ -471,18 +471,18 @@ dessine_cercle :: fonc (tampon_de_rendu: *TamponDeRendu, cercle: Cercle(z32), co
          *  1     2
          *    5 6
          */
-        pointeur_source[index_centre_cercle - y * largeur_source - x] = couleur
-        pointeur_source[index_centre_cercle - y * largeur_source + x] = couleur
-        pointeur_source[index_centre_cercle + y * largeur_source - x] = couleur
-        pointeur_source[index_centre_cercle + y * largeur_source + x] = couleur
-        pointeur_source[index_centre_cercle - x * largeur_source - y] = couleur
-        pointeur_source[index_centre_cercle - x * largeur_source + y] = couleur
-        pointeur_source[index_centre_cercle + x * largeur_source - y] = couleur
-        pointeur_source[index_centre_cercle + x * largeur_source + y] = couleur
+        pointeur_source[index_centre_cercle - y * largeur_source - x] = couleur;
+        pointeur_source[index_centre_cercle - y * largeur_source + x] = couleur;
+        pointeur_source[index_centre_cercle + y * largeur_source - x] = couleur;
+        pointeur_source[index_centre_cercle + y * largeur_source + x] = couleur;
+        pointeur_source[index_centre_cercle - x * largeur_source - y] = couleur;
+        pointeur_source[index_centre_cercle - x * largeur_source + y] = couleur;
+        pointeur_source[index_centre_cercle + x * largeur_source - y] = couleur;
+        pointeur_source[index_centre_cercle + x * largeur_source + y] = couleur;
 
-        d += dy
-        dy -= 4
-        y += 1
+        d += dy;
+        dy -= 4;
+        y += 1;
 
         /* Version sans branche de :
          * si d < 0 {
@@ -491,70 +491,70 @@ dessine_cercle :: fonc (tampon_de_rendu: *TamponDeRendu, cercle: Cercle(z32), co
          *     x -= 1
          * }
          */
-        masque := (d >> 31)
-        d += dx & masque
-        dx -= 4 & masque
-        x += masque
+        masque := (d >> 31);
+        d += dx & masque;
+        dx -= 4 & masque;
+        x += masque;
     }
 }
 
 remplis_cercle :: fonc (tampon_de_rendu: *TamponDeRendu, cercle: Cercle(z32), couleur: CouleurRVBAN8)
 {
-    cx := cercle.centre_x
-    cy := cercle.centre_y
-    r := cercle.rayon
+    cx := cercle.centre_x;
+    cy := cercle.centre_y;
+    r := cercle.rayon;
 
     si r == 0 {
-        retourne
+        retourne;
     }
 
-    rect: RectanglePosDim(z32)
-    rect.x = cx - r
-    rect.y = cy - r
-    rect.largeur = r + r
-    rect.hauteur = r + r
+    rect: RectanglePosDim(z32);
+    rect.x = cx - r;
+    rect.y = cy - r;
+    rect.largeur = r + r;
+    rect.hauteur = r + r;
 
-    rect_sauf := donne_rect_sûr(tampon_de_rendu, rect)
+    rect_sauf := donne_rect_sûr(tampon_de_rendu, rect);
     si rect_sauf.largeur == 0 || rect_sauf.hauteur == 0 {
-        retourne
+        retourne;
     }
 
     // À FAIRE : dessin partiel
     si rect_sauf.x != rect.x || rect_sauf.y != rect.y || rect_sauf.largeur != rect.largeur || rect_sauf.hauteur != rect.hauteur {
-        retourne
+        retourne;
     }
 
-    pointeur_source := tampon_de_rendu.données.pointeur
-    largeur_source := tampon_de_rendu.rect.largeur
-    index_centre_cercle := cy * largeur_source + cx
+    pointeur_source := tampon_de_rendu.données.pointeur;
+    largeur_source := tampon_de_rendu.rect.largeur;
+    index_centre_cercle := cy * largeur_source + cx;
 
     /* Boucle pour dessiner le cercle. */
-    r2 := r + r
+    r2 := r + r;
 
-    x := r
-    y := 0
-    dx := r2 + r2 - 4
-    dy := -2
-    d := r2 - 1
+    x := r;
+    y := 0;
+    dx := r2 + r2 - 4;
+    dy := -2;
+    d := r2 - 1;
 
     tantque y <= x {
         /* À FAIRE : optimise */
         pour x {
-            enjambée_x := it * largeur_source
-            enjambée_y := y * largeur_source
-            pointeur_source[index_centre_cercle - enjambée_y - it] = couleur
-            pointeur_source[index_centre_cercle - enjambée_y + it] = couleur
-            pointeur_source[index_centre_cercle + enjambée_y - it] = couleur
-            pointeur_source[index_centre_cercle + enjambée_y + it] = couleur
-            pointeur_source[index_centre_cercle - enjambée_x - y] = couleur
-            pointeur_source[index_centre_cercle - enjambée_x + y] = couleur
-            pointeur_source[index_centre_cercle + enjambée_x - y] = couleur
-            pointeur_source[index_centre_cercle + enjambée_x + y] = couleur
+            enjambée_x := it * largeur_source;
+            enjambée_y := y * largeur_source;
+            pointeur_source[index_centre_cercle - enjambée_y - it] = couleur;
+            pointeur_source[index_centre_cercle - enjambée_y + it] = couleur;
+            pointeur_source[index_centre_cercle + enjambée_y - it] = couleur;
+            pointeur_source[index_centre_cercle + enjambée_y + it] = couleur;
+            pointeur_source[index_centre_cercle - enjambée_x - y] = couleur;
+            pointeur_source[index_centre_cercle - enjambée_x + y] = couleur;
+            pointeur_source[index_centre_cercle + enjambée_x - y] = couleur;
+            pointeur_source[index_centre_cercle + enjambée_x + y] = couleur;
         }
 
-        d += dy
-        dy -= 4
-        y += 1
+        d += dy;
+        dy -= 4;
+        y += 1;
 
         /* Version sans branche de :
          * si d < 0 {
@@ -563,10 +563,10 @@ remplis_cercle :: fonc (tampon_de_rendu: *TamponDeRendu, cercle: Cercle(z32), co
          *     x -= 1
          * }
          */
-        masque := (d >> 31)
-        d += dx & masque
-        dx -= 4 & masque
-        x += masque
+        masque := (d >> 31);
+        d += dx & masque;
+        dx -= 4 & masque;
+        x += masque;
     }
 }
 
@@ -579,82 +579,82 @@ remplis_cercle :: fonc (tampon_de_rendu: *TamponDeRendu, cercle: Cercle(z32), co
 dessine_image :: fonc (tampon_de_rendu: *TamponDeRendu, image: TamponImageGrise8Bit, rect: RectanglePosDim(z32))
 {
     si image.largeur != rect.largeur || image.hauteur != rect.hauteur {
-        imprime("[Dessin] dessin de TamponImageRVBA8Bit à l'échelle non supporté\n")
-        retourne
+        imprime("[Dessin] dessin de TamponImageRVBA8Bit à l'échelle non supporté\n");
+        retourne;
     }
 
-    rect_sauf := donne_rect_sûr(tampon_de_rendu, rect)
+    rect_sauf := donne_rect_sûr(tampon_de_rendu, rect);
     si rect_sauf.largeur == 0 || rect_sauf.hauteur == 0 {
-        retourne
+        retourne;
     }
 
-    décalage_x := rect_sauf.x - rect.x
-    décalage_y := rect_sauf.y - rect.y
+    décalage_x := rect_sauf.x - rect.x;
+    décalage_y := rect_sauf.y - rect.y;
 
-    enjambée_dest := tampon_de_rendu.rect.largeur
-    ligne_dest := tampon_de_rendu.données.pointeur + rect_sauf.y * enjambée_dest + rect_sauf.x
+    enjambée_dest := tampon_de_rendu.rect.largeur;
+    ligne_dest := tampon_de_rendu.données.pointeur + rect_sauf.y * enjambée_dest + rect_sauf.x;
 
     /* Dessine l'image du bas vers le haut. */
-    enjambée_source := image.largeur
-    ligne_source := image.données + (image.hauteur - décalage_y - 1) * enjambée_source + décalage_x
+    enjambée_source := image.largeur;
+    ligne_source := image.données + (image.hauteur - décalage_y - 1) * enjambée_source + décalage_x;
 
     pour _ dans rect_sauf.y ... rect_sauf.y + rect_sauf.hauteur - 1 {
-        pixel_dest := ligne_dest
-        pixel_source := ligne_source
+        pixel_dest := ligne_dest;
+        pixel_source := ligne_source;
 
         pour _ dans rect_sauf.x ... rect_sauf.x + rect_sauf.largeur - 1 {
-            valeur := mémoire(pixel_source)
+            valeur := mémoire(pixel_source);
 
             si valeur != 0 {
-                mémoire(pixel_dest) = CouleurRVBAN8(valeur, valeur, valeur, 255)
+                mémoire(pixel_dest) = CouleurRVBAN8(valeur, valeur, valeur, 255);
             }
 
-            pixel_source += 1
-            pixel_dest += 1
+            pixel_source += 1;
+            pixel_dest += 1;
         }
 
-        ligne_source -= enjambée_source
-        ligne_dest += enjambée_dest
+        ligne_source -= enjambée_source;
+        ligne_dest += enjambée_dest;
     }
 }
 
 dessine_image :: fonc (tampon_de_rendu: *TamponDeRendu, image: TamponImageRVBA8Bit, rect: RectanglePosDim(z32))
 {
     si image.largeur != rect.largeur || image.hauteur != rect.hauteur {
-        imprime("[Dessin] dessin de TamponImageRVBA8Bit à l'échelle non supporté\n")
-        retourne
+        imprime("[Dessin] dessin de TamponImageRVBA8Bit à l'échelle non supporté\n");
+        retourne;
     }
 
-    rect_sauf := donne_rect_sûr(tampon_de_rendu, rect)
+    rect_sauf := donne_rect_sûr(tampon_de_rendu, rect);
     si rect_sauf.largeur == 0 || rect_sauf.hauteur == 0 {
-        retourne
+        retourne;
     }
 
-    décalage_x := rect_sauf.x - rect.x
-    décalage_y := rect_sauf.y - rect.y
+    décalage_x := rect_sauf.x - rect.x;
+    décalage_y := rect_sauf.y - rect.y;
 
-    enjambée_dest := tampon_de_rendu.rect.largeur
-    ligne_dest := tampon_de_rendu.données.pointeur + rect_sauf.y * enjambée_dest + rect_sauf.x
+    enjambée_dest := tampon_de_rendu.rect.largeur;
+    ligne_dest := tampon_de_rendu.données.pointeur + rect_sauf.y * enjambée_dest + rect_sauf.x;
 
     /* Dessine l'image du bas vers le haut. */
-    enjambée_source := image.largeur
-    ligne_source := image.données + (image.hauteur - décalage_y - 1) * enjambée_source + décalage_x
+    enjambée_source := image.largeur;
+    ligne_source := image.données + (image.hauteur - décalage_y - 1) * enjambée_source + décalage_x;
 
     pour _ dans rect_sauf.y ... rect_sauf.y + rect_sauf.hauteur - 1 {
-        pixel_dest := ligne_dest
-        pixel_source := ligne_source
+        pixel_dest := ligne_dest;
+        pixel_source := ligne_source;
 
         pour _ dans rect_sauf.x ... rect_sauf.x + rect_sauf.largeur - 1 {
-            pixel := mémoire(pixel_source)
+            pixel := mémoire(pixel_source);
 
-            fusionne_pixels(pixel, pixel_dest)
+            fusionne_pixels(pixel, pixel_dest);
 
-            pixel_source += 1
-            pixel_dest += 1
+            pixel_source += 1;
+            pixel_dest += 1;
         }
 
-        ligne_source -= enjambée_source
-        ligne_dest += enjambée_dest
+        ligne_source -= enjambée_source;
+        ligne_dest += enjambée_dest;
     }
 }
 
@@ -662,42 +662,42 @@ dessine_image :: fonc (tampon_de_rendu: *TamponDeRendu, image: ImageIO, rect: Re
 {
     si image.nombre_composants == 4 {
         si image.largeur == rect.largeur && image.hauteur == rect.hauteur {
-            dessine_image_rvba(tampon_de_rendu, image, rect)
-            retourne
+            dessine_image_rvba(tampon_de_rendu, image, rect);
+            retourne;
         }
 
-        dessine_image_rvba_à_l_échelle(tampon_de_rendu, image, rect)
-        retourne
+        dessine_image_rvba_à_l_échelle(tampon_de_rendu, image, rect);
+        retourne;
     }
 
     si image.nombre_composants != 3 {
-        imprime("[Dessin] image non supportée (composants : %)\n", image.nombre_composants)
-        retourne
+        imprime("[Dessin] image non supportée (composants : %)\n", image.nombre_composants);
+        retourne;
     }
 
     si image.largeur == rect.largeur && image.hauteur == rect.hauteur {
-        dessine_image_rvb(tampon_de_rendu, image, rect)
-        retourne
+        dessine_image_rvb(tampon_de_rendu, image, rect);
+        retourne;
     }
 
-    dessine_image_rvb_à_l_échelle(tampon_de_rendu, image, rect)
+    dessine_image_rvb_à_l_échelle(tampon_de_rendu, image, rect);
 }
 
 dessine_image :: fonc (tampon_de_rendu: *TamponDeRendu, image: *NouvelleImage, rect: RectanglePosDim(z32))
 {
     discr image.desc.format {
         Gris_8 {
-            tampon: TamponImageGrise8Bit
-            tampon.données = image.données comme *n8
-            tampon.largeur = image.desc.largeur comme z32
-            tampon.hauteur = image.desc.hauteur comme z32
-            dessine_image(tampon_de_rendu, tampon, rect)
+            tampon: TamponImageGrise8Bit;
+            tampon.données = image.données comme *n8;
+            tampon.largeur = image.desc.largeur comme z32;
+            tampon.hauteur = image.desc.hauteur comme z32;
+            dessine_image(tampon_de_rendu, tampon, rect);
         }
         Gris_32 {
-            imprime("[%] format non supporté : %\n", #nom_de_cette_fonction, image.desc.format)
+            imprime("[%] format non supporté : %\n", #nom_de_cette_fonction, image.desc.format);
         }
         RVB_8 {
-            dessine_image_rvb_8(tampon_de_rendu, image, rect)
+            dessine_image_rvb_8(tampon_de_rendu, image, rect);
         }
         RVB_32 {
             // À FAIRE
@@ -709,11 +709,11 @@ dessine_image :: fonc (tampon_de_rendu: *TamponDeRendu, image: *NouvelleImage, r
             // dessine_image(tampon_de_rendu, image_io, rect)
         }
         RVBA_8 {
-            tampon: TamponImageRVBA8Bit
-            tampon.données = image.données comme *CouleurRVBAN8
-            tampon.largeur = image.desc.largeur comme z32
-            tampon.hauteur = image.desc.hauteur comme z32
-            dessine_image(tampon_de_rendu, tampon, rect)
+            tampon: TamponImageRVBA8Bit;
+            tampon.données = image.données comme *CouleurRVBAN8;
+            tampon.largeur = image.desc.largeur comme z32;
+            tampon.hauteur = image.desc.hauteur comme z32;
+            dessine_image(tampon_de_rendu, tampon, rect);
         }
         RVBA_32 {
             // À FAIRE
@@ -731,247 +731,247 @@ dessine_image :: fonc (tampon_de_rendu: *TamponDeRendu, image: *NouvelleImage, r
 
 dessine_image_rvb_8 :: fonc (tampon_de_rendu: *TamponDeRendu, image: *NouvelleImage, rect: RectanglePosDim(z32))
 {
-    rect_sauf := donne_rect_sûr(tampon_de_rendu, rect)
+    rect_sauf := donne_rect_sûr(tampon_de_rendu, rect);
     si rect_sauf.largeur == 0 || rect_sauf.hauteur == 0 {
-        retourne
+        retourne;
     }
 
-    ratio_largeur := image.desc.largeur comme r32 / rect.largeur comme r32
-    ratio_hauteur := image.desc.hauteur comme r32 / rect.hauteur comme r32
+    ratio_largeur := image.desc.largeur comme r32 / rect.largeur comme r32;
+    ratio_hauteur := image.desc.hauteur comme r32 / rect.hauteur comme r32;
 
-    dest := tampon_de_rendu.données.pointeur
-    enjambée_dest := tampon_de_rendu.rect.largeur
+    dest := tampon_de_rendu.données.pointeur;
+    enjambée_dest := tampon_de_rendu.rect.largeur;
 
-    début_dest := dest
-    fin_dest := dest + tampon_de_rendu.données.taille
+    début_dest := dest;
+    fin_dest := dest + tampon_de_rendu.données.taille;
 
-    source := image.données comme *n8
-    enjambée_source := image.desc.largeur comme z32
+    source := image.données comme *n8;
+    enjambée_source := image.desc.largeur comme z32;
 
-    début_source := source
-    fin_source := début_source + donne_taille_données(*image.desc)
+    début_source := source;
+    fin_source := début_source + donne_taille_données(*image.desc);
 
-    ligne_source := source
-    ligne_dest := dest + (rect_sauf.hauteur + rect_sauf.y - 1) * enjambée_dest + rect_sauf.x
+    ligne_source := source;
+    ligne_dest := dest + (rect_sauf.hauteur + rect_sauf.y - 1) * enjambée_dest + rect_sauf.x;
 
-    y := 0.0
+    y := 0.0;
 
     pour _ dans rect_sauf.y ... rect_sauf.y + rect_sauf.hauteur - 1 {
-        pixel_dest := ligne_dest
-        pixel_source := ligne_source
+        pixel_dest := ligne_dest;
+        pixel_source := ligne_source;
 
-        x := 0.0
-        enjambée_y := y comme z32 * enjambée_source
+        x := 0.0;
+        enjambée_y := y comme z32 * enjambée_source;
 
         pour _ dans rect_sauf.x ... rect_sauf.x + rect_sauf.largeur - 1 {
-            indice := x comme z32 + enjambée_y
+            indice := x comme z32 + enjambée_y;
 
-            assert(début_dest <= pixel_dest < fin_dest)
-            assert(début_source <= (pixel_source + indice * 3) < fin_source)
+            assert(début_dest <= pixel_dest < fin_dest);
+            assert(début_source <= (pixel_source + indice * 3) < fin_source);
 
-            copie_pixel_rvb_8(pixel_source + indice * 3, pixel_dest)
+            copie_pixel_rvb_8(pixel_source + indice * 3, pixel_dest);
 
-            pixel_dest += 1
-            x += ratio_largeur
+            pixel_dest += 1;
+            x += ratio_largeur;
         }
 
-        ligne_dest -= enjambée_dest
-        y += ratio_hauteur
+        ligne_dest -= enjambée_dest;
+        y += ratio_hauteur;
     }
 }
 
 copie_pixel_rvb_8 :: fonc (pixel_source: *n8, pixel_dest: *CouleurRVBAN8)
 {
-    pixel_dest.r = pixel_source[0]
-    pixel_dest.v = pixel_source[1]
-    pixel_dest.b = pixel_source[2]
+    pixel_dest.r = pixel_source[0];
+    pixel_dest.v = pixel_source[1];
+    pixel_dest.b = pixel_source[2];
 }
 
 dessine_image_rvba :: fonc (tampon_de_rendu: *TamponDeRendu, image: ImageIO, rect: RectanglePosDim(z32))
 {
-    rect_sauf := donne_rect_sûr(tampon_de_rendu, rect)
+    rect_sauf := donne_rect_sûr(tampon_de_rendu, rect);
     si rect_sauf.largeur == 0 || rect_sauf.hauteur == 0 {
-        retourne
+        retourne;
     }
 
-    décalage_x := rect_sauf.x - rect.x
-    décalage_y := rect_sauf.y - rect.y
+    décalage_x := rect_sauf.x - rect.x;
+    décalage_y := rect_sauf.y - rect.y;
 
-    dest := tampon_de_rendu.données.pointeur
-    enjambée_dest := tampon_de_rendu.rect.largeur
+    dest := tampon_de_rendu.données.pointeur;
+    enjambée_dest := tampon_de_rendu.rect.largeur;
 
-    source := image.donnees
-    enjambée_source := image.largeur * image.nombre_composants
+    source := image.donnees;
+    enjambée_source := image.largeur * image.nombre_composants;
 
-    ligne_source := source + (image.hauteur - décalage_y - 1) * enjambée_source + décalage_x * image.nombre_composants
+    ligne_source := source + (image.hauteur - décalage_y - 1) * enjambée_source + décalage_x * image.nombre_composants;
 
-    copie_données_image_rvba(ligne_source, enjambée_source, 4, dest + rect_sauf.y * enjambée_dest + rect_sauf.x, enjambée_dest, rect_sauf)
+    copie_données_image_rvba(ligne_source, enjambée_source, 4, dest + rect_sauf.y * enjambée_dest + rect_sauf.x, enjambée_dest, rect_sauf);
 }
 
 dessine_image_rvba_à_l_échelle :: fonc (tampon_de_rendu: *TamponDeRendu, image: ImageIO, rect: RectanglePosDim(z32))
 {
-    rect_sauf := donne_rect_sûr(tampon_de_rendu, rect)
+    rect_sauf := donne_rect_sûr(tampon_de_rendu, rect);
     si rect_sauf.largeur == 0 || rect_sauf.hauteur == 0 {
-        retourne
+        retourne;
     }
 
-    décalage_x := rect_sauf.x - rect.x
-    décalage_y := rect_sauf.y - rect.y
+    décalage_x := rect_sauf.x - rect.x;
+    décalage_y := rect_sauf.y - rect.y;
 
-    ratio_largeur := image.largeur comme r32 / rect.largeur comme r32
-    ratio_hauteur := image.hauteur comme r32 / rect.hauteur comme r32
+    ratio_largeur := image.largeur comme r32 / rect.largeur comme r32;
+    ratio_hauteur := image.hauteur comme r32 / rect.hauteur comme r32;
 
-    dest := tampon_de_rendu.données.pointeur
-    enjambée_dest := tampon_de_rendu.rect.largeur
+    dest := tampon_de_rendu.données.pointeur;
+    enjambée_dest := tampon_de_rendu.rect.largeur;
 
-    source := image.donnees
-    enjambée_source := image.largeur * image.nombre_composants
+    source := image.donnees;
+    enjambée_source := image.largeur * image.nombre_composants;
 
-    ligne_source := source + (image.hauteur - décalage_y - 1) * enjambée_source + décalage_x * image.nombre_composants
+    ligne_source := source + (image.hauteur - décalage_y - 1) * enjambée_source + décalage_x * image.nombre_composants;
 
-    copie_données_image_rvba(ligne_source, enjambée_source * ratio_hauteur comme z32, 4 * ratio_largeur comme z32, dest + rect_sauf.y * enjambée_dest + rect_sauf.x, enjambée_dest, rect_sauf)
+    copie_données_image_rvba(ligne_source, enjambée_source * ratio_hauteur comme z32, 4 * ratio_largeur comme z32, dest + rect_sauf.y * enjambée_dest + rect_sauf.x, enjambée_dest, rect_sauf);
 }
 
 dessine_image_rvb :: fonc (tampon_de_rendu: *TamponDeRendu, image: ImageIO, rect: RectanglePosDim(z32))
 {
-    rect_sauf := donne_rect_sûr(tampon_de_rendu, rect)
+    rect_sauf := donne_rect_sûr(tampon_de_rendu, rect);
     si rect_sauf.largeur == 0 || rect_sauf.hauteur == 0 {
-        retourne
+        retourne;
     }
 
-    décalage_x := rect_sauf.x - rect.x
-    décalage_y := rect_sauf.y - rect.y
+    décalage_x := rect_sauf.x - rect.x;
+    décalage_y := rect_sauf.y - rect.y;
 
-    dest := tampon_de_rendu.données.pointeur
-    enjambée_dest := tampon_de_rendu.rect.largeur
+    dest := tampon_de_rendu.données.pointeur;
+    enjambée_dest := tampon_de_rendu.rect.largeur;
 
-    source := image.donnees
-    enjambée_source := image.largeur * image.nombre_composants
+    source := image.donnees;
+    enjambée_source := image.largeur * image.nombre_composants;
 
-    ligne_source := source + (image.hauteur - décalage_y - 1) * enjambée_source + décalage_x * image.nombre_composants
+    ligne_source := source + (image.hauteur - décalage_y - 1) * enjambée_source + décalage_x * image.nombre_composants;
 
-    copie_données_image_rvb(ligne_source, enjambée_source, 3, dest + rect_sauf.y * enjambée_dest + rect_sauf.x, enjambée_dest, rect_sauf)
+    copie_données_image_rvb(ligne_source, enjambée_source, 3, dest + rect_sauf.y * enjambée_dest + rect_sauf.x, enjambée_dest, rect_sauf);
 }
 
 dessine_image_rvb_à_l_échelle :: fonc (tampon_de_rendu: *TamponDeRendu, image: ImageIO, rect: RectanglePosDim(z32))
 {
-    rect_sauf := donne_rect_sûr(tampon_de_rendu, rect)
+    rect_sauf := donne_rect_sûr(tampon_de_rendu, rect);
     si rect_sauf.largeur == 0 || rect_sauf.hauteur == 0 {
-        retourne
+        retourne;
     }
 
-    ratio_largeur := image.largeur comme r32 / rect.largeur comme r32
-    ratio_hauteur := image.hauteur comme r32 / rect.hauteur comme r32
+    ratio_largeur := image.largeur comme r32 / rect.largeur comme r32;
+    ratio_hauteur := image.hauteur comme r32 / rect.hauteur comme r32;
 
-    dest := tampon_de_rendu.données.pointeur
-    enjambée_dest := tampon_de_rendu.rect.largeur
+    dest := tampon_de_rendu.données.pointeur;
+    enjambée_dest := tampon_de_rendu.rect.largeur;
 
-    source := image.donnees
-    enjambée_source := image.largeur
+    source := image.donnees;
+    enjambée_source := image.largeur;
 
-    copie_données_image_rvb(source, enjambée_source, ratio_largeur, ratio_hauteur, dest + (rect_sauf.hauteur - rect_sauf.y - 1) * enjambée_dest + rect_sauf.x, enjambée_dest, rect_sauf)
+    copie_données_image_rvb(source, enjambée_source, ratio_largeur, ratio_hauteur, dest + (rect_sauf.hauteur - rect_sauf.y - 1) * enjambée_dest + rect_sauf.x, enjambée_dest, rect_sauf);
 }
 
 copie_données_image_rvb :: fonc (ligne_source: *r32, enjambée_source: z32, ratio_largeur: r32, ratio_hauteur: r32, ligne_dest: *CouleurRVBAN8, enjambée_dest: z32, rect_sauf: RectanglePosDim(z32))
 {
-    y := 0.0
+    y := 0.0;
 
     pour _ dans rect_sauf.y ... rect_sauf.y + rect_sauf.hauteur - 1 {
-        pixel_dest := ligne_dest
-        pixel_source := ligne_source
+        pixel_dest := ligne_dest;
+        pixel_source := ligne_source;
 
-        x := 0.0
-        enjambée_y := y comme z32 * enjambée_source
+        x := 0.0;
+        enjambée_y := y comme z32 * enjambée_source;
 
         pour _ dans rect_sauf.x ... rect_sauf.x + rect_sauf.largeur - 1 {
-            indice := x comme z32 + enjambée_y
+            indice := x comme z32 + enjambée_y;
 
-            copie_pixel_rvb(pixel_source + indice * 3, pixel_dest)
+            copie_pixel_rvb(pixel_source + indice * 3, pixel_dest);
 
-            pixel_dest += 1
-            x += ratio_largeur
+            pixel_dest += 1;
+            x += ratio_largeur;
         }
 
-        ligne_dest -= enjambée_dest
-        y += ratio_hauteur
+        ligne_dest -= enjambée_dest;
+        y += ratio_hauteur;
     }
 }
 
 copie_données_image_rvb :: fonc (ligne_source: *r32, enjambée_source: z32, enjambée_pixel_source: z32, ligne_dest: *CouleurRVBAN8, enjambée_dest: z32, rect_sauf: RectanglePosDim(z32))
 {
     pour _ dans rect_sauf.y ... rect_sauf.y + rect_sauf.hauteur - 1 {
-        pixel_dest := ligne_dest
-        pixel_source := ligne_source
+        pixel_dest := ligne_dest;
+        pixel_source := ligne_source;
 
         pour _ dans rect_sauf.x ... rect_sauf.x + rect_sauf.largeur - 1 {
-            copie_pixel_rvb(pixel_source, pixel_dest)
+            copie_pixel_rvb(pixel_source, pixel_dest);
 
-            pixel_source += enjambée_pixel_source
-            pixel_dest += 1
+            pixel_source += enjambée_pixel_source;
+            pixel_dest += 1;
         }
 
-        ligne_source -= enjambée_source
-        ligne_dest += enjambée_dest
+        ligne_source -= enjambée_source;
+        ligne_dest += enjambée_dest;
     }
 }
 
 copie_données_image_rvba :: fonc (ligne_source: *r32, enjambée_source: z32, enjambée_pixel_source: z32, ligne_dest: *CouleurRVBAN8, enjambée_dest: z32, rect_sauf: RectanglePosDim(z32))
 {
     pour _ dans rect_sauf.y ... rect_sauf.y + rect_sauf.hauteur - 1 {
-        pixel_dest := ligne_dest
-        pixel_source := ligne_source
+        pixel_dest := ligne_dest;
+        pixel_source := ligne_source;
 
         pour _ dans rect_sauf.x ... rect_sauf.x + rect_sauf.largeur - 1 {
-            copie_pixel_rvba(pixel_source, pixel_dest)
+            copie_pixel_rvba(pixel_source, pixel_dest);
 
-            pixel_source += enjambée_pixel_source
-            pixel_dest += 1
+            pixel_source += enjambée_pixel_source;
+            pixel_dest += 1;
         }
 
-        ligne_source -= enjambée_source
-        ligne_dest += enjambée_dest
+        ligne_source -= enjambée_source;
+        ligne_dest += enjambée_dest;
     }
 }
 
 copie_pixel_rvb :: fonc (pixel_source: *r32, pixel_dest: *CouleurRVBAN8)
 {
-    r_source := pixel_source[0]
-    v_source := pixel_source[1]
-    b_source := pixel_source[2]
+    r_source := pixel_source[0];
+    v_source := pixel_source[1];
+    b_source := pixel_source[2];
 
-    pixel_dest.r = (r_source * 255.0) comme n8
-    pixel_dest.v = (v_source * 255.0) comme n8
-    pixel_dest.b = (b_source * 255.0) comme n8
+    pixel_dest.r = (r_source * 255.0) comme n8;
+    pixel_dest.v = (v_source * 255.0) comme n8;
+    pixel_dest.b = (b_source * 255.0) comme n8;
 }
 
 copie_pixel_rvba :: fonc (pixel_source: *r32, pixel_dest: *CouleurRVBAN8)
 {
-    r_source := pixel_source[0]
-    v_source := pixel_source[1]
-    b_source := pixel_source[2]
-    a_source := pixel_source[3]
+    r_source := pixel_source[0];
+    v_source := pixel_source[1];
+    b_source := pixel_source[2];
+    a_source := pixel_source[3];
 
     si a_source == 0.0 {
-        retourne
+        retourne;
     }
 
     si a_source >= 1.0 {
-        pixel_dest.r = (r_source * 255.0) comme n8
-        pixel_dest.v = (v_source * 255.0) comme n8
-        pixel_dest.b = (b_source * 255.0) comme n8
-        retourne
+        pixel_dest.r = (r_source * 255.0) comme n8;
+        pixel_dest.v = (v_source * 255.0) comme n8;
+        pixel_dest.b = (b_source * 255.0) comme n8;
+        retourne;
     }
 
-    r_dest := (pixel_dest.r comme r32) / 255.0
-    v_dest := (pixel_dest.v comme r32) / 255.0
-    b_dest := (pixel_dest.b comme r32) / 255.0
+    r_dest := (pixel_dest.r comme r32) / 255.0;
+    v_dest := (pixel_dest.v comme r32) / 255.0;
+    b_dest := (pixel_dest.b comme r32) / 255.0;
 
-    r := (((1.0 - a_source) * r_dest + a_source * r_source) * 255.0) comme n8
-    v := (((1.0 - a_source) * v_dest + a_source * v_source) * 255.0) comme n8
-    b := (((1.0 - a_source) * b_dest + a_source * b_source) * 255.0) comme n8
-    a := 255 comme n8
+    r := (((1.0 - a_source) * r_dest + a_source * r_source) * 255.0) comme n8;
+    v := (((1.0 - a_source) * v_dest + a_source * v_source) * 255.0) comme n8;
+    b := (((1.0 - a_source) * b_dest + a_source * b_source) * 255.0) comme n8;
+    a := 255 comme n8;
 
-    mémoire(pixel_dest) = CouleurRVBAN8(r, v, b, a)
+    mémoire(pixel_dest) = CouleurRVBAN8(r, v, b, a);
 }
 
 /** \} */

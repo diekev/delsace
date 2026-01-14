@@ -22,44 +22,44 @@
  https://www.iana.org/assignments/uri-schemes/uri-schemes.xhtml
 */
 
-importe Introspection
+importe Introspection;
 
 // ------------------------------
 // fonctions auxilliares
 
 est_lettre :: fonc (c: z8) -> bool
 {
-    retourne ('a' <= c <= 'z') || ('A' <= c <= 'Z')
+    retourne ('a' <= c <= 'z') || ('A' <= c <= 'Z');
 }
 
 est_slash_uri :: fonc (c: z8) -> bool
 {
-    retourne (c == '/') || (c == '\\')
+    retourne (c == '/') || (c == '\\');
 }
 
 // l'autorité peut directement être suivie par la requête ou le fragment, sans avoir de chemin
 est_terminateur_autorité :: fonc (c: z8) -> bool
 {
-    retourne est_slash_uri(c) || (c == '?') || (c == '#')
+    retourne est_slash_uri(c) || (c == '?') || (c == '#');
 }
 
 // utilisée pour enlever les espaces en début et en fin de la chaine à parser
 doit_rogner_de_l_url :: fonc (c: z8) -> bool
 {
-    retourne c <= ' '
+    retourne c <= ' ';
 }
 
 // ------------------------------
 
 // Les différentes erreurs possibles lors du parsage
 ErreurURI :: erreur {
-    SCHÉMA_VIDE
-    HÔTE_VIDE
-    AUTORITÉ_MANQUANTE
-    CHEMIN_NE_COMMENCE_PAS_PAR_SLASH
-    CARACTÈRE_INVALIDE_DANS_SCHÉMA
-    CARACTÈRE_INVALIDE_DANS_PORT
-    PORT_TROP_GRAND
+    SCHÉMA_VIDE;
+    HÔTE_VIDE;
+    AUTORITÉ_MANQUANTE;
+    CHEMIN_NE_COMMENCE_PAS_PAR_SLASH;
+    CARACTÈRE_INVALIDE_DANS_SCHÉMA;
+    CARACTÈRE_INVALIDE_DANS_PORT;
+    PORT_TROP_GRAND;
 }
 
 /* ------------------------------------------------------------------------- */
@@ -69,35 +69,35 @@ ErreurURI :: erreur {
 
 /* Énum drapeau pour chaque élément d'un URI. */
 MasqueURI :: énum_drapeau n8 {
-    SCHÉMA
+    SCHÉMA;
 
     /* Les différents composants de l'autorité. */
-    NOM_UTILISATEUR
-    MOT_DE_PASSE
-    HÔTE
-    PORT
+    NOM_UTILISATEUR;
+    MOT_DE_PASSE;
+    HÔTE;
+    PORT;
 
     /* Les différents composants du chemin. */
-    CHEMIN
-    REQUÊTE
-    FRAGMENT
+    CHEMIN;
+    REQUÊTE;
+    FRAGMENT;
 
-    CHEMIN_COMPLET :: (CHEMIN | REQUÊTE | FRAGMENT)
-    AUTORITÉ :: (NOM_UTILISATEUR | MOT_DE_PASSE | HÔTE | PORT)
+    CHEMIN_COMPLET :: (CHEMIN | REQUÊTE | FRAGMENT);
+    AUTORITÉ :: (NOM_UTILISATEUR | MOT_DE_PASSE | HÔTE | PORT);
 }
 
 donne_masque_uri :: fonc (uri: URI) -> MasqueURI
 {
-    résultat: MasqueURI
-    résultat.SCHÉMA = uri.schéma.taille != 0
-    résultat.NOM_UTILISATEUR = uri.nom_utilisateur.taille != 0
-    résultat.MOT_DE_PASSE = uri.mot_de_passe.taille != 0
-    résultat.HÔTE = uri.hôte.taille != 0
-    résultat.PORT = uri.port.taille != 0
-    résultat.CHEMIN = uri.chemin.taille != 0
-    résultat.REQUÊTE = uri.requête.taille != 0
-    résultat.FRAGMENT = uri.fragment.taille != 0
-    retourne résultat
+    résultat: MasqueURI;
+    résultat.SCHÉMA = uri.schéma.taille != 0;
+    résultat.NOM_UTILISATEUR = uri.nom_utilisateur.taille != 0;
+    résultat.MOT_DE_PASSE = uri.mot_de_passe.taille != 0;
+    résultat.HÔTE = uri.hôte.taille != 0;
+    résultat.PORT = uri.port.taille != 0;
+    résultat.CHEMIN = uri.chemin.taille != 0;
+    résultat.REQUÊTE = uri.requête.taille != 0;
+    résultat.FRAGMENT = uri.fragment.taille != 0;
+    retourne résultat;
 }
 
 /** \} */
@@ -132,277 +132,277 @@ URI :: struct {
 
 détruit_uri :: fonc (uri: &URI)
 {
-    déloge_si_logée(uri.uri)
+    déloge_si_logée(uri.uri);
 }
 
 RésultatURI :: union {
-    err: ErreurURI
-    uri: URI
+    err: ErreurURI;
+    uri: URI;
 }
 
 RésultatExtraction :: union {
-    b: bool
-    e: ErreurURI
+    b: bool;
+    e: ErreurURI;
 }
 
 extrait_schéma :: fonc (chn: chaine, schéma: *chaine) -> RésultatExtraction
 {
-    chn = avance_si(chn, doit_rogner_de_l_url)
+    chn = avance_si(chn, doit_rogner_de_l_url);
 
     // l'entrée est vide ou ne contenant que des espaces blancs
     si chn.taille == 0 {
-        retourne faux
+        retourne faux;
     }
 
     si chn[0] == '/' || chn[0] == '#' {
         /* Peut-être un chemin relatif. */
-        retourne faux
+        retourne faux;
     }
 
-    position_double_point := trouve_caractère_depuis_le_début(chn, ':')
+    position_double_point := trouve_caractère_depuis_le_début(chn, ':');
     si position_double_point == -1 {
         /* Aucun schéma. */
-        retourne faux
+        retourne faux;
     }
 
     pour c, i dans chn {
         si c == ':' {
-            mémoire(schéma) = chaine(*chn[0], i)
-            retourne vrai
+            mémoire(schéma) = chaine(*chn[0], i);
+            retourne vrai;
         }
 
         si est_lettre(c) {
-            continue
+            continue;
         }
 
         si est_nombre_décimal(c) {
-            continue
+            continue;
         }
 
         si c == '+' || c == '-' || c == '.' {
-            continue
+            continue;
         }
 
-        retourne ErreurURI.CARACTÈRE_INVALIDE_DANS_SCHÉMA
+        retourne ErreurURI.CARACTÈRE_INVALIDE_DANS_SCHÉMA;
     }
 
-    retourne faux
+    retourne faux;
 }
 
 parse_info_serveur :: fonc (uri: *URI, info_serveur: chaine) -> ErreurURI
 {
-    terminateur_ipv6 : z64 = -1
+    terminateur_ipv6 : z64 = -1;
 
     si info_serveur[0] == '[' {
-        terminateur_ipv6 = info_serveur.taille - 1
+        terminateur_ipv6 = info_serveur.taille - 1;
     }
 
-    double_point : z64 = -1
+    double_point : z64 = -1;
 
     pour c, idx dans info_serveur {
         si c == ']' {
-            terminateur_ipv6 = idx
+            terminateur_ipv6 = idx;
         }
         sinon si c == ':' {
-            double_point = idx
+            double_point = idx;
         }
     }
 
     si double_point > terminateur_ipv6 {
-        uri.hôte = chaine(info_serveur.pointeur, double_point)
+        uri.hôte = chaine(info_serveur.pointeur, double_point);
 
-        uri.port = avance(info_serveur, double_point + 1)
+        uri.port = avance(info_serveur, double_point + 1);
 
         si uri.port.taille > 5 {
-            retourne ErreurURI.PORT_TROP_GRAND
+            retourne ErreurURI.PORT_TROP_GRAND;
         }
 
         pour c dans uri.port {
             si !est_nombre_décimal(c) {
-                retourne ErreurURI.CARACTÈRE_INVALIDE_DANS_PORT
+                retourne ErreurURI.CARACTÈRE_INVALIDE_DANS_PORT;
             }
         }
     }
     sinon {
-        uri.hôte = info_serveur
+        uri.hôte = info_serveur;
     }
 
-    retourne 0 comme ErreurURI
+    retourne 0 comme ErreurURI;
 }
 
 parse_info_usager :: fonc (uri: *URI, info_usager: chaine) -> rien
 {
     // trouve la séparation entre le nom et le mot de passe
-    double_point := trouve_caractère_depuis_le_début(info_usager, ':')
+    double_point := trouve_caractère_depuis_le_début(info_usager, ':');
 
     si double_point == -1 {
-        double_point = info_usager.taille
+        double_point = info_usager.taille;
     }
 
-    uri.nom_utilisateur = chaine(info_usager.pointeur, double_point)
-    uri.mot_de_passe = avance(info_usager, double_point + 1)
+    uri.nom_utilisateur = chaine(info_usager.pointeur, double_point);
+    uri.mot_de_passe = avance(info_usager, double_point + 1);
 }
 
 parse_autorité :: fonc (uri: *URI) -> ErreurURI
 {
-    début := trouve_caractère_depuis_la_fin(uri.autorité, '@')
+    début := trouve_caractère_depuis_la_fin(uri.autorité, '@');
 
     si début != -1 && uri.autorité[début] == '@' {
-        composant_usager := chaine(uri.autorité.pointeur, début)
-        composant_serveur := avance(uri.autorité, début + 1)
+        composant_usager := chaine(uri.autorité.pointeur, début);
+        composant_serveur := avance(uri.autorité, début + 1);
 
-        parse_info_usager(uri, composant_usager)
+        parse_info_usager(uri, composant_usager);
 
         tente parse_info_serveur(uri, composant_serveur) piège err {
-            retourne err
+            retourne err;
         }
     }
     sinon {
         si début == -1 {
-            début = 0
+            début = 0;
         }
-        composant_serveur := avance(uri.autorité, début)
+        composant_serveur := avance(uri.autorité, début);
 
         tente parse_info_serveur(uri, composant_serveur) piège err {
-            retourne err
+            retourne err;
         }
     }
 
     si uri.autorité.taille != 0 {
         si uri.hôte.taille == 0 {
-            retourne ErreurURI.HÔTE_VIDE
+            retourne ErreurURI.HÔTE_VIDE;
         }
     }
 
-    retourne 0 comme ErreurURI
+    retourne 0 comme ErreurURI;
 }
 
 parse_chemin :: fonc (uri: *URI) -> ErreurURI
 {
-    séparateur_requête : z64 = -1
-    séparateur_fragment : z64 = -1
+    séparateur_requête : z64 = -1;
+    séparateur_fragment : z64 = -1;
 
     pour c, idx dans uri.chemin_complet {
         si c == '?' {
             si séparateur_requête < 0 {
-                uri.requête_est_définie = vrai
-                séparateur_requête = idx
+                uri.requête_est_définie = vrai;
+                séparateur_requête = idx;
             }
         }
         sinon si c == '#' {
             si séparateur_fragment < 0 {
-                uri.fragment_est_défini = vrai
-                séparateur_fragment = idx
-                arrête
+                uri.fragment_est_défini = vrai;
+                séparateur_fragment = idx;
+                arrête;
             }
         }
     }
 
-    fin_requête : z64 = 0
-    fin_fichier := uri.chemin_complet.taille
+    fin_requête : z64 = 0;
+    fin_fichier := uri.chemin_complet.taille;
 
     si séparateur_fragment >= 0 {
-        fin_requête = séparateur_fragment
-        fin_fichier = fin_requête
-        uri.fragment = avance(uri.chemin_complet, séparateur_fragment + 1)
+        fin_requête = séparateur_fragment;
+        fin_fichier = fin_requête;
+        uri.fragment = avance(uri.chemin_complet, séparateur_fragment + 1);
     }
     sinon {
-        fin_requête = fin_fichier
-        fin_fichier = fin_requête
+        fin_requête = fin_fichier;
+        fin_fichier = fin_requête;
     }
 
     si séparateur_requête >= 0 {
-        fin_fichier = séparateur_requête
-        uri.requête = chaine(uri.chemin_complet.pointeur + séparateur_requête + 1, fin_requête - séparateur_requête - 1)
+        fin_fichier = séparateur_requête;
+        uri.requête = chaine(uri.chemin_complet.pointeur + séparateur_requête + 1, fin_requête - séparateur_requête - 1);
     }
 
     si fin_fichier != 0 {
-        uri.chemin = chaine(uri.chemin_complet.pointeur, fin_fichier)
+        uri.chemin = chaine(uri.chemin_complet.pointeur, fin_fichier);
 
         si uri.chemin.taille != 0 && uri.autorité != "" {
             si uri.chemin[0] != '/' {
-                retourne ErreurURI.CHEMIN_NE_COMMENCE_PAS_PAR_SLASH
+                retourne ErreurURI.CHEMIN_NE_COMMENCE_PAS_PAR_SLASH;
             }
         }
     }
 
-    retourne 0 comme ErreurURI
+    retourne 0 comme ErreurURI;
 }
 
 parse_uri_standard :: fonc (chn: chaine) -> RésultatURI
 {
-    chn = avance_si(chn, doit_rogner_de_l_url)
-    chn = recule_si(chn, doit_rogner_de_l_url)
+    chn = avance_si(chn, doit_rogner_de_l_url);
+    chn = recule_si(chn, doit_rogner_de_l_url);
 
-    uri: URI
-    uri.uri = chn
+    uri: URI;
+    uri.uri = chn;
 
     eu_schéma := tente extrait_schéma(chn, *uri.schéma) piège err {
-        retourne err
+        retourne err;
     }
 
     si eu_schéma {
-        chn = avance(chn, uri.schéma.taille + 1)
-        uri.schéma_est_défini = vrai
+        chn = avance(chn, uri.schéma.taille + 1);
+        uri.schéma_est_défini = vrai;
     }
 
-    nombre_slashs := compte_consécutifs_si(chn, est_slash_uri)
+    nombre_slashs := compte_consécutifs_si(chn, est_slash_uri);
 
     // l'autorité doit commencer par deux slashs
     si nombre_slashs == 2 {
-        après_slashs := avance(chn, nombre_slashs)
-        fin_autorité := trouve_position_si(après_slashs, est_terminateur_autorité)
+        après_slashs := avance(chn, nombre_slashs);
+        fin_autorité := trouve_position_si(après_slashs, est_terminateur_autorité);
 
         si fin_autorité == 0 {
-            retourne ErreurURI.AUTORITÉ_MANQUANTE
+            retourne ErreurURI.AUTORITÉ_MANQUANTE;
         }
 
-        uri.autorité = chaine(après_slashs.pointeur, fin_autorité)
-        uri.autorité_est_définie = vrai
-        uri.chemin_complet = avance(après_slashs, fin_autorité)
+        uri.autorité = chaine(après_slashs.pointeur, fin_autorité);
+        uri.autorité_est_définie = vrai;
+        uri.chemin_complet = avance(après_slashs, fin_autorité);
 
         tente parse_autorité(*uri) piège err {
-            retourne err
+            retourne err;
         }
     }
     sinon {
-        uri.chemin_complet = chn
+        uri.chemin_complet = chn;
     }
 
     tente parse_chemin(*uri) piège err {
-        retourne err
+        retourne err;
     }
 
-    retourne uri
+    retourne uri;
 }
 
 parse_uri_depuis_chaine :: fonc (chn: chaine) -> (bool, URI)
 {
     uri := tente parse_uri_standard(chn) piège _ {
-        retourne faux, URI()
+        retourne faux, URI();
     }
 
-    retourne vrai, uri
+    retourne vrai, uri;
 } @ParsageJSON
 
 parse_uri_depuis_chemin_requête :: fonc (chn: chaine) -> RésultatURI
 {
-    uri: URI
-    uri.uri = chn
-    uri.chemin_complet = chn
+    uri: URI;
+    uri.uri = chn;
+    uri.chemin_complet = chn;
 
     tente parse_chemin(*uri) piège err {
-        retourne err
+        retourne err;
     }
 
-    retourne uri
+    retourne uri;
 }
 
 est_valide :: fonc (uri: URI) -> bool
 {
     saufsi uri.hôte {
         // Seul le schéma "file" peut avoir un hôte vide.
-        retourne uri.schéma == "file"
+        retourne uri.schéma == "file";
     }
 
     // Un URI ne peut avoir d'informations d'identité ou de port si :
@@ -412,54 +412,54 @@ est_valide :: fonc (uri: URI) -> bool
     // Source : https://url.spec.whatwg.org/#cannot-have-a-username-password-port
     si possède_informations_identité(uri) || uri.port != "" {
         si uri.schéma == "file" {
-            retourne faux
+            retourne faux;
         }
 
         si uri.hôte == "" {
-            retourne faux
+            retourne faux;
         }
     }
 
-    retourne vrai
+    retourne vrai;
 }
 
 // Retourne une chaine contenant la recomposition de l'URI depuis ses composants.
 // Voir RFC3986, section 5.3
 recompose_uri :: fonc (uri: *URI) -> chaine
 {
-    résultat: chaine
+    résultat: chaine;
 
     si uri.schéma_est_défini {
-        append(*résultat, uri.schéma)
-        append(*résultat, ":")
+        append(*résultat, uri.schéma);
+        append(*résultat, ":");
     }
 
     si uri.autorité_est_définie && uri.schéma != "data" {
-        append(*résultat, "//")
-        append(*résultat, uri.autorité)
+        append(*résultat, "//");
+        append(*résultat, uri.autorité);
     }
 
     si uri.chemin.taille == 0 {
-        append(*résultat, "/")
+        append(*résultat, "/");
     }
     sinon {
         si uri.chemin[0] != '/' && uri.schéma != "data" {
-            append(*résultat, "/")
+            append(*résultat, "/");
         }
-        append(*résultat, uri.chemin)
+        append(*résultat, uri.chemin);
     }
 
     si uri.requête_est_définie {
-        append(*résultat, "?")
-        append(*résultat, uri.requête)
+        append(*résultat, "?");
+        append(*résultat, uri.requête);
     }
 
     si uri.fragment_est_défini {
-        append(*résultat, "#")
-        append(*résultat, uri.fragment)
+        append(*résultat, "#");
+        append(*résultat, uri.fragment);
     }
 
-    retourne résultat
+    retourne résultat;
 }
 
 // Calcul une somme de controle, sur 64bit, pour un URI selon l'algorithme de Fletcher
@@ -467,59 +467,59 @@ recompose_uri :: fonc (uri: *URI) -> chaine
 somme_controle :: fonc (uri: &URI) -> n64
 {
     // nous ne considérons que l'autorité, le chemin et la requête
-    somme1 := 0
-    somme2 := 0
+    somme1 := 0;
+    somme2 := 0;
 
     pour c dans uri.autorité {
-        somme1 = (somme1 + c comme z32) % 0xffffffff
-        somme2 = (somme1 + somme2) % 0xffffffff
+        somme1 = (somme1 + c comme z32) % 0xffffffff;
+        somme2 = (somme1 + somme2) % 0xffffffff;
     }
 
     pour c dans uri.chemin {
-        somme1 = (somme1 + c comme z32) % 0xffffffff
-        somme2 = (somme1 + somme2) % 0xffffffff
+        somme1 = (somme1 + c comme z32) % 0xffffffff;
+        somme2 = (somme1 + somme2) % 0xffffffff;
     }
 
     pour c dans uri.requête {
-        somme1 = (somme1 + c comme z32) % 0xffffffff
-        somme2 = (somme1 + somme2) % 0xffffffff
+        somme1 = (somme1 + c comme z32) % 0xffffffff;
+        somme2 = (somme1 + somme2) % 0xffffffff;
     }
 
-    retourne (somme2 comme n64 << 32) | somme1 comme n64
+    retourne (somme2 comme n64 << 32) | somme1 comme n64;
 }
 
 port_pour_uri :: fonc (uri: &URI) -> n16
 {
     si uri.port.taille == 0 {
         si uri.schéma == "http" || uri.schéma == "ws" {
-            retourne 80
+            retourne 80;
         }
 
         si uri.schéma == "https" || uri.schéma == "wss" {
-            retourne 443
+            retourne 443;
         }
     }
 
-    retourne extrait_nombre_entier(uri.port) comme n16
+    retourne extrait_nombre_entier(uri.port) comme n16;
 }
 
 port_par_défaut :: fonc (uri: &URI) -> n16
 {
     discr uri.schéma {
         "file" {
-            retourne 0
+            retourne 0;
         }
         "ftp" {
-            retourne 21
+            retourne 21;
         }
         "http", "ws" {
-            retourne 80
+            retourne 80;
         }
         "https", "wss" {
-            retourne 443
+            retourne 443;
         }
         sinon {
-            retourne 0
+            retourne 0;
         }
     }
 }
@@ -533,17 +533,17 @@ est_spécial :: fonc (uri: &URI) -> bool
         "https",
         "ws",
         "wss" {
-            retourne vrai
+            retourne vrai;
         }
         sinon {
-            retourne faux
+            retourne faux;
         }
     }
 }
 
 possède_informations_identité :: fonc (uri: &URI) -> bool
 {
-    retourne uri.nom_utilisateur != "" || uri.mot_de_passe != ""
+    retourne uri.nom_utilisateur != "" || uri.mot_de_passe != "";
 }
 
 /* Crée un chemin URL avec des paramètres provenant d'une structure :
@@ -553,36 +553,36 @@ possède_informations_identité :: fonc (uri: &URI) -> bool
 chemin_url_avec_paramètres :: fonc (chemin: chaine, paramètres: eini) -> chaine
 {
     saufsi paramètres.est_structure() {
-        retourne ""
+        retourne "";
     }
 
-    enchaineuse: Enchaineuse
-    initialise_enchaineuse(*enchaineuse)
+    enchaineuse: Enchaineuse;
+    initialise_enchaineuse(*enchaineuse);
 
-    ajoute_au_tampon(*enchaineuse, chemin)
+    ajoute_au_tampon(*enchaineuse, chemin);
 
     si chemin.taille != 0 && chemin[chemin.taille - 1] != '/' {
-        ajoute_au_tampon(*enchaineuse, "/")
+        ajoute_au_tampon(*enchaineuse, "/");
     }
 
-    itératrice := crée_itératrice_rubrique(paramètres)
+    itératrice := crée_itératrice_rubrique(paramètres);
 
-    séparateur := "?"
+    séparateur := "?";
 
     boucle {
-        valeur, nom := itératrice.rubrique_suivante()
+        valeur, nom := itératrice.rubrique_suivante();
 
         saufsi valeur.est_valide() {
-            arrête
+            arrête;
         }
 
-        ajoute_au_tampon(*enchaineuse, séparateur, nom, "=")
-        imprime_valeur(*enchaineuse, valeur, faux)
+        ajoute_au_tampon(*enchaineuse, séparateur, nom, "=");
+        imprime_valeur(*enchaineuse, valeur, faux);
 
-        séparateur = "&"
+        séparateur = "&";
     }
 
-    retourne chaine_depuis_enchaineuse(*enchaineuse)
+    retourne chaine_depuis_enchaineuse(*enchaineuse);
 }
 
 /* ------------------------------------------------------------------------- */
@@ -592,163 +592,163 @@ chemin_url_avec_paramètres :: fonc (chemin: chaine, paramètres: eini) -> chain
 
 RelativitéURI :: énum {
     /* L'URI n'est pas relatif. */
-    AUCUNE
+    AUCUNE;
     /* Relatif au schéma : //x.yz/ */
-    SCHÉMA
+    SCHÉMA;
     /* Relatif au répertoire courant : ./chemin/ */
-    RÉPERTOIRE_COURANT
+    RÉPERTOIRE_COURANT;
     /* Relatif au répertoire parent : ../chemin/ */
-    RÉPERTOIRE_PARENT
+    RÉPERTOIRE_PARENT;
     /* Relatif à l'hôte : /chemin */
-    HÔTE
+    HÔTE;
     /* Relatif à la racine du document : chemin */
-    RACINE_DOCUMENT
+    RACINE_DOCUMENT;
     /* Pour les fragments. */
-    FRAGMENT_CHEMIN_COURANT
+    FRAGMENT_CHEMIN_COURANT;
 }
 
 détermine_relativité_uri :: fonc (uri: URI) -> RelativitéURI
 {
     si uri.chemin_complet.taille == 0 {
-        retourne RelativitéURI.AUCUNE
+        retourne RelativitéURI.AUCUNE;
     }
 
     si uri.hôte.taille != 0 {
         si uri.schéma.taille == 0 {
-            retourne RelativitéURI.SCHÉMA
+            retourne RelativitéURI.SCHÉMA;
         }
 
         /* Nous avons un hôte et un schéma. */
-        retourne RelativitéURI.AUCUNE
+        retourne RelativitéURI.AUCUNE;
     }
 
     si uri.chemin.commence_par("./") {
-        retourne RelativitéURI.RÉPERTOIRE_COURANT
+        retourne RelativitéURI.RÉPERTOIRE_COURANT;
     }
 
     si uri.chemin.commence_par("../") {
-        retourne RelativitéURI.RÉPERTOIRE_PARENT
+        retourne RelativitéURI.RÉPERTOIRE_PARENT;
     }
 
     si uri.chemin_complet.commence_par("#") {
-        retourne RelativitéURI.FRAGMENT_CHEMIN_COURANT
+        retourne RelativitéURI.FRAGMENT_CHEMIN_COURANT;
     }
 
     si uri.chemin.commence_par("/") {
-        retourne RelativitéURI.HÔTE
+        retourne RelativitéURI.HÔTE;
     }
 
-    retourne RelativitéURI.RACINE_DOCUMENT
+    retourne RelativitéURI.RACINE_DOCUMENT;
 }
 
 crée_uri_absolu :: fonc (base: URI, relatif: URI) -> URI
 {
-    relativité := détermine_relativité_uri(relatif)
-    retourne crée_uri_absolu(base, relatif, relativité)
+    relativité := détermine_relativité_uri(relatif);
+    retourne crée_uri_absolu(base, relatif, relativité);
 }
 
 crée_uri_absolu :: fonc (base: URI, relatif: URI, relativité: RelativitéURI) -> URI
 {
     discr relativité {
         AUCUNE {
-            retourne relatif
+            retourne relatif;
         }
         SCHÉMA {
-            relatif.schéma = base.schéma
-            relatif.schéma_est_défini = base.schéma_est_défini
-            retourne relatif
+            relatif.schéma = base.schéma;
+            relatif.schéma_est_défini = base.schéma_est_défini;
+            retourne relatif;
         }
         RÉPERTOIRE_COURANT {
-            morceaux_base := divise(base.chemin, '/')
-            diffère déloge(morceaux_base)
+            morceaux_base := divise(base.chemin, '/');
+            diffère déloge(morceaux_base);
 
-            enchaineuse: Enchaineuse
-            initialise_enchaineuse(*enchaineuse)
+            enchaineuse: Enchaineuse;
+            initialise_enchaineuse(*enchaineuse);
 
             pour 0 ... morceaux_base.taille - 2 {
-                ajoute_au_tampon(*enchaineuse, "/", morceaux_base[it])
+                ajoute_au_tampon(*enchaineuse, "/", morceaux_base[it]);
             }
 
-            ajoute_au_tampon(*enchaineuse, "/", relatif.chemin.avance(2))
+            ajoute_au_tampon(*enchaineuse, "/", relatif.chemin.avance(2));
 
-            relatif.schéma = base.schéma
-            relatif.autorité = base.autorité
-            relatif.hôte = base.hôte
-            relatif.nom_utilisateur = base.nom_utilisateur
-            relatif.mot_de_passe = base.mot_de_passe
-            relatif.port = base.port
-            relatif.schéma_est_défini = base.schéma_est_défini
-            relatif.autorité_est_définie = base.autorité_est_définie
-            relatif.chemin = chaine_depuis_enchaineuse(*enchaineuse)
-            retourne relatif
+            relatif.schéma = base.schéma;
+            relatif.autorité = base.autorité;
+            relatif.hôte = base.hôte;
+            relatif.nom_utilisateur = base.nom_utilisateur;
+            relatif.mot_de_passe = base.mot_de_passe;
+            relatif.port = base.port;
+            relatif.schéma_est_défini = base.schéma_est_défini;
+            relatif.autorité_est_définie = base.autorité_est_définie;
+            relatif.chemin = chaine_depuis_enchaineuse(*enchaineuse);
+            retourne relatif;
         }
         RÉPERTOIRE_PARENT {
-            morceaux_base := divise(base.chemin, '/')
-            diffère déloge(morceaux_base)
+            morceaux_base := divise(base.chemin, '/');
+            diffère déloge(morceaux_base);
 
-            enchaineuse: Enchaineuse
-            initialise_enchaineuse(*enchaineuse)
+            enchaineuse: Enchaineuse;
+            initialise_enchaineuse(*enchaineuse);
 
             pour 0 ... morceaux_base.taille - 3 {
-                ajoute_au_tampon(*enchaineuse, "/", morceaux_base[it])
+                ajoute_au_tampon(*enchaineuse, "/", morceaux_base[it]);
             }
 
-            ajoute_au_tampon(*enchaineuse, "/", relatif.chemin.avance(3))
+            ajoute_au_tampon(*enchaineuse, "/", relatif.chemin.avance(3));
 
-            relatif.schéma = base.schéma
-            relatif.autorité = base.autorité
-            relatif.hôte = base.hôte
-            relatif.nom_utilisateur = base.nom_utilisateur
-            relatif.mot_de_passe = base.mot_de_passe
-            relatif.port = base.port
-            relatif.schéma_est_défini = base.schéma_est_défini
-            relatif.autorité_est_définie = base.autorité_est_définie
-            relatif.chemin = chaine_depuis_enchaineuse(*enchaineuse)
-            retourne relatif
+            relatif.schéma = base.schéma;
+            relatif.autorité = base.autorité;
+            relatif.hôte = base.hôte;
+            relatif.nom_utilisateur = base.nom_utilisateur;
+            relatif.mot_de_passe = base.mot_de_passe;
+            relatif.port = base.port;
+            relatif.schéma_est_défini = base.schéma_est_défini;
+            relatif.autorité_est_définie = base.autorité_est_définie;
+            relatif.chemin = chaine_depuis_enchaineuse(*enchaineuse);
+            retourne relatif;
         }
         RACINE_DOCUMENT {
-            morceaux_base := divise(base.chemin, '/')
-            diffère déloge(morceaux_base)
+            morceaux_base := divise(base.chemin, '/');
+            diffère déloge(morceaux_base);
 
-            enchaineuse: Enchaineuse
-            initialise_enchaineuse(*enchaineuse)
+            enchaineuse: Enchaineuse;
+            initialise_enchaineuse(*enchaineuse);
 
             pour 0 ... morceaux_base.taille - 2 {
-                ajoute_au_tampon(*enchaineuse, "/", morceaux_base[it])
+                ajoute_au_tampon(*enchaineuse, "/", morceaux_base[it]);
             }
 
-            ajoute_au_tampon(*enchaineuse, "/", relatif.chemin)
+            ajoute_au_tampon(*enchaineuse, "/", relatif.chemin);
 
-            relatif.schéma = base.schéma
-            relatif.autorité = base.autorité
-            relatif.hôte = base.hôte
-            relatif.nom_utilisateur = base.nom_utilisateur
-            relatif.mot_de_passe = base.mot_de_passe
-            relatif.port = base.port
-            relatif.schéma_est_défini = base.schéma_est_défini
-            relatif.autorité_est_définie = base.autorité_est_définie
-            relatif.chemin = chaine_depuis_enchaineuse(*enchaineuse)
-            retourne relatif
+            relatif.schéma = base.schéma;
+            relatif.autorité = base.autorité;
+            relatif.hôte = base.hôte;
+            relatif.nom_utilisateur = base.nom_utilisateur;
+            relatif.mot_de_passe = base.mot_de_passe;
+            relatif.port = base.port;
+            relatif.schéma_est_défini = base.schéma_est_défini;
+            relatif.autorité_est_définie = base.autorité_est_définie;
+            relatif.chemin = chaine_depuis_enchaineuse(*enchaineuse);
+            retourne relatif;
         }
         HÔTE {
-            relatif.schéma = base.schéma
-            relatif.autorité = base.autorité
-            relatif.hôte = base.hôte
-            relatif.nom_utilisateur = base.nom_utilisateur
-            relatif.mot_de_passe = base.mot_de_passe
-            relatif.port = base.port
-            relatif.schéma_est_défini = base.schéma_est_défini
-            relatif.autorité_est_définie = base.autorité_est_définie
-            retourne relatif
+            relatif.schéma = base.schéma;
+            relatif.autorité = base.autorité;
+            relatif.hôte = base.hôte;
+            relatif.nom_utilisateur = base.nom_utilisateur;
+            relatif.mot_de_passe = base.mot_de_passe;
+            relatif.port = base.port;
+            relatif.schéma_est_défini = base.schéma_est_défini;
+            relatif.autorité_est_définie = base.autorité_est_définie;
+            retourne relatif;
         }
         FRAGMENT_CHEMIN_COURANT {
-            base.fragment = relatif.fragment
-            base.fragment_est_défini = relatif.fragment_est_défini
-            retourne base
+            base.fragment = relatif.fragment;
+            base.fragment_est_défini = relatif.fragment_est_défini;
+            retourne base;
         }
     }
 
-    retourne relatif
+    retourne relatif;
 }
 
 /** \} */
@@ -894,92 +894,92 @@ origine :: fonc (uri: &URI) -> Origine
 #test {
     uri := tente parse_uri_standard("https://john.doe@www.example.com:123/forum/questions/?tag=networking&order=newest#top") piège nonatteignable
 
-    compilatrice_vérifie_égalité(uri.schéma, "https")
-    compilatrice_vérifie_égalité(uri.autorité, "john.doe@www.example.com:123")
-    compilatrice_vérifie_égalité(uri.nom_utilisateur, "john.doe")
-    compilatrice_vérifie_égalité(uri.hôte, "www.example.com")
-    compilatrice_vérifie_égalité(uri.port, "123")
-    compilatrice_vérifie_égalité(uri.chemin, "/forum/questions/")
-    compilatrice_vérifie_égalité(uri.requête, "tag=networking&order=newest")
-    compilatrice_vérifie_égalité(uri.fragment, "top")
+    compilatrice_vérifie_égalité(uri.schéma, "https");
+    compilatrice_vérifie_égalité(uri.autorité, "john.doe@www.example.com:123");
+    compilatrice_vérifie_égalité(uri.nom_utilisateur, "john.doe");
+    compilatrice_vérifie_égalité(uri.hôte, "www.example.com");
+    compilatrice_vérifie_égalité(uri.port, "123");
+    compilatrice_vérifie_égalité(uri.chemin, "/forum/questions/");
+    compilatrice_vérifie_égalité(uri.requête, "tag=networking&order=newest");
+    compilatrice_vérifie_égalité(uri.fragment, "top");
 }
 
 #test {
     uri := tente parse_uri_standard("ldap://[2001:db8::7]/c=GB?objectClass?one") piège nonatteignable
 
-    compilatrice_vérifie_égalité(uri.schéma, "ldap")
-    compilatrice_vérifie_égalité(uri.autorité, "[2001:db8::7]")
-    compilatrice_vérifie_égalité(uri.nom_utilisateur, "")
-    compilatrice_vérifie_égalité(uri.hôte, "[2001:db8::7]")
-    compilatrice_vérifie_égalité(uri.port, "")
-    compilatrice_vérifie_égalité(uri.chemin, "/c=GB")
-    compilatrice_vérifie_égalité(uri.requête, "objectClass?one")
-    compilatrice_vérifie_égalité(uri.fragment, "")
+    compilatrice_vérifie_égalité(uri.schéma, "ldap");
+    compilatrice_vérifie_égalité(uri.autorité, "[2001:db8::7]");
+    compilatrice_vérifie_égalité(uri.nom_utilisateur, "");
+    compilatrice_vérifie_égalité(uri.hôte, "[2001:db8::7]");
+    compilatrice_vérifie_égalité(uri.port, "");
+    compilatrice_vérifie_égalité(uri.chemin, "/c=GB");
+    compilatrice_vérifie_égalité(uri.requête, "objectClass?one");
+    compilatrice_vérifie_égalité(uri.fragment, "");
 }
 
 #test {
     uri := tente parse_uri_standard("mailto:John.Doe@example.com") piège nonatteignable
 
-    compilatrice_vérifie_égalité(uri.schéma, "mailto")
-    compilatrice_vérifie_égalité(uri.autorité, "")
-    compilatrice_vérifie_égalité(uri.nom_utilisateur, "")
-    compilatrice_vérifie_égalité(uri.hôte, "")
-    compilatrice_vérifie_égalité(uri.port, "")
-    compilatrice_vérifie_égalité(uri.chemin, "John.Doe@example.com")
-    compilatrice_vérifie_égalité(uri.requête, "")
-    compilatrice_vérifie_égalité(uri.fragment, "")
+    compilatrice_vérifie_égalité(uri.schéma, "mailto");
+    compilatrice_vérifie_égalité(uri.autorité, "");
+    compilatrice_vérifie_égalité(uri.nom_utilisateur, "");
+    compilatrice_vérifie_égalité(uri.hôte, "");
+    compilatrice_vérifie_égalité(uri.port, "");
+    compilatrice_vérifie_égalité(uri.chemin, "John.Doe@example.com");
+    compilatrice_vérifie_égalité(uri.requête, "");
+    compilatrice_vérifie_égalité(uri.fragment, "");
 }
 
 #test {
     uri := tente parse_uri_standard("news:comp.infosystems.www.servers.unix") piège nonatteignable
 
-    compilatrice_vérifie_égalité(uri.schéma, "news")
-    compilatrice_vérifie_égalité(uri.autorité, "")
-    compilatrice_vérifie_égalité(uri.nom_utilisateur, "")
-    compilatrice_vérifie_égalité(uri.hôte, "")
-    compilatrice_vérifie_égalité(uri.port, "")
-    compilatrice_vérifie_égalité(uri.chemin, "comp.infosystems.www.servers.unix")
-    compilatrice_vérifie_égalité(uri.requête, "")
-    compilatrice_vérifie_égalité(uri.fragment, "")
+    compilatrice_vérifie_égalité(uri.schéma, "news");
+    compilatrice_vérifie_égalité(uri.autorité, "");
+    compilatrice_vérifie_égalité(uri.nom_utilisateur, "");
+    compilatrice_vérifie_égalité(uri.hôte, "");
+    compilatrice_vérifie_égalité(uri.port, "");
+    compilatrice_vérifie_égalité(uri.chemin, "comp.infosystems.www.servers.unix");
+    compilatrice_vérifie_égalité(uri.requête, "");
+    compilatrice_vérifie_égalité(uri.fragment, "");
 }
 
 #test {
     uri := tente parse_uri_standard("tel:+1-816-555-1212") piège nonatteignable
 
-    compilatrice_vérifie_égalité(uri.schéma, "tel")
-    compilatrice_vérifie_égalité(uri.autorité, "")
-    compilatrice_vérifie_égalité(uri.nom_utilisateur, "")
-    compilatrice_vérifie_égalité(uri.hôte, "")
-    compilatrice_vérifie_égalité(uri.port, "")
-    compilatrice_vérifie_égalité(uri.chemin, "+1-816-555-1212")
-    compilatrice_vérifie_égalité(uri.requête, "")
-    compilatrice_vérifie_égalité(uri.fragment, "")
+    compilatrice_vérifie_égalité(uri.schéma, "tel");
+    compilatrice_vérifie_égalité(uri.autorité, "");
+    compilatrice_vérifie_égalité(uri.nom_utilisateur, "");
+    compilatrice_vérifie_égalité(uri.hôte, "");
+    compilatrice_vérifie_égalité(uri.port, "");
+    compilatrice_vérifie_égalité(uri.chemin, "+1-816-555-1212");
+    compilatrice_vérifie_égalité(uri.requête, "");
+    compilatrice_vérifie_égalité(uri.fragment, "");
 }
 
 #test {
     uri := tente parse_uri_standard("telnet://192.0.2.16:80/") piège nonatteignable
 
-    compilatrice_vérifie_égalité(uri.schéma, "telnet")
-    compilatrice_vérifie_égalité(uri.autorité, "192.0.2.16:80")
-    compilatrice_vérifie_égalité(uri.nom_utilisateur, "")
-    compilatrice_vérifie_égalité(uri.hôte, "192.0.2.16")
-    compilatrice_vérifie_égalité(uri.port, "80")
-    compilatrice_vérifie_égalité(uri.chemin, "/")
-    compilatrice_vérifie_égalité(uri.requête, "")
-    compilatrice_vérifie_égalité(uri.fragment, "")
+    compilatrice_vérifie_égalité(uri.schéma, "telnet");
+    compilatrice_vérifie_égalité(uri.autorité, "192.0.2.16:80");
+    compilatrice_vérifie_égalité(uri.nom_utilisateur, "");
+    compilatrice_vérifie_égalité(uri.hôte, "192.0.2.16");
+    compilatrice_vérifie_égalité(uri.port, "80");
+    compilatrice_vérifie_égalité(uri.chemin, "/");
+    compilatrice_vérifie_égalité(uri.requête, "");
+    compilatrice_vérifie_égalité(uri.fragment, "");
 }
 
 #test {
     uri := tente parse_uri_standard("urn:oasis:names:specification:docbook:dtd:xml:4.1.2") piège nonatteignable
 
-    compilatrice_vérifie_égalité(uri.schéma, "urn")
-    compilatrice_vérifie_égalité(uri.autorité, "")
-    compilatrice_vérifie_égalité(uri.nom_utilisateur, "")
-    compilatrice_vérifie_égalité(uri.hôte, "")
-    compilatrice_vérifie_égalité(uri.port, "")
-    compilatrice_vérifie_égalité(uri.chemin, "oasis:names:specification:docbook:dtd:xml:4.1.2")
-    compilatrice_vérifie_égalité(uri.requête, "")
-    compilatrice_vérifie_égalité(uri.fragment, "")
+    compilatrice_vérifie_égalité(uri.schéma, "urn");
+    compilatrice_vérifie_égalité(uri.autorité, "");
+    compilatrice_vérifie_égalité(uri.nom_utilisateur, "");
+    compilatrice_vérifie_égalité(uri.hôte, "");
+    compilatrice_vérifie_égalité(uri.port, "");
+    compilatrice_vérifie_égalité(uri.chemin, "oasis:names:specification:docbook:dtd:xml:4.1.2");
+    compilatrice_vérifie_égalité(uri.requête, "");
+    compilatrice_vérifie_égalité(uri.fragment, "");
 }
 
 #test {
@@ -991,14 +991,14 @@ origine :: fonc (uri: &URI) -> Origine
      */
     uri := tente parse_uri_standard("ftp://cnn.example.com&story=breaking_news@10.0.0.1/top_story.htm") piège nonatteignable
 
-    compilatrice_vérifie_égalité(uri.schéma, "ftp")
-    compilatrice_vérifie_égalité(uri.autorité, "cnn.example.com&story=breaking_news@10.0.0.1")
-    compilatrice_vérifie_égalité(uri.nom_utilisateur, "cnn.example.com&story=breaking_news")
-    compilatrice_vérifie_égalité(uri.hôte, "10.0.0.1")
-    compilatrice_vérifie_égalité(uri.port, "")
-    compilatrice_vérifie_égalité(uri.chemin, "/top_story.htm")
-    compilatrice_vérifie_égalité(uri.requête, "")
-    compilatrice_vérifie_égalité(uri.fragment, "")
+    compilatrice_vérifie_égalité(uri.schéma, "ftp");
+    compilatrice_vérifie_égalité(uri.autorité, "cnn.example.com&story=breaking_news@10.0.0.1");
+    compilatrice_vérifie_égalité(uri.nom_utilisateur, "cnn.example.com&story=breaking_news");
+    compilatrice_vérifie_égalité(uri.hôte, "10.0.0.1");
+    compilatrice_vérifie_égalité(uri.port, "");
+    compilatrice_vérifie_égalité(uri.chemin, "/top_story.htm");
+    compilatrice_vérifie_égalité(uri.requête, "");
+    compilatrice_vérifie_égalité(uri.fragment, "");
 }
 
 #test {
@@ -1010,14 +1010,14 @@ origine :: fonc (uri: &URI) -> Origine
      */
     uri := tente parse_uri_standard("http://www.microsoft.com&item%3Dq209354@www.hwnd.net/pub/mskb/Q209354.asp") piège nonatteignable
 
-    compilatrice_vérifie_égalité(uri.schéma, "http")
-    compilatrice_vérifie_égalité(uri.autorité, "www.microsoft.com&item%3Dq209354@www.hwnd.net")
-    compilatrice_vérifie_égalité(uri.nom_utilisateur, "www.microsoft.com&item%3Dq209354")
-    compilatrice_vérifie_égalité(uri.hôte, "www.hwnd.net")
-    compilatrice_vérifie_égalité(uri.port, "")
-    compilatrice_vérifie_égalité(uri.chemin, "/pub/mskb/Q209354.asp")
-    compilatrice_vérifie_égalité(uri.requête, "")
-    compilatrice_vérifie_égalité(uri.fragment, "")
+    compilatrice_vérifie_égalité(uri.schéma, "http");
+    compilatrice_vérifie_égalité(uri.autorité, "www.microsoft.com&item%3Dq209354@www.hwnd.net");
+    compilatrice_vérifie_égalité(uri.nom_utilisateur, "www.microsoft.com&item%3Dq209354");
+    compilatrice_vérifie_égalité(uri.hôte, "www.hwnd.net");
+    compilatrice_vérifie_égalité(uri.port, "");
+    compilatrice_vérifie_égalité(uri.chemin, "/pub/mskb/Q209354.asp");
+    compilatrice_vérifie_égalité(uri.requête, "");
+    compilatrice_vérifie_égalité(uri.fragment, "");
 }
 
 #test {
@@ -1028,29 +1028,29 @@ origine :: fonc (uri: &URI) -> Origine
      */
     uri := tente parse_uri_standard("http://2815984929") piège nonatteignable
 
-    compilatrice_vérifie_égalité(uri.schéma, "http")
-    compilatrice_vérifie_égalité(uri.autorité, "2815984929")
-    compilatrice_vérifie_égalité(uri.nom_utilisateur, "")
-    compilatrice_vérifie_égalité(uri.hôte, "2815984929")
-    compilatrice_vérifie_égalité(uri.port, "")
-    compilatrice_vérifie_égalité(uri.chemin, "")
-    compilatrice_vérifie_égalité(uri.requête, "")
-    compilatrice_vérifie_égalité(uri.fragment, "")
+    compilatrice_vérifie_égalité(uri.schéma, "http");
+    compilatrice_vérifie_égalité(uri.autorité, "2815984929");
+    compilatrice_vérifie_égalité(uri.nom_utilisateur, "");
+    compilatrice_vérifie_égalité(uri.hôte, "2815984929");
+    compilatrice_vérifie_égalité(uri.port, "");
+    compilatrice_vérifie_égalité(uri.chemin, "");
+    compilatrice_vérifie_égalité(uri.requête, "");
+    compilatrice_vérifie_égalité(uri.fragment, "");
 }
 
 test_validité_uri :: fonc (chn: chaine)
 {
     uri := tente parse_uri_standard(chn) piège err {
-        imprime("L'uri % est invalide !\n", chn)
-        retourne
+        imprime("L'uri % est invalide !\n", chn);
+        retourne;
     }
 
     si !uri.est_valide() {
-        imprime("L'uri % est invalide !\n", chn)
-        retourne
+        imprime("L'uri % est invalide !\n", chn);
+        retourne;
     }
 
-    imprime("L'URI est valide :\n%\n", uri)
+    imprime("L'URI est valide :\n%\n", uri);
 }
 
 test_ssrf :: fonc ()
@@ -1059,34 +1059,34 @@ test_ssrf :: fonc ()
     // https://github.com/orangetw/Tiny-URL-Fuzzer
 
     // Le port doit être 80
-    test_validité_uri("http://127.0.0.1:11211:80/")
+    test_validité_uri("http://127.0.0.1:11211:80/");
 
     // Nous devons aller sur google.com
-    test_validité_uri("http://google.com#@evil.com/")
+    test_validité_uri("http://google.com#@evil.com/");
 
     // Nous devons aller sur google.com
-    test_validité_uri("http://foo@evil.com@google.com/")
+    test_validité_uri("http://foo@evil.com@google.com/");
 
     // Nous devons aller sur google.com, même test qu'avant mais une espace est présente
-    test_validité_uri("http://foo@evil.com @google.com/")
+    test_validité_uri("http://foo@evil.com @google.com/");
 
     // Nous devons aller sur google.com
-    test_validité_uri("http://foo@127.0.0.1:11211@google.com:80/")
+    test_validité_uri("http://foo@127.0.0.1:11211@google.com:80/");
 
     // Technique d'obfuscation en utilisant des \ pour tromper GlibC (gethostbyname supprimera les \ qui ne sont pas suivis pas des nombres).
     // Dans notre cas, les \ sont considérer comme des caractères de séparation, donc l'URL sera parsé, mais sans doute invalide (l'hôte sera vide).
-    test_validité_uri("http://\\g\\o\\o\\g\\l\\e.\\c\\o\\m/")
+    test_validité_uri("http://\\g\\o\\o\\g\\l\\e.\\c\\o\\m/");
 
     // Ici, de même, mais l'URI est invalide, le parsage échouera. Pourquoi ?
-    test_validité_uri("http://or\\097nge.tw/")
+    test_validité_uri("http://or\\097nge.tw/");
 
     // Certaines attaques peuvent avoir des nouvelles lignes ou des espaces dans l'hôte
     // Attention, getaddrinfo retournera une bonne adresse !
-    test_validité_uri("http://127.0.0.1 google.com/")
-    test_validité_uri("http://127.0.0.1\r\ngoogle.com/")
-    test_validité_uri("http://127.0.0.1\tgoogle.com/")
-    test_validité_uri("http://127.0.0.1%09google.com/")
-    test_validité_uri("http://127.0.0.1%2509google.com/")
+    test_validité_uri("http://127.0.0.1 google.com/");
+    test_validité_uri("http://127.0.0.1\r\ngoogle.com/");
+    test_validité_uri("http://127.0.0.1\tgoogle.com/");
+    test_validité_uri("http://127.0.0.1%09google.com/");
+    test_validité_uri("http://127.0.0.1%2509google.com/");
 
     // avec UTF-16, la séquence FF2E (le caractère latin N en pleine largeure, ou peu importe la traduction française), peut
     // dans certains parseurs ne supportant pas cette séquence être convertie en un '.', donc deux à la suite permettrait d'accéder au dossier parent "..".

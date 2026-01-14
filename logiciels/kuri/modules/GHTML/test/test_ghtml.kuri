@@ -1,74 +1,74 @@
-importe Fondation
-importe GHTML
+importe Fondation;
+importe GHTML;
 
 ancien_test :: fonc ()
 {
     DonnéesPage :: struct {
-        titre_page := "Accueil"
-        évènements: [3]z32
-        variable := "eh ouais..."
-        lien := "http://aaa"
+        titre_page := "Accueil";
+        évènements: [3]z32;
+        variable := "eh ouais...";
+        lien := "http://aaa";
     }
 
-    chn := "{%pour x dans évènements%}<a href='{{lien}}'>{%si variable%}{{variable}} {{x}}{% sinon %}texte{% finsi %}</a>\n{% finpour %}"
+    chn := "{%pour x dans évènements%}<a href='{{lien}}'>{%si variable%}{{variable}} {{x}}{% sinon %}texte{% finsi %}</a>\n{% finpour %}";
 
-    imprime("script :\n\n", chn, "\n\n")
+    imprime("script :\n\n", chn, "\n\n");
 
     /* ------------------------------------------------------------------------- */
     // Lexage du script
 
-    lexeuse := construis_lexeuse(chn)
-    diffère détruit_lexeuse(lexeuse)
+    lexeuse := construis_lexeuse(chn);
+    diffère détruit_lexeuse(lexeuse);
 
-    lexeuse.performe_lexage()
+    lexeuse.performe_lexage();
 
-    imprime("lexèmes :\n\n")
+    imprime("lexèmes :\n\n");
 
     pour lexème dans lexeuse.lexèmes {
-        imprime("% : %\n", lexème.type_lexème, lexème.chn)
+        imprime("% : %\n", lexème.type_lexème, lexème.chn);
     }
 
-    imprime("\n")
+    imprime("\n");
 
     /* ------------------------------------------------------------------------- */
     // Syntaxage du script
 
-    syntaxeuse := construis_syntaxeuse(lexeuse.lexèmes)
-    diffère détruit_assembleuse(syntaxeuse.assembleuse)
+    syntaxeuse := construis_syntaxeuse(lexeuse.lexèmes);
+    diffère détruit_assembleuse(syntaxeuse.assembleuse);
 
-    syntaxeuse.performe_syntaxage()
+    syntaxeuse.performe_syntaxage();
 
-    racine := syntaxeuse.assembleuse.pile.haut()
+    racine := syntaxeuse.assembleuse.pile.haut();
 
-    imprime("arbre :\n\n")
-    imprime_arbre(racine, 0)
-    imprime("\n")
+    imprime("arbre :\n\n");
+    imprime_arbre(racine, 0);
+    imprime("\n");
 
     /* ------------------------------------------------------------------------- */
     // Génération de la page
 
-    données_page: DonnéesPage
-    données_page.titre_page = "Accueil"
-    données_page.évènements[0] = 127
-    données_page.évènements[1] = 255
-    données_page.évènements[2] = 511
+    données_page: DonnéesPage;
+    données_page.titre_page = "Accueil";
+    données_page.évènements[0] = 127;
+    données_page.évènements[1] = 255;
+    données_page.évènements[2] = 511;
 
-    données_génération: DonnéesGénération
-    données_génération.valeur = données_page
+    données_génération: DonnéesGénération;
+    données_génération.valeur = données_page;
 
-    enchaineuse: Enchaineuse
-    initialise_enchaineuse(*enchaineuse)
+    enchaineuse: Enchaineuse;
+    initialise_enchaineuse(*enchaineuse);
 
-    erreur_ := génère_page(*données_génération, racine, *enchaineuse)
+    erreur_ := génère_page(*données_génération, racine, *enchaineuse);
 
     si erreur_ != ErreurGénérationPage.AUCUNE {
-        imprime("Erreur lors de la génération de la page : %\n", erreur_)
+        imprime("Erreur lors de la génération de la page : %\n", erreur_);
     }
     sinon {
-        imprime("Page :\n\n")
-        résultat := chaine_depuis_enchaineuse(*enchaineuse)
-        imprime("%\n", résultat)
-        déloge(résultat)
+        imprime("Page :\n\n");
+        résultat := chaine_depuis_enchaineuse(*enchaineuse);
+        imprime("%\n", résultat);
+        déloge(résultat);
     }
 
     /*
@@ -122,32 +122,32 @@ ancien_test :: fonc ()
 
 principale :: fonc ()
 {
-    diffère imprime("mémoire utilisée : %o\n", mémoire_utilisée())
+    diffère imprime("mémoire utilisée : %o\n", mémoire_utilisée());
 
-    rendeuse_page: RendeusePage
-    diffère détruit_rendeuse(*rendeuse_page)
+    rendeuse_page: RendeusePage;
+    diffère détruit_rendeuse(*rendeuse_page);
 
-    ajoute_fichier(*rendeuse_page.catalogue, "base", "base.html")
-    ajoute_fichier(*rendeuse_page.catalogue, "corps", "corps.html")
-    ajoute_fichier(*rendeuse_page.catalogue, "extra", "extra.html")
+    ajoute_fichier(*rendeuse_page.catalogue, "base", "base.html");
+    ajoute_fichier(*rendeuse_page.catalogue, "corps", "corps.html");
+    ajoute_fichier(*rendeuse_page.catalogue, "extra", "extra.html");
 
     DonnéesPage :: struct {
-        titre := "Page Test"
+        titre := "Page Test";
     }
 
     Indirection :: struct {
-        indirection: DonnéesPage
+        indirection: DonnéesPage;
     }
 
-    données_page: Indirection
+    données_page: Indirection;
 
-    chn := rends_page(*rendeuse_page, "base", données_page)
+    chn := rends_page(*rendeuse_page, "base", données_page);
 
-    imprime("résultat :\n%\n", chn)
-    déloge(chn)
+    imprime("résultat :\n%\n", chn);
+    déloge(chn);
 
-    chn = rends_page(*rendeuse_page, "corps", données_page)
+    chn = rends_page(*rendeuse_page, "corps", données_page);
 
-    imprime("résultat :\n%\n", chn)
-    déloge(chn)
+    imprime("résultat :\n%\n", chn);
+    déloge(chn);
 }

@@ -51,354 +51,354 @@
 //
 // Les arguments sont parsés jusqu'à la première apparation d'un "--" seul.
 
-importe Chaine
-importe Fondation
-importe Introspection
-importe Unicode
+importe Chaine;
+importe Fondation;
+importe Introspection;
+importe Unicode;
 
 ValeurEstRenseignée :: struct ($T: type_de_données) #corps_texte {
     // #assert info_de(T).id == GenreInfoType.STRUCTURE
 
-    enchaineuse: Enchaineuse
-    initialise_enchaineuse(*enchaineuse)
+    enchaineuse: Enchaineuse;
+    initialise_enchaineuse(*enchaineuse);
 
-    infos := info_de(T)
+    infos := info_de(T);
     pour infos.rubriques {
         si it.drapeaux.EST_CONSTANTE || it.drapeaux.EST_IMPLICITE {
-            continue
+            continue;
         }
 
-        ajoute_au_tampon(*enchaineuse, it.nom, ": bool\n")
+        ajoute_au_tampon(*enchaineuse, it.nom, ": bool\n");
     }
 
-    retourne chaine_depuis_enchaineuse(*enchaineuse)
+    retourne chaine_depuis_enchaineuse(*enchaineuse);
 }
 
 toutes_les_valeurs_sont_renseignées :: fonc (valeurs: ValeurEstRenseignée($T)) -> bool
 #corps_texte {
-    enchaineuse: Enchaineuse
-    initialise_enchaineuse(*enchaineuse)
+    enchaineuse: Enchaineuse;
+    initialise_enchaineuse(*enchaineuse);
 
-    ajoute_au_tampon(*enchaineuse, "résultat := vrai\n")
+    ajoute_au_tampon(*enchaineuse, "résultat := vrai\n");
 
-    infos := info_de(T)
+    infos := info_de(T);
     pour infos.rubriques {
         si it.drapeaux.EST_CONSTANTE || it.drapeaux.EST_IMPLICITE {
-            continue
+            continue;
         }
 
-        ajoute_au_tampon(*enchaineuse, "résultat &&= valeurs.", it.nom, "\n")
+        ajoute_au_tampon(*enchaineuse, "résultat &&= valeurs.", it.nom, "\n");
     }
 
-    ajoute_au_tampon(*enchaineuse, "retourne résultat")
+    ajoute_au_tampon(*enchaineuse, "retourne résultat");
 
-    retourne chaine_depuis_enchaineuse(*enchaineuse)
+    retourne chaine_depuis_enchaineuse(*enchaineuse);
 }
 
 donne_nom_programme :: fonc () -> chaine
 {
-    args := arguments_ligne_commande()
-    retourne args[0]
+    args := arguments_ligne_commande();
+    retourne args[0];
 }
 
 parse_ligne_de_commande :: fonc ($T: type_de_données) -> (succès: bool, résultat: T, renseignées: ValeurEstRenseignée(T))
 {
-    #assert info_de(T).id == GenreInfoType.STRUCTURE
+    #assert info_de(T).id == GenreInfoType.STRUCTURE;
 
-    args := arguments_ligne_commande()
+    args := arguments_ligne_commande();
 
     /* Saute le nom du programme. */
-    _ := consomme(*args)
+    _ := consomme(*args);
 
-    retourne parse_ligne_de_commande(T, args)
+    retourne parse_ligne_de_commande(T, args);
 }
 
 parse_ligne_de_commande :: fonc ($T: type_de_données, args: []chaine) -> (succès: bool, résultat: T, renseignées: ValeurEstRenseignée(T))
 {
-    infos := info_de(T)
-    résultat = T()
-    valeurs_renseignées: ValeurEstRenseignée(T)
-    infos_renseignements := info_de(ValeurEstRenseignée(T))
+    infos := info_de(T);
+    résultat = T();
+    valeurs_renseignées: ValeurEstRenseignée(T);
+    infos_renseignements := info_de(ValeurEstRenseignée(T));
 
-    infos_arguments := donne_infos_arguments(T)
+    infos_arguments := donne_infos_arguments(T);
 
-    succès = vrai
+    succès = vrai;
 
     tantque args.taille != 0 {
-        arg := consomme(*args)
-        arg_orig := arg
+        arg := consomme(*args);
+        arg_orig := arg;
 
-        rubrique_pour_arg: *InfoTypeRubriqueStructure
-        arg_est_anonyme := faux
+        rubrique_pour_arg: *InfoTypeRubriqueStructure;
+        arg_est_anonyme := faux;
 
         si arg == "--" {
-            arrête
+            arrête;
         }
 
         si arg.commence_par("-") {
             si arg.commence_par("--") {
-                arg = avance(arg, 2)
+                arg = avance(arg, 2);
             }
             sinon {
-                arg = avance(arg, 1)
+                arg = avance(arg, 1);
             }
 
             pour infos_arguments {
                 si it.nom == arg {
-                    rubrique_pour_arg = infos.rubriques[it.indice_rubrique]
+                    rubrique_pour_arg = infos.rubriques[it.indice_rubrique];
                 }
             }
 
             si rubrique_pour_arg == nul && (arg == "aide" || arg == "a") {
-                rapporte_aide(infos)
-                exit(0)
+                rapporte_aide(infos);
+                exit(0);
             }
         }
         sinon {
-            rubrique_pour_arg = donne_rubrique_pour_argument_anonyme(infos, arg)
-            arg_est_anonyme = vrai
+            rubrique_pour_arg = donne_rubrique_pour_argument_anonyme(infos, arg);
+            arg_est_anonyme = vrai;
         }
 
         saufsi rubrique_pour_arg {
             si arg_est_anonyme {
-                imprimeln("Aucune rubrique anonyme pour recevoir la valeur '%'", arg)
+                imprimeln("Aucune rubrique anonyme pour recevoir la valeur '%'", arg);
             }
             sinon {
-                imprimeln("Argument '%' inconnu", arg_orig)
+                imprimeln("Argument '%' inconnu", arg_orig);
             }
-            succès = faux
-            arrête
+            succès = faux;
+            arrête;
         }
 
-        valeur_renseignée := eini_depuis_info_rubrique(valeurs_renseignées, trouve_info_rubrique(infos_renseignements, rubrique_pour_arg.nom))
+        valeur_renseignée := eini_depuis_info_rubrique(valeurs_renseignées, trouve_info_rubrique(infos_renseignements, rubrique_pour_arg.nom));
 
         // À FAIRE : tableaux, énums drapeaux, etc.
         si valeur_renseignée.comme_bool() {
-            imprimeln("Argument dupliqué pour '%'", rubrique_pour_arg.nom)
-            succès = faux
-            arrête
+            imprimeln("Argument dupliqué pour '%'", rubrique_pour_arg.nom);
+            succès = faux;
+            arrête;
         }
 
-        valeur_pour_arg: chaine
+        valeur_pour_arg: chaine;
         si arg_est_anonyme {
-            valeur_pour_arg = arg
+            valeur_pour_arg = arg;
         }
         sinon {
             si args.taille == 0 {
                 si rubrique_pour_arg.id.id != GenreInfoType.BOOLÉEN {
-                    imprimeln("Argument manquant après '%'", arg_orig)
-                    succès = faux
-                    arrête
+                    imprimeln("Argument manquant après '%'", arg_orig);
+                    succès = faux;
+                    arrête;
                 }
 
-                valeur_pour_arg = "vrai"
+                valeur_pour_arg = "vrai";
             }
             sinon {
-                argument_suivant := args[0]
+                argument_suivant := args[0];
                 si rubrique_pour_arg.id.id == GenreInfoType.BOOLÉEN {
                     si argument_suivant == "vrai" || argument_suivant == "faux" {
-                        valeur_pour_arg = consomme(*args)
+                        valeur_pour_arg = consomme(*args);
                     }
                     sinon {
-                        valeur_pour_arg = "vrai"
+                        valeur_pour_arg = "vrai";
                     }
                 }
                 sinon {
-                    valeur_pour_arg = consomme(*args)
+                    valeur_pour_arg = consomme(*args);
                 }
             }
         }
 
-        valeur_rubrique := eini_depuis_info_rubrique(résultat, rubrique_pour_arg)
+        valeur_rubrique := eini_depuis_info_rubrique(résultat, rubrique_pour_arg);
         saufsi parse_valeur(valeur_pour_arg, valeur_rubrique) {
-            imprimeln("Impossible de parser la valeur de '%', la valeur est '%'", arg_orig, valeur_pour_arg)
-            succès = faux
-            arrête
+            imprimeln("Impossible de parser la valeur de '%', la valeur est '%'", arg_orig, valeur_pour_arg);
+            succès = faux;
+            arrête;
         }
 
-        valeur_renseignée.assigne_bool(vrai)
+        valeur_renseignée.assigne_bool(vrai);
     }
 
-    retourne succès, résultat, valeurs_renseignées
+    retourne succès, résultat, valeurs_renseignées;
 }
 
 imprime_infos_arguments :: fonc ($T: type_de_données)
 {
-    infos := info_de(T)
+    infos := info_de(T);
 
-    imprimeln("------------------------")
-    imprimeln("%", infos.nom)
+    imprimeln("------------------------");
+    imprimeln("%", infos.nom);
 
-    infos_arguments := donne_infos_arguments(T)
+    infos_arguments := donne_infos_arguments(T);
     
     pour infos_arguments {
-        imprimeln("% : %", it.indice_rubrique, it.nom)
+        imprimeln("% : %", it.indice_rubrique, it.nom);
     }
 }
 
 parse_argument_chemin :: fonc () -> chaine
 {
-    résultat: chaine
+    résultat: chaine;
 
-    arguments := arguments_ligne_commande()
+    arguments := arguments_ligne_commande();
     si arguments.taille == 2 {
-        résultat = arguments[1]
+        résultat = arguments[1];
     }
     sinon {
-        imprime("Utilisation : % CHEMIN\n", arguments[0])
+        imprime("Utilisation : % CHEMIN\n", arguments[0]);
     }
 
-    retourne résultat
+    retourne résultat;
 }
 
 #portée_fichier
 
 donne_rubrique_pour_argument_anonyme :: fonc (infos: *InfoTypeStructure, arg: chaine) -> *InfoTypeRubriqueStructure
 {
-    résultat: *InfoTypeRubriqueStructure
+    résultat: *InfoTypeRubriqueStructure;
     pour infos.rubriques {
         saufsi it.possède_annotation("anonyme") {
-            continue
+            continue;
         }
 
         si résultat {
-            imprimeln("Plusieurs rubriques anonymes détectées pour la valeur '%' !", arg)
-            résultat = nul
-            arrête
+            imprimeln("Plusieurs rubriques anonymes détectées pour la valeur '%' !", arg);
+            résultat = nul;
+            arrête;
         }
 
-        résultat = it
+        résultat = it;
     }
-    retourne résultat
+    retourne résultat;
 }
 
 rapporte_aide :: fonc (infos: *InfoTypeStructure)
 {
     pour infos.rubriques {
         si it.drapeaux.EST_CONSTANTE || it.drapeaux.EST_IMPLICITE {
-            continue
+            continue;
         }
 
-        texte_annotation: chaine
-        annotation := trouve_annotation(it, "Aide")
+        texte_annotation: chaine;
+        annotation := trouve_annotation(it, "Aide");
         si annotation {
-            texte_annotation = annotation.valeur
+            texte_annotation = annotation.valeur;
         }
 
         // À FAIRE : casse kébab
         // À FAIRE : détecte et imprime la valeur par défaut de l'argument
-        imprimeln("    --%    %", it.nom, texte_annotation)
+        imprimeln("    --%    %", it.nom, texte_annotation);
     }
 }
 
 InfoArgument :: struct {
-    nom: chaine
-    indice_rubrique: z64
+    nom: chaine;
+    indice_rubrique: z64;
 }
 
 donne_infos_arguments :: fonc ($T: type_de_données) -> []InfoArgument
 #corps_texte {
-    enchaineuse: Enchaineuse
-    initialise_enchaineuse(*enchaineuse)
+    enchaineuse: Enchaineuse;
+    initialise_enchaineuse(*enchaineuse);
 
-    infos := info_de(T)
+    infos := info_de(T);
 
-    infos_arguments: [..]InfoArgument
-    diffère déloge(infos_arguments)
+    infos_arguments: [..]InfoArgument;
+    diffère déloge(infos_arguments);
 
-    nouvelles_chaines: [..]chaine
-    diffère déloge_tableau_et_ses_éléments(nouvelles_chaines)
+    nouvelles_chaines: [..]chaine;
+    diffère déloge_tableau_et_ses_éléments(nouvelles_chaines);
 
     indices_rubriques_pour_lettre: [..]struct { point_de_code: n32; compte: n32; indice_rubrique: z64 }
-    diffère déloge(indices_rubriques_pour_lettre)
+    diffère déloge(indices_rubriques_pour_lettre);
 
     pour infos.rubriques {
         si it.drapeaux.EST_CONSTANTE || it.drapeaux.EST_IMPLICITE {
-            continue
+            continue;
         }
 
-        nom_rubrique := donne_nom_pour_argument(it)
+        nom_rubrique := donne_nom_pour_argument(it);
         si nom_rubrique.taille == 0 {
-            continue
+            continue;
         }
 
-        nom_kébab := donne_chaine_casse_kebab_depuis_casse_serpent(nom_rubrique)
-        tableau_ajoute(*nouvelles_chaines, nom_kébab)
+        nom_kébab := donne_chaine_casse_kebab_depuis_casse_serpent(nom_rubrique);
+        tableau_ajoute(*nouvelles_chaines, nom_kébab);
 
-        info_argument := tableau_ajoute_élément(*infos_arguments)
-        info_argument.nom = nom_kébab
-        info_argument.indice_rubrique = indice_it
+        info_argument := tableau_ajoute_élément(*infos_arguments);
+        info_argument.nom = nom_kébab;
+        info_argument.indice_rubrique = indice_it;
 
         si nom_kébab != nom_rubrique {
-            info_argument = tableau_ajoute_élément(*infos_arguments)
-            info_argument.nom = nom_rubrique
-            info_argument.indice_rubrique = indice_it
+            info_argument = tableau_ajoute_élément(*infos_arguments);
+            info_argument.nom = nom_rubrique;
+            info_argument.indice_rubrique = indice_it;
         }
 
         si nom_rubrique.taille != 1 {
-            première_rune := convertis_utf8_utf32(nom_rubrique.pointeur) comme n32
+            première_rune := convertis_utf8_utf32(nom_rubrique.pointeur) comme n32;
 
             pour * indice dans indices_rubriques_pour_lettre {
                 si indice.point_de_code == première_rune {
-                    indice.compte += 1
-                    arrête
+                    indice.compte += 1;
+                    arrête;
                 }
             }
             sansarrêt {
-                indice := tableau_ajoute_élément(*indices_rubriques_pour_lettre)
-                indice.compte = 1
-                indice.point_de_code = première_rune
-                indice.indice_rubrique = indice_it
+                indice := tableau_ajoute_élément(*indices_rubriques_pour_lettre);
+                indice.compte = 1;
+                indice.point_de_code = première_rune;
+                indice.indice_rubrique = indice_it;
             }
         }
     }
 
     pour indices_rubriques_pour_lettre {
         si it.compte == 1 {
-            tampon_texte_rune: [6]n8
-            nombre_de_caractères := point_de_code_vers_utf8(it.point_de_code, *tampon_texte_rune[0])
-            texte_rune := chaine(*tampon_texte_rune[0] comme *z8, nombre_de_caractères)
-            texte_rune = copie_chaine(texte_rune)
-            tableau_ajoute(*nouvelles_chaines, texte_rune)
+            tampon_texte_rune: [6]n8;
+            nombre_de_caractères := point_de_code_vers_utf8(it.point_de_code, *tampon_texte_rune[0]);
+            texte_rune := chaine(*tampon_texte_rune[0] comme *z8, nombre_de_caractères);
+            texte_rune = copie_chaine(texte_rune);
+            tableau_ajoute(*nouvelles_chaines, texte_rune);
 
-            info_argument := tableau_ajoute_élément(*infos_arguments)
-            info_argument.nom = texte_rune
-            info_argument.indice_rubrique = it.indice_rubrique
+            info_argument := tableau_ajoute_élément(*infos_arguments);
+            info_argument.nom = texte_rune;
+            info_argument.indice_rubrique = it.indice_rubrique;
         }
     }
 
     si infos_arguments.taille == 0 {
-        ajoute_au_tampon(*enchaineuse, "résultat: []InfoArgument\n")
+        ajoute_au_tampon(*enchaineuse, "résultat: []InfoArgument\n");
     }
     sinon {
-        imprime_dans_enchaineuse(*enchaineuse, "résultat: [%]InfoArgument #parséante\n", infos_arguments.taille)
+        imprime_dans_enchaineuse(*enchaineuse, "résultat: [%]InfoArgument #parséante\n", infos_arguments.taille);
 
         pour infos_arguments {
-            imprime_dans_enchaineuse(*enchaineuse, "résultat[%].nom = \"%\"\n", indice_it, it.nom)
-            imprime_dans_enchaineuse(*enchaineuse, "résultat[%].indice_rubrique = %\n", indice_it, it.indice_rubrique)
+            imprime_dans_enchaineuse(*enchaineuse, "résultat[%].nom = \"%\"\n", indice_it, it.nom);
+            imprime_dans_enchaineuse(*enchaineuse, "résultat[%].indice_rubrique = %\n", indice_it, it.indice_rubrique);
         }
     }
 
-    ajoute_au_tampon(*enchaineuse, "retourne résultat")
+    ajoute_au_tampon(*enchaineuse, "retourne résultat");
 
-    résultat := chaine_depuis_enchaineuse(*enchaineuse)
-    retourne résultat
+    résultat := chaine_depuis_enchaineuse(*enchaineuse);
+    retourne résultat;
 }
 
 donne_nom_pour_argument :: fonc (info: *InfoTypeRubriqueStructure) -> chaine
 {
-    résultat := info.nom
+    résultat := info.nom;
 
-    annotation := trouve_annotation(info, "NomArgument")
+    annotation := trouve_annotation(info, "NomArgument");
     si annotation && annotation.valeur {
-        résultat = annotation.valeur
+        résultat = annotation.valeur;
     }
 
     si résultat[0] == '_' {
-        résultat = avance(résultat, 1)
+        résultat = avance(résultat, 1);
     }
 
-    retourne résultat
+    retourne résultat;
 }
 
 /* ------------------------------------------------------------------------- */
@@ -409,17 +409,17 @@ donne_nom_pour_argument :: fonc (info: *InfoTypeRubriqueStructure) -> chaine
 
 consomme :: fonc (tableau: *[]$T) -> T
 {
-    résultat := tableau.pointeur[0]
-    tableau.pointeur += 1
-    tableau.taille -= 1
-    retourne résultat
+    résultat := tableau.pointeur[0];
+    tableau.pointeur += 1;
+    tableau.taille -= 1;
+    retourne résultat;
 }
 
 donne_chaine_casse_kebab_depuis_casse_serpent :: fonc (texte: chaine) -> chaine
 {
-    résultat := copie_chaine(texte)
-    remplace_sans_copie(*résultat, '_', '-')
-    retourne résultat
+    résultat := copie_chaine(texte);
+    remplace_sans_copie(*résultat, '_', '-');
+    retourne résultat;
 }
 
 /** \} */

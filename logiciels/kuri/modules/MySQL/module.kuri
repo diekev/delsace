@@ -1,653 +1,653 @@
-importe Chaine
-importe Fondation
-importe Internet
-importe Introspection
-importe JSON
+importe Chaine;
+importe Fondation;
+importe Internet;
+importe Introspection;
+importe JSON;
 
-charge "mysql"
+charge "mysql";
 
 ConfigurationMySQL :: struct {
-    hôte: AdresseIP
-    utilisateur: chaine
-    mot_de_passe: chaine
-    base_de_données: chaine
+    hôte: AdresseIP;
+    utilisateur: chaine;
+    mot_de_passe: chaine;
+    base_de_données: chaine;
 }
 
 ErreurPiloteMySQL :: erreur {
-    XXX
+    XXX;
 }
 
 PiloteMySQL :: struct {
-    config: ConfigurationMySQL
+    config: ConfigurationMySQL;
 }
 
 détruit_pilote :: fonc (pilote: *PiloteMySQL, détruit_config: bool)
 {
     si détruit_config {
-        déloge(pilote.config.utilisateur)
-        déloge(pilote.config.mot_de_passe)
-        déloge(pilote.config.base_de_données)
+        déloge(pilote.config.utilisateur);
+        déloge(pilote.config.mot_de_passe);
+        déloge(pilote.config.base_de_données);
     }
 }
 
 ConnexionMySQL :: struct {
-    mysql: MYSQL
+    mysql: MYSQL;
 }
 
 ferme_connexion :: fonc (connexion: *ConnexionMySQL) -> rien
 {
-    mysql_close(*connexion.mysql)
+    mysql_close(*connexion.mysql);
 }
 
 ErreurConnexionMySQL :: erreur {
-    MémoireInsuffisante
-    MauvaiseConnexion
+    MémoireInsuffisante;
+    MauvaiseConnexion;
 }
 
 RésultatConnexionMySQL :: union {
-    e: ErreurConnexionMySQL
-    c: ConnexionMySQL
+    e: ErreurConnexionMySQL;
+    c: ConnexionMySQL;
 }
 
 crée_pilote_mysql :: fonc (fichier_config: chaine) -> PiloteMySQL | ErreurPiloteMySQL
 {
-    succès, config := parse_struct_depuis_fichier_json(fichier_config, ConfigurationMySQL)
+    succès, config := parse_struct_depuis_fichier_json(fichier_config, ConfigurationMySQL);
 
     si !succès {
-        imprime_log("[MySQL]", "impossible de parser la configuration\n")
-        retourne ErreurPiloteMySQL.XXX
+        imprime_log("[MySQL]", "impossible de parser la configuration\n");
+        retourne ErreurPiloteMySQL.XXX;
     }
 
-    pilote: PiloteMySQL
-    pilote.config = config
+    pilote: PiloteMySQL;
+    pilote.config = config;
 
-    retourne pilote
+    retourne pilote;
 }
 
 /* Retourne les noms des tables dans la base de données du pilote. */
 requiers_tables_mysql :: fonc (pilote: *PiloteMySQL) -> [..]chaine
 {
-    résultat: [..]chaine
+    résultat: [..]chaine;
 
     connexion := tente crée_connexion(pilote) piège err {
-        retourne résultat
+        retourne résultat;
     }
 
-    diffère ferme_connexion(*connexion)
+    diffère ferme_connexion(*connexion);
 
-    curseur := exécute(*connexion, "SHOW TABLES")
+    curseur := exécute(*connexion, "SHOW TABLES");
 
     tantque ligne_suivante(*curseur) != nul {
         pour i dans 0 ... curseur.nombre_colonne - 1 {
-            chn := colonne_suivante(*curseur)
-            tableau_ajoute(*résultat, chn)
+            chn := colonne_suivante(*curseur);
+            tableau_ajoute(*résultat, chn);
         }
     }
 
-    retourne résultat
+    retourne résultat;
 }
 
 crée_connexion :: fonc (pilote: *PiloteMySQL) -> RésultatConnexionMySQL
 {
-    mysql: MYSQL
-    handler := mysql_init(*mysql)
+    mysql: MYSQL;
+    handler := mysql_init(*mysql);
 
-    utf8 := crée_chaine_c("utf8")
-    diffère détruit_chaine_c(utf8)
-    _ := mysql_set_character_set(*mysql, utf8)
+    utf8 := crée_chaine_c("utf8");
+    diffère détruit_chaine_c(utf8);
+    _ := mysql_set_character_set(*mysql, utf8);
 
     // handler ne peut être nul que si le paramètre passé à mysql_init est nul, auquel cas une allocation aura lieu
     si handler == nul {
-        imprime_log("[MySQL]", "impossible d'allouer de la mémoire pour l'initialisation de MySQL !\n")
-        retourne ErreurConnexionMySQL.MémoireInsuffisante
+        imprime_log("[MySQL]", "impossible d'allouer de la mémoire pour l'initialisation de MySQL !\n");
+        retourne ErreurConnexionMySQL.MémoireInsuffisante;
     }
 
-    marque := donne_marque_stockage_temporaire()
-    diffère définis_marque_stockage_temporaire(marque)
+    marque := donne_marque_stockage_temporaire();
+    diffère définis_marque_stockage_temporaire(marque);
 
-    chaine_ip := chaine_depuis_ip(pilote.config.hôte)
-    diffère déloge(chaine_ip)
-    hôte := crée_chaine_c(chaine_ip)
-    diffère détruit_chaine_c(hôte)
-    utilisateur := crée_chaine_c(pilote.config.utilisateur)
-    diffère détruit_chaine_c(utilisateur)
-    mot_de_passe := crée_chaine_c(pilote.config.mot_de_passe)
-    diffère détruit_chaine_c(mot_de_passe)
-    base_de_données := crée_chaine_c(pilote.config.base_de_données)
-    diffère détruit_chaine_c(base_de_données)
+    chaine_ip := chaine_depuis_ip(pilote.config.hôte);
+    diffère déloge(chaine_ip);
+    hôte := crée_chaine_c(chaine_ip);
+    diffère détruit_chaine_c(hôte);
+    utilisateur := crée_chaine_c(pilote.config.utilisateur);
+    diffère détruit_chaine_c(utilisateur);
+    mot_de_passe := crée_chaine_c(pilote.config.mot_de_passe);
+    diffère détruit_chaine_c(mot_de_passe);
+    base_de_données := crée_chaine_c(pilote.config.base_de_données);
+    diffère détruit_chaine_c(base_de_données);
 
-    CLIENT_MULTI_STATEMENTS : n64 : 0x00010000
-    CLIENT_MULTI_RESULTS : n64 : 0x00020000
-    c := mysql_real_connect(*mysql, hôte, utilisateur, mot_de_passe, base_de_données, 0, nul, CLIENT_MULTI_RESULTS | CLIENT_MULTI_STATEMENTS)
+    CLIENT_MULTI_STATEMENTS : n64 : 0x00010000;
+    CLIENT_MULTI_RESULTS : n64 : 0x00020000;
+    c := mysql_real_connect(*mysql, hôte, utilisateur, mot_de_passe, base_de_données, 0, nul, CLIENT_MULTI_RESULTS | CLIENT_MULTI_STATEMENTS);
 
     si c == nul {
-        e := mysql_error(*mysql)
-        chn := convertis_chaine_c(e)
-        imprime_log("[MySQL]", "erreur lors de la connexion : %\n", chn)
-        retourne ErreurConnexionMySQL.MauvaiseConnexion
+        e := mysql_error(*mysql);
+        chn := convertis_chaine_c(e);
+        imprime_log("[MySQL]", "erreur lors de la connexion : %\n", chn);
+        retourne ErreurConnexionMySQL.MauvaiseConnexion;
     }
 
-    connexion: ConnexionMySQL
-    connexion.mysql = mysql
+    connexion: ConnexionMySQL;
+    connexion.mysql = mysql;
 
-    retourne connexion
+    retourne connexion;
 }
 
 CurseurRésultat :: struct {
-    résultat: *MYSQL_RES
+    résultat: *MYSQL_RES;
 
-    longueurs: *n64
-    ligne: **z8
+    longueurs: *n64;
+    ligne: **z8;
 
-    nombre_résultat: n64
-    nombre_colonne: n32
-    indice_colonne: n32
+    nombre_résultat: n64;
+    nombre_colonne: n32;
+    indice_colonne: n32;
 }
 
 détruit_curseur :: fonc (curseur: *CurseurRésultat) -> rien
 {
-    mysql_free_result(curseur.résultat)
+    mysql_free_result(curseur.résultat);
 }
 
 RésultatRequête :: struct {
-    curseurs: [..]CurseurRésultat
+    curseurs: [..]CurseurRésultat;
 }
 
 ajoute_curseur :: fonc (résultat: &RésultatRequête, curseur: CurseurRésultat)
 {
-    tableau_ajoute(*résultat.curseurs, curseur)
+    tableau_ajoute(*résultat.curseurs, curseur);
 }
 
 // Nous faisons ceci pour avoir une synchronisation entre le nombre d'instructions
 // dans une requête et le contenu du résultat
 ajoute_curseur_vide :: fonc (résultat: &RésultatRequête)
 {
-    curseur: CurseurRésultat
-    ajoute_curseur(résultat, curseur)
+    curseur: CurseurRésultat;
+    ajoute_curseur(résultat, curseur);
 }
 
 détruit_résultat :: fonc (résultat: &RésultatRequête) -> rien
 {
     pour * résultat.curseurs {
-        détruit_curseur(it)
+        détruit_curseur(it);
     }
 
-    déloge(résultat.curseurs)
+    déloge(résultat.curseurs);
 }
 
 ErreurCurseur :: erreur {
-    XXX
+    XXX;
 }
 
 CurseurOuErreur :: union {
-    e: ErreurCurseur
-    c: RésultatRequête
+    e: ErreurCurseur;
+    c: RésultatRequête;
 }
 
 exécute :: fonc (connexion: *ConnexionMySQL, chaine_requête: chaine) -> CurseurOuErreur
 {
-    requête := crée_chaine_c(chaine_requête)
-    diffère détruit_chaine_c(requête)
-    succès := mysql_query(*connexion.mysql, requête)
+    requête := crée_chaine_c(chaine_requête);
+    diffère détruit_chaine_c(requête);
+    succès := mysql_query(*connexion.mysql, requête);
 
-    imprime_log("[MySQL]", "exécution de la requête : %\n", chaine_requête)
+    imprime_log("[MySQL]", "exécution de la requête : %\n", chaine_requête);
 
     si succès != 0 {
-        log_erreur(*connexion.mysql, "Une erreur est survenue lors de la requête")
-        retourne ErreurCurseur.XXX
+        log_erreur(*connexion.mysql, "Une erreur est survenue lors de la requête");
+        retourne ErreurCurseur.XXX;
     }
 
-    résultat: RésultatRequête
+    résultat: RésultatRequête;
 
     // Trouve tous les résultats de la requête.
     // Nous utilisons une boucle répète...tantque pour tenir compte de la possibilité
     // d'avoir des requêtes multiples.
-    status := 0
+    status := 0;
     répète {
         /* vérifie si l'instruction courante retourna des données */
-        résultat_mysql := mysql_store_result(*connexion.mysql)
+        résultat_mysql := mysql_store_result(*connexion.mysql);
 
         si résultat_mysql {
-            curseur: CurseurRésultat
-            curseur.résultat = résultat_mysql
-            curseur.nombre_colonne = mysql_num_fields(résultat_mysql)
-            curseur.nombre_résultat = mysql_num_rows(résultat_mysql)
+            curseur: CurseurRésultat;
+            curseur.résultat = résultat_mysql;
+            curseur.nombre_colonne = mysql_num_fields(résultat_mysql);
+            curseur.nombre_résultat = mysql_num_rows(résultat_mysql);
 
-            résultat.ajoute_curseur(curseur)
+            résultat.ajoute_curseur(curseur);
         }
         sinon {
             si mysql_field_count(*connexion.mysql) == 0 {
                 // mysql_affected_rows(*connexion.mysql)
-                résultat.ajoute_curseur_vide()
+                résultat.ajoute_curseur_vide();
             }
             sinon {
-                log_erreur(*connexion.mysql, "Impossible de récupérer l'ensemble de résultat")
-                détruit_résultat(résultat)
-                retourne ErreurCurseur.XXX
+                log_erreur(*connexion.mysql, "Impossible de récupérer l'ensemble de résultat");
+                détruit_résultat(résultat);
+                retourne ErreurCurseur.XXX;
             }
         }
 
         /* plus de résultats ? -1 = non, >0 = erreur, 0 = oui */
-        status = mysql_next_result(*connexion.mysql)
+        status = mysql_next_result(*connexion.mysql);
 
         si status > 0 {
-            log_erreur(*connexion.mysql, "Impossible d'exécuter l'instruction")
-            détruit_résultat(résultat)
-            retourne ErreurCurseur.XXX
+            log_erreur(*connexion.mysql, "Impossible d'exécuter l'instruction");
+            détruit_résultat(résultat);
+            retourne ErreurCurseur.XXX;
         }
-    } tantque status == 0
+    } tantque status == 0;
 
-    retourne résultat
+    retourne résultat;
 }
 
 log_erreur :: fonc (mysql: *MYSQL, message: chaine)
 {
-    e := mysql_error(mysql)
+    e := mysql_error(mysql);
 
     si (e comme *z8) != nul {
-        chn := convertis_chaine_c(e)
-        imprime_log("[MySQL]", "% : % !\n", message, chn)
+        chn := convertis_chaine_c(e);
+        imprime_log("[MySQL]", "% : % !\n", message, chn);
     }
     sinon {
-        imprime_log("[MySQL]", "% !\n", message)
+        imprime_log("[MySQL]", "% !\n", message);
     }
 }
 
 ligne_suivante :: fonc (curseur: *CurseurRésultat) -> **z8
 {
     si curseur.résultat == nul {
-        retourne nul
+        retourne nul;
     }
 
-    ligne := mysql_fetch_row(curseur.résultat)
+    ligne := mysql_fetch_row(curseur.résultat);
 
-    curseur.indice_colonne = 0
-    curseur.ligne = ligne
-    curseur.longueurs = mysql_fetch_lengths(curseur.résultat)
+    curseur.indice_colonne = 0;
+    curseur.ligne = ligne;
+    curseur.longueurs = mysql_fetch_lengths(curseur.résultat);
 
-    retourne ligne
+    retourne ligne;
 }
 
 colonne_suivante :: fonc (curseur: *CurseurRésultat) -> chaine
 {
-    chn := chaine(curseur.ligne[curseur.indice_colonne], curseur.longueurs[curseur.indice_colonne] comme z64)
-    curseur.indice_colonne += 1
-    retourne chn
+    chn := chaine(curseur.ligne[curseur.indice_colonne], curseur.longueurs[curseur.indice_colonne] comme z64);
+    curseur.indice_colonne += 1;
+    retourne chn;
 }
 
 accède_table :: fonc (pilote: *PiloteMySQL, nom: chaine) -> TableMySQL
 {
-    table: TableMySQL
-    table.nom = nom
-    table.pilote = pilote
-    retourne table
+    table: TableMySQL;
+    table.nom = nom;
+    table.pilote = pilote;
+    retourne table;
 }
 
 TableMySQL :: struct {
-    nom: chaine
-    pilote: *PiloteMySQL
+    nom: chaine;
+    pilote: *PiloteMySQL;
 }
 
 trouve_info_rubriques_pour_colonnes :: fonc (agent: chaine @inutilisée, info: *InfoTypeStructure, colonnes: ...chaine) -> [..]*InfoTypeRubriqueStructure
 {
-    infos_rubriques: [..]*InfoTypeRubriqueStructure
+    infos_rubriques: [..]*InfoTypeRubriqueStructure;
 
     /* vérifie que le type possède les noms des colonnes */
     pour colonnes {
         pour rubrique dans info.rubriques {
             si rubrique.nom == it {
-                tableau_ajoute(*infos_rubriques, rubrique)
-                arrête
+                tableau_ajoute(*infos_rubriques, rubrique);
+                arrête;
             }
         }
         sansarrêt {
-            déloge(infos_rubriques)
-            panique("Colonne '%' introuvable dans le type !", it)
+            déloge(infos_rubriques);
+            panique("Colonne '%' introuvable dans le type !", it);
         }
     }
 
-    retourne infos_rubriques
+    retourne infos_rubriques;
 }
 
 sélectionne :: fonc (table: &TableMySQL, $T: type_de_données, colonnes: ...chaine) -> [..]T
 {
-    #assert info_de(T).id == GenreInfoType.STRUCTURE
+    #assert info_de(T).id == GenreInfoType.STRUCTURE;
 
-    résultat: [..]T
-    info := info_de(T)
+    résultat: [..]T;
+    info := info_de(T);
 
     // À FAIRE : vérifie que la table possède les noms des colonnes
 
-    infos_rubriques := trouve_info_rubriques_pour_colonnes("[MySQL.sélection]", info, ...colonnes)
+    infos_rubriques := trouve_info_rubriques_pour_colonnes("[MySQL.sélection]", info, ...colonnes);
 
     saufsi infos_rubriques {
-        imprime_log("[MySQL]", "colonne(s) manquante(s) pour la sélection\n")
-        retourne résultat
+        imprime_log("[MySQL]", "colonne(s) manquante(s) pour la sélection\n");
+        retourne résultat;
     }
 
-    diffère déloge(infos_rubriques)
+    diffère déloge(infos_rubriques);
 
     /* construit la chaine de la requête */
-    enchaineuse: Enchaineuse
-    initialise_enchaineuse(*enchaineuse)
+    enchaineuse: Enchaineuse;
+    initialise_enchaineuse(*enchaineuse);
 
-    ajoute_au_tampon(*enchaineuse, "SELECT ")
+    ajoute_au_tampon(*enchaineuse, "SELECT ");
 
-    virgule := ""
+    virgule := "";
     pour colonnes {
-        ajoute_au_tampon(*enchaineuse, virgule, it)
-        virgule = ", "
+        ajoute_au_tampon(*enchaineuse, virgule, it);
+        virgule = ", ";
     }
 
-    ajoute_au_tampon(*enchaineuse, " FROM ", table.nom, "")
+    ajoute_au_tampon(*enchaineuse, " FROM ", table.nom, "");
 
-    requête := chaine_depuis_enchaineuse(*enchaineuse)
-    diffère déloge(requête)
+    requête := chaine_depuis_enchaineuse(*enchaineuse);
+    diffère déloge(requête);
 
     /* tente de nous connecté à la base de données */
     connexion := tente crée_connexion(table.pilote) piège err {
-        retourne résultat
+        retourne résultat;
     }
-    diffère ferme_connexion(*connexion)
+    diffère ferme_connexion(*connexion);
 
     /* exécute la requête et construit le résultat */
-    curseur := exécute(*connexion, requête)
-    diffère détruit_curseur(*curseur)
+    curseur := exécute(*connexion, requête);
+    diffère détruit_curseur(*curseur);
 
     si (curseur.nombre_colonne comme z64) != colonnes.taille {
-        retourne résultat
+        retourne résultat;
     }
 
     tantque ligne_suivante(*curseur) != nul {
-        valeur: T
+        valeur: T;
 
-        eini_valeur : eini = valeur
+        eini_valeur : eini = valeur;
 
         pour i dans 0 ... curseur.nombre_colonne - 1 {
-            rubrique := infos_rubriques[i]
+            rubrique := infos_rubriques[i];
 
-            valeur_rubrique : eini = ---
-            valeur_rubrique.pointeur = eini_valeur.pointeur + rubrique.décalage
-            valeur_rubrique.info = rubrique.id
+            valeur_rubrique : eini = ---;
+            valeur_rubrique.pointeur = eini_valeur.pointeur + rubrique.décalage;
+            valeur_rubrique.info = rubrique.id;
 
-            fonction := trouve_fonction_pour_type(table.fonctions_parsages_mysql, rubrique.id)
+            fonction := trouve_fonction_pour_type(table.fonctions_parsages_mysql, rubrique.id);
 
             saufsi fonction {
-                déloge(résultat)
-                retourne résultat
+                déloge(résultat);
+                retourne résultat;
             }
 
-            chn := colonne_suivante(*curseur)
+            chn := colonne_suivante(*curseur);
 
-            tampon: []octet
-            tampon.pointeur = valeur_rubrique.pointeur comme *z8
-            tampon.taille = rubrique.id.taille_en_octet comme z64
+            tampon: []octet;
+            tampon.pointeur = valeur_rubrique.pointeur comme *z8;
+            tampon.taille = rubrique.id.taille_en_octet comme z64;
 
             saufsi fonction.rappel(chn, tampon) {
-                déloge(résultat)
-                retourne résultat
+                déloge(résultat);
+                retourne résultat;
             }
         }
 
-        tableau_ajoute(*résultat, valeur)
+        tableau_ajoute(*résultat, valeur);
     }
 
-    retourne résultat
+    retourne résultat;
 }
 
 insère :: fonc (table: &TableMySQL, valeur: $T, colonnes: ...chaine) -> bool
 {
-    #assert info_de(T).id == GenreInfoType.STRUCTURE
+    #assert info_de(T).id == GenreInfoType.STRUCTURE;
 
-    info := info_de(T)
+    info := info_de(T);
 
     // À FAIRE : vérifie que la table possède les noms des colonnes
 
-    infos_rubriques := trouve_info_rubriques_pour_colonnes("[MySQL.sélection]", info, ...colonnes)
+    infos_rubriques := trouve_info_rubriques_pour_colonnes("[MySQL.sélection]", info, ...colonnes);
 
     saufsi infos_rubriques {
-        imprime_log("[MySQL]", "colonne(s) manquante(s) pour la sélection\n")
-        retourne faux
+        imprime_log("[MySQL]", "colonne(s) manquante(s) pour la sélection\n");
+        retourne faux;
     }
 
-    diffère déloge(infos_rubriques)
+    diffère déloge(infos_rubriques);
 
-    enchaineuse: Enchaineuse
-    initialise_enchaineuse(*enchaineuse)
+    enchaineuse: Enchaineuse;
+    initialise_enchaineuse(*enchaineuse);
 
-    ajoute_au_tampon(*enchaineuse, "INSERT INTO ", table.nom)
+    ajoute_au_tampon(*enchaineuse, "INSERT INTO ", table.nom);
 
-    virgule := " ("
+    virgule := " (";
     pour colonnes {
-        ajoute_au_tampon(*enchaineuse, virgule, it)
-        virgule = ", "
+        ajoute_au_tampon(*enchaineuse, virgule, it);
+        virgule = ", ";
     }
 
-    ajoute_au_tampon(*enchaineuse, ") VALUES ")
+    ajoute_au_tampon(*enchaineuse, ") VALUES ");
 
-    virgule = " ("
+    virgule = " (";
     pour rubrique dans infos_rubriques {
-        valeur_rubrique : eini = ---
-        valeur_rubrique.pointeur = *valeur comme *z8 + rubrique.décalage
-        valeur_rubrique.info = rubrique.id
+        valeur_rubrique : eini = ---;
+        valeur_rubrique.pointeur = *valeur comme *z8 + rubrique.décalage;
+        valeur_rubrique.info = rubrique.id;
 
-        ajoute_au_tampon(*enchaineuse, virgule)
-        imprime_valeur(*enchaineuse, valeur_rubrique, vrai)
-        virgule = ", "
+        ajoute_au_tampon(*enchaineuse, virgule);
+        imprime_valeur(*enchaineuse, valeur_rubrique, vrai);
+        virgule = ", ";
     }
 
-    ajoute_au_tampon(*enchaineuse, ")")
+    ajoute_au_tampon(*enchaineuse, ")");
 
-    requête := chaine_depuis_enchaineuse(*enchaineuse)
-    diffère déloge(requête)
+    requête := chaine_depuis_enchaineuse(*enchaineuse);
+    diffère déloge(requête);
 
     /* tente de nous connecté à la base de données */
     connexion := tente crée_connexion(table.pilote) piège _ {
-        retourne faux
+        retourne faux;
     }
-    diffère ferme_connexion(*connexion)
+    diffère ferme_connexion(*connexion);
 
     /* exécute la requête */
     curseur := tente exécute(*connexion, requête) piège _ {
-        retourne faux
+        retourne faux;
     }
-    diffère détruit_résultat(curseur)
+    diffère détruit_résultat(curseur);
 
-    retourne vrai
+    retourne vrai;
 }
 
 exécute :: fonc (pilote: *PiloteMySQL, requête: chaine, $T: type_de_données, colonnes: ...chaine) -> [..]T
 {
-    #assert info_de(T).id == GenreInfoType.STRUCTURE
+    #assert info_de(T).id == GenreInfoType.STRUCTURE;
 
-    info := info_de(T)
-    résultat: [..]T
+    info := info_de(T);
+    résultat: [..]T;
 
-    infos_rubriques := trouve_info_rubriques_pour_colonnes("[MySQL]", info, ...colonnes)
-    diffère déloge(infos_rubriques)
+    infos_rubriques := trouve_info_rubriques_pour_colonnes("[MySQL]", info, ...colonnes);
+    diffère déloge(infos_rubriques);
 
     /* tente de nous connecté à la base de données */
     connexion := tente crée_connexion(pilote) piège _ {
-        retourne résultat
+        retourne résultat;
     }
-    diffère ferme_connexion(*connexion)
+    diffère ferme_connexion(*connexion);
 
     curseurs := tente exécute(*connexion, requête) piège _ {
-        retourne résultat
+        retourne résultat;
     }
 
-    curseur := curseurs.curseurs[0]
+    curseur := curseurs.curseurs[0];
 
     si (curseur.nombre_colonne comme z64) != colonnes.taille {
-        retourne résultat
+        retourne résultat;
     }
 
     tantque ligne_suivante(*curseur) != nul {
-        valeur: T
+        valeur: T;
 
-        eini_valeur : eini = valeur
+        eini_valeur : eini = valeur;
 
         pour i dans 0 ... curseur.nombre_colonne - 1 {
-            rubrique := infos_rubriques[i]
+            rubrique := infos_rubriques[i];
 
-            valeur_rubrique : eini = ---
-            valeur_rubrique.pointeur = eini_valeur.pointeur + rubrique.décalage
-            valeur_rubrique.info = rubrique.id
+            valeur_rubrique : eini = ---;
+            valeur_rubrique.pointeur = eini_valeur.pointeur + rubrique.décalage;
+            valeur_rubrique.info = rubrique.id;
 
-            fonction := trouve_fonction_pour_type(fonctions_parsages_mysql, rubrique.id)
+            fonction := trouve_fonction_pour_type(fonctions_parsages_mysql, rubrique.id);
 
             saufsi fonction {
-                déloge(résultat)
-                retourne résultat
+                déloge(résultat);
+                retourne résultat;
             }
 
-            chn := colonne_suivante(*curseur)
+            chn := colonne_suivante(*curseur);
 
-            tampon: []octet
-            tampon.pointeur = valeur_rubrique.pointeur comme *z8
-            tampon.taille = rubrique.id.taille_en_octet comme z64
+            tampon: []octet;
+            tampon.pointeur = valeur_rubrique.pointeur comme *z8;
+            tampon.taille = rubrique.id.taille_en_octet comme z64;
 
             saufsi fonction.rappel(chn, tampon) {
-                déloge(résultat)
-                retourne résultat
+                déloge(résultat);
+                retourne résultat;
             }
         }
 
-        tableau_ajoute(*résultat, valeur)
+        tableau_ajoute(*résultat, valeur);
     }
 
-    retourne résultat
+    retourne résultat;
 }
 
-fonctions_parsages_mysql: [..]FonctionParsage
+fonctions_parsages_mysql: [..]FonctionParsage;
 
 parse_résultat :: fonc (curseur: *CurseurRésultat, $T: type_de_données, rubriques: ...chaine) -> Optionnel(T)
 {
-    #assert info_de(T).id == GenreInfoType.STRUCTURE
+    #assert info_de(T).id == GenreInfoType.STRUCTURE;
 
-    infos := info_de(T)
-    infos_rubriques := trouve_info_rubriques_pour_colonnes("", infos, ...rubriques)
+    infos := info_de(T);
+    infos_rubriques := trouve_info_rubriques_pour_colonnes("", infos, ...rubriques);
 
     saufsi infos_rubriques {
-        retourne
+        retourne;
     }
 
     si ligne_suivante(curseur) == nul {
-        retourne
+        retourne;
     }
 
-    valeur: T
+    valeur: T;
 
     saufsi parse_valeur(curseur, valeur, infos_rubriques) {
-        retourne
+        retourne;
     }
 
-    retourne valeur
+    retourne valeur;
 }
 
 parse_liste_résultat :: fonc (curseur: *CurseurRésultat, $T: type_de_données, rubriques: ...chaine) -> Optionnel([..]T)
 {
-    #assert info_de(T).id == GenreInfoType.STRUCTURE
+    #assert info_de(T).id == GenreInfoType.STRUCTURE;
 
-    infos := info_de(T)
-    infos_rubriques := trouve_info_rubriques_pour_colonnes("", infos, ...rubriques)
+    infos := info_de(T);
+    infos_rubriques := trouve_info_rubriques_pour_colonnes("", infos, ...rubriques);
 
     saufsi infos_rubriques {
-        retourne
+        retourne;
     }
 
     si ligne_suivante(curseur) == nul {
-        retourne
+        retourne;
     }
 
-    liste: [..]T
+    liste: [..]T;
 
     répète {
-        valeur: T
+        valeur: T;
 
         saufsi parse_valeur(curseur, valeur, infos_rubriques) {
-            déloge(liste)
-            retourne
+            déloge(liste);
+            retourne;
         }
 
-        tableau_ajoute(*liste, valeur)
-    } tantque ligne_suivante(curseur) != nul
+        tableau_ajoute(*liste, valeur);
+    } tantque ligne_suivante(curseur) != nul;
 
-    retourne liste
+    retourne liste;
 }
 
 parse_valeur :: fonc (curseur: *CurseurRésultat, valeur: eini, infos_rubriques: []*InfoTypeRubriqueStructure) -> bool
 {
     pour infos_rubriques {
-        rubrique := it
-        chn := colonne_suivante(curseur)
+        rubrique := it;
+        chn := colonne_suivante(curseur);
 
         /* La valeur peut être nulle (NULL) donc nous devons éviter de tenter de la parser,
          * ce qui ferait échouée le parsage de manière générale. */
         /* À FAIRE(MySQL) : gestion des NULL potentiels (p.e. en utilisant le type « Optionnel »). */
         si chn == "" {
-            continue
+            continue;
         }
 
-        fonction_de_parsage := trouve_fonction_pour_type(fonctions_parsages_mysql, rubrique.id)
+        fonction_de_parsage := trouve_fonction_pour_type(fonctions_parsages_mysql, rubrique.id);
 
         saufsi fonction_de_parsage {
-            retourne faux
+            retourne faux;
         }
 
-        valeur_rubrique := eini_depuis_info_rubrique(valeur, rubrique)
-        tampon := tampon_pour_eini(valeur_rubrique)
+        valeur_rubrique := eini_depuis_info_rubrique(valeur, rubrique);
+        tampon := tampon_pour_eini(valeur_rubrique);
 
         saufsi fonction_de_parsage.rappel(chn, tampon) {
-            retourne faux
+            retourne faux;
         }
     }
 
-    retourne vrai
+    retourne vrai;
 }
 
 // -------------------------------------------------------
 
 sélectionne_colonnes_depuis_table :: fonc (connexion: *ConnexionMySQL, nom_table: chaine, $TypeRésultat: type_de_données, colonnes: ...chaine) -> Optionnel([..]TypeRésultat)
 {
-    enchaineuse: Enchaineuse
-    initialise_enchaineuse(*enchaineuse)
+    enchaineuse: Enchaineuse;
+    initialise_enchaineuse(*enchaineuse);
 
-    ajoute_au_tampon(*enchaineuse, "SELECT ")
+    ajoute_au_tampon(*enchaineuse, "SELECT ");
 
-    virgule := " "
+    virgule := " ";
     pour colonnes {
-        ajoute_au_tampon(*enchaineuse, virgule, it)
-        virgule = ", "
+        ajoute_au_tampon(*enchaineuse, virgule, it);
+        virgule = ", ";
     }
 
-    ajoute_au_tampon(*enchaineuse, " FROM ", nom_table, ";")
+    ajoute_au_tampon(*enchaineuse, " FROM ", nom_table, ";");
 
-    requête := chaine_depuis_enchaineuse(*enchaineuse)
-    diffère déloge(requête)
+    requête := chaine_depuis_enchaineuse(*enchaineuse);
+    diffère déloge(requête);
 
     résultat_exécution := tente exécute(connexion, requête) piège _ {
-        retourne
+        retourne;
     }
-    diffère détruit_résultat(résultat_exécution)
+    diffère détruit_résultat(résultat_exécution);
 
     si résultat_exécution.curseurs.taille != 1 {
-        retourne
+        retourne;
     }
 
-    résultats := parse_liste_résultat(*résultat_exécution.curseurs[0], TypeRésultat, ...colonnes)
+    résultats := parse_liste_résultat(*résultat_exécution.curseurs[0], TypeRésultat, ...colonnes);
 
     discr résultats {
         Quelque(liste_de_résultat) {
             /* Nous devons copier les chaines. */
             pour & liste_de_résultat {
-                it = copie(it)
+                it = copie(it);
             }
 
-            retourne liste_de_résultat
+            retourne liste_de_résultat;
         }
         sinon {
-            retourne
+            retourne;
         }
     }
 }
@@ -655,25 +655,25 @@ sélectionne_colonnes_depuis_table :: fonc (connexion: *ConnexionMySQL, nom_tabl
 exécute_requête_pour_liste :: fonc (connexion: *ConnexionMySQL, requête: chaine, $TypeRésultat: type_de_données, colonnes: ...chaine) -> Optionnel([..]TypeRésultat)
 {
     résultat := tente exécute(connexion, requête) piège _ {
-        retourne
+        retourne;
     }
-    diffère détruit_résultat(résultat)
+    diffère détruit_résultat(résultat);
 
     si résultat.curseurs.taille != 1 {
-        imprime_log("[MySQL]", "nombre de curseurs incompatible : %\n", résultat.curseurs.taille)
-        retourne
+        imprime_log("[MySQL]", "nombre de curseurs incompatible : %\n", résultat.curseurs.taille);
+        retourne;
     }
 
-    rés := parse_liste_résultat(*résultat.curseurs[0], TypeRésultat, ...colonnes)
+    rés := parse_liste_résultat(*résultat.curseurs[0], TypeRésultat, ...colonnes);
     discr rés {
         Quelque(liste) {
             pour & liste {
-                it = copie(it)
+                it = copie(it);
             }
-            retourne liste
+            retourne liste;
         }
         sinon {
-            retourne
+            retourne;
         }
     }
 }
@@ -681,22 +681,22 @@ exécute_requête_pour_liste :: fonc (connexion: *ConnexionMySQL, requête: chai
 exécute_requête_pour_une_valeur :: fonc (connexion: *ConnexionMySQL, requête: chaine, $TypeRésultat: type_de_données, colonnes: ...chaine) -> Optionnel(TypeRésultat)
 {
     résultat := tente exécute(connexion, requête) piège _ {
-        retourne
+        retourne;
     }
-    diffère détruit_résultat(résultat)
+    diffère détruit_résultat(résultat);
 
     si résultat.curseurs.taille != 1 {
-        imprime_log("[MySQL]", "nombre de curseurs incompatible : %\n", résultat.curseurs.taille)
-        retourne
+        imprime_log("[MySQL]", "nombre de curseurs incompatible : %\n", résultat.curseurs.taille);
+        retourne;
     }
 
-    rés := parse_résultat(*résultat.curseurs[0], TypeRésultat, ...colonnes)
+    rés := parse_résultat(*résultat.curseurs[0], TypeRésultat, ...colonnes);
     discr rés {
         Quelque(valeur) {
-            retourne copie(valeur)
+            retourne copie(valeur);
         }
         sinon {
-            retourne
+            retourne;
         }
     }
 }
@@ -704,51 +704,51 @@ exécute_requête_pour_une_valeur :: fonc (connexion: *ConnexionMySQL, requête:
 // -------------------------------------------------------
 // Parsage & Formattage
 
-importe Compilatrice
+importe Compilatrice;
 
 fonction_est_valide :: fonc (fonction: *NoeudCodeEntêteFonction) -> DonnéesFonctionPourTableFonction
 {
     si fonction.params.taille != 1 {
-        compilatrice_rapporte_erreur(fonction, "Impossible d'utiliser la fonction comme parseuse pour MySQL, elle ne doit avoir qu'un seul paramètre")
+        compilatrice_rapporte_erreur(fonction, "Impossible d'utiliser la fonction comme parseuse pour MySQL, elle ne doit avoir qu'un seul paramètre");
     }
 
-    type_premier_paramètre := fonction.params[0].type
+    type_premier_paramètre := fonction.params[0].type;
     si type_premier_paramètre != info_de(chaine) {
-        compilatrice_rapporte_erreur(fonction.params[0], "Fonction de parsage MySQL invalide, le paramètre doit être de type « chaine ».")
+        compilatrice_rapporte_erreur(fonction.params[0], "Fonction de parsage MySQL invalide, le paramètre doit être de type « chaine ».");
     }
 
     si fonction.params_sorties.taille != 2 {
-        compilatrice_rapporte_erreur(fonction, "Impossible d'utiliser la fonction comme parseuse pour MySQL, elle doit avoir deux paramètres de sortie : TypeÀFormatter et bool")
+        compilatrice_rapporte_erreur(fonction, "Impossible d'utiliser la fonction comme parseuse pour MySQL, elle doit avoir deux paramètres de sortie : TypeÀFormatter et bool");
     }
 
-    type_première_sortie := fonction.params_sorties[0].type
+    type_première_sortie := fonction.params_sorties[0].type;
 
     si type_première_sortie != info_de(bool) {
-        compilatrice_rapporte_erreur(fonction.params_sorties[0], "Fonction de parsage MySQL invalide, le premier paramètre de sortie doit être de type « bool ».")
+        compilatrice_rapporte_erreur(fonction.params_sorties[0], "Fonction de parsage MySQL invalide, le premier paramètre de sortie doit être de type « bool ».");
     }
 
-    résultat: DonnéesFonctionPourTableFonction
-    résultat.fonction = fonction
-    résultat.info_type = fonction.params_sorties[1].type
-    retourne résultat
+    résultat: DonnéesFonctionPourTableFonction;
+    résultat.fonction = fonction;
+    résultat.info_type = fonction.params_sorties[1].type;
+    retourne résultat;
 }
 
 génère_fonction_enveloppe :: fonc (enchaineuse: *Enchaineuse, données: DonnéesFonctionPourTableFonction) -> chaine
 {
-    retourne génère_enveloppe_fonction_parsage_octets(enchaineuse, données, "parsage_mysql_")
+    retourne génère_enveloppe_fonction_parsage_octets(enchaineuse, données, "parsage_mysql_");
 }
 
 génère_initialisation_mysql :: fonc ()
 {
-    créatrice_table_fonctions: CréatriceTableFonction
-    créatrice_table_fonctions.module = compilatrice_module_courant()
-    créatrice_table_fonctions.annotation_désirée = "ParsageMySQL"
-    créatrice_table_fonctions.nom_table_fonctions = "fonctions_parsages_mysql"
-    créatrice_table_fonctions.données_pour_fonction = fonction_est_valide
-    créatrice_table_fonctions.génère_fonction_enveloppe = génère_fonction_enveloppe
-    créatrice_table_fonctions.ajoute_module("MySQL")
+    créatrice_table_fonctions: CréatriceTableFonction;
+    créatrice_table_fonctions.module = compilatrice_module_courant();
+    créatrice_table_fonctions.annotation_désirée = "ParsageMySQL";
+    créatrice_table_fonctions.nom_table_fonctions = "fonctions_parsages_mysql";
+    créatrice_table_fonctions.données_pour_fonction = fonction_est_valide;
+    créatrice_table_fonctions.génère_fonction_enveloppe = génère_fonction_enveloppe;
+    créatrice_table_fonctions.ajoute_module("MySQL");
 
-    crée_table_fonctions(créatrice_table_fonctions)
+    crée_table_fonctions(créatrice_table_fonctions);
 }
 
 // #pré_exécutable génère_initialisation_mysql()

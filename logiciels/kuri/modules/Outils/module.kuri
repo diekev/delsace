@@ -7,7 +7,7 @@ importe Algorithmes // pour permute
 //           une valeur où tous les bits sont actifs.
 optionel :: fonc (drapeau: bool, valeur: $T) -> T #enligne
 {
-    retourne -(drapeau comme T) & valeur
+    retourne -(drapeau comme T) & valeur;
 }
 
 // Opération ternaire sans branche : si drapeau est vrai retourne v1, sinon v2.
@@ -15,20 +15,20 @@ optionel :: fonc (drapeau: bool, valeur: $T) -> T #enligne
 //           une valeur où tous les bits sont actifs.
 sélectionne :: fonc (drapeau: bool, v1: $T, v2: T) -> T #enligne
 {
-    retourne (-(drapeau comme T) & v1) | (((drapeau comme T) - 1) & v2)
+    retourne (-(drapeau comme T) & v1) | (((drapeau comme T) - 1) & v2);
 }
 
 // Déplace les 4 valeurs minimales du tableau à son début.
 // Ceci est plus un exemple d'utilisation de « optionel » et « sélectionne »
 min4 :: fonc (p: []$T)
 {
-    q := p.longueur / 4
-    q2 := q + q
+    q := p.longueur / 4;
+    q2 := q + q;
 
     pour i dans q ... (q2 - 1) {
-        m0 := i - optionel(p[i - q] <= p[i], q)
-        m1 := i + q - optionel(p[i + q2] < p[i + q], q)
-        permute(*p[i - q], *p[sélectionne(p[m0] <= p[m1], m0, m1)])
+        m0 := i - optionel(p[i - q] <= p[i], q);
+        m1 := i + q - optionel(p[i + q2] < p[i + q], q);
+        permute(*p[i - q], *p[sélectionne(p[m0] <= p[m1], m0, m1)]);
     }
 }
 

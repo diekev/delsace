@@ -1,4 +1,4 @@
-importe Compilatrice
+importe Compilatrice;
 
 // ------------------------------------
 // vecteurs de nombres réels
@@ -8,89 +8,89 @@ importe Compilatrice
  * \{ */
 
 Vec2 :: struct {
-    x := 0.0 @mutable
-    y := 0.0 @mutable
+    x := 0.0 @mutable;
+    y := 0.0 @mutable;
 }
 
 new_Vec2_pour_python :: fonc (vec: *Vec2, x: r32, y: r32) -> bool
 {
-    vec.x = x
-    vec.y = y
-    retourne vrai
+    vec.x = x;
+    vec.y = y;
+    retourne vrai;
 } @Python "new"
 
 str_Vec2_pour_python :: fonc (v: *Vec2) -> chaine
 {
-    retourne imprime_chaine("Vec2(%, %)", v.x, v.y)
+    retourne imprime_chaine("Vec2(%, %)", v.x, v.y);
 } @Python "str"
 
 produit_scalaire :: fonc (u: Vec2, v: Vec2) -> r32
 {
-    retourne u.x * v.x + u.y * v.y
+    retourne u.x * v.x + u.y * v.y;
 }
 
 produit_vectoriel :: fonc (u: Vec2, v: Vec2) -> r32
 {
-    retourne u.x * v.y - u.y * v.x
+    retourne u.x * v.y - u.y * v.x;
 }
 
 longueur :: fonc (u: Vec2, v: Vec2) -> r32
 {
-    retourne longueur(u - v)
+    retourne longueur(u - v);
 }
 
 longueur :: fonc (u: Vec2) -> r32
 {
-    retourne racine_carrée(produit_scalaire(u, u))
+    retourne racine_carrée(produit_scalaire(u, u));
 }
 
 longueur_carrée :: fonc (u: Vec2, v: Vec2) -> r32
 {
-    w := v - u
-    retourne produit_scalaire(w, w)
+    w := v - u;
+    retourne produit_scalaire(w, w);
 }
 
 // projection vectorielle de a sur b
 projette :: fonc (a: Vec2, b: Vec2) -> Vec2
 {
-    retourne produit_scalaire(a, b) / produit_scalaire(b, b) * b
+    retourne produit_scalaire(a, b) / produit_scalaire(b, b) * b;
 }
 
 // rejection vectorielle, a1 doit être une projection
 rejette :: fonc (a1: Vec2, a: Vec2) -> Vec2
 {
-    retourne a - a1
+    retourne a - a1;
 }
 
 angle_entre :: fonc (a: Vec2, b: Vec2) -> r32
 {
-    a = normalise(a)
-    b = normalise(b)
+    a = normalise(a);
+    b = normalise(b);
 
     /* Plus précis que arccosinus(produit_scalaire(a, b)). */
     si produit_scalaire(a, b) >= 0.0 {
-        retourne 2.0 * arc_sinus_borné(longueur(a, b) * 0.5)
+        retourne 2.0 * arc_sinus_borné(longueur(a, b) * 0.5);
     }
 
-    b2 := -b
-    retourne Constantes(r32).PI - 2.0 * arc_sinus_borné(longueur(a, b2) * 0.5)
+    b2 := -b;
+    retourne Constantes(r32).PI - 2.0 * arc_sinus_borné(longueur(a, b2) * 0.5);
 }
 
 /* Retourne l'angle où 0 = 0° et 1 = 360°. */
 donne_angle_01 :: fonc (v: Vec2) -> r32
 {
-    angle := arc_tangeante2(v.y, v.x)
+    angle := arc_tangeante2(v.y, v.x);
     si angle < 0.0 {
-        angle += Constantes(r32).TAU
+        angle += Constantes(r32).TAU;
     }
-    résultat := angle / Constantes(r32).TAU
-    retourne résultat
+    résultat := angle / Constantes(r32).TAU;
+    retourne résultat;
 }
 
 normalise :: fonc (v: Vec2) -> Vec2
 {
-    l := longueur(v)
-    retourne v / l
+    l := longueur(v);
+    retourne v / l;
 }
 
 /* \} */
@@ -101,77 +101,77 @@ normalise :: fonc (v: Vec2) -> Vec2
 
 // À considérer: opérateurs de bases si la structure ne contient que des scalaires
 Vec3 :: struct {
-    x: r32 @mutable
-    y: r32 @mutable
-    z: r32 @mutable
+    x: r32 @mutable;
+    y: r32 @mutable;
+    z: r32 @mutable;
 }
 
-Point3 :: #opaque Vec3
-Norm3 :: #opaque Vec3
+Point3 :: #opaque Vec3;
+Norm3 :: #opaque Vec3;
 
 new_Vec3_pour_python :: fonc (vec: *Vec3) -> bool
 {
-    init_de(Vec3)(vec)
-    retourne vrai
+    init_de(Vec3)(vec);
+    retourne vrai;
 } @Python "new"
 
 produit_scalaire :: fonc (u: Vec3, v: Vec3) -> r32 #enligne
 {
-    retourne u.x * v.x + u.y * v.y + u.z * v.z
+    retourne u.x * v.x + u.y * v.y + u.z * v.z;
 }
 
 longueur :: fonc (u: Vec3) -> r32 #enligne
 {
-    retourne racine_carrée(u.x * u.x + u.y * u.y + u.z * u.z)
+    retourne racine_carrée(u.x * u.x + u.y * u.y + u.z * u.z);
 }
 
 longueur_carrée :: fonc (u: Vec3) -> r32 #enligne
 {
-    retourne produit_scalaire(u, u)
+    retourne produit_scalaire(u, u);
 }
 
 produit_vectoriel :: fonc (u: Vec3, v: Vec3) -> Vec3 #enligne
 {
-    résultat : Vec3 = ---
-    résultat.x = u.y * v.z - u.z * v.y
-    résultat.y = u.z * v.x - u.x * v.z
-    résultat.z = u.x * v.y - u.y * v.x
-    retourne résultat
+    résultat : Vec3 = ---;
+    résultat.x = u.y * v.z - u.z * v.y;
+    résultat.y = u.z * v.x - u.x * v.z;
+    résultat.z = u.x * v.y - u.y * v.x;
+    retourne résultat;
 }
 
 produit_en_croix :: fonc (u: Vec3, v: Vec3) -> Vec3 #enligne
 {
-    retourne produit_vectoriel(u, v)
+    retourne produit_vectoriel(u, v);
 }
 
 calcul_normal :: fonc (a: Vec3, b: Vec3) -> Norm3 #enligne
 {
-    résultat := produit_en_croix(a, b)
-    retourne Norm3(résultat)
+    résultat := produit_en_croix(a, b);
+    retourne Norm3(résultat);
 }
 
 calcul_normal_normalisé :: fonc (a: Vec3, b: Vec3) -> Norm3 #enligne
 {
-    nor := calcul_normal(a, b)
-    l := longueur(nor comme Vec3)
+    nor := calcul_normal(a, b);
+    l := longueur(nor comme Vec3);
     si l != 0.0 {
-        nor.x /= l
-        nor.y /= l
-        nor.z /= l
+        nor.x /= l;
+        nor.y /= l;
+        nor.z /= l;
     }
-    retourne nor
+    retourne nor;
 }
 
 normalise :: fonc (v: Vec3) -> Vec3 #enligne
 {
-    l := longueur(v)
-    retourne v / l
+    l := longueur(v);
+    retourne v / l;
 }
 
 normalise_retourne_longueur :: fonc (v: Vec3) -> (Vec3, r32) #enligne
 {
-    l := longueur(v)
-    retourne v / l, l
+    l := longueur(v);
+    retourne v / l, l;
 }
 
 // Calcul des coordonnées UV depuis une vecteur de direction (I) et d'un
@@ -179,37 +179,37 @@ normalise_retourne_longueur :: fonc (v: Vec3) -> (Vec3, r32) #enligne
 calcul_uv_capmat :: fonc (I: Vec3, N: Vec3, inversé: bool) -> Vec2
 {
     // Création rapide d'une base orthonormale
-    a := 1.0 / (1.0 + I.z)
-    b := -I.x * I.y * a
-    b1 := Vec3(1.0 - I.x * I.x * a, b, -I.x)
-    b2 := Vec3(b, 1.0 - I.y * I.y * a, -I.y)
+    a := 1.0 / (1.0 + I.z);
+    b := -I.x * I.y * a;
+    b1 := Vec3(1.0 - I.x * I.x * a, b, -I.x);
+    b2 := Vec3(b, 1.0 - I.y * I.y * a, -I.y);
 
-    uv_capmat := Vec2(x = produit_scalaire(b1, N), y = produit_scalaire(b2, N))
+    uv_capmat := Vec2(x = produit_scalaire(b1, N), y = produit_scalaire(b2, N));
 
     si inversé {
-        uv_capmat.x = -uv_capmat.x
+        uv_capmat.x = -uv_capmat.x;
     }
 
-    uv_capmat.x *= 0.496
-    uv_capmat.y *= 0.496
+    uv_capmat.x *= 0.496;
+    uv_capmat.y *= 0.496;
 
-    uv_capmat.x += 0.5
-    uv_capmat.y += 0.5
+    uv_capmat.x += 0.5;
+    uv_capmat.y += 0.5;
 
-    retourne uv_capmat
+    retourne uv_capmat;
 }
 
 // -------------------------------------------------------------------------
 
 interp_linéaire :: fonc (v0: Vec3, t: r32, v1: Vec3) -> Vec3
 {
-    retourne (1.0 - t) * v0 + t * v1
+    retourne (1.0 - t) * v0 + t * v1;
 }
 
 /* Calcule la déclinaison du vecteur en degrés. */
 déclinaison :: fonc (v: Vec3) -> Degrés(r32)
 {
-    retourne vers_degrés(Radians(arc_tangeante2(racine_carrée(v.x * v.x + v.y * v.y), v.z)))
+    retourne vers_degrés(Radians(arc_tangeante2(racine_carrée(v.x * v.x + v.y * v.y), v.z)));
 }
 
 /* \} */
@@ -219,10 +219,10 @@ déclinaison :: fonc (v: Vec3) -> Degrés(r32)
  * \{ */
 
 Vec4 :: struct {
-    x := 0.0 @mutable
-    y := 0.0 @mutable
-    z := 0.0 @mutable
-    w := 0.0 @mutable
+    x := 0.0 @mutable;
+    y := 0.0 @mutable;
+    z := 0.0 @mutable;
+    w := 0.0 @mutable;
 }
 
 /* \} */
@@ -231,21 +231,21 @@ Vec4 :: struct {
 // vecteurs de nombres entiers relatifs
 
 Vec2z :: struct {
-    x := 0
-    y := 0
+    x := 0;
+    y := 0;
 }
 
 Vec3z :: struct {
-    x := 0
-    y := 0
-    z := 0
+    x := 0;
+    y := 0;
+    z := 0;
 }
 
 Vec4z :: struct {
-    x := 0
-    y := 0
-    z := 0
-    w := 0
+    x := 0;
+    y := 0;
+    z := 0;
+    w := 0;
 }
 
 /* ------------------------------------------------------------------------- */
@@ -257,7 +257,7 @@ Vec4z :: struct {
  * La sphère est défini pour un système de coordonnées où Y est vertical. */
 position_sphérique :: fonc (u: r32, v: r32, r := 1.0) -> Vec3 #enligne
 {
-    retourne Vec3(cosinus(u) * sinus(v) * r, cosinus(v) * r, sinus(u) * sinus(v) * r)
+    retourne Vec3(cosinus(u) * sinus(v) * r, cosinus(v) * r, sinus(u) * sinus(v) * r);
 }
 
 /** \} */
@@ -270,153 +270,153 @@ position_sphérique :: fonc (u: r32, v: r32, r := 1.0) -> Vec3 #enligne
 
 génère_opérateurs_vecteurs :: fonc ()
 {
-    opérateurs_arithmétiques := ["+", "-", "*", "/"]
-    opérateurs_logiques := ["==", "!=", "<", "<=", ">", ">="]
+    opérateurs_arithmétiques := ["+", "-", "*", "/"];
+    opérateurs_logiques := ["==", "!=", "<", "<=", ">", ">="];
 
-    dimensions := [2, 3, 4]
+    dimensions := [2, 3, 4];
 
-    ajoute_appel_opérateur :: fonc (enchaineuse: *Enchaineuse, op: chaine, rubrique: chaine, est_scalaire: bool)
+    ajoute_appel_opérateur :: fonc (enchaineuse: *Enchaineuse, op: chaine, rubrique: chaine, est_scalaire: bool);
     {
         si op == "/" {
             si est_scalaire {
-                ajoute_au_tampon(enchaineuse, "    si s != 0 {\n    ")
+                ajoute_au_tampon(enchaineuse, "    si s != 0 {\n    ");
             }
             sinon {
-                ajoute_au_tampon(enchaineuse, "    si v.", rubrique , " != 0 {\n    ")
+                ajoute_au_tampon(enchaineuse, "    si v.", rubrique , " != 0 {\n    ");
             }
         }
 
         si est_scalaire {
-            ajoute_au_tampon(enchaineuse, "    résultat.", rubrique ," = u.", rubrique ," ", op, " s\n")
+            ajoute_au_tampon(enchaineuse, "    résultat.", rubrique ," = u.", rubrique ," ", op, " s\n");
         }
         sinon {
-            ajoute_au_tampon(enchaineuse, "    résultat.", rubrique ," = u.", rubrique ," ", op, " v.", rubrique ,"\n")
+            ajoute_au_tampon(enchaineuse, "    résultat.", rubrique ," = u.", rubrique ," ", op, " v.", rubrique ,"\n");
         }
 
         si op == "/" {
-            ajoute_au_tampon(enchaineuse, "    }\n")
+            ajoute_au_tampon(enchaineuse, "    }\n");
         }
     }
 
-    enchaineuse: Enchaineuse
-    initialise_enchaineuse(*enchaineuse)
+    enchaineuse: Enchaineuse;
+    initialise_enchaineuse(*enchaineuse);
 
     pour dimension dans dimensions {
         /* négation */
-        imprime_dans_enchaineuse(*enchaineuse, "opérateur - :: (u: Vec%) -> Vec%\n", dimension, dimension)
-        ajoute_au_tampon(*enchaineuse, "{\n")
-        imprime_dans_enchaineuse(*enchaineuse, "    résultat: Vec% = ---\n", dimension)
-        ajoute_au_tampon(*enchaineuse, "    résultat.x = -u.x\n")
-        ajoute_au_tampon(*enchaineuse, "    résultat.y = -u.y\n")
+        imprime_dans_enchaineuse(*enchaineuse, "opérateur - :: (u: Vec%) -> Vec%\n", dimension, dimension);
+        ajoute_au_tampon(*enchaineuse, "{\n");
+        imprime_dans_enchaineuse(*enchaineuse, "    résultat: Vec% = ---\n", dimension);
+        ajoute_au_tampon(*enchaineuse, "    résultat.x = -u.x\n");
+        ajoute_au_tampon(*enchaineuse, "    résultat.y = -u.y\n");
         si dimension >= 3 {
-            ajoute_au_tampon(*enchaineuse, "    résultat.z = -u.z\n")
+            ajoute_au_tampon(*enchaineuse, "    résultat.z = -u.z\n");
         }
         si dimension >= 4 {
-            ajoute_au_tampon(*enchaineuse, "    résultat.w = -u.w\n")
+            ajoute_au_tampon(*enchaineuse, "    résultat.w = -u.w\n");
         }
-        ajoute_au_tampon(*enchaineuse, "    retourne résultat\n")
-        ajoute_au_tampon(*enchaineuse, "}\n")
+        ajoute_au_tampon(*enchaineuse, "    retourne résultat\n");
+        ajoute_au_tampon(*enchaineuse, "}\n");
 
         pour op dans opérateurs_arithmétiques {
             /* vecteur - vecteur */
-            imprime_dans_enchaineuse(*enchaineuse, "opérateur % :: (u: Vec%, v: Vec%) -> Vec%\n", op, dimension, dimension, dimension)
-            ajoute_au_tampon(*enchaineuse, "{\n")
+            imprime_dans_enchaineuse(*enchaineuse, "opérateur % :: (u: Vec%, v: Vec%) -> Vec%\n", op, dimension, dimension, dimension);
+            ajoute_au_tampon(*enchaineuse, "{\n");
 
             init := si op == "/" { "" } sinon { " = ---" }
 
-            imprime_dans_enchaineuse(*enchaineuse, "    résultat: Vec%%\n", dimension, init)
-            ajoute_appel_opérateur(*enchaineuse, op, "x", faux)
-            ajoute_appel_opérateur(*enchaineuse, op, "y", faux)
+            imprime_dans_enchaineuse(*enchaineuse, "    résultat: Vec%%\n", dimension, init);
+            ajoute_appel_opérateur(*enchaineuse, op, "x", faux);
+            ajoute_appel_opérateur(*enchaineuse, op, "y", faux);
             si dimension >= 3 {
-                ajoute_appel_opérateur(*enchaineuse, op, "z", faux)
+                ajoute_appel_opérateur(*enchaineuse, op, "z", faux);
             }
             si dimension >= 4 {
-                ajoute_appel_opérateur(*enchaineuse, op, "w", faux)
+                ajoute_appel_opérateur(*enchaineuse, op, "w", faux);
             }
-            ajoute_au_tampon(*enchaineuse, "    retourne résultat\n")
-            ajoute_au_tampon(*enchaineuse, "}\n")
+            ajoute_au_tampon(*enchaineuse, "    retourne résultat\n");
+            ajoute_au_tampon(*enchaineuse, "}\n");
 
             /* vecteur - scalaire */
-            imprime_dans_enchaineuse(*enchaineuse, "opérateur % :: (u: Vec%, s: r32) -> Vec%\n", op, dimension, dimension)
-            ajoute_au_tampon(*enchaineuse, "{\n")
+            imprime_dans_enchaineuse(*enchaineuse, "opérateur % :: (u: Vec%, s: r32) -> Vec%\n", op, dimension, dimension);
+            ajoute_au_tampon(*enchaineuse, "{\n");
 
-            imprime_dans_enchaineuse(*enchaineuse, "    résultat: Vec%%\n", dimension, init)
-            ajoute_appel_opérateur(*enchaineuse, op, "x", vrai)
-            ajoute_appel_opérateur(*enchaineuse, op, "y", vrai)
+            imprime_dans_enchaineuse(*enchaineuse, "    résultat: Vec%%\n", dimension, init);
+            ajoute_appel_opérateur(*enchaineuse, op, "x", vrai);
+            ajoute_appel_opérateur(*enchaineuse, op, "y", vrai);
             si dimension >= 3 {
-                ajoute_appel_opérateur(*enchaineuse, op, "z", vrai)
+                ajoute_appel_opérateur(*enchaineuse, op, "z", vrai);
             }
             si dimension >= 4 {
-                ajoute_appel_opérateur(*enchaineuse, op, "w", vrai)
+                ajoute_appel_opérateur(*enchaineuse, op, "w", vrai);
             }
-            ajoute_au_tampon(*enchaineuse, "    retourne résultat\n")
-            ajoute_au_tampon(*enchaineuse, "}\n")
+            ajoute_au_tampon(*enchaineuse, "    retourne résultat\n");
+            ajoute_au_tampon(*enchaineuse, "}\n");
 
             si op == "/" {
                 /* réciproque */
-                imprime_dans_enchaineuse(*enchaineuse, "opérateur % :: (s: r32, v: Vec%) -> Vec%\n", op, dimension, dimension)
-                ajoute_au_tampon(*enchaineuse, "{\n")
+                imprime_dans_enchaineuse(*enchaineuse, "opérateur % :: (s: r32, v: Vec%) -> Vec%\n", op, dimension, dimension);
+                ajoute_au_tampon(*enchaineuse, "{\n");
 
-                imprime_dans_enchaineuse(*enchaineuse, "    résultat: Vec%%\n", dimension, init)
-                ajoute_au_tampon(*enchaineuse, "    si v.x != 0 { résultat.x = s / v.x }\n")
-                ajoute_au_tampon(*enchaineuse, "    si v.y != 0 { résultat.y = s / v.y }\n")
+                imprime_dans_enchaineuse(*enchaineuse, "    résultat: Vec%%\n", dimension, init);
+                ajoute_au_tampon(*enchaineuse, "    si v.x != 0 { résultat.x = s / v.x }\n");
+                ajoute_au_tampon(*enchaineuse, "    si v.y != 0 { résultat.y = s / v.y }\n");
                 si dimension >= 3 {
-                    ajoute_au_tampon(*enchaineuse, "    si v.z != 0 { résultat.z = s / v.z }\n")
+                    ajoute_au_tampon(*enchaineuse, "    si v.z != 0 { résultat.z = s / v.z }\n");
                 }
                 si dimension >= 4 {
-                    ajoute_au_tampon(*enchaineuse, "    si v.w != 0 { résultat.w = s / v.w }\n")
+                    ajoute_au_tampon(*enchaineuse, "    si v.w != 0 { résultat.w = s / v.w }\n");
                 }
-                ajoute_au_tampon(*enchaineuse, "    retourne résultat\n")
-                ajoute_au_tampon(*enchaineuse, "}\n")
+                ajoute_au_tampon(*enchaineuse, "    retourne résultat\n");
+                ajoute_au_tampon(*enchaineuse, "}\n");
             }
         }
 
         pour op dans opérateurs_logiques {
             /* vecteur - vecteur */
-            imprime_dans_enchaineuse(*enchaineuse, "opérateur % :: (u: Vec%, v: Vec%) -> bool\n", op, dimension, dimension)
-            ajoute_au_tampon(*enchaineuse, "{\n")
-            ajoute_au_tampon(*enchaineuse, "    résultat: bool = u.x ", op, " v.x")
-            ajoute_au_tampon(*enchaineuse, " && u.y ", op, " v.y")
+            imprime_dans_enchaineuse(*enchaineuse, "opérateur % :: (u: Vec%, v: Vec%) -> bool\n", op, dimension, dimension);
+            ajoute_au_tampon(*enchaineuse, "{\n");
+            ajoute_au_tampon(*enchaineuse, "    résultat: bool = u.x ", op, " v.x");
+            ajoute_au_tampon(*enchaineuse, " && u.y ", op, " v.y");
             si dimension >= 3 {
-                ajoute_au_tampon(*enchaineuse, " && u.z ", op, " v.z")
+                ajoute_au_tampon(*enchaineuse, " && u.z ", op, " v.z");
             }
             si dimension >= 4 {
-                ajoute_au_tampon(*enchaineuse, " && u.w ", op, " v.w")
+                ajoute_au_tampon(*enchaineuse, " && u.w ", op, " v.w");
             }
-            ajoute_au_tampon(*enchaineuse, "\n    retourne résultat\n")
-            ajoute_au_tampon(*enchaineuse, "}\n")
+            ajoute_au_tampon(*enchaineuse, "\n    retourne résultat\n");
+            ajoute_au_tampon(*enchaineuse, "}\n");
 
             /* vecteur - scalaire */
-            imprime_dans_enchaineuse(*enchaineuse, "opérateur % :: (u: Vec%, s: r32) -> bool\n", op, dimension)
-            ajoute_au_tampon(*enchaineuse, "{\n")
-            ajoute_au_tampon(*enchaineuse, "    résultat: bool = u.x ", op, " s")
-            ajoute_au_tampon(*enchaineuse, " && u.y ", op, " s")
+            imprime_dans_enchaineuse(*enchaineuse, "opérateur % :: (u: Vec%, s: r32) -> bool\n", op, dimension);
+            ajoute_au_tampon(*enchaineuse, "{\n");
+            ajoute_au_tampon(*enchaineuse, "    résultat: bool = u.x ", op, " s");
+            ajoute_au_tampon(*enchaineuse, " && u.y ", op, " s");
             si dimension >= 3 {
-                ajoute_au_tampon(*enchaineuse, " && u.z ", op, " s")
+                ajoute_au_tampon(*enchaineuse, " && u.z ", op, " s");
             }
             si dimension >= 4 {
-                ajoute_au_tampon(*enchaineuse, " && u.w ", op, " s")
+                ajoute_au_tampon(*enchaineuse, " && u.w ", op, " s");
             }
-            ajoute_au_tampon(*enchaineuse, "\n    retourne résultat\n")
-            ajoute_au_tampon(*enchaineuse, "}\n")
+            ajoute_au_tampon(*enchaineuse, "\n    retourne résultat\n");
+            ajoute_au_tampon(*enchaineuse, "}\n");
         }
 
-        imprime_dans_enchaineuse(*enchaineuse, "opérateur [] :: (u: Vec%, indice: z64) -> r32\n", dimension)
-        ajoute_au_tampon(*enchaineuse, "{\n")
-        imprime_dans_enchaineuse(*enchaineuse, "    assert(indice >= 0 && indice < %)\n", dimension)
-        ajoute_au_tampon(*enchaineuse, "    résultat := (*u.x)[indice]\n")
-        ajoute_au_tampon(*enchaineuse, "    retourne résultat\n")
-        ajoute_au_tampon(*enchaineuse, "}\n")
+        imprime_dans_enchaineuse(*enchaineuse, "opérateur [] :: (u: Vec%, indice: z64) -> r32\n", dimension);
+        ajoute_au_tampon(*enchaineuse, "{\n");
+        imprime_dans_enchaineuse(*enchaineuse, "    assert(indice >= 0 && indice < %)\n", dimension);
+        ajoute_au_tampon(*enchaineuse, "    résultat := (*u.x)[indice]\n");
+        ajoute_au_tampon(*enchaineuse, "    retourne résultat\n");
+        ajoute_au_tampon(*enchaineuse, "}\n");
     }
 
-    résultat := chaine_depuis_enchaineuse(*enchaineuse)
-    diffère déloge(résultat)
+    résultat := chaine_depuis_enchaineuse(*enchaineuse);
+    diffère déloge(résultat);
 
-    espace := compilatrice_espace_courant()
-    module := compilatrice_donne_module(espace, #chemin_de_ce_module)
-    ajoute_chaine_au_module(espace, module, résultat)
+    espace := compilatrice_espace_courant();
+    module := compilatrice_donne_module(espace, #chemin_de_ce_module);
+    ajoute_chaine_au_module(espace, module, résultat);
 }
 
-#exécute génère_opérateurs_vecteurs()
+#exécute génère_opérateurs_vecteurs();
 
 /** \} */

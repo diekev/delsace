@@ -1,134 +1,134 @@
 
 TypePrise :: énum {
-    RAPPEL
-    SEMI_PRISE
-    PRISE
+    RAPPEL;
+    SEMI_PRISE;
+    PRISE;
 }
 
 Prise :: struct {
-    contexte_: *Contexte
-    fichier: Fichier
-    type: TypePrise
+    contexte_: *Contexte;
+    fichier: Fichier;
+    type: TypePrise;
 
     // pour placer dans les listes de prises spéciales (prises fermées...)
-    suivante: *Prise
-    précédente: *Prise
+    suivante: *Prise;
+    précédente: *Prise;
 
     // la taille de la prise avec les données utilisateurs
-    taille_mémoire: z64
-    info_utilisateur: *InfoType
+    taille_mémoire: z64;
+    info_utilisateur: *InfoType;
 
-    données_serveuse_: *rien
-    info_données_serveuse_: *InfoType
+    données_serveuse_: *rien;
+    info_données_serveuse_: *InfoType;
 
     /* délais */
     délai: z32 // secondes
     horodotage_délai: z32 // quand le délai fut mis en place
 
-    est_ssl_ : bool = faux
+    est_ssl_ : bool = faux;
 }
 
 détruit_prise :: fonc (prise: *Prise)
 {
-    déloge_mémoire(prise.taille_mémoire, prise, info_de(Prise), #position_code_source)
+    déloge_mémoire(prise.taille_mémoire, prise, info_de(Prise), #position_code_source);
 }
 
 mute_données_serveuse :: fonc (prise: *Prise, info_serveuse: *$T)
 {
-    prise.données_serveuse_ = info_serveuse
-    prise.info_données_serveuse_ = info_de(T)
+    prise.données_serveuse_ = info_serveuse;
+    prise.info_données_serveuse_ = info_de(T);
 }
 
 accède_données_serveuse :: fonc (prise: *Prise, $T: type_de_données) -> *T
 {
     si prise.info_données_serveuse_ != info_de(T) {
-        retourne nul
+        retourne nul;
     }
 
-    retourne prise.données_serveuse_ comme *T
+    retourne prise.données_serveuse_ comme *T;
 }
 
 mute_délai :: fonc (prise: *Prise, délai: z32)
 {
-    prise.délai = délai
-    prise.horodotage_délai = maintenant_précis().secondes() comme z32
+    prise.délai = délai;
+    prise.horodotage_délai = maintenant_précis().secondes() comme z32;
 }
 
 données_utilisateur :: fonc (prise: *Prise, $TypeDonnées: type_de_données) -> *TypeDonnées
 {
     si prise.taille_mémoire == 0 {
-        retourne nul
+        retourne nul;
     }
 
     si prise.info_utilisateur != info_de(TypeDonnées) {
-        retourne nul
+        retourne nul;
     }
 
     si prise.est_prise_ssl() {
-        retourne ((prise comme *PriseSSL) + 1) comme *TypeDonnées
+        retourne ((prise comme *PriseSSL) + 1) comme *TypeDonnées;
     }
 
-    retourne (prise + 1) comme *TypeDonnées
+    retourne (prise + 1) comme *TypeDonnées;
 }
 
 est_fermée :: fonc (prise: *Prise) -> bool
 {
-    retourne prise.précédente == (prise.contexte_ comme *Prise)
+    retourne prise.précédente == (prise.contexte_ comme *Prise);
 }
 
 ferme :: fonc (prise: *Prise)
 {
-    ferme_prise(prise, vrai)
+    ferme_prise(prise, vrai);
 }
 
 ferme_connexion_en_cours :: fonc (prise: *Prise)
 {
-    ferme_prise(prise, faux)
+    ferme_prise(prise, faux);
 }
 
 ferme_prise :: fonc (prise: *Prise, émets_quand_fermeture: bool)
 {
-    enlève_prise(prise.contexte_.boucle_prises, prise)
+    enlève_prise(prise.contexte_.boucle_prises, prise);
 
-    _ := ferme(*prise.fichier)
+    _ := ferme(*prise.fichier);
 
-    prise.suivante = prise.contexte_.boucle_prises.prises_fermées
-    prise.contexte_.boucle_prises.prises_fermées = prise
+    prise.suivante = prise.contexte_.boucle_prises.prises_fermées;
+    prise.contexte_.boucle_prises.prises_fermées = prise;
 
     // marque la prise comme fermée
-    prise.précédente = (prise.contexte_ comme *Prise)
+    prise.précédente = (prise.contexte_ comme *Prise);
 
     si émets_quand_fermeture {
-        prise.contexte_.quand_fermeture_(prise)
+        prise.contexte_.quand_fermeture_(prise);
     }
 }
 
 est_prise_ssl :: fonc (prise: *Prise) -> bool #enligne
 {
-    retourne prise.est_ssl_
+    retourne prise.est_ssl_;
 }
 
 lis_tout :: fonc (prise: *Prise) -> chaine
 {
     contenu := tente lis_tout(*prise.fichier) piège _ {
-        retourne copie_chaine("")
+        retourne copie_chaine("");
     }
 
-    retourne contenu
+    retourne contenu;
 }
 
 vide_données_lecture :: fonc (prise: *Prise)
 {
-    TAILLE_MAX :: 1024
-    tampon : [TAILLE_MAX]z8 = ---
+    TAILLE_MAX :: 1024;
+    tampon : [TAILLE_MAX]z8 = ---;
 
     boucle {
         octets_lus := tente système_lis(prise.fichier.desc, *tampon[0], TAILLE_MAX) piège _ {
-            retourne
+            retourne;
         }
 
         si octets_lus == 0 {
-            arrête
+            arrête;
         }
     }
 }
@@ -136,22 +136,22 @@ vide_données_lecture :: fonc (prise: *Prise)
 écris :: fonc (prise: *Prise, données: chaine) -> z32
 {
     si prise.est_prise_ssl() {
-        retourne écris(prise comme *PriseSSL, données)
+        retourne écris(prise comme *PriseSSL, données);
     }
 
-    retourne écris_final(prise, données)
+    retourne écris_final(prise, données);
 }
 
 écris :: fonc (prise: *Prise, enchaineuse: *Enchaineuse) -> z32
 {
     si prise.est_prise_ssl() {
         // À FAIRE : garde la mémoire jusqu'à ce que les données furent écris
-        tampon := chaine_depuis_enchaineuse(enchaineuse)
-        diffère déloge(tampon)
-        retourne écris(prise comme *PriseSSL, tampon)
+        tampon := chaine_depuis_enchaineuse(enchaineuse);
+        diffère déloge(tampon);
+        retourne écris(prise comme *PriseSSL, tampon);
     }
 
-    retourne écris_final(prise, enchaineuse)
+    retourne écris_final(prise, enchaineuse);
 }
 
 /* Cette fonction est à utiliser en interne pour écrire dans la prise, les fonctions « écris » sont pour les applications clientes.
@@ -160,17 +160,17 @@ vide_données_lecture :: fonc (prise: *Prise)
 écris_final :: fonc (prise: *Prise, données: chaine) -> z32
 {
     octets_écris := tente écris(*prise.fichier, données) piège _ {
-        retourne 0
+        retourne 0;
     }
 
-    retourne octets_écris
+    retourne octets_écris;
 }
 
 écris_final :: fonc (prise: *Prise, enchaineuse: *Enchaineuse) -> z32
 {
     tente copie_enchaineuse_fichier(enchaineuse, *prise.fichier) piège _ {
-        retourne 0
+        retourne 0;
     }
 
-    retourne taille_chaine(enchaineuse) comme z32
+    retourne taille_chaine(enchaineuse) comme z32;
 }

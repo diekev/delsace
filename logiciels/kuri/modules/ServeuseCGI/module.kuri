@@ -1,214 +1,214 @@
-importe CodecDonnées
-importe Fondation
-importe Internet
-importe POSIX
-importe SysFichier
-importe Temps
+importe CodecDonnées;
+importe Fondation;
+importe Internet;
+importe POSIX;
+importe SysFichier;
+importe Temps;
 
 /* Les noms des paramètres CGI.
  * Les noms des paramètres doivent correspondrent à ceux utilisés pour les variables d'environnement. */
 ParamètresCGI :: énum {
     /* The root directory of your server. */
-    DOCUMENT_ROOT
+    DOCUMENT_ROOT;
     /* The visitor's cookie, if one is set. */
-    HTTP_COOKIE
+    HTTP_COOKIE;
     /* The hostname of the page being attempted. */
-    HTTP_HOST
+    HTTP_HOST;
     /* The URL of the page that called your program. */
-    HTTP_REFERER
+    HTTP_REFERER;
     /* The browser type of the visitor. */
-    HTTP_USER_AGENT
+    HTTP_USER_AGENT;
     /* "on" if the program is being called through a secure server. */
-    HTTPS
+    HTTPS;
     /* The system path your server is running under. */
-    PATH
+    PATH;
     /* The query string (see GET, below). */
-    QUERY_STRING
+    QUERY_STRING;
     /* The IP address of the visitor. */
-    REMOTE_ADDR
+    REMOTE_ADDR;
     /* The hostname of the visitor (if your server has reverse-name-lookups on; otherwise this is the IP address again). */
-    REMOTE_HOST
+    REMOTE_HOST;
     /* The port the visitor is connected to on the web server. */
-    REMOTE_PORT
+    REMOTE_PORT;
     /* The visitor's username (for .htaccess-protected pages). */
-    REMOTE_USER
+    REMOTE_USER;
     /* GET or POST */
-    REQUEST_METHOD
+    REQUEST_METHOD;
     /* The interpreted pathname of the requested document or CGI (relative to the document root). */
-    REQUEST_URI
+    REQUEST_URI;
     /* The full pathname of the current CGI. */
-    SCRIPT_FILENAME
+    SCRIPT_FILENAME;
     /* The interpreted pathname of the current CGI (relative to the document root). */
-    SCRIPT_NAME
+    SCRIPT_NAME;
     /* The email address for your server's webmaster. */
-    SERVER_ADMIN
+    SERVER_ADMIN;
     /* Your server's fully qualified domain name (e.g. www.cgi101.com). */
-    SERVER_NAME
+    SERVER_NAME;
     /* The port number your server is listening on. */
-    SERVER_PORT
+    SERVER_PORT;
     /* The server software you're using (e.g. Apache 1.3). */
-    SERVER_SOFTWARE
-    PATH_INFO
-    PATH_TRANSLATED
-    SERVER_PROTOCOL
-    AUTH_TYPE
-    CONTENT_TYPE
-    CONTENT_LENGTH
-    GATEWAY_INTERFACE
-    HTTP_ACCEPT
-    HTTP_ACCEPT_LANGUAGE
+    SERVER_SOFTWARE;
+    PATH_INFO;
+    PATH_TRANSLATED;
+    SERVER_PROTOCOL;
+    AUTH_TYPE;
+    CONTENT_TYPE;
+    CONTENT_LENGTH;
+    GATEWAY_INTERFACE;
+    HTTP_ACCEPT;
+    HTTP_ACCEPT_LANGUAGE;
 }
 
 DonnéesCGI :: struct {
-    valeur: [ParamètresCGI.nombre_éléments]chaine
+    valeur: [ParamètresCGI.nombre_éléments]chaine;
 }
 
 données_cgi :: fonc () -> DonnéesCGI
 {
-    résultat: DonnéesCGI
+    résultat: DonnéesCGI;
 
-    infos := info_de(ParamètresCGI)
+    infos := info_de(ParamètresCGI);
     pour infos.noms {
-        résultat.valeur[indice_it] = chaine_environnement(it)
+        résultat.valeur[indice_it] = chaine_environnement(it);
     }
 
-    retourne données
+    retourne données;
 }
 
 détruit_données_cgi :: fonc (données_cgi: &DonnéesCGI)
 {
     pour données_cgi.valeur {
-        déloge(it)
+        déloge(it);
     }
 }
 
 ServeuseCGI :: struct ($T: type_de_données) {
-    routeuse: Routeuse(T = T)
-    intergiciel: fonc (requête: *Requête, données: *T) -> RésultatRequête
+    routeuse: Routeuse(T = T);
+    intergiciel: fonc (requête: *Requête, données: *T) -> RésultatRequête;
 }
 
 construis_serveuse_cgi :: fonc (données: *$T, intergiciel: fonc (requête: *Requête, données: *T) -> RésultatRequête) -> ServeuseCGI(T = T)
 {
-    serveuse: ServeuseCGI(T = T)
-    serveuse.routeuse.données_serveuse = données
-    serveuse.intergiciel = intergiciel
+    serveuse: ServeuseCGI(T = T);
+    serveuse.routeuse.données_serveuse = données;
+    serveuse.intergiciel = intergiciel;
 
-    retourne serveuse
+    retourne serveuse;
 }
 
 détruit_serveuse :: fonc (serveuse: &ServeuseCGI(T = $T))
 {
-    détruit_routeuse(*serveuse.routeuse)
+    détruit_routeuse(*serveuse.routeuse);
 }
 
 rappel_méthode_non_autorisée :: fonc (serveuse: &ServeuseCGI(T = $T), méthode: fonc (requête: *Requête, données: *T) -> RésultatRequête)
 {
-    serveuse.routeuse.rappel_méthode_non_autorisée = méthode
+    serveuse.routeuse.rappel_méthode_non_autorisée = méthode;
 }
 
 rappel_page_non_trouvée :: fonc (serveuse: &ServeuseCGI(T = $T), méthode: fonc (requête: *Requête, données: *T) -> RésultatRequête)
 {
-    serveuse.routeuse.rappel_page_non_trouvée = méthode
+    serveuse.routeuse.rappel_page_non_trouvée = méthode;
 }
 
 ajoute_route :: fonc (serveuse: &ServeuseCGI(T = $T), chemin: chaine, méthode_get: fonc (requête: *Requête, données: *T) -> RésultatRequête, méthode_post: fonc (requête: *Requête, données: *T) -> RésultatRequête)
 {
-    ajoute_route(*serveuse.routeuse, chemin, méthode_get, méthode_post)
+    ajoute_route(*serveuse.routeuse, chemin, méthode_get, méthode_post);
 }
 
 écris_bad_request :: fonc (message: chaine)
 {
-    imprime("Status: 400 Bad Request\n")
-    imprime("Content-Type: text/html;charset=utf-8\n\n")
-    imprime("<p>%</p>", message)
+    imprime("Status: 400 Bad Request\n");
+    imprime("Content-Type: text/html;charset=utf-8\n\n");
+    imprime("<p>%</p>", message);
 }
 
 lance :: fonc (serveuse: &ServeuseCGI(T = $T))
 {
-    début := maintenant_précis().millisecondes()
+    début := maintenant_précis().millisecondes();
 
     // accepte_connexion
-    données := données_cgi()
-    diffère détruit_données_cgi(données)
+    données := données_cgi();
+    diffère détruit_données_cgi(données);
 
     // prépare les données de la requête
-    uri_normalisé := résoud_échappement_url(données.valeur[ParamètresCGI.REQUEST_URI])
-    diffère déloge(uri_normalisé)
+    uri_normalisé := résoud_échappement_url(données.valeur[ParamètresCGI.REQUEST_URI]);
+    diffère déloge(uri_normalisé);
 
     uri := tente parse_uri_depuis_chemin_requête(uri_normalisé) piège err {
-        écris_bad_request("Chemin malformé")
-        retourne
+        écris_bad_request("Chemin malformé");
+        retourne;
     }
 
-    cookies := parse_cookie_client(données.valeur[ParamètresCGI.HTTP_COOKIE])
-    diffère déloge(cookies)
+    cookies := parse_cookie_client(données.valeur[ParamètresCGI.HTTP_COOKIE]);
+    diffère déloge(cookies);
 
-    requête: Requête
-    requête.uri = uri
-    requête.cookies = cookies
-    requête.méthode = données.valeur[ParamètresCGI.REQUEST_METHOD]
+    requête: Requête;
+    requête.uri = uri;
+    requête.cookies = cookies;
+    requête.méthode = données.valeur[ParamètresCGI.REQUEST_METHOD];
 
     requête.adresse_ip = tente parse_ipv4(données.valeur[ParamètresCGI.REMOTE_ADDR]) piège err {
-        écris_bad_request("IP invalide")
-        retourne
+        écris_bad_request("IP invalide");
+        retourne;
     }
 
     diffère si requête.contenu {
-        déloge(requête.contenu)
+        déloge(requête.contenu);
     }
 
-    taille_contenu := données.valeur[ParamètresCGI.CONTENT_LENGTH]
+    taille_contenu := données.valeur[ParamètresCGI.CONTENT_LENGTH];
     si requête.méthode == "POST" && taille_contenu != "" && taille_contenu != "0" {
         texte := tente entrée_standarde().lis_tout() piège err {
-            imprime("Status: 400 Bad Request\n\n")
-            retourne
+            imprime("Status: 400 Bad Request\n\n");
+            retourne;
         }
 
         // taille_contenu := parse_nombre_entier(taille_contenu)
-        requête.contenu = texte
-        requête.type_contenu = données.valeur[ParamètresCGI.CONTENT_TYPE]
+        requête.contenu = texte;
+        requête.type_contenu = données.valeur[ParamètresCGI.CONTENT_TYPE];
     }
 
     si serveuse.intergiciel {
-        résultat := serveuse.intergiciel(*requête, serveuse.routeuse.données_serveuse)
+        résultat := serveuse.intergiciel(*requête, serveuse.routeuse.données_serveuse);
 
         si résultat.status != CodeÉtatHTTP.OK {
-            crée_réponse(résultat)
-            retourne
+            crée_réponse(résultat);
+            retourne;
         }
     }
 
     // résoud la requête
-    résultat := apparie_route(*serveuse.routeuse, *requête)
+    résultat := apparie_route(*serveuse.routeuse, *requête);
 
-    imprime_log("[CGI]", "temps requête : %\n", maintenant_précis().millisecondes() - début)
+    imprime_log("[CGI]", "temps requête : %\n", maintenant_précis().millisecondes() - début);
     // envoie la réponse au client
-    crée_réponse(résultat)
+    crée_réponse(résultat);
 }
 
 crée_réponse :: fonc (résultat: &RésultatRequête)
 {
-    imprime("Status: %\n", chaine_code_état_http(résultat.status))
+    imprime("Status: %\n", chaine_code_état_http(résultat.status));
 
     pour résultat.entêtes {
-        imprime("%: %\n", it.nom, it.valeur)
+        imprime("%: %\n", it.nom, it.valeur);
     }
 
     pour résultat.cookies {
-        chn_cookie := chaine_cookie_pour_entête_http(it)
-        imprime("Set-Cookie: %\n", chn_cookie)
-        déloge(chn_cookie)
+        chn_cookie := chaine_cookie_pour_entête_http(it);
+        imprime("Set-Cookie: %\n", chn_cookie);
+        déloge(chn_cookie);
     }
 
     si résultat.type_contenu {
-        imprime("Content-Type: %\n", résultat.type_contenu)
+        imprime("Content-Type: %\n", résultat.type_contenu);
     }
 
-    imprime("\n")
+    imprime("\n");
 
     si résultat.contenu {
-        imprime("%", résultat.contenu)
+        imprime("%", résultat.contenu);
     }
 
-    détruit_résultat(résultat)
+    détruit_résultat(résultat);
 }

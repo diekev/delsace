@@ -1,27 +1,27 @@
 /* Module implémentant des fonctions pour travailler sur ou avec des processus. */
 
-importe Chaine
-importe Fondation
+importe Chaine;
+importe Fondation;
 importe POSIX // pour fork, system, etc.
-importe SysFichier
+importe SysFichier;
 
-charge "test_de_programme"
+charge "test_de_programme";
 
-IDProcessus :: #opaque z32
+IDProcessus :: #opaque z32;
 
 /* Retourne l'identifiant du processus courant. */
 id_processus_courant :: fonc () -> IDProcessus
 {
-    retourne IDProcessus(getpid())
+    retourne IDProcessus(getpid());
 }
 
-ProcessusParent :: #opaque z32
-ProcessusEnfant :: #opaque z32
+ProcessusParent :: #opaque z32;
+ProcessusEnfant :: #opaque z32;
 
 DuplicationProcessus :: union {
-    Parent: ProcessusParent
-    Enfant: ProcessusEnfant
-    Rien
+    Parent: ProcessusParent;
+    Enfant: ProcessusEnfant;
+    Rien;
 }
 
 /* Duplique le processus courant. La valeur de retour peut être discriminée
@@ -29,45 +29,45 @@ DuplicationProcessus :: union {
  * Si la valeur de retour est nulle, la duplication a échouée. */
 duplique_processus :: fonc () -> DuplicationProcessus
 {
-    pid := fork()
+    pid := fork();
 
     si pid == -1 {
-        retourne
+        retourne;
     }
 
     si pid == 0 {
-        retourne ProcessusEnfant(pid)
+        retourne ProcessusEnfant(pid);
     }
 
-    retourne ProcessusParent(pid)
+    retourne ProcessusParent(pid);
 }
 
 /* Remplace le processus courant par un programme. */
 remplace_processus_par_programme :: fonc (programme: chaine, arguments: ...chaine)
 {
-    chn_c_programme := crée_chaine_c(programme)
+    chn_c_programme := crée_chaine_c(programme);
 
     /* Nous devons convertir les arguments en ChaineC car ils seront utilisés
      * pour le paramètres `argv` de la fonction principale du programme. */
-    arguments_chn_c: [..]ChaineC
+    arguments_chn_c: [..]ChaineC;
 
     /* argv[0] est le programme. */
-    tableau_ajoute(*arguments_chn_c, chn_c_programme)
+    tableau_ajoute(*arguments_chn_c, chn_c_programme);
 
     pour arguments {
-        tableau_ajoute(*arguments_chn_c, crée_chaine_c(it))
+        tableau_ajoute(*arguments_chn_c, crée_chaine_c(it));
     }
 
     /* argv doit finir par une chaine nulle. */
-    tableau_ajoute(*arguments_chn_c, ChaineC(nul))
+    tableau_ajoute(*arguments_chn_c, ChaineC(nul));
 
     /* Appelons le programme. */
-    valeur_retour := execvp(chn_c_programme, *arguments_chn_c[0])
+    valeur_retour := execvp(chn_c_programme, *arguments_chn_c[0]);
 
     /* Termine le processus fils, si execvp réussi, nous ne serons plus là.
      * Ceci n'est que pour les erreurs. Le processus parent devra vérifier
      * l'état du processus manuellement. */
-    exit(valeur_retour)
+    exit(valeur_retour);
 }
 
 // ----------------------------------------------------------------------------
@@ -77,79 +77,79 @@ remplace_processus_par_programme :: fonc (programme: chaine, arguments: ...chain
 // écriture, y lire est proscris.
 
 BaseCanal :: struct {
-    lecteur: Fichier
-    auteur: Fichier
+    lecteur: Fichier;
+    auteur: Fichier;
 }
 
 écris_avec_sortie_standarde :: fonc (canal: &BaseCanal)
 {
     /* Faisons pointé la sortie du programme avec l'entrée du canal. */
-    référence_fichier(canal.auteur, sortie_standarde())
-    _ := ferme(*canal.lecteur)
+    référence_fichier(canal.auteur, sortie_standarde());
+    _ := ferme(*canal.lecteur);
 }
 
 lis_avec_entrée_standarde :: fonc (canal: &BaseCanal)
 {
     /* Faisons pointé l'entrée du programme avec la sortie du canal. */
-    référence_fichier(canal.lecteur, entrée_standarde())
-    _ := ferme(*canal.auteur)
+    référence_fichier(canal.lecteur, entrée_standarde());
+    _ := ferme(*canal.auteur);
 }
 
 prépare_pour_lecture :: fonc (canal: &BaseCanal)
 {
     /* Si nous voulons lire depuis un canal, la partie autrice de celui-ci doit
      * utiliser sa sortie standarde pour écrire. */
-    canal.écris_avec_sortie_standarde()
+    canal.écris_avec_sortie_standarde();
 }
 
 prépare_pour_écriture :: fonc (canal: &BaseCanal)
 {
     /* Si nous voulons écrire dans un canal, la partie lectrice de celui-ci
      * doit utiliser son entrée standarde pour lire. */
-    canal.lis_avec_entrée_standarde()
+    canal.lis_avec_entrée_standarde();
 }
 
 écris :: fonc (canal: &BaseCanal, texte: chaine)
 {
-    _ := écris(*canal.auteur, texte)
+    _ := écris(*canal.auteur, texte);
 }
 
 lis :: fonc (canal: &BaseCanal) -> chaine
 {
-    enchaineuse: Enchaineuse
-    initialise_enchaineuse(*enchaineuse)
+    enchaineuse: Enchaineuse;
+    initialise_enchaineuse(*enchaineuse);
 
     boucle {
         tmp := tente lis_tout(*canal.lecteur) piège _ {
-            retourne chaine_depuis_enchaineuse(*enchaineuse)
+            retourne chaine_depuis_enchaineuse(*enchaineuse);
         }
 
         /* Le flux est vide, ou le fichier d'écriture fut fermé. */
         si tmp.taille == 0 {
-            arrête
+            arrête;
         }
 
-        ajoute_au_tampon(*enchaineuse, tmp)
-        déloge(tmp)
+        ajoute_au_tampon(*enchaineuse, tmp);
+        déloge(tmp);
     }
 
-    retourne chaine_depuis_enchaineuse(*enchaineuse)
+    retourne chaine_depuis_enchaineuse(*enchaineuse);
 }
 
 ouvre_canal :: fonc ($TypeCanal: type_de_données) -> Optionnel(TypeCanal)
 {
-    fds: [2]z32
+    fds: [2]z32;
 
-    résultat_pipe := pipe(*fds[0])
+    résultat_pipe := pipe(*fds[0]);
 
     si résultat_pipe == -1 {
-        retourne
+        retourne;
     }
 
-    résultat : TypeCanal = ---
-    résultat.lecteur = Fichier(TypePoignéeFichier(fds[0]))
-    résultat.auteur = Fichier(TypePoignéeFichier(fds[1]))
-    retourne résultat
+    résultat : TypeCanal = ---;
+    résultat.lecteur = Fichier(TypePoignéeFichier(fds[0]));
+    résultat.auteur = Fichier(TypePoignéeFichier(fds[1]));
+    retourne résultat;
 }
 
 // ----------------------------------------------------------------------------
@@ -157,42 +157,42 @@ ouvre_canal :: fonc ($TypeCanal: type_de_données) -> Optionnel(TypeCanal)
 // rien, ou corromprera les données.
 
 CanalLecture :: struct {
-    empl base: BaseCanal
+    empl base: BaseCanal;
 }
 
 crée_canal_lecture :: fonc () -> Optionnel(CanalLecture)
 {
-    retourne ouvre_canal(CanalLecture)
+    retourne ouvre_canal(CanalLecture);
 }
 
 ouvre_canal_lecture :: fonc (programme: chaine, arguments: ...chaine) -> Optionnel(CanalLecture)
 {
-    canal: CanalLecture
+    canal: CanalLecture;
     discr crée_canal_lecture() {
         Quelque(c) {
-            canal = c
+            canal = c;
         }
         sinon {
-            retourne
+            retourne;
         }
     }
 
     discr duplique_processus() {
         Enfant {
             /* Le processus enfant écrira. */
-            canal.prépare_pour_écriture()
-            remplace_processus_par_programme(programme, ...arguments)
+            canal.prépare_pour_écriture();
+            remplace_processus_par_programme(programme, ...arguments);
         }
         Parent {
             /* Le processus père lira. */
-            canal.prépare_pour_lecture()
+            canal.prépare_pour_lecture();
         }
         sinon {
-            retourne
+            retourne;
         }
     }
 
-    retourne canal
+    retourne canal;
 }
 
 // ----------------------------------------------------------------------------
@@ -200,12 +200,12 @@ ouvre_canal_lecture :: fonc (programme: chaine, arguments: ...chaine) -> Optionn
 // rien, ou corromprera les données.
 
 CanalÉcriture :: struct {
-    empl base: BaseCanal
+    empl base: BaseCanal;
 }
 
 crée_canal_écriture :: fonc () -> Optionnel(CanalÉcriture)
 {
-    retourne ouvre_canal(CanalÉcriture)
+    retourne ouvre_canal(CanalÉcriture);
 }
 
 // ----------------------------------------------------------------------------
@@ -213,106 +213,106 @@ crée_canal_écriture :: fonc () -> Optionnel(CanalÉcriture)
 // des données.
 
 CanalCommunication :: struct {
-    lecture: CanalLecture
-    écriture: CanalÉcriture
+    lecture: CanalLecture;
+    écriture: CanalÉcriture;
 }
 
 ouvre_canal_de_communication :: fonc (programme: chaine, arguments: ...chaine) -> Optionnel(CanalCommunication)
 {
-    canal_lecture: CanalLecture
+    canal_lecture: CanalLecture;
     discr crée_canal_lecture() {
         Quelque(c) {
-            canal_lecture = c
+            canal_lecture = c;
         }
         sinon {
-            retourne
+            retourne;
         }
     }
 
-    canal_écriture: CanalÉcriture
+    canal_écriture: CanalÉcriture;
     discr crée_canal_écriture() {
         Quelque(canal) {
-            canal_écriture = canal
+            canal_écriture = canal;
         }
         sinon {
-            retourne
+            retourne;
         }
     }
 
     discr duplique_processus() {
         Enfant {
             /* Le processus enfant sera lu. */
-            canal_lecture.prépare_pour_lecture()
-            canal_écriture.prépare_pour_écriture()
+            canal_lecture.prépare_pour_lecture();
+            canal_écriture.prépare_pour_écriture();
 
-            remplace_processus_par_programme(programme, ...arguments)
+            remplace_processus_par_programme(programme, ...arguments);
         }
         Parent {
             /* Le processus parent écrira. Fermons les descripteurs ne servant à rien. */
-            _ := ferme(*canal_lecture.auteur)
-            _ := ferme(*canal_écriture.lecteur)
+            _ := ferme(*canal_lecture.auteur);
+            _ := ferme(*canal_écriture.lecteur);
         }
         sinon {
-            retourne
+            retourne;
         }
     }
 
-    canal: CanalCommunication
-    canal.lecture = canal_lecture
-    canal.écriture = canal_écriture
-    retourne canal
+    canal: CanalCommunication;
+    canal.lecture = canal_lecture;
+    canal.écriture = canal_écriture;
+    retourne canal;
 }
 
 écris :: fonc (canal: &CanalCommunication, texte: chaine)
 {
-    canal.écriture.écris(texte)
+    canal.écriture.écris(texte);
 }
 
 lis :: fonc (canal: &CanalCommunication) -> chaine
 {
-    retourne canal.lecture.lis()
+    retourne canal.lecture.lis();
 }
 
 ferme_écriture :: fonc (canal: &CanalCommunication)
 {
-    _ := ferme(*canal.écriture.auteur)
+    _ := ferme(*canal.écriture.auteur);
 }
 
 exécute_commande_externe :: fonc (args: ...chaine) -> bool
 {
-    enchaineuse: Enchaineuse
-    initialise_enchaineuse(*enchaineuse)
+    enchaineuse: Enchaineuse;
+    initialise_enchaineuse(*enchaineuse);
 
     pour args {
-        ajoute_au_tampon(*enchaineuse, it)
-        ajoute_au_tampon(*enchaineuse, " ")
+        ajoute_au_tampon(*enchaineuse, it);
+        ajoute_au_tampon(*enchaineuse, " ");
     }
 
-    ajoute_au_tampon(*enchaineuse, '\0')
+    ajoute_au_tampon(*enchaineuse, '\0');
 
-    commande := chaine_depuis_enchaineuse(*enchaineuse)
-    diffère déloge(commande)
+    commande := chaine_depuis_enchaineuse(*enchaineuse);
+    diffère déloge(commande);
 
-    retourne exécute_commande_externe(commande)
+    retourne exécute_commande_externe(commande);
 }
 
 exécute_commande_externe :: fonc (commande: chaine) -> bool
 {
     saufsi commande {
-        retourne faux
+        retourne faux;
     }
 
     si commande[commande.taille - 1] != 0 {
-        imprimeln("La commande doit être nul-terminée")
-        retourne faux
+        imprimeln("La commande doit être nul-terminée");
+        retourne faux;
     }
 
-    commande_non_suffixé := recule(commande, 1)
-    imprimeln("Exécution de : %", commande_non_suffixé)
+    commande_non_suffixé := recule(commande, 1);
+    imprimeln("Exécution de : %", commande_non_suffixé);
 
     si system(ChaineC(commande.pointeur)) != 0 {
-        retourne faux
+        retourne faux;
     }
 
-    retourne vrai
+    retourne vrai;
 }

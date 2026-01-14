@@ -1,76 +1,76 @@
-importe Chaine
-importe Introspection
+importe Chaine;
+importe Introspection;
 
 est_caractère_réservé_url :: fonc (c: z8) -> bool
 {
-    chn :: "&$+,/:;=?@"
+    chn :: "&$+,/:;=?@";
     pour chn {
         si it == c {
-            retourne vrai
+            retourne vrai;
         }
     }
 
-    retourne faux
+    retourne faux;
 }
 
 est_caractère_nonsûr_url :: fonc (c: z8) -> bool
 {
-    chn :: " \"<>#%{}|\\^~[]`"
+    chn :: " \"<>#%{}|\\^~[]`";
     pour chn {
         si it == c {
-            retourne vrai
+            retourne vrai;
         }
     }
 
-    retourne faux
+    retourne faux;
 }
 
-caractères_hex_minuscules :: "0123456789abcdef"
-caractères_hex_majuscules :: "0123456789ABCDEF"
+caractères_hex_minuscules :: "0123456789abcdef";
+caractères_hex_majuscules :: "0123456789ABCDEF";
 
 encode_format_url :: fonc (texte: chaine) -> chaine
 {
-    enchaineuse: Enchaineuse
-    initialise_enchaineuse(*enchaineuse)
+    enchaineuse: Enchaineuse;
+    initialise_enchaineuse(*enchaineuse);
 
     pour texte {
         si est_caractère_réservé_url(it) || est_caractère_nonsûr_url(it) {
-            ajoute_au_tampon(*enchaineuse, '%')
-            ajoute_au_tampon(*enchaineuse, caractères_hex_minuscules[((it comme z32) / 16)])
-            ajoute_au_tampon(*enchaineuse, caractères_hex_minuscules[((it comme z32) % 16)])
+            ajoute_au_tampon(*enchaineuse, '%');
+            ajoute_au_tampon(*enchaineuse, caractères_hex_minuscules[((it comme z32) / 16)]);
+            ajoute_au_tampon(*enchaineuse, caractères_hex_minuscules[((it comme z32) % 16)]);
         }
         sinon {
-            ajoute_au_tampon(*enchaineuse, it)
+            ajoute_au_tampon(*enchaineuse, it);
         }
     }
 
-    retourne chaine_depuis_enchaineuse(*enchaineuse)
+    retourne chaine_depuis_enchaineuse(*enchaineuse);
 }
 
 encode_format_url :: fonc (enchaineuse: *Enchaineuse, texte: chaine)
 {
     //caractères_réservés := "\r\n !#$&'()*+,/:;=?@[]"
 
-    caractères_non_réservés :: "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789-._~"
+    caractères_non_réservés :: "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789-._~";
 
     pour texte {
         si it == ' ' {
-            ajoute_au_tampon(enchaineuse, "+")
+            ajoute_au_tampon(enchaineuse, "+");
         }
         sinon {
             pour c dans caractères_non_réservés {
                 si c == it {
-                    ajoute_au_tampon(enchaineuse, it)
-                    arrête
+                    ajoute_au_tampon(enchaineuse, it);
+                    arrête;
                 }
             }
             sansarrêt {
-                a := (it comme n8 >> 4) & 0xf
-                b := (it comme n8) & 0xf
+                a := (it comme n8 >> 4) & 0xf;
+                b := (it comme n8) & 0xf;
                 // À FAIRE(enchaineuse, langage) : type pour les caractères
-                ajoute_au_tampon(enchaineuse, "%")
-                ajoute_au_tampon(enchaineuse, caractères_hex_majuscules[a])
-                ajoute_au_tampon(enchaineuse, caractères_hex_majuscules[b])
+                ajoute_au_tampon(enchaineuse, "%");
+                ajoute_au_tampon(enchaineuse, caractères_hex_majuscules[a]);
+                ajoute_au_tampon(enchaineuse, caractères_hex_majuscules[b]);
             }
         }
     }
@@ -78,168 +78,168 @@ encode_format_url :: fonc (enchaineuse: *Enchaineuse, texte: chaine)
 
 résoud_échappement_url :: fonc (chn: chaine) -> chaine
 {
-    enchaineuse: Enchaineuse
-    initialise_enchaineuse(*enchaineuse)
+    enchaineuse: Enchaineuse;
+    initialise_enchaineuse(*enchaineuse);
 
-    i := 0
+    i := 0;
 
     tantque i < chn.taille {
         si chn[i] == '%' {
             si i + 2 >= chn.taille {
-                arrête
+                arrête;
             }
 
-            i += 1
-            c := chn[i]
+            i += 1;
+            c := chn[i];
 
-            v := donne_valeur_hex(c)
+            v := donne_valeur_hex(c);
 
-            i += 1
-            c = chn[i]
+            i += 1;
+            c = chn[i];
 
-            v *= 16
-            v += donne_valeur_hex(c)
+            v *= 16;
+            v += donne_valeur_hex(c);
 
-            ajoute_au_tampon(*enchaineuse, v)
-            i += 1
+            ajoute_au_tampon(*enchaineuse, v);
+            i += 1;
         }
         sinon {
-            ajoute_au_tampon(*enchaineuse, chn[i])
-            i += 1
+            ajoute_au_tampon(*enchaineuse, chn[i]);
+            i += 1;
         }
     }
 
-    retourne chaine_depuis_enchaineuse(*enchaineuse)
+    retourne chaine_depuis_enchaineuse(*enchaineuse);
 }
 
 résoud_échappement_url_localement :: fonc (chn: &chaine)
 {
-    index_d_insertion := 0
-    index_courant := 0
+    index_d_insertion := 0;
+    index_courant := 0;
 
     tantque index_courant < chn.taille {
         si chn[index_courant] == '%' {
-            index_courant += 1
+            index_courant += 1;
 
             si index_courant + 1 >= chn.taille {
-                arrête
+                arrête;
             }
 
-            c := chn[index_courant]
+            c := chn[index_courant];
 
-            v := donne_valeur_hex(c)
+            v := donne_valeur_hex(c);
 
-            index_courant += 1
-            c = chn[index_courant]
+            index_courant += 1;
+            c = chn[index_courant];
 
-            v *= 16
-            v += donne_valeur_hex(c)
+            v *= 16;
+            v += donne_valeur_hex(c);
 
-            chn[index_d_insertion] = v
+            chn[index_d_insertion] = v;
         }
         // Google utilise des + pour les espaces, à voir si c'est standard.
         sinon si chn[index_courant] == '+' {
-            chn[index_d_insertion] = ' '
+            chn[index_d_insertion] = ' ';
         }
         sinon {
-            chn[index_d_insertion] = chn[index_courant]
+            chn[index_d_insertion] = chn[index_courant];
         }
 
-        index_courant += 1
-        index_d_insertion += 1
+        index_courant += 1;
+        index_d_insertion += 1;
     }
 
-    chn.taille = index_d_insertion
+    chn.taille = index_d_insertion;
 }
 
 // -------------------------------------------------------------------
 
 crée_flux_encodage_url_pour_enchaineuse :: fonc (enchaineuse: *Enchaineuse) -> FluxEncodage
 {
-    écris_chaine :: fonc (flux: &FluxEncodage, chn: chaine, doit_encoder: bool)
+    écris_chaine :: fonc (flux: &FluxEncodage, chn: chaine, doit_encoder: bool);
     {
         si doit_encoder {
-            encode_format_url(flux.enchaineuse, chn)
+            encode_format_url(flux.enchaineuse, chn);
         }
         sinon {
-            ajoute_au_tampon(flux.enchaineuse, chn)
+            ajoute_au_tampon(flux.enchaineuse, chn);
         }
     }
 
-    écris_point_de_code_utf32 :: fonc (flux: &FluxEncodage, point_de_code: n32, doit_encoder: bool)
+    écris_point_de_code_utf32 :: fonc (flux: &FluxEncodage, point_de_code: n32, doit_encoder: bool);
     {
 
     }
 
-    écris_point_de_code_utf8 :: fonc (flux: &FluxEncodage, point_de_code: z8, doit_encoder: bool)
+    écris_point_de_code_utf8 :: fonc (flux: &FluxEncodage, point_de_code: z8, doit_encoder: bool);
     {
-        chn := chaine(*point_de_code, 1)
-        écris_chaine(flux, chn, doit_encoder)
+        chn := chaine(*point_de_code, 1);
+        écris_chaine(flux, chn, doit_encoder);
     }
 
-    retourne FluxEncodage(écris_chaine, écris_point_de_code_utf32, écris_point_de_code_utf8, enchaineuse)
+    retourne FluxEncodage(écris_chaine, écris_point_de_code_utf32, écris_point_de_code_utf8, enchaineuse);
 }
 
 encode_valeur :: fonc (flux_encodage: &FluxEncodage, valeur: eini)
 {
-    info := valeur.info
+    info := valeur.info;
 
     discr info.id {
         CHAINE {
-            chn := valeur.comme_chaine()
-            flux_encodage.écris(chn)
+            chn := valeur.comme_chaine();
+            flux_encodage.écris(chn);
         }
         STRUCTURE {
-            fonction_de_formattage := Fondation.trouve_fonction_de_formattage(info)
+            fonction_de_formattage := Fondation.trouve_fonction_de_formattage(info);
 
             saufsi fonction_de_formattage {
-                panique("pas de fonction de formattage pour le type dans encode_valeur")
+                panique("pas de fonction de formattage pour le type dans encode_valeur");
             }
 
             /* À FAIRE : FluxEncodage pour les fonctions de formattage. */
-            enchaineuse: Enchaineuse
-            initialise_enchaineuse(*enchaineuse)
+            enchaineuse: Enchaineuse;
+            initialise_enchaineuse(*enchaineuse);
 
-            fonction_de_formattage.fonction(*enchaineuse, valeur)
+            fonction_de_formattage.fonction(*enchaineuse, valeur);
 
-            chn := chaine_depuis_enchaineuse(*enchaineuse)
-            flux_encodage.écris(chn)
+            chn := chaine_depuis_enchaineuse(*enchaineuse);
+            flux_encodage.écris(chn);
 
-            déloge(chn)
+            déloge(chn);
         }
         sinon {
-            panique("type non supporté dans encode_valeur")
+            panique("type non supporté dans encode_valeur");
         }
     }
 }
 
 encode_format_url :: fonc (valeur: eini) -> chaine
 {
-    enchaineuse: Enchaineuse
-    initialise_enchaineuse(*enchaineuse)
+    enchaineuse: Enchaineuse;
+    initialise_enchaineuse(*enchaineuse);
 
-    flux := crée_flux_encodage_url_pour_enchaineuse(*enchaineuse)
-    requiers_esperluette := faux
-    itératrice := crée_itératrice_rubrique(valeur)
+    flux := crée_flux_encodage_url_pour_enchaineuse(*enchaineuse);
+    requiers_esperluette := faux;
+    itératrice := crée_itératrice_rubrique(valeur);
 
     boucle {
-        rubrique, nom := itératrice.rubrique_suivante()
+        rubrique, nom := itératrice.rubrique_suivante();
 
         saufsi rubrique.est_valide() {
-            arrête
+            arrête;
         }
 
         si requiers_esperluette {
-            flux.écris_sans_encodage("&")
+            flux.écris_sans_encodage("&");
         }
 
-        flux.écris(nom)
-        flux.écris_sans_encodage("=")
+        flux.écris(nom);
+        flux.écris_sans_encodage("=");
 
-        encode_valeur(flux, rubrique)
+        encode_valeur(flux, rubrique);
 
-        requiers_esperluette = vrai
+        requiers_esperluette = vrai;
     }
 
-    retourne chaine_depuis_enchaineuse(*enchaineuse)
+    retourne chaine_depuis_enchaineuse(*enchaineuse);
 }

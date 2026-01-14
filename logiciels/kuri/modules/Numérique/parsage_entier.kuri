@@ -6,9 +6,9 @@
 //           -- nombres négatifs ?
 //           -- validation dans l'algorithme de parsage via SIMD
 
-importe Chaine
-importe Math
-importe Ordinatrice
+importe Chaine;
+importe Math;
+importe Ordinatrice;
 
 // converti 8 caractères en un nombre entier à la fois, avec SIMD nous pourrions
 // en parser 16 à la fois
@@ -16,11 +16,11 @@ importe Ordinatrice
 parse_8_caractères :: fonc (ptr: *z8) -> n64
 {
     // charge les caractères dans un nombre
-    nombre_entier : n64 = mémoire(ptr comme *n64)
+    nombre_entier : n64 = mémoire(ptr comme *n64);
 
     // commute le boutisme pour que les caractères/octets soient dans le bon ordre
     si est_petit_boutisme() {
-        commute_boutisme(*nombre_entier)
+        commute_boutisme(*nombre_entier);
     }
 
     // soustrait '0' de chaque caractère
@@ -29,353 +29,353 @@ parse_8_caractères :: fonc (ptr: *z8) -> n64
     // ici le nombre est de forme 0x0N0N_0N0N_0N0N_0N0N où est N est entre 0 et 9
 
     // rassemble les octets en groupe de 2 : 0x00NN_00NN_00NN_00NN
-    nombre_bas := nombre_entier & 0x000f_000f_000f_000f
-    nombre_haut := ((nombre_entier & 0x0f00_0f00_0f00_0f00) >> 8) * 10
-    nombre_entier = nombre_haut + nombre_bas
+    nombre_bas := nombre_entier & 0x000f_000f_000f_000f;
+    nombre_haut := ((nombre_entier & 0x0f00_0f00_0f00_0f00) >> 8) * 10;
+    nombre_entier = nombre_haut + nombre_bas;
 
     // rassemble les octets en groupe de 4 : 0x0000_NNNN_0000_NNNN
-    nombre_bas = nombre_entier & 0x0000_00ff_0000_00ff
-    nombre_haut = ((nombre_entier & 0x00ff_0000_00ff_0000) >> 16) * 100
-    nombre_entier = nombre_haut + nombre_bas
+    nombre_bas = nombre_entier & 0x0000_00ff_0000_00ff;
+    nombre_haut = ((nombre_entier & 0x00ff_0000_00ff_0000) >> 16) * 100;
+    nombre_entier = nombre_haut + nombre_bas;
 
     // rassemble les octets en groupe de 8 : 0x0000_0000_NNNN_NNNN
-    nombre_bas = nombre_entier & 0x0000_0000_0000_ffff
-    nombre_haut = ((nombre_entier & 0x0000_ffff_0000_0000) >> 32) * 10000
-    nombre_entier = nombre_haut + nombre_bas
+    nombre_bas = nombre_entier & 0x0000_0000_0000_ffff;
+    nombre_haut = ((nombre_entier & 0x0000_ffff_0000_0000) >> 32) * 10000;
+    nombre_entier = nombre_haut + nombre_bas;
 
-    retourne nombre_entier
+    retourne nombre_entier;
 }
 
 extrait_n64_nonsûr :: fonc (chn: chaine) -> n64
 {
-    résultat : n64 = 0
+    résultat : n64 = 0;
 
-    curseur := 0
+    curseur := 0;
 
-    caractères_restant := chn.taille % 8
-    taille := chn.taille - caractères_restant
+    caractères_restant := chn.taille % 8;
+    taille := chn.taille - caractères_restant;
 
     tantque curseur < taille {
-        résultat *= 100_000_000
-        résultat += parse_8_caractères(chn.pointeur + curseur)
-        curseur += 8
+        résultat *= 100_000_000;
+        résultat += parse_8_caractères(chn.pointeur + curseur);
+        curseur += 8;
     }
 
     pour i dans taille ... chn.taille - 1 {
-        résultat *= 10
-        résultat += (chn.pointeur[i] - '0') comme n64
+        résultat *= 10;
+        résultat += (chn.pointeur[i] - '0') comme n64;
     }
 
-    retourne résultat
+    retourne résultat;
 }
 
 consomme_nombre_entier :: fonc (chn: chaine) -> (succès: bool, résultat: z64, reste: chaine)
 {
     si chn.taille == 0 {
-        retourne faux, 0, ""
+        retourne faux, 0, "";
     }
 
-    orig := chn
+    orig := chn;
 
-    est_négatif := faux
+    est_négatif := faux;
     si chn[0] == '-' {
-        chn = avance(chn, 1)
-        est_négatif = vrai
+        chn = avance(chn, 1);
+        est_négatif = vrai;
     }
     
     si chn.taille == 0 {
-        retourne faux, 0, orig
+        retourne faux, 0, orig;
     }
 
-    eu_chiffre := faux
+    eu_chiffre := faux;
 
-    résultat = 0
+    résultat = 0;
 
     tantque chn.taille != 0 {
         saufsi est_nombre_décimal(chn[0]) {
-            arrête
+            arrête;
         }
 
-        eu_chiffre = vrai
-        résultat *= 10
-        résultat += (chn[0] - '0')
+        eu_chiffre = vrai;
+        résultat *= 10;
+        résultat += (chn[0] - '0');
 
-        chn = avance(chn, 1)
+        chn = avance(chn, 1);
     }
 
     saufsi eu_chiffre {
-        retourne faux, 0, orig
+        retourne faux, 0, orig;
     }
 
     si est_négatif {
-        résultat = -résultat
+        résultat = -résultat;
     }
 
-    retourne vrai, résultat, chn
+    retourne vrai, résultat, chn;
 }
 
 extrait_n32_nonsûr :: fonc (chn: chaine) -> n32
 {
-    retourne extrait_n64_nonsûr(chn) comme n32
+    retourne extrait_n64_nonsûr(chn) comme n32;
 }
 
 extrait_n16_nonsûr :: fonc (chn: chaine) -> n16
 {
-    retourne extrait_n64_nonsûr(chn) comme n16
+    retourne extrait_n64_nonsûr(chn) comme n16;
 }
 
 extrait_n8_nonsûr :: fonc (chn: chaine) -> n8
 {
-    retourne extrait_n64_nonsûr(chn) comme n8
+    retourne extrait_n64_nonsûr(chn) comme n8;
 }
 
 ErreurParsageEntier :: erreur {
-    EntréeMalformée
-    EntréeTropGrande
+    EntréeMalformée;
+    EntréeTropGrande;
 }
 
 chaine_ne_contiens_que_des_chiffres :: fonc (chn: chaine) -> bool
 {
     pour chn {
-        v := (it - '0') comme n32
+        v := (it - '0') comme n32;
 
         si v >= 10 {
-            retourne faux
+            retourne faux;
         }
     }
 
-    retourne vrai
+    retourne vrai;
 }
 
 extrait_nombre_naturel :: fonc (chn: chaine, taille_max: z64) -> n64 | ErreurParsageEntier
 {
     si !chaine_ne_contiens_que_des_chiffres(chn) {
-        retourne ErreurParsageEntier.EntréeMalformée
+        retourne ErreurParsageEntier.EntréeMalformée;
     }
 
     si chn.taille > taille_max {
-        retourne ErreurParsageEntier.EntréeTropGrande
+        retourne ErreurParsageEntier.EntréeTropGrande;
     }
 
-    retourne extrait_n64_nonsûr(chn)
+    retourne extrait_n64_nonsûr(chn);
 }
 
 extrait_n64 :: fonc (chn: chaine) -> n64 | ErreurParsageEntier
 {
-    retourne extrait_nombre_naturel(chn, 22)
+    retourne extrait_nombre_naturel(chn, 22);
 }
 
 extrait_n32 :: fonc (chn: chaine) -> n32 | ErreurParsageEntier
 {
     valeur := tente extrait_nombre_naturel(chn, 10) piège err {
-        retourne err
+        retourne err;
     }
 
-    retourne valeur comme n32
+    retourne valeur comme n32;
 }
 
 extrait_n16 :: fonc (chn: chaine) -> n16 | ErreurParsageEntier
 {
     valeur := tente extrait_nombre_naturel(chn, 5) piège err {
-        retourne err
+        retourne err;
     }
 
-    retourne valeur comme n16
+    retourne valeur comme n16;
 }
 
 extrait_n8 :: fonc (chn: chaine) -> n8 | ErreurParsageEntier
 {
     valeur := tente extrait_nombre_naturel(chn, 3) piège err {
-        retourne err
+        retourne err;
     }
 
-    retourne valeur comme n8
+    retourne valeur comme n8;
 }
 
 extrait_nombre_relatif :: fonc (chn: chaine, taille_max: z64) -> z64 | ErreurParsageEntier
 {
     saufsi chn {
-        retourne ErreurParsageEntier.EntréeMalformée
+        retourne ErreurParsageEntier.EntréeMalformée;
     }
 
-    est_négatif := faux
+    est_négatif := faux;
 
     si chn[0] == '-' {
-        est_négatif = vrai
-        chn = avance(chn, 1)
+        est_négatif = vrai;
+        chn = avance(chn, 1);
     }
     sinon si chn[0] == '+' {
-        chn = avance(chn, 1)
+        chn = avance(chn, 1);
     }
 
     si !chaine_ne_contiens_que_des_chiffres(chn) {
-        retourne ErreurParsageEntier.EntréeMalformée
+        retourne ErreurParsageEntier.EntréeMalformée;
     }
 
     si chn.taille > taille_max {
-        retourne ErreurParsageEntier.EntréeTropGrande
+        retourne ErreurParsageEntier.EntréeTropGrande;
     }
 
-    résultat := extrait_n64_nonsûr(chn) comme z64
+    résultat := extrait_n64_nonsûr(chn) comme z64;
 
     si est_négatif {
-        résultat *= -1
+        résultat *= -1;
     }
 
-    retourne résultat
+    retourne résultat;
 }
 
 extrait_z64 :: fonc (chn: chaine) -> z64 | ErreurParsageEntier
 {
-    retourne extrait_nombre_relatif(chn, 22)
+    retourne extrait_nombre_relatif(chn, 22);
 }
 
 extrait_z32 :: fonc (chn: chaine) -> z32 | ErreurParsageEntier
 {
     valeur := tente extrait_nombre_relatif(chn, 10) piège err {
-        retourne err
+        retourne err;
     }
 
-    retourne valeur comme z32
+    retourne valeur comme z32;
 }
 
 extrait_z16 :: fonc (chn: chaine) -> z16 | ErreurParsageEntier
 {
     valeur := tente extrait_nombre_relatif(chn, 5) piège err {
-        retourne err
+        retourne err;
     }
 
-    retourne valeur comme z16
+    retourne valeur comme z16;
 }
 
 extrait_z8 :: fonc (chn: chaine) -> z8 | ErreurParsageEntier
 {
     valeur := tente extrait_nombre_relatif(chn, 3) piège err {
-        retourne err
+        retourne err;
     }
 
-    retourne valeur comme z8
+    retourne valeur comme z8;
 }
 
 // À FAIRE : déduplique avec la fonction dans Fondation
 extrait_nombre_réel_sûr :: fonc (chn: chaine) -> r64 | ErreurParsageEntier
 {
-    est_négatif := faux
+    est_négatif := faux;
 
     si chn[0] == '-' {
-        est_négatif = vrai
-        chn = avance(chn, 1)
+        est_négatif = vrai;
+        chn = avance(chn, 1);
     }
     sinon si chn[0] == '+' {
-        chn = avance(chn, 1)
+        chn = avance(chn, 1);
     }
 
-    résultat : r64 = 0.0
+    résultat : r64 = 0.0;
 
-    index_point : z64 = chn.taille
+    index_point : z64 = chn.taille;
 
     pour i dans 0 ... chn.taille - 1 {
         si chn[i] == '.' {
-            index_point = i + 1
-            arrête
+            index_point = i + 1;
+            arrête;
         }
 
-        v := (chn[i] - '0') comme n32
+        v := (chn[i] - '0') comme n32;
 
         si v >= 10 {
-            retourne ErreurParsageEntier.EntréeMalformée
+            retourne ErreurParsageEntier.EntréeMalformée;
         }
 
-        résultat *= 10.0
-        résultat += v comme r64
+        résultat *= 10.0;
+        résultat += v comme r64;
     }
 
-    produit : r64 = 0.1
+    produit : r64 = 0.1;
 
     pour i dans index_point ... chn.taille - 1 {
-        v := (chn[i] - '0') comme n32
+        v := (chn[i] - '0') comme n32;
 
         si v >= 10 {
-            retourne ErreurParsageEntier.EntréeMalformée
+            retourne ErreurParsageEntier.EntréeMalformée;
         }
 
-        c := (v comme r64) * produit
-        produit *= 0.1
+        c := (v comme r64) * produit;
+        produit *= 0.1;
 
-        résultat += c
+        résultat += c;
     }
 
     si est_négatif {
-        résultat *= -1.0
+        résultat *= -1.0;
     }
 
-    retourne résultat
+    retourne résultat;
 }
 
 extrait_r64 :: fonc (chn: chaine) -> r64 | ErreurParsageEntier
 {
-    retourne extrait_nombre_réel_sûr(chn)
+    retourne extrait_nombre_réel_sûr(chn);
 }
 
 extrait_r32 :: fonc (chn: chaine) -> r32 | ErreurParsageEntier
 {
     v := tente extrait_nombre_réel_sûr(chn) piège err {
-        retourne err
+        retourne err;
     }
 
-    retourne v comme r32
+    retourne v comme r32;
 }
 
 extrait_r16 :: fonc (chn: chaine) -> r16 | ErreurParsageEntier
 {
     v := tente extrait_nombre_réel_sûr(chn) piège err {
-        retourne err
+        retourne err;
     }
 
-    retourne v comme r16
+    retourne v comme r16;
 }
 
 parse_hexadécimal_n64 :: fonc (chn: chaine) -> n64 | ErreurParsageEntier
 {
-    résultat: n64
+    résultat: n64;
 
     pour chn {
         saufsi est_nombre_hexadécimal(it) {
-            retourne ErreurParsageEntier.EntréeMalformée
+            retourne ErreurParsageEntier.EntréeMalformée;
         }
 
-        résultat *= 16
-        résultat += donne_valeur_hex(it) comme n64
+        résultat *= 16;
+        résultat += donne_valeur_hex(it) comme n64;
     }
 
-    retourne résultat
+    retourne résultat;
 }
 
 parse_hexadécimal_n16 :: fonc (chn: chaine) -> n16 | ErreurParsageEntier
 {
     v := tente parse_hexadécimal_n64(chn) piège err {
-        retourne err
+        retourne err;
     }
 
-    retourne v comme n16
+    retourne v comme n16;
 }
 
 parse_hexadécimal_n32 :: fonc (chn: chaine) -> n32 | ErreurParsageEntier
 {
     v := tente parse_hexadécimal_n64(chn) piège err {
-        retourne err
+        retourne err;
     }
 
-    retourne v comme n32
+    retourne v comme n32;
 }
 
 parse_hexadécimal_z32 :: fonc (chn: chaine) -> z32 | ErreurParsageEntier
 {
     v := tente parse_hexadécimal_n64(chn) piège err {
-        retourne err
+        retourne err;
     }
 
-    retourne v comme z32
+    retourne v comme z32;
 }
 
 /* ------------------------------------------------------------------------- */
@@ -386,39 +386,39 @@ parse_hexadécimal_z32 :: fonc (chn: chaine) -> z32 | ErreurParsageEntier
  * \{ */
 
 CompositionNombreScientifique :: struct {
-    partie_entière: chaine
-    partie_décimale: chaine
-    exposant: chaine
+    partie_entière: chaine;
+    partie_décimale: chaine;
+    exposant: chaine;
 }
 
 convertis_nombre_scientifique_en_réel :: fonc (composition: CompositionNombreScientifique) -> r64
 {
-    partie_entière: r64
+    partie_entière: r64;
     
     si composition.partie_entière.taille != 0 {
-        partie_entière = extrait_nombre_entier(composition.partie_entière) comme r64
+        partie_entière = extrait_nombre_entier(composition.partie_entière) comme r64;
     }
 
-    résultat := partie_entière
+    résultat := partie_entière;
 
     si composition.partie_décimale.taille != 0 {
-        partie_décimale := extrait_nombre_entier(composition.partie_décimale)
+        partie_décimale := extrait_nombre_entier(composition.partie_décimale);
 
-        résultat += partie_décimale comme r64 * puissance(0.1, composition.partie_décimale.taille comme r64)
+        résultat += partie_décimale comme r64 * puissance(0.1, composition.partie_décimale.taille comme r64);
     }
 
     si composition.exposant.taille != 0 {
-        exposant := extrait_nombre_entier(composition.exposant)
+        exposant := extrait_nombre_entier(composition.exposant);
 
         si exposant < 0 {
-            résultat *= puissance(0.1, -exposant comme r64)
+            résultat *= puissance(0.1, -exposant comme r64);
         }
         sinon {
-            résultat *= puissance(10.0, exposant comme r64)
+            résultat *= puissance(10.0, exposant comme r64);
         }
     }
 
-    retourne résultat
+    retourne résultat;
 }
 
 /** \} */
@@ -431,64 +431,64 @@ convertis_nombre_scientifique_en_réel :: fonc (composition: CompositionNombreSc
 // La fonction présume que la chaine est entièrement composée de caractères numériques
 extrait_nombre_entier :: fonc (chn: chaine) -> z64
 {
-    résultat : z64 = 0
-    est_négatif := chn[0] == '-'
+    résultat : z64 = 0;
+    est_négatif := chn[0] == '-';
 
     si est_négatif {
-        chn = avance(chn, 1)
+        chn = avance(chn, 1);
     }
     sinon si chn[0] == '+' {
-        chn = avance(chn, 1)
+        chn = avance(chn, 1);
     }
 
     pour c dans chn {
-        résultat = résultat * 10 + c - '0' comme z64
+        résultat = résultat * 10 + c - '0' comme z64;
     }
 
     si est_négatif {
-        retourne -résultat
+        retourne -résultat;
     }
 
-    retourne résultat
+    retourne résultat;
 }
 
 // Converti une chaine, par exemple "500.5", en un nombre réel
 // La fonction présume que la chaine est entièrement composée de caractères numériques et d'un point
 extrait_nombre_réel :: fonc (chn: chaine) -> r64
 {
-    résultat : r64 = 0.0
-    mult : r64 = 1.0
-    point_trouvé := faux
+    résultat : r64 = 0.0;
+    mult : r64 = 1.0;
+    point_trouvé := faux;
 
-    est_négatif := chn[0] == '-'
+    est_négatif := chn[0] == '-';
 
     si est_négatif {
-        chn = avance(chn, 1)
+        chn = avance(chn, 1);
     }
     sinon si chn[0] == '+' {
-        chn = avance(chn, 1)
+        chn = avance(chn, 1);
     }
 
     pour c dans chn {
         si c == '.' {
-            point_trouvé = vrai
-            continue
+            point_trouvé = vrai;
+            continue;
         }
 
         si point_trouvé {
-            mult *= 0.1
-            résultat += (c - '0') comme r64 * mult
+            mult *= 0.1;
+            résultat += (c - '0') comme r64 * mult;
         }
         sinon {
-            résultat = résultat * 10.0 + (c - '0') comme r64
+            résultat = résultat * 10.0 + (c - '0') comme r64;
         }
     }
 
     si est_négatif {
-        retourne -résultat
+        retourne -résultat;
     }
 
-    retourne résultat
+    retourne résultat;
 }
 
 /** \} */

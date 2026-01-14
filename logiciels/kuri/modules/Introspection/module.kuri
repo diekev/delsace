@@ -1,195 +1,195 @@
 // Bibliothèque d'introspection.
 
-importe Chaine
-importe Compilatrice
-importe Fondation
-importe Numérique
+importe Chaine;
+importe Compilatrice;
+importe Fondation;
+importe Numérique;
 
 /** Retourne vrai si le type de la rubrique active de l'union correspond au type donné.
  * Sinon, retourne faux.
  * Cette fonction retourne également faux si l'union n'a aucune rubrique active. */
 est_rubrique_active :: fonc (u: $TypeUnion, $TypeRubrique: type_de_données) -> bool
 {
-    #assert info_de(TypeUnion).id == GenreInfoType.UNION
-    #assert info_de(TypeUnion).est_sûre == vrai
+    #assert info_de(TypeUnion).id == GenreInfoType.UNION;
+    #assert info_de(TypeUnion).est_sûre == vrai;
 
-    info_union := info_de(TypeUnion)
-    adresse_indice := (*u comme *octet + info_union.décalage_indice) comme *z32
+    info_union := info_de(TypeUnion);
+    adresse_indice := (*u comme *octet + info_union.décalage_indice) comme *z32;
 
-    indice := mémoire(adresse_indice)
+    indice := mémoire(adresse_indice);
 
     si indice == 0 {
-        retourne faux
+        retourne faux;
     }
 
-    rubrique := info_union.rubriques[indice - 1]
-    retourne rubrique.id == info_de(TypeRubrique)
+    rubrique := info_union.rubriques[indice - 1];
+    retourne rubrique.id == info_de(TypeRubrique);
 }
 
 définis_rubrique_active :: fonc (u: *$TypeUnion, indice: z32)
 {
-    #assert info_de(TypeUnion).id == GenreInfoType.UNION
-    #assert info_de(TypeUnion).est_sûre == vrai
+    #assert info_de(TypeUnion).id == GenreInfoType.UNION;
+    #assert info_de(TypeUnion).est_sûre == vrai;
 
-    info_union := info_de(TypeUnion)
+    info_union := info_de(TypeUnion);
 
-    assert(indice >= 0 && indice < info_union.rubriques.taille)
+    assert(indice >= 0 && indice < info_union.rubriques.taille);
 
-    adresse_indice := (u comme *octet + info_union.décalage_indice) comme *z32
-    mémoire(adresse_indice) = indice + 1
+    adresse_indice := (u comme *octet + info_union.décalage_indice) comme *z32;
+    mémoire(adresse_indice) = indice + 1;
 }
 
 donne_indice_rubrique_active :: fonc (u: $TypeUnion) -> z32
 {
-    #assert info_de(TypeUnion).id == GenreInfoType.UNION
-    #assert info_de(TypeUnion).est_sûre == vrai
+    #assert info_de(TypeUnion).id == GenreInfoType.UNION;
+    #assert info_de(TypeUnion).est_sûre == vrai;
 
-    info_union := info_de(TypeUnion)
+    info_union := info_de(TypeUnion);
 
-    adresse_indice := (*u comme *octet + info_union.décalage_indice) comme *z32
-    retourne mémoire(adresse_indice)
+    adresse_indice := (*u comme *octet + info_union.décalage_indice) comme *z32;
+    retourne mémoire(adresse_indice);
 }
 
 est_valide :: fonc (valeur: eini) -> bool
 {
-    retourne valeur.pointeur != nul
+    retourne valeur.pointeur != nul;
 }
 
 /* Enquête sur l'InfoType de l'eini. */
 
 est_bool :: fonc (valeur: eini) -> bool
 {
-    retourne valeur.info == info_de(bool)
+    retourne valeur.info == info_de(bool);
 }
 
 est_chaine :: fonc (valeur: eini) -> bool
 {
-    retourne valeur.info == info_de(chaine)
+    retourne valeur.info == info_de(chaine);
 }
 
 est_structure :: fonc (valeur: eini) -> bool
 {
-    retourne valeur.info.id == GenreInfoType.STRUCTURE
+    retourne valeur.info.id == GenreInfoType.STRUCTURE;
 }
 
 est_tableau :: fonc (valeur: eini) -> bool
 {
-    retourne valeur.info.id == GenreInfoType.TABLEAU
+    retourne valeur.info.id == GenreInfoType.TABLEAU;
 }
 
 est_tableau_fixe :: fonc (valeur: eini) -> bool
 {
-    retourne valeur.info.id == GenreInfoType.TABLEAU_FIXE
+    retourne valeur.info.id == GenreInfoType.TABLEAU_FIXE;
 }
 
 est_tranche :: fonc (valeur: eini) -> bool
 {
-    retourne valeur.info.id == GenreInfoType.TRANCHE
+    retourne valeur.info.id == GenreInfoType.TRANCHE;
 }
 
 est_entier :: fonc (valeur: eini) -> bool
 {
-    retourne valeur.info.id == GenreInfoType.ENTIER
+    retourne valeur.info.id == GenreInfoType.ENTIER;
 }
 
 est_réel :: fonc (valeur: eini) -> bool
 {
-    retourne valeur.info.id == GenreInfoType.RÉEL
+    retourne valeur.info.id == GenreInfoType.RÉEL;
 }
 
 est_pointeur :: fonc (valeur: eini) -> bool
 {
-    retourne valeur.info.id == GenreInfoType.POINTEUR
+    retourne valeur.info.id == GenreInfoType.POINTEUR;
 }
 
 est_opaque :: fonc (valeur: eini) -> bool
 {
-    retourne valeur.info.id == GenreInfoType.OPAQUE
+    retourne valeur.info.id == GenreInfoType.OPAQUE;
 }
 
 est_eini :: fonc (valeur: eini) -> bool
 {
-    retourne valeur.info == info_de(eini)
+    retourne valeur.info == info_de(eini);
 }
 
 est_énum :: fonc (valeur: eini) -> bool
 {
-    retourne valeur.info.id == GenreInfoType.ÉNUM
+    retourne valeur.info.id == GenreInfoType.ÉNUM;
 }
 
 est_octet :: fonc (valeur: eini) -> bool
 {
-    retourne valeur.info == info_de(octet)
+    retourne valeur.info == info_de(octet);
 }
 
 est_type_de_données :: fonc (valeur: eini) -> bool
 {
-    retourne valeur.info.id == GenreInfoType.TYPE_DE_DONNÉES
+    retourne valeur.info.id == GenreInfoType.TYPE_DE_DONNÉES;
 }
 
 est_union :: fonc (valeur: eini) -> bool
 {
-    retourne valeur.info.id == GenreInfoType.UNION
+    retourne valeur.info.id == GenreInfoType.UNION;
 }
 
 est_z8 :: fonc (valeur: eini) -> bool
 {
-    retourne valeur.info == info_de(z8)
+    retourne valeur.info == info_de(z8);
 }
 
 est_z16 :: fonc (valeur: eini) -> bool
 {
-    retourne valeur.info == info_de(z16)
+    retourne valeur.info == info_de(z16);
 }
 
 est_z32 :: fonc (valeur: eini) -> bool
 {
-    retourne valeur.info == info_de(z32)
+    retourne valeur.info == info_de(z32);
 }
 
 est_z64 :: fonc (valeur: eini) -> bool
 {
-    retourne valeur.info == info_de(z64)
+    retourne valeur.info == info_de(z64);
 }
 
 est_n8 :: fonc (valeur: eini) -> bool
 {
-    retourne valeur.info == info_de(n8)
+    retourne valeur.info == info_de(n8);
 }
 
 est_n16 :: fonc (valeur: eini) -> bool
 {
-    retourne valeur.info == info_de(n16)
+    retourne valeur.info == info_de(n16);
 }
 
 est_n32 :: fonc (valeur: eini) -> bool
 {
-    retourne valeur.info == info_de(n32)
+    retourne valeur.info == info_de(n32);
 }
 
 est_n64 :: fonc (valeur: eini) -> bool
 {
-    retourne valeur.info == info_de(n64)
+    retourne valeur.info == info_de(n64);
 }
 
 est_r16 :: fonc (valeur: eini) -> bool
 {
-    retourne valeur.info == info_de(r16)
+    retourne valeur.info == info_de(r16);
 }
 
 est_r32 :: fonc (valeur: eini) -> bool
 {
-    retourne valeur.info == info_de(r32)
+    retourne valeur.info == info_de(r32);
 }
 
 est_r64 :: fonc (valeur: eini) -> bool
 {
-    retourne valeur.info == info_de(r64)
+    retourne valeur.info == info_de(r64);
 }
 
 est_rien :: fonc (valeur: eini) -> bool
 {
-    retourne valeur.info == info_de(rien)
+    retourne valeur.info == info_de(rien);
 }
 
 /* Assignation d'une valeur. */
@@ -197,174 +197,174 @@ est_rien :: fonc (valeur: eini) -> bool
 assigne_z8 :: fonc (valeur: eini, v: z8)
 {
     // assert(valeur.est_z8())
-    mémoire(valeur.pointeur comme *z8) = v
+    mémoire(valeur.pointeur comme *z8) = v;
 }
 
 assigne_z16 :: fonc (valeur: eini, v: z16)
 {
     // assert(valeur.est_z16())
-    mémoire(valeur.pointeur comme *z16) = v
+    mémoire(valeur.pointeur comme *z16) = v;
 }
 
 assigne_z32 :: fonc (valeur: eini, v: z32)
 {
     // assert(valeur.est_z32())
-    mémoire(valeur.pointeur comme *z32) = v
+    mémoire(valeur.pointeur comme *z32) = v;
 }
 
 assigne_z64 :: fonc (valeur: eini, v: z64)
 {
     // assert(valeur.est_z64())
-    mémoire(valeur.pointeur comme *z64) = v
+    mémoire(valeur.pointeur comme *z64) = v;
 }
 
 assigne_n8 :: fonc (valeur: eini, v: n8)
 {
     // assert(valeur.est_n8())
-    mémoire(valeur.pointeur comme *n8) = v
+    mémoire(valeur.pointeur comme *n8) = v;
 }
 
 assigne_n16 :: fonc (valeur: eini, v: n16)
 {
     // assert(valeur.est_n16())
-    mémoire(valeur.pointeur comme *n16) = v
+    mémoire(valeur.pointeur comme *n16) = v;
 }
 
 assigne_n32 :: fonc (valeur: eini, v: n32)
 {
     // assert(valeur.est_n32())
-    mémoire(valeur.pointeur comme *n32) = v
+    mémoire(valeur.pointeur comme *n32) = v;
 }
 
 assigne_n64 :: fonc (valeur: eini, v: n64)
 {
     // assert(valeur.est_n64())
-    mémoire(valeur.pointeur comme *n64) = v
+    mémoire(valeur.pointeur comme *n64) = v;
 }
 
 assigne_r16 :: fonc (valeur: eini, v: r16)
 {
     // assert(valeur.est_r16())
-    mémoire(valeur.pointeur comme *r16) = v
+    mémoire(valeur.pointeur comme *r16) = v;
 }
 
 assigne_r32 :: fonc (valeur: eini, v: r32)
 {
     // assert(valeur.est_r32())
-    mémoire(valeur.pointeur comme *r32) = v
+    mémoire(valeur.pointeur comme *r32) = v;
 }
 
 assigne_r64 :: fonc (valeur: eini, v: r64)
 {
     // assert(valeur.est_r64())
-    mémoire(valeur.pointeur comme *r64) = v
+    mémoire(valeur.pointeur comme *r64) = v;
 }
 
 assigne_bool :: fonc (valeur: eini, v: bool)
 {
     // assert(valeur.est_bool())
-    mémoire(valeur.pointeur comme *bool) = v
+    mémoire(valeur.pointeur comme *bool) = v;
 }
 
 assigne_octet :: fonc (valeur: eini, v: octet)
 {
     // assert(valeur.est_octet())
-    mémoire(valeur.pointeur comme *octet) = v
+    mémoire(valeur.pointeur comme *octet) = v;
 }
 
 assigne_type_de_données :: fonc (valeur: eini, v: type_de_données)
 {
     // assert(valeur.est_type_de_données())
-    mémoire(valeur.pointeur comme *type_de_données) = v
+    mémoire(valeur.pointeur comme *type_de_données) = v;
 }
 
 assigne_chaine :: fonc (valeur: eini, v: chaine)
 {
     // assert(valeur.est_chaine())
-    mémoire(valeur.pointeur comme *chaine) = v
+    mémoire(valeur.pointeur comme *chaine) = v;
 }
 
 assigne_pointeur :: fonc (valeur: eini, v: *rien)
 {
     // assert(valeur.est_pointeur())
-    mémoire(valeur.pointeur comme **z8) = v
+    mémoire(valeur.pointeur comme **z8) = v;
 }
 
 /* Extraction d'une valeur depuis l'eini, seuls les types de bases sont supportés. */
 
 comme_bool :: fonc (valeur: eini) -> bool
 {
-    retourne mémoire(valeur.pointeur comme *bool)
+    retourne mémoire(valeur.pointeur comme *bool);
 }
 
 comme_chaine :: fonc (valeur: eini) -> chaine
 {
-    retourne mémoire(valeur.pointeur comme *chaine)
+    retourne mémoire(valeur.pointeur comme *chaine);
 }
 
 comme_octet :: fonc (valeur: eini) -> octet
 {
-    retourne mémoire(valeur.pointeur comme *octet)
+    retourne mémoire(valeur.pointeur comme *octet);
 }
 
 comme_type_de_données :: fonc (valeur: eini) -> type_de_données
 {
-    retourne mémoire(valeur.pointeur comme *type_de_données)
+    retourne mémoire(valeur.pointeur comme *type_de_données);
 }
 
 comme_z8 :: fonc (valeur: eini) -> z8
 {
-    retourne mémoire(valeur.pointeur comme *z8)
+    retourne mémoire(valeur.pointeur comme *z8);
 }
 
 comme_z16 :: fonc (valeur: eini) -> z16
 {
-    retourne mémoire(valeur.pointeur comme *z16)
+    retourne mémoire(valeur.pointeur comme *z16);
 }
 
 comme_z32 :: fonc (valeur: eini) -> z32
 {
-    retourne mémoire(valeur.pointeur comme *z32)
+    retourne mémoire(valeur.pointeur comme *z32);
 }
 
 comme_z64 :: fonc (valeur: eini) -> z64
 {
-    retourne mémoire(valeur.pointeur comme *z64)
+    retourne mémoire(valeur.pointeur comme *z64);
 }
 
 comme_n8 :: fonc (valeur: eini) -> n8
 {
-    retourne mémoire(valeur.pointeur comme *n8)
+    retourne mémoire(valeur.pointeur comme *n8);
 }
 
 comme_n16 :: fonc (valeur: eini) -> n16
 {
-    retourne mémoire(valeur.pointeur comme *n16)
+    retourne mémoire(valeur.pointeur comme *n16);
 }
 
 comme_n32 :: fonc (valeur: eini) -> n32
 {
-    retourne mémoire(valeur.pointeur comme *n32)
+    retourne mémoire(valeur.pointeur comme *n32);
 }
 
 comme_n64 :: fonc (valeur: eini) -> n64
 {
-    retourne mémoire(valeur.pointeur comme *n64)
+    retourne mémoire(valeur.pointeur comme *n64);
 }
 
 comme_r16 :: fonc (valeur: eini) -> r16
 {
-    retourne mémoire(valeur.pointeur comme *r16)
+    retourne mémoire(valeur.pointeur comme *r16);
 }
 
 comme_r32 :: fonc (valeur: eini) -> r32
 {
-    retourne mémoire(valeur.pointeur comme *r32)
+    retourne mémoire(valeur.pointeur comme *r32);
 }
 
 comme_r64 :: fonc (valeur: eini) -> r64
 {
-    retourne mémoire(valeur.pointeur comme *r64)
+    retourne mémoire(valeur.pointeur comme *r64);
 }
 
 /* Enquête sur les rubriques d'un eini pour une structure quelconque. */
@@ -372,72 +372,72 @@ comme_r64 :: fonc (valeur: eini) -> r64
 possède_rubrique :: fonc (valeur: eini, nom: chaine) -> bool
 {
     saufsi valeur.est_structure() {
-        retourne faux
+        retourne faux;
     }
 
-    retourne possède_rubrique(valeur.info comme *InfoTypeStructure, nom)
+    retourne possède_rubrique(valeur.info comme *InfoTypeStructure, nom);
 }
 
 possède_rubrique :: fonc (info: *InfoTypeStructure, nom: chaine) -> bool
 {
-    retourne trouve_info_rubrique(info, nom) != nul
+    retourne trouve_info_rubrique(info, nom) != nul;
 }
 
 eini_depuis_info_rubrique :: fonc (structure: eini, info_rubrique: *InfoTypeRubriqueStructure) -> eini
 {
-    e: eini
-    e.pointeur = structure.pointeur + info_rubrique.décalage
-    e.info = info_rubrique.id
+    e: eini;
+    e.pointeur = structure.pointeur + info_rubrique.décalage;
+    e.info = info_rubrique.id;
 
-    retourne e
+    retourne e;
 }
 
 tampon_pour_eini :: fonc (e: eini) -> []octet #enligne
 {
-    tampon : []octet = ---
-    tampon.pointeur = e.pointeur comme *z8
-    tampon.taille = e.info.taille_en_octet comme z64
-    retourne tampon
+    tampon : []octet = ---;
+    tampon.pointeur = e.pointeur comme *z8;
+    tampon.taille = e.info.taille_en_octet comme z64;
+    retourne tampon;
 }
 
 trouve_info_rubrique :: fonc (info: *InfoTypeStructure, nom_rubrique: chaine) -> *InfoTypeRubriqueStructure
 {
     pour info.rubriques {
         si it.nom == nom_rubrique {
-            retourne it
+            retourne it;
         }
     }
 
     pour info.structs_employées {
-        info_rubrique := trouve_info_rubrique(it, nom_rubrique)
+        info_rubrique := trouve_info_rubrique(it, nom_rubrique);
         si info_rubrique {
-            retourne info_rubrique
+            retourne info_rubrique;
         }
     }
 
-    retourne nul
+    retourne nul;
 }
 
 trouve_info_rubrique :: fonc (valeur: eini, nom_rubrique: chaine) -> *InfoTypeRubriqueStructure
 {
     saufsi valeur.est_structure() {
-        retourne nul
+        retourne nul;
     }
 
-    retourne trouve_info_rubrique(valeur.info comme *InfoTypeStructure, nom_rubrique)
+    retourne trouve_info_rubrique(valeur.info comme *InfoTypeStructure, nom_rubrique);
 }
 
 /* Retourne le nombre de rubriques de la structure en remplaçant les structures
  * employées par leurs rubriques et ce de manière récursive. */
 donne_nombre_de_rubriques_effectif :: fonc (info: *InfoTypeStructure) -> z64
 {
-    résultat := info.rubriques.taille - info.structs_employées.taille
+    résultat := info.rubriques.taille - info.structs_employées.taille;
 
     pour info.structs_employées {
-        résultat += donne_nombre_de_rubriques_effectif(it)
+        résultat += donne_nombre_de_rubriques_effectif(it);
     }
 
-    retourne résultat
+    retourne résultat;
 }
 
 /* Trouve la valeur eini d'une rubrique d'une structure ou d'une chaine.
@@ -445,171 +445,171 @@ donne_nombre_de_rubriques_effectif :: fonc (info: *InfoTypeStructure) -> z64
  */
 trouve_valeur_rubrique :: fonc (valeur: eini, nom_rubrique: chaine) -> eini
 {
-    résultat: eini
+    résultat: eini;
 
     si valeur.est_chaine() {
         si nom_rubrique == "taille" {
-            résultat.pointeur = valeur.pointeur + 8
-            résultat.info = info_de(z64)
-            retourne résultat
+            résultat.pointeur = valeur.pointeur + 8;
+            résultat.info = info_de(z64);
+            retourne résultat;
         }
     }
 
-    rubrique := trouve_info_rubrique(valeur, nom_rubrique)
+    rubrique := trouve_info_rubrique(valeur, nom_rubrique);
     si rubrique {
-        retourne eini_depuis_info_rubrique(valeur, rubrique)
+        retourne eini_depuis_info_rubrique(valeur, rubrique);
     }
 
-    retourne résultat
+    retourne résultat;
 }
 
 /* Itératrice sur les valeurs d'un eini provenant d'un type tableau (fixe ou dynamique). */
 ItératriceTableau :: struct {
-    valeur: eini
+    valeur: eini;
 
-    pointeur: *z8
-    taille: z64
+    pointeur: *z8;
+    taille: z64;
 
-    position: z64
+    position: z64;
 
-    type_pointé: *InfoType
+    type_pointé: *InfoType;
 
-    décalage: z32
+    décalage: z32;
 }
 
 crée_itératrice_tableau :: fonc (valeur: eini) -> ItératriceTableau
 {
-    itératrice: ItératriceTableau
+    itératrice: ItératriceTableau;
 
     saufsi valeur.est_valide() {
-        retourne itératrice
+        retourne itératrice;
     }
 
     saufsi valeur.est_tableau() || valeur.est_tableau_fixe() {
-        retourne itératrice
+        retourne itératrice;
     }
 
-    itératrice.valeur = valeur
+    itératrice.valeur = valeur;
 
     si valeur.est_tableau_fixe() {
-        info_tableau := valeur.info comme *InfoTypeTableauFixe
+        info_tableau := valeur.info comme *InfoTypeTableauFixe;
 
-        itératrice.pointeur = valeur.pointeur
-        itératrice.taille = info_tableau.nombre_éléments comme z32
-        itératrice.type_pointé = info_tableau.type_pointé
-        itératrice.décalage = info_tableau.type_pointé.taille_en_octet comme z32
+        itératrice.pointeur = valeur.pointeur;
+        itératrice.taille = info_tableau.nombre_éléments comme z32;
+        itératrice.type_pointé = info_tableau.type_pointé;
+        itératrice.décalage = info_tableau.type_pointé.taille_en_octet comme z32;
     }
     sinon {
-        x := mémoire(valeur.pointeur comme *[..]z8)
+        x := mémoire(valeur.pointeur comme *[..]z8);
 
-        info_tableau := valeur.info comme *InfoTypeTableau
+        info_tableau := valeur.info comme *InfoTypeTableau;
 
-        itératrice.pointeur = x.pointeur
-        itératrice.taille = x.taille
-        itératrice.type_pointé = info_tableau.type_pointé
-        itératrice.décalage = info_tableau.type_pointé.taille_en_octet comme z32
+        itératrice.pointeur = x.pointeur;
+        itératrice.taille = x.taille;
+        itératrice.type_pointé = info_tableau.type_pointé;
+        itératrice.décalage = info_tableau.type_pointé.taille_en_octet comme z32;
     }
 
-    retourne itératrice
+    retourne itératrice;
 }
 
 crée_itératrice_tableau_tranche :: fonc (valeur: eini) -> ItératriceTableau
 {
-    itératrice: ItératriceTableau
+    itératrice: ItératriceTableau;
 
     saufsi valeur.est_valide() {
-        retourne itératrice
+        retourne itératrice;
     }
 
     saufsi valeur.est_tranche() {
-        retourne itératrice
+        retourne itératrice;
     }
 
-    info_tableau := valeur.info comme *InfoTypeTranche
-    type_élément := info_tableau.type_élément
-    décalage := type_élément.taille_en_octet comme z32
+    info_tableau := valeur.info comme *InfoTypeTranche;
+    type_élément := info_tableau.type_élément;
+    décalage := type_élément.taille_en_octet comme z32;
 
-    x := mémoire(valeur.pointeur comme *[]z8)
-    itératrice.pointeur = x.pointeur
-    itératrice.taille = x.taille
+    x := mémoire(valeur.pointeur comme *[]z8);
+    itératrice.pointeur = x.pointeur;
+    itératrice.taille = x.taille;
 
-    itératrice.valeur = valeur
-    itératrice.type_pointé = type_élément
-    itératrice.décalage = décalage
+    itératrice.valeur = valeur;
+    itératrice.type_pointé = type_élément;
+    itératrice.décalage = décalage;
 
-    retourne itératrice
+    retourne itératrice;
 }
 
 valeur_suivante :: fonc (itératrice: &ItératriceTableau) -> eini
 {
-    résultat: eini
+    résultat: eini;
 
     si itératrice.position >= itératrice.taille {
-        retourne résultat
+        retourne résultat;
     }
 
-    résultat.pointeur = itératrice.pointeur + itératrice.décalage * itératrice.position
-    résultat.info = itératrice.type_pointé
+    résultat.pointeur = itératrice.pointeur + itératrice.décalage * itératrice.position;
+    résultat.info = itératrice.type_pointé;
 
-    itératrice.position += 1
+    itératrice.position += 1;
 
-    retourne résultat
+    retourne résultat;
 }
 
 /* Itératrice sur les rubriques d'un eini provenant d'une structure. */
 ItératriceRubriqueStructure :: struct {
-    valeur: eini
+    valeur: eini;
 
-    pointeur: *z8
-    taille: z64
+    pointeur: *z8;
+    taille: z64;
 
-    position: z64
+    position: z64;
 
-    ignore_rubriques_constantes: bool
+    ignore_rubriques_constantes: bool;
 }
 
 crée_itératrice_rubrique :: fonc (structure: eini, ignore_rubriques_constantes := vrai) -> ItératriceRubriqueStructure
 {
-    itératrice: ItératriceRubriqueStructure
+    itératrice: ItératriceRubriqueStructure;
 
     si !structure.est_structure() {
-        retourne itératrice
+        retourne itératrice;
     }
 
-    info := structure.info comme *InfoTypeStructure
+    info := structure.info comme *InfoTypeStructure;
 
-    itératrice.valeur = structure
-    itératrice.taille = info.rubriques.taille
-    itératrice.ignore_rubriques_constantes = ignore_rubriques_constantes
+    itératrice.valeur = structure;
+    itératrice.taille = info.rubriques.taille;
+    itératrice.ignore_rubriques_constantes = ignore_rubriques_constantes;
 
-    retourne itératrice
+    retourne itératrice;
 }
 
 rubrique_suivante :: fonc (itératrice: &ItératriceRubriqueStructure) -> (eini, chaine)
 {
-    résultat: eini
-    nom: chaine
+    résultat: eini;
+    nom: chaine;
 
-    info := itératrice.valeur.info comme *InfoTypeStructure
+    info := itératrice.valeur.info comme *InfoTypeStructure;
 
     tantque itératrice.position < itératrice.taille {
-        rubrique := info.rubriques[itératrice.position]
+        rubrique := info.rubriques[itératrice.position];
 
         si rubrique.drapeaux.EST_CONSTANTE && itératrice.ignore_rubriques_constantes {
-            itératrice.position += 1
-            continue
+            itératrice.position += 1;
+            continue;
         }
 
-        résultat.pointeur = itératrice.valeur.pointeur + rubrique.décalage
-        résultat.info = rubrique.id
+        résultat.pointeur = itératrice.valeur.pointeur + rubrique.décalage;
+        résultat.info = rubrique.id;
 
-        nom = rubrique.nom
+        nom = rubrique.nom;
 
-        itératrice.position += 1
-        arrête
+        itératrice.position += 1;
+        arrête;
     }
 
-    retourne résultat, nom
+    retourne résultat, nom;
 }
 
 /* FonctionParsage
@@ -627,8 +627,8 @@ rubrique_suivante :: fonc (itératrice: &ItératriceRubriqueStructure) -> (eini,
  * de la compilation via son InfoType.
  */
 FonctionParsage :: struct {
-    info_type: *InfoType
-    rappel: fonc (texte: chaine, résultat: []octet) -> bool
+    info_type: *InfoType;
+    rappel: fonc (texte: chaine, résultat: []octet) -> bool;
 }
 
 /* Trouve une FonctionParsage pour un InfoType précisé et retourne un pointeur vers celle-ci,
@@ -638,11 +638,11 @@ trouve_fonction_pour_type :: fonc (fonctions: []FonctionParsage, info_type: *Inf
 {
     pour * fonctions {
         si info_type == it.info_type {
-            retourne it
+            retourne it;
         }
     }
 
-    retourne nul
+    retourne nul;
 }
 
 /* Crée une FonctionParsage à partir de l'InfoType et du rappel précisés et ajoute-la au tableau.
@@ -653,16 +653,16 @@ ajoute_fonction :: fonc (fonctions: *[..]FonctionParsage, info_type: *InfoType, 
 {
     pour mémoire(fonctions) {
         si it.info_type == info_type {
-            it.rappel = rappel
-            retourne
+            it.rappel = rappel;
+            retourne;
         }
     }
 
-    fonction: FonctionParsage
-    fonction.info_type = info_type
-    fonction.rappel = rappel
+    fonction: FonctionParsage;
+    fonction.info_type = info_type;
+    fonction.rappel = rappel;
 
-    tableau_ajoute(fonctions, fonction)
+    tableau_ajoute(fonctions, fonction);
 }
 
 /* Initialise un tableau de FonctionParsage pour avoir des rappels pour chaque type
@@ -670,19 +670,19 @@ ajoute_fonction :: fonc (fonctions: *[..]FonctionParsage, info_type: *InfoType, 
  */
 initalise_types_base :: fonc (fonctions: *[..]FonctionParsage)
 {
-    ajoute_fonction(fonctions, info_de(chaine), parse_chaine)
-    ajoute_fonction(fonctions, info_de(n8), parse_n8)
-    ajoute_fonction(fonctions, info_de(n16), parse_n16)
-    ajoute_fonction(fonctions, info_de(n32), parse_n32)
-    ajoute_fonction(fonctions, info_de(n64), parse_n64)
-    ajoute_fonction(fonctions, info_de(z8), parse_z8)
-    ajoute_fonction(fonctions, info_de(z16), parse_z16)
-    ajoute_fonction(fonctions, info_de(z32), parse_z32)
-    ajoute_fonction(fonctions, info_de(z64), parse_z64)
-    ajoute_fonction(fonctions, info_de(r16), parse_r16)
-    ajoute_fonction(fonctions, info_de(r32), parse_r32)
-    ajoute_fonction(fonctions, info_de(r64), parse_r64)
-    ajoute_fonction(fonctions, info_de(bool), parse_bool)
+    ajoute_fonction(fonctions, info_de(chaine), parse_chaine);
+    ajoute_fonction(fonctions, info_de(n8), parse_n8);
+    ajoute_fonction(fonctions, info_de(n16), parse_n16);
+    ajoute_fonction(fonctions, info_de(n32), parse_n32);
+    ajoute_fonction(fonctions, info_de(n64), parse_n64);
+    ajoute_fonction(fonctions, info_de(z8), parse_z8);
+    ajoute_fonction(fonctions, info_de(z16), parse_z16);
+    ajoute_fonction(fonctions, info_de(z32), parse_z32);
+    ajoute_fonction(fonctions, info_de(z64), parse_z64);
+    ajoute_fonction(fonctions, info_de(r16), parse_r16);
+    ajoute_fonction(fonctions, info_de(r32), parse_r32);
+    ajoute_fonction(fonctions, info_de(r64), parse_r64);
+    ajoute_fonction(fonctions, info_de(bool), parse_bool);
 }
 
 // ------------------------
@@ -692,338 +692,338 @@ initalise_types_base :: fonc (fonctions: *[..]FonctionParsage)
  * aucune copie n'en est faite, nous supposons que le texte est toujours valide. */
 parse_chaine :: fonc (texte: chaine, tampon: []octet) -> bool
 {
-    copie_mem_nonsur(src = *texte, dst = tampon.pointeur, taille = tampon.taille)
-    retourne vrai
+    copie_mem_nonsur(src = *texte, dst = tampon.pointeur, taille = tampon.taille);
+    retourne vrai;
 }
 
 parse_n8 :: fonc (texte: chaine, tampon: []octet) -> bool
 {
     v := tente extrait_n8(texte) piège _ {
-        retourne faux
+        retourne faux;
     }
 
-    copie_mem_nonsur(src = *v, dst = tampon.pointeur, taille = tampon.taille)
-    retourne vrai
+    copie_mem_nonsur(src = *v, dst = tampon.pointeur, taille = tampon.taille);
+    retourne vrai;
 }
 
 parse_n16 :: fonc (texte: chaine, tampon: []octet) -> bool
 {
     v := tente extrait_n16(texte) piège _ {
-        retourne faux
+        retourne faux;
     }
 
-    copie_mem_nonsur(src = *v, dst = tampon.pointeur, taille = tampon.taille)
-    retourne vrai
+    copie_mem_nonsur(src = *v, dst = tampon.pointeur, taille = tampon.taille);
+    retourne vrai;
 }
 
 parse_n32 :: fonc (texte: chaine, tampon: []octet) -> bool
 {
     v := tente extrait_n32(texte) piège _ {
-        retourne faux
+        retourne faux;
     }
 
-    copie_mem_nonsur(src = *v, dst = tampon.pointeur, taille = tampon.taille)
-    retourne vrai
+    copie_mem_nonsur(src = *v, dst = tampon.pointeur, taille = tampon.taille);
+    retourne vrai;
 }
 
 parse_n64 :: fonc (texte: chaine, tampon: []octet) -> bool
 {
     v := tente extrait_n64(texte) piège _ {
-        retourne faux
+        retourne faux;
     }
 
-    copie_mem_nonsur(src = *v, dst = tampon.pointeur, taille = tampon.taille)
-    retourne vrai
+    copie_mem_nonsur(src = *v, dst = tampon.pointeur, taille = tampon.taille);
+    retourne vrai;
 }
 
 parse_z8 :: fonc (texte: chaine, tampon: []octet) -> bool
 {
     v := tente extrait_z8(texte) piège _ {
-        retourne faux
+        retourne faux;
     }
 
-    copie_mem_nonsur(src = *v, dst = tampon.pointeur, taille = tampon.taille)
-    retourne vrai
+    copie_mem_nonsur(src = *v, dst = tampon.pointeur, taille = tampon.taille);
+    retourne vrai;
 }
 
 parse_z16 :: fonc (texte: chaine, tampon: []octet) -> bool
 {
     v := tente extrait_z16(texte) piège _ {
-        retourne faux
+        retourne faux;
     }
 
-    copie_mem_nonsur(src = *v, dst = tampon.pointeur, taille = tampon.taille)
-    retourne vrai
+    copie_mem_nonsur(src = *v, dst = tampon.pointeur, taille = tampon.taille);
+    retourne vrai;
 }
 
 parse_z32 :: fonc (texte: chaine, tampon: []octet) -> bool
 {
     v := tente extrait_z32(texte) piège _ {
-        retourne faux
+        retourne faux;
     }
 
-    copie_mem_nonsur(src = *v, dst = tampon.pointeur, taille = tampon.taille)
-    retourne vrai
+    copie_mem_nonsur(src = *v, dst = tampon.pointeur, taille = tampon.taille);
+    retourne vrai;
 }
 
 parse_z64 :: fonc (texte: chaine, tampon: []octet) -> bool
 {
     v := tente extrait_z64(texte) piège _ {
-        retourne faux
+        retourne faux;
     }
 
-    copie_mem_nonsur(src = *v, dst = tampon.pointeur, taille = tampon.taille)
-    retourne vrai
+    copie_mem_nonsur(src = *v, dst = tampon.pointeur, taille = tampon.taille);
+    retourne vrai;
 }
 
 parse_r16 :: fonc (texte: chaine, tampon: []octet) -> bool
 {
     v := tente extrait_r16(texte) piège _ {
-        retourne faux
+        retourne faux;
     }
 
-    copie_mem_nonsur(src = *v, dst = tampon.pointeur, taille = tampon.taille)
-    retourne vrai
+    copie_mem_nonsur(src = *v, dst = tampon.pointeur, taille = tampon.taille);
+    retourne vrai;
 }
 
 parse_r32 :: fonc (texte: chaine, tampon: []octet) -> bool
 {
     v := tente extrait_r32(texte) piège _ {
-        retourne faux
+        retourne faux;
     }
 
-    copie_mem_nonsur(src = *v, dst = tampon.pointeur, taille = tampon.taille)
-    retourne vrai
+    copie_mem_nonsur(src = *v, dst = tampon.pointeur, taille = tampon.taille);
+    retourne vrai;
 }
 
 parse_r64 :: fonc (texte: chaine, tampon: []octet) -> bool
 {
     v := tente extrait_r64(texte) piège _ {
-        retourne faux
+        retourne faux;
     }
 
-    copie_mem_nonsur(src = *v, dst = tampon.pointeur, taille = tampon.taille)
-    retourne vrai
+    copie_mem_nonsur(src = *v, dst = tampon.pointeur, taille = tampon.taille);
+    retourne vrai;
 }
 
 parse_bool :: fonc (texte: chaine, tampon: []octet) -> bool
 {
     si texte == "vrai" {
-        tampon[0] = 1
-        retourne vrai
+        tampon[0] = 1;
+        retourne vrai;
     }
 
     si texte == "faux" {
-        tampon[0] = 0
-        retourne vrai
+        tampon[0] = 0;
+        retourne vrai;
     }
 
-    retourne faux
+    retourne faux;
 }
 
 // À FAIRE: considère utiliser des tables de recherches, en se basant sur la table de type
 FonctionInstrospection :: struct ($T: type_de_données) {
-    #assert info_de(T).id == GenreInfoType.FONCTION
-    info: *InfoType
-    fonction: T
+    #assert info_de(T).id == GenreInfoType.FONCTION;
+    info: *InfoType;
+    fonction: T;
 }
 
 ajoute_fonction :: fonc (fonctions: *[..]FonctionInstrospection($T), info: *InfoType, fonction: T)
 {
-    f: FonctionInstrospection(T)
-    f.info = info
-    f.fonction = fonction
+    f: FonctionInstrospection(T);
+    f.info = info;
+    f.fonction = fonction;
 
-    tableau_ajoute(fonctions, f)
+    tableau_ajoute(fonctions, f);
 }
 
 trouve_fonction_pour_type :: fonc (fonctions: [..]FonctionInstrospection($T), info: *InfoType) -> *FonctionInstrospection(T)
 {
     pour * fonctions {
         si it.info == info {
-            retourne it
+            retourne it;
         }
     }
 
-    retourne nul
+    retourne nul;
 }
 
 /* Utile pour les métaprogrammes pour générer le code pour envelopper des fonctions spécifiques
  * dans des fonctions génériques insérables dans un tableau de FonctionInstrospection. */
 CréatriceTableFonction :: struct {
     /* Nom du tableau globale contenant les FonctionIntropection. */
-    nom_table_fonctions: chaine
+    nom_table_fonctions: chaine;
 
     /* Doit être vrai si le tableau doit par défaut contenir les fonctions de parsage
      * par défaut des types de bases. */
-    initialise_types_de_bases: bool
+    initialise_types_de_bases: bool;
 
     /* Rappel pour généré des DonnéesFonctionPourTableFonction à partir d'une fonction candidate.
      * Seules les fonctions ayant l'annotation spécifiée par `annotation_désirée` sont passées
      * ici.
      * Le fonction du rappel peut interrompre la compilation via une erreur. */
-    données_pour_fonction: fonc (code: *NoeudCodeEntêteFonction) -> DonnéesFonctionPourTableFonction
+    données_pour_fonction: fonc (code: *NoeudCodeEntêteFonction) -> DonnéesFonctionPourTableFonction;
 
     /* Génére la fonction d'enveloppe de la fonction spécifique ; enveloppe qui sera ajoutée
      * au tableau globale de FonctionIntropection.
      * Le rappel doit retourner le nom de la fonction enveloppe. */
-    génère_fonction_enveloppe: fonc (enchaineuse: *Enchaineuse, espace: EspaceDeTravail, données: DonnéesFonctionPourTableFonction) -> chaine
+    génère_fonction_enveloppe: fonc (enchaineuse: *Enchaineuse, espace: EspaceDeTravail, données: DonnéesFonctionPourTableFonction) -> chaine;
 
     /* Les modules devant être importés pour que le code généré puisse compiler.
      * Utiliser ajoute_module() plutôt que ceci directement afin de s'assurer qu'un
      * module n'est importé qu'une seule.
      * Seuls les modules n'étant pas découvrable via les fonctions candidates
      * devrait être manuellement ajoutées. */
-    modules_importés: [..]chaine
+    modules_importés: [..]chaine;
 
-    nom_module: chaine
+    nom_module: chaine;
 
-    espace: EspaceDeTravail
+    espace: EspaceDeTravail;
 }
 
 détruit_données_créatrice_table_fonctions :: fonc (créatrice: &CréatriceTableFonction)
 {
-    déloge(créatrice.modules_importés)
+    déloge(créatrice.modules_importés);
 }
 
 DonnéesFonctionPourTableFonction :: struct {
-    fonction: *NoeudCodeEntêteFonction
-    info_type: *InfoType
-    nom_fonction_enveloppe: chaine
+    fonction: *NoeudCodeEntêteFonction;
+    info_type: *InfoType;
+    nom_fonction_enveloppe: chaine;
 }
 
 créatrice_est_valide :: fonc (créatrice: &CréatriceTableFonction) -> bool
 {
     saufsi créatrice.nom_table_fonctions {
-        retourne faux
+        retourne faux;
     }
 
     saufsi créatrice.données_pour_fonction {
-        retourne faux
+        retourne faux;
     }
 
     saufsi créatrice.génère_fonction_enveloppe {
-        retourne faux
+        retourne faux;
     }
 
-    retourne vrai
+    retourne vrai;
 }
 
 ajoute_module :: fonc (créatrice: &CréatriceTableFonction, nom_module: chaine)
 {
     pour module_importé dans créatrice.modules_importés {
         si module_importé == nom_module {
-            arrête
+            arrête;
         }
     }
     sansarrêt {
-        tableau_ajoute(*créatrice.modules_importés, nom_module)
+        tableau_ajoute(*créatrice.modules_importés, nom_module);
     }
 }
 
 crée_table_fonctions :: fonc (créatrice: &CréatriceTableFonction, fonctions: []*NoeudCodeEntêteFonction)
 {
     saufsi créatrice.créatrice_est_valide() {
-        retourne
+        retourne;
     }
 
     saufsi fonctions {
-        retourne
+        retourne;
     }
 
-    données_fonctions: [..]DonnéesFonctionPourTableFonction
-    diffère déloge(données_fonctions)
+    données_fonctions: [..]DonnéesFonctionPourTableFonction;
+    diffère déloge(données_fonctions);
     pour fonctions {
-        données := créatrice.données_pour_fonction(it)
-        données.fonction = it
-        tableau_ajoute(*données_fonctions, données)
+        données := créatrice.données_pour_fonction(it);
+        données.fonction = it;
+        tableau_ajoute(*données_fonctions, données);
     }
 
-    enchaineuse: Enchaineuse
-    initialise_enchaineuse(*enchaineuse)
+    enchaineuse: Enchaineuse;
+    initialise_enchaineuse(*enchaineuse);
 
     /* Création des imports. */
-    diffère déloge(créatrice.modules_importés)
-    créatrice.ajoute_module("Fondation")
-    créatrice.ajoute_module("Introspection")
+    diffère déloge(créatrice.modules_importés);
+    créatrice.ajoute_module("Fondation");
+    créatrice.ajoute_module("Introspection");
 
     pour données_fonctions {
-        module := compilatrice_module_pour_code(créatrice.espace, it.fonction)
+        module := compilatrice_module_pour_code(créatrice.espace, it.fonction);
         saufsi module {
-            continue
+            continue;
         }
-        nom_module := compilatrice_nom_module(module)
+        nom_module := compilatrice_nom_module(module);
         si nom_module {
-            créatrice.ajoute_module(nom_module)
+            créatrice.ajoute_module(nom_module);
         }
     }
 
     pour créatrice.modules_importés {
-        ajoute_au_tampon(*enchaineuse, "importe ", it, "\n")
+        ajoute_au_tampon(*enchaineuse, "importe ", it, "\n");
     }
 
     /* Création des enveloppes pour les fonctions de parsage. */
     pour & données_fonctions {
-        it.nom_fonction_enveloppe = créatrice.génère_fonction_enveloppe(*enchaineuse, créatrice.espace, it)
+        it.nom_fonction_enveloppe = créatrice.génère_fonction_enveloppe(*enchaineuse, créatrice.espace, it);
     }
 
     /* Création de la fonction d'initialisation. */
-    ajoute_au_tampon(*enchaineuse, "initialise_", créatrice.nom_table_fonctions, " :: fonc ()\n")
-    ajoute_au_tampon(*enchaineuse, "{\n")
+    ajoute_au_tampon(*enchaineuse, "initialise_", créatrice.nom_table_fonctions, " :: fonc ()\n");
+    ajoute_au_tampon(*enchaineuse, "{\n");
 
     si créatrice.initialise_types_de_bases {
-        ajoute_au_tampon(*enchaineuse, "\tIntrospection.initalise_types_base(*")
+        ajoute_au_tampon(*enchaineuse, "\tIntrospection.initalise_types_base(*");
         si créatrice.nom_module {
-            ajoute_au_tampon(*enchaineuse, créatrice.nom_module, ".")
+            ajoute_au_tampon(*enchaineuse, créatrice.nom_module, ".");
         }
-        ajoute_au_tampon(*enchaineuse, créatrice.nom_table_fonctions, ")\n")
+        ajoute_au_tampon(*enchaineuse, créatrice.nom_table_fonctions, ")\n");
     }
 
     pour données_fonctions {
-        ajoute_au_tampon(*enchaineuse, "\tIntrospection.ajoute_fonction(*")
+        ajoute_au_tampon(*enchaineuse, "\tIntrospection.ajoute_fonction(*");
         si créatrice.nom_module {
-            ajoute_au_tampon(*enchaineuse, créatrice.nom_module, ".")
+            ajoute_au_tampon(*enchaineuse, créatrice.nom_module, ".");
         }
-        ajoute_au_tampon(*enchaineuse, créatrice.nom_table_fonctions, ", info_de(")
-        nom_module_fonction := compilatrice_nom_module(compilatrice_module_pour_code(créatrice.espace, it.fonction))
-        imprime_type(*enchaineuse, it.info_type, nom_module_fonction)
-        ajoute_au_tampon(*enchaineuse, "), ", it.nom_fonction_enveloppe, ")\n")
-        déloge(it.nom_fonction_enveloppe)
+        ajoute_au_tampon(*enchaineuse, créatrice.nom_table_fonctions, ", info_de(");
+        nom_module_fonction := compilatrice_nom_module(compilatrice_module_pour_code(créatrice.espace, it.fonction));
+        imprime_type(*enchaineuse, it.info_type, nom_module_fonction);
+        ajoute_au_tampon(*enchaineuse, "), ", it.nom_fonction_enveloppe, ")\n");
+        déloge(it.nom_fonction_enveloppe);
     }
 
-    ajoute_au_tampon(*enchaineuse, "}\n")
-    ajoute_au_tampon(*enchaineuse, "issitialise_", créatrice.nom_table_fonctions, " :: fonc ()\n")
-    ajoute_au_tampon(*enchaineuse, "{\n")
-    ajoute_au_tampon(*enchaineuse, "}\n")
-    ajoute_au_tampon(*enchaineuse, "#ajoute_init initialise_", créatrice.nom_table_fonctions, "()\n")
-    ajoute_au_tampon(*enchaineuse, "#ajoute_fini issitialise_", créatrice.nom_table_fonctions, "()\n")
+    ajoute_au_tampon(*enchaineuse, "}\n");
+    ajoute_au_tampon(*enchaineuse, "issitialise_", créatrice.nom_table_fonctions, " :: fonc ()\n");
+    ajoute_au_tampon(*enchaineuse, "{\n");
+    ajoute_au_tampon(*enchaineuse, "}\n");
+    ajoute_au_tampon(*enchaineuse, "#ajoute_init initialise_", créatrice.nom_table_fonctions, "()\n");
+    ajoute_au_tampon(*enchaineuse, "#ajoute_fini issitialise_", créatrice.nom_table_fonctions, "()\n");
 
-    sources := chaine_depuis_enchaineuse(*enchaineuse)
-    diffère déloge(sources)
+    sources := chaine_depuis_enchaineuse(*enchaineuse);
+    diffère déloge(sources);
 
     /* Puisque nous utilisons #ajoute_init et #ajoute_fini, nous incluons le code dans le module racine. */
-    ajoute_chaine_à_la_compilation(créatrice.espace, sources)
+    ajoute_chaine_à_la_compilation(créatrice.espace, sources);
 }
 
 génère_enveloppe_fonction_parsage_octets :: fonc (enchaineuse: *Enchaineuse, données: DonnéesFonctionPourTableFonction, préfixe: chaine) -> chaine
 {
-    nom_enveloppe := enchaine(préfixe, données.fonction.nom)
+    nom_enveloppe := enchaine(préfixe, données.fonction.nom);
 
-    ajoute_au_tampon(enchaineuse, nom_enveloppe, " :: fonc (chn: chaine, tampon: []octet) -> bool\n")
-    ajoute_au_tampon(enchaineuse, "{\n")
-    module := compilatrice_module_pour_code(données.fonction)
-    nom_module := compilatrice_nom_module(module)
-    ajoute_au_tampon(enchaineuse, "\tsuccès, valeur := ")
+    ajoute_au_tampon(enchaineuse, nom_enveloppe, " :: fonc (chn: chaine, tampon: []octet) -> bool\n");
+    ajoute_au_tampon(enchaineuse, "{\n");
+    module := compilatrice_module_pour_code(données.fonction);
+    nom_module := compilatrice_nom_module(module);
+    ajoute_au_tampon(enchaineuse, "\tsuccès, valeur := ");
     si nom_module {
-        ajoute_au_tampon(enchaineuse, nom_module, ".")
+        ajoute_au_tampon(enchaineuse, nom_module, ".");
     }
-    ajoute_au_tampon(enchaineuse, données.fonction.nom, "(chn)\n")
-    ajoute_au_tampon(enchaineuse, "\tsaufsi succès {\n\t\tretourne faux\n\t}\n")
-    ajoute_au_tampon(enchaineuse, "\tFondation.copie_mem_nonsur(src = *valeur, dst = tampon.pointeur, taille = tampon.taille)\n")
-    ajoute_au_tampon(enchaineuse, "\tretourne vrai\n")
-    ajoute_au_tampon(enchaineuse, "}\n")
+    ajoute_au_tampon(enchaineuse, données.fonction.nom, "(chn)\n");
+    ajoute_au_tampon(enchaineuse, "\tsaufsi succès {\n\t\tretourne faux\n\t}\n");
+    ajoute_au_tampon(enchaineuse, "\tFondation.copie_mem_nonsur(src = *valeur, dst = tampon.pointeur, taille = tampon.taille)\n");
+    ajoute_au_tampon(enchaineuse, "\tretourne vrai\n");
+    ajoute_au_tampon(enchaineuse, "}\n");
 
-    retourne nom_enveloppe
+    retourne nom_enveloppe;
 }
 
 parse_valeur :: fonc (valeur: chaine, valeur_rubrique: eini) -> bool
@@ -1031,47 +1031,47 @@ parse_valeur :: fonc (valeur: chaine, valeur_rubrique: eini) -> bool
     discr valeur_rubrique.info.id {
         ENTIER {
             si valeur_rubrique.est_n8() {
-                retourne parse_n8(valeur, valeur_rubrique.tampon_pour_eini())
+                retourne parse_n8(valeur, valeur_rubrique.tampon_pour_eini());
             }
             si valeur_rubrique.est_n16() {
-                retourne parse_n16(valeur, valeur_rubrique.tampon_pour_eini())
+                retourne parse_n16(valeur, valeur_rubrique.tampon_pour_eini());
             }
             si valeur_rubrique.est_n32() {
-                retourne parse_n32(valeur, valeur_rubrique.tampon_pour_eini())
+                retourne parse_n32(valeur, valeur_rubrique.tampon_pour_eini());
             }
             si valeur_rubrique.est_n64() {
-                retourne parse_n64(valeur, valeur_rubrique.tampon_pour_eini())
+                retourne parse_n64(valeur, valeur_rubrique.tampon_pour_eini());
             }
             si valeur_rubrique.est_z8() {
-                retourne parse_z8(valeur, valeur_rubrique.tampon_pour_eini())
+                retourne parse_z8(valeur, valeur_rubrique.tampon_pour_eini());
             }
             si valeur_rubrique.est_z16() {
-                retourne parse_z16(valeur, valeur_rubrique.tampon_pour_eini())
+                retourne parse_z16(valeur, valeur_rubrique.tampon_pour_eini());
             }
             si valeur_rubrique.est_z32() {
-                retourne parse_z32(valeur, valeur_rubrique.tampon_pour_eini())
+                retourne parse_z32(valeur, valeur_rubrique.tampon_pour_eini());
             }
             si valeur_rubrique.est_z64() {
-                retourne parse_z64(valeur, valeur_rubrique.tampon_pour_eini())
+                retourne parse_z64(valeur, valeur_rubrique.tampon_pour_eini());
             }
         }
         RÉEL {
             si valeur_rubrique.est_r16() {
-                retourne parse_r16(valeur, valeur_rubrique.tampon_pour_eini())
+                retourne parse_r16(valeur, valeur_rubrique.tampon_pour_eini());
             }
             si valeur_rubrique.est_r32() {
-                retourne parse_r32(valeur, valeur_rubrique.tampon_pour_eini())
+                retourne parse_r32(valeur, valeur_rubrique.tampon_pour_eini());
             }
             si valeur_rubrique.est_r64() {
-                retourne parse_r64(valeur, valeur_rubrique.tampon_pour_eini())
+                retourne parse_r64(valeur, valeur_rubrique.tampon_pour_eini());
             }
         }
         BOOLÉEN {
-            retourne parse_bool(valeur, valeur_rubrique.tampon_pour_eini())
+            retourne parse_bool(valeur, valeur_rubrique.tampon_pour_eini());
         }
         CHAINE {
-            valeur_rubrique.assigne_chaine(valeur)
-            retourne vrai
+            valeur_rubrique.assigne_chaine(valeur);
+            retourne vrai;
         }
         OPAQUE,
         RIEN,
@@ -1089,11 +1089,11 @@ parse_valeur :: fonc (valeur: chaine, valeur_rubrique: eini) -> bool
         VARIADIQUE,
         ADRESSE_FONCTION,
         POLYMORPHIQUE {
-            retourne faux
+            retourne faux;
         }
     }
 
-    retourne faux
+    retourne faux;
 }
 
 /* ------------------------------------------------------------------------- */
@@ -1123,57 +1123,57 @@ parse_valeur :: fonc (valeur: chaine, valeur_rubrique: eini) -> bool
  * \{ */
 
 VisiteEnfants :: énum {
-    Oui
-    Non
+    Oui;
+    Non;
 }
 
 VisiteuseArbre :: struct ($T: type_de_données) {
     InfoTraversée :: struct {
-        noeud: *T
-        profondeur: z32
+        noeud: *T;
+        profondeur: z32;
     }
 
-    rappel_pour_noeud: fonc (visiteuse: *VisiteuseArbre(T), noeud: *T, infos: *InfoTypeStructure) -> VisiteEnfants
-    rappel_pour_tableau: fonc (visiteuse: *VisiteuseArbre(T), noeuds: [..]*T)
-    profondeur: z32
+    rappel_pour_noeud: fonc (visiteuse: *VisiteuseArbre(T), noeud: *T, infos: *InfoTypeStructure) -> VisiteEnfants;
+    rappel_pour_tableau: fonc (visiteuse: *VisiteuseArbre(T), noeuds: [..]*T);
+    profondeur: z32;
 }
 
 visite_noeud :: fonc (visiteuse: *VisiteuseArbre($T), racine: *T)
 {
     saufsi racine {
-        retourne
+        retourne;
     }
 
-    traversée: [..]VisiteuseArbre(T).InfoTraversée
-    diffère déloge(traversée)
+    traversée: [..]VisiteuseArbre(T).InfoTraversée;
+    diffère déloge(traversée);
 
-    début_traversée := tableau_ajoute_élément(*traversée)
-    début_traversée.noeud = racine
-    début_traversée.profondeur = 0
+    début_traversée := tableau_ajoute_élément(*traversée);
+    début_traversée.noeud = racine;
+    début_traversée.profondeur = 0;
 
     tantque traversée.taille != 0 {
-        info_traversée := traversée[traversée.taille - 1]
-        traversée.taille -= 1
+        info_traversée := traversée[traversée.taille - 1];
+        traversée.taille -= 1;
 
-        racine = info_traversée.noeud
+        racine = info_traversée.noeud;
         saufsi racine {
-            continue
+            continue;
         }
-        infos := donne_info_pour_type_noeud(racine)
+        infos := donne_info_pour_type_noeud(racine);
 
-        visiteuse.profondeur = info_traversée.profondeur
+        visiteuse.profondeur = info_traversée.profondeur;
 
         si visiteuse.rappel_pour_noeud {
             si visiteuse.rappel_pour_noeud(visiteuse, racine, infos) == VisiteEnfants.Non {
-                continue
+                continue;
             }
         }
 
-        valeur_eini : eini = ---
-        valeur_eini.pointeur = racine
-        valeur_eini.info = infos
+        valeur_eini : eini = ---;
+        valeur_eini.pointeur = racine;
+        valeur_eini.info = infos;
 
-        traverse_structure(visiteuse, valeur_eini, *traversée)
+        traverse_structure(visiteuse, valeur_eini, *traversée);
     }
 }
 
@@ -1182,76 +1182,76 @@ visite_noeud :: fonc (visiteuse: *VisiteuseArbre($T), racine: *T)
 donne_info_pour_type_noeud :: fonc (racine: *$T) -> *InfoTypeStructure
 {
     // À FAIRE : paramétrise l'accès du type
-    infos := info_de(T)
+    infos := info_de(T);
 
-    eini_racine: eini = ---
-    eini_racine.pointeur = racine
-    eini_racine.info = infos
+    eini_racine: eini = ---;
+    eini_racine.pointeur = racine;
+    eini_racine.info = infos;
 
-    type: type_de_données
+    type: type_de_données;
     pour infos.rubriques {
         si it.id.id == GenreInfoType.TYPE_DE_DONNÉES {
-            valeur_rubrique := eini_depuis_info_rubrique(eini_racine, it)
-            type = valeur_rubrique comme type_de_données
-            arrête
+            valeur_rubrique := eini_depuis_info_rubrique(eini_racine, it);
+            type = valeur_rubrique comme type_de_données;
+            arrête;
         }
     }
     sansarrêt {
-        imprimeln("Impossible de découvir le type du noeud")
-        exit(1)
+        imprimeln("Impossible de découvir le type du noeud");
+        exit(1);
     }
 
-    résultat := type comme *InfoTypeStructure
-    assert(est_struct_ou_employeuse_de(résultat, infos))
-    retourne résultat
+    résultat := type comme *InfoTypeStructure;
+    assert(est_struct_ou_employeuse_de(résultat, infos));
+    retourne résultat;
 }
 
 traverse_structure :: fonc (visiteuse: *VisiteuseArbre($T), valeur_eini: eini, traversée: *$IT)
 {
-    info := valeur_eini.info comme *InfoTypeStructure
+    info := valeur_eini.info comme *InfoTypeStructure;
 
     pour > info.rubriques {
         si est_type_adresse_noeud_syntaxique(it.id, info_de(T)) {
-            rubrique := eini_depuis_info_rubrique(valeur_eini, it)
-            noeud := mémoire(rubrique.pointeur comme **T)
+            rubrique := eini_depuis_info_rubrique(valeur_eini, it);
+            noeud := mémoire(rubrique.pointeur comme **T);
             si noeud == nul {
-                continue
+                continue;
             }
 
             si possède_annotation(it, "NeVisitePas") {
-                continue
+                continue;
             }
 
-            info_traversée := tableau_ajoute_élément(traversée)
-            info_traversée.noeud = noeud
-            info_traversée.profondeur = visiteuse.profondeur + 1
-            continue
+            info_traversée := tableau_ajoute_élément(traversée);
+            info_traversée.noeud = noeud;
+            info_traversée.profondeur = visiteuse.profondeur + 1;
+            continue;
         }
 
         si est_type_adresse_tableau_noeud_syntaxique(it.id, info_de(T)) {
-            rubrique := eini_depuis_info_rubrique(valeur_eini, it)
+            rubrique := eini_depuis_info_rubrique(valeur_eini, it);
 
-            tableau := mémoire(rubrique.pointeur comme *[..]*T)
+            tableau := mémoire(rubrique.pointeur comme *[..]*T);
 
             saufsi possède_annotation(it, "NeVisitePas") {
                 pour > noeud dans tableau {
-                    info_traversée := tableau_ajoute_élément(traversée)
-                    info_traversée.noeud = noeud
-                    info_traversée.profondeur = visiteuse.profondeur + 1
+                    info_traversée := tableau_ajoute_élément(traversée);
+                    info_traversée.noeud = noeud;
+                    info_traversée.profondeur = visiteuse.profondeur + 1;
                 }
             }
 
             si visiteuse.rappel_pour_tableau {
-                visiteuse.rappel_pour_tableau(visiteuse, tableau)
+                visiteuse.rappel_pour_tableau(visiteuse, tableau);
             }
 
-            continue
+            continue;
         }
 
         si it.id.id == GenreInfoType.STRUCTURE && est_struct_ou_employeuse_de(it.id comme *InfoTypeStructure, info_de(T)) {
-            rubrique := eini_depuis_info_rubrique(valeur_eini, it)
-            traverse_structure(visiteuse, rubrique, traversée)
-            continue
+            rubrique := eini_depuis_info_rubrique(valeur_eini, it);
+            traverse_structure(visiteuse, rubrique, traversée);
+            continue;
         }
     }
 }
@@ -1259,29 +1259,29 @@ traverse_structure :: fonc (visiteuse: *VisiteuseArbre($T), valeur_eini: eini, t
 est_type_adresse_noeud_syntaxique :: fonc (infos: *InfoType, info_noeud_base: *InfoTypeStructure) -> bool
 {
     saufsi infos.id == GenreInfoType.POINTEUR {
-        retourne faux
+        retourne faux;
     }
 
-    type_pointeur := infos comme *InfoTypePointeur
+    type_pointeur := infos comme *InfoTypePointeur;
     saufsi type_pointeur.type_pointé {
-        retourne faux
+        retourne faux;
     }
     saufsi type_pointeur.type_pointé.id == GenreInfoType.STRUCTURE {
-        retourne faux
+        retourne faux;
     }
 
-    type_structure := type_pointeur.type_pointé comme *InfoTypeStructure
-    retourne est_struct_ou_employeuse_de(type_structure, info_noeud_base)
+    type_structure := type_pointeur.type_pointé comme *InfoTypeStructure;
+    retourne est_struct_ou_employeuse_de(type_structure, info_noeud_base);
 }
 
 est_type_adresse_tableau_noeud_syntaxique :: fonc (infos: *InfoType, info_noeud_base: *InfoTypeStructure) -> bool
 {
     saufsi infos.id == GenreInfoType.TABLEAU {
-        retourne faux
+        retourne faux;
     }
 
-    type_tableau := infos comme *InfoTypeTableau
-    retourne est_type_adresse_noeud_syntaxique(type_tableau.type_pointé, info_noeud_base)
+    type_tableau := infos comme *InfoTypeTableau;
+    retourne est_type_adresse_noeud_syntaxique(type_tableau.type_pointé, info_noeud_base);
 }
 
 /** \} */
@@ -1295,50 +1295,50 @@ est_type_adresse_tableau_noeud_syntaxique :: fonc (infos: *InfoType, info_noeud_
 
 corps_fonction_chaine_pour_constantes :: fonc (fichier: chaine, sentinelle: chaine, préfixe: chaine, nom_argument: chaine, première_constante_utilisateur := "", dernière_constante_utilisateur := "") -> chaine
 {
-    enchaineuse: Enchaineuse
-    initialise_enchaineuse(*enchaineuse)
+    enchaineuse: Enchaineuse;
+    initialise_enchaineuse(*enchaineuse);
 
-    imprime_corps_fonction_chaine_pour_constantes(*enchaineuse, fichier, sentinelle, préfixe, nom_argument, première_constante_utilisateur, dernière_constante_utilisateur)
+    imprime_corps_fonction_chaine_pour_constantes(*enchaineuse, fichier, sentinelle, préfixe, nom_argument, première_constante_utilisateur, dernière_constante_utilisateur);
 
-    retourne chaine_depuis_enchaineuse(*enchaineuse)
+    retourne chaine_depuis_enchaineuse(*enchaineuse);
 }
 
 imprime_corps_fonction_chaine_pour_constantes :: fonc (enchaineuse: *Enchaineuse, fichier: chaine, sentinelle: chaine, préfixe: chaine, nom_argument: chaine, première_constante_utilisateur: chaine, dernière_constante_utilisateur: chaine)
 {
-    lexèmes := compilatrice_lèxe_fichier(fichier)
+    lexèmes := compilatrice_lèxe_fichier(fichier);
 
-    sentinelle_trouvée := faux
+    sentinelle_trouvée := faux;
 
     pour lexèmes {
         si it.genre != Compilatrice.GenreLexème.CHAINE_CARACTERE {
-            continue
+            continue;
         }
 
         si it.texte == sentinelle {
-            sentinelle_trouvée = vrai
+            sentinelle_trouvée = vrai;
         }
 
         saufsi sentinelle_trouvée {
-            continue
+            continue;
         }
 
         saufsi it.texte.commence_par(préfixe) {
-            continue
+            continue;
         }
 
-        nom_type := it.texte.avance(préfixe.taille)
+        nom_type := it.texte.avance(préfixe.taille);
 
-        ajoute_au_tampon(enchaineuse, "    si ", nom_argument, " == ", it.texte, " { retourne \"", nom_type, "\" }\n")
+        ajoute_au_tampon(enchaineuse, "    si ", nom_argument, " == ", it.texte, " { retourne \"", nom_type, "\" }\n");
     }
 
     si première_constante_utilisateur && dernière_constante_utilisateur {
-        ajoute_au_tampon(enchaineuse, "si ", première_constante_utilisateur, " <= ", nom_argument, " <= ", dernière_constante_utilisateur, "{\n")
-        ajoute_au_tampon(enchaineuse, "    retourne \"constante utilisateur\"\n")
-        ajoute_au_tampon(enchaineuse, "}\n")
+        ajoute_au_tampon(enchaineuse, "si ", première_constante_utilisateur, " <= ", nom_argument, " <= ", dernière_constante_utilisateur, "{\n");
+        ajoute_au_tampon(enchaineuse, "    retourne \"constante utilisateur\"\n");
+        ajoute_au_tampon(enchaineuse, "}\n");
     }
 
-    ajoute_au_tampon(enchaineuse, "    imprimeln(\"% : %\", #nom_de_cette_fonction, ", nom_argument, ")\n")
-    ajoute_au_tampon(enchaineuse, "    retourne \"ERREUR VALEUR INCONNUE\"\n")
+    ajoute_au_tampon(enchaineuse, "    imprimeln(\"% : %\", #nom_de_cette_fonction, ", nom_argument, ")\n");
+    ajoute_au_tampon(enchaineuse, "    retourne \"ERREUR VALEUR INCONNUE\"\n");
 }
 
 /** \} */
