@@ -1,91 +1,91 @@
-importe Fondation
+importe Fondation;
 
 dessine_grille :: fonc (grille: [9][9]z32)
 {
     pour i dans 0 ... 8 {
         pour j dans 0 ... 8 {
-            imprime("% ", grille[i][j])
+            imprime("% ", grille[i][j]);
         }
 
-        imprime("\n")
+        imprime("\n");
     }
 }
 
 cellules_vides_existent :: fonc (grille: *[9][9]z32, r_i: *z32, r_j: *z32) -> bool
 {
-    tmp := mémoire(grille)
+    tmp := mémoire(grille);
 
     pour i dans 0 ... 8 {
         pour j dans 0 ... 8 {
             si tmp[i][j] == 0 {
-                mémoire(r_i) = i
-                mémoire(r_j) = j
-                retourne vrai
+                mémoire(r_i) = i;
+                mémoire(r_j) = j;
+                retourne vrai;
             }
         }
     }
 
-    retourne faux
+    retourne faux;
 }
 
 est_nombre_valide :: fonc (grille: *[9][9]z32, i: z32, j: z32, chiffre: z32) -> bool
 {
-    tmp := mémoire(grille)
+    tmp := mémoire(grille);
 
     // vertical
     pour l dans 0 ... 8 {
         si tmp[l][j] == chiffre {
-            retourne faux
+            retourne faux;
         }
     }
 
     // horizontal
     pour c dans 0 ... 8 {
         si tmp[i][c] == chiffre {
-            retourne faux
+            retourne faux;
         }
     }
 
     // boîte
-    l := (i / 3) * 3
-    c := (j / 3) * 3
+    l := (i / 3) * 3;
+    c := (j / 3) * 3;
 
     pour li dans 0 ... 2 {
         pour cj dans 0 ... 2 {
             si tmp[l + li][c + cj] == chiffre {
-                retourne faux
+                retourne faux;
             }
         }
     }
 
-    retourne vrai
+    retourne vrai;
 }
 
 résous :: fonc (grille: *[9][9]z32) -> bool
 {
-    tmp := mémoire(grille)
-    diffère mémoire(grille) = tmp
+    tmp := mémoire(grille);
+    diffère mémoire(grille) = tmp;
 
-    i: z32
-    j: z32
+    i: z32;
+    j: z32;
 
     saufsi cellules_vides_existent(grille, *i, *j) {
-        retourne vrai
+        retourne vrai;
     }
 
     pour n dans 1 ... 9 {
         si est_nombre_valide(grille, i, j, n) {
-            tmp[i][j] = n
+            tmp[i][j] = n;
 
             si résous(*tmp) {
-                retourne vrai
+                retourne vrai;
             }
 
-            tmp[i][j] = 0
+            tmp[i][j] = 0;
         }
     }
 
-    retourne faux
+    retourne faux;
 }
 
 principale :: fonc ()
@@ -100,14 +100,14 @@ principale :: fonc ()
         [ 0, 6, 0, 0, 0, 0, 2, 8, 0 ],
         [ 0, 0, 0, 4, 1, 9, 0, 0, 5 ],
         [ 0, 0, 0, 0, 8, 0, 0, 7, 9 ]
-     ]
+     ];
 
-    dessine_grille(grille_sudoku)
+    dessine_grille(grille_sudoku);
 
     saufsi résous(*grille_sudoku) {
-        imprime("aucune solution !\n")
-        exit(1)
+        imprime("aucune solution !\n");
+        exit(1);
     }
 
-    dessine_grille(grille_sudoku)
+    dessine_grille(grille_sudoku);
 }

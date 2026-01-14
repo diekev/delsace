@@ -3,19 +3,19 @@
 run_ordered_set_parser :: fonc (chn: DOMString) -> [..]DOMString
 {
     // Let inputTokens be the result of splitting input on ASCII whitespace.
-    input_tokens := divise_sur_espaces_blanches_ascii(chn)
-    diffère déloge(input_tokens)
+    input_tokens := divise_sur_espaces_blanches_ascii(chn);
+    diffère déloge(input_tokens);
 
     // Let tokens be a new ordered set.
-    tokens: [..]DOMString
+    tokens: [..]DOMString;
 
     // For each token in inputTokens, append token to tokens.
     pour input_tokens {
-        ensemble_ajoute(*tokens, it)
+        ensemble_ajoute(*tokens, it);
     }
 
     // Return tokens.
-    retourne tokens
+    retourne tokens;
 }
 
 /* ------------------------------------------------------------------------- */
@@ -28,42 +28,42 @@ run_ordered_set_parser :: fonc (chn: DOMString) -> [..]DOMString
 table_virtuelle_node_list := TableVirtuellePlatformObject(
     classe = NodeList,
     sur_destruction = node_list_sur_destruction
-)
+);
 
 node_list_sur_destruction :: fonc (base: *JS.Cellule)
 {
-    platform_object_sur_destruction(base)
-    node_list := base comme *NodeList
-    déloge(node_list.noeuds)
+    platform_object_sur_destruction(base);
+    node_list := base comme *NodeList;
+    déloge(node_list.noeuds);
 }
 
 #portée_export
 
 NodeList :: struct {
-    empl platform_object: PlatformObject
-    table = *table_virtuelle_node_list
+    empl platform_object: PlatformObject;
+    table = *table_virtuelle_node_list;
 
-    noeuds: [..]*Node
+    noeuds: [..]*Node;
 }
 
 crée_node_list :: fonc (noeud: *Node) -> *NodeList
 {
-    retourne crée_platform_object(noeud, NodeList)
+    retourne crée_platform_object(noeud, NodeList);
 }
 
 ajoute_noeud :: fonc (node_list: *NodeList, noeud: *Node)
 {
-    tableau_ajoute(*node_list.noeuds, noeud)
+    tableau_ajoute(*node_list.noeuds, noeud);
 }
 
 donne_length :: fonc (node_list: *NodeList) -> n32
 {
-    retourne node_list.noeuds.taille comme n32
+    retourne node_list.noeuds.taille comme n32;
 }
 
 donne_item :: fonc (node_list: *NodeList, index: n32) -> *Node
 {
-    retourne node_list.noeuds[index]
+    retourne node_list.noeuds[index];
 }
 
 /** \} */
@@ -74,99 +74,99 @@ donne_item :: fonc (node_list: *NodeList, index: n32) -> *Node
  * \{ */
 
 HTMLCollectionFilter :: struct {
-    sur_filtre: fonc (filter: *HTMLCollectionFilter, collection: *HTMLCollection, element: *Element) -> bool
-    sur_destruction: fonc (filter: *HTMLCollectionFilter)
+    sur_filtre: fonc (filter: *HTMLCollectionFilter, collection: *HTMLCollection, element: *Element) -> bool;
+    sur_destruction: fonc (filter: *HTMLCollectionFilter);
 }
 
 crée_filtre_pour_class_name :: fonc (classes: [..]DOMString) -> *HTMLCollectionFilter
 {
     ClassesFilter :: struct {
-        empl base: HTMLCollectionFilter
-        classes: [..]DOMString
+        empl base: HTMLCollectionFilter;
+        classes: [..]DOMString;
     }
 
-    sur_filtre :: fonc (base: *HTMLCollectionFilter, collection: *HTMLCollection, élément: *Element) -> bool
+    sur_filtre :: fonc (base: *HTMLCollectionFilter, collection: *HTMLCollection, élément: *Element) -> bool;
     {
         si élément == collection.root {
-            retourne faux
+            retourne faux;
         }
-        filtre := base comme *ClassesFilter
-        valeur := élément.donne_attribut(ATTR_class)
+        filtre := base comme *ClassesFilter;
+        valeur := élément.donne_attribut(ATTR_class);
         saufsi valeur.possède_valeur() {
-            retourne faux
+            retourne faux;
         }
 
-        document := collection.root.document
-        classes_élément := divise_sur_espaces_blanches_ascii(valeur.Quelque)
-        diffère déloge(classes_élément)
+        document := collection.root.document;
+        classes_élément := divise_sur_espaces_blanches_ascii(valeur.Quelque);
+        diffère déloge(classes_élément);
 
         pour classe_élément dans classes_élément {
             pour class dans filtre.classes {
                 si document.mode == ModeDocument.QUIRKS {
                     si compare_ascii_insensible_à_la_casse(class, classe_élément) {
-                        arrête
+                        arrête;
                     }
                 }
                 sinon si class == classe_élément {
-                    arrête
+                    arrête;
                 }
             }
             sansarrêt {
-                retourne faux
+                retourne faux;
             }
         }
 
-        retourne vrai
+        retourne vrai;
     }
 
-    sur_destruction :: fonc (base: *HTMLCollectionFilter)
+    sur_destruction :: fonc (base: *HTMLCollectionFilter);
     {
-        filtre := base comme *ClassesFilter
-        déloge(filtre.classes)
-        déloge(filtre)
+        filtre := base comme *ClassesFilter;
+        déloge(filtre.classes);
+        déloge(filtre);
     }
 
-    résultat := loge(ClassesFilter)
-    résultat.classes = classes
-    résultat.sur_filtre = sur_filtre
-    résultat.sur_destruction = sur_destruction
-    retourne résultat
+    résultat := loge(ClassesFilter);
+    résultat.classes = classes;
+    résultat.sur_filtre = sur_filtre;
+    résultat.sur_destruction = sur_destruction;
+    retourne résultat;
 }
 
 crée_filtre_pour_tag_name :: fonc (tag_name: DOMString) -> *HTMLCollectionFilter
 {
     TagNameFilter :: struct {
-        empl base: HTMLCollectionFilter
-        tag_name: DOMString
+        empl base: HTMLCollectionFilter;
+        tag_name: DOMString;
     }
 
-    sur_filtre :: fonc (base: *HTMLCollectionFilter, collection: *HTMLCollection @inutilisée, élément: *Element) -> bool
+    sur_filtre :: fonc (base: *HTMLCollectionFilter, collection: *HTMLCollection @inutilisée, élément: *Element) -> bool;
     {
-        filtre := base comme *TagNameFilter
+        filtre := base comme *TagNameFilter;
         // À FAIRE : qualified name
-        retourne élément.local_name == filtre.tag_name
+        retourne élément.local_name == filtre.tag_name;
     }
 
-    sur_destruction :: fonc (base: *HTMLCollectionFilter)
+    sur_destruction :: fonc (base: *HTMLCollectionFilter);
     {
-        filtre := base comme *TagNameFilter
-        déloge(filtre)
+        filtre := base comme *TagNameFilter;
+        déloge(filtre);
     }
 
-    résultat := loge(TagNameFilter)
-    résultat.tag_name = tag_name
-    résultat.sur_filtre = sur_filtre
-    résultat.sur_destruction = sur_destruction
-    retourne résultat
+    résultat := loge(TagNameFilter);
+    résultat.tag_name = tag_name;
+    résultat.sur_filtre = sur_filtre;
+    résultat.sur_destruction = sur_destruction;
+    retourne résultat;
 }
 
 crée_html_collection_pour_filtrer_les_éléments :: fonc (root: *Node, tag: DOMString) -> *HTMLCollection
 {
-    résultat := crée_html_collection(root)
-    résultat.root = root
-    résultat.filter = crée_filtre_pour_tag_name(tag)
-    initialise_collection_pour_filtre(résultat)
-    retourne résultat
+    résultat := crée_html_collection(root);
+    résultat.root = root;
+    résultat.filter = crée_filtre_pour_tag_name(tag);
+    initialise_collection_pour_filtre(résultat);
+    retourne résultat;
 }
 
 /** \} */
@@ -181,76 +181,76 @@ crée_html_collection_pour_filtrer_les_éléments :: fonc (root: *Node, tag: DOM
 table_virtuelle_html_collection := TableVirtuellePlatformObject(
     classe = HTMLCollection,
     sur_destruction = html_collection_sur_destruction
-)
+);
 
 html_collection_sur_destruction :: fonc (base: *JS.Cellule)
 {
-    platform_object_sur_destruction(base)
-    collection := base comme *HTMLCollection
-    détruit_collection(collection)
+    platform_object_sur_destruction(base);
+    collection := base comme *HTMLCollection;
+    détruit_collection(collection);
 }
 
 #portée_export
 
 HTMLCollection :: struct {
-    empl platform_object: PlatformObject
-    table = *table_virtuelle_html_collection
+    empl platform_object: PlatformObject;
+    table = *table_virtuelle_html_collection;
 
     // À FAIRE : la collection est vivante
-    root: *Node
-    filter: *HTMLCollectionFilter
+    root: *Node;
+    filter: *HTMLCollectionFilter;
 
-    éléments: [..]*Element
+    éléments: [..]*Element;
 }
 
 crée_html_collection :: fonc (noeud: *Node) -> *HTMLCollection
 {
-    retourne crée_platform_object(noeud, HTMLCollection)
+    retourne crée_platform_object(noeud, HTMLCollection);
 }
 
 ajoute_élément :: fonc (collection: *HTMLCollection, élément: *Element)
 {
-    tableau_ajoute(*collection.éléments, élément)
+    tableau_ajoute(*collection.éléments, élément);
 }
 
 initialise_collection_pour_filtre :: fonc (collection: *HTMLCollection)
 {
-    assert(collection.filter != nul)
-    initialise_collection_pour_filtre_récursif(collection.root, collection)
+    assert(collection.filter != nul);
+    initialise_collection_pour_filtre_récursif(collection.root, collection);
 }
 
 initialise_collection_pour_filtre_récursif :: fonc (racine: *Node, collection: *HTMLCollection)
 {
     si racine.est_élément() {
-        élément := racine comme *Element
+        élément := racine comme *Element;
 
         si collection.filter.sur_filtre(collection.filter, collection, élément) {
-            ajoute_élément(collection, élément)
+            ajoute_élément(collection, élément);
         }
     }
 
     pour racine.enfants {
-        initialise_collection_pour_filtre_récursif(it, collection)
+        initialise_collection_pour_filtre_récursif(it, collection);
     }
 }
 
 détruit_collection :: fonc (collection: *HTMLCollection)
 {
     si collection.filter && collection.filter.sur_destruction {
-        collection.filter.sur_destruction(collection.filter)
+        collection.filter.sur_destruction(collection.filter);
     }
 
-    déloge(collection.éléments)
+    déloge(collection.éléments);
 }
 
 donne_length :: fonc (collection: *HTMLCollection) -> n32
 {
-    retourne collection.éléments.taille comme n32
+    retourne collection.éléments.taille comme n32;
 }
 
 donne_item :: fonc (collection: *HTMLCollection, index: n32) -> *Element
 {
-    retourne collection.éléments[index]
+    retourne collection.éléments[index];
 }
 
 /** \} */

@@ -1,85 +1,85 @@
-importe Chaine
-importe Ensemble
-importe Sérialisation
-importe Temps
+importe Chaine;
+importe Ensemble;
+importe Sérialisation;
+importe Temps;
 
 /* ------------------------------------------------------------------------- */
 /** \nom Définition
  * \{ */
 
 Définition :: struct {
-    lexème: LexèmePréprocès
-    nom: chaine
-    est_semble_fonction: bool
-    paramètres: [..]LexèmePréprocès
-    lexèmes: [..]LexèmePréprocès
+    lexème: LexèmePréprocès;
+    nom: chaine;
+    est_semble_fonction: bool;
+    paramètres: [..]LexèmePréprocès;
+    lexèmes: [..]LexèmePréprocès;
 
-    est_intrinsèque: bool
-    sur_développement: fonc (préprocesseur: *PréProcesseur, arguments: [..][..]LexèmePréprocès) -> LexèmePréprocès
+    est_intrinsèque: bool;
+    sur_développement: fonc (préprocesseur: *PréProcesseur, arguments: [..][..]LexèmePréprocès) -> LexèmePréprocès;
 }
 
 peut_accepter_arguments :: fonc (définition: *Définition, arguments: z64) -> bool
 {
     saufsi définition.est_semble_fonction {
-        retourne arguments == 0
+        retourne arguments == 0;
     }
 
     si définition.paramètres.taille == 0 {
-        retourne arguments == 0
+        retourne arguments == 0;
     }
 
-    paramètres_requis := définition.paramètres.taille
+    paramètres_requis := définition.paramètres.taille;
     si est_variadique(définition) {
-        retourne arguments >= paramètres_requis - 1
+        retourne arguments >= paramètres_requis - 1;
     }
 
-    retourne arguments == paramètres_requis
+    retourne arguments == paramètres_requis;
 }
 
 est_variadique :: fonc (définition: *Définition) -> bool
 {
     si définition.paramètres.taille == 0 {
-        retourne faux
+        retourne faux;
     }
-    dernier_paramètre := définition.paramètres[définition.paramètres.taille - 1]
-    retourne est_ponctuation(dernier_paramètre, "...")
+    dernier_paramètre := définition.paramètres[définition.paramètres.taille - 1];
+    retourne est_ponctuation(dernier_paramètre, "...");
 }
 
 donne_nombre_de_paramètres_hors_variadique :: fonc (définition: *Définition) -> n64
 {
-    résultat := définition.paramètres.taille comme n64
+    résultat := définition.paramètres.taille comme n64;
     si est_variadique(définition) {
-        assert(résultat != 0)
-        résultat -= 1
+        assert(résultat != 0);
+        résultat -= 1;
     }
-    retourne résultat
+    retourne résultat;
 }
 
 donne_indice_paramètre :: fonc (définition: *Définition, param: chaine) -> z64
 {
     pour définition.paramètres {
         si donne_texte(it) == param {
-            retourne indice_it
+            retourne indice_it;
         }
     }
     si param == "__VA_ARGS__" && est_variadique(définition) {
-        retourne définition.paramètres.taille - 1
+        retourne définition.paramètres.taille - 1;
     }
-    retourne -1
+    retourne -1;
 }
 
 macro_ne_définis_que_son_nom :: fonc (définition: *Définition) -> bool
 {
-    résultat := faux
+    résultat := faux;
 
     si définition.paramètres.taille == 0 && définition.lexèmes.taille == 1 {
-        lexème := définition.lexèmes[0]
+        lexème := définition.lexèmes[0];
         si donne_texte(lexème) == définition.nom {
-            résultat = vrai
+            résultat = vrai;
         }
     }
 
-    retourne résultat
+    retourne résultat;
 }
 
 /** \} */
@@ -90,213 +90,213 @@ macro_ne_définis_que_son_nom :: fonc (définition: *Définition) -> bool
 
 sur_développement_has_include :: fonc (préprocesseur: *PréProcesseur, arguments: [..][..]LexèmePréprocès) -> LexèmePréprocès
 {
-    retourne sur_développement_has_include_impl(préprocesseur, arguments, faux)
+    retourne sur_développement_has_include_impl(préprocesseur, arguments, faux);
 }
 
 sur_développement_has_include_next :: fonc (préprocesseur: *PréProcesseur, arguments: [..][..]LexèmePréprocès) -> LexèmePréprocès
 {
-    retourne sur_développement_has_include_impl(préprocesseur, arguments, vrai)
+    retourne sur_développement_has_include_impl(préprocesseur, arguments, vrai);
 }
 
 sur_développement_has_include_impl :: fonc (préprocesseur: *PréProcesseur, arguments: [..][..]LexèmePréprocès, est_include_next: bool) -> LexèmePréprocès
 {
     si arguments.taille == 0 {
-        rapporte_erreur(préprocesseur, "Argument manquant pour __has_include")
-        retourne crée_lexème_nombre_naturel(préprocesseur, 0)
+        rapporte_erreur(préprocesseur, "Argument manquant pour __has_include");
+        retourne crée_lexème_nombre_naturel(préprocesseur, 0);
     }
 
     si arguments.taille > 1 {
-        rapporte_erreur(préprocesseur, "Trop d'arguments pour __has_include")
-        retourne crée_lexème_nombre_naturel(préprocesseur, 0)
+        rapporte_erreur(préprocesseur, "Trop d'arguments pour __has_include");
+        retourne crée_lexème_nombre_naturel(préprocesseur, 0);
     }
 
-    arg := supprime_espace_blanches_autour(arguments[0])
+    arg := supprime_espace_blanches_autour(arguments[0]);
     si arg.taille == 0 {
-        rapporte_erreur(préprocesseur, "Argument manquant pour __has_include")
-        retourne crée_lexème_nombre_naturel(préprocesseur, 0)
+        rapporte_erreur(préprocesseur, "Argument manquant pour __has_include");
+        retourne crée_lexème_nombre_naturel(préprocesseur, 0);
     }
 
-    parseuse: SimpleParseuse
-    parseuse.lexèmes = arg
+    parseuse: SimpleParseuse;
+    parseuse.lexèmes = arg;
 
-    résultat: n64 = 0
+    résultat: n64 = 0;
 
     tantque !fini(*parseuse) {
-        lexème := donne_lexème_suivant(*parseuse)
-        avance(*parseuse)
+        lexème := donne_lexème_suivant(*parseuse);
+        avance(*parseuse);
 
         si est_chaine_littérale(lexème) {
-            chemin_fichier := donne_texte_sans_guillemets(lexème)
+            chemin_fichier := donne_texte_sans_guillemets(lexème);
             si chemin_fichier {
                 si est_chemin_incluable(préprocesseur, chemin_fichier, est_include_next, faux) {
-                    résultat = 1
+                    résultat = 1;
                 }
-                arrête
+                arrête;
             }
             sinon {
-                rapporte_erreur(préprocesseur, "Aucun chemin fichier spécifié")
-                retourne crée_lexème_nombre_naturel(préprocesseur, 0)
+                rapporte_erreur(préprocesseur, "Aucun chemin fichier spécifié");
+                retourne crée_lexème_nombre_naturel(préprocesseur, 0);
             }
         }
         sinon si est_ponctuation(lexème, "<") {
-            tampon_chemin_fichier: TamponChemin
-            extrait_chemin_inclusion_système(préprocesseur, *parseuse, *tampon_chemin_fichier)
-            chemin_fichier := donne_chaine_statique(*tampon_chemin_fichier)
+            tampon_chemin_fichier: TamponChemin;
+            extrait_chemin_inclusion_système(préprocesseur, *parseuse, *tampon_chemin_fichier);
+            chemin_fichier := donne_chaine_statique(*tampon_chemin_fichier);
             si est_chemin_incluable(préprocesseur, chemin_fichier, est_include_next, vrai) {
-                résultat = 1
+                résultat = 1;
             }
-            arrête
+            arrête;
         }
         sinon {
-            rapporte_erreur(préprocesseur, "Argument inconnu pour __has_include")
-            retourne crée_lexème_nombre_naturel(préprocesseur, 0)
+            rapporte_erreur(préprocesseur, "Argument inconnu pour __has_include");
+            retourne crée_lexème_nombre_naturel(préprocesseur, 0);
         }
     }
 
     saufsi fini(*parseuse) {
-        rapporte_erreur(préprocesseur, "Trop d'opérandes pour __has_include")
-        retourne crée_lexème_nombre_naturel(préprocesseur, 0)
+        rapporte_erreur(préprocesseur, "Trop d'opérandes pour __has_include");
+        retourne crée_lexème_nombre_naturel(préprocesseur, 0);
     }
 
-    retourne crée_lexème_nombre_naturel(préprocesseur, résultat)
+    retourne crée_lexème_nombre_naturel(préprocesseur, résultat);
 }
 
 sur_développement_has_builtin :: fonc (préprocesseur: *PréProcesseur, arguments: [..][..]LexèmePréprocès @inutilisée) -> LexèmePréprocès
 {
-    retourne crée_lexème_nombre_naturel(préprocesseur, 0)
+    retourne crée_lexème_nombre_naturel(préprocesseur, 0);
 }
 
 sur_développement_has_cpp_attribute :: fonc (préprocesseur: *PréProcesseur, arguments: [..][..]LexèmePréprocès @inutilisée) -> LexèmePréprocès
 {
-    retourne crée_lexème_nombre_naturel(préprocesseur, 0)
+    retourne crée_lexème_nombre_naturel(préprocesseur, 0);
 }
 
 sur_développement_file :: fonc (préprocesseur: *PréProcesseur, arguments: [..][..]LexèmePréprocès @inutilisée) -> LexèmePréprocès
 {
-    fichier := donne_fichier_courant(préprocesseur)
+    fichier := donne_fichier_courant(préprocesseur);
 
     // À FAIRE : retourne le chemin complet pour tous les fichiers (le fichier de source n'est pas absolu)
     // À FAIRE : considère un système comme MSVC où seul le nom est retourné sauf si une option de compilation demande le nom complet
 
     // @FuiteDeMémoire
-    chemin := enchaine("\"", fichier.chemin, "\"")
-    retourne crée_lexème_chaine_littérale(chemin)
+    chemin := enchaine("\"", fichier.chemin, "\"");
+    retourne crée_lexème_chaine_littérale(chemin);
 }
 
 sur_développement_base_file :: fonc (préprocesseur: *PréProcesseur, arguments: [..][..]LexèmePréprocès @inutilisée) -> LexèmePréprocès
 {
-    fichier := *préprocesseur.unit.fichiers[0]
+    fichier := *préprocesseur.unit.fichiers[0];
     // @FuiteDeMémoire
-    chemin := enchaine("\"", fichier.chemin, "\"")
-    retourne crée_lexème_chaine_littérale(chemin)
+    chemin := enchaine("\"", fichier.chemin, "\"");
+    retourne crée_lexème_chaine_littérale(chemin);
 }
 
 sur_développement_file_name :: fonc (préprocesseur: *PréProcesseur, arguments: [..][..]LexèmePréprocès @inutilisée) -> LexèmePréprocès
 {
-    fichier := donne_fichier_courant(préprocesseur)
-    chemin := CheminFichier(fichier.chemin)
-    nom := nom_fichier_avec_extension(chemin)
+    fichier := donne_fichier_courant(préprocesseur);
+    chemin := CheminFichier(fichier.chemin);
+    nom := nom_fichier_avec_extension(chemin);
 
     // @FuiteDeMémoire
-    résultat := enchaine("\"", nom, "\"")
-    retourne crée_lexème_chaine_littérale(résultat)
+    résultat := enchaine("\"", nom, "\"");
+    retourne crée_lexème_chaine_littérale(résultat);
 }
 
 sur_développement_line :: fonc (préprocesseur: *PréProcesseur, arguments: [..][..]LexèmePréprocès @inutilisée) -> LexèmePréprocès
 {
     // À FAIRE
-    retourne crée_lexème_nombre_naturel(préprocesseur, 0)
+    retourne crée_lexème_nombre_naturel(préprocesseur, 0);
 }
 
 sur_développement_date :: fonc (préprocesseur: *PréProcesseur @inutilisée, arguments: [..][..]LexèmePréprocès @inutilisée) -> LexèmePréprocès
 {
     // À FAIRE : If the date of translation is not available, an implementation-defined valid date shall be supplied
     //           Pour ce faire nous pourrions également avoir une option de compilation pour cacher la date.
-    date := hui_système()
+    date := hui_système();
 
     // "Mmm dd yyyy"
-    Griffonier :: TamponFixe(T = z8, N = 13)
+    Griffonier :: TamponFixe(T = z8, N = 13);
 
-    griffonier: Griffonier
-    ajoute(*griffonier, '"')
+    griffonier: Griffonier;
+    ajoute(*griffonier, '"');
 
-    chn_mois := chaine_mois_pour_tm(date.mois - 1)
+    chn_mois := chaine_mois_pour_tm(date.mois - 1);
     pour chn_mois {
-        ajoute(*griffonier, it)
+        ajoute(*griffonier, it);
     }
 
-    ajoute(*griffonier, ' ')
+    ajoute(*griffonier, ' ');
 
     si date.jour < 10 {
-        ajoute(*griffonier, ' ')
-        ajoute(*griffonier, '0' + (date.jour % 10) comme z8)
+        ajoute(*griffonier, ' ');
+        ajoute(*griffonier, '0' + (date.jour % 10) comme z8);
     }
     sinon {
-        ajoute(*griffonier, '0' + (date.jour / 10) comme z8)
-        ajoute(*griffonier, '0' + (date.jour % 10) comme z8)
+        ajoute(*griffonier, '0' + (date.jour / 10) comme z8);
+        ajoute(*griffonier, '0' + (date.jour % 10) comme z8);
     }
 
-    ajoute(*griffonier, ' ')
+    ajoute(*griffonier, ' ');
 
-    année := date.année
-    ajoute(*griffonier, '0' + (année / 1000) comme z8)
-    année %= 1000
-    ajoute(*griffonier, '0' + (année / 100) comme z8)
-    année %= 100
-    ajoute(*griffonier, '0' + (année / 10) comme z8)
-    année %= 10
-    ajoute(*griffonier, '0' + (année) comme z8)
+    année := date.année;
+    ajoute(*griffonier, '0' + (année / 1000) comme z8);
+    année %= 1000;
+    ajoute(*griffonier, '0' + (année / 100) comme z8);
+    année %= 100;
+    ajoute(*griffonier, '0' + (année / 10) comme z8);
+    année %= 10;
+    ajoute(*griffonier, '0' + (année) comme z8);
 
-    ajoute(*griffonier, '"')
+    ajoute(*griffonier, '"');
 
-    résultat := chaine(*griffonier.données[0], griffonier.curseur)
+    résultat := chaine(*griffonier.données[0], griffonier.curseur);
     // @FuiteDeMémoire
-    retourne crée_lexème_chaine_littérale(copie_chaine(résultat))
+    retourne crée_lexème_chaine_littérale(copie_chaine(résultat));
 }
 
 sur_développement_time :: fonc (préprocesseur: *PréProcesseur @inutilisée, arguments: [..][..]LexèmePréprocès @inutilisée) -> LexèmePréprocès
 {
     // À FAIRE : If the time of translation is not available, an implementation-defined valid time shall be supplied.
     //           Pour ce faire nous pourrions également avoir une option de compilation pour cacher l'heure.
-    date := hui_système()
+    date := hui_système();
 
     // "hh:mm:ss"
-    Griffonier :: TamponFixe(T = z8, N = 10)
+    Griffonier :: TamponFixe(T = z8, N = 10);
 
-    griffonier: Griffonier
-    ajoute(*griffonier, '"')
+    griffonier: Griffonier;
+    ajoute(*griffonier, '"');
 
-    ajoute(*griffonier, '0' + (date.heure / 10) comme z8)
-    ajoute(*griffonier, '0' + (date.heure % 10) comme z8)
+    ajoute(*griffonier, '0' + (date.heure / 10) comme z8);
+    ajoute(*griffonier, '0' + (date.heure % 10) comme z8);
 
-    ajoute(*griffonier, ':')
+    ajoute(*griffonier, ':');
 
-    ajoute(*griffonier, '0' + (date.minute / 10) comme z8)
-    ajoute(*griffonier, '0' + (date.minute % 10) comme z8)
+    ajoute(*griffonier, '0' + (date.minute / 10) comme z8);
+    ajoute(*griffonier, '0' + (date.minute % 10) comme z8);
 
-    ajoute(*griffonier, ':')
+    ajoute(*griffonier, ':');
 
-    ajoute(*griffonier, '0' + (date.seconde / 10) comme z8)
-    ajoute(*griffonier, '0' + (date.seconde % 10) comme z8)
+    ajoute(*griffonier, '0' + (date.seconde / 10) comme z8);
+    ajoute(*griffonier, '0' + (date.seconde % 10) comme z8);
 
-    ajoute(*griffonier, '"')
+    ajoute(*griffonier, '"');
 
-    résultat := chaine(*griffonier.données[0], griffonier.curseur)
+    résultat := chaine(*griffonier.données[0], griffonier.curseur);
     // @FuiteDeMémoire
-    retourne crée_lexème_chaine_littérale(copie_chaine(résultat))
+    retourne crée_lexème_chaine_littérale(copie_chaine(résultat));
 }
 
 sur_développement_counter :: fonc (préprocesseur: *PréProcesseur, arguments: [..][..]LexèmePréprocès @inutilisée) -> LexèmePréprocès
 {
-    résultat := crée_lexème_nombre_naturel(préprocesseur, préprocesseur.compteur)
-    préprocesseur.compteur += 1
-    retourne résultat
+    résultat := crée_lexème_nombre_naturel(préprocesseur, préprocesseur.compteur);
+    préprocesseur.compteur += 1;
+    retourne résultat;
 }
 
 sur_développement_include_level :: fonc (préprocesseur: *PréProcesseur, arguments: [..][..]LexèmePréprocès @inutilisée) -> LexèmePréprocès
 {
-    résultat := crée_lexème_nombre_naturel(préprocesseur, (préprocesseur.lexeuses.taille - 1) comme n64)
-    retourne résultat
+    résultat := crée_lexème_nombre_naturel(préprocesseur, (préprocesseur.lexeuses.taille - 1) comme n64);
+    retourne résultat;
 }
 
 /** \} */
@@ -306,79 +306,79 @@ sur_développement_include_level :: fonc (préprocesseur: *PréProcesseur, argum
  * \{ */
 
 PréProcesseur :: struct {
-    unit: *TranslationUnit
+    unit: *TranslationUnit;
 
-    chemins_inclusions_système: [..]chaine
-    chemins_inclusions_local: [..]chaine
-    lexeuses: [..]LexeusePréProcès
+    chemins_inclusions_système: [..]chaine;
+    chemins_inclusions_local: [..]chaine;
+    lexeuses: [..]LexeusePréProcès;
 
-    définitions: [..]Définition
+    définitions: [..]Définition;
     // Table d'indices dans définitions.
-    table_définitions: TableDeHachage(chaine, z64)
-    taille_nom_définition_min: z64 = 0x7fffffffffffffff
-    taille_nom_définition_max: z64
+    table_définitions: TableDeHachage(chaine, z64);
+    taille_nom_définition_min: z64 = 0x7fffffffffffffff;
+    taille_nom_définition_max: z64;
 
-    niveau_branchage: z32
+    niveau_branchage: z32;
     // Une nouvelle est empilée à chaque #if, #elif, etc. pour déterminer si la branche #else, #elif doit être considérée
-    pile_branches: [..]bool
+    pile_branches: [..]bool;
 
     /* Pour __COUNTER__ */
-    compteur: n64
+    compteur: n64;
 
-    messagère: *Messagère
+    messagère: *Messagère;
 
-    avertis_sur_macro_non_définis: bool
+    avertis_sur_macro_non_définis: bool;
 
-    macros_inconnus: [..]chaine
+    macros_inconnus: [..]chaine;
 
-    macros_indéfinissables: [..]chaine
+    macros_indéfinissables: [..]chaine;
 
-    lexèmes_développés: [..]LexèmePréprocès
+    lexèmes_développés: [..]LexèmePréprocès;
 
-    macros_en_développement: [..]*Définition
+    macros_en_développement: [..]*Définition;
 }
 
 détruit_données :: fonc (préprocesseur: *PréProcesseur)
 {
-    préprocesseur.unit = nul
-    déloge(préprocesseur.macros_indéfinissables)
-    déloge(préprocesseur.chemins_inclusions_système)
-    déloge(préprocesseur.chemins_inclusions_local)
+    préprocesseur.unit = nul;
+    déloge(préprocesseur.macros_indéfinissables);
+    déloge(préprocesseur.chemins_inclusions_système);
+    déloge(préprocesseur.chemins_inclusions_local);
     pour * préprocesseur.lexeuses {
-        déloge(it.lexeuse.lexèmes_extras)
+        déloge(it.lexeuse.lexèmes_extras);
     }
-    déloge(préprocesseur.lexeuses)
-    déloge(préprocesseur.définitions)
-    déloge(préprocesseur.pile_branches)
-    déloge(préprocesseur.macros_inconnus)
-    déloge(préprocesseur.macros_en_développement)
-    détruit_données(*préprocesseur.table_définitions)
+    déloge(préprocesseur.lexeuses);
+    déloge(préprocesseur.définitions);
+    déloge(préprocesseur.pile_branches);
+    déloge(préprocesseur.macros_inconnus);
+    déloge(préprocesseur.macros_en_développement);
+    détruit_données(*préprocesseur.table_définitions);
 }
 
 initialise_préprocesseur :: fonc (préprocesseur: *PréProcesseur, unit: *TranslationUnit)
 {
-    assert(unit != nul)
+    assert(unit != nul);
 
-    préprocesseur.unit = unit
+    préprocesseur.unit = unit;
 
     discr préprocesseur.unit.info_langage.langage {
         C {
             // GCC 12
             // echo | gcc -x c -E -v -
-            tableau_ajoute(*préprocesseur.chemins_inclusions_système, ".")
-            tableau_ajoute(*préprocesseur.chemins_inclusions_système, "/usr/lib/gcc/x86_64-linux-gnu/12/include")
-            tableau_ajoute(*préprocesseur.chemins_inclusions_système, "/usr/local/include")
-            tableau_ajoute(*préprocesseur.chemins_inclusions_système, "/usr/include/x86_64-linux-gnu")
-            tableau_ajoute(*préprocesseur.chemins_inclusions_système, "/usr/include")
+            tableau_ajoute(*préprocesseur.chemins_inclusions_système, ".");
+            tableau_ajoute(*préprocesseur.chemins_inclusions_système, "/usr/lib/gcc/x86_64-linux-gnu/12/include");
+            tableau_ajoute(*préprocesseur.chemins_inclusions_système, "/usr/local/include");
+            tableau_ajoute(*préprocesseur.chemins_inclusions_système, "/usr/include/x86_64-linux-gnu");
+            tableau_ajoute(*préprocesseur.chemins_inclusions_système, "/usr/include");
 
-            ajoute_définition(préprocesseur, "__STDC_VERSION__", préprocesseur.unit.info_langage.standard)
+            ajoute_définition(préprocesseur, "__STDC_VERSION__", préprocesseur.unit.info_langage.standard);
 
             interdits := [
                 "defined", "__DATE__", "__FILE__", "__LINE__", "__STDC__", "__STDC_HOSTED__",
                 "__STDC_VERSION__", "__TIME__", "__STDC_MB_MIGHT_NEQ_WC__",
                 "__STDC_UTF_16__", "__STDC_UTF_32__", "__STDC_ANALYZABLE__",
                 "__STDC_LIB_EXT1__", "__STDC_NO_ATOMICS__", "__STDC_NO_COMPLEX__", "__STDC_NO_THREADS__", "__STDC_NO_VLA__"
-            ]
+            ];
 
             /* À FAIRE : Les macros suivants sont conditionnellement définis par stdc-predef.h
              * Ils ne devraient pas être indéfinis. */
@@ -387,727 +387,727 @@ initialise_préprocesseur :: fonc (préprocesseur: *PréProcesseur, unit: *Trans
             // "__STDC_ISO_10646__",
 
             pour interdits {
-                ensemble_ajoute(*préprocesseur.macros_indéfinissables, it)
+                ensemble_ajoute(*préprocesseur.macros_indéfinissables, it);
             }
         }
         CPP {
             // G++ 12
             // echo | gcc -x c++ -E -v -
-            tableau_ajoute(*préprocesseur.chemins_inclusions_système, ".")
-            tableau_ajoute(*préprocesseur.chemins_inclusions_système, "/usr/include/c++/12")
-            tableau_ajoute(*préprocesseur.chemins_inclusions_système, "/usr/include/x86_64-linux-gnu/c++/12")
-            tableau_ajoute(*préprocesseur.chemins_inclusions_système, "/usr/include/c++/12/backward")
-            tableau_ajoute(*préprocesseur.chemins_inclusions_système, "/usr/lib/gcc/x86_64-linux-gnu/12/include")
-            tableau_ajoute(*préprocesseur.chemins_inclusions_système, "/usr/local/include")
-            tableau_ajoute(*préprocesseur.chemins_inclusions_système, "/usr/include/x86_64-linux-gnu")
-            tableau_ajoute(*préprocesseur.chemins_inclusions_système, "/usr/include")
+            tableau_ajoute(*préprocesseur.chemins_inclusions_système, ".");
+            tableau_ajoute(*préprocesseur.chemins_inclusions_système, "/usr/include/c++/12");
+            tableau_ajoute(*préprocesseur.chemins_inclusions_système, "/usr/include/x86_64-linux-gnu/c++/12");
+            tableau_ajoute(*préprocesseur.chemins_inclusions_système, "/usr/include/c++/12/backward");
+            tableau_ajoute(*préprocesseur.chemins_inclusions_système, "/usr/lib/gcc/x86_64-linux-gnu/12/include");
+            tableau_ajoute(*préprocesseur.chemins_inclusions_système, "/usr/local/include");
+            tableau_ajoute(*préprocesseur.chemins_inclusions_système, "/usr/include/x86_64-linux-gnu");
+            tableau_ajoute(*préprocesseur.chemins_inclusions_système, "/usr/include");
 
-            ajoute_définition(préprocesseur, "__cplusplus", préprocesseur.unit.info_langage.standard)
-            ajoute_définition(préprocesseur, "__GNUG__", 12)
+            ajoute_définition(préprocesseur, "__cplusplus", préprocesseur.unit.info_langage.standard);
+            ajoute_définition(préprocesseur, "__GNUG__", 12);
         }
     }
 
-    ajoute_définition(préprocesseur, "__linux__", 1)
-    ajoute_définition(préprocesseur, "__unix__", 1)
-    ajoute_définition(préprocesseur, "__x86_64__", 1)
+    ajoute_définition(préprocesseur, "__linux__", 1);
+    ajoute_définition(préprocesseur, "__unix__", 1);
+    ajoute_définition(préprocesseur, "__x86_64__", 1);
 
-    ajoute_définition(préprocesseur, "__GNUC__", 12)
-    ajoute_définition(préprocesseur, "__GNUC_MINOR__", 3)
-    ajoute_définition(préprocesseur, "__GNUC_PATCHLEVEL__", 0)
+    ajoute_définition(préprocesseur, "__GNUC__", 12);
+    ajoute_définition(préprocesseur, "__GNUC_MINOR__", 3);
+    ajoute_définition(préprocesseur, "__GNUC_PATCHLEVEL__", 0);
 
-    ajoute_définition(préprocesseur, "__STDC__", 1)
-    ajoute_définition(préprocesseur, "__STDC_HOSTED__", 1)
+    ajoute_définition(préprocesseur, "__STDC__", 1);
+    ajoute_définition(préprocesseur, "__STDC_HOSTED__", 1);
 
-    ajoute_définition(préprocesseur, "__LP64__", 1)
-    ajoute_définition(préprocesseur, "_LP64", 1)
+    ajoute_définition(préprocesseur, "__LP64__", 1);
+    ajoute_définition(préprocesseur, "_LP64", 1);
 
-    ajoute_définition(préprocesseur, "NDEBUG", 1)
+    ajoute_définition(préprocesseur, "NDEBUG", 1);
 
-    ajoute_définition(préprocesseur, "__FLT_MANT_DIG__", 24)
-    ajoute_définition(préprocesseur, "__DBL_MANT_DIG__", 53)
-    ajoute_définition(préprocesseur, "__CHAR_BIT__", 8)
-    ajoute_définition(préprocesseur, "__SCHAR_MAX__", 0x7f)
-    ajoute_définition(préprocesseur, "__SHRT_MAX__", 0x7fff)
-    ajoute_définition(préprocesseur, "__INT_MAX__", 0x7fffffff)
-    ajoute_définition(préprocesseur, "__LONG_MAX__", 0x7fffffffffffffff)
-    ajoute_définition(préprocesseur, "__FLT_EVAL_METHOD__", 0)
-    ajoute_définition(préprocesseur, "__SCHAR_MAX__", 0x7f)
-    ajoute_définition(préprocesseur, "__WCHAR_MAX__", 0x7fffffff)
-    ajoute_définition(préprocesseur, "__SHRT_MAX__", 0x7fff)
-    ajoute_définition(préprocesseur, "__INT_MAX__", 0x7fffffff)
-    ajoute_définition(préprocesseur, "__LONG_MAX__", 0x7fffffffffffffff)
-    ajoute_définition(préprocesseur, "__LONG_LONG_MAX__", 0x7fffffffffffffff)
-    ajoute_définition(préprocesseur, "__WINT_MAX__", 0xffffffff)
-    ajoute_définition(préprocesseur, "__SIZE_MAX__", 0xffffffffffffffff)
-    ajoute_définition(préprocesseur, "__PTRDIFF_MAX__", 0x7fffffffffffffff)
-    ajoute_définition(préprocesseur, "__INTMAX_MAX__", 0x7fffffffffffffff)
-    ajoute_définition(préprocesseur, "__UINTMAX_MAX__", 0xffffffffffffffff)
-    ajoute_définition(préprocesseur, "__SIG_ATOMIC_MAX__", 0x7fffffff)
-    ajoute_définition(préprocesseur, "__INT8_MAX__", 0x7f)
-    ajoute_définition(préprocesseur, "__INT16_MAX__", 0x7fff)
-    ajoute_définition(préprocesseur, "__INT32_MAX__", 0x7fffffff)
-    ajoute_définition(préprocesseur, "__INT64_MAX__", 0x7fffffffffffffff)
-    ajoute_définition(préprocesseur, "__UINT8_MAX__", 0xff)
-    ajoute_définition(préprocesseur, "__UINT16_MAX__", 0xffff)
-    ajoute_définition(préprocesseur, "__UINT32_MAX__", 0xffffffff)
-    ajoute_définition(préprocesseur, "__UINT64_MAX__", 0xffffffffffffffff)
-    ajoute_définition(préprocesseur, "__INT_LEAST8_MAX__", 0x7f)
-    ajoute_définition(préprocesseur, "__INT_LEAST16_MAX__", 0x7fff)
-    ajoute_définition(préprocesseur, "__INT_LEAST32_MAX__", 0x7fffffff)
-    ajoute_définition(préprocesseur, "__INT_LEAST64_MAX__", 0x7fffffffffffffff)
-    ajoute_définition(préprocesseur, "__UINT_LEAST8_MAX__", 0xff)
-    ajoute_définition(préprocesseur, "__UINT_LEAST16_MAX__", 0xffff)
-    ajoute_définition(préprocesseur, "__UINT_LEAST32_MAX__", 0xffffffff)
-    ajoute_définition(préprocesseur, "__UINT_LEAST64_MAX__", 0xffffffffffffffff)
-    ajoute_définition(préprocesseur, "__INT_FAST8_MAX__", 0x7f)
-    ajoute_définition(préprocesseur, "__INT_FAST16_MAX__", 0x7fffffffffffffff)
-    ajoute_définition(préprocesseur, "__INT_FAST32_MAX__", 0x7fffffffffffffff)
-    ajoute_définition(préprocesseur, "__INT_FAST64_MAX__", 0x7fffffffffffffff)
-    ajoute_définition(préprocesseur, "__UINT_FAST8_MAX__", 0xff)
-    ajoute_définition(préprocesseur, "__UINT_FAST16_MAX__", 0xffffffffffffffff)
-    ajoute_définition(préprocesseur, "__UINT_FAST32_MAX__", 0xffffffffffffffff)
-    ajoute_définition(préprocesseur, "__UINT_FAST64_MAX__", 0xffffffffffffffff)
-    ajoute_définition(préprocesseur, "__INTPTR_MAX__", 0x7fffffffffffffff)
-    ajoute_définition(préprocesseur, "__UINTPTR_MAX__", 0xffffffffffffffff)
-    ajoute_définition(préprocesseur, "__WCHAR_MIN__", 0x80000000)
-    ajoute_définition(préprocesseur, "__WINT_MIN__", 0x0)
-    ajoute_définition(préprocesseur, "__SIG_ATOMIC_MIN__", 0x80000000)
-    ajoute_définition(préprocesseur, "__SCHAR_WIDTH__", 8)
-    ajoute_définition(préprocesseur, "__SHRT_WIDTH__", 16)
-    ajoute_définition(préprocesseur, "__INT_WIDTH__", 32)
-    ajoute_définition(préprocesseur, "__LONG_WIDTH__", 64)
-    ajoute_définition(préprocesseur, "__LONG_LONG_WIDTH__", 64)
-    ajoute_définition(préprocesseur, "__PTRDIFF_WIDTH__", 64)
-    ajoute_définition(préprocesseur, "__SIG_ATOMIC_WIDTH__", 32)
-    ajoute_définition(préprocesseur, "__SIZE_WIDTH__", 64)
-    ajoute_définition(préprocesseur, "__WCHAR_WIDTH__", 32)
-    ajoute_définition(préprocesseur, "__WINT_WIDTH__", 32)
-    ajoute_définition(préprocesseur, "__INT_LEAST8_WIDTH__", 8)
-    ajoute_définition(préprocesseur, "__INT_LEAST16_WIDTH__", 16)
-    ajoute_définition(préprocesseur, "__INT_LEAST32_WIDTH__", 32)
-    ajoute_définition(préprocesseur, "__INT_LEAST64_WIDTH__", 64)
-    ajoute_définition(préprocesseur, "__INT_FAST8_WIDTH__", 8)
-    ajoute_définition(préprocesseur, "__INT_FAST16_WIDTH__", 64)
-    ajoute_définition(préprocesseur, "__INT_FAST32_WIDTH__", 64)
-    ajoute_définition(préprocesseur, "__INT_FAST64_WIDTH__", 64)
-    ajoute_définition(préprocesseur, "__INTPTR_WIDTH__", 64)
-    ajoute_définition(préprocesseur, "__INTMAX_WIDTH__", 64)
-    ajoute_définition(préprocesseur, "__SIZEOF_INT__", 4)
-    ajoute_définition(préprocesseur, "__SIZEOF_LONG__", 8)
-    ajoute_définition(préprocesseur, "__SIZEOF_LONG_LONG__", 8)
-    ajoute_définition(préprocesseur, "__SIZEOF_SHORT__", 2)
-    ajoute_définition(préprocesseur, "__SIZEOF_POINTER__", 8)
-    ajoute_définition(préprocesseur, "__SIZEOF_FLOAT__", 4)
-    ajoute_définition(préprocesseur, "__SIZEOF_DOUBLE__", 8)
-    ajoute_définition(préprocesseur, "__SIZEOF_LONG_DOUBLE__", 16)
-    ajoute_définition(préprocesseur, "__SIZEOF_SIZE_T__", 8)
-    ajoute_définition(préprocesseur, "__SIZEOF_WCHAR_T__", 4)
-    ajoute_définition(préprocesseur, "__SIZEOF_WINT_T__", 4)
-    ajoute_définition(préprocesseur, "__SIZEOF_PTRDIFF_T__", 8)
-    ajoute_définition(préprocesseur, "__BYTE_ORDER__", 1234)
-    ajoute_définition(préprocesseur, "__ORDER_LITTLE_ENDIAN__", 1234)
-    ajoute_définition(préprocesseur, "__ORDER_BIG_ENDIAN__", 4321)
-    ajoute_définition(préprocesseur, "__ORDER_PDP_ENDIAN__", 3412)
-    ajoute_définition(préprocesseur, "__FLOAT_WORD_ORDER__", 1234)
-    ajoute_définition_lexèmes(préprocesseur, "__SIZE_TYPE__", "long unsigned int")
-    ajoute_définition_lexèmes(préprocesseur, "__PTRDIFF_TYPE__", "long int")
-    ajoute_définition_lexèmes(préprocesseur, "__WCHAR_TYPE__", "int")
-    ajoute_définition_lexèmes(préprocesseur, "__WINT_TYPE__", "unsigned int")
-    ajoute_définition_lexèmes(préprocesseur, "__INTMAX_TYPE__", "long int")
-    ajoute_définition_lexèmes(préprocesseur, "__UINTMAX_TYPE__", "long unsigned int")
-    ajoute_définition_lexèmes(préprocesseur, "__SIG_ATOMIC_TYPE__", "int")
-    ajoute_définition_lexèmes(préprocesseur, "__INT8_TYPE__", "signed char")
-    ajoute_définition_lexèmes(préprocesseur, "__INT16_TYPE__", "short int")
-    ajoute_définition_lexèmes(préprocesseur, "__INT32_TYPE__", "int")
-    ajoute_définition_lexèmes(préprocesseur, "__INT64_TYPE__", "long int")
-    ajoute_définition_lexèmes(préprocesseur, "__UINT8_TYPE__", "unsigned char")
-    ajoute_définition_lexèmes(préprocesseur, "__UINT16_TYPE__", "short unsigned int")
-    ajoute_définition_lexèmes(préprocesseur, "__UINT32_TYPE__", "unsigned int")
-    ajoute_définition_lexèmes(préprocesseur, "__UINT64_TYPE__", "long unsigned int")
-    ajoute_définition_lexèmes(préprocesseur, "__INT_LEAST8_TYPE__", "signed char")
-    ajoute_définition_lexèmes(préprocesseur, "__INT_LEAST16_TYPE__", "short int")
-    ajoute_définition_lexèmes(préprocesseur, "__INT_LEAST32_TYPE__", "int")
-    ajoute_définition_lexèmes(préprocesseur, "__INT_LEAST64_TYPE__", "long int")
-    ajoute_définition_lexèmes(préprocesseur, "__UINT_LEAST8_TYPE__", "unsigned char")
-    ajoute_définition_lexèmes(préprocesseur, "__UINT_LEAST16_TYPE__", "short unsigned int")
-    ajoute_définition_lexèmes(préprocesseur, "__UINT_LEAST32_TYPE__", "unsigned int")
-    ajoute_définition_lexèmes(préprocesseur, "__UINT_LEAST64_TYPE__", "long unsigned int")
-    ajoute_définition_lexèmes(préprocesseur, "__INT_FAST8_TYPE__", "signed char")
-    ajoute_définition_lexèmes(préprocesseur, "__INT_FAST16_TYPE__", "long int")
-    ajoute_définition_lexèmes(préprocesseur, "__INT_FAST32_TYPE__", "long int")
-    ajoute_définition_lexèmes(préprocesseur, "__INT_FAST64_TYPE__", "long int")
-    ajoute_définition_lexèmes(préprocesseur, "__UINT_FAST8_TYPE__", "unsigned char")
-    ajoute_définition_lexèmes(préprocesseur, "__UINT_FAST16_TYPE__", "long unsigned int")
-    ajoute_définition_lexèmes(préprocesseur, "__UINT_FAST32_TYPE__", "long unsigned int")
-    ajoute_définition_lexèmes(préprocesseur, "__UINT_FAST64_TYPE__", "long unsigned int")
-    ajoute_définition_lexèmes(préprocesseur, "__INTPTR_TYPE__", "long int")
-    ajoute_définition_lexèmes(préprocesseur, "__UINTPTR_TYPE__", "long unsigned int")
+    ajoute_définition(préprocesseur, "__FLT_MANT_DIG__", 24);
+    ajoute_définition(préprocesseur, "__DBL_MANT_DIG__", 53);
+    ajoute_définition(préprocesseur, "__CHAR_BIT__", 8);
+    ajoute_définition(préprocesseur, "__SCHAR_MAX__", 0x7f);
+    ajoute_définition(préprocesseur, "__SHRT_MAX__", 0x7fff);
+    ajoute_définition(préprocesseur, "__INT_MAX__", 0x7fffffff);
+    ajoute_définition(préprocesseur, "__LONG_MAX__", 0x7fffffffffffffff);
+    ajoute_définition(préprocesseur, "__FLT_EVAL_METHOD__", 0);
+    ajoute_définition(préprocesseur, "__SCHAR_MAX__", 0x7f);
+    ajoute_définition(préprocesseur, "__WCHAR_MAX__", 0x7fffffff);
+    ajoute_définition(préprocesseur, "__SHRT_MAX__", 0x7fff);
+    ajoute_définition(préprocesseur, "__INT_MAX__", 0x7fffffff);
+    ajoute_définition(préprocesseur, "__LONG_MAX__", 0x7fffffffffffffff);
+    ajoute_définition(préprocesseur, "__LONG_LONG_MAX__", 0x7fffffffffffffff);
+    ajoute_définition(préprocesseur, "__WINT_MAX__", 0xffffffff);
+    ajoute_définition(préprocesseur, "__SIZE_MAX__", 0xffffffffffffffff);
+    ajoute_définition(préprocesseur, "__PTRDIFF_MAX__", 0x7fffffffffffffff);
+    ajoute_définition(préprocesseur, "__INTMAX_MAX__", 0x7fffffffffffffff);
+    ajoute_définition(préprocesseur, "__UINTMAX_MAX__", 0xffffffffffffffff);
+    ajoute_définition(préprocesseur, "__SIG_ATOMIC_MAX__", 0x7fffffff);
+    ajoute_définition(préprocesseur, "__INT8_MAX__", 0x7f);
+    ajoute_définition(préprocesseur, "__INT16_MAX__", 0x7fff);
+    ajoute_définition(préprocesseur, "__INT32_MAX__", 0x7fffffff);
+    ajoute_définition(préprocesseur, "__INT64_MAX__", 0x7fffffffffffffff);
+    ajoute_définition(préprocesseur, "__UINT8_MAX__", 0xff);
+    ajoute_définition(préprocesseur, "__UINT16_MAX__", 0xffff);
+    ajoute_définition(préprocesseur, "__UINT32_MAX__", 0xffffffff);
+    ajoute_définition(préprocesseur, "__UINT64_MAX__", 0xffffffffffffffff);
+    ajoute_définition(préprocesseur, "__INT_LEAST8_MAX__", 0x7f);
+    ajoute_définition(préprocesseur, "__INT_LEAST16_MAX__", 0x7fff);
+    ajoute_définition(préprocesseur, "__INT_LEAST32_MAX__", 0x7fffffff);
+    ajoute_définition(préprocesseur, "__INT_LEAST64_MAX__", 0x7fffffffffffffff);
+    ajoute_définition(préprocesseur, "__UINT_LEAST8_MAX__", 0xff);
+    ajoute_définition(préprocesseur, "__UINT_LEAST16_MAX__", 0xffff);
+    ajoute_définition(préprocesseur, "__UINT_LEAST32_MAX__", 0xffffffff);
+    ajoute_définition(préprocesseur, "__UINT_LEAST64_MAX__", 0xffffffffffffffff);
+    ajoute_définition(préprocesseur, "__INT_FAST8_MAX__", 0x7f);
+    ajoute_définition(préprocesseur, "__INT_FAST16_MAX__", 0x7fffffffffffffff);
+    ajoute_définition(préprocesseur, "__INT_FAST32_MAX__", 0x7fffffffffffffff);
+    ajoute_définition(préprocesseur, "__INT_FAST64_MAX__", 0x7fffffffffffffff);
+    ajoute_définition(préprocesseur, "__UINT_FAST8_MAX__", 0xff);
+    ajoute_définition(préprocesseur, "__UINT_FAST16_MAX__", 0xffffffffffffffff);
+    ajoute_définition(préprocesseur, "__UINT_FAST32_MAX__", 0xffffffffffffffff);
+    ajoute_définition(préprocesseur, "__UINT_FAST64_MAX__", 0xffffffffffffffff);
+    ajoute_définition(préprocesseur, "__INTPTR_MAX__", 0x7fffffffffffffff);
+    ajoute_définition(préprocesseur, "__UINTPTR_MAX__", 0xffffffffffffffff);
+    ajoute_définition(préprocesseur, "__WCHAR_MIN__", 0x80000000);
+    ajoute_définition(préprocesseur, "__WINT_MIN__", 0x0);
+    ajoute_définition(préprocesseur, "__SIG_ATOMIC_MIN__", 0x80000000);
+    ajoute_définition(préprocesseur, "__SCHAR_WIDTH__", 8);
+    ajoute_définition(préprocesseur, "__SHRT_WIDTH__", 16);
+    ajoute_définition(préprocesseur, "__INT_WIDTH__", 32);
+    ajoute_définition(préprocesseur, "__LONG_WIDTH__", 64);
+    ajoute_définition(préprocesseur, "__LONG_LONG_WIDTH__", 64);
+    ajoute_définition(préprocesseur, "__PTRDIFF_WIDTH__", 64);
+    ajoute_définition(préprocesseur, "__SIG_ATOMIC_WIDTH__", 32);
+    ajoute_définition(préprocesseur, "__SIZE_WIDTH__", 64);
+    ajoute_définition(préprocesseur, "__WCHAR_WIDTH__", 32);
+    ajoute_définition(préprocesseur, "__WINT_WIDTH__", 32);
+    ajoute_définition(préprocesseur, "__INT_LEAST8_WIDTH__", 8);
+    ajoute_définition(préprocesseur, "__INT_LEAST16_WIDTH__", 16);
+    ajoute_définition(préprocesseur, "__INT_LEAST32_WIDTH__", 32);
+    ajoute_définition(préprocesseur, "__INT_LEAST64_WIDTH__", 64);
+    ajoute_définition(préprocesseur, "__INT_FAST8_WIDTH__", 8);
+    ajoute_définition(préprocesseur, "__INT_FAST16_WIDTH__", 64);
+    ajoute_définition(préprocesseur, "__INT_FAST32_WIDTH__", 64);
+    ajoute_définition(préprocesseur, "__INT_FAST64_WIDTH__", 64);
+    ajoute_définition(préprocesseur, "__INTPTR_WIDTH__", 64);
+    ajoute_définition(préprocesseur, "__INTMAX_WIDTH__", 64);
+    ajoute_définition(préprocesseur, "__SIZEOF_INT__", 4);
+    ajoute_définition(préprocesseur, "__SIZEOF_LONG__", 8);
+    ajoute_définition(préprocesseur, "__SIZEOF_LONG_LONG__", 8);
+    ajoute_définition(préprocesseur, "__SIZEOF_SHORT__", 2);
+    ajoute_définition(préprocesseur, "__SIZEOF_POINTER__", 8);
+    ajoute_définition(préprocesseur, "__SIZEOF_FLOAT__", 4);
+    ajoute_définition(préprocesseur, "__SIZEOF_DOUBLE__", 8);
+    ajoute_définition(préprocesseur, "__SIZEOF_LONG_DOUBLE__", 16);
+    ajoute_définition(préprocesseur, "__SIZEOF_SIZE_T__", 8);
+    ajoute_définition(préprocesseur, "__SIZEOF_WCHAR_T__", 4);
+    ajoute_définition(préprocesseur, "__SIZEOF_WINT_T__", 4);
+    ajoute_définition(préprocesseur, "__SIZEOF_PTRDIFF_T__", 8);
+    ajoute_définition(préprocesseur, "__BYTE_ORDER__", 1234);
+    ajoute_définition(préprocesseur, "__ORDER_LITTLE_ENDIAN__", 1234);
+    ajoute_définition(préprocesseur, "__ORDER_BIG_ENDIAN__", 4321);
+    ajoute_définition(préprocesseur, "__ORDER_PDP_ENDIAN__", 3412);
+    ajoute_définition(préprocesseur, "__FLOAT_WORD_ORDER__", 1234);
+    ajoute_définition_lexèmes(préprocesseur, "__SIZE_TYPE__", "long unsigned int");
+    ajoute_définition_lexèmes(préprocesseur, "__PTRDIFF_TYPE__", "long int");
+    ajoute_définition_lexèmes(préprocesseur, "__WCHAR_TYPE__", "int");
+    ajoute_définition_lexèmes(préprocesseur, "__WINT_TYPE__", "unsigned int");
+    ajoute_définition_lexèmes(préprocesseur, "__INTMAX_TYPE__", "long int");
+    ajoute_définition_lexèmes(préprocesseur, "__UINTMAX_TYPE__", "long unsigned int");
+    ajoute_définition_lexèmes(préprocesseur, "__SIG_ATOMIC_TYPE__", "int");
+    ajoute_définition_lexèmes(préprocesseur, "__INT8_TYPE__", "signed char");
+    ajoute_définition_lexèmes(préprocesseur, "__INT16_TYPE__", "short int");
+    ajoute_définition_lexèmes(préprocesseur, "__INT32_TYPE__", "int");
+    ajoute_définition_lexèmes(préprocesseur, "__INT64_TYPE__", "long int");
+    ajoute_définition_lexèmes(préprocesseur, "__UINT8_TYPE__", "unsigned char");
+    ajoute_définition_lexèmes(préprocesseur, "__UINT16_TYPE__", "short unsigned int");
+    ajoute_définition_lexèmes(préprocesseur, "__UINT32_TYPE__", "unsigned int");
+    ajoute_définition_lexèmes(préprocesseur, "__UINT64_TYPE__", "long unsigned int");
+    ajoute_définition_lexèmes(préprocesseur, "__INT_LEAST8_TYPE__", "signed char");
+    ajoute_définition_lexèmes(préprocesseur, "__INT_LEAST16_TYPE__", "short int");
+    ajoute_définition_lexèmes(préprocesseur, "__INT_LEAST32_TYPE__", "int");
+    ajoute_définition_lexèmes(préprocesseur, "__INT_LEAST64_TYPE__", "long int");
+    ajoute_définition_lexèmes(préprocesseur, "__UINT_LEAST8_TYPE__", "unsigned char");
+    ajoute_définition_lexèmes(préprocesseur, "__UINT_LEAST16_TYPE__", "short unsigned int");
+    ajoute_définition_lexèmes(préprocesseur, "__UINT_LEAST32_TYPE__", "unsigned int");
+    ajoute_définition_lexèmes(préprocesseur, "__UINT_LEAST64_TYPE__", "long unsigned int");
+    ajoute_définition_lexèmes(préprocesseur, "__INT_FAST8_TYPE__", "signed char");
+    ajoute_définition_lexèmes(préprocesseur, "__INT_FAST16_TYPE__", "long int");
+    ajoute_définition_lexèmes(préprocesseur, "__INT_FAST32_TYPE__", "long int");
+    ajoute_définition_lexèmes(préprocesseur, "__INT_FAST64_TYPE__", "long int");
+    ajoute_définition_lexèmes(préprocesseur, "__UINT_FAST8_TYPE__", "unsigned char");
+    ajoute_définition_lexèmes(préprocesseur, "__UINT_FAST16_TYPE__", "long unsigned int");
+    ajoute_définition_lexèmes(préprocesseur, "__UINT_FAST32_TYPE__", "long unsigned int");
+    ajoute_définition_lexèmes(préprocesseur, "__UINT_FAST64_TYPE__", "long unsigned int");
+    ajoute_définition_lexèmes(préprocesseur, "__INTPTR_TYPE__", "long int");
+    ajoute_définition_lexèmes(préprocesseur, "__UINTPTR_TYPE__", "long unsigned int");
 
-    ajoute_définition_intrinsèque(préprocesseur, "__has_builtin", 1, sur_développement_has_builtin)
-    ajoute_définition_intrinsèque(préprocesseur, "__has_cpp_attribute", 1, sur_développement_has_cpp_attribute)
+    ajoute_définition_intrinsèque(préprocesseur, "__has_builtin", 1, sur_développement_has_builtin);
+    ajoute_définition_intrinsèque(préprocesseur, "__has_cpp_attribute", 1, sur_développement_has_cpp_attribute);
 
-    ajoute_définition_intrinsèque(préprocesseur, "__has_include", 1, sur_développement_has_include)
-    ajoute_définition_intrinsèque(préprocesseur, "__has_include_next", 1, sur_développement_has_include_next)
+    ajoute_définition_intrinsèque(préprocesseur, "__has_include", 1, sur_développement_has_include);
+    ajoute_définition_intrinsèque(préprocesseur, "__has_include_next", 1, sur_développement_has_include_next);
 
     /* Macros standard. */
-    ajoute_définition_intrinsèque(préprocesseur, "__FILE__", 0, sur_développement_file)
-    ajoute_définition_intrinsèque(préprocesseur, "__LINE__", 0, sur_développement_line)
-    ajoute_définition_intrinsèque(préprocesseur, "__DATE__", 0, sur_développement_date)
-    ajoute_définition_intrinsèque(préprocesseur, "__TIME__", 0, sur_développement_time)
+    ajoute_définition_intrinsèque(préprocesseur, "__FILE__", 0, sur_développement_file);
+    ajoute_définition_intrinsèque(préprocesseur, "__LINE__", 0, sur_développement_line);
+    ajoute_définition_intrinsèque(préprocesseur, "__DATE__", 0, sur_développement_date);
+    ajoute_définition_intrinsèque(préprocesseur, "__TIME__", 0, sur_développement_time);
 
     /* Autres macros.
      * https://gcc.gnu.org/onlinedocs/cpp/Common-Predefined-Macros.html
      * https://learn.microsoft.com/fr-fr/cpp/preprocessor/predefined-macros?view=msvc-170 */
-    ajoute_définition_intrinsèque(préprocesseur, "__COUNTER__", 0, sur_développement_counter)
-    ajoute_définition_intrinsèque(préprocesseur, "__INCLUDE_LEVEL__", 0, sur_développement_include_level)
-    ajoute_définition_intrinsèque(préprocesseur, "__BASE_FILE__", 0, sur_développement_base_file)
-    ajoute_définition_intrinsèque(préprocesseur, "__FILE_NAME__", 0, sur_développement_file_name)
+    ajoute_définition_intrinsèque(préprocesseur, "__COUNTER__", 0, sur_développement_counter);
+    ajoute_définition_intrinsèque(préprocesseur, "__INCLUDE_LEVEL__", 0, sur_développement_include_level);
+    ajoute_définition_intrinsèque(préprocesseur, "__BASE_FILE__", 0, sur_développement_base_file);
+    ajoute_définition_intrinsèque(préprocesseur, "__FILE_NAME__", 0, sur_développement_file_name);
 
     /* Voir https://gcc.gnu.org/onlinedocs/gcc-8.3.0/gccint/Instruction-Output.html */
-    ajoute_définition(préprocesseur, "__USER_LABEL_PREFIX__", "")
+    ajoute_définition(préprocesseur, "__USER_LABEL_PREFIX__", "");
 }
 
 ajoute_définition :: fonc (préprocesseur: *PréProcesseur, nom: chaine, valeur: n64)
 {
-    définition := crée_définition(préprocesseur, nom)
+    définition := crée_définition(préprocesseur, nom);
 
-    lexème := tableau_ajoute_élément(*définition.lexèmes)
-    mémoire(lexème) = crée_lexème_nombre_naturel(préprocesseur, valeur)
+    lexème := tableau_ajoute_élément(*définition.lexèmes);
+    mémoire(lexème) = crée_lexème_nombre_naturel(préprocesseur, valeur);
 }
 
 ajoute_définition :: fonc (préprocesseur: *PréProcesseur, nom: chaine, valeur: chaine)
 {
-    définition := crée_définition(préprocesseur, nom)
+    définition := crée_définition(préprocesseur, nom);
 
-    lexème := tableau_ajoute_élément(*définition.lexèmes)
-    mémoire(lexème) = crée_lexème_chaine_littérale(valeur)
+    lexème := tableau_ajoute_élément(*définition.lexèmes);
+    mémoire(lexème) = crée_lexème_chaine_littérale(valeur);
 }
 
 ajoute_définition_lexèmes :: fonc (préprocesseur: *PréProcesseur, nom: chaine, valeur: chaine)
 {
-    définition := crée_définition(préprocesseur, nom)
+    définition := crée_définition(préprocesseur, nom);
 
-    lexeuse: SimpleLexeuse
-    initialise_lexeuse_c(*lexeuse)
-    lexeuse.options.INCLUS_TOUT = vrai
+    lexeuse: SimpleLexeuse;
+    initialise_lexeuse_c(*lexeuse);
+    lexeuse.options.INCLUS_TOUT = vrai;
 
-    initialise_lexeuse_pour_texte(*lexeuse, valeur)
+    initialise_lexeuse_pour_texte(*lexeuse, valeur);
 
     boucle {
-        lexème := donne_lexème_suivant(*lexeuse)
+        lexème := donne_lexème_suivant(*lexeuse);
         si lexème.type == TypeLexème.FinDeFichier {
-            arrête
+            arrête;
         }
 
-        tableau_ajoute(*définition.lexèmes, LexèmePréprocès(lexème))
+        tableau_ajoute(*définition.lexèmes, LexèmePréprocès(lexème));
     }
 }
 
 ajoute_définition_intrinsèque :: fonc (préprocesseur: *PréProcesseur, nom: chaine, nombre_arguments: z32, rappel: fonc (préprocesseur: *PréProcesseur, arguments: [..][..]LexèmePréprocès) -> LexèmePréprocès)
 {
-    définition := crée_définition(préprocesseur, nom)
-    définition.est_intrinsèque = vrai
-    définition.sur_développement = rappel
-    définition.est_semble_fonction = nombre_arguments != 0
+    définition := crée_définition(préprocesseur, nom);
+    définition.est_intrinsèque = vrai;
+    définition.sur_développement = rappel;
+    définition.est_semble_fonction = nombre_arguments != 0;
 
     pour nombre_arguments {
-        tableau_ajoute(*définition.paramètres, crée_lexème_symbole("x"))
+        tableau_ajoute(*définition.paramètres, crée_lexème_symbole("x"));
     }
 }
 
 crée_définition :: fonc (préprocesseur: *PréProcesseur, nom: chaine) -> *Définition
 {
     si nom.taille < préprocesseur.taille_nom_définition_min {
-        préprocesseur.taille_nom_définition_min = nom.taille
+        préprocesseur.taille_nom_définition_min = nom.taille;
     }
     si nom.taille > préprocesseur.taille_nom_définition_max {
-        préprocesseur.taille_nom_définition_max = nom.taille
+        préprocesseur.taille_nom_définition_max = nom.taille;
     }
 
-    indice := préprocesseur.définitions.taille
-    _, _ := table_insère_si_non_existant(*préprocesseur.table_définitions, nom, indice)
-    définition := tableau_ajoute_élément(*préprocesseur.définitions)
-    définition.nom = nom
-    retourne définition
+    indice := préprocesseur.définitions.taille;
+    _, _ := table_insère_si_non_existant(*préprocesseur.table_définitions, nom, indice);
+    définition := tableau_ajoute_élément(*préprocesseur.définitions);
+    définition.nom = nom;
+    retourne définition;
 }
 
 supprime_définition :: fonc (préprocesseur: *PréProcesseur, nom: chaine)
 {
-    _, _ := table_supprime(*préprocesseur.table_définitions, nom)
+    _, _ := table_supprime(*préprocesseur.table_définitions, nom);
 }
 
 donne_définition :: fonc (préprocesseur: *PréProcesseur, nom: chaine) -> *Définition
 {
     si nom.taille < préprocesseur.taille_nom_définition_min || nom.taille > préprocesseur.taille_nom_définition_max {
-        retourne nul
+        retourne nul;
     }
 
-    trouvée, indice := donne_valeur_pour_clé(préprocesseur.table_définitions, nom)
+    trouvée, indice := donne_valeur_pour_clé(préprocesseur.table_définitions, nom);
     si trouvée {
-        retourne *préprocesseur.définitions[indice]
+        retourne *préprocesseur.définitions[indice];
     }
-    retourne nul
+    retourne nul;
 }
 
 donne_définition :: fonc (préprocesseur: *PréProcesseur, lexème: LexèmePréprocès) -> *Définition
 {
-    résultat: *Définition
+    résultat: *Définition;
     si est_symbole(lexème) || est_mot_clé(lexème) {
-        texte := donne_texte(lexème)
-        résultat = donne_définition(préprocesseur, texte)
+        texte := donne_texte(lexème);
+        résultat = donne_définition(préprocesseur, texte);
     }
-    retourne résultat
+    retourne résultat;
 }
 
 crée_lexème_nombre_naturel :: fonc (préprocesseur: *PréProcesseur @inutilisée, valeur: n64) -> LexèmePréprocès
 {
-    résultat := crée_lexème_nombre_naturel(valeur)
+    résultat := crée_lexème_nombre_naturel(valeur);
 
     // @FuiteDeMémoire
-    texte := imprime_chaine("%", valeur)
-    résultat.lexème.début = texte.pointeur
-    résultat.lexème.fin = texte.pointeur + texte.taille
+    texte := imprime_chaine("%", valeur);
+    résultat.lexème.début = texte.pointeur;
+    résultat.lexème.fin = texte.pointeur + texte.taille;
 
-    retourne résultat
+    retourne résultat;
 }
 
 ajoute_inclusion :: fonc (préprocesseur: *PréProcesseur, chemin: chaine)
 {
-    tableau_ajoute(*préprocesseur.chemins_inclusions_système, chemin)
+    tableau_ajoute(*préprocesseur.chemins_inclusions_système, chemin);
 }
 
 donne_source_préprocédée :: fonc (chemin_source: chaine, collapse_espaces_blanches := faux) -> chaine
 {
-    unit := crée_translation_unit_pour_fichier(chemin_source)
-    diffère détruit(unit)
-    préprocesseur: PréProcesseur
-    diffère détruit_données(*préprocesseur)
-    initialise_préprocesseur(*préprocesseur, unit)
-    retourne donne_source_préprocédée(*préprocesseur, collapse_espaces_blanches)
+    unit := crée_translation_unit_pour_fichier(chemin_source);
+    diffère détruit(unit);
+    préprocesseur: PréProcesseur;
+    diffère détruit_données(*préprocesseur);
+    initialise_préprocesseur(*préprocesseur, unit);
+    retourne donne_source_préprocédée(*préprocesseur, collapse_espaces_blanches);
 }
 
 donne_source_préprocédée :: fonc (préprocesseur: *PréProcesseur, collapse_espaces_blanches := faux) -> chaine
 {
-    exécute_préprocesseur(préprocesseur)
-    retourne imprime_lexèmes(préprocesseur.unit.lexèmes_préprocès, collapse_espaces_blanches)
+    exécute_préprocesseur(préprocesseur);
+    retourne imprime_lexèmes(préprocesseur.unit.lexèmes_préprocès, collapse_espaces_blanches);
 }
 
 exécute_préprocesseur :: fonc (préprocesseur: *PréProcesseur)
 {
-    assert(préprocesseur.unit != nul)
-    préprocesseur.unit.lexèmes_préprocès = donne_lexèmes_préprocès(préprocesseur)
+    assert(préprocesseur.unit != nul);
+    préprocesseur.unit.lexèmes_préprocès = donne_lexèmes_préprocès(préprocesseur);
 
     si préprocesseur.messagère {
-        envoie_message_fin_préprocès(préprocesseur.messagère, préprocesseur.unit)
+        envoie_message_fin_préprocès(préprocesseur.messagère, préprocesseur.unit);
     }
 }
 
 donne_lexèmes_préprocès :: fonc (préprocesseur: *PréProcesseur) -> [..]LexèmePréprocès
 {
-    préprocesseur.compteur = 0
+    préprocesseur.compteur = 0;
 
-    empile_fichier(préprocesseur, préprocesseur.unit.chemin_racine, "", faux)
+    empile_fichier(préprocesseur, préprocesseur.unit.chemin_racine, "", faux);
 
-    lexèmes: [..]LexèmePréprocès
+    lexèmes: [..]LexèmePréprocès;
 
     tantque préprocesseur.lexeuses {
-        lexeuse := donne_lexeuse_courante(préprocesseur)
+        lexeuse := donne_lexeuse_courante(préprocesseur);
 
-        lexème := donne_lexème_suivant_développé(préprocesseur, lexeuse)
+        lexème := donne_lexème_suivant_développé(préprocesseur, lexeuse);
         si est_fin_de_fichier(lexème) {
-            fichier_courant := donne_fichier_courant(préprocesseur)
+            fichier_courant := donne_fichier_courant(préprocesseur);
 
             si lexeuse.texte_garde_inclusion && !lexeuse.une_branche_fut_rencontrée {
                 si lexeuse.dernier_lexème_non_espace_blanche == "endif" {
-                    fichier_courant.garde_inclusion = lexeuse.texte_garde_inclusion
+                    fichier_courant.garde_inclusion = lexeuse.texte_garde_inclusion;
                 }
             }
 
             si préprocesseur.messagère {
-                envoie_message_fichier_fermé(préprocesseur.messagère, préprocesseur.unit, fichier_courant.chemin)
+                envoie_message_fichier_fermé(préprocesseur.messagère, préprocesseur.unit, fichier_courant.chemin);
             }
-            préprocesseur.lexeuses.taille -= 1
-            continue
+            préprocesseur.lexeuses.taille -= 1;
+            continue;
         }
 
         si est_ponctuation(lexème, "#") {
-            lexème_directive := lexème
-            lexème = donne_lexème_suivant_sauf_espace_blanche_hors_nouvelle_ligne(lexeuse)
+            lexème_directive := lexème;
+            lexème = donne_lexème_suivant_sauf_espace_blanche_hors_nouvelle_ligne(lexeuse);
             si est_fin_de_fichier(lexème) {
-                rapporte_erreur(préprocesseur, "Fin de fichier inattendu lors du préprocès")
-                exit(1)
+                rapporte_erreur(préprocesseur, "Fin de fichier inattendu lors du préprocès");
+                exit(1);
             }
 
             si est_lexème_nouvelle_ligne(lexème) {
-                continue
+                continue;
             }
 
-            texte := donne_texte(lexème)
+            texte := donne_texte(lexème);
             si texte == "include" || texte == "include_next" {
-                include_next := texte == "include_next"
-                lexème = donne_lexème_suivant_sauf_espace_blanche(lexeuse)
+                include_next := texte == "include_next";
+                lexème = donne_lexème_suivant_sauf_espace_blanche(lexeuse);
                 si est_fin_de_fichier(lexème) {
-                    rapporte_erreur(préprocesseur, "Fin de fichier inattendu lors du préprocès")
+                    rapporte_erreur(préprocesseur, "Fin de fichier inattendu lors du préprocès");
                 }
                 sinon si est_ponctuation(lexème, "<") {
-                    tampon_chemin_fichier: TamponChemin
-                    extrait_chemin_inclusion_système(préprocesseur, lexeuse, *tampon_chemin_fichier)
-                    chemin_fichier := donne_chaine_statique(*tampon_chemin_fichier)
-                    empile_fichier_pour_include(préprocesseur, chemin_fichier, include_next, vrai)
+                    tampon_chemin_fichier: TamponChemin;
+                    extrait_chemin_inclusion_système(préprocesseur, lexeuse, *tampon_chemin_fichier);
+                    chemin_fichier := donne_chaine_statique(*tampon_chemin_fichier);
+                    empile_fichier_pour_include(préprocesseur, chemin_fichier, include_next, vrai);
                 }
                 sinon si est_chaine_littérale(lexème) {
-                    chemin_fichier := donne_texte(lexème)
+                    chemin_fichier := donne_texte(lexème);
 
                     saufsi chemin_fichier {
-                        rapporte_erreur(préprocesseur, "Chemin vide")
+                        rapporte_erreur(préprocesseur, "Chemin vide");
                     }
                     sinon {
                         si chemin_fichier[0] == '"' {
-                            chemin_fichier = avance(chemin_fichier, 1)
+                            chemin_fichier = avance(chemin_fichier, 1);
 
                             saufsi chemin_fichier {
-                                rapporte_erreur(préprocesseur, "Chemin vide")
+                                rapporte_erreur(préprocesseur, "Chemin vide");
                             }
                             sinon {
                                 si chemin_fichier[chemin_fichier.taille - 1] == '"' {
-                                    chemin_fichier = recule(chemin_fichier, 1)
-                                    empile_fichier_pour_include(préprocesseur, chemin_fichier, include_next, faux)
+                                    chemin_fichier = recule(chemin_fichier, 1);
+                                    empile_fichier_pour_include(préprocesseur, chemin_fichier, include_next, faux);
                                 }
                             }
                         }
                     }
                 }
                 sinon {
-                    rapporte_erreur(préprocesseur, "Lexème inattendu : '%' (%)", donne_texte(lexème), lexème.lexème.type)
+                    rapporte_erreur(préprocesseur, "Lexème inattendu : '%' (%)", donne_texte(lexème), lexème.lexème.type);
                 }
             }
             sinon si texte == "ifndef" {
-                lexème = donne_lexème_suivant_sauf_espace_blanche(lexeuse)
-                texte_définition := donne_texte(lexème)
-                définition := donne_définition(préprocesseur, texte_définition)
+                lexème = donne_lexème_suivant_sauf_espace_blanche(lexeuse);
+                texte_définition := donne_texte(lexème);
+                définition := donne_définition(préprocesseur, texte_définition);
 
                 si lexeuse.est_première_directive {
-                    lexeuse.texte_garde_inclusion = texte_définition
+                    lexeuse.texte_garde_inclusion = texte_définition;
                 }
 
                 si définition {
-                    ignore_lexèmes_jusque_fin_branche(préprocesseur, lexeuse)
+                    ignore_lexèmes_jusque_fin_branche(préprocesseur, lexeuse);
                 }
 
-                tableau_ajoute(*préprocesseur.pile_branches, définition != nul)
-                préprocesseur.niveau_branchage += 1
+                tableau_ajoute(*préprocesseur.pile_branches, définition != nul);
+                préprocesseur.niveau_branchage += 1;
             }
             sinon si texte == "ifdef" {
-                lexème = donne_lexème_suivant_sauf_espace_blanche(lexeuse)
-                texte_définition := donne_texte(lexème)
-                définition := donne_définition(préprocesseur, texte_définition)
+                lexème = donne_lexème_suivant_sauf_espace_blanche(lexeuse);
+                texte_définition := donne_texte(lexème);
+                définition := donne_définition(préprocesseur, texte_définition);
 
                 saufsi définition {
-                    ignore_lexèmes_jusque_fin_branche(préprocesseur, lexeuse)
+                    ignore_lexèmes_jusque_fin_branche(préprocesseur, lexeuse);
                 }
 
-                tableau_ajoute(*préprocesseur.pile_branches, définition == nul)
-                préprocesseur.niveau_branchage += 1
+                tableau_ajoute(*préprocesseur.pile_branches, définition == nul);
+                préprocesseur.niveau_branchage += 1;
             }
             sinon si texte == "if" {
-                expression := parse_expression_if(préprocesseur, lexeuse)
+                expression := parse_expression_if(préprocesseur, lexeuse);
                 saufsi expression {
-                    exit(1)
+                    exit(1);
                 }
 
-                doit_entrer_dans_si := évalue_expression(préprocesseur, expression)
+                doit_entrer_dans_si := évalue_expression(préprocesseur, expression);
 
                 saufsi doit_entrer_dans_si {
-                    ignore_lexèmes_jusque_fin_branche(préprocesseur, lexeuse)
+                    ignore_lexèmes_jusque_fin_branche(préprocesseur, lexeuse);
                 }
 
-                tableau_ajoute(*préprocesseur.pile_branches, !doit_entrer_dans_si)
-                préprocesseur.niveau_branchage += 1
+                tableau_ajoute(*préprocesseur.pile_branches, !doit_entrer_dans_si);
+                préprocesseur.niveau_branchage += 1;
             }
             sinon si texte == "elif" {
-                lexeuse.une_branche_fut_rencontrée = vrai
+                lexeuse.une_branche_fut_rencontrée = vrai;
                 si préprocesseur.niveau_branchage == 0 {
-                    rapporte_erreur(préprocesseur, "#endif sans #if")
+                    rapporte_erreur(préprocesseur, "#endif sans #if");
                 }
-                assert(préprocesseur.pile_branches.taille > 0)
+                assert(préprocesseur.pile_branches.taille > 0);
 
                 si préprocesseur.pile_branches[préprocesseur.pile_branches.taille - 1] {
-                    expression := parse_expression_if(préprocesseur, lexeuse)
+                    expression := parse_expression_if(préprocesseur, lexeuse);
                     saufsi expression {
-                        exit(1)
+                        exit(1);
                     }
 
-                    doit_entrer_dans_si := évalue_expression(préprocesseur, expression)
+                    doit_entrer_dans_si := évalue_expression(préprocesseur, expression);
 
                     saufsi doit_entrer_dans_si {
-                        ignore_lexèmes_jusque_fin_branche(préprocesseur, lexeuse)
+                        ignore_lexèmes_jusque_fin_branche(préprocesseur, lexeuse);
                     }
 
-                    préprocesseur.pile_branches[préprocesseur.pile_branches.taille - 1] = !doit_entrer_dans_si
+                    préprocesseur.pile_branches[préprocesseur.pile_branches.taille - 1] = !doit_entrer_dans_si;
                 }
                 sinon {
-                    ignore_lexèmes_jusque_fin_branche(préprocesseur, lexeuse)
+                    ignore_lexèmes_jusque_fin_branche(préprocesseur, lexeuse);
                 }
             }
             sinon si texte == "else" {
-                lexeuse.une_branche_fut_rencontrée = vrai
+                lexeuse.une_branche_fut_rencontrée = vrai;
                 si préprocesseur.niveau_branchage == 0 {
-                    rapporte_erreur(préprocesseur, "#else sans #if")
+                    rapporte_erreur(préprocesseur, "#else sans #if");
                 }
                 saufsi préprocesseur.pile_branches[préprocesseur.pile_branches.taille - 1] {
-                    ignore_lexèmes_jusque_fin_branche(préprocesseur, lexeuse)
+                    ignore_lexèmes_jusque_fin_branche(préprocesseur, lexeuse);
                 }
             }
             sinon si texte == "endif" {
                 si préprocesseur.niveau_branchage == 0 {
-                    rapporte_erreur(préprocesseur, "#endif sans #if")
+                    rapporte_erreur(préprocesseur, "#endif sans #if");
                 }
-                assert(préprocesseur.niveau_branchage > 0)
-                assert(préprocesseur.pile_branches.taille > 0)
-                préprocesseur.niveau_branchage -= 1
-                préprocesseur.pile_branches.taille -= 1
+                assert(préprocesseur.niveau_branchage > 0);
+                assert(préprocesseur.pile_branches.taille > 0);
+                préprocesseur.niveau_branchage -= 1;
+                préprocesseur.pile_branches.taille -= 1;
             }
             sinon si texte == "define" {
-                lexème = donne_lexème_suivant_sauf_espace_blanche(lexeuse)
-                parse_définition(préprocesseur, lexeuse, lexème)
+                lexème = donne_lexème_suivant_sauf_espace_blanche(lexeuse);
+                parse_définition(préprocesseur, lexeuse, lexème);
             }
             sinon si texte == "undef" {
-                lexème = donne_lexème_suivant_sauf_espace_blanche(lexeuse)
-                texte_définition := donne_texte(lexème)
+                lexème = donne_lexème_suivant_sauf_espace_blanche(lexeuse);
+                texte_définition := donne_texte(lexème);
 
                 si ensemble_possède(préprocesseur.macros_indéfinissables, texte_définition) {
-                    rapporte_erreur(préprocesseur, "Impossible d'indéfinir le macros prédéfini '%'", texte_définition)
-                    arrête
+                    rapporte_erreur(préprocesseur, "Impossible d'indéfinir le macros prédéfini '%'", texte_définition);
+                    arrête;
                 }
 
-                supprime_définition(préprocesseur, texte_définition)
+                supprime_définition(préprocesseur, texte_définition);
 
                 si préprocesseur.messagère {
-                    envoie_message_macro_indéfini(préprocesseur.messagère, préprocesseur.unit, texte_définition)
+                    envoie_message_macro_indéfini(préprocesseur.messagère, préprocesseur.unit, texte_définition);
                 }
             }
             sinon si texte == "error" {
-                texte = donne_texte_jusque_nouvelle_ligne(lexeuse)
-                rapporte_erreur(préprocesseur, lexème, "%", texte)
+                texte = donne_texte_jusque_nouvelle_ligne(lexeuse);
+                rapporte_erreur(préprocesseur, lexème, "%", texte);
             }
             sinon si texte == "pragma" {
-                lexème_pragma := lexème
-                lexème = donne_lexème_suivant_sauf_espace_blanche(lexeuse)
-                texte = donne_texte(lexème)
+                lexème_pragma := lexème;
+                lexème = donne_lexème_suivant_sauf_espace_blanche(lexeuse);
+                texte = donne_texte(lexème);
                 si texte == "GCC" {
-                    lexème = donne_lexème_suivant_sauf_espace_blanche(lexeuse)
-                    texte = donne_texte(lexème)
+                    lexème = donne_lexème_suivant_sauf_espace_blanche(lexeuse);
+                    texte = donne_texte(lexème);
 
                     si texte == "system_header" {
                         // À FAIRE : fichier courant est entête système
-                        consomme_jusque_nouvelle_ligne(lexeuse)
+                        consomme_jusque_nouvelle_ligne(lexeuse);
                     }
                     sinon si texte == "dependency" {
-                        consomme_jusque_nouvelle_ligne(lexeuse)
+                        consomme_jusque_nouvelle_ligne(lexeuse);
                     }
                     sinon si texte == "poison" {
                         // liste de de symboles à empoisonner
-                        consomme_jusque_nouvelle_ligne(lexeuse)
+                        consomme_jusque_nouvelle_ligne(lexeuse);
                     }
                     sinon si texte == "warning" {
                         // une seule chaine littérale
-                        consomme_jusque_nouvelle_ligne(lexeuse)
+                        consomme_jusque_nouvelle_ligne(lexeuse);
                     }
                     sinon si texte == "error" {
-                        lexème = donne_lexème_suivant_sauf_espace_blanche(lexeuse)
+                        lexème = donne_lexème_suivant_sauf_espace_blanche(lexeuse);
                         saufsi est_chaine_littérale(lexème) {
-                            rapporte_erreur(préprocesseur, lexème, "attendu une chaine littérale")
+                            rapporte_erreur(préprocesseur, lexème, "attendu une chaine littérale");
                         }
                         sinon {
-                            message_erreur := donne_texte_sans_guillemets(lexème)
+                            message_erreur := donne_texte_sans_guillemets(lexème);
 
                             boucle {
                                 // À FAIRE : épie
-                                lexème = donne_lexème_suivant(lexeuse)
+                                lexème = donne_lexème_suivant(lexeuse);
                                 si est_fin_de_fichier(lexème) {
-                                    arrête
+                                    arrête;
                                 }
                                 si est_lexème_nouvelle_ligne(lexème) {
-                                    arrête
+                                    arrête;
                                 }
 
                                 saufsi est_espace_blanche(lexème) {
-                                    rapporte_erreur(préprocesseur, lexème, "lexème superflux après le message d'erreur")
+                                    rapporte_erreur(préprocesseur, lexème, "lexème superflux après le message d'erreur");
                                 }
                             }
 
-                            rapporte_erreur(préprocesseur, lexème_pragma, message_erreur)
+                            rapporte_erreur(préprocesseur, lexème_pragma, message_erreur);
                         }
                     }
                     sinon {
-                        reprends_depuis_lexème(lexeuse, lexème_directive)
+                        reprends_depuis_lexème(lexeuse, lexème_directive);
                         boucle {
-                            lexème = donne_lexème_suivant(lexeuse)
+                            lexème = donne_lexème_suivant(lexeuse);
                             si est_fin_de_fichier(lexème) || est_lexème_nouvelle_ligne(lexème) {
-                                arrête
+                                arrête;
                             }
-                            tableau_ajoute(*lexèmes, lexème)
+                            tableau_ajoute(*lexèmes, lexème);
                         }
                     }
                 }
                 sinon si texte == "once" {
-                    fichier := *préprocesseur.unit.fichiers[lexeuse.fichier]
-                    fichier.est_marqué_pragma_once = vrai
+                    fichier := *préprocesseur.unit.fichiers[lexeuse.fichier];
+                    fichier.est_marqué_pragma_once = vrai;
                 }
                 sinon {
-                    rapporte_erreur(préprocesseur, lexème_pragma, "#pragma inconnu")
+                    rapporte_erreur(préprocesseur, lexème_pragma, "#pragma inconnu");
                 }
             }
             sinon si texte != "" {
-                rapporte_erreur(préprocesseur, lexème, "directive inconnue")
+                rapporte_erreur(préprocesseur, lexème, "directive inconnue");
             }
 
-            lexeuse.est_première_directive = faux
+            lexeuse.est_première_directive = faux;
 
-            continue
+            continue;
         }
 
-        tableau_ajoute(*lexèmes, lexème)
+        tableau_ajoute(*lexèmes, lexème);
     }
 
-    exécute_phase_de_traduction_6(*lexèmes)
+    exécute_phase_de_traduction_6(*lexèmes);
 
-    retourne lexèmes
+    retourne lexèmes;
 }
 
 /* Phase de traduction 6 : Adjacent string literal tokens are concatenated */
 exécute_phase_de_traduction_6 :: fonc (lexèmes: *[..]LexèmePréprocès)
 {
-    entrée := lexèmes.pointeur
-    sortie := lexèmes.pointeur
-    fin := lexèmes.pointeur + lexèmes.taille
+    entrée := lexèmes.pointeur;
+    sortie := lexèmes.pointeur;
+    fin := lexèmes.pointeur + lexèmes.taille;
 
-    dernier_lexème_chaine_littérale: *LexèmePréprocès
+    dernier_lexème_chaine_littérale: *LexèmePréprocès;
 
     tantque entrée < fin {
-        lexème := mémoire(entrée)
-        entrée += 1
+        lexème := mémoire(entrée);
+        entrée += 1;
 
         si lexème.lexème.type == TypeLexème.ChaineLittérale {
             si dernier_lexème_chaine_littérale {
-                texte_a := donne_texte_sans_guillemets(dernier_lexème_chaine_littérale.lexème)
-                texte_b := donne_texte_sans_guillemets(lexème.lexème)
+                texte_a := donne_texte_sans_guillemets(dernier_lexème_chaine_littérale.lexème);
+                texte_b := donne_texte_sans_guillemets(lexème.lexème);
 
                 // @FuiteDeMémoire
-                texte := enchaine("\"", texte_a, texte_b, "\"")
+                texte := enchaine("\"", texte_a, texte_b, "\"");
 
-                lexème = crée_lexème_chaine_littérale(texte)
+                lexème = crée_lexème_chaine_littérale(texte);
 
-                sortie = dernier_lexème_chaine_littérale
+                sortie = dernier_lexème_chaine_littérale;
             }
             sinon {
-                dernier_lexème_chaine_littérale = sortie
+                dernier_lexème_chaine_littérale = sortie;
             }
         }
         sinon si lexème.lexème.type != TypeLexème.EspaceBlanche {
-            dernier_lexème_chaine_littérale = nul
+            dernier_lexème_chaine_littérale = nul;
         }
 
-        mémoire(sortie) = lexème
-        sortie += 1
+        mémoire(sortie) = lexème;
+        sortie += 1;
     }
 
-    lexèmes.taille = sortie - lexèmes.pointeur
+    lexèmes.taille = sortie - lexèmes.pointeur;
 }
 
 donne_lexeuse_courante :: fonc (préprocesseur: *PréProcesseur) -> *LexeusePréProcès
 {
-    résultat: *LexeusePréProcès
+    résultat: *LexeusePréProcès;
     si préprocesseur.lexeuses {
-        résultat = *préprocesseur.lexeuses[préprocesseur.lexeuses.taille - 1]
+        résultat = *préprocesseur.lexeuses[préprocesseur.lexeuses.taille - 1];
     }
-    retourne résultat
+    retourne résultat;
 }
 
 donne_fichier_courant :: fonc (préprocesseur: *PréProcesseur) -> *FichierSource
 {
-    lexeuse := donne_lexeuse_courante(préprocesseur)
-    fichier := *préprocesseur.unit.fichiers[lexeuse.fichier]
-    retourne fichier
+    lexeuse := donne_lexeuse_courante(préprocesseur);
+    fichier := *préprocesseur.unit.fichiers[lexeuse.fichier];
+    retourne fichier;
 }
 
 donne_fichier_pour_chemin :: fonc (préprocesseur: *PréProcesseur, chemin: chaine) -> (*FichierSource, z64)
 {
     pour * préprocesseur.unit.fichiers {
         si it.chemin == chemin {
-            retourne it, indice_it
+            retourne it, indice_it;
         }
     }
-    retourne nul, -1
+    retourne nul, -1;
 }
 
 rapporte_erreur :: fonc (préprocesseur: *PréProcesseur, lexème: LexèmePréprocès, format: chaine, args: ...eini)
 {
-    rapporte_diagnostique(préprocesseur.unit, TypeDiagnostique.ERREUR, lexème, format, ...args)
+    rapporte_diagnostique(préprocesseur.unit, TypeDiagnostique.ERREUR, lexème, format, ...args);
 } @Imprimeuse
 
 rapporte_avertissement :: fonc (préprocesseur: *PréProcesseur, lexème: LexèmePréprocès, format: chaine, args: ...eini)
 {
-    rapporte_diagnostique(préprocesseur.unit, TypeDiagnostique.AVERTISSEMENT, lexème, format, ...args)
+    rapporte_diagnostique(préprocesseur.unit, TypeDiagnostique.AVERTISSEMENT, lexème, format, ...args);
 } @Imprimeuse
 
 rapporte_erreur :: fonc (préprocesseur: *PréProcesseur, format: chaine, args: ...eini)
 {
-    rapporte_diagnostique(préprocesseur, "erreur", format, ...args)
-    exit(1)
+    rapporte_diagnostique(préprocesseur, "erreur", format, ...args);
+    exit(1);
 } @Imprimeuse
 
 rapporte_erreur_mécomptage_arguments :: fonc (préprocesseur: *PréProcesseur, définition: *Définition, lexème: LexèmePréprocès, arguments_données: z64)
 {
     pluriel := si arguments_données > 1 {
-        "s"
+        "s";
     }
 
     saufsi définition.est_intrinsèque {
         // À FAIRE : rapporte la note après l'erreur
-        rapporte_diagnostique(préprocesseur.unit, TypeDiagnostique.NOTE, définition.lexème, "la macro \"%\" fut définie ici", définition.nom)
+        rapporte_diagnostique(préprocesseur.unit, TypeDiagnostique.NOTE, définition.lexème, "la macro \"%\" fut définie ici", définition.nom);
     }
 
     si définition.paramètres.taille == 0 {
-        rapporte_erreur(préprocesseur, lexème, "la macro \"%\" reçue % argument%, mais n'en prends aucun", définition.nom, arguments_données, pluriel)
+        rapporte_erreur(préprocesseur, lexème, "la macro \"%\" reçue % argument%, mais n'en prends aucun", définition.nom, arguments_données, pluriel);
     }
     sinon si arguments_données == 0 {
-        rapporte_erreur(préprocesseur, lexème, "la macro \"%\" requiers % argument%, mais n'en a reçu aucun", définition.nom, définition.paramètres.taille, pluriel)
+        rapporte_erreur(préprocesseur, lexème, "la macro \"%\" requiers % argument%, mais n'en a reçu aucun", définition.nom, définition.paramètres.taille, pluriel);
     }
     sinon {
         si arguments_données < définition.paramètres.taille {
-            rapporte_erreur(préprocesseur, lexème, "la macro \"%\" requiers % argument%, mais n'en a reçu que %", définition.nom, définition.paramètres.taille, pluriel, arguments_données)
+            rapporte_erreur(préprocesseur, lexème, "la macro \"%\" requiers % argument%, mais n'en a reçu que %", définition.nom, définition.paramètres.taille, pluriel, arguments_données);
         }
         sinon {
-            rapporte_erreur(préprocesseur, lexème, "la macro \"%\" reçue % argument%, mais n'en prends que %", définition.nom, arguments_données, pluriel, définition.paramètres.taille)
+            rapporte_erreur(préprocesseur, lexème, "la macro \"%\" reçue % argument%, mais n'en prends que %", définition.nom, arguments_données, pluriel, définition.paramètres.taille);
         }
     }
 }
 
 rapporte_diagnostique :: fonc (préprocesseur: *PréProcesseur, type: chaine, format: chaine, args: ...eini)
 {
-    imprime("% : ", type)
+    imprime("% : ", type);
 
-    lexeuse := donne_lexeuse_courante(préprocesseur)
+    lexeuse := donne_lexeuse_courante(préprocesseur);
     si lexeuse {
-        ligne := donne_ligne_pour_erreur(*lexeuse.lexeuse)
-        imprimeln("%", lexeuse.lexeuse.chemin_fichier)
-        imprimeln("%", ligne.texte)
+        ligne := donne_ligne_pour_erreur(*lexeuse.lexeuse);
+        imprimeln("%", lexeuse.lexeuse.chemin_fichier);
+        imprimeln("%", ligne.texte);
     }
 
-    imprimeln(format, ...args)
+    imprimeln(format, ...args);
 } @Imprimeuse
 
 extrait_chemin_inclusion_système :: fonc (préprocesseur: *PréProcesseur, lexeuse: *LexeusePréProcès, tampon: *TamponChemin)
 {
     boucle {
-        lexème := donne_lexème_suivant(lexeuse)
+        lexème := donne_lexème_suivant(lexeuse);
         si est_ponctuation(lexème, ">") {
-            arrête
+            arrête;
         }
 
         saufsi ajoute(tampon, donne_texte(lexème)) {
-            rapporte_erreur(préprocesseur, "Chemin de fichier trop long (%, occupé %)", donne_texte(lexème), tampon.occupés)
+            rapporte_erreur(préprocesseur, "Chemin de fichier trop long (%, occupé %)", donne_texte(lexème), tampon.occupés);
         }
     }
 }
@@ -1115,58 +1115,58 @@ extrait_chemin_inclusion_système :: fonc (préprocesseur: *PréProcesseur, lexe
 extrait_chemin_inclusion_système :: fonc (préprocesseur: *PréProcesseur, parseuse: *SimpleParseuse, tampon: *TamponChemin)
 {
     boucle {
-        lexème := donne_lexème_suivant(parseuse)
-        avance(parseuse)
+        lexème := donne_lexème_suivant(parseuse);
+        avance(parseuse);
         si est_ponctuation(lexème, ">") {
-            arrête
+            arrête;
         }
 
         saufsi ajoute(tampon, donne_texte(lexème)) {
-            rapporte_erreur(préprocesseur, "Chemin de fichier trop long (%, occupé %)", donne_texte(lexème), tampon.occupés)
+            rapporte_erreur(préprocesseur, "Chemin de fichier trop long (%, occupé %)", donne_texte(lexème), tampon.occupés);
         }
     }
 }
 
 InfosDéveloppementMacro :: struct {
-    lexème: LexèmePréprocès
-    macro: *Définition
-    arguments: [..][..]LexèmePréprocès
-    arguments_développés: [..][..]LexèmePréprocès
+    lexème: LexèmePréprocès;
+    macro: *Définition;
+    arguments: [..][..]LexèmePréprocès;
+    arguments_développés: [..][..]LexèmePréprocès;
 }
 
 développe_macro :: fonc (sortie: *[..]LexèmePréprocès, préprocesseur: *PréProcesseur, infos: *InfosDéveloppementMacro)
 {
-    résultat: [..]LexèmePréprocès
-    diffère déloge(résultat)
+    résultat: [..]LexèmePréprocès;
+    diffère déloge(résultat);
 
-    développe_macro_impl(*résultat, préprocesseur, infos, 0)
+    développe_macro_impl(*résultat, préprocesseur, infos, 0);
 
-    tableau_ajoute(sortie, ...résultat)
+    tableau_ajoute(sortie, ...résultat);
 }
 
 développe_macro_impl :: fonc (sortie: *[..]LexèmePréprocès, préprocesseur: *PréProcesseur, infos: *InfosDéveloppementMacro, profondeur: z32)
 {
     si profondeur > 64 {
-        rapporte_erreur(préprocesseur, "Profondeur de développement maximale atteinte")
+        rapporte_erreur(préprocesseur, "Profondeur de développement maximale atteinte");
     }
 
-    indice_invocation := crée_invocation_de_macro(préprocesseur.unit, infos.lexème, infos.macro)
+    indice_invocation := crée_invocation_de_macro(préprocesseur.unit, infos.lexème, infos.macro);
 
     pour infos.arguments {
-        développé := développe_arguments(préprocesseur, it, profondeur + 1)
-        tableau_ajoute(*infos.arguments_développés, développé)
+        développé := développe_arguments(préprocesseur, it, profondeur + 1);
+        tableau_ajoute(*infos.arguments_développés, développé);
     }
 
     si infos.macro.est_intrinsèque {
-        résultat := infos.macro.sur_développement(préprocesseur, infos.arguments)
-        résultat.plage_source.début.invocation = indice_invocation
-        résultat.plage_source.fin.invocation = indice_invocation
+        résultat := infos.macro.sur_développement(préprocesseur, infos.arguments);
+        résultat.plage_source.début.invocation = indice_invocation;
+        résultat.plage_source.fin.invocation = indice_invocation;
 
-        invocation := *préprocesseur.unit.invocations_macros[indice_invocation]
-        tableau_ajoute(*invocation.lexèmes_résultants, résultat)
+        invocation := *préprocesseur.unit.invocations_macros[indice_invocation];
+        tableau_ajoute(*invocation.lexèmes_résultants, résultat);
 
-        tableau_ajoute(sortie, résultat)
-        retourne
+        tableau_ajoute(sortie, résultat);
+        retourne;
     }
 
     // imprimeln("[%]", #nom_de_cette_fonction)
@@ -1179,19 +1179,19 @@ développe_macro_impl :: fonc (sortie: *[..]LexèmePréprocès, préprocesseur: 
     //     imprimeln("")
     // }
 
-    liste_de_remplacement: [..]LexèmePréprocès
-    diffère déloge(liste_de_remplacement)
+    liste_de_remplacement: [..]LexèmePréprocès;
+    diffère déloge(liste_de_remplacement);
 
-    possède_collage := substitue_arguments_dans_liste_de_remplacement(*liste_de_remplacement, infos)
+    possède_collage := substitue_arguments_dans_liste_de_remplacement(*liste_de_remplacement, infos);
     si possède_collage {
-        liste_finale: [..]LexèmePréprocès
-        applique_opérateurs_de_collage(préprocesseur, *liste_finale, infos, liste_de_remplacement)
-        déloge(liste_de_remplacement)
-        liste_de_remplacement = liste_finale
+        liste_finale: [..]LexèmePréprocès;
+        applique_opérateurs_de_collage(préprocesseur, *liste_finale, infos, liste_de_remplacement);
+        déloge(liste_de_remplacement);
+        liste_de_remplacement = liste_finale;
     }
 
-    tableau_ajoute(*préprocesseur.macros_en_développement, infos.macro)
-    diffère préprocesseur.macros_en_développement.taille -= 1
+    tableau_ajoute(*préprocesseur.macros_en_développement, infos.macro);
+    diffère préprocesseur.macros_en_développement.taille -= 1;
 
     // imprimeln("[%] %", profondeur, #nom_de_cette_fonction)
     // imprimeln("liste de remplacement pour : %", infos.macro.nom)
@@ -1205,323 +1205,323 @@ développe_macro_impl :: fonc (sortie: *[..]LexèmePréprocès, préprocesseur: 
     // }
     // imprime("\n")
 
-    invocation := *préprocesseur.unit.invocations_macros[indice_invocation]
+    invocation := *préprocesseur.unit.invocations_macros[indice_invocation];
 
     pour liste_de_remplacement {
         si it.placemarker {
-            continue
+            continue;
         }
 
-        définition := donne_définition(préprocesseur, donne_texte(it))
+        définition := donne_définition(préprocesseur, donne_texte(it));
         si définition {
             pour macro dans préprocesseur.macros_en_développement {
                 si macro == définition {
-                    it.ne_développe_pas = vrai
+                    it.ne_développe_pas = vrai;
                 }
             }
         }
 
         si it.plage_source.début.invocation == -1 {
-            it.plage_source.début.invocation = indice_invocation
-            it.plage_source.fin.invocation = indice_invocation
+            it.plage_source.début.invocation = indice_invocation;
+            it.plage_source.fin.invocation = indice_invocation;
         }
 
-        tableau_ajoute(*invocation.lexèmes_résultants, it)
+        tableau_ajoute(*invocation.lexèmes_résultants, it);
 
-        tableau_ajoute(sortie, it)
+        tableau_ajoute(sortie, it);
     }
 }
 
 substitue_arguments_dans_liste_de_remplacement :: fonc (sortie: *[..]LexèmePréprocès, infos: *InfosDéveloppementMacro) -> bool
 {
-    parseuse: SimpleParseuse
-    parseuse.lexèmes = infos.macro.lexèmes
+    parseuse: SimpleParseuse;
+    parseuse.lexèmes = infos.macro.lexèmes;
 
-    possède_collage := faux
+    possède_collage := faux;
 
     tantque !fini(*parseuse) {
-        lexème := donne_lexème_suivant(*parseuse)
-        avance(*parseuse)
+        lexème := donne_lexème_suivant(*parseuse);
+        avance(*parseuse);
 
-        texte := donne_texte(lexème)
-        indice_param := donne_indice_paramètre(infos.macro, texte)
+        texte := donne_texte(lexème);
+        indice_param := donne_indice_paramètre(infos.macro, texte);
         si indice_param == -1 {
-            possède_collage ||= (est_ponctuation(lexème, "#") || est_ponctuation(lexème, "##"))
-            tableau_ajoute(sortie, lexème)
-            continue
+            possède_collage ||= (est_ponctuation(lexème, "#") || est_ponctuation(lexème, "##"));
+            tableau_ajoute(sortie, lexème);
+            continue;
         }
 
-        _, lexème_précédent := donne_dernier_lexème_hors_espace_blanche(mémoire(sortie))
+        _, lexème_précédent := donne_dernier_lexème_hors_espace_blanche(mémoire(sortie));
         si est_ponctuation(lexème_précédent, "#") {
-            possède_collage = vrai
-            tableau_ajoute(sortie, lexème)
-            continue
+            possède_collage = vrai;
+            tableau_ajoute(sortie, lexème);
+            continue;
         }
 
         si est_ponctuation(lexème_précédent, "##") {
-            possède_collage = vrai
+            possède_collage = vrai;
             si indice_param < infos.arguments.taille {
-                arguments := infos.arguments[indice_param]
+                arguments := infos.arguments[indice_param];
                 si arguments.taille == 0 {
-                    tableau_ajoute(sortie, LexèmePréprocès(placemarker = vrai))
+                    tableau_ajoute(sortie, LexèmePréprocès(placemarker = vrai));
                 }
                 sinon {
                     pour arguments {
-                        it.vient_d_un_argument = vrai
-                        tableau_ajoute(sortie, it)
+                        it.vient_d_un_argument = vrai;
+                        tableau_ajoute(sortie, it);
                     }
                 }
             }
             sinon {
-                tableau_ajoute(sortie, LexèmePréprocès(placemarker = vrai))
+                tableau_ajoute(sortie, LexèmePréprocès(placemarker = vrai));
             }
-            continue
+            continue;
         }
 
-        parseuse_locale := parseuse
+        parseuse_locale := parseuse;
         tantque !fini(*parseuse_locale) {
-            lexème_suivant := donne_lexème_suivant(*parseuse_locale)
+            lexème_suivant := donne_lexème_suivant(*parseuse_locale);
             saufsi est_espace_blanche(lexème_suivant) {
-                arrête
+                arrête;
             }
-            avance(*parseuse_locale)
+            avance(*parseuse_locale);
         }
 
         saufsi fini(*parseuse_locale) {
-            lexème_suivant := donne_lexème_suivant(*parseuse_locale)
+            lexème_suivant := donne_lexème_suivant(*parseuse_locale);
             si est_ponctuation(lexème_suivant, "##") {
-                possède_collage = vrai
+                possède_collage = vrai;
                 si indice_param < infos.arguments.taille {
-                    arguments := infos.arguments[indice_param]
+                    arguments := infos.arguments[indice_param];
                     si arguments.taille == 0 {
-                        tableau_ajoute(sortie, LexèmePréprocès(placemarker = vrai))
+                        tableau_ajoute(sortie, LexèmePréprocès(placemarker = vrai));
                     }
                     sinon {
                         pour arguments {
-                            it.vient_d_un_argument = vrai
-                            tableau_ajoute(sortie, it)
+                            it.vient_d_un_argument = vrai;
+                            tableau_ajoute(sortie, it);
                         }
                     }
                 }
                 sinon {
-                    tableau_ajoute(sortie, LexèmePréprocès(placemarker = vrai))
+                    tableau_ajoute(sortie, LexèmePréprocès(placemarker = vrai));
                 }
-                continue
+                continue;
             }
         }
 
         si indice_param < infos.arguments.taille {
-            arguments := infos.arguments_développés[indice_param]
+            arguments := infos.arguments_développés[indice_param];
             pour arguments {
-                it.vient_d_un_argument = vrai
-                tableau_ajoute(sortie, it)
+                it.vient_d_un_argument = vrai;
+                tableau_ajoute(sortie, it);
             }
-            continue
+            continue;
         }
     }
 
-    retourne possède_collage
+    retourne possède_collage;
 }
 
 applique_opérateurs_de_collage :: fonc (préprocesseur: *PréProcesseur, sortie: *[..]LexèmePréprocès, infos: *InfosDéveloppementMacro, lexèmes: []LexèmePréprocès)
 {
-    parseuse: SimpleParseuse
-    parseuse.lexèmes = lexèmes
+    parseuse: SimpleParseuse;
+    parseuse.lexèmes = lexèmes;
 
     tantque !fini(*parseuse) {
-        lexème := donne_lexème_suivant(*parseuse)
-        avance(*parseuse)
+        lexème := donne_lexème_suivant(*parseuse);
+        avance(*parseuse);
 
         si est_ponctuation(lexème, "#") {
-            parseuse_locale := parseuse
+            parseuse_locale := parseuse;
             tantque !fini(*parseuse_locale) {
-                lexème_suivant := donne_lexème_suivant(*parseuse_locale)
+                lexème_suivant := donne_lexème_suivant(*parseuse_locale);
                 saufsi est_espace_blanche(lexème_suivant) {
-                    arrête
+                    arrête;
                 }
-                avance(*parseuse_locale)
+                avance(*parseuse_locale);
             }
 
-            lexème_suivant := donne_lexème_suivant(*parseuse_locale)
-            indice_param := donne_indice_paramètre(infos.macro, donne_texte(lexème_suivant))
+            lexème_suivant := donne_lexème_suivant(*parseuse_locale);
+            indice_param := donne_indice_paramètre(infos.macro, donne_texte(lexème_suivant));
             si indice_param == -1 {
-                tableau_ajoute(sortie, lexème)
-                continue
+                tableau_ajoute(sortie, lexème);
+                continue;
             }
 
-            avance(*parseuse_locale)
-            parseuse = parseuse_locale
+            avance(*parseuse_locale);
+            parseuse = parseuse_locale;
 
-            textes: [..]chaine
-            diffère déloge(textes)
+            textes: [..]chaine;
+            diffère déloge(textes);
 
-            tableau_ajoute(*textes, "\"")
+            tableau_ajoute(*textes, "\"");
 
             si indice_param < infos.arguments.taille {
                 pour infos.arguments[indice_param] {
-                    tableau_ajoute(*textes, donne_texte(it))
+                    tableau_ajoute(*textes, donne_texte(it));
                 }
             }
 
-            tableau_ajoute(*textes, "\"")
+            tableau_ajoute(*textes, "\"");
 
             // @FuiteDeMémoire
-            nouveau_texte := enchaine(...textes)
-            lexème = crée_lexème_chaine_littérale(nouveau_texte)
-            tableau_ajoute(sortie, lexème)
-            continue
+            nouveau_texte := enchaine(...textes);
+            lexème = crée_lexème_chaine_littérale(nouveau_texte);
+            tableau_ajoute(sortie, lexème);
+            continue;
         }
 
         si est_ponctuation(lexème, "##") && !lexème.vient_d_un_argument {
             tantque sortie.taille > 0 {
                 si est_espace_blanche(sortie.pointeur[sortie.taille - 1]) {
-                    sortie.taille -= 1
+                    sortie.taille -= 1;
                 }
                 sinon {
-                    arrête
+                    arrête;
                 }
             }
 
             si sortie.taille > 0 {
-                lexème_précédent := sortie.pointeur[sortie.taille - 1]
-                sortie.taille -= 1
+                lexème_précédent := sortie.pointeur[sortie.taille - 1];
+                sortie.taille -= 1;
 
                 tantque !fini(*parseuse) {
-                    lexème_suivant := donne_lexème_suivant(*parseuse)
+                    lexème_suivant := donne_lexème_suivant(*parseuse);
 
                     si est_fin_de_fichier(lexème_suivant) {
-                        rapporte_erreur(préprocesseur, parseuse.lexèmes[parseuse.lexèmes.taille - 1], "fin de fichier inattendu")
-                        arrête
+                        rapporte_erreur(préprocesseur, parseuse.lexèmes[parseuse.lexèmes.taille - 1], "fin de fichier inattendu");
+                        arrête;
                     }
 
                     saufsi est_espace_blanche(lexème_suivant) {
-                        arrête
+                        arrête;
                     }
 
-                    avance(*parseuse)
+                    avance(*parseuse);
                 }
 
-                lexème_suivant := donne_lexème_suivant(*parseuse)
-                avance(*parseuse)
+                lexème_suivant := donne_lexème_suivant(*parseuse);
+                avance(*parseuse);
 
                 si lexème_précédent.placemarker && lexème_suivant.placemarker {
-                    tableau_ajoute(sortie, lexème_suivant)
-                    continue
+                    tableau_ajoute(sortie, lexème_suivant);
+                    continue;
                 }
 
                 si lexème_précédent.placemarker {
-                    tableau_ajoute(sortie, lexème_suivant)
-                    continue
+                    tableau_ajoute(sortie, lexème_suivant);
+                    continue;
                 }
 
                 si lexème_suivant.placemarker {
-                    tableau_ajoute(sortie, lexème_précédent)
-                    continue
+                    tableau_ajoute(sortie, lexème_précédent);
+                    continue;
                 }
 
                 // @FuiteDeMémoire
-                nouveau_texte := enchaine(donne_texte(lexème_précédent), donne_texte(lexème_suivant))
+                nouveau_texte := enchaine(donne_texte(lexème_précédent), donne_texte(lexème_suivant));
 
-                lexeuse: SimpleLexeuse
-                initialise_lexeuse_c(*lexeuse)
-                initialise_lexeuse_pour_texte(*lexeuse, nouveau_texte)
+                lexeuse: SimpleLexeuse;
+                initialise_lexeuse_c(*lexeuse);
+                initialise_lexeuse_pour_texte(*lexeuse, nouveau_texte);
                 // À FAIRE : position code
-                lexème.lexème = donne_lexème_suivant(*lexeuse)
-                tableau_ajoute(sortie, lexème)
+                lexème.lexème = donne_lexème_suivant(*lexeuse);
+                tableau_ajoute(sortie, lexème);
             }
             sinon {
                 // À FAIRE : erreur ?
             }
 
-            continue
+            continue;
         }
 
-        tableau_ajoute(sortie, lexème)
+        tableau_ajoute(sortie, lexème);
     }
 }
 
 donne_dernier_lexème_hors_espace_blanche :: fonc (lexèmes: []LexèmePréprocès) -> (bool, LexèmePréprocès)
 {
-    possède_lexème := faux
-    résultat: LexèmePréprocès
+    possède_lexème := faux;
+    résultat: LexèmePréprocès;
 
     pour > lexèmes {
         saufsi est_espace_blanche(it) {
-            possède_lexème = vrai
-            résultat = it
-            arrête
+            possède_lexème = vrai;
+            résultat = it;
+            arrête;
         }
     }
 
-    retourne possède_lexème, résultat
+    retourne possède_lexème, résultat;
 }
 
 développe_arguments :: fonc (préprocesseur: *PréProcesseur, arguments: []LexèmePréprocès, profondeur: z32) -> [..]LexèmePréprocès
 {
-    parseuse: SimpleParseuse
-    parseuse.lexèmes = arguments
+    parseuse: SimpleParseuse;
+    parseuse.lexèmes = arguments;
 
-    résultat: [..]LexèmePréprocès
+    résultat: [..]LexèmePréprocès;
 
     tantque !fini(*parseuse) {
-        lexème := donne_lexème_suivant(*parseuse)
-        avance(*parseuse)
+        lexème := donne_lexème_suivant(*parseuse);
+        avance(*parseuse);
 
-        définition := donne_définition(préprocesseur, lexème)
+        définition := donne_définition(préprocesseur, lexème);
         si définition && !lexème.ne_développe_pas {
             si macro_ne_définis_que_son_nom(définition) {
-                tableau_ajoute(*résultat, lexème)
-                continue
+                tableau_ajoute(*résultat, lexème);
+                continue;
             }
 
-            arguments_définition: [..][..]LexèmePréprocès
-            diffère déloge_tableau_et_ses_éléments(arguments_définition)
+            arguments_définition: [..][..]LexèmePréprocès;
+            diffère déloge_tableau_et_ses_éléments(arguments_définition);
 
-            sauvegarde_position(*parseuse)
-            saute_espaces_blanches_sauf_nouvelle_ligne(*parseuse)
+            sauvegarde_position(*parseuse);
+            saute_espaces_blanches_sauf_nouvelle_ligne(*parseuse);
 
-            lexème_appel := lexème
+            lexème_appel := lexème;
 
             si définition.est_semble_fonction {
                 si fini(*parseuse) || !est_ponctuation(donne_lexème_suivant(*parseuse), "(") {
-                    restaure_position(*parseuse)
-                    tableau_ajoute(*résultat, lexème)
-                    continue
+                    restaure_position(*parseuse);
+                    tableau_ajoute(*résultat, lexème);
+                    continue;
                 }
 
-                lexème = donne_lexème_suivant(*parseuse)
+                lexème = donne_lexème_suivant(*parseuse);
                 tantque est_espace_blanche(lexème) {
-                    avance(*parseuse)
-                    lexème = donne_lexème_suivant(*parseuse)
+                    avance(*parseuse);
+                    lexème = donne_lexème_suivant(*parseuse);
                 }
-                lexème_appel = lexème
+                lexème_appel = lexème;
                 saufsi est_ponctuation(lexème, "(") {
-                    rapporte_erreur(préprocesseur, lexème, "arguments manquant dans le développement de '%'", définition.nom)
+                    rapporte_erreur(préprocesseur, lexème, "arguments manquant dans le développement de '%'", définition.nom);
                 }
-                avance(*parseuse)
-                arguments_définition = parse_tranche_arguments(*parseuse, préprocesseur, définition, lexème_appel)
+                avance(*parseuse);
+                arguments_définition = parse_tranche_arguments(*parseuse, préprocesseur, définition, lexème_appel);
             }
             sinon {
-                restaure_position(*parseuse)
+                restaure_position(*parseuse);
             }
 
-            infos_développement: InfosDéveloppementMacro
-            infos_développement.lexème = lexème_appel
-            infos_développement.macro = définition
-            infos_développement.arguments = arguments_définition
-            développe_macro_impl(*résultat, préprocesseur, *infos_développement, profondeur + 1)
+            infos_développement: InfosDéveloppementMacro;
+            infos_développement.lexème = lexème_appel;
+            infos_développement.macro = définition;
+            infos_développement.arguments = arguments_définition;
+            développe_macro_impl(*résultat, préprocesseur, *infos_développement, profondeur + 1);
         }
         sinon {
-            tableau_ajoute(*résultat, lexème)
+            tableau_ajoute(*résultat, lexème);
         }
     }
 
-    retourne résultat
+    retourne résultat;
 }
 
 parse_définition :: fonc (préprocesseur: *PréProcesseur, lexeuse: *LexeusePréProcès, lexème_source: LexèmePréprocès)
 {
-    texte_définition := donne_texte(lexème_source)
+    texte_définition := donne_texte(lexème_source);
 
     // ligne := donne_ligne_pour_erreur(lexeuse)
     // imprimeln("--------------------------------")
@@ -1529,23 +1529,23 @@ parse_définition :: fonc (préprocesseur: *PréProcesseur, lexeuse: *LexeusePr�
     // imprimeln("define '%'", texte_définition)
 
     si ensemble_possède(préprocesseur.macros_indéfinissables, texte_définition) {
-        rapporte_erreur(préprocesseur, "Impossible de redéfinir le macros prédéfini '%'", texte_définition)
-        retourne
+        rapporte_erreur(préprocesseur, "Impossible de redéfinir le macros prédéfini '%'", texte_définition);
+        retourne;
     }
 
-    définition := donne_définition(préprocesseur, texte_définition)
+    définition := donne_définition(préprocesseur, texte_définition);
     saufsi définition {
-        définition = crée_définition(préprocesseur, texte_définition)
+        définition = crée_définition(préprocesseur, texte_définition);
     }
     sinon {
-        déloge(définition.paramètres)
-        déloge(définition.lexèmes)
+        déloge(définition.paramètres);
+        déloge(définition.lexèmes);
     }
 
-    définition.lexème = lexème_source
+    définition.lexème = lexème_source;
 
     diffère si préprocesseur.messagère {
-        envoie_message_macro_défini(préprocesseur.messagère, préprocesseur.unit, définition)
+        envoie_message_macro_défini(préprocesseur.messagère, préprocesseur.unit, définition);
     }
 
     // diffère {
@@ -1567,159 +1567,159 @@ parse_définition :: fonc (préprocesseur: *PréProcesseur, lexeuse: *LexeusePr�
     //     }
     // }
 
-    lexème_suivant := épie_lexème_suivant(*lexeuse.lexeuse)
+    lexème_suivant := épie_lexème_suivant(*lexeuse.lexeuse);
 
-    saute_espaces_blanches_sauf_nouvelle_ligne(lexeuse)
+    saute_espaces_blanches_sauf_nouvelle_ligne(lexeuse);
 
-    prélexeuse := mémoire(lexeuse)
-    init_de([..]Lexème)(*prélexeuse.lexeuse.lexèmes_extras)
-    drapeaux := préparse_définition(préprocesseur, *prélexeuse)
+    prélexeuse := mémoire(lexeuse);
+    init_de([..]Lexème)(*prélexeuse.lexeuse.lexèmes_extras);
+    drapeaux := préparse_définition(préprocesseur, *prélexeuse);
 
-    lexème := donne_lexème_suivant(lexeuse)
+    lexème := donne_lexème_suivant(lexeuse);
     si est_lexème_nouvelle_ligne(lexème) {
-        retourne
+        retourne;
     }
 
     si lexème_suivant.type == TypeLexème.EspaceBlanche {
         si drapeaux.POSSÈDE_ARGUMENTS == vrai && drapeaux.POSSÈDE_CORPS == faux {
-            drapeaux.POSSÈDE_ARGUMENTS = faux
-            drapeaux.POSSÈDE_CORPS = vrai
+            drapeaux.POSSÈDE_ARGUMENTS = faux;
+            drapeaux.POSSÈDE_CORPS = vrai;
         }
     }
 
     // imprimeln("drapeaux %", drapeaux)
 
     si drapeaux.POSSÈDE_ARGUMENTS {
-        définition.est_semble_fonction = vrai
+        définition.est_semble_fonction = vrai;
     }
 
-    eu_non_espace := faux
+    eu_non_espace := faux;
     si est_ponctuation(lexème, "(") && drapeaux.POSSÈDE_ARGUMENTS {
         boucle {
-            lexème = donne_lexème_suivant(lexeuse)
+            lexème = donne_lexème_suivant(lexeuse);
             si est_ponctuation(lexème, ")") {
-                arrête
+                arrête;
             }
 
             si !est_ponctuation(lexème, ",") && !est_espace_blanche(lexème) {
-                tableau_ajoute(*définition.paramètres, lexème)
+                tableau_ajoute(*définition.paramètres, lexème);
             }
         }
     }
     sinon {
-        eu_non_espace = !est_espace_blanche(lexème)
+        eu_non_espace = !est_espace_blanche(lexème);
         si eu_non_espace {
-            tableau_ajoute(*définition.lexèmes, lexème)
+            tableau_ajoute(*définition.lexèmes, lexème);
         }
     }
 
     boucle {
-        lexème = donne_lexème_suivant(lexeuse)
+        lexème = donne_lexème_suivant(lexeuse);
         si est_fin_de_fichier(lexème) {
-            arrête
+            arrête;
         }
         si est_lexème_nouvelle_ligne(lexème) {
-            retourne
+            retourne;
         }
 
         si eu_non_espace == faux && est_espace_blanche(lexème) {
-            continue
+            continue;
         }
 
-        eu_non_espace = vrai
-        tableau_ajoute(*définition.lexèmes, lexème)
+        eu_non_espace = vrai;
+        tableau_ajoute(*définition.lexèmes, lexème);
     }
 }
 
 DrapeauxDéfinition :: énum_drapeau {
-    POSSÈDE_ARGUMENTS
-    POSSÈDE_CORPS
+    POSSÈDE_ARGUMENTS;
+    POSSÈDE_CORPS;
 }
 
 préparse_définition :: fonc (préprocesseur: *PréProcesseur, lexeuse: *LexeusePréProcès) -> DrapeauxDéfinition
 {
-    résultat: DrapeauxDéfinition
+    résultat: DrapeauxDéfinition;
 
-    lexème := donne_lexème_suivant(lexeuse)
+    lexème := donne_lexème_suivant(lexeuse);
     saufsi est_lexème_nouvelle_ligne(lexème) {
         si est_ponctuation(lexème, "(") {
-            résultat.POSSÈDE_ARGUMENTS = vrai
+            résultat.POSSÈDE_ARGUMENTS = vrai;
 
             // À FAIRE : meilleure validation que nous avons des arguments
 
-            niveau_parenthèse := 0
+            niveau_parenthèse := 0;
             boucle {
-                lexème = donne_lexème_suivant(lexeuse)
+                lexème = donne_lexème_suivant(lexeuse);
                 si est_fin_de_fichier(lexème) {
-                    rapporte_erreur(préprocesseur, "Fin de fichier inattendu dans %", #nom_de_cette_fonction)
+                    rapporte_erreur(préprocesseur, "Fin de fichier inattendu dans %", #nom_de_cette_fonction);
                 }
                 si est_ponctuation(lexème, "(") {
-                    résultat.POSSÈDE_ARGUMENTS = faux
-                    niveau_parenthèse += 1
+                    résultat.POSSÈDE_ARGUMENTS = faux;
+                    niveau_parenthèse += 1;
                 }
                 sinon si est_ponctuation(lexème, ")") {
                     si niveau_parenthèse == 0 {
-                        arrête
+                        arrête;
                     }
-                    niveau_parenthèse -= 1
+                    niveau_parenthèse -= 1;
                 }
                 sinon {
                     si !est_espace_blanche(lexème) && !est_symbole(lexème) && !est_mot_clé(lexème) && !est_ponctuation(lexème, "...") && !est_ponctuation(lexème, ",") {
-                        résultat.POSSÈDE_ARGUMENTS = faux
+                        résultat.POSSÈDE_ARGUMENTS = faux;
                     }
                 }
             }
 
-            saute_espaces_blanches_sauf_nouvelle_ligne(lexeuse)
+            saute_espaces_blanches_sauf_nouvelle_ligne(lexeuse);
 
-            lexème = donne_lexème_suivant(lexeuse)
+            lexème = donne_lexème_suivant(lexeuse);
             saufsi est_lexème_nouvelle_ligne(lexème) {
-                résultat.POSSÈDE_CORPS = vrai
+                résultat.POSSÈDE_CORPS = vrai;
             }
         }
         sinon {
-            résultat.POSSÈDE_CORPS = vrai
+            résultat.POSSÈDE_CORPS = vrai;
         }
     }
 
-    retourne résultat
+    retourne résultat;
 }
 
 ignore_lexèmes_jusque_fin_branche :: fonc (préprocesseur: *PréProcesseur, lexeuse: *LexeusePréProcès)
 {
-    niveau_branchage_orig := préprocesseur.niveau_branchage
-    niveau_branchage := niveau_branchage_orig
+    niveau_branchage_orig := préprocesseur.niveau_branchage;
+    niveau_branchage := niveau_branchage_orig;
 
     // imprimeln("--------- niveau de branchage : %", niveau_branchage)
 
     boucle {
-        lexème := donne_lexème_suivant(lexeuse)
+        lexème := donne_lexème_suivant(lexeuse);
         si est_fin_de_fichier(lexème) {
-            rapporte_erreur(préprocesseur, "Fin de fichier inattendu dans %", #nom_de_cette_fonction)
-            exit(1)
+            rapporte_erreur(préprocesseur, "Fin de fichier inattendu dans %", #nom_de_cette_fonction);
+            exit(1);
         }
 
         // imprimeln("ignore : '%'", donne_texte(lexème))
         // ligne := donne_ligne_pour_erreur(lexeuse)
 
         si est_ponctuation(lexème, "#") {
-            lexème_directive := lexème
-            lexème = donne_lexème_suivant_sauf_espace_blanche(lexeuse)
-            texte := donne_texte(lexème)
+            lexème_directive := lexème;
+            lexème = donne_lexème_suivant_sauf_espace_blanche(lexeuse);
+            texte := donne_texte(lexème);
 
             si texte == "if" || texte == "ifdef" || texte == "ifndef" {
-                niveau_branchage += 1
+                niveau_branchage += 1;
                 // imprimeln("entre dans branche")
                 // imprimeln("%", ligne.texte)
             }
             sinon si texte == "else" || texte == "elif" || texte == "endif" {
                 si niveau_branchage == niveau_branchage_orig {
                     // imprimeln("reprende_depuis : %", donne_texte(lexème_directive))
-                    reprends_depuis_lexème(lexeuse, lexème_directive)
-                    arrête
+                    reprends_depuis_lexème(lexeuse, lexème_directive);
+                    arrête;
                 }
                 si texte == "endif" {
-                    niveau_branchage -= 1
+                    niveau_branchage -= 1;
                     // imprimeln("sors de branche")
                     // imprimeln("%", ligne.texte)
                 }
@@ -1730,111 +1730,111 @@ ignore_lexèmes_jusque_fin_branche :: fonc (préprocesseur: *PréProcesseur, lex
 
 empile_fichier :: fonc (préprocesseur: *PréProcesseur, chemin: chaine, trouvé_dans_dossier: chaine, pour_include: bool)
 {
-    chemin_normal := chemin_normalisé(CheminFichier(chemin))
-    diffère détruit_chemin(chemin_normal)
+    chemin_normal := chemin_normalisé(CheminFichier(chemin));
+    diffère détruit_chemin(chemin_normal);
 
-    chemin = chemin_normal.chn
+    chemin = chemin_normal.chn;
 
-    fichier, indice_fichier := donne_fichier_pour_chemin(préprocesseur, chemin)
+    fichier, indice_fichier := donne_fichier_pour_chemin(préprocesseur, chemin);
     saufsi fichier {
-        succès, contenu := contenu_fichier_texte(chemin)
+        succès, contenu := contenu_fichier_texte(chemin);
         saufsi succès {
-            exit(1)
+            exit(1);
         }
 
-        indice_fichier = préprocesseur.unit.fichiers.taille
-        fichier = tableau_ajoute_élément(*préprocesseur.unit.fichiers)
-        fichier.chemin = copie_chaine(chemin)
-        fichier.contenu_cru = contenu
-        fichier.tampon_contenu_prétaité = prétraite_fichier(fichier.contenu_cru)
-        fichier.contenu_prétaité = chaine_depuis_tranche_octets(fichier.tampon_contenu_prétaité)
-        fichier.trouvé_dans_dossier = trouvé_dans_dossier
+        indice_fichier = préprocesseur.unit.fichiers.taille;
+        fichier = tableau_ajoute_élément(*préprocesseur.unit.fichiers);
+        fichier.chemin = copie_chaine(chemin);
+        fichier.contenu_cru = contenu;
+        fichier.tampon_contenu_prétaité = prétraite_fichier(fichier.contenu_cru);
+        fichier.contenu_prétaité = chaine_depuis_tranche_octets(fichier.tampon_contenu_prétaité);
+        fichier.trouvé_dans_dossier = trouvé_dans_dossier;
     }
 
     si fichier.est_marqué_pragma_once {
-        retourne
+        retourne;
     }
 
     si fichier.garde_inclusion {
-        définition := donne_définition(préprocesseur, fichier.garde_inclusion)
+        définition := donne_définition(préprocesseur, fichier.garde_inclusion);
         si définition {
-            retourne
+            retourne;
         }
     }
 
-    fichier.nombre_d_ouvertures += 1
+    fichier.nombre_d_ouvertures += 1;
 
     si préprocesseur.messagère {
-        envoie_message_fichier_ouvert(préprocesseur.messagère, préprocesseur.unit, fichier.chemin, fichier.nombre_d_ouvertures, pour_include)
+        envoie_message_fichier_ouvert(préprocesseur.messagère, préprocesseur.unit, fichier.chemin, fichier.nombre_d_ouvertures, pour_include);
     }
 
-    lexeuse := tableau_ajoute_élément(*préprocesseur.lexeuses)
-    lexeuse.fichier = indice_fichier
-    lexeuse.lexeuse.chemin_fichier = fichier.chemin
-    initialise_lexeuse_c(*lexeuse.lexeuse)
-    lexeuse.lexeuse.options.INCLUS_TOUT = vrai
+    lexeuse := tableau_ajoute_élément(*préprocesseur.lexeuses);
+    lexeuse.fichier = indice_fichier;
+    lexeuse.lexeuse.chemin_fichier = fichier.chemin;
+    initialise_lexeuse_c(*lexeuse.lexeuse);
+    lexeuse.lexeuse.options.INCLUS_TOUT = vrai;
 
-    initialise_lexeuse_pour_texte(*lexeuse.lexeuse, fichier.contenu_prétaité)
+    initialise_lexeuse_pour_texte(*lexeuse.lexeuse, fichier.contenu_prétaité);
 }
 
 est_chemin_incluable :: fonc (préprocesseur: *PréProcesseur, chemin_fichier: chaine, include_next: bool, est_système: bool) -> bool
 {
-    chemin_fichier_test: TamponChemin
-    succès, _ := détermine_chemin_pour_inclusion(préprocesseur, chemin_fichier, include_next, est_système, *chemin_fichier_test)
-    retourne succès
+    chemin_fichier_test: TamponChemin;
+    succès, _ := détermine_chemin_pour_inclusion(préprocesseur, chemin_fichier, include_next, est_système, *chemin_fichier_test);
+    retourne succès;
 }
 
 empile_fichier_pour_include :: fonc (préprocesseur: *PréProcesseur, chemin_fichier: chaine, include_next: bool, est_système: bool)
 {
-    chemin_fichier_test: TamponChemin
-    succès, dossier := détermine_chemin_pour_inclusion(préprocesseur, chemin_fichier, include_next, est_système, *chemin_fichier_test)
+    chemin_fichier_test: TamponChemin;
+    succès, dossier := détermine_chemin_pour_inclusion(préprocesseur, chemin_fichier, include_next, est_système, *chemin_fichier_test);
 
     saufsi succès {
-        rapporte_erreur(préprocesseur, "Impossible de trouver le fichier pour '%'", chemin_fichier)
-        retourne
+        rapporte_erreur(préprocesseur, "Impossible de trouver le fichier pour '%'", chemin_fichier);
+        retourne;
     }
 
-    chemin_fichier_abs := donne_chaine_statique(*chemin_fichier_test)
-    empile_fichier(préprocesseur, chemin_fichier_abs, dossier, vrai)
+    chemin_fichier_abs := donne_chaine_statique(*chemin_fichier_test);
+    empile_fichier(préprocesseur, chemin_fichier_abs, dossier, vrai);
 }
 
 détermine_chemin_pour_inclusion :: fonc (préprocesseur: *PréProcesseur, chemin_fichier: chaine, include_next: bool, est_système: bool, chemin_fichier_test: *TamponChemin) -> (bool, chaine)
 {
     si est_absolu(CheminFichier(chemin_fichier)) {
         saufsi ajoute(chemin_fichier_test, chemin_fichier) {
-            rapporte_erreur(préprocesseur, "Chemin trop grand : '%'", chemin_fichier)
-            retourne faux, ""
+            rapporte_erreur(préprocesseur, "Chemin trop grand : '%'", chemin_fichier);
+            retourne faux, "";
         }
         // À FAIRE : dossier d'inclusion
-        retourne vrai, ""
+        retourne vrai, "";
     }
 
     si est_système {
         // Regarde dans les inclusions système.
-        chemins: []chaine = préprocesseur.chemins_inclusions_système
-        retourne détermine_chemin_absolu(préprocesseur, chemins, chemin_fichier, include_next, chemin_fichier_test)
+        chemins: []chaine = préprocesseur.chemins_inclusions_système;
+        retourne détermine_chemin_absolu(préprocesseur, chemins, chemin_fichier, include_next, chemin_fichier_test);
     }
 
     // Regarde dans le dossier courant.
-    fichier_courant := donne_fichier_courant(préprocesseur)
+    fichier_courant := donne_fichier_courant(préprocesseur);
     si fichier_courant {
-        réinitialise(chemin_fichier_test)
+        réinitialise(chemin_fichier_test);
 
-        dossier_courant := chemin_parent(CheminFichier(fichier_courant.chemin))
+        dossier_courant := chemin_parent(CheminFichier(fichier_courant.chemin));
 
         saufsi ajoute(chemin_fichier_test, dossier_courant.chn) {
-            rapporte_erreur(préprocesseur, "Chemin trop long : %", dossier_courant)
+            rapporte_erreur(préprocesseur, "Chemin trop long : %", dossier_courant);
         }
         saufsi ajoute(chemin_fichier_test, séparateur_chemin()) {
-            rapporte_erreur(préprocesseur, "Chemin trop long : %", dossier_courant)
+            rapporte_erreur(préprocesseur, "Chemin trop long : %", dossier_courant);
         }
         saufsi ajoute(chemin_fichier_test, chemin_fichier) {
-            rapporte_erreur(préprocesseur, "Chemin trop long : %", chemin_fichier)
+            rapporte_erreur(préprocesseur, "Chemin trop long : %", chemin_fichier);
         }
 
-        chemin_fichier_abs := donne_chaine_statique(chemin_fichier_test)
+        chemin_fichier_abs := donne_chaine_statique(chemin_fichier_test);
         si est_un_fichier_régulier(CheminFichier(chemin_fichier_abs)) {
-            retourne vrai, dossier_courant.chn
+            retourne vrai, dossier_courant.chn;
         }
     }
 
@@ -1844,97 +1844,97 @@ détermine_chemin_pour_inclusion :: fonc (préprocesseur: *PréProcesseur, chemi
 
     // À CONSIDÉRER : le long des chemins
 
-    succès: bool
-    dossier: chaine
+    succès: bool;
+    dossier: chaine;
 
     // Regarde dans les dossiers locaux.
-    succès, dossier = détermine_chemin_absolu(préprocesseur, préprocesseur.chemins_inclusions_local, chemin_fichier, include_next, chemin_fichier_test)
+    succès, dossier = détermine_chemin_absolu(préprocesseur, préprocesseur.chemins_inclusions_local, chemin_fichier, include_next, chemin_fichier_test);
     si succès {
-        retourne succès, dossier
+        retourne succès, dossier;
     }
 
     // Regarde dans les dossiers systèmes.
-    succès, dossier = détermine_chemin_absolu(préprocesseur, préprocesseur.chemins_inclusions_système, chemin_fichier, include_next, chemin_fichier_test)
+    succès, dossier = détermine_chemin_absolu(préprocesseur, préprocesseur.chemins_inclusions_système, chemin_fichier, include_next, chemin_fichier_test);
     si succès {
-        retourne succès, dossier
+        retourne succès, dossier;
     }
 
-    retourne faux, ""
+    retourne faux, "";
 }
 
 détermine_chemin_absolu :: fonc (préprocesseur: *PréProcesseur, chemins: []chaine, chemin_fichier: chaine, include_next: bool, tampon: *TamponChemin) -> (bool, chaine)
 {
     si include_next {
-        fichier := donne_fichier_courant(préprocesseur)
-        trouvé_dans_dossier := fichier.trouvé_dans_dossier
+        fichier := donne_fichier_courant(préprocesseur);
+        trouvé_dans_dossier := fichier.trouvé_dans_dossier;
 
         pour chemins {
             si it == trouvé_dans_dossier {
-                chemins = tableau_avance(chemins, indice_it + 1)
-                arrête
+                chemins = tableau_avance(chemins, indice_it + 1);
+                arrête;
             }
         }
     }
 
     pour dossier dans chemins {
-        réinitialise(tampon)
+        réinitialise(tampon);
 
         saufsi ajoute(tampon, dossier) {
-            rapporte_erreur(préprocesseur, "Chemin trop long : %", dossier)
+            rapporte_erreur(préprocesseur, "Chemin trop long : %", dossier);
         }
         saufsi ajoute(tampon, séparateur_chemin()) {
-            rapporte_erreur(préprocesseur, "Chemin trop long : %", dossier)
+            rapporte_erreur(préprocesseur, "Chemin trop long : %", dossier);
         }
         saufsi ajoute(tampon, chemin_fichier) {
-            rapporte_erreur(préprocesseur, "Chemin trop long : %", chemin_fichier)
+            rapporte_erreur(préprocesseur, "Chemin trop long : %", chemin_fichier);
         }
 
-        chemin_fichier_abs := donne_chaine_statique(tampon)
+        chemin_fichier_abs := donne_chaine_statique(tampon);
         saufsi est_un_fichier_régulier(CheminFichier(chemin_fichier_abs)) {
-            continue
+            continue;
         }
 
-        retourne vrai, dossier
+        retourne vrai, dossier;
     }
 
-    retourne faux, ""
+    retourne faux, "";
 }
 
 prétraite_fichier :: fonc (contenu: chaine) -> [..]octet
 {
-    résultat: [..]octet
-    tableau_redimensionne_sans_init(résultat, contenu.taille)
+    résultat: [..]octet;
+    tableau_redimensionne_sans_init(résultat, contenu.taille);
 
-    entrée := contenu.pointeur
-    sortie := résultat.pointeur comme *z8
-    fin := contenu.pointeur + contenu.taille
+    entrée := contenu.pointeur;
+    sortie := résultat.pointeur comme *z8;
+    fin := contenu.pointeur + contenu.taille;
 
     tantque entrée < fin {
-        c := mémoire(entrée)
+        c := mémoire(entrée);
 
         si c == '\\' {
-            sauvegarde := entrée
-            entrée += 1
+            sauvegarde := entrée;
+            entrée += 1;
 
             si entrée < fin {
-                c = mémoire(entrée)
-                entrée += 1
+                c = mémoire(entrée);
+                entrée += 1;
 
                 si c == '\n' {
-                    continue
+                    continue;
                 }
             }
 
-            entrée = sauvegarde
+            entrée = sauvegarde;
         }
 
-        mémoire(sortie) = mémoire(entrée)
-        entrée += 1
-        sortie += 1
+        mémoire(sortie) = mémoire(entrée);
+        entrée += 1;
+        sortie += 1;
     }
 
-    résultat.taille = (sortie comme *octet) - résultat.pointeur
-    retourne résultat
+    résultat.taille = (sortie comme *octet) - résultat.pointeur;
+    retourne résultat;
 }
 
 /** \} */
@@ -1944,205 +1944,205 @@ prétraite_fichier :: fonc (contenu: chaine) -> [..]octet
  * \{ */
 
 ExpressionPréProc :: struct {
-    type: type_de_données
+    type: type_de_données;
 }
 
 Defined :: struct {
-    empl base: ExpressionPréProc
-    type = #type_de_cette_structure
+    empl base: ExpressionPréProc;
+    type = #type_de_cette_structure;
 
-    opérande: chaine
+    opérande: chaine;
 }
 
 Conjonction :: struct {
-    empl base: ExpressionPréProc
-    type = #type_de_cette_structure
+    empl base: ExpressionPréProc;
+    type = #type_de_cette_structure;
 
-    gauche: *ExpressionPréProc
-    droite: *ExpressionPréProc
+    gauche: *ExpressionPréProc;
+    droite: *ExpressionPréProc;
 }
 
 Disjonction :: struct {
-    empl base: ExpressionPréProc
-    type = #type_de_cette_structure
+    empl base: ExpressionPréProc;
+    type = #type_de_cette_structure;
 
-    gauche: *ExpressionPréProc
-    droite: *ExpressionPréProc
+    gauche: *ExpressionPréProc;
+    droite: *ExpressionPréProc;
 }
 
 NégationLogique :: struct {
-    empl base: ExpressionPréProc
-    type = #type_de_cette_structure
+    empl base: ExpressionPréProc;
+    type = #type_de_cette_structure;
 
-    droite: *ExpressionPréProc
+    droite: *ExpressionPréProc;
 }
 
 Symbole :: struct {
-    empl base: ExpressionPréProc
-    type = #type_de_cette_structure
+    empl base: ExpressionPréProc;
+    type = #type_de_cette_structure;
 
-    lexème: LexèmePréprocès
+    lexème: LexèmePréprocès;
 }
 
 OpérateurBinaire :: struct {
-    empl base: ExpressionPréProc
-    type = #type_de_cette_structure
+    empl base: ExpressionPréProc;
+    type = #type_de_cette_structure;
 
-    op: chaine
-    gauche: *ExpressionPréProc
-    droite: *ExpressionPréProc
+    op: chaine;
+    gauche: *ExpressionPréProc;
+    droite: *ExpressionPréProc;
 }
 
 NégationArithmétique :: struct {
-    empl base: ExpressionPréProc
-    type = #type_de_cette_structure
+    empl base: ExpressionPréProc;
+    type = #type_de_cette_structure;
 
-    expression: *ExpressionPréProc
+    expression: *ExpressionPréProc;
 }
 
 NombreLittéral :: struct {
-    empl base: ExpressionPréProc
-    type = #type_de_cette_structure
+    empl base: ExpressionPréProc;
+    type = #type_de_cette_structure;
 
-    nombre: z32
+    nombre: z32;
 }
 
 ExpressionTernaire :: struct {
-    empl base: ExpressionPréProc
-    type = #type_de_cette_structure
+    empl base: ExpressionPréProc;
+    type = #type_de_cette_structure;
 
-    test: *ExpressionPréProc
-    si_vrai: *ExpressionPréProc
-    si_faux: *ExpressionPréProc
+    test: *ExpressionPréProc;
+    si_vrai: *ExpressionPréProc;
+    si_faux: *ExpressionPréProc;
 }
 
 évalue_expression :: fonc (préprocesseur: *PréProcesseur, expression: *ExpressionPréProc) -> z32
 {
-    résultat := 0
+    résultat := 0;
 
     discr expression.type {
         Defined {
-            defined := expression comme *Defined
-            définition := donne_définition(préprocesseur, defined.opérande)
+            defined := expression comme *Defined;
+            définition := donne_définition(préprocesseur, defined.opérande);
             si définition {
-                résultat = 1
+                résultat = 1;
             }
         }
         Conjonction {
-            conjonction := expression comme *Conjonction
-            résultat = évalue_expression(préprocesseur, conjonction.gauche)
+            conjonction := expression comme *Conjonction;
+            résultat = évalue_expression(préprocesseur, conjonction.gauche);
             si résultat == 0 {
-                résultat = évalue_expression(préprocesseur, conjonction.droite)
+                résultat = évalue_expression(préprocesseur, conjonction.droite);
             }
         }
         Disjonction {
-            disjonction := expression comme *Conjonction
-            résultat = évalue_expression(préprocesseur, disjonction.gauche)
+            disjonction := expression comme *Conjonction;
+            résultat = évalue_expression(préprocesseur, disjonction.gauche);
             si résultat == 1 {
-                résultat = évalue_expression(préprocesseur, disjonction.droite)
+                résultat = évalue_expression(préprocesseur, disjonction.droite);
             }
         }
         NégationLogique {
-            négation := expression comme *NégationLogique
-            résultat = évalue_expression(préprocesseur, négation.droite)
+            négation := expression comme *NégationLogique;
+            résultat = évalue_expression(préprocesseur, négation.droite);
             si résultat {
-                résultat = 0
+                résultat = 0;
             }
             sinon {
-                résultat = 1
+                résultat = 1;
             }
         }
         Symbole {
-            symbole := expression comme *Symbole
+            symbole := expression comme *Symbole;
 
             si préprocesseur.avertis_sur_macro_non_définis {
-                rapporte_avertissement(préprocesseur, symbole.lexème, "macro inconnu")
+                rapporte_avertissement(préprocesseur, symbole.lexème, "macro inconnu");
             }
 
-            ensemble_ajoute(*préprocesseur.macros_inconnus, donne_texte(symbole.lexème))
+            ensemble_ajoute(*préprocesseur.macros_inconnus, donne_texte(symbole.lexème));
         }
         OpérateurBinaire {
-            opérateur_binaire := expression comme *OpérateurBinaire
-            gauche := évalue_expression(préprocesseur, opérateur_binaire.gauche)
-            droite := évalue_expression(préprocesseur, opérateur_binaire.droite)
+            opérateur_binaire := expression comme *OpérateurBinaire;
+            gauche := évalue_expression(préprocesseur, opérateur_binaire.gauche);
+            droite := évalue_expression(préprocesseur, opérateur_binaire.droite);
 
             si opérateur_binaire.op == ">" {
                 si gauche > droite {
-                    résultat = 1
+                    résultat = 1;
                 }
             }
             sinon si opérateur_binaire.op == ">=" {
                 si gauche >= droite {
-                    résultat = 1
+                    résultat = 1;
                 }
             }
             sinon si opérateur_binaire.op == "<" {
                 si gauche < droite {
-                    résultat = 1
+                    résultat = 1;
                 }
             }
             sinon si opérateur_binaire.op == "<=" {
                 si gauche <= droite {
-                    résultat = 1
+                    résultat = 1;
                 }
             }
             sinon si opérateur_binaire.op == "==" {
                 si gauche == droite {
-                    résultat = 1
+                    résultat = 1;
                 }
             }
             sinon si opérateur_binaire.op == "!=" {
                 si gauche != droite {
-                    résultat = 1
+                    résultat = 1;
                 }
             }
             sinon si opérateur_binaire.op == "+" {
-                résultat = gauche + droite
+                résultat = gauche + droite;
             }
             sinon si opérateur_binaire.op == "-" {
-                résultat = gauche - droite
+                résultat = gauche - droite;
             }
             sinon si opérateur_binaire.op == "/" {
-                résultat = gauche / droite
+                résultat = gauche / droite;
             }
             sinon si opérateur_binaire.op == "*" {
-                résultat = gauche * droite
+                résultat = gauche * droite;
             }
             sinon si opérateur_binaire.op == "%" {
-                résultat = gauche % droite
+                résultat = gauche % droite;
             }
             sinon si opérateur_binaire.op == "<<" {
-                résultat = gauche << droite
+                résultat = gauche << droite;
             }
             sinon si opérateur_binaire.op == ">>" {
-                résultat = gauche >> droite
+                résultat = gauche >> droite;
             }
 
             // imprimeln("% % % = %", gauche, opérateur_binaire.op, droite, résultat)
         }
         NégationArithmétique {
-            négation := expression comme *NégationArithmétique
-            valeur := évalue_expression(préprocesseur, négation.expression)
-            résultat = -valeur
+            négation := expression comme *NégationArithmétique;
+            valeur := évalue_expression(préprocesseur, négation.expression);
+            résultat = -valeur;
         }
         NombreLittéral {
-            nombre := expression comme *NombreLittéral
-            résultat = nombre.nombre
+            nombre := expression comme *NombreLittéral;
+            résultat = nombre.nombre;
         }
         ExpressionTernaire {
-            ternaire := expression comme *ExpressionTernaire
-            test := évalue_expression(préprocesseur, ternaire.test)
+            ternaire := expression comme *ExpressionTernaire;
+            test := évalue_expression(préprocesseur, ternaire.test);
             si test != 0 {
-                résultat = évalue_expression(préprocesseur, ternaire.si_vrai)
+                résultat = évalue_expression(préprocesseur, ternaire.si_vrai);
             }
             sinon {
-                résultat = évalue_expression(préprocesseur, ternaire.si_faux)
+                résultat = évalue_expression(préprocesseur, ternaire.si_faux);
             }
         }
         sinon {}
     }
 
-    retourne résultat
+    retourne résultat;
 }
 
 /* ------------------------------------------------------------------------- */
@@ -2150,92 +2150,92 @@ ExpressionTernaire :: struct {
  * \{ */
 
 SimpleParseuse :: struct {
-    lexèmes: []LexèmePréprocès
-    curseur: z64
-    position_sauvegardée: z64
+    lexèmes: []LexèmePréprocès;
+    curseur: z64;
+    position_sauvegardée: z64;
 }
 
 fini :: fonc (empl parseuse: *SimpleParseuse) -> bool
 {
-    retourne curseur >= lexèmes.taille
+    retourne curseur >= lexèmes.taille;
 }
 
 donne_lexème_suivant :: fonc (empl parseuse: *SimpleParseuse) -> LexèmePréprocès
 {
-    retourne lexèmes[curseur]
+    retourne lexèmes[curseur];
 }
 
 avance :: fonc (empl parseuse: *SimpleParseuse)
 {
-    curseur += 1
+    curseur += 1;
 }
 
 sauvegarde_position :: fonc (empl parseuse: *SimpleParseuse)
 {
-    position_sauvegardée = curseur
+    position_sauvegardée = curseur;
 }
 
 restaure_position :: fonc (empl parseuse: *SimpleParseuse)
 {
-    curseur = position_sauvegardée
+    curseur = position_sauvegardée;
 }
 
 saute_espaces_blanches_sauf_nouvelle_ligne :: fonc (parseuse: *SimpleParseuse)
 {
     tantque !fini(parseuse) {
-        lexème := donne_lexème_suivant(parseuse)
+        lexème := donne_lexème_suivant(parseuse);
         si est_fin_de_fichier(lexème) {
-            arrête
+            arrête;
         }
         si est_lexème_nouvelle_ligne(lexème) {
-            arrête
+            arrête;
         }
         saufsi est_espace_blanche(lexème) {
-            arrête
+            arrête;
         }
-        avance(parseuse)
+        avance(parseuse);
     }
 }
 
 parse_tranche_arguments :: fonc (parseuse: *SimpleParseuse, préprocesseur: *PréProcesseur, définition: *Définition, lexème_appel: LexèmePréprocès) -> [..][..]LexèmePréprocès
 {
-    résultat: [..][..]LexèmePréprocès
+    résultat: [..][..]LexèmePréprocès;
 
-    tranche_courante: [..]LexèmePréprocès
+    tranche_courante: [..]LexèmePréprocès;
 
-    nombre_de_paramètres := donne_nombre_de_paramètres_hors_variadique(définition)
+    nombre_de_paramètres := donne_nombre_de_paramètres_hors_variadique(définition);
 
-    niveau_parenthèse := 0
+    niveau_parenthèse := 0;
     tantque !fini(parseuse) {
-        lexème := donne_lexème_suivant(parseuse)
-        avance(parseuse)
+        lexème := donne_lexème_suivant(parseuse);
+        avance(parseuse);
         si est_ponctuation(lexème, "(") {
-            niveau_parenthèse += 1
+            niveau_parenthèse += 1;
         }
         si est_ponctuation(lexème, ")") {
             si niveau_parenthèse == 0 {
-                tableau_ajoute(*résultat, tranche_courante)
-                arrête
+                tableau_ajoute(*résultat, tranche_courante);
+                arrête;
             }
-            niveau_parenthèse -= 1
-            tableau_ajoute(*tranche_courante, lexème)
-            continue
+            niveau_parenthèse -= 1;
+            tableau_ajoute(*tranche_courante, lexème);
+            continue;
         }
         si est_ponctuation(lexème, ",") && niveau_parenthèse == 0 && nombre_de_paramètres > 0 {
-            nombre_de_paramètres -= 1
-            tableau_ajoute(*résultat, tranche_courante)
-            init_de([..]LexèmePréprocès)(*tranche_courante)
-            continue
+            nombre_de_paramètres -= 1;
+            tableau_ajoute(*résultat, tranche_courante);
+            init_de([..]LexèmePréprocès)(*tranche_courante);
+            continue;
         }
-        tableau_ajoute(*tranche_courante, lexème)
+        tableau_ajoute(*tranche_courante, lexème);
     }
 
     pour * résultat {
-        supprime_espace_blanches_autour(it)
+        supprime_espace_blanches_autour(it);
     }
 
     si résultat.taille == 1 && résultat[0].taille == 0 && nombre_de_paramètres == 0 {
-        résultat.taille = 0
+        résultat.taille = 0;
     }
 
     // pour résultat {
@@ -2246,10 +2246,10 @@ parse_tranche_arguments :: fonc (parseuse: *SimpleParseuse, préprocesseur: *Pr�
     // }
 
     saufsi peut_accepter_arguments(définition, résultat.taille) {
-        rapporte_erreur_mécomptage_arguments(préprocesseur, définition, lexème_appel, résultat.taille)
+        rapporte_erreur_mécomptage_arguments(préprocesseur, définition, lexème_appel, résultat.taille);
     }
 
-    retourne résultat
+    retourne résultat;
 }
 
 /** \} */
@@ -2261,428 +2261,428 @@ parse_tranche_arguments :: fonc (parseuse: *SimpleParseuse, préprocesseur: *Pr�
 parse_expression_if :: fonc (préprocesseur: *PréProcesseur, lexeuse: *LexeusePréProcès) -> *ExpressionPréProc
 {
     // @Vitesse
-    lexèmes: [..]LexèmePréprocès
-    diffère déloge(lexèmes)
+    lexèmes: [..]LexèmePréprocès;
+    diffère déloge(lexèmes);
 
     boucle {
-        lexème := donne_lexème_suivant_développé(préprocesseur, lexeuse)
+        lexème := donne_lexème_suivant_développé(préprocesseur, lexeuse);
         si est_fin_de_fichier(lexème) {
-            rapporte_erreur(préprocesseur, "Fin de fichier inattendu dans %", #nom_de_cette_fonction)
+            rapporte_erreur(préprocesseur, "Fin de fichier inattendu dans %", #nom_de_cette_fonction);
         }
 
         si est_espace_blanche(lexème) {
             si donne_texte(lexème) == "\n" {
-                reprends_depuis_lexème(lexeuse, lexème)
-                arrête
+                reprends_depuis_lexème(lexeuse, lexème);
+                arrête;
             }
-            continue
+            continue;
         }
 
         /* Ne developpons pas le contenu de "defined". */
         si donne_texte(lexème) == "defined" {
-            tableau_ajoute(*lexèmes, lexème)
+            tableau_ajoute(*lexèmes, lexème);
 
-            lexème = donne_lexème_suivant(préprocesseur, lexeuse)
+            lexème = donne_lexème_suivant(préprocesseur, lexeuse);
             tantque est_espace_blanche(lexème) {
-                lexème = donne_lexème_suivant(préprocesseur, lexeuse)
+                lexème = donne_lexème_suivant(préprocesseur, lexeuse);
             }
-            tableau_ajoute(*lexèmes, lexème)
+            tableau_ajoute(*lexèmes, lexème);
             
             saufsi est_ponctuation(lexème, "(") {
-                continue
+                continue;
             }
 
-            lexème = donne_lexème_suivant(préprocesseur, lexeuse)
+            lexème = donne_lexème_suivant(préprocesseur, lexeuse);
             tantque est_espace_blanche(lexème) {
-                lexème = donne_lexème_suivant(préprocesseur, lexeuse)
+                lexème = donne_lexème_suivant(préprocesseur, lexeuse);
             }
-            tableau_ajoute(*lexèmes, lexème)
+            tableau_ajoute(*lexèmes, lexème);
 
-            lexème = donne_lexème_suivant(préprocesseur, lexeuse)
+            lexème = donne_lexème_suivant(préprocesseur, lexeuse);
             tantque est_espace_blanche(lexème) {
-                lexème = donne_lexème_suivant(préprocesseur, lexeuse)
+                lexème = donne_lexème_suivant(préprocesseur, lexeuse);
             }
-            tableau_ajoute(*lexèmes, lexème)
-            continue
+            tableau_ajoute(*lexèmes, lexème);
+            continue;
         }
 
-        tableau_ajoute(*lexèmes, lexème)
+        tableau_ajoute(*lexèmes, lexème);
         // imprimeln("-- %", donne_texte(lexème))
     }
 
-    assert(préprocesseur.lexèmes_développés.taille == 0)
+    assert(préprocesseur.lexèmes_développés.taille == 0);
 
-    parseuse: SimpleParseuse
-    parseuse.lexèmes = lexèmes
+    parseuse: SimpleParseuse;
+    parseuse.lexèmes = lexèmes;
 
-    résultat := parse_expression(préprocesseur, *parseuse)
+    résultat := parse_expression(préprocesseur, *parseuse);
 
     saufsi fini(*parseuse) {
         si résultat {
-            imprime_arbre(résultat)
+            imprime_arbre(résultat);
         }
         tantque !fini(*parseuse) {
-            lexème := donne_lexème_suivant(*parseuse)
-            avance(*parseuse)
-            imprimeln("lexème non consommé : '%' (%)", donne_texte(lexème), lexème.lexème.type)
+            lexème := donne_lexème_suivant(*parseuse);
+            avance(*parseuse);
+            imprimeln("lexème non consommé : '%' (%)", donne_texte(lexème), lexème.lexème.type);
         }
-        rapporte_erreur(préprocesseur, "Des lexèmes ne furent pas consommés")
+        rapporte_erreur(préprocesseur, "Des lexèmes ne furent pas consommés");
     }
     // sinon si résultat {
     //     imprime_arbre(résultat)
     // }
 
-    retourne résultat
+    retourne résultat;
 }
 
 Associativité :: énum {
-    AUCUNE
-    GAUCHE
-    DROITE
+    AUCUNE;
+    GAUCHE;
+    DROITE;
 }
 
 InfoParsageOpérateur :: struct {
-    précédence: z32
-    associativité: Associativité
+    précédence: z32;
+    associativité: Associativité;
 }
 
 donne_info_parsage_opérateur :: fonc (texte: chaine) -> (bool, InfoParsageOpérateur)
 {
-    est_opérateur := vrai
-    résultat: InfoParsageOpérateur
+    est_opérateur := vrai;
+    résultat: InfoParsageOpérateur;
 
     si texte == "?" {
-        résultat.précédence = 1
-        résultat.associativité = Associativité.DROITE
+        résultat.précédence = 1;
+        résultat.associativité = Associativité.DROITE;
     }
     sinon si texte == "||" {
-        résultat.précédence = 2
-        résultat.associativité = Associativité.GAUCHE
+        résultat.précédence = 2;
+        résultat.associativité = Associativité.GAUCHE;
     }
     sinon si texte == "&&" {
-        résultat.précédence = 3
-        résultat.associativité = Associativité.GAUCHE
+        résultat.précédence = 3;
+        résultat.associativité = Associativité.GAUCHE;
     }
     sinon si texte == "|" {
-        résultat.précédence = 4
-        résultat.associativité = Associativité.GAUCHE
+        résultat.précédence = 4;
+        résultat.associativité = Associativité.GAUCHE;
     }
     sinon si texte == "^" {
-        résultat.précédence = 5
-        résultat.associativité = Associativité.GAUCHE
+        résultat.précédence = 5;
+        résultat.associativité = Associativité.GAUCHE;
     }
     sinon si texte == "&" {
-        résultat.précédence = 6
-        résultat.associativité = Associativité.GAUCHE
+        résultat.précédence = 6;
+        résultat.associativité = Associativité.GAUCHE;
     }
     sinon si texte == "==" || texte == "!=" {
-        résultat.précédence = 7
-        résultat.associativité = Associativité.GAUCHE
+        résultat.précédence = 7;
+        résultat.associativité = Associativité.GAUCHE;
     }
     sinon si texte == ">" || texte == ">=" || texte == "<" || texte == "<=" {
-        résultat.précédence = 8
-        résultat.associativité = Associativité.GAUCHE
+        résultat.précédence = 8;
+        résultat.associativité = Associativité.GAUCHE;
     }
     sinon si texte == "<<" || texte == ">>" {
-        résultat.précédence = 9
-        résultat.associativité = Associativité.GAUCHE
+        résultat.précédence = 9;
+        résultat.associativité = Associativité.GAUCHE;
     }
     sinon si texte == "-" || texte == "+" {
-        résultat.précédence = 10
-        résultat.associativité = Associativité.GAUCHE
+        résultat.précédence = 10;
+        résultat.associativité = Associativité.GAUCHE;
     }
     sinon si texte == "*" || texte == "/" || texte == "%" {
-        résultat.précédence = 11
-        résultat.associativité = Associativité.GAUCHE
+        résultat.précédence = 11;
+        résultat.associativité = Associativité.GAUCHE;
     }
     sinon {
-        est_opérateur = faux
+        est_opérateur = faux;
     }
 
-    retourne est_opérateur, résultat
+    retourne est_opérateur, résultat;
 }
 
 donne_info_parsage_opérateur_unaire :: fonc () -> InfoParsageOpérateur
 {
-    résultat: InfoParsageOpérateur
-    résultat.précédence = 16
-    résultat.associativité = Associativité.DROITE
-    retourne résultat
+    résultat: InfoParsageOpérateur;
+    résultat.précédence = 16;
+    résultat.associativité = Associativité.DROITE;
+    retourne résultat;
 }
 
 parse_expression :: fonc (préprocesseur: *PréProcesseur, parseuse: *SimpleParseuse) -> *ExpressionPréProc
 {
-    retourne parse_expression(préprocesseur, parseuse, InfoParsageOpérateur())
+    retourne parse_expression(préprocesseur, parseuse, InfoParsageOpérateur());
 }
 
 parse_expression :: fonc (préprocesseur: *PréProcesseur, parseuse: *SimpleParseuse, info_courante: InfoParsageOpérateur) -> *ExpressionPréProc
 {
-    gauche := parse_expression_primaire(préprocesseur, parseuse)
+    gauche := parse_expression_primaire(préprocesseur, parseuse);
     saufsi gauche {
-        retourne nul
+        retourne nul;
     }
 
-    résultat := gauche
+    résultat := gauche;
 
     tantque !fini(parseuse) {
-        lexème := donne_lexème_suivant(parseuse)
+        lexème := donne_lexème_suivant(parseuse);
 
-        texte := donne_texte(lexème)
-        est_opérateur, info := donne_info_parsage_opérateur(texte)
+        texte := donne_texte(lexème);
+        est_opérateur, info := donne_info_parsage_opérateur(texte);
         saufsi est_opérateur {
-            arrête
+            arrête;
         }
 
         si info.précédence < info_courante.précédence {
-            arrête
+            arrête;
         }
 
         si info.précédence == info_courante.précédence && info_courante.associativité == Associativité.GAUCHE {
-            arrête
+            arrête;
         }
 
         si texte == "&&" {
-            avance(parseuse)
+            avance(parseuse);
 
-            disjonction := loge(Disjonction)
-            disjonction.gauche = résultat
-            disjonction.droite = parse_expression(préprocesseur, parseuse, info)
+            disjonction := loge(Disjonction);
+            disjonction.gauche = résultat;
+            disjonction.droite = parse_expression(préprocesseur, parseuse, info);
 
-            résultat = disjonction
+            résultat = disjonction;
         }
         sinon si texte == "||" {
-            avance(parseuse)
+            avance(parseuse);
 
-            conjonction := loge(Conjonction)
-            conjonction.gauche = résultat
-            conjonction.droite = parse_expression(préprocesseur, parseuse, info)
+            conjonction := loge(Conjonction);
+            conjonction.gauche = résultat;
+            conjonction.droite = parse_expression(préprocesseur, parseuse, info);
 
-            résultat = conjonction
+            résultat = conjonction;
         }
         sinon si texte == ">" || texte == ">=" || texte == "<" || texte == "<=" || texte == "==" || texte == "!=" || texte == "-" || texte == "+" || texte == "*" || texte == "/" || texte == "<<" || texte == ">>" || texte == "&" || texte == "^" || texte == "|" || texte == "%" {
-            avance(parseuse)
+            avance(parseuse);
 
-            opérateur_binaire := loge(OpérateurBinaire)
-            opérateur_binaire.op = texte
-            opérateur_binaire.gauche = résultat
-            opérateur_binaire.droite = parse_expression(préprocesseur, parseuse, info)
+            opérateur_binaire := loge(OpérateurBinaire);
+            opérateur_binaire.op = texte;
+            opérateur_binaire.gauche = résultat;
+            opérateur_binaire.droite = parse_expression(préprocesseur, parseuse, info);
 
-            résultat = opérateur_binaire
+            résultat = opérateur_binaire;
         }
         sinon si texte == "?" {
-            avance(parseuse)
+            avance(parseuse);
 
-            ternaire := loge(ExpressionTernaire)
-            ternaire.test = résultat
-            ternaire.si_vrai = parse_expression(préprocesseur, parseuse, info)
+            ternaire := loge(ExpressionTernaire);
+            ternaire.test = résultat;
+            ternaire.si_vrai = parse_expression(préprocesseur, parseuse, info);
 
-            lexème = donne_lexème_suivant(parseuse)
+            lexème = donne_lexème_suivant(parseuse);
             saufsi est_ponctuation(lexème, ":") {
-                rapporte_erreur(préprocesseur, lexème, "attendu ':'")
+                rapporte_erreur(préprocesseur, lexème, "attendu ':'");
             }
 
-            avance(parseuse)
-            ternaire.si_faux = parse_expression(préprocesseur, parseuse, info)
+            avance(parseuse);
+            ternaire.si_faux = parse_expression(préprocesseur, parseuse, info);
 
-            résultat = ternaire
+            résultat = ternaire;
         }
         sinon {
-            arrête
+            arrête;
         }
     }
 
-    retourne résultat
+    retourne résultat;
 }
 
 parse_expression_primaire :: fonc (préprocesseur: *PréProcesseur, parseuse: *SimpleParseuse) -> *ExpressionPréProc
 {
-    résultat: *ExpressionPréProc
+    résultat: *ExpressionPréProc;
 
-    lexème := donne_lexème_suivant(parseuse)
+    lexème := donne_lexème_suivant(parseuse);
 
-    texte := donne_texte(lexème)
+    texte := donne_texte(lexème);
     si texte == "defined" {
-        avance(parseuse)
+        avance(parseuse);
 
-        defined := loge(Defined)
+        defined := loge(Defined);
 
-        lexème = donne_lexème_suivant(parseuse)
-        eu_parenthèse := faux
+        lexème = donne_lexème_suivant(parseuse);
+        eu_parenthèse := faux;
         si est_ponctuation(lexème, "(") {
-            avance(parseuse)
-            eu_parenthèse = vrai
-            lexème = donne_lexème_suivant(parseuse)
+            avance(parseuse);
+            eu_parenthèse = vrai;
+            lexème = donne_lexème_suivant(parseuse);
         }
 
-        defined.opérande = donne_texte(lexème)
-        avance(parseuse)
+        defined.opérande = donne_texte(lexème);
+        avance(parseuse);
 
         si eu_parenthèse {
-            lexème = donne_lexème_suivant(parseuse)
+            lexème = donne_lexème_suivant(parseuse);
             saufsi est_ponctuation(lexème, ")") {
-                rapporte_erreur(préprocesseur, lexème, "attendu ')' pour fermer defined")
+                rapporte_erreur(préprocesseur, lexème, "attendu ')' pour fermer defined");
             }
-            avance(parseuse)
+            avance(parseuse);
         }
 
-        résultat = defined
+        résultat = defined;
     }
     sinon si est_ponctuation(lexème, "(") {
-        avance(parseuse)
-        résultat = parse_expression(préprocesseur, parseuse)
+        avance(parseuse);
+        résultat = parse_expression(préprocesseur, parseuse);
 
-        lexème = donne_lexème_suivant(parseuse)
+        lexème = donne_lexème_suivant(parseuse);
         saufsi est_ponctuation(lexème, ")") {
-            rapporte_erreur(préprocesseur, lexème, "attendu ')'")
+            rapporte_erreur(préprocesseur, lexème, "attendu ')'");
         }
-        avance(parseuse)
+        avance(parseuse);
     }
     sinon si est_ponctuation(lexème, "!") {
-        avance(parseuse)
-        négation := loge(NégationLogique)
-        négation.droite = parse_expression_primaire(préprocesseur, parseuse)
-        résultat = négation
+        avance(parseuse);
+        négation := loge(NégationLogique);
+        négation.droite = parse_expression_primaire(préprocesseur, parseuse);
+        résultat = négation;
     }
     sinon si est_symbole(lexème) {
-        avance(parseuse)
+        avance(parseuse);
 
         // Nous n'avons de définition pour ce symbole.
         // Ce n'est pas une erreur car nous pourrions être dans une branche qui ne sera pas évalué.
-        symbole := loge(Symbole)
-        symbole.lexème = lexème
-        résultat = symbole
+        symbole := loge(Symbole);
+        symbole.lexème = lexème;
+        résultat = symbole;
     }
     sinon si lexème.lexème.type == TypeLexème.Nombre {
-        avance(parseuse)
-        nombre := loge(NombreLittéral)
-        nombre.nombre = lexème.lexème.nombre.naturel comme z32
-        résultat = nombre
+        avance(parseuse);
+        nombre := loge(NombreLittéral);
+        nombre.nombre = lexème.lexème.nombre.naturel comme z32;
+        résultat = nombre;
     }
     sinon si lexème.lexème.type == TypeLexème.CaractèreConstant {
-        avance(parseuse)
-        nombre := loge(NombreLittéral)
+        avance(parseuse);
+        nombre := loge(NombreLittéral);
         // À FAIRE : lexage correcte des caractères
-        texte_caractère := donne_texte(lexème)
-        texte_caractère = avance(texte_caractère, 1)
-        texte_caractère = recule(texte_caractère, 1)
+        texte_caractère := donne_texte(lexème);
+        texte_caractère = avance(texte_caractère, 1);
+        texte_caractère = recule(texte_caractère, 1);
         si texte_caractère.taille == 0 {
         }
         sinon si texte_caractère.taille == 1 {
-            nombre.nombre = texte_caractère[0]
+            nombre.nombre = texte_caractère[0];
         }
         sinon {
             si texte_caractère[0] == '\\' {
-                texte_caractère = avance(texte_caractère, 1)
+                texte_caractère = avance(texte_caractère, 1);
                 si texte_caractère[0] == 'x' {
-                    texte_caractère = avance(texte_caractère, 1)
+                    texte_caractère = avance(texte_caractère, 1);
 
                     pour texte_caractère {
-                        nombre.nombre *= 16
+                        nombre.nombre *= 16;
 
                         si '0' <= it <= '9' {
-                            nombre.nombre += (it - '0')
+                            nombre.nombre += (it - '0');
                         }
                         sinon si 'a' <= it <= 'f' {
-                            nombre.nombre += (it - 'a')
+                            nombre.nombre += (it - 'a');
                         }
                         sinon si 'A' <= it <= 'F' {
-                            nombre.nombre += (it - 'A')
+                            nombre.nombre += (it - 'A');
                         }
                         sinon {
-                            rapporte_erreur(préprocesseur, lexème, "Caractère constant invalide")
+                            rapporte_erreur(préprocesseur, lexème, "Caractère constant invalide");
                         }
                     }
 
-                    texte_caractère = avance(texte_caractère, texte_caractère.taille)
+                    texte_caractère = avance(texte_caractère, texte_caractère.taille);
                 }
                 sinon si texte_caractère[0] == 'a' {
-                    nombre.nombre = 7
-                    texte_caractère = avance(texte_caractère, 1)
+                    nombre.nombre = 7;
+                    texte_caractère = avance(texte_caractère, 1);
                 }
                 sinon si texte_caractère[0] == 'b' {
-                    nombre.nombre = 8
-                    texte_caractère = avance(texte_caractère, 1)
+                    nombre.nombre = 8;
+                    texte_caractère = avance(texte_caractère, 1);
                 }
                 sinon si texte_caractère[0] == 'f' {
-                    nombre.nombre = '\f'
-                    texte_caractère = avance(texte_caractère, 1)
+                    nombre.nombre = '\f';
+                    texte_caractère = avance(texte_caractère, 1);
                 }
                 sinon si texte_caractère[0] == 'n' {
-                    nombre.nombre = '\n'
-                    texte_caractère = avance(texte_caractère, 1)
+                    nombre.nombre = '\n';
+                    texte_caractère = avance(texte_caractère, 1);
                 }
                 sinon si texte_caractère[0] == 'r' {
-                    nombre.nombre = '\r'
-                    texte_caractère = avance(texte_caractère, 1)
+                    nombre.nombre = '\r';
+                    texte_caractère = avance(texte_caractère, 1);
                 }
                 sinon si texte_caractère[0] == 't' {
-                    nombre.nombre = '\t'
-                    texte_caractère = avance(texte_caractère, 1)
+                    nombre.nombre = '\t';
+                    texte_caractère = avance(texte_caractère, 1);
                 }
                 sinon si texte_caractère[0] == 'v' {
-                    nombre.nombre = '\v'
-                    texte_caractère = avance(texte_caractère, 1)
+                    nombre.nombre = '\v';
+                    texte_caractère = avance(texte_caractère, 1);
                 }
                 sinon si texte_caractère[0] == '\'' {
-                    nombre.nombre = '\''
-                    texte_caractère = avance(texte_caractère, 1)
+                    nombre.nombre = '\'';
+                    texte_caractère = avance(texte_caractère, 1);
                 }
                 sinon si texte_caractère[0] == '"' {
-                    nombre.nombre = '"'
-                    texte_caractère = avance(texte_caractère, 1)
+                    nombre.nombre = '"';
+                    texte_caractère = avance(texte_caractère, 1);
                 }
                 sinon si texte_caractère[0] == '?' {
-                    nombre.nombre = '?'
-                    texte_caractère = avance(texte_caractère, 1)
+                    nombre.nombre = '?';
+                    texte_caractère = avance(texte_caractère, 1);
                 }
                 sinon si texte_caractère[0] == '\\' {
-                    nombre.nombre = '\\'
-                    texte_caractère = avance(texte_caractère, 1)
+                    nombre.nombre = '\\';
+                    texte_caractère = avance(texte_caractère, 1);
                 }
                 sinon si '0' <= texte_caractère[0] <= '7' {
                     pour texte_caractère {
-                        nombre.nombre *= 8
+                        nombre.nombre *= 8;
 
                         si '0' <= it <= '7' {
-                            nombre.nombre += (it - '0')
+                            nombre.nombre += (it - '0');
                         }
                         sinon {
-                            rapporte_erreur(préprocesseur, lexème, "Caractère constant invalide")
+                            rapporte_erreur(préprocesseur, lexème, "Caractère constant invalide");
                         }
                     }
 
-                    texte_caractère = avance(texte_caractère, texte_caractère.taille)
+                    texte_caractère = avance(texte_caractère, texte_caractère.taille);
                 }
                 sinon {
-                    rapporte_erreur(préprocesseur, lexème, "Séquence d'échappement invalide")
+                    rapporte_erreur(préprocesseur, lexème, "Séquence d'échappement invalide");
                 }
 
                 si texte_caractère {
-                    rapporte_erreur(préprocesseur, lexème, "Trop de caractères dans la constante de caractère")
+                    rapporte_erreur(préprocesseur, lexème, "Trop de caractères dans la constante de caractère");
                 }
             }
         }
-        résultat = nombre
+        résultat = nombre;
     }
     sinon si texte == "-" {
-        avance(parseuse)
+        avance(parseuse);
 
-        info_opérateur := donne_info_parsage_opérateur_unaire()
+        info_opérateur := donne_info_parsage_opérateur_unaire();
 
-        négation := loge(NégationArithmétique)
-        négation.expression = parse_expression(préprocesseur, parseuse, info_opérateur)
+        négation := loge(NégationArithmétique);
+        négation.expression = parse_expression(préprocesseur, parseuse, info_opérateur);
 
-        résultat = négation
+        résultat = négation;
     }
     sinon si texte == "+" {
-        info_opérateur := donne_info_parsage_opérateur_unaire()
-        résultat = parse_expression(préprocesseur, parseuse, info_opérateur)
+        info_opérateur := donne_info_parsage_opérateur_unaire();
+        résultat = parse_expression(préprocesseur, parseuse, info_opérateur);
     }
     sinon {
-        rapporte_erreur(préprocesseur, lexème, "lexème inattendu")
+        rapporte_erreur(préprocesseur, lexème, "lexème inattendu");
     }
 
-    retourne résultat
+    retourne résultat;
 }
 
 /** \} */
@@ -2695,38 +2695,38 @@ parse_expression_primaire :: fonc (préprocesseur: *PréProcesseur, parseuse: *S
 
 imprime_arbre :: fonc (noeud: *ExpressionPréProc)
 {
-    rappel_pour_noeud :: fonc (visiteuse: *VisiteuseArbre(ExpressionPréProc), noeud: *ExpressionPréProc, info: *InfoTypeStructure) -> VisiteEnfants
+    rappel_pour_noeud :: fonc (visiteuse: *VisiteuseArbre(ExpressionPréProc), noeud: *ExpressionPréProc, info: *InfoTypeStructure) -> VisiteEnfants;
     {
-        imprime_tabulation(visiteuse.profondeur)
+        imprime_tabulation(visiteuse.profondeur);
         discr noeud.type {
             Defined,
             Conjonction,
             Disjonction,
             NégationLogique,
             ExpressionTernaire {
-                imprime("%\n", info.nom)
+                imprime("%\n", info.nom);
             }
             Symbole {
-                symbole := noeud comme *Symbole
-                imprime("% : %\n", info.nom, donne_texte(symbole.lexème))
+                symbole := noeud comme *Symbole;
+                imprime("% : %\n", info.nom, donne_texte(symbole.lexème));
             }
             OpérateurBinaire {
-                opérateur_binaire := noeud comme *OpérateurBinaire
-                imprime("% : %\n", info.nom, opérateur_binaire.op)
+                opérateur_binaire := noeud comme *OpérateurBinaire;
+                imprime("% : %\n", info.nom, opérateur_binaire.op);
             }
             NombreLittéral {
-                nombre := noeud comme *NombreLittéral
-                imprime("% : %\n", info.nom, nombre.nombre)
+                nombre := noeud comme *NombreLittéral;
+                imprime("% : %\n", info.nom, nombre.nombre);
             }
             sinon {
-                imprime("%\n", info.nom)
+                imprime("%\n", info.nom);
             }
         }
-        retourne VisiteEnfants.Oui
+        retourne VisiteEnfants.Oui;
     }
-    visiteuse: VisiteuseArbre(ExpressionPréProc)
-    visiteuse.rappel_pour_noeud = rappel_pour_noeud
-    visite_noeud(*visiteuse, noeud)
+    visiteuse: VisiteuseArbre(ExpressionPréProc);
+    visiteuse.rappel_pour_noeud = rappel_pour_noeud;
+    visite_noeud(*visiteuse, noeud);
 }
 
 /** \} */
@@ -2734,72 +2734,72 @@ imprime_arbre :: fonc (noeud: *ExpressionPréProc)
 donne_lexème_suivant_développé :: fonc (préprocesseur: *PréProcesseur, lexeuse: *LexeusePréProcès) -> LexèmePréprocès
 {
     boucle {
-        résultat := donne_lexème_suivant(préprocesseur, lexeuse)
+        résultat := donne_lexème_suivant(préprocesseur, lexeuse);
 
         saufsi est_symbole(résultat) || est_mot_clé(résultat) {
-            retourne résultat
+            retourne résultat;
         }
 
-        texte := donne_texte(résultat)
+        texte := donne_texte(résultat);
 
-        définition := donne_définition(préprocesseur, texte)
+        définition := donne_définition(préprocesseur, texte);
         si définition == nul || résultat.ne_développe_pas {
-            retourne résultat
+            retourne résultat;
         }
 
         saufsi définition.est_semble_fonction {
-            infos_développement: InfosDéveloppementMacro
-            infos_développement.lexème = résultat
-            infos_développement.macro = définition
+            infos_développement: InfosDéveloppementMacro;
+            infos_développement.lexème = résultat;
+            infos_développement.macro = définition;
             // @Vitesse
-            liste_de_remplacement: [..]LexèmePréprocès
-            diffère déloge(liste_de_remplacement)
-            développe_macro(*liste_de_remplacement, préprocesseur, *infos_développement)
-            ajoute_liste_de_remplacement(préprocesseur, liste_de_remplacement)
-            continue
+            liste_de_remplacement: [..]LexèmePréprocès;
+            diffère déloge(liste_de_remplacement);
+            développe_macro(*liste_de_remplacement, préprocesseur, *infos_développement);
+            ajoute_liste_de_remplacement(préprocesseur, liste_de_remplacement);
+            continue;
         }
 
         /* Cherche la parenthèse. */
         // @Vitesse
-        griffonier: [..]LexèmePréprocès
-        diffère déloge(griffonier)
+        griffonier: [..]LexèmePréprocès;
+        diffère déloge(griffonier);
 
-        lexème := donne_lexème_suivant(préprocesseur, lexeuse)
+        lexème := donne_lexème_suivant(préprocesseur, lexeuse);
         tantque est_espace_blanche(lexème) {
-            tableau_ajoute(*griffonier, lexème)
-            lexème = donne_lexème_suivant(préprocesseur, lexeuse)
+            tableau_ajoute(*griffonier, lexème);
+            lexème = donne_lexème_suivant(préprocesseur, lexeuse);
         }
 
-        lexème_appel := lexème
+        lexème_appel := lexème;
 
         saufsi est_ponctuation(lexème, "(") {
-            tableau_ajoute(*préprocesseur.lexèmes_développés, lexème)
+            tableau_ajoute(*préprocesseur.lexèmes_développés, lexème);
             pour > griffonier {
-                tableau_ajoute(*préprocesseur.lexèmes_développés, it)
+                tableau_ajoute(*préprocesseur.lexèmes_développés, it);
             }
-            retourne résultat
+            retourne résultat;
         }
 
         /* Parse les paramètres. */
-        déloge(griffonier)
+        déloge(griffonier);
 
-        niveau_parenthèse := 0
-        lexème_fin_paramètre: LexèmePréprocès
+        niveau_parenthèse := 0;
+        lexème_fin_paramètre: LexèmePréprocès;
         boucle {
-            lexème = donne_lexème_suivant(préprocesseur, lexeuse)
+            lexème = donne_lexème_suivant(préprocesseur, lexeuse);
             si est_fin_de_fichier(lexème) {
-                rapporte_erreur(préprocesseur, "Fin de fichier inattendu dans %", #nom_de_cette_fonction)
+                rapporte_erreur(préprocesseur, "Fin de fichier inattendu dans %", #nom_de_cette_fonction);
             }
-            tableau_ajoute(*griffonier, lexème)
+            tableau_ajoute(*griffonier, lexème);
             si est_ponctuation(lexème, "(") {
-                niveau_parenthèse += 1
+                niveau_parenthèse += 1;
             }
             sinon si est_ponctuation(lexème, ")") {
                 si niveau_parenthèse == 0 {
-                    lexème_fin_paramètre = lexème
-                    arrête
+                    lexème_fin_paramètre = lexème;
+                    arrête;
                 }
-                niveau_parenthèse -= 1
+                niveau_parenthèse -= 1;
             }
         }
 
@@ -2808,10 +2808,10 @@ donne_lexème_suivant_développé :: fonc (préprocesseur: *PréProcesseur, lexe
         //     imprimeln("---- %", donne_texte(it))
         // }
 
-        parseuse: SimpleParseuse
-        parseuse.lexèmes = griffonier
+        parseuse: SimpleParseuse;
+        parseuse.lexèmes = griffonier;
 
-        arguments := parse_tranche_arguments(*parseuse, préprocesseur, définition, lexème_appel)
+        arguments := parse_tranche_arguments(*parseuse, préprocesseur, définition, lexème_appel);
 
         // imprimeln("-- arguments")
         // pour args, indice_args dans arguments {
@@ -2821,32 +2821,32 @@ donne_lexème_suivant_développé :: fonc (préprocesseur: *PréProcesseur, lexe
         //     }
         // }
 
-        infos_développement: InfosDéveloppementMacro
-        infos_développement.lexème = lexème_appel
-        infos_développement.macro = définition
-        infos_développement.arguments = arguments
+        infos_développement: InfosDéveloppementMacro;
+        infos_développement.lexème = lexème_appel;
+        infos_développement.macro = définition;
+        infos_développement.arguments = arguments;
 
         // @Vitesse
-        liste_de_remplacement: [..]LexèmePréprocès
-        diffère déloge(liste_de_remplacement)
+        liste_de_remplacement: [..]LexèmePréprocès;
+        diffère déloge(liste_de_remplacement);
 
-        développe_macro(*liste_de_remplacement, préprocesseur, *infos_développement)
+        développe_macro(*liste_de_remplacement, préprocesseur, *infos_développement);
 
-        ajoute_liste_de_remplacement(préprocesseur, liste_de_remplacement)
+        ajoute_liste_de_remplacement(préprocesseur, liste_de_remplacement);
     }
 
-    panique("Nous ne devrions pas être ici")
+    panique("Nous ne devrions pas être ici");
 }
 
 donne_lexème_suivant :: fonc (préprocesseur: *PréProcesseur, lexeuse: *LexeusePréProcès) -> LexèmePréprocès
 {
     si préprocesseur.lexèmes_développés {
-        résultat := préprocesseur.lexèmes_développés[préprocesseur.lexèmes_développés.taille - 1]
-        préprocesseur.lexèmes_développés.taille -= 1
-        retourne résultat
+        résultat := préprocesseur.lexèmes_développés[préprocesseur.lexèmes_développés.taille - 1];
+        préprocesseur.lexèmes_développés.taille -= 1;
+        retourne résultat;
     }
 
-    retourne donne_lexème_suivant(lexeuse)
+    retourne donne_lexème_suivant(lexeuse);
 }
 
 ajoute_liste_de_remplacement :: fonc (préprocesseur: *PréProcesseur, liste: []LexèmePréprocès)
@@ -2857,6 +2857,6 @@ ajoute_liste_de_remplacement :: fonc (préprocesseur: *PréProcesseur, liste: []
     // }
 
     pour > liste {
-        tableau_ajoute(*préprocesseur.lexèmes_développés, it)
+        tableau_ajoute(*préprocesseur.lexèmes_développés, it);
     }
 }

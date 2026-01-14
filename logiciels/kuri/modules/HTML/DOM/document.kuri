@@ -1,4 +1,4 @@
-importe Ensemble
+importe Ensemble;
 
 /* ------------------------------------------------------------------------- */
 /** \nom Document.
@@ -6,137 +6,137 @@ importe Ensemble
  * \{ */
 
 Encodage :: énum {
-    UTF8
-    UTF8LE
-    UTF8BE
+    UTF8;
+    UTF8LE;
+    UTF8BE;
 }
 
 ModeDocument :: énum {
-    NO_QUIRKS
-    QUIRKS
-    LIMITED_QUIRKS
+    NO_QUIRKS;
+    QUIRKS;
+    LIMITED_QUIRKS;
 }
 
 formatte_mode_document :: fonc (enchaineuse: *Enchaineuse, mode: *ModeDocument)
 {
     saufsi mode {
-        retourne
+        retourne;
     }
     discr mémoire(mode) {
         NO_QUIRKS {
-            ajoute_au_tampon(enchaineuse, "no-quirks")
+            ajoute_au_tampon(enchaineuse, "no-quirks");
         }
         QUIRKS {
-            ajoute_au_tampon(enchaineuse, "quirks")
+            ajoute_au_tampon(enchaineuse, "quirks");
         }
         LIMITED_QUIRKS {
-            ajoute_au_tampon(enchaineuse, "limited-quirks")
+            ajoute_au_tampon(enchaineuse, "limited-quirks");
         }
     }
 } @FormattageImpression
 
-DOMHighResTimeStamp :: r64
+DOMHighResTimeStamp :: r64;
 
 /* https://html.spec.whatwg.org/multipage/dom.html#document-load-timing-info */
 DocumentLoadTimingInfo :: struct {
-    navigation_start_time: z64
-    DOM_interactive_time: DOMHighResTimeStamp
-    DOM_content_loaded_event_start_time: DOMHighResTimeStamp
-    DOM_content_loaded_event_end_time: DOMHighResTimeStamp
-    DOM_complete_time: DOMHighResTimeStamp
-    load_event_start_time: DOMHighResTimeStamp
-    load_event_end_time: DOMHighResTimeStamp
+    navigation_start_time: z64;
+    DOM_interactive_time: DOMHighResTimeStamp;
+    DOM_content_loaded_event_start_time: DOMHighResTimeStamp;
+    DOM_content_loaded_event_end_time: DOMHighResTimeStamp;
+    DOM_complete_time: DOMHighResTimeStamp;
+    load_event_start_time: DOMHighResTimeStamp;
+    load_event_end_time: DOMHighResTimeStamp;
 }
 
 /* https://html.spec.whatwg.org/multipage/dom.html#document-unload-timing-info */
 DocumentUnloadTimingInfo :: struct {
-    unload_event_start_time: DOMHighResTimeStamp
-    unload_event_end_time: DOMHighResTimeStamp
+    unload_event_start_time: DOMHighResTimeStamp;
+    unload_event_end_time: DOMHighResTimeStamp;
 }
 
 ÉtatRequêteImage :: énum {
-    NonCommencé
-    EnCours
-    Échec
-    Succès
+    NonCommencé;
+    EnCours;
+    Échec;
+    Succès;
 }
 
 ImageDisponible :: struct {
-    données: NouvelleImage
-    url: chaine
-    état: ÉtatRequêteImage
+    données: NouvelleImage;
+    url: chaine;
+    état: ÉtatRequêteImage;
 }
 
 Document :: struct {
-    empl base_noeud: Node
-    table = *table_virtuelle_document
+    empl base_noeud: Node;
+    table = *table_virtuelle_document;
 
-    type_contenu: chaine
-    type: chaine
-    url: *URL
-    encodage: Encodage
-    mode: ModeDocument
-    permets_racines_shadow_déclaratives: bool
+    type_contenu: chaine;
+    type: chaine;
+    url: *URL;
+    encodage: Encodage;
+    mode: ModeDocument;
+    permets_racines_shadow_déclaratives: bool;
 
-    créé_par_appropriate_template_contents_owner_document: bool
+    créé_par_appropriate_template_contents_owner_document: bool;
 
     /* https://html.spec.whatwg.org/multipage/scripting.html#associated-inert-template-document */
-    inert_template_document: *Document
+    inert_template_document: *Document;
 
-    current_script: *HTMLScriptElement
-    pending_parsing_blocking_script: *HTMLScriptElement
-    scripts_that_will_execute_as_soon_as_possible: [..]*HTMLScriptElement
-    scripts_that_will_execute_in_order_as_soon_as_possible: [..]*HTMLScriptElement
-    scripts_that_will_execute_when_the_document_has_finished_parsing: [..]*HTMLScriptElement
+    current_script: *HTMLScriptElement;
+    pending_parsing_blocking_script: *HTMLScriptElement;
+    scripts_that_will_execute_as_soon_as_possible: [..]*HTMLScriptElement;
+    scripts_that_will_execute_in_order_as_soon_as_possible: [..]*HTMLScriptElement;
+    scripts_that_will_execute_when_the_document_has_finished_parsing: [..]*HTMLScriptElement;
 
-    render_blocking_elements: [..]*Element
+    render_blocking_elements: [..]*Element;
 
-    la_parseuse_ne_peut_changer_le_mode: bool
-    ready_for_post_load_tasks: bool
-    page_showing: bool
+    la_parseuse_ne_peut_changer_le_mode: bool;
+    ready_for_post_load_tasks: bool;
+    page_showing: bool;
 
-    origin: Origin
-    browsing_context: *BrowsingContext
-    permissions_policy: PermissionsPolicy
-    active_sandboxing_flags: SandboxingFlags
-    load_timing_info: DocumentLoadTimingInfo
-    about_base_url: *URL
+    origin: Origin;
+    browsing_context: *BrowsingContext;
+    permissions_policy: PermissionsPolicy;
+    active_sandboxing_flags: SandboxingFlags;
+    load_timing_info: DocumentLoadTimingInfo;
+    about_base_url: *URL;
 
-    cross_origin_opener_policy: CrossOriginOpenerPolicy
+    cross_origin_opener_policy: CrossOriginOpenerPolicy;
 
     referrer: chaine /* Peut être vide. */
 
-    policy_container: *PolicyContainer
+    policy_container: *PolicyContainer;
 
-    current_document_readiness: chaine
+    current_document_readiness: chaine;
 
-    is_initial_about_blank: bool
-    latest_entry: *SessionHistoryEntry
+    is_initial_about_blank: bool;
+    latest_entry: *SessionHistoryEntry;
 
-    unload_counter: z32
-    ignore_destructive_writes: z32
-    things_that_delay_the_load_event: n32
+    unload_counter: z32;
+    ignore_destructive_writes: z32;
+    things_that_delay_the_load_event: n32;
 
     /* Pour les navigation de fragments. */
-    target_element: *Element
+    target_element: *Element;
 
     /* CSS. */
-    feuille_de_style_agent: *CSS.CSSStyleSheet @NeVisitePas
-    feuilles_de_style: [..]*CSS.CSSStyleSheet @NeVisitePas
-    arbre_de_disposition: *CSS.ArbreDeDisposition @NeVisitePas
-    globales_dessin: *CSS.GlobalesDessin @NeVisitePas
-    résolveuse_style: *CSS.RésolveuseStyle @NeVisitePas
+    feuille_de_style_agent: *CSS.CSSStyleSheet @NeVisitePas;
+    feuilles_de_style: [..]*CSS.CSSStyleSheet @NeVisitePas;
+    arbre_de_disposition: *CSS.ArbreDeDisposition @NeVisitePas;
+    globales_dessin: *CSS.GlobalesDessin @NeVisitePas;
+    résolveuse_style: *CSS.RésolveuseStyle @NeVisitePas;
     /* Nous accumulons les changements via les différentes fonctions d'ajournement/invalidation,
      * et remettons ceci à zéro lors des rendus via "CSS.donne_arbre_de_disposition_ajourné". */
-    ajournement_arbre := CSS.AjournementArbre.Construction
+    ajournement_arbre := CSS.AjournementArbre.Construction;
 
-    noeud_survolé: *Element
+    noeud_survolé: *Element;
     /* L'élément sous la souris lors des pressions et relâchement. */
-    élément_en_cours_d_activation: *Element
+    élément_en_cours_d_activation: *Element;
 
-    images_disponibles: [..]ImageDisponible @NeVisitePas
+    images_disponibles: [..]ImageDisponible @NeVisitePas;
 
-    script_blocking_style_sheet_set: [..]*Element @NeVisitePas
+    script_blocking_style_sheet_set: [..]*Element @NeVisitePas;
 }
 
 #portée_fichier
@@ -145,68 +145,68 @@ table_virtuelle_document := TableVirtuelleNoeud(
     classe = Document,
     sur_destruction = document_sur_destruction,
     sur_get_the_parent = document_sur_get_the_parent
-)
+);
 
 document_sur_destruction :: fonc (base: *JS.Cellule)
 {
-    noeud_sur_destruction(base)
-    document := base comme *Document
-    CSS.détruit_arbre(document.arbre_de_disposition)
-    CSS.détruit_globales_dessin(document.globales_dessin)
-    CSS.détruit_résolveuse(document.résolveuse_style)
-    déloge_tableau_et_ses_éléments(document.feuilles_de_style, CSS.détruit_feuille_de_style)
+    noeud_sur_destruction(base);
+    document := base comme *Document;
+    CSS.détruit_arbre(document.arbre_de_disposition);
+    CSS.détruit_globales_dessin(document.globales_dessin);
+    CSS.détruit_résolveuse(document.résolveuse_style);
+    déloge_tableau_et_ses_éléments(document.feuilles_de_style, CSS.détruit_feuille_de_style);
 
     pour document.images_disponibles {
-        déloge(it.url)
-        détruit_données_image(*it.données)
+        déloge(it.url);
+        détruit_données_image(*it.données);
     }
 
-    détruit_policy_container(document.policy_container)
+    détruit_policy_container(document.policy_container);
 
-    détruit_url(document.url)
-    déloge(document.images_disponibles)
-    déloge(document.render_blocking_elements)
+    détruit_url(document.url);
+    déloge(document.images_disponibles);
+    déloge(document.render_blocking_elements);
 }
 
 document_sur_get_the_parent :: fonc (base: *EventTarget, event: *Event) -> *EventTarget
 {
-    document := base comme *Document
+    document := base comme *Document;
 
     /* A document’s get the parent algorithm, given an event, returns null if event’s type attribute value is "load"
      * or document does not have a browsing context; otherwise the document’s relevant global object. */
     
     si event.type == EventType.load || document.browsing_context == nul {
-        retourne nul
+        retourne nul;
     }
 
-    retourne JS.vérifie_comme(document.donne_relevant_global_object(), EventTarget)
+    retourne JS.vérifie_comme(document.donne_relevant_global_object(), EventTarget);
 }
 
 #portée_export
 
 crée_noeud_document :: fonc (tas_de_mémoire: *JS.TasDeMémoire, realm: *JS.Realm) -> *Document
 {
-    document := crée_platform_object(tas_de_mémoire, realm, Document)
-    document.genre = GenreNoeud.Document
-    document.encodage = Encodage.UTF8
-    document.mode = ModeDocument.NO_QUIRKS
-    document.type_contenu = "application/xml"
-    document.type = "xml"
-    document.url = donne_about_blank_url()
-    document.document = document
+    document := crée_platform_object(tas_de_mémoire, realm, Document);
+    document.genre = GenreNoeud.Document;
+    document.encodage = Encodage.UTF8;
+    document.mode = ModeDocument.NO_QUIRKS;
+    document.type_contenu = "application/xml";
+    document.type = "xml";
+    document.url = donne_about_blank_url();
+    document.document = document;
 
-    retourne document
+    retourne document;
 }
 
 est_en_mode_quirks :: fonc (document: *Document) -> bool
 {
-    retourne document.mode == ModeDocument.QUIRKS
+    retourne document.mode == ModeDocument.QUIRKS;
 }
 
 /* https://html.spec.whatwg.org/multipage/iframe-embed-object.html#an-iframe-srcdoc-document */
 est_iframe_srcdoc :: fonc (document: *Document) -> bool
 {
-    retourne document.url.est_about_srcdoc()
+    retourne document.url.est_about_srcdoc();
 }
 
 /* https://html.spec.whatwg.org/multipage/document-sequences.html#fully-active */
@@ -215,46 +215,46 @@ est_fully_active :: fonc (document: *Document) -> bool
     /* A Document d is said to be fully active when d is the active document
      * of a navigable navigable, and either navigable is a top-level traversable
      * À FAIRE :  or navigable's container document is fully active. */
-    user_agent := document.donne_user_agent()
+    user_agent := document.donne_user_agent();
     saufsi user_agent {
-        retourne faux
+        retourne faux;
     }
 
     pour user_agent.top_level_traversables {
         si document == it.donne_active_document() {
-            retourne vrai
+            retourne vrai;
         }
     }
 
-    retourne faux
+    retourne faux;
 }
 
 notifie_changement_fully_active :: fonc (document: *Document)
 {
     // notifie les noeuds que le document est devenu fully active.
-    traverse_noeud(document, noeud_sur_document_est_devenu_fully_active)
+    traverse_noeud(document, noeud_sur_document_est_devenu_fully_active);
 }
 
 /* https://html.spec.whatwg.org/multipage/urls-and-fetching.html#document-base-url */
 donne_base_url :: fonc (document: *Document) -> *URL
 {
     // À FAIRE : implémente
-    retourne document.url
+    retourne document.url;
 }
 
 donne_doctype :: fonc (document: *Document) -> *DocumentType
 {
     pour document.enfants {
         si it.genre == GenreNoeud.DocumentType {
-            retourne it comme *DocumentType
+            retourne it comme *DocumentType;
         }
     }
-    retourne nul
+    retourne nul;
 }
 
 donne_title_element :: fonc (document: *Document) -> *Element
 {
-    retourne donne_premier_élément_de_type(document, TAG_title)
+    retourne donne_premier_élément_de_type(document, TAG_title);
 }
 
 /* https://dom.spec.whatwg.org/#document-element */
@@ -262,62 +262,62 @@ donne_document_element :: fonc (document: *Document) -> *Element
 {
     pour document.enfants {
         si est_élément(it) {
-            retourne it comme *Element
+            retourne it comme *Element;
         }
     }
-    retourne nul
+    retourne nul;
 }
 
 /* https://html.spec.whatwg.org/multipage/dom.html#dom-document-currentscript */
 donne_current_script :: fonc (document: *Document) -> *HTMLScriptElement
 {
-    retourne document.current_script
+    retourne document.current_script;
 }
 
 /* https://html.spec.whatwg.org/multipage/dom.html#dom-document-getelementsbyname-dev */
 get_elements_by_name :: fonc (document: *Document, element_name: DOMString) -> *NodeList
 {
-    traversée: [..]*Node
-    diffère déloge(traversée)
+    traversée: [..]*Node;
+    diffère déloge(traversée);
 
-    tableau_ajoute(*traversée, document)
+    tableau_ajoute(*traversée, document);
 
-    résultat := crée_node_list(document)
+    résultat := crée_node_list(document);
 
     tantque traversée.taille != 0 {
-        noeud := traversée[traversée.taille - 1]
-        traversée.taille -= 1
+        noeud := traversée[traversée.taille - 1];
+        traversée.taille -= 1;
 
         si noeud.est_élément() {
-            élément := noeud comme *Element
-            name := élément.donne_attribut_ou_chaine_vide(ATTR_name)
+            élément := noeud comme *Element;
+            name := élément.donne_attribut_ou_chaine_vide(ATTR_name);
             si name == element_name {
-                résultat.ajoute_noeud(élément)
+                résultat.ajoute_noeud(élément);
             }
         }
 
         pour > noeud.enfants {
-            tableau_ajoute(*traversée, it)
+            tableau_ajoute(*traversée, it);
         }
     }
 
-    retourne résultat
+    retourne résultat;
 }
 
 donne_premier_élément_de_type :: fonc (noeud: *Node, tag: DOMString) -> *Element
 {
     si noeud.est_élément_type(tag) {
-        retourne noeud comme *Element
+        retourne noeud comme *Element;
     }
 
     pour noeud.enfants {
-        élément := donne_premier_élément_de_type(it, tag)
+        élément := donne_premier_élément_de_type(it, tag);
         si élément {
-            retourne élément
+            retourne élément;
         }
     }
 
-    retourne nul
+    retourne nul;
 }
 
 /* https://dom.spec.whatwg.org/#document-element */
@@ -325,60 +325,60 @@ donne_élément_document :: fonc (document: *Document) -> *Element
 {
     pour document.enfants {
         si it.est_élément() {
-            retourne it comme *Element
+            retourne it comme *Element;
         }
     }
-    retourne nul
+    retourne nul;
 }
 
 /* https://html.spec.whatwg.org/multipage/dom.html#dom-tree-accessors */
 donne_élément_html :: fonc (document: *Document) -> *HTMLHtmlElement
 {
-    élément := donne_élément_document(document)
+    élément := donne_élément_document(document);
     si élément && élément.local_name == TAG_html {
-        retourne élément comme *HTMLHtmlElement
+        retourne élément comme *HTMLHtmlElement;
     }
-    retourne nul
+    retourne nul;
 }
 
 /* https://html.spec.whatwg.org/multipage/dom.html#the-head-element-2 */
 donne_head :: fonc (document: *Document) -> *Element
 {
-    élément_html := document.donne_élément_html()
+    élément_html := document.donne_élément_html();
     si élément_html {
         pour élément_html.enfants {
             si it.est_élément_type(TAG_head) {
-                retourne it comme *Element
+                retourne it comme *Element;
             }
         }
     }
-    retourne nul
+    retourne nul;
 }
 
 /* https://html.spec.whatwg.org/multipage/dom.html#the-body-element-2 */
 donne_élément_body :: fonc (document: *Document) -> *Element
 {
-    élément_html := document.donne_élément_html()
+    élément_html := document.donne_élément_html();
     si élément_html {
         pour élément_html.enfants {
             si it.est_élément_type(TAG_body) || it.est_élément_type(TAG_frameset) {
-                retourne it comme *Element
+                retourne it comme *Element;
             }
         }
     }
-    retourne nul
+    retourne nul;
 }
 
 /* https://html.spec.whatwg.org/multipage/dom.html#dom-document-scripts */
 donne_scripts :: fonc (document: *Document) -> *HTMLCollection
 {
-    retourne crée_html_collection_pour_filtrer_les_éléments(document, TAG_script)
+    retourne crée_html_collection_pour_filtrer_les_éléments(document, TAG_script);
 }
 
 /* https://html.spec.whatwg.org/multipage/parsing.html#ready-for-post-load-tasks */
 mark_as_ready_for_post_load_tasks :: fonc (document: *Document)
 {
-    document.ready_for_post_load_tasks = vrai
+    document.ready_for_post_load_tasks = vrai;
 }
 
 /* https://html.spec.whatwg.org/multipage/dom.html#update-the-current-document-readiness */
@@ -386,11 +386,11 @@ update_the_current_document_readiness :: fonc (document: *Document, readiness_va
 {
     // 1. If document's current document readiness equals readinessValue, then return.
     si document.current_document_readiness == readiness_value {
-        retourne
+        retourne;
     }
 
     // 2. Set document's current document readiness to readinessValue.
-    document.current_document_readiness = readiness_value
+    document.current_document_readiness = readiness_value;
 
     // À FAIRE : 3. If document is associated with an HTML parser, then:
 
@@ -415,251 +415,251 @@ ajoute_feuille_de_style :: fonc (document: *Document, feuille_de_style: *CSS.CSS
     si feuille_de_style.owner_node {
         pour document.feuilles_de_style {
             saufsi it.owner_node {
-                continue
+                continue;
             }
 
             si est_avant_noeud_dans_l_arbre(feuille_de_style.owner_node, it.owner_node) {
-                tableau_insère_indice(*document.feuilles_de_style, feuille_de_style, indice_it)
-                retourne
+                tableau_insère_indice(*document.feuilles_de_style, feuille_de_style, indice_it);
+                retourne;
             }
         }
     }
 
-    tableau_ajoute(*document.feuilles_de_style, feuille_de_style)
+    tableau_ajoute(*document.feuilles_de_style, feuille_de_style);
 }
 
 supprime_feuille_de_style_associée :: fonc (document: *Document, élément: *Element)
 {
     pour document.feuilles_de_style {
         si it.owner_node != élément {
-            continue
+            continue;
         }
 
-        tableau_supprime_indice(*document.feuilles_de_style, indice_it)
-        CSS.détruit_feuille_de_style(it)
-        arrête
+        tableau_supprime_indice(*document.feuilles_de_style, indice_it);
+        CSS.détruit_feuille_de_style(it);
+        arrête;
     }
 }
 
 définis_noeud_survolé :: fonc (document: *Document, noeud: *Element)
 {
     si document.noeud_survolé == noeud {
-        retourne
+        retourne;
     }
 
     si document.noeud_survolé {
-        document.noeud_survolé.pseudo_classes.Hover = faux
+        document.noeud_survolé.pseudo_classes.Hover = faux;
 
-        noeud_courant := document.noeud_survolé
+        noeud_courant := document.noeud_survolé;
         tantque noeud_courant != nul {
-            noeud_courant.pseudo_classes.Hover = faux
-            parent := noeud_courant.parent
+            noeud_courant.pseudo_classes.Hover = faux;
+            parent := noeud_courant.parent;
             saufsi parent.est_élément() {
-                arrête
+                arrête;
             }
-            noeud_courant = parent comme *Element
+            noeud_courant = parent comme *Element;
         }
     }
 
     si noeud {
-        noeud.pseudo_classes.Hover = vrai
+        noeud.pseudo_classes.Hover = vrai;
 
-        noeud_courant := noeud
+        noeud_courant := noeud;
         tantque noeud_courant != nul {
-            noeud_courant.pseudo_classes.Hover = vrai
-            parent := noeud_courant.parent
+            noeud_courant.pseudo_classes.Hover = vrai;
+            parent := noeud_courant.parent;
             saufsi parent.est_élément() {
-                arrête
+                arrête;
             }
-            noeud_courant = parent comme *Element
+            noeud_courant = parent comme *Element;
         }
     }
 
-    ancien_noeud := document.noeud_survolé
-    document.noeud_survolé = noeud
+    ancien_noeud := document.noeud_survolé;
+    document.noeud_survolé = noeud;
 
-    ancêtre := donne_ancêtre_élément_commun(ancien_noeud, noeud)
-    assert(ancêtre != nul)
-    invalide_style_depuis_élément(document, ancêtre)
+    ancêtre := donne_ancêtre_élément_commun(ancien_noeud, noeud);
+    assert(ancêtre != nul);
+    invalide_style_depuis_élément(document, ancêtre);
 
-    user_agent := document.donne_user_agent()
+    user_agent := document.donne_user_agent();
     si user_agent {
-        user_agent.notifie_élément_survolé()
+        user_agent.notifie_élément_survolé();
     }
 }
 
 donne_lien_survolé :: fonc (document: *Document) -> *HTMLAnchorElement
 {
-    noeud := document.noeud_survolé
+    noeud := document.noeud_survolé;
 
     tantque noeud != nul {
         si noeud.local_name == TAG_a {
-            retourne noeud comme *HTMLAnchorElement
+            retourne noeud comme *HTMLAnchorElement;
         }
 
-        parent := noeud.parent
+        parent := noeud.parent;
         saufsi parent.est_élément() {
-            retourne nul
+            retourne nul;
         }
 
-        noeud = parent comme *Element
+        noeud = parent comme *Element;
     }
 
-    retourne nul
+    retourne nul;
 }
 
 donne_ancêtre_élément_commun :: fonc (a: *Element, b: *Element) -> *Element
 {
     si a == nul {
-        retourne b
+        retourne b;
     }
 
     si b == nul {
-        retourne a
+        retourne a;
     }
 
-    ancêtres_de_a: [..]*Element
-    diffère déloge(ancêtres_de_a)
+    ancêtres_de_a: [..]*Element;
+    diffère déloge(ancêtres_de_a);
 
-    noeud := a
+    noeud := a;
     boucle {
-        ensemble_ajoute(*ancêtres_de_a, noeud)
+        ensemble_ajoute(*ancêtres_de_a, noeud);
         saufsi noeud.parent.est_élément() {
-            arrête
+            arrête;
         }
-        noeud = noeud.parent comme *Element
+        noeud = noeud.parent comme *Element;
     }
 
-    noeud = b
+    noeud = b;
 
     boucle {
         si ensemble_possède(ancêtres_de_a, noeud) {
-            retourne noeud
+            retourne noeud;
         }
 
         saufsi noeud.parent.est_élément() {
-            arrête
+            arrête;
         }
-        noeud = noeud.parent comme *Element
+        noeud = noeud.parent comme *Element;
     }
 
-    retourne nul
+    retourne nul;
 }
 
 /* Invalide le style de manière générale. */
 invalide_style :: fonc (document: *Document)
 {
-    document.définis_ajournement_arbre(CSS.AjournementArbre.Construction)
+    document.définis_ajournement_arbre(CSS.AjournementArbre.Construction);
 }
 
 /* Invalide le style suite à la modification d'une pseudo-classe. */
 invalide_style :: fonc (document: *Document, élément: *Element, pseudo_classe: CSS.PseudoClasses)
 {
     saufsi document.résolveuse_style {
-        retourne
+        retourne;
     }
 
     saufsi CSS.possède_règle_avec_pseudo_classe(document.résolveuse_style, pseudo_classe) {
-        retourne
+        retourne;
     }
 
-    invalide_style_depuis_élément(document, élément)
+    invalide_style_depuis_élément(document, élément);
 }
 
 /* Invalide le style suite au redimensionnement de la fenêtre. */
 invalide_style_pour_redimensionnement :: fonc (document: *Document, largeur: z32, hauteur: z32)
 {
     saufsi document.résolveuse_style {
-        retourne
+        retourne;
     }
 
-    ajournement := CSS.donne_ajournement_pour_redimensionnement(document.résolveuse_style, largeur, hauteur)
-    document.définis_ajournement_arbre(ajournement)
+    ajournement := CSS.donne_ajournement_pour_redimensionnement(document.résolveuse_style, largeur, hauteur);
+    document.définis_ajournement_arbre(ajournement);
 }
 
 /* Invalide le style suite au changement de la valeur de l'attribut "id". */
 invalide_style_pour_id :: fonc (document: *Document, élément: *Element, vieil_id: *DOMString, nouvel_id: *DOMString)
 {
     saufsi document.résolveuse_style {
-        retourne
+        retourne;
     }
 
-    résolveuse := document.résolveuse_style
-    possède_règle := faux
+    résolveuse := document.résolveuse_style;
+    possède_règle := faux;
     si vieil_id && CSS.possède_règle_avec_id(résolveuse, mémoire(vieil_id)) {
-        possède_règle = vrai
+        possède_règle = vrai;
     }
 
     si nouvel_id && CSS.possède_règle_avec_id(résolveuse, mémoire(nouvel_id)) {
-        possède_règle = vrai
+        possède_règle = vrai;
     }
 
     saufsi possède_règle {
-        retourne
+        retourne;
     }
 
-    invalide_style_depuis_élément(document, élément)
+    invalide_style_depuis_élément(document, élément);
 }
 
 /* Invalide le style suite au changement de la valeur de l'attribut spécifié. */
 invalide_style_pour_attribut :: fonc (document: *Document, élément: *Element, attribut: DOMString)
 {
     saufsi document.résolveuse_style {
-        retourne
+        retourne;
     }
 
-    résolveuse := document.résolveuse_style
+    résolveuse := document.résolveuse_style;
     saufsi CSS.possède_règle_avec_attribut(résolveuse, attribut) {
-        retourne
+        retourne;
     }
 
-    invalide_style_depuis_élément(document, élément)
+    invalide_style_depuis_élément(document, élément);
 }
 
 invalide_style_depuis_élément :: fonc (document: *Document, élément: *Element)
 {
     saufsi document.résolveuse_style {
-        retourne
+        retourne;
     }
 
-    ajournement := donne_ajournement_depuis_élément(document.résolveuse_style, élément)
-    document.définis_ajournement_arbre(ajournement)
+    ajournement := donne_ajournement_depuis_élément(document.résolveuse_style, élément);
+    document.définis_ajournement_arbre(ajournement);
 }
 
 invalide_style_pour_image :: fonc (document: *Document)
 {
     saufsi document.résolveuse_style {
-        retourne
+        retourne;
     }
-    document.définis_ajournement_arbre(CSS.AjournementArbre.Dessin)
+    document.définis_ajournement_arbre(CSS.AjournementArbre.Dessin);
 }
 
 requiers_redessin :: fonc (document: *Document)
 {
     saufsi document.résolveuse_style {
-        retourne
+        retourne;
     }
-    document.définis_ajournement_arbre(CSS.AjournementArbre.Dessin)
+    document.définis_ajournement_arbre(CSS.AjournementArbre.Dessin);
 }
 
 donne_ajournement_depuis_élément :: fonc (résolveuse: *CSS.RésolveuseStyle, élément: *Element) -> CSS.AjournementArbre
 {
-    résultat := CSS.donne_ajournement_pour_changement_style(résolveuse, élément)
+    résultat := CSS.donne_ajournement_pour_changement_style(résolveuse, élément);
 
     si résultat == CSS.AjournementArbre.zéro && élément.box == nul {
         /* Nous avons, par exemple, un noeud qui est "display: none", et reste "display: none". */
-        retourne résultat
+        retourne résultat;
     }
 
     pour élément.enfants {
         saufsi it.est_élément() {
-            continue
+            continue;
         }
 
-        résultat |= donne_ajournement_depuis_élément(résolveuse, it comme *Element)
+        résultat |= donne_ajournement_depuis_élément(résolveuse, it comme *Element);
     }
 
-    retourne résultat
+    retourne résultat;
 }
 
 /* https://html.spec.whatwg.org/multipage/semantics.html#contributes-a-script-blocking-style-sheet */
@@ -670,7 +670,7 @@ contributes_a_script_blocking_style_sheet :: fonc (el: *Element) -> bool
 
     // el was created by that Document's parser.
     saufsi el.fut_créé_par_parseuse {
-        retourne faux
+        retourne faux;
     }
 
     // el is either a style element or a link element that was an external resource link that contributes to the styling processing model when the el was created by the parser.
@@ -682,7 +682,7 @@ contributes_a_script_blocking_style_sheet :: fonc (el: *Element) -> bool
     // The last time the event loop reached step 1, el's root was that Document.
 
     // The user agent hasn't given up on loading that particular style sheet yet. A user agent may give up on loading a style sheet at any time.
-    retourne faux
+    retourne faux;
 }
 
 /* https://html.spec.whatwg.org/multipage/semantics.html#has-a-style-sheet-that-is-blocking-scripts */
@@ -690,69 +690,69 @@ has_a_style_sheet_that_is_blocking_scripts :: fonc (document: *Document) -> bool
 {
     // 1. If document's script-blocking style sheet set is not empty, then return true.
     si document.script_blocking_style_sheet_set.taille != 0 {
-        retourne vrai
+        retourne vrai;
     }
 
     // 2. If document's node navigable is null, then return false.
-    navigable := document.donne_node_navigable()
+    navigable := document.donne_node_navigable();
     si navigable == nul {
-        retourne faux
+        retourne faux;
     }
 
     // 3. Let containerDocument be document's node navigable's container document.
-    container_document := donne_container_document(navigable)
+    container_document := donne_container_document(navigable);
 
     // 4. If containerDocument is non-null and containerDocument's script-blocking
     //    style sheet set is not empty, then return true.
     si container_document != nul && container_document.script_blocking_style_sheet_set.taille != 0 {
-        retourne vrai
+        retourne vrai;
     }
 
     // 5. Return false.
-    retourne faux
+    retourne faux;
 }
 
 /* https://html.spec.whatwg.org/multipage/semantics.html#has-no-style-sheet-that-is-blocking-scripts */
 has_no_style_sheet_that_is_blocking_scripts :: fonc (document: *Document) -> bool
 {
-    retourne !has_a_style_sheet_that_is_blocking_scripts(document)
+    retourne !has_a_style_sheet_that_is_blocking_scripts(document);
 }
 
 #portée_fichier
 
 définis_ajournement_arbre :: fonc (document: *Document, ajournement: CSS.AjournementArbre)
 {
-    document.ajournement_arbre |= ajournement
+    document.ajournement_arbre |= ajournement;
 }
 
 #portée_export
 
 donne_user_agent :: fonc (document: *Document) -> *UserAgent
 {
-    browsing_context := document.browsing_context
+    browsing_context := document.browsing_context;
     saufsi browsing_context {
         /* Permet d'appeler cette fonction en dehors d'un contexte de navigation. */
-        retourne nul
+        retourne nul;
     }
 
-    assert(browsing_context.group != nul)
-    assert(browsing_context.group.user_agent != nul)
-    retourne browsing_context.group.user_agent
+    assert(browsing_context.group != nul);
+    assert(browsing_context.group.user_agent != nul);
+    retourne browsing_context.group.user_agent;
 }
 
 /* https://dom.spec.whatwg.org/#dom-document-createelement
  * À FAIRE : standardise */
 create_element :: fonc (document: *Document, local_name: DOMString) -> *Element
 {
-    retourne crée_un_élément(nul, document, local_name, EspaceDeNom_HTML)
+    retourne crée_un_élément(nul, document, local_name, EspaceDeNom_HTML);
 }
 
 create_text_node :: fonc (document: *Document, data: DOMString) -> *Text
 {
-    résultat := crée_noeud_texte(document)
-    src := data.donne_chaine_utf16()
-    résultat.données = copie_chaine(src)
-    retourne résultat
+    résultat := crée_noeud_texte(document);
+    src := data.donne_chaine_utf16();
+    résultat.données = copie_chaine(src);
+    retourne résultat;
 }
 
 /** \} */
@@ -765,23 +765,23 @@ donne_image_pour_url :: fonc (document: *Document, url: chaine) -> ImageDisponib
 {
     pour document.images_disponibles {
         si it.url == url {
-            retourne it
+            retourne it;
         }
     }
 
-    résultat: ImageDisponible
-    résultat.url = copie_chaine(url)
-    résultat.état = ÉtatRequêteImage.NonCommencé
-    tableau_ajoute(*document.images_disponibles, résultat)
-    retourne résultat
+    résultat: ImageDisponible;
+    résultat.url = copie_chaine(url);
+    résultat.état = ÉtatRequêteImage.NonCommencé;
+    tableau_ajoute(*document.images_disponibles, résultat);
+    retourne résultat;
 }
 
 définis_état_requête_image :: fonc (document: *Document, url: chaine, état: ÉtatRequêteImage)
 {
     pour & document.images_disponibles {
         si it.url == url {
-            it.état = état
-            retourne
+            it.état = état;
+            retourne;
         }
     }
 }
@@ -790,9 +790,9 @@ définis_données_image :: fonc (document: *Document, url: chaine, données: Nou
 {
     pour & document.images_disponibles {
         si it.url == url {
-            it.données = données
-            it.état = ÉtatRequêteImage.Succès
-            retourne
+            it.données = données;
+            it.état = ÉtatRequêteImage.Succès;
+            retourne;
         }
     }
 }
@@ -805,26 +805,26 @@ définis_données_image :: fonc (document: *Document, url: chaine, données: Nou
  * \{ */
 
 DocumentType :: struct {
-    empl base_noeud: Node
-    table = *table_virtuelle_type_document
+    empl base_noeud: Node;
+    table = *table_virtuelle_type_document;
 
-    nom: DOMString
-    public_id: DOMString
-    system_id: DOMString
+    nom: DOMString;
+    public_id: DOMString;
+    system_id: DOMString;
 }
 
 crée_noeud_doctype :: fonc (document: *Document) -> *DocumentType
 {
-    doctype := crée_platform_object(document, DocumentType)
-    doctype.genre = GenreNoeud.DocumentType
-    doctype.document = document
+    doctype := crée_platform_object(document, DocumentType);
+    doctype.genre = GenreNoeud.DocumentType;
+    doctype.document = document;
 
-    retourne doctype
+    retourne doctype;
 }
 
 est_document_type :: fonc (noeud: *Node) -> bool
 {
-    retourne noeud.genre == GenreNoeud.DocumentType
+    retourne noeud.genre == GenreNoeud.DocumentType;
 }
 
 #portée_fichier
@@ -832,7 +832,7 @@ est_document_type :: fonc (noeud: *Node) -> bool
 table_virtuelle_type_document := TableVirtuelleNoeud(
     classe = DocumentType,
     sur_destruction = noeud_sur_destruction
-)
+);
 
 #portée_export
 
@@ -844,29 +844,29 @@ table_virtuelle_type_document := TableVirtuelleNoeud(
  * \{ */
 
 DocumentFragment :: struct {
-    empl base_noeud: Node
-    table = *table_virtuelle_fragment_document
+    empl base_noeud: Node;
+    table = *table_virtuelle_fragment_document;
 
-    host: *Element
+    host: *Element;
 }
 
 crée_noeud_fragment_document :: fonc (document: *Document) -> *DocumentFragment
 {
-    doctype := crée_platform_object(document, DocumentFragment)
-    doctype.genre = GenreNoeud.DocumentFragment
-    doctype.document = document
+    doctype := crée_platform_object(document, DocumentFragment);
+    doctype.genre = GenreNoeud.DocumentFragment;
+    doctype.document = document;
 
-    retourne doctype
+    retourne doctype;
 }
 
 /* https://dom.spec.whatwg.org/#concept-documentfragment-host */
 donne_host :: fonc (node: *Node) -> *Element
 {
     si node.genre != GenreNoeud.DocumentFragment {
-        retourne nul
+        retourne nul;
     }
 
-    retourne (node comme *DocumentFragment).host
+    retourne (node comme *DocumentFragment).host;
 }
 
 #portée_fichier
@@ -874,7 +874,7 @@ donne_host :: fonc (node: *Node) -> *Element
 table_virtuelle_fragment_document := TableVirtuelleNoeud(
     classe = DocumentFragment,
     sur_destruction = noeud_sur_destruction
-)
+);
 
 #portée_export
 
@@ -884,18 +884,18 @@ is_host_including_inclusive_ancestor :: fonc (A: *Node, B: *Node) -> bool
     // An object A is a host-including inclusive ancestor of an object B,
     // if either A is an inclusive ancestor of B,
     si is_inclusive_ancestor(A, B) {
-        retourne vrai
+        retourne vrai;
     }
 
     // or if B’s root has a non-null host and A is a host-including inclusive ancestor of B’s root’s host.
-    root := donne_racine(B)
-    root_host := donne_host(root)
+    root := donne_racine(B);
+    root_host := donne_host(root);
 
     si root_host && is_host_including_inclusive_ancestor(A, root_host) {
-        retourne vrai
+        retourne vrai;
     }
 
-    retourne faux
+    retourne faux;
 }
 
 /** \} */
@@ -907,35 +907,35 @@ is_host_including_inclusive_ancestor :: fonc (A: *Node, B: *Node) -> bool
 
 /* https://dom.spec.whatwg.org/#concept-tree-descendant */
 Descendants :: struct {
-    node: *Node
+    node: *Node;
 }
 
 opérateur pour :: (descendants: Descendants) -> *Node
 {
-    assert(descendants.node != nul)
+    assert(descendants.node != nul);
 
-    traversée: [..]*Node
-    diffère déloge(traversée)
+    traversée: [..]*Node;
+    diffère déloge(traversée);
 
     pour > descendants.node.enfants {
-        tableau_ajoute(*traversée, it)
+        tableau_ajoute(*traversée, it);
     }
 
-    indice_node := 0
+    indice_node := 0;
 
     tantque traversée {
-        node := traversée[traversée.taille - 1]
-        traversée.taille -= 1
+        node := traversée[traversée.taille - 1];
+        traversée.taille -= 1;
 
-        `it = node
-        `indice_it = indice_node
+        `it = node;
+        `indice_it = indice_node;
 
-        #corps_boucle
+        #corps_boucle;
 
-        indice_node += 1
+        indice_node += 1;
 
         pour > node.enfants {
-            tableau_ajoute(*traversée, it)
+            tableau_ajoute(*traversée, it);
         }
     }
 }
@@ -943,33 +943,33 @@ opérateur pour :: (descendants: Descendants) -> *Node
 /* https://dom.spec.whatwg.org/#concept-tree-inclusive-descendant
  * An inclusive descendant is an object or one of its descendants. */
 InclusiveDescendants :: struct {
-    node: *Node
+    node: *Node;
 }
 
 opérateur pour :: (inclusive_descendants: InclusiveDescendants) -> *Node
 {
-    assert(inclusive_descendants.node != nul)
+    assert(inclusive_descendants.node != nul);
 
-    traversée: [..]*Node
-    diffère déloge(traversée)
+    traversée: [..]*Node;
+    diffère déloge(traversée);
 
-    tableau_ajoute(*traversée, inclusive_descendants.node)
+    tableau_ajoute(*traversée, inclusive_descendants.node);
     
-    indice_node := 0
+    indice_node := 0;
 
     tantque traversée {
-        node := traversée[traversée.taille - 1]
-        traversée.taille -= 1
+        node := traversée[traversée.taille - 1];
+        traversée.taille -= 1;
 
-        `it = node
-        `indice_it = indice_node
+        `it = node;
+        `indice_it = indice_node;
 
-        #corps_boucle
+        #corps_boucle;
 
-        indice_node += 1
+        indice_node += 1;
 
         pour > node.enfants {
-            tableau_ajoute(*traversée, it)
+            tableau_ajoute(*traversée, it);
         }
     }
 }
@@ -978,38 +978,38 @@ opérateur pour :: (inclusive_descendants: InclusiveDescendants) -> *Node
 is_inclusive_ancestor :: fonc (A: *Node, B: *Node) -> bool
 {
     // An inclusive ancestor is an object or one of its ancestors.
-    parent := B
+    parent := B;
     tantque parent != nul {
         si A == parent {
-            retourne vrai
+            retourne vrai;
         }
 
-        parent = parent.parent
+        parent = parent.parent;
     }
 
-    retourne faux
+    retourne faux;
 }
 
 /* https://dom.spec.whatwg.org/#concept-tree-next-sibling */
 donne_next_sibling :: fonc (node: *Node) -> *Node
 {
     // The next sibling of an object is its first following sibling or null if it has no following sibling.
-    parent := node.parent
+    parent := node.parent;
     saufsi parent {
-        retourne nul
+        retourne nul;
     }
 
     node_trouvé := faux    
     pour parent.enfants {
         si node_trouvé {
-            retourne it
+            retourne it;
         }
         si it == node {
-            node_trouvé = vrai
+            node_trouvé = vrai;
         }
     }
 
-    retourne nul
+    retourne nul;
 }
 
 /** } */
@@ -1020,32 +1020,32 @@ donne_next_sibling :: fonc (node: *Node) -> *Node
  * \{ */
 
 ShadowRootMode :: énum {
-    open
-    closed
+    open;
+    closed;
 }
 
 SlotAssignment :: énum n8 {
-    manual
-    named
+    manual;
+    named;
 }
 
 ShadowRoot :: struct {
-    empl fragment: DocumentFragment
-    table = *table_virtuelle_shadow_root
+    empl fragment: DocumentFragment;
+    table = *table_virtuelle_shadow_root;
 
-    mode: ShadowRootMode
+    mode: ShadowRootMode;
 
     /* https://dom.spec.whatwg.org/#shadowroot-slot-assignment
      * Shadow roots have an associated slot assignment ("manual" or "named"). */
-    slot_assignment: SlotAssignment
+    slot_assignment: SlotAssignment;
 }
 
 crée_shadow_root :: fonc (document: *Document) -> *ShadowRoot
 {
-    doctype := crée_platform_object(document, ShadowRoot)
-    doctype.genre = GenreNoeud.ShadowRoot
-    doctype.document = document
-    retourne doctype
+    doctype := crée_platform_object(document, ShadowRoot);
+    doctype.genre = GenreNoeud.ShadowRoot;
+    doctype.document = document;
+    retourne doctype;
 }
 
 #portée_fichier
@@ -1054,22 +1054,22 @@ table_virtuelle_shadow_root := TableVirtuelleNoeud(
     classe = ShadowRoot,
     sur_destruction = noeud_sur_destruction,
     sur_get_the_parent = shadow_root_sur_get_the_parent
-)
+);
 
 shadow_root_sur_get_the_parent :: fonc (base: *EventTarget, event: *Event) ->*EventTarget
 {
-    shadow_root := base comme *ShadowRoot
+    shadow_root := base comme *ShadowRoot;
 
     /* A shadow root’s get the parent algorithm, given an event, returns null
      * if event’s composed flag is unset and shadow root is the root of event’s
      * path’s first struct’s invocation target; otherwise shadow root’s host. */
-    invocation_target := event.path[0].invocation_target
+    invocation_target := event.path[0].invocation_target;
     
     si event.composed == faux && invocation_target.est_node() && donne_racine(invocation_target comme *Node) == shadow_root {
-        retourne nul
+        retourne nul;
     }
 
-    retourne shadow_root.host
+    retourne shadow_root.host;
 }
 
 #portée_export
@@ -1077,20 +1077,20 @@ shadow_root_sur_get_the_parent :: fonc (base: *EventTarget, event: *Event) ->*Ev
 /* https://dom.spec.whatwg.org/#concept-shadow-including-root */
 donne_racine_shadow_including :: fonc (noeud: *Node) -> *Node
 {
-    racine := noeud.donne_racine()
+    racine := noeud.donne_racine();
 
     si racine.genre == GenreNoeud.ShadowRoot {
-        shadow_root := racine comme *ShadowRoot
-        retourne donne_racine_shadow_including(shadow_root.host)
+        shadow_root := racine comme *ShadowRoot;
+        retourne donne_racine_shadow_including(shadow_root.host);
     }
 
-    retourne racine
+    retourne racine;
 }
 
 racine_est_shadow_root :: fonc (noeud: *Node) -> bool
 {
-    racine := donne_racine(noeud)
-    retourne racine.genre == GenreNoeud.ShadowRoot
+    racine := donne_racine(noeud);
+    retourne racine.genre == GenreNoeud.ShadowRoot;
 }
 
 /* https://dom.spec.whatwg.org/#retarget */
@@ -1106,7 +1106,7 @@ retarget :: fonc (a: *EventTarget, b: *EventTarget @inutilisée) -> *EventTarget
         // 2. Set A to A’s root’s host.
     //}
     // imprime("À FAIRE : [%]\n", #nom_de_cette_fonction)
-    retourne a
+    retourne a;
 }
 
 /** \} */
@@ -1118,9 +1118,9 @@ retarget :: fonc (a: *EventTarget, b: *EventTarget @inutilisée) -> *EventTarget
  * \{ */
 
 NoeudDonnéesCaractères :: struct {
-    empl base_noeud: Node
+    empl base_noeud: Node;
 
-    données: ChaineUTF16
+    données: ChaineUTF16;
 }
 
 est_données_caractères :: fonc (noeud: Node)
@@ -1129,10 +1129,10 @@ est_données_caractères :: fonc (noeud: Node)
         Commentaire,
         Texte,
         ProcessingInstruction {
-            retourne vrai
+            retourne vrai;
         }
         sinon {
-            retourne faux
+            retourne faux;
         }
     }
 }
@@ -1145,25 +1145,25 @@ est_données_caractères :: fonc (noeud: Node)
  * \{ */
 
 Text :: struct {
-    empl base_données: NoeudDonnéesCaractères
-    table = *table_virtuelle_texte
+    empl base_données: NoeudDonnéesCaractères;
+    table = *table_virtuelle_texte;
 
-    box: *CSS.Box
+    box: *CSS.Box;
 }
 
 crée_noeud_texte :: fonc (document: *Document) -> *Text
 {
-    texte := crée_platform_object(document, Text)
-    texte.genre = GenreNoeud.Texte
-    texte.document = document
+    texte := crée_platform_object(document, Text);
+    texte.genre = GenreNoeud.Texte;
+    texte.document = document;
 
-    retourne texte
+    retourne texte;
 }
 
 /* https://html.spec.whatwg.org/multipage/dom.html#inter-element-whitespace */
 est_espace_blanche_entre_élément :: fonc (texte: *Text) -> bool
 {
-    retourne est_vide_ou_uniquement_espaces_blanches(texte.données)
+    retourne est_vide_ou_uniquement_espaces_blanches(texte.données);
 }
 
 #portée_fichier
@@ -1171,16 +1171,16 @@ est_espace_blanche_entre_élément :: fonc (texte: *Text) -> bool
 table_virtuelle_texte := TableVirtuelleNoeud(
     classe = Text,
     sur_destruction = texte_sur_destruction
-)
+);
 
 texte_sur_destruction :: fonc (base: *JS.Cellule)
 {
-    noeud_sur_destruction(base)
-    texte := base comme *Text
+    noeud_sur_destruction(base);
+    texte := base comme *Text;
     si texte.box {
-        texte.box.noeud = nul
+        texte.box.noeud = nul;
     }
-    détruit_chaine(texte.données)
+    détruit_chaine(texte.données);
 }
 
 #portée_export
@@ -1193,17 +1193,17 @@ texte_sur_destruction :: fonc (base: *JS.Cellule)
  * \{ */
 
 NoeudSectionCDATA :: struct {
-    empl base_texte: Text
-    table = *table_virtuelle_section_cdata
+    empl base_texte: Text;
+    table = *table_virtuelle_section_cdata;
 }
 
 crée_noeud_section_cdata :: fonc (document: *Document) -> *Text
 {
-    texte := crée_platform_object(document, NoeudSectionCDATA)
-    texte.genre = GenreNoeud.Section_CDATA
-    texte.document = document
+    texte := crée_platform_object(document, NoeudSectionCDATA);
+    texte.genre = GenreNoeud.Section_CDATA;
+    texte.document = document;
 
-    retourne texte
+    retourne texte;
 }
 
 #portée_fichier
@@ -1211,13 +1211,13 @@ crée_noeud_section_cdata :: fonc (document: *Document) -> *Text
 table_virtuelle_section_cdata := TableVirtuelleNoeud(
     classe = NoeudSectionCDATA,
     sur_destruction = section_cdata_sur_destruction
-)
+);
 
 section_cdata_sur_destruction :: fonc (base: *JS.Cellule)
 {
-    noeud_sur_destruction(base)
-    section_cdata := base comme *NoeudSectionCDATA
-    détruit_chaine(section_cdata.données)
+    noeud_sur_destruction(base);
+    section_cdata := base comme *NoeudSectionCDATA;
+    détruit_chaine(section_cdata.données);
 }
 
 #portée_export
@@ -1230,18 +1230,18 @@ section_cdata_sur_destruction :: fonc (base: *JS.Cellule)
  * \{ */
 
 NoeudCommentaire :: struct {
-    empl base_données: NoeudDonnéesCaractères
-    table = *table_virtuelle_commentaire
+    empl base_données: NoeudDonnéesCaractères;
+    table = *table_virtuelle_commentaire;
 }
 
 crée_noeud_commentaire :: fonc (document: *Document, données: ChaineUTF16) -> *NoeudCommentaire
 {
-    commentaire := crée_platform_object(document, NoeudCommentaire)
-    commentaire.genre = GenreNoeud.Commentaire
-    commentaire.document = document
-    commentaire.données = copie_chaine(données)
+    commentaire := crée_platform_object(document, NoeudCommentaire);
+    commentaire.genre = GenreNoeud.Commentaire;
+    commentaire.document = document;
+    commentaire.données = copie_chaine(données);
 
-    retourne commentaire
+    retourne commentaire;
 }
 
 #portée_fichier
@@ -1249,13 +1249,13 @@ crée_noeud_commentaire :: fonc (document: *Document, données: ChaineUTF16) -> 
 table_virtuelle_commentaire := TableVirtuelleNoeud(
     classe = NoeudCommentaire,
     sur_destruction = commentaire_sur_destruction
-)
+);
 
 commentaire_sur_destruction :: fonc (base: *JS.Cellule)
 {
-    noeud_sur_destruction(base)
-    commentaire := base comme *NoeudCommentaire
-    détruit_chaine(commentaire.données)
+    noeud_sur_destruction(base);
+    commentaire := base comme *NoeudCommentaire;
+    détruit_chaine(commentaire.données);
 }
 
 #portée_export
@@ -1268,20 +1268,20 @@ commentaire_sur_destruction :: fonc (base: *JS.Cellule)
  * \{ */
 
 NoeudProcessingInstruction :: struct {
-    empl base_données: NoeudDonnéesCaractères
-    table = *table_virtuelle_processing_instruction
+    empl base_données: NoeudDonnéesCaractères;
+    table = *table_virtuelle_processing_instruction;
 
-    cible: ChaineUTF16
+    cible: ChaineUTF16;
 }
 
 crée_noeud_processing_instruction :: fonc (document: *Document, données: ChaineUTF16) -> *NoeudCommentaire
 {
-    résultat := crée_platform_object(document, NoeudCommentaire)
-    résultat.genre = GenreNoeud.ProcessingInstruction
-    résultat.document = document
-    résultat.données = copie_chaine(données)
+    résultat := crée_platform_object(document, NoeudCommentaire);
+    résultat.genre = GenreNoeud.ProcessingInstruction;
+    résultat.document = document;
+    résultat.données = copie_chaine(données);
 
-    retourne résultat
+    retourne résultat;
 }
 
 #portée_fichier
@@ -1289,14 +1289,14 @@ crée_noeud_processing_instruction :: fonc (document: *Document, données: Chain
 table_virtuelle_processing_instruction := TableVirtuelleNoeud(
     classe = NoeudProcessingInstruction,
     sur_destruction = processing_instruction_sur_destruction
-)
+);
 
 processing_instruction_sur_destruction :: fonc (base: *JS.Cellule)
 {
-    noeud_sur_destruction(base)
-    processing_instruction := base comme *NoeudProcessingInstruction
-    détruit_chaine(processing_instruction.données)
-    détruit_chaine(processing_instruction.cible)
+    noeud_sur_destruction(base);
+    processing_instruction := base comme *NoeudProcessingInstruction;
+    détruit_chaine(processing_instruction.données);
+    détruit_chaine(processing_instruction.cible);
 }
 
 #portée_export

@@ -5,13 +5,13 @@
  * \{ */
 
 MouseEvent :: struct {
-    empl event: Event
-    table = *table_virtuelle_mouse_event
+    empl event: Event;
+    table = *table_virtuelle_mouse_event;
 
-    screen_x: r64
-    screen_y: r64
-    offset_x: r64
-    offset_y: r64
+    screen_x: r64;
+    screen_y: r64;
+    offset_x: r64;
+    offset_y: r64;
 }
 
 #portée_fichier
@@ -19,11 +19,11 @@ MouseEvent :: struct {
 table_virtuelle_mouse_event := TableVirtuellePlatformObject(
     classe = MouseEvent,
     sur_destruction = event_sur_destruction
-)
+);
 
 #portée_export
 
 // À FAIRE : implémente
-PointerEvent :: MouseEvent
+PointerEvent :: MouseEvent;
 
 /** \} */

@@ -6,26 +6,26 @@
 
 donne_current_realm :: fonc (platform_object: *PlatformObject) -> *JS.Realm
 {
-    mv := JS.donne_mv(platform_object.realm)
-    retourne JS.donne_current_realm(mv)
+    mv := JS.donne_mv(platform_object.realm);
+    retourne JS.donne_current_realm(mv);
 }
 
 donne_current_settings_object :: fonc (platform_object: *PlatformObject) -> *EnvironmentSettings
 {
-    realm := platform_object.donne_current_realm()
+    realm := platform_object.donne_current_realm();
     saufsi realm {
-        retourne nul
+        retourne nul;
     }
-    retourne JS.donne_données(realm.host_defined, EnvironmentSettings)
+    retourne JS.donne_données(realm.host_defined, EnvironmentSettings);
 }
 
 donne_current_global_object :: fonc (platform_object: *PlatformObject) -> *JS.Object
 {
-    realm := platform_object.donne_current_realm()
+    realm := platform_object.donne_current_realm();
     saufsi realm {
-        retourne nul
+        retourne nul;
     }
-    retourne realm.global_object
+    retourne realm.global_object;
 }
 
 /** \} */
@@ -37,25 +37,25 @@ donne_current_global_object :: fonc (platform_object: *PlatformObject) -> *JS.Ob
 
 donne_relevant_realm :: fonc (platform_object: *PlatformObject) -> *JS.Realm
 {
-    retourne platform_object.realm
+    retourne platform_object.realm;
 }
 
 donne_relevant_settings_object :: fonc (platform_object: *PlatformObject) -> *EnvironmentSettings
 {
-    realm := platform_object.donne_relevant_realm()
+    realm := platform_object.donne_relevant_realm();
     saufsi realm {
-        retourne nul
+        retourne nul;
     }
-    retourne JS.donne_données(realm.host_defined, EnvironmentSettings)
+    retourne JS.donne_données(realm.host_defined, EnvironmentSettings);
 }
 
 donne_relevant_global_object :: fonc (platform_object: *PlatformObject) -> *JS.Object
 {
-    realm := platform_object.donne_relevant_realm()
+    realm := platform_object.donne_relevant_realm();
     saufsi realm {
-        retourne nul
+        retourne nul;
     }
-    retourne realm.global_object
+    retourne realm.global_object;
 }
 
 /** \} */
@@ -67,16 +67,16 @@ donne_relevant_global_object :: fonc (platform_object: *PlatformObject) -> *JS.O
 
 Environment :: struct {
     /* https://html.spec.whatwg.org/multipage/webappapis.html#concept-environment-id */
-    id: chaine
+    id: chaine;
     /* https://html.spec.whatwg.org/multipage/webappapis.html#concept-environment-creation-url */
-    creation_url: *URL
+    creation_url: *URL;
     /* https://html.spec.whatwg.org/multipage/webappapis.html#concept-environment-top-level-creation-url */
-    top_level_creation_url: *URL
+    top_level_creation_url: *URL;
     /* https://html.spec.whatwg.org/multipage/webappapis.html#concept-environment-top-level-origin */
-    top_level_origin: Optionnel(Origin)
+    top_level_origin: Optionnel(Origin);
     /* https://html.spec.whatwg.org/multipage/webappapis.html#concept-environment-target-browsing-context */
-    target_browsing_context: *BrowsingContext
-    execution_ready: bool
+    target_browsing_context: *BrowsingContext;
+    execution_ready: bool;
 }
 
 /** \} */
@@ -87,70 +87,70 @@ Environment :: struct {
  * \{ */
 
 EnvironmentSettings :: struct {
-    empl base: Environment
+    empl base: Environment;
 
-    sur_donne_realm_execution_context: fonc (env: *EnvironmentSettings) -> *JS.ExecutionContext
+    sur_donne_realm_execution_context: fonc (env: *EnvironmentSettings) -> *JS.ExecutionContext;
     // sur_donne_module_map
-    sur_donne_api_base_url: fonc (env: *EnvironmentSettings) -> *URL
-    sur_donne_origin: fonc (env: *EnvironmentSettings) -> Origin
-    sur_donne_policy_container: fonc (env: *EnvironmentSettings) -> *PolicyContainer
-    sur_donne_cross_origin_isolated_capability: fonc (env: *EnvironmentSettings) -> bool
-    sur_donne_time_origin: fonc (env: *EnvironmentSettings) -> r64
+    sur_donne_api_base_url: fonc (env: *EnvironmentSettings) -> *URL;
+    sur_donne_origin: fonc (env: *EnvironmentSettings) -> Origin;
+    sur_donne_policy_container: fonc (env: *EnvironmentSettings) -> *PolicyContainer;
+    sur_donne_cross_origin_isolated_capability: fonc (env: *EnvironmentSettings) -> bool;
+    sur_donne_time_origin: fonc (env: *EnvironmentSettings) -> r64;
 }
 
 donne_realm :: fonc (environment: *EnvironmentSettings) -> *JS.Realm
 {
-    ctx := environment.donne_realm_execution_context()
+    ctx := environment.donne_realm_execution_context();
     saufsi ctx {
-        retourne nul
+        retourne nul;
     }
-    retourne ctx.realm
+    retourne ctx.realm;
 }
 
 donne_global_object :: fonc (environment: *EnvironmentSettings) -> *JS.Object
 {
-    realm := environment.donne_realm()
+    realm := environment.donne_realm();
     saufsi realm {
-        retourne nul
+        retourne nul;
     }
-    retourne realm.global_object
+    retourne realm.global_object;
 }
 
 donne_realm_execution_context :: fonc (environment: *EnvironmentSettings) -> *JS.ExecutionContext
 {
-    retourne environment.sur_donne_realm_execution_context(environment)
+    retourne environment.sur_donne_realm_execution_context(environment);
 }
 
 donne_api_base_url :: fonc (environment: *EnvironmentSettings) -> *URL
 {
-    retourne environment.sur_donne_api_base_url(environment)
+    retourne environment.sur_donne_api_base_url(environment);
 }
 
 donne_origin :: fonc (environment: *EnvironmentSettings) -> Origin
 {
-    retourne environment.sur_donne_origin(environment)
+    retourne environment.sur_donne_origin(environment);
 }
 
 donne_policy_container :: fonc (environment: *EnvironmentSettings) -> *PolicyContainer
 {
-    retourne environment.sur_donne_policy_container(environment)
+    retourne environment.sur_donne_policy_container(environment);
 }
 
 donne_cross_origin_isolated_capability :: fonc (environment: *EnvironmentSettings) -> bool
 {
-    retourne environment.sur_donne_cross_origin_isolated_capability(environment)
+    retourne environment.sur_donne_cross_origin_isolated_capability(environment);
 }
 
 donne_time_origin :: fonc (environment: *EnvironmentSettings) -> r64
 {
-    retourne environment.sur_donne_time_origin(environment)
+    retourne environment.sur_donne_time_origin(environment);
 }
 
 /* https://html.spec.whatwg.org/multipage/webappapis.html#incumbent-settings-object */
 donne_incumbent_settings_object :: fonc () -> *EnvironmentSettings
 {
     // À FAIRE
-    retourne nul
+    retourne nul;
 }
 
 /** \} */
@@ -164,46 +164,46 @@ scripting_est_activé :: fonc (user_agent: *UserAgent, environment: *Environment
 {
     // The user agent supports scripting.
     saufsi user_agent.supporte_scripting {
-        retourne faux
+        retourne faux;
     }
 
     // À FAIRE : The user has not disabled scripting for settings at this time. (User agents may provide users with the option to disable scripting globally, or in a finer-grained manner, e.g., on a per-origin basis, down to the level of individual environment settings objects.)
 
     // Either settings's global object is not a Window object, or settings's global object's associated Document's active sandboxing flag set does not have its sandboxed scripts browsing context flag set.
-    global_object := donne_global_object(environment)
+    global_object := donne_global_object(environment);
     saufsi global_object {
-        retourne faux
+        retourne faux;
     }
 
-    window := global_object comme *Window
-    retourne (global_object.table.classe != Window) || window.document.active_sandboxing_flags.Scripts == faux
+    window := global_object comme *Window;
+    retourne (global_object.table.classe != Window) || window.document.active_sandboxing_flags.Scripts == faux;
 }
 
 scripting_est_désactivé :: fonc (user_agent: *UserAgent, environment: *EnvironmentSettings) -> bool
 {
-    retourne scripting_est_activé(user_agent, environment) == faux
+    retourne scripting_est_activé(user_agent, environment) == faux;
 }
 
 /* https://html.spec.whatwg.org/multipage/webappapis.html#concept-n-noscript */
 scripting_est_activé :: fonc (noeud: *Node) -> bool
 {
-    node_document := noeud.donne_node_document()
+    node_document := noeud.donne_node_document();
     saufsi node_document {
-        retourne faux
+        retourne faux;
     }
     saufsi node_document.browsing_context {
-        retourne faux
+        retourne faux;
     }
-    settings := noeud.donne_relevant_settings_object()
+    settings := noeud.donne_relevant_settings_object();
     saufsi settings {
-        retourne faux
+        retourne faux;
     }
-    retourne scripting_est_activé(node_document.donne_user_agent(), settings)
+    retourne scripting_est_activé(node_document.donne_user_agent(), settings);
 }
 
 scripting_est_désactivé :: fonc (noeud: *Node) -> bool
 {
-    retourne scripting_est_activé(noeud) == faux
+    retourne scripting_est_activé(noeud) == faux;
 }
 
 /** \} */
@@ -214,7 +214,7 @@ scripting_est_désactivé :: fonc (noeud: *Node) -> bool
 
 initialise_host_intrinsics :: fonc (realm: *JS.Realm)
 #corps_texte {
-    retourne compile_interfaces_idl()
+    retourne compile_interfaces_idl();
 }
 
 #portée_module
@@ -222,96 +222,96 @@ initialise_host_intrinsics :: fonc (realm: *JS.Realm)
 donne_prototype :: fonc (realm: *JS.Realm, indice: z64) -> *JS.Object
 {
     saufsi realm {
-        retourne nul
+        retourne nul;
     }
-    retourne realm.intrinsics.host_intrinsics[indice]
+    retourne realm.intrinsics.host_intrinsics[indice];
 }
 
 /* Table pour mapper le type d'un objet Kuri à l'indice de son prototype dans realm.intrinsics.host_intrinsics. */
 IndicePrototype :: struct {
-    type: type_de_données
-    indice: z64
+    type: type_de_données;
+    indice: z64;
 }
 
-__table_indexage_prototypes: [..]IndicePrototype
+__table_indexage_prototypes: [..]IndicePrototype;
 
 détermine_indice_prototype :: fonc (type: type_de_données) -> z64
 {
-    résultat := donne_indice_prototype(type)
+    résultat := donne_indice_prototype(type);
     si résultat != -1 {
-        retourne résultat
+        retourne résultat;
     }
 
-    types_à_essayer := type_de_données.[HTMLElement, Element, Node, EventTarget]
+    types_à_essayer := type_de_données.[HTMLElement, Element, Node, EventTarget];
 
-    infos := type comme *InfoTypeStructure
+    infos := type comme *InfoTypeStructure;
 
     pour types_à_essayer {
-        infos_à_essayer := it comme *InfoTypeStructure
+        infos_à_essayer := it comme *InfoTypeStructure;
         saufsi est_struct_ou_employeuse_de(infos, infos_à_essayer) {
-            continue
+            continue;
         }
 
-        résultat = donne_indice_prototype(it)
+        résultat = donne_indice_prototype(it);
         si résultat != -1 {
-            retourne résultat
+            retourne résultat;
         }
     }
 
-    retourne -1
+    retourne -1;
 }
 
 donne_indice_prototype :: fonc (type: type_de_données) -> z64
 {
     pour __table_indexage_prototypes {
         si it.type == type {
-            retourne it.indice
+            retourne it.indice;
         }
     }
-    retourne -1
+    retourne -1;
 }
 
 définis_prototype :: fonc (object: *PlatformObject, type: type_de_données)
 {
-    indice := détermine_indice_prototype(type)
+    indice := détermine_indice_prototype(type);
     si indice == -1 {
-        retourne
+        retourne;
     }
-    object.prototype = donne_prototype(object.realm, indice)
+    object.prototype = donne_prototype(object.realm, indice);
 }
 
 donne_platform_object :: fonc (interpréteuse: *JS.Interpréteuse, value: JS.Valeur, $Type: type_de_données) -> *Type
 {
-    object := JS.to_object(interpréteuse, value)
+    object := JS.to_object(interpréteuse, value);
     si JS.possède_exception(interpréteuse) {
-        retourne nul
+        retourne nul;
     }
-    info_type := info_de(Type)
+    info_type := info_de(Type);
     saufsi est_struct_ou_employeuse_de(JS.donne_info_type_cellule(object), info_type) {
-        message := imprime_chaine("object is not a '%'", info_type.nom)
-        diffère déloge(message)
-        _ := JS.lance_type_error(interpréteuse, message)
-        retourne nul
+        message := imprime_chaine("object is not a '%'", info_type.nom);
+        diffère déloge(message);
+        _ := JS.lance_type_error(interpréteuse, message);
+        retourne nul;
     }
-    retourne object comme *Type
+    retourne object comme *Type;
 }
 
 InfoConstructor :: struct {
-    indice: z64
-    nom: DOMString
+    indice: z64;
+    nom: DOMString;
 }
 
-__table_constructors: [..]InfoConstructor
+__table_constructors: [..]InfoConstructor;
 
 initialise_constructors :: fonc (global: *JS.Object, realm: *JS.Realm)
 {
     pour __table_constructors {
-        constructor := realm.intrinsics.host_intrinsics[it.indice]
+        constructor := realm.intrinsics.host_intrinsics[it.indice];
 
-        desc: JS.PropertyDescriptor
-        JS.initialise_property_descriptor(*desc, JS.Valeur(Object = constructor), JS.DrapeauxPropriété.zéro)
+        desc: JS.PropertyDescriptor;
+        JS.initialise_property_descriptor(*desc, JS.Valeur(Object = constructor), JS.DrapeauxPropriété.zéro);
 
-        JS.define_property_or_throw(global, it.nom, desc)
+        JS.define_property_or_throw(global, it.nom, desc);
     }
 }
 

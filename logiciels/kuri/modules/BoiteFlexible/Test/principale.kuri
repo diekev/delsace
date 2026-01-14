@@ -1,16 +1,16 @@
-importe BoiteFlexible
-importe CréationFenêtre
-importe Chaine
-importe Couleur
-importe ÉditionTexte
-importe Fondation
-importe Guettage
-importe Image
-importe Math
-importe PeintureInterface
-importe Périphériques
-importe SysFichier
-importe Typographie
+importe BoiteFlexible;
+importe CréationFenêtre;
+importe Chaine;
+importe Couleur;
+importe ÉditionTexte;
+importe Fondation;
+importe Guettage;
+importe Image;
+importe Math;
+importe PeintureInterface;
+importe Périphériques;
+importe SysFichier;
+importe Typographie;
 
 principale :: fonc ()
 {
@@ -22,40 +22,40 @@ principale :: fonc ()
         Document("Flexible Verticale", dessine_interface_flexible_verticale),
         Document("Texte", dessine_interface_texte),
         Document("Fonte", dessine_atlas_fonte)
-    ]
+    ];
 
-    app: App
+    app: App;
 
-    tableau_ajoute(*app.documents, ...documents)
+    tableau_ajoute(*app.documents, ...documents);
 
-    app.fonte = donne_fonte_défaut(16.0)
-    app.grosse_fonte = donne_fonte_défaut(40.0)
+    app.fonte = donne_fonte_défaut(16.0);
+    app.grosse_fonte = donne_fonte_défaut(40.0);
 
-    fenêtre := crée_fenêtre(800, 600, "BoiteFlexible", vrai)
+    fenêtre := crée_fenêtre(800, 600, "BoiteFlexible", vrai);
 
-    doit_fermer := faux
+    doit_fermer := faux;
 
     tantque !doit_fermer {
-        évènements := ajourne_évènements_fenêtre(fenêtre)
+        évènements := ajourne_évènements_fenêtre(fenêtre);
 
-        largeur, hauteur := donne_taille_fenêtre(fenêtre)
+        largeur, hauteur := donne_taille_fenêtre(fenêtre);
 
         pour évènements {
             si it.type == TypeÉvènement.Fermeture {
-                doit_fermer = vrai
-                arrête
+                doit_fermer = vrai;
+                arrête;
             }
 
             si app.guetteuse && gère_évènement(app.guetteuse, it) == ÉtatÉvènement.CONSOMMÉ {
-                continue
+                continue;
             }
 
-            gère_évènement(*app.emboiteuse, it)
+            gère_évènement(*app.emboiteuse, it);
         }
 
-        dessine_fenêtre(*app, largeur, hauteur)
+        dessine_fenêtre(*app, largeur, hauteur);
 
-        permute_tampons_fenêtre(fenêtre)
+        permute_tampons_fenêtre(fenêtre);
     }
 }
 
@@ -64,70 +64,70 @@ principale :: fonc ()
  * \{ */
 
 Document :: struct {
-    nom: chaine
-    dessine_document: fonc (app: *App)
+    nom: chaine;
+    dessine_document: fonc (app: *App);
 }
 
 App :: struct {
-    emboiteuse: Emboiteuse
-    peintre: *Peintre
-    guetteuse: *Guetteuse
+    emboiteuse: Emboiteuse;
+    peintre: *Peintre;
+    guetteuse: *Guetteuse;
 
-    fonte: *Fonte
-    grosse_fonte: *Fonte
+    fonte: *Fonte;
+    grosse_fonte: *Fonte;
 
-    largeur_début := 1600
-    hauteur_début := 800
+    largeur_début := 1600;
+    hauteur_début := 800;
 
-    largeur_courante := 1600
-    hauteur_courante := 800
+    largeur_courante := 1600;
+    hauteur_courante := 800;
 
-    largeur_cible := 800
-    hauteur_cible := 400
+    largeur_cible := 800;
+    hauteur_cible := 400;
 
-    texte_à_dessiner := "Cliquez-moi pour m'éditer"
+    texte_à_dessiner := "Cliquez-moi pour m'éditer";
 
-    documents: [..]Document
-    document_courant: z32
+    documents: [..]Document;
+    document_courant: z32;
 }
 
 définis_document_courant :: fonc (app: *App, souris: ClicSouris @inutilisée, id: n64 @inutilisée, indice: z32) -> ÉtatÉvènement
 {
     si indice < 0 && indice >= app.documents.taille {
-        retourne ÉtatÉvènement.PASSE_AU_PARENT
+        retourne ÉtatÉvènement.PASSE_AU_PARENT;
     }
 
     si indice == app.document_courant {
-        retourne ÉtatÉvènement.PASSE_AU_PARENT
+        retourne ÉtatÉvènement.PASSE_AU_PARENT;
     }
 
-    app.document_courant = indice
-    retourne ÉtatÉvènement.CONSOMMÉ
+    app.document_courant = indice;
+    retourne ÉtatÉvènement.CONSOMMÉ;
 }
 
 dessine_fenêtre :: fonc (empl app: *App, largeur: z32, hauteur: z32)
 {
-    marque := donne_marque_stockage_temporaire()
-    diffère définis_marque_stockage_temporaire(marque)
+    marque := donne_marque_stockage_temporaire();
+    diffère définis_marque_stockage_temporaire(marque);
 
     si largeur_courante > largeur_cible {
-        largeur_courante -= 5
+        largeur_courante -= 5;
     }
     si hauteur_courante > hauteur_cible {
-        hauteur_courante -= 5
+        hauteur_courante -= 5;
     }
 
-    taille_canevas := Taille(largeur = Largeur(largeur), hauteur = Hauteur(hauteur))
+    taille_canevas := Taille(largeur = Largeur(largeur), hauteur = Hauteur(hauteur));
 
     saufsi peintre {
-        peintre = crée_peintre_igumi(taille_canevas)
+        peintre = crée_peintre_igumi(taille_canevas);
     }
 
-    peintre.définis_taille_canevas(taille_canevas)
-    peintre.efface_cible_rendu(CouleurRVBA(1.0, 1.0, 1.0, 1.0))
+    peintre.définis_taille_canevas(taille_canevas);
+    peintre.efface_cible_rendu(CouleurRVBA(1.0, 1.0, 1.0, 1.0));
 
-    commandes := crée_interface(app, largeur, hauteur)
-    dessine_commandes(peintre, *commandes)
+    commandes := crée_interface(app, largeur, hauteur);
+    dessine_commandes(peintre, *commandes);
 }
 
 /** \} */
@@ -136,371 +136,371 @@ dessine_fenêtre :: fonc (empl app: *App, largeur: z32, hauteur: z32)
 /** \nom
  * \{ */
 
-VERT_CLAIR := CouleurRVBA(0.976, 0.996, 0.968, 1.0)
-BLEU := CouleurRVBA(0.039, 0.431, 0.529, 1.0)
-ROSE := CouleurRVBA(0.984, 0.576, 0.568, 1.0)
-JAUNE := CouleurRVBA(0.996, 0.741, 0.094, 1.0)
-BLEU_CLAIR := CouleurRVBA(0.266, 0.752, 0.905, 1.0)
+VERT_CLAIR := CouleurRVBA(0.976, 0.996, 0.968, 1.0);
+BLEU := CouleurRVBA(0.039, 0.431, 0.529, 1.0);
+ROSE := CouleurRVBA(0.984, 0.576, 0.568, 1.0);
+JAUNE := CouleurRVBA(0.996, 0.741, 0.094, 1.0);
+BLEU_CLAIR := CouleurRVBA(0.266, 0.752, 0.905, 1.0);
 
 crée_interface :: fonc (app: *App, largeur: z32, hauteur: z32) -> CommandesDeRendu
 {
-    emboiteuse := *app.emboiteuse
+    emboiteuse := *app.emboiteuse;
 
-    commence_disposition(emboiteuse, largeur, hauteur)
+    commence_disposition(emboiteuse, largeur, hauteur);
 
-    fonte := app.fonte
+    fonte := app.fonte;
 
-    dispose_rectangle(id = "Contenant Externe")
+    dispose_rectangle(id = "Contenant Externe");
     {
-        définis_arrière_plan(0.1686, 0.1608, 0.2, 1.0)
-        définis_disposition(cotation = Cotation(CROISSANTE(), CROISSANTE()), direction = Direction.Verticale, rembourrage = RembourrageUniforme(16.0), séparation_enfant = 16.0)
+        définis_arrière_plan(0.1686, 0.1608, 0.2, 1.0);
+        définis_disposition(cotation = Cotation(CROISSANTE(), CROISSANTE()), direction = Direction.Verticale, rembourrage = RembourrageUniforme(16.0), séparation_enfant = 16.0);
 
-        dispose_rectangle(id = "Barre Entête", config = ConfigurationRectangle(rayon_coin = 8.0))
+        dispose_rectangle(id = "Barre Entête", config = ConfigurationRectangle(rayon_coin = 8.0));
         {
-            définis_arrière_plan(0.352, 0.352, 0.352, 1.0)
-            définis_disposition(cotation = Cotation(CROISSANTE(), FIXE(60)), rembourrage = RembourrageHoriz(16.0), séparation_enfant = 16.0, alignement_vertical = AlignementEnfant.Milieu)
+            définis_arrière_plan(0.352, 0.352, 0.352, 1.0);
+            définis_disposition(cotation = Cotation(CROISSANTE(), FIXE(60)), rembourrage = RembourrageHoriz(16.0), séparation_enfant = 16.0, alignement_vertical = AlignementEnfant.Milieu);
 
-            ajoute_bouton_barre_menu(fonte, "Fichier")
-            ajoute_bouton_barre_menu(fonte, "Édition")
+            ajoute_bouton_barre_menu(fonte, "Fichier");
+            ajoute_bouton_barre_menu(fonte, "Édition");
 
-            dispose_séparateur_horizontal()
+            dispose_séparateur_horizontal();
 
-            ajoute_bouton_barre_menu(fonte, "Média")
-            ajoute_bouton_barre_menu(fonte, "Télécharger")
-            ajoute_bouton_barre_menu(fonte, "Support")
+            ajoute_bouton_barre_menu(fonte, "Média");
+            ajoute_bouton_barre_menu(fonte, "Télécharger");
+            ajoute_bouton_barre_menu(fonte, "Support");
         }
-        termine_rectangle()
+        termine_rectangle();
 
-        dispose_rectangle(id = "Contenu Bas", config = ConfigurationRectangle(rayon_coin = 8.0))
+        dispose_rectangle(id = "Contenu Bas", config = ConfigurationRectangle(rayon_coin = 8.0));
         {
-            définis_arrière_plan(0.1686, 0.1608, 0.2, 1.0)
-            définis_disposition(cotation = Cotation(CROISSANTE(), CROISSANTE()), séparation_enfant = 16.0)
+            définis_arrière_plan(0.1686, 0.1608, 0.2, 1.0);
+            définis_disposition(cotation = Cotation(CROISSANTE(), CROISSANTE()), séparation_enfant = 16.0);
 
-            dispose_rectangle(id = "Barre Latérale", config = ConfigurationRectangle(rayon_coin = 8.0))
+            dispose_rectangle(id = "Barre Latérale", config = ConfigurationRectangle(rayon_coin = 8.0));
             {
-                définis_arrière_plan(0.352, 0.352, 0.352, 1.0)
-                définis_disposition(cotation = Cotation(FIXE(250), CROISSANTE()), rembourrage = RembourrageUniforme(16.0), séparation_enfant = 16.0, direction = Direction.Verticale)
-                dessine_barre_latérale(app)
+                définis_arrière_plan(0.352, 0.352, 0.352, 1.0);
+                définis_disposition(cotation = Cotation(FIXE(250), CROISSANTE()), rembourrage = RembourrageUniforme(16.0), séparation_enfant = 16.0, direction = Direction.Verticale);
+                dessine_barre_latérale(app);
             }
-            termine_rectangle()
+            termine_rectangle();
 
-            dispose_rectangle(id = "Contenu Principal", config = ConfigurationRectangle(rayon_coin = 8.0), défilage = ConfigurationDéfilage(vertical = vrai))
+            dispose_rectangle(id = "Contenu Principal", config = ConfigurationRectangle(rayon_coin = 8.0), défilage = ConfigurationDéfilage(vertical = vrai));
             {
-                définis_arrière_plan(0.352, 0.352, 0.352, 1.0)
-                définis_disposition(cotation = Cotation(CROISSANTE(), CROISSANTE()), rembourrage = RembourrageUniforme(16.0), séparation_enfant = 16.0, direction = Direction.Verticale)
-                document := *app.documents[app.document_courant]
-                document.dessine_document(app)
+                définis_arrière_plan(0.352, 0.352, 0.352, 1.0);
+                définis_disposition(cotation = Cotation(CROISSANTE(), CROISSANTE()), rembourrage = RembourrageUniforme(16.0), séparation_enfant = 16.0, direction = Direction.Verticale);
+                document := *app.documents[app.document_courant];
+                document.dessine_document(app);
             }
-            termine_rectangle()
+            termine_rectangle();
         }
-        termine_rectangle()
+        termine_rectangle();
     }
-    termine_rectangle()
+    termine_rectangle();
 
-    retourne termine_disposition(emboiteuse)
+    retourne termine_disposition(emboiteuse);
 }
 
 ajoute_bouton_barre_menu :: fonc (fonte: *Fonte, texte: chaine)
 {
-    dispose_rectangle(id = texte, config = ConfigurationRectangle(rayon_coin = 5.0))
+    dispose_rectangle(id = texte, config = ConfigurationRectangle(rayon_coin = 5.0));
     {
-        définis_disposition(rembourrage = RembourrageDifforme(16.0, 8.0))
+        définis_disposition(rembourrage = RembourrageDifforme(16.0, 8.0));
 
         si est_survolée() {
-            définis_arrière_plan(CouleurRVBA(0.649, 0.649, 0.649, 1.0))
+            définis_arrière_plan(CouleurRVBA(0.649, 0.649, 0.649, 1.0));
 
             si texte == "Fichier" {
-                dessine_menu_fichier(fonte)
+                dessine_menu_fichier(fonte);
             }
         }
         sinon {
-            définis_arrière_plan(CouleurRVBA(0.549, 0.549, 0.549, 1.0))
+            définis_arrière_plan(CouleurRVBA(0.549, 0.549, 0.549, 1.0));
         }
 
-        dispose_texte(texte, ConfigurationTexte(fonte, CouleurRVBA(1.0, 1.0, 1.0, 1.0)))
+        dispose_texte(texte, ConfigurationTexte(fonte, CouleurRVBA(1.0, 1.0, 1.0, 1.0)));
     }
-    termine_rectangle()
+    termine_rectangle();
 }
 
 dessine_menu_fichier :: fonc (fonte: *Fonte)
 {
-    dispose_rectangle(config = ConfigurationRectangle(rayon_coin = 5.0))
+    dispose_rectangle(config = ConfigurationRectangle(rayon_coin = 5.0));
     {
-        définis_disposition(rembourrage = RembourrageDifforme(16.0, 8.0), séparation_enfant = 16.0, direction = Direction.Verticale)
-        définis_flottance(décalage_y = 16.0)
-        définis_arrière_plan(CouleurRVBA(0.549, 0.549, 0.549, 1.0))
+        définis_disposition(rembourrage = RembourrageDifforme(16.0, 8.0), séparation_enfant = 16.0, direction = Direction.Verticale);
+        définis_flottance(décalage_y = 16.0);
+        définis_arrière_plan(CouleurRVBA(0.549, 0.549, 0.549, 1.0));
 
-        dispose_texte("Ouvrir", ConfigurationTexte(fonte, CouleurRVBA(1.0, 1.0, 1.0, 1.0)))
-        dispose_texte("Sauvegarder", ConfigurationTexte(fonte, CouleurRVBA(1.0, 1.0, 1.0, 1.0)))
-        dispose_texte("Sauvegarder Sous...", ConfigurationTexte(fonte, CouleurRVBA(1.0, 1.0, 1.0, 1.0)))
-        dispose_texte("Quitter", ConfigurationTexte(fonte, CouleurRVBA(1.0, 1.0, 1.0, 1.0)))
+        dispose_texte("Ouvrir", ConfigurationTexte(fonte, CouleurRVBA(1.0, 1.0, 1.0, 1.0)));
+        dispose_texte("Sauvegarder", ConfigurationTexte(fonte, CouleurRVBA(1.0, 1.0, 1.0, 1.0)));
+        dispose_texte("Sauvegarder Sous...", ConfigurationTexte(fonte, CouleurRVBA(1.0, 1.0, 1.0, 1.0)));
+        dispose_texte("Quitter", ConfigurationTexte(fonte, CouleurRVBA(1.0, 1.0, 1.0, 1.0)));
     }
-    termine_rectangle()
+    termine_rectangle();
 }
 
 dessine_barre_latérale :: fonc (app: *App)
 {
     pour app.documents {
 
-        dispose_rectangle(id = it.nom, config = ConfigurationRectangle(rayon_coin = 5.0))
+        dispose_rectangle(id = it.nom, config = ConfigurationRectangle(rayon_coin = 5.0));
         {
-            définis_disposition(cotation = Cotation(CROISSANTE()), rembourrage = RembourrageDifforme(16.0, 8.0))
+            définis_disposition(cotation = Cotation(CROISSANTE()), rembourrage = RembourrageDifforme(16.0, 8.0));
             arrière_plan := si indice_it == app.document_courant {
-                CouleurRVBA(0.649, 0.649, 0.649, 0.5)
+                CouleurRVBA(0.649, 0.649, 0.649, 0.5);
             }
             sinon si est_survolée() {
-                CouleurRVBA(0.649, 0.649, 0.649, 0.25)
+                CouleurRVBA(0.649, 0.649, 0.649, 0.25);
             }
             sinon {
-                CouleurRVBA()
+                CouleurRVBA();
             }
-            définis_arrière_plan(arrière_plan)
+            définis_arrière_plan(arrière_plan);
 
-            sur_clic_souris(définis_document_courant, app, indice_it comme z32)
+            sur_clic_souris(définis_document_courant, app, indice_it comme z32);
 
-            dispose_texte(it.nom, ConfigurationTexte(app.fonte, CouleurRVBA(1.0, 1.0, 1.0, 1.0)))
+            dispose_texte(it.nom, ConfigurationTexte(app.fonte, CouleurRVBA(1.0, 1.0, 1.0, 1.0)));
         }
-        termine_rectangle()
+        termine_rectangle();
     }
 }
 
 dessine_interface_défilable_verticale :: fonc (app: *App)
 {
     pour 10 {
-        dispose_rectangle(config = ConfigurationRectangle(rayon_coin = 8.0))
+        dispose_rectangle(config = ConfigurationRectangle(rayon_coin = 8.0));
         {
-            définis_arrière_plan(BLEU_CLAIR)
-            définis_disposition(cotation = Cotation(CROISSANTE(), FIXE(100)))
-            dispose_texte(imprime_chaine_temp("%", indice_it), ConfigurationTexte(app.fonte, CouleurRVBA(1.0, 1.0, 1.0, 1.0)))
+            définis_arrière_plan(BLEU_CLAIR);
+            définis_disposition(cotation = Cotation(CROISSANTE(), FIXE(100)));
+            dispose_texte(imprime_chaine_temp("%", indice_it), ConfigurationTexte(app.fonte, CouleurRVBA(1.0, 1.0, 1.0, 1.0)));
         }
-        termine_rectangle()
+        termine_rectangle();
     }
 }
 
 dessine_interface_flexible_verticale :: fonc (app: *App @inutilisée)
 {
-    dispose_rectangle()
+    dispose_rectangle();
     {
-        définis_arrière_plan(VERT_CLAIR)
-        définis_disposition(cotation = Cotation(CROISSANTE(), CROISSANTE()), alignement_horizontal = AlignementEnfant.Milieu, alignement_vertical = AlignementEnfant.Milieu)
+        définis_arrière_plan(VERT_CLAIR);
+        définis_disposition(cotation = Cotation(CROISSANTE(), CROISSANTE()), alignement_horizontal = AlignementEnfant.Milieu, alignement_vertical = AlignementEnfant.Milieu);
 
-        dispose_rectangle()
+        dispose_rectangle();
         {
-            définis_arrière_plan(BLEU)
-            définis_disposition(cotation = Cotation(FIXE(364), FIXE(800)), rembourrage = RembourrageUniforme(32.0), séparation_enfant = 32.0, direction = Direction.Verticale)
+            définis_arrière_plan(BLEU);
+            définis_disposition(cotation = Cotation(FIXE(364), FIXE(800)), rembourrage = RembourrageUniforme(32.0), séparation_enfant = 32.0, direction = Direction.Verticale);
 
-            dispose_rectangle()
+            dispose_rectangle();
             {
-                définis_arrière_plan(ROSE)
-                définis_disposition(cotation = Cotation(FIXE(300), FIXE(300)))
+                définis_arrière_plan(ROSE);
+                définis_disposition(cotation = Cotation(FIXE(300), FIXE(300)));
             }
-            termine_rectangle()
-            dispose_rectangle()
+            termine_rectangle();
+            dispose_rectangle();
             {
-                définis_arrière_plan(JAUNE)
-                définis_disposition(cotation = Cotation(CROISSANTE(), CROISSANTE()))
+                définis_arrière_plan(JAUNE);
+                définis_disposition(cotation = Cotation(CROISSANTE(), CROISSANTE()));
             }
-            termine_rectangle()
-            dispose_rectangle()
+            termine_rectangle();
+            dispose_rectangle();
             {
-                définis_arrière_plan(BLEU_CLAIR)
-                définis_disposition(cotation = Cotation(CROISSANTE(), CROISSANTE()))
+                définis_arrière_plan(BLEU_CLAIR);
+                définis_disposition(cotation = Cotation(CROISSANTE(), CROISSANTE()));
             }
-            termine_rectangle()
+            termine_rectangle();
         }
-        termine_rectangle()
+        termine_rectangle();
     }
-    termine_rectangle()
+    termine_rectangle();
 }
 
 dessine_interface_basique :: fonc (app: *App @inutilisée)
 {
-    dispose_rectangle()
+    dispose_rectangle();
     {
-        définis_arrière_plan(VERT_CLAIR)
-        définis_disposition(cotation = Cotation(CROISSANTE(), CROISSANTE()), alignement_horizontal = AlignementEnfant.Milieu, alignement_vertical = AlignementEnfant.Milieu)
+        définis_arrière_plan(VERT_CLAIR);
+        définis_disposition(cotation = Cotation(CROISSANTE(), CROISSANTE()), alignement_horizontal = AlignementEnfant.Milieu, alignement_vertical = AlignementEnfant.Milieu);
 
-        dispose_rectangle()
+        dispose_rectangle();
         {
-            définis_arrière_plan(BLEU)
-            définis_disposition(rembourrage = RembourrageUniforme(32.0), séparation_enfant = 32.0)
+            définis_arrière_plan(BLEU);
+            définis_disposition(rembourrage = RembourrageUniforme(32.0), séparation_enfant = 32.0);
 
-            dispose_rectangle()
+            dispose_rectangle();
             {
-                définis_arrière_plan(ROSE)
-                définis_disposition(cotation = Cotation(FIXE(300), FIXE(300)))
+                définis_arrière_plan(ROSE);
+                définis_disposition(cotation = Cotation(FIXE(300), FIXE(300)));
             }
-            termine_rectangle()
-            dispose_rectangle()
+            termine_rectangle();
+            dispose_rectangle();
             {
-                définis_arrière_plan(JAUNE)
-                définis_disposition(cotation = Cotation(FIXE(350), FIXE(200)))
+                définis_arrière_plan(JAUNE);
+                définis_disposition(cotation = Cotation(FIXE(350), FIXE(200)));
             }
-            termine_rectangle()
+            termine_rectangle();
         }
-        termine_rectangle()
+        termine_rectangle();
     }
-    termine_rectangle()
+    termine_rectangle();
 }
 
 dessine_interface_flexible :: fonc (app: *App @inutilisée, largeur_courante: z32, hauteur_courante: z32)
 {
-    dispose_rectangle()
+    dispose_rectangle();
     {
-        définis_arrière_plan(VERT_CLAIR)
-        définis_disposition(cotation = Cotation(CROISSANTE(), CROISSANTE()), alignement_horizontal = AlignementEnfant.Milieu, alignement_vertical = AlignementEnfant.Milieu)
+        définis_arrière_plan(VERT_CLAIR);
+        définis_disposition(cotation = Cotation(CROISSANTE(), CROISSANTE()), alignement_horizontal = AlignementEnfant.Milieu, alignement_vertical = AlignementEnfant.Milieu);
 
-        dispose_rectangle()
+        dispose_rectangle();
         {
-            définis_arrière_plan(BLEU)
-            définis_disposition(cotation = Cotation(FIXE(largeur_courante), FIXE(hauteur_courante)), rembourrage = RembourrageUniforme(32.0), séparation_enfant = 32.0)
+            définis_arrière_plan(BLEU);
+            définis_disposition(cotation = Cotation(FIXE(largeur_courante), FIXE(hauteur_courante)), rembourrage = RembourrageUniforme(32.0), séparation_enfant = 32.0);
 
-            dispose_rectangle()
+            dispose_rectangle();
             {
-                définis_arrière_plan(ROSE)
-                définis_disposition(cotation = Cotation(FIXE(300), FIXE(300)))
+                définis_arrière_plan(ROSE);
+                définis_disposition(cotation = Cotation(FIXE(300), FIXE(300)));
             }
-            termine_rectangle()
-            dispose_rectangle()
+            termine_rectangle();
+            dispose_rectangle();
             {
-                définis_arrière_plan(JAUNE)
-                définis_disposition(cotation = Cotation(CROISSANTE(), CROISSANTE()))
+                définis_arrière_plan(JAUNE);
+                définis_disposition(cotation = Cotation(CROISSANTE(), CROISSANTE()));
             }
-            termine_rectangle()
-            dispose_rectangle(arrière_plan = BLEU_CLAIR)
+            termine_rectangle();
+            dispose_rectangle(arrière_plan = BLEU_CLAIR);
             {
-                définis_disposition(cotation = Cotation(CROISSANTE(), CROISSANTE()))
+                définis_disposition(cotation = Cotation(CROISSANTE(), CROISSANTE()));
             }
-            termine_rectangle()
+            termine_rectangle();
         }
-        termine_rectangle()
+        termine_rectangle();
     }
-    termine_rectangle()
+    termine_rectangle();
 }
 
 dessine_interface_texte :: fonc (app: *App)
 {
-    dispose_rectangle()
+    dispose_rectangle();
     {
-        définis_arrière_plan(VERT_CLAIR)
-        définis_disposition(cotation = Cotation(CROISSANTE(), CROISSANTE()), alignement_horizontal = AlignementEnfant.Milieu, alignement_vertical = AlignementEnfant.Milieu)
+        définis_arrière_plan(VERT_CLAIR);
+        définis_disposition(cotation = Cotation(CROISSANTE(), CROISSANTE()), alignement_horizontal = AlignementEnfant.Milieu, alignement_vertical = AlignementEnfant.Milieu);
 
-        dispose_rectangle()
+        dispose_rectangle();
         {
-            définis_arrière_plan(BLEU)
-            définis_disposition(cotation = Cotation(FIXE(1200)), rembourrage = RembourrageUniforme(32.0), séparation_enfant = 32.0)
+            définis_arrière_plan(BLEU);
+            définis_disposition(cotation = Cotation(FIXE(1200)), rembourrage = RembourrageUniforme(32.0), séparation_enfant = 32.0);
 
-            dispose_texte("Un Deux Trois Quatre", ConfigurationTexte(app.grosse_fonte, CouleurRVBA(1.0, 1.0, 1.0, 1.0)))
-            dispose_rectangle()
+            dispose_texte("Un Deux Trois Quatre", ConfigurationTexte(app.grosse_fonte, CouleurRVBA(1.0, 1.0, 1.0, 1.0)));
+            dispose_rectangle();
             {
-                définis_arrière_plan(JAUNE)
-                définis_disposition(cotation = Cotation(FIXE(300), FIXE(300)))
+                définis_arrière_plan(JAUNE);
+                définis_disposition(cotation = Cotation(FIXE(300), FIXE(300)));
             }
-            termine_rectangle()
-            dispose_rectangle()
+            termine_rectangle();
+            dispose_rectangle();
             {
-                définis_arrière_plan(BLEU_CLAIR)
-                définis_disposition(rembourrage = RembourrageUniforme(32.0))
-                dispose_texte("Cinq Six Sept Huit Neuf Dix", ConfigurationTexte(app.grosse_fonte, CouleurRVBA(1.0, 1.0, 1.0, 1.0)))
+                définis_arrière_plan(BLEU_CLAIR);
+                définis_disposition(rembourrage = RembourrageUniforme(32.0));
+                dispose_texte("Cinq Six Sept Huit Neuf Dix", ConfigurationTexte(app.grosse_fonte, CouleurRVBA(1.0, 1.0, 1.0, 1.0)));
             }
-            termine_rectangle()
+            termine_rectangle();
         }
-        termine_rectangle()
+        termine_rectangle();
     }
-    termine_rectangle()
+    termine_rectangle();
 }
 
 dessine_atlas_fonte :: fonc (app: *App)
 {
-    dispose_rectangle()
+    dispose_rectangle();
     {
-        définis_disposition(cotation = Cotation(CROISSANTE(), CROISSANTE()), alignement_horizontal = AlignementEnfant.Milieu, alignement_vertical = AlignementEnfant.Milieu)
+        définis_disposition(cotation = Cotation(CROISSANTE(), CROISSANTE()), alignement_horizontal = AlignementEnfant.Milieu, alignement_vertical = AlignementEnfant.Milieu);
 
-        atlas := app.fonte.atlas
+        atlas := app.fonte.atlas;
         si atlas {
-            hauteur := atlas.height comme z32
-            largeur := atlas.width comme z32
-            image := crée_image_pour_données_externe(atlas.data.pointeur, largeur comme n32, hauteur comme n32, FormatPixel.Gris_8)
-            dispose_image(image, Cotation(FIXE(largeur), FIXE(hauteur)))
+            hauteur := atlas.height comme z32;
+            largeur := atlas.width comme z32;
+            image := crée_image_pour_données_externe(atlas.data.pointeur, largeur comme n32, hauteur comme n32, FormatPixel.Gris_8);
+            dispose_image(image, Cotation(FIXE(largeur), FIXE(hauteur)));
         }
     }
-    termine_rectangle()
+    termine_rectangle();
 }
 
 dessine_interface_édition_texte :: fonc (app: *App)
 {
-    dispose_rectangle()
+    dispose_rectangle();
     {
-        définis_disposition(cotation = Cotation(CROISSANTE(), CROISSANTE()), alignement_horizontal = AlignementEnfant.Milieu, alignement_vertical = AlignementEnfant.Milieu)
+        définis_disposition(cotation = Cotation(CROISSANTE(), CROISSANTE()), alignement_horizontal = AlignementEnfant.Milieu, alignement_vertical = AlignementEnfant.Milieu);
 
-        dispose_rectangle(id = "Cliquez-moi pour m'éditer")
+        dispose_rectangle(id = "Cliquez-moi pour m'éditer");
         {
-            définis_arrière_plan(1.0, 1.0, 1.0, 1.0)
-            définis_disposition(cotation = Cotation(FIXE(240)), rembourrage = RembourrageUniforme(5.0))
-            sur_pression_souris(démarre_édition_texte, app, 0)
+            définis_arrière_plan(1.0, 1.0, 1.0, 1.0);
+            définis_disposition(cotation = Cotation(FIXE(240)), rembourrage = RembourrageUniforme(5.0));
+            sur_pression_souris(démarre_édition_texte, app, 0);
 
-            dispose_texte(app.texte_à_dessiner, ConfigurationTexte(app.fonte, CouleurRVBA(a = 1.0)))
+            dispose_texte(app.texte_à_dessiner, ConfigurationTexte(app.fonte, CouleurRVBA(a = 1.0)));
         }
-        termine_rectangle()
+        termine_rectangle();
     }
-    termine_rectangle()
+    termine_rectangle();
 }
 
 RappelsÉditionTexteApp :: struct {
-    empl base: RappelsÉditionTexte
+    empl base: RappelsÉditionTexte;
 
-    éditrice: ÉditriceTexte
-    id_boite: n64
-    app: *App
+    éditrice: ÉditriceTexte;
+    id_boite: n64;
+    app: *App;
 }
 
 sur_édition_texte_qt :: fonc (empl rappels: *RappelsÉditionTexteApp, chn: chaine)
 {
-    déloge_si_logée(app.texte_à_dessiner)
-    app.texte_à_dessiner = copie_chaine(chn)
+    déloge_si_logée(app.texte_à_dessiner);
+    app.texte_à_dessiner = copie_chaine(chn);
 }
 
 sur_fin_édition_texte_qt :: fonc (empl rappels: *RappelsÉditionTexteApp, chn: chaine, fut_causée_par_touche_entrée: bool @inutilisée)
 {
-    déloge_si_logée(app.texte_à_dessiner)
-    app.texte_à_dessiner = copie_chaine(chn)
+    déloge_si_logée(app.texte_à_dessiner);
+    app.texte_à_dessiner = copie_chaine(chn);
 
-    app.guetteuse = nul
+    app.guetteuse = nul;
 
-    définis_éditrice_texte(*app.emboiteuse, id_boite, nul)
-    détruit_données(*rappels.éditrice)
-    déloge(rappels)
+    définis_éditrice_texte(*app.emboiteuse, id_boite, nul);
+    détruit_données(*rappels.éditrice);
+    déloge(rappels);
 }
 
 démarre_édition_texte :: fonc (app: *App, clic: ClicSouris @inutilisée, id: n64, indice: z32 @inutilisée) -> ÉtatÉvènement
 {
-    rappels_édition_texte := loge(RappelsÉditionTexteApp)
-    rappels_édition_texte.sur_édition = sur_édition_texte_qt
-    rappels_édition_texte.sur_fin_édition = sur_fin_édition_texte_qt
-    rappels_édition_texte.app = app
+    rappels_édition_texte := loge(RappelsÉditionTexteApp);
+    rappels_édition_texte.sur_édition = sur_édition_texte_qt;
+    rappels_édition_texte.sur_fin_édition = sur_fin_édition_texte_qt;
+    rappels_édition_texte.app = app;
 
-    emboiteuse := *app.emboiteuse
-    rect := donne_rect(emboiteuse, id)
+    emboiteuse := *app.emboiteuse;
+    rect := donne_rect(emboiteuse, id);
 
-    rectz := convertis_type(rect, z32)
+    rectz := convertis_type(rect, z32);
 
-    initialise_éditrice(*rappels_édition_texte.éditrice, app.fonte, app.texte_à_dessiner, rappels_édition_texte)
+    initialise_éditrice(*rappels_édition_texte.éditrice, app.fonte, app.texte_à_dessiner, rappels_édition_texte);
 
-    rappels_édition_texte.id_boite = id
-    définis_éditrice_texte(emboiteuse, id, *rappels_édition_texte.éditrice)
+    rappels_édition_texte.id_boite = id;
+    définis_éditrice_texte(emboiteuse, id, *rappels_édition_texte.éditrice);
 
-    guetteuse := loge(GuetteuseÉditionTexte)
-    initialise_guetteuse_édition_texte(guetteuse, *rappels_édition_texte.éditrice, rectz, rectz)
-    guetteuse.sur_destruction = guetteuse_édition_texte_sur_destruction
-    app.guetteuse = guetteuse
+    guetteuse := loge(GuetteuseÉditionTexte);
+    initialise_guetteuse_édition_texte(guetteuse, *rappels_édition_texte.éditrice, rectz, rectz);
+    guetteuse.sur_destruction = guetteuse_édition_texte_sur_destruction;
+    app.guetteuse = guetteuse;
 
-    retourne ÉtatÉvènement.CONSOMMÉ
+    retourne ÉtatÉvènement.CONSOMMÉ;
 }
 
 // :GuetteuseÉditionTexte
 guetteuse_édition_texte_sur_destruction :: fonc (guetteuse: *GuetteuseÉditionTexte)
 {
-    déloge(guetteuse)
+    déloge(guetteuse);
 }
 
 /** \} */

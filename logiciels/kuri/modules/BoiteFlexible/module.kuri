@@ -1,198 +1,198 @@
-importe CommandesRendu
-importe InfosInterface
+importe CommandesRendu;
+importe InfosInterface;
 
-CommandesDeRendu :: CommandesRendu.CommandesDeRendu
-dessine_commandes :: CommandesRendu.dessine_commandes
+CommandesDeRendu :: CommandesRendu.CommandesDeRendu;
+dessine_commandes :: CommandesRendu.dessine_commandes;
 
-Direction :: InfosInterface.Direction
+Direction :: InfosInterface.Direction;
 
-AlignementEnfant :: Alignement
+AlignementEnfant :: Alignement;
 
-charge "interne"
+charge "interne";
 
 /* ------------------------------------------------------------------------- */
 /** \nom Emboiteuse
  * \{ */
 
 ÉditriceTextePourId :: struct {
-    id: n64
-    éditrice_texte: *ÉditriceTexte
+    id: n64;
+    éditrice_texte: *ÉditriceTexte;
 }
 
 Emboiteuse :: struct {
-    racine: *BoiteFlexible
+    racine: *BoiteFlexible;
 
-    toutes_les_boites: [..]*BoiteFlexible
-    boites_libres: [..]*BoiteFlexible
+    toutes_les_boites: [..]*BoiteFlexible;
+    boites_libres: [..]*BoiteFlexible;
 
-    traversée_boites: [..]*BoiteFlexible
-    boites_à_visiter: [..]z64
+    traversée_boites: [..]*BoiteFlexible;
+    boites_à_visiter: [..]z64;
 
-    fragments: [..]FragmentTexte
+    fragments: [..]FragmentTexte;
 
-    boites_disposées: [..]BoiteDisposée
-    boites_disposées_flottantes: [..]z32
+    boites_disposées: [..]BoiteDisposée;
+    boites_disposées_flottantes: [..]z32;
 
-    barres_de_défilement: [..]BarreDeDéfilement
-    éditrices_textes: [..]ÉditriceTextePourId
+    barres_de_défilement: [..]BarreDeDéfilement;
+    éditrices_textes: [..]ÉditriceTextePourId;
 
-    bordures: [..]ConfigurationBordure
-    flottances: [..]Flottance
+    bordures: [..]ConfigurationBordure;
+    flottances: [..]Flottance;
 
     /* Hors des bordures pour éviter les problèmes lors du démarrage des applications
      * (p.e. un élément est détecté comme survolé alors que la souris est ailleurs). */
-    souris_x : r32 = -1.0
-    souris_y : r32 = -1.0
+    souris_x : r32 = -1.0;
+    souris_y : r32 = -1.0;
 
-    hauteur_racine: r32
+    hauteur_racine: r32;
 
-    commandes: CommandesDeRendu
+    commandes: CommandesDeRendu;
 
-    id_pressé: n64
+    id_pressé: n64;
 
     /* Mémoire vive. */
-    croissables: [..]*BoiteFlexible
-    décroissables: [..]*BoiteFlexible
+    croissables: [..]*BoiteFlexible;
+    décroissables: [..]*BoiteFlexible;
 
-    guetteuse_courante: *Guetteuse
-    guetteuse_barre: GuetteuseBarreDéfilage
+    guetteuse_courante: *Guetteuse;
+    guetteuse_barre: GuetteuseBarreDéfilage;
 
-    rappels: [..]RappelUtilisateur
-    boite_interagit: [TypeRappelUtilisateur.nombre_éléments]n64
+    rappels: [..]RappelUtilisateur;
+    boite_interagit: [TypeRappelUtilisateur.nombre_éléments]n64;
 }
 
 détruit_données :: fonc (emboiteuse: *Emboiteuse)
 {
     pour emboiteuse.toutes_les_boites {
-        déloge(it)
+        déloge(it);
     }
-    déloge(emboiteuse.toutes_les_boites)
-    déloge(emboiteuse.boites_libres)
-    déloge(emboiteuse.fragments)
-    déloge(emboiteuse.boites_disposées)
-    déloge(emboiteuse.boites_disposées_flottantes)
-    déloge(emboiteuse.barres_de_défilement)
-    déloge(emboiteuse.éditrices_textes)
-    déloge(emboiteuse.bordures)
-    déloge(emboiteuse.croissables)
-    déloge(emboiteuse.décroissables)
-    déloge(emboiteuse.traversée_boites)
-    déloge(emboiteuse.boites_à_visiter)
-    déloge(emboiteuse.rappels)
+    déloge(emboiteuse.toutes_les_boites);
+    déloge(emboiteuse.boites_libres);
+    déloge(emboiteuse.fragments);
+    déloge(emboiteuse.boites_disposées);
+    déloge(emboiteuse.boites_disposées_flottantes);
+    déloge(emboiteuse.barres_de_défilement);
+    déloge(emboiteuse.éditrices_textes);
+    déloge(emboiteuse.bordures);
+    déloge(emboiteuse.croissables);
+    déloge(emboiteuse.décroissables);
+    déloge(emboiteuse.traversée_boites);
+    déloge(emboiteuse.boites_à_visiter);
+    déloge(emboiteuse.rappels);
 }
 
 commence_disposition :: fonc (emboiteuse: *Emboiteuse, largeur: z32, hauteur: z32)
 {
-    réinitialise(emboiteuse)
+    réinitialise(emboiteuse);
 
-    emboiteuse.hauteur_racine = hauteur comme r32
+    emboiteuse.hauteur_racine = hauteur comme r32;
 
-    racine := emboiteuse.crée_boite()
-    racine.disposition.cotation.largeur = FIXE(largeur)
-    racine.disposition.cotation.hauteur = FIXE(hauteur)
+    racine := emboiteuse.crée_boite();
+    racine.disposition.cotation.largeur = FIXE(largeur);
+    racine.disposition.cotation.hauteur = FIXE(hauteur);
 
-    emboiteuse.racine = racine
+    emboiteuse.racine = racine;
 
-    __boite_courante = emboiteuse.racine
+    __boite_courante = emboiteuse.racine;
 }
 
 termine_disposition :: fonc (emboiteuse: *Emboiteuse) -> CommandesDeRendu
 {
-    assert(__boite_courante == emboiteuse.racine)
-    __boite_courante = nul
+    assert(__boite_courante == emboiteuse.racine);
+    __boite_courante = nul;
 
-    emboiteuse.commandes.commandes.taille = 0
+    emboiteuse.commandes.commandes.taille = 0;
 
     si emboiteuse.racine {
-        calcule_cotation_sur_direction(emboiteuse.racine, Direction.Horizontale)
-        résoud_cotation_croissante_sur_direction(emboiteuse.racine, Direction.Horizontale)
-        fragmente_texte(emboiteuse.racine)
-        calcule_cotation_sur_direction(emboiteuse.racine, Direction.Verticale)
-        résoud_cotation_croissante_sur_direction(emboiteuse.racine, Direction.Verticale)
-        calcule_positions(emboiteuse.racine)
-        génère_commandes(emboiteuse)
+        calcule_cotation_sur_direction(emboiteuse.racine, Direction.Horizontale);
+        résoud_cotation_croissante_sur_direction(emboiteuse.racine, Direction.Horizontale);
+        fragmente_texte(emboiteuse.racine);
+        calcule_cotation_sur_direction(emboiteuse.racine, Direction.Verticale);
+        résoud_cotation_croissante_sur_direction(emboiteuse.racine, Direction.Verticale);
+        calcule_positions(emboiteuse.racine);
+        génère_commandes(emboiteuse);
 
-        enregistre_disposition(emboiteuse)
+        enregistre_disposition(emboiteuse);
     }
 
-    retourne emboiteuse.commandes
+    retourne emboiteuse.commandes;
 }
 
 donne_position_souris :: fonc (emboiteuse: *Emboiteuse, origine_en_bas: bool) -> Point2D(r32)
 {
-    résultat : Point2D(r32) = ---
-    résultat.x = emboiteuse.souris_x
-    résultat.y = emboiteuse.souris_y
+    résultat : Point2D(r32) = ---;
+    résultat.x = emboiteuse.souris_x;
+    résultat.y = emboiteuse.souris_y;
     si origine_en_bas {
-        résultat.y = emboiteuse.hauteur_racine - résultat.y
+        résultat.y = emboiteuse.hauteur_racine - résultat.y;
     }
-    retourne résultat
+    retourne résultat;
 }
 
 gère_évènement :: fonc (emboiteuse: *Emboiteuse, évènement: &Évènement)
 {
     si emboiteuse.guetteuse_courante && gère_évènement(emboiteuse.guetteuse_courante, évènement) == ÉtatÉvènement.CONSOMMÉ {
-        retourne
+        retourne;
     }
 
     si évènement.type == TypeÉvènement.Souris {
-        empl TypeRappelUtilisateur
+        empl TypeRappelUtilisateur;
         
-        position := évènement.état_souris.où
+        position := évènement.état_souris.où;
 
         si évènement.action_souris == ActionSouris.DÉPLACÉE {
-            définis_position_souris(emboiteuse, position.x comme r32, position.y comme r32)
+            définis_position_souris(emboiteuse, position.x comme r32, position.y comme r32);
 
             pour * emboiteuse.barres_de_défilement {
-                it.est_survolée = contient(it.rect, position.x comme r32, position.y comme r32)
+                it.est_survolée = contient(it.rect, position.x comme r32, position.y comme r32);
             }
 
-            retourne
+            retourne;
         }
 
         si évènement.action_souris == ActionSouris.ROULEMENT {
-            sur_évènement_souris(emboiteuse, SurMoletteSouris, évènement.donne_clic_souris())
-            retourne
+            sur_évènement_souris(emboiteuse, SurMoletteSouris, évènement.donne_clic_souris());
+            retourne;
         }
 
         si évènement.action_souris == ActionSouris.PRESSÉE {
-            sur_évènement_souris(emboiteuse, SurPressionSouris, évènement.donne_clic_souris())
-            retourne
+            sur_évènement_souris(emboiteuse, SurPressionSouris, évènement.donne_clic_souris());
+            retourne;
         }
 
         si évènement.action_souris == ActionSouris.RELACHÉE {
-            sur_évènement_souris(emboiteuse, SurRelâchementSouris, évènement.donne_clic_souris())
+            sur_évènement_souris(emboiteuse, SurRelâchementSouris, évènement.donne_clic_souris());
 
             si emboiteuse.boite_interagit[SurPressionSouris] == emboiteuse.boite_interagit[SurRelâchementSouris] {
-                boite := donne_boite_disposée_pour_id(emboiteuse, emboiteuse.boite_interagit[SurRelâchementSouris])
-                _ := appel_rappel(emboiteuse, boite, SurClicSouris, évènement.donne_clic_souris())
+                boite := donne_boite_disposée_pour_id(emboiteuse, emboiteuse.boite_interagit[SurRelâchementSouris]);
+                _ := appel_rappel(emboiteuse, boite, SurClicSouris, évènement.donne_clic_souris());
             }
 
-            retourne
+            retourne;
         }
     }
 }
 
 définis_position_souris :: fonc (emboiteuse: *Emboiteuse, x: r32, y: r32)
 {
-    emboiteuse.souris_x = x
-    emboiteuse.souris_y = y
+    emboiteuse.souris_x = x;
+    emboiteuse.souris_y = y;
 }
 
 définis_position_souris :: fonc (emboiteuse: *Emboiteuse, souris: ClicSouris)
 {
-    emboiteuse.souris_x = souris.état.où.x comme r32
-    emboiteuse.souris_y = souris.état.où.y comme r32
+    emboiteuse.souris_x = souris.état.où.x comme r32;
+    emboiteuse.souris_y = souris.état.où.y comme r32;
 }
 
 donne_curseur :: fonc (emboiteuse: *Emboiteuse) -> TypeCurseurSystème
 {
-    résultat := TypeCurseurSystème.FLÈCHE
-    boite := donne_boite_sous_souris(emboiteuse)
+    résultat := TypeCurseurSystème.FLÈCHE;
+    boite := donne_boite_sous_souris(emboiteuse);
     si boite {
-        résultat = boite.curseur
+        résultat = boite.curseur;
     }
-    retourne résultat
+    retourne résultat;
 }
 
 /** \} */
@@ -202,39 +202,39 @@ donne_curseur :: fonc (emboiteuse: *Emboiteuse) -> TypeCurseurSystème
  * \{ */
 
 Cotation :: struct {
-    largeur: z32
-    hauteur: z32
+    largeur: z32;
+    hauteur: z32;
 
-    largeur_min: n32
-    hauteur_min: n32
-    largeur_max: n32 = 0xffffffff
-    hauteur_max: n32 = 0xffffffff
+    largeur_min: n32;
+    hauteur_min: n32;
+    largeur_max: n32 = 0xffffffff;
+    hauteur_max: n32 = 0xffffffff;
 }
 
 FIXE :: fonc (v: $T) -> z32
 {
     #si T == r32 || T == r64 {
-        v = plafond(v)
+        v = plafond(v);
     }
 
-    retourne (v comme z32) | BIT_COTATION_FIXE
+    retourne (v comme z32) | BIT_COTATION_FIXE;
 }
 
 CROISSANTE :: fonc () -> z32
 {
-    retourne BIT_COTATION_CROISSANTE
+    retourne BIT_COTATION_CROISSANTE;
 }
 
 crée_cotation_image :: fonc (image: NouvelleImage) -> Cotation
 {
-    retourne Cotation(FIXE(image.desc.largeur comme z32), FIXE(image.desc.hauteur comme z32))
+    retourne Cotation(FIXE(image.desc.largeur comme z32), FIXE(image.desc.hauteur comme z32));
 }
 
 IndiceRectangle :: énum {
-    GAUCHE :: 0
-    HAUT :: 1
-    DROITE :: 2
-    BAS :: 3
+    GAUCHE :: 0;
+    HAUT :: 1;
+    DROITE :: 2;
+    BAS :: 3;
 }
 
 /** \} */
@@ -244,138 +244,138 @@ IndiceRectangle :: énum {
  * \{ */
 
 ConfigurationDisposition :: struct {
-    cotation: Cotation
-    rembourrage: Rembourrage
-    séparation_enfant: r32
-    alignement_horizontal: AlignementEnfant
-    alignement_vertical: AlignementEnfant
-    direction: Direction
+    cotation: Cotation;
+    rembourrage: Rembourrage;
+    séparation_enfant: r32;
+    alignement_horizontal: AlignementEnfant;
+    alignement_vertical: AlignementEnfant;
+    direction: Direction;
 }
 
 ConfigurationRectangle :: struct {
-    rayon_coin: r32
+    rayon_coin: r32;
 }
 
 ConfigurationBordure :: struct {
-    largeur: [4]r32
-    couleur: [4]CouleurRVBA
+    largeur: [4]r32;
+    couleur: [4]CouleurRVBA;
 }
 
 donne_largeurs_bordure :: fonc (config: ConfigurationBordure) -> LargeursBordureRectangle
 {
-    résultat: LargeursBordureRectangle = ---
-    résultat.haut = config.largeur[IndiceRectangle.HAUT]
-    résultat.bas = config.largeur[IndiceRectangle.BAS]
-    résultat.gauche = config.largeur[IndiceRectangle.GAUCHE]
-    résultat.droite = config.largeur[IndiceRectangle.DROITE]
-    retourne résultat
+    résultat: LargeursBordureRectangle = ---;
+    résultat.haut = config.largeur[IndiceRectangle.HAUT];
+    résultat.bas = config.largeur[IndiceRectangle.BAS];
+    résultat.gauche = config.largeur[IndiceRectangle.GAUCHE];
+    résultat.droite = config.largeur[IndiceRectangle.DROITE];
+    retourne résultat;
 }
 
 donne_couleurs_bordure :: fonc (config: ConfigurationBordure) -> CouleursBordureRectangle
 {
-    résultat: CouleursBordureRectangle = ---
-    résultat.haut = config.couleur[IndiceRectangle.HAUT]
-    résultat.bas = config.couleur[IndiceRectangle.BAS]
-    résultat.gauche = config.couleur[IndiceRectangle.GAUCHE]
-    résultat.droite = config.couleur[IndiceRectangle.DROITE]
-    retourne résultat
+    résultat: CouleursBordureRectangle = ---;
+    résultat.haut = config.couleur[IndiceRectangle.HAUT];
+    résultat.bas = config.couleur[IndiceRectangle.BAS];
+    résultat.gauche = config.couleur[IndiceRectangle.GAUCHE];
+    résultat.droite = config.couleur[IndiceRectangle.DROITE];
+    retourne résultat;
 }
 
 Rembourrage :: struct {
-    v: [4]r32
+    v: [4]r32;
 }
 
 RembourrageUniforme :: fonc (v: r32) -> Rembourrage
 {
-    retourne Rembourrage([v, v, v, v])
+    retourne Rembourrage([v, v, v, v]);
 }
 
 RembourrageDifforme :: fonc (horizontal: r32, vertical: r32) -> Rembourrage
 {
-    retourne Rembourrage([horizontal, vertical, horizontal, vertical])
+    retourne Rembourrage([horizontal, vertical, horizontal, vertical]);
 }
 
 RembourrageHoriz :: fonc (valeur: r32) -> Rembourrage
 {
-    retourne RembourrageDifforme(valeur, 0.0)
+    retourne RembourrageDifforme(valeur, 0.0);
 }
 
 RembourrageVert :: fonc (valeur: r32) -> Rembourrage
 {
-    retourne RembourrageDifforme(0.0, valeur)
+    retourne RembourrageDifforme(0.0, valeur);
 }
 
 dispose_rectangle :: fonc (id := "", défilage := ConfigurationDéfilage(), config := ConfigurationRectangle(), pos := #position_code_source)
 {
-    assert(__boite_courante != nul)
+    assert(__boite_courante != nul);
 
-    boite := __boite_courante.ajoute_enfant()
+    boite := __boite_courante.ajoute_enfant();
 
     si id {
-        boite.id = calcule_empreinte_djb2(id)
+        boite.id = calcule_empreinte_djb2(id);
     }
     sinon {
-        boite.id = donne_empreinte(pos, combine_empreintes(__boite_courante.id, __boite_courante.enfants.taille comme n64))
+        boite.id = donne_empreinte(pos, combine_empreintes(__boite_courante.id, __boite_courante.enfants.taille comme n64));
     }
 
-    boite.défilage = défilage
-    boite.rectangle = config
+    boite.défilage = défilage;
+    boite.rectangle = config;
 
-    __boite_courante = boite
+    __boite_courante = boite;
 }
 
 termine_rectangle :: fonc ()
 {
-    assert(__boite_courante != nul)
-    __boite_courante = __boite_courante.parent
+    assert(__boite_courante != nul);
+    __boite_courante = __boite_courante.parent;
 }
 
 DrapeauxTexte :: énum_drapeau {
-    SANS_FRAGMENTS
+    SANS_FRAGMENTS;
 }
 
 ConfigurationTexte :: struct {
-    fonte: *Fonte
-    couleur: CouleurRVBA
-    drapeaux: DrapeauxTexte
+    fonte: *Fonte;
+    couleur: CouleurRVBA;
+    drapeaux: DrapeauxTexte;
 }
 
 dispose_texte :: fonc (texte: chaine, config := ConfigurationTexte())
 {
-    assert(__boite_courante != nul)
+    assert(__boite_courante != nul);
 
-    boite := __boite_courante.ajoute_texte(nul, texte)
-    boite.config_texte = config
+    boite := __boite_courante.ajoute_texte(nul, texte);
+    boite.config_texte = config;
 }
 
 dispose_texte :: fonc (texte: ChaineUTF32, config := ConfigurationTexte())
 {
-    assert(__boite_courante != nul)
+    assert(__boite_courante != nul);
 
-    boite := __boite_courante.ajoute_texte(nul, texte)
-    boite.config_texte = config
+    boite := __boite_courante.ajoute_texte(nul, texte);
+    boite.config_texte = config;
 }
 
 dispose_image :: fonc (image: NouvelleImage, cotation: Cotation, teinte := CouleurRVBA(1.0, 1.0, 1.0, 1.0))
 {
-    assert(__boite_courante != nul)
-    boite := __boite_courante.ajoute_image(image)
-    boite.disposition.cotation = cotation
-    boite.teinte = teinte
+    assert(__boite_courante != nul);
+    boite := __boite_courante.ajoute_image(image);
+    boite.disposition.cotation = cotation;
+    boite.teinte = teinte;
 }
 
 dispose_procédure :: fonc (procédure: fonc (données_procédure: *rien, rect: RectanglePosDim(r32)), données_procédure: *rien, id := "", cotation := Cotation())
 {
-    assert(__boite_courante != nul)
-    boite := __boite_courante.ajoute_procédure(procédure, données_procédure)
-    boite.disposition.cotation = cotation
-    boite.id = calcule_empreinte_djb2(id)
-    __boite_courante = boite
+    assert(__boite_courante != nul);
+    boite := __boite_courante.ajoute_procédure(procédure, données_procédure);
+    boite.disposition.cotation = cotation;
+    boite.id = calcule_empreinte_djb2(id);
+    __boite_courante = boite;
 }
 
 termine_procédure :: fonc ()
 {
-    termine_rectangle()
+    termine_rectangle();
 }
 
 /** \} */
@@ -384,30 +384,30 @@ termine_procédure :: fonc ()
 /** \nom Évènements
  * \{ */
 
-TypeRappelSouris :: fonc (données: *rien, clic: ClicSouris, id_boite: n64, indice: z32) -> ÉtatÉvènement
+TypeRappelSouris :: fonc (données: *rien, clic: ClicSouris, id_boite: n64, indice: z32) -> ÉtatÉvènement;
 
 sur_pression_souris :: fonc (rappel: TypeRappelSouris, données: *rien, indice: z32)
 {
-    assert(__boite_courante != nul)
-    définis_rappel(__boite_courante, TypeRappelUtilisateur.SurPressionSouris, rappel, données, indice, faux)
+    assert(__boite_courante != nul);
+    définis_rappel(__boite_courante, TypeRappelUtilisateur.SurPressionSouris, rappel, données, indice, faux);
 }
 
 sur_relâchement_souris :: fonc (rappel: TypeRappelSouris, données: *rien, indice: z32)
 {
-    assert(__boite_courante != nul)
-    définis_rappel(__boite_courante, TypeRappelUtilisateur.SurRelâchementSouris, rappel, données, indice, faux)
+    assert(__boite_courante != nul);
+    définis_rappel(__boite_courante, TypeRappelUtilisateur.SurRelâchementSouris, rappel, données, indice, faux);
 }
 
 sur_clic_souris :: fonc (rappel: TypeRappelSouris, données: *rien, indice: z32)
 {
-    assert(__boite_courante != nul)
-    définis_rappel(__boite_courante, TypeRappelUtilisateur.SurClicSouris, rappel, données, indice, faux)
+    assert(__boite_courante != nul);
+    définis_rappel(__boite_courante, TypeRappelUtilisateur.SurClicSouris, rappel, données, indice, faux);
 }
 
 sur_molette_souris :: fonc (rappel: TypeRappelSouris, données: *rien, indice: z32)
 {
-    assert(__boite_courante != nul)
-    définis_rappel(__boite_courante, TypeRappelUtilisateur.SurMoletteSouris, rappel, données, indice, faux)
+    assert(__boite_courante != nul);
+    définis_rappel(__boite_courante, TypeRappelUtilisateur.SurMoletteSouris, rappel, données, indice, faux);
 }
 
 /** \} */
@@ -418,260 +418,260 @@ sur_molette_souris :: fonc (rappel: TypeRappelSouris, données: *rien, indice: z
 
 tag_boite :: fonc ()
 {
-    assert(__boite_courante != nul)
-    __boite_courante.est_taggée = vrai
+    assert(__boite_courante != nul);
+    __boite_courante.est_taggée = vrai;
 }
 
 définis_id_débogage :: fonc (id: chaine)
 {
-    assert(__boite_courante != nul)
-    __boite_courante.id_débogage = id
+    assert(__boite_courante != nul);
+    __boite_courante.id_débogage = id;
 }
 
 définis_disposition :: fonc (cotation := Cotation(), rembourrage := Rembourrage(), séparation_enfant := 0.0, alignement_horizontal := AlignementEnfant.Début, alignement_vertical := AlignementEnfant.Début, direction := Direction.Horizontale)
 {
-    assert(__boite_courante != nul)
-    __boite_courante.disposition = ConfigurationDisposition(cotation, rembourrage, séparation_enfant, alignement_horizontal, alignement_vertical, direction)
+    assert(__boite_courante != nul);
+    __boite_courante.disposition = ConfigurationDisposition(cotation, rembourrage, séparation_enfant, alignement_horizontal, alignement_vertical, direction);
 }
 
 définis_cotation :: fonc (cotation: Cotation)
 {
-     assert(__boite_courante != nul)
-    __boite_courante.disposition.cotation = cotation
+     assert(__boite_courante != nul);
+    __boite_courante.disposition.cotation = cotation;
 }
 
 définis_cotation :: fonc (largeur: z32, hauteur: z32) #enligne
 {
-    définis_cotation(Cotation(largeur, hauteur))
+    définis_cotation(Cotation(largeur, hauteur));
 }
 
 définis_rembourrage :: fonc (rembourrage: Rembourrage)
 {
-     assert(__boite_courante != nul)
-    __boite_courante.disposition.rembourrage = rembourrage
+     assert(__boite_courante != nul);
+    __boite_courante.disposition.rembourrage = rembourrage;
 }
 
 définis_séparation_enfant :: fonc (séparation_enfant: r32)
 {
-     assert(__boite_courante != nul)
-    __boite_courante.disposition.séparation_enfant = séparation_enfant
+     assert(__boite_courante != nul);
+    __boite_courante.disposition.séparation_enfant = séparation_enfant;
 }
 
 définis_alignement :: fonc (alignement: AlignementEnfant)
 {
-     assert(__boite_courante != nul)
-    __boite_courante.disposition.alignement_horizontal = alignement
-    __boite_courante.disposition.alignement_vertical = alignement
+     assert(__boite_courante != nul);
+    __boite_courante.disposition.alignement_horizontal = alignement;
+    __boite_courante.disposition.alignement_vertical = alignement;
 }
 
 définis_alignement :: fonc (alignement_horizontal: AlignementEnfant, alignement_vertical: AlignementEnfant)
 {
-     assert(__boite_courante != nul)
-    __boite_courante.disposition.alignement_horizontal = alignement_horizontal
-    __boite_courante.disposition.alignement_vertical = alignement_vertical
+     assert(__boite_courante != nul);
+    __boite_courante.disposition.alignement_horizontal = alignement_horizontal;
+    __boite_courante.disposition.alignement_vertical = alignement_vertical;
 }
 
 définis_alignement_horizontal :: fonc (alignement_horizontal: AlignementEnfant)
 {
-     assert(__boite_courante != nul)
-    __boite_courante.disposition.alignement_horizontal = alignement_horizontal
+     assert(__boite_courante != nul);
+    __boite_courante.disposition.alignement_horizontal = alignement_horizontal;
 }
 
 définis_alignement_vertical :: fonc (alignement_vertical: AlignementEnfant)
 {
-     assert(__boite_courante != nul)
-    __boite_courante.disposition.alignement_vertical = alignement_vertical
+     assert(__boite_courante != nul);
+    __boite_courante.disposition.alignement_vertical = alignement_vertical;
 }
 
 définis_direction :: fonc (direction: Direction)
 {
-     assert(__boite_courante != nul)
-    __boite_courante.disposition.direction = direction
+     assert(__boite_courante != nul);
+    __boite_courante.disposition.direction = direction;
 }
 
 définis_couleur_curseur_texte :: fonc (couleur: CouleurRVBA)
 {
-    assert(__boite_courante != nul)
+    assert(__boite_courante != nul);
     __boite_courante.couleur_curseur_texte = couleur 
 }
 
 ajoute_bordure_uniforme :: fonc (largeur: r32, couleur: CouleurRVBA)
 {
-    config := donne_configuration_bordure_courante()
+    config := donne_configuration_bordure_courante();
     si config {
         pour 4 {
-            config.largeur[it] = largeur
-            config.couleur[it] = couleur
+            config.largeur[it] = largeur;
+            config.couleur[it] = couleur;
         }
     }
 }
 
 ajoute_bordure_haut :: fonc (largeur: r32, couleur: CouleurRVBA)
 {
-    définis_bordure_courante(largeur, couleur, IndiceRectangle.HAUT)
+    définis_bordure_courante(largeur, couleur, IndiceRectangle.HAUT);
 }
 
 ajoute_bordure_bas :: fonc (largeur: r32, couleur: CouleurRVBA)
 {
-    définis_bordure_courante(largeur, couleur, IndiceRectangle.BAS)
+    définis_bordure_courante(largeur, couleur, IndiceRectangle.BAS);
 }
 
 ajoute_bordure_gauche :: fonc (largeur: r32, couleur: CouleurRVBA)
 {
-    définis_bordure_courante(largeur, couleur, IndiceRectangle.GAUCHE)
+    définis_bordure_courante(largeur, couleur, IndiceRectangle.GAUCHE);
 }
 
 ajoute_bordure_droite :: fonc (largeur: r32, couleur: CouleurRVBA)
 {
-    définis_bordure_courante(largeur, couleur, IndiceRectangle.DROITE)
+    définis_bordure_courante(largeur, couleur, IndiceRectangle.DROITE);
 }
 
 ConfigurationDéfilage :: struct {
-    vertical: bool
-    horizontal: bool
+    vertical: bool;
+    horizontal: bool;
 
-    largeur_verticale := 16.0
-    couleur_verticale := CouleurRVBA(0.0, 0.0, 0.0, 0.7)
-    couleur_verticale_survolage := CouleurRVBA(0.5, 0.5, 0.5, 0.7)
+    largeur_verticale := 16.0;
+    couleur_verticale := CouleurRVBA(0.0, 0.0, 0.0, 0.7);
+    couleur_verticale_survolage := CouleurRVBA(0.5, 0.5, 0.5, 0.7);
 }
 
 ajoute_défilage :: fonc (config: ConfigurationDéfilage)
 {
-    assert(__boite_courante != nul)
-    __boite_courante.défilage = config
+    assert(__boite_courante != nul);
+    __boite_courante.défilage = config;
 }
 
 ajoute_défilage_vertical :: fonc (largeur := 16.0, couleur := CouleurRVBA(0.0, 0.0, 0.0, 0.7), couleur_survolage_survolage := CouleurRVBA(0.5, 0.5, 0.5, 0.7))
 {
-    assert(__boite_courante != nul)
-    __boite_courante.défilage.vertical = vrai
-    __boite_courante.défilage.largeur_verticale = largeur
-    __boite_courante.défilage.couleur_verticale = couleur
-    __boite_courante.défilage.couleur_verticale_survolage = couleur_survolage_survolage
+    assert(__boite_courante != nul);
+    __boite_courante.défilage.vertical = vrai;
+    __boite_courante.défilage.largeur_verticale = largeur;
+    __boite_courante.défilage.couleur_verticale = couleur;
+    __boite_courante.défilage.couleur_verticale_survolage = couleur_survolage_survolage;
 }
 
 BarreDeDéfilement :: struct {
-    défilage: r32
-    défilage_max: r32
+    défilage: r32;
+    défilage_max: r32;
     /* hauteur disponible / hauteur contenu */
-    ratio: r32
+    ratio: r32;
 
-    direction: Direction
-    est_survolée: bool
-    rect: RectanglePosDim(r32)
+    direction: Direction;
+    est_survolée: bool;
+    rect: RectanglePosDim(r32);
 }
 
 donne_barre_défilage_verticale :: fonc () -> *BarreDeDéfilement
 {
-    assert(__boite_courante != nul)
+    assert(__boite_courante != nul);
 
-    boite := donne_boite_disposée_pour_id(__boite_courante.emboiteuse, __boite_courante.id)
+    boite := donne_boite_disposée_pour_id(__boite_courante.emboiteuse, __boite_courante.id);
     si boite && boite.barre_de_défilement_verticale != INDEX_BARRE_DÉFILEMENT_INVALIDE {
-        retourne *__boite_courante.emboiteuse.barres_de_défilement[boite.barre_de_défilement_verticale]
+        retourne *__boite_courante.emboiteuse.barres_de_défilement[boite.barre_de_défilement_verticale];
     }
 
-    barre, _ := donne_barre_de_défilement(__boite_courante, Direction.Verticale)
-    retourne barre
+    barre, _ := donne_barre_de_défilement(__boite_courante, Direction.Verticale);
+    retourne barre;
 }
 
 définis_défilage :: fonc (barre: *BarreDeDéfilement, défilage: r32)
 {
-    barre.défilage = défilage
+    barre.défilage = défilage;
     si barre.ratio != 0.0 {
         si barre.défilage < 0.0 {
-            barre.défilage = 0.0
+            barre.défilage = 0.0;
         }
         si barre.défilage > barre.défilage_max {
-            barre.défilage = barre.défilage_max
+            barre.défilage = barre.défilage_max;
         }
     }
 }
 
 définis_arrière_plan :: fonc (r: r32, v: r32, b: r32, a: r32)
 {
-    définis_arrière_plan(CouleurRVBA(r, v, b, a))
+    définis_arrière_plan(CouleurRVBA(r, v, b, a));
 }
 
 définis_arrière_plan :: fonc (couleur := CouleurRVBA())
 {
-    assert(__boite_courante != nul)
-    __boite_courante.arrière_plan = couleur
+    assert(__boite_courante != nul);
+    __boite_courante.arrière_plan = couleur;
 }
 
 AncrageFlottante :: énum {
-    HAUT_GAUCHE
-    HAUT_CENTRE
-    HAUT_DROIT
-    CENTRE_GAUCHE
-    CENTRE
-    CENTRE_DROIT
-    BAS_GAUCHE
-    BAS_CENTRE
-    BAS_DROIT
+    HAUT_GAUCHE;
+    HAUT_CENTRE;
+    HAUT_DROIT;
+    CENTRE_GAUCHE;
+    CENTRE;
+    CENTRE_DROIT;
+    BAS_GAUCHE;
+    BAS_CENTRE;
+    BAS_DROIT;
 }
 
 Flottance :: struct {
     /* Ancrage par rapport au parent. */
-    ancrage: AncrageFlottante
+    ancrage: AncrageFlottante;
     /* Décalages par rapport à l'ancrage. */
-    décalage_x := 0.0
-    décalage_y := 0.0
+    décalage_x := 0.0;
+    décalage_y := 0.0;
 }
 
 définis_flottance :: fonc (décalage_x := 0.0, décalage_y := 0.0, ancrage := AncrageFlottante.HAUT_GAUCHE)
 {
-    assert(__boite_courante != nul)
-    emboiteuse := __boite_courante.emboiteuse
+    assert(__boite_courante != nul);
+    emboiteuse := __boite_courante.emboiteuse;
 
     si __boite_courante.flottance.est_valide() {
-        config := *emboiteuse.flottances[__boite_courante.flottance]
-        config.ancrage = ancrage
-        config.décalage_x = décalage_x
-        config.décalage_y = décalage_y
+        config := *emboiteuse.flottances[__boite_courante.flottance];
+        config.ancrage = ancrage;
+        config.décalage_x = décalage_x;
+        config.décalage_y = décalage_y;
     }
     sinon {
-        __boite_courante.flottance = emboiteuse.ajoute_flottance(Flottance(ancrage, décalage_x, décalage_y))
+        __boite_courante.flottance = emboiteuse.ajoute_flottance(Flottance(ancrage, décalage_x, décalage_y));
     }
 }
 
 donne_rembourrage :: fonc () -> Rembourrage
 {
-    assert(__boite_courante != nul)
-    retourne __boite_courante.disposition.rembourrage
+    assert(__boite_courante != nul);
+    retourne __boite_courante.disposition.rembourrage;
 }
 
 donne_rect :: fonc () -> RectanglePosDim(r32)
 {
-    assert(__boite_courante != nul)
-    résultat := donne_rect(__boite_courante.emboiteuse, __boite_courante.id)
-    retourne résultat
+    assert(__boite_courante != nul);
+    résultat := donne_rect(__boite_courante.emboiteuse, __boite_courante.id);
+    retourne résultat;
 }
 
 est_survolée :: fonc () -> bool
 {
-    assert(__boite_courante != nul)
-    boite_disposée := donne_boite_sous_souris(__boite_courante.emboiteuse)
-    boite_courante := boite_disposée
+    assert(__boite_courante != nul);
+    boite_disposée := donne_boite_sous_souris(__boite_courante.emboiteuse);
+    boite_courante := boite_disposée;
 
     tantque boite_courante != nul {
         si boite_courante.id == __boite_courante.id {
-            retourne vrai
+            retourne vrai;
         }
 
         si boite_courante.parent == -1 {
-            arrête
+            arrête;
         }
 
-        boite_courante = *__boite_courante.emboiteuse.boites_disposées[boite_courante.parent]
+        boite_courante = *__boite_courante.emboiteuse.boites_disposées[boite_courante.parent];
     }
 
-    retourne faux
+    retourne faux;
 }
 
 définis_curseur :: fonc (curseur: TypeCurseurSystème)
 {
-    assert(__boite_courante != nul)
-    __boite_courante.curseur = curseur
+    assert(__boite_courante != nul);
+    __boite_courante.curseur = curseur;
 }
 
 /** \} */
@@ -682,17 +682,17 @@ définis_curseur :: fonc (curseur: TypeCurseurSystème)
 
 définis_éditrice_texte :: fonc (éditrice_texte: *ÉditriceTexte)
 {
-    assert(__boite_courante != nul)
-    emboiteuse := __boite_courante.emboiteuse
+    assert(__boite_courante != nul);
+    emboiteuse := __boite_courante.emboiteuse;
 
     pour * emboiteuse.éditrices_textes {
         si it.id == __boite_courante.id {
-            it.éditrice_texte = éditrice_texte
-            arrête
+            it.éditrice_texte = éditrice_texte;
+            arrête;
         }
     }
     sansarrêt {
-        tableau_ajoute(*emboiteuse.éditrices_textes, ÉditriceTextePourId(__boite_courante.id, éditrice_texte))
+        tableau_ajoute(*emboiteuse.éditrices_textes, ÉditriceTextePourId(__boite_courante.id, éditrice_texte));
     }
 }
 
@@ -700,69 +700,69 @@ définis_éditrice_texte :: fonc (emboiteuse: *Emboiteuse, id: n64, éditrice_te
 {
     pour * emboiteuse.éditrices_textes {
         si it.id != id {
-            continue
+            continue;
         }
 
         si éditrice_texte == nul {
-            tableau_supprime_indice(*emboiteuse.éditrices_textes, indice_it)
-            retourne
+            tableau_supprime_indice(*emboiteuse.éditrices_textes, indice_it);
+            retourne;
         }
 
-        it.éditrice_texte = éditrice_texte
-        retourne
+        it.éditrice_texte = éditrice_texte;
+        retourne;
     }
 
-    assert(éditrice_texte != nul)
-    tableau_ajoute(*emboiteuse.éditrices_textes, ÉditriceTextePourId(id, éditrice_texte))
+    assert(éditrice_texte != nul);
+    tableau_ajoute(*emboiteuse.éditrices_textes, ÉditriceTextePourId(id, éditrice_texte));
 }
 
 donne_éditrice_texte :: fonc (emboiteuse: *Emboiteuse, id: n64) -> *ÉditriceTexte
 {
     pour * emboiteuse.éditrices_textes {
         si it.id == id {
-            retourne it.éditrice_texte
+            retourne it.éditrice_texte;
         }
     }
 
-    retourne nul
+    retourne nul;
 }
 
 dispose_curseur_éditrice :: fonc (éditrice: *ÉditriceTexte, couleur: CouleurRVBA, couleur_texte: CouleurRVBA)
 {
     si éditrice.curseur_est_affiché {
-        lignes_pour_rendu := donne_lignes_pour_rendu(éditrice)
+        lignes_pour_rendu := donne_lignes_pour_rendu(éditrice);
 
         si éditrice.curseur.ligne < lignes_pour_rendu.taille {
-            métriques := donne_métriques_fonte(éditrice.fonte)
-            hauteur_ligne := métriques.donne_hauteur_ligne() comme z32
-            largeur_caractère := métriques.largeur_moyenne
+            métriques := donne_métriques_fonte(éditrice.fonte);
+            hauteur_ligne := métriques.donne_hauteur_ligne() comme z32;
+            largeur_caractère := métriques.largeur_moyenne;
 
-            rembourrage := donne_rembourrage()
-            rembourrage_x := rembourrage.v[IndiceRectangle.GAUCHE]
-            rembourrage_y := rembourrage.v[IndiceRectangle.HAUT]
+            rembourrage := donne_rembourrage();
+            rembourrage_x := rembourrage.v[IndiceRectangle.GAUCHE];
+            rembourrage_y := rembourrage.v[IndiceRectangle.HAUT];
 
-            dispose_rectangle()
+            dispose_rectangle();
             {
-                définis_arrière_plan(couleur)
-                définis_disposition(cotation = Cotation(FIXE(largeur_caractère comme z32), FIXE(hauteur_ligne)))
+                définis_arrière_plan(couleur);
+                définis_disposition(cotation = Cotation(FIXE(largeur_caractère comme z32), FIXE(hauteur_ligne)));
 
-                texte_ligne := lignes_pour_rendu[éditrice.curseur.ligne]
-                texte_avant_curseur := texte_ligne
-                texte_avant_curseur.points_de_code.taille = éditrice.curseur.début
+                texte_ligne := lignes_pour_rendu[éditrice.curseur.ligne];
+                texte_avant_curseur := texte_ligne;
+                texte_avant_curseur.points_de_code.taille = éditrice.curseur.début;
 
-                texte_sous_curseur := avance(texte_ligne, éditrice.curseur.début comme z32)
+                texte_sous_curseur := avance(texte_ligne, éditrice.curseur.début comme z32);
                 si texte_sous_curseur.taille() {
-                    texte_sous_curseur.points_de_code.taille = 1
-                    dispose_texte(texte_sous_curseur, ConfigurationTexte(éditrice.fonte, couleur_texte))
+                    texte_sous_curseur.points_de_code.taille = 1;
+                    dispose_texte(texte_sous_curseur, ConfigurationTexte(éditrice.fonte, couleur_texte));
                 }
 
-                position_curseur := éditrice.fonte.donne_largeur_texte(texte_avant_curseur)
-                décalage_flottance_x := rembourrage_x + position_curseur
-                décalage_flottance_y := rembourrage_y + (éditrice.curseur.ligne * hauteur_ligne) comme r32
+                position_curseur := éditrice.fonte.donne_largeur_texte(texte_avant_curseur);
+                décalage_flottance_x := rembourrage_x + position_curseur;
+                décalage_flottance_y := rembourrage_y + (éditrice.curseur.ligne * hauteur_ligne) comme r32;
 
-                définis_flottance(décalage_flottance_x, décalage_flottance_y)
+                définis_flottance(décalage_flottance_x, décalage_flottance_y);
             }
-            termine_rectangle()
+            termine_rectangle();
         }
     }
 }
@@ -775,61 +775,61 @@ dispose_curseur_éditrice :: fonc (éditrice: *ÉditriceTexte, couleur: CouleurR
 
 donne_cotation :: fonc (espace: EspaceDisponible) -> Cotation #enligne
 {
-    retourne Cotation(FIXE(espace.largeur comme z32), FIXE(espace.hauteur comme z32))
+    retourne Cotation(FIXE(espace.largeur comme z32), FIXE(espace.hauteur comme z32));
 }
 
 ajoute_défilage_vertical :: fonc (espace: *EspaceDisponible, largeur_barre: n32, couleur: CouleurRVBA)
 {
-    ajoute_défilage_vertical(largeur_barre comme r32, couleur)
-    espace.largeur = soustraction_sure(espace.largeur, largeur_barre)
+    ajoute_défilage_vertical(largeur_barre comme r32, couleur);
+    espace.largeur = soustraction_sure(espace.largeur, largeur_barre);
 }
 
 soustraction_sure :: fonc (valeur: n32, à_soustraire: n32) -> n32 #enligne
 {
-    résultat: n32
+    résultat: n32;
     si valeur >= à_soustraire {
-        résultat = valeur - à_soustraire
+        résultat = valeur - à_soustraire;
     }
-    retourne résultat
+    retourne résultat;
 }
 
 ajoute_rembourage :: fonc (espace: EspaceDisponible, rembourrage: $T) -> EspaceDisponible
 {
-    définis_rembourrage(RembourrageUniforme(rembourrage comme r32))
-    espace.largeur = soustraction_sure(espace.largeur, (rembourrage * 2) comme n32)
-    espace.hauteur = soustraction_sure(espace.hauteur, (rembourrage * 2) comme n32)
-    retourne espace
+    définis_rembourrage(RembourrageUniforme(rembourrage comme r32));
+    espace.largeur = soustraction_sure(espace.largeur, (rembourrage * 2) comme n32);
+    espace.hauteur = soustraction_sure(espace.hauteur, (rembourrage * 2) comme n32);
+    retourne espace;
 }
 
 dispose_séparateur_horizontal :: fonc (hauteur := 0)
 {
-    assert(__boite_courante != nul)
-    séparateur := __boite_courante.ajoute_enfant()
-    séparateur.disposition.cotation.largeur = CROISSANTE()
+    assert(__boite_courante != nul);
+    séparateur := __boite_courante.ajoute_enfant();
+    séparateur.disposition.cotation.largeur = CROISSANTE();
 
     si hauteur != 0 {
-        séparateur.disposition.cotation.hauteur = FIXE(hauteur)
+        séparateur.disposition.cotation.hauteur = FIXE(hauteur);
     }
 }
 
 dispose_barre_séparation_horizontale :: fonc (couleur: CouleurRVBA, hauteur: z32)
 {
-    dispose_rectangle()
+    dispose_rectangle();
     {
-        définis_disposition(cotation = Cotation(CROISSANTE(), FIXE(hauteur)))
-        définis_arrière_plan(couleur)
+        définis_disposition(cotation = Cotation(CROISSANTE(), FIXE(hauteur)));
+        définis_arrière_plan(couleur);
     }
-    termine_rectangle()
+    termine_rectangle();
 }
 
 dispose_barre_séparation_verticale :: fonc (couleur: CouleurRVBA, largeur: z32)
 {
-    dispose_rectangle()
+    dispose_rectangle();
     {
-        définis_disposition(cotation = Cotation(FIXE(largeur), CROISSANTE()))
-        définis_arrière_plan(couleur)
+        définis_disposition(cotation = Cotation(FIXE(largeur), CROISSANTE()));
+        définis_arrière_plan(couleur);
     }
-    termine_rectangle()
+    termine_rectangle();
 }
 
 /** \} */

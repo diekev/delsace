@@ -2,10 +2,10 @@
  * Catégorie : [validation sémantique, conversion implicite, type opaque]
  */
 
-importe Chaine
+importe Chaine;
 
 principale :: fonc ()
 {
-    c := ChaineC(nul)
-    _ : *octet = c
+    c := ChaineC(nul);
+    _ : *octet = c;
 }
