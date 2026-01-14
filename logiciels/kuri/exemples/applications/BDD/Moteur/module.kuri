@@ -1,8 +1,8 @@
-charge "coulisse_mémoire"
-charge "curseur"
-charge "exécution"
-charge "instructions"
-charge "lexage"
-charge "paginatrice"
-charge "syntaxage"
-charge "table"
+charge "coulisse_mémoire";
+charge "curseur";
+charge "exécution";
+charge "instructions";
+charge "lexage";
+charge "paginatrice";
+charge "syntaxage";
+charge "table";

@@ -1,6 +1,6 @@
-importe CommandesRendu
-importe Périphériques
-importe PeintureInterface
+importe CommandesRendu;
+importe Périphériques;
+importe PeintureInterface;
 
 /* ------------------------------------------------------------------------- */
 /** \nom PageWeb
@@ -9,126 +9,126 @@ importe PeintureInterface
  * \{ */
 
 PageWeb :: struct {
-    navigable: *TraversableNavigable
+    navigable: *TraversableNavigable;
 }
 
 crée_page_web :: fonc (navigable: *TraversableNavigable) -> PageWeb
 {
-    résultat: PageWeb
-    résultat.navigable = navigable
-    retourne résultat
+    résultat: PageWeb;
+    résultat.navigable = navigable;
+    retourne résultat;
 }
 
 donne_document :: fonc (page: *PageWeb) -> *Document
 {
     si page.navigable {
-        retourne page.navigable.donne_active_document()
+        retourne page.navigable.donne_active_document();
     }
-    retourne nul
+    retourne nul;
 }
 
 donne_position_décalée_par_défilement :: fonc (page: *PageWeb, position: Point2D(z32)) -> Point2D(z32)
 {
-    résultat := position
+    résultat := position;
 
-    document := donne_document(page)
+    document := donne_document(page);
     si document && document.arbre_de_disposition && document.arbre_de_disposition.défilement_vertical {
-        barre := document.arbre_de_disposition.défilement_vertical
-        résultat.y += (barre.rect.y / barre.ratio) comme z32
+        barre := document.arbre_de_disposition.défilement_vertical;
+        résultat.y += (barre.rect.y / barre.ratio) comme z32;
     }
 
-    retourne résultat
+    retourne résultat;
 }
 
 donne_code_source :: fonc (page: *PageWeb @inutilisée) -> chaine
 {
     // À FAIRE
-    retourne ""
+    retourne "";
 }
 
 dessine :: fonc (page: *PageWeb, largeur: z32, hauteur: z32, dessine_tampon_id: bool) -> *CommandesDeRendu
 {
-    document := donne_document(page)
+    document := donne_document(page);
 
     si document.is_initial_about_blank {
-        retourne nul
+        retourne nul;
     }
 
     si document.is_render_blocked() {
-        retourne nul
+        retourne nul;
     }
 
-    arbre := crée_arbre_de_disposition(page, largeur, hauteur)
+    arbre := crée_arbre_de_disposition(page, largeur, hauteur);
     saufsi arbre && arbre.racine {
-        retourne nul
+        retourne nul;
     }
 
-    ctx: CSS.ContexteDessin
-    ctx.document = document
-    ctx.globales = document.globales_dessin
-    ctx.hauteur_vue = hauteur
-    ctx.largeur_vue = largeur
+    ctx: CSS.ContexteDessin;
+    ctx.document = document;
+    ctx.globales = document.globales_dessin;
+    ctx.hauteur_vue = hauteur;
+    ctx.largeur_vue = largeur;
 
-    barre := arbre.défilement_vertical
+    barre := arbre.défilement_vertical;
     si barre {
-        ctx.décalage_y = barre.rect.y / barre.ratio
+        ctx.décalage_y = barre.rect.y / barre.ratio;
     }
 
-    commandes: *CommandesDeRendu
+    commandes: *CommandesDeRendu;
 
     si dessine_tampon_id {
-        commandes = CSS.dessine_tampon_id_couleur(arbre, *ctx)
+        commandes = CSS.dessine_tampon_id_couleur(arbre, *ctx);
     }
     sinon {
-        commandes = CSS.dessine(arbre, *ctx)
+        commandes = CSS.dessine(arbre, *ctx);
     }
 
     si barre && barre.est_visible {
-        hauteur_vue := hauteur comme r32
+        hauteur_vue := hauteur comme r32;
 
-        rect_barre := barre.rect
+        rect_barre := barre.rect;
 
         /* Change la position pour le dessin qui commence du bas. */
-        rect_barre.y = hauteur_vue - rect_barre.hauteur - rect_barre.y
+        rect_barre.y = hauteur_vue - rect_barre.hauteur - rect_barre.y;
 
-        couleur := CouleurRVBA(1.0, 0.5, 0.5, 0.5)
+        couleur := CouleurRVBA(1.0, 0.5, 0.5, 0.5);
         si barre.est_cliqué || barre.est_survolé {
-            couleur.r *= 0.5
-            couleur.v *= 0.5
-            couleur.b *= 0.5
+            couleur.r *= 0.5;
+            couleur.v *= 0.5;
+            couleur.b *= 0.5;
         }
 
-        remplis_rectangle(commandes, rect_barre, couleur)
+        remplis_rectangle(commandes, rect_barre, couleur);
     }
 
-    retourne commandes
+    retourne commandes;
 }
 
 dessine_tampon_id :: fonc (page: *PageWeb, largeur: z32, hauteur: z32) -> *CommandesDeRendu
 {
-    document := donne_document(page)
+    document := donne_document(page);
 
     si document.is_initial_about_blank {
-        retourne nul
+        retourne nul;
     }
 
-    arbre := crée_arbre_de_disposition(page, largeur, hauteur)
+    arbre := crée_arbre_de_disposition(page, largeur, hauteur);
     saufsi arbre && arbre.racine {
-        retourne nul
+        retourne nul;
     }
 
-    ctx: CSS.ContexteDessin
-    ctx.document = document
-    ctx.globales = document.globales_dessin
-    ctx.hauteur_vue = hauteur
-    ctx.largeur_vue = largeur
+    ctx: CSS.ContexteDessin;
+    ctx.document = document;
+    ctx.globales = document.globales_dessin;
+    ctx.hauteur_vue = hauteur;
+    ctx.largeur_vue = largeur;
 
-    barre := arbre.défilement_vertical
+    barre := arbre.défilement_vertical;
     si barre {
-        ctx.décalage_y = barre.rect.y / barre.ratio
+        ctx.décalage_y = barre.rect.y / barre.ratio;
     }
 
-    retourne CSS.dessine_tampon_id(arbre, *ctx)
+    retourne CSS.dessine_tampon_id(arbre, *ctx);
 }
 
 /** \} */
@@ -139,22 +139,22 @@ dessine_tampon_id :: fonc (page: *PageWeb, largeur: z32, hauteur: z32) -> *Comma
 
 crée_arbre_de_disposition :: fonc (page: *PageWeb, largeur: z32, hauteur: z32) -> *CSS.ArbreDeDisposition
 {
-    document := donne_document(page)
+    document := donne_document(page);
     saufsi document {
-        retourne nul
+        retourne nul;
     }
 
-    retourne CSS.donne_arbre_de_disposition_ajourné(document, largeur, hauteur)
+    retourne CSS.donne_arbre_de_disposition_ajourné(document, largeur, hauteur);
 }
 
 donne_arbre_de_disposition :: fonc (page: *PageWeb) -> *CSS.ArbreDeDisposition
 {
-    document := donne_document(page)
+    document := donne_document(page);
     saufsi document {
-        retourne nul
+        retourne nul;
     }
 
-    retourne document.arbre_de_disposition
+    retourne document.arbre_de_disposition;
 }
 
 /** \} */
@@ -165,244 +165,244 @@ donne_arbre_de_disposition :: fonc (page: *PageWeb) -> *CSS.ArbreDeDisposition
 
 redimensionne :: fonc (page: *PageWeb, largeur: z32, hauteur: z32)
 {
-    document := donne_document(page)
+    document := donne_document(page);
     si document {
-        document.invalide_style_pour_redimensionnement(largeur, hauteur)
+        document.invalide_style_pour_redimensionnement(largeur, hauteur);
     }
 }
 
 /* À FAIRE : supprime la valeur de retour. */
 gère_mouvement_souris :: fonc (page: *PageWeb, clic: *ClicSouris) -> bool
 {
-    document := donne_document(page)
+    document := donne_document(page);
     saufsi document {
-        retourne faux
+        retourne faux;
     }
 
-    arbre := document.arbre_de_disposition
+    arbre := document.arbre_de_disposition;
     saufsi arbre {
-        retourne faux
+        retourne faux;
     }
 
-    position := clic.état.où
+    position := clic.état.où;
 
-    position_event := donne_position_décalée_par_défilement(page, position)
+    position_event := donne_position_décalée_par_défilement(page, position);
 
-    élément := CSS.donne_élément_pour_position(arbre, position.x, position.y)
-    document.définis_noeud_survolé(élément)
+    élément := CSS.donne_élément_pour_position(arbre, position.x, position.y);
+    document.définis_noeud_survolé(élément);
     si élément {
-        envoie_mousemove(élément, position_event.x, position_event.y)
+        envoie_mousemove(élément, position_event.x, position_event.y);
     }
 
-    défilement := arbre.défilement_vertical
+    défilement := arbre.défilement_vertical;
 
-    ajourne_rendu := faux
+    ajourne_rendu := faux;
 
     si défilement && défilement.est_visible {
         si défilement.est_cliqué {
-            décalage := position.y comme r32 - défilement.pos_clic_y
-            défilement.pos_clic_y = position.y comme r32
-            ajourne_rendu |= CSS.décale_par(défilement, décalage)
+            décalage := position.y comme r32 - défilement.pos_clic_y;
+            défilement.pos_clic_y = position.y comme r32;
+            ajourne_rendu |= CSS.décale_par(défilement, décalage);
         }
 
         si défilement.rect.contient(position.x comme r32, position.y comme r32) {
             saufsi défilement.est_survolé {
-                défilement.est_survolé = vrai
-                ajourne_rendu = vrai
+                défilement.est_survolé = vrai;
+                ajourne_rendu = vrai;
             }
         }
         sinon si défilement.est_survolé {
-            défilement.est_survolé = faux
-            ajourne_rendu = vrai
+            défilement.est_survolé = faux;
+            ajourne_rendu = vrai;
         }
     }
 
-    retourne ajourne_rendu
+    retourne ajourne_rendu;
 }
 
 gère_pression_souris :: fonc (page: *PageWeb, clic: *ClicSouris)
 {
-    document := donne_document(page)
+    document := donne_document(page);
     saufsi document {
-        retourne
+        retourne;
     }
 
-    arbre := document.arbre_de_disposition
+    arbre := document.arbre_de_disposition;
     saufsi arbre {
-        retourne
+        retourne;
     }
 
-    position := clic.état.où
+    position := clic.état.où;
 
     si arbre.défilement_vertical && arbre.défilement_vertical.est_survolé && arbre.défilement_vertical.est_visible {
-        arbre.défilement_vertical.est_cliqué = vrai
-        arbre.défilement_vertical.pos_clic_y = position.y comme r32
-        retourne
+        arbre.défilement_vertical.est_cliqué = vrai;
+        arbre.défilement_vertical.pos_clic_y = position.y comme r32;
+        retourne;
     }
 
-    position_event := donne_position_décalée_par_défilement(page, position)
-    élément := CSS.donne_élément_pour_position(arbre, position.x, position.y)
+    position_event := donne_position_décalée_par_défilement(page, position);
+    élément := CSS.donne_élément_pour_position(arbre, position.x, position.y);
     si élément {
         si clic.bouton == BoutonSouris.PRIMAIRE {
-            élément.est_en_train_d_être_activé(vrai)
+            élément.est_en_train_d_être_activé(vrai);
         }
         sinon si clic.bouton == BoutonSouris.CONTEXTUEL {
-            user_agent := document.donne_user_agent()
-            assert(user_agent != nul)
-            user_agent.affiche_menu_contextuel_pour(élément, clic)
+            user_agent := document.donne_user_agent();
+            assert(user_agent != nul);
+            user_agent.affiche_menu_contextuel_pour(élément, clic);
         }
-        envoie_mousedown(élément, position_event.x, position_event.y)
+        envoie_mousedown(élément, position_event.x, position_event.y);
     }
-    document.élément_en_cours_d_activation = élément
+    document.élément_en_cours_d_activation = élément;
 }
 
 /* À FAIRE : supprime la valeur de retour. */
 gère_relâchement_souris :: fonc (page: *PageWeb, clic: *ClicSouris) -> bool
 {
-    document := donne_document(page)
+    document := donne_document(page);
     saufsi document {
-        retourne faux
+        retourne faux;
     }
 
-    arbre := document.arbre_de_disposition
+    arbre := document.arbre_de_disposition;
     saufsi arbre {
-        retourne faux
+        retourne faux;
     }
 
     si arbre.défilement_vertical && arbre.défilement_vertical.est_cliqué {
-        arbre.défilement_vertical.est_cliqué = faux
-        retourne vrai
+        arbre.défilement_vertical.est_cliqué = faux;
+        retourne vrai;
     }
 
-    position := clic.état.où
-    position_event := donne_position_décalée_par_défilement(page, position)
+    position := clic.état.où;
+    position_event := donne_position_décalée_par_défilement(page, position);
 
-    élément := CSS.donne_élément_pour_position(arbre, position.x, position.y)
+    élément := CSS.donne_élément_pour_position(arbre, position.x, position.y);
     si élément {
-        élément.est_en_train_d_être_activé(faux)
-        envoie_mouseup(élément, position_event.x, position_event.y)
+        élément.est_en_train_d_être_activé(faux);
+        envoie_mouseup(élément, position_event.x, position_event.y);
     }
     si document.élément_en_cours_d_activation {
         si document.élément_en_cours_d_activation != élément {
-            document.élément_en_cours_d_activation.est_en_train_d_être_activé(faux)
+            document.élément_en_cours_d_activation.est_en_train_d_être_activé(faux);
         }
         sinon {
-            envoie_un_clic(élément, clic.bouton, position_event.x, position_event.y)
+            envoie_un_clic(élément, clic.bouton, position_event.x, position_event.y);
         }
     }
-    document.élément_en_cours_d_activation = nul
-    retourne faux
+    document.élément_en_cours_d_activation = nul;
+    retourne faux;
 }
 
 /* À FAIRE : supprime la valeur de retour. */
 gère_molette_souris :: fonc (page: *PageWeb, clic: *ClicSouris) -> bool
 {
-    document := donne_document(page)
+    document := donne_document(page);
     saufsi document {
-        retourne faux
+        retourne faux;
     }
 
-    arbre := document.arbre_de_disposition
+    arbre := document.arbre_de_disposition;
     saufsi arbre && arbre.défilement_vertical && arbre.défilement_vertical.est_visible {
-        retourne faux
+        retourne faux;
     }
 
-    delta_molette := clic.delta
+    delta_molette := clic.delta;
 
-    HAUTEURE_LIGNE :: 16.0
-    NOMBRE_DE_LIGNES_PAR_ROULEMENT :: 5.0
-    DÉCALAGE_PAR_ROULEMENT :: NOMBRE_DE_LIGNES_PAR_ROULEMENT * HAUTEURE_LIGNE
+    HAUTEURE_LIGNE :: 16.0;
+    NOMBRE_DE_LIGNES_PAR_ROULEMENT :: 5.0;
+    DÉCALAGE_PAR_ROULEMENT :: NOMBRE_DE_LIGNES_PAR_ROULEMENT * HAUTEURE_LIGNE;
 
-    delta := DÉCALAGE_PAR_ROULEMENT * arbre.défilement_vertical.ratio
+    delta := DÉCALAGE_PAR_ROULEMENT * arbre.défilement_vertical.ratio;
 
     si delta_molette > 0 {
-        delta = -delta
+        delta = -delta;
     }
 
-    retourne CSS.décale_par(arbre.défilement_vertical, delta)
+    retourne CSS.décale_par(arbre.défilement_vertical, delta);
 }
 
 gère_sortie_souris :: fonc (page: *PageWeb)
 {
-    document := donne_document(page)
+    document := donne_document(page);
     si document && document.arbre_de_disposition && document.arbre_de_disposition.défilement_vertical {
-        arbre := document.arbre_de_disposition
+        arbre := document.arbre_de_disposition;
         si arbre.défilement_vertical.est_cliqué {
-            retourne
+            retourne;
         }
-        arbre.défilement_vertical.est_survolé = faux
+        arbre.défilement_vertical.est_survolé = faux;
     }
 }
 
 défile_vers_fragment :: fonc (page: *PageWeb)
 {
-    document := donne_document(page)
+    document := donne_document(page);
     saufsi document {
-        retourne
+        retourne;
     }
 
-    arbre := document.arbre_de_disposition
+    arbre := document.arbre_de_disposition;
     saufsi arbre && arbre.défilement_vertical {
-        retourne
+        retourne;
     }
 
-    élément := document.target_element
+    élément := document.target_element;
     saufsi élément {
-        arbre.défilement_vertical.rect.y = 0.0
-        retourne
+        arbre.défilement_vertical.rect.y = 0.0;
+        retourne;
     }
 
-    box := élément.box
+    box := élément.box;
     saufsi box {
-        arbre.défilement_vertical.rect.y = 0.0
-        retourne
+        arbre.défilement_vertical.rect.y = 0.0;
+        retourne;
     }
 
-    arbre.défilement_vertical.rect.y = box.modèle_de_boite.rembourrage.y * arbre.défilement_vertical.ratio
+    arbre.défilement_vertical.rect.y = box.modèle_de_boite.rembourrage.y * arbre.défilement_vertical.ratio;
 }
 
 /* https://w3c.github.io/uievents/#send-click-event */
 envoie_un_clic :: fonc (élément: *Element, bouton: BoutonSouris, position_x: z32, position_y: z32)
 {
     /* À FAIRE : standardise. */
-    évènement := crée_platform_object(élément, MouseEvent)
-    évènement.bubbles = vrai
+    évènement := crée_platform_object(élément, MouseEvent);
+    évènement.bubbles = vrai;
 
     si bouton == BoutonSouris.PRIMAIRE {
-        évènement.type = EventType.click
+        évènement.type = EventType.click;
     }
     sinon {
-        évènement.type = EventType.auxclick
+        évènement.type = EventType.auxclick;
     }
 
-    évènement.screen_x = position_x comme r64
-    évènement.screen_y = position_y comme r64
+    évènement.screen_x = position_x comme r64;
+    évènement.screen_y = position_y comme r64;
 
-    rect := CSS.donne_rectangle_rembourrage(élément.box)
-    évènement.offset_x = évènement.screen_x - rect.x
-    évènement.offset_y = évènement.screen_y - rect.y
+    rect := CSS.donne_rectangle_rembourrage(élément.box);
+    évènement.offset_x = évènement.screen_x - rect.x;
+    évènement.offset_y = évènement.screen_y - rect.y;
 
-    _ := dispatch(évènement, élément)
+    _ := dispatch(évènement, élément);
 
     tantque élément != nul {
         si élément.table.classe == HTMLInputElement {
-            input_element_sur_clic(élément comme *HTMLInputElement)
-            arrête
+            input_element_sur_clic(élément comme *HTMLInputElement);
+            arrête;
         }
 
         si élément.table.classe == HTMLLabelElement {
-            control := donne_labeled_control(élément comme *HTMLLabelElement)
+            control := donne_labeled_control(élément comme *HTMLLabelElement);
             si control && control.table.classe == HTMLInputElement {
-                input_element_sur_clic(control comme *HTMLInputElement)
-                arrête
+                input_element_sur_clic(control comme *HTMLInputElement);
+                arrête;
             }
         }
 
         saufsi est_élément(élément.parent) {
-            arrête
+            arrête;
         }
 
-        élément = élément.parent comme *Element
+        élément = élément.parent comme *Element;
     }
 }
 
@@ -411,25 +411,25 @@ envoie_un_clic :: fonc (élément: *Element, bouton: BoutonSouris, position_x: z
 input_element_sur_pression_souris :: fonc (input: *HTMLInputElement)
 {
     si input.is_text_entry_widget() {
-        input.crée_shadow_root_pour_édition()
-        user_agent := input.document.donne_user_agent()
-        assert(user_agent != nul)
-        user_agent.édition_text_input_requise(input)
-        retourne
+        input.crée_shadow_root_pour_édition();
+        user_agent := input.document.donne_user_agent();
+        assert(user_agent != nul);
+        user_agent.édition_text_input_requise(input);
+        retourne;
     }
 }
 
 input_element_sur_clic :: fonc (input: *HTMLInputElement)
 {
     si input.is_radio_button_widget() || input.is_checkbox_widget() {
-        input.définis_checkedness(!input.checkedness)
+        input.définis_checkedness(!input.checkedness);
 
         /* The dirty checkedness flag must be initially set to false when the element
          * is created, and must be set to true whenever the user interacts with the
          * control in a way that changes the checkedness.
          * https://html.spec.whatwg.org/multipage/input.html#concept-input-checked-dirty-flag */
-        input.dirty_checkedness = vrai
-        retourne
+        input.dirty_checkedness = vrai;
+        retourne;
     }
 }
 
@@ -437,68 +437,68 @@ input_element_sur_clic :: fonc (input: *HTMLInputElement)
 
 envoie_mousedown :: fonc (élément: *Element, position_x: z32, position_y: z32)
 {
-    évènement := crée_platform_object(élément, MouseEvent)
-    évènement.type = EventType.mousedown
-    évènement.bubbles = vrai
-    évènement.screen_x = position_x comme r64
-    évènement.screen_y = position_y comme r64
+    évènement := crée_platform_object(élément, MouseEvent);
+    évènement.type = EventType.mousedown;
+    évènement.bubbles = vrai;
+    évènement.screen_x = position_x comme r64;
+    évènement.screen_y = position_y comme r64;
 
-    rect := CSS.donne_rectangle_rembourrage(élément.box)
-    évènement.offset_x = évènement.screen_x - rect.x
-    évènement.offset_y = évènement.screen_y - rect.y
+    rect := CSS.donne_rectangle_rembourrage(élément.box);
+    évènement.offset_x = évènement.screen_x - rect.x;
+    évènement.offset_y = évènement.screen_y - rect.y;
 
-    _ := dispatch(évènement, élément)
+    _ := dispatch(évènement, élément);
 
     tantque élément != nul {
         si élément.table.classe == HTMLInputElement {
-            input_element_sur_pression_souris(élément comme *HTMLInputElement)
-            arrête
+            input_element_sur_pression_souris(élément comme *HTMLInputElement);
+            arrête;
         }
 
         si élément.table.classe == HTMLLabelElement {
-            control := donne_labeled_control(élément comme *HTMLLabelElement)
+            control := donne_labeled_control(élément comme *HTMLLabelElement);
             si control && control.table.classe == HTMLInputElement {
-                input_element_sur_pression_souris(control comme *HTMLInputElement)
-                arrête
+                input_element_sur_pression_souris(control comme *HTMLInputElement);
+                arrête;
             }
         }
 
         saufsi est_élément(élément.parent) {
-            arrête
+            arrête;
         }
 
-        élément = élément.parent comme *Element
+        élément = élément.parent comme *Element;
     }
 }
 
 envoie_mousemove :: fonc (élément: *Element, position_x: z32, position_y: z32)
 {
-    évènement := crée_platform_object(élément, MouseEvent)
-    évènement.type = EventType.mousemove
-    évènement.bubbles = vrai
-    évènement.screen_x = position_x comme r64
-    évènement.screen_y = position_y comme r64
+    évènement := crée_platform_object(élément, MouseEvent);
+    évènement.type = EventType.mousemove;
+    évènement.bubbles = vrai;
+    évènement.screen_x = position_x comme r64;
+    évènement.screen_y = position_y comme r64;
 
-    rect := CSS.donne_rectangle_rembourrage(élément.box)
-    évènement.offset_x = évènement.screen_x - rect.x
-    évènement.offset_y = évènement.screen_y - rect.y
+    rect := CSS.donne_rectangle_rembourrage(élément.box);
+    évènement.offset_x = évènement.screen_x - rect.x;
+    évènement.offset_y = évènement.screen_y - rect.y;
 
-    _ := dispatch(évènement, élément)
+    _ := dispatch(évènement, élément);
 }
 
 envoie_mouseup :: fonc (élément: *Element, position_x: z32, position_y: z32)
 {
-    évènement := crée_platform_object(élément, MouseEvent)
-    évènement.type = EventType.mouseup
-    évènement.bubbles = vrai
-    évènement.screen_x = position_x comme r64
-    évènement.screen_y = position_y comme r64
+    évènement := crée_platform_object(élément, MouseEvent);
+    évènement.type = EventType.mouseup;
+    évènement.bubbles = vrai;
+    évènement.screen_x = position_x comme r64;
+    évènement.screen_y = position_y comme r64;
 
-    rect := CSS.donne_rectangle_rembourrage(élément.box)
-    évènement.offset_x = évènement.screen_x - rect.x
-    évènement.offset_y = évènement.screen_y - rect.y
+    rect := CSS.donne_rectangle_rembourrage(élément.box);
+    évènement.offset_x = évènement.screen_x - rect.x;
+    évènement.offset_y = évènement.screen_y - rect.y;
 
-    _ := dispatch(évènement, élément)
+    _ := dispatch(évènement, élément);
 }
 
 /** \} */
@@ -509,52 +509,52 @@ envoie_mouseup :: fonc (élément: *Element, position_x: z32, position_y: z32)
 
 imprime_styles :: fonc (page_web: *PageWeb)
 {
-    document := donne_document(page_web)
+    document := donne_document(page_web);
     saufsi document {
-        retourne
+        retourne;
     }
 
-    arbre := document.arbre_de_disposition
+    arbre := document.arbre_de_disposition;
     saufsi arbre && arbre.racine {
-        retourne
+        retourne;
     }
 
-    styles: [..]*CSS.CSSStyleDeclaration
-    diffère déloge(styles)
+    styles: [..]*CSS.CSSStyleDeclaration;
+    diffère déloge(styles);
 
-    traversée: [..]*CSS.Box
-    diffère déloge(traversée)
+    traversée: [..]*CSS.Box;
+    diffère déloge(traversée);
 
-    tableau_ajoute(*traversée, arbre.racine)
+    tableau_ajoute(*traversée, arbre.racine);
 
     tantque traversée {
-        noeud := enlève_dernier_élément(*traversée)
+        noeud := enlève_dernier_élément(*traversée);
 
-        propriétés := noeud.propriétés
+        propriétés := noeud.propriétés;
         si propriétés {
             pour propriétés.déclarations {
                 si it.style_parent {
-                    ensemble_ajoute(*styles, it.style_parent)
+                    ensemble_ajoute(*styles, it.style_parent);
                 }
             }
         }
 
         pour > noeud.enfants {
-            tableau_ajoute(*traversée, it)
+            tableau_ajoute(*traversée, it);
         }
     }
 
     pour styles {
         saufsi it.parent_css_rule {
-            continue
+            continue;
         }
 
-        origine := CSS.donne_origine_cascade(it.parent_css_rule)
+        origine := CSS.donne_origine_cascade(it.parent_css_rule);
         si origine == CSS.OrigineCascade.UserAgent {
-            continue
+            continue;
         }
 
-        CSS.imprime_règle(it.parent_css_rule comme *CSS.CSSStyleRule)
+        CSS.imprime_règle(it.parent_css_rule comme *CSS.CSSStyleRule);
     }
 }
 

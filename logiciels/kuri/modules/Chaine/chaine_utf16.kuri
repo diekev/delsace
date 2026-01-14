@@ -1,176 +1,176 @@
-importe Ensemble
-importe Numérique
+importe Ensemble;
+importe Numérique;
 
-rune8 :: z8
-rune16 :: n16
-rune32 :: n32
+rune8 :: z8;
+rune16 :: n16;
+rune32 :: n32;
 
 // https://tc39.es/ecma262/#sec-ecmascript-language-types-string-type
 // https://infra.spec.whatwg.org/#string-is
 ChaineUTF16 :: struct {
-    unités: [..]n16
+    unités: [..]n16;
 }
 
 détruit_chaine :: fonc (chn: &ChaineUTF16)
 {
-    déloge(chn.unités)
+    déloge(chn.unités);
 }
 
 est_vide :: fonc (chn: ChaineUTF16) -> bool #enligne
 {
-    retourne chn.unités.taille == 0
+    retourne chn.unités.taille == 0;
 }
 
 est_vide_ou_uniquement_espaces_blanches :: fonc (chn: ChaineUTF16) -> bool
 {
-    retourne donne_position_premier_caractère_non_blanc(chn) == chn.taille()
+    retourne donne_position_premier_caractère_non_blanc(chn) == chn.taille();
 }
 
 réinitialise :: fonc (chn: &ChaineUTF16) #enligne
 {
-    chn.unités.taille = 0
+    chn.unités.taille = 0;
 }
 
 copie_chaine :: fonc (chn: ChaineUTF16) -> ChaineUTF16
 {
-    résultat: ChaineUTF16
-    résultat.unités = tableau_copie(chn.unités)
-    retourne résultat
+    résultat: ChaineUTF16;
+    résultat.unités = tableau_copie(chn.unités);
+    retourne résultat;
 }
 
 ajoute :: fonc (chn: *ChaineUTF16, unité: n16) #enligne
 {
-    tableau_ajoute(*chn.unités, unité)
+    tableau_ajoute(*chn.unités, unité);
 }
 
 chaine_ajoute :: fonc (chn: *ChaineUTF16, point_de_code: rune8)
 {
-    chn.ajoute(point_de_code comme n16)
+    chn.ajoute(point_de_code comme n16);
 }
 
 chaine_ajoute :: fonc (chn: *ChaineUTF16, chaine_native: chaine)
 {
     // À FAIRE : convertis proprement vers utf16
     pour chaine_native {
-        chn.ajoute(it comme n16)
+        chn.ajoute(it comme n16);
     }
 }
 
 en_minuscule :: fonc (unité: rune16) -> rune16
 {
     si ('A' comme n16) <= unité <= ('Z' comme n16) {
-        retourne unité - ('A' comme n16) + ('a' comme n16)
+        retourne unité - ('A' comme n16) + ('a' comme n16);
     }
-    retourne unité
+    retourne unité;
 }
 
 compare_ascii_insensible_à_la_casse :: fonc (chn1: ChaineUTF16, chn2: ChaineUTF16) -> bool
 {
     si chn1.taille() != chn2.taille() {
-        retourne faux
+        retourne faux;
     }
 
     pour chn1.taille() {
-        c1 := chn1.unités[it]
-        c2 := chn2.unités[it]
+        c1 := chn1.unités[it];
+        c2 := chn2.unités[it];
 
-        c1_minuscule := en_minuscule(c1)
-        c2_minuscule := en_minuscule(c2)
+        c1_minuscule := en_minuscule(c1);
+        c2_minuscule := en_minuscule(c2);
 
         si c1_minuscule != c2_minuscule {
-            retourne faux
+            retourne faux;
         }
     }
 
-    retourne vrai
+    retourne vrai;
 }
 
 compare_ascii_insensible_à_la_casse :: fonc (chn: ChaineUTF16, chaine_native: chaine) -> bool
 {
-    chn2 := crée_chaine_utf16(chaine_native)
-    diffère détruit_chaine(chn2)
-    retourne compare_ascii_insensible_à_la_casse(chn, chn2)
+    chn2 := crée_chaine_utf16(chaine_native);
+    diffère détruit_chaine(chn2);
+    retourne compare_ascii_insensible_à_la_casse(chn, chn2);
 }
 
 opérateur == :: (chn: ChaineUTF16, chaine_native: chaine) -> bool
 {
     // À FAIRE : convertis proprement vers utf16
     si chn.taille() != chaine_native.taille {
-        retourne faux
+        retourne faux;
     }
 
     pour chn.taille() {
-        c1 := chaine_native[it] comme n16
-        c2 := chn.unités[it]
+        c1 := chaine_native[it] comme n16;
+        c2 := chn.unités[it];
 
         si c1 != c2 {
-            retourne faux
+            retourne faux;
         }
     }
 
-    retourne vrai
+    retourne vrai;
 }
 
 chaine_ajoute :: fonc (chn: *ChaineUTF16, point_de_code: rune32)
 {
-    unités: [2]n16
-    taille := utf16_depuis_point_de_code(point_de_code, *unités[0])
+    unités: [2]n16;
+    taille := utf16_depuis_point_de_code(point_de_code, *unités[0]);
 
-    chn.ajoute(unités[0])
+    chn.ajoute(unités[0]);
     si taille == 2 {
-        chn.ajoute(unités[1])
+        chn.ajoute(unités[1]);
     }
 }
 
 taille :: fonc (chn: ChaineUTF16) -> z64 #enligne
 {
-    retourne chn.unités.taille
+    retourne chn.unités.taille;
 }
 
 taille_points_de_code :: fonc (chn: ChaineUTF16) -> z64
 {
-    résultat : z64 = 0
+    résultat : z64 = 0;
     pour itératrice_points_de_code(chn) {
-        résultat += 1
+        résultat += 1;
     }
-    retourne résultat
+    retourne résultat;
 }
 
 // Fonction de comparaison pour tri_rapide.
 compare_chaine_utf16 :: fonc (a1: ChaineUTF16, a2: ChaineUTF16) -> z32
 {
     si a1 < a2 {
-        retourne -1
+        retourne -1;
     }
 
     si a1 == a2 {
-        retourne 0
+        retourne 0;
     }
 
-    retourne 1
+    retourne 1;
 }
 
 divise_chaine :: fonc (chn: ChaineUTF16, délimiteur: n32) -> [..]ChaineUTF16
 {
-    position := 0
-    résultat: [..]ChaineUTF16
+    position := 0;
+    résultat: [..]ChaineUTF16;
 
     répète {
-        token: ChaineUTF16
-        token.unités.pointeur = chn.unités.pointeur + position
-        token.unités.taille = 0
+        token: ChaineUTF16;
+        token.unités.pointeur = chn.unités.pointeur + position;
+        token.unités.taille = 0;
 
         tantque position < chn.taille() && chn.unités.pointeur[position] != délimiteur {
-            token.unités.taille += 1
-            position += 1
+            token.unités.taille += 1;
+            position += 1;
         }
 
         // assert(chn.unités.pointeur[position] == délimiteur)
-        tableau_ajoute(*résultat, token)
-        position += 1
-    } tantque position < chn.taille()
+        tableau_ajoute(*résultat, token);
+        position += 1;
+    } tantque position < chn.taille();
 
-    retourne résultat
+    retourne résultat;
 }
 
 // À FAIRE(langage) : doit être résultat: *[2]n16
@@ -179,681 +179,681 @@ utf16_depuis_point_de_code :: fonc (point_de_code: n32, résultat: *n16) -> z32 
     //assert(point_de_code <= 0x10FFFF)
 
     si point_de_code <= 0xFFFF {
-        résultat[0] = point_de_code comme n16
-        retourne 1
+        résultat[0] = point_de_code comme n16;
+        retourne 1;
     }
 
-    uc1 := ((point_de_code - 0x10000) / 0x400) + 0xD800
-    uc2 := ((point_de_code - 0x10000) % 0x400) + 0xDC00
+    uc1 := ((point_de_code - 0x10000) / 0x400) + 0xD800;
+    uc2 := ((point_de_code - 0x10000) % 0x400) + 0xDC00;
 
-    résultat[0] = uc1 comme n16
-    résultat[1] = uc2 comme n16
+    résultat[0] = uc1 comme n16;
+    résultat[1] = uc2 comme n16;
 
-    retourne 2
+    retourne 2;
 }
 
 utf16_décode_paire_surrogate :: fonc (lead: n16, trail: n16) -> n32 #enligne
 {
-    l := lead comme n32
-    t := trail comme n32
+    l := lead comme n32;
+    t := trail comme n32;
 
-    retourne (l - 0xD800) * 0x400 + (t - 0xDC00) + 0x10000
+    retourne (l - 0xD800) * 0x400 + (t - 0xDC00) + 0x10000;
 }
 
 est_valeur_scalaire :: fonc (chn: ChaineUTF16) -> bool
 {
     pour chn.unités {
         si !est_valeur_scalaire(it) {
-            retourne faux
+            retourne faux;
         }
     }
 
-    retourne vrai
+    retourne vrai;
 }
 
 // À CONSIDÉRER : utilisation d'un type spécifique pour les chaines scalaires (ChaineValeurScalaireUnicode)
 convertis_vers_scalaire :: fonc (chn: ChaineUTF16) -> ChaineUTF16
 {
-    résultat: ChaineUTF16
+    résultat: ChaineUTF16;
 
     pour chn.unités {
         si !est_valeur_scalaire(it) {
-            ajoute(*résultat, 0xFFFD)
+            ajoute(*résultat, 0xFFFD);
         }
         sinon {
-            ajoute(*résultat, it)
+            ajoute(*résultat, it);
         }
     }
 
-    retourne résultat
+    retourne résultat;
 }
 
 convertis_vers_chaine :: fonc (chn: ChaineUTF16) -> chaine
 {
     // À FAIRE(langage) : la compilation n'attend pas sur les messages
     // retourne imprime_chaine("%", chn)
-    enchaineuse: Enchaineuse
-    initialise_enchaineuse(*enchaineuse)
-    flux_sortie := crée_flux_sortie(*enchaineuse)
-    formatte_chaine_utf16(*chn, flux_sortie)
-    retourne chaine_depuis_enchaineuse(*enchaineuse)
+    enchaineuse: Enchaineuse;
+    initialise_enchaineuse(*enchaineuse);
+    flux_sortie := crée_flux_sortie(*enchaineuse);
+    formatte_chaine_utf16(*chn, flux_sortie);
+    retourne chaine_depuis_enchaineuse(*enchaineuse);
 }
 
 est_préfixe_de :: fonc (chn1: ChaineUTF16, chn2: ChaineUTF16) -> bool
 {
-    i := 0
+    i := 0;
 
     boucle {
         si i >= chn1.taille() {
-            retourne vrai
+            retourne vrai;
         }
 
-        a := chn1.unités[i]
+        a := chn1.unités[i];
 
         si i >= chn2.taille() || a != chn2.unités[i] {
-            retourne faux
+            retourne faux;
         }
 
-        i += 1
+        i += 1;
     }
 
-    retourne vrai
+    retourne vrai;
 }
 
 opérateur == :: (a: ChaineUTF16, b: ChaineUTF16) -> bool
 {
     si a.taille() != b.taille() {
-        retourne faux
+        retourne faux;
     }
 
     pour a.taille() {
         si a.unités[it] != b.unités[it] {
-            retourne faux
+            retourne faux;
         }
     }
 
-    retourne vrai
+    retourne vrai;
 }
 
 opérateur < :: (a: ChaineUTF16, b: ChaineUTF16) -> bool
 {
     si b.est_préfixe_de(a) {
-        retourne faux
+        retourne faux;
     }
 
     si a.est_préfixe_de(b) {
-        retourne vrai
+        retourne vrai;
     }
 
     // trouve l'indice le plus petit du n-ième unité de code différent entre les chaines
-    n := 0
+    n := 0;
 
     boucle {
         si a.unités[n] != b.unités[n] {
-            arrête
+            arrête;
         }
 
-        n += 1
+        n += 1;
     }
 
-    retourne a.unités[n] < b.unités[n]
+    retourne a.unités[n] < b.unités[n];
 }
 
 opérateur > :: (a: ChaineUTF16, b: ChaineUTF16) -> bool
 {
-    retourne !(a < b || a == b)
+    retourne !(a < b || a == b);
 }
 
 avance :: fonc (chn: ChaineUTF16, pas: z64) -> ChaineUTF16 #enligne
 {
-    résultat := chn
-    résultat.unités.pointeur += pas
-    résultat.unités.taille -= pas
-    retourne résultat
+    résultat := chn;
+    résultat.unités.pointeur += pas;
+    résultat.unités.taille -= pas;
+    retourne résultat;
 }
 
 recule :: fonc (chn: ChaineUTF16, pas: z64) -> ChaineUTF16 #enligne
 {
-    résultat := chn
-    résultat.unités.taille -= pas
-    retourne résultat
+    résultat := chn;
+    résultat.unités.taille -= pas;
+    retourne résultat;
 }
 
 donne_position_premier_caractère_non_blanc :: fonc (chn: ChaineUTF16) -> z64
 {
     pour chn.unités {
         si est_caractère_espace_blanc(it) {
-            continue
+            continue;
         }
 
-        retourne indice_it
+        retourne indice_it;
     }
 
-    retourne chn.taille()
+    retourne chn.taille();
 }
 
 donne_position_dernier_caractère_non_blanc :: fonc (chn: ChaineUTF16) -> z64
 {
     pour > chn.unités {
         si est_caractère_espace_blanc(it) {
-            continue
+            continue;
         }
 
-        retourne chn.taille() - indice_it - 1
+        retourne chn.taille() - indice_it - 1;
     }
 
-    retourne 0
+    retourne 0;
 }
 
 supprime_espace_blanches_autour :: fonc (chn: ChaineUTF16) -> ChaineUTF16
 {
-    début := donne_position_premier_caractère_non_blanc(chn)
-    fin := donne_position_dernier_caractère_non_blanc(chn)
+    début := donne_position_premier_caractère_non_blanc(chn);
+    fin := donne_position_dernier_caractère_non_blanc(chn);
 
     si début < fin {
-        résultat := sous_chaine(chn, début, fin)
-        retourne copie_chaine(résultat)
+        résultat := sous_chaine(chn, début, fin);
+        retourne copie_chaine(résultat);
     }
 
-    retourne ChaineUTF16()
+    retourne ChaineUTF16();
 }
 
 donne_sous_chaine_entre_espace_blanches :: fonc (chn: ChaineUTF16) -> ChaineUTF16
 {
-    début := donne_position_premier_caractère_non_blanc(chn)
-    fin := donne_position_dernier_caractère_non_blanc(chn)
+    début := donne_position_premier_caractère_non_blanc(chn);
+    fin := donne_position_dernier_caractère_non_blanc(chn);
 
     si début < fin {
-        retourne sous_chaine(chn, début, fin)
+        retourne sous_chaine(chn, début, fin);
     }
 
-    retourne ChaineUTF16()
+    retourne ChaineUTF16();
 }
 
 supprime_espace_blanches_autour_en_place :: fonc (chn: *ChaineUTF16)
 {
-    ptr_début := chn.unités.pointeur
-    ptr_fin := chn.unités.pointeur + chn.unités.taille
+    ptr_début := chn.unités.pointeur;
+    ptr_fin := chn.unités.pointeur + chn.unités.taille;
 
     tantque ptr_début < ptr_fin {
         saufsi est_caractère_espace_blanc(mémoire(ptr_début)) {
-            arrête
+            arrête;
         }
-        ptr_début += 1
+        ptr_début += 1;
     }
 
-    insertion := chn.unités.pointeur
+    insertion := chn.unités.pointeur;
 
     tantque ptr_début < ptr_fin {
         si est_caractère_espace_blanc(mémoire(ptr_début)) {
-            arrête
+            arrête;
         }
 
-        mémoire(insertion) = mémoire(ptr_début)
+        mémoire(insertion) = mémoire(ptr_début);
 
-        ptr_début += 1
-        insertion += 1
+        ptr_début += 1;
+        insertion += 1;
     }
 
-    chn.unités.taille = (insertion - chn.unités.pointeur)
+    chn.unités.taille = (insertion - chn.unités.pointeur);
 }
 
 /* https://infra.spec.whatwg.org/#strip-newlines */
 supprime_nouvelles_lignes_en_place :: fonc (chn: *ChaineUTF16)
 {
-    début := chn.unités.pointeur
-    fin := chn.unités.pointeur + chn.unités.taille
+    début := chn.unités.pointeur;
+    fin := chn.unités.pointeur + chn.unités.taille;
 
-    insertion := début
-    taille_finale := chn.unités.taille
+    insertion := début;
+    taille_finale := chn.unités.taille;
 
     tantque début < fin {
         si mémoire(début) == 0x0A || mémoire(début) == 0x0D {
-            début += 1
-            taille_finale -= 1
-            continue
+            début += 1;
+            taille_finale -= 1;
+            continue;
         }
 
-        mémoire(insertion) = mémoire(début)
-        début += 1
-        insertion += 1
+        mémoire(insertion) = mémoire(début);
+        début += 1;
+        insertion += 1;
     }
 
-    chn.unités.taille = taille_finale
+    chn.unités.taille = taille_finale;
 }
 
 supprime :: fonc (chn: ChaineUTF16, prédicat: fonc (point_de_code: n32) -> bool) -> ChaineUTF16
 {
-    résultat: ChaineUTF16
+    résultat: ChaineUTF16;
 
     pour chn.unités {
         si prédicat(it) {
-            continue
+            continue;
         }
-        tableau_ajoute(*résultat.unités, it)
+        tableau_ajoute(*résultat.unités, it);
     }
 
-    retourne résultat
+    retourne résultat;
 }
 
 possède :: fonc (chn: ChaineUTF16, prédicat: fonc (point_de_code: n32) -> bool) -> bool
 {
     pour chn.unités {
         si prédicat(it) {
-            retourne vrai
+            retourne vrai;
         }
     }
-    retourne faux
+    retourne faux;
 }
 
 possède_au_début_ou_à_la_fin :: fonc (chn: ChaineUTF16, prédicat: fonc (point_de_code: n32) -> bool) -> bool
 {
     pour chn.unités {
         si prédicat(it) {
-            retourne vrai
+            retourne vrai;
         }
-        arrête
+        arrête;
     }
     pour > chn.unités {
         si prédicat(it) {
-            retourne vrai
+            retourne vrai;
         }
-        arrête
+        arrête;
     }
-    retourne faux
+    retourne faux;
 }
 
 donne_sous_chaine_entre :: fonc (chn: ChaineUTF16, prédicat: fonc (point_de_code: n32) -> bool) -> ChaineUTF16
 {
-    résultat := chn
+    résultat := chn;
 
-    début := résultat.unités.pointeur
-    fin := début + résultat.unités.taille
+    début := résultat.unités.pointeur;
+    fin := début + résultat.unités.taille;
 
     tantque début < fin {
         saufsi prédicat(mémoire(début)) {
-            arrête
+            arrête;
         }
 
-        début += 1
+        début += 1;
     }
 
-    résultat.unités.pointeur = début
+    résultat.unités.pointeur = début;
     
-    taille: z64
+    taille: z64;
 
-    fin -= 1
+    fin -= 1;
     tantque fin >= début {
         saufsi prédicat(mémoire(début)) {
-            arrête
+            arrête;
         }
-        fin -= 1
-        taille += 1
+        fin -= 1;
+        taille += 1;
     }
 
-    résultat.unités.taille = taille
+    résultat.unités.taille = taille;
 
-    retourne résultat
+    retourne résultat;
 }
 
 sous_chaine :: fonc (chn: ChaineUTF16, début: z64, fin: z64) -> ChaineUTF16
 {
-    assert(début >= 0)
-    assert(début < chn.taille())
-    assert(fin >= début)
-    assert(fin < chn.taille())
+    assert(début >= 0);
+    assert(début < chn.taille());
+    assert(fin >= début);
+    assert(fin < chn.taille());
 
-    résultat: ChaineUTF16
-    résultat.unités.pointeur = chn.unités.pointeur + début
-    résultat.unités.taille = (fin - début) + 1
-    retourne résultat
+    résultat: ChaineUTF16;
+    résultat.unités.pointeur = chn.unités.pointeur + début;
+    résultat.unités.taille = (fin - début) + 1;
+    retourne résultat;
 }
 
 commence_par :: fonc (chn: ChaineUTF16, prédicat: fonc (point_de_code: n32) -> bool, occurences_max: z64) -> bool
 {
     si chn.taille() < occurences_max {
-        retourne faux
+        retourne faux;
     }
 
     pour chn.unités {
         si indice_it >= occurences_max {
-            arrête
+            arrête;
         }
 
         saufsi prédicat(it) {
-            retourne faux
+            retourne faux;
         }
     }
 
-    retourne vrai
+    retourne vrai;
 }
 
 transforme_chaine :: fonc (chn: ChaineUTF16, résultat: *ChaineUTF16, transformation: fonc (point_de_code: n32) -> n32)
 {
-    tableau_réserve(*résultat.unités, chn.taille())
+    tableau_réserve(*résultat.unités, chn.taille());
 
     pour itératrice_points_de_code(chn) {
-        chaine_ajoute(résultat, transformation(it))
+        chaine_ajoute(résultat, transformation(it));
     }
 }
 
 transforme_texte_en_majuscule :: fonc (chn: ChaineUTF16) -> ChaineUTF16
 {
-    résultat: ChaineUTF16
-    transforme_chaine(chn, *résultat, transforme_point_de_code_en_majuscule)
-    retourne résultat
+    résultat: ChaineUTF16;
+    transforme_chaine(chn, *résultat, transforme_point_de_code_en_majuscule);
+    retourne résultat;
 }
 
 transforme_texte_en_minuscule :: fonc (chn: ChaineUTF16) -> ChaineUTF16
 {
-    résultat: ChaineUTF16
-    transforme_chaine(chn, *résultat, transforme_point_de_code_en_minuscule)
-    retourne résultat
+    résultat: ChaineUTF16;
+    transforme_chaine(chn, *résultat, transforme_point_de_code_en_minuscule);
+    retourne résultat;
 }
 
 /* https://infra.spec.whatwg.org/#split-on-ascii-whitespace */
 divise_sur_espaces_blanches_ascii :: fonc (chn: ChaineUTF16) -> [..]ChaineUTF16
 {
     // 1. Let position be a position variable for input, initially pointing at the start of input.
-    position := 0
+    position := 0;
 
     // 2. Let tokens be a list of strings, initially empty.
-    tokens: [..]ChaineUTF16
+    tokens: [..]ChaineUTF16;
 
     // 3. Skip ASCII whitespace within input given position.
     tantque position < chn.taille() && est_ascii_espace_blanche(chn.unités.pointeur[position]) {
-        position += 1
+        position += 1;
     }
 
     // 4. While position is not past the end of input:
     tantque position < chn.taille() {
         // 1. Let token be the result of collecting a sequence of code points that are not ASCII whitespace from input, given position.
-        token: ChaineUTF16
-        token.unités.pointeur = chn.unités.pointeur + position
-        token.unités.taille = 0
+        token: ChaineUTF16;
+        token.unités.pointeur = chn.unités.pointeur + position;
+        token.unités.taille = 0;
 
         tantque position < chn.taille() && !est_ascii_espace_blanche(chn.unités.pointeur[position]) {
-            token.unités.taille += 1
-            position += 1
+            token.unités.taille += 1;
+            position += 1;
         }
 
         // 2. Append token to tokens.
-        tableau_ajoute(*tokens, token)
+        tableau_ajoute(*tokens, token);
 
         // 3. Skip ASCII whitespace within input given position.
         tantque position < chn.taille() && est_ascii_espace_blanche(chn.unités.pointeur[position]) {
-            position += 1
+            position += 1;
         }
     }
 
     // 5. Return tokens.
-    retourne tokens
+    retourne tokens;
 }
 
 EnchaineuseUTF16 :: struct {
     Tampon :: struct {
-        suivant: *Tampon
-        données: [1024]rune16
-        occupés: z32
+        suivant: *Tampon;
+        données: [1024]rune16;
+        occupés: z32;
     }
 
-    tampon: Tampon
-    tampon_courant: *Tampon
-    liste_libre: *Tampon
+    tampon: Tampon;
+    tampon_courant: *Tampon;
+    liste_libre: *Tampon;
 }
 
 initialise_enchaineuse :: fonc (enchaineuse: &EnchaineuseUTF16)
 {
-    enchaineuse.tampon_courant = *enchaineuse.tampon
+    enchaineuse.tampon_courant = *enchaineuse.tampon;
 }
 
 initialise_enchaineuse_depuis_chaine :: fonc (enchaineuse: &EnchaineuseUTF16, chn: ChaineUTF16)
 {
-    initialise_enchaineuse(enchaineuse)
-    enchaineuse.ajoute(chn)
+    initialise_enchaineuse(enchaineuse);
+    enchaineuse.ajoute(chn);
 }
 
 réinitialise :: fonc (enchaineuse: &EnchaineuseUTF16)
 {
-    tampon := *enchaineuse.tampon
-    tampon.occupés = 0
-    tampon = tampon.suivant
+    tampon := *enchaineuse.tampon;
+    tampon.occupés = 0;
+    tampon = tampon.suivant;
     tantque tampon != nul {
-        tampon.occupés = 0
+        tampon.occupés = 0;
         si enchaineuse.liste_libre {
-            enchaineuse.liste_libre.suivant = enchaineuse.liste_libre
+            enchaineuse.liste_libre.suivant = enchaineuse.liste_libre;
         }
-        enchaineuse.liste_libre = tampon
-        tampon = tampon.suivant
+        enchaineuse.liste_libre = tampon;
+        tampon = tampon.suivant;
     }
 }
 
 détruit_liste_tampons :: fonc (tampon: *EnchaineuseUTF16.Tampon)
 {
     tantque tampon != nul {
-        tmp := tampon.suivant
-        déloge(tampon)
-        tampon = tmp
+        tmp := tampon.suivant;
+        déloge(tampon);
+        tampon = tmp;
     }
 }
 
 détruit_tampons :: fonc (enchaineuse: &EnchaineuseUTF16)
 {
-    détruit_liste_tampons(enchaineuse.tampon.suivant)
-    enchaineuse.tampon.suivant = nul
+    détruit_liste_tampons(enchaineuse.tampon.suivant);
+    enchaineuse.tampon.suivant = nul;
 
-    détruit_liste_tampons(enchaineuse.liste_libre)
-    enchaineuse.liste_libre = nul
+    détruit_liste_tampons(enchaineuse.liste_libre);
+    enchaineuse.liste_libre = nul;
 
-    enchaineuse.réinitialise()
+    enchaineuse.réinitialise();
 }
 
 taille_chaine :: fonc (enchaineuse: &EnchaineuseUTF16) -> z64
 {
-    résultat : z64 = 0
-    tampon := *enchaineuse.tampon
+    résultat : z64 = 0;
+    tampon := *enchaineuse.tampon;
     tantque tampon != nul {
-        résultat += tampon.occupés
-        tampon = tampon.suivant
+        résultat += tampon.occupés;
+        tampon = tampon.suivant;
     }
-    retourne résultat
+    retourne résultat;
 }
 
 ajoute_tampon :: fonc (enchaineuse: &EnchaineuseUTF16) -> *EnchaineuseUTF16.Tampon
 {
-    tampon: *EnchaineuseUTF16.Tampon
+    tampon: *EnchaineuseUTF16.Tampon;
 
     si enchaineuse.liste_libre {
-        tampon = enchaineuse.liste_libre
-        enchaineuse.liste_libre = tampon.suivant
-        tampon.suivant = nul
+        tampon = enchaineuse.liste_libre;
+        enchaineuse.liste_libre = tampon.suivant;
+        tampon.suivant = nul;
     }
     sinon {
-        tampon = loge(EnchaineuseUTF16.Tampon)
+        tampon = loge(EnchaineuseUTF16.Tampon);
     }
 
-    enchaineuse.tampon_courant.suivant = tampon
-    enchaineuse.tampon_courant = tampon
+    enchaineuse.tampon_courant.suivant = tampon;
+    enchaineuse.tampon_courant = tampon;
 
-    retourne tampon
+    retourne tampon;
 }
 
 ajoute :: fonc (enchaineuse: &EnchaineuseUTF16, rune: rune8)
 {
-    enchaineuse.ajoute(rune comme rune16)
+    enchaineuse.ajoute(rune comme rune16);
 }
 
 ajoute :: fonc (enchaineuse: &EnchaineuseUTF16, rune: rune16)
 {
-    tampon := enchaineuse.tampon_courant
+    tampon := enchaineuse.tampon_courant;
 
     si tampon.occupés + 1 >= 1024 {
-        tampon = enchaineuse.ajoute_tampon()
+        tampon = enchaineuse.ajoute_tampon();
     }
 
     si tampon.occupés + 1 < 1024 {
-        tampon.données[tampon.occupés] = rune
-        tampon.occupés += 1
+        tampon.données[tampon.occupés] = rune;
+        tampon.occupés += 1;
     }
 }
 
 ajoute :: fonc (enchaineuse: &EnchaineuseUTF16, chn: chaine)
 {
-    ptr_source := chn.pointeur
-    curseur := 0
+    ptr_source := chn.pointeur;
+    curseur := 0;
     tantque curseur < chn.taille {
-        no := nombre_octets_utf8_rapide(*ptr_source[curseur])
+        no := nombre_octets_utf8_rapide(*ptr_source[curseur]);
 
         si no == 0 {
-            curseur += 1
-            continue
+            curseur += 1;
+            continue;
         }
 
-        enchaineuse.ajoute(convertis_utf8_utf32(*ptr_source[curseur]) comme n32)
-        curseur += no comme z32
+        enchaineuse.ajoute(convertis_utf8_utf32(*ptr_source[curseur]) comme n32);
+        curseur += no comme z32;
     }
 }
 
 ajoute :: fonc (enchaineuse: &EnchaineuseUTF16, chn: ChaineUTF16Unique)
 {
-    ajoute(enchaineuse, chn.donne_chaine_utf16())
+    ajoute(enchaineuse, chn.donne_chaine_utf16());
 }
 
 ajoute :: fonc (enchaineuse: &EnchaineuseUTF16, chn: ChaineUTF16)
 {
     pour chn.unités {
-        enchaineuse.ajoute(it)
+        enchaineuse.ajoute(it);
     }
 }
 
 ajoute :: fonc (enchaineuse: &EnchaineuseUTF16, rune: rune32)
 {
-    unités: [2]n16
-    taille := utf16_depuis_point_de_code(rune, *unités[0])
+    unités: [2]n16;
+    taille := utf16_depuis_point_de_code(rune, *unités[0]);
 
-    enchaineuse.ajoute(unités[0])
+    enchaineuse.ajoute(unités[0]);
     si taille == 2 {
-        enchaineuse.ajoute(unités[1])
+        enchaineuse.ajoute(unités[1]);
     }
 }
 
 chaine_depuis_enchaineuse :: fonc (enchaineuse: &EnchaineuseUTF16, réinitialise := vrai) -> ChaineUTF16
 {
-    taille := enchaineuse.taille_chaine()
+    taille := enchaineuse.taille_chaine();
 
-    résultat: ChaineUTF16
+    résultat: ChaineUTF16;
 
     si taille == 0 {
-        retourne résultat
+        retourne résultat;
     }
 
-    tableau_redimensionne(résultat.unités, taille)
+    tableau_redimensionne(résultat.unités, taille);
 
-    curseur := 0
+    curseur := 0;
 
-    tampon := *enchaineuse.tampon
+    tampon := *enchaineuse.tampon;
 
     tantque tampon != nul {
-        src := *tampon.données[0]
-        dst := résultat.unités.pointeur + curseur
-        taille_mémoire := tampon.occupés * 2 // 2 octets par unités
+        src := *tampon.données[0];
+        dst := résultat.unités.pointeur + curseur;
+        taille_mémoire := tampon.occupés * 2; // 2 octets par unités
 
-        copie_mem_nonsur(src = src, dst = dst, taille = taille_mémoire)
+        copie_mem_nonsur(src = src, dst = dst, taille = taille_mémoire);
 
-        curseur += tampon.occupés
-        tampon = tampon.suivant
+        curseur += tampon.occupés;
+        tampon = tampon.suivant;
     }
 
-    résultat.unités.taille = curseur
+    résultat.unités.taille = curseur;
 
     si réinitialise {
-        enchaineuse.détruit_tampons()
+        enchaineuse.détruit_tampons();
     }
 
-    retourne résultat
+    retourne résultat;
 }
 
 crée_chaine_utf16 :: fonc (chn: chaine) -> ChaineUTF16
 {
-    enchaineuse: EnchaineuseUTF16
-    initialise_enchaineuse(enchaineuse)
-    enchaineuse.ajoute(chn)
-    retourne chaine_depuis_enchaineuse(enchaineuse)
+    enchaineuse: EnchaineuseUTF16;
+    initialise_enchaineuse(enchaineuse);
+    enchaineuse.ajoute(chn);
+    retourne chaine_depuis_enchaineuse(enchaineuse);
 }
 
 crée_chaine_utf16 :: fonc (chn: ChaineUTF32) -> ChaineUTF16
 {
-    résultat: ChaineUTF16
+    résultat: ChaineUTF16;
     pour chn.points_de_code {
-        chaine_ajoute(*résultat, it)
+        chaine_ajoute(*résultat, it);
     }
-    retourne résultat
+    retourne résultat;
 }
 
 crée_chaine_utf16 :: fonc (nombre: z32) -> ChaineUTF16
 {
-    enchaineuse: EnchaineuseUTF16
-    initialise_enchaineuse(enchaineuse)
+    enchaineuse: EnchaineuseUTF16;
+    initialise_enchaineuse(enchaineuse);
 
     si nombre == 0 {
-        enchaineuse.ajoute('0')
+        enchaineuse.ajoute('0');
     }
     sinon {
-        inverse := inverse_chiffres(nombre)
+        inverse := inverse_chiffres(nombre);
 
         tantque inverse != 0 {
-            chiffre := '0' + (inverse % 10) comme z8
-            enchaineuse.ajoute(chiffre)
-            inverse /= 10
+            chiffre := '0' + (inverse % 10) comme z8;
+            enchaineuse.ajoute(chiffre);
+            inverse /= 10;
         }
     }
 
-    retourne chaine_depuis_enchaineuse(enchaineuse)
+    retourne chaine_depuis_enchaineuse(enchaineuse);
 }
 
 // Idée pour l'impression de chaines UTF-16
 FluxSortie :: struct {
-    ajoute: fonc (flux: &FluxSortie, point_de_code: n32)
+    ajoute: fonc (flux: &FluxSortie, point_de_code: n32);
 
-    données: *rien
+    données: *rien;
 }
 
 crée_flux_sortie :: fonc (enchaineuse: *Enchaineuse) -> FluxSortie
 {
-    ajoute :: fonc (flux_sortie: &FluxSortie, point_de_code: n32)
+    ajoute :: fonc (flux_sortie: &FluxSortie, point_de_code: n32);
     {
-        enchaineuse_ := flux_sortie.données comme *Enchaineuse
+        enchaineuse_ := flux_sortie.données comme *Enchaineuse;
 
-        séquence: [4]n8
-        taille := point_de_code_vers_utf8(point_de_code, *séquence[0])
+        séquence: [4]n8;
+        taille := point_de_code_vers_utf8(point_de_code, *séquence[0]);
 
-        chn: chaine
-        chn.pointeur = *séquence[0] comme *z8
-        chn.taille = taille
+        chn: chaine;
+        chn.pointeur = *séquence[0] comme *z8;
+        chn.taille = taille;
 
-        ajoute_au_tampon(enchaineuse_, chn)
+        ajoute_au_tampon(enchaineuse_, chn);
     }
 
-    flux_sortie : FluxSortie = ---
-    flux_sortie.données = enchaineuse
-    flux_sortie.ajoute = ajoute
-    retourne flux_sortie
+    flux_sortie : FluxSortie = ---;
+    flux_sortie.données = enchaineuse;
+    flux_sortie.ajoute = ajoute;
+    retourne flux_sortie;
 }
 
 formatte_chaine_utf16 :: fonc (chn: *ChaineUTF16, flux_sortie: &FluxSortie)
 {
     pour itératrice_points_de_code(mémoire(chn)) {
-        flux_sortie.ajoute(flux_sortie, it)
+        flux_sortie.ajoute(flux_sortie, it);
     }
 }
 
 imprime_chaine_utf16 :: fonc (enchaineuse: *Enchaineuse, chn: *ChaineUTF16)
 {
     saufsi chn {
-        retourne
+        retourne;
     }
-    flux_sortie := crée_flux_sortie(enchaineuse)
-    formatte_chaine_utf16(chn, flux_sortie)
+    flux_sortie := crée_flux_sortie(enchaineuse);
+    formatte_chaine_utf16(chn, flux_sortie);
 } @FormattageImpression
 
 /* ------------------------------------------------------------------------- */
@@ -861,56 +861,56 @@ imprime_chaine_utf16 :: fonc (enchaineuse: *Enchaineuse, chn: *ChaineUTF16)
  * \{ */
 
 ItératricePointsDeCodeChaineUTF16 :: struct {
-    chn: ChaineUTF16
-    curseur := 0
+    chn: ChaineUTF16;
+    curseur := 0;
 }
 
 opérateur pour :: (itératrice: ItératricePointsDeCodeChaineUTF16) -> n32
 {
-    taille_chaine := itératrice.chn.unités.taille
+    taille_chaine := itératrice.chn.unités.taille;
 
-    index_point_de_code := 0
+    index_point_de_code := 0;
     tantque itératrice.curseur < taille_chaine {
-        `it = point_de_code_suivant(*itératrice)
-        `indice_it = index_point_de_code
+        `it = point_de_code_suivant(*itératrice);
+        `indice_it = index_point_de_code;
 
-        #corps_boucle
+        #corps_boucle;
 
-        index_point_de_code += 1
+        index_point_de_code += 1;
     }
 }
 
 itératrice_points_de_code :: fonc (chn: ChaineUTF16) -> ItératricePointsDeCodeChaineUTF16
 {
-    retourne ItératricePointsDeCodeChaineUTF16(chn)
+    retourne ItératricePointsDeCodeChaineUTF16(chn);
 }
 
 point_de_code_suivant :: fonc (empl itératrice: *ItératricePointsDeCodeChaineUTF16) -> n32
 {
-    unité := chn.unités[curseur]
+    unité := chn.unités[curseur];
 
-    point_de_code: n32
+    point_de_code: n32;
 
     saufsi est_leading_surrogate(unité) || est_trailling_surrogate(unité) {
-        point_de_code = unité comme n32
-        curseur += 1
+        point_de_code = unité comme n32;
+        curseur += 1;
     }
     sinon si est_leading_surrogate(unité) && curseur == chn.unités.taille - 1 {
-        point_de_code = unité comme n32
-        curseur += 1
+        point_de_code = unité comme n32;
+        curseur += 1;
     }
     sinon si est_leading_surrogate(unité) && est_trailling_surrogate(chn.unités[curseur + 1]) {
-        point_de_code = utf16_décode_paire_surrogate(unité, chn.unités[curseur + 1])
-        curseur += 2
+        point_de_code = utf16_décode_paire_surrogate(unité, chn.unités[curseur + 1]);
+        curseur += 2;
     }
     sinon {
         /* L'unité de code courante est soit un leading surrogate, soit un trailing surrogate, qui
         * ne fait pas partie d'une paire de surrogates. Considérons que c'est un point de code. */
-        point_de_code = unité comme n32
-        curseur += 1
+        point_de_code = unité comme n32;
+        curseur += 1;
     }
 
-    retourne point_de_code
+    retourne point_de_code;
 }
 
 /** \} */
@@ -922,203 +922,203 @@ point_de_code_suivant :: fonc (empl itératrice: *ItératricePointsDeCodeChaineU
 ChaineUTF16Unique :: struct {
     /* Valeurs magiques pour certaines chaines.
      * Les caractères ASCII simples occupent les 128 premières valeurs. */
-    CHAINE_VIDE : n32 : 128
-    CHAINE_NULLE : n32 : 129
+    CHAINE_VIDE : n32 : 128;
+    CHAINE_NULLE : n32 : 129;
 
-    valeur := CHAINE_NULLE
+    valeur := CHAINE_NULLE;
 }
 
 crée_chaine_utf16_unique :: fonc (chn: chaine) -> ChaineUTF16Unique
 {
     saufsi chn {
-        retourne crée_chaine_utf16_unique_vide()
+        retourne crée_chaine_utf16_unique_vide();
     }
     si chn.taille == 1 {
-        unité := chn[0] comme n8
+        unité := chn[0] comme n8;
         si unité <= 127 {
-            retourne ChaineUTF16Unique(unité comme n32)
+            retourne ChaineUTF16Unique(unité comme n32);
         }
     }
 
-    tmp := crée_chaine_utf16(chn)
-    diffère détruit_chaine(tmp)
-    retourne crée_chaine_utf16_unique(tmp)
+    tmp := crée_chaine_utf16(chn);
+    diffère détruit_chaine(tmp);
+    retourne crée_chaine_utf16_unique(tmp);
 }
 
 crée_chaine_utf16_unique :: fonc (chn: &ChaineUTF16) -> ChaineUTF16Unique
 {
     si chn.taille() == 0 {
-        retourne crée_chaine_utf16_unique_vide()
+        retourne crée_chaine_utf16_unique_vide();
     }
     si chn.taille() == 1 {
-        unité := chn.unités[0]
+        unité := chn.unités[0];
 
         si unité <= 127 {
-            retourne ChaineUTF16Unique(unité comme n32)
+            retourne ChaineUTF16Unique(unité comme n32);
         }
     }
 
-    retourne crée_chaine_utf16_unique(__table_chaines_utf16_uniques, chn)
+    retourne crée_chaine_utf16_unique(__table_chaines_utf16_uniques, chn);
 }
 
 crée_chaine_utf16_unique :: fonc (chn: &ChaineUTF32) -> ChaineUTF16Unique
 {
     si chn.taille() == 0 {
-        retourne crée_chaine_utf16_unique_vide()
+        retourne crée_chaine_utf16_unique_vide();
     }
     si chn.taille() == 1 {
-        point_de_code := chn.points_de_code[0]
+        point_de_code := chn.points_de_code[0];
 
         si point_de_code <= 127 {
-            retourne ChaineUTF16Unique(point_de_code)
+            retourne ChaineUTF16Unique(point_de_code);
         }
     }
-    tmp := crée_chaine_utf16(chn)
-    diffère détruit_chaine(tmp)
-    retourne crée_chaine_utf16_unique(tmp)
+    tmp := crée_chaine_utf16(chn);
+    diffère détruit_chaine(tmp);
+    retourne crée_chaine_utf16_unique(tmp);
 }
 
 crée_chaine_utf16_unique_vide :: fonc () -> ChaineUTF16Unique #enligne
 {
-    retourne ChaineUTF16Unique(ChaineUTF16Unique.CHAINE_VIDE)
+    retourne ChaineUTF16Unique(ChaineUTF16Unique.CHAINE_VIDE);
 }
 
 crée_chaine_utf16_unique_nulle :: fonc () -> ChaineUTF16Unique #enligne
 {
-    retourne ChaineUTF16Unique(ChaineUTF16Unique.CHAINE_NULLE)
+    retourne ChaineUTF16Unique(ChaineUTF16Unique.CHAINE_NULLE);
 }
 
 est_caractère_ascii :: fonc (chn: ChaineUTF16Unique) -> bool #enligne
 {
-    retourne chn.valeur < 128
+    retourne chn.valeur < 128;
 }
 
 taille :: fonc (chn: ChaineUTF16Unique) -> z64 #enligne
 {
-    retourne chn.donne_chaine_utf16().taille()
+    retourne chn.donne_chaine_utf16().taille();
 }
 
 opérateur == :: (chn1: ChaineUTF16Unique, chn2: ChaineUTF16Unique) -> bool
 {
-    retourne chn1.valeur == chn2.valeur
+    retourne chn1.valeur == chn2.valeur;
 }
 
 opérateur == :: (chn1: ChaineUTF16Unique, chn2: ChaineUTF16) -> bool
 {
-    retourne chn1.donne_chaine_utf16() == chn2
+    retourne chn1.donne_chaine_utf16() == chn2;
 }
 
 opérateur < :: (chn1: ChaineUTF16Unique, chn2: ChaineUTF16Unique) -> bool
 {
     si chn1.est_caractère_ascii() && chn2.est_caractère_ascii() {
-        retourne chn1.valeur < chn2.valeur
+        retourne chn1.valeur < chn2.valeur;
     }
 
-    c1 := donne_chaine_utf16(chn1)
-    c2 := donne_chaine_utf16(chn2)
-    retourne c1 < c2
+    c1 := donne_chaine_utf16(chn1);
+    c2 := donne_chaine_utf16(chn2);
+    retourne c1 < c2;
 }
 
 opérateur > :: (chn1: ChaineUTF16Unique, chn2: ChaineUTF16Unique) -> bool
 {
     si chn1.est_caractère_ascii() && chn2.est_caractère_ascii() {
-        retourne chn1.valeur > chn2.valeur
+        retourne chn1.valeur > chn2.valeur;
     }
 
-    c1 := donne_chaine_utf16(chn1)
-    c2 := donne_chaine_utf16(chn2)
-    retourne c1 > c2
+    c1 := donne_chaine_utf16(chn1);
+    c2 := donne_chaine_utf16(chn2);
+    retourne c1 > c2;
 }
 
 donne_chaine_utf16 :: fonc (chn: ChaineUTF16Unique) -> ChaineUTF16
 {
-    retourne donne_chaine_pour_indice(__table_chaines_utf16_uniques, chn.valeur)
+    retourne donne_chaine_pour_indice(__table_chaines_utf16_uniques, chn.valeur);
 }
 
 imprime_chaine_utf16_unique :: fonc (enchaineuse: *Enchaineuse, chn: *ChaineUTF16Unique)
 {
     saufsi chn {
-        retourne
+        retourne;
     }
 
     si mémoire(chn).est_caractère_ascii() {
-        valeur := chn.valeur comme z8
-        chn_ascii := chaine(*valeur, 1)
-        ajoute_au_tampon(enchaineuse, chn_ascii)
-        retourne
+        valeur := chn.valeur comme z8;
+        chn_ascii := chaine(*valeur, 1);
+        ajoute_au_tampon(enchaineuse, chn_ascii);
+        retourne;
     }
 
-    chn_utf16 := donne_chaine_utf16(mémoire(chn))
-    imprime_dans_enchaineuse(enchaineuse, "%", chn_utf16)
+    chn_utf16 := donne_chaine_utf16(mémoire(chn));
+    imprime_dans_enchaineuse(enchaineuse, "%", chn_utf16);
 } @FormattageImpression
 
 est_vide :: fonc (chn: ChaineUTF16Unique) -> bool
 {
-    retourne chn.valeur == ChaineUTF16Unique.CHAINE_VIDE || chn.valeur == ChaineUTF16Unique.CHAINE_NULLE
+    retourne chn.valeur == ChaineUTF16Unique.CHAINE_VIDE || chn.valeur == ChaineUTF16Unique.CHAINE_NULLE;
 }
 
 divise_sur_espaces_blanches_ascii :: fonc (chn: ChaineUTF16Unique) -> [..]ChaineUTF16Unique
 {
-    chn_utf16 := chn.donne_chaine_utf16()
+    chn_utf16 := chn.donne_chaine_utf16();
 
-    résultat_tmp := chn_utf16.divise_sur_espaces_blanches_ascii()
-    diffère déloge(résultat_tmp)
+    résultat_tmp := chn_utf16.divise_sur_espaces_blanches_ascii();
+    diffère déloge(résultat_tmp);
 
-    résultat: [..]ChaineUTF16Unique
+    résultat: [..]ChaineUTF16Unique;
     pour résultat_tmp {
-        tableau_ajoute(*résultat, crée_chaine_utf16_unique(it))
+        tableau_ajoute(*résultat, crée_chaine_utf16_unique(it));
     }
 
-    retourne résultat
+    retourne résultat;
 }
 
 compare_ascii_insensible_à_la_casse :: fonc (chn1: ChaineUTF16Unique, chn2: ChaineUTF16Unique) -> bool
 {
     si chn1 == chn2 {
-        retourne vrai
+        retourne vrai;
     }
 
-    chn1_utf16 := chn1.donne_chaine_utf16()
-    chn2_utf16 := chn2.donne_chaine_utf16()
-    retourne compare_ascii_insensible_à_la_casse(chn1_utf16, chn2_utf16)
+    chn1_utf16 := chn1.donne_chaine_utf16();
+    chn2_utf16 := chn2.donne_chaine_utf16();
+    retourne compare_ascii_insensible_à_la_casse(chn1_utf16, chn2_utf16);
 }
 
 compare_ascii_insensible_à_la_casse :: fonc (chn1: ChaineUTF16Unique, chns: ...ChaineUTF16Unique) -> bool
 {
     pour chns {
         si compare_ascii_insensible_à_la_casse(chn1, it) {
-            retourne vrai
+            retourne vrai;
         }
     }
-    retourne faux
+    retourne faux;
 }
 
 compare_ascii_insensible_à_la_casse :: fonc (chn1: ChaineUTF16Unique, chn2: chaine) -> bool
 {
-    retourne compare_ascii_insensible_à_la_casse(chn1, crée_chaine_utf16_unique(chn2))
+    retourne compare_ascii_insensible_à_la_casse(chn1, crée_chaine_utf16_unique(chn2));
 }
 
 supprime_espace_blanches_autour :: fonc (chn: ChaineUTF16Unique) -> ChaineUTF16Unique
 {
-    chn_utf16 := chn.donne_chaine_utf16()
-    chn_utf16 = donne_sous_chaine_entre_espace_blanches(chn_utf16)
-    retourne crée_chaine_utf16_unique(chn_utf16)
+    chn_utf16 := chn.donne_chaine_utf16();
+    chn_utf16 = donne_sous_chaine_entre_espace_blanches(chn_utf16);
+    retourne crée_chaine_utf16_unique(chn_utf16);
 }
 
 /* Comparaison pour tri_rapide. */
 compare_chaine_utf16_unique :: fonc (a1: ChaineUTF16Unique, a2: ChaineUTF16Unique) -> z32
 {
-    retourne compare_chaine_utf16(a1.donne_chaine_utf16(), a2.donne_chaine_utf16())
+    retourne compare_chaine_utf16(a1.donne_chaine_utf16(), a2.donne_chaine_utf16());
 }
 
 enchaine :: fonc (chns: ...ChaineUTF16Unique) -> chaine
 {
-    enchaineuse: Enchaineuse
-    initialise_enchaineuse(*enchaineuse)
+    enchaineuse: Enchaineuse;
+    initialise_enchaineuse(*enchaineuse);
     pour chns {
-        ajoute_au_tampon(*enchaineuse, it)
+        ajoute_au_tampon(*enchaineuse, it);
     }
-    retourne chaine_depuis_enchaineuse(*enchaineuse)
+    retourne chaine_depuis_enchaineuse(*enchaineuse);
 }
 
 /** \} */
@@ -1133,91 +1133,91 @@ enchaine :: fonc (chns: ...ChaineUTF16Unique) -> chaine
  * une autre allocatrice lors de l'exécution du programme puisque plusieurs
  * chaines sont initialisées via ajoute_init qui alloue dans le contexte global.
  * Ainsi, ajouter des chaines après le début de princiaple nous évite de crasher,  */
-alloc_table_chaines_utf16_uniques: BaseAllocatrice
+alloc_table_chaines_utf16_uniques: BaseAllocatrice;
 
 TableChainesUTF16Unique :: struct {
-    chaines: [..]ChaineUTF16
+    chaines: [..]ChaineUTF16;
 
     EntréeCache :: struct {
-        chn: ChaineUTF16
-        indice: n32
+        chn: ChaineUTF16;
+        indice: n32;
     }
 
-    ensemble: [..]EntréeCache
+    ensemble: [..]EntréeCache;
 }
 
 opérateur == :: (entrée1: TableChainesUTF16Unique.EntréeCache, entrée2: TableChainesUTF16Unique.EntréeCache) -> bool
 {
-    retourne entrée1.chn == entrée2.chn
+    retourne entrée1.chn == entrée2.chn;
 }
 
 opérateur < :: (entrée1: TableChainesUTF16Unique.EntréeCache, entrée2: TableChainesUTF16Unique.EntréeCache) -> bool
 {
-    retourne entrée1.chn < entrée2.chn
+    retourne entrée1.chn < entrée2.chn;
 }
 
 crée_chaine_utf16_unique :: fonc (table: &TableChainesUTF16Unique, chn: &ChaineUTF16) -> ChaineUTF16Unique
 {
-    entrée: TableChainesUTF16Unique.EntréeCache
-    entrée.chn = chn
+    entrée: TableChainesUTF16Unique.EntréeCache;
+    entrée.chn = chn;
 
-    entrée_existante := ensemble_possède_retourne_indice(table.ensemble, entrée)
+    entrée_existante := ensemble_possède_retourne_indice(table.ensemble, entrée);
     si entrée_existante != -1 {
-        entrée = table.ensemble[entrée_existante]
-        retourne ChaineUTF16Unique(entrée.indice)
+        entrée = table.ensemble[entrée_existante];
+        retourne ChaineUTF16Unique(entrée.indice);
     }
 
-    ctx := contexte()
-    ctx.allocatrice = allocatrice_défaut
-    ctx.données_allocatrice = *alloc_table_chaines_utf16_uniques
+    ctx := contexte();
+    ctx.allocatrice = allocatrice_défaut;
+    ctx.données_allocatrice = *alloc_table_chaines_utf16_uniques;
 
     pousse_contexte ctx {
         si table.chaines.taille == 0 {
             pour 128 {
-                chn_ascii: ChaineUTF16
-                chaine_ajoute(*chn_ascii, it comme n16)
-                tableau_ajoute(*table.chaines, chn_ascii)
+                chn_ascii: ChaineUTF16;
+                chaine_ajoute(*chn_ascii, it comme n16);
+                tableau_ajoute(*table.chaines, chn_ascii);
             }
-            chn_vide: ChaineUTF16
+            chn_vide: ChaineUTF16;
             /* ChaineUTF16Unique.CHAINE_VIDE */
-            tableau_ajoute(*table.chaines, chn_vide)
+            tableau_ajoute(*table.chaines, chn_vide);
             /* ChaineUTF16Unique.CHAINE_NULLE (représentée par une chaine vide). */
-            tableau_ajoute(*table.chaines, chn_vide)
+            tableau_ajoute(*table.chaines, chn_vide);
         }
 
-        indice := table.chaines.taille comme n32
-        entrée.indice = indice
-        entrée.chn = copie_chaine(chn)
+        indice := table.chaines.taille comme n32;
+        entrée.indice = indice;
+        entrée.chn = copie_chaine(chn);
 
-        ensemble_ajoute(*table.ensemble, entrée)
+        ensemble_ajoute(*table.ensemble, entrée);
 
-        tableau_ajoute(*table.chaines, entrée.chn)
+        tableau_ajoute(*table.chaines, entrée.chn);
 
-        retourne ChaineUTF16Unique(indice)
+        retourne ChaineUTF16Unique(indice);
     }
 }
 
 donne_chaine_pour_indice :: fonc (table: &TableChainesUTF16Unique, indice: n32) -> ChaineUTF16
 {
-    retourne table.chaines[indice comme z64]
+    retourne table.chaines[indice comme z64];
 }
 
-__table_chaines_utf16_uniques: TableChainesUTF16Unique
+__table_chaines_utf16_uniques: TableChainesUTF16Unique;
 
 #portée_export
 
 détruit_table_chaines_utf16_uniques :: fonc ()
 {
-    ctx := contexte()
-    ctx.allocatrice = allocatrice_défaut
-    ctx.données_allocatrice = *alloc_table_chaines_utf16_uniques
+    ctx := contexte();
+    ctx.allocatrice = allocatrice_défaut;
+    ctx.données_allocatrice = *alloc_table_chaines_utf16_uniques;
 
     pousse_contexte ctx {
         pour __table_chaines_utf16_uniques.chaines {
-            détruit_chaine(it)
+            détruit_chaine(it);
         }
-        déloge(__table_chaines_utf16_uniques.chaines)
-        déloge(__table_chaines_utf16_uniques.ensemble)
+        déloge(__table_chaines_utf16_uniques.chaines);
+        déloge(__table_chaines_utf16_uniques.ensemble);
     }
 }
 

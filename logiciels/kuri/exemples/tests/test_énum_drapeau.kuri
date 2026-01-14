@@ -1,4 +1,4 @@
-importe Fondation
+importe Fondation;
 
 // À FAIRE(langage) : opérations sur les énums drapeaux
 // x.DRAPEAU | bool (|=)
@@ -10,263 +10,263 @@ importe Fondation
 // opérateur && -> x.DRAPEAU1 && x.DRAPEAU2 -> (x & (DRAPEAU1 | DRAPEAU2)) == (DRAPEAU1 | DRAPEAU2)
 
 Drapeau :: énum_drapeau n32 {
-    FA
-    FB
-    FC
-    FD
-    FE
+    FA;
+    FB;
+    FC;
+    FD;
+    FE;
 }
 
 Normal :: énum z32 {
-    FA
-    FB
-    FC
-    FD
-    FE
+    FA;
+    FB;
+    FC;
+    FD;
+    FE;
 }
 
 test_expressions_booléennes :: fonc ()
 {
-    a := Drapeau.FA
+    a := Drapeau.FA;
 
     si a.FA {
-        imprime("OK: a.FA !\n")
+        imprime("OK: a.FA !\n");
     }
     sinon {
-        imprime("PAS OK: a.FA !\n")
+        imprime("PAS OK: a.FA !\n");
     }
 
     si !a.FA {
-        imprime("PAS OK: a.FA !\n")
+        imprime("PAS OK: a.FA !\n");
     }
     sinon {
-        imprime("OK: a.FA !\n")
+        imprime("OK: a.FA !\n");
     }
 
     si a.FA == vrai {
-        imprime("OK: a.FA !\n")
+        imprime("OK: a.FA !\n");
     }
     sinon {
-        imprime("PAS OK: a.FA !\n")
+        imprime("PAS OK: a.FA !\n");
     }
 
     si a.FA == faux {
-        imprime("PAS OK: a.FA !\n")
+        imprime("PAS OK: a.FA !\n");
     }
     sinon {
-        imprime("OK: a.FA !\n")
+        imprime("OK: a.FA !\n");
     }
 
     si vrai == a.FA {
-        imprime("OK: a.FA !\n")
+        imprime("OK: a.FA !\n");
     }
     sinon {
-        imprime("PAS OK: a.FA !\n")
+        imprime("PAS OK: a.FA !\n");
     }
 
     si faux == a.FA {
-        imprime("PAS OK: a.FA !\n")
+        imprime("PAS OK: a.FA !\n");
     }
     sinon {
-        imprime("OK: a.FA !\n")
+        imprime("OK: a.FA !\n");
     }
 }
 
 test_expressions_booléennes_variables :: fonc ()
 {
-    b := faux
-    d: Drapeau
+    b := faux;
+    d: Drapeau;
 
-    d.FA = b
+    d.FA = b;
     si d.FA {
-        imprime("PAS OK: d.FA doit être faux !\n")
-        retourne
+        imprime("PAS OK: d.FA doit être faux !\n");
+        retourne;
     }
 
-    b = vrai
-    d.FA = b
+    b = vrai;
+    d.FA = b;
     saufsi d.FA {
-        imprime("PAS OK: d.FA doit être vrai !\n")
-        retourne
+        imprime("PAS OK: d.FA doit être vrai !\n");
+        retourne;
     }
 
-    imprime("SUCCÈS de test_expressions_booléennes_variables !\n")
+    imprime("SUCCÈS de test_expressions_booléennes_variables !\n");
 }
 
 test_expressions_booléennes_expression :: fonc ()
 {
-    d: Drapeau
+    d: Drapeau;
 
-    d.FA = retourne_faux()
+    d.FA = retourne_faux();
     si d.FA {
-        imprime("PAS OK: d.FA doit être faux !\n")
-        retourne
+        imprime("PAS OK: d.FA doit être faux !\n");
+        retourne;
     }
 
-    d.FA = retourne_vrai()
+    d.FA = retourne_vrai();
     saufsi d.FA {
-        imprime("PAS OK: d.FA doit être vrai !\n")
-        retourne
+        imprime("PAS OK: d.FA doit être vrai !\n");
+        retourne;
     }
 
-    d.FA = retourne_vrai() && !retourne_faux()
+    d.FA = retourne_vrai() && !retourne_faux();
     saufsi d.FA {
-        imprime("PAS OK: d.FA doit être vrai !\n")
-        retourne
+        imprime("PAS OK: d.FA doit être vrai !\n");
+        retourne;
     }
 
-    d.FA = !retourne_vrai() && retourne_faux()
+    d.FA = !retourne_vrai() && retourne_faux();
     si d.FA {
-        imprime("PAS OK: d.FA doit être faux !\n")
-        retourne
+        imprime("PAS OK: d.FA doit être faux !\n");
+        retourne;
     }
 
-    d.FA = retourne_vrai() || retourne_faux()
+    d.FA = retourne_vrai() || retourne_faux();
     saufsi d.FA {
-        imprime("PAS OK: d.FA doit être vrai !\n")
-        retourne
+        imprime("PAS OK: d.FA doit être vrai !\n");
+        retourne;
     }
 
-    imprime("SUCCÈS de test_expressions_booléennes_expression !\n")
+    imprime("SUCCÈS de test_expressions_booléennes_expression !\n");
 }
 
 retourne_vrai :: fonc () -> bool
 {
-    retourne vrai
+    retourne vrai;
 }
 
 retourne_faux :: fonc () -> bool
 {
-    retourne faux
+    retourne faux;
 }
 
 test_expressions_booléennes_tableau :: fonc ()
 {
-    a := [ Drapeau.FA ]
+    a := [ Drapeau.FA ];
 
     si a[0].FA {
-        imprime("OK: a[0].FA !\n")
+        imprime("OK: a[0].FA !\n");
     }
     sinon {
-        imprime("PAS OK: a[0].FA !\n")
+        imprime("PAS OK: a[0].FA !\n");
     }
 
     si !a[0].FA {
-        imprime("PAS OK: a[0].FA !\n")
+        imprime("PAS OK: a[0].FA !\n");
     }
     sinon {
-        imprime("OK: a[0].FA !\n")
+        imprime("OK: a[0].FA !\n");
     }
 
     si a[0].FA == vrai {
-        imprime("OK: a[0].FA !\n")
+        imprime("OK: a[0].FA !\n");
     }
     sinon {
-        imprime("PAS OK: a[0].FA !\n")
+        imprime("PAS OK: a[0].FA !\n");
     }
 
     si a[0].FA == faux {
-        imprime("PAS OK: a[0].FA !\n")
+        imprime("PAS OK: a[0].FA !\n");
     }
     sinon {
-        imprime("OK: a[0].FA !\n")
+        imprime("OK: a[0].FA !\n");
     }
 
     si vrai == a[0].FA {
-        imprime("OK: a[0].FA !\n")
+        imprime("OK: a[0].FA !\n");
     }
     sinon {
-        imprime("PAS OK: a[0].FA !\n")
+        imprime("PAS OK: a[0].FA !\n");
     }
 
     si faux == a[0].FA {
-        imprime("PAS OK: a[0].FA !\n")
+        imprime("PAS OK: a[0].FA !\n");
     }
     sinon {
-        imprime("OK: a[0].FA !\n")
+        imprime("OK: a[0].FA !\n");
     }
 }
 
 test_raccourcis_assignation_énumération_drapeau :: fonc ()
 {
     {
-        a: Drapeau
-        a.FA = vrai
+        a: Drapeau;
+        a.FA = vrai;
 
         saufsi a.FA {
-            imprime("PAS OK: a.FA est faux !\n")
-            retourne
+            imprime("PAS OK: a.FA est faux !\n");
+            retourne;
         }
 
-        a.FA = faux
+        a.FA = faux;
         si a.FA {
-            imprime("PAS OK: a.FA est vrai !\n")
-            retourne
+            imprime("PAS OK: a.FA est vrai !\n");
+            retourne;
         }
     }
     {
-        a: [1]Drapeau
-        a[0].FA = vrai
+        a: [1]Drapeau;
+        a[0].FA = vrai;
 
         saufsi a[0].FA {
-            imprime("PAS OK: a.FA est faux !\n")
-            retourne
+            imprime("PAS OK: a.FA est faux !\n");
+            retourne;
         }
 
-        a[0].FA = faux
+        a[0].FA = faux;
         si a[0].FA {
-            imprime("PAS OK: a.FA est vrai !\n")
-            retourne
+            imprime("PAS OK: a.FA est vrai !\n");
+            retourne;
         }
     }
 
-    imprime("SUCCÈS de test_raccourcis_assignation_énumération_drapeau !\n")
+    imprime("SUCCÈS de test_raccourcis_assignation_énumération_drapeau !\n");
 }
 
 tests_activations_drapeaux :: fonc ()
 {
-    drapeau: Drapeau
+    drapeau: Drapeau;
 
-    imprime("drapeau = %\n", drapeau)
+    imprime("drapeau = %\n", drapeau);
 
-    drapeau |= Drapeau.FA
+    drapeau |= Drapeau.FA;
 
-    imprime("drapeau = % (%)\n", drapeau, drapeau comme n32)
+    imprime("drapeau = % (%)\n", drapeau, drapeau comme n32);
 
-    drapeau |= Drapeau.FB
+    drapeau |= Drapeau.FB;
 
-    imprime("drapeau = % (%)\n", drapeau, drapeau comme n32)
+    imprime("drapeau = % (%)\n", drapeau, drapeau comme n32);
 
-    drapeau |= Drapeau.FE
-    drapeau |= Drapeau.FD
+    drapeau |= Drapeau.FE;
+    drapeau |= Drapeau.FD;
 
-    imprime("drapeau = % (%)\n", drapeau, drapeau comme n32)
+    imprime("drapeau = % (%)\n", drapeau, drapeau comme n32);
 }
 
 test_conjonction_énum_simple :: fonc ()
 {
-    normal: Normal
+    normal: Normal;
 
-    imprime("normal = %\n", normal)
+    imprime("normal = %\n", normal);
 
-    normal = Normal.FA
+    normal = Normal.FA;
 
-    imprime("normal = %\n", normal)
+    imprime("normal = %\n", normal);
 
     // À définir si ceci est possible ou non
-    normal |= Normal.FB
-    normal |= Normal.FC
+    normal |= Normal.FB;
+    normal |= Normal.FC;
 
-    imprime("normal = %\n", normal)
+    imprime("normal = %\n", normal);
 }
 
 principale :: fonc ()
 {
-    test_expressions_booléennes_variables()
-    test_expressions_booléennes_expression()
-    test_expressions_booléennes()
-    test_expressions_booléennes_tableau()
-    test_raccourcis_assignation_énumération_drapeau()
-    tests_activations_drapeaux()
-    test_conjonction_énum_simple()
+    test_expressions_booléennes_variables();
+    test_expressions_booléennes_expression();
+    test_expressions_booléennes();
+    test_expressions_booléennes_tableau();
+    test_raccourcis_assignation_énumération_drapeau();
+    tests_activations_drapeaux();
+    test_conjonction_énum_simple();
 }

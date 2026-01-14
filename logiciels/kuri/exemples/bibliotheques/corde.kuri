@@ -1,95 +1,95 @@
-importe Fondation
+importe Fondation;
 
 Corde :: struct {
-    parente : *Corde = nul
-    gauche : *Corde = nul
-    droite : *Corde = nul
+    parente : *Corde = nul;
+    gauche : *Corde = nul;
+    droite : *Corde = nul;
 
-    chn : chaine = ""
-    compte_gauche : z64 = 0
+    chn : chaine = "";
+    compte_gauche : z64 = 0;
 }
 
 // nombre de caractères maximal par feuille
-TAILLE_FEUILLE :: 2
+TAILLE_FEUILLE :: 2;
 
 détruit_corde :: fonc (corde: *Corde) -> rien
 {
     si corde == nul {
-        retourne
+        retourne;
     }
 
-    détruit_corde(corde.gauche)
-    détruit_corde(corde.droite)
+    détruit_corde(corde.gauche);
+    détruit_corde(corde.droite);
 
-    déloge(corde)
+    déloge(corde);
 }
 
 corde_depuis_chaine :: fonc (chn: chaine) -> *Corde
 {
-    retourne corde_depuis_chaine(nul, chn, 0, chn.taille - 1)
+    retourne corde_depuis_chaine(nul, chn, 0, chn.taille - 1);
 }
 
 corde_depuis_chaine :: fonc (parente: *Corde, chn: chaine, index_gauche : z64, index_droite: z64) -> *Corde
 {
-    corde := loge(Corde)
-    corde.gauche = nul
-    corde.droite = nul
-    corde.chn = ""
-    corde.parente = parente
+    corde := loge(Corde);
+    corde.gauche = nul;
+    corde.droite = nul;
+    corde.chn = "";
+    corde.parente = parente;
 
     si (index_droite - index_gauche) > TAILLE_FEUILLE {
-        corde.compte_gauche = (index_droite - index_gauche) / 2
+        corde.compte_gauche = (index_droite - index_gauche) / 2;
 
-        m := (index_droite + index_gauche) / 2
+        m := (index_droite + index_gauche) / 2;
 
-        corde.gauche = corde_depuis_chaine(corde, chn, index_gauche, m)
-        corde.droite = corde_depuis_chaine(corde, chn, m + 1, index_droite)
+        corde.gauche = corde_depuis_chaine(corde, chn, index_gauche, m);
+        corde.droite = corde_depuis_chaine(corde, chn, m + 1, index_droite);
     }
     sinon {
-        corde.compte_gauche = (index_droite - index_gauche)
-        corde.chn = chaine(*chn[index_gauche], index_droite - index_gauche + 1)
+        corde.compte_gauche = (index_droite - index_gauche);
+        corde.chn = chaine(*chn[index_gauche], index_droite - index_gauche + 1);
     }
 
-    retourne corde
+    retourne corde;
 }
 
 enchaine :: fonc (corde1: *Corde, corde2: *Corde) -> *Corde
 {
-    racine := loge(Corde)
-    racine.parente = nul
-    racine.gauche = corde1
-    racine.droite = corde2
-    racine.compte_gauche = corde1.chn.taille
-    racine.chn = ""
+    racine := loge(Corde);
+    racine.parente = nul;
+    racine.gauche = corde1;
+    racine.droite = corde2;
+    racine.compte_gauche = corde1.chn.taille;
+    racine.chn = "";
 
-    corde1.parente = racine
-    corde2.parente = racine
+    corde1.parente = racine;
+    corde2.parente = racine;
 
-    retourne racine
+    retourne racine;
 }
 
 imprime_corde :: fonc (corde: *Corde) -> rien
 {
     si corde == nul {
-        retourne
+        retourne;
     }
 
     si corde.gauche == nul && corde.droite == nul {
-        imprime("%", corde.chn)
+        imprime("%", corde.chn);
     }
 
-    imprime_corde(corde.gauche)
-    imprime_corde(corde.droite)
+    imprime_corde(corde.gauche);
+    imprime_corde(corde.droite);
 }
 
 principale :: fonc ()
 {
-    c0 := corde_depuis_chaine("Bonjour, ")
-    c1 := corde_depuis_chaine("tout le monde !\n")
+    c0 := corde_depuis_chaine("Bonjour, ");
+    c1 := corde_depuis_chaine("tout le monde !\n");
 
-    c := enchaine(c0, c1)
+    c := enchaine(c0, c1);
 
-    imprime_corde(c)
+    imprime_corde(c);
 
-    détruit_corde(c)
+    détruit_corde(c);
 }

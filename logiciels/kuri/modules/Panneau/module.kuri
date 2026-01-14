@@ -15,31 +15,31 @@
  * Panneau.sur_déplacement_souris est émis.
  */
 
-importe Couleur
-importe Fondation
-importe Guettage
-importe Périphériques
-importe PeintureInterface
-importe Typographie
+importe Couleur;
+importe Fondation;
+importe Guettage;
+importe Périphériques;
+importe PeintureInterface;
+importe Typographie;
 
-charge "animation"
-charge "panneau_arborescence"
-charge "panneau_bouton"
-charge "panneau_diviseur"
-charge "panneau_dossier"
-charge "panneau_édition_texte"
-charge "panneau_menu"
-charge "thème"
-charge "utilitaires"
+charge "animation";
+charge "panneau_arborescence";
+charge "panneau_bouton";
+charge "panneau_diviseur";
+charge "panneau_dossier";
+charge "panneau_édition_texte";
+charge "panneau_menu";
+charge "thème";
+charge "utilitaires";
 
 /* ------------------------------------------------------------------------- */
 /** \nom Contexte pour le dessin.
  * \{ */
 
 ContexteAffichage :: struct {
-    peintre: *Peintre
-    fonte: *Fonte
-    thème : *Thème = *__thème_défaut
+    peintre: *Peintre;
+    fonte: *Fonte;
+    thème : *Thème = *__thème_défaut;
 }
 
 /** \} */
@@ -48,27 +48,27 @@ ContexteAffichage :: struct {
 /** \nom Chronomètre
  * \{ */
 
-IDChronomètre :: #opaque z32
+IDChronomètre :: #opaque z32;
 
 est_invalide :: fonc (id: IDChronomètre) -> bool
 {
-    retourne id comme z32 == -1
+    retourne id comme z32 == -1;
 }
 
 Chronomètre :: struct {
-    rappel: fonc (chrono: *Chronomètre)
-    sur_destruction: fonc (chrono: *Chronomètre)
-    délai: z32
+    rappel: fonc (chrono: *Chronomètre);
+    sur_destruction: fonc (chrono: *Chronomètre);
+    délai: z32;
 }
 
 sur_décompte :: fonc (chronomètre: *Chronomètre)
 {
-    chronomètre.rappel(chronomètre)
+    chronomètre.rappel(chronomètre);
 }
 
 détruit :: fonc (chronomètre: *Chronomètre)
 {
-    chronomètre.sur_destruction(chronomètre)
+    chronomètre.sur_destruction(chronomètre);
 }
 
 /** \} */
@@ -89,49 +89,49 @@ détruit :: fonc (chronomètre: *Chronomètre)
  * curseur doit être définis.
  */
 ContexteInterface :: struct {
-    empl base: PlateformeGuettage
+    empl base: PlateformeGuettage;
 
-    fonte: *Fonte
+    fonte: *Fonte;
 
-    diviseurs: [..]*PanneauDiviseur
+    diviseurs: [..]*PanneauDiviseur;
 
-    panneau_racine: *Panneau
+    panneau_racine: *Panneau;
 
-    panneau_survolé: *Panneau
+    panneau_survolé: *Panneau;
 
-    rappel_définis_curseur_souris: fonc (ctx: *ContexteInterface, curseur: TypeCurseurSystème)
+    rappel_définis_curseur_souris: fonc (ctx: *ContexteInterface, curseur: TypeCurseurSystème);
 
-    sur_création_chronomètre: fonc (ctx: *ContexteInterface, chrono: *Chronomètre) -> IDChronomètre
-    sur_arrêt_chronomètre: fonc (ctx: *ContexteInterface, id: IDChronomètre)
+    sur_création_chronomètre: fonc (ctx: *ContexteInterface, chrono: *Chronomètre) -> IDChronomètre;
+    sur_arrêt_chronomètre: fonc (ctx: *ContexteInterface, id: IDChronomètre);
 }
 
 initialise_le_contexte_interface :: fonc (contexte: *ContexteInterface, fonte: *Fonte)
 {
-    contexte.fonte = fonte
+    contexte.fonte = fonte;
 }
 
 crée_panneau :: fonc (contexte: *ContexteInterface, $TypePanneau: type_de_données) -> *TypePanneau
 {
-    résultat := loge(TypePanneau)
-    résultat.contexte = contexte
-    résultat.sur_redimension = sur_redimension_impl_défaut
-    résultat.sur_destruction = sur_destruction_générique(TypePanneau)
-    résultat.identifiant = info_de(TypePanneau).nom
-    retourne résultat
+    résultat := loge(TypePanneau);
+    résultat.contexte = contexte;
+    résultat.sur_redimension = sur_redimension_impl_défaut;
+    résultat.sur_destruction = sur_destruction_générique(TypePanneau);
+    résultat.identifiant = info_de(TypePanneau).nom;
+    retourne résultat;
 }
 
 gère_clic_souris :: fonc (empl contexte: *ContexteInterface, clic: ClicSouris)
 {
-    nouveau_panneau_survolé := trouve_panneau_survolé(contexte, clic.état)
+    nouveau_panneau_survolé := trouve_panneau_survolé(contexte, clic.état);
     si nouveau_panneau_survolé != panneau_survolé {
-        fini_survol_panneau(panneau_survolé, clic.état)
-        débute_survol_panneau(nouveau_panneau_survolé)
+        fini_survol_panneau(panneau_survolé, clic.état);
+        débute_survol_panneau(nouveau_panneau_survolé);
     }
 
-    panneau_cliqué: *Panneau
+    panneau_cliqué: *Panneau;
 
     si panneau_survolé && gère_clic_souris(panneau_survolé, clic) {
-        panneau_cliqué = panneau_survolé
+        panneau_cliqué = panneau_survolé;
     }
 
     // si panneau_cliqué {
@@ -144,22 +144,22 @@ gère_clic_souris :: fonc (empl contexte: *ContexteInterface, clic: ClicSouris)
 
 sur_déplacement_souris :: fonc (empl contexte: *ContexteInterface, état: ÉtatSouris)
 {
-    nouveau_panneau_survolé := trouve_panneau_survolé(contexte, état)
+    nouveau_panneau_survolé := trouve_panneau_survolé(contexte, état);
     si nouveau_panneau_survolé != panneau_survolé {
-        fini_survol_panneau(panneau_survolé, état)
-        débute_survol_panneau(nouveau_panneau_survolé)
+        fini_survol_panneau(panneau_survolé, état);
+        débute_survol_panneau(nouveau_panneau_survolé);
     }
 
-    panneau_survolé = nouveau_panneau_survolé
+    panneau_survolé = nouveau_panneau_survolé;
 
     saufsi panneau_survolé {
         // imprime("Aucun panneau survolé\n")
-        retourne
+        retourne;
     }
 
     // imprime("Survole panneau : %\n", panneau_survolé.identifiant)
     si panneau_survolé.sur_déplacement_souris {
-        panneau_survolé.sur_déplacement_souris(panneau_survolé, état)
+        panneau_survolé.sur_déplacement_souris(panneau_survolé, état);
     }
 }
 
@@ -167,74 +167,74 @@ trouve_panneau_survolé :: fonc (empl contexte: *ContexteInterface, état: État
 {
     pour diviseurs {
         si it.rect.contient(état.où) {
-            retourne it
+            retourne it;
         }
     }
 
-    retourne trouve_panneau_survolé_récursif(panneau_racine, état)
+    retourne trouve_panneau_survolé_récursif(panneau_racine, état);
 }
 
 trouve_panneau_survolé_récursif :: fonc (panneau_racine: *Panneau, état: ÉtatSouris) -> *Panneau
 {
     saufsi panneau_racine {
-        retourne nul
+        retourne nul;
     }
 
     pour panneau_racine.enfants {
-        panneau_candidat := trouve_panneau_survolé_récursif(it, état)
+        panneau_candidat := trouve_panneau_survolé_récursif(it, état);
         si panneau_candidat {
-            retourne panneau_candidat
+            retourne panneau_candidat;
         }
     }
 
     si panneau_racine.rect.contient(état.où) {
-        retourne panneau_racine
+        retourne panneau_racine;
     }
 
-    retourne nul
+    retourne nul;
 }
 
 dessine_panneaux :: fonc (empl contexte: *ContexteInterface, contexte_affichage: *ContexteAffichage)
 {
     saufsi panneau_racine {
-        retourne
+        retourne;
     }
 
     si panneau_racine.sur_dessin {
-        panneau_racine.sur_dessin(panneau_racine, contexte_affichage)
+        panneau_racine.sur_dessin(panneau_racine, contexte_affichage);
     }
     sinon {
-        sur_dessin_récursif(panneau_racine, contexte_affichage)
+        sur_dessin_récursif(panneau_racine, contexte_affichage);
     }
 }
 
 définis_curseur_souris :: fonc (empl contexte: *ContexteInterface, type_curseur: TypeCurseurSystème)
 {
     saufsi rappel_définis_curseur_souris {
-        retourne
+        retourne;
     }
 
-    rappel_définis_curseur_souris(contexte, type_curseur)
+    rappel_définis_curseur_souris(contexte, type_curseur);
 }
 
 crée_chronomètre :: fonc (contexte: *ContexteInterface, chronomètre: *Chronomètre) -> IDChronomètre
 {
     saufsi contexte.sur_création_chronomètre {
-        détruit(chronomètre)
-        retourne IDChronomètre(-1)
+        détruit(chronomètre);
+        retourne IDChronomètre(-1);
     }
 
-    retourne contexte.sur_création_chronomètre(contexte, chronomètre)
+    retourne contexte.sur_création_chronomètre(contexte, chronomètre);
 }
 
 arrête_chronomètre :: fonc (contexte: *ContexteInterface, id: IDChronomètre)
 {
     si id.est_invalide() {
-        retourne
+        retourne;
     }
 
     si contexte.sur_arrêt_chronomètre {
-        contexte.sur_arrêt_chronomètre(contexte, id)
+        contexte.sur_arrêt_chronomètre(contexte, id);
     }
 }
 
@@ -247,56 +247,56 @@ arrête_chronomètre :: fonc (contexte: *ContexteInterface, id: IDChronomètre)
 
 RègleDeCotation :: énum n8 {
     /* Le panneau doit prendre la taille minimale pour son contenu. */
-    SurContenu
+    SurContenu;
     /* Le panneau doit prendre la taille disponible. */
-    SurLargeurDisponible
+    SurLargeurDisponible;
 }
 
 Panneau :: struct {
-    contexte: *ContexteInterface
-    parent: *Panneau
-    enfants: [..]*Panneau
+    contexte: *ContexteInterface;
+    parent: *Panneau;
+    enfants: [..]*Panneau;
 
-    identifiant: chaine
+    identifiant: chaine;
 
     /* Dimension du panneau. */
-    rect: RectanglePosDim(z32)
+    rect: RectanglePosDim(z32);
 
-    besoin_ajournement_disposition := vrai
+    besoin_ajournement_disposition := vrai;
 
-    règle_cotation_horizontale: RègleDeCotation
-    règle_cotation_verticale: RègleDeCotation
+    règle_cotation_horizontale: RègleDeCotation;
+    règle_cotation_verticale: RègleDeCotation;
 
     /* Fonctions de rappels à implémenter pour chaque type dérivé. */
-    sur_destruction: fonc (panneau: *Panneau)
-    sur_déplacement_souris: fonc (panneau: *Panneau, ÉtatSouris)
-    sur_clic_souris: fonc (panneau: *Panneau, clic: ClicSouris) -> bool
-    sur_dessin: fonc (panneau: *Panneau, ctx: *ContexteAffichage)
-    sur_redimension: fonc (panneau: *Panneau, rect: RectanglePosDim(z32))
-    sur_début_survol: fonc (panneau: *Panneau)
-    sur_fin_survol: fonc (panneau: *Panneau)
+    sur_destruction: fonc (panneau: *Panneau);
+    sur_déplacement_souris: fonc (panneau: *Panneau, ÉtatSouris);
+    sur_clic_souris: fonc (panneau: *Panneau, clic: ClicSouris) -> bool;
+    sur_dessin: fonc (panneau: *Panneau, ctx: *ContexteAffichage);
+    sur_redimension: fonc (panneau: *Panneau, rect: RectanglePosDim(z32));
+    sur_début_survol: fonc (panneau: *Panneau);
+    sur_fin_survol: fonc (panneau: *Panneau);
 }
 
 ajoute_enfant :: fonc (panneau: *Panneau, enfant: *Panneau)
 {
-    assert(enfant.parent == nul)
-    enfant.parent = panneau
-    tableau_ajoute(*panneau.enfants, enfant)
+    assert(enfant.parent == nul);
+    enfant.parent = panneau;
+    tableau_ajoute(*panneau.enfants, enfant);
 }
 
 /* Implémentation par défaut du rappel sur_redimension */
 sur_redimension_impl_défaut :: fonc (panneau: *Panneau, rect_disponible: RectanglePosDim(z32))
 {
-    panneau.rect = rect_disponible
-    panneau.besoin_ajournement_disposition = vrai
+    panneau.rect = rect_disponible;
+    panneau.besoin_ajournement_disposition = vrai;
 }
 
 détruit_panneau :: fonc (panneau: *Panneau)
 {
-    déloge_tableau_et_ses_éléments(panneau.enfants, détruit_panneau)
+    déloge_tableau_et_ses_éléments(panneau.enfants, détruit_panneau);
 
     si panneau.sur_destruction {
-        panneau.sur_destruction(panneau)
+        panneau.sur_destruction(panneau);
     }
 }
 
@@ -309,14 +309,14 @@ détruit_panneau :: fonc (panneau: *Panneau)
 sur_dessin_récursif :: fonc (panneau: *Panneau, ctx: *ContexteAffichage)
 {
     si panneau.sur_dessin {
-        peintre := ctx.peintre
-        peintre.définis_ciseau(panneau.rect)
-        panneau.sur_dessin(panneau, ctx)
-        peintre.restaure_ciseau()
+        peintre := ctx.peintre;
+        peintre.définis_ciseau(panneau.rect);
+        panneau.sur_dessin(panneau, ctx);
+        peintre.restaure_ciseau();
     }
 
     pour panneau.enfants {
-        sur_dessin_récursif(it, ctx)
+        sur_dessin_récursif(it, ctx);
     }
 }
 
@@ -324,33 +324,33 @@ gère_clic_souris :: fonc (panneau: *Panneau, clic: ClicSouris) -> bool
 {
     /* Permet de passer nul. */
     saufsi panneau {
-        retourne faux
+        retourne faux;
     }
 
     saufsi panneau.sur_clic_souris {
-        retourne faux
+        retourne faux;
     }
 
-    retourne panneau.sur_clic_souris(panneau, clic)
+    retourne panneau.sur_clic_souris(panneau, clic);
 }
 
 redimensionne_panneau :: fonc (panneau: *Panneau, rect: RectanglePosDim(z32))
 {
-    panneau.sur_redimension(panneau, rect)
+    panneau.sur_redimension(panneau, rect);
 }
 
 sur_déplacement_souris_récursif :: fonc (panneau: *Panneau, état: ÉtatSouris)
 {
     saufsi panneau {
-        retourne
+        retourne;
     }
 
     si panneau.sur_déplacement_souris {
-        panneau.sur_déplacement_souris(panneau, état)
+        panneau.sur_déplacement_souris(panneau, état);
     }
 
     pour panneau.enfants {
-        sur_déplacement_souris_récursif(it, état)
+        sur_déplacement_souris_récursif(it, état);
     }
 }
 
@@ -358,27 +358,27 @@ débute_survol_panneau :: fonc (panneau: *Panneau)
 {
     /* Permet de passer nul. */
     saufsi panneau && panneau.sur_début_survol {
-        retourne
+        retourne;
     }
 
-    panneau.sur_début_survol(panneau)
+    panneau.sur_début_survol(panneau);
 }
 
 fini_survol_panneau :: fonc (panneau: *Panneau, état: ÉtatSouris)
 {
     /* Permet de passer nul. */
     saufsi panneau {
-        retourne
+        retourne;
     }
 
     /* Émets un évènement de déplacement de souris pour permettre au panneau de
      * réinitialiser son état. */
     si panneau.sur_déplacement_souris {
-        panneau.sur_déplacement_souris(panneau, état)
+        panneau.sur_déplacement_souris(panneau, état);
     }
 
     si panneau.sur_fin_survol {
-        panneau.sur_fin_survol(panneau)
+        panneau.sur_fin_survol(panneau);
     }
 }
 
@@ -390,94 +390,94 @@ fini_survol_panneau :: fonc (panneau: *Panneau, état: ÉtatSouris)
  * \{ */
 
 PanneauInterface :: struct {
-    empl base: Panneau
+    empl base: Panneau;
 
-    barre_de_menu: *PanneauBarreDeMenu
-    élément_central: *Panneau
+    barre_de_menu: *PanneauBarreDeMenu;
+    élément_central: *Panneau;
 }
 
 crée_panneau_interface :: fonc (ctx: *ContexteInterface, rect: RectanglePosDim(z32), élément_central: *Panneau) -> *PanneauInterface
 {
-    sur_clic_souris :: fonc (panneau_interface: *PanneauInterface, clic: ClicSouris) -> bool
+    sur_clic_souris :: fonc (panneau_interface: *PanneauInterface, clic: ClicSouris) -> bool;
     {
-        retourne reçoie_clic_souris(panneau_interface, clic)
+        retourne reçoie_clic_souris(panneau_interface, clic);
     }
 
-    sur_dessin :: fonc (panneau_interface: *PanneauInterface, contexte_affichage: *ContexteAffichage)
+    sur_dessin :: fonc (panneau_interface: *PanneauInterface, contexte_affichage: *ContexteAffichage);
     {
-        dessine_panneau_interface(panneau_interface, contexte_affichage)
+        dessine_panneau_interface(panneau_interface, contexte_affichage);
     }
 
-    sur_redimension :: fonc (panneau: *Panneau, rect: RectanglePosDim(z32))
+    sur_redimension :: fonc (panneau: *Panneau, rect: RectanglePosDim(z32));
     {
-        panneau_interface := panneau comme *PanneauInterface
-        panneau_interface.rect = rect
-        calcule_rect_interne(panneau_interface)
+        panneau_interface := panneau comme *PanneauInterface;
+        panneau_interface.rect = rect;
+        calcule_rect_interne(panneau_interface);
     }
 
-    résultat := ctx.crée_panneau(PanneauInterface)
-    résultat.élément_central = élément_central
-    ajoute_enfant(résultat, élément_central)
+    résultat := ctx.crée_panneau(PanneauInterface);
+    résultat.élément_central = élément_central;
+    ajoute_enfant(résultat, élément_central);
 
     /* Rappels. */
-    résultat.sur_clic_souris = sur_clic_souris
-    résultat.sur_dessin = sur_dessin
-    résultat.sur_redimension = sur_redimension
+    résultat.sur_clic_souris = sur_clic_souris;
+    résultat.sur_dessin = sur_dessin;
+    résultat.sur_redimension = sur_redimension;
 
-    résultat.redimensionne_panneau(rect)
+    résultat.redimensionne_panneau(rect);
 
-    retourne résultat
+    retourne résultat;
 }
 
 installe_barre_de_menu :: fonc (panneau: *PanneauInterface, barre_de_menu: *BarreDeMenu)
 {
-    assert(panneau.barre_de_menu == nul)
-    panneau.barre_de_menu = crée_panneau_barre_de_menu(panneau.contexte, barre_de_menu)
+    assert(panneau.barre_de_menu == nul);
+    panneau.barre_de_menu = crée_panneau_barre_de_menu(panneau.contexte, barre_de_menu);
     // ajoute_enfant(panneau, panneau.barre_de_menu)
-    panneau.barre_de_menu.parent = panneau
-    calcule_rect_interne(panneau)
+    panneau.barre_de_menu.parent = panneau;
+    calcule_rect_interne(panneau);
 }
 
 calcule_rect_interne :: fonc (panneau: *PanneauInterface)
 {
-    rect_interne := panneau.rect
+    rect_interne := panneau.rect;
 
     si panneau.barre_de_menu {
-        panneau.barre_de_menu.besoin_ajournement_disposition = vrai
-        ajourne_disposition(panneau.barre_de_menu)
-        rect_interne.hauteur -= panneau.barre_de_menu.rect.hauteur
+        panneau.barre_de_menu.besoin_ajournement_disposition = vrai;
+        ajourne_disposition(panneau.barre_de_menu);
+        rect_interne.hauteur -= panneau.barre_de_menu.rect.hauteur;
     }
 
     si panneau.élément_central {
-        panneau.élément_central.besoin_ajournement_disposition = vrai
-        redimensionne_panneau(panneau.élément_central, rect_interne)
+        panneau.élément_central.besoin_ajournement_disposition = vrai;
+        redimensionne_panneau(panneau.élément_central, rect_interne);
     }
 }
 
 installe_élément_central :: fonc (panneau: *PanneauInterface)
 {
-    panneau.élément_central = élément_central
-    panneau.calcule_rect_interne()
+    panneau.élément_central = élément_central;
+    panneau.calcule_rect_interne();
 }
 
 dessine_panneau_interface :: fonc (empl panneau: *PanneauInterface, ctx: *ContexteAffichage)
 {
     si élément_central {
-        sur_dessin_récursif(élément_central, ctx)
+        sur_dessin_récursif(élément_central, ctx);
     }
     
     si barre_de_menu {
-        barre_de_menu.sur_dessin(barre_de_menu, ctx)
+        barre_de_menu.sur_dessin(barre_de_menu, ctx);
     }
 }
 
 reçoie_clic_souris :: fonc (empl panneau: *PanneauInterface, clic: ClicSouris) -> bool
 {
     si gère_clic_souris(barre_de_menu, clic) {
-        retourne vrai
+        retourne vrai;
     }
 
-    retourne faux
+    retourne faux;
 }
 
 /** \} */

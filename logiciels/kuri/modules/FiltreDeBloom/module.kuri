@@ -1,43 +1,43 @@
 /* Filtre de Bloom. */
 
-importe EnsembleDeBits
+importe EnsembleDeBits;
 
 FiltreDeBloom :: struct {
-    bits: EnsembleDeBits.EnsembleDeBits
+    bits: EnsembleDeBits.EnsembleDeBits;
 }
 
 possède_peut_être :: fonc (filtre: &FiltreDeBloom, clé: chaine) -> bool
 {
-    retourne filtre.bits.est_actif(empreinte1(clé)) && filtre.bits.est_actif(empreinte2(clé)) && (clé.taille < 2 || filtre.bits.est_actif(empreinte3(clé)))
+    retourne filtre.bits.est_actif(empreinte1(clé)) && filtre.bits.est_actif(empreinte2(clé)) && (clé.taille < 2 || filtre.bits.est_actif(empreinte3(clé)));
 }
 
 ajoute :: fonc (filtre: &FiltreDeBloom, clé: chaine)
 {
-    filtre.bits.active(empreinte1(clé))
-    filtre.bits.active(empreinte2(clé))
+    filtre.bits.active(empreinte1(clé));
+    filtre.bits.active(empreinte2(clé));
     si clé.taille >= 2 {
-        filtre.bits.active(empreinte3(clé))
+        filtre.bits.active(empreinte3(clé));
     }
 }
 
 réinitialise :: fonc (filtre: &FiltreDeBloom)
 {
-    filtre.bits.désactive_tout()
+    filtre.bits.désactive_tout();
 }
 
 empreinte1 :: fonc (clé: chaine) -> n32
 {
-    retourne (clé[clé.taille - 1] comme n32 - (clé.taille << 3) comme n32) & 511
+    retourne (clé[clé.taille - 1] comme n32 - (clé.taille << 3) comme n32) & 511;
 }
 
 empreinte2 :: fonc (clé: chaine) -> n32
 {
-    retourne (clé[0] comme n32 + (clé.taille << 4) comme n32) & 511
+    retourne (clé[0] comme n32 + (clé.taille << 4) comme n32) & 511;
 }
 
 empreinte3 :: fonc (clé: chaine) -> n32
 {
-    retourne (clé[clé.taille - 2] comme n32 - 97 - (clé.taille << 5) comme n32) & 511
+    retourne (clé[clé.taille - 2] comme n32 - 97 - (clé.taille << 5) comme n32) & 511;
 }
 
 /*

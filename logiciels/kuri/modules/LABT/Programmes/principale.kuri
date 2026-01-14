@@ -1,10 +1,10 @@
-importe Fondation
-importe LABT
+importe Fondation;
+importe LABT;
 
 principale :: fonc ()
 {
-    mémoire_début := mémoire_utilisée()
-    diffère Fondation.imprime("mémoire utilisée : %o\n", mémoire_utilisée() - mémoire_début)
+    mémoire_début := mémoire_utilisée();
+    diffère Fondation.imprime("mémoire utilisée : %o\n", mémoire_utilisée() - mémoire_début);
 
     texte := "{document titre = \"Document Test\" auteur = \"Kévin Dietrich\"
         {chapitre titre=\"Introduction\"
@@ -19,21 +19,21 @@ principale :: fonc ()
             Un deuxième paragraphe
         }
     }
-    "
+    ";
 
-    document := parse_document(texte)
-    diffère détruit_noeud(document)
+    document := parse_document(texte);
+    diffère détruit_noeud(document);
 
     {
-        chn := imprime(document, ImprimeAuFormat.HTML)
-        diffère déloge(chn)
+        chn := imprime(document, ImprimeAuFormat.HTML);
+        diffère déloge(chn);
 
-        imprime("%\n", chn)
+        imprime("%\n", chn);
     }
     {
-        chn := imprime(document, ImprimeAuFormat.TEXTE_SIMPLE)
-        diffère déloge(chn)
+        chn := imprime(document, ImprimeAuFormat.TEXTE_SIMPLE);
+        diffère déloge(chn);
 
-        imprime("%\n", chn)
+        imprime("%\n", chn);
     }
 }

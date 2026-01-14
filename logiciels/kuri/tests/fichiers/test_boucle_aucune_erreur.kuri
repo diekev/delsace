@@ -17,7 +17,7 @@ foo :: fonc () -> rien
 foo :: fonc () -> rien
 {
 	boucle {
-		continue
+		continue;
 	}
 }
 
@@ -27,7 +27,7 @@ foo :: fonc () -> rien
 foo :: fonc () -> rien
 {
 	boucle {
-		arrête
+		arrête;
 	}
 }
 
@@ -37,11 +37,11 @@ foo :: fonc () -> rien
 foo :: fonc () -> rien
 {
 	pour i dans 0 ... 10 {
-		arrête i
+		arrête i;
 	}
 
 	pour i dans 0 ... 10 {
-		continue i
+		continue i;
 	}
 }
 

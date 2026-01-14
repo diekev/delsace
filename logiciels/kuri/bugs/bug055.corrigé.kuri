@@ -3,21 +3,21 @@
  * Catégorie : [validation sémantique, construction type, structure nichée]
  */
 
-importe Support
+importe Support;
 
 Parent :: struct {
     Enfant :: struct {
-        z: r32
+        z: r32;
     }
 
-    y: r32
+    y: r32;
 }
 
 principale :: fonc ()
 {
-    e := Parent.Enfant(z = 1.0)
+    e := Parent.Enfant(z = 1.0);
 
     si e.z != 1.0 {
-        exit(1)
+        exit(1);
     }
 }

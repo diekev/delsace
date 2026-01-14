@@ -1,8 +1,8 @@
 
-libgmp :: #bibliothèque "gmp"
+libgmp :: #bibliothèque "gmp";
 
-mp_exp_t :: z64
-mp_limb_t :: struct #externe
+mp_exp_t :: z64;
+mp_limb_t :: struct #externe;
 
 mpf_t :: struct #externe {
     _mp_prec: z32 /* Max precision, in number of `mp_limb_t's.
@@ -18,39 +18,39 @@ mpf_t :: struct #externe {
 // mp_bitcnt_t :: struct #externe
 
 // Set rop to op1 + op2.
-__gmpf_add :: fonc (rop: &mpf_t, op1: &mpf_t, op2: &mpf_t) #externe libgmp
-__gmpf_add_ui :: fonc (rop: &mpf_t, op1: &mpf_t, op2: n64) #externe libgmp
+__gmpf_add :: fonc (rop: &mpf_t, op1: &mpf_t, op2: &mpf_t) #externe libgmp;
+__gmpf_add_ui :: fonc (rop: &mpf_t, op1: &mpf_t, op2: n64) #externe libgmp;
 
 // Set rop to op1 - op2.
-__gmpf_sub :: fonc (rop: &mpf_t, op1: &mpf_t, op2: &mpf_t) #externe libgmp
-__gmpf_ui_sub :: fonc (rop: &mpf_t, op1: n64, op2: &mpf_t) #externe libgmp
-__gmpf_sub_ui :: fonc (rop: &mpf_t, op1: &mpf_t, op2: n64) #externe libgmp
+__gmpf_sub :: fonc (rop: &mpf_t, op1: &mpf_t, op2: &mpf_t) #externe libgmp;
+__gmpf_ui_sub :: fonc (rop: &mpf_t, op1: n64, op2: &mpf_t) #externe libgmp;
+__gmpf_sub_ui :: fonc (rop: &mpf_t, op1: &mpf_t, op2: n64) #externe libgmp;
 
 // Set rop to op1 times op2.
-__gmpf_mul :: fonc (rop: &mpf_t, op1: &mpf_t, op2: &mpf_t) #externe libgmp
-__gmpf_mul_ui :: fonc (rop: &mpf_t, op1: &mpf_t, op2: n64) #externe libgmp
+__gmpf_mul :: fonc (rop: &mpf_t, op1: &mpf_t, op2: &mpf_t) #externe libgmp;
+__gmpf_mul_ui :: fonc (rop: &mpf_t, op1: &mpf_t, op2: n64) #externe libgmp;
 
 // Set rop to op1/op2.
 //
 // Division is undefined if the divisor is zero, and passing a zero divisor to the divide functions
 // will make these functions intentionally divide by zero. This lets the user handle arithmetic
 // exceptions in these functions in the same manner as other arithmetic exceptions.
-__gmpf_div :: fonc (rop: &mpf_t, op1: &mpf_t, op2: &mpf_t) #externe libgmp
-__gmpf_ui_div :: fonc (rop: &mpf_t, op1: n64, op2: &mpf_t) #externe libgmp
-__gmpf_div_ui :: fonc (rop: &mpf_t, op1: &mpf_t, op2: n64) #externe libgmp
+__gmpf_div :: fonc (rop: &mpf_t, op1: &mpf_t, op2: &mpf_t) #externe libgmp;
+__gmpf_ui_div :: fonc (rop: &mpf_t, op1: n64, op2: &mpf_t) #externe libgmp;
+__gmpf_div_ui :: fonc (rop: &mpf_t, op1: &mpf_t, op2: n64) #externe libgmp;
 
 // Set rop to the square root of op.
-__gmpf_sqrt :: fonc (rop: &mpf_t, op: &mpf_t) #externe libgmp
-__gmpf_sqrt_ui :: fonc (rop: &mpf_t, op: n64) #externe libgmp
+__gmpf_sqrt :: fonc (rop: &mpf_t, op: &mpf_t) #externe libgmp;
+__gmpf_sqrt_ui :: fonc (rop: &mpf_t, op: n64) #externe libgmp;
 
 // Set rop to op1 raised to the power op2.
-__gmpf_pow_ui :: fonc (rop: &mpf_t, op1: &mpf_t, op2: n64) #externe libgmp
+__gmpf_pow_ui :: fonc (rop: &mpf_t, op1: &mpf_t, op2: n64) #externe libgmp;
 
 // Set rop to -op.
-__gmpf_neg :: fonc (rop: &mpf_t, op: &mpf_t) #externe libgmp
+__gmpf_neg :: fonc (rop: &mpf_t, op: &mpf_t) #externe libgmp;
 
 // Set rop to the absolute value of op.
-__gmpf_abs :: fonc (rop: &mpf_t, op: &mpf_t) #externe libgmp
+__gmpf_abs :: fonc (rop: &mpf_t, op: &mpf_t) #externe libgmp;
 
 // Set rop to op1 times 2 raised to op2.
 // __gmpf_mul_2exp :: fonc (rop: &mpf_t, op1: &mpf_t, op2: mp_bitcnt_t) #externe libgmp
@@ -58,21 +58,21 @@ __gmpf_abs :: fonc (rop: &mpf_t, op: &mpf_t) #externe libgmp
 // Set rop to op1 divided by 2 raised to op2.
 // __gmpf_div_2exp :: fonc (rop: &mpf_t, op1: &mpf_t, op2: mp_bitcnt_t) #externe libgmp
 
-__gmpf_init :: fonc (rop: &mpf_t) #externe libgmp
-__gmpf_clear :: fonc (rop: &mpf_t) #externe libgmp
-__gmpf_set_d :: fonc (rop: &mpf_t, op: r64) #externe libgmp
-__gmpf_get_d :: fonc (op: &mpf_t) -> r64 #externe libgmp
+__gmpf_init :: fonc (rop: &mpf_t) #externe libgmp;
+__gmpf_clear :: fonc (rop: &mpf_t) #externe libgmp;
+__gmpf_set_d :: fonc (rop: &mpf_t, op: r64) #externe libgmp;
+__gmpf_get_d :: fonc (op: &mpf_t) -> r64 #externe libgmp;
 
-__gmpf_set_str :: fonc (rop: &mpf_t, str: ChaineC, base: z32) -> z32 #externe libgmp
-__gmpf_get_str :: fonc (str: *z8, expptr: *mp_exp_t, base: z32, n_digits: n64, op: &mpf_t) -> ChaineC #externe libgmp
+__gmpf_set_str :: fonc (rop: &mpf_t, str: ChaineC, base: z32) -> z32 #externe libgmp;
+__gmpf_get_str :: fonc (str: *z8, expptr: *mp_exp_t, base: z32, n_digits: n64, op: &mpf_t) -> ChaineC #externe libgmp;
 
 // Gestion de la mémoire.
 
-TypeFonctionAllocation :: fonc (taille: n64) -> *rien
-TypeFonctionRéallocation :: fonc (ptr: *rien, ancienne_taille: n64, nouvelle_taille: n64) -> *rien
-TypeFonctionDésallocation :: fonc (ptr: *rien, taille: n64)
+TypeFonctionAllocation :: fonc (taille: n64) -> *rien;
+TypeFonctionRéallocation :: fonc (ptr: *rien, ancienne_taille: n64, nouvelle_taille: n64) -> *rien;
+TypeFonctionDésallocation :: fonc (ptr: *rien, taille: n64);
 
 __gmp_set_memory_functions :: fonc (
     alloc_func_ptr: TypeFonctionAllocation,
     realloc_func_ptr: TypeFonctionRéallocation,
-    free_func_ptr: TypeFonctionDésallocation) #externe libgmp
+    free_func_ptr: TypeFonctionDésallocation) #externe libgmp;

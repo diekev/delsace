@@ -1,4 +1,4 @@
-importe Fondation
+importe Fondation;
 
 /*
 
@@ -9,24 +9,24 @@ importe Fondation
 
 démo_si_comme_expression :: fonc ()
 {
-    b := 5
-    c := 7
-    d := 8
+    b := 5;
+    c := 7;
+    d := 8;
 
     a := si b == 6 {
-        c
+        c;
     }
     sinon saufsi b == 5 {
-        b
+        b;
     }
     sinon {
-        d
+        d;
     }
 
-    imprime("a = %\n", a)
+    imprime("a = %\n", a);
 }
 
 principale :: fonc ()
 {
-    démo_si_comme_expression()
+    démo_si_comme_expression();
 }

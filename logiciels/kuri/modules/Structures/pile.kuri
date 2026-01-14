@@ -1,40 +1,40 @@
-importe Algorithmes
-importe Fondation
+importe Algorithmes;
+importe Fondation;
 
 Pile :: struct ($T: type_de_données) {
-    données: [..]T
+    données: [..]T;
 }
 
 détruit :: fonc (pile: &Pile(T = $T)) -> rien
 {
-    déloge(pile.données)
+    déloge(pile.données);
 }
 
 empile :: fonc (pile: &Pile(T = $T), valeur: T) -> rien
 {
-    tableau_ajoute(*pile.données, valeur)
+    tableau_ajoute(*pile.données, valeur);
 }
 
 dépile :: fonc (pile: &Pile(T = $T)) -> T #enligne
 {
-    ret := pile.tête()
-    pile.données.taille -= 1
-    retourne ret
+    ret := pile.tête();
+    pile.données.taille -= 1;
+    retourne ret;
 }
 
 tête :: fonc (pile: &Pile(T = $T)) -> T #enligne
 {
-    retourne pile.données[pile.données.taille - 1]
+    retourne pile.données[pile.données.taille - 1];
 }
 
 taille :: fonc (pile: &Pile(T = $T)) -> z64 #enligne
 {
-    retourne pile.données.taille
+    retourne pile.données.taille;
 }
 
 est_vide :: fonc (pile: &Pile(T = $T)) -> bool #enligne
 {
-    retourne pile.données.taille == 0
+    retourne pile.données.taille == 0;
 }
 
 /* Duplique l'élément de tête.
@@ -43,10 +43,10 @@ est_vide :: fonc (pile: &Pile(T = $T)) -> bool #enligne
 duplique_tête :: fonc (pile: &Pile(T = $T))
 {
     si pile.est_vide() {
-        retourne
+        retourne;
     }
 
-    pile.empile(pile.tête())
+    pile.empile(pile.tête());
 }
 
 /* Échange l'élément de tête avec celui le précédent.
@@ -55,20 +55,20 @@ duplique_tête :: fonc (pile: &Pile(T = $T))
 échange_tête :: fonc (pile: &Pile(T = $T))
 {
     si pile.taille() < 2 {
-        retourne
+        retourne;
     }
 
-    a := pile.dépile()
-    b := pile.dépile()
+    a := pile.dépile();
+    b := pile.dépile();
 
-    pile.empile(a)
-    pile.empile(b)
+    pile.empile(a);
+    pile.empile(b);
 }
 
 /* Inverse l'ordre des éléments de la pile. */
 renverse :: fonc (pile: &Pile(T = $T))
 {
-    tableau_inverse(pile.données)
+    tableau_inverse(pile.données);
 }
 
 /*
