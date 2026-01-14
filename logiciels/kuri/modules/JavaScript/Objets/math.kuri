@@ -1,4 +1,4 @@
-importe Aléa
+importe Aléa;
 
 /* ------------------------------------------------------------------------- */
 /** \nom Math
@@ -6,51 +6,51 @@ importe Aléa
  * \{ */
 
 MathObject :: struct {
-    empl object: Object
-    table = *table_virtuelle_math
+    empl object: Object;
+    table = *table_virtuelle_math;
 
-    entropie: SérieAléatoire
+    entropie: SérieAléatoire;
 }
 
 #portée_fichier
 
-table_virtuelle_math := TableVirtuelleObject(classe = MathObject)
+table_virtuelle_math := TableVirtuelleObject(classe = MathObject);
 
 #portée_module
 
 crée_math_object :: fonc (object_prototype: *ObjectPrototype) -> *MathObject
 {
-    résultat := object_prototype.donne_tas_de_mémoire().alloue(MathObject)
-    résultat.prototype = object_prototype
+    résultat := object_prototype.donne_tas_de_mémoire().alloue(MathObject);
+    résultat.prototype = object_prototype;
 
-    constantes: Math.Constantes(r64)
+    constantes: Math.Constantes(r64);
 
-    résultat.ajoute_propriété(STR_LN2, Valeur(Number = 0.6931471805599453), DrapeauxPropriété.zéro)
-    résultat.ajoute_propriété(STR_PI, Valeur(Number = constantes.PI), DrapeauxPropriété.zéro)
+    résultat.ajoute_propriété(STR_LN2, Valeur(Number = 0.6931471805599453), DrapeauxPropriété.zéro);
+    résultat.ajoute_propriété(STR_PI, Valeur(Number = constantes.PI), DrapeauxPropriété.zéro);
 
-    résultat.ajoute_fonction_native(STR_abs, math_abs)
-    résultat.ajoute_fonction_native(STR_ceil, math_ceil)
-    résultat.ajoute_fonction_native(STR_cos, math_cos)
-    résultat.ajoute_fonction_native(STR_exp, math_exp)
-    résultat.ajoute_fonction_native(STR_floor, math_floor)
-    résultat.ajoute_fonction_native(STR_log, math_log)
-    résultat.ajoute_fonction_native(STR_max, math_max)
-    résultat.ajoute_fonction_native(STR_min, math_min)
-    résultat.ajoute_fonction_native(STR_pow, math_pow)
-    résultat.ajoute_fonction_native(STR_random, math_random)
-    résultat.ajoute_fonction_native(STR_round, math_round)
-    résultat.ajoute_fonction_native(STR_sin, math_sin)
-    résultat.ajoute_fonction_native(STR_sqrt, math_sqrt)
+    résultat.ajoute_fonction_native(STR_abs, math_abs);
+    résultat.ajoute_fonction_native(STR_ceil, math_ceil);
+    résultat.ajoute_fonction_native(STR_cos, math_cos);
+    résultat.ajoute_fonction_native(STR_exp, math_exp);
+    résultat.ajoute_fonction_native(STR_floor, math_floor);
+    résultat.ajoute_fonction_native(STR_log, math_log);
+    résultat.ajoute_fonction_native(STR_max, math_max);
+    résultat.ajoute_fonction_native(STR_min, math_min);
+    résultat.ajoute_fonction_native(STR_pow, math_pow);
+    résultat.ajoute_fonction_native(STR_random, math_random);
+    résultat.ajoute_fonction_native(STR_round, math_round);
+    résultat.ajoute_fonction_native(STR_sin, math_sin);
+    résultat.ajoute_fonction_native(STR_sqrt, math_sqrt);
 
     /* Chaque realm doit avoir sa propre série. */
-    graine := object_prototype comme n64 comme n32
-    résultat.entropie = graine_aléatoire(graine)
+    graine := object_prototype comme n64 comme n32;
+    résultat.entropie = graine_aléatoire(graine);
 
-    retourne résultat
+    retourne résultat;
 }
 
-R64_INFINITÉ : r64 : 0r7ff0000000000000
-R64_INFINITÉ_NÉGATIVE : r64 : 0rfff0000000000000
+R64_INFINITÉ : r64 : 0r7ff0000000000000;
+R64_INFINITÉ_NÉGATIVE : r64 : 0rfff0000000000000;
 
 #portée_fichier
 
@@ -58,66 +58,66 @@ R64_INFINITÉ_NÉGATIVE : r64 : 0rfff0000000000000
  * https://tc39.es/ecma262/multipage/numbers-and-dates.html#sec-math.abs */
 math_abs :: fonc (empl params: *ParamètresObjectCall) -> Valeur
 {
-    x := params.donne_argument(0)
+    x := params.donne_argument(0);
     // 1. Let n be ? ToNumber(x).
-    n := to_number(interpréteuse, x)
+    n := to_number(interpréteuse, x);
     si interpréteuse.possède_exception() {
-        retourne js_undefined
+        retourne js_undefined;
     }
 
     // 2. If n is NaN, return NaN.
     si est_nan(n) {
-        retourne NaN
+        retourne NaN;
     }
 
     // 3. If n is -0𝔽, return +0𝔽.
     si n == 0.0 {
-        retourne 0.0 comme r64
+        retourne 0.0 comme r64;
     }
 
     // 4. If n is -∞𝔽, return +∞𝔽.
     si n == R64_INFINITÉ_NÉGATIVE {
-        retourne R64_INFINITÉ
+        retourne R64_INFINITÉ;
     }
 
     // 5. If n < -0𝔽, return -n.
     si n < 0.0 {
-        retourne -n
+        retourne -n;
     }
 
     // 6. Return n.
-    retourne n
+    retourne n;
 }
 
 /* 21.3.2.10 Math.ceil ( x )
  * https://tc39.es/ecma262/multipage/numbers-and-dates.html#sec-math.ceil */
 math_ceil :: fonc (empl params: *ParamètresObjectCall) -> Valeur
 {
-    x := params.donne_argument(0)
+    x := params.donne_argument(0);
 
     // 1. Let n be ? ToNumber(x).
-    n := to_number(interpréteuse, x)
+    n := to_number(interpréteuse, x);
     si interpréteuse.possède_exception() {
-        retourne js_undefined
+        retourne js_undefined;
     }
 
     // 2. If n is not finite or n is either +0𝔽 or -0𝔽, return n.
     si !est_fini(n) || (n == 0.0 || n == -0.0) {
-        retourne n
+        retourne n;
     }
 
     // 3. If n < -0𝔽 and n > -1𝔽, return -0𝔽.
     si n < -0.0 && n > -1.0 {
-        retourne -0.0 comme r64
+        retourne -0.0 comme r64;
     }
 
     // 4. If n is an integral Number, return n.
     si est_intégral(n) {
-        retourne n
+        retourne n;
     }
     
     // 5. Return the smallest (closest to -∞) integral Number value that is not less than n.
-    retourne plafond(n)
+    retourne plafond(n);
 }
 
 /* 21.3.2.12 Math.cos ( x )
@@ -125,23 +125,23 @@ math_ceil :: fonc (empl params: *ParamètresObjectCall) -> Valeur
 math_cos :: fonc (empl params: *ParamètresObjectCall) -> Valeur
 {
     // 1. Let n be ? ToNumber(x).
-    n := to_number(interpréteuse, params.donne_argument(0))
+    n := to_number(interpréteuse, params.donne_argument(0));
     si interpréteuse.possède_exception() {
-        retourne js_undefined
+        retourne js_undefined;
     }
 
     // 2. If n is not finite, return NaN.
     si est_infini(n) {
-        retourne NaN
+        retourne NaN;
     }
 
     // 3. If n is either +0𝔽 or -0𝔽, return 1𝔽.
     si n == 0.0 || n == -0.0 {
-        retourne 1.0 comme r64
+        retourne 1.0 comme r64;
     }
 
     // 4. Return an implementation-approximated Number value representing the cosine of ℝ(n).
-    retourne cosinus(n)
+    retourne cosinus(n);
 }
 
 /* 21.3.2.14 Math.exp ( x )
@@ -149,95 +149,95 @@ math_cos :: fonc (empl params: *ParamètresObjectCall) -> Valeur
 math_exp :: fonc (empl params: *ParamètresObjectCall) -> Valeur
 {
     // 1. Let n be ? ToNumber(x).
-    n := to_number(interpréteuse, params.donne_argument(0))
+    n := to_number(interpréteuse, params.donne_argument(0));
     si interpréteuse.possède_exception() {
-        retourne js_undefined
+        retourne js_undefined;
     }
 
     // 2. If n is either NaN or +∞𝔽, return n.
     si est_nan(n) || n == R64_INFINITÉ {
-        retourne n
+        retourne n;
     }
 
     // 3. If n is either +0𝔽 or -0𝔽, return 1𝔽.
     si n == 0.0 || n == -0.0 {
-        retourne 1.0 comme r64
+        retourne 1.0 comme r64;
     }
 
     // 4. If n is -∞𝔽, return +0𝔽.
     si n == R64_INFINITÉ_NÉGATIVE {
-        retourne 0.0 comme r64
+        retourne 0.0 comme r64;
     }
 
     // 5. Return an implementation-approximated Number value representing the exponential function of ℝ(n).
-    retourne exp(n)
+    retourne exp(n);
 }
 
 /* 21.3.2.16 Math.floor ( x )
  * https://tc39.es/ecma262/multipage/numbers-and-dates.html#sec-math.floor */
 math_floor :: fonc (empl params: *ParamètresObjectCall) -> Valeur
 {
-    x := params.donne_argument(0)
+    x := params.donne_argument(0);
 
     // 1. Let n be ? ToNumber(x).
-    n := to_number(interpréteuse, x)
+    n := to_number(interpréteuse, x);
     si interpréteuse.possède_exception() {
-        retourne js_undefined
+        retourne js_undefined;
     }
 
     // 2. If n is not finite or n is either +0𝔽 or -0𝔽, return n.
     si !est_fini(n) || (n == 0.0 || n == -0.0) {
-        retourne n
+        retourne n;
     }
 
     // 3. If n < 1𝔽 and n > +0𝔽, return +0𝔽.
     si n < 1.0 && n > 0.0 {
-        retourne 0.0 comme r64
+        retourne 0.0 comme r64;
     }
 
     // 4. If n is an integral Number, return n.
     si est_intégral(n) {
-        retourne n
+        retourne n;
     }
 
     // 5. Return the greatest (closest to +∞) integral Number value that is not greater than n.
-    retourne plancher(n)
+    retourne plancher(n);
 }
 
 /* 21.3.2.20 Math.log ( x )
  * https://tc39.es/ecma262/multipage/numbers-and-dates.html#sec-math.log */
 math_log :: fonc (empl params: *ParamètresObjectCall) -> Valeur
 {
-    x := params.donne_argument(0)
+    x := params.donne_argument(0);
 
     // 1. Let n be ? ToNumber(x).
-    n := to_number(interpréteuse, x)
+    n := to_number(interpréteuse, x);
     si interpréteuse.possède_exception() {
-        retourne js_undefined
+        retourne js_undefined;
     }
 
     // 2. If n is either NaN or +∞𝔽, return n.
     si est_nan(n) || n == -R64_INFINITÉ {
-        retourne n
+        retourne n;
     }
 
     // 3. If n is 1𝔽, return +0𝔽.
     si n == 1.0 {
-        retourne 0.0 comme r64
+        retourne 0.0 comme r64;
     }
 
     // 4. If n is either +0𝔽 or -0𝔽, return -∞𝔽.
     si n == 0.0 || n == -0.0 {
-        retourne R64_INFINITÉ_NÉGATIVE
+        retourne R64_INFINITÉ_NÉGATIVE;
     }
 
     // 5. If n < -0𝔽, return NaN.
     si n < -0.0 {
-        retourne NaN
+        retourne NaN;
     }
 
     // 6. Return an implementation-approximated Number value representing the natural logarithm of ℝ(n).
-    retourne log(n)
+    retourne log(n);
 }
 
 /* 21.3.2.24 Math.max ( ...args )
@@ -245,45 +245,45 @@ math_log :: fonc (empl params: *ParamètresObjectCall) -> Valeur
 math_max :: fonc (empl params: *ParamètresObjectCall) -> Valeur
 {
     // 1. Let coerced be a new empty List.
-    coerced: [..]r64
-    diffère déloge(coerced)
+    coerced: [..]r64;
+    diffère déloge(coerced);
 
     // 2. For each element arg of args, do
     pour arguments {
         // a. Let n be ? ToNumber(arg).
-        n := to_number(interpréteuse, it)
+        n := to_number(interpréteuse, it);
         si interpréteuse.possède_exception() {
-            retourne js_undefined
+            retourne js_undefined;
         }
 
         // b. Append n to coerced.
-        tableau_ajoute(*coerced, n)
+        tableau_ajoute(*coerced, n);
     }
 
     // 3. Let highest be -∞𝔽.
-    highest := R64_INFINITÉ_NÉGATIVE
+    highest := R64_INFINITÉ_NÉGATIVE;
 
     // 4. For each element number of coerced, do
     pour coerced {
         // a. If number is NaN, return NaN.
         si est_nan(it) {
-            retourne NaN
+            retourne NaN;
         }
 
         // b. b. If number is +0𝔽 and highest is -0𝔽, set highest to +0𝔽.
         si it == 0.0 && highest == -0.0 {
-            highest = 0.0
-            continue
+            highest = 0.0;
+            continue;
         }
         
         // c. If number > highest, set highest to number.
         si it > highest {
-            highest = it
+            highest = it;
         }
     }
 
     // 5. Return highest.
-    retourne highest
+    retourne highest;
 }
 
 /* 21.3.2.25 Math.min ( ...args )
@@ -291,45 +291,45 @@ math_max :: fonc (empl params: *ParamètresObjectCall) -> Valeur
 math_min :: fonc (empl params: *ParamètresObjectCall) -> Valeur
 {
     // 1. Let coerced be a new empty List.
-    coerced: [..]r64
-    diffère déloge(coerced)
+    coerced: [..]r64;
+    diffère déloge(coerced);
 
     // 2. For each element arg of args, do
     pour arguments {
         // a. Let n be ? ToNumber(arg).
-        n := to_number(interpréteuse, it)
+        n := to_number(interpréteuse, it);
         si interpréteuse.possède_exception() {
-            retourne js_undefined
+            retourne js_undefined;
         }
 
         // b. Append n to coerced.
-        tableau_ajoute(*coerced, n)
+        tableau_ajoute(*coerced, n);
     }
 
     // 3. Let lowest be +∞𝔽.
-    lowest := R64_INFINITÉ
+    lowest := R64_INFINITÉ;
 
     // 4. For each element number of coerced, do
     pour coerced {
         // a. If number is NaN, return NaN.
         si est_nan(it) {
-            retourne NaN
+            retourne NaN;
         }
 
         // b. If number is -0𝔽 and lowest is +0𝔽, set lowest to -0𝔽.
         si it == -0.0 && lowest == 0.0 {
-            lowest = -0.0
-            continue
+            lowest = -0.0;
+            continue;
         }
         
         // c. If number < lowest, set lowest to number.
         si it < lowest {
-            lowest = it
+            lowest = it;
         }
     }
 
     // 5. Return lowest.
-    retourne lowest
+    retourne lowest;
 }
 
 /* 21.3.2.26 Math.pow ( base, exponent )
@@ -337,28 +337,28 @@ math_min :: fonc (empl params: *ParamètresObjectCall) -> Valeur
 math_pow :: fonc (empl params: *ParamètresObjectCall) -> Valeur
 {
     // 1. Set base to ? ToNumber(base).
-    base := to_number(interpréteuse, params.donne_argument(0))
+    base := to_number(interpréteuse, params.donne_argument(0));
     si interpréteuse.possède_exception() {
-        retourne js_undefined
+        retourne js_undefined;
     }
 
     // 2. Set exponent to ? ToNumber(exponent).
-    exponent := to_number(interpréteuse, params.donne_argument(1))
+    exponent := to_number(interpréteuse, params.donne_argument(1));
     si interpréteuse.possède_exception() {
-        retourne js_undefined
+        retourne js_undefined;
     }
 
     // 3. Return Number::exponentiate(base, exponent).
-    retourne number_exponentiate(base, exponent)
+    retourne number_exponentiate(base, exponent);
 }
 
 /* 21.3.2.27 Math.random ( )
  * https://tc39.es/ecma262/multipage/numbers-and-dates.html#sec-math.random */
 math_random :: fonc (empl params: *ParamètresObjectCall) -> Valeur
 {
-    math := this_value.donne_objet().vérifie_comme(MathObject)
-    résultat := aléatoire_unilatérale(math.entropie)
-    retourne résultat comme r64
+    math := this_value.donne_objet().vérifie_comme(MathObject);
+    résultat := aléatoire_unilatérale(math.entropie);
+    retourne résultat comme r64;
 }
 
 /* 21.3.2.28 Math.round ( x )
@@ -366,28 +366,28 @@ math_random :: fonc (empl params: *ParamètresObjectCall) -> Valeur
 math_round :: fonc (empl params: *ParamètresObjectCall) -> Valeur
 {
     // 1. Let n be ? ToNumber(x).
-    n := to_number(interpréteuse, params.donne_argument(0))
+    n := to_number(interpréteuse, params.donne_argument(0));
     si interpréteuse.possède_exception() {
-        retourne js_undefined
+        retourne js_undefined;
     }
 
     // 2. If n is not finite or n is an integral Number, return n.
     si est_infini(n) || est_intégral(n) {
-        retourne n
+        retourne n;
     }
 
     // 3. If n < 0.5𝔽 and n > +0𝔽, return +0𝔽.
     si n < 0.5 && n > 0.0 {
-        retourne 0.0 comme r64
+        retourne 0.0 comme r64;
     }
 
     // 4. If n < -0𝔽 and n ≥ -0.5𝔽, return -0𝔽.
     si n < -0.0 && n >= -0.5 {
-        retourne -0.0 comme r64
+        retourne -0.0 comme r64;
     }
 
     // 5. Return the integral Number closest to n, preferring the Number closer to +∞ in the case of a tie.
-    retourne arrondis(n)
+    retourne arrondis(n);
 }
 
 /* 21.3.2.30 Math.sin ( x )
@@ -395,23 +395,23 @@ math_round :: fonc (empl params: *ParamètresObjectCall) -> Valeur
 math_sin :: fonc (empl params: *ParamètresObjectCall) -> Valeur
 {
     // 1. Let n be ? ToNumber(x).
-    n := to_number(interpréteuse, params.donne_argument(0))
+    n := to_number(interpréteuse, params.donne_argument(0));
     si interpréteuse.possède_exception() {
-        retourne js_undefined
+        retourne js_undefined;
     }
 
     // 2. If n is one of NaN, +0𝔽, or -0𝔽, return n.
     si est_nan(n) || n == 0.0 || n == -0.0 {
-        retourne n
+        retourne n;
     }
 
     // 3. If n is either +∞𝔽 or -∞𝔽, return NaN.
     si est_infini(n) {
-        retourne NaN
+        retourne NaN;
     }
 
     // 4. Return an implementation-approximated Number value representing the sine of ℝ(n).
-    retourne sinus(n)
+    retourne sinus(n);
 }
 
 /* 21.3.2.32 Math.sqrt ( x )
@@ -419,23 +419,23 @@ math_sin :: fonc (empl params: *ParamètresObjectCall) -> Valeur
 math_sqrt :: fonc (empl params: *ParamètresObjectCall) -> Valeur
 {
     // 1. Let n be ? ToNumber(x).
-    n := to_number(interpréteuse, params.donne_argument(0))
+    n := to_number(interpréteuse, params.donne_argument(0));
     si interpréteuse.possède_exception() {
-        retourne js_undefined
+        retourne js_undefined;
     }
 
     // 2. If n is one of NaN, +0𝔽, -0𝔽, or +∞𝔽, return n.
     si est_nan(n) || n == 0.0 || n == -0.0 || n == R64_INFINITÉ {
-        retourne n
+        retourne n;
     }
 
     // 3. If n < -0𝔽, return NaN.
     si n < -0.0 {
-        retourne NaN
+        retourne NaN;
     }
 
     // 4. Return 𝔽(the square root of ℝ(n)).
-    retourne racine_carrée(n)
+    retourne racine_carrée(n);
 }
 
 /** \} */

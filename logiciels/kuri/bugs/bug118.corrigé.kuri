@@ -6,8 +6,8 @@
 
 principale :: fonc ()
 {
-    m : n32 = 0
+    m : n32 = 0;
     pour m {
-        panique("Nous ne devrions pas avoir d'itérations !")
+        panique("Nous ne devrions pas avoir d'itérations !");
     }
 }

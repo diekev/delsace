@@ -3,11 +3,11 @@
  */
 
 Union :: union {
-    A
-    B
+    A;
+    B;
 }
 
 principale :: fonc ()
 {
-    _: Union
+    _: Union;
 }

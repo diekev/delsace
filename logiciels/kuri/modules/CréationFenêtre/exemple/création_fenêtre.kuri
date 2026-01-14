@@ -1,23 +1,23 @@
-importe CréationFenêtre
-importe Fondation
-importe Périphériques
+importe CréationFenêtre;
+importe Fondation;
+importe Périphériques;
 
-LARGEUR_FENÊTRE :: 800
-HAUTEUR_FENÊTRE :: 600
+LARGEUR_FENÊTRE :: 800;
+HAUTEUR_FENÊTRE :: 600;
 
 principale :: fonc ()
 {
-    fenêtre := crée_fenêtre(LARGEUR_FENÊTRE, HAUTEUR_FENÊTRE, "Ma Fenêtre")
+    fenêtre := crée_fenêtre(LARGEUR_FENÊTRE, HAUTEUR_FENÊTRE, "Ma Fenêtre");
 
-    doit_fermer := faux
+    doit_fermer := faux;
 
     tantque !doit_fermer {
-        évènements := ajourne_évènements_fenêtre(fenêtre)
+        évènements := ajourne_évènements_fenêtre(fenêtre);
 
         pour évènements {
             si it.type == TypeÉvènement.Fermeture {
-                doit_fermer = vrai
-                arrête
+                doit_fermer = vrai;
+                arrête;
             }
         }
     }

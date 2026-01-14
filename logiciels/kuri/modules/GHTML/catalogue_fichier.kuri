@@ -1,40 +1,40 @@
-charge "fichier_texte"
+charge "fichier_texte";
 
 CatalogueFichier :: struct {
-    fichiers: [..]FichierTexte
+    fichiers: [..]FichierTexte;
 }
 
 trouve_fichier :: fonc (catalogue: *CatalogueFichier, nom_court: chaine) -> *FichierTexte
 {
     pour * fichier dans catalogue.fichiers {
         si fichier.nom_court == nom_court {
-            retourne fichier
+            retourne fichier;
         }
     }
 
-    retourne nul
+    retourne nul;
 }
 
 ajoute_fichier :: fonc (catalogue: *CatalogueFichier, nom_court: chaine, chemin: chaine) -> rien
 {
-    fichier := trouve_fichier(catalogue, nom_court)
+    fichier := trouve_fichier(catalogue, nom_court);
 
     si fichier != nul {
-        retourne
+        retourne;
     }
 
-    nouveau_fichier: FichierTexte
-    nouveau_fichier.nom_court = nom_court
-    nouveau_fichier.chemin = chemin
+    nouveau_fichier: FichierTexte;
+    nouveau_fichier.nom_court = nom_court;
+    nouveau_fichier.chemin = chemin;
 
-    tableau_ajoute(*catalogue.fichiers, nouveau_fichier)
+    tableau_ajoute(*catalogue.fichiers, nouveau_fichier);
 }
 
 détruit_catalogue :: fonc (catalogue: *CatalogueFichier) -> rien
 {
     pour & fichier dans catalogue.fichiers {
-        déloge(fichier.données)
+        déloge(fichier.données);
     }
 
-    déloge(catalogue.fichiers)
+    déloge(catalogue.fichiers);
 }

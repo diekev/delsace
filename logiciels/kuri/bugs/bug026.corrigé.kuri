@@ -5,27 +5,27 @@
  * Catégorie : [génération code, conversion implicite, struct employée]
  */
 
-importe Support
+importe Support;
 
 TypeBase :: struct {
-    inutilisé: z32
+    inutilisé: z32;
 }
 
 TypeDérivé :: struct {
-    empl base: TypeBase
+    empl base: TypeBase;
 }
 
 retourne_dérivé :: fonc () -> *TypeDérivé
 {
-    retourne loge(TypeDérivé)
+    retourne loge(TypeDérivé);
 }
 
 retourne_base :: fonc () -> *TypeBase
 {
-    retourne retourne_dérivé()
+    retourne retourne_dérivé();
 }
 
 principale :: fonc ()
 {
-    _ := retourne_base()
+    _ := retourne_base();
 }

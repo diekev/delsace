@@ -2,12 +2,12 @@
  * Catégorie : [validation sémantique, déclaration constante, type fonction]
  */
 
-importe Support
+importe Support;
 
-TypeFonction :: fonc (valeur: z32)
+TypeFonction :: fonc (valeur: z32);
 
 Struct :: struct {
-    pointeur: TypeFonction
+    pointeur: TypeFonction;
 }
 
 principale :: fonc ()

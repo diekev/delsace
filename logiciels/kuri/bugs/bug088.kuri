@@ -4,25 +4,25 @@
  * Catégorie : [génération code, discr]
  */
 
-importe Chaine
-importe Fondation
+importe Chaine;
+importe Fondation;
 
 cherche_aiguille_ :: fonc (botte_de_foin: chaine, aiguille: chaine, par: ChercheAiguillePar) -> z64
 {
     discr par {
         ForceBrute {
-            retourne cherche_aiguille_par_force_brute(botte_de_foin, aiguille)
+            retourne cherche_aiguille_par_force_brute(botte_de_foin, aiguille);
         }
         BoyerMooreHorspool {
-            retourne cherche_aiguille_par_boyer_moore_horspool(botte_de_foin, aiguille)
+            retourne cherche_aiguille_par_boyer_moore_horspool(botte_de_foin, aiguille);
         }
     }
 }
 
 principale :: fonc ()
 {
-    aiguille := "Kévin"
-    botte_de_foin := "Kévin Dietrich"
+    aiguille := "Kévin";
+    botte_de_foin := "Kévin Dietrich";
 
-    _ := cherche_aiguille_(botte_de_foin, aiguille, ChercheAiguillePar.ForceBrute)
+    _ := cherche_aiguille_(botte_de_foin, aiguille, ChercheAiguillePar.ForceBrute);
 }

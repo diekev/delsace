@@ -1,33 +1,33 @@
-importe Chaine
+importe Chaine;
 
-MIME_application_octet_stream :: "application/octet-stream"
-MIME_image_jpeg :: "image/jpeg"
-MIME_image_gif :: "image/gif"
-MIME_image_png :: "image/png"
-MIME_image_svg :: "image/svg+xml"
-MIME_image_webp :: "image/webp"
-MIME_text_css :: "text/css"
-MIME_text_html :: "text/html"
-MIME_text_javascript :: "text/javascript"
-MIME_text_plain :: "text/plain"
+MIME_application_octet_stream :: "application/octet-stream";
+MIME_image_jpeg :: "image/jpeg";
+MIME_image_gif :: "image/gif";
+MIME_image_png :: "image/png";
+MIME_image_svg :: "image/svg+xml";
+MIME_image_webp :: "image/webp";
+MIME_text_css :: "text/css";
+MIME_text_html :: "text/html";
+MIME_text_javascript :: "text/javascript";
+MIME_text_plain :: "text/plain";
 
 DonnéesMime :: struct {
-    type: chaine
-    données: chaine
+    type: chaine;
+    données: chaine;
 }
 
 crée_données_mime :: fonc (type: chaine) -> *DonnéesMime
 {
-    résultat := loge(DonnéesMime)
-    résultat.type = type
-    retourne résultat
+    résultat := loge(DonnéesMime);
+    résultat.type = type;
+    retourne résultat;
 }
 
 détruit_données_mime :: fonc (données: *DonnéesMime)
 {
-    déloge_si_logée(données.type)
-    déloge_si_logée(données.données)
-    déloge(données)
+    déloge_si_logée(données.type);
+    déloge_si_logée(données.données);
+    déloge(données);
 }
 
 /* https://mimesniff.spec.whatwg.org/#javascript-mime-type-essence-match */
@@ -50,63 +50,63 @@ est_type_mime_javascript :: fonc (chn: ChaineUTF16Unique) -> bool
         "text/livescript",
         "text/x-ecmascript",
         "text/x-javascript"
-    ]
+    ];
 
     pour mimes_possibles {
         si compare_ascii_insensible_à_la_casse(chn, it) {
-            retourne vrai
+            retourne vrai;
         }
     }
 
-    retourne faux
+    retourne faux;
 }
 
 est_type_mime_image :: fonc (content_type: chaine) -> bool
 {
-    retourne content_type == MIME_image_jpeg || content_type == MIME_image_png || content_type == MIME_image_webp || content_type == MIME_image_gif || content_type == MIME_image_svg
+    retourne content_type == MIME_image_jpeg || content_type == MIME_image_png || content_type == MIME_image_webp || content_type == MIME_image_gif || content_type == MIME_image_svg;
 }
 
 type_mime_pour_extension :: fonc (extension: chaine) -> chaine
 {
     si compare_ascii_insensible_à_la_casse(extension, ".pdf") {
-        retourne "application/pdf"
+        retourne "application/pdf";
     }
 
     si compare_ascii_insensible_à_la_casse(extension, ".html") || compare_ascii_insensible_à_la_casse(extension, ".htm") {
-        retourne MIME_text_html
+        retourne MIME_text_html;
     }
 
     si compare_ascii_insensible_à_la_casse(extension, ".css") {
-        retourne MIME_text_css
+        retourne MIME_text_css;
     }
 
     si compare_ascii_insensible_à_la_casse(extension, ".jpeg") || compare_ascii_insensible_à_la_casse(extension, ".jpg") {
-        retourne MIME_image_jpeg
+        retourne MIME_image_jpeg;
     }
 
     si compare_ascii_insensible_à_la_casse(extension, ".png") {
-        retourne MIME_image_png
+        retourne MIME_image_png;
     }
 
     si compare_ascii_insensible_à_la_casse(extension, ".webp") {
-        retourne MIME_image_webp
+        retourne MIME_image_webp;
     }
 
     si compare_ascii_insensible_à_la_casse(extension, ".gif") {
-        retourne MIME_image_gif
+        retourne MIME_image_gif;
     }
 
     si compare_ascii_insensible_à_la_casse(extension, ".js") {
-        retourne MIME_text_javascript
+        retourne MIME_text_javascript;
     }
 
     si compare_ascii_insensible_à_la_casse(extension, ".txt") {
-        retourne MIME_text_plain
+        retourne MIME_text_plain;
     }
 
     si compare_ascii_insensible_à_la_casse(extension, ".svg") {
-        retourne MIME_image_svg
+        retourne MIME_image_svg;
     }
 
-    retourne MIME_application_octet_stream
+    retourne MIME_application_octet_stream;
 }

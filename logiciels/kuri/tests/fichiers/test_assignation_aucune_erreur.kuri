@@ -10,12 +10,12 @@ foo :: fonc (a : [2]z32) -> rien
 // Cas : On peut assigner une valeur à un membre d'une structure
 
 Vecteur3D :: struct {
-	x : z32
+	x : z32;
 }
 
 foo :: fonc (v : Vecteur3D) -> rien
 {
-	v.x = 5
+	v.x = 5;
 }
 
 // -----------------------------------
@@ -33,11 +33,11 @@ foo :: fonc (v : Vecteur3D) -> rien
 // -----------------------------------
 // Cas : On peut réassigner une valeur à une globale dynamique dans un bloc 'nonsûr'
 
-PI := 3.14
+PI := 3.14;
 
 foo :: fonc () -> rien
 {
 	nonsûr {
-		PI = 3.14159
+		PI = 3.14159;
 	}
 }

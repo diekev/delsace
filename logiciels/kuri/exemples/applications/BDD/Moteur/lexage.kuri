@@ -1,303 +1,303 @@
 Position :: struct {
-    ligne: z32
-    colonne: z32
+    ligne: z32;
+    colonne: z32;
 }
 
 GenreLexème :: énum z32 {
-    INVALIDE
+    INVALIDE;
 
-    MOT_CLÉ_SÉLECTIONNE
-    MOT_CLÉ_DEPUIS
-    MOT_CLÉ_COMME
-    MOT_CLÉ_TABLE
-    MOT_CLÉ_CRÉE
-    MOT_CLÉ_INSÈRE
-    MOT_CLÉ_DANS
-    MOT_CLÉ_VALEURS
-    MOT_CLÉ_ENTIER
-    MOT_CLÉ_TEXTE
+    MOT_CLÉ_SÉLECTIONNE;
+    MOT_CLÉ_DEPUIS;
+    MOT_CLÉ_COMME;
+    MOT_CLÉ_TABLE;
+    MOT_CLÉ_CRÉE;
+    MOT_CLÉ_INSÈRE;
+    MOT_CLÉ_DANS;
+    MOT_CLÉ_VALEURS;
+    MOT_CLÉ_ENTIER;
+    MOT_CLÉ_TEXTE;
 
-    PARENTHÈSE_OUVRANTE
-    PARENTHÈSE_FERMANTE
-    VIRGULE
-    POINT_VIRGULE
-    POINT
+    PARENTHÈSE_OUVRANTE;
+    PARENTHÈSE_FERMANTE;
+    VIRGULE;
+    POINT_VIRGULE;
+    POINT;
 
-    ESPACE
+    ESPACE;
 
-    IDENTIFIANT
-    CHAINE
-    NUMÉRIQUE
+    IDENTIFIANT;
+    CHAINE;
+    NUMÉRIQUE;
 }
 
 Lexème :: struct {
-    valeur: chaine
-    genre: GenreLexème
-    pos: Position
+    valeur: chaine;
+    genre: GenreLexème;
+    pos: Position;
 }
 
 finalise :: fonc (lex1: *Lexème) -> bool
 {
     si finalise_nombre(lex1) {
-        retourne vrai
+        retourne vrai;
     }
 
     si finalise_chaine(lex1) {
-        retourne vrai
+        retourne vrai;
     }
 
     si finalise_mot_clé(lex1) {
-        retourne vrai
+        retourne vrai;
     }
 
     si lex1.valeur.taille == 0 {
-        retourne vrai
+        retourne vrai;
     }
 
-    lex1.genre = GenreLexème.IDENTIFIANT
+    lex1.genre = GenreLexème.IDENTIFIANT;
 
-    retourne vrai
+    retourne vrai;
 }
 
 finalise_nombre :: fonc (lexème: *Lexème) -> bool
 {
     si lexème.valeur.taille == 0 {
-        retourne faux
+        retourne faux;
     }
 
-    point_trouvé := faux
-    exposant_trouvé := faux
+    point_trouvé := faux;
+    exposant_trouvé := faux;
 
     pour c, idx dans lexème.valeur {
-        est_nombre := '0' <= c <= '9'
-        est_point := c == '.'
-        est_exposant := c == 'e'
+        est_nombre := '0' <= c <= '9';
+        est_point := c == '.';
+        est_exposant := c == 'e';
 
         si idx == 0 {
             si !est_nombre && !est_point {
-                retourne faux
+                retourne faux;
             }
 
-            point_trouvé = est_point
-            continue
+            point_trouvé = est_point;
+            continue;
         }
 
         si est_point {
             si point_trouvé {
-                retourne faux
+                retourne faux;
             }
 
-            point_trouvé = vrai
-            continue
+            point_trouvé = vrai;
+            continue;
         }
 
         si est_exposant {
             si exposant_trouvé {
-                retourne faux
+                retourne faux;
             }
 
-            point_trouvé = vrai
-            exposant_trouvé = vrai
+            point_trouvé = vrai;
+            exposant_trouvé = vrai;
 
             si idx == lexème.valeur.taille - 1 {
-                retourne faux
+                retourne faux;
             }
         }
 
         si !est_nombre && (c != '+' && c != '-') {
-            retourne faux
+            retourne faux;
         }
     }
 
-    lexème.genre = GenreLexème.NUMÉRIQUE
+    lexème.genre = GenreLexème.NUMÉRIQUE;
 
-    retourne vrai
+    retourne vrai;
 }
 
 finalise_chaine :: fonc (lexème: *Lexème) -> bool
 {
     si lexème.valeur.taille == 0 {
-        retourne faux
+        retourne faux;
     }
 
     si lexème.valeur[0] == '"' && lexème.valeur[lexème.valeur.taille - 1] == '"' {
-        lexème.valeur.pointeur += 1
-        lexème.valeur.taille -= 2
-        lexème.genre = GenreLexème.CHAINE
+        lexème.valeur.pointeur += 1;
+        lexème.valeur.taille -= 2;
+        lexème.genre = GenreLexème.CHAINE;
 
-        retourne vrai
+        retourne vrai;
     }
 
     si lexème.valeur[0] == '\'' && lexème.valeur[lexème.valeur.taille - 1] == '\'' {
-        lexème.valeur.pointeur += 1
-        lexème.valeur.taille -= 2
-        lexème.genre = GenreLexème.CHAINE
+        lexème.valeur.pointeur += 1;
+        lexème.valeur.taille -= 2;
+        lexème.genre = GenreLexème.CHAINE;
 
-        retourne vrai
+        retourne vrai;
     }
 
-    retourne faux
+    retourne faux;
 }
 
 finalise_mot_clé :: fonc (lexème: *Lexème) -> bool
 {
     si lexème.valeur.taille == 0 {
-        retourne faux
+        retourne faux;
     }
 
     si lexème.valeur == "sélectionne" {
-        lexème.genre = GenreLexème.MOT_CLÉ_SÉLECTIONNE
-        retourne vrai
+        lexème.genre = GenreLexème.MOT_CLÉ_SÉLECTIONNE;
+        retourne vrai;
     }
 
     si lexème.valeur == "depuis" {
-        lexème.genre = GenreLexème.MOT_CLÉ_DEPUIS
-        retourne vrai
+        lexème.genre = GenreLexème.MOT_CLÉ_DEPUIS;
+        retourne vrai;
     }
 
     si lexème.valeur == "comme" {
-        lexème.genre = GenreLexème.MOT_CLÉ_COMME
-        retourne vrai
+        lexème.genre = GenreLexème.MOT_CLÉ_COMME;
+        retourne vrai;
     }
 
     si lexème.valeur == "table" {
-        lexème.genre = GenreLexème.MOT_CLÉ_TABLE
-        retourne vrai
+        lexème.genre = GenreLexème.MOT_CLÉ_TABLE;
+        retourne vrai;
     }
 
     si lexème.valeur == "crée" {
-        lexème.genre = GenreLexème.MOT_CLÉ_CRÉE
-        retourne vrai
+        lexème.genre = GenreLexème.MOT_CLÉ_CRÉE;
+        retourne vrai;
     }
 
     si lexème.valeur == "insère" {
-        lexème.genre = GenreLexème.MOT_CLÉ_INSÈRE
-        retourne vrai
+        lexème.genre = GenreLexème.MOT_CLÉ_INSÈRE;
+        retourne vrai;
     }
 
     si lexème.valeur == "dans" {
-        lexème.genre = GenreLexème.MOT_CLÉ_DANS
-        retourne vrai
+        lexème.genre = GenreLexème.MOT_CLÉ_DANS;
+        retourne vrai;
     }
 
     si lexème.valeur == "valeurs" {
-        lexème.genre = GenreLexème.MOT_CLÉ_VALEURS
-        retourne vrai
+        lexème.genre = GenreLexème.MOT_CLÉ_VALEURS;
+        retourne vrai;
     }
 
     si lexème.valeur == "entier" {
-        lexème.genre = GenreLexème.MOT_CLÉ_ENTIER
-        retourne vrai
+        lexème.genre = GenreLexème.MOT_CLÉ_ENTIER;
+        retourne vrai;
     }
 
     si lexème.valeur == "texte" {
-        lexème.genre = GenreLexème.MOT_CLÉ_TEXTE
-        retourne vrai
+        lexème.genre = GenreLexème.MOT_CLÉ_TEXTE;
+        retourne vrai;
     }
 
-    retourne faux
+    retourne faux;
 }
 
 ÉtatLexage :: struct {
-    lexèmes: [..]Lexème
-    courant: Lexème
-    curseur: z32
-    ligne: z32
-    colonne: z32
-    chn: chaine
+    lexèmes: [..]Lexème;
+    courant: Lexème;
+    curseur: z32;
+    ligne: z32;
+    colonne: z32;
+    chn: chaine;
 }
 
 finalise_courant :: fonc (état: *ÉtatLexage, genre: GenreLexème) -> bool
 {
     si !finalise(*état.courant) {
-        imprime("Impossible de finaliser %\n", état.courant)
+        imprime("Impossible de finaliser %\n", état.courant);
         // À FAIRE: erreur
-        retourne faux
+        retourne faux;
     }
 
     si état.courant.valeur.taille != 0 {
-        tableau_ajoute(*état.lexèmes, état.courant)
+        tableau_ajoute(*état.lexèmes, état.courant);
     }
 
     si genre != GenreLexème.ESPACE {
-        état.courant.pos.ligne = état.ligne
-        état.courant.pos.colonne = état.colonne
-        état.courant.valeur = chaine(*état.chn[état.curseur], 1)
-        état.courant.genre = genre
+        état.courant.pos.ligne = état.ligne;
+        état.courant.pos.colonne = état.colonne;
+        état.courant.valeur = chaine(*état.chn[état.curseur], 1);
+        état.courant.genre = genre;
 
-        tableau_ajoute(*état.lexèmes, état.courant)
+        tableau_ajoute(*état.lexèmes, état.courant);
     }
 
-    état.courant.pos.ligne = état.ligne
-    état.courant.pos.colonne = état.colonne
-    état.courant.valeur = ""
+    état.courant.pos.ligne = état.ligne;
+    état.courant.pos.colonne = état.colonne;
+    état.courant.valeur = "";
 
-    retourne vrai
+    retourne vrai;
 }
 
 lèxe :: fonc (chn: chaine) -> [..]Lexème
 {
-    état: ÉtatLexage
-    état.chn = chn
+    état: ÉtatLexage;
+    état.chn = chn;
 
     si chn.taille == 0 {
-        retourne état.lexèmes
+        retourne état.lexèmes;
     }
 
     pour c, idx dans chn {
-        état.curseur = idx comme z32
+        état.curseur = idx comme z32;
 
         discr c {
             '\n' {
                 si !finalise_courant(*état, GenreLexème.ESPACE) {
-                    arrête
+                    arrête;
                 }
-                état.ligne += 1
-                état.colonne = 0
+                état.ligne += 1;
+                état.colonne = 0;
             }
             ' ' {
                 si !finalise_courant(*état, GenreLexème.ESPACE) {
-                    arrête
+                    arrête;
                 }
             }
             ',' {
                 si !finalise_courant(*état, GenreLexème.VIRGULE) {
-                    arrête
+                    arrête;
                 }
             }
             '(' {
                 si !finalise_courant(*état, GenreLexème.PARENTHÈSE_OUVRANTE) {
-                    arrête
+                    arrête;
                 }
             }
             ')' {
                 si !finalise_courant(*état, GenreLexème.PARENTHÈSE_FERMANTE) {
-                    arrête
+                    arrête;
                 }
             }
             ';' {
                 si !finalise_courant(*état, GenreLexème.POINT_VIRGULE) {
-                    arrête
+                    arrête;
                 }
             }
             '.' {
                 si !finalise_courant(*état, GenreLexème.POINT) {
-                    arrête
+                    arrête;
                 }
             }
             sinon {
                 si état.courant.valeur.taille == 0 {
-                    état.courant.valeur = chaine(*état.chn[idx], 1)
+                    état.courant.valeur = chaine(*état.chn[idx], 1);
                 }
                 sinon {
-                    état.courant.valeur.taille += 1
+                    état.courant.valeur.taille += 1;
                 }
             }
         }
 
-        état.colonne += 1
+        état.colonne += 1;
         //imprime("Courant : %\n", courant.valeur)
     }
 
-    retourne état.lexèmes
+    retourne état.lexèmes;
 }

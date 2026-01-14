@@ -7,17 +7,17 @@
  * Catégorie : [génération code, appel pointeur, rubrique structure]
  */
 
-importe Fondation
+importe Fondation;
 
 imprime_log :: fonc (mode: ModeLogage, ident: chaine, format: chaine, args: ...eini) -> rien
 {
-    message := imprime_chaine(format, ...args)
+    message := imprime_chaine(format, ...args);
 
-    __contexte_fil_principal.logueur(message, ident, mode, contexte().données_logueur)
-    déloge(message)
+    __contexte_fil_principal.logueur(message, ident, mode, contexte().données_logueur);
+    déloge(message);
 }
 
 principale :: fonc ()
 {
-    imprime_log(ModeLogage.AUCUN, "[]", "")
+    imprime_log(ModeLogage.AUCUN, "[]", "");
 }

@@ -1,57 +1,57 @@
-importe Fondation
+importe Fondation;
 
 retourne_plusieurs_valeurs :: fonc () -> (z32, z32)
 {
-    retourne 13, 14
+    retourne 13, 14;
 }
 
 déclare_noms_retours :: fonc () -> (a: z32, b: z32)
 {
-    retourne a = 6, b = 7
+    retourne a = 6, b = 7;
 }
 
 retourne_désordre :: fonc () -> (a: z32, b: z32)
 {
-    retourne b = 6, a = 7
+    retourne b = 6, a = 7;
 }
 
 indirection :: fonc () -> (a: z32, b: z32)
 {
-    retourne retourne_désordre()
+    retourne retourne_désordre();
 }
 
 ajoute :: fonc (a: z32, b: z32) -> (c: z32)
 {
-    retourne c = a + b
+    retourne c = a + b;
 }
 
 principale :: fonc ()
 {
-    imprime("assigne deux valeurs scalaire :\n")
-    a, b := 5, 6
-    imprime("a = %, b = %\n", a, b)
+    imprime("assigne deux valeurs scalaire :\n");
+    a, b := 5, 6;
+    imprime("a = %, b = %\n", a, b);
 
-    x, y, z := 13, 17, 14
-    imprime("x = %, y = %, z = %\n", x, y, z)
+    x, y, z := 13, 17, 14;
+    imprime("x = %, y = %, z = %\n", x, y, z);
 
-    u, v, w := 555
-    imprime("u = %, v = %, w = %\n", u, v, w)
+    u, v, w := 555;
+    imprime("u = %, v = %, w = %\n", u, v, w);
 
-    imprime("assigne le retour d'une fonction :\n")
-    c, d := retourne_plusieurs_valeurs()
-    imprime("c = %, d = %\n", c, d)
+    imprime("assigne le retour d'une fonction :\n");
+    c, d := retourne_plusieurs_valeurs();
+    imprime("c = %, d = %\n", c, d);
 
-    imprime("assigne le retour d'une fonction avec des noms déclarés :\n")
-    e, f := déclare_noms_retours()
-    imprime("e = %, f = %\n", e, f)
+    imprime("assigne le retour d'une fonction avec des noms déclarés :\n");
+    e, f := déclare_noms_retours();
+    imprime("e = %, f = %\n", e, f);
 
-    imprime("assigne le retour d'une fonction avec des noms déclarés, retournés dans la désordre :\n")
-    g, h := retourne_désordre()
-    imprime("g = %, h = %\n", g, h)
+    imprime("assigne le retour d'une fonction avec des noms déclarés, retournés dans la désordre :\n");
+    g, h := retourne_désordre();
+    imprime("g = %, h = %\n", g, h);
 
-    imprime("assigne le retour d'une fonction avec une indirection :\n")
-    i, j := indirection()
-    imprime("i = %, j = %\n", i, j)
+    imprime("assigne le retour d'une fonction avec une indirection :\n");
+    i, j := indirection();
+    imprime("i = %, j = %\n", i, j);
 
     // imprime("passe des valeurs depuis le retour de plusieurs valeurs")
     // k := ajoute(indirection)

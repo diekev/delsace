@@ -1,112 +1,112 @@
-importe Math
+importe Math;
 
 /* ------------------------------------------------------------------------- */
 /** \nom Panneau Arborescence
  * \{ */
 
 PanneauArborescence :: struct {
-    empl base: Panneau
+    empl base: Panneau;
 
     Élément :: struct {
         // À FAIRE : icone pour le développement, rappels...
-        texte: chaine
-        est_développé: bool
+        texte: chaine;
+        est_développé: bool;
 
-        rect: RectanglePosDim(z32)
-        rect_texte: RectanglePosDim(z32)
-        rect_bouton: RectanglePosDim(z32)
+        rect: RectanglePosDim(z32);
+        rect_texte: RectanglePosDim(z32);
+        rect_bouton: RectanglePosDim(z32);
 
-        enfants: [..]*Élément
+        enfants: [..]*Élément;
     }
 
-    éléments: [..]*Élément
-    éléments_visibles: [..]*Élément
+    éléments: [..]*Élément;
+    éléments_visibles: [..]*Élément;
 
-    hauteur_élément: z32
+    hauteur_élément: z32;
 }
 
 ajoute_élément :: fonc (empl panneau: *PanneauArborescence, texte: chaine) -> *PanneauArborescence.Élément
 {
-    résultat := loge(PanneauArborescence.Élément)
-    résultat.texte = texte
-    tableau_ajoute(*panneau.éléments, résultat)
-    panneau.besoin_ajournement_disposition = vrai
-    retourne résultat
+    résultat := loge(PanneauArborescence.Élément);
+    résultat.texte = texte;
+    tableau_ajoute(*panneau.éléments, résultat);
+    panneau.besoin_ajournement_disposition = vrai;
+    retourne résultat;
 }
 
 ajoute_élément :: fonc (parent: *PanneauArborescence.Élément, texte: chaine) -> *PanneauArborescence.Élément
 {
-    assert(parent != nul)
-    résultat := loge(PanneauArborescence.Élément)
-    résultat.texte = texte
-    tableau_ajoute(*parent.enfants, résultat)
-    retourne résultat
+    assert(parent != nul);
+    résultat := loge(PanneauArborescence.Élément);
+    résultat.texte = texte;
+    tableau_ajoute(*parent.enfants, résultat);
+    retourne résultat;
 }
 
 ajourne_disposition :: fonc (empl panneau: *PanneauArborescence)
 {
     saufsi besoin_ajournement_disposition {
-        retourne
+        retourne;
     }
-    diffère besoin_ajournement_disposition = faux
+    diffère besoin_ajournement_disposition = faux;
 
-    fonte := contexte.fonte
-    métriques := donne_métriques_fonte(fonte)
-    hauteur_de_ligne := métriques.donne_hauteur_ligne() comme z32
-    hauteur_élément = hauteur_de_ligne + 10
-    espaçage := donne_largeur_texte(fonte, "0") comme z32
+    fonte := contexte.fonte;
+    métriques := donne_métriques_fonte(fonte);
+    hauteur_de_ligne := métriques.donne_hauteur_ligne() comme z32;
+    hauteur_élément = hauteur_de_ligne + 10;
+    espaçage := donne_largeur_texte(fonte, "0") comme z32;
 
-    panneau.éléments_visibles.taille = 0
+    panneau.éléments_visibles.taille = 0;
 
     // ESPAÇAGE BOUTON ESPAÇAGE TEXTE ESPAÇAGE
-    rect_ligne := panneau.rect
-    rect_ligne.hauteur = hauteur_élément
-    rect_ligne.y = parent.rect.hauteur - hauteur_élément
+    rect_ligne := panneau.rect;
+    rect_ligne.hauteur = hauteur_élément;
+    rect_ligne.y = parent.rect.hauteur - hauteur_élément;
 
-    rect_bouton: RectanglePosDim(z32)
-    rect_bouton.hauteur = hauteur_de_ligne
-    rect_bouton.largeur = hauteur_de_ligne
+    rect_bouton: RectanglePosDim(z32);
+    rect_bouton.hauteur = hauteur_de_ligne;
+    rect_bouton.largeur = hauteur_de_ligne;
 
     pour éléments {
-        ajourne_rect_élément(panneau, it, rect_ligne, rect_bouton, espaçage, fonte)
-        rect_ligne.y -= hauteur_élément
+        ajourne_rect_élément(panneau, it, rect_ligne, rect_bouton, espaçage, fonte);
+        rect_ligne.y -= hauteur_élément;
 
         si it.est_développé {
-            rect_ligne.y -= hauteur_élément * it.enfants.taille comme z32
+            rect_ligne.y -= hauteur_élément * it.enfants.taille comme z32;
         }
     }
 }
 
 ajourne_rect_élément :: fonc (panneau: *PanneauArborescence, élément: *PanneauArborescence.Élément, rect_élément: RectanglePosDim(z32), rect_bouton: RectanglePosDim(z32), espaçage: z32, fonte: *Fonte)
 {
-    tableau_ajoute(*panneau.éléments_visibles, élément)
+    tableau_ajoute(*panneau.éléments_visibles, élément);
 
-    élément.rect = rect_élément
-    élément.rect.largeur = donne_largeur_texte(fonte, élément.texte) comme z32 + 2 * espaçage + rect_bouton.largeur + espaçage
+    élément.rect = rect_élément;
+    élément.rect.largeur = donne_largeur_texte(fonte, élément.texte) comme z32 + 2 * espaçage + rect_bouton.largeur + espaçage;
 
-    élément.rect_bouton = rect_bouton
-    élément.rect_bouton.x = élément.rect.x + espaçage
-    élément.rect_bouton.y = élément.rect.y + 5
+    élément.rect_bouton = rect_bouton;
+    élément.rect_bouton.x = élément.rect.x + espaçage;
+    élément.rect_bouton.y = élément.rect.y + 5;
 
-    élément.rect_texte = élément.rect
-    élément.rect_texte.x += rect_bouton.largeur + 2 * espaçage
-    élément.rect_texte.largeur -= 2 * espaçage
-    élément.rect_texte.y += 5
+    élément.rect_texte = élément.rect;
+    élément.rect_texte.x += rect_bouton.largeur + 2 * espaçage;
+    élément.rect_texte.largeur -= 2 * espaçage;
+    élément.rect_texte.y += 5;
 
     saufsi élément.est_développé {
-        retourne
+        retourne;
     }
 
-    rect_élément = élément.rect
-    rect_élément.x += rect_bouton.largeur / 2 + espaçage
-    rect_élément.largeur -= rect_bouton.largeur / 2 + espaçage
+    rect_élément = élément.rect;
+    rect_élément.x += rect_bouton.largeur / 2 + espaçage;
+    rect_élément.largeur -= rect_bouton.largeur / 2 + espaçage;
 
     pour élément.enfants {
-        rect_élément.y -= rect_élément.hauteur
-        ajourne_rect_élément(panneau, it, rect_élément, rect_bouton, espaçage, fonte)
+        rect_élément.y -= rect_élément.hauteur;
+        ajourne_rect_élément(panneau, it, rect_élément, rect_bouton, espaçage, fonte);
 
         si it.est_développé {
-            rect_élément.y -= rect_élément.hauteur * it.enfants.taille comme z32
+            rect_élément.y -= rect_élément.hauteur * it.enfants.taille comme z32;
         }
     }
 }
@@ -115,80 +115,80 @@ dessine_élément :: fonc (élément: *PanneauArborescence.Élément, peintre: *
 {
     // peintre.dessine_rectangle(élément.rect, couleur_rouge)
     saufsi élément.est_développé {
-        peintre.dessine_rectangle(élément.rect_bouton, couleur_vert)
+        peintre.dessine_rectangle(élément.rect_bouton, couleur_vert);
     }
     sinon {
-        peintre.remplis_rectangle(élément.rect_bouton, couleur_vert)
+        peintre.remplis_rectangle(élément.rect_bouton, couleur_vert);
     }
-    peintre.dessine_texte(fonte, élément.texte, élément.rect_texte, thème.couleur_texte)
+    peintre.dessine_texte(fonte, élément.texte, élément.rect_texte, thème.couleur_texte);
 }
 
 crée_panneau_arborescence :: fonc (ctx: *ContexteInterface, parent: *Panneau) -> *PanneauArborescence
 {
-    sur_déplacement_souris :: fonc (panneau_arborescence: *PanneauArborescence @inutilisée, souris: ÉtatSouris @inutilisée)
+    sur_déplacement_souris :: fonc (panneau_arborescence: *PanneauArborescence @inutilisée, souris: ÉtatSouris @inutilisée);
     {
     }
 
-    sur_clic_souris :: fonc (panneau_arborescence: *PanneauArborescence, clic: ClicSouris) -> bool
+    sur_clic_souris :: fonc (panneau_arborescence: *PanneauArborescence, clic: ClicSouris) -> bool;
     {
         saufsi panneau_arborescence.rect.contient(clic.état.où) {
-            retourne faux
+            retourne faux;
         }
 
         pour panneau_arborescence.éléments_visibles {
             saufsi it.rect_bouton.contient(clic.état.où) {
-                continue
+                continue;
             }
 
             si clic.action == ActionSouris.RELACHÉE {
-                it.est_développé = !it.est_développé
-                panneau_arborescence.besoin_ajournement_disposition = vrai
+                it.est_développé = !it.est_développé;
+                panneau_arborescence.besoin_ajournement_disposition = vrai;
             }
 
-            arrête
+            arrête;
         }
 
-        retourne vrai
+        retourne vrai;
     }
 
-    sur_dessin :: fonc (panneau_arborescence: *PanneauArborescence, ctx: *ContexteAffichage)
+    sur_dessin :: fonc (panneau_arborescence: *PanneauArborescence, ctx: *ContexteAffichage);
     {
-        peintre := ctx.peintre
-        thème := ctx.thème
+        peintre := ctx.peintre;
+        thème := ctx.thème;
 
-        ajourne_disposition(panneau_arborescence)
+        ajourne_disposition(panneau_arborescence);
 
-        rect_ligne := panneau_arborescence.rect
-        rect_ligne.hauteur = panneau_arborescence.hauteur_élément
-        rect_ligne.y = panneau_arborescence.rect.hauteur - panneau_arborescence.hauteur_élément
+        rect_ligne := panneau_arborescence.rect;
+        rect_ligne.hauteur = panneau_arborescence.hauteur_élément;
+        rect_ligne.y = panneau_arborescence.rect.hauteur - panneau_arborescence.hauteur_élément;
 
-        nombre_de_lignes := divise_avec_surarrondis(panneau_arborescence.rect.hauteur comme n64, panneau_arborescence.hauteur_élément comme n64)
+        nombre_de_lignes := divise_avec_surarrondis(panneau_arborescence.rect.hauteur comme n64, panneau_arborescence.hauteur_élément comme n64);
         pour nombre_de_lignes {
             couleur_ligne := si indice_it % 2 == 0 {
-                thème.couleur_table_ligne_paire
+                thème.couleur_table_ligne_paire;
             }
             sinon {
-                thème.couleur_table_ligne_impaire
+                thème.couleur_table_ligne_impaire;
             }
 
-            remplis_rectangle(peintre, rect_ligne, couleur_ligne)
-            rect_ligne.y -= panneau_arborescence.hauteur_élément
+            remplis_rectangle(peintre, rect_ligne, couleur_ligne);
+            rect_ligne.y -= panneau_arborescence.hauteur_élément;
         }
 
         pour panneau_arborescence.éléments_visibles {
-            dessine_élément(it, peintre, panneau_arborescence.contexte.fonte, thème)
+            dessine_élément(it, peintre, panneau_arborescence.contexte.fonte, thème);
         }
 
-        dessine_rectangle(peintre, panneau_arborescence.rect, thème.couleur_contour)
+        dessine_rectangle(peintre, panneau_arborescence.rect, thème.couleur_contour);
     }
 
-    résultat := ctx.crée_panneau(PanneauArborescence)
-    ajoute_enfant(parent, résultat)
+    résultat := ctx.crée_panneau(PanneauArborescence);
+    ajoute_enfant(parent, résultat);
 
-    résultat.sur_déplacement_souris = sur_déplacement_souris
-    résultat.sur_clic_souris = sur_clic_souris
-    résultat.sur_dessin = sur_dessin
-    retourne résultat
+    résultat.sur_déplacement_souris = sur_déplacement_souris;
+    résultat.sur_clic_souris = sur_clic_souris;
+    résultat.sur_dessin = sur_dessin;
+    retourne résultat;
 }
 
 /** \} */

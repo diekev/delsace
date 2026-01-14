@@ -2,7 +2,7 @@
  * Catégorie : [validation sémantique]
  */
 
-importe Fondation
+importe Fondation;
 
 fonction :: fonc () -> Résultat(z32, r32)
 {
@@ -10,5 +10,5 @@ fonction :: fonc () -> Résultat(z32, r32)
 
 principale :: fonc ()
 {
-    _ := fonction()
+    _ := fonction();
 }

@@ -1,77 +1,77 @@
 // --------------------------------------------
 // Différents caractères spéciaux sous forme de point de code
 
-NUL                    : n32 : 0x00
-BACKSPACE              : n32 : 0x08
-TABULATION             : n32 : 0x09 /* '\t' */
-TABULATION_HORIZONTALE : n32 : 0x09 /* '\t' */
-NOUVELLE_LIGNE         : n32 : 0x0A /* '\n' */
-SAUT_DE_LIGNE          : n32 : 0x0A /* '\n' */
-SAUT_DE_PAGE           : n32 : 0x0C /* '\f' */
-RETOUR_CHARIOT         : n32 : 0x0D /* '\r' */
-MOUVEMENT_SORTANT      : n32 : 0x0E
-SÉPARATEUR_D_UNITÉS    : n32 : 0x1F
-ESPACE                 : n32 : 0x20 /* ' ' */
-POINT_EXCLAMATION      : n32 : 0x21 /* '!' */
-GUILLEMET              : n32 : 0x22 /* '"' */
-GUILLEMET_ANGLAIS      : n32 : 0x22 /* '"' */
-SIGNE_NOMBRE           : n32 : 0x23 /* '#' */
-ESPERLUETTE            : n32 : 0x26 /* '&' */
-APOSTROPHE             : n32 : 0x27 /* '\'' */
-MOINS                  : n32 : 0x2D /* '-' */
-TRAIT_D_UNION          : n32 : 0x2D /* '-' */
-SIGNE_MOINS            : n32 : 0x2D /* '-' */
-SLASH                  : n32 : 0x2F /* '/' */
-DOUBLE_POINT           : n32 : 0x3A /* ':' */
-POINT_VIRGULE          : n32 : 0x3B /* ';' */
-CHEVRON_OUVRANT        : n32 : 0x3C /* '<' */
-EGAL                   : n32 : 0x3D /* '=' */
-CHEVRON_FERMANT        : n32 : 0x3E /* '>' */
-POINT_INTERROGATION    : n32 : 0x3F /* '?' */
-A_MAJUSCULE            : n32 : 0x41 /* 'A' */
-F_MAJUSCULE            : n32 : 0x46 /* 'F' */
-X_MAJUSCULE            : n32 : 0x58 /* 'X' */
-Z_MAJUSCULE            : n32 : 0x5A /* 'Z' */
-CROCHET_OUVRANT        : n32 : 0x5B /* '[' */
-CROCHET_FERMANT        : n32 : 0x5D /* ']' */
-ACCENT_GRAVE           : n32 : 0x60 /* '`' */
-A_MINUSCULE            : n32 : 0x61 /* 'a' */
-F_MINUSCULE            : n32 : 0x66 /* 'f' */
-X_MINUSCULE            : n32 : 0x78 /* 'x' */
-Z_MINUSCULE            : n32 : 0x7A /* 'z' */
-BARRE_VERTICALE        : n32 : 0x7C /* '|' */
-DELETE                 : n32 : 0x7F
+NUL                    : n32 : 0x00;
+BACKSPACE              : n32 : 0x08;
+TABULATION             : n32 : 0x09; /* '\t' */
+TABULATION_HORIZONTALE : n32 : 0x09; /* '\t' */
+NOUVELLE_LIGNE         : n32 : 0x0A; /* '\n' */
+SAUT_DE_LIGNE          : n32 : 0x0A; /* '\n' */
+SAUT_DE_PAGE           : n32 : 0x0C; /* '\f' */
+RETOUR_CHARIOT         : n32 : 0x0D; /* '\r' */
+MOUVEMENT_SORTANT      : n32 : 0x0E;
+SÉPARATEUR_D_UNITÉS    : n32 : 0x1F;
+ESPACE                 : n32 : 0x20; /* ' ' */
+POINT_EXCLAMATION      : n32 : 0x21; /* '!' */
+GUILLEMET              : n32 : 0x22; /* '"' */
+GUILLEMET_ANGLAIS      : n32 : 0x22; /* '"' */
+SIGNE_NOMBRE           : n32 : 0x23; /* '#' */
+ESPERLUETTE            : n32 : 0x26; /* '&' */
+APOSTROPHE             : n32 : 0x27; /* '\'' */
+MOINS                  : n32 : 0x2D; /* '-' */
+TRAIT_D_UNION          : n32 : 0x2D; /* '-' */
+SIGNE_MOINS            : n32 : 0x2D; /* '-' */
+SLASH                  : n32 : 0x2F; /* '/' */
+DOUBLE_POINT           : n32 : 0x3A; /* ':' */
+POINT_VIRGULE          : n32 : 0x3B; /* ';' */
+CHEVRON_OUVRANT        : n32 : 0x3C; /* '<' */
+EGAL                   : n32 : 0x3D; /* '=' */
+CHEVRON_FERMANT        : n32 : 0x3E; /* '>' */
+POINT_INTERROGATION    : n32 : 0x3F; /* '?' */
+A_MAJUSCULE            : n32 : 0x41; /* 'A' */
+F_MAJUSCULE            : n32 : 0x46; /* 'F' */
+X_MAJUSCULE            : n32 : 0x58; /* 'X' */
+Z_MAJUSCULE            : n32 : 0x5A; /* 'Z' */
+CROCHET_OUVRANT        : n32 : 0x5B; /* '[' */
+CROCHET_FERMANT        : n32 : 0x5D; /* ']' */
+ACCENT_GRAVE           : n32 : 0x60; /* '`' */
+A_MINUSCULE            : n32 : 0x61; /* 'a' */
+F_MINUSCULE            : n32 : 0x66; /* 'f' */
+X_MINUSCULE            : n32 : 0x78; /* 'x' */
+Z_MINUSCULE            : n32 : 0x7A; /* 'z' */
+BARRE_VERTICALE        : n32 : 0x7C; /* '|' */
+DELETE                 : n32 : 0x7F;
 
-CARACTÈRE_REMPLACEMENT :: 0xFFFD comme n32
+CARACTÈRE_REMPLACEMENT :: 0xFFFD comme n32;
 
 /* Caractère pouvant être utilisé pour définir la fin du fichier/flux de points de code.
  * Ce n'est pas un caractère standard. */
-FIN_DE_FICHIER :: 0xffffffff comme n32
+FIN_DE_FICHIER :: 0xffffffff comme n32;
 
 est_surrogate :: fonc (point_de_code: n32) -> bool
 {
-    retourne 0xD800 <= point_de_code <= 0xDFFF
+    retourne 0xD800 <= point_de_code <= 0xDFFF;
 }
 
 est_leading_surrogate :: fonc (unité: n32) -> bool #enligne
 {
-    retourne 0xD800 <= unité <= 0xDBFF
+    retourne 0xD800 <= unité <= 0xDBFF;
 }
 
 est_trailling_surrogate :: fonc (unité: n32) -> bool #enligne
 {
-    retourne 0xDC00 <= unité <= 0xDFFF
+    retourne 0xDC00 <= unité <= 0xDFFF;
 }
 
 est_valeur_scalaire :: fonc (point_de_code: n32) -> bool
 {
-    retourne !est_surrogate(point_de_code)
+    retourne !est_surrogate(point_de_code);
 }
 
 est_noncaractère :: fonc (point_de_code: n32) -> bool
 {
     si 0xFDD0 <= point_de_code <= 0xFDEF {
-        retourne vrai
+        retourne vrai;
     }
 
     retourne fait_partie_de(point_de_code,
@@ -79,143 +79,143 @@ est_noncaractère :: fonc (point_de_code: n32) -> bool
         0x3FFFF, 0x4FFFE, 0x4FFFF, 0x5FFFE, 0x5FFFF, 0x6FFFE, 0x6FFFF,
         0x7FFFE, 0x7FFFF, 0x8FFFE, 0x8FFFF, 0x9FFFE, 0x9FFFF, 0xAFFFE,
         0xAFFFF, 0xBFFFE, 0xBFFFF, 0xCFFFE, 0xCFFFF, 0xDFFFE, 0xDFFFF,
-        0xEFFFE, 0xEFFFF, 0xFFFFE, 0xFFFFF, 0x10FFFE, 0x10FFFF)
+        0xEFFFE, 0xEFFFF, 0xFFFFE, 0xFFFFF, 0x10FFFE, 0x10FFFF);
 }
 
 point_de_code_maximal_autorisé :: fonc () -> n32 #enligne
 {
-    retourne 0x10FFFF
+    retourne 0x10FFFF;
 }
 
 est_ascii :: fonc (point_de_code: n32) -> bool #enligne
 {
-    retourne point_de_code <= 0x7F
+    retourne point_de_code <= 0x7F;
 }
 
 est_ascii_tab_ou_nouvelle_ligne :: fonc (point_de_code: n32) -> bool #enligne
 {
-    retourne point_de_code == 0x09 || point_de_code == 0x0A || point_de_code == 0x0D
+    retourne point_de_code == 0x09 || point_de_code == 0x0A || point_de_code == 0x0D;
 }
 
 est_ascii_espace_blanche_n16 :: fonc (point_de_code: n16) -> bool
 {
-    retourne est_ascii_espace_blanche(point_de_code)
+    retourne est_ascii_espace_blanche(point_de_code);
 }
 
 est_ascii_espace_blanche :: fonc (point_de_code: n32) -> bool #enligne
 {
-    retourne est_ascii_tab_ou_nouvelle_ligne(point_de_code) || point_de_code == 0x0C || point_de_code == 0x20
+    retourne est_ascii_tab_ou_nouvelle_ligne(point_de_code) || point_de_code == 0x0C || point_de_code == 0x20;
 }
 
 est_controle_C0 :: fonc (point_de_code: n32) -> bool #enligne
 {
-    retourne point_de_code <= 0x1F
+    retourne point_de_code <= 0x1F;
 }
 
 est_controle_C0_ou_espace :: fonc (point_de_code: n32) -> bool #enligne
 {
-    retourne est_controle_C0(point_de_code) || point_de_code == 0x20
+    retourne est_controle_C0(point_de_code) || point_de_code == 0x20;
 }
 
 est_controle :: fonc (point_de_code: n32) -> bool #enligne
 {
-    retourne est_controle_C0(point_de_code) || (0x7F <= point_de_code <= 0x9F)
+    retourne est_controle_C0(point_de_code) || (0x7F <= point_de_code <= 0x9F);
 }
 
 est_chiffre_ascii :: fonc (point_de_code: n32) -> bool #enligne
 {
-    retourne (0x30 <= point_de_code <= 0x39)
+    retourne (0x30 <= point_de_code <= 0x39);
 }
 
 /* Surcharge pour l'utiliser en rappel. */
 est_chiffre_ascii_n16 :: fonc (point_de_code: n16) -> bool #enligne
 {
-    retourne est_chiffre_ascii(point_de_code)
+    retourne est_chiffre_ascii(point_de_code);
 }
 
 est_chiffre_hexadecimal_majuscule_ascii :: fonc (point_de_code: n32) -> bool #enligne
 {
-    retourne est_chiffre_ascii(point_de_code) || (A_MAJUSCULE <= point_de_code <= F_MAJUSCULE)
+    retourne est_chiffre_ascii(point_de_code) || (A_MAJUSCULE <= point_de_code <= F_MAJUSCULE);
 }
 
 est_chiffre_hexadecimal_minuscule_ascii :: fonc (point_de_code: n32) -> bool #enligne
 {
-    retourne est_chiffre_ascii(point_de_code) || (A_MINUSCULE <= point_de_code <= F_MINUSCULE)
+    retourne est_chiffre_ascii(point_de_code) || (A_MINUSCULE <= point_de_code <= F_MINUSCULE);
 }
 
 est_chiffre_hexadecimal_ascii :: fonc (point_de_code: n32) -> bool #enligne
 {
-    retourne est_chiffre_hexadecimal_minuscule_ascii(point_de_code) || est_chiffre_hexadecimal_majuscule_ascii(point_de_code)
+    retourne est_chiffre_hexadecimal_minuscule_ascii(point_de_code) || est_chiffre_hexadecimal_majuscule_ascii(point_de_code);
 }
 
 est_lettre_majuscule_ascii :: fonc (point_de_code: n32) -> bool #enligne
 {
-    retourne A_MAJUSCULE <= point_de_code <= Z_MAJUSCULE
+    retourne A_MAJUSCULE <= point_de_code <= Z_MAJUSCULE;
 }
 
 est_lettre_minuscule_ascii :: fonc (point_de_code: n32) -> bool #enligne
 {
-    retourne A_MINUSCULE <= point_de_code <= Z_MINUSCULE
+    retourne A_MINUSCULE <= point_de_code <= Z_MINUSCULE;
 }
 
 est_lettre_ascii :: fonc (point_de_code: n32) -> bool #enligne
 {
-    retourne A_MAJUSCULE <= point_de_code <= Z_MAJUSCULE || A_MINUSCULE <= point_de_code <= Z_MINUSCULE
+    retourne A_MAJUSCULE <= point_de_code <= Z_MAJUSCULE || A_MINUSCULE <= point_de_code <= Z_MINUSCULE;
 }
 
 est_ascii_alphanumérique :: fonc (point_de_code: n32) -> bool #enligne
 {
-    retourne est_lettre_ascii(point_de_code) || est_chiffre_ascii(point_de_code)
+    retourne est_lettre_ascii(point_de_code) || est_chiffre_ascii(point_de_code);
 }
 
 /* Utilisé par/pour HTML. */
 est_caractère_espace_blanc :: fonc (point_de_code: n32) -> bool #enligne
 {
-    retourne point_de_code == ESPACE || point_de_code == TABULATION || point_de_code == RETOUR_CHARIOT || point_de_code == NOUVELLE_LIGNE || point_de_code == 0x0C
+    retourne point_de_code == ESPACE || point_de_code == TABULATION || point_de_code == RETOUR_CHARIOT || point_de_code == NOUVELLE_LIGNE || point_de_code == 0x0C;
 }
 
 /* https://url.spec.whatwg.org/#url-code-points */
 est_point_de_code_url :: fonc (point_de_code: n32) -> bool
 {
     si est_ascii_alphanumérique(point_de_code) {
-        retourne vrai
+        retourne vrai;
     }
 
     si point_de_code < 0xA0 {
         pour "!$&'()*+,-./:;=?@_~" {
             si point_de_code == it comme n32 {
-                retourne vrai
+                retourne vrai;
             }
         }
     }
 
     si point_de_code > point_de_code_maximal_autorisé() {
-        retourne faux
+        retourne faux;
     }
 
     si est_leading_surrogate(point_de_code) || est_trailling_surrogate(point_de_code) {
-        retourne faux
+        retourne faux;
     }
 
-    retourne !est_noncaractère(point_de_code)
+    retourne !est_noncaractère(point_de_code);
 }
 
 opérateur - :: (a: n32, b: z8) -> n32
 {
-    retourne a - b comme n32
+    retourne a - b comme n32;
 }
 
 opérateur == :: (a: n32, b: z8) -> bool
 {
-    retourne a == b comme n32
+    retourne a == b comme n32;
 }
 
 opérateur <= :: (a: n32, b: z8) -> bool
 {
-    retourne a <= b comme n32
+    retourne a <= b comme n32;
 }
 
 opérateur <= :: (a: z8, b: n32) -> bool
 {
-    retourne a comme n32 <= b
+    retourne a comme n32 <= b;
 }

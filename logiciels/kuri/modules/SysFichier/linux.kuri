@@ -1,105 +1,105 @@
-importe GlibC
-importe Temps
+importe GlibC;
+importe Temps;
 
-TypePoignéeFichier :: #opaque z32
+TypePoignéeFichier :: #opaque z32;
 
 système_poignée_fichier_invalide :: fonc () -> TypePoignéeFichier
 {
-    retourne TypePoignéeFichier(-1)
+    retourne TypePoignéeFichier(-1);
 }
 
 opérateur != :: (p0: TypePoignéeFichier, p1: TypePoignéeFichier) -> bool
 {
-    retourne (p0 comme z32) != (p1 comme z32)
+    retourne (p0 comme z32) != (p1 comme z32);
 }
 
 initialise_tableau_correspondances :: fonc () -> [NOMBRE_VALEUR_ERRNO]ErreurFichier
 {
-    résultat : [NOMBRE_VALEUR_ERRNO]ErreurFichier = ---
+    résultat : [NOMBRE_VALEUR_ERRNO]ErreurFichier = ---;
 
     pour & résultat {
-        it = ErreurFichier.Inconnue
+        it = ErreurFichier.Inconnue;
     }
 
     // système_chemin_courant : Search permission is denied for one of the components of path.  (See also path_resolution(7).)
-    résultat[EACCES] = ErreurFichier.PermissionNonAccordé
+    résultat[EACCES] = ErreurFichier.PermissionNonAccordé;
     // système_chemin_courant : path points outside your accessible address space.
-    résultat[EFAULT] = ErreurFichier.MauvaisEspaceAdressage
+    résultat[EFAULT] = ErreurFichier.MauvaisEspaceAdressage;
     // système_chemin_courant : An I/O error occurred.
-    résultat[EIO] = ErreurFichier.EntréeSortie
+    résultat[EIO] = ErreurFichier.EntréeSortie;
     // système_chemin_courant : Too many symbolic links were encountered in resolving path.
     // système_ouvre : dépend du drapeau
-    résultat[ELOOP] = ErreurFichier.TropDeLiensSymboliques
+    résultat[ELOOP] = ErreurFichier.TropDeLiensSymboliques;
     // système_chemin_courant : path is too long.
-    résultat[ENAMETOOLONG] = ErreurFichier.NomTropGrand
+    résultat[ENAMETOOLONG] = ErreurFichier.NomTropGrand;
     // système_chemin_courant : The directory specified in path does not exist.
     // système_ouvre : dépend du drapeau
-    résultat[ENOENT] = ErreurFichier.FichierInexistant
+    résultat[ENOENT] = ErreurFichier.FichierInexistant;
     // système_chemin_courant : Insufficient kernel memory was available.
     // système_ouvre : dépend du type de fichier
-    résultat[ENOMEM] = ErreurFichier.MémoireInsuffisante
+    résultat[ENOMEM] = ErreurFichier.MémoireInsuffisante;
     // système_chemin_courant : A component of path is not a directory.
-    résultat[ENOTDIR] = ErreurFichier.PasDansUnDossier
+    résultat[ENOTDIR] = ErreurFichier.PasDansUnDossier;
     // système_ouvre : dépend du drapeau
     // À FAIRE : système_synchronise : SynchronisationImpossiblePourFichier
     // À FAIRE : système_synchronise_données : SynchronisationImpossiblePourFichier
     // système_positionne_fichier : le paramètre « où » est invalide
-    résultat[EINVAL] = ErreurFichier.ValeurInvalide
+    résultat[EINVAL] = ErreurFichier.ValeurInvalide;
     // système_ouvre : dépend du drapeau
     // À FAIRE : système_synchronise : SynchronisationImpossiblePourFichier
     // À FAIRE : système_synchronise_données : SynchronisationImpossiblePourFichier
-    résultat[EROFS] = ErreurFichier.FichierEstLectureSeul
+    résultat[EROFS] = ErreurFichier.FichierEstLectureSeul;
     // système_synchronise : ErreurFichier.EspaceDisqueInexistant
-    résultat[ENOSPC] = ErreurFichier.EspaceDisqueInsuffisant
+    résultat[ENOSPC] = ErreurFichier.EspaceDisqueInsuffisant;
     // système_ouvre : dépend du drapeau
-    résultat[EWOULDBLOCK] = ErreurFichier.ActionPeutBloquer
+    résultat[EWOULDBLOCK] = ErreurFichier.ActionPeutBloquer;
     // À FAIRE : peut-être une erreur séparée ? C'est la même valeur que pour EWOULDBLOCK
-    résultat[EAGAIN] = ErreurFichier.ActionPeutBloquer
-    résultat[EINTR] = ErreurFichier.InterrompuParSignal
+    résultat[EAGAIN] = ErreurFichier.ActionPeutBloquer;
+    résultat[EINTR] = ErreurFichier.InterrompuParSignal;
     // système_ouvre : dépend du drapeau
-    résultat[EPERM] = ErreurFichier.PermissionNonAccordé
+    résultat[EPERM] = ErreurFichier.PermissionNonAccordé;
     // système_ouvre : Si O_WRONLY | O_RDWR ou O_TMPFILE and one of O_WRONLY or O_RDWR
     // rename : newpath is an existing directory, but oldpath is not a directory
-    résultat[EISDIR] = ErreurFichier.ActionImpossibleSurDossier
+    résultat[EISDIR] = ErreurFichier.ActionImpossibleSurDossier;
     // À FAIRE
-    résultat[ENXIO] = ErreurFichier.EntréeSortieSpéciale // système_ouvre dépend du type de fichier
-    résultat[ENXIO] = ErreurFichier.FichierTropPetit // système_positionne_fichier où est SEEK_DATA ou SEEK_HOLE, et le décalage dépasse la taille du fichier
+    résultat[ENXIO] = ErreurFichier.EntréeSortieSpéciale; // système_ouvre dépend du type de fichier
+    résultat[ENXIO] = ErreurFichier.FichierTropPetit; // système_positionne_fichier où est SEEK_DATA ou SEEK_HOLE, et le décalage dépasse la taille du fichier
     // À FAIRE : statvfs -> valeurs trop grande pour la structure
     // stat ->  pathname  or  fd  refers to a file whose size, inode number, or number of blocks cannot be represented in, respectively, the types off_t, ino_t, or blkcnt_t.  This error can occur when, for example, an application com‐
     //          piled on a 32-bit platform without -D_FILE_OFFSET_BITS=64 calls stat() on a file whose size exceeds (1<<31)-1 bytes.
-    résultat[EOVERFLOW] = ErreurFichier.FichierTropGrand // système_ouvre
-    résultat[EOVERFLOW] = ErreurFichier.FichierTropPetit // système_positionne_fichier
+    résultat[EOVERFLOW] = ErreurFichier.FichierTropGrand; // système_ouvre
+    résultat[EOVERFLOW] = ErreurFichier.FichierTropPetit; // système_positionne_fichier
 
     // système_ouvre
-    résultat[EDQUOT] = ErreurFichier.EspaceDisqueInsuffisant // O_CREAT
-    résultat[EEXIST] = ErreurFichier.FichierExisteDéjà // O_CREAT & O_EXCL
-    résultat[EFBIG] = ErreurFichier.FichierTropGrand
-    résultat[EMFILE] = ErreurFichier.LimiteOuvertureFichierAtteinte
-    résultat[ENFILE] = ErreurFichier.LimiteOuvertureFichierAtteinte
-    résultat[ENODEV] = ErreurFichier.MatérielInconnu
-    résultat[EOPNOTSUPP] = ErreurFichier.FichierTemporaireNonSupporté
-    résultat[ETXTBSY] = ErreurFichier.ImageEnLecture // dépend du drapeau
+    résultat[EDQUOT] = ErreurFichier.EspaceDisqueInsuffisant; // O_CREAT
+    résultat[EEXIST] = ErreurFichier.FichierExisteDéjà; // O_CREAT & O_EXCL
+    résultat[EFBIG] = ErreurFichier.FichierTropGrand;
+    résultat[EMFILE] = ErreurFichier.LimiteOuvertureFichierAtteinte;
+    résultat[ENFILE] = ErreurFichier.LimiteOuvertureFichierAtteinte;
+    résultat[ENODEV] = ErreurFichier.MatérielInconnu;
+    résultat[EOPNOTSUPP] = ErreurFichier.FichierTemporaireNonSupporté;
+    résultat[ETXTBSY] = ErreurFichier.ImageEnLecture; // dépend du drapeau
 
     // système_ferme
-    résultat[EBADF] = ErreurFichier.FichierInvalide
+    résultat[EBADF] = ErreurFichier.FichierInvalide;
 
     // système_écris
-    résultat[EDESTADDRREQ] = ErreurFichier.PaireNonRenseigné
+    résultat[EDESTADDRREQ] = ErreurFichier.PaireNonRenseigné;
     // À FAIRE : pas assez général
-    résultat[EPIPE] = ErreurFichier.PipeFerméPourÉcriture
+    résultat[EPIPE] = ErreurFichier.PipeFerméPourÉcriture;
 
     // système_positionne_fichier
-    résultat[ESPIPE] = ErreurFichier.FichierEstPipe
+    résultat[ESPIPE] = ErreurFichier.FichierEstPipe;
 
     // système_crée_dossier
-    résultat[EMLINK] = ErreurFichier.TropDeLiensSymboliques
+    résultat[EMLINK] = ErreurFichier.TropDeLiensSymboliques;
 
-    résultat[ENOLCK] = ErreurFichier.ÀCourtDeVerrouxDeFichier
+    résultat[ENOLCK] = ErreurFichier.ÀCourtDeVerrouxDeFichier;
 
-    résultat[ENOSYS] = ErreurFichier.OpérationImpossiblePourLeSystème
+    résultat[ENOSYS] = ErreurFichier.OpérationImpossiblePourLeSystème;
 
     // système_chemin_courant : la taille du nom de fichier est plus grande que le tampon donnée
-    résultat[ERANGE] = ErreurFichier.TamponSortieTropPetit
+    résultat[ERANGE] = ErreurFichier.TamponSortieTropPetit;
 
     // rename
     // The rename fails because oldpath or newpath is a directory that is in use
@@ -109,353 +109,353 @@ initialise_tableau_correspondances :: fonc () -> [NOMBRE_VALEUR_ERRNO]ErreurFich
     // is no requirement to return EBUSY in such cases—there is nothing wrong with
     // doing the rename anyway—but it is allowed to return EBUSY if the system
     // cannot otherwise handle such situations.)
-    résultat[EBUSY] = ErreurFichier.DossierUtiliséParQuelqueAutreProcessus
-    résultat[ENOTEMPTY] = ErreurFichier.DossierNonVide
+    résultat[EBUSY] = ErreurFichier.DossierUtiliséParQuelqueAutreProcessus;
+    résultat[ENOTEMPTY] = ErreurFichier.DossierNonVide;
     // oldpath  and  newpath  are  not  on  the  same mounted filesystem.  (Linux
     // permits a filesystem to be mounted at multiple points, but rename() does
     // not work across different mount points, even if the same filesystem is
     // mounted on both.)
-    résultat[EXDEV] = ErreurFichier.DifférentSystèmeFichier
+    résultat[EXDEV] = ErreurFichier.DifférentSystèmeFichier;
 
-    retourne résultat
+    retourne résultat;
 }
 
-tableau_correspondances_erreur_fichier_errno := initialise_tableau_correspondances()
+tableau_correspondances_erreur_fichier_errno := initialise_tableau_correspondances();
 
 convertis_errno_en_erreur_fichier :: fonc () -> ErreurFichier
 {
-    err := lis_errno()
+    err := lis_errno();
 
     si err < 0 || err >= NOMBRE_VALEUR_ERRNO {
-        retourne ErreurFichier.Inconnue
+        retourne ErreurFichier.Inconnue;
     }
 
-    retourne tableau_correspondances_erreur_fichier_errno[err]
+    retourne tableau_correspondances_erreur_fichier_errno[err];
 }
 
 donne_erreur_si_résultat_invalide :: fonc (résultat: z32) -> Optionnel(ErreurFichier)
 {
     si résultat == -1 {
-        retourne convertis_errno_en_erreur_fichier()
+        retourne convertis_errno_en_erreur_fichier();
     }
 }
 
 RésultatOpérationFichier :: union {
-    e: ErreurFichier
-    r: z32
+    e: ErreurFichier;
+    r: z32;
 }
 
 système_convertis_raison :: fonc (raison: RaisonOuvertureFichier) -> z32
 {
-    drapeaux := 0
+    drapeaux := 0;
     si raison.Lecture && raison.Écriture {
-        drapeaux |= LECTURE_ÉCRITURE
+        drapeaux |= LECTURE_ÉCRITURE;
     }
     sinon si raison.Lecture {
-        drapeaux |= LECTURE_SEULE
+        drapeaux |= LECTURE_SEULE;
     }
     sinon si raison.Écriture {
-        drapeaux |= ÉCRITURE_SEULE
+        drapeaux |= ÉCRITURE_SEULE;
     }
     si raison.Création {
-        drapeaux |= CREATION
+        drapeaux |= CREATION;
     }
     si raison.Troncage {
-        drapeaux |= TRONCAGE
+        drapeaux |= TRONCAGE;
     }
     si raison.Ajout {
-        drapeaux |= APPEND
+        drapeaux |= APPEND;
     }
-    retourne drapeaux
+    retourne drapeaux;
 }
 
 système_ouvre :: fonc (chemin: CheminFichier, raison: RaisonOuvertureFichier, permissions: z32) -> RésultatOpérationFichier
 {
-    ptr_chemin := crée_chaine_c(chemin.chn)
-    diffère détruit_chaine_c(ptr_chemin)
+    ptr_chemin := crée_chaine_c(chemin.chn);
+    diffère détruit_chaine_c(ptr_chemin);
 
-    drapeaux := système_convertis_raison(raison)
+    drapeaux := système_convertis_raison(raison);
 
-    résultat := open(ptr_chemin, drapeaux, permissions)
+    résultat := open(ptr_chemin, drapeaux, permissions);
 
     // À FAIRE : certaine valeur dépendent des drapeaux (création, écriture, ...)
     // il faudra atomiser l'interface, la préciser pour savoir quoi faire
     si résultat == -1 {
-        retourne convertis_errno_en_erreur_fichier()
+        retourne convertis_errno_en_erreur_fichier();
     }
 
-    retourne résultat
+    retourne résultat;
 }
 
 système_ferme :: fonc (fd: TypePoignéeFichier) -> Optionnel(ErreurFichier)
 {
-    résultat := close(fd comme z32)
-    retourne donne_erreur_si_résultat_invalide(résultat)
+    résultat := close(fd comme z32);
+    retourne donne_erreur_si_résultat_invalide(résultat);
 }
 
 système_synchronise :: fonc (fd: TypePoignéeFichier) -> Optionnel(ErreurFichier)
 {
-    résultat := fsync(fd comme z32)
-    retourne donne_erreur_si_résultat_invalide(résultat)
+    résultat := fsync(fd comme z32);
+    retourne donne_erreur_si_résultat_invalide(résultat);
 }
 
 système_synchronise_données :: fonc (fd: TypePoignéeFichier) -> Optionnel(ErreurFichier)
 {
-    résultat := fdatasync(fd comme z32)
-    retourne donne_erreur_si_résultat_invalide(résultat)
+    résultat := fdatasync(fd comme z32);
+    retourne donne_erreur_si_résultat_invalide(résultat);
 }
 
 système_écris :: fonc (fd: TypePoignéeFichier, ptr: *z8, taille: z64) -> RésultatOpérationFichier
 {
-    résultat := write(fd comme z32, ptr, taille)
+    résultat := write(fd comme z32, ptr, taille);
 
     si résultat == -1 {
-        retourne convertis_errno_en_erreur_fichier()
+        retourne convertis_errno_en_erreur_fichier();
     }
 
-    retourne résultat
+    retourne résultat;
 }
 
 RésultatLecture :: union {
-    e: ErreurFichier
-    r: z64
+    e: ErreurFichier;
+    r: z64;
 }
 
 système_lis :: fonc (fd: TypePoignéeFichier, ptr: *z8, taille: z64) -> RésultatLecture
 {
-    résultat := read(fd comme z32, ptr, taille comme n64)
+    résultat := read(fd comme z32, ptr, taille comme n64);
 
     si résultat == -1 {
-        retourne convertis_errno_en_erreur_fichier()
+        retourne convertis_errno_en_erreur_fichier();
     }
 
-    retourne résultat
+    retourne résultat;
 }
 
 système_positionne_fichier :: fonc (fd: TypePoignéeFichier, position: PositionFichier) -> RésultatOpérationFichier
 {
-    décalage: z32
-    où: z32
+    décalage: z32;
+    où: z32;
 
     discr position {
         Début(pos) {
-            décalage = (pos comme z64) comme z32
-            où = SEEK_SET
+            décalage = (pos comme z64) comme z32;
+            où = SEEK_SET;
         }
         Fin(pos) {
-            décalage = (pos comme z64) comme z32
-            où = SEEK_END
+            décalage = (pos comme z64) comme z32;
+            où = SEEK_END;
         }
         Décalage(pos) {
-            décalage = (pos comme z64) comme z32
-            où = SEEK_CUR
+            décalage = (pos comme z64) comme z32;
+            où = SEEK_CUR;
         }
         sinon {
-            retourne ErreurFichier.ValeurInvalide
+            retourne ErreurFichier.ValeurInvalide;
         }
     }
 
-    résultat := lseek(fd comme z32, décalage, où)
+    résultat := lseek(fd comme z32, décalage, où);
 
     si résultat == -1 {
-        retourne convertis_errno_en_erreur_fichier()
+        retourne convertis_errno_en_erreur_fichier();
     }
 
-    retourne résultat comme z32
+    retourne résultat comme z32;
 }
 
 système_position_courante_fichier :: fonc (fd: TypePoignéeFichier) -> RésultatOpérationFichier
 {
-    retourne système_positionne_fichier(fd, PositionRelative(0))
+    retourne système_positionne_fichier(fd, PositionRelative(0));
 }
 
 système_position_début_fichier :: fonc (fd: TypePoignéeFichier) -> RésultatOpérationFichier
 {
-    retourne système_positionne_fichier(fd, PositionDébut(0))
+    retourne système_positionne_fichier(fd, PositionDébut(0));
 }
 
 système_position_fin_fichier :: fonc (fd: TypePoignéeFichier) -> RésultatOpérationFichier
 {
-    retourne système_positionne_fichier(fd, PositionFin(0))
+    retourne système_positionne_fichier(fd, PositionFin(0));
 }
 
 système_fin_de_fichier :: fonc (fd: TypePoignéeFichier) -> RésultatOpérationFichier
 {
     position_courante := tente système_position_courante_fichier(fd) piège err {
-        retourne err
-    }
+        retourne err;
+    };
 
     fin_de_fichier := tente système_position_fin_fichier(fd) piège err {
-        retourne err
-    }
+        retourne err;
+    };
 
     // repositionne là où nous étions
     _ := tente système_positionne_fichier(fd, PositionDébut(position_courante)) piège err {
-        retourne err
-    }
+        retourne err;
+    };
 
     si position_courante >= fin_de_fichier {
-        retourne 1
+        retourne 1;
     }
 
-    retourne 0
+    retourne 0;
 }
 
 crée_lien_symbolique :: fonc (cible: chaine, chemin_lien: chaine) -> Optionnel(ErreurFichier)
 {
-    chn_c_cible := crée_chaine_c(cible)
-    diffère détruit_chaine_c(chn_c_cible)
+    chn_c_cible := crée_chaine_c(cible);
+    diffère détruit_chaine_c(chn_c_cible);
 
-    chn_c_chemin_lien := crée_chaine_c(chemin_lien)
-    diffère détruit_chaine_c(chn_c_chemin_lien)
+    chn_c_chemin_lien := crée_chaine_c(chemin_lien);
+    diffère détruit_chaine_c(chn_c_chemin_lien);
 
-    résultat := symlink(chn_c_cible, chn_c_chemin_lien)
-    retourne donne_erreur_si_résultat_invalide(résultat)
+    résultat := symlink(chn_c_cible, chn_c_chemin_lien);
+    retourne donne_erreur_si_résultat_invalide(résultat);
 }
 
 // enveloppe autour de crée_lien_symbolique, car nous n'avons pas de système pour ignorer une erreur, un bloc de piège devant toujours retourner...
 crée_lien_symbolique_ex :: fonc (cible: CheminFichier, chemin_lien: CheminFichier) -> bool
 {
     tente crée_lien_symbolique(cible.chn, chemin_lien.chn) piège err {
-        retourne err == ErreurFichier.FichierExisteDéjà
-    }
+        retourne err == ErreurFichier.FichierExisteDéjà;
+    };
 
-    retourne vrai
+    retourne vrai;
 }
 
 // À FAIRE : tests
 système_crée_dossier :: fonc (chemin_dossier: chaine, mode: z32) -> Optionnel(ErreurFichier)
 {
-    ptr_chemin := crée_chaine_c(chemin_dossier)
-    diffère détruit_chaine_c(ptr_chemin)
+    ptr_chemin := crée_chaine_c(chemin_dossier);
+    diffère détruit_chaine_c(ptr_chemin);
 
-    résultat := mkdir(ptr_chemin, mode)
+    résultat := mkdir(ptr_chemin, mode);
 
     si résultat == 0 {
         // Succès.
-        retourne
+        retourne;
     }
 
-    err := convertis_errno_en_erreur_fichier()
+    err := convertis_errno_en_erreur_fichier();
 
     /* Ignore l'erreur si le dossier existe déjà, car vérifier si le dossier existe
      * avant d'appeler cette fonction peut laisser la porte ouverte à des
      * pirates pour créer leur propre dossier. */
     si err == ErreurFichier.FichierExisteDéjà {
-        retourne
+        retourne;
     }
 
-    retourne err
+    retourne err;
 }
 
 système_découvre_type_fichier :: fonc (chemin: CheminFichier) -> Résultat(TypeFichier, ErreurFichier)
 {
-    ptr_chemin := crée_chaine_c(chemin.chn)
-    diffère détruit_chaine_c(ptr_chemin)
+    ptr_chemin := crée_chaine_c(chemin.chn);
+    diffère détruit_chaine_c(ptr_chemin);
 
-    st: struct_stat
-    ok := stat(ptr_chemin, *st)
+    st: struct_stat;
+    ok := stat(ptr_chemin, *st);
 
     si ok == -1 {
-        retourne convertis_errno_en_erreur_fichier()
+        retourne convertis_errno_en_erreur_fichier();
     }
 
     discr (st.st_mode & __S_IFMT) {
         __S_IFDIR {
-            retourne TypeFichier.Dossier
+            retourne TypeFichier.Dossier;
         }
         __S_IFREG {
-            retourne TypeFichier.Régulier
+            retourne TypeFichier.Régulier;
         }
         __S_IFSOCK {
-            retourne TypeFichier.Prise
+            retourne TypeFichier.Prise;
         }
         __S_IFLNK {
-            retourne TypeFichier.LienSymbolique
+            retourne TypeFichier.LienSymbolique;
         }
         __S_IFBLK {
-            retourne TypeFichier.Périphérique
+            retourne TypeFichier.Périphérique;
         }
         __S_IFCHR {
-            retourne TypeFichier.Caractère
+            retourne TypeFichier.Caractère;
         }
         __S_IFIFO {
-            retourne TypeFichier.Canal
+            retourne TypeFichier.Canal;
         }
         sinon {
-            retourne ErreurFichier.Inconnue
+            retourne ErreurFichier.Inconnue;
         }
     }
 }
 
 système_séparateur_chemin_préféré :: fonc () -> z8 #enligne
 {
-    retourne '/'
+    retourne '/';
 }
 
 // -----------------------------------------------------------------------
 // Fichiers communs
 
-fichier_entrée_standarde := Fichier(desc = TypePoignéeFichier(STDIN_FILENO))
-fichier_sortie_standarde := Fichier(desc = TypePoignéeFichier(STDOUT_FILENO))
-fichier_sortie_erreur := Fichier(desc = TypePoignéeFichier(STDERR_FILENO))
+fichier_entrée_standarde := Fichier(desc = TypePoignéeFichier(STDIN_FILENO));
+fichier_sortie_standarde := Fichier(desc = TypePoignéeFichier(STDOUT_FILENO));
+fichier_sortie_erreur := Fichier(desc = TypePoignéeFichier(STDERR_FILENO));
 
 système_entrée_standarde :: fonc () -> *Fichier
 {
-    retourne *fichier_entrée_standarde
+    retourne *fichier_entrée_standarde;
 }
 
 système_sortie_standarde :: fonc () -> *Fichier
 {
-    retourne *fichier_sortie_standarde
+    retourne *fichier_sortie_standarde;
 }
 
 système_sortie_erreur :: fonc () -> *Fichier
 {
-    retourne *fichier_sortie_erreur
+    retourne *fichier_sortie_erreur;
 }
 
 // -----------------------------------------------------------------------
 // Pour la lecture des entrées des dossiers
 
-TypePoignéeDossier :: #opaque *DIR
-TypePoignéeEntréeDossier :: #opaque *dirent
+TypePoignéeDossier :: #opaque *DIR;
+TypePoignéeEntréeDossier :: #opaque *dirent;
 
 système_ouvre_dossier :: fonc (chemin: CheminFichier) -> Optionnel(TypePoignéeDossier)
 {
-    ptr_chemin := crée_chaine_c(chemin.chn)
-    diffère détruit_chaine_c(ptr_chemin)
+    ptr_chemin := crée_chaine_c(chemin.chn);
+    diffère détruit_chaine_c(ptr_chemin);
 
-    dir := opendir(ptr_chemin)
+    dir := opendir(ptr_chemin);
     saufsi dir {
-        retourne
+        retourne;
     }
 
-    retourne TypePoignéeDossier(dir)
+    retourne TypePoignéeDossier(dir);
 }
 
 système_chemin_pour_dossier :: fonc (poignée: TypePoignéeEntréeDossier) -> CheminFichier
 {
-    entrée := poignée comme *dirent
-    chn_c := ChaineC(*entrée.d_name[0])
-    taille := taille_chaine_c(chn_c)
-    chn := chaine(chn_c comme *z8, taille)
-    retourne CheminFichier(chn)
+    entrée := poignée comme *dirent;
+    chn_c := ChaineC(*entrée.d_name[0]);
+    taille := taille_chaine_c(chn_c);
+    chn := chaine(chn_c comme *z8, taille);
+    retourne CheminFichier(chn);
 }
 
 système_lis_une_entrée_du_dossier :: fonc (poignée: TypePoignéeDossier) -> Optionnel(TypePoignéeEntréeDossier)
 {
     // À FAIRE : erreur
-    entrée := readdir(poignée comme *DIR)
+    entrée := readdir(poignée comme *DIR);
     si entrée == nul {
-        retourne
+        retourne;
     }
-    retourne TypePoignéeEntréeDossier(entrée)
+    retourne TypePoignéeEntréeDossier(entrée);
 }
 
 système_ferme_dossier :: fonc (poignée: TypePoignéeDossier)
 {
-    _ := closedir(poignée comme *DIR)
+    _ := closedir(poignée comme *DIR);
 }
 
 // ---------------------------------------------------------
@@ -464,78 +464,78 @@ système_ferme_dossier :: fonc (poignée: TypePoignéeDossier)
 système_verrouille_fichier :: fonc (fichier: *Fichier, verrou: TypeVerrou) -> Optionnel(ErreurFichier)
 {
     param_flock := si verrou == TypeVerrou.Partagé {
-        LOCK_SH
+        LOCK_SH;
     }
     sinon {
-        LOCK_EX
-    }
+        LOCK_EX;
+    };
 
-    résultat := flock(fichier.desc comme z32, param_flock)
-    retourne donne_erreur_si_résultat_invalide(résultat)
+    résultat := flock(fichier.desc comme z32, param_flock);
+    retourne donne_erreur_si_résultat_invalide(résultat);
 }
 
 système_déverrouille_fichier :: fonc (fichier: *Fichier)
 {
-    _ := flock(fichier.desc comme z32, LOCK_UN)
+    _ := flock(fichier.desc comme z32, LOCK_UN);
 }
 
 // -----------------------------------------------------------------------
 
 système_référence_fichier :: fonc (ancien_fd: TypePoignéeFichier, nouveau_fd: TypePoignéeFichier)
 {
-    _ := dup2(ancien_fd comme z32, nouveau_fd comme z32)
+    _ := dup2(ancien_fd comme z32, nouveau_fd comme z32);
 }
 
 système_espace_disque_disponible :: fonc (chemin: CheminFichier) -> Résultat(n64, ErreurFichier)
 {
-    ptr_chemin := crée_chaine_c(chemin.chn)
-    diffère détruit_chaine_c(ptr_chemin)
+    ptr_chemin := crée_chaine_c(chemin.chn);
+    diffère détruit_chaine_c(ptr_chemin);
 
-    s: struct_statvfs
-    résultat := statvfs(ptr_chemin, *s)
+    s: struct_statvfs;
+    résultat := statvfs(ptr_chemin, *s);
 
     // Si le fichier ou dossier n'exite pas, il y aura aussi une erreur
     si résultat == -1 {
-        retourne convertis_errno_en_erreur_fichier()
+        retourne convertis_errno_en_erreur_fichier();
     }
 
     // À FAIRE : on peut avoir un compte différent pour les utilisateurs privilégiés.
-    retourne s.f_bavail * s.f_bsize
+    retourne s.f_bavail * s.f_bsize;
 }
 
 système_chemin_courant :: fonc () -> Résultat(CheminFichier, ErreurFichier)
 {
-    tampon : [1024]z8 = ---
-    pointeur := getcwd(ChaineC(*tampon[0]), 1024)
+    tampon : [1024]z8 = ---;
+    pointeur := getcwd(ChaineC(*tampon[0]), 1024);
 
     si (pointeur comme *z8) == nul {
-        retourne convertis_errno_en_erreur_fichier()
+        retourne convertis_errno_en_erreur_fichier();
     }
 
-    ret := copie_chaine_c(pointeur)
-    retourne CheminFichier(ret)
+    ret := copie_chaine_c(pointeur);
+    retourne CheminFichier(ret);
 }
 
 système_chemin_courant :: fonc (chemin: CheminFichier) -> Optionnel(ErreurFichier)
 {
-    ptr_chemin := crée_chaine_c(chemin.chn)
-    diffère détruit_chaine_c(ptr_chemin)
-    résultat := chdir(ptr_chemin)
-    retourne donne_erreur_si_résultat_invalide(résultat)
+    ptr_chemin := crée_chaine_c(chemin.chn);
+    diffère détruit_chaine_c(ptr_chemin);
+    résultat := chdir(ptr_chemin);
+    retourne donne_erreur_si_résultat_invalide(résultat);
 }
 
 système_donne_chemin_exécutable :: fonc (tampon_chemin: *TamponChemin, imprime_erreur: bool) -> bool
 {
-    résultat := vrai
+    résultat := vrai;
     len := readlink(ChaineC("/proc/self/exe".pointeur), *tampon_chemin.données[0], TAILLE_MAX_CHEMIN comme n64);
     si len < 0 {
         si imprime_erreur {
-            imprimeln("impossible de déterminer le chemin de l'exécutable")
+            imprimeln("impossible de déterminer le chemin de l'exécutable");
         }
-        résultat = faux
+        résultat = faux;
     }
-    tampon_chemin.occupés = len comme z32
-    retourne résultat
+    tampon_chemin.occupés = len comme z32;
+    retourne résultat;
 }
 
 /* ------------------------------------------------------------------------- */
@@ -544,9 +544,9 @@ système_donne_chemin_exécutable :: fonc (tampon_chemin: *TamponChemin, imprime
 
 système_chemin_pour_variable_environnement :: fonc (variable: chaine) -> Optionnel(CheminFichier)
 {
-    via_environnement := chaine_environnement(variable)
+    via_environnement := chaine_environnement(variable);
     si via_environnement {
-        retourne CheminFichier(via_environnement)
+        retourne CheminFichier(via_environnement);
     }
 }
 
@@ -554,21 +554,21 @@ système_chemin_pour_variable_environnement :: fonc (variable: chaine) -> Option
 système_chemin_répertoire_personnel :: fonc () -> CheminFichier
 {
     // À FAIRE : erreur
-    retourne système_chemin_pour_variable_environnement("HOME").valeur_ou(CheminFichier())
+    retourne système_chemin_pour_variable_environnement("HOME").valeur_ou(CheminFichier());
 }
 
 /* Chemin vers le dossier de données des programmes de l'utilisateur.
  * https://specifications.freedesktop.org/basedir-spec/basedir-spec-latest.html */
 système_chemin_pour_dossier_données_utilisateur :: fonc () -> Optionnel(CheminFichier)
 {
-    retourne système_chemin_utilisateur_ou_replis("XDG_DATA_HOME", ".local/share/")
+    retourne système_chemin_utilisateur_ou_replis("XDG_DATA_HOME", ".local/share/");
 }
 
 /* Chemin vers le dossier de configuration des programmes de l'utilisateur.
  * https://specifications.freedesktop.org/basedir-spec/basedir-spec-latest.html */
 système_chemin_pour_dossier_configuration_utilisateur :: fonc () -> Optionnel(CheminFichier)
 {
-    retourne système_chemin_utilisateur_ou_replis("XDG_CONFIG_HOME", ".config/")
+    retourne système_chemin_utilisateur_ou_replis("XDG_CONFIG_HOME", ".config/");
 }
 
 /* Chemin vers le dossier de données d'état des programmes de l'utilisateur.
@@ -577,41 +577,41 @@ système_chemin_pour_dossier_configuration_utilisateur :: fonc () -> Optionnel(C
  * https://specifications.freedesktop.org/basedir-spec/basedir-spec-latest.html */
 système_chemin_pour_dossier_état_utilisateur :: fonc () -> Optionnel(CheminFichier)
 {
-    retourne système_chemin_utilisateur_ou_replis("XDG_STATE_HOME", ".local/state/")
+    retourne système_chemin_utilisateur_ou_replis("XDG_STATE_HOME", ".local/state/");
 }
 
 /* Chemin vers le dossier de cache des programmes de l'utilisateur.
  * https://specifications.freedesktop.org/basedir-spec/basedir-spec-latest.html */
 système_chemin_pour_dossier_cache_utilisateur :: fonc () -> Optionnel(CheminFichier)
 {
-    retourne système_chemin_utilisateur_ou_replis("XDG_CACHE_HOME", ".cache/")
+    retourne système_chemin_utilisateur_ou_replis("XDG_CACHE_HOME", ".cache/");
 }
 
 /* Chemin vers le dossier de runtime des programmes de l'utilisateur.
  * https://specifications.freedesktop.org/basedir-spec/basedir-spec-latest.html */
 système_chemin_pour_dossier_runtime_utilisateur :: fonc () -> Optionnel(CheminFichier)
 {
-    retourne système_chemin_pour_variable_environnement("XDG_RUNTIME_DIR")
+    retourne système_chemin_pour_variable_environnement("XDG_RUNTIME_DIR");
 }
 
 /* Retourne le chemin contenu dans la variable d'environnement ou celui
  * correspondant à $HOME/replis si la variable est nulle ou invalide. */
 système_chemin_utilisateur_ou_replis :: fonc (variable: chaine, replis: chaine) -> Optionnel(CheminFichier)
 {
-    chemin_potentiel := système_chemin_pour_variable_environnement(variable)
+    chemin_potentiel := système_chemin_pour_variable_environnement(variable);
     si chemin_potentiel.possède_valeur() {
-        chemin := chemin_potentiel.Quelque
+        chemin := chemin_potentiel.Quelque;
 
         /* Le chemin doit être absolu, sinon selon la spécification nous pouvons l'ignorer. */
         si chemin.est_absolu() {
-            retourne chemin
+            retourne chemin;
         }
     }
 
     /* Aucun chemin dans la variable, replions-nous sur $HOME/replis */
-    chemin_maison := système_chemin_répertoire_personnel()
+    chemin_maison := système_chemin_répertoire_personnel();
     si chemin_maison.chn {
-        retourne chemin_maison / replis
+        retourne chemin_maison / replis;
     }
 }
 
@@ -622,41 +622,41 @@ système_chemin_pour_corbeille :: fonc () -> Optionnel(CheminFichier)
      * Nous n'utilisons pas système_chemin_pour_dossier_données_utilisateur
      * afin de pouvoir tester la variable d'environnement et le replis
      * séparément. */
-    xdg_data_home := système_chemin_pour_variable_environnement("XDG_DATA_HOME")
+    xdg_data_home := système_chemin_pour_variable_environnement("XDG_DATA_HOME");
     si xdg_data_home.possède_valeur() {
-        chemin_données := xdg_data_home.Quelque
-        diffère détruit_chemin(chemin_données)
+        chemin_données := xdg_data_home.Quelque;
+        diffère détruit_chemin(chemin_données);
 
-        chemin_potentiel := chemin_données / "Trash"
+        chemin_potentiel := chemin_données / "Trash";
         si est_un_dossier(chemin_potentiel) {
-            retourne chemin_potentiel
+            retourne chemin_potentiel;
         }
 
-        détruit_chemin(chemin_potentiel)
+        détruit_chemin(chemin_potentiel);
     }
 
     /* Tente le replis de XDG_DATA_HOME. */
-    chemin_maison := système_chemin_répertoire_personnel()
+    chemin_maison := système_chemin_répertoire_personnel();
     saufsi chemin_maison.chn {
-        retourne
+        retourne;
     }
 
-    diffère détruit_chemin(chemin_maison)
+    diffère détruit_chemin(chemin_maison);
 
-    chemin_potentiel := chemin_maison / ".local/share/Trash"
+    chemin_potentiel := chemin_maison / ".local/share/Trash";
     si est_un_dossier(chemin_potentiel) {
-        retourne chemin_potentiel
+        retourne chemin_potentiel;
     }
 
-    détruit_chemin(chemin_potentiel)
+    détruit_chemin(chemin_potentiel);
 
     /* Tente un dernier coup avec $HOME/.trash. */
-    chemin_potentiel = chemin_maison / ".trash"
+    chemin_potentiel = chemin_maison / ".trash";
     si est_un_dossier(chemin_potentiel) {
-        retourne chemin_potentiel
+        retourne chemin_potentiel;
     }
 
-    détruit_chemin(chemin_potentiel)
+    détruit_chemin(chemin_potentiel);
 }
 
 /* \} */
@@ -669,7 +669,7 @@ système_chemin_pour_corbeille :: fonc () -> Optionnel(CheminFichier)
  * dans la mémoire, et doit être délogé par la fonction d'appel. */
 système_chemin_dossier_temporaire :: fonc () -> CheminFichier
 {
-    retourne CheminFichier(copie_chaine("/tmp"))
+    retourne CheminFichier(copie_chaine("/tmp"));
 }
 
 /* Chemins possibles où mettre les données des programmes.
@@ -677,7 +677,7 @@ système_chemin_dossier_temporaire :: fonc () -> CheminFichier
  * https://specifications.freedesktop.org/basedir-spec/basedir-spec-latest.html */
 système_chemins_système_de_données :: fonc () -> Optionnel([..]CheminFichier)
 {
-    retourne système_chemins_système_pour_variable("XDG_DATA_DIRS")
+    retourne système_chemins_système_pour_variable("XDG_DATA_DIRS");
 }
 
 /* Chemins possibles où mettre les configurations des programmes.
@@ -685,29 +685,29 @@ système_chemins_système_de_données :: fonc () -> Optionnel([..]CheminFichier)
  * https://specifications.freedesktop.org/basedir-spec/basedir-spec-latest.html */
 système_chemins_système_de_configuration :: fonc () -> Optionnel([..]CheminFichier)
 {
-    retourne système_chemins_système_pour_variable("XDG_CONFIG_DIRS")
+    retourne système_chemins_système_pour_variable("XDG_CONFIG_DIRS");
 }
 
 /* Retourne les chemins contenus dans la variable d'environnement donnée.
  * Les chemins sont copiés et doivent être détruit par la fonction d'appel. */
 système_chemins_système_pour_variable :: fonc (variable: chaine) -> Optionnel([..]CheminFichier)
 {
-    chemins := chaine_environnement(variable)
+    chemins := chaine_environnement(variable);
     saufsi chemins {
-        retourne
+        retourne;
     }
-    diffère déloge(chemins)
+    diffère déloge(chemins);
 
-    morceaux := divise(chemins, ':')
+    morceaux := divise(chemins, ':');
 
-    résultat: [..]CheminFichier
-    tableau_réserve(*résultat, morceaux.taille)
+    résultat: [..]CheminFichier;
+    tableau_réserve(*résultat, morceaux.taille);
 
     pour morceaux {
-        tableau_ajoute(*résultat, CheminFichier(copie_chaine(it)))
+        tableau_ajoute(*résultat, CheminFichier(copie_chaine(it)));
     }
 
-    retourne résultat
+    retourne résultat;
 }
 
 /* \} */
@@ -719,23 +719,23 @@ système_chemins_système_pour_variable :: fonc (variable: chaine) -> Optionnel(
 système_déplace_vers_corbeille :: fonc (chemin: CheminFichier) -> Optionnel(ErreurFichier)
 {
     saufsi fichier_existe(chemin) {
-        retourne ErreurFichier.FichierInexistant
+        retourne ErreurFichier.FichierInexistant;
     }
 
-    chemin_corbeille_opt := système_chemin_pour_corbeille()
+    chemin_corbeille_opt := système_chemin_pour_corbeille();
     saufsi chemin_corbeille_opt.possède_valeur() {
-        retourne ErreurFichier.FichierInexistant
+        retourne ErreurFichier.FichierInexistant;
     }
 
-    chemin_corbeille := chemin_corbeille_opt.Quelque
+    chemin_corbeille := chemin_corbeille_opt.Quelque;
 
-    chemin_destination := système_chemin_destination_pour_suppression(chemin_corbeille, chemin)
-    diffère détruit_chemin(chemin_destination)
+    chemin_destination := système_chemin_destination_pour_suppression(chemin_corbeille, chemin);
+    diffère détruit_chemin(chemin_destination);
 
-    nom_fichier_info := imprime_chaine("%.trashinfo", chemin_destination.nom_fichier_avec_extension())
-    chemin_fichier_info := chemin_corbeille / "info" / nom_fichier_info
-    diffère détruit_chemin(chemin_fichier_info)
-    déloge(nom_fichier_info)
+    nom_fichier_info := imprime_chaine("%.trashinfo", chemin_destination.nom_fichier_avec_extension());
+    chemin_fichier_info := chemin_corbeille / "info" / nom_fichier_info;
+    diffère détruit_chemin(chemin_fichier_info);
+    déloge(nom_fichier_info);
 
     /* Écris le fichier d'information avant de déplacer le fichier dans la
      * corbeille afin de s'assurer que nous avons l'espace disque nécessaire.
@@ -743,7 +743,7 @@ système_déplace_vers_corbeille :: fonc (chemin: CheminFichier) -> Optionnel(Er
     discr système_écris_fichier_info_corbeille(chemin_fichier_info, chemin) {
         Quelque(err) {
             /* Une erreur est survenue. */
-            retourne err
+            retourne err;
         }
         sinon {}
     }
@@ -754,9 +754,9 @@ système_déplace_vers_corbeille :: fonc (chemin: CheminFichier) -> Optionnel(Er
             /* Échec, supprimons le fichier d'information. Nous ignorons
              * l'erreur potentielle; puisque nous en avons déjà une, gérer ce
              * cas n'est pas évident. */
-            _ := système_supprime(chemin_fichier_info)
+            _ := système_supprime(chemin_fichier_info);
 
-            retourne err
+            retourne err;
         }
         sinon {}
     }
@@ -765,46 +765,46 @@ système_déplace_vers_corbeille :: fonc (chemin: CheminFichier) -> Optionnel(Er
 /* Génère le chemin de destination, dans la corbeille, pour le chemin_à_supprimer. */
 système_chemin_destination_pour_suppression :: fonc (chemin_corbeille: CheminFichier, chemin_à_supprimer: CheminFichier) -> CheminFichier
 {
-    nom_fichier := chemin_à_supprimer.nom_fichier()
-    extension := chemin_à_supprimer.extension()
+    nom_fichier := chemin_à_supprimer.nom_fichier();
+    extension := chemin_à_supprimer.extension();
 
-    chemin_destination := chemin_corbeille / "files" / chemin_à_supprimer.nom_fichier_avec_extension()
+    chemin_destination := chemin_corbeille / "files" / chemin_à_supprimer.nom_fichier_avec_extension();
 
     /* Garantis un nom unique : d'autres fichiers d'autres dossiers peuvent avoir le même nom. */
-    indice := 1
+    indice := 1;
     tantque fichier_existe(chemin_destination) {
-        détruit_chemin(chemin_destination)
+        détruit_chemin(chemin_destination);
 
-        nom_fichier_destination := imprime_chaine("%.%%", nom_fichier, indice, extension)
-        chemin_destination = chemin_corbeille / "files" / nom_fichier_destination
-        déloge(nom_fichier_destination)
+        nom_fichier_destination := imprime_chaine("%.%%", nom_fichier, indice, extension);
+        chemin_destination = chemin_corbeille / "files" / nom_fichier_destination;
+        déloge(nom_fichier_destination);
 
-        indice += 1
+        indice += 1;
     }
 
-    retourne chemin_destination
+    retourne chemin_destination;
 }
 
 /* Écris le fichier d'information permettant de savoir d'où vient le fichier supprimé,
  * afin de pouvoir le restaurer. */
 système_écris_fichier_info_corbeille :: fonc (chemin_fichier_info: CheminFichier, chemin_à_supprimer: CheminFichier) -> Optionnel(ErreurFichier)
 {
-    enchaineuse: Enchaineuse
-    initialise_enchaineuse(*enchaineuse)
-    diffère détruit_tampons(*enchaineuse)
+    enchaineuse: Enchaineuse;
+    initialise_enchaineuse(*enchaineuse);
+    diffère détruit_tampons(*enchaineuse);
 
-    ajoute_au_tampon(*enchaineuse, "[Trash Info]\n")
+    ajoute_au_tampon(*enchaineuse, "[Trash Info]\n");
     // À FAIRE : encode les caractères unicode au format %HexHex
-    ajoute_au_tampon(*enchaineuse, "Path=", chemin_à_supprimer, "\n")
-    ajoute_au_tampon(*enchaineuse, "DeletionDate=")
-    formatte(hui_système(), *enchaineuse, "%A-%M-%JT%h:%m:%s")
-    ajoute_au_tampon(*enchaineuse, "\n")
+    ajoute_au_tampon(*enchaineuse, "Path=", chemin_à_supprimer, "\n");
+    ajoute_au_tampon(*enchaineuse, "DeletionDate=");
+    formatte(hui_système(), *enchaineuse, "%A-%M-%JT%h:%m:%s");
+    ajoute_au_tampon(*enchaineuse, "\n");
 
     discr copie_enchaineuse_fichier(*enchaineuse, chemin_fichier_info) {
         Quelque(err) {
             si err != 0 comme ErreurFichier {
                 /* Une erreur est survenue. */
-                retourne err
+                retourne err;
             }
         }
         sinon {}
@@ -815,70 +815,70 @@ système_écris_fichier_info_corbeille :: fonc (chemin_fichier_info: CheminFichi
 
 système_chemin_véritable :: fonc (chemin: CheminFichier) -> Résultat(CheminFichier, ErreurFichier)
 {
-    tampon : [TAILLE_MAX_CHEMIN]z8 = ---
-    ptr_tampon := *tampon[0]
+    tampon : [TAILLE_MAX_CHEMIN]z8 = ---;
+    ptr_tampon := *tampon[0];
 
-    chn_c_chemin := crée_chaine_c(chemin.chn)
-    diffère détruit_chaine_c(chn_c_chemin)
+    chn_c_chemin := crée_chaine_c(chemin.chn);
+    diffère détruit_chaine_c(chn_c_chemin);
 
-    résultat := realpath(chn_c_chemin, ChaineC(ptr_tampon))
+    résultat := realpath(chn_c_chemin, ChaineC(ptr_tampon));
 
     si résultat comme *z8 == nul {
-        retourne convertis_errno_en_erreur_fichier()
+        retourne convertis_errno_en_erreur_fichier();
     }
 
-    retourne CheminFichier(convertis_chaine_c(résultat))
+    retourne CheminFichier(convertis_chaine_c(résultat));
 }
 
 système_renomme :: fonc (orig: CheminFichier, dest: CheminFichier) -> Optionnel(ErreurFichier)
 {
-    ptr_chemin_orig := crée_chaine_c(orig.chn)
-    diffère détruit_chaine_c(ptr_chemin_orig)
-    ptr_chemin_dest := crée_chaine_c(dest.chn)
-    diffère détruit_chaine_c(ptr_chemin_dest)
+    ptr_chemin_orig := crée_chaine_c(orig.chn);
+    diffère détruit_chaine_c(ptr_chemin_orig);
+    ptr_chemin_dest := crée_chaine_c(dest.chn);
+    diffère détruit_chaine_c(ptr_chemin_dest);
 
-    résultat := rename(ptr_chemin_orig, ptr_chemin_dest)
-    retourne donne_erreur_si_résultat_invalide(résultat)
+    résultat := rename(ptr_chemin_orig, ptr_chemin_dest);
+    retourne donne_erreur_si_résultat_invalide(résultat);
 }
 
 système_supprime :: fonc (chm: CheminFichier) -> Optionnel(ErreurFichier)
 {
-    ptr_chemin := crée_chaine_c(chm.chn)
-    diffère détruit_chaine_c(ptr_chemin)
-    résultat := remove(ptr_chemin)
-    retourne donne_erreur_si_résultat_invalide(résultat)
+    ptr_chemin := crée_chaine_c(chm.chn);
+    diffère détruit_chaine_c(ptr_chemin);
+    résultat := remove(ptr_chemin);
+    retourne donne_erreur_si_résultat_invalide(résultat);
 }
 
 système_chemin_exécutable :: fonc () -> Résultat(CheminFichier, ErreurFichier)
 {
-    résultat: CheminFichier
+    résultat: CheminFichier;
 
-    TAILLE_TAMPON_READLINK :: 1024
-    tampon : [TAILLE_TAMPON_READLINK]z8 = ---
+    TAILLE_TAMPON_READLINK :: 1024;
+    tampon : [TAILLE_TAMPON_READLINK]z8 = ---;
 
-    lus := readlink(ChaineC("/proc/self/exe".pointeur), *tampon[0], TAILLE_TAMPON_READLINK comme n64)
+    lus := readlink(ChaineC("/proc/self/exe".pointeur), *tampon[0], TAILLE_TAMPON_READLINK comme n64);
     si lus < 0 {
-        retourne convertis_errno_en_erreur_fichier()
+        retourne convertis_errno_en_erreur_fichier();
     }
 
-    chn := loge_chaine(lus)
-    copie_mem_nonsur(src = *tampon[0], dst = chn.pointeur, taille = lus)
+    chn := loge_chaine(lus);
+    copie_mem_nonsur(src = *tampon[0], dst = chn.pointeur, taille = lus);
 
-    résultat.chn = chn
+    résultat.chn = chn;
 
-    retourne résultat
+    retourne résultat;
 }
 
 système_est_chemin_absolu :: fonc (chm: CheminFichier) -> bool
 {
     saufsi chm.chn {
-        retourne faux
+        retourne faux;
     }
 
-    premier_caractère := chm.chn[0]
+    premier_caractère := chm.chn[0];
     si premier_caractère != système_séparateur_chemin_préféré() && premier_caractère != '~' {
-        retourne faux
+        retourne faux;
     }
 
-    retourne vrai
+    retourne vrai;
 }

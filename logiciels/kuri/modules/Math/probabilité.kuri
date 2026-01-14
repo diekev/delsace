@@ -1,48 +1,48 @@
-importe Numérique
+importe Numérique;
 
 // -------------------------------------------
 // Fonctions de calculs.
 
 probabilité_occurence :: fonc (évènements: n64, évènements_totaux: n64) -> r64
 {
-    retourne évènements comme r64 / évènements_totaux comme r64
+    retourne évènements comme r64 / évènements_totaux comme r64;
 }
 
 nombre_évènements_probables :: fonc (probabilité: r64, évènements_totaux: n64) -> r64
 {
-    retourne probabilité * évènements_totaux comme r64
+    retourne probabilité * évènements_totaux comme r64;
 }
 
 // Loi binomial
 probabilité_n_succès :: fonc (p_succès: r64, nombre_de_succès: n64, nombre_de_tentatives: n64) -> r64
 {
-    nCk := n_choisit_k(nombre_de_tentatives, nombre_de_succès) comme r64
-    retourne nCk * puissance(p_succès, nombre_de_succès comme r64) * puissance(p_succès, (nombre_de_tentatives - nombre_de_succès) comme r64)
+    nCk := n_choisit_k(nombre_de_tentatives, nombre_de_succès) comme r64;
+    retourne nCk * puissance(p_succès, nombre_de_succès comme r64) * puissance(p_succès, (nombre_de_tentatives - nombre_de_succès) comme r64);
 }
 
 factorielle :: fonc (n: n64) -> n64
 {
     si n == 0 {
-        retourne 0
+        retourne 0;
     }
 
-    résultat : n64 = 1
+    résultat : n64 = 1;
 
     répète {
-        résultat *= n
-        n -= 1
-    } tantque n != 0
+        résultat *= n;
+        n -= 1;
+    } tantque n != 0;
 
-    retourne résultat
+    retourne résultat;
 }
 
 n_choisit_k :: fonc (n: n64, k: n64) -> n64
 {
     si k > n {
-        retourne 0
+        retourne 0;
     }
 
-    retourne factorielle(n) / (factorielle(k) * factorielle(n - k))
+    retourne factorielle(n) / (factorielle(k) * factorielle(n - k));
 }
 
 // -------------------------------------------
@@ -53,360 +53,360 @@ n_choisit_k :: fonc (n: n64, k: n64) -> n64
 
 // Contient un nombre entre 0 et 1
 Probabilité :: struct {
-    unité: n64
+    unité: n64;
 
     // les chiffres après la virgule
-    chiffres: [..]n8
+    chiffres: [..]n8;
 }
 
 ajoute_chiffres_fraction :: fonc (p: *Probabilité, fraction: n64)
 {
-    ajoute_chiffres_depuis_nombre(*p.chiffres, fraction)
+    ajoute_chiffres_depuis_nombre(*p.chiffres, fraction);
 }
 
 ajoute_chiffres :: fonc (p: *Probabilité, chiffres: [..]n8)
 {
     pour chiffres {
-        tableau_ajoute(*p.chiffres, it)
+        tableau_ajoute(*p.chiffres, it);
     }
 }
 
 crée_probabilité :: fonc (unité: n64, fraction: n64) -> Probabilité
 {
-    p: Probabilité
-    p.unité = unité
-    ajoute_chiffres_fraction(*p, fraction)
-    retourne p
+    p: Probabilité;
+    p.unité = unité;
+    ajoute_chiffres_fraction(*p, fraction);
+    retourne p;
 }
 
 crée_probabilité :: fonc (p: chaine) -> Probabilité
 {
-    résultat: Probabilité
-    point_rencontré := faux
+    résultat: Probabilité;
+    point_rencontré := faux;
 
     pour p {
         si it == '.' {
-            point_rencontré = vrai
-            continue
+            point_rencontré = vrai;
+            continue;
         }
 
-        chiffre := (it - '0') comme n8
+        chiffre := (it - '0') comme n8;
 
         saufsi point_rencontré {
-            résultat.unité *= 10
-            résultat.unité += chiffre
+            résultat.unité *= 10;
+            résultat.unité += chiffre;
         }
         sinon {
-            tableau_ajoute(*résultat.chiffres, chiffre)
+            tableau_ajoute(*résultat.chiffres, chiffre);
         }
     }
 
-    retourne résultat
+    retourne résultat;
 }
 
 complémente :: fonc (p: Probabilité) -> Probabilité
 {
-    p0 := crée_probabilité("1.0")
-    retourne p0 - p
+    p0 := crée_probabilité("1.0");
+    retourne p0 - p;
 }
 
 opérateur + :: (p1: Probabilité, p2: Probabilité) -> Probabilité
 {
-    résultat: Probabilité
+    résultat: Probabilité;
 
-    taille_commune := p1.chiffres.taille
+    taille_commune := p1.chiffres.taille;
 
-    nombres_après_taille_commune: [..]n8
+    nombres_après_taille_commune: [..]n8;
 
     si p2.chiffres.taille < p1.chiffres.taille {
-        taille_commune = p2.chiffres.taille
+        taille_commune = p2.chiffres.taille;
 
-        nombres_après_taille_commune.pointeur = p1.chiffres.pointeur + taille_commune
-        nombres_après_taille_commune.taille = p1.chiffres.taille - taille_commune
+        nombres_après_taille_commune.pointeur = p1.chiffres.pointeur + taille_commune;
+        nombres_après_taille_commune.taille = p1.chiffres.taille - taille_commune;
     }
     sinon si p1.chiffres.taille < p2.chiffres.taille {
-        nombres_après_taille_commune.pointeur = p2.chiffres.pointeur + taille_commune
-        nombres_après_taille_commune.taille = p2.chiffres.taille - taille_commune
+        nombres_après_taille_commune.pointeur = p2.chiffres.pointeur + taille_commune;
+        nombres_après_taille_commune.taille = p2.chiffres.taille - taille_commune;
     }
 
     pour > nombres_après_taille_commune {
-        tableau_ajoute(*résultat.chiffres, it)
+        tableau_ajoute(*résultat.chiffres, it);
     }
 
-    retenue : n8 = 0
+    retenue : n8 = 0;
 
     pour > taille_commune {
-        it_p1 := p1.chiffres[it]
-        it_p2 := p2.chiffres[it]
+        it_p1 := p1.chiffres[it];
+        it_p2 := p2.chiffres[it];
 
-        it_rés := retenue + it_p1 + it_p2
+        it_rés := retenue + it_p1 + it_p2;
 
-        retenue = it_rés / 10
-        it_rés = it_rés % 10
+        retenue = it_rés / 10;
+        it_rés = it_rés % 10;
 
-        tableau_ajoute(*résultat.chiffres, it_rés)
+        tableau_ajoute(*résultat.chiffres, it_rés);
     }
 
-    tableau_inverse(résultat.chiffres)
+    tableau_inverse(résultat.chiffres);
 
-    résultat.unité = p1.unité + p2.unité + retenue
+    résultat.unité = p1.unité + p2.unité + retenue;
 
-    retourne résultat
+    retourne résultat;
 }
 
 opérateur - :: (p1: Probabilité, p2: Probabilité) -> Probabilité
 {
-    résultat: Probabilité
+    résultat: Probabilité;
 
-    nombres_après_taille_commune: [..]n8
+    nombres_après_taille_commune: [..]n8;
 
     si p2.chiffres.taille < p1.chiffres.taille {
-        différence := p1.chiffres.taille - p2.chiffres.taille
+        différence := p1.chiffres.taille - p2.chiffres.taille;
 
         pour différence {
-            tableau_ajoute(*p2.chiffres, 0)
+            tableau_ajoute(*p2.chiffres, 0);
         }
     }
     sinon si p1.chiffres.taille < p2.chiffres.taille {
-        différence := p2.chiffres.taille - p1.chiffres.taille
+        différence := p2.chiffres.taille - p1.chiffres.taille;
 
         pour différence {
-            tableau_ajoute(*p1.chiffres, 0)
+            tableau_ajoute(*p1.chiffres, 0);
         }
     }
 
-    taille_commune := p1.chiffres.taille
+    taille_commune := p1.chiffres.taille;
 
-    emprunt : n8 = 0
+    emprunt : n8 = 0;
 
     pour > taille_commune {
-        it_p1 := p1.chiffres[it]
-        it_p2 := p2.chiffres[it]
+        it_p1 := p1.chiffres[it];
+        it_p2 := p2.chiffres[it];
 
-        it_rés := 10 + it_p1 - it_p2 - emprunt
+        it_rés := 10 + it_p1 - it_p2 - emprunt;
 
         si it_rés < 10 {
-            emprunt = 1
+            emprunt = 1;
         }
         sinon {
-            emprunt = 0
+            emprunt = 0;
         }
 
-        it_rés = it_rés % 10
+        it_rés = it_rés % 10;
 
-        tableau_ajoute(*résultat.chiffres, it_rés)
+        tableau_ajoute(*résultat.chiffres, it_rés);
     }
 
-    tableau_inverse(résultat.chiffres)
+    tableau_inverse(résultat.chiffres);
 
-    résultat.unité = p1.unité - p2.unité - emprunt
+    résultat.unité = p1.unité - p2.unité - emprunt;
 
-    retourne résultat
+    retourne résultat;
 }
 
 opérateur * :: (p1: Probabilité, p2: Probabilité) -> Probabilité
 {
-    résultat: Probabilité
+    résultat: Probabilité;
 
-    position := p2.chiffres.taille
+    position := p2.chiffres.taille;
 
     pour > p2.chiffres {
-        tmp := p1 * it
+        tmp := p1 * it;
 
-        divise_par_dix_n_fois(*tmp, position - indice_it)
+        divise_par_dix_n_fois(*tmp, position - indice_it);
 
-        résultat += tmp
+        résultat += tmp;
     }
 
-    tmp := p1 * p2.unité
-    résultat += tmp
+    tmp := p1 * p2.unité;
+    résultat += tmp;
 
-    retourne résultat
+    retourne résultat;
 }
 
 divise_par_dix_n_fois :: fonc (p: *Probabilité, n: z64)
 {
     tantque n != 0 {
-        divise_par_dix(p)
-        n -= 1
+        divise_par_dix(p);
+        n -= 1;
     }
 }
 
 divise_par_dix :: fonc (p: *Probabilité)
 {
-    unité := (p.unité % 10) comme n8
-    p.unité /= 10
+    unité := (p.unité % 10) comme n8;
+    p.unité /= 10;
 
-    tableau_inverse(p.chiffres)
-    tableau_ajoute(*p.chiffres, unité)
-    tableau_inverse(p.chiffres)
+    tableau_inverse(p.chiffres);
+    tableau_ajoute(*p.chiffres, unité);
+    tableau_inverse(p.chiffres);
 }
 
 opérateur * :: (p1: Probabilité, n: n64) -> Probabilité
 {
-    résultat: Probabilité
+    résultat: Probabilité;
 
-    retenue : n64 = 0
+    retenue : n64 = 0;
 
     pour > p1.chiffres {
-        it_rés := retenue + it * n
+        it_rés := retenue + it * n;
 
-        retenue = it_rés / 10
-        it_rés = it_rés % 10
+        retenue = it_rés / 10;
+        it_rés = it_rés % 10;
 
-        tableau_ajoute(*résultat.chiffres, it_rés comme n8)
+        tableau_ajoute(*résultat.chiffres, it_rés comme n8);
     }
 
-    tableau_inverse(résultat.chiffres)
+    tableau_inverse(résultat.chiffres);
 
-    résultat.unité = p1.unité * n + retenue
+    résultat.unité = p1.unité * n + retenue;
 
-    retourne résultat
+    retourne résultat;
 }
 
 chaine_depuis_probabilité :: fonc (p: Probabilité) -> chaine
 {
-    enchaineuse: Enchaineuse
-    initialise_enchaineuse(*enchaineuse)
+    enchaineuse: Enchaineuse;
+    initialise_enchaineuse(*enchaineuse);
 
-    imprime_dans_enchaineuse(*enchaineuse, "%.", p.unité)
+    imprime_dans_enchaineuse(*enchaineuse, "%.", p.unité);
 
     si p.chiffres {
         pour p.chiffres {
-            imprime_dans_enchaineuse(*enchaineuse, "%", it)
+            imprime_dans_enchaineuse(*enchaineuse, "%", it);
         }
     }
     sinon {
-        ajoute_au_tampon(*enchaineuse, "0")
+        ajoute_au_tampon(*enchaineuse, "0");
     }
 
-    retourne chaine_depuis_enchaineuse(*enchaineuse)
+    retourne chaine_depuis_enchaineuse(*enchaineuse);
 }
 
 puissance :: fonc (p: Probabilité, n: n64) -> Probabilité
 {
     si n == 0 {
-        retourne crée_probabilité(1, 0)
+        retourne crée_probabilité(1, 0);
     }
 
-    résultat := p
+    résultat := p;
 
     pour n - 1 {
-        résultat *= p
+        résultat *= p;
     }
 
-    retourne résultat
+    retourne résultat;
 }
 
 arrondis :: fonc (p: Probabilité, n: n64) -> Probabilité
 {
     si p.chiffres.taille <= n comme z64 {
-        retourne p
+        retourne p;
     }
 
-    résultat: Probabilité
-    résultat.unité = p.unité
-    ajoute_chiffres(*résultat, p.chiffres)
+    résultat: Probabilité;
+    résultat.unité = p.unité;
+    ajoute_chiffres(*résultat, p.chiffres);
 
-    tableau_inverse(résultat.chiffres)
+    tableau_inverse(résultat.chiffres);
 
-    taille := résultat.chiffres.taille - n comme z64 + 1
+    taille := résultat.chiffres.taille - n comme z64 + 1;
 
-    ajout : n8 = 0
+    ajout : n8 = 0;
 
     pour taille {
-        it_p := résultat.chiffres[it] + ajout
+        it_p := résultat.chiffres[it] + ajout;
 
         si it_p < 5 {
-            ajout = 0
+            ajout = 0;
         }
         sinon {
-            ajout = 1
+            ajout = 1;
         }
 
-        résultat.chiffres[it] = it_p
+        résultat.chiffres[it] = it_p;
     }
 
-    tableau_inverse(résultat.chiffres)
+    tableau_inverse(résultat.chiffres);
 
-    résultat.chiffres.taille = n comme z64
+    résultat.chiffres.taille = n comme z64;
 
-    retourne résultat
+    retourne résultat;
 }
 
 opérateur / :: (p: Probabilité, n: n64) -> Probabilité
 {
-    résultat: Probabilité
+    résultat: Probabilité;
 
     si p.unité == 0 || n == 0 {
-        retourne résultat
+        retourne résultat;
     }
 
     // -------------
 
-    ajoute_chiffres_fraction(*résultat, p.unité)
-    ajoute_chiffres(*résultat, p.chiffres)
+    ajoute_chiffres_fraction(*résultat, p.unité);
+    ajoute_chiffres(*résultat, p.chiffres);
 
     // -------------
 
-    q: n64
-    r: n64
+    q: n64;
+    r: n64;
 
     pour & résultat.chiffres {
-        it_n64 := it comme n64 + r * 10
-        q = it_n64 / n
-        r = it_n64 % n
+        it_n64 := it comme n64 + r * 10;
+        q = it_n64 / n;
+        r = it_n64 % n;
 
-        it = q comme n8
+        it = q comme n8;
     }
 
     tantque r != 0 {
-        r *= 10
-        q = r / n
-        r = r % n
+        r *= 10;
+        q = r / n;
+        r = r % n;
 
-        tableau_ajoute(*résultat.chiffres, q comme n8)
+        tableau_ajoute(*résultat.chiffres, q comme n8);
     }
 
-    m := magnitude_décimale(p.unité)
+    m := magnitude_décimale(p.unité);
 
     si m != 0 {
         pour m {
-            multiplie_par_dix(*résultat)
+            multiplie_par_dix(*résultat);
         }
     }
 
     // -------------
 
-    retourne résultat
+    retourne résultat;
 }
 
 opérateur / :: (p0: Probabilité, p1: Probabilité) -> Probabilité
 {
-    résultat := p0 / p1.unité
+    résultat := p0 / p1.unité;
 
     // À FAIRE
 
-    retourne résultat
+    retourne résultat;
 }
 
 multiplie_par_dix :: fonc (p: *Probabilité)
 {
-    p.unité *= 10
+    p.unité *= 10;
 
     si p.chiffres.taille == 0 {
-        retourne
+        retourne;
     }
 
-    diffère p.chiffres.taille -= 1
+    diffère p.chiffres.taille -= 1;
 
-    p.unité += p.chiffres[0]
+    p.unité += p.chiffres[0];
 
     si p.chiffres.taille == 1 {
-        retourne
+        retourne;
     }
 
     pour p.chiffres.taille - 1 {
-        p.chiffres[it] = p.chiffres[it + 1]
+        p.chiffres[it] = p.chiffres[it + 1];
     }
 }

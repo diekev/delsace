@@ -1,28 +1,28 @@
 
 /* Représentation d'un attribut lors du lexage. */
 AttributLexé :: struct {
-    nom: DOMString
-    valeur: DOMString
+    nom: DOMString;
+    valeur: DOMString;
 }
 
 détruit_attributs :: fonc (attributs: &[..]AttributLexé)
 {
-    déloge(attributs)
+    déloge(attributs);
 }
 
 cherche_attribut :: fonc (attributs: []AttributLexé, nom: DOMString) -> *AttributLexé
 {
     pour * attributs {
         si it.nom == nom {
-            retourne it
+            retourne it;
         }
     }
 
-    retourne nul
+    retourne nul;
 }
 
 ajoute_attribut :: fonc (attributs: *[..]AttributLexé, nom: DOMString, valeur: DOMString)
 {
-    attribut := AttributLexé(nom = nom, valeur = valeur)
-    tableau_ajoute(attributs, attribut)
+    attribut := AttributLexé(nom = nom, valeur = valeur);
+    tableau_ajoute(attributs, attribut);
 }
