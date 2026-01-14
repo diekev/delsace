@@ -993,7 +993,8 @@ struct AssembleuseASM {
     };
 
     struct Fonction {
-        kuri::chaine_statique valeur;
+        kuri::chaine_statique valeur{};
+        bool plt = false;
     };
 
     struct Globale {
@@ -1641,10 +1642,10 @@ struct AssembleuseASM {
                 }
                 else {
                     if (adresse.pointeur()[0] == '.') {
-                        m_sortie << "qword [" << adresse << "]";
+                        m_sortie << "qword [rel " << adresse << "]";
                     }
                     else {
-                        m_sortie << adresse;
+                        m_sortie << "[rel " << adresse << "]";
                     }
                 }
                 return;
@@ -1657,6 +1658,9 @@ struct AssembleuseASM {
             case TypeOpérande::FONCTION:
             {
                 m_sortie << opérande.fonction.valeur;
+                if (opérande.fonction.plt) {
+                    m_sortie << " wrt ..plt";
+                }
                 return;
             }
             case TypeOpérande::GLOBALE:
@@ -1965,7 +1969,14 @@ void GénératriceCodeASM::génère_code_pour_atome(Atome const *atome,
         case Atome::Genre::FONCTION:
         {
             auto atome_fonc = atome->comme_fonction();
-            assembleuse.push(AssembleuseASM::Fonction{atome_fonc->nom}, 8);
+
+            auto registre = registres.donne_registre_entier_inoccupé();
+
+            auto adresse = AssembleuseASM::Mémoire{atome_fonc->nom};
+            assembleuse.lea(registre, adresse);
+            assembleuse.push(registre, 8);
+
+            registres.marque_registre_inoccupé(registre);
             return;
         }
         case Atome::Genre::TRANSTYPE_CONSTANT:
@@ -2073,7 +2084,13 @@ void GénératriceCodeASM::génère_code_pour_atome(Atome const *atome,
         case Atome::Genre::GLOBALE:
         {
             auto globale = atome->comme_globale();
-            assembleuse.push(AssembleuseASM::Mémoire{globale->ident->nom_broye}, 8);
+            auto registre = registres.donne_registre_entier_inoccupé();
+
+            auto adresse = AssembleuseASM::Mémoire{globale->ident->nom_broye};
+            assembleuse.lea(registre, adresse);
+            assembleuse.push(registre, 8);
+
+            registres.marque_registre_inoccupé(registre);
             return;
         }
     }
@@ -2653,7 +2670,7 @@ void GénératriceCodeASM::génère_code_pour_appel(const InstructionAppel *appe
     auto appelée = AssembleuseASM::Opérande{};
     if (atome_appelée->est_fonction()) {
         auto atome_fonc = atome_appelée->comme_fonction();
-        appelée = AssembleuseASM::Fonction{atome_fonc->nom};
+        appelée = AssembleuseASM::Fonction{atome_fonc->nom, atome_fonc->est_externe};
     }
     else {
         génère_code_pour_atome(atome_appelée, assembleuse, UtilisationAtome::AUCUNE);
@@ -4362,7 +4379,7 @@ void GénératriceCodeASM::génère_code(ProgrammeRepreInter const &repr_inter_p
 #ifndef COMPILE_TOUTES_LES_FONCTIONS
     os << "global main\n";
     os << "main:\n";
-    assembleuse.call(AssembleuseASM::Fonction{"principale"});
+    assembleuse.call(AssembleuseASM::Fonction{"principale", false});
     assembleuse.ret();
 #endif
 }
@@ -4618,7 +4635,7 @@ std::optional<ErreurCoulisse> CoulisseASM::crée_exécutable_impl(const ArgsLiai
         return ErreurCoulisse{message};
     }
 #else
-    auto commande = "gcc -ggdb -no-pie -lc -o a.out /tmp/compilation_kuri_asm.o";
+    auto commande = "gcc -ggdb -lc -o a.out /tmp/compilation_kuri_asm.o";
     if (system(commande) != 0) {
         return ErreurCoulisse{"Impossible de lier le fichier objet."};
     }
