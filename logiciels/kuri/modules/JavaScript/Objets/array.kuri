@@ -5,36 +5,36 @@
 
 #portée_fichier
 
-table_virtuelle_objet_array := TableVirtuelleObject(classe = ArrayObject, sur_define_own_property = array_instance_define_own_property)
+table_virtuelle_objet_array := TableVirtuelleObject(classe = ArrayObject, sur_define_own_property = array_instance_define_own_property);
 
 #portée_export
 
 ArrayObject :: struct {
-    empl objet: Object
-    table = *table_virtuelle_objet_array
+    empl objet: Object;
+    table = *table_virtuelle_objet_array;
 }
 
 array_instance_crée :: fonc (realm: *Realm) -> *Object
 {
-    retourne realm.donne_tas_de_mémoire().alloue(ArrayObject)
+    retourne realm.donne_tas_de_mémoire().alloue(ArrayObject);
 }
 
 crée_array :: fonc (tas_de_mémoire: *TasDeMémoire, array_prototype: *ArrayPrototype, nombre_éléments: z64) -> *ArrayObject
 {
-    résultat := tas_de_mémoire.alloue(ArrayObject)
-    résultat.prototype = array_prototype
+    résultat := tas_de_mémoire.alloue(ArrayObject);
+    résultat.prototype = array_prototype;
 
-    résultat.ajoute_propriété(STR_length, Valeur(Number = nombre_éléments comme r64), Writable)
+    résultat.ajoute_propriété(STR_length, Valeur(Number = nombre_éléments comme r64), Writable);
 
-    retourne résultat
+    retourne résultat;
 }
 
 array_set_length :: fonc (array: *ArrayObject, len: n32)
 {
-    desc: PropertyDescriptor
-    desc.value = Valeur(Number = len comme r64)
-    desc.writable = vrai
-    _ := array_set_length(array, desc)
+    desc: PropertyDescriptor;
+    desc.value = Valeur(Number = len comme r64);
+    desc.writable = vrai;
+    _ := array_set_length(array, desc);
 }
 
 #portée_fichier
@@ -43,63 +43,63 @@ array_set_length :: fonc (array: *ArrayObject, len: n32)
  * https://tc39.es/ecma262/multipage/ordinary-and-exotic-objects-behaviours.html#sec-array-exotic-objects-defineownproperty-p-desc */
 array_instance_define_own_property :: fonc (object: *Object, property_key: PropertyKey, desc: &PropertyDescriptor) -> bool
 {
-    A := object.vérifie_comme(ArrayObject)
+    A := object.vérifie_comme(ArrayObject);
 
     // 1. If P is "length", then
     si property_key == STR_length {
         // a. Return ? ArraySetLength(A, Desc).
-        retourne array_set_length(A, desc)
+        retourne array_set_length(A, desc);
     }
 
     // 2. Else if P is an array index, then
     si is_array_index(property_key) {
         // a. Let lengthDesc be OrdinaryGetOwnProperty(A, "length").
-        length_desc := ordinary_get_own_property(A, STR_length).Quelque
+        length_desc := ordinary_get_own_property(A, STR_length).Quelque;
 
         // b. Assert: IsDataDescriptor(lengthDesc) is true.
-        assert(is_data_descriptor(length_desc))
+        assert(is_data_descriptor(length_desc));
 
         // c. Assert: lengthDesc.[[Configurable]] is false.
-        assert(length_desc.configurable == faux)
+        assert(length_desc.configurable == faux);
 
         // d. Let length be lengthDesc.[[Value]].
-        length := length_desc.value.Quelque
+        length := length_desc.value.Quelque;
 
         // e. Assert: length is a non-negative integral Number.
-        assert(is_non_negative_integral_number(length))
+        assert(is_non_negative_integral_number(length));
 
         // f. Let index be ! ToUint32(P).
-        index := to_uint32(property_key)
+        index := to_uint32(property_key);
 
         // g. If index ≥ length and lengthDesc.[[Writable]] is false, return false.
         si index >= length.Number comme n32 && length_desc.writable == faux {
-            retourne faux
+            retourne faux;
         }
 
         // h. Let succeeded be ! OrdinaryDefineOwnProperty(A, P, Desc).
-        succeeded := internal_define_own_property_by_index(A, index, desc)
+        succeeded := internal_define_own_property_by_index(A, index, desc);
 
         // i. If succeeded is false, return false.
         saufsi succeeded {
-            retourne faux
+            retourne faux;
         }
 
         // j. If index ≥ length, then
         si index >= length.Number comme n32 {
             // i. Set lengthDesc.[[Value]] to index + 1𝔽.
-            length_desc.value = Valeur(Number = (index + 1) comme r64)
+            length_desc.value = Valeur(Number = (index + 1) comme r64);
             // ii. Set succeeded to ! OrdinaryDefineOwnProperty(A, "length", lengthDesc).
-            succeeded = ordinary_define_own_property(A, STR_length, length_desc)
+            succeeded = ordinary_define_own_property(A, STR_length, length_desc);
             // iii. Assert: succeeded is true.
-            assert(succeeded)
+            assert(succeeded);
         }
 
         // k. Return true.
-        retourne vrai
+        retourne vrai;
     }
 
     // 3. Return ? OrdinaryDefineOwnProperty(A, P, Desc).
-    retourne ordinary_define_own_property(object, property_key, desc)
+    retourne ordinary_define_own_property(object, property_key, desc);
 }
 
 /* 10.4.2.2 ArrayCreate ( length [ , proto ] )
@@ -107,32 +107,32 @@ array_instance_define_own_property :: fonc (object: *Object, property_key: Prope
 array_create :: fonc (realm: *Realm, length: r64, proto : *Object = nul) -> *Object
 {
     // 1. If length > 2**32 - 1, throw a RangeError exception.
-    max := (1 comme z64) << 32 - 1
+    max := (1 comme z64) << 32 - 1;
     si length > max comme r64 {
-        retourne lance_range_error(realm, "invalid array length")
+        retourne lance_range_error(realm, "invalid array length");
     }
 
     // 2. If proto is not present, set proto to %Array.prototype%.
     saufsi proto {
-        proto = realm.intrinsics.array_prototype
+        proto = realm.intrinsics.array_prototype;
     }
 
     // 3. Let A be MakeBasicObject(« [[Prototype]], [[Extensible]] »).
-    A := make_basic_object(realm, array_instance_crée)
+    A := make_basic_object(realm, array_instance_crée);
 
     // 4. Set A.[[Prototype]] to proto.
-    A.prototype = proto
+    A.prototype = proto;
 
     // 5. Set A.[[DefineOwnProperty]] as specified in 10.4.2.1.
     // Fait via array_instance_crée.
 
     // 6. Perform ! OrdinaryDefineOwnProperty(A, "length", PropertyDescriptor { [[Value]]: 𝔽(length), [[Writable]]: true, [[Enumerable]]: false, [[Configurable]]: false }).
-    desc: PropertyDescriptor
-    initialise_property_descriptor(*desc, Valeur(Number = length), Writable)
-    _ := ordinary_define_own_property(A, STR_length, desc)
+    desc: PropertyDescriptor;
+    initialise_property_descriptor(*desc, Valeur(Number = length), Writable);
+    _ := ordinary_define_own_property(A, STR_length, desc);
 
     // 7. Return A.
-    retourne A
+    retourne A;
 }
 
 /* 10.4.2.4 ArraySetLength ( A, Desc ) 
@@ -142,75 +142,75 @@ array_set_length :: fonc (A: *ArrayObject, desc: &PropertyDescriptor) -> bool
     // 1. If Desc does not have a [[Value]] field, then
     saufsi desc.value.possède_valeur() {
         // a. Return ! OrdinaryDefineOwnProperty(A, "length", Desc).
-        retourne ordinary_define_own_property(A, STR_length, desc)
+        retourne ordinary_define_own_property(A, STR_length, desc);
     }
 
     // 2. Let newLenDesc be a copy of Desc.
-    new_len_desc := desc
+    new_len_desc := desc;
 
     // 3. Let newLen be ? ToUint32(Desc.[[Value]]).
-    new_len := to_uint32(desc.value.Quelque)
+    new_len := to_uint32(desc.value.Quelque);
 
     // 4. Let numberLen be ? ToNumber(Desc.[[Value]]).
-    interpréteuse := A.donne_tas_de_mémoire().mv.interpréteuse
-    assert(interpréteuse != nul)
+    interpréteuse := A.donne_tas_de_mémoire().mv.interpréteuse;
+    assert(interpréteuse != nul);
 
-    number_len := to_number(interpréteuse, desc.value.Quelque)
+    number_len := to_number(interpréteuse, desc.value.Quelque);
     si interpréteuse.possède_exception() {
-        retourne faux
+        retourne faux;
     }
 
     // 5. If SameValueZero(newLen, numberLen) is false, throw a RangeError exception.
     si same_value_zero(new_len comme r64, number_len).est_false() {
-        retourne lance_range_error(interpréteuse, "invalid array length")
+        retourne lance_range_error(interpréteuse, "invalid array length");
     }
 
     // 6. Set newLenDesc.[[Value]] to newLen.
-    new_len_desc.value = Valeur(Number = new_len comme r64)
+    new_len_desc.value = Valeur(Number = new_len comme r64);
 
     // 7. Let oldLenDesc be OrdinaryGetOwnProperty(A, "length").
-    old_len_desc := ordinary_get_own_property(A, STR_length).Quelque
+    old_len_desc := ordinary_get_own_property(A, STR_length).Quelque;
 
     // 8. Assert: IsDataDescriptor(oldLenDesc) is true.
-    assert(is_data_descriptor(old_len_desc))
+    assert(is_data_descriptor(old_len_desc));
 
     // 9. Assert: oldLenDesc.[[Configurable]] is false.
-    assert(old_len_desc.configurable.Quelque == faux)
+    assert(old_len_desc.configurable.Quelque == faux);
 
     // 10. Let oldLen be oldLenDesc.[[Value]].
-    old_len := old_len_desc.value.Quelque
+    old_len := old_len_desc.value.Quelque;
 
     // 11. If newLen ≥ oldLen, then
     si new_len comme r64 >= old_len.Number {
         // a. Return ! OrdinaryDefineOwnProperty(A, "length", newLenDesc).
-        retourne ordinary_define_own_property(A, STR_length, new_len_desc)
+        retourne ordinary_define_own_property(A, STR_length, new_len_desc);
     }
 
     // 12. If oldLenDesc.[[Writable]] is false, return false.
     si old_len_desc.writable.Quelque == faux {
-        retourne faux
+        retourne faux;
     }
 
     // 13. If newLenDesc does not have a [[Writable]] field or newLenDesc.[[Writable]] is true, then
-    new_writable := faux
+    new_writable := faux;
     si !new_len_desc.writable.possède_valeur() || new_len_desc.writable.Quelque == vrai {
         // a. Let newWritable be true.
-        new_writable = vrai
+        new_writable = vrai;
     }
     // 14. Else,
     sinon {
         // a. NOTE: Setting the [[Writable]] attribute to false is deferred in case any elements cannot be deleted.
         // b. Let newWritable be false.
         // c. Set newLenDesc.[[Writable]] to true.
-        new_len_desc.writable = vrai
+        new_len_desc.writable = vrai;
     }
 
     // 15. Let succeeded be ! OrdinaryDefineOwnProperty(A, "length", newLenDesc).
-    succeeded := ordinary_define_own_property(A, STR_length, new_len_desc)
+    succeeded := ordinary_define_own_property(A, STR_length, new_len_desc);
 
     // 16. If succeeded is false, return false.
     saufsi succeeded {
-        retourne faux
+        retourne faux;
     }
 
     // À FAIRE : 17. For each own property key P of A such that P is an array index and ! ToUint32(P) ≥ newLen, in descending numeric index order, do
@@ -225,11 +225,11 @@ array_set_length :: fonc (A: *ArrayObject, desc: &PropertyDescriptor) -> bool
     // b. Assert: succeeded is true.
 
     si new_len comme r64 < old_len.Number {
-        retourne ordinary_define_own_property(A, STR_length, old_len_desc)
+        retourne ordinary_define_own_property(A, STR_length, old_len_desc);
     }
 
     // 19. Return true.
-    retourne vrai
+    retourne vrai;
 }
 
 /** \} */
@@ -241,129 +241,129 @@ array_set_length :: fonc (A: *ArrayObject, desc: &PropertyDescriptor) -> bool
 
 #portée_fichier
 
-table_virtuelle_array_constructor := TableVirtuelleBuiltinFunction(classe = ArrayConstructor)
+table_virtuelle_array_constructor := TableVirtuelleBuiltinFunction(classe = ArrayConstructor);
 
 #portée_export
 
 ArrayConstructor :: struct {
-    empl builtin_function: BuiltInFunction
-    table = *table_virtuelle_array_constructor
+    empl builtin_function: BuiltInFunction;
+    table = *table_virtuelle_array_constructor;
 
-    sur_call_or_construct = array_constructor_call_or_construct
+    sur_call_or_construct = array_constructor_call_or_construct;
 }
 
 crée_array_constructor :: fonc (realm: *Realm, function_prototype: *FunctionPrototype , array_prototype: *ArrayPrototype) -> *ArrayConstructor
 {
-    tas_de_mémoire := realm.donne_tas_de_mémoire()
-    résultat := tas_de_mémoire.alloue(ArrayConstructor)
-    create_builtin_function(résultat, 1, STR_Array, realm, function_prototype)
+    tas_de_mémoire := realm.donne_tas_de_mémoire();
+    résultat := tas_de_mémoire.alloue(ArrayConstructor);
+    create_builtin_function(résultat, 1, STR_Array, realm, function_prototype);
 
     /* https://tc39.es/ecma262/multipage/indexed-collections.html#sec-array.prototype */
-    résultat.ajoute_propriété(STR_prototype, Valeur(Object = array_prototype), DrapeauxPropriété.zéro)
+    résultat.ajoute_propriété(STR_prototype, Valeur(Object = array_prototype), DrapeauxPropriété.zéro);
 
     /* https://tc39.es/ecma262/multipage/indexed-collections.html#sec-array.prototype.constructor */
-    array_prototype.ajoute_propriété(STR_constructor, Valeur(Object = résultat), DrapeauxPropriété.zéro)
+    array_prototype.ajoute_propriété(STR_constructor, Valeur(Object = résultat), DrapeauxPropriété.zéro);
 
-    retourne résultat
+    retourne résultat;
 }
 
 /* 23.1.1.1 Array ( ...values )
  * https://tc39.es/ecma262/multipage/indexed-collections.html#sec-array */
 array_constructor_call_or_construct :: fonc (empl params: *ParamètresCallOrConstruct) -> Valeur
 {
-    realm := interpréteuse.donne_realm()
+    realm := interpréteuse.donne_realm();
 
     // 1. If NewTarget is undefined, let newTarget be the active function object; else let newTarget be NewTarget.
     si new_target.est_undefined() {
-        new_target.Object = donne_active_function_object(interpréteuse)
+        new_target.Object = donne_active_function_object(interpréteuse);
     }
 
     // 2. Let proto be ? GetPrototypeFromConstructor(newTarget, "%Array.prototype%").
-    proto := get_prototype_from_constructor(realm, new_target.donne_objet().vérifie_comme(Function), realm.intrinsics.array_prototype)
+    proto := get_prototype_from_constructor(realm, new_target.donne_objet().vérifie_comme(Function), realm.intrinsics.array_prototype);
     si interpréteuse.possède_exception() {
-        retourne js_undefined
+        retourne js_undefined;
     }
 
     // 3. Let numberOfArgs be the number of elements in values.
-    number_of_args := arguments.taille
+    number_of_args := arguments.taille;
 
-    résultat: *Object
+    résultat: *Object;
 
     // 4. If numberOfArgs = 0, then
     si number_of_args == 0 {
         // a. Return ! ArrayCreate(0, proto).
-        résultat = array_create(realm, 0, realm.intrinsics.array_prototype)
+        résultat = array_create(realm, 0, realm.intrinsics.array_prototype);
     }
     // 5. Else if numberOfArgs = 1, then
     sinon si number_of_args == 1 {
         // a. Let len be values[0].
-        len := params.donne_argument(0)
+        len := params.donne_argument(0);
 
         // b. Let array be ! ArrayCreate(0, proto).
-        array := array_create(realm, 0, proto)
+        array := array_create(realm, 0, proto);
 
-        int_len: n32
+        int_len: n32;
         // c. If len is not a Number, then
         saufsi len.est_nombre() {
             // i. Perform ! CreateDataPropertyOrThrow(array, "0", len).
-            create_data_property_or_throw(array, crée_chaine_utf16_unique("0"), len)
+            create_data_property_or_throw(array, crée_chaine_utf16_unique("0"), len);
 
             // ii. Let intLen be 1𝔽.
-            int_len = 1
+            int_len = 1;
         }
         // d. Else,
         sinon {
             // i. Let intLen be ! ToUint32(len).
-            int_len = to_uint32(len)
+            int_len = to_uint32(len);
     
             // ii. If SameValueZero(intLen, len) is false, throw a RangeError exception.
             si same_value_zero(int_len comme r64, len).est_false() {
-                retourne lance_range_error(interpréteuse, "invalid array length")
+                retourne lance_range_error(interpréteuse, "invalid array length");
             }
         }
 
         // e. Perform ! Set(array, "length", intLen, true).
-        set(array, STR_length, Valeur(Number = int_len comme r64), vrai)
+        set(array, STR_length, Valeur(Number = int_len comme r64), vrai);
 
         // f. Return array.
-        résultat = array
+        résultat = array;
     }
     // 6. Else,
     sinon {
         // a. Assert: numberOfArgs ≥ 2.
-        assert(number_of_args >= 2)
+        assert(number_of_args >= 2);
 
         // b. Let array be ? ArrayCreate(numberOfArgs, proto).
-        array := array_create(realm, number_of_args comme r64, proto)
+        array := array_create(realm, number_of_args comme r64, proto);
         si interpréteuse.possède_exception() {
-            retourne js_undefined
+            retourne js_undefined;
         }
 
         // c. Let k be 0.
-        k : z64 = 0
+        k : z64 = 0;
 
         // d. Repeat, while k < numberOfArgs,
         tantque k < number_of_args {
             // i. Let Pk be ! ToString(𝔽(k)).
-            pk := to_string(interpréteuse, Valeur(Number = k comme r64)).texte
+            pk := to_string(interpréteuse, Valeur(Number = k comme r64)).texte;
 
             // ii. Let itemK be values[k].
-            item_k := params.donne_argument(k)
+            item_k := params.donne_argument(k);
 
             // iii. Perform ! CreateDataPropertyOrThrow(array, Pk, itemK).
-            create_data_property_or_throw(array, pk, item_k)
+            create_data_property_or_throw(array, pk, item_k);
         
             // iv. Set k to k + 1.
-            k += 1
+            k += 1;
         }
 
         // e. Assert: The mathematical value of array's "length" property is numberOfArgs.
 
         // f. Return array.
-        résultat = array
+        résultat = array;
     }
 
-    retourne résultat
+    retourne résultat;
 }
 
 /** \} */
@@ -375,29 +375,29 @@ array_constructor_call_or_construct :: fonc (empl params: *ParamètresCallOrCons
 
 #portée_fichier
 
-table_virtuelle_array_prototype := TableVirtuelleObject(classe = ArrayPrototype)
+table_virtuelle_array_prototype := TableVirtuelleObject(classe = ArrayPrototype);
 
 #portée_export
 
 ArrayPrototype :: struct {
-    empl objet: Object
-    table = *table_virtuelle_array_prototype
+    empl objet: Object;
+    table = *table_virtuelle_array_prototype;
 }
 
 crée_array_prototype :: fonc (tas_de_mémoire: *TasDeMémoire, prototype: *ObjectPrototype) -> *ArrayPrototype
 {
-    résultat := tas_de_mémoire.alloue(ArrayPrototype)
-    résultat.prototype = prototype
+    résultat := tas_de_mémoire.alloue(ArrayPrototype);
+    résultat.prototype = prototype;
 
-    résultat.ajoute_propriété(STR_length, Valeur(Number = 0.0), Writable)
-    résultat.ajoute_fonction_native(STR_fill, array_prototype_fill, 1)
-    résultat.ajoute_fonction_native(STR_join, array_prototype_join)
-    résultat.ajoute_fonction_native(STR_push, array_prototype_push, 1)
-    résultat.ajoute_fonction_native(STR_toString, array_prototype_to_string)
-    résultat.ajoute_fonction_native(STR_values, array_prototype_values)
-    résultat.ajoute_fonction_native(PropertyKey(Symbol = *Symbol_iterator), array_prototype_values)
+    résultat.ajoute_propriété(STR_length, Valeur(Number = 0.0), Writable);
+    résultat.ajoute_fonction_native(STR_fill, array_prototype_fill, 1);
+    résultat.ajoute_fonction_native(STR_join, array_prototype_join);
+    résultat.ajoute_fonction_native(STR_push, array_prototype_push, 1);
+    résultat.ajoute_fonction_native(STR_toString, array_prototype_to_string);
+    résultat.ajoute_fonction_native(STR_values, array_prototype_values);
+    résultat.ajoute_fonction_native(PropertyKey(Symbol = *Symbol_iterator), array_prototype_values);
 
-    retourne résultat
+    retourne résultat;
 }
 
 /* @Tests
@@ -406,90 +406,90 @@ crée_array_prototype :: fonc (tas_de_mémoire: *TasDeMémoire, prototype: *Obje
 array_prototype_fill :: fonc (empl params: *ParamètresObjectCall) -> Valeur
 {
     // 1. Let O be ? ToObject(this value).
-    O := to_object(interpréteuse.donne_realm(), this_value)
+    O := to_object(interpréteuse.donne_realm(), this_value);
     si interpréteuse.possède_exception() {
-        retourne js_undefined
+        retourne js_undefined;
     }
 
     // 2. Let len be ? LengthOfArrayLike(O).
-    len := length_of_array_like(interpréteuse, O)
+    len := length_of_array_like(interpréteuse, O);
     si interpréteuse.possède_exception() {
-        retourne js_undefined
+        retourne js_undefined;
     }
 
     // 3. Let relativeStart be ? ToIntegerOrInfinity(start).
-    start := params.donne_argument(1)
-    relative_start: r64
+    start := params.donne_argument(1);
+    relative_start: r64;
     saufsi start.est_undefined() {
-        relative_start = to_integer_or_infinity(interpréteuse, start)
+        relative_start = to_integer_or_infinity(interpréteuse, start);
         si interpréteuse.possède_exception() {
-            retourne js_undefined
+            retourne js_undefined;
         }
     }
     sinon {
-        relative_start = 0.0
+        relative_start = 0.0;
     }
 
     // 4. If relativeStart = -∞, let k be 0.
-    k: r64
+    k: r64;
     si relative_start == R64_INFINITÉ_NÉGATIVE {
-        k = 0.0
+        k = 0.0;
     }
     // 5. Else if relativeStart < 0, let k be max(len + relativeStart, 0).
     sinon si relative_start < 0.0 {
-        k = max(len + relative_start, 0.0)
+        k = max(len + relative_start, 0.0);
     }
     // 6. Else, let k be min(relativeStart, len).
     sinon {
-        k = min(relative_start, len)
+        k = min(relative_start, len);
     }
 
     // 7. If end is undefined, let relativeEnd be len; else let relativeEnd be ? ToIntegerOrInfinity(end).
-    end := params.donne_argument(2)
-    relative_end: r64
+    end := params.donne_argument(2);
+    relative_end: r64;
     si end.est_undefined() {
-        relative_end = len
+        relative_end = len;
     }
     sinon {
-        relative_end = to_integer_or_infinity(interpréteuse, end)
+        relative_end = to_integer_or_infinity(interpréteuse, end);
         si interpréteuse.possède_exception() {
-            retourne js_undefined
+            retourne js_undefined;
         }
     }
 
     // 8. If relativeEnd = -∞, let final be 0.
-    final: r64
+    final: r64;
     si relative_end == R64_INFINITÉ_NÉGATIVE {
-        final = 0.0
+        final = 0.0;
     }
     // 9. Else if relativeEnd < 0, let final be max(len + relativeEnd, 0).
     sinon si relative_end < 0.0 {
-        final = max(len + relative_end, 0.0)
+        final = max(len + relative_end, 0.0);
     }
     // 10. Else, let final be min(relativeEnd, len).
     sinon {
-        final = min(relative_end, len)
+        final = min(relative_end, len);
     }
 
     // 11. Repeat, while k < final,
-    value := params.donne_argument(0)
+    value := params.donne_argument(0);
 
     tantque k < final {
         // a. Let Pk be ! ToString(𝔽(k)).
-        pk := to_string(interpréteuse, Valeur(Number = k comme n32 comme r64)).texte
+        pk := to_string(interpréteuse, Valeur(Number = k comme n32 comme r64)).texte;
 
         // b. Perform ? Set(O, Pk, value, true).
-        set(O, pk, value, vrai)
+        set(O, pk, value, vrai);
         si interpréteuse.possède_exception() {
-            retourne js_undefined
+            retourne js_undefined;
         }
 
         // c. Set k to k + 1.
-        k = k + 1
+        k = k + 1;
     }
 
     // 12. Return O.
-    retourne O
+    retourne O;
 }
 
 /* 23.1.3.18 Array.prototype.join ( separator )
@@ -497,71 +497,71 @@ array_prototype_fill :: fonc (empl params: *ParamètresObjectCall) -> Valeur
 array_prototype_join :: fonc (empl params: *ParamètresObjectCall) -> Valeur
 {
     // 1. Let O be ? ToObject(this value).
-    O := to_object(interpréteuse.donne_realm(), this_value)
+    O := to_object(interpréteuse.donne_realm(), this_value);
     si interpréteuse.possède_exception() {
-        retourne js_undefined
+        retourne js_undefined;
     }
 
     // 2. Let len be ? LengthOfArrayLike(O).
-    len := length_of_array_like(interpréteuse, O)
+    len := length_of_array_like(interpréteuse, O);
     si interpréteuse.possède_exception() {
-        retourne js_undefined
+        retourne js_undefined;
     }
 
     // 3. If separator is undefined, let sep be ",".
-    sep: ECMAString
+    sep: ECMAString;
     si arguments.taille == 0 {
-        sep = crée_chaine_utf16_unique(",")
+        sep = crée_chaine_utf16_unique(",");
     }
     // 4. Else, let sep be ? ToString(separator).
     sinon {
-        str_sep := to_string(interpréteuse, params.donne_argument(0))
+        str_sep := to_string(interpréteuse, params.donne_argument(0));
         si interpréteuse.possède_exception() {
-            retourne js_undefined
+            retourne js_undefined;
         }
-        sep = str_sep.texte
+        sep = str_sep.texte;
     }
 
     // 5. Let R be the empty String.
-    R: EnchaineuseUTF16
-    initialise_enchaineuse(R)
+    R: EnchaineuseUTF16;
+    initialise_enchaineuse(R);
 
     // 6. Let k be 0.
-    k : n32 = 0
+    k : n32 = 0;
 
     // 7. Repeat, while k < len,
     tantque k < len comme n32 {
         // a. If k > 0, set R to the string-concatenation of R and sep.
         si k > 0 {
-            ajoute(R, sep.donne_chaine_utf16())
+            ajoute(R, sep.donne_chaine_utf16());
         }
 
         // b. Let element be ? Get(O, ! ToString(𝔽(k))).
-        element := get_by_index(O, k)
+        element := get_by_index(O, k);
         si interpréteuse.possède_exception() {
-            retourne js_undefined
+            retourne js_undefined;
         }
 
         // c. If element is neither undefined nor null, then
         saufsi element.est_nulle() || element.est_undefined() {
             // i. Let S be ? ToString(element).
-            S := to_string(interpréteuse, element)
+            S := to_string(interpréteuse, element);
             si interpréteuse.possède_exception() {
-                retourne js_undefined
+                retourne js_undefined;
             }
 
             // ii. Set R to the string-concatenation of R and S.
-            ajoute(R, S.texte.donne_chaine_utf16())
+            ajoute(R, S.texte.donne_chaine_utf16());
         }
 
         // d. Set k to k + 1.
-        k += 1
+        k += 1;
     }
 
     // 8. Return R.
-    résultat := chaine_depuis_enchaineuse(R)
-    diffère détruit_chaine(résultat)
-    retourne crée_chaine(interpréteuse.donne_realm(), crée_chaine_utf16_unique(résultat))
+    résultat := chaine_depuis_enchaineuse(R);
+    diffère détruit_chaine(résultat);
+    retourne crée_chaine(interpréteuse.donne_realm(), crée_chaine_utf16_unique(résultat));
 }
 
 /* 23.1.3.23 Array.prototype.push ( ...items )
@@ -569,15 +569,15 @@ array_prototype_join :: fonc (empl params: *ParamètresObjectCall) -> Valeur
 array_prototype_push :: fonc (empl params: *ParamètresObjectCall) -> Valeur
 {
     // 1. Let O be ? ToObject(this value).
-    O := to_object(interpréteuse.donne_realm(), this_value)
+    O := to_object(interpréteuse.donne_realm(), this_value);
     si interpréteuse.possède_exception() {
-        retourne js_undefined
+        retourne js_undefined;
     }
 
     // 2. Let len be ? LengthOfArrayLike(O).
-    len := length_of_array_like(interpréteuse, O)
+    len := length_of_array_like(interpréteuse, O);
     si interpréteuse.possède_exception() {
-        retourne js_undefined
+        retourne js_undefined;
     }
 
     // 3. Let argCount be the number of elements in items.
@@ -588,24 +588,24 @@ array_prototype_push :: fonc (empl params: *ParamètresObjectCall) -> Valeur
     // 5. For each element E of items, do
     pour arguments {
         // a. Perform ? Set(O, ! ToString(𝔽(len)), E, true).
-        nom_propriété := to_string(interpréteuse, Valeur(Number = len)).texte
-        set(O, nom_propriété, it, vrai)
+        nom_propriété := to_string(interpréteuse, Valeur(Number = len)).texte;
+        set(O, nom_propriété, it, vrai);
         si interpréteuse.possède_exception() {
-            retourne js_undefined
+            retourne js_undefined;
         }
 
         // b. Set len to len + 1.
-        len += 1.0
+        len += 1.0;
     }
 
     // 6. Perform ? Set(O, "length", 𝔽(len), true).
-    set(O, STR_length, Valeur(Number = len), vrai)
+    set(O, STR_length, Valeur(Number = len), vrai);
     si interpréteuse.possède_exception() {
-        retourne js_undefined
+        retourne js_undefined;
     }
 
     // 7. Return 𝔽(len).
-    retourne len
+    retourne len;
 }
 
 /* 23.1.3.36 Array.prototype.toString ( )
@@ -613,24 +613,24 @@ array_prototype_push :: fonc (empl params: *ParamètresObjectCall) -> Valeur
 array_prototype_to_string :: fonc (empl params: *ParamètresObjectCall) -> Valeur
 {
     // 1. Let array be ? ToObject(this value).
-    array := to_object(interpréteuse.donne_realm(), this_value)
+    array := to_object(interpréteuse.donne_realm(), this_value);
     si interpréteuse.possède_exception() {
-        retourne js_undefined
+        retourne js_undefined;
     }
 
     // 2. Let func be ? Get(array, "join").
-    func := get(array, STR_join)
+    func := get(array, STR_join);
     si interpréteuse.possède_exception() {
-        retourne js_undefined
+        retourne js_undefined;
     }
 
     // 3. If IsCallable(func) is false, set func to the intrinsic function %Object.prototype.toString%.
     saufsi is_callable(func) {
-        panique("%Object.prototype.toString% non-implémenté")
+        panique("%Object.prototype.toString% non-implémenté");
     }
 
     // 4. Return ? Call(func, array).
-    retourne call(interpréteuse, func, Valeur(Object = array))
+    retourne call(interpréteuse, func, Valeur(Object = array));
 }
 
 /* 23.1.3.38 Array.prototype.values ( )
@@ -638,13 +638,13 @@ array_prototype_to_string :: fonc (empl params: *ParamètresObjectCall) -> Valeu
 array_prototype_values :: fonc (empl params: *ParamètresObjectCall) -> Valeur
 {
     // 1. Let O be ? ToObject(this value)
-    O := to_object(interpréteuse, this_value)
+    O := to_object(interpréteuse, this_value);
     si interpréteuse.possède_exception() {
-        retourne js_undefined
+        retourne js_undefined;
     }
 
     // 2. Return CreateArrayIterator(O, value)
-    retourne create_array_iterator(interpréteuse, O, IterationKind.VALUE)
+    retourne create_array_iterator(interpréteuse, O, IterationKind.VALUE);
 }
 
 /** \} */
@@ -654,28 +654,28 @@ array_prototype_values :: fonc (empl params: *ParamètresObjectCall) -> Valeur
  * \{ */
 #portée_fichier
 
-table_virtuelle_objet_array_iterator := TableVirtuelleObject(classe = ArrayIterator)
+table_virtuelle_objet_array_iterator := TableVirtuelleObject(classe = ArrayIterator);
 
 #portée_export
 
 IterationKind :: énum {
-    KEY_VALUE
-    KEY
-    VALUE
+    KEY_VALUE;
+    KEY;
+    VALUE;
 }
 
 ArrayIterator :: struct {
-    empl objet: Object
-    table = *table_virtuelle_objet_array_iterator
+    empl objet: Object;
+    table = *table_virtuelle_objet_array_iterator;
 
-    iterated_array_like: *Object @slot "[[IteratedArrayLike]]"
-    array_like_next_index: z32 @slot "[[ArrayLikeNextIndex]]"
-    array_like_iteration_kind: IterationKind @slot "[[ArrayLikeIterationKind]]"
+    iterated_array_like: *Object @slot "[[IteratedArrayLike]]";
+    array_like_next_index: z32 @slot "[[ArrayLikeNextIndex]]";
+    array_like_iteration_kind: IterationKind @slot "[[ArrayLikeIterationKind]]";
 }
 
 array_iterator_instance_crée :: fonc (realm: *Realm) -> *Object
 {
-    retourne realm.donne_tas_de_mémoire().alloue(ArrayIterator)
+    retourne realm.donne_tas_de_mémoire().alloue(ArrayIterator);
 }
 
 /* 23.1.5.1 CreateArrayIterator ( array, kind )
@@ -683,20 +683,20 @@ array_iterator_instance_crée :: fonc (realm: *Realm) -> *Object
 create_array_iterator :: fonc (interpréteuse: *Interpréteuse, array: *Object, kind: IterationKind) -> *ArrayIterator
 {
     // 1. Let iterator be OrdinaryObjectCreate(%ArrayIteratorPrototype%, « [[IteratedArrayLike]], [[ArrayLikeNextIndex]], [[ArrayLikeIterationKind]] »).
-    realm := interpréteuse.donne_realm()
-    iterator := ordinary_object_create(realm, realm.intrinsics.array_iterator_prototype, array_iterator_instance_crée).vérifie_comme(ArrayIterator)
+    realm := interpréteuse.donne_realm();
+    iterator := ordinary_object_create(realm, realm.intrinsics.array_iterator_prototype, array_iterator_instance_crée).vérifie_comme(ArrayIterator);
 
     // 2. Set iterator.[[IteratedArrayLike]] to array.
-    iterator.iterated_array_like = array
+    iterator.iterated_array_like = array;
 
     // 3. Set iterator.[[ArrayLikeNextIndex]] to 0.
-    iterator.array_like_next_index = 0
+    iterator.array_like_next_index = 0;
 
     // 4. Set iterator.[[ArrayLikeIterationKind]] to kind.
-    iterator.array_like_iteration_kind = kind
+    iterator.array_like_iteration_kind = kind;
 
     // 5. Return iterator.
-    retourne iterator
+    retourne iterator;
 }
 
 /* 23.1.5.2 The %ArrayIteratorPrototype% Object
@@ -704,11 +704,11 @@ create_array_iterator :: fonc (interpréteuse: *Interpréteuse, array: *Object, 
 crée_array_iterator_prototype :: fonc (realm: *Realm, prototype: *ObjectPrototype) -> *Object
 {
     // À FAIRE : %Iterator.prototype%
-    résultat := ordinary_object_create(realm, prototype, object_instance_crée)
+    résultat := ordinary_object_create(realm, prototype, object_instance_crée);
 
-    ajoute_fonction_native(résultat, STR_next, array_iterator_prototype_next)
+    ajoute_fonction_native(résultat, STR_next, array_iterator_prototype_next);
 
-    retourne résultat
+    retourne résultat;
 }
 
 /* 23.1.5.2.1 %ArrayIteratorPrototype%.next ( )
@@ -716,34 +716,34 @@ crée_array_iterator_prototype :: fonc (realm: *Realm, prototype: *ObjectPrototy
 array_iterator_prototype_next :: fonc (empl params: *ParamètresObjectCall) -> Valeur
 {
     // 1. Let O be the this value.
-    o := this_value
+    o := this_value;
 
     // 2. If O is not an Object, throw a TypeError exception.
     saufsi o.est_object() {
-        _ := interpréteuse.lance_type_error("iterator is not an Object")
-        retourne js_undefined
+        _ := interpréteuse.lance_type_error("iterator is not an Object");
+        retourne js_undefined;
     }
-    O := this_value.donne_objet() comme *ArrayIterator
+    O := this_value.donne_objet() comme *ArrayIterator;
 
     // 3. If O does not have all of the internal slots of an Array Iterator Instance (23.1.5.3), throw a TypeError exception.
     saufsi O.table.classe == ArrayIterator {
-        _ := interpréteuse.lance_type_error("Object is not an array iterator")
-        retourne js_undefined
+        _ := interpréteuse.lance_type_error("Object is not an array iterator");
+        retourne js_undefined;
     }
 
     // 4. Let array be O.[[IteratedArrayLike]].
-    array := O.iterated_array_like
+    array := O.iterated_array_like;
 
     // 5. If array is undefined, return CreateIteratorResultObject(undefined, true).
     si array == nul {
-        retourne create_iterator_result_object(interpréteuse.donne_realm(), js_undefined, vrai)
+        retourne create_iterator_result_object(interpréteuse.donne_realm(), js_undefined, vrai);
     }
 
     // 6. Let index be O.[[ArrayLikeNextIndex]].
-    index := O.array_like_next_index
+    index := O.array_like_next_index;
 
     // 7. Let kind be O.[[ArrayLikeIterationKind]].
-    kind := O.array_like_iteration_kind
+    kind := O.array_like_iteration_kind;
 
     // À FAIRE 8. If array has a [[TypedArrayName]] internal slot, then
         // a. Let taRecord be MakeTypedArrayWithBufferWitnessRecord(array, seq-cst).
@@ -751,62 +751,62 @@ array_iterator_prototype_next :: fonc (empl params: *ParamètresObjectCall) -> V
         // c. Let len be TypedArrayLength(taRecord).
     // 9. Else,
         // a. Let len be ? LengthOfArrayLike(array).
-    len := length_of_array_like(interpréteuse, array)
+    len := length_of_array_like(interpréteuse, array);
     si interpréteuse.possède_exception() {
-        retourne js_undefined
+        retourne js_undefined;
     }
 
     // 10. If index ≥ len, then
     si index comme r64 >= len {
         // a. Set O.[[IteratedArrayLike]] to undefined.
-        O.iterated_array_like = nul
+        O.iterated_array_like = nul;
 
         // b. Return CreateIteratorResultObject(undefined, true).
-        retourne create_iterator_result_object(interpréteuse.donne_realm(), js_undefined, vrai)
+        retourne create_iterator_result_object(interpréteuse.donne_realm(), js_undefined, vrai);
     }
 
     // 11. Set O.[[ArrayLikeNextIndex]] to index + 1.
-    O.array_like_next_index = index + 1
+    O.array_like_next_index = index + 1;
 
     // 12. Let indexNumber be 𝔽(index).
-    index_number := index comme r64
+    index_number := index comme r64;
 
-    result: Valeur
+    result: Valeur;
 
     // 13. If kind is key, then
     si kind == IterationKind.KEY {
         // a. Let result be indexNumber.
-        result.Number = index_number
+        result.Number = index_number;
     }
     // 14. Else,
     sinon {
         // a. Let elementKey be ! ToString(indexNumber).
-        element_key := to_string(interpréteuse, index_number)
+        element_key := to_string(interpréteuse, index_number);
 
         // b. Let elementValue be ? Get(array, elementKey).
-        element_value := get(array, element_key.texte)
+        element_value := get(array, element_key.texte);
         si interpréteuse.possède_exception() {
-            retourne js_undefined
+            retourne js_undefined;
         }
 
         // c. If kind is value, then
         si kind == IterationKind.VALUE {
             // i. Let result be elementValue.
-            result = element_value
+            result = element_value;
 
         }
         // d. Else,
         sinon {
             // i. Assert: kind is key+value.
-            assert(kind == IterationKind.KEY_VALUE)
+            assert(kind == IterationKind.KEY_VALUE);
 
             // ii. Let result be CreateArrayFromList(« indexNumber, elementValue »).
-            panique("non-implémenté")
+            panique("non-implémenté");
         }
     }
 
     // 15. Return CreateIteratorResultObject(result, false).
-    retourne create_iterator_result_object(interpréteuse.donne_realm(), result, faux)
+    retourne create_iterator_result_object(interpréteuse.donne_realm(), result, faux);
 }
 
 /** \} */

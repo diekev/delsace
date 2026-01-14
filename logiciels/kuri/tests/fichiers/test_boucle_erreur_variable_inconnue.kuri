@@ -4,7 +4,7 @@
 foo :: fonc () -> rien
 {
 	boucle {
-		continue a
+		continue a;
 	}
 }
 
@@ -14,7 +14,7 @@ foo :: fonc () -> rien
 foo :: fonc () -> rien
 {
 	pour i dans 0 ... 10 {
-		arrête j
+		arrête j;
 	}
 }
 
@@ -23,9 +23,9 @@ foo :: fonc () -> rien
 
 foo :: fonc () -> rien
 {
-	a := 5
+	a := 5;
 
 	pour i dans 0 ... 10 {
-		arrête a
+		arrête a;
 	}
 }

@@ -5,13 +5,13 @@
  * Catégorie : [génération code, expression déloge]
  */
 
-importe Fondation
-importe Support
+importe Fondation;
+importe Support;
 
 principale :: fonc ()
 {
-    ptr := loge_tableau(z32, 32)
-    indirection := *ptr
+    ptr := loge_tableau(z32, 32);
+    indirection := *ptr;
 
-    déloge(mémoire(indirection))
+    déloge(mémoire(indirection));
 }

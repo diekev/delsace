@@ -4,39 +4,39 @@
  */
 
 Valeur :: struct ($T: type_de_données) {
-    v: T
+    v: T;
 }
 
-UnionAnonyme :: Valeur(z32) | Valeur(r32)
+UnionAnonyme :: Valeur(z32) | Valeur(r32);
 
 discrimine_union :: fonc (anonyme: UnionAnonyme, est_z32: bool)
 {
-    Valeur_z32 :: Valeur(z32)
-    Valeur_r32 :: Valeur(r32)
+    Valeur_z32 :: Valeur(z32);
+    Valeur_r32 :: Valeur(r32);
 
     discr anonyme {
         Valeur_z32 {
             saufsi est_z32 {
-                panique("L'union devrait avoir un type z32")
+                panique("L'union devrait avoir un type z32");
             }
         }
         Valeur_r32 {
             si est_z32 {
-                panique("L'union devrait avoir un type z32")
+                panique("L'union devrait avoir un type z32");
             }
         }
         sinon {
-            panique("L'union n'a ni de z32 ni de r32")
+            panique("L'union n'a ni de z32 ni de r32");
         }
     }
 
-    retourne
+    retourne;
 }
 
 principale :: fonc ()
 {
-    valeur_z32 := Valeur(z32)(123)
-    discrimine_union(valeur_z32, vrai)
-    valeur_r32 := Valeur(r32)(12.3)
-    discrimine_union(valeur_r32, faux)
+    valeur_z32 := Valeur(z32)(123);
+    discrimine_union(valeur_z32, vrai);
+    valeur_r32 := Valeur(r32)(12.3);
+    discrimine_union(valeur_r32, faux);
 }

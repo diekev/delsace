@@ -6,7 +6,7 @@
 copie_enchaineuse_fichier_ex :: fonc (enchaineuse: *Enchaineuse, chemin: CheminFichier)
 {
     saufsi écris_fichier_entier(chemin, *enchaineuse) {
-        compilatrice_rapporte_erreur("impossible d'ouvrir le fichier")
+        compilatrice_rapporte_erreur("impossible d'ouvrir le fichier");
     }
 }
 

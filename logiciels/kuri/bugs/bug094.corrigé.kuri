@@ -5,15 +5,15 @@
  */
 
 Structure :: struct {
-    x: r32
-    y: r32
-    z: r32
+    x: r32;
+    y: r32;
+    z: r32;
 }
 
-Opaque :: #opaque Structure
+Opaque :: #opaque Structure;
 
 principale :: fonc ()
 {
-    _ := Opaque(x = 5.0, y = 6.0, z = 7.0)
-    _ := Opaque(5.0, 6.0, 7.0)
+    _ := Opaque(x = 5.0, y = 6.0, z = 7.0);
+    _ := Opaque(5.0, 6.0, 7.0);
 }

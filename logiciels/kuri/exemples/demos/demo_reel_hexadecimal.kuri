@@ -1,4 +1,4 @@
-importe Fondation
+importe Fondation;
 
 principale :: fonc ()
 {
@@ -9,35 +9,35 @@ principale :: fonc ()
     // égaux à zéro (p.e. https://iquilezles.org/www/articles/float4k/float4k.htm).
 
     // commençons par 0
-    r0 := 0r00000000
-    imprime("r0 = %\n", r0)
+    r0 := 0r00000000;
+    imprime("r0 = %\n", r0);
 
     // environ 2.0
-    r2 := 0r3fff0000
-    imprime("r2 = %\n", r2)
+    r2 := 0r3fff0000;
+    imprime("r2 = %\n", r2);
 
     // nous pouvons mieux définir les constantes extrêmes réelles
-    R32_MIN :: 0r00800000
-    R32_MAX :: 0r7f7fffff
-    R32_INFINITÉ :: 0r7f800000
-    R32_INFINITÉ_NÉGATIVE :: 0rff800000
+    R32_MIN :: 0r00800000;
+    R32_MAX :: 0r7f7fffff;
+    R32_INFINITÉ :: 0r7f800000;
+    R32_INFINITÉ_NÉGATIVE :: 0rff800000;
 
-    R64_MIN :: 0r0010000000000000
-    R64_MAX :: 0r7fefffffffffffff
-    R64_INFINITÉ :: 0r7ff0000000000000
-    R64_INFINITÉ_NÉGATIVE :: 0rfff0000000000000
+    R64_MIN :: 0r0010000000000000;
+    R64_MAX :: 0r7fefffffffffffff;
+    R64_INFINITÉ :: 0r7ff0000000000000;
+    R64_INFINITÉ_NÉGATIVE :: 0rfff0000000000000;
 
-    imprime("R32_MIN est %, R32_MAX est %\n", R32_MIN, R32_MAX)
+    imprime("R32_MIN est %, R32_MAX est %\n", R32_MIN, R32_MAX);
 
     // nous pouvons écrire les nombres réels sous forme scientifique
-    x := 1e-6
-    imprime("x : %\n", x)
+    x := 1e-6;
+    imprime("x : %\n", x);
 
     // ici nous avons une simple soustraction
-    y := 1 - 2
-    imprime("y : %\n", y)
+    y := 1 - 2;
+    imprime("y : %\n", y);
 
     // ici nous avons une soustraction d'un nombre entier à un nombre réel
-    z := 1e-2 - 1
-    imprime("z : %\n", z)
+    z := 1e-2 - 1;
+    imprime("z : %\n", z);
 }

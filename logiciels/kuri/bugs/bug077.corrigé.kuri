@@ -3,10 +3,10 @@
  * Catégorie : [crash, conversion implicite, variable globale, type tableau]
  */
 
-importe Fondation
+importe Fondation;
 
 UneStructure :: struct {
-    nom: chaine
+    nom: chaine;
 }
 
 tableau_fixe := [
@@ -14,30 +14,30 @@ tableau_fixe := [
     UneStructure("Populus"),
     UneStructure("Que"),
     UneStructure("Romanus")
-]
+];
 
 tableau_convertis : []UneStructure = [
     UneStructure("Senatus"),
     UneStructure("Populus"),
     UneStructure("Que"),
     UneStructure("Romanus")
-]
+];
 
 principale :: fonc ()
 {
     /* Ceci doit imprimer "SPQR". */
     pour tableau_fixe {
-        lettre := chaine(*it.nom[0], 1)
-        imprime("%", lettre)
+        lettre := chaine(*it.nom[0], 1);
+        imprime("%", lettre);
     }
-    imprime("\n")
+    imprime("\n");
 
     /* Ceci devrait imprimer "SPQR", mais crash, ou est corrompu.
      * NOTE : le crash survient principalement si la boucle sur le
      * tableau fixe est supprimée. */
     pour tableau_convertis {
-        lettre := chaine(*it.nom[0], 1)
-        imprime("%", lettre)
+        lettre := chaine(*it.nom[0], 1);
+        imprime("%", lettre);
     }
-    imprime("\n")
+    imprime("\n");
 }

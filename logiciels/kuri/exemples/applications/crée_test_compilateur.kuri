@@ -1,5 +1,5 @@
-importe Fondation
-importe SysFichier
+importe Fondation;
+importe SysFichier;
 
 // tests pour vérifier la vitesse de compilation de gros blocs de code
 // redondant mais simple
@@ -21,40 +21,40 @@ crée_test :: fonc (nombre_de_ligne: z32, chemin_fichier: chaine) -> rien
         "\td := 4\n",
         "\ta = b + c * d\n",
         "}\n"
-    ]
+    ];
 
     // calcule l'espace nécessaire
-    taille : z64 = 0
+    taille : z64 = 0;
 
     pour chn dans chaines {
-        taille += chn.taille
+        taille += chn.taille;
     }
 
-    taille += chaines[6].taille * (nombre_de_ligne - 1)
+    taille += chaines[6].taille * (nombre_de_ligne - 1);
 
     // génère le code du test
-    enchaineuse: Enchaineuse
+    enchaineuse: Enchaineuse;
 
     pour i dans 0 ... 5 {
-        ajoute_au_tampon(*enchaineuse, chaines[i])
+        ajoute_au_tampon(*enchaineuse, chaines[i]);
     }
 
     pour nombre_de_ligne {
-        ajoute_au_tampon(*enchaineuse, chaines[6])
+        ajoute_au_tampon(*enchaineuse, chaines[6]);
     }
 
-    ajoute_au_tampon(*enchaineuse, chaines[7])
+    ajoute_au_tampon(*enchaineuse, chaines[7]);
 
     // écris le fichier
-    chaine_reponse := chaine_depuis_enchaineuse(*enchaineuse)
-    _ := écris_fichier_entier(chemin_fichier, chaine_reponse)
-    déloge(chaine_reponse)
+    chaine_reponse := chaine_depuis_enchaineuse(*enchaineuse);
+    _ := écris_fichier_entier(chemin_fichier, chaine_reponse);
+    déloge(chaine_reponse);
 }
 
 principale :: fonc ()
 {
-    crée_test(20_000, "/tmp/test_20_000_lignes.kuri")
-    crée_test(100_000, "/tmp/test_100_000_lignes.kuri")
-    crée_test(500_000, "/tmp/test_500_000_lignes.kuri")
-    crée_test(2_000_000, "/tmp/test_2_000_000_lignes.kuri")
+    crée_test(20_000, "/tmp/test_20_000_lignes.kuri");
+    crée_test(100_000, "/tmp/test_100_000_lignes.kuri");
+    crée_test(500_000, "/tmp/test_500_000_lignes.kuri");
+    crée_test(2_000_000, "/tmp/test_2_000_000_lignes.kuri");
 }

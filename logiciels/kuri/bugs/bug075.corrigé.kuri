@@ -9,11 +9,11 @@ principale :: fonc ()
         boucle {
             pour x dans 2 {
                 si x % 2 == 3 {
-                    arrête
+                    arrête;
                 }
             }
             sansarrêt {
-                arrête
+                arrête;
             }
         }
     }

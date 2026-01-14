@@ -6,31 +6,31 @@
 
 nombre_de_bits_pour_représenter :: fonc (v: n64) -> n64
 {
-    résultat : n64 = 0
+    résultat : n64 = 0;
     tantque v != 0 {
-        v >>= 1
-        résultat += 1
+        v >>= 1;
+        résultat += 1;
     }
-    retourne résultat
+    retourne résultat;
 }
 
 nombre_de_bits_pour_représenter :: fonc (vs: ...n64) -> n64
 {
-    résultat : n64 = 0
+    résultat : n64 = 0;
     pour vs {
-        résultat += nombre_de_bits_pour_représenter(it)
+        résultat += nombre_de_bits_pour_représenter(it);
     }
-    retourne résultat
+    retourne résultat;
 }
 
 nombre_de_bits_zéro_en_fin :: fonc (i: n64) -> n32
 {
     si i == 0 {
-        retourne 64
+        retourne 64;
     }
 
-    n : n32 = 63
-    y: n64
+    n : n32 = 63;
+    y: n64;
 
     y = i << 32; si y != 0 { n = n - 32; i = y; }
     y = i << 16; si y != 0 { n = n - 16; i = y; }
@@ -38,61 +38,61 @@ nombre_de_bits_zéro_en_fin :: fonc (i: n64) -> n32
     y = i <<  4; si y != 0 { n = n -  4; i = y; }
     y = i <<  2; si y != 0 { n = n -  2; i = y; }
 
-    retourne (n - (i << 1) >> 63) comme n32
+    retourne (n - (i << 1) >> 63) comme n32;
 }
 
 compte_nombre_de_bits_actifs :: fonc (x: n32) -> n32
 {
     // ajoute les paires de bits
-    x = (x & 0b0101_0101_0101_0101_0101_0101_0101_0101) + ((x >> 1) & 0b0101_0101_0101_0101_0101_0101_0101_0101)
+    x = (x & 0b0101_0101_0101_0101_0101_0101_0101_0101) + ((x >> 1) & 0b0101_0101_0101_0101_0101_0101_0101_0101);
 
     // ajoute les paires de paires
-    x = (x & 0b0011_0011_0011_0011_0011_0011_0011_0011) + ((x >> 2) & 0b0011_0011_0011_0011_0011_0011_0011_0011)
+    x = (x & 0b0011_0011_0011_0011_0011_0011_0011_0011) + ((x >> 2) & 0b0011_0011_0011_0011_0011_0011_0011_0011);
 
     // ajoute les nybbles
-    x = (x & 0b0000_1111_0000_1111_0000_1111_0000_1111) + ((x >> 4) & 0b0000_1111_0000_1111_0000_1111_0000_1111)
+    x = (x & 0b0000_1111_0000_1111_0000_1111_0000_1111) + ((x >> 4) & 0b0000_1111_0000_1111_0000_1111_0000_1111);
 
     // ajoute les octets
-    x += (x >> 8)
+    x += (x >> 8);
 
     // ajoute les mots
-    x += (x >> 16)
+    x += (x >> 16);
 
-    retourne x & 0b1111_1111
+    retourne x & 0b1111_1111;
 }
 
 compte_nombre_de_bits_inactifs :: fonc (x: n32) -> n32
 {
-    retourne 32 - compte_nombre_de_bits_actifs(x)
+    retourne 32 - compte_nombre_de_bits_actifs(x);
 }
 
 bit_est_actif :: fonc (n: n64, indice_bit: n64) -> bool #enligne
 {
-    retourne (n & (1 << indice_bit)) != 0
+    retourne (n & (1 << indice_bit)) != 0;
 }
 
 indice_premier_bit_actif_gauche :: fonc (v: n64) -> n64
 {
     pour > 64 {
         si bit_est_actif(v, it comme n64) {
-            retourne it comme n64
+            retourne it comme n64;
         }
     }
 
-    retourne 0
+    retourne 0;
 }
 
 // À FAIRE(langage) : crash dans la MV si le type retour est n32 (la conversion vers z64 pour l'indexage ne fonctionne pas)
 indice_bit_taille_octet :: fonc (taille: n32) -> z32
 {
-    résultat : z32 = 0
+    résultat : z32 = 0;
 
     tantque taille / 2 != 0 {
-        résultat += 1
-        taille /= 2
+        résultat += 1;
+        taille /= 2;
     }
 
-    retourne résultat
+    retourne résultat;
 }
 
 /* Retourne l'indice du bit, en partant de la droite, du plus petit multiple de
@@ -100,31 +100,31 @@ indice_bit_taille_octet :: fonc (taille: n32) -> z32
  * multiple. */
 indice_bit_multiple_de_2_suivant :: fonc (n: z64) -> z64 #enligne #sanstrace
 {
-    multiple := multiple_de_2_suivant(n)
-    retourne 64 - 1 - intrinsèque_compte_zéros_en_tête(multiple comme n64)
+    multiple := multiple_de_2_suivant(n);
+    retourne 64 - 1 - intrinsèque_compte_zéros_en_tête(multiple comme n64);
 }
 
 multiple_de_2_suivant :: fonc (v: $T) -> T #enligne
 {
-    v -= 1
-    v |= v >> 1
-    v |= v >> 2
-    v |= v >> 4
+    v -= 1;
+    v |= v >> 1;
+    v |= v >> 2;
+    v |= v >> 4;
 
     #si T == z16 || T == n16 {
-        v |= v >> 8
+        v |= v >> 8;
     }
     sinon si T == z32 || T == n32 {
-        v |= v >> 8
-        v |= v >> 16
+        v |= v >> 8;
+        v |= v >> 16;
     }
     sinon si T == z64 || T == n64 {
-        v |= v >> 8
-        v |= v >> 16
-        v |= v >> 32
+        v |= v >> 8;
+        v |= v >> 16;
+        v |= v >> 32;
     }
 
-    v += 1
+    v += 1;
 
-    retourne v
+    retourne v;
 }

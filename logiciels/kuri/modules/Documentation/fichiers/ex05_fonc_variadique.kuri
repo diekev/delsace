@@ -1,17 +1,17 @@
 exemple :: fonc (args: ...r32) -> r32
 {
-    résultat : r32 = 0.0
+    résultat : r32 = 0.0;
 
     pour x dans args {
         pour y dans args {
-            résultat += x * y
+            résultat += x * y;
         }
     }
 
-    retourne résultat / (args.taille comme r32)
+    retourne résultat / (args.taille comme r32);
 }
 
 principale :: fonc ()
 {
-    _ := exemple(0.0, 1.0, 2.5, 45.7, 7.9, 8.1)
+    _ := exemple(0.0, 1.0, 2.5, 45.7, 7.9, 8.1);
 }

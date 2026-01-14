@@ -4,5 +4,5 @@
 
 principale :: fonc ()
 {
-    a : []octet = nul
+    a : []octet = nul;
 }

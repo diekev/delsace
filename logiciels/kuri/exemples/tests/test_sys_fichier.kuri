@@ -1,57 +1,57 @@
-importe Fondation
-importe SysFichier
+importe Fondation;
+importe SysFichier;
 
 /* ------------------------------------------------------------------------- */
 
 test_chemin_courant :: fonc () -> rien
 {
-    chemin := donne_chemin_courant()
+    chemin := donne_chemin_courant();
 
-    imprime("chemin courant : %\n", chemin.chn)
-    déloge(chemin.chn)
+    imprime("chemin courant : %\n", chemin.chn);
+    déloge(chemin.chn);
 
-    chemin = CheminFichier("/tmp/")
-    définis_chemin_courant(chemin)
+    chemin = CheminFichier("/tmp/");
+    définis_chemin_courant(chemin);
 
-    chemin = donne_chemin_courant()
+    chemin = donne_chemin_courant();
 
-    imprime("chemin courant : %\n", chemin.chn)
-    déloge(chemin.chn)
+    imprime("chemin courant : %\n", chemin.chn);
+    déloge(chemin.chn);
 }
 
 test_itération_dossier :: fonc () -> rien
 {
-    chemin := CheminFichier("/tmp/")
+    chemin := CheminFichier("/tmp/");
 
     pour entrée dans chaque_chemin(chemin) {
-        imprime("%\n", entrée.chn)
+        imprime("%\n", entrée.chn);
 
         si est_dossier(entrée) {
-            imprime("---- dossier\n")
+            imprime("---- dossier\n");
         }
         sinon si est_fichier_régulier(entrée) {
-            imprime("---- fichier\n")
+            imprime("---- fichier\n");
         }
         sinon si !fichier_existe(entrée) {
-            imprime("---- le fichier n'existe pas\n")
+            imprime("---- le fichier n'existe pas\n");
         }
     }
 }
 
 principale :: fonc ()
 {
-    chm := CheminFichier("/tmp/test_parcer.cc")
-    succès, contenu := contenu_fichier_texte(chm)
+    chm := CheminFichier("/tmp/test_parcer.cc");
+    succès, contenu := contenu_fichier_texte(chm);
     saufsi succès {
-        exit(1)
+        exit(1);
     }
-    diffère déloge(contenu)
+    diffère déloge(contenu);
 
-    chm_sortie := CheminFichier("/tmp/SORITE_test_parcer.cc")
+    chm_sortie := CheminFichier("/tmp/SORITE_test_parcer.cc");
 
     saufsi écris_fichier_entier(chm_sortie, contenu) {
-        exit(1)
+        exit(1);
     }
 
-    imprime(contenu, '\n')
+    imprime(contenu, '\n');
 }

@@ -1,16 +1,16 @@
-importe Fondation
+importe Fondation;
 
 principale :: fonc ()
 {
-    chaine_guillemets_anglais := "Bonjour, tout le monde !"
-    chaine_guillemets_français := «Bonjour, tout le monde !»
+    chaine_guillemets_anglais := "Bonjour, tout le monde !";
+    chaine_guillemets_français := «Bonjour, tout le monde !»;
 
-    imprime("chaine guillemet anglais  : %\n", chaine_guillemets_anglais)
-    imprime("chaine guillemet français : %\n", chaine_guillemets_français)
+    imprime("chaine guillemet anglais  : %\n", chaine_guillemets_anglais);
+    imprime("chaine guillemet français : %\n", chaine_guillemets_français);
 
     // nous pouvons avoir des guillemets français nichés les uns dans les autres tant
     // que le nombre d'ouvertures correspond au nombre de fermetures
 
-    chaine_guillemets_nichés := «Il a dit «Bonjour, tout le monde!».»
-    imprime("chaine guillemets nichés  : %\n", chaine_guillemets_nichés)
+    chaine_guillemets_nichés := «Il a dit «Bonjour, tout le monde!».»;
+    imprime("chaine guillemets nichés  : %\n", chaine_guillemets_nichés);
 }

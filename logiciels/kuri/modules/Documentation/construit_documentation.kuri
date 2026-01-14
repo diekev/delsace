@@ -1,132 +1,132 @@
-importe Compilatrice
-importe Fondation
+importe Compilatrice;
+importe Fondation;
 
 enlève_début_fin_commentaire :: fonc (commentaire: chaine) -> chaine
 {
     si commentaire.taille < 4 {
-        retourne ""
+        retourne "";
     }
 
     si commentaire[0] == '/' && commentaire[1] == '*' {
-        commentaire = avance(commentaire, 2)
+        commentaire = avance(commentaire, 2);
     }
 
     tantque commentaire.taille > 1 && est_espace_blanche(commentaire[0]) {
-        commentaire = avance(commentaire, 1)
+        commentaire = avance(commentaire, 1);
     }
 
     si commentaire[commentaire.taille - 2] == '*' && commentaire[commentaire.taille - 1] == '/' {
-        commentaire = recule(commentaire, 2)
+        commentaire = recule(commentaire, 2);
     }
 
     tantque commentaire.taille > 1 && est_espace_blanche(commentaire[commentaire.taille - 1]) {
-        commentaire = recule(commentaire, 1)
+        commentaire = recule(commentaire, 1);
     }
 
-    retourne commentaire
+    retourne commentaire;
 }
 
 DonnéesDocument :: struct {
-    indice_début: z64
-    indice_fin: z64
-    est_commentaire: bool
+    indice_début: z64;
+    indice_fin: z64;
+    est_commentaire: bool;
 }
 
 #exécute {
-    désactive_compilation_espace_défaut()
+    désactive_compilation_espace_défaut();
 
-    lexèmes := compilatrice_lèxe_fichier("doc.kuri")
-    diffère déloge(lexèmes)
+    lexèmes := compilatrice_lèxe_fichier("doc.kuri");
+    diffère déloge(lexèmes);
 
-    données: [..]DonnéesDocument
-    diffère déloge(données)
+    données: [..]DonnéesDocument;
+    diffère déloge(données);
 
-    indice_début: z64
-    taille_code: z64
+    indice_début: z64;
+    taille_code: z64;
 
     pour lexèmes {
         si it.genre == GenreLexème.COMMENTAIRE {
             si taille_code != 0 {
-                d: DonnéesDocument
-                d.est_commentaire = faux
-                d.indice_début = indice_début
-                d.indice_fin = indice_début + taille_code
+                d: DonnéesDocument;
+                d.est_commentaire = faux;
+                d.indice_début = indice_début;
+                d.indice_fin = indice_début + taille_code;
 
-                tableau_ajoute(*données, d)
+                tableau_ajoute(*données, d);
 
-                taille_code = 0
+                taille_code = 0;
             }
 
-            d: DonnéesDocument
-            d.est_commentaire = vrai
-            d.indice_début = indice_it
+            d: DonnéesDocument;
+            d.est_commentaire = vrai;
+            d.indice_début = indice_it;
 
-            tableau_ajoute(*données, d)
+            tableau_ajoute(*données, d);
         }
         sinon {
             si taille_code == 0 {
-                indice_début = indice_it
+                indice_début = indice_it;
             }
 
-            taille_code += 1
+            taille_code += 1;
         }
     }
 
     si taille_code != 0 {
-        d: DonnéesDocument
-        d.est_commentaire = faux
-        d.indice_début = indice_début
-        d.indice_fin = indice_début + taille_code
+        d: DonnéesDocument;
+        d.est_commentaire = faux;
+        d.indice_début = indice_début;
+        d.indice_fin = indice_début + taille_code;
 
-        tableau_ajoute(*données, d)
+        tableau_ajoute(*données, d);
     }
 
     pour données {
         si it.est_commentaire {
-            texte := lexèmes[it.indice_début].texte
-            texte = enlève_début_fin_commentaire(texte)
-            imprime("<p>%</p>\n", texte)
+            texte := lexèmes[it.indice_début].texte;
+            texte = enlève_début_fin_commentaire(texte);
+            imprime("<p>%</p>\n", texte);
         }
         sinon {
-            sous_lexèmes: [..]Lexème
-            sous_lexèmes.pointeur = *lexèmes[it.indice_début]
-            sous_lexèmes.taille = it.indice_fin - it.indice_début
+            sous_lexèmes: [..]Lexème;
+            sous_lexèmes.pointeur = *lexèmes[it.indice_début];
+            sous_lexèmes.taille = it.indice_fin - it.indice_début;
 
             // supprime les espaces blancs au début du code
             tantque sous_lexèmes.taille > 0 {
                 si sous_lexèmes[0].texte != "\n" {
-                    arrête
+                    arrête;
                 }
 
-                sous_lexèmes.taille -= 1
-                sous_lexèmes.pointeur += 1
+                sous_lexèmes.taille -= 1;
+                sous_lexèmes.pointeur += 1;
             }
 
             // supprime les espaces blancs à la fin du code
             tantque sous_lexèmes.taille > 0 {
                 si sous_lexèmes[sous_lexèmes.taille - 1].texte != "\n" {
-                    arrête
+                    arrête;
                 }
 
-                sous_lexèmes.taille -= 1
+                sous_lexèmes.taille -= 1;
             }
 
             si sous_lexèmes {
-                imprime("<pre>\n")
+                imprime("<pre>\n");
 
                 pour l dans sous_lexèmes {
                     si est_chaine_littérale(l.genre) {
-                        imprime("<span class=chn-lit>%</span>", l.texte)
+                        imprime("<span class=chn-lit>%</span>", l.texte);
                     }
                     sinon si est_mot_clé(l.genre) {
-                        imprime("<span class=mot-cle>%</span>", l.texte)
+                        imprime("<span class=mot-cle>%</span>", l.texte);
                     }
                     sinon {
-                        imprime("%", l.texte)
+                        imprime("%", l.texte);
                     }
                 }
 
-                imprime("\n</pre>\n")
+                imprime("\n</pre>\n");
             }
         }
     }

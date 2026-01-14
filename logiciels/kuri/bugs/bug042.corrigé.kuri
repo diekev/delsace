@@ -3,9 +3,9 @@
  * Catégorie : [compilation infini, validation sémantique, symbole inconnu]
  */
 
-importe Support
+importe Support;
 
 principale :: fonc ()
 {
-    a := MonÉnum.Valeur
+    a := MonÉnum.Valeur;
 }

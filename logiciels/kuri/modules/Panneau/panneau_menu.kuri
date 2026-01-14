@@ -1,216 +1,216 @@
-importe Menufice
+importe Menufice;
 
 /* ------------------------------------------------------------------------- */
 /** \nom Panneau barre de menu
  * \{ */
 
 PanneauBarreDeMenu :: struct {
-    empl base: Panneau
+    empl base: Panneau;
 
     Élément :: struct {
-        décalage: z32
-        largeur: z32
-        animation: Animation
+        décalage: z32;
+        largeur: z32;
+        animation: Animation;
     }
 
     État :: struct {
-        élément_pressé := -1
+        élément_pressé := -1;
     }
 
-    barre_de_menu: *BarreDeMenu
+    barre_de_menu: *BarreDeMenu;
 
-    éléments: [..]Élément
+    éléments: [..]Élément;
 
-    hauteur_élément: z32
-    espaçage_élément: z32
-    décalage_élément_x: z32
-    décalage_élément_y: z32
+    hauteur_élément: z32;
+    espaçage_élément: z32;
+    décalage_élément_x: z32;
+    décalage_élément_y: z32;
 
-    état: État
+    état: État;
 
-    menus_affichés: [..]*PanneauMenu
+    menus_affichés: [..]*PanneauMenu;
 }
 
 crée_panneau_barre_de_menu :: fonc (ctx: *ContexteInterface, barre_de_menu: *BarreDeMenu) -> *PanneauBarreDeMenu
 {
-    sur_clic_souris :: fonc (panneau_menu: *PanneauBarreDeMenu, clic: ClicSouris) -> bool
+    sur_clic_souris :: fonc (panneau_menu: *PanneauBarreDeMenu, clic: ClicSouris) -> bool;
     {
-        retourne observe_clic(panneau_menu, clic)
+        retourne observe_clic(panneau_menu, clic);
     }
 
-    sur_dessin :: fonc (panneau_menu: *PanneauBarreDeMenu, contexte_affichage: *ContexteAffichage)
+    sur_dessin :: fonc (panneau_menu: *PanneauBarreDeMenu, contexte_affichage: *ContexteAffichage);
     {
-        dessine(panneau_menu, contexte_affichage)
+        dessine(panneau_menu, contexte_affichage);
     }
 
-    sur_destruction :: fonc (panneau: *Panneau)
+    sur_destruction :: fonc (panneau: *Panneau);
     {
-        panneau_menu := panneau comme *PanneauBarreDeMenu
-        détruit_panneau_barre_de_menu(panneau_menu)
+        panneau_menu := panneau comme *PanneauBarreDeMenu;
+        détruit_panneau_barre_de_menu(panneau_menu);
     }
 
-    résultat := ctx.crée_panneau(PanneauBarreDeMenu)
+    résultat := ctx.crée_panneau(PanneauBarreDeMenu);
 
     /* Données spécifiques. */
-    résultat.barre_de_menu = barre_de_menu
+    résultat.barre_de_menu = barre_de_menu;
 
     /* Rappels. */
-    résultat.sur_clic_souris = sur_clic_souris
-    résultat.sur_dessin = sur_dessin
-    résultat.sur_destruction = sur_destruction
+    résultat.sur_clic_souris = sur_clic_souris;
+    résultat.sur_dessin = sur_dessin;
+    résultat.sur_destruction = sur_destruction;
 
-    retourne résultat
+    retourne résultat;
 }
 
 détruit_panneau_barre_de_menu :: fonc (panneau: &*PanneauBarreDeMenu)
 {
-    déloge(panneau.éléments)
-    déloge(panneau)
-    panneau = nul
+    déloge(panneau.éléments);
+    déloge(panneau);
+    panneau = nul;
 }
 
 ajourne_disposition :: fonc (empl panneau: *PanneauBarreDeMenu)
 {
     saufsi besoin_ajournement_disposition {
-        retourne
+        retourne;
     }
-    diffère besoin_ajournement_disposition = faux
+    diffère besoin_ajournement_disposition = faux;
 
-    fonte := contexte.fonte
-    métriques := donne_métriques_fonte(fonte)
+    fonte := contexte.fonte;
+    métriques := donne_métriques_fonte(fonte);
 
     /* Calcul rect. */
-    hauteur_de_ligne := métriques.donne_hauteur_ligne() comme z32
-    hauteur_menu := hauteur_de_ligne + 10
+    hauteur_de_ligne := métriques.donne_hauteur_ligne() comme z32;
+    hauteur_menu := hauteur_de_ligne + 10;
 
-    rect_parent := parent.rect
+    rect_parent := parent.rect;
 
-    rect.x = 0
-    rect.y = rect_parent.hauteur - hauteur_menu
-    rect.largeur = rect_parent.largeur
-    rect.hauteur = hauteur_menu
+    rect.x = 0;
+    rect.y = rect_parent.hauteur - hauteur_menu;
+    rect.largeur = rect_parent.largeur;
+    rect.hauteur = hauteur_menu;
 
     /* Calcul taille éléments. */
-    hauteur_élément = métriques.donne_hauteur_caractère() comme z32
-    espaçage_élément = donne_largeur_texte(fonte, "0") comme z32
-    décalage_élément_x = espaçage_élément * 2
-    décalage_élément_y = (rect.hauteur - hauteur_élément) / 2
+    hauteur_élément = métriques.donne_hauteur_caractère() comme z32;
+    espaçage_élément = donne_largeur_texte(fonte, "0") comme z32;
+    décalage_élément_x = espaçage_élément * 2;
+    décalage_élément_y = (rect.hauteur - hauteur_élément) / 2;
 
-    tableau_redimensionne(éléments, barre_de_menu.menus.taille)
+    tableau_redimensionne(éléments, barre_de_menu.menus.taille);
 
-    décalage_élément := décalage_élément_x
+    décalage_élément := décalage_élément_x;
 
     pour barre_de_menu.menus {
-        élément: PanneauBarreDeMenu.Élément
-        élément.décalage = décalage_élément
-        élément.largeur = donne_largeur_texte(fonte, it.texte) comme z32
+        élément: PanneauBarreDeMenu.Élément;
+        élément.décalage = décalage_élément;
+        élément.largeur = donne_largeur_texte(fonte, it.texte) comme z32;
 
-        éléments[indice_it] = élément
+        éléments[indice_it] = élément;
 
-        décalage_élément += (élément.largeur + décalage_élément_x * 2)
+        décalage_élément += (élément.largeur + décalage_élément_x * 2);
     }
 }
 
 dessine :: fonc (empl panneau: *PanneauBarreDeMenu, ctx: *ContexteAffichage)
 {
-    ajourne_disposition(panneau)
+    ajourne_disposition(panneau);
 
-    thème := ctx.thème
+    thème := ctx.thème;
 
-    remplis_rectangle(ctx.peintre, rect, thème.couleur_arrière_plan)
+    remplis_rectangle(ctx.peintre, rect, thème.couleur_arrière_plan);
 
-    rect_élément: RectanglePosDim(z32)
-    rect_élément.hauteur = hauteur_élément
+    rect_élément: RectanglePosDim(z32);
+    rect_élément.hauteur = hauteur_élément;
 
     pour * éléments {
         saufsi animation_est_fini(it.animation) {
-            ajourne_animation(*it.animation)
-            rect_pour_animation := donne_rect_élément_pour_clic(panneau, indice_it comme z32)
-            valeur := it.animation.temps comme n8
+            ajourne_animation(*it.animation);
+            rect_pour_animation := donne_rect_élément_pour_clic(panneau, indice_it comme z32);
+            valeur := it.animation.temps comme n8;
 
-            poids := 1.0 - (valeur comme r32 / 64.0)
-            couleur := interpole_linéaire(thème.couleur_menu_pressé, poids, thème.couleur_arrière_plan)
-            remplis_rectangle(ctx.peintre, rect_pour_animation, couleur)
+            poids := 1.0 - (valeur comme r32 / 64.0);
+            couleur := interpole_linéaire(thème.couleur_menu_pressé, poids, thème.couleur_arrière_plan);
+            remplis_rectangle(ctx.peintre, rect_pour_animation, couleur);
         }
         sinon si indice_it == état.élément_pressé {
-            couleur := thème.couleur_menu_pressé
-            rect_pour_animation := donne_rect_élément_pour_clic(panneau, indice_it comme z32)
-            remplis_rectangle(ctx.peintre, rect_pour_animation, couleur)
+            couleur := thème.couleur_menu_pressé;
+            rect_pour_animation := donne_rect_élément_pour_clic(panneau, indice_it comme z32);
+            remplis_rectangle(ctx.peintre, rect_pour_animation, couleur);
         }
 
-        rect_élément.x = rect.x + it.décalage
-        rect_élément.y = rect.y + décalage_élément_y
-        rect_élément.largeur = it.largeur
+        rect_élément.x = rect.x + it.décalage;
+        rect_élément.y = rect.y + décalage_élément_y;
+        rect_élément.largeur = it.largeur;
 
-        menu := barre_de_menu.menus[indice_it]
-        dessine_texte(ctx.peintre, ctx.fonte, menu.texte, rect_élément, thème.couleur_texte)
+        menu := barre_de_menu.menus[indice_it];
+        dessine_texte(ctx.peintre, ctx.fonte, menu.texte, rect_élément, thème.couleur_texte);
     }
 
     pour menus_affichés {
-        it.sur_dessin(it, ctx)
+        it.sur_dessin(it, ctx);
     }
 }
 
 observe_clic :: fonc (empl panneau: *PanneauBarreDeMenu, souris: ClicSouris) -> bool
 {
     saufsi rect.contient(souris.état.où) {
-        retourne faux
+        retourne faux;
     }
 
     si souris.action != ActionSouris.PRESSÉE {
-        retourne vrai
+        retourne vrai;
     }
 
-    indice_élément := donne_élément_sous_souris(panneau, souris.état)
+    indice_élément := donne_élément_sous_souris(panneau, souris.état);
     si indice_élément != -1 {
-        définis_élément_pressé(panneau, indice_élément, vrai)
+        définis_élément_pressé(panneau, indice_élément, vrai);
 
-        guetteuse: GuetteuseBarreDeMenu
-        guetteuse.barre_de_menu = panneau
-        commence_guettage(*guetteuse, panneau.contexte)
+        guetteuse: GuetteuseBarreDeMenu;
+        guetteuse.barre_de_menu = panneau;
+        commence_guettage(*guetteuse, panneau.contexte);
     }
 
-    retourne vrai
+    retourne vrai;
 }
 
 donne_élément_sous_souris :: fonc (empl panneau: *PanneauBarreDeMenu, souris: ÉtatSouris) -> z64
 {
     pour éléments {
-        rect_élément := donne_rect_élément_pour_clic(panneau, indice_it)
+        rect_élément := donne_rect_élément_pour_clic(panneau, indice_it);
         saufsi rect_élément.contient(souris.où) {
-            continue
+            continue;
         }
 
-        retourne indice_it
+        retourne indice_it;
     }
 
-    retourne -1
+    retourne -1;
 }
 
 définis_élément_pressé :: fonc (empl panneau: *PanneauBarreDeMenu, indice_élément: z64, indéfinis_élément: bool)
 {
-    assert(indice_élément >= -1)
-    assert(indice_élément < éléments.taille)
+    assert(indice_élément >= -1);
+    assert(indice_élément < éléments.taille);
 
     si état.élément_pressé == indice_élément {
         si indéfinis_élément {
-            anime_élément_pour_dépression(panneau)
-            état.élément_pressé = -1
-            panneau.détruit_panneau_menu()
+            anime_élément_pour_dépression(panneau);
+            état.élément_pressé = -1;
+            panneau.détruit_panneau_menu();
         }
     }
     sinon {
-        anime_élément_pour_dépression(panneau)
+        anime_élément_pour_dépression(panneau);
 
-        panneau.détruit_panneau_menu()
-        état.élément_pressé = indice_élément comme z32
+        panneau.détruit_panneau_menu();
+        état.élément_pressé = indice_élément comme z32;
 
         si indice_élément != -1 {
-            anime_élément_pour_pression(panneau)
-            rect_élément := donne_rect_élément_pour_clic(panneau, indice_élément)
-            panneau_menu := crée_panneau_menu(contexte, barre_de_menu.menus[indice_élément], Point2D(z32)(rect_élément.x, rect_élément.y))
-            panneau_menu.panneau_barre_de_menu = panneau
-            panneau.affiche_panneau_menu(panneau_menu)
+            anime_élément_pour_pression(panneau);
+            rect_élément := donne_rect_élément_pour_clic(panneau, indice_élément);
+            panneau_menu := crée_panneau_menu(contexte, barre_de_menu.menus[indice_élément], Point2D(z32)(rect_élément.x, rect_élément.y));
+            panneau_menu.panneau_barre_de_menu = panneau;
+            panneau.affiche_panneau_menu(panneau_menu);
         }
     }
 }
@@ -218,65 +218,65 @@ définis_élément_pressé :: fonc (empl panneau: *PanneauBarreDeMenu, indice_é
 /* Retourne les limites de l'élément pour les clics. */
 donne_rect_élément_pour_clic :: fonc (empl panneau: *PanneauBarreDeMenu, indice_élément: z64) -> RectanglePosDim(z32)
 {
-    assert(indice_élément >= 0)
-    assert(indice_élément < éléments.taille)
+    assert(indice_élément >= 0);
+    assert(indice_élément < éléments.taille);
 
-    élément := éléments[indice_élément]
+    élément := éléments[indice_élément];
 
-    résultat : RectanglePosDim(z32) = ---
-    résultat.x = rect.x + élément.décalage - décalage_élément_x
-    résultat.y = rect.y
-    résultat.hauteur = rect.hauteur
-    résultat.largeur = élément.largeur + décalage_élément_x * 2
-    retourne résultat
+    résultat : RectanglePosDim(z32) = ---;
+    résultat.x = rect.x + élément.décalage - décalage_élément_x;
+    résultat.y = rect.y;
+    résultat.hauteur = rect.hauteur;
+    résultat.largeur = élément.largeur + décalage_élément_x * 2;
+    retourne résultat;
 }
 
 sur_menu_fermé :: fonc (empl panneau: *PanneauBarreDeMenu)
 {
-    anime_élément_pour_dépression(panneau)
-    état.élément_pressé = -1
+    anime_élément_pour_dépression(panneau);
+    état.élément_pressé = -1;
 }
 
 anime_élément_pour_pression :: fonc (empl panneau: *PanneauBarreDeMenu)
 {
     si état.élément_pressé != -1 {
-        élément := *éléments[état.élément_pressé]
-        élément.animation.temps = 0
-        élément.animation.cible = 64
-        élément.animation.vitesse = 1.0 / 8.0
+        élément := *éléments[état.élément_pressé];
+        élément.animation.temps = 0;
+        élément.animation.cible = 64;
+        élément.animation.vitesse = 1.0 / 8.0;
     }
 }
 
 anime_élément_pour_dépression :: fonc (empl panneau: *PanneauBarreDeMenu)
 {
     si état.élément_pressé != -1 {
-        élément := *éléments[état.élément_pressé]
-        élément.animation.temps = 64
-        élément.animation.cible = 0
-        élément.animation.vitesse = 1.0 / 8.0
+        élément := *éléments[état.élément_pressé];
+        élément.animation.temps = 64;
+        élément.animation.cible = 0;
+        élément.animation.vitesse = 1.0 / 8.0;
     }
 }
 
 affiche_panneau_menu :: fonc (panneau: *PanneauBarreDeMenu, panneau_menu: *PanneauMenu)
 {
-    tableau_ajoute(*panneau.menus_affichés, panneau_menu)
+    tableau_ajoute(*panneau.menus_affichés, panneau_menu);
 }
 
 dépile_panneau_menu :: fonc (panneau: *PanneauBarreDeMenu)
 {
-    panneau_menu := enlève_dernier_élément(*panneau.menus_affichés)
-    détruit_panneau_menu(panneau_menu)
+    panneau_menu := enlève_dernier_élément(*panneau.menus_affichés);
+    détruit_panneau_menu(panneau_menu);
 }
 
 détruit_panneau_menu :: fonc (empl panneau: *PanneauBarreDeMenu)
 {
     pour menus_affichés {
-        détruit_panneau_menu(it)
+        détruit_panneau_menu(it);
     }
 
-    déloge(menus_affichés)
+    déloge(menus_affichés);
 
-    panneau.sur_menu_fermé()
+    panneau.sur_menu_fermé();
 }
 
 /** \} */
@@ -286,69 +286,69 @@ détruit_panneau_menu :: fonc (empl panneau: *PanneauBarreDeMenu)
  * \{ */
 
 GuetteuseBarreDeMenu :: struct {
-    empl base: Guetteuse
+    empl base: Guetteuse;
 
-    barre_de_menu: *PanneauBarreDeMenu
+    barre_de_menu: *PanneauBarreDeMenu;
 
-    sur_clic = guetteuse_barre_de_menu_sur_clic
-    sur_déplacement_souris = guetteuse_barre_de_menu_sur_déplacement_souris
+    sur_clic = guetteuse_barre_de_menu_sur_clic;
+    sur_déplacement_souris = guetteuse_barre_de_menu_sur_déplacement_souris;
 }
 
 guetteuse_barre_de_menu_sur_clic :: fonc (base: *Guetteuse, clic: ClicSouris) -> ÉtatÉvènement
 {
-    guetteuse := base comme *GuetteuseBarreDeMenu
-    panneau := guetteuse.barre_de_menu
+    guetteuse := base comme *GuetteuseBarreDeMenu;
+    panneau := guetteuse.barre_de_menu;
 
     si clic.action == ActionSouris.PRESSÉE {
-        indice_élément := donne_élément_sous_souris(panneau, clic.état)
+        indice_élément := donne_élément_sous_souris(panneau, clic.état);
         si indice_élément == -1 {
             pour panneau.menus_affichés {
                 si it.gère_clic_souris(clic) {
-                    retourne ÉtatÉvènement.CONSOMMÉ
+                    retourne ÉtatÉvènement.CONSOMMÉ;
                 }
             }
         }
     }
     sinon si clic.action == ActionSouris.RELACHÉE {
-        indice_élément := donne_élément_sous_souris(panneau, clic.état)
+        indice_élément := donne_élément_sous_souris(panneau, clic.état);
         si indice_élément != -1 {
-            retourne ÉtatÉvènement.PASSE_AU_PARENT
+            retourne ÉtatÉvènement.PASSE_AU_PARENT;
         }
 
         pour panneau.menus_affichés {
             si it.gère_clic_souris(clic) {
-                arrête
+                arrête;
             }
         }
         sansarrêt {
-            retourne ÉtatÉvènement.PASSE_AU_PARENT
+            retourne ÉtatÉvènement.PASSE_AU_PARENT;
         }
     }
 
     /* Soit nous avons cliqué sur une action, soit en dehors de la zone des menus, fermons tout. */
-    définis_élément_pressé(panneau, -1, vrai)
-    détruit_panneau_menu(panneau)
-    termine_guettage(guetteuse)
-    retourne ÉtatÉvènement.PASSE_AU_PARENT
+    définis_élément_pressé(panneau, -1, vrai);
+    détruit_panneau_menu(panneau);
+    termine_guettage(guetteuse);
+    retourne ÉtatÉvènement.PASSE_AU_PARENT;
 }
 
 guetteuse_barre_de_menu_sur_déplacement_souris :: fonc (base: *Guetteuse, souris: ÉtatSouris) -> ÉtatÉvènement
 {
-    guetteuse := base comme *GuetteuseBarreDeMenu
-    panneau := guetteuse.barre_de_menu
+    guetteuse := base comme *GuetteuseBarreDeMenu;
+    panneau := guetteuse.barre_de_menu;
 
-    indice_élément := donne_élément_sous_souris(panneau, souris)
+    indice_élément := donne_élément_sous_souris(panneau, souris);
     si indice_élément != -1 {
-        définis_élément_pressé(panneau, indice_élément, faux)
+        définis_élément_pressé(panneau, indice_élément, faux);
     }
     sinon {
         // regarde dans les menus ouverts
         pour panneau.menus_affichés {
-            it.sur_déplacement_souris(it, souris)
+            it.sur_déplacement_souris(it, souris);
         }
     }
 
-    retourne ÉtatÉvènement.CONSOMMÉ
+    retourne ÉtatÉvènement.CONSOMMÉ;
 }
 
 /** \} */
@@ -358,337 +358,337 @@ guetteuse_barre_de_menu_sur_déplacement_souris :: fonc (base: *Guetteuse, souri
  * \{ */
 
 PanneauMenu :: struct {
-    empl base: Panneau
+    empl base: Panneau;
 
     Élément :: struct {
-        décalage_y: z32
-        hauteur: z32
-        largeur: z32
-        est_séparateur: bool
-        est_sous_menu: bool
-        est_coche: bool
+        décalage_y: z32;
+        hauteur: z32;
+        largeur: z32;
+        est_séparateur: bool;
+        est_sous_menu: bool;
+        est_coche: bool;
     }
 
     État :: struct {
-        élément_pressé : z32 = -1
-        élément_survolé : z32 = -1
+        élément_pressé : z32 = -1;
+        élément_survolé : z32 = -1;
     }
 
-    panneau_barre_de_menu: *PanneauBarreDeMenu
-    menu: *Menu
-    éléments: [..]Élément
-    position: Point2D(z32)
+    panneau_barre_de_menu: *PanneauBarreDeMenu;
+    menu: *Menu;
+    éléments: [..]Élément;
+    position: Point2D(z32);
 
-    hauteur_élément: z32
-    espaçage_élément: z32
-    décalage_élément_x: z32
-    décalage_élément_y: z32
+    hauteur_élément: z32;
+    espaçage_élément: z32;
+    décalage_élément_x: z32;
+    décalage_élément_y: z32;
 
-    état: État
+    état: État;
 
-    menu_fut_affiché: *PanneauMenu
+    menu_fut_affiché: *PanneauMenu;
 
     /* Largeur requise par le parent. Si non-nulle, elle sera utilisée pour
      * définir la largeur du menu. */
-    largeur_requise := 0
+    largeur_requise := 0;
 }
 
 crée_panneau_menu :: fonc (ctx: *ContexteInterface, menu: *Menu, position: Point2D(z32)) -> *PanneauMenu
 {
-    sur_déplacement_souris :: fonc (panneau_menu: *PanneauMenu, souris: ÉtatSouris)
+    sur_déplacement_souris :: fonc (panneau_menu: *PanneauMenu, souris: ÉtatSouris);
     {
-        observe_souris(panneau_menu, souris)
+        observe_souris(panneau_menu, souris);
     }
 
-    sur_clic_souris :: fonc (empl panneau_menu: *PanneauMenu, clic: ClicSouris) -> bool
+    sur_clic_souris :: fonc (empl panneau_menu: *PanneauMenu, clic: ClicSouris) -> bool;
     {
         saufsi rect.contient(clic.état.où) {
-            retourne faux
+            retourne faux;
         }
 
         si clic.action == ActionSouris.PRESSÉE {
-            état.élément_pressé = état.élément_survolé
-            retourne vrai
+            état.élément_pressé = état.élément_survolé;
+            retourne vrai;
         }
 
         si clic.action == ActionSouris.RELACHÉE {
             si état.élément_pressé == -1 && état.élément_survolé != -1 {
-                état.élément_pressé = état.élément_survolé
+                état.élément_pressé = état.élément_survolé;
             }
 
-            élément := menu.éléments[état.élément_pressé]
-            gère_clic_souris(élément)
+            élément := menu.éléments[état.élément_pressé];
+            gère_clic_souris(élément);
             si panneau_barre_de_menu {
-                panneau_barre_de_menu.définis_élément_pressé(-1, vrai)
+                panneau_barre_de_menu.définis_élément_pressé(-1, vrai);
             }
 
-            retourne vrai
+            retourne vrai;
         }
 
-        retourne faux
+        retourne faux;
     }
 
-    sur_dessin :: fonc (panneau_menu: *PanneauMenu, contexte_affichage: *ContexteAffichage)
+    sur_dessin :: fonc (panneau_menu: *PanneauMenu, contexte_affichage: *ContexteAffichage);
     {
-        dessine(panneau_menu, contexte_affichage)
+        dessine(panneau_menu, contexte_affichage);
     }
 
-    sur_destruction :: fonc (panneau: *Panneau)
+    sur_destruction :: fonc (panneau: *Panneau);
     {
-        panneau_menu := panneau comme *PanneauMenu
-        détruit_panneau_menu(panneau_menu)
+        panneau_menu := panneau comme *PanneauMenu;
+        détruit_panneau_menu(panneau_menu);
     }
 
-    résultat := ctx.crée_panneau(PanneauMenu)
+    résultat := ctx.crée_panneau(PanneauMenu);
 
     /* Données spécifiques. */
-    résultat.menu = menu
-    résultat.position = position
+    résultat.menu = menu;
+    résultat.position = position;
 
     /* Rappels. */
-    résultat.sur_clic_souris = sur_clic_souris
-    résultat.sur_déplacement_souris = sur_déplacement_souris
-    résultat.sur_dessin = sur_dessin
-    résultat.sur_destruction = sur_destruction
+    résultat.sur_clic_souris = sur_clic_souris;
+    résultat.sur_déplacement_souris = sur_déplacement_souris;
+    résultat.sur_dessin = sur_dessin;
+    résultat.sur_destruction = sur_destruction;
 
-    retourne résultat
+    retourne résultat;
 }
 
 détruit_panneau_menu :: fonc (panneau: &*PanneauMenu)
 {
-    déloge(panneau.éléments)
-    déloge(panneau)
-    panneau = nul
+    déloge(panneau.éléments);
+    déloge(panneau);
+    panneau = nul;
 }
 
 ajourne_disposition :: fonc (empl panneau: *PanneauMenu, ctx: *ContexteAffichage)
 {
     saufsi besoin_ajournement_disposition {
-        retourne
+        retourne;
     }
-    diffère besoin_ajournement_disposition = faux
+    diffère besoin_ajournement_disposition = faux;
 
-    métriques := donne_métriques_fonte(ctx.fonte)
+    métriques := donne_métriques_fonte(ctx.fonte);
 
-    hauteur_de_ligne := métriques.donne_hauteur_ligne() comme z32
+    hauteur_de_ligne := métriques.donne_hauteur_ligne() comme z32;
 
     /* Calcul taille éléments. */
-    hauteur_élément_texte := hauteur_de_ligne + 10
-    hauteur_élément = hauteur_élément_texte
-    hauteur_élément_séparateur := 10
-    espaçage_élément = donne_largeur_texte(ctx.fonte, "0") comme z32
-    décalage_élément_x = espaçage_élément * 2
+    hauteur_élément_texte := hauteur_de_ligne + 10;
+    hauteur_élément = hauteur_élément_texte;
+    hauteur_élément_séparateur := 10;
+    espaçage_élément = donne_largeur_texte(ctx.fonte, "0") comme z32;
+    décalage_élément_x = espaçage_élément * 2;
 
-    tableau_redimensionne(éléments, menu.éléments.taille)
+    tableau_redimensionne(éléments, menu.éléments.taille);
 
-    largeur_max_élément := 0
+    largeur_max_élément := 0;
 
-    hauteur_panneau := 0
+    hauteur_panneau := 0;
 
     /* Calcule la largeur du panneau et des éléments textes. */
     pour menu.éléments {
-        élément: PanneauMenu.Élément
-        élément.largeur = donne_largeur_texte(ctx.fonte, it.texte) comme z32
+        élément: PanneauMenu.Élément;
+        élément.largeur = donne_largeur_texte(ctx.fonte, it.texte) comme z32;
         si élément.largeur < largeur_requise {
-            élément.largeur = largeur_requise
+            élément.largeur = largeur_requise;
         }
 
         discr it.données {
             Action {
-                hauteur_panneau += hauteur_élément_texte
+                hauteur_panneau += hauteur_élément_texte;
             }
             Cochage {
-                hauteur_panneau += hauteur_élément_texte
-                élément.largeur += hauteur_de_ligne + espaçage_élément
-                élément.est_coche = vrai
+                hauteur_panneau += hauteur_élément_texte;
+                élément.largeur += hauteur_de_ligne + espaçage_élément;
+                élément.est_coche = vrai;
             }
             SousMenu {
-                hauteur_panneau += hauteur_élément_texte
-                élément.est_sous_menu = vrai
+                hauteur_panneau += hauteur_élément_texte;
+                élément.est_sous_menu = vrai;
             }
             Séparateur {
-                hauteur_panneau += hauteur_élément_séparateur
-                élément.est_séparateur = vrai
+                hauteur_panneau += hauteur_élément_séparateur;
+                élément.est_séparateur = vrai;
             }
             sinon {}
         }
 
         si élément.largeur > largeur_max_élément {
-            largeur_max_élément = élément.largeur
+            largeur_max_élément = élément.largeur;
         }
 
-        éléments[indice_it] = élément
+        éléments[indice_it] = élément;
     }
 
-    largeur_panneau := largeur_max_élément + décalage_élément_x * 2
+    largeur_panneau := largeur_max_élément + décalage_élément_x * 2;
     si largeur_panneau > largeur_requise && largeur_requise != 0 {
-        largeur_panneau = largeur_requise
+        largeur_panneau = largeur_requise;
     }
-    décalage_élément := hauteur_panneau
+    décalage_élément := hauteur_panneau;
 
     pour menu.éléments {
-        élément := *éléments[indice_it]
+        élément := *éléments[indice_it];
 
         discr it.données {
             Action {
-                décalage_élément -= hauteur_élément_texte
+                décalage_élément -= hauteur_élément_texte;
 
-                élément.décalage_y = décalage_élément + 5
-                élément.hauteur = hauteur_élément
+                élément.décalage_y = décalage_élément + 5;
+                élément.hauteur = hauteur_élément;
             }
             Cochage {
-                décalage_élément -= hauteur_élément_texte
+                décalage_élément -= hauteur_élément_texte;
 
-                élément.décalage_y = décalage_élément + 5
-                élément.hauteur = hauteur_élément
+                élément.décalage_y = décalage_élément + 5;
+                élément.hauteur = hauteur_élément;
             }
             SousMenu {
-                décalage_élément -= hauteur_élément_texte
+                décalage_élément -= hauteur_élément_texte;
 
-                élément.décalage_y = décalage_élément + 5
-                élément.hauteur = hauteur_élément
+                élément.décalage_y = décalage_élément + 5;
+                élément.hauteur = hauteur_élément;
             }
             Séparateur {
-                décalage_élément -= hauteur_élément_séparateur
+                décalage_élément -= hauteur_élément_séparateur;
 
-                élément.décalage_y = décalage_élément + 5
-                élément.hauteur = hauteur_élément_séparateur
-                élément.largeur = largeur_panneau
+                élément.décalage_y = décalage_élément + 5;
+                élément.hauteur = hauteur_élément_séparateur;
+                élément.largeur = largeur_panneau;
             }
             sinon {}
         }
     }
 
-    rect.x = position.x
-    rect.largeur = largeur_panneau
-    rect.hauteur = hauteur_panneau
-    rect.y = position.y - rect.hauteur
+    rect.x = position.x;
+    rect.largeur = largeur_panneau;
+    rect.hauteur = hauteur_panneau;
+    rect.y = position.y - rect.hauteur;
 }
 
 dessine :: fonc (empl panneau: *PanneauMenu, ctx: *ContexteAffichage)
 {
-    ajourne_disposition(panneau, ctx)
+    ajourne_disposition(panneau, ctx);
 
-    thème := ctx.thème
-    remplis_rectangle(ctx.peintre, rect, thème.couleur_arrière_plan)
+    thème := ctx.thème;
+    remplis_rectangle(ctx.peintre, rect, thème.couleur_arrière_plan);
 
     si état.élément_survolé != -1 && !éléments[état.élément_survolé].est_séparateur {
-        rect_élément := donne_rect_élément_pour_clic(panneau, état.élément_survolé)
-        remplis_rectangle(ctx.peintre, rect_élément, thème.couleur_menu_survolé)
+        rect_élément := donne_rect_élément_pour_clic(panneau, état.élément_survolé);
+        remplis_rectangle(ctx.peintre, rect_élément, thème.couleur_menu_survolé);
     }
 
-    métriques := donne_métriques_fonte(ctx.fonte)
-    hauteur_de_ligne := métriques.donne_hauteur_ligne() comme z32
+    métriques := donne_métriques_fonte(ctx.fonte);
+    hauteur_de_ligne := métriques.donne_hauteur_ligne() comme z32;
 
-    rect_élément: RectanglePosDim(z32)
-    rect_élément.x = rect.x + décalage_élément_x
-    rect_élément.hauteur = métriques.donne_hauteur_ligne() comme z32
+    rect_élément: RectanglePosDim(z32);
+    rect_élément.x = rect.x + décalage_élément_x;
+    rect_élément.hauteur = métriques.donne_hauteur_ligne() comme z32;
 
     pour éléments {
-        rect_élément.largeur = it.largeur
-        rect_élément.y = rect.y + it.décalage_y
+        rect_élément.largeur = it.largeur;
+        rect_élément.y = rect.y + it.décalage_y;
 
         si it.est_séparateur {
-            dessine_segment(ctx.peintre, rect.x, rect_élément.y, rect.x + rect.largeur, rect_élément.y, thème.couleur_contour)
-            continue
+            dessine_segment(ctx.peintre, rect.x, rect_élément.y, rect.x + rect.largeur, rect_élément.y, thème.couleur_contour);
+            continue;
         }
 
-        texte := menu.éléments[indice_it].texte
-        rect_texte := rect_élément
+        texte := menu.éléments[indice_it].texte;
+        rect_texte := rect_élément;
 
         si it.est_coche {
             /* À FAIRE : image pour la coche. */
-            rect_coche := rect_élément
-            rect_coche.largeur = rect_coche.hauteur
-            dessine_rectangle(ctx.peintre, rect_coche, thème.couleur_texte)
+            rect_coche := rect_élément;
+            rect_coche.largeur = rect_coche.hauteur;
+            dessine_rectangle(ctx.peintre, rect_coche, thème.couleur_texte);
 
-            élément_coche := menu.éléments[indice_it].données.Cochage
+            élément_coche := menu.éléments[indice_it].données.Cochage;
 
             si élément_coche.est_coché() {
-                rect_coche.réduis(2)
-                rect_coche.x += 1
-                rect_coche.y += 1
-                remplis_rectangle(ctx.peintre, rect_coche, thème.couleur_texte)
+                rect_coche.réduis(2);
+                rect_coche.x += 1;
+                rect_coche.y += 1;
+                remplis_rectangle(ctx.peintre, rect_coche, thème.couleur_texte);
             }
 
-            rect_texte.x += hauteur_de_ligne + décalage_élément_x / 2
+            rect_texte.x += hauteur_de_ligne + décalage_élément_x / 2;
         }
 
-        dessine_texte(ctx.peintre, ctx.fonte, texte, rect_texte, thème.couleur_texte)
+        dessine_texte(ctx.peintre, ctx.fonte, texte, rect_texte, thème.couleur_texte);
     }
 
     /* À FAIRE : les lignes du bas et du côté gauche sont manquantes. Peut-être à cause du ciseau ? */
-    rect_corrigé := rect
-    rect_corrigé.x += 1
-    rect_corrigé.largeur -= 1
-    rect_corrigé.y += 1
-    rect_corrigé.hauteur -= 1
-    dessine_rectangle(ctx.peintre, rect_corrigé, thème.couleur_contour)
+    rect_corrigé := rect;
+    rect_corrigé.x += 1;
+    rect_corrigé.largeur -= 1;
+    rect_corrigé.y += 1;
+    rect_corrigé.hauteur -= 1;
+    dessine_rectangle(ctx.peintre, rect_corrigé, thème.couleur_contour);
 }
 
 observe_souris :: fonc (empl panneau: *PanneauMenu, souris: ÉtatSouris)
 {
     saufsi rect.contient(souris.où) {
         saufsi menu_fut_affiché {
-            définis_indice_élément_survolé(panneau, -1)
+            définis_indice_élément_survolé(panneau, -1);
         }
-        retourne
+        retourne;
     }
 
     pour éléments {
-        rect_élément := donne_rect_élément_pour_clic(panneau, indice_it)
+        rect_élément := donne_rect_élément_pour_clic(panneau, indice_it);
         saufsi rect_élément.contient(souris.où) {
-            continue
+            continue;
         }
 
-        définis_indice_élément_survolé(panneau, indice_it comme z32)
-        arrête
+        définis_indice_élément_survolé(panneau, indice_it comme z32);
+        arrête;
     }
 }
 
 donne_rect_élément_pour_clic :: fonc (empl panneau: *PanneauMenu, indice_élément: z64) -> RectanglePosDim(z32)
 {
-    assert(indice_élément >= 0)
-    assert(indice_élément < éléments.taille)
+    assert(indice_élément >= 0);
+    assert(indice_élément < éléments.taille);
 
-    élément := éléments[indice_élément]
+    élément := éléments[indice_élément];
 
-    résultat: RectanglePosDim(z32)
-    résultat.x = rect.x
-    résultat.y = rect.y + élément.décalage_y - 5
-    résultat.hauteur = élément.hauteur
-    résultat.largeur = rect.largeur
-    retourne résultat
+    résultat: RectanglePosDim(z32);
+    résultat.x = rect.x;
+    résultat.y = rect.y + élément.décalage_y - 5;
+    résultat.hauteur = élément.hauteur;
+    résultat.largeur = rect.largeur;
+    retourne résultat;
 }
 
 définis_indice_élément_survolé :: fonc (empl panneau: *PanneauMenu, indice_élément: z32)
 {
     si indice_élément == état.élément_survolé {
-        retourne
+        retourne;
     }
 
     // sors élément précédent
     si état.élément_survolé != -1 {
-        élément := éléments[état.élément_survolé]
+        élément := éléments[état.élément_survolé];
         si élément.est_sous_menu {
-            panneau_barre_de_menu.dépile_panneau_menu()
-            menu_fut_affiché = nul
+            panneau_barre_de_menu.dépile_panneau_menu();
+            menu_fut_affiché = nul;
         }
     }
 
-    état.élément_survolé = indice_élément
+    état.élément_survolé = indice_élément;
 
     // entre dans le nouvel élément
     si état.élément_survolé != -1 {
-        élément := éléments[état.élément_survolé]
+        élément := éléments[état.élément_survolé];
         si élément.est_sous_menu {
-            rect_élément := donne_rect_élément_pour_clic(panneau, état.élément_survolé)
+            rect_élément := donne_rect_élément_pour_clic(panneau, état.élément_survolé);
 
-            panneau_menu := crée_panneau_menu(contexte, menu.éléments[état.élément_survolé].données.SousMenu, Point2D(z32)(rect_élément.x + rect_élément.largeur, rect_élément.y + rect_élément.hauteur))
-            panneau_menu.panneau_barre_de_menu = panneau_barre_de_menu
-            panneau_barre_de_menu.affiche_panneau_menu(panneau_menu)
+            panneau_menu := crée_panneau_menu(contexte, menu.éléments[état.élément_survolé].données.SousMenu, Point2D(z32)(rect_élément.x + rect_élément.largeur, rect_élément.y + rect_élément.hauteur));
+            panneau_menu.panneau_barre_de_menu = panneau_barre_de_menu;
+            panneau_barre_de_menu.affiche_panneau_menu(panneau_menu);
 
-            menu_fut_affiché = panneau_menu
+            menu_fut_affiché = panneau_menu;
         }
     }
 }

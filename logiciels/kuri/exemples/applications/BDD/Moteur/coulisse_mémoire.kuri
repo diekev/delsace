@@ -1,14 +1,14 @@
 CoulisseMémoire :: struct {
-    noms_tables: [..]chaine
-    tables: [..]*Table
+    noms_tables: [..]chaine;
+    tables: [..]*Table;
 }
 
 détruit_coulisse :: fonc (cm: *CoulisseMémoire) -> rien
 {
     pour table dans cm.tables {
-        ferme_base_de_données(table)
+        ferme_base_de_données(table);
     }
 
-    déloge(cm.noms_tables)
-    déloge(cm.tables)
+    déloge(cm.noms_tables);
+    déloge(cm.tables);
 }

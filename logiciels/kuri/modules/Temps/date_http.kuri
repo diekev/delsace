@@ -1,244 +1,244 @@
 /* Structure représentant le temps pour les paramètres HTTP « Date », il doit être dans le fuseau GMT.
  */
 
-importe Chaine
-importe Sérialisation
+importe Chaine;
+importe Sérialisation;
 
-__chaine_jour_pour_tm := [ "Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat" ]
+__chaine_jour_pour_tm := [ "Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat" ];
 
 chaine_jour_pour_tm :: fonc (tm_wday: z32) -> chaine
 {
-    retourne __chaine_jour_pour_tm[tm_wday]
+    retourne __chaine_jour_pour_tm[tm_wday];
 }
 
-__chaine_mois_pour_tm := [ "Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec" ]
+__chaine_mois_pour_tm := [ "Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec" ];
 
 chaine_mois_pour_tm :: fonc (tm_mon: z32) -> chaine
 {
-    retourne __chaine_mois_pour_tm[tm_mon]
+    retourne __chaine_mois_pour_tm[tm_mon];
 }
 
 DateHTTP :: struct {
-    jour_semaine: z32
-    jour: z32
-    mois: z32
-    année: z32
+    jour_semaine: z32;
+    jour: z32;
+    mois: z32;
+    année: z32;
 
-    heure: z32
-    minute: z32
-    seconde: z32
+    heure: z32;
+    minute: z32;
+    seconde: z32;
 }
 
 date_http_depuis_date :: fonc (date: Date) -> DateHTTP
 {
     // À FAIRE: tiens trace des fuseaux horaire de la Date, et convertis en GMT
-    date_http : DateHTTP = ---
-    date_http.jour_semaine = date.jour_semaine
-    date_http.jour = date.jour
-    date_http.mois = date.mois - 1
-    date_http.année = date.année
-    date_http.heure = date.heure
-    date_http.minute = date.minute
-    date_http.seconde = date.seconde
+    date_http : DateHTTP = ---;
+    date_http.jour_semaine = date.jour_semaine;
+    date_http.jour = date.jour;
+    date_http.mois = date.mois - 1;
+    date_http.année = date.année;
+    date_http.heure = date.heure;
+    date_http.minute = date.minute;
+    date_http.seconde = date.seconde;
 
-    retourne date_http
+    retourne date_http;
 }
 
 date_depuis_date_http :: fonc (date_http: DateHTTP) -> Date
 {
     // À FAIRE: tiens trace des fuseaux horaire de la Date, et convertis en local
-    date : Date = ---
-    date.jour_semaine = date_http.jour_semaine
-    date.jour = date_http.jour
-    date.mois = date_http.mois + 1
-    date.année = date_http.année
-    date.heure = date_http.heure
-    date.minute = date_http.minute
-    date.seconde = date_http.seconde
+    date : Date = ---;
+    date.jour_semaine = date_http.jour_semaine;
+    date.jour = date_http.jour;
+    date.mois = date_http.mois + 1;
+    date.année = date_http.année;
+    date.heure = date_http.heure;
+    date.minute = date_http.minute;
+    date.seconde = date_http.seconde;
 
-    retourne date
+    retourne date;
 }
 
 ErreurParsageDate :: erreur {
-    FormatMalformée
-    NomJourMalformé
-    JourMalformé
-    MoisMalformé
-    AnnéeMalformée
-    HeureMalformée
-    MinuteMalfomée
-    SecondeMalformée
-    GMTMalformé
+    FormatMalformée;
+    NomJourMalformé;
+    JourMalformé;
+    MoisMalformé;
+    AnnéeMalformée;
+    HeureMalformée;
+    MinuteMalfomée;
+    SecondeMalformée;
+    GMTMalformé;
 }
 
 parse_date_http :: fonc (chn: chaine) -> DateHTTP | ErreurParsageDate
 {
-    date : DateHTTP = ---
+    date : DateHTTP = ---;
 
     si chn.taille < 29 {
-        retourne ErreurParsageDate.FormatMalformée
+        retourne ErreurParsageDate.FormatMalformée;
     }
 
-    parseuse := ParseuseChaine(chn = chn)
+    parseuse := ParseuseChaine(chn = chn);
 
     // parse nom jour
-    indice := apparie_un_de(*parseuse, ...__chaine_jour_pour_tm)
+    indice := apparie_un_de(*parseuse, ...__chaine_jour_pour_tm);
 
     si indice == -1 {
-        retourne ErreurParsageDate.NomJourMalformé
+        retourne ErreurParsageDate.NomJourMalformé;
     }
 
-    date.jour_semaine = indice comme z32
+    date.jour_semaine = indice comme z32;
 
-    avance(*parseuse, 3)
+    avance(*parseuse, 3);
 
     si !consomme(*parseuse, ',') {
-        retourne ErreurParsageDate.FormatMalformée
+        retourne ErreurParsageDate.FormatMalformée;
     }
 
     si !consomme(*parseuse, ' ') {
-        retourne ErreurParsageDate.FormatMalformée
+        retourne ErreurParsageDate.FormatMalformée;
     }
 
     // parse jour
     si !consomme_nombre(*parseuse, 2) {
-        retourne ErreurParsageDate.JourMalformé
+        retourne ErreurParsageDate.JourMalformé;
     }
 
-    date.jour = parseuse.nombre
+    date.jour = parseuse.nombre;
 
     si !consomme(*parseuse, ' ') {
-        retourne ErreurParsageDate.FormatMalformée
+        retourne ErreurParsageDate.FormatMalformée;
     }
 
     // parse mois
-    indice = apparie_un_de(*parseuse, ...__chaine_mois_pour_tm)
+    indice = apparie_un_de(*parseuse, ...__chaine_mois_pour_tm);
 
     si indice == -1 {
-        retourne ErreurParsageDate.MoisMalformé
+        retourne ErreurParsageDate.MoisMalformé;
     }
 
-    date.mois = indice comme z32
+    date.mois = indice comme z32;
 
-    avance(*parseuse, 3)
+    avance(*parseuse, 3);
 
     si !consomme(*parseuse, ' ') {
-        retourne ErreurParsageDate.FormatMalformée
+        retourne ErreurParsageDate.FormatMalformée;
     }
 
     // parse année
     si !consomme_nombre(*parseuse, 4) {
-        retourne ErreurParsageDate.AnnéeMalformée
+        retourne ErreurParsageDate.AnnéeMalformée;
     }
 
-    date.année = parseuse.nombre
+    date.année = parseuse.nombre;
 
     si !consomme(*parseuse, ' ') {
-        retourne ErreurParsageDate.FormatMalformée
+        retourne ErreurParsageDate.FormatMalformée;
     }
 
     // parse heure
     si !consomme_nombre(*parseuse, 2) {
-        retourne ErreurParsageDate.HeureMalformée
+        retourne ErreurParsageDate.HeureMalformée;
     }
 
-    date.heure = parseuse.nombre
+    date.heure = parseuse.nombre;
 
     si !consomme(*parseuse, ':') {
-        retourne ErreurParsageDate.FormatMalformée
+        retourne ErreurParsageDate.FormatMalformée;
     }
 
     // parse minute
     si !consomme_nombre(*parseuse, 2) {
-        retourne ErreurParsageDate.MinuteMalfomée
+        retourne ErreurParsageDate.MinuteMalfomée;
     }
 
-    date.minute = parseuse.nombre
+    date.minute = parseuse.nombre;
 
     si !consomme(*parseuse, ':') {
-        retourne ErreurParsageDate.FormatMalformée
+        retourne ErreurParsageDate.FormatMalformée;
     }
 
     // parse seconde
     si !consomme_nombre(*parseuse, 2) {
-        retourne ErreurParsageDate.SecondeMalformée
+        retourne ErreurParsageDate.SecondeMalformée;
     }
 
-    date.seconde = parseuse.nombre
+    date.seconde = parseuse.nombre;
 
     si !consomme(*parseuse, ' ') {
-        retourne ErreurParsageDate.FormatMalformée
+        retourne ErreurParsageDate.FormatMalformée;
     }
 
     // parse "GMT"
 
     si !consomme(*parseuse, "GMT") {
-        retourne ErreurParsageDate.GMTMalformé
+        retourne ErreurParsageDate.GMTMalformé;
     }
 
-    retourne date
+    retourne date;
 }
 
 imprime_date_http :: fonc (enchaineuse: *Enchaineuse, date: DateHTTP)
 {
     // tampon : AAA, 00 AAA 0000 00:00:00 GMT -> 29 caractères
-    tampon: TamponFixe(T = z8, N = 29)
+    tampon: TamponFixe(T = z8, N = 29);
 
     pour chaine_jour_pour_tm(date.jour_semaine) {
-        ajoute(*tampon, it)
+        ajoute(*tampon, it);
     }
 
-    ajoute(*tampon, ',')
-    ajoute(*tampon, ' ')
+    ajoute(*tampon, ',');
+    ajoute(*tampon, ' ');
 
-    ajoute(*tampon, '0' + (date.jour / 10) comme z8)
-    ajoute(*tampon, '0' + (date.jour % 10) comme z8)
+    ajoute(*tampon, '0' + (date.jour / 10) comme z8);
+    ajoute(*tampon, '0' + (date.jour % 10) comme z8);
 
-    ajoute(*tampon, ' ')
+    ajoute(*tampon, ' ');
 
     pour chaine_mois_pour_tm(date.mois) {
-        ajoute(*tampon, it)
+        ajoute(*tampon, it);
     }
 
-    ajoute(*tampon, ' ')
+    ajoute(*tampon, ' ');
 
-    année := date.année
+    année := date.année;
 
-    ajoute(*tampon, '0' + (année / 1000) comme z8)
-    année %= 1000
-    ajoute(*tampon, '0' + (année / 100) comme z8)
-    année %= 100
-    ajoute(*tampon, '0' + (année / 10) comme z8)
-    année %= 10
-    ajoute(*tampon, '0' + (année) comme z8)
+    ajoute(*tampon, '0' + (année / 1000) comme z8);
+    année %= 1000;
+    ajoute(*tampon, '0' + (année / 100) comme z8);
+    année %= 100;
+    ajoute(*tampon, '0' + (année / 10) comme z8);
+    année %= 10;
+    ajoute(*tampon, '0' + (année) comme z8);
 
-    ajoute(*tampon, ' ')
+    ajoute(*tampon, ' ');
 
-    ajoute(*tampon, '0' + (date.heure / 10) comme z8)
-    ajoute(*tampon, '0' + (date.heure % 10) comme z8)
-    ajoute(*tampon, ':')
-    ajoute(*tampon, '0' + (date.minute / 10) comme z8)
-    ajoute(*tampon, '0' + (date.minute % 10) comme z8)
-    ajoute(*tampon, ':')
-    ajoute(*tampon, '0' + (date.seconde / 10) comme z8)
-    ajoute(*tampon, '0' + (date.seconde % 10) comme z8)
+    ajoute(*tampon, '0' + (date.heure / 10) comme z8);
+    ajoute(*tampon, '0' + (date.heure % 10) comme z8);
+    ajoute(*tampon, ':');
+    ajoute(*tampon, '0' + (date.minute / 10) comme z8);
+    ajoute(*tampon, '0' + (date.minute % 10) comme z8);
+    ajoute(*tampon, ':');
+    ajoute(*tampon, '0' + (date.seconde / 10) comme z8);
+    ajoute(*tampon, '0' + (date.seconde % 10) comme z8);
 
-    ajoute(*tampon, ' ')
-    ajoute(*tampon, 'G')
-    ajoute(*tampon, 'M')
-    ajoute(*tampon, 'T')
+    ajoute(*tampon, ' ');
+    ajoute(*tampon, 'G');
+    ajoute(*tampon, 'M');
+    ajoute(*tampon, 'T');
 
-    chn: chaine
-    chn.pointeur = *tampon.données[0]
-    chn.taille = tampon.curseur
+    chn: chaine;
+    chn.pointeur = *tampon.données[0];
+    chn.taille = tampon.curseur;
 
-    ajoute_au_tampon(enchaineuse, chn)
+    ajoute_au_tampon(enchaineuse, chn);
 }
 
 imprime_date_http :: fonc (date: DateHTTP) -> chaine
 {
-    enchaineuse: Enchaineuse
-    initialise_enchaineuse(*enchaineuse)
-    imprime_date_http(*enchaineuse, date)
-    retourne chaine_depuis_enchaineuse(*enchaineuse)
+    enchaineuse: Enchaineuse;
+    initialise_enchaineuse(*enchaineuse);
+    imprime_date_http(*enchaineuse, date);
+    retourne chaine_depuis_enchaineuse(*enchaineuse);
 }

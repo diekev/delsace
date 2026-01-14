@@ -4,10 +4,10 @@
 
 fonction :: fonc () -> z32
 {
-    retourne 0
+    retourne 0;
 }
 principale :: fonc ()
 {
-    ptr := fonction
-    ptr()
+    ptr := fonction;
+    ptr();
 }
