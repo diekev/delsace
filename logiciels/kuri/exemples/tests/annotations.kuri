@@ -7,24 +7,24 @@ fonction_annotée_avec_chaine :: fonc ()
 } @une_chaine "la chaine en question"
 
 Vec3 :: struct {
-    x: r32 @v1
-    y: r32 @v1
-    z: r32 @v2
+    x: r32 @v1;
+    y: r32 @v1;
+    z: r32 @v2;
 } @GLSL "vec3"
 
 Énumération :: énum {
-    XYZ
-    UVW
+    XYZ;
+    UVW;
 } @quelquechose
 
 principale :: fonc ()
 {
-    v: Vec3
-    e: Énumération
+    v: Vec3;
+    e: Énumération;
     si e != Énumération.XYZ {
-        exit(1)
+        exit(1);
     }
     si v.x != 0.0 {
-        exit(1)
+        exit(1);
     }
 }

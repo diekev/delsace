@@ -1,101 +1,101 @@
 // exemple de serveur sécurisé tiré de
 // https://simplestcodings.blogspot.com/2010/08/secure-server-client-using-openssl-in-c.html
 
-importe Chaine
-importe Fondation
-importe Internet
-importe OpenSSL
-importe POSIX
-importe SysFichier
+importe Chaine;
+importe Fondation;
+importe Internet;
+importe OpenSSL;
+importe POSIX;
+importe SysFichier;
 
 /* ------------------------------------------------------------------------- */
 
 prépare_réponse :: fonc () -> chaine
 {
-    retourne "<html><body><pre>%s</pre></body></html>\n\n"
+    retourne "<html><body><pre>%s</pre></body></html>\n\n";
 }
 
 // Sers la connextion -- moultfilable
 Servlet :: fonc (ssl: *ssl_st) -> rien
 {
-    buf: [1024]z8
+    buf: [1024]z8;
 
     si SSL_accept(ssl) == -1 {
-        imprime("SSL_accept a échoué !\n")
+        imprime("SSL_accept a échoué !\n");
         //ERR_print_errors_fp(stderr)
     }
     sinon {
         //imprime_certificats_ssl(ssl)
-        bytes := SSL_read(ssl, *buf[0], 1024)
+        bytes := SSL_read(ssl, *buf[0], 1024);
 
         si bytes > 0 {
-            buf[bytes] = '\0'
-            chn: chaine
-            chn.pointeur = *buf[0]
-            chn.taille = bytes
-            imprime("Client msg: \"%\"\n", chn)
+            buf[bytes] = '\0';
+            chn: chaine;
+            chn.pointeur = *buf[0];
+            chn.taille = bytes;
+            imprime("Client msg: \"%\"\n", chn);
 
-            réponse := prépare_réponse()
+            réponse := prépare_réponse();
 
-            _ := SSL_write(ssl, réponse.pointeur, réponse.taille comme z32)
+            _ := SSL_write(ssl, réponse.pointeur, réponse.taille comme z32);
         }
         sinon {
-            imprime("SSL_read a échoué !\n")
+            imprime("SSL_read a échoué !\n");
             //ERR_print_errors_fp(stderr)
         }
     }
 
-    sd := SSL_get_fd(ssl)
-    SSL_free(ssl)
-    _ := close(sd)
+    sd := SSL_get_fd(ssl);
+    SSL_free(ssl);
+    _ := close(sd);
 }
 
 /* ------------------------------------------------------------------------- */
 
 principale :: fonc ()
 {
-    args := arguments_ligne_commande()
+    args := arguments_ligne_commande();
 
     si !est_utilisateur_racine() {
-        imprime("This program must be run as root/sudo user!!\n")
-        exit(0)
+        imprime("This program must be run as root/sudo user!!\n");
+        exit(0);
     }
 
     si args.taille != 2 {
-        imprime("Usage: % <portnum>\n", args[0])
-        exit(0)
+        imprime("Usage: % <portnum>\n", args[0]);
+        exit(0);
     }
 
     //portnum := strings[1]
 
     ctx := tente initialise_contexte_ssl_serveur() piège err {
-        imprime("erreur lors de l'initialisation du contexte SSL serveur : %\n", err)
-        exit(1)
+        imprime("erreur lors de l'initialisation du contexte SSL serveur : %\n", err);
+        exit(1);
     }
 
-    diffère SSL_CTX_free(ctx)
+    diffère SSL_CTX_free(ctx);
 
     tente charge_certificats_ssl(ctx, "mycert.pem", "mycert.pem") piège err {
-        imprime("erreur lors du chargements des certificats : %\n", err)
-        exit(1)
+        imprime("erreur lors du chargements des certificats : %\n", err);
+        exit(1);
     }
 
     serveur := tente ouvre_connexion_serveur_pour_écoute(5005, 10) piège err {
-        imprime("erreur lors de ouvre_connexion_serveur_pour_écoute : %\n", err)
-        exit(1)
+        imprime("erreur lors de ouvre_connexion_serveur_pour_écoute : %\n", err);
+        exit(1);
     }
 
-    diffère _ := ferme(*serveur)
+    diffère _ := ferme(*serveur);
 
     boucle {
         addr: sockaddr_in // Adresse du connecté
-        len := taille_de(sockaddr_in)
+        len := taille_de(sockaddr_in);
 
-        client := accept(serveur.desc comme z32, *addr comme *sockaddr, *len)
-        imprime("Connection: %s:%d\n", inet_ntoa(addr.sin_addr), ntohs(addr.sin_port))
+        client := accept(serveur.desc comme z32, *addr comme *sockaddr, *len);
+        imprime("Connection: %s:%d\n", inet_ntoa(addr.sin_addr), ntohs(addr.sin_port));
 
-        ssl := SSL_new(ctx)
-        _ := SSL_set_fd(ssl, client)
-        Servlet(ssl)
+        ssl := SSL_new(ctx);
+        _ := SSL_set_fd(ssl, client);
+        Servlet(ssl);
     }
 }

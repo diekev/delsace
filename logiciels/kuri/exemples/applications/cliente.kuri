@@ -1,97 +1,97 @@
 // Application exemple d'une cliente HTTP/HTTPS pour télécharger des pages HTML.
 
-importe Fondation
-importe Internet
-importe LigneDeCommande
-importe OpenSSL
-importe SysFichier
+importe Fondation;
+importe Internet;
+importe LigneDeCommande;
+importe OpenSSL;
+importe SysFichier;
 
 lance_requête :: fonc (uri: &URI, requête: chaine) -> chaine
 {
-    réponse: chaine
+    réponse: chaine;
 
-    port : n16 = port_pour_uri(uri)
+    port : n16 = port_pour_uri(uri);
 
     fichier := tente ouvre_connexion_serveur(uri.hôte, port) piège _ {
-        retourne réponse
+        retourne réponse;
     }
 
     si port == 443 {
         ctx_ssl := tente initialise_contexte_ssl_client() piège _ {
-            retourne réponse
+            retourne réponse;
         }
 
-        diffère SSL_CTX_free(ctx_ssl)
+        diffère SSL_CTX_free(ctx_ssl);
 
         fichier_ssl := tente ouvre_fichier_ssl(ctx_ssl, fichier) piège err {
-            imprime("erreur lors de l'ouverture du fichier : %\n", err)
-            retourne réponse
+            imprime("erreur lors de l'ouverture du fichier : %\n", err);
+            retourne réponse;
         }
 
         tente écris(*fichier_ssl, requête) piège err {
-            imprime("erreur lors de l'envoie de la requête : %\n", err)
-            retourne réponse
+            imprime("erreur lors de l'envoie de la requête : %\n", err);
+            retourne réponse;
         }
 
         réponse = tente lis_tout(*fichier_ssl) piège err {
-            imprime("erreur lors de la réception de la réponse : %\n", err)
-            retourne réponse
+            imprime("erreur lors de la réception de la réponse : %\n", err);
+            retourne réponse;
         }
     }
     sinon {
-        _ := écris(*fichier, requête)
+        _ := écris(*fichier, requête);
 
-        réponse = lis_tout(*fichier)
+        réponse = lis_tout(*fichier);
 
-        _ := ferme(*fichier)
+        _ := ferme(*fichier);
     }
 
-    retourne réponse
+    retourne réponse;
 }
 
 principale :: fonc ()
 {
-    chemin := parse_argument_chemin()
+    chemin := parse_argument_chemin();
     saufsi chemin {
-        exit(1)
+        exit(1);
     }
 
     // connecte vers la page
     uri := tente parse_uri_standard(chemin) piège err {
-        imprime("Erreur lors du parsage de l'URI : %\n", err)
-        exit(1)
+        imprime("Erreur lors du parsage de l'URI : %\n", err);
+        exit(1);
     }
 
     //imprime(uri, '\n', '\n')
 
-    enchaineuse: Enchaineuse
-    initialise_enchaineuse(*enchaineuse)
+    enchaineuse: Enchaineuse;
+    initialise_enchaineuse(*enchaineuse);
 
-    ajoute_au_tampon(*enchaineuse, "GET ")
-    ajoute_au_tampon(*enchaineuse, uri.chemin)
+    ajoute_au_tampon(*enchaineuse, "GET ");
+    ajoute_au_tampon(*enchaineuse, uri.chemin);
 
     si uri.requête {
-        ajoute_au_tampon(*enchaineuse, "?")
-        ajoute_au_tampon(*enchaineuse, uri.requête)
+        ajoute_au_tampon(*enchaineuse, "?");
+        ajoute_au_tampon(*enchaineuse, uri.requête);
     }
 
-    ajoute_au_tampon(*enchaineuse, " HTTP/1.1\r\n")
-    ajoute_au_tampon(*enchaineuse, "Host:")
-    ajoute_au_tampon(*enchaineuse, uri.hôte)
-    ajoute_au_tampon(*enchaineuse, "\r\n")
-    ajoute_au_tampon(*enchaineuse, "Accept-Encoding: identity\r\n")
-    ajoute_au_tampon(*enchaineuse, "Accept-Charset: utf-8, iso-8859-1q=0.5\r\n")
-    ajoute_au_tampon(*enchaineuse, "Accept: text/html,application/xhtml+xml,application/xmlq=0.9,image/webp,image/apng,*/ *q=0.8\r\n")
-    ajoute_au_tampon(*enchaineuse, "User-Agent: delsace\r\n")
-    ajoute_au_tampon(*enchaineuse, "Connection: close\r\n")
-    ajoute_au_tampon(*enchaineuse, "\r\n")
+    ajoute_au_tampon(*enchaineuse, " HTTP/1.1\r\n");
+    ajoute_au_tampon(*enchaineuse, "Host:");
+    ajoute_au_tampon(*enchaineuse, uri.hôte);
+    ajoute_au_tampon(*enchaineuse, "\r\n");
+    ajoute_au_tampon(*enchaineuse, "Accept-Encoding: identity\r\n");
+    ajoute_au_tampon(*enchaineuse, "Accept-Charset: utf-8, iso-8859-1q=0.5\r\n");
+    ajoute_au_tampon(*enchaineuse, "Accept: text/html,application/xhtml+xml,application/xmlq=0.9,image/webp,image/apng,*/ *q=0.8\r\n");
+    ajoute_au_tampon(*enchaineuse, "User-Agent: delsace\r\n");
+    ajoute_au_tampon(*enchaineuse, "Connection: close\r\n");
+    ajoute_au_tampon(*enchaineuse, "\r\n");
 
-    requête := chaine_depuis_enchaineuse(*enchaineuse)
+    requête := chaine_depuis_enchaineuse(*enchaineuse);
 
-    imprime("Requête envoyée : %\n", requête)
+    imprime("Requête envoyée : %\n", requête);
 
-    réponse := lance_requête(uri, requête)
+    réponse := lance_requête(uri, requête);
     diffère { déloge(réponse) déloge(requête) }
 
-    imprime("Réponse :\n%\n", réponse)
+    imprime("Réponse :\n%\n", réponse);
 }

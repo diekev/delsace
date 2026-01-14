@@ -1,80 +1,80 @@
-importe Fondation
-importe JSON
+importe Fondation;
+importe JSON;
 importe Tori // pour imprime_json
 
 // -----------------------------------
 
 test_json_tori :: fonc () -> rien
 {
-    diffère imprime("mémoire utilisée : %o\n", mémoire_utilisée())
+    diffère imprime("mémoire utilisée : %o\n", mémoire_utilisée());
 
-    chn := "{ \"nom\" : \"dietrich\", \"prénom\" : \"kévin\", \"âge\": 28, \"taille\": 1.73 }"
+    chn := "{ \"nom\" : \"dietrich\", \"prénom\" : \"kévin\", \"âge\": 28, \"taille\": 1.73 }";
 
-    imprime("script :\n\n", chn, "\n\n")
+    imprime("script :\n\n", chn, "\n\n");
 
     // -----------------------------------
     // Lexage du script
 
-    lexeuse := construis_lexeuse(chn)
-    diffère détruit_lexeuse(lexeuse)
+    lexeuse := construis_lexeuse(chn);
+    diffère détruit_lexeuse(lexeuse);
 
-    lexeuse.performe_lexage()
+    lexeuse.performe_lexage();
 
-    imprime("lexèmes :\n\n")
+    imprime("lexèmes :\n\n");
 
     pour données dans lexeuse.lexèmes {
-        imprime("%\n", données.lexème)
+        imprime("%\n", données.lexème);
     }
 
-    imprime("\n")
+    imprime("\n");
 
     // -----------------------------------
     // Syntaxage du script, création de l'objet
 
-    syntaxeuse: SyntaxeuseJSON
-    syntaxeuse.lexèmes = lexeuse.lexèmes
-    diffère détruit(syntaxeuse)
+    syntaxeuse: SyntaxeuseJSON;
+    syntaxeuse.lexèmes = lexeuse.lexèmes;
+    diffère détruit(syntaxeuse);
 
-    syntaxeuse.lance_analyse()
+    syntaxeuse.lance_analyse();
 
-    imprime("JSON :\n\n")
+    imprime("JSON :\n\n");
 
     si syntaxeuse.assembleuse.pile.est_vide() {
-        imprime("La pile est vide...\n")
+        imprime("La pile est vide...\n");
     }
     sinon {
-        racine := syntaxeuse.assembleuse.pile.haut()
-        imprime_json(racine, 0)
+        racine := syntaxeuse.assembleuse.pile.haut();
+        imprime_json(racine, 0);
     }
 
-    imprime("\n")
+    imprime("\n");
 }
 
 // -----------------------------------
 
 // À FAIRE : comment déterminer si une valeur est manquante ?
 InformationConnexion :: struct {
-    email := "une_première_addresse@courriel.fr"
-    mot_de_passe := "L3Dfs_BaJRufF5!P"
-    age := 56
+    email := "une_première_addresse@courriel.fr";
+    mot_de_passe := "L3Dfs_BaJRufF5!P";
+    age := 56;
 }
 
 InformationInscription :: struct {
-    nom := ""
-    prénom := ""
-    email := ""
-    mot_de_passe := ""
+    nom := "";
+    prénom := "";
+    email := "";
+    mot_de_passe := "";
 }
 
 Repas :: struct {
-    nom: chaine
-    ingrédients: [..]Ingrédient
-    ingrédient_principal: Ingrédient
+    nom: chaine;
+    ingrédients: [..]Ingrédient;
+    ingrédient_principal: Ingrédient;
 }
 
 Ingrédient :: struct {
-    nom: chaine
-    quantité: z64
+    nom: chaine;
+    quantité: z64;
 }
 
 principale :: fonc ()
@@ -118,16 +118,16 @@ principale :: fonc ()
                 "quantité": 100
             }
         }
-    »
+    »;
 
-    succès, repas := parse_struct_depuis_chaine_json(chaine_repas, Repas)
+    succès, repas := parse_struct_depuis_chaine_json(chaine_repas, Repas);
 
     saufsi succès {
-        imprime("impossible de parser la chaine JSON\n")
-        exit(1)
+        imprime("impossible de parser la chaine JSON\n");
+        exit(1);
     }
 
-    imprime("repas :\n%\n", repas)
+    imprime("repas :\n%\n", repas);
 
     /*
     info : InformationConnexion

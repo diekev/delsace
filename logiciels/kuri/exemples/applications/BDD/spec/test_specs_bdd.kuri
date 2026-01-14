@@ -1,15 +1,15 @@
-importe Fondation
-importe Processus
-importe SysFichier
+importe Fondation;
+importe Processus;
+importe SysFichier;
 
 principale :: fonc ()
 {
-    test: DonnéesPourTest
-    test.programme = CheminFichier("../principale")
+    test: DonnéesPourTest;
+    test.programme = CheminFichier("../principale");
 
-    test.ajoute_série_de_tests(CheminFichier("specs_bdd"))
+    test.ajoute_série_de_tests(CheminFichier("specs_bdd"));
 
     saufsi lance_les_tests(test) {
-        exit(1)
+        exit(1);
     }
 }

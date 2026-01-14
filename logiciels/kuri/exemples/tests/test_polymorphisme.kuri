@@ -1,4 +1,4 @@
-importe Fondation
+importe Fondation;
 
 /*
 cas à supporter :
@@ -18,199 +18,199 @@ cas à supporter :
  */
 ajoute :: fonc (a: $T, b: T) -> T
 {
-    retourne a + b
+    retourne a + b;
 }
 
 multiplie :: fonc (a: z32, b: z32) -> z32
 {
-    retourne a * b
+    retourne a * b;
 }
 
 appel_fonction :: fonc (a: $T, b: $U, fonction: fonc(T, U)($V)) -> V
 {
-    retourne fonction(a, b)
+    retourne fonction(a, b);
 }
 
 imprime_arguments_variadiques :: fonc (message: chaine, a: $T, args: ...$S)
 {
-    imprime("%\n", message)
-    imprime("a = %\n", a)
+    imprime("%\n", message);
+    imprime("a = %\n", a);
     pour args {
-        imprime("arg %: %\n", indice_it, it)
+        imprime("arg %: %\n", indice_it, it);
     }
 }
 
 arguments_variadiques :: fonc (a: $T, args: ...T)
 {
-    imprime_arguments_variadiques("arguments_variadiques", a, ...args)
+    imprime_arguments_variadiques("arguments_variadiques", a, ...args);
 }
 
 arguments_variadiques_pointeur :: fonc (a: $T, args: ...*T)
 {
-    imprime_arguments_variadiques("arguments_variadiques_pointeur", a, ...args)
+    imprime_arguments_variadiques("arguments_variadiques_pointeur", a, ...args);
 }
 
 argument_tableau_fixe :: fonc (a: [8]$T)
 {
-    imprime("Tableau fixe :\n")
+    imprime("Tableau fixe :\n");
 
     pour a {
-        imprime("-- %\n", it)
+        imprime("-- %\n", it);
     }
 }
 
 Polymorphe :: struct ($T: type_de_données) {
-    x: T
+    x: T;
 }
 
 Polymorphe2 :: struct ($T: type_de_données) {
-    x: T
+    x: T;
 }
 
 initialise_polymorphe :: fonc (poly: *Polymorphe(T = $T))
 {
-    poly.x = 123 comme T
+    poly.x = 123 comme T;
 }
 
 initialise_polymorphe :: fonc (poly: *Polymorphe(T = $T), x: T)
 {
-    poly.x = x
+    poly.x = x;
 }
 
-Temps :: #opaque $T
+Temps :: #opaque $T;
 
 crée_temps :: fonc (a: $T) -> Temps(T)
 {
-    retourne Temps(a)
+    retourne Temps(a);
 }
 
 extrait_temps :: fonc (t: Temps($T)) -> T
 {
-    retourne t comme T
+    retourne t comme T;
 }
 
 principale :: fonc ()
 {
-    x := ajoute(12, 27)
-    imprime("x = %\n", x)
+    x := ajoute(12, 27);
+    imprime("x = %\n", x);
 
-    y := ajoute(12.5, 87.9)
-    imprime("y = %\n", y)
+    y := ajoute(12.5, 87.9);
+    imprime("y = %\n", y);
 
-    tabl: [..]z32
-    tableau_ajoute(*tabl, 123)
-    tableau_ajoute(*tabl, 124)
-    imprime("%\n", tabl)
+    tabl: [..]z32;
+    tableau_ajoute(*tabl, 123);
+    tableau_ajoute(*tabl, 124);
+    imprime("%\n", tabl);
 
-    a := appel_fonction(5, 6, multiplie)
-    imprime("a = %\n", a)
+    a := appel_fonction(5, 6, multiplie);
+    imprime("a = %\n", a);
 
-    arguments_variadiques(a, 7, 8, 9)
+    arguments_variadiques(a, 7, 8, 9);
 
-    arguments_variadiques_pointeur(a, *x, *a)
+    arguments_variadiques_pointeur(a, *x, *a);
 
-    tableau_fixe := [ 0, 1, 2, 3, 4, 5, 6, 7 ]
-    argument_tableau_fixe(tableau_fixe)
+    tableau_fixe := [ 0, 1, 2, 3, 4, 5, 6, 7 ];
+    argument_tableau_fixe(tableau_fixe);
 
-    poly: Polymorphe(T = z32)
-    initialise_polymorphe(*poly)
-    initialise_polymorphe(*poly, 6)
+    poly: Polymorphe(T = z32);
+    initialise_polymorphe(*poly);
+    initialise_polymorphe(*poly, 6);
 
-    imprime("poly : %\n", poly)
+    imprime("poly : %\n", poly);
 
     {
-        imprime("Opaque polymorphique :\n")
-        b := crée_temps(1035)
-        c := crée_temps(653.8)
+        imprime("Opaque polymorphique :\n");
+        b := crée_temps(1035);
+        c := crée_temps(653.8);
 
-        imprime("-- impression depuis opaque\n")
-        imprime("b : %\n", b)
-        imprime("c : %\n", c)
+        imprime("-- impression depuis opaque\n");
+        imprime("b : %\n", b);
+        imprime("c : %\n", c);
 
-        imprime("-- impression depuis extraction\n")
-        imprime("b : %\n", extrait_temps(b))
-        imprime("c : %\n", extrait_temps(c))
+        imprime("-- impression depuis extraction\n");
+        imprime("b : %\n", extrait_temps(b));
+        imprime("c : %\n", extrait_temps(c));
     }
 
-    test_tranche_polymorphique()
-    test_imprime_tableau_fixe_polymorphique()
-    test_contraintes()
-    test_appel_polymorphe_paramètres_implicites()
+    test_tranche_polymorphique();
+    test_imprime_tableau_fixe_polymorphique();
+    test_contraintes();
+    test_appel_polymorphe_paramètres_implicites();
 }
 
 imprime_tranche_polymorphique :: fonc (tranche: []$T)
 {
     pour tranche {
-        imprime("%\n", it)
+        imprime("%\n", it);
     }
 }
 
 test_tranche_polymorphique :: fonc ()
 {
-    tableau_fixe := [ 0, 1, 2, 3, 4, 5 ]
-    tableau_dynamique: [..]z32
-    diffère déloge(tableau_dynamique)
+    tableau_fixe := [ 0, 1, 2, 3, 4, 5 ];
+    tableau_dynamique: [..]z32;
+    diffère déloge(tableau_dynamique);
 
     pour tableau_fixe {
-        tableau_ajoute(*tableau_dynamique, it)
+        tableau_ajoute(*tableau_dynamique, it);
     }
 
-    imprime_tranche_polymorphique(tableau_fixe)
-    imprime_tranche_polymorphique(tableau_dynamique)
+    imprime_tranche_polymorphique(tableau_fixe);
+    imprime_tranche_polymorphique(tableau_dynamique);
 }
 
 imprime_tableau_fixe_polymorphique :: fonc (tabl: [$N]$T)
 {
     pour tabl {
-        imprime("%\n", it)
+        imprime("%\n", it);
     }
 }
 
 test_imprime_tableau_fixe_polymorphique :: fonc ()
 {
-    tabl_réel := [ 0.0, 1.0, 2.0 ]
-    imprime_tableau_fixe_polymorphique(tabl_réel)
-    tabl_entier := [ 16, 32, 64, 128 ]
-    imprime_tableau_fixe_polymorphique(tabl_entier)
+    tabl_réel := [ 0.0, 1.0, 2.0 ];
+    imprime_tableau_fixe_polymorphique(tabl_réel);
+    tabl_entier := [ 16, 32, 64, 128 ];
+    imprime_tableau_fixe_polymorphique(tabl_entier);
 }
 
 /* ------------------------------------------------------------------------- */
 /** \nom Contraintes.
  * \{ */
 
-ContrainteNombreEntierRelatif :: z8 | z16 | z32 | z64
+ContrainteNombreEntierRelatif :: z8 | z16 | z32 | z64;
 
 contrainte_entier_relatif :: fonc (n: $T/ContrainteNombreEntierRelatif)
 {
-    imprime("%\n", n)
+    imprime("%\n", n);
 }
 
 ContrainteStructure :: struct {
-    x: z32
+    x: z32;
 }
 
 contrainte_structure :: fonc (n: $T/ContrainteStructure)
 {
-    imprime("%\n", n)
+    imprime("%\n", n);
 }
 
 ContrainteStructurePolymorphique :: struct ($T: type_de_données) {
-    x: T
+    x: T;
 }
 
 contrainte_structure_polymorphique :: fonc (n: $T/ContrainteStructurePolymorphique)
 {
-    imprime("%\n", n)
+    imprime("%\n", n);
 }
 
 test_contraintes :: fonc ()
 {
-    contrainte_entier_relatif(5)
+    contrainte_entier_relatif(5);
 
-    contrainte_structure(ContrainteStructure(5))
+    contrainte_structure(ContrainteStructure(5));
 
-    c := ContrainteStructurePolymorphique(z32)(5)
-    contrainte_structure_polymorphique(c)
+    c := ContrainteStructurePolymorphique(z32)(5);
+    contrainte_structure_polymorphique(c);
 }
 
 /** \} */
@@ -221,29 +221,29 @@ test_contraintes :: fonc ()
  * \{ */
 
 Vecteur :: struct (T: type_de_données) {
-    x, y, z: T
+    x, y, z: T;
 }
 
 définis_x :: fonc (v: *Vecteur, x: v.T)
 {
-    v.x = x
+    v.x = x;
 }
 
 donne_x :: fonc (v: *Vecteur) -> v.T
 {
-    retourne v.x
+    retourne v.x;
 }
 
 test_appel_polymorphe_paramètres_implicites :: fonc ()
 {
-    imprimeln("-------------------------------")
-    imprimeln("  -- paramètres implicites --")
+    imprimeln("-------------------------------");
+    imprimeln("  -- paramètres implicites --");
 
-    v: Vecteur(z32)
-    définis_x(*v, 123)
-    imprimeln("%", v)
-    définis_x(*v, 456)
-    imprimeln("x = %", donne_x(*v))
+    v: Vecteur(z32);
+    définis_x(*v, 123);
+    imprimeln("%", v);
+    définis_x(*v, 456);
+    imprimeln("x = %", donne_x(*v));
 }
 
 /** \} */

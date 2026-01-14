@@ -1,17 +1,17 @@
-importe Chaine
-importe Fondation
-importe SysFichier
+importe Chaine;
+importe Fondation;
+importe SysFichier;
 
 // https://fr.wikipedia.org/wiki/ELIZA
 
 imprime_prompt_élise :: fonc (message: chaine) -> rien
 {
-    imprime("Éliza : %\n", message)
+    imprime("Éliza : %\n", message);
 }
 
 imprime_prompt_vous :: fonc () -> rien
 {
-    imprime("Vous  : ")
+    imprime("Vous  : ");
 }
 
 mot_est_dans_la_famille :: fonc (mot: chaine) -> bool
@@ -33,108 +33,108 @@ mot_est_dans_la_famille :: fonc (mot: chaine) -> bool
     si mot == "parrain" { retourne vrai }
     si mot == "marraine" { retourne vrai }
 
-    retourne faux
+    retourne faux;
 }
 
 génère_réponse_pour_toujours :: fonc (mots: []chaine, idx: z64) -> chaine
 {
-    enchaineuse: Enchaineuse
-    initialise_enchaineuse(*enchaineuse)
+    enchaineuse: Enchaineuse;
+    initialise_enchaineuse(*enchaineuse);
 
-    ajoute_au_tampon(*enchaineuse, "Pourquoi êtes-vous toujours ")
+    ajoute_au_tampon(*enchaineuse, "Pourquoi êtes-vous toujours ");
 
     pour i dans idx + 1 ... mots.taille - 1 {
-        ajoute_au_tampon(*enchaineuse, mots[i])
+        ajoute_au_tampon(*enchaineuse, mots[i]);
 
         si i < mots.taille {
-            ajoute_au_tampon(*enchaineuse, ' ')
+            ajoute_au_tampon(*enchaineuse, ' ');
         }
     }
 
-    ajoute_au_tampon(*enchaineuse, "?")
+    ajoute_au_tampon(*enchaineuse, "?");
 
-    retourne chaine_depuis_enchaineuse(*enchaineuse)
+    retourne chaine_depuis_enchaineuse(*enchaineuse);
 }
 
 génère_réponse_pour_peur :: fonc (mots: []chaine, idx: z64) -> chaine
 {
-    enchaineuse: Enchaineuse
-    initialise_enchaineuse(*enchaineuse)
+    enchaineuse: Enchaineuse;
+    initialise_enchaineuse(*enchaineuse);
 
-    ajoute_au_tampon(*enchaineuse, "Pourquoi avez-vous peur ")
+    ajoute_au_tampon(*enchaineuse, "Pourquoi avez-vous peur ");
 
     pour i dans idx + 1 ... mots.taille - 1 {
-        ajoute_au_tampon(*enchaineuse, mots[i])
+        ajoute_au_tampon(*enchaineuse, mots[i]);
 
         si i < mots.taille {
-            ajoute_au_tampon(*enchaineuse, ' ')
+            ajoute_au_tampon(*enchaineuse, ' ');
         }
     }
 
-    ajoute_au_tampon(*enchaineuse, "?")
+    ajoute_au_tampon(*enchaineuse, "?");
 
-    retourne chaine_depuis_enchaineuse(*enchaineuse)
+    retourne chaine_depuis_enchaineuse(*enchaineuse);
 }
 
 génère_réponse_pour_message :: fonc (message: chaine) -> chaine
 {
-    nouveau_contexte := contexte()
-    nouveau_contexte.allocatrice = __stockage_temporaire
+    nouveau_contexte := contexte();
+    nouveau_contexte.allocatrice = __stockage_temporaire;
 
-    mots: [..]chaine
+    mots: [..]chaine;
 
     pousse_contexte nouveau_contexte {
-        mots = divise(message, ' ')
+        mots = divise(message, ' ');
 
         pour mot, idx dans mots {
             si mot_est_dans_la_famille(mot) {
-                retourne "Parlez-moi de votre famille"
+                retourne "Parlez-moi de votre famille";
             }
 
             si mot == "toujours" {
-                retourne génère_réponse_pour_toujours(mots, idx)
+                retourne génère_réponse_pour_toujours(mots, idx);
             }
 
             si mot == "peur" {
-                retourne génère_réponse_pour_peur(mots, idx)
+                retourne génère_réponse_pour_peur(mots, idx);
             }
         }
     }
 
-    retourne "Veuillez élaborer"
+    retourne "Veuillez élaborer";
 }
 
 principale :: fonc ()
 {
-    imprime("Bienvenue chez \n")
-    imprime("\tEEEEEE  LL      IIII  ZZZZZZZ    AAAAA \n")
-    imprime("\tEE      LL       II       ZZ    AA   AA\n")
-    imprime("\tEEEEEE  LL       II     ZZZ     AAAAAAA\n")
-    imprime("\tEE      LL       II    ZZ       AA   AA\n")
-    imprime("\tEEEEEE  LLLLLL  IIII  ZZZZZZZ   AA   AA\n")
-    imprime("\n")
-    imprime("Éliza est une psychothérapeute factice Rogérienne.\n")
-    imprime("Le programme originel fut décrit par Joseph Weizenbaum en 1966.\n")
-    imprime("\n")
-    imprime("\n")
+    imprime("Bienvenue chez \n");
+    imprime("\tEEEEEE  LL      IIII  ZZZZZZZ    AAAAA \n");
+    imprime("\tEE      LL       II       ZZ    AA   AA\n");
+    imprime("\tEEEEEE  LL       II     ZZZ     AAAAAAA\n");
+    imprime("\tEE      LL       II    ZZ       AA   AA\n");
+    imprime("\tEEEEEE  LLLLLL  IIII  ZZZZZZZ   AA   AA\n");
+    imprime("\n");
+    imprime("Éliza est une psychothérapeute factice Rogérienne.\n");
+    imprime("Le programme originel fut décrit par Joseph Weizenbaum en 1966.\n");
+    imprime("\n");
+    imprime("\n");
 
-    marque := donne_marque_stockage_temporaire()
+    marque := donne_marque_stockage_temporaire();
 
-    message_éliza := "Quelque chose vous trouble ?"
+    message_éliza := "Quelque chose vous trouble ?";
 
     boucle {
-        définis_marque_stockage_temporaire(marque)
-        marque = donne_marque_stockage_temporaire()
+        définis_marque_stockage_temporaire(marque);
+        marque = donne_marque_stockage_temporaire();
 
-        imprime_prompt_élise(message_éliza)
-        imprime_prompt_vous()
+        imprime_prompt_élise(message_éliza);
+        imprime_prompt_vous();
 
         message := tente entrée_standarde().lis_tout() piège nonatteignable
 
         si message.taille == 0 {
-            arrête
+            arrête;
         }
 
-        message_éliza = génère_réponse_pour_message(message)
+        message_éliza = génère_réponse_pour_message(message);
     }
 }

@@ -1,32 +1,32 @@
-importe Fondation
-importe Internet
+importe Fondation;
+importe Internet;
 
 // ----------------------------------
 
 // une valeur erreur commence à 1, 0 indique aucune erreur pour que le compilateur puisse
 // générer le code de vérification plus simplement
 ErreurSystème :: erreur {
-    FICHIER_INTROUVABLE
+    FICHIER_INTROUVABLE;
 }
 
 RésultatRecherche :: union {
-    err: ErreurSystème
-    fd: z32
+    err: ErreurSystème;
+    fd: z32;
 }
 
 appel_fonction_avec_erreur_union :: fonc () -> RésultatRecherche
 {
-    retourne ErreurSystème.FICHIER_INTROUVABLE
+    retourne ErreurSystème.FICHIER_INTROUVABLE;
 }
 
 appel_fonction_avec_erreur_seule :: fonc () -> ErreurSystème
 {
-    retourne ErreurSystème.FICHIER_INTROUVABLE
+    retourne ErreurSystème.FICHIER_INTROUVABLE;
 }
 
 appel_fonction_sans_erreur :: fonc () -> rien
 {
-    retourne
+    retourne;
 }
 
 // @note : les unions devraient pouvoir avoir un type « rien »
@@ -36,33 +36,33 @@ principale :: fonc ()
 
     //chaine_uri := "ftp://cnn.example.com&story=breaking_news@10.0.0.1/top_story.htm"
     //chaine_uri := "https://www.youtube.com/watch?v=njbqgDEiB7A#time_continue=1604"
-    chaine_uri := "        http:\\foo.com/?#        "
+    chaine_uri := "        http:\\foo.com/?#        ";
 
     uri := tente parse_uri_standard(chaine_uri) piège err {
-        imprime("Une erreur est survenue dans le parsage de l'URI : %\n", err)
-        exit(1)
+        imprime("Une erreur est survenue dans le parsage de l'URI : %\n", err);
+        exit(1);
     }
 
-    imprime("Schéma         : %\n", uri.schéma)
+    imprime("Schéma         : %\n", uri.schéma);
     //imprime("Après slashs   : %\n", après_slashs)
-    imprime("Autorité       : %\n", uri.autorité)
-    imprime("Hôte           : %\n", uri.hôte)
-    imprime("Port           : %\n", uri.port)
-    imprime("Chemin complet : %\n", uri.chemin_complet)
-    imprime("Chemin         : %\n", uri.chemin)
-    imprime("Requête        : %\n", uri.requête)
-    imprime("Fragment       : %\n", uri.fragment)
+    imprime("Autorité       : %\n", uri.autorité);
+    imprime("Hôte           : %\n", uri.hôte);
+    imprime("Port           : %\n", uri.port);
+    imprime("Chemin complet : %\n", uri.chemin_complet);
+    imprime("Chemin         : %\n", uri.chemin);
+    imprime("Requête        : %\n", uri.requête);
+    imprime("Fragment       : %\n", uri.fragment);
 
-    uri_recomposé := recompose_uri(*uri)
-    diffère déloge(uri_recomposé)
+    uri_recomposé := recompose_uri(*uri);
+    diffère déloge(uri_recomposé);
 
-    imprime("uri_recomposé : %\n", uri_recomposé)
+    imprime("uri_recomposé : %\n", uri_recomposé);
 
     // cas où nous retournons une erreur et quelque chose d'autre dans une union
 
     _ := tente appel_fonction_avec_erreur_union() piège err {
-        imprime("Une erreur est survenue dans l'appel avec union : %\n", err)
-        exit(1)
+        imprime("Une erreur est survenue dans l'appel avec union : %\n", err);
+        exit(1);
     }
 
     // cas où nous retournons une erreur et quelque chose d'autre dans une union, sans capturer l'erreur
@@ -70,14 +70,14 @@ principale :: fonc ()
 
     // cas où nous retournons une erreur et rien d'autre
     tente appel_fonction_avec_erreur_seule() piège _ {
-        exit(1)
+        exit(1);
     }
 
     // cas où nous retournons une erreur et rien d'autre, sans pièger l'erreur
     //r4 := tente appel_fonction_avec_erreur_seule() piège nonatteignable
 
     // cas où nous n'avons pas d'erreur
-    appel_fonction_sans_erreur()
+    appel_fonction_sans_erreur();
 
     // cas où nous avons une erreur, mais nous l'ignorons
     //appel_fonction_avec_erreur_seule()
