@@ -694,6 +694,15 @@ Symbol_Table_ELF64 :: struct {
     section_header_string_table: String_Table_ELF64;
 }
 
+donne_symbol_table :: fonc (fichier: *FichierELF, indice_section: Elf64_Word) -> (bool, Symbol_Table_ELF64)
+{
+    section := donne_entête_section(fichier, indice_section);
+    saufsi section {
+        retourne faux, Symbol_Table_ELF64();
+    }
+    retourne donne_symbol_table(fichier, section);
+}
+
 donne_symbol_table :: fonc (fichier: *FichierELF, nom: chaine) -> (bool, Symbol_Table_ELF64)
 {
     section := trouve_section(fichier, nom);
@@ -701,8 +710,13 @@ donne_symbol_table :: fonc (fichier: *FichierELF, nom: chaine) -> (bool, Symbol_
         imprimeln("Impossible de trouver la section '%'", nom);
         retourne faux, Symbol_Table_ELF64();
     }
+    retourne donne_symbol_table(fichier, section);
+}
+
+donne_symbol_table :: fonc (fichier: *FichierELF, section: *Elf64_Shdr) -> (bool, Symbol_Table_ELF64)
+{
     saufsi (section.sh_type comme TypeSection == SHT_SYMTAB || section.sh_type comme TypeSection == SHT_DYNSYM) {
-        imprimeln("La section '%' n'est pas une table de symboles", nom);
+        imprimeln("La section n'est pas une table de symboles");
         retourne faux, Symbol_Table_ELF64();
     }
 
@@ -726,6 +740,31 @@ donne_symbol_table :: fonc (fichier: *FichierELF, nom: chaine) -> (bool, Symbol_
     résultat.string_table = string_table;
     résultat.section_header_string_table = shstrtab;
     retourne vrai, résultat;
+}
+
+donne_symbole :: fonc (empl table: *Symbol_Table_ELF64, indice: Elf64_Xword) -> *Elf64_Sym
+{
+    si indice >= symboles.taille comme Elf64_Xword {
+        retourne nul;
+    }
+    retourne *symboles[indice];
+}
+
+donne_symbole :: fonc (empl table: *Symbol_Table_ELF64, nom: chaine) -> *Elf64_Sym
+{
+    pour * symboles {
+        si donne_nom_symbole(table, it) == nom {
+            retourne it
+        }
+    }
+
+    retourne nul
+}
+
+donne_nom_symbole :: fonc (empl table: *Symbol_Table_ELF64, symbole: *Elf64_Sym) -> chaine
+{
+    assert(est_adresse_élément_bornes_incluses(symboles, symbole));
+    retourne donne_chaine(string_table, symbole.st_name);
 }
 
 donne_nom_section_symbole :: fonc (empl table: *Symbol_Table_ELF64, symbole: *SymboleELF64) -> chaine
@@ -768,136 +807,6 @@ donne_nom_section_symbole :: fonc (empl table: *Symbol_Table_ELF64, symbole: *Sy
         retourne ""
     }
     retourne donne_chaine(section_header_string_table, section.sh_name)
-}
-
-/** \} */
-
-/* ------------------------------------------------------------------------- */
-/** \nom Table de symboles.
- * \{ */
-
-TableDesSymboles :: struct {
-    fichier: *FichierELF
-    table_des_chaines: *EntêteSectionELF64
-    table_symbole: *EntêteSectionELF64
-    table_symbole_entêtes: *EntêteSectionELF64
-}
-
-donne_table_des_symboles :: fonc (fichier: *FichierELF) -> Optionnel(TableDesSymboles)
-{
-    entête := fichier.entête_fichier()
-    saufsi entête {
-        retourne
-    }
-
-    // Pour trouver les noms des sections
-    table_symbole_entêtes := fichier.donne_entête_section(entête.e_shstrndx)
-
-    entête_section_table_symbole: *EntêteSectionELF64
-    table_des_chaines := fichier.trouve_section(".strtab")
-
-    pour entête.e_shnum {
-        section := fichier.donne_entête_section(it)
-
-        si donne_type_section(section) == TypeSection.TableSymbole {
-            entête_section_table_symbole = section
-            arrête
-        }
-    }
-
-    saufsi entête_section_table_symbole && table_des_chaines {
-        retourne
-    }
-
-    résultat: TableDesSymboles
-    résultat.fichier = fichier
-    résultat.table_des_chaines = table_des_chaines
-    résultat.table_symbole = entête_section_table_symbole
-    résultat.table_symbole_entêtes = table_symbole_entêtes
-    retourne résultat
-}
-
-donne_nombre_de_symboles :: fonc (table: *TableDesSymboles) -> z64
-{
-    retourne (table.table_symbole.sh_size / taille_de(SymboleELF64)) comme z64
-}
-
-donne_symbole :: fonc (table: *TableDesSymboles, nom: chaine) -> *SymboleELF64
-{
-    nombre_de_symboles := donne_nombre_de_symboles(table)
-
-    résultat: *SymboleELF64
-
-    pour nombre_de_symboles {
-        symbole := donne_symbole(table, it)
-        nom_symbole := donne_nom_symbole(table, symbole)
-
-        si nom_symbole == nom {
-            résultat = symbole
-            arrête
-        }
-    }
-
-    retourne résultat
-}
-
-donne_symbole :: fonc (table: *TableDesSymboles, indice: z64) -> *SymboleELF64
-{
-    base := table.fichier.contenu.pointeur + table.table_symbole.sh_offset
-    décalage := indice * taille_de(SymboleELF64) comme z64
-    retourne (base comme z64 + décalage) comme *SymboleELF64
-}
-
-donne_nom_symbole :: fonc (empl table: *TableDesSymboles, symbole: *SymboleELF64) -> chaine
-{
-    base := fichier.contenu.pointeur + table_des_chaines.sh_offset + symbole.st_name
-    retourne convertis_chaine_c_statique(ChaineC(base comme *z8))
-}
-
-donne_nom_table :: fonc (empl tabl: *TableDesSymboles) -> chaine
-{
-    base := fichier.contenu.pointeur + table_symbole_entêtes.sh_offset + table_symbole.sh_name
-    retourne convertis_chaine_c_statique(ChaineC(base comme *z8))
-}
-
-donne_nom_section_symbole :: fonc (empl table: *TableDesSymboles, symbole: *SymboleELF64) -> chaine
-{
-    index_entête_section := symbole.st_shndx
-
-    discr index_entête_section {
-        SHN_UNDEF {
-            retourne "UND"
-        }
-        SHN_LORESERVE, SHN_LOPROC {
-            retourne "LOP"
-        }
-        SHN_HIPROC {
-            retourne "HIP"
-        }
-        SHN_LOOS {
-            retourne "LOOS"
-        }
-        SHN_HIOS {
-            retourne "HIOS"
-        }
-        SHN_ABS {
-            retourne "ABS"
-        }
-        SHN_COMMON {
-            retourne "COM"
-        }
-        SHN_XINDEX {
-            retourne "XINDEX"
-        }
-        SHN_HIRESERVE {
-            retourne "HIRESERVE"
-        }
-        sinon {}
-    }
-
-    section := fichier.donne_entête_section(index_entête_section)
-    base := fichier.contenu.pointeur + table_symbole_entêtes.sh_offset + section.sh_name
-    retourne convertis_chaine_c_statique(ChaineC(base comme *z8))
 }
 
 /** \} */

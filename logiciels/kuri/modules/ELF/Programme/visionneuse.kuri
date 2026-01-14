@@ -1369,27 +1369,26 @@ donne_tabuleuse_rel :: fonc (fichier: *DonnéesFichier, fonte: *Fonte, tabuleuse
     entête := entête_fichier(fichier.fichier)
 
     si entête && tabuleuse.lignes.taille == 0 {
-        section := trouve_section(fichier.fichier, nom_section)
+        section := trouve_section(fichier.fichier, nom_section);
+        si section {
+            succès_table, table := donne_symbol_table(fichier.fichier, section.sh_link);
+            si succès_table {
+                relas := donne_données_section(fichier.fichier, section, Elf64_Rel);
 
-        table_potentielle := donne_table_des_symboles(fichier.fichier)
-        si section && table_potentielle.possède_valeur() {
-            table := table_potentielle.Quelque
+                initialise_tabuleuse(tabuleuse, "Décalage", "Type", "Symbole");
 
-            relas := donne_données_section(fichier.fichier, section, Elf64_Rel)
+                pour relas {
+                    type := ELF64_R_TYPE(it.r_info);
+                    indice_symbole := ELF64_R_SYM(it.r_info);
 
-            initialise_tabuleuse(tabuleuse, "Décalage", "Type", "Symbole")
+                    symbole := donne_symbole(*table, indice_symbole);
+                    nom_symbole := donne_nom_symbole(*table, symbole);
 
-            pour relas {
-                type := ELF64_R_TYPE(it.r_info)
-                indice_symbole := ELF64_R_SYM(it.r_info)
+                    ajoute_ligne(tabuleuse, it.r_offset, type, nom_symbole);
+                }
 
-                symbole := donne_symbole(*table, indice_symbole comme z64)
-                nom_symbole := donne_nom_symbole(*table, symbole)
-
-                ajoute_ligne(tabuleuse, it.r_offset, type, nom_symbole)
+                initialise_tailles_max_colonnes(tabuleuse, fonte);
             }
-
-            initialise_tailles_max_colonnes(tabuleuse, fonte)
         }
     }
 }
@@ -1405,30 +1404,29 @@ donne_tabuleuse_rela :: fonc (fichier: *DonnéesFichier, fonte: *Fonte, tabuleus
     entête := entête_fichier(fichier.fichier)
 
     si entête && tabuleuse.lignes.taille == 0 {
-        section := trouve_section(fichier.fichier, nom_section)
+        section := trouve_section(fichier.fichier, nom_section);
+        si section {
+            succès_table, table := donne_symbol_table(fichier.fichier, section.sh_link);
+            si succès_table {
+                relas := donne_données_section(fichier.fichier, section, Elf64_Rela);
 
-        table_potentielle := donne_table_des_symboles(fichier.fichier)
-        si section && table_potentielle.possède_valeur() {
-            table := table_potentielle.Quelque
+                initialise_tabuleuse(tabuleuse, "Décalage", "Type", "Symbole", "Indice Sym.", "Section Sym.", "Addende");
 
-            relas := donne_données_section(fichier.fichier, section, Elf64_Rela)
+                pour relas {
+                    type := ELF64_R_TYPE(it.r_info);
+                    indice_symbole := ELF64_R_SYM(it.r_info);
 
-            initialise_tabuleuse(tabuleuse, "Décalage", "Type", "Symbole", "Indice Sym.", "Section Sym.", "Addende")
+                    chn_type := donne_chaine_pour_réadressage_x86_64(type);
 
-            pour relas {
-                type := ELF64_R_TYPE(it.r_info)
-                indice_symbole := ELF64_R_SYM(it.r_info)
+                    symbole := donne_symbole(*table, indice_symbole);
+                    nom_symbole := donne_nom_symbole(*table, symbole);
+                    nom_section_sym := donne_nom_section_symbole(*table, symbole);
 
-                chn_type := donne_chaine_pour_réadressage_x86_64(type)
+                    ajoute_ligne(tabuleuse, it.r_offset, chn_type, nom_symbole, indice_symbole, nom_section_sym, it.r_addend);
+                }
 
-                symbole := donne_symbole(*table, indice_symbole comme z64)
-                nom_symbole := donne_nom_symbole(*table, symbole)
-                nom_section_sym := donne_nom_section_symbole(*table, symbole)
-
-                ajoute_ligne(tabuleuse, it.r_offset, chn_type, nom_symbole, indice_symbole, nom_section_sym, it.r_addend)
+                initialise_tailles_max_colonnes(tabuleuse, fonte);
             }
-
-            initialise_tailles_max_colonnes(tabuleuse, fonte)
         }
     }
 }
