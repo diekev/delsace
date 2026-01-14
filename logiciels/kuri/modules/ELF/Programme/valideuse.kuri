@@ -1,6 +1,7 @@
 importe ELF
 importe Fondation
 importe LigneDeCommande
+importe Numérique;
 importe SysFichier
 
 principale :: fonc ()
@@ -100,6 +101,16 @@ principale :: fonc ()
                 }
                 si type_section == SHT_NOBITS {
                     imprimeln("La section à l'indice '%', de type 'NOBITS' ne peut être compressée", it);
+                }
+            }
+
+            si section.sh_addralign != 0 && section.sh_addralign != 1 {
+                saufsi est_puissance_de_2(section.sh_addralign) {
+                    imprimeln("La valeur 'sh_addralign' de la section à l'indice '%' n'est pas une puissance de 2.", it)
+                }
+
+                si section.sh_addr % section.sh_addralign != 0 {
+                    imprimeln("La valeur 'sh_addr' de la section à l'indice '%' n'est pas congrue à 0 modulo 'sh_addralign.", it)
                 }
             }
 
