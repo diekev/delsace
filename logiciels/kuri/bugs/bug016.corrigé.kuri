@@ -5,6 +5,6 @@
 
 principale :: fonc ()
 {
-    a: [..]z32
-    a.ponteur = nul
+    a: [..]z32;
+    a.ponteur = nul;
 }

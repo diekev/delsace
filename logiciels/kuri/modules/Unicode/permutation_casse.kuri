@@ -1,41 +1,41 @@
-importe Algorithmes
+importe Algorithmes;
 
 PermutationCasse :: struct {
-    min: n32
-    max: n32
-    delta: z32
+    min: n32;
+    max: n32;
+    delta: z32;
 }
 
-PaireImpaire :: 1
-ImpairePaire :: -1
-SautPaireImpaire :: 1 << 30
-SautImpairePaire :: SautPaireImpaire + 1
+PaireImpaire :: 1;
+ImpairePaire :: -1;
+SautPaireImpaire :: 1 << 30;
+SautImpairePaire :: SautPaireImpaire + 1;
 
 // Returns the PermutationCasse* in the tables that contains rune.
 // If rune is not in the tables, returns the first PermutationCasse* after rune.
 // If rune is larger than any value in the tables, returns NULL.
 donne_permutation_casse :: fonc (table: []PermutationCasse, rune: Rune) -> *PermutationCasse
 {
-    r := rune comme n32
-    n := table.taille
-    f := table.pointeur
-    ef := f + n
+    r := rune comme n32;
+    n := table.taille;
+    f := table.pointeur;
+    ef := f + n;
 
     // Binary search for entry containing r.
     tantque n > 0 {
-        m := n / 2
+        m := n / 2;
 
         si f[m].min <= r <= f[m].max {
-            dist := distance(table.pointeur, *f[m])
-            retourne *table.pointeur[dist]
+            dist := distance(table.pointeur, *f[m]);
+            retourne *table.pointeur[dist];
         }
 
         si r < f[m].min {
-            n = m
+            n = m;
         }
         sinon {
-            f += m + 1
-            n -= m + 1
+            f += m + 1;
+            n -= m + 1;
         }
     }
 
@@ -44,11 +44,11 @@ donne_permutation_casse :: fonc (table: []PermutationCasse, rune: Rune) -> *Perm
     // the end of the array, it points at the next entry
     // after r.
     si f < ef {
-        retourne f
+        retourne f;
     }
 
     // No entry contains r; no entry contains runes > r.
-    retourne nul
+    retourne nul;
 }
 
 // Returns the result of applying the fold f to the rune r.
@@ -58,45 +58,45 @@ applique_permutation :: fonc (f: *PermutationCasse, r: Rune) -> Rune
         SautPaireImpaire {
             // even <-> odd but only applies to every other
             si (r comme n32 - f.min) % 2 != 0 {
-                retourne r
+                retourne r;
             }
 
             si r comme n32 % 2 == 0 {
-                retourne Rune(r comme n32 + 1)
+                retourne Rune(r comme n32 + 1);
             }
 
-            retourne Rune(r comme n32 - 1)
+            retourne Rune(r comme n32 - 1);
         }
         PaireImpaire {
             // even <-> odd
             si r comme n32 % 2 == 0 {
-                retourne Rune(r comme n32 + 1)
+                retourne Rune(r comme n32 + 1);
             }
 
-            retourne Rune(r comme n32 - 1)
+            retourne Rune(r comme n32 - 1);
         }
         SautImpairePaire {
             // odd <-> even but only applies to every other
             si (r comme n32 - f.min) % 2 != 0 {
-                retourne r
+                retourne r;
             }
 
             si r comme n32 % 2 == 1 {
-                retourne Rune(r comme n32 + 1)
+                retourne Rune(r comme n32 + 1);
             }
 
-            retourne Rune(r comme n32 - 1)
+            retourne Rune(r comme n32 - 1);
         }
         ImpairePaire {
             // odd <-> even
             si r comme n32 % 2 == 1 {
-                retourne Rune(r comme n32 + 1)
+                retourne Rune(r comme n32 + 1);
             }
 
-            retourne Rune(r comme n32 - 1)
+            retourne Rune(r comme n32 - 1);
         }
         sinon {
-            retourne Rune((r comme n32 comme z32 + f.delta) comme n32)
+            retourne Rune((r comme n32 comme z32 + f.delta) comme n32);
         }
     }
 }

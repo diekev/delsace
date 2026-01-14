@@ -4,79 +4,79 @@
 type_supporte_getset :: fonc (type: *TypePython) -> bool
 {
     si type.confidentialité == ConfidentialitéType.OPAQUE {
-        retourne faux
+        retourne faux;
     }
 
     si type.drapeaux.TYPE_EST_ÉNUM || type.drapeaux.TYPE_EST_TABLEAU || type.drapeaux.TYPE_EST_ITÉRATEUR {
-        retourne faux
+        retourne faux;
     }
 
     si type.rubriques.taille == 0 {
         /* Inutile de générer du code pour types n'ayant pas de rubriques. */
-        retourne faux
+        retourne faux;
     }
 
-    retourne vrai
+    retourne vrai;
 }
 
 /* Génère les méthodes pour accéder et muter les rubriques du type. Retourne la globales où les méthodes sont initialisés. */
 génère_méthodes_getset_pour_type :: fonc (enchaineuse: *Enchaineuse, type: *TypePython) -> chaine
 {
     saufsi type_supporte_getset(type) {
-        retourne copie_chaine("")
+        retourne copie_chaine("");
     }
 
     /* Déclare les fonctions get/set. */
     pour type.rubriques {
-        type_rubrique := it.type
+        type_rubrique := it.type;
         // get : fonc (object: *PyObject, data: *rien) -> *PyObject
 
-        enchaineuse.ajoute_au_tampon("get_", type.nom_sauf, "_", it.nom, " :: fonc (instance: *PyObject, closure: *rien@inutilisée) -> *PyObject\n")
-        enchaineuse.ajoute_au_tampon("{\n")
-        enchaineuse.ajoute_au_tampon("    notre_instance := (instance comme *", type.nom_sauf, "PourPython).notre_instance\n")
+        enchaineuse.ajoute_au_tampon("get_", type.nom_sauf, "_", it.nom, " :: fonc (instance: *PyObject, closure: *rien@inutilisée) -> *PyObject\n");
+        enchaineuse.ajoute_au_tampon("{\n");
+        enchaineuse.ajoute_au_tampon("    notre_instance := (instance comme *", type.nom_sauf, "PourPython).notre_instance\n");
 
         si type_rubrique.drapeaux.TYPE_EST_UNION {
-            enchaineuse.ajoute_au_tampon("    discr notre_instance {\n")
-            enchaineuse.ajoute_au_tampon("        ", it.nom, " {\n")
-            enchaineuse.ajoute_au_tampon("            rubrique := notre_instance.", it.nom, "\n")
-            enchaineuse.ajoute_au_tampon("            retourne ", type_rubrique.fonctions.pour_construction, "(rubrique)\n")
-            enchaineuse.ajoute_au_tampon("        }\n")
-            enchaineuse.ajoute_au_tampon("        sinon {\n")
-            enchaineuse.ajoute_au_tampon("            retourne python_retourne_rien()\n")
-            enchaineuse.ajoute_au_tampon("        }\n")
-            enchaineuse.ajoute_au_tampon("    }\n")
+            enchaineuse.ajoute_au_tampon("    discr notre_instance {\n");
+            enchaineuse.ajoute_au_tampon("        ", it.nom, " {\n");
+            enchaineuse.ajoute_au_tampon("            rubrique := notre_instance.", it.nom, "\n");
+            enchaineuse.ajoute_au_tampon("            retourne ", type_rubrique.fonctions.pour_construction, "(rubrique)\n");
+            enchaineuse.ajoute_au_tampon("        }\n");
+            enchaineuse.ajoute_au_tampon("        sinon {\n");
+            enchaineuse.ajoute_au_tampon("            retourne python_retourne_rien()\n");
+            enchaineuse.ajoute_au_tampon("        }\n");
+            enchaineuse.ajoute_au_tampon("    }\n");
         }
         sinon {
-            enchaineuse.ajoute_au_tampon("    rubrique := notre_instance.", it.nom, "\n")
-            enchaineuse.ajoute_au_tampon("    retourne ", type_rubrique.fonctions.pour_construction, "(rubrique)\n")
+            enchaineuse.ajoute_au_tampon("    rubrique := notre_instance.", it.nom, "\n");
+            enchaineuse.ajoute_au_tampon("    retourne ", type_rubrique.fonctions.pour_construction, "(rubrique)\n");
         }
-        enchaineuse.ajoute_au_tampon("}\n")
+        enchaineuse.ajoute_au_tampon("}\n");
 
         si it.confidentialité == ConfidentialitéType.MUTABLE {
             // set : fonc (instance: *PyObject, valeur: *PyObject, data: *rien) -> z32
             // retourne 0 pour un succès
             // retourne -1 pour une erreur
-            enchaineuse.ajoute_au_tampon("set_", type.nom_sauf, "_", it.nom, " :: fonc (instance: *PyObject, valeur: *PyObject, closure: *rien@inutilisée) -> z32\n")
-            enchaineuse.ajoute_au_tampon("{\n")
+            enchaineuse.ajoute_au_tampon("set_", type.nom_sauf, "_", it.nom, " :: fonc (instance: *PyObject, valeur: *PyObject, closure: *rien@inutilisée) -> z32\n");
+            enchaineuse.ajoute_au_tampon("{\n");
 
-            enchaineuse.ajoute_au_tampon("    si ", type_rubrique.fonctions.pour_discrimination, "(valeur) {\n")
-            enchaineuse.ajoute_au_tampon("    notre_instance := *(instance comme *", type.nom_sauf, "PourPython).notre_instance\n")
+            enchaineuse.ajoute_au_tampon("    si ", type_rubrique.fonctions.pour_discrimination, "(valeur) {\n");
+            enchaineuse.ajoute_au_tampon("    notre_instance := *(instance comme *", type.nom_sauf, "PourPython).notre_instance\n");
             si it.type.drapeaux.TYPE_EST_ÉNUM {
-                enchaineuse.ajoute_au_tampon("    si PyUnicode_Check(valeur) {\n")
-                enchaineuse.ajoute_au_tampon("        notre_instance.", it.nom, " = ", type_rubrique.fonctions.pour_valeur_unicode_enum, "(valeur, info_de(", it.type.nom, ")) comme ", it.type.nom, "\n")
-                enchaineuse.ajoute_au_tampon("    }\n")
-                enchaineuse.ajoute_au_tampon("    sinon {\n")
-                enchaineuse.ajoute_au_tampon("        notre_instance.", it.nom, " = ", type_rubrique.fonctions.pour_extraction_valeur, "(valeur).notre_instance\n")
-                enchaineuse.ajoute_au_tampon("    }\n")
+                enchaineuse.ajoute_au_tampon("    si PyUnicode_Check(valeur) {\n");
+                enchaineuse.ajoute_au_tampon("        notre_instance.", it.nom, " = ", type_rubrique.fonctions.pour_valeur_unicode_enum, "(valeur, info_de(", it.type.nom, ")) comme ", it.type.nom, "\n");
+                enchaineuse.ajoute_au_tampon("    }\n");
+                enchaineuse.ajoute_au_tampon("    sinon {\n");
+                enchaineuse.ajoute_au_tampon("        notre_instance.", it.nom, " = ", type_rubrique.fonctions.pour_extraction_valeur, "(valeur).notre_instance\n");
+                enchaineuse.ajoute_au_tampon("    }\n");
             }
             sinon si it.type.est_basique {
-                enchaineuse.ajoute_au_tampon("    notre_instance.", it.nom, " = ", type_rubrique.fonctions.pour_extraction_valeur, "(valeur)\n")
+                enchaineuse.ajoute_au_tampon("    notre_instance.", it.nom, " = ", type_rubrique.fonctions.pour_extraction_valeur, "(valeur)\n");
             }
             sinon {
-                enchaineuse.ajoute_au_tampon("    notre_instance.", it.nom, " = ", type_rubrique.fonctions.pour_extraction_valeur, "(valeur).notre_instance\n")
+                enchaineuse.ajoute_au_tampon("    notre_instance.", it.nom, " = ", type_rubrique.fonctions.pour_extraction_valeur, "(valeur).notre_instance\n");
             }
-            enchaineuse.ajoute_au_tampon("    retourne 0\n")
-            enchaineuse.ajoute_au_tampon("    }\n")
+            enchaineuse.ajoute_au_tampon("    retourne 0\n");
+            enchaineuse.ajoute_au_tampon("    }\n");
 
             si it.type.drapeaux.TYPE_EST_ÉNUM {
                 assigne_énum_depuis_chaine := «
@@ -84,287 +84,287 @@ génère_méthodes_getset_pour_type :: fonc (enchaineuse: *Enchaineuse, type: *T
         valeur_chaine := PyUnicode_AsChaine(valeur)
         retourne Py_AssigneChaineÉnum((instance comme *%PourPython).notre_instance.%, valeur_chaine)
     }
-»
+»;
 
-                enchaineuse.imprime_dans_enchaineuse(assigne_énum_depuis_chaine, type.nom_sauf, it.nom)
+                enchaineuse.imprime_dans_enchaineuse(assigne_énum_depuis_chaine, type.nom_sauf, it.nom);
             }
 
-            enchaineuse.ajoute_au_tampon("    retourne PyErr_MauvaisTypeAssignement(valeur, \"", it.type.nom, "\")\n")
-            enchaineuse.ajoute_au_tampon("}\n")
+            enchaineuse.ajoute_au_tampon("    retourne PyErr_MauvaisTypeAssignement(valeur, \"", it.type.nom, "\")\n");
+            enchaineuse.ajoute_au_tampon("}\n");
         }
     }
 
-    nom_globale := enchaine("getset_", type.nom_sauf)
+    nom_globale := enchaine("getset_", type.nom_sauf);
 
     /* Déclare la globale, nous devons ajouter un élément supplémentaire à la fin. */
-    enchaineuse.imprime_dans_enchaineuse("% := [\n", nom_globale)
+    enchaineuse.imprime_dans_enchaineuse("% := [\n", nom_globale);
 
     pour type.rubriques {
-        enchaineuse.imprime_dans_enchaineuse("    PyGetSetDef(name = ChaineC(\"%\".pointeur), ", it.nom)
-        enchaineuse.imprime_dans_enchaineuse("get = get_%_%, ", type.nom_sauf, it.nom)
+        enchaineuse.imprime_dans_enchaineuse("    PyGetSetDef(name = ChaineC(\"%\".pointeur), ", it.nom);
+        enchaineuse.imprime_dans_enchaineuse("get = get_%_%, ", type.nom_sauf, it.nom);
         si it.confidentialité == ConfidentialitéType.MUTABLE {
-            enchaineuse.imprime_dans_enchaineuse("set = set_%_%, ", type.nom_sauf, it.nom)
+            enchaineuse.imprime_dans_enchaineuse("set = set_%_%, ", type.nom_sauf, it.nom);
         }
         sinon {
-            enchaineuse.ajoute_au_tampon("set = nul, ")
+            enchaineuse.ajoute_au_tampon("set = nul, ");
         }
-        enchaineuse.imprime_dans_enchaineuse("doc = ChaineC(nul), ")
-        enchaineuse.imprime_dans_enchaineuse("closure = nul),\n")
+        enchaineuse.imprime_dans_enchaineuse("doc = ChaineC(nul), ");
+        enchaineuse.imprime_dans_enchaineuse("closure = nul),\n");
     }
-    enchaineuse.imprime_dans_enchaineuse("    PyGetSetDef(name = ChaineC(nul), get = nul, set = nul, doc = ChaineC(nul), closure = nul)\n")
-    enchaineuse.ajoute_au_tampon("]\n")
+    enchaineuse.imprime_dans_enchaineuse("    PyGetSetDef(name = ChaineC(nul), get = nul, set = nul, doc = ChaineC(nul), closure = nul)\n");
+    enchaineuse.ajoute_au_tampon("]\n");
 
-    retourne nom_globale
+    retourne nom_globale;
 }
 
 /* Retourne vrai si le type peut avoir être accéder via objet["clé"]. */
 type_supporte_mapping :: fonc (type: *TypePython) -> bool
 {
     /* Pour le moment la logique est la même que pour les accesseurs/mutateurs. */
-    retourne type_supporte_getset(type)
+    retourne type_supporte_getset(type);
 }
 
 génère_globale_as_mapping :: fonc (enchaineuse: *Enchaineuse, type: *TypePython) -> chaine
 {
     saufsi type_supporte_mapping(type) {
-        retourne copie_chaine("")
+        retourne copie_chaine("");
     }
 
     /* Génère la fonction pour PyMappingMethods.mp_length. */
-    nom_fonction_mp_length := enchaine("mp_length_pour_", type.nom_sauf)
-    diffère déloge(nom_fonction_mp_length)
+    nom_fonction_mp_length := enchaine("mp_length_pour_", type.nom_sauf);
+    diffère déloge(nom_fonction_mp_length);
 
-    enchaineuse.ajoute_au_tampon(nom_fonction_mp_length, " :: fonc (self: *PyObject @inutilisée) -> Py_ssize_t\n")
-    enchaineuse.imprime_dans_enchaineuse("{\nretourne %\n}\n", type.rubriques.taille)
+    enchaineuse.ajoute_au_tampon(nom_fonction_mp_length, " :: fonc (self: *PyObject @inutilisée) -> Py_ssize_t\n");
+    enchaineuse.imprime_dans_enchaineuse("{\nretourne %\n}\n", type.rubriques.taille);
 
     /* Génère la fonction pour PyMappingMethods.mp_subscript. */
-    nom_fonction_mp_subscript := enchaine("mp_subscript_pour_", type.nom_sauf)
-    diffère déloge(nom_fonction_mp_subscript)
+    nom_fonction_mp_subscript := enchaine("mp_subscript_pour_", type.nom_sauf);
+    diffère déloge(nom_fonction_mp_subscript);
 
-    enchaineuse.ajoute_au_tampon(nom_fonction_mp_subscript, " :: fonc (self: *PyObject, key: *PyObject) -> *PyObject\n")
-    enchaineuse.ajoute_au_tampon("{\n    nom_rubrique := PyUnicode_AsChaine(key)\n")
+    enchaineuse.ajoute_au_tampon(nom_fonction_mp_subscript, " :: fonc (self: *PyObject, key: *PyObject) -> *PyObject\n");
+    enchaineuse.ajoute_au_tampon("{\n    nom_rubrique := PyUnicode_AsChaine(key)\n");
 
-    possède_rubrique_mutable := faux
+    possède_rubrique_mutable := faux;
 
     pour type.rubriques {
-        enchaineuse.ajoute_au_tampon("    si nom_rubrique == \"", it.nom, "\" {\n")
-        enchaineuse.ajoute_au_tampon("         retourne get_", type.nom_sauf, "_", it.nom, "(self, nul)\n")
-        enchaineuse.ajoute_au_tampon("    }\n")
+        enchaineuse.ajoute_au_tampon("    si nom_rubrique == \"", it.nom, "\" {\n");
+        enchaineuse.ajoute_au_tampon("         retourne get_", type.nom_sauf, "_", it.nom, "(self, nul)\n");
+        enchaineuse.ajoute_au_tampon("    }\n");
 
         si it.confidentialité == ConfidentialitéType.MUTABLE {
-            possède_rubrique_mutable = vrai
+            possède_rubrique_mutable = vrai;
         }
     }
 
-    enchaineuse.ajoute_au_tampon("     retourne PyErr_CléInconnue(self, nom_rubrique)\n")
-    enchaineuse.ajoute_au_tampon("}\n")
+    enchaineuse.ajoute_au_tampon("     retourne PyErr_CléInconnue(self, nom_rubrique)\n");
+    enchaineuse.ajoute_au_tampon("}\n");
 
     /* Génère la fonction pour PyMappingMethods.mp_ass_subscript. */
-    nom_fonction_mp_ass_subscript := "nul"
+    nom_fonction_mp_ass_subscript := "nul";
     diffère si nom_fonction_mp_ass_subscript != "nul" { déloge(nom_fonction_mp_ass_subscript) }
 
     si possède_rubrique_mutable {
-        nom_fonction_mp_ass_subscript = enchaine("mp_ass_subscript_pour_", type.nom_sauf)
+        nom_fonction_mp_ass_subscript = enchaine("mp_ass_subscript_pour_", type.nom_sauf);
 
-        enchaineuse.ajoute_au_tampon(nom_fonction_mp_ass_subscript, " :: fonc (self: *PyObject, key: *PyObject, v: *PyObject) -> z32\n")
-        enchaineuse.ajoute_au_tampon("{\n    nom_rubrique := PyUnicode_AsChaine(key)\n")
-        enchaineuse.ajoute_au_tampon("    si v == nul {\n")
-        enchaineuse.ajoute_au_tampon("        retourne PyErr_AttributNonSupprimable(self, nom_rubrique)\n")
-        enchaineuse.ajoute_au_tampon("    }\n")
+        enchaineuse.ajoute_au_tampon(nom_fonction_mp_ass_subscript, " :: fonc (self: *PyObject, key: *PyObject, v: *PyObject) -> z32\n");
+        enchaineuse.ajoute_au_tampon("{\n    nom_rubrique := PyUnicode_AsChaine(key)\n");
+        enchaineuse.ajoute_au_tampon("    si v == nul {\n");
+        enchaineuse.ajoute_au_tampon("        retourne PyErr_AttributNonSupprimable(self, nom_rubrique)\n");
+        enchaineuse.ajoute_au_tampon("    }\n");
 
         pour type.rubriques {
-            enchaineuse.ajoute_au_tampon("    si nom_rubrique == \"", it.nom, "\" {\n")
+            enchaineuse.ajoute_au_tampon("    si nom_rubrique == \"", it.nom, "\" {\n");
             si it.confidentialité == ConfidentialitéType.MUTABLE {
-                enchaineuse.ajoute_au_tampon("         retourne set_", type.nom_sauf, "_", it.nom, "(self, v, nul)\n")
+                enchaineuse.ajoute_au_tampon("         retourne set_", type.nom_sauf, "_", it.nom, "(self, v, nul)\n");
             }
             sinon {
-                enchaineuse.ajoute_au_tampon("         retourne PyErr_AttributNonMutable(self, nom_rubrique)\n")
+                enchaineuse.ajoute_au_tampon("         retourne PyErr_AttributNonMutable(self, nom_rubrique)\n");
             }
-            enchaineuse.ajoute_au_tampon("    }\n")
+            enchaineuse.ajoute_au_tampon("    }\n");
         }
-        enchaineuse.ajoute_au_tampon("     _ := PyErr_CléInconnue(self, nom_rubrique)\n retourne -1\n")
-        enchaineuse.ajoute_au_tampon("}\n")
+        enchaineuse.ajoute_au_tampon("     _ := PyErr_CléInconnue(self, nom_rubrique)\n retourne -1\n");
+        enchaineuse.ajoute_au_tampon("}\n");
     }
 
     /* Génère la globale. */
-    nom_globale := enchaine("py_mapping_methods_pour_", type.nom_sauf)
+    nom_globale := enchaine("py_mapping_methods_pour_", type.nom_sauf);
 
-    enchaineuse.ajoute_au_tampon(nom_globale, " := PyMappingMethods (", nom_fonction_mp_length, ", ", nom_fonction_mp_subscript, ", ", nom_fonction_mp_ass_subscript, ")\n")
+    enchaineuse.ajoute_au_tampon(nom_globale, " := PyMappingMethods (", nom_fonction_mp_length, ", ", nom_fonction_mp_subscript, ", ", nom_fonction_mp_ass_subscript, ")\n");
 
-    retourne nom_globale
+    retourne nom_globale;
 }
 
 génère_fonction_new :: fonc (enchaineuse: *Enchaineuse, type: *TypePython) -> chaine
 {
-    méthode := type.new
+    méthode := type.new;
 
     saufsi méthode.nom {
-        retourne copie_chaine("")
+        retourne copie_chaine("");
     }
 
-    nom_fonction_new := enchaine("new_", type.nom_sauf)
+    nom_fonction_new := enchaine("new_", type.nom_sauf);
 
-    args_inutilisés := ""
+    args_inutilisés := "";
     saufsi méthode.paramètres_entrée {
-        args_inutilisés = " @inutilisée"
+        args_inutilisés = " @inutilisée";
     }
 
-    enchaineuse.ajoute_au_tampon(nom_fonction_new, " :: fonc (subtype: *PyTypeObject, args: *PyObject", args_inutilisés, ", kwds: *PyObject @inutilisée) -> *PyObject\n")
-    enchaineuse.ajoute_au_tampon("{\n")
+    enchaineuse.ajoute_au_tampon(nom_fonction_new, " :: fonc (subtype: *PyTypeObject, args: *PyObject", args_inutilisés, ", kwds: *PyObject @inutilisée) -> *PyObject\n");
+    enchaineuse.ajoute_au_tampon("{\n");
 
     /* Parse les arguments. */
-    génère_parsage_args_tuple(enchaineuse, méthode, "nul")
+    génère_parsage_args_tuple(enchaineuse, méthode, "nul");
 
     /* Appel la fonction d'initialisation. */
-    génère_conversion_args_vers_kuri(enchaineuse, méthode)
+    génère_conversion_args_vers_kuri(enchaineuse, méthode);
 
     si type.drapeaux.TOUJOURS_COMME_POINTEUR {
-        enchaineuse.ajoute_au_tampon("    résultat := loge(", type.nom, ")\n")
-        enchaineuse.ajoute_au_tampon("    succès := ")
-        génère_appel_méthode_kuri(enchaineuse, méthode, "résultat")
+        enchaineuse.ajoute_au_tampon("    résultat := loge(", type.nom, ")\n");
+        enchaineuse.ajoute_au_tampon("    succès := ");
+        génère_appel_méthode_kuri(enchaineuse, méthode, "résultat");
     }
     sinon {
-        enchaineuse.ajoute_au_tampon("    résultat :", type.nom, "\n")
-        enchaineuse.ajoute_au_tampon("    succès := ")
-        génère_appel_méthode_kuri(enchaineuse, méthode, "*résultat")
+        enchaineuse.ajoute_au_tampon("    résultat :", type.nom, "\n");
+        enchaineuse.ajoute_au_tampon("    succès := ");
+        génère_appel_méthode_kuri(enchaineuse, méthode, "*résultat");
     }
 
-    enchaineuse.ajoute_au_tampon("    saufsi succès {\n")
-    enchaineuse.ajoute_au_tampon("        retourne nul\n")
-    enchaineuse.ajoute_au_tampon("    }\n")
+    enchaineuse.ajoute_au_tampon("    saufsi succès {\n");
+    enchaineuse.ajoute_au_tampon("        retourne nul\n");
+    enchaineuse.ajoute_au_tampon("    }\n");
 
     /* Crée un objet python correspondant, et retourne. */
-    enchaineuse.ajoute_au_tampon("    objet_résultat := subtype.tp_alloc(subtype, 0) comme *", type.nom_sauf, "PourPython\n")
-    enchaineuse.ajoute_au_tampon("    objet_résultat.notre_instance = résultat\n")
-    enchaineuse.ajoute_au_tampon("    retourne objet_résultat\n")
-    enchaineuse.ajoute_au_tampon("}\n")
+    enchaineuse.ajoute_au_tampon("    objet_résultat := subtype.tp_alloc(subtype, 0) comme *", type.nom_sauf, "PourPython\n");
+    enchaineuse.ajoute_au_tampon("    objet_résultat.notre_instance = résultat\n");
+    enchaineuse.ajoute_au_tampon("    retourne objet_résultat\n");
+    enchaineuse.ajoute_au_tampon("}\n");
 
-    retourne nom_fonction_new
+    retourne nom_fonction_new;
 }
 
 génère_fonction_str :: fonc (enchaineuse: *Enchaineuse, type: *TypePython) -> chaine
 {
-    méthode := type.str
+    méthode := type.str;
 
     saufsi méthode.nom || type.drapeaux.TYPE_EST_ÉNUM {
-        retourne copie_chaine("")
+        retourne copie_chaine("");
     }
 
-    nom_fonction_str := enchaine("str_", type.nom_sauf)
+    nom_fonction_str := enchaine("str_", type.nom_sauf);
 
     // doit retourner un PyUnicodeObject
-    enchaineuse.ajoute_au_tampon(nom_fonction_str, ":: fonc (self: *PyObject) -> *PyObject\n")
-    enchaineuse.ajoute_au_tampon("{\n")
-    enchaineuse.ajoute_au_tampon("    notre_instance := ", type.fonctions.pour_extraction_valeur, "(self).notre_instance\n")
+    enchaineuse.ajoute_au_tampon(nom_fonction_str, ":: fonc (self: *PyObject) -> *PyObject\n");
+    enchaineuse.ajoute_au_tampon("{\n");
+    enchaineuse.ajoute_au_tampon("    notre_instance := ", type.fonctions.pour_extraction_valeur, "(self).notre_instance\n");
     si type.drapeaux.TYPE_EST_ÉNUM {
-        enchaineuse.ajoute_au_tampon("    info_énum := info_de(", type.nom, ")\n")
+        enchaineuse.ajoute_au_tampon("    info_énum := info_de(", type.nom, ")\n");
 
-        type_énum_kuri := type.type_kuri comme *InfoTypeÉnum
-        enchaineuse.ajoute_au_tampon("    résultat := donne_nom_énum_pour_valeur(info_énum, notre_instance comme ", donne_chaine_type_sousjacent(type_énum_kuri), ")\n")
+        type_énum_kuri := type.type_kuri comme *InfoTypeÉnum;
+        enchaineuse.ajoute_au_tampon("    résultat := donne_nom_énum_pour_valeur(info_énum, notre_instance comme ", donne_chaine_type_sousjacent(type_énum_kuri), ")\n");
     }
     sinon {
-        enchaineuse.ajoute_au_tampon("    résultat := ", méthode.nom, "(*notre_instance)\n")
+        enchaineuse.ajoute_au_tampon("    résultat := ", méthode.nom, "(*notre_instance)\n");
     }
-    enchaineuse.ajoute_au_tampon("    retourne PyUnicode_FromChaine(résultat)\n")
-    enchaineuse.ajoute_au_tampon("}\n")
+    enchaineuse.ajoute_au_tampon("    retourne PyUnicode_FromChaine(résultat)\n");
+    enchaineuse.ajoute_au_tampon("}\n");
 
-    retourne nom_fonction_str
+    retourne nom_fonction_str;
 }
 
 donne_chaine_type_sousjacent :: fonc (type_énum: *InfoTypeÉnum) -> chaine
 {
-    type_sous_jacent := type_énum.type_sous_jacent
+    type_sous_jacent := type_énum.type_sous_jacent;
     si type_sous_jacent.est_signé {
         si type_sous_jacent.taille_en_octet == 1 {
-            retourne "z8"
+            retourne "z8";
         }
         sinon si type_sous_jacent.taille_en_octet == 2 {
-            retourne "z16"
+            retourne "z16";
         }
         sinon si type_sous_jacent.taille_en_octet == 4 {
-            retourne "z32"
+            retourne "z32";
         }
         sinon si type_sous_jacent.taille_en_octet == 8 {
-            retourne "z64"
+            retourne "z64";
         }
     }
     sinon {
         si type_sous_jacent.taille_en_octet == 1 {
-            retourne "n8"
+            retourne "n8";
         }
         sinon si type_sous_jacent.taille_en_octet == 2 {
-            retourne "n16"
+            retourne "n16";
         }
         sinon si type_sous_jacent.taille_en_octet == 4 {
-            retourne "n32"
+            retourne "n32";
         }
         sinon si type_sous_jacent.taille_en_octet == 8 {
-            retourne "n64"
+            retourne "n64";
         }
     }
-    retourne "ERREUR TYPE SOUS JACENT"
+    retourne "ERREUR TYPE SOUS JACENT";
 }
 
 /* https://docs.python.org/3/c-api/typeobj.html#c.PyTypeObject.tp_hash */
 génère_fonction_hash :: fonc (enchaineuse: *Enchaineuse, type: *TypePython) -> chaine
 {
-    méthode := type.hash
+    méthode := type.hash;
 
     si méthode.nom {
-        nom_fonction_hash := enchaine("hash_", type.nom_sauf)
+        nom_fonction_hash := enchaine("hash_", type.nom_sauf);
 
-        enchaineuse.ajoute_au_tampon(nom_fonction_hash, ":: fonc (self: *PyObject) -> Py_hash_t\n")
-        enchaineuse.ajoute_au_tampon("{\n")
-        enchaineuse.ajoute_au_tampon("    notre_instance := ", type.fonctions.pour_extraction_valeur, "(self).notre_instance\n")
-        enchaineuse.ajoute_au_tampon("    résultat := ", méthode.nom, "(*notre_instance)\n")
-        enchaineuse.ajoute_au_tampon("    retourne résultat\n")
-        enchaineuse.ajoute_au_tampon("}\n")
+        enchaineuse.ajoute_au_tampon(nom_fonction_hash, ":: fonc (self: *PyObject) -> Py_hash_t\n");
+        enchaineuse.ajoute_au_tampon("{\n");
+        enchaineuse.ajoute_au_tampon("    notre_instance := ", type.fonctions.pour_extraction_valeur, "(self).notre_instance\n");
+        enchaineuse.ajoute_au_tampon("    résultat := ", méthode.nom, "(*notre_instance)\n");
+        enchaineuse.ajoute_au_tampon("    retourne résultat\n");
+        enchaineuse.ajoute_au_tampon("}\n");
 
-        retourne nom_fonction_hash
+        retourne nom_fonction_hash;
     }
 
     /* Pour les énums, nous retournons simplement la valeur, qui est sensée être unique. */
     si type.drapeaux.TYPE_EST_ÉNUM {
-        nom_fonction_hash := enchaine("hash_", type.nom_sauf)
+        nom_fonction_hash := enchaine("hash_", type.nom_sauf);
 
-        enchaineuse.ajoute_au_tampon(nom_fonction_hash, ":: fonc (self: *PyObject) -> Py_hash_t\n")
-        enchaineuse.ajoute_au_tampon("{\n")
-        enchaineuse.ajoute_au_tampon("    notre_instance := ", type.fonctions.pour_extraction_valeur, "(self).notre_instance\n")
-        type_énum_kuri := type.type_kuri comme *InfoTypeÉnum
-        enchaineuse.ajoute_au_tampon("    retourne notre_instance comme ", donne_chaine_type_sousjacent(type_énum_kuri), " comme Py_hash_t\n")
-        enchaineuse.ajoute_au_tampon("}\n")
+        enchaineuse.ajoute_au_tampon(nom_fonction_hash, ":: fonc (self: *PyObject) -> Py_hash_t\n");
+        enchaineuse.ajoute_au_tampon("{\n");
+        enchaineuse.ajoute_au_tampon("    notre_instance := ", type.fonctions.pour_extraction_valeur, "(self).notre_instance\n");
+        type_énum_kuri := type.type_kuri comme *InfoTypeÉnum;
+        enchaineuse.ajoute_au_tampon("    retourne notre_instance comme ", donne_chaine_type_sousjacent(type_énum_kuri), " comme Py_hash_t\n");
+        enchaineuse.ajoute_au_tampon("}\n");
 
-        retourne nom_fonction_hash
+        retourne nom_fonction_hash;
     }
 
     /* Pour les types étant toujours stockés par adresse, nous pouvons utilisé l'adresse comme empreinte. */
     si type.drapeaux.TOUJOURS_COMME_POINTEUR {
-        nom_fonction_hash := enchaine("hash_", type.nom_sauf)
+        nom_fonction_hash := enchaine("hash_", type.nom_sauf);
 
-        enchaineuse.ajoute_au_tampon(nom_fonction_hash, ":: fonc (self: *PyObject) -> Py_hash_t\n")
-        enchaineuse.ajoute_au_tampon("{\n")
-        enchaineuse.ajoute_au_tampon("    notre_instance := ", type.fonctions.pour_extraction_valeur, "(self).notre_instance\n")
-        enchaineuse.ajoute_au_tampon("    retourne notre_instance comme z64\n")
-        enchaineuse.ajoute_au_tampon("}\n")
+        enchaineuse.ajoute_au_tampon(nom_fonction_hash, ":: fonc (self: *PyObject) -> Py_hash_t\n");
+        enchaineuse.ajoute_au_tampon("{\n");
+        enchaineuse.ajoute_au_tampon("    notre_instance := ", type.fonctions.pour_extraction_valeur, "(self).notre_instance\n");
+        enchaineuse.ajoute_au_tampon("    retourne notre_instance comme z64\n");
+        enchaineuse.ajoute_au_tampon("}\n");
 
-        retourne nom_fonction_hash
+        retourne nom_fonction_hash;
     }
 
     /* PyObject_HashNotImplemented doit être utilisé afin de pouvoir bloquer l'héritage
      * de la fonction de hachage des parents, et permet d'utiliser correctement
      * isinstance(o, collections.Hashable).
      */
-    retourne copie_chaine("PyObject_HashNotImplemented")
+    retourne copie_chaine("PyObject_HashNotImplemented");
 }
 
 /* https://docs.python.org/3/c-api/typeobj.html#c.PyTypeObject.tp_richcompare */
 génère_fonction_richcompare :: fonc (enchaineuse: *Enchaineuse, type: *TypePython) -> chaine
 {
     saufsi type.drapeaux.TYPE_EST_ÉNUM {
-        retourne copie_chaine("")
+        retourne copie_chaine("");
     }
 
-    nom_fonction_richcompare := enchaine("richcompare_", type.nom_sauf)
+    nom_fonction_richcompare := enchaine("richcompare_", type.nom_sauf);
 
     compare_énum_avec_chaine := «
     si PyUnicode_Check(other) {
@@ -372,7 +372,7 @@ génère_fonction_richcompare :: fonc (enchaineuse: *Enchaineuse, type: *TypePyt
         valeur_énum := Py%_As%(self).notre_instance
         retourne Py_compare_énum_chaine(valeur_énum, op, valeur_chaine)
     }
-»
+»;
 
     compare_énum_avec_énum := «
     si Py%_Check(other) {
@@ -380,108 +380,108 @@ génère_fonction_richcompare :: fonc (enchaineuse: *Enchaineuse, type: *TypePyt
         valeur2 := Py%_As%(other).notre_instance
         retourne Py_compare_énum_énum(valeur1, op, valeur2)
     }
-»
+»;
 
-    enchaineuse.ajoute_au_tampon(nom_fonction_richcompare, ":: fonc (self: *PyObject, other: *PyObject, op: z32) -> *PyObject\n")
-    enchaineuse.ajoute_au_tampon("{\n")
+    enchaineuse.ajoute_au_tampon(nom_fonction_richcompare, ":: fonc (self: *PyObject, other: *PyObject, op: z32) -> *PyObject\n");
+    enchaineuse.ajoute_au_tampon("{\n");
 
-    enchaineuse.imprime_dans_enchaineuse(compare_énum_avec_chaine, type.nom_sauf, type.nom_sauf)
-    enchaineuse.imprime_dans_enchaineuse(compare_énum_avec_énum, type.nom_sauf, type.nom_sauf, type.nom_sauf, type.nom_sauf, type.nom_sauf)
+    enchaineuse.imprime_dans_enchaineuse(compare_énum_avec_chaine, type.nom_sauf, type.nom_sauf);
+    enchaineuse.imprime_dans_enchaineuse(compare_énum_avec_énum, type.nom_sauf, type.nom_sauf, type.nom_sauf, type.nom_sauf, type.nom_sauf);
 
-    enchaineuse.ajoute_au_tampon("    retourne PyErr_ComparaisonImpossible(other, \"", type.nom, "\")\n")
-    enchaineuse.ajoute_au_tampon("}\n")
+    enchaineuse.ajoute_au_tampon("    retourne PyErr_ComparaisonImpossible(other, \"", type.nom, "\")\n");
+    enchaineuse.ajoute_au_tampon("}\n");
 
-    retourne nom_fonction_richcompare
+    retourne nom_fonction_richcompare;
 }
 
 génère_fonction_repr :: fonc (enchaineuse: *Enchaineuse, type: *TypePython) -> chaine
 {
-    méthode := type.repr
+    méthode := type.repr;
 
     saufsi méthode.nom {
-        retourne copie_chaine("")
+        retourne copie_chaine("");
     }
 
-    nom_fonction_repr := enchaine("repr_", type.nom_sauf)
+    nom_fonction_repr := enchaine("repr_", type.nom_sauf);
 
     // doit retourner un PyUnicodeObject
-    enchaineuse.ajoute_au_tampon(nom_fonction_repr, ":: fonc (self: *PyObject) -> *PyObject\n")
-    enchaineuse.ajoute_au_tampon("{\n")
-    enchaineuse.ajoute_au_tampon("    notre_instance := ", type.fonctions.pour_extraction_valeur, "(self).notre_instance\n")
-    enchaineuse.ajoute_au_tampon("    résultat := ", méthode.nom, "(*notre_instance)\n")
-    enchaineuse.ajoute_au_tampon("    résultat = enchaine(\"", type.nom, "('\", résultat, \"')\")\n")
-    enchaineuse.ajoute_au_tampon("    retourne PyUnicode_FromChaine(résultat)\n")
-    enchaineuse.ajoute_au_tampon("}\n")
+    enchaineuse.ajoute_au_tampon(nom_fonction_repr, ":: fonc (self: *PyObject) -> *PyObject\n");
+    enchaineuse.ajoute_au_tampon("{\n");
+    enchaineuse.ajoute_au_tampon("    notre_instance := ", type.fonctions.pour_extraction_valeur, "(self).notre_instance\n");
+    enchaineuse.ajoute_au_tampon("    résultat := ", méthode.nom, "(*notre_instance)\n");
+    enchaineuse.ajoute_au_tampon("    résultat = enchaine(\"", type.nom, "('\", résultat, \"')\")\n");
+    enchaineuse.ajoute_au_tampon("    retourne PyUnicode_FromChaine(résultat)\n");
+    enchaineuse.ajoute_au_tampon("}\n");
 
-    retourne nom_fonction_repr
+    retourne nom_fonction_repr;
 }
 
 génère_fonctions_protocole_tampons :: fonc (enchaineuse: *Enchaineuse, type: *TypePython)
 {
-    enchaineuse.ajoute_au_tampon("remplis_champs_requis_py_buffer_pour_", type.nom_globale_type, ":: fonc (self: *BasePyBuffer, view: *Py_buffer)\n")
-    enchaineuse.ajoute_au_tampon("{\n")
-    enchaineuse.ajoute_au_tampon("    notre_instance := ", type.fonctions.pour_extraction_valeur, "(self).notre_instance\n")
-    enchaineuse.ajoute_au_tampon("    remplis_champs_requis_py_buffer_générique(view, notre_instance)\n")
-    enchaineuse.ajoute_au_tampon("}\n")
+    enchaineuse.ajoute_au_tampon("remplis_champs_requis_py_buffer_pour_", type.nom_globale_type, ":: fonc (self: *BasePyBuffer, view: *Py_buffer)\n");
+    enchaineuse.ajoute_au_tampon("{\n");
+    enchaineuse.ajoute_au_tampon("    notre_instance := ", type.fonctions.pour_extraction_valeur, "(self).notre_instance\n");
+    enchaineuse.ajoute_au_tampon("    remplis_champs_requis_py_buffer_générique(view, notre_instance)\n");
+    enchaineuse.ajoute_au_tampon("}\n");
 }
 
 génère_fonctions_protocole_séquences :: fonc (enchaineuse: *Enchaineuse, type: *TypePython)
 {
-    enchaineuse.ajoute_au_tampon("PySequenceMethodsPour", type.nom_sauf, ": PySequenceMethods\n")
+    enchaineuse.ajoute_au_tampon("PySequenceMethodsPour", type.nom_sauf, ": PySequenceMethods\n");
 
     /* sq_length */
-    enchaineuse.ajoute_au_tampon("sq_length_pour_", type.nom_sauf, " :: fonc (self: *PyObject) -> Py_ssize_t\n")
-    enchaineuse.ajoute_au_tampon("{\n")
-    enchaineuse.ajoute_au_tampon("    notre_instance := ", type.fonctions.pour_extraction_valeur, "(self).notre_instance\n")
-    enchaineuse.ajoute_au_tampon("    retourne notre_instance.taille\n")
-    enchaineuse.ajoute_au_tampon("}\n")
+    enchaineuse.ajoute_au_tampon("sq_length_pour_", type.nom_sauf, " :: fonc (self: *PyObject) -> Py_ssize_t\n");
+    enchaineuse.ajoute_au_tampon("{\n");
+    enchaineuse.ajoute_au_tampon("    notre_instance := ", type.fonctions.pour_extraction_valeur, "(self).notre_instance\n");
+    enchaineuse.ajoute_au_tampon("    retourne notre_instance.taille\n");
+    enchaineuse.ajoute_au_tampon("}\n");
 
     /* sq_item */
-    enchaineuse.ajoute_au_tampon("sq_item_pour_", type.nom_sauf, " :: fonc (self: *PyObject, indice: Py_ssize_t) -> *PyObject\n")
-    enchaineuse.ajoute_au_tampon("{\n")
-    enchaineuse.ajoute_au_tampon("    notre_instance := ", type.fonctions.pour_extraction_valeur, "(self).notre_instance\n")
+    enchaineuse.ajoute_au_tampon("sq_item_pour_", type.nom_sauf, " :: fonc (self: *PyObject, indice: Py_ssize_t) -> *PyObject\n");
+    enchaineuse.ajoute_au_tampon("{\n");
+    enchaineuse.ajoute_au_tampon("    notre_instance := ", type.fonctions.pour_extraction_valeur, "(self).notre_instance\n");
     // À FAIRE : erreur dépassement limites ?
-    sous_type := type.type_élément
-    enchaineuse.ajoute_au_tampon("    retourne ", sous_type.fonctions.pour_construction, "(notre_instance[indice])\n")
-    enchaineuse.ajoute_au_tampon("}\n")
+    sous_type := type.type_élément;
+    enchaineuse.ajoute_au_tampon("    retourne ", sous_type.fonctions.pour_construction, "(notre_instance[indice])\n");
+    enchaineuse.ajoute_au_tampon("}\n");
 
     /* init */
-    enchaineuse.ajoute_au_tampon("init_PySequenceMethodsPour", type.nom_sauf, " :: fonc () -> *PySequenceMethods\n")
-    enchaineuse.ajoute_au_tampon("{\n")
-    enchaineuse.ajoute_au_tampon("    init_de(PySequenceMethods)(*PySequenceMethodsPour", type.nom_sauf, ")\n")
+    enchaineuse.ajoute_au_tampon("init_PySequenceMethodsPour", type.nom_sauf, " :: fonc () -> *PySequenceMethods\n");
+    enchaineuse.ajoute_au_tampon("{\n");
+    enchaineuse.ajoute_au_tampon("    init_de(PySequenceMethods)(*PySequenceMethodsPour", type.nom_sauf, ")\n");
     /* À FAIRE : pour le moment nous n'implémentons que sq_item et sq_length. */
-    enchaineuse.ajoute_au_tampon("    PySequenceMethodsPour", type.nom_sauf, ".sq_item = sq_item_pour_", type.nom_sauf, "\n")
-    enchaineuse.ajoute_au_tampon("    PySequenceMethodsPour", type.nom_sauf, ".sq_length = sq_length_pour_", type.nom_sauf, "\n")
-    enchaineuse.ajoute_au_tampon("    retourne *PySequenceMethodsPour", type.nom_sauf, "\n")
-    enchaineuse.ajoute_au_tampon("}\n")
+    enchaineuse.ajoute_au_tampon("    PySequenceMethodsPour", type.nom_sauf, ".sq_item = sq_item_pour_", type.nom_sauf, "\n");
+    enchaineuse.ajoute_au_tampon("    PySequenceMethodsPour", type.nom_sauf, ".sq_length = sq_length_pour_", type.nom_sauf, "\n");
+    enchaineuse.ajoute_au_tampon("    retourne *PySequenceMethodsPour", type.nom_sauf, "\n");
+    enchaineuse.ajoute_au_tampon("}\n");
 }
 
 génère_déclaration_type_python :: fonc (enchaineuse: *Enchaineuse, module: &ModulePython, type: *TypePython)
 {
     /* Déclaration de la structure associée, dérivée de PyObject.
      * Pour une structure appelée « Structure », la version Python s'appelera « StructurePourPython ». */
-    enchaineuse.ajoute_au_tampon(type.nom_sauf, "PourPython :: struct {\n")
+    enchaineuse.ajoute_au_tampon(type.nom_sauf, "PourPython :: struct {\n");
     si type.drapeaux.TYPE_EST_TABLEAU {
-        enchaineuse.ajoute_au_tampon("    empl base_py_buffer: BasePyBuffer\n")
+        enchaineuse.ajoute_au_tampon("    empl base_py_buffer: BasePyBuffer\n");
     }
     sinon {
-        enchaineuse.ajoute_au_tampon("    empl base_py_object: PyObject\n")
+        enchaineuse.ajoute_au_tampon("    empl base_py_object: PyObject\n");
     }
-    symbole_pointeur := ""
+    symbole_pointeur := "";
     si type.drapeaux.TOUJOURS_COMME_POINTEUR {
-        symbole_pointeur = "*"
+        symbole_pointeur = "*";
     }
     si type.drapeaux.TYPE_EST_ITÉRATEUR {
-        enchaineuse.ajoute_au_tampon("    notre_instance: ", type.type_itéré.nom_type_kuri, "\n")
-        enchaineuse.ajoute_au_tampon("    index_courant: z64\n")
+        enchaineuse.ajoute_au_tampon("    notre_instance: ", type.type_itéré.nom_type_kuri, "\n");
+        enchaineuse.ajoute_au_tampon("    index_courant: z64\n");
     }
     sinon {
-        enchaineuse.ajoute_au_tampon("    notre_instance: ", symbole_pointeur, type.nom_type_kuri, "\n")
+        enchaineuse.ajoute_au_tampon("    notre_instance: ", symbole_pointeur, type.nom_type_kuri, "\n");
     }
-    enchaineuse.ajoute_au_tampon("}\n")
+    enchaineuse.ajoute_au_tampon("}\n");
 
     /* Déclaration des FonctionsTypePython. */
-    génère_déclaration_fonctions_pour_python(enchaineuse, type, symbole_pointeur)
+    génère_déclaration_fonctions_pour_python(enchaineuse, type, symbole_pointeur);
 
     /*
         À FAIRE : méthodes types
@@ -493,241 +493,241 @@ génère_déclaration_type_python :: fonc (enchaineuse: *Enchaineuse, module: &M
 
     si type.méthodes {
         pour type.méthodes {
-            génère_interface_fonction(enchaineuse, it, type)
+            génère_interface_fonction(enchaineuse, it, type);
         }
-        nom_tableau := enchaine("méthodes_", type.nom_sauf)
-        diffère déloge(nom_tableau)
-        génère_tableaux_méthodes(enchaineuse, type.méthodes, nom_tableau)
+        nom_tableau := enchaine("méthodes_", type.nom_sauf);
+        diffère déloge(nom_tableau);
+        génère_tableaux_méthodes(enchaineuse, type.méthodes, nom_tableau);
     }
 
-    globale_getset := génère_méthodes_getset_pour_type(enchaineuse, type)
-    diffère déloge(globale_getset)
+    globale_getset := génère_méthodes_getset_pour_type(enchaineuse, type);
+    diffère déloge(globale_getset);
 
     /* Afin de supporter les expressions de type : o[key] = v */
-    globale_as_mapping := génère_globale_as_mapping(enchaineuse, type)
-    diffère déloge(globale_as_mapping)
+    globale_as_mapping := génère_globale_as_mapping(enchaineuse, type);
+    diffère déloge(globale_as_mapping);
 
-    fonction_new := génère_fonction_new(enchaineuse, type)
-    diffère déloge(fonction_new)
+    fonction_new := génère_fonction_new(enchaineuse, type);
+    diffère déloge(fonction_new);
 
     // À FAIRE __init__
     // fonction_init := génère_fonction_init(enchaineuse, type)
     // diffère déloge(fonction_init)
 
-    fonction_str := génère_fonction_str(enchaineuse, type)
-    diffère déloge(fonction_str)
+    fonction_str := génère_fonction_str(enchaineuse, type);
+    diffère déloge(fonction_str);
 
-    fonction_repr := génère_fonction_repr(enchaineuse, type)
-    diffère déloge(fonction_repr)
+    fonction_repr := génère_fonction_repr(enchaineuse, type);
+    diffère déloge(fonction_repr);
 
-    fonction_richcompare := génère_fonction_richcompare(enchaineuse, type)
-    diffère déloge(fonction_richcompare)
+    fonction_richcompare := génère_fonction_richcompare(enchaineuse, type);
+    diffère déloge(fonction_richcompare);
 
-    fonction_itérateur := génère_fonction_pour_créer_itérateur(enchaineuse, type)
-    diffère déloge(fonction_itérateur)
+    fonction_itérateur := génère_fonction_pour_créer_itérateur(enchaineuse, type);
+    diffère déloge(fonction_itérateur);
 
-    fonction_itérateur_next := génère_fonction_itérateur_next(enchaineuse, type)
-    diffère déloge(fonction_itérateur_next)
+    fonction_itérateur_next := génère_fonction_itérateur_next(enchaineuse, type);
+    diffère déloge(fonction_itérateur_next);
 
-    fonction_hash := génère_fonction_hash(enchaineuse, type)
-    diffère déloge(fonction_hash)
+    fonction_hash := génère_fonction_hash(enchaineuse, type);
+    diffère déloge(fonction_hash);
 
     si type.drapeaux.TYPE_EST_TABLEAU {
-        génère_fonctions_protocole_tampons(enchaineuse, type)
-        génère_fonctions_protocole_séquences(enchaineuse, type)
+        génère_fonctions_protocole_tampons(enchaineuse, type);
+        génère_fonctions_protocole_séquences(enchaineuse, type);
     }
 
     /* Déclaration de la globale qui servira pour contenir les données sur le type Python.
      * Cet objet s'appel « TypeStructurePourPython ». */
-    nom_globale_type := type.nom_globale_type
-    enchaineuse.ajoute_au_tampon(nom_globale_type, ":= PyTypeObject(\n")
+    nom_globale_type := type.nom_globale_type;
+    enchaineuse.ajoute_au_tampon(nom_globale_type, ":= PyTypeObject(\n");
 
     /* Le nom requis pour Python, qui est de forme <module>.<nom>. */
-    tp_name := enchaine(module.nom, ".", type.nom_sauf)
-    diffère déloge(tp_name)
+    tp_name := enchaine(module.nom, ".", type.nom_sauf);
+    diffère déloge(tp_name);
 
-    enchaineuse.ajoute_au_tampon("    ob_refcnt = 1,\n")
-    enchaineuse.ajoute_au_tampon("    ob_size = 0,\n")
-    enchaineuse.ajoute_au_tampon("    tp_basicsize = taille_de(", type.nom_sauf, "PourPython) comme Py_ssize_t,\n")
-    enchaineuse.ajoute_au_tampon("    tp_name = ChaineC(\"", tp_name, "\".pointeur),\n")
-    enchaineuse.ajoute_au_tampon("    tp_flags = 1 << 10 | 1 << 18,\n")
+    enchaineuse.ajoute_au_tampon("    ob_refcnt = 1,\n");
+    enchaineuse.ajoute_au_tampon("    ob_size = 0,\n");
+    enchaineuse.ajoute_au_tampon("    tp_basicsize = taille_de(", type.nom_sauf, "PourPython) comme Py_ssize_t,\n");
+    enchaineuse.ajoute_au_tampon("    tp_name = ChaineC(\"", tp_name, "\".pointeur),\n");
+    enchaineuse.ajoute_au_tampon("    tp_flags = 1 << 10 | 1 << 18,\n");
 
     si type.méthodes {
-        enchaineuse.ajoute_au_tampon("    tp_methods = *méthodes_", type.nom_sauf, "[0],\n")
+        enchaineuse.ajoute_au_tampon("    tp_methods = *méthodes_", type.nom_sauf, "[0],\n");
     }
 
     si fonction_new {
-        enchaineuse.ajoute_au_tampon("    tp_new = ", fonction_new, ",\n")
+        enchaineuse.ajoute_au_tampon("    tp_new = ", fonction_new, ",\n");
     }
 
     si fonction_str {
-        enchaineuse.ajoute_au_tampon("    tp_str = ", fonction_str, ",\n")
+        enchaineuse.ajoute_au_tampon("    tp_str = ", fonction_str, ",\n");
     }
 
     si fonction_repr {
-        enchaineuse.ajoute_au_tampon("    tp_repr = ", fonction_repr, ",\n")
+        enchaineuse.ajoute_au_tampon("    tp_repr = ", fonction_repr, ",\n");
     }
 
     si fonction_richcompare {
-        enchaineuse.ajoute_au_tampon("    tp_richcompare = ", fonction_richcompare, ",\n")
+        enchaineuse.ajoute_au_tampon("    tp_richcompare = ", fonction_richcompare, ",\n");
     }
 
     si fonction_itérateur {
-        enchaineuse.ajoute_au_tampon("    tp_iter = ", fonction_itérateur, ",\n")
+        enchaineuse.ajoute_au_tampon("    tp_iter = ", fonction_itérateur, ",\n");
     }
 
     si fonction_itérateur_next {
-        enchaineuse.ajoute_au_tampon("    tp_iter = iter_pour_type_itérateur,\n")
-        enchaineuse.ajoute_au_tampon("    tp_iternext = ", fonction_itérateur_next, ",\n")
+        enchaineuse.ajoute_au_tampon("    tp_iter = iter_pour_type_itérateur,\n");
+        enchaineuse.ajoute_au_tampon("    tp_iternext = ", fonction_itérateur_next, ",\n");
     }
 
     si globale_getset {
-        enchaineuse.ajoute_au_tampon("    tp_getset = *", globale_getset, "[0],\n")
+        enchaineuse.ajoute_au_tampon("    tp_getset = *", globale_getset, "[0],\n");
     }
 
     si type.base {
-        enchaineuse.ajoute_au_tampon("    tp_base = *", type.base.nom_globale_type, ",\n")
+        enchaineuse.ajoute_au_tampon("    tp_base = *", type.base.nom_globale_type, ",\n");
     }
     sinon {
-        enchaineuse.ajoute_au_tampon("    tp_base = *PyBaseObject_Type,\n")
+        enchaineuse.ajoute_au_tampon("    tp_base = *PyBaseObject_Type,\n");
     }
 
     si globale_as_mapping {
-        enchaineuse.ajoute_au_tampon("    tp_as_mapping = *", globale_as_mapping, ",\n")
+        enchaineuse.ajoute_au_tampon("    tp_as_mapping = *", globale_as_mapping, ",\n");
     }
 
     si type.drapeaux.TYPE_EST_TABLEAU {
-        enchaineuse.ajoute_au_tampon("    tp_as_buffer = protocol_tampon_défaut(),\n")
-        enchaineuse.ajoute_au_tampon("    tp_as_sequence = init_PySequenceMethodsPour", type.nom_sauf, "(),\n")
+        enchaineuse.ajoute_au_tampon("    tp_as_buffer = protocol_tampon_défaut(),\n");
+        enchaineuse.ajoute_au_tampon("    tp_as_sequence = init_PySequenceMethodsPour", type.nom_sauf, "(),\n");
     }
 
-    enchaineuse.ajoute_au_tampon("    tp_hash = ", fonction_hash, ")\n")
+    enchaineuse.ajoute_au_tampon("    tp_hash = ", fonction_hash, ")\n");
 }
 
 génère_déclaration_fonctions_pour_python :: fonc (enchaineuse: *Enchaineuse, type: *TypePython, symbole_pointeur: chaine)
 {
-    enchaineuse.ajoute_au_tampon(type.fonctions.pour_extraction_valeur, " :: fonc (self: *PyObject) -> *", type.nom_sauf, "PourPython\n")
-    enchaineuse.ajoute_au_tampon("{\n")
-    enchaineuse.ajoute_au_tampon("    retourne self comme *", type.nom_sauf, "PourPython\n")
-    enchaineuse.ajoute_au_tampon("}\n")
+    enchaineuse.ajoute_au_tampon(type.fonctions.pour_extraction_valeur, " :: fonc (self: *PyObject) -> *", type.nom_sauf, "PourPython\n");
+    enchaineuse.ajoute_au_tampon("{\n");
+    enchaineuse.ajoute_au_tampon("    retourne self comme *", type.nom_sauf, "PourPython\n");
+    enchaineuse.ajoute_au_tampon("}\n");
 
     si type.drapeaux.TYPE_EST_ITÉRATEUR {
         /* Les autres fonctions ne sont pas disponibles pour les itérateurs. */
-        retourne
+        retourne;
     }
 
-    enchaineuse.ajoute_au_tampon(type.fonctions.pour_discrimination, " :: fonc (self: *PyObject) -> bool\n")
-    enchaineuse.ajoute_au_tampon("{\n")
-    enchaineuse.ajoute_au_tampon("    si PyObject_TypeCheck(self, *", type.nom_globale_type, ") {\n")
-    enchaineuse.ajoute_au_tampon("        retourne vrai\n")
-    enchaineuse.ajoute_au_tampon("    }\n")
+    enchaineuse.ajoute_au_tampon(type.fonctions.pour_discrimination, " :: fonc (self: *PyObject) -> bool\n");
+    enchaineuse.ajoute_au_tampon("{\n");
+    enchaineuse.ajoute_au_tampon("    si PyObject_TypeCheck(self, *", type.nom_globale_type, ") {\n");
+    enchaineuse.ajoute_au_tampon("        retourne vrai\n");
+    enchaineuse.ajoute_au_tampon("    }\n");
     si type.drapeaux.TYPE_EST_ÉNUM {
-        enchaineuse.ajoute_au_tampon("    si PyUnicodeEnum_Check(self, info_de(", type.nom, ")) {\n")
-        enchaineuse.ajoute_au_tampon("        retourne vrai;\n")
-        enchaineuse.ajoute_au_tampon("    }\n")
+        enchaineuse.ajoute_au_tampon("    si PyUnicodeEnum_Check(self, info_de(", type.nom, ")) {\n");
+        enchaineuse.ajoute_au_tampon("        retourne vrai;\n");
+        enchaineuse.ajoute_au_tampon("    }\n");
     }
     si type.drapeaux.TOUJOURS_COMME_POINTEUR {
-        enchaineuse.ajoute_au_tampon("    si self == Py_None {\n")
-        enchaineuse.ajoute_au_tampon("        retourne vrai;\n")
-        enchaineuse.ajoute_au_tampon("    }\n")
+        enchaineuse.ajoute_au_tampon("    si self == Py_None {\n");
+        enchaineuse.ajoute_au_tampon("        retourne vrai;\n");
+        enchaineuse.ajoute_au_tampon("    }\n");
     }
-    enchaineuse.ajoute_au_tampon("    retourne faux\n")
-    enchaineuse.ajoute_au_tampon("}\n")
-    enchaineuse.ajoute_au_tampon(type.fonctions.pour_construction, " :: fonc (valeur: ", symbole_pointeur, type.nom_type_kuri, ") -> *PyObject\n")
-    enchaineuse.ajoute_au_tampon("{\n")
-    génère_corps_fonction_construction_objet(enchaineuse, type)
-    enchaineuse.ajoute_au_tampon("}\n")
+    enchaineuse.ajoute_au_tampon("    retourne faux\n");
+    enchaineuse.ajoute_au_tampon("}\n");
+    enchaineuse.ajoute_au_tampon(type.fonctions.pour_construction, " :: fonc (valeur: ", symbole_pointeur, type.nom_type_kuri, ") -> *PyObject\n");
+    enchaineuse.ajoute_au_tampon("{\n");
+    génère_corps_fonction_construction_objet(enchaineuse, type);
+    enchaineuse.ajoute_au_tampon("}\n");
 
     /* Fonction générique de création d'objet. */
-    enchaineuse.ajoute_au_tampon(type.fonctions.pour_construction, "_générique :: fonc (valeur: eini) -> *PyObject\n")
-    enchaineuse.ajoute_au_tampon("{\n")
-    enchaineuse.ajoute_au_tampon("    assert(valeur.info == info_de(", symbole_pointeur, type.nom_type_kuri, "))\n")
-    enchaineuse.ajoute_au_tampon("    retourne ", type.fonctions.pour_construction, "(mémoire(valeur.pointeur comme *", symbole_pointeur, type.nom_type_kuri, "))\n")
-    enchaineuse.ajoute_au_tampon("}\n")
+    enchaineuse.ajoute_au_tampon(type.fonctions.pour_construction, "_générique :: fonc (valeur: eini) -> *PyObject\n");
+    enchaineuse.ajoute_au_tampon("{\n");
+    enchaineuse.ajoute_au_tampon("    assert(valeur.info == info_de(", symbole_pointeur, type.nom_type_kuri, "))\n");
+    enchaineuse.ajoute_au_tampon("    retourne ", type.fonctions.pour_construction, "(mémoire(valeur.pointeur comme *", symbole_pointeur, type.nom_type_kuri, "))\n");
+    enchaineuse.ajoute_au_tampon("}\n");
 }
 
 /* Corps des fonctions PyXXX_From_XXX */
 génère_corps_fonction_construction_objet :: fonc (enchaineuse: *Enchaineuse, type: *TypePython)
 {
     si type.drapeaux.TYPE_EST_RÉSULTAT {
-        enchaineuse.ajoute_au_tampon("    discr valeur {\n")
-        enchaineuse.ajoute_au_tampon("        Ok(r) {\n")
-        enchaineuse.ajoute_au_tampon("            retourne ", type.type_ok.fonctions.pour_construction, "(r)\n")
-        enchaineuse.ajoute_au_tampon("        }\n")
-        enchaineuse.ajoute_au_tampon("        Erreur(e) {\n")
-        enchaineuse.ajoute_au_tampon("            retourne PyErr_Raise_", type.type_erreur.nom, "(e)\n")
-        enchaineuse.ajoute_au_tampon("        }\n")
-        enchaineuse.ajoute_au_tampon("        sinon {\n")
-        enchaineuse.ajoute_au_tampon("            retourne PyErr_Raise_Generic(\"Erreur inconnue\")\n")
-        enchaineuse.ajoute_au_tampon("        }\n")
-        enchaineuse.ajoute_au_tampon("    }\n")
-        retourne
+        enchaineuse.ajoute_au_tampon("    discr valeur {\n");
+        enchaineuse.ajoute_au_tampon("        Ok(r) {\n");
+        enchaineuse.ajoute_au_tampon("            retourne ", type.type_ok.fonctions.pour_construction, "(r)\n");
+        enchaineuse.ajoute_au_tampon("        }\n");
+        enchaineuse.ajoute_au_tampon("        Erreur(e) {\n");
+        enchaineuse.ajoute_au_tampon("            retourne PyErr_Raise_", type.type_erreur.nom, "(e)\n");
+        enchaineuse.ajoute_au_tampon("        }\n");
+        enchaineuse.ajoute_au_tampon("        sinon {\n");
+        enchaineuse.ajoute_au_tampon("            retourne PyErr_Raise_Generic(\"Erreur inconnue\")\n");
+        enchaineuse.ajoute_au_tampon("        }\n");
+        enchaineuse.ajoute_au_tampon("    }\n");
+        retourne;
     }
 
     si type.drapeaux.TYPE_EST_OPTIONNEL {
-        enchaineuse.ajoute_au_tampon("    discr valeur {\n")
-        enchaineuse.ajoute_au_tampon("        Quelque(r) {\n")
+        enchaineuse.ajoute_au_tampon("    discr valeur {\n");
+        enchaineuse.ajoute_au_tampon("        Quelque(r) {\n");
         si type.type_quelque.nom == "ErreurPython" {
             /* Relance l'erreur. */
-            enchaineuse.ajoute_au_tampon("            retourne PyErr_Raise_Erreur(r)\n")
+            enchaineuse.ajoute_au_tampon("            retourne PyErr_Raise_Erreur(r)\n");
         }
         sinon {
-            enchaineuse.ajoute_au_tampon("            retourne ", type.type_quelque.fonctions.pour_construction, "(r)\n")
+            enchaineuse.ajoute_au_tampon("            retourne ", type.type_quelque.fonctions.pour_construction, "(r)\n");
         }
-        enchaineuse.ajoute_au_tampon("        }\n")
-        enchaineuse.ajoute_au_tampon("        sinon {\n")
-        enchaineuse.ajoute_au_tampon("            retourne python_retourne_rien()\n")
-        enchaineuse.ajoute_au_tampon("        }\n")
-        enchaineuse.ajoute_au_tampon("    }\n")
-        retourne
+        enchaineuse.ajoute_au_tampon("        }\n");
+        enchaineuse.ajoute_au_tampon("        sinon {\n");
+        enchaineuse.ajoute_au_tampon("            retourne python_retourne_rien()\n");
+        enchaineuse.ajoute_au_tampon("        }\n");
+        enchaineuse.ajoute_au_tampon("    }\n");
+        retourne;
     }
 
     si type.drapeaux.TOUJOURS_COMME_POINTEUR {
-        enchaineuse.ajoute_au_tampon("    saufsi valeur {\n")
-        enchaineuse.ajoute_au_tampon("        retourne python_retourne_rien() comme *", type.nom_sauf, "PourPython\n")
-        enchaineuse.ajoute_au_tampon("    }\n")
+        enchaineuse.ajoute_au_tampon("    saufsi valeur {\n");
+        enchaineuse.ajoute_au_tampon("        retourne python_retourne_rien() comme *", type.nom_sauf, "PourPython\n");
+        enchaineuse.ajoute_au_tampon("    }\n");
     }
 
     si type.drapeaux.REQUIERS_RAFINAGE {
-        enchaineuse.ajoute_au_tampon("    ob_type := rafine_type_", type.nom_sauf, "(valeur)\n")
-        enchaineuse.ajoute_au_tampon("    résultat := ob_type.tp_alloc(ob_type, 1) comme *", type.nom_sauf, "PourPython\n")
-        enchaineuse.ajoute_au_tampon("    résultat.ob_type = ob_type\n")
+        enchaineuse.ajoute_au_tampon("    ob_type := rafine_type_", type.nom_sauf, "(valeur)\n");
+        enchaineuse.ajoute_au_tampon("    résultat := ob_type.tp_alloc(ob_type, 1) comme *", type.nom_sauf, "PourPython\n");
+        enchaineuse.ajoute_au_tampon("    résultat.ob_type = ob_type\n");
     }
     sinon {
-        enchaineuse.ajoute_au_tampon("    résultat := ", type.nom_globale_type, ".tp_alloc(*", type.nom_globale_type, ", 1) comme *", type.nom_sauf, "PourPython\n")
+        enchaineuse.ajoute_au_tampon("    résultat := ", type.nom_globale_type, ".tp_alloc(*", type.nom_globale_type, ", 1) comme *", type.nom_sauf, "PourPython\n");
     }
 
-    enchaineuse.ajoute_au_tampon("    résultat.notre_instance = valeur\n")
+    enchaineuse.ajoute_au_tampon("    résultat.notre_instance = valeur\n");
     si type.drapeaux.TYPE_EST_TABLEAU {
-        enchaineuse.ajoute_au_tampon("    résultat.exports = 0\n")
-        enchaineuse.ajoute_au_tampon("    résultat.remplis_champs_requis_py_buffer = remplis_champs_requis_py_buffer_pour_", type.nom_globale_type, "\n")
+        enchaineuse.ajoute_au_tampon("    résultat.exports = 0\n");
+        enchaineuse.ajoute_au_tampon("    résultat.remplis_champs_requis_py_buffer = remplis_champs_requis_py_buffer_pour_", type.nom_globale_type, "\n");
     }
-    enchaineuse.ajoute_au_tampon("    retourne résultat\n")
+    enchaineuse.ajoute_au_tampon("    retourne résultat\n");
 }
 
 type_supporte_itération :: fonc (type: *TypePython) -> bool
 {
     si type.type_itérateur {
-        retourne vrai
+        retourne vrai;
     }
 
     si type_supporte_mapping(type) {
         /* Les types pouvant être "mappés" ont des itérateurs afin de pouvoir
          * supporter, par exemple, les expressions types 'if x in y'.
          * Ceci n'est pas supporté pour les unions. */
-        retourne type.drapeaux.TYPE_EST_UNION == faux
+        retourne type.drapeaux.TYPE_EST_UNION == faux;
     }
 
-    retourne faux
+    retourne faux;
 }
 
 génère_fonction_pour_créer_itérateur :: fonc (enchaineuse: *Enchaineuse, type: *TypePython) -> chaine
 {
     saufsi type_supporte_itération(type) {
-        retourne copie_chaine("")
+        retourne copie_chaine("");
     }
 
-    nom_fonction := enchaine("itérateur_pour_", type.nom_sauf)
+    nom_fonction := enchaine("itérateur_pour_", type.nom_sauf);
 
     corps_fonction_pour_type_itérateur := «
     type_itérateur := *%
@@ -736,37 +736,37 @@ génère_fonction_pour_créer_itérateur :: fonc (enchaineuse: *Enchaineuse, typ
     py_itérateur.notre_instance = %(ob).notre_instance
     py_itérateur.index_courant = 0
     retourne py_itérateur comme *PyObject
-    »
+    »;
 
     corps_fonction_pour_info_type := «
     retourne itérateur_pour_infos_type(info_de(%))
-    »
+    »;
 
-    inutilisée := ""
+    inutilisée := "";
     saufsi type.type_itérateur {
-        inutilisée = " @inutilisée"
+        inutilisée = " @inutilisée";
     }
 
-    enchaineuse.ajoute_au_tampon(nom_fonction, " :: fonc (ob: *PyObject", inutilisée, ") -> *PyObject\n")
-    enchaineuse.ajoute_au_tampon("{\n")
+    enchaineuse.ajoute_au_tampon(nom_fonction, " :: fonc (ob: *PyObject", inutilisée, ") -> *PyObject\n");
+    enchaineuse.ajoute_au_tampon("{\n");
     si type.type_itérateur {
-        enchaineuse.imprime_dans_enchaineuse(corps_fonction_pour_type_itérateur, type.type_itérateur.nom_globale_type, type.type_itérateur.fonctions.pour_extraction_valeur, type.fonctions.pour_extraction_valeur)
+        enchaineuse.imprime_dans_enchaineuse(corps_fonction_pour_type_itérateur, type.type_itérateur.nom_globale_type, type.type_itérateur.fonctions.pour_extraction_valeur, type.fonctions.pour_extraction_valeur);
     }
     sinon {
-        enchaineuse.imprime_dans_enchaineuse(corps_fonction_pour_info_type, type.nom_type_kuri)
+        enchaineuse.imprime_dans_enchaineuse(corps_fonction_pour_info_type, type.nom_type_kuri);
     }
-    enchaineuse.ajoute_au_tampon("}\n")
+    enchaineuse.ajoute_au_tampon("}\n");
 
-    retourne nom_fonction
+    retourne nom_fonction;
 }
 
 génère_fonction_itérateur_next :: fonc (enchaineuse: *Enchaineuse, type: *TypePython) -> chaine
 {
     saufsi type.drapeaux.TYPE_EST_ITÉRATEUR {
-        retourne copie_chaine("")
+        retourne copie_chaine("");
     }
 
-    nom_fonction := enchaine("itérateur_pour_next_", type.nom_sauf)
+    nom_fonction := enchaine("itérateur_pour_next_", type.nom_sauf);
 
     corps_fonction := «
     py_self := %(self)
@@ -781,46 +781,46 @@ génère_fonction_itérateur_next :: fonc (enchaineuse: *Enchaineuse, type: *Typ
 
     py_self.index_courant += 1
     retourne py_valeur_courante
-    »
+    »;
 
-    enchaineuse.ajoute_au_tampon(nom_fonction, " :: fonc (self: *PyObject) -> *PyObject\n")
-    enchaineuse.ajoute_au_tampon("{\n")
-    enchaineuse.imprime_dans_enchaineuse(corps_fonction, type.fonctions.pour_extraction_valeur, type.type_itéré.type_élément.fonctions.pour_construction)
-    enchaineuse.ajoute_au_tampon("}\n")
+    enchaineuse.ajoute_au_tampon(nom_fonction, " :: fonc (self: *PyObject) -> *PyObject\n");
+    enchaineuse.ajoute_au_tampon("{\n");
+    enchaineuse.imprime_dans_enchaineuse(corps_fonction, type.fonctions.pour_extraction_valeur, type.type_itéré.type_élément.fonctions.pour_construction);
+    enchaineuse.ajoute_au_tampon("}\n");
 
-    retourne nom_fonction
+    retourne nom_fonction;
 }
 
 génère_création_valeur_défaut :: fonc (enchaineuse: *Enchaineuse, valeur_défaut: *NoeudCode)
 {
     discr valeur_défaut.genre {
         EXPRESSION_LITTÉRALE_NUL {
-            enchaineuse.ajoute_au_tampon(" := python_retourne_rien()\n")
+            enchaineuse.ajoute_au_tampon(" := python_retourne_rien()\n");
         }
         EXPRESSION_LITTÉRALE_BOOLÉEN {
-            littérale := valeur_défaut comme *NoeudCodeLittéraleBool
+            littérale := valeur_défaut comme *NoeudCodeLittéraleBool;
             si littérale.valeur {
-                enchaineuse.ajoute_au_tampon(" := python_retourne_true()\n")
+                enchaineuse.ajoute_au_tampon(" := python_retourne_true()\n");
             }
             sinon {
-                enchaineuse.ajoute_au_tampon(" := python_retourne_faux()\n")
+                enchaineuse.ajoute_au_tampon(" := python_retourne_faux()\n");
             }
         }
         EXPRESSION_LITTÉRALE_NOMBRE_ENTIER {
-            littérale := valeur_défaut comme *NoeudCodeLittéraleEntier
-            enchaineuse.imprime_dans_enchaineuse(" := PyLong_FromLong(%)\n", littérale.valeur)
+            littérale := valeur_défaut comme *NoeudCodeLittéraleEntier;
+            enchaineuse.imprime_dans_enchaineuse(" := PyLong_FromLong(%)\n", littérale.valeur);
         }
         EXPRESSION_LITTÉRALE_NOMBRE_RÉEL {
-            littérale := valeur_défaut comme *NoeudCodeLittéraleRéel
-            enchaineuse.imprime_dans_enchaineuse(" := PyLong_FromLong(%)\n", littérale.valeur)
+            littérale := valeur_défaut comme *NoeudCodeLittéraleRéel;
+            enchaineuse.imprime_dans_enchaineuse(" := PyLong_FromLong(%)\n", littérale.valeur);
         }
         EXPRESSION_LITTÉRALE_CHAINE {
-            littérale := valeur_défaut comme *NoeudCodeLittéraleChaine
-            enchaineuse.imprime_dans_enchaineuse(" := PyUnicode_FromChaine(\"%\")\n", littérale.valeur)
+            littérale := valeur_défaut comme *NoeudCodeLittéraleChaine;
+            enchaineuse.imprime_dans_enchaineuse(" := PyUnicode_FromChaine(\"%\")\n", littérale.valeur);
         }
         EXPRESSION_LITTÉRALE_CARACTÈRE {
-            littérale := valeur_défaut comme *NoeudCodeLittéraleCaractère
-            enchaineuse.imprime_dans_enchaineuse(" := PyLong_FromLong(%)\n", littérale.valeur)
+            littérale := valeur_défaut comme *NoeudCodeLittéraleCaractère;
+            enchaineuse.imprime_dans_enchaineuse(" := PyLong_FromLong(%)\n", littérale.valeur);
         }
         sinon {}
     }
@@ -831,47 +831,47 @@ génère_création_valeur_défaut :: fonc (enchaineuse: *Enchaineuse, valeur_dé
 génère_parsage_args_tuple :: fonc (enchaineuse: *Enchaineuse, méthode: &MéthodePython, valeur_retour: chaine)
 {
     saufsi méthode.paramètres_entrée {
-        retourne
+        retourne;
     }
 
     pour méthode.paramètres_entrée {
-        enchaineuse.ajoute_au_tampon("    pyobject_", it.nom)
+        enchaineuse.ajoute_au_tampon("    pyobject_", it.nom);
         si it.valeur_défaut {
-            enchaineuse.génère_création_valeur_défaut(it.valeur_défaut)
+            enchaineuse.génère_création_valeur_défaut(it.valeur_défaut);
         }
         sinon {
-            enchaineuse.ajoute_au_tampon(": *PyObject\n")
+            enchaineuse.ajoute_au_tampon(": *PyObject\n");
         }
     }
 
-    enchaineuse.ajoute_au_tampon("    chn_objets := ChaineC(\"")
-    séparateur_arguments_optionel_fut_ajouté := faux
+    enchaineuse.ajoute_au_tampon("    chn_objets := ChaineC(\"");
+    séparateur_arguments_optionel_fut_ajouté := faux;
     pour méthode.paramètres_entrée {
         si it.valeur_défaut != nul && !séparateur_arguments_optionel_fut_ajouté {
-            enchaineuse.ajoute_au_tampon("|")
-            séparateur_arguments_optionel_fut_ajouté = vrai
+            enchaineuse.ajoute_au_tampon("|");
+            séparateur_arguments_optionel_fut_ajouté = vrai;
         }
-        enchaineuse.ajoute_au_tampon("O")
+        enchaineuse.ajoute_au_tampon("O");
     }
-    enchaineuse.ajoute_au_tampon("\".pointeur)\n")
+    enchaineuse.ajoute_au_tampon("\".pointeur)\n");
 
-    enchaineuse.ajoute_au_tampon("    saufsi PyArg_ParseTuple(args, chn_objets")
-    virgule := ", "
+    enchaineuse.ajoute_au_tampon("    saufsi PyArg_ParseTuple(args, chn_objets");
+    virgule := ", ";
     pour méthode.paramètres_entrée {
-        enchaineuse.ajoute_au_tampon(virgule, "*pyobject_", it.nom)
+        enchaineuse.ajoute_au_tampon(virgule, "*pyobject_", it.nom);
     }
-    enchaineuse.ajoute_au_tampon(") {\n")
-    enchaineuse.ajoute_au_tampon("        retourne ", valeur_retour, "\n")
-    enchaineuse.ajoute_au_tampon("    }\n")
+    enchaineuse.ajoute_au_tampon(") {\n");
+    enchaineuse.ajoute_au_tampon("        retourne ", valeur_retour, "\n");
+    enchaineuse.ajoute_au_tampon("    }\n");
 
     /* Vérifie que les types sont ceux attendus. */
     pour méthode.paramètres_entrée {
-        chn_erreur := imprime_chaine("Mauvais type pour l'argument % ! Attendu : %, obtenu : ", it.nom, it.type.nom)
-        diffère déloge(chn_erreur)
+        chn_erreur := imprime_chaine("Mauvais type pour l'argument % ! Attendu : %, obtenu : ", it.nom, it.type.nom);
+        diffère déloge(chn_erreur);
 
-        enchaineuse.ajoute_au_tampon("    saufsi ", it.type.fonctions.pour_discrimination, "(pyobject_", it.nom, ") {\n")
-        enchaineuse.ajoute_au_tampon("        retourne PyErr_MauvaisTypeArgument(pyobject_", it.nom, ", \"", it.nom, "\", \"", it.type.nom, "\")\n")
-        enchaineuse.ajoute_au_tampon("    }\n")
+        enchaineuse.ajoute_au_tampon("    saufsi ", it.type.fonctions.pour_discrimination, "(pyobject_", it.nom, ") {\n");
+        enchaineuse.ajoute_au_tampon("        retourne PyErr_MauvaisTypeArgument(pyobject_", it.nom, ", \"", it.nom, "\", \"", it.type.nom, "\")\n");
+        enchaineuse.ajoute_au_tampon("    }\n");
     }
 }
 
@@ -886,41 +886,41 @@ génère_conversion_args_vers_kuri :: fonc (enchaineuse: *Enchaineuse, méthode:
     sinon {
         % = %(pyobject_%).notre_instance
     }
-    »
+    »;
 
     pour méthode.paramètres_entrée {
         si it.type.drapeaux.TYPE_EST_ÉNUM {
-            enchaineuse.imprime_dans_enchaineuse(chaine_pour_extraction_énum, it.nom, it.type.nom, it.nom, it.nom, it.type.fonctions.pour_valeur_unicode_enum, it.nom, it.type.nom, it.type.nom, it.nom, it.type.fonctions.pour_extraction_valeur, it.nom)
-            continue
+            enchaineuse.imprime_dans_enchaineuse(chaine_pour_extraction_énum, it.nom, it.type.nom, it.nom, it.nom, it.type.fonctions.pour_valeur_unicode_enum, it.nom, it.type.nom, it.type.nom, it.nom, it.type.fonctions.pour_extraction_valeur, it.nom);
+            continue;
         }
-        enchaineuse.ajoute_au_tampon("    ", it.nom, " := ", it.type.fonctions.pour_extraction_valeur, "(pyobject_", it.nom, ")\n")
+        enchaineuse.ajoute_au_tampon("    ", it.nom, " := ", it.type.fonctions.pour_extraction_valeur, "(pyobject_", it.nom, ")\n");
     }
 }
 
 // Génère l'expression d'appel pour le code Kuri de la méthode. La fonction appelante doit gérer la potentielle valeur de retour (nom, assignation, etc.).
 génère_appel_méthode_kuri :: fonc (enchaineuse: *Enchaineuse, méthode: &MéthodePython, premier_paramètre_implicite : chaine = "")
 {
-    enchaineuse.ajoute_au_tampon(méthode.nom)
-    virgule := "("
+    enchaineuse.ajoute_au_tampon(méthode.nom);
+    virgule := "(";
     si premier_paramètre_implicite {
-        enchaineuse.ajoute_au_tampon(virgule, premier_paramètre_implicite)
-        virgule = ", "
+        enchaineuse.ajoute_au_tampon(virgule, premier_paramètre_implicite);
+        virgule = ", ";
     }
     sinon saufsi méthode.paramètres_entrée {
-        enchaineuse.ajoute_au_tampon(virgule)
+        enchaineuse.ajoute_au_tampon(virgule);
     }
     pour méthode.paramètres_entrée {
-        enchaineuse.ajoute_au_tampon(virgule)
+        enchaineuse.ajoute_au_tampon(virgule);
         si it.param_originel_est_pointeur && it.type.drapeaux.TOUJOURS_COMME_POINTEUR == faux {
-            enchaineuse.ajoute_au_tampon("*")
+            enchaineuse.ajoute_au_tampon("*");
         }
-        enchaineuse.ajoute_au_tampon(it.nom)
+        enchaineuse.ajoute_au_tampon(it.nom);
         saufsi it.type.est_basique || it.type.drapeaux.TYPE_EST_ÉNUM {
-            enchaineuse.ajoute_au_tampon(".notre_instance")
+            enchaineuse.ajoute_au_tampon(".notre_instance");
         }
-        virgule = ", "
+        virgule = ", ";
     }
-    enchaineuse.ajoute_au_tampon(")\n")
+    enchaineuse.ajoute_au_tampon(")\n");
 }
 
 génère_interface_fonction :: fonc (enchaineuse: *Enchaineuse, méthode: MéthodePython, self : *TypePython = nul)
@@ -928,183 +928,183 @@ génère_interface_fonction :: fonc (enchaineuse: *Enchaineuse, méthode: Métho
     // À FAIRE : initialisation des variables globales de kuri
 
     /* self, pour les méthodes de module, c'est la méthode, pour le reste, c'est l'objet */
-    self_inutilisé := ""
+    self_inutilisé := "";
     saufsi self {
-        self_inutilisé = " @inutilisée"
+        self_inutilisé = " @inutilisée";
     }
-    args_inutilisés := ""
+    args_inutilisés := "";
     saufsi méthode.paramètres_entrée {
-        args_inutilisés = " @inutilisée"
+        args_inutilisés = " @inutilisée";
     }
 
-    enchaineuse.imprime_dans_enchaineuse("% :: fonc (self: *PyObject%, args: *PyObject%) -> *PyObject\n", méthode.nom_enveloppe, self_inutilisé, args_inutilisés)
-    enchaineuse.ajoute_au_tampon("{\n")
+    enchaineuse.imprime_dans_enchaineuse("% :: fonc (self: *PyObject%, args: *PyObject%) -> *PyObject\n", méthode.nom_enveloppe, self_inutilisé, args_inutilisés);
+    enchaineuse.ajoute_au_tampon("{\n");
 
-    génère_parsage_args_tuple(enchaineuse, méthode, "nul")
-    génère_conversion_args_vers_kuri(enchaineuse, méthode)
+    génère_parsage_args_tuple(enchaineuse, méthode, "nul");
+    génère_conversion_args_vers_kuri(enchaineuse, méthode);
 
     si self {
-        enchaineuse.ajoute_au_tampon("    self_kuri := ", self.fonctions.pour_extraction_valeur, "(self)\n")
+        enchaineuse.ajoute_au_tampon("    self_kuri := ", self.fonctions.pour_extraction_valeur, "(self)\n");
     }
 
     /* Appel la fonction. */
-    possède_retour := !méthode.ne_retourne_rien()
+    possède_retour := !méthode.ne_retourne_rien();
 
-    enchaineuse.ajoute_au_tampon("    ")
+    enchaineuse.ajoute_au_tampon("    ");
     si possède_retour {
-        enchaineuse.ajoute_au_tampon("résultat := ")
+        enchaineuse.ajoute_au_tampon("résultat := ");
     }
 
-    arg_implicite := ""
+    arg_implicite := "";
     si self {
         si self.drapeaux.TOUJOURS_COMME_POINTEUR {
             si méthode.param_self_est_pointeur {
-                arg_implicite = "self_kuri.notre_instance"
+                arg_implicite = "self_kuri.notre_instance";
             }
             sinon {
-                arg_implicite = "mémoire(self_kuri.notre_instance)"
+                arg_implicite = "mémoire(self_kuri.notre_instance)";
             }
         }
         sinon {
             si méthode.param_self_est_pointeur {
-                arg_implicite = "*self_kuri.notre_instance"
+                arg_implicite = "*self_kuri.notre_instance";
             }
             sinon {
-                arg_implicite = "self_kuri.notre_instance"
+                arg_implicite = "self_kuri.notre_instance";
             }
         }
     }
 
-    génère_appel_méthode_kuri(enchaineuse, méthode, arg_implicite)
+    génère_appel_méthode_kuri(enchaineuse, méthode, arg_implicite);
 
     si possède_retour {
-        type_sortie := méthode.paramètres_sortie[0].type
-        enchaineuse.ajoute_au_tampon("    retourne ", type_sortie.fonctions.pour_construction, "(résultat)\n")
+        type_sortie := méthode.paramètres_sortie[0].type;
+        enchaineuse.ajoute_au_tampon("    retourne ", type_sortie.fonctions.pour_construction, "(résultat)\n");
     }
     sinon {
-        enchaineuse.ajoute_au_tampon("    retourne python_retourne_rien()\n")
+        enchaineuse.ajoute_au_tampon("    retourne python_retourne_rien()\n");
     }
 
-    enchaineuse.ajoute_au_tampon("}\n")
+    enchaineuse.ajoute_au_tampon("}\n");
 }
 
 génère_tableaux_méthodes :: fonc (enchaineuse: *Enchaineuse, méthodes: []MéthodePython, nom_tableau: chaine)
 {
     /* Déclare le tableau de méthodes. Il y a une méthode supplémentaire nulle comme sentinelle. */
-    enchaineuse.imprime_dans_enchaineuse("% := [\n", nom_tableau)
+    enchaineuse.imprime_dans_enchaineuse("% := [\n", nom_tableau);
 
     pour méthodes {
         drapeaux_méthode := si it.paramètres_entrée {
-            "METH_VARARGS"
+            "METH_VARARGS";
         }
         sinon {
-            "METH_NOARGS"
+            "METH_NOARGS";
         }
 
-        enchaineuse.imprime_dans_enchaineuse("    PyMethodDef(ml_name = ChaineC(\"%\".pointeur), ml_meth = %, ml_flags = %, ml_doc = ChaineC(nul)),\n", it.nom, it.nom_enveloppe, drapeaux_méthode)
+        enchaineuse.imprime_dans_enchaineuse("    PyMethodDef(ml_name = ChaineC(\"%\".pointeur), ml_meth = %, ml_flags = %, ml_doc = ChaineC(nul)),\n", it.nom, it.nom_enveloppe, drapeaux_méthode);
     }
 
     /* Sentinelle */
-    enchaineuse.imprime_dans_enchaineuse("    PyMethodDef(ml_name = ChaineC(nul), ml_meth = nul, ml_flags = 0, ml_doc = ChaineC(nul))\n")
-    enchaineuse.ajoute_au_tampon("]\n")
+    enchaineuse.imprime_dans_enchaineuse("    PyMethodDef(ml_name = ChaineC(nul), ml_meth = nul, ml_flags = 0, ml_doc = ChaineC(nul))\n");
+    enchaineuse.ajoute_au_tampon("]\n");
 }
 
 ajoute_type_à_la_liste :: fonc (enchaineuse: *Enchaineuse, type: *TypePython)
 {
     si type.code_pour_init_module_fut_généré {
-        retourne
+        retourne;
     }
 
     si type.base {
-        ajoute_type_à_la_liste(enchaineuse, type.base)
+        ajoute_type_à_la_liste(enchaineuse, type.base);
     }
 
-    enchaineuse.ajoute_au_tampon("        DonnéesAjoutType(*", type.nom_globale_type, ", ChaineC(\"", type.nom, "\".pointeur)),\n")
-    type.code_pour_init_module_fut_généré = vrai
+    enchaineuse.ajoute_au_tampon("        DonnéesAjoutType(*", type.nom_globale_type, ", ChaineC(\"", type.nom, "\".pointeur)),\n");
+    type.code_pour_init_module_fut_généré = vrai;
 }
 
 génère_initialisation_module :: fonc (enchaineuse: *Enchaineuse, module: &ModulePython, types: []*TypePython)
 {
-    génère_tableaux_méthodes(enchaineuse, module.méthodes, "méthodes_du_module")
+    génère_tableaux_méthodes(enchaineuse, module.méthodes, "méthodes_du_module");
 
-    enchaineuse.ajoute_au_tampon("ChaineC :: Chaine.ChaineC\n")
+    enchaineuse.ajoute_au_tampon("ChaineC :: Chaine.ChaineC\n");
 
     /* Déclaration de la globale pour la définition du module. */
-    enchaineuse.ajoute_au_tampon("définition_module := PyModuleDef(\n")
+    enchaineuse.ajoute_au_tampon("définition_module := PyModuleDef(\n");
 
-    enchaineuse.imprime_dans_enchaineuse("    m_name = ChaineC(\"%\".pointeur),\n", module.nom)
-    enchaineuse.ajoute_au_tampon("    m_doc = ChaineC(nul),\n")
-    enchaineuse.ajoute_au_tampon("    m_size = -1,\n")
-    enchaineuse.ajoute_au_tampon("    m_methods = *méthodes_du_module[0],\n")
-    enchaineuse.ajoute_au_tampon("    m_slots = nul,\n")
-    enchaineuse.ajoute_au_tampon("    m_traverse = nul,\n")
-    enchaineuse.ajoute_au_tampon("    m_clear = nul,\n")
-    enchaineuse.ajoute_au_tampon("    m_free = nul)\n")
+    enchaineuse.imprime_dans_enchaineuse("    m_name = ChaineC(\"%\".pointeur),\n", module.nom);
+    enchaineuse.ajoute_au_tampon("    m_doc = ChaineC(nul),\n");
+    enchaineuse.ajoute_au_tampon("    m_size = -1,\n");
+    enchaineuse.ajoute_au_tampon("    m_methods = *méthodes_du_module[0],\n");
+    enchaineuse.ajoute_au_tampon("    m_slots = nul,\n");
+    enchaineuse.ajoute_au_tampon("    m_traverse = nul,\n");
+    enchaineuse.ajoute_au_tampon("    m_clear = nul,\n");
+    enchaineuse.ajoute_au_tampon("    m_free = nul)\n");
 
     /* La fonction d'initialisation du module doit avoir la signature : PyInit_nom_module :: fonc () -> *PyObject */
-    enchaineuse.imprime_dans_enchaineuse("PyInit_% :: fonc () -> *PyObject #racine #sansbroyage #sanstrace #exporte\n", module.nom)
-    enchaineuse.ajoute_au_tampon("{\n")
-    enchaineuse.ajoute_au_tampon("    module_pyobject := PyModule_Create2(*définition_module, PYTHON_API_VERSION)\n")
+    enchaineuse.imprime_dans_enchaineuse("PyInit_% :: fonc () -> *PyObject #racine #sansbroyage #sanstrace #exporte\n", module.nom);
+    enchaineuse.ajoute_au_tampon("{\n");
+    enchaineuse.ajoute_au_tampon("    module_pyobject := PyModule_Create2(*définition_module, PYTHON_API_VERSION)\n");
 
     pour module.constantes_nombre_entier {
-        enchaineuse.imprime_dans_enchaineuse("    si PyModule_AddIntConstant(module_pyobject, ChaineC(\"%\".pointeur), %) == -1 {\n", it.nom, it.valeur)
-        enchaineuse.ajoute_au_tampon("        retourne python_retourne_rien()\n")
-        enchaineuse.ajoute_au_tampon("    }\n")
+        enchaineuse.imprime_dans_enchaineuse("    si PyModule_AddIntConstant(module_pyobject, ChaineC(\"%\".pointeur), %) == -1 {\n", it.nom, it.valeur);
+        enchaineuse.ajoute_au_tampon("        retourne python_retourne_rien()\n");
+        enchaineuse.ajoute_au_tampon("    }\n");
     }
 
     pour module.constantes_chaine {
-        enchaineuse.imprime_dans_enchaineuse("    si PyModule_AddStringConstant(module_pyobject, ChaineC(\"%\".pointeur), ChaineC(\"%\".pointeur)) == -1 {\n", it.nom, it.valeur)
-        enchaineuse.ajoute_au_tampon("        retourne python_retourne_rien()\n")
-        enchaineuse.ajoute_au_tampon("    }\n")
+        enchaineuse.imprime_dans_enchaineuse("    si PyModule_AddStringConstant(module_pyobject, ChaineC(\"%\".pointeur), ChaineC(\"%\".pointeur)) == -1 {\n", it.nom, it.valeur);
+        enchaineuse.ajoute_au_tampon("        retourne python_retourne_rien()\n");
+        enchaineuse.ajoute_au_tampon("    }\n");
     }
 
     /* Rassemble les types dans l'ordre. */
-    itérateur_info_type_est_requis := faux
-    enchaineuse.ajoute_au_tampon("    tous_les_types := [\n")
+    itérateur_info_type_est_requis := faux;
+    enchaineuse.ajoute_au_tampon("    tous_les_types := [\n");
     pour types {
         si it.est_basique {
-            continue
+            continue;
         }
         si type_supporte_itération(it) && !it.type_itérateur {
-            itérateur_info_type_est_requis = vrai
+            itérateur_info_type_est_requis = vrai;
         }
-        ajoute_type_à_la_liste(enchaineuse, it)
+        ajoute_type_à_la_liste(enchaineuse, it);
     }
     /* Type itérateur info type. */
     si itérateur_info_type_est_requis {
-        enchaineuse.ajoute_au_tampon("         DonnéesAjoutType(*PyTypeItérateurPourInfoType, ChaineC(\"ItérateurPourInfoType\".pointeur)),\n")
+        enchaineuse.ajoute_au_tampon("         DonnéesAjoutType(*PyTypeItérateurPourInfoType, ChaineC(\"ItérateurPourInfoType\".pointeur)),\n");
     }
     /* Sentinelle pour simplifier la génération de code pour les virgules. */
-    enchaineuse.ajoute_au_tampon("         DonnéesAjoutType(nul, ChaineC(nul))\n")
-    enchaineuse.ajoute_au_tampon("    ]\n")
+    enchaineuse.ajoute_au_tampon("         DonnéesAjoutType(nul, ChaineC(nul))\n");
+    enchaineuse.ajoute_au_tampon("    ]\n");
 
-    enchaineuse.ajoute_au_tampon("    retourne Py_AjouteTypesAuModule(module_pyobject, tous_les_types)\n")
-    enchaineuse.ajoute_au_tampon("}\n")
+    enchaineuse.ajoute_au_tampon("    retourne Py_AjouteTypesAuModule(module_pyobject, tous_les_types)\n");
+    enchaineuse.ajoute_au_tampon("}\n");
 }
 
 génère_initialisation_table_création_objet :: fonc (enchaineuse: *Enchaineuse, types: []*TypePython)
 {
-    enchaineuse.ajoute_au_tampon("initialise_table_création_objet :: fonc ()\n")
-    enchaineuse.ajoute_au_tampon("{\n")
+    enchaineuse.ajoute_au_tampon("initialise_table_création_objet :: fonc ()\n");
+    enchaineuse.ajoute_au_tampon("{\n");
 
     pour types {
         si it.est_basique {
-            continue
+            continue;
         }
 
         si it.drapeaux.TYPE_EST_ITÉRATEUR {
             /* Les fonctions de création ne sont pas disponibles pour les itérateurs. */
-            continue
+            continue;
         }
 
-        symbole_pointeur := ""
+        symbole_pointeur := "";
         si it.drapeaux.TOUJOURS_COMME_POINTEUR {
-            symbole_pointeur = "*"
+            symbole_pointeur = "*";
         }
 
-        enchaineuse.ajoute_au_tampon("    tableau_ajoute(*__table_création_objet, DonnéesCréationObjet(*", it.nom_globale_type, ", info_de(", symbole_pointeur, it.nom_type_kuri ,"), ", it.fonctions.pour_construction, "_générique))\n")
+        enchaineuse.ajoute_au_tampon("    tableau_ajoute(*__table_création_objet, DonnéesCréationObjet(*", it.nom_globale_type, ", info_de(", symbole_pointeur, it.nom_type_kuri ,"), ", it.fonctions.pour_construction, "_générique))\n");
     }
 
-    enchaineuse.ajoute_au_tampon("}\n")
-    enchaineuse.ajoute_au_tampon("#ajoute_init initialise_table_création_objet()\n")
+    enchaineuse.ajoute_au_tampon("}\n");
+    enchaineuse.ajoute_au_tampon("#ajoute_init initialise_table_création_objet()\n");
 }

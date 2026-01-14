@@ -1,4 +1,4 @@
-importe Fondation
+importe Fondation;
 
 /* La surcharge d'opérateur permet d'avoir un sucrage syntaxique pour opérer sur des
  * variables comme si elles étaient des variables de types basiques.
@@ -37,71 +37,71 @@ importe Fondation
 
 principale :: fonc ()
 {
-    test_opérateur_surchargé_simple()
-    test_opérateur_surchargé_polymorphe()
-    test_opérateur_surchargé_synthétisé()
+    test_opérateur_surchargé_simple();
+    test_opérateur_surchargé_polymorphe();
+    test_opérateur_surchargé_synthétisé();
 }
 
 /* Définition d'une surcharge pour l'opérateur+ pour un nouveau type. */
 MonType :: struct {
-    x: z32
+    x: z32;
 }
 
 opérateur + :: (mon_type: MonType, valeur: z32) -> MonType
 {
-    imprimeln("opérateur+ est appelé")
-    résultat := mon_type
-    résultat.x += valeur
-    retourne résultat
+    imprimeln("opérateur+ est appelé");
+    résultat := mon_type;
+    résultat.x += valeur;
+    retourne résultat;
 }
 
 opérateur += :: (mon_type: *MonType, valeur: z32)
 {
-    imprimeln("opérateur+= est appelé")
-    mon_type.x += valeur
+    imprimeln("opérateur+= est appelé");
+    mon_type.x += valeur;
 }
 
 test_opérateur_surchargé_simple :: fonc ()
 {
-    mon_type: MonType
+    mon_type: MonType;
 
-    mon_type = mon_type + 1
-    assert(mon_type.x == 1)
+    mon_type = mon_type + 1;
+    assert(mon_type.x == 1);
 
     /* Si opérateur+ est spécifié, l'opérateur += est automatiquement disponible.
      * De même pour tous les opérateurs pouvant apparaitre dans une assignation
      * composée (-=, *=, /=, etc.) */
-    mon_type += 5
-    assert(mon_type.x == 6)
+    mon_type += 5;
+    assert(mon_type.x == 6);
 
     /* Nous pouvons obtenir l'adresse de la fonction d'opérateur afin de l'appeler
      * manuellement : */
-    pointeur_opérateur := opérateur+(MonType, z32)
-    mon_type = pointeur_opérateur(mon_type, 4)
-    assert(mon_type.x == 10)
+    pointeur_opérateur := opérateur+(MonType, z32);
+    mon_type = pointeur_opérateur(mon_type, 4);
+    assert(mon_type.x == 10);
 
     /* Méme si opérateur+= dû être déclaré avec *MonType, pour le référencer, seul MonType suffit. */
-    opérateur_plus_égal := opérateur+=(MonType, z32)
-    opérateur_plus_égal(*mon_type, 5)
-    assert(mon_type.x == 15)
+    opérateur_plus_égal := opérateur+=(MonType, z32);
+    opérateur_plus_égal(*mon_type, 5);
+    assert(mon_type.x == 15);
 }
 
 Polymorphe :: struct ($T: type_de_données) {
-    donnée: T
+    donnée: T;
 }
 
 opérateur + :: (polymorphe: Polymorphe($T), donnée: T) -> Polymorphe(T)
 {
-    résultat := polymorphe
-    résultat.donnée += donnée
-    retourne résultat
+    résultat := polymorphe;
+    résultat.donnée += donnée;
+    retourne résultat;
 }
 
 test_opérateur_surchargé_polymorphe :: fonc ()
 {
-    polymorphe: Polymorphe(z32)
-    polymorphe += 5
-    assert(polymorphe.donnée == 5)
+    polymorphe: Polymorphe(z32);
+    polymorphe += 5;
+    assert(polymorphe.donnée == 5);
 }
 
 /* ------------------------------------------------------------------------- */
@@ -117,21 +117,21 @@ test_opérateur_surchargé_polymorphe :: fonc ()
  * \{ */
 
 TypeComparable :: struct {
-    données: z32
+    données: z32;
 }
 
 opérateur == :: (a: TypeComparable, b: TypeComparable) -> bool
 {
-    retourne a.données == b.données
+    retourne a.données == b.données;
 }
 
 test_opérateur_surchargé_synthétisé :: fonc ()
 {
-    a := TypeComparable(5)
-    b := TypeComparable(10)
+    a := TypeComparable(5);
+    b := TypeComparable(10);
     /* Bien que l'opérateur!= ne soit pas défini, nous pouvons le
      * synthétiser via l'opérateur==. */
-    assert(a != b)
+    assert(a != b);
 }
 
 /** \} */

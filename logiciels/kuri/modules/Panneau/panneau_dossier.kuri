@@ -1,5 +1,5 @@
 Dossier :: struct {
-    onglets: [..]chaine
+    onglets: [..]chaine;
 }
 
 /* ------------------------------------------------------------------------- */
@@ -7,65 +7,65 @@ Dossier :: struct {
  * \{ */
 
 PanneauDossier :: struct {
-    empl base: Panneau
+    empl base: Panneau;
 
     Élément :: struct {
-        texte: chaine
-        panneau: *Panneau
-        rect: RectanglePosDim(z32)
-        rect_texte: RectanglePosDim(z32)
+        texte: chaine;
+        panneau: *Panneau;
+        rect: RectanglePosDim(z32);
+        rect_texte: RectanglePosDim(z32);
     }
 
-    éléments: [..]Élément
+    éléments: [..]Élément;
 
     /* Le rectangle où se trouveront les onglets. */
-    rect_onglets: RectanglePosDim(z32)
+    rect_onglets: RectanglePosDim(z32);
     /* Le rectangle où se trouvera le panneau de l'onglet actif. */
-    rect_central: RectanglePosDim(z32)
+    rect_central: RectanglePosDim(z32);
 
-    onglet_actif := 0
+    onglet_actif := 0;
 }
 
 crée_panneau_dossier :: fonc (contexte: *ContexteInterface, parent: *Panneau) -> *PanneauDossier
 {
-    résultat := contexte.crée_panneau(PanneauDossier)
-    résultat.sur_dessin = sur_dessin_panneau_dossier
-    résultat.sur_clic_souris = sur_clic_souris_panneau_dossier
-    résultat.sur_déplacement_souris = sur_déplacement_souris_panneau_dossier
-    parent.ajoute_enfant(résultat)
-    retourne résultat
+    résultat := contexte.crée_panneau(PanneauDossier);
+    résultat.sur_dessin = sur_dessin_panneau_dossier;
+    résultat.sur_clic_souris = sur_clic_souris_panneau_dossier;
+    résultat.sur_déplacement_souris = sur_déplacement_souris_panneau_dossier;
+    parent.ajoute_enfant(résultat);
+    retourne résultat;
 }
 
 sur_dessin_panneau_dossier :: fonc (empl panneau: *PanneauDossier, ctx: *ContexteAffichage)
 {
-    ajourne_disposition(panneau)
+    ajourne_disposition(panneau);
 
-    thème := ctx.thème
-    peintre := ctx.peintre
-    fonte := contexte.fonte
+    thème := ctx.thème;
+    peintre := ctx.peintre;
+    fonte := contexte.fonte;
 
-    remplis_rectangle(peintre, rect, thème.couleur_arrière_plan)
-    dessine_rectangle(peintre, rect, thème.couleur_contour)
+    remplis_rectangle(peintre, rect, thème.couleur_arrière_plan);
+    dessine_rectangle(peintre, rect, thème.couleur_contour);
 
-    pos_rect_central := donne_positions_coins(rect_central)
+    pos_rect_central := donne_positions_coins(rect_central);
 
     /* Dessine les onglets. */
     pour éléments {
         couleur := si indice_it == onglet_actif {
-            thème.couleur_arrière_plan
+            thème.couleur_arrière_plan;
         }
         sinon {
-            couleur_grise_claire
+            couleur_grise_claire;
         }
 
-        remplis_rectangle(peintre, it.rect, couleur)
-        dessine_texte(peintre, fonte, it.texte, it.rect_texte, thème.couleur_texte)
+        remplis_rectangle(peintre, it.rect, couleur);
+        dessine_texte(peintre, fonte, it.texte, it.rect_texte, thème.couleur_texte);
 
         si indice_it != onglet_actif {
-            dessine_rectangle(peintre, it.rect, thème.couleur_contour)
+            dessine_rectangle(peintre, it.rect, thème.couleur_contour);
         }
         sinon {
-            pos_rect_élément := donne_positions_coins(it.rect)
+            pos_rect_élément := donne_positions_coins(it.rect);
 
             segments := [
                 /* Segments inférieurs pour le rect central. */
@@ -79,9 +79,9 @@ sur_dessin_panneau_dossier :: fonc (empl panneau: *PanneauDossier, ctx: *Context
                 /* Segments pour lier les deux rectangles. */
                 Ligne(z32)(pos_rect_central[3], pos_rect_élément[0]),
                 Ligne(z32)(pos_rect_élément[1], pos_rect_central[2])
-            ]
+            ];
 
-            peintre.dessine_segments(segments, thème.couleur_contour)
+            peintre.dessine_segments(segments, thème.couleur_contour);
         }
     }
 }
@@ -93,77 +93,77 @@ sur_déplacement_souris_panneau_dossier :: fonc (empl panneau: *PanneauDossier @
 sur_clic_souris_panneau_dossier :: fonc (empl panneau: *PanneauDossier, clic: ClicSouris) -> bool
 {
     saufsi rect.contient(clic.état.où) {
-        retourne faux
+        retourne faux;
     }
 
     saufsi éléments {
-        retourne faux
+        retourne faux;
     }
 
     pour éléments {
         saufsi it.rect.contient(clic.état.où) {
-            continue
+            continue;
         }
 
         si indice_it == onglet_actif {
-            retourne vrai
+            retourne vrai;
         }
 
-        onglet_actif = indice_it comme z32
-        arrête
+        onglet_actif = indice_it comme z32;
+        arrête;
     }
     sansarrêt {
-        retourne faux
+        retourne faux;
     }
 
     /* Change d'enfants. */
-    enfants[0] = éléments[onglet_actif].panneau
-    enfants[0].parent = panneau
+    enfants[0] = éléments[onglet_actif].panneau;
+    enfants[0].parent = panneau;
 
-    retourne vrai
+    retourne vrai;
 }
 
 ajourne_disposition :: fonc (empl panneau: *PanneauDossier)
 {
     saufsi besoin_ajournement_disposition {
-        retourne
+        retourne;
     }
-    diffère besoin_ajournement_disposition = faux
+    diffère besoin_ajournement_disposition = faux;
 
-    fonte := contexte.fonte
-    métriques := donne_métriques_fonte(fonte)
+    fonte := contexte.fonte;
+    métriques := donne_métriques_fonte(fonte);
 
-    hauteur_de_ligne := métriques.donne_hauteur_ligne() comme z32
-    hauteur_onglets := hauteur_de_ligne + 10
-    espaçage_élément := donne_largeur_texte(fonte, "0") comme z32
+    hauteur_de_ligne := métriques.donne_hauteur_ligne() comme z32;
+    hauteur_onglets := hauteur_de_ligne + 10;
+    espaçage_élément := donne_largeur_texte(fonte, "0") comme z32;
 
-    décalage_élément := 0
+    décalage_élément := 0;
 
-    rect_onglets = rect
-    rect_onglets.y = rect.hauteur - hauteur_onglets
-    rect_onglets.hauteur = hauteur_onglets
+    rect_onglets = rect;
+    rect_onglets.y = rect.hauteur - hauteur_onglets;
+    rect_onglets.hauteur = hauteur_onglets;
 
-    rect_central = rect
-    rect_central.hauteur = rect.hauteur - hauteur_onglets
-    rect_central.réduis(1)
+    rect_central = rect;
+    rect_central.hauteur = rect.hauteur - hauteur_onglets;
+    rect_central.réduis(1);
 
     pour * éléments {
-        largeur_texte := donne_largeur_texte(fonte, it.texte) comme z32
+        largeur_texte := donne_largeur_texte(fonte, it.texte) comme z32;
 
-        it.rect.x = décalage_élément
-        it.rect.y = rect_onglets.y
-        it.rect.hauteur = rect_onglets.hauteur
-        it.rect.largeur = espaçage_élément * 2 + largeur_texte
+        it.rect.x = décalage_élément;
+        it.rect.y = rect_onglets.y;
+        it.rect.hauteur = rect_onglets.hauteur;
+        it.rect.largeur = espaçage_élément * 2 + largeur_texte;
 
-        it.rect_texte.x = décalage_élément + espaçage_élément
-        it.rect_texte.y = rect_onglets.y + 5
-        it.rect_texte.hauteur = hauteur_de_ligne
-        it.rect_texte.largeur = largeur_texte
+        it.rect_texte.x = décalage_élément + espaçage_élément;
+        it.rect_texte.y = rect_onglets.y + 5;
+        it.rect_texte.hauteur = hauteur_de_ligne;
+        it.rect_texte.largeur = largeur_texte;
 
-        décalage_élément += it.rect.largeur
+        décalage_élément += it.rect.largeur;
 
         si it.panneau {
-            redimensionne_panneau(it.panneau, rect_central)
+            redimensionne_panneau(it.panneau, rect_central);
         }
     }
 }
@@ -176,12 +176,12 @@ ajourne_disposition :: fonc (empl panneau: *PanneauDossier)
 
 ajoute_onglet :: fonc (empl panneau: *PanneauDossier, nom: chaine, panneau_onglet: *Panneau)
 {
-    élément := tableau_ajoute_élément(*panneau.éléments)
-    élément.texte = nom
-    élément.panneau = panneau_onglet
+    élément := tableau_ajoute_élément(*panneau.éléments);
+    élément.texte = nom;
+    élément.panneau = panneau_onglet;
 
     si enfants.taille == 0 {
-        panneau.ajoute_enfant(panneau_onglet)
+        panneau.ajoute_enfant(panneau_onglet);
     }
 }
 

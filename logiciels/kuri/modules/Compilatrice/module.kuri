@@ -1,50 +1,50 @@
 // Bibliothèque pour faire le pont entre le Compilateur et le programme compilé
 
-importe Chaine
-importe Ensemble
-importe Fondation
-importe SysFichier
+importe Chaine;
+importe Ensemble;
+importe Fondation;
+importe SysFichier;
 
-charge "code"
-charge "ipa"
-charge "lexèmes"
-charge "message"
-charge "options"
+charge "code";
+charge "ipa";
+charge "lexèmes";
+charge "message";
+charge "options";
 
 // ----------------------------------------------------------------------------
 // Fonctions auxilliaires pour la compilation.
 
 compile_pour_production :: fonc ()
 {
-    options := compilatrice_donne_options()
-    options.niveau_optimisation = NiveauOptimisation.O3
-    options.résultat = RésultatCompilation.EXÉCUTABLE
-    compilatrice_ajourne_options(options)
+    options := compilatrice_donne_options();
+    options.niveau_optimisation = NiveauOptimisation.O3;
+    options.résultat = RésultatCompilation.EXÉCUTABLE;
+    compilatrice_ajourne_options(options);
 }
 
 compile_pour_débogage :: fonc ()
 {
-    options := compilatrice_donne_options()
-    options.résultat = RésultatCompilation.EXÉCUTABLE
-    options.compilation_pour = CompilationPour.DÉBOGAGE
-    compilatrice_ajourne_options(options)
+    options := compilatrice_donne_options();
+    options.résultat = RésultatCompilation.EXÉCUTABLE;
+    options.compilation_pour = CompilationPour.DÉBOGAGE;
+    compilatrice_ajourne_options(options);
 }
 
 compile_pour_débogage_avec_asan :: fonc ()
 {
-    options := compilatrice_donne_options()
-    options.résultat = RésultatCompilation.EXÉCUTABLE
-    options.compilation_pour = CompilationPour.DÉBOGAGE
-    options.utilise_asan = vrai
-    compilatrice_ajourne_options(options)
+    options := compilatrice_donne_options();
+    options.résultat = RésultatCompilation.EXÉCUTABLE;
+    options.compilation_pour = CompilationPour.DÉBOGAGE;
+    options.utilise_asan = vrai;
+    compilatrice_ajourne_options(options);
 }
 
 compile_pour_profilage :: fonc ()
 {
-    options := compilatrice_donne_options()
-    options.résultat = RésultatCompilation.EXÉCUTABLE
-    options.compilation_pour = CompilationPour.PROFILAGE
-    compilatrice_ajourne_options(options)
+    options := compilatrice_donne_options();
+    options.résultat = RésultatCompilation.EXÉCUTABLE;
+    options.compilation_pour = CompilationPour.PROFILAGE;
+    compilatrice_ajourne_options(options);
 }
 
 // ----------------------------------------------------------------------------
@@ -52,49 +52,49 @@ compile_pour_profilage :: fonc ()
 
 compilatrice_rapporte_erreur :: fonc (message: chaine, pos := #position_code_source) #sansretour
 {
-    compilatrice_rapporte_erreur(compilatrice_espace_courant(), message, pos)
+    compilatrice_rapporte_erreur(compilatrice_espace_courant(), message, pos);
 }
 
 compilatrice_rapporte_erreur :: fonc (espace: EspaceDeTravail, message: chaine, pos := #position_code_source) #sansretour
 {
-    compilatrice_rapporte_erreur(espace, pos.fichier, pos.ligne, message)
+    compilatrice_rapporte_erreur(espace, pos.fichier, pos.ligne, message);
 }
 
 compilatrice_rapporte_erreur :: fonc (site: *NoeudCode, message: chaine) #sansretour
 {
-    compilatrice_rapporte_erreur(compilatrice_espace_courant(), site.chemin_fichier, site.numéro_ligne, message)
+    compilatrice_rapporte_erreur(compilatrice_espace_courant(), site.chemin_fichier, site.numéro_ligne, message);
 }
 
 compilatrice_rapporte_erreur :: fonc (espace: EspaceDeTravail, site: *NoeudCode, message: chaine) #sansretour
 {
-    compilatrice_rapporte_erreur(espace, site.chemin_fichier, site.numéro_ligne, message)
+    compilatrice_rapporte_erreur(espace, site.chemin_fichier, site.numéro_ligne, message);
 }
 
 compilatrice_rapporte_avertissement :: fonc (message: chaine, pos := #position_code_source)
 {
-    compilatrice_rapporte_avertissement(compilatrice_espace_courant(), pos.fichier, pos.ligne, message)
+    compilatrice_rapporte_avertissement(compilatrice_espace_courant(), pos.fichier, pos.ligne, message);
 }
 
 compilatrice_rapporte_avertissement :: fonc (site: *NoeudCode, message: chaine)
 {
-    compilatrice_rapporte_avertissement(compilatrice_espace_courant(), site.chemin_fichier, site.numéro_ligne, message)
+    compilatrice_rapporte_avertissement(compilatrice_espace_courant(), site.chemin_fichier, site.numéro_ligne, message);
 }
 
 compilatrice_rapporte_avertissement :: fonc (espace: EspaceDeTravail, site: *NoeudCode, message: chaine)
 {
-    compilatrice_rapporte_avertissement(espace, site.chemin_fichier, site.numéro_ligne, message)
+    compilatrice_rapporte_avertissement(espace, site.chemin_fichier, site.numéro_ligne, message);
 }
 
 désactive_compilation_espace_défaut :: fonc ()
 {
-    options := compilatrice_donne_options()
-    options.résultat = RésultatCompilation.RIEN
-    compilatrice_ajourne_options(options)
+    options := compilatrice_donne_options();
+    options.résultat = RésultatCompilation.RIEN;
+    compilatrice_ajourne_options(options);
 }
 
 compilatrice_module_pour_code :: fonc (code: *NoeudCode) -> *Module
 {
-    retourne compilatrice_module_pour_code(compilatrice_espace_courant(), code)
+    retourne compilatrice_module_pour_code(compilatrice_espace_courant(), code);
 }
 
 // ----------------------------------------------------------------------------
@@ -102,12 +102,12 @@ compilatrice_module_pour_code :: fonc (code: *NoeudCode) -> *Module
 
 est_message_phase :: fonc (message: *Message, phase: PhaseCompilation) -> bool
 {
-    résultat := faux
+    résultat := faux;
     si message.genre == GenreMessage.PHASE_COMPILATION {
-        message_phase := message comme *MessagePhaseCompilation
-        résultat = message_phase.phase == phase
+        message_phase := message comme *MessagePhaseCompilation;
+        résultat = message_phase.phase == phase;
     }
-    retourne résultat
+    retourne résultat;
 }
 
 // ----------------------------------------------------------------------------
@@ -116,31 +116,31 @@ est_message_phase :: fonc (message: *Message, phase: PhaseCompilation) -> bool
 compilatrice_vérifie_égalité :: fonc (a: $T, b: T, position_code := #position_code_source)
 {
     si a == b {
-        retourne
+        retourne;
     }
 
-    enchaineuse: Enchaineuse
-    initialise_enchaineuse(*enchaineuse)
+    enchaineuse: Enchaineuse;
+    initialise_enchaineuse(*enchaineuse);
 
-    ajoute_au_tampon(*enchaineuse, "Échec du test, les valeurs sont différentes !\n")
-    imprime_dans_enchaineuse(*enchaineuse, "\tLa première valeur est : %\n", a)
-    imprime_dans_enchaineuse(*enchaineuse, "\tLa deuxième valeur est : %\n", b)
+    ajoute_au_tampon(*enchaineuse, "Échec du test, les valeurs sont différentes !\n");
+    imprime_dans_enchaineuse(*enchaineuse, "\tLa première valeur est : %\n", a);
+    imprime_dans_enchaineuse(*enchaineuse, "\tLa deuxième valeur est : %\n", b);
 
-    message := chaine_depuis_enchaineuse(*enchaineuse)
+    message := chaine_depuis_enchaineuse(*enchaineuse);
 
-    espace := compilatrice_espace_courant()
-    compilatrice_rapporte_erreur(espace, position_code.fichier, position_code.ligne, message)
+    espace := compilatrice_espace_courant();
+    compilatrice_rapporte_erreur(espace, position_code.fichier, position_code.ligne, message);
 }
 
 compilatrice_vérifie :: fonc (valeur: bool, position_code := #position_code_source)
 {
     si valeur {
-        retourne
+        retourne;
     }
 
-    message := "Échec du test, la valeur est fausse !\n"
-    espace := compilatrice_espace_courant()
-    compilatrice_rapporte_erreur(espace, position_code.fichier, position_code.ligne, message)
+    message := "Échec du test, la valeur est fausse !\n";
+    espace := compilatrice_espace_courant();
+    compilatrice_rapporte_erreur(espace, position_code.fichier, position_code.ligne, message);
 }
 
 // ---------------------------------------------------------------------------------------
@@ -150,11 +150,11 @@ fonction_possède_annotation :: fonc (code: *NoeudCodeEntêteFonction, annotatio
 {
     pour code.annotations {
         si it.nom == annotation {
-            retourne vrai
+            retourne vrai;
         }
     }
 
-    retourne faux
+    retourne faux;
 }
 
 // ---------------------------------------------------------------------------------------
@@ -163,28 +163,28 @@ fonction_possède_annotation :: fonc (code: *NoeudCodeEntêteFonction, annotatio
 fonction_n_a_qu_un_seul_paramètre :: fonc (fonction: *NoeudCodeEntêteFonction) -> bool
 {
     si fonction.params.taille == 0 {
-        retourne faux
+        retourne faux;
     }
 
-    retourne fonction.params.taille == 1
+    retourne fonction.params.taille == 1;
 }
 
 fonction_ne_retourne_que :: fonc (fonction: *NoeudCodeEntêteFonction, type_à_retourner: *InfoType) -> bool
 {
     si fonction.params_sorties.taille != 1 {
-        retourne faux
+        retourne faux;
     }
 
-    retourne fonction.params_sorties[0].type == type_à_retourner
+    retourne fonction.params_sorties[0].type == type_à_retourner;
 }
 
 type_premier_paramètre :: fonc (entête: *NoeudCodeEntêteFonction) -> *InfoType
 {
     si entête.params.taille == 0 {
-        retourne nul
+        retourne nul;
     }
 
-    retourne entête.params[0].type
+    retourne entête.params[0].type;
 }
 
 // ---------------------------------------------------------------------------------------
@@ -194,34 +194,34 @@ type_premier_paramètre :: fonc (entête: *NoeudCodeEntêteFonction) -> *InfoTyp
 // lesdits modules.
 
 EnsembleDeModules :: struct {
-    modules: [..]*Module
-    module_racine_compilation: *Module
-    chemin_racine_compilation: CheminFichier
-    chemin_modules_kuri: CheminFichier
+    modules: [..]*Module;
+    module_racine_compilation: *Module;
+    chemin_racine_compilation: CheminFichier;
+    chemin_modules_kuri: CheminFichier;
 }
 
 initialise_ensemble_de_modules :: fonc (espace: EspaceDeTravail, liste: *EnsembleDeModules)
 {
-    liste.module_racine_compilation = compilatrice_module_racine_compilation(espace)
+    liste.module_racine_compilation = compilatrice_module_racine_compilation(espace);
 
-    racine_kuri := compilatrice_racine_installation_kuri()
-    chemin_racine := CheminFichier(racine_kuri)
-    tmp_chemin_modules := chemin_racine / "modules/"
+    racine_kuri := compilatrice_racine_installation_kuri();
+    chemin_racine := CheminFichier(racine_kuri);
+    tmp_chemin_modules := chemin_racine / "modules/";
 
     /* Il est possible que le dossier soit un lien symbolique, par exemple pour
      * les développeurs souhaitant garder les modules synchronisés entre
      * l'installation et le dépôt de sources. */
-    liste.chemin_modules_kuri = chemin_véritable(tmp_chemin_modules)
+    liste.chemin_modules_kuri = chemin_véritable(tmp_chemin_modules);
 
-    liste.chemin_racine_compilation = CheminFichier(compilatrice_chemin_module(liste.module_racine_compilation))
+    liste.chemin_racine_compilation = CheminFichier(compilatrice_chemin_module(liste.module_racine_compilation));
 
-    détruit_chemin(tmp_chemin_modules)
+    détruit_chemin(tmp_chemin_modules);
 }
 
 détruit :: fonc (liste: *EnsembleDeModules)
 {
-    déloge(liste.modules)
-    détruit_chemin(liste.chemin_modules_kuri)
+    déloge(liste.modules);
+    détruit_chemin(liste.chemin_modules_kuri);
 }
 
 ajoute_module :: fonc (liste: *EnsembleDeModules, module: *Module)
@@ -230,45 +230,45 @@ ajoute_module :: fonc (liste: *EnsembleDeModules, module: *Module)
         /* Permet d'avoir un module nul, si par exemple il est
          * retourné via `compilatrice_module_pour_type` pour un
          * type de base. */
-        retourne
+        retourne;
     }
 
     si module == liste.module_racine_compilation {
         /* Ignore le module racine de compilation. */
-        retourne
+        retourne;
     }
 
     /* À FAIRE(langage) : stocke l'adresse du module Kuri pour comparer plus rapidement, ou utilise une autre manière. */
     si compilatrice_nom_module(module) == "Kuri" {
         /* Ignore le module implicite. */
-        retourne
+        retourne;
     }
 
-    ensemble_ajoute(*liste.modules, module)
+    ensemble_ajoute(*liste.modules, module);
 }
 
 génère_instructions_importe :: fonc (liste: *EnsembleDeModules, enchaineuse: *Enchaineuse) -> bool
 {
     pour liste.modules {
-        chemin_module := compilatrice_chemin_module(it)
+        chemin_module := compilatrice_chemin_module(it);
 
         si commence_par(chemin_module, liste.chemin_modules_kuri.chn) {
-            ajoute_au_tampon(enchaineuse, "importe ", compilatrice_nom_module(it), "\n")
-            continue
+            ajoute_au_tampon(enchaineuse, "importe ", compilatrice_nom_module(it), "\n");
+            continue;
         }
 
         /* Essaie un chemin relatif au fichier principal de compilation. */
-        tmp_chemin_module := CheminFichier(chemin_module)
+        tmp_chemin_module := CheminFichier(chemin_module);
         discr tmp_chemin_module.chemin_relatif_à(liste.chemin_racine_compilation) {
             Ok(chemin_relatif) {
-                ajoute_au_tampon(enchaineuse, "importe \"", chemin_relatif.chn, "\"\n")
-                détruit_chemin(chemin_relatif)
+                ajoute_au_tampon(enchaineuse, "importe \"", chemin_relatif.chn, "\"\n");
+                détruit_chemin(chemin_relatif);
             }
             sinon {
-                retourne faux
+                retourne faux;
             }
         }
     }
 
-    retourne vrai
+    retourne vrai;
 }

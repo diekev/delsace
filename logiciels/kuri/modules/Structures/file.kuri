@@ -3,38 +3,38 @@
  */
 
 File :: struct ($T: type_de_données) {
-    données: [..]T
-    taille: z32
+    données: [..]T;
+    taille: z32;
 }
 
 détruit :: fonc (file: &File(T = $T))
 {
-    déloge(file.données)
-    file.taille = 0
+    déloge(file.données);
+    file.taille = 0;
 }
 
 enfile :: fonc (file: &File(T = $T), valeur: T) #enligne
 {
-    tableau_ajoute(*file.données, valeur)
-    file.taille += 1
+    tableau_ajoute(*file.données, valeur);
+    file.taille += 1;
 }
 
 défile :: fonc (file: &File(T = $T)) -> T
 {
-    élément := file.données[0]
-    tableau_supprime_indice(*file.données, 0)
-    file.taille -= 1
-    retourne élément
+    élément := file.données[0];
+    tableau_supprime_indice(*file.données, 0);
+    file.taille -= 1;
+    retourne élément;
 }
 
 est_vide :: fonc (file: &File(T = $T)) -> bool #enligne
 {
-    retourne file.taille == 0
+    retourne file.taille == 0;
 }
 
 nombre_éléments :: fonc (file: &File(T = $T)) -> z32 #enligne
 {
-    retourne file.taille
+    retourne file.taille;
 }
 
 /*

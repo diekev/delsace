@@ -3,13 +3,13 @@
  */
 
 Union :: union {
-    A: r32
-    B
+    A: r32;
+    B;
 }
 
 principale :: fonc ()
 {
-    u: Union
+    u: Union;
 
     discr u {
         A(x) {

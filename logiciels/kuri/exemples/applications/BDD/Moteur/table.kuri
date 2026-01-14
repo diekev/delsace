@@ -1,196 +1,196 @@
-importe Tabulation
+importe Tabulation;
 
 // --------------------------------------------------------
 
 // À FAIRE
-TAILLE_MAX_NOM := 32
-TAILLE_MAX_COURRIEL := 255
+TAILLE_MAX_NOM := 32;
+TAILLE_MAX_COURRIEL := 255;
 
 // À FAIRE : la représentation d'une ligne est compacte en mémoire
 TAILLE_ID := 4 // taille_de Ligne.id
 TAILLE_NOM := 33 // taille_de Lige.nom + 1
 TAILLE_COURRIEL := 256 // taille_de Ligne.courriel + 1
-DÉCALAGE_ID := 0
-DÉCALAGE_NOM := 4
-DÉCALAGE_COURRIEL := 37
-TAILLE_LIGNE := 293
+DÉCALAGE_ID := 0;
+DÉCALAGE_NOM := 4;
+DÉCALAGE_COURRIEL := 37;
+TAILLE_LIGNE := 293;
 
 LIGNES_PAR_PAGES := 14 // TAILLE_PAGE / TAILLE_LIGNE
 LIGNES_MAX_TABLE := 1400 // LIGNES_PAR_PAGES * TABLE_MAX_PAGES
 
 TypeColonne :: énum z32 {
-    ENTIER
-    CHAINE
+    ENTIER;
+    CHAINE;
 }
 
 Colonne :: struct {
-    nom: chaine
+    nom: chaine;
 
-    genre: TypeColonne
+    genre: TypeColonne;
 
     // décalage en octet dans la ligne
-    décalage: z32
+    décalage: z32;
 
     // taille en octet
-    taille: z32
+    taille: z32;
 }
 
 CelluleMémoire :: union {
-    entier: z32
-    chn: chaine
+    entier: z32;
+    chn: chaine;
 }
 
 comme_entier :: fonc (m: CelluleMémoire) -> z32
 {
-    retourne m.entier
+    retourne m.entier;
 }
 
 comme_chaine :: fonc (m: CelluleMémoire) -> chaine
 {
-    retourne m.chn
+    retourne m.chn;
 }
 
 Table :: struct {
     // description de la table, figée lors de la création de celle-ci
-    desc_colonnes: [..]Colonne
-    taille_octet_ligne : z32 = 0
-    lignes_par_page : z32 = 0
-    nombre_lignes_maximum : z32 = 0
+    desc_colonnes: [..]Colonne;
+    taille_octet_ligne : z32 = 0;
+    lignes_par_page : z32 = 0;
+    nombre_lignes_maximum : z32 = 0;
 
     // pour le curseur
-    nombre_de_lignes := 0
+    nombre_de_lignes := 0;
 
     // stockage en mémoire ou sur disque des données
-    paginatrice : *Paginatrice = nul
+    paginatrice : *Paginatrice = nul;
 }
 
 détruit_table :: fonc (table: *Table) -> rien
 {
-    déloge(table.desc_colonnes)
-    déloge(table.paginatrice)
-    déloge(table)
+    déloge(table.desc_colonnes);
+    déloge(table.paginatrice);
+    déloge(table);
 }
 
 imprime_table :: fonc (table: *Table) -> rien
 {
-    curseur := curseur_début_de_table(table)
-    diffère déloge(curseur)
+    curseur := curseur_début_de_table(table);
+    diffère déloge(curseur);
 
-    ligne_titre: LigneTabuleuse
+    ligne_titre: LigneTabuleuse;
 
     pour colonne dans table.desc_colonnes {
-        tableau_ajoute(*ligne_titre.colonnes, Cellule(colonne.nom))
+        tableau_ajoute(*ligne_titre.colonnes, Cellule(colonne.nom));
     }
 
-    tabuleuse := crée_tabuleuse(ligne_titre)
-    diffère détruit_tabuleuse(*tabuleuse)
+    tabuleuse := crée_tabuleuse(ligne_titre);
+    diffère détruit_tabuleuse(*tabuleuse);
 
     tantque !curseur.est_fin_de_table {
-        ligne_tabuleuse: LigneTabuleuse
+        ligne_tabuleuse: LigneTabuleuse;
 
-        ligne := valeur_curseur(curseur)
+        ligne := valeur_curseur(curseur);
 
-        décalage := 0
+        décalage := 0;
 
         pour colonne dans table.desc_colonnes {
             discr colonne.genre {
                 CHAINE {
-                    chn := désérialise_chaine(ligne, décalage)
-                    tableau_ajoute(*ligne_tabuleuse.colonnes, Cellule(chn))
+                    chn := désérialise_chaine(ligne, décalage);
+                    tableau_ajoute(*ligne_tabuleuse.colonnes, Cellule(chn));
                 }
                 ENTIER {
-                    entier := désérialise_entier(ligne, décalage)
-                    chn := donne_chaine_pour_eini(*tabuleuse, entier)
-                    tableau_ajoute(*ligne_tabuleuse.colonnes, Cellule(chn))
+                    entier := désérialise_entier(ligne, décalage);
+                    chn := donne_chaine_pour_eini(*tabuleuse, entier);
+                    tableau_ajoute(*ligne_tabuleuse.colonnes, Cellule(chn));
                 }
             }
 
-            décalage += colonne.taille
+            décalage += colonne.taille;
         }
 
-        avance_curseur(curseur)
+        avance_curseur(curseur);
 
-        ajoute_ligne(*tabuleuse, ligne_tabuleuse)
+        ajoute_ligne(*tabuleuse, ligne_tabuleuse);
     }
 
-    imprime_table(*tabuleuse)
+    imprime_table(*tabuleuse);
 }
 
 ouvre_base_de_données :: fonc (fichier: chaine) -> *Table
 {
-    paginatrice := ouvre_paginatrice(fichier)
-    nombre_de_lignes := paginatrice.taille_fichier / TAILLE_LIGNE
+    paginatrice := ouvre_paginatrice(fichier);
+    nombre_de_lignes := paginatrice.taille_fichier / TAILLE_LIGNE;
 
-    table := loge(Table)
-    table.paginatrice = paginatrice
-    table.nombre_de_lignes = nombre_de_lignes comme z32
+    table := loge(Table);
+    table.paginatrice = paginatrice;
+    table.nombre_de_lignes = nombre_de_lignes comme z32;
 
-    retourne table
+    retourne table;
 }
 
 ouvre_base_de_données_mémoire :: fonc (colonnes: [..]Colonne) -> *Table
 {
-    table := loge(Table)
-    table.desc_colonnes = colonnes
+    table := loge(Table);
+    table.desc_colonnes = colonnes;
 
     pour colonne dans colonnes {
-        table.taille_octet_ligne += colonne.taille
+        table.taille_octet_ligne += colonne.taille;
     }
 
-    table.lignes_par_page = TAILLE_PAGE / table.taille_octet_ligne
-    table.nombre_lignes_maximum = TABLE_MAX_PAGES * table.lignes_par_page
+    table.lignes_par_page = TAILLE_PAGE / table.taille_octet_ligne;
+    table.nombre_lignes_maximum = TABLE_MAX_PAGES * table.lignes_par_page;
 
-    paginatrice := ouvre_paginatrice_mémoire()
-    table.paginatrice = paginatrice
+    paginatrice := ouvre_paginatrice_mémoire();
+    table.paginatrice = paginatrice;
 
-    retourne table
+    retourne table;
 }
 
 ferme_base_de_données :: fonc (table: *Table) -> rien
 {
-    paginatrice := table.paginatrice
-    nombre_de_pages_pleines := table.nombre_de_lignes / table.taille_octet_ligne
+    paginatrice := table.paginatrice;
+    nombre_de_pages_pleines := table.nombre_de_lignes / table.taille_octet_ligne;
 
     pour i dans 0 ... nombre_de_pages_pleines - 1 {
         si paginatrice.pages[i].pointeur == nul {
-            continue
+            continue;
         }
 
         si paginatrice.utilise_stockage_disque {
-            flush_paginatrice(paginatrice, i)
+            flush_paginatrice(paginatrice, i);
         }
 
-        déloge(paginatrice.pages[i])
+        déloge(paginatrice.pages[i]);
     }
 
     // Une page partielle peut toujours être à écrire à la fin du fichier
     // Ce ne sera plus nécessaire lorsque nous aurons un arbre-B
-    nombre_de_lignes_additionnelles := table.nombre_de_lignes % table.lignes_par_page
+    nombre_de_lignes_additionnelles := table.nombre_de_lignes % table.lignes_par_page;
 
     si nombre_de_lignes_additionnelles > 0 {
-        indice_page := nombre_de_pages_pleines
+        indice_page := nombre_de_pages_pleines;
 
         si paginatrice.pages[indice_page].pointeur != nul {
             si paginatrice.utilise_stockage_disque {
-                flush_paginatrice(paginatrice, indice_page)
+                flush_paginatrice(paginatrice, indice_page);
             }
 
-            déloge(paginatrice.pages[indice_page])
+            déloge(paginatrice.pages[indice_page]);
         }
     }
 
     si paginatrice.utilise_stockage_disque {
         tente ferme(*paginatrice.fichier) piège _ {
-            panique("Échec lors de la fermeture du fichier")
-            retourne
-        }
+            panique("Échec lors de la fermeture du fichier");
+            retourne;
+        };
     }
 
     pour & page dans paginatrice.pages {
         si page.pointeur != nul {
-            déloge(page)
+            déloge(page);
         }
     }
 
-    détruit_table(table)
+    détruit_table(table);
 }

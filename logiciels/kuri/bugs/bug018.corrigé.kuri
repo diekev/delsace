@@ -3,20 +3,20 @@
  * Catégorie : [validation sémantique, conversion implicite, type tableau]
  */
 
-importe Fondation
-importe Support
+importe Fondation;
+importe Support;
 
 Paginatrice :: struct {
-    pages: [100][..]octet
+    pages: [100][..]octet;
 }
 
 principale :: fonc ()
 {
-    paginatrice: Paginatrice
+    paginatrice: Paginatrice;
 
-    page := paginatrice.pages[0]
+    page := paginatrice.pages[0];
 
-    page = loge_tableau(octet, 4096)
+    page = loge_tableau(octet, 4096);
 
-    paginatrice.pages[0] = page
+    paginatrice.pages[0] = page;
 }

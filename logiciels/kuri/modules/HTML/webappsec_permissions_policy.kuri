@@ -9,17 +9,17 @@ PermissionsPolicy :: struct {
 /* https://w3c.github.io/webappsec-permissions-policy/#algo-create-for-navigable */
 create_a_permissions_policy_for_a_navigable :: fonc (container: *Element @inutilisée, origin: Origin @inutilisée) -> PermissionsPolicy
 {
-    imprime("À FAIRE : [%]\n", #nom_de_cette_fonction)
-    retourne PermissionsPolicy()
+    imprime("À FAIRE : [%]\n", #nom_de_cette_fonction);
+    retourne PermissionsPolicy();
 }
 
 /* https://w3c.github.io/webappsec-permissions-policy/#create-from-response */
 create_a_permissions_policy_for_a_navigable_from_response :: fonc (container: *Element, origin: Origin, response: *Response @inutilisée, report_only := faux @inutilisée) -> PermissionsPolicy
 {
-    imprime("À FAIRE : [%]\n", #nom_de_cette_fonction)
+    imprime("À FAIRE : [%]\n", #nom_de_cette_fonction);
 
     // 1. Let policy be the result of running Create a Permissions Policy for a navigable given container and origin.
-    policy := create_a_permissions_policy_for_a_navigable(container, origin)
+    policy := create_a_permissions_policy_for_a_navigable(container, origin);
 
     // 2. Let d be the result of running Process response policy given response, origin and report-only.
 
@@ -30,5 +30,5 @@ create_a_permissions_policy_for_a_navigable_from_response :: fonc (container: *E
     // 4. Set policy’s declared policy[feature]'s reporting configuration to d’s reporting configuration.
 
     // 5. Return policy.
-    retourne policy
+    retourne policy;
 }

@@ -1,5 +1,5 @@
-importe Algorithmes
-importe Fondation
+importe Algorithmes;
+importe Fondation;
 
 /* Réprésentation d'un nombre « infini », c'est-à-dire un nombre qui n'a pas de limite quant au nombre de
  * de chiffres qu'il peut posséder.
@@ -9,210 +9,210 @@ importe Fondation
  */
 
 NombreInfini :: struct {
-    chiffres: [..]n8
+    chiffres: [..]n8;
 }
 
 factorielle :: fonc (n: NombreInfini) -> NombreInfini
 {
     si n == 0 {
-        retourne crée_nombre_infini(0)
+        retourne crée_nombre_infini(0);
     }
 
-    résultat := crée_nombre_infini(1)
+    résultat := crée_nombre_infini(1);
 
     répète {
-        résultat *= n
-        n -= 1
-    } tantque n != 0
+        résultat *= n;
+        n -= 1;
+    } tantque n != 0;
 
-    retourne résultat
+    retourne résultat;
 }
 
 crée_nombre_infini :: fonc (chn: n64) -> NombreInfini
 {
-    résultat: NombreInfini
-    ajoute_chiffres_depuis_nombre(*résultat.chiffres, chn)
-    retourne résultat
+    résultat: NombreInfini;
+    ajoute_chiffres_depuis_nombre(*résultat.chiffres, chn);
+    retourne résultat;
 }
 
 crée_nombre_infini :: fonc (chn: chaine) -> NombreInfini
 {
-    résultat: NombreInfini
+    résultat: NombreInfini;
 
     pour chn {
-        chiffre := (it - '0') comme n8
-        tableau_ajoute(*résultat.chiffres, chiffre)
+        chiffre := (it - '0') comme n8;
+        tableau_ajoute(*résultat.chiffres, chiffre);
     }
 
-    retourne résultat
+    retourne résultat;
 }
 
 chiffre_pour_index :: fonc (n: NombreInfini, indice: z64) -> n8
 {
     si indice >= n.chiffres.taille || indice < 0 {
-        retourne 0
+        retourne 0;
     }
 
-    retourne n.chiffres[indice]
+    retourne n.chiffres[indice];
 }
 
 nombre_de_chiffres :: fonc (n: NombreInfini) -> z64
 {
-    retourne n.chiffres.taille
+    retourne n.chiffres.taille;
 }
 
 chaine_depuis_nombre_infini :: fonc (n: NombreInfini) -> chaine
 {
-    enchaineuse: Enchaineuse
-    initialise_enchaineuse(*enchaineuse)
+    enchaineuse: Enchaineuse;
+    initialise_enchaineuse(*enchaineuse);
 
     si n.chiffres {
         pour n.chiffres {
-            imprime_dans_enchaineuse(*enchaineuse, "%", it)
+            imprime_dans_enchaineuse(*enchaineuse, "%", it);
         }
     }
     sinon {
-        ajoute_au_tampon(*enchaineuse, "0")
+        ajoute_au_tampon(*enchaineuse, "0");
     }
 
-    retourne chaine_depuis_enchaineuse(*enchaineuse)
+    retourne chaine_depuis_enchaineuse(*enchaineuse);
 }
 
 opérateur + :: (n0: NombreInfini, n1: NombreInfini) -> NombreInfini
 {
-    résultat: NombreInfini
+    résultat: NombreInfini;
 
-    tableau_inverse(n0.chiffres)
-    tableau_inverse(n1.chiffres)
+    tableau_inverse(n0.chiffres);
+    tableau_inverse(n1.chiffres);
 
     diffère {
-        tableau_inverse(n0.chiffres)
-        tableau_inverse(n1.chiffres)
+        tableau_inverse(n0.chiffres);
+        tableau_inverse(n1.chiffres);
     }
 
-    taille := n0.nombre_de_chiffres()
+    taille := n0.nombre_de_chiffres();
     si n1.nombre_de_chiffres() > taille {
-        taille = n1.nombre_de_chiffres()
+        taille = n1.nombre_de_chiffres();
     }
 
-    retenue: n8
+    retenue: n8;
 
     pour taille {
-        c0 := n0.chiffre_pour_index(indice_it)
-        c1 := n1.chiffre_pour_index(indice_it)
+        c0 := n0.chiffre_pour_index(indice_it);
+        c1 := n1.chiffre_pour_index(indice_it);
 
-        tmp := c0 + c1 + retenue
+        tmp := c0 + c1 + retenue;
 
         si tmp > 10 {
-            retenue = tmp / 10
-            tmp %= 10
+            retenue = tmp / 10;
+            tmp %= 10;
         }
         sinon {
-            retenue = 0
+            retenue = 0;
         }
 
-        tableau_ajoute(*résultat.chiffres, tmp)
+        tableau_ajoute(*résultat.chiffres, tmp);
     }
 
     si retenue != 0 {
-        tableau_ajoute(*résultat.chiffres, retenue)
+        tableau_ajoute(*résultat.chiffres, retenue);
     }
 
-    tableau_inverse(résultat.chiffres)
+    tableau_inverse(résultat.chiffres);
 
-    retourne résultat
+    retourne résultat;
 }
 
 opérateur + :: (n0: NombreInfini, n1: n64) -> NombreInfini
 {
-    résultat: NombreInfini
+    résultat: NombreInfini;
 
     si n0.nombre_de_chiffres() == 0 {
-        ajoute_chiffres_depuis_nombre(*résultat.chiffres, n1)
-        retourne résultat
+        ajoute_chiffres_depuis_nombre(*résultat.chiffres, n1);
+        retourne résultat;
     }
 
-    résultat.chiffres = tableau_copie(n0.chiffres)
+    résultat.chiffres = tableau_copie(n0.chiffres);
 
-    tableau_inverse(résultat.chiffres)
+    tableau_inverse(résultat.chiffres);
 
-    retenue := n1
-    indice := 0
+    retenue := n1;
+    indice := 0;
 
     répète {
-        tmp := résultat.chiffres[indice] + retenue
+        tmp := résultat.chiffres[indice] + retenue;
 
         si tmp >= 10 {
-            retenue = tmp / 10
-            tmp %= 10
+            retenue = tmp / 10;
+            tmp %= 10;
         }
         sinon {
-            retenue = 0
+            retenue = 0;
         }
 
-        résultat.chiffres[indice] = tmp comme n8
-        indice += 1
-    } tantque retenue != 0 && indice < résultat.nombre_de_chiffres()
+        résultat.chiffres[indice] = tmp comme n8;
+        indice += 1;
+    } tantque retenue != 0 && indice < résultat.nombre_de_chiffres();
 
     si retenue != 0 {
-        ajoute_chiffres_depuis_nombre(*résultat.chiffres, retenue)
+        ajoute_chiffres_depuis_nombre(*résultat.chiffres, retenue);
     }
 
-    tableau_inverse(résultat.chiffres)
+    tableau_inverse(résultat.chiffres);
 
-    retourne résultat
+    retourne résultat;
 }
 
 opérateur - :: (n0: NombreInfini, n1: NombreInfini) -> NombreInfini
 {
-    résultat: NombreInfini
+    résultat: NombreInfini;
 
-    taille := n0.nombre_de_chiffres()
+    taille := n0.nombre_de_chiffres();
     si n1.nombre_de_chiffres() > taille {
         // nombres négatifs non supportés
-        retourne résultat
+        retourne résultat;
     }
 
-    tableau_inverse(n0.chiffres)
-    tableau_inverse(n1.chiffres)
+    tableau_inverse(n0.chiffres);
+    tableau_inverse(n1.chiffres);
 
     diffère {
-        tableau_inverse(n0.chiffres)
-        tableau_inverse(n1.chiffres)
+        tableau_inverse(n0.chiffres);
+        tableau_inverse(n1.chiffres);
     }
 
-    emprunt: n8
+    emprunt: n8;
 
     pour taille {
-        c0 := n0.chiffre_pour_index(indice_it)
-        c1 := n1.chiffre_pour_index(indice_it)
+        c0 := n0.chiffre_pour_index(indice_it);
+        c1 := n1.chiffre_pour_index(indice_it);
 
-        tmp := 10 + c0 - c1 - emprunt
+        tmp := 10 + c0 - c1 - emprunt;
 
         si tmp < 10 {
-            emprunt = 1
+            emprunt = 1;
 
             si indice_it == 0 {
                 // nous avons une opération de type : 1 - 2, puisque nous ne supportons
                 // pas les nombre négatifs, met l'emprunt à zéro, et n'ajoute pas de chiffres
                 // au résultat afin de pouvoir de renvoier un résultat de 0
-                emprunt = 0
-                continue
+                emprunt = 0;
+                continue;
             }
         }
         sinon {
-            emprunt = 0
-            tmp -= 10
+            emprunt = 0;
+            tmp -= 10;
         }
 
-        tableau_ajoute(*résultat.chiffres, tmp)
+        tableau_ajoute(*résultat.chiffres, tmp);
     }
 
-    supprime_zéro_en_début(*résultat)
+    supprime_zéro_en_début(*résultat);
 
-    tableau_inverse(résultat.chiffres)
+    tableau_inverse(résultat.chiffres);
 
-    retourne résultat
+    retourne résultat;
 }
 
 opérateur - :: (n0: NombreInfini, n1: n64) -> NombreInfini
@@ -220,101 +220,101 @@ opérateur - :: (n0: NombreInfini, n1: n64) -> NombreInfini
     //  À FAIRE : nombre inférieur à 0
 
     si n1 >= 10 {
-        imprime("les soustractions > 10 ne sont pas définies pour les NombreInfini\n")
-        retourne n0
+        imprime("les soustractions > 10 ne sont pas définies pour les NombreInfini\n");
+        retourne n0;
     }
 
-    résultat: NombreInfini
+    résultat: NombreInfini;
 
     si n0.nombre_de_chiffres() == 0 {
-        retourne résultat
+        retourne résultat;
     }
 
-    résultat.chiffres = tableau_copie(n0.chiffres)
+    résultat.chiffres = tableau_copie(n0.chiffres);
 
-    tableau_inverse(résultat.chiffres)
+    tableau_inverse(résultat.chiffres);
 
-    emprunt := n1 comme n8
-    indice := 0
+    emprunt := n1 comme n8;
+    indice := 0;
 
     répète {
-        tmp := 10 + résultat.chiffres[indice] - emprunt
+        tmp := 10 + résultat.chiffres[indice] - emprunt;
 
         si tmp < 10 {
-            emprunt = 1
+            emprunt = 1;
         }
         sinon {
-            emprunt = 0
-            tmp -= 10
+            emprunt = 0;
+            tmp -= 10;
         }
 
-        résultat.chiffres[indice] = tmp
-        indice += 1
-    } tantque emprunt == 1 && indice < résultat.nombre_de_chiffres()
+        résultat.chiffres[indice] = tmp;
+        indice += 1;
+    } tantque emprunt == 1 && indice < résultat.nombre_de_chiffres();
 
-    supprime_zéro_en_début(*résultat)
+    supprime_zéro_en_début(*résultat);
 
-    tableau_inverse(résultat.chiffres)
+    tableau_inverse(résultat.chiffres);
 
-    retourne résultat
+    retourne résultat;
 }
 
 supprime_zéro_en_début :: fonc (n: *NombreInfini)
 {
     tantque n.chiffres.taille > 1 && n.chiffres[n.chiffres.taille - 1] == 0 {
-        n.chiffres.taille -= 1
+        n.chiffres.taille -= 1;
     }
 }
 
 opérateur * :: (n0: NombreInfini, n1: NombreInfini) -> NombreInfini
 {
-    résultat: NombreInfini
+    résultat: NombreInfini;
 
     pour n1.chiffres {
-        tmp := n0 * it
+        tmp := n0 * it;
 
         si indice_it > 0 {
-            tableau_ajoute(*résultat.chiffres, 0)
+            tableau_ajoute(*résultat.chiffres, 0);
         }
 
-        résultat += tmp
+        résultat += tmp;
     }
 
-    retourne résultat
+    retourne résultat;
 }
 
 opérateur * :: (n0: NombreInfini, n2: n64) -> NombreInfini
 {
-    résultat: NombreInfini
-    résultat.chiffres = tableau_copie(n0.chiffres)
+    résultat: NombreInfini;
+    résultat.chiffres = tableau_copie(n0.chiffres);
 
-    tableau_inverse(résultat.chiffres)
+    tableau_inverse(résultat.chiffres);
 
-    retenue: n64
-    indice := 0
+    retenue: n64;
+    indice := 0;
 
     répète {
-        tmp := résultat.chiffres[indice] * n2 + retenue
+        tmp := résultat.chiffres[indice] * n2 + retenue;
 
         si tmp >= 10 {
-            retenue = tmp / 10
-            tmp %= 10
+            retenue = tmp / 10;
+            tmp %= 10;
         }
         sinon {
-            retenue = 0
+            retenue = 0;
         }
 
-        résultat.chiffres[indice] = tmp comme n8
-        indice += 1
-    } tantque indice < résultat.nombre_de_chiffres()
+        résultat.chiffres[indice] = tmp comme n8;
+        indice += 1;
+    } tantque indice < résultat.nombre_de_chiffres();
 
     si retenue != 0 {
-        ajoute_chiffres_depuis_nombre(*résultat.chiffres, retenue)
+        ajoute_chiffres_depuis_nombre(*résultat.chiffres, retenue);
     }
 
-    tableau_inverse(résultat.chiffres)
+    tableau_inverse(résultat.chiffres);
 
-    retourne résultat
+    retourne résultat;
 }
 
 opérateur / :: (n0: NombreInfini, n1: NombreInfini) -> NombreInfini
@@ -324,78 +324,78 @@ opérateur / :: (n0: NombreInfini, n1: NombreInfini) -> NombreInfini
 opérateur == :: (n0: NombreInfini, n1: n64) -> bool
 {
     si n1 >= 10 {
-        retourne faux
+        retourne faux;
     }
 
     si n0.chiffres[n0.chiffres.taille - 1] != n1 {
-        retourne faux
+        retourne faux;
     }
 
     pour n0.chiffres {
         si it != n1 {
-            retourne faux
+            retourne faux;
         }
     }
 
-    retourne vrai
+    retourne vrai;
 }
 
 // À FAIRE: p et c doivent être des NombreInfini
 trouve_y :: fonc (p: n32, c: n32) -> (n32, n32)
 {
-    dernier_x : n32 = 0
-    x := dernier_x
+    dernier_x : n32 = 0;
+    x := dernier_x;
 
     tantque x <= 9 && (20 * p + x) * x <= c {
-        dernier_x = x
-        x += 1
+        dernier_x = x;
+        x += 1;
     }
 
-    retourne dernier_x, (20 * p + dernier_x) * dernier_x
+    retourne dernier_x, (20 * p + dernier_x) * dernier_x;
 }
 
 // https://fr.wikipedia.org/wiki/Extraction_de_racine_carr%C3%A9e
 racine_carrée :: fonc (nombre: NombreInfini) -> NombreInfini
 {
-    nombre := crée_nombre_infini("100")
-    position_virgule := nombre.nombre_de_chiffres()
+    nombre := crée_nombre_infini("100");
+    position_virgule := nombre.nombre_de_chiffres();
 
-    index_premier_chiffre := 0
+    index_premier_chiffre := 0;
     si position_virgule % 2 != 0 {
-        index_premier_chiffre = -1
+        index_premier_chiffre = -1;
     }
 
-    racine: NombreInfini
+    racine: NombreInfini;
 
-    reste : n32 = 0
-    p: n32
+    reste : n32 = 0;
+    p: n32;
 
-    position_virgule_résultat : z64 = 0
-    virgule_trouvée := faux
+    position_virgule_résultat : z64 = 0;
+    virgule_trouvée := faux;
 
     // À FAIRE : détecte récursion, nombre maximal de chiffres
     tantque reste != 0 || index_premier_chiffre < nombre.nombre_de_chiffres() {
-        n0 := nombre.chiffre_pour_index(index_premier_chiffre)
-        n1 := nombre.chiffre_pour_index(index_premier_chiffre + 1)
+        n0 := nombre.chiffre_pour_index(index_premier_chiffre);
+        n1 := nombre.chiffre_pour_index(index_premier_chiffre + 1);
 
-        paire_courante := n0 * 10 + n1
+        paire_courante := n0 * 10 + n1;
 
-        valeur_courante := reste * 100 + paire_courante
+        valeur_courante := reste * 100 + paire_courante;
 
-        x, y := trouve_y(p, valeur_courante)
+        x, y := trouve_y(p, valeur_courante);
 
-        p *= 10
-        p += x
+        p *= 10;
+        p += x;
 
-        reste = valeur_courante - y
+        reste = valeur_courante - y;
 
-        tableau_ajoute(*racine.chiffres, x comme n8)
+        tableau_ajoute(*racine.chiffres, x comme n8);
 
-        index_premier_chiffre += 2
+        index_premier_chiffre += 2;
 
         si !virgule_trouvée && index_premier_chiffre >= position_virgule {
-            position_virgule_résultat = racine.nombre_de_chiffres()
-            virgule_trouvée = vrai
+            position_virgule_résultat = racine.nombre_de_chiffres();
+            virgule_trouvée = vrai;
         }
     }
 }
@@ -403,36 +403,36 @@ racine_carrée :: fonc (nombre: NombreInfini) -> NombreInfini
 // https://en.wikipedia.org/wiki/Long_division#Algorithm_for_arbitrary_base
 divise :: fonc (n: NombreInfini, m: NombreInfini) -> NombreInfini
 {
-    l := m.nombre_de_chiffres()
-    k := n.nombre_de_chiffres()
+    l := m.nombre_de_chiffres();
+    k := n.nombre_de_chiffres();
 
-    q: NombreInfini
-    r: NombreInfini
+    q: NombreInfini;
+    r: NombreInfini;
 
     si k < l {
-        q = crée_nombre_infini("0")
-        r = n
+        q = crée_nombre_infini("0");
+        r = n;
     }
     sinon {
-        q = crée_nombre_infini("0")
+        q = crée_nombre_infini("0");
 
         pour l - 1 {
-            tableau_ajoute(*r.chiffres, n.chiffres[it])
+            tableau_ajoute(*r.chiffres, n.chiffres[it]);
         }
 
         pour i dans 0 ... k - l {
             // di = br_(i-1)
 
-            di := 10 * r + n.chiffre_pour_index(i + l - 1)
-            ri := di - m * q.chiffre_pour_index(i)
-            qi := 10 * q + q.chiffre_pour_index(i)
+            di := 10 * r + n.chiffre_pour_index(i + l - 1);
+            ri := di - m * q.chiffre_pour_index(i);
+            qi := 10 * q + q.chiffre_pour_index(i);
 
-            ri = r
-            qi = q
+            ri = r;
+            qi = q;
         }
     }
 
-    retourne q
+    retourne q;
 }
 
 /* ------------------------------------------------------------------------- */
@@ -442,15 +442,15 @@ divise :: fonc (n: NombreInfini, m: NombreInfini) -> NombreInfini
 ajoute_chiffres_depuis_nombre :: fonc (chiffres: *[..]n8, n: n64)
 {
     si n < 10 {
-        tableau_ajoute(chiffres, n comme n8)
-        retourne
+        tableau_ajoute(chiffres, n comme n8);
+        retourne;
     }
 
-    n = inverse_chiffres(n)
+    n = inverse_chiffres(n);
 
     tantque n != 0 {
-        tableau_ajoute(chiffres, (n % 10) comme n8)
-        n /= 10
+        tableau_ajoute(chiffres, (n % 10) comme n8);
+        n /= 10;
     }
 }
 

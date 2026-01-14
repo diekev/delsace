@@ -3,49 +3,49 @@
     que certains caractères.
  */
 
-importe Fondation
+importe Fondation;
 
 Alphabet :: struct {
-    caractères: [..]z8
+    caractères: [..]z8;
 }
 
 détruit_alphabet :: fonc (alphabet: &Alphabet)
 {
-    déloge(alphabet.caractères)
+    déloge(alphabet.caractères);
 }
 
 taille_alphabet :: fonc (alphabet: Alphabet) -> z64
 {
-    retourne alphabet.caractères.taille
+    retourne alphabet.caractères.taille;
 }
 
 ajoute_caractère :: fonc (alphabet: &Alphabet, caractère: z8)
 {
-    tableau_ajoute(*alphabet.caractères, caractère)
+    tableau_ajoute(*alphabet.caractères, caractère);
 }
 
 ajoute_caractères :: fonc (alphabet: &Alphabet, caractères: chaine)
 {
     pour caractères {
-        ajoute_caractère(alphabet, it)
+        ajoute_caractère(alphabet, it);
     }
 }
 
 caractère_pour_index :: fonc (alphabet: &Alphabet, indice: z64) -> z8
 {
-    retourne alphabet.caractères[indice]
+    retourne alphabet.caractères[indice];
 }
 
 crée_alphabet_ascii_courriel :: fonc () -> Alphabet
 {
-    alphabet: Alphabet
-    alphabet.ajoute_caractères("abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789!#$%&'*+/=?^_`{|}~-.")
-    retourne alphabet
+    alphabet: Alphabet;
+    alphabet.ajoute_caractères("abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789!#$%&'*+/=?^_`{|}~-.");
+    retourne alphabet;
 }
 
 crée_alphabet_ascii_pour_nom :: fonc () -> Alphabet
 {
-    alphabet: Alphabet
-    alphabet.ajoute_caractères("abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ")
-    retourne alphabet
+    alphabet: Alphabet;
+    alphabet.ajoute_caractères("abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ");
+    retourne alphabet;
 }

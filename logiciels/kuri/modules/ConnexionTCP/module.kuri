@@ -8,122 +8,122 @@
 
  */
 
-importe Fondation
-importe GlibC
-importe Internet
-importe OpenSSL
-importe POSIX
-importe SysFichier
-importe Temps
+importe Fondation;
+importe GlibC;
+importe Internet;
+importe OpenSSL;
+importe POSIX;
+importe SysFichier;
+importe Temps;
 
-charge "contexte"
-charge "contexte_ssl"
-charge "données_boucle_ssl"
-charge "prise"
-charge "prise_ssl"
+charge "contexte";
+charge "contexte_ssl";
+charge "données_boucle_ssl";
+charge "prise";
+charge "prise_ssl";
 
 // --------------------------------------------------
 
 /* 512ko de tampon partagé pour recevoir les données */
-TAILLE_TAMPON_RÉCEPTION_DONNÉES :: 524288
+TAILLE_TAMPON_RÉCEPTION_DONNÉES :: 524288;
 /* 32 octets de marge pour en début et fin du tampon de réception. */
-MARGE_TAMPON_RÉCEPTION :: 32
+MARGE_TAMPON_RÉCEPTION :: 32;
 /* Une granularité de délai d'attente de 4 secondes implique qu'un délai sur une prise peut-être plus long ou plus court de 4 secondes. */
-GRANULARITÉ_DÉLAI_ATTENTE :: 4
+GRANULARITÉ_DÉLAI_ATTENTE :: 4;
 /* Alignement garanti des données utilisateurs (À FAIRE) */
-ALIGNEMENT_DONNÉES_UTILISATEUR :: 16
+ALIGNEMENT_DONNÉES_UTILISATEUR :: 16;
 
 // --------------------------------------------------
 
 ajoute_prise :: fonc (boucle_prises: *Boucle, prise: *Prise, évènements: EPOLL_EVENTS) -> bool
 {
     // imprime("ajoute une prise.\n")
-    ev: epoll_event
-    ev.events = évènements | EPOLL_EVENTS.EPOLLET
-    ev.data.ptr = prise
+    ev: epoll_event;
+    ev.events = évènements | EPOLL_EVENTS.EPOLLET;
+    ev.data.ptr = prise;
 
     si epoll_ctl(boucle_prises.fd, EPOLL_CTL_OP.ADD, prise.fichier.desc comme z32, *ev) == -1 {
         // imprime("[epoll_ctl] impossible de créer un control pour la prise !\n")
-        retourne faux
+        retourne faux;
     }
 
-    boucle_prises.nombre_de_prises_lancées += 1
+    boucle_prises.nombre_de_prises_lancées += 1;
 
-    retourne vrai
+    retourne vrai;
 }
 
 change_évènement :: fonc (prise: *Prise, boucle_prises: *Boucle, évènement: EPOLL_EVENTS)
 {
     // imprime("change_évènement.\n")
-    ev: epoll_event
-    ev.events = évènement | EPOLL_EVENTS.EPOLLET
-    ev.data.ptr = prise
+    ev: epoll_event;
+    ev.events = évènement | EPOLL_EVENTS.EPOLLET;
+    ev.data.ptr = prise;
 
     si epoll_ctl(boucle_prises.fd, EPOLL_CTL_OP.MOD, prise.fichier.desc comme z32, *ev) == -1 {
         // imprime("[epoll_ctl] impossible de changer un control pour la prise !\n")
-        retourne
+        retourne;
     }
 }
 
 enlève_prise :: fonc (boucle_prises: *Boucle, prise: *Prise)
 {
-    boucle_prises.nombre_de_prises_lancées -= 1
+    boucle_prises.nombre_de_prises_lancées -= 1;
 
     // imprime("enlève_prise.\n")
-    ev: epoll_event
+    ev: epoll_event;
     si epoll_ctl(boucle_prises.fd, EPOLL_CTL_OP.DEL, prise.fichier.desc comme z32, *ev) == -1 {
         // imprime("[epoll_ctl] impossible de changer un control pour la prise !\n")
-        retourne
+        retourne;
     }
 }
 
 Boucle :: struct {
-    MAX_EVENTS :: 1024
+    MAX_EVENTS :: 1024;
     // À FAIRE : crash dans init_de() si la valeur est initialisée
-    évènements: [MAX_EVENTS]epoll_event = ---
-    fd: z32
+    évènements: [MAX_EVENTS]epoll_event = ---;
+    fd: z32;
 
-    prises_fermées: *Prise
+    prises_fermées: *Prise;
 
-    nombre_de_prises_lancées := 0
+    nombre_de_prises_lancées := 0;
 
-    données_ssl: *DonnéesSSLBoucle
+    données_ssl: *DonnéesSSLBoucle;
 
-    stop: bool
+    stop: bool;
 }
 
 crée_boucle :: fonc () -> *Boucle
 {
-    fd := epoll_create1(0)
+    fd := epoll_create1(0);
 
     si fd == -1 {
         //imprime("[epoll_create1] impossible de créer l'epoll !\n")
-        retourne nul
+        retourne nul;
     }
 
-    boucle_prises := loge(Boucle)
-    boucle_prises.fd = fd
+    boucle_prises := loge(Boucle);
+    boucle_prises.fd = fd;
 
     // imprime("boucle créée !\n")
 
     // À FAIRE: us_internal_loop_data_init, timer
 
-    retourne boucle_prises
+    retourne boucle_prises;
 }
 
 détruit_boucle :: fonc (boucle_évènements: *Boucle)
 {
-    prise := boucle_évènements.prises_fermées
+    prise := boucle_évènements.prises_fermées;
     tantque prise != nul {
-        suivante := prise.suivante
-        détruit_prise(prise)
-        prise = suivante
+        suivante := prise.suivante;
+        détruit_prise(prise);
+        prise = suivante;
     }
 
-    détruit_données_ssl_boucle(boucle_évènements)
+    détruit_données_ssl_boucle(boucle_évènements);
 
-    _ := close(boucle_évènements.fd)
-    déloge(boucle_évènements)
+    _ := close(boucle_évènements.fd);
+    déloge(boucle_évènements);
 }
 
 lance :: fonc (boucle_prises: *Boucle)
@@ -137,35 +137,35 @@ lance :: fonc (boucle_prises: *Boucle)
         //us_internal_loop_pre(loop);
 
         // imprime("attente sur un évènement !\n")
-        nfds := epoll_wait(boucle_prises.fd, *boucle_prises.évènements[0], Boucle.MAX_EVENTS, -1)
+        nfds := epoll_wait(boucle_prises.fd, *boucle_prises.évènements[0], Boucle.MAX_EVENTS, -1);
 
         si nfds == -1 {
             // imprime("[epoll_wait] erreur !\n")
             // perror("epoll_wait");
             // exit(EXIT_FAILURE);
-            retourne
+            retourne;
         }
 
-        évènements_prêts: [..]epoll_event
-        évènements_prêts.pointeur = *boucle_prises.évènements[0]
-        évènements_prêts.taille = nfds
+        évènements_prêts: [..]epoll_event;
+        évènements_prêts.pointeur = *boucle_prises.évènements[0];
+        évènements_prêts.taille = nfds;
 
         pour évènements_prêts {
-            prise := it.data.ptr comme *Prise
+            prise := it.data.ptr comme *Prise;
 
             si !prise {
-                continue
+                continue;
             }
 
             // À FAIRE: traduit vers nos types
-            évènements := it.events
-            erreurs := (it.events & (EPOLL_EVENTS.EPOLLERR | EPOLL_EVENTS.EPOLLHUP))
+            évènements := it.events;
+            erreurs := (it.events & (EPOLL_EVENTS.EPOLLERR | EPOLL_EVENTS.EPOLLHUP));
 
             // events &= us_poll_events(poll);
 
             // À FAIRE(langage) : conditions pour les énumérations
             si évènements != EPOLL_EVENTS.zéro || erreurs != EPOLL_EVENTS.zéro {
-                dispatch_évènement(prise, évènements, erreurs)
+                dispatch_évènement(prise, évènements, erreurs);
             }
         }
 
@@ -181,37 +181,37 @@ dispatch_évènement :: fonc (prise: *Prise, évènements: EPOLL_EVENTS, erreurs
 
     discr prise.type {
         RAPPEL {
-            ptr_rappel := prise.données_utilisateur(fonc (ctx: *Contexte))
-            rappel := mémoire(ptr_rappel)
-            rappel(prise.contexte_)
+            ptr_rappel := prise.données_utilisateur(fonc (ctx: *Contexte));
+            rappel := mémoire(ptr_rappel);
+            rappel(prise.contexte_);
 
             /* Il faut lire le fichier pour dire au système que nous avons pris en compte l'évènement. */
-            vide_données_lecture(prise)
+            vide_données_lecture(prise);
         }
         SEMI_PRISE {
             si évènements.EPOLLOUT {
                 si erreurs != EPOLL_EVENTS.zéro {
-                    prise.contexte_.quand_erreur_connexion_(prise)
-                    prise.ferme_connexion_en_cours()
+                    prise.contexte_.quand_erreur_connexion_(prise);
+                    prise.ferme_connexion_en_cours();
                 }
                 sinon {
                     /* Toutes les prises doivent pouvoir lire. */
-                    change_évènement(prise, prise.contexte_.boucle_prises, EPOLL_EVENTS.EPOLLIN)
+                    change_évènement(prise, prise.contexte_.boucle_prises, EPOLL_EVENTS.EPOLLIN);
 
                     /* Nous n'utilisons jamais de délai pour envoyer les paquets. */
-                    _ := prise_tcp_supprime_délai(prise.fichier.desc comme z32)
+                    _ := prise_tcp_supprime_délai(prise.fichier.desc comme z32);
 
                     /* Nous sommes désormais une prise à proprement parlé. */
-                    prise.type = TypePrise.PRISE
+                    prise.type = TypePrise.PRISE;
 
                     /* Si nous avions un délai, remettons-le à zéro ici. */
-                    prise.mute_délai(0)
+                    prise.mute_délai(0);
 
-                    prise.contexte_.quand_ouverture_(prise, vrai)
+                    prise.contexte_.quand_ouverture_(prise, vrai);
                 }
             }
             sinon {
-                fichier_client := accepte(prise.fichier.desc comme z32)
+                fichier_client := accepte(prise.fichier.desc comme z32);
 
                 si fichier_client == -1 {
                     // À FAIRE: commence chronomètre
@@ -219,63 +219,63 @@ dispatch_évènement :: fonc (prise: *Prise, évènements: EPOLL_EVENTS, erreurs
                 sinon {
                     // À FAIRE: termine chronomètre si aucun
                     répète {
-                        prise_acceptée := crée_prise_interne(prise.contexte_, Fichier(TypePoignéeFichier(fichier_client)), prise.info_utilisateur)
+                        prise_acceptée := crée_prise_interne(prise.contexte_, Fichier(TypePoignéeFichier(fichier_client)), prise.info_utilisateur);
 
                         saufsi ajoute_prise(prise.contexte_.boucle_prises, prise_acceptée, EPOLL_EVENTS.EPOLLIN) {
-                            déloge(prise_acceptée)
+                            déloge(prise_acceptée);
                         }
                         sinon {
-                            prise_acceptée.type = TypePrise.PRISE
+                            prise_acceptée.type = TypePrise.PRISE;
 
                             /* Nous n'utilisons jamais de délai pour envoyer les paquets. */
-                            _ := prise_tcp_supprime_délai(prise_acceptée.fichier.desc comme z32)
+                            _ := prise_tcp_supprime_délai(prise_acceptée.fichier.desc comme z32);
 
                             // us_internal_socket_context_link(listen_socket->s.context, s);
 
-                            prise.contexte_.quand_ouverture_(prise_acceptée, faux)
+                            prise.contexte_.quand_ouverture_(prise_acceptée, faux);
                         }
 
                         si prise.est_fermée() {
-                            arrête
+                            arrête;
                         }
 
-                        fichier_client = accepte(prise.fichier.desc comme z32)
-                    } tantque fichier_client != -1
+                        fichier_client = accepte(prise.fichier.desc comme z32);
+                    } tantque fichier_client != -1;
                 }
             }
         }
         PRISE {
             si erreurs != EPOLL_EVENTS.zéro {
-                prise.ferme()
-                retourne
+                prise.ferme();
+                retourne;
             }
 
             si évènements.EPOLLOUT {
                 // À FAIRE: last write failed
 
-                prise.contexte_.quand_écriture_(prise)
+                prise.contexte_.quand_écriture_(prise);
                 // À FAIRE: fermetures
 
                 // le serveur a demandé la fermeture de la connexion
                 si prise.est_fermée() {
-                    retourne
+                    retourne;
                 }
 
-                change_évènement(prise, prise.contexte_.boucle_prises, EPOLL_EVENTS.EPOLLIN)
+                change_évènement(prise, prise.contexte_.boucle_prises, EPOLL_EVENTS.EPOLLIN);
             }
 
             si évènements.EPOLLIN {
                 // À FAIRE : utilise un tampon stocké dans la boucle
-                données := prise.lis_tout()
-                diffère déloge(données)
+                données := prise.lis_tout();
+                diffère déloge(données);
 
                 si données.taille == 0 {
                     /* À FAIRE : quand le serveur ferme nous pouvons continuer à lire indéfiniememnt. */
-                    prise.ferme()
-                    retourne
+                    prise.ferme();
+                    retourne;
                 }
 
-                prise.contexte_.quand_données_reçues_(prise, données)
+                prise.contexte_.quand_données_reçues_(prise, données);
 
                 //change_évènement(prise, prise.contexte_.boucle_prises, EPOLL_EVENTS.EPOLLOUT)
                 // À FAIRE: fermeture si nous n'arrivons pas à lire
@@ -289,53 +289,53 @@ dispatch_évènement :: fonc (prise: *Prise, évènements: EPOLL_EVENTS, erreurs
  * propremenet initialisés et nous évite de toujours les vérifier avant de les appeler. */
 initialise_rappels_pour_contexte_vide :: fonc (ctx: *Contexte)
 {
-    rappel_vide_quand_ouverture :: fonc (prise: *Prise @inutilisée, est_client: bool @inutilisée)
+    rappel_vide_quand_ouverture :: fonc (prise: *Prise @inutilisée, est_client: bool @inutilisée);
     {
     }
 
-    rappel_vide_quand_données_reçues :: fonc (prise: *Prise @inutilisée, données: []octet @inutilisée)
+    rappel_vide_quand_données_reçues :: fonc (prise: *Prise @inutilisée, données: []octet @inutilisée);
     {
     }
 
-    rappel_vide_quand_écriture :: fonc (prise: *Prise @inutilisée)
+    rappel_vide_quand_écriture :: fonc (prise: *Prise @inutilisée);
     {
     }
 
-    rappel_vide_quand_fermeture :: fonc (prise: *Prise @inutilisée)
+    rappel_vide_quand_fermeture :: fonc (prise: *Prise @inutilisée);
     {
     }
 
-    rappel_vide_quand_timeout :: fonc (prise: *Prise @inutilisée)
+    rappel_vide_quand_timeout :: fonc (prise: *Prise @inutilisée);
     {
     }
 
-    rappel_vide_quand_fin :: fonc (prise: *Prise @inutilisée)
+    rappel_vide_quand_fin :: fonc (prise: *Prise @inutilisée);
     {
     }
 
-    rappel_vide_quand_erreur_connexion :: fonc (prise: *Prise @inutilisée)
+    rappel_vide_quand_erreur_connexion :: fonc (prise: *Prise @inutilisée);
     {
     }
 
-    ctx.mute_quand_ouverture(rappel_vide_quand_ouverture)
-    ctx.mute_quand_données_reçues(rappel_vide_quand_données_reçues)
-    ctx.mute_quand_écriture(rappel_vide_quand_écriture)
-    ctx.mute_quand_fermeture(rappel_vide_quand_fermeture)
-    ctx.mute_quand_timeout(rappel_vide_quand_timeout)
-    ctx.mute_quand_fin(rappel_vide_quand_fin)
-    ctx.mute_quand_erreur_connexion(rappel_vide_quand_erreur_connexion)
+    ctx.mute_quand_ouverture(rappel_vide_quand_ouverture);
+    ctx.mute_quand_données_reçues(rappel_vide_quand_données_reçues);
+    ctx.mute_quand_écriture(rappel_vide_quand_écriture);
+    ctx.mute_quand_fermeture(rappel_vide_quand_fermeture);
+    ctx.mute_quand_timeout(rappel_vide_quand_timeout);
+    ctx.mute_quand_fin(rappel_vide_quand_fin);
+    ctx.mute_quand_erreur_connexion(rappel_vide_quand_erreur_connexion);
 }
 
 // Fonction auxilliaire pour créer un contexte valide, mais dont les rappels ne font rien
 // utile pour les développements.
 crée_contexte_vide :: fonc (boucle_évènements: *Boucle, options: *OptionsCréationContexteSSL, $T: type_de_données) -> *Contexte
 {
-    ctx := crée_contexte(boucle_évènements, options, T)
-    initialise_rappels_pour_contexte_vide(ctx)
-    retourne ctx
+    ctx := crée_contexte(boucle_évènements, options, T);
+    initialise_rappels_pour_contexte_vide(ctx);
+    retourne ctx;
 }
 
 crée_contexte_vide :: fonc (boucle_évènements: *Boucle, $T: type_de_données) -> *Contexte
 {
-    retourne crée_contexte_vide(boucle_évènements, nul, T)
+    retourne crée_contexte_vide(boucle_évènements, nul, T);
 }
