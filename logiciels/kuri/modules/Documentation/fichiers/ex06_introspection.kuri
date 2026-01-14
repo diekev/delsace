@@ -1,29 +1,29 @@
-importe Fondation
+importe Fondation;
 
 imprime_type_args :: fonc (args: ...eini) -> rien
 {
     pour arg dans args {
         discr arg.info.id {
             RÉEL {
-                imprime("Nous avons un nombre réel\n")
+                imprime("Nous avons un nombre réel\n");
             }
             ENTIER {
-                imprime("Nous avons un nombre entier\n")
+                imprime("Nous avons un nombre entier\n");
             }
             STRUCTURE {
-                imprime("Nous avons une structure\n")
+                imprime("Nous avons une structure\n");
             }
             FONCTION {
-                imprime("Nous avons une fonction\n")
+                imprime("Nous avons une fonction\n");
             }
             POINTEUR {
-                imprime("Nous avons un pointeur\n")
+                imprime("Nous avons un pointeur\n");
             }
             CHAINE {
-                imprime("Nous avons une chaine\n")
+                imprime("Nous avons une chaine\n");
             }
             sinon {
-                imprime("Nous avons un autre type\n")
+                imprime("Nous avons un autre type\n");
             }
         }
     }
@@ -33,5 +33,5 @@ principale :: fonc ()
 {
     // Passe différents types, bien que la fonction espère des types 'eini'.
     // Le dernier argument est un pointeur vers la fonction 'exemple'.
-    imprime_type_args(1, 1.3, "chaine", principale)
+    imprime_type_args(1, 1.3, "chaine", principale);
 }

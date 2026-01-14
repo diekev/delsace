@@ -3,53 +3,53 @@
  * Catégorie : [génération code, boucle pour, type entier naturel]
  */
 
-importe Fondation
+importe Fondation;
 
 test_boucle_valeur_simple_croissante :: fonc (itérations: n32) -> z32
 {
-    compteur := 0
+    compteur := 0;
     pour itérations {
-        compteur += 1
+        compteur += 1;
     }
-    retourne compteur
+    retourne compteur;
 }
 
 test_boucle_valeur_simple_décroissante :: fonc (itérations: n32) -> z32
 {
-    compteur := 0
+    compteur := 0;
     pour > itérations {
-        compteur += 1
+        compteur += 1;
     }
-    retourne compteur
+    retourne compteur;
 }
 
 test_boucle_plage_croissante :: fonc (itérations: n32) -> z32
 {
-    compteur := 0
+    compteur := 0;
     pour 0 ... itérations - 1 {
-        compteur += 1
+        compteur += 1;
     }
-    retourne compteur
+    retourne compteur;
 }
 
 test_boucle_plage_décroissante :: fonc (itérations: n32) -> z32
 {
-    compteur := 0
+    compteur := 0;
     pour > 0 ... itérations - 1 {
-        compteur += 1
+        compteur += 1;
     }
-    retourne compteur
+    retourne compteur;
 }
 
 principale :: fonc ()
 {
-    assert(test_boucle_valeur_simple_croissante(10) == 10)
-    assert(test_boucle_valeur_simple_décroissante(10) == 10)
-    assert(test_boucle_plage_croissante(10) == 10)
-    assert(test_boucle_plage_décroissante(10) == 10)
+    assert(test_boucle_valeur_simple_croissante(10) == 10);
+    assert(test_boucle_valeur_simple_décroissante(10) == 10);
+    assert(test_boucle_plage_croissante(10) == 10);
+    assert(test_boucle_plage_décroissante(10) == 10);
 
-    assert(test_boucle_valeur_simple_croissante(0) == 0)
-    assert(test_boucle_valeur_simple_décroissante(0) == 0)
-    assert(test_boucle_plage_croissante(0) == 0)
-    assert(test_boucle_plage_décroissante(0) == 0)
+    assert(test_boucle_valeur_simple_croissante(0) == 0);
+    assert(test_boucle_valeur_simple_décroissante(0) == 0);
+    assert(test_boucle_plage_croissante(0) == 0);
+    assert(test_boucle_plage_décroissante(0) == 0);
 }

@@ -5,11 +5,11 @@
 
 principale :: fonc ()
 {
-    a: *z32
+    a: *z32;
     {
         /* Ceci pourrait être le corps d'une boucle où nous pourrions réutiliser
          * l'adresse pour l'itération suivante. */
-        b: z32
-        a = *b
+        b: z32;
+        a = *b;
     }
 }

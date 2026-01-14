@@ -12,123 +12,123 @@
 
  */
 
-importe Allocatrices
-importe Chaine
-importe Fondation
-importe HTML
-JS :: importe JavaScript
-importe LigneDeCommande
-importe SysFichier
+importe Allocatrices;
+importe Chaine;
+importe Fondation;
+importe HTML;
+JS :: importe JavaScript;
+importe LigneDeCommande;
+importe SysFichier;
 
 StatistiquesParsage :: struct {
     /* Le temps de parsage en microsecondes. */
-    temps: z64
+    temps: z64;
     /* La taille des données en octets. */
-    taille: z64
+    taille: z64;
 }
 
 imprime_stats :: fonc (statistiques: StatistiquesParsage)
 {
-    imprime("Durée du parsage   : %µ\n", FormatEntier(statistiques.temps, séparation = 3))
-    imprime("Taille des données : %o\n", FormatEntier(statistiques.taille, séparation = 3))
-    imprime("Débit              : %o/µ\n", FormatEntier(statistiques.taille / statistiques.temps, séparation = 3))
-    imprime("Pages par secondes : %\n", FormatEntier((1_000_000.0 / statistiques.temps comme r32) comme z32, séparation = 3))
+    imprime("Durée du parsage   : %µ\n", FormatEntier(statistiques.temps, séparation = 3));
+    imprime("Taille des données : %o\n", FormatEntier(statistiques.taille, séparation = 3));
+    imprime("Débit              : %o/µ\n", FormatEntier(statistiques.taille / statistiques.temps, séparation = 3));
+    imprime("Pages par secondes : %\n", FormatEntier((1_000_000.0 / statistiques.temps comme r32) comme z32, séparation = 3));
 }
 
 parse_page_et_accumule_stats :: fonc (chemin: CheminFichier, statistiques: &StatistiquesParsage)
 {
-    _, contenu := contenu_fichier_texte(chemin.chn)
-    diffère déloge(contenu)
+    _, contenu := contenu_fichier_texte(chemin.chn);
+    diffère déloge(contenu);
 
-    mv: JS.MachineVirtuelle
-    JS.initialise_mv(nul, *mv)
-    diffère JS.détruit_données_mv(*mv)
+    mv: JS.MachineVirtuelle;
+    JS.initialise_mv(nul, *mv);
+    diffère JS.détruit_données_mv(*mv);
 
-    parsat := parse_document(JS.donne_tas_de_mémoire(*mv), contenu)
-    diffère détruit(parsat)
+    parsat := parse_document(JS.donne_tas_de_mémoire(*mv), contenu);
+    diffère détruit(parsat);
 
-    statistiques.temps += parsat.temps
-    statistiques.taille += contenu.taille
+    statistiques.temps += parsat.temps;
+    statistiques.taille += contenu.taille;
 
-    diffère détruit(parsat)
+    diffère détruit(parsat);
 }
 
 parse_pages_dossier_et_accumule_stats :: fonc (dossier: CheminFichier, statistiques: &StatistiquesParsage) -> z32
 {
-    exploratrice := crée_exploratrice_fichier(dossier)
-    diffère détruit(exploratrice)
+    exploratrice := crée_exploratrice_fichier(dossier);
+    diffère détruit(exploratrice);
 
-    nombre_de_fichiers := 0
+    nombre_de_fichiers := 0;
 
     boucle {
-        chemin_possible := exploratrice.chemin_suivant()
+        chemin_possible := exploratrice.chemin_suivant();
 
         discr chemin_possible {
             Quelque(chemin) {
                 si est_fichier_html(chemin) {
-                    parse_page_et_accumule_stats(chemin, statistiques)
-                    nombre_de_fichiers += 1
+                    parse_page_et_accumule_stats(chemin, statistiques);
+                    nombre_de_fichiers += 1;
                 }
-                déloge(chemin.chn)
+                déloge(chemin.chn);
             }
             sinon {
-                arrête
+                arrête;
             }
         }
     }
 
-    retourne nombre_de_fichiers
+    retourne nombre_de_fichiers;
 }
 
 mon_logueur :: fonc (c: chaine, message: chaine @inutilisée, mode: ModeLogage @inutilisée, données: *rien @inutilisée)
 {
-    imprime("%\n", c)
+    imprime("%\n", c);
 }
 
 principale :: fonc ()
 {
-    chemin := parse_argument_chemin()
+    chemin := parse_argument_chemin();
     saufsi chemin {
-        exit(1)
+        exit(1);
     }
 
-    diffère imprime("Mémoire utilisée   : %o\n", mémoire_utilisée())
+    diffère imprime("Mémoire utilisée   : %o\n", mémoire_utilisée());
 
-    allocatrice_gardée: AllocatriceGardée
-    diffère imprime_liste_mémoire(*allocatrice_gardée)
+    allocatrice_gardée: AllocatriceGardée;
+    diffère imprime_liste_mémoire(*allocatrice_gardée);
 
     // Il nous faut un logueur pour imprimer la liste de mémoire
-    nouveau_contexte := contexte()
-    nouveau_contexte.logueur = mon_logueur
+    nouveau_contexte := contexte();
+    nouveau_contexte.logueur = mon_logueur;
     // l'allocation gardée a un certain coût...
     //nouveau_contexte.allocatrice = allocation_gardée
     //nouveau_contexte.données_allocatrice = *allocatrice_gardée
 
     pousse_contexte nouveau_contexte {
-        diffère détruit_chaines_internées()
+        diffère détruit_chaines_internées();
 
-        chm := CheminFichier(chemin)
-        statistiques: StatistiquesParsage
+        chm := CheminFichier(chemin);
+        statistiques: StatistiquesParsage;
 
         si est_un_dossier(chm) {
             si parse_pages_dossier_et_accumule_stats(chm, statistiques) == 0 {
-                imprime("Aucun fichier HTML trouvé dans le dossier '%' !\n", chm.chn)
-                exit(1)
+                imprime("Aucun fichier HTML trouvé dans le dossier '%' !\n", chm.chn);
+                exit(1);
             }
         }
         sinon si est_fichier_html(chm) {
-            parse_page_et_accumule_stats(chm, statistiques)
+            parse_page_et_accumule_stats(chm, statistiques);
         }
         sinon {
-            imprime("Le chemin '%' n'a pas l'air de pointer vers un fichier HTML !\n", chemin)
-            exit(1)
+            imprime("Le chemin '%' n'a pas l'air de pointer vers un fichier HTML !\n", chemin);
+            exit(1);
         }
 
-        imprime_stats(statistiques)
+        imprime_stats(statistiques);
     }
 }
 
-importe Compilatrice
+importe Compilatrice;
 
 // Fichier reddit
 // ~60 ms non-optimisé

@@ -23,9 +23,9 @@
 
  */
 
-importe ConnexionTCP
-importe Internet
-importe SysFichier
+importe ConnexionTCP;
+importe Internet;
+importe SysFichier;
 
 /*
 
@@ -39,93 +39,93 @@ importe SysFichier
  * donc nous pouvons lire et écrire des données dans celui-ci via son interface.
  */
 ClienteTCP :: struct {
-    fichier: Fichier
-    adresse: AdresseIPv4
+    fichier: Fichier;
+    adresse: AdresseIPv4;
 }
 
 /* Le protocol IP n'a pas de concept pour un port, seuls les protocols TCP et UDP le conceptualisent. */
 AdresseTCP :: struct {
-    adresse: AdresseIPv4
-    port: n16
+    adresse: AdresseIPv4;
+    port: n16;
 }
 
 ServeuseTCP :: struct {
-    boucle_évènements: *Boucle
-    ctx: *Contexte
-    adresse_ip: AdresseIPv4
-    port: n16
+    boucle_évènements: *Boucle;
+    ctx: *Contexte;
+    adresse_ip: AdresseIPv4;
+    port: n16;
 }
 
 crée_serveuse :: fonc (adresse_ip: AdresseIPv4, port: n16, connexions_max: z32, $T: type_de_données, $TypeDonnéesPrise: type_de_données) -> ServeuseTCP
 {
-    serveuse: ServeuseTCP
+    serveuse: ServeuseTCP;
 
-    boucle_évènements := crée_boucle()
-    ctx := crée_contexte_vide(boucle_évènements, T)
+    boucle_évènements := crée_boucle();
+    ctx := crée_contexte_vide(boucle_évènements, T);
 
-    prise := crée_prise_pour_écoute(ctx, adresse_ip, port, connexions_max, TypeDonnéesPrise)
+    prise := crée_prise_pour_écoute(ctx, adresse_ip, port, connexions_max, TypeDonnéesPrise);
 
     // À FAIRE erreur
     si !prise {
-        détruit_boucle(boucle_évènements)
-        détruit_contexte(ctx)
-        retourne serveuse
+        détruit_boucle(boucle_évènements);
+        détruit_contexte(ctx);
+        retourne serveuse;
     }
 
-    serveuse.boucle_évènements = boucle_évènements
-    serveuse.ctx = ctx
-    serveuse.adresse_ip = adresse_ip
-    serveuse.port = port
-    retourne serveuse
+    serveuse.boucle_évènements = boucle_évènements;
+    serveuse.ctx = ctx;
+    serveuse.adresse_ip = adresse_ip;
+    serveuse.port = port;
+    retourne serveuse;
 }
 
 détruit_serveuse :: fonc (serveuse: *ServeuseTCP)
 {
-    détruit_boucle(serveuse.boucle_évènements)
-    détruit_contexte(serveuse.ctx)
+    détruit_boucle(serveuse.boucle_évènements);
+    détruit_contexte(serveuse.ctx);
 }
 
 données_utilisateur :: fonc (serveuse: *ServeuseTCP, $T: type_de_données) -> *T
 {
-    retourne serveuse.ctx.données_utilisateur(T)
+    retourne serveuse.ctx.données_utilisateur(T);
 }
 
 lance :: fonc (serveuse: *ServeuseTCP)
 {
-    serveuse.boucle_évènements.lance()
+    serveuse.boucle_évènements.lance();
 }
 
 rappel_quand_ouverture :: fonc (serveuse: *ServeuseTCP, rappel: fonc (prise: *Prise, est_client: bool))
 {
-    serveuse.ctx.mute_quand_ouverture(rappel)
+    serveuse.ctx.mute_quand_ouverture(rappel);
 }
 
 rappel_quand_données_reçues :: fonc (serveuse: *ServeuseTCP, rappel: fonc (prise: *Prise, données: []octet))
 {
-    serveuse.ctx.mute_quand_données_reçues(rappel)
+    serveuse.ctx.mute_quand_données_reçues(rappel);
 }
 
 rappel_quand_écriture :: fonc (serveuse: *ServeuseTCP, rappel: fonc (prise: *Prise))
 {
-    serveuse.ctx.mute_quand_écriture(rappel)
+    serveuse.ctx.mute_quand_écriture(rappel);
 }
 
 rappel_quand_fermeture :: fonc (serveuse: *ServeuseTCP, rappel: fonc (prise: *Prise))
 {
-    serveuse.ctx.mute_quand_fermeture(rappel)
+    serveuse.ctx.mute_quand_fermeture(rappel);
 }
 
 rappel_quand_timeout :: fonc (serveuse: *ServeuseTCP, rappel: fonc (prise: *Prise))
 {
-    serveuse.ctx.mute_quand_timeout(rappel)
+    serveuse.ctx.mute_quand_timeout(rappel);
 }
 
 rappel_quand_fin :: fonc (serveuse: *ServeuseTCP, rappel: fonc (prise: *Prise))
 {
-    serveuse.ctx.mute_quand_fin(rappel)
+    serveuse.ctx.mute_quand_fin(rappel);
 }
 
 rappel_quand_erreur_connexion :: fonc (serveuse: *ServeuseTCP, rappel: fonc (prise: *Prise))
 {
-    serveuse.ctx.mute_quand_erreur_connexion(rappel)
+    serveuse.ctx.mute_quand_erreur_connexion(rappel);
 }

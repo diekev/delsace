@@ -12,6 +12,6 @@ prends_tableau :: fonc (t: StructurePoly($N) @inutilisée)
 
 principale :: fonc ()
 {
-    t: StructurePoly(5)
-    prends_tableau(t)
+    t: StructurePoly(5);
+    prends_tableau(t);
 }

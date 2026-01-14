@@ -1,180 +1,180 @@
-importe Fondation
-importe Ordinatrice
-importe PThread
+importe Fondation;
+importe Ordinatrice;
+importe PThread;
 
-charge "interface_exétron"
+charge "interface_exétron";
 
 // ------------------------------------------
 // FilExecution
 
-TypeFilExécution :: pthread_t
+TypeFilExécution :: pthread_t;
 
 crée_fil_exécution :: fonc (rappel: fonc (arg: *rien) -> *rien, données: *rien) -> *TypeFilExécution
 {
-    résultat := loge(TypeFilExécution)
+    résultat := loge(TypeFilExécution);
 
-    ret := pthread_create(résultat, nul, rappel, données)
+    ret := pthread_create(résultat, nul, rappel, données);
     si ret != 0 {
-        déloge(résultat)
-        retourne nul
+        déloge(résultat);
+        retourne nul;
     }
-    retourne résultat
+    retourne résultat;
 }
 
 join :: fonc (fil: *TypeFilExécution) -> bool
 {
-    retourne pthread_join(mémoire(fil), nul) == 0
+    retourne pthread_join(mémoire(fil), nul) == 0;
 }
 
 détache :: fonc (fil: *TypeFilExécution)
 {
-    _ := pthread_detach(fil)
+    _ := pthread_detach(fil);
 }
 
 détruit :: fonc (fil: &*TypeFilExécution)
 {
-    déloge(fil)
-    fil = nul
+    déloge(fil);
+    fil = nul;
 }
 
 /* ------------------------------------------------------------------------- */
 /** \nom File de travail.
  * \{ */
 
-__file_globale: FileDeTravail
-__file_globale_initialisée := faux
-__fils_exécutions: [..]InfoFilExécution
+__file_globale: FileDeTravail;
+__file_globale_initialisée := faux;
+__fils_exécutions: [..]InfoFilExécution;
 
 initialise_file_globale :: fonc ()
 {
-    nombre_de_fils := nombre_threads_disponible() - 1
-    tableau_redimensionne(__fils_exécutions, nombre_de_fils)
+    nombre_de_fils := nombre_threads_disponible() - 1;
+    tableau_redimensionne(__fils_exécutions, nombre_de_fils);
 
-    _ := sem_init(*__file_globale.sémaphore, 0, 0)
+    _ := sem_init(*__file_globale.sémaphore, 0, 0);
 
     pour * __fils_exécutions {
-        it.indice_logique = indice_it comme z32
-        it.file = *__file_globale
+        it.indice_logique = indice_it comme z32;
+        it.file = *__file_globale;
 
-        _ := pthread_create(*it.index_natif, nul, fonction_fil, it)
+        _ := pthread_create(*it.index_natif, nul, fonction_fil, it);
     }
 
-    __file_globale_initialisée = vrai
+    __file_globale_initialisée = vrai;
 }
 
 contexte_ajoute_tâche :: fonc (rappel: fonc(*$T)(rien), données: *T)
 {
     saufsi __file_globale_initialisée {
-        initialise_file_globale()
+        initialise_file_globale();
     }
 
-    ajoute_tâche(*__file_globale, rappel comme fonc (arg: *rien), données)
+    ajoute_tâche(*__file_globale, rappel comme fonc (arg: *rien), données);
 }
 
 contexte_attends_sur_tâches :: fonc ()
 {
-    attends_sur_complétion_tâches(*__file_globale)
+    attends_sur_complétion_tâches(*__file_globale);
 }
 
 DonnéesEntréeFileTravail :: struct {
-    données: *rien
-    fonction_travail: fonc (arg: *rien)
+    données: *rien;
+    fonction_travail: fonc (arg: *rien);
 }
 
 FileDeTravail :: struct {
-    sémaphore: sem_t
-    choses_terminées: n32
-    prochaine_entrée_à_faire: n32
-    nombre_d_entrées: n32
+    sémaphore: sem_t;
+    choses_terminées: n32;
+    prochaine_entrée_à_faire: n32;
+    nombre_d_entrées: n32;
 
-    entrées: [256]DonnéesEntréeFileTravail
+    entrées: [256]DonnéesEntréeFileTravail;
 
-    fils_exécution: [..]InfoFilExécution
+    fils_exécution: [..]InfoFilExécution;
 }
 
 EntréeFileTravail :: struct {
-    données: *rien
-    fonction_travail: fonc (arg: *rien)
-    est_valide: bool
+    données: *rien;
+    fonction_travail: fonc (arg: *rien);
+    est_valide: bool;
 }
 
 ajoute_tâche :: fonc (file: *FileDeTravail, fonction_travail: fonc (arg: *rien), données: *rien)
 {
-    assert(file.nombre_d_entrées < file.entrées.taille comme n32)
+    assert(file.nombre_d_entrées < file.entrées.taille comme n32);
 
-    entrée := *file.entrées[file.nombre_d_entrées]
-    entrée.fonction_travail = fonction_travail
-    entrée.données = données
+    entrée := *file.entrées[file.nombre_d_entrées];
+    entrée.fonction_travail = fonction_travail;
+    entrée.données = données;
 
-    atomique_barrière_fil(OrdreMémoire.ACQUIÈRE)
-    file.nombre_d_entrées += 1
+    atomique_barrière_fil(OrdreMémoire.ACQUIÈRE);
+    file.nombre_d_entrées += 1;
 
-    _ := sem_post(*file.sémaphore)
+    _ := sem_post(*file.sémaphore);
 }
 
 complète_et_donne_prochaine_entrée_file :: fonc (file: *FileDeTravail, complétée: EntréeFileTravail) -> EntréeFileTravail
 {
-    résultat: EntréeFileTravail
+    résultat: EntréeFileTravail;
 
     si complétée.est_valide {
-        _ := atomique_donne_puis_ajt(*file.choses_terminées, 1, OrdreMémoire.ACQUIÈRE)
+        _ := atomique_donne_puis_ajt(*file.choses_terminées, 1, OrdreMémoire.ACQUIÈRE);
     }
 
     si file.prochaine_entrée_à_faire < file.nombre_d_entrées {
-        indice_entrée := atomique_donne_puis_ajt(*file.prochaine_entrée_à_faire, 1, OrdreMémoire.ACQUIÈRE)
+        indice_entrée := atomique_donne_puis_ajt(*file.prochaine_entrée_à_faire, 1, OrdreMémoire.ACQUIÈRE);
 
-        entrée := *file.entrées[indice_entrée]
-        résultat.données = entrée.données
-        résultat.fonction_travail = entrée.fonction_travail
-        résultat.est_valide = vrai
+        entrée := *file.entrées[indice_entrée];
+        résultat.données = entrée.données;
+        résultat.fonction_travail = entrée.fonction_travail;
+        résultat.est_valide = vrai;
 
-        atomique_barrière_fil(OrdreMémoire.RELÂCHE)
+        atomique_barrière_fil(OrdreMémoire.RELÂCHE);
     }
 
-    retourne résultat
+    retourne résultat;
 }
 
 InfoFilExécution :: struct {
-    file: *FileDeTravail
-    indice_logique: z32
-    index_natif: pthread_t
+    file: *FileDeTravail;
+    indice_logique: z32;
+    index_natif: pthread_t;
 }
 
 travail_sur_la_tâche :: fonc (entrée: EntréeFileTravail, indice_logique: z32 @inutilisée)
 {
-    assert(entrée.est_valide)
-    assert(entrée.fonction_travail != nul)
-    entrée.fonction_travail(entrée.données)
+    assert(entrée.est_valide);
+    assert(entrée.fonction_travail != nul);
+    entrée.fonction_travail(entrée.données);
 }
 
 fonction_fil :: fonc (arg: *rien) -> *rien #sanstrace
 {
-    __init_contexte_fil_exécution()
+    __init_contexte_fil_exécution();
 
-    info_fil := arg comme *InfoFilExécution
+    info_fil := arg comme *InfoFilExécution;
 
-    entrée: EntréeFileTravail
+    entrée: EntréeFileTravail;
     boucle {
-        entrée = complète_et_donne_prochaine_entrée_file(info_fil.file, entrée)
+        entrée = complète_et_donne_prochaine_entrée_file(info_fil.file, entrée);
         si entrée.est_valide {
-            travail_sur_la_tâche(entrée, info_fil.indice_logique)
+            travail_sur_la_tâche(entrée, info_fil.indice_logique);
         }
         sinon  {
-            _ := sem_wait(*info_fil.file.sémaphore)
+            _ := sem_wait(*info_fil.file.sémaphore);
         }
     }
 
-    retourne nul
+    retourne nul;
 }
 
 attends_sur_complétion_tâches :: fonc (file: *FileDeTravail)
 {
-    indice_logique := file.fils_exécution.taille comme z32 - 1
-    entrée: EntréeFileTravail
+    indice_logique := file.fils_exécution.taille comme z32 - 1;
+    entrée: EntréeFileTravail;
     tantque file.choses_terminées != file.nombre_d_entrées {
-        entrée = complète_et_donne_prochaine_entrée_file(file, entrée)
+        entrée = complète_et_donne_prochaine_entrée_file(file, entrée);
         si entrée.est_valide {
-            travail_sur_la_tâche(entrée, indice_logique)
+            travail_sur_la_tâche(entrée, indice_logique);
         }
     }
 }
@@ -184,46 +184,46 @@ contexte_boucle_parallèle :: fonc (rappel: fonc(*$T)(rien), tâches: []T)
     #si faux {
         // À FAIRE : rend le système plus flexible
         pour * tâches {
-            contexte_ajoute_tâche(rappel, it)
+            contexte_ajoute_tâche(rappel, it);
         }
 
-        contexte_attends_sur_tâches()
+        contexte_attends_sur_tâches();
     }
     sinon {
-        plage: PlageExecution
-        plage.debut = 0
-        plage.fin = tâches.taille
+        plage: PlageExecution;
+        plage.debut = 0;
+        plage.fin = tâches.taille;
 
         DonnéesTâcheParallele :: struct {
-            empl base: DonneesTacheParallele
-            tâches: []T
-            fonction_utilisateur: fonc (*T)(rien)
+            empl base: DonneesTacheParallele;
+            tâches: []T;
+            fonction_utilisateur: fonc (*T)(rien);
         }
 
-        fonction_pour_boucle :: fonc (données: *DonnéesTâcheParallele, plage: *PlageExecution) #sanstrace
+        fonction_pour_boucle :: fonc (données: *DonnéesTâcheParallele, plage: *PlageExecution) #sanstrace;
         {
             // À FAIRE : ne le fais que pour chaque fil
-            __init_contexte_fil_exécution()
+            __init_contexte_fil_exécution();
 
             pour plage.debut ... plage.fin - 1 {
-                tâche := *données.tâches[it]
-                données.fonction_utilisateur(tâche)
+                tâche := *données.tâches[it];
+                données.fonction_utilisateur(tâche);
             }
         }
 
-        données: DonnéesTâcheParallele
-        données.tâches = tâches
-        données.fonction_utilisateur = rappel
-        données.fonction = fonction_pour_boucle
+        données: DonnéesTâcheParallele;
+        données.tâches = tâches;
+        données.fonction_utilisateur = rappel;
+        données.fonction = fonction_pour_boucle;
 
-        EXETRON_boucle_parallele(*plage, *données, 1)
+        EXETRON_boucle_parallele(*plage, *données, 1);
     }
 }
 
 contexte_boucle_série :: fonc (rappel: fonc(*$T)(rien), tâches: []T)
 {
     pour * tâches {
-        rappel(it)
+        rappel(it);
     }
 }
 

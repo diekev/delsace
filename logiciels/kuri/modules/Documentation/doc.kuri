@@ -1,4 +1,4 @@
-importe Fondation
+importe Fondation;
 
 /*
     N : naturel -> 0, 1, 2, 3, ...
@@ -40,7 +40,7 @@ Analysons pas à pas ce petit programme.
 
 principale :: fonc ()
 {
-    imprime("Bonjour, tout le monde !\n")
+    imprime("Bonjour, tout le monde !\n");
 }
 
 /*
@@ -49,7 +49,7 @@ Cette ligne importera dans la portée du fichier les symboles d'un module appel�
 
 */
 
-importe Fondation
+importe Fondation;
 
 /*
 
@@ -65,7 +65,7 @@ Finalement, nous devons déclarer le type de retour de la fonction. Ici, la fonc
 
 */
 
-principale :: fonc ()
+principale :: fonc ();
 
 /*
 
@@ -81,7 +81,7 @@ Ici nous appelons la fonction imprime disponible via le module Fondation, en lui
 
 */
 
-    imprime("Bonjour, tout le monde !\n")
+    imprime("Bonjour, tout le monde !\n");
 
 /*
 
@@ -89,7 +89,7 @@ Quand une fonction retourne une valeur, il lui faut une instruction de retour. C
 
 */
 
-    exit(0)
+    exit(0);
 
 /*
 

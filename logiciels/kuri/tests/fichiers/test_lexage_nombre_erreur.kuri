@@ -1,24 +1,24 @@
 // -------------------------
 // Cas : un nombre réel ne peut contenir plus de un point
 
-N :: 0.1.2
+N :: 0.1.2;
 
 // ------------------------
 // Cas : un nombre entier décimal ne peut avoir plus de 20 chiffres
 
-N :: 218_446_744_073_709_551_615
+N :: 218_446_744_073_709_551_615;
 
 // ------------------------
 // Cas : un nombre entier binaire ne peut avoir plus de 64 chiffres
 
-N :: 0b1_10101010_10101010_10101010_10101010_10101010_10101010_10101010_10101010
+N :: 0b1_10101010_10101010_10101010_10101010_10101010_10101010_10101010_10101010;
 
 // ------------------------
 // Cas : un nombre entier hexadécimal ne peut avoir plus de 16 chiffres
 
-N :: 0xffff_ffff_ffff_ffff_ffff
+N :: 0xffff_ffff_ffff_ffff_ffff;
 
 // ------------------------
 // Cas : un nombre entier octal ne peut avoir plus de 22 chiffres
 
-N :: 0o7777_7777_7777_7777_7777_7777
+N :: 0o7777_7777_7777_7777_7777_7777;

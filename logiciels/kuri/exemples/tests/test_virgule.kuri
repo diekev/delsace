@@ -1,17 +1,17 @@
-importe Fondation
+importe Fondation;
 
 ajoute :: fonc (a: r32, b: r32) -> r32
 {
-    retourne a + b
+    retourne a + b;
 }
 
 principale :: fonc ()
 {
-    a := [ [ 0, 1 ], [ 2, 3 ], [ 4, 5 ] ]
+    a := [ [ 0, 1 ], [ 2, 3 ], [ 4, 5 ] ];
 
     pour a {
-        imprime("%\n", it)
+        imprime("%\n", it);
     }
 
-    ajoute(ajoute(ajoute(0.0, 5.0), 2.5), 3.75)
+    ajoute(ajoute(ajoute(0.0, 5.0), 2.5), 3.75);
 }

@@ -1,83 +1,83 @@
-importe Algorithmes // pour permute
-importe Fondation
-importe Math
+importe Algorithmes; // pour permute
+importe Fondation;
+importe Math;
 
-charge "mélange"
+charge "mélange";
 
 /* ------------------------------------------------------------------------- */
 /** \nom CouleurRVBA
  * \{ */
 
 CouleurRVBA :: struct {
-    r := 0.0 @mutable
-    v := 0.0 @mutable
-    b := 0.0 @mutable
-    a := 0.0 @mutable
+    r := 0.0 @mutable;
+    v := 0.0 @mutable;
+    b := 0.0 @mutable;
+    a := 0.0 @mutable;
 }
 
 init_couleur_pour_python :: fonc (couleur: *CouleurRVBA) -> bool
 {
-    init_de(CouleurRVBA)(couleur)
-    retourne vrai
+    init_de(CouleurRVBA)(couleur);
+    retourne vrai;
 } @Python "new"
 
 opérateur == :: (couleur1: CouleurRVBA, couleur2: CouleurRVBA) -> bool
 {
     si couleur1.r != couleur2.r {
-        retourne faux
+        retourne faux;
     }
 
     si couleur1.v != couleur2.v {
-        retourne faux
+        retourne faux;
     }
 
     si couleur1.b != couleur2.b {
-        retourne faux
+        retourne faux;
     }
 
     si couleur1.a != couleur2.a {
-        retourne faux
+        retourne faux;
     }
 
-    retourne vrai
+    retourne vrai;
 }
 
 opérateur * :: (a: CouleurRVBA, b: r32) -> CouleurRVBA
 {
-    résultat := a
-    résultat.r *= b
-    résultat.v *= b
-    résultat.b *= b
-    résultat.a *= b
-    retourne résultat
+    résultat := a;
+    résultat.r *= b;
+    résultat.v *= b;
+    résultat.b *= b;
+    résultat.a *= b;
+    retourne résultat;
 }
 
 opérateur + :: (a: CouleurRVBA, b: CouleurRVBA) -> CouleurRVBA
 {
-    résultat := a
-    résultat.r += b.r
-    résultat.v += b.v
-    résultat.b += b.b
-    résultat.a += b.a
-    retourne résultat
+    résultat := a;
+    résultat.r += b.r;
+    résultat.v += b.v;
+    résultat.b += b.b;
+    résultat.a += b.a;
+    retourne résultat;
 }
 
 opérateur [] :: (couleur: CouleurRVBA, indice: z64) -> r32
 {
-    assert(indice >= 0)
-    assert(indice <= 3)
-    ptr := *couleur.r
-    retourne ptr[indice]
+    assert(indice >= 0);
+    assert(indice <= 3);
+    ptr := *couleur.r;
+    retourne ptr[indice];
 }
 
 restreint :: fonc (couleur: CouleurRVBA, min: r32, max: r32) -> CouleurRVBA
 {
-    résultat := couleur
-    restreint(*résultat.r, min, max)
-    restreint(*résultat.v, min, max)
-    restreint(*résultat.b, min, max)
-    restreint(*résultat.a, min, max)
-    retourne résultat
+    résultat := couleur;
+    restreint(*résultat.r, min, max);
+    restreint(*résultat.v, min, max);
+    restreint(*résultat.b, min, max);
+    restreint(*résultat.a, min, max);
+    retourne résultat;
 }
 
 /**
@@ -93,7 +93,7 @@ restreint :: fonc (couleur: CouleurRVBA, min: r32, max: r32) -> CouleurRVBA
  */
 luminance :: fonc (c: CouleurRVBA) -> r32
 {
-    retourne c.r * 0.212671 + c.v * 0.715160 + c.b * 0.072169
+    retourne c.r * 0.212671 + c.v * 0.715160 + c.b * 0.072169;
 }
 
 /** \} */
@@ -103,14 +103,14 @@ luminance :: fonc (c: CouleurRVBA) -> r32
  * \{ */
 
 CouleurRVBN8 :: struct {
-    r: n8
-    v: n8
-    b: n8
+    r: n8;
+    v: n8;
+    b: n8;
 }
 
 opérateur == :: (a: CouleurRVBN8, b: CouleurRVBN8) -> bool
 {
-    retourne a.r == b.r && a.v == b.v && a.b == b.b
+    retourne a.r == b.r && a.v == b.v && a.b == b.b;
 }
 
 /** \} */
@@ -120,83 +120,83 @@ opérateur == :: (a: CouleurRVBN8, b: CouleurRVBN8) -> bool
  * \{ */
 
 CouleurRVBAN8 :: struct {
-    r: n8
-    v: n8
-    b: n8
-    a: n8
+    r: n8;
+    v: n8;
+    b: n8;
+    a: n8;
 }
 
 opérateur == :: (a: CouleurRVBAN8, b: CouleurRVBAN8) -> bool
 {
-    retourne a.r == b.r && a.v == b.v && a.b == b.b && a.a == b.a
+    retourne a.r == b.r && a.v == b.v && a.b == b.b && a.a == b.a;
 }
 
 opérateur [] :: (couleur: CouleurRVBAN8, indice: z64) -> n8
 {
-    assert(indice >= 0)
-    assert(indice <= 3)
-    ptr := *couleur.r
-    retourne ptr[indice]
+    assert(indice >= 0);
+    assert(indice <= 3);
+    ptr := *couleur.r;
+    retourne ptr[indice];
 }
 
-couleur_rouge := CouleurRVBAN8(255, 0, 0, 255)
-couleur_vert := CouleurRVBAN8(0, 255, 0, 255)
-couleur_bleu := CouleurRVBAN8(0, 0, 255, 255)
-couleur_blanche := CouleurRVBAN8(255, 255, 255, 255)
-couleur_noire := CouleurRVBAN8(0, 0, 0, 255)
-couleur_grise_claire := CouleurRVBAN8(192, 192, 192, 255)
-couleur_grise := CouleurRVBAN8(128, 128, 128, 255)
-couleur_grise_foncée := CouleurRVBAN8(64, 64, 64, 255)
+couleur_rouge := CouleurRVBAN8(255, 0, 0, 255);
+couleur_vert := CouleurRVBAN8(0, 255, 0, 255);
+couleur_bleu := CouleurRVBAN8(0, 0, 255, 255);
+couleur_blanche := CouleurRVBAN8(255, 255, 255, 255);
+couleur_noire := CouleurRVBAN8(0, 0, 0, 255);
+couleur_grise_claire := CouleurRVBAN8(192, 192, 192, 255);
+couleur_grise := CouleurRVBAN8(128, 128, 128, 255);
+couleur_grise_foncée := CouleurRVBAN8(64, 64, 64, 255);
 
 interpole_linéaire :: fonc (c0: CouleurRVBAN8, poids: r32, c1: CouleurRVBAN8) -> CouleurRVBAN8 #enligne
 {
-    retourne mélange_couleurs(c0, c1, poids)
+    retourne mélange_couleurs(c0, c1, poids);
 }
 
 vers_couleur_rvba :: fonc (couleur: CouleurRVBAN8) -> CouleurRVBA
 {
-    retourne CouleurRVBA(couleur.r comme r32 / 255.0, couleur.v comme r32 / 255.0, couleur.b comme r32 / 255.0, couleur.a comme r32 / 255.0)
+    retourne CouleurRVBA(couleur.r comme r32 / 255.0, couleur.v comme r32 / 255.0, couleur.b comme r32 / 255.0, couleur.a comme r32 / 255.0);
 }
 
 depuis_couleur_rvba :: fonc (couleur: CouleurRVBA) -> CouleurRVBAN8 #enligne
 {
-    retourne CouleurRVBAN8((couleur.r * 255.0) comme n8, (couleur.v * 255.0) comme n8, (couleur.b * 255.0) comme n8, (couleur.a * 255.0) comme n8)
+    retourne CouleurRVBAN8((couleur.r * 255.0) comme n8, (couleur.v * 255.0) comme n8, (couleur.b * 255.0) comme n8, (couleur.a * 255.0) comme n8);
 }
 
 mélange_couleurs :: fonc (c0: CouleurRVBAN8, c1: CouleurRVBAN8, alpha: r32) -> CouleurRVBAN8
 {
-    retourne mélange_couleurs(c0, c1, (alpha * 255.0) comme n8)
+    retourne mélange_couleurs(c0, c1, (alpha * 255.0) comme n8);
 }
 
 mélange_couleurs :: fonc (c0: CouleurRVBAN8, c1: CouleurRVBAN8, alpha: n8) -> CouleurRVBAN8
 {
-    r0 := c0.r comme n32
-    v0 := c0.v comme n32
-    b0 := c0.b comme n32
+    r0 := c0.r comme n32;
+    v0 := c0.v comme n32;
+    b0 := c0.b comme n32;
 
-    r1 := c1.r comme n32
-    v1 := c1.v comme n32
-    b1 := c1.b comme n32
+    r1 := c1.r comme n32;
+    v1 := c1.v comme n32;
+    b1 := c1.b comme n32;
 
-    complément_alpha := 255 - alpha
+    complément_alpha := 255 - alpha;
 
-    r2 := (r0 * complément_alpha + r1 * alpha) / 255
-    v2 := (v0 * complément_alpha + v1 * alpha) / 255
-    b2 := (b0 * complément_alpha + b1 * alpha) / 255
+    r2 := (r0 * complément_alpha + r1 * alpha) / 255;
+    v2 := (v0 * complément_alpha + v1 * alpha) / 255;
+    b2 := (b0 * complément_alpha + b1 * alpha) / 255;
 
-    résultat: CouleurRVBAN8 = ---
+    résultat: CouleurRVBAN8 = ---;
 
-    résultat.r = min(r2, 255) comme n8
-    résultat.v = min(v2, 255) comme n8
-    résultat.b = min(b2, 255) comme n8
+    résultat.r = min(r2, 255) comme n8;
+    résultat.v = min(v2, 255) comme n8;
+    résultat.b = min(b2, 255) comme n8;
 
-    résultat.a = c0.a
-    retourne résultat
+    résultat.a = c0.a;
+    retourne résultat;
 }
 
 luminance :: fonc (c: CouleurRVBAN8) -> n8
 {
-    retourne (c.r comme r32 * 0.212671 + c.v comme r32 * 0.715160 + c.b comme r32 * 0.072169) comme n8
+    retourne (c.r comme r32 * 0.212671 + c.v comme r32 * 0.715160 + c.b comme r32 * 0.072169) comme n8;
 }
 
 /** \} */
@@ -206,65 +206,65 @@ luminance :: fonc (c: CouleurRVBAN8) -> n8
  * \{ */
 
 CouleurTSV :: struct {
-    t: r32
-    s: r32
-    v: r32
+    t: r32;
+    s: r32;
+    v: r32;
 }
 
 rvb_vers_tsv :: fonc (couleur: CouleurRVBA) -> CouleurTSV
 {
-    r := couleur.r comme r64
-    v := couleur.v comme r64
-    b := couleur.b comme r64
+    r := couleur.r comme r64;
+    v := couleur.v comme r64;
+    b := couleur.b comme r64;
 
-    k : r64 = 0.0
+    k : r64 = 0.0;
 
     si v < b {
-        permute(v, b)
-        k = -1.0
+        permute(v, b);
+        k = -1.0;
     }
 
-    min_vb := b
+    min_vb := b;
     si r < v {
-        permute(r, v)
-        k = -2.0 / 6.0 - k
-        min_vb = min(v, b)
+        permute(r, v);
+        k = -2.0 / 6.0 - k;
+        min_vb = min(v, b);
     }
 
-    chroma := r - min_vb
+    chroma := r - min_vb;
 
-    résultat: CouleurTSV
+    résultat: CouleurTSV;
 
     si chroma != 0.0 {
-        résultat.t = (abs(k + (v - b) / (6.0 * chroma + 1e-20))) comme r32
+        résultat.t = (abs(k + (v - b) / (6.0 * chroma + 1e-20))) comme r32;
     }
     si r != 0.0 {
-        résultat.s = (chroma / (r + 1e-20)) comme r32
+        résultat.s = (chroma / (r + 1e-20)) comme r32;
     }
-    résultat.v = r comme r32
-    retourne résultat
+    résultat.v = r comme r32;
+    retourne résultat;
 }
 
 tsv_vers_rvb :: fonc (couleur: CouleurTSV) -> CouleurRVBA
 {
-    h := couleur.t
-    s := couleur.s
-    v := couleur.v
+    h := couleur.t;
+    s := couleur.s;
+    v := couleur.v;
 
-    nr := abs(h * 6.0 - 3.0) - 1.0
-    nv := 2.0 - abs(h * 6.0 - 2.0)
-    nb := 2.0 - abs(h * 6.0 - 4.0)
+    nr := abs(h * 6.0 - 3.0) - 1.0;
+    nv := 2.0 - abs(h * 6.0 - 2.0);
+    nb := 2.0 - abs(h * 6.0 - 4.0);
 
-    restreint(*nr, 0.0, 1.0)
-    restreint(*nb, 0.0, 1.0)
-    restreint(*nv, 0.0, 1.0)
+    restreint(*nr, 0.0, 1.0);
+    restreint(*nb, 0.0, 1.0);
+    restreint(*nv, 0.0, 1.0);
 
-    résultat : CouleurRVBA = ---
-    résultat.r = ((nr - 1.0) * s + 1.0) * v
-    résultat.v = ((nv - 1.0) * s + 1.0) * v
-    résultat.b = ((nb - 1.0) * s + 1.0) * v
-    résultat.a = 1.0
-    retourne résultat
+    résultat : CouleurRVBA = ---;
+    résultat.r = ((nr - 1.0) * s + 1.0) * v;
+    résultat.v = ((nv - 1.0) * s + 1.0) * v;
+    résultat.b = ((nb - 1.0) * s + 1.0) * v;
+    résultat.a = 1.0;
+    retourne résultat;
 }
 
 /** \} */
@@ -274,82 +274,82 @@ tsv_vers_rvb :: fonc (couleur: CouleurTSV) -> CouleurRVBA
  * \{ */
 
 CouleurTSL :: struct {
-    t: r32 @mutable
-    s: r32 @mutable
-    l: r32 @mutable
+    t: r32 @mutable;
+    s: r32 @mutable;
+    l: r32 @mutable;
 }
 
 rvb_vers_tsl :: fonc (couleur: CouleurRVBA) -> CouleurTSL
 {
-    r := couleur.r
-    v := couleur.v
-    b := couleur.b
+    r := couleur.r;
+    v := couleur.v;
+    b := couleur.b;
 
-    cmax := max(r, v, b)
-    cmin := min(r, v, b)
+    cmax := max(r, v, b);
+    cmin := min(r, v, b);
 
-    t := 0.0
-    s := 0.0
-    l := min(1.0, (cmax + cmin) * 0.5)
+    t := 0.0;
+    s := 0.0;
+    l := min(1.0, (cmax + cmin) * 0.5);
 
     si cmax == cmin {
         /* achromatic, t et s sont déjà à zéro */
     }
     sinon {
-        d := cmax - cmin
+        d := cmax - cmin;
 
         s = si l > 0.5 {
-            d / (2.0 - cmax - cmin)
+            d / (2.0 - cmax - cmin);
         }
         sinon {
-            d / (cmax + cmin)
+            d / (cmax + cmin);
         }
 
         si cmax == r {
-            t = (v - b) / d
+            t = (v - b) / d;
             si v < b {
-                t += 6.0
+                t += 6.0;
             }
         }
         sinon si cmax == v {
-            t = (b - r) / d + 2.0
+            t = (b - r) / d + 2.0;
         }
         sinon {
-            t = (r - v) / d + 4.0
+            t = (r - v) / d + 4.0;
         }
     }
 
-    t /= 6.0
+    t /= 6.0;
 
-    résultat : CouleurTSL = ---
-    résultat.t = t
-    résultat.s = s
-    résultat.l = l
-    retourne résultat
+    résultat : CouleurTSL = ---;
+    résultat.t = t;
+    résultat.s = s;
+    résultat.l = l;
+    retourne résultat;
 }
 
 tsl_vers_rvb :: fonc (couleur: CouleurTSL) -> CouleurRVBA
 {
-    h := couleur.t
-    s := couleur.s
-    l := couleur.l
+    h := couleur.t;
+    s := couleur.s;
+    l := couleur.l;
 
-    nr := abs(h * 6.0 - 3.0) - 1.0
-    ng := 2.0 - abs(h * 6.0 - 2.0)
-    nb := 2.0 - abs(h * 6.0 - 4.0)
+    nr := abs(h * 6.0 - 3.0) - 1.0;
+    ng := 2.0 - abs(h * 6.0 - 2.0);
+    nb := 2.0 - abs(h * 6.0 - 4.0);
 
-    restreint(*nr, 0.0, 1.0)
-    restreint(*nb, 0.0, 1.0)
-    restreint(*ng, 0.0, 1.0)
+    restreint(*nr, 0.0, 1.0);
+    restreint(*nb, 0.0, 1.0);
+    restreint(*ng, 0.0, 1.0);
 
-    chroma := (1.0 - abs(2.0 * l - 1.0)) * s
+    chroma := (1.0 - abs(2.0 * l - 1.0)) * s;
 
-    résultat : CouleurRVBA = ---
-    résultat.r = (nr - 0.5) * chroma + l
-    résultat.v = (ng - 0.5) * chroma + l
-    résultat.b = (nb - 0.5) * chroma + l
-    résultat.a = 1.0
-    retourne résultat
+    résultat : CouleurRVBA = ---;
+    résultat.r = (nr - 0.5) * chroma + l;
+    résultat.v = (ng - 0.5) * chroma + l;
+    résultat.b = (nb - 0.5) * chroma + l;
+    résultat.a = 1.0;
+    retourne résultat;
 }
 
 /** \} */
@@ -364,16 +364,16 @@ tsl_vers_rvb :: fonc (couleur: CouleurTSL) -> CouleurRVBA
  */
 calcule_contraste_local :: fonc (zone: CouleurRVBA, fond: CouleurRVBA) -> r32
 {
-    luminosite_fond := luminance(fond)
-    luminosite_zone := luminance(zone)
+    luminosite_fond := luminance(fond);
+    luminosite_zone := luminance(zone);
 
-    résultat := luminosite_zone
+    résultat := luminosite_zone;
 
     si luminosite_fond != 0.0 {
-        résultat = (luminosite_zone - luminosite_fond) / luminosite_fond
+        résultat = (luminosite_zone - luminosite_fond) / luminosite_fond;
     }
 
-    retourne résultat
+    retourne résultat;
 }
 
 /* ------------------------------------------------------------------------- */
@@ -381,151 +381,151 @@ calcule_contraste_local :: fonc (zone: CouleurRVBA, fond: CouleurRVBA) -> r32
  * \{ */
 
 Spectre :: struct {
-    x: r32 @accessible
-    y: r32 @accessible
-    z: r32 @accessible
+    x: r32 @accessible;
+    y: r32 @accessible;
+    z: r32 @accessible;
 }
 
 init_spectre_pour_python :: fonc (spectre: *Spectre, x: r32, y: r32, z: r32) -> bool
 {
-    spectre.x = x
-    spectre.y = y
-    spectre.z = z
-    retourne vrai
+    spectre.x = x;
+    spectre.y = y;
+    spectre.z = z;
+    retourne vrai;
 } @Python "new"
 
 spectre_rvb_vers_tsv :: fonc (spectre: Spectre) -> Spectre
 {
-    couleur_rvb := spectre_vers_couleur_rvba(spectre)
-    couleur_tsv := rvb_vers_tsv(couleur_rvb)
-    résultat : Spectre = ---
-    résultat.x = couleur_tsv.t
-    résultat.y = couleur_tsv.s
-    résultat.z = couleur_tsv.v
-    retourne résultat
+    couleur_rvb := spectre_vers_couleur_rvba(spectre);
+    couleur_tsv := rvb_vers_tsv(couleur_rvb);
+    résultat : Spectre = ---;
+    résultat.x = couleur_tsv.t;
+    résultat.y = couleur_tsv.s;
+    résultat.z = couleur_tsv.v;
+    retourne résultat;
 } @Python
 
 spectre_tsv_vers_rvb :: fonc (spectre: Spectre) -> Spectre
 {
-    couleur_tsv := spectre_vers_couleur_tsv(spectre)
-    couleur_rvb := tsv_vers_rvb(couleur_tsv)
-    résultat : Spectre = ---
-    résultat.x = couleur_rvb.r
-    résultat.y = couleur_rvb.v
-    résultat.z = couleur_rvb.b
-    retourne résultat
+    couleur_tsv := spectre_vers_couleur_tsv(spectre);
+    couleur_rvb := tsv_vers_rvb(couleur_tsv);
+    résultat : Spectre = ---;
+    résultat.x = couleur_rvb.r;
+    résultat.y = couleur_rvb.v;
+    résultat.z = couleur_rvb.b;
+    retourne résultat;
 } @Python
 
 contraste_entre :: fonc (spectre1: Spectre, spectre2: Spectre) -> r32
 {
-    c1 := spectre_vers_couleur_rvba(spectre1)
-    c2 := spectre_vers_couleur_rvba(spectre2)
-    retourne calcule_contraste_local(c1, c2)
+    c1 := spectre_vers_couleur_rvba(spectre1);
+    c2 := spectre_vers_couleur_rvba(spectre2);
+    retourne calcule_contraste_local(c1, c2);
 } @Python
 
 spectre_vers_couleur_rvba :: fonc (spectre: Spectre) -> CouleurRVBA
 {
-    retourne CouleurRVBA(spectre.x, spectre.y, spectre.z)
+    retourne CouleurRVBA(spectre.x, spectre.y, spectre.z);
 }
 
 spectre_vers_couleur_tsv :: fonc (spectre: Spectre) -> CouleurTSV
 {
-    retourne CouleurTSV(spectre.x, spectre.y, spectre.z)
+    retourne CouleurTSV(spectre.x, spectre.y, spectre.z);
 }
 
 opérateur + :: (s1: Spectre, s2: Spectre) -> Spectre
 {
-    retourne Spectre(s1.x + s2.x, s1.y + s2.y, s1.z + s2.z)
+    retourne Spectre(s1.x + s2.x, s1.y + s2.y, s1.z + s2.z);
 }
 
 opérateur * :: (s1: Spectre, s2: Spectre) -> Spectre
 {
-    retourne Spectre(s1.x * s2.x, s1.y * s2.y, s1.z * s2.z)
+    retourne Spectre(s1.x * s2.x, s1.y * s2.y, s1.z * s2.z);
 }
 
 opérateur * :: (s1: r32, s2: Spectre) -> Spectre
 {
-    retourne Spectre(s1 * s2.x, s1 * s2.y, s1 * s2.z)
+    retourne Spectre(s1 * s2.x, s1 * s2.y, s1 * s2.z);
 }
 
 /* Conversion d'espaces colorimétriques. */
 
 linéaire_vers_srgb :: fonc (spectre: Spectre) -> Spectre
 {
-    résultat : Spectre = ---
+    résultat : Spectre = ---;
 
-    résultat.x = linéaire_vers_srgb(spectre.x)
-    résultat.y = linéaire_vers_srgb(spectre.y)
-    résultat.z = linéaire_vers_srgb(spectre.z)
+    résultat.x = linéaire_vers_srgb(spectre.x);
+    résultat.y = linéaire_vers_srgb(spectre.y);
+    résultat.z = linéaire_vers_srgb(spectre.z);
 
-    retourne résultat
+    retourne résultat;
 }
 
 linéaire_vers_srgb :: fonc (couleur: CouleurRVBAN8) -> CouleurRVBAN8
 {
-    résultat := couleur
-    résultat.r = linéaire_vers_srgb(couleur.r)
-    résultat.v = linéaire_vers_srgb(couleur.v)
-    résultat.b = linéaire_vers_srgb(couleur.b)
-    retourne résultat
+    résultat := couleur;
+    résultat.r = linéaire_vers_srgb(couleur.r);
+    résultat.v = linéaire_vers_srgb(couleur.v);
+    résultat.b = linéaire_vers_srgb(couleur.b);
+    retourne résultat;
 }
 
 linéaire_vers_srgb :: fonc (couleur: CouleurRVBA) -> CouleurRVBA
 {
-    résultat := couleur
-    résultat.r = linéaire_vers_srgb(couleur.r)
-    résultat.v = linéaire_vers_srgb(couleur.v)
-    résultat.b = linéaire_vers_srgb(couleur.b)
-    retourne résultat
+    résultat := couleur;
+    résultat.r = linéaire_vers_srgb(couleur.r);
+    résultat.v = linéaire_vers_srgb(couleur.v);
+    résultat.b = linéaire_vers_srgb(couleur.b);
+    retourne résultat;
 }
 
 /* Approximations de http://chilliant.blogspot.com/2012/08/srgb-approximations-for-hlsl.html */
 
 linéaire_vers_srgb :: fonc (valeur: n8) -> n8 #enligne
 {
-    retourne (linéaire_vers_srgb(valeur comme r32 / 255.0) * 255.0 + 0.5) comme n8
+    retourne (linéaire_vers_srgb(valeur comme r32 / 255.0) * 255.0 + 0.5) comme n8;
 }
 
 linéaire_vers_srgb :: fonc (value: r32) -> r32
 {
-    v := max(0.0, min(1.0, value))
+    v := max(0.0, min(1.0, value));
 
     si v <= 0.0031308 {
-        retourne v * 12.92
+        retourne v * 12.92;
     }
 
-    retourne 1.055 * puissance(v, 1.0 / 2.4) - 0.055
+    retourne 1.055 * puissance(v, 1.0 / 2.4) - 0.055;
 }
 
 srgb_vers_linéaire :: fonc (couleur: CouleurRVBAN8) -> CouleurRVBAN8
 {
-    résultat := couleur
-    résultat.r = srgb_vers_linéaire(couleur.r)
-    résultat.v = srgb_vers_linéaire(couleur.v)
-    résultat.b = srgb_vers_linéaire(couleur.b)
-    retourne résultat
+    résultat := couleur;
+    résultat.r = srgb_vers_linéaire(couleur.r);
+    résultat.v = srgb_vers_linéaire(couleur.v);
+    résultat.b = srgb_vers_linéaire(couleur.b);
+    retourne résultat;
 }
 
 srgb_vers_linéaire :: fonc (couleur: CouleurRVBA) -> CouleurRVBA
 {
-    résultat := couleur
-    résultat.r = srgb_vers_linéaire(couleur.r)
-    résultat.v = srgb_vers_linéaire(couleur.v)
-    résultat.b = srgb_vers_linéaire(couleur.b)
-    retourne résultat
+    résultat := couleur;
+    résultat.r = srgb_vers_linéaire(couleur.r);
+    résultat.v = srgb_vers_linéaire(couleur.v);
+    résultat.b = srgb_vers_linéaire(couleur.b);
+    retourne résultat;
 }
 
 srgb_vers_linéaire :: fonc (valeur: n8) -> n8 #enligne
 {
-    retourne (srgb_vers_linéaire(valeur comme r32 / 255.0) * 255.0 + 0.5) comme n8
+    retourne (srgb_vers_linéaire(valeur comme r32 / 255.0) * 255.0 + 0.5) comme n8;
 }
 
 srgb_vers_linéaire :: fonc (valeur: r32) -> r32
 {
     si valeur > 0.04045 {
-        retourne puissance((valeur + 0.055) / 1.055, 2.4)
+        retourne puissance((valeur + 0.055) / 1.055, 2.4);
     }
-    retourne valeur / 12.92
+    retourne valeur / 12.92;
 }
 
 /** \} */

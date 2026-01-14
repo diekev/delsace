@@ -1,4 +1,4 @@
 principale :: fonc ()
 {
-    #assert 5 == 5
+    #assert 5 == 5;
 }

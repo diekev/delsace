@@ -1,95 +1,95 @@
-importe Fondation
+importe Fondation;
 
-Heure :: #opaque n32
+Heure :: #opaque n32;
 
-Watt :: #opaque n32
-KiloWatt :: #opaque n32
-MégaWatt :: #opaque n32
+Watt :: #opaque n32;
+KiloWatt :: #opaque n32;
+MégaWatt :: #opaque n32;
 
-Gramme :: #opaque n32
-KiloGramme :: #opaque n32
+Gramme :: #opaque n32;
+KiloGramme :: #opaque n32;
 
-Tonne :: #opaque n32
-MégaTonne :: #opaque n32
-GigaTonne :: #opaque n32
+Tonne :: #opaque n32;
+MégaTonne :: #opaque n32;
+GigaTonne :: #opaque n32;
 
-Mètre :: r32
-Kilogramme :: r32
+Mètre :: r32;
+Kilogramme :: r32;
 // KiloGramme :: r32
-Joules :: r32
+Joules :: r32;
 
-MWh :: r64
-MW :: r64
-TWh :: r64
+MWh :: r64;
+MW :: r64;
+TWh :: r64;
 
-Wh :: r64
-wh_kg :: r64
-kg :: r64
-wH_L :: r64
+Wh :: r64;
+wh_kg :: r64;
+kg :: r64;
+wH_L :: r64;
 
-WattHeure :: #opaque r32
+WattHeure :: #opaque r32;
 
-Centimètre :: #opaque z32
-CentiMètre :: r32
-Pouce :: #opaque z32
+Centimètre :: #opaque z32;
+CentiMètre :: r32;
+Pouce :: #opaque z32;
 
-Poids :: #opaque r32
-Surface :: #opaque r32
-Volume :: #opaque r32
-Pression :: #opaque r32
+Poids :: #opaque r32;
+Surface :: #opaque r32;
+Volume :: #opaque r32;
+Pression :: #opaque r32;
 
-Masse :: #opaque r64
+Masse :: #opaque r64;
 
 /* La masse solaire est l'unité de mesure de base pour les objets stellaire.
  * Elle correspond à une proportion de la masse du Soleil. */
-MasseSolaire :: #opaque Masse
+MasseSolaire :: #opaque Masse;
 
 vers_kilogramme :: fonc (ms: MasseSolaire)
 {
     // 1.9891e30 kg pour la masse du soleil
-    retourne 1.9891 * ms
+    retourne 1.9891 * ms;
 }
 
 /* Type représentant l'âge d'un objet dans l'univers. */
-ÂgeUniversel :: #opaque r64
+ÂgeUniversel :: #opaque r64;
 
-Parsec :: #opaque r64
+Parsec :: #opaque r64;
 
 vers_pouces :: fonc (cm: Centimètre) -> Pouce
 {
-    dmm := (cm comme z32) * 100
-    retourne Pouce(dmm / 254)
+    dmm := (cm comme z32) * 100;
+    retourne Pouce(dmm / 254);
 }
 
 vers_watt_heure :: fonc (joules: Joules) -> WattHeure
 {
-    retourne WattHeure(joules / 3_600.0)
+    retourne WattHeure(joules / 3_600.0);
 }
 
 wh_en_joules :: fonc (quantité: Wh) -> Joules
 {
-    retourne (quantité comme r32) * 3600.0
+    retourne (quantité comme r32) * 3600.0;
 }
 
 imprime_watt_heure :: fonc (enchaineuse: *Enchaineuse, wh: *WattHeure)
 {
-    v := mémoire(wh) comme r32
+    v := mémoire(wh) comme r32;
 
-    unités := [ "Wh", "KWh", "MWh", "GWh", "TWh", "PWh" ]
+    unités := [ "Wh", "KWh", "MWh", "GWh", "TWh", "PWh" ];
 
-    exposant := 0
+    exposant := 0;
 
     tantque v > 1_000.0 && exposant < unités.taille {
-        v /= 1_000.0
-        exposant += 1
+        v /= 1_000.0;
+        exposant += 1;
     }
 
-    imprime_dans_enchaineuse(enchaineuse, "% %", v, unités[exposant])
+    imprime_dans_enchaineuse(enchaineuse, "% %", v, unités[exposant]);
 } @FormattageImpression
 
 convertis_péta_joule_kilo_watt_heure :: fonc (pj: r64) -> r64
 {
-    retourne pj * (100_000_000.0) / 0.36
+    retourne pj * (100_000_000.0) / 0.36;
 }
 
 /*
@@ -194,15 +194,15 @@ convertis :: fonc (valeur: UnitéRationnelle($T, $T1, $T2), $T3: type_de_donnée
 
 test_unité_rationnnelle :: fonc ()
 {
-    ms: UnitéRationnelle(r32, Mètre(r32), Seconde(r32))
-    ms.valeur = 1.0
+    ms: UnitéRationnelle(r32, Mètre(r32), Seconde(r32));
+    ms.valeur = 1.0;
 
-    kmh := convertis(ms, KiloMètre(r32), Heure(r32))
+    kmh := convertis(ms, KiloMètre(r32), Heure(r32));
 
-    imprime("% m/s = % km/h\n", ms.valeur, kmh.valeur)
+    imprime("% m/s = % km/h\n", ms.valeur, kmh.valeur);
 
-    ms = convertis(kmh, Mètre(r32), Seconde(r32))
-    imprime("% km/h = % m/s\n", kmh.valeur, ms.valeur)
+    ms = convertis(kmh, Mètre(r32), Seconde(r32));
+    imprime("% km/h = % m/s\n", kmh.valeur, ms.valeur);
 }
 
 /*

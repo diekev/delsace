@@ -1,44 +1,44 @@
 
 Formulaire :: struct {
-    action: chaine
-    méthode: chaine
-    entrées: [..]EntréeFormulaire
+    action: chaine;
+    méthode: chaine;
+    entrées: [..]EntréeFormulaire;
 }
 
 EntréeFormulaire :: struct {
-    nom: chaine
-    type: chaine
-    valeur_défaut: chaine
-    hidden: bool
+    nom: chaine;
+    type: chaine;
+    valeur_défaut: chaine;
+    hidden: bool;
 }
 
 formulaire_depuis_élément :: fonc (élément: *Element) -> Formulaire
 {
-    formulaire: Formulaire
+    formulaire: Formulaire;
     // À FAIRE : l'action par défaut est la page courante
-    formulaire.action = chaine_ou_défaut(cherche_attribut(élément, ATTR_action), "/")
-    formulaire.méthode = chaine_ou_défaut(cherche_attribut(élément, ATTR_method), "GET")
+    formulaire.action = chaine_ou_défaut(cherche_attribut(élément, ATTR_action), "/");
+    formulaire.méthode = chaine_ou_défaut(cherche_attribut(élément, ATTR_method), "GET");
 
     pour élément.enfants {
-        input := est_élément_type(it, "input")
+        input := est_élément_type(it, "input");
 
         saufsi input {
-            continue
+            continue;
         }
 
-        ajoute_entrée(formulaire, input)
+        ajoute_entrée(formulaire, input);
     }
 
-    retourne formulaire
+    retourne formulaire;
 }
 
 ajoute_entrée :: fonc (formulaire: &Formulaire, input: *Element)
 {
-    entrée: EntréeFormulaire
-    entrée.nom = chaine_ou_défaut(cherche_attribut(input, ATTR_name))
-    entrée.type = chaine_ou_défaut(cherche_attribut(input, ATTR_type))
-    entrée.valeur_défaut = chaine_ou_défaut(cherche_attribut(input, ATTR_value))
-    tableau_ajoute(*formulaire.entrées, entrée)
+    entrée: EntréeFormulaire;
+    entrée.nom = chaine_ou_défaut(cherche_attribut(input, ATTR_name));
+    entrée.type = chaine_ou_défaut(cherche_attribut(input, ATTR_type));
+    entrée.valeur_défaut = chaine_ou_défaut(cherche_attribut(input, ATTR_value));
+    tableau_ajoute(*formulaire.entrées, entrée);
 }
 
 // Génère une chaine de caractère au format encodée url pour les données du formulaire.
@@ -46,58 +46,58 @@ ajoute_entrée :: fonc (formulaire: &Formulaire, input: *Element)
 // À FAIRE : paramétrise, aléatorise
 génère_données_formulaire :: fonc (formulaire: &Formulaire) -> chaine
 {
-    enchaineuse: Enchaineuse
-    initialise_enchaineuse(*enchaineuse)
+    enchaineuse: Enchaineuse;
+    initialise_enchaineuse(*enchaineuse);
 
-    virgule := ""
+    virgule := "";
 
     pour formulaire.entrées {
         si it.nom == "" {
-            continue
+            continue;
         }
 
-        ajoute_au_tampon(*enchaineuse, virgule)
-        encode_format_url(*enchaineuse, it.nom)
-        ajoute_au_tampon(*enchaineuse, "=")
+        ajoute_au_tampon(*enchaineuse, virgule);
+        encode_format_url(*enchaineuse, it.nom);
+        ajoute_au_tampon(*enchaineuse, "=");
 
         si it.type == "text" {
-            encode_format_url(*enchaineuse, "un texte")
+            encode_format_url(*enchaineuse, "un texte");
         }
         sinon si it.type == "password" {
-            encode_format_url(*enchaineuse, "un mot de passe")
+            encode_format_url(*enchaineuse, "un mot de passe");
         }
         sinon si it.type == "email" {
-            encode_format_url(*enchaineuse, "une.adresse@courri.el")
+            encode_format_url(*enchaineuse, "une.adresse@courri.el");
         }
 
-        virgule = "&"
+        virgule = "&";
     }
 
-    retourne chaine_depuis_enchaineuse(*enchaineuse)
+    retourne chaine_depuis_enchaineuse(*enchaineuse);
 }
 
 /* Idée pour générer des requêtes depuis des formulaires. */
 rappel_recherche_formulaire :: fonc (noeud: *Node, données: eini @inutilisée)
 {
-    élément := est_élément_type(noeud, TAG_form)
+    élément := est_élément_type(noeud, TAG_form);
     saufsi élément {
-        retourne
+        retourne;
     }
 
-    formulaire := formulaire_depuis_élément(élément)
-    diffère déloge(formulaire.entrées)
+    formulaire := formulaire_depuis_élément(élément);
+    diffère déloge(formulaire.entrées);
 
-    données_envoi_formulaire := génère_données_formulaire(formulaire)
-    diffère déloge(données_envoi_formulaire)
+    données_envoi_formulaire := génère_données_formulaire(formulaire);
+    diffère déloge(données_envoi_formulaire);
 
     si formulaire.méthode == "GET" {
-        imprime("GET %?% HTTP/1.1\r\n", formulaire.action, données_envoi_formulaire)
+        imprime("GET %?% HTTP/1.1\r\n", formulaire.action, données_envoi_formulaire);
     }
     sinon {
-        imprime("POST % HTTP/1.1\r\n", formulaire.action)
-        imprime("Content-Length: %\r\n", données_envoi_formulaire.taille)
-        imprime("Content-Encoding: application/x-www-form-urlencoded\r\n")
-        imprime("\r\n")
-        imprime("%", données_envoi_formulaire)
+        imprime("POST % HTTP/1.1\r\n", formulaire.action);
+        imprime("Content-Length: %\r\n", données_envoi_formulaire.taille);
+        imprime("Content-Encoding: application/x-www-form-urlencoded\r\n");
+        imprime("\r\n");
+        imprime("%", données_envoi_formulaire);
     }
 }

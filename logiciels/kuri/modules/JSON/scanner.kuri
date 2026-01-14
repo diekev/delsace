@@ -11,194 +11,194 @@
 // À FAIRE : rapport des rubriques remplis
 // À FAIRE : le scanner ne gère pas les espaces blancs Unicode
 
-importe Chaine
-importe Math
-importe Numérique
-importe Structures
+importe Chaine;
+importe Math;
+importe Numérique;
+importe Structures;
 
 LexèmeJSON :: énum z32 {
-    INVALIDE
-    FIN_OBJET
-    FIN_VALEUR
+    INVALIDE;
+    FIN_OBJET;
+    FIN_VALEUR;
 
-    PARENTHÈSE_OUVRANTE
-    PARENTHÈSE_FERMANTE
-    ACCOLADE_OUVRANTE
-    ACCOLADE_FERMANTE
-    CROCHET_OUVRANT
-    CROCHET_FERMANT
-    DOUBLE_POINTS
-    VIRGULE
-    NOMBRE_ENTIER
-    NOMBRE_RÉEL
-    CHAINE_CARACTÈRE
-    GUILLEMET
-    TRUE
-    FALSE
-    NULL
+    PARENTHÈSE_OUVRANTE;
+    PARENTHÈSE_FERMANTE;
+    ACCOLADE_OUVRANTE;
+    ACCOLADE_FERMANTE;
+    CROCHET_OUVRANT;
+    CROCHET_FERMANT;
+    DOUBLE_POINTS;
+    VIRGULE;
+    NOMBRE_ENTIER;
+    NOMBRE_RÉEL;
+    CHAINE_CARACTÈRE;
+    GUILLEMET;
+    TRUE;
+    FALSE;
+    NULL;
 }
 
 TypeErreur :: énum {
-    Parsage
-    Valeur
+    Parsage;
+    Valeur;
 }
 
 Erreur :: struct {
-    type: TypeErreur
-    chn: chaine
-    position: z32
+    type: TypeErreur;
+    chn: chaine;
+    position: z32;
 }
 
 ScannerJSON :: struct {
-    script: chaine
+    script: chaine;
 
     // état du scan après une lecture
-    lexème: LexèmeJSON
+    lexème: LexèmeJSON;
 
     // la structure à remplir
-    structure: eini
+    structure: eini;
 
     // le sous-object courant à remplir
-    pile: Pile(T = eini)
+    pile: Pile(T = eini);
 
     // position courante du scan
-    position := 0
+    position := 0;
 
     // utiliser pour découper des chaines de caractères
-    position_mot := 0
+    position_mot := 0;
 
     // pour stocker les valeurs rencontrées lors du scan
-    chaine_caractère: chaine
-    nombre_entier: z64
-    nombre_réel: r64
-    booléen: bool
+    chaine_caractère: chaine;
+    nombre_entier: z64;
+    nombre_réel: r64;
+    booléen: bool;
 
-    rappel_copie_chaine: fonc (chn: chaine) -> chaine
+    rappel_copie_chaine: fonc (chn: chaine) -> chaine;
 
-    erreur_: Erreur
-    possède_erreur: bool
+    erreur_: Erreur;
+    possède_erreur: bool;
 }
 
 initialise_scanner :: fonc (scanner: *ScannerJSON, script: chaine, structure: eini, rappel_copie_chaine: fonc (chn: chaine) -> chaine)
 {
-    scanner.script = script
-    scanner.position = 0
-    scanner.structure = structure
-    scanner.rappel_copie_chaine = rappel_copie_chaine
+    scanner.script = script;
+    scanner.position = 0;
+    scanner.structure = structure;
+    scanner.rappel_copie_chaine = rappel_copie_chaine;
 
-    scanner.lis()
+    scanner.lis();
 }
 
 imprime_progression :: fonc (scanner: *ScannerJSON)
 {
-    position_r32 := scanner.position comme r32
-    taille_r32 := scanner.script.taille comme r32
+    position_r32 := scanner.position comme r32;
+    taille_r32 := scanner.script.taille comme r32;
 
-    pourcentage := position_r32 * 100.0 / taille_r32
+    pourcentage := position_r32 * 100.0 / taille_r32;
 
-    imprime("pourcent fini : %\n", pourcentage)
+    imprime("pourcent fini : %\n", pourcentage);
 }
 
 détruit_scanner :: fonc (scanner: *ScannerJSON)
 {
-    détruit(scanner.pile)
-    déloge(scanner.erreur_.chn)
+    détruit(scanner.pile);
+    déloge(scanner.erreur_.chn);
 }
 
 empile :: fonc (scanner: *ScannerJSON, valeur: eini) #enligne
 {
-    empile(scanner.pile, valeur)
+    empile(scanner.pile, valeur);
 }
 
 dépile :: fonc (scanner: *ScannerJSON) #enligne
 {
-    _ := dépile(scanner.pile)
+    _ := dépile(scanner.pile);
 }
 
 object_courant :: fonc (scanner: *ScannerJSON) -> eini #enligne
 {
-    retourne tête(scanner.pile)
+    retourne tête(scanner.pile);
 }
 
 rapporte_erreur :: fonc (scanner: *ScannerJSON, type_erreur: TypeErreur, format: chaine, args: ...eini)
 {
     si scanner.possède_erreur {
-        retourne
+        retourne;
     }
 
-    enchaineuse: Enchaineuse
-    initialise_enchaineuse(*enchaineuse)
+    enchaineuse: Enchaineuse;
+    initialise_enchaineuse(*enchaineuse);
 
-    imprime_dans_enchaineuse(*enchaineuse, format, ...args)
+    imprime_dans_enchaineuse(*enchaineuse, format, ...args);
 
-    chn := chaine_depuis_enchaineuse(*enchaineuse)
+    chn := chaine_depuis_enchaineuse(*enchaineuse);
 
-    err : Erreur = ---
-    err.type = type_erreur
-    err.chn = chn
-    err.position = scanner.position
+    err : Erreur = ---;
+    err.type = type_erreur;
+    err.chn = chn;
+    err.position = scanner.position;
 
-    scanner.erreur_ = err
-    scanner.possède_erreur = vrai
+    scanner.erreur_ = err;
+    scanner.possède_erreur = vrai;
 } @Imprimeuse
 
 rapporte_erreur_parsage :: fonc (scanner: *ScannerJSON, format: chaine, args: ...eini)
 {
-    scanner.rapporte_erreur(TypeErreur.Parsage, format, ...args)
+    scanner.rapporte_erreur(TypeErreur.Parsage, format, ...args);
 } @Imprimeuse
 
 rapporte_erreur_valeur :: fonc (scanner: *ScannerJSON, format: chaine, args: ...eini)
 {
-    scanner.rapporte_erreur(TypeErreur.Valeur, format, ...args)
+    scanner.rapporte_erreur(TypeErreur.Valeur, format, ...args);
 } @Imprimeuse
 
 enregistre_pos_mot :: fonc (scanner: *ScannerJSON) -> rien #enligne
 {
-    scanner.position_mot = scanner.position
+    scanner.position_mot = scanner.position;
 }
 
 mot_courant :: fonc (scanner: *ScannerJSON) -> chaine #enligne
 {
-    retourne chaine(*scanner.script[scanner.position_mot], scanner.position - scanner.position_mot)
+    retourne chaine(*scanner.script[scanner.position_mot], scanner.position - scanner.position_mot);
 }
 
 saute_espaces_blancs :: fonc (scanner: *ScannerJSON) -> rien
 {
     tantque !scanner.fini() {
-        c := scanner.caractère_courant()
+        c := scanner.caractère_courant();
 
         si c != ' ' && c != '\n' && c != '\r' && c != '\t' {
-            arrête
+            arrête;
         }
 
-        scanner.avance()
+        scanner.avance();
     }
 }
 
 avance :: fonc (scanner: *ScannerJSON, n := 1) -> rien #enligne
 {
-    scanner.position += n
+    scanner.position += n;
 }
 
 fini :: fonc (scanner: *ScannerJSON) -> bool #enligne
 {
-    retourne scanner.position >= scanner.script.taille || scanner.possède_erreur
+    retourne scanner.position >= scanner.script.taille || scanner.possède_erreur;
 }
 
 caractère_courant :: fonc (scanner: *ScannerJSON) -> z8 #enligne
 {
-    retourne scanner.script[scanner.position]
+    retourne scanner.script[scanner.position];
 }
 
 lis :: fonc (scanner: *ScannerJSON) -> rien
 {
-    scanner.saute_espaces_blancs()
+    scanner.saute_espaces_blancs();
 
     si scanner.fini() {
-        retourne
+        retourne;
     }
 
-    c := scanner.caractère_courant()
+    c := scanner.caractère_courant();
 
     discr c {
         '(' { scanner.avance(); scanner.lexème = LexèmeJSON.PARENTHÈSE_OUVRANTE }
@@ -220,100 +220,100 @@ lis :: fonc (scanner: *ScannerJSON) -> rien
 
 lis_true :: fonc (scanner: *ScannerJSON) -> LexèmeJSON
 {
-    chn := chaine(*scanner.script[scanner.position], 4)
+    chn := chaine(*scanner.script[scanner.position], 4);
 
     si chn != "true" {
-        retourne LexèmeJSON.INVALIDE
+        retourne LexèmeJSON.INVALIDE;
     }
 
-    scanner.avance(4)
+    scanner.avance(4);
 
-    scanner.booléen = vrai
+    scanner.booléen = vrai;
 
-    retourne LexèmeJSON.TRUE
+    retourne LexèmeJSON.TRUE;
 }
 
 lis_false :: fonc (scanner: *ScannerJSON) -> LexèmeJSON
 {
-    chn := chaine(*scanner.script[scanner.position], 5)
+    chn := chaine(*scanner.script[scanner.position], 5);
 
     si chn != "false" {
-        retourne LexèmeJSON.INVALIDE
+        retourne LexèmeJSON.INVALIDE;
     }
 
-    scanner.avance(5)
+    scanner.avance(5);
 
-    scanner.booléen = faux
+    scanner.booléen = faux;
 
-    retourne LexèmeJSON.FALSE
+    retourne LexèmeJSON.FALSE;
 }
 
 lis_null :: fonc (scanner: *ScannerJSON) -> LexèmeJSON
 {
-    chn := chaine(*scanner.script[scanner.position], 4)
+    chn := chaine(*scanner.script[scanner.position], 4);
 
     si chn != "null" {
-        retourne LexèmeJSON.INVALIDE
+        retourne LexèmeJSON.INVALIDE;
     }
 
-    scanner.avance(4)
+    scanner.avance(4);
 
-    retourne LexèmeJSON.NULL
+    retourne LexèmeJSON.NULL;
 }
 
 est_caractère_échappé_valide :: fonc (c: z8) -> bool
 {
-    retourne c == '"' || c == '\\' || c == '/' || c == 'b' || c == 'f' || c == 'n' || c == 'r' || c == 't'
+    retourne c == '"' || c == '\\' || c == '/' || c == 'b' || c == 'f' || c == 'n' || c == 'r' || c == 't';
 }
 
 lis_chaine :: fonc (scanner: *ScannerJSON) -> LexèmeJSON
 {
-    scanner.enregistre_pos_mot()
+    scanner.enregistre_pos_mot();
 
     tantque !scanner.fini() {
-        c := scanner.caractère_courant()
+        c := scanner.caractère_courant();
 
         si c == '"' {
-            arrête
+            arrête;
         }
 
         si c == '\\' {
-            scanner.avance()
+            scanner.avance();
 
-            c = scanner.caractère_courant()
+            c = scanner.caractère_courant();
 
             si c == 'u' {
-                scanner.avance()
+                scanner.avance();
 
                 pour 4 {
-                    c = scanner.caractère_courant()
+                    c = scanner.caractère_courant();
 
                     si !est_nombre_hexadécimal(c) {
-                        retourne LexèmeJSON.INVALIDE
+                        retourne LexèmeJSON.INVALIDE;
                     }
 
-                    scanner.avance()
+                    scanner.avance();
                 }
 
-                continue
+                continue;
             }
             sinon si !est_caractère_échappé_valide(c) {
-                retourne LexèmeJSON.INVALIDE
+                retourne LexèmeJSON.INVALIDE;
             }
 
-            scanner.avance()
+            scanner.avance();
         }
         sinon {
-            scanner.avance()
+            scanner.avance();
         }
     }
 
-    scanner.chaine_caractère = scanner.mot_courant()
+    scanner.chaine_caractère = scanner.mot_courant();
 
-    scanner.avance()
-    scanner.lexème = LexèmeJSON.GUILLEMET
+    scanner.avance();
+    scanner.lexème = LexèmeJSON.GUILLEMET;
 
-    retourne LexèmeJSON.CHAINE_CARACTÈRE
+    retourne LexèmeJSON.CHAINE_CARACTÈRE;
 }
 
 // nombres valides
@@ -340,485 +340,485 @@ lis_chaine :: fonc (scanner: *ScannerJSON) -> LexèmeJSON
 // 0e5
 lis_nombre :: fonc (scanner: *ScannerJSON) -> LexèmeJSON
 {
-    données_nombre: CompositionNombreScientifique
-    lexème_nombre := LexèmeJSON.NOMBRE_ENTIER
+    données_nombre: CompositionNombreScientifique;
+    lexème_nombre := LexèmeJSON.NOMBRE_ENTIER;
 
-    scanner.enregistre_pos_mot()
+    scanner.enregistre_pos_mot();
 
     si scanner.caractère_courant() == '-' {
-        scanner.avance()
+        scanner.avance();
     }
 
     si scanner.caractère_courant() == '0' {
-        scanner.avance()
+        scanner.avance();
     }
     sinon {
         // nous devons avoir au moins un chiffre
         si !scanner.lis_chiffre('1', '9') {
-            retourne LexèmeJSON.INVALIDE
+            retourne LexèmeJSON.INVALIDE;
         }
 
         // lis les autres, ignore le retour
-        _ := scanner.lis_chiffre('0', '9')
+        _ := scanner.lis_chiffre('0', '9');
     }
 
-    données_nombre.partie_entière = scanner.mot_courant()
+    données_nombre.partie_entière = scanner.mot_courant();
 
     // lis fraction
     si scanner.caractère_courant() == '.' {
-        lexème_nombre = LexèmeJSON.NOMBRE_RÉEL
+        lexème_nombre = LexèmeJSON.NOMBRE_RÉEL;
 
-        scanner.avance()
+        scanner.avance();
 
-        scanner.enregistre_pos_mot()
+        scanner.enregistre_pos_mot();
 
         // nous devons avoir au moins un chiffre
         si !scanner.lis_chiffre('0', '9') {
-            retourne LexèmeJSON.INVALIDE
+            retourne LexèmeJSON.INVALIDE;
         }
 
-        données_nombre.partie_décimale = scanner.mot_courant()
+        données_nombre.partie_décimale = scanner.mot_courant();
     }
 
-    e := scanner.caractère_courant()
+    e := scanner.caractère_courant();
 
     // lis exposant
     si e == 'e' || e == 'E' {
-        lexème_nombre = LexèmeJSON.NOMBRE_RÉEL
+        lexème_nombre = LexèmeJSON.NOMBRE_RÉEL;
 
-        scanner.avance()
+        scanner.avance();
 
-        scanner.enregistre_pos_mot()
+        scanner.enregistre_pos_mot();
 
-        s := scanner.caractère_courant()
+        s := scanner.caractère_courant();
 
         si s == '+' || s == '-' {
-            scanner.avance()
+            scanner.avance();
         }
 
         // nous devons avoir au moins un chiffre
         si !scanner.lis_chiffre('0', '9') {
-            retourne LexèmeJSON.INVALIDE
+            retourne LexèmeJSON.INVALIDE;
         }
 
-        données_nombre.exposant = scanner.mot_courant()
+        données_nombre.exposant = scanner.mot_courant();
     }
 
     // ------------------------
 
-    nombre_final := convertis_nombre_scientifique_en_réel(données_nombre)
+    nombre_final := convertis_nombre_scientifique_en_réel(données_nombre);
 
     si lexème_nombre == LexèmeJSON.NOMBRE_ENTIER {
-        scanner.nombre_entier = nombre_final comme z64
+        scanner.nombre_entier = nombre_final comme z64;
     }
     sinon {
-        scanner.nombre_réel = nombre_final
+        scanner.nombre_réel = nombre_final;
     }
 
     // ------------------------
 
-    retourne lexème_nombre
+    retourne lexème_nombre;
 } @FonctionLongue
 
 lis_chiffre :: fonc (scanner: *ScannerJSON, min: z8, max: z8) -> bool
 {
-    eu_un_chiffre := faux
+    eu_un_chiffre := faux;
 
     tantque !scanner.fini() {
         si min <= scanner.caractère_courant() <= max {
-            eu_un_chiffre = vrai
-            scanner.avance()
-            continue
+            eu_un_chiffre = vrai;
+            scanner.avance();
+            continue;
         }
 
-        arrête
+        arrête;
     }
 
-    retourne eu_un_chiffre
+    retourne eu_un_chiffre;
 }
 
 lis_objet :: fonc (scanner: *ScannerJSON) -> LexèmeJSON
 {
     si scanner.lexème != LexèmeJSON.ACCOLADE_OUVRANTE {
-        scanner.rapporte_erreur_parsage("Attendu une accolade ouvrante, obtenu %", scanner.lexème)
-        retourne LexèmeJSON.INVALIDE
+        scanner.rapporte_erreur_parsage("Attendu une accolade ouvrante, obtenu %", scanner.lexème);
+        retourne LexèmeJSON.INVALIDE;
     }
 
     tantque !scanner.fini() {
-        scanner.lis()
+        scanner.lis();
 
         si scanner.lexème == LexèmeJSON.ACCOLADE_FERMANTE {
-            arrête
+            arrête;
         }
 
         // -------------------------
         // nom de la valeur
 
         si scanner.lexème != LexèmeJSON.GUILLEMET {
-            scanner.rapporte_erreur_parsage("Attendu un guillemet ouvrant, obtenu %", scanner.lexème)
-            retourne LexèmeJSON.INVALIDE
+            scanner.rapporte_erreur_parsage("Attendu un guillemet ouvrant, obtenu %", scanner.lexème);
+            retourne LexèmeJSON.INVALIDE;
         }
 
-        position_nom := scanner.position
-        résultat := scanner.lis_chaine()
+        position_nom := scanner.position;
+        résultat := scanner.lis_chaine();
 
         si résultat != LexèmeJSON.CHAINE_CARACTÈRE {
-            scanner.rapporte_erreur_parsage("Attendu une chaine de caractère valide")
-            retourne LexèmeJSON.INVALIDE
+            scanner.rapporte_erreur_parsage("Attendu une chaine de caractère valide");
+            retourne LexèmeJSON.INVALIDE;
         }
 
         si scanner.lexème != LexèmeJSON.GUILLEMET {
-            scanner.rapporte_erreur_parsage("Attendu un guillemet fermant, obtenu %", scanner.lexème)
-            retourne LexèmeJSON.INVALIDE
+            scanner.rapporte_erreur_parsage("Attendu un guillemet fermant, obtenu %", scanner.lexème);
+            retourne LexèmeJSON.INVALIDE;
         }
 
-        nom := scanner.chaine_caractère
+        nom := scanner.chaine_caractère;
 
-        valeur_rubrique := trouve_valeur_rubrique(scanner.object_courant(), nom)
+        valeur_rubrique := trouve_valeur_rubrique(scanner.object_courant(), nom);
 
         saufsi valeur_rubrique.est_valide() {
-            ancienne_position := scanner.position
-            scanner.position = position_nom
-            scanner.rapporte_erreur_parsage("Impossible de trouver la rubrique '%'", nom)
-            scanner.position = ancienne_position
-            retourne LexèmeJSON.INVALIDE
+            ancienne_position := scanner.position;
+            scanner.position = position_nom;
+            scanner.rapporte_erreur_parsage("Impossible de trouver la rubrique '%'", nom);
+            scanner.position = ancienne_position;
+            retourne LexèmeJSON.INVALIDE;
         }
 
-        scanner.lis()
+        scanner.lis();
 
         si scanner.lexème != LexèmeJSON.DOUBLE_POINTS {
-            scanner.rapporte_erreur_parsage("Attendu un double point, obtenu : %", scanner.lexème)
-            retourne LexèmeJSON.INVALIDE
+            scanner.rapporte_erreur_parsage("Attendu un double point, obtenu : %", scanner.lexème);
+            retourne LexèmeJSON.INVALIDE;
         }
 
         // -------------------------
         // la valeur elle-même
 
-        scanner.lis()
+        scanner.lis();
 
-        lexème_valeur := scanner.lis_valeur(valeur_rubrique)
+        lexème_valeur := scanner.lis_valeur(valeur_rubrique);
 
         si lexème_valeur != LexèmeJSON.FIN_VALEUR {
-            scanner.rapporte_erreur_parsage("Erreur lors de la lecture de la valeur")
-            retourne LexèmeJSON.INVALIDE
+            scanner.rapporte_erreur_parsage("Erreur lors de la lecture de la valeur");
+            retourne LexèmeJSON.INVALIDE;
         }
 
-        scanner.lis()
+        scanner.lis();
 
         si scanner.lexème != LexèmeJSON.VIRGULE {
-            arrête
+            arrête;
         }
     }
 
     si scanner.lexème != LexèmeJSON.ACCOLADE_FERMANTE {
-        scanner.rapporte_erreur_parsage("Attendu une accolade fermante, obtenu %", scanner.lexème)
-        retourne LexèmeJSON.INVALIDE
+        scanner.rapporte_erreur_parsage("Attendu une accolade fermante, obtenu %", scanner.lexème);
+        retourne LexèmeJSON.INVALIDE;
     }
 
-    retourne LexèmeJSON.FIN_OBJET
+    retourne LexèmeJSON.FIN_OBJET;
 } @FonctionLongue
 
 lis_valeur :: fonc (scanner: *ScannerJSON, valeur: eini) -> LexèmeJSON
 {
     si scanner.lexème == LexèmeJSON.INVALIDE {
-        retourne scanner.lexème
+        retourne scanner.lexème;
     }
 
     si scanner.lexème == LexèmeJSON.TRUE {
         saufsi valeur.est_bool() {
-            scanner.rapporte_erreur_parsage("Attendu une valeur booléenne pour la rubrique de la structure")
-            retourne LexèmeJSON.INVALIDE
+            scanner.rapporte_erreur_parsage("Attendu une valeur booléenne pour la rubrique de la structure");
+            retourne LexèmeJSON.INVALIDE;
         }
 
-        valeur.assigne_bool(vrai)
+        valeur.assigne_bool(vrai);
     }
     sinon si scanner.lexème == LexèmeJSON.FALSE {
         saufsi valeur.est_bool() {
-            scanner.rapporte_erreur_parsage("Attendu une valeur booléenne pour la rubrique de la structure")
-            retourne LexèmeJSON.INVALIDE
+            scanner.rapporte_erreur_parsage("Attendu une valeur booléenne pour la rubrique de la structure");
+            retourne LexèmeJSON.INVALIDE;
         }
 
-        valeur.assigne_bool(faux)
+        valeur.assigne_bool(faux);
     }
     sinon si scanner.lexème == LexèmeJSON.GUILLEMET {
-        résultat := scanner.lis_chaine()
+        résultat := scanner.lis_chaine();
 
         si résultat != LexèmeJSON.CHAINE_CARACTÈRE {
-            scanner.rapporte_erreur_parsage("Attendu une chaine de caractère valide")
-            retourne LexèmeJSON.INVALIDE
+            scanner.rapporte_erreur_parsage("Attendu une chaine de caractère valide");
+            retourne LexèmeJSON.INVALIDE;
         }
 
-        fonction_de_parsage := trouve_fonction_pour_type(__fonctions_parsage_json, valeur.info)
+        fonction_de_parsage := trouve_fonction_pour_type(__fonctions_parsage_json, valeur.info);
 
         si fonction_de_parsage {
-            tampon := tampon_pour_eini(valeur)
+            tampon := tampon_pour_eini(valeur);
 
             saufsi fonction_de_parsage.rappel(scanner.chaine_caractère, tampon) {
-                scanner.rapporte_erreur_parsage("Impossible de parser la chaine pour le type")
-                retourne LexèmeJSON.INVALIDE
+                scanner.rapporte_erreur_parsage("Impossible de parser la chaine pour le type");
+                retourne LexèmeJSON.INVALIDE;
             }
         }
         sinon {
             /* Aucune fonction de parsage connue, tente d'assigner une chaine de caractère. */
             saufsi valeur.est_chaine() {
-                scanner.rapporte_erreur_parsage("Attendu une chaine de caractère pour la rubrique de la structure")
-                retourne LexèmeJSON.INVALIDE
+                scanner.rapporte_erreur_parsage("Attendu une chaine de caractère pour la rubrique de la structure");
+                retourne LexèmeJSON.INVALIDE;
             }
 
-            valeur.assigne_chaine(scanner.rappel_copie_chaine(scanner.chaine_caractère))
+            valeur.assigne_chaine(scanner.rappel_copie_chaine(scanner.chaine_caractère));
         }
     }
     sinon si scanner.lexème == LexèmeJSON.NOMBRE_ENTIER {
         saufsi valeur.est_entier() {
-            scanner.rapporte_erreur_parsage("Attendu une valeur entière pour la rubrique de la structure")
-            retourne LexèmeJSON.INVALIDE
+            scanner.rapporte_erreur_parsage("Attendu une valeur entière pour la rubrique de la structure");
+            retourne LexèmeJSON.INVALIDE;
         }
 
-        info_type_entier := valeur.info comme *InfoTypeEntier
-        taille_en_octet := info_type_entier.taille_en_octet
+        info_type_entier := valeur.info comme *InfoTypeEntier;
+        taille_en_octet := info_type_entier.taille_en_octet;
 
         si info_type_entier.est_signé {
             si hors_limite(scanner.nombre_entier, taille_en_octet, vrai) {
-                scanner.rapporte_erreur_parsage("La valeur % est hors limite !", scanner.nombre_entier)
-                scanner.rapporte_erreur_parsage("Le minimum est %, le maximum est % !", valeur_min(taille_en_octet, vrai), valeur_max(taille_en_octet, vrai))
+                scanner.rapporte_erreur_parsage("La valeur % est hors limite !", scanner.nombre_entier);
+                scanner.rapporte_erreur_parsage("Le minimum est %, le maximum est % !", valeur_min(taille_en_octet, vrai), valeur_max(taille_en_octet, vrai));
             }
 
             si valeur.est_z8() {
-                valeur.assigne_z8(scanner.nombre_entier comme z8)
+                valeur.assigne_z8(scanner.nombre_entier comme z8);
             }
             sinon si valeur.est_z16() {
-                valeur.assigne_z16(scanner.nombre_entier comme z16)
+                valeur.assigne_z16(scanner.nombre_entier comme z16);
             }
             sinon si valeur.est_z32() {
-                valeur.assigne_z32(scanner.nombre_entier comme z32)
+                valeur.assigne_z32(scanner.nombre_entier comme z32);
             }
             sinon si valeur.est_z64() {
-                valeur.assigne_z64(scanner.nombre_entier)
+                valeur.assigne_z64(scanner.nombre_entier);
             }
         }
         sinon {
             si scanner.nombre_entier < 0 {
-                scanner.rapporte_erreur_parsage("Attendu un nombre positif dans le script pour la valeur !")
-                retourne LexèmeJSON.INVALIDE
+                scanner.rapporte_erreur_parsage("Attendu un nombre positif dans le script pour la valeur !");
+                retourne LexèmeJSON.INVALIDE;
             }
 
             si hors_limite(scanner.nombre_entier, taille_en_octet, faux) {
-                scanner.rapporte_erreur_parsage("La valeur % est hors limite !", scanner.nombre_entier)
-                scanner.rapporte_erreur_parsage("Le minimum est 0, le maximum est % !", valeur_max(taille_en_octet, faux))
+                scanner.rapporte_erreur_parsage("La valeur % est hors limite !", scanner.nombre_entier);
+                scanner.rapporte_erreur_parsage("Le minimum est 0, le maximum est % !", valeur_max(taille_en_octet, faux));
             }
 
             si valeur.est_n8() {
-                valeur.assigne_n8(scanner.nombre_entier comme n8)
+                valeur.assigne_n8(scanner.nombre_entier comme n8);
             }
             sinon si valeur.est_n16() {
-                valeur.assigne_n16(scanner.nombre_entier comme n16)
+                valeur.assigne_n16(scanner.nombre_entier comme n16);
             }
             sinon si valeur.est_n32() {
-                valeur.assigne_n32(scanner.nombre_entier comme n32)
+                valeur.assigne_n32(scanner.nombre_entier comme n32);
             }
             sinon si valeur.est_n64() {
-                valeur.assigne_n64(scanner.nombre_entier comme n64)
+                valeur.assigne_n64(scanner.nombre_entier comme n64);
             }
         }
     }
     sinon si scanner.lexème == LexèmeJSON.NOMBRE_RÉEL {
         saufsi valeur.est_réel() {
-            scanner.rapporte_erreur_parsage("Attendu un nombre réel pour la rubrique de la structure")
-            retourne LexèmeJSON.INVALIDE
+            scanner.rapporte_erreur_parsage("Attendu un nombre réel pour la rubrique de la structure");
+            retourne LexèmeJSON.INVALIDE;
         }
 
         si valeur.est_r16() {
-            valeur.assigne_r16(scanner.nombre_réel comme r16)
+            valeur.assigne_r16(scanner.nombre_réel comme r16);
         }
         sinon si valeur.est_r32() {
-            valeur.assigne_r32(scanner.nombre_réel comme r32)
+            valeur.assigne_r32(scanner.nombre_réel comme r32);
         }
         sinon si valeur.est_r64() {
-            valeur.assigne_r64(scanner.nombre_réel)
+            valeur.assigne_r64(scanner.nombre_réel);
         }
     }
     sinon si scanner.lexème == LexèmeJSON.NULL {
         saufsi valeur.est_pointeur() {
-            scanner.rapporte_erreur_parsage("Attendu un pointeur pour la rubrique de la structure")
-            retourne LexèmeJSON.INVALIDE
+            scanner.rapporte_erreur_parsage("Attendu un pointeur pour la rubrique de la structure");
+            retourne LexèmeJSON.INVALIDE;
         }
 
-        valeur.assigne_pointeur(nul)
+        valeur.assigne_pointeur(nul);
     }
     sinon si scanner.lexème == LexèmeJSON.ACCOLADE_OUVRANTE {
-        scanner.empile(valeur)
+        scanner.empile(valeur);
 
-        résultat := scanner.lis_objet()
+        résultat := scanner.lis_objet();
 
-        scanner.dépile()
+        scanner.dépile();
 
         si résultat != LexèmeJSON.FIN_OBJET {
-            retourne LexèmeJSON.INVALIDE
+            retourne LexèmeJSON.INVALIDE;
         }
     }
     sinon si scanner.lexème == LexèmeJSON.CROCHET_OUVRANT {
         saufsi valeur.est_tableau() {
-            scanner.rapporte_erreur_parsage("Attendu un type tableau pour la rubrique de la structure")
-            retourne LexèmeJSON.INVALIDE
+            scanner.rapporte_erreur_parsage("Attendu un type tableau pour la rubrique de la structure");
+            retourne LexèmeJSON.INVALIDE;
         }
 
-        résultat := scanner.lis_tableau(valeur)
+        résultat := scanner.lis_tableau(valeur);
 
         si résultat != LexèmeJSON.CROCHET_FERMANT {
-            retourne LexèmeJSON.INVALIDE
+            retourne LexèmeJSON.INVALIDE;
         }
     }
     sinon {
-        scanner.rapporte_erreur_parsage("Valeur inconnue, obtenu : %", scanner.lexème)
-        retourne LexèmeJSON.INVALIDE
+        scanner.rapporte_erreur_parsage("Valeur inconnue, obtenu : %", scanner.lexème);
+        retourne LexèmeJSON.INVALIDE;
     }
 
-    retourne LexèmeJSON.FIN_VALEUR
+    retourne LexèmeJSON.FIN_VALEUR;
 } @FonctionLongue
 
 lis_tableau :: fonc (scanner: *ScannerJSON, tableau: eini) -> LexèmeJSON
 {
     si tableau.est_tableau_fixe() {
-        info := tableau.info comme *InfoTypeTableauFixe
-        type_pointé := info.type_pointé
-        pointeur := tableau.pointeur
-        indice := 0
+        info := tableau.info comme *InfoTypeTableauFixe;
+        type_pointé := info.type_pointé;
+        pointeur := tableau.pointeur;
+        indice := 0;
 
         tantque !scanner.fini() {
             si indice >= info.nombre_éléments comme z32 {
-                scanner.rapporte_erreur_parsage("trop d'éléments pour le tableau fixe")
-                retourne LexèmeJSON.INVALIDE
+                scanner.rapporte_erreur_parsage("trop d'éléments pour le tableau fixe");
+                retourne LexèmeJSON.INVALIDE;
             }
 
-            scanner.lis()
+            scanner.lis();
 
             si scanner.lexème == LexèmeJSON.CROCHET_FERMANT {
-                arrête
+                arrête;
             }
 
-            tampon := pointeur + type_pointé.taille_en_octet comme z32 * indice
+            tampon := pointeur + type_pointé.taille_en_octet comme z32 * indice;
 
-            valeur : eini = ---
-            valeur.pointeur = tampon
-            valeur.info = type_pointé
+            valeur : eini = ---;
+            valeur.pointeur = tampon;
+            valeur.info = type_pointé;
 
-            scanner.empile(valeur)
+            scanner.empile(valeur);
 
-            _ := scanner.lis_valeur(valeur)
+            _ := scanner.lis_valeur(valeur);
 
-            scanner.dépile()
+            scanner.dépile();
 
-            indice += 1
+            indice += 1;
 
-            scanner.lis()
+            scanner.lis();
 
             si scanner.lexème == LexèmeJSON.CROCHET_FERMANT {
-                arrête
+                arrête;
             }
         }
 
         si indice < info.nombre_éléments comme z32 {
-            scanner.rapporte_erreur_parsage("trop peu d'éléments pour le tableau fixe")
-            retourne LexèmeJSON.INVALIDE
+            scanner.rapporte_erreur_parsage("trop peu d'éléments pour le tableau fixe");
+            retourne LexèmeJSON.INVALIDE;
         }
     }
     sinon {
-        info := tableau.info comme *InfoTypeTableau
-        type_pointé := info.type_pointé
-        tampon_tableau: [..]octet
-        indice := 0
+        info := tableau.info comme *InfoTypeTableau;
+        type_pointé := info.type_pointé;
+        tampon_tableau: [..]octet;
+        indice := 0;
 
         tantque !scanner.fini() {
-            scanner.lis()
+            scanner.lis();
 
             si scanner.lexème == LexèmeJSON.CROCHET_FERMANT {
-                arrête
+                arrête;
             }
 
-            nouvelle_taille := tampon_tableau.taille + type_pointé.taille_en_octet comme z64
-            tableau_redimensionne(tampon_tableau, nouvelle_taille)
+            nouvelle_taille := tampon_tableau.taille + type_pointé.taille_en_octet comme z64;
+            tableau_redimensionne(tampon_tableau, nouvelle_taille);
 
-            tampon := tampon_tableau.pointeur + type_pointé.taille_en_octet comme z32 * indice
+            tampon := tampon_tableau.pointeur + type_pointé.taille_en_octet comme z32 * indice;
 
-            valeur : eini = ---
-            valeur.pointeur = tampon
-            valeur.info = type_pointé
+            valeur : eini = ---;
+            valeur.pointeur = tampon;
+            valeur.info = type_pointé;
 
-            scanner.empile(valeur)
+            scanner.empile(valeur);
 
-            _ := scanner.lis_valeur(valeur)
+            _ := scanner.lis_valeur(valeur);
 
-            scanner.dépile()
+            scanner.dépile();
 
-            indice += 1
+            indice += 1;
 
-            scanner.lis()
+            scanner.lis();
 
             si scanner.lexème == LexèmeJSON.CROCHET_FERMANT {
-                arrête
+                arrête;
             }
         }
 
-        ptr := tableau.pointeur
-        mémoire(ptr comme **octet) = tampon_tableau.pointeur
+        ptr := tableau.pointeur;
+        mémoire(ptr comme **octet) = tampon_tableau.pointeur;
 
-        ptr_taille := tableau.pointeur + 8
-        mémoire(ptr_taille comme *z64) = tampon_tableau.taille / type_pointé.taille_en_octet comme z64
+        ptr_taille := tableau.pointeur + 8;
+        mémoire(ptr_taille comme *z64) = tampon_tableau.taille / type_pointé.taille_en_octet comme z64;
 
-        ptr_capacité := tableau.pointeur + 16
-        mémoire(ptr_capacité comme *z64) = tampon_tableau.capacité / type_pointé.taille_en_octet comme z64
+        ptr_capacité := tableau.pointeur + 16;
+        mémoire(ptr_capacité comme *z64) = tampon_tableau.capacité / type_pointé.taille_en_octet comme z64;
     }
 
-    retourne LexèmeJSON.CROCHET_FERMANT
+    retourne LexèmeJSON.CROCHET_FERMANT;
 } @FonctionLongue
 
 // -------------------------------------------------------
 // Parsage & Formattage
 
-importe Compilatrice
+importe Compilatrice;
 
-__fonctions_parsage_json: [..]FonctionParsage
+__fonctions_parsage_json: [..]FonctionParsage;
 
 fonction_est_valide :: fonc (fonction: *NoeudCodeEntêteFonction) -> DonnéesFonctionPourTableFonction
 {
-    type_premier_paramètre := fonction.params[0].type
+    type_premier_paramètre := fonction.params[0].type;
     si type_premier_paramètre != info_de(chaine) {
-        compilatrice_rapporte_erreur(fonction.params[0], "Fonction de parsage JSON invalide, le paramètre doit être de type « chaine ».")
+        compilatrice_rapporte_erreur(fonction.params[0], "Fonction de parsage JSON invalide, le paramètre doit être de type « chaine ».");
     }
 
     si fonction.params_sorties.taille != 2 {
-        compilatrice_rapporte_erreur(fonction, "Impossible d'utiliser la fonction comme parseuse pour JSON, elle doit avoir deux paramètres de sortie : TypeÀFormatter et bool")
+        compilatrice_rapporte_erreur(fonction, "Impossible d'utiliser la fonction comme parseuse pour JSON, elle doit avoir deux paramètres de sortie : TypeÀFormatter et bool");
     }
 
-    type_première_sortie := fonction.params_sorties[0].type
+    type_première_sortie := fonction.params_sorties[0].type;
 
     si type_première_sortie != info_de(bool) {
-        compilatrice_rapporte_erreur(fonction.params_sorties[0], "Fonction de parsage JSON invalide, le premier paramètre de sortie doit être de type « bool ».")
+        compilatrice_rapporte_erreur(fonction.params_sorties[0], "Fonction de parsage JSON invalide, le premier paramètre de sortie doit être de type « bool ».");
     }
 
-    résultat: DonnéesFonctionPourTableFonction
-    résultat.fonction = fonction
-    résultat.info_type = fonction.params_sorties[1].type
-    retourne résultat
+    résultat: DonnéesFonctionPourTableFonction;
+    résultat.fonction = fonction;
+    résultat.info_type = fonction.params_sorties[1].type;
+    retourne résultat;
 }
 
 génère_fonction_enveloppe :: fonc (enchaineuse: *Enchaineuse, données: DonnéesFonctionPourTableFonction) -> chaine
 {
-    retourne génère_enveloppe_fonction_parsage_octets(enchaineuse, données, "parsage_json_")
+    retourne génère_enveloppe_fonction_parsage_octets(enchaineuse, données, "parsage_json_");
 }
 
 génère_initialisation_json :: fonc ()
 {
-    créatrice_table_fonctions: CréatriceTableFonction
-    créatrice_table_fonctions.module = compilatrice_module_courant()
-    diffère détruit_données_créatrice_table_fonctions(créatrice_table_fonctions)
-    créatrice_table_fonctions.annotation_désirée = "ParsageJSON"
-    créatrice_table_fonctions.nom_table_fonctions = "__fonctions_parsage_json"
-    créatrice_table_fonctions.données_pour_fonction = fonction_est_valide
-    créatrice_table_fonctions.génère_fonction_enveloppe = génère_fonction_enveloppe
-    créatrice_table_fonctions.ajoute_module("JSON")
+    créatrice_table_fonctions: CréatriceTableFonction;
+    créatrice_table_fonctions.module = compilatrice_module_courant();
+    diffère détruit_données_créatrice_table_fonctions(créatrice_table_fonctions);
+    créatrice_table_fonctions.annotation_désirée = "ParsageJSON";
+    créatrice_table_fonctions.nom_table_fonctions = "__fonctions_parsage_json";
+    créatrice_table_fonctions.données_pour_fonction = fonction_est_valide;
+    créatrice_table_fonctions.génère_fonction_enveloppe = génère_fonction_enveloppe;
+    créatrice_table_fonctions.ajoute_module("JSON");
 
-    crée_table_fonctions(créatrice_table_fonctions)
+    crée_table_fonctions(créatrice_table_fonctions);
 }
 
 // #pré_exécutable génère_initialisation_json()

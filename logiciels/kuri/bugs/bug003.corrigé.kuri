@@ -4,11 +4,11 @@
  */
 
 MaStructure :: struct {
-    x := 0
+    x := 0;
 }
 
 MonAutreStructure :: struct {
-    x: [5]MaStructure
+    x: [5]MaStructure;
 }
 
 principale :: fonc ()

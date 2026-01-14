@@ -1,27 +1,27 @@
-importe Fondation
+importe Fondation;
 
 /* Un macro se définit comme une fonctoin mais doit être suivie par une directive #développe. */
 macro_simple :: fonc () #développe
 {
     /* Puisque le macro est développé au lieu de son appel,
      * ceci devrait imprimer le nom de la fonction au se trouve l'appel */
-    imprimeln("Nous sommes dans un macro dans la fonction '%'", #nom_de_cette_fonction)
+    imprimeln("Nous sommes dans un macro dans la fonction '%'", #nom_de_cette_fonction);
 
     /* Pareillement, ceci devrait être imprimé à la fin du bloc parent. */
-    diffère imprimeln("Nous sommes à la fin du macro")
+    diffère imprimeln("Nous sommes à la fin du macro");
 }
 
 /* Il est possible de passer des paramètres aux macros. */
 passe_paramètre :: fonc (a: z32) #développe
 {
-    imprimeln("le paramètre est %", a)
+    imprimeln("le paramètre est %", a);
 }
 
 principale :: fonc ()
 {
-    macro_simple()
-    imprimeln("Nous sommes dans '%' après le macro.", #nom_de_cette_fonction)
-    passe_paramètre(123)
-    passe_paramètre(456)
-    passe_paramètre(789)
+    macro_simple();
+    imprimeln("Nous sommes dans '%' après le macro.", #nom_de_cette_fonction);
+    passe_paramètre(123);
+    passe_paramètre(456);
+    passe_paramètre(789);
 }

@@ -1,29 +1,29 @@
-importe Chaine
-importe Fondation
-importe Image
+importe Chaine;
+importe Fondation;
+importe Image;
 
-charge "interface_gl"
-charge "programme"
-charge "tampons"
-charge "texture"
+charge "interface_gl";
+charge "programme";
+charge "tampons";
+charge "texture";
 
 #si SYS_EXP == SystèmeExploitation.LINUX {
-    charge "interface_glx"
+    charge "interface_glx";
 }
 
 /* ------------------------------------------------------------------------- */
 /** \nom GLEW
  * \{ */
 
-libGLEW :: #bibliothèque "GLEW"
+libGLEW :: #bibliothèque "GLEW";
 
-#dépendance_bibliothèque libGLEW libGL
+#dépendance_bibliothèque libGLEW libGL;
 
-glewExperimental: z32 #externe libGLEW
+glewExperimental: z32 #externe libGLEW;
 
-glewInit :: fonc () -> z32 #externe libGLEW
+glewInit :: fonc () -> z32 #externe libGLEW;
 
-glewGetErrorString :: fonc (code: z32) -> ChaineC #externe libGLEW
+glewGetErrorString :: fonc (code: z32) -> ChaineC #externe libGLEW;
 
 /** \} */
 
@@ -31,141 +31,141 @@ glewGetErrorString :: fonc (code: z32) -> ChaineC #externe libGLEW
 /** \nom Types manquants de la génération de code du registre.
  * \{ */
 
-__GLsync :: struct #externe
-__GLXcontextRec :: struct #externe
-__GLXFBConfigRec :: struct #externe
+__GLsync :: struct #externe;
+__GLXcontextRec :: struct #externe;
+__GLXFBConfigRec :: struct #externe;
 
-DMparams :: struct #externe
-DMbuffer :: struct #externe
+DMparams :: struct #externe;
+DMbuffer :: struct #externe;
 
-VLServer :: struct #externe
-VLPath :: struct #externe
-VLNode :: struct #externe
+VLServer :: struct #externe;
+VLPath :: struct #externe;
+VLNode :: struct #externe;
 
-khronos_int8_t :: z8
-khronos_int16_t :: z16
-khronos_int32_t :: z32
-khronos_int64_t :: z64
+khronos_int8_t :: z8;
+khronos_int16_t :: z16;
+khronos_int32_t :: z32;
+khronos_int64_t :: z64;
 
-khronos_uint8_t :: n8
-khronos_uint16_t :: n16
-khronos_uint32_t :: n32
-khronos_uint64_t :: n64
+khronos_uint8_t :: n8;
+khronos_uint16_t :: n16;
+khronos_uint32_t :: n32;
+khronos_uint64_t :: n64;
 
-khronos_float_t :: r32
+khronos_float_t :: r32;
 
-khronos_intptr_t :: z64
-khronos_ssize_t :: z64
+khronos_intptr_t :: z64;
+khronos_ssize_t :: z64;
 
 /** \} */
 
 initialise_opengl :: fonc () -> bool
 {
     nonsûr {
-        glewExperimental = 1
+        glewExperimental = 1;
     }
 
-    erreur_ := glewInit()
+    erreur_ := glewInit();
 
     si erreur_ != 0 {
-        chn := convertis_chaine_c(glewGetErrorString(erreur_))
-        imprime("Erreur : %\n", chn)
+        chn := convertis_chaine_c(glewGetErrorString(erreur_));
+        imprime("Erreur : %\n", chn);
     }
 
-    retourne erreur_ == 0
+    retourne erreur_ == 0;
 }
 
 sauvegarde_glviewport_temporaire :: fonc () #développe
 {
-    ancien_viewport: [4]GLint
-    glGetIntegerv(GL_VIEWPORT, *ancien_viewport[0])
-    diffère glViewport(ancien_viewport[0], ancien_viewport[1], ancien_viewport[2], ancien_viewport[3])
+    ancien_viewport: [4]GLint;
+    glGetIntegerv(GL_VIEWPORT, *ancien_viewport[0]);
+    diffère glViewport(ancien_viewport[0], ancien_viewport[1], ancien_viewport[2], ancien_viewport[3]);
 }
 
 vérifie_erreur :: fonc (raison : chaine = "") -> rien
 {
-    erreur_ := glGetError()
+    erreur_ := glGetError();
 
     si erreur_ == GL_NO_ERROR {
-        retourne
+        retourne;
     }
 
-    enchaineuse: Enchaineuse
-    initialise_enchaineuse(*enchaineuse)
-    ajoute_au_tampon(*enchaineuse, "[OpenGL]")
+    enchaineuse: Enchaineuse;
+    initialise_enchaineuse(*enchaineuse);
+    ajoute_au_tampon(*enchaineuse, "[OpenGL]");
 
     si raison {
-        ajoute_au_tampon(*enchaineuse, "[", raison, "]")
+        ajoute_au_tampon(*enchaineuse, "[", raison, "]");
     }
 
-    imprime_dans_enchaineuse(*enchaineuse, " erreur % : ", erreur_)
+    imprime_dans_enchaineuse(*enchaineuse, " erreur % : ", erreur_);
 
     discr erreur_ {
         GL_INVALID_ENUM {
-            ajoute_au_tampon(*enchaineuse, "énumération invalide\n")
+            ajoute_au_tampon(*enchaineuse, "énumération invalide\n");
         }
         GL_INVALID_VALUE {
-            ajoute_au_tampon(*enchaineuse, "valeur invalide\n")
+            ajoute_au_tampon(*enchaineuse, "valeur invalide\n");
         }
         GL_INVALID_OPERATION {
-            ajoute_au_tampon(*enchaineuse, "opération invalide\n")
+            ajoute_au_tampon(*enchaineuse, "opération invalide\n");
         }
         GL_STACK_OVERFLOW {
-            ajoute_au_tampon(*enchaineuse, "surdépassement pile\n")
+            ajoute_au_tampon(*enchaineuse, "surdépassement pile\n");
         }
         GL_STACK_UNDERFLOW {
-            ajoute_au_tampon(*enchaineuse, "soudépassement pile\n")
+            ajoute_au_tampon(*enchaineuse, "soudépassement pile\n");
         }
         GL_OUT_OF_MEMORY {
-            ajoute_au_tampon(*enchaineuse, "mémoire insuffisante\n")
+            ajoute_au_tampon(*enchaineuse, "mémoire insuffisante\n");
         }
         GL_INVALID_FRAMEBUFFER_OPERATION {
-            ajoute_au_tampon(*enchaineuse, "opération invalide sur framebuffer\n")
+            ajoute_au_tampon(*enchaineuse, "opération invalide sur framebuffer\n");
         }
         sinon {
-            ajoute_au_tampon(*enchaineuse, "erreur inconnue\n")
+            ajoute_au_tampon(*enchaineuse, "erreur inconnue\n");
         }
     }
 
-    chaine_erreur := chaine_depuis_enchaineuse(*enchaineuse)
-    panique(chaine_erreur)
+    chaine_erreur := chaine_depuis_enchaineuse(*enchaineuse);
+    panique(chaine_erreur);
 }
 
 gl_check_framebuffer_status :: fonc ()
 {
-	status := glCheckFramebufferStatus(GL_FRAMEBUFFER)
+	status := glCheckFramebufferStatus(GL_FRAMEBUFFER);
 
     si status == GL_FRAMEBUFFER_COMPLETE {
-		retourne
+		retourne;
 	}
 
 	discr status {
 		GL_FRAMEBUFFER_UNDEFINED {
-			imprime("default framebuffer does not exist!\n")
+			imprime("default framebuffer does not exist!\n");
         }
 		GL_FRAMEBUFFER_INCOMPLETE_ATTACHMENT {
-			imprime("framebuffer attachment points are incomplete!\n")
+			imprime("framebuffer attachment points are incomplete!\n");
         }
 		GL_FRAMEBUFFER_INCOMPLETE_MISSING_ATTACHMENT {
-			imprime("framebuffer does not have an image attached to it!\n")
+			imprime("framebuffer does not have an image attached to it!\n");
         }
 		GL_FRAMEBUFFER_INCOMPLETE_DRAW_BUFFER {
-			imprime("draw buffer color attachment point is 'none'!\n")
+			imprime("draw buffer color attachment point is 'none'!\n");
         }
 		GL_FRAMEBUFFER_INCOMPLETE_READ_BUFFER {
-			imprime("read buffer color attachment point is 'none'!\n")
+			imprime("read buffer color attachment point is 'none'!\n");
         }
 		GL_FRAMEBUFFER_UNSUPPORTED {
-			imprime("combination of internal formats is unsupported!\n")
+			imprime("combination of internal formats is unsupported!\n");
         }
 		GL_FRAMEBUFFER_INCOMPLETE_MULTISAMPLE {
-			imprime("incomplete multisample!\n")
+			imprime("incomplete multisample!\n");
         }
 		GL_FRAMEBUFFER_INCOMPLETE_LAYER_TARGETS {
-			imprime("incomplete layer targets!\n")
+			imprime("incomplete layer targets!\n");
         }
         sinon {
-            imprime("erreur framebuffer inconnue : %\n", status)
+            imprime("erreur framebuffer inconnue : %\n", status);
         }
 	}
 }
@@ -181,7 +181,7 @@ donne_chaine_debug_source :: fonc (source: GLenum) -> chaine
     si source == GL_DEBUG_SOURCE_THIRD_PARTY { retourne "THIRD PARTY" }
     si source == GL_DEBUG_SOURCE_APPLICATION { retourne "APPLICATION" }
     si source == GL_DEBUG_SOURCE_OTHER { retourne "OTHER" }
-    retourne "INCONNUE"
+    retourne "INCONNUE";
 }
 
 donne_chaine_debug_type :: fonc (type: GLenum) -> chaine
@@ -195,7 +195,7 @@ donne_chaine_debug_type :: fonc (type: GLenum) -> chaine
     si type == GL_DEBUG_TYPE_POP_GROUP { retourne "POP GROUP" }
     si type == GL_DEBUG_TYPE_OTHER { retourne "OTHER" }
     si type == GL_DEBUG_TYPE_MARKER { retourne "MARKER" }
-    retourne "INCONNU"
+    retourne "INCONNU";
 }
 
 donne_chaine_debug_severity :: fonc (severity: GLenum) -> chaine
@@ -204,33 +204,33 @@ donne_chaine_debug_severity :: fonc (severity: GLenum) -> chaine
     si severity == GL_DEBUG_SEVERITY_MEDIUM { retourne "MEDIUM" }
     si severity == GL_DEBUG_SEVERITY_LOW { retourne "LOW" }
     si severity == GL_DEBUG_SEVERITY_NOTIFICATION { retourne "NOTE" }
-    retourne "INCONNUE"
+    retourne "INCONNUE";
 }
 
 active_gl_debug :: fonc (synchrone := faux)
 {
     si synchrone {
-        glEnable(GL_DEBUG_OUTPUT_SYNCHRONOUS)
+        glEnable(GL_DEBUG_OUTPUT_SYNCHRONOUS);
     }
     sinon {
-        glEnable(GL_DEBUG_OUTPUT)
+        glEnable(GL_DEBUG_OUTPUT);
     }
 
-    sur_gl_debug_message :: fonc (source: GLenum, type: GLenum, id: GLuint, severity: GLenum, length: GLsizei, message: *GLchar, userParam: *rien)
+    sur_gl_debug_message :: fonc (source: GLenum, type: GLenum, id: GLuint, severity: GLenum, length: GLsizei, message: *GLchar, userParam: *rien);
     pousse_contexte __contexte_fil_principal {
-        imprimeln("[GL][%][%][%] %", donne_chaine_debug_severity(severity), donne_chaine_debug_source(source), donne_chaine_debug_type(type), chaine(message, length))
+        imprimeln("[GL][%][%][%] %", donne_chaine_debug_severity(severity), donne_chaine_debug_source(source), donne_chaine_debug_type(type), chaine(message, length));
     }
 
-    glDebugMessageCallback(sur_gl_debug_message, nul)
+    glDebugMessageCallback(sur_gl_debug_message, nul);
 }
 
 désactive_gl_debug :: fonc ()
 {
     si glIsEnabled(GL_DEBUG_OUTPUT) {
-        glDisable(GL_DEBUG_OUTPUT)
+        glDisable(GL_DEBUG_OUTPUT);
     }
     sinon si glIsEnabled(GL_DEBUG_OUTPUT_SYNCHRONOUS) {
-        glDisable(GL_DEBUG_OUTPUT_SYNCHRONOUS)
+        glDisable(GL_DEBUG_OUTPUT_SYNCHRONOUS);
     }
 }
 
@@ -241,21 +241,21 @@ désactive_gl_debug :: fonc ()
  * \{ */
 
 ParamètresTexture2D :: struct {
-    largeur: GLsizei
-    hauteur: GLsizei
-    bordure: GLint
+    largeur: GLsizei;
+    hauteur: GLsizei;
+    bordure: GLint;
     /* GL_RED, GL_RG, GL_RGB, GL_BGR, GL_RGBA, GL_BGRA, GL_RED_INTEGER, GL_RG_INTEGER, GL_RGB_INTEGER, GL_BGR_INTEGER, GL_RGBA_INTEGER, GL_BGRA_INTEGER, GL_STENCIL_INDEX, GL_DEPTH_COMPONENT, GL_DEPTH_STENCIL */
-    format: GLenum
-    type: GLenum
-    données: *rien
+    format: GLenum;
+    type: GLenum;
+    données: *rien;
 
-    min_filter := GL_LINEAR
-    mag_filter := GL_LINEAR
+    min_filter := GL_LINEAR;
+    mag_filter := GL_LINEAR;
 
-    wrap_s := GL_CLAMP
-    wrap_t := GL_CLAMP
+    wrap_s := GL_CLAMP;
+    wrap_t := GL_CLAMP;
 
-    direction: DirectionImage
+    direction: DirectionImage;
 }
 
 /** Définis les données de la texture correspondant au `code_texture`.
@@ -263,137 +263,137 @@ ParamètresTexture2D :: struct {
  */
 définis_texture_2d :: fonc (code_texture: n32, params: *ParamètresTexture2D)
 {
-    glBindTexture(GL_TEXTURE_2D, code_texture)
-    vérifie_erreur("définis_texture_2d : glBindTexture")
+    glBindTexture(GL_TEXTURE_2D, code_texture);
+    vérifie_erreur("définis_texture_2d : glBindTexture");
 
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, params.min_filter comme GLint)
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, params.mag_filter comme GLint)
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, params.wrap_s comme GLint)
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, params.wrap_t comme GLint)
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, params.min_filter comme GLint);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, params.mag_filter comme GLint);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, params.wrap_s comme GLint);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, params.wrap_t comme GLint);
 
     si params.type == GL_UNSIGNED_BYTE {
-        glPixelStorei(GL_UNPACK_ALIGNMENT, 1)
+        glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
     }
 
-    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA comme GLint, params.largeur, params.hauteur, params.bordure, params.format, params.type, params.données)
-    vérifie_erreur("définis_texture_2d : glTexImage2D")
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA comme GLint, params.largeur, params.hauteur, params.bordure, params.format, params.type, params.données);
+    vérifie_erreur("définis_texture_2d : glTexImage2D");
 
-    glBindTexture(GL_TEXTURE_2D, 0)
-    vérifie_erreur("définis_texture_2d : glBindTexture 0")
+    glBindTexture(GL_TEXTURE_2D, 0);
+    vérifie_erreur("définis_texture_2d : glBindTexture 0");
 }
 
 donne_paramètres_texture_pour_image :: fonc (image: *NouvelleImage, paramètres: ParamètresRenduImage) -> ParamètresTexture2D
 {
-    résultat: ParamètresTexture2D
-    résultat.largeur = image.desc.largeur comme z32
-    résultat.hauteur = image.desc.hauteur comme z32
-    résultat.données = image.données
-    résultat.bordure = 0
-    résultat.direction = image.desc.direction
+    résultat: ParamètresTexture2D;
+    résultat.largeur = image.desc.largeur comme z32;
+    résultat.hauteur = image.desc.hauteur comme z32;
+    résultat.données = image.données;
+    résultat.bordure = 0;
+    résultat.direction = image.desc.direction;
 
     discr image.desc.format {
         Gris_8 {
-            résultat.type = GL_UNSIGNED_BYTE
-            résultat.format = GL_LUMINANCE
+            résultat.type = GL_UNSIGNED_BYTE;
+            résultat.format = GL_LUMINANCE;
         }
         RVB_8 {
-            résultat.type = GL_UNSIGNED_BYTE
-            résultat.format = GL_RGB
+            résultat.type = GL_UNSIGNED_BYTE;
+            résultat.format = GL_RGB;
         }
         RVBA_8 {
-            résultat.type = GL_UNSIGNED_BYTE
-            résultat.format = GL_RGBA
+            résultat.type = GL_UNSIGNED_BYTE;
+            résultat.format = GL_RGBA;
         }
         Gris_32 {
-            résultat.type = GL_FLOAT
-            résultat.format = GL_LUMINANCE
+            résultat.type = GL_FLOAT;
+            résultat.format = GL_LUMINANCE;
         }
         RVB_32 {
-            résultat.type = GL_FLOAT
-            résultat.format = GL_RGB
+            résultat.type = GL_FLOAT;
+            résultat.format = GL_RGB;
         }
         RVBA_32 {
-            résultat.type = GL_FLOAT
-            résultat.format = GL_RGBA
+            résultat.type = GL_FLOAT;
+            résultat.format = GL_RGBA;
         }
     }
 
     // résultat.format = GL_RG
-    définis_répétition(*résultat, paramètres.répétition)
-    définis_échantillonnage(*résultat, paramètres.échantillonnage)
-    retourne résultat
+    définis_répétition(*résultat, paramètres.répétition);
+    définis_échantillonnage(*résultat, paramètres.échantillonnage);
+    retourne résultat;
 }
 
 donne_paramètres_texture_pour_image :: fonc (image: TamponImageGrise8Bit, paramètres: ParamètresRenduImage) -> ParamètresTexture2D
 {
-    résultat: ParamètresTexture2D
-    résultat.largeur = image.largeur
-    résultat.hauteur = image.hauteur
-    résultat.données = image.données
-    résultat.bordure = 0
-    résultat.type = GL_UNSIGNED_BYTE
-    résultat.format = GL_LUMINANCE
-    définis_répétition(*résultat, paramètres.répétition)
-    définis_échantillonnage(*résultat, paramètres.échantillonnage)
-    retourne résultat
+    résultat: ParamètresTexture2D;
+    résultat.largeur = image.largeur;
+    résultat.hauteur = image.hauteur;
+    résultat.données = image.données;
+    résultat.bordure = 0;
+    résultat.type = GL_UNSIGNED_BYTE;
+    résultat.format = GL_LUMINANCE;
+    définis_répétition(*résultat, paramètres.répétition);
+    définis_échantillonnage(*résultat, paramètres.échantillonnage);
+    retourne résultat;
 }
 
 donne_paramètres_texture_pour_image :: fonc (image: TamponImageRVBA8Bit, paramètres: ParamètresRenduImage) -> ParamètresTexture2D
 {
-    résultat: ParamètresTexture2D
-    résultat.largeur = image.largeur
-    résultat.hauteur = image.hauteur
-    résultat.données = image.données
-    résultat.bordure = 0
-    résultat.type = GL_UNSIGNED_BYTE
-    résultat.format = GL_RGBA
-    définis_répétition(*résultat, paramètres.répétition)
-    définis_échantillonnage(*résultat, paramètres.échantillonnage)
-    retourne résultat
+    résultat: ParamètresTexture2D;
+    résultat.largeur = image.largeur;
+    résultat.hauteur = image.hauteur;
+    résultat.données = image.données;
+    résultat.bordure = 0;
+    résultat.type = GL_UNSIGNED_BYTE;
+    résultat.format = GL_RGBA;
+    définis_répétition(*résultat, paramètres.répétition);
+    définis_échantillonnage(*résultat, paramètres.échantillonnage);
+    retourne résultat;
 }
 
 donne_paramètres_texture_pour_image :: fonc (image: TamponImageRVBA32Bit, paramètres: ParamètresRenduImage) -> ParamètresTexture2D
 {
-    résultat: ParamètresTexture2D
-    résultat.largeur = image.largeur
-    résultat.hauteur = image.hauteur
-    résultat.données = image.données
-    résultat.bordure = 0
-    résultat.type = GL_FLOAT
-    résultat.format = GL_RGBA
-    définis_répétition(*résultat, paramètres.répétition)
-    définis_échantillonnage(*résultat, paramètres.échantillonnage)
-    retourne résultat
+    résultat: ParamètresTexture2D;
+    résultat.largeur = image.largeur;
+    résultat.hauteur = image.hauteur;
+    résultat.données = image.données;
+    résultat.bordure = 0;
+    résultat.type = GL_FLOAT;
+    résultat.format = GL_RGBA;
+    définis_répétition(*résultat, paramètres.répétition);
+    définis_échantillonnage(*résultat, paramètres.échantillonnage);
+    retourne résultat;
 }
 
 définis_répétition :: fonc (params: *ParamètresTexture2D, répétition: RépétitionImage)
 {
-    params.wrap_s = convertis_répétition(répétition.x)
-    params.wrap_t = convertis_répétition(répétition.y)
+    params.wrap_s = convertis_répétition(répétition.x);
+    params.wrap_t = convertis_répétition(répétition.y);
 }
 
 convertis_répétition :: fonc (répétition: GenreRépétitionImage) -> GLenum
 {
     si répétition != GenreRépétitionImage.Aucune {
-        retourne GL_REPEAT
+        retourne GL_REPEAT;
     }
 
-    retourne GL_CLAMP
+    retourne GL_CLAMP;
 }
 
 définis_échantillonnage :: fonc (params: *ParamètresTexture2D, échantillonnage: ÉchantillonnageImage)
 {
-    params.min_filter = convertis_échantillonnage(échantillonnage.pour_minification)
-    params.mag_filter = convertis_échantillonnage(échantillonnage.pour_magnification)
+    params.min_filter = convertis_échantillonnage(échantillonnage.pour_minification);
+    params.mag_filter = convertis_échantillonnage(échantillonnage.pour_magnification);
 }
 
 convertis_échantillonnage :: fonc (genre: GenreÉchantillonnageImage) -> GLenum
 {
     si genre == GenreÉchantillonnageImage.Linéaire {
-        retourne GL_LINEAR
+        retourne GL_LINEAR;
     }
-    assert(genre == GenreÉchantillonnageImage.Prochain)
-    retourne GL_NEAREST
+    assert(genre == GenreÉchantillonnageImage.Prochain);
+    retourne GL_NEAREST;
 }
 
 /** \} */
