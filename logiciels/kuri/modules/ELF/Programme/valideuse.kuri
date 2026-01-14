@@ -85,6 +85,11 @@ principale :: fonc ()
             }
         }
 
+        nombre_de_section_symtab := 0;
+        nombre_de_section_dynsym := 0;
+        nombre_de_section_hash := 0;
+        nombre_de_section_dynamic := 0;
+
         pour nombre_de_sections {
             section := donne_entête_section(*fichier, it);
             saufsi section {
@@ -114,7 +119,18 @@ principale :: fonc ()
                 }
             }
 
-            si type_section == SHT_SYMTAB || type_section == SHT_DYNSYM {
+            si type_section == SHT_SYMTAB {
+                nombre_de_section_symtab += 1;
+                si nombre_de_section_symtab > 1 {
+                    imprimeln("Le fichier contient plusieurs sections 'SYMTAB'");
+                }
+                valide_symtab(*fichier, section, it);
+            }
+            sinon si type_section == SHT_DYNSYM {
+                nombre_de_section_dynsym += 1;
+                si nombre_de_section_dynsym > 1 {
+                    imprimeln("Le fichier contient plusieurs sections 'SYMTAB'");
+                }
                 valide_symtab(*fichier, section, it);
             }
             sinon si type_section == SHT_REL {
@@ -128,6 +144,20 @@ principale :: fonc ()
             }
             sinon si type_section == SHT_NOBITS {
                 // À FAIRE : validation de la taille ? Cela peut se faire via la validation de la taille de symbole.
+            }
+            sinon si type_section == SHT_HASH {
+                nombre_de_section_hash += 1;
+                si nombre_de_section_hash > 1 {
+                    imprimeln("Le fichier contient plusieurs sections 'HASH'");
+                }
+                imprimeln("Ignorant la section 'NULL' à l'indice %", it);
+            }
+            sinon si type_section == SHT_DYNAMIC {
+                nombre_de_section_dynamic += 1;
+                si nombre_de_section_dynamic > 1 {
+                    imprimeln("Le fichier contient plusieurs sections 'DYNAMIC'");
+                }
+                imprimeln("Ignorant la section 'DYNAMIC' à l'indice %", it);
             }
             sinon si type_section != SHT_NULL {
                 nom_macro_section := donne_nom_macro_type_section(type_section);
