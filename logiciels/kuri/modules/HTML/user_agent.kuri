@@ -1,4 +1,4 @@
-importe HTTP
+importe HTTP;
 
 /* ------------------------------------------------------------------------- */
 /** \nom UserAgent
@@ -7,64 +7,64 @@ importe HTTP
  * \{ */
 
 UserAgent :: struct {
-    empl hôte: JS.Hôte
+    empl hôte: JS.Hôte;
 
     /* https://html.spec.whatwg.org/multipage/document-sequences.html#top-level-traversable-set */
-    top_level_traversables: [..]*TraversableNavigable
+    top_level_traversables: [..]*TraversableNavigable;
     /* https://html.spec.whatwg.org/multipage/document-sequences.html#browsing-context-group-set */
-    browsing_context_groups: [..]*BrowsingContextGroup
+    browsing_context_groups: [..]*BrowsingContextGroup;
 
     /* Connexion avec l'interface graphique. */
-    rappels_interface: *RappelsInterface
+    rappels_interface: *RappelsInterface;
 
-    mv: JS.MachineVirtuelle
-    blob_url_store: BlobURLStore
+    mv: JS.MachineVirtuelle;
+    blob_url_store: BlobURLStore;
 
-    supporte_scripting: bool
+    supporte_scripting: bool;
 
     /* Valeur par défaut pour l'entête 'User-Agent'.
      * https://fetch.spec.whatwg.org/#default-user-agent-value */
-    user_agent_string: DOMString
+    user_agent_string: DOMString;
 
     /* Utilisé pour les fichiers de réponse pour les erreurs. */
-    nom_navigateur := "Le Navigateur"
+    nom_navigateur := "Le Navigateur";
 }
 
 initialise_user_agent :: fonc (user_agent: *UserAgent)
 {
-    user_agent.sur_visite_cellules = sur_visite_cellules_hôte
-    JS.initialise_mv(user_agent, *user_agent.mv)
+    user_agent.sur_visite_cellules = sur_visite_cellules_hôte;
+    JS.initialise_mv(user_agent, *user_agent.mv);
 }
 
 donne_tas_de_mémoire :: fonc (user_agent: *UserAgent) -> *JS.TasDeMémoire
 {
-    retourne *user_agent.mv.tas_de_mémoire
+    retourne *user_agent.mv.tas_de_mémoire;
 }
 
 détruit_user_agent :: fonc (user_agent: *UserAgent)
 {
-    détruit_données_user_agent(user_agent)
-    déloge(user_agent)
+    détruit_données_user_agent(user_agent);
+    déloge(user_agent);
 }
 
 détruit_données_user_agent :: fonc (user_agent: *UserAgent)
 {
-    déloge_tableau_et_ses_éléments(user_agent.top_level_traversables, détruit_traversable)
-    déloge_tableau_et_ses_éléments(user_agent.browsing_context_groups, détruit_browsing_context_group)
+    déloge_tableau_et_ses_éléments(user_agent.top_level_traversables, détruit_traversable);
+    déloge_tableau_et_ses_éléments(user_agent.browsing_context_groups, détruit_browsing_context_group);
     si user_agent.rappels_interface {
-        détruit_rappels(user_agent.rappels_interface)
-        user_agent.rappels_interface = nul
+        détruit_rappels(user_agent.rappels_interface);
+        user_agent.rappels_interface = nul;
     }
-    JS.détruit_données_mv(*user_agent.mv)
-    détruit_données_store(*user_agent.blob_url_store)
+    JS.détruit_données_mv(*user_agent.mv);
+    détruit_données_store(*user_agent.blob_url_store);
 }
 
 définis_rappels_interface :: fonc (user_agent: *UserAgent, rappels: *RappelsInterface)
 {
     si user_agent.rappels_interface {
-        détruit_rappels(rappels)
+        détruit_rappels(rappels);
     }
-    user_agent.rappels_interface = rappels
+    user_agent.rappels_interface = rappels;
 }
 
 /** \} */
@@ -77,8 +77,8 @@ définis_rappels_interface :: fonc (user_agent: *UserAgent, rappels: *RappelsInt
 
 sur_visite_cellules_hôte :: fonc (base: *JS.Hôte, visiteuse: *JS.VisiteuseCellule)
 {
-    user_agent := base comme *UserAgent
-    JS.visite_objet(visiteuse, user_agent)
+    user_agent := base comme *UserAgent;
+    JS.visite_objet(visiteuse, user_agent);
 }
 
 #portée_export
@@ -91,57 +91,57 @@ sur_visite_cellules_hôte :: fonc (base: *JS.Hôte, visiteuse: *JS.VisiteuseCell
  * \{ */
 
 Algorithm :: struct {
-    sur_run: fonc (algorithm: *Algorithm)
-    sur_destruction: fonc (algorithm: *Algorithm)
+    sur_run: fonc (algorithm: *Algorithm);
+    sur_destruction: fonc (algorithm: *Algorithm);
 }
 
 crée_algorithm :: fonc (sur_run: fonc (algorithm: *Algorithm), $T: type_de_données) -> *T
 {
-    sur_destruction :: fonc (base: *Algorithm)
+    sur_destruction :: fonc (base: *Algorithm);
     {
-        algorithm := base comme *T
-        déloge(algorithm)
+        algorithm := base comme *T;
+        déloge(algorithm);
     }
 
-    résultat := loge(T)
-    résultat.sur_run = sur_run
-    résultat.sur_destruction = sur_destruction
-    retourne résultat
+    résultat := loge(T);
+    résultat.sur_run = sur_run;
+    résultat.sur_destruction = sur_destruction;
+    retourne résultat;
 }
 
 crée_algorithm_pour_fonction :: fonc (params: *$T, fonction: fonc (params: *T)) -> *Algorithm
 {
     Tâche :: struct {
-        empl base: Algorithm
+        empl base: Algorithm;
 
-        params: T
-        fonction: fonc (params: *T)
+        params: T;
+        fonction: fonc (params: *T);
     }
 
-    sur_run :: fonc (base: *Algorithm)
+    sur_run :: fonc (base: *Algorithm);
     {
-        tâche := base comme *Tâche
-        tâche.fonction(*tâche.params)
+        tâche := base comme *Tâche;
+        tâche.fonction(*tâche.params);
     }
 
-    tâche := crée_algorithm(sur_run, Tâche)
-    tâche.params = mémoire(params)
-    tâche.fonction = fonction
-    retourne tâche
+    tâche := crée_algorithm(sur_run, Tâche);
+    tâche.params = mémoire(params);
+    tâche.fonction = fonction;
+    retourne tâche;
 }
 
 run :: fonc (algorithm: *Algorithm)
 {
     saufsi algorithm {
-        retourne
+        retourne;
     }
 
     si algorithm.sur_run {
-        algorithm.sur_run(algorithm)
+        algorithm.sur_run(algorithm);
     }
 
     si algorithm.sur_destruction {
-        algorithm.sur_destruction(algorithm)
+        algorithm.sur_destruction(algorithm);
     }
 }
 
@@ -149,12 +149,12 @@ run :: fonc (algorithm: *Algorithm)
 
 /* https://html.spec.whatwg.org/multipage/webappapis.html#generic-task-sources */
 SourceDeTâche :: énum {
-    ManipulationDOM
-    InteractionUtilisateur
-    Réseautage
-    NavigationEtTraversée
-    Rendu
-    WebSocket
+    ManipulationDOM;
+    InteractionUtilisateur;
+    Réseautage;
+    NavigationEtTraversée;
+    Rendu;
+    WebSocket;
 }
 
 /* ------------------------------------------------------------------------- */
@@ -162,244 +162,244 @@ SourceDeTâche :: énum {
  * \{ */
 
 RappelsInterface :: struct {
-    sur_destruction: fonc (rappels: *RappelsInterface)
-    sur_lancement_requête: fonc (rappels: *RappelsInterface, request: *Request) -> *Response
-    sur_lancement_requête_websocket: fonc (rappels: *RappelsInterface, ws: *WebSocket, env: *EnvironmentSettings)
-    sur_envoie_message_websocket: fonc (rappels: *RappelsInterface, ws: *WebSocket, WS.OpCode, [..]octet)
-    sur_spin_event_loop: fonc (rappels: *RappelsInterface)
-    sur_élément_survolé: fonc (rappels: *RappelsInterface)
-    sur_enfile_une_tâche: fonc (rappels: *RappelsInterface, source: SourceDeTâche, algorithm: *Algorithm)
-    sur_tâche_parallèle: fonc (rappels: *RappelsInterface, algorithm: *Algorithm)
-    sur_tâche_traversable: fonc (rappels: *RappelsInterface, traversable: *TraversableNavigable, algorithm: *Algorithm)
-    sur_est_exécuté_sur_fil_principal: fonc (rappels: *RappelsInterface) -> bool
-    sur_est_exécuté_en_parallèle: fonc (rappels: *RappelsInterface) -> bool
-    sur_est_exécuté_sur_file_parallèle: fonc (rappels: *RappelsInterface, traversable: *TraversableNavigable) -> bool
-    sur_création_file_parallèle_pour_traversable: fonc (rappels: *RappelsInterface) -> z64
-    sur_affichage_alerte: fonc (rappels: *RappelsInterface, texte: DOMString)
-    sur_création_timeout: fonc (rappels: *RappelsInterface, algorithm: *Algorithm, durée: z32, doit_répéter: bool) -> z32
-    sur_destruction_timeout: fonc (rappels: *RappelsInterface, indice: z32)
-    sur_défile_page_vers_fragment: fonc (rappels: *RappelsInterface)
-    sur_donne_taille_écran: fonc (rappels: *RappelsInterface) -> TailleÉcranExposéWeb
-    sur_édition_text_input_requise: fonc (rappels: *RappelsInterface, element: *HTMLInputElement)
-    sur_rapporte_exception: fonc (rappels: *RappelsInterface, document: *Document, texte: chaine)
-    sur_rapporte_log: fonc (rappels: *RappelsInterface, document: *Document, texte: chaine)
-    sur_affiche_menu_contextuel_pour: fonc (rappels: *RappelsInterface, element: *Element, clic: *ClicSouris)
+    sur_destruction: fonc (rappels: *RappelsInterface);
+    sur_lancement_requête: fonc (rappels: *RappelsInterface, request: *Request) -> *Response;
+    sur_lancement_requête_websocket: fonc (rappels: *RappelsInterface, ws: *WebSocket, env: *EnvironmentSettings);
+    sur_envoie_message_websocket: fonc (rappels: *RappelsInterface, ws: *WebSocket, WS.OpCode, [..]octet);
+    sur_spin_event_loop: fonc (rappels: *RappelsInterface);
+    sur_élément_survolé: fonc (rappels: *RappelsInterface);
+    sur_enfile_une_tâche: fonc (rappels: *RappelsInterface, source: SourceDeTâche, algorithm: *Algorithm);
+    sur_tâche_parallèle: fonc (rappels: *RappelsInterface, algorithm: *Algorithm);
+    sur_tâche_traversable: fonc (rappels: *RappelsInterface, traversable: *TraversableNavigable, algorithm: *Algorithm);
+    sur_est_exécuté_sur_fil_principal: fonc (rappels: *RappelsInterface) -> bool;
+    sur_est_exécuté_en_parallèle: fonc (rappels: *RappelsInterface) -> bool;
+    sur_est_exécuté_sur_file_parallèle: fonc (rappels: *RappelsInterface, traversable: *TraversableNavigable) -> bool;
+    sur_création_file_parallèle_pour_traversable: fonc (rappels: *RappelsInterface) -> z64;
+    sur_affichage_alerte: fonc (rappels: *RappelsInterface, texte: DOMString);
+    sur_création_timeout: fonc (rappels: *RappelsInterface, algorithm: *Algorithm, durée: z32, doit_répéter: bool) -> z32;
+    sur_destruction_timeout: fonc (rappels: *RappelsInterface, indice: z32);
+    sur_défile_page_vers_fragment: fonc (rappels: *RappelsInterface);
+    sur_donne_taille_écran: fonc (rappels: *RappelsInterface) -> TailleÉcranExposéWeb;
+    sur_édition_text_input_requise: fonc (rappels: *RappelsInterface, element: *HTMLInputElement);
+    sur_rapporte_exception: fonc (rappels: *RappelsInterface, document: *Document, texte: chaine);
+    sur_rapporte_log: fonc (rappels: *RappelsInterface, document: *Document, texte: chaine);
+    sur_affiche_menu_contextuel_pour: fonc (rappels: *RappelsInterface, element: *Element, clic: *ClicSouris);
 }
 
 détruit_rappels :: fonc (rappels: *RappelsInterface)
 {
     si rappels.sur_destruction {
-        rappels.sur_destruction(rappels)
+        rappels.sur_destruction(rappels);
     }
 }
 
 spin_event_loop :: fonc (user_agent: *UserAgent)
 {
-    rappels := user_agent.rappels_interface
+    rappels := user_agent.rappels_interface;
     saufsi rappels && rappels.sur_spin_event_loop {
-        retourne
+        retourne;
     }
 
-    rappels.sur_spin_event_loop(rappels)
+    rappels.sur_spin_event_loop(rappels);
 }
 
 notifie_élément_survolé :: fonc (user_agent: *UserAgent)
 {
-    rappels := user_agent.rappels_interface
+    rappels := user_agent.rappels_interface;
     saufsi rappels && rappels.sur_élément_survolé {
-        retourne
+        retourne;
     }
 
-    rappels.sur_élément_survolé(rappels)
+    rappels.sur_élément_survolé(rappels);
 }
 
 lance_requête :: fonc (user_agent: *UserAgent, request: *Request) -> *Response
 {
-    rappels := user_agent.rappels_interface
+    rappels := user_agent.rappels_interface;
     saufsi rappels && rappels.sur_lancement_requête {
-        retourne network_error(request)
+        retourne network_error(request);
     }
 
-    retourne rappels.sur_lancement_requête(rappels, request)
+    retourne rappels.sur_lancement_requête(rappels, request);
 }
 
 lance_requête_websocket :: fonc (user_agent: *UserAgent, web_socket: *WebSocket, client: *EnvironmentSettings)
 {
-    rappels := user_agent.rappels_interface
+    rappels := user_agent.rappels_interface;
     saufsi rappels && rappels.sur_lancement_requête_websocket {
         /* À FAIRE */
-        retourne
+        retourne;
     }
-    rappels.sur_lancement_requête_websocket(rappels, web_socket, client)
+    rappels.sur_lancement_requête_websocket(rappels, web_socket, client);
 }
 
 envoie_message_websocket :: fonc (user_agent: *UserAgent, web_socket: *WebSocket, type: WS.OpCode, données: [..]octet)
 {
-    rappels := user_agent.rappels_interface
+    rappels := user_agent.rappels_interface;
     saufsi rappels && rappels.sur_envoie_message_websocket {
-        retourne
+        retourne;
     }
-    rappels.sur_envoie_message_websocket(rappels, web_socket, type, données)
+    rappels.sur_envoie_message_websocket(rappels, web_socket, type, données);
 }
 
 enfile_une_tâche :: fonc (user_agent: *UserAgent, source: SourceDeTâche, algorithm: *Algorithm)
 {
-    rappels := user_agent.rappels_interface
+    rappels := user_agent.rappels_interface;
     saufsi rappels && rappels.sur_enfile_une_tâche {
-        retourne
+        retourne;
     }
 
-    rappels.sur_enfile_une_tâche(rappels, source, algorithm)
+    rappels.sur_enfile_une_tâche(rappels, source, algorithm);
 }
 
 /* https://html.spec.whatwg.org/multipage/infrastructure.html#in-parallel */
 lance_en_parallèle :: fonc (user_agent: *UserAgent, algorithm: *Algorithm)
 {
-    rappels := user_agent.rappels_interface
+    rappels := user_agent.rappels_interface;
     saufsi rappels && rappels.sur_tâche_parallèle {
-        retourne
+        retourne;
     }
 
-    rappels.sur_tâche_parallèle(rappels, algorithm)
+    rappels.sur_tâche_parallèle(rappels, algorithm);
 }
 
 lance_sur_file_parallèle :: fonc (user_agent: *UserAgent, traversable: *TraversableNavigable, algorithm: *Algorithm)
 {
-    rappels := user_agent.rappels_interface
+    rappels := user_agent.rappels_interface;
     saufsi rappels && rappels.sur_tâche_traversable {
-        retourne
+        retourne;
     }
 
-    rappels.sur_tâche_traversable(rappels, traversable, algorithm)
+    rappels.sur_tâche_traversable(rappels, traversable, algorithm);
 }
 
 est_exécuté_sur_fil_principal :: fonc (user_agent: *UserAgent) -> bool
 {
-    rappels := user_agent.rappels_interface
+    rappels := user_agent.rappels_interface;
     saufsi rappels && rappels.sur_est_exécuté_sur_fil_principal {
-        retourne faux
+        retourne faux;
     }
-    retourne rappels.sur_est_exécuté_sur_fil_principal(rappels)
+    retourne rappels.sur_est_exécuté_sur_fil_principal(rappels);
 }
 
 est_exécuté_en_parallèle :: fonc (user_agent: *UserAgent) -> bool
 {
-    rappels := user_agent.rappels_interface
+    rappels := user_agent.rappels_interface;
     saufsi rappels && rappels.sur_est_exécuté_en_parallèle {
-        retourne faux
+        retourne faux;
     }
-    retourne rappels.sur_est_exécuté_en_parallèle(rappels)
+    retourne rappels.sur_est_exécuté_en_parallèle(rappels);
 }
 
 est_exécuté_sur_file_parallèle :: fonc (user_agent: *UserAgent, traversable: *TraversableNavigable) -> bool
 {
-    rappels := user_agent.rappels_interface
+    rappels := user_agent.rappels_interface;
     saufsi rappels && rappels.sur_est_exécuté_sur_file_parallèle {
-        retourne faux
+        retourne faux;
     }
-    retourne rappels.sur_est_exécuté_sur_file_parallèle(rappels, traversable)
+    retourne rappels.sur_est_exécuté_sur_file_parallèle(rappels, traversable);
 }
 
 crée_file_parallèle_pour_traversable :: fonc (user_agent: *UserAgent) -> z64
 {
-    rappels := user_agent.rappels_interface
+    rappels := user_agent.rappels_interface;
     saufsi rappels && rappels.sur_création_file_parallèle_pour_traversable {
-        retourne -1
+        retourne -1;
     }
-    retourne rappels.sur_création_file_parallèle_pour_traversable(rappels)
+    retourne rappels.sur_création_file_parallèle_pour_traversable(rappels);
 }
 
 affiche_alerte :: fonc (user_agent: *UserAgent, message: DOMString)
 {
-    rappels := user_agent.rappels_interface
+    rappels := user_agent.rappels_interface;
     saufsi rappels && rappels.sur_affichage_alerte {
-        retourne
+        retourne;
     }
-    rappels.sur_affichage_alerte(rappels, message)
+    rappels.sur_affichage_alerte(rappels, message);
 }
 
 crée_timeout :: fonc (user_agent: *UserAgent, algorithm: *Algorithm, time_out: z32, se_répète: bool) -> z32
 {
-    rappels := user_agent.rappels_interface
+    rappels := user_agent.rappels_interface;
     saufsi rappels && rappels.sur_création_timeout {
-        retourne -1
+        retourne -1;
     }
-    retourne rappels.sur_création_timeout(rappels, algorithm, time_out, se_répète)
+    retourne rappels.sur_création_timeout(rappels, algorithm, time_out, se_répète);
 }
 
 détruit_timeout :: fonc (user_agent: *UserAgent, id: z32)
 {
     si id == -1 {
-        retourne
+        retourne;
     }
-    rappels := user_agent.rappels_interface
+    rappels := user_agent.rappels_interface;
     saufsi rappels && rappels.sur_destruction_timeout {
-        retourne
+        retourne;
     }
-    rappels.sur_destruction_timeout(rappels, id)
+    rappels.sur_destruction_timeout(rappels, id);
 }
 
 défile_page_vers_fragment :: fonc (user_agent: *UserAgent)
 {
-    rappels := user_agent.rappels_interface
+    rappels := user_agent.rappels_interface;
     saufsi rappels && rappels.sur_défile_page_vers_fragment {
-        retourne
+        retourne;
     }
-    rappels.sur_défile_page_vers_fragment(rappels)
+    rappels.sur_défile_page_vers_fragment(rappels);
 }
 
 /* https://drafts.csswg.org/cssom-view/#web-exposed-screen-area */
 TailleÉcranExposéWeb :: struct {
-    largeur: n64
-    hauteur: n64
+    largeur: n64;
+    hauteur: n64;
 }
 
 donne_taille_écran :: fonc (user_agent: *UserAgent) -> TailleÉcranExposéWeb
 {
-    rappels := user_agent.rappels_interface
+    rappels := user_agent.rappels_interface;
     saufsi rappels && rappels.sur_donne_taille_écran {
-        retourne TailleÉcranExposéWeb()
+        retourne TailleÉcranExposéWeb();
     }
-    retourne rappels.sur_donne_taille_écran(rappels)
+    retourne rappels.sur_donne_taille_écran(rappels);
 }
 
 édition_text_input_requise :: fonc (user_agent: *UserAgent, input: *HTMLInputElement)
 {
-    assert(input.is_text_entry_widget())
-    rappels := user_agent.rappels_interface
+    assert(input.is_text_entry_widget());
+    rappels := user_agent.rappels_interface;
     saufsi rappels && rappels.sur_édition_text_input_requise {
-        retourne
+        retourne;
     }
-    rappels.sur_édition_text_input_requise(rappels, input)
+    rappels.sur_édition_text_input_requise(rappels, input);
 }
 
 rapporte_exception :: fonc (user_agent: *UserAgent, document: *Document, exception: chaine)
 {
-    rappels := user_agent.rappels_interface
+    rappels := user_agent.rappels_interface;
     saufsi rappels && rappels.sur_rapporte_exception {
-        imprime("EXCEPTION NON-PIÉGÉE : %\n", exception)
-        retourne
+        imprime("EXCEPTION NON-PIÉGÉE : %\n", exception);
+        retourne;
     }
-    rappels.sur_rapporte_exception(rappels, document, exception)
+    rappels.sur_rapporte_exception(rappels, document, exception);
 }
 
 rapporte_log :: fonc (user_agent: *UserAgent, document: *Document, message: chaine)
 {
-    rappels := user_agent.rappels_interface
+    rappels := user_agent.rappels_interface;
     saufsi rappels && rappels.sur_rapporte_log {
-        imprime("LOG : %\n", message)
-        retourne
+        imprime("LOG : %\n", message);
+        retourne;
     }
-    rappels.sur_rapporte_log(rappels, document, message)
+    rappels.sur_rapporte_log(rappels, document, message);
 }
 
 affiche_menu_contextuel_pour :: fonc (user_agent: *UserAgent, élément: *Element, clic: *ClicSouris)
 {
-    rappels := user_agent.rappels_interface
+    rappels := user_agent.rappels_interface;
     saufsi rappels && rappels.sur_affiche_menu_contextuel_pour {
-        retourne
+        retourne;
     }
-    rappels.sur_affiche_menu_contextuel_pour(rappels, élément, clic)
+    rappels.sur_affiche_menu_contextuel_pour(rappels, élément, clic);
 }
 
 /** \} */
@@ -411,86 +411,86 @@ affiche_menu_contextuel_pour :: fonc (user_agent: *UserAgent, élément: *Elemen
 crée_tâche_pour_enfiler_tâche :: fonc (user_agent: *UserAgent, tâche_à_enfiler: *Algorithm, source: SourceDeTâche) -> *Algorithm
 {
     Tâche :: struct {
-        empl base: Algorithm
+        empl base: Algorithm;
 
-        user_agent: *UserAgent
-        tâche_à_enfiler: *Algorithm
-        source: SourceDeTâche
+        user_agent: *UserAgent;
+        tâche_à_enfiler: *Algorithm;
+        source: SourceDeTâche;
     }
 
-    sur_run :: fonc (base: *Algorithm)
+    sur_run :: fonc (base: *Algorithm);
     {
-        tâche := base comme *Tâche
+        tâche := base comme *Tâche;
 
-        user_agent := tâche.user_agent
-        tâche_à_enfiler := tâche.tâche_à_enfiler
-        source := tâche.source
+        user_agent := tâche.user_agent;
+        tâche_à_enfiler := tâche.tâche_à_enfiler;
+        source := tâche.source;
 
-        user_agent.enfile_une_tâche(source, tâche_à_enfiler)
+        user_agent.enfile_une_tâche(source, tâche_à_enfiler);
     }
 
-    tâche := crée_algorithm(sur_run, Tâche)
-    tâche.user_agent = user_agent
-    tâche.tâche_à_enfiler = tâche_à_enfiler
-    tâche.source = source
-    retourne tâche
+    tâche := crée_algorithm(sur_run, Tâche);
+    tâche.user_agent = user_agent;
+    tâche.tâche_à_enfiler = tâche_à_enfiler;
+    tâche.source = source;
+    retourne tâche;
 }
 
 crée_tâche_pour_traversable :: fonc (user_agent: *UserAgent, tâche_à_enfiler: *Algorithm, traversable: *TraversableNavigable) -> *Algorithm
 {
     Tâche :: struct {
-        empl base: Algorithm
+        empl base: Algorithm;
 
-        user_agent: *UserAgent
-        tâche_à_enfiler: *Algorithm
-        traversable: *TraversableNavigable
+        user_agent: *UserAgent;
+        tâche_à_enfiler: *Algorithm;
+        traversable: *TraversableNavigable;
     }
 
-    sur_run :: fonc (base: *Algorithm)
+    sur_run :: fonc (base: *Algorithm);
     {
-        tâche := base comme *Tâche
+        tâche := base comme *Tâche;
 
-        user_agent := tâche.user_agent
-        tâche_à_enfiler := tâche.tâche_à_enfiler
-        traversable := tâche.traversable
+        user_agent := tâche.user_agent;
+        tâche_à_enfiler := tâche.tâche_à_enfiler;
+        traversable := tâche.traversable;
 
-        user_agent.lance_sur_file_parallèle(traversable, tâche_à_enfiler)
+        user_agent.lance_sur_file_parallèle(traversable, tâche_à_enfiler);
     }
 
-    tâche := crée_algorithm(sur_run, Tâche)
-    tâche.user_agent = user_agent
-    tâche.tâche_à_enfiler = tâche_à_enfiler
-    tâche.traversable = traversable
-    retourne tâche
+    tâche := crée_algorithm(sur_run, Tâche);
+    tâche.user_agent = user_agent;
+    tâche.tâche_à_enfiler = tâche_à_enfiler;
+    tâche.traversable = traversable;
+    retourne tâche;
 }
 
 enfile_une_tâche_pour_lancer_évènement_à_élément :: fonc (user_agent: *UserAgent, élément: *Element, nom: EventType)
 {
     Tâche :: struct {
-        empl base: Algorithm
+        empl base: Algorithm;
 
-        user_agent: *UserAgent
-        élément: *Element
-        nom: EventType
+        user_agent: *UserAgent;
+        élément: *Element;
+        nom: EventType;
     }
 
-    sur_run :: fonc (base: *Algorithm)
+    sur_run :: fonc (base: *Algorithm);
     {
-        tâche := base comme *Tâche
-        _ := fire_an_event(tâche.élément, tâche.nom)
+        tâche := base comme *Tâche;
+        _ := fire_an_event(tâche.élément, tâche.nom);
     }
 
-    tâche := crée_algorithm(sur_run, Tâche)
-    tâche.user_agent = user_agent
-    tâche.élément = élément
-    tâche.nom = nom
+    tâche := crée_algorithm(sur_run, Tâche);
+    tâche.user_agent = user_agent;
+    tâche.élément = élément;
+    tâche.nom = nom;
 
-    user_agent.queue_an_element_task(SourceDeTâche.ManipulationDOM, élément, tâche)
+    user_agent.queue_an_element_task(SourceDeTâche.ManipulationDOM, élément, tâche);
 }
 
 queue_a_task_to_fire_error_at_element :: fonc (user_agent: *UserAgent, élément: *Element)
 {
-    enfile_une_tâche_pour_lancer_évènement_à_élément(user_agent, élément, EventType.error)
+    enfile_une_tâche_pour_lancer_évènement_à_élément(user_agent, élément, EventType.error);
 }
 
 /** \} */
@@ -520,7 +520,7 @@ queue_a_task :: fonc (user_agent: *UserAgent, source: SourceDeTâche, steps: *Al
     // 8. Let queue be the task queue to which source is associated on event loop.
 
     // 9. Append task to queue.
-    user_agent.enfile_une_tâche(source, steps)
+    user_agent.enfile_une_tâche(source, steps);
 }
 
 /* https://html.spec.whatwg.org/multipage/webappapis.html#queue-a-global-task */
@@ -531,17 +531,17 @@ queue_a_global_task :: fonc (user_agent: *UserAgent, source: SourceDeTâche, glo
     // 2. Let document be global's associated Document, if global is a Window object; otherwise null.
 
     // 3. Queue a task given source, event loop, document, and steps.
-    queue_a_task(user_agent, source, steps)
+    queue_a_task(user_agent, source, steps);
 }
 
 /* https://html.spec.whatwg.org/multipage/webappapis.html#queue-an-element-task */
 queue_an_element_task :: fonc (user_agent: *UserAgent, source: SourceDeTâche, élément: *Element, steps: *Algorithm)
 {
     // 1. Let global be element's relevant global object.
-    global := donne_relevant_global_object(élément)
+    global := donne_relevant_global_object(élément);
 
     // 2. Queue a global task given source, global, and steps.
-    queue_a_global_task(user_agent, source, global, steps)
+    queue_a_global_task(user_agent, source, global, steps);
 }
 
 /* https://html.spec.whatwg.org/multipage/webappapis.html#queue-a-microtask */

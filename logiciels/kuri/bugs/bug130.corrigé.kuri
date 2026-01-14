@@ -3,20 +3,20 @@
  * Catégorie : [validation sémantique, opérateur pour]
  */
 
-importe Fondation
-importe SysFichier
+importe Fondation;
+importe SysFichier;
 
 principale :: fonc ()
 {
-    chemin := CheminFichier("/")
-    données: z32
+    chemin := CheminFichier("/");
+    données: z32;
 
     pour ExploratriceFichier(chemin) {
-        pour_chaque_chemin(it, *données, rappel_traite_chemin)
+        pour_chaque_chemin(it, *données, rappel_traite_chemin);
     }
 }
 
 rappel_traite_chemin :: fonc (chemin: CheminFichier, données: *z32 @inutilisée)
 {
-    imprime("%\n", chemin)
+    imprime("%\n", chemin);
 }

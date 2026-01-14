@@ -6,14 +6,14 @@
 
 ne_passe_pas_variable :: fonc (variable: z32) -> z32
 {
-    accède_variable :: fonc () -> z32
+    accède_variable :: fonc () -> z32;
     {
-        retourne variable
+        retourne variable;
     }
-    retourne accède_variable()
+    retourne accède_variable();
 }
 
 principale :: fonc ()
 {
-    exit(ne_passe_pas_variable(0))
+    exit(ne_passe_pas_variable(0));
 }

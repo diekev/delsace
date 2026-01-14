@@ -54,108 +54,108 @@
  * les séries de tests. */
 DonnéesPourTest :: struct {
     /* Le chemin vers le programme à appeler. */
-    programme: CheminFichier
+    programme: CheminFichier;
 
     /* Arguments du programme. Ces arguments sont toujours passés au programme
      * peu importe la série de tests en cours. */
-    arguments: [..]chaine
+    arguments: [..]chaine;
 
     /* Les série de test. */
-    séries: [..]SérieDeTest
+    séries: [..]SérieDeTest;
 }
 
 détruit :: fonc (empl données_test: &DonnéesPourTest)
 {
     pour séries {
-        détruit(it)
+        détruit(it);
     }
 
-    déloge(arguments)
-    déloge(séries)
+    déloge(arguments);
+    déloge(séries);
 }
 
 ajoute_série_de_tests :: fonc (données_test: &DonnéesPourTest, fichier: CheminFichier, args: ...chaine)
 {
-    série: SérieDeTest
-    série.fichier_de_spécification = fichier
-    ajoute_arguments(série, ...args)
-    tableau_ajoute(*données_test.séries, série)
+    série: SérieDeTest;
+    série.fichier_de_spécification = fichier;
+    ajoute_arguments(série, ...args);
+    tableau_ajoute(*données_test.séries, série);
 }
 
 ajoute_arguments :: fonc (données_test: &DonnéesPourTest, args: ...chaine)
 {
-    tableau_ajoute(*série.arguments, ...args)
+    tableau_ajoute(*série.arguments, ...args);
 }
 
 /* Retourne la liste d'arguments pour le programme afin de lancer cette série de test. */
 arguments_pour_série :: fonc (données_test: &DonnéesPourTest, série: &SérieDeTest) -> [..]chaine
 {
-    nombre_d_arguments := données_test.arguments.taille + série.arguments.taille
+    nombre_d_arguments := données_test.arguments.taille + série.arguments.taille;
 
-    résultat: [..]chaine
+    résultat: [..]chaine;
 
     saufsi nombre_d_arguments {
-        retourne résultat
+        retourne résultat;
     }
 
-    tableau_réserve(*résultat, nombre_d_arguments)
+    tableau_réserve(*résultat, nombre_d_arguments);
 
-    tableau_ajoute(*résultat, ...données_test.arguments)
-    tableau_ajoute(*résultat, ...série.arguments)
+    tableau_ajoute(*résultat, ...données_test.arguments);
+    tableau_ajoute(*résultat, ...série.arguments);
 
-    retourne résultat
+    retourne résultat;
 }
 
 /* Série de test. Contient le chemin du fichier de spécification ainsi que
  * la liste d'arguments pour lancer les tests du fichier. */
 SérieDeTest :: struct {
     /* Le chemin vers le fichier de spécification pour cette série de tests. */
-    fichier_de_spécification: CheminFichier
+    fichier_de_spécification: CheminFichier;
 
     /* Arguments du programme spécifiques à cette série de tests. */
-    arguments: [..]chaine
+    arguments: [..]chaine;
 }
 
 détruit :: fonc (empl série: &SérieDeTest)
 {
-    déloge(arguments)
+    déloge(arguments);
 }
 
 ajoute_arguments :: fonc (série: &SérieDeTest, args: ...chaine)
 {
-    tableau_ajoute(*série.arguments, ...args)
+    tableau_ajoute(*série.arguments, ...args);
 }
 
 lance_les_tests_pour_une_série :: fonc (données_test: &DonnéesPourTest, série: &SérieDeTest) -> bool
 {
-    _, contenu := contenu_fichier_texte(série.fichier_de_spécification)
-    diffère déloge(contenu)
+    _, contenu := contenu_fichier_texte(série.fichier_de_spécification);
+    diffère déloge(contenu);
 
     saufsi contenu {
-        imprime("Le fichier de spécification est vide ou introuvable !\n")
-        retourne faux
+        imprime("Le fichier de spécification est vide ou introuvable !\n");
+        retourne faux;
     }
 
-    parseuse: ParseuseCasÀTester
-    ptr_données := *parseuse
+    parseuse: ParseuseCasÀTester;
+    ptr_données := *parseuse;
 
-    pour_chaque_ligne(contenu, ptr_données, rappel_pour_chaque_ligne)
+    pour_chaque_ligne(contenu, ptr_données, rappel_pour_chaque_ligne);
 
     saufsi parseuse.cas {
-        imprime("Aucun cas trouvé dans le fichier de spécification !\n")
-        retourne faux
+        imprime("Aucun cas trouvé dans le fichier de spécification !\n");
+        retourne faux;
     }
 
     pour parseuse.cas {
         si lance_test_cas(données_test, série, it) {
-            continue
+            continue;
         }
 
-        imprime("Erreur : le cas '%' a échoué !\n", it.raison)
-        retourne faux
+        imprime("Erreur : le cas '%' a échoué !\n", it.raison);
+        retourne faux;
     }
 
-    retourne vrai
+    retourne vrai;
 }
 
 /* Point d'entrée pour lancer tous les tests. Nous nous arrêtons si l'un d'entre
@@ -164,100 +164,100 @@ lance_les_tests :: fonc (données_test: &DonnéesPourTest) -> bool
 {
     pour données_test.séries {
         saufsi lance_les_tests_pour_une_série(données_test, it) {
-            retourne faux
+            retourne faux;
         }
     }
 
-    retourne vrai
+    retourne vrai;
 }
 
 lance_test :: fonc (données_test: &DonnéesPourTest, série: &SérieDeTest, commandes: ...chaine) -> [..]chaine
 {
-    résultat: [..]chaine
+    résultat: [..]chaine;
 
-    arguments := arguments_pour_série(données_test, série)
-    diffère déloge(arguments)
+    arguments := arguments_pour_série(données_test, série);
+    diffère déloge(arguments);
 
     discr ouvre_canal_de_communication(données_test.programme.chn, ...arguments) {
         Quelque(canal) {
             pour commandes {
-                canal.écris(it)
-                canal.écris("\n")
+                canal.écris(it);
+                canal.écris("\n");
             }
 
-            canal.ferme_écriture()
+            canal.ferme_écriture();
 
-            texte := canal.lis()
+            texte := canal.lis();
 
-            résultat = divise(texte, '\n')
+            résultat = divise(texte, '\n');
         }
         sinon {
-            retourne résultat
+            retourne résultat;
         }
     }
 
-    retourne résultat
+    retourne résultat;
 }
 
 /* Données pour un cas à tester, extraites du fichier de spécification. */
 CasÀTester :: struct {
-    raison: chaine
-    commandes: [..]chaine
-    résultat: [..]chaine
+    raison: chaine;
+    commandes: [..]chaine;
+    résultat: [..]chaine;
 }
 
 /* Parsage du fichier de spécification donnant des CasÀTester. */
 
 ÉtatParsage :: énum {
-    DANS_CAS
-    DANS_COMMANDES
-    DANS_RÉSULTAT
-    INCONNU
+    DANS_CAS;
+    DANS_COMMANDES;
+    DANS_RÉSULTAT;
+    INCONNU;
 }
 
 ParseuseCasÀTester :: struct {
-    cas: [..]CasÀTester
+    cas: [..]CasÀTester;
 
-    cas_courant: *CasÀTester
+    cas_courant: *CasÀTester;
 
-    état: ÉtatParsage
+    état: ÉtatParsage;
 }
 
 rappel_pour_chaque_ligne :: fonc (ligne: chaine, parseuse: *ParseuseCasÀTester)
 {
     si ligne.taille == 0 {
-        retourne
+        retourne;
     }
 
     /* Supprime la nouvelle ligne. */
     si ligne[ligne.taille - 1] == '\n' {
-        ligne = recule(ligne, 1)
+        ligne = recule(ligne, 1);
     }
 
     si ligne.taille == 0 {
-        retourne
+        retourne;
     }
 
     si ligne.commence_par("----------") {
-        parseuse.cas_courant = tableau_ajoute_élément(*parseuse.cas)
-        parseuse.état = ÉtatParsage.INCONNU
-        retourne
+        parseuse.cas_courant = tableau_ajoute_élément(*parseuse.cas);
+        parseuse.état = ÉtatParsage.INCONNU;
+        retourne;
     }
 
     si ligne.commence_par("+ Cas") {
-        parseuse.cas_courant.raison = avance(ligne, "+ Cas : ".taille)
-        parseuse.état = ÉtatParsage.DANS_CAS
-        retourne
+        parseuse.cas_courant.raison = avance(ligne, "+ Cas : ".taille);
+        parseuse.état = ÉtatParsage.DANS_CAS;
+        retourne;
     }
 
     si ligne.commence_par("+ Commandes") {
-        parseuse.état = ÉtatParsage.DANS_COMMANDES
-        retourne
+        parseuse.état = ÉtatParsage.DANS_COMMANDES;
+        retourne;
     }
 
     si ligne.commence_par("+ Résultat") {
-        parseuse.état = ÉtatParsage.DANS_RÉSULTAT
-        retourne
+        parseuse.état = ÉtatParsage.DANS_RÉSULTAT;
+        retourne;
     }
 
     discr parseuse.état {
@@ -265,10 +265,10 @@ rappel_pour_chaque_ligne :: fonc (ligne: chaine, parseuse: *ParseuseCasÀTester)
             // erreur
         }
         DANS_COMMANDES {
-            tableau_ajoute(*parseuse.cas_courant.commandes, ligne)
+            tableau_ajoute(*parseuse.cas_courant.commandes, ligne);
         }
         DANS_RÉSULTAT {
-            tableau_ajoute(*parseuse.cas_courant.résultat, ligne)
+            tableau_ajoute(*parseuse.cas_courant.résultat, ligne);
         }
         INCONNU {
             // erreur
@@ -278,57 +278,57 @@ rappel_pour_chaque_ligne :: fonc (ligne: chaine, parseuse: *ParseuseCasÀTester)
 
 imprime_cas :: fonc (cas: [..]CasÀTester)
 {
-    imprime("nombre de cas : %\n", cas.taille)
+    imprime("nombre de cas : %\n", cas.taille);
 
     pour cas {
-        imprime("-------------------------------\n")
-        imprime("+ Cas : %\n", it.raison)
-        imprime("\n")
+        imprime("-------------------------------\n");
+        imprime("+ Cas : %\n", it.raison);
+        imprime("\n");
 
-        imprime("+ Commandes :\n")
+        imprime("+ Commandes :\n");
         pour commande dans it.commandes {
-            imprime("%\n", commande)
+            imprime("%\n", commande);
         }
-        imprime("\n")
+        imprime("\n");
 
-        imprime("+ Résultat :\n")
+        imprime("+ Résultat :\n");
         pour résultat dans it.résultat {
-            imprime("%\n", résultat)
+            imprime("%\n", résultat);
         }
-        imprime("\n")
+        imprime("\n");
     }
 }
 
 lance_test_cas :: fonc (données_test: &DonnéesPourTest, série: &SérieDeTest, cas: CasÀTester) -> bool
 {
-    résultat := lance_test(données_test, série, ...cas.commandes)
+    résultat := lance_test(données_test, série, ...cas.commandes);
 
     si résultat.taille != cas.résultat.taille {
-        imprime("Échec !\n")
-        imprime("Requiers % résultats\n", résultat.taille)
-        imprime("Obtenu % résultats\n", cas.résultat.taille)
+        imprime("Échec !\n");
+        imprime("Requiers % résultats\n", résultat.taille);
+        imprime("Obtenu % résultats\n", cas.résultat.taille);
 
-        imprime("\nRésultat requis :\n")
+        imprime("\nRésultat requis :\n");
         pour résultat {
-            imprime("%\n", it)
+            imprime("%\n", it);
         }
 
-        imprime("\nRésultat obtenu :\n")
+        imprime("\nRésultat obtenu :\n");
         pour cas.résultat {
-            imprime("%\n", it)
+            imprime("%\n", it);
         }
 
-        retourne faux
+        retourne faux;
     }
 
     pour résultat {
         si it != cas.résultat[indice_it] {
-            imprime("Échec !\n")
-            imprime("Requiers : %\n", it)
-            imprime("Obtenu : %\n", cas.résultat[indice_it])
-            retourne faux
+            imprime("Échec !\n");
+            imprime("Requiers : %\n", it);
+            imprime("Obtenu : %\n", cas.résultat[indice_it]);
+            retourne faux;
         }
     }
 
-    retourne vrai
+    retourne vrai;
 }

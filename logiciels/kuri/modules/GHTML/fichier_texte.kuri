@@ -1,23 +1,23 @@
-importe SysFichier
+importe SysFichier;
 
 FichierTexte :: struct {
-    nom_court: chaine
-    chemin: chaine
+    nom_court: chaine;
+    chemin: chaine;
 
-    données: chaine
+    données: chaine;
 
-    succès := faux
+    succès := faux;
 
-    fichier_mémoire := faux
+    fichier_mémoire := faux;
 }
 
 // À FAIRE: rechargement des fichiers, s'ils ont changés
 commence_fichier :: fonc (fichier: *FichierTexte) -> rien
 {
     si fichier.fichier_mémoire {
-        retourne
+        retourne;
     }
 
-    chm := CheminFichier(fichier.chemin)
-    fichier.succès, fichier.données = contenu_fichier_texte(chm)
+    chm := CheminFichier(fichier.chemin);
+    fichier.succès, fichier.données = contenu_fichier_texte(chm);
 }

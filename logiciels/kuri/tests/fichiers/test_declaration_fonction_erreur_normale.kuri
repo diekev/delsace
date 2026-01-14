@@ -1,7 +1,7 @@
 // ------------------------------
 // Cas : On ne peut pas avoir d'autres arguments après un argument variadique.
 
-principale :: fonc externe (arguments : ...*z32, compte : z32) -> rien
+principale :: fonc externe (arguments : ...*z32, compte : z32) -> rien;
 
 // ------------------------------
 // Cas : On ne peut pas avoir plusieurs arguments variadiques.

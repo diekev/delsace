@@ -1,38 +1,38 @@
-importe Fondation
-importe Math
+importe Fondation;
+importe Math;
 
 principale :: fonc ()
 {
-    u: Vec3
-    v: Vec3
+    u: Vec3;
+    v: Vec3;
 
-    u.x = 1.0
-    u.y = 2.0
-    u.z = 3.0
+    u.x = 1.0;
+    u.y = 2.0;
+    u.z = 3.0;
 
     pour 0 ... 2 {
-        imprime("u[%] = %\n", it, u[it])
+        imprime("u[%] = %\n", it, u[it]);
     }
 
     si u == v {
-        imprime("u == v\n")
+        imprime("u == v\n");
     }
 
     si u == 0.0 {
-        imprime("u == 0.0\n")
+        imprime("u == 0.0\n");
     }
 
     {
-        c := u + 2.0
-        imprime("c = %\n", c)
+        c := u + 2.0;
+        imprime("c = %\n", c);
 
-        d := 2.0 + u
-        imprime("d = %\n", d)
+        d := 2.0 + u;
+        imprime("d = %\n", d);
     }
 
     {
-        c := u - 2.0
-        imprime("c = %\n", c)
+        c := u - 2.0;
+        imprime("c = %\n", c);
 
         // Ceci produit une erreur de compilation, car a - b != b - a
         // d := 2.0 - u
@@ -40,16 +40,16 @@ principale :: fonc ()
     }
 
     {
-        c := u * 2.0
-        imprime("c = %\n", c)
+        c := u * 2.0;
+        imprime("c = %\n", c);
 
-        d := 2.0 * u
-        imprime("d = %\n", d)
+        d := 2.0 * u;
+        imprime("d = %\n", d);
     }
 
     {
-        c := u / 2.0
-        imprime("c = %\n", c)
+        c := u / 2.0;
+        imprime("c = %\n", c);
 
         // Ceci produit une erreur de compilation, car a / b != b / a
         // d := 2.0 / u
@@ -57,8 +57,8 @@ principale :: fonc ()
     }
 
     {
-        u += 2.0
-        imprime("u = %\n", u)
+        u += 2.0;
+        imprime("u = %\n", u);
 
         // Ceci génère une erreur de compilation car nous ne pouvons pas assigner le résultat à la variable
         // e := 5.0

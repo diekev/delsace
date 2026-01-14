@@ -3,183 +3,183 @@
 // https://iquilezles.org/www/articles/floatingbar/floatingbar.htm
 
 NombreRationnel :: struct {
-    N: n32
-    D: n32
-    s: bool
+    N: n32;
+    D: n32;
+    s: bool;
 }
 
 construis_nombre_rationnel :: fonc (a: z32) -> NombreRationnel
 {
-    positif := vrai
+    positif := vrai;
     si a < 0 {
-        a = -a
-        positif = faux
+        a = -a;
+        positif = faux;
     }
 
-    retourne construis_nombre_rationnel(a comme n32, 1, positif)
+    retourne construis_nombre_rationnel(a comme n32, 1, positif);
 }
 
 construis_nombre_rationnel :: fonc (n: n32, d: n32, positif: bool) -> NombreRationnel
 {
-    r: NombreRationnel
-    r.N = n
-    r.D = d
-    r.s = !positif
+    r: NombreRationnel;
+    r.N = n;
+    r.D = d;
+    r.s = !positif;
 
-    retourne r
+    retourne r;
 }
 
 opérateur + :: (a: NombreRationnel, b: NombreRationnel) -> NombreRationnel
 {
     // augmente la taille des types pour éviter les problèmes de surflot
-    a_n := a.N comme n64
-    a_d := a.D comme n64
-    b_n := b.N comme n64
-    b_d := b.D comme n64
+    a_n := a.N comme n64;
+    a_d := a.D comme n64;
+    b_n := b.N comme n64;
+    b_d := b.D comme n64;
 
-    r_N: n64
-    r_N0 := a_n * b_d
-    r_N1 := a_d * b_n
+    r_N: n64;
+    r_N0 := a_n * b_d;
+    r_N1 := a_d * b_n;
 
-    r: NombreRationnel
+    r: NombreRationnel;
 
     si a.s == b.s {
-        r_N = r_N0 + r_N1
-        r.s = a.s
+        r_N = r_N0 + r_N1;
+        r.s = a.s;
     }
     sinon si r_N0 <= r_N1 {
-        r_N = r_N1 - r_N0
-        r.s = vrai
+        r_N = r_N1 - r_N0;
+        r.s = vrai;
     }
     sinon {
-        r_N = r_N0 - r_N1
-        r.s = vrai
+        r_N = r_N0 - r_N1;
+        r.s = vrai;
     }
 
-    r_D : n64 = a_d * b_d
+    r_D : n64 = a_d * b_d;
 
     // réduit la fraction selon le plus grand dénominateur commun,
     // afin d'éviter des problèmes de surflot
-    dc := pgdc(r_N, r_D)
+    dc := pgdc(r_N, r_D);
 
-    r_N = r_N / dc
-    r_D = r_D / dc
+    r_N = r_N / dc;
+    r_D = r_D / dc;
 
     // normalise en décalant les valeurs selon le nombre de bits 0 en fin de mot
-    nb_N := intrinsèque_compte_zéros_en_fin(r_N) comme n32
-    nb_D := intrinsèque_compte_zéros_en_fin(r_D) comme n32
+    nb_N := intrinsèque_compte_zéros_en_fin(r_N) comme n32;
+    nb_D := intrinsèque_compte_zéros_en_fin(r_D) comme n32;
 
     si nb_N != 0 && nb_D != 0 {
         si nb_N < nb_D {
-            r_N = r_N >> nb_N
-            r_D = r_D >> nb_N
+            r_N = r_N >> nb_N;
+            r_D = r_D >> nb_N;
         }
         sinon {
-            r_N = r_N >> nb_D
-            r_D = r_D >> nb_D
+            r_N = r_N >> nb_D;
+            r_D = r_D >> nb_D;
         }
     }
 
     // restaure la précision
-    r.N = r_N comme n32
-    r.D = r_D comme n32
+    r.N = r_N comme n32;
+    r.D = r_D comme n32;
 
-    retourne r
+    retourne r;
 }
 
 opérateur - :: (a: NombreRationnel, b: NombreRationnel) -> NombreRationnel
 {
-    tmp := b
-    tmp.s = !tmp.s
+    tmp := b;
+    tmp.s = !tmp.s;
 
-    retourne a + tmp
+    retourne a + tmp;
 }
 
 opérateur * :: (a: NombreRationnel, b: z32) -> NombreRationnel
 {
-    n := construis_nombre_rationnel(b)
-    retourne a * n
+    n := construis_nombre_rationnel(b);
+    retourne a * n;
 }
 
 opérateur * :: (a: NombreRationnel, b: NombreRationnel) -> NombreRationnel
 {
     // augmente la taille des types pour éviter les problèmes de surflot
-    a_n := a.N comme n64
-    a_d := a.D comme n64
-    b_n := b.N comme n64
-    b_d := b.D comme n64
+    a_n := a.N comme n64;
+    a_d := a.D comme n64;
+    b_n := b.N comme n64;
+    b_d := b.D comme n64;
 
-    r_N := a_n * b_n
-    r_D := a_d * b_d
+    r_N := a_n * b_n;
+    r_D := a_d * b_d;
 
     // réduit la fraction selon le plus grand dénominateur commun,
     // afin d'éviter des problèmes de surflot
-    dc := pgdc(r_N, r_D)
+    dc := pgdc(r_N, r_D);
 
-    r_N = r_N / dc
-    r_D = r_D / dc
+    r_N = r_N / dc;
+    r_D = r_D / dc;
 
     // normalise en décalant les valeurs selon le nombre de bits 0 en fin de mot
-    nb_N := intrinsèque_compte_zéros_en_fin(r_N) comme n32
-    nb_D := intrinsèque_compte_zéros_en_fin(r_D) comme n32
+    nb_N := intrinsèque_compte_zéros_en_fin(r_N) comme n32;
+    nb_D := intrinsèque_compte_zéros_en_fin(r_D) comme n32;
 
     si nb_N != 0 && nb_D != 0 {
         si nb_N < nb_D {
-            r_N = r_N >> nb_N
-            r_D = r_D >> nb_N
+            r_N = r_N >> nb_N;
+            r_D = r_D >> nb_N;
         }
         sinon {
-            r_N = r_N >> nb_D
-            r_D = r_D >> nb_D
+            r_N = r_N >> nb_D;
+            r_D = r_D >> nb_D;
         }
     }
 
-    r: NombreRationnel
+    r: NombreRationnel;
     // restaure la précision
-    r.N = r_N comme n32
-    r.D = r_D comme n32
-    r.s = (a.s || b.s) && !(a.s && b.s)
+    r.N = r_N comme n32;
+    r.D = r_D comme n32;
+    r.s = (a.s || b.s) && !(a.s && b.s);
 
-    retourne r
+    retourne r;
 }
 
 opérateur / :: (a: NombreRationnel, b: NombreRationnel) -> NombreRationnel
 {
-    tmp := b
-    tmp.N = b.D
-    tmp.D = b.N
+    tmp := b;
+    tmp.N = b.D;
+    tmp.D = b.N;
 
-    retourne a * tmp
+    retourne a * tmp;
 }
 
 opérateur / :: (a: NombreRationnel, b: z32) -> NombreRationnel
 {
-    positif := vrai
+    positif := vrai;
     si b < 0 {
-        b = -b
-        positif = faux
+        b = -b;
+        positif = faux;
     }
-    n : NombreRationnel = ---
-    n.N = 1
-    n.D = b comme n32
-    n.s = !positif
-    retourne a * n
+    n : NombreRationnel = ---;
+    n.N = 1;
+    n.D = b comme n32;
+    n.s = !positif;
+    retourne a * n;
 }
 
 imprime_nombre_rationnel :: fonc (enchaineuse: *Enchaineuse, a: *NombreRationnel)
 {
     saufsi a {
-        retourne
+        retourne;
     }
 
     si a.s {
-        ajoute_au_tampon(enchaineuse, "- ")
+        ajoute_au_tampon(enchaineuse, "- ");
     }
 
-    imprime_dans_enchaineuse(enchaineuse, "%", a.N)
+    imprime_dans_enchaineuse(enchaineuse, "%", a.N);
 
     si a.D != 1 {
-        imprime_dans_enchaineuse(enchaineuse, " / %", a.D)
+        imprime_dans_enchaineuse(enchaineuse, " / %", a.D);
     }
 } @FormattageImpression
 
@@ -188,15 +188,15 @@ pgdc_récursif :: fonc (u: n64, v: n64) -> n64
 {
     // cas simples (terminaison)
     si u == v {
-        retourne u
+        retourne u;
     }
 
     si u == 0 {
-        retourne v
+        retourne v;
     }
 
     si v == 0 {
-        retourne u
+        retourne u;
     }
 
     // cherche des facteurs de 2
@@ -204,52 +204,52 @@ pgdc_récursif :: fonc (u: n64, v: n64) -> n64
         // u est pair
         si (v & 1) != 0 {
             // v est impair
-            retourne pgdc_récursif(u >> 1, v)
+            retourne pgdc_récursif(u >> 1, v);
         }
 
-        retourne pgdc_récursif(u >> 1, v >> 1) << 1
+        retourne pgdc_récursif(u >> 1, v >> 1) << 1;
     }
 
     si (~v & 1) != 0 {
         // u est impair, v est pair
-        retourne pgdc_récursif(u, v >> 1)
+        retourne pgdc_récursif(u, v >> 1);
     }
 
     // réduis l'argument le plus grand
     si u > v {
-        retourne pgdc_récursif((u - v) >> 1, v)
+        retourne pgdc_récursif((u - v) >> 1, v);
     }
 
-    retourne pgdc_récursif((v - u) >> 1, u)
+    retourne pgdc_récursif((v - u) >> 1, u);
 }
 
 pgdc :: fonc (u: n64, v: n64) -> n64
 {
     si u == v {
-        retourne u
+        retourne u;
     }
 
     // GCD(0,v) == v GCD(u,0) == u, GCD(0,0) == 0
     si u == 0 {
-        retourne v
+        retourne v;
     }
 
     si v == 0 {
-        retourne u
+        retourne u;
     }
 
-    shift : n64 = 0
+    shift : n64 = 0;
 
     //Let shift := lg K, where K is the greatest power of 2
     // dividing both u and v.
     tantque ((u | v) & 1) == 0 {
-        shift = shift + 1
-        u = u >> 1
-        v = v >> 1
+        shift = shift + 1;
+        u = u >> 1;
+        v = v >> 1;
     }
 
     tantque (u & 1) == 0 {
-        u = u >> 1
+        u = u >> 1;
     }
 
     // From here on, u is always odd. */
@@ -257,7 +257,7 @@ pgdc :: fonc (u: n64, v: n64) -> n64
         // remove all factors of 2 in v -- they are not common */
         //   note: v is not zero, so while will terminate */
         tantque (v & 1) == 0 {
-            v = v >> 1
+            v = v >> 1;
         }
 
         // Now u and v are both odd. Swap if necessary so u <= v,
@@ -265,14 +265,14 @@ pgdc :: fonc (u: n64, v: n64) -> n64
         //     swapping is just pointer movement, and the subtraction
         //      can be done in-place. */
         si u > v {
-            t := v
-            v = u
-            u = t
+            t := v;
+            v = u;
+            u = t;
         }
 
         v = v - u // Here v >= u.
-    } tantque v != 0
+    } tantque v != 0;
 
     // restore common factors of 2 */
-    retourne u << shift
+    retourne u << shift;
 }

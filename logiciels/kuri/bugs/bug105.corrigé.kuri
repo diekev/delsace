@@ -4,7 +4,7 @@
  * Catégorie : [liaison programme, bibliothèque]
  */
 
-#dépendance_bibliothèque libc libm
+#dépendance_bibliothèque libc libm;
 
 principale :: fonc ()
 {

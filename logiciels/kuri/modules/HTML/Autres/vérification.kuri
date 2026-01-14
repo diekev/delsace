@@ -1,13 +1,13 @@
 /* Programme pour vérifier la validité d'un fichier HTML. */
 
-importe Chaine
-importe Compilatrice
-importe Fondation
-importe HTML
-JS :: importe JavaScript
-importe LigneDeCommande
-importe SysFichier
-importe Temps
+importe Chaine;
+importe Compilatrice;
+importe Fondation;
+importe HTML;
+JS :: importe JavaScript;
+importe LigneDeCommande;
+importe SysFichier;
+importe Temps;
 
 // #exécute compile_pour_production()
 // #exécute compile_pour_profilage()
@@ -48,74 +48,74 @@ importe Temps
  */
 
 ContexteVérification :: struct {
-    diagnositiques: [..]chaine
+    diagnositiques: [..]chaine;
 
-    possède_titre : bool
-    possède_charset : bool
-    possède_description : bool
-    possède_viewport : bool
+    possède_titre : bool;
+    possède_charset : bool;
+    possède_description : bool;
+    possède_viewport : bool;
 
     // Recommandé d'avoir un h1 par page pour aider les indexages.
     // Préfère utilise h1 à h6 au lieu de <p> partout
-    nombre_de_h1 : z32
-    nombre_de_h2 : z32
-    nombre_de_h3 : z32
-    nombre_de_h4 : z32
-    nombre_de_h5 : z32
-    nombre_de_h6 : z32
+    nombre_de_h1 : z32;
+    nombre_de_h2 : z32;
+    nombre_de_h3 : z32;
+    nombre_de_h4 : z32;
+    nombre_de_h5 : z32;
+    nombre_de_h6 : z32;
 
-    profondeur : z32
-    profondeur_max : z32
-    nombre_enfants_max : z32
-    nombre_éléments : z32
+    profondeur : z32;
+    profondeur_max : z32;
+    nombre_enfants_max : z32;
+    nombre_éléments : z32;
 }
 
 détruit_contexte_vérification :: fonc (contexte_vérification: &ContexteVérification)
 {
-    déloge(contexte_vérification.diagnositiques)
+    déloge(contexte_vérification.diagnositiques);
 }
 
 ajoute_diagnostique :: fonc (contexte_vérification: &ContexteVérification, chn: chaine)
 {
-    tableau_ajoute(*contexte_vérification.diagnositiques, chn)
+    tableau_ajoute(*contexte_vérification.diagnositiques, chn);
 }
 
 finalise_diagnostiques :: fonc (contexte_vérification: &ContexteVérification)
 {
     saufsi contexte_vérification.possède_titre {
-        contexte_vérification.ajoute_diagnostique("Le document ne possède pas de titre !")
+        contexte_vérification.ajoute_diagnostique("Le document ne possède pas de titre !");
     }
 
     saufsi contexte_vérification.possède_charset {
-        contexte_vérification.ajoute_diagnostique("Le document ne possède pas de charset !")
+        contexte_vérification.ajoute_diagnostique("Le document ne possède pas de charset !");
     }
 
     saufsi contexte_vérification.possède_description {
-        contexte_vérification.ajoute_diagnostique("Le document ne possède pas de description !")
+        contexte_vérification.ajoute_diagnostique("Le document ne possède pas de description !");
     }
 
     saufsi contexte_vérification.possède_viewport {
-        contexte_vérification.ajoute_diagnostique("Le document ne possède pas de viewport !")
+        contexte_vérification.ajoute_diagnostique("Le document ne possède pas de viewport !");
     }
 
     si contexte_vérification.nombre_de_h1 == 0 {
-        contexte_vérification.ajoute_diagnostique("Le document ne possède aucun h1 !")
+        contexte_vérification.ajoute_diagnostique("Le document ne possède aucun h1 !");
     }
     sinon si contexte_vérification.nombre_de_h1 > 1 {
-        contexte_vérification.ajoute_diagnostique("Le document possède plusieurs h1 !")
+        contexte_vérification.ajoute_diagnostique("Le document possède plusieurs h1 !");
     }
 
     // Valeurs de LightHouse
     si contexte_vérification.nombre_éléments >= 1500 {
-        contexte_vérification.ajoute_diagnostique("Trop d'éléments dans le DOM !")
+        contexte_vérification.ajoute_diagnostique("Trop d'éléments dans le DOM !");
     }
 
     si contexte_vérification.profondeur_max >= 32 {
-        contexte_vérification.ajoute_diagnostique("Taille de l'arbre trop élévé !")
+        contexte_vérification.ajoute_diagnostique("Taille de l'arbre trop élévé !");
     }
 
     si contexte_vérification.nombre_enfants_max >= 60 {
-        contexte_vérification.ajoute_diagnostique("Nombre d'enfants trop grand !")
+        contexte_vérification.ajoute_diagnostique("Nombre d'enfants trop grand !");
     }
 }
 
@@ -125,16 +125,16 @@ vérifie_noeud :: fonc (contexte_vérification: &ContexteVérification, noeud: *
         // RÀF pour le moment
     }
     sinon si noeud.genre == HTML.GenreNoeud.Element {
-        élément := noeud comme *Element
+        élément := noeud comme *Element;
 
-        contexte_vérification.nombre_éléments += 1
+        contexte_vérification.nombre_éléments += 1;
 
         si contexte_vérification.nombre_enfants_max < élément.enfants.taille {
-            contexte_vérification.nombre_enfants_max = élément.enfants.taille comme z32
+            contexte_vérification.nombre_enfants_max = élément.enfants.taille comme z32;
         }
 
         si contexte_vérification.profondeur_max < contexte_vérification.profondeur {
-            contexte_vérification.profondeur_max = contexte_vérification.profondeur
+            contexte_vérification.profondeur_max = contexte_vérification.profondeur;
         }
 
         si élément.local_name == TAG_html {
@@ -142,49 +142,49 @@ vérifie_noeud :: fonc (contexte_vérification: &ContexteVérification, noeud: *
 
             // Vérifie s'il y a un attribut lang
             // Voir aussi https://www.w3.org/International/geo/html-tech/tech-lang.html#ri20030510.102829377
-            possède_lang := faux
+            possède_lang := faux;
             pour élément.attributs {
                 si it.local_name == ATTR_lang {
-                    possède_lang = vrai
+                    possède_lang = vrai;
                     // À FAIRE : vérifie que le langage est valide
                     // https://www.w3.org/International/geo/html-tech/tech-lang.html#ri20030218.131140352
                 }
             }
 
             saufsi possède_lang {
-                contexte_vérification.ajoute_diagnostique("Le tag <html> ne possède pas d'attribut 'lang' pour déclarer le langage princapal du document")
+                contexte_vérification.ajoute_diagnostique("Le tag <html> ne possède pas d'attribut 'lang' pour déclarer le langage princapal du document");
             }
         }
         sinon si élément.local_name == TAG_title {
-            texte := donne_contenu_texte_descandants(élément)
+            texte := donne_contenu_texte_descandants(élément);
             si texte.taille() != 0 {
-                contexte_vérification.possède_titre = vrai
+                contexte_vérification.possède_titre = vrai;
             }
-            détruit_chaine(texte)
+            détruit_chaine(texte);
         }
         sinon si élément.local_name == TAG_meta {
-            attr_charset := élément.cherche_attribut(ATTR_charset)
-            attr_name := élément.cherche_attribut(ATTR_name)
-            attr_content := élément.cherche_attribut(ATTR_content)
-            attr_http_equiv := élément.cherche_attribut(ATTR_http_equiv)
+            attr_charset := élément.cherche_attribut(ATTR_charset);
+            attr_name := élément.cherche_attribut(ATTR_name);
+            attr_content := élément.cherche_attribut(ATTR_content);
+            attr_http_equiv := élément.cherche_attribut(ATTR_http_equiv);
 
             si attr_charset {
                 // À FAIRE : vérifie que le charset est valide
-                contexte_vérification.possède_charset = vrai
+                contexte_vérification.possède_charset = vrai;
             }
 
             si attr_name {
                 si attr_name.valeur == ATTR_description {
-                    contexte_vérification.possède_description = vrai
+                    contexte_vérification.possède_description = vrai;
                     saufsi attr_content {
-                        contexte_vérification.ajoute_diagnostique("Aucune description pour le document bien qu'une balise méta de description existe !")
+                        contexte_vérification.ajoute_diagnostique("Aucune description pour le document bien qu'une balise méta de description existe !");
                     }
                 }
                 sinon si attr_name.valeur == ATTR_viewport {
                     // <meta name="viewport" content="width=device-width, initial-scale=1.0">
-                    contexte_vérification.possède_viewport = vrai
+                    contexte_vérification.possède_viewport = vrai;
                     saufsi attr_content {
-                        contexte_vérification.ajoute_diagnostique("Aucun contenu pour la balise viewport")
+                        contexte_vérification.ajoute_diagnostique("Aucun contenu pour la balise viewport");
                     }
                 }
                 // À FAIRE : meta name="robots"
@@ -195,188 +195,188 @@ vérifie_noeud :: fonc (contexte_vérification: &ContexteVérification, noeud: *
 
             si attr_http_equiv {
                 si attr_name {
-                    contexte_vérification.ajoute_diagnostique("Balise meta avec [name] et [http-equiv], [name] sera ignoré")
+                    contexte_vérification.ajoute_diagnostique("Balise meta avec [name] et [http-equiv], [name] sera ignoré");
                 }
 
                 si attr_http_equiv.valeur == ATTR_refresh {
                     // https://web.dev/meta-refresh/?utm_source=lighthouse&utm_medium=devtools
-                    contexte_vérification.ajoute_diagnostique("Balise meta avec [http-equiv=refresh], préférez utiliser Javascript pour rafraîchir la page")
+                    contexte_vérification.ajoute_diagnostique("Balise meta avec [http-equiv=refresh], préférez utiliser Javascript pour rafraîchir la page");
                 }
             }
 
         }
         // http://html5doctor.com/i-b-em-strong-element/
         sinon si élément.local_name == TAG_i {
-            contexte_vérification.ajoute_diagnostique("<i> rencontré, préférez utiliser <em>")
+            contexte_vérification.ajoute_diagnostique("<i> rencontré, préférez utiliser <em>");
         }
         sinon si élément.local_name == TAG_b {
-            contexte_vérification.ajoute_diagnostique("<b> rencontré, préférez utiliser <strong>")
+            contexte_vérification.ajoute_diagnostique("<b> rencontré, préférez utiliser <strong>");
         }
         sinon si élément.local_name == TAG_br {
             // À FAIRE : vérifie si nous sommes dans un <p>, c'est ok pour les formulaires pour séparer les labels des entrées, mais pas pour la mise en style de texte
-            contexte_vérification.ajoute_diagnostique("<br/> rencontré, préférez utiliser CSS pour la mise en style")
+            contexte_vérification.ajoute_diagnostique("<br/> rencontré, préférez utiliser CSS pour la mise en style");
         }
         sinon si élément.local_name == TAG_blink {
-            contexte_vérification.ajoute_diagnostique("<blink> rencontré, préférez utiliser CSS pour la mise en style")
+            contexte_vérification.ajoute_diagnostique("<blink> rencontré, préférez utiliser CSS pour la mise en style");
         }
         sinon si élément.local_name == TAG_big {
-            contexte_vérification.ajoute_diagnostique("<big> rencontré, préférez utiliser CSS pour la mise en style")
+            contexte_vérification.ajoute_diagnostique("<big> rencontré, préférez utiliser CSS pour la mise en style");
         }
         sinon si élément.local_name == TAG_center {
-            contexte_vérification.ajoute_diagnostique("<center> rencontré, préférez utiliser CSS pour la mise en style")
+            contexte_vérification.ajoute_diagnostique("<center> rencontré, préférez utiliser CSS pour la mise en style");
         }
         sinon si élément.local_name == TAG_strike {
-            contexte_vérification.ajoute_diagnostique("<strike> rencontré, préférez utiliser CSS pour la mise en style")
+            contexte_vérification.ajoute_diagnostique("<strike> rencontré, préférez utiliser CSS pour la mise en style");
         }
         sinon si élément.local_name == TAG_img {
-            possède_hauteur := élément.cherche_attribut(ATTR_height)
-            possède_largeur := élément.cherche_attribut(ATTR_width)
-            possède_alt := élément.cherche_attribut(ATTR_alt)
+            possède_hauteur := élément.cherche_attribut(ATTR_height);
+            possède_largeur := élément.cherche_attribut(ATTR_width);
+            possède_alt := élément.cherche_attribut(ATTR_alt);
 
             saufsi possède_hauteur {
-                contexte_vérification.ajoute_diagnostique("<img> sans attribut de hauteur")
+                contexte_vérification.ajoute_diagnostique("<img> sans attribut de hauteur");
             }
 
             saufsi possède_largeur {
-                contexte_vérification.ajoute_diagnostique("<img> sans attribut de largeur")
+                contexte_vérification.ajoute_diagnostique("<img> sans attribut de largeur");
             }
 
             saufsi possède_alt {
-                contexte_vérification.ajoute_diagnostique("<img> sans attribut alt")
+                contexte_vérification.ajoute_diagnostique("<img> sans attribut alt");
             }
         }
         sinon si élément.local_name == TAG_a {
-            possède_titre := élément.cherche_attribut(ATTR_title)
-            possède_href := élément.cherche_attribut(ATTR_href)
+            possède_titre := élément.cherche_attribut(ATTR_title);
+            possède_href := élément.cherche_attribut(ATTR_href);
 
             saufsi possède_titre {
-                contexte_vérification.ajoute_diagnostique("<a> sans attribut de titre")
+                contexte_vérification.ajoute_diagnostique("<a> sans attribut de titre");
             }
 
-            texte_ancre := donne_contenu_texte_descandants(élément)
-            diffère détruit_chaine(texte_ancre)
+            texte_ancre := donne_contenu_texte_descandants(élément);
+            diffère détruit_chaine(texte_ancre);
 
             si possède_titre && texte_ancre == possède_titre.valeur {
-                contexte_vérification.ajoute_diagnostique("<a> avec un titre et un texte similaire")
+                contexte_vérification.ajoute_diagnostique("<a> avec un titre et un texte similaire");
             }
 
             saufsi texte_ancre.taille() != 0 {
-                contexte_vérification.ajoute_diagnostique("<a> sans texte")
+                contexte_vérification.ajoute_diagnostique("<a> sans texte");
             }
 
             saufsi possède_href {
-                contexte_vérification.ajoute_diagnostique("<a> sans href")
+                contexte_vérification.ajoute_diagnostique("<a> sans href");
             }
         }
         sinon si élément.local_name == TAG_form {
-            fieldset := élément.enfant_directe_avec_balise(TAG_fieldset)
+            fieldset := élément.enfant_directe_avec_balise(TAG_fieldset);
 
             saufsi fieldset {
-                contexte_vérification.ajoute_diagnostique("<form> sans <fieldset>")
+                contexte_vérification.ajoute_diagnostique("<form> sans <fieldset>");
             }
             sinon {
-                legend := fieldset.enfant_directe_avec_balise(TAG_legend)
+                legend := fieldset.enfant_directe_avec_balise(TAG_legend);
 
                 saufsi legend {
-                    contexte_vérification.ajoute_diagnostique("<fieldset> sans <legend>")
+                    contexte_vérification.ajoute_diagnostique("<fieldset> sans <legend>");
                 }
             }
 
             // À FAIRE : vérifie que les inputs ont des labels
         }
         sinon si élément.local_name == TAG_base {
-            contexte_vérification.ajoute_diagnostique("<base> rencontré, veuillez utiliser des liens absolus")
+            contexte_vérification.ajoute_diagnostique("<base> rencontré, veuillez utiliser des liens absolus");
         }
         sinon si élément.local_name == TAG_h1 {
-            contexte_vérification.nombre_de_h1 += 1
+            contexte_vérification.nombre_de_h1 += 1;
         }
         sinon si élément.local_name == TAG_h2 {
-            contexte_vérification.nombre_de_h2 += 1
+            contexte_vérification.nombre_de_h2 += 1;
         }
         sinon si élément.local_name == TAG_h3 {
-            contexte_vérification.nombre_de_h3 += 1
+            contexte_vérification.nombre_de_h3 += 1;
         }
         sinon si élément.local_name == TAG_h4 {
-            contexte_vérification.nombre_de_h4 += 1
+            contexte_vérification.nombre_de_h4 += 1;
         }
         sinon si élément.local_name == TAG_h5 {
-            contexte_vérification.nombre_de_h5 += 1
+            contexte_vérification.nombre_de_h5 += 1;
         }
         sinon si élément.local_name == TAG_h6 {
-            contexte_vérification.nombre_de_h6 += 1
+            contexte_vérification.nombre_de_h6 += 1;
         }
         // À CONSIDÉRER : inutile de mettre un type dans style ou script
 
-        contexte_vérification.profondeur += 1
+        contexte_vérification.profondeur += 1;
         pour élément.enfants {
-            vérifie_noeud(contexte_vérification, it)
+            vérifie_noeud(contexte_vérification, it);
         }
-        contexte_vérification.profondeur -= 1
+        contexte_vérification.profondeur -= 1;
     }
     sinon si noeud.genre == HTML.GenreNoeud.DocumentType {
         // RÀF pour le moment
     }
     sinon si noeud.genre == HTML.GenreNoeud.Document {
-        contexte_vérification.profondeur += 1
+        contexte_vérification.profondeur += 1;
         pour noeud.enfants {
-            vérifie_noeud(contexte_vérification, it)
+            vérifie_noeud(contexte_vérification, it);
         }
-        contexte_vérification.profondeur -= 1
+        contexte_vérification.profondeur -= 1;
     }
 }
 
 principale :: fonc ()
 {
-    chemin := parse_argument_chemin()
+    chemin := parse_argument_chemin();
     saufsi chemin {
-        exit(1)
+        exit(1);
     }
 
-    chm := CheminFichier(chemin)
+    chm := CheminFichier(chemin);
 
     saufsi est_fichier_html(chm) {
-        imprime("Le chemin '%' n'a pas l'air de pointer vers un fichier HTML !\n", chemin)
-        exit(1)
+        imprime("Le chemin '%' n'a pas l'air de pointer vers un fichier HTML !\n", chemin);
+        exit(1);
     }
 
-    diffère imprime("Mémoire utilisée : %o\n", mémoire_utilisée())
-    diffère détruit_chaines_internées()
+    diffère imprime("Mémoire utilisée : %o\n", mémoire_utilisée());
+    diffère détruit_chaines_internées();
 
-    _, contenu := contenu_fichier_texte(chm.chn)
-    diffère déloge(contenu)
+    _, contenu := contenu_fichier_texte(chm.chn);
+    diffère déloge(contenu);
 
-    mv: JS.MachineVirtuelle
-    JS.initialise_mv(nul, *mv)
-    diffère JS.détruit_données_mv(*mv)
+    mv: JS.MachineVirtuelle;
+    JS.initialise_mv(nul, *mv);
+    diffère JS.détruit_données_mv(*mv);
 
-    début := maintenant_précis()
-    parsat := parse_document(JS.donne_tas_de_mémoire(*mv), contenu)
-    diffère détruit(parsat)
+    début := maintenant_précis();
+    parsat := parse_document(JS.donne_tas_de_mémoire(*mv), contenu);
+    diffère détruit(parsat);
 
-    contexte_vérification: ContexteVérification
-    diffère détruit_contexte_vérification(contexte_vérification)
+    contexte_vérification: ContexteVérification;
+    diffère détruit_contexte_vérification(contexte_vérification);
 
-    vérifie_noeud(contexte_vérification, parsat.document)
-    finalise_diagnostiques(contexte_vérification)
-    temps := début.temps_écoulé_microsecondes()
+    vérifie_noeud(contexte_vérification, parsat.document);
+    finalise_diagnostiques(contexte_vérification);
+    temps := début.temps_écoulé_microsecondes();
 
-    possède_erreurs := parsat.erreurs || contexte_vérification.diagnositiques
+    possède_erreurs := parsat.erreurs || contexte_vérification.diagnositiques;
 
     si parsat.erreurs {
         pour parsat.erreurs {
-            imprime("%\n", it)
+            imprime("%\n", it);
         }
     }
 
     si contexte_vérification.diagnositiques {
         pour contexte_vérification.diagnositiques {
-            imprime("%\n", it)
+            imprime("%\n", it);
         }
     }
 
     si possède_erreurs {
-        exit(1)
+        exit(1);
     }
 
-    imprime("Durée de travail : %µ\n", FormatEntier(temps, séparation=3))
+    imprime("Durée de travail : %µ\n", FormatEntier(temps, séparation=3));
 }

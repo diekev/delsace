@@ -1,120 +1,120 @@
-importe Fondation
-importe Math
+importe Fondation;
+importe Math;
 
 calcule_intérêts_in_fine :: fonc (valeur_présente: z32, taux_d_intérêt: r32, nombre_de_paiements_par_années: z32, nombre_d_années: z32) -> r32
 {
-    vp := valeur_présente comme r32
-    n := nombre_de_paiements_par_années comme r32
-    t := nombre_d_années comme r32
-    i := taux_d_intérêt
+    vp := valeur_présente comme r32;
+    n := nombre_de_paiements_par_années comme r32;
+    t := nombre_d_années comme r32;
+    i := taux_d_intérêt;
 
     // calcule les intérêts
-    intérêts := vp * i * t
+    intérêts := vp * i * t;
 
-    imprime("vp * i = %\n", vp * i)
-    imprime("n = %\n", n)
-    imprime("vp * i * n = %\n", vp * i * n)
-    imprime("intérêts = %\n", intérêts)
+    imprime("vp * i = %\n", vp * i);
+    imprime("n = %\n", n);
+    imprime("vp * i * n = %\n", vp * i * n);
+    imprime("intérêts = %\n", intérêts);
 
-    retourne vp + intérêts
+    retourne vp + intérêts;
 }
 
 // https://www.investopedia.com/terms/c/cumulative_interest.asp
 calcule_intérêts_cumulés :: fonc (valeur_présente: z32, taux_d_intérêt: r32, nombre_de_paiements_par_années: z32, nombre_d_années: z32) -> r32
 {
-    vp := valeur_présente comme r32
-    n := nombre_de_paiements_par_années comme r32
-    t := nombre_d_années comme r32
-    i := taux_d_intérêt
+    vp := valeur_présente comme r32;
+    n := nombre_de_paiements_par_années comme r32;
+    t := nombre_d_années comme r32;
+    i := taux_d_intérêt;
 
-    imprime("vp = %\n", vp)
-    imprime("i / n = %\n", i / n)
-    imprime("t * n = %\n", t * n)
-    imprime("(i / n) ^ (t * n) = %\n", puissance((i / n), (t * n)))
+    imprime("vp = %\n", vp);
+    imprime("i / n = %\n", i / n);
+    imprime("t * n = %\n", t * n);
+    imprime("(i / n) ^ (t * n) = %\n", puissance((i / n), (t * n)));
 
-    retourne vp * puissance(1.0 + (i / n), (t * n))
+    retourne vp * puissance(1.0 + (i / n), (t * n));
 }
 
 calcule_intérêts_composés :: fonc (valeur_présente: z32, taux_d_intérêt: r32, nombre_de_paiements_par_années: z32, nombre_d_années: z32) -> r32
 {
-    vp := valeur_présente comme r32
-    t := nombre_d_années comme r32
-    i := taux_d_intérêt
+    vp := valeur_présente comme r32;
+    t := nombre_d_années comme r32;
+    i := taux_d_intérêt;
 
-    imprime("vp = %\n", vp)
-    imprime("t * (1.0 + i) = %\n", t * (1.0 + i))
+    imprime("vp = %\n", vp);
+    imprime("t * (1.0 + i) = %\n", t * (1.0 + i));
 
     //retourne vp * (t * (1.0 + i) - 1.0)
-    retourne vp * t * (1.0 + i) - vp
+    retourne vp * t * (1.0 + i) - vp;
 }
 
 // https://www.pretto.fr/taux-immobilier/cout-credit-immobilier/calcul-interet/
 cacule_mensualité :: fonc (valeur_présente: z32, taux_d_intérêt: r32, nombre_de_paiements_par_années: z32, nombre_d_années: z32) -> r32
 {
-    vp := valeur_présente comme r32
-    n := nombre_de_paiements_par_années comme r32
-    t := nombre_d_années comme r32
-    i := taux_d_intérêt
+    vp := valeur_présente comme r32;
+    n := nombre_de_paiements_par_années comme r32;
+    t := nombre_d_années comme r32;
+    i := taux_d_intérêt;
 
-    numérateur := vp * i / n
+    numérateur := vp * i / n;
 
-    dénominateur := 1.0 - puissance((1.0 + i / n), -n * t)
+    dénominateur := 1.0 - puissance((1.0 + i / n), -n * t);
 
-    retourne numérateur / dénominateur
+    retourne numérateur / dénominateur;
 }
 
 capital_depuis_mensualité :: fonc (mensualité: r32, t: r32, n: r32) -> r32
 {
-    retourne (mensualité * puissance(1.0 - (1.0 + t / 12.0), -n)) / (t / 12.0)
+    retourne (mensualité * puissance(1.0 - (1.0 + t / 12.0), -n)) / (t / 12.0);
 }
 
 mensualité_depuis_capital :: fonc (capital: r32, t: r32, n: r32) -> r32
 {
-    retourne (capital * t / 12.0) / puissance(1.0 - (1.0 + t / 12.0), -n)
+    retourne (capital * t / 12.0) / puissance(1.0 - (1.0 + t / 12.0), -n);
 }
 
 calcule_paiement_mensuel :: fonc (emprunt: r32, interêt: r32, durée: z32) -> r32
 {
-    somme := emprunt * interêt
-    temp := somme
-    somme_totale := 0.0
+    somme := emprunt * interêt;
+    temp := somme;
+    somme_totale := 0.0;
 
     pour durée {
-        paiement = temp / (durée - it) comme r32
+        paiement = temp / (durée - it) comme r32;
 
-        temp -= paiement
-        temp *= interêt
+        temp -= paiement;
+        temp *= interêt;
 
-        somme_totale += paiement
+        somme_totale += paiement;
     }
 
-    retourne somme_totale / durée
+    retourne somme_totale / durée;
 }
 
 test_module_finance :: fonc ()
 {
-    valeur_présente : z32 = 100_000
-    taux_d_intérêt : r32 = 0.042
-    nombre_de_paiements_par_années : z32 = 12
-    nombre_d_années : z32 = 10
+    valeur_présente : z32 = 100_000;
+    taux_d_intérêt : r32 = 0.042;
+    nombre_de_paiements_par_années : z32 = 12;
+    nombre_d_années : z32 = 10;
 
-    ic := calcule_intérêts_cumulés(valeur_présente, taux_d_intérêt, nombre_de_paiements_par_années, nombre_d_années)
+    ic := calcule_intérêts_cumulés(valeur_présente, taux_d_intérêt, nombre_de_paiements_par_années, nombre_d_années);
 
-    imprime("paiements cumulés sur le prêt : %\n", ic)
+    imprime("paiements cumulés sur le prêt : %\n", ic);
 
-    ic = calcule_intérêts_in_fine(valeur_présente, taux_d_intérêt, nombre_de_paiements_par_années, nombre_d_années)
+    ic = calcule_intérêts_in_fine(valeur_présente, taux_d_intérêt, nombre_de_paiements_par_années, nombre_d_années);
 
-    imprime("paiements in fine sur le prêt : %\n", ic)
+    imprime("paiements in fine sur le prêt : %\n", ic);
 
-    ic = calcule_intérêts_composés(10_000, 0.05, 1, 5)
+    ic = calcule_intérêts_composés(10_000, 0.05, 1, 5);
 
-    imprime("paiements composés sur le prêt : %\n", ic)
+    imprime("paiements composés sur le prêt : %\n", ic);
 
     // --------------
 
-    m := cacule_mensualité(300_000, 0.012, 4, 20)
+    m := cacule_mensualité(300_000, 0.012, 4, 20);
 
-    imprime("mensualité : %\n", m)
+    imprime("mensualité : %\n", m);
 
     imprime("%\n", mensualité_depuis_capital(16000.0, 0.0425, 60)) // 295.42
     imprime("%\n", mensualité_depuis_capital(3400.0, 0.0425, 60)) // 62.78

@@ -1,109 +1,109 @@
-importe Fondation
-importe Ordinatrice
-importe Sérialisation
-importe SysFichier
+importe Fondation;
+importe Ordinatrice;
+importe Sérialisation;
+importe SysFichier;
 
 /* ------------------------------------------------------------------------- */
 /** \nom FluxOctetsMémoire
  * \{ */
 
 FluxOctets :: struct {
-    sur_positionne: fonc (flux: *FluxOctets, position: PositionFichier)
-    sur_lis: fonc (flux: *FluxOctets, données: []octet) -> z64
-    sur_ferme: fonc (flux: *FluxOctets)
-    sur_est_à_la_fin: fonc (flux: *FluxOctets) -> bool
-    sur_destruction: fonc (flux: *FluxOctets)
-    sur_donne_position: fonc (flux: *FluxOctets) -> PositionFichier
+    sur_positionne: fonc (flux: *FluxOctets, position: PositionFichier);
+    sur_lis: fonc (flux: *FluxOctets, données: []octet) -> z64;
+    sur_ferme: fonc (flux: *FluxOctets);
+    sur_est_à_la_fin: fonc (flux: *FluxOctets) -> bool;
+    sur_destruction: fonc (flux: *FluxOctets);
+    sur_donne_position: fonc (flux: *FluxOctets) -> PositionFichier;
 }
 
 détruit :: fonc (flux: *FluxOctets)
 {
     si flux {
-        ferme(flux)
-        flux.sur_destruction(flux)
+        ferme(flux);
+        flux.sur_destruction(flux);
     }
 }
 
 ferme :: fonc (flux: *FluxOctets)
 {
     si flux.sur_ferme {
-        flux.sur_ferme(flux)
+        flux.sur_ferme(flux);
     }
 }
 
 est_valide :: fonc (flux: *FluxOctets) -> bool
 {
-    retourne flux.sur_est_à_la_fin(flux) == faux
+    retourne flux.sur_est_à_la_fin(flux) == faux;
 }
 
 est_à_la_fin :: fonc (flux: *FluxOctets) -> bool
 {
-    retourne flux.sur_est_à_la_fin(flux)
+    retourne flux.sur_est_à_la_fin(flux);
 }
 
 positionne :: fonc (flux: *FluxOctets, position: PositionFichier)
 {
     si flux.sur_positionne {
-        flux.sur_positionne(flux, position)
+        flux.sur_positionne(flux, position);
     }
 }
 
 donne_position :: fonc (flux: *FluxOctets) -> PositionFichier
 {
-    retourne flux.sur_donne_position(flux)
+    retourne flux.sur_donne_position(flux);
 }
 
 lis :: fonc (flux: *FluxOctets, tampon: []octet) -> z64
 {
-    retourne flux.sur_lis(flux, tampon)
+    retourne flux.sur_lis(flux, tampon);
 }
 
 lis :: fonc (flux: *FluxOctets, position: PositionFichier, tampon: []octet) -> z64
 {
-    positionne(flux, position)
-    retourne lis(flux, tampon)
+    positionne(flux, position);
+    retourne lis(flux, tampon);
 }
 
 lis_grand_boutisme :: fonc (flux: *FluxOctets, $T: type_de_données) -> (T, z64)
 {
-    résultat: T
-    taille_lue := flux.lis(résultat)
+    résultat: T;
+    taille_lue := flux.lis(résultat);
     #si taille_de(T) != 1 {
-        commute_boutisme(*résultat)
+        commute_boutisme(*résultat);
     }
-    retourne résultat, taille_lue
+    retourne résultat, taille_lue;
 }
 
 lis_grand_boutisme :: fonc (flux: *FluxOctets, position: PositionFichier, $T: type_de_données) -> (T, z64)
 {
-    positionne(flux, position)
-    retourne lis_grand_boutisme(flux, T)
+    positionne(flux, position);
+    retourne lis_grand_boutisme(flux, T);
 }
 
 lis_petit_boutisme :: fonc (flux: *FluxOctets, $T: type_de_données) -> (T, z64)
 {
-    résultat: T
-    taille_lue := flux.lis(résultat)
-    retourne résultat, taille_lue
+    résultat: T;
+    taille_lue := flux.lis(résultat);
+    retourne résultat, taille_lue;
 }
 
 lis_petit_boutisme :: fonc (flux: *FluxOctets, position: PositionFichier, $T: type_de_données) -> (T, z64)
 {
-    positionne(flux, position)
-    retourne lis_petit_boutisme(flux, T)
+    positionne(flux, position);
+    retourne lis_petit_boutisme(flux, T);
 }
 
 lis_structure :: fonc (flux: *FluxOctets, $T: type_de_données) -> (bool, T)
 {
-    résultat: T
-    taille_lue := lis(flux, résultat)
-    retourne taille_lue == taille_de(T) comme z64, résultat
+    résultat: T;
+    taille_lue := lis(flux, résultat);
+    retourne taille_lue == taille_de(T) comme z64, résultat;
 }
 
 lis_structure :: fonc (flux: *FluxOctets, position: PositionFichier, $T: type_de_données) -> (bool, T)
 {
-    positionne(flux, position)
-    retourne lis_structure(flux, T)
+    positionne(flux, position);
+    retourne lis_structure(flux, T);
 }
 
 /** \} */
@@ -113,152 +113,152 @@ lis_structure :: fonc (flux: *FluxOctets, position: PositionFichier, $T: type_de
  * \{ */
 
 FluxOctetsMémoire :: struct {
-    empl base: FluxOctets
+    empl base: FluxOctets;
 
-    octets: []octet
-    curseur: []octet
+    octets: []octet;
+    curseur: []octet;
 }
 
 crée_flux_octets :: fonc (octets: []octet) -> *FluxOctetsMémoire
 {
-    résultat := loge(FluxOctetsMémoire)
-    initialise_flux_octets_mémoire(résultat, octets)
-    retourne résultat
+    résultat := loge(FluxOctetsMémoire);
+    initialise_flux_octets_mémoire(résultat, octets);
+    retourne résultat;
 }
 
 initialise_flux_octets_mémoire :: fonc (résultat: *FluxOctetsMémoire, octets: []octet)
 {
-    résultat.sur_lis = flux_octets_mémoire_lis
-    résultat.sur_positionne = flux_octets_mémoire_positionne
-    résultat.sur_est_à_la_fin = flux_octets_mémoire_est_à_la_fin
-    résultat.sur_destruction = flux_octets_mémoire_sur_destruction
-    résultat.sur_donne_position = flux_octets_mémoire_donne_position
-    résultat.octets = octets
-    résultat.curseur = octets
+    résultat.sur_lis = flux_octets_mémoire_lis;
+    résultat.sur_positionne = flux_octets_mémoire_positionne;
+    résultat.sur_est_à_la_fin = flux_octets_mémoire_est_à_la_fin;
+    résultat.sur_destruction = flux_octets_mémoire_sur_destruction;
+    résultat.sur_donne_position = flux_octets_mémoire_donne_position;
+    résultat.octets = octets;
+    résultat.curseur = octets;
 }
 
 flux_octets_mémoire_sur_destruction :: fonc (flux: *FluxOctetsMémoire)
 {
-    déloge(flux)
+    déloge(flux);
 }
 
 flux_octets_mémoire_est_à_la_fin :: fonc (flux: *FluxOctetsMémoire) -> bool
 {
-    retourne flux.curseur.taille == 0
+    retourne flux.curseur.taille == 0;
 }
 
 flux_octets_mémoire_positionne :: fonc (flux: *FluxOctetsMémoire, position: PositionFichier)
 {
     discr position {
         Début(pos) {
-            flux.curseur = tableau_avance(flux.octets, pos comme z64)
+            flux.curseur = tableau_avance(flux.octets, pos comme z64);
         }
         Fin(pos) {
-            flux.curseur = tableau_avance(flux.octets, flux.octets.taille + pos comme z64)
+            flux.curseur = tableau_avance(flux.octets, flux.octets.taille + pos comme z64);
         }
         Décalage(pos) {
-            flux.curseur = tableau_avance(flux.curseur, pos comme z64)
+            flux.curseur = tableau_avance(flux.curseur, pos comme z64);
         }
         sinon {}
     }
 
     si flux.curseur.taille <= 0 {
-        flux.curseur.pointeur = nul
-        flux.curseur.taille = 0
+        flux.curseur.pointeur = nul;
+        flux.curseur.taille = 0;
     }
 }
 
 flux_octets_mémoire_donne_position :: fonc (flux: *FluxOctetsMémoire) -> PositionFichier
 {
-    delta := flux.curseur.pointeur - flux.octets.pointeur
-    retourne PositionDébut(delta)
+    delta := flux.curseur.pointeur - flux.octets.pointeur;
+    retourne PositionDébut(delta);
 }
 
 flux_octets_mémoire_lis :: fonc (base: *FluxOctets, tampon: []octet) -> z64
 {
-    flux := base comme *FluxOctetsMémoire
+    flux := base comme *FluxOctetsMémoire;
 
-    taille_à_lire := tampon.taille
+    taille_à_lire := tampon.taille;
     si taille_à_lire > flux.curseur.taille {
-        taille_à_lire = flux.curseur.taille
+        taille_à_lire = flux.curseur.taille;
     }
 
-    copie_mem_nonsur(src = flux.curseur.pointeur, dst = tampon.pointeur, taille = taille_à_lire)
+    copie_mem_nonsur(src = flux.curseur.pointeur, dst = tampon.pointeur, taille = taille_à_lire);
 
-    flux.curseur = tableau_avance(flux.curseur, taille_à_lire)
+    flux.curseur = tableau_avance(flux.curseur, taille_à_lire);
 
-    retourne taille_à_lire
+    retourne taille_à_lire;
 }
 
 lis_chaine_nul_terminée :: fonc (flux: *FluxOctetsMémoire) -> chaine
 {
-    résultat: chaine
+    résultat: chaine;
 
     si flux.curseur.taille {
-        résultat.pointeur = flux.curseur.pointeur comme *z8
+        résultat.pointeur = flux.curseur.pointeur comme *z8;
 
-        curseur := flux.curseur.pointeur
-        fin := curseur + flux.curseur.taille
+        curseur := flux.curseur.pointeur;
+        fin := curseur + flux.curseur.taille;
 
         tantque curseur < fin && mémoire(curseur) {
-            résultat.taille += 1
-            curseur += 1
+            résultat.taille += 1;
+            curseur += 1;
         }
 
         // À FAIRE : erreur si fin de flux
-        flux.curseur = tableau_avance(flux.curseur, résultat.taille + 1)
+        flux.curseur = tableau_avance(flux.curseur, résultat.taille + 1);
     }
 
-    retourne résultat
+    retourne résultat;
 }
 
 lis_tranche_octet :: fonc (flux: *FluxOctetsMémoire, taille: z64) -> []octet
 {
-    résultat := flux.curseur
+    résultat := flux.curseur;
     si résultat.taille > taille {
-        résultat.taille = taille
+        résultat.taille = taille;
     }
 
-    flux.curseur = tableau_avance(flux.curseur, taille)
+    flux.curseur = tableau_avance(flux.curseur, taille);
 
-    retourne résultat
+    retourne résultat;
 }
 
 décode_leb128_naturel :: fonc (flux: *FluxOctetsMémoire) -> n64
 {
-    résultat: n64
-    décalage: n64
-    valeur: n64
+    résultat: n64;
+    décalage: n64;
+    valeur: n64;
 
     répète {
-        valeur_octet, _ := lis_petit_boutisme(flux, n8)
-        valeur = valeur_octet comme n64
+        valeur_octet, _ := lis_petit_boutisme(flux, n8);
+        valeur = valeur_octet comme n64;
         résultat |= (valeur & 0x7f) << décalage;
         décalage += 7;
-    } tantque ((valeur & 0x80) != 0)
+    } tantque ((valeur & 0x80) != 0);
 
-    retourne résultat
+    retourne résultat;
 }
 
 décode_leb128_relatif :: fonc (flux: *FluxOctetsMémoire) -> z64
 {
-    résultat: z64
-    décalage: z64
-    valeur: z8
+    résultat: z64;
+    décalage: z64;
+    valeur: z8;
 
     répète {
-        valeur_octet, _ := lis_petit_boutisme(flux, n8)
-        valeur = valeur_octet comme z8
+        valeur_octet, _ := lis_petit_boutisme(flux, n8);
+        valeur = valeur_octet comme z8;
         résultat |= (valeur & 0x7f) << décalage;
         décalage += 7;
-    } tantque ((valeur & 0x80) != 0)
+    } tantque ((valeur & 0x80) != 0);
 
-    taille_en_bits := 64
+    taille_en_bits := 64;
     si décalage < taille_en_bits && valeur & 0x40 {
-        résultat |= (~(0 comme n64) << décalage comme n64) comme z64
+        résultat |= (~(0 comme n64) << décalage comme n64) comme z64;
     }
 
-    retourne résultat
+    retourne résultat;
 }
 
 /** \} */
@@ -268,93 +268,93 @@ décode_leb128_relatif :: fonc (flux: *FluxOctetsMémoire) -> z64
  * \{ */
 
 FluxOctetsFichier :: struct {
-    empl base: FluxOctets
+    empl base: FluxOctets;
 
-    fichier: Fichier
-    taille_fichier: z64
-    curseur: z64
+    fichier: Fichier;
+    taille_fichier: z64;
+    curseur: z64;
 }
 
 crée_flux_octets :: fonc (chemin: chaine) -> *FluxOctetsFichier
 {
-    retourne crée_flux_octets(CheminFichier(chemin))
+    retourne crée_flux_octets(CheminFichier(chemin));
 }
 
 crée_flux_octets :: fonc (chemin: CheminFichier) -> *FluxOctetsFichier
 {
-    tmp: FluxOctetsFichier
+    tmp: FluxOctetsFichier;
     saufsi initialise_flux_octets_fichier(*tmp, chemin) {
-        retourne nul
+        retourne nul;
     }
 
-    résultat := loge(FluxOctetsFichier)
-    mémoire(résultat) = tmp
-    retourne résultat
+    résultat := loge(FluxOctetsFichier);
+    mémoire(résultat) = tmp;
+    retourne résultat;
 }
 
 initialise_flux_octets_fichier :: fonc (flux: *FluxOctetsFichier, chemin: chaine) -> bool
 {
-    retourne initialise_flux_octets_fichier(flux, CheminFichier(chemin))
+    retourne initialise_flux_octets_fichier(flux, CheminFichier(chemin));
 }
 
 initialise_flux_octets_fichier :: fonc (résultat: *FluxOctetsFichier, chemin: CheminFichier) -> bool
 {
-    résultat.sur_lis = flux_octets_fichier_lis
-    résultat.sur_ferme = flux_octets_fichier_ferme
-    résultat.sur_positionne = flux_octets_fichier_positionne
-    résultat.sur_est_à_la_fin = flux_octets_fichier_est_à_la_fin
-    résultat.sur_destruction = flux_octets_mémoire_sur_destruction
-    résultat.sur_donne_position = flux_octets_fichier_donne_position
+    résultat.sur_lis = flux_octets_fichier_lis;
+    résultat.sur_ferme = flux_octets_fichier_ferme;
+    résultat.sur_positionne = flux_octets_fichier_positionne;
+    résultat.sur_est_à_la_fin = flux_octets_fichier_est_à_la_fin;
+    résultat.sur_destruction = flux_octets_mémoire_sur_destruction;
+    résultat.sur_donne_position = flux_octets_fichier_donne_position;
 
     résultat.fichier = tente ouvre_fichier(chemin, pour_lecture, 0o644) piège err {
-        imprimeln("Impossible d'ouvrir le fichier '%' : %", chemin.chn, err)
-        retourne faux
-    }
+        imprimeln("Impossible d'ouvrir le fichier '%' : %", chemin.chn, err);
+        retourne faux;
+    };
 
-    résultat.taille_fichier = détermine_taille_fichier(*résultat.fichier)
-    retourne vrai
+    résultat.taille_fichier = détermine_taille_fichier(*résultat.fichier);
+    retourne vrai;
 }
 
 flux_octets_fichier_sur_destruction :: fonc (flux: *FluxOctetsFichier)
 {
-    déloge(flux)
+    déloge(flux);
 }
 
 flux_octets_fichier_lis :: fonc (base: *FluxOctets, tampon: []octet) -> z64
 {
-    flux := base comme *FluxOctetsFichier
+    flux := base comme *FluxOctetsFichier;
 
     octets_lus := tente lis(*flux.fichier, tampon) piège err {
-        imprimeln("Impossible de lire le fichier : %", err)
-        retourne 0
-    }
+        imprimeln("Impossible de lire le fichier : %", err);
+        retourne 0;
+    };
 
-    flux.curseur += octets_lus
+    flux.curseur += octets_lus;
 
-    retourne octets_lus comme z64
+    retourne octets_lus comme z64;
 }
 
 flux_octets_fichier_positionne :: fonc (flux: *FluxOctetsFichier, position: PositionFichier)
 {
     flux.curseur = tente positionne_fichier(*flux.fichier, position) piège _ {
-        panique("Impossible de chercher le point dans le fichier !")
-    }
+        panique("Impossible de chercher le point dans le fichier !");
+    };
 }
 
 flux_octets_fichier_donne_position :: fonc (flux: *FluxOctetsFichier) -> PositionFichier
 {
-    retourne PositionDébut(flux.curseur)
+    retourne PositionDébut(flux.curseur);
 }
 
 flux_octets_fichier_ferme :: fonc (base: *FluxOctets)
 {
-    flux := base comme *FluxOctetsFichier
-    _ := ferme(*flux.fichier)
+    flux := base comme *FluxOctetsFichier;
+    _ := ferme(*flux.fichier);
 }
 
 flux_octets_fichier_est_à_la_fin :: fonc (flux: *FluxOctetsFichier) -> bool
 {
-    retourne flux.curseur >= flux.taille_fichier
+    retourne flux.curseur >= flux.taille_fichier;
 }
 
 /** \} */

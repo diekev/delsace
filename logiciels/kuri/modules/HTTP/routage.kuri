@@ -1,68 +1,68 @@
 
-TypeRappelRoute :: fonc (prise: *Prise, message: &MessageClienteHTTP) -> MessageServeuseHTTP
+TypeRappelRoute :: fonc (prise: *Prise, message: &MessageClienteHTTP) -> MessageServeuseHTTP;
 
 /* Fonction pour parser une chaine de caractère selon les types trouvées lors
  * de la compilation du programme parent.
  */
 parse_paramètre_routage_pour_type :: fonc (chn: chaine, valeur: eini) -> bool
 {
-    fonction := trouve_fonction_pour_type(valeur.info)
+    fonction := trouve_fonction_pour_type(valeur.info);
     saufsi fonction {
-        retourne faux
+        retourne faux;
     }
-    retourne fonction.rappel(chn, tampon_pour_eini(valeur))
+    retourne fonction.rappel(chn, tampon_pour_eini(valeur));
 }
 
 /* Type pour définir des erreurs. */
 ErreurHTTP :: struct {
-    code: CodeÉtatHTTP
-    message: chaine
+    code: CodeÉtatHTTP;
+    message: chaine;
 }
 
 CodeEtContenuHTPP :: struct {
-    code: CodeÉtatHTTP
-    contenu: ContenuHTTP
+    code: CodeÉtatHTTP;
+    contenu: ContenuHTTP;
 }
 
 message_depuis_erreur_http :: fonc (erreur_http: ErreurHTTP) -> MessageServeuseHTTP
 {
-    retourne crée_message_avec_contenu(erreur_http.code, contenu_html(erreur_http.message))
+    retourne crée_message_avec_contenu(erreur_http.code, contenu_html(erreur_http.message));
 }
 
 erreur_autorisation :: fonc (message := "") -> ErreurHTTP
 {
     saufsi message {
-        message = "autorisation requise"
+        message = "autorisation requise";
     }
 
-    retourne ErreurHTTP(CodeÉtatHTTP.UNAUTHORIZED, message)
+    retourne ErreurHTTP(CodeÉtatHTTP.UNAUTHORIZED, message);
 }
 
 erreur_ressource_non_trouvée :: fonc (message := "") -> ErreurHTTP
 {
     saufsi message {
-        message = "ressource non trouvée"
+        message = "ressource non trouvée";
     }
 
-    retourne ErreurHTTP(CodeÉtatHTTP.NOT_FOUND, message)
+    retourne ErreurHTTP(CodeÉtatHTTP.NOT_FOUND, message);
 }
 
 erreur_interne_serveur :: fonc (message := "") -> ErreurHTTP
 {
     saufsi message {
-        message = "erreur interne du serveur"
+        message = "erreur interne du serveur";
     }
 
-    retourne ErreurHTTP(CodeÉtatHTTP.INTERNAL_SERVER_ERROR, message)
+    retourne ErreurHTTP(CodeÉtatHTTP.INTERNAL_SERVER_ERROR, message);
 }
 
 erreur_requête_malformée :: fonc (message := "") -> ErreurHTTP
 {
     saufsi message {
-        message = "requête malformée"
+        message = "requête malformée";
     }
 
-    retourne ErreurHTTP(CodeÉtatHTTP.BAD_REQUEST, message)
+    retourne ErreurHTTP(CodeÉtatHTTP.BAD_REQUEST, message);
 }
 
 /* Structure de base pour les paramètres des requêtes des URI.
@@ -89,145 +89,145 @@ règles_ont_au_moins_un_paramètre :: fonc (règles: []RègleRoutage) -> bool
 {
     pour règles {
         si it.action != ActionRègleRoutage.ApparieChaineLittérale {
-            retourne vrai
+            retourne vrai;
         }
     }
 
-    retourne faux
+    retourne faux;
 }
 
 apparie_paramètres_à_la_structure :: fonc (règles: []RègleRoutage, infos: *InfoType) -> bool
 {
     si infos.id != GenreInfoType.STRUCTURE {
-        retourne faux
+        retourne faux;
     }
 
-    info_structure := infos comme *InfoTypeStructure
+    info_structure := infos comme *InfoTypeStructure;
 
-    nombre_paramètres := 0
+    nombre_paramètres := 0;
 
     pour règles {
         saufsi it.action == ActionRègleRoutage.ApparieParamètre {
-            continue
+            continue;
         }
 
-        nombre_paramètres += 1
+        nombre_paramètres += 1;
 
         si !possède_rubrique(info_structure, it.chn) {
-            retourne faux
+            retourne faux;
         }
 
         // À FAIRE : typage
     }
 
     si nombre_paramètres != donne_nombre_de_rubriques_effectif(info_structure) {
-        retourne faux
+        retourne faux;
     }
 
-    retourne vrai
+    retourne vrai;
 }
 
 calcul_priorité :: fonc (règles: []RègleRoutage) -> z32
 {
-    priorité := 0
+    priorité := 0;
 
     pour règles {
         si it.action != ActionRègleRoutage.ApparieChaineLittérale {
-            priorité += 1
+            priorité += 1;
         }
     }
 
-    retourne priorité
+    retourne priorité;
 }
 
 NouvelleRouteuse :: struct {
-    apparie_routes_get: fonc (chemin: chaine, prise: *Prise, message: &MessageClienteHTTP) -> MessageServeuseHTTP
-    apparie_routes_post: fonc (chemin: chaine, prise: *Prise, message: &MessageClienteHTTP) -> MessageServeuseHTTP
+    apparie_routes_get: fonc (chemin: chaine, prise: *Prise, message: &MessageClienteHTTP) -> MessageServeuseHTTP;
+    apparie_routes_post: fonc (chemin: chaine, prise: *Prise, message: &MessageClienteHTTP) -> MessageServeuseHTTP;
 
     // À FAIRE
-    rappel_page_non_trouvée: fonc (prise: *Prise, message: &MessageClienteHTTP) -> MessageServeuseHTTP
+    rappel_page_non_trouvée: fonc (prise: *Prise, message: &MessageClienteHTTP) -> MessageServeuseHTTP;
 
-    extension_fichiers: [..]chaine
+    extension_fichiers: [..]chaine;
 }
 
 apparie_fichiers :: fonc (routeuse: &NouvelleRouteuse, extension: chaine)
 {
     pour routeuse.extension_fichiers {
         si it == extension {
-            retourne
+            retourne;
         }
     }
 
-    tableau_ajoute(*routeuse.extension_fichiers, extension)
+    tableau_ajoute(*routeuse.extension_fichiers, extension);
 }
 
 détruit_routeuse :: fonc (routeuse: &NouvelleRouteuse) -> rien
 {
-    déloge(routeuse.extension_fichiers)
+    déloge(routeuse.extension_fichiers);
 }
 
 apparie_route :: fonc (routeuse: &NouvelleRouteuse, prise: *Prise, message: &MessageClienteHTTP) -> MessageServeuseHTTP
 {
-    méthode := message.méthode
+    méthode := message.méthode;
     // Utilise message.uri.chemin car message.requête peut contenir également les paramètres de requête et de fragment de l'URI
-    chemin := message.uri.chemin
+    chemin := message.uri.chemin;
 
     si routeuse.apparie_routes_get && méthode == "GET" {
         si est_chemin_fichier_supporté(routeuse, chemin) {
-            retourne apparie_fichier(routeuse, chemin, prise, message)
+            retourne apparie_fichier(routeuse, chemin, prise, message);
         }
 
-        retourne routeuse.apparie_routes_get(chemin, prise, message)
+        retourne routeuse.apparie_routes_get(chemin, prise, message);
     }
 
     si routeuse.apparie_routes_post && méthode == "POST" {
-        retourne routeuse.apparie_routes_post(chemin, prise, message)
+        retourne routeuse.apparie_routes_post(chemin, prise, message);
     }
 
-    retourne méthode_non_autorisée()
+    retourne méthode_non_autorisée();
 }
 
 chemin_pour_fichier :: fonc (chemin: chaine) -> CheminFichier
 {
     // enlève le premier slash
-    chemin_fichier := avance(chemin, 1)
-    retourne CheminFichier(chemin_fichier)
+    chemin_fichier := avance(chemin, 1);
+    retourne CheminFichier(chemin_fichier);
 }
 
 est_chemin_fichier_supporté :: fonc (routeuse: &NouvelleRouteuse, chemin: chaine) -> bool
 {
-    chm := chemin_pour_fichier(chemin)
+    chm := chemin_pour_fichier(chemin);
 
     si fichier_existe(chm) {
-        extension := chm.extension()
+        extension := chm.extension();
 
         pour routeuse.extension_fichiers {
             si it == extension {
-                retourne vrai
+                retourne vrai;
             }
         }
     }
 
-    retourne faux
+    retourne faux;
 }
 
 apparie_fichier :: fonc (routeuse: &NouvelleRouteuse @inutilisée, chemin: chaine, prise: *Prise, message: &MessageClienteHTTP) -> MessageServeuseHTTP
 {
-    chm := chemin_pour_fichier(chemin)
+    chm := chemin_pour_fichier(chemin);
 
     si chm.extension() == ".css" {
-        retourne sers_fichier(prise, message, "text/css; charset=utf-8")
+        retourne sers_fichier(prise, message, "text/css; charset=utf-8");
     }
 
     si chm.extension() == ".png" {
-        retourne sers_fichier(prise, message, "image/png")
+        retourne sers_fichier(prise, message, "image/png");
     }
 
     si chm.extension() == ".js" || chm.extension() == ".jsx" {
-        retourne sers_fichier(prise, message, "text/javascript; charset=utf-8")
+        retourne sers_fichier(prise, message, "text/javascript; charset=utf-8");
     }
 
-    retourne ressource_non_trouvée()
+    retourne ressource_non_trouvée();
 }
 
 // --------------------------------
@@ -235,170 +235,170 @@ apparie_fichier :: fonc (routeuse: &NouvelleRouteuse @inutilisée, chemin: chain
 
 divise_url :: fonc (ligne: chaine) -> [..]chaine
 {
-    taille_mot : z64 = 0
-    début_mot : z64 = 0
-    mots: [..]chaine
+    taille_mot : z64 = 0;
+    début_mot : z64 = 0;
+    mots: [..]chaine;
 
-    premier_slash := vrai
+    premier_slash := vrai;
 
     pour c, i dans ligne {
         si c == '/' {
             si premier_slash {
-                premier_slash = faux
+                premier_slash = faux;
 
-                mot := ligne.sous_chaine(0, 1)
-                tableau_ajoute(*mots, mot)
+                mot := ligne.sous_chaine(0, 1);
+                tableau_ajoute(*mots, mot);
 
-                début_mot = i + 1
-                taille_mot = 0
-                continue
+                début_mot = i + 1;
+                taille_mot = 0;
+                continue;
             }
 
-            mot := ligne.sous_chaine(début_mot, début_mot + taille_mot)
-            tableau_ajoute(*mots, mot)
+            mot := ligne.sous_chaine(début_mot, début_mot + taille_mot);
+            tableau_ajoute(*mots, mot);
 
-            début_mot = i + 1
-            taille_mot = 0
-            continue
+            début_mot = i + 1;
+            taille_mot = 0;
+            continue;
         }
 
-        taille_mot += 1
+        taille_mot += 1;
     }
 
     si taille_mot != 0 {
-        mot := ligne.sous_chaine(début_mot, début_mot + taille_mot)
+        mot := ligne.sous_chaine(début_mot, début_mot + taille_mot);
 
         si mot {
-            tableau_ajoute(*mots, mot)
+            tableau_ajoute(*mots, mot);
         }
     }
 
-    retourne mots
+    retourne mots;
 }
 
 // Règles pour apparier les routes.
 
 ActionRègleRoutage :: énum {
-    Invalide
+    Invalide;
     /* Apparie la chaine telle que données dans le chemin, par exemple
      * /accueil/ devra apparier "accueil". */
-    ApparieChaineLittérale
+    ApparieChaineLittérale;
     /* Apparie un paramètre du nom données entre les chevrons, par exemple /<id>/
      * devra apparier une rubrique de la structure associée nommée "id". */
-    ApparieParamètre
+    ApparieParamètre;
 }
 
 RègleRoutage :: struct {
-    action: ActionRègleRoutage
-    chn: chaine
+    action: ActionRègleRoutage;
+    chn: chaine;
 }
 
 ErreurParsage :: erreur {
-    RègleDénuéeDeNom
-    TypeActionInconnue
-    NomRègleRedéfini
-    ChevronFermantManquant
+    RègleDénuéeDeNom;
+    TypeActionInconnue;
+    NomRègleRedéfini;
+    ChevronFermantManquant;
 }
 
 ErreurOuRèglesRoutage :: union {
-    e: ErreurParsage
-    r: [..]RègleRoutage
+    e: ErreurParsage;
+    r: [..]RègleRoutage;
 }
 
 parse_règles :: fonc (route: chaine) -> ErreurOuRèglesRoutage
 {
-    éléments := divise_url(route)
-    diffère déloge(éléments)
+    éléments := divise_url(route);
+    diffère déloge(éléments);
 
-    résultat: [..]RègleRoutage
+    résultat: [..]RègleRoutage;
 
     pour éléments {
-        règle: RègleRoutage
+        règle: RègleRoutage;
 
         si it[0] == '<' {
             si it[it.taille - 1] != '>' {
-                déloge(résultat)
-                retourne ErreurParsage.ChevronFermantManquant
+                déloge(résultat);
+                retourne ErreurParsage.ChevronFermantManquant;
             }
 
-            nom_données := it.sous_chaine(1, it.taille - 1)
+            nom_données := it.sous_chaine(1, it.taille - 1);
 
             pour r dans résultat {
                 si r.chn == nom_données {
-                    déloge(résultat)
-                    retourne ErreurParsage.NomRègleRedéfini
+                    déloge(résultat);
+                    retourne ErreurParsage.NomRègleRedéfini;
                 }
             }
 
-            règle.chn = nom_données
-            règle.action = ActionRègleRoutage.ApparieParamètre
+            règle.chn = nom_données;
+            règle.action = ActionRègleRoutage.ApparieParamètre;
         }
         sinon {
             // ceci est également utilisé pour la racine "/"
-            règle.action = ActionRègleRoutage.ApparieChaineLittérale
-            règle.chn = it
+            règle.action = ActionRègleRoutage.ApparieChaineLittérale;
+            règle.chn = it;
         }
 
-        tableau_ajoute(*résultat, règle)
+        tableau_ajoute(*résultat, règle);
     }
 
-    retourne résultat
+    retourne résultat;
 }
 
 // ---------------------------------------------------------------------
 // Rassemblement des fonctions de parsage pour les paramètres de routage
 
-__fonctions_parsage_routes: [..]FonctionParsage
+__fonctions_parsage_routes: [..]FonctionParsage;
 
 trouve_fonction_parsage_pour_type :: fonc (info: *InfoType)
 {
-    retourne trouve_fonction_pour_type(__fonctions_parsage_routes, info)
+    retourne trouve_fonction_pour_type(__fonctions_parsage_routes, info);
 }
 
 fonction_routage_est_valide :: fonc (fonction: *NoeudCodeEntêteFonction) -> DonnéesFonctionPourTableFonction
 {
     si fonction.params.taille != 1 {
-        compilatrice_rapporte_erreur(fonction, "Impossible d'utiliser la fonction comme parseuse pour route HTTP, elle ne doit avoir qu'un seul paramètre")
+        compilatrice_rapporte_erreur(fonction, "Impossible d'utiliser la fonction comme parseuse pour route HTTP, elle ne doit avoir qu'un seul paramètre");
     }
 
-    type_premier_paramètre := fonction.params[0].type
+    type_premier_paramètre := fonction.params[0].type;
     si type_premier_paramètre != info_de(chaine) {
-        compilatrice_rapporte_erreur(fonction.params[0], "Fonction de parsage route HTTP invalide, le paramètre doit être de type « chaine ».")
+        compilatrice_rapporte_erreur(fonction.params[0], "Fonction de parsage route HTTP invalide, le paramètre doit être de type « chaine ».");
     }
 
     si fonction.params_sorties.taille != 2 {
-        compilatrice_rapporte_erreur(fonction, "Impossible d'utiliser la fonction comme parseuse pour route HTTP, elle doit avoir deux paramètres de sortie : TypeÀFormatter et bool")
+        compilatrice_rapporte_erreur(fonction, "Impossible d'utiliser la fonction comme parseuse pour route HTTP, elle doit avoir deux paramètres de sortie : TypeÀFormatter et bool");
     }
 
-    type_première_sortie := fonction.params_sorties[0].type
+    type_première_sortie := fonction.params_sorties[0].type;
 
     si type_première_sortie != info_de(bool) {
-        compilatrice_rapporte_erreur(fonction.params_sorties[0], "Fonction de parsage route HTTP invalide, le premier paramètre de sortie doit être de type « bool ».")
+        compilatrice_rapporte_erreur(fonction.params_sorties[0], "Fonction de parsage route HTTP invalide, le premier paramètre de sortie doit être de type « bool ».");
     }
 
-    résultat: DonnéesFonctionPourTableFonction
-    résultat.fonction = fonction
-    résultat.info_type = fonction.params_sorties[1].type
-    retourne résultat
+    résultat: DonnéesFonctionPourTableFonction;
+    résultat.fonction = fonction;
+    résultat.info_type = fonction.params_sorties[1].type;
+    retourne résultat;
 }
 
 génère_fonction_enveloppe_routage :: fonc (enchaineuse: *Enchaineuse, données: DonnéesFonctionPourTableFonction) -> chaine
 {
-    retourne génère_enveloppe_fonction_parsage_octets(enchaineuse, données, "parsage_routes_")
+    retourne génère_enveloppe_fonction_parsage_octets(enchaineuse, données, "parsage_routes_");
 }
 
 génère_initialisation_routes :: fonc ()
 {
-    créatrice_table_fonctions: CréatriceTableFonction
-    créatrice_table_fonctions.module = compilatrice_module_courant()
-    diffère détruit_données_créatrice_table_fonctions(créatrice_table_fonctions)
-    créatrice_table_fonctions.annotation_désirée = "ParsageRouteHTTP"
-    créatrice_table_fonctions.nom_table_fonctions = "__fonctions_parsage_routes"
-    créatrice_table_fonctions.données_pour_fonction = fonction_routage_est_valide
-    créatrice_table_fonctions.génère_fonction_enveloppe = génère_fonction_enveloppe_routage
-    créatrice_table_fonctions.initialise_types_de_bases = vrai
-    créatrice_table_fonctions.ajoute_module("Introspection")
-    créatrice_table_fonctions.ajoute_module("HTTP")
+    créatrice_table_fonctions: CréatriceTableFonction;
+    créatrice_table_fonctions.module = compilatrice_module_courant();
+    diffère détruit_données_créatrice_table_fonctions(créatrice_table_fonctions);
+    créatrice_table_fonctions.annotation_désirée = "ParsageRouteHTTP";
+    créatrice_table_fonctions.nom_table_fonctions = "__fonctions_parsage_routes";
+    créatrice_table_fonctions.données_pour_fonction = fonction_routage_est_valide;
+    créatrice_table_fonctions.génère_fonction_enveloppe = génère_fonction_enveloppe_routage;
+    créatrice_table_fonctions.initialise_types_de_bases = vrai;
+    créatrice_table_fonctions.ajoute_module("Introspection");
+    créatrice_table_fonctions.ajoute_module("HTTP");
 
-    crée_table_fonctions(créatrice_table_fonctions)
+    crée_table_fonctions(créatrice_table_fonctions);
 }

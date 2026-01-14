@@ -4,27 +4,27 @@
  * d'où est appelé le programme.
  */
 
-importe Fondation
-importe LigneDeCommande
-importe SysFichier
+importe Fondation;
+importe LigneDeCommande;
+importe SysFichier;
 
 principale :: fonc ()
 {
-    chm := CheminFichier(parse_argument_chemin())
+    chm := CheminFichier(parse_argument_chemin());
 
     si est_absolu(chm) {
-        imprime("%\n", chm.chn)
-        exit(0)
+        imprime("%\n", chm.chn);
+        exit(0);
     }
 
     chemin_courant := tente donne_chemin_courant() piège err {
-        imprime("Impossible de déterminer le chemin courant : %\n", err)
-        exit(1)
-    }
-    diffère déloge(chemin_courant.chn)
+        imprime("Impossible de déterminer le chemin courant : %\n", err);
+        exit(1);
+    };
+    diffère déloge(chemin_courant.chn);
 
-    chm_abs := crée_chemin_absolu(chemin_courant, chm)
-    diffère déloge(chm_abs.chn)
+    chm_abs := crée_chemin_absolu(chemin_courant, chm);
+    diffère déloge(chm_abs.chn);
 
-    imprime("%\n", chm_abs.chn)
+    imprime("%\n", chm_abs.chn);
 }

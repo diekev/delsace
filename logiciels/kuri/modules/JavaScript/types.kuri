@@ -1,8 +1,8 @@
-importe Algorithmes
+importe Algorithmes;
 
 /* Ceux-là ne sont pas dans le standard, ce n'est que pour avoir des types pour l'union. */
-UndefinedType :: #opaque z32
-NullType :: #opaque z32
+UndefinedType :: #opaque z32;
+NullType :: #opaque z32;
 
 /* ------------------------------------------------------------------------- */
 /** \nom The BigInt Type
@@ -11,17 +11,17 @@ NullType :: #opaque z32
 
 BigInt :: struct {
     // À FAIRE : implémente proprement
-    valeur: z64
+    valeur: z64;
 }
 
 big_int_equal :: fonc (x: Valeur @inutilisée, y: Valeur @inutilisée) -> bool
 {
-    panique("big_int equal non-implémenté")
+    panique("big_int equal non-implémenté");
 }
 
 big_int_bitwise_not :: fonc (x: Valeur @inutilisée) -> Valeur
 {
-    panique("big_int_bitwise_not non-implémenté")
+    panique("big_int_bitwise_not non-implémenté");
 }
 
 /** \} */
@@ -33,7 +33,7 @@ big_int_bitwise_not :: fonc (x: Valeur @inutilisée) -> Valeur
 
 Symbol :: struct {
     /* Soit undefined ou une chaine. */
-    description: Optionnel(ECMAString)
+    description: Optionnel(ECMAString);
 }
 
 /** \} */
@@ -48,11 +48,11 @@ number_unary_minus :: fonc (x: Valeur) -> Valeur
 {
     // 1. If x is NaN, return NaN.
     si est_nan(x) {
-        retourne Valeur(Number = NaN)
+        retourne Valeur(Number = NaN);
     }
 
     // 2. Return the negation of x; that is, compute a Number with the same magnitude but opposite sign.
-    retourne Valeur(Number = -x.Number)
+    retourne Valeur(Number = -x.Number);
 }
 
 /* 6.1.6.1.2 Number::bitwiseNOT ( x )
@@ -60,11 +60,11 @@ number_unary_minus :: fonc (x: Valeur) -> Valeur
 number_bitwise_not :: fonc (x: Valeur) -> Valeur
 {
     // 1. Let oldValue be ! ToInt32(x).
-    old_value := to_int32(x) comme z32
+    old_value := to_int32(x) comme z32;
 
     // 2. Return the bitwise complement of oldValue.
     // The mathematical value of the result is exactly representable as a 32-bit two's complement bit string.
-    retourne Valeur(Number = ~old_value comme r64)
+    retourne Valeur(Number = ~old_value comme r64);
 }
 
 /* 6.1.6.1.3 Number::exponentiate
@@ -72,25 +72,25 @@ number_bitwise_not :: fonc (x: Valeur) -> Valeur
 number_exponentiate :: fonc (b: Valeur, e: Valeur) -> Valeur
 {
     // À FAIRE : standardise le reste
-    base := b.Number
-    exponent := e.Number
+    base := b.Number;
+    exponent := e.Number;
 
     // 1. If exponent is NaN, return NaN.
     si est_nan(exponent) {
-        retourne Valeur(Number = NaN)
+        retourne Valeur(Number = NaN);
     }
 
     // 2. If exponent is either +0𝔽 or -0𝔽, return 1𝔽.
     si exponent == 0.0 || exponent == -0.0 {
-        retourne Valeur(Number = 1.0)
+        retourne Valeur(Number = 1.0);
     }
 
     // 3. If base is NaN, return NaN.
     si est_nan(base) {
-        retourne Valeur(Number = NaN)
+        retourne Valeur(Number = NaN);
     }
 
-    retourne Valeur(Number = puissance(b, e))
+    retourne Valeur(Number = puissance(b, e));
 }
 
 /* 6.1.6.1.4 Number::multiply ( x, y )
@@ -98,9 +98,9 @@ number_exponentiate :: fonc (b: Valeur, e: Valeur) -> Valeur
 number_multiply :: fonc (gauche: Valeur, droite: Valeur) -> Valeur
 {
     // À FAIRE : standardise
-    assert(gauche.est_nombre())
-    assert(droite.est_nombre())
-    retourne Valeur(Number = gauche.Number * droite.Number)
+    assert(gauche.est_nombre());
+    assert(droite.est_nombre());
+    retourne Valeur(Number = gauche.Number * droite.Number);
 }
 
 /* 6.1.6.1.5 Number::divide ( x, y )
@@ -108,301 +108,301 @@ number_multiply :: fonc (gauche: Valeur, droite: Valeur) -> Valeur
 number_divide :: fonc (gauche: Valeur, droite: Valeur) -> Valeur
 {
     // À FAIRE : standardise
-    assert(gauche.est_nombre())
-    assert(droite.est_nombre())
-    retourne Valeur(Number = gauche.Number / droite.Number)
+    assert(gauche.est_nombre());
+    assert(droite.est_nombre());
+    retourne Valeur(Number = gauche.Number / droite.Number);
 }
 
 /* 6.1.6.1.6 Number::remainder ( n, d )
  * https://tc39.es/ecma262/multipage/ecmascript-data-types-and-values.html#sec-numeric-types-number-remainder */
 number_remainder :: fonc (gauche: Valeur, droite: Valeur) -> Valeur
 {
-    assert(gauche.est_nombre())
-    assert(droite.est_nombre())
-    retourne Valeur(Number = mod(gauche.Number, droite.Number))
+    assert(gauche.est_nombre());
+    assert(droite.est_nombre());
+    retourne Valeur(Number = mod(gauche.Number, droite.Number));
 }
 
 /* 6.1.6.1.7 Number::add ( x, y )
  * https://tc39.es/ecma262/multipage/ecmascript-data-types-and-values.html#sec-numeric-types-number-add */
 number_add :: fonc (gauche: Valeur, droite: Valeur) -> Valeur
 {
-    assert(gauche.est_nombre())
-    assert(droite.est_nombre())
-    retourne Valeur(Number = gauche.Number + droite.Number)
+    assert(gauche.est_nombre());
+    assert(droite.est_nombre());
+    retourne Valeur(Number = gauche.Number + droite.Number);
 }
 
 /* 6.1.6.1.8 Number::subtract ( x, y )
  * https://tc39.es/ecma262/multipage/ecmascript-data-types-and-values.html#sec-numeric-types-number-subtract */
 number_subtract :: fonc (gauche: Valeur, droite: Valeur) -> Valeur
 {
-    assert(gauche.est_nombre())
-    assert(droite.est_nombre())
-    retourne Valeur(Number = gauche.Number - droite.Number)
+    assert(gauche.est_nombre());
+    assert(droite.est_nombre());
+    retourne Valeur(Number = gauche.Number - droite.Number);
 }
 
 /* 6.1.6.1.9 Number::leftShift ( x, y )
  * https://tc39.es/ecma262/multipage/ecmascript-data-types-and-values.html#sec-numeric-types-number-leftShift */
 number_left_shift :: fonc (gauche: Valeur, droite: Valeur) -> Valeur
 {
-    assert(gauche.est_nombre())
-    assert(droite.est_nombre())
-    g := gauche.Number comme z32
-    d := droite.Number comme z32
-    r := g << d
-    retourne Valeur(Number = r comme r64)
+    assert(gauche.est_nombre());
+    assert(droite.est_nombre());
+    g := gauche.Number comme z32;
+    d := droite.Number comme z32;
+    r := g << d;
+    retourne Valeur(Number = r comme r64);
 }
 
 /* 6.1.6.1.10 Number::signedRightShift ( x, y )
  * https://tc39.es/ecma262/multipage/ecmascript-data-types-and-values.html#sec-numeric-types-number-signedRightShift */
 number_signed_right_shift :: fonc (gauche: Valeur, droite: Valeur) -> Valeur
 {
-    assert(gauche.est_nombre())
-    assert(droite.est_nombre())
-    g := gauche.Number comme z32
-    d := droite.Number comme z32
-    r := g >> d
-    retourne Valeur(Number = r comme r64)
+    assert(gauche.est_nombre());
+    assert(droite.est_nombre());
+    g := gauche.Number comme z32;
+    d := droite.Number comme z32;
+    r := g >> d;
+    retourne Valeur(Number = r comme r64);
 }
 
 /* 6.1.6.1.11 Number::unsignedRightShift ( x, y )
  * https://tc39.es/ecma262/multipage/ecmascript-data-types-and-values.html#sec-numeric-types-number-unsignedRightShift */
 number_unsigned_right_shift :: fonc (gauche: Valeur, droite: Valeur) -> Valeur
 {
-    assert(gauche.est_nombre())
-    assert(droite.est_nombre())
-    g := gauche.Number comme n32
-    d := droite.Number comme n32
-    r := g >> d
-    retourne Valeur(Number = r comme r64)
+    assert(gauche.est_nombre());
+    assert(droite.est_nombre());
+    g := gauche.Number comme n32;
+    d := droite.Number comme n32;
+    r := g >> d;
+    retourne Valeur(Number = r comme r64);
 }
 
 /* 6.1.6.1.12 Number::lessThan ( x, y )
  * https://tc39.es/ecma262/multipage/ecmascript-data-types-and-values.html#sec-numeric-types-number-lessThan */
 number_less_than :: fonc (gauche: Valeur, droite: Valeur) -> Valeur
 {
-    retourne Valeur(Boolean = gauche.Number < droite.Number)
+    retourne Valeur(Boolean = gauche.Number < droite.Number);
 }
 
 /* 6.1.6.1.13 Number::equal ( x, y )
  * https://tc39.es/ecma262/multipage/ecmascript-data-types-and-values.html#sec-numeric-types-number-equal */
 number_equal :: fonc (vx: Valeur, vy: Valeur) -> bool
 {
-    x := vx.Number
-    y := vy.Number
+    x := vx.Number;
+    y := vy.Number;
 
     // 1. If x is NaN, return false.
     si est_nan(x) {
-        retourne faux
+        retourne faux;
     }
 
     // 2. If y is NaN, return false.
     si est_nan(y) {
-        retourne faux
+        retourne faux;
     }
 
     // 3. If x is y, return true.
     // NOTE : la comparaison x == y est pour les valeurs infinies.
     si abs(x - y) <= 1e-15 || (x == y) {
-        retourne vrai
+        retourne vrai;
     }
 
     // 4. If x is +0𝔽 and y is -0𝔽, return true.
     si x == 0.0 && y == -0.0 {
-        retourne vrai
+        retourne vrai;
     }
 
     // 5. If x is -0𝔽 and y is +0𝔽, return true.
     si x == -0.0 && y == 0.0 {
-        retourne vrai
+        retourne vrai;
     }
 
     // 6. Return false.
-    retourne faux
+    retourne faux;
 }
 
 /* 6.1.6.1.14 Number::sameValue ( x, y )
  * https://tc39.es/ecma262/multipage/ecmascript-data-types-and-values.html#sec-numeric-types-number-sameValue */
 number_same_value :: fonc (vx: Valeur, vy: Valeur) -> Valeur
 {
-    x := vx.Number
-    y := vy.Number
+    x := vx.Number;
+    y := vy.Number;
 
     // 1. If x is NaN and y is NaN, return true.
     si est_nan(x) && est_nan(y) {
-        retourne vrai
+        retourne vrai;
     }
 
     // 2. If x is +0𝔽 and y is -0𝔽, return false.
     si x == 0.0 && y == -0.0 {
-        retourne faux
+        retourne faux;
     }
 
     // 3. If x is -0𝔽 and y is +0𝔽, return false.
     si x == -0.0 && y == 0.0 {
-        retourne faux
+        retourne faux;
     }
 
     // 4. If x is y, return true.
     si x == y {
-        retourne vrai
+        retourne vrai;
     }
 
     // 5. Return false.
-    retourne faux
+    retourne faux;
 }
 
 /* 6.1.6.1.15 Number::sameValueZero ( x, y )
  * https://tc39.es/ecma262/multipage/ecmascript-data-types-and-values.html#sec-numeric-types-number-sameValueZero */
 number_same_value_zero :: fonc (vx: Valeur, vy: Valeur) -> Valeur
 {
-    x := vx.Number
-    y := vy.Number
+    x := vx.Number;
+    y := vy.Number;
 
     // 1. If x is NaN and y is NaN, return true.
     si est_nan(x) && est_nan(y) {
-        retourne vrai
+        retourne vrai;
     }
 
     // 2. If x is +0𝔽 and y is -0𝔽, return true.
     si x == 0.0 && y == -0.0 {
-        retourne vrai
+        retourne vrai;
     }
 
     // 3. If x is -0𝔽 and y is +0𝔽, return true.
     si x == -0.0 && y == 0.0 {
-        retourne vrai
+        retourne vrai;
     }
 
     // 4. If x is y, return true.
     si x == y {
-        retourne vrai
+        retourne vrai;
     }
 
     // 5. Return false.
-    retourne faux
+    retourne faux;
 }
 
 /* 6.1.6.1.17 Number::bitwiseAND ( x, y )
  * https://tc39.es/ecma262/multipage/ecmascript-data-types-and-values.html#sec-numeric-types-number-bitwiseAND */
 number_bitwise_and :: fonc (gauche: Valeur, droite: Valeur) -> Valeur
 {
-    assert(gauche.est_nombre())
-    assert(droite.est_nombre())
-    g := gauche.Number comme z32
-    d := droite.Number comme z32
-    r := g & d
-    retourne Valeur(Number = r comme r64)
+    assert(gauche.est_nombre());
+    assert(droite.est_nombre());
+    g := gauche.Number comme z32;
+    d := droite.Number comme z32;
+    r := g & d;
+    retourne Valeur(Number = r comme r64);
 }
 
 /* 6.1.6.1.18 Number::bitwiseXOR ( x, y )
  * https://tc39.es/ecma262/multipage/ecmascript-data-types-and-values.html#sec-numeric-types-number-bitwiseXOR */
 number_bitwise_xor :: fonc (gauche: Valeur, droite: Valeur) -> Valeur
 {
-    assert(gauche.est_nombre())
-    assert(droite.est_nombre())
-    g := gauche.Number comme z32
-    d := droite.Number comme z32
-    r := g ^ d
-    retourne Valeur(Number = r comme r64)
+    assert(gauche.est_nombre());
+    assert(droite.est_nombre());
+    g := gauche.Number comme z32;
+    d := droite.Number comme z32;
+    r := g ^ d;
+    retourne Valeur(Number = r comme r64);
 }
 
 /* 6.1.6.1.19 Number::bitwiseOR ( x, y )
  * https://tc39.es/ecma262/multipage/ecmascript-data-types-and-values.html#sec-numeric-types-number-bitwiseOR */
 number_bitwise_or :: fonc (gauche: Valeur, droite: Valeur) -> Valeur
 {
-    assert(gauche.est_nombre())
-    assert(droite.est_nombre())
-    g := gauche.Number comme z32
-    d := droite.Number comme z32
-    r := g | d
-    retourne Valeur(Number = r comme r64)
+    assert(gauche.est_nombre());
+    assert(droite.est_nombre());
+    g := gauche.Number comme z32;
+    d := droite.Number comme z32;
+    r := g | d;
+    retourne Valeur(Number = r comme r64);
 }
 
 précision_max_pour_radix := n8.[
     0,  0,  52, 32, 26, 22, 20, 18, 17, 16,
     15, 15, 14, 14, 13, 13, 13, 12, 12, 12,
     12, 11, 11, 11, 11, 11, 11, 10, 10, 10,
-    10, 10, 10, 10, 10, 10, 10]
+    10, 10, 10, 10, 10, 10, 10];
 
 /* 6.1.6.1.20 Number::toString ( x, radix )
  * https://tc39.es/ecma262/multipage/ecmascript-data-types-and-values.html#sec-numeric-types-number-tostring */
 number_to_string :: fonc (realm: *Realm, valeur: Valeur, radix_mv: n32) -> Valeur
 {
-    x := valeur.Number
+    x := valeur.Number;
     // 1. If x is NaN, return "NaN".
     si est_nan(x) {
-        retourne crée_chaine(realm, STR_NaN)
+        retourne crée_chaine(realm, STR_NaN);
     }
 
     // 2. If x is either +0𝔽 or -0𝔽, return "0".
     si x == 0.0 || x == -0.0 {
-        retourne crée_chaine(realm, crée_chaine_utf16_unique("0"))
+        retourne crée_chaine(realm, crée_chaine_utf16_unique("0"));
     }
 
     // 3. If x < -0𝔽, return the string-concatenation of "-" and Number::toString(-x, radix_mv).
     si x < -0.0 {
-        chn_moins := crée_chaine(realm, crée_chaine_utf16_unique("-"))
-        chn_x := number_to_string(realm, Valeur(Number = -x), radix_mv)
-        retourne concatène(realm, chn_moins, chn_x.String)
+        chn_moins := crée_chaine(realm, crée_chaine_utf16_unique("-"));
+        chn_x := number_to_string(realm, Valeur(Number = -x), radix_mv);
+        retourne concatène(realm, chn_moins, chn_x.String);
     }
 
     // 4. If x is +∞𝔽, return "Infinity".
     si x == R64_INFINITÉ {
-        retourne crée_chaine(realm, STR_Infinity)
+        retourne crée_chaine(realm, STR_Infinity);
     }
 
     // À FAIRE : implémente selon le standard.
 
-    négatif := x < 0.0
+    négatif := x < 0.0;
     si négatif {
-        x *= -1.0
+        x *= -1.0;
     }
 
-    part_entière := plancher(x)
-    part_décimale := x - part_entière
+    part_entière := plancher(x);
+    part_décimale := x - part_entière;
 
-    caractères: [..]z8
-    diffère déloge(caractères)
+    caractères: [..]z8;
+    diffère déloge(caractères);
 
-    chiffres :: "0123456789abcdefghijklmnopqrstuvwxyz"
+    chiffres :: "0123456789abcdefghijklmnopqrstuvwxyz";
 
-    radix := radix_mv comme r64
+    radix := radix_mv comme r64;
 
     si part_entière == 0.0 {
-        tableau_ajoute(*caractères, '0')
+        tableau_ajoute(*caractères, '0');
     }
     sinon tantque part_entière > 0.0 {
-        caractère := chiffres[plancher(mod(part_entière, radix)) comme n64]
-        tableau_ajoute(*caractères, caractère)
-        part_entière /= radix
-        part_entière = plancher(part_entière)
+        caractère := chiffres[plancher(mod(part_entière, radix)) comme n64];
+        tableau_ajoute(*caractères, caractère);
+        part_entière /= radix;
+        part_entière = plancher(part_entière);
     }
 
     si négatif {
-        tableau_ajoute(*caractères, '-')
+        tableau_ajoute(*caractères, '-');
     }
 
-    tableau_inverse(caractères)
+    tableau_inverse(caractères);
 
     si part_décimale != 0.0 {
-        tableau_ajoute(*caractères, '.')
+        tableau_ajoute(*caractères, '.');
 
-        précision := précision_max_pour_radix[radix_mv]
+        précision := précision_max_pour_radix[radix_mv];
         pour précision {
             part_décimale *= radix;
-            intégrale := plancher(part_décimale) comme n64
-            tableau_ajoute(*caractères, chiffres[intégrale])
-            part_décimale -= intégrale comme r64
+            intégrale := plancher(part_décimale) comme n64;
+            tableau_ajoute(*caractères, chiffres[intégrale]);
+            part_décimale -= intégrale comme r64;
         }
 
         tantque caractères.taille > 0 && caractères[caractères.taille - 1] == '0' {
-            caractères.taille -= 1
+            caractères.taille -= 1;
         }
     }
 
-    chn := chaine(caractères.pointeur, caractères.taille)
-    résultat := crée_chaine_utf16_unique(chn)
-    retourne crée_chaine(realm, résultat)
+    chn := chaine(caractères.pointeur, caractères.taille);
+    résultat := crée_chaine_utf16_unique(chn);
+    retourne crée_chaine(realm, résultat);
 }
 
 /** \} */
@@ -413,7 +413,7 @@ number_to_string :: fonc (realm: *Realm, valeur: Valeur, radix_mv: n32) -> Valeu
 
 est_intégral :: fonc (n: r64) -> bool
 {
-    retourne (n comme n64) comme r64 == n
+    retourne (n comme n64) comme r64 == n;
 }
 
 /** \} */
@@ -427,33 +427,33 @@ est_intégral :: fonc (n: r64) -> bool
  * par rapport à l'environnement courant. */
 CoordonnéeEnvironnement :: struct {
     /* L'indice de la référence dans DeclarativeEnvironment.bindings. */
-    indice: z32
+    indice: z32;
     /* Le nombre de sauts à effectuer pour aller de l'environnement courant à celui où se
      * trouve la référence. */
-    sauts: z32
+    sauts: z32;
 }
 
 ReferenceRecord :: struct {
     Base :: union {
-        V: Valeur
-        E: *Environment
-        UNRESOLVABLE: TypeUnresolvable
+        V: Valeur;
+        E: *Environment;
+        UNRESOLVABLE: TypeUnresolvable;
     }
 
-    base: Base
-    referenced_name: ReferencedName
-    strict: bool
-    valeur_this: Optionnel(Valeur)
-    coordonnée: Optionnel(CoordonnéeEnvironnement)
+    base: Base;
+    referenced_name: ReferencedName;
+    strict: bool;
+    valeur_this: Optionnel(Valeur);
+    coordonnée: Optionnel(CoordonnéeEnvironnement);
 }
 
 référence_non_résolvable :: fonc (nom: ReferencedName, strict: bool) -> ReferenceRecord
 {
-    résultat: ReferenceRecord
-    résultat.base = TypeUnresolvable(0)
-    résultat.strict = strict
-    résultat.referenced_name = nom
-    retourne résultat
+    résultat: ReferenceRecord;
+    résultat.base = TypeUnresolvable(0);
+    résultat.strict = strict;
+    résultat.referenced_name = nom;
+    retourne résultat;
 }
 
 /* 6.2.5.1 IsPropertyReference ( V )
@@ -463,14 +463,14 @@ is_property_reference :: fonc (référence: ReferenceRecord) -> bool
     discr référence.base {
         // 1. If V.[[Base]] is unresolvable, return false.
         UNRESOLVABLE {
-            retourne faux
+            retourne faux;
         }
         // 2. If V.[[Base]] is an Environment Record, return false; otherwise return true.
         E {
-            retourne faux
+            retourne faux;
         }
         sinon {
-            retourne vrai
+            retourne vrai;
         }
     }
 }
@@ -482,10 +482,10 @@ is_unresolvable_reference :: fonc (référence: ReferenceRecord) -> bool
     // 1. If V.[[Base]] is unresolvable, return true; otherwise return false.
     discr référence.base {
         UNRESOLVABLE {
-            retourne vrai
+            retourne vrai;
         }
         sinon {
-            retourne faux
+            retourne faux;
         }
     }
 }
@@ -497,10 +497,10 @@ is_super_reference :: fonc (reference: ReferenceRecord) -> bool
     /* 1. If V.[[ThisValue]] is not EMPTY, return true; otherwise return false. */
     discr reference.valeur_this {
         Quelque {
-            retourne vrai
+            retourne vrai;
         }
         sinon {
-            retourne faux
+            retourne faux;
         }
     }
 }
@@ -512,10 +512,10 @@ is_private_reference :: fonc (reference_record: &ReferenceRecord) -> bool
     // 1. If V.[[ReferencedName]] is a Private Name, return true; otherwise return false.
     discr reference_record.referenced_name {
         private_name {
-            retourne vrai
+            retourne vrai;
         }
         sinon {
-            retourne faux
+            retourne faux;
         }
     }
 }
@@ -524,24 +524,24 @@ is_private_reference :: fonc (reference_record: &ReferenceRecord) -> bool
  * https://tc39.es/ecma262/multipage/ecmascript-data-types-and-values.html#sec-getvalue */
 get_value :: fonc (interpréteuse: *Interpréteuse, valeur: ValeurCompletion) -> Valeur
 {
-    retourne get_value(interpréteuse.donne_realm(), valeur)
+    retourne get_value(interpréteuse.donne_realm(), valeur);
 }
 
 get_value :: fonc (realm: *Realm, valeur: ValeurCompletion) -> Valeur
 {
     saufsi est_reference_record(valeur) {
         si est_empty(valeur) {
-            retourne js_undefined
+            retourne js_undefined;
         }
-        retourne valeur.V
+        retourne valeur.V;
     }
 
-    retourne get_value(realm, valeur.R)
+    retourne get_value(realm, valeur.R);
 }
 
 get_value :: fonc (interpréteuse: *Interpréteuse, valeur: ReferenceRecord) -> Valeur
 {
-    retourne get_value(interpréteuse.donne_realm(), valeur)
+    retourne get_value(interpréteuse.donne_realm(), valeur);
 }
 
 get_value :: fonc (realm: *Realm, V: ReferenceRecord) -> Valeur
@@ -550,58 +550,58 @@ get_value :: fonc (realm: *Realm, V: ReferenceRecord) -> Valeur
 
     // 2. If IsUnresolvableReference(V) is true, throw a ReferenceError exception.
     si is_unresolvable_reference(V) {
-        message := imprime_chaine("\"%\" is not defined", V.referenced_name)
-        retourne lance_reference_error(realm, message)
+        message := imprime_chaine("\"%\" is not defined", V.referenced_name);
+        retourne lance_reference_error(realm, message);
     }
 
     // 3. If IsPropertyReference(V) is true, then
     si is_property_reference(V) {
         // a. Let baseObj be ? ToObject(V.[[Base]]).
-        base_object := to_object(realm, V.base.V)
+        base_object := to_object(realm, V.base.V);
         si realm.possède_exception() {
-            retourne js_undefined
+            retourne js_undefined;
         }
 
         // b. If IsPrivateReference(V) is true, then
         si is_private_reference(V) {
             // i. Return ? PrivateGet(baseObj, V.[[ReferencedName]]).
-            résultat := private_get(base_object, V.referenced_name.private_name)
-            retourne résultat
+            résultat := private_get(base_object, V.referenced_name.private_name);
+            retourne résultat;
         }
 
         si is_array_key(V.referenced_name) {
-            index := to_uint32(V.referenced_name.valeur)
-            retourne base_object.internal_get_by_index(index, get_this_value(V))
+            index := to_uint32(V.referenced_name.valeur);
+            retourne base_object.internal_get_by_index(index, get_this_value(V));
         }
 
         // c. If V.[[ReferencedName]] is not a property key, then
         saufsi is_property_key(V.referenced_name) {
             // i. Set V.[[ReferencedName]] to ? ToPropertyKey(V.[[ReferencedName]]).
-            property_key := to_property_key(realm, V.referenced_name.valeur)
+            property_key := to_property_key(realm, V.referenced_name.valeur);
             si realm.possède_exception() {
-                retourne js_undefined
+                retourne js_undefined;
             }
-            V.referenced_name = property_key.donne_valeur(realm)
+            V.referenced_name = property_key.donne_valeur(realm);
         }
 
         // d. Return ? baseObj.[[Get]](V.[[ReferencedName]], GetThisValue(V)).
-        retourne base_object.internal_get(V.referenced_name.donne_property_key(), get_this_value(V))
+        retourne base_object.internal_get(V.referenced_name.donne_property_key(), get_this_value(V));
     }
 
     // 4. Else,
 
     // a. Let base be V.[[Base]].
-    base := V.base.E
+    base := V.base.E;
     // b. Assert: base is an Environment Record.
 
     si V.coordonnée.possède_valeur() {
-        coordonnée := V.coordonnée.Quelque
-        declarative_environment := base.vérifie_comme(DeclarativeEnvironment)
-        retourne declarative_environment.bindings[coordonnée.indice].valeur
+        coordonnée := V.coordonnée.Quelque;
+        declarative_environment := base.vérifie_comme(DeclarativeEnvironment);
+        retourne declarative_environment.bindings[coordonnée.indice].valeur;
     }
 
     // c. Return ? base.GetBindingValue(V.[[ReferencedName]], V.[[Strict]]) (see 9.1).
-    retourne base.get_binding_value(realm, V.referenced_name.donne_property_key(), V.strict)
+    retourne base.get_binding_value(realm, V.referenced_name.donne_property_key(), V.strict);
 }
 
 /* 6.2.5.6 PutValue
@@ -610,96 +610,96 @@ put_value :: fonc (interpréteuse: *Interpréteuse, référence: ValeurCompletio
 {
     // 1. If V is not a Reference Record, throw a ReferenceError exception.
     saufsi est_reference_record(référence) {
-        message := imprime_chaine("'%' is not assignable", référence)
-        retourne lance_reference_error(interpréteuse.donne_realm(), message)
+        message := imprime_chaine("'%' is not assignable", référence);
+        retourne lance_reference_error(interpréteuse.donne_realm(), message);
     }
 
-    record := référence.R
+    record := référence.R;
 
     // 2. If IsUnresolvableReference(V) is true, then
     si is_unresolvable_reference(record) {
         // a. If V.[[Strict]] is true, throw a ReferenceError exception.
         si record.strict {
-            message := imprime_chaine("assignment to undeclared variable \"%\"", record.referenced_name)
-            retourne lance_reference_error(interpréteuse, message)
+            message := imprime_chaine("assignment to undeclared variable \"%\"", record.referenced_name);
+            retourne lance_reference_error(interpréteuse, message);
         }
 
         // b. Let globalObj be GetGlobalObject().
-        global_obj := get_global_object(interpréteuse)
+        global_obj := get_global_object(interpréteuse);
 
         // c. Perform ? Set(globalObj, V.[[ReferencedName]], W, false).
-        set(global_obj, record.referenced_name.donne_property_key(), valeur, faux)
+        set(global_obj, record.referenced_name.donne_property_key(), valeur, faux);
         si interpréteuse.possède_exception() {
-            retourne js_undefined
+            retourne js_undefined;
         }
 
         // d. Return UNUSED.
-        retourne js_undefined
+        retourne js_undefined;
     }
 
     // 3. If IsPropertyReference(V) is true, then
     si is_property_reference(record) {
         // a. Let baseObj be ? ToObject(V.[[Base]]).
-        base_obj := to_object(interpréteuse.donne_realm(), record.base.V)
+        base_obj := to_object(interpréteuse.donne_realm(), record.base.V);
         si interpréteuse.possède_exception() {
-            retourne js_undefined
+            retourne js_undefined;
         }
 
         // b. If IsPrivateReference(V) is true, then
         si is_private_reference(record) {
             // i. Return ? PrivateSet(baseObj, V.[[ReferencedName]], W).
-            private_set(base_obj, record.referenced_name.private_name, valeur)
-            retourne js_undefined
+            private_set(base_obj, record.referenced_name.private_name, valeur);
+            retourne js_undefined;
         }
 
-        succeeded: bool
+        succeeded: bool;
 
         si is_array_key(record.referenced_name) {
-            index := to_uint32(record.referenced_name.valeur)
-            succeeded = base_obj.internal_set_by_index(index, valeur, get_this_value(record))
+            index := to_uint32(record.referenced_name.valeur);
+            succeeded = base_obj.internal_set_by_index(index, valeur, get_this_value(record));
         }
         sinon {
             // c. If V.[[ReferencedName]] is not a property key, then
             saufsi is_property_key(record.referenced_name) {
                 // i. Set V.[[ReferencedName]] to ? ToPropertyKey(V.[[ReferencedName]]).
-                property_key := to_property_key(interpréteuse.donne_realm(), record.referenced_name.valeur)
+                property_key := to_property_key(interpréteuse.donne_realm(), record.referenced_name.valeur);
                 si interpréteuse.possède_exception() {
-                    retourne js_undefined
+                    retourne js_undefined;
                 }
-                record.referenced_name = property_key.donne_valeur(interpréteuse.donne_realm())
+                record.referenced_name = property_key.donne_valeur(interpréteuse.donne_realm());
             }
 
-            succeeded = base_obj.internal_set(record.referenced_name.donne_property_key(), valeur, get_this_value(record))
+            succeeded = base_obj.internal_set(record.referenced_name.donne_property_key(), valeur, get_this_value(record));
         }
 
         // d. Let succeeded be ? baseObj.[[Set]](V.[[ReferencedName]], W, GetThisValue(V)).
         si interpréteuse.possède_exception() {
-            retourne js_undefined
+            retourne js_undefined;
         }
 
         // e. If succeeded is false and V.[[Strict]] is true, throw a TypeError exception.
         si succeeded == faux && record.strict {
-            retourne lance_type_error(interpréteuse.donne_realm(), "cannot add property on type")
+            retourne lance_type_error(interpréteuse.donne_realm(), "cannot add property on type");
         }
         // f. Return UNUSED.
-        retourne js_undefined
+        retourne js_undefined;
     }
 
     // 4. Else,
     // a. Let base be V.[[Base]].
-    base := record.base.E
+    base := record.base.E;
     // b. Assert: base is an Environment Record.
 
     si record.coordonnée.possède_valeur() {
-        coordonnée := record.coordonnée.Quelque
-        declarative_environment := base.vérifie_comme(DeclarativeEnvironment)
-        declarative_environment.bindings[coordonnée.indice].valeur = valeur
-        retourne vrai
+        coordonnée := record.coordonnée.Quelque;
+        declarative_environment := base.vérifie_comme(DeclarativeEnvironment);
+        declarative_environment.bindings[coordonnée.indice].valeur = valeur;
+        retourne vrai;
     }
 
     // c. Return ? base.SetMutableBinding(V.[[ReferencedName]], W, V.[[Strict]]) (see 9.1).
-    base.set_mutable_binding(interpréteuse.donne_realm(), record.referenced_name.donne_property_key(), valeur, record.strict)
-    retourne vrai
+    base.set_mutable_binding(interpréteuse.donne_realm(), record.referenced_name.donne_property_key(), valeur, record.strict);
+    retourne vrai;
 }
 
 /* 6.2.5.7 GetThisValue ( V )
@@ -707,12 +707,12 @@ put_value :: fonc (interpréteuse: *Interpréteuse, référence: ValeurCompletio
 get_this_value :: fonc (reference: ReferenceRecord) -> Valeur
 {
     // 1. Assert: IsPropertyReference(V) is true.
-    assert(is_property_reference(reference))
+    assert(is_property_reference(reference));
     // 2. If IsSuperReference(V) is true, return V.[[ThisValue]]; otherwise return V.[[Base]].
     si is_super_reference(reference) {
-        retourne reference.valeur_this.Quelque
+        retourne reference.valeur_this.Quelque;
     }
-    retourne reference.base.V
+    retourne reference.base.V;
 }
 
 /* 6.2.5.8 InitializeReferencedBinding ( V, W )
@@ -720,15 +720,15 @@ get_this_value :: fonc (reference: ReferenceRecord) -> Valeur
 initialize_reference_binding :: fonc (reference: ReferenceRecord, valeur: Valeur)
 {
     // 1. Assert: IsUnresolvableReference(V) is false.
-    assert(!is_unresolvable_reference(reference))
+    assert(!is_unresolvable_reference(reference));
 
     // 2. Let base be V.[[Base]].
-    base := reference.base.E
+    base := reference.base.E;
 
     // 3. Assert: base is an Environment Record.
 
     // 4. Return ? base.InitializeBinding(V.[[ReferencedName]], W).
-    base.initialize_binding(reference.referenced_name.valeur.String.texte, valeur)
+    base.initialize_binding(reference.referenced_name.valeur.String.texte, valeur);
 }
 
 /* 6.2.5.9 MakePrivateReference ( baseValue, privateIdentifier )
@@ -736,18 +736,18 @@ initialize_reference_binding :: fonc (reference: ReferenceRecord, valeur: Valeur
 make_private_reference :: fonc (interpréteuse: *Interpréteuse, base_value: Valeur, private_identifier: ECMAString) -> ReferenceRecord
 {
     // 1. Let privateEnv be the running execution context's PrivateEnvironment.
-    mv := interpréteuse.mv
-    running_execution_context := donne_running_execution_context(mv)
-    private_env := running_execution_context.private_environment
+    mv := interpréteuse.mv;
+    running_execution_context := donne_running_execution_context(mv);
+    private_env := running_execution_context.private_environment;
 
     // 2. Assert: privateEnv is not null.
-    assert(private_env != nul)
+    assert(private_env != nul);
 
     // 3. Let privateName be ResolvePrivateIdentifier(privateEnv, privateIdentifier).
-    private_name := resolve_private_identifier(private_env, private_identifier)
+    private_name := resolve_private_identifier(private_env, private_identifier);
 
     // 4. Return the Reference Record { [[Base]]: baseValue, [[ReferencedName]]: privateName, [[Strict]]: true, [[ThisValue]]: empty }.
-    retourne ReferenceRecord(base = base_value, referenced_name = private_name, strict = vrai)
+    retourne ReferenceRecord(base = base_value, referenced_name = private_name, strict = vrai);
 }
 
 /** \} */
@@ -759,59 +759,59 @@ make_private_reference :: fonc (interpréteuse: *Interpréteuse, base_value: Val
  * \{ */
 
 PropertyDescriptor :: struct {
-    value: Optionnel(Valeur)
+    value: Optionnel(Valeur);
     get: Optionnel(*Object) // ou undefined
     set: Optionnel(*Object) // ou undefined
-    writable: Optionnel(bool)
-    configurable: Optionnel(bool)
-    enumerable: Optionnel(bool)
+    writable: Optionnel(bool);
+    configurable: Optionnel(bool);
+    enumerable: Optionnel(bool);
 }
 
 initialise_property_descriptor :: fonc (desc: *PropertyDescriptor, valeur: Valeur, drapeaux: DrapeauxPropriété)
 {
     /* Pour les réutilisation de variable. */
-    init_de(PropertyDescriptor)(desc)
+    init_de(PropertyDescriptor)(desc);
 
-    desc.value = valeur
+    desc.value = valeur;
 
     si drapeaux.CONFIGURABLE {
-        desc.configurable = vrai
+        desc.configurable = vrai;
     }
     si drapeaux.ENUMERABLE {
-        desc.enumerable = vrai
+        desc.enumerable = vrai;
     }
     si drapeaux.WRITABLE {
-        desc.writable = vrai
+        desc.writable = vrai;
     }
 }
 
 est_vide :: fonc (desc: PropertyDescriptor) -> bool
 {
-    retourne !(desc.value.possède_valeur() || desc.get.possède_valeur() || desc.set.possède_valeur() || desc.writable.possède_valeur() || desc.enumerable.possède_valeur() || desc.configurable.possède_valeur())
+    retourne !(desc.value.possède_valeur() || desc.get.possède_valeur() || desc.set.possède_valeur() || desc.writable.possède_valeur() || desc.enumerable.possède_valeur() || desc.configurable.possède_valeur());
 }
 
 donne_drapeaux_propriétés :: fonc (desc: PropertyDescriptor) -> DrapeauxPropriété
 {
-    drapeaux: DrapeauxPropriété
+    drapeaux: DrapeauxPropriété;
     si desc.writable.possède_valeur() {
-        writable := desc.writable.Quelque
+        writable := desc.writable.Quelque;
         si writable {
-            drapeaux.WRITABLE = vrai
+            drapeaux.WRITABLE = vrai;
         }
     }
     si desc.configurable.possède_valeur() {
-        configurable := desc.configurable.Quelque
+        configurable := desc.configurable.Quelque;
         si configurable {
-            drapeaux.CONFIGURABLE = vrai
+            drapeaux.CONFIGURABLE = vrai;
         }
     }
     si desc.enumerable.possède_valeur() {
-        enumerable := desc.enumerable.Quelque
+        enumerable := desc.enumerable.Quelque;
         si enumerable {
-            drapeaux.ENUMERABLE = vrai
+            drapeaux.ENUMERABLE = vrai;
         }
     }
-    retourne drapeaux
+    retourne drapeaux;
 }
 
 /* 6.2.6.1 IsAccessorDescriptor ( Desc )
@@ -822,14 +822,14 @@ is_accessor_descriptor :: fonc (desc: &PropertyDescriptor) -> bool
 
     // 2. If Desc has a [[Get]] field, return true.
     si desc.get.possède_valeur() {
-        retourne vrai
+        retourne vrai;
     }
     // 3. If Desc has a [[Set]] field, return true.
     si desc.set.possède_valeur() {
-        retourne vrai
+        retourne vrai;
     }
     // 4. Return false.
-    retourne faux
+    retourne faux;
 }
 
 /* 6.2.6.2 IsDataDescriptor ( Desc )
@@ -840,14 +840,14 @@ is_data_descriptor :: fonc (desc: &PropertyDescriptor) -> bool
 
     // 2. If Desc has a [[Value]] field, return true.
     si desc.value.possède_valeur() {
-        retourne vrai
+        retourne vrai;
     }
     // 3. If Desc has a [[Writable]] field, return true.
     si desc.writable.possède_valeur() {
-        retourne vrai
+        retourne vrai;
     }
     // 4. Return false.
-    retourne faux
+    retourne faux;
 }
 
 /* 6.2.6.3 IsGenericDescriptor ( Desc )
@@ -856,16 +856,16 @@ is_generic_descriptor :: fonc (desc: &PropertyDescriptor) -> bool
 {
     // 1. If IsAccessorDescriptor(Desc) is true, return false.
     si is_accessor_descriptor(desc) {
-        retourne faux
+        retourne faux;
     }
 
     // 2. If IsDataDescriptor(Desc) is true, return false.
     si is_data_descriptor(desc) {
-        retourne faux
+        retourne faux;
     }
 
     // 3. Return true.
-    retourne vrai
+    retourne vrai;
 }
 
 /** \} */
@@ -877,16 +877,16 @@ is_generic_descriptor :: fonc (desc: &PropertyDescriptor) -> bool
 
 PrivateElement :: struct {
     Kind :: énum {
-        FIELD
-        METHOD
-        ACCESSOR
+        FIELD;
+        METHOD;
+        ACCESSOR;
     }
 
-    key: PrivateName
-    kind: Kind
-    value: Valeur
-    get: *Object
-    set: *Object
+    key: PrivateName;
+    kind: Kind;
+    value: Valeur;
+    get: *Object;
+    set: *Object;
 }
 
 /** \} */
@@ -897,19 +897,19 @@ PrivateElement :: struct {
  * \{ */
 
 FieldName :: union {
-    PrivateName: PrivateName
-    String: ECMAString
-    Symbol: *Symbol
+    PrivateName: PrivateName;
+    String: ECMAString;
+    Symbol: *Symbol;
 }
 
 est_private_name :: fonc (field_name: FieldName) -> bool
 {
     discr field_name {
         PrivateName {
-            retourne vrai
+            retourne vrai;
         }
         sinon {
-            retourne faux
+            retourne faux;
         }
     }
 }
@@ -918,10 +918,10 @@ est_symbol :: fonc (field_name: FieldName) -> bool
 {
     discr field_name {
         Symbol {
-            retourne vrai
+            retourne vrai;
         }
         sinon {
-            retourne faux
+            retourne faux;
         }
     }
 }
@@ -930,13 +930,13 @@ est_property_key :: fonc (field_name: FieldName) -> bool
 {
     discr field_name {
         String {
-            retourne vrai
+            retourne vrai;
         }
         Symbol {
-            retourne vrai
+            retourne vrai;
         }
         sinon {
-            retourne faux
+            retourne faux;
         }
     }
 }
@@ -945,20 +945,20 @@ donne_property_key :: fonc (field_name: FieldName) -> PropertyKey
 {
     discr field_name {
         String(s) {
-            retourne s
+            retourne s;
         }
         Symbol(s) {
-            retourne s
+            retourne s;
         }
         sinon {
         }
     }
-    panique("FieldName n'est pas une PropertyKey")
+    panique("FieldName n'est pas une PropertyKey");
 }
 
 ClassFieldDefinition :: struct {
-    name: FieldName
-    initializer: *ECMAScriptFunction
+    name: FieldName;
+    initializer: *ECMAScriptFunction;
 }
 
 /** \} */
@@ -974,7 +974,7 @@ PrivateName :: struct {
 
 opérateur == :: (a: PrivateName, b: PrivateName) -> bool
 {
-    retourne a.description == b.description
+    retourne a.description == b.description;
 }
 
 /** \} */
@@ -985,7 +985,7 @@ opérateur == :: (a: PrivateName, b: PrivateName) -> bool
  * \{ */
 
 ClassStaticBlockDefinition :: struct {
-    body_function: *ECMAScriptFunction
+    body_function: *ECMAScriptFunction;
 }
 
 /** \} */
@@ -995,18 +995,18 @@ ClassStaticBlockDefinition :: struct {
  * \{ */
 
 PropertyKey :: union {
-    String: ECMAString
-    Symbol: *Symbol
+    String: ECMAString;
+    Symbol: *Symbol;
 }
 
 formatte_property_key :: fonc (enchaineuse: *Enchaineuse, prop: *PropertyKey)
 {
     discr mémoire(prop) {
         String(s) {
-            ajoute_au_tampon(enchaineuse, s)
+            ajoute_au_tampon(enchaineuse, s);
         }
         Symbol(s) {
-            ajoute_au_tampon(enchaineuse, "%", s, "%")
+            ajoute_au_tampon(enchaineuse, "%", s, "%");
         }
         sinon {}
     }
@@ -1016,25 +1016,25 @@ donne_empreinte :: fonc (key: PropertyKey) -> n64
 {
     discr key {
         String(s) {
-            retourne s.valeur
+            retourne s.valeur;
         }
         Symbol(s) {
-            retourne s comme n64
+            retourne s comme n64;
         }
         sinon {}
     }
 
-    retourne 0
+    retourne 0;
 }
 
 est_chaine :: fonc (key: PropertyKey) -> bool
 {
     discr key {
         String {
-            retourne vrai
+            retourne vrai;
         }
         sinon {
-            retourne faux
+            retourne faux;
         }
     }
 }
@@ -1043,10 +1043,10 @@ est_symbol :: fonc (key: PropertyKey) -> bool
 {
     discr key {
         Symbol {
-            retourne vrai
+            retourne vrai;
         }
         sinon {
-            retourne faux
+            retourne faux;
         }
     }
 }
@@ -1057,25 +1057,25 @@ opérateur == :: (p1: PropertyKey, p2: PropertyKey) -> bool
         String(s1) {
             discr p2 {
                 String(s2) {
-                    retourne s1 == s2
+                    retourne s1 == s2;
                 }
                 sinon {
-                    retourne faux
+                    retourne faux;
                 }
             }
         }
         Symbol(s1) {
             discr p2 {
                 Symbol(s2) {
-                    retourne s1 == s2
+                    retourne s1 == s2;
                 }
                 sinon {
-                    retourne faux
+                    retourne faux;
                 }
             }
         }
         sinon {
-            retourne faux
+            retourne faux;
         }
     }
 }
@@ -1084,60 +1084,60 @@ opérateur == :: (p1: PropertyKey, p2: PropertyKey) -> bool
 is_array_index :: fonc (property_key: PropertyKey) -> bool
 {
     saufsi property_key.est_chaine() {
-        retourne faux
+        retourne faux;
     }
 
     /* À FAIRE */
-    texte := property_key.String.donne_chaine_utf16()
+    texte := property_key.String.donne_chaine_utf16();
 
-    texte_utf8 := convertis_vers_chaine(texte)
-    diffère déloge(texte_utf8)
+    texte_utf8 := convertis_vers_chaine(texte);
+    diffère déloge(texte_utf8);
 
     résultat := tente extrait_r64(texte_utf8) piège _ {
-        retourne faux
-    }
+        retourne faux;
+    };
 
-    retourne is_non_negative_integral_number(résultat)
+    retourne is_non_negative_integral_number(résultat);
 }
 
 to_uint32 :: fonc (property_key: PropertyKey) -> n32
 {
-    texte := property_key.String.donne_chaine_utf16()
+    texte := property_key.String.donne_chaine_utf16();
 
     /* À FAIRE */
-    texte_utf8 := convertis_vers_chaine(texte)
-    diffère déloge(texte_utf8)
+    texte_utf8 := convertis_vers_chaine(texte);
+    diffère déloge(texte_utf8);
 
-    résultat := tente extrait_r64(texte_utf8) piège nonatteignable
-    retourne résultat comme n32
+    résultat := tente extrait_r64(texte_utf8) piège nonatteignable;
+    retourne résultat comme n32;
 }
 
 donne_valeur :: fonc (property_key: PropertyKey, realm: *Realm) -> Valeur
 {
     discr property_key {
         String(s) {
-            retourne crée_chaine(realm, s)
+            retourne crée_chaine(realm, s);
         }
         Symbol(s) {
-            retourne s
+            retourne s;
         }
         sinon {}
     }
-    retourne js_undefined
+    retourne js_undefined;
 }
 
 donne_field_name :: fonc (property_key: PropertyKey) -> FieldName
 {
     discr property_key {
         String(s) {
-            retourne s
+            retourne s;
         }
         Symbol(s) {
-            retourne s
+            retourne s;
         }
         sinon {}
     }
-    panique("property_key non-initialisée")
+    panique("property_key non-initialisée");
 }
 
 /** \} */
@@ -1148,56 +1148,56 @@ donne_field_name :: fonc (property_key: PropertyKey) -> FieldName
 
 #portée_fichier
 
-table_virtuelle_primitive_chaine := TableVirtuelleCellule(classe = PrimitiveChaine)
+table_virtuelle_primitive_chaine := TableVirtuelleCellule(classe = PrimitiveChaine);
 
 #portée_export
 
 PrimitiveChaine :: struct {
-    empl cellule: Cellule
-    table = *table_virtuelle_primitive_chaine
+    empl cellule: Cellule;
+    table = *table_virtuelle_primitive_chaine;
 
-    texte: ECMAString
-    objet: *Object
+    texte: ECMAString;
+    objet: *Object;
 }
 
 crée_chaine :: fonc (realm: *Realm, texte: ECMAString) -> *PrimitiveChaine
 {
     pour realm.chaines {
         si it.texte == texte {
-            retourne it
+            retourne it;
         }
     }
 
-    tas_de_mémoire := realm.donne_tas_de_mémoire()
-    résultat := tas_de_mémoire.alloue(PrimitiveChaine)
-    résultat.texte = texte
-    tableau_ajoute(*realm.chaines, résultat)
-    retourne résultat
+    tas_de_mémoire := realm.donne_tas_de_mémoire();
+    résultat := tas_de_mémoire.alloue(PrimitiveChaine);
+    résultat.texte = texte;
+    tableau_ajoute(*realm.chaines, résultat);
+    retourne résultat;
 }
 
 crée_chaine :: fonc (tas_de_mémoire: *TasDeMémoire, texte: ECMAString) -> *PrimitiveChaine
 {
-    résultat := tas_de_mémoire.alloue(PrimitiveChaine)
-    résultat.texte = texte
-    retourne résultat
+    résultat := tas_de_mémoire.alloue(PrimitiveChaine);
+    résultat.texte = texte;
+    retourne résultat;
 }
 
 concatène :: fonc (realm: *Realm, str_gauche: *PrimitiveChaine, str_droite: *PrimitiveChaine) -> Valeur
 {
-    chn1 := str_gauche.texte.donne_chaine_utf16()
-    chn2 := str_droite.texte.donne_chaine_utf16()
+    chn1 := str_gauche.texte.donne_chaine_utf16();
+    chn2 := str_droite.texte.donne_chaine_utf16();
 
-    enchaineuse: EnchaineuseUTF16
-    initialise_enchaineuse(enchaineuse)
+    enchaineuse: EnchaineuseUTF16;
+    initialise_enchaineuse(enchaineuse);
 
-    ajoute(enchaineuse, chn1)
-    ajoute(enchaineuse, chn2)
+    ajoute(enchaineuse, chn1);
+    ajoute(enchaineuse, chn2);
 
-    chn := chaine_depuis_enchaineuse(enchaineuse)
-    diffère détruit_chaine(chn)
-    chn_résultat := crée_chaine_utf16_unique(chn)
+    chn := chaine_depuis_enchaineuse(enchaineuse);
+    diffère détruit_chaine(chn);
+    chn_résultat := crée_chaine_utf16_unique(chn);
 
-    retourne Valeur(String = crée_chaine(realm, chn_résultat))
+    retourne Valeur(String = crée_chaine(realm, chn_résultat));
 }
 
 /** \} */

@@ -4,30 +4,30 @@
 
 #portée_fichier
 
-table_virtuelle_execution_context := TableVirtuelleCellule(classe = ExecutionContext)
+table_virtuelle_execution_context := TableVirtuelleCellule(classe = ExecutionContext);
 
 #portée_export
 
 ExecutionContext :: struct {
-    empl base: Cellule
-    table = *table_virtuelle_execution_context
+    empl base: Cellule;
+    table = *table_virtuelle_execution_context;
 
-    realm: *Realm
-    function: *Function
+    realm: *Realm;
+    function: *Function;
     script_or_module: *Script // ScriptOrModule
-    noeud_exécuté_courant: *NoeudSyntaxique @NeVisitePas
+    noeud_exécuté_courant: *NoeudSyntaxique @NeVisitePas;
 
     /* https://tc39.es/ecma262/#table-additional-state-components-for-ecmascript-code-execution-contexts */
-    lexical_environment: *Environment
-    variable_environment: *Environment
-    private_environment: *PrivateEnvironment
+    lexical_environment: *Environment;
+    variable_environment: *Environment;
+    private_environment: *PrivateEnvironment;
 
-    est_suspendu: bool
+    est_suspendu: bool;
 }
 
 crée_execution_context :: fonc (tas_de_mémoire: *TasDeMémoire) -> *ExecutionContext
 {
-    retourne tas_de_mémoire.alloue(ExecutionContext)
+    retourne tas_de_mémoire.alloue(ExecutionContext);
 }
 
 /* 9.4.1 GetActiveScriptOrModule ( )
@@ -36,26 +36,26 @@ get_active_script_or_module :: fonc (mv: *MachineVirtuelle) -> *Script // Script
 {
     // 1. If the execution context stack is empty, return null.
     si mv.execution_contexts.taille == 0 {
-        retourne nul
+        retourne nul;
     }
 
     // 2. Let ec be the topmost execution context on the execution context stack whose ScriptOrModule component is not null.
     // 3. If no such execution context exists, return null. Otherwise, return ec's ScriptOrModule.
     pour > mv.execution_contexts {
         si it.script_or_module {
-            retourne it.script_or_module
+            retourne it.script_or_module;
         }
     }
 
-    retourne nul
+    retourne nul;
 }
 
 suspend :: fonc (execution_context: *ExecutionContext)
 {
     si execution_context.est_suspendu {
-        retourne
+        retourne;
     }
-    execution_context.est_suspendu = vrai
+    execution_context.est_suspendu = vrai;
 }
 
 /** \} */
@@ -69,91 +69,91 @@ suspend :: fonc (execution_context: *ExecutionContext)
  * \{ */
 
 Intrinsics :: struct {
-    string_prototype: *StringPrototype
-    object_prototype: *ObjectPrototype
-    function_prototype: *FunctionPrototype
-    array_prototype: *ArrayPrototype
-    error_prototype: *ErrorPrototype
-    eval_error_prototype: *Object
-    range_error_prototype: *Object
-    reference_error_prototype: *Object
-    type_error_prototype: *Object
-    uri_error_prototype: *Object
-    syntax_error_prototype: *Object
-    date_prototype: *DatePrototype
-    number_prototype: *NumberPrototype
-    boolean_prototype: *BooleanPrototype
-    array_iterator_prototype: *Object
+    string_prototype: *StringPrototype;
+    object_prototype: *ObjectPrototype;
+    function_prototype: *FunctionPrototype;
+    array_prototype: *ArrayPrototype;
+    error_prototype: *ErrorPrototype;
+    eval_error_prototype: *Object;
+    range_error_prototype: *Object;
+    reference_error_prototype: *Object;
+    type_error_prototype: *Object;
+    uri_error_prototype: *Object;
+    syntax_error_prototype: *Object;
+    date_prototype: *DatePrototype;
+    number_prototype: *NumberPrototype;
+    boolean_prototype: *BooleanPrototype;
+    array_iterator_prototype: *Object;
 
-    array: *ArrayConstructor
-    date: *DateConstructor
-    encode_uri_component: *Function
-    eval: *Function
-    isnan: *Function
-    parse_int: *Function
-    function: *FunctionConstructor
-    math: *MathObject
-    object: *ObjectConstructor
-    string: *StringConstructor
-    number: *NumberConstructor
-    boolean: *BooleanConstructor
-    json: *Object
+    array: *ArrayConstructor;
+    date: *DateConstructor;
+    encode_uri_component: *Function;
+    eval: *Function;
+    isnan: *Function;
+    parse_int: *Function;
+    function: *FunctionConstructor;
+    math: *MathObject;
+    object: *ObjectConstructor;
+    string: *StringConstructor;
+    number: *NumberConstructor;
+    boolean: *BooleanConstructor;
+    json: *Object;
 
     /* Constructeurs pour les erreurs. */
-    error: *Object
-    eval_error: *Object
-    range_error: *Object
-    reference_error: *Object
-    syntax_error: *Object
-    type_error: *Object
-    uri_error: *Object
+    error: *Object;
+    eval_error: *Object;
+    range_error: *Object;
+    reference_error: *Object;
+    syntax_error: *Object;
+    type_error: *Object;
+    uri_error: *Object;
 
-    host_intrinsics: [..]*Object
+    host_intrinsics: [..]*Object;
 }
 
 /* 9.3.2 CreateIntrinsics ( realmRec )
  * https://tc39.es/ecma262/multipage/executable-code-and-execution-contexts.html#sec-createintrinsics */
 create_intrinsics :: fonc (realm: *Realm)
 {
-    tas_de_mémoire := realm.donne_tas_de_mémoire()
+    tas_de_mémoire := realm.donne_tas_de_mémoire();
 
-    realm.intrinsics.object_prototype = crée_object_prototype(tas_de_mémoire)
-    realm.intrinsics.string_prototype = crée_string_prototype(realm, realm.intrinsics.object_prototype)
-    realm.intrinsics.function_prototype = crée_function_prototype(realm, realm.intrinsics.object_prototype)
-    realm.intrinsics.array_prototype = crée_array_prototype(tas_de_mémoire, realm.intrinsics.object_prototype)
-    realm.intrinsics.error_prototype = crée_error_prototype(realm, realm.intrinsics.object_prototype)
-    realm.intrinsics.eval_error_prototype = crée_eval_error_prototype(tas_de_mémoire, realm.intrinsics.error_prototype)
-    realm.intrinsics.range_error_prototype = crée_range_error_prototype(tas_de_mémoire, realm.intrinsics.error_prototype)
-    realm.intrinsics.reference_error_prototype = crée_reference_error_prototype(tas_de_mémoire, realm.intrinsics.error_prototype)
-    realm.intrinsics.type_error_prototype = crée_type_error_prototype(tas_de_mémoire, realm.intrinsics.error_prototype)
-    realm.intrinsics.uri_error_prototype = crée_uri_error_prototype(tas_de_mémoire, realm.intrinsics.error_prototype)
-    realm.intrinsics.syntax_error_prototype = crée_syntax_error_prototype(tas_de_mémoire, realm.intrinsics.error_prototype)
-    realm.intrinsics.date_prototype = crée_date_prototype(tas_de_mémoire, realm.intrinsics.object_prototype)
-    realm.intrinsics.number_prototype = crée_number_prototype(realm, realm.intrinsics.object_prototype)
-    realm.intrinsics.boolean_prototype = crée_boolean_prototype(realm, realm.intrinsics.object_prototype)
-    realm.intrinsics.array_iterator_prototype = crée_array_iterator_prototype(realm, realm.intrinsics.object_prototype)
+    realm.intrinsics.object_prototype = crée_object_prototype(tas_de_mémoire);
+    realm.intrinsics.string_prototype = crée_string_prototype(realm, realm.intrinsics.object_prototype);
+    realm.intrinsics.function_prototype = crée_function_prototype(realm, realm.intrinsics.object_prototype);
+    realm.intrinsics.array_prototype = crée_array_prototype(tas_de_mémoire, realm.intrinsics.object_prototype);
+    realm.intrinsics.error_prototype = crée_error_prototype(realm, realm.intrinsics.object_prototype);
+    realm.intrinsics.eval_error_prototype = crée_eval_error_prototype(tas_de_mémoire, realm.intrinsics.error_prototype);
+    realm.intrinsics.range_error_prototype = crée_range_error_prototype(tas_de_mémoire, realm.intrinsics.error_prototype);
+    realm.intrinsics.reference_error_prototype = crée_reference_error_prototype(tas_de_mémoire, realm.intrinsics.error_prototype);
+    realm.intrinsics.type_error_prototype = crée_type_error_prototype(tas_de_mémoire, realm.intrinsics.error_prototype);
+    realm.intrinsics.uri_error_prototype = crée_uri_error_prototype(tas_de_mémoire, realm.intrinsics.error_prototype);
+    realm.intrinsics.syntax_error_prototype = crée_syntax_error_prototype(tas_de_mémoire, realm.intrinsics.error_prototype);
+    realm.intrinsics.date_prototype = crée_date_prototype(tas_de_mémoire, realm.intrinsics.object_prototype);
+    realm.intrinsics.number_prototype = crée_number_prototype(realm, realm.intrinsics.object_prototype);
+    realm.intrinsics.boolean_prototype = crée_boolean_prototype(realm, realm.intrinsics.object_prototype);
+    realm.intrinsics.array_iterator_prototype = crée_array_iterator_prototype(realm, realm.intrinsics.object_prototype);
 
-    realm.intrinsics.array = crée_array_constructor(realm, realm.intrinsics.function_prototype, realm.intrinsics.array_prototype)
-    realm.intrinsics.date = crée_date_constructor(realm, realm.intrinsics.function_prototype, realm.intrinsics.date_prototype)
-    realm.intrinsics.encode_uri_component = crée_encode_uri_component(realm)
-    realm.intrinsics.eval = crée_eval(realm)
-    realm.intrinsics.isnan = crée_isnan(realm)
-    realm.intrinsics.parse_int = crée_parse_int(realm)
-    realm.intrinsics.function = crée_function_constructor(realm, realm.intrinsics.function_prototype)
-    realm.intrinsics.math = crée_math_object(realm.intrinsics.object_prototype)
-    realm.intrinsics.object = crée_object_constructor(realm, realm.intrinsics.function_prototype, realm.intrinsics.object_prototype)
-    realm.intrinsics.string = crée_string_constructor(realm, realm.intrinsics.function_prototype, realm.intrinsics.string_prototype)
-    realm.intrinsics.number = crée_number_constructor(realm, realm.intrinsics.function_prototype, realm.intrinsics.number_prototype)
-    realm.intrinsics.boolean = crée_boolean_constructor(realm, realm.intrinsics.function_prototype, realm.intrinsics.boolean_prototype)
-    crée_json_object(realm)
+    realm.intrinsics.array = crée_array_constructor(realm, realm.intrinsics.function_prototype, realm.intrinsics.array_prototype);
+    realm.intrinsics.date = crée_date_constructor(realm, realm.intrinsics.function_prototype, realm.intrinsics.date_prototype);
+    realm.intrinsics.encode_uri_component = crée_encode_uri_component(realm);
+    realm.intrinsics.eval = crée_eval(realm);
+    realm.intrinsics.isnan = crée_isnan(realm);
+    realm.intrinsics.parse_int = crée_parse_int(realm);
+    realm.intrinsics.function = crée_function_constructor(realm, realm.intrinsics.function_prototype);
+    realm.intrinsics.math = crée_math_object(realm.intrinsics.object_prototype);
+    realm.intrinsics.object = crée_object_constructor(realm, realm.intrinsics.function_prototype, realm.intrinsics.object_prototype);
+    realm.intrinsics.string = crée_string_constructor(realm, realm.intrinsics.function_prototype, realm.intrinsics.string_prototype);
+    realm.intrinsics.number = crée_number_constructor(realm, realm.intrinsics.function_prototype, realm.intrinsics.number_prototype);
+    realm.intrinsics.boolean = crée_boolean_constructor(realm, realm.intrinsics.function_prototype, realm.intrinsics.boolean_prototype);
+    crée_json_object(realm);
 
-    realm.intrinsics.error = crée_error_constructor(realm, realm.intrinsics.function_prototype, realm.intrinsics.error_prototype)
-    realm.intrinsics.eval_error = crée_eval_error_constructor(realm, realm.intrinsics.function_prototype, realm.intrinsics.eval_error_prototype)
-    realm.intrinsics.range_error = crée_range_error_constructor(realm, realm.intrinsics.function_prototype, realm.intrinsics.range_error_prototype)
-    realm.intrinsics.reference_error = crée_reference_error_constructor(realm, realm.intrinsics.function_prototype, realm.intrinsics.reference_error_prototype)
-    realm.intrinsics.syntax_error = crée_syntax_error_constructor(realm, realm.intrinsics.function_prototype, realm.intrinsics.syntax_error_prototype)
-    realm.intrinsics.type_error = crée_type_error_constructor(realm, realm.intrinsics.function_prototype, realm.intrinsics.type_error_prototype)
-    realm.intrinsics.uri_error = crée_uri_error_constructor(realm, realm.intrinsics.function_prototype, realm.intrinsics.uri_error_prototype)
+    realm.intrinsics.error = crée_error_constructor(realm, realm.intrinsics.function_prototype, realm.intrinsics.error_prototype);
+    realm.intrinsics.eval_error = crée_eval_error_constructor(realm, realm.intrinsics.function_prototype, realm.intrinsics.eval_error_prototype);
+    realm.intrinsics.range_error = crée_range_error_constructor(realm, realm.intrinsics.function_prototype, realm.intrinsics.range_error_prototype);
+    realm.intrinsics.reference_error = crée_reference_error_constructor(realm, realm.intrinsics.function_prototype, realm.intrinsics.reference_error_prototype);
+    realm.intrinsics.syntax_error = crée_syntax_error_constructor(realm, realm.intrinsics.function_prototype, realm.intrinsics.syntax_error_prototype);
+    realm.intrinsics.type_error = crée_type_error_constructor(realm, realm.intrinsics.function_prototype, realm.intrinsics.type_error_prototype);
+    realm.intrinsics.uri_error = crée_uri_error_constructor(realm, realm.intrinsics.function_prototype, realm.intrinsics.uri_error_prototype);
 }
 
 /** \} */
@@ -163,10 +163,10 @@ create_intrinsics :: fonc (realm: *Realm)
  * \{ */
 
 ConfigurationRealm :: struct {
-    crée_objet_global: fonc (config: *ConfigurationRealm, realm: *Realm) -> *Object
-    crée_host_instrinsics: fonc (realm: *Realm)
-    donne_this_binding_global: fonc (config: *ConfigurationRealm) -> *Object
-    crée_propriétés_hôte_objet_global: fonc (config: *ConfigurationRealm, global_object: *Object)
+    crée_objet_global: fonc (config: *ConfigurationRealm, realm: *Realm) -> *Object;
+    crée_host_instrinsics: fonc (realm: *Realm);
+    donne_this_binding_global: fonc (config: *ConfigurationRealm) -> *Object;
+    crée_propriétés_hôte_objet_global: fonc (config: *ConfigurationRealm, global_object: *Object);
 }
 
 /** \} */
@@ -178,78 +178,78 @@ ConfigurationRealm :: struct {
 
 #portée_fichier
 
-table_virtuelle_realm := TableVirtuelleCellule(classe = Realm, sur_destruction = realm_sur_destruction)
+table_virtuelle_realm := TableVirtuelleCellule(classe = Realm, sur_destruction = realm_sur_destruction);
 
 #portée_export
 
 Realm :: struct {
-    empl base: Cellule
-    table = *table_virtuelle_realm
+    empl base: Cellule;
+    table = *table_virtuelle_realm;
 
-    intrinsics: Intrinsics
-    global_object: *Object
-    global_environment: *GlobalEnvironment
-    host_defined: HostDefined
+    intrinsics: Intrinsics;
+    global_object: *Object;
+    global_environment: *GlobalEnvironment;
+    host_defined: HostDefined;
 
     /* Cache pour toutes les chaines littérales. */
-    chaines_littérales: [..]*PrimitiveChaine
+    chaines_littérales: [..]*PrimitiveChaine;
     /* Cache pour les autres chaines. */
-    chaines: [..]*PrimitiveChaine
+    chaines: [..]*PrimitiveChaine;
 }
 
 est_intrinsics :: fonc (realm: *Realm, object: *Object) -> bool
 {
-    info := info_de(Intrinsics)
-    base := *realm.intrinsics comme *octet
+    info := info_de(Intrinsics);
+    base := *realm.intrinsics comme *octet;
 
     pour info.rubriques {
         saufsi it.id.id == GenreInfoType.POINTEUR {
-            continue
+            continue;
         }
 
         /* Charge la rubrique. */
-        adresse := mémoire((base + it.décalage) comme **rien)
+        adresse := mémoire((base + it.décalage) comme **rien);
         si object == adresse {
-            retourne vrai
+            retourne vrai;
         }
     }
 
     pour realm.intrinsics.host_intrinsics {
         si object == it {
-            retourne vrai
+            retourne vrai;
         }
     }
 
-    retourne faux
+    retourne faux;
 }
 
 realm_sur_destruction :: fonc (base: *Cellule)
 {
-    realm := base.vérifie_comme(Realm)
-    déloge(realm.chaines_littérales)
-    déloge(realm.chaines)
-    déloge(realm.intrinsics.host_intrinsics)
+    realm := base.vérifie_comme(Realm);
+    déloge(realm.chaines_littérales);
+    déloge(realm.chaines);
+    déloge(realm.intrinsics.host_intrinsics);
 }
 
 donne_mv :: fonc (realm: *Realm) -> *MachineVirtuelle
 {
-    retourne realm.donne_tas_de_mémoire().donne_mv()
+    retourne realm.donne_tas_de_mémoire().donne_mv();
 }
 
 /* 9.3.1 InitializeHostDefinedRealm ( )
  * https://tc39.es/ecma262/multipage/executable-code-and-execution-contexts.html#sec-initializehostdefinedrealm */
 initialise_host_defined_realm :: fonc (mv: *MachineVirtuelle, configuration : *ConfigurationRealm = nul) -> *Realm
 {
-    tas_de_mémoire := mv.donne_tas_de_mémoire()
+    tas_de_mémoire := mv.donne_tas_de_mémoire();
 
     // 1. Let realm be a new Realm Record.
-    realm := tas_de_mémoire.alloue(Realm)
+    realm := tas_de_mémoire.alloue(Realm);
 
     // 2. Perform CreateIntrinsics(realm).
-    create_intrinsics(realm)
+    create_intrinsics(realm);
 
     si configuration && configuration.crée_host_instrinsics {
-        configuration.crée_host_instrinsics(realm)
+        configuration.crée_host_instrinsics(realm);
     }
 
     // À FAIRE
@@ -259,62 +259,62 @@ initialise_host_defined_realm :: fonc (mv: *MachineVirtuelle, configuration : *C
     // 6. Set realm.[[TemplateMap]] to a new empty List.
 
     // 7. Let newContext be a new execution context.
-    new_context := crée_execution_context(tas_de_mémoire)
+    new_context := crée_execution_context(tas_de_mémoire);
 
     // 8. Set the Function of newContext to null.
-    new_context.function = nul
+    new_context.function = nul;
 
     // 9. Set the Realm of newContext to realm.
-    new_context.realm = realm
+    new_context.realm = realm;
 
     // 10. Set the ScriptOrModule of newContext to null.
-    new_context.script_or_module = nul
+    new_context.script_or_module = nul;
 
     // 11. Push newContext onto the execution context stack; newContext is now the running execution context.
-    mv.empile_execution_context(new_context)
+    mv.empile_execution_context(new_context);
 
-    global : *Object = ---
+    global : *Object = ---;
     // 12. If the host requires use of an exotic object to serve as realm's global object, then
     si configuration && configuration.crée_objet_global {
         // a. Let global be such an object created in a host-defined manner.
-        global = configuration.crée_objet_global(configuration, realm)
+        global = configuration.crée_objet_global(configuration, realm);
     }
     // 13. Else,
     sinon {
         // a. Let global be OrdinaryObjectCreate(realm.[[Intrinsics]].[[%Object.prototype%]]).
-        global = ordinary_object_create(realm, realm.intrinsics.object_prototype, object_instance_crée)
+        global = ordinary_object_create(realm, realm.intrinsics.object_prototype, object_instance_crée);
     }
 
-    this_value : *Object = ---
+    this_value : *Object = ---;
     // 14. If the host requires that the this binding in realm's global scope return an object other than the global object, then
     si configuration && configuration.donne_this_binding_global {
         // a. Let thisValue be such an object created in a host-defined manner.
-        this_value = configuration.donne_this_binding_global(configuration)
+        this_value = configuration.donne_this_binding_global(configuration);
     }
     // 15. Else,
     sinon {
         // a. Let thisValue be global.
-        this_value = global
+        this_value = global;
     }
 
     // 16. Set realm.[[GlobalObject]] to global.
-    realm.global_object = global
+    realm.global_object = global;
 
     // 17. Set realm.[[GlobalEnv]] to NewGlobalEnvironment(global, thisValue).
-    realm.global_environment = new_global_environment(tas_de_mémoire, global, this_value)
+    realm.global_environment = new_global_environment(tas_de_mémoire, global, this_value);
 
     // 18. Perform ? SetDefaultGlobalBindings(realm).
-    completion := set_default_global_bindings(realm)
+    completion := set_default_global_bindings(realm);
     // À FAIRE : retourne la completion au lieu du Realm (standard).
-    assert(completion.est_normal())
+    assert(completion.est_normal());
 
     // 19. Create any host-defined global object properties on global.
     si configuration && configuration.crée_propriétés_hôte_objet_global {
-        configuration.crée_propriétés_hôte_objet_global(configuration, global)
+        configuration.crée_propriétés_hôte_objet_global(configuration, global);
     }
 
     // 20. Return UNUSED.
-    retourne realm
+    retourne realm;
 }
 
 /* 9.3.3 SetDefaultGlobalBindings ( realmRec )
@@ -322,13 +322,13 @@ initialise_host_defined_realm :: fonc (mv: *MachineVirtuelle, configuration : *C
 set_default_global_bindings :: fonc (realm: *Realm) -> CompletionRecord
 {
     // 1. Let global be realmRec.[[GlobalObject]].
-    global := realm.global_object
+    global := realm.global_object;
 
     // 2. For each property of the Global Object specified in clause 19, do
     GlobalObjectProperty :: struct {
-        nom: ECMAString
-        valeur: Valeur
-        drapeaux: DrapeauxPropriété
+        nom: ECMAString;
+        valeur: Valeur;
+        drapeaux: DrapeauxPropriété;
     }
 
     global_object_properties := [
@@ -400,25 +400,25 @@ set_default_global_bindings :: fonc (realm: *Realm) -> CompletionRecord
         GlobalObjectProperty(STR_JSON, Valeur(Object = realm.intrinsics.json)),
         GlobalObjectProperty(STR_Math, Valeur(Object = realm.intrinsics.math))
         // Reflect
-    ]
+    ];
 
     pour global_object_properties {
         // a. Let name be the String value of the property name.
-        name := it.nom
+        name := it.nom;
         
         // b. Let desc be the fully populated data Property Descriptor for the property, containing the specified attributes for the property. For properties listed in 19.2, 19.3, or 19.4 the value of the [[Value]] attribute is the corresponding intrinsic object from realmRec.
-        desc: PropertyDescriptor
-        initialise_property_descriptor(*desc, it.valeur, it.drapeaux)
+        desc: PropertyDescriptor;
+        initialise_property_descriptor(*desc, it.valeur, it.drapeaux);
 
         // c. Perform ? DefinePropertyOrThrow(global, name, desc).
-        define_property_or_throw(global, name, desc)
+        define_property_or_throw(global, name, desc);
         si realm.possède_exception() {
-            retourne throw_completion(realm.donne_exception())
+            retourne throw_completion(realm.donne_exception());
         }
     }
 
     // 3. Return UNUSED.
-    retourne normal_completion(js_undefined)
+    retourne normal_completion(js_undefined);
 }
 
 /** \} */

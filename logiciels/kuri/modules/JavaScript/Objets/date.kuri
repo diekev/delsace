@@ -4,22 +4,22 @@
 
 #portée_fichier
 
-table_virtuelle_objet_date := TableVirtuelleObject(classe = DateObject)
+table_virtuelle_objet_date := TableVirtuelleObject(classe = DateObject);
 
 #portée_export
 
 DateObject :: struct {
-    empl objet: Object
-    table = *table_virtuelle_objet_date
+    empl objet: Object;
+    table = *table_virtuelle_objet_date;
 
-    date_value: TempsSystème
+    date_value: TempsSystème;
 }
 
 crée_date :: fonc (tas_de_mémoire: *TasDeMémoire, date_prototype: *DatePrototype) -> *DateObject
 {
-    résultat := tas_de_mémoire.alloue(DateObject)
-    résultat.prototype = date_prototype
-    retourne résultat
+    résultat := tas_de_mémoire.alloue(DateObject);
+    résultat.prototype = date_prototype;
+    retourne résultat;
 }
 
 /** \} */
@@ -30,28 +30,28 @@ crée_date :: fonc (tas_de_mémoire: *TasDeMémoire, date_prototype: *DateProtot
 
 #portée_fichier
 
-table_virtuelle_date_constructor := TableVirtuelleBuiltinFunction(classe = DateConstructor)
+table_virtuelle_date_constructor := TableVirtuelleBuiltinFunction(classe = DateConstructor);
 
 #portée_export
 
 DateConstructor :: struct {
-    empl builtin_function: BuiltInFunction
-    table = *table_virtuelle_date_constructor
+    empl builtin_function: BuiltInFunction;
+    table = *table_virtuelle_date_constructor;
 
-    sur_call_or_construct = date_constructor_call_or_construct
+    sur_call_or_construct = date_constructor_call_or_construct;
 }
 
 crée_date_constructor :: fonc (realm: *Realm, function_prototype: *FunctionPrototype, date_prototype: *DatePrototype) -> *DateConstructor
 {
-    tas_de_mémoire := realm.donne_tas_de_mémoire()
-    résultat := tas_de_mémoire.alloue(DateConstructor)
-    create_builtin_function(résultat, 7, STR_Date, realm, function_prototype)
+    tas_de_mémoire := realm.donne_tas_de_mémoire();
+    résultat := tas_de_mémoire.alloue(DateConstructor);
+    create_builtin_function(résultat, 7, STR_Date, realm, function_prototype);
 
-    résultat.ajoute_propriété(STR_prototype, Valeur(Object = date_prototype), DrapeauxPropriété.zéro)
+    résultat.ajoute_propriété(STR_prototype, Valeur(Object = date_prototype), DrapeauxPropriété.zéro);
 
-    date_prototype.ajoute_propriété(STR_constructor, Valeur(Object = résultat), DrapeauxPropriété.zéro)
+    date_prototype.ajoute_propriété(STR_constructor, Valeur(Object = résultat), DrapeauxPropriété.zéro);
 
-    retourne résultat
+    retourne résultat;
 }
 
 /* 21.4.2.1 Date ( ...values )
@@ -60,24 +60,24 @@ date_constructor_call_or_construct :: fonc (empl params: *ParamètresCallOrConst
 {
     // 1. If NewTarget is undefined, then
     si new_target.est_undefined() {
-        panique("non-implémenté")
+        panique("non-implémenté");
         // a. Let now be the time value (UTC) identifying the current time.
         // b. Return ToDateString(now).
     }
 
     // 2. Let numberOfArgs be the number of elements in values.
-    number_of_args := arguments.taille
+    number_of_args := arguments.taille;
 
-    dv: TempsSystème
+    dv: TempsSystème;
 
     // 3. If numberOfArgs = 0, then
     si number_of_args == 0 {
         // a. Let dv be the time value (UTC) identifying the current time.
-        dv = maintenant_système_précis()
+        dv = maintenant_système_précis();
     }
     // 4. Else if numberOfArgs = 1, then
     sinon si number_of_args == 1 {
-        panique("non-implémenté")
+        panique("non-implémenté");
         // a. Let value be values[0].
         // b. If value is an Object and value has a [[DateValue]] internal slot, then
         // i. Let tv be value.[[DateValue]].
@@ -93,9 +93,9 @@ date_constructor_call_or_construct :: fonc (empl params: *ParamètresCallOrConst
     // 5. Else,
     sinon {
         // a. Assert: numberOfArgs ≥ 2.
-        assert(number_of_args >= 2)
+        assert(number_of_args >= 2);
 
-        panique("non-implémenté")
+        panique("non-implémenté");
         // b. Let y be ? ToNumber(values[0]).
         // c. Let m be ? ToNumber(values[1]).
         // d. If numberOfArgs > 2, let dt be ? ToNumber(values[2]); else let dt be 1𝔽.
@@ -109,14 +109,14 @@ date_constructor_call_or_construct :: fonc (empl params: *ParamètresCallOrConst
     }
 
     // 6. Let O be ? OrdinaryCreateFromConstructor(NewTarget, "%Date.prototype%", « [[DateValue]] »).
-    realm := interpréteuse.donne_realm()
-    O := crée_date(realm.donne_tas_de_mémoire(), realm.intrinsics.date_prototype)
+    realm := interpréteuse.donne_realm();
+    O := crée_date(realm.donne_tas_de_mémoire(), realm.intrinsics.date_prototype);
 
     // 7. Set O.[[DateValue]] to dv.
-    O.date_value = dv
+    O.date_value = dv;
 
     // 8. Return O.
-    retourne O
+    retourne O;
 }
 
 /** \} */
@@ -127,22 +127,22 @@ date_constructor_call_or_construct :: fonc (empl params: *ParamètresCallOrConst
 
 #portée_fichier
 
-table_virtuelle_date_prototype := TableVirtuelleObject(classe = DatePrototype)
+table_virtuelle_date_prototype := TableVirtuelleObject(classe = DatePrototype);
 
 #portée_export
 
 DatePrototype :: struct {
-    empl objet: Object
-    table = *table_virtuelle_date_prototype
+    empl objet: Object;
+    table = *table_virtuelle_date_prototype;
 }
 
 crée_date_prototype :: fonc (tas_de_mémoire: *TasDeMémoire, prototype: *ObjectPrototype) -> *DatePrototype
 {
-    résultat := tas_de_mémoire.alloue(DatePrototype)
-    résultat.prototype = prototype
-    résultat.ajoute_fonction_native(STR_getTime, date_prototype_get_time)
-    résultat.ajoute_fonction_native(STR_valueOf, date_prototype_value_of)
-    retourne résultat
+    résultat := tas_de_mémoire.alloue(DatePrototype);
+    résultat.prototype = prototype;
+    résultat.ajoute_fonction_native(STR_getTime, date_prototype_get_time);
+    résultat.ajoute_fonction_native(STR_valueOf, date_prototype_value_of);
+    retourne résultat;
 }
 
 /* 21.4.4.10 Date.prototype.getTime ( )
@@ -150,15 +150,15 @@ crée_date_prototype :: fonc (tas_de_mémoire: *TasDeMémoire, prototype: *Objec
 date_prototype_get_time :: fonc (empl params: *ParamètresObjectCall) -> Valeur
 {
     // 1. Let dateObject be the this value.
-    date_object := this_value.donne_objet() comme *DateObject
+    date_object := this_value.donne_objet() comme *DateObject;
 
     // 2. Perform ? RequireInternalSlot(dateObject, [[DateValue]]).
     saufsi date_object.donne_classe() == DateObject {
-        retourne lance_type_error(interpréteuse, "object is not a Date")
+        retourne lance_type_error(interpréteuse, "object is not a Date");
     }
 
     // 3. Return dateObject.[[DateValue]].
-    retourne date_object.date_value.millisecondes() comme r64
+    retourne date_object.date_value.millisecondes() comme r64;
 }
 
 /* 21.4.4.44 Date.prototype.valueOf ( )
@@ -166,15 +166,15 @@ date_prototype_get_time :: fonc (empl params: *ParamètresObjectCall) -> Valeur
 date_prototype_value_of :: fonc (empl params: *ParamètresObjectCall) -> Valeur
 {
     // 1. Let dateObject be the this value.
-    date_object := this_value.donne_objet() comme *DateObject
+    date_object := this_value.donne_objet() comme *DateObject;
 
     // 2. Perform ? RequireInternalSlot(dateObject, [[DateValue]]).
     saufsi date_object.donne_classe() == DateObject {
-        retourne lance_type_error(interpréteuse, "object is not a Date")
+        retourne lance_type_error(interpréteuse, "object is not a Date");
     }
 
     // 3. Return dateObject.[[DateValue]].
-    retourne date_object.date_value.millisecondes() comme r64
+    retourne date_object.date_value.millisecondes() comme r64;
 }
 
 /** \} */

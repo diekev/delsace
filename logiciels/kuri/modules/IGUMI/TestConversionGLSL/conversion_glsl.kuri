@@ -1,41 +1,41 @@
-importe Compilatrice
-importe Fondation
-importe SysFichier
-importe Transpilation
+importe Compilatrice;
+importe Fondation;
+importe SysFichier;
+importe Transpilation;
 
 #exécute {
-    désactive_compilation_espace_défaut()
+    désactive_compilation_espace_défaut();
 
-    options := OptionsDeCompilation()
-    options.résultat = RésultatCompilation.RIEN
-    espace := démarre_un_espace_de_travail("glsl", *options)
+    options := OptionsDeCompilation();
+    options.résultat = RésultatCompilation.RIEN;
+    espace := démarre_un_espace_de_travail("glsl", *options);
 
-    compilatrice_commence_interception(espace)
-    ajoute_fichier_à_la_compilation(espace, "fonctions_à_convertir.kuri")
+    compilatrice_commence_interception(espace);
+    ajoute_fichier_à_la_compilation(espace, "fonctions_à_convertir.kuri");
 
     boucle {
-        message := compilatrice_attends_message()
+        message := compilatrice_attends_message();
         si message.espace != espace {
-            continue
+            continue;
         }
 
         si message.genre == GenreMessage.TYPAGE_CODE_TERMINÉ {
-            message_typage := message comme *MessageTypageCodeTerminé
-            code := message_typage.code
+            message_typage := message comme *MessageTypageCodeTerminé;
+            code := message_typage.code;
 
             si code.genre == GenreNoeud.DÉCLARATION_CORPS_FONCTION {
-                convertis_vers_glsl(espace, code comme *NoeudCodeCorpsFonction)
+                convertis_vers_glsl(espace, code comme *NoeudCodeCorpsFonction);
             }
         }
 
         si message.genre == GenreMessage.PHASE_COMPILATION {
-            phase := message comme *MessagePhaseCompilation
+            phase := message comme *MessagePhaseCompilation;
 
             si phase.phase == PhaseCompilation.COMPILATION_TERMINÉE {
-                arrête
+                arrête;
             }
         }
     }
 
-    compilatrice_termine_interception(espace)
+    compilatrice_termine_interception(espace);
 }

@@ -4,15 +4,15 @@
  * Catégorie : [compilation infini]
  */
 
-importe Support
+importe Support;
 
 principale :: fonc ()
 {
     erreur_survenue := #exécute compile_script_erroné("
     a := MonÉnum.Valeur
-    ")
+    ");
 
     saufsi erreur_survenue {
-        exit(1)
+        exit(1);
     }
 }

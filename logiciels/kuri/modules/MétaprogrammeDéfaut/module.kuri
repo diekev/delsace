@@ -1,85 +1,85 @@
-AS :: importe AnalyseStatique
-importe Compilatrice
-importe Fondation
-importe GreffeMétaprogramme
+AS :: importe AnalyseStatique;
+importe Compilatrice;
+importe Fondation;
+importe GreffeMétaprogramme;
 
 #exécute {
-    espace := espace_défaut_compilation()
-    fichier := compilatrice_donne_fichier_entrée_compilation()
-    imprimeln("Lancement de la compilation à partir du fichier '%'...", fichier)
+    espace := espace_défaut_compilation();
+    fichier := compilatrice_donne_fichier_entrée_compilation();
+    imprimeln("Lancement de la compilation à partir du fichier '%'...", fichier);
 
-    greffons: [..]*GreffonMétaprogramme
-    diffère détruit_greffons(*greffons)
+    greffons: [..]*GreffonMétaprogramme;
+    diffère détruit_greffons(*greffons);
 
-    greffon_analyse := AS.donne_greffon()
+    greffon_analyse := AS.donne_greffon();
 
-    tableau_ajoute(*greffons, greffon_analyse)
-    tableau_ajoute(*greffons, Fondation.donne_greffon())
+    tableau_ajoute(*greffons, greffon_analyse);
+    tableau_ajoute(*greffons, Fondation.donne_greffon());
 
-    arguments := compilatrice_donne_arguments_ligne_de_commande()
-    arguments_greffon: []chaine
+    arguments := compilatrice_donne_arguments_ligne_de_commande();
+    arguments_greffon: []chaine;
 
-    indice_arg := 0
+    indice_arg := 0;
     tantque indice_arg < arguments.taille {
         /* Inclus le "nom" du métaprogramme dans la liste d'arguments. */
-        arguments_greffon.pointeur = arguments.pointeur + indice_arg
-        arguments_greffon.taille = 1
+        arguments_greffon.pointeur = arguments.pointeur + indice_arg;
+        arguments_greffon.taille = 1;
 
-        argument := arguments[indice_arg]
-        indice_arg += 1
+        argument := arguments[indice_arg];
+        indice_arg += 1;
 
         si argument == "+AS" || argument == "+AnalyseStatique" {
             tantque indice_arg < arguments.taille {
-                argument = arguments[indice_arg]
+                argument = arguments[indice_arg];
                 si argument[0] == '+' {
-                    arrête
+                    arrête;
                 }
-                indice_arg += 1
-                arguments_greffon.taille += 1
+                indice_arg += 1;
+                arguments_greffon.taille += 1;
             }
 
-            parse_arguments(greffon_analyse, arguments)
+            parse_arguments(greffon_analyse, arguments);
         }
     }
 
-    compilatrice_commence_interception(espace)
+    compilatrice_commence_interception(espace);
 
-    ajoute_fichier_à_la_compilation(espace, fichier)
+    ajoute_fichier_à_la_compilation(espace, fichier);
 
-    espaces: [..]EspaceDeTravail
-    diffère déloge(espaces)
+    espaces: [..]EspaceDeTravail;
+    diffère déloge(espaces);
 
-    tableau_ajoute(*espaces, espace)
+    tableau_ajoute(*espaces, espace);
 
     boucle {
-        message := compilatrice_attends_message()
+        message := compilatrice_attends_message();
 
         si message.genre == GenreMessage.ESPACE_CRÉÉ {
-            message_espace := message comme *MessageEspaceCréé
-            tableau_ajoute(*espaces, message_espace.nouvel_espace)
+            message_espace := message comme *MessageEspaceCréé;
+            tableau_ajoute(*espaces, message_espace.nouvel_espace);
         }
 
         pour greffons {
-            gère_message(it, message)
+            gère_message(it, message);
         }
 
         si message.genre == GenreMessage.PHASE_COMPILATION {
-            phase := message comme *MessagePhaseCompilation
+            phase := message comme *MessagePhaseCompilation;
 
             si phase.phase == PhaseCompilation.COMPILATION_TERMINÉE {
                 pour espaces {
                     si it == message.espace {
-                        tableau_supprime_indice(*espaces, indice_it)
-                        arrête
+                        tableau_supprime_indice(*espaces, indice_it);
+                        arrête;
                     }
                 }
 
                 si espaces.taille == 0 {
-                    arrête
+                    arrête;
                 }
             }
         }
     }
 
-    compilatrice_termine_interception(espace)
+    compilatrice_termine_interception(espace);
 }
