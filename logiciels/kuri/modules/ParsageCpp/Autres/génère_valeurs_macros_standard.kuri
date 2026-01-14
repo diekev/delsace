@@ -1,4 +1,4 @@
-importe Fondation
+importe Fondation;
 
 principale :: fonc ()
 {
@@ -119,7 +119,7 @@ principale :: fonc ()
         ["__ORDER_BIG_ENDIAN__", "%d"],
         ["__ORDER_PDP_ENDIAN__", "%d"],
         ["__FLOAT_WORD_ORDER__", "%d"],
-    ]
+    ];
 
     macros_chaines := [
         "__SIZE_TYPE__",
@@ -155,22 +155,22 @@ principale :: fonc ()
         "__UINT_FAST64_TYPE__",
         "__INTPTR_TYPE__",
         "__UINTPTR_TYPE__",
-    ]
+    ];
 
-    imprimeln("#include <stdio.h>\n")
-    imprimeln("#define _STRINGIZE(x) #x")
-    imprimeln("#define STRINGIZE(x) _STRINGIZE(x)")
-    imprimeln("int main(int argc, char **argv)")
-    imprimeln("{")
+    imprimeln("#include <stdio.h>\n");
+    imprimeln("#define _STRINGIZE(x) #x");
+    imprimeln("#define STRINGIZE(x) _STRINGIZE(x)");
+    imprimeln("int main(int argc, char **argv)");
+    imprimeln("{");
     pour macros {
-        imprimeln("#ifdef %", it[0])
-        imprimeln("    printf(\"ajoute_définition(préprocesseur, \\\"%\\\", %)\\n\", %);", it[0], it[1], it[0])
-        imprimeln("#endif")
+        imprimeln("#ifdef %", it[0]);
+        imprimeln("    printf(\"ajoute_définition(préprocesseur, \\\"%\\\", %)\\n\", %);", it[0], it[1], it[0]);
+        imprimeln("#endif");
     }
     pour macros_chaines {
-        imprimeln("#ifdef %", it)
-        imprimeln("    printf(\"ajoute_définition(préprocesseur, \\\"%\\\", \\\"%\\\")\\n\", STRINGIZE(%));", it, "%s", it)
-        imprimeln("#endif")
+        imprimeln("#ifdef %", it);
+        imprimeln("    printf(\"ajoute_définition(préprocesseur, \\\"%\\\", \\\"%\\\")\\n\", STRINGIZE(%));", it, "%s", it);
+        imprimeln("#endif");
     }
-    imprimeln("}")
+    imprimeln("}");
 }

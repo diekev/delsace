@@ -1,77 +1,77 @@
 // -------------------------
 // Cas un nombre entier décimal peut contenir tous les chiffres de 0 à 9
 
-N :: 1234567890
+N :: 1234567890;
 
 // -------------------------
 // Cas : un nombre entier peut commencer par 0b
 
-N :: 0b01
+N :: 0b01;
 
 // -------------------------
 // Cas : un nombre entier peut commencer par 0B
 
-N :: 0B01
+N :: 0B01;
 
 // -------------------------
 // Cas : un nombre entier peut commencer par 0o
 
-N :: 0o01234567
+N :: 0o01234567;
 
 // -------------------------
 // Cas : un nombre entier peut commencer par 0O
 
-N :: 0O01234567
+N :: 0O01234567;
 
 // -------------------------
 // Cas : un nombre entier peut commencer par 0x
 
-N :: 0x01_23_45_67_89_ab_cd_ef
+N :: 0x01_23_45_67_89_ab_cd_ef;
 
 // -------------------------
 // Cas : un nombre entier peut commencer par 0X
 
-N :: 0X01_23_45_67_89_ab_cd_ef
+N :: 0X01_23_45_67_89_ab_cd_ef;
 
 // -------------------------
 // Cas : un nombre entier hexadécimal peut mélanger des caractères minuscules et majuscules
 
-N :: 0xaA_bB_cC_dD_eE_fF
+N :: 0xaA_bB_cC_dD_eE_fF;
 
 // -------------------------
 // Cas : nous pouvons avoir des tirets-bas dans les nombres entiers décimaux
 
-N :: 1_000_000
+N :: 1_000_000;
 
 // -------------------------
 // Cas : nous pouvons avoir des tirets-bas dans les nombres entiers octaux
 
-M :: 0o377_000
-N :: 0O377_000
+M :: 0o377_000;
+N :: 0O377_000;
 
 // -------------------------
 // Cas : nous pouvons avoir des tirets-bas dans les nombres entiers binaires
 
-M :: 0b1111_0000
-N :: 0B1111_0000
+M :: 0b1111_0000;
+N :: 0B1111_0000;
 
 // -------------------------
 // Cas : nous pouvons avoir des tirets-bas dans les nombres entiers hexadécimaux
 
-M :: 0xFF_AA_FF_AA
-N :: 0XFF_AA_FF_AA
+M :: 0xFF_AA_FF_AA;
+N :: 0XFF_AA_FF_AA;
 
 // -------------------------
 // Cas : nous pouvons avoir des tirets-bas dans les nombres réels avant le point
 
-N :: 1_234.56
+N :: 1_234.56;
 
 // -------------------------
 // Cas : nous pouvons avoir des tirets-bas dans les nombres réels après le point
 
-N :: 1.234_567
+N :: 1.234_567;
 
 // -------------------------
 // Cas : nous pouvons avoir des tirets-bas dans les nombres réels avant ou après le point
 
-N :: 1_234.567_890
+N :: 1_234.567_890;

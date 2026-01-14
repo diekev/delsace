@@ -265,90 +265,90 @@ utfrune(const char *s, Rune c)
 
 rune_depuis_pointeur :: fonc (ptr: *z8) -> Rune
 {
-    x := convertis_utf8_utf32(ptr)
-    retourne Rune(x comme n32)
+    x := convertis_utf8_utf32(ptr);
+    retourne Rune(x comme n32);
 }
 
 est_chaine_utf8_valide :: fonc (chn: chaine) -> bool
 {
-    ptr := chn.pointeur
+    ptr := chn.pointeur;
     pour i dans 0 ... chn.taille - 1 {
-        n := nombre_octets_utf8(ptr)
+        n := nombre_octets_utf8(ptr);
 
         si n == 0 {
-            retourne faux
+            retourne faux;
         }
 
-        ptr += n
+        ptr += n;
     }
 
-    retourne vrai
+    retourne vrai;
 }
 
 TexteUnicode :: struct {
-    chn: chaine
-    index_sauvegardé : z64 = -1
-    it_sauvegardé: Rune
+    chn: chaine;
+    index_sauvegardé : z64 = -1;
+    it_sauvegardé: Rune;
 }
 
 crée_texte_unicode :: fonc (chn: chaine) -> TexteUnicode
 {
     // validation de la chaine
 
-    retourne TexteUnicode(chn)
+    retourne TexteUnicode(chn);
 }
 
 // À FAIRE : référence
 opérateur [] :: (texte: TexteUnicode, indice: z64) -> Rune
 {
-    ptr := texte.chn.pointeur
+    ptr := texte.chn.pointeur;
 
     si texte.index_sauvegardé == -1 || texte.index_sauvegardé > indice {
-        texte.index_sauvegardé = 0
-        texte.it_sauvegardé = rune_depuis_pointeur(ptr)
+        texte.index_sauvegardé = 0;
+        texte.it_sauvegardé = rune_depuis_pointeur(ptr);
     }
 
     si indice == texte.index_sauvegardé {
-        retourne texte.it_sauvegardé
+        retourne texte.it_sauvegardé;
     }
 
     tantque texte.index_sauvegardé < indice {
-        n := nombre_octets_utf8(ptr)
-        ptr += n
-        texte.index_sauvegardé += 1
+        n := nombre_octets_utf8(ptr);
+        ptr += n;
+        texte.index_sauvegardé += 1;
     }
 
-    texte.it_sauvegardé = rune_depuis_pointeur(ptr)
-    retourne texte.it_sauvegardé
+    texte.it_sauvegardé = rune_depuis_pointeur(ptr);
+    retourne texte.it_sauvegardé;
 }
 
 ItératriceUTF8 :: struct {
-    chn: chaine
-    position : z64 = 0
+    chn: chaine;
+    position : z64 = 0;
 }
 
 crée_itératrice_utf8 :: fonc (chn: chaine)
 {
-    itératrice: ItératriceUTF8
+    itératrice: ItératriceUTF8;
 
     si !est_chaine_utf8_valide(chn) {
-        retourne
+        retourne;
     }
 
-    itératrice.chn = chn
-    retourne itératrice
+    itératrice.chn = chn;
+    retourne itératrice;
 }
 
 rune_suivante :: fonc (itératrice: &ItératriceUTF8) -> Rune
 {
-    ptr := itératrice.chn.pointeur + itératrice.position
-    itératrice.position += nombre_octets_utf8(ptr)
-    retourne rune_depuis_pointeur(ptr)
+    ptr := itératrice.chn.pointeur + itératrice.position;
+    itératrice.position += nombre_octets_utf8(ptr);
+    retourne rune_depuis_pointeur(ptr);
 }
 
 valide :: fonc (itératrice: &ItératriceUTF8) -> bool
 {
-    retourne itératrice.position < itératrice.chn.taille
+    retourne itératrice.position < itératrice.chn.taille;
 }
 
 // À FAIRE : itérateurs
@@ -373,26 +373,26 @@ valide :: fonc (itératrice: &ItératriceUTF8) -> bool
 
 transforme_point_de_code_en_majuscule :: fonc (point_de_code: n32) -> n32
 {
-    rune := Rune(point_de_code)
+    rune := Rune(point_de_code);
 
-    f := donne_permutation_casse(unicode_toupper, rune)
+    f := donne_permutation_casse(unicode_toupper, rune);
     si f == nul || point_de_code < f.min {
-        retourne point_de_code
+        retourne point_de_code;
     }
 
-    rune = applique_permutation(f, rune)
-    retourne rune comme n32
+    rune = applique_permutation(f, rune);
+    retourne rune comme n32;
 }
 
 transforme_point_de_code_en_minuscule :: fonc (point_de_code: n32) -> n32
 {
-    rune := Rune(point_de_code)
+    rune := Rune(point_de_code);
 
-    f := donne_permutation_casse(unicode_tolower, rune)
+    f := donne_permutation_casse(unicode_tolower, rune);
     si f == nul || point_de_code < f.min {
-        retourne point_de_code
+        retourne point_de_code;
     }
 
-    rune = applique_permutation(f, rune)
-    retourne rune comme n32
+    rune = applique_permutation(f, rune);
+    retourne rune comme n32;
 }

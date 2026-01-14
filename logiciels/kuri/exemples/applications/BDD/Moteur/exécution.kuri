@@ -1,323 +1,323 @@
-importe Fondation
-importe Numérique
-importe Sérialisation
+importe Fondation;
+importe Numérique;
+importe Sérialisation;
 
 Exécutrice :: struct {
-    possède_erreur: bool
-    message_erreur: chaine
+    possède_erreur: bool;
+    message_erreur: chaine;
 }
 
 réinitialise :: fonc (exécutrice: &Exécutrice)
 {
-    exécutrice.possède_erreur = faux
-    déloge(exécutrice.message_erreur)
+    exécutrice.possède_erreur = faux;
+    déloge(exécutrice.message_erreur);
 }
 
 rapporte_erreur :: fonc (exécutrice: &Exécutrice, message: chaine, args: ...eini)
 {
     si exécutrice.possède_erreur {
-        retourne
+        retourne;
     }
 
-    exécutrice.message_erreur = imprime_chaine(message, ...args)
-    exécutrice.possède_erreur = vrai
+    exécutrice.message_erreur = imprime_chaine(message, ...args);
+    exécutrice.possède_erreur = vrai;
 }
 
 RésultatExécution :: union {
-    Table: *Table
-    Erreur: chaine
-    ArrêteExécution: z32
-    Rien
+    Table: *Table;
+    Erreur: chaine;
+    ArrêteExécution: z32;
+    Rien;
 }
 
 exécute_instruction :: fonc (exécutrice: &Exécutrice, cm: *CoulisseMémoire, inst: *Instruction) -> RésultatExécution
 {
     discr inst.genre {
         CRÉE {
-            crée_table(exécutrice, cm, inst comme *InstructionCréationTable)
+            crée_table(exécutrice, cm, inst comme *InstructionCréationTable);
 
             si exécutrice.possède_erreur {
-                retourne exécutrice.message_erreur
+                retourne exécutrice.message_erreur;
             }
         }
         SÉLECTIONNE {
-            inst_sélection := inst comme *InstructionSélection
-            résultat := sélectionne(exécutrice, cm, inst_sélection)
+            inst_sélection := inst comme *InstructionSélection;
+            résultat := sélectionne(exécutrice, cm, inst_sélection);
 
             saufsi résultat {
-                retourne exécutrice.message_erreur
+                retourne exécutrice.message_erreur;
             }
 
-            retourne résultat
+            retourne résultat;
         }
         INSÈRE {
-            inst_insertion := inst comme *InstructionInsère
-            insère(exécutrice, cm, inst_insertion)
+            inst_insertion := inst comme *InstructionInsère;
+            insère(exécutrice, cm, inst_insertion);
 
             si exécutrice.possède_erreur {
-                retourne exécutrice.message_erreur
+                retourne exécutrice.message_erreur;
             }
         }
         MÉTA_TABLES {
-            retourne sélectionne_tables(cm)
+            retourne sélectionne_tables(cm);
         }
         MÉTA_SORS {
-            retourne 0
+            retourne 0;
         }
     }
 }
 
 crée_table :: fonc (exécutrice: &Exécutrice, cm: *CoulisseMémoire, inst: *InstructionCréationTable) -> rien
 {
-    nom_table := inst.nom.valeur
+    nom_table := inst.nom.valeur;
 
     si trouve_table(cm, nom_table) != nul {
-        exécutrice.rapporte_erreur("Erreur : redéfinition de la table %", nom_table)
-        retourne
+        exécutrice.rapporte_erreur("Erreur : redéfinition de la table %", nom_table);
+        retourne;
     }
 
-    colonnes: [..]Colonne
-    décalage := 0
+    colonnes: [..]Colonne;
+    décalage := 0;
 
     pour définition dans inst.colonnes {
-        colonne: Colonne
-        colonne.nom = définition.nom.valeur
+        colonne: Colonne;
+        colonne.nom = définition.nom.valeur;
 
         discr définition.type_données.genre {
             MOT_CLÉ_ENTIER {
-                colonne.genre = TypeColonne.ENTIER
-                colonne.taille = 4
-                colonne.décalage = décalage
+                colonne.genre = TypeColonne.ENTIER;
+                colonne.taille = 4;
+                colonne.décalage = décalage;
             }
             MOT_CLÉ_TEXTE {
-                colonne.genre = TypeColonne.CHAINE
+                colonne.genre = TypeColonne.CHAINE;
                 colonne.taille = 4 + 251 // 4 pour la taille, 251 pour les caractères
-                colonne.décalage = décalage
+                colonne.décalage = décalage;
             }
             sinon {
-                imprime("Type de données inattendu\n")
+                imprime("Type de données inattendu\n");
             }
         }
 
-        décalage += colonne.taille
+        décalage += colonne.taille;
 
-        tableau_ajoute(*colonnes, colonne)
+        tableau_ajoute(*colonnes, colonne);
     }
 
-    table := ouvre_base_de_données_mémoire(colonnes)
+    table := ouvre_base_de_données_mémoire(colonnes);
 
-    tableau_ajoute(*cm.noms_tables, inst.nom.valeur)
-    tableau_ajoute(*cm.tables, table)
+    tableau_ajoute(*cm.noms_tables, inst.nom.valeur);
+    tableau_ajoute(*cm.tables, table);
 }
 
 trouve_table :: fonc (cm: *CoulisseMémoire, nom_table: chaine) -> *Table
 {
     pour nom, idx dans cm.noms_tables {
         si nom == nom_table {
-            retourne cm.tables[idx]
+            retourne cm.tables[idx];
         }
     }
 
-    retourne nul
+    retourne nul;
 }
 
 imprime_tampon :: fonc (tampon: []octet, message: chaine)
 {
-    imprime("% :\n", message)
+    imprime("% :\n", message);
     pour tampon {
-        imprime("%", it)
+        imprime("%", it);
     }
-    imprime("\n")
+    imprime("\n");
 }
 
 insère :: fonc (exécutrice: &Exécutrice, cm: *CoulisseMémoire, inst: *InstructionInsère)
 {
-    nom_table := inst.table.valeur
-    table := trouve_table(cm, nom_table)
+    nom_table := inst.table.valeur;
+    table := trouve_table(cm, nom_table);
 
     si table == nul {
-        exécutrice.rapporte_erreur("La table % n'existe pas !\n", nom_table)
-        retourne
+        exécutrice.rapporte_erreur("La table % n'existe pas !\n", nom_table);
+        retourne;
     }
 
     si table.nombre_de_lignes >= LIGNES_MAX_TABLE {
-        exécutrice.rapporte_erreur("La table % est pleine.", nom_table)
-        retourne
+        exécutrice.rapporte_erreur("La table % est pleine.", nom_table);
+        retourne;
     }
 
     // À FAIRE : log de préécriture
-    décalage := 0
+    décalage := 0;
 
     // Utilisation d'un tampon pour stocker les valeurs afin de ne pas polluer la base en cas d'erreur
-    tampon_insertion := loge_tableau(octet, table.taille_octet_ligne)
-    tampon_insertion.taille = table.taille_octet_ligne
-    diffère déloge(tampon_insertion)
+    tampon_insertion := loge_tableau(octet, table.taille_octet_ligne);
+    tampon_insertion.taille = table.taille_octet_ligne;
+    diffère déloge(tampon_insertion);
 
     pour expr, idx_valeur dans inst.valeurs {
-        colonne := table.desc_colonnes[idx_valeur]
+        colonne := table.desc_colonnes[idx_valeur];
 
         si expr.littérale.genre == GenreLexème.NUMÉRIQUE {
             si colonne.genre != TypeColonne.ENTIER {
-                exécutrice.rapporte_erreur("Le typage de la colonne est invalide.\n")
-                retourne
+                exécutrice.rapporte_erreur("Le typage de la colonne est invalide.\n");
+                retourne;
             }
 
-            entier := extrait_nombre_entier(expr.littérale.valeur) comme z32
+            entier := extrait_nombre_entier(expr.littérale.valeur) comme z32;
 
             si entier < 0 {
-                exécutrice.rapporte_erreur("L'ID doit être positif.\n")
-                retourne
+                exécutrice.rapporte_erreur("L'ID doit être positif.\n");
+                retourne;
             }
 
-            sérialise_entier(tampon_insertion, décalage, entier)
+            sérialise_entier(tampon_insertion, décalage, entier);
         }
         sinon si expr.littérale.genre == GenreLexème.CHAINE {
             si colonne.genre != TypeColonne.CHAINE {
-                exécutrice.rapporte_erreur("Le typage de la colonne est invalide.\n")
-                retourne
+                exécutrice.rapporte_erreur("Le typage de la colonne est invalide.\n");
+                retourne;
             }
 
-            chn := expr.littérale.valeur
+            chn := expr.littérale.valeur;
 
             si chn.taille > 251 {
-                exécutrice.rapporte_erreur("La chaine est trop longue.\n")
-                retourne
+                exécutrice.rapporte_erreur("La chaine est trop longue.\n");
+                retourne;
             }
 
-            sérialise_chaine(tampon_insertion, décalage, chn)
+            sérialise_chaine(tampon_insertion, décalage, chn);
         }
         sinon {
-            exécutrice.rapporte_erreur("Le typage de la colonne est invalide.\n")
-            retourne
+            exécutrice.rapporte_erreur("Le typage de la colonne est invalide.\n");
+            retourne;
         }
 
-        décalage += colonne.taille
+        décalage += colonne.taille;
     }
 
     // ---------------------
 
-    curseur := curseur_fin_de_table(table)
-    diffère déloge(curseur)
+    curseur := curseur_fin_de_table(table);
+    diffère déloge(curseur);
 
-    ligne := valeur_curseur(curseur)
+    ligne := valeur_curseur(curseur);
 
-    copie_mem(src = tampon_insertion, dst = ligne, taille = ligne.taille)
+    copie_mem(src = tampon_insertion, dst = ligne, taille = ligne.taille);
 
-    table.nombre_de_lignes += 1
+    table.nombre_de_lignes += 1;
 }
 
 sélectionne :: fonc (exécutrice: &Exécutrice, cm: *CoulisseMémoire, inst: *InstructionSélection) -> *Table
 {
-    nom_table := inst.depuis.valeur
-    table := trouve_table(cm, nom_table)
+    nom_table := inst.depuis.valeur;
+    table := trouve_table(cm, nom_table);
 
     si table == nul {
-        exécutrice.rapporte_erreur("La table % n'existe pas !\n", nom_table)
-        retourne nul
+        exécutrice.rapporte_erreur("La table % n'existe pas !\n", nom_table);
+        retourne nul;
     }
 
-    colonnes_résultat: [..]Colonne
+    colonnes_résultat: [..]Colonne;
 
     diffère si exécutrice.possède_erreur {
-        déloge(colonnes_résultat)
+        déloge(colonnes_résultat);
     }
 
-    indice_colonnes: [..]z64
-    diffère déloge(indice_colonnes)
+    indice_colonnes: [..]z64;
+    diffère déloge(indice_colonnes);
 
     // trouve les colonnes dans la table
     pour expr dans inst.items {
         si expr.genre != GenreExpression.LITTÉRALE {
-            exécutrice.rapporte_erreur("Erreur : expression non-littérale rencontrée !\n")
-            retourne nul
+            exécutrice.rapporte_erreur("Erreur : expression non-littérale rencontrée !\n");
+            retourne nul;
         }
 
-        lit := expr.littérale
+        lit := expr.littérale;
 
         si lit.genre != GenreLexème.IDENTIFIANT {
-            continue
+            continue;
         }
 
-        trouvée := faux
+        trouvée := faux;
 
         pour colonne, idx_colonne dans table.desc_colonnes {
             si colonne.nom != lit.valeur {
-                continue
+                continue;
             }
 
-            tableau_ajoute(*colonnes_résultat, colonne)
-            tableau_ajoute(*indice_colonnes, idx_colonne)
+            tableau_ajoute(*colonnes_résultat, colonne);
+            tableau_ajoute(*indice_colonnes, idx_colonne);
 
-            trouvée = vrai
+            trouvée = vrai;
         }
 
         si !trouvée {
-            exécutrice.rapporte_erreur("Erreur : la colonne %.% n'existe pas !\n", nom_table, lit.valeur)
-            retourne nul
+            exécutrice.rapporte_erreur("Erreur : la colonne %.% n'existe pas !\n", nom_table, lit.valeur);
+            retourne nul;
         }
     }
 
-    curseur_source := curseur_début_de_table(table)
+    curseur_source := curseur_début_de_table(table);
 
-    table_résultat := ouvre_base_de_données_mémoire(colonnes_résultat)
+    table_résultat := ouvre_base_de_données_mémoire(colonnes_résultat);
 
-    curseur_résultat := curseur_début_de_table(table_résultat)
-    diffère déloge(curseur_résultat)
+    curseur_résultat := curseur_début_de_table(table_résultat);
+    diffère déloge(curseur_résultat);
 
     // recherche dans la table
     tantque !curseur_source.est_fin_de_table {
-        ligne_source := valeur_curseur(curseur_source)
-        ligne_résultat := valeur_curseur(curseur_résultat)
+        ligne_source := valeur_curseur(curseur_source);
+        ligne_résultat := valeur_curseur(curseur_résultat);
 
-        décalage_source := 0
-        décalage_résultat := 0
+        décalage_source := 0;
+        décalage_résultat := 0;
 
         pour indice dans indice_colonnes {
-            colonne := table.desc_colonnes[indice]
-            décalage_source = colonne.décalage
+            colonne := table.desc_colonnes[indice];
+            décalage_source = colonne.décalage;
 
-            pointeur_src := ligne_source.pointeur + décalage_source
-            pointeur_dst := ligne_résultat.pointeur + décalage_résultat
+            pointeur_src := ligne_source.pointeur + décalage_source;
+            pointeur_dst := ligne_résultat.pointeur + décalage_résultat;
 
-            copie_mem_nonsur(src = pointeur_src, dst = pointeur_dst, taille = colonne.taille)
+            copie_mem_nonsur(src = pointeur_src, dst = pointeur_dst, taille = colonne.taille);
 
-            décalage_résultat += colonne.taille
+            décalage_résultat += colonne.taille;
         }
 
-        avance_curseur(curseur_source)
-        avance_curseur(curseur_résultat)
+        avance_curseur(curseur_source);
+        avance_curseur(curseur_résultat);
 
-        table_résultat.nombre_de_lignes += 1
+        table_résultat.nombre_de_lignes += 1;
     }
 
-    retourne table_résultat
+    retourne table_résultat;
 }
 
 // ------------------------------------------------------------
 
 sélectionne_tables :: fonc (cm: *CoulisseMémoire) -> *Table
 {
-    colonne: Colonne
-    colonne.nom = "Tables"
-    colonne.genre = TypeColonne.CHAINE
+    colonne: Colonne;
+    colonne.nom = "Tables";
+    colonne.genre = TypeColonne.CHAINE;
     colonne.taille = 255 // À FAIRE
 
-    colonnes_résultat: [..]Colonne
-    tableau_ajoute(*colonnes_résultat, colonne)
+    colonnes_résultat: [..]Colonne;
+    tableau_ajoute(*colonnes_résultat, colonne);
 
-    table_résultat := ouvre_base_de_données_mémoire(colonnes_résultat)
+    table_résultat := ouvre_base_de_données_mémoire(colonnes_résultat);
 
-    curseur_résultat := curseur_début_de_table(table_résultat)
-    diffère déloge(curseur_résultat)
+    curseur_résultat := curseur_début_de_table(table_résultat);
+    diffère déloge(curseur_résultat);
 
     pour nom dans cm.noms_tables {
-        ligne := valeur_curseur(curseur_résultat)
+        ligne := valeur_curseur(curseur_résultat);
 
-        sérialise_chaine(ligne, 0, nom)
+        sérialise_chaine(ligne, 0, nom);
 
-        avance_curseur(curseur_résultat)
-        table_résultat.nombre_de_lignes += 1
+        avance_curseur(curseur_résultat);
+        table_résultat.nombre_de_lignes += 1;
     }
 
-    retourne table_résultat
+    retourne table_résultat;
 }

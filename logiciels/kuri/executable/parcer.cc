@@ -1369,7 +1369,7 @@ struct Convertisseuse {
         marque_rubriques_employées();
 
         POUR (config->modules_à_importer) {
-            flux_sortie << "importe " << it << "\n";
+            flux_sortie << "importe " << it << ";\n";
         }
         if (config->modules_à_importer.taille()) {
             flux_sortie << "\n";
@@ -1377,32 +1377,32 @@ struct Convertisseuse {
 
         if (config->nom_bibliothèque != "") {
             flux_sortie << "lib" << nom_bibliothèque_sûr << " :: #bibliothèque \""
-                        << config->nom_bibliothèque << "\"\n\n";
+                        << config->nom_bibliothèque << "\";\n\n";
 
             for (auto &dép : config->dépendances_biblinternes) {
                 flux_sortie << "#dépendance_bibliothèque lib" << nom_bibliothèque_sûr << " " << dép
-                            << "\n";
+                            << ";\n";
             }
             if (!config->dépendances_biblinternes.est_vide()) {
                 flux_sortie << "\n";
             }
             for (auto &dép : config->dépendances_qt) {
-                flux_sortie << "libQt5" << dép << " :: #bibliothèque \"Qt5" << dép << "\"\n";
+                flux_sortie << "libQt5" << dép << " :: #bibliothèque \"Qt5" << dép << "\";\n";
                 flux_sortie << "#dépendance_bibliothèque lib" << nom_bibliothèque_sûr << " libQt5"
-                            << dép << "\n";
+                            << dép << ";\n";
             }
             if (!config->dépendances_qt.est_vide()) {
-                flux_sortie << "libQt5Core :: #bibliothèque \"Qt5Core\"\n";
+                flux_sortie << "libQt5Core :: #bibliothèque \"Qt5Core\";\n";
                 flux_sortie << "#dépendance_bibliothèque lib" << nom_bibliothèque_sûr
-                            << " libQt5Core\n";
+                            << " libQt5Core;\n";
                 flux_sortie << "\n";
-                flux_sortie << "libQt5Gui :: #bibliothèque \"Qt5Gui\"\n";
+                flux_sortie << "libQt5Gui :: #bibliothèque \"Qt5Gui\";\n";
                 flux_sortie << "#dépendance_bibliothèque lib" << nom_bibliothèque_sûr
-                            << " libQt5Gui\n";
+                            << " libQt5Gui;\n";
                 flux_sortie << "\n";
-                flux_sortie << "libqt_entêtes :: #bibliothèque \"qt_entêtes\"\n";
+                flux_sortie << "libqt_entêtes :: #bibliothèque \"qt_entêtes\";\n";
                 flux_sortie << "#dépendance_bibliothèque lib" << nom_bibliothèque_sûr
-                            << " libqt_entêtes\n";
+                            << " libqt_entêtes;\n";
                 flux_sortie << "\n";
             }
         }
@@ -2672,7 +2672,7 @@ struct Convertisseuse {
                     }
 
                     os << ") -> " << convertis_type(fonction->type_sortie, typedefs);
-                    os << " #externe lib" << nom_bibliothèque_sûr << "\n";
+                    os << " #externe lib" << nom_bibliothèque_sûr << ";\n";
                 }
 
                 break;
@@ -2705,7 +2705,7 @@ struct Convertisseuse {
                     os << " #externe lib" << nom_bibliothèque_sûr;
                 }
 
-                os << "\n";
+                os << ";\n";
                 break;
             }
             case TypeSyntaxème::DÉCLARATION_CONSTANTE:
@@ -2722,7 +2722,7 @@ struct Convertisseuse {
                     imprime_arbre(constante->expression, os);
                 }
 
-                os << "\n";
+                os << ";\n";
                 break;
             }
             case TypeSyntaxème::TYPEDEF:
@@ -2765,7 +2765,7 @@ struct Convertisseuse {
                     os << convertis_type(typedef_->type_source, typedefs);
                 }
 
-                os << "\n";
+                os << ";\n";
                 break;
             }
             case TypeSyntaxème::TRANSTYPAGE:

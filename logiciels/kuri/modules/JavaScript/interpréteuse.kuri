@@ -3,29 +3,29 @@
  * https://tc39.es/ecma262/multipage/ecmascript-data-types-and-values.html#sec-reference-record-specification-type
  * \{ */
 
-TypeUnresolvable :: #opaque z32
+TypeUnresolvable :: #opaque z32;
 
 /* Type pour ReferenceRecord.reference_name */
 ReferencedName :: union {
-    valeur: Valeur
-    private_name: PrivateName
+    valeur: Valeur;
+    private_name: PrivateName;
 }
 
 imprime_refereced_name :: fonc (enchaineuse: *Enchaineuse, ref: *ReferencedName)
 {
     saufsi ref {
-        retourne
+        retourne;
     }
 
     discr mémoire(ref) {
         valeur(v) {
-            ajoute_au_tampon(enchaineuse, v)
+            ajoute_au_tampon(enchaineuse, v);
         }
         private_name(p) {
-            ajoute_au_tampon(enchaineuse, p.description)
+            ajoute_au_tampon(enchaineuse, p.description);
         }
         sinon {
-            ajoute_au_tampon(enchaineuse, "ReferencedName non initialisé")
+            ajoute_au_tampon(enchaineuse, "ReferencedName non initialisé");
         }
     }
 } @FormattageImpression
@@ -34,10 +34,10 @@ is_array_key :: fonc (referenced_name: ReferencedName) -> bool
 {
     discr referenced_name {
         valeur(v) {
-            retourne is_array_index(v)
+            retourne is_array_index(v);
         }
         sinon {
-            retourne faux
+            retourne faux;
         }
     }
 }
@@ -46,10 +46,10 @@ is_property_key :: fonc (referenced_name: ReferencedName) -> bool
 {
     discr referenced_name {
         valeur(v) {
-            retourne v.est_chaine() || v.est_symbol()
+            retourne v.est_chaine() || v.est_symbol();
         }
         sinon {
-            retourne faux
+            retourne faux;
         }
     }
 }
@@ -58,13 +58,13 @@ donne_property_key :: fonc (referenced_name: ReferencedName) -> PropertyKey
 {
     discr referenced_name.valeur {
         String(s) {
-            retourne s.texte
+            retourne s.texte;
         }
         Symbol(s) {
-            retourne s
+            retourne s;
         }
         sinon {
-            panique("donne_property_key sur un referenced_name invalide")
+            panique("donne_property_key sur un referenced_name invalide");
         }
     }
 }
@@ -76,19 +76,19 @@ donne_property_key :: fonc (referenced_name: ReferencedName) -> PropertyKey
  * \{ */
 
 ValeurCompletion :: union {
-    V: Valeur
-    R: ReferenceRecord
-    P: PropertyDescriptor
+    V: Valeur;
+    R: ReferenceRecord;
+    P: PropertyDescriptor;
 }
 
 est_reference_record :: fonc (valeur: ValeurCompletion) -> bool
 {
     discr valeur {
         R {
-            retourne vrai
+            retourne vrai;
         }
         V {
-            retourne faux
+            retourne faux;
         }
         sinon { retourne faux }
     }
@@ -98,10 +98,10 @@ est_undefined :: fonc (valeur: ValeurCompletion) -> bool
 {
     discr valeur {
         V(v) {
-            retourne est_undefined(v)
+            retourne est_undefined(v);
         }
         sinon {
-            retourne faux
+            retourne faux;
         }
     }
 }
@@ -110,16 +110,16 @@ est_empty :: fonc (valeur: ValeurCompletion) -> bool
 {
     discr valeur {
         R {
-            retourne faux
+            retourne faux;
         }
         V {
-            retourne faux
+            retourne faux;
         }
         P {
-            retourne faux
+            retourne faux;
         }
         sinon {
-            retourne vrai
+            retourne vrai;
         }
     }
 }
@@ -133,44 +133,44 @@ est_empty :: fonc (valeur: ValeurCompletion) -> bool
 
 CompletionRecord :: struct {
     Type :: énum {
-        NORMAL
-        BREAK
-        CONTINUE
-        RETURN
-        THROW
+        NORMAL;
+        BREAK;
+        CONTINUE;
+        RETURN;
+        THROW;
     }
 
-    type: Type
-    valeur: ValeurCompletion
-    cible: ECMAString
+    type: Type;
+    valeur: ValeurCompletion;
+    cible: ECMAString;
 }
 
 imprime_complétion :: fonc (enchaineuse: *Enchaineuse, completion: *CompletionRecord)
 {
     saufsi completion {
-        ajoute_au_tampon(enchaineuse, "nul")
-        retourne
+        ajoute_au_tampon(enchaineuse, "nul");
+        retourne;
     }
 
     si completion.type == CompletionRecord.Type.THROW {
-        ajoute_au_tampon(enchaineuse, completion.valeur.V)
-        retourne
+        ajoute_au_tampon(enchaineuse, completion.valeur.V);
+        retourne;
     }
 
     saufsi completion.type == CompletionRecord.Type.NORMAL || completion.type == CompletionRecord.Type.RETURN {
-        ajoute_au_tampon(enchaineuse, "À FAIRE : impression des complétions anormales.")
-        retourne
+        ajoute_au_tampon(enchaineuse, "À FAIRE : impression des complétions anormales.");
+        retourne;
     }
 
     discr completion.valeur {
         V(v) {
-            ajoute_au_tampon(enchaineuse, v)
+            ajoute_au_tampon(enchaineuse, v);
         }
         R(r) {
-            ajoute_au_tampon(enchaineuse, r)
+            ajoute_au_tampon(enchaineuse, r);
         }
         P(p) {
-            ajoute_au_tampon(enchaineuse, p)
+            ajoute_au_tampon(enchaineuse, p);
         }
         sinon {}
     }
@@ -178,37 +178,37 @@ imprime_complétion :: fonc (enchaineuse: *Enchaineuse, completion: *CompletionR
 
 normal_completion :: fonc (valeur: Valeur) -> CompletionRecord #enligne
 {
-    retourne CompletionRecord(CompletionRecord.Type.NORMAL, valeur)
+    retourne CompletionRecord(CompletionRecord.Type.NORMAL, valeur);
 }
 
 empty_completion :: fonc () -> CompletionRecord #enligne
 {
-    retourne CompletionRecord(CompletionRecord.Type.NORMAL)
+    retourne CompletionRecord(CompletionRecord.Type.NORMAL);
 }
 
 normal_completion :: fonc (valeur: ValeurCompletion) -> CompletionRecord #enligne
 {
-    retourne CompletionRecord(CompletionRecord.Type.NORMAL, valeur)
+    retourne CompletionRecord(CompletionRecord.Type.NORMAL, valeur);
 }
 
 return_completion :: fonc (valeur: Valeur) -> CompletionRecord #enligne
 {
-    retourne CompletionRecord(CompletionRecord.Type.RETURN, valeur)
+    retourne CompletionRecord(CompletionRecord.Type.RETURN, valeur);
 }
 
 return_completion :: fonc (valeur: ValeurCompletion) -> CompletionRecord #enligne
 {
-    retourne CompletionRecord(CompletionRecord.Type.RETURN, valeur)
+    retourne CompletionRecord(CompletionRecord.Type.RETURN, valeur);
 }
 
 continue_completion :: fonc (cible: ECMAString) -> CompletionRecord #enligne
 {
-    retourne CompletionRecord(CompletionRecord.Type.CONTINUE, cible = cible)
+    retourne CompletionRecord(CompletionRecord.Type.CONTINUE, cible = cible);
 }
 
 break_completion :: fonc (cible: ECMAString) -> CompletionRecord #enligne
 {
-    retourne CompletionRecord(CompletionRecord.Type.BREAK, cible = cible)
+    retourne CompletionRecord(CompletionRecord.Type.BREAK, cible = cible);
 }
 
 /* 6.2.4.3 UpdateEmpty ( completionRecord, value )
@@ -219,57 +219,57 @@ update_empty :: fonc (completion: CompletionRecord, valeur: Valeur) -> Completio
 
     // 2. If completionRecord.[[Value]] is not empty, return ? completionRecord.
     saufsi completion.valeur.est_empty() {
-        retourne completion
+        retourne completion;
     }
 
     // 3. Return Completion Record { [[Type]]: completionRecord.[[Type]], [[Value]]: value, [[Target]]: completionRecord.[[Target]] }.
-    completion.valeur = valeur
-    retourne completion
+    completion.valeur = valeur;
+    retourne completion;
 }
 
 est_normal :: fonc (completion: CompletionRecord) -> bool #enligne
 {
-    retourne completion.type == CompletionRecord.Type.NORMAL
+    retourne completion.type == CompletionRecord.Type.NORMAL;
 }
 
 est_undefined :: fonc (completion: CompletionRecord) -> bool #enligne
 {
-    retourne est_normal(completion) && est_undefined(completion.valeur)
+    retourne est_normal(completion) && est_undefined(completion.valeur);
 }
 
 est_abrupt :: fonc (completion: CompletionRecord) -> bool #enligne
 {
-    retourne !est_normal(completion)
+    retourne !est_normal(completion);
 }
 
 est_return :: fonc (completion: CompletionRecord) -> bool #enligne
 {
-    retourne completion.type == CompletionRecord.Type.RETURN
+    retourne completion.type == CompletionRecord.Type.RETURN;
 }
 
 est_continue :: fonc (completion: CompletionRecord) -> bool #enligne
 {
-    retourne completion.type == CompletionRecord.Type.CONTINUE
+    retourne completion.type == CompletionRecord.Type.CONTINUE;
 }
 
 est_break :: fonc (completion: CompletionRecord) -> bool #enligne
 {
-    retourne completion.type == CompletionRecord.Type.BREAK
+    retourne completion.type == CompletionRecord.Type.BREAK;
 }
 
 est_throw :: fonc (completion: CompletionRecord) -> bool #enligne
 {
-    retourne completion.type == CompletionRecord.Type.THROW
+    retourne completion.type == CompletionRecord.Type.THROW;
 }
 
 throw_completion :: fonc (valeur: Valeur) -> CompletionRecord #enligne
 {
-    retourne CompletionRecord(CompletionRecord.Type.THROW, ValeurCompletion(valeur))
+    retourne CompletionRecord(CompletionRecord.Type.THROW, ValeurCompletion(valeur));
 }
 
 donne_object :: fonc (completion: &CompletionRecord) -> *Object #enligne
 {
-    retourne completion.valeur.V.donne_objet()
+    retourne completion.valeur.V.donne_objet();
 }
 
 /** \} */
@@ -279,12 +279,12 @@ donne_object :: fonc (completion: &CompletionRecord) -> *Object #enligne
  * \{ */
 
 Interpréteuse :: struct {
-    type := type_de_données
-    mv: *MachineVirtuelle
-    sur_exécute: fonc (interprète: *Interpréteuse, noeud: *NoeudSyntaxique) -> CompletionRecord
+    type := type_de_données;
+    mv: *MachineVirtuelle;
+    sur_exécute: fonc (interprète: *Interpréteuse, noeud: *NoeudSyntaxique) -> CompletionRecord;
     /* Appelé via la MachineVirtuelle quand le contexte change. */
-    sur_execution_context: fonc (interpréteuse: *Interpréteuse, ctx: *ExecutionContext)
-    sur_destruction: fonc (interpréteuse: *Interpréteuse)
+    sur_execution_context: fonc (interpréteuse: *Interpréteuse, ctx: *ExecutionContext);
+    sur_destruction: fonc (interpréteuse: *Interpréteuse);
 }
 
 initialise_interpréteuse :: fonc (interpréteuse: *Interpréteuse @inutilisée)
@@ -294,97 +294,97 @@ initialise_interpréteuse :: fonc (interpréteuse: *Interpréteuse @inutilisée)
 crée_interprète :: fonc (mv: *MachineVirtuelle) -> *Interpréteuse
 {
     si mv.utilise_code_binaire {
-        retourne crée_interprète_code_binaire(mv)
+        retourne crée_interprète_code_binaire(mv);
     }
 
-    retourne crée_interprète_arbre(mv)
+    retourne crée_interprète_arbre(mv);
 }
 
 détruit :: fonc (interpréteuse: *Interpréteuse)
 {
-    interpréteuse.sur_destruction(interpréteuse)
+    interpréteuse.sur_destruction(interpréteuse);
 }
 
 interprète_script :: fonc (machine_virtuelle: *MachineVirtuelle, noeud: *NoeudScript) -> CompletionRecord
 {
-    interprète := crée_interprète(machine_virtuelle)
-    diffère détruit(interprète)
+    interprète := crée_interprète(machine_virtuelle);
+    diffère détruit(interprète);
 
-    machine_virtuelle.interpréteuse = interprète
-    diffère machine_virtuelle.interpréteuse = nul
+    machine_virtuelle.interpréteuse = interprète;
+    diffère machine_virtuelle.interpréteuse = nul;
 
-    retourne exécute(interprète, noeud)
+    retourne exécute(interprète, noeud);
 }
 
 exécute :: fonc (interpréteuse: *Interpréteuse, noeud: *NoeudSyntaxique) -> CompletionRecord
 {
-    retourne interpréteuse.sur_exécute(interpréteuse, noeud)
+    retourne interpréteuse.sur_exécute(interpréteuse, noeud);
 }
 
 donne_tas_de_mémoire :: fonc (interpréteuse: *Interpréteuse) -> *TasDeMémoire
 {
-    retourne interpréteuse.mv.donne_tas_de_mémoire()
+    retourne interpréteuse.mv.donne_tas_de_mémoire();
 }
 
 /* https://tc39.es/ecma262/multipage/executable-code-and-execution-contexts.html#active-function-object */
 donne_active_function_object :: fonc (interpréteuse: *Interpréteuse) -> *Function #enligne
 {
-    ctx := interpréteuse.donne_running_execution_context()
-    retourne ctx.function
+    ctx := interpréteuse.donne_running_execution_context();
+    retourne ctx.function;
 }
 
 donne_running_execution_context :: fonc (interpréteuse: *Interpréteuse) -> *ExecutionContext #enligne
 {
-    retourne interpréteuse.mv.donne_running_execution_context()
+    retourne interpréteuse.mv.donne_running_execution_context();
 }
 
 donne_lexical_environement :: fonc (interpréteuse: *Interpréteuse) -> *Environment #enligne
 {
-    rec := interpréteuse.donne_running_execution_context()
-    retourne rec.lexical_environment
+    rec := interpréteuse.donne_running_execution_context();
+    retourne rec.lexical_environment;
 }
 
 donne_realm :: fonc (interpréteuse: *Interpréteuse) -> *Realm #enligne
 {
-    rec := interpréteuse.donne_running_execution_context()
-    retourne rec.realm
+    rec := interpréteuse.donne_running_execution_context();
+    retourne rec.realm;
 }
 
 donne_noeud_évalué_courant :: fonc (interpréteuse: *Interpréteuse) -> *NoeudSyntaxique
 {
-    retourne interpréteuse.donne_running_execution_context().noeud_exécuté_courant
+    retourne interpréteuse.donne_running_execution_context().noeud_exécuté_courant;
 }
 
 crée_string_value_completion :: fonc (interpréteuse: *Interpréteuse, texte: chaine) -> CompletionRecord
 {
-    retourne crée_string_value_completion(interpréteuse, crée_chaine_utf16_unique(texte))
+    retourne crée_string_value_completion(interpréteuse, crée_chaine_utf16_unique(texte));
 }
 
 crée_string_value_completion :: fonc (interpréteuse: *Interpréteuse, texte: ECMAString) -> CompletionRecord
 {
-    string := crée_chaine(interpréteuse.donne_realm(), texte)
-    value := Valeur(String = string)
-    retourne normal_completion(value)
+    string := crée_chaine(interpréteuse.donne_realm(), texte);
+    value := Valeur(String = string);
+    retourne normal_completion(value);
 }
 
 possède_exception :: fonc (interpréteuse: *Interpréteuse) -> bool #enligne
 {
-    retourne interpréteuse.mv.possède_exception()
+    retourne interpréteuse.mv.possède_exception();
 }
 
 définis_exception :: fonc (interpréteuse: *Interpréteuse, completion: CompletionRecord)
 {
-    définis_exception(interpréteuse.mv, completion)
+    définis_exception(interpréteuse.mv, completion);
 }
 
 définis_exception :: fonc (interpréteuse: *Interpréteuse, valeur: Valeur)
 {
-    définis_exception(interpréteuse.mv, valeur)
+    définis_exception(interpréteuse.mv, valeur);
 }
 
 donne_exception :: fonc (interpréteuse: *Interpréteuse) -> Valeur
 {
-    retourne donne_exception(interpréteuse.mv)
+    retourne donne_exception(interpréteuse.mv);
 }
 
 /** \} */
@@ -394,70 +394,70 @@ donne_exception :: fonc (interpréteuse: *Interpréteuse) -> Valeur
  * \{ */
 
 InterprèteArbre :: struct {
-    empl base: Interpréteuse
-    type = #type_de_cette_structure
+    empl base: Interpréteuse;
+    type = #type_de_cette_structure;
 
-    sur_exécute = exécute_arbre
-    sur_execution_context = interprète_arbre_sur_execution_context
-    sur_destruction = interprète_arbre_sur_destruction
+    sur_exécute = exécute_arbre;
+    sur_execution_context = interprète_arbre_sur_execution_context;
+    sur_destruction = interprète_arbre_sur_destruction;
 
-    noeud_exécuté_courant: **NoeudSyntaxique @NeVisitePas
+    noeud_exécuté_courant: **NoeudSyntaxique @NeVisitePas;
 }
 
 crée_interprète_arbre :: fonc (mv: *MachineVirtuelle) -> *InterprèteArbre
 {
-    résultat := loge(InterprèteArbre)
-    résultat.mv = mv
-    retourne résultat
+    résultat := loge(InterprèteArbre);
+    résultat.mv = mv;
+    retourne résultat;
 }
 
 interprète_arbre_sur_execution_context :: fonc (base: *Interpréteuse, ec: *ExecutionContext)
 {
-    interprète := base comme *InterprèteArbre
+    interprète := base comme *InterprèteArbre;
     si ec {
-        interprète.noeud_exécuté_courant = *ec.noeud_exécuté_courant
+        interprète.noeud_exécuté_courant = *ec.noeud_exécuté_courant;
     }
     sinon {
-        interprète.noeud_exécuté_courant = nul
+        interprète.noeud_exécuté_courant = nul;
     }
 }
 
 interprète_arbre_sur_destruction :: fonc (base: *Interpréteuse)
 {
-    interprète := base comme *InterprèteArbre
-    déloge(interprète)
+    interprète := base comme *InterprèteArbre;
+    déloge(interprète);
 }
 
 exécute_arbre :: fonc (base: *Interpréteuse, noeud: *NoeudSyntaxique) -> CompletionRecord
 {
-    interpréteuse := base comme *InterprèteArbre
+    interpréteuse := base comme *InterprèteArbre;
 
     si noeud.type == NoeudScript {
-        script := noeud comme *NoeudScript
-        retourne exécute(script, interpréteuse)
+        script := noeud comme *NoeudScript;
+        retourne exécute(script, interpréteuse);
     }
 
-    ctx := interpréteuse.donne_running_execution_context()
-    interpréteuse.noeud_exécuté_courant = *ctx.noeud_exécuté_courant
+    ctx := interpréteuse.donne_running_execution_context();
+    interpréteuse.noeud_exécuté_courant = *ctx.noeud_exécuté_courant;
 
     si noeud.type != NoeudScope && noeud.type != ScriptBody && noeud.type != BlockStatement {
-        retourne exécute_noeud(noeud, interpréteuse)
+        retourne exécute_noeud(noeud, interpréteuse);
     }
 
-    résultat := normal_completion(js_undefined)
+    résultat := normal_completion(js_undefined);
 
-    scope := noeud comme *NoeudScope
+    scope := noeud comme *NoeudScope;
 
     pour scope.enfants {
-        résultat = exécute_noeud(it, interpréteuse)
+        résultat = exécute_noeud(it, interpréteuse);
         si résultat.est_normal() {
-            continue
+            continue;
         }
 
-        retourne résultat
+        retourne résultat;
     }
 
-    retourne résultat
+    retourne résultat;
 }
 
 /** \} */
@@ -474,16 +474,16 @@ resolve_binding :: fonc (interpréteuse: *Interpréteuse, nom: *PrimitiveChaine,
     // À FAIRE : undefined
     saufsi environment {
         // a. Set env to the running execution context's LexicalEnvironment.
-        environment = interpréteuse.donne_lexical_environement()
+        environment = interpréteuse.donne_lexical_environement();
     }
 
     // 2. Assert: env is an Environment Record.
 
     // 3. Let strict be IsStrict(the syntactic production that is being evaluated).
-    strict := is_strict(interpréteuse.donne_noeud_évalué_courant())
+    strict := is_strict(interpréteuse.donne_noeud_évalué_courant());
 
     // 4. Return ? GetIdentifierReference(env, name, strict).
-    retourne get_identifier_reference(interpréteuse, environment, nom, strict)
+    retourne get_identifier_reference(interpréteuse, environment, nom, strict);
 }
 
 /* 9.4.3 GetThisEnvironment ( )
@@ -491,29 +491,29 @@ resolve_binding :: fonc (interpréteuse: *Interpréteuse, nom: *PrimitiveChaine,
 get_this_environment :: fonc (interpréteuse: *Interpréteuse) -> *Environment
 {
     // 1. Let env be the running execution context's LexicalEnvironment.
-    env := interpréteuse.donne_running_execution_context().lexical_environment
+    env := interpréteuse.donne_running_execution_context().lexical_environment;
 
     // 2. Repeat,
     boucle {
         // a. Let exists be env.HasThisBinding().
-        exists := env.has_this_binding()
+        exists := env.has_this_binding();
 
         // b. If exists is true, return env.
         si exists {
-            arrête
+            arrête;
         }
 
         // c. Let outer be env.[[OuterEnv]].
-        outer := env.outer_environment
+        outer := env.outer_environment;
 
         // d. Assert: outer is not null.
-        assert(outer != nul)
+        assert(outer != nul);
     
         // e. Set env to outer.
-        env = outer
+        env = outer;
     }
 
-    retourne env
+    retourne env;
 }
 
 /* 9.4.4 ResolveThisBinding ( )
@@ -521,10 +521,10 @@ get_this_environment :: fonc (interpréteuse: *Interpréteuse) -> *Environment
 resolve_this_binding :: fonc (interpréteuse: *Interpréteuse) -> Valeur
 {
     // 1. Let envRec be GetThisEnvironment().
-    env_rec := get_this_environment(interpréteuse)
+    env_rec := get_this_environment(interpréteuse);
 
     // 2. Return ? envRec.GetThisBinding().
-    retourne env_rec.get_this_binding(interpréteuse.donne_realm())
+    retourne env_rec.get_this_binding(interpréteuse.donne_realm());
 }
 
 /* 9.4.5 GetNewTarget ( )
@@ -532,13 +532,13 @@ resolve_this_binding :: fonc (interpréteuse: *Interpréteuse) -> Valeur
 get_new_target :: fonc (interpréteuse: *Interpréteuse) -> Valeur
 {
     // 1. Let envRec be GetThisEnvironment().
-    env_rec := get_this_environment(interpréteuse) comme *FunctionEnvironment
+    env_rec := get_this_environment(interpréteuse) comme *FunctionEnvironment;
 
     // 2. Assert: envRec has a [[NewTarget]] field.
-    assert(env_rec.table.classe == FunctionEnvironment)
+    assert(env_rec.table.classe == FunctionEnvironment);
 
     // 3. Return envRec.[[NewTarget]].
-    retourne env_rec.new_target
+    retourne env_rec.new_target;
 }
 
 /* 9.4.6 GetGlobalObject
@@ -546,9 +546,9 @@ get_new_target :: fonc (interpréteuse: *Interpréteuse) -> Valeur
 get_global_object :: fonc (interpréteuse: *Interpréteuse) -> *Object
 {
     // 1. Let currentRealm be the current Realm Record.
-    current_realm := interpréteuse.donne_realm()
+    current_realm := interpréteuse.donne_realm();
     // 2. Return currentRealm.[[GlobalObject]].
-    retourne current_realm.global_object
+    retourne current_realm.global_object;
 }
 
 /** \} */

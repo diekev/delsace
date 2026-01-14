@@ -1,34 +1,34 @@
-importe Fondation
-importe Krypto
+importe Fondation;
+importe Krypto;
 
 empreinte_contexte :: fonc () -> chaine
 {
-    ctx := contexte()
+    ctx := contexte();
 
-    sha256 := crée_sha256()
-    diffère sha256.détruit()
+    sha256 := crée_sha256();
+    diffère sha256.détruit();
 
-    sha256.ajourne(ctx)
-    retourne sha256.donne_condensat_hex()
+    sha256.ajourne(ctx);
+    retourne sha256.donne_condensat_hex();
 }
 
 principale :: fonc ()
 {
-    empreinte1 := empreinte_contexte()
-    diffère déloge(empreinte1)
+    empreinte1 := empreinte_contexte();
+    diffère déloge(empreinte1);
 
-    nouveau_contexte := contexte()
-    nouveau_contexte.stockage_temporaire = nul
+    nouveau_contexte := contexte();
+    nouveau_contexte.stockage_temporaire = nul;
 
     pousse_contexte nouveau_contexte {
-        empreinte3 := empreinte_contexte()
-        diffère déloge(empreinte3)
-        assert(empreinte1 != empreinte3)
+        empreinte3 := empreinte_contexte();
+        diffère déloge(empreinte3);
+        assert(empreinte1 != empreinte3);
     }
 
-    empreinte2 := empreinte_contexte()
-    diffère déloge(empreinte2)
+    empreinte2 := empreinte_contexte();
+    diffère déloge(empreinte2);
 
     /* Nous devons avoir le même contexte qu'au début. */
-    assert(empreinte1 == empreinte2)
+    assert(empreinte1 == empreinte2);
 }

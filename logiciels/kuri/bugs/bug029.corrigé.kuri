@@ -4,14 +4,14 @@
 
 passe_eini :: fonc (e: eini) -> bool
 {
-    a : *z32 = mémoire(e.pointeur comme **z32)
-    retourne (mémoire(a) == 127)
+    a : *z32 = mémoire(e.pointeur comme **z32);
+    retourne (mémoire(a) == 127);
 }
 
 principale :: fonc ()
 {
-    a : z32 = 127
+    a : z32 = 127;
     saufsi passe_eini(*a) {
-        exit(1)
+        exit(1);
     }
 }

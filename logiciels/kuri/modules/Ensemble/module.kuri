@@ -3,98 +3,98 @@
 // polymorphiques, nous pourrons ajouter une structure spécialisée utilisant un arbre
 // binaire pour stocker les données.
 
-importe Algorithmes
-importe Fondation
+importe Algorithmes;
+importe Fondation;
 
 ensemble_ajoute :: fonc (ensemble: *[..]$T, donnée: T) -> rien
 {
-    _ := ensemble_ajoute_retourne_adresse(ensemble, donnée)
+    _ := ensemble_ajoute_retourne_adresse(ensemble, donnée);
 }
 
 ensemble_ne_fut_pas_ajouté :: fonc (ensemble: *[..]$T, données: T) -> bool
 {
     si ensemble_possède(mémoire(ensemble), données) {
-        retourne vrai
+        retourne vrai;
     }
-    ensemble_ajoute(ensemble, données)
-    retourne faux
+    ensemble_ajoute(ensemble, données);
+    retourne faux;
 }
 
 ensemble_ajoute_retourne_adresse :: fonc (ensemble: *[..]$T, donnée: T) -> *T
 {
-    indice_d_insertion := ensemble_ajoute_retourne_indice(ensemble, donnée)
-    retourne *ensemble.pointeur[indice_d_insertion]
+    indice_d_insertion := ensemble_ajoute_retourne_indice(ensemble, donnée);
+    retourne *ensemble.pointeur[indice_d_insertion];
 }
 
 ensemble_ajoute_retourne_indice :: fonc (ensemble: *[..]$T, donnée: T) -> z64
 {
     si ensemble.taille == 0 {
-        tableau_ajoute(ensemble, donnée)
-        retourne 0
+        tableau_ajoute(ensemble, donnée);
+        retourne 0;
     }
 
-    début := ensemble.pointeur
-    fin := début + ensemble.taille
+    début := ensemble.pointeur;
+    fin := début + ensemble.taille;
 
-    limite := limite_basse(début, fin, donnée)
+    limite := limite_basse(début, fin, donnée);
 
     si limite < fin {
         si mémoire(limite) == donnée {
-            retourne distance(début, limite)
+            retourne distance(début, limite);
         }
     }
 
-    indice_d_insertion := distance(début, limite)
+    indice_d_insertion := distance(début, limite);
 
-    taille := ensemble.taille
+    taille := ensemble.taille;
 
-    tmp := mémoire(ensemble)
+    tmp := mémoire(ensemble);
 
-    tableau_redimensionne(tmp, taille + 1)
+    tableau_redimensionne(tmp, taille + 1);
 
-    i := taille
+    i := taille;
 
     tantque i > indice_d_insertion {
-        tmp[i] = tmp[i - 1]
-        i -= 1
+        tmp[i] = tmp[i - 1];
+        i -= 1;
     }
 
-    tmp[indice_d_insertion] = donnée
+    tmp[indice_d_insertion] = donnée;
 
-    mémoire(ensemble) = tmp
+    mémoire(ensemble) = tmp;
 
-    retourne indice_d_insertion
+    retourne indice_d_insertion;
 }
 
 ensemble_possède :: fonc (ensemble: []$T, donnée: T) -> bool
 {
-    retourne ensemble_possède_retourne_indice(ensemble, donnée) != -1
+    retourne ensemble_possède_retourne_indice(ensemble, donnée) != -1;
 }
 
 ensemble_possède_retourne_indice :: fonc (ensemble: []$T, donnée: T) -> z64
 {
     si ensemble.taille == 0 {
-        retourne -1
+        retourne -1;
     }
 
-    début := ensemble.pointeur
-    fin := début + ensemble.taille
+    début := ensemble.pointeur;
+    fin := début + ensemble.taille;
 
-    limite := limite_basse(début, fin, donnée)
+    limite := limite_basse(début, fin, donnée);
 
     si limite < fin {
         si mémoire(limite) == donnée {
-            retourne distance(début, limite)
+            retourne distance(début, limite);
         }
     }
 
-    retourne -1
+    retourne -1;
 }
 
 RésultatRecherche :: struct {
-    indice: z64
-    partiel := faux
-    trouvé := faux
+    indice: z64;
+    partiel := faux;
+    trouvé := faux;
 }
 
 /*
@@ -108,95 +108,95 @@ RésultatRecherche :: struct {
  */
 ensemble_possède_rappel_si_possible :: fonc (ensemble: []$T, donnée: T, rappel: fonc (a: T, b: T) -> bool) -> RésultatRecherche
 {
-    résultat: RésultatRecherche
+    résultat: RésultatRecherche;
 
     si ensemble.taille == 0 {
-        résultat.trouvé = faux
-        retourne résultat
+        résultat.trouvé = faux;
+        retourne résultat;
     }
 
-    début := ensemble.pointeur
-    fin := début + ensemble.taille
+    début := ensemble.pointeur;
+    fin := début + ensemble.taille;
 
-    limite := limite_basse(début, fin, donnée)
+    limite := limite_basse(début, fin, donnée);
 
     si limite < fin {
         si mémoire(limite) == donnée {
-            résultat.trouvé = vrai
-            résultat.partiel = faux
-            résultat.indice = distance(début, limite)
-            retourne résultat
+            résultat.trouvé = vrai;
+            résultat.partiel = faux;
+            résultat.indice = distance(début, limite);
+            retourne résultat;
         }
 
         si rappel(mémoire(limite), donnée) {
-            résultat.trouvé = vrai
-            résultat.partiel = vrai
-            résultat.indice = distance(début, limite)
-            retourne résultat
+            résultat.trouvé = vrai;
+            résultat.partiel = vrai;
+            résultat.indice = distance(début, limite);
+            retourne résultat;
         }
     }
 
-    retourne résultat
+    retourne résultat;
 }
 
 TableDeHachage :: struct ($Clé: type_de_données, $Valeur: type_de_données) {
-    clés: [..]Clé
-    valeurs: [..]Valeur
+    clés: [..]Clé;
+    valeurs: [..]Valeur;
 }
 
 détruit_données :: fonc (table: *TableDeHachage($Clé, $Valeur))
 {
-    déloge(table.clés)
-    déloge(table.valeurs)
+    déloge(table.clés);
+    déloge(table.valeurs);
 }
 
 table_insère :: fonc (table: *TableDeHachage($Clé, $Valeur), clé: Clé, valeur: Valeur)
 {
-    indice := ensemble_possède_retourne_indice(table.clés, clé)
+    indice := ensemble_possède_retourne_indice(table.clés, clé);
     si indice == -1 {
-        indice = ensemble_ajoute_retourne_indice(*table.clés, clé)
-        tableau_insère_indice(*table.valeurs, valeur, indice)
-        retourne
+        indice = ensemble_ajoute_retourne_indice(*table.clés, clé);
+        tableau_insère_indice(*table.valeurs, valeur, indice);
+        retourne;
     }
-    table.valeurs[indice] = valeur
+    table.valeurs[indice] = valeur;
 }
 
 table_insère_si_non_existant :: fonc (table: *TableDeHachage($Clé, $Valeur), clé: Clé, valeur: Valeur) -> (existait: bool, valeur_insérée: Valeur)
 {
-    indice := ensemble_possède_retourne_indice(table.clés, clé)
+    indice := ensemble_possède_retourne_indice(table.clés, clé);
     si indice == -1 {
-        indice = ensemble_ajoute_retourne_indice(*table.clés, clé)
-        tableau_insère_indice(*table.valeurs, valeur, indice)
-        retourne faux, valeur
+        indice = ensemble_ajoute_retourne_indice(*table.clés, clé);
+        tableau_insère_indice(*table.valeurs, valeur, indice);
+        retourne faux, valeur;
     }
 
-    retourne vrai, table.valeurs[indice]
+    retourne vrai, table.valeurs[indice];
 }
 
 table_supprime :: fonc (table: *TableDeHachage($Clé, $Valeur), clé: Clé) -> (existait: bool, valeur_supprimée: Valeur)
 {
-    indice := ensemble_possède_retourne_indice(table.clés, clé)
+    indice := ensemble_possède_retourne_indice(table.clés, clé);
     si indice == -1 {
-        résultat: Valeur = ---
-        retourne faux, résultat
+        résultat: Valeur = ---;
+        retourne faux, résultat;
     }
 
-    valeur := table.valeurs[indice]
-    tableau_supprime_indice(*table.valeurs, indice)
-    tableau_supprime_indice(*table.clés, indice)
-    retourne vrai, valeur
+    valeur := table.valeurs[indice];
+    tableau_supprime_indice(*table.valeurs, indice);
+    tableau_supprime_indice(*table.clés, indice);
+    retourne vrai, valeur;
 }
 
 donne_valeur_pour_clé :: fonc (table: TableDeHachage($Clé, $Valeur), clé: Clé) -> (trouvée: bool, valeur: Valeur)
 {
-    indice := ensemble_possède_retourne_indice(table.clés, clé)
+    indice := ensemble_possède_retourne_indice(table.clés, clé);
     si indice == -1 {
-        trouvée = faux
+        trouvée = faux;
     }
     sinon {
-        trouvée = vrai
-        valeur = table.valeurs[indice]
+        trouvée = vrai;
+        valeur = table.valeurs[indice];
     }
 
-    retourne trouvée, valeur
+    retourne trouvée, valeur;
 }

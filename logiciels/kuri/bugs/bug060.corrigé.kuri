@@ -5,15 +5,15 @@
  * Catégorie : [crash, variable globale, construction tableau, type structure]
  */
 
-importe Support
+importe Support;
 
 Structure :: struct {
-    valeur: z32
+    valeur: z32;
 }
 
 tableau := [..]Structure = [
     Structure(valeur = 0)
-]
+];
 
 principale :: fonc ()
 {

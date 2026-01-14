@@ -6,41 +6,41 @@
  * \{ */
 
 StackingContext :: struct {
-    parent: *StackingContext
-    enfants: [..]*StackingContext
+    parent: *StackingContext;
+    enfants: [..]*StackingContext;
 
-    id: n32
-    racine: *Box
-    fut_dessiné: bool
+    id: n32;
+    racine: *Box;
+    fut_dessiné: bool;
 }
 
 #portée_module
 
 construis_arbre_de_stacking_contexts :: fonc (arbre: *ArbreDeDisposition, racine: *Box) -> *StackingContext
 {
-    constructrice: ConstructriceStackingContext
-    constructrice.arbre = arbre
-    résultat := construis_arbre_de_stacking_contexts(*constructrice, racine, nul)
-    tri_stacking_contexts(résultat)
-    retourne résultat
+    constructrice: ConstructriceStackingContext;
+    constructrice.arbre = arbre;
+    résultat := construis_arbre_de_stacking_contexts(*constructrice, racine, nul);
+    tri_stacking_contexts(résultat);
+    retourne résultat;
 }
 
 détruit_stacking_context :: fonc (ctx: *StackingContext)
 {
-    déloge_tableau_et_ses_éléments(ctx.enfants, détruit_stacking_context)
-    déloge(ctx)
+    déloge_tableau_et_ses_éléments(ctx.enfants, détruit_stacking_context);
+    déloge(ctx);
 }
 
 imprime_et_réinitialise_fut_dessiné :: fonc (ctx: *StackingContext)
 {
     saufsi ctx.fut_dessiné {
-        imprime("stacking context non dessiné : % (z-index %, opacity %)", ctx.id, ctx.donne_z_index(), ctx.donne_opacité())
-        imprime_élément(ctx.racine, " pour")
+        imprime("stacking context non dessiné : % (z-index %, opacity %)", ctx.id, ctx.donne_z_index(), ctx.donne_opacité());
+        imprime_élément(ctx.racine, " pour");
     }
 
-    ctx.fut_dessiné = faux
+    ctx.fut_dessiné = faux;
     pour ctx.enfants {
-        imprime_et_réinitialise_fut_dessiné(it)
+        imprime_et_réinitialise_fut_dessiné(it);
     }
 }
 
@@ -48,56 +48,56 @@ imprime_et_réinitialise_fut_dessiné :: fonc (ctx: *StackingContext)
 
 donne_z_index :: fonc (stacking_context: *StackingContext) -> *ValeurDeStyle
 {
-    retourne stacking_context.racine.propriétés.donne_valeur_calculée(IDPropriété.ZIndex)
+    retourne stacking_context.racine.propriétés.donne_valeur_calculée(IDPropriété.ZIndex);
 }
 
 donne_opacité :: fonc (stacking_context: *StackingContext) -> r64
 {
-    opacity := stacking_context.racine.propriétés.donne_valeur_calculée(IDPropriété.Opacity)
+    opacity := stacking_context.racine.propriétés.donne_valeur_calculée(IDPropriété.Opacity);
     si opacity.est_percentage() {
-        retourne opacity.donne_percentage()
+        retourne opacity.donne_percentage();
     }
-    retourne opacity.donne_number()
+    retourne opacity.donne_number();
 }
 
 donne_z_index_pour_tri :: fonc (stacking_context: *StackingContext) -> z32
 {
-    z_index := donne_z_index(stacking_context)
+    z_index := donne_z_index(stacking_context);
     si z_index.est_mot_clé(PROP_auto) {
-        retourne 0
+        retourne 0;
     }
 
-    retourne z_index.donne_number() comme z32
+    retourne z_index.donne_number() comme z32;
 }
 
 est_position_fixée :: fonc (stacking_context: *StackingContext) -> bool
 {
-    position := stacking_context.racine.propriétés.donne_valeur_calculée(IDPropriété.Position)
-    retourne position.est_mot_clé(PROP_fixed)
+    position := stacking_context.racine.propriétés.donne_valeur_calculée(IDPropriété.Position);
+    retourne position.est_mot_clé(PROP_fixed);
 }
 
 #portée_module
 
 imprime_arbre_stacking_context :: fonc (ctx: *StackingContext, profondeur := 0)
 {
-    enchaineuse: Enchaineuse
-    initialise_enchaineuse(*enchaineuse)
-    diffère détruit_tampons(*enchaineuse)
+    enchaineuse: Enchaineuse;
+    initialise_enchaineuse(*enchaineuse);
+    diffère détruit_tampons(*enchaineuse);
 
-    imprime_arbre_stacking_context(*enchaineuse, ctx, profondeur)
+    imprime_arbre_stacking_context(*enchaineuse, ctx, profondeur);
 
-    copie_dans_sortie_standarde(*enchaineuse)
+    copie_dans_sortie_standarde(*enchaineuse);
 }
 
 imprime_arbre_stacking_context :: fonc (enchaineuse: *Enchaineuse, ctx: *StackingContext, profondeur := 0)
 {
-    indentation := donne_chaine_indentation(profondeur)
-    ajoute_au_tampon(enchaineuse, indentation)
+    indentation := donne_chaine_indentation(profondeur);
+    ajoute_au_tampon(enchaineuse, indentation);
 
-    imprime_élément(enchaineuse, ctx.racine, "StackingContext")
+    imprime_élément(enchaineuse, ctx.racine, "StackingContext");
 
     pour ctx.enfants {
-        imprime_arbre_stacking_context(enchaineuse, it, profondeur + 1)
+        imprime_arbre_stacking_context(enchaineuse, it, profondeur + 1);
     }
 }
 
@@ -106,85 +106,85 @@ imprime_arbre_stacking_context :: fonc (enchaineuse: *Enchaineuse, ctx: *Stackin
  * ne pas avoir être initialisé ou autre. */
 ajoute_enfant :: fonc (parent: *StackingContext, enfant: *StackingContext)
 {
-    enfant.parent = parent
-    tableau_ajoute(*parent.enfants, enfant)
+    enfant.parent = parent;
+    tableau_ajoute(*parent.enfants, enfant);
 }
 
 #portée_fichier
 
 ConstructriceStackingContext :: struct {
-    arbre: *ArbreDeDisposition
-    id: n32
+    arbre: *ArbreDeDisposition;
+    id: n32;
 }
 
 crée_stacking_context :: fonc (constructrice: *ConstructriceStackingContext) -> *StackingContext
 {
-    résultat := loge(StackingContext)
-    tableau_ajoute(*constructrice.arbre.stacking_contexts, résultat)
-    résultat.id = constructrice.id
-    constructrice.id += 1
-    retourne résultat
+    résultat := loge(StackingContext);
+    tableau_ajoute(*constructrice.arbre.stacking_contexts, résultat);
+    résultat.id = constructrice.id;
+    constructrice.id += 1;
+    retourne résultat;
 }
 
 construis_arbre_de_stacking_contexts :: fonc (constructrice: *ConstructriceStackingContext, racine: *Box, parent: *StackingContext) -> *StackingContext
 {
-    résultat := parent
+    résultat := parent;
 
     si doit_générer_un_stacking_context(racine) {
-        résultat = constructrice.crée_stacking_context()
-        résultat.racine = racine
+        résultat = constructrice.crée_stacking_context();
+        résultat.racine = racine;
         si parent {
-            parent.ajoute_enfant(résultat)
+            parent.ajoute_enfant(résultat);
         }
     }
 
-    racine.id_stacking_context = résultat.id
+    racine.id_stacking_context = résultat.id;
 
     pour racine.enfants {
-        _ := construis_arbre_de_stacking_contexts(constructrice, it, résultat)
+        _ := construis_arbre_de_stacking_contexts(constructrice, it, résultat);
     }
 
-    retourne résultat
+    retourne résultat;
 }
 
 /* https://developer.mozilla.org/en-US/docs/Web/CSS/CSS_positioned_layout/Understanding_z-index/Stacking_context */
 doit_générer_un_stacking_context :: fonc (box: *Box) -> bool
 {
     si box.table_virtuelle.type == TextBox {
-        retourne faux
+        retourne faux;
     }
 
     // Root element of the document (<html>).
     si box.parent == nul {
-        retourne vrai
+        retourne vrai;
     }
 
-    position := box.propriétés.donne_valeur_calculée(IDPropriété.Position)
-    z_index := box.propriétés.donne_valeur_calculée(IDPropriété.ZIndex)
+    position := box.propriétés.donne_valeur_calculée(IDPropriété.Position);
+    z_index := box.propriétés.donne_valeur_calculée(IDPropriété.ZIndex);
 
     // Element with a position value absolute or relative and z-index value other than auto.
     si (position.est_mot_clé(PROP_absolute) || position.est_mot_clé(PROP_relative)) && !z_index.est_auto() {
-        retourne vrai
+        retourne vrai;
     }
 
     // Element with a position value fixed or sticky (sticky for all mobile browsers, but not older desktop browsers).
     si position.est_mot_clé(PROP_fixed) {
-        retourne vrai
+        retourne vrai;
     }
 
     // À FAIRE : Element with a container-type value size or inline-size set, intended for container queries.
 
     // Element that is a child of a flex container, with z-index value other than auto.
     si box.parent.donne_display().inner_type == Display.Type.Flex && !z_index.est_auto() {
-        retourne vrai
+        retourne vrai;
     }
 
     // À FAIRE : Element that is a child of a grid container, with z-index value other than auto.
 
     // Element with an opacity value less than 1.
-    opacity := box.propriétés.donne_valeur_calculée(IDPropriété.Opacity)
+    opacity := box.propriétés.donne_valeur_calculée(IDPropriété.Opacity);
     si (opacity.est_number() && opacity.donne_number() < 1.0) || (opacity.est_percentage() && opacity.donne_percentage() < 1.0) {
-        retourne vrai
+        retourne vrai;
     }
 
     // À FAIRE : Element with a mix-blend-mode value other than normal.
@@ -204,108 +204,108 @@ doit_générer_un_stacking_context :: fonc (box: *Box) -> bool
     // À FAIRE : Element placed into the top layer and its corresponding ::backdrop. Examples include fullscreen and popover elements.
     // À FAIRE : Element that has had stacking context-creating properties (such as opacity) animated using @keyframes, with animation-fill-mode set to forwards.
 
-    retourne faux
+    retourne faux;
 }
 
 tri_stacking_contexts :: fonc (racine: *StackingContext)
 {
-    tri_rapide(racine.enfants, compare_stacking_contexts_pour_tri)
+    tri_rapide(racine.enfants, compare_stacking_contexts_pour_tri);
 
     pour racine.enfants {
-        tri_stacking_contexts(it)
+        tri_stacking_contexts(it);
     }
 }
 
 compare_stacking_contexts_pour_tri :: fonc (a: *StackingContext, b: *StackingContext) -> z32
 {
-    retourne a.donne_z_index_pour_tri() - b.donne_z_index_pour_tri()
+    retourne a.donne_z_index_pour_tri() - b.donne_z_index_pour_tri();
 }
 
 #portée_module
 
 donne_rectangle_ciselage_pour_overflow :: fonc (box: *Box) -> (bool, RectanglePosDim(r32))
 {
-    résultat: RectanglePosDim(r32)
+    résultat: RectanglePosDim(r32);
 
     tantque box != nul {
-        overflow_x := box.propriétés.donne_valeur_utilisée(IDPropriété.OverflowX)
-        overflow_y := box.propriétés.donne_valeur_utilisée(IDPropriété.OverflowX)
+        overflow_x := box.propriétés.donne_valeur_utilisée(IDPropriété.OverflowX);
+        overflow_y := box.propriétés.donne_valeur_utilisée(IDPropriété.OverflowX);
 
         saufsi overflow_x.est_mot_clé(PROP_visible) && overflow_y.est_mot_clé(PROP_visible) {
-            retourne vrai, box.donne_rectangle_rembourrage()
+            retourne vrai, box.donne_rectangle_rembourrage();
         }
 
-        box = box.parent
+        box = box.parent;
     }
 
-    retourne faux, résultat
+    retourne faux, résultat;
 }
 
 dessine_stacking_context :: fonc (stacking_context: *StackingContext, ctx: *ContexteDessin)
 {
-    ctx.id_stacking_context = stacking_context.id
+    ctx.id_stacking_context = stacking_context.id;
 
-    fut_fixé := ctx.est_fixé
-    diffère ctx.est_fixé = fut_fixé
-    ctx.est_fixé |= est_position_fixée(stacking_context)
+    fut_fixé := ctx.est_fixé;
+    diffère ctx.est_fixé = fut_fixé;
+    ctx.est_fixé |= est_position_fixée(stacking_context);
 
-    opacité := donne_opacité(stacking_context)
+    opacité := donne_opacité(stacking_context);
     si opacité == 0.0 {
-        retourne
+        retourne;
     }
 
-    doit_ciseler, rect_ciselage := donne_rectangle_ciselage_pour_overflow(stacking_context.racine.parent)
+    doit_ciseler, rect_ciselage := donne_rectangle_ciselage_pour_overflow(stacking_context.racine.parent);
     si doit_ciseler {
-        rect := ctx.donne_rectangle_corrigé(rect_ciselage)
-        ctx.commandes.débute_ciselage(rect)
+        rect := ctx.donne_rectangle_corrigé(rect_ciselage);
+        ctx.commandes.débute_ciselage(rect);
     }
 
     si stacking_context.parent && !ctx.tampon_id_couleur {
-        ctx.commandes.débute_sous_tampon()
+        ctx.commandes.débute_sous_tampon();
     }
 
-    dessine(stacking_context.racine, ctx)
+    dessine(stacking_context.racine, ctx);
 
     si stacking_context.parent && !ctx.tampon_id_couleur {
-        ctx.commandes.termine_sous_tampon(opacité comme r32)
+        ctx.commandes.termine_sous_tampon(opacité comme r32);
     }
 
     pour stacking_context.enfants {
-        dessine_stacking_context(it, ctx)
+        dessine_stacking_context(it, ctx);
     }
 
     si doit_ciseler {
-        ctx.commandes.termine_ciselage()
+        ctx.commandes.termine_ciselage();
     }
 }
 
 dessine_stacking_context_tampon_id :: fonc (stacking_context: *StackingContext, ctx: *ContexteDessin)
 {
-    ctx.id_stacking_context = stacking_context.id
+    ctx.id_stacking_context = stacking_context.id;
 
-    fut_fixé := ctx.est_fixé
-    diffère ctx.est_fixé = fut_fixé
-    ctx.est_fixé |= est_position_fixée(stacking_context)
+    fut_fixé := ctx.est_fixé;
+    diffère ctx.est_fixé = fut_fixé;
+    ctx.est_fixé |= est_position_fixée(stacking_context);
 
-    opacité := donne_opacité(stacking_context)
+    opacité := donne_opacité(stacking_context);
     si opacité == 0.0 {
-        retourne
+        retourne;
     }
 
-    doit_ciseler, rect_ciselage := donne_rectangle_ciselage_pour_overflow(stacking_context.racine.parent)
+    doit_ciseler, rect_ciselage := donne_rectangle_ciselage_pour_overflow(stacking_context.racine.parent);
     si doit_ciseler {
-        rect := ctx.donne_rectangle_corrigé(rect_ciselage)
-        ctx.commandes.débute_ciselage(rect)
+        rect := ctx.donne_rectangle_corrigé(rect_ciselage);
+        ctx.commandes.débute_ciselage(rect);
     }
 
-    dessine_tampon_id(stacking_context.racine, ctx)
+    dessine_tampon_id(stacking_context.racine, ctx);
 
     pour stacking_context.enfants {
-        dessine_stacking_context_tampon_id(it, ctx)
+        dessine_stacking_context_tampon_id(it, ctx);
     }
 
     si doit_ciseler {
-        ctx.commandes.termine_ciselage()
+        ctx.commandes.termine_ciselage();
     }
 }
 
@@ -316,31 +316,31 @@ dessine_stacking_context_tampon_id :: fonc (stacking_context: *StackingContext, 
 /* https://www.w3.org/TR/2011/REC-CSS2-20110607/zindex.html#painting-order */
 dessine_stacking_context_standard :: fonc (stacking_context: *StackingContext, ctx: *ContexteDessin)
 {
-    opacité := donne_opacité(stacking_context)
+    opacité := donne_opacité(stacking_context);
     si opacité == 0.0 {
-        retourne
+        retourne;
     }
 
-    imprime("[%]\n", #nom_de_cette_fonction)
+    imprime("[%]\n", #nom_de_cette_fonction);
 
-    ancien_id_stacking_context := ctx.id_stacking_context
-    diffère ctx.id_stacking_context = ancien_id_stacking_context
-    ctx.id_stacking_context = stacking_context.id
+    ancien_id_stacking_context := ctx.id_stacking_context;
+    diffère ctx.id_stacking_context = ancien_id_stacking_context;
+    ctx.id_stacking_context = stacking_context.id;
 
-    fut_fixé := ctx.est_fixé
-    diffère ctx.est_fixé = fut_fixé
-    ctx.est_fixé |= est_position_fixée(stacking_context)
+    fut_fixé := ctx.est_fixé;
+    diffère ctx.est_fixé = fut_fixé;
+    ctx.est_fixé |= est_position_fixée(stacking_context);
 
-    dessine_stacking_context_pour_élément(stacking_context, stacking_context.racine, ctx)
+    dessine_stacking_context_pour_élément(stacking_context, stacking_context.racine, ctx);
 }
 
 #portée_fichier
 
 dessine_stacking_context_pour_élément :: fonc (stacking_context: *StackingContext, élément: *Box, ctx: *ContexteDessin)
 {
-    élément.fut_dessiné = vrai
+    élément.fut_dessiné = vrai;
     si stacking_context {
-        stacking_context.fut_dessiné = vrai
+        stacking_context.fut_dessiné = vrai;
     }
 
     // 1. If the element is a root element:
@@ -348,47 +348,47 @@ dessine_stacking_context_pour_élément :: fonc (stacking_context: *StackingCont
         // 1. background color of element over the entire canvas.
         // 2. background image of element, over the entire canvas, anchored at
         //    the origin that would be used if it was painted for the root element.
-        dessine_arrière_plan(ctx, élément)
+        dessine_arrière_plan(ctx, élément);
     }
     sinon {
-        dessine_arrière_plan_et_bordures_bloc(ctx, élément)
+        dessine_arrière_plan_et_bordures_bloc(ctx, élément);
     }
 
     // 3. Stacking contexts formed by positioned descendants with negative z-indices (excluding 0)
     //    in z-index order (most negative first) then tree order.
     si stacking_context {
         pour stacking_context.enfants {
-            z_index := it.donne_z_index()
+            z_index := it.donne_z_index();
             si z_index.est_auto() {
-                continue
+                continue;
             }
             si z_index.donne_number() >= 0.0 {
-                continue
+                continue;
             }
-            dessine_stacking_context_standard(it, ctx)
+            dessine_stacking_context_standard(it, ctx);
         }
     }
 
-    descendants: [..]*Box
-    diffère déloge(descendants)
+    descendants: [..]*Box;
+    diffère déloge(descendants);
 
     // 4. For all its in-flow, non-positioned, block-level descendants in tree order:
-    donne_in_flow_non_positioned_block_level_descendants(élément, *descendants)
+    donne_in_flow_non_positioned_block_level_descendants(élément, *descendants);
     pour descendants {
-        dessine_arrière_plan_et_bordures_bloc(ctx, it)
+        dessine_arrière_plan_et_bordures_bloc(ctx, it);
     }
 
     // 5. All non-positioned floating descendants, in tree order. For each one of these,
     //    treat the element as if it created a new stacking context, but any positioned
     //    descendants and descendants which actually create a new stacking context should
     //    be considered part of the parent stacking context, not this new one.
-    floating_descendants: [..]*Box
-    diffère déloge(floating_descendants)
+    floating_descendants: [..]*Box;
+    diffère déloge(floating_descendants);
 
-    donne_non_positioned_floating_descendants(élément, *floating_descendants)
+    donne_non_positioned_floating_descendants(élément, *floating_descendants);
 
     pour floating_descendants {
-        dessine_stacking_context_pour_élément(nul, it, ctx)
+        dessine_stacking_context_pour_élément(nul, it, ctx);
     }
 
     // 6. If the element is an inline element that generates a stacking context, then:
@@ -399,10 +399,10 @@ dessine_stacking_context_pour_élément :: fonc (stacking_context: *StackingCont
     }
     // 7. Otherwise: first for the element, then for all its in-flow, non-positioned, block-level descendants in tree order:
     sinon {
-        dessine_stacking_context_étape_7(élément, ctx)
+        dessine_stacking_context_étape_7(élément, ctx);
 
         pour descendants {
-            dessine_stacking_context_étape_7(it, ctx)
+            dessine_stacking_context_étape_7(it, ctx);
         }
     }
 
@@ -411,29 +411,29 @@ dessine_stacking_context_pour_élément :: fonc (stacking_context: *StackingCont
     //    but any positioned descendants and descendants which actually create a new stacking context
     //    should be considered part of the parent stacking context, not this new one.
     //    For those with 'z-index: 0', treat the stacking context generated atomically.
-    descendants.taille = 0
-    donne_positioned_descendants_with_z_index_auto_ou_zéro(élément, *descendants)
+    descendants.taille = 0;
+    donne_positioned_descendants_with_z_index_auto_ou_zéro(élément, *descendants);
 
     pour descendants {
         si it.id_stacking_context != ctx.id_stacking_context {
-            dessine_stacking_context_standard(ctx.arbre.stacking_contexts[it.id_stacking_context], ctx)
+            dessine_stacking_context_standard(ctx.arbre.stacking_contexts[it.id_stacking_context], ctx);
         }
         sinon {
-            dessine_stacking_context_pour_élément(nul, it, ctx)
+            dessine_stacking_context_pour_élément(nul, it, ctx);
         }
     }
 
     // 9. Stacking contexts formed by positioned descendants with z-indices greater than or equal to 1 in z-index order (smallest first) then tree order.
     si stacking_context {
         pour stacking_context.enfants {
-            z_index := it.donne_z_index()
+            z_index := it.donne_z_index();
             si z_index.est_auto() {
-                continue
+                continue;
             }
             si z_index.donne_number() <= 0.0 {
-                continue
+                continue;
             }
-            dessine_stacking_context_standard(it, ctx)
+            dessine_stacking_context_standard(it, ctx);
         }
     }
 
@@ -447,41 +447,41 @@ dessine_arrière_plan_et_bordures_bloc :: fonc (ctx: *ContexteDessin, box: *Box)
         // 1. background color of element.
         // 2. background image of element.
         // 3. border of element.
-        dessine_arrière_plan(ctx, box)
-        dessine_bordure(ctx, box)
-        retourne
+        dessine_arrière_plan(ctx, box);
+        dessine_bordure(ctx, box);
+        retourne;
     }
 
     // Otherwise, if the element is a block level table:
     si is_block_level_table(box) {
         si box.table_virtuelle.type == TableWrapperBox {
-            retourne
+            retourne;
         }
 
-        assert(box.table_virtuelle.type == TableBox)
-        table := box comme *TableBox
+        assert(box.table_virtuelle.type == TableBox);
+        table := box comme *TableBox;
 
         // 1. table backgrounds (color then image).
-        dessine_arrière_plan(ctx, table)
+        dessine_arrière_plan(ctx, table);
 
         // 2. column group backgrounds (color then image).
 
         // 3. column backgrounds (color then image).
 
         // 4. row group backgrounds (color then image).
-        dessine_arrière_plan_row_group(ctx, table)
+        dessine_arrière_plan_row_group(ctx, table);
 
         // 5. row backgrounds (color then image).
-        dessine_arrière_plan_row(ctx, table)
+        dessine_arrière_plan_row(ctx, table);
 
         // 6. cell backgrounds (color then image).
-        dessine_arrière_plan_cell(ctx, table)
+        dessine_arrière_plan_cell(ctx, table);
 
         // 7. all table borders (in tree order for separated borders).
-        dessine_bordures_cell(ctx, table)
-        dessine_bordure(ctx, table)
+        dessine_bordures_cell(ctx, table);
+        dessine_bordure(ctx, table);
 
-        retourne
+        retourne;
     }
 }
 
@@ -489,11 +489,11 @@ dessine_arrière_plan_row_group :: fonc (ctx: *ContexteDessin, table: *TableBox)
 {
     pour table.enfants {
         saufsi est_row_group_box(it) {
-            continue
+            continue;
         }
 
-        it.fut_dessiné = vrai
-        dessine_arrière_plan(ctx, it)
+        it.fut_dessiné = vrai;
+        dessine_arrière_plan(ctx, it);
     }
 }
 
@@ -501,19 +501,19 @@ dessine_arrière_plan_row :: fonc (ctx: *ContexteDessin, table: *TableBox)
 {
     pour table.enfants {
         si it.table_virtuelle.type == TableRowBox {
-            it.fut_dessiné = vrai
-            dessine_arrière_plan(ctx, it)
-            continue
+            it.fut_dessiné = vrai;
+            dessine_arrière_plan(ctx, it);
+            continue;
         }
 
         saufsi est_row_group_box(it) {
-            continue
+            continue;
         }
 
         pour enfant dans it.enfants {
             si enfant.table_virtuelle.type == TableRowBox {
-                enfant.fut_dessiné = vrai
-                dessine_arrière_plan(ctx, enfant)
+                enfant.fut_dessiné = vrai;
+                dessine_arrière_plan(ctx, enfant);
             }
         }
     }
@@ -523,16 +523,16 @@ dessine_arrière_plan_cell :: fonc (ctx: *ContexteDessin, table: *TableBox)
 {
     pour table.enfants {
         si it.table_virtuelle.type == TableRowBox {
-            dessine_arrière_plan_cell(ctx, it comme *TableRowBox)
+            dessine_arrière_plan_cell(ctx, it comme *TableRowBox);
         }
 
         saufsi est_row_group_box(it) {
-            continue
+            continue;
         }
 
         pour enfant dans it.enfants {
             si enfant.table_virtuelle.type == TableRowBox {
-                dessine_arrière_plan_cell(ctx, enfant comme *TableRowBox)
+                dessine_arrière_plan_cell(ctx, enfant comme *TableRowBox);
             }
         }
     }
@@ -542,8 +542,8 @@ dessine_arrière_plan_cell :: fonc (ctx: *ContexteDessin, row: *TableRowBox)
 {
     pour row.enfants {
         si it.table_virtuelle.type == TableCellBox {
-            it.fut_dessiné = vrai
-            dessine_arrière_plan(ctx, it)
+            it.fut_dessiné = vrai;
+            dessine_arrière_plan(ctx, it);
         }
     }
 }
@@ -552,16 +552,16 @@ dessine_bordures_cell :: fonc (ctx: *ContexteDessin, table: *TableBox)
 {
     pour table.enfants {
         si it.table_virtuelle.type == TableRowBox {
-            dessine_bordures_cell(ctx, it comme *TableRowBox)
+            dessine_bordures_cell(ctx, it comme *TableRowBox);
         }
 
         saufsi est_row_group_box(it) {
-            continue
+            continue;
         }
 
         pour enfant dans it.enfants {
             si enfant.table_virtuelle.type == TableRowBox {
-                dessine_bordures_cell(ctx, enfant comme *TableRowBox)
+                dessine_bordures_cell(ctx, enfant comme *TableRowBox);
             }
         }
     }
@@ -571,8 +571,8 @@ dessine_bordures_cell :: fonc (ctx: *ContexteDessin, row: *TableRowBox)
 {
     pour row.enfants {
         si it.table_virtuelle.type == TableCellBox {
-            it.fut_dessiné = vrai
-            dessine_bordure(ctx, it)
+            it.fut_dessiné = vrai;
+            dessine_bordure(ctx, it);
         }
     }
 }
@@ -581,36 +581,36 @@ dessine_stacking_context_étape_7 :: fonc (élément: *Box, ctx: *ContexteDessin
 {
     // 1. If the element is a block-level replaced element, then: the replaced content, atomically.
     si élément.est_block_level() && élément.table_virtuelle.type == ReplacedBox {
-        élément.fut_dessiné = vrai
-        dessine(élément, ctx)
-        retourne
+        élément.fut_dessiné = vrai;
+        dessine(élément, ctx);
+        retourne;
     }
 
     si (élément.table_virtuelle.type == BlockBox || élément.table_virtuelle.type == InlineBox || élément.table_virtuelle.type == TableWrapperBox || élément.table_virtuelle.type == TableBox || élément.table_virtuelle.type == TableCellBox) {
-        élément_bloc := élément comme *BlockBox
-        élément.fut_dessiné = vrai
-        lignes_tenante := élément_bloc.lignes_tenante
+        élément_bloc := élément comme *BlockBox;
+        élément.fut_dessiné = vrai;
+        lignes_tenante := élément_bloc.lignes_tenante;
         saufsi lignes_tenante {
-            retourne
+            retourne;
         }
 
         pour * lignes_tenante.fragments {
-            it.box.fut_dessiné = vrai
+            it.box.fut_dessiné = vrai;
 
             si it.type == Fragment.Type.InlineBlock {
                 si it.box.table_virtuelle.type == ReplacedBox {
-                    dessine_fragment(it.box, it, lignes_tenante, ctx)
+                    dessine_fragment(it.box, it, lignes_tenante, ctx);
                 }
                 sinon {
-                    dessine_stacking_context_pour_élément(nul, it.box, ctx)
+                    dessine_stacking_context_pour_élément(nul, it.box, ctx);
                 }
             }
             sinon {
-                dessine_fragment(it.box, it, lignes_tenante, ctx)
+                dessine_fragment(it.box, it, lignes_tenante, ctx);
             }
         }
 
-        retourne
+        retourne;
     }
 
     // 2. Otherwise, for each line box of that element:
@@ -650,125 +650,125 @@ dessine_stacking_context_étape_7 :: fonc (élément: *Box, ctx: *ContexteDessin
 
 is_block_list_item_or_block_equivalent :: fonc (box: *Box) -> bool
 {
-    display := box.donne_display()
+    display := box.donne_display();
     si display.outer_type != Display.Type.Block {
-        retourne faux
+        retourne faux;
     }
 
     si display.inner_type == Display.Type.Table {
-        retourne faux
+        retourne faux;
     }
 
-    retourne display.inner_type == Display.Type.Flow || display.inner_type == Display.Type.FlowRoot || display.inner_type == Display.Type.Flex || display.est_list_item
+    retourne display.inner_type == Display.Type.Flow || display.inner_type == Display.Type.FlowRoot || display.inner_type == Display.Type.Flex || display.est_list_item;
 }
 
 is_block_level_table :: fonc (box: *Box) -> bool
 {
-    display := box.donne_display()
-    retourne display.outer_type == Display.Type.Block && display.inner_type == Display.Type.Table
+    display := box.donne_display();
+    retourne display.outer_type == Display.Type.Block && display.inner_type == Display.Type.Table;
 }
 
 donne_in_flow_non_positioned_block_level_descendants :: fonc (box: *Box, résultat: *[..]*Box)
 {
-    pile: Pile(*Box)
-    diffère détruit(pile)
+    pile: Pile(*Box);
+    diffère détruit(pile);
 
     pour > box.enfants {
-        pile.empile(it)
+        pile.empile(it);
     }
 
     tantque !pile.est_vide() {
-        enfant := pile.dépile()
+        enfant := pile.dépile();
 
         saufsi enfant.propriétés {
-            continue
+            continue;
         }
 
-        position := enfant.propriétés.donne_valeur_utilisée(IDPropriété.Position)
+        position := enfant.propriétés.donne_valeur_utilisée(IDPropriété.Position);
         saufsi position.est_mot_clé(PROP_static) {
             // imprime("n'est pas static : %\n", position)
-            continue
+            continue;
         }
 
         saufsi est_block_level(enfant) {
             // imprime("n'est pas un bloc : %\n", enfant.donne_display())
-            continue
+            continue;
         }
 
-        float := enfant.propriétés.donne_valeur_utilisée(IDPropriété.Float)
+        float := enfant.propriétés.donne_valeur_utilisée(IDPropriété.Float);
         saufsi float.est_mot_clé(PROP_none) {
             // imprime("n'est pas float none : %\n", float)
-            continue
+            continue;
         }
 
-        tableau_ajoute(résultat, enfant)
+        tableau_ajoute(résultat, enfant);
 
         pour > enfant.enfants {
-            pile.empile(it)
+            pile.empile(it);
         }
     }
 }
 
 donne_non_positioned_floating_descendants :: fonc (box: *Box, résultat: *[..]*Box)
 {
-    pile: Pile(*Box)
-    diffère détruit(pile)
+    pile: Pile(*Box);
+    diffère détruit(pile);
 
     pour > box.enfants {
-        pile.empile(it)
+        pile.empile(it);
     }
 
     tantque !pile.est_vide() {
-        enfant := pile.dépile()
+        enfant := pile.dépile();
 
         saufsi enfant.propriétés {
-            continue
+            continue;
         }
 
-        position := enfant.propriétés.donne_valeur_utilisée(IDPropriété.Position)
+        position := enfant.propriétés.donne_valeur_utilisée(IDPropriété.Position);
         saufsi position.est_mot_clé(PROP_static) {
-            continue
+            continue;
         }
 
-        float := enfant.propriétés.donne_valeur_utilisée(IDPropriété.Float)
+        float := enfant.propriétés.donne_valeur_utilisée(IDPropriété.Float);
         saufsi float.est_mot_clé(PROP_none) {
-            tableau_ajoute(résultat, enfant)
-            continue
+            tableau_ajoute(résultat, enfant);
+            continue;
         }
 
         pour > enfant.enfants {
-            pile.empile(it)
+            pile.empile(it);
         }
     }
 }
 
 donne_positioned_descendants_with_z_index_auto_ou_zéro :: fonc (box: *Box, résultat: *[..]*Box)
 {
-    pile: Pile(*Box)
-    diffère détruit(pile)
+    pile: Pile(*Box);
+    diffère détruit(pile);
 
     pour > box.enfants {
-        pile.empile(it)
+        pile.empile(it);
     }
 
     tantque !pile.est_vide() {
-        enfant := pile.dépile()
+        enfant := pile.dépile();
 
         saufsi enfant.propriétés {
-            continue
+            continue;
         }
 
-        position := enfant.propriétés.donne_valeur_utilisée(IDPropriété.Position)
+        position := enfant.propriétés.donne_valeur_utilisée(IDPropriété.Position);
         saufsi position.est_mot_clé(PROP_static) {
-            z_index := enfant.propriétés.donne_valeur_utilisée(IDPropriété.ZIndex)
+            z_index := enfant.propriétés.donne_valeur_utilisée(IDPropriété.ZIndex);
             si z_index.est_auto() || z_index.donne_number() == 0.0 {
-                tableau_ajoute(résultat, enfant)
+                tableau_ajoute(résultat, enfant);
             }
-            continue
+            continue;
         }
 
         pour > enfant.enfants {
-            pile.empile(it)
+            pile.empile(it);
         }
     }
 }

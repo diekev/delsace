@@ -3,9 +3,9 @@
  * Catégorie : [validation sémantique, ipa compilatrice]
  */
 
-importe Compilatrice
+importe Compilatrice;
 
 principale :: fonc ()
 {
-    _ := compilatrice_espace_courant()
+    _ := compilatrice_espace_courant();
 }

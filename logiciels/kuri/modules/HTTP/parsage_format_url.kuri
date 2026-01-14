@@ -10,13 +10,13 @@
  * possède un champs « video » de valeur « IuK93dq3 » et un champs « temps » de valeur « 137 ».
  */
 
-importe Introspection
+importe Introspection;
 
 /* structure auxilliaire pour l'algorithme de parsage */
 InfoDonnées :: struct {
-    info: *InfoTypeRubriqueStructure
-    ptr_résultat: *z8
-    ptr_données: *bool
+    info: *InfoTypeRubriqueStructure;
+    ptr_résultat: *z8;
+    ptr_données: *bool;
 }
 
 /* fonction auxilliaire pour l'algorithme de parsage */
@@ -24,32 +24,32 @@ trouve_info_données :: fonc (infos: [..]InfoDonnées, nom: chaine) -> *InfoDonn
 {
     pour * infos {
         si it.info.nom == nom {
-            retourne it
+            retourne it;
         }
     }
 
-    retourne nul
+    retourne nul;
 }
 
 RésultatParsageFormatURL :: énum {
     /* Tout c'est bien passé, le texte put être parsé avec succès. */
-    Succès
+    Succès;
 
     /* Le texte contient un champs dont le nom ne correspond à ancune rubrique de la structure
      * cible. */
-    RubriqueInconnue
+    RubriqueInconnue;
 
     /* Aucune fonction de parsage n'existe pour le type de la rubrique de la structure cible. */
-    FonctionParsageInexistante
+    FonctionParsageInexistante;
 
     /* Une valeur ne put être parsée. */
-    ÉchecParsageValeur
+    ÉchecParsageValeur;
 
     /* Texte malformé, une valeur peut manqué, ou le texte contient un caractère '&' final. */
-    TexteMalformé
+    TexteMalformé;
 
     /* Redéfinition d'une rubrique. */
-    RenommageParamètre
+    RenommageParamètre;
 }
 
 /* Parse une chaine au format URL pour le type T précisé et retourne une structure de ce type
@@ -66,196 +66,196 @@ RésultatParsageFormatURL :: énum {
  */
 parse_texte_format_url :: fonc (texte: chaine, $T: type_de_données) -> (RésultatParsageFormatURL, DonnéesRésultat(T = T), T)
 {
-    #assert info_de(T).id == GenreInfoType.STRUCTURE
+    #assert info_de(T).id == GenreInfoType.STRUCTURE;
 
-    parseuse := ParseuseChaine(texte)
+    parseuse := ParseuseChaine(texte);
     // À FAIRE : vérifier que la chaine peut être surécrite
     // À FAIRE : nous ne pouvons pas libérer la mémoire car les chaines ne sont pas copiées
     // À FAIRE : erreur quand nous différons ici
 
-    données: DonnéesRésultat(T = T)
-    résultat: T
+    données: DonnéesRésultat(T = T);
+    résultat: T;
 
-    info := info_de(T)
+    info := info_de(T);
 
-    pointeurs: [..]InfoDonnées
-    diffère déloge(pointeurs)
+    pointeurs: [..]InfoDonnées;
+    diffère déloge(pointeurs);
 
     pour info.rubriques {
-        id : InfoDonnées = ---
-        id.info = it
-        id.ptr_résultat = (*résultat comme *z8 + it.décalage)
+        id : InfoDonnées = ---;
+        id.info = it;
+        id.ptr_résultat = (*résultat comme *z8 + it.décalage);
 
-        tableau_ajoute(*pointeurs, id)
+        tableau_ajoute(*pointeurs, id);
     }
 
-    info_données := info_de(type_de(données))
+    info_données := info_de(type_de(données));
     pour info_données.rubriques {
-        id := trouve_info_données(pointeurs, it.nom)
+        id := trouve_info_données(pointeurs, it.nom);
 
         si id {
-            id.ptr_données = (*données comme *bool + it.décalage)
+            id.ptr_données = (*données comme *bool + it.décalage);
         }
     }
 
     tantque !fini(*parseuse) {
-        pos := trouve_prochain(*parseuse, '=')
+        pos := trouve_prochain(*parseuse, '=');
 
         si pos <= 0 {
-            retourne RésultatParsageFormatURL.TexteMalformé, données, résultat
+            retourne RésultatParsageFormatURL.TexteMalformé, données, résultat;
         }
 
-        nom := sous_chaine_jusque_indice(*parseuse, pos)
-        résoud_échappement_url_localement(nom)
+        nom := sous_chaine_jusque_indice(*parseuse, pos);
+        résoud_échappement_url_localement(nom);
 
-        positionne(*parseuse, pos + 1)
+        positionne(*parseuse, pos + 1);
 
         si fini(*parseuse) {
-            retourne RésultatParsageFormatURL.TexteMalformé, données, résultat
+            retourne RésultatParsageFormatURL.TexteMalformé, données, résultat;
         }
 
-        pos = trouve_prochain(*parseuse, '&')
+        pos = trouve_prochain(*parseuse, '&');
 
         si pos <= 0 {
-            pos = parseuse.chn.taille
+            pos = parseuse.chn.taille;
         }
 
-        valeur := sous_chaine_jusque_indice(*parseuse, pos)
-        résoud_échappement_url_localement(valeur)
+        valeur := sous_chaine_jusque_indice(*parseuse, pos);
+        résoud_échappement_url_localement(valeur);
 
-        positionne(*parseuse, pos + 1)
+        positionne(*parseuse, pos + 1);
 
-        id := trouve_info_données(pointeurs, nom)
+        id := trouve_info_données(pointeurs, nom);
 
         saufsi id {
-            retourne RésultatParsageFormatURL.RubriqueInconnue, données, résultat
+            retourne RésultatParsageFormatURL.RubriqueInconnue, données, résultat;
         }
 
         // Vérifions que nous n'avons pas encore parsé cette rubrique.
         si mémoire(id.ptr_données) {
-            retourne RésultatParsageFormatURL.RenommageParamètre, données, résultat
+            retourne RésultatParsageFormatURL.RenommageParamètre, données, résultat;
         }
 
-        fonction_parsage := trouve_fonction_pour_type(id.info.id)
+        fonction_parsage := trouve_fonction_pour_type(id.info.id);
 
         saufsi fonction_parsage {
-            retourne RésultatParsageFormatURL.FonctionParsageInexistante, données, résultat
+            retourne RésultatParsageFormatURL.FonctionParsageInexistante, données, résultat;
         }
 
-        tampon: []octet
-        tampon.pointeur = id.ptr_résultat comme *octet
-        tampon.taille = id.info.id.taille_en_octet comme z64
+        tampon: []octet;
+        tampon.pointeur = id.ptr_résultat comme *octet;
+        tampon.taille = id.info.id.taille_en_octet comme z64;
 
         // fonction_parsage.rappel ajournera le ptr_résultat via le tampon
         saufsi fonction_parsage.rappel(valeur, tampon) {
-            retourne RésultatParsageFormatURL.ÉchecParsageValeur, données, résultat
+            retourne RésultatParsageFormatURL.ÉchecParsageValeur, données, résultat;
         }
 
-        mémoire(id.ptr_données) = vrai
+        mémoire(id.ptr_données) = vrai;
     }
 
-    retourne RésultatParsageFormatURL.Succès, données, résultat
+    retourne RésultatParsageFormatURL.Succès, données, résultat;
 } @FonctionLongue
 
 ChainesParsées :: struct ($T: type_de_données) #corps_texte {
-    info := info_de(T)
+    info := info_de(T);
 
-    enchaineuse: Enchaineuse
-    initialise_enchaineuse(*enchaineuse)
+    enchaineuse: Enchaineuse;
+    initialise_enchaineuse(*enchaineuse);
 
     si info.rubriques.taille == 0 {
-        ajoute_au_tampon(*enchaineuse, "Alors que j'exécute le #corps_texte de DonnéesRésultat, j'ai obtenu un type sans rubrique : ")
-        imprime_type(*enchaineuse, info)
-        ajoute_au_tampon(*enchaineuse, "\nLe type doit avoir des rubriques afin de pouvoir générer le corps.")
+        ajoute_au_tampon(*enchaineuse, "Alors que j'exécute le #corps_texte de DonnéesRésultat, j'ai obtenu un type sans rubrique : ");
+        imprime_type(*enchaineuse, info);
+        ajoute_au_tampon(*enchaineuse, "\nLe type doit avoir des rubriques afin de pouvoir générer le corps.");
 
-        message := chaine_depuis_enchaineuse(*enchaineuse)
-        compilatrice_rapporte_erreur(message)
+        message := chaine_depuis_enchaineuse(*enchaineuse);
+        compilatrice_rapporte_erreur(message);
     }
 
     pour info.rubriques {
         si it.drapeaux.EST_CONSTANTE || it.drapeaux.EST_IMPLICITE {
-            continue
+            continue;
         }
-        ajoute_au_tampon(*enchaineuse, it.nom, ": chaine\n")
+        ajoute_au_tampon(*enchaineuse, it.nom, ": chaine\n");
     }
 
-    retourne chaine_depuis_enchaineuse(*enchaineuse)
+    retourne chaine_depuis_enchaineuse(*enchaineuse);
 }
 
 parse_texte_format_url2 :: fonc (texte: chaine, $T: type_de_données) -> (RésultatParsageFormatURL, DonnéesRésultat(T), ChainesParsées(T))
 {
-    #assert info_de(T).id == GenreInfoType.STRUCTURE
+    #assert info_de(T).id == GenreInfoType.STRUCTURE;
 
-    parseuse := ParseuseChaine(texte)
+    parseuse := ParseuseChaine(texte);
 
-    données: DonnéesRésultat(T = T)
-    résultat: ChainesParsées(T)
+    données: DonnéesRésultat(T = T);
+    résultat: ChainesParsées(T);
 
-    info := info_de(T)
+    info := info_de(T);
 
-    pointeurs: [..]InfoDonnées
-    diffère déloge(pointeurs)
+    pointeurs: [..]InfoDonnées;
+    diffère déloge(pointeurs);
 
     pour info.rubriques {
-        id : InfoDonnées = ---
-        id.info = it
-        id.ptr_résultat = (*résultat comme *z8 + it.décalage)
+        id : InfoDonnées = ---;
+        id.info = it;
+        id.ptr_résultat = (*résultat comme *z8 + it.décalage);
 
-        tableau_ajoute(*pointeurs, id)
+        tableau_ajoute(*pointeurs, id);
     }
 
-    info_données := info_de(type_de(données))
+    info_données := info_de(type_de(données));
     pour info_données.rubriques {
-        id := trouve_info_données(pointeurs, it.nom)
+        id := trouve_info_données(pointeurs, it.nom);
 
         si id {
-            id.ptr_données = (*données comme *bool + it.décalage)
+            id.ptr_données = (*données comme *bool + it.décalage);
         }
     }
 
     tantque !fini(*parseuse) {
-        pos := trouve_prochain(*parseuse, '=')
+        pos := trouve_prochain(*parseuse, '=');
 
         si pos <= 0 {
-            retourne RésultatParsageFormatURL.TexteMalformé, données, résultat
+            retourne RésultatParsageFormatURL.TexteMalformé, données, résultat;
         }
 
-        nom := sous_chaine_jusque_indice(*parseuse, pos)
-        résoud_échappement_url_localement(nom)
+        nom := sous_chaine_jusque_indice(*parseuse, pos);
+        résoud_échappement_url_localement(nom);
 
-        positionne(*parseuse, pos + 1)
+        positionne(*parseuse, pos + 1);
 
         si fini(*parseuse) {
-            retourne RésultatParsageFormatURL.TexteMalformé, données, résultat
+            retourne RésultatParsageFormatURL.TexteMalformé, données, résultat;
         }
 
-        pos = trouve_prochain(*parseuse, '&')
+        pos = trouve_prochain(*parseuse, '&');
 
         si pos <= 0 {
-            pos = parseuse.chn.taille
+            pos = parseuse.chn.taille;
         }
 
-        valeur := sous_chaine_jusque_indice(*parseuse, pos)
-        résoud_échappement_url_localement(valeur)
+        valeur := sous_chaine_jusque_indice(*parseuse, pos);
+        résoud_échappement_url_localement(valeur);
 
-        positionne(*parseuse, pos + 1)
+        positionne(*parseuse, pos + 1);
 
-        id := trouve_info_données(pointeurs, nom)
+        id := trouve_info_données(pointeurs, nom);
 
         saufsi id {
-            retourne RésultatParsageFormatURL.RubriqueInconnue, données, résultat
+            retourne RésultatParsageFormatURL.RubriqueInconnue, données, résultat;
         }
 
         // Vérifions que nous n'avons pas encore parsé cette rubrique.
         si mémoire(id.ptr_données) {
-            retourne RésultatParsageFormatURL.RenommageParamètre, données, résultat
+            retourne RésultatParsageFormatURL.RenommageParamètre, données, résultat;
         }
 
-        mémoire(id.ptr_résultat comme *chaine) = valeur
-        mémoire(id.ptr_données) = vrai
+        mémoire(id.ptr_résultat comme *chaine) = valeur;
+        mémoire(id.ptr_données) = vrai;
     }
 
-    retourne RésultatParsageFormatURL.Succès, données, résultat
+    retourne RésultatParsageFormatURL.Succès, données, résultat;
 } @FonctionLongue
 
 /* DonnéesRésultat
@@ -269,44 +269,44 @@ parse_texte_format_url2 :: fonc (texte: chaine, $T: type_de_données) -> (Résul
  * un tel nom, ou si la valeur ne peut être parsée, la rubrique aura pour valeur « faux ».
  */
 DonnéesRésultat :: struct ($T: type_de_données) #corps_texte {
-    info := info_de(T)
+    info := info_de(T);
 
-    enchaineuse: Enchaineuse
-    initialise_enchaineuse(*enchaineuse)
+    enchaineuse: Enchaineuse;
+    initialise_enchaineuse(*enchaineuse);
 
     si info.rubriques.taille == 0 {
-        ajoute_au_tampon(*enchaineuse, "Alors que j'exécute le #corps_texte de DonnéesRésultat, j'ai obtenu un type sans rubrique : ")
-        imprime_type(*enchaineuse, info)
-        ajoute_au_tampon(*enchaineuse, "\nLe type doit avoir des rubriques afin de pouvoir générer le corps.")
+        ajoute_au_tampon(*enchaineuse, "Alors que j'exécute le #corps_texte de DonnéesRésultat, j'ai obtenu un type sans rubrique : ");
+        imprime_type(*enchaineuse, info);
+        ajoute_au_tampon(*enchaineuse, "\nLe type doit avoir des rubriques afin de pouvoir générer le corps.");
 
-        message := chaine_depuis_enchaineuse(*enchaineuse)
-        compilatrice_rapporte_erreur(message)
+        message := chaine_depuis_enchaineuse(*enchaineuse);
+        compilatrice_rapporte_erreur(message);
     }
 
     pour info.rubriques {
-        ajoute_au_tampon(*enchaineuse, it.nom)
-        ajoute_au_tampon(*enchaineuse, ":= faux\n")
+        ajoute_au_tampon(*enchaineuse, it.nom);
+        ajoute_au_tampon(*enchaineuse, ":= faux\n");
     }
 
-    retourne chaine_depuis_enchaineuse(*enchaineuse)
+    retourne chaine_depuis_enchaineuse(*enchaineuse);
 }
 
 tous_les_champs_sont_renseignés :: fonc (données: DonnéesRésultat($T)) -> bool
 #corps_texte {
-    info := info_de(T)
+    info := info_de(T);
 
-    enchaineuse: Enchaineuse
-    initialise_enchaineuse(*enchaineuse)
+    enchaineuse: Enchaineuse;
+    initialise_enchaineuse(*enchaineuse);
 
     pour info.rubriques {
-        ajoute_au_tampon(*enchaineuse, "si !données.", it.nom, "{\n")
-        ajoute_au_tampon(*enchaineuse, "retourne faux\n")
-        ajoute_au_tampon(*enchaineuse, "}\n")
+        ajoute_au_tampon(*enchaineuse, "si !données.", it.nom, "{\n");
+        ajoute_au_tampon(*enchaineuse, "retourne faux\n");
+        ajoute_au_tampon(*enchaineuse, "}\n");
     }
 
-    ajoute_au_tampon(*enchaineuse, "retourne vrai\n")
+    ajoute_au_tampon(*enchaineuse, "retourne vrai\n");
 
-    retourne chaine_depuis_enchaineuse(*enchaineuse)
+    retourne chaine_depuis_enchaineuse(*enchaineuse);
 }
 
 /*
@@ -410,58 +410,58 @@ est_transfert_correcte :: fonc (texte: chaine) -> bool
 // ------------------------------------
 // Fonctions de parsage
 
-__fonctions_parsage_url: [..]FonctionParsage
+__fonctions_parsage_url: [..]FonctionParsage;
 
 /* Trouve une FonctionParsage pour l'InfoType précisé. Voir trouve_fonction_pour_type sur
  * [..]FonctionParsage pour plus de détail.
  */
 trouve_fonction_pour_type :: fonc (info_type: *InfoType) -> *FonctionParsage
 {
-    retourne trouve_fonction_pour_type(__fonctions_parsage_url, info_type)
+    retourne trouve_fonction_pour_type(__fonctions_parsage_url, info_type);
 }
 
 fonction_parsage_url_est_valide :: fonc (fonction: *NoeudCodeEntêteFonction) -> DonnéesFonctionPourTableFonction
 {
     si fonction.params.taille != 1 {
-        compilatrice_rapporte_erreur(fonction, "Impossible d'utiliser la fonction comme parseuse pour URL, elle ne doit avoir qu'un seul paramètre")
+        compilatrice_rapporte_erreur(fonction, "Impossible d'utiliser la fonction comme parseuse pour URL, elle ne doit avoir qu'un seul paramètre");
     }
 
-    type_premier_paramètre := fonction.params[0].type
+    type_premier_paramètre := fonction.params[0].type;
     si type_premier_paramètre != info_de(chaine) {
-        compilatrice_rapporte_erreur(fonction.params[0], "Fonction de parsage URL invalide, le paramètre doit être de type « chaine ».")
+        compilatrice_rapporte_erreur(fonction.params[0], "Fonction de parsage URL invalide, le paramètre doit être de type « chaine ».");
     }
 
     si fonction.params_sorties.taille != 2 {
-        compilatrice_rapporte_erreur(fonction, "Impossible d'utiliser la fonction comme parseuse pour URL, elle doit avoir deux paramètres de sortie : TypeÀFormatter et bool")
+        compilatrice_rapporte_erreur(fonction, "Impossible d'utiliser la fonction comme parseuse pour URL, elle doit avoir deux paramètres de sortie : TypeÀFormatter et bool");
     }
 
-    type_première_sortie := fonction.params_sorties[0].type
+    type_première_sortie := fonction.params_sorties[0].type;
 
     si type_première_sortie != info_de(bool) {
-        compilatrice_rapporte_erreur(fonction.params_sorties[0], "Fonction de parsage URL invalide, le premier paramètre de sortie doit être de type « bool ».")
+        compilatrice_rapporte_erreur(fonction.params_sorties[0], "Fonction de parsage URL invalide, le premier paramètre de sortie doit être de type « bool ».");
     }
 
-    résultat: DonnéesFonctionPourTableFonction
-    résultat.fonction = fonction
-    résultat.info_type = fonction.params_sorties[1].type
-    retourne résultat
+    résultat: DonnéesFonctionPourTableFonction;
+    résultat.fonction = fonction;
+    résultat.info_type = fonction.params_sorties[1].type;
+    retourne résultat;
 }
 
 génère_fonction_enveloppe_parsage_url :: fonc (enchaineuse: *Enchaineuse, données: DonnéesFonctionPourTableFonction) -> chaine
 {
-    retourne génère_enveloppe_fonction_parsage_octets(enchaineuse, données, "parsage_url_")
+    retourne génère_enveloppe_fonction_parsage_octets(enchaineuse, données, "parsage_url_");
 }
 
 génère_initialisation_parsage_url :: fonc ()
 {
-    créatrice_table_fonctions: CréatriceTableFonction
-    créatrice_table_fonctions.module = compilatrice_module_courant()
-    créatrice_table_fonctions.annotation_désirée = "ParsageURL"
-    créatrice_table_fonctions.nom_table_fonctions = "__fonctions_parsage_url"
-    créatrice_table_fonctions.données_pour_fonction = fonction_parsage_url_est_valide
-    créatrice_table_fonctions.génère_fonction_enveloppe = génère_fonction_enveloppe_parsage_url
-    créatrice_table_fonctions.initialise_types_de_bases = vrai
-    créatrice_table_fonctions.ajoute_module("HTTP")
+    créatrice_table_fonctions: CréatriceTableFonction;
+    créatrice_table_fonctions.module = compilatrice_module_courant();
+    créatrice_table_fonctions.annotation_désirée = "ParsageURL";
+    créatrice_table_fonctions.nom_table_fonctions = "__fonctions_parsage_url";
+    créatrice_table_fonctions.données_pour_fonction = fonction_parsage_url_est_valide;
+    créatrice_table_fonctions.génère_fonction_enveloppe = génère_fonction_enveloppe_parsage_url;
+    créatrice_table_fonctions.initialise_types_de_bases = vrai;
+    créatrice_table_fonctions.ajoute_module("HTTP");
 
-    crée_table_fonctions(créatrice_table_fonctions)
+    crée_table_fonctions(créatrice_table_fonctions);
 }

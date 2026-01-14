@@ -2,12 +2,12 @@
  * Catégorie : [validation sémantique, opérateur, type opaque]
  */
 
-importe Chaine
+importe Chaine;
 
 principale :: fonc ()
 {
-    c := ChaineC(nul)
+    c := ChaineC(nul);
     saufsi c == nul {
-        exit(1)
+        exit(1);
     }
 }

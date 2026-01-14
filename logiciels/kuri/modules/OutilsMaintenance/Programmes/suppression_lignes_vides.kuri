@@ -1,18 +1,18 @@
 /* Suppression des lignes vides redondantes des fichiers .kuri */
 
-importe Fondation
-importe LigneDeCommande
-importe OutilsMaintenance
-importe SysFichier
+importe Fondation;
+importe LigneDeCommande;
+importe OutilsMaintenance;
+importe SysFichier;
 
 principale :: fonc ()
 {
-    chemin := parse_argument_chemin()
+    chemin := parse_argument_chemin();
     saufsi chemin {
-        exit(1)
+        exit(1);
     }
 
-    extensions := [ ".kuri" ]
-    chm := CheminFichier(chemin)
-    exécute_rappel(chm, extensions, supprime_lignes_vides_redondantes_pour_fichier)
+    extensions := [ ".kuri" ];
+    chm := CheminFichier(chemin);
+    exécute_rappel(chm, extensions, supprime_lignes_vides_redondantes_pour_fichier);
 }
