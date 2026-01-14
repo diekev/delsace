@@ -1,9 +1,9 @@
-importe Chaine
-importe Flux
-importe Fondation
+importe Chaine;
+importe Flux;
+importe Fondation;
 
-charge "interface"
-charge "maçonne"
+charge "interface";
+charge "maçonne";
 
 /* Module de travail et d'analyse de fichiers ELF.
  * Pour le moment, seuls les fichiers 64-bits sont supportés.
@@ -18,7 +18,7 @@ charge "maçonne"
  * \{ */
 
 FichierELF :: struct {
-    contenu: []octet
+    contenu: []octet;
 }
 
 est_fichier_elf :: fonc (contenu: []octet) -> bool
@@ -40,7 +40,7 @@ est_fichier_elf :: fonc (contenu: []octet) -> bool
 
     version := donne_version_fichier(entête);
     saufsi version == EV_CURRENT {
-        imprimeln("Version ELF '%' non-supportée.", version)
+        imprimeln("Version ELF '%' non-supportée.", version);
         retourne faux;
     }
 
@@ -55,33 +55,33 @@ est_fichier_elf :: fonc (contenu: []octet) -> bool
  * l'instance de FichierELF. */
 crée_fichier_elf :: fonc (contenu: []octet) -> FichierELF
 {
-    retourne FichierELF(contenu)
+    retourne FichierELF(contenu);
 }
 
 initialise_fichier_elf :: fonc (fichier: *FichierELF, contenu: []octet)
 {
-    fichier.contenu = contenu
+    fichier.contenu = contenu;
 }
 
 entête_fichier :: fonc (fichier: *FichierELF) -> *EntêteELF64
 {
-    retourne fichier.contenu.pointeur comme *EntêteELF64
+    retourne fichier.contenu.pointeur comme *EntêteELF64;
 }
 
 donne_entêtes_de_programme :: fonc (fichier: *FichierELF) -> []Elf64_Phdr
 {
-    résultat: []Elf64_Phdr
+    résultat: []Elf64_Phdr;
 
     entête := fichier.entête_fichier();
     si entête {
         si entête.e_phoff > 0 && entête.e_phoff comme z64 < fichier.contenu.taille {
-            résultat.pointeur = (fichier.contenu.pointeur + entête.e_phoff) comme *Elf64_Phdr
+            résultat.pointeur = (fichier.contenu.pointeur + entête.e_phoff) comme *Elf64_Phdr;
             // À FAIRE : validation
-            résultat.taille = entête.e_phnum comme z64
+            résultat.taille = entête.e_phnum comme z64;
         }
     }
 
-    retourne résultat
+    retourne résultat;
 }
 
 donne_nombre_de_sections :: fonc (fichier: *FichierELF) -> Elf64_Xword
@@ -114,13 +114,13 @@ donne_nombre_de_sections :: fonc (fichier: *FichierELF) -> Elf64_Xword
 
 donne_entête_section :: fonc (fichier: *FichierELF, indice: Elf64_Word) -> *EntêteSectionELF64
 {
-    entête := fichier.entête_fichier()
-    décalage := entête.e_shoff + indice * taille_de(EntêteSectionELF64)
+    entête := fichier.entête_fichier();
+    décalage := entête.e_shoff + indice * taille_de(EntêteSectionELF64);
     si décalage comme z64 >= fichier.contenu.taille {
-        imprimeln("La section à l'indice '%' est hors des limites du fichier.", indice)
-        retourne nul
+        imprimeln("La section à l'indice '%' est hors des limites du fichier.", indice);
+        retourne nul;
     }
-    retourne (fichier.contenu.pointeur + décalage) comme *EntêteSectionELF64
+    retourne (fichier.contenu.pointeur + décalage) comme *EntêteSectionELF64;
 }
 
 trouve_section :: fonc (fichier: *FichierELF, type: TypeSection) -> *EntêteSectionELF64
@@ -128,13 +128,13 @@ trouve_section :: fonc (fichier: *FichierELF, type: TypeSection) -> *EntêteSect
     nombre_de_sections := donne_nombre_de_sections(fichier);
 
     pour nombre_de_sections {
-        section := fichier.donne_entête_section(it)
+        section := fichier.donne_entête_section(it);
         si section.type == type {
-            retourne section
+            retourne section;
         }
     }
 
-    retourne nul
+    retourne nul;
 }
 
 trouve_section :: fonc (fichier: *FichierELF, nom: chaine) -> *EntêteSectionELF64
@@ -156,11 +156,11 @@ trouve_section :: fonc (fichier: *FichierELF, nom: chaine) -> *EntêteSectionELF
         nom_section := donne_chaine(table_chaines, section.sh_name);
 
         si nom_section == nom {
-            retourne section
+            retourne section;
         }
     }
 
-    retourne nul
+    retourne nul;
 }
 
 /** \} */
@@ -171,18 +171,18 @@ trouve_section :: fonc (fichier: *FichierELF, nom: chaine) -> *EntêteSectionELF
 
 /* Valeurs d'indice pour EntêteELF64.e_ident. */
 IdentifiantELF :: énum {
-    MAG0 :: 0
-    MAG1 :: 1
-    MAG2 :: 2
-    MAG3 :: 3
-    CLASS :: 4
-    DATA :: 5
-    VERSION :: 6
-    OSABI :: 7
-    ABIVERSION :: 8
-    PAD :: 9
+    MAG0 :: 0;
+    MAG1 :: 1;
+    MAG2 :: 2;
+    MAG3 :: 3;
+    CLASS :: 4;
+    DATA :: 5;
+    VERSION :: 6;
+    OSABI :: 7;
+    ABIVERSION :: 8;
+    PAD :: 9;
 
-    NIDENT :: 16
+    NIDENT :: 16;
 }
 
 EI_MAG0  :: 0    /* File identification byte 0 index */
@@ -198,27 +198,27 @@ EI_MAG3 :: 3  /* File identification byte 3 index */
 ELFMAG3 : n8 : 'F' comme n8    /* Magic number byte 3 */
 
 /* Conglomeration of the identification bytes, for easy testing as a word.  */
-ELFMAG  :: "\x7fELF"
-SELFMAG :: 4
+ELFMAG  :: "\x7fELF";
+SELFMAG :: 4;
 
 
 EI_CLASS :: 4    /* File class byte index */
 ELFCLASSNONE : n8 : 0    /* Invalid class */
 ELFCLASS32 : n8 : 1    /* 32-bit objects */
 ELFCLASS64 : n8 : 2    /* 64-bit objects */
-ELFCLASSNUM : n8 : 3
+ELFCLASSNUM : n8 : 3;
 
 EI_DATA :: 5    /* Data encoding byte index */
 ELFDATANONE : n8 : 0    /* Invalid data encoding */
 ELFDATA2LSB : n8 : 1    /* 2's complement, little endian */
 ELFDATA2MSB : n8 : 2    /* 2's complement, big endian */
-ELFDATANUM : n8 : 3
+ELFDATANUM : n8 : 3;
 
 EI_VERSION :: 6    /* File version byte index */
         	/* Value must be EV_CURRENT */
 
 EI_OSABI :: 7    /* OS ABI identification */
-ELFOSABI_SYSV : n8 : 0
+ELFOSABI_SYSV : n8 : 0;
 
 EI_ABIVERSION :: 8    /* ABI version */
 
@@ -237,66 +237,66 @@ ET_HIPROC   :: 0xffff    /* Processor-specific range end */
 
 EM_X86_64 : n8 : 62 /* AMD x86-64 architecture */
 
-EntêteELF64 :: Elf64_Ehdr
+EntêteELF64 :: Elf64_Ehdr;
 
 TypeFichierObjet :: énum Elf64_Half {
     /* Aucune type de fichier. */
-    NONE :: 0
+    NONE :: 0;
     /* Ficher réadressable. */
-    REL :: 1
+    REL :: 1;
     /* Fichier exécutable. */
-    EXEC :: 2
+    EXEC :: 2;
     /* Fichier partagé. */
-    DYN :: 3
+    DYN :: 3;
     /* Fichier coeur. */
-    CORE :: 4
+    CORE :: 4;
     /* Spécifique à l'environnement. */
-    LOOS :: 0xFE00
-    HIOS :: 0xFEFF
+    LOOS :: 0xFE00;
+    HIOS :: 0xFEFF;
     /* Spécifique au processeur. */
-    LOPROC :: 0xFF00
-    HIPROC :: 0xFFFF
+    LOPROC :: 0xFF00;
+    HIPROC :: 0xFFFF;
 }
 
 donne_type_fichier_objet :: fonc (entête: *EntêteELF64) -> TypeFichierObjet
 {
-    retourne entête.e_type comme TypeFichierObjet
+    retourne entête.e_type comme TypeFichierObjet;
 }
 
 ClasseFichier :: énum n8 {
     /* 32-bit. */
-    ELFCLASS32 :: 1
+    ELFCLASS32 :: 1;
     /* 64-bit. */
-    ELFCLASS64 :: 2
+    ELFCLASS64 :: 2;
 }
 
 donne_classe_fichier :: fonc (entête: *EntêteELF64) -> ClasseFichier
 {
-    retourne entête.e_ident[IdentifiantELF.CLASS] comme ClasseFichier
+    retourne entête.e_ident[IdentifiantELF.CLASS] comme ClasseFichier;
 }
 
 EncodageDonnées :: énum n8 {
     /* Petit boutisme. */
-    ELFDATA2LSB :: 1
+    ELFDATA2LSB :: 1;
     /* Grand boutisme. */
-    ELFDATA2MSB :: 2
+    ELFDATA2MSB :: 2;
 }
 
 donne_encodage_fichier :: fonc (entête: *EntêteELF64) -> EncodageDonnées
 {
-    retourne entête.e_ident[IdentifiantELF.DATA] comme EncodageDonnées
+    retourne entête.e_ident[IdentifiantELF.DATA] comme EncodageDonnées;
 }
 
-EV_CURRENT : n8 : 1
+EV_CURRENT : n8 : 1;
 
 donne_version_fichier :: fonc (entête: *EntêteELF64) -> n8
 {
-    retourne entête.e_ident[IdentifiantELF.VERSION]
+    retourne entête.e_ident[IdentifiantELF.VERSION];
 }
 
 donne_chaine_ABI :: fonc (entête: *EntêteELF64) -> chaine
 {
-    retourne donne_chaine_ABI(entête.e_ident[IdentifiantELF.OSABI])
+    retourne donne_chaine_ABI(entête.e_ident[IdentifiantELF.OSABI]);
 }
 
 donne_chaine_ABI :: fonc (abi: n8) -> chaine
@@ -319,17 +319,17 @@ donne_chaine_ABI :: fonc (abi: n8) -> chaine
         sinon {}
     }
 
-    retourne "ABI inconnue"
+    retourne "ABI inconnue";
 }
 
 donne_version_ABI :: fonc (entête: *EntêteELF64) -> n8
 {
-    retourne entête.e_ident[IdentifiantELF.ABIVERSION]
+    retourne entête.e_ident[IdentifiantELF.ABIVERSION];
 }
 
 donne_architecture_cible :: fonc (entête: *EntêteELF64) -> Elf64_Half
 {
-    retourne entête.e_machine
+    retourne entête.e_machine;
 }
 
 donne_chaine_architecture_cible :: fonc (entête: *EntêteELF64) -> chaine
@@ -350,64 +350,64 @@ donne_chaine_architecture_cible :: fonc (entête: *EntêteELF64) -> chaine
         sinon {}
     }
 
-    retourne "architecture cible inconnue."
+    retourne "architecture cible inconnue.";
 }
 
 donne_version_format_fichier_objet :: fonc (entête: *EntêteELF64) -> Elf64_Word
 {
-    retourne entête.e_version
+    retourne entête.e_version;
 }
 
 donne_adresse_point_d_entrée :: fonc (entête: *EntêteELF64) -> Elf64_Addr
 {
-    retourne entête.e_entry
+    retourne entête.e_entry;
 }
 
 donne_début_entêtes_de_programme :: fonc (entête: *EntêteELF64) -> Elf64_Off
 {
-    retourne entête.e_phoff
+    retourne entête.e_phoff;
 }
 
 donne_début_entêtes_de_section :: fonc (entête: *EntêteELF64) -> Elf64_Off
 {
-    retourne entête.e_shoff
+    retourne entête.e_shoff;
 }
 
 donne_fanions_processeur :: fonc (entête: *EntêteELF64) -> Elf64_Word
 {
-    retourne entête.e_flags
+    retourne entête.e_flags;
 }
 
 donne_taille_entête :: fonc (entête: *EntêteELF64) -> Elf64_Half
 {
     /* Doit être taille_de(EntêteELF64). */
-    retourne entête.e_ehsize
+    retourne entête.e_ehsize;
 }
 
 donne_taille_entête_programme :: fonc (entête: *EntêteELF64) -> Elf64_Half
 {
-    retourne entête.e_phentsize
+    retourne entête.e_phentsize;
 }
 
 donne_nombre_entête_programme :: fonc (entête: *EntêteELF64) -> Elf64_Half
 {
-    retourne entête.e_phnum
+    retourne entête.e_phnum;
 }
 
 donne_taille_entête_section :: fonc (entête: *EntêteELF64) -> Elf64_Half
 {
     /* Doit être taille_de(EntêteSectionELF64) */
-    retourne entête.e_shentsize
+    retourne entête.e_shentsize;
 }
 
 donne_nombre_entête_section :: fonc (entête: *EntêteELF64) -> Elf64_Half
 {
-    retourne entête.e_shnum
+    retourne entête.e_shnum;
 }
 
 donne_index_section_table_des_chaines :: fonc (entête: *EntêteELF64) -> Elf64_Half
 {
-    retourne entête.e_shstrndx
+    retourne entête.e_shstrndx;
 }
 
 /** \} */
@@ -416,112 +416,112 @@ donne_index_section_table_des_chaines :: fonc (entête: *EntêteELF64) -> Elf64_
 /** \nom EntêteSectionELF64
  * \{ */
 
-EntêteSectionELF64 :: Elf64_Shdr
+EntêteSectionELF64 :: Elf64_Shdr;
 
 donne_type_section :: fonc (entête: *Elf64_Shdr) -> TypeSection
 {
-    retourne (entête.sh_type comme TypeSection)
+    retourne (entête.sh_type comme TypeSection);
 }
 
 TypeSection :: énum Elf64_Word {
     /* Marque une section inutilisée. */
-    Nulle :: 0
+    Nulle :: 0;
     /* Contient les informations définies par le programme. */
-    BitsProgramme :: 1
+    BitsProgramme :: 1;
     /* Contient une table de symbole pour lieur. */
-    TableSymbole :: 2
+    TableSymbole :: 2;
     /* Contient une table de chaines. */
-    TableChaine :: 3
+    TableChaine :: 3;
     /* Contient le type "Rela" de relocation. */
-    Rela :: 4
+    Rela :: 4;
     /* Contient une table de hachage de symbole. */
-    HachageSymbole :: 5
+    HachageSymbole :: 5;
     /* Contient les tables de liaison dynamique. */
-    Dynamique :: 6
+    Dynamique :: 6;
     /* Contient des informations de notes. */
-    Note :: 7
+    Note :: 7;
     /* Contient de l'espace non-initialisé; qui n'occupe pas d'espace dans le fichier. */
-    AucunBits :: 8
+    AucunBits :: 8;
     /* Contient le type "Rel" de relocation. */
-    Rel :: 9
+    Rel :: 9;
     /* Réservé */
-    ShLib :: 10
+    ShLib :: 10;
     /* Contient une table de symbole pour chargeur dynamique. */
-    SymboleDynamique :: 11
+    SymboleDynamique :: 11;
 
-    TableConstructeurs :: 0x0E
-    TableDestructeurs :: 0x0F
-    TablePréConstructeurs :: 0x10
-    GroupeDeSection :: 0x11
-    IndexSectionÉtendue :: 0x12
+    TableConstructeurs :: 0x0E;
+    TableDestructeurs :: 0x0F;
+    TablePréConstructeurs :: 0x10;
+    GroupeDeSection :: 0x11;
+    IndexSectionÉtendue :: 0x12;
 
-    NombreTypeDéfinis :: 0x13
+    NombreTypeDéfinis :: 0x13;
 
     /* Usage spécifique au système d'exploitation. */
-    SysExpBas :: 0x60000000
-    SysExpHaut :: 0x6FFFFFFF
+    SysExpBas :: 0x60000000;
+    SysExpHaut :: 0x6FFFFFFF;
 
     /* Usage spécifique au processeur. */
-    ProcBas :: 0x70000000
-    ProcHaut :: 0x7FFFFFFF
+    ProcBas :: 0x70000000;
+    ProcHaut :: 0x7FFFFFFF;
 }
 
-SHT_NULL :: TypeSection.Nulle
-SHT_PROGBITS :: TypeSection.BitsProgramme
-SHT_SYMTAB :: TypeSection.TableSymbole
-SHT_STRTAB :: TypeSection.TableChaine
-SHT_RELA :: TypeSection.Rela
-SHT_HASH :: TypeSection.HachageSymbole
-SHT_DYNAMIC :: TypeSection.Dynamique
-SHT_NOTE :: TypeSection.Note
-SHT_NOBITS :: TypeSection.AucunBits
-SHT_REL :: TypeSection.Rel
-SHT_SHLIB :: TypeSection.ShLib
-SHT_DYNSYM :: TypeSection.SymboleDynamique
+SHT_NULL :: TypeSection.Nulle;
+SHT_PROGBITS :: TypeSection.BitsProgramme;
+SHT_SYMTAB :: TypeSection.TableSymbole;
+SHT_STRTAB :: TypeSection.TableChaine;
+SHT_RELA :: TypeSection.Rela;
+SHT_HASH :: TypeSection.HachageSymbole;
+SHT_DYNAMIC :: TypeSection.Dynamique;
+SHT_NOTE :: TypeSection.Note;
+SHT_NOBITS :: TypeSection.AucunBits;
+SHT_REL :: TypeSection.Rel;
+SHT_SHLIB :: TypeSection.ShLib;
+SHT_DYNSYM :: TypeSection.SymboleDynamique;
 SHT_INIT_ARRAY :: 14		/* Array of constructors */
 SHT_FINI_ARRAY :: 15		/* Array of destructors */
 SHT_PREINIT_ARRAY :: 16		/* Array of pre-constructors */
 SHT_GROUP :: 17		/* Section group */
 SHT_SYMTAB_SHNDX :: 18		/* Extended section indices */
 SHT_NUM ::  19		/* Number of defined types.  */
-SHT_LOOS :: TypeSection.SysExpBas
+SHT_LOOS :: TypeSection.SysExpBas;
 SHT_GNU_ATTRIBUTES :: 0x6ffffff5	/* Object attributes.  */
 SHT_GNU_HASH :: 0x6ffffff6	/* GNU-style hash table.  */
 SHT_GNU_LIBLIST :: 0x6ffffff7	/* Prelink library list */
 SHT_CHECKSUM :: 0x6ffffff8	/* Checksum for DSO content.  */
 SHT_LOSUNW :: 0x6ffffffa	/* Sun-specific low bound.  */
-SHT_SUNW_move :: 0x6ffffffa
-SHT_SUNW_COMDAT :: 0x6ffffffb
-SHT_SUNW_syminfo :: 0x6ffffffc
+SHT_SUNW_move :: 0x6ffffffa;
+SHT_SUNW_COMDAT :: 0x6ffffffb;
+SHT_SUNW_syminfo :: 0x6ffffffc;
 SHT_GNU_verdef :: 0x6ffffffd	/* Version definition section.  */
 SHT_GNU_verneed :: 0x6ffffffe	/* Version needs section.  */
 SHT_GNU_versym :: 0x6fffffff	/* Version symbol table.  */
 SHT_HISUNW :: 0x6fffffff	/* Sun-specific high bound.  */
-SHT_HIOS :: TypeSection.SysExpHaut
-SHT_LOPROC :: TypeSection.ProcBas
-SHT_HIPROC :: TypeSection.ProcHaut
+SHT_HIOS :: TypeSection.SysExpHaut;
+SHT_LOPROC :: TypeSection.ProcBas;
+SHT_HIPROC :: TypeSection.ProcHaut;
 SHT_LOUSER :: 0x80000000	/* Start of application-specific */
 SHT_HIUSER :: 0x8fffffff	/* End of application-specific */
 
 DrapeauxSection :: énum_drapeau Elf64_Xword {
-    WRITE :: 0x1
-    ALLOC :: 0x2
-    EXECINSTR :: 0x4
-    MERGE :: 0x10
-    STRINGS :: 0x20
-    INFO_LINK :: 0x40
-    LINK_ORDER :: 0x80
-    OS_NONCONFORMING :: 0x100
-    GROUP :: 0x200
-    TLS :: 0x400
-    COMPRESSED :: 0x800
-    MASKOS :: 0x0ff00000
-    MASKPROC :: 0xf0000000
+    WRITE :: 0x1;
+    ALLOC :: 0x2;
+    EXECINSTR :: 0x4;
+    MERGE :: 0x10;
+    STRINGS :: 0x20;
+    INFO_LINK :: 0x40;
+    LINK_ORDER :: 0x80;
+    OS_NONCONFORMING :: 0x100;
+    GROUP :: 0x200;
+    TLS :: 0x400;
+    COMPRESSED :: 0x800;
+    MASKOS :: 0x0ff00000;
+    MASKPROC :: 0xf0000000;
 }
 
 donne_drapeaux :: fonc (entête: *EntêteSectionELF64) -> DrapeauxSection
 {
-    retourne entête.sh_flags comme DrapeauxSection
+    retourne entête.sh_flags comme DrapeauxSection;
 }
 
 /* Retourne la chaine après "SHT_" dans le nom du macro C du type de section. */
@@ -553,32 +553,32 @@ donne_nom_macro_type_section :: fonc (type_section: TypeSection) -> chaine
         sinon { retourne "" }
     }
 
-    retourne ""
+    retourne "";
 }
 
 donne_données_section :: fonc (fichier: *FichierELF, section: *EntêteSectionELF64) -> []octet
 {
-    résultat: []octet
+    résultat: []octet;
 
     si section.sh_offset comme z64 < fichier.contenu.taille && (section.sh_offset + section.sh_size) comme z64 <= fichier.contenu.taille {
-        données_section := fichier.contenu.pointeur + section.sh_offset
-        résultat.pointeur = données_section
-        résultat.taille = section.sh_size comme z64
+        données_section := fichier.contenu.pointeur + section.sh_offset;
+        résultat.pointeur = données_section;
+        résultat.taille = section.sh_size comme z64;
     }
     sinon {
-        imprimeln("Impossible de lire les données de la section, la taille du fichier est trop petite.")
+        imprimeln("Impossible de lire les données de la section, la taille du fichier est trop petite.");
     }
 
-    retourne résultat
+    retourne résultat;
 }
 
 donne_données_section :: fonc (fichier: *FichierELF, section: *EntêteSectionELF64, $T: type_de_données) -> []T
 {
     données := donne_données_section(fichier, section);
-    résultat: []T = ---
-    résultat.pointeur = données.pointeur comme *T
-    résultat.taille = données.taille / taille_de(T) comme z64
-    retourne résultat
+    résultat: []T = ---;
+    résultat.pointeur = données.pointeur comme *T;
+    résultat.taille = données.taille / taille_de(T) comme z64;
+    retourne résultat;
 }
 
 /** \} */
@@ -587,55 +587,55 @@ donne_données_section :: fonc (fichier: *FichierELF, section: *EntêteSectionEL
 /** \nom SymboleELF64
  * \{ */
 
-SymboleELF64 :: Elf64_Sym
+SymboleELF64 :: Elf64_Sym;
 
 TypeSymbole :: énum n8 {
-    NOTYPE :: 0
-    OBJECT :: 1
-    FUNC :: 2
-    SECTION :: 3
-    FILE :: 4
-    COMMON :: 5
-    TLS :: 6
-    NUM :: 7
-    LOOS :: 10
-    GNU_IFUNC :: 10
-    HIOS :: 12
-    LOPROC :: 13
-    HIPROC :: 15
+    NOTYPE :: 0;
+    OBJECT :: 1;
+    FUNC :: 2;
+    SECTION :: 3;
+    FILE :: 4;
+    COMMON :: 5;
+    TLS :: 6;
+    NUM :: 7;
+    LOOS :: 10;
+    GNU_IFUNC :: 10;
+    HIOS :: 12;
+    LOPROC :: 13;
+    HIPROC :: 15;
 }
 
 donne_type :: fonc (symbole: *SymboleELF64) -> TypeSymbole
 {
-    retourne (symbole.st_info & 0xf) comme TypeSymbole
+    retourne (symbole.st_info & 0xf) comme TypeSymbole;
 }
 
 LiaisonSymbole :: énum n8 {
-    LOCAL :: 0
-    GLOBAL :: 1
-    WEAK :: 2
-    LOOS :: 10
-    HIOS :: 12
-    LOPROC :: 13
-    HIPROC :: 15
+    LOCAL :: 0;
+    GLOBAL :: 1;
+    WEAK :: 2;
+    LOOS :: 10;
+    HIOS :: 12;
+    LOPROC :: 13;
+    HIPROC :: 15;
 }
 
 donne_liaison :: fonc (symbole: *SymboleELF64) -> LiaisonSymbole
 {
-    retourne (symbole.st_info >> 4) comme LiaisonSymbole
+    retourne (symbole.st_info >> 4) comme LiaisonSymbole;
 }
 
 /* https://refspecs.linuxbase.org/elf/gabi4+/ch4.symtab.html#visibility */
 VisibilitéSymbole :: énum n8 {
-    DEFAULT :: 0
-    INTERNAL :: 1
-    HIDDEN :: 2
-    PROTECTED :: 3
+    DEFAULT :: 0;
+    INTERNAL :: 1;
+    HIDDEN :: 2;
+    PROTECTED :: 3;
 }
 
 donne_visibilité :: fonc (symbole: *SymboleELF64) -> VisibilitéSymbole
 {
-    retourne (symbole.st_other & 0x3) comme VisibilitéSymbole
+    retourne (symbole.st_other & 0x3) comme VisibilitéSymbole;
 }
 
 /** \} */
@@ -656,7 +656,7 @@ donne_chaine :: fonc (table: String_Table_ELF64, décalage: Elf64_Word) -> chain
         nom_c := table.données.pointeur + décalage;
         résultat = convertis_chaine_c_statique(ChaineC(nom_c comme *z8));
     }
-    retourne résultat
+    retourne résultat;
 }
 
 donne_string_table :: fonc (fichier: *FichierELF, indice_section: Elf64_Word) -> (bool, String_Table_ELF64)
@@ -686,7 +686,7 @@ donne_string_table :: fonc (fichier: *FichierELF, indice_section: Elf64_Word) ->
  * \{ */
 
 Symbol_Table_ELF64 :: struct {
-    fichier: *FichierELF
+    fichier: *FichierELF;
     entête: *Elf64_Shdr;
     symboles: []Elf64_Sym;
 
@@ -754,11 +754,11 @@ donne_symbole :: fonc (empl table: *Symbol_Table_ELF64, nom: chaine) -> *Elf64_S
 {
     pour * symboles {
         si donne_nom_symbole(table, it) == nom {
-            retourne it
+            retourne it;
         }
     }
 
-    retourne nul
+    retourne nul;
 }
 
 donne_nom_symbole :: fonc (empl table: *Symbol_Table_ELF64, symbole: *Elf64_Sym) -> chaine
@@ -769,81 +769,81 @@ donne_nom_symbole :: fonc (empl table: *Symbol_Table_ELF64, symbole: *Elf64_Sym)
 
 donne_nom_section_symbole :: fonc (empl table: *Symbol_Table_ELF64, symbole: *SymboleELF64) -> chaine
 {
-    index_entête_section := symbole.st_shndx
+    index_entête_section := symbole.st_shndx;
 
     discr index_entête_section {
         SHN_UNDEF {
-            retourne "UND"
+            retourne "UND";
         }
         SHN_LORESERVE, SHN_LOPROC {
-            retourne "LOP"
+            retourne "LOP";
         }
         SHN_HIPROC {
-            retourne "HIP"
+            retourne "HIP";
         }
         SHN_LOOS {
-            retourne "LOOS"
+            retourne "LOOS";
         }
         SHN_HIOS {
-            retourne "HIOS"
+            retourne "HIOS";
         }
         SHN_ABS {
-            retourne "ABS"
+            retourne "ABS";
         }
         SHN_COMMON {
-            retourne "COM"
+            retourne "COM";
         }
         SHN_XINDEX {
-            retourne "XINDEX"
+            retourne "XINDEX";
         }
         SHN_HIRESERVE {
-            retourne "HIRESERVE"
+            retourne "HIRESERVE";
         }
         sinon {}
     }
     
     section := donne_entête_section(fichier, index_entête_section);
     saufsi section {
-        retourne ""
+        retourne "";
     }
-    retourne donne_chaine(section_header_string_table, section.sh_name)
+    retourne donne_chaine(section_header_string_table, section.sh_name);
 }
 
 /** \} */
 
 donne_entrées_section_dynamic :: fonc (fichier: *FichierELF) -> []Elf64_Dyn
 {
-    résultat: []Elf64_Dyn
+    résultat: []Elf64_Dyn;
 
-    section_dynamic := trouve_section(fichier, ".dynamic")
+    section_dynamic := trouve_section(fichier, ".dynamic");
     si section_dynamic {
-        données_section := donne_données_section(fichier, section_dynamic)
+        données_section := donne_données_section(fichier, section_dynamic);
 
         si données_section {
             si données_section.taille % taille_de(Elf64_Addr) comme z64 == 0 {
-                résultat.pointeur = données_section.pointeur comme *Elf64_Dyn
-                résultat.taille = données_section.taille / taille_de(Elf64_Addr) comme z64
+                résultat.pointeur = données_section.pointeur comme *Elf64_Dyn;
+                résultat.taille = données_section.taille / taille_de(Elf64_Addr) comme z64;
 
                 pour résultat {
                     si it.d_tag == DT_NULL {
-                        résultat.taille = indice_it
-                        arrête
+                        résultat.taille = indice_it;
+                        arrête;
                     }
                 }
             }
             sinon {
-                imprimeln("[%] la section .dynamic n'a pas une taille compatible avec Elf64_Addr", #nom_de_cette_fonction)
+                imprimeln("[%] la section .dynamic n'a pas une taille compatible avec Elf64_Addr", #nom_de_cette_fonction);
             }
         }
         sinon {
-            imprimeln("[%] pas de données pour la section .dynamic", #nom_de_cette_fonction)
+            imprimeln("[%] pas de données pour la section .dynamic", #nom_de_cette_fonction);
         }
     }
     sinon {
-        imprimeln("[%] pas de section .dynamic", #nom_de_cette_fonction)
+        imprimeln("[%] pas de section .dynamic", #nom_de_cette_fonction);
     }
 
-    retourne résultat
+    retourne résultat;
 }
 
 /* Retourne vrai si Elf*_Dyn.d_val doit être utilisé. Sinon, Elf64_Dyn.d_ptr doit l'être.
@@ -861,11 +861,11 @@ donne_entrées_section_dynamic :: fonc (fichier: *FichierELF) -> []Elf64_Dyn
 doit_utiliser_valeur :: fonc (entrée: Elf64_Dyn) -> bool
 {
     si entrée.d_tag % 2 == 0 {
-        retourne faux
+        retourne faux;
     }
 
     // À FAIRE : DT_ENCODING, DT_HIOS, DT_LOPROC
-    retourne vrai
+    retourne vrai;
 }
 
 /* ------------------------------------------------------------------------- */
@@ -873,282 +873,282 @@ doit_utiliser_valeur :: fonc (entrée: Elf64_Dyn) -> bool
  * \{ */
 
 CommonInformationEntry64 :: struct {
-    length: n64
-    cie_id: n32
-    version: n8
-    augmentation_string: chaine
-    code_alignement_factor: n64
-    data_alignement_factor: z64
-    return_address_register: n8
-    augmentation_data: []octet
-    initial_instructions: []octet
+    length: n64;
+    cie_id: n32;
+    version: n8;
+    augmentation_string: chaine;
+    code_alignement_factor: n64;
+    data_alignement_factor: z64;
+    return_address_register: n8;
+    augmentation_data: []octet;
+    initial_instructions: []octet;
 
-    indice_premier_fde: z64
-    un_après_indice_dernier_fde: z64
+    indice_premier_fde: z64;
+    un_après_indice_dernier_fde: z64;
 }
 
 donne_fde_ptr_encoding :: fonc (cie: *CommonInformationEntry64) -> octet
 {
-    assert(cie.augmentation_string == "zR")
-    assert(cie.augmentation_data.taille == 1)
-    retourne cie.augmentation_data[0]
+    assert(cie.augmentation_string == "zR");
+    assert(cie.augmentation_data.taille == 1);
+    retourne cie.augmentation_data[0];
 }
 
 fde_possède_augmentation :: fonc (cie: *CommonInformationEntry64) -> bool
 {
-    retourne trouve_caractère_depuis_le_début(cie.augmentation_string, 'z') != -1
+    retourne trouve_caractère_depuis_le_début(cie.augmentation_string, 'z') != -1;
 }
 
 FrameDescriptionEntry64 :: struct {
-    length: n64
-    cie_pointer: n32
-    pc_begin: PointeurEncodé
-    pc_range: n64
-    augmentation_data: []octet
-    call_frame_instructions: []octet
+    length: n64;
+    cie_pointer: n32;
+    pc_begin: PointeurEncodé;
+    pc_range: n64;
+    augmentation_data: []octet;
+    call_frame_instructions: []octet;
 }
 
 DonnéesEHFrame :: struct {
-    cies: [..]CommonInformationEntry64
-    fdes: [..]FrameDescriptionEntry64
+    cies: [..]CommonInformationEntry64;
+    fdes: [..]FrameDescriptionEntry64;
 }
 
 donne_fdes :: fonc (données: *DonnéesEHFrame, cie: *CommonInformationEntry64) -> []FrameDescriptionEntry64
 {
-    résultat: []FrameDescriptionEntry64
-    résultat.pointeur = données.fdes.pointeur + cie.indice_premier_fde
-    résultat.taille = cie.un_après_indice_dernier_fde - cie.indice_premier_fde
-    retourne résultat
+    résultat: []FrameDescriptionEntry64;
+    résultat.pointeur = données.fdes.pointeur + cie.indice_premier_fde;
+    résultat.taille = cie.un_après_indice_dernier_fde - cie.indice_premier_fde;
+    retourne résultat;
 }
 
 parse_données_eh_frame :: fonc (fichier: *FichierELF) -> (succès: bool, données: DonnéesEHFrame)
 {
-    succès = vrai
-    résultat: DonnéesEHFrame
+    succès = vrai;
+    résultat: DonnéesEHFrame;
 
-    entête := entête_fichier(fichier)
+    entête := entête_fichier(fichier);
 
     si entête {
-        section := trouve_section(fichier, ".eh_frame")
+        section := trouve_section(fichier, ".eh_frame");
         si section {
-            données_section := donne_données_section(fichier, section)
+            données_section := donne_données_section(fichier, section);
 
-            flux := crée_flux_octets(données_section)
-            diffère détruit(flux)
+            flux := crée_flux_octets(données_section);
+            diffère détruit(flux);
 
             tantque est_valide(flux) {
-                length, _ := parse_length_cie(flux)
+                length, _ := parse_length_cie(flux);
                 si length == 0 {
-                    arrête
+                    arrête;
                 }
 
-                position_après_length := donne_position(flux).Début comme z64
+                position_après_length := donne_position(flux).Début comme z64;
 
-                cie_id, _ := lis_petit_boutisme(flux, n32)
+                cie_id, _ := lis_petit_boutisme(flux, n32);
                 si cie_id != 0 {
-                    imprimeln("Erreur l'id d'une entrée CIE doit être de 0, obtenu %", cie_id)
-                    succès = faux
+                    imprimeln("Erreur l'id d'une entrée CIE doit être de 0, obtenu %", cie_id);
+                    succès = faux;
                 }
 
-                version, _ := lis_petit_boutisme(flux, n8)
+                version, _ := lis_petit_boutisme(flux, n8);
                 si version != 1 {
-                    imprimeln("Erreur la version d'une entrée CIE doit être de 1, obtenu %", version)
-                    succès = faux
+                    imprimeln("Erreur la version d'une entrée CIE doit être de 1, obtenu %", version);
+                    succès = faux;
                 }
 
-                augmentation_string := lis_chaine_nul_terminée(flux)
+                augmentation_string := lis_chaine_nul_terminée(flux);
 
-                code_alignement_factor := décode_leb128_naturel(flux)
+                code_alignement_factor := décode_leb128_naturel(flux);
 
-                data_alignement_factor := décode_leb128_relatif(flux)
+                data_alignement_factor := décode_leb128_relatif(flux);
 
                 // uleb128 si version != 1
-                return_address_register, _ := lis_petit_boutisme(flux, n8)
+                return_address_register, _ := lis_petit_boutisme(flux, n8);
 
-                augmentation_length := décode_leb128_naturel(flux)
-                augmentation_data := lis_tranche_octet(flux, augmentation_length comme z64)
+                augmentation_length := décode_leb128_naturel(flux);
+                augmentation_data := lis_tranche_octet(flux, augmentation_length comme z64);
 
-                position_flux := donne_position(flux)
-                taille_lue := (position_flux.Début comme z64 - position_après_length)
-                taille_restante := length comme z64 - taille_lue
+                position_flux := donne_position(flux);
+                taille_lue := (position_flux.Début comme z64 - position_après_length);
+                taille_restante := length comme z64 - taille_lue;
                 si taille_restante < 0 {
-                    imprimeln("Erreur, nous avons lu trop de données pour le CIE : % / %", taille_lue, length)
-                    succès = faux
+                    imprimeln("Erreur, nous avons lu trop de données pour le CIE : % / %", taille_lue, length);
+                    succès = faux;
                 }
 
-                initial_instructions := lis_tranche_octet(flux, taille_restante)
+                initial_instructions := lis_tranche_octet(flux, taille_restante);
 
-                cie := tableau_ajoute_élément(*résultat.cies)
-                cie.length = length
-                cie.cie_id = cie_id
-                cie.version = version
-                cie.augmentation_string = augmentation_string
-                cie.code_alignement_factor = code_alignement_factor
-                cie.data_alignement_factor = data_alignement_factor
-                cie.return_address_register = return_address_register
-                cie.augmentation_data = augmentation_data
-                cie.initial_instructions = initial_instructions
-                cie.indice_premier_fde = résultat.fdes.taille
-                cie.un_après_indice_dernier_fde = cie.indice_premier_fde
+                cie := tableau_ajoute_élément(*résultat.cies);
+                cie.length = length;
+                cie.cie_id = cie_id;
+                cie.version = version;
+                cie.augmentation_string = augmentation_string;
+                cie.code_alignement_factor = code_alignement_factor;
+                cie.data_alignement_factor = data_alignement_factor;
+                cie.return_address_register = return_address_register;
+                cie.augmentation_data = augmentation_data;
+                cie.initial_instructions = initial_instructions;
+                cie.indice_premier_fde = résultat.fdes.taille;
+                cie.un_après_indice_dernier_fde = cie.indice_premier_fde;
 
                 tantque est_valide(flux) {
-                    length_fde, _ := parse_length_cie(flux)
+                    length_fde, _ := parse_length_cie(flux);
                     si length_fde == 0 {
-                        arrête
+                        arrête;
                     }
 
-                    position_après_length = donne_position(flux).Début comme z64
+                    position_après_length = donne_position(flux).Début comme z64;
 
-                    cie_pointer, _ := lis_petit_boutisme(flux, n32)
+                    cie_pointer, _ := lis_petit_boutisme(flux, n32);
                     // si length == 0 => fini
-                    assert(cie_pointer != 0)
+                    assert(cie_pointer != 0);
 
-                    encodage_pointeur := donne_fde_ptr_encoding(cie)
-                    pc_begin := parse_pointer_encodé(flux, encodage_pointeur)
-                    pc_range := parse_pointer_encodé(flux, encodage_pointeur)
+                    encodage_pointeur := donne_fde_ptr_encoding(cie);
+                    pc_begin := parse_pointer_encodé(flux, encodage_pointeur);
+                    pc_range := parse_pointer_encodé(flux, encodage_pointeur);
 
-                    augmentation_length_fde: n64
-                    augmentation_data_fde: []octet
+                    augmentation_length_fde: n64;
+                    augmentation_data_fde: []octet;
 
                     si fde_possède_augmentation(cie) {
-                        augmentation_length_fde = décode_leb128_naturel(flux)
-                        augmentation_data_fde = lis_tranche_octet(flux, augmentation_length_fde comme z64)
+                        augmentation_length_fde = décode_leb128_naturel(flux);
+                        augmentation_data_fde = lis_tranche_octet(flux, augmentation_length_fde comme z64);
                     }
 
-                    position_flux = donne_position(flux)
-                    taille_lue = (position_flux.Début comme z64 - position_après_length)
-                    taille_restante = length_fde comme z64 - taille_lue
+                    position_flux = donne_position(flux);
+                    taille_lue = (position_flux.Début comme z64 - position_après_length);
+                    taille_restante = length_fde comme z64 - taille_lue;
                     si taille_restante < 0 {
-                        imprimeln("Erreur, nous avons lu trop de données pour le FDE : % / %", taille_lue, length)
-                        succès = faux
+                        imprimeln("Erreur, nous avons lu trop de données pour le FDE : % / %", taille_lue, length);
+                        succès = faux;
                     }
 
-                    instructions_fde := lis_tranche_octet(flux, taille_restante)
+                    instructions_fde := lis_tranche_octet(flux, taille_restante);
 
-                    fde := tableau_ajoute_élément(*résultat.fdes)
-                    fde.length = length_fde
-                    fde.cie_pointer = cie_pointer
-                    fde.pc_begin = pc_begin
-                    fde.pc_range = pc_range.données
-                    fde.augmentation_data = augmentation_data_fde
-                    fde.call_frame_instructions = instructions_fde
+                    fde := tableau_ajoute_élément(*résultat.fdes);
+                    fde.length = length_fde;
+                    fde.cie_pointer = cie_pointer;
+                    fde.pc_begin = pc_begin;
+                    fde.pc_range = pc_range.données;
+                    fde.augmentation_data = augmentation_data_fde;
+                    fde.call_frame_instructions = instructions_fde;
 
-                    cie.un_après_indice_dernier_fde += 1
+                    cie.un_après_indice_dernier_fde += 1;
                 }
             }
         }
     }
 
-    retourne succès, résultat
+    retourne succès, résultat;
 }
 
 parse_length_cie :: fonc (flux: *FluxOctets) -> (n64, bool)
 {
-    est_32_bit := vrai
-    length32, _ := lis_petit_boutisme(flux, n32)
-    length: n64 = length32
+    est_32_bit := vrai;
+    length32, _ := lis_petit_boutisme(flux, n32);
+    length: n64 = length32;
     si length == 0xffffffff {
-        extended_length, _ := lis_petit_boutisme(flux, n64)
-        length = extended_length
-        est_32_bit = faux
+        extended_length, _ := lis_petit_boutisme(flux, n64);
+        length = extended_length;
+        est_32_bit = faux;
     }
-    retourne length, est_32_bit
+    retourne length, est_32_bit;
 }
 
 PointeurEncodé :: struct {
     Représentation :: énum n8 {
-        INT_16
-        INT_32
-        INT_64
-        UINT_16
-        UINT_32
-        UINT_64
+        INT_16;
+        INT_32;
+        INT_64;
+        UINT_16;
+        UINT_32;
+        UINT_64;
     }
 
     Base :: énum n8 {
-        NULLE
-        PC
-        TEXT
-        DATA
-        FUNC
+        NULLE;
+        PC;
+        TEXT;
+        DATA;
+        FUNC;
     }
 
     Sémantique :: énum n8 {
-        VOID_PTR
-        VOID_PTR_PTR
+        VOID_PTR;
+        VOID_PTR_PTR;
     }
 
-    représentation: Représentation
-    base: Base
-    sémantique: Sémantique
-    données: n64
+    représentation: Représentation;
+    base: Base;
+    sémantique: Sémantique;
+    données: n64;
 }
 
 parse_pointer_encodé :: fonc (flux: *FluxOctets, encodage: octet) -> PointeurEncodé
 {
     // Valeurs non-gérées pour le moment
-    assert(encodage != 0xFF)
-    assert(encodage != 0x50)
+    assert(encodage != 0xFF);
+    assert(encodage != 0x50);
 
-    encodage_valeur_pointeur := encodage & 0xF
+    encodage_valeur_pointeur := encodage & 0xF;
     // Valeurs non-gérées pour le moment
-    assert(encodage_valeur_pointeur != 0x0)
-    assert(encodage_valeur_pointeur != 0x1)
-    assert(encodage_valeur_pointeur != 0x9)
+    assert(encodage_valeur_pointeur != 0x0);
+    assert(encodage_valeur_pointeur != 0x1);
+    assert(encodage_valeur_pointeur != 0x9);
 
-    résultat: PointeurEncodé
+    résultat: PointeurEncodé;
 
     si encodage_valeur_pointeur == 0x2 {
-        temp, _ := lis_petit_boutisme(flux, n16)
-        résultat.données = temp
-        résultat.représentation = PointeurEncodé.Représentation.UINT_16
+        temp, _ := lis_petit_boutisme(flux, n16);
+        résultat.données = temp;
+        résultat.représentation = PointeurEncodé.Représentation.UINT_16;
     }
     sinon si encodage_valeur_pointeur == 0x3 {
-        temp, _ := lis_petit_boutisme(flux, n32)
-        résultat.données = temp
-        résultat.représentation = PointeurEncodé.Représentation.UINT_32
+        temp, _ := lis_petit_boutisme(flux, n32);
+        résultat.données = temp;
+        résultat.représentation = PointeurEncodé.Représentation.UINT_32;
     }
     sinon si encodage_valeur_pointeur == 0x4 {
-        temp, _ := lis_petit_boutisme(flux, n64)
-        résultat.données = temp
-        résultat.représentation = PointeurEncodé.Représentation.UINT_64
+        temp, _ := lis_petit_boutisme(flux, n64);
+        résultat.données = temp;
+        résultat.représentation = PointeurEncodé.Représentation.UINT_64;
     }
     sinon si encodage_valeur_pointeur == 0xA {
-        temp, _ := lis_petit_boutisme(flux, z16)
-        résultat.données = temp comme n64
-        résultat.représentation = PointeurEncodé.Représentation.INT_16
+        temp, _ := lis_petit_boutisme(flux, z16);
+        résultat.données = temp comme n64;
+        résultat.représentation = PointeurEncodé.Représentation.INT_16;
     }
     sinon si encodage_valeur_pointeur == 0xB {
-        temp, _ := lis_petit_boutisme(flux, z32)
-        résultat.données = temp comme n64
-        résultat.représentation = PointeurEncodé.Représentation.INT_32
+        temp, _ := lis_petit_boutisme(flux, z32);
+        résultat.données = temp comme n64;
+        résultat.représentation = PointeurEncodé.Représentation.INT_32;
     }
     sinon si encodage_valeur_pointeur == 0xC {
-        temp, _ := lis_petit_boutisme(flux, z64)
-        résultat.données = temp comme n64
-        résultat.représentation = PointeurEncodé.Représentation.INT_64
+        temp, _ := lis_petit_boutisme(flux, z64);
+        résultat.données = temp comme n64;
+        résultat.représentation = PointeurEncodé.Représentation.INT_64;
     }
 
-    encodage_base := encodage & 0x70
+    encodage_base := encodage & 0x70;
     si encodage_base == 0x10 {
-        résultat.base = PointeurEncodé.Base.PC
+        résultat.base = PointeurEncodé.Base.PC;
     }
     sinon si encodage_base == 0x20 {
-        résultat.base = PointeurEncodé.Base.TEXT
+        résultat.base = PointeurEncodé.Base.TEXT;
     }
     sinon si encodage_base == 0x30 {
-        résultat.base = PointeurEncodé.Base.DATA
+        résultat.base = PointeurEncodé.Base.DATA;
     }
     sinon si encodage_base == 0x40 {
-        résultat.base = PointeurEncodé.Base.FUNC
+        résultat.base = PointeurEncodé.Base.FUNC;
     }
 
-    encodage_sémantique := encodage & 0x80
+    encodage_sémantique := encodage & 0x80;
     si encodage_sémantique == 0x80 {
-        résultat.sémantique = PointeurEncodé.Sémantique.VOID_PTR_PTR
+        résultat.sémantique = PointeurEncodé.Sémantique.VOID_PTR_PTR;
     }
 
-    retourne résultat
+    retourne résultat;
 }
 
 /** \} */
