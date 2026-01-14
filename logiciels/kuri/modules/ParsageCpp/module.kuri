@@ -4,88 +4,88 @@
  * système pour extraire des données de code C++.
  */
 
-importe Fondation
-importe SysFichier
+importe Fondation;
+importe SysFichier;
 
-charge "arbre_syntaxique"
-charge "fichier_source"
-charge "lexage"
-charge "message"
-charge "préprocesseur"
-charge "parseuse_c"
-charge "parseuse_cpp"
-charge "sémanticienne_c"
-charge "unit"
+charge "arbre_syntaxique";
+charge "fichier_source";
+charge "lexage";
+charge "message";
+charge "préprocesseur";
+charge "parseuse_c";
+charge "parseuse_cpp";
+charge "sémanticienne_c";
+charge "unit";
 
 /* ------------------------------------------------------------------------- */
 /** \nom Langage
  * \{ */
 
 Langage :: énum {
-    C
-    CPP
+    C;
+    CPP;
 }
 
 détermine_langage_pour_fichier :: fonc (chemin: chaine) -> Langage
 {
-    ext := extension(CheminFichier(chemin))
+    ext := extension(CheminFichier(chemin));
     si ext == ".cpp" || ext == ".cc" {
-        retourne Langage.CPP
+        retourne Langage.CPP;
     }
 
-    retourne Langage.C
+    retourne Langage.C;
 }
 
 InfoLangage :: struct {
-    langage: Langage
-    dialecte: chaine
-    standard: n32
+    langage: Langage;
+    dialecte: chaine;
+    standard: n32;
 }
 
 est_valide :: fonc (info: InfoLangage) -> bool
 {
-    succès, info_valide := donne_info_langage_pour_dialecte(info.dialecte)
+    succès, info_valide := donne_info_langage_pour_dialecte(info.dialecte);
     saufsi succès {
-        retourne faux
+        retourne faux;
     }
 
     si info_valide.standard != info.standard {
-        retourne faux
+        retourne faux;
     }
 
-    retourne vrai
+    retourne vrai;
 }
 
 donne_info_langage_valide :: fonc (info: InfoLangage) -> InfoLangage
 {
     saufsi est_valide(info) {
-        retourne donne_info_langage_pour_langage(info.langage)
+        retourne donne_info_langage_pour_langage(info.langage);
     }
-    retourne info
+    retourne info;
 }
 
 donne_info_langage_pour_langage :: fonc (langage: Langage) -> InfoLangage
 {
-    dialecte: chaine
+    dialecte: chaine;
 
     discr langage {
         CPP {
-            dialecte = "c++"
+            dialecte = "c++";
         }
         C {
-            dialecte = "c"
+            dialecte = "c";
         }
     }
 
-    _, résultat := donne_info_langage_pour_dialecte("c")
-    assert(est_valide(résultat))
-    retourne résultat
+    _, résultat := donne_info_langage_pour_dialecte("c");
+    assert(est_valide(résultat));
+    retourne résultat;
 }
 
 donne_info_langage_pour_fichier :: fonc (chemin: chaine) -> InfoLangage
 {
-    langage := détermine_langage_pour_fichier(chemin)
-    retourne donne_info_langage_pour_langage(langage)
+    langage := détermine_langage_pour_fichier(chemin);
+    retourne donne_info_langage_pour_langage(langage);
 }
 
 donne_info_langage_pour_dialecte :: fonc (dialecte: chaine) -> (bool, InfoLangage)
@@ -116,132 +116,132 @@ donne_info_langage_pour_dialecte :: fonc (dialecte: chaine) -> (bool, InfoLangag
         // InfoLangage(Langage.CPP, "c++2b", 2023),
         // InfoLangage(Langage.CPP, "c++26", 2026),
         // InfoLangage(Langage.CPP, "c++2c", 2026),
-    ]
+    ];
 
-    succès: bool
-    résultat: InfoLangage
+    succès: bool;
+    résultat: InfoLangage;
 
     pour infos {
         si it.dialecte == dialecte {
-            succès = vrai
-            résultat = it
-            arrête
+            succès = vrai;
+            résultat = it;
+            arrête;
         }
     }
 
-    retourne succès, résultat
+    retourne succès, résultat;
 }
 
 /** \} */
 
 est_fichier_cpp :: fonc (chemin: CheminFichier) -> bool
 {
-    extension := chemin.extension()
-    retourne fait_partie_de(extension, ".h", ".hh", ".cc", ".cpp")
+    extension := chemin.extension();
+    retourne fait_partie_de(extension, ".h", ".hh", ".cc", ".cpp");
 }
 
 imprime_type_kuri :: fonc (enchaineuse: *Enchaineuse, type_c: *Type)
 {
     discr type_c.kind {
         CHAR {
-            ajoute_au_tampon(enchaineuse, "z8")
+            ajoute_au_tampon(enchaineuse, "z8");
         }
         UNSIGNED_CHAR {
-            ajoute_au_tampon(enchaineuse, "n8")
+            ajoute_au_tampon(enchaineuse, "n8");
         }
         SHORT {
-            ajoute_au_tampon(enchaineuse, "z16")
+            ajoute_au_tampon(enchaineuse, "z16");
         }
         UNSIGNED_SHORT {
-            ajoute_au_tampon(enchaineuse, "n16")
+            ajoute_au_tampon(enchaineuse, "n16");
         }
         INT {
-            ajoute_au_tampon(enchaineuse, "z32")
+            ajoute_au_tampon(enchaineuse, "z32");
         }
         UNSIGNED_INT {
-            ajoute_au_tampon(enchaineuse, "n32")
+            ajoute_au_tampon(enchaineuse, "n32");
         }
         LONG {
-            ajoute_au_tampon(enchaineuse, "z64")
+            ajoute_au_tampon(enchaineuse, "z64");
         }
         UNSIGNED_LONG {
-            ajoute_au_tampon(enchaineuse, "n64")
+            ajoute_au_tampon(enchaineuse, "n64");
         }
         LONG_LONG {
-            ajoute_au_tampon(enchaineuse, "TYPE_NON_SUPPORTÉ : LONG_LONG")
+            ajoute_au_tampon(enchaineuse, "TYPE_NON_SUPPORTÉ : LONG_LONG");
         }
         UNSIGNED_LONG_LONG {
-            ajoute_au_tampon(enchaineuse, "TYPE_NON_SUPPORTÉ : UNSIGNED_LONG_LONG")
+            ajoute_au_tampon(enchaineuse, "TYPE_NON_SUPPORTÉ : UNSIGNED_LONG_LONG");
         }
         FLOAT {
-            ajoute_au_tampon(enchaineuse, "r32")
+            ajoute_au_tampon(enchaineuse, "r32");
         }
         DOUBLE {
-            ajoute_au_tampon(enchaineuse, "r64")
+            ajoute_au_tampon(enchaineuse, "r64");
         }
         LONG_DOUBLE {
-            ajoute_au_tampon(enchaineuse, "TYPE_NON_SUPPORTÉ : LONG_DOUBLE")
+            ajoute_au_tampon(enchaineuse, "TYPE_NON_SUPPORTÉ : LONG_DOUBLE");
         }
         POINTER {
-            type_pointeur := type_c comme *PointerType
+            type_pointeur := type_c comme *PointerType;
 
             si type_pointeur.pointed_to.genre == FunctionType {
-                imprime_type_kuri(enchaineuse, type_pointeur.pointed_to)
+                imprime_type_kuri(enchaineuse, type_pointeur.pointed_to);
             }
             sinon {
-                ajoute_au_tampon(enchaineuse, "*")
-                imprime_type_kuri(enchaineuse, type_pointeur.pointed_to)
+                ajoute_au_tampon(enchaineuse, "*");
+                imprime_type_kuri(enchaineuse, type_pointeur.pointed_to);
             }
         }
         VOID {
-            ajoute_au_tampon(enchaineuse, "rien")
+            ajoute_au_tampon(enchaineuse, "rien");
         }
         RECORD {
             si type_c.genre == StructDecl {
-                struct_decl := type_c comme *StructDecl
-                ajoute_au_tampon(enchaineuse, struct_decl.name)
+                struct_decl := type_c comme *StructDecl;
+                ajoute_au_tampon(enchaineuse, struct_decl.name);
             }
             sinon si type_c.genre == UnionDecl {
-                union_decl := type_c comme *UnionDecl
-                ajoute_au_tampon(enchaineuse, union_decl.name)
+                union_decl := type_c comme *UnionDecl;
+                ajoute_au_tampon(enchaineuse, union_decl.name);
             }
             sinon {
-                ajoute_au_tampon(enchaineuse, "TYPE_NON_SUPPORTÉ : RECORD")
+                ajoute_au_tampon(enchaineuse, "TYPE_NON_SUPPORTÉ : RECORD");
             }
         }
         REFERENCE {
-            type_ref := type_c comme *TypeRef
-            ajoute_au_tampon(enchaineuse, type_ref.nom)
+            type_ref := type_c comme *TypeRef;
+            ajoute_au_tampon(enchaineuse, type_ref.nom);
         }
         TYPEDEF {
 
         }
         FUNCTION {
-            type_fonction := type_c comme *FunctionType
-            ajoute_au_tampon(enchaineuse, "fonc (")
-            virgule := ""
+            type_fonction := type_c comme *FunctionType;
+            ajoute_au_tampon(enchaineuse, "fonc (");
+            virgule := "";
             pour type_fonction.parameters {
                 si it.type.kind == TypeKind.VOID {
-                    assert(indice_it == 0)
-                    arrête
+                    assert(indice_it == 0);
+                    arrête;
                 }
 
-                ajoute_au_tampon(enchaineuse, virgule)
+                ajoute_au_tampon(enchaineuse, virgule);
 
                 si it.name {
-                    ajoute_au_tampon(enchaineuse, it.name, ": ")
+                    ajoute_au_tampon(enchaineuse, it.name, ": ");
                 }
 
-                imprime_type_kuri(enchaineuse, it.type)
-                virgule = ", "
+                imprime_type_kuri(enchaineuse, it.type);
+                virgule = ", ";
             }
-            ajoute_au_tampon(enchaineuse, ") -> ")
-            imprime_type_kuri(enchaineuse, type_fonction.return_type)
+            ajoute_au_tampon(enchaineuse, ") -> ");
+            imprime_type_kuri(enchaineuse, type_fonction.return_type);
         }
         CONSTANT_ARRAY {
-            constant_array := type_c comme *ConstantArray
-            imprime_dans_enchaineuse(enchaineuse, "[%]", constant_array.size)
-            imprime_type_kuri(enchaineuse, constant_array.element_type)
+            constant_array := type_c comme *ConstantArray;
+            imprime_dans_enchaineuse(enchaineuse, "[%]", constant_array.size);
+            imprime_type_kuri(enchaineuse, constant_array.element_type);
         }
     }
 }
@@ -249,45 +249,45 @@ imprime_type_kuri :: fonc (enchaineuse: *Enchaineuse, type_c: *Type)
 déclare_type_kuri :: fonc (enchaineuse: *Enchaineuse, type_c: *Type, nom_typedef := "")
 {
     si type_c.genre == StructDecl {
-        struct_decl := type_c comme *StructDecl
+        struct_decl := type_c comme *StructDecl;
         saufsi nom_typedef {
-            nom_typedef = struct_decl.name
+            nom_typedef = struct_decl.name;
         }
-        imprime_dans_enchaineuse(enchaineuse, "% :: struct {\n", nom_typedef)
+        imprime_dans_enchaineuse(enchaineuse, "% :: struct {\n", nom_typedef);
         pour struct_decl.fields {
-            imprime_dans_enchaineuse(enchaineuse, "    %: ", it.name)
-            imprime_type_kuri(enchaineuse, it.type)
-            ajoute_au_tampon(enchaineuse, "\n")
+            imprime_dans_enchaineuse(enchaineuse, "    %: ", it.name);
+            imprime_type_kuri(enchaineuse, it.type);
+            ajoute_au_tampon(enchaineuse, "\n");
         }
-        ajoute_au_tampon(enchaineuse, "}\n")
+        ajoute_au_tampon(enchaineuse, "}\n");
     }
     sinon si type_c.genre == UnionDecl {
-        union_decl := type_c comme *UnionDecl
+        union_decl := type_c comme *UnionDecl;
         saufsi nom_typedef {
-            nom_typedef = union_decl.name
+            nom_typedef = union_decl.name;
         }
-        imprime_dans_enchaineuse(enchaineuse, "% :: union nonsûr {\n", nom_typedef)
+        imprime_dans_enchaineuse(enchaineuse, "% :: union nonsûr {\n", nom_typedef);
         pour union_decl.fields {
-            imprime_dans_enchaineuse(enchaineuse, "    %: ", it.name)
-            imprime_type_kuri(enchaineuse, it.type)
-            ajoute_au_tampon(enchaineuse, "\n")
+            imprime_dans_enchaineuse(enchaineuse, "    %: ", it.name);
+            imprime_type_kuri(enchaineuse, it.type);
+            ajoute_au_tampon(enchaineuse, "\n");
         }
-        ajoute_au_tampon(enchaineuse, "}\n")
+        ajoute_au_tampon(enchaineuse, "}\n");
     }
 }
 
 est_structure_ou_union_anonyme :: fonc (type_c: *Type) -> bool
 {
-    résultat := faux
+    résultat := faux;
 
     si type_c.genre == StructDecl {
-        struct_decl := type_c comme *StructDecl
-        résultat = struct_decl.name == ""
+        struct_decl := type_c comme *StructDecl;
+        résultat = struct_decl.name == "";
     }
     sinon si type_c.genre == UnionDecl {
-        union_decl := type_c comme *UnionDecl
-        résultat = union_decl.name == ""
+        union_decl := type_c comme *UnionDecl;
+        résultat = union_decl.name == "";
     }
 
-    retourne résultat
+    retourne résultat;
 }

@@ -1,46 +1,46 @@
-importe Fondation
-importe Périphériques
+importe Fondation;
+importe Périphériques;
 
-charge "interface_qt"
+charge "interface_qt";
 
-libdanjo :: #bibliothèque "danjo"
+libdanjo :: #bibliothèque "danjo";
 
-#dépendance_bibliothèque libdanjo libdls_outils
-#dépendance_bibliothèque libdanjo libdls_phys
-#dépendance_bibliothèque libdanjo libQt6Widgets
-#dépendance_bibliothèque libdanjo libQt6OpenGL
-#dépendance_bibliothèque libdanjo libQt6OpenGLWidgets
-#dépendance_bibliothèque libdanjo libQt6Core
-#dépendance_bibliothèque libdanjo libQt6Gui
+#dépendance_bibliothèque libdanjo libdls_outils;
+#dépendance_bibliothèque libdanjo libdls_phys;
+#dépendance_bibliothèque libdanjo libQt6Widgets;
+#dépendance_bibliothèque libdanjo libQt6OpenGL;
+#dépendance_bibliothèque libdanjo libQt6OpenGLWidgets;
+#dépendance_bibliothèque libdanjo libQt6Core;
+#dépendance_bibliothèque libdanjo libQt6Gui;
 
-libQt6DBus :: #bibliothèque "Qt6DBus"
-libQt6Widgets :: #bibliothèque "Qt6Widgets"
-libQt6OpenGL :: #bibliothèque "Qt6OpenGL"
-libQt6OpenGLWidgets :: #bibliothèque "Qt6OpenGLWidgets"
-libQt6Core :: #bibliothèque "Qt6Core"
-libQt6Gui :: #bibliothèque "Qt6Gui"
-libQt6Network :: #bibliothèque "Qt6Network"
+libQt6DBus :: #bibliothèque "Qt6DBus";
+libQt6Widgets :: #bibliothèque "Qt6Widgets";
+libQt6OpenGL :: #bibliothèque "Qt6OpenGL";
+libQt6OpenGLWidgets :: #bibliothèque "Qt6OpenGLWidgets";
+libQt6Core :: #bibliothèque "Qt6Core";
+libQt6Gui :: #bibliothèque "Qt6Gui";
+libQt6Network :: #bibliothèque "Qt6Network";
 
-#dépendance_bibliothèque libQt6Gui libQt6DBus
+#dépendance_bibliothèque libQt6Gui libQt6DBus;
 
-libicui18n :: #bibliothèque "icui18n"
-libicuuc :: #bibliothèque "icuuc"
-libicudata :: #bibliothèque "icudata"
+libicui18n :: #bibliothèque "icui18n";
+libicuuc :: #bibliothèque "icuuc";
+libicudata :: #bibliothèque "icudata";
 
-#dépendance_bibliothèque libQt6Core libicui18n
-#dépendance_bibliothèque libQt6Core libicuuc
-#dépendance_bibliothèque libQt6Core libicudata
+#dépendance_bibliothèque libQt6Core libicui18n;
+#dépendance_bibliothèque libQt6Core libicuuc;
+#dépendance_bibliothèque libQt6Core libicudata;
 
-libqt_entetes :: #bibliothèque "qt_entetes"
+libqt_entetes :: #bibliothèque "qt_entetes";
 
-#dépendance_bibliothèque libqt libqt_entetes
-#dépendance_bibliothèque libqt libdanjo
-#dépendance_bibliothèque libqt libQt6Widgets
-#dépendance_bibliothèque libqt libQt6OpenGL
-#dépendance_bibliothèque libqt libQt6OpenGLWidgets
-#dépendance_bibliothèque libqt libQt6Core
-#dépendance_bibliothèque libqt libQt6Gui
-#dépendance_bibliothèque libqt libQt6Network
+#dépendance_bibliothèque libqt libqt_entetes;
+#dépendance_bibliothèque libqt libdanjo;
+#dépendance_bibliothèque libqt libQt6Widgets;
+#dépendance_bibliothèque libqt libQt6OpenGL;
+#dépendance_bibliothèque libqt libQt6OpenGLWidgets;
+#dépendance_bibliothèque libqt libQt6Core;
+#dépendance_bibliothèque libqt libQt6Gui;
+#dépendance_bibliothèque libqt libQt6Network;
 
 /* ------------------------------------------------------------------------- */
 /** \nom Utilitaires
@@ -48,43 +48,43 @@ libqt_entetes :: #bibliothèque "qt_entetes"
 
 exécute :: fonc (app: *QT_Application)
 {
-    résultat := QT_application_exec(app)
+    résultat := QT_application_exec(app);
     si résultat != 0 {
-        exit(résultat)
+        exit(résultat);
     }
 }
 
 vers_kuri :: fonc (chn: *QT_Chaine) -> chaine
 {
-    retourne chaine(chn.caractères, chn.taille)
+    retourne chaine(chn.caractères, chn.taille);
 }
 
 vers_kuri :: fonc (chn: QT_Chaine) -> chaine #enligne
 {
-    retourne chaine(chn.caractères, chn.taille)
+    retourne chaine(chn.caractères, chn.taille);
 }
 
 vers_qt :: fonc (chn: chaine) -> QT_Chaine
 {
-    retourne QT_Chaine(chn.pointeur, chn.taille)
+    retourne QT_Chaine(chn.pointeur, chn.taille);
 }
 
 QT_crée_label :: fonc (texte: chaine, parent: QT_Generic_Widget) -> *QT_Label
 {
-    texte_qt := vers_qt(texte)
-    retourne QT_cree_label(*texte_qt, parent)
+    texte_qt := vers_qt(texte);
+    retourne QT_cree_label(*texte_qt, parent);
 }
 
 QT_tab_widget_ajoute_tab :: fonc (tab: *QT_TabWidget, widget: QT_Generic_Widget, nom: chaine)
 {
-    nom_qt := vers_qt(nom)
-    QT_tab_widget_ajoute_tab(tab, widget, *nom_qt)
+    nom_qt := vers_qt(nom);
+    QT_tab_widget_ajoute_tab(tab, widget, *nom_qt);
 }
 
 QT_plain_text_edit_definis_texte :: fonc (text_edit: *QT_PlainTextEdit, texte: chaine)
 {
-    texte_qt := vers_qt(texte)
-    QT_plain_text_edit_definis_texte(text_edit, *texte_qt)
+    texte_qt := vers_qt(texte);
+    QT_plain_text_edit_definis_texte(text_edit, *texte_qt);
 }
 
 /** \} */
@@ -95,22 +95,22 @@ QT_plain_text_edit_definis_texte :: fonc (text_edit: *QT_PlainTextEdit, texte: c
 
 QT_white :: fonc () -> QT_Color #enligne
 {
-    retourne QT_Color(1.0, 1.0, 1.0, 1.0)
+    retourne QT_Color(1.0, 1.0, 1.0, 1.0);
 }
 
 QT_gray :: fonc () -> QT_Color #enligne
 {
-    retourne QT_Color(0.5, 0.5, 0.5, 1.0)
+    retourne QT_Color(0.5, 0.5, 0.5, 1.0);
 }
 
 QT_yellow :: fonc () -> QT_Color #enligne
 {
-    retourne QT_Color(1.0, 1.0, 0.0, 1.0)
+    retourne QT_Color(1.0, 1.0, 0.0, 1.0);
 }
 
 QT_blue :: fonc () -> QT_Color #enligne
 {
-    retourne QT_Color(0.0, 0.0, 1.0, 1.0)
+    retourne QT_Color(0.0, 0.0, 1.0, 1.0);
 }
 
 /** } */
@@ -121,17 +121,17 @@ QT_blue :: fonc () -> QT_Color #enligne
 
 réduis :: fonc (rect: QT_Rect, delta: z32) -> QT_Rect
 {
-    retourne réduis(rect, delta, delta)
+    retourne réduis(rect, delta, delta);
 }
 
 réduis :: fonc (rect: QT_Rect, delta_largeur: z32, delta_hauteur: z32) -> QT_Rect
 {
-    résultat := rect
-    résultat.x += delta_largeur
-    résultat.y += delta_hauteur
-    résultat.largeur -= 2 * delta_largeur
-    résultat.hauteur -= 2 * delta_hauteur
-    retourne résultat
+    résultat := rect;
+    résultat.x += delta_largeur;
+    résultat.y += delta_hauteur;
+    résultat.largeur -= 2 * delta_largeur;
+    résultat.hauteur -= 2 * delta_hauteur;
+    retourne résultat;
 }
 
 /** } */
@@ -143,56 +143,56 @@ réduis :: fonc (rect: QT_Rect, delta_largeur: z32, delta_hauteur: z32) -> QT_Re
 définis_valeur :: fonc (variant: *QT_Variant, valeur: $T)
 {
     #si T == z8 {
-        variant.definis_z8(variant, valeur)
+        variant.definis_z8(variant, valeur);
     }
     sinon si T == z16 {
-        variant.definis_z16(variant, valeur)
+        variant.definis_z16(variant, valeur);
     }
     sinon si T == z32 {
-        variant.definis_z32(variant, valeur)
+        variant.definis_z32(variant, valeur);
     }
     sinon si T == z64 {
-        variant.definis_z64(variant, valeur)
+        variant.definis_z64(variant, valeur);
     }
     sinon si T == n8 {
-        variant.definis_n8(variant, valeur)
+        variant.definis_n8(variant, valeur);
     }
     sinon si T == n16 {
-        variant.definis_n16(variant, valeur)
+        variant.definis_n16(variant, valeur);
     }
     sinon si T == n32 {
-        variant.definis_n32(variant, valeur)
+        variant.definis_n32(variant, valeur);
     }
     sinon si T == n64 {
-        variant.definis_n64(variant, valeur)
+        variant.definis_n64(variant, valeur);
     }
     sinon si T == r32 {
-        variant.definis_r32(variant, valeur)
+        variant.definis_r32(variant, valeur);
     }
     sinon si T == r64 {
-        variant.definis_r64(variant, valeur)
+        variant.definis_r64(variant, valeur);
     }
     sinon si T == bool {
-        variant.definis_bool(variant, valeur)
+        variant.definis_bool(variant, valeur);
     }
     sinon si T == chaine {
-        variant.definis_chaine(variant, vers_qt(valeur))
+        variant.definis_chaine(variant, vers_qt(valeur));
     }
     sinon {
-        infos := info_de(T)
+        infos := info_de(T);
 
         si infos.id == GenreInfoType.ÉNUM {
             si infos.est_drapeau {
-                valeur_nom := imprime_chaine("%", valeur)
-                variant.definis_chaine(variant, vers_qt(valeur_nom))
-                déloge(valeur_nom)
+                valeur_nom := imprime_chaine("%", valeur);
+                variant.definis_chaine(variant, vers_qt(valeur_nom));
+                déloge(valeur_nom);
             }
             sinon {
-                valeur_eini : eini = ---
-                valeur_eini.info = infos
-                valeur_eini.pointeur = *valeur
-                nom := donne_nom_énum_pour_valeur(valeur_eini)
-                variant.definis_chaine(variant, vers_qt(nom))
+                valeur_eini : eini = ---;
+                valeur_eini.info = infos;
+                valeur_eini.pointeur = *valeur;
+                nom := donne_nom_énum_pour_valeur(valeur_eini);
+                variant.definis_chaine(variant, vers_qt(nom));
             }
         }
     }
@@ -206,36 +206,36 @@ définis_valeur :: fonc (variant: *QT_Variant, valeur: $T)
 
 commence_menu_env :: fonc (créatrice: *QT_Creatrice_Barre_Menu, titre: chaine)
 {
-    qtitre := vers_qt(titre)
-    créatrice.commence_menu(créatrice, *qtitre)
+    qtitre := vers_qt(titre);
+    créatrice.commence_menu(créatrice, *qtitre);
 }
 
 ajoute_action_chaine_env :: fonc (créatrice: *QT_Creatrice_Barre_Menu, titre: chaine, données: chaine)
 {
-    qtitre := vers_qt(titre)
-    qdonnées := vers_qt(données)
-    créatrice.ajoute_action_chaine(créatrice, *qtitre, *qdonnées)
+    qtitre := vers_qt(titre);
+    qdonnées := vers_qt(données);
+    créatrice.ajoute_action_chaine(créatrice, *qtitre, *qdonnées);
 }
 
 ajoute_action_env :: fonc (créatrice: *QT_Creatrice_Barre_Menu, action: *QT_Action)
 {
-    créatrice.ajoute_action(créatrice, action)
+    créatrice.ajoute_action(créatrice, action);
 }
 
 ajoute_separateur_env :: fonc (créatrice: *QT_Creatrice_Barre_Menu)
 {
-    créatrice.ajoute_separateur(créatrice)
+    créatrice.ajoute_separateur(créatrice);
 }
 
 ajoute_section_env :: fonc (créatrice: *QT_Creatrice_Barre_Menu, titre: chaine)
 {
-    qtitre := vers_qt(titre)
-    créatrice.ajoute_section(créatrice, *qtitre)
+    qtitre := vers_qt(titre);
+    créatrice.ajoute_section(créatrice, *qtitre);
 }
 
 termine_menu_env :: fonc (créatrice: *QT_Creatrice_Barre_Menu)
 {
-    créatrice.termine_menu(créatrice)
+    créatrice.termine_menu(créatrice);
 }
 
 /** } */
@@ -246,127 +246,127 @@ termine_menu_env :: fonc (créatrice: *QT_Creatrice_Barre_Menu)
 
 donne_modificateur_clavier_depuis_qt :: fonc () -> ModificateurClavier
 {
-    modificateurs := QT_application_donne_modificateurs_clavier()
+    modificateurs := QT_application_donne_modificateurs_clavier();
 
-    résultat: ModificateurClavier
+    résultat: ModificateurClavier;
 
     si (modificateurs & QT_Keyboard_Modifier.MAJ) != QT_Keyboard_Modifier.AUCUN {
-        résultat.MAJUSCULE = vrai
+        résultat.MAJUSCULE = vrai;
     }
 
     si (modificateurs & QT_Keyboard_Modifier.CTRL) != QT_Keyboard_Modifier.AUCUN {
-        résultat.CONTROL = vrai
+        résultat.CONTROL = vrai;
     }
 
     si (modificateurs & QT_Keyboard_Modifier.ALT) != QT_Keyboard_Modifier.AUCUN {
-        résultat.ALT = vrai
+        résultat.ALT = vrai;
     }
 
-    retourne résultat
+    retourne résultat;
 }
 
 donne_modificateur_clavier_qt :: fonc (mod: ModificateurClavier) -> QT_Keyboard_Modifier
 {
-    résultat: QT_Keyboard_Modifier
+    résultat: QT_Keyboard_Modifier;
 
     si mod.MAJUSCULE {
-        résultat |= QT_Keyboard_Modifier.MAJ
+        résultat |= QT_Keyboard_Modifier.MAJ;
     }
 
     si mod.CONTROL {
-        résultat |= QT_Keyboard_Modifier.CTRL
+        résultat |= QT_Keyboard_Modifier.CTRL;
     }
 
     si mod.ALT {
-        résultat |= QT_Keyboard_Modifier.ALT
+        résultat |= QT_Keyboard_Modifier.ALT;
     }
 
-    retourne résultat
+    retourne résultat;
 }
 
 donne_bouton_souris :: fonc (évènement: *QT_MouseEvent) -> BoutonSouris
 {
-    retourne donne_bouton_souris(QT_mouse_event_donne_bouton(évènement))
+    retourne donne_bouton_souris(QT_mouse_event_donne_bouton(évènement));
 }
 
 /* À FAIRE : énum_drapeau */
 donne_boutons_souris :: fonc (évènement: *QT_MouseEvent) -> BoutonSouris
 {
-    retourne donne_bouton_souris(QT_mouse_event_donne_boutons(évènement))
+    retourne donne_bouton_souris(QT_mouse_event_donne_boutons(évènement));
 }
 
 donne_bouton_souris :: fonc (bouton: QT_MouseButton) -> BoutonSouris
 {
     discr bouton {
         GAUCHE {
-            retourne BoutonSouris.GAUCHE
+            retourne BoutonSouris.GAUCHE;
         }
         DROIT {
-            retourne BoutonSouris.DROIT
+            retourne BoutonSouris.DROIT;
         }
         MILLIEU {
-            retourne BoutonSouris.MOLETTE
+            retourne BoutonSouris.MOLETTE;
         }
         ARRIERE {
-            retourne BoutonSouris.ARRIÈRE
+            retourne BoutonSouris.ARRIÈRE;
         }
         sinon {}
     }
 
-    retourne BoutonSouris.AUCUN
+    retourne BoutonSouris.AUCUN;
 }
 
 donne_clic_souris_depuis_évènement :: fonc (évènement: *QT_MouseEvent, action: ActionSouris) -> ClicSouris
 {
-    position: QT_Position
-    QT_mouse_event_donne_position(évènement, *position)
+    position: QT_Position;
+    QT_mouse_event_donne_position(évènement, *position);
 
-    résultat: ClicSouris
-    résultat.état.où.x = position.x
-    résultat.état.où.y = position.y
-    résultat.état.modificateur = donne_modificateur_clavier_depuis_qt()
+    résultat: ClicSouris;
+    résultat.état.où.x = position.x;
+    résultat.état.où.y = position.y;
+    résultat.état.modificateur = donne_modificateur_clavier_depuis_qt();
     si action == ActionSouris.PRESSÉE || action == ActionSouris.RELACHÉE || action == ActionSouris.DOUBLE_CLIC {
-        résultat.bouton = donne_bouton_souris(évènement)
+        résultat.bouton = donne_bouton_souris(évènement);
     }
     sinon si action == ActionSouris.DÉPLACÉE {
-        résultat.bouton = donne_boutons_souris(évènement)
+        résultat.bouton = donne_boutons_souris(évènement);
     }
-    résultat.action = action
-    retourne résultat
+    résultat.action = action;
+    retourne résultat;
 }
 
 donne_clic_souris_depuis_évènement :: fonc (évènement: *QT_WheelEvent) -> ClicSouris
 {
-    position: QT_Position
-    QT_wheel_event_donne_position(évènement, *position)
+    position: QT_Position;
+    QT_wheel_event_donne_position(évènement, *position);
 
-    résultat: ClicSouris
-    résultat.état.où.x = position.x
-    résultat.état.où.y = position.y
-    résultat.état.modificateur = donne_modificateur_clavier_depuis_qt()
-    résultat.bouton = BoutonSouris.MOLETTE
-    résultat.action = ActionSouris.ROULEMENT
-    résultat.delta = QT_wheel_event_donne_delta(évènement)
-    retourne résultat
+    résultat: ClicSouris;
+    résultat.état.où.x = position.x;
+    résultat.état.où.y = position.y;
+    résultat.état.modificateur = donne_modificateur_clavier_depuis_qt();
+    résultat.bouton = BoutonSouris.MOLETTE;
+    résultat.action = ActionSouris.ROULEMENT;
+    résultat.delta = QT_wheel_event_donne_delta(évènement);
+    retourne résultat;
 }
 
 donne_raccourci_clavier :: fonc (évènement: *QT_KeyEvent) -> RaccourciClavier
 {
-    résultat: RaccourciClavier
-    résultat.touche = table_conversion_clé[QT_key_event_donne_cle(évènement)]
-    résultat.modificateur = donne_modificateur_clavier_depuis_qt()
-    retourne résultat
+    résultat: RaccourciClavier;
+    résultat.touche = table_conversion_clé[QT_key_event_donne_cle(évènement)];
+    résultat.modificateur = donne_modificateur_clavier_depuis_qt();
+    retourne résultat;
 }
 
 donne_qt_key :: fonc (touche: ToucheClavier) -> QT_Key
 {
     pour table_conversion_clé {
         si it == touche {
-            retourne indice_it comme z32 comme n32 comme QT_Key
+            retourne indice_it comme z32 comme n32 comme QT_Key;
         }
     }
 
-    retourne QT_Key.unknown
+    retourne QT_Key.unknown;
 }
 
 convertis_type_curseur :: fonc (curseur: TypeCurseurSystème) -> QT_CursorShape
@@ -402,12 +402,12 @@ convertis_type_curseur :: fonc (curseur: TypeCurseurSystème) -> QT_CursorShape
     // BITMAP
     // CUSTOM
 
-    retourne QT_CursorShape.ARROW
+    retourne QT_CursorShape.ARROW;
 }
 
 QT_gui_application_definis_curseur :: fonc (curseur: TypeCurseurSystème)
 {
-    QT_gui_application_definis_curseur(convertis_type_curseur(curseur))
+    QT_gui_application_definis_curseur(convertis_type_curseur(curseur));
 }
 
 /** } */
@@ -417,13 +417,13 @@ QT_gui_application_definis_curseur :: fonc (curseur: TypeCurseurSystème)
  * \{ */
 
 ParamètresFileParallèle :: struct {
-    sur_évènement: fonc (event: *QT_Evenement)
-    type_évènement: z32 = -1
+    sur_évènement: fonc (event: *QT_Evenement);
+    type_évènement: z32 = -1;
 }
 
 FileParallèle :: struct {
-    thread: *QT_Thread
-    filtre_évènement: *QT_Object
+    thread: *QT_Thread;
+    filtre_évènement: *QT_Object;
 }
 
 /* Crée un thread Qt pour exécuter des tâches en parallèles.
@@ -433,146 +433,146 @@ FileParallèle :: struct {
  * ParamètresFileParallèle.sur_évènement. */
 crée_file_parallèle :: fonc (params: ParamètresFileParallèle) -> FileParallèle
 {
-    rappels_thread := QT_loge_rappel(RappelsThread)
+    rappels_thread := QT_loge_rappel(RappelsThread);
 
-    thread := QT_thread_cree(rappels_thread)
+    thread := QT_thread_cree(rappels_thread);
 
-    rappels_filtre_évènement := QT_loge_rappel(FiltreÉvènementThread)
-    rappels_filtre_évènement.params = params
-    parent: *QT_Object
-    filtre_évènement := QT_object_cree(rappels_filtre_évènement, parent)
-    QT_object_move_to_thread(filtre_évènement, thread)
+    rappels_filtre_évènement := QT_loge_rappel(FiltreÉvènementThread);
+    rappels_filtre_évènement.params = params;
+    parent: *QT_Object;
+    filtre_évènement := QT_object_cree(rappels_filtre_évènement, parent);
+    QT_object_move_to_thread(filtre_évènement, thread);
 
-    QT_thread_start(thread)
+    QT_thread_start(thread);
 
-    résultat: FileParallèle
-    résultat.thread = thread
-    résultat.filtre_évènement = filtre_évènement
-    retourne résultat
+    résultat: FileParallèle;
+    résultat.thread = thread;
+    résultat.filtre_évènement = filtre_évènement;
+    retourne résultat;
 }
 
 crée_file_parallèle_pour_tâches :: fonc () -> FileParallèle
 {
-    QT_initialise_évènements_file_parallèle_pour_tâche()
+    QT_initialise_évènements_file_parallèle_pour_tâche();
 
-    params: ParamètresFileParallèle
-    params.type_évènement = __évènement_sur_tâche_parallèle
-    params.sur_évènement = QT_file_parallèle_sur_évènement
-    retourne crée_file_parallèle(params)
+    params: ParamètresFileParallèle;
+    params.type_évènement = __évènement_sur_tâche_parallèle;
+    params.sur_évènement = QT_file_parallèle_sur_évènement;
+    retourne crée_file_parallèle(params);
 }
 
 QT_DonnéesTâche :: struct {
-    sur_exécution: fonc (arg: *rien)
-    sur_tâche_finie: fonc (arg: *rien)
-    données: *rien
+    sur_exécution: fonc (arg: *rien);
+    sur_tâche_finie: fonc (arg: *rien);
+    données: *rien;
 }
 
 poste_tâche :: fonc (file: *FileParallèle, tâche: QT_DonnéesTâche)
 {
-    ctx := contexte()
-    ctx.allocatrice = allocatrice_défaut
+    ctx := contexte();
+    ctx.allocatrice = allocatrice_défaut;
     pousse_contexte ctx {
-        message := loge(QT_MessageTâcheParallèle)
-        message.destinataire = file.filtre_évènement
-        message.tâche = tâche
+        message := loge(QT_MessageTâcheParallèle);
+        message.destinataire = file.filtre_évènement;
+        message.tâche = tâche;
 
-        QT_application_poste_evenement_et_donnees(message.destinataire, __évènement_sur_tâche_parallèle, message)
+        QT_application_poste_evenement_et_donnees(message.destinataire, __évènement_sur_tâche_parallèle, message);
     }
 }
 
 poste_tâche :: fonc (file: *FileParallèle, sur_exécution: fonc (données: *rien), données: *rien)
 {
-    poste_tâche(file, QT_DonnéesTâche(sur_exécution, données = données))
+    poste_tâche(file, QT_DonnéesTâche(sur_exécution, données = données));
 }
 
 #portée_fichier
 
 RappelsThread :: struct {
-    empl base: QT_Rappels_Thread
-    sur_lancement_thread = rappels_thread_sur_lancement_thread
+    empl base: QT_Rappels_Thread;
+    sur_lancement_thread = rappels_thread_sur_lancement_thread;
 }
 
 rappels_thread_sur_lancement_thread :: fonc (base: *QT_Rappels_Thread @inutilisée) #sanstrace
 {
-    __init_contexte_fil_exécution()
+    __init_contexte_fil_exécution();
 }
 
 FiltreÉvènementThread :: struct {
-    empl base: QT_Rappels_Object
-    sur_evenement = filtre_thread_sur_évènement
-    params: ParamètresFileParallèle
+    empl base: QT_Rappels_Object;
+    sur_evenement = filtre_thread_sur_évènement;
+    params: ParamètresFileParallèle;
 }
 
 filtre_thread_sur_évènement :: fonc (base: *QT_Rappels_Object, évènement: *QT_Evenement) -> z32
 {
-    rappels := base comme *FiltreÉvènementThread
-    type := QT_evenement_donne_type(évènement) comme n32 comme z32
+    rappels := base comme *FiltreÉvènementThread;
+    type := QT_evenement_donne_type(évènement) comme n32 comme z32;
 
     si type == rappels.params.type_évènement {
-        rappels.params.sur_évènement(évènement)
-        QT_evenement_accepte(évènement)
-        retourne 1
+        rappels.params.sur_évènement(évènement);
+        QT_evenement_accepte(évènement);
+        retourne 1;
     }
 
-    retourne 0
+    retourne 0;
 }
 
-__évènement_sur_tâche_parallèle : z32 = -1
-__évènement_sur_tâche_parallèle_finie : z32 = -1
+__évènement_sur_tâche_parallèle : z32 = -1;
+__évènement_sur_tâche_parallèle_finie : z32 = -1;
 
 QT_MessageTâcheParallèle :: struct {
-    destinataire: *QT_Object
-    tâche: QT_DonnéesTâche
+    destinataire: *QT_Object;
+    tâche: QT_DonnéesTâche;
 }
 
-__filtre_tâches_finies: *QT_Object
+__filtre_tâches_finies: *QT_Object;
 
 __filtre_tâches_finies_sur_évènement :: fonc (base: *QT_Rappels_Object @inutilisée, event: *QT_Evenement) -> z32
 {
-    type := QT_evenement_donne_type(event) comme n32 comme z32
+    type := QT_evenement_donne_type(event) comme n32 comme z32;
 
     si type == __évènement_sur_tâche_parallèle_finie {
-        message := QT_event_perso_donne_donnees(event) comme *QT_MessageTâcheParallèle
+        message := QT_event_perso_donne_donnees(event) comme *QT_MessageTâcheParallèle;
         si message.tâche.sur_tâche_finie {
-            message.tâche.sur_tâche_finie(message.tâche.données)
+            message.tâche.sur_tâche_finie(message.tâche.données);
         }
-        QT_evenement_accepte(event)
+        QT_evenement_accepte(event);
 
-        ctx := contexte()
-        ctx.allocatrice = allocatrice_défaut
+        ctx := contexte();
+        ctx.allocatrice = allocatrice_défaut;
         pousse_contexte ctx {
-            déloge(message)
+            déloge(message);
         }
 
-        retourne 1
+        retourne 1;
     }
 
-    retourne 0
+    retourne 0;
 }
 
 QT_initialise_évènements_file_parallèle_pour_tâche :: fonc ()
 {
     si __évènement_sur_tâche_parallèle == -1 {
-        assert(__filtre_tâches_finies == nul)
+        assert(__filtre_tâches_finies == nul);
 
-        rappels_filtre_évènement := QT_loge_rappel(QT_Rappels_Object)
-        rappels_filtre_évènement.sur_evenement = __filtre_tâches_finies_sur_évènement
-        parent: *QT_Object
-        __filtre_tâches_finies = QT_object_cree(rappels_filtre_évènement, parent)
+        rappels_filtre_évènement := QT_loge_rappel(QT_Rappels_Object);
+        rappels_filtre_évènement.sur_evenement = __filtre_tâches_finies_sur_évènement;
+        parent: *QT_Object;
+        __filtre_tâches_finies = QT_object_cree(rappels_filtre_évènement, parent);
 
-        __évènement_sur_tâche_parallèle = QT_enregistre_evenement_personnel()
-        __évènement_sur_tâche_parallèle_finie = QT_enregistre_evenement_personnel()
+        __évènement_sur_tâche_parallèle = QT_enregistre_evenement_personnel();
+        __évènement_sur_tâche_parallèle_finie = QT_enregistre_evenement_personnel();
     }
 }
 
 QT_file_parallèle_sur_évènement :: fonc (event: *QT_Evenement)
 {
-    assert(__filtre_tâches_finies != nul)
-    message := QT_event_perso_donne_donnees(event) comme *QT_MessageTâcheParallèle
+    assert(__filtre_tâches_finies != nul);
+    message := QT_event_perso_donne_donnees(event) comme *QT_MessageTâcheParallèle;
     si message.tâche.sur_exécution {
-        message.tâche.sur_exécution(message.tâche.données)
+        message.tâche.sur_exécution(message.tâche.données);
     }
-    QT_application_poste_evenement_et_donnees(__filtre_tâches_finies, __évènement_sur_tâche_parallèle_finie, message)
+    QT_application_poste_evenement_et_donnees(__filtre_tâches_finies, __évènement_sur_tâche_parallèle_finie, message);
 }
 
 /** \} */
@@ -588,76 +588,76 @@ QT_file_parallèle_sur_évènement :: fonc (event: *QT_Evenement)
 
 TamponRappels :: struct {
     Page :: struct {
-        page_suivante: *Page
-        occupés: z64
-        données : [1024]octet = ---
+        page_suivante: *Page;
+        occupés: z64;
+        données : [1024]octet = ---;
     }
 
-    page_de_base: Page
-    page_courante: *Page
+    page_de_base: Page;
+    page_courante: *Page;
 }
 
 initialise_tampon_rappels :: fonc (tampon: *TamponRappels)
 {
     si tampon.page_courante != nul {
-        retourne
+        retourne;
     }
 
-    tampon.page_courante = *tampon.page_de_base
+    tampon.page_courante = *tampon.page_de_base;
 }
 
 détruit_tampon_rappels :: fonc (tampon: *TamponRappels)
 {
-    page_courante := tampon.page_de_base.page_suivante
+    page_courante := tampon.page_de_base.page_suivante;
     tantque page_courante != nul {
-        page_suivante := page_courante.page_suivante
-        déloge(page_courante)
-        page_courante = page_suivante
+        page_suivante := page_courante.page_suivante;
+        déloge(page_courante);
+        page_courante = page_suivante;
     }
-    tampon.page_de_base.occupés = 0
-    tampon.page_courante = nul
-    initialise_tampon_rappels(tampon)
+    tampon.page_de_base.occupés = 0;
+    tampon.page_courante = nul;
+    initialise_tampon_rappels(tampon);
 }
 
 donne_logement_pour_taille :: fonc (tampon: *TamponRappels, taille: z64) -> *octet
 {
     si taille >= 1024 {
-        panique("Taille trop grande pour le tampon de rappels.")
+        panique("Taille trop grande pour le tampon de rappels.");
     }
 
-    page := tampon.page_courante
+    page := tampon.page_courante;
 
     si page.occupés + taille > 1024 {
-        nouvelle_page := loge(TamponRappels.Page)
-        page.page_suivante = nouvelle_page
-        page = nouvelle_page
-        tampon.page_courante = page
+        nouvelle_page := loge(TamponRappels.Page);
+        page.page_suivante = nouvelle_page;
+        page = nouvelle_page;
+        tampon.page_courante = page;
     }
 
-    résultat := *page.données[page.occupés]
-    page.occupés += taille
-    retourne résultat
+    résultat := *page.données[page.occupés];
+    page.occupés += taille;
+    retourne résultat;
 }
 
-__tampon_rappels: TamponRappels
+__tampon_rappels: TamponRappels;
 
 #portée_export
 
 QT_loge_rappel :: fonc ($T: type_de_données) -> *T
 {
-    initialise_tampon_rappels(*__tampon_rappels)
+    initialise_tampon_rappels(*__tampon_rappels);
 
-    taille := taille_de(T) comme z64
-    logement := donne_logement_pour_taille(*__tampon_rappels, taille)
+    taille := taille_de(T) comme z64;
+    logement := donne_logement_pour_taille(*__tampon_rappels, taille);
 
-    résultat := logement comme *T
-    init_de(T)(résultat)
-    retourne résultat
+    résultat := logement comme *T;
+    init_de(T)(résultat);
+    retourne résultat;
 }
 
 QT_détruit_tampon_rappels :: fonc ()
 {
-    détruit_tampon_rappels(*__tampon_rappels)
+    détruit_tampon_rappels(*__tampon_rappels);
 }
 
 /** \} */
@@ -666,86 +666,86 @@ QT_détruit_tampon_rappels :: fonc ()
 /** \nom GuettageQt
  * \{ */
 
-importe Guettage
+importe Guettage;
 
 PlateformeGuettageQt :: struct {
-    empl base: PlateformeGuettage
-    sur_commence_guettage = plateforme_qt_commence_guettage
-    sur_termine_guettage = plateforme_qt_termine_guettage
+    empl base: PlateformeGuettage;
+    sur_commence_guettage = plateforme_qt_commence_guettage;
+    sur_termine_guettage = plateforme_qt_termine_guettage;
 
-    event_loop_guettage: *QT_Event_Loop
-    objet_à_filtrer: *QT_Object
+    event_loop_guettage: *QT_Event_Loop;
+    objet_à_filtrer: *QT_Object;
 }
 
 plateforme_qt_commence_guettage :: fonc (base: *PlateformeGuettage, guetteuse: *Guetteuse)
 {
-    plateforme := base comme *PlateformeGuettageQt
+    plateforme := base comme *PlateformeGuettageQt;
 
     RappelsEventLoop :: struct {
-        empl base: QT_Rappels_Event_Loop
+        empl base: QT_Rappels_Event_Loop;
 
-        guetteuse: *Guetteuse
+        guetteuse: *Guetteuse;
     }
 
-    sur_évènement :: fonc (base: *QT_Rappels_Event_Loop, event: QT_Generic_Event) -> bool
+    sur_évènement :: fonc (base: *QT_Rappels_Event_Loop, event: QT_Generic_Event) -> bool;
     {
-        rappels := base comme *RappelsEventLoop
+        rappels := base comme *RappelsEventLoop;
 
-        type := QT_evenement_donne_type(event)
+        type := QT_evenement_donne_type(event);
 
         si type == QT_Event_Type.MouseMove && rappels.guetteuse.sur_déplacement_souris {
-            clic := donne_clic_souris_depuis_évènement(event.mouse_event, ActionSouris.DÉPLACÉE)
-            résultat := rappels.guetteuse.sur_déplacement_souris(rappels.guetteuse, clic.état)
-            retourne résultat == ÉtatÉvènement.CONSOMMÉ
+            clic := donne_clic_souris_depuis_évènement(event.mouse_event, ActionSouris.DÉPLACÉE);
+            résultat := rappels.guetteuse.sur_déplacement_souris(rappels.guetteuse, clic.état);
+            retourne résultat == ÉtatÉvènement.CONSOMMÉ;
         }
 
         si type == QT_Event_Type.MouseButtonPress && rappels.guetteuse.sur_clic {
-            clic := donne_clic_souris_depuis_évènement(event.mouse_event, ActionSouris.PRESSÉE)
-            résultat := rappels.guetteuse.sur_clic(rappels.guetteuse, clic)
-            retourne résultat == ÉtatÉvènement.CONSOMMÉ
+            clic := donne_clic_souris_depuis_évènement(event.mouse_event, ActionSouris.PRESSÉE);
+            résultat := rappels.guetteuse.sur_clic(rappels.guetteuse, clic);
+            retourne résultat == ÉtatÉvènement.CONSOMMÉ;
         }
 
         si type == QT_Event_Type.MouseButtonRelease && rappels.guetteuse.sur_clic {
-            clic := donne_clic_souris_depuis_évènement(event.mouse_event, ActionSouris.RELACHÉE)
-            résultat := rappels.guetteuse.sur_clic(rappels.guetteuse, clic)
-            retourne résultat == ÉtatÉvènement.CONSOMMÉ
+            clic := donne_clic_souris_depuis_évènement(event.mouse_event, ActionSouris.RELACHÉE);
+            résultat := rappels.guetteuse.sur_clic(rappels.guetteuse, clic);
+            retourne résultat == ÉtatÉvènement.CONSOMMÉ;
         }
 
         si type == QT_Event_Type.KeyPress && rappels.guetteuse.sur_touche_clavier {
-            clé_qt := QT_key_event_donne_cle(event.key_event)
+            clé_qt := QT_key_event_donne_cle(event.key_event);
 
-            texte := QT_key_event_donne_texte(event.key_event).vers_kuri()
+            texte := QT_key_event_donne_texte(event.key_event).vers_kuri();
 
-            touche: InfoToucheClavier
-            touche.type = table_conversion_clé[clé_qt]
-            touche.texte = texte
+            touche: InfoToucheClavier;
+            touche.type = table_conversion_clé[clé_qt];
+            touche.texte = texte;
 
-            résultat := rappels.guetteuse.sur_touche_clavier(rappels.guetteuse, touche)
-            retourne résultat == ÉtatÉvènement.CONSOMMÉ
+            résultat := rappels.guetteuse.sur_touche_clavier(rappels.guetteuse, touche);
+            retourne résultat == ÉtatÉvènement.CONSOMMÉ;
         }
 
-        retourne faux
+        retourne faux;
     }
 
-    rappels_event_loop: RappelsEventLoop
-    rappels_event_loop.guetteuse = guetteuse
-    rappels_event_loop.sur_filtre_evenement = sur_évènement
+    rappels_event_loop: RappelsEventLoop;
+    rappels_event_loop.guetteuse = guetteuse;
+    rappels_event_loop.sur_filtre_evenement = sur_évènement;
 
-    event_loop := QT_Event_Loop_cree_avec_rappels(*rappels_event_loop)
-    diffère QT_Event_Loop_detruit(event_loop)
+    event_loop := QT_Event_Loop_cree_avec_rappels(*rappels_event_loop);
+    diffère QT_Event_Loop_detruit(event_loop);
 
-    QT_Object_install_event_filter(plateforme.objet_à_filtrer, event_loop)
-    diffère QT_Object_remove_event_filter(plateforme.objet_à_filtrer, event_loop)
+    QT_Object_install_event_filter(plateforme.objet_à_filtrer, event_loop);
+    diffère QT_Object_remove_event_filter(plateforme.objet_à_filtrer, event_loop);
 
-    plateforme.event_loop_guettage = event_loop
+    plateforme.event_loop_guettage = event_loop;
 
-    _ := QT_Event_Loop_exec(event_loop)
+    _ := QT_Event_Loop_exec(event_loop);
 }
 
 plateforme_qt_termine_guettage :: fonc (base: *PlateformeGuettage)
 { 
-    plateforme := base comme *PlateformeGuettageQt
-    QT_Event_Loop_exit(plateforme.event_loop_guettage)
+    plateforme := base comme *PlateformeGuettageQt;
+    QT_Event_Loop_exit(plateforme.event_loop_guettage);
 }
 
 /** \} */
@@ -754,480 +754,480 @@ plateforme_qt_termine_guettage :: fonc (base: *PlateformeGuettage)
 /** \nom Clavier
  * \{ */
 
-table_conversion_clé : [QT_Key.nombre_éléments]ToucheClavier = ---
+table_conversion_clé : [QT_Key.nombre_éléments]ToucheClavier = ---;
 
 initialise_table_conversion_clé :: fonc ()
 {
-    table_conversion_clé[QT_Key.Escape] = ToucheClavier.ÉCHAPPE
-    table_conversion_clé[QT_Key.Tab] = ToucheClavier.TAB
-    table_conversion_clé[QT_Key.Backtab] = ToucheClavier.INCONNUE
-    table_conversion_clé[QT_Key.Backspace] = ToucheClavier.EFFACE
-    table_conversion_clé[QT_Key.Return] = ToucheClavier.ENTRÉE
-    table_conversion_clé[QT_Key.Enter] = ToucheClavier.ENTRÉE
-    table_conversion_clé[QT_Key.Insert] = ToucheClavier.INSÉRER
-    table_conversion_clé[QT_Key.Delete] = ToucheClavier.SUPPRIMER
-    table_conversion_clé[QT_Key.Pause] = ToucheClavier.PAUSE
-    table_conversion_clé[QT_Key.Print] = ToucheClavier.INCONNUE
-    table_conversion_clé[QT_Key.SysReq] = ToucheClavier.INCONNUE
-    table_conversion_clé[QT_Key.Clear] = ToucheClavier.INCONNUE
-    table_conversion_clé[QT_Key.Home] = ToucheClavier.DÉBUT
-    table_conversion_clé[QT_Key.End] = ToucheClavier.FIN
-    table_conversion_clé[QT_Key.Left] = ToucheClavier.FLÈCHE_GAUCHE
-    table_conversion_clé[QT_Key.Up] = ToucheClavier.FLÈCHE_HAUT
-    table_conversion_clé[QT_Key.Right] = ToucheClavier.FLÈCHE_DROITE
-    table_conversion_clé[QT_Key.Down] = ToucheClavier.FLÈCHE_BAS
-    table_conversion_clé[QT_Key.PageUp] = ToucheClavier.PAGE_HAUT
-    table_conversion_clé[QT_Key.PageDown] = ToucheClavier.PAGE_BAS
-    table_conversion_clé[QT_Key.Shift] = ToucheClavier.INCONNUE
-    table_conversion_clé[QT_Key.Control] = ToucheClavier.INCONNUE
-    table_conversion_clé[QT_Key.Meta] = ToucheClavier.INCONNUE
-    table_conversion_clé[QT_Key.Alt] = ToucheClavier.INCONNUE
-    table_conversion_clé[QT_Key.CapsLock] = ToucheClavier.INCONNUE
-    table_conversion_clé[QT_Key.NumLock] = ToucheClavier.INCONNUE
-    table_conversion_clé[QT_Key.ScrollLock] = ToucheClavier.INCONNUE
-    table_conversion_clé[QT_Key.F1] = ToucheClavier.F1
-    table_conversion_clé[QT_Key.F2] = ToucheClavier.F2
-    table_conversion_clé[QT_Key.F3] = ToucheClavier.F3
-    table_conversion_clé[QT_Key.F4] = ToucheClavier.F4
-    table_conversion_clé[QT_Key.F5] = ToucheClavier.F5
-    table_conversion_clé[QT_Key.F6] = ToucheClavier.F6
-    table_conversion_clé[QT_Key.F7] = ToucheClavier.F7
-    table_conversion_clé[QT_Key.F8] = ToucheClavier.F8
-    table_conversion_clé[QT_Key.F9] = ToucheClavier.F9
-    table_conversion_clé[QT_Key.F10] = ToucheClavier.F10
-    table_conversion_clé[QT_Key.F11] = ToucheClavier.F11
-    table_conversion_clé[QT_Key.F12] = ToucheClavier.F12
-    table_conversion_clé[QT_Key.F13] = ToucheClavier.F13
-    table_conversion_clé[QT_Key.F14] = ToucheClavier.F14
-    table_conversion_clé[QT_Key.F15] = ToucheClavier.F15
-    table_conversion_clé[QT_Key.F16] = ToucheClavier.F16
-    table_conversion_clé[QT_Key.F17] = ToucheClavier.F17
-    table_conversion_clé[QT_Key.F18] = ToucheClavier.F18
-    table_conversion_clé[QT_Key.F19] = ToucheClavier.F19
-    table_conversion_clé[QT_Key.F20] = ToucheClavier.F20
-    table_conversion_clé[QT_Key.F21] = ToucheClavier.F21
-    table_conversion_clé[QT_Key.F22] = ToucheClavier.F22
-    table_conversion_clé[QT_Key.F23] = ToucheClavier.F23
-    table_conversion_clé[QT_Key.F24] = ToucheClavier.F24
-    table_conversion_clé[QT_Key.F25] = ToucheClavier.F25
-    table_conversion_clé[QT_Key.F26] = ToucheClavier.F26
-    table_conversion_clé[QT_Key.F27] = ToucheClavier.F27
-    table_conversion_clé[QT_Key.F28] = ToucheClavier.F28
-    table_conversion_clé[QT_Key.F29] = ToucheClavier.F29
-    table_conversion_clé[QT_Key.F30] = ToucheClavier.F30
-    table_conversion_clé[QT_Key.F31] = ToucheClavier.F31
-    table_conversion_clé[QT_Key.F32] = ToucheClavier.F32
-    table_conversion_clé[QT_Key.F33] = ToucheClavier.F33
-    table_conversion_clé[QT_Key.F34] = ToucheClavier.F34
-    table_conversion_clé[QT_Key.F35] = ToucheClavier.F35
-    table_conversion_clé[QT_Key.Super_L] = ToucheClavier.INCONNUE
-    table_conversion_clé[QT_Key.Super_R] = ToucheClavier.INCONNUE
-    table_conversion_clé[QT_Key.Menu] = ToucheClavier.INCONNUE
-    table_conversion_clé[QT_Key.Hyper_L] = ToucheClavier.HYPER_GAUCHE
-    table_conversion_clé[QT_Key.Hyper_R] = ToucheClavier.HYPER_DROITE
-    table_conversion_clé[QT_Key.Help] = ToucheClavier.INCONNUE
-    table_conversion_clé[QT_Key.Direction_L] = ToucheClavier.INCONNUE
-    table_conversion_clé[QT_Key.Direction_R] = ToucheClavier.INCONNUE
-    table_conversion_clé[QT_Key.Space] = ToucheClavier.ESPACE
-    table_conversion_clé[QT_Key.Exclam] = ToucheClavier.POINT_EXCLAMATION
-    table_conversion_clé[QT_Key.QuoteDbl] = ToucheClavier.GUILLEMET_ANGLAIS
-    table_conversion_clé[QT_Key.NumberSign] = ToucheClavier.INCONNUE
-    table_conversion_clé[QT_Key.Dollar] = ToucheClavier.DOLLAR
-    table_conversion_clé[QT_Key.Percent] = ToucheClavier.INCONNUE
-    table_conversion_clé[QT_Key.Ampersand] = ToucheClavier.ESPERLUETTE
-    table_conversion_clé[QT_Key.Apostrophe] = ToucheClavier.APOSTROPHE
-    table_conversion_clé[QT_Key.ParenLeft] = ToucheClavier.PARENTHÈSE_GAUCHE
-    table_conversion_clé[QT_Key.ParenRight] = ToucheClavier.PARENTHÈSE_DROITE
-    table_conversion_clé[QT_Key.Asterisk] = ToucheClavier.ASTÉRISQUE
-    table_conversion_clé[QT_Key.Plus] = ToucheClavier.PLUS
-    table_conversion_clé[QT_Key.Comma] = ToucheClavier.VIRGULE
-    table_conversion_clé[QT_Key.Minus] = ToucheClavier.MOINS
-    table_conversion_clé[QT_Key.Period] = ToucheClavier.POINT
-    table_conversion_clé[QT_Key.Slash] = ToucheClavier.SLASH
-    table_conversion_clé[QT_Key.NOMBRE_0] = ToucheClavier._0
-    table_conversion_clé[QT_Key.NOMBRE_1] = ToucheClavier._1
-    table_conversion_clé[QT_Key.NOMBRE_2] = ToucheClavier._2
-    table_conversion_clé[QT_Key.NOMBRE_3] = ToucheClavier._3
-    table_conversion_clé[QT_Key.NOMBRE_4] = ToucheClavier._4
-    table_conversion_clé[QT_Key.NOMBRE_5] = ToucheClavier._5
-    table_conversion_clé[QT_Key.NOMBRE_6] = ToucheClavier._6
-    table_conversion_clé[QT_Key.NOMBRE_7] = ToucheClavier._7
-    table_conversion_clé[QT_Key.NOMBRE_8] = ToucheClavier._8
-    table_conversion_clé[QT_Key.NOMBRE_9] = ToucheClavier._9
-    table_conversion_clé[QT_Key.Colon] = ToucheClavier.DOUBLE_POINT
-    table_conversion_clé[QT_Key.Semicolon] = ToucheClavier.POINT_VIRGULE
-    table_conversion_clé[QT_Key.Less] = ToucheClavier.INCONNUE
-    table_conversion_clé[QT_Key.Equal] = ToucheClavier.ÉGAL
-    table_conversion_clé[QT_Key.Greater] = ToucheClavier.INCONNUE
-    table_conversion_clé[QT_Key.Question] = ToucheClavier.INCONNUE
-    table_conversion_clé[QT_Key.At] = ToucheClavier.INCONNUE
-    table_conversion_clé[QT_Key.A] = ToucheClavier.A
-    table_conversion_clé[QT_Key.B] = ToucheClavier.B
-    table_conversion_clé[QT_Key.C] = ToucheClavier.C
-    table_conversion_clé[QT_Key.D] = ToucheClavier.D
-    table_conversion_clé[QT_Key.E] = ToucheClavier.E
-    table_conversion_clé[QT_Key.F] = ToucheClavier.F
-    table_conversion_clé[QT_Key.G] = ToucheClavier.G
-    table_conversion_clé[QT_Key.H] = ToucheClavier.H
-    table_conversion_clé[QT_Key.I] = ToucheClavier.I
-    table_conversion_clé[QT_Key.J] = ToucheClavier.J
-    table_conversion_clé[QT_Key.K] = ToucheClavier.K
-    table_conversion_clé[QT_Key.L] = ToucheClavier.L
-    table_conversion_clé[QT_Key.M] = ToucheClavier.M
-    table_conversion_clé[QT_Key.N] = ToucheClavier.N
-    table_conversion_clé[QT_Key.O] = ToucheClavier.O
-    table_conversion_clé[QT_Key.P] = ToucheClavier.P
-    table_conversion_clé[QT_Key.Q] = ToucheClavier.Q
-    table_conversion_clé[QT_Key.R] = ToucheClavier.R
-    table_conversion_clé[QT_Key.S] = ToucheClavier.S
-    table_conversion_clé[QT_Key.T] = ToucheClavier.T
-    table_conversion_clé[QT_Key.U] = ToucheClavier.U
-    table_conversion_clé[QT_Key.V] = ToucheClavier.V
-    table_conversion_clé[QT_Key.W] = ToucheClavier.W
-    table_conversion_clé[QT_Key.X] = ToucheClavier.X
-    table_conversion_clé[QT_Key.Y] = ToucheClavier.Y
-    table_conversion_clé[QT_Key.Z] = ToucheClavier.Z
-    table_conversion_clé[QT_Key.BracketLeft] = ToucheClavier.CROCHET_OUVRANT
-    table_conversion_clé[QT_Key.Backslash] = ToucheClavier.BACK_SLASH
-    table_conversion_clé[QT_Key.BracketRight] = ToucheClavier.CROCHET_FERMANT
-    table_conversion_clé[QT_Key.AsciiCircum] = ToucheClavier.INCONNUE
-    table_conversion_clé[QT_Key.Underscore] = ToucheClavier.TIRET_BAS
-    table_conversion_clé[QT_Key.QuoteLeft] = ToucheClavier.INCONNUE
-    table_conversion_clé[QT_Key.BraceLeft] = ToucheClavier.INCONNUE
-    table_conversion_clé[QT_Key.Bar] = ToucheClavier.INCONNUE
-    table_conversion_clé[QT_Key.BraceRight] = ToucheClavier.INCONNUE
-    table_conversion_clé[QT_Key.AsciiTilde] = ToucheClavier.INCONNUE
-    table_conversion_clé[QT_Key.nobreakspace] = ToucheClavier.INCONNUE
-    table_conversion_clé[QT_Key.exclamdown] = ToucheClavier.INCONNUE
-    table_conversion_clé[QT_Key.cent] = ToucheClavier.INCONNUE
-    table_conversion_clé[QT_Key.sterling] = ToucheClavier.INCONNUE
-    table_conversion_clé[QT_Key.currency] = ToucheClavier.INCONNUE
-    table_conversion_clé[QT_Key.yen] = ToucheClavier.INCONNUE
-    table_conversion_clé[QT_Key.brokenbar] = ToucheClavier.INCONNUE
-    table_conversion_clé[QT_Key.section] = ToucheClavier.INCONNUE
-    table_conversion_clé[QT_Key.diaeresis] = ToucheClavier.INCONNUE
-    table_conversion_clé[QT_Key.copyright] = ToucheClavier.INCONNUE
-    table_conversion_clé[QT_Key.ordfeminine] = ToucheClavier.INCONNUE
-    table_conversion_clé[QT_Key.guillemotleft] = ToucheClavier.INCONNUE
-    table_conversion_clé[QT_Key.notsign] = ToucheClavier.INCONNUE
-    table_conversion_clé[QT_Key.hyphen] = ToucheClavier.INCONNUE
-    table_conversion_clé[QT_Key.registered] = ToucheClavier.INCONNUE
-    table_conversion_clé[QT_Key.macron] = ToucheClavier.INCONNUE
-    table_conversion_clé[QT_Key.degree] = ToucheClavier.INCONNUE
-    table_conversion_clé[QT_Key.plusminus] = ToucheClavier.INCONNUE
-    table_conversion_clé[QT_Key.twosuperior] = ToucheClavier.INCONNUE
-    table_conversion_clé[QT_Key.threesuperior] = ToucheClavier.INCONNUE
-    table_conversion_clé[QT_Key.acute] = ToucheClavier.INCONNUE
-    table_conversion_clé[QT_Key.micro] = ToucheClavier.INCONNUE
-    table_conversion_clé[QT_Key.paragraph] = ToucheClavier.INCONNUE
-    table_conversion_clé[QT_Key.periodcentered] = ToucheClavier.INCONNUE
-    table_conversion_clé[QT_Key.cedilla] = ToucheClavier.INCONNUE
-    table_conversion_clé[QT_Key.onesuperior] = ToucheClavier.INCONNUE
-    table_conversion_clé[QT_Key.masculine] = ToucheClavier.INCONNUE
-    table_conversion_clé[QT_Key.guillemotright] = ToucheClavier.INCONNUE
-    table_conversion_clé[QT_Key.onequarter] = ToucheClavier.INCONNUE
-    table_conversion_clé[QT_Key.onehalf] = ToucheClavier.INCONNUE
-    table_conversion_clé[QT_Key.threequarters] = ToucheClavier.INCONNUE
-    table_conversion_clé[QT_Key.questiondown] = ToucheClavier.INCONNUE
-    table_conversion_clé[QT_Key.Agrave] = ToucheClavier.A_ACCENT_GRAVE
-    table_conversion_clé[QT_Key.Aacute] = ToucheClavier.INCONNUE
-    table_conversion_clé[QT_Key.Acircumflex] = ToucheClavier.INCONNUE
-    table_conversion_clé[QT_Key.Atilde] = ToucheClavier.INCONNUE
-    table_conversion_clé[QT_Key.Adiaeresis] = ToucheClavier.INCONNUE
-    table_conversion_clé[QT_Key.Aring] = ToucheClavier.INCONNUE
-    table_conversion_clé[QT_Key.AE] = ToucheClavier.INCONNUE
-    table_conversion_clé[QT_Key.Ccedilla] = ToucheClavier.C_CÉDILLE
-    table_conversion_clé[QT_Key.Egrave] = ToucheClavier.E_ACCENT_GRAVE
-    table_conversion_clé[QT_Key.Eacute] = ToucheClavier.E_ACCENT_AIGÜE
-    table_conversion_clé[QT_Key.Ecircumflex] = ToucheClavier.INCONNUE
-    table_conversion_clé[QT_Key.Ediaeresis] = ToucheClavier.INCONNUE
-    table_conversion_clé[QT_Key.Igrave] = ToucheClavier.INCONNUE
-    table_conversion_clé[QT_Key.Iacute] = ToucheClavier.INCONNUE
-    table_conversion_clé[QT_Key.Icircumflex] = ToucheClavier.INCONNUE
-    table_conversion_clé[QT_Key.Idiaeresis] = ToucheClavier.INCONNUE
-    table_conversion_clé[QT_Key.ETH] = ToucheClavier.INCONNUE
-    table_conversion_clé[QT_Key.Ntilde] = ToucheClavier.INCONNUE
-    table_conversion_clé[QT_Key.Ograve] = ToucheClavier.INCONNUE
-    table_conversion_clé[QT_Key.Oacute] = ToucheClavier.INCONNUE
-    table_conversion_clé[QT_Key.Ocircumflex] = ToucheClavier.INCONNUE
-    table_conversion_clé[QT_Key.Otilde] = ToucheClavier.INCONNUE
-    table_conversion_clé[QT_Key.Odiaeresis] = ToucheClavier.INCONNUE
-    table_conversion_clé[QT_Key.multiply] = ToucheClavier.INCONNUE
-    table_conversion_clé[QT_Key.Ooblique] = ToucheClavier.INCONNUE
-    table_conversion_clé[QT_Key.Ugrave] = ToucheClavier.U_ACCENT_GRAVE
-    table_conversion_clé[QT_Key.Uacute] = ToucheClavier.INCONNUE
-    table_conversion_clé[QT_Key.Ucircumflex] = ToucheClavier.INCONNUE
-    table_conversion_clé[QT_Key.Udiaeresis] = ToucheClavier.INCONNUE
-    table_conversion_clé[QT_Key.Yacute] = ToucheClavier.INCONNUE
-    table_conversion_clé[QT_Key.THORN] = ToucheClavier.INCONNUE
-    table_conversion_clé[QT_Key.ssharp] = ToucheClavier.INCONNUE
-    table_conversion_clé[QT_Key.division] = ToucheClavier.INCONNUE
-    table_conversion_clé[QT_Key.ydiaeresis] = ToucheClavier.INCONNUE
-    table_conversion_clé[QT_Key.AltGr] = ToucheClavier.INCONNUE
-    table_conversion_clé[QT_Key.Multi_key] = ToucheClavier.INCONNUE
-    table_conversion_clé[QT_Key.Codeinput] = ToucheClavier.INCONNUE
-    table_conversion_clé[QT_Key.SingleCandidate] = ToucheClavier.INCONNUE
-    table_conversion_clé[QT_Key.MultipleCandidate] = ToucheClavier.INCONNUE
-    table_conversion_clé[QT_Key.PreviousCandidate] = ToucheClavier.INCONNUE
-    table_conversion_clé[QT_Key.Mode_switch] = ToucheClavier.INCONNUE
-    table_conversion_clé[QT_Key.Kanji] = ToucheClavier.INCONNUE
-    table_conversion_clé[QT_Key.Muhenkan] = ToucheClavier.INCONNUE
-    table_conversion_clé[QT_Key.Henkan] = ToucheClavier.INCONNUE
-    table_conversion_clé[QT_Key.Romaji] = ToucheClavier.INCONNUE
-    table_conversion_clé[QT_Key.Hiragana] = ToucheClavier.INCONNUE
-    table_conversion_clé[QT_Key.Katakana] = ToucheClavier.INCONNUE
-    table_conversion_clé[QT_Key.Hiragana_Katakana] = ToucheClavier.INCONNUE
-    table_conversion_clé[QT_Key.Zenkaku] = ToucheClavier.INCONNUE
-    table_conversion_clé[QT_Key.Hankaku] = ToucheClavier.INCONNUE
-    table_conversion_clé[QT_Key.Zenkaku_Hankaku] = ToucheClavier.INCONNUE
-    table_conversion_clé[QT_Key.Touroku] = ToucheClavier.INCONNUE
-    table_conversion_clé[QT_Key.Massyo] = ToucheClavier.INCONNUE
-    table_conversion_clé[QT_Key.Kana_Lock] = ToucheClavier.INCONNUE
-    table_conversion_clé[QT_Key.Kana_Shift] = ToucheClavier.INCONNUE
-    table_conversion_clé[QT_Key.Eisu_Shift] = ToucheClavier.INCONNUE
-    table_conversion_clé[QT_Key.Eisu_toggle] = ToucheClavier.INCONNUE
-    table_conversion_clé[QT_Key.Hangul] = ToucheClavier.INCONNUE
-    table_conversion_clé[QT_Key.Hangul_Start] = ToucheClavier.INCONNUE
-    table_conversion_clé[QT_Key.Hangul_End] = ToucheClavier.INCONNUE
-    table_conversion_clé[QT_Key.Hangul_Hanja] = ToucheClavier.INCONNUE
-    table_conversion_clé[QT_Key.Hangul_Jamo] = ToucheClavier.INCONNUE
-    table_conversion_clé[QT_Key.Hangul_Romaja] = ToucheClavier.INCONNUE
-    table_conversion_clé[QT_Key.Hangul_Jeonja] = ToucheClavier.INCONNUE
-    table_conversion_clé[QT_Key.Hangul_Banja] = ToucheClavier.INCONNUE
-    table_conversion_clé[QT_Key.Hangul_PreHanja] = ToucheClavier.INCONNUE
-    table_conversion_clé[QT_Key.Hangul_PostHanja] = ToucheClavier.INCONNUE
-    table_conversion_clé[QT_Key.Hangul_Special] = ToucheClavier.INCONNUE
-    table_conversion_clé[QT_Key.Dead_Grave] = ToucheClavier.INCONNUE
-    table_conversion_clé[QT_Key.Dead_Acute] = ToucheClavier.INCONNUE
-    table_conversion_clé[QT_Key.Dead_Circumflex] = ToucheClavier.INCONNUE
-    table_conversion_clé[QT_Key.Dead_Tilde] = ToucheClavier.INCONNUE
-    table_conversion_clé[QT_Key.Dead_Macron] = ToucheClavier.INCONNUE
-    table_conversion_clé[QT_Key.Dead_Breve] = ToucheClavier.INCONNUE
-    table_conversion_clé[QT_Key.Dead_Abovedot] = ToucheClavier.INCONNUE
-    table_conversion_clé[QT_Key.Dead_Diaeresis] = ToucheClavier.INCONNUE
-    table_conversion_clé[QT_Key.Dead_Abovering] = ToucheClavier.INCONNUE
-    table_conversion_clé[QT_Key.Dead_Doubleacute] = ToucheClavier.INCONNUE
-    table_conversion_clé[QT_Key.Dead_Caron] = ToucheClavier.INCONNUE
-    table_conversion_clé[QT_Key.Dead_Cedilla] = ToucheClavier.INCONNUE
-    table_conversion_clé[QT_Key.Dead_Ogonek] = ToucheClavier.INCONNUE
-    table_conversion_clé[QT_Key.Dead_Iota] = ToucheClavier.INCONNUE
-    table_conversion_clé[QT_Key.Dead_Voiced_Sound] = ToucheClavier.INCONNUE
-    table_conversion_clé[QT_Key.Dead_Semivoiced_Sound] = ToucheClavier.INCONNUE
-    table_conversion_clé[QT_Key.Dead_Belowdot] = ToucheClavier.INCONNUE
-    table_conversion_clé[QT_Key.Dead_Hook] = ToucheClavier.INCONNUE
-    table_conversion_clé[QT_Key.Dead_Horn] = ToucheClavier.INCONNUE
-    table_conversion_clé[QT_Key.Dead_Stroke] = ToucheClavier.INCONNUE
-    table_conversion_clé[QT_Key.Dead_Abovecomma] = ToucheClavier.INCONNUE
-    table_conversion_clé[QT_Key.Dead_Abovereversedcomma] = ToucheClavier.INCONNUE
-    table_conversion_clé[QT_Key.Dead_Doublegrave] = ToucheClavier.INCONNUE
-    table_conversion_clé[QT_Key.Dead_Belowring] = ToucheClavier.INCONNUE
-    table_conversion_clé[QT_Key.Dead_Belowmacron] = ToucheClavier.INCONNUE
-    table_conversion_clé[QT_Key.Dead_Belowcircumflex] = ToucheClavier.INCONNUE
-    table_conversion_clé[QT_Key.Dead_Belowtilde] = ToucheClavier.INCONNUE
-    table_conversion_clé[QT_Key.Dead_Belowbreve] = ToucheClavier.INCONNUE
-    table_conversion_clé[QT_Key.Dead_Belowdiaeresis] = ToucheClavier.INCONNUE
-    table_conversion_clé[QT_Key.Dead_Invertedbreve] = ToucheClavier.INCONNUE
-    table_conversion_clé[QT_Key.Dead_Belowcomma] = ToucheClavier.INCONNUE
-    table_conversion_clé[QT_Key.Dead_Currency] = ToucheClavier.INCONNUE
-    table_conversion_clé[QT_Key.Dead_a] = ToucheClavier.INCONNUE
-    table_conversion_clé[QT_Key.Dead_A] = ToucheClavier.INCONNUE
-    table_conversion_clé[QT_Key.Dead_e] = ToucheClavier.INCONNUE
-    table_conversion_clé[QT_Key.Dead_E] = ToucheClavier.INCONNUE
-    table_conversion_clé[QT_Key.Dead_i] = ToucheClavier.INCONNUE
-    table_conversion_clé[QT_Key.Dead_I] = ToucheClavier.INCONNUE
-    table_conversion_clé[QT_Key.Dead_o] = ToucheClavier.INCONNUE
-    table_conversion_clé[QT_Key.Dead_O] = ToucheClavier.INCONNUE
-    table_conversion_clé[QT_Key.Dead_u] = ToucheClavier.INCONNUE
-    table_conversion_clé[QT_Key.Dead_U] = ToucheClavier.INCONNUE
-    table_conversion_clé[QT_Key.Dead_Small_Schwa] = ToucheClavier.INCONNUE
-    table_conversion_clé[QT_Key.Dead_Capital_Schwa] = ToucheClavier.INCONNUE
-    table_conversion_clé[QT_Key.Dead_Greek] = ToucheClavier.INCONNUE
-    table_conversion_clé[QT_Key.Dead_Lowline] = ToucheClavier.INCONNUE
-    table_conversion_clé[QT_Key.Dead_Aboveverticalline] = ToucheClavier.INCONNUE
-    table_conversion_clé[QT_Key.Dead_Belowverticalline] = ToucheClavier.INCONNUE
-    table_conversion_clé[QT_Key.Dead_Longsolidusoverlay] = ToucheClavier.INCONNUE
-    table_conversion_clé[QT_Key.Back] = ToucheClavier.INCONNUE
-    table_conversion_clé[QT_Key.Forward] = ToucheClavier.INCONNUE
-    table_conversion_clé[QT_Key.Stop] = ToucheClavier.INCONNUE
-    table_conversion_clé[QT_Key.Refresh] = ToucheClavier.INCONNUE
-    table_conversion_clé[QT_Key.VolumeDown] = ToucheClavier.INCONNUE
-    table_conversion_clé[QT_Key.VolumeMute] = ToucheClavier.INCONNUE
-    table_conversion_clé[QT_Key.VolumeUp] = ToucheClavier.INCONNUE
-    table_conversion_clé[QT_Key.BassBoost] = ToucheClavier.INCONNUE
-    table_conversion_clé[QT_Key.BassUp] = ToucheClavier.INCONNUE
-    table_conversion_clé[QT_Key.BassDown] = ToucheClavier.INCONNUE
-    table_conversion_clé[QT_Key.TrebleUp] = ToucheClavier.INCONNUE
-    table_conversion_clé[QT_Key.TrebleDown] = ToucheClavier.INCONNUE
-    table_conversion_clé[QT_Key.MediaPlay] = ToucheClavier.INCONNUE
-    table_conversion_clé[QT_Key.MediaStop] = ToucheClavier.INCONNUE
-    table_conversion_clé[QT_Key.MediaPrevious] = ToucheClavier.INCONNUE
-    table_conversion_clé[QT_Key.MediaNext] = ToucheClavier.INCONNUE
-    table_conversion_clé[QT_Key.MediaRecord] = ToucheClavier.INCONNUE
-    table_conversion_clé[QT_Key.MediaPause] = ToucheClavier.INCONNUE
-    table_conversion_clé[QT_Key.MediaTogglePlayPause] = ToucheClavier.INCONNUE
-    table_conversion_clé[QT_Key.HomePage] = ToucheClavier.INCONNUE
-    table_conversion_clé[QT_Key.Favorites] = ToucheClavier.INCONNUE
-    table_conversion_clé[QT_Key.Search] = ToucheClavier.INCONNUE
-    table_conversion_clé[QT_Key.Standby] = ToucheClavier.INCONNUE
-    table_conversion_clé[QT_Key.OpenUrl] = ToucheClavier.INCONNUE
-    table_conversion_clé[QT_Key.LaunchMail] = ToucheClavier.INCONNUE
-    table_conversion_clé[QT_Key.LaunchMedia] = ToucheClavier.INCONNUE
-    table_conversion_clé[QT_Key.Launch0] = ToucheClavier.INCONNUE
-    table_conversion_clé[QT_Key.Launch1] = ToucheClavier.INCONNUE
-    table_conversion_clé[QT_Key.Launch2] = ToucheClavier.INCONNUE
-    table_conversion_clé[QT_Key.Launch3] = ToucheClavier.INCONNUE
-    table_conversion_clé[QT_Key.Launch4] = ToucheClavier.INCONNUE
-    table_conversion_clé[QT_Key.Launch5] = ToucheClavier.INCONNUE
-    table_conversion_clé[QT_Key.Launch6] = ToucheClavier.INCONNUE
-    table_conversion_clé[QT_Key.Launch7] = ToucheClavier.INCONNUE
-    table_conversion_clé[QT_Key.Launch8] = ToucheClavier.INCONNUE
-    table_conversion_clé[QT_Key.Launch9] = ToucheClavier.INCONNUE
-    table_conversion_clé[QT_Key.LaunchA] = ToucheClavier.INCONNUE
-    table_conversion_clé[QT_Key.LaunchB] = ToucheClavier.INCONNUE
-    table_conversion_clé[QT_Key.LaunchC] = ToucheClavier.INCONNUE
-    table_conversion_clé[QT_Key.LaunchD] = ToucheClavier.INCONNUE
-    table_conversion_clé[QT_Key.LaunchE] = ToucheClavier.INCONNUE
-    table_conversion_clé[QT_Key.LaunchF] = ToucheClavier.INCONNUE
-    table_conversion_clé[QT_Key.MonBrightnessUp] = ToucheClavier.INCONNUE
-    table_conversion_clé[QT_Key.MonBrightnessDown] = ToucheClavier.INCONNUE
-    table_conversion_clé[QT_Key.KeyboardLightOnOff] = ToucheClavier.INCONNUE
-    table_conversion_clé[QT_Key.KeyboardBrightnessUp] = ToucheClavier.INCONNUE
-    table_conversion_clé[QT_Key.KeyboardBrightnessDown] = ToucheClavier.INCONNUE
-    table_conversion_clé[QT_Key.PowerOff] = ToucheClavier.INCONNUE
-    table_conversion_clé[QT_Key.WakeUp] = ToucheClavier.INCONNUE
-    table_conversion_clé[QT_Key.Eject] = ToucheClavier.INCONNUE
-    table_conversion_clé[QT_Key.ScreenSaver] = ToucheClavier.INCONNUE
-    table_conversion_clé[QT_Key.WWW] = ToucheClavier.INCONNUE
-    table_conversion_clé[QT_Key.Memo] = ToucheClavier.INCONNUE
-    table_conversion_clé[QT_Key.LightBulb] = ToucheClavier.INCONNUE
-    table_conversion_clé[QT_Key.Shop] = ToucheClavier.INCONNUE
-    table_conversion_clé[QT_Key.History] = ToucheClavier.INCONNUE
-    table_conversion_clé[QT_Key.AddFavorite] = ToucheClavier.INCONNUE
-    table_conversion_clé[QT_Key.HotLinks] = ToucheClavier.INCONNUE
-    table_conversion_clé[QT_Key.BrightnessAdjust] = ToucheClavier.INCONNUE
-    table_conversion_clé[QT_Key.Finance] = ToucheClavier.INCONNUE
-    table_conversion_clé[QT_Key.Community] = ToucheClavier.INCONNUE
-    table_conversion_clé[QT_Key.AudioRewind] = ToucheClavier.INCONNUE
-    table_conversion_clé[QT_Key.BackForward] = ToucheClavier.INCONNUE
-    table_conversion_clé[QT_Key.ApplicationLeft] = ToucheClavier.INCONNUE
-    table_conversion_clé[QT_Key.ApplicationRight] = ToucheClavier.INCONNUE
-    table_conversion_clé[QT_Key.Book] = ToucheClavier.INCONNUE
-    table_conversion_clé[QT_Key.CD] = ToucheClavier.INCONNUE
-    table_conversion_clé[QT_Key.Calculator] = ToucheClavier.INCONNUE
-    table_conversion_clé[QT_Key.ToDoList] = ToucheClavier.INCONNUE
-    table_conversion_clé[QT_Key.ClearGrab] = ToucheClavier.INCONNUE
-    table_conversion_clé[QT_Key.Close] = ToucheClavier.INCONNUE
-    table_conversion_clé[QT_Key.Copy] = ToucheClavier.INCONNUE
-    table_conversion_clé[QT_Key.Cut] = ToucheClavier.INCONNUE
-    table_conversion_clé[QT_Key.Display] = ToucheClavier.INCONNUE
-    table_conversion_clé[QT_Key.DOS] = ToucheClavier.INCONNUE
-    table_conversion_clé[QT_Key.Documents] = ToucheClavier.INCONNUE
-    table_conversion_clé[QT_Key.Excel] = ToucheClavier.INCONNUE
-    table_conversion_clé[QT_Key.Explorer] = ToucheClavier.INCONNUE
-    table_conversion_clé[QT_Key.Game] = ToucheClavier.INCONNUE
-    table_conversion_clé[QT_Key.Go] = ToucheClavier.INCONNUE
-    table_conversion_clé[QT_Key.iTouch] = ToucheClavier.INCONNUE
-    table_conversion_clé[QT_Key.LogOff] = ToucheClavier.INCONNUE
-    table_conversion_clé[QT_Key.Market] = ToucheClavier.INCONNUE
-    table_conversion_clé[QT_Key.Meeting] = ToucheClavier.INCONNUE
-    table_conversion_clé[QT_Key.MenuKB] = ToucheClavier.INCONNUE
-    table_conversion_clé[QT_Key.MenuPB] = ToucheClavier.INCONNUE
-    table_conversion_clé[QT_Key.MySites] = ToucheClavier.INCONNUE
-    table_conversion_clé[QT_Key.News] = ToucheClavier.INCONNUE
-    table_conversion_clé[QT_Key.OfficeHome] = ToucheClavier.INCONNUE
-    table_conversion_clé[QT_Key.Option] = ToucheClavier.INCONNUE
-    table_conversion_clé[QT_Key.Paste] = ToucheClavier.INCONNUE
-    table_conversion_clé[QT_Key.Phone] = ToucheClavier.INCONNUE
-    table_conversion_clé[QT_Key.Calendar] = ToucheClavier.INCONNUE
-    table_conversion_clé[QT_Key.Reply] = ToucheClavier.INCONNUE
-    table_conversion_clé[QT_Key.Reload] = ToucheClavier.INCONNUE
-    table_conversion_clé[QT_Key.RotateWindows] = ToucheClavier.INCONNUE
-    table_conversion_clé[QT_Key.RotationPB] = ToucheClavier.INCONNUE
-    table_conversion_clé[QT_Key.RotationKB] = ToucheClavier.INCONNUE
-    table_conversion_clé[QT_Key.Save] = ToucheClavier.INCONNUE
-    table_conversion_clé[QT_Key.Send] = ToucheClavier.INCONNUE
-    table_conversion_clé[QT_Key.Spell] = ToucheClavier.INCONNUE
-    table_conversion_clé[QT_Key.SplitScreen] = ToucheClavier.INCONNUE
-    table_conversion_clé[QT_Key.Support] = ToucheClavier.INCONNUE
-    table_conversion_clé[QT_Key.TaskPane] = ToucheClavier.INCONNUE
-    table_conversion_clé[QT_Key.Terminal] = ToucheClavier.INCONNUE
-    table_conversion_clé[QT_Key.Tools] = ToucheClavier.INCONNUE
-    table_conversion_clé[QT_Key.Travel] = ToucheClavier.INCONNUE
-    table_conversion_clé[QT_Key.Video] = ToucheClavier.INCONNUE
-    table_conversion_clé[QT_Key.Word] = ToucheClavier.INCONNUE
-    table_conversion_clé[QT_Key.Xfer] = ToucheClavier.INCONNUE
-    table_conversion_clé[QT_Key.ZoomIn] = ToucheClavier.INCONNUE
-    table_conversion_clé[QT_Key.ZoomOut] = ToucheClavier.INCONNUE
-    table_conversion_clé[QT_Key.Away] = ToucheClavier.INCONNUE
-    table_conversion_clé[QT_Key.Messenger] = ToucheClavier.INCONNUE
-    table_conversion_clé[QT_Key.WebCam] = ToucheClavier.INCONNUE
-    table_conversion_clé[QT_Key.MailForward] = ToucheClavier.INCONNUE
-    table_conversion_clé[QT_Key.Pictures] = ToucheClavier.INCONNUE
-    table_conversion_clé[QT_Key.Music] = ToucheClavier.INCONNUE
-    table_conversion_clé[QT_Key.Battery] = ToucheClavier.INCONNUE
-    table_conversion_clé[QT_Key.Bluetooth] = ToucheClavier.INCONNUE
-    table_conversion_clé[QT_Key.WLAN] = ToucheClavier.INCONNUE
-    table_conversion_clé[QT_Key.UWB] = ToucheClavier.INCONNUE
-    table_conversion_clé[QT_Key.AudioForward] = ToucheClavier.INCONNUE
-    table_conversion_clé[QT_Key.AudioRepeat] = ToucheClavier.INCONNUE
-    table_conversion_clé[QT_Key.AudioRandomPlay] = ToucheClavier.INCONNUE
-    table_conversion_clé[QT_Key.Subtitle] = ToucheClavier.INCONNUE
-    table_conversion_clé[QT_Key.AudioCycleTrack] = ToucheClavier.INCONNUE
-    table_conversion_clé[QT_Key.Time] = ToucheClavier.INCONNUE
-    table_conversion_clé[QT_Key.Hibernate] = ToucheClavier.INCONNUE
-    table_conversion_clé[QT_Key.View] = ToucheClavier.INCONNUE
-    table_conversion_clé[QT_Key.TopMenu] = ToucheClavier.INCONNUE
-    table_conversion_clé[QT_Key.PowerDown] = ToucheClavier.INCONNUE
-    table_conversion_clé[QT_Key.Suspend] = ToucheClavier.INCONNUE
-    table_conversion_clé[QT_Key.ContrastAdjust] = ToucheClavier.INCONNUE
-    table_conversion_clé[QT_Key.LaunchG] = ToucheClavier.INCONNUE
-    table_conversion_clé[QT_Key.LaunchH] = ToucheClavier.INCONNUE
-    table_conversion_clé[QT_Key.TouchpadToggle] = ToucheClavier.INCONNUE
-    table_conversion_clé[QT_Key.TouchpadOn] = ToucheClavier.INCONNUE
-    table_conversion_clé[QT_Key.TouchpadOff] = ToucheClavier.INCONNUE
-    table_conversion_clé[QT_Key.MicMute] = ToucheClavier.INCONNUE
-    table_conversion_clé[QT_Key.Red] = ToucheClavier.INCONNUE
-    table_conversion_clé[QT_Key.Green] = ToucheClavier.INCONNUE
-    table_conversion_clé[QT_Key.Yellow] = ToucheClavier.INCONNUE
-    table_conversion_clé[QT_Key.Blue] = ToucheClavier.INCONNUE
-    table_conversion_clé[QT_Key.ChannelUp] = ToucheClavier.INCONNUE
-    table_conversion_clé[QT_Key.ChannelDown] = ToucheClavier.INCONNUE
-    table_conversion_clé[QT_Key.Guide] = ToucheClavier.INCONNUE
-    table_conversion_clé[QT_Key.Info] = ToucheClavier.INCONNUE
-    table_conversion_clé[QT_Key.Settings] = ToucheClavier.INCONNUE
-    table_conversion_clé[QT_Key.MicVolumeUp] = ToucheClavier.INCONNUE
-    table_conversion_clé[QT_Key.MicVolumeDown] = ToucheClavier.INCONNUE
-    table_conversion_clé[QT_Key.New] = ToucheClavier.INCONNUE
-    table_conversion_clé[QT_Key.Open] = ToucheClavier.INCONNUE
-    table_conversion_clé[QT_Key.Find] = ToucheClavier.INCONNUE
-    table_conversion_clé[QT_Key.Undo] = ToucheClavier.INCONNUE
-    table_conversion_clé[QT_Key.Redo] = ToucheClavier.INCONNUE
-    table_conversion_clé[QT_Key.MediaLast] = ToucheClavier.INCONNUE
-    table_conversion_clé[QT_Key.Select] = ToucheClavier.INCONNUE
-    table_conversion_clé[QT_Key.Yes] = ToucheClavier.INCONNUE
-    table_conversion_clé[QT_Key.No] = ToucheClavier.INCONNUE
-    table_conversion_clé[QT_Key.Cancel] = ToucheClavier.INCONNUE
-    table_conversion_clé[QT_Key.Printer] = ToucheClavier.INCONNUE
-    table_conversion_clé[QT_Key.Execute] = ToucheClavier.INCONNUE
-    table_conversion_clé[QT_Key.Sleep] = ToucheClavier.INCONNUE
-    table_conversion_clé[QT_Key.Play] = ToucheClavier.INCONNUE
-    table_conversion_clé[QT_Key.Zoom] = ToucheClavier.INCONNUE
-    table_conversion_clé[QT_Key.Exit] = ToucheClavier.INCONNUE
-    table_conversion_clé[QT_Key.Context1] = ToucheClavier.INCONNUE
-    table_conversion_clé[QT_Key.Context2] = ToucheClavier.INCONNUE
-    table_conversion_clé[QT_Key.Context3] = ToucheClavier.INCONNUE
-    table_conversion_clé[QT_Key.Context4] = ToucheClavier.INCONNUE
-    table_conversion_clé[QT_Key.Call] = ToucheClavier.INCONNUE
-    table_conversion_clé[QT_Key.Hangup] = ToucheClavier.INCONNUE
-    table_conversion_clé[QT_Key.Flip] = ToucheClavier.INCONNUE
-    table_conversion_clé[QT_Key.ToggleCallHangup] = ToucheClavier.INCONNUE
-    table_conversion_clé[QT_Key.VoiceDial] = ToucheClavier.INCONNUE
-    table_conversion_clé[QT_Key.LastNumberRedial] = ToucheClavier.INCONNUE
-    table_conversion_clé[QT_Key.Camera] = ToucheClavier.INCONNUE
-    table_conversion_clé[QT_Key.CameraFocus] = ToucheClavier.INCONNUE
-    table_conversion_clé[QT_Key.unknown] = ToucheClavier.INCONNUE
+    table_conversion_clé[QT_Key.Escape] = ToucheClavier.ÉCHAPPE;
+    table_conversion_clé[QT_Key.Tab] = ToucheClavier.TAB;
+    table_conversion_clé[QT_Key.Backtab] = ToucheClavier.INCONNUE;
+    table_conversion_clé[QT_Key.Backspace] = ToucheClavier.EFFACE;
+    table_conversion_clé[QT_Key.Return] = ToucheClavier.ENTRÉE;
+    table_conversion_clé[QT_Key.Enter] = ToucheClavier.ENTRÉE;
+    table_conversion_clé[QT_Key.Insert] = ToucheClavier.INSÉRER;
+    table_conversion_clé[QT_Key.Delete] = ToucheClavier.SUPPRIMER;
+    table_conversion_clé[QT_Key.Pause] = ToucheClavier.PAUSE;
+    table_conversion_clé[QT_Key.Print] = ToucheClavier.INCONNUE;
+    table_conversion_clé[QT_Key.SysReq] = ToucheClavier.INCONNUE;
+    table_conversion_clé[QT_Key.Clear] = ToucheClavier.INCONNUE;
+    table_conversion_clé[QT_Key.Home] = ToucheClavier.DÉBUT;
+    table_conversion_clé[QT_Key.End] = ToucheClavier.FIN;
+    table_conversion_clé[QT_Key.Left] = ToucheClavier.FLÈCHE_GAUCHE;
+    table_conversion_clé[QT_Key.Up] = ToucheClavier.FLÈCHE_HAUT;
+    table_conversion_clé[QT_Key.Right] = ToucheClavier.FLÈCHE_DROITE;
+    table_conversion_clé[QT_Key.Down] = ToucheClavier.FLÈCHE_BAS;
+    table_conversion_clé[QT_Key.PageUp] = ToucheClavier.PAGE_HAUT;
+    table_conversion_clé[QT_Key.PageDown] = ToucheClavier.PAGE_BAS;
+    table_conversion_clé[QT_Key.Shift] = ToucheClavier.INCONNUE;
+    table_conversion_clé[QT_Key.Control] = ToucheClavier.INCONNUE;
+    table_conversion_clé[QT_Key.Meta] = ToucheClavier.INCONNUE;
+    table_conversion_clé[QT_Key.Alt] = ToucheClavier.INCONNUE;
+    table_conversion_clé[QT_Key.CapsLock] = ToucheClavier.INCONNUE;
+    table_conversion_clé[QT_Key.NumLock] = ToucheClavier.INCONNUE;
+    table_conversion_clé[QT_Key.ScrollLock] = ToucheClavier.INCONNUE;
+    table_conversion_clé[QT_Key.F1] = ToucheClavier.F1;
+    table_conversion_clé[QT_Key.F2] = ToucheClavier.F2;
+    table_conversion_clé[QT_Key.F3] = ToucheClavier.F3;
+    table_conversion_clé[QT_Key.F4] = ToucheClavier.F4;
+    table_conversion_clé[QT_Key.F5] = ToucheClavier.F5;
+    table_conversion_clé[QT_Key.F6] = ToucheClavier.F6;
+    table_conversion_clé[QT_Key.F7] = ToucheClavier.F7;
+    table_conversion_clé[QT_Key.F8] = ToucheClavier.F8;
+    table_conversion_clé[QT_Key.F9] = ToucheClavier.F9;
+    table_conversion_clé[QT_Key.F10] = ToucheClavier.F10;
+    table_conversion_clé[QT_Key.F11] = ToucheClavier.F11;
+    table_conversion_clé[QT_Key.F12] = ToucheClavier.F12;
+    table_conversion_clé[QT_Key.F13] = ToucheClavier.F13;
+    table_conversion_clé[QT_Key.F14] = ToucheClavier.F14;
+    table_conversion_clé[QT_Key.F15] = ToucheClavier.F15;
+    table_conversion_clé[QT_Key.F16] = ToucheClavier.F16;
+    table_conversion_clé[QT_Key.F17] = ToucheClavier.F17;
+    table_conversion_clé[QT_Key.F18] = ToucheClavier.F18;
+    table_conversion_clé[QT_Key.F19] = ToucheClavier.F19;
+    table_conversion_clé[QT_Key.F20] = ToucheClavier.F20;
+    table_conversion_clé[QT_Key.F21] = ToucheClavier.F21;
+    table_conversion_clé[QT_Key.F22] = ToucheClavier.F22;
+    table_conversion_clé[QT_Key.F23] = ToucheClavier.F23;
+    table_conversion_clé[QT_Key.F24] = ToucheClavier.F24;
+    table_conversion_clé[QT_Key.F25] = ToucheClavier.F25;
+    table_conversion_clé[QT_Key.F26] = ToucheClavier.F26;
+    table_conversion_clé[QT_Key.F27] = ToucheClavier.F27;
+    table_conversion_clé[QT_Key.F28] = ToucheClavier.F28;
+    table_conversion_clé[QT_Key.F29] = ToucheClavier.F29;
+    table_conversion_clé[QT_Key.F30] = ToucheClavier.F30;
+    table_conversion_clé[QT_Key.F31] = ToucheClavier.F31;
+    table_conversion_clé[QT_Key.F32] = ToucheClavier.F32;
+    table_conversion_clé[QT_Key.F33] = ToucheClavier.F33;
+    table_conversion_clé[QT_Key.F34] = ToucheClavier.F34;
+    table_conversion_clé[QT_Key.F35] = ToucheClavier.F35;
+    table_conversion_clé[QT_Key.Super_L] = ToucheClavier.INCONNUE;
+    table_conversion_clé[QT_Key.Super_R] = ToucheClavier.INCONNUE;
+    table_conversion_clé[QT_Key.Menu] = ToucheClavier.INCONNUE;
+    table_conversion_clé[QT_Key.Hyper_L] = ToucheClavier.HYPER_GAUCHE;
+    table_conversion_clé[QT_Key.Hyper_R] = ToucheClavier.HYPER_DROITE;
+    table_conversion_clé[QT_Key.Help] = ToucheClavier.INCONNUE;
+    table_conversion_clé[QT_Key.Direction_L] = ToucheClavier.INCONNUE;
+    table_conversion_clé[QT_Key.Direction_R] = ToucheClavier.INCONNUE;
+    table_conversion_clé[QT_Key.Space] = ToucheClavier.ESPACE;
+    table_conversion_clé[QT_Key.Exclam] = ToucheClavier.POINT_EXCLAMATION;
+    table_conversion_clé[QT_Key.QuoteDbl] = ToucheClavier.GUILLEMET_ANGLAIS;
+    table_conversion_clé[QT_Key.NumberSign] = ToucheClavier.INCONNUE;
+    table_conversion_clé[QT_Key.Dollar] = ToucheClavier.DOLLAR;
+    table_conversion_clé[QT_Key.Percent] = ToucheClavier.INCONNUE;
+    table_conversion_clé[QT_Key.Ampersand] = ToucheClavier.ESPERLUETTE;
+    table_conversion_clé[QT_Key.Apostrophe] = ToucheClavier.APOSTROPHE;
+    table_conversion_clé[QT_Key.ParenLeft] = ToucheClavier.PARENTHÈSE_GAUCHE;
+    table_conversion_clé[QT_Key.ParenRight] = ToucheClavier.PARENTHÈSE_DROITE;
+    table_conversion_clé[QT_Key.Asterisk] = ToucheClavier.ASTÉRISQUE;
+    table_conversion_clé[QT_Key.Plus] = ToucheClavier.PLUS;
+    table_conversion_clé[QT_Key.Comma] = ToucheClavier.VIRGULE;
+    table_conversion_clé[QT_Key.Minus] = ToucheClavier.MOINS;
+    table_conversion_clé[QT_Key.Period] = ToucheClavier.POINT;
+    table_conversion_clé[QT_Key.Slash] = ToucheClavier.SLASH;
+    table_conversion_clé[QT_Key.NOMBRE_0] = ToucheClavier._0;
+    table_conversion_clé[QT_Key.NOMBRE_1] = ToucheClavier._1;
+    table_conversion_clé[QT_Key.NOMBRE_2] = ToucheClavier._2;
+    table_conversion_clé[QT_Key.NOMBRE_3] = ToucheClavier._3;
+    table_conversion_clé[QT_Key.NOMBRE_4] = ToucheClavier._4;
+    table_conversion_clé[QT_Key.NOMBRE_5] = ToucheClavier._5;
+    table_conversion_clé[QT_Key.NOMBRE_6] = ToucheClavier._6;
+    table_conversion_clé[QT_Key.NOMBRE_7] = ToucheClavier._7;
+    table_conversion_clé[QT_Key.NOMBRE_8] = ToucheClavier._8;
+    table_conversion_clé[QT_Key.NOMBRE_9] = ToucheClavier._9;
+    table_conversion_clé[QT_Key.Colon] = ToucheClavier.DOUBLE_POINT;
+    table_conversion_clé[QT_Key.Semicolon] = ToucheClavier.POINT_VIRGULE;
+    table_conversion_clé[QT_Key.Less] = ToucheClavier.INCONNUE;
+    table_conversion_clé[QT_Key.Equal] = ToucheClavier.ÉGAL;
+    table_conversion_clé[QT_Key.Greater] = ToucheClavier.INCONNUE;
+    table_conversion_clé[QT_Key.Question] = ToucheClavier.INCONNUE;
+    table_conversion_clé[QT_Key.At] = ToucheClavier.INCONNUE;
+    table_conversion_clé[QT_Key.A] = ToucheClavier.A;
+    table_conversion_clé[QT_Key.B] = ToucheClavier.B;
+    table_conversion_clé[QT_Key.C] = ToucheClavier.C;
+    table_conversion_clé[QT_Key.D] = ToucheClavier.D;
+    table_conversion_clé[QT_Key.E] = ToucheClavier.E;
+    table_conversion_clé[QT_Key.F] = ToucheClavier.F;
+    table_conversion_clé[QT_Key.G] = ToucheClavier.G;
+    table_conversion_clé[QT_Key.H] = ToucheClavier.H;
+    table_conversion_clé[QT_Key.I] = ToucheClavier.I;
+    table_conversion_clé[QT_Key.J] = ToucheClavier.J;
+    table_conversion_clé[QT_Key.K] = ToucheClavier.K;
+    table_conversion_clé[QT_Key.L] = ToucheClavier.L;
+    table_conversion_clé[QT_Key.M] = ToucheClavier.M;
+    table_conversion_clé[QT_Key.N] = ToucheClavier.N;
+    table_conversion_clé[QT_Key.O] = ToucheClavier.O;
+    table_conversion_clé[QT_Key.P] = ToucheClavier.P;
+    table_conversion_clé[QT_Key.Q] = ToucheClavier.Q;
+    table_conversion_clé[QT_Key.R] = ToucheClavier.R;
+    table_conversion_clé[QT_Key.S] = ToucheClavier.S;
+    table_conversion_clé[QT_Key.T] = ToucheClavier.T;
+    table_conversion_clé[QT_Key.U] = ToucheClavier.U;
+    table_conversion_clé[QT_Key.V] = ToucheClavier.V;
+    table_conversion_clé[QT_Key.W] = ToucheClavier.W;
+    table_conversion_clé[QT_Key.X] = ToucheClavier.X;
+    table_conversion_clé[QT_Key.Y] = ToucheClavier.Y;
+    table_conversion_clé[QT_Key.Z] = ToucheClavier.Z;
+    table_conversion_clé[QT_Key.BracketLeft] = ToucheClavier.CROCHET_OUVRANT;
+    table_conversion_clé[QT_Key.Backslash] = ToucheClavier.BACK_SLASH;
+    table_conversion_clé[QT_Key.BracketRight] = ToucheClavier.CROCHET_FERMANT;
+    table_conversion_clé[QT_Key.AsciiCircum] = ToucheClavier.INCONNUE;
+    table_conversion_clé[QT_Key.Underscore] = ToucheClavier.TIRET_BAS;
+    table_conversion_clé[QT_Key.QuoteLeft] = ToucheClavier.INCONNUE;
+    table_conversion_clé[QT_Key.BraceLeft] = ToucheClavier.INCONNUE;
+    table_conversion_clé[QT_Key.Bar] = ToucheClavier.INCONNUE;
+    table_conversion_clé[QT_Key.BraceRight] = ToucheClavier.INCONNUE;
+    table_conversion_clé[QT_Key.AsciiTilde] = ToucheClavier.INCONNUE;
+    table_conversion_clé[QT_Key.nobreakspace] = ToucheClavier.INCONNUE;
+    table_conversion_clé[QT_Key.exclamdown] = ToucheClavier.INCONNUE;
+    table_conversion_clé[QT_Key.cent] = ToucheClavier.INCONNUE;
+    table_conversion_clé[QT_Key.sterling] = ToucheClavier.INCONNUE;
+    table_conversion_clé[QT_Key.currency] = ToucheClavier.INCONNUE;
+    table_conversion_clé[QT_Key.yen] = ToucheClavier.INCONNUE;
+    table_conversion_clé[QT_Key.brokenbar] = ToucheClavier.INCONNUE;
+    table_conversion_clé[QT_Key.section] = ToucheClavier.INCONNUE;
+    table_conversion_clé[QT_Key.diaeresis] = ToucheClavier.INCONNUE;
+    table_conversion_clé[QT_Key.copyright] = ToucheClavier.INCONNUE;
+    table_conversion_clé[QT_Key.ordfeminine] = ToucheClavier.INCONNUE;
+    table_conversion_clé[QT_Key.guillemotleft] = ToucheClavier.INCONNUE;
+    table_conversion_clé[QT_Key.notsign] = ToucheClavier.INCONNUE;
+    table_conversion_clé[QT_Key.hyphen] = ToucheClavier.INCONNUE;
+    table_conversion_clé[QT_Key.registered] = ToucheClavier.INCONNUE;
+    table_conversion_clé[QT_Key.macron] = ToucheClavier.INCONNUE;
+    table_conversion_clé[QT_Key.degree] = ToucheClavier.INCONNUE;
+    table_conversion_clé[QT_Key.plusminus] = ToucheClavier.INCONNUE;
+    table_conversion_clé[QT_Key.twosuperior] = ToucheClavier.INCONNUE;
+    table_conversion_clé[QT_Key.threesuperior] = ToucheClavier.INCONNUE;
+    table_conversion_clé[QT_Key.acute] = ToucheClavier.INCONNUE;
+    table_conversion_clé[QT_Key.micro] = ToucheClavier.INCONNUE;
+    table_conversion_clé[QT_Key.paragraph] = ToucheClavier.INCONNUE;
+    table_conversion_clé[QT_Key.periodcentered] = ToucheClavier.INCONNUE;
+    table_conversion_clé[QT_Key.cedilla] = ToucheClavier.INCONNUE;
+    table_conversion_clé[QT_Key.onesuperior] = ToucheClavier.INCONNUE;
+    table_conversion_clé[QT_Key.masculine] = ToucheClavier.INCONNUE;
+    table_conversion_clé[QT_Key.guillemotright] = ToucheClavier.INCONNUE;
+    table_conversion_clé[QT_Key.onequarter] = ToucheClavier.INCONNUE;
+    table_conversion_clé[QT_Key.onehalf] = ToucheClavier.INCONNUE;
+    table_conversion_clé[QT_Key.threequarters] = ToucheClavier.INCONNUE;
+    table_conversion_clé[QT_Key.questiondown] = ToucheClavier.INCONNUE;
+    table_conversion_clé[QT_Key.Agrave] = ToucheClavier.A_ACCENT_GRAVE;
+    table_conversion_clé[QT_Key.Aacute] = ToucheClavier.INCONNUE;
+    table_conversion_clé[QT_Key.Acircumflex] = ToucheClavier.INCONNUE;
+    table_conversion_clé[QT_Key.Atilde] = ToucheClavier.INCONNUE;
+    table_conversion_clé[QT_Key.Adiaeresis] = ToucheClavier.INCONNUE;
+    table_conversion_clé[QT_Key.Aring] = ToucheClavier.INCONNUE;
+    table_conversion_clé[QT_Key.AE] = ToucheClavier.INCONNUE;
+    table_conversion_clé[QT_Key.Ccedilla] = ToucheClavier.C_CÉDILLE;
+    table_conversion_clé[QT_Key.Egrave] = ToucheClavier.E_ACCENT_GRAVE;
+    table_conversion_clé[QT_Key.Eacute] = ToucheClavier.E_ACCENT_AIGÜE;
+    table_conversion_clé[QT_Key.Ecircumflex] = ToucheClavier.INCONNUE;
+    table_conversion_clé[QT_Key.Ediaeresis] = ToucheClavier.INCONNUE;
+    table_conversion_clé[QT_Key.Igrave] = ToucheClavier.INCONNUE;
+    table_conversion_clé[QT_Key.Iacute] = ToucheClavier.INCONNUE;
+    table_conversion_clé[QT_Key.Icircumflex] = ToucheClavier.INCONNUE;
+    table_conversion_clé[QT_Key.Idiaeresis] = ToucheClavier.INCONNUE;
+    table_conversion_clé[QT_Key.ETH] = ToucheClavier.INCONNUE;
+    table_conversion_clé[QT_Key.Ntilde] = ToucheClavier.INCONNUE;
+    table_conversion_clé[QT_Key.Ograve] = ToucheClavier.INCONNUE;
+    table_conversion_clé[QT_Key.Oacute] = ToucheClavier.INCONNUE;
+    table_conversion_clé[QT_Key.Ocircumflex] = ToucheClavier.INCONNUE;
+    table_conversion_clé[QT_Key.Otilde] = ToucheClavier.INCONNUE;
+    table_conversion_clé[QT_Key.Odiaeresis] = ToucheClavier.INCONNUE;
+    table_conversion_clé[QT_Key.multiply] = ToucheClavier.INCONNUE;
+    table_conversion_clé[QT_Key.Ooblique] = ToucheClavier.INCONNUE;
+    table_conversion_clé[QT_Key.Ugrave] = ToucheClavier.U_ACCENT_GRAVE;
+    table_conversion_clé[QT_Key.Uacute] = ToucheClavier.INCONNUE;
+    table_conversion_clé[QT_Key.Ucircumflex] = ToucheClavier.INCONNUE;
+    table_conversion_clé[QT_Key.Udiaeresis] = ToucheClavier.INCONNUE;
+    table_conversion_clé[QT_Key.Yacute] = ToucheClavier.INCONNUE;
+    table_conversion_clé[QT_Key.THORN] = ToucheClavier.INCONNUE;
+    table_conversion_clé[QT_Key.ssharp] = ToucheClavier.INCONNUE;
+    table_conversion_clé[QT_Key.division] = ToucheClavier.INCONNUE;
+    table_conversion_clé[QT_Key.ydiaeresis] = ToucheClavier.INCONNUE;
+    table_conversion_clé[QT_Key.AltGr] = ToucheClavier.INCONNUE;
+    table_conversion_clé[QT_Key.Multi_key] = ToucheClavier.INCONNUE;
+    table_conversion_clé[QT_Key.Codeinput] = ToucheClavier.INCONNUE;
+    table_conversion_clé[QT_Key.SingleCandidate] = ToucheClavier.INCONNUE;
+    table_conversion_clé[QT_Key.MultipleCandidate] = ToucheClavier.INCONNUE;
+    table_conversion_clé[QT_Key.PreviousCandidate] = ToucheClavier.INCONNUE;
+    table_conversion_clé[QT_Key.Mode_switch] = ToucheClavier.INCONNUE;
+    table_conversion_clé[QT_Key.Kanji] = ToucheClavier.INCONNUE;
+    table_conversion_clé[QT_Key.Muhenkan] = ToucheClavier.INCONNUE;
+    table_conversion_clé[QT_Key.Henkan] = ToucheClavier.INCONNUE;
+    table_conversion_clé[QT_Key.Romaji] = ToucheClavier.INCONNUE;
+    table_conversion_clé[QT_Key.Hiragana] = ToucheClavier.INCONNUE;
+    table_conversion_clé[QT_Key.Katakana] = ToucheClavier.INCONNUE;
+    table_conversion_clé[QT_Key.Hiragana_Katakana] = ToucheClavier.INCONNUE;
+    table_conversion_clé[QT_Key.Zenkaku] = ToucheClavier.INCONNUE;
+    table_conversion_clé[QT_Key.Hankaku] = ToucheClavier.INCONNUE;
+    table_conversion_clé[QT_Key.Zenkaku_Hankaku] = ToucheClavier.INCONNUE;
+    table_conversion_clé[QT_Key.Touroku] = ToucheClavier.INCONNUE;
+    table_conversion_clé[QT_Key.Massyo] = ToucheClavier.INCONNUE;
+    table_conversion_clé[QT_Key.Kana_Lock] = ToucheClavier.INCONNUE;
+    table_conversion_clé[QT_Key.Kana_Shift] = ToucheClavier.INCONNUE;
+    table_conversion_clé[QT_Key.Eisu_Shift] = ToucheClavier.INCONNUE;
+    table_conversion_clé[QT_Key.Eisu_toggle] = ToucheClavier.INCONNUE;
+    table_conversion_clé[QT_Key.Hangul] = ToucheClavier.INCONNUE;
+    table_conversion_clé[QT_Key.Hangul_Start] = ToucheClavier.INCONNUE;
+    table_conversion_clé[QT_Key.Hangul_End] = ToucheClavier.INCONNUE;
+    table_conversion_clé[QT_Key.Hangul_Hanja] = ToucheClavier.INCONNUE;
+    table_conversion_clé[QT_Key.Hangul_Jamo] = ToucheClavier.INCONNUE;
+    table_conversion_clé[QT_Key.Hangul_Romaja] = ToucheClavier.INCONNUE;
+    table_conversion_clé[QT_Key.Hangul_Jeonja] = ToucheClavier.INCONNUE;
+    table_conversion_clé[QT_Key.Hangul_Banja] = ToucheClavier.INCONNUE;
+    table_conversion_clé[QT_Key.Hangul_PreHanja] = ToucheClavier.INCONNUE;
+    table_conversion_clé[QT_Key.Hangul_PostHanja] = ToucheClavier.INCONNUE;
+    table_conversion_clé[QT_Key.Hangul_Special] = ToucheClavier.INCONNUE;
+    table_conversion_clé[QT_Key.Dead_Grave] = ToucheClavier.INCONNUE;
+    table_conversion_clé[QT_Key.Dead_Acute] = ToucheClavier.INCONNUE;
+    table_conversion_clé[QT_Key.Dead_Circumflex] = ToucheClavier.INCONNUE;
+    table_conversion_clé[QT_Key.Dead_Tilde] = ToucheClavier.INCONNUE;
+    table_conversion_clé[QT_Key.Dead_Macron] = ToucheClavier.INCONNUE;
+    table_conversion_clé[QT_Key.Dead_Breve] = ToucheClavier.INCONNUE;
+    table_conversion_clé[QT_Key.Dead_Abovedot] = ToucheClavier.INCONNUE;
+    table_conversion_clé[QT_Key.Dead_Diaeresis] = ToucheClavier.INCONNUE;
+    table_conversion_clé[QT_Key.Dead_Abovering] = ToucheClavier.INCONNUE;
+    table_conversion_clé[QT_Key.Dead_Doubleacute] = ToucheClavier.INCONNUE;
+    table_conversion_clé[QT_Key.Dead_Caron] = ToucheClavier.INCONNUE;
+    table_conversion_clé[QT_Key.Dead_Cedilla] = ToucheClavier.INCONNUE;
+    table_conversion_clé[QT_Key.Dead_Ogonek] = ToucheClavier.INCONNUE;
+    table_conversion_clé[QT_Key.Dead_Iota] = ToucheClavier.INCONNUE;
+    table_conversion_clé[QT_Key.Dead_Voiced_Sound] = ToucheClavier.INCONNUE;
+    table_conversion_clé[QT_Key.Dead_Semivoiced_Sound] = ToucheClavier.INCONNUE;
+    table_conversion_clé[QT_Key.Dead_Belowdot] = ToucheClavier.INCONNUE;
+    table_conversion_clé[QT_Key.Dead_Hook] = ToucheClavier.INCONNUE;
+    table_conversion_clé[QT_Key.Dead_Horn] = ToucheClavier.INCONNUE;
+    table_conversion_clé[QT_Key.Dead_Stroke] = ToucheClavier.INCONNUE;
+    table_conversion_clé[QT_Key.Dead_Abovecomma] = ToucheClavier.INCONNUE;
+    table_conversion_clé[QT_Key.Dead_Abovereversedcomma] = ToucheClavier.INCONNUE;
+    table_conversion_clé[QT_Key.Dead_Doublegrave] = ToucheClavier.INCONNUE;
+    table_conversion_clé[QT_Key.Dead_Belowring] = ToucheClavier.INCONNUE;
+    table_conversion_clé[QT_Key.Dead_Belowmacron] = ToucheClavier.INCONNUE;
+    table_conversion_clé[QT_Key.Dead_Belowcircumflex] = ToucheClavier.INCONNUE;
+    table_conversion_clé[QT_Key.Dead_Belowtilde] = ToucheClavier.INCONNUE;
+    table_conversion_clé[QT_Key.Dead_Belowbreve] = ToucheClavier.INCONNUE;
+    table_conversion_clé[QT_Key.Dead_Belowdiaeresis] = ToucheClavier.INCONNUE;
+    table_conversion_clé[QT_Key.Dead_Invertedbreve] = ToucheClavier.INCONNUE;
+    table_conversion_clé[QT_Key.Dead_Belowcomma] = ToucheClavier.INCONNUE;
+    table_conversion_clé[QT_Key.Dead_Currency] = ToucheClavier.INCONNUE;
+    table_conversion_clé[QT_Key.Dead_a] = ToucheClavier.INCONNUE;
+    table_conversion_clé[QT_Key.Dead_A] = ToucheClavier.INCONNUE;
+    table_conversion_clé[QT_Key.Dead_e] = ToucheClavier.INCONNUE;
+    table_conversion_clé[QT_Key.Dead_E] = ToucheClavier.INCONNUE;
+    table_conversion_clé[QT_Key.Dead_i] = ToucheClavier.INCONNUE;
+    table_conversion_clé[QT_Key.Dead_I] = ToucheClavier.INCONNUE;
+    table_conversion_clé[QT_Key.Dead_o] = ToucheClavier.INCONNUE;
+    table_conversion_clé[QT_Key.Dead_O] = ToucheClavier.INCONNUE;
+    table_conversion_clé[QT_Key.Dead_u] = ToucheClavier.INCONNUE;
+    table_conversion_clé[QT_Key.Dead_U] = ToucheClavier.INCONNUE;
+    table_conversion_clé[QT_Key.Dead_Small_Schwa] = ToucheClavier.INCONNUE;
+    table_conversion_clé[QT_Key.Dead_Capital_Schwa] = ToucheClavier.INCONNUE;
+    table_conversion_clé[QT_Key.Dead_Greek] = ToucheClavier.INCONNUE;
+    table_conversion_clé[QT_Key.Dead_Lowline] = ToucheClavier.INCONNUE;
+    table_conversion_clé[QT_Key.Dead_Aboveverticalline] = ToucheClavier.INCONNUE;
+    table_conversion_clé[QT_Key.Dead_Belowverticalline] = ToucheClavier.INCONNUE;
+    table_conversion_clé[QT_Key.Dead_Longsolidusoverlay] = ToucheClavier.INCONNUE;
+    table_conversion_clé[QT_Key.Back] = ToucheClavier.INCONNUE;
+    table_conversion_clé[QT_Key.Forward] = ToucheClavier.INCONNUE;
+    table_conversion_clé[QT_Key.Stop] = ToucheClavier.INCONNUE;
+    table_conversion_clé[QT_Key.Refresh] = ToucheClavier.INCONNUE;
+    table_conversion_clé[QT_Key.VolumeDown] = ToucheClavier.INCONNUE;
+    table_conversion_clé[QT_Key.VolumeMute] = ToucheClavier.INCONNUE;
+    table_conversion_clé[QT_Key.VolumeUp] = ToucheClavier.INCONNUE;
+    table_conversion_clé[QT_Key.BassBoost] = ToucheClavier.INCONNUE;
+    table_conversion_clé[QT_Key.BassUp] = ToucheClavier.INCONNUE;
+    table_conversion_clé[QT_Key.BassDown] = ToucheClavier.INCONNUE;
+    table_conversion_clé[QT_Key.TrebleUp] = ToucheClavier.INCONNUE;
+    table_conversion_clé[QT_Key.TrebleDown] = ToucheClavier.INCONNUE;
+    table_conversion_clé[QT_Key.MediaPlay] = ToucheClavier.INCONNUE;
+    table_conversion_clé[QT_Key.MediaStop] = ToucheClavier.INCONNUE;
+    table_conversion_clé[QT_Key.MediaPrevious] = ToucheClavier.INCONNUE;
+    table_conversion_clé[QT_Key.MediaNext] = ToucheClavier.INCONNUE;
+    table_conversion_clé[QT_Key.MediaRecord] = ToucheClavier.INCONNUE;
+    table_conversion_clé[QT_Key.MediaPause] = ToucheClavier.INCONNUE;
+    table_conversion_clé[QT_Key.MediaTogglePlayPause] = ToucheClavier.INCONNUE;
+    table_conversion_clé[QT_Key.HomePage] = ToucheClavier.INCONNUE;
+    table_conversion_clé[QT_Key.Favorites] = ToucheClavier.INCONNUE;
+    table_conversion_clé[QT_Key.Search] = ToucheClavier.INCONNUE;
+    table_conversion_clé[QT_Key.Standby] = ToucheClavier.INCONNUE;
+    table_conversion_clé[QT_Key.OpenUrl] = ToucheClavier.INCONNUE;
+    table_conversion_clé[QT_Key.LaunchMail] = ToucheClavier.INCONNUE;
+    table_conversion_clé[QT_Key.LaunchMedia] = ToucheClavier.INCONNUE;
+    table_conversion_clé[QT_Key.Launch0] = ToucheClavier.INCONNUE;
+    table_conversion_clé[QT_Key.Launch1] = ToucheClavier.INCONNUE;
+    table_conversion_clé[QT_Key.Launch2] = ToucheClavier.INCONNUE;
+    table_conversion_clé[QT_Key.Launch3] = ToucheClavier.INCONNUE;
+    table_conversion_clé[QT_Key.Launch4] = ToucheClavier.INCONNUE;
+    table_conversion_clé[QT_Key.Launch5] = ToucheClavier.INCONNUE;
+    table_conversion_clé[QT_Key.Launch6] = ToucheClavier.INCONNUE;
+    table_conversion_clé[QT_Key.Launch7] = ToucheClavier.INCONNUE;
+    table_conversion_clé[QT_Key.Launch8] = ToucheClavier.INCONNUE;
+    table_conversion_clé[QT_Key.Launch9] = ToucheClavier.INCONNUE;
+    table_conversion_clé[QT_Key.LaunchA] = ToucheClavier.INCONNUE;
+    table_conversion_clé[QT_Key.LaunchB] = ToucheClavier.INCONNUE;
+    table_conversion_clé[QT_Key.LaunchC] = ToucheClavier.INCONNUE;
+    table_conversion_clé[QT_Key.LaunchD] = ToucheClavier.INCONNUE;
+    table_conversion_clé[QT_Key.LaunchE] = ToucheClavier.INCONNUE;
+    table_conversion_clé[QT_Key.LaunchF] = ToucheClavier.INCONNUE;
+    table_conversion_clé[QT_Key.MonBrightnessUp] = ToucheClavier.INCONNUE;
+    table_conversion_clé[QT_Key.MonBrightnessDown] = ToucheClavier.INCONNUE;
+    table_conversion_clé[QT_Key.KeyboardLightOnOff] = ToucheClavier.INCONNUE;
+    table_conversion_clé[QT_Key.KeyboardBrightnessUp] = ToucheClavier.INCONNUE;
+    table_conversion_clé[QT_Key.KeyboardBrightnessDown] = ToucheClavier.INCONNUE;
+    table_conversion_clé[QT_Key.PowerOff] = ToucheClavier.INCONNUE;
+    table_conversion_clé[QT_Key.WakeUp] = ToucheClavier.INCONNUE;
+    table_conversion_clé[QT_Key.Eject] = ToucheClavier.INCONNUE;
+    table_conversion_clé[QT_Key.ScreenSaver] = ToucheClavier.INCONNUE;
+    table_conversion_clé[QT_Key.WWW] = ToucheClavier.INCONNUE;
+    table_conversion_clé[QT_Key.Memo] = ToucheClavier.INCONNUE;
+    table_conversion_clé[QT_Key.LightBulb] = ToucheClavier.INCONNUE;
+    table_conversion_clé[QT_Key.Shop] = ToucheClavier.INCONNUE;
+    table_conversion_clé[QT_Key.History] = ToucheClavier.INCONNUE;
+    table_conversion_clé[QT_Key.AddFavorite] = ToucheClavier.INCONNUE;
+    table_conversion_clé[QT_Key.HotLinks] = ToucheClavier.INCONNUE;
+    table_conversion_clé[QT_Key.BrightnessAdjust] = ToucheClavier.INCONNUE;
+    table_conversion_clé[QT_Key.Finance] = ToucheClavier.INCONNUE;
+    table_conversion_clé[QT_Key.Community] = ToucheClavier.INCONNUE;
+    table_conversion_clé[QT_Key.AudioRewind] = ToucheClavier.INCONNUE;
+    table_conversion_clé[QT_Key.BackForward] = ToucheClavier.INCONNUE;
+    table_conversion_clé[QT_Key.ApplicationLeft] = ToucheClavier.INCONNUE;
+    table_conversion_clé[QT_Key.ApplicationRight] = ToucheClavier.INCONNUE;
+    table_conversion_clé[QT_Key.Book] = ToucheClavier.INCONNUE;
+    table_conversion_clé[QT_Key.CD] = ToucheClavier.INCONNUE;
+    table_conversion_clé[QT_Key.Calculator] = ToucheClavier.INCONNUE;
+    table_conversion_clé[QT_Key.ToDoList] = ToucheClavier.INCONNUE;
+    table_conversion_clé[QT_Key.ClearGrab] = ToucheClavier.INCONNUE;
+    table_conversion_clé[QT_Key.Close] = ToucheClavier.INCONNUE;
+    table_conversion_clé[QT_Key.Copy] = ToucheClavier.INCONNUE;
+    table_conversion_clé[QT_Key.Cut] = ToucheClavier.INCONNUE;
+    table_conversion_clé[QT_Key.Display] = ToucheClavier.INCONNUE;
+    table_conversion_clé[QT_Key.DOS] = ToucheClavier.INCONNUE;
+    table_conversion_clé[QT_Key.Documents] = ToucheClavier.INCONNUE;
+    table_conversion_clé[QT_Key.Excel] = ToucheClavier.INCONNUE;
+    table_conversion_clé[QT_Key.Explorer] = ToucheClavier.INCONNUE;
+    table_conversion_clé[QT_Key.Game] = ToucheClavier.INCONNUE;
+    table_conversion_clé[QT_Key.Go] = ToucheClavier.INCONNUE;
+    table_conversion_clé[QT_Key.iTouch] = ToucheClavier.INCONNUE;
+    table_conversion_clé[QT_Key.LogOff] = ToucheClavier.INCONNUE;
+    table_conversion_clé[QT_Key.Market] = ToucheClavier.INCONNUE;
+    table_conversion_clé[QT_Key.Meeting] = ToucheClavier.INCONNUE;
+    table_conversion_clé[QT_Key.MenuKB] = ToucheClavier.INCONNUE;
+    table_conversion_clé[QT_Key.MenuPB] = ToucheClavier.INCONNUE;
+    table_conversion_clé[QT_Key.MySites] = ToucheClavier.INCONNUE;
+    table_conversion_clé[QT_Key.News] = ToucheClavier.INCONNUE;
+    table_conversion_clé[QT_Key.OfficeHome] = ToucheClavier.INCONNUE;
+    table_conversion_clé[QT_Key.Option] = ToucheClavier.INCONNUE;
+    table_conversion_clé[QT_Key.Paste] = ToucheClavier.INCONNUE;
+    table_conversion_clé[QT_Key.Phone] = ToucheClavier.INCONNUE;
+    table_conversion_clé[QT_Key.Calendar] = ToucheClavier.INCONNUE;
+    table_conversion_clé[QT_Key.Reply] = ToucheClavier.INCONNUE;
+    table_conversion_clé[QT_Key.Reload] = ToucheClavier.INCONNUE;
+    table_conversion_clé[QT_Key.RotateWindows] = ToucheClavier.INCONNUE;
+    table_conversion_clé[QT_Key.RotationPB] = ToucheClavier.INCONNUE;
+    table_conversion_clé[QT_Key.RotationKB] = ToucheClavier.INCONNUE;
+    table_conversion_clé[QT_Key.Save] = ToucheClavier.INCONNUE;
+    table_conversion_clé[QT_Key.Send] = ToucheClavier.INCONNUE;
+    table_conversion_clé[QT_Key.Spell] = ToucheClavier.INCONNUE;
+    table_conversion_clé[QT_Key.SplitScreen] = ToucheClavier.INCONNUE;
+    table_conversion_clé[QT_Key.Support] = ToucheClavier.INCONNUE;
+    table_conversion_clé[QT_Key.TaskPane] = ToucheClavier.INCONNUE;
+    table_conversion_clé[QT_Key.Terminal] = ToucheClavier.INCONNUE;
+    table_conversion_clé[QT_Key.Tools] = ToucheClavier.INCONNUE;
+    table_conversion_clé[QT_Key.Travel] = ToucheClavier.INCONNUE;
+    table_conversion_clé[QT_Key.Video] = ToucheClavier.INCONNUE;
+    table_conversion_clé[QT_Key.Word] = ToucheClavier.INCONNUE;
+    table_conversion_clé[QT_Key.Xfer] = ToucheClavier.INCONNUE;
+    table_conversion_clé[QT_Key.ZoomIn] = ToucheClavier.INCONNUE;
+    table_conversion_clé[QT_Key.ZoomOut] = ToucheClavier.INCONNUE;
+    table_conversion_clé[QT_Key.Away] = ToucheClavier.INCONNUE;
+    table_conversion_clé[QT_Key.Messenger] = ToucheClavier.INCONNUE;
+    table_conversion_clé[QT_Key.WebCam] = ToucheClavier.INCONNUE;
+    table_conversion_clé[QT_Key.MailForward] = ToucheClavier.INCONNUE;
+    table_conversion_clé[QT_Key.Pictures] = ToucheClavier.INCONNUE;
+    table_conversion_clé[QT_Key.Music] = ToucheClavier.INCONNUE;
+    table_conversion_clé[QT_Key.Battery] = ToucheClavier.INCONNUE;
+    table_conversion_clé[QT_Key.Bluetooth] = ToucheClavier.INCONNUE;
+    table_conversion_clé[QT_Key.WLAN] = ToucheClavier.INCONNUE;
+    table_conversion_clé[QT_Key.UWB] = ToucheClavier.INCONNUE;
+    table_conversion_clé[QT_Key.AudioForward] = ToucheClavier.INCONNUE;
+    table_conversion_clé[QT_Key.AudioRepeat] = ToucheClavier.INCONNUE;
+    table_conversion_clé[QT_Key.AudioRandomPlay] = ToucheClavier.INCONNUE;
+    table_conversion_clé[QT_Key.Subtitle] = ToucheClavier.INCONNUE;
+    table_conversion_clé[QT_Key.AudioCycleTrack] = ToucheClavier.INCONNUE;
+    table_conversion_clé[QT_Key.Time] = ToucheClavier.INCONNUE;
+    table_conversion_clé[QT_Key.Hibernate] = ToucheClavier.INCONNUE;
+    table_conversion_clé[QT_Key.View] = ToucheClavier.INCONNUE;
+    table_conversion_clé[QT_Key.TopMenu] = ToucheClavier.INCONNUE;
+    table_conversion_clé[QT_Key.PowerDown] = ToucheClavier.INCONNUE;
+    table_conversion_clé[QT_Key.Suspend] = ToucheClavier.INCONNUE;
+    table_conversion_clé[QT_Key.ContrastAdjust] = ToucheClavier.INCONNUE;
+    table_conversion_clé[QT_Key.LaunchG] = ToucheClavier.INCONNUE;
+    table_conversion_clé[QT_Key.LaunchH] = ToucheClavier.INCONNUE;
+    table_conversion_clé[QT_Key.TouchpadToggle] = ToucheClavier.INCONNUE;
+    table_conversion_clé[QT_Key.TouchpadOn] = ToucheClavier.INCONNUE;
+    table_conversion_clé[QT_Key.TouchpadOff] = ToucheClavier.INCONNUE;
+    table_conversion_clé[QT_Key.MicMute] = ToucheClavier.INCONNUE;
+    table_conversion_clé[QT_Key.Red] = ToucheClavier.INCONNUE;
+    table_conversion_clé[QT_Key.Green] = ToucheClavier.INCONNUE;
+    table_conversion_clé[QT_Key.Yellow] = ToucheClavier.INCONNUE;
+    table_conversion_clé[QT_Key.Blue] = ToucheClavier.INCONNUE;
+    table_conversion_clé[QT_Key.ChannelUp] = ToucheClavier.INCONNUE;
+    table_conversion_clé[QT_Key.ChannelDown] = ToucheClavier.INCONNUE;
+    table_conversion_clé[QT_Key.Guide] = ToucheClavier.INCONNUE;
+    table_conversion_clé[QT_Key.Info] = ToucheClavier.INCONNUE;
+    table_conversion_clé[QT_Key.Settings] = ToucheClavier.INCONNUE;
+    table_conversion_clé[QT_Key.MicVolumeUp] = ToucheClavier.INCONNUE;
+    table_conversion_clé[QT_Key.MicVolumeDown] = ToucheClavier.INCONNUE;
+    table_conversion_clé[QT_Key.New] = ToucheClavier.INCONNUE;
+    table_conversion_clé[QT_Key.Open] = ToucheClavier.INCONNUE;
+    table_conversion_clé[QT_Key.Find] = ToucheClavier.INCONNUE;
+    table_conversion_clé[QT_Key.Undo] = ToucheClavier.INCONNUE;
+    table_conversion_clé[QT_Key.Redo] = ToucheClavier.INCONNUE;
+    table_conversion_clé[QT_Key.MediaLast] = ToucheClavier.INCONNUE;
+    table_conversion_clé[QT_Key.Select] = ToucheClavier.INCONNUE;
+    table_conversion_clé[QT_Key.Yes] = ToucheClavier.INCONNUE;
+    table_conversion_clé[QT_Key.No] = ToucheClavier.INCONNUE;
+    table_conversion_clé[QT_Key.Cancel] = ToucheClavier.INCONNUE;
+    table_conversion_clé[QT_Key.Printer] = ToucheClavier.INCONNUE;
+    table_conversion_clé[QT_Key.Execute] = ToucheClavier.INCONNUE;
+    table_conversion_clé[QT_Key.Sleep] = ToucheClavier.INCONNUE;
+    table_conversion_clé[QT_Key.Play] = ToucheClavier.INCONNUE;
+    table_conversion_clé[QT_Key.Zoom] = ToucheClavier.INCONNUE;
+    table_conversion_clé[QT_Key.Exit] = ToucheClavier.INCONNUE;
+    table_conversion_clé[QT_Key.Context1] = ToucheClavier.INCONNUE;
+    table_conversion_clé[QT_Key.Context2] = ToucheClavier.INCONNUE;
+    table_conversion_clé[QT_Key.Context3] = ToucheClavier.INCONNUE;
+    table_conversion_clé[QT_Key.Context4] = ToucheClavier.INCONNUE;
+    table_conversion_clé[QT_Key.Call] = ToucheClavier.INCONNUE;
+    table_conversion_clé[QT_Key.Hangup] = ToucheClavier.INCONNUE;
+    table_conversion_clé[QT_Key.Flip] = ToucheClavier.INCONNUE;
+    table_conversion_clé[QT_Key.ToggleCallHangup] = ToucheClavier.INCONNUE;
+    table_conversion_clé[QT_Key.VoiceDial] = ToucheClavier.INCONNUE;
+    table_conversion_clé[QT_Key.LastNumberRedial] = ToucheClavier.INCONNUE;
+    table_conversion_clé[QT_Key.Camera] = ToucheClavier.INCONNUE;
+    table_conversion_clé[QT_Key.CameraFocus] = ToucheClavier.INCONNUE;
+    table_conversion_clé[QT_Key.unknown] = ToucheClavier.INCONNUE;
 }
 
-#ajoute_init initialise_table_conversion_clé()
+#ajoute_init initialise_table_conversion_clé();
 
 /** \} */

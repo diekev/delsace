@@ -414,11 +414,6 @@ void Lexeuse::consomme_espaces_blanches()
                 if (!est_espace_blanche(c)) {
                     return;
                 }
-                if ((m_drapeaux & INCLUS_ESPACES_BLANCHES) != 0) {
-                    this->enregistre_pos_mot();
-                    this->ajoute_caractère();
-                    this->ajoute_lexème(GenreLexème::CARACTÈRE_BLANC);
-                }
 
                 if (c == '\n') {
                     if (m_imbrication_parenthèses == 0 && m_imbrication_crochets == 0 &&
@@ -427,6 +422,11 @@ void Lexeuse::consomme_espaces_blanches()
                         this->ajoute_caractère();
                         ajoute_lexème(GenreLexème::POINT_VIRGULE);
                     }
+                }
+                if ((m_drapeaux & INCLUS_ESPACES_BLANCHES) != 0) {
+                    this->enregistre_pos_mot();
+                    this->ajoute_caractère();
+                    this->ajoute_lexème(GenreLexème::CARACTÈRE_BLANC);
                 }
 
                 this->avance_fixe<1>();

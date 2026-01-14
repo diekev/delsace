@@ -1,61 +1,61 @@
-importe Fondation // pour imprime_valeur
-importe Introspection
+importe Fondation; // pour imprime_valeur
+importe Introspection;
 
-charge "assemblage_arbre"
-charge "catalogue_fichier"
-charge "fichier_texte"
-charge "formulaire"
-charge "lexage"
-charge "rendeuse_page"
-charge "syntaxage"
+charge "assemblage_arbre";
+charge "catalogue_fichier";
+charge "fichier_texte";
+charge "formulaire";
+charge "lexage";
+charge "rendeuse_page";
+charge "syntaxage";
 
 DonnéesGénération :: struct {
-    nom_court_page: chaine
-    valeur: eini
-    nom_variable_boucle: chaine
-    données_variable_boucle: eini
+    nom_court_page: chaine;
+    valeur: eini;
+    nom_variable_boucle: chaine;
+    données_variable_boucle: eini;
 }
 
 erreur_de_génération :: fonc (données_génération: *DonnéesGénération, chns: ...chaine) -> chaine #sanstrace
 {
-    enchaineuse: Enchaineuse
-    initialise_enchaineuse(*enchaineuse)
+    enchaineuse: Enchaineuse;
+    initialise_enchaineuse(*enchaineuse);
 
-    ajoute_au_tampon(*enchaineuse, "Alors que je génère la page pour « ", données_génération.nom_court_page, " », j'ai rencontré une erreur :\n\n")
+    ajoute_au_tampon(*enchaineuse, "Alors que je génère la page pour « ", données_génération.nom_court_page, " », j'ai rencontré une erreur :\n\n");
 
     pour chns {
-        ajoute_au_tampon(*enchaineuse, it)
+        ajoute_au_tampon(*enchaineuse, it);
     }
 
-    ajoute_au_tampon(*enchaineuse, "\n\n")
+    ajoute_au_tampon(*enchaineuse, "\n\n");
 
-    trace_appel := enregistre_liste_trace_appels(contexte().trace_appel)
-    diffère détruit_liste_trace_appels(trace_appel)
+    trace_appel := enregistre_liste_trace_appels(contexte().trace_appel);
+    diffère détruit_liste_trace_appels(trace_appel);
 
-    imprime_trace(trace_appel, *enchaineuse)
-    retourne chaine_depuis_enchaineuse(*enchaineuse)
+    imprime_trace(trace_appel, *enchaineuse);
+    retourne chaine_depuis_enchaineuse(*enchaineuse);
 }
 
 trouve_variable :: fonc (données: *DonnéesGénération, nom: chaine) -> eini
 {
-    valeur := trouve_valeur_rubrique(données.valeur, nom)
+    valeur := trouve_valeur_rubrique(données.valeur, nom);
 
     si valeur.est_valide() {
-        retourne valeur
+        retourne valeur;
     }
 
     si nom == données.nom_variable_boucle {
-        retourne données.données_variable_boucle
+        retourne données.données_variable_boucle;
     }
 
     /* la valeur est invalide, donc nous pouvons sûrement la retourner */
-    retourne valeur
+    retourne valeur;
 }
 
 imprime_valeur :: fonc (enchaineuse: *Enchaineuse, valeur: eini)
 {
     si valeur.info.id == GenreInfoType.CHAINE {
-        chn := valeur.comme_chaine()
+        chn := valeur.comme_chaine();
 
         pour chn {
             /* Remplace les caractères sensibles par leurs échappements.
@@ -65,36 +65,36 @@ imprime_valeur :: fonc (enchaineuse: *Enchaineuse, valeur: eini)
              * Voir https://cheatsheetseries.owasp.org/cheatsheets/Cross_Site_Scripting_Prevention_Cheat_Sheet.html
              * pour plus de détails. */
             si it == '&' {
-                ajoute_au_tampon(enchaineuse, "&amp;")
+                ajoute_au_tampon(enchaineuse, "&amp;");
             }
             sinon si it == '<' {
-                ajoute_au_tampon(enchaineuse, "&lt;")
+                ajoute_au_tampon(enchaineuse, "&lt;");
             }
             sinon si it == '>' {
-                ajoute_au_tampon(enchaineuse, "&gt;")
+                ajoute_au_tampon(enchaineuse, "&gt;");
             }
             sinon si it == '"' {
-                ajoute_au_tampon(enchaineuse, "&quot;")
+                ajoute_au_tampon(enchaineuse, "&quot;");
             }
             sinon si it == '\'' {
-                ajoute_au_tampon(enchaineuse, "&#39;")
+                ajoute_au_tampon(enchaineuse, "&#39;");
             }
             sinon si it == '/' {
-                ajoute_au_tampon(enchaineuse, "&#x2f;")
+                ajoute_au_tampon(enchaineuse, "&#x2f;");
             }
             sinon {
-                ajoute_au_tampon(enchaineuse, it)
+                ajoute_au_tampon(enchaineuse, it);
             }
         }
     }
     sinon {
-        Fondation.imprime_valeur(enchaineuse, valeur, faux)
+        Fondation.imprime_valeur(enchaineuse, valeur, faux);
     }
 }
 
 aucune_erreur :: fonc () -> chaine
 {
-    retourne ""
+    retourne "";
 }
 
 génère_page :: fonc (données: *DonnéesGénération, noeud: *NoeudSyntaxique, enchaineuse: *Enchaineuse) -> chaine
@@ -102,137 +102,137 @@ génère_page :: fonc (données: *DonnéesGénération, noeud: *NoeudSyntaxique,
     discr noeud.type {
         BLOC {
             pour enfant dans noeud.enfants {
-                erreur_ := génère_page(données, enfant, enchaineuse)
+                erreur_ := génère_page(données, enfant, enchaineuse);
 
                 si erreur_ {
-                    retourne erreur_
+                    retourne erreur_;
                 }
             }
 
-            retourne aucune_erreur()
+            retourne aucune_erreur();
         }
         CHAINE_CARACTÈRE {
             pour noeud.données.chn {
             }
 
-            ajoute_au_tampon(enchaineuse, noeud.données.chn)
-            retourne aucune_erreur()
+            ajoute_au_tampon(enchaineuse, noeud.données.chn);
+            retourne aucune_erreur();
         }
         VARIABLE {
-            valeur := trouve_valeur_pour_expression(données, noeud)
+            valeur := trouve_valeur_pour_expression(données, noeud);
 
             saufsi valeur.est_valide() {
-                retourne erreur_de_génération(données, "Variable « ", noeud.données.chn, " » inconnue !")
+                retourne erreur_de_génération(données, "Variable « ", noeud.données.chn, " » inconnue !");
             }
 
-            imprime_valeur(enchaineuse, valeur)
-            retourne aucune_erreur()
+            imprime_valeur(enchaineuse, valeur);
+            retourne aucune_erreur();
         }
         POUR {
-            valeur := trouve_valeur_pour_expression(données, noeud.enfants[1])
+            valeur := trouve_valeur_pour_expression(données, noeud.enfants[1]);
 
             saufsi valeur.est_valide() {
-                retourne erreur_de_génération(données, "Impossible de trouver « ", noeud.enfants[1].données.chn, " » !")
+                retourne erreur_de_génération(données, "Impossible de trouver « ", noeud.enfants[1].données.chn, " » !");
             }
 
-            variable := noeud.enfants[0].données.chn
+            variable := noeud.enfants[0].données.chn;
 
             si valeur.est_tableau() {
-                itératrice := crée_itératrice_tableau(valeur)
+                itératrice := crée_itératrice_tableau(valeur);
 
                 boucle {
-                    valeur_ := itératrice.valeur_suivante()
+                    valeur_ := itératrice.valeur_suivante();
 
                     saufsi valeur_.est_valide() {
-                        arrête
+                        arrête;
                     }
 
-                    données.nom_variable_boucle = variable
-                    données.données_variable_boucle = valeur_
+                    données.nom_variable_boucle = variable;
+                    données.données_variable_boucle = valeur_;
 
-                    erreur_ := génère_page(données, noeud.enfants[2], enchaineuse)
+                    erreur_ := génère_page(données, noeud.enfants[2], enchaineuse);
 
                     si erreur_ {
-                        retourne erreur_
+                        retourne erreur_;
                     }
                 }
 
-                retourne aucune_erreur()
+                retourne aucune_erreur();
             }
 
-            retourne erreur_de_génération(données, "« ", noeud.enfants[1].données.chn, " » n'est pas itérable !")
+            retourne erreur_de_génération(données, "« ", noeud.enfants[1].données.chn, " » n'est pas itérable !");
         }
         SI {
-            variable := noeud.enfants[0].données.chn
-            valeur := trouve_variable(données, variable)
+            variable := noeud.enfants[0].données.chn;
+            valeur := trouve_variable(données, variable);
 
             si évalue_condition(valeur) {
-                retourne génère_page(données, noeud.enfants[1], enchaineuse)
+                retourne génère_page(données, noeud.enfants[1], enchaineuse);
             }
 
             si noeud.enfants.taille > 2 {
-                retourne génère_page(données, noeud.enfants[2], enchaineuse)
+                retourne génère_page(données, noeud.enfants[2], enchaineuse);
             }
 
-            retourne aucune_erreur()
+            retourne aucune_erreur();
         }
         ACCÈS_RUBRIQUE {
-            valeur := trouve_valeur_pour_expression(données, noeud)
+            valeur := trouve_valeur_pour_expression(données, noeud);
 
             saufsi valeur.est_valide() {
-                retourne erreur_de_génération(données, "Impossible de résoudre l'expression « ", noeud.enfants[0].données.chn, ".", noeud.enfants[1].données.chn, " » !")
+                retourne erreur_de_génération(données, "Impossible de résoudre l'expression « ", noeud.enfants[0].données.chn, ".", noeud.enfants[1].données.chn, " » !");
             }
 
-            imprime_valeur(enchaineuse, valeur)
-            retourne aucune_erreur()
+            imprime_valeur(enchaineuse, valeur);
+            retourne aucune_erreur();
         }
     }
 
-    retourne erreur_de_génération(données, "Type de noeud inconnus !")
+    retourne erreur_de_génération(données, "Type de noeud inconnus !");
 } @FonctionLongue
 
 évalue_condition :: fonc (valeur: eini) -> bool
 {
     saufsi valeur.est_valide() {
-        retourne faux
+        retourne faux;
     }
 
     si valeur.est_bool() {
-        retourne valeur.comme_bool()
+        retourne valeur.comme_bool();
     }
 
     si valeur.est_chaine() {
-        retourne valeur.comme_chaine() != ""
+        retourne valeur.comme_chaine() != "";
     }
 
-    retourne faux
+    retourne faux;
 }
 
 trouve_valeur_pour_expression :: fonc (données: *DonnéesGénération, noeud: *NoeudSyntaxique) -> eini
 {
-    résultat: eini
+    résultat: eini;
 
     discr noeud.type {
         VARIABLE {
-            variable := noeud.données.chn
-            résultat = trouve_variable(données, variable)
+            variable := noeud.données.chn;
+            résultat = trouve_variable(données, variable);
         }
         ACCÈS_RUBRIQUE {
-            accédé := noeud.enfants[0]
-            rubrique := noeud.enfants[1].données.chn
+            accédé := noeud.enfants[0];
+            rubrique := noeud.enfants[1].données.chn;
 
-            valeur_accédée := trouve_valeur_pour_expression(données, accédé)
+            valeur_accédée := trouve_valeur_pour_expression(données, accédé);
 
             saufsi valeur_accédée.est_valide() {
-                retourne résultat
+                retourne résultat;
             }
 
-            résultat = trouve_valeur_rubrique(valeur_accédée, rubrique)
+            résultat = trouve_valeur_rubrique(valeur_accédée, rubrique);
         }
         sinon {
             // mauvais type de neoud
         }
     }
 
-    retourne résultat
+    retourne résultat;
 }

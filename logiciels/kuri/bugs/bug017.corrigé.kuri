@@ -4,7 +4,7 @@
  * Catégorie : [validation sémantique, assignation composée]
  */
 
-importe Support
+importe Support;
 
 principale :: fonc ()
 {
@@ -12,8 +12,8 @@ principale :: fonc ()
         a := 0
         b : z64 = 5
         a += b
-    ")
+    ");
     saufsi (erreur_survenue) {
-        exit(1)
+        exit(1);
     }
 }

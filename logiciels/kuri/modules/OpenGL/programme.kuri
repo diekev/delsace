@@ -1,7 +1,7 @@
-importe Couleur
-importe Math
-importe SimpleLexage
-importe SysFichier
+importe Couleur;
+importe Math;
+importe SimpleLexage;
+importe SysFichier;
 
 /* ------------------------------------------------------------------------- */
 /** \nom Outils pour compiler des programmes OpenGL.
@@ -13,47 +13,47 @@ importe SysFichier
 compile_un_programme :: fonc (source_vertex: chaine, source_fragment: chaine) -> Optionnel(n32)
 {
     /* Compile les sources. */
-    opt_id_nuanceur_vertex := compile_source_nuanceur(source_vertex, GL_VERTEX_SHADER)
+    opt_id_nuanceur_vertex := compile_source_nuanceur(source_vertex, GL_VERTEX_SHADER);
     saufsi opt_id_nuanceur_vertex.possède_valeur() {
-        retourne
+        retourne;
     }
-    id_nuanceur_vertex := opt_id_nuanceur_vertex.Quelque
-    diffère détruit_nuanceur(id_nuanceur_vertex)
+    id_nuanceur_vertex := opt_id_nuanceur_vertex.Quelque;
+    diffère détruit_nuanceur(id_nuanceur_vertex);
 
-    opt_id_nuanceur_fragment := compile_source_nuanceur(source_fragment, GL_FRAGMENT_SHADER)
+    opt_id_nuanceur_fragment := compile_source_nuanceur(source_fragment, GL_FRAGMENT_SHADER);
     saufsi opt_id_nuanceur_fragment.possède_valeur() {
-        retourne
+        retourne;
     }
-    id_nuanceur_fragment := opt_id_nuanceur_fragment.Quelque
-    diffère détruit_nuanceur(id_nuanceur_fragment)
+    id_nuanceur_fragment := opt_id_nuanceur_fragment.Quelque;
+    diffère détruit_nuanceur(id_nuanceur_fragment);
 
     /* Compile le programme. */
-    id_programme := glCreateProgram()
+    id_programme := glCreateProgram();
     saufsi glIsProgram(id_programme) {
-        retourne
+        retourne;
     }
 
-    glAttachShader(id_programme, id_nuanceur_vertex)
-    diffère glDetachShader(id_programme, id_nuanceur_vertex)
+    glAttachShader(id_programme, id_nuanceur_vertex);
+    diffère glDetachShader(id_programme, id_nuanceur_vertex);
 
-    glAttachShader(id_programme, id_nuanceur_fragment)
-    diffère glDetachShader(id_programme, id_nuanceur_fragment)
+    glAttachShader(id_programme, id_nuanceur_fragment);
+    diffère glDetachShader(id_programme, id_nuanceur_fragment);
 
-    glLinkProgram(id_programme)
+    glLinkProgram(id_programme);
 
     saufsi vérifie_liaison(id_programme) {
-        glDeleteProgram(id_programme)
-        retourne
+        glDeleteProgram(id_programme);
+        retourne;
     }
 
-    retourne id_programme
+    retourne id_programme;
 }
 
 /* Détruit un programme. Il ne sera plus valide de l'utiliser après cette opération. */
 détruit_programme :: fonc (id_programme: n32) -> rien
 {
     si glIsProgram(id_programme) {
-        glDeleteProgram(id_programme)
+        glDeleteProgram(id_programme);
     }
 }
 
@@ -61,75 +61,75 @@ détruit_programme :: fonc (id_programme: n32) -> rien
  * imprimée dans la console. */
 vérifie_compilation :: fonc (id_nuanceur: n32) -> bool
 {
-    résultat : z32 = 0
-    longueur_info_log : z32 = 0
+    résultat : z32 = 0;
+    longueur_info_log : z32 = 0;
 
-    glGetShaderiv(id_nuanceur, GL_COMPILE_STATUS, *résultat)
-    glGetShaderiv(id_nuanceur, GL_INFO_LOG_LENGTH, *longueur_info_log)
+    glGetShaderiv(id_nuanceur, GL_COMPILE_STATUS, *résultat);
+    glGetShaderiv(id_nuanceur, GL_INFO_LOG_LENGTH, *longueur_info_log);
 
     si longueur_info_log > 0 {
-        message_erreur := loge_chaine(longueur_info_log + 1)
-        glGetShaderInfoLog(id_nuanceur, longueur_info_log, nul, message_erreur.pointeur)
+        message_erreur := loge_chaine(longueur_info_log + 1);
+        glGetShaderInfoLog(id_nuanceur, longueur_info_log, nul, message_erreur.pointeur);
 
-        imprime("!!!!! Erreur de compilation du nuanceur OpenGL :\n%\n", message_erreur)
+        imprime("!!!!! Erreur de compilation du nuanceur OpenGL :\n%\n", message_erreur);
 
-        déloge(message_erreur)
+        déloge(message_erreur);
 
-        retourne faux
+        retourne faux;
     }
 
-    retourne vrai
+    retourne vrai;
 }
 
 /* Retourne vrai s'il n'y eu aucune erreur de liaison. Si faux, l'erreur est
  * imprimée dans la console. */
 vérifie_liaison :: fonc (id_programme: n32) -> bool
 {
-    résultat : z32 = 0
-    longueur_info_log : z32 = 0
+    résultat : z32 = 0;
+    longueur_info_log : z32 = 0;
 
-    glGetProgramiv(id_programme, GL_LINK_STATUS, *résultat)
-    glGetProgramiv(id_programme, GL_INFO_LOG_LENGTH, *longueur_info_log)
+    glGetProgramiv(id_programme, GL_LINK_STATUS, *résultat);
+    glGetProgramiv(id_programme, GL_INFO_LOG_LENGTH, *longueur_info_log);
 
     si longueur_info_log > 0 {
-        message_erreur := loge_chaine(longueur_info_log + 1)
-        glGetProgramInfoLog(id_programme, longueur_info_log, nul, message_erreur.pointeur)
+        message_erreur := loge_chaine(longueur_info_log + 1);
+        glGetProgramInfoLog(id_programme, longueur_info_log, nul, message_erreur.pointeur);
 
-        imprime("!!!!! Erreur de liaison du programme OpenGL :\n%\n", message_erreur)
+        imprime("!!!!! Erreur de liaison du programme OpenGL :\n%\n", message_erreur);
 
-        déloge(message_erreur)
+        déloge(message_erreur);
 
-        retourne faux
+        retourne faux;
     }
 
-    retourne vrai
+    retourne vrai;
 }
 
 /* Compile les sources du type de nuanceur spécifié. Si une erreur survient,
  * elle est imprimée dans la console. Sinon, l'adresse du nuanceur est retournée. */
 compile_source_nuanceur :: fonc (source: chaine, type: n32) -> Optionnel(n32)
 {
-    résultat := glCreateShader(type)
+    résultat := glCreateShader(type);
     saufsi glIsShader(résultat) {
-        retourne
+        retourne;
     }
 
-    taille_src_vertex := source.taille comme z32
-    glShaderSource(résultat, 1, *source.pointeur, *taille_src_vertex)
-    glCompileShader(résultat)
+    taille_src_vertex := source.taille comme z32;
+    glShaderSource(résultat, 1, *source.pointeur, *taille_src_vertex);
+    glCompileShader(résultat);
 
     saufsi vérifie_compilation(résultat) {
-        détruit_nuanceur(résultat)
+        détruit_nuanceur(résultat);
     }
 
-    retourne résultat
+    retourne résultat;
 }
 
 /* Détruit un nuanceur. Il ne sera plus valide de l'utilisé après cette opération. */
 détruit_nuanceur :: fonc (id_nuanceur: n32) -> rien
 {
     si glIsShader(id_nuanceur) {
-        glDeleteShader(id_nuanceur)
+        glDeleteShader(id_nuanceur);
     }
 }
 
@@ -141,9 +141,9 @@ détruit_nuanceur :: fonc (id_nuanceur: n32) -> rien
 
 donne_adresse_attribut :: fonc (programme: n32, nom: chaine) -> z32
 {
-    nom_c := crée_chaine_c(nom)
-    diffère détruit_chaine_c(nom_c)
-    retourne glGetAttribLocation(programme, nom_c)
+    nom_c := crée_chaine_c(nom);
+    diffère détruit_chaine_c(nom_c);
+    retourne glGetAttribLocation(programme, nom_c);
 }
 
 /** \} */
@@ -153,7 +153,7 @@ donne_adresse_attribut :: fonc (programme: n32, nom: chaine) -> z32
  * Types de valeur possible pour une uniforme.
  * \{ */
 
-TypeValeurUniforme :: bool | z32 | n32 | r32 | ([..]z32) | ([..]n32) | ([..]r32) | Vec2 | Vec3 | Vec4 | CouleurRVBA | Mat4r
+TypeValeurUniforme :: bool | z32 | n32 | r32 | ([..]z32) | ([..]n32) | ([..]r32) | Vec2 | Vec3 | Vec4 | CouleurRVBA | Mat4r;
 
 /** \} */
 
@@ -163,98 +163,98 @@ TypeValeurUniforme :: bool | z32 | n32 | r32 | ([..]z32) | ([..]n32) | ([..]r32)
 
 donne_adresse_uniforme :: fonc (programme: n32, nom: chaine) -> z32
 {
-    nom_c := crée_chaine_c(nom)
-    diffère détruit_chaine_c(nom_c)
-    retourne glGetUniformLocation(programme, nom_c)
+    nom_c := crée_chaine_c(nom);
+    diffère détruit_chaine_c(nom_c);
+    retourne glGetUniformLocation(programme, nom_c);
 }
 
 définis_uniforme :: fonc (programme: n32, nom: chaine, valeur: $T/TypeValeurUniforme)
 {
-    adresse := donne_adresse_uniforme(programme, nom)
-    définis_uniforme(adresse, valeur)
+    adresse := donne_adresse_uniforme(programme, nom);
+    définis_uniforme(adresse, valeur);
 }
 
 définis_uniforme :: fonc (adresse: z32, valeur: bool)
 {
     si adresse != -1 {
-        glUniform1i(adresse, valeur comme z32)
+        glUniform1i(adresse, valeur comme z32);
     }
 }
 
 définis_uniforme :: fonc (adresse: z32, valeur: z32)
 {
     si adresse != -1 {
-        glUniform1i(adresse, valeur)
+        glUniform1i(adresse, valeur);
     }
 }
 
 définis_uniforme :: fonc (adresse: z32, valeur: n32)
 {
     si adresse != -1 {
-        glUniform1ui(adresse, valeur)
+        glUniform1ui(adresse, valeur);
     }
 }
 
 définis_uniforme :: fonc (adresse: z32, valeur: r32)
 {
     si adresse != -1 {
-        glUniform1f(adresse, valeur)
+        glUniform1f(adresse, valeur);
     }
 }
 
 définis_uniforme :: fonc (adresse: z32, valeur: [..]z32)
 {
     si adresse != -1 {
-        glUniform1iv(adresse, valeur.taille comme GLsizei, valeur.pointeur)
+        glUniform1iv(adresse, valeur.taille comme GLsizei, valeur.pointeur);
     }
 }
 
 définis_uniforme :: fonc (adresse: z32, valeur: [..]n32)
 {
     si adresse != -1 {
-        glUniform1uiv(adresse, valeur.taille comme GLsizei, valeur.pointeur)
+        glUniform1uiv(adresse, valeur.taille comme GLsizei, valeur.pointeur);
     }
 }
 
 définis_uniforme :: fonc (adresse: z32, valeur: [..]r32)
 {
     si adresse != -1 {
-        glUniform1fv(adresse, valeur.taille comme GLsizei, valeur.pointeur)
+        glUniform1fv(adresse, valeur.taille comme GLsizei, valeur.pointeur);
     }
 }
 
 définis_uniforme :: fonc (adresse: z32, valeur: Vec2)
 {
     si adresse != -1 {
-        glUniform2f(adresse, valeur.x, valeur.y)
+        glUniform2f(adresse, valeur.x, valeur.y);
     }
 }
 
 définis_uniforme :: fonc (adresse: z32, valeur: Vec3)
 {
     si adresse != -1 {
-        glUniform3f(adresse, valeur.x, valeur.y, valeur.z)
+        glUniform3f(adresse, valeur.x, valeur.y, valeur.z);
     }
 }
 
 définis_uniforme :: fonc (adresse: z32, valeur: Vec4)
 {
     si adresse != -1 {
-        glUniform4f(adresse, valeur.x, valeur.y, valeur.z, valeur.w)
+        glUniform4f(adresse, valeur.x, valeur.y, valeur.z, valeur.w);
     }
 }
 
 définis_uniforme :: fonc (adresse: z32, valeur: CouleurRVBA)
 {
     si adresse != -1 {
-        glUniform4f(adresse, valeur.r, valeur.v, valeur.b, valeur.a)
+        glUniform4f(adresse, valeur.r, valeur.v, valeur.b, valeur.a);
     }
 }
 
 définis_uniforme :: fonc (adresse: z32, mat: Mat4r)
 {
     si adresse != -1 {
-        glUniformMatrix4fv(adresse, 1, GL_FALSE comme GLboolean, *mat.m[0][0])
+        glUniformMatrix4fv(adresse, 1, GL_FALSE comme GLboolean, *mat.m[0][0]);
     }
 }
 
@@ -265,43 +265,43 @@ définis_uniforme :: fonc (adresse: z32, mat: Mat4r)
  * \{ */
 
 SourcesGLSL :: struct {
-    vertex: chaine
-    fragment: chaine
+    vertex: chaine;
+    fragment: chaine;
 }
 
 détruit_sources :: fonc (sources: *SourcesGLSL)
 {
-    déloge(sources.vertex)
-    déloge(sources.fragment)
+    déloge(sources.vertex);
+    déloge(sources.fragment);
 }
 
 crée_sources_glsl_depuis_texte :: fonc (vertex: chaine, fragment: chaine) -> Optionnel(SourcesGLSL)
 {
     saufsi vertex {
-        retourne
+        retourne;
     }
 
     saufsi fragment {
-        retourne
+        retourne;
     }
 
-    retourne SourcesGLSL(vertex, fragment)
+    retourne SourcesGLSL(vertex, fragment);
 }
 
 crée_sources_glsl_depuis_fichier :: fonc (vertex: CheminFichier, fragment: CheminFichier) -> Optionnel(SourcesGLSL)
 {
-    succès_source_vertex, source_vertex := contenu_fichier_texte(vertex)
+    succès_source_vertex, source_vertex := contenu_fichier_texte(vertex);
     saufsi succès_source_vertex && source_vertex {
-        retourne
+        retourne;
     }
 
-    succès_source_fragment, source_fragment := contenu_fichier_texte(fragment)
+    succès_source_fragment, source_fragment := contenu_fichier_texte(fragment);
     saufsi succès_source_fragment && source_fragment {
-        déloge(source_vertex)
-        retourne
+        déloge(source_vertex);
+        retourne;
     }
 
-    retourne SourcesGLSL(source_vertex, source_fragment)
+    retourne SourcesGLSL(source_vertex, source_fragment);
 }
 
 /** \} */
@@ -311,63 +311,63 @@ crée_sources_glsl_depuis_fichier :: fonc (vertex: CheminFichier, fragment: Chem
  * \{ */
 
 TypeValeur :: énum {
-    bool_
-    int
-    uint
-    float
-    double
+    bool_;
+    int;
+    uint;
+    float;
+    double;
 
-    vec2
-    vec3
-    vec4
+    vec2;
+    vec3;
+    vec4;
 
-    mat3
-    mat4
+    mat3;
+    mat4;
 
-    sampler1D
-    sampler2D
-    sampler3D
+    sampler1D;
+    sampler2D;
+    sampler3D;
 
-    sampler2DArray
+    sampler2DArray;
 }
 
 donne_type_pour_chaine :: fonc (type: chaine) -> TypeValeur
 {
     si type == "bool" {
-        retourne TypeValeur.bool_
+        retourne TypeValeur.bool_;
     }
 
-    valeur_type, trouvée := donne_valeur_énum_pour_nom(info_de(TypeValeur), type)
+    valeur_type, trouvée := donne_valeur_énum_pour_nom(info_de(TypeValeur), type);
     si trouvée {
-        retourne valeur_type comme TypeValeur
+        retourne valeur_type comme TypeValeur;
     }    
 
-    imprimeln("Type inconnu : %", type)
-    exit(1)
+    imprimeln("Type inconnu : %", type);
+    exit(1);
 }
 
 InformationAttribut :: struct {
-    nom: chaine
-    type: TypeValeur
-    location: z32
-    adresse: z32
+    nom: chaine;
+    type: TypeValeur;
+    location: z32;
+    adresse: z32;
 }
 
 ProgrammeDeNuançage :: struct {
-    programme: n32
+    programme: n32;
 
-    attributs: [..]InformationAttribut
-    uniformes: [..]InformationAttribut
+    attributs: [..]InformationAttribut;
+    uniformes: [..]InformationAttribut;
 }
 
 est_valide :: fonc (programme: *ProgrammeDeNuançage) -> bool
 {
     saufsi programme {
-        retourne faux
+        retourne faux;
     }
 
     saufsi glIsProgram(programme.programme) {
-        retourne faux
+        retourne faux;
     }
 
     /* 
@@ -377,114 +377,114 @@ est_valide :: fonc (programme: *ProgrammeDeNuançage) -> bool
 		                          glGetProgramiv, glGetProgramInfoLog, os);
 	 */
 
-    retourne vrai
+    retourne vrai;
 }
 
 active :: fonc (programme: *ProgrammeDeNuançage)
 {
-    glUseProgram(programme.programme)
+    glUseProgram(programme.programme);
 }
 
 définis_uniforme :: fonc (programme: *ProgrammeDeNuançage, nom: chaine, valeur: $T/TypeValeurUniforme)
 {
-    définis_uniforme(programme.donne_adresse_uniforme(nom), valeur)
+    définis_uniforme(programme.donne_adresse_uniforme(nom), valeur);
 }
 
 désactive :: fonc (programme: *ProgrammeDeNuançage @inutilisée)
 {
-    glUseProgram(0)
+    glUseProgram(0);
 }
 
 ajoute_attribut :: fonc (programme: *ProgrammeDeNuançage, nom: chaine, type: TypeValeur, location: z32)
 {
     pour programme.attributs {
         si it.nom == nom {
-            assert(it.type == type)
-            retourne
+            assert(it.type == type);
+            retourne;
         }
     }
 
-    attribut := tableau_ajoute_élément(*programme.attributs)
-    attribut.nom = copie_chaine(nom)
-    attribut.type = type
-    attribut.location = location
-    attribut.adresse = -1
+    attribut := tableau_ajoute_élément(*programme.attributs);
+    attribut.nom = copie_chaine(nom);
+    attribut.type = type;
+    attribut.location = location;
+    attribut.adresse = -1;
 }
 
 ajoute_uniforme :: fonc (programme: *ProgrammeDeNuançage, nom: chaine, type: TypeValeur)
 {
     pour programme.uniformes {
         si it.nom == nom {
-            assert(it.type == type)
-            retourne
+            assert(it.type == type);
+            retourne;
         }
     }
 
-    uniforme := tableau_ajoute_élément(*programme.uniformes)
-    uniforme.nom = copie_chaine(nom)
-    uniforme.type = type
-    uniforme.adresse = -1
+    uniforme := tableau_ajoute_élément(*programme.uniformes);
+    uniforme.nom = copie_chaine(nom);
+    uniforme.type = type;
+    uniforme.adresse = -1;
 }
 
 détruit_programme :: fonc (programme: *ProgrammeDeNuançage)
 {
     pour programme.attributs {
-        déloge(it.nom)
+        déloge(it.nom);
     }
-    déloge(programme.attributs)
+    déloge(programme.attributs);
     pour programme.uniformes {
-        déloge(it.nom)
+        déloge(it.nom);
     }
-    déloge(programme.uniformes)
-    détruit_programme(programme.programme)
-    déloge(programme)
+    déloge(programme.uniformes);
+    détruit_programme(programme.programme);
+    déloge(programme);
 }
 
 donne_adresse_attribut :: fonc (programme: *ProgrammeDeNuançage, nom: chaine) -> z32
 {
     pour programme.attributs {
         si it.nom == nom {
-            retourne it.adresse
+            retourne it.adresse;
         }
     }
 
-    retourne -1
+    retourne -1;
 }
 
 donne_adresse_uniforme :: fonc (programme: *ProgrammeDeNuançage, nom: chaine) -> z32
 {
     pour programme.uniformes {
         si it.nom == nom {
-            retourne it.adresse
+            retourne it.adresse;
         }
     }
 
-    retourne -1
+    retourne -1;
 }
 
 crée_programme_depuis_sources :: fonc (sources: SourcesGLSL) -> *ProgrammeDeNuançage
 {
-    opt_programme := compile_un_programme(sources.vertex, sources.fragment)
+    opt_programme := compile_un_programme(sources.vertex, sources.fragment);
     saufsi opt_programme.possède_valeur() {
-        imprime("Impossible de compiler le programme\n")
-        retourne nul
+        imprime("Impossible de compiler le programme\n");
+        retourne nul;
     }
-    programme := opt_programme.Quelque
+    programme := opt_programme.Quelque;
 
-    résultat := loge(ProgrammeDeNuançage)
-    résultat.programme = programme
+    résultat := loge(ProgrammeDeNuançage);
+    résultat.programme = programme;
 
-    parse_sources_glsl(sources, résultat)
+    parse_sources_glsl(sources, résultat);
 
     pour * résultat.attributs {
-        it.adresse = donne_adresse_attribut(programme, it.nom)
+        it.adresse = donne_adresse_attribut(programme, it.nom);
     }
 
     pour * résultat.uniformes {
-        it.adresse = donne_adresse_uniforme(programme, it.nom)
+        it.adresse = donne_adresse_uniforme(programme, it.nom);
     }
 
-    retourne résultat
+    retourne résultat;
 }
 
 /** \} */
@@ -495,62 +495,62 @@ crée_programme_depuis_sources :: fonc (sources: SourcesGLSL) -> *ProgrammeDeNua
 
 extrait_nom_attribut_ou_uniforme :: fonc (ligne: chaine) -> chaine
 {
-    dernière_espace := trouve_caractère_depuis_la_fin(ligne, ' ')
-    point_virgule := trouve_caractère_depuis_la_fin(ligne, ';')
-    retourne ligne.sous_chaine(dernière_espace + 1, point_virgule)
+    dernière_espace := trouve_caractère_depuis_la_fin(ligne, ' ');
+    point_virgule := trouve_caractère_depuis_la_fin(ligne, ';');
+    retourne ligne.sous_chaine(dernière_espace + 1, point_virgule);
 }
 
 parse_attributs_et_uniformes_depuis :: fonc (lexeuse: *SimpleLexeuse, source: chaine, programme: *ProgrammeDeNuançage)
 {
-    initialise_lexeuse_pour_texte(lexeuse, source)
+    initialise_lexeuse_pour_texte(lexeuse, source);
 
     boucle {
-        lexème := donne_lexème_suivant(lexeuse)
+        lexème := donne_lexème_suivant(lexeuse);
         si lexème.type == TypeLexème.FinDeFichier {
-            arrête
+            arrête;
         }
 
         si lexème.est_mot_clé("layout") {
-            consomme_ponctuation(lexeuse, "(")
-            consomme_symbole(lexeuse, "location")
-            consomme_ponctuation(lexeuse, "=")
+            consomme_ponctuation(lexeuse, "(");
+            consomme_symbole(lexeuse, "location");
+            consomme_ponctuation(lexeuse, "=");
 
-            location := donne_nombre(lexeuse).nombre.naturel comme z32
+            location := donne_nombre(lexeuse).nombre.naturel comme z32;
 
-            consomme_ponctuation(lexeuse, ")")
+            consomme_ponctuation(lexeuse, ")");
 
-            lexème = donne_lexème_suivant(lexeuse)
+            lexème = donne_lexème_suivant(lexeuse);
             si lexème.est_mot_clé("in") {
-                lexème_type := donne_mot_clé(lexeuse)
-                lexème_nom := donne_symbole(lexeuse)
+                lexème_type := donne_mot_clé(lexeuse);
+                lexème_nom := donne_symbole(lexeuse);
 
-                programme.ajoute_attribut(lexème_nom.donne_texte(), donne_type_pour_chaine(lexème_type.donne_texte()), location)
+                programme.ajoute_attribut(lexème_nom.donne_texte(), donne_type_pour_chaine(lexème_type.donne_texte()), location);
             }
             sinon si lexème.est_mot_clé("out") {
-                continue
+                continue;
             }
 
-            consomme_ponctuation(lexeuse, ";")
+            consomme_ponctuation(lexeuse, ";");
         }
         sinon si lexème.est_mot_clé("uniform") {
-            lexème_type := donne_mot_clé(lexeuse)
-            lexème_nom := donne_symbole(lexeuse)
+            lexème_type := donne_mot_clé(lexeuse);
+            lexème_nom := donne_symbole(lexeuse);
 
-            programme.ajoute_uniforme(lexème_nom.donne_texte(), donne_type_pour_chaine(lexème_type.donne_texte()))
+            programme.ajoute_uniforme(lexème_nom.donne_texte(), donne_type_pour_chaine(lexème_type.donne_texte()));
 
-            consomme_ponctuation(lexeuse, ";")
+            consomme_ponctuation(lexeuse, ";");
         }
     }
 }
 
 parse_sources_glsl :: fonc (sources: SourcesGLSL, programme: *ProgrammeDeNuançage)
 {
-    lexeuse: SimpleLexeuse
-    lexeuse.ponctuations = ["{", "}", "(", ")", "=", ";", "#", "*", "-", "+", "/", ",", "<", ">", "<=", ">=", "!=", "=="]
-    lexeuse.mots_clés = __mots_clés_glsl
+    lexeuse: SimpleLexeuse;
+    lexeuse.ponctuations = ["{", "}", "(", ")", "=", ";", "#", "*", "-", "+", "/", ",", "<", ">", "<=", ">=", "!=", "=="];
+    lexeuse.mots_clés = __mots_clés_glsl;
 
-    parse_attributs_et_uniformes_depuis(*lexeuse, sources.vertex, programme)
-    parse_attributs_et_uniformes_depuis(*lexeuse, sources.fragment, programme)
+    parse_attributs_et_uniformes_depuis(*lexeuse, sources.vertex, programme);
+    parse_attributs_et_uniformes_depuis(*lexeuse, sources.fragment, programme);
 }
 
 __mots_clés_glsl := [
@@ -586,6 +586,6 @@ __mots_clés_glsl := [
     "discard", "default", "continue", "cont", "common", "coherent", "class", "centroid",
     "cast", "case", "bvec4", "bvec3", "bvec2", "buffer", "break", "bool", "attribute",
     "atomic_uint", "asm", "active", "const", "packed", "std140", "std430"
-]
+];
 
 /** \} */

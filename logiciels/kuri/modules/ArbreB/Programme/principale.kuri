@@ -1,56 +1,56 @@
-importe ArbreB
-importe Fondation
+importe ArbreB;
+importe Fondation;
 
 principale :: fonc ()
 {
-    diffère imprime("mémoire utilisée : %o\n", mémoire_utilisée())
+    diffère imprime("mémoire utilisée : %o\n", mémoire_utilisée());
 
-    imprime("Test cache MRU :\n")
-    file := crée_file(4)
-    diffère détruit_file(file)
+    imprime("Test cache MRU :\n");
+    file := crée_file(4);
+    diffère détruit_file(file);
 
-    hash := crée_hash(10)
-    diffère détruit_hash(hash)
+    hash := crée_hash(10);
+    diffère détruit_hash(hash);
 
-    pages_à_référencer := [ 1, 2, 3, 1, 4, 5 ]
+    pages_à_référencer := [ 1, 2, 3, 1, 4, 5 ];
     pour pages_à_référencer {
-        file.référence_page(hash, it)
+        file.référence_page(hash, it);
     }
 
-    imprime_file(file)
+    imprime_file(file);
 
-    imprime("\n")
+    imprime("\n");
 
-    imprime("Test arbre B :\n")
+    imprime("Test arbre B :\n");
 
-    arbre := construis_arbre(3, z32)
-    diffère détruit_arbre(*arbre)
+    arbre := construis_arbre(3, z32);
+    diffère détruit_arbre(*arbre);
 
     valeurs_à_insérer := [
         1, 3, 7, 10, 11, 13, 14, 15, 18, 16, 19,
         24, 25, 26, 21, 4, 5, 20, 22, 2, 17, 12, 6
-    ]
+    ];
 
     pour valeurs_à_insérer {
-        insère(*arbre, it)
+        insère(*arbre, it);
     }
 
-    imprime("Traverse de l'arbre :\n")
-    traverse(*arbre)
-    imprime("\n")
+    imprime("Traverse de l'arbre :\n");
+    traverse(*arbre);
+    imprime("\n");
 
-    imprime("Recherche dans l'arbre :\n")
-    cherche_clé(*arbre, 8)
-    cherche_clé(*arbre, 15)
-    imprime("\n")
+    imprime("Recherche dans l'arbre :\n");
+    cherche_clé(*arbre, 8);
+    cherche_clé(*arbre, 15);
+    imprime("\n");
 
-    imprime("Suppression de valeurs :\n")
-    valeurs_à_supprimer := [ 6, 13, 7, 4, 2, 16 ]
+    imprime("Suppression de valeurs :\n");
+    valeurs_à_supprimer := [ 6, 13, 7, 4, 2, 16 ];
     pour valeurs_à_supprimer {
-        supprime_et_traverse(*arbre, it)
+        supprime_et_traverse(*arbre, it);
     }
 
-    imprime("\n")
+    imprime("\n");
 }
 
 /* ------------------------------------------------------------------------- */
@@ -59,177 +59,177 @@ principale :: fonc ()
 // https://www.geeksforgeeks.org/lru-cache-implementation/
 
 NoeudFile :: struct {
-    suivant: *NoeudFile
-    précédent: *NoeudFile
-    numéro_page: z32
+    suivant: *NoeudFile;
+    précédent: *NoeudFile;
+    numéro_page: z32;
 }
 
 crée_noeud :: fonc (numéro_page: z32) -> *NoeudFile
 {
-    n := loge(NoeudFile)
-    n.numéro_page = numéro_page
-    n.suivant = nul
-    n.précédent = nul
+    n := loge(NoeudFile);
+    n.numéro_page = numéro_page;
+    n.suivant = nul;
+    n.précédent = nul;
 
-    retourne n
+    retourne n;
 }
 
 File :: struct {
-    nombre_de_pages := 0
-    nombre_de_pages_remplies := 0
+    nombre_de_pages := 0;
+    nombre_de_pages_remplies := 0;
 
-    front : *NoeudFile = nul
-    cul : *NoeudFile = nul
+    front : *NoeudFile = nul;
+    cul : *NoeudFile = nul;
 }
 
 crée_file :: fonc (nombre_de_pages: z32) -> *File
 {
-    f := loge(File)
-    f.nombre_de_pages = nombre_de_pages
-    f.nombre_de_pages_remplies = 0
-    f.front = nul
-    f.cul = nul
+    f := loge(File);
+    f.nombre_de_pages = nombre_de_pages;
+    f.nombre_de_pages_remplies = 0;
+    f.front = nul;
+    f.cul = nul;
 
-    retourne f
+    retourne f;
 }
 
 sont_toutes_les_pages_pleines :: fonc (file: *File) -> bool
 {
-    retourne file.nombre_de_pages_remplies == file.nombre_de_pages
+    retourne file.nombre_de_pages_remplies == file.nombre_de_pages;
 }
 
 est_vide :: fonc (file: *File) -> bool
 {
-    retourne file.cul == nul
+    retourne file.cul == nul;
 }
 
 défile :: fonc (file: *File) -> rien
 {
     si file.est_vide() {
-        retourne
+        retourne;
     }
 
     si file.front == file.cul {
-        file.front = nul
+        file.front = nul;
     }
 
-    temp := file.cul
-    file.cul = file.cul.précédent
+    temp := file.cul;
+    file.cul = file.cul.précédent;
 
     si file.cul != nul {
-        file.cul.suivant = nul
+        file.cul.suivant = nul;
     }
 
-    déloge(temp)
+    déloge(temp);
 
-    file.nombre_de_pages_remplies -= 1
+    file.nombre_de_pages_remplies -= 1;
 }
 
 Hash :: struct {
-    noeuds: [..]*NoeudFile
-    capacité := 0
+    noeuds: [..]*NoeudFile;
+    capacité := 0;
 }
 
 crée_hash :: fonc (capacité: z32) -> *Hash
 {
-    h := loge(Hash)
-    h.capacité = 0
+    h := loge(Hash);
+    h.capacité = 0;
 
-    tableau_redimensionne(h.noeuds, capacité)
+    tableau_redimensionne(h.noeuds, capacité);
 
-    retourne h
+    retourne h;
 }
 
 enfile :: fonc (file: *File, hash: *Hash, numéro_page: z32) -> rien
 {
     si sont_toutes_les_pages_pleines(file) {
-        hash.noeuds[file.cul.numéro_page] = nul
-        défile(file)
+        hash.noeuds[file.cul.numéro_page] = nul;
+        défile(file);
     }
 
-    temp := crée_noeud(numéro_page)
-    temp.suivant = file.front
+    temp := crée_noeud(numéro_page);
+    temp.suivant = file.front;
 
     si file.est_vide() {
-        file.cul = temp
-        file.front = temp
+        file.cul = temp;
+        file.front = temp;
     }
     sinon {
-        file.front.précédent = temp
-        file.front = temp
+        file.front.précédent = temp;
+        file.front = temp;
     }
 
-    hash.noeuds[numéro_page] = temp
+    hash.noeuds[numéro_page] = temp;
 
-    file.nombre_de_pages_remplies += 1
+    file.nombre_de_pages_remplies += 1;
 }
 
 référence_page :: fonc (file: *File, hash: *Hash, numéro_page: z32) -> rien
 {
-    page_requise := hash.noeuds[numéro_page]
+    page_requise := hash.noeuds[numéro_page];
 
     si page_requise == nul {
-        enfile(file, hash, numéro_page)
+        enfile(file, hash, numéro_page);
     }
     sinon si page_requise != file.front {
         // Délie la page requise de sa position dans la file
-        page_requise.précédent.suivant = page_requise.suivant
+        page_requise.précédent.suivant = page_requise.suivant;
 
         si page_requise.suivant != nul {
-            page_requise.suivant.précédent = page_requise.précédent
+            page_requise.suivant.précédent = page_requise.précédent;
         }
 
         si page_requise == file.cul {
-            file.cul = page_requise.précédent
-            file.cul.suivant = nul
+            file.cul = page_requise.précédent;
+            file.cul.suivant = nul;
         }
 
-        page_requise.suivant = file.front
-        page_requise.précédent = nul
+        page_requise.suivant = file.front;
+        page_requise.précédent = nul;
 
-        page_requise.suivant.précédent = page_requise
+        page_requise.suivant.précédent = page_requise;
 
-        file.front = page_requise
+        file.front = page_requise;
     }
 }
 
 /* ------------------------------------------------------------------------- */
 
 CacheMRU :: struct {
-    arbre : *ArbreB(z32) = nul
-    file : *File = nul
-    capacité : z32 = 0
+    arbre : *ArbreB(z32) = nul;
+    file : *File = nul;
+    capacité : z32 = 0;
 }
 
 construis_cache :: fonc (capacité: z32) -> *CacheMRU
 {
-    cache := loge(CacheMRU)
-    cache.arbre = loge(ArbreB)
-    cache.arbre.t = 3
-    cache.arbre.racine = nul
-    cache.file = crée_file(capacité)
+    cache := loge(CacheMRU);
+    cache.arbre = loge(ArbreB);
+    cache.arbre.t = 3;
+    cache.arbre.racine = nul;
+    cache.file = crée_file(capacité);
 
-    retourne cache
+    retourne cache;
 }
 
 détruit_cache :: fonc (cache: *CacheMRU) -> rien
 {
-    détruit_file(cache.file)
-    détruit_arbre(cache.arbre)
-    déloge(cache.arbre)
-    déloge(cache)
+    détruit_file(cache.file);
+    détruit_arbre(cache.arbre);
+    déloge(cache.arbre);
+    déloge(cache);
 }
 
 référence_page :: fonc (cache: *CacheMRU, x: z32) -> rien
 {
-    noeud := cache.arbre.recherche(x)
+    noeud := cache.arbre.recherche(x);
 
     si noeud == nul {
         si cache.file.sont_toutes_les_pages_pleines() {
-            dernière := cache.file.cul
-            cache.arbre.supprime(dernière.numéro_page)
-            dernière.précédent.suivant = nul
-            déloge(dernière)
+            dernière := cache.file.cul;
+            cache.arbre.supprime(dernière.numéro_page);
+            dernière.précédent.suivant = nul;
+            déloge(dernière);
         }
     }
     sinon {
@@ -239,49 +239,49 @@ référence_page :: fonc (cache: *CacheMRU, x: z32) -> rien
 
 imprime_file :: fonc (file: *File) -> rien
 {
-    ptr := file.front
+    ptr := file.front;
 
     tantque ptr != nul {
-        imprime("page: %\n", ptr.numéro_page)
-        ptr = ptr.suivant
+        imprime("page: %\n", ptr.numéro_page);
+        ptr = ptr.suivant;
     }
 }
 
 détruit_file :: fonc (file: *File) -> rien
 {
-    ptr := file.front
+    ptr := file.front;
 
     tantque ptr != nul {
-        temp := ptr.suivant
-        déloge(ptr)
-        ptr = temp
+        temp := ptr.suivant;
+        déloge(ptr);
+        ptr = temp;
     }
 
-    déloge(file)
+    déloge(file);
 }
 
 détruit_hash :: fonc (hash: *Hash) -> rien
 {
-    déloge(hash.noeuds)
-    déloge(hash)
+    déloge(hash.noeuds);
+    déloge(hash);
 }
 
 cherche_clé :: fonc (arbre: *ArbreB($C), clé: z32) -> rien
 {
-    noeud := recherche(arbre, clé)
+    noeud := recherche(arbre, clé);
 
     si noeud == nul {
-        imprime("La clé % n'est pas dans l'arbre\n", clé)
+        imprime("La clé % n'est pas dans l'arbre\n", clé);
     }
     sinon {
-        imprime("La clé % est dans l'arbre\n", clé)
+        imprime("La clé % est dans l'arbre\n", clé);
     }
 }
 
 supprime_et_traverse :: fonc (arbre: *ArbreB($C), clé: z32) -> rien
 {
-    arbre.supprime(clé)
-    imprime("Traverse de l'arbre après la suppression de %:\n", clé)
-    arbre.traverse()
-    imprime("\n")
+    arbre.supprime(clé);
+    imprime("Traverse de l'arbre après la suppression de %:\n", clé);
+    arbre.traverse();
+    imprime("\n");
 }

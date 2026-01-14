@@ -3,12 +3,12 @@
  */
 
 Struct :: struct {
-    rappel1: fonc (a: z32)
-    rappel2: fonc (a: z32, b: z32)
+    rappel1: fonc (a: z32);
+    rappel2: fonc (a: z32, b: z32);
 }
 
 principale :: fonc ()
 {
-    s: Struct
-    s.rappel1(0, 0)
+    s: Struct;
+    s.rappel1(0, 0);
 }

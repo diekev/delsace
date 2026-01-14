@@ -1,315 +1,315 @@
-importe Fondation
+importe Fondation;
 
 TypeObjet :: énum z32 {
-    NUL :: 0
-    ENTIER :: 1
-    RÉEL :: 2
-    LISTE :: 3
-    DICTIONNAIRE :: 4
-    CHAINE :: 5
+    NUL :: 0;
+    ENTIER :: 1;
+    RÉEL :: 2;
+    LISTE :: 3;
+    DICTIONNAIRE :: 4;
+    CHAINE :: 5;
 }
 
 /* ------------------------------------------------------------------------- */
 
 Objet :: struct {
-    id := TypeObjet.NUL
+    id := TypeObjet.NUL;
 }
 
 /* ------------------------------------------------------------------------- */
 
 ObjetEntier :: struct {
-    empl objet: Objet
-    valeur: z64
-    id = TypeObjet.ENTIER
+    empl objet: Objet;
+    valeur: z64;
+    id = TypeObjet.ENTIER;
 }
 
 /* ------------------------------------------------------------------------- */
 
 ObjetRéel :: struct {
-    empl objet: Objet
-    valeur: r64
-    id = TypeObjet.RÉEL
+    empl objet: Objet;
+    valeur: r64;
+    id = TypeObjet.RÉEL;
 }
 
 /* ------------------------------------------------------------------------- */
 
 ObjetChaine :: struct {
-    empl objet: Objet
-    valeur: chaine
-    id = TypeObjet.CHAINE
+    empl objet: Objet;
+    valeur: chaine;
+    id = TypeObjet.CHAINE;
 }
 
 /* ------------------------------------------------------------------------- */
 
 ObjetListe :: struct {
-    empl objet: Objet
-    valeur: [..]*Objet
-    id = TypeObjet.LISTE
+    empl objet: Objet;
+    valeur: [..]*Objet;
+    id = TypeObjet.LISTE;
 }
 
 /* ------------------------------------------------------------------------- */
 
 ObjetDictionnaire :: struct {
-    empl objet: Objet
-    noms: [..]chaine
-    valeurs: [..]*Objet
-    id = TypeObjet.DICTIONNAIRE
+    empl objet: Objet;
+    noms: [..]chaine;
+    valeurs: [..]*Objet;
+    id = TypeObjet.DICTIONNAIRE;
 }
 
 insère :: fonc (dico: *ObjetDictionnaire, nom_objet: chaine, objet: *Objet) -> rien
 {
     pour nom, idx dans dico.noms {
         si nom != nom_objet {
-            continue
+            continue;
         }
 
-        dico.valeurs[idx] = objet
-        retourne
+        dico.valeurs[idx] = objet;
+        retourne;
     }
 
-    tableau_ajoute(*dico.noms, nom_objet)
-    tableau_ajoute(*dico.valeurs, objet)
+    tableau_ajoute(*dico.noms, nom_objet);
+    tableau_ajoute(*dico.valeurs, objet);
 }
 
 trouve_objet :: fonc (dico: *ObjetDictionnaire, nom_objet: chaine) -> *Objet
 {
     pour nom, idx dans dico.noms {
         si nom != nom_objet {
-            continue
+            continue;
         }
 
-        retourne dico.valeurs[idx]
+        retourne dico.valeurs[idx];
     }
 
-    retourne nul
+    retourne nul;
 }
 
 trouve_objet :: fonc (dico: *ObjetDictionnaire, nom_objet: chaine, type: TypeObjet) -> *Objet
 {
     pour nom, idx dans dico.noms {
         si nom != nom_objet {
-            continue
+            continue;
         }
 
-        objet := dico.valeurs[idx]
+        objet := dico.valeurs[idx];
 
         si objet.id != type {
-            retourne nul
+            retourne nul;
         }
 
-        retourne objet
+        retourne objet;
     }
 
-    retourne nul
+    retourne nul;
 }
 
 trouve_entier :: fonc (dico: *ObjetDictionnaire, nom_objet: chaine) -> *ObjetEntier
 {
-    objet := trouve_objet(dico, nom_objet, TypeObjet.ENTIER)
+    objet := trouve_objet(dico, nom_objet, TypeObjet.ENTIER);
 
     si objet != nul {
-        retourne objet comme *ObjetEntier
+        retourne objet comme *ObjetEntier;
     }
 
-    retourne nul
+    retourne nul;
 }
 
 trouve_réel :: fonc (dico: *ObjetDictionnaire, nom_objet: chaine) -> *ObjetRéel
 {
-    objet := trouve_objet(dico, nom_objet, TypeObjet.RÉEL)
+    objet := trouve_objet(dico, nom_objet, TypeObjet.RÉEL);
 
     si objet != nul {
-        retourne objet comme *ObjetRéel
+        retourne objet comme *ObjetRéel;
     }
 
-    retourne nul
+    retourne nul;
 }
 
 trouve_liste :: fonc (dico: *ObjetDictionnaire, nom_objet: chaine) -> *ObjetListe
 {
-    objet := trouve_objet(dico, nom_objet, TypeObjet.LISTE)
+    objet := trouve_objet(dico, nom_objet, TypeObjet.LISTE);
 
     si objet != nul {
-        retourne objet comme *ObjetListe
+        retourne objet comme *ObjetListe;
     }
 
-    retourne nul
+    retourne nul;
 }
 
 trouve_chaine :: fonc (dico: *ObjetDictionnaire, nom_objet: chaine) -> *ObjetChaine
 {
-    objet := trouve_objet(dico, nom_objet, TypeObjet.CHAINE)
+    objet := trouve_objet(dico, nom_objet, TypeObjet.CHAINE);
 
     si objet != nul {
-        retourne objet comme *ObjetChaine
+        retourne objet comme *ObjetChaine;
     }
 
-    retourne nul
+    retourne nul;
 }
 
 trouve_dico :: fonc (dico: *ObjetDictionnaire, nom_objet: chaine) -> *ObjetDictionnaire
 {
-    objet := trouve_objet(dico, nom_objet, TypeObjet.DICTIONNAIRE)
+    objet := trouve_objet(dico, nom_objet, TypeObjet.DICTIONNAIRE);
 
     si objet != nul {
-        retourne objet comme *ObjetDictionnaire
+        retourne objet comme *ObjetDictionnaire;
     }
 
-    retourne nul
+    retourne nul;
 }
 
 /* ------------------------------------------------------------------------- */
 
 GestionnaireObjet :: struct {
-    objets: [..]*Objet
+    objets: [..]*Objet;
 }
 
 crée_objet_impl :: fonc (gestionnaire: *GestionnaireObjet, $T: type_de_données) -> *T
 {
-    résultat := loge(T)
-    tableau_ajoute(*gestionnaire.objets, résultat)
-    retourne résultat
+    résultat := loge(T);
+    tableau_ajoute(*gestionnaire.objets, résultat);
+    retourne résultat;
 }
 
 crée_dictionnaire :: fonc (gestionnaire: *GestionnaireObjet) -> *ObjetDictionnaire
 {
-    retourne crée_objet_impl(gestionnaire, ObjetDictionnaire)
+    retourne crée_objet_impl(gestionnaire, ObjetDictionnaire);
 }
 
 crée_liste :: fonc (gestionnaire: *GestionnaireObjet) -> *ObjetListe
 {
-    retourne crée_objet_impl(gestionnaire, ObjetListe)
+    retourne crée_objet_impl(gestionnaire, ObjetListe);
 }
 
 crée_entier :: fonc (gestionnaire: *GestionnaireObjet) -> *ObjetEntier
 {
-    retourne crée_objet_impl(gestionnaire, ObjetEntier)
+    retourne crée_objet_impl(gestionnaire, ObjetEntier);
 }
 
 crée_réel :: fonc (gestionnaire: *GestionnaireObjet) -> *ObjetRéel
 {
-    retourne crée_objet_impl(gestionnaire, ObjetRéel)
+    retourne crée_objet_impl(gestionnaire, ObjetRéel);
 }
 
 crée_chaine :: fonc (gestionnaire: *GestionnaireObjet) -> *ObjetChaine
 {
-    retourne crée_objet_impl(gestionnaire, ObjetChaine)
+    retourne crée_objet_impl(gestionnaire, ObjetChaine);
 }
 
 crée_nul :: fonc (gestionnaire: *GestionnaireObjet) -> *Objet
 {
-    retourne crée_objet_impl(gestionnaire, Objet)
+    retourne crée_objet_impl(gestionnaire, Objet);
 }
 
 détruit_objet :: fonc (objet: *Objet) -> rien
 {
     discr objet.id {
         NUL {
-            déloge(objet)
+            déloge(objet);
         }
         ENTIER {
-            obj := objet comme *ObjetEntier
-            déloge(obj)
+            obj := objet comme *ObjetEntier;
+            déloge(obj);
         }
         RÉEL {
-            obj := objet comme *ObjetRéel
-            déloge(obj)
+            obj := objet comme *ObjetRéel;
+            déloge(obj);
         }
         CHAINE {
-            obj := objet comme *ObjetChaine
-            déloge(obj)
+            obj := objet comme *ObjetChaine;
+            déloge(obj);
         }
         LISTE {
-            obj := objet comme *ObjetListe
+            obj := objet comme *ObjetListe;
 
-            déloge(obj.valeur)
-            déloge(obj)
+            déloge(obj.valeur);
+            déloge(obj);
         }
         DICTIONNAIRE {
-            obj := objet comme *ObjetDictionnaire
+            obj := objet comme *ObjetDictionnaire;
 
-            déloge(obj.noms)
-            déloge(obj.valeurs)
-            déloge(obj)
+            déloge(obj.noms);
+            déloge(obj.valeurs);
+            déloge(obj);
         }
     }
 }
 
 détruit :: fonc (gestionnaire: *GestionnaireObjet) -> rien
 {
-    déloge_tableau_et_ses_éléments(gestionnaire.objets)
+    déloge_tableau_et_ses_éléments(gestionnaire.objets);
 }
 
 imprime_json :: fonc (objet: *Objet, tab: z32) -> rien
 {
     discr objet.id {
         NUL {
-            imprime("nul,\n")
+            imprime("nul,\n");
         }
         DICTIONNAIRE {
-            imprime_tabulation(tab)
-            imprime("{\n")
+            imprime_tabulation(tab);
+            imprime("{\n");
 
-            dico := objet comme *ObjetDictionnaire
+            dico := objet comme *ObjetDictionnaire;
 
             pour nom, idx dans dico.noms {
-                obj := dico.valeurs[idx]
+                obj := dico.valeurs[idx];
 
-                imprime_tabulation(tab + 1)
-                imprime("% : ", nom)
-                imprime_json(obj, tab + 1)
+                imprime_tabulation(tab + 1);
+                imprime("% : ", nom);
+                imprime_json(obj, tab + 1);
             }
 
-            imprime_tabulation(tab)
-            imprime("},\n")
+            imprime_tabulation(tab);
+            imprime("},\n");
         }
         LISTE {
-            imprime("[\n")
+            imprime("[\n");
 
-            liste := objet comme *ObjetListe
+            liste := objet comme *ObjetListe;
 
             pour valeur dans liste.valeur {
-                imprime_json(valeur, tab + 1)
+                imprime_json(valeur, tab + 1);
             }
 
-            imprime_tabulation(tab)
-            imprime("],\n")
+            imprime_tabulation(tab);
+            imprime("],\n");
         }
         CHAINE {
-            obj := objet comme *ObjetChaine
-            imprime("\"%\"\n", obj.valeur)
+            obj := objet comme *ObjetChaine;
+            imprime("\"%\"\n", obj.valeur);
         }
         ENTIER {
-            obj := objet comme *ObjetEntier
-            imprime("%,\n", obj.valeur)
+            obj := objet comme *ObjetEntier;
+            imprime("%,\n", obj.valeur);
         }
         RÉEL {
-            obj := objet comme *ObjetRéel
-            imprime("%,\n", obj.valeur)
+            obj := objet comme *ObjetRéel;
+            imprime("%,\n", obj.valeur);
         }
     }
 }
 
 test_tori :: fonc () -> rien
 {
-    diffère imprime("mémoire utilisée : %o\n", mémoire_utilisée())
+    diffère imprime("mémoire utilisée : %o\n", mémoire_utilisée());
 
-    gestionnaire: GestionnaireObjet
-    diffère détruit(*gestionnaire)
+    gestionnaire: GestionnaireObjet;
+    diffère détruit(*gestionnaire);
 
-    dico := crée_dictionnaire(*gestionnaire)
+    dico := crée_dictionnaire(*gestionnaire);
 
-    obj1 := crée_liste(*gestionnaire)
-    obj2 := crée_entier(*gestionnaire)
-    obj3 := crée_réel(*gestionnaire)
-    obj4 := crée_nul(*gestionnaire)
-    obj5 := crée_chaine(*gestionnaire)
+    obj1 := crée_liste(*gestionnaire);
+    obj2 := crée_entier(*gestionnaire);
+    obj3 := crée_réel(*gestionnaire);
+    obj4 := crée_nul(*gestionnaire);
+    obj5 := crée_chaine(*gestionnaire);
 
-    insère(dico, "liste", obj1)
-    insère(dico, "entier", obj2)
-    insère(dico, "réel", obj3)
-    insère(dico, "nul", obj4)
-    insère(dico, "chaine", obj5)
+    insère(dico, "liste", obj1);
+    insère(dico, "entier", obj2);
+    insère(dico, "réel", obj3);
+    insère(dico, "nul", obj4);
+    insère(dico, "chaine", obj5);
 
-    imprime_json(dico, 0)
+    imprime_json(dico, 0);
 }

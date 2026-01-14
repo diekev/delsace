@@ -1,105 +1,105 @@
 
 adresse_depuis_s_adrr :: fonc (addr: in_addr) -> AdresseIPv4 #enligne
 {
-    retourne adresse_ipv4_depuis_entier_simple(addr.s_addr)
+    retourne adresse_ipv4_depuis_entier_simple(addr.s_addr);
 }
 
 adresse_depuis_s_adrr :: fonc (addr: in6_addr) -> AdresseIPv6 #enligne
 {
-    données: [8]n16
+    données: [8]n16;
 
     pour 8 {
-        données[it] = (addr.s6_addr[it * 2] comme n16 << 8) | addr.s6_addr[it * 2 + 1]
+        données[it] = (addr.s6_addr[it * 2] comme n16 << 8) | addr.s6_addr[it * 2 + 1];
     }
 
-    retourne AdresseIPv6(données)
+    retourne AdresseIPv6(données);
 }
 
 trouve_adresses_pour_hôte :: fonc (hôte: chaine) -> Optionnel([..]AdresseIP)
 {
-    marqueur := donne_marque_stockage_temporaire()
-    diffère définis_marque_stockage_temporaire(marqueur)
+    marqueur := donne_marque_stockage_temporaire();
+    diffère définis_marque_stockage_temporaire(marqueur);
 
-    ptr_tampon := crée_chaine_c_temp(hôte)
+    ptr_tampon := crée_chaine_c_temp(hôte);
 
-    he := gethostbyname(ptr_tampon)
+    he := gethostbyname(ptr_tampon);
     si he == nul {
         // À FAIRE : errno
-        retourne
+        retourne;
     }
 
-    résultat: [..]AdresseIP
+    résultat: [..]AdresseIP;
 
-    indice := 0
+    indice := 0;
     boucle {
-        ptr := he.h_addr_list[indice]
+        ptr := he.h_addr_list[indice];
 
         si ptr comme *z8 == nul {
-            arrête
+            arrête;
         }
 
         si he.h_addrtype == AF_INET {
             /* IPv4 */
-            addr := mémoire(ptr comme *z8 comme *in_addr)
-            adresse := adresse_depuis_s_adrr(addr)
-            tableau_ajoute(*résultat, adresse)
+            addr := mémoire(ptr comme *z8 comme *in_addr);
+            adresse := adresse_depuis_s_adrr(addr);
+            tableau_ajoute(*résultat, adresse);
         }
         sinon si he.h_addrtype == AF_INET6 {
             /* IPv6 */
-            addr := mémoire(ptr comme *z8 comme *in6_addr)
-            adresse := adresse_depuis_s_adrr(addr)
-            tableau_ajoute(*résultat, adresse)
+            addr := mémoire(ptr comme *z8 comme *in6_addr);
+            adresse := adresse_depuis_s_adrr(addr);
+            tableau_ajoute(*résultat, adresse);
         }
 
-        indice += 1
+        indice += 1;
     }
 
-    retourne résultat
+    retourne résultat;
 }
 
 trouve_adresses :: fonc (noeud: chaine, service: chaine) -> Optionnel([..]AdresseIP)
 {
-    marqueur := donne_marque_stockage_temporaire()
-    diffère définis_marque_stockage_temporaire(marqueur)
+    marqueur := donne_marque_stockage_temporaire();
+    diffère définis_marque_stockage_temporaire(marqueur);
 
-    addr: *addrinfo
-    diffère freeaddrinfo(addr)
+    addr: *addrinfo;
+    diffère freeaddrinfo(addr);
 
-    hints: addrinfo
+    hints: addrinfo;
     hints.ai_family = AF_UNSPEC /* Allow IPv4 or IPv6 */
     hints.ai_socktype = SOCK_DGRAM /* Datagram socket */
     // À FAIRE
     // hints.ai_flags = AI_PASSIVE;    /* For wildcard IP address */
     hints.ai_protocol = 0 /* Any protocol */
 
-    ptr_noeud := crée_chaine_c_temp(noeud)
-    ptr_service := crée_chaine_c_temp(service)
+    ptr_noeud := crée_chaine_c_temp(noeud);
+    ptr_service := crée_chaine_c_temp(service);
 
-    code_erreur := getaddrinfo(ptr_noeud, ptr_service, *hints, *addr)
+    code_erreur := getaddrinfo(ptr_noeud, ptr_service, *hints, *addr);
     si code_erreur != 0 {
         // À FAIRE : errno
-        retourne
+        retourne;
     }
 
-    résultat: [..]AdresseIP
+    résultat: [..]AdresseIP;
 
-    addr_courante := addr
+    addr_courante := addr;
     tantque addr_courante != nul {
         si addr_courante.ai_family == AF_INET {
             /* IPv4 */
-            p := addr_courante.ai_addr comme *sockaddr_in
-            adresse := adresse_depuis_s_adrr(p.sin_addr)
-            tableau_ajoute(*résultat, adresse)
+            p := addr_courante.ai_addr comme *sockaddr_in;
+            adresse := adresse_depuis_s_adrr(p.sin_addr);
+            tableau_ajoute(*résultat, adresse);
         }
         sinon si addr_courante.ai_family == AF_INET6 {
             /* IPv6 */
-            p := addr_courante.ai_addr comme *sockaddr_in6
-            adresse := adresse_depuis_s_adrr(p.sin6_addr)
-            tableau_ajoute(*résultat, adresse)
+            p := addr_courante.ai_addr comme *sockaddr_in6;
+            adresse := adresse_depuis_s_adrr(p.sin6_addr);
+            tableau_ajoute(*résultat, adresse);
         }
 
-        addr_courante = addr_courante.ai_next
+        addr_courante = addr_courante.ai_next;
     }
 
-    retourne résultat
+    retourne résultat;
 }

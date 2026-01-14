@@ -6,15 +6,15 @@
  * Catégorie : [exécution code, boucle pour, type tableau, type structure, type de données]
  */
 
-importe Compilatrice
-importe Support
+importe Compilatrice;
+importe Support;
 
 reproduit_bug :: fonc ()
 {
     MaStructure :: struct {
-        type: type_de_données
-        b: z32
-        c: z32
+        type: type_de_données;
+        b: z32;
+        c: z32;
     }
 
     tableau := [
@@ -26,18 +26,18 @@ reproduit_bug :: fonc ()
         MaStructure(r32, 0),
         MaStructure(r32, 0),
         MaStructure(r32, 0)
-    ]
+    ];
 
-    résultat: MaStructure
+    résultat: MaStructure;
 
     pour tableau {
         si it.type == z32 {
-            résultat = it
+            résultat = it;
         }
     }
 }
 
-#exécute reproduit_bug()
+#exécute reproduit_bug();
 
 principale :: fonc ()
 {
