@@ -3,17 +3,17 @@
  * Catégorie : [crash, type polymorphique, paramètre fonction]
  */
 
-importe Fondation
-importe Math
+importe Fondation;
+importe Math;
 
 /* Degrés est polymorphique, mais la fonction n'est pas notée comme tel. */
 imprime_degrés :: fonc (d: Degrés)
 {
-    imprime("%\n", d)
+    imprime("%\n", d);
 }
 
 principale :: fonc ()
 {
-    d: Degrés(r32)
-    imprime_degrés(d)
+    d: Degrés(r32);
+    imprime_degrés(d);
 }

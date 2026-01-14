@@ -3,21 +3,21 @@
  */
 
 Structure1 :: struct {
-    x: r32
+    x: r32;
 }
 
 Structure2 :: struct {
-    x: z32
+    x: z32;
 }
 
 Union :: union {
-    x: Structure1
-    y: Structure2
+    x: Structure1;
+    y: Structure2;
 }
 
 principale :: fonc ()
 {
-    u: Union
+    u: Union;
 
     discr u {
         Structure1(x) {

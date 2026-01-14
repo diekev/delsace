@@ -1,11 +1,11 @@
-importe Chaine
-importe Compilatrice
-importe Ensemble
-importe Fondation
-importe SysFichier
+importe Chaine;
+importe Compilatrice;
+importe Ensemble;
+importe Fondation;
+importe SysFichier;
 
 #exécute {
-    ajoute_module :: fonc (chemin: CheminFichier, ensemble: *[..]chaine)
+    ajoute_module :: fonc (chemin: CheminFichier, ensemble: *[..]chaine);
     {
         interdits := [
             ".vscode",
@@ -20,43 +20,43 @@ importe SysFichier
             "GVDB",
             /* Déjà inclus. */
             "MétaprogrammeDéfaut",
-        ]
+        ];
 
-        nom_fichier := chemin.nom_fichier()
+        nom_fichier := chemin.nom_fichier();
 
         pour interdits {
             si it == nom_fichier {
-                retourne
+                retourne;
             }
         }
 
         #si SYS_EXP == SystèmeExploitation.LINUX {
             si nom_fichier == "Windows" {
-                retourne
+                retourne;
             }
         }
 
-        ensemble_ajoute(ensemble, copie_chaine(nom_fichier))
+        ensemble_ajoute(ensemble, copie_chaine(nom_fichier));
     }
 
-    ensemble: [..]chaine
-    diffère déloge_tableau_et_ses_éléments(ensemble)
+    ensemble: [..]chaine;
+    diffère déloge_tableau_et_ses_éléments(ensemble);
 
-    chemins_modules := CheminFichier("../../modules/")
-    pour_chaque_chemin(chemins_modules, *ensemble, ajoute_module)
+    chemins_modules := CheminFichier("../../modules/");
+    pour_chaque_chemin(chemins_modules, *ensemble, ajoute_module);
 
-    enchaineuse: Enchaineuse
-    initialise_enchaineuse(*enchaineuse)
+    enchaineuse: Enchaineuse;
+    initialise_enchaineuse(*enchaineuse);
 
     pour ensemble {
-        ajoute_au_tampon(*enchaineuse, "importe ", it, "\n")
+        ajoute_au_tampon(*enchaineuse, "importe ", it, "\n");
     }
 
-    ajoute_au_tampon(*enchaineuse, "\n")
-    ajoute_au_tampon(*enchaineuse, "principale :: fonc () {}")
+    ajoute_au_tampon(*enchaineuse, "\n");
+    ajoute_au_tampon(*enchaineuse, "principale :: fonc () {}");
 
-    chn := chaine_depuis_enchaineuse(*enchaineuse)
-    diffère déloge(chn)
+    chn := chaine_depuis_enchaineuse(*enchaineuse);
+    diffère déloge(chn);
 
-    ajoute_chaine_à_la_compilation(compilatrice_espace_courant(), chn)
+    ajoute_chaine_à_la_compilation(compilatrice_espace_courant(), chn);
 }

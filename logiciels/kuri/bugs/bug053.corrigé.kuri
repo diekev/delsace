@@ -2,11 +2,11 @@
  * Catégorie : [génération code C, variable globale, type chaine]
  */
 
-importe Support
+importe Support;
 
-ma_chaine := "les programmeurs ne sont pas inspirés quand il s'agit de trouver des noms pour des variables de test"
+ma_chaine := "les programmeurs ne sont pas inspirés quand il s'agit de trouver des noms pour des variables de test";
 
 principale :: fonc ()
 {
-    _ := ma_chaine
+    _ := ma_chaine;
 }

@@ -3,33 +3,33 @@
  * \{ */
 
 Thème :: struct {
-    couleur_texte: CouleurRVBAN8
-    couleur_arrière_plan: CouleurRVBAN8
-    couleur_avant_plan: CouleurRVBAN8
-    couleur_contour: CouleurRVBAN8
+    couleur_texte: CouleurRVBAN8;
+    couleur_arrière_plan: CouleurRVBAN8;
+    couleur_avant_plan: CouleurRVBAN8;
+    couleur_contour: CouleurRVBAN8;
 
     /* Pour les menus. */
-    couleur_menu_survolé: CouleurRVBAN8
-    couleur_menu_pressé: CouleurRVBAN8
+    couleur_menu_survolé: CouleurRVBAN8;
+    couleur_menu_pressé: CouleurRVBAN8;
 
     /* Pour les boutons. */
-    couleur_bouton: CouleurRVBAN8
-    couleur_bouton_survolé: CouleurRVBAN8
-    couleur_bouton_pressé: CouleurRVBAN8
+    couleur_bouton: CouleurRVBAN8;
+    couleur_bouton_survolé: CouleurRVBAN8;
+    couleur_bouton_pressé: CouleurRVBAN8;
 
     /* Pour les diviseurs. */
-    couleur_diviseur: CouleurRVBAN8
-    couleur_diviseur_survolé: CouleurRVBAN8
+    couleur_diviseur: CouleurRVBAN8;
+    couleur_diviseur_survolé: CouleurRVBAN8;
 
     /* Pour les tables/arborescences. */
-    couleur_table_ligne_paire: CouleurRVBAN8
-    couleur_table_ligne_impaire: CouleurRVBAN8
+    couleur_table_ligne_paire: CouleurRVBAN8;
+    couleur_table_ligne_impaire: CouleurRVBAN8;
 
     /* Pour le texte. */
-    couleur_sélection_texte: CouleurRVBAN8
-    couleur_texte_sélectionné: CouleurRVBAN8
-    couleur_curseur_texte: CouleurRVBAN8
-    couleur_lieutenant: CouleurRVBAN8
+    couleur_sélection_texte: CouleurRVBAN8;
+    couleur_texte_sélectionné: CouleurRVBAN8;
+    couleur_curseur_texte: CouleurRVBAN8;
+    couleur_lieutenant: CouleurRVBAN8;
 }
 
 #portée_module
@@ -51,6 +51,6 @@ __thème_défaut := Thème(
     couleur_texte_sélectionné = couleur_blanche,
     couleur_curseur_texte = couleur_noire,
     couleur_lieutenant = couleur_grise_claire
-)
+);
 
 /** \} */

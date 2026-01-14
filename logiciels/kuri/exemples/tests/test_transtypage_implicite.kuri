@@ -1,4 +1,4 @@
-importe Fondation
+importe Fondation;
 
 passe_eini :: fonc (arg: eini) -> rien
 {
@@ -8,20 +8,20 @@ test_discr :: fonc (a: z32) -> bool
 {
     discr a {
         1, 2, 3 {
-            retourne vrai
+            retourne vrai;
         }
         8, 9, 10 {
-            retourne vrai
+            retourne vrai;
         }
         sinon {
-            retourne faux
+            retourne faux;
         }
     }
 
-    retourne faux
+    retourne faux;
 }
 
-#assert test_discr(1) == vrai
+#assert test_discr(1) == vrai;
 // #assert test_discr(2) == vrai
 // #assert test_discr(3) == vrai
 // #assert test_discr(8) == vrai
@@ -30,9 +30,9 @@ test_discr :: fonc (a: z32) -> bool
 
 principale :: fonc ()
 {
-    a : z32 = 12
-    passe_eini(a)
-    b := test_discr(12)
+    a : z32 = 12;
+    passe_eini(a);
+    b := test_discr(12);
 
     // discr a {
     //     1, 2, 3 {
@@ -57,6 +57,6 @@ principale :: fonc ()
     // }
 
     pour 9 ... 19 {
-        exit(1)
+        exit(1);
     }
 }

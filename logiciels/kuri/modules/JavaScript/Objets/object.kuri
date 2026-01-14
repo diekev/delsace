@@ -3,358 +3,358 @@
  * \{ */
 
 ParamètresObjectCall :: struct {
-    object: *Object
-    interpréteuse: *Interpréteuse
-    this_value: Valeur
-    arguments: []Valeur
+    object: *Object;
+    interpréteuse: *Interpréteuse;
+    this_value: Valeur;
+    arguments: []Valeur;
 }
 
 donne_argument :: fonc (params: *ParamètresObjectCall, indice: z64) -> Valeur
 {
     si indice < 0 || indice >= params.arguments.taille {
-        retourne js_undefined
+        retourne js_undefined;
     }
-    retourne params.arguments[indice]
+    retourne params.arguments[indice];
 }
 
-TypeFonctionObjectCall :: fonc (params: *ParamètresObjectCall) -> Valeur
+TypeFonctionObjectCall :: fonc (params: *ParamètresObjectCall) -> Valeur;
 
 ParamètresObjectConstruct :: struct {
-    object: *Object
-    interpréteuse: *Interpréteuse
-    new_target: Valeur
-    arguments: []Valeur
+    object: *Object;
+    interpréteuse: *Interpréteuse;
+    new_target: Valeur;
+    arguments: []Valeur;
 }
 
 donne_argument :: fonc (params: *ParamètresObjectConstruct, indice: z64) -> Valeur
 {
     si indice < 0 || indice >= params.arguments.taille {
-        retourne js_undefined
+        retourne js_undefined;
     }
-    retourne params.arguments[indice]
+    retourne params.arguments[indice];
 }
 
-TypeFonctionObjectConstruct :: fonc (params: *ParamètresObjectConstruct) -> Valeur
+TypeFonctionObjectConstruct :: fonc (params: *ParamètresObjectConstruct) -> Valeur;
 
 TableVirtuelleObject :: struct {
-    empl base_virtuelle_cellule: TableVirtuelleCellule
+    empl base_virtuelle_cellule: TableVirtuelleCellule;
 
-    sur_destruction = sur_destruction_objet
+    sur_destruction = sur_destruction_objet;
 
-    sur_get_prototype_of := ordinary_get_prototype_of
-    sur_set_prototype_of := ordinary_set_prototype_of
-    sur_get_own_property := ordinary_get_own_property
-    sur_delete := ordinary_delete
-    sur_define_own_property := ordinary_define_own_property
-    sur_has_property := ordinary_has_property
-    sur_get := ordinary_get
-    sur_set := ordinary_set
-    sur_own_property_keys := ordinary_own_property_keys
-    sur_call: TypeFonctionObjectCall
-    sur_construct: TypeFonctionObjectConstruct
+    sur_get_prototype_of := ordinary_get_prototype_of;
+    sur_set_prototype_of := ordinary_set_prototype_of;
+    sur_get_own_property := ordinary_get_own_property;
+    sur_delete := ordinary_delete;
+    sur_define_own_property := ordinary_define_own_property;
+    sur_has_property := ordinary_has_property;
+    sur_get := ordinary_get;
+    sur_set := ordinary_set;
+    sur_own_property_keys := ordinary_own_property_keys;
+    sur_call: TypeFonctionObjectCall;
+    sur_construct: TypeFonctionObjectConstruct;
 }
 
 #portée_fichier
 
-table_virtuelle_objet := TableVirtuelleObject(classe = Object)
+table_virtuelle_objet := TableVirtuelleObject(classe = Object);
 
 #portée_export
 
 DrapeauxPropriété :: énum_drapeau n8 {
-    WRITABLE
-    ENUMERABLE
-    CONFIGURABLE
+    WRITABLE;
+    ENUMERABLE;
+    CONFIGURABLE;
 }
 
-Configurable :: DrapeauxPropriété.CONFIGURABLE
-Enumerable :: DrapeauxPropriété.ENUMERABLE
-Writable :: DrapeauxPropriété.WRITABLE
+Configurable :: DrapeauxPropriété.CONFIGURABLE;
+Enumerable :: DrapeauxPropriété.ENUMERABLE;
+Writable :: DrapeauxPropriété.WRITABLE;
 
 IndicePropriété :: struct {
-    empreinte: n64
-    indice: z64
+    empreinte: n64;
+    indice: z64;
 }
 
 opérateur == :: (a: IndicePropriété, b: IndicePropriété) -> bool
 {
-    retourne a.empreinte == b.empreinte
+    retourne a.empreinte == b.empreinte;
 }
 
 opérateur < :: (a: IndicePropriété, b: IndicePropriété) -> bool
 {
-    retourne a.empreinte < b.empreinte
+    retourne a.empreinte < b.empreinte;
 }
 
 Object :: struct {
-    empl base: Cellule
-    table = *table_virtuelle_objet
+    empl base: Cellule;
+    table = *table_virtuelle_objet;
 
     /* https://tc39.es/ecma262/multipage/ecmascript-data-types-and-values.html#sec-property-attributes */
     Propriété :: struct {
-        nom: PropertyKey
-        valeur: Valeur
-        get: *Object
-        set: *Object
-        drapeaux: DrapeauxPropriété
+        nom: PropertyKey;
+        valeur: Valeur;
+        get: *Object;
+        set: *Object;
+        drapeaux: DrapeauxPropriété;
     }
 
     /* Ceci stocke les valeurs indexées par des chaines. */
-    propriétés: [..]Propriété
-    indice_propriétés: [..]IndicePropriété
+    propriétés: [..]Propriété;
+    indice_propriétés: [..]IndicePropriété;
     /* Ceci stocke les valeurs indexées par des nombres. */
-    éléments_indexés: [..]Propriété
+    éléments_indexés: [..]Propriété;
 
-    private_elements: [..]PrivateElement @slot "[[PrivateElements]]"
+    private_elements: [..]PrivateElement @slot "[[PrivateElements]]";
 
-    prototype: *Object
-    extensible := vrai
+    prototype: *Object;
+    extensible := vrai;
 }
 
 garantis_taille_tableau_élément_pour_indice :: fonc (object: *Object, indice: n32)
 {
     si indice comme z64 >= object.éléments_indexés.taille {
-        ancienne_taille := object.éléments_indexés.taille
-        tableau_redimensionne(object.éléments_indexés, indice comme z64 + 1)
+        ancienne_taille := object.éléments_indexés.taille;
+        tableau_redimensionne(object.éléments_indexés, indice comme z64 + 1);
 
         pour ancienne_taille ... object.éléments_indexés.taille - 1 {
-            init_de(Object.Propriété)(*object.éléments_indexés[it])
-            object.éléments_indexés[it].valeur = js_undefined
+            init_de(Object.Propriété)(*object.éléments_indexés[it]);
+            object.éléments_indexés[it].valeur = js_undefined;
         }
 
         si object.donne_classe() == ArrayObject {
-            array := object comme *ArrayObject
-            array_set_length(array, indice + 1)
+            array := object comme *ArrayObject;
+            array_set_length(array, indice + 1);
         }
     }
 }
 
 donne_table :: fonc (object: *Object) -> *TableVirtuelleObject
 {
-    retourne object.table comme *TableVirtuelleObject
+    retourne object.table comme *TableVirtuelleObject;
 }
 
 is_data_propery :: fonc (propriété: &Object.Propriété) -> bool
 {
-    retourne propriété.get == nul && propriété.set == nul
+    retourne propriété.get == nul && propriété.set == nul;
 }
 
 is_accessor_propery :: fonc (propriété: &Object.Propriété) -> bool
 {
-    retourne !is_data_propery(propriété)
+    retourne !is_data_propery(propriété);
 }
 
 // À FAIRE : supprime
 crée_objet :: fonc (tas_de_mémoire: *TasDeMémoire, prototype: *Object) -> *Object
 {
-    résultat := tas_de_mémoire.alloue(Object)
-    résultat.prototype = prototype
-    retourne résultat
+    résultat := tas_de_mémoire.alloue(Object);
+    résultat.prototype = prototype;
+    retourne résultat;
 }
 
 object_instance_crée :: fonc (realm: *Realm) -> *Object
 {
-    retourne realm.donne_tas_de_mémoire().alloue(Object)
+    retourne realm.donne_tas_de_mémoire().alloue(Object);
 }
 
 sur_destruction_objet :: fonc (base: *Cellule)
 {
-    objet := base.vérifie_comme(Object)
-    déloge(objet.propriétés)
-    déloge(objet.indice_propriétés)
-    déloge(objet.éléments_indexés)
-    déloge(objet.private_elements)
+    objet := base.vérifie_comme(Object);
+    déloge(objet.propriétés);
+    déloge(objet.indice_propriétés);
+    déloge(objet.éléments_indexés);
+    déloge(objet.private_elements);
 }
 
 ajoute_propriété :: fonc (objet: *Object, nom: PropertyKey, valeur: Valeur, drapeaux: DrapeauxPropriété)
 {
-    tableau_ajoute(*objet.propriétés, Object.Propriété(nom, valeur, drapeaux = drapeaux))
+    tableau_ajoute(*objet.propriétés, Object.Propriété(nom, valeur, drapeaux = drapeaux));
 
-    indice: IndicePropriété
-    indice.empreinte = donne_empreinte(nom)
-    indice.indice = objet.propriétés.taille - 1
+    indice: IndicePropriété;
+    indice.empreinte = donne_empreinte(nom);
+    indice.indice = objet.propriétés.taille - 1;
 
-    ensemble_ajoute(*objet.indice_propriétés, indice)
+    ensemble_ajoute(*objet.indice_propriétés, indice);
 }
 
 ajoute_propriété :: fonc (objet: *Object, nom: PropertyKey, get: TypeFonctionObjectCall, set: TypeFonctionObjectCall, drapeaux: DrapeauxPropriété)
 {
-    getter: *Object
-    setter: *Object
+    getter: *Object;
+    setter: *Object;
     si get {
-        getter = crée_fonction_native(objet.donne_tas_de_mémoire(), crée_chaine_utf16_unique_vide(), get, 0)
+        getter = crée_fonction_native(objet.donne_tas_de_mémoire(), crée_chaine_utf16_unique_vide(), get, 0);
     }
     si set {
-        setter = crée_fonction_native(objet.donne_tas_de_mémoire(), crée_chaine_utf16_unique_vide(), set, 0)
+        setter = crée_fonction_native(objet.donne_tas_de_mémoire(), crée_chaine_utf16_unique_vide(), set, 0);
     }
 
-    ajoute_propriété(objet, nom, getter, setter, drapeaux)
+    ajoute_propriété(objet, nom, getter, setter, drapeaux);
 }
 
 ajoute_propriété :: fonc (objet: *Object, nom: PropertyKey, get: *Object, set: *Object, drapeaux: DrapeauxPropriété)
 {
-    tableau_ajoute(*objet.propriétés, Object.Propriété(nom, get = get, set = set, drapeaux = drapeaux))
+    tableau_ajoute(*objet.propriétés, Object.Propriété(nom, get = get, set = set, drapeaux = drapeaux));
 
-    indice: IndicePropriété
-    indice.empreinte = donne_empreinte(nom)
-    indice.indice = objet.propriétés.taille - 1
+    indice: IndicePropriété;
+    indice.empreinte = donne_empreinte(nom);
+    indice.indice = objet.propriétés.taille - 1;
 
-    ensemble_ajoute(*objet.indice_propriétés, indice)
+    ensemble_ajoute(*objet.indice_propriétés, indice);
 }
 
 supprime_propriété :: fonc (object: *Object, nom: PropertyKey)
 {
     pour object.propriétés {
         si it.nom == nom {
-            tableau_supprime_indice(*object.propriétés, indice_it)
-            retourne
+            tableau_supprime_indice(*object.propriétés, indice_it);
+            retourne;
         }
     }
 }
 
 possède_slot :: fonc (object: *Object, nom: chaine) -> bool
 {
-    infos := donne_info_type_cellule(object)
+    infos := donne_info_type_cellule(object);
 
     // @allocation-inutile
-    traversée: [..]*InfoTypeStructure
-    diffère déloge(traversée)
+    traversée: [..]*InfoTypeStructure;
+    diffère déloge(traversée);
 
-    tableau_ajoute(*traversée, infos)
+    tableau_ajoute(*traversée, infos);
 
     tantque traversée.taille != 0 {
-        infos = traversée[traversée.taille - 1]
-        traversée.taille -= 1
+        infos = traversée[traversée.taille - 1];
+        traversée.taille -= 1;
 
         pour infos.rubriques {
-            annotation := trouve_annotation(it, "slot")
+            annotation := trouve_annotation(it, "slot");
             si annotation && annotation.valeur == nom {
-                retourne vrai
+                retourne vrai;
             }
 
             si it.drapeaux.EST_UN_EMPLOI {
-                infos = it.id comme *InfoTypeStructure
-                tableau_ajoute(*traversée, infos)
+                infos = it.id comme *InfoTypeStructure;
+                tableau_ajoute(*traversée, infos);
             }
         }
     }
 
-    retourne faux
+    retourne faux;
 }
 
 /* [[GetPrototypeOf]] */
 internal_get_prototype_of :: fonc (object: *Object) -> *Object
 {
-    retourne object.donne_table().sur_get_prototype_of(object)
+    retourne object.donne_table().sur_get_prototype_of(object);
 }
 
 /* [[SetPrototypeOf]] */
 internal_set_prototype_of :: fonc (object: *Object, valeur: Valeur) -> bool
 {
-    retourne object.donne_table().sur_set_prototype_of(object, valeur)
+    retourne object.donne_table().sur_set_prototype_of(object, valeur);
 }
 
 /* [[GetOwnProperty]] */
 internal_get_own_property :: fonc (object: *Object, property_key: PropertyKey) -> Optionnel(PropertyDescriptor)
 {
-    retourne object.donne_table().sur_get_own_property(object, property_key)
+    retourne object.donne_table().sur_get_own_property(object, property_key);
 }
 
 /* [[DefineOwnProperty]] */
 internal_define_own_property :: fonc (object: *Object, property_key: PropertyKey, desc: &PropertyDescriptor) -> bool
 {
     si is_array_index(property_key) {
-        indice := to_uint32(property_key)
-        retourne internal_define_own_property_by_index(object, indice, desc)
+        indice := to_uint32(property_key);
+        retourne internal_define_own_property_by_index(object, indice, desc);
     }
 
-    retourne object.donne_table().sur_define_own_property(object, property_key, desc)
+    retourne object.donne_table().sur_define_own_property(object, property_key, desc);
 }
 
 internal_define_own_property_by_index :: fonc (object: *Object, indice: n32, desc: &PropertyDescriptor) -> bool
 {
-    garantis_taille_tableau_élément_pour_indice(object, indice)
-    object.éléments_indexés[indice comme z64].valeur = desc.value
-    retourne vrai
+    garantis_taille_tableau_élément_pour_indice(object, indice);
+    object.éléments_indexés[indice comme z64].valeur = desc.value;
+    retourne vrai;
 }
 
 /* [[Delete]] */
 internal_delete :: fonc (object: *Object, P: PropertyKey) -> bool
 {
-    retourne object.donne_table().sur_delete(object, P)
+    retourne object.donne_table().sur_delete(object, P);
 }
 
 /* [[OwnPropertyKeys]] */
 internal_own_property_keys :: fonc (object: *Object) -> [..]PropertyKey
 {
-    retourne object.donne_table().sur_own_property_keys(object)
+    retourne object.donne_table().sur_own_property_keys(object);
 }
 
 /* [[HasProperty]] */
 internal_has_property :: fonc (object: *Object, property_key: PropertyKey) -> bool
 {
-    retourne object.donne_table().sur_has_property(object, property_key)
+    retourne object.donne_table().sur_has_property(object, property_key);
 }
 
 /* [[Get]] */
 internal_get :: fonc (object: *Object, property_key: PropertyKey, receiver: Valeur) -> Valeur
 {
-    retourne object.donne_table().sur_get(object, property_key, receiver)
+    retourne object.donne_table().sur_get(object, property_key, receiver);
 }
 
 internal_get_by_index :: fonc (object: *Object, indice: n32, receiver: Valeur @inutilisée) -> Valeur
 {
     si indice comme z64 >= object.éléments_indexés.taille {
-        retourne js_undefined
+        retourne js_undefined;
     }
 
-    retourne object.éléments_indexés[indice comme z64].valeur
+    retourne object.éléments_indexés[indice comme z64].valeur;
 }
 
 /* [[Set]] */
 internal_set :: fonc (object: *Object, property_key: PropertyKey, valeur: Valeur, receiver: Valeur) -> bool
 {
-    retourne object.donne_table().sur_set(object, property_key, valeur, receiver)
+    retourne object.donne_table().sur_set(object, property_key, valeur, receiver);
 }
 
 internal_set_by_index :: fonc (object: *Object, indice: n32, valeur: Valeur, receiver: Valeur @inutilisée) -> bool
 {
-    garantis_taille_tableau_élément_pour_indice(object, indice)
-    object.éléments_indexés[indice comme z64].valeur = valeur
-    retourne vrai
+    garantis_taille_tableau_élément_pour_indice(object, indice);
+    object.éléments_indexés[indice comme z64].valeur = valeur;
+    retourne vrai;
 }
 
 /* [[Call]] */
 internal_call :: fonc (object: *Object, interpréteuse: *Interpréteuse, this_value: Valeur, arguments: []Valeur) -> Valeur
 {
-    params: ParamètresObjectCall = ---
-    params.object = object
-    params.arguments = arguments
-    params.this_value = this_value
-    params.interpréteuse = interpréteuse
-    retourne object.donne_table().sur_call(*params)
+    params: ParamètresObjectCall = ---;
+    params.object = object;
+    params.arguments = arguments;
+    params.this_value = this_value;
+    params.interpréteuse = interpréteuse;
+    retourne object.donne_table().sur_call(*params);
 }
 
 /* [[Construct]] */
 internal_construct :: fonc (object: *Object, interpréteuse: *Interpréteuse, arguments: []Valeur, new_target: Valeur) -> Valeur
 {
-    params: ParamètresObjectConstruct = ---
-    params.object = object
-    params.arguments = arguments
-    params.new_target = new_target
-    params.interpréteuse = interpréteuse
-    retourne object.donne_table().sur_construct(*params)
+    params: ParamètresObjectConstruct = ---;
+    params.object = object;
+    params.arguments = arguments;
+    params.new_target = new_target;
+    params.interpréteuse = interpréteuse;
+    retourne object.donne_table().sur_construct(*params);
 }
 
 trouve_propriété :: fonc (objet: *Object, nom: PropertyKey) -> *Object.Propriété
 {
-    indice: IndicePropriété
-    indice.empreinte = donne_empreinte(nom)
+    indice: IndicePropriété;
+    indice.empreinte = donne_empreinte(nom);
 
-    indice_prop := ensemble_possède_retourne_indice(objet.indice_propriétés, indice)
+    indice_prop := ensemble_possède_retourne_indice(objet.indice_propriétés, indice);
     si indice_prop == -1 {
-        retourne nul
+        retourne nul;
     }
-    retourne *objet.propriétés[objet.indice_propriétés[indice_prop].indice]
+    retourne *objet.propriétés[objet.indice_propriétés[indice_prop].indice];
 }
 
 /** \} */
@@ -366,22 +366,22 @@ trouve_propriété :: fonc (objet: *Object, nom: PropertyKey) -> *Object.Propri�
 
 #portée_fichier
 
-table_virtuelle_object_prototype := TableVirtuelleObject(classe = ObjectPrototype)
+table_virtuelle_object_prototype := TableVirtuelleObject(classe = ObjectPrototype);
 
 #portée_export
 
 ObjectPrototype :: struct {
-    empl objet: Object
-    table = *table_virtuelle_object_prototype
+    empl objet: Object;
+    table = *table_virtuelle_object_prototype;
 }
 
 crée_object_prototype :: fonc (tas_de_mémoire: *TasDeMémoire) -> *ObjectPrototype
 {
-    résultat := tas_de_mémoire.alloue(ObjectPrototype)
-    résultat.ajoute_fonction_native(STR_hasOwnProperty, object_prototype_has_own_property)
-    résultat.ajoute_fonction_native(STR_toString, object_prototype_to_string)
-    résultat.ajoute_propriété(STR___proto__, object_prototype_proto_get, object_prototype_proto_set, Configurable)
-    retourne résultat
+    résultat := tas_de_mémoire.alloue(ObjectPrototype);
+    résultat.ajoute_fonction_native(STR_hasOwnProperty, object_prototype_has_own_property);
+    résultat.ajoute_fonction_native(STR_toString, object_prototype_to_string);
+    résultat.ajoute_propriété(STR___proto__, object_prototype_proto_get, object_prototype_proto_set, Configurable);
+    retourne résultat;
 }
 
 /* 20.1.3.2 Object.prototype.hasOwnProperty ( V )
@@ -389,19 +389,19 @@ crée_object_prototype :: fonc (tas_de_mémoire: *TasDeMémoire) -> *ObjectProto
 object_prototype_has_own_property :: fonc (empl params: *ParamètresObjectCall) -> Valeur
 {
     // 1. Let P be ? ToPropertyKey(V).
-    nom := to_property_key(interpréteuse, params.donne_argument(0))
+    nom := to_property_key(interpréteuse, params.donne_argument(0));
     si interpréteuse.possède_exception() {
-        retourne js_undefined
+        retourne js_undefined;
     }
 
     // 2. Let O be ? ToObject(this value).
-    obj := to_object(interpréteuse.donne_realm(), this_value)
+    obj := to_object(interpréteuse.donne_realm(), this_value);
     si interpréteuse.possède_exception() {
-        retourne js_undefined
+        retourne js_undefined;
     }
 
     // 3. Return ? HasOwnProperty(O, P).
-    retourne has_own_property(obj, nom)
+    retourne has_own_property(obj, nom);
 }
 
 /* 20.1.3.6 Object.prototype.toString ( )
@@ -410,64 +410,64 @@ object_prototype_to_string :: fonc (empl params: *ParamètresObjectCall) -> Vale
 {
     // 1. If the this value is undefined, return "[object Undefined]".
     si this_value.est_undefined() {
-        retourne crée_chaine(interpréteuse.donne_realm(), crée_chaine_utf16_unique("[object Undefined]"))
+        retourne crée_chaine(interpréteuse.donne_realm(), crée_chaine_utf16_unique("[object Undefined]"));
     }
 
     // 2. If the this value is null, return "[object Null]".
     si this_value.est_nulle() {
-        retourne crée_chaine(interpréteuse.donne_realm(), crée_chaine_utf16_unique("[object Null]"))
+        retourne crée_chaine(interpréteuse.donne_realm(), crée_chaine_utf16_unique("[object Null]"));
     }
 
     // 3. Let O be ! ToObject(this value).
-    O := to_object(interpréteuse.donne_realm(), this_value)
+    O := to_object(interpréteuse.donne_realm(), this_value);
 
     // À FAIRE : 4. Let isArray be ? IsArray(O).
 
-    builtin_tag: chaine
+    builtin_tag: chaine;
 
     // 5. If isArray is true, let builtinTag be "Array".
     si O.donne_classe() == ArrayObject {
-        builtin_tag = "Array"
+        builtin_tag = "Array";
     }
     // À FAIRE : 6. Else if O has a [[ParameterMap]] internal slot, let builtinTag be "Arguments".
     // 7. Else if O has a [[Call]] internal method, let builtinTag be "Function".
     sinon si O.donne_table().sur_call {
-        builtin_tag = "Function"
+        builtin_tag = "Function";
     }
     // 8. Else if O has an [[ErrorData]] internal slot, let builtinTag be "Error".
     sinon si O.possède_slot("[[ErrorData]]") {
-        builtin_tag = "Error"
+        builtin_tag = "Error";
     }
     // 9. Else if O has a [[BooleanData]] internal slot, let builtinTag be "Boolean".
     sinon si O.donne_classe() == BooleanObject {
-        builtin_tag = "Boolean"
+        builtin_tag = "Boolean";
     }
     // 10. Else if O has a [[NumberData]] internal slot, let builtinTag be "Number".
     sinon si O.donne_classe() == NumberObject {
-        builtin_tag = "Number"
+        builtin_tag = "Number";
     }
     // 11. Else if O has a [[StringData]] internal slot, let builtinTag be "String".
     sinon si O.donne_classe() == StringObject {
-        builtin_tag = "String"
+        builtin_tag = "String";
     }
     // 12. Else if O has a [[DateValue]] internal slot, let builtinTag be "Date".
     sinon si O.donne_classe() == DateObject {
-        builtin_tag = "Date"
+        builtin_tag = "Date";
     }
     // À FAIRE : 13. Else if O has a [[RegExpMatcher]] internal slot, let builtinTag be "RegExp".
     // 14. Else, let builtinTag be "Object".
     sinon {
-        builtin_tag = "Object"
+        builtin_tag = "Object";
     }
 
     // À FAIRE : 15. Let tag be ? Get(O, %Symbol.toStringTag%).
     // 16. If tag is not a String, set tag to builtinTag.
-    tag := builtin_tag
+    tag := builtin_tag;
 
     // 17. Return the string-concatenation of "[object ", tag, and "]".
-    résultat := enchaine("[object ", tag, "]")
-    diffère déloge(résultat)
-    retourne crée_chaine(interpréteuse.donne_realm(), crée_chaine_utf16_unique(résultat))
+    résultat := enchaine("[object ", tag, "]");
+    diffère déloge(résultat);
+    retourne crée_chaine(interpréteuse.donne_realm(), crée_chaine_utf16_unique(résultat));
 }
 
 /* 20.1.3.8 Object.prototype.__proto__
@@ -475,47 +475,47 @@ object_prototype_to_string :: fonc (empl params: *ParamètresObjectCall) -> Vale
 object_prototype_proto_get :: fonc (empl params: *ParamètresObjectCall) -> Valeur
 {
     // 1. Let O be ? ToObject(this value).
-    O := to_object(interpréteuse.donne_realm(), this_value)
+    O := to_object(interpréteuse.donne_realm(), this_value);
     si interpréteuse.possède_exception() {
-        retourne js_undefined
+        retourne js_undefined;
     }
 
     // 2. Return ? O.[[GetPrototypeOf]]().
-    retourne internal_get_prototype_of(O)
+    retourne internal_get_prototype_of(O);
 }
 
 object_prototype_proto_set :: fonc (empl params: *ParamètresObjectCall) -> Valeur
 {
     // 1. Let O be ? RequireObjectCoercible(this value).
-    O := require_object_coercible(interpréteuse.donne_realm(), this_value)
+    O := require_object_coercible(interpréteuse.donne_realm(), this_value);
     si interpréteuse.possède_exception() {
-        retourne js_undefined
+        retourne js_undefined;
     }
 
     // 2. If proto is not an Object and proto is not null, return undefined.
-    proto := params.donne_argument(0)
+    proto := params.donne_argument(0);
     saufsi proto.est_object() || proto.est_nulle() {
-        retourne js_undefined
+        retourne js_undefined;
     }
 
     // 3. If O is not an Object, return undefined.
     saufsi O.est_object() {
-        retourne js_undefined
+        retourne js_undefined;
     }
 
     // 4. Let status be ? O.[[SetPrototypeOf]](proto).
-    status := internal_set_prototype_of(O.donne_objet(), proto)
+    status := internal_set_prototype_of(O.donne_objet(), proto);
     si interpréteuse.possède_exception() {
-        retourne js_undefined
+        retourne js_undefined;
     }
 
     // 5. If status is false, throw a TypeError exception.
     saufsi status {
-        retourne lance_type_error(interpréteuse.donne_realm(), "Object does not accept prototype")
+        retourne lance_type_error(interpréteuse.donne_realm(), "Object does not accept prototype");
     }
 
     // 6. Return undefined.
-    retourne js_undefined
+    retourne js_undefined;
 }
 
 /** \} */
@@ -529,32 +529,32 @@ object_prototype_proto_set :: fonc (empl params: *ParamètresObjectCall) -> Vale
 
 table_virtuelle_object_constructor := TableVirtuelleBuiltinFunction(
     classe = ObjectConstructor
-)
+);
 
 #portée_export
 
 ObjectConstructor :: struct {
-    empl builtin_function: BuiltInFunction
-    table = *table_virtuelle_object_constructor
+    empl builtin_function: BuiltInFunction;
+    table = *table_virtuelle_object_constructor;
 
-    sur_call_or_construct = object_constructor_call_or_construct
+    sur_call_or_construct = object_constructor_call_or_construct;
 }
 
 crée_object_constructor :: fonc (realm: *Realm, function_prototype: *FunctionPrototype, object_prototype: *ObjectPrototype) -> *ObjectConstructor
 {
-    tas_de_mémoire := realm.donne_tas_de_mémoire()
-    résultat := tas_de_mémoire.alloue(ObjectConstructor)
-    create_builtin_function(résultat, 1, STR_Object, realm, function_prototype)
+    tas_de_mémoire := realm.donne_tas_de_mémoire();
+    résultat := tas_de_mémoire.alloue(ObjectConstructor);
+    create_builtin_function(résultat, 1, STR_Object, realm, function_prototype);
 
-    résultat.ajoute_propriété(STR_prototype, Valeur(Object = object_prototype), DrapeauxPropriété.zéro)
+    résultat.ajoute_propriété(STR_prototype, Valeur(Object = object_prototype), DrapeauxPropriété.zéro);
 
-    résultat.ajoute_fonction_native(STR_getPrototypeOf, object_get_prototype_of, 1)
-    résultat.ajoute_fonction_native(STR_setPrototypeOf, object_set_prototype_of, 1)
-    résultat.ajoute_fonction_native(STR_create, object_create, 1)
+    résultat.ajoute_fonction_native(STR_getPrototypeOf, object_get_prototype_of, 1);
+    résultat.ajoute_fonction_native(STR_setPrototypeOf, object_set_prototype_of, 1);
+    résultat.ajoute_fonction_native(STR_create, object_create, 1);
 
-    object_prototype.ajoute_propriété(STR_constructor, Valeur(Object = résultat), DrapeauxPropriété.zéro)
+    object_prototype.ajoute_propriété(STR_constructor, Valeur(Object = résultat), DrapeauxPropriété.zéro);
 
-    retourne résultat
+    retourne résultat;
 }
 
 #portée_fichier
@@ -564,24 +564,24 @@ crée_object_constructor :: fonc (realm: *Realm, function_prototype: *FunctionPr
  * À FAIRE : tests */
 object_constructor_call_or_construct :: fonc (empl params: *ParamètresCallOrConstruct) -> Valeur
 {
-    realm := interpréteuse.donne_realm()
+    realm := interpréteuse.donne_realm();
 
     // 1. If NewTarget is neither undefined nor the active function object, then
     si !new_target.est_undefined() && !(new_target.est_object() && new_target.donne_objet() == interpréteuse.donne_active_function_object()) {
         // a. Return ? OrdinaryCreateFromConstructor(NewTarget, "%Object.prototype%").
-        func_new_target := new_target.donne_objet().vérifie_comme(Function)
-        retourne ordinary_create_from_constructor(realm, func_new_target, realm.intrinsics.object_prototype, object_instance_crée)
+        func_new_target := new_target.donne_objet().vérifie_comme(Function);
+        retourne ordinary_create_from_constructor(realm, func_new_target, realm.intrinsics.object_prototype, object_instance_crée);
     }
 
     // 2. If value is either undefined or null, return OrdinaryObjectCreate(%Object.prototype%).
-    value := params.donne_argument(0)
+    value := params.donne_argument(0);
     si value.est_undefined() || value.est_nulle() {
-        résultat := ordinary_object_create(realm, realm.intrinsics.object_prototype, object_instance_crée)
-        retourne résultat
+        résultat := ordinary_object_create(realm, realm.intrinsics.object_prototype, object_instance_crée);
+        retourne résultat;
     }
 
     // 3. Return ! ToObject(value).
-    retourne to_object(realm, value)
+    retourne to_object(realm, value);
 }
 
 /* 20.1.2.2 Object.create ( O, Properties )
@@ -590,75 +590,75 @@ object_constructor_call_or_construct :: fonc (empl params: *ParamètresCallOrCon
 object_create :: fonc (empl params: *ParamètresObjectCall) -> Valeur
 {
     // 1. If O is not an Object and O is not null, throw a TypeError exception.
-    O := params.donne_argument(0)
+    O := params.donne_argument(0);
     saufsi O.est_object() || O.est_nulle() {
-        message := imprime_chaine("'%' is not an Object", O)
-        retourne lance_type_error(interpréteuse, message)
+        message := imprime_chaine("'%' is not an Object", O);
+        retourne lance_type_error(interpréteuse, message);
     }
 
     // 2. Let obj be OrdinaryObjectCreate(O).
-    realm := interpréteuse.donne_realm()
-    obj := ordinary_object_create(realm, O.donne_objet(), object_instance_crée)
+    realm := interpréteuse.donne_realm();
+    obj := ordinary_object_create(realm, O.donne_objet(), object_instance_crée);
 
     // À FAIRE : 3. If Properties is not undefined, then
     //    a. Return ? ObjectDefineProperties(obj, Properties).
 
     // 4. Return obj.
-    retourne obj
+    retourne obj;
 }
 
 /* 20.1.2.12 Object.getPrototypeOf ( O )
  * https://tc39.es/ecma262/multipage/fundamental-objects.html#sec-object.getprototypeof */
 object_get_prototype_of :: fonc (empl params: *ParamètresObjectCall) -> Valeur
 {
-    O := params.donne_argument(0)
+    O := params.donne_argument(0);
 
     // 1. Let obj be ? ToObject(O).
-    obj := to_object(interpréteuse.donne_realm(), O)
+    obj := to_object(interpréteuse.donne_realm(), O);
     si interpréteuse.possède_exception() {
-        retourne js_undefined
+        retourne js_undefined;
     }
 
     // 2. Return ? obj.[[GetPrototypeOf]]().
-    retourne internal_get_prototype_of(obj)
+    retourne internal_get_prototype_of(obj);
 }
 
 /* 20.1.2.23 Object.setPrototypeOf ( O, proto )
  * https://tc39.es/ecma262/multipage/fundamental-objects.html#sec-object.setprototypeof */
 object_set_prototype_of :: fonc (empl params: *ParamètresObjectCall) -> Valeur
 {
-    O := params.donne_argument(0)
+    O := params.donne_argument(0);
 
     // 1. Set O to ? RequireObjectCoercible(O).
-    O = require_object_coercible(interpréteuse.donne_realm(), O)
+    O = require_object_coercible(interpréteuse.donne_realm(), O);
     si interpréteuse.possède_exception() {
-        retourne js_undefined
+        retourne js_undefined;
     }
 
     // 2. If proto is not an Object and proto is not null, throw a TypeError exception.
-    proto := params.donne_argument(1)
+    proto := params.donne_argument(1);
     saufsi proto.est_object() || proto.est_nulle() {
-        retourne lance_type_error(interpréteuse.donne_realm(), "prototype is not an Object")
+        retourne lance_type_error(interpréteuse.donne_realm(), "prototype is not an Object");
     }
 
     // 3. If O is not an Object, return O.
     saufsi O.est_object() {
-        retourne O
+        retourne O;
     }
 
     // 4. Let status be ? O.[[SetPrototypeOf]](proto).
-    status := internal_set_prototype_of(O.donne_objet(), proto)
+    status := internal_set_prototype_of(O.donne_objet(), proto);
     si interpréteuse.possède_exception() {
-        retourne js_undefined
+        retourne js_undefined;
     }
 
     // 5. If status is false, throw a TypeError exception.
     saufsi status {
-        retourne lance_type_error(interpréteuse.donne_realm(), "Object does not accept prototype")
+        retourne lance_type_error(interpréteuse.donne_realm(), "Object does not accept prototype");
     }
 
     // 6. Return O.
-    retourne O
+    retourne O;
 }
 
 /** \} */

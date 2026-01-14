@@ -12,87 +12,87 @@ Cookie :: struct {
     expiration: chaine // date <day-name>, <jour> <mois> <année> <heure>:<minute>:<seconde> GMT
     age_maximum: z32 // non-zéro, en secondes
     domaine: chaine // domaine où le cookie sera envoyé
-    chemin: chaine
+    chemin: chaine;
 
     est_sécurisé: bool  // n'envoie que si https
     http_seulement: bool // empêche JavaScript d'accéder au cookie
 
     PolitiqueMêmeSite :: énum {
-        None
-        Lax
-        Strict
+        None;
+        Lax;
+        Strict;
     }
 
-    même_site: PolitiqueMêmeSite
+    même_site: PolitiqueMêmeSite;
 }
 
 est_nom_valide :: fonc (nom: chaine) -> bool
 {
-    caractères_invalides := [ '(', ')', '<', '>', '@', ',', ':', ';', '\\', '"', '/', '[', ']', '?', '=', '{', '}' ]
+    caractères_invalides := [ '(', ')', '<', '>', '@', ',', ':', ';', '\\', '"', '/', '[', ']', '?', '=', '{', '}' ];
 
     pour nom {
         // vérifie si caractère non US-ASCII ou de controle
         si it <= 32 || it == 127 {
-            retourne faux
+            retourne faux;
         }
 
         pour c dans caractères_invalides {
             si it == c {
-                retourne faux
+                retourne faux;
             }
         }
     }
 
-    retourne vrai
+    retourne vrai;
 }
 
 est_valeur_valide :: fonc (valeur: chaine) -> bool
 {
-    caractères_invalides := [ '"', ',', ';', '\\' ]
+    caractères_invalides := [ '"', ',', ';', '\\' ];
 
     pour valeur {
         si it <= 32 || it == 127 {
-            retourne faux
+            retourne faux;
         }
     }
 
-    retourne vrai
+    retourne vrai;
 }
 
 crée_cookie :: fonc (nom: chaine, valeur: chaine) -> Cookie
 {
-    cookie : Cookie
-    cookie.nom = copie_chaine(nom)
-    cookie.valeur = copie_chaine(valeur)
-    retourne cookie
+    cookie : Cookie;
+    cookie.nom = copie_chaine(nom);
+    cookie.valeur = copie_chaine(valeur);
+    retourne cookie;
 }
 
 copie_cookie :: fonc (source: Cookie) -> Cookie
 {
-    retourne crée_cookie(source.nom, source.valeur)
+    retourne crée_cookie(source.nom, source.valeur);
 }
 
 détruit_cookie :: fonc (cookie: &Cookie)
 {
-    déloge(cookie.nom)
-    déloge(cookie.valeur)
+    déloge(cookie.nom);
+    déloge(cookie.valeur);
 }
 
 crée_cookie_session :: fonc (nom: chaine, valeur: chaine, est_sécurisé: bool) -> Cookie
 {
-    cookie := crée_cookie(nom, valeur)
-    cookie.chemin = "/"
-    cookie.http_seulement = vrai
-    cookie.est_sécurisé = est_sécurisé
-    retourne cookie
+    cookie := crée_cookie(nom, valeur);
+    cookie.chemin = "/";
+    cookie.http_seulement = vrai;
+    cookie.est_sécurisé = est_sécurisé;
+    retourne cookie;
 }
 
 crée_cookie_sécurisé :: fonc (nom: chaine, valeur: chaine) -> Cookie
 {
-    cookie := crée_cookie(nom, valeur)
-    cookie.http_seulement = vrai
-    cookie.est_sécurisé = vrai
-    retourne cookie
+    cookie := crée_cookie(nom, valeur);
+    cookie.http_seulement = vrai;
+    cookie.est_sécurisé = vrai;
+    retourne cookie;
 }
 
 /*
@@ -110,13 +110,13 @@ Set-Cookie: <cookie-name>=<cookie-value>; SameSite=None
 */
 imprime_cookie_pour_entête_http :: fonc (enchaineuse: *Enchaineuse, cookie: Cookie)
 {
-    imprime_dans_enchaineuse(enchaineuse, "%=%", cookie.nom, cookie.valeur)
+    imprime_dans_enchaineuse(enchaineuse, "%=%", cookie.nom, cookie.valeur);
 
     // À FAIRE : date
     si /* cookie.expiration || */ cookie.age_maximum {
         // L'age maximum à la précédence sur la date d'expiration
         si cookie.age_maximum {
-            imprime_dans_enchaineuse(enchaineuse, "; Max-Age=%", cookie.age_maximum)
+            imprime_dans_enchaineuse(enchaineuse, "; Max-Age=%", cookie.age_maximum);
         }
         sinon {
             // À FAIRE : imprime date
@@ -125,63 +125,63 @@ imprime_cookie_pour_entête_http :: fonc (enchaineuse: *Enchaineuse, cookie: Coo
     }
 
     si cookie.chemin {
-        imprime_dans_enchaineuse(enchaineuse, "; Path=%", cookie.chemin)
+        imprime_dans_enchaineuse(enchaineuse, "; Path=%", cookie.chemin);
     }
 
     si cookie.domaine {
-        imprime_dans_enchaineuse(enchaineuse, "; Domain=%", cookie.domaine)
+        imprime_dans_enchaineuse(enchaineuse, "; Domain=%", cookie.domaine);
     }
 
     si cookie.est_sécurisé {
-        imprime_dans_enchaineuse(enchaineuse, "; Secure")
+        imprime_dans_enchaineuse(enchaineuse, "; Secure");
     }
 
     si cookie.http_seulement {
-        imprime_dans_enchaineuse(enchaineuse, "; HttpOnly")
+        imprime_dans_enchaineuse(enchaineuse, "; HttpOnly");
     }
 
     si cookie.même_site != Cookie.PolitiqueMêmeSite.None {
-        imprime_dans_enchaineuse(enchaineuse, "; SameSite=%", cookie.même_site)
+        imprime_dans_enchaineuse(enchaineuse, "; SameSite=%", cookie.même_site);
     }
 }
 
 chaine_cookie_pour_entête_http :: fonc (cookie: Cookie) -> chaine
 {
-    enchaineuse : Enchaineuse
-    initialise_enchaineuse(*enchaineuse)
-    imprime_cookie_pour_entête_http(*enchaineuse, cookie)
-    retourne chaine_depuis_enchaineuse(*enchaineuse)
+    enchaineuse : Enchaineuse;
+    initialise_enchaineuse(*enchaineuse);
+    imprime_cookie_pour_entête_http(*enchaineuse, cookie);
+    retourne chaine_depuis_enchaineuse(*enchaineuse);
 }
 
 imprime_cookie_client :: fonc (enchaineuse: *Enchaineuse, cookies: []Cookie, ajoute_nouvelle_ligne: bool)
 {
     saufsi cookies {
-        retourne
+        retourne;
     }
 
     ajoute_au_tampon(enchaineuse, "Cookie:");
 
-    virgule := " "
+    virgule := " ";
     pour cookies {
-        ajoute_au_tampon(enchaineuse, virgule, it.nom, "=", it.valeur)
-        virgule = "; "
+        ajoute_au_tampon(enchaineuse, virgule, it.nom, "=", it.valeur);
+        virgule = "; ";
     }
 
     si ajoute_nouvelle_ligne {
-        ajoute_au_tampon(enchaineuse, "\r\n")
+        ajoute_au_tampon(enchaineuse, "\r\n");
     }
 }
 
 chaine_cookie_pour_entête_client :: fonc (cookies: []Cookie, ajoute_nouvelle_ligne: bool) -> chaine
 {
     saufsi cookies {
-        retourne ""
+        retourne "";
     }
 
-    enchaineuse : Enchaineuse
-    initialise_enchaineuse(*enchaineuse)
-    imprime_cookie_client(*enchaineuse, cookies, ajoute_nouvelle_ligne)
-    retourne chaine_depuis_enchaineuse(*enchaineuse)
+    enchaineuse : Enchaineuse;
+    initialise_enchaineuse(*enchaineuse);
+    imprime_cookie_client(*enchaineuse, cookies, ajoute_nouvelle_ligne);
+    retourne chaine_depuis_enchaineuse(*enchaineuse);
 }
 
 /* Parse une chaine contenant un ou plusieurs cookies venant d'un client.
@@ -189,29 +189,29 @@ chaine_cookie_pour_entête_client :: fonc (cookies: []Cookie, ajoute_nouvelle_li
  */
 parse_cookie_client :: fonc (chn: chaine) -> [..]Cookie
 {
-    résultat: [..]Cookie
+    résultat: [..]Cookie;
 
     saufsi chn {
-        retourne résultat
+        retourne résultat;
     }
 
-    parseuse := ParseuseChaine(chn = chn)
+    parseuse := ParseuseChaine(chn = chn);
 
     /* consomme le début de la chaine si l'entête n'a pas été séparé entre clé et valeur */
-    _ := consomme(*parseuse, "Cookie:")
+    _ := consomme(*parseuse, "Cookie:");
 
     tantque !fini(*parseuse) {
-        réussi, cookie := parse_nom_valeur_cookie(*parseuse)
+        réussi, cookie := parse_nom_valeur_cookie(*parseuse);
 
         si !réussi {
-            déloge(résultat)
-            retourne résultat
+            déloge(résultat);
+            retourne résultat;
         }
 
-        tableau_ajoute(*résultat, cookie)
+        tableau_ajoute(*résultat, cookie);
     }
 
-    retourne résultat
+    retourne résultat;
 }
 
 /* Parse un cookie envoyé par un serveur via une entête "Set-Cookie".
@@ -219,174 +219,174 @@ parse_cookie_client :: fonc (chn: chaine) -> [..]Cookie
  */
 parse_cookie_serveur :: fonc (chn: chaine) -> Cookie
 {
-    résultat: Cookie
+    résultat: Cookie;
 
-    parseuse := ParseuseChaine(chn = chn)
+    parseuse := ParseuseChaine(chn = chn);
 
     /* consomme le début de la chaine si l'entête n'a pas été séparé entre clé et valeur */
-    _ := consomme(*parseuse, "Set-Cookie:")
+    _ := consomme(*parseuse, "Set-Cookie:");
 
-    réussi, cookie_nom_valeur := parse_nom_valeur_cookie(*parseuse)
+    réussi, cookie_nom_valeur := parse_nom_valeur_cookie(*parseuse);
 
     si !réussi {
-        retourne résultat
+        retourne résultat;
     }
 
-    résultat = crée_cookie(cookie_nom_valeur.nom, cookie_nom_valeur.valeur)
+    résultat = crée_cookie(cookie_nom_valeur.nom, cookie_nom_valeur.valeur);
 
     tantque !fini(*parseuse) {
         si apparie(*parseuse, ';') {
-            avance(*parseuse, 1)
+            avance(*parseuse, 1);
         }
 
-        saute_espace_blanc(*parseuse)
+        saute_espace_blanc(*parseuse);
 
         si consomme(*parseuse, "Secure") {
-            résultat.est_sécurisé = vrai
-            continue
+            résultat.est_sécurisé = vrai;
+            continue;
         }
 
         si consomme(*parseuse, "HttpOnly") {
-            résultat.http_seulement = vrai
-            continue
+            résultat.http_seulement = vrai;
+            continue;
         }
 
         si consomme(*parseuse, "Max-Age") {
             si !consomme(*parseuse, '=') {
                 // À FAIRE: erreur parsage cookie
-                retourne résultat
+                retourne résultat;
             }
 
-            pos_courante := parseuse.curseur
+            pos_courante := parseuse.curseur;
 
-            pos := trouve_prochain(*parseuse, ';')
+            pos := trouve_prochain(*parseuse, ';');
 
             si pos <= 0 {
                 // À FAIRE: erreur parsage cookie
-                retourne résultat
+                retourne résultat;
             }
 
             si !consomme_nombre(*parseuse, (pos - pos_courante) comme z32) {
                 // À FAIRE: erreur parsage cookie
-                retourne résultat
+                retourne résultat;
             }
 
-            positionne(*parseuse, pos + 1)
-            résultat.age_maximum = parseuse.nombre
-            continue
+            positionne(*parseuse, pos + 1);
+            résultat.age_maximum = parseuse.nombre;
+            continue;
         }
 
         si consomme(*parseuse, "Expires") {
             // À FAIRE
-            continue
+            continue;
         }
 
         si consomme(*parseuse, "Path") {
             si !consomme(*parseuse, '=') {
                 // À FAIRE: erreur parsage cookie
-                retourne résultat
+                retourne résultat;
             }
 
-            pos := trouve_prochain(*parseuse, ';')
+            pos := trouve_prochain(*parseuse, ';');
 
             si pos <= 0 {
                 // À FAIRE: erreur parsage cookie
-                retourne résultat
+                retourne résultat;
             }
 
-            valeur := sous_chaine_jusque_indice(*parseuse, pos)
+            valeur := sous_chaine_jusque_indice(*parseuse, pos);
 
-            résultat.domaine = valeur
+            résultat.domaine = valeur;
 
-            positionne(*parseuse, pos + 1)
-            continue
+            positionne(*parseuse, pos + 1);
+            continue;
         }
 
         si consomme(*parseuse, "Domain") {
             si !consomme(*parseuse, '=') {
                 // À FAIRE: erreur parsage cookie
-                imprime("pas d'égal après 'Domain'\n")
-                retourne résultat
+                imprime("pas d'égal après 'Domain'\n");
+                retourne résultat;
             }
 
-            pos := trouve_prochain(*parseuse, ';')
+            pos := trouve_prochain(*parseuse, ';');
 
             si pos <= 0 {
-                pos = parseuse.chn.taille
+                pos = parseuse.chn.taille;
             }
 
-            valeur := sous_chaine_jusque_indice(*parseuse, pos)
+            valeur := sous_chaine_jusque_indice(*parseuse, pos);
 
-            résultat.domaine = valeur
+            résultat.domaine = valeur;
 
-            positionne(*parseuse, pos + 1)
-            continue
+            positionne(*parseuse, pos + 1);
+            continue;
         }
 
         si consomme(*parseuse, "SameSite") {
             si !consomme(*parseuse, '=') {
                 // À FAIRE: erreur parsage cookie
-                retourne résultat
+                retourne résultat;
             }
 
-            pos := trouve_prochain(*parseuse, ';')
+            pos := trouve_prochain(*parseuse, ';');
 
             si pos <= 0 {
-                pos = parseuse.chn.taille
+                pos = parseuse.chn.taille;
             }
 
-            valeur := sous_chaine_jusque_indice(*parseuse, pos)
+            valeur := sous_chaine_jusque_indice(*parseuse, pos);
 
             si valeur == "None" {
-                résultat.même_site = Cookie.PolitiqueMêmeSite.None
+                résultat.même_site = Cookie.PolitiqueMêmeSite.None;
             }
             sinon si valeur == "Strict" {
-                résultat.même_site = Cookie.PolitiqueMêmeSite.Strict
+                résultat.même_site = Cookie.PolitiqueMêmeSite.Strict;
             }
             sinon si valeur == "Lax" {
-                résultat.même_site = Cookie.PolitiqueMêmeSite.Lax
+                résultat.même_site = Cookie.PolitiqueMêmeSite.Lax;
             }
             sinon {
                 // À FAIRE: erreur parsage cookie
-                retourne résultat
+                retourne résultat;
             }
 
-            positionne(*parseuse, pos + 1)
-            continue
+            positionne(*parseuse, pos + 1);
+            continue;
         }
     }
 
-    retourne résultat
+    retourne résultat;
 }
 
 parse_nom_valeur_cookie :: fonc (parseuse: *ParseuseChaine) -> (bool, Cookie)
 {
-    cookie: Cookie
-    saute_espace_blanc(parseuse)
+    cookie: Cookie;
+    saute_espace_blanc(parseuse);
 
-    pos := trouve_prochain(parseuse, '=')
-
-    si pos <= 0 {
-        retourne faux, cookie
-    }
-
-    nom := sous_chaine_jusque_indice(parseuse, pos)
-
-    positionne(parseuse, pos + 1)
-
-    pos = trouve_prochain(parseuse, ';')
+    pos := trouve_prochain(parseuse, '=');
 
     si pos <= 0 {
-        pos = parseuse.chn.taille
+        retourne faux, cookie;
     }
 
-    valeur := sous_chaine_jusque_indice(parseuse, pos)
+    nom := sous_chaine_jusque_indice(parseuse, pos);
 
-    positionne(parseuse, pos + 1)
+    positionne(parseuse, pos + 1);
 
-    cookie = crée_cookie(nom, valeur)
+    pos = trouve_prochain(parseuse, ';');
 
-    retourne vrai, cookie
+    si pos <= 0 {
+        pos = parseuse.chn.taille;
+    }
+
+    valeur := sous_chaine_jusque_indice(parseuse, pos);
+
+    positionne(parseuse, pos + 1);
+
+    cookie = crée_cookie(nom, valeur);
+
+    retourne vrai, cookie;
 }
 
 // voir plus https://tools.ietf.org/html/rfc6265#section-4.1.2.3
@@ -407,31 +407,31 @@ est_valide :: fonc (cookie: Cookie) -> bool
         Set-Cookie: __Host-id=1; Secure; Path=/; domain=example.com
      */
     si !cookie.nom || !est_nom_valide(cookie.nom) {
-        retourne faux
+        retourne faux;
     }
 
     si !cookie.valeur || !est_valeur_valide(cookie.valeur) {
-        retourne faux
+        retourne faux;
     }
 
     si commence_par(cookie.nom, "__Secure-") {
         si !cookie.est_sécurisé {
-            retourne faux
+            retourne faux;
         }
 
         // À FAIRE: savoir si le cookie vient d'un connexion HTTPS
     }
     sinon si commence_par(cookie.nom, "__Host-") {
         si cookie.chemin != "/" {
-            retourne faux
+            retourne faux;
         }
 
         si cookie.domaine {
-            retourne faux
+            retourne faux;
         }
     }
 
-    retourne vrai
+    retourne vrai;
 }
 
 /* Fusionne le cookie dans la liste des cookies.
@@ -439,125 +439,125 @@ est_valide :: fonc (cookie: Cookie) -> bool
  * À FAIRE : age des cookies : stocker la date d'ajout */
 fusionne_cookie :: fonc (cookies: *[..]Cookie, cookie: Cookie) -> bool
 {
-    tmp := mémoire(cookies)
+    tmp := mémoire(cookies);
 
     pour tmp {
         si it.nom == cookie.nom {
-            arrête
+            arrête;
         }
     }
     sansarrêt {
-        tableau_ajoute(cookies, cookie)
-        retourne vrai
+        tableau_ajoute(cookies, cookie);
+        retourne vrai;
     }
 
-    retourne faux
+    retourne faux;
 }
 
 
 ContexteParsageEntête :: struct {
-    uri: URI
+    uri: URI;
 }
 
 ClienteEntête :: struct {
-    sur_reception_cookie: fonc (cliente: *ClienteEntête, nom: chaine, valeur: chaine, attributs: AttributsCookie)
+    sur_reception_cookie: fonc (cliente: *ClienteEntête, nom: chaine, valeur: chaine, attributs: AttributsCookie);
 }
 
 /* https://httpwg.org/specs/rfc6265.html#rfc.section.5.2 */
 parse_entête_set_cookie :: fonc (ctx: *ContexteParsageEntête, chn: chaine)
 {
-    parseuse := ParseuseChaine(chn = chn)
+    parseuse := ParseuseChaine(chn = chn);
 
-    _ := consomme(*parseuse, "Set-Cookie:")
+    _ := consomme(*parseuse, "Set-Cookie:");
 
     /* Parse le nom et la valeur du cookie. */
-    pos_point_virgule := trouve_prochain(*parseuse, ';')
+    pos_point_virgule := trouve_prochain(*parseuse, ';');
     si pos_point_virgule <= 0 {
-        pos_point_virgule = parseuse.chn.taille
+        pos_point_virgule = parseuse.chn.taille;
     }
-    paire_nom_valeur := sous_chaine_jusque_indice(*parseuse, pos_point_virgule)
+    paire_nom_valeur := sous_chaine_jusque_indice(*parseuse, pos_point_virgule);
 
-    pos_égal := trouve_caractère_depuis_le_début(paire_nom_valeur, '=')
+    pos_égal := trouve_caractère_depuis_le_début(paire_nom_valeur, '=');
     si pos_égal == -1 {
-        retourne
+        retourne;
     }
 
-    nom_cookie := supprime_espaces_blancs(sous_chaine(paire_nom_valeur, 0, pos_égal))
+    nom_cookie := supprime_espaces_blancs(sous_chaine(paire_nom_valeur, 0, pos_égal));
     si nom_cookie.taille == 0 {
-        retourne
+        retourne;
     }
 
-    attributs: AttributsCookie
+    attributs: AttributsCookie;
 
     /* Parse les attributs du cookie. */
-    positionne(*parseuse, pos_point_virgule)
+    positionne(*parseuse, pos_point_virgule);
     tantque !fini(*parseuse) {
-        assert(apparie(*parseuse, ';'))
-        avance(*parseuse, 1)
+        assert(apparie(*parseuse, ';'));
+        avance(*parseuse, 1);
 
-        pos_point_virgule = trouve_prochain(*parseuse, ';')
+        pos_point_virgule = trouve_prochain(*parseuse, ';');
         si pos_point_virgule <= 0 {
-            pos_point_virgule = parseuse.chn.taille
+            pos_point_virgule = parseuse.chn.taille;
         }
-        valeur_attribut_cookie := sous_chaine_jusque_indice(*parseuse, pos_point_virgule)
+        valeur_attribut_cookie := sous_chaine_jusque_indice(*parseuse, pos_point_virgule);
 
-        nom_attribut := valeur_attribut_cookie
-        valeur_attribut := ""
+        nom_attribut := valeur_attribut_cookie;
+        valeur_attribut := "";
 
-        pos_égal = trouve_caractère_depuis_le_début(valeur_attribut_cookie, '=')
+        pos_égal = trouve_caractère_depuis_le_début(valeur_attribut_cookie, '=');
         si pos_égal >= 0 {
-            nom_attribut = sous_chaine(valeur_attribut_cookie, 0, pos_égal)
-            valeur_attribut = sous_chaine(valeur_attribut_cookie, pos_égal + 1, valeur_attribut_cookie.taille)
+            nom_attribut = sous_chaine(valeur_attribut_cookie, 0, pos_égal);
+            valeur_attribut = sous_chaine(valeur_attribut_cookie, pos_égal + 1, valeur_attribut_cookie.taille);
         }
 
-        nom_attribut = supprime_espaces_blancs(nom_attribut)
-        valeur_attribut = supprime_espaces_blancs(valeur_attribut)
+        nom_attribut = supprime_espaces_blancs(nom_attribut);
+        valeur_attribut = supprime_espaces_blancs(valeur_attribut);
 
-        parse_attribut_cookie(ctx, nom_attribut, valeur_attribut, *attributs)
+        parse_attribut_cookie(ctx, nom_attribut, valeur_attribut, *attributs);
         
-        positionne(*parseuse, pos_point_virgule)
+        positionne(*parseuse, pos_point_virgule);
     }
 }
 
 AttributsCookie :: struct {
-    expires: Optionnel(Date)
-    max_age: Optionnel(z64)
-    domain: Optionnel(chaine)
-    path: Optionnel(chaine)
-    http_only: Optionnel(bool)
-    secure: Optionnel(bool)
+    expires: Optionnel(Date);
+    max_age: Optionnel(z64);
+    domain: Optionnel(chaine);
+    path: Optionnel(chaine);
+    http_only: Optionnel(bool);
+    secure: Optionnel(bool);
 }
 
 parse_attribut_cookie :: fonc (ctx: *ContexteParsageEntête, nom: chaine, valeur: chaine, résultat: *AttributsCookie)
 {
     si compare_ascii_insensible_à_la_casse(nom, "Expires") {
-        parse_attribut_cookie_expires(ctx, valeur, résultat)
-        retourne
+        parse_attribut_cookie_expires(ctx, valeur, résultat);
+        retourne;
     }
 
     si compare_ascii_insensible_à_la_casse(nom, "Max-Age") {
-        parse_attribut_cookie_max_age(ctx, valeur, résultat)
-        retourne
+        parse_attribut_cookie_max_age(ctx, valeur, résultat);
+        retourne;
     }
 
     si compare_ascii_insensible_à_la_casse(nom, "Domain") {
-        parse_attribut_cookie_domain(ctx, valeur, résultat)
-        retourne
+        parse_attribut_cookie_domain(ctx, valeur, résultat);
+        retourne;
     }
 
     si compare_ascii_insensible_à_la_casse(nom, "Path") {
-        parse_attribut_cookie_path(ctx, valeur, résultat)
-        retourne
+        parse_attribut_cookie_path(ctx, valeur, résultat);
+        retourne;
     }
 
     si compare_ascii_insensible_à_la_casse(nom, "Secure") {
-        parse_attribut_cookie_secure(ctx, résultat)
-        retourne
+        parse_attribut_cookie_secure(ctx, résultat);
+        retourne;
     }
 
     si compare_ascii_insensible_à_la_casse(nom, "HttpOnly") {
-        parse_attribut_cookie_httponly(ctx, résultat)
-        retourne
+        parse_attribut_cookie_httponly(ctx, résultat);
+        retourne;
     }
 
     /* Ignore les autres attribus. */
@@ -566,325 +566,325 @@ parse_attribut_cookie :: fonc (ctx: *ContexteParsageEntête, nom: chaine, valeur
 /* https://httpwg.org/specs/rfc6265.html#rfc.section.5.2.1 */
 parse_attribut_cookie_expires :: fonc (ctx: *ContexteParsageEntête @inutilisée, valeur: chaine, résultat: *AttributsCookie)
 {
-    opt_date := parse_date_cookie(valeur)
+    opt_date := parse_date_cookie(valeur);
     si opt_date.possède_valeur() {
-        résultat.expires = opt_date.Quelque
+        résultat.expires = opt_date.Quelque;
     }
 }
 
 /* https://httpwg.org/specs/rfc6265.html#rfc.section.5.1.1 */
 parse_date_cookie :: fonc (valeur: chaine) -> Optionnel(Date)
 {
-    temps_trouvé := faux
-    jour_du_mois_trouvé := faux
-    mois_trouvé := faux
-    année_trouvée := faux
+    temps_trouvé := faux;
+    jour_du_mois_trouvé := faux;
+    mois_trouvé := faux;
+    année_trouvée := faux;
 
-    valeur_heure: z32
-    valeur_minute: z32
-    valeur_seconde: z32
-    valeur_jour_du_mois: z32
-    valeur_mois: z32
-    valeur_année: z32
+    valeur_heure: z32;
+    valeur_minute: z32;
+    valeur_seconde: z32;
+    valeur_jour_du_mois: z32;
+    valeur_mois: z32;
+    valeur_année: z32;
 
     tantque valeur.taille != 0 {
         tantque valeur.taille != 0 && est_délimiteur(valeur[0]) {
-            valeur = avance(valeur, 1)
+            valeur = avance(valeur, 1);
         }
 
-        token := valeur
-        token.taille = 0
+        token := valeur;
+        token.taille = 0;
         tantque valeur.taille != 0 && est_non_délimiteur(valeur[0]) {
-            token.taille += 1
-            valeur = avance(valeur, 1)
+            token.taille += 1;
+            valeur = avance(valeur, 1);
         }
 
         si temps_trouvé == faux && est_production_temps(token) {
-            succès, valeur, reste := consomme_nombre_entier(token)
-            assert(succès == vrai)
-            assert(reste[0] == ':')
+            succès, valeur, reste := consomme_nombre_entier(token);
+            assert(succès == vrai);
+            assert(reste[0] == ':');
 
-            valeur_heure = valeur comme z32
+            valeur_heure = valeur comme z32;
 
-            token = avance(reste, 1)
-            succès, valeur, reste = consomme_nombre_entier(token)
-            assert(succès == vrai)
-            assert(reste[0] == ':')
+            token = avance(reste, 1);
+            succès, valeur, reste = consomme_nombre_entier(token);
+            assert(succès == vrai);
+            assert(reste[0] == ':');
 
-            valeur_minute = valeur comme z32
+            valeur_minute = valeur comme z32;
 
-            token = avance(reste, 1)
-            succès, valeur, reste = consomme_nombre_entier(token)
-            assert(succès == vrai)
+            token = avance(reste, 1);
+            succès, valeur, reste = consomme_nombre_entier(token);
+            assert(succès == vrai);
 
-            valeur_seconde = valeur comme z32
+            valeur_seconde = valeur comme z32;
 
-            temps_trouvé = vrai
-            continue
+            temps_trouvé = vrai;
+            continue;
         }
 
         si jour_du_mois_trouvé == faux && est_production_jour_du_mois(token) {
             /* La grammaire, pour le parsage, permet d'avoir d'autres caractères (même des chiffres) après le deuxième. */
             si token.taille > 2 {
-                token.taille = 2
+                token.taille = 2;
             }
 
-            succès, valeur, _ := consomme_nombre_entier(token)
-            assert(succès == vrai)
+            succès, valeur, _ := consomme_nombre_entier(token);
+            assert(succès == vrai);
 
-            valeur_jour_du_mois = valeur comme z32
+            valeur_jour_du_mois = valeur comme z32;
 
-            jour_du_mois_trouvé = vrai
-            continue
+            jour_du_mois_trouvé = vrai;
+            continue;
         }
 
         si mois_trouvé == faux {
-            indice_mois := est_production_mois(token)
+            indice_mois := est_production_mois(token);
             si indice_mois >= 0 {
-                valeur_mois = indice_mois
-                mois_trouvé = vrai
-                continue
+                valeur_mois = indice_mois;
+                mois_trouvé = vrai;
+                continue;
             }
         }
 
         si année_trouvée == faux && est_production_année(token) {
             /* La grammaire, pour le parsage, permet d'avoir d'autres caractères (même des chiffres) après le quatrième. */
             si token.taille > 4 {
-                token.taille = 4
+                token.taille = 4;
             }
 
-            succès, valeur, _ := consomme_nombre_entier(token)
-            assert(succès == vrai)
+            succès, valeur, _ := consomme_nombre_entier(token);
+            assert(succès == vrai);
 
-            valeur_année = valeur comme z32
+            valeur_année = valeur comme z32;
 
-            année_trouvée = vrai
-            continue
+            année_trouvée = vrai;
+            continue;
         }
     }
 
     si 70 <= valeur_année <= 99 {
-        valeur_année += 1900
+        valeur_année += 1900;
     }
 
     si 0 <= valeur_année <= 69 {
-        valeur_année += 2000
+        valeur_année += 2000;
     }
 
     saufsi temps_trouvé && jour_du_mois_trouvé && mois_trouvé && année_trouvée {
-        retourne
+        retourne;
     }
 
     saufsi 1 <= valeur_jour_du_mois <= 31 {
-        retourne
+        retourne;
     }
 
     si valeur_année < 1601 {
-        retourne
+        retourne;
     }
 
     saufsi 0 <= valeur_heure <= 23 {
-        retourne
+        retourne;
     }
 
     saufsi 0 <= valeur_minute <= 59 {
-        retourne
+        retourne;
     }
 
     saufsi 0 <= valeur_seconde <= 59 {
-        retourne
+        retourne;
     }
 
-    date: DateHTTP
-    date.jour = valeur_jour_du_mois
-    date.mois = valeur_mois
-    date.année = valeur_année
-    date.heure = valeur_heure
-    date.minute = valeur_minute
-    date.seconde = valeur_seconde
+    date: DateHTTP;
+    date.jour = valeur_jour_du_mois;
+    date.mois = valeur_mois;
+    date.année = valeur_année;
+    date.heure = valeur_heure;
+    date.minute = valeur_minute;
+    date.seconde = valeur_seconde;
     // À FAIRE : valide l'existence de la date (p.e. 30 Février, etc.)
-    retourne date_depuis_date_http(date)
+    retourne date_depuis_date_http(date);
 }
 
 est_délimiteur :: fonc (c: z8) -> bool
 {
     // %x09 / %x20-2F / %x3B-40 / %x5B-60 / %x7B-7E
-    retourne (c == 0x09) || (0x20 <= c <= 0x2F) || (0x3B <= c <= 0x40) || (0x5B <= c <= 0x60) || (0x7B <= c <= 0x7E)
+    retourne (c == 0x09) || (0x20 <= c <= 0x2F) || (0x3B <= c <= 0x40) || (0x5B <= c <= 0x60) || (0x7B <= c <= 0x7E);
 }
 
 est_non_délimiteur :: fonc (c: z8) -> bool
 {
     // %x00-08 / %x0A-1F / DIGIT / ":" / ALPHA / %x7F-FF
-    retourne (0x00 <= c <= 0x08) || (0x0A <= c <= 0x1F) || ('0' <= c <= '9') || c == ':' || ('A' <= (c & ~0x20) <= 'Z') || (0x7F <= c)
+    retourne (0x00 <= c <= 0x08) || (0x0A <= c <= 0x1F) || ('0' <= c <= '9') || c == ':' || ('A' <= (c & ~0x20) <= 'Z') || (0x7F <= c);
 }
 
 est_production_année :: fonc (token: chaine) -> bool
 {
     /* Minimum de 2 chiffres. */
     si token.taille < 2 {
-        retourne faux
+        retourne faux;
     }
 
     saufsi est_nombre_décimal(token[0]) && est_nombre_décimal(token[1]) {
-        retourne faux
+        retourne faux;
     }
 
-    retourne vrai
+    retourne vrai;
 }
 
 est_production_temps :: fonc (token: chaine) -> bool
 {
     /* Au mimimum 0:0:0. */
     si token.taille < 5 {
-        retourne faux
+        retourne faux;
     }
 
     saufsi est_nombre_décimal(token[0]) {
-        retourne faux
+        retourne faux;
     }
-    token = avance(token, 1)
+    token = avance(token, 1);
 
     si est_nombre_décimal(token[0]) {
-        token = avance(token, 1)
+        token = avance(token, 1);
     }
 
     si token[0] != ':' {
-        retourne faux
+        retourne faux;
     }
-    token = avance(token, 1)
+    token = avance(token, 1);
 
     si token.taille < 3 {
-        retourne faux
+        retourne faux;
     }
 
     saufsi est_nombre_décimal(token[0]) {
-        retourne faux
+        retourne faux;
     }
-    token = avance(token, 1)
+    token = avance(token, 1);
 
     si est_nombre_décimal(token[0]) {
-        token = avance(token, 1)
+        token = avance(token, 1);
     }
 
     si token[0] != ':' {
-        retourne faux
+        retourne faux;
     }
-    token = avance(token, 1)
+    token = avance(token, 1);
 
     si token.taille == 0 {
-        retourne faux
+        retourne faux;
     }
 
     saufsi est_nombre_décimal(token[0]) {
-        retourne faux
+        retourne faux;
     }
 
-    retourne vrai
+    retourne vrai;
 }
 
 est_production_jour_du_mois :: fonc (token: chaine) -> bool
 {
     si token.taille < 1 {
-        retourne faux
+        retourne faux;
     }
-    retourne est_nombre_décimal(token[0])
+    retourne est_nombre_décimal(token[0]);
 }
 
 est_production_mois :: fonc (token: chaine) -> z32
 {
     si token.taille < 3 {
-        retourne -1
+        retourne -1;
     }
 
-    mois := ["jan", "feb", "mar", "apr", "may", "jun", "jul", "aug", "sep", "oct", "nov", "dec"]
+    mois := ["jan", "feb", "mar", "apr", "may", "jun", "jul", "aug", "sep", "oct", "nov", "dec"];
 
-    token.taille = 3
+    token.taille = 3;
     pour mois {
         si compare_ascii_insensible_à_la_casse(it, token) {
-            retourne indice_it comme z32
+            retourne indice_it comme z32;
         }
     }
 
-    retourne -1
+    retourne -1;
 }
 
 /* https://httpwg.org/specs/rfc6265.html#rfc.section.5.2.2 */
 parse_attribut_cookie_max_age :: fonc (ctx: *ContexteParsageEntête @inutilisée, valeur: chaine, résultat: *AttributsCookie)
 {
     si valeur == "" || (valeur[0] != '-' && !est_nombre_décimal(valeur[0])) {
-        retourne
+        retourne;
     }
 
-    tmp := valeur
+    tmp := valeur;
     si valeur[0] == '-' {
-        tmp = avance(valeur, 1)
+        tmp = avance(valeur, 1);
     }
 
     pour tmp {
         saufsi est_nombre_décimal(it) {
-            retourne
+            retourne;
         }
     }
 
-    nombre := tente extrait_z64(valeur) piège nonatteignable
-    résultat.max_age = nombre
+    nombre := tente extrait_z64(valeur) piège nonatteignable;
+    résultat.max_age = nombre;
 }
 
 /* https://httpwg.org/specs/rfc6265.html#rfc.section.5.2.3 */
 parse_attribut_cookie_domain :: fonc (ctx: *ContexteParsageEntête @inutilisée, valeur: chaine, résultat: *AttributsCookie)
 {
     si valeur == "" {
-        retourne
+        retourne;
     }
 
     si valeur[0] == '.' {
-        valeur = avance(valeur, 1)
+        valeur = avance(valeur, 1);
     }
 
     // À FAIRE : convertis en minuscule
-    résultat.domain = valeur
+    résultat.domain = valeur;
 }
 
 /* https://httpwg.org/specs/rfc6265.html#rfc.section.5.2.4 */
 parse_attribut_cookie_path :: fonc (ctx: *ContexteParsageEntête, valeur: chaine, résultat: *AttributsCookie)
 {
-    chemin_cookie := valeur
+    chemin_cookie := valeur;
 
     si valeur == "" || valeur[0] != '/' {
-        chemin_cookie = donne_chemin_cookie_défaut(ctx)
+        chemin_cookie = donne_chemin_cookie_défaut(ctx);
     }
 
-    résultat.path = chemin_cookie
+    résultat.path = chemin_cookie;
 }
 
 /* https://httpwg.org/specs/rfc6265.html#rfc.section.5.1.4 */
 donne_chemin_cookie_défaut :: fonc (ctx: *ContexteParsageEntête) -> chaine
 {
-    chemin_uri := ctx.uri.chemin
+    chemin_uri := ctx.uri.chemin;
 
     si chemin_uri == "" || chemin_uri[0] != '/' {
-        retourne "/"
+        retourne "/";
     }
 
     si compte_occurences_de(chemin_uri, '/') == 1 {
-        retourne "/"
+        retourne "/";
     }
 
-    pos := trouve_caractère_depuis_la_fin(chemin_uri, '/')
-    assert(pos > 0)
-    retourne sous_chaine(chemin_uri, 0, pos)
+    pos := trouve_caractère_depuis_la_fin(chemin_uri, '/');
+    assert(pos > 0);
+    retourne sous_chaine(chemin_uri, 0, pos);
 }
 
 /* https://httpwg.org/specs/rfc6265.html#rfc.section.5.2.5 */
 parse_attribut_cookie_secure :: fonc (ctx: *ContexteParsageEntête @inutilisée, résultat: *AttributsCookie)
 {
-    résultat.secure = vrai
+    résultat.secure = vrai;
 }
 
 /* https://httpwg.org/specs/rfc6265.html#rfc.section.5.2.6 */
 parse_attribut_cookie_httponly :: fonc (ctx: *ContexteParsageEntête @inutilisée, résultat: *AttributsCookie)
 {
-    résultat.http_only = vrai
+    résultat.http_only = vrai;
 }
 
 /*
@@ -894,7 +894,7 @@ At least 3000 cookies total.
 */
 
 GardeCookies :: struct {
-    cookies: [..]Cookie
+    cookies: [..]Cookie;
     // cookies par domaine
 }
 

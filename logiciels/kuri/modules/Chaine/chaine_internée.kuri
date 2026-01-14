@@ -6,8 +6,8 @@
  * différents (p.e. chaine et ChaineUTF32) qui possède les mêmes points de code dans un codec commun ne
  * seront internées qu'une seule fois. */
 TypeChaineInternée :: union {
-    chn_native: chaine
-    chn_utf32: ChaineUTF32
+    chn_native: chaine;
+    chn_utf32: ChaineUTF32;
 }
 
 // À FAIRE(langage) : les discriminations sur des types pointeurs échoues
@@ -17,10 +17,10 @@ détruit_chaine :: fonc (type_chaine: TypeChaineInternée)
 {
     discr type_chaine {
         chn_native {
-            déloge(type_chaine.chn_native)
+            déloge(type_chaine.chn_native);
         }
         chn_utf32 {
-            détruit_chaine(type_chaine.chn_utf32)
+            détruit_chaine(type_chaine.chn_utf32);
         }
         sinon {}
     }
@@ -30,81 +30,81 @@ opérateur == :: (type_chaine: TypeChaineInternée, chn: chaine) -> bool
 {
     discr type_chaine {
         chn_native {
-            retourne type_chaine.chn_native == chn
+            retourne type_chaine.chn_native == chn;
         }
         chn_utf32 {
-            retourne type_chaine.chn_utf32 == chn
+            retourne type_chaine.chn_utf32 == chn;
         }
         sinon {}
     }
 
-    retourne faux
+    retourne faux;
 }
 
 opérateur == :: (type_chaine: TypeChaineInternée, chn: ChaineUTF32) -> bool
 {
     discr type_chaine {
         chn_native {
-            retourne type_chaine.chn_native == chn
+            retourne type_chaine.chn_native == chn;
         }
         chn_utf32 {
-            retourne type_chaine.chn_utf32 == chn
+            retourne type_chaine.chn_utf32 == chn;
         }
         sinon {}
     }
 
-    retourne faux
+    retourne faux;
 }
 
 opérateur == :: (type_chaine_a: TypeChaineInternée, type_chaine_b: TypeChaineInternée) -> bool
 {
     discr type_chaine_a {
         chn_native {
-            retourne type_chaine_b == type_chaine_a.chn_native
+            retourne type_chaine_b == type_chaine_a.chn_native;
         }
         chn_utf32 {
-            retourne type_chaine_b == type_chaine_a.chn_utf32
+            retourne type_chaine_b == type_chaine_a.chn_utf32;
         }
         sinon {}
     }
 
-    retourne faux
+    retourne faux;
 }
 
 ChaineInternée :: struct {
-    chn: TypeChaineInternée
+    chn: TypeChaineInternée;
 }
 
 opérateur == :: (chaine_internée: *ChaineInternée, chn: chaine) -> bool
 {
     si chaine_internée == nul {
-        retourne chn == ""
+        retourne chn == "";
     }
 
-    retourne chaine_internée.chn == chn
+    retourne chaine_internée.chn == chn;
 }
 
 opérateur == :: (chaine_internée: *ChaineInternée, chn: ChaineUTF32) -> bool
 {
     si chaine_internée == nul {
-        retourne chn.est_vide()
+        retourne chn.est_vide();
     }
 
-    retourne chaine_internée.chn == chn
+    retourne chaine_internée.chn == chn;
 }
 
 opérateur < :: (chaine_internée: *ChaineInternée, chn: chaine) -> bool
 {
-    retourne chaine_internée.chn < chn
+    retourne chaine_internée.chn < chn;
 }
 
 opérateur > :: (chaine_internée: *ChaineInternée, chn: chaine) -> bool
 {
     si chaine_internée == nul {
-        retourne faux
+        retourne faux;
     }
 
-    retourne chaine_internée.chn > chn
+    retourne chaine_internée.chn > chn;
 }
 
 /* Retourne une copie de la chaine internée du type de chaine native.
@@ -113,13 +113,13 @@ chaine_native :: fonc (chaine_internée: *ChaineInternée) -> chaine
 {
     discr chaine_internée.chn {
         chn_native(chn) {
-            retourne copie_chaine(chn)
+            retourne copie_chaine(chn);
         }
         chn_utf32(chn) {
-            retourne convertis_vers_chaine(chn)
+            retourne convertis_vers_chaine(chn);
         }
         sinon {
-            retourne copie_chaine("")
+            retourne copie_chaine("");
         }
     }
 }
@@ -128,85 +128,85 @@ imprime_chaine_internée :: fonc (enchaineuse: *Enchaineuse, chaine_internée: *
 {
     discr chaine_internée.chn {
         chn_native(chn) {
-            ajoute_au_tampon(enchaineuse, chn)
+            ajoute_au_tampon(enchaineuse, chn);
         }
         chn_utf32(chn) {
-            imprime_chaine_utf32(enchaineuse, *chn)
+            imprime_chaine_utf32(enchaineuse, *chn);
         }
         sinon {}
     }
 } @FormattageImpression
 
-table_des_chaines: Table(TypeChaineInternée, *ChaineInternée)
+table_des_chaines: Table(TypeChaineInternée, *ChaineInternée);
 
 calcule_empreinte :: fonc (type_chaine: TypeChaineInternée) -> n64
 {
     discr type_chaine {
         chn_native {
-            chn_utf32 := crée_chaine_utf32(type_chaine.chn_native)
-            diffère détruit_chaine(chn_utf32)
-            retourne calcule_empreinte_djb2(chn_utf32)
+            chn_utf32 := crée_chaine_utf32(type_chaine.chn_native);
+            diffère détruit_chaine(chn_utf32);
+            retourne calcule_empreinte_djb2(chn_utf32);
         }
         chn_utf32 {
-            retourne calcule_empreinte_djb2(type_chaine.chn_utf32)
+            retourne calcule_empreinte_djb2(type_chaine.chn_utf32);
         }
         sinon {}
     }
 
-    retourne 0
+    retourne 0;
 }
 
 crée_chaine_internée :: fonc (chn: $T) -> *ChaineInternée
 {
-    chaine_existante := trouve_chaine_internée(chn)
+    chaine_existante := trouve_chaine_internée(chn);
 
     saufsi chaine_existante {
-        nouvelle_chaine := loge(ChaineInternée)
-        nouvelle_chaine.chn = copie_chaine(chn)
+        nouvelle_chaine := loge(ChaineInternée);
+        nouvelle_chaine.chn = copie_chaine(chn);
 
-        insère(*table_des_chaines, nouvelle_chaine.chn, nouvelle_chaine)
-        chaine_existante = nouvelle_chaine
+        insère(*table_des_chaines, nouvelle_chaine.chn, nouvelle_chaine);
+        chaine_existante = nouvelle_chaine;
     }
 
-    retourne chaine_existante
+    retourne chaine_existante;
 }
 
 /* Crée une ChaineInternée depuis une chaine native, mais convertis en UTF-32 afin
  * d'éviter les comparaisons coûteuse entre chaine et ChaineUTF32. */
 crée_chaine_internée_convertis_utf32 :: fonc (chn: chaine) -> *ChaineInternée
 {
-    chaine_existante := trouve_chaine_internée(chn)
+    chaine_existante := trouve_chaine_internée(chn);
 
     saufsi chaine_existante {
-        nouvelle_chaine := loge(ChaineInternée)
-        nouvelle_chaine.chn = crée_chaine_utf32(chn)
+        nouvelle_chaine := loge(ChaineInternée);
+        nouvelle_chaine.chn = crée_chaine_utf32(chn);
 
-        insère(*table_des_chaines, nouvelle_chaine.chn, nouvelle_chaine)
-        chaine_existante = nouvelle_chaine
+        insère(*table_des_chaines, nouvelle_chaine.chn, nouvelle_chaine);
+        chaine_existante = nouvelle_chaine;
     }
 
-    retourne chaine_existante
+    retourne chaine_existante;
 }
 
 trouve_chaine_internée :: fonc (chn: $T) -> *ChaineInternée
 {
-    type_chaine: TypeChaineInternée
-    type_chaine = chn
+    type_chaine: TypeChaineInternée;
+    type_chaine = chn;
 
-    résultat := trouve(*table_des_chaines, type_chaine)
+    résultat := trouve(*table_des_chaines, type_chaine);
 
     // À FAIRE(langage) : les discriminations ne fonctionnent pas sur les types pointeus ou autres
-    TypePointeurChaineInternée :: *ChaineInternée
+    TypePointeurChaineInternée :: *ChaineInternée;
 
     discr résultat {
         bool {
-            retourne nul
+            retourne nul;
         }
         TypePointeurChaineInternée(c) {
-            retourne c
+            retourne c;
         }
         sinon {
-            retourne nul
+            retourne nul;
         }
     }
 }
@@ -215,14 +215,14 @@ détruit_chaines_internées :: fonc ()
 {
     pour v, idx dans table_des_chaines.valeurs {
         saufsi table_des_chaines.occupés[idx] {
-            continue
+            continue;
         }
 
-        détruit_chaine(v.chn)
-        déloge(v)
+        détruit_chaine(v.chn);
+        déloge(v);
     }
 
-    détruit(*table_des_chaines)
+    détruit(*table_des_chaines);
 }
 
 // --------------------------------------------------------------
@@ -230,143 +230,143 @@ détruit_chaines_internées :: fonc ()
 // À FAIRE : il nous faudrait une manière de passer la fonction de hachage
 //           nous ne pouvons pas accéder à la fonction de hachage depuis un module séparé
 Table :: struct ($TypeClé: type_de_données, $TypeValeur: type_de_données) {
-    clés: [..]TypeClé
-    valeurs: [..]TypeValeur
-    occupés: [..]bool
-    empreintes: [..]n64
+    clés: [..]TypeClé;
+    valeurs: [..]TypeValeur;
+    occupés: [..]bool;
+    empreintes: [..]n64;
 
-    capacité: z64
-    nombre_éléments: z64
+    capacité: z64;
+    nombre_éléments: z64;
 
-    TAILLE_MIN :: 32
+    TAILLE_MIN :: 32;
 }
 
 alloue :: fonc (table: *Table($TypeClé, $TypeValeur), taille: z64)
 {
     // À FAIRE: allocatrice comme rubrique de la table
-    table.capacité = taille
+    table.capacité = taille;
 
-    table.clés = loge_tableau(TypeClé, taille)
-    table.valeurs = loge_tableau(TypeValeur, taille)
-    table.occupés = loge_tableau(bool, taille)
-    table.empreintes = loge_tableau(n64, taille)
+    table.clés = loge_tableau(TypeClé, taille);
+    table.valeurs = loge_tableau(TypeValeur, taille);
+    table.occupés = loge_tableau(bool, taille);
+    table.empreintes = loge_tableau(n64, taille);
 
-    table.clés.taille = taille
-    table.valeurs.taille = taille
-    table.occupés.taille = taille
-    table.empreintes.taille = taille
+    table.clés.taille = taille;
+    table.valeurs.taille = taille;
+    table.occupés.taille = taille;
+    table.empreintes.taille = taille;
 
     pour & table.occupés {
-        it = faux
+        it = faux;
     }
 }
 
 détruit :: fonc (table: *Table($TypeClé, $TypeValeur))
 {
-    déloge(table.clés)
-    déloge(table.occupés)
-    déloge(table.valeurs)
-    déloge(table.empreintes)
-    table.capacité = 0
-    table.nombre_éléments = 0
+    déloge(table.clés);
+    déloge(table.occupés);
+    déloge(table.valeurs);
+    déloge(table.empreintes);
+    table.capacité = 0;
+    table.nombre_éléments = 0;
 }
 
 agrandis :: fonc (table: *Table($TypeClé, $TypeValeur))
 {
-    vieilles_clés := table.clés
-    vieilles_occupés := table.occupés
-    vieilles_valeurs := table.valeurs
-    vieilles_empreintes := table.empreintes
+    vieilles_clés := table.clés;
+    vieilles_occupés := table.occupés;
+    vieilles_valeurs := table.valeurs;
+    vieilles_empreintes := table.empreintes;
 
-    nouvelle_taille := table.capacité * 2
+    nouvelle_taille := table.capacité * 2;
 
     si nouvelle_taille < Table(TypeClé, TypeValeur).TAILLE_MIN {
-        nouvelle_taille = Table(TypeClé, TypeValeur).TAILLE_MIN
+        nouvelle_taille = Table(TypeClé, TypeValeur).TAILLE_MIN;
     }
 
-    alloue(table, nouvelle_taille)
+    alloue(table, nouvelle_taille);
 
     pour vieilles_occupés {
         si it {
-            insère(table, vieilles_clés[indice_it], vieilles_valeurs[indice_it])
+            insère(table, vieilles_clés[indice_it], vieilles_valeurs[indice_it]);
         }
     }
 
-    déloge(vieilles_clés)
-    déloge(vieilles_occupés)
-    déloge(vieilles_valeurs)
-    déloge(vieilles_empreintes)
+    déloge(vieilles_clés);
+    déloge(vieilles_occupés);
+    déloge(vieilles_valeurs);
+    déloge(vieilles_empreintes);
 }
 
 insère :: fonc (table: *Table($TypeClé, $TypeValeur), clé: TypeClé, valeur: TypeValeur)
 {
-    empreinte := calcule_empreinte(clé)
-    indice := trouve_indice(table, clé, empreinte)
+    empreinte := calcule_empreinte(clé);
+    indice := trouve_indice(table, clé, empreinte);
 
     si indice == -1 {
         si table.nombre_éléments * 2 >= table.capacité {
-            agrandis(table)
+            agrandis(table);
         }
 
-        indice = (empreinte % table.capacité comme n64) comme z64
+        indice = (empreinte % table.capacité comme n64) comme z64;
 
         tantque table.occupés[indice] {
-            indice += 1
+            indice += 1;
 
             si indice >= table.capacité {
-                indice = 0
+                indice = 0;
             }
         }
 
-        table.nombre_éléments += 1
+        table.nombre_éléments += 1;
     }
 
-    table.occupés[indice] = vrai
-    table.empreintes[indice] = empreinte
-    table.clés[indice] = clé
-    table.valeurs[indice] = valeur
+    table.occupés[indice] = vrai;
+    table.empreintes[indice] = empreinte;
+    table.clés[indice] = clé;
+    table.valeurs[indice] = valeur;
 }
 
 trouve :: fonc (table: *Table($TypeClé, $TypeValeur), clé: TypeClé) -> TypeValeur | bool
 {
-    empreinte := calcule_empreinte(clé)
-    indice := trouve_indice(table, clé, empreinte)
+    empreinte := calcule_empreinte(clé);
+    indice := trouve_indice(table, clé, empreinte);
 
     si indice == -1 {
-        retourne faux
+        retourne faux;
     }
 
-    retourne table.valeurs[indice]
+    retourne table.valeurs[indice];
 }
 
 possède :: fonc (table: *Table($TypeClé, $TypeValeur), clé: TypeClé) -> bool
 {
-    empreinte := calcule_empreinte(clé)
-    indice := trouve_indice(table, clé, empreinte)
-    retourne indice != -1
+    empreinte := calcule_empreinte(clé);
+    indice := trouve_indice(table, clé, empreinte);
+    retourne indice != -1;
 }
 
 trouve_indice :: fonc (table: *Table($TypeClé, $TypeValeur), clé: TypeClé, empreinte: n64) -> z64
 {
     saufsi table.capacité {
-        retourne -1
+        retourne -1;
     }
 
-    indice := (empreinte % table.capacité comme n64) comme z64
+    indice := (empreinte % table.capacité comme n64) comme z64;
 
     tantque table.occupés[indice] {
         si table.empreintes[indice] == empreinte {
             si table.clés[indice] == clé {
-                retourne indice
+                retourne indice;
             }
         }
 
-        indice += 1
+        indice += 1;
 
         si indice >= table.capacité {
-            indice = 0
+            indice = 0;
         }
     }
 
-    retourne -1
+    retourne -1;
 }

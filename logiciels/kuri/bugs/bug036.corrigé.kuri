@@ -7,11 +7,11 @@
 
 foo :: fonc () -> *z32
 {
-    a := 0
-    retourne *a
+    a := 0;
+    retourne *a;
 }
 principale :: fonc ()
 {
-    x := foo()
-    exit(mémoire(x))
+    x := foo();
+    exit(mémoire(x));
 }
