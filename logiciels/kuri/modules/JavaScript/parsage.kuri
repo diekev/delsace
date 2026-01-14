@@ -1,1185 +1,1185 @@
-importe Structures
+importe Structures;
 
 parse :: fonc (realm: *Realm, source_text: *TexteSource, goal_symbol: GoalSymbol) -> Résultat(*NoeudSyntaxique, *SyntaxError)
 {
-    parseuse: Parseuse
-    diffère détruit_données_parseuse(*parseuse)
+    parseuse: Parseuse;
+    diffère détruit_données_parseuse(*parseuse);
 
-    parseuse.realm = realm
-    parseuse.source_text = source_text
-    parseuse.lexèmes = source_text.lexèmes
+    parseuse.realm = realm;
+    parseuse.source_text = source_text;
+    parseuse.lexèmes = source_text.lexèmes;
 
-    résultat: *NoeudSyntaxique
+    résultat: *NoeudSyntaxique;
 
     discr goal_symbol {
         Script {
-            résultat = parse_script(*parseuse)
+            résultat = parse_script(*parseuse);
         }
         StringNumericLiteral {
             /* A StringNumericLiteral that is empty or contains only white space is converted to +0𝔽. */
             si source_text.lexèmes.taille == 0 {
-                résultat = crée_literal(*parseuse, nul, 0.0)
+                résultat = crée_literal(*parseuse, nul, 0.0);
             }
             sinon {
-                résultat = parse_expression(*parseuse, ParamètresParsageExpression())
+                résultat = parse_expression(*parseuse, ParamètresParsageExpression());
                 si résultat.type != NumericLiteral {
-                    rapporte_erreur(*parseuse, "expected a numeric literal")
+                    rapporte_erreur(*parseuse, "expected a numeric literal");
                 }
             }
         }
         FunctionBody {
-            résultat = parse_function_body(*parseuse, faux, faux)
+            résultat = parse_function_body(*parseuse, faux, faux);
         }
     }
 
     si parseuse.erreur_de_compilation {
-        détruit_arbre(résultat)
-        retourne parseuse.erreur_de_compilation
+        détruit_arbre(résultat);
+        retourne parseuse.erreur_de_compilation;
     }
 
-    retourne résultat
+    retourne résultat;
 }
 
 Parseuse :: struct {
-    realm: *Realm
-    source_text: *TexteSource
-    lexèmes: [..]Lexème
-    position := 0
-    erreur_de_compilation: *SyntaxError
-    erreur_de_compilation_n_est_pas_ignorable: bool
-    parent: *Parseuse
+    realm: *Realm;
+    source_text: *TexteSource;
+    lexèmes: [..]Lexème;
+    position := 0;
+    erreur_de_compilation: *SyntaxError;
+    erreur_de_compilation_n_est_pas_ignorable: bool;
+    parent: *Parseuse;
 
-    noeuds: [..]*NoeudSyntaxique
+    noeuds: [..]*NoeudSyntaxique;
 
-    await_est_mot_clé: bool
-    yield_est_mot_clé: bool
+    await_est_mot_clé: bool;
+    yield_est_mot_clé: bool;
 }
 
 crée_noeud :: fonc (parseuse: *Parseuse, lexème: *Lexème, $T: type_de_données) -> *T
 {
-    résultat := loge(T)
-    résultat.lexème = lexème
-    tableau_ajoute(*parseuse.noeuds, résultat)
-    retourne résultat
+    résultat := loge(T);
+    résultat.lexème = lexème;
+    tableau_ajoute(*parseuse.noeuds, résultat);
+    retourne résultat;
 }
 
 donne_parseuse_locale :: fonc (parseuse: *Parseuse) -> Parseuse
 {
-    résultat: Parseuse
-    résultat.lexèmes = parseuse.lexèmes
-    résultat.position = parseuse.position
-    résultat.realm = parseuse.realm
-    résultat.source_text = parseuse.source_text
-    résultat.parent = parseuse
-    retourne résultat
+    résultat: Parseuse;
+    résultat.lexèmes = parseuse.lexèmes;
+    résultat.position = parseuse.position;
+    résultat.realm = parseuse.realm;
+    résultat.source_text = parseuse.source_text;
+    résultat.parent = parseuse;
+    retourne résultat;
 }
 
 ajourne_parent :: fonc (parseuse: *Parseuse)
 {
-    assert(parseuse.parent != nul)
-    parseuse.parent.position = parseuse.position
+    assert(parseuse.parent != nul);
+    parseuse.parent.position = parseuse.position;
     si parseuse.erreur_de_compilation_n_est_pas_ignorable {
-        parseuse.parent.erreur_de_compilation = parseuse.erreur_de_compilation
-        parseuse.parent.erreur_de_compilation_n_est_pas_ignorable = vrai
+        parseuse.parent.erreur_de_compilation = parseuse.erreur_de_compilation;
+        parseuse.parent.erreur_de_compilation_n_est_pas_ignorable = vrai;
     }
     pour parseuse.noeuds {
-        tableau_ajoute(*parseuse.parent.noeuds, it)
+        tableau_ajoute(*parseuse.parent.noeuds, it);
     }
-    parseuse.noeuds.taille = 0
+    parseuse.noeuds.taille = 0;
 }
 
 détruit_données_parseuse :: fonc (parseuse: *Parseuse)
 {
     // À FAIRE : destruction des noeuds pour les parseuses locales
-    déloge(parseuse.noeuds)
+    déloge(parseuse.noeuds);
 }
 
 lexème_courant :: fonc (parseuse: *Parseuse) -> *Lexème
 {
-    retourne *parseuse.lexèmes[parseuse.position]
+    retourne *parseuse.lexèmes[parseuse.position];
 }
 
 fini :: fonc (parseuse: *Parseuse) -> bool
 {
-    retourne parseuse.erreur_de_compilation != nul || parseuse.position >= parseuse.lexèmes.taille
+    retourne parseuse.erreur_de_compilation != nul || parseuse.position >= parseuse.lexèmes.taille;
 }
 
 est_en_fin_de_ligne :: fonc (parseuse: *Parseuse, référence: *Lexème) -> bool
 {
-    lexème := parseuse.lexème_courant()
-    assert(lexème != référence)
-    assert(lexème == référence + 1)
+    lexème := parseuse.lexème_courant();
+    assert(lexème != référence);
+    assert(lexème == référence + 1);
 
-    fin_référence := référence.texte.pointeur + référence.texte.taille
-    texte := chaine(fin_référence, lexème.texte.pointeur - fin_référence)
+    fin_référence := référence.texte.pointeur + référence.texte.taille;
+    texte := chaine(fin_référence, lexème.texte.pointeur - fin_référence);
 
     pour texte {
         si it == '\n' {
-            retourne vrai
+            retourne vrai;
         }
     }
-    retourne faux
+    retourne faux;
 }
 
 consomme :: fonc (parseuse: *Parseuse)
 {
-    parseuse.position += 1
+    parseuse.position += 1;
 }
 
 consomme :: fonc (parseuse: *Parseuse, genre_lexème: GenreLexème)
 {
     saufsi apparie(parseuse, genre_lexème) {
         si genre_lexème == GenreLexème.ParenthèseOuvrante {
-            parseuse.rapporte_erreur("expected a '('")
+            parseuse.rapporte_erreur("expected a '('");
         }
         sinon si genre_lexème == GenreLexème.ParenthèseFermante {
-            parseuse.rapporte_erreur("expected a ')'")
+            parseuse.rapporte_erreur("expected a ')'");
         }
         sinon si genre_lexème == GenreLexème.AccoladeOuvrante {
-            parseuse.rapporte_erreur("expected a '{'")
+            parseuse.rapporte_erreur("expected a '{'");
         }
         sinon si genre_lexème == GenreLexème.AccoladeFermante {
-            parseuse.rapporte_erreur("expected a '}'")
+            parseuse.rapporte_erreur("expected a '}'");
         }
         sinon si genre_lexème == GenreLexème.CrochetOuvrant {
-            parseuse.rapporte_erreur("expected a '['")
+            parseuse.rapporte_erreur("expected a '['");
         }
         sinon si genre_lexème == GenreLexème.CrochetFermant {
-            parseuse.rapporte_erreur("expected a ']'")
+            parseuse.rapporte_erreur("expected a ']'");
         }
         sinon si genre_lexème == GenreLexème.PointVirgule {
-            parseuse.rapporte_erreur("expected a ';'")
+            parseuse.rapporte_erreur("expected a ';'");
         }
         sinon si genre_lexème == GenreLexème.DoublePoint {
-            parseuse.rapporte_erreur("expected a ':'")
+            parseuse.rapporte_erreur("expected a ':'");
         }
         sinon  {
-            parseuse.rapporte_erreur("unexpected token")
+            parseuse.rapporte_erreur("unexpected token");
         }
     }
-    parseuse.consomme()
+    parseuse.consomme();
 }
 
 consomme_point_virgule_potentiel :: fonc (parseuse: *Parseuse)
 {
     si parseuse.apparie(GenreLexème.PointVirgule) {
-        parseuse.consomme()
+        parseuse.consomme();
     }
 }
 
 apparie :: fonc (parseuse: *Parseuse, genre_lexème: GenreLexème) -> bool
 {
     si parseuse.fini() {
-        retourne faux
+        retourne faux;
     }
-    retourne parseuse.lexème_courant().genre == genre_lexème
+    retourne parseuse.lexème_courant().genre == genre_lexème;
 }
 
 parse_script :: fonc (parseuse: *Parseuse) -> *NoeudScript
 {
-    script_body: *ScriptBody
-    statements := parse_statement_list(parseuse)
+    script_body: *ScriptBody;
+    statements := parse_statement_list(parseuse);
 
     si statements.taille != 0 {
-        script_body = crée_script_body(parseuse, statements)
+        script_body = crée_script_body(parseuse, statements);
     }
 
-    retourne crée_script(parseuse, script_body)
+    retourne crée_script(parseuse, script_body);
 }
 
 parse_statement :: fonc (parseuse: *Parseuse) -> *Statement
 {
     si parseuse.fini() {
-        rapporte_erreur(parseuse, "unexpected end of input")
-        retourne nul
+        rapporte_erreur(parseuse, "unexpected end of input");
+        retourne nul;
     }
 
-    lexème := parseuse.lexème_courant()
+    lexème := parseuse.lexème_courant();
 
     discr lexème.genre {
         Class {
-            retourne parse_class_declaration(parseuse, faux) comme *ClassDeclaration
+            retourne parse_class_declaration(parseuse, faux) comme *ClassDeclaration;
         }
         Function {
-            retourne parse_function_declaration(parseuse, faux)
+            retourne parse_function_declaration(parseuse, faux);
         }
         Return {
-            retourne parse_return_statement(parseuse)
+            retourne parse_return_statement(parseuse);
         }
         For {
-            retourne parse_for_statement(parseuse)
+            retourne parse_for_statement(parseuse);
         }
         While {
-            retourne parse_while_statement(parseuse)
+            retourne parse_while_statement(parseuse);
         }
         Do {
-            retourne parse_do_while_statement(parseuse)
+            retourne parse_do_while_statement(parseuse);
         }
         If {
-            retourne parse_if_statement(parseuse)
+            retourne parse_if_statement(parseuse);
         }
         Try {
-            retourne parse_try_statement(parseuse)
+            retourne parse_try_statement(parseuse);
         }
         Throw {
-            retourne parse_throw_statement(parseuse)
+            retourne parse_throw_statement(parseuse);
         }
         Continue {
-            retourne parse_continue_statement(parseuse)
+            retourne parse_continue_statement(parseuse);
         }
         Break {
-            retourne parse_break_statement(parseuse)
+            retourne parse_break_statement(parseuse);
         }
         Switch {
-            retourne parse_switch_statement(parseuse)
+            retourne parse_switch_statement(parseuse);
         }
         Debugger {
-            parseuse.consomme()
-            parseuse.consomme_point_virgule_potentiel()
-            retourne crée_debugger_statement(parseuse, lexème)
+            parseuse.consomme();
+            parseuse.consomme_point_virgule_potentiel();
+            retourne crée_debugger_statement(parseuse, lexème);
         }
         AccoladeOuvrante {
-            parseuse.consomme(GenreLexème.AccoladeOuvrante)
-            statements := parse_statement_list(parseuse)
-            parseuse.consomme(GenreLexème.AccoladeFermante)
-            retourne crée_block_statement(parseuse, lexème, statements)
+            parseuse.consomme(GenreLexème.AccoladeOuvrante);
+            statements := parse_statement_list(parseuse);
+            parseuse.consomme(GenreLexème.AccoladeFermante);
+            retourne crée_block_statement(parseuse, lexème, statements);
         }
         PointVirgule {
-            parseuse.consomme()
-            retourne crée_empty_statement(parseuse, lexème)
+            parseuse.consomme();
+            retourne crée_empty_statement(parseuse, lexème);
         }
         sinon {
-            sauvegarde := parseuse.position
-            label_identifier := parse_label_identifier(parseuse, faux)
+            sauvegarde := parseuse.position;
+            label_identifier := parse_label_identifier(parseuse, faux);
             si label_identifier {
                 si parseuse.apparie(GenreLexème.DoublePoint) {
-                    parseuse.consomme()
+                    parseuse.consomme();
 
-                    statement := parse_statement(parseuse)
+                    statement := parse_statement(parseuse);
 
-                    retourne crée_labelled_statement(parseuse, lexème, label_identifier.nom, statement)
+                    retourne crée_labelled_statement(parseuse, lexème, label_identifier.nom, statement);
                 }
 
-                parseuse.position = sauvegarde
+                parseuse.position = sauvegarde;
             }
 
             si apparie(parseuse, GenreLexème.Async) {
-                parseuse.consomme()
+                parseuse.consomme();
 
                 si !est_en_fin_de_ligne(parseuse, lexème) && parseuse.apparie(GenreLexème.Function) {
-                    retourne parse_function_declaration(parseuse, vrai)
+                    retourne parse_function_declaration(parseuse, vrai);
                 }
 
-                parseuse.position = sauvegarde
+                parseuse.position = sauvegarde;
             }
 
-            expression := parseuse.parse_expression(ParamètresParsageExpression())
-            parseuse.consomme_point_virgule_potentiel()
-            retourne crée_expression_statement(parseuse, lexème, expression)
+            expression := parseuse.parse_expression(ParamètresParsageExpression());
+            parseuse.consomme_point_virgule_potentiel();
+            retourne crée_expression_statement(parseuse, lexème, expression);
         }
     }
 
-    retourne nul
+    retourne nul;
 }
 
 parse_class_declaration :: fonc (parseuse: *Parseuse, pour_expression: bool) -> *NoeudSyntaxique
 {
-    lexème := parseuse.lexème_courant()
-    parseuse.consomme()
+    lexème := parseuse.lexème_courant();
+    parseuse.consomme();
 
-    id := parse_binding_identifier(parseuse, !pour_expression)
+    id := parse_binding_identifier(parseuse, !pour_expression);
 
-    héritage: *Expression
+    héritage: *Expression;
     si parseuse.apparie(GenreLexème.Extends) {
-        parseuse.consomme()
-        héritage = parse_expression(parseuse, ParamètresParsageExpression())
+        parseuse.consomme();
+        héritage = parse_expression(parseuse, ParamètresParsageExpression());
     }
 
-    lexème_body := parseuse.lexème_courant()
-    parseuse.consomme(GenreLexème.AccoladeOuvrante)
+    lexème_body := parseuse.lexème_courant();
+    parseuse.consomme(GenreLexème.AccoladeOuvrante);
 
-    éléments: [..]*NoeudSyntaxique
+    éléments: [..]*NoeudSyntaxique;
 
     tantque !fini(parseuse) && !apparie(parseuse, GenreLexème.AccoladeFermante) {
         si apparie(parseuse, GenreLexème.PointVirgule) {
-            lexème_expr := parseuse.lexème_courant()
-            expr := crée_empty_statement(parseuse, lexème_expr)
-            tableau_ajoute(*éléments, expr)
-            continue
+            lexème_expr := parseuse.lexème_courant();
+            expr := crée_empty_statement(parseuse, lexème_expr);
+            tableau_ajoute(*éléments, expr);
+            continue;
         }
 
-        est_static := faux
+        est_static := faux;
         si apparie(parseuse, GenreLexème.Static) {
-            lexème_static := parseuse.lexème_courant()
-            parseuse.consomme()
+            lexème_static := parseuse.lexème_courant();
+            parseuse.consomme();
 
             si apparie(parseuse, GenreLexème.AccoladeOuvrante) {
-                body := parse_function_body(parseuse, faux, faux)
-                static_block := crée_class_static_block(parseuse, lexème_static, body)
-                tableau_ajoute(*éléments, static_block)
-                continue
+                body := parse_function_body(parseuse, faux, faux);
+                static_block := crée_class_static_block(parseuse, lexème_static, body);
+                tableau_ajoute(*éléments, static_block);
+                continue;
             }
 
-            est_static = vrai
+            est_static = vrai;
         }
 
-        parseuse_locale := parseuse.donne_parseuse_locale()
+        parseuse_locale := parseuse.donne_parseuse_locale();
 
-        method := parse_method_definition(*parseuse_locale)
+        method := parse_method_definition(*parseuse_locale);
 
         si parseuse_locale.erreur_de_compilation && parseuse_locale.erreur_de_compilation_n_est_pas_ignorable {
-            ajourne_parent(*parseuse_locale)
-            détruit_données_parseuse(*parseuse_locale)
-            arrête
+            ajourne_parent(*parseuse_locale);
+            détruit_données_parseuse(*parseuse_locale);
+            arrête;
         }
 
         si method && parseuse_locale.erreur_de_compilation == nul {
-            method_typée := method comme *ClassMethod
-            method_typée.static = est_static
-            ajourne_parent(*parseuse_locale)
-            détruit_données_parseuse(*parseuse_locale)
-            tableau_ajoute(*éléments, method)
-            continue
+            method_typée := method comme *ClassMethod;
+            method_typée.static = est_static;
+            ajourne_parent(*parseuse_locale);
+            détruit_données_parseuse(*parseuse_locale);
+            tableau_ajoute(*éléments, method);
+            continue;
         }
 
-        field_name := apparie_class_element_name(parseuse)
+        field_name := apparie_class_element_name(parseuse);
         saufsi field_name {
-            rapporte_erreur(parseuse, "expected a class field")
-            continue
+            rapporte_erreur(parseuse, "expected a class field");
+            continue;
         }
 
-        initializer: *Expression
+        initializer: *Expression;
         si apparie(parseuse, GenreLexème.Égal) {
-            parseuse.consomme()
-            initializer = parse_expression(parseuse, ParamètresParsageExpression())
+            parseuse.consomme();
+            initializer = parse_expression(parseuse, ParamètresParsageExpression());
         }
 
         si apparie(parseuse, GenreLexème.PointVirgule) {
-            parseuse.consomme()
+            parseuse.consomme();
         }
         
-        field := crée_class_field(parseuse, field_name.lexème, field_name, initializer, est_static)
-        tableau_ajoute(*éléments, field)
+        field := crée_class_field(parseuse, field_name.lexème, field_name, initializer, est_static);
+        tableau_ajoute(*éléments, field);
     }
 
-    parseuse.consomme(GenreLexème.AccoladeFermante)
+    parseuse.consomme(GenreLexème.AccoladeFermante);
 
-    body := crée_class_body(parseuse, lexème_body, éléments)
+    body := crée_class_body(parseuse, lexème_body, éléments);
 
     si pour_expression {
-        retourne crée_class_expression(parseuse, lexème, héritage, id, body)
+        retourne crée_class_expression(parseuse, lexème, héritage, id, body);
     }
 
-    retourne crée_class_declaration(parseuse, lexème, héritage, id, body)
+    retourne crée_class_declaration(parseuse, lexème, héritage, id, body);
 }
 
 /* https://tc39.es/ecma262/multipage/ecmascript-language-functions-and-classes.html#prod-MethodDefinition */
 parse_method_definition :: fonc (parseuse: *Parseuse) -> *Expression
 {
-    method_kind := MethodKind.Method
+    method_kind := MethodKind.Method;
 
-    class_element_name: *Expression
+    class_element_name: *Expression;
     
-    async := faux
-    generator := faux
+    async := faux;
+    generator := faux;
 
     si apparie(parseuse, GenreLexème.Étoile) {
-        parseuse.consomme()
-        generator = vrai
+        parseuse.consomme();
+        generator = vrai;
     }
     sinon si apparie(parseuse, GenreLexème.Get) {
-        sauvegarde := parseuse.position
-        parseuse.consomme()
+        sauvegarde := parseuse.position;
+        parseuse.consomme();
 
-        class_element_name = apparie_class_element_name(parseuse)
+        class_element_name = apparie_class_element_name(parseuse);
         si class_element_name {
-            method_kind = MethodKind.Get
+            method_kind = MethodKind.Get;
         }
         sinon {
-            parseuse.position = sauvegarde
+            parseuse.position = sauvegarde;
         }
     }
     sinon si apparie(parseuse, GenreLexème.Set) {
-        sauvegarde := parseuse.position
-        parseuse.consomme()
+        sauvegarde := parseuse.position;
+        parseuse.consomme();
 
-        class_element_name = apparie_class_element_name(parseuse)
+        class_element_name = apparie_class_element_name(parseuse);
         si class_element_name {
-            method_kind = MethodKind.Set
+            method_kind = MethodKind.Set;
         }
         sinon {
-            parseuse.position = sauvegarde
+            parseuse.position = sauvegarde;
         }
     }
     sinon si apparie(parseuse, GenreLexème.Async) {
-        sauvegarde := parseuse.position
-        parseuse.consomme()
+        sauvegarde := parseuse.position;
+        parseuse.consomme();
 
-        class_element_name = apparie_class_element_name(parseuse)
+        class_element_name = apparie_class_element_name(parseuse);
         si class_element_name {
-            async = vrai
+            async = vrai;
         }
         sinon {
-            parseuse.position = sauvegarde
+            parseuse.position = sauvegarde;
         }
     }
 
     // À FAIRE : ClassElementName, pour les méthodes
     // https://tc39.es/ecma262/multipage/ecmascript-language-functions-and-classes.html#prod-ClassElementName
     saufsi class_element_name {
-        class_element_name = apparie_class_element_name(parseuse)
+        class_element_name = apparie_class_element_name(parseuse);
         saufsi class_element_name {
-            retourne nul
+            retourne nul;
         }
     }
 
     saufsi apparie(parseuse, GenreLexème.ParenthèseOuvrante) {
-        retourne nul
+        retourne nul;
     }
 
     // À FAIRE : est-ce utile ?
-    parseuse.erreur_de_compilation_n_est_pas_ignorable = vrai
+    parseuse.erreur_de_compilation_n_est_pas_ignorable = vrai;
 
-    lexème_déf := parseuse.lexème_courant()
-    parseuse.consomme()
-    paramètres := parse_expressions_séparées_par_des_virgules(parseuse, GenreLexème.ParenthèseFermante)
-    parseuse.consomme(GenreLexème.ParenthèseFermante)
+    lexème_déf := parseuse.lexème_courant();
+    parseuse.consomme();
+    paramètres := parse_expressions_séparées_par_des_virgules(parseuse, GenreLexème.ParenthèseFermante);
+    parseuse.consomme(GenreLexème.ParenthèseFermante);
 
     si method_kind == MethodKind.Get && paramètres.taille != 0 {
-        rapporte_erreur(parseuse, lexème_déf, "get method cannot have arguments")
+        rapporte_erreur(parseuse, lexème_déf, "get method cannot have arguments");
     }
     sinon si method_kind == MethodKind.Set && paramètres.taille != 1 {
-        rapporte_erreur(parseuse, lexème_déf, "set method has to have exactly 1 argument")
+        rapporte_erreur(parseuse, lexème_déf, "set method has to have exactly 1 argument");
     }
     sinon si class_element_name.type == Identifier {
-        identifier := class_element_name comme *Identifier
+        identifier := class_element_name comme *Identifier;
         si identifier.nom == STR_constructor {
-            method_kind = MethodKind.Constructor
+            method_kind = MethodKind.Constructor;
         }
     }
 
-    body := parse_function_body(parseuse, async, generator)
+    body := parse_function_body(parseuse, async, generator);
 
-    retourne crée_class_method(parseuse, lexème_déf, class_element_name, paramètres, body, method_kind, async, generator)
+    retourne crée_class_method(parseuse, lexème_déf, class_element_name, paramètres, body, method_kind, async, generator);
 }
 
 parse_function_declaration :: fonc (parseuse: *Parseuse, async: bool) -> *FunctionDeclaration
 {
-    lexème := parseuse.lexème_courant()
-    parseuse.consomme()
+    lexème := parseuse.lexème_courant();
+    parseuse.consomme();
 
-    generator: bool
+    generator: bool;
     si async == faux && parseuse.apparie(GenreLexème.Étoile) {
-        parseuse.consomme()
-        generator = vrai
+        parseuse.consomme();
+        generator = vrai;
     }
 
-    id := parse_binding_identifier(parseuse, vrai)
+    id := parse_binding_identifier(parseuse, vrai);
 
-    parseuse.consomme(GenreLexème.ParenthèseOuvrante)
-    paramètres := parse_expressions_séparées_par_des_virgules(parseuse, GenreLexème.ParenthèseFermante)
-    parseuse.consomme(GenreLexème.ParenthèseFermante)
+    parseuse.consomme(GenreLexème.ParenthèseOuvrante);
+    paramètres := parse_expressions_séparées_par_des_virgules(parseuse, GenreLexème.ParenthèseFermante);
+    parseuse.consomme(GenreLexème.ParenthèseFermante);
 
-    body := parse_function_body(parseuse, async, generator)
+    body := parse_function_body(parseuse, async, generator);
 
-    retourne crée_function_déclaration(parseuse, lexème, id, paramètres, body, async, generator)
+    retourne crée_function_déclaration(parseuse, lexème, id, paramètres, body, async, generator);
 }
 
 parse_function_expression :: fonc (parseuse: *Parseuse, async: bool) -> *FunctionExpression
 {
-    lexème := parseuse.lexème_courant()
-    parseuse.consomme()
+    lexème := parseuse.lexème_courant();
+    parseuse.consomme();
 
-    generator: bool
+    generator: bool;
     si async == faux && parseuse.apparie(GenreLexème.Étoile) {
-        parseuse.consomme()
-        generator = vrai
+        parseuse.consomme();
+        generator = vrai;
     }
 
-    id := parse_binding_identifier(parseuse, faux)
+    id := parse_binding_identifier(parseuse, faux);
 
-    parseuse.consomme(GenreLexème.ParenthèseOuvrante)
-    paramètres := parse_expressions_séparées_par_des_virgules(parseuse, GenreLexème.ParenthèseFermante)
-    parseuse.consomme(GenreLexème.ParenthèseFermante)
+    parseuse.consomme(GenreLexème.ParenthèseOuvrante);
+    paramètres := parse_expressions_séparées_par_des_virgules(parseuse, GenreLexème.ParenthèseFermante);
+    parseuse.consomme(GenreLexème.ParenthèseFermante);
 
-    body := parse_function_body(parseuse, async, generator)
+    body := parse_function_body(parseuse, async, generator);
 
-    retourne crée_function_expression(parseuse, lexème, id, paramètres, body, async, generator)
+    retourne crée_function_expression(parseuse, lexème, id, paramètres, body, async, generator);
 }
 
 parse_function_body :: fonc (parseuse: *Parseuse, async: bool, generator: bool) -> *FunctionBody
 {
-    ancien_await_est_mot_clé := parseuse.await_est_mot_clé
-    parseuse.await_est_mot_clé = async
-    diffère parseuse.await_est_mot_clé = ancien_await_est_mot_clé
+    ancien_await_est_mot_clé := parseuse.await_est_mot_clé;
+    parseuse.await_est_mot_clé = async;
+    diffère parseuse.await_est_mot_clé = ancien_await_est_mot_clé;
 
-    ancien_yield_est_mot_clé := parseuse.yield_est_mot_clé
-    parseuse.yield_est_mot_clé = async
-    diffère parseuse.yield_est_mot_clé = ancien_yield_est_mot_clé
+    ancien_yield_est_mot_clé := parseuse.yield_est_mot_clé;
+    parseuse.yield_est_mot_clé = async;
+    diffère parseuse.yield_est_mot_clé = ancien_yield_est_mot_clé;
 
-    statement := parse_statement(parseuse)
+    statement := parse_statement(parseuse);
     si statement {
-        statement.appartient_à_fonction = vrai
+        statement.appartient_à_fonction = vrai;
     }
-    retourne crée_function_body(parseuse, statement, async, generator)
+    retourne crée_function_body(parseuse, statement, async, generator);
 }
 
 parse_variable_declaration :: fonc (parseuse: *Parseuse, nature: VariableDeclarationKind) -> *VariableDeclaration
 {
-    lexème := parseuse.lexème_courant()
-    parseuse.consomme()
+    lexème := parseuse.lexème_courant();
+    parseuse.consomme();
 
-    declarators: [..]*VariableDeclarator
+    declarators: [..]*VariableDeclarator;
 
     tantque !fini(parseuse) {
-        declarator := parse_variable_declarator(parseuse)
+        declarator := parse_variable_declarator(parseuse);
         saufsi declarator {
-            déloge(declarators)
-            retourne nul
+            déloge(declarators);
+            retourne nul;
         }
 
-        tableau_ajoute(*declarators, declarator)
+        tableau_ajoute(*declarators, declarator);
 
         si apparie(parseuse, GenreLexème.Virgule) {
-            parseuse.consomme()
-            continue
+            parseuse.consomme();
+            continue;
         }
 
-        arrête
+        arrête;
     }
 
-    retourne crée_variable_declaration(parseuse, lexème, nature, declarators)
+    retourne crée_variable_declaration(parseuse, lexème, nature, declarators);
 }
 
 parse_variable_declarator :: fonc (parseuse: *Parseuse) -> *VariableDeclarator
 {
-    lexème := parseuse.lexème_courant()
+    lexème := parseuse.lexème_courant();
 
-    id: *Expression
+    id: *Expression;
 
     si parseuse.apparie(GenreLexème.AccoladeOuvrante) {
-        id = parse_object_binding_pattern(parseuse)
+        id = parse_object_binding_pattern(parseuse);
     }
     sinon si parseuse.apparie(GenreLexème.CrochetOuvrant) {
-        id = parse_array_binding_pattern(parseuse)
+        id = parse_array_binding_pattern(parseuse);
     }
     sinon {
-        id = parse_binding_identifier(parseuse, vrai)
+        id = parse_binding_identifier(parseuse, vrai);
     }
 
-    init: *Expression
+    init: *Expression;
     si apparie(parseuse, GenreLexème.Égal) {
-        parseuse.consomme()
-        init = parseuse.parse_expression(ParamètresParsageExpression(lexème_final = GenreLexème.Virgule))
+        parseuse.consomme();
+        init = parseuse.parse_expression(ParamètresParsageExpression(lexème_final = GenreLexème.Virgule));
     }
 
-    retourne crée_variable_declarator(parseuse, lexème, id, init)
+    retourne crée_variable_declarator(parseuse, lexème, id, init);
 }
 
 /* https://tc39.es/ecma262/multipage/ecmascript-language-statements-and-declarations.html#prod-ObjectBindingPattern */
 parse_object_binding_pattern :: fonc (parseuse: *Parseuse) -> *ObjectBindingPattern
 {
-    lexème := parseuse.lexème_courant()
-    parseuse.consomme()
+    lexème := parseuse.lexème_courant();
+    parseuse.consomme();
 
-    properties: [..]*Expression
+    properties: [..]*Expression;
 
     tantque !fini(parseuse) && !apparie(parseuse, GenreLexème.AccoladeFermante) {
         si parseuse.apparie(GenreLexème.Spread) {
-            lexème_spread := parseuse.lexème_courant()
-            parseuse.consomme()
-            id := parse_binding_identifier(parseuse, vrai)
-            binding_rest_property := crée_spread_element(parseuse, lexème_spread, id)
-            tableau_ajoute(*properties, binding_rest_property)
-            continue
+            lexème_spread := parseuse.lexème_courant();
+            parseuse.consomme();
+            id := parse_binding_identifier(parseuse, vrai);
+            binding_rest_property := crée_spread_element(parseuse, lexème_spread, id);
+            tableau_ajoute(*properties, binding_rest_property);
+            continue;
         }
 
-        property := parse_binding_property(parseuse)
-        tableau_ajoute(*properties, property)
+        property := parse_binding_property(parseuse);
+        tableau_ajoute(*properties, property);
 
         saufsi apparie(parseuse, GenreLexème.Virgule) {
-            arrête
+            arrête;
         }
-        parseuse.consomme()
+        parseuse.consomme();
     }
 
-    parseuse.consomme(GenreLexème.AccoladeFermante)
+    parseuse.consomme(GenreLexème.AccoladeFermante);
 
-    retourne crée_object_binding_pattern(parseuse, lexème, properties)
+    retourne crée_object_binding_pattern(parseuse, lexème, properties);
 }
 
 parse_binding_property :: fonc (parseuse: *Parseuse) -> *Expression
 {
-    lexème := parseuse.lexème_courant()
-    id := parse_binding_identifier(parseuse, faux)
+    lexème := parseuse.lexème_courant();
+    id := parse_binding_identifier(parseuse, faux);
 
     saufsi id {
-        property_name := apparie_property_name(parseuse)
+        property_name := apparie_property_name(parseuse);
         si property_name {
             si parseuse.apparie(GenreLexème.DoublePoint) {
-                lexème_double_point := parseuse.lexème_courant()
-                parseuse.consomme()
-                expression := parse_binding_element(parseuse)
-                retourne crée_binding_property(parseuse, lexème_double_point, id, expression)
+                lexème_double_point := parseuse.lexème_courant();
+                parseuse.consomme();
+                expression := parse_binding_element(parseuse);
+                retourne crée_binding_property(parseuse, lexème_double_point, id, expression);
             }
             sinon {
-                rapporte_erreur(parseuse, "expected a ':'")
-                retourne nul
+                rapporte_erreur(parseuse, "expected a ':'");
+                retourne nul;
             }
         }
 
-        rapporte_erreur(parseuse, "expected a property name")
-        retourne nul
+        rapporte_erreur(parseuse, "expected a property name");
+        retourne nul;
     }
 
     si parseuse.apparie(GenreLexème.DoublePoint) {
-        lexème_double_point := parseuse.lexème_courant()
-        parseuse.consomme()
-        expression := parse_binding_element(parseuse)
-        retourne crée_binding_property(parseuse, lexème_double_point, id, expression)
+        lexème_double_point := parseuse.lexème_courant();
+        parseuse.consomme();
+        expression := parse_binding_element(parseuse);
+        retourne crée_binding_property(parseuse, lexème_double_point, id, expression);
     }
 
-    initializer: *Expression
+    initializer: *Expression;
     si apparie(parseuse, GenreLexème.Égal) {
-        parseuse.consomme()
-        initializer = parse_expression(parseuse, ParamètresParsageExpression(lexème_final = GenreLexème.Virgule))
+        parseuse.consomme();
+        initializer = parse_expression(parseuse, ParamètresParsageExpression(lexème_final = GenreLexème.Virgule));
     }
 
-    retourne crée_binding_element(parseuse, lexème, id, initializer)
+    retourne crée_binding_element(parseuse, lexème, id, initializer);
 }
 
 parse_binding_element :: fonc (parseuse: *Parseuse) -> *Expression
 {
     si parseuse.fini() {
-        rapporte_erreur(parseuse, "unexpected end of input")
+        rapporte_erreur(parseuse, "unexpected end of input");
     }
 
-    lexème := parseuse.lexème_courant()
+    lexème := parseuse.lexème_courant();
 
-    expression: *Expression
+    expression: *Expression;
     si parseuse.apparie(GenreLexème.AccoladeOuvrante) {
-        expression = parse_object_binding_pattern(parseuse)
+        expression = parse_object_binding_pattern(parseuse);
     }
     sinon si parseuse.apparie(GenreLexème.CrochetOuvrant) {
-        expression = parse_array_binding_pattern(parseuse)
+        expression = parse_array_binding_pattern(parseuse);
     }
     sinon {
-        expression = parse_binding_identifier(parseuse, vrai)
+        expression = parse_binding_identifier(parseuse, vrai);
     }
     
-    initializer: *Expression
+    initializer: *Expression;
     si apparie(parseuse, GenreLexème.Égal) {
-        parseuse.consomme()
-        initializer = parse_expression(parseuse, ParamètresParsageExpression(lexème_final = GenreLexème.Virgule))
+        parseuse.consomme();
+        initializer = parse_expression(parseuse, ParamètresParsageExpression(lexème_final = GenreLexème.Virgule));
     }
 
-    retourne crée_binding_element(parseuse, lexème, expression, initializer)
+    retourne crée_binding_element(parseuse, lexème, expression, initializer);
 }
 
 parse_array_binding_pattern :: fonc (parseuse: *Parseuse) -> *ArrayBindingPattern
 {
-    lexème := parseuse.lexème_courant()
-    parseuse.consomme()
+    lexème := parseuse.lexème_courant();
+    parseuse.consomme();
 
-    elements: [..]*Expression
+    elements: [..]*Expression;
 
     tantque !fini(parseuse) && !apparie(parseuse, GenreLexème.CrochetFermant) {
         si parseuse.apparie(GenreLexème.Virgule) {
-            parseuse.consomme()
-            tableau_ajoute(*elements, nul)
-            continue
+            parseuse.consomme();
+            tableau_ajoute(*elements, nul);
+            continue;
         }
 
         si parseuse.apparie(GenreLexème.Spread) {
-            lexème_spread := parseuse.lexème_courant()
-            parseuse.consomme()
-            id := parse_binding_identifier(parseuse, faux)
+            lexème_spread := parseuse.lexème_courant();
+            parseuse.consomme();
+            id := parse_binding_identifier(parseuse, faux);
             si id {
-                binding_rest_property := crée_spread_element(parseuse, lexème_spread, id)
-                tableau_ajoute(*elements, binding_rest_property)
-                continue
+                binding_rest_property := crée_spread_element(parseuse, lexème_spread, id);
+                tableau_ajoute(*elements, binding_rest_property);
+                continue;
             }
 
             si parseuse.apparie(GenreLexème.AccoladeOuvrante) {
-                expression := parse_object_binding_pattern(parseuse)
-                binding_rest_property := crée_spread_element(parseuse, lexème_spread, expression)
-                tableau_ajoute(*elements, binding_rest_property)
-                continue
+                expression := parse_object_binding_pattern(parseuse);
+                binding_rest_property := crée_spread_element(parseuse, lexème_spread, expression);
+                tableau_ajoute(*elements, binding_rest_property);
+                continue;
             }
 
             si parseuse.apparie(GenreLexème.CrochetOuvrant) {
-                expression := parse_array_binding_pattern(parseuse)
-                binding_rest_property := crée_spread_element(parseuse, lexème_spread, expression)
-                tableau_ajoute(*elements, binding_rest_property)
-                continue
+                expression := parse_array_binding_pattern(parseuse);
+                binding_rest_property := crée_spread_element(parseuse, lexème_spread, expression);
+                tableau_ajoute(*elements, binding_rest_property);
+                continue;
             }
             
-            rapporte_erreur(parseuse, "expected a binding identifier or a binding pattern")
-            continue
+            rapporte_erreur(parseuse, "expected a binding identifier or a binding pattern");
+            continue;
         }
 
-        binding_element := parse_binding_element(parseuse)
-        tableau_ajoute(*elements, binding_element)
+        binding_element := parse_binding_element(parseuse);
+        tableau_ajoute(*elements, binding_element);
 
         saufsi apparie(parseuse, GenreLexème.Virgule) {
-            arrête
+            arrête;
         }
-        parseuse.consomme()
+        parseuse.consomme();
     }
 
-    parseuse.consomme(GenreLexème.CrochetFermant)
+    parseuse.consomme(GenreLexème.CrochetFermant);
 
-    retourne crée_array_binding_pattern(parseuse, lexème, elements)
+    retourne crée_array_binding_pattern(parseuse, lexème, elements);
 }
 
 parse_return_statement :: fonc (parseuse: *Parseuse) -> *ReturnStatement
 {
-    lexème := parseuse.lexème_courant()
-    parseuse.consomme()
+    lexème := parseuse.lexème_courant();
+    parseuse.consomme();
 
-    argument: *Expression
+    argument: *Expression;
 
     saufsi apparie(parseuse, GenreLexème.PointVirgule) || apparie(parseuse, GenreLexème.AccoladeFermante) || est_en_fin_de_ligne(parseuse, lexème) {
-        argument = parse_expression(parseuse, ParamètresParsageExpression())
+        argument = parse_expression(parseuse, ParamètresParsageExpression());
     }
 
     si apparie(parseuse, GenreLexème.PointVirgule) {
-        parseuse.consomme()
+        parseuse.consomme();
     }
 
-    retourne crée_return_statement(parseuse, lexème, argument)
+    retourne crée_return_statement(parseuse, lexème, argument);
 }
 
 TypeFor :: énum {
-    Normal
-    ForOf
-    ForIn
+    Normal;
+    ForOf;
+    ForIn;
 }
 
 détermine_type_for :: fonc (parseuse: *Parseuse) -> TypeFor
 {
-    parseuse_locale := parseuse.donne_parseuse_locale()
+    parseuse_locale := parseuse.donne_parseuse_locale();
 
     tantque !fini(*parseuse_locale) {
         si apparie(*parseuse_locale, GenreLexème.Of) {
-            retourne TypeFor.ForOf
+            retourne TypeFor.ForOf;
         }
         si apparie(*parseuse_locale, GenreLexème.In) {
-            retourne TypeFor.ForIn
+            retourne TypeFor.ForIn;
         }
         si apparie(*parseuse_locale, GenreLexème.ParenthèseFermante) {
-            arrête
+            arrête;
         }
 
-        consomme(*parseuse_locale)
+        consomme(*parseuse_locale);
     }
 
-    retourne TypeFor.Normal
+    retourne TypeFor.Normal;
 }
 
 parse_for_statement :: fonc (parseuse: *Parseuse) -> *Statement
 {
-    lexème := parseuse.lexème_courant()
-    parseuse.consomme()
+    lexème := parseuse.lexème_courant();
+    parseuse.consomme();
 
-    parseuse.consomme(GenreLexème.ParenthèseOuvrante)
+    parseuse.consomme(GenreLexème.ParenthèseOuvrante);
 
-    type_for := détermine_type_for(parseuse)
+    type_for := détermine_type_for(parseuse);
 
     si type_for != TypeFor.Normal {
-        retourne parseuse.parse_for_of_in_statement(type_for)
+        retourne parseuse.parse_for_of_in_statement(type_for);
     }
 
-    init: *Expression
+    init: *Expression;
     saufsi parseuse.apparie(GenreLexème.PointVirgule) {
-        init = parseuse.parse_expression(ParamètresParsageExpression())
+        init = parseuse.parse_expression(ParamètresParsageExpression());
     }
-    parseuse.consomme(GenreLexème.PointVirgule)
+    parseuse.consomme(GenreLexème.PointVirgule);
 
-    test: *Expression
+    test: *Expression;
     saufsi parseuse.apparie(GenreLexème.PointVirgule) {
-        test = parseuse.parse_expression(ParamètresParsageExpression())
+        test = parseuse.parse_expression(ParamètresParsageExpression());
     }
-    parseuse.consomme(GenreLexème.PointVirgule)
+    parseuse.consomme(GenreLexème.PointVirgule);
 
-    update: *Expression
+    update: *Expression;
     saufsi parseuse.apparie(GenreLexème.ParenthèseFermante) {
-        update = parseuse.parse_expression(ParamètresParsageExpression())
+        update = parseuse.parse_expression(ParamètresParsageExpression());
     }
-    parseuse.consomme(GenreLexème.ParenthèseFermante)
+    parseuse.consomme(GenreLexème.ParenthèseFermante);
 
-    body := parse_statement(parseuse)
+    body := parse_statement(parseuse);
 
-    retourne crée_for_statement(parseuse, lexème, init, test, update, body)
+    retourne crée_for_statement(parseuse, lexème, init, test, update, body);
 }
 
 parse_for_of_in_statement :: fonc (parseuse: *Parseuse, type_for: TypeFor) -> *Statement
 {
-    lexème := parseuse.lexème_courant()
+    lexème := parseuse.lexème_courant();
 
     lexème_final := si type_for == TypeFor.ForOf {
-        GenreLexème.Of
+        GenreLexème.Of;
     }
     sinon {
-        GenreLexème.In
+        GenreLexème.In;
     }
 
-    left := parseuse.parse_expression(ParamètresParsageExpression(lexème_final = lexème_final))
+    left := parseuse.parse_expression(ParamètresParsageExpression(lexème_final = lexème_final));
 
     si type_for == TypeFor.ForOf && !apparie(parseuse, GenreLexème.Of) {
-        parseuse.rapporte_erreur("expected 'of'")
-        retourne nul
+        parseuse.rapporte_erreur("expected 'of'");
+        retourne nul;
     }
     si type_for == TypeFor.ForIn && !apparie(parseuse, GenreLexème.In) {
-        parseuse.rapporte_erreur("expected 'in'")
-        retourne nul
+        parseuse.rapporte_erreur("expected 'in'");
+        retourne nul;
     }
 
     /* Consomme in/of */
-    parseuse.consomme()
+    parseuse.consomme();
 
-    right := parseuse.parse_expression(ParamètresParsageExpression())
+    right := parseuse.parse_expression(ParamètresParsageExpression());
 
-    parseuse.consomme(GenreLexème.ParenthèseFermante)
+    parseuse.consomme(GenreLexème.ParenthèseFermante);
 
-    body := parseuse.parse_statement()
+    body := parseuse.parse_statement();
 
     si type_for == TypeFor.ForIn {
-        retourne crée_for_in_statement(parseuse, lexème, left, right, body)
+        retourne crée_for_in_statement(parseuse, lexème, left, right, body);
     }
 
-    retourne crée_for_of_statement(parseuse, lexème, left, right, body)
+    retourne crée_for_of_statement(parseuse, lexème, left, right, body);
 }
 
 parse_while_statement :: fonc (parseuse: *Parseuse) -> *WhileStatement
 {
-    lexème := parseuse.lexème_courant()
-    parseuse.consomme()
+    lexème := parseuse.lexème_courant();
+    parseuse.consomme();
 
-    parseuse.consomme(GenreLexème.ParenthèseOuvrante)
-    test := parseuse.parse_expression(ParamètresParsageExpression())
-    parseuse.consomme(GenreLexème.ParenthèseFermante)
+    parseuse.consomme(GenreLexème.ParenthèseOuvrante);
+    test := parseuse.parse_expression(ParamètresParsageExpression());
+    parseuse.consomme(GenreLexème.ParenthèseFermante);
 
-    body := parse_statement(parseuse)
+    body := parse_statement(parseuse);
 
-    retourne crée_while_statement(parseuse, lexème, test, body)
+    retourne crée_while_statement(parseuse, lexème, test, body);
 }
 
 parse_do_while_statement :: fonc (parseuse: *Parseuse) -> *DoWhileStatement
 {
-    lexème := parseuse.lexème_courant()
-    parseuse.consomme()
+    lexème := parseuse.lexème_courant();
+    parseuse.consomme();
     
-    body := parse_statement(parseuse)
+    body := parse_statement(parseuse);
 
-    parseuse.consomme(GenreLexème.While)
-    parseuse.consomme(GenreLexème.ParenthèseOuvrante)
-    test := parseuse.parse_expression(ParamètresParsageExpression())
-    parseuse.consomme(GenreLexème.ParenthèseFermante)
+    parseuse.consomme(GenreLexème.While);
+    parseuse.consomme(GenreLexème.ParenthèseOuvrante);
+    test := parseuse.parse_expression(ParamètresParsageExpression());
+    parseuse.consomme(GenreLexème.ParenthèseFermante);
 
-    retourne crée_do_while_statement(parseuse, lexème, body, test)
+    retourne crée_do_while_statement(parseuse, lexème, body, test);
 }
 
 parse_if_statement :: fonc (parseuse: *Parseuse) -> *IfStatement
 {
-    lexème := parseuse.lexème_courant()
-    parseuse.consomme()
+    lexème := parseuse.lexème_courant();
+    parseuse.consomme();
 
-    parseuse.consomme(GenreLexème.ParenthèseOuvrante)
+    parseuse.consomme(GenreLexème.ParenthèseOuvrante);
 
-    test := parseuse.parse_expression(ParamètresParsageExpression())
+    test := parseuse.parse_expression(ParamètresParsageExpression());
 
-    parseuse.consomme(GenreLexème.ParenthèseFermante)
+    parseuse.consomme(GenreLexème.ParenthèseFermante);
 
-    consequent := parseuse.parse_statement()
+    consequent := parseuse.parse_statement();
 
-    consomme_point_virgule_potentiel(parseuse)
+    consomme_point_virgule_potentiel(parseuse);
 
-    alternate: *Statement
+    alternate: *Statement;
     si parseuse.apparie(GenreLexème.Else) {
-        parseuse.consomme()
-        alternate = parseuse.parse_statement()
+        parseuse.consomme();
+        alternate = parseuse.parse_statement();
     }
 
-    retourne crée_if_statement(parseuse, lexème, test, consequent, alternate)
+    retourne crée_if_statement(parseuse, lexème, test, consequent, alternate);
 }
 
 parse_try_statement :: fonc (parseuse: *Parseuse) -> *TryStatement
 {
-    lexème := parseuse.lexème_courant()
-    parseuse.consomme()
+    lexème := parseuse.lexème_courant();
+    parseuse.consomme();
 
-    block := parse_statement(parseuse)
+    block := parse_statement(parseuse);
 
-    handler: *CatchClause
+    handler: *CatchClause;
     si parseuse.apparie(GenreLexème.Catch) {
-        lexème_catch := parseuse.lexème_courant()
-        parseuse.consomme()
+        lexème_catch := parseuse.lexème_courant();
+        parseuse.consomme();
 
-        param: *Expression
+        param: *Expression;
         si parseuse.apparie(GenreLexème.ParenthèseOuvrante) {
-            parseuse.consomme()
+            parseuse.consomme();
 
-            param = parseuse.parse_expression(ParamètresParsageExpression())
+            param = parseuse.parse_expression(ParamètresParsageExpression());
 
-            parseuse.consomme(GenreLexème.ParenthèseFermante)
+            parseuse.consomme(GenreLexème.ParenthèseFermante);
         }
 
-        body := parse_statement(parseuse)
+        body := parse_statement(parseuse);
 
-        handler = crée_catch_clause(parseuse, lexème_catch, param, body)
+        handler = crée_catch_clause(parseuse, lexème_catch, param, body);
     }
 
-    finalizer: *Statement
+    finalizer: *Statement;
     si parseuse.apparie(GenreLexème.Finally) {
-        parseuse.consomme()
-        finalizer = parse_statement(parseuse)
+        parseuse.consomme();
+        finalizer = parse_statement(parseuse);
     }
 
-    retourne crée_try_statement(parseuse, lexème, block, handler, finalizer)
+    retourne crée_try_statement(parseuse, lexème, block, handler, finalizer);
 }
 
 parse_throw_statement :: fonc (parseuse: *Parseuse) -> *ThrowStatement
 {
-    lexème := parseuse.lexème_courant()
-    parseuse.consomme()
-    argument := parse_expression(parseuse, ParamètresParsageExpression())
-    retourne crée_throw_statement(parseuse, lexème, argument)
+    lexème := parseuse.lexème_courant();
+    parseuse.consomme();
+    argument := parse_expression(parseuse, ParamètresParsageExpression());
+    retourne crée_throw_statement(parseuse, lexème, argument);
 }
 
 parse_continue_statement :: fonc (parseuse: *Parseuse) -> *ContinueStatement
 {
-    lexème := parseuse.lexème_courant()
-    parseuse.consomme()
-    target := parse_label_identifier(parseuse, faux)
-    retourne crée_continue_statement(parseuse, lexème, target)
+    lexème := parseuse.lexème_courant();
+    parseuse.consomme();
+    target := parse_label_identifier(parseuse, faux);
+    retourne crée_continue_statement(parseuse, lexème, target);
 }
 
 parse_break_statement :: fonc (parseuse: *Parseuse) -> *BreakStatement
 {
-    lexème := parseuse.lexème_courant()
-    parseuse.consomme()
-    target := parse_label_identifier(parseuse, faux)
-    retourne crée_break_statement(parseuse, lexème, target)
+    lexème := parseuse.lexème_courant();
+    parseuse.consomme();
+    target := parse_label_identifier(parseuse, faux);
+    retourne crée_break_statement(parseuse, lexème, target);
 }
 
 parse_switch_statement :: fonc (parseuse: *Parseuse) -> *SwitchStatement
 {
-    lexème := parseuse.lexème_courant()
-    parseuse.consomme()
+    lexème := parseuse.lexème_courant();
+    parseuse.consomme();
 
-    parseuse.consomme(GenreLexème.ParenthèseOuvrante)
-    discriminant := parseuse.parse_expression(ParamètresParsageExpression())
-    parseuse.consomme(GenreLexème.ParenthèseFermante)
+    parseuse.consomme(GenreLexème.ParenthèseOuvrante);
+    discriminant := parseuse.parse_expression(ParamètresParsageExpression());
+    parseuse.consomme(GenreLexème.ParenthèseFermante);
 
-    parseuse.consomme(GenreLexème.AccoladeOuvrante)
-    cases: [..]*CaseClause
-    index_default_clause : z64 = -1
+    parseuse.consomme(GenreLexème.AccoladeOuvrante);
+    cases: [..]*CaseClause;
+    index_default_clause : z64 = -1;
 
     tantque !parseuse.fini() {
         si apparie(parseuse, GenreLexème.Case) {
-            case := parseuse.parse_case_clause()
-            tableau_ajoute(*cases, case)
-            continue
+            case := parseuse.parse_case_clause();
+            tableau_ajoute(*cases, case);
+            continue;
         }
 
         si apparie(parseuse, GenreLexème.Default) {
             si index_default_clause != -1 {
-                parseuse.rapporte_erreur("duplicate default case")
-                arrête
+                parseuse.rapporte_erreur("duplicate default case");
+                arrête;
             }
 
-            case := parseuse.parse_default_clause()
-            index_default_clause = cases.taille
-            tableau_ajoute(*cases, case)
-            continue
+            case := parseuse.parse_default_clause();
+            index_default_clause = cases.taille;
+            tableau_ajoute(*cases, case);
+            continue;
         }
 
-        arrête
+        arrête;
     }
 
-    parseuse.consomme(GenreLexème.AccoladeFermante)
+    parseuse.consomme(GenreLexème.AccoladeFermante);
 
-    retourne crée_switch_statement(parseuse, lexème, discriminant, cases, index_default_clause)
+    retourne crée_switch_statement(parseuse, lexème, discriminant, cases, index_default_clause);
 }
 
 parse_case_clause :: fonc (parseuse: *Parseuse) -> *CaseClause
 {
-    lexème := parseuse.lexème_courant()
-    parseuse.consomme()
+    lexème := parseuse.lexème_courant();
+    parseuse.consomme();
 
-    test := parseuse.parse_expression(ParamètresParsageExpression())
-    parseuse.consomme(GenreLexème.DoublePoint)
+    test := parseuse.parse_expression(ParamètresParsageExpression());
+    parseuse.consomme(GenreLexème.DoublePoint);
 
-    consequent := parse_statement_list_case(parseuse)
+    consequent := parse_statement_list_case(parseuse);
 
-    retourne crée_case_clause(parseuse, lexème, test, consequent)
+    retourne crée_case_clause(parseuse, lexème, test, consequent);
 }
 
 parse_default_clause :: fonc (parseuse: *Parseuse) -> *DefaultClause
 {
-    lexème := parseuse.lexème_courant()
-    parseuse.consomme()
-    parseuse.consomme(GenreLexème.DoublePoint)
+    lexème := parseuse.lexème_courant();
+    parseuse.consomme();
+    parseuse.consomme(GenreLexème.DoublePoint);
 
-    consequent := parse_statement_list_case(parseuse)
+    consequent := parse_statement_list_case(parseuse);
 
-    retourne crée_default_clause(parseuse, lexème, consequent)
+    retourne crée_default_clause(parseuse, lexème, consequent);
 }
 
 parse_statement_list_case :: fonc (parseuse: *Parseuse) -> *Statement
 {
     si parseuse.apparie(GenreLexème.AccoladeOuvrante) {
-        retourne parseuse.parse_statement()
+        retourne parseuse.parse_statement();
     }
 
-    statements: [..]*Statement
+    statements: [..]*Statement;
 
     tantque !fini(parseuse) && !apparie(parseuse, GenreLexème.AccoladeFermante) && !apparie(parseuse, GenreLexème.Case) && !apparie(parseuse, GenreLexème.Default) {
-        statement := parse_statement(parseuse)
+        statement := parse_statement(parseuse);
         saufsi statement {
-            arrête
+            arrête;
         }
-        tableau_ajoute(*statements, statement)
+        tableau_ajoute(*statements, statement);
     }
 
-    retourne crée_block_statement(parseuse, nul, statements)
+    retourne crée_block_statement(parseuse, nul, statements);
 }
 
 ParamètresParsageExpression :: struct {
-    précédence : z32 = 0
-    associativité : Associativité = Associativité.Gauche
-    lexème_final := GenreLexème.PointVirgule
+    précédence : z32 = 0;
+    associativité : Associativité = Associativité.Gauche;
+    lexème_final := GenreLexème.PointVirgule;
 }
 
 parse_expression :: fonc (parseuse: *Parseuse, params: ParamètresParsageExpression) -> *Expression
 {
-    expression := parseuse.parse_expression_primaire()
+    expression := parseuse.parse_expression_primaire();
 
     tantque !parseuse.fini() && !apparie(parseuse, params.lexème_final) {
-        infos := infos_lexèmes_pour_parsage[parseuse.lexème_courant().genre]
+        infos := infos_lexèmes_pour_parsage[parseuse.lexème_courant().genre];
         saufsi infos.drapeaux.EstExpressionSecondaire {
-            arrête
+            arrête;
         }
 
-        nouvelle_précédence := infos.précédence
+        nouvelle_précédence := infos.précédence;
 
         si nouvelle_précédence < params.précédence {
-            arrête
+            arrête;
         }
 
         si nouvelle_précédence == params.précédence && params.associativité == Associativité.Gauche {
-            arrête
+            arrête;
         }
 
-        nouveau_params := params
-        nouveau_params.précédence = nouvelle_précédence
-        nouveau_params.associativité = infos.associativité
+        nouveau_params := params;
+        nouveau_params.précédence = nouvelle_précédence;
+        nouveau_params.associativité = infos.associativité;
 
-        expression_secondaire := parseuse.parse_expression_secondaire(expression, nouveau_params)
+        expression_secondaire := parseuse.parse_expression_secondaire(expression, nouveau_params);
         saufsi expression_secondaire {
-            arrête
+            arrête;
         }
-        expression = expression_secondaire
+        expression = expression_secondaire;
     }
 
-    retourne expression
+    retourne expression;
 }
 
 crée_chaine_échappement_résolu :: fonc (chn: chaine) -> ECMAString
 {
     saufsi possède_échappement(chn) {
-        retourne crée_chaine_utf16_unique(chn)
+        retourne crée_chaine_utf16_unique(chn);
     }
 
-    enchaineuse: Enchaineuse
-    initialise_enchaineuse(*enchaineuse)
+    enchaineuse: Enchaineuse;
+    initialise_enchaineuse(*enchaineuse);
 
-    début := chn.pointeur
-    fin := chn.pointeur + chn.taille
+    début := chn.pointeur;
+    fin := chn.pointeur + chn.taille;
 
     tantque début < fin {
-        caractère := mémoire(début)
+        caractère := mémoire(début);
 
         si caractère == '\\' && (début + 1) < fin {
-            début += 1
-            caractère = mémoire(début)
+            début += 1;
+            caractère = mémoire(début);
             si caractère == 'n' {
-                ajoute_au_tampon(*enchaineuse, "\n")
+                ajoute_au_tampon(*enchaineuse, "\n");
             }
             sinon si caractère == 't' {
-                ajoute_au_tampon(*enchaineuse, "\t")
+                ajoute_au_tampon(*enchaineuse, "\t");
             }
             sinon si caractère != '\n' {
-                ajoute_au_tampon(*enchaineuse, chaine(début, 1))
+                ajoute_au_tampon(*enchaineuse, chaine(début, 1));
             }
         }
         sinon {
-            ajoute_au_tampon(*enchaineuse, chaine(début, 1))
+            ajoute_au_tampon(*enchaineuse, chaine(début, 1));
         }
 
-        début += 1
+        début += 1;
     }
 
-    résultat := chaine_depuis_enchaineuse(*enchaineuse)
-    retourne crée_chaine_utf16_unique(résultat)
+    résultat := chaine_depuis_enchaineuse(*enchaineuse);
+    retourne crée_chaine_utf16_unique(résultat);
 }
 
 possède_échappement :: fonc (chn: chaine) -> bool
 {
     pour chn {
         si it == '\\' {
-            retourne vrai
+            retourne vrai;
         }
     }
 
-    retourne faux
+    retourne faux;
 }
 
 parse_expression_primaire :: fonc (parseuse: *Parseuse) -> *Expression
 {
     si parseuse.fini() {
-        rapporte_erreur(parseuse, "expected a primary expression")
-        retourne nul
+        rapporte_erreur(parseuse, "expected a primary expression");
+        retourne nul;
     }
 
-    lexème := parseuse.lexème_courant()
+    lexème := parseuse.lexème_courant();
 
     discr lexème.genre {
         ChaineLittérale {
-            parseuse.consomme()
-            retourne crée_literal(parseuse, lexème, crée_chaine_échappement_résolu(lexème.texte))
+            parseuse.consomme();
+            retourne crée_literal(parseuse, lexème, crée_chaine_échappement_résolu(lexème.texte));
         }
         TemplateLiteral {
-            parseuse.consomme()
-            quasi := crée_template_element(parseuse, lexème, crée_chaine_échappement_résolu(lexème.texte), vrai)
-            quasis: [..]*TemplateElement
-            tableau_ajoute(*quasis, quasi)
-            retourne crée_template_literal(parseuse, lexème, quasis)
+            parseuse.consomme();
+            quasi := crée_template_element(parseuse, lexème, crée_chaine_échappement_résolu(lexème.texte), vrai);
+            quasis: [..]*TemplateElement;
+            tableau_ajoute(*quasis, quasi);
+            retourne crée_template_literal(parseuse, lexème, quasis);
         }
         TemplateLiteralStart {
-            retourne parse_template_literal(parseuse, lexème)
+            retourne parse_template_literal(parseuse, lexème);
         }
         NombreLittéral {
-            parseuse.consomme()
-            valeur := parse_nombre_depuis_lexème(lexème)
-            retourne crée_literal(parseuse, lexème, valeur)
+            parseuse.consomme();
+            valeur := parse_nombre_depuis_lexème(lexème);
+            retourne crée_literal(parseuse, lexème, valeur);
         }
         True {
-            parseuse.consomme()
-            retourne crée_boolean_literal(parseuse, lexème, vrai)
+            parseuse.consomme();
+            retourne crée_boolean_literal(parseuse, lexème, vrai);
         }
         False {
-            parseuse.consomme()
-            retourne crée_boolean_literal(parseuse, lexème, faux)
+            parseuse.consomme();
+            retourne crée_boolean_literal(parseuse, lexème, faux);
         }
         Null {
-            parseuse.consomme()
-            retourne crée_null_literal(parseuse, lexème)
+            parseuse.consomme();
+            retourne crée_null_literal(parseuse, lexème);
         }
         This {
-            parseuse.consomme()
-            retourne crée_this_expression(parseuse, lexème)
+            parseuse.consomme();
+            retourne crée_this_expression(parseuse, lexème);
         }
         As,
         From,
@@ -1189,695 +1189,695 @@ parse_expression_primaire :: fonc (parseuse: *Parseuse) -> *Expression
         Set,
         Target,
         Identifiant {
-            parseuse.consomme()
-            retourne crée_identifier(parseuse, lexème, lexème.texte)
+            parseuse.consomme();
+            retourne crée_identifier(parseuse, lexème, lexème.texte);
         }
         Async {
-            parseuse.consomme()
+            parseuse.consomme();
 
             si !est_en_fin_de_ligne(parseuse, lexème) {
                 si parseuse.apparie(GenreLexème.Function) {
-                    retourne parse_function_expression(parseuse, vrai)
+                    retourne parse_function_expression(parseuse, vrai);
                 }
 
                 si parseuse.apparie(GenreLexème.ParenthèseOuvrante) {
-                    parseuse.consomme()
-                    arguments := parse_expressions_séparées_par_des_virgules(parseuse, GenreLexème.ParenthèseFermante)
-                    parseuse.consomme(GenreLexème.ParenthèseFermante)
-                    retourne parse_arrow_function(parseuse, arguments, vrai)
+                    parseuse.consomme();
+                    arguments := parse_expressions_séparées_par_des_virgules(parseuse, GenreLexème.ParenthèseFermante);
+                    parseuse.consomme(GenreLexème.ParenthèseFermante);
+                    retourne parse_arrow_function(parseuse, arguments, vrai);
                 }
 
-                sauvegarde := parseuse.position
-                id := parse_binding_identifier(parseuse, faux)
+                sauvegarde := parseuse.position;
+                id := parse_binding_identifier(parseuse, faux);
                 si id && parseuse.apparie(GenreLexème.Arrow) {
-                    retourne parse_arrow_function(parseuse, aplatis_expression_et_détruit_virgules(id), vrai)
+                    retourne parse_arrow_function(parseuse, aplatis_expression_et_détruit_virgules(id), vrai);
                 }
                 sinon {
-                    parseuse.position = sauvegarde
+                    parseuse.position = sauvegarde;
                 }
             }
 
-            retourne crée_identifier(parseuse, lexème, lexème.texte)
+            retourne crée_identifier(parseuse, lexème, lexème.texte);
         }
         Yield {
-            parseuse.consomme()
+            parseuse.consomme();
 
-            est_star: bool
-            expression: *Expression
+            est_star: bool;
+            expression: *Expression;
 
             si !est_en_fin_de_ligne(parseuse, lexème) {
                 si apparie(parseuse, GenreLexème.Étoile) {
-                    parseuse.consomme()
-                    est_star = vrai
+                    parseuse.consomme();
+                    est_star = vrai;
                 }
-                params := donne_paramètres_parsage_expression_pour_lexème_unaire(GenreLexème.Yield)
-                expression = parseuse.parse_expression(params)
+                params := donne_paramètres_parsage_expression_pour_lexème_unaire(GenreLexème.Yield);
+                expression = parseuse.parse_expression(params);
             }
 
-            retourne crée_yield_expression(parseuse, lexème, expression, est_star)
+            retourne crée_yield_expression(parseuse, lexème, expression, est_star);
         }
         PrivateIdentifier {
-            parseuse.consomme()
-            retourne crée_private_identifier(parseuse, lexème)
+            parseuse.consomme();
+            retourne crée_private_identifier(parseuse, lexème);
         }
         ParenthèseOuvrante {
-            parseuse.consomme()
+            parseuse.consomme();
 
-            expression: *Expression
+            expression: *Expression;
             saufsi parseuse.apparie(GenreLexème.ParenthèseFermante) {
-                expression = parseuse.parse_expression(ParamètresParsageExpression())
+                expression = parseuse.parse_expression(ParamètresParsageExpression());
             }
 
-            parseuse.consomme(GenreLexème.ParenthèseFermante)
+            parseuse.consomme(GenreLexème.ParenthèseFermante);
 
             si expression {
-                retourne expression
+                retourne expression;
             }
 
             /* NOTE : pour l'instant ces expressions ne servent que pour les fonctions-arrow */
-            retourne parseuse.crée_parenthesized_expression(lexème, expression)
+            retourne parseuse.crée_parenthesized_expression(lexème, expression);
         }
         AccoladeOuvrante {
-            parseuse.consomme()
+            parseuse.consomme();
 
-            properties: [..]*Expression
+            properties: [..]*Expression;
 
             tantque !fini(parseuse) {
                 si apparie(parseuse, GenreLexème.AccoladeFermante) {
-                    arrête
+                    arrête;
                 }
 
                 si apparie(parseuse, GenreLexème.Spread) {
-                    spread := parse_spread(parseuse, parseuse.lexème_courant())
-                    tableau_ajoute(*properties, spread)
+                    spread := parse_spread(parseuse, parseuse.lexème_courant());
+                    tableau_ajoute(*properties, spread);
                 }
                 sinon {
-                    field_name: *Expression
-                    method_kind := MethodKind.Method
+                    field_name: *Expression;
+                    method_kind := MethodKind.Method;
 
-                    async := faux
-                    generator := faux
+                    async := faux;
+                    generator := faux;
 
                     si apparie(parseuse, GenreLexème.Étoile) {
-                        parseuse.consomme()
-                        generator = vrai
-                        class_element_name := apparie_class_element_name(parseuse)
+                        parseuse.consomme();
+                        generator = vrai;
+                        class_element_name := apparie_class_element_name(parseuse);
                         saufsi class_element_name {
-                            rapporte_erreur(parseuse, "expected a class element name")
+                            rapporte_erreur(parseuse, "expected a class element name");
                         }
-                        field_name = class_element_name
+                        field_name = class_element_name;
                     }
                     sinon si apparie(parseuse, GenreLexème.Get) {
-                        sauvegarde := parseuse.position
-                        parseuse.consomme()
+                        sauvegarde := parseuse.position;
+                        parseuse.consomme();
 
-                        class_element_name := apparie_class_element_name(parseuse)
+                        class_element_name := apparie_class_element_name(parseuse);
                         si class_element_name {
-                            field_name = class_element_name
-                            method_kind = MethodKind.Get
+                            field_name = class_element_name;
+                            method_kind = MethodKind.Get;
                         }
                         sinon {
-                            parseuse.position = sauvegarde
+                            parseuse.position = sauvegarde;
                         }
                     }
                     sinon si apparie(parseuse, GenreLexème.Set) {
-                        sauvegarde := parseuse.position
-                        parseuse.consomme()
+                        sauvegarde := parseuse.position;
+                        parseuse.consomme();
 
-                        class_element_name := apparie_class_element_name(parseuse)
+                        class_element_name := apparie_class_element_name(parseuse);
                         si class_element_name {
-                            field_name = class_element_name
-                            method_kind = MethodKind.Set
+                            field_name = class_element_name;
+                            method_kind = MethodKind.Set;
                         }
                         sinon {
-                            parseuse.position = sauvegarde
+                            parseuse.position = sauvegarde;
                         }
                     }
                     sinon si apparie(parseuse, GenreLexème.Async) {
-                        sauvegarde := parseuse.position
-                        parseuse.consomme()
+                        sauvegarde := parseuse.position;
+                        parseuse.consomme();
 
-                        class_element_name := apparie_class_element_name(parseuse)
+                        class_element_name := apparie_class_element_name(parseuse);
                         si class_element_name {
-                            field_name = class_element_name
-                            async = vrai
+                            field_name = class_element_name;
+                            async = vrai;
                         }
                         sinon {
-                            parseuse.position = sauvegarde
+                            parseuse.position = sauvegarde;
                         }
                     }
 
                     // À FAIRE : ClassElementName, pour les méthodes
                     // https://tc39.es/ecma262/multipage/ecmascript-language-functions-and-classes.html#prod-ClassElementName
                     saufsi field_name {
-                        field_name = parse_property_name(parseuse)
+                        field_name = parse_property_name(parseuse);
                     }
 
                     si async || generator || apparie(parseuse, GenreLexème.ParenthèseOuvrante) {
-                        lexème_déf := parseuse.lexème_courant()
-                        parseuse.consomme()
-                        paramètres := parse_expressions_séparées_par_des_virgules(parseuse, GenreLexème.ParenthèseFermante)
-                        parseuse.consomme(GenreLexème.ParenthèseFermante)
+                        lexème_déf := parseuse.lexème_courant();
+                        parseuse.consomme();
+                        paramètres := parse_expressions_séparées_par_des_virgules(parseuse, GenreLexème.ParenthèseFermante);
+                        parseuse.consomme(GenreLexème.ParenthèseFermante);
 
                         si method_kind == MethodKind.Get && paramètres.taille != 0 {
-                            rapporte_erreur(parseuse, lexème_déf, "get method cannot have arguments")
+                            rapporte_erreur(parseuse, lexème_déf, "get method cannot have arguments");
                         }
                         sinon si method_kind == MethodKind.Set && paramètres.taille != 1 {
-                            rapporte_erreur(parseuse, lexème_déf, "set method has to have exactly 1 argument")
+                            rapporte_erreur(parseuse, lexème_déf, "set method has to have exactly 1 argument");
                         }
 
-                        body := parse_function_body(parseuse, async, generator)
+                        body := parse_function_body(parseuse, async, generator);
 
-                        méthode := crée_object_method(parseuse, lexème_déf, field_name, paramètres, body, method_kind, async, generator)
-                        tableau_ajoute(*properties, méthode)
+                        méthode := crée_object_method(parseuse, lexème_déf, field_name, paramètres, body, method_kind, async, generator);
+                        tableau_ajoute(*properties, méthode);
                     }
                     sinon si parseuse.apparie(GenreLexème.DoublePoint) {
-                        lexème_déf := parseuse.lexème_courant()
-                        parseuse.consomme(GenreLexème.DoublePoint)
+                        lexème_déf := parseuse.lexème_courant();
+                        parseuse.consomme(GenreLexème.DoublePoint);
 
-                        expression := parseuse.parse_expression(ParamètresParsageExpression(lexème_final = GenreLexème.Virgule))
+                        expression := parseuse.parse_expression(ParamètresParsageExpression(lexème_final = GenreLexème.Virgule));
 
-                        property := crée_property_definition(parseuse, lexème_déf, field_name, expression)
-                        tableau_ajoute(*properties, property)
+                        property := crée_property_definition(parseuse, lexème_déf, field_name, expression);
+                        tableau_ajoute(*properties, property);
                     }
                     sinon si field_name != nul && field_name.type == Identifier {
-                        tableau_ajoute(*properties, field_name)
+                        tableau_ajoute(*properties, field_name);
                     }
                     sinon {
-                        rapporte_erreur(parseuse, "expected a property definition")
+                        rapporte_erreur(parseuse, "expected a property definition");
                     }
                 }
 
                 saufsi apparie(parseuse, GenreLexème.Virgule) {
-                    arrête
+                    arrête;
                 }
 
-                parseuse.consomme()
+                parseuse.consomme();
             }
 
-            parseuse.consomme(GenreLexème.AccoladeFermante)
+            parseuse.consomme(GenreLexème.AccoladeFermante);
 
-            retourne crée_object_literal(parseuse, lexème, properties)
+            retourne crée_object_literal(parseuse, lexème, properties);
         }
         CrochetOuvrant {
-            retourne parse_array_literal(parseuse, lexème)
+            retourne parse_array_literal(parseuse, lexème);
         }
         Let {
-            retourne parse_variable_declaration(parseuse, VariableDeclarationKind.Let)
+            retourne parse_variable_declaration(parseuse, VariableDeclarationKind.Let);
         }
         Var {
-            retourne parse_variable_declaration(parseuse, VariableDeclarationKind.Var)
+            retourne parse_variable_declaration(parseuse, VariableDeclarationKind.Var);
         }
         Const {
-            retourne parse_variable_declaration(parseuse, VariableDeclarationKind.Const)
+            retourne parse_variable_declaration(parseuse, VariableDeclarationKind.Const);
         }
         Function {
-            retourne parse_function_expression(parseuse, faux)
+            retourne parse_function_expression(parseuse, faux);
         }
         Plus {
-            parseuse.consomme()
-            params := donne_paramètres_parsage_expression_pour_lexème_unaire(GenreLexème.PlusUnaire)
-            argument := parseuse.parse_expression(params)
-            retourne crée_unary_plus_operator(parseuse, lexème, argument)
+            parseuse.consomme();
+            params := donne_paramètres_parsage_expression_pour_lexème_unaire(GenreLexème.PlusUnaire);
+            argument := parseuse.parse_expression(params);
+            retourne crée_unary_plus_operator(parseuse, lexème, argument);
         }
         Moins {
-            parseuse.consomme()
-            params := donne_paramètres_parsage_expression_pour_lexème_unaire(GenreLexème.MoinsUnaire)
-            argument := parseuse.parse_expression(params)
-            retourne crée_unary_minus_operator(parseuse, lexème, argument)
+            parseuse.consomme();
+            params := donne_paramètres_parsage_expression_pour_lexème_unaire(GenreLexème.MoinsUnaire);
+            argument := parseuse.parse_expression(params);
+            retourne crée_unary_minus_operator(parseuse, lexème, argument);
         }
         NonBinaire {
-            parseuse.consomme()
-            params := donne_paramètres_parsage_expression_pour_lexème_unaire(lexème.genre)
-            argument := parseuse.parse_expression(params)
-            retourne crée_binary_not(parseuse, lexème, argument)
+            parseuse.consomme();
+            params := donne_paramètres_parsage_expression_pour_lexème_unaire(lexème.genre);
+            argument := parseuse.parse_expression(params);
+            retourne crée_binary_not(parseuse, lexème, argument);
         }
         NonLogique {
-            parseuse.consomme()
-            params := donne_paramètres_parsage_expression_pour_lexème_unaire(lexème.genre)
-            argument := parseuse.parse_expression(params)
-            retourne crée_logical_not(parseuse, lexème, argument)
+            parseuse.consomme();
+            params := donne_paramètres_parsage_expression_pour_lexème_unaire(lexème.genre);
+            argument := parseuse.parse_expression(params);
+            retourne crée_logical_not(parseuse, lexème, argument);
         }
         PlusPlus {
-            parseuse.consomme()
-            params := donne_paramètres_parsage_expression_pour_lexème_unaire(GenreLexème.PreIncrement)
-            argument := parseuse.parse_expression(params)
-            retourne crée_update_expression(parseuse, lexème, argument, UpdateOperation.PrefixIncrement)
+            parseuse.consomme();
+            params := donne_paramètres_parsage_expression_pour_lexème_unaire(GenreLexème.PreIncrement);
+            argument := parseuse.parse_expression(params);
+            retourne crée_update_expression(parseuse, lexème, argument, UpdateOperation.PrefixIncrement);
         }
         MoinsMoins {
-            parseuse.consomme()
-            params := donne_paramètres_parsage_expression_pour_lexème_unaire(GenreLexème.PreDecrement)
-            argument := parseuse.parse_expression(params)
-            retourne crée_update_expression(parseuse, lexème, argument, UpdateOperation.PrefixDecrement)
+            parseuse.consomme();
+            params := donne_paramètres_parsage_expression_pour_lexème_unaire(GenreLexème.PreDecrement);
+            argument := parseuse.parse_expression(params);
+            retourne crée_update_expression(parseuse, lexème, argument, UpdateOperation.PrefixDecrement);
         }
         Typeof {
-            parseuse.consomme()
-            params := donne_paramètres_parsage_expression_pour_lexème_unaire(lexème.genre)
-            argument := parseuse.parse_expression(params)
-            retourne crée_typeof_operator(parseuse, lexème, argument)
+            parseuse.consomme();
+            params := donne_paramètres_parsage_expression_pour_lexème_unaire(lexème.genre);
+            argument := parseuse.parse_expression(params);
+            retourne crée_typeof_operator(parseuse, lexème, argument);
         }
         Void {
-            parseuse.consomme()
-            params := donne_paramètres_parsage_expression_pour_lexème_unaire(lexème.genre)
-            argument := parseuse.parse_expression(params)
-            retourne crée_void_operator(parseuse, lexème, argument)
+            parseuse.consomme();
+            params := donne_paramètres_parsage_expression_pour_lexème_unaire(lexème.genre);
+            argument := parseuse.parse_expression(params);
+            retourne crée_void_operator(parseuse, lexème, argument);
         }
         Delete {
-            parseuse.consomme()
-            params := donne_paramètres_parsage_expression_pour_lexème_unaire(lexème.genre)
-            argument := parseuse.parse_expression(params)
-            retourne crée_delete_operator(parseuse, lexème, argument)
+            parseuse.consomme();
+            params := donne_paramètres_parsage_expression_pour_lexème_unaire(lexème.genre);
+            argument := parseuse.parse_expression(params);
+            retourne crée_delete_operator(parseuse, lexème, argument);
         }
         New {
-            parseuse.consomme()
+            parseuse.consomme();
 
             si parseuse.apparie(GenreLexème.Point) {
-                parseuse.consomme()
-                parseuse.consomme(GenreLexème.Target)
-                retourne crée_new_target(parseuse, lexème)
+                parseuse.consomme();
+                parseuse.consomme(GenreLexème.Target);
+                retourne crée_new_target(parseuse, lexème);
             }
 
-            params := donne_paramètres_parsage_expression_pour_lexème_unaire(lexème.genre)
-            params.lexème_final = GenreLexème.Point
-            argument := parseuse.parse_expression(params)
+            params := donne_paramètres_parsage_expression_pour_lexème_unaire(lexème.genre);
+            params.lexème_final = GenreLexème.Point;
+            argument := parseuse.parse_expression(params);
             retourne crée_new_expression(parseuse, lexème, argument);
         }
         Spread {
-            retourne parse_spread(parseuse, lexème)
+            retourne parse_spread(parseuse, lexème);
         }
         Super {
-            parseuse.consomme()
+            parseuse.consomme();
 
             si parseuse.apparie(GenreLexème.Point) {
-                lexème_point := parseuse.lexème_courant()
-                parseuse.consomme()
-                propriété := parse_identifier_name(parseuse)
-                retourne crée_super_property(parseuse, lexème_point, propriété, faux)
+                lexème_point := parseuse.lexème_courant();
+                parseuse.consomme();
+                propriété := parse_identifier_name(parseuse);
+                retourne crée_super_property(parseuse, lexème_point, propriété, faux);
             }
 
             si parseuse.apparie(GenreLexème.CrochetOuvrant) {
-                lexème_crochet := parseuse.lexème_courant()
-                parseuse.consomme()
-                propriété := parse_expression(parseuse, ParamètresParsageExpression())
-                parseuse.consomme(GenreLexème.CrochetFermant)
-                retourne crée_super_property(parseuse, lexème_crochet, propriété, vrai)
+                lexème_crochet := parseuse.lexème_courant();
+                parseuse.consomme();
+                propriété := parse_expression(parseuse, ParamètresParsageExpression());
+                parseuse.consomme(GenreLexème.CrochetFermant);
+                retourne crée_super_property(parseuse, lexème_crochet, propriété, vrai);
             }
 
-            parseuse.consomme(GenreLexème.ParenthèseOuvrante)
-            arguments := parse_expressions_séparées_par_des_virgules(parseuse, GenreLexème.ParenthèseFermante)
-            parseuse.consomme(GenreLexème.ParenthèseFermante)
-            retourne crée_super_call(parseuse, lexème, arguments)
+            parseuse.consomme(GenreLexème.ParenthèseOuvrante);
+            arguments := parse_expressions_séparées_par_des_virgules(parseuse, GenreLexème.ParenthèseFermante);
+            parseuse.consomme(GenreLexème.ParenthèseFermante);
+            retourne crée_super_call(parseuse, lexème, arguments);
         }
         Class {
-            retourne parse_class_declaration(parseuse, vrai) comme *ClassExpression
+            retourne parse_class_declaration(parseuse, vrai) comme *ClassExpression;
         }
         Slash {
             /* Nous manquons de contexte lors du lexage initial, et ainsi certaines expression régulière
              * peuvent ne pas être correctement détectées.
              * Nous faisons un relexage à partir du lexème courant pour obtenir ladite expression régulière. */
-            lexeuse: Lexeuse
-            lexeuse.realm = parseuse.realm
-            initialise_lexeuse_depuis_source(lexeuse, parseuse.source_text)
-            lexeuse.début_source = lexème.texte.pointeur
+            lexeuse: Lexeuse;
+            lexeuse.realm = parseuse.realm;
+            initialise_lexeuse_depuis_source(lexeuse, parseuse.source_text);
+            lexeuse.début_source = lexème.texte.pointeur;
 
-            lexème_regex_literal := lèxe_regex_littérale(lexeuse)
+            lexème_regex_literal := lèxe_regex_littérale(lexeuse);
 
             tantque !fini(parseuse) {
-                lexème_à_ignorer := parseuse.lexème_courant()
+                lexème_à_ignorer := parseuse.lexème_courant();
                 saufsi est_sous_chaine(lexème_regex_literal.texte, lexème_à_ignorer.texte) {
-                    arrête
+                    arrête;
                 }
 
-                parseuse.consomme()
+                parseuse.consomme();
             }
 
-            mémoire(lexème) = lexème_regex_literal
+            mémoire(lexème) = lexème_regex_literal;
 
-            retourne crée_literal(parseuse, lexème, crée_chaine_échappement_résolu(lexème.texte))
+            retourne crée_literal(parseuse, lexème, crée_chaine_échappement_résolu(lexème.texte));
         }
         Await {
-            parseuse.consomme()
+            parseuse.consomme();
             saufsi parseuse.await_est_mot_clé {
-                retourne crée_identifier(parseuse, lexème, lexème.texte)
+                retourne crée_identifier(parseuse, lexème, lexème.texte);
             }
 
-            expression := parse_expression(parseuse, ParamètresParsageExpression())
-            retourne crée_await_expression(parseuse, lexème, expression)
+            expression := parse_expression(parseuse, ParamètresParsageExpression());
+            retourne crée_await_expression(parseuse, lexème, expression);
         }
         sinon {
-            parseuse.rapporte_erreur("expected a primary expression")
+            parseuse.rapporte_erreur("expected a primary expression");
         }
     }
 
-    retourne nul
+    retourne nul;
 }
 
 parse_template_literal :: fonc (parseuse: *Parseuse, lexème: *Lexème) -> *TemplateLiteral
 {
-    assert(lexème.genre == GenreLexème.TemplateLiteralStart)
-    parseuse.consomme()
+    assert(lexème.genre == GenreLexème.TemplateLiteralStart);
+    parseuse.consomme();
 
-    lexème_orig := lexème
+    lexème_orig := lexème;
 
-    quasis: [..]*TemplateElement
-    expressions: [..]*Expression
+    quasis: [..]*TemplateElement;
+    expressions: [..]*Expression;
 
-    quasi := crée_template_element(parseuse, lexème, crée_chaine_échappement_résolu(lexème.texte), faux)
-    tableau_ajoute(*quasis, quasi)
+    quasi := crée_template_element(parseuse, lexème, crée_chaine_échappement_résolu(lexème.texte), faux);
+    tableau_ajoute(*quasis, quasi);
 
     tantque !fini(parseuse) {
-        expression := parse_expression(parseuse, ParamètresParsageExpression())
-        tableau_ajoute(*expressions, expression)
+        expression := parse_expression(parseuse, ParamètresParsageExpression());
+        tableau_ajoute(*expressions, expression);
 
         si parseuse.fini() {
-            parseuse.rapporte_erreur("fin de fichier inattendu dans le template literal")
-            arrête
+            parseuse.rapporte_erreur("fin de fichier inattendu dans le template literal");
+            arrête;
         }
 
-        lexème = parseuse.lexème_courant()
+        lexème = parseuse.lexème_courant();
         si lexème.genre == GenreLexème.TemplateLiteralMiddle {
-            quasi = crée_template_element(parseuse, lexème, crée_chaine_échappement_résolu(lexème.texte), faux)
-            tableau_ajoute(*quasis, quasi)
-            parseuse.consomme()
-            continue
+            quasi = crée_template_element(parseuse, lexème, crée_chaine_échappement_résolu(lexème.texte), faux);
+            tableau_ajoute(*quasis, quasi);
+            parseuse.consomme();
+            continue;
         }
 
         si lexème.genre != GenreLexème.TemplateLiteralEnd {
-            parseuse.rapporte_erreur("[erreur interne] attendu un template-literal-end")
+            parseuse.rapporte_erreur("[erreur interne] attendu un template-literal-end");
         }
 
-        quasi = crée_template_element(parseuse, lexème, crée_chaine_échappement_résolu(lexème.texte), vrai)
-        tableau_ajoute(*quasis, quasi)
-        parseuse.consomme()
-        arrête
+        quasi = crée_template_element(parseuse, lexème, crée_chaine_échappement_résolu(lexème.texte), vrai);
+        tableau_ajoute(*quasis, quasi);
+        parseuse.consomme();
+        arrête;
     }
 
-    retourne crée_template_literal(parseuse, lexème_orig, quasis, expressions)
+    retourne crée_template_literal(parseuse, lexème_orig, quasis, expressions);
 }
 
 parse_property_name :: fonc (parseuse: *Parseuse) -> *Expression
 {
-    lexème := parseuse.lexème_courant()
+    lexème := parseuse.lexème_courant();
 
     si parseuse.apparie(GenreLexème.ChaineLittérale) {
-        parseuse.consomme()
-        retourne crée_literal(parseuse, lexème, lexème.texte)
+        parseuse.consomme();
+        retourne crée_literal(parseuse, lexème, lexème.texte);
     }
 
     si parseuse.apparie(GenreLexème.NombreLittéral) {
-        parseuse.consomme()
-        valeur := parse_nombre_depuis_lexème(lexème)
-        retourne crée_literal(parseuse, lexème, valeur)
+        parseuse.consomme();
+        valeur := parse_nombre_depuis_lexème(lexème);
+        retourne crée_literal(parseuse, lexème, valeur);
     }
 
     si parseuse.apparie(GenreLexème.CrochetOuvrant) {
-        lexème = parseuse.lexème_courant()
-        parseuse.consomme()
-        expression := parse_expression(parseuse, ParamètresParsageExpression())
-        parseuse.consomme(GenreLexème.CrochetFermant)
-        retourne crée_computed_property_name(parseuse, lexème, expression)
+        lexème = parseuse.lexème_courant();
+        parseuse.consomme();
+        expression := parse_expression(parseuse, ParamètresParsageExpression());
+        parseuse.consomme(GenreLexème.CrochetFermant);
+        retourne crée_computed_property_name(parseuse, lexème, expression);
     }
 
-    retourne parse_identifier_name(parseuse)
+    retourne parse_identifier_name(parseuse);
 }
 
 parse_identifier_name :: fonc (parseuse: *Parseuse) -> *Identifier
 {
     si parseuse.fini() {
-        rapporte_erreur(parseuse, "unexpected end of input")
-        retourne nul
+        rapporte_erreur(parseuse, "unexpected end of input");
+        retourne nul;
     }
 
-    lexème := parseuse.lexème_courant()
+    lexème := parseuse.lexème_courant();
     si lexème.texte.taille == 0 {
-        rapporte_erreur(parseuse, "empty token")
-        retourne nul
+        rapporte_erreur(parseuse, "empty token");
+        retourne nul;
     }
 
-    c := lexème.texte[0]
-    fanion := fanions_caractères[c comme n8]
+    c := lexème.texte[0];
+    fanion := fanions_caractères[c comme n8];
 
     saufsi fanion.DébuteIdentifiant {
-        rapporte_erreur(parseuse, "expected an identifier name")
+        rapporte_erreur(parseuse, "expected an identifier name");
     }
 
-    parseuse.consomme()
-    retourne crée_identifier(parseuse, lexème, lexème.texte)
+    parseuse.consomme();
+    retourne crée_identifier(parseuse, lexème, lexème.texte);
 }
 
 /* https://tc39.es/ecma262/multipage/ecmascript-language-expressions.html#prod-IdentifierReference */
 parse_identifier_reference :: fonc (parseuse: *Parseuse) -> *Identifier
 {
-    retourne parse_identifiant_yield_ou_await(parseuse, vrai)
+    retourne parse_identifiant_yield_ou_await(parseuse, vrai);
 }
 
 parse_binding_identifier :: fonc (parseuse: *Parseuse, émets_erreur_si_manquant: bool) -> *Identifier
 {
-    retourne parse_identifiant_yield_ou_await(parseuse, émets_erreur_si_manquant)
+    retourne parse_identifiant_yield_ou_await(parseuse, émets_erreur_si_manquant);
 }
 
 parse_label_identifier :: fonc (parseuse: *Parseuse, émets_erreur_si_manquant: bool) -> *Identifier
 {
-    retourne parse_identifiant_yield_ou_await(parseuse, émets_erreur_si_manquant)
+    retourne parse_identifiant_yield_ou_await(parseuse, émets_erreur_si_manquant);
 }
 
 parse_identifier :: fonc (parseuse: *Parseuse, émets_erreur_si_manquant: bool) -> *Identifier
 {
-    lexème := parseuse.lexème_courant()
+    lexème := parseuse.lexème_courant();
 
     si apparie_lexème_identifier(parseuse) {
-        parseuse.consomme()
-        retourne crée_identifier(parseuse, lexème, lexème.texte)
+        parseuse.consomme();
+        retourne crée_identifier(parseuse, lexème, lexème.texte);
     }
 
     si émets_erreur_si_manquant {
-        parseuse.rapporte_erreur("expected an identifier")
+        parseuse.rapporte_erreur("expected an identifier");
     }
-    retourne nul
+    retourne nul;
 }
 
 parse_spread :: fonc (parseuse: *Parseuse, lexème: *Lexème) -> *SpreadElement
 {
-    parseuse.consomme()
-    params := donne_paramètres_parsage_expression_pour_lexème_unaire(lexème.genre)
-    params.lexème_final = GenreLexème.Virgule
-    argument := parseuse.parse_expression(params)
+    parseuse.consomme();
+    params := donne_paramètres_parsage_expression_pour_lexème_unaire(lexème.genre);
+    params.lexème_final = GenreLexème.Virgule;
+    argument := parseuse.parse_expression(params);
     retourne crée_spread_element(parseuse, lexème, argument);
 }
 
 apparie_lexème_identifier :: fonc (parseuse: *Parseuse) -> bool
 {
-    lexème := parseuse.lexème_courant()
+    lexème := parseuse.lexème_courant();
 
     // as, async, from, get, meta, of, set, and target
-    lexèmes_autorisés := [GenreLexème.Identifiant, GenreLexème.As, GenreLexème.Async, GenreLexème.From, GenreLexème.Get, GenreLexème.Meta, GenreLexème.Of, GenreLexème.Set, GenreLexème.Target]
+    lexèmes_autorisés := [GenreLexème.Identifiant, GenreLexème.As, GenreLexème.Async, GenreLexème.From, GenreLexème.Get, GenreLexème.Meta, GenreLexème.Of, GenreLexème.Set, GenreLexème.Target];
     pour lexèmes_autorisés {
         si lexème.genre == it {
-            retourne vrai
+            retourne vrai;
         }
     }
-    retourne faux
+    retourne faux;
 }
 
 apparie_lexème_identifier_property :: fonc (parseuse: *Parseuse) -> bool
 {
     si apparie_lexème_identifier(parseuse) {
-        retourne vrai
+        retourne vrai;
     }
     si apparie(parseuse, GenreLexème.Delete) {
-        retourne vrai
+        retourne vrai;
     }
-    retourne faux
+    retourne faux;
 }
 
 /* https://tc39.es/ecma262/multipage/ecmascript-language-functions-and-classes.html#prod-ClassElementName */
 apparie_class_element_name :: fonc (parseuse: *Parseuse) -> *Expression
 {
-    résultat := apparie_property_name(parseuse)
+    résultat := apparie_property_name(parseuse);
     si résultat {
-        retourne résultat
+        retourne résultat;
     }
 
     si apparie(parseuse, GenreLexème.PrivateIdentifier) {
-        lexème := parseuse.lexème_courant()
-        parseuse.consomme()
-        retourne crée_private_identifier(parseuse, lexème)
+        lexème := parseuse.lexème_courant();
+        parseuse.consomme();
+        retourne crée_private_identifier(parseuse, lexème);
     }
 
-    retourne nul
+    retourne nul;
 }
 
 /* https://tc39.es/ecma262/multipage/ecmascript-language-expressions.html#prod-PropertyName */
 apparie_property_name :: fonc (parseuse: *Parseuse) -> *Expression
 {
-    résultat := apparie_literal_property_name(parseuse)
+    résultat := apparie_literal_property_name(parseuse);
     si résultat {
-        retourne résultat
+        retourne résultat;
     }
 
     si parseuse.apparie(GenreLexème.CrochetOuvrant) {
-        lexème := parseuse.lexème_courant()
-        parseuse.consomme()
-        expression := parse_expression(parseuse, ParamètresParsageExpression())
-        parseuse.consomme(GenreLexème.CrochetFermant)
-        retourne crée_computed_property_name(parseuse, lexème, expression)
+        lexème := parseuse.lexème_courant();
+        parseuse.consomme();
+        expression := parse_expression(parseuse, ParamètresParsageExpression());
+        parseuse.consomme(GenreLexème.CrochetFermant);
+        retourne crée_computed_property_name(parseuse, lexème, expression);
     }
 
-    retourne nul
+    retourne nul;
 }
 
 // À FAIRE : redondant avec parse_property_name
 apparie_literal_property_name :: fonc (parseuse: *Parseuse) -> *Expression
 {
     si parseuse.fini() {
-        retourne nul
+        retourne nul;
     }
 
-    lexème := parseuse.lexème_courant()
+    lexème := parseuse.lexème_courant();
     si lexème.genre == GenreLexème.ChaineLittérale {
-        parseuse.consomme()
-        retourne crée_literal(parseuse, lexème, crée_chaine_échappement_résolu(lexème.texte))
+        parseuse.consomme();
+        retourne crée_literal(parseuse, lexème, crée_chaine_échappement_résolu(lexème.texte));
     }
 
     si lexème.genre == GenreLexème.NombreLittéral {
-        parseuse.consomme()
-        valeur := parse_nombre_depuis_lexème(lexème)
-        retourne crée_literal(parseuse, lexème, valeur)
+        parseuse.consomme();
+        valeur := parse_nombre_depuis_lexème(lexème);
+        retourne crée_literal(parseuse, lexème, valeur);
     }
 
     si lexème.texte.taille == 0 {
-        retourne nul
+        retourne nul;
     }
 
-    c := lexème.texte[0]
-    fanion := fanions_caractères[c comme n8]
+    c := lexème.texte[0];
+    fanion := fanions_caractères[c comme n8];
 
     saufsi fanion.DébuteIdentifiant {
-        retourne nul
+        retourne nul;
     }
 
-    parseuse.consomme()
-    retourne crée_identifier(parseuse, lexème, lexème.texte)
+    parseuse.consomme();
+    retourne crée_identifier(parseuse, lexème, lexème.texte);
 }
 
 parse_identifiant_yield_ou_await :: fonc (parseuse: *Parseuse, émets_erreur_si_manquant: bool) -> *Identifier
 {
-    lexème := parseuse.lexème_courant()
+    lexème := parseuse.lexème_courant();
 
     si lexème.genre == GenreLexème.Yield && !parseuse.yield_est_mot_clé {
-        parseuse.consomme()
-        retourne crée_identifier(parseuse, lexème, lexème.texte)
+        parseuse.consomme();
+        retourne crée_identifier(parseuse, lexème, lexème.texte);
     }
 
     si lexème.genre == GenreLexème.Await && !parseuse.await_est_mot_clé {
-        parseuse.consomme()
-        retourne crée_identifier(parseuse, lexème, lexème.texte)
+        parseuse.consomme();
+        retourne crée_identifier(parseuse, lexème, lexème.texte);
     }
 
-    retourne parse_identifier(parseuse, émets_erreur_si_manquant)
+    retourne parse_identifier(parseuse, émets_erreur_si_manquant);
 }
 
 donne_opération_binaire_pour_genre_lexème :: fonc (genre: GenreLexème) -> BinaryOperation
 {
     discr genre {
         Plus {
-            retourne BinaryOperation.Plus
+            retourne BinaryOperation.Plus;
         }
         Moins {
-            retourne BinaryOperation.Moins
+            retourne BinaryOperation.Moins;
         }
         Étoile {
-            retourne BinaryOperation.Multiplie
+            retourne BinaryOperation.Multiplie;
         }
         Slash {
-            retourne BinaryOperation.Divise
+            retourne BinaryOperation.Divise;
         }
         Pourcent {
-            retourne BinaryOperation.Modulo
+            retourne BinaryOperation.Modulo;
         }
         EtBinaire {
-            retourne BinaryOperation.EtBinaire
+            retourne BinaryOperation.EtBinaire;
         }
         OuBinaire {
-            retourne BinaryOperation.OuBinaire
+            retourne BinaryOperation.OuBinaire;
         }
         OuExclusif {
-            retourne BinaryOperation.OuExclusif
+            retourne BinaryOperation.OuExclusif;
         }
         DécalageGauche {
-            retourne BinaryOperation.DécalageGauche
+            retourne BinaryOperation.DécalageGauche;
         }
         DécalageDroite {
-            retourne BinaryOperation.DécalageDroite
+            retourne BinaryOperation.DécalageDroite;
         }
         DécalageDroiteNaturel {
-            retourne BinaryOperation.DécalageDroiteNaturel
+            retourne BinaryOperation.DécalageDroiteNaturel;
         }
         Exponentiation {
-            retourne BinaryOperation.Exponentiation
+            retourne BinaryOperation.Exponentiation;
         }
         sinon {
-            panique("genre opérateur non-géré")
+            panique("genre opérateur non-géré");
         }
     }
 
-    retourne BinaryOperation.Plus
+    retourne BinaryOperation.Plus;
 }
 
 donne_opération_égalitaire_pour_genre_lexème :: fonc (genre: GenreLexème) -> EqualityOperation
 {
     discr genre {
         EstÉgal {
-            retourne EqualityOperation.Égal
+            retourne EqualityOperation.Égal;
         }
         NEspaPasÉgal {
-            retourne EqualityOperation.Inégal
+            retourne EqualityOperation.Inégal;
         }
         EstÉgalStrict {
-            retourne EqualityOperation.ÉgalStrict
+            retourne EqualityOperation.ÉgalStrict;
         }
         NEspaPasÉgalStrict {
-            retourne EqualityOperation.InégalStrict
+            retourne EqualityOperation.InégalStrict;
         }
         sinon {
-            panique("genre opérateur non-géré")
+            panique("genre opérateur non-géré");
         }
     }
-    retourne EqualityOperation.Égal
+    retourne EqualityOperation.Égal;
 }
 
 donne_opération_relationnelle_pour_genre_lexème :: fonc (genre: GenreLexème) -> RelationalOperation
 {
     discr genre {
         Inférieur {
-            retourne RelationalOperation.Inférieur
+            retourne RelationalOperation.Inférieur;
         }
         Supérieur {
-            retourne RelationalOperation.Supérieur
+            retourne RelationalOperation.Supérieur;
         }
         InférieurÉgal {
-            retourne RelationalOperation.InférieurÉgal
+            retourne RelationalOperation.InférieurÉgal;
         }
         SupérieurÉgal {
-            retourne RelationalOperation.SupérieurÉgal
+            retourne RelationalOperation.SupérieurÉgal;
         }
         InstanceOf {
-            retourne RelationalOperation.InstanceOf
+            retourne RelationalOperation.InstanceOf;
         }
         In {
-            retourne RelationalOperation.In
+            retourne RelationalOperation.In;
         }
         sinon {
-            panique("genre opérateur non-géré")
+            panique("genre opérateur non-géré");
         }
     }
 
-    retourne RelationalOperation.Inférieur
+    retourne RelationalOperation.Inférieur;
 }
 
 parse_expression_secondaire :: fonc (parseuse: *Parseuse, gauche: *Expression, params: ParamètresParsageExpression) -> *Expression
 {
-    lexème := parseuse.lexème_courant()
+    lexème := parseuse.lexème_courant();
 
     discr lexème.genre {
         Plus,
@@ -1892,10 +1892,10 @@ parse_expression_secondaire :: fonc (parseuse: *Parseuse, gauche: *Expression, p
         DécalageDroite,
         DécalageDroiteNaturel,
         Exponentiation {
-            opération := donne_opération_binaire_pour_genre_lexème(lexème.genre)
-            parseuse.consomme()
-            opérande_droite := parseuse.parse_expression(params)
-            retourne crée_binary_expression(parseuse, lexème, opération, gauche, opérande_droite)
+            opération := donne_opération_binaire_pour_genre_lexème(lexème.genre);
+            parseuse.consomme();
+            opérande_droite := parseuse.parse_expression(params);
+            retourne crée_binary_expression(parseuse, lexème, opération, gauche, opérande_droite);
         }
         Inférieur,
         Supérieur,
@@ -1903,366 +1903,366 @@ parse_expression_secondaire :: fonc (parseuse: *Parseuse, gauche: *Expression, p
         SupérieurÉgal,
         InstanceOf,
         In {
-            opération := donne_opération_relationnelle_pour_genre_lexème(lexème.genre)
-            parseuse.consomme()
-            opérande_droite := parseuse.parse_expression(params)
-            retourne crée_relational_expression(parseuse, lexème, opération, gauche, opérande_droite)
+            opération := donne_opération_relationnelle_pour_genre_lexème(lexème.genre);
+            parseuse.consomme();
+            opérande_droite := parseuse.parse_expression(params);
+            retourne crée_relational_expression(parseuse, lexème, opération, gauche, opérande_droite);
         }
         EstÉgal,
         NEspaPasÉgal,
         EstÉgalStrict,
         NEspaPasÉgalStrict {
-            opération := donne_opération_égalitaire_pour_genre_lexème(lexème.genre)
-            parseuse.consomme()
-            opérande_droite := parseuse.parse_expression(params)
-            retourne crée_equality_expression(parseuse, lexème, opération, gauche, opérande_droite)
+            opération := donne_opération_égalitaire_pour_genre_lexème(lexème.genre);
+            parseuse.consomme();
+            opérande_droite := parseuse.parse_expression(params);
+            retourne crée_equality_expression(parseuse, lexème, opération, gauche, opérande_droite);
         }
         PlusPlus,
         MoinsMoins {
-            parseuse.consomme()
+            parseuse.consomme();
 
             operation := si lexème.genre == GenreLexème.PlusPlus { UpdateOperation.PostfixIncrement } sinon { UpdateOperation.PostfixDecrement }
-            update := crée_update_expression(parseuse, lexème, gauche, operation)
+            update := crée_update_expression(parseuse, lexème, gauche, operation);
 
             /* Les expressions de style var o = {x:i++,y:2} doivent s'arrêter à la virgule (qui est une expression secondaire). */
             si !parseuse.apparie(params.lexème_final) {
-                expression := parseuse.parse_expression_secondaire(update, params)
+                expression := parseuse.parse_expression_secondaire(update, params);
                 si expression {
-                    retourne expression
+                    retourne expression;
                 }
             }
 
-            retourne update
+            retourne update;
         }
         Égal {
-            retourne parse_assignement_expression(parseuse, gauche, AssignmentOperation.Assigne, params)
+            retourne parse_assignement_expression(parseuse, gauche, AssignmentOperation.Assigne, params);
         }
         PlusÉgal {
-            retourne parse_assignement_expression(parseuse, gauche, AssignmentOperation.Ajoute, params)
+            retourne parse_assignement_expression(parseuse, gauche, AssignmentOperation.Ajoute, params);
         }
         MoinsÉgal {
-            retourne parse_assignement_expression(parseuse, gauche, AssignmentOperation.Soustrait, params)
+            retourne parse_assignement_expression(parseuse, gauche, AssignmentOperation.Soustrait, params);
         }
         ÉtoileÉgal {
-            retourne parse_assignement_expression(parseuse, gauche, AssignmentOperation.Multiplie, params)
+            retourne parse_assignement_expression(parseuse, gauche, AssignmentOperation.Multiplie, params);
         }
         SlashÉgal {
-            retourne parse_assignement_expression(parseuse, gauche, AssignmentOperation.Divise, params)
+            retourne parse_assignement_expression(parseuse, gauche, AssignmentOperation.Divise, params);
         }
         PourcentÉgal {
-            retourne parse_assignement_expression(parseuse, gauche, AssignmentOperation.Modulo, params)
+            retourne parse_assignement_expression(parseuse, gauche, AssignmentOperation.Modulo, params);
         }
         DécalageGaucheÉgal {
-            retourne parse_assignement_expression(parseuse, gauche, AssignmentOperation.DécalageGauche, params)
+            retourne parse_assignement_expression(parseuse, gauche, AssignmentOperation.DécalageGauche, params);
         }
         DécalageDroiteÉgal {
-            retourne parse_assignement_expression(parseuse, gauche, AssignmentOperation.DécalageDroite, params)
+            retourne parse_assignement_expression(parseuse, gauche, AssignmentOperation.DécalageDroite, params);
         }
         DécalageDroiteNaturelÉgal {
-            retourne parse_assignement_expression(parseuse, gauche, AssignmentOperation.DécalageDroiteNaturel, params)
+            retourne parse_assignement_expression(parseuse, gauche, AssignmentOperation.DécalageDroiteNaturel, params);
         }
         EtBinaireÉgal {
-            retourne parse_assignement_expression(parseuse, gauche, AssignmentOperation.EtBinaire, params)
+            retourne parse_assignement_expression(parseuse, gauche, AssignmentOperation.EtBinaire, params);
         }
         OuBinaireÉgal {
-            retourne parse_assignement_expression(parseuse, gauche, AssignmentOperation.OuBinaire, params)
+            retourne parse_assignement_expression(parseuse, gauche, AssignmentOperation.OuBinaire, params);
         }
         OuExclusifÉgal {
-            retourne parse_assignement_expression(parseuse, gauche, AssignmentOperation.OuExBinaire, params)
+            retourne parse_assignement_expression(parseuse, gauche, AssignmentOperation.OuExBinaire, params);
         }
         EtLogiqueÉgal {
-            retourne parse_assignement_expression(parseuse, gauche, AssignmentOperation.EtLogique, params)
+            retourne parse_assignement_expression(parseuse, gauche, AssignmentOperation.EtLogique, params);
         }
         OuLogiqueÉgal {
-            retourne parse_assignement_expression(parseuse, gauche, AssignmentOperation.OuLogique, params)
+            retourne parse_assignement_expression(parseuse, gauche, AssignmentOperation.OuLogique, params);
         }
         CoalesceÉgal {
-            retourne parse_assignement_expression(parseuse, gauche, AssignmentOperation.Coalesce, params)
+            retourne parse_assignement_expression(parseuse, gauche, AssignmentOperation.Coalesce, params);
         }
         ExponentiationÉgal {
-            retourne parse_assignement_expression(parseuse, gauche, AssignmentOperation.Exponentiation, params)
+            retourne parse_assignement_expression(parseuse, gauche, AssignmentOperation.Exponentiation, params);
         }
         Point {
-            parseuse.consomme()
-            propriété: *Expression
+            parseuse.consomme();
+            propriété: *Expression;
             si parseuse.apparie(GenreLexème.PrivateIdentifier) {
-                lexème_identifier := parseuse.lexème_courant()
-                parseuse.consomme()
-                propriété = crée_private_identifier(parseuse, lexème_identifier)
+                lexème_identifier := parseuse.lexème_courant();
+                parseuse.consomme();
+                propriété = crée_private_identifier(parseuse, lexème_identifier);
             }
             sinon {
-                propriété = parse_identifier_name(parseuse)
+                propriété = parse_identifier_name(parseuse);
             }
             
             si gauche.type == OptionalMemberExpression {
-                retourne crée_optional_member_expression(parseuse, lexème, gauche, propriété, faux)
+                retourne crée_optional_member_expression(parseuse, lexème, gauche, propriété, faux);
             }
-            retourne crée_member_expression(parseuse, lexème, gauche, propriété, faux)
+            retourne crée_member_expression(parseuse, lexème, gauche, propriété, faux);
         }
         ParenthèseOuvrante {
-            parseuse.consomme()
+            parseuse.consomme();
 
-            arguments := parse_expressions_séparées_par_des_virgules(parseuse, GenreLexème.ParenthèseFermante)
+            arguments := parse_expressions_séparées_par_des_virgules(parseuse, GenreLexème.ParenthèseFermante);
 
-            parseuse.consomme(GenreLexème.ParenthèseFermante)
+            parseuse.consomme(GenreLexème.ParenthèseFermante);
             
             si gauche.type == OptionalMemberExpression {
-                retourne crée_optional_call_expression(parseuse, lexème, gauche, arguments)
+                retourne crée_optional_call_expression(parseuse, lexème, gauche, arguments);
             }
 
-            retourne crée_call_expression(parseuse, lexème, gauche, arguments)
+            retourne crée_call_expression(parseuse, lexème, gauche, arguments);
         }
         CrochetOuvrant {
-            parseuse.consomme()
+            parseuse.consomme();
 
-            propriété := parseuse.parse_expression(ParamètresParsageExpression())
+            propriété := parseuse.parse_expression(ParamètresParsageExpression());
 
-            parseuse.consomme(GenreLexème.CrochetFermant)
+            parseuse.consomme(GenreLexème.CrochetFermant);
 
             si gauche.type == OptionalMemberExpression {
-                retourne crée_optional_member_expression(parseuse, lexème, gauche, propriété, vrai)
+                retourne crée_optional_member_expression(parseuse, lexème, gauche, propriété, vrai);
             }
 
-            retourne crée_member_expression(parseuse, lexème, gauche, propriété, vrai)
+            retourne crée_member_expression(parseuse, lexème, gauche, propriété, vrai);
         }
         EtLogique {
-            parseuse.consomme()
-            droite := parseuse.parse_expression(params)
-            retourne crée_logical_and(parseuse, lexème, gauche, droite)
+            parseuse.consomme();
+            droite := parseuse.parse_expression(params);
+            retourne crée_logical_and(parseuse, lexème, gauche, droite);
         }
         OuLogique {
-            parseuse.consomme()
-            droite := parseuse.parse_expression(params)
-            retourne crée_logical_or(parseuse, lexème, gauche, droite)
+            parseuse.consomme();
+            droite := parseuse.parse_expression(params);
+            retourne crée_logical_or(parseuse, lexème, gauche, droite);
         }
         Coalesce {
-            parseuse.consomme()
-            droite := parseuse.parse_expression(params)
-            retourne crée_coalesce(parseuse, lexème, gauche, droite)
+            parseuse.consomme();
+            droite := parseuse.parse_expression(params);
+            retourne crée_coalesce(parseuse, lexème, gauche, droite);
         }
         Interrogation {
-            parseuse.consomme()
+            parseuse.consomme();
 
-            consequent := parseuse.parse_expression(params)
-            parseuse.consomme(GenreLexème.DoublePoint)
+            consequent := parseuse.parse_expression(params);
+            parseuse.consomme(GenreLexème.DoublePoint);
 
-            alternate := parseuse.parse_expression(params)
-            retourne crée_conditional_expression(parseuse, lexème, gauche, consequent, alternate)
+            alternate := parseuse.parse_expression(params);
+            retourne crée_conditional_expression(parseuse, lexème, gauche, consequent, alternate);
         }
         Virgule {
-            parseuse.consomme()
-            droite := parseuse.parse_expression(params)
-            retourne crée_comma_expression(parseuse, lexème, gauche, droite)
+            parseuse.consomme();
+            droite := parseuse.parse_expression(params);
+            retourne crée_comma_expression(parseuse, lexème, gauche, droite);
         }
         Arrow {
-            retourne parse_arrow_function(parseuse, aplatis_expression_et_détruit_virgules(gauche), faux)
+            retourne parse_arrow_function(parseuse, aplatis_expression_et_détruit_virgules(gauche), faux);
         }
         OptionalChaining {
-            parseuse.consomme()
+            parseuse.consomme();
 
-            droite: *Expression
+            droite: *Expression;
 
             si parseuse.apparie(GenreLexème.TemplateLiteral) {
-                rapporte_erreur(parseuse, "template literals cannot be used on the right-hand side of an optional chain operator")
+                rapporte_erreur(parseuse, "template literals cannot be used on the right-hand side of an optional chain operator");
             }
 
             si parseuse.apparie(GenreLexème.ParenthèseOuvrante) {
-                parseuse.consomme()
-                arguments := parse_expressions_séparées_par_des_virgules(parseuse, GenreLexème.ParenthèseFermante)
-                parseuse.consomme(GenreLexème.ParenthèseFermante)
-                retourne crée_optional_call_expression(parseuse, lexème, gauche, arguments)
+                parseuse.consomme();
+                arguments := parse_expressions_séparées_par_des_virgules(parseuse, GenreLexème.ParenthèseFermante);
+                parseuse.consomme(GenreLexème.ParenthèseFermante);
+                retourne crée_optional_call_expression(parseuse, lexème, gauche, arguments);
             }
 
-            calculé := faux
+            calculé := faux;
             si parseuse.apparie(GenreLexème.CrochetOuvrant) {
-                calculé = vrai
-                parseuse.consomme()
-                droite = parseuse.parse_expression(ParamètresParsageExpression())
-                parseuse.consomme(GenreLexème.CrochetFermant)
+                calculé = vrai;
+                parseuse.consomme();
+                droite = parseuse.parse_expression(ParamètresParsageExpression());
+                parseuse.consomme(GenreLexème.CrochetFermant);
             }
             sinon si parseuse.apparie(GenreLexème.PrivateIdentifier) {
-                lexème_identifier := parseuse.lexème_courant()
-                parseuse.consomme()
-                droite = crée_private_identifier(parseuse, lexème_identifier)
+                lexème_identifier := parseuse.lexème_courant();
+                parseuse.consomme();
+                droite = crée_private_identifier(parseuse, lexème_identifier);
             }
             sinon {
-                droite = parseuse.parse_identifier_name()
+                droite = parseuse.parse_identifier_name();
             }
 
-            retourne crée_optional_member_expression(parseuse, lexème, gauche, droite, calculé)
+            retourne crée_optional_member_expression(parseuse, lexème, gauche, droite, calculé);
         }
         sinon {}
     }
 
-    retourne nul
+    retourne nul;
 }
 
 parse_arrow_function :: fonc (parseuse: *Parseuse, arrow_parameters: [..]*Expression, async: bool) -> *ArrowFunction
 {
-    ancien_await_est_mot_clé := parseuse.await_est_mot_clé
-    parseuse.await_est_mot_clé = async
-    diffère parseuse.await_est_mot_clé = ancien_await_est_mot_clé
+    ancien_await_est_mot_clé := parseuse.await_est_mot_clé;
+    parseuse.await_est_mot_clé = async;
+    diffère parseuse.await_est_mot_clé = ancien_await_est_mot_clé;
 
-    lexème := parseuse.lexème_courant()
-    parseuse.consomme()
+    lexème := parseuse.lexème_courant();
+    parseuse.consomme();
 
-    droite: *Statement
+    droite: *Statement;
     si parseuse.apparie(GenreLexème.AccoladeOuvrante) {
-        droite = parseuse.parse_statement()
+        droite = parseuse.parse_statement();
     }
     sinon {
         /* Virgule car nous pouvons être dans une expression d'objet ou d'array. */
-        params := ParamètresParsageExpression()
-        params.lexème_final = GenreLexème.Virgule
-        expression := parse_expression(parseuse, params)
-        droite = crée_expression_statement(parseuse, lexème, expression)
+        params := ParamètresParsageExpression();
+        params.lexème_final = GenreLexème.Virgule;
+        expression := parse_expression(parseuse, params);
+        droite = crée_expression_statement(parseuse, lexème, expression);
     }
 
     si droite {
-        droite.appartient_à_fonction = vrai
+        droite.appartient_à_fonction = vrai;
     }
 
-    concise_body := parseuse.crée_concise_body(droite, async)
-    retourne crée_arrow_function(parseuse, lexème, arrow_parameters, concise_body, async)
+    concise_body := parseuse.crée_concise_body(droite, async);
+    retourne crée_arrow_function(parseuse, lexème, arrow_parameters, concise_body, async);
 }
 
 // À FAIRE : nous pouvons avoir une expression virgule alors que les fonctions doivent avoir un tableau
 // pour les paramètres.
 aplatis_expression_et_détruit_virgules :: fonc (expression: *Expression) -> [..]*Expression
 {
-    résultat: [..]*Expression
+    résultat: [..]*Expression;
 
     si expression.type == ParenthesizedExpression {
-        assert((expression comme *ParenthesizedExpression).expression == nul)
-        détruit_arbre(expression)
-        retourne résultat
+        assert((expression comme *ParenthesizedExpression).expression == nul);
+        détruit_arbre(expression);
+        retourne résultat;
     }
 
     si expression.type == CommaExpression {
-        aplatis_virgule(expression comme *CommaExpression, *résultat)
-        détruit_arbre(expression)
+        aplatis_virgule(expression comme *CommaExpression, *résultat);
+        détruit_arbre(expression);
     }
     sinon {
-        tableau_ajoute(*résultat, expression)
+        tableau_ajoute(*résultat, expression);
     }
 
-    retourne résultat
+    retourne résultat;
 }
 
 aplatis_virgule :: fonc (virgule: *CommaExpression, résultat: *[..]*Expression)
 {
     si virgule.left.type == CommaExpression {
-        aplatis_virgule(virgule.left comme *CommaExpression, résultat)
+        aplatis_virgule(virgule.left comme *CommaExpression, résultat);
     }
     sinon {
-        tableau_ajoute(résultat, virgule.left)
-        virgule.left = nul
+        tableau_ajoute(résultat, virgule.left);
+        virgule.left = nul;
     }
 
-    tableau_ajoute(résultat, virgule.right)
-    virgule.right = nul
+    tableau_ajoute(résultat, virgule.right);
+    virgule.right = nul;
 }
 
 parse_assignement_expression :: fonc (parseuse: *Parseuse, gauche: *Expression, opération: AssignmentOperation, params: ParamètresParsageExpression) -> *AssignmentExpression
 {
-    lexème := parseuse.lexème_courant()
-    parseuse.consomme()
-    expression := parseuse.parse_expression(params)
-    retourne crée_assignment_expression(parseuse, lexème, opération, gauche, expression)
+    lexème := parseuse.lexème_courant();
+    parseuse.consomme();
+    expression := parseuse.parse_expression(params);
+    retourne crée_assignment_expression(parseuse, lexème, opération, gauche, expression);
 }
 
 parse_expressions_séparées_par_des_virgules :: fonc (parseuse: *Parseuse, lexème_final: GenreLexème) -> [..]*Expression
 {
-    résultat: [..]*Expression
+    résultat: [..]*Expression;
 
     tantque !fini(parseuse) && !apparie(parseuse, lexème_final) {
-        expr := parseuse.parse_expression(ParamètresParsageExpression(lexème_final = GenreLexème.Virgule))
+        expr := parseuse.parse_expression(ParamètresParsageExpression(lexème_final = GenreLexème.Virgule));
 
-        tableau_ajoute(*résultat, expr)
+        tableau_ajoute(*résultat, expr);
 
         saufsi parseuse.apparie(GenreLexème.Virgule) {
-            arrête
+            arrête;
         }
 
-        parseuse.consomme()
+        parseuse.consomme();
     }
-    retourne résultat
+    retourne résultat;
 }
 
 donne_paramètres_parsage_expression_pour_lexème_unaire :: fonc (genre: GenreLexème) -> ParamètresParsageExpression
 {
-    infos := infos_lexèmes_pour_parsage[genre]
-    résultat: ParamètresParsageExpression
-    résultat.précédence = infos.précédence
-    résultat.associativité = infos.associativité
-    retourne résultat
+    infos := infos_lexèmes_pour_parsage[genre];
+    résultat: ParamètresParsageExpression;
+    résultat.précédence = infos.précédence;
+    résultat.associativité = infos.associativité;
+    retourne résultat;
 }
 
 parse_statement_list :: fonc (parseuse: *Parseuse) -> [..]*Statement
 {
-    statements: [..]*Statement
+    statements: [..]*Statement;
 
     tantque !fini(parseuse) && !apparie(parseuse, GenreLexème.AccoladeFermante) {
-        statement := parseuse.parse_statement()
+        statement := parseuse.parse_statement();
         saufsi statement {
-            arrête
+            arrête;
         }
-        tableau_ajoute(*statements, statement)
+        tableau_ajoute(*statements, statement);
     }
 
-    retourne statements
+    retourne statements;
 }
 
 parse_array_literal :: fonc (parseuse: *Parseuse, lexème: *Lexème) -> *ArrayLiteral
 {
-    parseuse.consomme()
+    parseuse.consomme();
 
-    éléments: [..]*Expression
+    éléments: [..]*Expression;
 
     tantque !fini(parseuse) && !apparie(parseuse, GenreLexème.CrochetFermant) {
         si parseuse.apparie(GenreLexème.Virgule) {
-            parseuse.consomme()
-            tableau_ajoute(*éléments, nul)
-            continue
+            parseuse.consomme();
+            tableau_ajoute(*éléments, nul);
+            continue;
         }
 
-        expr := parseuse.parse_expression(ParamètresParsageExpression(lexème_final = GenreLexème.Virgule))
+        expr := parseuse.parse_expression(ParamètresParsageExpression(lexème_final = GenreLexème.Virgule));
 
-        tableau_ajoute(*éléments, expr)
+        tableau_ajoute(*éléments, expr);
 
         saufsi parseuse.apparie(GenreLexème.Virgule) {
-            arrête
+            arrête;
         }
 
-        parseuse.consomme()
+        parseuse.consomme();
     }
 
-    parseuse.consomme(GenreLexème.CrochetFermant)
+    parseuse.consomme(GenreLexème.CrochetFermant);
 
-    retourne crée_array_literal(parseuse, lexème, éléments)
+    retourne crée_array_literal(parseuse, lexème, éléments);
 }
 
 rapporte_erreur :: fonc (parseuse: *Parseuse, message: chaine)
 {
     lexème := si parseuse.fini() {
-        *parseuse.lexèmes[parseuse.lexèmes.taille - 1]
+        *parseuse.lexèmes[parseuse.lexèmes.taille - 1];
     }
     sinon {
-        parseuse.lexème_courant()
+        parseuse.lexème_courant();
     }
 
-    rapporte_erreur(parseuse, lexème, message)
+    rapporte_erreur(parseuse, lexème, message);
 }
 
 rapporte_erreur :: fonc (parseuse: *Parseuse, lexème: *Lexème, message: chaine)
 {
     si parseuse.erreur_de_compilation {
-        parseuse.consomme()
-        retourne
+        parseuse.consomme();
+        retourne;
     }
 
-    position := donne_position_source(parseuse.source_text, mémoire(lexème))
+    position := donne_position_source(parseuse.source_text, mémoire(lexème));
 
-    erreur_de_compilation := crée_erreur_de_compilation(parseuse.realm, message, position)
-    parseuse.erreur_de_compilation = erreur_de_compilation
+    erreur_de_compilation := crée_erreur_de_compilation(parseuse.realm, message, position);
+    parseuse.erreur_de_compilation = erreur_de_compilation;
 }

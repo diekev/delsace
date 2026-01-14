@@ -3,18 +3,18 @@
  * Catégorie : [validation sémantique, validation appel, type polymorphique]
  */
 
-importe Support
+importe Support;
 
 STRUCT :: struct {
-    x := 0
+    x := 0;
 }
 
 test_construis_poly :: fonc (t: $T @inutilisée) -> T
 {
-    retourne T()
+    retourne T();
 }
 
 principale :: fonc ()
 {
-    _ := test_construis_poly(STRUCT())
+    _ := test_construis_poly(STRUCT());
 }

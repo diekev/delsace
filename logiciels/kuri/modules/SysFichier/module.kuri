@@ -1,13 +1,13 @@
-importe Fondation
-importe Structures
+importe Fondation;
+importe Structures;
 
-charge "chemin"
-charge "exploratrice"
-charge "fichier"
-charge "fichier_paginé_mémoire"
-charge "linux"
-charge "liste_entrées_dossier"
-charge "requête"
+charge "chemin";
+charge "exploratrice";
+charge "fichier";
+charge "fichier_paginé_mémoire";
+charge "linux";
+charge "liste_entrées_dossier";
+charge "requête";
 
 /*
 
@@ -57,91 +57,91 @@ ferme_fichier
 // Toutes les erreurs possibles.
 
 ErreurFichier :: erreur {
-    Inconnue
+    Inconnue;
 
-    EntréeSortie
-    EntréeSortieSpéciale
-    EspaceDisqueInexistant
-    EspaceDisqueInsuffisant
-    FichierEstLectureSeul
-    FichierEstPipe
-    FichierExisteDéjà
-    FichierInexistant
-    FichierInvalide
-    FichierTemporaireNonSupporté
-    FichierTropGrand
-    FichierTropPetit
-    ImageEnLecture
-    InterrompuParSignal
-    LimiteOuvertureFichierAtteinte
-    MauvaisEspaceAdressage
-    MatérielInconnu
-    MémoireInsuffisante
-    NomTropGrand
-    ActionPeutBloquer
-    ActionImpossibleSurDossier
-    PaireNonRenseigné
-    PasDansUnDossier
-    PermissionNonAccordé
-    PipeFerméPourÉcriture
-    SynchronisationImpossiblePourFichier
-    TropDeLiensSymboliques
-    ValeurInvalide
-    ÀCourtDeVerrouxDeFichier
-    OpérationImpossiblePourLeSystème
-    TamponSortieTropPetit
-    NEstPasUnDossier
-    DossierUtiliséParQuelqueAutreProcessus
-    DossierNonVide
-    DifférentSystèmeFichier
-    CheminNonAbsolu
+    EntréeSortie;
+    EntréeSortieSpéciale;
+    EspaceDisqueInexistant;
+    EspaceDisqueInsuffisant;
+    FichierEstLectureSeul;
+    FichierEstPipe;
+    FichierExisteDéjà;
+    FichierInexistant;
+    FichierInvalide;
+    FichierTemporaireNonSupporté;
+    FichierTropGrand;
+    FichierTropPetit;
+    ImageEnLecture;
+    InterrompuParSignal;
+    LimiteOuvertureFichierAtteinte;
+    MauvaisEspaceAdressage;
+    MatérielInconnu;
+    MémoireInsuffisante;
+    NomTropGrand;
+    ActionPeutBloquer;
+    ActionImpossibleSurDossier;
+    PaireNonRenseigné;
+    PasDansUnDossier;
+    PermissionNonAccordé;
+    PipeFerméPourÉcriture;
+    SynchronisationImpossiblePourFichier;
+    TropDeLiensSymboliques;
+    ValeurInvalide;
+    ÀCourtDeVerrouxDeFichier;
+    OpérationImpossiblePourLeSystème;
+    TamponSortieTropPetit;
+    NEstPasUnDossier;
+    DossierUtiliséParQuelqueAutreProcessus;
+    DossierNonVide;
+    DifférentSystèmeFichier;
+    CheminNonAbsolu;
 }
 
 // ----------------------------------------------------------
 
 espace_disque_disponible :: fonc (chemin: CheminFichier) -> Optionnel(n64)
 {
-    retourne système_espace_disque_disponible(chemin)
+    retourne système_espace_disque_disponible(chemin);
 }
 
 contenu_fichier_binaire :: fonc (chemin: chaine) -> (succès: bool, résultat: [..]octet)
 {
-    retourne contenu_fichier_binaire(CheminFichier(chemin))
+    retourne contenu_fichier_binaire(CheminFichier(chemin));
 }
 
 contenu_fichier_binaire :: fonc (chemin: CheminFichier) -> (succès: bool, résultat: [..]octet)
 {
-    contenu: [..]octet
-    succès = contenu_fichier_binaire(chemin, contenu)
-    retourne succès, contenu
+    contenu: [..]octet;
+    succès = contenu_fichier_binaire(chemin, contenu);
+    retourne succès, contenu;
 }
 
 contenu_fichier_binaire :: fonc (chemin: CheminFichier, résultat: &[..]octet) -> succès: bool
 {
     fichier := tente ouvre_fichier(chemin, pour_lecture, 0o644) piège _ {
-        imprimeln("Impossible d'ouvrir le fichier %", chemin.chn)
-        retourne faux
-    }
+        imprimeln("Impossible d'ouvrir le fichier %", chemin.chn);
+        retourne faux;
+    };
 
-    diffère _ := ferme(*fichier)
+    diffère _ := ferme(*fichier);
 
     tente lis_tout(*fichier, résultat) piège _ {
-        imprimeln("Impossible de lire le fichier %", chemin.chn)
-        retourne faux
-    }
-    retourne vrai
+        imprimeln("Impossible de lire le fichier %", chemin.chn);
+        retourne faux;
+    };
+    retourne vrai;
 }
 
 contenu_fichier_texte :: fonc (chemin: CheminFichier) -> (succès: bool, résultat: chaine)
 {
-    succès_binaire, contenu := contenu_fichier_binaire(chemin)
-    retourne succès_binaire, chaine_depuis_tranche_octets(contenu)
+    succès_binaire, contenu := contenu_fichier_binaire(chemin);
+    retourne succès_binaire, chaine_depuis_tranche_octets(contenu);
 }
 
 contenu_fichier_texte :: fonc (chemin: chaine) -> (succès: bool, résultat: chaine)
 {
-    chm := CheminFichier(chn = chemin)
-    retourne contenu_fichier_texte(chm)
+    chm := CheminFichier(chn = chemin);
+    retourne contenu_fichier_texte(chm);
 }
 
 /* ------------------------------------------------------------------------- */
@@ -150,62 +150,62 @@ contenu_fichier_texte :: fonc (chemin: chaine) -> (succès: bool, résultat: cha
 
 écris_fichier_entier :: fonc (chemin: CheminFichier, contenu: []octet) -> bool
 {
-    retourne écris_fichier_entier(chemin.chn, contenu)
+    retourne écris_fichier_entier(chemin.chn, contenu);
 }
 
 écris_fichier_entier :: fonc (chemin: chaine, contenu: []octet) -> bool
 {
-    retourne écris_fichier(chemin, contenu, pour_écriture_tronquée)
+    retourne écris_fichier(chemin, contenu, pour_écriture_tronquée);
 }
 
 ajoute_au_fichier :: fonc (chemin: CheminFichier, contenu: []octet) -> bool
 {
-    retourne écris_fichier(chemin.chn, contenu, pour_écriture_supplémentaire)
+    retourne écris_fichier(chemin.chn, contenu, pour_écriture_supplémentaire);
 }
 
 ajoute_au_fichier :: fonc (chemin: chaine, contenu: []octet) -> bool
 {
-    retourne écris_fichier(chemin, contenu, pour_écriture_supplémentaire)
+    retourne écris_fichier(chemin, contenu, pour_écriture_supplémentaire);
 }
 
 écris_fichier :: fonc (chemin: chaine, contenu: []octet, raison: RaisonOuvertureFichier) -> bool
 {
-    tampon: TamponChemin
+    tampon: TamponChemin;
 
-    chemin_dossier_tmp := système_chemin_dossier_temporaire()
-    diffère détruit_chemin(chemin_dossier_tmp)
+    chemin_dossier_tmp := système_chemin_dossier_temporaire();
+    diffère détruit_chemin(chemin_dossier_tmp);
 
     saufsi ajoute(*tampon, chemin_dossier_tmp) {
-        imprimeln("[%] impossible d'ajouter le chemin vers le dossier temporaire", #nom_de_cette_fonction)
-        retourne faux
+        imprimeln("[%] impossible d'ajouter le chemin vers le dossier temporaire", #nom_de_cette_fonction);
+        retourne faux;
     }
 
     saufsi ajoute_avec_séparateur(*tampon, #nom_de_cette_fonction) {
-        imprimeln("[%] impossible de créer le chemin temporaire pour l'écriture", #nom_de_cette_fonction)
-        retourne faux
+        imprimeln("[%] impossible de créer le chemin temporaire pour l'écriture", #nom_de_cette_fonction);
+        retourne faux;
     }
 
-    chemin_temporaire := donne_chaine_statique(*tampon)
+    chemin_temporaire := donne_chaine_statique(*tampon);
 
     fichier := tente ouvre_fichier_crée_si_non_existant(CheminFichier(chemin_temporaire), raison) piège err {
-        imprimeln("[%] impossible d'ouvrir le fichier '%' : %\n    NOTE : nous essayons d'ouvrir le fichier temporaire '%'", #nom_de_cette_fonction, chemin, err, chemin_temporaire)
-        retourne faux
-    }
+        imprimeln("[%] impossible d'ouvrir le fichier '%' : %\n    NOTE : nous essayons d'ouvrir le fichier temporaire '%'", #nom_de_cette_fonction, chemin, err, chemin_temporaire);
+        retourne faux;
+    };
 
     octets_écris := tente écris(*fichier, contenu) piège err {
-        imprimeln("[%] impossible d'écrire dans le fichier '%' : %", #nom_de_cette_fonction, chemin, err)
-        retourne faux
-    }
+        imprimeln("[%] impossible d'écrire dans le fichier '%' : %", #nom_de_cette_fonction, chemin, err);
+        retourne faux;
+    };
 
     si octets_écris != contenu.taille {
-        imprimeln("[%] le contenu ne fut pas intégralement écris dans '%' :\n    nous dévios écrire % octet(s), mais nous en avons écris %.", #nom_de_cette_fonction, chemin, contenu.taille, octets_écris)
-        retourne faux
+        imprimeln("[%] le contenu ne fut pas intégralement écris dans '%' :\n    nous dévios écrire % octet(s), mais nous en avons écris %.", #nom_de_cette_fonction, chemin, contenu.taille, octets_écris);
+        retourne faux;
     }
 
     discr ferme(*fichier) {
         Quelque(err) {
             si err != 0 comme ErreurFichier {
-                imprimeln("[%] erreur lors de la fermeture du fichier '%' : %", #nom_de_cette_fonction, chemin, err)
+                imprimeln("[%] erreur lors de la fermeture du fichier '%' : %", #nom_de_cette_fonction, chemin, err);
             }
         }
         sinon {}
@@ -214,84 +214,84 @@ ajoute_au_fichier :: fonc (chemin: chaine, contenu: []octet) -> bool
     discr renomme(CheminFichier(chemin_temporaire), CheminFichier(chemin)) {
         Quelque(err) {
             si err != 0 comme ErreurFichier {
-                imprimeln("[%] impossible de finaliser l'écriture du fichier '%' : %", #nom_de_cette_fonction, chemin, err)
-                retourne faux
+                imprimeln("[%] impossible de finaliser l'écriture du fichier '%' : %", #nom_de_cette_fonction, chemin, err);
+                retourne faux;
             }
         }
         sinon {}
     }
 
-    retourne vrai
+    retourne vrai;
 }
 
 écris_fichier_entier :: fonc (chemin: CheminFichier, enchaineuse: *Enchaineuse) -> bool
 {
-    retourne écris_fichier_entier(chemin.chn, enchaineuse)
+    retourne écris_fichier_entier(chemin.chn, enchaineuse);
 }
 
 écris_fichier_entier :: fonc (chemin: chaine, enchaineuse: *Enchaineuse) -> bool
 {
-    retourne écris_fichier(chemin, enchaineuse, pour_écriture_tronquée)
+    retourne écris_fichier(chemin, enchaineuse, pour_écriture_tronquée);
 }
 
 ajoute_au_fichier :: fonc (chemin: CheminFichier, enchaineuse: *Enchaineuse) -> bool
 {
-    retourne écris_fichier(chemin.chn, enchaineuse, pour_écriture_supplémentaire)
+    retourne écris_fichier(chemin.chn, enchaineuse, pour_écriture_supplémentaire);
 }
 
 ajoute_au_fichier :: fonc (chemin: chaine, enchaineuse: *Enchaineuse) -> bool
 {
-    retourne écris_fichier(chemin, enchaineuse, pour_écriture_supplémentaire)
+    retourne écris_fichier(chemin, enchaineuse, pour_écriture_supplémentaire);
 }
 
 écris_fichier :: fonc (chemin: chaine, enchaineuse: *Enchaineuse, raison: RaisonOuvertureFichier) -> bool
 {
-    tampon: TamponChemin
+    tampon: TamponChemin;
 
-    chemin_dossier_tmp := système_chemin_dossier_temporaire()
-    diffère détruit_chemin(chemin_dossier_tmp)
+    chemin_dossier_tmp := système_chemin_dossier_temporaire();
+    diffère détruit_chemin(chemin_dossier_tmp);
 
     saufsi ajoute(*tampon, chemin_dossier_tmp) {
-        imprimeln("[%] impossible d'ajouter le chemin vers le dossier temporaire", #nom_de_cette_fonction)
-        retourne faux
+        imprimeln("[%] impossible d'ajouter le chemin vers le dossier temporaire", #nom_de_cette_fonction);
+        retourne faux;
     }
 
     saufsi ajoute_avec_séparateur(*tampon, #nom_de_cette_fonction) {
-        imprimeln("[%] impossible de créer le chemin temporaire pour l'écriture", #nom_de_cette_fonction)
-        retourne faux
+        imprimeln("[%] impossible de créer le chemin temporaire pour l'écriture", #nom_de_cette_fonction);
+        retourne faux;
     }
 
-    chemin_temporaire := donne_chaine_statique(*tampon)
+    chemin_temporaire := donne_chaine_statique(*tampon);
 
     fichier := tente ouvre_fichier_crée_si_non_existant(CheminFichier(chemin_temporaire), raison) piège err {
-        imprimeln("[%] impossible d'ouvrir le fichier '%' : %\n    NOTE : nous essayons d'ouvrir le fichier temporaire '%'", #nom_de_cette_fonction, chemin, err, chemin_temporaire)
-        retourne faux
-    }
+        imprimeln("[%] impossible d'ouvrir le fichier '%' : %\n    NOTE : nous essayons d'ouvrir le fichier temporaire '%'", #nom_de_cette_fonction, chemin, err, chemin_temporaire);
+        retourne faux;
+    };
 
-    tampon_courant := *enchaineuse.tampon
+    tampon_courant := *enchaineuse.tampon;
 
     tantque tampon_courant != nul {
-        contenu: []octet = ---
-        contenu.pointeur = *tampon_courant.données[0]
-        contenu.taille = tampon_courant.occupé
+        contenu: []octet = ---;
+        contenu.pointeur = *tampon_courant.données[0];
+        contenu.taille = tampon_courant.occupé;
 
         octets_écris := tente écris(*fichier, contenu) piège err {
-            imprimeln("[%] impossible d'écrire dans le fichier '%' : %", #nom_de_cette_fonction, chemin, err)
-            retourne faux
-        }
+            imprimeln("[%] impossible d'écrire dans le fichier '%' : %", #nom_de_cette_fonction, chemin, err);
+            retourne faux;
+        };
 
         si octets_écris != contenu.taille {
-            imprimeln("[%] le contenu ne fut pas intégralement écris dans '%' :\n    nous dévions écrire % octet(s), mais nous en avons écris %.", #nom_de_cette_fonction, chemin, contenu.taille, octets_écris)
-            retourne faux
+            imprimeln("[%] le contenu ne fut pas intégralement écris dans '%' :\n    nous dévions écrire % octet(s), mais nous en avons écris %.", #nom_de_cette_fonction, chemin, contenu.taille, octets_écris);
+            retourne faux;
         }
 
-        tampon_courant = tampon_courant.suivant
+        tampon_courant = tampon_courant.suivant;
     }
 
     discr ferme(*fichier) {
         Quelque(err) {
             si err != 0 comme ErreurFichier {
-                imprimeln("[%] erreur lors de la fermeture du fichier '%' : %", #nom_de_cette_fonction, chemin, err)
+                imprimeln("[%] erreur lors de la fermeture du fichier '%' : %", #nom_de_cette_fonction, chemin, err);
             }
         }
         sinon {}
@@ -300,14 +300,14 @@ ajoute_au_fichier :: fonc (chemin: chaine, enchaineuse: *Enchaineuse) -> bool
     discr renomme(CheminFichier(chemin_temporaire), CheminFichier(chemin)) {
         Quelque(err) {
             si err != 0 comme ErreurFichier {
-                imprimeln("[%] impossible de finaliser l'écriture du fichier '%' : %", #nom_de_cette_fonction, chemin, err)
-                retourne faux
+                imprimeln("[%] impossible de finaliser l'écriture du fichier '%' : %", #nom_de_cette_fonction, chemin, err);
+                retourne faux;
             }
         }
         sinon {}
     }
 
-    retourne vrai
+    retourne vrai;
 }
 
 /** \} */
@@ -316,47 +316,47 @@ ajoute_au_fichier :: fonc (chemin: chaine, enchaineuse: *Enchaineuse) -> bool
 
 donne_chemin_courant :: fonc () -> Résultat(CheminFichier, ErreurFichier)
 {
-    retourne système_chemin_courant()
+    retourne système_chemin_courant();
 }
 
 définis_chemin_courant :: fonc (chemin: CheminFichier) -> Optionnel(ErreurFichier)
 {
-    retourne système_chemin_courant(chemin)
+    retourne système_chemin_courant(chemin);
 }
 
 donne_chemin_exécutable :: fonc (tampon_chemin: *TamponChemin, imprime_erreur := vrai) -> bool
 {
-    retourne système_donne_chemin_exécutable(tampon_chemin, imprime_erreur)
+    retourne système_donne_chemin_exécutable(tampon_chemin, imprime_erreur);
 }
 
 chemin_répertoire_personnel :: fonc () -> Optionnel(CheminFichier)
 {
-    retourne système_chemin_répertoire_personnel()
+    retourne système_chemin_répertoire_personnel();
 }
 
 chemin_véritable :: fonc (chemin: CheminFichier) -> Résultat(CheminFichier, ErreurFichier)
 {
-    retourne système_chemin_véritable(chemin)
+    retourne système_chemin_véritable(chemin);
 }
 
 renomme :: fonc (orig: CheminFichier, dest: CheminFichier) -> Optionnel(ErreurFichier)
 {
-    retourne système_renomme(orig, dest)
+    retourne système_renomme(orig, dest);
 }
 
 supprime :: fonc (chm: &CheminFichier) -> Optionnel(ErreurFichier)
 {
-    retourne système_supprime(chm)
+    retourne système_supprime(chm);
 }
 
 est_une_extension_parmi :: fonc (chn: chaine, extensions: []chaine) -> bool
 {
     pour extensions {
         si compare_ascii_insensible_à_la_casse(chn, it) {
-            retourne vrai
+            retourne vrai;
         }
     }
-    retourne faux
+    retourne faux;
 }
 
 /*

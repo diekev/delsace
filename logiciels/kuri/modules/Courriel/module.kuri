@@ -4,22 +4,22 @@
 // https://www.netmeister.org/blog/email.html // adresses
 // https://fr.wikipedia.org/wiki/Simple_Mail_Transfer_Protocol
 
-importe Aléa
-importe Alphabet
-importe CodecDonnées
-importe Fondation
-importe Internet
-importe JSON
-importe MIME
-importe SysFichier
-importe Temps
+importe Aléa;
+importe Alphabet;
+importe CodecDonnées;
+importe Fondation;
+importe Internet;
+importe JSON;
+importe MIME;
+importe SysFichier;
+importe Temps;
 
-charge "état_envoi_courriel"
-charge "adresse"
-charge "code_état"
-charge "commande_smtp"
-charge "gestionnaire_envoi_courriel"
-charge "pop"
+charge "état_envoi_courriel";
+charge "adresse";
+charge "code_état";
+charge "commande_smtp";
+charge "gestionnaire_envoi_courriel";
+charge "pop";
 
 /* Module d'envoie de courriel.
  *
@@ -60,249 +60,249 @@ charge "pop"
 // -----------------------------------------------------
 
 PièceJointe :: struct {
-    nom: chaine
-    nom_fichier: chaine
-    type_mime: chaine
-    contenu: chaine
+    nom: chaine;
+    nom_fichier: chaine;
+    type_mime: chaine;
+    contenu: chaine;
 }
 
 détruit_pièce_jointe :: fonc (pièce_jointe: &PièceJointe)
 {
-    déloge(pièce_jointe.contenu)
+    déloge(pièce_jointe.contenu);
 }
 
 pièce_jointe_depuis_mémoire :: fonc (nom: chaine, nom_fichier: chaine, contenu: chaine) -> PièceJointe
 {
-    résultat: PièceJointe
-    résultat.nom = nom
-    résultat.nom_fichier = nom_fichier
-    résultat.type_mime = MIME_application_octet_stream
-    résultat.contenu = copie_chaine(contenu)
-    retourne résultat
+    résultat: PièceJointe;
+    résultat.nom = nom;
+    résultat.nom_fichier = nom_fichier;
+    résultat.type_mime = MIME_application_octet_stream;
+    résultat.contenu = copie_chaine(contenu);
+    retourne résultat;
 }
 
 pièce_jointe_depuis_fichier :: fonc (chemin: CheminFichier) -> PièceJointe
 {
-    nom_fichier := chemin.nom_fichier()
-    nom := nom_fichier
+    nom_fichier := chemin.nom_fichier();
+    nom := nom_fichier;
 
-    résultat: PièceJointe
-    résultat.nom = nom
-    résultat.nom_fichier = nom_fichier
-    résultat.type_mime = type_mime_pour_extension(chemin.extension())
-    _, contenu := contenu_fichier_texte(chemin)
-    résultat.contenu = contenu
-    retourne résultat
+    résultat: PièceJointe;
+    résultat.nom = nom;
+    résultat.nom_fichier = nom_fichier;
+    résultat.type_mime = type_mime_pour_extension(chemin.extension());
+    _, contenu := contenu_fichier_texte(chemin);
+    résultat.contenu = contenu;
+    retourne résultat;
 }
 
 // -----------------------------------------------------
 
 Correspondant :: struct {
-    nom_utilisateur: chaine
-    adresse: AdresseCourriel
+    nom_utilisateur: chaine;
+    adresse: AdresseCourriel;
 }
 
 imprime_correspondant :: fonc (enchaineuse: *Enchaineuse, correspondant: *Correspondant)
 {
     saufsi correspondant {
-        retourne
+        retourne;
     }
 
     si correspondant.nom_utilisateur {
-        ajoute_au_tampon(enchaineuse, correspondant.nom_utilisateur, " ")
+        ajoute_au_tampon(enchaineuse, correspondant.nom_utilisateur, " ");
     }
 
-    imprime_dans_enchaineuse(enchaineuse, "<%>", correspondant.adresse)
+    imprime_dans_enchaineuse(enchaineuse, "<%>", correspondant.adresse);
 } @FormattageImpression
 
 Courriel :: struct {
-    expéditeur: Correspondant
-    destinataires: [..]AdresseCourriel
-    destinataires_cc: [..]AdresseCourriel
-    destinataires_bcc: [..]AdresseCourriel
-    objet: chaine
-    pièces_jointes: [..]PièceJointe
-    messages: [..]chaine
+    expéditeur: Correspondant;
+    destinataires: [..]AdresseCourriel;
+    destinataires_cc: [..]AdresseCourriel;
+    destinataires_bcc: [..]AdresseCourriel;
+    objet: chaine;
+    pièces_jointes: [..]PièceJointe;
+    messages: [..]chaine;
 }
 
 détruit_courriel :: fonc (courriel: &Courriel) -> rien
 {
-    déloge(courriel.messages)
-    déloge(courriel.destinataires)
-    déloge(courriel.destinataires_cc)
-    déloge(courriel.destinataires_bcc)
+    déloge(courriel.messages);
+    déloge(courriel.destinataires);
+    déloge(courriel.destinataires_cc);
+    déloge(courriel.destinataires_bcc);
 
     pour courriel.pièces_jointes {
-        détruit_pièce_jointe(it)
+        détruit_pièce_jointe(it);
     }
 
-    déloge(courriel.pièces_jointes)
+    déloge(courriel.pièces_jointes);
 }
 
 ajoute_message :: fonc (courriel: &Courriel, message: chaine)
 {
-    tableau_ajoute(*courriel.messages, message)
+    tableau_ajoute(*courriel.messages, message);
 }
 
 ajoute_pièce_jointe :: fonc (courriel: &Courriel, pièce: PièceJointe)
 {
-    tableau_ajoute(*courriel.pièces_jointes, pièce)
+    tableau_ajoute(*courriel.pièces_jointes, pièce);
 }
 
 ajoute_destinataire :: fonc (courriel: &Courriel, destinataire: AdresseCourriel) -> rien
 {
-    tableau_ajoute(*courriel.destinataires, destinataire)
+    tableau_ajoute(*courriel.destinataires, destinataire);
 }
 
 ajoute_destinataire_cc :: fonc (courriel: &Courriel, destinataire: AdresseCourriel) -> rien
 {
-    tableau_ajoute(*courriel.destinataires_cc, destinataire)
+    tableau_ajoute(*courriel.destinataires_cc, destinataire);
 }
 
 ajoute_destinataire_bcc :: fonc (courriel: &Courriel, destinataire: AdresseCourriel) -> rien
 {
-    tableau_ajoute(*courriel.destinataires_bcc, destinataire)
+    tableau_ajoute(*courriel.destinataires_bcc, destinataire);
 }
 
 ConfigurationCourriel :: struct {
-    serveur: chaine
-    port_non_chiffré: n16
-    port_chiffré: n16
-    utilise_ssl := faux
-    expéditeur_par_défaut: Correspondant
-    utilisateur: chaine
-    mot_de_passe: chaine
+    serveur: chaine;
+    port_non_chiffré: n16;
+    port_chiffré: n16;
+    utilise_ssl := faux;
+    expéditeur_par_défaut: Correspondant;
+    utilisateur: chaine;
+    mot_de_passe: chaine;
 }
 
 port :: fonc (configuration: &ConfigurationCourriel) -> n16
 {
     si configuration.utilise_ssl {
-        retourne configuration.port_chiffré
+        retourne configuration.port_chiffré;
     }
 
-    retourne configuration.port_non_chiffré
+    retourne configuration.port_non_chiffré;
 }
 
 charge_configuration_courriel_depuis_fichier_json :: fonc (chemin: CheminFichier) -> Optionnel(ConfigurationCourriel)
 {
-    succès, config := parse_struct_depuis_fichier_json(chemin.chn, ConfigurationCourriel)
+    succès, config := parse_struct_depuis_fichier_json(chemin.chn, ConfigurationCourriel);
 
     saufsi succès {
-        retourne
+        retourne;
     }
 
-    retourne config
+    retourne config;
 }
 
 RéponseServeuse :: struct {
     // Le texte de la réponse
-    texte: chaine
-    status: z32
+    texte: chaine;
+    status: z32;
     // Les différents textes extraits depuis la réponse (les lignes sans les status)
-    textes: [..]chaine
+    textes: [..]chaine;
 }
 
 est_valide :: fonc (réponse: &RéponseServeuse) -> bool
 {
-    retourne réponse.status != 0
+    retourne réponse.status != 0;
 }
 
 détruit_réponse :: fonc (réponse: &RéponseServeuse)
 {
-    déloge(réponse.texte)
-    déloge(réponse.textes)
+    déloge(réponse.texte);
+    déloge(réponse.textes);
 }
 
 parse_réponse_serveuse :: fonc (texte: chaine) -> RéponseServeuse
 {
     /* Copie le texte pour éviter de libérer de la mémoire qui ne nous appartient pas. */
-    texte = copie_chaine(texte)
-    parseuse := ParseuseChaine(texte)
+    texte = copie_chaine(texte);
+    parseuse := ParseuseChaine(texte);
 
-    eu_status := faux
-    résultat: RéponseServeuse
-    résultat.texte = texte
+    eu_status := faux;
+    résultat: RéponseServeuse;
+    résultat.texte = texte;
 
     tantque !fini(*parseuse) {
         saufsi consomme_nombre(*parseuse, 3) {
-            détruit_réponse(résultat)
-            retourne RéponseServeuse()
+            détruit_réponse(résultat);
+            retourne RéponseServeuse();
         }
 
         si eu_status && parseuse.nombre != résultat.status {
-            détruit_réponse(résultat)
+            détruit_réponse(résultat);
             /* Nous avons déjà eu un status (dans une réponse multilignes, mais le status ne correspond pas/plus au status initial. */
-            retourne RéponseServeuse()
+            retourne RéponseServeuse();
         }
 
-        eu_status = vrai
-        résultat.status = parseuse.nombre
+        eu_status = vrai;
+        résultat.status = parseuse.nombre;
 
-        plusieurs_lignes := apparie(*parseuse, '-')
-        espace := apparie(*parseuse, ' ')
+        plusieurs_lignes := apparie(*parseuse, '-');
+        espace := apparie(*parseuse, ' ');
         si plusieurs_lignes || espace {
-            avance(*parseuse, 1)
+            avance(*parseuse, 1);
         }
 
-        indice_fin_ligne := trouve_prochain(*parseuse, "\r\n")
+        indice_fin_ligne := trouve_prochain(*parseuse, "\r\n");
         si indice_fin_ligne < 0 {
-            détruit_réponse(résultat)
-            retourne RéponseServeuse()
+            détruit_réponse(résultat);
+            retourne RéponseServeuse();
         }
 
-        texte_ligne := sous_chaine_jusque_indice(*parseuse, indice_fin_ligne)
-        positionne(*parseuse, (indice_fin_ligne + 2) comme z32)
+        texte_ligne := sous_chaine_jusque_indice(*parseuse, indice_fin_ligne);
+        positionne(*parseuse, (indice_fin_ligne + 2) comme z32);
 
         si texte_ligne {
-            tableau_ajoute(*résultat.textes, texte_ligne)
+            tableau_ajoute(*résultat.textes, texte_ligne);
         }
     }
 
-    retourne résultat
+    retourne résultat;
 }
 
 chaine_pour_commande :: fonc (commande: chaine) -> chaine
 {
-    retourne imprime_chaine("%\r\n", commande)
+    retourne imprime_chaine("%\r\n", commande);
 }
 
 envoie_commande_smtp :: fonc (fichier: *Fichier, format: chaine, args: ...eini) -> RéponseServeuse
 {
-    message := ""
+    message := "";
     diffère si message { déloge(message) }
 
     si format {
-        enchaineuse: Enchaineuse
-        initialise_enchaineuse(*enchaineuse)
-        imprime_dans_enchaineuse(*enchaineuse, format, ...args)
-        ajoute_au_tampon(*enchaineuse, "\r\n")
-        message = chaine_depuis_enchaineuse(*enchaineuse)
+        enchaineuse: Enchaineuse;
+        initialise_enchaineuse(*enchaineuse);
+        imprime_dans_enchaineuse(*enchaineuse, format, ...args);
+        ajoute_au_tampon(*enchaineuse, "\r\n");
+        message = chaine_depuis_enchaineuse(*enchaineuse);
     }
 
     taille_écrite := tente fichier.écris(message) piège err {
-        retourne RéponseServeuse()
-    }
+        retourne RéponseServeuse();
+    };
 
     // imprime("requête: %", message)
 
     si taille_écrite == -1 {
-        imprime("impossible d'envoyer la requête !\n")
-        retourne RéponseServeuse()
+        imprime("impossible d'envoyer la requête !\n");
+        retourne RéponseServeuse();
     }
 
     réponse := tente lis_tout(fichier) piège err {
-        imprime("impossible de lire la réponse !\n")
-        retourne RéponseServeuse()
-    }
+        imprime("impossible de lire la réponse !\n");
+        retourne RéponseServeuse();
+    };
 
-    retourne parse_réponse_serveuse(réponse)
+    retourne parse_réponse_serveuse(réponse);
 } @Imprimeuse
 
 // https://tools.ietf.org/html/rfc5322
 crée_corps_message :: fonc (courriel: &Courriel) -> chaine
 {
-    enchaineuse: Enchaineuse
-    initialise_enchaineuse(*enchaineuse)
+    enchaineuse: Enchaineuse;
+    initialise_enchaineuse(*enchaineuse);
 
     // À FAIRE: entêtes arbitraires
     // À FAIRE: Date
@@ -310,148 +310,148 @@ crée_corps_message :: fonc (courriel: &Courriel) -> chaine
     //           -> avoir un système pour définir si on encode en base64 ou "quoted-pritable"
     //           https://www.w3.org/Protocols/rfc1341/5_Content-Transfer-Encoding.html
 
-    ajoute_au_tampon(*enchaineuse, "User-Agent: courriel_kuri\r\n")
+    ajoute_au_tampon(*enchaineuse, "User-Agent: courriel_kuri\r\n");
     // Date: Tue, 15 Jan 2008 16:02:43 -0500
     //ajoute_au_tampon(@enchaineuse, "Date: ")
 
-    expéditeur := courriel.expéditeur
-    imprime_dans_enchaineuse(*enchaineuse, "From: ")
+    expéditeur := courriel.expéditeur;
+    imprime_dans_enchaineuse(*enchaineuse, "From: ");
     si expéditeur.nom_utilisateur {
-        encodé_base64 := encode_base64(expéditeur.nom_utilisateur)
-        diffère déloge(encodé_base64)
+        encodé_base64 := encode_base64(expéditeur.nom_utilisateur);
+        diffère déloge(encodé_base64);
 
-        ajoute_au_tampon(*enchaineuse, "=?UTF-8?B?", encodé_base64, "?= ")
+        ajoute_au_tampon(*enchaineuse, "=?UTF-8?B?", encodé_base64, "?= ");
     }
-    imprime_dans_enchaineuse(*enchaineuse, "<%>", expéditeur.adresse)
-    imprime_dans_enchaineuse(*enchaineuse, "\r\n")
+    imprime_dans_enchaineuse(*enchaineuse, "<%>", expéditeur.adresse);
+    imprime_dans_enchaineuse(*enchaineuse, "\r\n");
 
     si courriel.destinataires {
-        ajoute_au_tampon(*enchaineuse, "To: ")
-        virgule := "<"
+        ajoute_au_tampon(*enchaineuse, "To: ");
+        virgule := "<";
 
         pour & courriel.destinataires {
-            ajoute_au_tampon(*enchaineuse, virgule)
-            ajoute_au_tampon(*enchaineuse, it.chn)
-            virgule = ">,<"
+            ajoute_au_tampon(*enchaineuse, virgule);
+            ajoute_au_tampon(*enchaineuse, it.chn);
+            virgule = ">,<";
         }
 
-        ajoute_au_tampon(*enchaineuse, ">\r\n")
+        ajoute_au_tampon(*enchaineuse, ">\r\n");
     }
 
     si courriel.destinataires_cc {
-        ajoute_au_tampon(*enchaineuse, "Cc: ")
-        virgule := "<"
+        ajoute_au_tampon(*enchaineuse, "Cc: ");
+        virgule := "<";
 
         pour & courriel.destinataires_cc {
-            ajoute_au_tampon(*enchaineuse, virgule)
-            ajoute_au_tampon(*enchaineuse, it.chn)
-            virgule = ">,<"
+            ajoute_au_tampon(*enchaineuse, virgule);
+            ajoute_au_tampon(*enchaineuse, it.chn);
+            virgule = ">,<";
         }
 
-        ajoute_au_tampon(*enchaineuse, ">\r\n")
+        ajoute_au_tampon(*enchaineuse, ">\r\n");
     }
 
     si courriel.objet {
-        imprime_dans_enchaineuse(*enchaineuse, "Subject: ")
-        encode_sujet(*enchaineuse, courriel.objet)
-        imprime_dans_enchaineuse(*enchaineuse, "\r\n")
+        imprime_dans_enchaineuse(*enchaineuse, "Subject: ");
+        encode_sujet(*enchaineuse, courriel.objet);
+        imprime_dans_enchaineuse(*enchaineuse, "\r\n");
     }
 
-    séparateur_pièce_jointe: chaine
-    diffère déloge(séparateur_pièce_jointe)
+    séparateur_pièce_jointe: chaine;
+    diffère déloge(séparateur_pièce_jointe);
 
     si courriel.pièces_jointes {
-        ajoute_au_tampon(*enchaineuse, "MIME-Version: 1.0\r\n")
+        ajoute_au_tampon(*enchaineuse, "MIME-Version: 1.0\r\n");
 
-        séparateur_pièce_jointe = aléafères_zéros("=PART=SEPARATOR=_0000_0000_0000_0000_0000_0000_=")
-        imprime_dans_enchaineuse(*enchaineuse, "Content-Type: multipart/mixed; boundary=\"%\"\r\n", séparateur_pièce_jointe)
+        séparateur_pièce_jointe = aléafères_zéros("=PART=SEPARATOR=_0000_0000_0000_0000_0000_0000_=");
+        imprime_dans_enchaineuse(*enchaineuse, "Content-Type: multipart/mixed; boundary=\"%\"\r\n", séparateur_pièce_jointe);
 
-        ajoute_au_tampon(*enchaineuse, "\r\nThis is a multipart message in MIME format.\r\n\r\n")
-        ajoute_au_tampon(*enchaineuse, "--", séparateur_pièce_jointe, "\r\n")
+        ajoute_au_tampon(*enchaineuse, "\r\nThis is a multipart message in MIME format.\r\n\r\n");
+        ajoute_au_tampon(*enchaineuse, "--", séparateur_pièce_jointe, "\r\n");
     }
 
-    séparateur_corps: chaine
-    diffère déloge(séparateur_corps)
+    séparateur_corps: chaine;
+    diffère déloge(séparateur_corps);
 
     si courriel.messages.taille > 1 {
-        séparateur_corps = aléafères_zéros("=BODY=SEPARATOR=_0000_0000_0000_0000_0000_0000_=")
-        imprime_dans_enchaineuse(*enchaineuse, "Content-Type: multipart/alternative; boundary=\"%\"\r\n", séparateur_corps)
+        séparateur_corps = aléafères_zéros("=BODY=SEPARATOR=_0000_0000_0000_0000_0000_0000_=");
+        imprime_dans_enchaineuse(*enchaineuse, "Content-Type: multipart/alternative; boundary=\"%\"\r\n", séparateur_corps);
     }
 
     // Création du corps
-    type_mime := MIME_text_plain
+    type_mime := MIME_text_plain;
 
     pour courriel.messages {
         si séparateur_corps {
-            ajoute_au_tampon(*enchaineuse, "\r\n")
-            ajoute_au_tampon(*enchaineuse, "--", séparateur_corps, "\r\n")
+            ajoute_au_tampon(*enchaineuse, "\r\n");
+            ajoute_au_tampon(*enchaineuse, "--", séparateur_corps, "\r\n");
         }
 
-        ajoute_au_tampon(*enchaineuse, "Content-Type: ", type_mime, "; charset=utf-8\r\n")
-        ajoute_au_tampon(*enchaineuse, "Content-Transfer-Encoding: base64\r\n")
-        ajoute_au_tampon(*enchaineuse, "Content-Disposition: inline\r\n\r\n")
+        ajoute_au_tampon(*enchaineuse, "Content-Type: ", type_mime, "; charset=utf-8\r\n");
+        ajoute_au_tampon(*enchaineuse, "Content-Transfer-Encoding: base64\r\n");
+        ajoute_au_tampon(*enchaineuse, "Content-Disposition: inline\r\n\r\n");
 
-        type_mime = MIME_text_html
+        type_mime = MIME_text_html;
 
-        ajoute_au_tampon(*enchaineuse, "\r\n")
+        ajoute_au_tampon(*enchaineuse, "\r\n");
 
-        encode_corps_message(*enchaineuse, it)
+        encode_corps_message(*enchaineuse, it);
     }
 
     si séparateur_corps {
-        ajoute_au_tampon(*enchaineuse, "\r\n")
-        ajoute_au_tampon(*enchaineuse, "--", séparateur_corps, "--\r\n")
+        ajoute_au_tampon(*enchaineuse, "\r\n");
+        ajoute_au_tampon(*enchaineuse, "--", séparateur_corps, "--\r\n");
     }
 
     pour courriel.pièces_jointes {
         si séparateur_pièce_jointe {
-            ajoute_au_tampon(*enchaineuse, "\r\n")
-            ajoute_au_tampon(*enchaineuse, "--", séparateur_pièce_jointe, "\r\n")
+            ajoute_au_tampon(*enchaineuse, "\r\n");
+            ajoute_au_tampon(*enchaineuse, "--", séparateur_pièce_jointe, "\r\n");
         }
 
-        ajoute_au_tampon(*enchaineuse, "Content-Type: ", it.type_mime, "; ")
-        ajoute_au_tampon(*enchaineuse, "Name=\"", it.nom, "\"\r\n")
-        ajoute_au_tampon(*enchaineuse, "Content-Disposition: attachment; filename=\"", it.nom_fichier, "\"\r\n")
-        ajoute_au_tampon(*enchaineuse, "Content-Transfer-Encoding: base64\r\n\r\n")
+        ajoute_au_tampon(*enchaineuse, "Content-Type: ", it.type_mime, "; ");
+        ajoute_au_tampon(*enchaineuse, "Name=\"", it.nom, "\"\r\n");
+        ajoute_au_tampon(*enchaineuse, "Content-Disposition: attachment; filename=\"", it.nom_fichier, "\"\r\n");
+        ajoute_au_tampon(*enchaineuse, "Content-Transfer-Encoding: base64\r\n\r\n");
 
-        contenu_encodé := encode_base64(it.contenu)
-        ajoute_au_tampon(*enchaineuse, contenu_encodé)
-        déloge(contenu_encodé)
+        contenu_encodé := encode_base64(it.contenu);
+        ajoute_au_tampon(*enchaineuse, contenu_encodé);
+        déloge(contenu_encodé);
 
-        ajoute_au_tampon(*enchaineuse, "\r\n")
+        ajoute_au_tampon(*enchaineuse, "\r\n");
     }
 
     si séparateur_pièce_jointe {
-        ajoute_au_tampon(*enchaineuse, "\r\n")
-        ajoute_au_tampon(*enchaineuse, "--", séparateur_pièce_jointe, "--\r\n")
+        ajoute_au_tampon(*enchaineuse, "\r\n");
+        ajoute_au_tampon(*enchaineuse, "--", séparateur_pièce_jointe, "--\r\n");
     }
 
     // Fin des données
-    ajoute_au_tampon(*enchaineuse, "\r\n.\r\n")
+    ajoute_au_tampon(*enchaineuse, "\r\n.\r\n");
 
-    retourne chaine_depuis_enchaineuse(*enchaineuse)
+    retourne chaine_depuis_enchaineuse(*enchaineuse);
 }
 
 // =?UTF-8?Q? pour "quoted-printable"
 // =?UTF-8?B? pour "base64"
 encode_sujet :: fonc (enchaineuse: *Enchaineuse, sujet: chaine)
 {
-    encodé_base_64 := encode_base64(sujet)
-    diffère déloge(encodé_base_64)
+    encodé_base_64 := encode_base64(sujet);
+    diffère déloge(encodé_base_64);
 
-    ajoute_au_tampon(enchaineuse, "=?UTF-8?B?", encodé_base_64, "?=")
+    ajoute_au_tampon(enchaineuse, "=?UTF-8?B?", encodé_base_64, "?=");
 }
 
 encode_corps_message :: fonc (enchaineuse: *Enchaineuse, corps: chaine)
 {
-    encodé_base_64 := encode_base64(corps)
-    diffère déloge(encodé_base_64)
+    encodé_base_64 := encode_base64(corps);
+    diffère déloge(encodé_base_64);
 
     pour encodé_base_64 {
-        ajoute_au_tampon(enchaineuse, it)
+        ajoute_au_tampon(enchaineuse, it);
 
         si (indice_it + 1) % 76 == 0 {
-            ajoute_au_tampon(enchaineuse, "\r\n")
+            ajoute_au_tampon(enchaineuse, "\r\n");
         }
     }
 }
@@ -459,44 +459,44 @@ encode_corps_message :: fonc (enchaineuse: *Enchaineuse, corps: chaine)
 ouvre_connexion_serveur :: fonc (config: ConfigurationCourriel) -> FichierOuErreur
 {
     fichier := tente ouvre_connexion_serveur(config.serveur, config.port(), vrai) piège err {
-        retourne err
-    }
+        retourne err;
+    };
 
-    linger_option := linger(l_onoff = -1, l_linger = 2)
-    _ := setsockopt(fichier.desc, SOL_SOCKET, SO_LINGER, *linger_option, taille_de(linger))
+    linger_option := linger(l_onoff = -1, l_linger = 2);
+    _ := setsockopt(fichier.desc, SOL_SOCKET, SO_LINGER, *linger_option, taille_de(linger));
 
-    retourne fichier
+    retourne fichier;
 }
 
 est_valide :: fonc (courriel: &Courriel) -> bool
 {
     saufsi courriel.expéditeur.est_valide() {
-        retourne faux
+        retourne faux;
     }
 
     saufsi courriel.destinataires {
-        retourne faux
+        retourne faux;
     }
 
     pour courriel.destinataires {
         saufsi it.est_valide() {
-            retourne faux
+            retourne faux;
         }
     }
 
     pour courriel.destinataires_cc {
         saufsi it.est_valide() {
-            retourne faux
+            retourne faux;
         }
     }
 
     pour courriel.destinataires_bcc {
         saufsi it.est_valide() {
-            retourne faux
+            retourne faux;
         }
     }
 
-    retourne vrai
+    retourne vrai;
 }
 
 // À FAIRE : meilleure type de retour
@@ -504,96 +504,96 @@ est_valide :: fonc (courriel: &Courriel) -> bool
 envoie_courriel :: fonc (config: ConfigurationCourriel, courriel: &Courriel) -> z32
 {
     saufsi courriel.est_valide() {
-        retourne 1
+        retourne 1;
     }
 
     fichier := tente ouvre_connexion_serveur(config) piège err {
         discr err {
             RésolutionHôteImpossible {
-                imprime("Impossible de résoudre l'hôte selon le nom !\n")
+                imprime("Impossible de résoudre l'hôte selon le nom !\n");
             }
             CréationPriseImpossible {
-                imprime("Impossible de créer une prise !\n")
+                imprime("Impossible de créer une prise !\n");
             }
             ConnexionPriseImpossible {
-                imprime("Impossible de se connecter à la prise !\n")
+                imprime("Impossible de se connecter à la prise !\n");
             }
             sinon {
-                imprime("Erreur inattendue : %\n", err)
+                imprime("Erreur inattendue : %\n", err);
             }
         }
 
-        retourne 1
-    }
+        retourne 1;
+    };
 
-    diffère _ := tente ferme(*fichier) piège nonatteignable
+    diffère _ := tente ferme(*fichier) piège nonatteignable;
 
-    état := ÉtatEnvoiCourriel()
+    état := ÉtatEnvoiCourriel();
 
     tantque !état.est_terminé() {
-        commande := commande_suivante(état, config, courriel)
-        diffère déloge(commande)
+        commande := commande_suivante(état, config, courriel);
+        diffère déloge(commande);
 
-        réponse := envoie_commande_smtp(*fichier, commande)
+        réponse := envoie_commande_smtp(*fichier, commande);
 
         si !réponse.est_valide() {
-            retourne 1
+            retourne 1;
         }
 
         si réponse.status >= 500 {
-            réponse = envoie_commande_smtp(*fichier, "QUIT")
-            retourne 1
+            réponse = envoie_commande_smtp(*fichier, "QUIT");
+            retourne 1;
         }
     }
 
-    retourne 0
+    retourne 0;
 }
 
 aléafères_zéros :: fonc (chn: chaine) -> chaine
 {
-    maintenant := Temps.maintenant()
+    maintenant := Temps.maintenant();
 
-    gna := crée_gna(maintenant.nanoseconde comme n32)
-    diffère détruit_gna(gna)
+    gna := crée_gna(maintenant.nanoseconde comme n32);
+    diffère détruit_gna(gna);
 
-    résultat := copie_chaine(chn)
+    résultat := copie_chaine(chn);
 
     pour & résultat {
         si it == '0' {
-            it = gna.uniforme('0' comme r32, '9' comme r32) comme z8
+            it = gna.uniforme('0' comme r32, '9' comme r32) comme z8;
         }
     }
 
-    retourne résultat
+    retourne résultat;
 }
 
 // ---------------------------------------
 
 test_parsage_réponse :: fonc (texte: chaine)
 {
-    réponse := parse_réponse_serveuse(copie_chaine(texte))
-    diffère détruit_réponse(réponse)
+    réponse := parse_réponse_serveuse(copie_chaine(texte));
+    diffère détruit_réponse(réponse);
 
     saufsi réponse.est_valide() {
-        imprime("La réponse n'est pas valide !\n")
+        imprime("La réponse n'est pas valide !\n");
     }
     sinon {
-        imprime("La réponse est valide !\n")
-        imprime("    STATUS : %\n", réponse.status)
+        imprime("La réponse est valide !\n");
+        imprime("    STATUS : %\n", réponse.status);
         pour réponse.textes {
-            imprime("    %\n", it)
+            imprime("    %\n", it);
         }
     }
 }
 
 test_parsage_réponse :: fonc ()
 {
-    test_parsage_réponse("220 GARM-98R002 Friday, November 19, 2021\r\n")
-    test_parsage_réponse("250-OVH SMTP PROXY Hello\r\n250-SIZE 104857600\r\n250-ENHANCEDSTATUSCODES\r\n250-AUTH LOGIN PLAIN\r\n250-AUTH=LOGIN PLAIN\r\n250-STARTTLS\r\n250 8BITMIME\r\n")
-    test_parsage_réponse("334 VXNlcm5hbWU6\r\n")
-    test_parsage_réponse("334 UGFzc3dvcmQ6\r\n")
-    test_parsage_réponse("235 2.7.0 Authentication successful\r\n")
-    test_parsage_réponse("501 5.5.4 Syntax: MAIL FROM:<address>\r\n")
+    test_parsage_réponse("220 GARM-98R002 Friday, November 19, 2021\r\n");
+    test_parsage_réponse("250-OVH SMTP PROXY Hello\r\n250-SIZE 104857600\r\n250-ENHANCEDSTATUSCODES\r\n250-AUTH LOGIN PLAIN\r\n250-AUTH=LOGIN PLAIN\r\n250-STARTTLS\r\n250 8BITMIME\r\n");
+    test_parsage_réponse("334 VXNlcm5hbWU6\r\n");
+    test_parsage_réponse("334 UGFzc3dvcmQ6\r\n");
+    test_parsage_réponse("235 2.7.0 Authentication successful\r\n");
+    test_parsage_réponse("501 5.5.4 Syntax: MAIL FROM:<address>\r\n");
 }
 
 /*

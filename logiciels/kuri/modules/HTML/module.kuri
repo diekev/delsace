@@ -1,167 +1,167 @@
 // Module de parsage de code HTML
 // Spec : https://html.spec.whatwg.org/multipage/parsing.html
 
-importe Chaine
-importe Fondation
-JS :: importe JavaScript
-importe SysFichier
-importe Temps
+importe Chaine;
+importe Fondation;
+JS :: importe JavaScript;
+importe SysFichier;
+importe Temps;
 
-charge "élément"
-charge "attribut"
-charge "browsing_context"
-charge "common_microsyntaxes"
-charge "entités"
-charge "entropisation"
-charge "events"
-charge "fetch"
-charge "file_api"
-charge "formattage"
-charge "formulaire"
-charge "form_control_infrastructure"
-charge "high_resolution_time"
-charge "lexage"
-charge "navigation"
-charge "page_web"
-charge "parsage"
-charge "platform_object"
-charge "rendering_context"
-charge "scripting"
-charge "tags_html"
-charge "url"
-charge "user_agent"
-charge "webappsec_csp"
-charge "webappsec_permissions_policy"
-charge "webappsec_referrer_policy"
-charge "webcrypto"
-charge "webdriver_bidi"
-charge "websocket"
-charge "window"
+charge "élément";
+charge "attribut";
+charge "browsing_context";
+charge "common_microsyntaxes";
+charge "entités";
+charge "entropisation";
+charge "events";
+charge "fetch";
+charge "file_api";
+charge "formattage";
+charge "formulaire";
+charge "form_control_infrastructure";
+charge "high_resolution_time";
+charge "lexage";
+charge "navigation";
+charge "page_web";
+charge "parsage";
+charge "platform_object";
+charge "rendering_context";
+charge "scripting";
+charge "tags_html";
+charge "url";
+charge "user_agent";
+charge "webappsec_csp";
+charge "webappsec_permissions_policy";
+charge "webappsec_referrer_policy";
+charge "webcrypto";
+charge "webdriver_bidi";
+charge "websocket";
+charge "window";
 
-charge "DOM/collections"
-charge "DOM/document"
-charge "DOM/element"
-charge "DOM/events"
-charge "DOM/node"
+charge "DOM/collections";
+charge "DOM/document";
+charge "DOM/element";
+charge "DOM/events";
+charge "DOM/node";
 
-charge "UIEvents/mouse_event"
+charge "UIEvents/mouse_event";
 
-charge "WebIDL/interface_types"
-charge "WebIDL/génératrice_code"
+charge "WebIDL/interface_types";
+charge "WebIDL/génératrice_code";
 
-DOMString :: ChaineUTF16Unique
+DOMString :: ChaineUTF16Unique;
 
 donne_chemin_fichier_css_défaut :: fonc () -> CheminFichier
 {
-    retourne donne_chemin_fichier_css("Fichiers/defaults.css")
+    retourne donne_chemin_fichier_css("Fichiers/defaults.css");
 }
 
 donne_chemin_fichier_css_presentational_hints :: fonc () -> CheminFichier
 {
-    retourne donne_chemin_fichier_css("Fichiers/presentational_hints.css")
+    retourne donne_chemin_fichier_css("Fichiers/presentational_hints.css");
 }
 
 donne_chemin_fichier_css_quirks :: fonc () -> CheminFichier
 {
-    chemin_courant := CheminFichier(#chemin_de_ce_fichier)
-    chemin_parent := chemin_courant.chemin_parent()
-    diffère détruit_chemin(chemin_parent)
-    résultat := crée_chemin_absolu(chemin_parent, CheminFichier("Fichiers/quirks.css"))
-    assert(est_un_fichier_régulier(résultat))
-    retourne résultat
+    chemin_courant := CheminFichier(#chemin_de_ce_fichier);
+    chemin_parent := chemin_courant.chemin_parent();
+    diffère détruit_chemin(chemin_parent);
+    résultat := crée_chemin_absolu(chemin_parent, CheminFichier("Fichiers/quirks.css"));
+    assert(est_un_fichier_régulier(résultat));
+    retourne résultat;
 }
 
 #portée_fichier
 
 donne_chemin_fichier_css :: fonc (chemin: chaine) -> CheminFichier
 {
-    chemin_courant := CheminFichier(#chemin_de_ce_fichier)
-    chemin_parent := chemin_courant.chemin_parent()
-    diffère détruit_chemin(chemin_parent)
-    résultat := crée_chemin_absolu(chemin_parent, CheminFichier(chemin))
-    assert(est_un_fichier_régulier(résultat))
-    retourne résultat
+    chemin_courant := CheminFichier(#chemin_de_ce_fichier);
+    chemin_parent := chemin_courant.chemin_parent();
+    diffère détruit_chemin(chemin_parent);
+    résultat := crée_chemin_absolu(chemin_parent, CheminFichier(chemin));
+    assert(est_un_fichier_régulier(résultat));
+    retourne résultat;
 }
 
 #portée_export
 
 donne_feuille_de_style_défaut :: fonc () -> *CSS.CSSStyleSheet
 {
-    retourne donne_feuille_de_style("Fichiers/defaults.css")
+    retourne donne_feuille_de_style("Fichiers/defaults.css");
 }
 
 donne_feuille_de_style_presentational_hints :: fonc () -> *CSS.CSSStyleSheet
 {
-    résultat := donne_feuille_de_style("Fichiers/presentational_hints.css")
-    résultat.origine = CSS.OrigineCascade.Author
-    résultat.force_spécifité_zéro = vrai
-    retourne résultat
+    résultat := donne_feuille_de_style("Fichiers/presentational_hints.css");
+    résultat.origine = CSS.OrigineCascade.Author;
+    résultat.force_spécifité_zéro = vrai;
+    retourne résultat;
 }
 
 donne_feuille_de_style_quirks :: fonc () -> *CSS.CSSStyleSheet
 {
-    retourne donne_feuille_de_style("Fichiers/quirks.css")
+    retourne donne_feuille_de_style("Fichiers/quirks.css");
 }
 
 #portée_fichier
 
 donne_feuille_de_style :: fonc (chemin: chaine) -> *CSS.CSSStyleSheet
 {
-    chemin_fichier := donne_chemin_fichier_css(chemin)
-    diffère détruit_chemin(chemin_fichier)
+    chemin_fichier := donne_chemin_fichier_css(chemin);
+    diffère détruit_chemin(chemin_fichier);
 
-    _, contenu := contenu_fichier_texte(chemin_fichier)
-    diffère déloge(contenu)
+    _, contenu := contenu_fichier_texte(chemin_fichier);
+    diffère déloge(contenu);
 
-    ctx: CSS.ContexteParsageFeuilleDeStyle
-    diffère CSS.détruit_données_contexte(*ctx)
+    ctx: CSS.ContexteParsageFeuilleDeStyle;
+    diffère CSS.détruit_données_contexte(*ctx);
 
-    stylesheet := CSS.parse_a_css_style_sheet(*ctx, contenu)
-    stylesheet.origine = CSS.OrigineCascade.UserAgent
-    CSS.rapporte_propriétés_non_supportées(*ctx, #nom_de_cette_fonction)
+    stylesheet := CSS.parse_a_css_style_sheet(*ctx, contenu);
+    stylesheet.origine = CSS.OrigineCascade.UserAgent;
+    CSS.rapporte_propriétés_non_supportées(*ctx, #nom_de_cette_fonction);
 
-    retourne stylesheet
+    retourne stylesheet;
 }
 
 #portée_export
 
 imprime_noeud :: fonc (noeud: *Node, tab: z32) -> rien
 {
-    imprime_tabulation(tab)
+    imprime_tabulation(tab);
 
     si noeud.est_texte() {
-        texte := noeud comme *Text
-        imprime("%\n", texte.données)
+        texte := noeud comme *Text;
+        imprime("%\n", texte.données);
     }
     sinon si noeud.est_élément() {
-        élément := noeud comme *Element
-        imprime("<%", élément.local_name)
+        élément := noeud comme *Element;
+        imprime("<%", élément.local_name);
 
         pour élément.attributs {
-            imprime(" %=%", it.nom, it.valeur)
+            imprime(" %=%", it.nom, it.valeur);
         }
 
-        imprime(">\n")
+        imprime(">\n");
     }
     sinon si noeud.est_commentaire() {
-        commentaire := noeud comme *NoeudCommentaire
-        imprime("<!--%-->\n", commentaire.données)
+        commentaire := noeud comme *NoeudCommentaire;
+        imprime("<!--%-->\n", commentaire.données);
     }
     sinon {
-        imprime("%\n", noeud.genre)
+        imprime("%\n", noeud.genre);
     }
 
     pour noeud.enfants {
-        imprime_noeud(it, tab + 1)
+        imprime_noeud(it, tab + 1);
     }
 }
 
 imprime_document :: fonc (document: *Document)
 {
-    imprime("============== Document ==============\n")
+    imprime("============== Document ==============\n");
 
     pour document.enfants {
-        imprime_noeud(it, 0)
+        imprime_noeud(it, 0);
     }
 }
 
@@ -171,20 +171,20 @@ imprime_document :: fonc (document: *Document)
 
 DécisionTraversée :: énum {
     /* Continue la traversée vers les enfants du noeuds. */
-    CONTINUE
+    CONTINUE;
     /* Ignore les enfants de ce noeuds. */
-    IGNORE_ENFANTS
+    IGNORE_ENFANTS;
 }
 
 traverse_noeud :: fonc (noeud: *Node, rappel_traverse: fonc(*Node, $T)(DécisionTraversée), données: T)
 {
     pour noeud.enfants {
-        décision := rappel_traverse(it, données)
+        décision := rappel_traverse(it, données);
         si décision == DécisionTraversée.IGNORE_ENFANTS {
-            continue
+            continue;
         }
 
-        traverse_noeud(it, rappel_traverse, données)
+        traverse_noeud(it, rappel_traverse, données);
     }
 }
 
@@ -192,12 +192,12 @@ traverse_noeud :: fonc (noeud: *Node, rappel_traverse: fonc(*Node, $T)(Décision
 traverse_noeud :: fonc (noeud: *Node, rappel_traverse: fonc (node: *Node) -> DécisionTraversée)
 {
     pour noeud.enfants {
-        décision := rappel_traverse(it)
+        décision := rappel_traverse(it);
         si décision == DécisionTraversée.IGNORE_ENFANTS {
-            continue
+            continue;
         }
 
-        traverse_noeud(it, rappel_traverse)
+        traverse_noeud(it, rappel_traverse);
     }
 }
 
@@ -206,61 +206,61 @@ traverse_noeud :: fonc (noeud: *Node, rappel_traverse: fonc (node: *Node) -> Dé
 /* Résultat du parsage (« parsat », de « parser » + « -at ») d'un document HTML. */
 ParsatHTML :: struct {
     /* Le document qui fut parsé. */
-    document: *Document
+    document: *Document;
     /* Les différentes erreurs parsage. */
-    erreurs: [..]chaine
+    erreurs: [..]chaine;
     /* Le temps de parsage du document, en microsecondes. */
-    temps: z64
+    temps: z64;
 }
 
 détruit :: fonc (parsat: &ParsatHTML)
 {
-    déloge(parsat.erreurs)
+    déloge(parsat.erreurs);
 }
 
 /* Parse un document HTML depuis une chaine de caractère. */
 parse_document :: fonc (realm: *JS.Realm, source: chaine) -> ParsatHTML
 {
-    tas_de_mémoire := JS.donne_tas_de_mémoire(realm)
-    document := crée_noeud_document(tas_de_mémoire, realm)
-    document.type = "html"
+    tas_de_mémoire := JS.donne_tas_de_mémoire(realm);
+    document := crée_noeud_document(tas_de_mémoire, realm);
+    document.type = "html";
 
-    parseuse := initialise_parseuse(tas_de_mémoire, source, document)
-    diffère détruit_parseuse(*parseuse)
+    parseuse := initialise_parseuse(tas_de_mémoire, source, document);
+    diffère détruit_parseuse(*parseuse);
 
-    début := maintenant_précis()
-    parse(*parseuse)
-    temps := début.temps_écoulé_microsecondes()
+    début := maintenant_précis();
+    parse(*parseuse);
+    temps := début.temps_écoulé_microsecondes();
 
-    parsat: ParsatHTML
-    parsat.document = parseuse.document
-    parsat.temps = temps
-    parsat.erreurs = tableau_vole_mémoire(parseuse.erreurs)
-    retourne parsat
+    parsat: ParsatHTML;
+    parsat.document = parseuse.document;
+    parsat.temps = temps;
+    parsat.erreurs = tableau_vole_mémoire(parseuse.erreurs);
+    retourne parsat;
 }
 
 parse_document :: fonc (tas_de_mémoire: *JS.TasDeMémoire, document: chaine) -> ParsatHTML
 {
-    parseuse := initialise_parseuse(tas_de_mémoire, document)
-    diffère détruit_parseuse(*parseuse)
+    parseuse := initialise_parseuse(tas_de_mémoire, document);
+    diffère détruit_parseuse(*parseuse);
 
-    début := maintenant_précis()
-    parse(*parseuse)
-    temps := début.temps_écoulé_microsecondes()
+    début := maintenant_précis();
+    parse(*parseuse);
+    temps := début.temps_écoulé_microsecondes();
 
-    parsat: ParsatHTML
-    parsat.document = parseuse.document
-    parsat.temps = temps
-    parsat.erreurs = tableau_vole_mémoire(parseuse.erreurs)
-    retourne parsat
+    parsat: ParsatHTML;
+    parsat.document = parseuse.document;
+    parsat.temps = temps;
+    parsat.erreurs = tableau_vole_mémoire(parseuse.erreurs);
+    retourne parsat;
 }
 
 est_fichier_html :: fonc (chn: chaine) -> bool
 {
-    retourne est_fichier_html(CheminFichier(chn))
+    retourne est_fichier_html(CheminFichier(chn));
 }
 
 est_fichier_html :: fonc (chm: CheminFichier) -> bool
 {
-    retourne chm.extension() == ".html"
+    retourne chm.extension() == ".html";
 }

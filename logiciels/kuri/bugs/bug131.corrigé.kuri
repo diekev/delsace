@@ -3,28 +3,28 @@
  * NOTE : corrigé par 492ff8e2053bd4734af08b6f3e88589aefd700b8
  */
 
-importe Fondation
+importe Fondation;
 
 UnionTest :: union nonsûr {
-    e: z32
-    f: r32
+    e: z32;
+    f: r32;
 }
 
 modifie_entier :: fonc (u: *UnionTest)
 {
-    u.e = 127
+    u.e = 127;
 }
 
 modifie_réel :: fonc (u: *UnionTest)
 {
-    u.f = 0.5
+    u.f = 0.5;
 }
 
 principale :: fonc ()
 {
-    u: UnionTest
-    modifie_entier(*u)
-    assert(u.e == 127)
-    modifie_réel(*u)
-    assert(u.f == 0.5)
+    u: UnionTest;
+    modifie_entier(*u);
+    assert(u.e == 127);
+    modifie_réel(*u);
+    assert(u.f == 0.5);
 }

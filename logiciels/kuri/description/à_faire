@@ -3,6 +3,8 @@ IPA
 Supprime les tableaux (utilise des tranches, et supprime tableau_statique::capacite)
 Remplace *Module par un ID
 
+// À FAIRE(langage) : a += ; 1
+
 // énum drapeau
     ~variable.DRAPEAU modifie la variable
 

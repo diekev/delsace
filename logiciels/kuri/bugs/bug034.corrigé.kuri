@@ -3,7 +3,7 @@
  * Catégorie : [validation sémantique, validation appel, type fonction, pointeur fonction]
  */
 
-importe Support
+importe Support;
 
 principale :: fonc ()
 {
@@ -13,9 +13,9 @@ principale :: fonc ()
     }
     ptr := foo
     ptr(5)
-    ")
+    ");
 
     saufsi erreur_survenue {
-        exit(1)
+        exit(1);
     }
 }

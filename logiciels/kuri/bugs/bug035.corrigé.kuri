@@ -4,7 +4,7 @@
  * Catégorie : [compilation infini, validation sémantique, validation appel, expression indexage]
  */
 
-fonctions := [ foo, bar ]
+fonctions := [ foo, bar ];
 
 foo :: fonc ()
 {
@@ -16,5 +16,5 @@ bar :: fonc ()
 
 principale :: fonc ()
 {
-    fonctions[0]()
+    fonctions[0]();
 }

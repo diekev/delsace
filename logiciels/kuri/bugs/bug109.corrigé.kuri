@@ -5,24 +5,24 @@
 
 principale :: fonc ()
 {
-    fonction1 :: fonc () -> z32
+    fonction1 :: fonc () -> z32;
     {
         Struct :: struct {
-            x: z32
+            x: z32;
         }
-        s: Struct
-        exit(s.x)
+        s: Struct;
+        exit(s.x);
     }
 
-    fonction2 :: fonc () -> z32
+    fonction2 :: fonc () -> z32;
     {
         Struct :: struct {
-            x: z32
+            x: z32;
         }
 
-        s: Struct
-        exit(s.x)
+        s: Struct;
+        exit(s.x);
     }
 
-    exit(fonction1() + fonction2())
+    exit(fonction1() + fonction2());
 }

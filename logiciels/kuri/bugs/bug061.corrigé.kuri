@@ -2,20 +2,20 @@
  * Catégorie : [exécution code, type réel]
  */
 
-importe Fondation
+importe Fondation;
 
 imprime_réel :: fonc () -> chaine
 {
-    x := 1.0
-    retourne imprime_chaine("%", x)
+    x := 1.0;
+    retourne imprime_chaine("%", x);
 }
 
 principale :: fonc ()
 {
-    chn_compilée := #exécute imprime_réel()
-    chn_exécutée := imprime_réel()
+    chn_compilée := #exécute imprime_réel();
+    chn_exécutée := imprime_réel();
 
     si chn_compilée != chn_exécutée {
-        exit(1)
+        exit(1);
     }
 }

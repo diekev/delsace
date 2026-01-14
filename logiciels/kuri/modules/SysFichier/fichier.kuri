@@ -1,38 +1,38 @@
 Fichier :: struct {
-    desc: TypePoignéeFichier
+    desc: TypePoignéeFichier;
 }
 
 RésultatFichier :: union {
-    e: ErreurFichier
-    f: Fichier
+    e: ErreurFichier;
+    f: Fichier;
 }
 
 // ----------------------------------------------------------
 // Raison ouverture fichier
 
 RaisonOuvertureFichier :: énum_drapeau {
-    Lecture
-    Écriture
-    Création
+    Lecture;
+    Écriture;
+    Création;
     /* Le fichier sera tronqué. */
-    Troncage
+    Troncage;
     /* L'écriture ajoutera des données à la fin du fichier */
-    Ajout
+    Ajout;
 }
 
 /* Constantes communes. */
 
-pour_écriture :: RaisonOuvertureFichier.Écriture
+pour_écriture :: RaisonOuvertureFichier.Écriture;
 
-pour_écriture_supplémentaire :: RaisonOuvertureFichier.Écriture | RaisonOuvertureFichier.Ajout
+pour_écriture_supplémentaire :: RaisonOuvertureFichier.Écriture | RaisonOuvertureFichier.Ajout;
 
-pour_écriture_tronquée :: RaisonOuvertureFichier.Écriture | RaisonOuvertureFichier.Troncage
+pour_écriture_tronquée :: RaisonOuvertureFichier.Écriture | RaisonOuvertureFichier.Troncage;
 
-pour_lecture :: RaisonOuvertureFichier.Lecture
+pour_lecture :: RaisonOuvertureFichier.Lecture;
 
-pour_lecture_écriture :: RaisonOuvertureFichier.Écriture | RaisonOuvertureFichier.Lecture
+pour_lecture_écriture :: RaisonOuvertureFichier.Écriture | RaisonOuvertureFichier.Lecture;
 
-pour_lecture_écriture_tronquée :: pour_lecture_écriture | RaisonOuvertureFichier.Troncage
+pour_lecture_écriture_tronquée :: pour_lecture_écriture | RaisonOuvertureFichier.Troncage;
 
 // ----------------------------------------------------------
 // Ouverture de fichier
@@ -40,132 +40,132 @@ pour_lecture_écriture_tronquée :: pour_lecture_écriture | RaisonOuvertureFich
 ouvre_fichier :: fonc (chemin: CheminFichier, raison: RaisonOuvertureFichier, permissions: z32) -> RésultatFichier
 {
     desc := tente système_ouvre(chemin, raison, permissions) piège err {
-        retourne err
-    }
+        retourne err;
+    };
 
-    fichier: Fichier
-    fichier.desc = TypePoignéeFichier(desc)
-    retourne fichier
+    fichier: Fichier;
+    fichier.desc = TypePoignéeFichier(desc);
+    retourne fichier;
 }
 
 // ouvre_fichier_existant
 // ouvre_fichier_existant_crée_sinon
 ouvre_fichier :: fonc (chemin: CheminFichier) -> RésultatFichier
 {
-    retourne ouvre_fichier(chemin, pour_lecture_écriture, 0o644)
+    retourne ouvre_fichier(chemin, pour_lecture_écriture, 0o644);
 }
 
 ouvre_fichier_pour_lecture :: fonc (chemin: CheminFichier) -> RésultatFichier
 {
-    retourne ouvre_fichier(chemin, pour_lecture, 0o644)
+    retourne ouvre_fichier(chemin, pour_lecture, 0o644);
 }
 
 /* Garantie l'existence de tous les dossiers menant vers la feuille du chemin. */
 crée_dossiers_pour_chemin :: fonc (chemin: CheminFichier, avec_feuille: bool) -> ErreurFichier
 {
-    pile := divise_et_empile_chemin(chemin)
-    diffère détruit(pile)
+    pile := divise_et_empile_chemin(chemin);
+    diffère détruit(pile);
 
     si pile.est_vide() {
-        retourne 0 comme ErreurFichier
+        retourne 0 comme ErreurFichier;
     }
 
     saufsi avec_feuille {
         /* Supprime le dernier élément du chemin. */
-        _ := pile.dépile()
+        _ := pile.dépile();
     }
 
     si pile.est_vide() {
         /* Nous sommes à la racine sans doute. */
-        retourne 0 comme ErreurFichier
+        retourne 0 comme ErreurFichier;
     }
 
-    pile.renverse()
+    pile.renverse();
 
-    tampon: TamponChemin
+    tampon: TamponChemin;
 
     saufsi chemin.est_relatif() {
-        _ := ajoute(*tampon, séparateur_chemin())
+        _ := ajoute(*tampon, séparateur_chemin());
     }
 
     tantque !pile.est_vide() {
         saufsi ajoute(*tampon, pile.dépile()) && ajoute(*tampon, séparateur_chemin()) {
-            retourne ErreurFichier.MémoireInsuffisante
+            retourne ErreurFichier.MémoireInsuffisante;
         }
 
-        chemin_dossier := donne_chaine_statique(*tampon)
+        chemin_dossier := donne_chaine_statique(*tampon);
 
         tente système_crée_dossier(chemin_dossier, 0o755) piège err {
-            retourne err
-        }
+            retourne err;
+        };
     }
 
-    retourne 0 comme ErreurFichier
+    retourne 0 comme ErreurFichier;
 }
 
 ouvre_fichier_crée_si_non_existant :: fonc (chemin: CheminFichier, raison: RaisonOuvertureFichier) -> RésultatFichier
 {
     tente crée_dossiers_pour_chemin(chemin, faux) piège err {
-        retourne err
-    }
+        retourne err;
+    };
 
     /* Garantie la présence de ce drapeau. */
-    raison.Création = vrai
+    raison.Création = vrai;
 
-    retourne ouvre_fichier(chemin, raison, 0o644)
+    retourne ouvre_fichier(chemin, raison, 0o644);
 }
 
 synchronise :: fonc (fichier: *Fichier) -> Optionnel(ErreurFichier)
 {
-    retourne système_synchronise(fichier.desc)
+    retourne système_synchronise(fichier.desc);
 }
 
 synchronise_métadonnées :: fonc (fichier: *Fichier) -> Optionnel(ErreurFichier)
 {
-    retourne système_synchronise_données(fichier.desc)
+    retourne système_synchronise_données(fichier.desc);
 }
 
 ferme :: fonc (fichier: *Fichier) -> Optionnel(ErreurFichier)
 {
-    retourne système_ferme(fichier.desc)
+    retourne système_ferme(fichier.desc);
 }
 
 // ----------------------------------------------------------
 // Positionnement dans le fichier.
 
-PositionDébut :: #opaque z64
-PositionFin :: #opaque z64
-PositionRelative :: #opaque z64
+PositionDébut :: #opaque z64;
+PositionFin :: #opaque z64;
+PositionRelative :: #opaque z64;
 
 PositionFichier :: union {
-    Début: PositionDébut
-    Fin: PositionFin
-    Décalage: PositionRelative
+    Début: PositionDébut;
+    Fin: PositionFin;
+    Décalage: PositionRelative;
 }
 
 positionne_fichier :: fonc (fichier: *Fichier, position: PositionFichier) -> RésultatOpérationFichier
 {
     rés := tente système_positionne_fichier(fichier.desc, position) piège err {
-        retourne err
-    }
+        retourne err;
+    };
 
-    retourne rés
+    retourne rés;
 }
 
 // ----------------------------------------------------------
 
 copie_fichier :: fonc (source: CheminFichier, destination: CheminFichier) -> bool
 {
-    _, contenu_source := contenu_fichier_texte(source)
-    diffère déloge(contenu_source)
+    _, contenu_source := contenu_fichier_texte(source);
+    diffère déloge(contenu_source);
 
     fichier_destination := tente ouvre_fichier_crée_si_non_existant(destination, pour_lecture_écriture_tronquée) piège _ {
-        retourne faux
-    }
+        retourne faux;
+    };
 
-    _ := écris(*fichier_destination, contenu_source)
-    _ := ferme(*fichier_destination)
-    retourne vrai
+    _ := écris(*fichier_destination, contenu_source);
+    _ := ferme(*fichier_destination);
+    retourne vrai;
 }
 
 /* ------------------------------------------------------------------------- */
@@ -174,35 +174,35 @@ copie_fichier :: fonc (source: CheminFichier, destination: CheminFichier) -> boo
  * \{ */
 
 InfoFichier :: struct {
-    taille: n64
-    modification: z64
+    taille: n64;
+    modification: z64;
 }
 
 opérateur == :: (a: InfoFichier, b: InfoFichier) -> bool
 {
-    retourne a.taille == b.taille && a.modification == b.modification
+    retourne a.taille == b.taille && a.modification == b.modification;
 }
 
 donne_info_fichier :: fonc (chemin: CheminFichier) -> InfoFichier
 {
-    retourne donne_info_fichier(chemin.chn)
+    retourne donne_info_fichier(chemin.chn);
 }
 
 donne_info_fichier :: fonc (chemin: chaine) -> InfoFichier
 {
-    résultat: InfoFichier
-    résultat.taille = détermine_taille_fichier(CheminFichier(chemin))
+    résultat: InfoFichier;
+    résultat.taille = détermine_taille_fichier(CheminFichier(chemin));
 
-    ptr_chemin := crée_chaine_c(chemin)
-    diffère détruit_chaine_c(ptr_chemin)
+    ptr_chemin := crée_chaine_c(chemin);
+    diffère détruit_chaine_c(ptr_chemin);
 
-    st: struct_stat
-    ok := stat(ptr_chemin, *st)
-    assert(ok == 0)
+    st: struct_stat;
+    ok := stat(ptr_chemin, *st);
+    assert(ok == 0);
 
-    résultat.modification = st.st_mtime
+    résultat.modification = st.st_mtime;
 
-    retourne résultat
+    retourne résultat;
 }
 
 /** \} */
@@ -217,19 +217,19 @@ donne_info_fichier :: fonc (chemin: chaine) -> InfoFichier
 détermine_taille_fichiers_dossier :: fonc (dossier: CheminFichier, récursif : bool = faux) -> Résultat(n64, ErreurFichier)
 {
     saufsi est_un_dossier(dossier) {
-        retourne ErreurFichier.NEstPasUnDossier
+        retourne ErreurFichier.NEstPasUnDossier;
     }
 
-    fichiers := donne_fichiers_du_dossier(dossier.chn, récursif)
-    diffère déloge_tableau_et_ses_éléments(fichiers)
+    fichiers := donne_fichiers_du_dossier(dossier.chn, récursif);
+    diffère déloge_tableau_et_ses_éléments(fichiers);
 
-    résultat: n64
+    résultat: n64;
 
     pour fichiers {
-        résultat += détermine_taille_fichier(CheminFichier(it))
+        résultat += détermine_taille_fichier(CheminFichier(it));
     }
 
-    retourne résultat
+    retourne résultat;
 }
 
 /* Retourne la taille du fichier en octet, ou 0 si le fichier n'est pas un
@@ -237,12 +237,12 @@ détermine_taille_fichiers_dossier :: fonc (dossier: CheminFichier, récursif : 
 détermine_taille_fichier :: fonc (chemin: CheminFichier) -> n64
 {
     fichier := tente ouvre_fichier_pour_lecture(chemin) piège _ {
-        retourne 0
-    }
+        retourne 0;
+    };
 
-    diffère _ := ferme(*fichier)
+    diffère _ := ferme(*fichier);
 
-    retourne détermine_taille_fichier(*fichier) comme n64
+    retourne détermine_taille_fichier(*fichier) comme n64;
 }
 
 /* Retourne la taille du fichier en octet, ou 0 si le fichier n'est pas un
@@ -250,14 +250,14 @@ détermine_taille_fichier :: fonc (chemin: CheminFichier) -> n64
 détermine_taille_fichier :: fonc (fichier: *Fichier) -> z64
 {
     résultat := tente positionne_fichier(fichier, PositionFin(0)) piège _ {
-        retourne 0
-    }
+        retourne 0;
+    };
 
     _ := tente positionne_fichier(fichier, PositionDébut(0)) piège _ {
-        retourne 0
-    }
+        retourne 0;
+    };
 
-    retourne résultat
+    retourne résultat;
 }
 
 /* \} */
@@ -267,10 +267,10 @@ détermine_taille_fichier :: fonc (fichier: *Fichier) -> z64
 est_fin_de_fichier :: fonc (fichier: *Fichier) -> bool
 {
     résultat := tente système_fin_de_fichier(fichier.desc) piège _ {
-        retourne vrai
-    }
+        retourne vrai;
+    };
 
-    retourne résultat == 1
+    retourne résultat == 1;
 }
 
 // ----------------------------------------------------------
@@ -279,146 +279,146 @@ est_fin_de_fichier :: fonc (fichier: *Fichier) -> bool
 lis :: fonc (fichier: *Fichier, tampon: []octet) -> RésultatOpérationFichier
 {
     octets_lus := tente système_lis(fichier.desc, tampon.pointeur comme *z8, tampon.taille) piège err {
-        retourne err
-    }
+        retourne err;
+    };
 
-    retourne octets_lus comme z32
+    retourne octets_lus comme z32;
 }
 
 RésultatLectureN64 :: union {
-    e: ErreurFichier
-    r: n64
+    e: ErreurFichier;
+    r: n64;
 }
 
 lis_n64 :: fonc (fichier: *Fichier) -> RésultatLectureN64
 {
-    tampon: n64
+    tampon: n64;
 
     octets_lus := tente système_lis(fichier.desc, *tampon comme *z8, 8) piège err {
-        retourne err
-    }
+        retourne err;
+    };
 
     si octets_lus != 8 {
-        retourne ErreurFichier.Inconnue
+        retourne ErreurFichier.Inconnue;
     }
 
-    retourne tampon
+    retourne tampon;
 }
 
 lis_entier :: fonc (fichier: *Fichier, $T: type_de_données) -> Optionnel(T)
 {
-    valeur: T
+    valeur: T;
 
     octets_lus := tente lis(fichier, valeur) piège _ {
-        retourne
-    }
+        retourne;
+    };
 
     si octets_lus != taille_de(T) comme z32 {
-        retourne
+        retourne;
     }
 
-    retourne valeur
+    retourne valeur;
 }
 
 lis_chaine :: fonc (fichier: *Fichier, taille: z64) -> chaine
 {
-    résultat := loge_chaine(taille)
+    résultat := loge_chaine(taille);
 
-    _ := fichier.lis(résultat)
+    _ := fichier.lis(résultat);
 
-    retourne résultat
+    retourne résultat;
 }
 
 CaractèreOuErreurFichier :: union {
-    c: z8
-    e: ErreurFichier
+    c: z8;
+    e: ErreurFichier;
 }
 
 lis_caractère :: fonc (fichier: *Fichier) -> CaractèreOuErreurFichier
 {
-    c: z8
+    c: z8;
 
     octets_lus := tente système_lis(fichier.desc, *c, 1) piège err {
-        retourne err
-    }
+        retourne err;
+    };
 
     si octets_lus == 0 {
-        retourne '\0'
+        retourne '\0';
     }
 
-    retourne c
+    retourne c;
 }
 
 ChaineOuErreurFichier :: union {
-    e: ErreurFichier
-    c: chaine
+    e: ErreurFichier;
+    c: chaine;
 }
 
 lis_tout :: fonc (fichier: *Fichier) -> ChaineOuErreurFichier
 {
-    résultat: [..]octet
+    résultat: [..]octet;
 
-    erreur_potentielle := lis_tout(fichier, résultat)
+    erreur_potentielle := lis_tout(fichier, résultat);
     si erreur_potentielle != (0 comme ErreurFichier) {
-        retourne erreur_potentielle
+        retourne erreur_potentielle;
     }
 
-    retourne chaine_depuis_tranche_octets(résultat)
+    retourne chaine_depuis_tranche_octets(résultat);
 }
 
 lis_tout :: fonc (fichier: *Fichier, résultat: &[..]octet) -> ErreurFichier
 {
-    TAILLE_MAX :: 1024
-    tampon : [TAILLE_MAX]z8 = ---
+    TAILLE_MAX :: 1024;
+    tampon : [TAILLE_MAX]z8 = ---;
 
-    résultat.taille = 0
+    résultat.taille = 0;
 
     boucle {
         octets_lus := tente système_lis(fichier.desc, *tampon[0], TAILLE_MAX) piège err {
-            déloge(résultat)
-            retourne err
-        }
+            déloge(résultat);
+            retourne err;
+        };
 
         si octets_lus > 0 {
-            ancienne_taille := résultat.taille
-            tableau_redimensionne_sans_init(résultat, résultat.taille + octets_lus)
-            copie_mem_nonsur(src = *tampon[0], dst = *résultat[ancienne_taille], taille = octets_lus)
+            ancienne_taille := résultat.taille;
+            tableau_redimensionne_sans_init(résultat, résultat.taille + octets_lus);
+            copie_mem_nonsur(src = *tampon[0], dst = *résultat[ancienne_taille], taille = octets_lus);
 
             si octets_lus < TAILLE_MAX {
-                arrête
+                arrête;
             }
         }
         sinon si octets_lus == 0 {
-            arrête
+            arrête;
         }
     }
 
-    retourne 0 comme ErreurFichier
+    retourne 0 comme ErreurFichier;
 }
 
 lis_ligne :: fonc (fichier: *Fichier) -> ChaineOuErreurFichier
 {
-    enchaineuse: Enchaineuse
-    initialise_enchaineuse(*enchaineuse)
-    c: z8
+    enchaineuse: Enchaineuse;
+    initialise_enchaineuse(*enchaineuse);
+    c: z8;
 
     boucle {
         octets_lus := tente système_lis(fichier.desc, *c, 1) piège err {
-            retourne err
-        }
+            retourne err;
+        };
 
         si octets_lus == 0 {
-            arrête
+            arrête;
         }
 
-        ajoute_au_tampon(*enchaineuse, c)
+        ajoute_au_tampon(*enchaineuse, c);
 
         si c == '\n' {
-            arrête
+            arrête;
         }
     }
 
-    retourne chaine_depuis_enchaineuse(*enchaineuse)
+    retourne chaine_depuis_enchaineuse(*enchaineuse);
 }
 
 // fonction spécialisée pour tout lire depuis un fichier sur le disque, où l'on
@@ -427,25 +427,25 @@ lis_ligne :: fonc (fichier: *Fichier) -> ChaineOuErreurFichier
 lis_tout_depuis_fichier :: fonc (fichier: *Fichier) -> ChaineOuErreurFichier
 {
     taille_fichier := tente positionne_fichier(fichier, PositionFin(0)) piège err {
-        retourne err
-    }
+        retourne err;
+    };
 
     si taille_fichier == 0 {
-        retourne ""
+        retourne "";
     }
 
     _ := tente positionne_fichier(fichier, PositionDébut(0)) piège err {
-        retourne err
-    }
+        retourne err;
+    };
 
-    résultat := loge_chaine(taille_fichier)
+    résultat := loge_chaine(taille_fichier);
 
     octets_lus := tente système_lis(fichier.desc, résultat.pointeur, résultat.taille) piège err {
-        déloge(résultat)
-        retourne err
-    }
+        déloge(résultat);
+        retourne err;
+    };
 
-    retourne résultat
+    retourne résultat;
 }
 
 // ----------------------------------------------------------
@@ -455,12 +455,12 @@ lis_tout_depuis_fichier :: fonc (fichier: *Fichier) -> ChaineOuErreurFichier
 // écris_fin
 écris :: fonc (fichier: *Fichier, chn: chaine) -> RésultatOpérationFichier
 {
-    retourne système_écris(fichier.desc, chn.pointeur, chn.taille)
+    retourne système_écris(fichier.desc, chn.pointeur, chn.taille);
 }
 
 écris :: fonc (fichier: *Fichier, octets: []octet) -> RésultatOpérationFichier
 {
-    retourne système_écris(fichier.desc, octets.pointeur comme *z8, octets.taille)
+    retourne système_écris(fichier.desc, octets.pointeur comme *z8, octets.taille);
 }
 
 // -----------------------------------------------------------------------
@@ -468,22 +468,22 @@ lis_tout_depuis_fichier :: fonc (fichier: *Fichier) -> ChaineOuErreurFichier
 
 entrée_standarde :: fonc () -> *Fichier
 {
-    retourne système_entrée_standarde()
+    retourne système_entrée_standarde();
 }
 
 sortie_standarde :: fonc () -> *Fichier
 {
-    retourne système_sortie_standarde()
+    retourne système_sortie_standarde();
 }
 
 sortie_erreur :: fonc () -> *Fichier
 {
-    retourne système_sortie_erreur()
+    retourne système_sortie_erreur();
 }
 
 fichier_invalide :: fonc () -> Fichier
 {
-    retourne Fichier(système_poignée_fichier_invalide())
+    retourne Fichier(système_poignée_fichier_invalide());
 }
 
 // -----------------------------------------------------------------------
@@ -493,10 +493,10 @@ fichier_invalide :: fonc () -> Fichier
  * écrire dans nouveau_fichier. */
 référence_fichier :: fonc (ancien_fichier: &Fichier, nouveau_fichier: *Fichier)
 {
-    système_référence_fichier(ancien_fichier.desc, nouveau_fichier.desc)
+    système_référence_fichier(ancien_fichier.desc, nouveau_fichier.desc);
 
     si ancien_fichier.desc != nouveau_fichier.desc {
-        _ := ferme(*ancien_fichier)
+        _ := ferme(*ancien_fichier);
     }
 }
 
@@ -504,16 +504,16 @@ référence_fichier :: fonc (ancien_fichier: &Fichier, nouveau_fichier: *Fichier
 // Verrouillage de fichier.
 
 TypeVerrou :: énum {
-    Partagé
-    Exclusif
+    Partagé;
+    Exclusif;
 }
 
 verrouille :: fonc (fichier: *Fichier, verrou: TypeVerrou) -> Optionnel(ErreurFichier)
 {
-    retourne système_verrouille_fichier(fichier, verrou)
+    retourne système_verrouille_fichier(fichier, verrou);
 }
 
 déverrouille :: fonc (fichier: *Fichier)
 {
-    système_déverrouille_fichier(fichier)
+    système_déverrouille_fichier(fichier);
 }

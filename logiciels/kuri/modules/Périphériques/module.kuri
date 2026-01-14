@@ -1,9 +1,9 @@
 /* Module servant à définir des types et routines pour les périphériques
  * de l'ordinateur (souris, clavier, etc.). */
 
-importe Chaine
-importe Math
-importe MIME
+importe Chaine;
+importe Math;
+importe MIME;
 
 /* ------------------------------------------------------------------------- */
 /** \nom TypeCurseurSystème.
@@ -11,65 +11,65 @@ importe MIME
 
 TypeCurseurSystème :: énum {
     /* Curseur invisible, nul. */
-    VIERGE
+    VIERGE;
     /* Curseur en forme de flèche (défaut sur la plupart des systèmes). */
-    FLÈCHE
+    FLÈCHE;
     /* Curseur en forme de I pour indiquer une insertion de texte. */
-    TEXTE
-    TEXTE_VERTICAL
+    TEXTE;
+    TEXTE_VERTICAL;
     /* Curseur indiquant d'attendre sur une tâche. */
-    ATTENTE
+    ATTENTE;
     /* Curseur en forme de cible. */
-    CROIX
+    CROIX;
     /* Curseur indiquant un progrès, que quelque chose est en progrès. */
-    FLÈCHE_AVEC_ATTENTE
-    PROGRÈS :: FLÈCHE_AVEC_ATTENTE
+    FLÈCHE_AVEC_ATTENTE;
+    PROGRÈS :: FLÈCHE_AVEC_ATTENTE;
     /* Curseur indiquant que quelque chose est interdit. */
-    INTERDIT
+    INTERDIT;
     /* Curseur représentant une main ouverte. */
-    MAIN_OUVERTE
+    MAIN_OUVERTE;
     /* Curseur représentant une main fermée. */
-    MAIN_FERMÉE
+    MAIN_FERMÉE;
     /* Curseur représentant une main pointant sur quelque chose. */
-    MAIN_POINTANT
+    MAIN_POINTANT;
     /* Curseur en forme de point d'interrogation. */
-    POINT_D_INTERROGATION
+    POINT_D_INTERROGATION;
     /* Curseur indiquant qu'un menu contextuel est disponible */
-    MENU_CONTEXTUEL
+    MENU_CONTEXTUEL;
     /* Cellule pour les tableurs. */
-    CELLULE
+    CELLULE;
     /* Curseur indiquant qu'un alias ou raccourci sera créé. */
-    ALIAS
+    ALIAS;
     /* Curseur indiquant qu'une copie sera créée. */
-    COPIE
+    COPIE;
     /* L'objet survolé devra être déplacé. */
-    DÉPLACEMENT
+    DÉPLACEMENT;
     /* Le curseur indique qu'on ne peut déposer d'élément à cet endroit. */
-    DÉPOSAGE_INTERDIT
+    DÉPOSAGE_INTERDIT;
     /* Le curseur indique qu'on peut faire défiler le contenu dans n'importe quelle direction. */
-    DÉFILAGE_OMNI
+    DÉFILAGE_OMNI;
     /* L'élément ou la colonne peut être redimensionné horizontalement. */
-    REDIMENSIONNEMENT_COLONNE
+    REDIMENSIONNEMENT_COLONNE;
     /* L'élément ou la ligne peut être redimensionné verticalement. */
-    REDIMENSIONNEMENT_LIGNE
+    REDIMENSIONNEMENT_LIGNE;
     /* Redimensionnement vers des points cardinaux. */
-    REDIMENSIONNEMENT_EST
-    REDIMENSIONNEMENT_NORD
-    REDIMENSIONNEMENT_NORD_EST
-    REDIMENSIONNEMENT_NORD_OUEST
-    REDIMENSIONNEMENT_SUD
-    REDIMENSIONNEMENT_SUD_EST
-    REDIMENSIONNEMENT_SUD_OUEST
-    REDIMENSIONNEMENT_OUEST
-    REDIMENSIONNEMENT_EST_OUEST
-    REDIMENSIONNEMENT_NORD_SUD
-    REDIMENSIONNEMENT_NORD_EST_SUD_OUEST
-    REDIMENSIONNEMENT_NORD_OUEST_SUD_EST
-    REDIMENSIONNEMENT_NORD_SUD_EST_OUEST
+    REDIMENSIONNEMENT_EST;
+    REDIMENSIONNEMENT_NORD;
+    REDIMENSIONNEMENT_NORD_EST;
+    REDIMENSIONNEMENT_NORD_OUEST;
+    REDIMENSIONNEMENT_SUD;
+    REDIMENSIONNEMENT_SUD_EST;
+    REDIMENSIONNEMENT_SUD_OUEST;
+    REDIMENSIONNEMENT_OUEST;
+    REDIMENSIONNEMENT_EST_OUEST;
+    REDIMENSIONNEMENT_NORD_SUD;
+    REDIMENSIONNEMENT_NORD_EST_SUD_OUEST;
+    REDIMENSIONNEMENT_NORD_OUEST_SUD_EST;
+    REDIMENSIONNEMENT_NORD_SUD_EST_OUEST;
     /* Le pointeur indique qu'on peut zoomer sur le contenu. */
-    ZOOM
+    ZOOM;
     /* Le pointeur indique qu'on peut dézoomer sur le contenu. */
-    DÉZOOM
+    DÉZOOM;
 }
 
 /** \} */
@@ -79,48 +79,48 @@ TypeCurseurSystème :: énum {
  * \{ */
 
 ModificateurClavier :: énum_drapeau {
-    COMMANDE_OS
-    CONTROL
-    MAJUSCULE
-    OPTION
-    ALT
+    COMMANDE_OS;
+    CONTROL;
+    MAJUSCULE;
+    OPTION;
+    ALT;
 
-    CTRL_MAJ :: CONTROL | MAJUSCULE
+    CTRL_MAJ :: CONTROL | MAJUSCULE;
 }
 
 ÉtatSouris :: struct {
     quand: z64 // le temps où l'état a été enregistré
     où: Point2D(z32) // là où la souris se trouve
-    modificateur: ModificateurClavier
+    modificateur: ModificateurClavier;
 }
 
 ActionSouris :: énum {
-    PRESSÉE
-    RELACHÉE
-    DÉPLACÉE
-    ROULEMENT
-    DOUBLE_CLIC
+    PRESSÉE;
+    RELACHÉE;
+    DÉPLACÉE;
+    ROULEMENT;
+    DOUBLE_CLIC;
 }
 
 BoutonSouris :: énum {
-    AUCUN
-    PRIMAIRE
-    CONTEXTUEL
-    TERTIAIRE
-    AVANT
-    ARRIÈRE
+    AUCUN;
+    PRIMAIRE;
+    CONTEXTUEL;
+    TERTIAIRE;
+    AVANT;
+    ARRIÈRE;
 
-    GAUCHE :: PRIMAIRE
-    DROIT :: CONTEXTUEL
-    MOLETTE :: TERTIAIRE
+    GAUCHE :: PRIMAIRE;
+    DROIT :: CONTEXTUEL;
+    MOLETTE :: TERTIAIRE;
 }
 
 ClicSouris :: struct {
-    état: ÉtatSouris
-    action: ActionSouris
-    bouton: BoutonSouris
+    état: ÉtatSouris;
+    action: ActionSouris;
+    bouton: BoutonSouris;
     /* Delta pour la molette. */
-    delta: z32
+    delta: z32;
 }
 
 /** \} */
@@ -130,18 +130,18 @@ ClicSouris :: struct {
  * \{ */
 
 InfoToucheClavier :: struct {
-    type: ToucheClavier
-    texte: chaine
-    modificateur: ModificateurClavier
+    type: ToucheClavier;
+    texte: chaine;
+    modificateur: ModificateurClavier;
 }
 
 donne_info_touche :: fonc (évènement: Évènement) -> InfoToucheClavier
 {
-    résultat: InfoToucheClavier
-    résultat.type = évènement.touche
-    résultat.texte = évènement.texte
-    résultat.modificateur = évènement.modificateurs
-    retourne résultat
+    résultat: InfoToucheClavier;
+    résultat.type = évènement.touche;
+    résultat.texte = évènement.texte;
+    résultat.modificateur = évènement.modificateurs;
+    retourne résultat;
 }
 
 /** \} */
@@ -151,122 +151,122 @@ donne_info_touche :: fonc (évènement: Évènement) -> InfoToucheClavier
  * \{ */
 
 RaccourciClavier :: struct {
-    touche: ToucheClavier
-    modificateur: ModificateurClavier
+    touche: ToucheClavier;
+    modificateur: ModificateurClavier;
 }
 
 opérateur == :: (a: RaccourciClavier, b: RaccourciClavier) -> bool
 {
-    retourne a.touche == b.touche && a.modificateur == b.modificateur
+    retourne a.touche == b.touche && a.modificateur == b.modificateur;
 }
 
 ctrl :: fonc (touche: ToucheClavier) -> RaccourciClavier
 {
-    résultat: RaccourciClavier
-    résultat.modificateur = ModificateurClavier.CONTROL
-    résultat.touche = touche
-    retourne résultat
+    résultat: RaccourciClavier;
+    résultat.modificateur = ModificateurClavier.CONTROL;
+    résultat.touche = touche;
+    retourne résultat;
 }
 
 ctrl_maj :: fonc (touche: ToucheClavier) -> RaccourciClavier
 {
-    résultat: RaccourciClavier
-    résultat.modificateur.CONTROL = vrai
-    résultat.modificateur.MAJUSCULE = vrai
-    résultat.touche = touche
-    retourne résultat
+    résultat: RaccourciClavier;
+    résultat.modificateur.CONTROL = vrai;
+    résultat.modificateur.MAJUSCULE = vrai;
+    résultat.touche = touche;
+    retourne résultat;
 }
 
 donne_raccourci_pour_texte :: fonc (texte: chaine) -> (RaccourciClavier, bool)
 {
-    résultat: RaccourciClavier
+    résultat: RaccourciClavier;
 
     boucle {
         si texte.commence_par("Ctrl-") || texte.commence_par("CTRL-") {
-            texte = texte.avance("Ctrl-".taille)
-            résultat.modificateur.CONTROL = vrai
+            texte = texte.avance("Ctrl-".taille);
+            résultat.modificateur.CONTROL = vrai;
         }
         sinon si texte.commence_par("Alt-") || texte.commence_par("ALT-") {
-            texte = texte.avance("Alt-".taille)
-            résultat.modificateur.ALT = vrai
+            texte = texte.avance("Alt-".taille);
+            résultat.modificateur.ALT = vrai;
         }
         sinon si texte.commence_par("Maj-") || texte.commence_par("MAJ-") {
-            texte = texte.avance("Maj-".taille)
-            résultat.modificateur.MAJUSCULE = vrai
+            texte = texte.avance("Maj-".taille);
+            résultat.modificateur.MAJUSCULE = vrai;
         }
         sinon {
-            arrête
+            arrête;
         }
     }
 
     si texte == "FlècheGauche" {
-        résultat.touche = ToucheClavier.FLÈCHE_GAUCHE
+        résultat.touche = ToucheClavier.FLÈCHE_GAUCHE;
     }
     sinon si texte == "FlècheDroite" {
-        résultat.touche = ToucheClavier.FLÈCHE_DROITE
+        résultat.touche = ToucheClavier.FLÈCHE_DROITE;
     }
     sinon si texte == "FlècheHaut" {
-        résultat.touche = ToucheClavier.FLÈCHE_HAUT
+        résultat.touche = ToucheClavier.FLÈCHE_HAUT;
     }
     sinon si texte == "FlècheBas" {
-        résultat.touche = ToucheClavier.FLÈCHE_BAS
+        résultat.touche = ToucheClavier.FLÈCHE_BAS;
     }
     sinon si texte == "Début" {
-        résultat.touche = ToucheClavier.DÉBUT
+        résultat.touche = ToucheClavier.DÉBUT;
     }
     sinon si texte == "Fin" {
-        résultat.touche = ToucheClavier.FIN
+        résultat.touche = ToucheClavier.FIN;
     }
     sinon si texte == "PageHaut" {
-        résultat.touche = ToucheClavier.PAGE_HAUT
+        résultat.touche = ToucheClavier.PAGE_HAUT;
     }
     sinon si texte == "PageBas" {
-        résultat.touche = ToucheClavier.PAGE_BAS
+        résultat.touche = ToucheClavier.PAGE_BAS;
     }
     sinon si texte == "Entrée" {
-        résultat.touche = ToucheClavier.ENTRÉE
+        résultat.touche = ToucheClavier.ENTRÉE;
     }
     sinon si texte == "RetourArrière" {
-        résultat.touche = ToucheClavier.EFFACE
+        résultat.touche = ToucheClavier.EFFACE;
     }
     sinon si texte == "Suppr" {
-        résultat.touche = ToucheClavier.SUPPRIMER
+        résultat.touche = ToucheClavier.SUPPRIMER;
     }
     sinon si texte == "+" {
-        résultat.touche = ToucheClavier.PLUS
+        résultat.touche = ToucheClavier.PLUS;
     }
     sinon si texte == "-" {
-        résultat.touche = ToucheClavier.MOINS
+        résultat.touche = ToucheClavier.MOINS;
     }
     sinon si texte.taille == 1 {
-        caractère := texte[0]
+        caractère := texte[0];
 
         si 'A' <= caractère <= 'Z' {
-            décalage := caractère - 'A'
-            résultat.touche = (ToucheClavier.A comme z32 + décalage) comme ToucheClavier
+            décalage := caractère - 'A';
+            résultat.touche = (ToucheClavier.A comme z32 + décalage) comme ToucheClavier;
         }
         sinon si 'a' <= caractère <= 'z' {
-            décalage := caractère - 'a'
-            résultat.touche = (ToucheClavier.A comme z32 + décalage) comme ToucheClavier
+            décalage := caractère - 'a';
+            résultat.touche = (ToucheClavier.A comme z32 + décalage) comme ToucheClavier;
         }
         sinon si '0' <= caractère <= '9' {
-            décalage := caractère - '0'
-            résultat.touche = (ToucheClavier._0 comme z32 + décalage) comme ToucheClavier
+            décalage := caractère - '0';
+            résultat.touche = (ToucheClavier._0 comme z32 + décalage) comme ToucheClavier;
         }
         sinon {
-            retourne résultat, faux
+            retourne résultat, faux;
         }
     }
     sinon {
-        valeur, trouvée := donne_valeur_énum_pour_nom(info_de(ToucheClavier), texte)
+        valeur, trouvée := donne_valeur_énum_pour_nom(info_de(ToucheClavier), texte);
         saufsi trouvée {
-            retourne résultat, faux
+            retourne résultat, faux;
         }
 
-        résultat.touche = valeur comme ToucheClavier
+        résultat.touche = valeur comme ToucheClavier;
     }
 
-    retourne résultat, vrai
+    retourne résultat, vrai;
 }
 
 /** \} */
@@ -276,182 +276,182 @@ donne_raccourci_pour_texte :: fonc (texte: chaine) -> (RaccourciClavier, bool)
  * \{ */
 
 ToucheClavier :: énum {
-    INCONNUE
+    INCONNUE;
 
-    A
-    B
-    C
-    D
-    E
-    F
-    G
-    H
-    I
-    J
-    K
-    L
-    M
-    N
-    O
-    P
-    Q
-    R
-    S
-    T
-    U
-    V
-    W
-    Y
-    X
-    Z
+    A;
+    B;
+    C;
+    D;
+    E;
+    F;
+    G;
+    H;
+    I;
+    J;
+    K;
+    L;
+    M;
+    N;
+    O;
+    P;
+    Q;
+    R;
+    S;
+    T;
+    U;
+    V;
+    W;
+    Y;
+    X;
+    Z;
 
-    _0
-    _1
-    _2
-    _3
-    _4
-    _5
-    _6
-    _7
-    _8
-    _9
+    _0;
+    _1;
+    _2;
+    _3;
+    _4;
+    _5;
+    _6;
+    _7;
+    _8;
+    _9;
 
-    ENTRÉE
-    EFFACE
-    ÉCHAPPE
-    TAB
+    ENTRÉE;
+    EFFACE;
+    ÉCHAPPE;
+    TAB;
 
-    VIRGULE
-    ESPACE
-    POINT_VIRGULE
-    DOUBLE_POINT
-    POINT_EXCLAMATION
+    VIRGULE;
+    ESPACE;
+    POINT_VIRGULE;
+    DOUBLE_POINT;
+    POINT_EXCLAMATION;
 
-    POINT
-    APOSTROPHE
-    ACCENT_GRAVE
-    MOINS
-    PLUS
-    SLASH
-    BACK_SLASH
-    ÉGAL
-    CROCHET_OUVRANT
-    CROCHET_FERMANT
-    PAUSE
-    PARENTHÈSE_GAUCHE
-    PARENTHÈSE_DROITE
-    ESPERLUETTE
-    E_ACCENT_AIGÜE
-    E_ACCENT_GRAVE
-    TIRET_BAS
-    C_CÉDILLE
-    A_ACCENT_GRAVE
-    GUILLEMET_ANGLAIS
-    U_ACCENT_GRAVE
-    ASTÉRISQUE
-    DOLLAR
-    EXCLAMATION
-    INFÉRIEUR
+    POINT;
+    APOSTROPHE;
+    ACCENT_GRAVE;
+    MOINS;
+    PLUS;
+    SLASH;
+    BACK_SLASH;
+    ÉGAL;
+    CROCHET_OUVRANT;
+    CROCHET_FERMANT;
+    PAUSE;
+    PARENTHÈSE_GAUCHE;
+    PARENTHÈSE_DROITE;
+    ESPERLUETTE;
+    E_ACCENT_AIGÜE;
+    E_ACCENT_GRAVE;
+    TIRET_BAS;
+    C_CÉDILLE;
+    A_ACCENT_GRAVE;
+    GUILLEMET_ANGLAIS;
+    U_ACCENT_GRAVE;
+    ASTÉRISQUE;
+    DOLLAR;
+    EXCLAMATION;
+    INFÉRIEUR;
 
-    MAJUSCULE_GAUCHE
-    MAJUSCULE_DROITE
-    CONTROLE_GAUCHE
-    CONTROLE_DROITE
-    ALT_GAUCHE
-    ALT_DROITE
-    SYSTÈME_GAUCHE
-    SYSTÈME_DROITE
-    HYPER_GAUCHE
-    HYPER_DROITE
+    MAJUSCULE_GAUCHE;
+    MAJUSCULE_DROITE;
+    CONTROLE_GAUCHE;
+    CONTROLE_DROITE;
+    ALT_GAUCHE;
+    ALT_DROITE;
+    SYSTÈME_GAUCHE;
+    SYSTÈME_DROITE;
+    HYPER_GAUCHE;
+    HYPER_DROITE;
 
-    FLÈCHE_GAUCHE
-    FLÈCHE_DROITE
-    FLÈCHE_HAUT
-    FLÈCHE_BAS
+    FLÈCHE_GAUCHE;
+    FLÈCHE_DROITE;
+    FLÈCHE_HAUT;
+    FLÈCHE_BAS;
 
-    PAGE_HAUT
-    PAGE_BAS
-    DÉBUT
-    FIN
-    INSÉRER
-    SUPPRIMER
+    PAGE_HAUT;
+    PAGE_BAS;
+    DÉBUT;
+    FIN;
+    INSÉRER;
+    SUPPRIMER;
 
-    VERROUILLAGE_CASSE
-    ARRÊT_DÉFILAGE
-    VERROUILLAGE_NUMÉRIQUE
-    APPLICATION
+    VERROUILLAGE_CASSE;
+    ARRÊT_DÉFILAGE;
+    VERROUILLAGE_NUMÉRIQUE;
+    APPLICATION;
 
-    PAVÉ_NUM_0
-    PAVÉ_NUM_1
-    PAVÉ_NUM_2
-    PAVÉ_NUM_3
-    PAVÉ_NUM_4
-    PAVÉ_NUM_5
-    PAVÉ_NUM_6
-    PAVÉ_NUM_7
-    PAVÉ_NUM_8
-    PAVÉ_NUM_9
-    PAVÉ_NUM_POINT
+    PAVÉ_NUM_0;
+    PAVÉ_NUM_1;
+    PAVÉ_NUM_2;
+    PAVÉ_NUM_3;
+    PAVÉ_NUM_4;
+    PAVÉ_NUM_5;
+    PAVÉ_NUM_6;
+    PAVÉ_NUM_7;
+    PAVÉ_NUM_8;
+    PAVÉ_NUM_9;
+    PAVÉ_NUM_POINT;
 
-    PAVÉ_NUM_INSÈRE
-    PAVÉ_NUM_FIN
-    PAVÉ_NUM_BAS
-    PAVÉ_NUM_PAGE_BAS
-    PAVÉ_NUM_GAUCHE
-    PAVÉ_NUM_DROITE
-    PAVÉ_NUM_DÉBUT
-    PAVÉ_NUM_HAUT
-    PAVÉ_NUM_PAGE_HAUT
-    PAVÉ_NUM_SUPPR
+    PAVÉ_NUM_INSÈRE;
+    PAVÉ_NUM_FIN;
+    PAVÉ_NUM_BAS;
+    PAVÉ_NUM_PAGE_BAS;
+    PAVÉ_NUM_GAUCHE;
+    PAVÉ_NUM_DROITE;
+    PAVÉ_NUM_DÉBUT;
+    PAVÉ_NUM_HAUT;
+    PAVÉ_NUM_PAGE_HAUT;
+    PAVÉ_NUM_SUPPR;
 
-    PAVÉ_NUM_ENTRÉE
-    PAVÉ_NUM_PLUS
-    PAVÉ_NUM_MOINS
-    PAVÉ_NUM_ASTÉRISQUE
-    PAVÉ_NUM_SLASH
+    PAVÉ_NUM_ENTRÉE;
+    PAVÉ_NUM_PLUS;
+    PAVÉ_NUM_MOINS;
+    PAVÉ_NUM_ASTÉRISQUE;
+    PAVÉ_NUM_SLASH;
 
-    F1
-    F2
-    F3
-    F4
-    F5
-    F6
-    F7
-    F8
-    F9
-    F10
-    F11
-    F12
-    F13
-    F14
-    F15
-    F16
-    F17
-    F18
-    F19
-    F20
-    F21
-    F22
-    F23
-    F24
-    F25
-    F26
-    F27
-    F28
-    F29
-    F30
-    F31
-    F32
-    F33
-    F34
-    F35
+    F1;
+    F2;
+    F3;
+    F4;
+    F5;
+    F6;
+    F7;
+    F8;
+    F9;
+    F10;
+    F11;
+    F12;
+    F13;
+    F14;
+    F15;
+    F16;
+    F17;
+    F18;
+    F19;
+    F20;
+    F21;
+    F22;
+    F23;
+    F24;
+    F25;
+    F26;
+    F27;
+    F28;
+    F29;
+    F30;
+    F31;
+    F32;
+    F33;
+    F34;
+    F35;
 
-    LECTURE_MÉDIA
-    PAUSE_MÉDIA
-    MÉDIA_PRÉCÉDENT
-    RECULE_MÉDIA
-    MÉDIA_SUIVANT
-    AVANCE_MÉDIA
+    LECTURE_MÉDIA;
+    PAUSE_MÉDIA;
+    MÉDIA_PRÉCÉDENT;
+    RECULE_MÉDIA;
+    MÉDIA_SUIVANT;
+    AVANCE_MÉDIA;
 }
 
 /** \} */
@@ -461,11 +461,11 @@ ToucheClavier :: énum {
  * \{ */
 
 TypeÉvènement :: énum {
-    NonInitialisé
-    Fermeture
-    Souris
-    Clavier
-    Déposage
+    NonInitialisé;
+    Fermeture;
+    Souris;
+    Clavier;
+    Déposage;
     // Tablette
     // Window
     // Molette séparée de souris ?
@@ -473,55 +473,55 @@ TypeÉvènement :: énum {
 }
 
 Évènement :: struct {
-    type: TypeÉvènement
+    type: TypeÉvènement;
 
     /* Pour les évènements souris. */
-    état_souris: ÉtatSouris
-    action_souris: ActionSouris
-    bouton_souris: BoutonSouris
+    état_souris: ÉtatSouris;
+    action_souris: ActionSouris;
+    bouton_souris: BoutonSouris;
     /* Delta pour la molette. */
-    delta_souris: z32
+    delta_souris: z32;
 
     /* Pour les évènements clavier. */
-    touche: ToucheClavier
-    modificateurs: ModificateurClavier
-    touche_pressée: bool
-    est_répétée: bool
-    texte: chaine
-    compte: z32
-    code_scan_natif: n32
-    modificateurs_natifs: n32
-    clé_virtuelle_native: n32
+    touche: ToucheClavier;
+    modificateurs: ModificateurClavier;
+    touche_pressée: bool;
+    est_répétée: bool;
+    texte: chaine;
+    compte: z32;
+    code_scan_natif: n32;
+    modificateurs_natifs: n32;
+    clé_virtuelle_native: n32;
 
     /* Mimes pour un déposer. */
-    mimes: [..]DonnéesMime
+    mimes: [..]DonnéesMime;
 }
 
 donne_clic_souris :: fonc (empl évènement: &Évènement) -> ClicSouris
 {
-    clic: ClicSouris = ---
-    clic.état = état_souris
-    clic.action = action_souris
-    clic.bouton = bouton_souris
-    clic.delta = delta_souris
-    retourne clic
+    clic: ClicSouris = ---;
+    clic.état = état_souris;
+    clic.action = action_souris;
+    clic.bouton = bouton_souris;
+    clic.delta = delta_souris;
+    retourne clic;
 }
 
 initialise_depuis_clic :: fonc (évènement: *Évènement, clic: ClicSouris)
 {
-    évènement.type = TypeÉvènement.Souris
-    évènement.état_souris = clic.état
-    évènement.bouton_souris = clic.bouton
-    évènement.delta_souris = clic.delta
-    évènement.action_souris = clic.action
+    évènement.type = TypeÉvènement.Souris;
+    évènement.état_souris = clic.état;
+    évènement.bouton_souris = clic.bouton;
+    évènement.delta_souris = clic.delta;
+    évènement.action_souris = clic.action;
 }
 
 donne_raccourci :: fonc (évènement: Évènement) -> RaccourciClavier
 {
-    résultat: RaccourciClavier = ---
-    résultat.touche = évènement.touche
-    résultat.modificateur  = évènement.modificateurs
-    retourne résultat
+    résultat: RaccourciClavier = ---;
+    résultat.touche = évènement.touche;
+    résultat.modificateur  = évènement.modificateurs;
+    retourne résultat;
 }
 
 /** \} */

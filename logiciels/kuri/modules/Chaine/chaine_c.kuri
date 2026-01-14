@@ -1,18 +1,18 @@
 // Type opaque pour indiquer que l'IPA espère et reçoie une chaine de caractère
 // et non un pointeur vers un nombre ou un tampon d'octet
-ChaineC :: #opaque *z8
+ChaineC :: #opaque *z8;
 
 crée_chaine_c :: fonc (chn: chaine) -> ChaineC
 {
     si chn.taille > 0 && chn.pointeur[chn.taille - 1] == '\0' {
-        copie := copie_chaine(chn)
-        retourne ChaineC(copie.pointeur)
+        copie := copie_chaine(chn);
+        retourne ChaineC(copie.pointeur);
     }
 
-    résultat := loge_chaine(chn.taille + 1)
-    copie_mem_nonsur(src = chn.pointeur, dst = résultat.pointeur, taille = chn.taille)
-    résultat.pointeur[résultat.taille - 1] = '\0'
-    retourne ChaineC(résultat.pointeur)
+    résultat := loge_chaine(chn.taille + 1);
+    copie_mem_nonsur(src = chn.pointeur, dst = résultat.pointeur, taille = chn.taille);
+    résultat.pointeur[résultat.taille - 1] = '\0';
+    retourne ChaineC(résultat.pointeur);
 }
 
 // Copie le contenue de la chn native dans un tampon afin de pouvoir la terminer
@@ -20,69 +20,69 @@ crée_chaine_c :: fonc (chn: chaine) -> ChaineC
 // stockage temporaire, et n'a pas besoin d'être déloger manuellement.
 crée_chaine_c_temp :: fonc (chn: chaine) -> ChaineC
 {
-    tampon := logement_temp(chn.taille + 1)
-    copie_mem_nonsur(src = chn.pointeur, dst = tampon, taille = chn.taille)
-    tampon[chn.taille] = '\0' comme octet
-    retourne ChaineC(tampon comme *z8)
+    tampon := logement_temp(chn.taille + 1);
+    copie_mem_nonsur(src = chn.pointeur, dst = tampon, taille = chn.taille);
+    tampon[chn.taille] = '\0' comme octet;
+    retourne ChaineC(tampon comme *z8);
 }
 
 /* Crée une chaine native depuis une chaine C.
  * La chaine retournée est allouée, et doit être délogée par le client. */
 convertis_chaine_c :: fonc (chn: ChaineC) -> chaine
 {
-    retourne copie_chaine(convertis_chaine_c_statique(chn))
+    retourne copie_chaine(convertis_chaine_c_statique(chn));
 }
 
 /* Crée une chaine native depuis une chaine C sans allouer de mémoire. */
 convertis_chaine_c_statique :: fonc (chn: ChaineC) -> chaine
 {
-    taille := taille_chaine_c(chn)
-    retourne chaine(chn comme *z8, taille)
+    taille := taille_chaine_c(chn);
+    retourne chaine(chn comme *z8, taille);
 }
 convertis_chaine_c_statique :: fonc (chn: *z8) -> chaine
 {
-    retourne convertis_chaine_c_statique(ChaineC(chn))
+    retourne convertis_chaine_c_statique(ChaineC(chn));
 }
 
 détruit_chaine_c :: fonc (chn: &ChaineC)
 {
-    taille := taille_chaine_c(chn)
+    taille := taille_chaine_c(chn);
     // ajoute 1 pour inclure le caractère nul en fin de chaine
-    chaine_native := chaine(chn comme *z8, taille + 1)
-    déloge(chaine_native)
+    chaine_native := chaine(chn comme *z8, taille + 1);
+    déloge(chaine_native);
     // impossible de construire un type opaque si la valeur doit être transformée ?
-    ptr : *z8 = nul
-    chn = ChaineC(ptr)
+    ptr : *z8 = nul;
+    chn = ChaineC(ptr);
 }
 
 taille_chaine_c :: fonc (chn: ChaineC) -> z64
 {
-    ptr := chn comme *z8
+    ptr := chn comme *z8;
 
     si ptr == nul {
-        retourne 0
+        retourne 0;
     }
 
-    taille: z64
+    taille: z64;
 
     tantque mémoire(ptr) != '\0' {
-        taille += 1
-        ptr += 1
+        taille += 1;
+        ptr += 1;
     }
 
-    retourne taille
+    retourne taille;
 }
 
 copie_chaine_c :: fonc (chaine_c: ChaineC) -> chaine
 {
-    ptr := chaine_c comme *z8
+    ptr := chaine_c comme *z8;
 
     si !ptr || ptr[0] == '\0' {
-        retourne ""
+        retourne "";
     }
 
-    taille := taille_chaine_c(chaine_c)
-    chn := loge_chaine(taille)
-    copie_mem_nonsur(src = chaine_c comme *z8, dst = chn.pointeur, taille = taille)
-    retourne chn
+    taille := taille_chaine_c(chaine_c);
+    chn := loge_chaine(taille);
+    copie_mem_nonsur(src = chaine_c comme *z8, dst = chn.pointeur, taille = taille);
+    retourne chn;
 }

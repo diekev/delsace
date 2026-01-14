@@ -1,53 +1,53 @@
-importe Fondation
+importe Fondation;
 
 Objet :: struct {
-    nom := "objet"
+    nom := "objet";
 }
 
 execute_noeud :: fonc (obj1: &Objet @inutilisée, objs: [..]&Objet @inutilisée) -> (z32, *Objet)
 {
-    retourne 0, nul
+    retourne 0, nul;
 }
 
 imprime_type :: fonc (info: *InfoType) -> rien
 {
-    enchaineuse: Enchaineuse
-    initialise_enchaineuse(*enchaineuse)
-    imprime_type(*enchaineuse, info)
-    chn := chaine_depuis_enchaineuse(*enchaineuse)
-    diffère déloge(chn)
-    imprime("%\n", chn)
+    enchaineuse: Enchaineuse;
+    initialise_enchaineuse(*enchaineuse);
+    imprime_type(*enchaineuse, info);
+    chn := chaine_depuis_enchaineuse(*enchaineuse);
+    diffère déloge(chn);
+    imprime("%\n", chn);
 }
 
 enregistre_noeud :: fonc (fonc_exec: eini) -> rien
 {
-    info := fonc_exec.info
+    info := fonc_exec.info;
 
     si info.id != GenreInfoType.FONCTION {
-        imprime("Obtenu autre chose qu'une fonction !\n")
-        retourne
+        imprime("Obtenu autre chose qu'une fonction !\n");
+        retourne;
     }
 
-    info_fonc := info comme *InfoTypeFonction
+    info_fonc := info comme *InfoTypeFonction;
 
-    imprime("Les types d'entrée sont : \n")
+    imprime("Les types d'entrée sont : \n");
 
     pour type dans info_fonc.types_entrée {
-        imprime("Type = ")
-        imprime_type(type)
-        imprime("\n")
+        imprime("Type = ");
+        imprime_type(type);
+        imprime("\n");
     }
 
-    imprime("Les types de sortie sont : \n")
+    imprime("Les types de sortie sont : \n");
 
     pour type dans info_fonc.types_sortie {
-        imprime("Type = ")
-        imprime_type(type)
-        imprime("\n")
+        imprime("Type = ");
+        imprime_type(type);
+        imprime("\n");
     }
 }
 
 principale :: fonc ()
 {
-    enregistre_noeud(execute_noeud)
+    enregistre_noeud(execute_noeud);
 }

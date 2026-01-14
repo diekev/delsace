@@ -3,21 +3,21 @@
  * Catégorie : [génération code, pousse_contexte]
  */
 
-importe Chaine
-importe Fondation
+importe Chaine;
+importe Fondation;
 
 principale :: fonc ()
 {
-    nouveau_contexte := contexte()
-    nouveau_contexte.allocatrice = __stockage_temporaire
+    nouveau_contexte := contexte();
+    nouveau_contexte.allocatrice = __stockage_temporaire;
 
-    mots: [..]chaine
+    mots: [..]chaine;
 
     pousse_contexte nouveau_contexte {
-        mots = divise("Je suis une chaine !", ' ')
+        mots = divise("Je suis une chaine !", ' ');
     }
 
     pousse_contexte nouveau_contexte {
-        mots = divise("Je suis une autre chaine !", ' ')
+        mots = divise("Je suis une autre chaine !", ' ');
     }
 }

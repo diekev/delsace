@@ -2,50 +2,50 @@
 
 // À FAIRE : polymorphe sur la taille
 EnsembleDeBits :: struct {
-    NOMBRE_DE_BITS :: 512
-    bits: [NOMBRE_DE_BITS / 8]n8
+    NOMBRE_DE_BITS :: 512;
+    bits: [NOMBRE_DE_BITS / 8]n8;
 }
 
 est_actif :: fonc (ensemble: &EnsembleDeBits, indice: n32) -> bool
 {
-    indice_octet := indice / 8
-    indice_bit := indice comme n8 % 8
-    retourne (ensemble.bits[indice_octet] >> indice_bit) != 0
+    indice_octet := indice / 8;
+    indice_bit := indice comme n8 % 8;
+    retourne (ensemble.bits[indice_octet] >> indice_bit) != 0;
 }
 
 active :: fonc (ensemble: &EnsembleDeBits, indice: n32)
 {
-    indice_octet := indice / 8
-    indice_bit := indice comme n8 % 8
-    ensemble.bits[indice_octet] |= (1 << indice_bit)
+    indice_octet := indice / 8;
+    indice_bit := indice comme n8 % 8;
+    ensemble.bits[indice_octet] |= (1 << indice_bit);
 }
 
 active_tout :: fonc (ensemble: &EnsembleDeBits)
 {
     pour & ensemble.bits {
-        it = 0b1111_1111
+        it = 0b1111_1111;
     }
 }
 
 désactive :: fonc (ensemble: &EnsembleDeBits, indice: n32)
 {
-    indice_octet := indice / 8
-    indice_bit := indice comme n8 % 8
-    masque := (1 << indice_bit)
-    ensemble.bits[indice_octet] &= ~masque
+    indice_octet := indice / 8;
+    indice_bit := indice comme n8 % 8;
+    masque := (1 << indice_bit);
+    ensemble.bits[indice_octet] &= ~masque;
 }
 
 désactive_tout :: fonc (ensemble: &EnsembleDeBits)
 {
     pour & ensemble.bits {
-        it = 0
+        it = 0;
     }
 }
 
 bascule_tout :: fonc (ensemble: &EnsembleDeBits)
 {
     pour & ensemble.bits {
-        it ^= it
+        it ^= it;
     }
 }
 
@@ -53,96 +53,96 @@ tout_actif :: fonc (ensemble: &EnsembleDeBits) -> bool
 {
     pour ensemble.bits {
         si it != 0b1111_1111 {
-            retourne faux
+            retourne faux;
         }
     }
 
-    retourne vrai
+    retourne vrai;
 }
 
 tout_inactif :: fonc (ensemble: &EnsembleDeBits) -> bool
 {
     pour ensemble.bits {
         si it != 0 {
-            retourne faux
+            retourne faux;
         }
     }
 
-    retourne vrai
+    retourne vrai;
 }
 
 quelque_actif :: fonc (ensemble: &EnsembleDeBits) -> bool
 {
     pour ensemble.bits {
         si it != 0 {
-            retourne vrai
+            retourne vrai;
         }
     }
 
-    retourne faux
+    retourne faux;
 }
 
 // -----------------------------
 
 TableauBooléen :: struct {
-    bits: [..]n64
-    taille_max: z64
+    bits: [..]n64;
+    taille_max: z64;
 }
 
 crée_tableau_booléen :: fonc (taille: z64) -> TableauBooléen
 {
-    résultat: TableauBooléen
+    résultat: TableauBooléen;
 
-    tableau_redimensionne(résultat.bits, taille)
-    résultat.bits.taille = taille
-    résultat.taille_max = taille_max
+    tableau_redimensionne(résultat.bits, taille);
+    résultat.bits.taille = taille;
+    résultat.taille_max = taille_max;
 
-    retourne résultat
+    retourne résultat;
 }
 
 indice_et_décalage :: fonc (indice: z64) -> (z64, n64) #enligne
 {
-    indice_octet := indice / 64
-    indice_bit := indice comme n64 % 64
+    indice_octet := indice / 64;
+    indice_bit := indice comme n64 % 64;
 }
 
 est_actif :: fonc (tableau: &TableauBooléen, indice: z64) -> bool
 {
-    indice_octet, indice_bit := indice_et_décalage(indice)
-    retourne (tableau.bits[indice_octet] >> indice_bit) != 0
+    indice_octet, indice_bit := indice_et_décalage(indice);
+    retourne (tableau.bits[indice_octet] >> indice_bit) != 0;
 }
 
 active :: fonc (tableau: &TableauBooléen, indice: z64)
 {
-    indice_octet, indice_bit := indice_et_décalage(indice)
-    tableau.bits[indice_octet] |= (1 << indice_bit)
+    indice_octet, indice_bit := indice_et_décalage(indice);
+    tableau.bits[indice_octet] |= (1 << indice_bit);
 }
 
 active_tout :: fonc (tableau: &TableauBooléen)
 {
     pour & tableau.bits {
-        it = -1
+        it = -1;
     }
 }
 
 désactive :: fonc (tableau: &TableauBooléen, indice: z64)
 {
-    indice_octet, indice_bit := indice_et_décalage(indice)
-    masque := (1 << indice_bit)
-    tableau.bits[indice_octet] &= ~masque
+    indice_octet, indice_bit := indice_et_décalage(indice);
+    masque := (1 << indice_bit);
+    tableau.bits[indice_octet] &= ~masque;
 }
 
 désactive_tout :: fonc (tableau: &TableauBooléen)
 {
     pour & tableau.bits {
-        it = 0
+        it = 0;
     }
 }
 
 bascule_tout :: fonc (tableau: &TableauBooléen)
 {
     pour & tableau.bits {
-        it ^= it
+        it ^= it;
     }
 }
 
@@ -150,31 +150,31 @@ tout_actif :: fonc (tableau: &TableauBooléen) -> bool
 {
     pour tableau.bits {
         si it != -1 {
-            retourne faux
+            retourne faux;
         }
     }
 
-    retourne vrai
+    retourne vrai;
 }
 
 tout_inactif :: fonc (tableau: &TableauBooléen) -> bool
 {
     pour tableau.bits {
         si it != 0 {
-            retourne faux
+            retourne faux;
         }
     }
 
-    retourne vrai
+    retourne vrai;
 }
 
 quelque_actif :: fonc (tableau: &TableauBooléen) -> bool
 {
     pour tableau.bits {
         si it != 0 {
-            retourne vrai
+            retourne vrai;
         }
     }
 
-    retourne faux
+    retourne faux;
 }

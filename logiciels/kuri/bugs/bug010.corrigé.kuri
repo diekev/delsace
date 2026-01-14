@@ -14,28 +14,28 @@
  * Catégorie : [génération code, expression loge, initialisation zéro]
  */
 
-importe Fondation
+importe Fondation;
 
 MaStructure :: struct {
-    tabl: [..]z32
+    tabl: [..]z32;
 }
 
 principale :: fonc ()
 {
-    x := loge(MaStructure)
+    x := loge(MaStructure);
 
     si x.tabl.taille != 0 {
-        exit(1)
+        exit(1);
     }
 
     si x.tabl.pointeur != nul {
-        exit(1)
+        exit(1);
     }
 
     // il est possible que le bug ne soit pas visible, si la mémoire où le tableau
     // se trouve est déjà à 0
-    tableau_ajoute(*x.tabl, 0)
+    tableau_ajoute(*x.tabl, 0);
 
-    déloge(x.tabl)
-    déloge(x)
+    déloge(x.tabl);
+    déloge(x);
 }
