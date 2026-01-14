@@ -8,34 +8,34 @@
 
 
 MéthodeHTTP :: énum {
-    GET
-    POST
-    PUT
-    HEAD
-    UPDATE
-    DELETE
+    GET;
+    POST;
+    PUT;
+    HEAD;
+    UPDATE;
+    DELETE;
 }
 
 chaine_pour_méthode :: fonc (méthode: MéthodeHTTP) -> chaine
 {
     discr méthode {
         GET {
-            retourne "GET"
+            retourne "GET";
         }
         POST {
-            retourne "POST"
+            retourne "POST";
         }
         PUT {
-            retourne "PUT"
+            retourne "PUT";
         }
         HEAD {
-            retourne "HEAD"
+            retourne "HEAD";
         }
         UPDATE {
-            retourne "UPDATE"
+            retourne "UPDATE";
         }
         DELETE {
-            retourne "DELETE"
+            retourne "DELETE";
         }
     }
 }
@@ -44,7 +44,7 @@ chaine_pour_méthode :: fonc (méthode: MéthodeHTTP) -> chaine
 
 // À FAIRE : gestionnaire de cookies pour déterminer les cookies à envoyer.
 GestionnaireCookie :: struct {
-    cookies: [..]Cookie
+    cookies: [..]Cookie;
 }
 
 ajoute_cookie :: fonc (gestionnaire: &GestionnaireCookie, uri: URI, cookie: Cookie)
@@ -54,11 +54,11 @@ ajoute_cookie :: fonc (gestionnaire: &GestionnaireCookie, uri: URI, cookie: Cook
 est_localhost :: fonc (uri: URI) -> bool
 {
     si uri.hôte == "localhost" {
-        retourne vrai
+        retourne vrai;
     }
 
     // À FAIRE : vérifie si l'adresse IP pointe vers localhost
-    retourne faux
+    retourne faux;
 }
 
 // https://developer.mozilla.org/en-US/docs/Web/HTTP/Cookies
@@ -68,103 +68,103 @@ cookies_pour_requête :: fonc (gestionnaire: &GestionnaireCookie, uri: URI) -> [
     // si le schéma est http, seuls les cookies non sûrs sont envoyés, sauf si le domaine est localhost
     //
 
-    envoie_cookies_sécurisé := uri.schéma == "https" || est_localhost(uri)
+    envoie_cookies_sécurisé := uri.schéma == "https" || est_localhost(uri);
 
-    résultat: [..]Cookie
+    résultat: [..]Cookie;
 
     pour gestionnaire.cookies {
         // il faut savoir si le domain peut recevoir le cookie
     }
 
-    retourne résultat
+    retourne résultat;
 }
 
 // ----------------------------------------
 
 PiloteClienteHTTP :: struct {
-    cookies: [..]Cookie
-    uri_serveur: URI
+    cookies: [..]Cookie;
+    uri_serveur: URI;
 }
 
 débute_requête :: fonc (pilote: &PiloteClienteHTTP, méthode: MéthodeHTTP, uri: URI) -> MessageClienteHTTP
 {
-    message: MessageClienteHTTP
-    message.méthode = chaine_pour_méthode(méthode)
-    message.uri = uri
+    message: MessageClienteHTTP;
+    message.méthode = chaine_pour_méthode(méthode);
+    message.uri = uri;
 
     pour pilote.cookies {
-        ajoute_cookie(*message, copie_cookie(it))
+        ajoute_cookie(*message, copie_cookie(it));
     }
 
-    retourne message
+    retourne message;
 }
 
 ajoute_contenu_depuis_formulaire :: fonc (message: *MessageClienteHTTP, formulaire: eini)
 {
-    chn := encode_format_url(formulaire)
+    chn := encode_format_url(formulaire);
 
-    message.ajoute_entête("Content-Type", "application/www-url-form-encoded")
+    message.ajoute_entête("Content-Type", "application/www-url-form-encoded");
     // message.ajoute_entête("Content-Length", chn.taille)
     // message.ajoute_contenu(chn)
 
-    message.contenu = chn
+    message.contenu = chn;
 }
 
 /* Envoie la requête de manière bloquante. */
 envoie_requête :: fonc (pilote: &PiloteClienteHTTP, requête: &MessageClienteHTTP) -> Optionnel(MessageServeuseHTTP)
 {
-    message := chaine_pour_message_cliente(requête)
-    diffère déloge(message)
+    message := chaine_pour_message_cliente(requête);
+    diffère déloge(message);
 
     // ouvre_connexion serveuse
     fichier := tente ouvre_connexion_serveur(requête.uri, vrai) piège err {
-        imprime("erreur : %\n", err)
-        retourne
-    }
+        imprime("erreur : %\n", err);
+        retourne;
+    };
 
     tente écris(*fichier, message) piège err {
-        imprime("erreur : %\n", err)
-        retourne
-    }
+        imprime("erreur : %\n", err);
+        retourne;
+    };
 
     // lis jusqu'à ce que nous n'ayons plus rien à lire
-    parseuse: ParseuseMessageServeuseHTTP
+    parseuse: ParseuseMessageServeuseHTTP;
     // À FAIRE : gestion de la mémoire des messages
     // diffère réinitialise(*parseuse)
 
     boucle {
         contenu := tente lis_tout(*fichier) piège err {
-            imprime("erreur : %\n", err)
-            retourne
-        }
+            imprime("erreur : %\n", err);
+            retourne;
+        };
 
-        ajourne_données(*parseuse, contenu)
+        ajourne_données(*parseuse, contenu);
 
-        déloge(contenu)
+        déloge(contenu);
 
         si message_est_erroné(*parseuse) {
-            imprime("Erreur de parsage dans le message\n")
-            retourne
+            imprime("Erreur de parsage dans le message\n");
+            retourne;
         }
 
         si message_prêt_pour_finalisation(*parseuse) {
-            arrête
+            arrête;
         }
     }
 
-    _ := ferme(*fichier)
+    _ := ferme(*fichier);
 
-    retourne finalise_message(*parseuse)
+    retourne finalise_message(*parseuse);
 }
 
 traite_réponse :: fonc (pilote: &PiloteClienteHTTP, réponse: &MessageServeuseHTTP)
 {
     pour réponse.entêtes {
         si it.nom == "Set-Cookie" {
-            cookie := parse_cookie_serveur(it.valeur)
+            cookie := parse_cookie_serveur(it.valeur);
 
             saufsi fusionne_cookie(*pilote.cookies, cookie) {
-                détruit_cookie(cookie)
+                détruit_cookie(cookie);
             }
         }
     }
@@ -174,8 +174,8 @@ envoie_requête_et_traite_réponse :: fonc (pilote: &PiloteClienteHTTP, requête
 {
     discr pilote.envoie_requête(requête) {
         Quelque(réponse) {
-            pilote.traite_réponse(réponse)
-            retourne réponse
+            pilote.traite_réponse(réponse);
+            retourne réponse;
         }
         sinon {}
     }

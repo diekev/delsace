@@ -1,16 +1,16 @@
-importe Fondation
+importe Fondation;
 
 ajoute :: fonc (a: z32, b: z32) -> z32
 {
-    retourne a + b
+    retourne a + b;
 }
 
 principale :: fonc ()
 {
-    x := 1
-    y := 2
+    x := 1;
+    y := 2;
 
-    z := ajoute(x, y).ajoute(x)
+    z := ajoute(x, y).ajoute(x);
 
-    imprime("%\n", z)
+    imprime("%\n", z);
 }

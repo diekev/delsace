@@ -3,7 +3,7 @@
  * Catégorie : [crash, validation sémantique, type fonction, type polymorphique]
  */
 
-importe Support
+importe Support;
 
 reçoie_une_fonction :: fonc (a: $T, rappel: fonc (valeur: T))
 {
@@ -15,6 +15,6 @@ reçoie_une_autre_fonction :: fonc (a: $T, rappel: fonc (valeur: T))
 
 principale :: fonc ()
 {
-    reçoie_une_fonction(0, reçoie_une_fonction)
-    reçoie_une_autre_fonction(0, reçoie_une_fonction)
+    reçoie_une_fonction(0, reçoie_une_fonction);
+    reçoie_une_autre_fonction(0, reçoie_une_fonction);
 }

@@ -3,12 +3,12 @@
  * Catégorie : [validation sémantique, portée]
  */
 
-importe Fondation
+importe Fondation;
 
 principale :: fonc ()
 {
-    tableau: [..]z32
-    tableau_ajoute(*tableau, 1)
-    assert(tableau.taille == 1)
-    imprimeln("Mémoire utilisée %", Kuri.mémoire_utilisée())
+    tableau: [..]z32;
+    tableau_ajoute(*tableau, 1);
+    assert(tableau.taille == 1);
+    imprimeln("Mémoire utilisée %", Kuri.mémoire_utilisée());
 }

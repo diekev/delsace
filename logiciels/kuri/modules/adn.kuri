@@ -13,23 +13,23 @@
 // La chaine retourner a été logée, et doit donc être délogée par l'appelante.
 encode_adn :: fonc (valeurs: []octet) -> chaine
 {
-    chn: chaine
+    chn: chaine;
 
     si valeurs.taille == 0 {
-        retourne chn
+        retourne chn;
     }
 
-    codes := [ 'a', 'c', 'g', 't' ]
-    reloge_chaine(chn, valeurs.taille * 4)
+    codes := [ 'a', 'c', 'g', 't' ];
+    reloge_chaine(chn, valeurs.taille * 4);
 
     pour v, i dans valeurs {
-        chn[i * 4 + 0] = codes[(v & 0b11000000) >> 6]
-        chn[i * 4 + 1] = codes[(v & 0b00110000) >> 4]
-        chn[i * 4 + 2] = codes[(v & 0b00001100) >> 2]
-        chn[i * 4 + 3] = codes[(v & 0b00000011)]
+        chn[i * 4 + 0] = codes[(v & 0b11000000) >> 6];
+        chn[i * 4 + 1] = codes[(v & 0b00110000) >> 4];
+        chn[i * 4 + 2] = codes[(v & 0b00001100) >> 2];
+        chn[i * 4 + 3] = codes[(v & 0b00000011)];
     }
 
-    retourne chn
+    retourne chn;
 }
 
 // Converti un flux d'octets représantant une chaine d'ADN en un flux binaire. La
@@ -40,19 +40,19 @@ encode_adn :: fonc (valeurs: []octet) -> chaine
 // La chaine retourner a été logée, et doit donc être délogée par l'appelante.
 décode_adn :: fonc (valeurs: []octet) -> chaine
 {
-    chn: chaine
-    taille := valeurs.taille
+    chn: chaine;
+    taille := valeurs.taille;
 
     si taille == 0 {
-        retourne chn
+        retourne chn;
     }
 
-    reloge_chaine(chn, taille / 4)
-    val : z8 = 0
+    reloge_chaine(chn, taille / 4);
+    val : z8 = 0;
 
     pour v, i dans valeurs {
-        idx := i % 4
-        décalage := (3 - idx) * 2
+        idx := i % 4;
+        décalage := (3 - idx) * 2;
 
         discr v {
             'a' { val |= (0b00 << décalage) }
@@ -63,12 +63,12 @@ décode_adn :: fonc (valeurs: []octet) -> chaine
         }
 
         si idx == 3 {
-            chn[i / 4] = val
-            val = 0
+            chn[i / 4] = val;
+            val = 0;
         }
     }
 
-    retourne chn
+    retourne chn;
 }
 
 // Change directement la chaine passée en paramètre de sorte que chaque base est

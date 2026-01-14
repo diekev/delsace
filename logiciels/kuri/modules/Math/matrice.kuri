@@ -1,20 +1,20 @@
-importe Algorithmes // pour échange
-importe Chaine
-importe Fondation
+importe Algorithmes; // pour échange
+importe Chaine;
+importe Fondation;
 
 Mat4r :: struct {
-    m: [4][4]r32
+    m: [4][4]r32;
 }
 
 construis_mat4r_neutre :: fonc () -> Mat4r
 {
-    mat: Mat4r
+    mat: Mat4r;
 
     pour i dans 0 ... 3 {
-        mat.m[i][i] = 1.0
+        mat.m[i][i] = 1.0;
     }
 
-    retourne mat
+    retourne mat;
 }
 
 matrice_projection :: fonc (
@@ -24,488 +24,488 @@ matrice_projection :: fonc (
     plan_proche: r32,
     plan_éloigné: r32) -> Mat4r
 {
-    ratio_aspect := hauteur / largeur
-    champs_de_vue_rad := 1.0 / tangeante(champs_de_vue * 0.5 / 180.0 * Constantes(r32).PI)
+    ratio_aspect := hauteur / largeur;
+    champs_de_vue_rad := 1.0 / tangeante(champs_de_vue * 0.5 / 180.0 * Constantes(r32).PI);
 
-    mat: Mat4r
+    mat: Mat4r;
 
-    mat.m[0][0] = ratio_aspect * champs_de_vue_rad
-    mat.m[1][1] = champs_de_vue_rad
-    mat.m[2][2] = -(plan_éloigné + plan_proche) / (plan_éloigné - plan_proche)
-    mat.m[2][3] = -1.0
-    mat.m[3][2] = -(2.0 * plan_éloigné * plan_proche) / (plan_éloigné - plan_proche)
-    mat.m[3][3] = 0.0
+    mat.m[0][0] = ratio_aspect * champs_de_vue_rad;
+    mat.m[1][1] = champs_de_vue_rad;
+    mat.m[2][2] = -(plan_éloigné + plan_proche) / (plan_éloigné - plan_proche);
+    mat.m[2][3] = -1.0;
+    mat.m[3][2] = -(2.0 * plan_éloigné * plan_proche) / (plan_éloigné - plan_proche);
+    mat.m[3][3] = 0.0;
 
-    retourne mat
+    retourne mat;
 }
 
 // retourne l'inverse d'une matrice qui n'a pas d'échelle
 // utile pour les matrices de projection
 inverse_matrice_sans_échelle :: fonc (mat: Mat4r) -> Mat4r
 {
-    résultat := construis_mat4r_neutre()
+    résultat := construis_mat4r_neutre();
 
     pour i dans 0 ... 2 {
         pour j dans 0 ... 2 {
-            résultat.m[i][j] = mat.m[j][i]
+            résultat.m[i][j] = mat.m[j][i];
         }
     }
 
-    résultat.m[3][0] = -mat.m[3][0]
-    résultat.m[3][1] = -mat.m[3][1]
-    résultat.m[3][2] = -mat.m[3][2]
+    résultat.m[3][0] = -mat.m[3][0];
+    résultat.m[3][1] = -mat.m[3][1];
+    résultat.m[3][2] = -mat.m[3][2];
 
-    retourne résultat
+    retourne résultat;
 }
 
 matrice_de_visé :: fonc (pos: Vec3, cible: Vec3, haut: Vec3) -> Mat4r
 {
-    dir_avant := cible - pos
-    dir_avant = normalise(dir_avant)
+    dir_avant := cible - pos;
+    dir_avant = normalise(dir_avant);
 
-    dir_droite := produit_vectoriel(dir_avant, haut)
-    dir_droite = normalise(dir_droite)
+    dir_droite := produit_vectoriel(dir_avant, haut);
+    dir_droite = normalise(dir_droite);
 
-    dir_haut := produit_vectoriel(dir_droite, dir_avant)
+    dir_haut := produit_vectoriel(dir_droite, dir_avant);
 
-    résultat := construis_mat4r_neutre()
+    résultat := construis_mat4r_neutre();
 
-    résultat.m[0][0] = dir_droite.x
-    résultat.m[1][0] = dir_droite.y
-    résultat.m[2][0] = dir_droite.z
+    résultat.m[0][0] = dir_droite.x;
+    résultat.m[1][0] = dir_droite.y;
+    résultat.m[2][0] = dir_droite.z;
 
-    résultat.m[0][1] = dir_haut.x
-    résultat.m[1][1] = dir_haut.y
-    résultat.m[2][1] = dir_haut.z
+    résultat.m[0][1] = dir_haut.x;
+    résultat.m[1][1] = dir_haut.y;
+    résultat.m[2][1] = dir_haut.z;
 
-    résultat.m[0][2] = -dir_avant.x
-    résultat.m[1][2] = -dir_avant.y
-    résultat.m[2][2] = -dir_avant.z
+    résultat.m[0][2] = -dir_avant.x;
+    résultat.m[1][2] = -dir_avant.y;
+    résultat.m[2][2] = -dir_avant.z;
 
-    résultat.m[3][0] = -produit_scalaire(dir_droite, pos)
-    résultat.m[3][1] = -produit_scalaire(dir_haut, pos)
-    résultat.m[3][2] = produit_scalaire(dir_avant, pos)
+    résultat.m[3][0] = -produit_scalaire(dir_droite, pos);
+    résultat.m[3][1] = -produit_scalaire(dir_haut, pos);
+    résultat.m[3][2] = produit_scalaire(dir_avant, pos);
 
-    retourne résultat
+    retourne résultat;
 }
 
 matrice_rotation_x :: fonc (theta: r32) -> Mat4r
 {
-    résultat: Mat4r
+    résultat: Mat4r;
 
-    résultat.m[0][0] = 1.0
-    résultat.m[1][1] = cosinus(theta)
-    résultat.m[1][2] = sinus(theta)
-    résultat.m[2][1] = -sinus(theta)
-    résultat.m[2][2] = cosinus(theta)
-    résultat.m[3][3] = 1.0
+    résultat.m[0][0] = 1.0;
+    résultat.m[1][1] = cosinus(theta);
+    résultat.m[1][2] = sinus(theta);
+    résultat.m[2][1] = -sinus(theta);
+    résultat.m[2][2] = cosinus(theta);
+    résultat.m[3][3] = 1.0;
 
-    retourne résultat
+    retourne résultat;
 }
 
 matrice_rotation_y :: fonc (theta: r32) -> Mat4r
 {
-    résultat: Mat4r
+    résultat: Mat4r;
 
-    résultat.m[0][0] = cosinus(theta)
-    résultat.m[0][2] = sinus(theta)
-    résultat.m[2][0] = -sinus(theta)
-    résultat.m[1][1] = 1.0
-    résultat.m[2][2] = cosinus(theta)
-    résultat.m[3][3] = 1.0
+    résultat.m[0][0] = cosinus(theta);
+    résultat.m[0][2] = sinus(theta);
+    résultat.m[2][0] = -sinus(theta);
+    résultat.m[1][1] = 1.0;
+    résultat.m[2][2] = cosinus(theta);
+    résultat.m[3][3] = 1.0;
 
-    retourne résultat
+    retourne résultat;
 }
 
 matrice_rotation_z :: fonc (theta: r32) -> Mat4r
 {
-    résultat: Mat4r
+    résultat: Mat4r;
 
-    résultat.m[0][0] = cosinus(theta)
-    résultat.m[0][1] = sinus(theta)
-    résultat.m[1][0] = -sinus(theta)
-    résultat.m[1][1] = cosinus(theta)
-    résultat.m[2][2] = 1.0
-    résultat.m[3][3] = 1.0
+    résultat.m[0][0] = cosinus(theta);
+    résultat.m[0][1] = sinus(theta);
+    résultat.m[1][0] = -sinus(theta);
+    résultat.m[1][1] = cosinus(theta);
+    résultat.m[2][2] = 1.0;
+    résultat.m[3][3] = 1.0;
 
-    retourne résultat
+    retourne résultat;
 }
 
 matrice_translation :: fonc (x := 0.0, y := 0.0, z := 0.0) -> Mat4r
 {
-    résultat := construis_mat4r_neutre()
+    résultat := construis_mat4r_neutre();
 
-    résultat.m[3][0] = x
-    résultat.m[3][1] = y
-    résultat.m[3][2] = z
+    résultat.m[3][0] = x;
+    résultat.m[3][1] = y;
+    résultat.m[3][2] = z;
 
-    retourne résultat
+    retourne résultat;
 }
 
 matrice_translation :: fonc (v: Vec3) -> Mat4r
 {
-    retourne matrice_translation(v.x, v.y, v.z)
+    retourne matrice_translation(v.x, v.y, v.z);
 }
 
 matrice_échelle :: fonc (x: r32, y: r32, z: r32) -> Mat4r
 {
-    résultat := construis_mat4r_neutre()
+    résultat := construis_mat4r_neutre();
 
-    résultat.m[0][0] = x
-    résultat.m[1][1] = y
-    résultat.m[2][2] = z
+    résultat.m[0][0] = x;
+    résultat.m[1][1] = y;
+    résultat.m[2][2] = z;
 
-    retourne résultat
+    retourne résultat;
 }
 
 matrice_échelle :: fonc (v: Vec3) -> Mat4r
 {
-    retourne matrice_échelle(v.x, v.y, v.z)
+    retourne matrice_échelle(v.x, v.y, v.z);
 }
 
 matrice_échelle :: fonc (v: r32) -> Mat4r
 {
-    retourne matrice_échelle(v, v, v)
+    retourne matrice_échelle(v, v, v);
 }
 
 multiplie :: fonc (m1: Mat4r, m2: Mat4r) -> Mat4r
 {
-    résultat: Mat4r
+    résultat: Mat4r;
 
     pour i dans 0 ... 3 {
         pour j dans 0 ... 3 {
-            valeur := 0.0
+            valeur := 0.0;
 
             pour k dans 0 ... 3 {
-                valeur += m1.m[k][j] * m2.m[i][k]
+                valeur += m1.m[k][j] * m2.m[i][k];
             }
 
-            résultat.m[i][j] = valeur
+            résultat.m[i][j] = valeur;
         }
     }
 
-    retourne résultat
+    retourne résultat;
 }
 
 opérateur * :: (m0: Mat4r, m1: Mat4r) -> Mat4r
 {
-    retourne multiplie(m0, m1)
+    retourne multiplie(m0, m1);
 }
 
 transforme :: fonc (mat: Mat4r, vec: Vec3) -> Vec3
 {
-    rés: Vec3
+    rés: Vec3;
 
-    rés.x = vec.x * mat.m[0][0] + vec.y * mat.m[1][0] + vec.z * mat.m[2][0] + mat.m[3][0]
-    rés.y = vec.x * mat.m[0][1] + vec.y * mat.m[1][1] + vec.z * mat.m[2][1] + mat.m[3][1]
-    rés.z = vec.x * mat.m[0][2] + vec.y * mat.m[1][2] + vec.z * mat.m[2][2] + mat.m[3][2]
+    rés.x = vec.x * mat.m[0][0] + vec.y * mat.m[1][0] + vec.z * mat.m[2][0] + mat.m[3][0];
+    rés.y = vec.x * mat.m[0][1] + vec.y * mat.m[1][1] + vec.z * mat.m[2][1] + mat.m[3][1];
+    rés.z = vec.x * mat.m[0][2] + vec.y * mat.m[1][2] + vec.z * mat.m[2][2] + mat.m[3][2];
 
-    w := vec.x * mat.m[0][3] + vec.y * mat.m[1][3] + vec.z * mat.m[2][3] + mat.m[3][3]
+    w := vec.x * mat.m[0][3] + vec.y * mat.m[1][3] + vec.z * mat.m[2][3] + mat.m[3][3];
 
     si w != 0.0 {
-        rés.x /= w
-        rés.y /= w
-        rés.z /= w
+        rés.x /= w;
+        rés.y /= w;
+        rés.z /= w;
     }
 
-    retourne rés
+    retourne rés;
 }
 
 transforme :: fonc (mat: Mat4r, point: Point3D) -> Point3D
 {
-    rés: Point3D
+    rés: Point3D;
 
-    rés.x = point.x * mat.m[0][0] + point.y * mat.m[1][0] + point.z * mat.m[2][0] + mat.m[3][0]
-    rés.y = point.x * mat.m[0][1] + point.y * mat.m[1][1] + point.z * mat.m[2][1] + mat.m[3][1]
-    rés.z = point.x * mat.m[0][2] + point.y * mat.m[1][2] + point.z * mat.m[2][2] + mat.m[3][2]
+    rés.x = point.x * mat.m[0][0] + point.y * mat.m[1][0] + point.z * mat.m[2][0] + mat.m[3][0];
+    rés.y = point.x * mat.m[0][1] + point.y * mat.m[1][1] + point.z * mat.m[2][1] + mat.m[3][1];
+    rés.z = point.x * mat.m[0][2] + point.y * mat.m[1][2] + point.z * mat.m[2][2] + mat.m[3][2];
 
-    w := point.x * mat.m[0][3] + point.y * mat.m[1][3] + point.z * mat.m[2][3] + mat.m[3][3]
+    w := point.x * mat.m[0][3] + point.y * mat.m[1][3] + point.z * mat.m[2][3] + mat.m[3][3];
 
     si w != 0.0 {
-        rés.x /= w
-        rés.y /= w
-        rés.z /= w
+        rés.x /= w;
+        rés.y /= w;
+        rés.z /= w;
     }
 
-    retourne rés
+    retourne rés;
 }
 
 transforme :: fonc (mat: Mat4r, vec: Vec4) -> Vec4
 {
-    rés: Vec4
+    rés: Vec4;
 
-    rés.x = vec.x * mat.m[0][0] + vec.y * mat.m[1][0] + vec.z * mat.m[2][0] + vec.w * mat.m[3][0]
-    rés.y = vec.x * mat.m[0][1] + vec.y * mat.m[1][1] + vec.z * mat.m[2][1] + vec.w * mat.m[3][1]
-    rés.z = vec.x * mat.m[0][2] + vec.y * mat.m[1][2] + vec.z * mat.m[2][2] + vec.w * mat.m[3][2]
-    rés.w = vec.x * mat.m[0][3] + vec.y * mat.m[1][3] + vec.z * mat.m[2][3] + vec.w * mat.m[3][3]
+    rés.x = vec.x * mat.m[0][0] + vec.y * mat.m[1][0] + vec.z * mat.m[2][0] + vec.w * mat.m[3][0];
+    rés.y = vec.x * mat.m[0][1] + vec.y * mat.m[1][1] + vec.z * mat.m[2][1] + vec.w * mat.m[3][1];
+    rés.z = vec.x * mat.m[0][2] + vec.y * mat.m[1][2] + vec.z * mat.m[2][2] + vec.w * mat.m[3][2];
+    rés.w = vec.x * mat.m[0][3] + vec.y * mat.m[1][3] + vec.z * mat.m[2][3] + vec.w * mat.m[3][3];
 
-    retourne rés
+    retourne rés;
 }
 
 inverse_impl :: fonc (matrice_inverse: *Mat4r) -> bool
 {
-    indice_colonnes := [ 0, 0, 0, 0 ]
-    indice_lignes := [ 0, 0, 0, 0 ]
-    index_pivots := [ 0, 0, 0, 0 ]
+    indice_colonnes := [ 0, 0, 0, 0 ];
+    indice_lignes := [ 0, 0, 0, 0 ];
+    index_pivots := [ 0, 0, 0, 0 ];
 
     pour i dans 0 ... 3 {
-        il := 0
-        ic := 0
-        big := 0.0
+        il := 0;
+        ic := 0;
+        big := 0.0;
 
         /* Choisie le pivot */
         pour j dans 0 ... 3 {
             si index_pivots[j] == 1 {
-                continue
+                continue;
             }
 
             pour k dans 0 ... 3 {
                 si index_pivots[k] == 0 {
-                    abs_jk := abs(matrice_inverse.m[j][k])
+                    abs_jk := abs(matrice_inverse.m[j][k]);
 
                     si abs_jk >= big {
-                        big = abs_jk
-                        il = j
-                        ic = k
+                        big = abs_jk;
+                        il = j;
+                        ic = k;
                     }
                 }
                 sinon si index_pivots[k] > 1 {
                     /* À FAIRE : erreur :
                      * "Matrice singulière donnée à la fonction inverse". */
-                    retourne faux
+                    retourne faux;
                 }
             }
         }
 
-        index_pivots[ic] += 1
+        index_pivots[ic] += 1;
 
         /* Permute les lignes _irow_ et _icol_ pour le pivot. */
         si il != ic {
             pour k dans 0 ... 3 {
-                permute(*matrice_inverse.m[il][k], *matrice_inverse.m[ic][k])
+                permute(*matrice_inverse.m[il][k], *matrice_inverse.m[ic][k]);
             }
         }
 
-        indice_lignes[i] = il
-        indice_colonnes[i] = ic
+        indice_lignes[i] = il;
+        indice_colonnes[i] = ic;
 
         si matrice_inverse.m[ic][ic] == 0.0 {
             /* À FAIRE : erreur :
              * "Matrice singulière donnée à la fonction inverse". */
-            retourne faux
+            retourne faux;
         }
 
         /* Mise à l'échelle la ligne pour faire en sorte que sa valeur sur la
          * diagonale soit égal à 1 (un). */
-        pivot_inverse := 1.0 / matrice_inverse.m[ic][ic]
-        matrice_inverse.m[ic][ic] = 1.0
+        pivot_inverse := 1.0 / matrice_inverse.m[ic][ic];
+        matrice_inverse.m[ic][ic] = 1.0;
 
         pour j dans 0 ... 3 {
-            matrice_inverse.m[ic][j] *= pivot_inverse
+            matrice_inverse.m[ic][j] *= pivot_inverse;
         }
 
         /* Soustrait cette ligne des autres pour mettre à zéro leurs colonnes. */
         pour j dans 0 ... 3 {
             si j == ic {
-                continue
+                continue;
             }
 
-            sauvegarde := matrice_inverse.m[j][ic]
-            matrice_inverse.m[j][ic] = 0.0
+            sauvegarde := matrice_inverse.m[j][ic];
+            matrice_inverse.m[j][ic] = 0.0;
 
             pour k dans 0 ... 3 {
-                matrice_inverse.m[j][k] -= matrice_inverse.m[ic][k] * sauvegarde
+                matrice_inverse.m[j][k] -= matrice_inverse.m[ic][k] * sauvegarde;
             }
         }
     }
 
     /* Échange les colonnes pour réfléchir la permutation. */
-    j := 3
+    j := 3;
     tantque j >= 0 {
         si indice_lignes[j] == indice_colonnes[j] {
-            j -= 1
-            continue
+            j -= 1;
+            continue;
         }
 
         pour k dans 0 ... 3 {
             permute(*matrice_inverse.m[k][indice_lignes[j]],
-                    *matrice_inverse.m[k][indice_colonnes[j]])
+                    *matrice_inverse.m[k][indice_colonnes[j]]);
         }
 
-        j -= 1
+        j -= 1;
     }
 
-    retourne vrai
+    retourne vrai;
 }
 
 inverse :: fonc (mat: Mat4r) -> Mat4r
 {
-    résultat := mat
+    résultat := mat;
 
     si !inverse_impl(*résultat) {
-        retourne construis_mat4r_neutre()
+        retourne construis_mat4r_neutre();
     }
 
-    retourne résultat
+    retourne résultat;
 }
 
 crée_matrice_projection_orthographique :: fonc (gauche: r32, droite: r32, bas: r32, haut: r32) -> Mat4r
 {
-    résultat : Mat4r = construis_mat4r_neutre()
-    résultat.m[0][0] = 2.0 / (droite - gauche)
-    résultat.m[1][1] = 2.0 / (haut - bas)
-    résultat.m[2][2] = -1.0
-    résultat.m[3][0] = -(droite + gauche) / (droite - gauche)
-    résultat.m[3][1] = -(haut + bas) / (haut - bas)
-    retourne résultat
+    résultat : Mat4r = construis_mat4r_neutre();
+    résultat.m[0][0] = 2.0 / (droite - gauche);
+    résultat.m[1][1] = 2.0 / (haut - bas);
+    résultat.m[2][2] = -1.0;
+    résultat.m[3][0] = -(droite + gauche) / (droite - gauche);
+    résultat.m[3][1] = -(haut + bas) / (haut - bas);
+    retourne résultat;
 }
 
 crée_matrice_projection_orthographique :: fonc (largeur: r32, hauteur: r32) -> Mat4r
 {
-    retourne crée_matrice_projection_orthographique(-largeur, largeur, -hauteur, hauteur)
+    retourne crée_matrice_projection_orthographique(-largeur, largeur, -hauteur, hauteur);
 }
 
 crée_matrice_projection_orthographique :: fonc (gauche: r32, droite: r32, bas: r32, haut: r32, plan_proche: r32, plan_éloigné: r32) -> Mat4r
 {
-    résultat : Mat4r = construis_mat4r_neutre()
-    résultat.m[0][0] = 2.0 / (droite - gauche)
-    résultat.m[1][1] = 2.0 / (haut - bas)
-    résultat.m[2][2] = -2.0 / (plan_éloigné - plan_proche)
-    résultat.m[3][0] = -(droite + gauche) / (droite - gauche)
-    résultat.m[3][1] = -(haut + bas) / (haut - bas)
-    résultat.m[3][2] = -(plan_éloigné + plan_proche) / (plan_éloigné - plan_proche)
-    retourne résultat
+    résultat : Mat4r = construis_mat4r_neutre();
+    résultat.m[0][0] = 2.0 / (droite - gauche);
+    résultat.m[1][1] = 2.0 / (haut - bas);
+    résultat.m[2][2] = -2.0 / (plan_éloigné - plan_proche);
+    résultat.m[3][0] = -(droite + gauche) / (droite - gauche);
+    résultat.m[3][1] = -(haut + bas) / (haut - bas);
+    résultat.m[3][2] = -(plan_éloigné + plan_proche) / (plan_éloigné - plan_proche);
+    retourne résultat;
 }
 
 crée_matrice_projection_perspective :: fonc (fovy: r32, aspect: r32, plan_proche: r32, plan_éloigné: r32) -> Mat4r
 {
-    assert(aspect != 0.0)
-    assert(plan_éloigné != plan_proche)
+    assert(aspect != 0.0);
+    assert(plan_éloigné != plan_proche);
 
-    rad := fovy
-    tanHalfFovy := tangeante(rad / 2.0)
+    rad := fovy;
+    tanHalfFovy := tangeante(rad / 2.0);
 
-    résultat: Mat4r
-    résultat.m[0][0] = 1.0 / (aspect * tanHalfFovy)
-    résultat.m[1][1] = 1.0 / (tanHalfFovy)
-    résultat.m[2][2] = -(plan_éloigné + plan_proche) / (plan_éloigné - plan_proche)
-    résultat.m[2][3] = -1.0
-    résultat.m[3][2] = -(2.0 * plan_éloigné * plan_proche) / (plan_éloigné - plan_proche)
-    retourne résultat
+    résultat: Mat4r;
+    résultat.m[0][0] = 1.0 / (aspect * tanHalfFovy);
+    résultat.m[1][1] = 1.0 / (tanHalfFovy);
+    résultat.m[2][2] = -(plan_éloigné + plan_proche) / (plan_éloigné - plan_proche);
+    résultat.m[2][3] = -1.0;
+    résultat.m[3][2] = -(2.0 * plan_éloigné * plan_proche) / (plan_éloigné - plan_proche);
+    retourne résultat;
 }
 
 // ------------------------------------------------------------
 
 Matrice3x3 :: struct ($T: type_de_données) {
-    m: [3][3]T
+    m: [3][3]T;
 }
 
 transforme :: fonc (mat: Matrice3x3($T), vec: Vec3) -> Vec3 #enligne
 {
-    rés: Vec3
-    rés.x = vec.x * mat.m[0][0] + vec.y * mat.m[1][0] + vec.z * mat.m[2][0]
-    rés.y = vec.x * mat.m[0][1] + vec.y * mat.m[1][1] + vec.z * mat.m[2][1]
-    rés.z = vec.x * mat.m[0][2] + vec.y * mat.m[1][2] + vec.z * mat.m[2][2]
-    retourne rés
+    rés: Vec3;
+    rés.x = vec.x * mat.m[0][0] + vec.y * mat.m[1][0] + vec.z * mat.m[2][0];
+    rés.y = vec.x * mat.m[0][1] + vec.y * mat.m[1][1] + vec.z * mat.m[2][1];
+    rés.z = vec.x * mat.m[0][2] + vec.y * mat.m[1][2] + vec.z * mat.m[2][2];
+    retourne rés;
 }
 
-Mat3r :: Matrice3x3(r32)
+Mat3r :: Matrice3x3(r32);
 
 MatriceNxN :: struct ($N: z32, $T: type_de_données) {
-    m: [N][N]T
+    m: [N][N]T;
 }
 
 VecteurN :: struct ($N: z32, $T: type_de_données) #corps_texte {
     si N == 2 {
-        retourne copie_chaine("x: T; y: T")
+        retourne copie_chaine("x: T; y: T");
     }
 
     si N == 3 {
-        retourne copie_chaine("x: T; y: T; z: T")
+        retourne copie_chaine("x: T; y: T; z: T");
     }
 
     si N == 4 {
-        retourne copie_chaine("x: T; y: T; z: T, w: T")
+        retourne copie_chaine("x: T; y: T; z: T, w: T");
     }
 
-    retourne copie_chaine("")
+    retourne copie_chaine("");
 }
 
 matrice_neutre :: fonc ($N: z32, $T: type_de_données) -> MatriceNxN(N, T)
 {
-    résultat: MatriceNxN(N, T)
+    résultat: MatriceNxN(N, T);
     pour N {
-        résultat.m[it][it] = 1
+        résultat.m[it][it] = 1;
     }
-    retourne résultat
+    retourne résultat;
 }
 
 matrice_échelle :: fonc (vec: VecteurN($N, $T)) -> MatriceNxN(N, T)
 {
-    résultat: MatriceNxN(N, T)
+    résultat: MatriceNxN(N, T);
 
     si N == 3 {
-        résultat.m[0][0] = vec.x
-        résultat.m[1][1] = vec.y
-        résultat.m[2][2] = vec.z
+        résultat.m[0][0] = vec.x;
+        résultat.m[1][1] = vec.y;
+        résultat.m[2][2] = vec.z;
     }
 
-    retourne résultat
+    retourne résultat;
 }
 
 matrice_rotation :: fonc (angle: $T) -> MatriceNxN(3, T)
 {
-    résultat: MatriceNxN(N, T)
+    résultat: MatriceNxN(N, T);
 
     si N == 3 {
     }
 
-    retourne résultat
+    retourne résultat;
 }
 
 matrice_translation :: fonc (vec: VecteurN($N, $T)) -> MatriceNxN(N, T)
 {
-    résultat: MatriceNxN(N, T)
+    résultat: MatriceNxN(N, T);
 
     si N == 3 {
-        résultat.m[0][2] = vec.x
-        résultat.m[1][2] = vec.y
-        résultat.m[2][2] = vec.z
+        résultat.m[0][2] = vec.x;
+        résultat.m[1][2] = vec.y;
+        résultat.m[2][2] = vec.z;
     }
 
-    retourne résultat
+    retourne résultat;
 }
 
 transforme :: fonc (mat: $M/MatriceNxN, vec: $V/VecteurN) -> V
 {
-    #assert M.N == V.N && M.T == V.T
+    #assert M.N == V.N && M.T == V.T;
 
-    résultat: V
+    résultat: V;
 
     si M.N == 3 {
-        résultat.x = vec.x * mat.m[0][0] + vec.y * mat.m[1][0] + vec.z * mat.m[2][0]
-        résultat.y = vec.x * mat.m[0][1] + vec.y * mat.m[1][1] + vec.z * mat.m[2][1]
-        résultat.z = vec.x * mat.m[0][2] + vec.y * mat.m[1][2] + vec.z * mat.m[2][2]
+        résultat.x = vec.x * mat.m[0][0] + vec.y * mat.m[1][0] + vec.z * mat.m[2][0];
+        résultat.y = vec.x * mat.m[0][1] + vec.y * mat.m[1][1] + vec.z * mat.m[2][1];
+        résultat.z = vec.x * mat.m[0][2] + vec.y * mat.m[1][2] + vec.z * mat.m[2][2];
     }
 
-    retourne résultat
+    retourne résultat;
 }
 
 multiplie :: fonc (m1: $M/MatriceNxN, m2: M) -> M
 {
-    résultat: M
+    résultat: M;
 
     pour i dans M.N {
         pour j dans M.N {
-            valeur : M.T = 0
+            valeur : M.T = 0;
 
             pour k dans M.N {
-                valeur += m1.m[k][j] * m2.m[i][k]
+                valeur += m1.m[k][j] * m2.m[i][k];
             }
 
-            résultat.m[i][j] = valeur
+            résultat.m[i][j] = valeur;
         }
     }
 
-    retourne résultat
+    retourne résultat;
 }

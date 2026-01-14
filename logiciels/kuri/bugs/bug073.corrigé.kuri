@@ -4,7 +4,7 @@
  */
 
 ParamètresGénérationTige (object) :: struct {
-    x: z32
+    x: z32;
 }
 
 principale :: fonc ()

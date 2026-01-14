@@ -2,7 +2,7 @@
  * Catégorie : [validation sémantique, résolution symbole, variable globale]
  */
 
-importe Support
+importe Support;
 
 foo :: fonc ()
 {
@@ -10,7 +10,7 @@ foo :: fonc ()
 
 principale :: fonc ()
 {
-    foo2()
+    foo2();
 }
 
-foo2 := foo
+foo2 := foo;

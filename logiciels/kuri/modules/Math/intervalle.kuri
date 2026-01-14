@@ -3,8 +3,8 @@
  */
 
 Intervalle :: struct {
-    min: r32
-    max: r32
+    min: r32;
+    max: r32;
 }
 
 // --------------------------------------------
@@ -16,23 +16,23 @@ Intervalle :: struct {
 
 intervalle_uni :: fonc (intervalle0: Intervalle, intervalle1: Intervalle) -> Intervalle
 {
-    min_val := min(intervalle0.min, intervalle1.min)
-    max_val := max(intervalle0.max, intervalle1.max)
+    min_val := min(intervalle0.min, intervalle1.min);
+    max_val := max(intervalle0.max, intervalle1.max);
 
-    retourne Intervalle(min_val, max_val)
+    retourne Intervalle(min_val, max_val);
 }
 
 intervalle_intersecté :: fonc (intervalle0: Intervalle, intervalle1: Intervalle) -> Intervalle
 {
-    min_val := max(intervalle0.min, intervalle1.min)
-    max_val := min(intervalle0.max, intervalle1.max)
+    min_val := max(intervalle0.min, intervalle1.min);
+    max_val := min(intervalle0.max, intervalle1.max);
 
-    retourne Intervalle(min_val, max_val)
+    retourne Intervalle(min_val, max_val);
 }
 
 est_dans_l_intervalle :: fonc (intervalle: Intervalle, valeur: r32) -> bool
 {
-    retourne intervalle.min <= valeur <= intervalle.max
+    retourne intervalle.min <= valeur <= intervalle.max;
 }
 
 // --------------------------------------------
@@ -42,41 +42,41 @@ est_dans_l_intervalle :: fonc (intervalle: Intervalle, valeur: r32) -> bool
 
 opérateur + :: (intervalle0: Intervalle, intervalle1: Intervalle) -> Intervalle
 {
-    retourne Intervalle(intervalle0.min + intervalle1.min, intervalle0.max + intervalle1.max)
+    retourne Intervalle(intervalle0.min + intervalle1.min, intervalle0.max + intervalle1.max);
 }
 
 opérateur - :: (intervalle0: Intervalle, intervalle1: Intervalle) -> Intervalle
 {
-    retourne Intervalle(intervalle0.min - intervalle1.max, intervalle0.max - intervalle1.min)
+    retourne Intervalle(intervalle0.min - intervalle1.max, intervalle0.max - intervalle1.min);
 }
 
 opérateur * :: (intervalle0: Intervalle, intervalle1: Intervalle) -> Intervalle
 {
-    x1y1 := intervalle0.min * intervalle1.min
-    x1y2 := intervalle0.min * intervalle1.max
-    x2y1 := intervalle0.max * intervalle1.min
-    x2y2 := intervalle0.max * intervalle1.max
+    x1y1 := intervalle0.min * intervalle1.min;
+    x1y2 := intervalle0.min * intervalle1.max;
+    x2y1 := intervalle0.max * intervalle1.min;
+    x2y2 := intervalle0.max * intervalle1.max;
 
-    min_val := min(x1y1, x1y2, x2y1, x2y2)
-    max_val := max(x1y1, x1y2, x2y1, x2y2)
+    min_val := min(x1y1, x1y2, x2y1, x2y2);
+    max_val := max(x1y1, x1y2, x2y1, x2y2);
 
-    retourne Intervalle(min_val, max_val)
+    retourne Intervalle(min_val, max_val);
 }
 
 opérateur * :: (intervalle0: Intervalle, échelle: r32) -> Intervalle
 {
-    retourne Intervalle(intervalle0.min * échelle, intervalle0.max * échelle)
+    retourne Intervalle(intervalle0.min * échelle, intervalle0.max * échelle);
 }
 
 opérateur / :: (intervalle0: Intervalle, intervalle1: Intervalle) -> Intervalle
 {
-    inverse_intervalle1 := Intervalle(1.0 / intervalle1.max, 1.0 / intervalle1.min)
-    retourne intervalle0 * inverse_intervalle1
+    inverse_intervalle1 := Intervalle(1.0 / intervalle1.max, 1.0 / intervalle1.min);
+    retourne intervalle0 * inverse_intervalle1;
 }
 
 opérateur / :: (intervalle0: Intervalle, échelle: r32) -> Intervalle
 {
-    retourne Intervalle(intervalle0.min / échelle, intervalle0.max / échelle)
+    retourne Intervalle(intervalle0.min / échelle, intervalle0.max / échelle);
 }
 
 /*

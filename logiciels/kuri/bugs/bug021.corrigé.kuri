@@ -5,10 +5,10 @@
 
 émets_panique :: fonc ()
 {
-    panique("Quelque chose...")
+    panique("Quelque chose...");
 }
 
-#exécute émets_panique()
+#exécute émets_panique();
 
 principale :: fonc ()
 {

@@ -5,5 +5,5 @@
 principale :: fonc ()
 {
     /* Pour z32, 31 est le maximum. */
-    _ := 1 << 32
+    _ := 1 << 32;
 }

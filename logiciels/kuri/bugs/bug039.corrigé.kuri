@@ -3,26 +3,26 @@
  * Catégorie : [exécution code, info type, type énum]
  */
 
-importe Fondation
+importe Fondation;
 
 MonÉnum :: énum z32 {
-    VALEUR
+    VALEUR;
 }
 
 test_impression_énum :: fonc () -> bool
 {
-    a := MonÉnum.VALEUR
-    c := imprime_chaine("%", a)
-    diffère déloge(c)
+    a := MonÉnum.VALEUR;
+    c := imprime_chaine("%", a);
+    diffère déloge(c);
 
-    retourne c == "VALEUR"
+    retourne c == "VALEUR";
 }
 
-#assert test_impression_énum()
+#assert test_impression_énum();
 
 principale :: fonc ()
 {
     saufsi test_impression_énum() {
-        exit(1)
+        exit(1);
     }
 }

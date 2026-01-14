@@ -1,7 +1,7 @@
 // --------------------------------
 // Cas : On ne peut pas appeler une fonction inconnue d'un module.
 
-importe ModuleTest
+importe ModuleTest;
 
 principale :: fonc (compte : z32, arguments : **z8) -> z32
 {

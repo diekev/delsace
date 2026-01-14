@@ -2,61 +2,61 @@
  */
 
 Complexe :: struct {
-    réel: r32
-    imaginaire: r32
+    réel: r32;
+    imaginaire: r32;
 }
 
 opérateur + :: (c1: Complexe, c2: Complexe) -> Complexe
 {
-    r : Complexe = ---
-    r.réel = c1.réel + c2.réel
-    r.imaginaire = c1.imaginaire + c2.imaginaire
-    retourne r
+    r : Complexe = ---;
+    r.réel = c1.réel + c2.réel;
+    r.imaginaire = c1.imaginaire + c2.imaginaire;
+    retourne r;
 }
 
 opérateur - :: (c1: Complexe, c2: Complexe) -> Complexe
 {
-    r : Complexe = ---
-    r.réel = c1.réel - c2.réel
-    r.imaginaire = c1.imaginaire - c2.imaginaire
-    retourne r
+    r : Complexe = ---;
+    r.réel = c1.réel - c2.réel;
+    r.imaginaire = c1.imaginaire - c2.imaginaire;
+    retourne r;
 }
 
 opérateur * :: (c1: Complexe, c2: Complexe) -> Complexe
 {
-    r : Complexe = ---
+    r : Complexe = ---;
 
-    tmp_r := c1.réel * c2.réel - c1.imaginaire * c2.imaginaire
-    tmp_i := c1.réel * c2.imaginaire + c1.imaginaire * c2.réel
+    tmp_r := c1.réel * c2.réel - c1.imaginaire * c2.imaginaire;
+    tmp_i := c1.réel * c2.imaginaire + c1.imaginaire * c2.réel;
 
-    r.réel = tmp_r
-    r.imaginaire = tmp_i
+    r.réel = tmp_r;
+    r.imaginaire = tmp_i;
 
-    retourne r
+    retourne r;
 }
 
 opérateur * :: (c1: Complexe, s: r32) -> Complexe
 {
-    r : Complexe = ---
-    r.réel = c1.réel * s
-    r.imaginaire = c1.imaginaire * s
-    retourne r
+    r : Complexe = ---;
+    r.réel = c1.réel * s;
+    r.imaginaire = c1.imaginaire * s;
+    retourne r;
 }
 
 opérateur / :: (c1: Complexe, s: r32) -> Complexe
 {
-    r : Complexe = ---
-    r.réel = c1.réel / s
-    r.imaginaire = c1.imaginaire / s
-    retourne r
+    r : Complexe = ---;
+    r.réel = c1.réel / s;
+    r.imaginaire = c1.imaginaire / s;
+    retourne r;
 }
 
 conjugué :: fonc (c: Complexe) -> Complexe
 {
-    r : Complexe = ---
-    r.réel = c.réel
-    r.imaginaire = -c.imaginaire
-    retourne r
+    r : Complexe = ---;
+    r.réel = c.réel;
+    r.imaginaire = -c.imaginaire;
+    retourne r;
 }
 
 /*

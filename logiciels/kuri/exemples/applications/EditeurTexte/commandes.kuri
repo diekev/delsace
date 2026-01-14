@@ -1,203 +1,203 @@
-importe Compilatrice
+importe Compilatrice;
 
 donne_commande_pour_nom :: fonc (nom: chaine) -> fonc (anonyme: *Anonyme)
 #corps_texte {
-    enchaineuse: Enchaineuse
-    initialise_enchaineuse(*enchaineuse)
+    enchaineuse: Enchaineuse;
+    initialise_enchaineuse(*enchaineuse);
 
-    lexèmes := compilatrice_lèxe_fichier(#chemin_de_ce_fichier)
+    lexèmes := compilatrice_lèxe_fichier(#chemin_de_ce_fichier);
 
-    sentinelle_trouvée := faux
+    sentinelle_trouvée := faux;
 
     pour lexèmes {
         si it.genre != Compilatrice.GenreLexème.CHAINE_CARACTERE {
-            continue
+            continue;
         }
 
         si it.texte == "donne_commande_pour_nom" {
-            sentinelle_trouvée = vrai
-            continue
+            sentinelle_trouvée = vrai;
+            continue;
         }
 
         saufsi sentinelle_trouvée {
-            continue
+            continue;
         }
 
         saufsi it.texte.commence_par("commande_") {
-            continue
+            continue;
         }
 
-        nom_commande := it.texte.avance("commande_".taille)
+        nom_commande := it.texte.avance("commande_".taille);
 
-        ajoute_au_tampon(*enchaineuse, "    si nom == \"", nom_commande, "\" { retourne ", it.texte, " }\n")
+        ajoute_au_tampon(*enchaineuse, "    si nom == \"", nom_commande, "\" { retourne ", it.texte, " }\n");
     }
 
-    ajoute_au_tampon(*enchaineuse, "    retourne nul\n")
+    ajoute_au_tampon(*enchaineuse, "    retourne nul\n");
 
-    retourne chaine_depuis_enchaineuse(*enchaineuse)
+    retourne chaine_depuis_enchaineuse(*enchaineuse);
 }
 
 commande_défilage_bas :: fonc (anonyme: *Anonyme)
 {
-    anonyme.éditeur.décalage_ligne += 1
+    anonyme.éditeur.décalage_ligne += 1;
     si anonyme.éditeur.décalage_ligne >= anonyme.éditeur.lignes_texte.taille {
-        anonyme.éditeur.décalage_ligne = anonyme.éditeur.lignes_texte.taille comme z32 - 1
+        anonyme.éditeur.décalage_ligne = anonyme.éditeur.lignes_texte.taille comme z32 - 1;
     }
 }
 
 commande_déplace_curseur_bas :: fonc (anonyme: *Anonyme)
 {
-    éditeur_déplace_curseur(*anonyme.éditeur, Mouvement.LigneSuivante)
+    éditeur_déplace_curseur(*anonyme.éditeur, Mouvement.LigneSuivante);
 }
 
 commande_défilage_haut :: fonc (anonyme: *Anonyme)
 {
-    anonyme.éditeur.décalage_ligne -= 1
+    anonyme.éditeur.décalage_ligne -= 1;
     si anonyme.éditeur.décalage_ligne < 0 {
-        anonyme.éditeur.décalage_ligne = 0
+        anonyme.éditeur.décalage_ligne = 0;
     }
 }
 
 commande_déplace_curseur_haut :: fonc (anonyme: *Anonyme)
 {
-    éditeur_déplace_curseur(*anonyme.éditeur, Mouvement.LignePrécédente)
+    éditeur_déplace_curseur(*anonyme.éditeur, Mouvement.LignePrécédente);
 }
 
 commande_va_début_ligne :: fonc (anonyme: *Anonyme)
 {
-    éditeur_déplace_curseur(*anonyme.éditeur, Mouvement.DébutLigne)
+    éditeur_déplace_curseur(*anonyme.éditeur, Mouvement.DébutLigne);
 }
 
 commande_va_fin_ligne :: fonc (anonyme: *Anonyme)
 {
-    éditeur_déplace_curseur(*anonyme.éditeur, Mouvement.FinLigne)
+    éditeur_déplace_curseur(*anonyme.éditeur, Mouvement.FinLigne);
 }
 
 commande_va_page_précédente :: fonc (anonyme: *Anonyme)
 {
-    éditeur_déplace_curseur(*anonyme.éditeur, Mouvement.PagePrécédente)
+    éditeur_déplace_curseur(*anonyme.éditeur, Mouvement.PagePrécédente);
 }
 
 commande_va_page_suivante :: fonc (anonyme: *Anonyme)
 {
-    éditeur_déplace_curseur(*anonyme.éditeur, Mouvement.PageSuivante)
+    éditeur_déplace_curseur(*anonyme.éditeur, Mouvement.PageSuivante);
 }
 
 commande_va_au_mot_précédent :: fonc (anonyme: *Anonyme)
 {
-    éditeur_déplace_curseur(*anonyme.éditeur, Mouvement.MotPrécédent)
+    éditeur_déplace_curseur(*anonyme.éditeur, Mouvement.MotPrécédent);
 }
 
 commande_va_à_gauche :: fonc (anonyme: *Anonyme)
 {
-    éditeur_déplace_curseur(*anonyme.éditeur, Mouvement.Recule)
+    éditeur_déplace_curseur(*anonyme.éditeur, Mouvement.Recule);
 }
 
 commande_va_à_droite :: fonc (anonyme: *Anonyme)
 {
-    éditeur_déplace_curseur(*anonyme.éditeur, Mouvement.Avance)
+    éditeur_déplace_curseur(*anonyme.éditeur, Mouvement.Avance);
 }
 
 commande_va_au_mot_suivant :: fonc (anonyme: *Anonyme)
 {
-    éditeur_déplace_curseur(*anonyme.éditeur, Mouvement.MotSuivant)
+    éditeur_déplace_curseur(*anonyme.éditeur, Mouvement.MotSuivant);
 }
 
 commande_ajoute_nouvelle_ligne :: fonc (anonyme: *Anonyme)
 {
-    éditeur_ajoute_nouvelle_ligne(*anonyme.éditeur)
+    éditeur_ajoute_nouvelle_ligne(*anonyme.éditeur);
 }
 
 commande_supprime_caractère :: fonc (anonyme: *Anonyme)
 {
-    éditeur_supprime_caractère(*anonyme.éditeur)
+    éditeur_supprime_caractère(*anonyme.éditeur);
 }
 
 commande_supprime :: fonc (anonyme: *Anonyme)
 {
-    éditeur_déplace_curseur(*anonyme.éditeur, Mouvement.Avance)
-    éditeur_supprime_caractère(*anonyme.éditeur)
+    éditeur_déplace_curseur(*anonyme.éditeur, Mouvement.Avance);
+    éditeur_supprime_caractère(*anonyme.éditeur);
 }
 
 commande_ouvrir_fichier :: fonc (anonyme: *Anonyme)
 {
-    anonyme.état = Anonyme.État.OUVERTURE_FICHIER
+    anonyme.état = Anonyme.État.OUVERTURE_FICHIER;
 }
 
 commande_sélectionne_fichier_suivant :: fonc (anonyme: *Anonyme)
 {
-    avance_sélecteur(anonyme, *anonyme.sélecteur_fichier_projet)
+    avance_sélecteur(anonyme, *anonyme.sélecteur_fichier_projet);
 }
 
 commande_sélectionne_fichier_précédent :: fonc (anonyme: *Anonyme)
 {
-    recule_sélecteur(anonyme, *anonyme.sélecteur_fichier_projet)
+    recule_sélecteur(anonyme, *anonyme.sélecteur_fichier_projet);
 }
 
 commande_ouvre_fichier_sélectionné :: fonc (anonyme: *Anonyme)
 {
-    fichiers := donne_fichiers_pour_sélecteur(anonyme)
+    fichiers := donne_fichiers_pour_sélecteur(anonyme);
 
     si anonyme.sélecteur_fichier_projet.fichier_sélectionné < 0 || anonyme.sélecteur_fichier_projet.fichier_sélectionné >= fichiers.taille {
-        retourne
+        retourne;
     }
 
-    fichier := fichiers[anonyme.sélecteur_fichier_projet.fichier_sélectionné]
-    éditeur_ouvre(*anonyme.éditeur, fichier.chemin)
-    anonyme.état = Anonyme.État.ÉDITION
+    fichier := fichiers[anonyme.sélecteur_fichier_projet.fichier_sélectionné];
+    éditeur_ouvre(*anonyme.éditeur, fichier.chemin);
+    anonyme.état = Anonyme.État.ÉDITION;
 }
 
 commande_sauvegarde :: fonc (anonyme: *Anonyme)
 {
     // À FAIRE : prompt
-    éditeur_sauvegarde_fichier(*anonyme.éditeur, nul)
+    éditeur_sauvegarde_fichier(*anonyme.éditeur, nul);
 }
 
 commande_ouvrir_projet :: fonc (anonyme: *Anonyme)
 {
-    anonyme.état = Anonyme.État.OUVERTURE_PROJET
+    anonyme.état = Anonyme.État.OUVERTURE_PROJET;
 }
 
 commande_sélectionne_projet_suivant :: fonc (anonyme: *Anonyme)
 {
-    avance_sélecteur(anonyme, *anonyme.sélecteur_projet)
+    avance_sélecteur(anonyme, *anonyme.sélecteur_projet);
 }
 
 commande_sélectionne_projet_précédent :: fonc (anonyme: *Anonyme)
 {
-    recule_sélecteur(anonyme, *anonyme.sélecteur_projet)
+    recule_sélecteur(anonyme, *anonyme.sélecteur_projet);
 }
 
 commande_ouvre_projet_sélectionné :: fonc (anonyme: *Anonyme)
 {
-    fichiers := donne_fichiers_pour_sélecteur(anonyme)
+    fichiers := donne_fichiers_pour_sélecteur(anonyme);
 
     si anonyme.sélecteur_projet.fichier_sélectionné < 0 || anonyme.sélecteur_projet.fichier_sélectionné >= fichiers.taille {
-        retourne
+        retourne;
     }
 
-    fichier := fichiers[anonyme.sélecteur_projet.fichier_sélectionné]
+    fichier := fichiers[anonyme.sélecteur_projet.fichier_sélectionné];
     // À FAIRE : erreur
     saufsi ouvre_projet(anonyme, fichier.nom) {
-        imprimeln("Impossible d'ouvrir : % (%)", fichier.nom, fichier.chemin)
+        imprimeln("Impossible d'ouvrir : % (%)", fichier.nom, fichier.chemin);
     }
-    anonyme.état = Anonyme.État.PROJET_OUVERT
+    anonyme.état = Anonyme.État.PROJET_OUVERT;
 }
 
 avance_sélecteur :: fonc (anonyme: *Anonyme, sélecteur: *SélecteurFichier)
 {
-    sélecteur.fichier_sélectionné += 1
-    fichiers := donne_fichiers_pour_sélecteur(anonyme)
+    sélecteur.fichier_sélectionné += 1;
+    fichiers := donne_fichiers_pour_sélecteur(anonyme);
     si sélecteur.fichier_sélectionné >= fichiers.taille {
-        sélecteur.fichier_sélectionné = 0
+        sélecteur.fichier_sélectionné = 0;
     }
 }
 
 recule_sélecteur :: fonc (anonyme: *Anonyme, sélecteur: *SélecteurFichier)
 {
-    sélecteur.fichier_sélectionné -= 1
-    fichiers := donne_fichiers_pour_sélecteur(anonyme)
+    sélecteur.fichier_sélectionné -= 1;
+    fichiers := donne_fichiers_pour_sélecteur(anonyme);
     si sélecteur.fichier_sélectionné < 0 {
-        sélecteur.fichier_sélectionné = fichiers.taille - 1
+        sélecteur.fichier_sélectionné = fichiers.taille - 1;
     }
 }
