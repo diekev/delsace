@@ -1,59 +1,59 @@
-importe Allocatrices
-importe Fondation
-importe Moteur
-importe SysFichier
+importe Allocatrices;
+importe Fondation;
+importe Moteur;
+importe SysFichier;
 
 // tutoriel : http://notes.eatonphil.com/database-basics.html
 
 imprime_prompt :: fonc () -> rien
 {
-    imprime("db > ")
+    imprime("db > ");
 }
 
 // ------------------------------------------------------------
 
 lance_boucle_exécution :: fonc ()
 {
-    nouveau_contexte := contexte()
-    nouveau_contexte.allocatrice = __stockage_temporaire
+    nouveau_contexte := contexte();
+    nouveau_contexte.allocatrice = __stockage_temporaire;
 
-    cm: CoulisseMémoire
-    diffère détruit_coulisse(*cm)
+    cm: CoulisseMémoire;
+    diffère détruit_coulisse(*cm);
 
     boucle {
-        imprime_prompt()
+        imprime_prompt();
 
-        entrée: chaine
+        entrée: chaine;
         pousse_contexte nouveau_contexte {
-            entrée = entrée_standarde().lis_ligne()
+            entrée = entrée_standarde().lis_ligne();
         }
 
-        asa := parse(entrée)
-        diffère détruit_asa(*asa)
+        asa := parse(entrée);
+        diffère détruit_asa(*asa);
 
-        exécutrice: Exécutrice
+        exécutrice: Exécutrice;
 
         pour inst dans asa.instructions {
-            résultat := exécutrice.exécute_instruction(*cm, inst)
+            résultat := exécutrice.exécute_instruction(*cm, inst);
 
             discr résultat {
                 Erreur(message) {
-                    imprime("%\n", message)
-                    exécutrice.réinitialise()
+                    imprime("%\n", message);
+                    exécutrice.réinitialise();
                 }
                 Table(table) {
-                    imprime_table(table)
-                    ferme_base_de_données(table)
-                    imprime("Exécution réussie.\n")
+                    imprime_table(table);
+                    ferme_base_de_données(table);
+                    imprime("Exécution réussie.\n");
                 }
                 ArrêteExécution {
-                    retourne
+                    retourne;
                 }
                 Rien {
-                    imprime("Exécution réussie.\n")
+                    imprime("Exécution réussie.\n");
                 }
                 sinon {
-                    imprime("Erreur interne : résultat d'exécution inconnu.\n")
+                    imprime("Erreur interne : résultat d'exécution inconnu.\n");
                 }
             }
         }
@@ -63,23 +63,23 @@ lance_boucle_exécution :: fonc ()
 // @bug : désynchronisation de la quantité de mémoire allouée quand nous imprimons les tables
 principale :: fonc ()
 {
-    allocatrice_gardée: AllocatriceGardée
-    diffère imprime_liste_mémoire(*allocatrice_gardée)
+    allocatrice_gardée: AllocatriceGardée;
+    diffère imprime_liste_mémoire(*allocatrice_gardée);
 
-    mémoire_courante := mémoire_utilisée()
-    diffère imprime("Fin du programme, mémoire utilisée : %o\n", mémoire_utilisée() - mémoire_courante)
+    mémoire_courante := mémoire_utilisée();
+    diffère imprime("Fin du programme, mémoire utilisée : %o\n", mémoire_utilisée() - mémoire_courante);
 
-    nouveau_contexte := contexte()
-    nouveau_contexte.allocatrice = allocation_gardée
-    nouveau_contexte.données_allocatrice = *allocatrice_gardée
-    nouveau_contexte.logueur = mon_log
+    nouveau_contexte := contexte();
+    nouveau_contexte.allocatrice = allocation_gardée;
+    nouveau_contexte.données_allocatrice = *allocatrice_gardée;
+    nouveau_contexte.logueur = mon_log;
 
     pousse_contexte nouveau_contexte {
-        lance_boucle_exécution()
+        lance_boucle_exécution();
     }
 }
 
 mon_log :: fonc (message: chaine, ident: chaine @inutilisée, mode: ModeLogage @inutilisée, données: *rien @inutilisée)
 {
-    imprime("%\n", message)
+    imprime("%\n", message);
 }

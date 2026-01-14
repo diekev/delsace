@@ -2,16 +2,16 @@
  * Catégorie : [génération code]
  */
 
-importe Fondation
+importe Fondation;
 
 Union :: union {
-    pixels: r64
-    pourcentage: r64
+    pixels: r64;
+    pourcentage: r64;
 }
 
 principale :: fonc ()
 {
-    u: Union
-    u.pourcentage = 69.0
-    u.pixels = u.pourcentage
+    u: Union;
+    u.pourcentage = 69.0;
+    u.pixels = u.pourcentage;
 }

@@ -4,11 +4,11 @@
 
 principale :: fonc ()
 {
-    exit(test_redéfinition(0, 1))
+    exit(test_redéfinition(0, 1));
 }
 
 test_redéfinition :: fonc (variable_redéfinie: z32, b: z32) -> z32
 {
-    variable_redéfinie := 5
-    retourne variable_redéfinie + b
+    variable_redéfinie := 5;
+    retourne variable_redéfinie + b;
 }

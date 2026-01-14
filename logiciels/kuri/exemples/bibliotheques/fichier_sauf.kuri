@@ -34,14 +34,14 @@
 
 /* ------------------------------------------------------------------------- */
 
-importe POSIX
+importe POSIX;
 
 /* ------------------------------------------------------------------------- */
 
 SAFE_OPEN_DEFAULT_MODE := 0o600;
 SAFE_OPEN_RETRY_MAX := 50;
 
-safe_open_path_warning_callback_type :: fonc (str: *z8) -> z32
+safe_open_path_warning_callback_type :: fonc (str: *z8) -> z32;
 
 safe_open_path_warning_callback : fonc (str: *z8) -> z32 = nul;
 
@@ -627,8 +627,8 @@ _O_WRONLY := 1;
 
 FILE :: struct #externe ;
 
-umask :: fonc (m : z32) -> rien #externe
-link :: fonc (a : *z8, b : *z8) -> z32 #externe
+umask :: fonc (m : z32) -> rien #externe;
+link :: fonc (a : *z8, b : *z8) -> z32 #externe;
 
 _stderr := 0;
 
@@ -985,6 +985,6 @@ principale :: fonc ()
     //************************************************************************
     // success
 
-    exit(0;)
+    exit(0;);
 }
 

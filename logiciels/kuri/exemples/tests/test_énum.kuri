@@ -1,10 +1,10 @@
-importe Fondation
+importe Fondation;
 
 ÉnumDrapeau :: énum_drapeau {
-    VALEUR1
-    VALEUR2
-    VALEUR3
-    VALEUR4
+    VALEUR1;
+    VALEUR2;
+    VALEUR3;
+    VALEUR4;
 }
 
 /* Il est possible d'utiliser des expressions booléennes pour simplifier l'analyse de variables
@@ -29,8 +29,8 @@ importe Fondation
  */
 démo_courtcircuit_énum_drapeau :: fonc ()
 {
-    e: ÉnumDrapeau
-    imprime("e : %\n", e)
+    e: ÉnumDrapeau;
+    imprime("e : %\n", e);
 
     /*
     règles :
@@ -40,16 +40,16 @@ démo_courtcircuit_énum_drapeau :: fonc ()
     */
 
     // simplifie : (e = e | VALEUR1)
-    e.VALEUR1 = vrai
-    imprime("e : %\n", e)
+    e.VALEUR1 = vrai;
+    imprime("e : %\n", e);
 
     // simplifie : (e = e | VALEUR2)
-    e.VALEUR2 = vrai
-    imprime("e : %\n", e)
+    e.VALEUR2 = vrai;
+    imprime("e : %\n", e);
 
     // simplifie : (e = e & ~VALEUR2)
-    e.VALEUR2 = faux
-    imprime("e : %\n", e)
+    e.VALEUR2 = faux;
+    imprime("e : %\n", e);
 
     /* doit produire une erreur de compilation car l'assignation ne se fait pas via une littérale */
     // valeur_booléenne := vrai
@@ -57,113 +57,113 @@ démo_courtcircuit_énum_drapeau :: fonc ()
 
     // simplifie : (e & VALEUR1) != 0
     si e.VALEUR1 {
-        imprime("e.VALEUR1 est actif\n")
+        imprime("e.VALEUR1 est actif\n");
     }
 
     si e.VALEUR2 {
-        imprime("e.VALEUR2 est actif\n")
+        imprime("e.VALEUR2 est actif\n");
     }
 
     // simplifie : (e & (VALEUR1 | VALEUR2)) != 0
     si e.VALEUR1 || e.VALEUR2 {
-        imprime("e.VALEUR1 || e.VALEUR2\n")
+        imprime("e.VALEUR1 || e.VALEUR2\n");
     }
 
     // simplifie : (e & (VALEUR1 | VALEUR2)) == (VALEUR1 | VALEUR2)
     si e.VALEUR1 && e.VALEUR2 {
-        imprime("e.VALEUR1 && e.VALEUR2\n")
+        imprime("e.VALEUR1 && e.VALEUR2\n");
     }
 
-    e.VALEUR2 = vrai
+    e.VALEUR2 = vrai;
     si e.VALEUR1 && e.VALEUR2 {
-        imprime("e.VALEUR1 && e.VALEUR2 (après e.VALEUR2 = vrai)\n")
+        imprime("e.VALEUR1 && e.VALEUR2 (après e.VALEUR2 = vrai)\n");
     }
 
-    variable_booléenne := vrai
+    variable_booléenne := vrai;
     si variable_booléenne || e.VALEUR1 || e.VALEUR3 {
-        imprime("variable_booléenne (vrai) || e.VALEUR1 || e.VALEUR3\n")
+        imprime("variable_booléenne (vrai) || e.VALEUR1 || e.VALEUR3\n");
     }
 
     si variable_booléenne && (e.VALEUR1 || e.VALEUR3) {
-        imprime("variable_booléenne (vrai) && (e.VALEUR1 || e.VALEUR3)\n")
+        imprime("variable_booléenne (vrai) && (e.VALEUR1 || e.VALEUR3)\n");
     }
 
-    variable_booléenne = faux
+    variable_booléenne = faux;
     si variable_booléenne || e.VALEUR1 || e.VALEUR3 {
-        imprime("variable_booléenne (faux) || e.VALEUR1 || e.VALEUR3\n")
+        imprime("variable_booléenne (faux) || e.VALEUR1 || e.VALEUR3\n");
     }
 
     si variable_booléenne && (e.VALEUR1 || e.VALEUR3) {
-        imprime("variable_booléenne (faux) && (e.VALEUR1 || e.VALEUR3)\n")
+        imprime("variable_booléenne (faux) && (e.VALEUR1 || e.VALEUR3)\n");
     }
 }
 
 principale :: fonc ()
 {
     Énum :: énum {
-        X
-        Y
-        Z
-        W
+        X;
+        Y;
+        Z;
+        W;
     }
 
-    imprime("énum.nombre_éléments %\n", Énum.nombre_éléments)
+    imprime("énum.nombre_éléments %\n", Énum.nombre_éléments);
 
-    imprime("%\n", SYS_EXP)
+    imprime("%\n", SYS_EXP);
 
     #si SYS_EXP == SystèmeExploitation.LINUX {
-        imprime("nous sommes sur linux !\n")
+        imprime("nous sommes sur linux !\n");
     }
     sinon {
-        imprime("nous ne sommes pas sur linux !\n")
+        imprime("nous ne sommes pas sur linux !\n");
     }
 
-    démo_courtcircuit_énum_drapeau()
-    test_impression_énum()
+    démo_courtcircuit_énum_drapeau();
+    test_impression_énum();
 }
 
 test_impression_énum :: fonc ()
 {
-    imprime_énum(z8)
-    imprime_énum(z16)
-    imprime_énum(z32)
-    imprime_énum(z64)
+    imprime_énum(z8);
+    imprime_énum(z16);
+    imprime_énum(z32);
+    imprime_énum(z64);
 
-    imprime_énum(n8)
-    imprime_énum(n16)
-    imprime_énum(n32)
-    imprime_énum(n64)
+    imprime_énum(n8);
+    imprime_énum(n16);
+    imprime_énum(n32);
+    imprime_énum(n64);
 
-    imprime_énum_drapeau(n8)
-    imprime_énum_drapeau(n16)
-    imprime_énum_drapeau(n32)
-    imprime_énum_drapeau(n64)
+    imprime_énum_drapeau(n8);
+    imprime_énum_drapeau(n16);
+    imprime_énum_drapeau(n32);
+    imprime_énum_drapeau(n64);
 }
 
 imprime_énum :: fonc ($T: type_de_données)
 {
     Énum :: énum T {
-        VALEUR1
-        VALEUR2
-        VALEUR3
+        VALEUR1;
+        VALEUR2;
+        VALEUR3;
     }
 
-    é := Énum.VALEUR3
-    chaine_valeur := imprime_chaine("%", é)
-    diffère déloge(chaine_valeur)
-    assert(chaine_valeur == "VALEUR3")
+    é := Énum.VALEUR3;
+    chaine_valeur := imprime_chaine("%", é);
+    diffère déloge(chaine_valeur);
+    assert(chaine_valeur == "VALEUR3");
 }
 
 imprime_énum_drapeau :: fonc ($T: type_de_données)
 {
     Énum :: énum_drapeau T {
-        VALEUR1
-        VALEUR2
-        VALEUR3
+        VALEUR1;
+        VALEUR2;
+        VALEUR3;
     }
 
-    é := Énum.valeurs_légales
-    chaine_valeur := imprime_chaine("%", é)
-    diffère déloge(chaine_valeur)
-    assert(chaine_valeur == "VALEUR1 | VALEUR2 | VALEUR3")
+    é := Énum.valeurs_légales;
+    chaine_valeur := imprime_chaine("%", é);
+    diffère déloge(chaine_valeur);
+    assert(chaine_valeur == "VALEUR1 | VALEUR2 | VALEUR3");
 }

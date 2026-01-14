@@ -2,18 +2,18 @@
  * Catégorie : [validation sémantique, portée, structure polymorphique]
  */
 
-importe Fondation
+importe Fondation;
 
 Structure :: struct ($T: type_de_données) {
     Noeud :: struct {
-        valeur: T
+        valeur: T;
     }
 
-    noeud: *Noeud
+    noeud: *Noeud;
 }
 
 principale :: fonc ()
 {
-    n: Structure(z32).Noeud
-    n.valeur = 5
+    n: Structure(z32).Noeud;
+    n.valeur = 5;
 }

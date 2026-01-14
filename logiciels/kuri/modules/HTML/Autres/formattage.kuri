@@ -2,14 +2,14 @@
  * Puisque la parseuse tente de corriger le DOM, le fichier formatter possédera les corrections. Par exemple,
  * même si le fichier originale n'avait pas de </head>, le format en aura un. */
 
-importe Chaine
-importe Compilatrice
-importe Fondation
-importe HTML
-JS :: importe JavaScript
-importe LigneDeCommande
-importe SysFichier
-importe Temps
+importe Chaine;
+importe Compilatrice;
+importe Fondation;
+importe HTML;
+JS :: importe JavaScript;
+importe LigneDeCommande;
+importe SysFichier;
+importe Temps;
 
 // #exécute compile_pour_production()
 // #exécute compile_pour_profilage()
@@ -17,41 +17,41 @@ importe Temps
 
 principale :: fonc ()
 {
-    chemin := parse_argument_chemin()
+    chemin := parse_argument_chemin();
     saufsi chemin {
-        exit(1)
+        exit(1);
     }
 
-    chm := CheminFichier(chemin)
+    chm := CheminFichier(chemin);
 
     saufsi est_fichier_html(chm) {
-        imprime("Le chemin '%' n'a pas l'air de pointer vers un fichier HTML !\n", chemin)
-        exit(1)
+        imprime("Le chemin '%' n'a pas l'air de pointer vers un fichier HTML !\n", chemin);
+        exit(1);
     }
 
-    diffère imprime("Mémoire utilisée : %o\n", mémoire_utilisée())
-    diffère détruit_chaines_internées()
+    diffère imprime("Mémoire utilisée : %o\n", mémoire_utilisée());
+    diffère détruit_chaines_internées();
 
-    _, contenu := contenu_fichier_texte(chm.chn)
-    diffère déloge(contenu)
+    _, contenu := contenu_fichier_texte(chm.chn);
+    diffère déloge(contenu);
 
-    imprime("%\n", contenu)
+    imprime("%\n", contenu);
 
-    taille_contenu := contenu.taille
+    taille_contenu := contenu.taille;
 
-    mv: JS.MachineVirtuelle
-    JS.initialise_mv(nul, *mv)
-    diffère JS.détruit_données_mv(*mv)
+    mv: JS.MachineVirtuelle;
+    JS.initialise_mv(nul, *mv);
+    diffère JS.détruit_données_mv(*mv);
 
-    début := maintenant_précis()
-    parsat := parse_document(JS.donne_tas_de_mémoire(*mv), contenu)
-    diffère détruit(parsat)
+    début := maintenant_précis();
+    parsat := parse_document(JS.donne_tas_de_mémoire(*mv), contenu);
+    diffère détruit(parsat);
 
-    taille_formattée := formatte_document(parsat.document, sortie_standarde())
-    temps := début.temps_écoulé_microsecondes()
+    taille_formattée := formatte_document(parsat.document, sortie_standarde());
+    temps := début.temps_écoulé_microsecondes();
 
-    imprime("\n")
-    imprime("Taille originale : %o\n", FormatEntier(taille_contenu, séparation = 3))
-    imprime("Taille formattée : %o\n", FormatEntier(taille_formattée, séparation = 3))
-    imprime("Durée de travail : %µ\n", FormatEntier(temps, séparation = 3))
+    imprime("\n");
+    imprime("Taille originale : %o\n", FormatEntier(taille_contenu, séparation = 3));
+    imprime("Taille formattée : %o\n", FormatEntier(taille_formattée, séparation = 3));
+    imprime("Durée de travail : %µ\n", FormatEntier(temps, séparation = 3));
 }

@@ -1,48 +1,48 @@
-importe Chaine // pour ChaineC
+importe Chaine; // pour ChaineC
 
-charge "confname"
-charge "errno"
-charge "interface"
+charge "confname";
+charge "errno";
+charge "interface";
 
 chaine_environnement :: fonc (nom: chaine) -> chaine
 {
-    chn_c_nom := crée_chaine_c(nom)
-    diffère détruit_chaine_c(chn_c_nom)
+    chn_c_nom := crée_chaine_c(nom);
+    diffère détruit_chaine_c(chn_c_nom);
 
-    chn := getenv(chn_c_nom)
+    chn := getenv(chn_c_nom);
 
     saufsi chn comme *z8 {
-        retourne ""
+        retourne "";
     }
 
-    retourne convertis_chaine_c(chn)
+    retourne convertis_chaine_c(chn);
 }
 
 définis_variable_environnemnt :: fonc (nom: chaine, valeur: chaine, remplace: bool) -> bool
 {
-    chaine_c_nom := crée_chaine_c(nom)
-    diffère détruit_chaine_c(chaine_c_nom)
+    chaine_c_nom := crée_chaine_c(nom);
+    diffère détruit_chaine_c(chaine_c_nom);
 
-    chaine_c_valeur := crée_chaine_c(valeur)
-    diffère détruit_chaine_c(chaine_c_valeur)
+    chaine_c_valeur := crée_chaine_c(valeur);
+    diffère détruit_chaine_c(chaine_c_valeur);
 
     si setenv(chaine_c_nom, chaine_c_valeur, remplace comme z32) == -1 {
-        retourne faux
+        retourne faux;
     }
 
-    retourne vrai
+    retourne vrai;
 }
 
 supprime_variable_environnement :: fonc (nom: chaine) -> bool
 {
-    chaine_c_nom := crée_chaine_c(nom)
-    diffère détruit_chaine_c(chaine_c_nom)
-    retourne unsetenv(chaine_c_nom) == 0
+    chaine_c_nom := crée_chaine_c(nom);
+    diffère détruit_chaine_c(chaine_c_nom);
+    retourne unsetenv(chaine_c_nom) == 0;
 }
 
 est_utilisateur_racine :: fonc () -> bool
 {
-    retourne getuid() == 0
+    retourne getuid() == 0;
 }
 
 /* ------------------------------------------------------------------------- */
@@ -51,40 +51,40 @@ est_utilisateur_racine :: fonc () -> bool
 
 action_pour_erreur_de_segmentation :: fonc (signum: z32 @inutilisée)
 {
-    appelé_depuis_signal_système = vrai
-    panique("violation de segmentation")
+    appelé_depuis_signal_système = vrai;
+    panique("violation de segmentation");
 }
 
 action_pour_exception_en_point_flottant :: fonc (signum: z32 @inutilisée)
 {
-    appelé_depuis_signal_système = vrai
-    panique("exception en point flottant")
+    appelé_depuis_signal_système = vrai;
+    panique("exception en point flottant");
 }
 
 action_pour_avortement :: fonc (signum: z32 @inutilisée)
 {
-    appelé_depuis_signal_système = vrai
-    panique("avortement")
+    appelé_depuis_signal_système = vrai;
+    panique("avortement");
 }
 
 ajoute_action_pour_erreur :: fonc (signal: z32, rappel: sighandler_t) -> bool
 {
-    act: sigaction_struct
-    act.sa_handler = rappel
+    act: sigaction_struct;
+    act.sa_handler = rappel;
 
-    retourne sigaction(signal, *act, nul) != -1
+    retourne sigaction(signal, *act, nul) != -1;
 }
 
 système_ajoute_action_pour_action_erreur_de_segmentation :: fonc ()
 {
     saufsi ajoute_action_pour_erreur(SIGSEGV, action_pour_erreur_de_segmentation) {
-        retourne
+        retourne;
     }
     saufsi ajoute_action_pour_erreur(SIGFPE, action_pour_exception_en_point_flottant) {
-        retourne
+        retourne;
     }
     saufsi ajoute_action_pour_erreur(SIGABRT, action_pour_avortement) {
-        retourne
+        retourne;
     }
 }
 
@@ -96,10 +96,10 @@ système_ajoute_action_pour_action_erreur_de_segmentation :: fonc ()
 
 timespec_depuis_ms :: fonc (ms: z64) -> timespec
 {
-    ts : timespec = ---
-    ts.tv_sec = ms / 1_000
-    ts.tv_nsec = (ms % 1_000) * 1_000_000
-    retourne ts
+    ts : timespec = ---;
+    ts.tv_sec = ms / 1_000;
+    ts.tv_nsec = (ms % 1_000) * 1_000_000;
+    retourne ts;
 }
 
 /** \} */
@@ -111,34 +111,34 @@ timespec_depuis_ms :: fonc (ms: z64) -> timespec
 dlopen :: fonc (fichier: chaine, mode: z32) -> *rien
 {
     si intrinsèque_est_adresse_données_constantes(fichier.pointeur) {
-        retourne dlopen(ChaineC(fichier.pointeur), mode)
+        retourne dlopen(ChaineC(fichier.pointeur), mode);
     }
 
-    fichier_c := crée_chaine_c(fichier)
-    diffère détruit_chaine_c(fichier_c)
-    retourne dlopen(fichier_c, mode)
+    fichier_c := crée_chaine_c(fichier);
+    diffère détruit_chaine_c(fichier_c);
+    retourne dlopen(fichier_c, mode);
 }
 
 dlsym :: fonc (handle: *rien, nom: chaine) -> *rien
 {
     si intrinsèque_est_adresse_données_constantes(nom.pointeur) {
-        retourne dlsym(handle, ChaineC(nom.pointeur))
+        retourne dlsym(handle, ChaineC(nom.pointeur));
     }
 
-    nom_c := crée_chaine_c(nom)
-    diffère détruit_chaine_c(nom_c)
-    retourne dlsym(handle, nom_c)
+    nom_c := crée_chaine_c(nom);
+    diffère détruit_chaine_c(nom_c);
+    retourne dlsym(handle, nom_c);
 }
 
 dlsym_func :: fonc (handle: *rien, nom: chaine) -> adresse_fonction
 {
     si intrinsèque_est_adresse_données_constantes(nom.pointeur) {
-        retourne dlsym_func(handle, ChaineC(nom.pointeur))
+        retourne dlsym_func(handle, ChaineC(nom.pointeur));
     }
 
-    nom_c := crée_chaine_c(nom)
-    diffère détruit_chaine_c(nom_c)
-    retourne dlsym_func(handle, nom_c)
+    nom_c := crée_chaine_c(nom);
+    diffère détruit_chaine_c(nom_c);
+    retourne dlsym_func(handle, nom_c);
 }
 
 /** } */

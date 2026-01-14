@@ -1,29 +1,29 @@
-importe Compilatrice
+importe Compilatrice;
 
-DÉBOGAGE :: faux
+DÉBOGAGE :: faux;
 
 #exécute {
     {
-        options: OptionsDeCompilation
-        options.nom_sortie = "code_test_dessin"
-        options.préfixe_bibliothèque_système = faux
-        options.résultat = RésultatCompilation.BIBLIOTHÈQUE_DYNAMIQUE
+        options: OptionsDeCompilation;
+        options.nom_sortie = "code_test_dessin";
+        options.préfixe_bibliothèque_système = faux;
+        options.résultat = RésultatCompilation.BIBLIOTHÈQUE_DYNAMIQUE;
         #si DÉBOGAGE {
-            options.compilation_pour = CompilationPour.DÉBOGAGE
+            options.compilation_pour = CompilationPour.DÉBOGAGE;
         }
 
-        espace := démarre_un_espace_de_travail("code_test_dessin", *options)
-        ajoute_fichier_à_la_compilation(espace, "test_dessin.kuri")
+        espace := démarre_un_espace_de_travail("code_test_dessin", *options);
+        ajoute_fichier_à_la_compilation(espace, "test_dessin.kuri");
     }
     {
-        options: OptionsDeCompilation
-        options.nom_sortie = "test_dessin"
-        espace := démarre_un_espace_de_travail("test_dessin", *options)
-        ajoute_fichier_à_la_compilation(espace, "app_test_dessin.kuri")
+        options: OptionsDeCompilation;
+        options.nom_sortie = "test_dessin";
+        espace := démarre_un_espace_de_travail("test_dessin", *options);
+        ajoute_fichier_à_la_compilation(espace, "app_test_dessin.kuri");
     }
     {
-        options := compilatrice_donne_options()
-        options.résultat = RésultatCompilation.RIEN
-        compilatrice_ajourne_options(options)
+        options := compilatrice_donne_options();
+        options.résultat = RésultatCompilation.RIEN;
+        compilatrice_ajourne_options(options);
     }
 }

@@ -1,82 +1,82 @@
-importe Numérique
-importe Unicode
+importe Numérique;
+importe Unicode;
 
 /* nous utilisons des fanions pour déterminer si un caractère peut suivre un autre afin de pouvoir lèxer des identifiants ou des nombres dans des petites boucles */
-fanions_caractères: [256]FanionCaractère
+fanions_caractères: [256]FanionCaractère;
 
 FanionCaractère :: énum_drapeau n32 {
-    PeutSuivreZéro
-    PeutSuivreChiffre
-    DébuteIdentifiant
-    DébutePrivateIdentifier
-    DébuteMotClé
-    ContinueIdentifiant
-    EstChiffre
-    Ponctuation
-    Opérateur
-    PeutSuivreOpérateur
-    DébuteChaineLittérale
-    EstEspaceBlanche
-    DébuteLittéraleNumérique
+    PeutSuivreZéro;
+    PeutSuivreChiffre;
+    DébuteIdentifiant;
+    DébutePrivateIdentifier;
+    DébuteMotClé;
+    ContinueIdentifiant;
+    EstChiffre;
+    Ponctuation;
+    Opérateur;
+    PeutSuivreOpérateur;
+    DébuteChaineLittérale;
+    EstEspaceBlanche;
+    DébuteLittéraleNumérique;
     /* Ce drapeau est différent de DébuteLittéraleNumérique car nous l'utilisons pour attraper les points. */
-    PeutDébuterLittéraleNumérique
+    PeutDébuterLittéraleNumérique;
 
-    DébuteLittéraleBinaire
-    EstChiffreBinaire
-    DébuteLittéraleHexadécimal
-    EstChiffreHexadécimal
-    DébuteLittéraleOctal
-    EstChiffreOctal
+    DébuteLittéraleBinaire;
+    EstChiffreBinaire;
+    DébuteLittéraleHexadécimal;
+    EstChiffreHexadécimal;
+    DébuteLittéraleOctal;
+    EstChiffreOctal;
 
-    EstSéparateurChiffre
+    EstSéparateurChiffre;
 }
 
 initialise_fanions_caractères :: fonc ()
 {
     pour 0 ... 255 {
-        fanion: FanionCaractère
+        fanion: FanionCaractère;
 
         si ('a' comme z32) <= it <= ('z' comme z32) {
-            fanion |= (FanionCaractère.DébuteIdentifiant | FanionCaractère.ContinueIdentifiant)
+            fanion |= (FanionCaractère.DébuteIdentifiant | FanionCaractère.ContinueIdentifiant);
         }
 
         si ('A' comme z32) <= it <= ('Z' comme z32) {
-            fanion |= (FanionCaractère.DébuteIdentifiant | FanionCaractère.ContinueIdentifiant)
+            fanion |= (FanionCaractère.DébuteIdentifiant | FanionCaractère.ContinueIdentifiant);
         }
 
         si ('0' comme z32) <= it <= ('9' comme z32) {
-            fanion |= (FanionCaractère.EstChiffre | FanionCaractère.ContinueIdentifiant | FanionCaractère.PeutSuivreChiffre)
-            fanion.PeutDébuterLittéraleNumérique = vrai
-            fanion.DébuteLittéraleNumérique = vrai
-            fanion.EstChiffreHexadécimal = vrai
+            fanion |= (FanionCaractère.EstChiffre | FanionCaractère.ContinueIdentifiant | FanionCaractère.PeutSuivreChiffre);
+            fanion.PeutDébuterLittéraleNumérique = vrai;
+            fanion.DébuteLittéraleNumérique = vrai;
+            fanion.EstChiffreHexadécimal = vrai;
         }
 
         si it == '0' || it == '1' {
-            fanion.EstChiffreBinaire = vrai
+            fanion.EstChiffreBinaire = vrai;
         }
 
         si ('0' comme z32) <= it <= ('7' comme z32) {
-            fanion.EstChiffreOctal = vrai
+            fanion.EstChiffreOctal = vrai;
         }
 
         si ('a' comme z32) <= it <= ('f' comme z32) {
-            fanion.EstChiffreHexadécimal = vrai
+            fanion.EstChiffreHexadécimal = vrai;
         }
 
         si ('A' comme z32) <= it <= ('F' comme z32) {
-            fanion.EstChiffreHexadécimal = vrai
+            fanion.EstChiffreHexadécimal = vrai;
         }
 
         si it == '_' comme z32 {
-            fanion |= FanionCaractère.DébuteIdentifiant
-            fanion |= FanionCaractère.ContinueIdentifiant
-            fanion |= FanionCaractère.PeutSuivreChiffre
-            fanion.EstSéparateurChiffre = vrai
+            fanion |= FanionCaractère.DébuteIdentifiant;
+            fanion |= FanionCaractère.ContinueIdentifiant;
+            fanion |= FanionCaractère.PeutSuivreChiffre;
+            fanion.EstSéparateurChiffre = vrai;
         }
 
         si it == '$' comme z32 {
-            fanion |= FanionCaractère.DébuteIdentifiant
-            fanion |= FanionCaractère.ContinueIdentifiant
+            fanion |= FanionCaractère.DébuteIdentifiant;
+            fanion |= FanionCaractère.ContinueIdentifiant;
         }
 
         // si it == 'n' {
@@ -85,266 +85,266 @@ initialise_fanions_caractères :: fonc ()
         // }
 
         si it == 'x' || it == 'X' {
-            fanion.DébuteLittéraleHexadécimal = vrai
+            fanion.DébuteLittéraleHexadécimal = vrai;
         }
 
         si it == 'o' || it == 'O' {
-            fanion.DébuteLittéraleOctal = vrai
+            fanion.DébuteLittéraleOctal = vrai;
         }
 
         si it == 'b' || it == 'B' {
-            fanion.DébuteLittéraleBinaire = vrai
+            fanion.DébuteLittéraleBinaire = vrai;
         }
 
         si it == 'e' comme z32 || it == 'E' comme z32 {
-            fanion |= FanionCaractère.PeutSuivreChiffre
+            fanion |= FanionCaractère.PeutSuivreChiffre;
         }
 
         // À FAIRE : début de caractère Unicode
         si it > 127 {
-            fanion |= FanionCaractère.DébuteIdentifiant
-            fanion |= FanionCaractère.ContinueIdentifiant
+            fanion |= FanionCaractère.DébuteIdentifiant;
+            fanion |= FanionCaractère.ContinueIdentifiant;
         }
 
         si it == '(' || it == ')' || it == '"' || it == '[' || it == ']' || it == '{' || it == '}' || it == ';' || it == ',' {
-            fanion = FanionCaractère.Ponctuation
+            fanion = FanionCaractère.Ponctuation;
         }
 
         si it == '.' {
-            fanion = (FanionCaractère.Ponctuation | FanionCaractère.PeutSuivreChiffre | FanionCaractère.PeutSuivreZéro | FanionCaractère.PeutDébuterLittéraleNumérique | FanionCaractère.PeutSuivreOpérateur)
+            fanion = (FanionCaractère.Ponctuation | FanionCaractère.PeutSuivreChiffre | FanionCaractère.PeutSuivreZéro | FanionCaractère.PeutDébuterLittéraleNumérique | FanionCaractère.PeutSuivreOpérateur);
         }
 
         si it == '+' || it == '-' || it == '*' || it == '/' || it == '<' || it == '>' || it == '&' || it == '|' || it == '^' || it == '%' || it == '!' || it == '~' {
-            fanion = (FanionCaractère.Opérateur)
+            fanion = (FanionCaractère.Opérateur);
         }
 
         si it == '=' || it == '?' {
-            fanion |= (FanionCaractère.Opérateur | FanionCaractère.PeutSuivreOpérateur)
+            fanion |= (FanionCaractère.Opérateur | FanionCaractère.PeutSuivreOpérateur);
         }
 
         si it == ':' {
-            fanion |= FanionCaractère.Opérateur
+            fanion |= FanionCaractère.Opérateur;
         }
 
         si it == '<' || it == '>' || it == '&' || it == '|' || it == '+' || it == '-' || it == '?' || it == '*' {
-            fanion |= (FanionCaractère.PeutSuivreOpérateur)
+            fanion |= (FanionCaractère.PeutSuivreOpérateur);
         }
 
         si it == '"' || it == '\'' || it == '`' {
-            fanion.DébuteChaineLittérale = vrai
+            fanion.DébuteChaineLittérale = vrai;
         }
 
         si it == ' ' || it == '\t' || it == '\r' || it == '\n' {
-            fanion.EstEspaceBlanche = vrai
+            fanion.EstEspaceBlanche = vrai;
         }
 
         si it == '#' {
-            fanion.DébutePrivateIdentifier = vrai
+            fanion.DébutePrivateIdentifier = vrai;
         }
 
-        fanions_caractères[it] = fanion
+        fanions_caractères[it] = fanion;
     }
 }
 
 initialise_données_globales :: fonc ()
 {
     // À FAIRE : nous pourrions utiliser un métaprogramme pour générer ces données
-    initialise_fanions_caractères()
+    initialise_fanions_caractères();
 }
 
-#ajoute_init initialise_données_globales()
+#ajoute_init initialise_données_globales();
 
 finalise_lexèmes :: fonc (lexèmes: [..]Lexème)
 {
     /* Résoud les mots-clés depuis les identifiants. */
     pour & lexèmes {
         saufsi it.genre == GenreLexème.Identifiant {
-            continue
+            continue;
         }
 
-        it.genre = rafine_genre_lexème_identifiant(it.texte)
+        it.genre = rafine_genre_lexème_identifiant(it.texte);
     }
 }
 
 Lexeuse :: struct {
-    realm: *Realm
-    erreur_de_compilation: *SyntaxError
-    source: *TexteSource
+    realm: *Realm;
+    erreur_de_compilation: *SyntaxError;
+    source: *TexteSource;
 
-    début_mot: *z8
-    début_source: *z8
-    fin_source: *z8
+    début_mot: *z8;
+    début_source: *z8;
+    fin_source: *z8;
 
-    lexèmes: [..]Lexème
+    lexèmes: [..]Lexème;
 
-    dans_commentaire_html: bool
+    dans_commentaire_html: bool;
 }
 
 initialise_lexeuse_depuis_source :: fonc (lexeuse: &Lexeuse, source: *TexteSource)
 {
-    début_source := source.texte.pointeur
-    fin_source := début_source + source.texte.taille
+    début_source := source.texte.pointeur;
+    fin_source := début_source + source.texte.taille;
 
-    lexeuse.source = source
-    lexeuse.début_mot = début_source
-    lexeuse.début_source = début_source
-    lexeuse.fin_source = fin_source
-    déloge(lexeuse.lexèmes)
+    lexeuse.source = source;
+    lexeuse.début_mot = début_source;
+    lexeuse.début_source = début_source;
+    lexeuse.fin_source = fin_source;
+    déloge(lexeuse.lexèmes);
 }
 
 fini :: fonc (lexeuse: &Lexeuse) -> bool #enligne
 {
-    retourne lexeuse.erreur_de_compilation != nul || lexeuse.début_source >= lexeuse.fin_source
+    retourne lexeuse.erreur_de_compilation != nul || lexeuse.début_source >= lexeuse.fin_source;
 }
 
 caractère_courant :: fonc (lexeuse: &Lexeuse) -> z8 #enligne
 {
-    retourne mémoire(lexeuse.début_source)
+    retourne mémoire(lexeuse.début_source);
 }
 
 apparie :: fonc (empl lexeuse: &Lexeuse, texte: chaine) -> bool
 {
     si début_source + texte.taille >= fin_source {
-        retourne faux
+        retourne faux;
     }
 
-    sous_chn := chaine(début_source, texte.taille)
-    retourne sous_chn == texte
+    sous_chn := chaine(début_source, texte.taille);
+    retourne sous_chn == texte;
 }
 
 avance :: fonc (empl lexeuse: &Lexeuse, n := 1) #enligne
 {
-    début_source += n
+    début_source += n;
 }
 
 recule :: fonc (empl lexeuse: &Lexeuse, n := 1) #enligne
 {
-    début_source -= n
+    début_source -= n;
 }
 
 débute_lexème :: fonc (empl lexeuse: &Lexeuse) #enligne
 {
-    début_mot = début_source
-    début_source += 1
+    début_mot = début_source;
+    début_source += 1;
 }
 
 crée_lexème :: fonc (empl lexeuse: &Lexeuse, genre: GenreLexème) -> Lexème
 {
-    retourne Lexème(genre = genre, texte = lexeuse.donne_texte_courant())
+    retourne Lexème(genre = genre, texte = lexeuse.donne_texte_courant());
 }
 
 donne_texte_courant :: fonc (empl lexeuse: &Lexeuse) -> chaine #enligne
 {
-    retourne chaine(début_mot, (début_source - début_mot) comme z32)
+    retourne chaine(début_mot, (début_source - début_mot) comme z32);
 }
 
 crée_lexème_pour_caractère :: fonc (lexeuse: &Lexeuse, genre: GenreLexème) -> Lexème
 {
-    débute_lexème(lexeuse)
-    retourne crée_lexème(lexeuse, genre)
+    débute_lexème(lexeuse);
+    retourne crée_lexème(lexeuse, genre);
 }
 
 lèxe_nombre :: fonc (empl lexeuse: &Lexeuse) -> Lexème
 {
-    lexeuse.débute_lexème()
+    lexeuse.débute_lexème();
 
     si fini(lexeuse) {
-        retourne crée_lexème(lexeuse, GenreLexème.NombreLittéral)
+        retourne crée_lexème(lexeuse, GenreLexème.NombreLittéral);
     }
 
-    c := lexeuse.caractère_courant()
-    fanion := fanions_caractères[c comme n8]
+    c := lexeuse.caractère_courant();
+    fanion := fanions_caractères[c comme n8];
 
     si fanion.DébuteLittéraleBinaire {
-        retourne lèxe_nombre_binaire(lexeuse)
+        retourne lèxe_nombre_binaire(lexeuse);
     }
 
     si fanion.DébuteLittéraleOctal {
-        retourne lèxe_nombre_octal(lexeuse)
+        retourne lèxe_nombre_octal(lexeuse);
     }
 
     si fanion.DébuteLittéraleHexadécimal {
-        retourne lèxe_nombre_hexadécimal(lexeuse)
+        retourne lèxe_nombre_hexadécimal(lexeuse);
     }
 
     // Ne consommons pas le premier caractère, ce pourrait être un point.
-    lexeuse.recule()
+    lexeuse.recule();
 
     /* Partie entière. */
-    lexeuse.avance_tantque(FanionCaractère.EstChiffre | FanionCaractère.EstSéparateurChiffre)
+    lexeuse.avance_tantque(FanionCaractère.EstChiffre | FanionCaractère.EstSéparateurChiffre);
     si lexeuse.fini() {
-        retourne crée_lexème(lexeuse, GenreLexème.NombreLittéral)
+        retourne crée_lexème(lexeuse, GenreLexème.NombreLittéral);
     }
 
     /* Partie décimale. */
-    c = lexeuse.caractère_courant()
+    c = lexeuse.caractère_courant();
 
     si c == '.' {
-        lexeuse.avance()
-        lexeuse.avance_tantque(FanionCaractère.EstChiffre | FanionCaractère.EstSéparateurChiffre)
+        lexeuse.avance();
+        lexeuse.avance_tantque(FanionCaractère.EstChiffre | FanionCaractère.EstSéparateurChiffre);
         si lexeuse.fini() {
-            retourne crée_lexème(lexeuse, GenreLexème.NombreLittéral)
+            retourne crée_lexème(lexeuse, GenreLexème.NombreLittéral);
         }
 
-        c = lexeuse.caractère_courant()
+        c = lexeuse.caractère_courant();
     }
 
     /* Partie exposant. */
     si c == 'e' || c == 'E' {
-        lexeuse.avance()
+        lexeuse.avance();
         si lexeuse.fini() {
-            lexeuse.rapporte_erreur("unexpeced end of input")
-            retourne crée_lexème(lexeuse, GenreLexème.NombreLittéral)
+            lexeuse.rapporte_erreur("unexpeced end of input");
+            retourne crée_lexème(lexeuse, GenreLexème.NombreLittéral);
         }
 
-        c = lexeuse.caractère_courant()
+        c = lexeuse.caractère_courant();
         si c == '+' || c == '-' {
-            lexeuse.avance()
+            lexeuse.avance();
             si lexeuse.fini() {
-                lexeuse.rapporte_erreur("unexpeced end of input")
-                retourne crée_lexème(lexeuse, GenreLexème.NombreLittéral)
+                lexeuse.rapporte_erreur("unexpeced end of input");
+                retourne crée_lexème(lexeuse, GenreLexème.NombreLittéral);
             }
         }
 
-        lexeuse.avance_tantque(FanionCaractère.EstChiffre | FanionCaractère.EstSéparateurChiffre)
+        lexeuse.avance_tantque(FanionCaractère.EstChiffre | FanionCaractère.EstSéparateurChiffre);
     }
 
-    retourne crée_lexème(lexeuse, GenreLexème.NombreLittéral)
+    retourne crée_lexème(lexeuse, GenreLexème.NombreLittéral);
 }
 
 lèxe_nombre_binaire :: fonc (lexeuse: &Lexeuse) -> Lexème
 {
-    retourne lèxe_nombre_avec_drapeaux(lexeuse, FanionCaractère.EstChiffreBinaire | FanionCaractère.EstSéparateurChiffre)
+    retourne lèxe_nombre_avec_drapeaux(lexeuse, FanionCaractère.EstChiffreBinaire | FanionCaractère.EstSéparateurChiffre);
 }
 
 lèxe_nombre_octal :: fonc (lexeuse: &Lexeuse) -> Lexème
 {
-    retourne lèxe_nombre_avec_drapeaux(lexeuse, FanionCaractère.EstChiffreOctal | FanionCaractère.EstSéparateurChiffre)
+    retourne lèxe_nombre_avec_drapeaux(lexeuse, FanionCaractère.EstChiffreOctal | FanionCaractère.EstSéparateurChiffre);
 }
 
 lèxe_nombre_hexadécimal :: fonc (lexeuse: &Lexeuse) -> Lexème
 {
-    retourne lèxe_nombre_avec_drapeaux(lexeuse, FanionCaractère.EstChiffreHexadécimal | FanionCaractère.EstSéparateurChiffre)
+    retourne lèxe_nombre_avec_drapeaux(lexeuse, FanionCaractère.EstChiffreHexadécimal | FanionCaractère.EstSéparateurChiffre);
 }
 
 lèxe_nombre_avec_drapeaux :: fonc (lexeuse: &Lexeuse, drapeaux: FanionCaractère) -> Lexème
 {
-    lexeuse.avance()
-    lexeuse.avance_tantque(drapeaux)
-    retourne crée_lexème(lexeuse, GenreLexème.NombreLittéral)
+    lexeuse.avance();
+    lexeuse.avance_tantque(drapeaux);
+    retourne crée_lexème(lexeuse, GenreLexème.NombreLittéral);
 }
 
 avance_tantque :: fonc (lexeuse: &Lexeuse, drapeaux: FanionCaractère)
 {
     tantque !fini(lexeuse) {
-        c := lexeuse.caractère_courant()
-        fanion := fanions_caractères[c comme n8]
+        c := lexeuse.caractère_courant();
+        fanion := fanions_caractères[c comme n8];
 
         si (fanion & drapeaux) == FanionCaractère.zéro {
-            arrête
+            arrête;
         }
 
-        lexeuse.avance()
+        lexeuse.avance();
     }
 }
 
@@ -364,234 +364,234 @@ avance_tantque :: fonc (lexeuse: &Lexeuse, drapeaux: FanionCaractère)
 /* https://tc39.es/ecma262/multipage/ecmascript-language-lexical-grammar.html#prod-NumericLiteral */
 parse_nombre_depuis_lexème :: fonc (lexème: *Lexème) -> r64
 {
-    texte := lexème.texte
+    texte := lexème.texte;
 
     si texte.commence_par("0x") || texte.commence_par("0X") {
-        retourne parse_nombre_hexadécimal(texte)
+        retourne parse_nombre_hexadécimal(texte);
     }
 
     si texte.commence_par("0b") || texte.commence_par("0B") {
-        retourne parse_nombre_binaire(texte)
+        retourne parse_nombre_binaire(texte);
     }
 
     si texte.commence_par("0o") || texte.commence_par("0O") {
-        retourne parse_nombre_octal(texte)
+        retourne parse_nombre_octal(texte);
     }
 
-    données_nombre: CompositionNombreScientifique
+    données_nombre: CompositionNombreScientifique;
 
-    texte_original := lexème.texte
+    texte_original := lexème.texte;
 
     /* Part entière. */
-    taille_part_entière := 0
+    taille_part_entière := 0;
     tantque texte.taille > 0 && ('0' <= texte[0] <= '9') {
-        texte = avance(texte, 1)
-        taille_part_entière += 1
+        texte = avance(texte, 1);
+        taille_part_entière += 1;
     }
 
-    données_nombre.partie_entière = texte_original.sous_chaine(0, taille_part_entière)
-    texte_original = texte
+    données_nombre.partie_entière = texte_original.sous_chaine(0, taille_part_entière);
+    texte_original = texte;
 
     /* Part décimale. */
     si texte.taille > 0 && texte[0] == '.' {
-        texte = avance(texte, 1)
-        texte_original = texte
+        texte = avance(texte, 1);
+        texte_original = texte;
 
-        taille_part_décimale := 0
+        taille_part_décimale := 0;
 
         tantque texte.taille > 0 && ('0' <= texte[0] <= '9') {
-            texte = avance(texte, 1)
-            taille_part_décimale += 1
+            texte = avance(texte, 1);
+            taille_part_décimale += 1;
         }
 
-        données_nombre.partie_décimale = texte_original.sous_chaine(0, taille_part_décimale)
+        données_nombre.partie_décimale = texte_original.sous_chaine(0, taille_part_décimale);
     }
 
     /* Exposant. */
     si texte.taille > 0 && (texte[0] == 'e' || texte[0] == 'E') {
-        texte = avance(texte, 1)
-        données_nombre.exposant = texte
+        texte = avance(texte, 1);
+        données_nombre.exposant = texte;
     }
 
-    retourne convertis_nombre_scientifique_en_réel(données_nombre)
+    retourne convertis_nombre_scientifique_en_réel(données_nombre);
 }
 
 parse_nombre_binaire :: fonc (texte: chaine) -> r64
 {
-    texte = texte.avance(2)
+    texte = texte.avance(2);
 
-    résultat: n64
+    résultat: n64;
 
     pour texte {
         si it == '_' {
-            continue
+            continue;
         }
 
-        résultat <<= 1
+        résultat <<= 1;
         si it == '1' {
-            résultat |= 1
+            résultat |= 1;
         }
     }
 
-    retourne résultat comme r64
+    retourne résultat comme r64;
 }
 
 parse_nombre_octal :: fonc (texte: chaine) -> r64
 {
-    texte = texte.avance(2)
+    texte = texte.avance(2);
 
-    résultat: r64
+    résultat: r64;
 
     pour texte {
         si it == '_' {
-            continue
+            continue;
         }
 
-        résultat *= 8
-        résultat += ((it - '0') comme r64)
+        résultat *= 8;
+        résultat += ((it - '0') comme r64);
     }
 
-    retourne résultat
+    retourne résultat;
 }
 
 parse_nombre_hexadécimal :: fonc (texte: chaine) -> r64
 {
-    texte = texte.avance(2)
+    texte = texte.avance(2);
 
-    résultat: r64
+    résultat: r64;
 
     pour texte {
         si it == '_' {
-            continue
+            continue;
         }
 
-        résultat *= 16
-        résultat += donne_valeur_hex(it) comme r64
+        résultat *= 16;
+        résultat += donne_valeur_hex(it) comme r64;
     }
 
-    retourne résultat
+    retourne résultat;
 }
 
 lèxe_chaine_littérale :: fonc (empl lexeuse: &Lexeuse, caractère_final: z8) -> Lexème
 {
-    lexeuse.débute_lexème()
+    lexeuse.débute_lexème();
     /* N'incluons pas les guillemets. */
-    lexeuse.début_mot = lexeuse.début_source
+    lexeuse.début_mot = lexeuse.début_source;
 
-    eu_guillemet_fermant := faux
+    eu_guillemet_fermant := faux;
 
     tantque !fini(lexeuse) {
-        c := lexeuse.caractère_courant()
+        c := lexeuse.caractère_courant();
 
         si c == '\\' {
-            début_source += 2
-            continue
+            début_source += 2;
+            continue;
         }
 
         si c == caractère_final {
-            eu_guillemet_fermant = vrai
-            arrête
+            eu_guillemet_fermant = vrai;
+            arrête;
         }
 
-        début_source += 1
+        début_source += 1;
     }
 
     saufsi eu_guillemet_fermant {
-        lexeuse.début_source = lexeuse.début_mot - 1
-        rapporte_erreur(lexeuse, "Guillemet fermant manquant pour le guillemet ouvrant")
+        lexeuse.début_source = lexeuse.début_mot - 1;
+        rapporte_erreur(lexeuse, "Guillemet fermant manquant pour le guillemet ouvrant");
     }
 
-    résultat := crée_lexème(lexeuse, GenreLexème.ChaineLittérale)
+    résultat := crée_lexème(lexeuse, GenreLexème.ChaineLittérale);
     /* N'incluons pas les guillemets. */
-    début_source += 1
+    début_source += 1;
 
-    retourne résultat
+    retourne résultat;
 }
 
 lèxe_template_literal :: fonc (empl lexeuse: &Lexeuse) -> Lexème
 {
-    lexeuse.débute_lexème()
+    lexeuse.débute_lexème();
     /* N'incluons pas les guillemets. */
-    lexeuse.début_mot = lexeuse.début_source
+    lexeuse.début_mot = lexeuse.début_source;
 
-    genre_lexème_final := GenreLexème.TemplateLiteral
-    genre_lexème_courant := GenreLexème.TemplateLiteralStart
+    genre_lexème_final := GenreLexème.TemplateLiteral;
+    genre_lexème_courant := GenreLexème.TemplateLiteralStart;
 
-    eu_guillemet_fermant := faux
+    eu_guillemet_fermant := faux;
 
     tantque !fini(lexeuse) {
-        c := lexeuse.caractère_courant()
+        c := lexeuse.caractère_courant();
 
         si apparie(lexeuse, "${") {
-            genre_lexème_final = GenreLexème.TemplateLiteralEnd
+            genre_lexème_final = GenreLexème.TemplateLiteralEnd;
 
-            lexème := crée_lexème(lexeuse, genre_lexème_courant)
-            tableau_ajoute(*lexeuse.lexèmes, lexème)
+            lexème := crée_lexème(lexeuse, genre_lexème_courant);
+            tableau_ajoute(*lexeuse.lexèmes, lexème);
 
-            nichage := 0
-            début_source += 2
+            nichage := 0;
+            début_source += 2;
 
             tantque !lexeuse.fini() {
-                consomme_espaces_blanches(lexeuse)
+                consomme_espaces_blanches(lexeuse);
                 si fini(lexeuse) {
-                    arrête
+                    arrête;
                 }
 
-                c = lexeuse.caractère_courant()
+                c = lexeuse.caractère_courant();
                 si c == '{' {
-                    nichage += 1
+                    nichage += 1;
                 }
 
                 si c == '}' {
                     si nichage == 0 {
-                        début_source += 1
-                        arrête
+                        début_source += 1;
+                        arrête;
                     }
-                    nichage -= 1
+                    nichage -= 1;
                 }
 
-                lexème = lexeuse.donne_lexème_suivant()
-                tableau_ajoute(*lexeuse.lexèmes, lexème)
+                lexème = lexeuse.donne_lexème_suivant();
+                tableau_ajoute(*lexeuse.lexèmes, lexème);
             }
 
-            lexeuse.début_mot = lexeuse.début_source
-            genre_lexème_courant = GenreLexème.TemplateLiteralMiddle
-            continue
+            lexeuse.début_mot = lexeuse.début_source;
+            genre_lexème_courant = GenreLexème.TemplateLiteralMiddle;
+            continue;
         }
 
         si c == '\\' {
-            début_source += 2
-            continue
+            début_source += 2;
+            continue;
         }
 
         si c == '`' {
-            eu_guillemet_fermant = vrai
-            arrête
+            eu_guillemet_fermant = vrai;
+            arrête;
         }
 
-        début_source += 1
+        début_source += 1;
     }
 
     saufsi eu_guillemet_fermant {
-        lexeuse.début_source = lexeuse.début_mot - 1
-        rapporte_erreur(lexeuse, "fin de fichier inattendu")
+        lexeuse.début_source = lexeuse.début_mot - 1;
+        rapporte_erreur(lexeuse, "fin de fichier inattendu");
     }
 
 
-    résultat := crée_lexème(lexeuse, genre_lexème_final)
+    résultat := crée_lexème(lexeuse, genre_lexème_final);
     /* N'incluons pas les guillemets. */
-    début_source += 1
+    début_source += 1;
 
-    retourne résultat
+    retourne résultat;
 }
 
 droit_traité_slash_comme_début_regex :: fonc (empl lexeuse: &Lexeuse) -> bool
 {
     si lexèmes.taille == 0 {
-        retourne vrai
+        retourne vrai;
     }
 
-    dernier_lexème := lexèmes[lexèmes.taille - 1]
+    dernier_lexème := lexèmes[lexèmes.taille - 1];
 
     discr dernier_lexème.genre {
         Égal,
@@ -625,21 +625,21 @@ droit_traité_slash_comme_début_regex :: fonc (empl lexeuse: &Lexeuse) -> bool
         NEspaPasÉgal,
         EstÉgalStrict,
         NEspaPasÉgalStrict {
-            retourne vrai
+            retourne vrai;
         }
         Identifiant {
-            retourne dernier_lexème.texte == "return" || dernier_lexème.texte == "else" || dernier_lexème.texte == "typeof"
+            retourne dernier_lexème.texte == "return" || dernier_lexème.texte == "else" || dernier_lexème.texte == "typeof";
         }
         sinon {}
     }
 
-    retourne faux
+    retourne faux;
 }
 
 RésultatLexageRegex :: énum {
-    Oui
-    Non
-    Erreur
+    Oui;
+    Non;
+    Erreur;
 }
 
 /* https://tc39.es/ecma262/multipage/ecmascript-language-lexical-grammar.html#sec-literals-regular-expression-literals */
@@ -647,30 +647,30 @@ RésultatLexageRegex :: énum {
 //     / RegularExpressionBody / RegularExpressionFlags
 lèxe_regex_littérale :: fonc (empl lexeuse: &Lexeuse) -> Lexème
 {
-    lexeuse.débute_lexème()
+    lexeuse.débute_lexème();
 
     /* Nous ne vérifions pas si le résultat est différent de Oui, car Non sera retourné
      * lorsque qu'aucune fonction ne pourra apparier le '/' final. */
     si lèxe_regular_expression_body(lexeuse) == RésultatLexageRegex.Erreur {
-        rapporte_erreur(lexeuse, "could not parse regular expression")
-        retourne Lexème()
+        rapporte_erreur(lexeuse, "could not parse regular expression");
+        retourne Lexème();
     }
 
     si fini(lexeuse) {
-        rapporte_erreur(lexeuse, "unexpected end of input")
-        retourne Lexème()
+        rapporte_erreur(lexeuse, "unexpected end of input");
+        retourne Lexème();
     }
 
-    c := lexeuse.caractère_courant()
+    c := lexeuse.caractère_courant();
     si c != '/' {
-        rapporte_erreur(lexeuse, "expected '/'")
+        rapporte_erreur(lexeuse, "expected '/'");
     }
-    lexeuse.avance()
+    lexeuse.avance();
 
-    lèxe_regular_expression_flags(lexeuse)
+    lèxe_regular_expression_flags(lexeuse);
 
-    résultat := crée_lexème(lexeuse, GenreLexème.ChaineLittérale)
-    retourne résultat
+    résultat := crée_lexème(lexeuse, GenreLexème.ChaineLittérale);
+    retourne résultat;
 }
 
 // RegularExpressionBody ::
@@ -679,10 +679,10 @@ lèxe_regular_expression_body :: fonc (lexeuse: &Lexeuse) -> RésultatLexageRege
 {
     résultat := lèxe_regular_expression_first_char(lexeuse) 
     si résultat != RésultatLexageRegex.Oui {
-        retourne résultat
+        retourne résultat;
     }
 
-    retourne lèxe_regular_expression_chars(lexeuse)
+    retourne lèxe_regular_expression_chars(lexeuse);
 }
 
 // RegularExpressionChars ::
@@ -691,12 +691,12 @@ lèxe_regular_expression_body :: fonc (lexeuse: &Lexeuse) -> RésultatLexageRege
 lèxe_regular_expression_chars :: fonc (lexeuse: &Lexeuse) -> RésultatLexageRegex
 {
     tantque !fini(lexeuse) {
-        résultat := lèxe_regular_expression_char(lexeuse)
+        résultat := lèxe_regular_expression_char(lexeuse);
         si résultat != RésultatLexageRegex.Oui {
-            retourne résultat
+            retourne résultat;
         }
     }
-    retourne RésultatLexageRegex.Erreur
+    retourne RésultatLexageRegex.Erreur;
 }
 
 // RegularExpressionFirstChar ::
@@ -705,23 +705,23 @@ lèxe_regular_expression_chars :: fonc (lexeuse: &Lexeuse) -> RésultatLexageReg
 //     RegularExpressionClass
 lèxe_regular_expression_first_char :: fonc (lexeuse: &Lexeuse) -> RésultatLexageRegex
 {
-    résultat := lèxe_regular_expression_non_terminator(lexeuse, ['*', '\\', '/', '['])
+    résultat := lèxe_regular_expression_non_terminator(lexeuse, ['*', '\\', '/', '[']);
     si résultat == RésultatLexageRegex.Erreur || résultat == RésultatLexageRegex.Oui {
-        retourne résultat
+        retourne résultat;
     }
 
-    résultat = lèxe_regular_expression_backslash_sequence(lexeuse)
+    résultat = lèxe_regular_expression_backslash_sequence(lexeuse);
     si résultat == RésultatLexageRegex.Erreur || résultat == RésultatLexageRegex.Oui {
-        retourne résultat
+        retourne résultat;
     }
 
-    résultat = lèxe_regular_expression_class(lexeuse)
+    résultat = lèxe_regular_expression_class(lexeuse);
     si résultat == RésultatLexageRegex.Erreur || résultat == RésultatLexageRegex.Oui {
-        retourne résultat
+        retourne résultat;
     }
 
-    rapporte_erreur(lexeuse, "unexpected character at the begining of the regular expression literal")
-    retourne RésultatLexageRegex.Erreur
+    rapporte_erreur(lexeuse, "unexpected character at the begining of the regular expression literal");
+    retourne RésultatLexageRegex.Erreur;
 }
 
 // RegularExpressionChar ::
@@ -731,21 +731,21 @@ lèxe_regular_expression_first_char :: fonc (lexeuse: &Lexeuse) -> RésultatLexa
 lèxe_regular_expression_char :: fonc (lexeuse: &Lexeuse) -> RésultatLexageRegex
 {
     si fini(lexeuse) {
-        rapporte_erreur(lexeuse, "unexpected end of input")
-        retourne RésultatLexageRegex.Erreur
+        rapporte_erreur(lexeuse, "unexpected end of input");
+        retourne RésultatLexageRegex.Erreur;
     }
 
-    résultat := lèxe_regular_expression_non_terminator(lexeuse, ['\\', '/', '['])
+    résultat := lèxe_regular_expression_non_terminator(lexeuse, ['\\', '/', '[']);
     si résultat != RésultatLexageRegex.Non {
-        retourne résultat
+        retourne résultat;
     }
 
-    résultat = lèxe_regular_expression_backslash_sequence(lexeuse)
+    résultat = lèxe_regular_expression_backslash_sequence(lexeuse);
     si résultat != RésultatLexageRegex.Non {
-        retourne résultat
+        retourne résultat;
     }
 
-    retourne lèxe_regular_expression_class(lexeuse)
+    retourne lèxe_regular_expression_class(lexeuse);
 }
 
 // RegularExpressionBackslashSequence ::
@@ -753,18 +753,18 @@ lèxe_regular_expression_char :: fonc (lexeuse: &Lexeuse) -> RésultatLexageRege
 lèxe_regular_expression_backslash_sequence :: fonc (lexeuse: &Lexeuse) -> RésultatLexageRegex
 {
     si fini(lexeuse) {
-        rapporte_erreur(lexeuse, "unexpected end of input")
-        retourne RésultatLexageRegex.Erreur
+        rapporte_erreur(lexeuse, "unexpected end of input");
+        retourne RésultatLexageRegex.Erreur;
     }
 
-    c := lexeuse.caractère_courant()
+    c := lexeuse.caractère_courant();
     si c != '\\' {
-        retourne RésultatLexageRegex.Non
+        retourne RésultatLexageRegex.Non;
     }
-    lexeuse.avance()
+    lexeuse.avance();
 
-    exclus: []z8
-    retourne lèxe_regular_expression_non_terminator(lexeuse, exclus)
+    exclus: []z8;
+    retourne lèxe_regular_expression_non_terminator(lexeuse, exclus);
 }
 
 // RegularExpressionNonTerminator ::
@@ -772,25 +772,25 @@ lèxe_regular_expression_backslash_sequence :: fonc (lexeuse: &Lexeuse) -> Résu
 lèxe_regular_expression_non_terminator :: fonc (lexeuse: &Lexeuse, exclus: []z8) -> RésultatLexageRegex
 {
     si fini(lexeuse) {
-        rapporte_erreur(lexeuse, "unexpected end of input")
-        retourne RésultatLexageRegex.Erreur
+        rapporte_erreur(lexeuse, "unexpected end of input");
+        retourne RésultatLexageRegex.Erreur;
     }
 
-    c := lexeuse.caractère_courant()
+    c := lexeuse.caractère_courant();
 
     si c == '\n' {
-        rapporte_erreur(lexeuse, "unexpected end of regular expression")
-        retourne RésultatLexageRegex.Erreur
+        rapporte_erreur(lexeuse, "unexpected end of regular expression");
+        retourne RésultatLexageRegex.Erreur;
     }
 
     pour exclus {
         si it == c {
-            retourne RésultatLexageRegex.Non
+            retourne RésultatLexageRegex.Non;
         }
     }
 
-    lexeuse.avance()
-    retourne RésultatLexageRegex.Oui
+    lexeuse.avance();
+    retourne RésultatLexageRegex.Oui;
 }
 
 // RegularExpressionClass ::
@@ -798,35 +798,35 @@ lèxe_regular_expression_non_terminator :: fonc (lexeuse: &Lexeuse, exclus: []z8
 lèxe_regular_expression_class :: fonc (lexeuse: &Lexeuse) -> RésultatLexageRegex
 {
     si fini(lexeuse) {
-        rapporte_erreur(lexeuse, "unexpected end of input")
-        retourne RésultatLexageRegex.Erreur
+        rapporte_erreur(lexeuse, "unexpected end of input");
+        retourne RésultatLexageRegex.Erreur;
     }
 
-    c := lexeuse.caractère_courant()
+    c := lexeuse.caractère_courant();
     si c != '[' {
-        retourne RésultatLexageRegex.Non
+        retourne RésultatLexageRegex.Non;
     }
-    lexeuse.avance()
+    lexeuse.avance();
 
-    résultat := lèxe_regular_expression_class_chars(lexeuse)
+    résultat := lèxe_regular_expression_class_chars(lexeuse);
     si résultat != RésultatLexageRegex.Oui {
-        rapporte_erreur(lexeuse, "invalid regular expression class")
-        retourne RésultatLexageRegex.Erreur
+        rapporte_erreur(lexeuse, "invalid regular expression class");
+        retourne RésultatLexageRegex.Erreur;
     }
 
     si fini(lexeuse) {
-        rapporte_erreur(lexeuse, "unexpected end of input")
-        retourne RésultatLexageRegex.Erreur
+        rapporte_erreur(lexeuse, "unexpected end of input");
+        retourne RésultatLexageRegex.Erreur;
     }
 
-    c = lexeuse.caractère_courant()
+    c = lexeuse.caractère_courant();
     si c != ']' {
-        rapporte_erreur(lexeuse, "expected ']'")
-        retourne RésultatLexageRegex.Erreur
+        rapporte_erreur(lexeuse, "expected ']'");
+        retourne RésultatLexageRegex.Erreur;
     }
-    lexeuse.avance()
+    lexeuse.avance();
 
-    retourne RésultatLexageRegex.Oui
+    retourne RésultatLexageRegex.Oui;
 }
 
 // RegularExpressionClassChars ::
@@ -835,19 +835,19 @@ lèxe_regular_expression_class :: fonc (lexeuse: &Lexeuse) -> RésultatLexageReg
 lèxe_regular_expression_class_chars :: fonc (lexeuse: &Lexeuse) -> RésultatLexageRegex
 {
     tantque !fini(lexeuse) {
-        c := lexeuse.caractère_courant()
+        c := lexeuse.caractère_courant();
         si c == ']' {
             /* Ne consommons pas le caractère, c'est le travail de la fonction qui nous appèle. */
-            retourne RésultatLexageRegex.Oui
+            retourne RésultatLexageRegex.Oui;
         }
 
-        résultat := lèxe_regular_expression_class_char(lexeuse)
+        résultat := lèxe_regular_expression_class_char(lexeuse);
         si résultat != RésultatLexageRegex.Oui {
-            retourne résultat
+            retourne résultat;
         }
     }
 
-    retourne RésultatLexageRegex.Non
+    retourne RésultatLexageRegex.Non;
 }
 
 // RegularExpressionClassChar ::
@@ -856,16 +856,16 @@ lèxe_regular_expression_class_chars :: fonc (lexeuse: &Lexeuse) -> RésultatLex
 lèxe_regular_expression_class_char :: fonc (lexeuse: &Lexeuse) -> RésultatLexageRegex
 {
     si fini(lexeuse) {
-        rapporte_erreur(lexeuse, "unexpected end of input")
-        retourne RésultatLexageRegex.Erreur
+        rapporte_erreur(lexeuse, "unexpected end of input");
+        retourne RésultatLexageRegex.Erreur;
     }
 
-    résultat := lèxe_regular_expression_non_terminator(lexeuse, [']', '\\'])
+    résultat := lèxe_regular_expression_non_terminator(lexeuse, [']', '\\']);
     si résultat != RésultatLexageRegex.Non {
-        retourne résultat
+        retourne résultat;
     }
 
-    retourne lèxe_regular_expression_backslash_sequence(lexeuse)
+    retourne lèxe_regular_expression_backslash_sequence(lexeuse);
 }
 
 // RegularExpressionFlags ::
@@ -873,130 +873,130 @@ lèxe_regular_expression_class_char :: fonc (lexeuse: &Lexeuse) -> RésultatLexa
 //     RegularExpressionFlags IdentifierPartChar
 lèxe_regular_expression_flags :: fonc (lexeuse: &Lexeuse)
 {
-    premier_caractère := vrai
+    premier_caractère := vrai;
 
     tantque !fini(lexeuse) {
-        c := lexeuse.caractère_courant()
-        fanion := fanions_caractères[c comme n8]
+        c := lexeuse.caractère_courant();
+        fanion := fanions_caractères[c comme n8];
 
         si premier_caractère {
             si fanion.DébuteIdentifiant == faux {
-                retourne
+                retourne;
             }
-            premier_caractère = faux
+            premier_caractère = faux;
         } 
 
         saufsi fanion.ContinueIdentifiant {
-            retourne
+            retourne;
         }
 
-        lexeuse.avance()
+        lexeuse.avance();
     }
 }
 
 lèxe_identifiant :: fonc (empl lexeuse: &Lexeuse, genre_lexème: GenreLexème) -> Lexème
 {
-    lexeuse.débute_lexème()
+    lexeuse.débute_lexème();
 
     tantque !fini(lexeuse) {
-        n := nombre_octets_utf8_rapide(lexeuse.début_source)
+        n := nombre_octets_utf8_rapide(lexeuse.début_source);
         si n == 0 {
-            rapporte_erreur(lexeuse, "Le codec Unicode ne peut décoder le caractère")
-            arrête
+            rapporte_erreur(lexeuse, "Le codec Unicode ne peut décoder le caractère");
+            arrête;
         }
 
         si n == 1 {
-            c := lexeuse.caractère_courant()
-            fanion := fanions_caractères[c comme n8]
+            c := lexeuse.caractère_courant();
+            fanion := fanions_caractères[c comme n8];
 
             saufsi fanion.ContinueIdentifiant {
-                arrête
+                arrête;
             }
 
-            lexeuse.avance()
-            continue
+            lexeuse.avance();
+            continue;
         }
 
-        point_de_code := convertis_utf8_utf32(lexeuse.début_source) comme n32
+        point_de_code := convertis_utf8_utf32(lexeuse.début_source) comme n32;
         si est_espace_blanche_unicode(point_de_code) {
-            arrête
+            arrête;
         }
 
-        lexeuse.avance(n comme z32)
+        lexeuse.avance(n comme z32);
     }
 
-    retourne crée_lexème(lexeuse, genre_lexème)
+    retourne crée_lexème(lexeuse, genre_lexème);
 }
 
 lèxe :: fonc (realm: *Realm, source: *TexteSource) -> Optionnel(*SyntaxError)
 {
-    lexeuse: Lexeuse
-    lexeuse.realm = realm
-    initialise_lexeuse_depuis_source(lexeuse, source)
+    lexeuse: Lexeuse;
+    lexeuse.realm = realm;
+    initialise_lexeuse_depuis_source(lexeuse, source);
 
     tantque !fini(lexeuse) {
-        consomme_espaces_blanches(lexeuse)
+        consomme_espaces_blanches(lexeuse);
 
         si fini(lexeuse) {
-            arrête
+            arrête;
         }
 
-        lexème := donne_lexème_suivant(lexeuse)
-        tableau_ajoute(*lexeuse.lexèmes, lexème)
+        lexème := donne_lexème_suivant(lexeuse);
+        tableau_ajoute(*lexeuse.lexèmes, lexème);
     }
 
-    finalise_lexèmes(lexeuse.lexèmes)
+    finalise_lexèmes(lexeuse.lexèmes);
 
-    source.lexèmes = lexeuse.lexèmes
+    source.lexèmes = lexeuse.lexèmes;
 
     si lexeuse.erreur_de_compilation {
-        retourne lexeuse.erreur_de_compilation
+        retourne lexeuse.erreur_de_compilation;
     }
 }
 
 donne_lexème_suivant :: fonc (lexeuse: &Lexeuse) -> Lexème
 {
-    c := lexeuse.caractère_courant()
-    fanion := fanions_caractères[c comme n8]
+    c := lexeuse.caractère_courant();
+    fanion := fanions_caractères[c comme n8];
 
     si fanion.DébuteChaineLittérale {
         si c == '`' {
-            retourne lèxe_template_literal(lexeuse)
+            retourne lèxe_template_literal(lexeuse);
         }
-        retourne lèxe_chaine_littérale(lexeuse, c)
+        retourne lèxe_chaine_littérale(lexeuse, c);
     }
 
     si fanion.DébutePrivateIdentifier {
-        retourne lèxe_identifiant(lexeuse, GenreLexème.PrivateIdentifier)
+        retourne lèxe_identifiant(lexeuse, GenreLexème.PrivateIdentifier);
     }
 
     si fanion.DébuteIdentifiant {
-        retourne lèxe_identifiant(lexeuse, GenreLexème.Identifiant)
+        retourne lèxe_identifiant(lexeuse, GenreLexème.Identifiant);
     }
 
     si fanion.PeutDébuterLittéraleNumérique {
         saufsi c == '.' {
-            retourne lèxe_nombre(lexeuse)
+            retourne lèxe_nombre(lexeuse);
         }
 
-        lexeuse.avance()
+        lexeuse.avance();
         si !fini(lexeuse) && fanions_caractères[lexeuse.caractère_courant()].EstChiffre {
-            lexeuse.recule()
-            retourne lèxe_nombre(lexeuse)
+            lexeuse.recule();
+            retourne lèxe_nombre(lexeuse);
         }
-        lexeuse.recule()
+        lexeuse.recule();
     }
 
     si fanion.Ponctuation {
-        genre_lexème: GenreLexème
+        genre_lexème: GenreLexème;
 
         discr c {
             '.' { 
-                genre_lexème = GenreLexème.Point
+                genre_lexème = GenreLexème.Point;
                 si apparie(lexeuse, "...") {
-                    débute_lexème(lexeuse)
-                    lexeuse.avance(2)
-                    retourne crée_lexème(lexeuse, GenreLexème.Spread)
+                    débute_lexème(lexeuse);
+                    lexeuse.avance(2);
+                    retourne crée_lexème(lexeuse, GenreLexème.Spread);
                 }
             }
             ',' { genre_lexème = GenreLexème.Virgule }
@@ -1008,137 +1008,137 @@ donne_lexème_suivant :: fonc (lexeuse: &Lexeuse) -> Lexème
             '[' { genre_lexème = GenreLexème.CrochetOuvrant }
             ']' { genre_lexème = GenreLexème.CrochetFermant }
             sinon {
-                rapporte_erreur(lexeuse, "Caractère ponctuant inconnu")
+                rapporte_erreur(lexeuse, "Caractère ponctuant inconnu");
             }
         }
 
-        retourne crée_lexème_pour_caractère(lexeuse, genre_lexème)
+        retourne crée_lexème_pour_caractère(lexeuse, genre_lexème);
     }
 
     si fanion.Opérateur {
         si c == '/' && droit_traité_slash_comme_début_regex(lexeuse) {
-            retourne lèxe_regex_littérale(lexeuse)
+            retourne lèxe_regex_littérale(lexeuse);
         }
 
-        lexeuse.débute_lexème()
+        lexeuse.débute_lexème();
 
         /* Pour le lexage des opérateurs, nous considérons l'opérateur le plus long possible valide.
          * Ceci nous permet d'éviter les erreurs si le code source est, p.e., "a>=-1" où nous avons
          * deux opérateurs (">=" et "-"). */
-        opt_dernier_opérateur: Optionnel(GenreLexème)
+        opt_dernier_opérateur: Optionnel(GenreLexème);
 
         répète {
-            opt_genre := rafine_genre_lexème_opérateur(lexeuse.donne_texte_courant())
+            opt_genre := rafine_genre_lexème_opérateur(lexeuse.donne_texte_courant());
             saufsi opt_genre.possède_valeur() {
-                lexeuse.recule()
-                arrête
+                lexeuse.recule();
+                arrête;
             }
 
-            opt_dernier_opérateur = opt_genre
+            opt_dernier_opérateur = opt_genre;
 
-            c = lexeuse.caractère_courant()
-            fanion = fanions_caractères[c comme n8]
+            c = lexeuse.caractère_courant();
+            fanion = fanions_caractères[c comme n8];
 
             saufsi fanion.PeutSuivreOpérateur {
-                arrête
+                arrête;
             }
 
-            lexeuse.avance()
-        } tantque !fini(lexeuse)
+            lexeuse.avance();
+        } tantque !fini(lexeuse);
 
         saufsi opt_dernier_opérateur.possède_valeur() {
-            lexeuse.début_source = lexeuse.début_mot
-            rapporte_erreur(lexeuse, "Opérateur inconnu")
+            lexeuse.début_source = lexeuse.début_mot;
+            rapporte_erreur(lexeuse, "Opérateur inconnu");
         }
 
-        dernier_opérateur := opt_dernier_opérateur.Quelque
+        dernier_opérateur := opt_dernier_opérateur.Quelque;
 
         si dernier_opérateur == GenreLexème.OptionalChaining {
             /* Vérifie si ?. n'est pas suivi d'un chiffre, auquel cas nous devrions avoir '?' et '.' */
             saufsi lexeuse.fini() {
-                c = caractère_courant(lexeuse)
-                fanion = fanions_caractères[c comme n8]
+                c = caractère_courant(lexeuse);
+                fanion = fanions_caractères[c comme n8];
                 si fanion.EstChiffre {
                     /* Remet le point. */
-                    lexeuse.recule()
+                    lexeuse.recule();
 
-                    dernier_opérateur = GenreLexème.Interrogation
+                    dernier_opérateur = GenreLexème.Interrogation;
                 }
             }
         }
 
-        retourne crée_lexème(lexeuse, dernier_opérateur)
+        retourne crée_lexème(lexeuse, dernier_opérateur);
     }
 
     // cas à gérer : caractères littéraux
 
     /* Vérifie si nous avons un caractère Unicode. */
-    n := nombre_octets_utf8_rapide(lexeuse.début_source)
+    n := nombre_octets_utf8_rapide(lexeuse.début_source);
 
     si n == 0 {
-        rapporte_erreur(lexeuse, "Le codec Unicode ne peut décoder le texte")
+        rapporte_erreur(lexeuse, "Le codec Unicode ne peut décoder le texte");
     }
 
-    retourne lèxe_identifiant(lexeuse, GenreLexème.Identifiant)
+    retourne lèxe_identifiant(lexeuse, GenreLexème.Identifiant);
 }
 
 consomme_espaces_blanches :: fonc (lexeuse: &Lexeuse)
 {
     tantque !fini(lexeuse) {
-        c := lexeuse.caractère_courant()
-        fanion := fanions_caractères[c comme n8]
+        c := lexeuse.caractère_courant();
+        fanion := fanions_caractères[c comme n8];
 
         si fanion.EstEspaceBlanche {
-            lexeuse.avance()
-            continue
+            lexeuse.avance();
+            continue;
         }
 
         si c == '/' {
             si apparie(lexeuse, "//") {
-                consomme_commentaire_ligne_seule(lexeuse)
-                continue
+                consomme_commentaire_ligne_seule(lexeuse);
+                continue;
             }
 
             si apparie(lexeuse, "/*") {
-                consomme_commentaire_bloc(lexeuse)
-                continue
+                consomme_commentaire_bloc(lexeuse);
+                continue;
             }
 
             /* Nous laissons donne_lexème_suivant s'occuper de ce cas. */
-            arrête
+            arrête;
         }
 
         si c == '<' && apparie(lexeuse, "<!--") {
-            lexeuse.dans_commentaire_html = vrai
-            lexeuse.avance(4)
-            continue
+            lexeuse.dans_commentaire_html = vrai;
+            lexeuse.avance(4);
+            continue;
         }
 
         si c == '-' && apparie(lexeuse, "-->") && lexeuse.dans_commentaire_html {
-            lexeuse.dans_commentaire_html = faux
-            lexeuse.avance(3)
-            continue
+            lexeuse.dans_commentaire_html = faux;
+            lexeuse.avance(3);
+            continue;
         }
 
         /* Vérifie si nous avons un caractère Unicode. */
-        n := nombre_octets_utf8_rapide(lexeuse.début_source)
+        n := nombre_octets_utf8_rapide(lexeuse.début_source);
 
         si n == 0 {
-            rapporte_erreur(lexeuse, "Le codec Unicode ne peut décoder le texte")
-            retourne
+            rapporte_erreur(lexeuse, "Le codec Unicode ne peut décoder le texte");
+            retourne;
         }
 
         si n == 1 {
             /* Caractère ASCII n'étant pas noté comme espace blanche. */
-            arrête
+            arrête;
         }
 
-        point_de_code := convertis_utf8_utf32(lexeuse.début_source, n) comme n32
+        point_de_code := convertis_utf8_utf32(lexeuse.début_source, n) comme n32;
         saufsi est_espace_blanche_unicode(point_de_code) {
-            arrête
+            arrête;
         }
 
-        lexeuse.début_source += n
+        lexeuse.début_source += n;
     }
 }
 
@@ -1146,66 +1146,66 @@ consomme_commentaire_ligne_seule :: fonc (lexeuse: &Lexeuse)
 {
     /* Lèxe commentaire. */
     tantque !fini(lexeuse) {
-        c := lexeuse.caractère_courant()
+        c := lexeuse.caractère_courant();
         /* À FAIRE : valide caractère Unicode ? */
-        lexeuse.avance()
+        lexeuse.avance();
 
         si c == '\n' {
-            arrête
+            arrête;
         }
     }
 }
 
 consomme_commentaire_bloc :: fonc (lexeuse: &Lexeuse)
 {
-    lexeuse.avance(2)
+    lexeuse.avance(2);
 
     /* Lèxe commentaire. */
     tantque !fini(lexeuse) {
         si apparie(lexeuse, "*/") {
-            lexeuse.avance(2)
-            arrête
+            lexeuse.avance(2);
+            arrête;
         }
 
         /* À FAIRE : valide caractère Unicode ? */
-        lexeuse.avance()
+        lexeuse.avance();
     }
 }
 
 rapporte_erreur :: fonc (lexeuse: &Lexeuse, message: chaine)
 {
     si lexeuse.erreur_de_compilation {
-        retourne
+        retourne;
     }
 
-    position: PositionSource
+    position: PositionSource;
     
-    curseur := lexeuse.source.texte.pointeur
-    position.texte_ligne.pointeur = curseur
-    début_source := lexeuse.début_source
+    curseur := lexeuse.source.texte.pointeur;
+    position.texte_ligne.pointeur = curseur;
+    début_source := lexeuse.début_source;
     tantque curseur < début_source {
         si mémoire(curseur) == '\n' {
-            position.ligne += 1
-            position.colonne = 0
-            position.texte_ligne.pointeur = curseur + 1
-            position.texte_ligne.taille = 0
-            curseur += 1
-            continue
+            position.ligne += 1;
+            position.colonne = 0;
+            position.texte_ligne.pointeur = curseur + 1;
+            position.texte_ligne.taille = 0;
+            curseur += 1;
+            continue;
         }
 
-        position.colonne += 1
-        position.texte_ligne.taille += 1
-        curseur += 1
+        position.colonne += 1;
+        position.texte_ligne.taille += 1;
+        curseur += 1;
     }
 
     tantque curseur < lexeuse.fin_source {
         si mémoire(curseur) == '\n' {
-            arrête
+            arrête;
         }
 
-        position.texte_ligne.taille += 1
-        curseur += 1
+        position.texte_ligne.taille += 1;
+        curseur += 1;
     }
 
-    lexeuse.erreur_de_compilation = crée_erreur_de_compilation(lexeuse.realm, message, position)
+    lexeuse.erreur_de_compilation = crée_erreur_de_compilation(lexeuse.realm, message, position);
 }

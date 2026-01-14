@@ -1,243 +1,243 @@
-importe Chaine
-importe Compilatrice
-importe Fondation
-importe JavaScript
-importe LigneDeCommande
-importe SysFichier
-importe Temps
+importe Chaine;
+importe Compilatrice;
+importe Fondation;
+importe JavaScript;
+importe LigneDeCommande;
+importe SysFichier;
+importe Temps;
 
 Arguments :: struct {
-    utilise_code_binaire: bool @NomArgument "b"
-    fichier: chaine @anonyme
+    utilise_code_binaire: bool @NomArgument "b";
+    fichier: chaine @anonyme;
 }
 
 principale :: fonc ()
 {
-    args_ok, args, _ := parse_ligne_de_commande(Arguments)
+    args_ok, args, _ := parse_ligne_de_commande(Arguments);
     saufsi args_ok {
-        imprimeln("Utilisation : % [-b] [FICHIER]", donne_nom_programme())
-        exit(1)
+        imprimeln("Utilisation : % [-b] [FICHIER]", donne_nom_programme());
+        exit(1);
     }
 
-    stats: StatistiquesTests
-    diffère détruit_données_stats(*stats)
+    stats: StatistiquesTests;
+    diffère détruit_données_stats(*stats);
 
-    début := maintenant_précis()
+    début := maintenant_précis();
 
     si args.fichier {
-        évalue_test(CheminFichier(args.fichier), *stats, args.utilise_code_binaire)
+        évalue_test(CheminFichier(args.fichier), *stats, args.utilise_code_binaire);
     }
     sinon pour ExploratriceFichier(CheminFichier("fichiers")) {
         si it.extension() == ".js" {
-            évalue_test(it, *stats, args.utilise_code_binaire)
+            évalue_test(it, *stats, args.utilise_code_binaire);
         }
     }
 
-    fin := début.temps_écoulé_millisecondes()
+    fin := début.temps_écoulé_millisecondes();
 
-    imprime("\n\n")
+    imprime("\n\n");
     si stats.nombre_de_tests_passants != stats.nombre_de_tests {
         pour stats.erreurs_captées {
-            imprime("[ \x1b[31mÉCHEC\x1b[37m ] : %\n", it.fichier)
-            imprime("          Cas : %\n", it.cas)
-            imprime("                %\n", it.message)
+            imprime("[ \x1b[31mÉCHEC\x1b[37m ] : %\n", it.fichier);
+            imprime("          Cas : %\n", it.cas);
+            imprime("                %\n", it.message);
         }
     }
     sinon {
-        imprime("[ \x1b[32mPASSE\x1b[37m ]\n")
+        imprime("[ \x1b[32mPASSE\x1b[37m ]\n");
     }
 
-    imprime("\n")
-    imprime("Tests    : % réussis, % en tout\n", stats.nombre_de_tests_passants, stats.nombre_de_tests)
-    imprime("Fichiers : % en tout\n", stats.nombre_de_fichiers)
-    imprime("Temps    : %ms\n", fin)
-    imprime("\n")
+    imprime("\n");
+    imprime("Tests    : % réussis, % en tout\n", stats.nombre_de_tests_passants, stats.nombre_de_tests);
+    imprime("Fichiers : % en tout\n", stats.nombre_de_fichiers);
+    imprime("Temps    : %ms\n", fin);
+    imprime("\n");
 }
 
 ErreurCaptée :: struct {
-    fichier: chaine
-    cas: ECMAString
-    message: ECMAString
+    fichier: chaine;
+    cas: ECMAString;
+    message: ECMAString;
 }
 
 StatistiquesTests :: struct {
-    nombre_de_tests_passants: z32
-    nombre_de_tests: z32
-    nombre_de_fichiers: z32
+    nombre_de_tests_passants: z32;
+    nombre_de_tests: z32;
+    nombre_de_fichiers: z32;
 
-    erreurs_captées: [..]ErreurCaptée
+    erreurs_captées: [..]ErreurCaptée;
 }
 
 détruit_données_stats :: fonc (stats: *StatistiquesTests)
 {
     pour stats.erreurs_captées {
-        déloge(it.fichier)
+        déloge(it.fichier);
     }
-    déloge(stats.erreurs_captées)
+    déloge(stats.erreurs_captées);
 }
 
 évalue_test :: fonc (chemin: CheminFichier, stats: *StatistiquesTests, utilise_code_binaire: bool)
 {
-    stats.nombre_de_fichiers += 1
+    stats.nombre_de_fichiers += 1;
 
-    _, contenu := contenu_fichier_texte(chemin)
-    diffère déloge(contenu)
+    _, contenu := contenu_fichier_texte(chemin);
+    diffère déloge(contenu);
 
-    mv: MachineVirtuelle
-    mv.utilise_code_binaire = utilise_code_binaire
-    diffère détruit_données_mv(*mv)
-    initialise_mv(nul, *mv)
+    mv: MachineVirtuelle;
+    mv.utilise_code_binaire = utilise_code_binaire;
+    diffère détruit_données_mv(*mv);
+    initialise_mv(nul, *mv);
 
-    diffère éboue(donne_tas_de_mémoire(*mv))
+    diffère éboue(donne_tas_de_mémoire(*mv));
 
-    configuration: ConfigurationRealm
-    configuration.crée_propriétés_hôte_objet_global = crée_propriétés_hôte_objet_global
+    configuration: ConfigurationRealm;
+    configuration.crée_propriétés_hôte_objet_global = crée_propriétés_hôte_objet_global;
 
-    realm := initialise_host_defined_realm(*mv, *configuration)
+    realm := initialise_host_defined_realm(*mv, *configuration);
 
-    crée_environnement_de_test(realm)
+    crée_environnement_de_test(realm);
 
     si exécute_script(realm, contenu, chemin) {
-        prop_tests_passants := realm.global_object.trouve_propriété(crée_chaine_utf16_unique("tests_passants"))
-        prop_tests_éffectués := realm.global_object.trouve_propriété(crée_chaine_utf16_unique("tests_éffectués"))
+        prop_tests_passants := realm.global_object.trouve_propriété(crée_chaine_utf16_unique("tests_passants"));
+        prop_tests_éffectués := realm.global_object.trouve_propriété(crée_chaine_utf16_unique("tests_éffectués"));
 
-        prop_capte_erreur := realm.global_object.trouve_propriété(crée_chaine_utf16_unique("capte_erreur"))
-        capte_erreur := prop_capte_erreur.valeur.donne_objet().vérifie_comme(CapteErreur)
+        prop_capte_erreur := realm.global_object.trouve_propriété(crée_chaine_utf16_unique("capte_erreur"));
+        capte_erreur := prop_capte_erreur.valeur.donne_objet().vérifie_comme(CapteErreur);
 
         pour capte_erreur.erreurs {
-            erreur_captée := tableau_ajoute_élément(*stats.erreurs_captées)
-            erreur_captée.fichier = copie_chaine(chemin.chn)
-            erreur_captée.cas = it.cas
-            erreur_captée.message = it.message
+            erreur_captée := tableau_ajoute_élément(*stats.erreurs_captées);
+            erreur_captée.fichier = copie_chaine(chemin.chn);
+            erreur_captée.cas = it.cas;
+            erreur_captée.message = it.message;
         }
 
-        stats.nombre_de_tests += prop_tests_éffectués.valeur.Number comme z32
-        stats.nombre_de_tests_passants += prop_tests_passants.valeur.Number comme z32
+        stats.nombre_de_tests += prop_tests_éffectués.valeur.Number comme z32;
+        stats.nombre_de_tests_passants += prop_tests_passants.valeur.Number comme z32;
     }
     sinon {
-        stats.nombre_de_tests += 1
+        stats.nombre_de_tests += 1;
     }
 }
 
 crée_environnement_de_test :: fonc (realm: *Realm)
 {
-    chemin := "environnement_test.js"
-    _, source := contenu_fichier_texte(chemin)
-    diffère déloge(source)
-    _ := exécute_script(realm, source, CheminFichier(chemin))
+    chemin := "environnement_test.js";
+    _, source := contenu_fichier_texte(chemin);
+    diffère déloge(source);
+    _ := exécute_script(realm, source, CheminFichier(chemin));
 }
 
 exécute_script :: fonc (realm: *Realm, source: chaine, chemin: CheminFichier) -> bool
 {
-    script: *Script
+    script: *Script;
     discr parse_script(source, realm) {
         Ok(s) {
-            script = s
+            script = s;
         }
         Erreur(e) {
-            imprime("[ \x1b[31mÉCHEC\x1b[37m ] : %\n%\n", chemin.chn, Valeur(Object = e))
-            retourne faux
+            imprime("[ \x1b[31mÉCHEC\x1b[37m ] : %\n%\n", chemin.chn, Valeur(Object = e));
+            retourne faux;
         }
         sinon {
-            imprime("[ \x1b[31mÉCHEC\x1b[37m ] : %\n     erreur inconnue\n", chemin.chn)
-            retourne faux
+            imprime("[ \x1b[31mÉCHEC\x1b[37m ] : %\n     erreur inconnue\n", chemin.chn);
+            retourne faux;
         }
     }
 
-    nom_fichier := chemin.nom_fichier_avec_extension()
+    nom_fichier := chemin.nom_fichier_avec_extension();
 
     à_ne_pas_exécuter := [
         "async-function.js",
         "binding-patterns.js"
-    ]
+    ];
 
     pour à_ne_pas_exécuter {
         si nom_fichier == it {
-            retourne vrai
+            retourne vrai;
         }
     }
 
-    _ := script_evaluation(script)
-    retourne vrai
+    _ := script_evaluation(script);
+    retourne vrai;
 }
 
-table_virtuelle_capte_erreur := TableVirtuelleObject(classe = CapteErreur, sur_destruction = capte_erreur_sur_destruction)
+table_virtuelle_capte_erreur := TableVirtuelleObject(classe = CapteErreur, sur_destruction = capte_erreur_sur_destruction);
 
 CapteErreur :: struct {
-    empl object: Object
-    table = *table_virtuelle_capte_erreur
+    empl object: Object;
+    table = *table_virtuelle_capte_erreur;
 
     Erreur :: struct {
-        cas: ECMAString
-        message: ECMAString
+        cas: ECMAString;
+        message: ECMAString;
     }
 
-    erreurs: [..]Erreur
+    erreurs: [..]Erreur;
 }
 
 crée_capte_erreur :: fonc (tas_de_mémoire: *TasDeMémoire) -> *CapteErreur
 {
-    résultat := tas_de_mémoire.alloue(CapteErreur)
-    ajoute_fonction_native(résultat, crée_chaine_utf16_unique("ajoute_erreur"), capte_erreur_ajoute_erreur)
-    retourne résultat
+    résultat := tas_de_mémoire.alloue(CapteErreur);
+    ajoute_fonction_native(résultat, crée_chaine_utf16_unique("ajoute_erreur"), capte_erreur_ajoute_erreur);
+    retourne résultat;
 }
 
 capte_erreur_sur_destruction :: fonc (base: *Cellule)
 {
-    sur_destruction_objet(base)
+    sur_destruction_objet(base);
 
-    capte_erreur := base.vérifie_comme(CapteErreur)
-    déloge(capte_erreur.erreurs)
+    capte_erreur := base.vérifie_comme(CapteErreur);
+    déloge(capte_erreur.erreurs);
 }
 
 capte_erreur_ajoute_erreur :: fonc (empl params: *ParamètresObjectCall) -> Valeur
 {
-    capte_erreur := this_value.donne_objet().vérifie_comme(CapteErreur)
+    capte_erreur := this_value.donne_objet().vérifie_comme(CapteErreur);
 
-    cas := to_string(interpréteuse, params.donne_argument(0))
+    cas := to_string(interpréteuse, params.donne_argument(0));
     si interpréteuse.possède_exception() {
-        retourne js_undefined
+        retourne js_undefined;
     }
 
-    message := to_string(interpréteuse, params.donne_argument(1))
+    message := to_string(interpréteuse, params.donne_argument(1));
     si interpréteuse.possède_exception() {
-        retourne js_undefined
+        retourne js_undefined;
     }
 
-    tableau_ajoute(*capte_erreur.erreurs, CapteErreur.Erreur(cas.texte, message.texte))
+    tableau_ajoute(*capte_erreur.erreurs, CapteErreur.Erreur(cas.texte, message.texte));
 
-    retourne js_undefined
+    retourne js_undefined;
 }
 
 crée_propriétés_hôte_objet_global :: fonc (base: *ConfigurationRealm @inutilisée, global: *Object)
 {
-    flux_sortie_sur_destruction :: fonc (base: *FluxSortieConsole)
+    flux_sortie_sur_destruction :: fonc (base: *FluxSortieConsole);
     {
-        déloge(base)
+        déloge(base);
     }
 
-    flux_sortie_sur_log :: fonc (base: *FluxSortieConsole @inutilisée, texte: chaine)
+    flux_sortie_sur_log :: fonc (base: *FluxSortieConsole @inutilisée, texte: chaine);
     {
-        imprime("%", texte)
+        imprime("%", texte);
     }
 
-    flux_sortie_sur_efface :: fonc (base: *FluxSortieConsole @inutilisée)
+    flux_sortie_sur_efface :: fonc (base: *FluxSortieConsole @inutilisée);
     {
     }
 
-    flux := loge(FluxSortieConsole)
-    flux.sur_destruction = flux_sortie_sur_destruction
-    flux.sur_log = flux_sortie_sur_log
-    flux.sur_efface = flux_sortie_sur_efface
+    flux := loge(FluxSortieConsole);
+    flux.sur_destruction = flux_sortie_sur_destruction;
+    flux.sur_log = flux_sortie_sur_log;
+    flux.sur_efface = flux_sortie_sur_efface;
 
-    console := crée_console(global.donne_tas_de_mémoire(), flux, nul)
+    console := crée_console(global.donne_tas_de_mémoire(), flux, nul);
 
-    global.ajoute_fonction_native("rm", fonction_native_éboue)
-    global.ajoute_propriété(crée_chaine_utf16_unique("console"), Valeur(Object = console), Enumerable | Configurable | Writable)
+    global.ajoute_fonction_native("rm", fonction_native_éboue);
+    global.ajoute_propriété(crée_chaine_utf16_unique("console"), Valeur(Object = console), Enumerable | Configurable | Writable);
 
-    global.ajoute_propriété(crée_chaine_utf16_unique("tests_éffectués"), Valeur(Number = 0), Writable)
-    global.ajoute_propriété(crée_chaine_utf16_unique("tests_passants"), Valeur(Number = 0), Writable)
+    global.ajoute_propriété(crée_chaine_utf16_unique("tests_éffectués"), Valeur(Number = 0), Writable);
+    global.ajoute_propriété(crée_chaine_utf16_unique("tests_passants"), Valeur(Number = 0), Writable);
 
-    capte_erreur := crée_capte_erreur(global.donne_tas_de_mémoire())
-    global.ajoute_propriété(crée_chaine_utf16_unique("capte_erreur"), Valeur(Object = capte_erreur), Configurable)
+    capte_erreur := crée_capte_erreur(global.donne_tas_de_mémoire());
+    global.ajoute_propriété(crée_chaine_utf16_unique("capte_erreur"), Valeur(Object = capte_erreur), Configurable);
 }

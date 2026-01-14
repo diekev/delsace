@@ -3,25 +3,25 @@
  * Catégorie : [génération code, fonction polymorphique, portée, diffère]
  */
 
-importe Chaine
-importe Fondation
+importe Chaine;
+importe Fondation;
 
 principale :: fonc ()
 {
-    poly :: fonc (ligne: chaine @inutilisée, valeur: *$T @inutilisée) -> bool
+    poly :: fonc (ligne: chaine @inutilisée, valeur: *$T @inutilisée) -> bool;
     {
-        retourne faux
+        retourne faux;
     }
 
-    rappel_pour_chaque_ligne :: fonc (ligne: chaine, a: z32)
+    rappel_pour_chaque_ligne :: fonc (ligne: chaine, a: z32);
     {
         si poly(ligne, *a) {
-            retourne
+            retourne;
         }
     }
 
-    contenu: chaine
-    diffère déloge(contenu)
+    contenu: chaine;
+    diffère déloge(contenu);
 
-    pour_chaque_ligne(contenu, 4, rappel_pour_chaque_ligne)
+    pour_chaque_ligne(contenu, 4, rappel_pour_chaque_ligne);
 }

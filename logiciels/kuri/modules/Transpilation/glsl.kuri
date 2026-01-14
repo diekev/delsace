@@ -1,8 +1,8 @@
 // Transpile du code Kuri vers GLSL
 
-importe Compilatrice
-importe Fondation
-importe SysFichier
+importe Compilatrice;
+importe Fondation;
+importe SysFichier;
 
 /*
 
@@ -11,231 +11,231 @@ importe SysFichier
  */
 convertis_vers_glsl :: fonc (espace: EspaceDeTravail, corps: *NoeudCodeCorpsFonction)
 {
-    bloc := corps.bloc
-    entête := corps.entête
+    bloc := corps.bloc;
+    entête := corps.entête;
 
     pour entête.annotations {
         si it.nom == "GLSL" {
-            arrête
+            arrête;
         }
     }
     sansarrêt {
-        retourne
+        retourne;
     }
 
-    enchaineuse : Enchaineuse
-    initialise_enchaineuse(*enchaineuse)
+    enchaineuse : Enchaineuse;
+    initialise_enchaineuse(*enchaineuse);
 
-    imprime_dans_enchaineuse(*enchaineuse, "void %", entête.nom)
+    imprime_dans_enchaineuse(*enchaineuse, "void %", entête.nom);
 
-    virgule := "("
+    virgule := "(";
     pour entête.params {
-        ajoute_au_tampon(*enchaineuse, virgule, "in ")
-        convertis_code_glsl(espace, *enchaineuse, it, 0)
-        virgule = ", "
+        ajoute_au_tampon(*enchaineuse, virgule, "in ");
+        convertis_code_glsl(espace, *enchaineuse, it, 0);
+        virgule = ", ";
     }
 
     pour entête.params_sorties {
-        ajoute_au_tampon(*enchaineuse, virgule, "out ")
-        convertis_code_glsl(espace, *enchaineuse, it, 0)
-        virgule = ", "
+        ajoute_au_tampon(*enchaineuse, virgule, "out ");
+        convertis_code_glsl(espace, *enchaineuse, it, 0);
+        virgule = ", ";
     }
 
-    ajoute_au_tampon(*enchaineuse, ")\n{\n")
+    ajoute_au_tampon(*enchaineuse, ")\n{\n");
 
-    convertis_code_glsl(espace, *enchaineuse, bloc, 0)
+    convertis_code_glsl(espace, *enchaineuse, bloc, 0);
 
-    ajoute_au_tampon(*enchaineuse, "}\n")
+    ajoute_au_tampon(*enchaineuse, "}\n");
 
-    _ := copie_enchaineuse_fichier(*enchaineuse, sortie_standarde())
+    _ := copie_enchaineuse_fichier(*enchaineuse, sortie_standarde());
 }
 
 convertis_vers_glsl :: fonc (espace: EspaceDeTravail, enchaineuse: *Enchaineuse, type: *InfoType, site: *NoeudCode)
 {
     saufsi type {
-        ajoute_au_tampon(enchaineuse, "<type nul !>")
-        retourne
+        ajoute_au_tampon(enchaineuse, "<type nul !>");
+        retourne;
     }
 
     si type.id == GenreInfoType.STRUCTURE {
-        type_struct := type comme *InfoTypeStructure
+        type_struct := type comme *InfoTypeStructure;
 
         si type_struct.nom == "Vec3" {
-            ajoute_au_tampon(enchaineuse, "vec3")
-            retourne
+            ajoute_au_tampon(enchaineuse, "vec3");
+            retourne;
         }
     }
 
     si type.id == GenreInfoType.RÉEL {
         si type.taille_en_octet == 4 {
-            ajoute_au_tampon(enchaineuse, "float")
-            retourne
+            ajoute_au_tampon(enchaineuse, "float");
+            retourne;
         }
 
         si type.taille_en_octet == 8 {
-            ajoute_au_tampon(enchaineuse, "float")
-            retourne
+            ajoute_au_tampon(enchaineuse, "float");
+            retourne;
         }
     }
 
-    compilatrice_rapporte_erreur(espace, site.chemin_fichier, site.numéro_ligne, "impossible de convertir le type vers GLSL")
+    compilatrice_rapporte_erreur(espace, site.chemin_fichier, site.numéro_ligne, "impossible de convertir le type vers GLSL");
 }
 
 convertis_code_glsl :: fonc (espace: EspaceDeTravail, enchaineuse: *Enchaineuse, code: *NoeudCode, profondeur: z32)
 {
     si code == nul {
-        retourne
+        retourne;
     }
 
     discr code.genre {
         DÉCLARATION_VARIABLE {
-            code_déclaration := code comme *NoeudCodeDéclarationVariable
-            convertis_vers_glsl(espace, enchaineuse, code_déclaration.type, code_déclaration)
+            code_déclaration := code comme *NoeudCodeDéclarationVariable;
+            convertis_vers_glsl(espace, enchaineuse, code_déclaration.type, code_déclaration);
 
-            ident := code_déclaration.nom
-            ajoute_au_tampon(enchaineuse, " ", ident)
+            ident := code_déclaration.nom;
+            ajoute_au_tampon(enchaineuse, " ", ident);
 
             si code_déclaration.expression {
-                ajoute_au_tampon(enchaineuse, " = ")
-                convertis_code_glsl(espace, enchaineuse, code_déclaration.expression, profondeur)
+                ajoute_au_tampon(enchaineuse, " = ");
+                convertis_code_glsl(espace, enchaineuse, code_déclaration.expression, profondeur);
             }
         }
         EXPRESSION_ASSIGNATION_VARIABLE {
-            assignation := code comme *NoeudCodeAssignation
-            convertis_code_glsl(espace, enchaineuse, assignation.assignée, profondeur)
-            ajoute_au_tampon(enchaineuse, " = ")
-            convertis_code_glsl(espace, enchaineuse, assignation.expression, profondeur)
+            assignation := code comme *NoeudCodeAssignation;
+            convertis_code_glsl(espace, enchaineuse, assignation.assignée, profondeur);
+            ajoute_au_tampon(enchaineuse, " = ");
+            convertis_code_glsl(espace, enchaineuse, assignation.expression, profondeur);
         }
         OPÉRATEUR_BINAIRE {
-            binaire := code comme *NoeudCodeExpressionBinaire
-            convertis_code_glsl(espace, enchaineuse, binaire.opérande_gauche, profondeur)
-            imprime_dans_enchaineuse(enchaineuse, " % ", binaire.nom)
-            convertis_code_glsl(espace, enchaineuse, binaire.opérande_droite, profondeur)
+            binaire := code comme *NoeudCodeExpressionBinaire;
+            convertis_code_glsl(espace, enchaineuse, binaire.opérande_gauche, profondeur);
+            imprime_dans_enchaineuse(enchaineuse, " % ", binaire.nom);
+            convertis_code_glsl(espace, enchaineuse, binaire.opérande_droite, profondeur);
         }
         OPÉRATEUR_UNAIRE {
-            unaire := code comme *NoeudCodeExpressionUnaire
-            ajoute_au_tampon(enchaineuse, unaire.nom)
-            convertis_code_glsl(espace, enchaineuse, unaire.opérande, profondeur)
+            unaire := code comme *NoeudCodeExpressionUnaire;
+            ajoute_au_tampon(enchaineuse, unaire.nom);
+            convertis_code_glsl(espace, enchaineuse, unaire.opérande, profondeur);
         }
         INSTRUCTION_SI {
-            code_si := code comme *NoeudCodeSi
+            code_si := code comme *NoeudCodeSi;
 
-            ajoute_au_tampon(enchaineuse, "if (")
-            convertis_code_glsl(espace, enchaineuse, code_si.condition, profondeur)
-            ajoute_au_tampon(enchaineuse, ") {\n")
-            convertis_code_glsl(espace, enchaineuse, code_si.bloc_si_vrai, profondeur)
-            imprime_tabulation(enchaineuse, profondeur)
-            ajoute_au_tampon(enchaineuse, "}\n")
+            ajoute_au_tampon(enchaineuse, "if (");
+            convertis_code_glsl(espace, enchaineuse, code_si.condition, profondeur);
+            ajoute_au_tampon(enchaineuse, ") {\n");
+            convertis_code_glsl(espace, enchaineuse, code_si.bloc_si_vrai, profondeur);
+            imprime_tabulation(enchaineuse, profondeur);
+            ajoute_au_tampon(enchaineuse, "}\n");
 
             si code_si.bloc_si_faux {
-                imprime_tabulation(enchaineuse, profondeur)
+                imprime_tabulation(enchaineuse, profondeur);
 
-                ajoute_au_tampon(enchaineuse, "else {\n")
-                convertis_code_glsl(espace, enchaineuse, code_si.bloc_si_faux, profondeur)
+                ajoute_au_tampon(enchaineuse, "else {\n");
+                convertis_code_glsl(espace, enchaineuse, code_si.bloc_si_faux, profondeur);
 
-                imprime_tabulation(enchaineuse, profondeur)
+                imprime_tabulation(enchaineuse, profondeur);
 
-                ajoute_au_tampon(enchaineuse, "}\n")
+                ajoute_au_tampon(enchaineuse, "}\n");
             }
 
-            ajoute_au_tampon(enchaineuse, "\n")
+            ajoute_au_tampon(enchaineuse, "\n");
         }
         INSTRUCTION_COMPOSÉE {
-            bloc := code comme *NoeudCodeBloc
+            bloc := code comme *NoeudCodeBloc;
 
             pour bloc.expressions {
-                imprime_tabulation(enchaineuse, profondeur + 1)
+                imprime_tabulation(enchaineuse, profondeur + 1);
 
-                convertis_code_glsl(espace, enchaineuse, it, profondeur + 1)
+                convertis_code_glsl(espace, enchaineuse, it, profondeur + 1);
 
                 si it.genre != GenreNoeud.INSTRUCTION_SI && it.genre != GenreNoeud.INSTRUCTION_RETOUR {
-                    ajoute_au_tampon(enchaineuse, ";\n")
+                    ajoute_au_tampon(enchaineuse, ";\n");
                 }
             }
         }
         INSTRUCTION_RETOUR {
-            ret := code comme *NoeudCodeInstructionRetour
+            ret := code comme *NoeudCodeInstructionRetour;
             si ret.expression {
                 // @Incomplet : vérifie si nous avons une assignation
-                convertis_code_glsl(espace, enchaineuse, ret.expression, profondeur)
-                ajoute_au_tampon(enchaineuse, ";\n")
-                imprime_tabulation(enchaineuse, profondeur)
+                convertis_code_glsl(espace, enchaineuse, ret.expression, profondeur);
+                ajoute_au_tampon(enchaineuse, ";\n");
+                imprime_tabulation(enchaineuse, profondeur);
             }
-            ajoute_au_tampon(enchaineuse, "return;\n")
+            ajoute_au_tampon(enchaineuse, "return;\n");
         }
         INSTRUCTION_BOUCLE {
-            code_boucle := code comme *NoeudCodeBoucle
-            ajoute_au_tampon(enchaineuse, "while (1) {\n")
-            convertis_code_glsl(espace, enchaineuse, code_boucle.bloc, profondeur)
-            ajoute_au_tampon(enchaineuse, "}\n\n")
+            code_boucle := code comme *NoeudCodeBoucle;
+            ajoute_au_tampon(enchaineuse, "while (1) {\n");
+            convertis_code_glsl(espace, enchaineuse, code_boucle.bloc, profondeur);
+            ajoute_au_tampon(enchaineuse, "}\n\n");
         }
         INSTRUCTION_TANTQUE {
-            code_boucle := code comme *NoeudCodeBoucle
-            ajoute_au_tampon(enchaineuse, "while condition {\n")
-            convertis_code_glsl(espace, enchaineuse, code_boucle.bloc, profondeur)
-            ajoute_au_tampon(enchaineuse, "}\n\n")
+            code_boucle := code comme *NoeudCodeBoucle;
+            ajoute_au_tampon(enchaineuse, "while condition {\n");
+            convertis_code_glsl(espace, enchaineuse, code_boucle.bloc, profondeur);
+            ajoute_au_tampon(enchaineuse, "}\n\n");
         }
         INSTRUCTION_RÉPÈTE {
-            code_boucle := code comme *NoeudCodeBoucle
-            ajoute_au_tampon(enchaineuse, "do {\n")
-            convertis_code_glsl(espace, enchaineuse, code_boucle.bloc, profondeur)
-            ajoute_au_tampon(enchaineuse, "} while condition;\n\n")
+            code_boucle := code comme *NoeudCodeBoucle;
+            ajoute_au_tampon(enchaineuse, "do {\n");
+            convertis_code_glsl(espace, enchaineuse, code_boucle.bloc, profondeur);
+            ajoute_au_tampon(enchaineuse, "} while condition;\n\n");
         }
         EXPRESSION_RÉFÉRENCE_DÉCLARATION {
-            ident := code comme *NoeudCodeRéférenceDéclaration
-            ajoute_au_tampon(enchaineuse, ident.nom)
+            ident := code comme *NoeudCodeRéférenceDéclaration;
+            ajoute_au_tampon(enchaineuse, ident.nom);
         }
         EXPRESSION_PARENTHÈSE {
-            paren := code comme *NoeudCodeParenthèse
-            ajoute_au_tampon(enchaineuse, "(")
-            convertis_code_glsl(espace, enchaineuse, paren.expression, profondeur)
-            ajoute_au_tampon(enchaineuse, ")")
+            paren := code comme *NoeudCodeParenthèse;
+            ajoute_au_tampon(enchaineuse, "(");
+            convertis_code_glsl(espace, enchaineuse, paren.expression, profondeur);
+            ajoute_au_tampon(enchaineuse, ")");
         }
         EXPRESSION_APPEL {
-            appel := code comme *NoeudCodeAppel
+            appel := code comme *NoeudCodeAppel;
 
             // @faible
-            ident := appel.expression comme *NoeudCodeRéférenceDéclaration
+            ident := appel.expression comme *NoeudCodeRéférenceDéclaration;
 
             si ident.nom == "produit_scalaire" {
-                ajoute_au_tampon(enchaineuse, "dot")
+                ajoute_au_tampon(enchaineuse, "dot");
             }
             sinon {
-                convertis_code_glsl(espace, enchaineuse, appel.expression, profondeur)
+                convertis_code_glsl(espace, enchaineuse, appel.expression, profondeur);
             }
 
-            virgule := "("
+            virgule := "(";
             pour appel.paramètres {
-                ajoute_au_tampon(enchaineuse, virgule)
-                convertis_code_glsl(espace, enchaineuse, it, profondeur)
-                virgule = ", "
+                ajoute_au_tampon(enchaineuse, virgule);
+                convertis_code_glsl(espace, enchaineuse, it, profondeur);
+                virgule = ", ";
             }
 
-            ajoute_au_tampon(enchaineuse, ")")
+            ajoute_au_tampon(enchaineuse, ")");
         }
         EXPRESSION_CONSTRUCTION_STRUCTURE {
-            appel := code comme *NoeudCodeAppel
+            appel := code comme *NoeudCodeAppel;
 
-            convertis_vers_glsl(espace, enchaineuse, appel.type, appel)
+            convertis_vers_glsl(espace, enchaineuse, appel.type, appel);
 
-            virgule := "("
+            virgule := "(";
             pour appel.paramètres {
                 // @Incomplet : vérifie si nous avons une assignation
-                ajoute_au_tampon(enchaineuse, virgule)
-                convertis_code_glsl(espace, enchaineuse, it, profondeur)
-                virgule = ", "
+                ajoute_au_tampon(enchaineuse, virgule);
+                convertis_code_glsl(espace, enchaineuse, it, profondeur);
+                virgule = ", ";
             }
 
-            ajoute_au_tampon(enchaineuse, ")")
+            ajoute_au_tampon(enchaineuse, ")");
         }
         EXPRESSION_LITTÉRALE_NOMBRE_RÉEL {
-            lit := code comme *NoeudCodeLittéraleRéel
-            x := lit.valeur comme r32
-            imprime_dans_enchaineuse(enchaineuse, "%", x)
+            lit := code comme *NoeudCodeLittéraleRéel;
+            x := lit.valeur comme r32;
+            imprime_dans_enchaineuse(enchaineuse, "%", x);
         }
         EXPRESSION_COMME {
-            expr_comme := code comme *NoeudCodeComme
-            convertis_code_glsl(espace, enchaineuse, expr_comme.expression, profondeur)
+            expr_comme := code comme *NoeudCodeComme;
+            convertis_code_glsl(espace, enchaineuse, expr_comme.expression, profondeur);
         }
         /*
         EXPRESSION_VIRGULE {

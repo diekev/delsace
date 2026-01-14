@@ -8,11 +8,11 @@
  * Catégorie : [génération code, construction tableau, conversion implicite, type entier]
  */
 
-importe Fondation
+importe Fondation;
 
 principale :: fonc ()
 {
     si fait_partie_de('a', 'b', 'c', 0x0D) {
-        exit(1)
+        exit(1);
     }
 }

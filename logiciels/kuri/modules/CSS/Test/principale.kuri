@@ -1,21 +1,21 @@
-importe Compilatrice
+importe Compilatrice;
 
 #exécute {
     {
-        options: OptionsDeCompilation
-        options.nom_sortie = "test_mises_en_pages"
-        espace := démarre_un_espace_de_travail("test_mises_en_pages", *options)
-        ajoute_fichier_à_la_compilation(espace, "test_mises_en_pages.kuri")
+        options: OptionsDeCompilation;
+        options.nom_sortie = "test_mises_en_pages";
+        espace := démarre_un_espace_de_travail("test_mises_en_pages", *options);
+        ajoute_fichier_à_la_compilation(espace, "test_mises_en_pages.kuri");
     }
     {
-        options: OptionsDeCompilation
-        options.nom_sortie = "test_parsage"
-        espace := démarre_un_espace_de_travail("test_parsage", *options)
-        ajoute_fichier_à_la_compilation(espace, "test_parsage.kuri")
+        options: OptionsDeCompilation;
+        options.nom_sortie = "test_parsage";
+        espace := démarre_un_espace_de_travail("test_parsage", *options);
+        ajoute_fichier_à_la_compilation(espace, "test_parsage.kuri");
     }
     {
-        options := compilatrice_donne_options()
-        options.résultat = RésultatCompilation.RIEN
-        compilatrice_ajourne_options(options)
+        options := compilatrice_donne_options();
+        options.résultat = RésultatCompilation.RIEN;
+        compilatrice_ajourne_options(options);
     }
 }

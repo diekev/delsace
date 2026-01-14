@@ -1,24 +1,24 @@
-importe Fondation
+importe Fondation;
 
 /* La bibliothèque Alembic. */
-libabc :: #bibliothèque "Alembic"
+libabc :: #bibliothèque "Alembic";
 
 /* La bibliothèque de notre interface. */
 
-#dépendance_bibliothèque libalembic libabc
+#dépendance_bibliothèque libalembic libabc;
 
-charge "interface_alembic"
+charge "interface_alembic";
 
 ABC_crée_lectrice_cache :: fonc (ctx_kuri: *ContexteKuri, archive: *ArchiveCache, chemin: chaine) -> *LectriceCache
 {
-    retourne ABC_cree_lectrice_cache(ctx_kuri, archive, chemin.pointeur, chemin.taille comme n64)
+    retourne ABC_cree_lectrice_cache(ctx_kuri, archive, chemin.pointeur, chemin.taille comme n64);
 }
 
 /* ------------------------------------------------------------------------- */
 /** \nom Contexte Kuri pour Alembic
  * \{ */
 
-ctx_kuri_pour_alembic := initialise_contexte_kuri()
+ctx_kuri_pour_alembic := initialise_contexte_kuri();
 
 /** \} */
 
@@ -28,25 +28,25 @@ ctx_kuri_pour_alembic := initialise_contexte_kuri()
 
 crée_autrice_archive :: fonc (ctx: *ContexteCreationArchive, ctx_ecriture: *ContexteEcritureCache) -> Optionnel(*AutriceArchive)
 {
-    résultat := ABC_cree_autrice_archive(*ctx_kuri_pour_alembic, ctx, ctx_ecriture)
+    résultat := ABC_cree_autrice_archive(*ctx_kuri_pour_alembic, ctx, ctx_ecriture);
     saufsi résultat {
-        retourne
+        retourne;
     }
 
-    retourne résultat
+    retourne résultat;
 }
 
 /* Écris les données de tous les écrivains dans l'archive. */
 écris_données :: fonc (autrice: *AutriceArchive)
 {
-    ABC_ecris_donnees(autrice)
+    ABC_ecris_donnees(autrice);
 }
 
 /* Ferme et détruit l'archive. Si l'archive fut ouverte pour écriture, les
  * données y seront alors écrites. */
 détruit_autrice :: fonc (autrice: *AutriceArchive)
 {
-    ABC_detruit_autrice(*ctx_kuri_pour_alembic, autrice)
+    ABC_detruit_autrice(*ctx_kuri_pour_alembic, autrice);
 }
 
 /** \} */
@@ -57,26 +57,26 @@ détruit_autrice :: fonc (autrice: *AutriceArchive)
 
 crée_écrivain_objet :: fonc (autrice: *AutriceArchive, parent: *EcrivainCache, nom: chaine, type_objet: eTypeObjetAbc, données: *rien) -> Optionnel(*EcrivainCache)
 {
-    résultat := ABC_cree_ecrivain_cache(*ctx_kuri_pour_alembic, autrice, parent, nom.pointeur, nom.taille comme n64, données, type_objet)
+    résultat := ABC_cree_ecrivain_cache(*ctx_kuri_pour_alembic, autrice, parent, nom.pointeur, nom.taille comme n64, données, type_objet);
     saufsi résultat {
-        retourne
+        retourne;
     }
 
-    retourne résultat
+    retourne résultat;
 }
 
 crée_écrivain_objet_racine :: fonc (autrice: *AutriceArchive, nom: chaine, type_objet: eTypeObjetAbc, données: *rien) -> Optionnel(*EcrivainCache)
 {
-    retourne crée_écrivain_objet(autrice, nul, nom, type_objet, données)
+    retourne crée_écrivain_objet(autrice, nul, nom, type_objet, données);
 }
 
 crée_écrivain_instance :: fonc (autrice: *AutriceArchive, parent: *EcrivainCache, origine: *EcrivainCache, nom: chaine) -> Optionnel(*EcrivainCache)
 {
-    résultat := ABC_cree_instance(*ctx_kuri_pour_alembic, autrice, parent, origine, nom.pointeur, nom.taille comme n64)
+    résultat := ABC_cree_instance(*ctx_kuri_pour_alembic, autrice, parent, origine, nom.pointeur, nom.taille comme n64);
     saufsi résultat {
-        retourne
+        retourne;
     }
-    retourne résultat
+    retourne résultat;
 }
 
 /** \} */

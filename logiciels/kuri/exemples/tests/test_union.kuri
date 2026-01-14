@@ -1,4 +1,4 @@
-importe Fondation
+importe Fondation;
 
 // ----------------------------------------------------------------------------
 // Extraction d'une valeur depuis une union.
@@ -7,10 +7,10 @@ imprime_optionnel :: fonc (optionnel: Optionnel(z32))
 {
     discr optionnel {
         Quelque(x) {
-            imprime("L'optionnel a la valeur % !\n", x)
+            imprime("L'optionnel a la valeur % !\n", x);
         }
         sinon {
-            imprime("L'optionnel n'a aucune valeur !\n")
+            imprime("L'optionnel n'a aucune valeur !\n");
         }
     }
 }
@@ -22,13 +22,13 @@ imprime_union_anonyme :: fonc (anonyme: z32 | r32)
 {
     discr anonyme {
         z32(x) {
-            imprime("L'anonyme a la valeur entière %\n", x)
+            imprime("L'anonyme a la valeur entière %\n", x);
         }
         r32(x) {
-            imprime("L'anonyme a la valeur réele %\n", x)
+            imprime("L'anonyme a la valeur réele %\n", x);
         }
         sinon {
-            imprime("L'anonyme n'a aucune valeur\n")
+            imprime("L'anonyme n'a aucune valeur\n");
         }
     }
 }
@@ -37,8 +37,8 @@ imprime_union_anonyme :: fonc (anonyme: z32 | r32)
 // Déclaration d'une rubrique de type « rien » dans une union.
 
 Result :: union ($T: type_de_données) {
-    Quelque: T
-    Aucun
+    Quelque: T;
+    Aucun;
 }
 
 // Permet la construction d'une union ayant une rubrique de type « rien » via
@@ -48,31 +48,31 @@ Result :: union ($T: type_de_données) {
 construis_résultat :: fonc (valeur: z32) -> Result(z32)
 {
     si valeur == 5 {
-        imprime("Construction du résultat depuis une valeur !\n")
-        retourne valeur
+        imprime("Construction du résultat depuis une valeur !\n");
+        retourne valeur;
     }
 
     si valeur == 6 {
-        imprime("Construction explicite du résultat sans valeur !\n")
+        imprime("Construction explicite du résultat sans valeur !\n");
         // Construction « explicite ».
-        retourne
+        retourne;
     }
 
     // Construction « implicite ».
-    imprime("Construction implicite du résultat sans valeur !\n")
+    imprime("Construction implicite du résultat sans valeur !\n");
 }
 
 imprime_résultat :: fonc (résultat: Result(z32))
 {
     discr résultat {
         Quelque(x) {
-            imprime("Le résultat a la valeur % !\n", x)
+            imprime("Le résultat a la valeur % !\n", x);
         }
         Aucun {
-            imprime("Le résultat n'a aucune valeur (« Aucun » est en place) !\n")
+            imprime("Le résultat n'a aucune valeur (« Aucun » est en place) !\n");
         }
         sinon {
-            imprime("Le résultat n'a aucune valeur !\n")
+            imprime("Le résultat n'a aucune valeur !\n");
         }
     }
 }
@@ -81,22 +81,22 @@ imprime_résultat :: fonc (résultat: Result(z32))
 
 principale :: fonc ()
 {
-    v: Optionnel(z32)
-    imprime_optionnel(v)
-    imprime_optionnel(5)
+    v: Optionnel(z32);
+    imprime_optionnel(v);
+    imprime_optionnel(5);
 
-    imprime_union_anonyme(123)
-    imprime_union_anonyme(45.6)
+    imprime_union_anonyme(123);
+    imprime_union_anonyme(45.6);
 
-    r0 := construis_résultat(5)
-    imprime_résultat(r0)
+    r0 := construis_résultat(5);
+    imprime_résultat(r0);
 
-    r1 := construis_résultat(6)
-    imprime_résultat(r1)
+    r1 := construis_résultat(6);
+    imprime_résultat(r1);
 
-    r2 := construis_résultat(7)
-    imprime_résultat(r2)
+    r2 := construis_résultat(7);
+    imprime_résultat(r2);
 
-    r3: Result(z32)
-    imprime_résultat(r3)
+    r3: Result(z32);
+    imprime_résultat(r3);
 }

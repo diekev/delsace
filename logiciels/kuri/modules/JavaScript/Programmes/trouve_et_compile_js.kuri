@@ -1,36 +1,36 @@
-importe Chaine
-importe Fondation
-importe LigneDeCommande
-importe Processus
-importe SysFichier
+importe Chaine;
+importe Fondation;
+importe LigneDeCommande;
+importe Processus;
+importe SysFichier;
 
 principale :: fonc ()
 {
-    chemin_donnée := parse_argument_chemin()
+    chemin_donnée := parse_argument_chemin();
     saufsi chemin_donnée {
-        exit(1)
+        exit(1);
     }
 
-    chemins := donne_fichiers_du_dossier(chemin_donnée, vrai)
-    diffère déloge_tableau_et_ses_éléments(chemins)
+    chemins := donne_fichiers_du_dossier(chemin_donnée, vrai);
+    diffère déloge_tableau_et_ses_éléments(chemins);
 
-    fichiers_javascript: [..]chaine
+    fichiers_javascript: [..]chaine;
 
     pour chemins {
-        chemin := CheminFichier(it)
+        chemin := CheminFichier(it);
 
         si chemin.extension() == ".js" {
-            tableau_ajoute(*fichiers_javascript, it)
+            tableau_ajoute(*fichiers_javascript, it);
         }
     }
 
     pour fichiers_javascript {
-        sortie := appel_programme_et_donne_sortie("./js", it)
-        diffère déloge(sortie)
+        sortie := appel_programme_et_donne_sortie("./js", it);
+        diffère déloge(sortie);
 
         si sortie.commence_par("SyntaxError") {
-            imprimeln("%", it)
-            imprimeln("%", sortie)
+            imprimeln("%", it);
+            imprimeln("%", sortie);
         }
     }
 }
@@ -39,11 +39,11 @@ appel_programme_et_donne_sortie :: fonc (programme: chaine, args: ...chaine) -> 
 {
     discr ouvre_canal_de_communication(programme, ...args) {
         Quelque(canal) {
-            canal.ferme_écriture()
-            retourne canal.lis()
+            canal.ferme_écriture();
+            retourne canal.lis();
         }
         sinon {
-            retourne ""
+            retourne "";
         }
     }
 }

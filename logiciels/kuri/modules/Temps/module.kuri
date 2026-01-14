@@ -1,200 +1,200 @@
-importe Fondation
+importe Fondation;
 
-charge "date_http"
-charge "date_républicaine"
-charge "linux"
+charge "date_http";
+charge "date_républicaine";
+charge "linux";
 
 Instantané :: struct {
-    seconde: z64
-    nanoseconde: z64
+    seconde: z64;
+    nanoseconde: z64;
 }
 
 /* Retourne le temps monotonic du système. */
 maintenant :: fonc () -> Instantané
 {
-    retourne système_instantané()
+    retourne système_instantané();
 }
 
 /* Retourne le temps monotonic précis du système, cette fonction est plus lente
  * que `maintenant`. */
 maintenant_précis :: fonc () -> Instantané
 {
-    retourne système_instantané_précis()
+    retourne système_instantané_précis();
 }
 
 secondes :: fonc (inst: Instantané) -> z64
 {
-    retourne inst.seconde + inst.nanoseconde / 1_000_000_000
+    retourne inst.seconde + inst.nanoseconde / 1_000_000_000;
 }
 
 secondes :: fonc (inst: Instantané, $T: type_de_données) -> T
 {
-    retourne inst.seconde comme T + inst.nanoseconde comme T / 1_000_000_000
+    retourne inst.seconde comme T + inst.nanoseconde comme T / 1_000_000_000;
 }
 
 millisecondes :: fonc (inst: Instantané) -> z64
 {
-    retourne inst.seconde * 1_000 + inst.nanoseconde / 1_000_000
+    retourne inst.seconde * 1_000 + inst.nanoseconde / 1_000_000;
 }
 
 microsecondes :: fonc (inst: Instantané) -> z64
 {
-    retourne inst.seconde * 1_000_000 + inst.nanoseconde / 1_000
+    retourne inst.seconde * 1_000_000 + inst.nanoseconde / 1_000;
 }
 
 nanosecondes :: fonc (inst: Instantané) -> z64
 {
-    retourne inst.seconde * 1_000_000_000 + inst.nanoseconde
+    retourne inst.seconde * 1_000_000_000 + inst.nanoseconde;
 }
 
 temps_écoulé_secondes :: fonc (inst: Instantané) -> z64
 {
-    m := maintenant().seconde
-    retourne m - inst.seconde
+    m := maintenant().seconde;
+    retourne m - inst.seconde;
 }
 
 temps_écoulé_millisecondes :: fonc (inst: Instantané) -> z64
 {
-    m := maintenant_précis().millisecondes()
-    retourne m - millisecondes(inst)
+    m := maintenant_précis().millisecondes();
+    retourne m - millisecondes(inst);
 }
 
 temps_écoulé_microsecondes :: fonc (inst: Instantané) -> z64
 {
-    m := maintenant_précis().microsecondes()
-    retourne m - microsecondes(inst)
+    m := maintenant_précis().microsecondes();
+    retourne m - microsecondes(inst);
 }
 
 opérateur == :: (i0: Instantané, i1: Instantané) -> bool
 {
-    retourne i0.seconde == i1.seconde && i0.nanoseconde == i1.nanoseconde
+    retourne i0.seconde == i1.seconde && i0.nanoseconde == i1.nanoseconde;
 }
 
 opérateur < :: (i0: Instantané, i1: Instantané) -> bool
 {
-    retourne i0.seconde <= i1.seconde && i0.nanoseconde < i1.nanoseconde
+    retourne i0.seconde <= i1.seconde && i0.nanoseconde < i1.nanoseconde;
 }
 
 opérateur > :: (i0: Instantané, i1: Instantané) -> bool
 {
-    retourne i0.seconde >= i1.seconde && i0.nanoseconde > i1.nanoseconde
+    retourne i0.seconde >= i1.seconde && i0.nanoseconde > i1.nanoseconde;
 }
 
 opérateur <= :: (i0: Instantané, i1: Instantané) -> bool
 {
-    retourne i0 < i1 || i0 == i1
+    retourne i0 < i1 || i0 == i1;
 }
 
 opérateur >= :: (i0: Instantané, i1: Instantané) -> bool
 {
-    retourne i0 > i1 || i0 == i1
+    retourne i0 > i1 || i0 == i1;
 }
 
 opérateur - :: (i0: Instantané, i1: Instantané) -> Instantané
 {
-    résultat: Instantané = ---
-    résultat.seconde = i0.seconde - i1.seconde
-    résultat.nanoseconde = i0.nanoseconde - i1.nanoseconde
-    retourne résultat
+    résultat: Instantané = ---;
+    résultat.seconde = i0.seconde - i1.seconde;
+    résultat.nanoseconde = i0.nanoseconde - i1.nanoseconde;
+    retourne résultat;
 }
 
 // ----------------------------------------------------------------------------
 
 TempsSystème :: struct {
-    seconde: z64
-    nanoseconde: z64
+    seconde: z64;
+    nanoseconde: z64;
 }
 
 maintenant_système :: fonc () -> TempsSystème
 {
-    retourne système_temps_réel()
+    retourne système_temps_réel();
 }
 
 maintenant_système_précis :: fonc () -> TempsSystème
 {
-    retourne système_temps_réel_précis()
+    retourne système_temps_réel_précis();
 }
 
 millisecondes :: fonc (temps: TempsSystème) -> z64
 {
-    retourne temps.seconde * 1_000 + temps.nanoseconde / 1_000_000
+    retourne temps.seconde * 1_000 + temps.nanoseconde / 1_000_000;
 }
 
 opérateur == :: (t0: TempsSystème, t1: TempsSystème) -> bool
 {
-    retourne t0.seconde == t1.seconde && t0.nanoseconde == t1.nanoseconde
+    retourne t0.seconde == t1.seconde && t0.nanoseconde == t1.nanoseconde;
 }
 
 opérateur < :: (t0: TempsSystème, t1: TempsSystème) -> bool
 {
-    retourne t0.seconde <= t1.seconde && t0.nanoseconde < t1.nanoseconde
+    retourne t0.seconde <= t1.seconde && t0.nanoseconde < t1.nanoseconde;
 }
 
 opérateur > :: (t0: TempsSystème, t1: TempsSystème) -> bool
 {
-    retourne t0.seconde >= t1.seconde && t0.nanoseconde > t1.nanoseconde
+    retourne t0.seconde >= t1.seconde && t0.nanoseconde > t1.nanoseconde;
 }
 
 opérateur <= :: (t0: TempsSystème, t1: TempsSystème) -> bool
 {
-    retourne t0 < t1 || t0 == t1
+    retourne t0 < t1 || t0 == t1;
 }
 
 opérateur >= :: (t0: TempsSystème, t1: TempsSystème) -> bool
 {
-    retourne t0 > t1 || t0 == t1
+    retourne t0 > t1 || t0 == t1;
 }
 
 // ----------------------------------------------------------------------------
 
 depuis_millisecondes :: fonc (millisecondes: z64, $T: type_de_données) -> T
 {
-    temps : T = ---
-    temps.seconde = millisecondes / 1_000
-    temps.nanoseconde = (millisecondes % 1_000) * 1_000_000
-    retourne temps
+    temps : T = ---;
+    temps.seconde = millisecondes / 1_000;
+    temps.nanoseconde = (millisecondes % 1_000) * 1_000_000;
+    retourne temps;
 }
 
 // ----------------------------------------------------------------------------
 
 Constantes :: struct ($T: type_de_données) {
-    SECONDES_PAR_AN : T : 31_556_952
+    SECONDES_PAR_AN : T : 31_556_952;
     /* SECONDES_PAR_JOUR * 365.2425 */
-    SECONDES_PAR_JOUR : T : 86_400
-    SECONDES_PAR_HEURE : T : 3_600
-    MILLISECONDES_PAR_AN : T : 31_556_952_000
-    MILLISECONDES_PAR_JOUR : T : 86_400_000
-    MILLISECONDES_PAR_HEURE : T : 3_600_000
+    SECONDES_PAR_JOUR : T : 86_400;
+    SECONDES_PAR_HEURE : T : 3_600;
+    MILLISECONDES_PAR_AN : T : 31_556_952_000;
+    MILLISECONDES_PAR_JOUR : T : 86_400_000;
+    MILLISECONDES_PAR_HEURE : T : 3_600_000;
 }
 
 Date :: struct {
-    année: z32
-    mois: z32
-    jour: z32
-    jour_semaine: z32
+    année: z32;
+    mois: z32;
+    jour: z32;
+    jour_semaine: z32;
 
-    heure: z32
-    minute: z32
-    seconde: z32
+    heure: z32;
+    minute: z32;
+    seconde: z32;
 }
 
 opérateur < :: (date1: Date, date2: Date) -> bool
 {
     si date1.année < date2.année {
-        retourne vrai
+        retourne vrai;
     }
 
     si date1.année == date2.année {
         si date1.mois < date2.mois {
-            retourne vrai
+            retourne vrai;
         }
 
         si date1.mois == date2.mois {
-            retourne date1.jour < date2.jour
+            retourne date1.jour < date2.jour;
         }
     }
 
-    retourne faux
+    retourne faux;
 }
 
 est_année_bissextile :: fonc (année: z32) -> bool #sanstrace
@@ -207,43 +207,43 @@ est_année_bissextile :: fonc (année: z32) -> bool #sanstrace
      * X | 16.
      */
     d := si année % 100 != 0 { 4 } sinon { 16 }
-    retourne (année & (d - 1)) == 0
+    retourne (année & (d - 1)) == 0;
 }
 
 hui_système :: fonc () -> Date
 {
-    inst := maintenant_système_précis()
-    retourne date_depuis_secondes(inst.seconde)
+    inst := maintenant_système_précis();
+    retourne date_depuis_secondes(inst.seconde);
 }
 
 date_depuis_millisecondes :: fonc (millisecondes: z64) -> Date
 {
-    secondes := millisecondes / 1000
-    retourne date_depuis_secondes(secondes)
+    secondes := millisecondes / 1000;
+    retourne date_depuis_secondes(secondes);
 }
 
 weekday_from_days :: fonc (z: z64) -> n32
 {
-    retourne (si z >= -4 { (z + 4) % 7 } sinon { (z + 5) % 7 + 6 }) comme n32
+    retourne (si z >= -4 { (z + 4) % 7 } sinon { (z + 5) % 7 + 6 }) comme n32;
 }
 
 // https://stackoverflow.com/questions/7960318/math-to-convert-seconds-since-1970-into-date-and-vice-versa
 // https://howardhinnant.github.io/date_algorithms.html
 date_depuis_secondes :: fonc (secondes: z64) -> Date
 {
-    z := secondes / 86400
-    z += 719468
-    era := (si z >= 0 { z } sinon { z - 146096 }) / 146097
-    doe := (z - era * 146097) comme n32
+    z := secondes / 86400;
+    z += 719468;
+    era := (si z >= 0 { z } sinon { z - 146096 }) / 146097;
+    doe := (z - era * 146097) comme n32;
     // [0, 146096]
-    yoe := (doe - doe / 1460 + doe / 36524 - doe / 146096) / 365
+    yoe := (doe - doe / 1460 + doe / 36524 - doe / 146096) / 365;
     // [0, 399]
-    y := yoe comme z32 + era * 400
-    doy := doe - (365 * yoe + yoe / 4 - yoe / 100)
+    y := yoe comme z32 + era * 400;
+    doy := doe - (365 * yoe + yoe / 4 - yoe / 100);
     // [0, 365]
-    mp := (5 * doy + 2) / 153
+    mp := (5 * doy + 2) / 153;
     // [0, 11]
-    d := doy - (153 * mp + 2) / 5 + 1
+    d := doy - (153 * mp + 2) / 5 + 1;
     // [1, 31]
     m := mp comme z32 + si mp < 10 { 3 } sinon { -9 }
     // [1, 12]
@@ -251,24 +251,24 @@ date_depuis_secondes :: fonc (secondes: z64) -> Date
     /* Le calendrier de référence commence en mars (après un possible 29 février)
      * donc nous devons corriger l'année au besoin. */
     si m <= 2 {
-        y += 1
+        y += 1;
     }
 
-    seconde := secondes % 60
-    minutes := (secondes / 60) % 60
-    heures := (secondes / 3600) % 24
+    seconde := secondes % 60;
+    minutes := (secondes / 60) % 60;
+    heures := (secondes / 3600) % 24;
 
-    années := y
+    années := y;
 
-    date : Date = ---
-    date.jour = d comme z32
-    date.mois = m
-    date.année = années comme z32
-    date.heure = heures comme z32
-    date.minute = minutes comme z32
-    date.seconde = seconde comme z32
-    date.jour_semaine = weekday_from_days(z - 719468) comme z32
-    retourne date
+    date : Date = ---;
+    date.jour = d comme z32;
+    date.mois = m;
+    date.année = années comme z32;
+    date.heure = heures comme z32;
+    date.minute = minutes comme z32;
+    date.seconde = seconde comme z32;
+    date.jour_semaine = weekday_from_days(z - 719468) comme z32;
+    retourne date;
 }
 
 // Returns number of days since civil 1970-01-01.  Negative values indicate
@@ -287,34 +287,34 @@ days_from_civil :: fonc (y: z32, m: n32, d: n32) -> z32
     //          "This algorithm has not been ported to a 16 bit unsigned integer");
     // static_assert(std::numeric_limits<Int>::digits >= 20,
     //          "This algorithm has not been ported to a 16 bit signed integer");
-    y -= (m <= 2) comme z32
-    era := si y >= 0 { y } sinon { y - 399 } / 400
+    y -= (m <= 2) comme z32;
+    era := si y >= 0 { y } sinon { y - 399 } / 400;
     yoe := (y - era * 400) comme n32 // [0, 399]
     doy := (153 * si m > 2 { m - 3 } sinon { m + 9 } + 2) / 5 + d - 1 // [0, 365]
     doe := yoe * 365 + yoe / 4 - yoe / 100 + doy // [0, 146096]
-    retourne era * 146097 + (doe comme z32) - 719468
+    retourne era * 146097 + (doe comme z32) - 719468;
 }
 
 days_from_civil :: fonc (date: Date) -> z32
 {
-    retourne days_from_civil(date.année, date.mois comme n32, date.jour comme n32)
+    retourne days_from_civil(date.année, date.mois comme n32, date.jour comme n32);
 }
 
 nombre_de_jours_entre :: fonc (date1: Date, date2: Date) -> z32
 {
-    jours_date1 := days_from_civil(date1)
-    jours_date2 := days_from_civil(date2)
+    jours_date1 := days_from_civil(date1);
+    jours_date2 := days_from_civil(date2);
 
-    retourne jours_date2 - jours_date1
+    retourne jours_date2 - jours_date1;
 }
 
 nombre_de_jours_dans_mois :: fonc (mois: z32, année: z32) -> z32
 {
-    assert(mois >= 1)
-    assert(mois <= 12)
+    assert(mois >= 1);
+    assert(mois <= 12);
 
     si mois == 2 {
-        retourne 28 + (est_année_bissextile(année) comme z32)
+        retourne 28 + (est_année_bissextile(année) comme z32);
     }
 
     /* La représentation binaire de 30 est 11110.
@@ -339,7 +339,7 @@ nombre_de_jours_dans_mois :: fonc (mois: z32, année: z32) -> z32
      * Alternativement, nous pouvons utiliser la fonction euclidienne affine :
      * 30 | (9 * M / 8)
      */
-    retourne 30 | (mois ^ (mois >> 3))
+    retourne 30 | (mois ^ (mois >> 3));
 }
 
 /*
@@ -353,246 +353,246 @@ nombre_de_jours_dans_mois :: fonc (mois: z32, année: z32) -> z32
 */
 formatte :: fonc (date: &Date, format: chaine) -> chaine
 {
-    enchaineuse: Enchaineuse
-    initialise_enchaineuse(*enchaineuse)
+    enchaineuse: Enchaineuse;
+    initialise_enchaineuse(*enchaineuse);
 
-    formatte(date, *enchaineuse, format)
+    formatte(date, *enchaineuse, format);
 
-    retourne chaine_depuis_enchaineuse(*enchaineuse)
+    retourne chaine_depuis_enchaineuse(*enchaineuse);
 }
 
 formatte :: fonc (date: Date, enchaineuse: *Enchaineuse, format: chaine)
 {
-    i : z64 = 0
+    i : z64 = 0;
 
     tantque i < format.taille {
         si format[i] != '%' {
-            chn := chaine(*format[i], 1)
-            ajoute_au_tampon(enchaineuse, chn)
+            chn := chaine(*format[i], 1);
+            ajoute_au_tampon(enchaineuse, chn);
         }
         sinon {
-            i += 1
+            i += 1;
 
             discr format[i] {
                 'A' {
-                    ajoute_au_tampon(enchaineuse, date.année)
+                    ajoute_au_tampon(enchaineuse, date.année);
                 }
                 'M' {
                     si (date.mois) < 10 {
-                        ajoute_au_tampon(enchaineuse, '0')
+                        ajoute_au_tampon(enchaineuse, '0');
                     }
-                    ajoute_au_tampon(enchaineuse, date.mois)
+                    ajoute_au_tampon(enchaineuse, date.mois);
                 }
                 'J' {
                     si (date.jour) < 10 {
-                        ajoute_au_tampon(enchaineuse, '0')
+                        ajoute_au_tampon(enchaineuse, '0');
                     }
-                    ajoute_au_tampon(enchaineuse, date.jour)
+                    ajoute_au_tampon(enchaineuse, date.jour);
                 }
                 'h' {
                     si (date.heure) < 10 {
-                        ajoute_au_tampon(enchaineuse, '0')
+                        ajoute_au_tampon(enchaineuse, '0');
                     }
-                    ajoute_au_tampon(enchaineuse, date.heure)
+                    ajoute_au_tampon(enchaineuse, date.heure);
                 }
                 'm' {
                     si (date.minute) < 10 {
-                        ajoute_au_tampon(enchaineuse, '0')
+                        ajoute_au_tampon(enchaineuse, '0');
                     }
-                    ajoute_au_tampon(enchaineuse, date.minute)
+                    ajoute_au_tampon(enchaineuse, date.minute);
                 }
                 's' {
                     si (date.seconde) < 10 {
-                        ajoute_au_tampon(enchaineuse, '0')
+                        ajoute_au_tampon(enchaineuse, '0');
                     }
-                    ajoute_au_tampon(enchaineuse, date.seconde)
+                    ajoute_au_tampon(enchaineuse, date.seconde);
                 }
                 sinon {
-                    continue
+                    continue;
                 }
             }
         }
 
-        i += 1
+        i += 1;
     }
 }
 
 parse_date :: fonc (chaine_date: chaine, format: chaine) -> Date
 {
-    résultat: Date
+    résultat: Date;
 
     si chaine_date.taille != format.taille {
-        retourne résultat
+        retourne résultat;
     }
 
     pour format {
-        c := chaine_date[indice_it]
+        c := chaine_date[indice_it];
 
         discr it {
             'A' {
-                résultat.année *= 10
-                résultat.année += (c - '0') comme z32
+                résultat.année *= 10;
+                résultat.année += (c - '0') comme z32;
             }
             'M' {
-                résultat.mois *= 10
-                résultat.mois += (c - '0') comme z32
+                résultat.mois *= 10;
+                résultat.mois += (c - '0') comme z32;
             }
             'J' {
-                résultat.jour *= 10
-                résultat.jour += (c - '0') comme z32
+                résultat.jour *= 10;
+                résultat.jour += (c - '0') comme z32;
             }
             'h' {
-                résultat.heure *= 10
-                résultat.heure += (c - '0') comme z32
+                résultat.heure *= 10;
+                résultat.heure += (c - '0') comme z32;
             }
             'm' {
-                résultat.minute *= 10
-                résultat.minute += (c - '0') comme z32
+                résultat.minute *= 10;
+                résultat.minute += (c - '0') comme z32;
             }
             's' {
-                résultat.seconde *= 10
-                résultat.seconde += (c - '0') comme z32
+                résultat.seconde *= 10;
+                résultat.seconde += (c - '0') comme z32;
             }
             sinon {
-                continue
+                continue;
             }
         }
     }
 
-    retourne résultat
+    retourne résultat;
 }
 
 parse_date_pour_info_type :: fonc (chn: chaine) -> (bool, Date)
 {
-    date := parse_date(chn, "AAAA-MM-JJ")
-    retourne vrai, date
+    date := parse_date(chn, "AAAA-MM-JJ");
+    retourne vrai, date;
 } @ParsageURL
 
 // À FAIRE: Date et DateHorodotée ?
 parse_date_depuis_mysql :: fonc (chn: chaine) -> (bool, Date)
 {
-    date := parse_date(chn, "AAAA-MM-JJ hh:mm:ss")
-    retourne vrai, date
+    date := parse_date(chn, "AAAA-MM-JJ hh:mm:ss");
+    retourne vrai, date;
 } @ParsageMySQL
 
 DateCalendaire :: struct {
-    nom_jour: chaine
-    numéro_jour: z32
-    nom_mois: chaine
-    année: z32
+    nom_jour: chaine;
+    numéro_jour: z32;
+    nom_mois: chaine;
+    année: z32;
 }
 
 date_calendaire_depuis_date :: fonc (date: Date) -> DateCalendaire
 {
-    résultat: DateCalendaire
+    résultat: DateCalendaire;
 
-    noms_jours := [ "Dimanche", "Lundi", "Mardi", "Mercredi", "Jeudi", "Vendredi", "Samedi" ]
-    noms_mois := [ "Janvier", "Février", "Mars", "Avril", "Mai", "Juin", "Juillet", "Août", "Septembre", "Octobre", "Novembre", "Décembre" ]
+    noms_jours := [ "Dimanche", "Lundi", "Mardi", "Mercredi", "Jeudi", "Vendredi", "Samedi" ];
+    noms_mois := [ "Janvier", "Février", "Mars", "Avril", "Mai", "Juin", "Juillet", "Août", "Septembre", "Octobre", "Novembre", "Décembre" ];
 
-    résultat.nom_jour = noms_jours[date.jour_semaine]
-    résultat.numéro_jour = date.jour + 1
-    résultat.nom_mois = noms_mois[date.mois]
-    résultat.année = date.année
+    résultat.nom_jour = noms_jours[date.jour_semaine];
+    résultat.numéro_jour = date.jour + 1;
+    résultat.nom_mois = noms_mois[date.mois];
+    résultat.année = date.année;
 
-    retourne résultat
+    retourne résultat;
 }
 
 // ---------------------------------------------------
 // Tests
 
-importe Compilatrice
+importe Compilatrice;
 
 #test {
-    date := parse_date("2020/11/22 6:37:20", "AAAA/MM/JJ h:mm:ss")
+    date := parse_date("2020/11/22 6:37:20", "AAAA/MM/JJ h:mm:ss");
 
-    compilatrice_vérifie_égalité(date.jour, 22)
-    compilatrice_vérifie_égalité(date.mois, 11)
-    compilatrice_vérifie_égalité(date.année, 2020)
-    compilatrice_vérifie_égalité(date.heure, 6)
-    compilatrice_vérifie_égalité(date.minute, 37)
-    compilatrice_vérifie_égalité(date.seconde, 20)
+    compilatrice_vérifie_égalité(date.jour, 22);
+    compilatrice_vérifie_égalité(date.mois, 11);
+    compilatrice_vérifie_égalité(date.année, 2020);
+    compilatrice_vérifie_égalité(date.heure, 6);
+    compilatrice_vérifie_égalité(date.minute, 37);
+    compilatrice_vérifie_égalité(date.seconde, 20);
 }
 
 #test {
-    date := parse_date("2020/11/22 6:37:20", "AAAA/MM/JJ h:mm:ss")
+    date := parse_date("2020/11/22 6:37:20", "AAAA/MM/JJ h:mm:ss");
 
-    résultat := date.formatte("%h:%m:%s")
-    compilatrice_vérifie_égalité(résultat, "06:37:20")
-    déloge(résultat)
+    résultat := date.formatte("%h:%m:%s");
+    compilatrice_vérifie_égalité(résultat, "06:37:20");
+    déloge(résultat);
 
-    résultat = date.formatte("%J/%M/%A")
-    compilatrice_vérifie_égalité(résultat, "22/11/2020")
-    déloge(résultat)
+    résultat = date.formatte("%J/%M/%A");
+    compilatrice_vérifie_égalité(résultat, "22/11/2020");
+    déloge(résultat);
 
-    résultat = date.formatte("%J/%M/%A %h:%m:%s")
-    compilatrice_vérifie_égalité(résultat, "22/11/2020 06:37:20")
-    déloge(résultat)
+    résultat = date.formatte("%J/%M/%A %h:%m:%s");
+    compilatrice_vérifie_égalité(résultat, "22/11/2020 06:37:20");
+    déloge(résultat);
 
-    résultat = date.formatte("%h:%m:%s %J/%M/%A")
-    compilatrice_vérifie_égalité(résultat, "06:37:20 22/11/2020")
-    déloge(résultat)
+    résultat = date.formatte("%h:%m:%s %J/%M/%A");
+    compilatrice_vérifie_égalité(résultat, "06:37:20 22/11/2020");
+    déloge(résultat);
 }
 
 // ---------------------------------------------------
 
-Heure :: #opaque z32
-Minute :: #opaque z32
-Seconde :: #opaque z32
+Heure :: #opaque z32;
+Minute :: #opaque z32;
+Seconde :: #opaque z32;
 
 vers_heures :: fonc (minutes: Minute) -> Heure
 {
-    retourne Heure(minutes comme z32 / 60)
+    retourne Heure(minutes comme z32 / 60);
 }
 
 vers_heures :: fonc (secondes: Seconde) -> Heure
 {
-    retourne vers_heure(vers_minutes(secondes))
+    retourne vers_heure(vers_minutes(secondes));
 }
 
 vers_minutes :: fonc (secondes: Seconde) -> Minute
 {
-    retourne Minute(secondes comme z32 / 60)
+    retourne Minute(secondes comme z32 / 60);
 }
 
 vers_minutes :: fonc (heures: Heure) -> Minute
 {
-    retourne Minute(heures comme z32 * 60)
+    retourne Minute(heures comme z32 * 60);
 }
 
 vers_secondes :: fonc (minutes: Minute) -> Seconde
 {
-    retourne Seconde(minutes comme z32 * 60)
+    retourne Seconde(minutes comme z32 * 60);
 }
 
 vers_secondes :: fonc (heures: Heure) -> Seconde
 {
-    retourne vers_secondes(vers_minutes(heures))
+    retourne vers_secondes(vers_minutes(heures));
 }
 
 // https://fr.wikipedia.org/wiki/Ann%C3%A9e_(astronomie)
 
 // L'année civile équivaut à la durée en deux dates dans le même calendrier
 // Pour le calendrier grégorien, une année est de 365.2425 jours, ou un jour = 24 * 84600
-AnnéeCivile :: #opaque z32
-AnnéeSidérale :: #opaque z32
-AnnéeLumière :: #opaque z32
+AnnéeCivile :: #opaque z32;
+AnnéeSidérale :: #opaque z32;
+AnnéeLumière :: #opaque z32;
 
 // Une année julienne correspond exactement à 365.25 * 24 heures, ou une 1 heure = 84600 secondes
-AnnéeJulienne :: #opaque z32
+AnnéeJulienne :: #opaque z32;
 
 vers_heures :: fonc (année: AnnéeJulienne) -> Heure
 {
-    retourne Heure(année comme z32 * 36525 * 24 / 100)
+    retourne Heure(année comme z32 * 36525 * 24 / 100);
 }
 
 vers_heures :: fonc (année: AnnéeSidérale) -> Heure
 {
-    retourne vers_heures(Seconde(31_558_149 * année comme z32))
+    retourne vers_heures(Seconde(31_558_149 * année comme z32));
 }
 
 // ---------------------------------------------------
 
 dors :: fonc (instant: Instantané) -> bool
 {
-    retourne système_dors(instant)
+    retourne système_dors(instant);
 }

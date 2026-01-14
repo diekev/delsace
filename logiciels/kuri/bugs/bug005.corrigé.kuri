@@ -11,42 +11,42 @@
  * Catégorie : [syntaxage, lexage, nouvelle ligne]
  */
 
-importe Fondation
+importe Fondation;
 
 principale :: fonc ()
 {
-    a := 7
-    b := 8
-    c := 9
+    a := 7;
+    b := 8;
+    c := 9;
 
-    si a == b
+    si a == b;
     {
 
     }
 
     si (a == b) ||
-        (b == c)
+        (b == c);
         {
 
     }
 
-    pour 10
+    pour 10;
     {
 
     }
 
-    tantque a != 0
+    tantque a != 0;
     {
-        a -= 1
+        a -= 1;
     }
 
     boucle
     {
-        arrête
+        arrête;
     }
 
     répète
     {
-        a += 1
-    } tantque a != 5
+        a += 1;
+    } tantque a != 5;
 }
