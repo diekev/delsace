@@ -3,11 +3,11 @@
  */
 
 Struct1 :: struct {
-    base: z32
+    base: z32;
 }
 
 Base :: struct {
-    xyz: z32
+    xyz: z32;
 }
 
 ma_fonction :: fonc (empl x: Struct1) -> z32
@@ -16,12 +16,12 @@ ma_fonction :: fonc (empl x: Struct1) -> z32
         empl base: Base // ne doit pas coléser avec x.base
     }
 
-    s: Struct2
-    retourne s.xyz * base
+    s: Struct2;
+    retourne s.xyz * base;
 }
 
 principale :: fonc ()
 {
-    x: Struct1
-    _ := ma_fonction(x)
+    x: Struct1;
+    _ := ma_fonction(x);
 }

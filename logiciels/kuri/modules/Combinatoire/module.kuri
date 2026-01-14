@@ -1,6 +1,6 @@
-importe Algorithmes
-importe Bits
-importe Fondation
+importe Algorithmes;
+importe Bits;
+importe Fondation;
 
 /* Divers algorithmes de génération de la suite de Prouet-Thue-Morse
  * https://fr.wikipedia.org/wiki/Suite_de_Prouhet-Thue-Morse
@@ -11,8 +11,8 @@ importe Fondation
 génère_suite_prouet_thue_morse :: fonc (n: n32, rappel: fonc (v: bool))
 {
     pour n {
-        x := compte_nombre_de_bits_actifs(it)
-        rappel(x % 2 == 0)
+        x := compte_nombre_de_bits_actifs(it);
+        rappel(x % 2 == 0);
     }
 }
 
@@ -22,88 +22,88 @@ génère_suite_prouet_thue_morse :: fonc (n: n32, rappel: fonc (v: bool))
  * qu'un « A » est généré selon la suite. */
 génère_suite_prouet_thue_morse_pour_nombre_de_b_entre_a :: fonc (n: n32, rappel: fonc (v: z32))
 {
-    compte_courant := 0
+    compte_courant := 0;
 
     pour n {
         // Ajout de 1 pour ignorer le premier 'A'
-        x := compte_nombre_de_bits_actifs(it + 1)
+        x := compte_nombre_de_bits_actifs(it + 1);
 
         si x % 2 == 0 {
-            rappel(compte_courant)
-            compte_courant = 0
-            continue
+            rappel(compte_courant);
+            compte_courant = 0;
+            continue;
         }
 
-        compte_courant += 1
+        compte_courant += 1;
     }
 }
 
 génère_suite_prouet_thue_morse_remplacement :: fonc (n: n32) -> chaine
 {
-    suite_courante: [..]octet
-    diffère déloge(suite_courante)
+    suite_courante: [..]octet;
+    diffère déloge(suite_courante);
 
-    tableau_ajoute(*suite_courante, 'A' comme octet)
-    tableau_ajoute(*suite_courante, 'B' comme octet)
+    tableau_ajoute(*suite_courante, 'A' comme octet);
+    tableau_ajoute(*suite_courante, 'B' comme octet);
 
-    résultat: [..]octet
+    résultat: [..]octet;
 
     boucle {
-        résultat.taille = 0
+        résultat.taille = 0;
 
         pour c dans suite_courante {
             si c == 'A' comme octet {
-                tableau_ajoute(*résultat, 'A' comme octet)
-                tableau_ajoute(*résultat, 'B' comme octet)
+                tableau_ajoute(*résultat, 'A' comme octet);
+                tableau_ajoute(*résultat, 'B' comme octet);
             }
             sinon {
-                tableau_ajoute(*résultat, 'B' comme octet)
-                tableau_ajoute(*résultat, 'A' comme octet)
+                tableau_ajoute(*résultat, 'B' comme octet);
+                tableau_ajoute(*résultat, 'A' comme octet);
             }
         }
 
         si résultat.taille >= n comme z64 {
-            arrête
+            arrête;
         }
 
-        tmp := suite_courante
-        suite_courante = résultat
-        résultat = tmp
+        tmp := suite_courante;
+        suite_courante = résultat;
+        résultat = tmp;
     }
 
-    retourne chaine_depuis_tranche_octets(résultat)
+    retourne chaine_depuis_tranche_octets(résultat);
 }
 
 génère_suite_prouet_thue_morse_double_et_inverse :: fonc (n: n32) -> chaine
 {
-    résultat: [..]octet
-    tableau_ajoute(*résultat, 'A' comme octet)
-    tableau_ajoute(*résultat, 'B' comme octet)
+    résultat: [..]octet;
+    tableau_ajoute(*résultat, 'A' comme octet);
+    tableau_ajoute(*résultat, 'B' comme octet);
 
-    tmp: [..]octet
-    diffère déloge(tmp)
+    tmp: [..]octet;
+    diffère déloge(tmp);
 
     tantque résultat.taille < n comme z64 {
-        tmp.taille = 0
+        tmp.taille = 0;
         pour & résultat {
-            tableau_ajoute(*tmp, it)
+            tableau_ajoute(*tmp, it);
 
             /* Inverse directement. */
             si it == 'A' {
-                it = 'B'
+                it = 'B';
             }
             sinon {
-                it = 'A'
+                it = 'A';
             }
         }
         pour résultat {
-            tableau_ajoute(*tmp, it)
+            tableau_ajoute(*tmp, it);
         }
 
-        permute(résultat, tmp)
+        permute(résultat, tmp);
     }
 
-    retourne chaine_depuis_tranche_octets(résultat)
+    retourne chaine_depuis_tranche_octets(résultat);
 }
 
 /*

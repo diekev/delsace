@@ -2,18 +2,18 @@
  * Catégorie : [crash, génération code]
  */
 
-importe Fondation
+importe Fondation;
 
-VALEUR_CHAINE :: "test"
+VALEUR_CHAINE :: "test";
 
 imprime_valeur_chaine :: fonc (e: eini)
 {
-    c : chaine = e
-    valeur := imprime_chaine("%", c)
-    assert(valeur == VALEUR_CHAINE)
+    c : chaine = e;
+    valeur := imprime_chaine("%", c);
+    assert(valeur == VALEUR_CHAINE);
 }
 
 principale :: fonc ()
 {
-    imprime_valeur_chaine(VALEUR_CHAINE)
+    imprime_valeur_chaine(VALEUR_CHAINE);
 }

@@ -1,4 +1,4 @@
-importe Ensemble
+importe Ensemble;
 
 /* Module de sélection d'élément, via la souris, basé sur
  * "One Way to Select Many", Järvi & Parent
@@ -10,30 +10,30 @@ importe Ensemble
  * \{ */
 
 CheminSélection :: struct {
-    points: [..]Point2D(r32)
+    points: [..]Point2D(r32);
 }
 
 détruit_données_chemin :: fonc (chemin: *CheminSélection)
 {
-    déloge(chemin.points)
+    déloge(chemin.points);
 }
 
 ajoute :: fonc (chemin: *CheminSélection, point: Point2D(r32))
 {
-    tableau_ajoute(*chemin.points, point)
+    tableau_ajoute(*chemin.points, point);
 }
 
 donne_ancre :: fonc (chemin: *CheminSélection) -> Optionnel(Point2D(r32))
 {
     si chemin.points {
-        retourne chemin.points[0]
+        retourne chemin.points[0];
     }
 }
 
 donne_fin_active :: fonc (chemin: *CheminSélection) -> Optionnel(Point2D(r32))
 {
     si chemin.points {
-        retourne chemin.points[chemin.points.taille - 1]
+        retourne chemin.points[chemin.points.taille - 1];
     }
 }
 
@@ -50,14 +50,14 @@ donne_fin_active :: fonc (chemin: *CheminSélection) -> Optionnel(Point2D(r32))
  * pour chaque élément nouvellement sélectionné ou désélectionné. */
 ÉtatSélectionÉlément :: struct {
     /* L'indice de l'élément. */
-    indice: z32
+    indice: z32;
     /* Vrai si l'élément vient d'être sélectionné. Faux s'il vient d'être
      * désélectionné. */
-    est_sélectionné: bool
+    est_sélectionné: bool;
 }
 
 RappelRafraichissementSélection :: struct {
-    sur_rafraichissement: fonc (rappel: *RappelRafraichissementSélection, état: []ÉtatSélectionÉlément)
+    sur_rafraichissement: fonc (rappel: *RappelRafraichissementSélection, état: []ÉtatSélectionÉlément);
 }
 
 /** \} */
@@ -69,138 +69,138 @@ RappelRafraichissementSélection :: struct {
  * \{ */
 
 ÉtatSélection :: struct {
-    géométrie: *GéométrieSélection
-    chemin: CheminSélection
+    géométrie: *GéométrieSélection;
+    chemin: CheminSélection;
 
-    sélection_courante: [..]z32
+    sélection_courante: [..]z32;
 
-    rafraichissement: *RappelRafraichissementSélection
+    rafraichissement: *RappelRafraichissementSélection;
 
     /* Tampon pour les rafraichissement. Stocké ici afin de réutilisé la mémoire. */
-    état_sélection_éléments: [..]ÉtatSélectionÉlément
+    état_sélection_éléments: [..]ÉtatSélectionÉlément;
 }
 
 crée_état_sélection :: fonc (géométrie: *GéométrieSélection, rafraichissement: *RappelRafraichissementSélection) -> *ÉtatSélection
 {
-    résultat := loge(ÉtatSélection)
-    résultat.géométrie = géométrie
-    résultat.rafraichissement = rafraichissement
-    retourne résultat
+    résultat := loge(ÉtatSélection);
+    résultat.géométrie = géométrie;
+    résultat.rafraichissement = rafraichissement;
+    retourne résultat;
 }
 
 détruit_état_sélection :: fonc (sélection: *ÉtatSélection)
 {
-    déloge(sélection.sélection_courante)
-    déloge(sélection.état_sélection_éléments)
-    détruit_données_chemin(*sélection.chemin)
-    déloge(sélection)
+    déloge(sélection.sélection_courante);
+    déloge(sélection.état_sélection_éléments);
+    détruit_données_chemin(*sélection.chemin);
+    déloge(sélection);
 }
 
 donne_géométrie :: fonc (sélection: *ÉtatSélection) -> *GéométrieSélection
 {
-    assert(sélection.géométrie != nul)
-    retourne sélection.géométrie
+    assert(sélection.géométrie != nul);
+    retourne sélection.géométrie;
 }
 
 réinitialise :: fonc (sélection: *ÉtatSélection)
 {
-    sélection.sélection_courante.taille = 0
-    sélection.chemin.points.taille = 0
-    sélection.état_sélection_éléments.taille = 0
+    sélection.sélection_courante.taille = 0;
+    sélection.chemin.points.taille = 0;
+    sélection.état_sélection_éléments.taille = 0;
 }
 
 /* Débute une nouvelle sélection. */
 clic :: fonc (empl sélection: *ÉtatSélection, position: Point2D(r32))
 {
-    assert(géométrie != nul)
-    détruit_données_chemin(*chemin)
+    assert(géométrie != nul);
+    détruit_données_chemin(*chemin);
 
-    géométrie.grandis_chemin(*chemin, position)
+    géométrie.grandis_chemin(*chemin, position);
 
-    domaine := géométrie.donne_domaine_sélection(*chemin)
+    domaine := géométrie.donne_domaine_sélection(*chemin);
 
-    ajourne_état_sélection_éléments(sélection, domaine)
+    ajourne_état_sélection_éléments(sélection, domaine);
     
-    déloge(sélection.sélection_courante)
-    sélection.sélection_courante = domaine
+    déloge(sélection.sélection_courante);
+    sélection.sélection_courante = domaine;
 
     si rafraichissement && rafraichissement.sur_rafraichissement {
-        rafraichissement.sur_rafraichissement(rafraichissement, état_sélection_éléments)
+        rafraichissement.sur_rafraichissement(rafraichissement, état_sélection_éléments);
     }
 }
 
 /* Agrandis la sélection courante. */
 clic_majuscule :: fonc (empl sélection: *ÉtatSélection, position: Point2D(r32))
 {
-    assert(sélection.géométrie != nul)
+    assert(sélection.géométrie != nul);
 
-    géométrie.grandis_chemin(*chemin, position)
+    géométrie.grandis_chemin(*chemin, position);
 
-    domaine := géométrie.donne_domaine_sélection(*chemin)
+    domaine := géométrie.donne_domaine_sélection(*chemin);
 
-    ajourne_état_sélection_éléments(sélection, domaine)
+    ajourne_état_sélection_éléments(sélection, domaine);
     
-    déloge(sélection.sélection_courante)
-    sélection.sélection_courante = domaine
+    déloge(sélection.sélection_courante);
+    sélection.sélection_courante = domaine;
 
     si rafraichissement && rafraichissement.sur_rafraichissement {
-        rafraichissement.sur_rafraichissement(rafraichissement, état_sélection_éléments)
+        rafraichissement.sur_rafraichissement(rafraichissement, état_sélection_éléments);
     }
 }
 
 ajourne_état_sélection_éléments :: fonc (empl sélection: *ÉtatSélection, domaine: [..]z32)
 {
     saufsi sélection.rafraichissement {
-        retourne
+        retourne;
     }
 
-    état_sélection_éléments.taille = 0
-    tableau_réserve(*état_sélection_éléments, domaine.taille + sélection_courante.taille)
+    état_sélection_éléments.taille = 0;
+    tableau_réserve(*état_sélection_éléments, domaine.taille + sélection_courante.taille);
 
     pour domaine {
-        état_élément := tableau_ajoute_élément(*état_sélection_éléments)
-        état_élément.indice = it
-        état_élément.est_sélectionné = vrai
+        état_élément := tableau_ajoute_élément(*état_sélection_éléments);
+        état_élément.indice = it;
+        état_élément.est_sélectionné = vrai;
     }
 
     pour sélection_courante {
         si ensemble_possède(domaine, it) {
-            continue
+            continue;
         }
-        état_élément := tableau_ajoute_élément(*état_sélection_éléments)
-        état_élément.indice = it
-        état_élément.est_sélectionné = faux
+        état_élément := tableau_ajoute_élément(*état_sélection_éléments);
+        état_élément.indice = it;
+        état_élément.est_sélectionné = faux;
     }
 }
 
 donne_chemin_sélection :: fonc (sélection: *ÉtatSélection) -> *CheminSélection
 {
-    retourne *sélection.chemin
+    retourne *sélection.chemin;
 }
 
 est_sélectionné :: fonc (sélection: *ÉtatSélection, indice: z32) -> bool
 {
-    retourne ensemble_possède(sélection.sélection_courante, indice)
+    retourne ensemble_possède(sélection.sélection_courante, indice);
 }
 
 donne_éléments_sélectionnés :: fonc (sélection: *ÉtatSélection) -> [..]z32
 {
-    retourne sélection.sélection_courante
+    retourne sélection.sélection_courante;
 }
 
 /* Retourne vrai si le point est sur un élément déjà sélectionné. */
 est_sur_sélectionné :: fonc (sélection: *ÉtatSélection, point: Point2D(r32)) -> bool
 {
-    chemin: CheminSélection
-    diffère détruit_données_chemin(*chemin)
+    chemin: CheminSélection;
+    diffère détruit_données_chemin(*chemin);
 
-    géométrie := sélection.donne_géométrie()
-    géométrie.grandis_chemin(*chemin, point)
+    géométrie := sélection.donne_géométrie();
+    géométrie.grandis_chemin(*chemin, point);
 
-    domaine := géométrie.donne_domaine_sélection(*chemin)
-    diffère déloge(domaine)
+    domaine := géométrie.donne_domaine_sélection(*chemin);
+    diffère déloge(domaine);
 
-    retourne domaine.taille == 1 && est_sélectionné(sélection, domaine[0])
+    retourne domaine.taille == 1 && est_sélectionné(sélection, domaine[0]);
 }
 
 /** \} */
@@ -214,9 +214,9 @@ est_sur_sélectionné :: fonc (sélection: *ÉtatSélection, point: Point2D(r32)
 GéométrieSélection :: struct {
     // m2v: fonc (*GéométrieSélection, Point2D(r32)) -> Point2D(r32)
 
-    sur_grandis_chemin: fonc (géométrie: *GéométrieSélection, chemin: *CheminSélection, point: Point2D(r32))
+    sur_grandis_chemin: fonc (géométrie: *GéométrieSélection, chemin: *CheminSélection, point: Point2D(r32));
 
-    sur_domaine_sélection: fonc (géométrie: *GéométrieSélection, chemin: *CheminSélection, points: *[..]z32) -> [..]z32
+    sur_domaine_sélection: fonc (géométrie: *GéométrieSélection, chemin: *CheminSélection, points: *[..]z32) -> [..]z32;
 
     // step(dir, vpoint)
 
@@ -224,23 +224,23 @@ GéométrieSélection :: struct {
 
     // filter(pred)
 
-    sur_destruction: fonc (géométrie: *GéométrieSélection)
+    sur_destruction: fonc (géométrie: *GéométrieSélection);
 }
 
 grandis_chemin :: fonc (géométrie: *GéométrieSélection, chemin: *CheminSélection, point: Point2D(r32))
 {
-    géométrie.sur_grandis_chemin(géométrie, chemin, point)
+    géométrie.sur_grandis_chemin(géométrie, chemin, point);
 }
 
 donne_domaine_sélection :: fonc (géométrie: *GéométrieSélection, chemin: *CheminSélection, domaine : *[..]z32 = nul) -> [..]z32
 {
-    retourne géométrie.sur_domaine_sélection(géométrie, chemin, domaine)
+    retourne géométrie.sur_domaine_sélection(géométrie, chemin, domaine);
 }
 
 détruit_géométrie :: fonc (géométrie: *GéométrieSélection)
 {
     si géométrie && géométrie.sur_destruction {
-        géométrie.sur_destruction(géométrie)
+        géométrie.sur_destruction(géométrie);
     }
 }
 
@@ -254,13 +254,13 @@ détruit_géométrie :: fonc (géométrie: *GéométrieSélection)
 
 AdaptriceÉléments :: struct {
     /* Doit retourner le nombre d'éléments sélectionnable. */
-    donne_nombre_éléments: fonc (adaptrice: *AdaptriceÉléments) -> z64
+    donne_nombre_éléments: fonc (adaptrice: *AdaptriceÉléments) -> z64;
     /* Doit retourner le rectangle de sélection de l'élément à l'indice donné.
      * L'indice est dans [0, donne_nombre_élément() - 1] */
-    donne_rectangle: fonc (adaptrice: *AdaptriceÉléments, z64) -> RectanglePosDim(r32)
+    donne_rectangle: fonc (adaptrice: *AdaptriceÉléments, z64) -> RectanglePosDim(r32);
     /* Doit retourner si l'éléème à l'indice donné intersecte le rectangle.
      * L'indice est dans [0, donne_nombre_élément() - 1] */
-    intersecte_rectangle: fonc (adaptrice: *AdaptriceÉléments, indice: z64, rect: RectanglePosDim(r32)) -> bool
+    intersecte_rectangle: fonc (adaptrice: *AdaptriceÉléments, indice: z64, rect: RectanglePosDim(r32)) -> bool;
 }
 
 /** \} */
@@ -272,75 +272,75 @@ AdaptriceÉléments :: struct {
  * \{ */
 
 GéométrieSélectionRectangle :: struct {
-    empl base: GéométrieSélection
+    empl base: GéométrieSélection;
 
-    éléments: *AdaptriceÉléments
+    éléments: *AdaptriceÉléments;
 }
 
 crée_géométrie_rectangulaire :: fonc (éléments: *AdaptriceÉléments) -> *GéométrieSélectionRectangle
 {
-    sur_grandis_chemin :: fonc (base: *GéométrieSélection @inutilisée, chemin: *CheminSélection, point: Point2D(r32))
+    sur_grandis_chemin :: fonc (base: *GéométrieSélection @inutilisée, chemin: *CheminSélection, point: Point2D(r32));
     {
         si chemin.points.taille == 2 {
-            chemin.points[1] = point
+            chemin.points[1] = point;
         }
         sinon {
-            chemin.ajoute(point)
+            chemin.ajoute(point);
         }
     }
 
-    sur_domaine_sélection :: fonc (base: *GéométrieSélection, chemin: *CheminSélection, domaine: *[..]z32 @inutilisée) -> [..]z32
+    sur_domaine_sélection :: fonc (base: *GéométrieSélection, chemin: *CheminSélection, domaine: *[..]z32 @inutilisée) -> [..]z32;
     {
-        géométrie := base comme *GéométrieSélectionRectangle
-        adaptrice := géométrie.éléments
+        géométrie := base comme *GéométrieSélectionRectangle;
+        adaptrice := géométrie.éléments;
 
-        résultat: [..]z32
+        résultat: [..]z32;
 
-        opt_a := chemin.donne_ancre()
+        opt_a := chemin.donne_ancre();
         saufsi opt_a.possède_valeur() {
-            retourne résultat
+            retourne résultat;
         }
 
-        opt_b := chemin.donne_fin_active()
+        opt_b := chemin.donne_fin_active();
         saufsi opt_b.possède_valeur() {
-            retourne résultat
+            retourne résultat;
         }
 
-        a := opt_a.Quelque
-        b := opt_b.Quelque
+        a := opt_a.Quelque;
+        b := opt_b.Quelque;
 
-        rect_chemin := crée_rectangle_pos_dim(a, b)
+        rect_chemin := crée_rectangle_pos_dim(a, b);
 
         pour adaptrice.donne_nombre_éléments(adaptrice) {
             si adaptrice.intersecte_rectangle {
                 si adaptrice.intersecte_rectangle(adaptrice, indice_it, rect_chemin) {
-                    ensemble_ajoute(*résultat, indice_it comme z32)
+                    ensemble_ajoute(*résultat, indice_it comme z32);
                 }
-                continue
+                continue;
             }
 
-            rect := adaptrice.donne_rectangle(adaptrice, indice_it)
+            rect := adaptrice.donne_rectangle(adaptrice, indice_it);
 
             si rect_chemin.intersecte(rect) {
-                ensemble_ajoute(*résultat, indice_it comme z32)
+                ensemble_ajoute(*résultat, indice_it comme z32);
             }
         }
 
-        retourne résultat
+        retourne résultat;
     }
 
-    sur_destruction :: fonc (base: *GéométrieSélection)
+    sur_destruction :: fonc (base: *GéométrieSélection);
     {
-        géométrie := base comme *GéométrieSélectionRectangle
-        déloge(géométrie)
+        géométrie := base comme *GéométrieSélectionRectangle;
+        déloge(géométrie);
     }
 
-    résultat := loge(GéométrieSélectionRectangle)
-    résultat.éléments = éléments
-    résultat.sur_grandis_chemin = sur_grandis_chemin
-    résultat.sur_domaine_sélection = sur_domaine_sélection
-    résultat.sur_destruction = sur_destruction
-    retourne résultat
+    résultat := loge(GéométrieSélectionRectangle);
+    résultat.éléments = éléments;
+    résultat.sur_grandis_chemin = sur_grandis_chemin;
+    résultat.sur_domaine_sélection = sur_domaine_sélection;
+    résultat.sur_destruction = sur_destruction;
+    retourne résultat;
 }
 
 /** \} */

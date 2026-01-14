@@ -347,12 +347,12 @@ void ProtéineStruct::génère_code_kuri(FluxSortieKuri &os)
         else {
             os << "\n\templ base_" << m_mère->donne_nom_comme();
         }
-        os << ": " << m_mère->nom() << "\n";
+        os << ": " << m_mère->nom() << ";\n";
 
         if (m_paire && m_paire->énum_discriminante()) {
             if (m_paire->énum_discriminante()->nom().nom() == "GenreNoeud" &&
                 !m_paire->donne_nom_genre().est_nul()) {
-                os << "\tgenre = GenreNoeud." << m_nom_genre << "\n";
+                os << "\tgenre = GenreNoeud." << m_nom_genre << ";\n";
             }
         }
     }
@@ -367,27 +367,27 @@ void ProtéineStruct::génère_code_kuri(FluxSortieKuri &os)
     POUR (m_rubriques) {
         if (it.type->est_pointeur() &&
             it.type->comme_pointeur()->type_pointe->est_nominal("Lexème")) {
-            os << "\tchemin_fichier: chaine\n";
-            os << "\tnom_fichier: chaine\n";
-            os << "\tnuméro_ligne: z32\n";
-            os << "\tnuméro_colonne: z32\n";
+            os << "\tchemin_fichier: chaine;\n";
+            os << "\tnom_fichier: chaine;\n";
+            os << "\tnuméro_ligne: z32;\n";
+            os << "\tnuméro_colonne: z32;\n";
             continue;
         }
 
         if (it.type->est_pointeur() &&
             it.type->comme_pointeur()->type_pointe->est_nominal("IdentifiantCode")) {
-            os << "\tnom: chaine\n";
+            os << "\tnom: chaine;\n";
             continue;
         }
 
         if (it.type->est_pointeur() &&
             it.type->comme_pointeur()->type_pointe->est_nominal("NoeudDéclarationType")) {
-            os << "\t" << it.nom.nom() << ": *InfoType\n";
+            os << "\t" << it.nom.nom() << ": *InfoType;\n";
             continue;
         }
 
         if (est_chaine_litterale && it.nom.nom() == "valeur") {
-            os << "\tvaleur: chaine\n";
+            os << "\tvaleur: chaine;\n";
             continue;
         }
 
@@ -410,11 +410,11 @@ void ProtéineStruct::génère_code_kuri(FluxSortieKuri &os)
             }
         }
 
-        os << "\n";
+        os << ";\n";
     }
 
     if (est_corps_fonction) {
-        os << "\tnoeuds: [..]*NoeudCode\n";
+        os << "\tnoeuds: [..]*NoeudCode;\n";
     }
 
     os << "}\n\n";
@@ -565,7 +565,7 @@ void ProtéineÉnum::génère_code_kuri(FluxSortieKuri &os)
 {
     os << m_nom << " :: énum " << *m_type << " {\n";
     POUR (m_rubriques) {
-        os << "\t" << it.nom << "\n";
+        os << "\t" << it.nom << ";\n";
     }
     os << "}\n\n";
 }
@@ -637,7 +637,7 @@ void ProtéineFonction::génère_code_kuri(FluxSortieKuri &os)
         }
     }
 
-    os << "\n\n";
+    os << ";\n\n";
 }
 
 void ProtéineFonction::ajoute_paramètre(Paramètre const paramètre)

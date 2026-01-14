@@ -12,23 +12,23 @@ ContentSecurityPolicy :: struct {
 /* https://w3c.github.io/webappsec-csp/#should-block-inline */
 should_element_s_inline_behavior_be_blocked :: fonc (élément: *Element, type: chaine @inutilisée, source: chaine @inutilisée) -> chaine
 {
-    assert(élément != nul)
+    assert(élément != nul);
 
-    résultat := "Allowed"
+    résultat := "Allowed";
 
-    imprimeln("À FAIRE : [%]", #nom_de_cette_fonction)
+    imprimeln("À FAIRE : [%]", #nom_de_cette_fonction);
 
-    retourne résultat
+    retourne résultat;
 }
 
 /* https://w3c.github.io/webappsec-csp/#should-block-navigation-request */
 should_navigation_request_be_blocked :: fonc (navigation_request: *Request @inutilisée, type: chaine) -> chaine
 {
-    assert(type == "form-submission" || type == "other")
+    assert(type == "form-submission" || type == "other");
 
-    résultat := "Allowed"
+    résultat := "Allowed";
 
-    imprimeln("À FAIRE : [%]", #nom_de_cette_fonction)
+    imprimeln("À FAIRE : [%]", #nom_de_cette_fonction);
 
-    retourne résultat
+    retourne résultat;
 }

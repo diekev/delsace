@@ -1,86 +1,86 @@
 valeur_min :: fonc (taille_en_octet: n32, est_signé: bool) -> z64
 {
     si !est_signé {
-        retourne 0
+        retourne 0;
     }
 
     si taille_en_octet == 1 {
-        retourne -128
+        retourne -128;
     }
 
     si taille_en_octet == 2 {
-        retourne -32768
+        retourne -32768;
     }
 
     si taille_en_octet == 4 {
-        retourne -(2147483648 comme z64)
+        retourne -(2147483648 comme z64);
     }
 
-    retourne -(0x7fff_ffff_ffff_ffff comme z64) - 1
+    retourne -(0x7fff_ffff_ffff_ffff comme z64) - 1;
 }
 
 valeur_max :: fonc (taille_en_octet: n32, est_signé: bool) -> n64
 {
     si !est_signé {
         si taille_en_octet == 1 {
-            retourne 0xff
+            retourne 0xff;
         }
 
         si taille_en_octet == 2 {
-            retourne 0xffff
+            retourne 0xffff;
         }
 
         si taille_en_octet == 4 {
-            retourne 0xffff_ffff
+            retourne 0xffff_ffff;
         }
 
-        retourne 0xffff_ffff_ffff_ffff
+        retourne 0xffff_ffff_ffff_ffff;
     }
 
     si taille_en_octet == 1 {
-        retourne 0x7f
+        retourne 0x7f;
     }
 
     si taille_en_octet == 2 {
-        retourne 0x7fff
+        retourne 0x7fff;
     }
 
     si taille_en_octet == 4 {
-        retourne 0x7fff_ffff
+        retourne 0x7fff_ffff;
     }
 
-    retourne 0x7fff_ffff_ffff_ffff
+    retourne 0x7fff_ffff_ffff_ffff;
 }
 
 hors_limite :: fonc (valeur: z64, taille_en_octet: n32, est_signé: bool) -> bool
 {
     si !est_signé {
         si taille_en_octet == 1 {
-            retourne valeur > 255
+            retourne valeur > 255;
         }
 
         si taille_en_octet == 2 {
-            retourne valeur > 65535
+            retourne valeur > 65535;
         }
 
         si taille_en_octet == 4 {
-            retourne valeur > 0xffffffff
+            retourne valeur > 0xffffffff;
         }
 
-        retourne faux
+        retourne faux;
     }
 
     si taille_en_octet == 1 {
-        retourne valeur > 127 || valeur < -128
+        retourne valeur > 127 || valeur < -128;
     }
 
     si taille_en_octet == 2 {
-        retourne valeur > 32767 || valeur < -32768
+        retourne valeur > 32767 || valeur < -32768;
     }
 
     si taille_en_octet == 4 {
-        retourne valeur > 2147483647 || valeur < -(2147483648 comme z64)
+        retourne valeur > 2147483647 || valeur < -(2147483648 comme z64);
     }
 
-    retourne faux
+    retourne faux;
 }

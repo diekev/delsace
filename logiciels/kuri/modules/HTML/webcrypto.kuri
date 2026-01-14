@@ -1,20 +1,20 @@
-importe Krypto
+importe Krypto;
 
 /* ------------------------------------------------------------------------- */
 /** \nom UUID
  * \{ */
 
-UUID :: #opaque chaine
+UUID :: #opaque chaine;
 
 détruit_uuid :: fonc (uuid: UUID)
 {
-    chn := uuid comme chaine
-    déloge_si_logée(chn)
+    chn := uuid comme chaine;
+    déloge_si_logée(chn);
 }
 
 opérateur == :: (u1: UUID, u2: UUID) -> bool
 {
-    retourne (u1 comme chaine) == (u2 comme chaine)
+    retourne (u1 comme chaine) == (u2 comme chaine);
 }
 
 /** \} */
@@ -24,18 +24,18 @@ opérateur == :: (u1: UUID, u2: UUID) -> bool
 génère_un_uuid_aléatoire :: fonc () -> UUID
 {
     // 1. Let bytes be a byte sequence of length 16.
-    bytes : [16]octet = ---
+    bytes : [16]octet = ---;
 
     // 2. Fill bytes with cryptographically secure random bytes.
-    remplis_avec_octets_cryptographiquement_sécurisés(bytes)
+    remplis_avec_octets_cryptographiquement_sécurisés(bytes);
 
     // 3. Set the 4 most significant bits of bytes[6], which represent the UUID version, to 0100.
-    bits := bytes[6] & 0b1111
-    bytes[6] = (0b0100 << 4) | bits
+    bits := bytes[6] & 0b1111;
+    bytes[6] = (0b0100 << 4) | bits;
 
     // 4. Set the 2 most significant bits of bytes[8], which represent the UUID variant, to 10.
-    bits = bytes[8] & 0b111111
-    bytes[8] = (0b01 << 6) | bits
+    bits = bytes[8] & 0b111111;
+    bytes[8] = (0b01 << 6) | bits;
 
     // Return the string concatenation of «
     //     hexadecimal representation of bytes[0], hexadecimal representation of bytes[1], hexadecimal representation of bytes[2], hexadecimal representation of bytes[3],
@@ -49,30 +49,30 @@ génère_un_uuid_aléatoire :: fonc () -> UUID
     //     hexadecimal representation of bytes[10], hexadecimal representation of bytes[11], hexadecimal representation of bytes[12], hexadecimal representation of bytes[13], hexadecimal representation of bytes[14], hexadecimal representation of bytes[15]
     //     ».
 
-    enchaineuse: Enchaineuse
-    initialise_enchaineuse(*enchaineuse)
+    enchaineuse: Enchaineuse;
+    initialise_enchaineuse(*enchaineuse);
 
-    encode_hexadécimal_minuscule(*enchaineuse, bytes[0])
-    encode_hexadécimal_minuscule(*enchaineuse, bytes[1])
-    encode_hexadécimal_minuscule(*enchaineuse, bytes[2])
-    encode_hexadécimal_minuscule(*enchaineuse, bytes[3])
-    ajoute_au_tampon(*enchaineuse, "-")
-    encode_hexadécimal_minuscule(*enchaineuse, bytes[4])
-    encode_hexadécimal_minuscule(*enchaineuse, bytes[5])
-    ajoute_au_tampon(*enchaineuse, "-")
-    encode_hexadécimal_minuscule(*enchaineuse, bytes[6])
-    encode_hexadécimal_minuscule(*enchaineuse, bytes[7])
-    ajoute_au_tampon(*enchaineuse, "-")
-    encode_hexadécimal_minuscule(*enchaineuse, bytes[8])
-    encode_hexadécimal_minuscule(*enchaineuse, bytes[9])
-    ajoute_au_tampon(*enchaineuse, "-")
-    encode_hexadécimal_minuscule(*enchaineuse, bytes[10])
-    encode_hexadécimal_minuscule(*enchaineuse, bytes[11])
-    encode_hexadécimal_minuscule(*enchaineuse, bytes[12])
-    encode_hexadécimal_minuscule(*enchaineuse, bytes[13])
-    encode_hexadécimal_minuscule(*enchaineuse, bytes[14])
-    encode_hexadécimal_minuscule(*enchaineuse, bytes[15])
+    encode_hexadécimal_minuscule(*enchaineuse, bytes[0]);
+    encode_hexadécimal_minuscule(*enchaineuse, bytes[1]);
+    encode_hexadécimal_minuscule(*enchaineuse, bytes[2]);
+    encode_hexadécimal_minuscule(*enchaineuse, bytes[3]);
+    ajoute_au_tampon(*enchaineuse, "-");
+    encode_hexadécimal_minuscule(*enchaineuse, bytes[4]);
+    encode_hexadécimal_minuscule(*enchaineuse, bytes[5]);
+    ajoute_au_tampon(*enchaineuse, "-");
+    encode_hexadécimal_minuscule(*enchaineuse, bytes[6]);
+    encode_hexadécimal_minuscule(*enchaineuse, bytes[7]);
+    ajoute_au_tampon(*enchaineuse, "-");
+    encode_hexadécimal_minuscule(*enchaineuse, bytes[8]);
+    encode_hexadécimal_minuscule(*enchaineuse, bytes[9]);
+    ajoute_au_tampon(*enchaineuse, "-");
+    encode_hexadécimal_minuscule(*enchaineuse, bytes[10]);
+    encode_hexadécimal_minuscule(*enchaineuse, bytes[11]);
+    encode_hexadécimal_minuscule(*enchaineuse, bytes[12]);
+    encode_hexadécimal_minuscule(*enchaineuse, bytes[13]);
+    encode_hexadécimal_minuscule(*enchaineuse, bytes[14]);
+    encode_hexadécimal_minuscule(*enchaineuse, bytes[15]);
 
-    résultat := chaine_depuis_enchaineuse(*enchaineuse)
-    retourne UUID(résultat)
+    résultat := chaine_depuis_enchaineuse(*enchaineuse);
+    retourne UUID(résultat);
 }

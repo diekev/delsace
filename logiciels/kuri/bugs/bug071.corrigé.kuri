@@ -3,7 +3,7 @@
  * Catégorie : [compilation infini]
  */
 
-importe Support
+importe Support;
 
 principale :: fonc ()
 {
@@ -11,9 +11,9 @@ principale :: fonc ()
     principale :: fonc ()
     {
     }
-    ")
+    ");
 
     si erreur_survenue {
-        exit(1)
+        exit(1);
     }
 }

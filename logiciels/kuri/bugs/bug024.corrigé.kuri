@@ -2,9 +2,9 @@
  * Catégorie : [crash, génération code, diffère, expression retour]
  */
 
-importe Support
+importe Support;
 
 principale :: fonc ()
 {
-    diffère retourne 1
+    diffère retourne 1;
 }

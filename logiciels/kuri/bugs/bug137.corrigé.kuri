@@ -7,7 +7,7 @@
  * expressions simples à valider (sans arbres aplatis).
  */
 
-UnionAnonyme :: z32 | r32
+UnionAnonyme :: z32 | r32;
 
 fonction :: fonc (y: UnionAnonyme)
 {
@@ -23,5 +23,5 @@ fonction2 :: fonc ()
 
 principale :: fonc ()
 {
-    fonction(123)
+    fonction(123);
 }

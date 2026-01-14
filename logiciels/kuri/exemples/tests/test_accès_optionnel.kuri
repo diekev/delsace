@@ -1,18 +1,18 @@
-importe Fondation
+importe Fondation;
 
 X :: struct {
-    y := 123
+    y := 123;
 }
 
 principale :: fonc ()
 {
-    x: *X
+    x: *X;
 
-    a := x?.y
-    imprimeln("a := %", a)
+    a := x?.y;
+    imprimeln("a := %", a);
 
-    x2 := loge(X)
+    x2 := loge(X);
 
-    b := x2?.y
-    imprimeln("b := %", b)
+    b := x2?.y;
+    imprimeln("b := %", b);
 }

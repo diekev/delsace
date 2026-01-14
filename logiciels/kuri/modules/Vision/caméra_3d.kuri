@@ -1,186 +1,186 @@
-importe Fondation
+importe Fondation;
 
 mire :: fonc (oeil: Vec3, centre: Vec3, haut: Vec3) -> Mat4r
 {
-    f := normalise(centre - oeil)
-    s := normalise(produit_en_croix(f, haut))
-    u := produit_en_croix(s, f)
+    f := normalise(centre - oeil);
+    s := normalise(produit_en_croix(f, haut));
+    u := produit_en_croix(s, f);
 
-    résultat : Mat4r = construis_mat4r_neutre()
-    résultat.m[0][0] = s.x
-    résultat.m[1][0] = s.y
-    résultat.m[2][0] = s.z
-    résultat.m[0][1] = u.x
-    résultat.m[1][1] = u.y
-    résultat.m[2][1] = u.z
-    résultat.m[0][2] = -f.x
-    résultat.m[1][2] = -f.y
-    résultat.m[2][2] = -f.z
-    résultat.m[3][0] = -produit_scalaire(s, oeil)
-    résultat.m[3][1] = -produit_scalaire(u, oeil)
-    résultat.m[3][2] = produit_scalaire(f, oeil)
-    retourne résultat
+    résultat : Mat4r = construis_mat4r_neutre();
+    résultat.m[0][0] = s.x;
+    résultat.m[1][0] = s.y;
+    résultat.m[2][0] = s.z;
+    résultat.m[0][1] = u.x;
+    résultat.m[1][1] = u.y;
+    résultat.m[2][1] = u.z;
+    résultat.m[0][2] = -f.x;
+    résultat.m[1][2] = -f.y;
+    résultat.m[2][2] = -f.z;
+    résultat.m[3][0] = -produit_scalaire(s, oeil);
+    résultat.m[3][1] = -produit_scalaire(u, oeil);
+    résultat.m[3][2] = produit_scalaire(f, oeil);
+    retourne résultat;
 }
 
 projette_dans_monde :: fonc (caméra: *Caméra3D, pos: *Vec3) -> Vec3
 {
-    proj := caméra.projection
-    model := caméra.monde_vers_caméra
-    PM := multiplie(proj, model)
-    inverse := inverse(PM)
+    proj := caméra.projection;
+    model := caméra.monde_vers_caméra;
+    PM := multiplie(proj, model);
+    inverse := inverse(PM);
 
-    tmp := Vec4(pos.x, pos.y, pos.z, 1.0)
-    tmp.x = bilatéral_de(tmp.x)
-    tmp.y = bilatéral_de(tmp.y)
-    tmp.z = bilatéral_de(tmp.z)
-    tmp.w = bilatéral_de(tmp.w)
+    tmp := Vec4(pos.x, pos.y, pos.z, 1.0);
+    tmp.x = bilatéral_de(tmp.x);
+    tmp.y = bilatéral_de(tmp.y);
+    tmp.z = bilatéral_de(tmp.z);
+    tmp.w = bilatéral_de(tmp.w);
 
-    obj := transforme(inverse, tmp)
-    obj.x /= obj.w
-    obj.y /= obj.w
-    obj.z /= obj.w
+    obj := transforme(inverse, tmp);
+    obj.x /= obj.w;
+    obj.y /= obj.w;
+    obj.z /= obj.w;
 
-    retourne Vec3(obj.x, obj.y, obj.z)
+    retourne Vec3(obj.x, obj.y, obj.z);
 }
 
 projette_sur_écran :: fonc (obj: Vec3, model: Mat4r, proj: Mat4r, viewport: Vec4) -> Vec3
 {
-    tmp := Vec4(obj.x, obj.y, obj.z, 1.0)
-    tmp = transforme(model, tmp)
-    tmp = transforme(proj, tmp)
+    tmp := Vec4(obj.x, obj.y, obj.z, 1.0);
+    tmp = transforme(model, tmp);
+    tmp = transforme(proj, tmp);
 
-    tmp /= tmp.w
-    tmp = tmp * 0.5 + Vec4(0.5, 0.5, 0.5, 0.5)
-    tmp.x = tmp.x * viewport.z + viewport.x
-    tmp.y = tmp.y * viewport.w + viewport.y
+    tmp /= tmp.w;
+    tmp = tmp * 0.5 + Vec4(0.5, 0.5, 0.5, 0.5);
+    tmp.x = tmp.x * viewport.z + viewport.x;
+    tmp.y = tmp.y * viewport.w + viewport.y;
 
-    retourne Vec3(tmp.x, tmp.y, tmp.z)
+    retourne Vec3(tmp.x, tmp.y, tmp.z);
 }
 
 direction_via_pixel :: fonc (caméra: *Caméra3D, pos_pixel: Vec2) -> Vec3
 {
-    pos := Vec3(pos_pixel.x, pos_pixel.y, 0.0)
-    début := projette_dans_monde(caméra, *pos)
+    pos := Vec3(pos_pixel.x, pos_pixel.y, 0.0);
+    début := projette_dans_monde(caméra, *pos);
 
-    pos.z = 1.0
-    fin := projette_dans_monde(caméra, *pos)
+    pos.z = 1.0;
+    fin := projette_dans_monde(caméra, *pos);
 
-    retourne fin - début
+    retourne fin - début;
 }
 
 // c'est plus rapide qu'en haut, mais il y a toujours l'inversion de matrice qui prend du temps...
 direction_via_pixel_rapide :: fonc (caméra: *Caméra3D, pos_pixel: Vec2) -> Vec3
 {
-    PM := multiplie(caméra.projection, caméra.monde_vers_caméra)
-    MVP_inverse := inverse(PM)
-    retourne direction_via_pixel_rapide(MVP_inverse, pos_pixel)
+    PM := multiplie(caméra.projection, caméra.monde_vers_caméra);
+    MVP_inverse := inverse(PM);
+    retourne direction_via_pixel_rapide(MVP_inverse, pos_pixel);
 }
 
 direction_via_pixel_rapide :: fonc (MVP_inverse: Mat4r, pos_pixel: Vec2) -> Vec3
 {
-    début: Vec3
-    fin: Vec3
+    début: Vec3;
+    fin: Vec3;
 
-    x := bilatéral_de(pos_pixel.x)
-    y := bilatéral_de(pos_pixel.y)
+    x := bilatéral_de(pos_pixel.x);
+    y := bilatéral_de(pos_pixel.y);
 
-    commun_x := x * MVP_inverse.m[0][0] + y * MVP_inverse.m[1][0] + MVP_inverse.m[3][0]
-    commun_y := x * MVP_inverse.m[0][1] + y * MVP_inverse.m[1][1] + MVP_inverse.m[3][1]
-    commun_z := x * MVP_inverse.m[0][2] + y * MVP_inverse.m[1][2] + MVP_inverse.m[3][2]
-    commun_w := x * MVP_inverse.m[0][3] + y * MVP_inverse.m[1][3] + MVP_inverse.m[3][3]
+    commun_x := x * MVP_inverse.m[0][0] + y * MVP_inverse.m[1][0] + MVP_inverse.m[3][0];
+    commun_y := x * MVP_inverse.m[0][1] + y * MVP_inverse.m[1][1] + MVP_inverse.m[3][1];
+    commun_z := x * MVP_inverse.m[0][2] + y * MVP_inverse.m[1][2] + MVP_inverse.m[3][2];
+    commun_w := x * MVP_inverse.m[0][3] + y * MVP_inverse.m[1][3] + MVP_inverse.m[3][3];
 
     {
-        w := commun_w - MVP_inverse.m[2][3]
+        w := commun_w - MVP_inverse.m[2][3];
 
-        début.x = (commun_x - MVP_inverse.m[2][0]) / w
-        début.y = (commun_y - MVP_inverse.m[2][1]) / w
-        début.z = (commun_z - MVP_inverse.m[2][2]) / w
+        début.x = (commun_x - MVP_inverse.m[2][0]) / w;
+        début.y = (commun_y - MVP_inverse.m[2][1]) / w;
+        début.z = (commun_z - MVP_inverse.m[2][2]) / w;
     }
 
     {
-        w := commun_w + MVP_inverse.m[2][3]
+        w := commun_w + MVP_inverse.m[2][3];
 
-        fin.x = (commun_x + MVP_inverse.m[2][0]) / w
-        fin.y = (commun_y + MVP_inverse.m[2][1]) / w
-        fin.z = (commun_z + MVP_inverse.m[2][2]) / w
+        fin.x = (commun_x + MVP_inverse.m[2][0]) / w;
+        fin.y = (commun_y + MVP_inverse.m[2][1]) / w;
+        fin.z = (commun_z + MVP_inverse.m[2][2]) / w;
     }
 
-    retourne fin - début
+    retourne fin - début;
 }
 
 TypeProjection :: énum {
-    ORTHOGRAPHIQUE
-    PERSPECTIVE
+    ORTHOGRAPHIQUE;
+    PERSPECTIVE;
 }
 
 DrapeauAjournementCaméra :: énum_drapeau {
-    DISTANCE_MODIFIÉE
-    INCLINAISON_MODIFIÉE
-    TETE_MODIFIÉE
-    CIBLE_MODIFIÉE
-    DIMENSIONS_MODIFIÉES
-    TYPE_PROJECTION_MODIFIÉ
-    SENSEUR_MODIFIÉ
-    FOCALE_MODIFIÉE
-    PROFONDEUR_PLAN_MODIFIÉE
+    DISTANCE_MODIFIÉE;
+    INCLINAISON_MODIFIÉE;
+    TETE_MODIFIÉE;
+    CIBLE_MODIFIÉE;
+    DIMENSIONS_MODIFIÉES;
+    TYPE_PROJECTION_MODIFIÉ;
+    SENSEUR_MODIFIÉ;
+    FOCALE_MODIFIÉE;
+    PROFONDEUR_PLAN_MODIFIÉE;
 
-    PROJECTION_ORTHOGRAPHIQUE_MODIFIÉE :: TYPE_PROJECTION_MODIFIÉ | DISTANCE_MODIFIÉE | DIMENSIONS_MODIFIÉES | PROFONDEUR_PLAN_MODIFIÉE
-    PROJECTION_PERSPECTIVE_MODIFIÉE :: TYPE_PROJECTION_MODIFIÉ | DISTANCE_MODIFIÉE | DIMENSIONS_MODIFIÉES | PROFONDEUR_PLAN_MODIFIÉE | FOCALE_MODIFIÉE | SENSEUR_MODIFIÉ
-    PROJECTION_MODIFIÉE :: PROJECTION_ORTHOGRAPHIQUE_MODIFIÉE | PROJECTION_PERSPECTIVE_MODIFIÉE
-    CAMÉRA_MONDE_MODIFIÉE :: CIBLE_MODIFIÉE | INCLINAISON_MODIFIÉE | TETE_MODIFIÉE | DISTANCE_MODIFIÉE
+    PROJECTION_ORTHOGRAPHIQUE_MODIFIÉE :: TYPE_PROJECTION_MODIFIÉ | DISTANCE_MODIFIÉE | DIMENSIONS_MODIFIÉES | PROFONDEUR_PLAN_MODIFIÉE;
+    PROJECTION_PERSPECTIVE_MODIFIÉE :: TYPE_PROJECTION_MODIFIÉ | DISTANCE_MODIFIÉE | DIMENSIONS_MODIFIÉES | PROFONDEUR_PLAN_MODIFIÉE | FOCALE_MODIFIÉE | SENSEUR_MODIFIÉ;
+    PROJECTION_MODIFIÉE :: PROJECTION_ORTHOGRAPHIQUE_MODIFIÉE | PROJECTION_PERSPECTIVE_MODIFIÉE;
+    CAMÉRA_MONDE_MODIFIÉE :: CIBLE_MODIFIÉE | INCLINAISON_MODIFIÉE | TETE_MODIFIÉE | DISTANCE_MODIFIÉE;
 }
 
 Caméra3D :: struct {
     /* Propriétés modifiables. */
 
-    largeur := 0
-    hauteur := 0
+    largeur := 0;
+    hauteur := 0;
 
-    tête := 0.0
+    tête := 0.0;
 
     /* Inclinaison sur l'axe des x local de la caméra définissant si elle
      * regarde vers le haut ou vers le bas. */
-    inclinaison := 0.0
+    inclinaison := 0.0;
 
-    plan_proche := 0.0
-    plan_éloigné := 0.0
-    distance := 0.0
+    plan_proche := 0.0;
+    plan_éloigné := 0.0;
+    distance := 0.0;
 
     /* À FAIRE : hauteur_senseur + préréglages de tailles de senseurs connues
      *  champs_de_vue horizontal = 2atan(0.5 * largeur_senseur / longueur_focale) */
-    largeur_senseur := 0.0
+    largeur_senseur := 0.0;
 
-    longueur_focale := 0.0
+    longueur_focale := 0.0;
 
     /* Vitesse de déplacement avant-arrière (Z local). */
-    vitesse_zoom := 0.0
+    vitesse_zoom := 0.0;
 
     /* Vitesse de déplacement haut-bas (Y local). */
-    vitesse_chute := 0.0
+    vitesse_chute := 0.0;
 
     /* Vitesse de déplacement gauche-droite (X local). */
-    vitesse_latérale := 0.0
+    vitesse_latérale := 0.0;
 
     /* La cible de la caméra. */
-    cible: Vec3
+    cible: Vec3;
 
     /* Propriétés calculées. */
 
-    aspect: r32
-    échelle: r32
-    monde_vers_caméra: Mat4r
-    caméra_vers_monde: Mat4r
-    caméra_vers_rateau: Mat4r
-    monde_vers_rateau: Mat4r
-    projection: Mat4r
-    position: Vec3
-    direction: Vec3
-    vecteur_droite: Vec3
-    vecteur_haut: Vec3
+    aspect: r32;
+    échelle: r32;
+    monde_vers_caméra: Mat4r;
+    caméra_vers_monde: Mat4r;
+    caméra_vers_rateau: Mat4r;
+    monde_vers_rateau: Mat4r;
+    projection: Mat4r;
+    position: Vec3;
+    direction: Vec3;
+    vecteur_droite: Vec3;
+    vecteur_haut: Vec3;
 
-    drapeaux: DrapeauAjournementCaméra
+    drapeaux: DrapeauAjournementCaméra;
 
-    type_projection := TypeProjection.ORTHOGRAPHIQUE
+    type_projection := TypeProjection.ORTHOGRAPHIQUE;
 }
 
 /* Initialise une caméra dans un espace où l'axe vertical est +Y.
@@ -195,136 +195,136 @@ Caméra3D :: struct {
  */
 initialise_caméra :: fonc (caméra: *Caméra3D, largeur_fenêtre := 0, hauteur_fenêtre := 0, type_projection := TypeProjection.PERSPECTIVE)
 {
-    définis_dimension_fenêtre(caméra, largeur_fenêtre, hauteur_fenêtre)
-    définis_tête(caméra, 30.0)
-    définis_inclinaison(caméra, 45.0)
-    définis_profondeur(caméra, 0.1, 1000.0)
-    définis_distance(caméra, 25.0)
-    définis_largeur_senseur(caméra, 22.0)
-    définis_longueur_focale(caméra, 35.0)
+    définis_dimension_fenêtre(caméra, largeur_fenêtre, hauteur_fenêtre);
+    définis_tête(caméra, 30.0);
+    définis_inclinaison(caméra, 45.0);
+    définis_profondeur(caméra, 0.1, 1000.0);
+    définis_distance(caméra, 25.0);
+    définis_largeur_senseur(caméra, 22.0);
+    définis_longueur_focale(caméra, 35.0);
 
-    caméra.position = Vec3(0.0, 0.0, -1.0)
-    caméra.direction = Vec3(0.0, 0.0, 1.0)
-    caméra.cible = Vec3(0.0, 0.0, 0.0)
-    caméra.vecteur_droite = Vec3(1.0, 0.0, 0.0)
-    caméra.vecteur_haut = Vec3(0.0, 1.0, 0.0)
+    caméra.position = Vec3(0.0, 0.0, -1.0);
+    caméra.direction = Vec3(0.0, 0.0, 1.0);
+    caméra.cible = Vec3(0.0, 0.0, 0.0);
+    caméra.vecteur_droite = Vec3(1.0, 0.0, 0.0);
+    caméra.vecteur_haut = Vec3(0.0, 1.0, 0.0);
 
-    caméra.vitesse_zoom = 0.2
-    caméra.vitesse_chute = 0.5
-    caméra.vitesse_latérale = 0.05
+    caméra.vitesse_zoom = 0.2;
+    caméra.vitesse_chute = 0.5;
+    caméra.vitesse_latérale = 0.05;
 
-    caméra.définis_type_projection(type_projection)
+    caméra.définis_type_projection(type_projection);
 
-    caméra.drapeaux = DrapeauAjournementCaméra.valeurs_légales
+    caméra.drapeaux = DrapeauAjournementCaméra.valeurs_légales;
 }
 
 ajuste_vitesse :: fonc (empl caméra: *Caméra3D, zoom : r32 = 0.1, latérale : r32 = 0.0002, chute : r32 = 0.02)
 {
-    vitesse_zoom = max(0.0001, distance * zoom)
-    vitesse_latérale = max(0.0001, distance * latérale)
-    vitesse_chute = max(0.2, min(1.0, distance * chute))
+    vitesse_zoom = max(0.0001, distance * zoom);
+    vitesse_latérale = max(0.0001, distance * latérale);
+    vitesse_chute = max(0.2, min(1.0, distance * chute));
 }
 
 /* Mutations. */
 
 définis_distance :: fonc (empl caméra: *Caméra3D, nouvelle_distance: r32)
 {
-    caméra.drapeaux.DISTANCE_MODIFIÉE = nouvelle_distance != distance
-    distance = nouvelle_distance
+    caméra.drapeaux.DISTANCE_MODIFIÉE = nouvelle_distance != distance;
+    distance = nouvelle_distance;
 }
 
 définis_inclinaison :: fonc (empl caméra: *Caméra3D, nouvelle_inclinaison: r32)
 {
-    caméra.drapeaux.INCLINAISON_MODIFIÉE = nouvelle_inclinaison != inclinaison
-    inclinaison = nouvelle_inclinaison
+    caméra.drapeaux.INCLINAISON_MODIFIÉE = nouvelle_inclinaison != inclinaison;
+    inclinaison = nouvelle_inclinaison;
 }
 
 définis_tête :: fonc (empl caméra: *Caméra3D, nouvelle_tête: r32)
 {
-    caméra.drapeaux.TETE_MODIFIÉE = nouvelle_tête != tête
-    tête = nouvelle_tête
+    caméra.drapeaux.TETE_MODIFIÉE = nouvelle_tête != tête;
+    tête = nouvelle_tête;
 }
 
 définis_cible :: fonc (empl caméra: *Caméra3D, nouvelle_cible: Vec3)
 {
-    caméra.drapeaux.CIBLE_MODIFIÉE = nouvelle_cible != cible
-    cible = nouvelle_cible
+    caméra.drapeaux.CIBLE_MODIFIÉE = nouvelle_cible != cible;
+    cible = nouvelle_cible;
 }
 
 définis_dimension_fenêtre :: fonc (empl caméra: *Caméra3D, nouvelle_largeur: z32, nouvelle_hauteur: z32)
 {
     /* À FAIRE(langage) énum_drapeau |= valeur */
     si nouvelle_largeur != caméra.largeur {
-        caméra.drapeaux.DIMENSIONS_MODIFIÉES = vrai
+        caméra.drapeaux.DIMENSIONS_MODIFIÉES = vrai;
     }
-    caméra.largeur = nouvelle_largeur
+    caméra.largeur = nouvelle_largeur;
 
     si nouvelle_hauteur != caméra.hauteur {
-        caméra.drapeaux.DIMENSIONS_MODIFIÉES = vrai
+        caméra.drapeaux.DIMENSIONS_MODIFIÉES = vrai;
     }
-    caméra.hauteur = nouvelle_hauteur
+    caméra.hauteur = nouvelle_hauteur;
 
     si caméra.hauteur != 0 {
-        aspect = (caméra.largeur comme r32) / (caméra.hauteur comme r32)
+        aspect = (caméra.largeur comme r32) / (caméra.hauteur comme r32);
     }
     sinon {
-        aspect = 0.0
+        aspect = 0.0;
     }
 }
 
 définis_type_projection :: fonc (empl caméra: *Caméra3D, nouveau_type: TypeProjection)
 {
-    caméra.drapeaux.TYPE_PROJECTION_MODIFIÉ = nouveau_type != type_projection
-    type_projection = nouveau_type
+    caméra.drapeaux.TYPE_PROJECTION_MODIFIÉ = nouveau_type != type_projection;
+    type_projection = nouveau_type;
 }
 
 définis_largeur_senseur :: fonc (empl caméra: *Caméra3D, nouvelle_largeur: r32)
 {
-    caméra.drapeaux.SENSEUR_MODIFIÉ = nouvelle_largeur != largeur_senseur
-    largeur_senseur = nouvelle_largeur
+    caméra.drapeaux.SENSEUR_MODIFIÉ = nouvelle_largeur != largeur_senseur;
+    largeur_senseur = nouvelle_largeur;
 }
 
 définis_longueur_focale :: fonc (empl caméra: *Caméra3D, nouvelle_focale: r32)
 {
-    caméra.drapeaux.FOCALE_MODIFIÉE = nouvelle_focale != longueur_focale
-    longueur_focale = nouvelle_focale
+    caméra.drapeaux.FOCALE_MODIFIÉE = nouvelle_focale != longueur_focale;
+    longueur_focale = nouvelle_focale;
 }
 
 définis_profondeur :: fonc (empl caméra: *Caméra3D, nouveau_proche: r32, nouvel_éloigné: r32)
 {
-    caméra.drapeaux.PROFONDEUR_PLAN_MODIFIÉE = nouveau_proche != plan_proche
-    plan_proche = nouveau_proche
+    caméra.drapeaux.PROFONDEUR_PLAN_MODIFIÉE = nouveau_proche != plan_proche;
+    plan_proche = nouveau_proche;
 
-    caméra.drapeaux.PROFONDEUR_PLAN_MODIFIÉE = nouvel_éloigné != plan_éloigné
-    plan_éloigné = nouvel_éloigné
+    caméra.drapeaux.PROFONDEUR_PLAN_MODIFIÉE = nouvel_éloigné != plan_éloigné;
+    plan_éloigné = nouvel_éloigné;
 }
 
 force_ajournement :: fonc (empl caméra: *Caméra3D)
 {
-    drapeaux |= DrapeauAjournementCaméra.valeurs_légales
+    drapeaux |= DrapeauAjournementCaméra.valeurs_légales;
 }
 
 ajourne :: fonc (empl caméra: *Caméra3D)
 {
     si caméra.drapeaux == DrapeauAjournementCaméra.zéro {
-        retourne
+        retourne;
     }
 
-    tête_ := vers_radians(tête)
-    inclinaison_ := vers_radians(inclinaison)
+    tête_ := vers_radians(tête);
+    inclinaison_ := vers_radians(inclinaison);
 
-    position.x = cible[0] + distance * cosinus(tête_) * cosinus(inclinaison_)
-    position.y = cible[1] + distance * sinus(tête_)
-    position.z = cible[2] + distance * cosinus(tête_) * sinus(inclinaison_)
+    position.x = cible[0] + distance * cosinus(tête_) * cosinus(inclinaison_);
+    position.y = cible[1] + distance * sinus(tête_);
+    position.z = cible[2] + distance * cosinus(tête_) * sinus(inclinaison_);
 
-    direction = normalise(cible - position)
+    direction = normalise(cible - position);
     vecteur_haut.y = si (cosinus(tête_)) > 0 { 1.0 } sinon { -1.0 }
-    vecteur_droite = produit_en_croix(direction, vecteur_haut)
+    vecteur_droite = produit_en_croix(direction, vecteur_haut);
 
-    ajourne_projection(caméra)
-    ajourne_matrices_caméra_monde(caméra)
+    ajourne_projection(caméra);
+    ajourne_matrices_caméra_monde(caméra);
 
-    caméra.drapeaux = DrapeauAjournementCaméra.zéro
+    caméra.drapeaux = DrapeauAjournementCaméra.zéro;
 }
 
 ajourne_projection :: fonc (empl caméra: *Caméra3D)
@@ -332,12 +332,12 @@ ajourne_projection :: fonc (empl caméra: *Caméra3D)
     discr type_projection {
         ORTHOGRAPHIQUE {
             si drapeaux.PROJECTION_ORTHOGRAPHIQUE_MODIFIÉE {
-                ajourne_projection_orthographique(caméra)
+                ajourne_projection_orthographique(caméra);
             }
         }
         PERSPECTIVE {
             si drapeaux.PROJECTION_PERSPECTIVE_MODIFIÉE {
-                ajourne_projection_perspective(caméra)
+                ajourne_projection_perspective(caméra);
             }
         }
     }
@@ -345,62 +345,62 @@ ajourne_projection :: fonc (empl caméra: *Caméra3D)
 
 ajourne_projection_orthographique :: fonc (empl caméra: *Caméra3D)
 {
-    largeur_ortho := distance * 0.5
-    hauteur_ortho := largeur_ortho / aspect
-    projection = crée_matrice_projection_orthographique(-largeur_ortho, largeur_ortho, -hauteur_ortho, hauteur_ortho, plan_proche, plan_éloigné)
+    largeur_ortho := distance * 0.5;
+    hauteur_ortho := largeur_ortho / aspect;
+    projection = crée_matrice_projection_orthographique(-largeur_ortho, largeur_ortho, -hauteur_ortho, hauteur_ortho, plan_proche, plan_éloigné);
 }
 
 ajourne_projection_perspective :: fonc (empl caméra: *Caméra3D)
 {
-    champs_de_vue := 2.0 * arc_tangeante(0.5 * largeur_senseur / longueur_focale)
-    projection = crée_matrice_projection_perspective(champs_de_vue, aspect, plan_proche, plan_éloigné)
+    champs_de_vue := 2.0 * arc_tangeante(0.5 * largeur_senseur / longueur_focale);
+    projection = crée_matrice_projection_perspective(champs_de_vue, aspect, plan_proche, plan_éloigné);
 }
 
 ajourne_matrices_caméra_monde :: fonc (empl caméra: *Caméra3D)
 {
     saufsi drapeaux.CAMÉRA_MONDE_MODIFIÉE {
-        retourne
+        retourne;
     }
 
-    monde_vers_caméra = mire(position, cible, vecteur_haut)
-    caméra_vers_monde = inverse(monde_vers_caméra)
+    monde_vers_caméra = mire(position, cible, vecteur_haut);
+    caméra_vers_monde = inverse(monde_vers_caméra);
 
-    champs_de_vue := 2.0 * arc_tangeante(0.5 * largeur_senseur / longueur_focale)
-    caméra.échelle = tangeante(champs_de_vue * 0.5)
+    champs_de_vue := 2.0 * arc_tangeante(0.5 * largeur_senseur / longueur_focale);
+    caméra.échelle = tangeante(champs_de_vue * 0.5);
 
-    caméra_vers_rateau = construis_mat4r_neutre()
-    caméra_vers_rateau = multiplie(caméra_vers_rateau, matrice_échelle(0.5, 0.5, 0.0))
-    caméra_vers_rateau = multiplie(caméra_vers_rateau, matrice_translation(1.0, 1.0, 0.0))
+    caméra_vers_rateau = construis_mat4r_neutre();
+    caméra_vers_rateau = multiplie(caméra_vers_rateau, matrice_échelle(0.5, 0.5, 0.0));
+    caméra_vers_rateau = multiplie(caméra_vers_rateau, matrice_translation(1.0, 1.0, 0.0));
 
-    monde_vers_rateau = caméra_vers_rateau * caméra.projection * caméra.monde_vers_caméra
+    monde_vers_rateau = caméra_vers_rateau * caméra.projection * caméra.monde_vers_caméra;
 }
 
 // -----------------------------------------------------------------
 
 MV :: fonc (empl caméra: *Caméra3D) -> Mat4r
 {
-    retourne monde_vers_caméra
+    retourne monde_vers_caméra;
 }
 
 caméra_vers_monde :: fonc (empl caméra: *Caméra3D) -> Mat4r
 {
-    retourne caméra_vers_monde
+    retourne caméra_vers_monde;
 }
 
 P :: fonc (empl caméra: *Caméra3D) -> Mat4r
 {
-    retourne projection
+    retourne projection;
 }
 
 pos :: fonc (empl caméra: *Caméra3D) -> Vec3
 {
-    retourne position
+    retourne position;
 }
 
 donne_position_écran :: fonc (caméra: *Caméra3D, pos: Vec3) -> Vec2
 {
-    point := projette_sur_écran(pos, MV(caméra), P(caméra), Vec4(0.0, 0.0, caméra.largeur comme r32, caméra.hauteur comme r32))
-    retourne Vec2(point.x, caméra.hauteur comme r32 - point.y)
+    point := projette_sur_écran(pos, MV(caméra), P(caméra), Vec4(0.0, 0.0, caméra.largeur comme r32, caméra.hauteur comme r32));
+    retourne Vec2(point.x, caméra.hauteur comme r32 - point.y);
 }
 
 /*
@@ -418,29 +418,29 @@ dls::math::point3f Caméra3D::pos_monde(dls::math::point3f const &pos) const
 
 zoom :: fonc (caméra: *Caméra3D, delta: r32)
 {
-    distance := 0.0
+    distance := 0.0;
     si delta >= 0 {
-        distance = caméra.distance + caméra.vitesse_zoom
+        distance = caméra.distance + caméra.vitesse_zoom;
     }
     sinon {
-        temp := caméra.distance - caméra.vitesse_zoom
-        distance = max(0.0, temp)
+        temp := caméra.distance - caméra.vitesse_zoom;
+        distance = max(0.0, temp);
     }
 
-    caméra.définis_distance(distance)
-    caméra.ajuste_vitesse()
+    caméra.définis_distance(distance);
+    caméra.ajuste_vitesse();
 }
 
 tourne :: fonc (caméra: *Caméra3D, dx: r32, dy: r32)
 {
-    caméra.définis_tête(caméra.tête + dy * caméra.vitesse_chute)
-    caméra.définis_inclinaison(caméra.inclinaison + dx * caméra.vitesse_chute)
+    caméra.définis_tête(caméra.tête + dy * caméra.vitesse_chute);
+    caméra.définis_inclinaison(caméra.inclinaison + dx * caméra.vitesse_chute);
 }
 
 pan :: fonc (caméra: *Caméra3D, dx: r32, dy: r32)
 {
-    cible := (dy * caméra.vecteur_haut - dx * caméra.vecteur_droite) * caméra.vitesse_latérale
-    caméra.définis_cible(caméra.cible + cible)
+    cible := (dy * caméra.vecteur_haut - dx * caméra.vecteur_droite) * caméra.vitesse_latérale;
+    caméra.définis_cible(caméra.cible + cible);
 }
 
 /*
@@ -551,84 +551,84 @@ qprincipale :: fonc ()
  * \{ */
 
 Caméra3DObservable :: struct {
-    empl base: Observable
+    empl base: Observable;
 
-    caméra: Caméra3D
+    caméra: Caméra3D;
 }
 
 initialise_caméra :: fonc (enveloppe: *Caméra3DObservable)
 {
-    initialise_caméra(*enveloppe.caméra, type_projection = TypeProjection.PERSPECTIVE)
+    initialise_caméra(*enveloppe.caméra, type_projection = TypeProjection.PERSPECTIVE);
 } 
 
 détruit_caméra :: fonc (enveloppe: *Caméra3DObservable)
 {
-    détruit_données_observable(enveloppe)
-    déloge(enveloppe)
+    détruit_données_observable(enveloppe);
+    déloge(enveloppe);
 }
 
 donne_plan_éloigné :: fonc (enveloppe: *Caméra3DObservable) -> r32
 {
-    retourne enveloppe.caméra.plan_éloigné
+    retourne enveloppe.caméra.plan_éloigné;
 }
 
 donne_direction :: fonc (enveloppe: *Caméra3DObservable) -> Vec3
 {
-    retourne enveloppe.caméra.direction
+    retourne enveloppe.caméra.direction;
 }
 
 donne_hauteur :: fonc (enveloppe: *Caméra3DObservable) -> z32
 {
-    retourne enveloppe.caméra.hauteur
+    retourne enveloppe.caméra.hauteur;
 }
 
 donne_largeur :: fonc (enveloppe: *Caméra3DObservable) -> z32
 {
-    retourne enveloppe.caméra.largeur
+    retourne enveloppe.caméra.largeur;
 }
 
 donne_position_écran :: fonc (enveloppe: *Caméra3DObservable, pos: Vec3) -> Vec2
 {
-    retourne donne_position_écran(*enveloppe.caméra, pos)
+    retourne donne_position_écran(*enveloppe.caméra, pos);
 }
 
 applique_zoom :: fonc (enveloppe: *Caméra3DObservable, delta: r32)
 {
-    zoom(*enveloppe.caméra, delta)
-    envoie_message(enveloppe, MessageObservable(info_de(Caméra3DObservable), MessageCaméraPositionChangée))
+    zoom(*enveloppe.caméra, delta);
+    envoie_message(enveloppe, MessageObservable(info_de(Caméra3DObservable), MessageCaméraPositionChangée));
 }
 
 applique_tourne :: fonc (enveloppe: *Caméra3DObservable, dx: r32, dy: r32)
 {
-    tourne(*enveloppe.caméra, dx, dy)
-    envoie_message(enveloppe, MessageObservable(info_de(Caméra3DObservable), MessageCaméraPositionChangée))
+    tourne(*enveloppe.caméra, dx, dy);
+    envoie_message(enveloppe, MessageObservable(info_de(Caméra3DObservable), MessageCaméraPositionChangée));
 }
 
 applique_pan :: fonc (enveloppe: *Caméra3DObservable, dx: r32, dy: r32)
 {
-    pan(*enveloppe.caméra, dx, dy)
-    envoie_message(enveloppe, MessageObservable(info_de(Caméra3DObservable), MessageCaméraPositionChangée))
+    pan(*enveloppe.caméra, dx, dy);
+    envoie_message(enveloppe, MessageObservable(info_de(Caméra3DObservable), MessageCaméraPositionChangée));
 }
 
 ajourne :: fonc (enveloppe: *Caméra3DObservable)
 {
-    ajourne(*enveloppe.caméra)
+    ajourne(*enveloppe.caméra);
 }
 
 MV :: fonc (enveloppe: *Caméra3DObservable) -> Mat4r
 {
-    retourne MV(*enveloppe.caméra)
+    retourne MV(*enveloppe.caméra);
 }
 
 P :: fonc (enveloppe: *Caméra3DObservable) -> Mat4r
 {
-    retourne P(*enveloppe.caméra)
+    retourne P(*enveloppe.caméra);
 }
 
 définis_dimension_fenêtre :: fonc (enveloppe: *Caméra3DObservable, largeur: z32, hauteur: z32)
 {
-    définis_dimension_fenêtre(*enveloppe.caméra, largeur, hauteur)
-    envoie_message(enveloppe, MessageObservable(info_de(Caméra3DObservable), MessageCaméraDimensionsChangées))
+    définis_dimension_fenêtre(*enveloppe.caméra, largeur, hauteur);
+    envoie_message(enveloppe, MessageObservable(info_de(Caméra3DObservable), MessageCaméraDimensionsChangées));
 }
 
 /** \} */

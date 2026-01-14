@@ -1,266 +1,266 @@
 // Bibliothèque de flux, d'impression dans stdout.
 
-importe Chaine
-importe Compilatrice // pour les fonctions de formattages
-importe GreffeMétaprogramme
-importe Introspection
-importe Math // pour abs, ça fait beaucoup...
-importe Numérique
-importe SysFichier
+importe Chaine;
+importe Compilatrice; // pour les fonctions de formattages
+importe GreffeMétaprogramme;
+importe Introspection;
+importe Math; // pour abs, ça fait beaucoup...
+importe Numérique;
+importe SysFichier;
 
 /* ------------------------------------------------------------------------- */
 
-TAILLE_TAMPON_ENCHAINEUSE :: 16384
+TAILLE_TAMPON_ENCHAINEUSE :: 16384;
 
 TamponEnchaineuse :: struct {
-    données : [TAILLE_TAMPON_ENCHAINEUSE]z8 = ---
-    occupé: z32
-    suivant: *TamponEnchaineuse
+    données : [TAILLE_TAMPON_ENCHAINEUSE]z8 = ---;
+    occupé: z32;
+    suivant: *TamponEnchaineuse;
 }
 
 Enchaineuse :: struct {
-    tampon: TamponEnchaineuse
-    tampon_courant: *TamponEnchaineuse
+    tampon: TamponEnchaineuse;
+    tampon_courant: *TamponEnchaineuse;
 }
 
 initialise_enchaineuse :: fonc (enchaineuse: *Enchaineuse) -> rien
 {
-    enchaineuse.tampon_courant = *enchaineuse.tampon
-    enchaineuse.tampon_courant.occupé = 0
-    enchaineuse.tampon_courant.suivant = nul
+    enchaineuse.tampon_courant = *enchaineuse.tampon;
+    enchaineuse.tampon_courant.occupé = 0;
+    enchaineuse.tampon_courant.suivant = nul;
 }
 
 réinitialise_enchaineuse :: fonc (enchaineuse: *Enchaineuse) -> rien
 {
-    détruit_tampons(enchaineuse)
-    initialise_enchaineuse(enchaineuse)
+    détruit_tampons(enchaineuse);
+    initialise_enchaineuse(enchaineuse);
 }
 
 taille_chaine :: fonc (enchaineuse: *Enchaineuse) -> z64
 {
-    taille : z64 = 0
-    tampon_courant := *enchaineuse.tampon
+    taille : z64 = 0;
+    tampon_courant := *enchaineuse.tampon;
 
     tantque tampon_courant != nul {
-        taille += tampon_courant.occupé
-        tampon_courant = tampon_courant.suivant
+        taille += tampon_courant.occupé;
+        tampon_courant = tampon_courant.suivant;
     }
 
-    retourne taille
+    retourne taille;
 }
 
 chaine_depuis_enchaineuse :: fonc (enchaineuse: *Enchaineuse, réinitialise := vrai) -> chaine
 {
-    taille := taille_chaine(enchaineuse)
+    taille := taille_chaine(enchaineuse);
 
     si taille == 0 {
-        retourne copie_chaine("")
+        retourne copie_chaine("");
     }
 
-    chn := loge_chaine(taille)
+    chn := loge_chaine(taille);
 
-    tampon_courant := *enchaineuse.tampon
+    tampon_courant := *enchaineuse.tampon;
 
-    curseur : z64 = 0
+    curseur : z64 = 0;
 
     tantque tampon_courant != nul {
-        taille_tampon : z64 = tampon_courant.occupé
-        src := *tampon_courant.données[0]
-        dst := *chn[curseur]
+        taille_tampon : z64 = tampon_courant.occupé;
+        src := *tampon_courant.données[0];
+        dst := *chn[curseur];
 
-        copie_mem_nonsur(src = src, dst = dst, taille = taille_tampon)
+        copie_mem_nonsur(src = src, dst = dst, taille = taille_tampon);
 
-        tampon_courant = tampon_courant.suivant
-        curseur += taille_tampon
+        tampon_courant = tampon_courant.suivant;
+        curseur += taille_tampon;
     }
 
     si réinitialise {
-        réinitialise_enchaineuse(enchaineuse)
+        réinitialise_enchaineuse(enchaineuse);
     }
 
-    retourne chn
+    retourne chn;
 }
 
 copie_enchaineuse_fichier :: fonc (enchaineuse: *Enchaineuse, fichier: *Fichier) -> ErreurFichier
 {
-    tampon_courant := *enchaineuse.tampon
+    tampon_courant := *enchaineuse.tampon;
 
     tantque tampon_courant != nul {
-        taille_tampon := tampon_courant.occupé
-        src := *tampon_courant.données[0]
+        taille_tampon := tampon_courant.occupé;
+        src := *tampon_courant.données[0];
 
         _ := tente système_écris(fichier.desc, src, taille_tampon) piège err {
-            retourne err
-        }
+            retourne err;
+        };
 
-        tampon_courant = tampon_courant.suivant
+        tampon_courant = tampon_courant.suivant;
     }
 
     /* À FAIRE : supprime ceci, utilise Optionnel. */
-    retourne 0 comme ErreurFichier
+    retourne 0 comme ErreurFichier;
 }
 
 copie_enchaineuse_fichier :: fonc (enchaineuse: *Enchaineuse, chemin: CheminFichier) -> Optionnel(ErreurFichier)
 {
-    raison: RaisonOuvertureFichier
-    raison.Écriture = vrai
-    raison.Création = vrai
-    raison.Troncage = vrai
+    raison: RaisonOuvertureFichier;
+    raison.Écriture = vrai;
+    raison.Création = vrai;
+    raison.Troncage = vrai;
 
     fichier := tente ouvre_fichier_crée_si_non_existant(chemin, raison) piège err {
-        retourne err
-    }
+        retourne err;
+    };
 
-    diffère _ := ferme(*fichier)
+    diffère _ := ferme(*fichier);
 
-    retourne copie_enchaineuse_fichier(enchaineuse, *fichier)
+    retourne copie_enchaineuse_fichier(enchaineuse, *fichier);
 }
 
 copie_dans_sortie_standarde :: fonc (enchaineuse: *Enchaineuse)
 {
-    _ := copie_enchaineuse_fichier(enchaineuse, sortie_standarde())
+    _ := copie_enchaineuse_fichier(enchaineuse, sortie_standarde());
 }
 
 détruit_tampons :: fonc (enchaineuse: *Enchaineuse) -> rien
 {
     // le premier tampon n'est pas alloué dynamiquement
-    tampon_courant := enchaineuse.tampon.suivant
+    tampon_courant := enchaineuse.tampon.suivant;
 
     tantque tampon_courant != nul {
-        suivant := tampon_courant.suivant
-        déloge(tampon_courant)
-        tampon_courant = suivant
+        suivant := tampon_courant.suivant;
+        déloge(tampon_courant);
+        tampon_courant = suivant;
     }
 }
 
 imprime_dans_enchaineuse :: fonc (enchaineuse: *Enchaineuse, format: chaine, args: ...eini) -> rien
 {
-    indice_caractère : z64 = 0
-    indice_argument : z64 = 0
-    pointeur := format.pointeur
+    indice_caractère : z64 = 0;
+    indice_argument : z64 = 0;
+    pointeur := format.pointeur;
 
-    début_mot_courant : z64 = 0
-    taille_mot_courant : z64 = 0
+    début_mot_courant : z64 = 0;
+    taille_mot_courant : z64 = 0;
 
     tantque indice_caractère < format.taille {
-        c := pointeur[indice_caractère]
+        c := pointeur[indice_caractère];
 
         si c == '%' && indice_argument < args.taille {
             si taille_mot_courant != 0 {
-                mot := chaine(*pointeur[début_mot_courant], taille_mot_courant)
-                enchaineuse.ajoute_au_tampon(mot)
+                mot := chaine(*pointeur[début_mot_courant], taille_mot_courant);
+                enchaineuse.ajoute_au_tampon(mot);
             }
 
-            taille_mot_courant = 0
-            début_mot_courant = indice_caractère + 1
+            taille_mot_courant = 0;
+            début_mot_courant = indice_caractère + 1;
 
-            arg := args[indice_argument]
-            imprime_valeur(enchaineuse, arg, faux)
-            indice_argument += 1
+            arg := args[indice_argument];
+            imprime_valeur(enchaineuse, arg, faux);
+            indice_argument += 1;
         }
         sinon {
-            taille_mot_courant += 1
+            taille_mot_courant += 1;
         }
 
-        indice_caractère += 1
+        indice_caractère += 1;
     }
 
     si taille_mot_courant != 0 {
-        mot := chaine(*pointeur[début_mot_courant], taille_mot_courant)
-        enchaineuse.ajoute_au_tampon(mot)
+        mot := chaine(*pointeur[début_mot_courant], taille_mot_courant);
+        enchaineuse.ajoute_au_tampon(mot);
     }
 } @Imprimeuse
 
 ajoute_tampon :: fonc (enchaineuse: *Enchaineuse) -> *TamponEnchaineuse
 {
-    tampon := enchaineuse.tampon_courant
+    tampon := enchaineuse.tampon_courant;
 
-    nouveau_tampon := loge(TamponEnchaineuse)
+    nouveau_tampon := loge(TamponEnchaineuse);
 
-    tampon.suivant = nouveau_tampon
-    enchaineuse.tampon_courant = nouveau_tampon
+    tampon.suivant = nouveau_tampon;
+    enchaineuse.tampon_courant = nouveau_tampon;
 
-    retourne nouveau_tampon
+    retourne nouveau_tampon;
 }
 
 ajoute_au_tampon :: fonc (enchaineuse: *Enchaineuse, c: z8) -> rien
 {
-    tampon := enchaineuse.tampon_courant
+    tampon := enchaineuse.tampon_courant;
 
     si tampon.occupé == TAILLE_TAMPON_ENCHAINEUSE {
-        tampon = ajoute_tampon(enchaineuse)
-        tampon.données[0] = c
-        tampon.occupé = 1
+        tampon = ajoute_tampon(enchaineuse);
+        tampon.données[0] = c;
+        tampon.occupé = 1;
     }
     sinon {
-        tampon.données[tampon.occupé] = c
-        tampon.occupé += 1
+        tampon.données[tampon.occupé] = c;
+        tampon.occupé += 1;
     }
 }
 
 ajoute_au_tampon :: fonc (enchaineuse: *Enchaineuse, chn: chaine) -> rien
 {
     si chn.taille == 0 {
-        retourne
+        retourne;
     }
 
-    tampon := enchaineuse.tampon_courant
+    tampon := enchaineuse.tampon_courant;
 
     si tampon.occupé == TAILLE_TAMPON_ENCHAINEUSE {
-        tampon = ajoute_tampon(enchaineuse)
+        tampon = ajoute_tampon(enchaineuse);
     }
 
     si (tampon.occupé + chn.taille) > TAILLE_TAMPON_ENCHAINEUSE {
-        taille := TAILLE_TAMPON_ENCHAINEUSE - tampon.occupé
-        src := chn.pointeur
-        dst := *tampon.données[tampon.occupé]
-        tampon.occupé += taille
+        taille := TAILLE_TAMPON_ENCHAINEUSE - tampon.occupé;
+        src := chn.pointeur;
+        dst := *tampon.données[tampon.occupé];
+        tampon.occupé += taille;
 
-        copie_mem_nonsur(src = src, dst = dst, taille = taille)
+        copie_mem_nonsur(src = src, dst = dst, taille = taille);
 
-        delta := chn.taille - taille
+        delta := chn.taille - taille;
 
         tantque delta > 0 {
-            tampon = ajoute_tampon(enchaineuse)
+            tampon = ajoute_tampon(enchaineuse);
 
-            src = *chn[chn.taille - delta]
-            dst = *tampon.données[0]
+            src = *chn[chn.taille - delta];
+            dst = *tampon.données[0];
 
-            taille = TAILLE_TAMPON_ENCHAINEUSE
+            taille = TAILLE_TAMPON_ENCHAINEUSE;
 
             si delta < taille {
-                taille = delta comme z32
+                taille = delta comme z32;
             }
 
-            copie_mem_nonsur(src = src, dst = dst, taille = taille)
+            copie_mem_nonsur(src = src, dst = dst, taille = taille);
 
-            tampon.occupé += taille
+            tampon.occupé += taille;
 
-            delta -= TAILLE_TAMPON_ENCHAINEUSE
+            delta -= TAILLE_TAMPON_ENCHAINEUSE;
         }
     }
     sinon {
-        src := chn.pointeur
-        dst := *tampon.données[tampon.occupé]
-        taille := chn.taille
+        src := chn.pointeur;
+        dst := *tampon.données[tampon.occupé];
+        taille := chn.taille;
 
-        copie_mem_nonsur(src = src, dst = dst, taille = taille)
+        copie_mem_nonsur(src = src, dst = dst, taille = taille);
 
-        tampon.occupé += chn.taille comme z32
+        tampon.occupé += chn.taille comme z32;
     }
 }
 
 ajoute_au_tampon :: fonc (enchaineuse: *Enchaineuse, chns: ...chaine) -> rien
 {
     pour chn dans chns {
-        ajoute_au_tampon(enchaineuse, chn)
+        ajoute_au_tampon(enchaineuse, chn);
     }
 }
 
 ajoute_au_tampon :: fonc (enchaineuse: *Enchaineuse, args: ...eini) -> rien
 {
     pour arg dans args {
-        imprime_valeur(enchaineuse, arg, faux)
+        imprime_valeur(enchaineuse, arg, faux);
     }
 }
 
@@ -269,10 +269,10 @@ ajoute_au_tampon :: fonc (enchaineuse: *Enchaineuse, args: ...eini) -> rien
 // l'appelante.
 enchaine :: fonc (chns: ...chaine) -> chaine
 {
-    enchaineuse: Enchaineuse
-    initialise_enchaineuse(*enchaineuse)
-    ajoute_au_tampon(*enchaineuse, ...chns)
-    retourne chaine_depuis_enchaineuse(*enchaineuse)
+    enchaineuse: Enchaineuse;
+    initialise_enchaineuse(*enchaineuse);
+    ajoute_au_tampon(*enchaineuse, ...chns);
+    retourne chaine_depuis_enchaineuse(*enchaineuse);
 }
 
 /* ------------------------------------------------------------------------- */
@@ -283,490 +283,490 @@ enchaine :: fonc (chns: ...chaine) -> chaine
 imprime_nombre_décimal_haute_précision :: fonc (enchaineuse: *Enchaineuse, f: r32) -> rien
 {
     // Mets le nombre dans notre union magique afin d'extraire les composants
-    num := construis_entier_ou_décimal(f)
+    num := construis_entier_ou_décimal(f);
 
     // Défini le caractère pour le signe
     si num.est_négatif() {
-        ajoute_au_tampon(enchaineuse, '-')
+        ajoute_au_tampon(enchaineuse, '-');
     }
 
     // Vérifie si NaN ou infinité
     si num.exposant_cru() == 255 {
         // Vérifie si infinité
         si num.mantisse_crue() == 0 {
-            ajoute_au_tampon(enchaineuse, "inf")
-            retourne
+            ajoute_au_tampon(enchaineuse, "inf");
+            retourne;
         }
 
         // Sinon nous avons un NaN. On pourrait imprimer la valeur crue de la mantisse.
-        ajoute_au_tampon(enchaineuse, "nan")
-        retourne
+        ajoute_au_tampon(enchaineuse, "nan");
+        retourne;
     }
 
     // Ajustement pour le biais de l'exposant.
-    valeur_exposant := num.exposant_cru() - 127
+    valeur_exposant := num.exposant_cru() - 127;
 
     // Ajoute celui implicit à la mantisse.
-    valeur_mantisse := (1 << 23) + num.mantisse_crue()
+    valeur_mantisse := (1 << 23) + num.mantisse_crue();
 
     // Cas spécial pour les dénormales - pas de valeur spéciale d'exposant et pas d'impliquée
     si num.exposant_cru() == 0 {
-        valeur_exposant = -126
-        valeur_mantisse = num.mantisse_crue()
+        valeur_exposant = -126;
+        valeur_mantisse = num.mantisse_crue();
     }
 
     // Le premier bit de la mantisse a une valeur implicite de 1 et ceci peut
     // être décalé de 127 positions vers la gauche, donc de 125 bits vers la gauche
     // du point binaire, ou 4 mots pour la part entière.
-    part_entière := construis_nombre_haute_précision() // haute_précision<4>
+    part_entière := construis_nombre_haute_précision(); // haute_précision<4>
 
     // Quand notre valeur_exposant est 0 (un nombre entre 1.0 et 2.0),
     // nous avons une mantisse de 24 bits et la valeur implicite du bit le plus haut
     // est 1. Nous devons donc décaler 9 bits depuis le bas afin d'avoir le 24ème bit
     // dans la position du 1 dans portion entière, ajoutant le décalage de l'exposant.
-    insère_bits_du_bas(*part_entière, valeur_mantisse comme n32, 9 + valeur_exposant)
+    insère_bits_du_bas(*part_entière, valeur_mantisse comme n32, 9 + valeur_exposant);
 
-    chn_part_entière: [..]z8
-    diffère déloge(chn_part_entière)
+    chn_part_entière: [..]z8;
+    diffère déloge(chn_part_entière);
 
     // Perfome toujours au moins une itération, afin d'avoir un zéro au début.
     répète {
-        reste := reste_de_la_division(*part_entière, 10)
-        tableau_ajoute(*chn_part_entière, '0' + reste comme z8)
-    } tantque !est_zéro(*part_entière)
+        reste := reste_de_la_division(*part_entière, 10);
+        tableau_ajoute(*chn_part_entière, '0' + reste comme z8);
+    } tantque !est_zéro(*part_entière);
 
-    tableau_inverse(chn_part_entière)
-    chn_part_entière_ := chaine(chn_part_entière.pointeur, chn_part_entière.taille)
-    ajoute_au_tampon(enchaineuse, chn_part_entière_)
+    tableau_inverse(chn_part_entière);
+    chn_part_entière_ := chaine(chn_part_entière.pointeur, chn_part_entière.taille);
+    ajoute_au_tampon(enchaineuse, chn_part_entière_);
 
     // Ajout le point décimal.
-    ajoute_au_tampon(enchaineuse, '.')
+    ajoute_au_tampon(enchaineuse, '.');
 
     // Nous avons une mantisse de 23-bits à droite du point binaire et ceci
     // peut être décalé de 126 positions vers la droite, donc 149 bits, ou
     // 5 mots de 32-bits.
-    frac := construis_nombre_haute_précision() // haute_précision<5>
+    frac := construis_nombre_haute_précision(); // haute_précision<5>
 
     // Quand valeur_exposant est zéro nous voulons décaler 23 bits de mantisse dans
     // la part fractionnelle.
-    insère_bits_du_haut(*frac, valeur_mantisse comme n32, 23 - valeur_exposant)
+    insère_bits_du_haut(*frac, valeur_mantisse comme n32, 23 - valeur_exposant);
 
     // Perfome toujours au moins une itération, afin d'avoir un zéro au début.
     répète {
-        surplus := surplus_de_la_multiplication(*frac, 10)
-        ajoute_au_tampon(enchaineuse, '0' + surplus comme z8)
-    } tantque !est_zéro(*frac)
+        surplus := surplus_de_la_multiplication(*frac, 10);
+        ajoute_au_tampon(enchaineuse, '0' + surplus comme z8);
+    } tantque !est_zéro(*frac);
 }
 
 /* ------------------------------------------------------------------------- */
 
 imprime_n64_base_n :: fonc (enchaineuse: *Enchaineuse, v: n64, format: FormatEntier) -> rien
 {
-    base := format.base comme n64
-    assert(base >= 2)
-    assert(base <= 64)
+    base := format.base comme n64;
+    assert(base >= 2);
+    assert(base <= 64);
 
-    chiffres_base_64 :: "0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ_#"
+    chiffres_base_64 :: "0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ_#";
 
-    résultat : [64]z8 = ---
+    résultat : [64]z8 = ---;
 
-    indice_fin : z64 = 63
-    indice_début : z64 = indice_fin
+    indice_fin : z64 = 63;
+    indice_début : z64 = indice_fin;
 
     tantque v != 0 {
-        chiffre := v % base
-        v /= base
+        chiffre := v % base;
+        v /= base;
 
-        résultat[indice_début] = chiffres_base_64[chiffre comme z64]
-        indice_début -= 1
+        résultat[indice_début] = chiffres_base_64[chiffre comme z64];
+        indice_début -= 1;
     }
 
     si indice_début == indice_fin {
-        résultat[indice_début] = '0'
-        indice_début -= 1
+        résultat[indice_début] = '0';
+        indice_début -= 1;
     }
 
-    taille := indice_fin - indice_début
+    taille := indice_fin - indice_début;
 
     si format.séparation != 0 {
         pour i dans 0 ... taille - 1 {
             si i != 0 && ((taille - i) % format.séparation) == 0 {
-                ajoute_au_tampon(enchaineuse, ' ')
+                ajoute_au_tampon(enchaineuse, ' ');
             }
 
-            ajoute_au_tampon(enchaineuse, résultat[indice_début + i + 1])
+            ajoute_au_tampon(enchaineuse, résultat[indice_début + i + 1]);
         }
     }
     sinon {
-        mot := chaine(*résultat[indice_début + 1], taille)
-        ajoute_au_tampon(enchaineuse, mot)
+        mot := chaine(*résultat[indice_début + 1], taille);
+        ajoute_au_tampon(enchaineuse, mot);
     }
 }
 
 imprime_nombre_entier :: fonc (enchaineuse: *Enchaineuse, format: FormatEntier) -> rien
 {
-    info := format.valeur.info comme *InfoTypeEntier
-    pointeur := format.valeur.pointeur
+    info := format.valeur.info comme *InfoTypeEntier;
+    pointeur := format.valeur.pointeur;
 
-    valeur: n64
+    valeur: n64;
 
     si info.est_signé {
-        val := z64_depuis_pointeur(pointeur, info.taille_en_octet)
+        val := z64_depuis_pointeur(pointeur, info.taille_en_octet);
 
         si val < 0 {
-            ajoute_au_tampon(enchaineuse, '-')
-            val = -val
+            ajoute_au_tampon(enchaineuse, '-');
+            val = -val;
         }
 
-        valeur = val comme n64
+        valeur = val comme n64;
     }
     sinon {
-        valeur = n64_depuis_pointeur(pointeur, info.taille_en_octet)
+        valeur = n64_depuis_pointeur(pointeur, info.taille_en_octet);
     }
 
     si format.ajoute_zéros_début {
         pour format.nombre_zéros {
-            ajoute_au_tampon(enchaineuse, '0')
+            ajoute_au_tampon(enchaineuse, '0');
         }
     }
 
-    imprime_n64_base_n(enchaineuse, valeur, format)
+    imprime_n64_base_n(enchaineuse, valeur, format);
 }
 
 z64_depuis_pointeur :: fonc (pointeur: *z8, taille: n32) -> z64
 {
-    si taille == 1 { retourne mémoire(pointeur) }
-    si taille == 2 { retourne mémoire(pointeur comme *z16) }
-    si taille == 4 { retourne mémoire(pointeur comme *z32) }
-    si taille == 8 { retourne mémoire(pointeur comme *z64) }
+    si taille == 1 { retourne mémoire(pointeur); }
+    si taille == 2 { retourne mémoire(pointeur comme *z16); }
+    si taille == 4 { retourne mémoire(pointeur comme *z32); }
+    si taille == 8 { retourne mémoire(pointeur comme *z64); }
 
-    retourne 0
+    retourne 0;
 }
 
 n64_depuis_pointeur :: fonc (pointeur: *z8, taille: n32) -> n64
 {
-    si taille == 1 { retourne mémoire(pointeur comme *n8) }
-    si taille == 2 { retourne mémoire(pointeur comme *n16) }
-    si taille == 4 { retourne mémoire(pointeur comme *n32) }
-    si taille == 8 { retourne mémoire(pointeur comme *n64) }
+    si taille == 1 { retourne mémoire(pointeur comme *n8); }
+    si taille == 2 { retourne mémoire(pointeur comme *n16); }
+    si taille == 4 { retourne mémoire(pointeur comme *n32); }
+    si taille == 8 { retourne mémoire(pointeur comme *n64); }
 
-    retourne 0
+    retourne 0;
 }
 
 r32_depuis_eini :: fonc (e: eini) -> r32
 {
-    info := e.info
-    pointeur := e.pointeur
+    info := e.info;
+    pointeur := e.pointeur;
 
-    f: r32
+    f: r32;
 
     si info.taille_en_octet == 2 {
-        x := mémoire(pointeur comme *r16)
-        f = x
+        x := mémoire(pointeur comme *r16);
+        f = x;
     }
     sinon si info.taille_en_octet == 4 {
-        f = mémoire(pointeur comme *r32)
+        f = mémoire(pointeur comme *r32);
     }
     sinon si info.taille_en_octet == 8 {
-        x := mémoire(pointeur comme *r64)
-        f = x comme r32
+        x := mémoire(pointeur comme *r64);
+        f = x comme r32;
     }
 
-    retourne f
+    retourne f;
 }
 
 imprime_nombre_réel :: fonc (enchaineuse: *Enchaineuse, format: FormatRéel) -> rien
 {
-    f := r32_depuis_eini(format.valeur)
+    f := r32_depuis_eini(format.valeur);
 
     // Mets le nombre dans notre union magique afin d'extraire les composants
-    num := construis_entier_ou_décimal(f)
+    num := construis_entier_ou_décimal(f);
 
     // Défini le caractère pour le signe
     si num.est_négatif() {
-        ajoute_au_tampon(enchaineuse, '-')
+        ajoute_au_tampon(enchaineuse, '-');
     }
 
     // Vérifie si NaN ou infinité
     si num.exposant_cru() == 255 {
         // Vérifie si infinité
         si num.mantisse_crue() == 0 {
-            ajoute_au_tampon(enchaineuse, "inf")
-            retourne
+            ajoute_au_tampon(enchaineuse, "inf");
+            retourne;
         }
 
         // Sinon nous avons un NaN. On pourrait imprimer la valeur crue de la mantisse.
-        ajoute_au_tampon(enchaineuse, "nan")
-        retourne
+        ajoute_au_tampon(enchaineuse, "nan");
+        retourne;
     }
 
     si f == 0.0 {
-        ajoute_au_tampon(enchaineuse, "0")
-        retourne
+        ajoute_au_tampon(enchaineuse, "0");
+        retourne;
     }
 
-    x := abs(f)
+    x := abs(f);
 
-    part_entière := x comme n64
+    part_entière := x comme n64;
 
-    frac := x - part_entière comme r32
+    frac := x - part_entière comme r32;
 
-    p := format.précision
+    p := format.précision;
 
-    fraction_entière: n64
-    mutliplicateur_fraction : n64 = 1
+    fraction_entière: n64;
+    mutliplicateur_fraction : n64 = 1;
 
     répète {
-        frac *= 10.0
-        chiffre := frac comme n64
+        frac *= 10.0;
+        chiffre := frac comme n64;
 
         si p == 0 {
             si chiffre >= 5 {
-                fraction_entière += 1
+                fraction_entière += 1;
             }
 
-            arrête
+            arrête;
         }
 
-        fraction_entière *= 10
-        fraction_entière += (frac comme n64)
+        fraction_entière *= 10;
+        fraction_entière += (frac comme n64);
 
-        mutliplicateur_fraction *= 10
+        mutliplicateur_fraction *= 10;
 
-        frac = frac - chiffre comme r32
-        p -= 1
-    } tantque frac < 1.0 && frac != 0.0
+        frac = frac - chiffre comme r32;
+        p -= 1;
+    } tantque frac < 1.0 && frac != 0.0;
 
 
     /* Si nous passons p.e. de 99 à 100 pour la fraction, ajustons les valeurs. */
     si fraction_entière == mutliplicateur_fraction {
-        part_entière += 1
-        fraction_entière = 0
+        part_entière += 1;
+        fraction_entière = 0;
     }
 
-    imprime_nombre_entier(enchaineuse, FormatEntier(valeur = part_entière))
+    imprime_nombre_entier(enchaineuse, FormatEntier(valeur = part_entière));
 
     si fraction_entière != 0 {
-        ajoute_au_tampon(enchaineuse, ".")
+        ajoute_au_tampon(enchaineuse, ".");
 
-        ncm := donne_nombre_caractères_pour_nombre(mutliplicateur_fraction / 10)
-        ncf := donne_nombre_caractères_pour_nombre(fraction_entière)
+        ncm := donne_nombre_caractères_pour_nombre(mutliplicateur_fraction / 10);
+        ncf := donne_nombre_caractères_pour_nombre(fraction_entière);
 
         pour ncm - ncf {
-            ajoute_au_tampon(enchaineuse, "0")
+            ajoute_au_tampon(enchaineuse, "0");
         }
 
-        imprime_nombre_entier(enchaineuse, FormatEntier(valeur = fraction_entière))
+        imprime_nombre_entier(enchaineuse, FormatEntier(valeur = fraction_entière));
     }
 }
 
 donne_nombre_caractères_pour_nombre :: fonc (x: n64) -> z32
 {
-    résultat := 0
+    résultat := 0;
     tantque x != 0 {
-        résultat += 1
-        x /= 10
+        résultat += 1;
+        x /= 10;
     }
-    retourne résultat
+    retourne résultat;
 }
 
-__chaine_indentation : [1024]z8 = ---
-__chaine_indentation_initialisée := faux
+__chaine_indentation : [1024]z8 = ---;
+__chaine_indentation_initialisée := faux;
 
 donne_chaine_indentation :: fonc (profondeur: z32) -> chaine
 {
     saufsi __chaine_indentation_initialisée {
         pour & __chaine_indentation {
-            it = ' '
+            it = ' ';
         }
-        __chaine_indentation_initialisée = vrai
+        __chaine_indentation_initialisée = vrai;
     }
 
-    taille_chaine := profondeur * 4
-    chaine_indentation := chaine(*__chaine_indentation[0], __chaine_indentation.taille)
-    retourne chaine_indentation.sous_chaine(0, taille_chaine)
+    taille_chaine := profondeur * 4;
+    chaine_indentation := chaine(*__chaine_indentation[0], __chaine_indentation.taille);
+    retourne chaine_indentation.sous_chaine(0, taille_chaine);
 }
 
 imprime_valeur :: fonc (enchaineuse: *Enchaineuse, valeur: eini, échappe_chn: bool, profondeur := 0) -> rien
 {
-    fonction_de_formattage := trouve_fonction_de_formattage(valeur.info)
+    fonction_de_formattage := trouve_fonction_de_formattage(valeur.info);
     si fonction_de_formattage {
-        fonction_de_formattage.fonction(enchaineuse, valeur)
-        retourne
+        fonction_de_formattage.fonction(enchaineuse, valeur);
+        retourne;
     }
 
     discr valeur.info.id {
         OCTET {
-            x := mémoire(valeur.pointeur comme *octet)
-            imprime_nombre_entier(enchaineuse, donne_format_entier_contexte_pour_base(x comme n8, 16))
+            x := mémoire(valeur.pointeur comme *octet);
+            imprime_nombre_entier(enchaineuse, donne_format_entier_contexte_pour_base(x comme n8, 16));
         }
         ENTIER {
-            imprime_nombre_entier(enchaineuse, donne_format_entier_contexte(valeur))
+            imprime_nombre_entier(enchaineuse, donne_format_entier_contexte(valeur));
         }
         RÉEL {
-            imprime_nombre_réel(enchaineuse, donne_format_réel_contexte(valeur))
+            imprime_nombre_réel(enchaineuse, donne_format_réel_contexte(valeur));
         }
         BOOLÉEN {
-            x := valeur.comme_bool()
+            x := valeur.comme_bool();
 
             si x {
-                ajoute_au_tampon(enchaineuse, "vrai")
+                ajoute_au_tampon(enchaineuse, "vrai");
             }
             sinon {
-                ajoute_au_tampon(enchaineuse, "faux")
+                ajoute_au_tampon(enchaineuse, "faux");
             }
         }
         CHAINE {
-            x := valeur.comme_chaine()
+            x := valeur.comme_chaine();
 
             si échappe_chn {
-                ajoute_au_tampon(enchaineuse, '"')
+                ajoute_au_tampon(enchaineuse, '"');
             }
 
-            ajoute_au_tampon(enchaineuse, x)
+            ajoute_au_tampon(enchaineuse, x);
 
             si échappe_chn {
-                ajoute_au_tampon(enchaineuse, '"')
+                ajoute_au_tampon(enchaineuse, '"');
             }
         }
         STRUCTURE {
-            info_arg := valeur.info comme *InfoTypeStructure
+            info_arg := valeur.info comme *InfoTypeStructure;
 
-            indentation := donne_chaine_indentation(profondeur)
-            indentation_rubriques := donne_chaine_indentation(profondeur + 1)
+            indentation := donne_chaine_indentation(profondeur);
+            indentation_rubriques := donne_chaine_indentation(profondeur + 1);
 
-            ajoute_au_tampon(enchaineuse, info_arg.nom)
+            ajoute_au_tampon(enchaineuse, info_arg.nom);
 
-            virgule := " {\n"
-            virgule_insérée := faux
+            virgule := " {\n";
+            virgule_insérée := faux;
 
             pour rubrique dans info_arg.rubriques {
-                ajoute_au_tampon(enchaineuse, virgule, indentation_rubriques)
-                virgule = ",\n"
-                virgule_insérée = vrai
+                ajoute_au_tampon(enchaineuse, virgule, indentation_rubriques);
+                virgule = ",\n";
+                virgule_insérée = vrai;
 
-                nom := rubrique.nom
-                ajoute_au_tampon(enchaineuse, nom, " = ")
+                nom := rubrique.nom;
+                ajoute_au_tampon(enchaineuse, nom, " = ");
 
                 si rubrique.drapeaux.EST_CONSTANTE {
-                    imprime_type(enchaineuse, rubrique.id)
-                    continue
+                    imprime_type(enchaineuse, rubrique.id);
+                    continue;
                 }
 
-                décalage := rubrique.décalage
+                décalage := rubrique.décalage;
 
-                valeur_rubrique : eini = ---
-                valeur_rubrique.pointeur = valeur.pointeur + décalage
-                valeur_rubrique.info = rubrique.id
+                valeur_rubrique : eini = ---;
+                valeur_rubrique.pointeur = valeur.pointeur + décalage;
+                valeur_rubrique.info = rubrique.id;
 
-                imprime_valeur(enchaineuse, valeur_rubrique, vrai, profondeur + 1)
+                imprime_valeur(enchaineuse, valeur_rubrique, vrai, profondeur + 1);
             }
 
             si virgule_insérée {
-                ajoute_au_tampon(enchaineuse, "\n", indentation, "}")
+                ajoute_au_tampon(enchaineuse, "\n", indentation, "}");
             }
             sinon {
-                ajoute_au_tampon(enchaineuse, "{}")
+                ajoute_au_tampon(enchaineuse, "{}");
             }
         }
         POINTEUR {
-            info_arg := valeur.info comme *InfoTypePointeur
+            info_arg := valeur.info comme *InfoTypePointeur;
 
             // Ne pas oublier qu'il y a un niveau d'indirection.
-            x := mémoire(valeur.pointeur comme **z8)
+            x := mémoire(valeur.pointeur comme **z8);
 
             si info_arg.est_référence {
-                valeur.info = info_arg.type_pointé
-                imprime_valeur(enchaineuse, valeur, vrai, profondeur + 1)
+                valeur.info = info_arg.type_pointé;
+                imprime_valeur(enchaineuse, valeur, vrai, profondeur + 1);
             }
             sinon {
-                fmt := FormatEntier(valeur = x comme n64, base = 16)
-                imprime_nombre_entier(enchaineuse, fmt)
+                fmt := FormatEntier(valeur = x comme n64, base = 16);
+                imprime_nombre_entier(enchaineuse, fmt);
             }
         }
         FONCTION {
             // Ne pas oublier qu'il y a un niveau d'indirection.
-            x := mémoire(valeur.pointeur comme **z8)
-            imprime_nombre_entier(enchaineuse, donne_format_entier_contexte_pour_base(x comme n64, 16))
+            x := mémoire(valeur.pointeur comme **z8);
+            imprime_nombre_entier(enchaineuse, donne_format_entier_contexte_pour_base(x comme n64, 16));
         }
         ADRESSE_FONCTION {
             // Ne pas oublier qu'il y a un niveau d'indirection.
-            x := mémoire(valeur.pointeur comme **z8)
-            imprime_nombre_entier(enchaineuse, donne_format_entier_contexte_pour_base(x comme n64, 16))
+            x := mémoire(valeur.pointeur comme **z8);
+            imprime_nombre_entier(enchaineuse, donne_format_entier_contexte_pour_base(x comme n64, 16));
         }
         EINI {
-            x := mémoire(valeur.pointeur comme *eini)
+            x := mémoire(valeur.pointeur comme *eini);
 
-            ajoute_au_tampon(enchaineuse, "eini { ptr = ")
-            fmt := donne_format_entier_contexte_pour_base(x.pointeur comme n64, 16)
-            imprime_nombre_entier(enchaineuse, fmt)
-            ajoute_au_tampon(enchaineuse, ", info = ")
-            fmt = donne_format_entier_contexte_pour_base(x.info comme n64, 16)
-            imprime_nombre_entier(enchaineuse, fmt)
-            ajoute_au_tampon(enchaineuse, " }")
+            ajoute_au_tampon(enchaineuse, "eini { ptr = ");
+            fmt := donne_format_entier_contexte_pour_base(x.pointeur comme n64, 16);
+            imprime_nombre_entier(enchaineuse, fmt);
+            ajoute_au_tampon(enchaineuse, ", info = ");
+            fmt = donne_format_entier_contexte_pour_base(x.info comme n64, 16);
+            imprime_nombre_entier(enchaineuse, fmt);
+            ajoute_au_tampon(enchaineuse, " }");
         }
         RIEN {
-            ajoute_au_tampon(enchaineuse, "rien")
+            ajoute_au_tampon(enchaineuse, "rien");
         }
         TABLEAU,
         TABLEAU_FIXE {
-            itératrice := crée_itératrice_tableau(valeur)
-            imprime_valeurs_tableau(enchaineuse, itératrice, profondeur)
+            itératrice := crée_itératrice_tableau(valeur);
+            imprime_valeurs_tableau(enchaineuse, itératrice, profondeur);
         }
         TRANCHE {
-            itératrice := crée_itératrice_tableau_tranche(valeur)
-            imprime_valeurs_tableau(enchaineuse, itératrice, profondeur)
+            itératrice := crée_itératrice_tableau_tranche(valeur);
+            imprime_valeurs_tableau(enchaineuse, itératrice, profondeur);
         }
         ÉNUM {
-            imprime_valeur_énum(enchaineuse, valeur)
+            imprime_valeur_énum(enchaineuse, valeur);
         }
         TYPE_DE_DONNÉES {
             // XXX - ceci est un hack, il faudra plutôt imprimer le nom du type via une table de types
-            x := mémoire(valeur.pointeur comme *type_de_données)
-            infos_x := x comme *InfoType
-            imprime_dans_enchaineuse(enchaineuse, "%", infos_x.id)
-            ajoute_au_tampon(enchaineuse, " (")
-            imprime_nombre_entier(enchaineuse, donne_format_entier_contexte(valeur))
-            ajoute_au_tampon(enchaineuse, ")")
+            x := mémoire(valeur.pointeur comme *type_de_données);
+            infos_x := x comme *InfoType;
+            imprime_dans_enchaineuse(enchaineuse, "%", infos_x.id);
+            ajoute_au_tampon(enchaineuse, " (");
+            imprime_nombre_entier(enchaineuse, donne_format_entier_contexte(valeur));
+            ajoute_au_tampon(enchaineuse, ")");
         }
         UNION {
-            info_arg := valeur.info comme *InfoTypeUnion
+            info_arg := valeur.info comme *InfoTypeUnion;
 
-            ajoute_au_tampon(enchaineuse, info_arg.nom)
-            ajoute_au_tampon(enchaineuse, " { ")
+            ajoute_au_tampon(enchaineuse, info_arg.nom);
+            ajoute_au_tampon(enchaineuse, " { ");
 
             si info_arg.est_sûre {
-                pointeur_indice := (valeur.pointeur + info_arg.décalage_indice) comme *z32
-                indice := mémoire(pointeur_indice)
+                pointeur_indice := (valeur.pointeur + info_arg.décalage_indice) comme *z32;
+                indice := mémoire(pointeur_indice);
 
                 // note la rubrique_active est l'indice de la rubrique + 1, 0 étant une valeur montrant que l'union est invalide
                 si indice == 0 {
-                    ajoute_au_tampon(enchaineuse, "union invalide")
+                    ajoute_au_tampon(enchaineuse, "union invalide");
                 }
                 sinon {
-                    rubrique := info_arg.rubriques[indice - 1]
+                    rubrique := info_arg.rubriques[indice - 1];
 
-                    ajoute_au_tampon(enchaineuse, rubrique.nom)
-                    ajoute_au_tampon(enchaineuse, " = ")
+                    ajoute_au_tampon(enchaineuse, rubrique.nom);
+                    ajoute_au_tampon(enchaineuse, " = ");
 
-                    valeur_rubrique : eini = ---
-                    valeur_rubrique.pointeur = valeur.pointeur
-                    valeur_rubrique.info = rubrique.id
+                    valeur_rubrique : eini = ---;
+                    valeur_rubrique.pointeur = valeur.pointeur;
+                    valeur_rubrique.info = rubrique.id;
 
-                    imprime_valeur(enchaineuse, valeur_rubrique, vrai, profondeur + 1)
+                    imprime_valeur(enchaineuse, valeur_rubrique, vrai, profondeur + 1);
                 }
             }
             sinon {
-                valeur.info = info_arg.type_le_plus_grand
-                imprime_valeur(enchaineuse, valeur, faux, profondeur + 1)
+                valeur.info = info_arg.type_le_plus_grand;
+                imprime_valeur(enchaineuse, valeur, faux, profondeur + 1);
             }
 
-            ajoute_au_tampon(enchaineuse, " }")
+            ajoute_au_tampon(enchaineuse, " }");
         }
         OPAQUE {
-            info_arg := valeur.info comme *InfoTypeOpaque
-            valeur.info = info_arg.type_opacifié
-            imprime_valeur(enchaineuse, valeur, échappe_chn, profondeur)
+            info_arg := valeur.info comme *InfoTypeOpaque;
+            valeur.info = info_arg.type_opacifié;
+            imprime_valeur(enchaineuse, valeur, échappe_chn, profondeur);
         }
         VARIADIQUE {}
         POLYMORPHIQUE {}
@@ -775,155 +775,155 @@ imprime_valeur :: fonc (enchaineuse: *Enchaineuse, valeur: eini, échappe_chn: b
 
 imprime_valeur_énum :: fonc (enchaineuse: *Enchaineuse, valeur: eini)
 {
-    info_arg := valeur.info comme *InfoTypeÉnum
-    type_sous_jacent := info_arg.type_sous_jacent
+    info_arg := valeur.info comme *InfoTypeÉnum;
+    type_sous_jacent := info_arg.type_sous_jacent;
 
     si info_arg.est_drapeau {
         si type_sous_jacent.taille_en_octet == 1 {
-            valeur_énum := valeur.comme_n8()
-            imprime_valeur_énum_drapeau(enchaineuse, info_arg, valeur_énum)
+            valeur_énum := valeur.comme_n8();
+            imprime_valeur_énum_drapeau(enchaineuse, info_arg, valeur_énum);
         }
         sinon si type_sous_jacent.taille_en_octet == 2 {
-            valeur_énum := valeur.comme_n16()
-            imprime_valeur_énum_drapeau(enchaineuse, info_arg, valeur_énum)
+            valeur_énum := valeur.comme_n16();
+            imprime_valeur_énum_drapeau(enchaineuse, info_arg, valeur_énum);
         }
         sinon si type_sous_jacent.taille_en_octet == 4 {
-            valeur_énum := valeur.comme_n32()
-            imprime_valeur_énum_drapeau(enchaineuse, info_arg, valeur_énum)
+            valeur_énum := valeur.comme_n32();
+            imprime_valeur_énum_drapeau(enchaineuse, info_arg, valeur_énum);
         }
         sinon {
-            valeur_énum := valeur.comme_n64()
-            imprime_valeur_énum_drapeau(enchaineuse, info_arg, valeur_énum)
+            valeur_énum := valeur.comme_n64();
+            imprime_valeur_énum_drapeau(enchaineuse, info_arg, valeur_énum);
         }
     }
     sinon {
-        chaine_valeur := donne_nom_énum_pour_valeur(valeur)
+        chaine_valeur := donne_nom_énum_pour_valeur(valeur);
         si chaine_valeur {
-            ajoute_au_tampon(enchaineuse, chaine_valeur)
+            ajoute_au_tampon(enchaineuse, chaine_valeur);
         }
         sinon {
-            ajoute_au_tampon(enchaineuse, "VALEUR ÉNUM INCONNUE (")
-            valeur.info = type_sous_jacent
-            imprime_valeur(enchaineuse, valeur, faux)
-            ajoute_au_tampon(enchaineuse, ")")
+            ajoute_au_tampon(enchaineuse, "VALEUR ÉNUM INCONNUE (");
+            valeur.info = type_sous_jacent;
+            imprime_valeur(enchaineuse, valeur, faux);
+            ajoute_au_tampon(enchaineuse, ")");
         }
     }
 }
 
 imprime_valeur_énum_drapeau :: fonc (enchaineuse: *Enchaineuse, type_énum: *InfoTypeÉnum, valeur_énum: $T)
 {
-    valeur_trouvée := faux
-    valeurs := donne_valeurs_typées(type_énum, T)
-    noms := type_énum.noms
+    valeur_trouvée := faux;
+    valeurs := donne_valeurs_typées(type_énum, T);
+    noms := type_énum.noms;
 
     pour valeurs {
         si (it & valeur_énum) == 0 {
-            continue
+            continue;
         }
 
         si valeur_trouvée {
-            ajoute_au_tampon(enchaineuse, " | ")
+            ajoute_au_tampon(enchaineuse, " | ");
         }
 
-        ajoute_au_tampon(enchaineuse, noms[indice_it])
-        valeur_trouvée = vrai
+        ajoute_au_tampon(enchaineuse, noms[indice_it]);
+        valeur_trouvée = vrai;
     }
 
     si !valeur_trouvée {
-        ajoute_au_tampon(enchaineuse, "0")
+        ajoute_au_tampon(enchaineuse, "0");
     }
 }
 
 imprime_valeurs_tableau :: fonc (enchaineuse: *Enchaineuse, itératrice: &ItératriceTableau, profondeur: z32)
 {
-    indice := 0
-    max_élément := 5
-    ajoute_au_tampon(enchaineuse, "[")
+    indice := 0;
+    max_élément := 5;
+    ajoute_au_tampon(enchaineuse, "[");
 
     boucle {
-        valeur_ := itératrice.valeur_suivante()
+        valeur_ := itératrice.valeur_suivante();
 
         saufsi valeur_.est_valide() {
-            arrête
+            arrête;
         }
 
         si indice >= max_élément {
-            ajoute_au_tampon(enchaineuse, ", ...")
-            arrête
+            ajoute_au_tampon(enchaineuse, ", ...");
+            arrête;
         }
 
         si indice != 0 {
-            ajoute_au_tampon(enchaineuse, ',')
+            ajoute_au_tampon(enchaineuse, ',');
         }
 
-        imprime_valeur(enchaineuse, valeur_, vrai, profondeur + 1)
-        indice += 1
+        imprime_valeur(enchaineuse, valeur_, vrai, profondeur + 1);
+        indice += 1;
     }
 
-    ajoute_au_tampon(enchaineuse, "]")
+    ajoute_au_tampon(enchaineuse, "]");
 }
 
 imprime :: fonc (format: chaine, args: ...eini) -> rien
 {
-    _ := tente imprime_dans_fichier(sortie_standarde(), format, ...args) piège nonatteignable
+    _ := tente imprime_dans_fichier(sortie_standarde(), format, ...args) piège nonatteignable;
 } @Imprimeuse
 
 imprime_err :: fonc (format: chaine, args: ...eini) -> rien
 {
-    _ := tente imprime_dans_fichier(sortie_erreur(), format, ...args) piège nonatteignable
+    _ := tente imprime_dans_fichier(sortie_erreur(), format, ...args) piège nonatteignable;
 } @Imprimeuse
 
 imprimeln :: fonc (format: chaine, args: ...eini)
 {
-    imprime(format, ...args)
-    imprime("\n")
+    imprime(format, ...args);
+    imprime("\n");
 } @Imprimeuse
 
 imprime_chaine :: fonc (format: chaine, args: ...eini) -> chaine
 {
-    enchaineuse: Enchaineuse
-    initialise_enchaineuse(*enchaineuse)
+    enchaineuse: Enchaineuse;
+    initialise_enchaineuse(*enchaineuse);
 
-    imprime_dans_enchaineuse(*enchaineuse, format, ...args)
-    retourne chaine_depuis_enchaineuse(*enchaineuse)
+    imprime_dans_enchaineuse(*enchaineuse, format, ...args);
+    retourne chaine_depuis_enchaineuse(*enchaineuse);
 } @Imprimeuse
 
 imprime_chaine_temp :: fonc (format: chaine, args: ...eini) -> chaine
 {
-    nouveau_contexte := contexte()
-    nouveau_contexte.allocatrice = __stockage_temporaire
+    nouveau_contexte := contexte();
+    nouveau_contexte.allocatrice = __stockage_temporaire;
 
-    résultat: chaine
+    résultat: chaine;
 
     pousse_contexte nouveau_contexte {
-       résultat = imprime_chaine(format, ...args)
+       résultat = imprime_chaine(format, ...args);
     }
 
-    retourne résultat
+    retourne résultat;
 } @Imprimeuse
 
 imprime_dans_fichier :: fonc (fichier: *Fichier, format: chaine, args: ...eini) -> ErreurFichier
 {
-    enchaineuse: Enchaineuse
-    initialise_enchaineuse(*enchaineuse)
-    diffère détruit_tampons(*enchaineuse)
+    enchaineuse: Enchaineuse;
+    initialise_enchaineuse(*enchaineuse);
+    diffère détruit_tampons(*enchaineuse);
 
-    imprime_dans_enchaineuse(*enchaineuse, format, ...args)
+    imprime_dans_enchaineuse(*enchaineuse, format, ...args);
 
-    retourne copie_enchaineuse_fichier(*enchaineuse, fichier)
+    retourne copie_enchaineuse_fichier(*enchaineuse, fichier);
 } @Imprimeuse
 
 imprime_log :: fonc (ident: chaine, mode: ModeLogage, format: chaine, args: ...eini) -> rien
 {
-    message := imprime_chaine(format, ...args)
-    logueur := contexte().logueur
-    logueur(message, ident, mode, contexte().données_logueur)
-    déloge(message)
+    message := imprime_chaine(format, ...args);
+    logueur := contexte().logueur;
+    logueur(message, ident, mode, contexte().données_logueur);
+    déloge(message);
 } @Imprimeuse
 
 imprime_log :: fonc (ident: chaine, format: chaine, args: ...eini) -> rien
 {
-    imprime_log(ident, ModeLogage.AUCUN, format, ...args)
+    imprime_log(ident, ModeLogage.AUCUN, format, ...args);
 } @Imprimeuse
 
 // --------------------------
@@ -932,168 +932,168 @@ imprime_type :: fonc (enchaineuse: *Enchaineuse, info: *InfoType, module := "") 
 {
     discr info.id {
         ENTIER {
-            info_arg := info comme *InfoTypeEntier
+            info_arg := info comme *InfoTypeEntier;
 
             si info_arg.est_signé {
                 si info_arg.taille_en_octet == 1 {
-                    ajoute_au_tampon(enchaineuse, "z8")
+                    ajoute_au_tampon(enchaineuse, "z8");
                 }
                 sinon si info_arg.taille_en_octet == 2 {
-                    ajoute_au_tampon(enchaineuse, "z16")
+                    ajoute_au_tampon(enchaineuse, "z16");
                 }
                 sinon si info_arg.taille_en_octet == 4 {
-                    ajoute_au_tampon(enchaineuse, "z32")
+                    ajoute_au_tampon(enchaineuse, "z32");
                 }
                 sinon si info_arg.taille_en_octet == 8 {
-                    ajoute_au_tampon(enchaineuse, "z64")
+                    ajoute_au_tampon(enchaineuse, "z64");
                 }
             }
             sinon {
                 si info_arg.taille_en_octet == 1 {
-                    ajoute_au_tampon(enchaineuse, "n8")
+                    ajoute_au_tampon(enchaineuse, "n8");
                 }
                 sinon si info_arg.taille_en_octet == 2 {
-                    ajoute_au_tampon(enchaineuse, "n16")
+                    ajoute_au_tampon(enchaineuse, "n16");
                 }
                 sinon si info_arg.taille_en_octet == 4 {
-                    ajoute_au_tampon(enchaineuse, "n32")
+                    ajoute_au_tampon(enchaineuse, "n32");
                 }
                 sinon si info_arg.taille_en_octet == 8 {
-                    ajoute_au_tampon(enchaineuse, "n64")
+                    ajoute_au_tampon(enchaineuse, "n64");
                 }
             }
         }
         RÉEL {
             si info.taille_en_octet == 2 {
-                ajoute_au_tampon(enchaineuse, "r16")
+                ajoute_au_tampon(enchaineuse, "r16");
             }
             sinon si info.taille_en_octet == 4 {
-                ajoute_au_tampon(enchaineuse, "r32")
+                ajoute_au_tampon(enchaineuse, "r32");
             }
             sinon si info.taille_en_octet == 8 {
-                ajoute_au_tampon(enchaineuse, "r64")
+                ajoute_au_tampon(enchaineuse, "r64");
             }
         }
         BOOLÉEN {
-            ajoute_au_tampon(enchaineuse, "bool")
+            ajoute_au_tampon(enchaineuse, "bool");
         }
         CHAINE {
-            ajoute_au_tampon(enchaineuse, "chaine")
+            ajoute_au_tampon(enchaineuse, "chaine");
         }
         STRUCTURE {
-            info_arg := info comme *InfoTypeStructure
+            info_arg := info comme *InfoTypeStructure;
             si module {
-                ajoute_au_tampon(enchaineuse, module, ".")
+                ajoute_au_tampon(enchaineuse, module, ".");
             }
-            ajoute_au_tampon(enchaineuse, info_arg.nom)
+            ajoute_au_tampon(enchaineuse, info_arg.nom);
         }
         POINTEUR {
-            info_arg := info comme *InfoTypePointeur
+            info_arg := info comme *InfoTypePointeur;
 
             si info_arg.est_référence {
-                ajoute_au_tampon(enchaineuse, "&")
+                ajoute_au_tampon(enchaineuse, "&");
             }
             sinon {
-                ajoute_au_tampon(enchaineuse, "*")
+                ajoute_au_tampon(enchaineuse, "*");
             }
 
             si info_arg.type_pointé {
-                imprime_type(enchaineuse, info_arg.type_pointé, module)
+                imprime_type(enchaineuse, info_arg.type_pointé, module);
             }
             sinon {
-                ajoute_au_tampon(enchaineuse, "nul")
+                ajoute_au_tampon(enchaineuse, "nul");
             }
         }
         FONCTION {
-            info_fonction := info comme *InfoTypeFonction
-            ajoute_au_tampon(enchaineuse, "fonc")
+            info_fonction := info comme *InfoTypeFonction;
+            ajoute_au_tampon(enchaineuse, "fonc");
 
-            virgule := "("
+            virgule := "(";
             saufsi info_fonction.types_entrée {
-                ajoute_au_tampon(enchaineuse, virgule)
+                ajoute_au_tampon(enchaineuse, virgule);
             }
             sinon pour info_fonction.types_entrée {
-                ajoute_au_tampon(enchaineuse, virgule)
-                imprime_type(enchaineuse, it, module)
-                virgule = ", "
+                ajoute_au_tampon(enchaineuse, virgule);
+                imprime_type(enchaineuse, it, module);
+                virgule = ", ";
             }
-            ajoute_au_tampon(enchaineuse, ")")
+            ajoute_au_tampon(enchaineuse, ")");
 
-            virgule = "("
+            virgule = "(";
             saufsi info_fonction.types_sortie {
-                ajoute_au_tampon(enchaineuse, virgule)
+                ajoute_au_tampon(enchaineuse, virgule);
             }
             sinon pour info_fonction.types_sortie {
-                ajoute_au_tampon(enchaineuse, virgule)
-                imprime_type(enchaineuse, it, module)
-                virgule = ", "
+                ajoute_au_tampon(enchaineuse, virgule);
+                imprime_type(enchaineuse, it, module);
+                virgule = ", ";
             }
-            ajoute_au_tampon(enchaineuse, ")")
+            ajoute_au_tampon(enchaineuse, ")");
         }
         EINI {
-            ajoute_au_tampon(enchaineuse, "eini")
+            ajoute_au_tampon(enchaineuse, "eini");
         }
         RIEN {
-            ajoute_au_tampon(enchaineuse, "rien")
+            ajoute_au_tampon(enchaineuse, "rien");
         }
         OCTET {
-            ajoute_au_tampon(enchaineuse, "octet")
+            ajoute_au_tampon(enchaineuse, "octet");
         }
         UNION {
-            info_arg := info comme *InfoTypeUnion
+            info_arg := info comme *InfoTypeUnion;
             si module {
-                ajoute_au_tampon(enchaineuse, module, ".")
+                ajoute_au_tampon(enchaineuse, module, ".");
             }
-            ajoute_au_tampon(enchaineuse, info_arg.nom)
+            ajoute_au_tampon(enchaineuse, info_arg.nom);
         }
         TYPE_DE_DONNÉES {
             // À FAIRE : imprime le type
-            ajoute_au_tampon(enchaineuse, "type_de_données")
+            ajoute_au_tampon(enchaineuse, "type_de_données");
         }
         TABLEAU {
-            info_arg := info comme *InfoTypeTableau
-            ajoute_au_tampon(enchaineuse, "[..]")
-            imprime_type(enchaineuse, info_arg.type_pointé, module)
+            info_arg := info comme *InfoTypeTableau;
+            ajoute_au_tampon(enchaineuse, "[..]");
+            imprime_type(enchaineuse, info_arg.type_pointé, module);
         }
         TABLEAU_FIXE {
-            info_arg := info comme *InfoTypeTableauFixe
-            imprime_dans_enchaineuse(enchaineuse, "[%]", info_arg.nombre_éléments)
-            imprime_type(enchaineuse, info_arg.type_pointé, module)
+            info_arg := info comme *InfoTypeTableauFixe;
+            imprime_dans_enchaineuse(enchaineuse, "[%]", info_arg.nombre_éléments);
+            imprime_type(enchaineuse, info_arg.type_pointé, module);
         }
         TRANCHE {
-            info_arg := info comme *InfoTypeTranche
-            ajoute_au_tampon(enchaineuse, "[]")
-            imprime_type(enchaineuse, info_arg.type_élément, module)
+            info_arg := info comme *InfoTypeTranche;
+            ajoute_au_tampon(enchaineuse, "[]");
+            imprime_type(enchaineuse, info_arg.type_élément, module);
         }
         ÉNUM {
-            info_arg := info comme *InfoTypeÉnum
+            info_arg := info comme *InfoTypeÉnum;
             si module {
-                ajoute_au_tampon(enchaineuse, module, ".")
+                ajoute_au_tampon(enchaineuse, module, ".");
             }
-            ajoute_au_tampon(enchaineuse, info_arg.nom)
+            ajoute_au_tampon(enchaineuse, info_arg.nom);
         }
         OPAQUE {
-            info_arg := info comme *InfoTypeOpaque
+            info_arg := info comme *InfoTypeOpaque;
             si module {
-                ajoute_au_tampon(enchaineuse, module, ".")
+                ajoute_au_tampon(enchaineuse, module, ".");
             }
-            ajoute_au_tampon(enchaineuse, info_arg.nom)
+            ajoute_au_tampon(enchaineuse, info_arg.nom);
         }
         VARIADIQUE {
-            info_arg := info comme *InfoTypeVariadique
-            ajoute_au_tampon(enchaineuse, "...")
+            info_arg := info comme *InfoTypeVariadique;
+            ajoute_au_tampon(enchaineuse, "...");
 
             si info_arg.type_élément {
                 /* Les types variadiques externes n'ont pas de type élément. */
-                imprime_type(enchaineuse, info_arg.type_élément, module)
+                imprime_type(enchaineuse, info_arg.type_élément, module);
             }
         }
         ADRESSE_FONCTION {
-            ajoute_au_tampon(enchaineuse, "adresse_fonction")
+            ajoute_au_tampon(enchaineuse, "adresse_fonction");
         }
         POLYMORPHIQUE {
-            info_poly := info comme *InfoTypePolymorphique
-            ajoute_au_tampon(enchaineuse, info_poly.ident)
+            info_poly := info comme *InfoTypePolymorphique;
+            ajoute_au_tampon(enchaineuse, info_poly.ident);
         }
     }
 }
@@ -1102,10 +1102,10 @@ imprime_type :: fonc (enchaineuse: *Enchaineuse, info: *InfoType, module := "") 
 
 chaine_pour_type :: fonc (info: *InfoType) -> chaine
 {
-    enchaineuse: Enchaineuse
-    initialise_enchaineuse(*enchaineuse)
-    imprime_type(*enchaineuse, info)
-    retourne chaine_depuis_enchaineuse(*enchaineuse)
+    enchaineuse: Enchaineuse;
+    initialise_enchaineuse(*enchaineuse);
+    imprime_type(*enchaineuse, info);
+    retourne chaine_depuis_enchaineuse(*enchaineuse);
 }
 
 // --------------------------
@@ -1115,14 +1115,14 @@ chaine_pour_type :: fonc (info: *InfoType) -> chaine
 imprime_tabulation :: fonc (n: z32)
 {
     pour n {
-        imprime("  ")
+        imprime("  ");
     }
 }
 
 imprime_tabulation :: fonc (enchaineuse: *Enchaineuse, n: z32)
 {
     pour n {
-        ajoute_au_tampon(enchaineuse, "  ")
+        ajoute_au_tampon(enchaineuse, "  ");
     }
 }
 
@@ -1131,17 +1131,17 @@ imprime_tabulation :: fonc (enchaineuse: *Enchaineuse, n: z32)
 imprime_tableau :: fonc (tableau: []$T, message := "", séparation := ", ")
 {
     si message {
-        imprime("% : ", message)
+        imprime("% : ", message);
     }
-    virgule := "[ "
+    virgule := "[ ";
     pour tableau {
-        imprime("%%", virgule, it)
-        virgule = séparation
+        imprime("%%", virgule, it);
+        virgule = séparation;
     }
     saufsi tableau {
-        imprime("[")
+        imprime("[");
     }
-    imprime(" ]\n")
+    imprime(" ]\n");
 }
 
 // --------------------------
@@ -1149,11 +1149,11 @@ imprime_tableau :: fonc (tableau: []$T, message := "", séparation := ", ")
 assert :: fonc (expr: bool, pos := #position_code_source) -> rien
 {
     si expr {
-        retourne
+        retourne;
     }
 
-    imprime("%:% : l'assertion a échoué !\n", pos.fichier, pos.ligne)
-    panique("Une assertion a échoué")
+    imprime("%:% : l'assertion a échoué !\n", pos.fichier, pos.ligne);
+    panique("Une assertion a échoué");
 }
 
 /* ------------------------------------------------------------------------- */
@@ -1162,103 +1162,103 @@ assert :: fonc (expr: bool, pos := #position_code_source) -> rien
 
 fmt_imprime :: fonc (format: chaine, args: ...eini)
 {
-    enchaineuse: Enchaineuse
-    initialise_enchaineuse(*enchaineuse)
-    diffère détruit_tampons(*enchaineuse)
+    enchaineuse: Enchaineuse;
+    initialise_enchaineuse(*enchaineuse);
+    diffère détruit_tampons(*enchaineuse);
 
-    fmt_imprime_dans_enchaineuse(*enchaineuse, foramt, ...args)
+    fmt_imprime_dans_enchaineuse(*enchaineuse, foramt, ...args);
 
-    _ := copie_enchaineuse_fichier(*enchaineuse, sortie_standarde)
+    _ := copie_enchaineuse_fichier(*enchaineuse, sortie_standarde);
 }
 
 fmt_imprime_dans_enchaineuse :: fonc (enchaineuse: *Enchaineuse, format: chaine, args: ...eini)
 {
     tantque format.taille > 0 {
-        extraction, reste, indice := fmt_consomme(format)
+        extraction, reste, indice := fmt_consomme(format);
 
-        ajoute_au_tampon(enchaineuse, extraction)
+        ajoute_au_tampon(enchaineuse, extraction);
 
         si indice != -1 && indice < args.taille {
-            ajoute_au_tampon(enchaineuse, args[indice])
+            ajoute_au_tampon(enchaineuse, args[indice]);
         }
 
-        format = reste
+        format = reste;
     }
 }
 
 fmt_consomme :: fonc (format: chaine) -> (extraction: chaine, reste: chaine, indice: z32)
 {
     si format.taille == 0 {
-        retourne "", "", -1
+        retourne "", "", -1;
     }
 
-    extraction = format
-    extraction.taille = 0
+    extraction = format;
+    extraction.taille = 0;
 
-    reste = format
+    reste = format;
 
-    indice = -1
+    indice = -1;
 
-    ptr := format.pointeur
-    fin := format.pointeur + format.taille
+    ptr := format.pointeur;
+    fin := format.pointeur + format.taille;
 
     tantque ptr < fin {
         si reste.commence_par("\\(") {
-            sauvegarde_reste := reste
+            sauvegarde_reste := reste;
 
-            reste = avance(reste, 2)
+            reste = avance(reste, 2);
 
-            chn_index := reste
-            nombre_de_chiffres := 0
+            chn_index := reste;
+            nombre_de_chiffres := 0;
 
-            indice = 0
+            indice = 0;
 
             pour chn_index {
                 saufsi '0' <= it <= '9' {
-                    arrête
+                    arrête;
                 }
 
-                indice *= 10
-                indice += (it - '0') comme z32
+                indice *= 10;
+                indice += (it - '0') comme z32;
 
-                nombre_de_chiffres += 1
+                nombre_de_chiffres += 1;
             }
 
             si nombre_de_chiffres == 0 {
-                reste = sauvegarde_reste
-                extraction.taille += 1
-                reste.pointeur += 1
-                reste.taille -= 1
-                ptr += 1
-                indice = -1
-                continue
+                reste = sauvegarde_reste;
+                extraction.taille += 1;
+                reste.pointeur += 1;
+                reste.taille -= 1;
+                ptr += 1;
+                indice = -1;
+                continue;
             }
 
-            reste = avance(reste, nombre_de_chiffres)
+            reste = avance(reste, nombre_de_chiffres);
 
             si reste.taille == 0 || reste[0] != ')' {
-                reste = sauvegarde_reste
-                extraction.taille += 1
-                reste.pointeur += 1
-                reste.taille -= 1
-                ptr += 1
-                indice = -1
-                continue
+                reste = sauvegarde_reste;
+                extraction.taille += 1;
+                reste.pointeur += 1;
+                reste.taille -= 1;
+                ptr += 1;
+                indice = -1;
+                continue;
             }
 
-            reste = avance(reste, 1)
-            arrête
+            reste = avance(reste, 1);
+            arrête;
         }
 
-        extraction.taille += 1
+        extraction.taille += 1;
 
-        reste.pointeur += 1
-        reste.taille -= 1
+        reste.pointeur += 1;
+        reste.taille -= 1;
 
-        ptr += 1
+        ptr += 1;
     }
 
-    retourne extraction, reste, indice
+    retourne extraction, reste, indice;
 }
 
 /** \} */
@@ -1267,31 +1267,31 @@ fmt_consomme :: fonc (format: chaine) -> (extraction: chaine, reste: chaine, ind
 // Fonctions de formattages
 
 GreffonImpression :: struct {
-    empl base: GreffonMétaprogramme
+    empl base: GreffonMétaprogramme;
 
     DonnéesPourEspace :: struct {
-        créatrice_table_fonctions: CréatriceTableFonction
-        table_créée := faux
-        fonctions: [..]*NoeudCodeEntêteFonction
+        créatrice_table_fonctions: CréatriceTableFonction;
+        table_créée := faux;
+        fonctions: [..]*NoeudCodeEntêteFonction;
     }
 
-    données_pour_espace: [..]DonnéesPourEspace
+    données_pour_espace: [..]DonnéesPourEspace;
 }
 
 donne_greffon :: fonc () -> *GreffonMétaprogramme
 {
-    résultat := loge(GreffonImpression)
-    résultat.sur_message = greffon_impression_sur_message
-    résultat.sur_destruction = greffon_impression_sur_destruction
+    résultat := loge(GreffonImpression);
+    résultat.sur_message = greffon_impression_sur_message;
+    résultat.sur_destruction = greffon_impression_sur_destruction;
 
-    données := tableau_ajoute_élément(*résultat.données_pour_espace)
-    données.créatrice_table_fonctions.espace = compilatrice_espace_courant()
-    données.créatrice_table_fonctions.nom_module = "Fondation"
-    données.créatrice_table_fonctions.nom_table_fonctions = "__fonctions_formattages_impression"
-    données.créatrice_table_fonctions.données_pour_fonction = fonction_est_valide
-    données.créatrice_table_fonctions.génère_fonction_enveloppe = génère_fonction_enveloppe
+    données := tableau_ajoute_élément(*résultat.données_pour_espace);
+    données.créatrice_table_fonctions.espace = compilatrice_espace_courant();
+    données.créatrice_table_fonctions.nom_module = "Fondation";
+    données.créatrice_table_fonctions.nom_table_fonctions = "__fonctions_formattages_impression";
+    données.créatrice_table_fonctions.données_pour_fonction = fonction_est_valide;
+    données.créatrice_table_fonctions.génère_fonction_enveloppe = génère_fonction_enveloppe;
 
-    retourne résultat
+    retourne résultat;
 }
 
 #portée_fichier
@@ -1299,29 +1299,29 @@ donne_greffon :: fonc () -> *GreffonMétaprogramme
 greffon_impression_sur_message :: fonc (greffon: *GreffonImpression, message: *Message)
 {
     si message.genre == GenreMessage.ESPACE_CRÉÉ {
-        données := tableau_ajoute_élément(*greffon.données_pour_espace)
-        message_espace := message comme *MessageEspaceCréé
-        données.créatrice_table_fonctions.espace = message_espace.nouvel_espace
-        données.créatrice_table_fonctions.nom_module = "Fondation"
-        données.créatrice_table_fonctions.nom_table_fonctions = "__fonctions_formattages_impression"
-        données.créatrice_table_fonctions.données_pour_fonction = fonction_est_valide
-        données.créatrice_table_fonctions.génère_fonction_enveloppe = génère_fonction_enveloppe
+        données := tableau_ajoute_élément(*greffon.données_pour_espace);
+        message_espace := message comme *MessageEspaceCréé;
+        données.créatrice_table_fonctions.espace = message_espace.nouvel_espace;
+        données.créatrice_table_fonctions.nom_module = "Fondation";
+        données.créatrice_table_fonctions.nom_table_fonctions = "__fonctions_formattages_impression";
+        données.créatrice_table_fonctions.données_pour_fonction = fonction_est_valide;
+        données.créatrice_table_fonctions.génère_fonction_enveloppe = génère_fonction_enveloppe;
     }
     sinon si message.genre == GenreMessage.TYPAGE_CODE_TERMINÉ {
-        message_typage := message comme *MessageTypageCodeTerminé
+        message_typage := message comme *MessageTypageCodeTerminé;
         si message_typage.code.genre == GenreNoeud.DÉCLARATION_ENTÊTE_FONCTION {
-            entête := message_typage.code comme *NoeudCodeEntêteFonction
+            entête := message_typage.code comme *NoeudCodeEntêteFonction;
             si fonction_possède_annotation(entête, "FormattageImpression") {
-                données := *greffon.données_pour_espace[message.espace - 1]
-                tableau_ajoute(*données.fonctions, entête)
+                données := *greffon.données_pour_espace[message.espace - 1];
+                tableau_ajoute(*données.fonctions, entête);
             }
         }
     }
     sinon si est_message_phase(message, PhaseCompilation.TYPAGE_TERMINÉ) {
-        données := *greffon.données_pour_espace[message.espace - 1]
+        données := *greffon.données_pour_espace[message.espace - 1];
         saufsi données.table_créée {
-            crée_table_fonctions(données.créatrice_table_fonctions, données.fonctions)
-            données.table_créée = vrai
+            crée_table_fonctions(données.créatrice_table_fonctions, données.fonctions);
+            données.table_créée = vrai;
         }
     }
 }
@@ -1329,83 +1329,83 @@ greffon_impression_sur_message :: fonc (greffon: *GreffonImpression, message: *M
 greffon_impression_sur_destruction :: fonc (greffon: *GreffonImpression)
 {
     pour greffon.données_pour_espace {
-        déloge(it.fonctions)
+        déloge(it.fonctions);
     }
-    déloge(greffon.données_pour_espace)
-    déloge(greffon)
+    déloge(greffon.données_pour_espace);
+    déloge(greffon);
 }
 
 #portée_export // À FAIRE : génère le code dans ce module
 
-TypeFonctionFormattage :: fonc (enchaineuse: *Enchaineuse, valeur: eini)
-__fonctions_formattages_impression: [..]FonctionInstrospection(TypeFonctionFormattage)
+TypeFonctionFormattage :: fonc (enchaineuse: *Enchaineuse, valeur: eini);
+__fonctions_formattages_impression: [..]FonctionInstrospection(TypeFonctionFormattage);
 
 #portée_fichier
 
 trouve_fonction_de_formattage :: fonc (info: *InfoType) -> *FonctionInstrospection(TypeFonctionFormattage)
 {
-    retourne trouve_fonction_pour_type(__fonctions_formattages_impression, info)
+    retourne trouve_fonction_pour_type(__fonctions_formattages_impression, info);
 }
 
 fonction_est_valide :: fonc (fonction: *NoeudCodeEntêteFonction) -> DonnéesFonctionPourTableFonction
 {
     si fonction.params.taille != 2 {
-        compilatrice_rapporte_erreur(fonction, "Impossible d'utiliser la fonction comme formatteuse pour l'impression, elle doit avoir 2 paramètres : *Enchaineuse, et eini")
+        compilatrice_rapporte_erreur(fonction, "Impossible d'utiliser la fonction comme formatteuse pour l'impression, elle doit avoir 2 paramètres : *Enchaineuse, et eini");
     }
 
-    type_premier_paramètre := fonction.params[0].type
-    type_deuxième_paramètre := fonction.params[1].type
+    type_premier_paramètre := fonction.params[0].type;
+    type_deuxième_paramètre := fonction.params[1].type;
 
     saufsi est_type_pointeur_vers_struct_nommé(type_premier_paramètre, "Enchaineuse") {
-        compilatrice_rapporte_erreur(fonction.params[0], "Fonction de formattage invalide, le premier paramètre doit être de type « *Enchaineuse ».")
+        compilatrice_rapporte_erreur(fonction.params[0], "Fonction de formattage invalide, le premier paramètre doit être de type « *Enchaineuse ».");
     }
 
     si type_deuxième_paramètre.id != GenreInfoType.POINTEUR {
-        compilatrice_rapporte_erreur(fonction.params[1], "Fonction de formattage invalide, le deuxième paramètre doit être un pointeur.")
+        compilatrice_rapporte_erreur(fonction.params[1], "Fonction de formattage invalide, le deuxième paramètre doit être un pointeur.");
     }
 
-    pointeur := type_deuxième_paramètre comme *InfoTypePointeur
+    pointeur := type_deuxième_paramètre comme *InfoTypePointeur;
 
-    résultat: DonnéesFonctionPourTableFonction
-    résultat.fonction = fonction
-    résultat.info_type = pointeur.type_pointé
-    retourne résultat
+    résultat: DonnéesFonctionPourTableFonction;
+    résultat.fonction = fonction;
+    résultat.info_type = pointeur.type_pointé;
+    retourne résultat;
 }
 
 est_type_pointeur_vers_struct_nommé :: fonc (type: *InfoType, nom: chaine) -> bool
 {
-    résultat := faux
+    résultat := faux;
 
     si type.id == GenreInfoType.POINTEUR {
-        type_pointeur := type comme *InfoTypePointeur
+        type_pointeur := type comme *InfoTypePointeur;
 
         si type_pointeur.type_pointé && type_pointeur.type_pointé.id == GenreInfoType.STRUCTURE {
-            type_structure := type_pointeur.type_pointé comme *InfoTypeStructure
-            résultat = type_structure.nom == nom
+            type_structure := type_pointeur.type_pointé comme *InfoTypeStructure;
+            résultat = type_structure.nom == nom;
         }
     }
 
-    retourne résultat
+    retourne résultat;
 }
 
 génère_fonction_enveloppe :: fonc (enchaineuse: *Enchaineuse, espace: EspaceDeTravail, données: DonnéesFonctionPourTableFonction) -> chaine
 {
-    nom_enveloppe := enchaine("enveloppe_format_", données.fonction.nom)
+    nom_enveloppe := enchaine("enveloppe_format_", données.fonction.nom);
 
-    ajoute_au_tampon(enchaineuse, nom_enveloppe, " :: fonc (enchaineuse: *Fondation.Enchaineuse, e: eini)\n")
-    ajoute_au_tampon(enchaineuse, "{\n")
-    ajoute_au_tampon(enchaineuse, "\tvaleur := e.pointeur comme *")
+    ajoute_au_tampon(enchaineuse, nom_enveloppe, " :: fonc (enchaineuse: *Fondation.Enchaineuse, e: eini)\n");
+    ajoute_au_tampon(enchaineuse, "{\n");
+    ajoute_au_tampon(enchaineuse, "\tvaleur := e.pointeur comme *");
 
-    module := compilatrice_module_pour_code(espace, données.fonction)
-    nom_module := compilatrice_nom_module(module)
-    imprime_type(enchaineuse, données.info_type, nom_module)
-    ajoute_au_tampon(enchaineuse, "\n")
-    ajoute_au_tampon(enchaineuse, "\t")
+    module := compilatrice_module_pour_code(espace, données.fonction);
+    nom_module := compilatrice_nom_module(module);
+    imprime_type(enchaineuse, données.info_type, nom_module);
+    ajoute_au_tampon(enchaineuse, "\n");
+    ajoute_au_tampon(enchaineuse, "\t");
     si nom_module {
-        ajoute_au_tampon(enchaineuse, nom_module, ".")
+        ajoute_au_tampon(enchaineuse, nom_module, ".");
     }
-    ajoute_au_tampon(enchaineuse, données.fonction.nom, "(enchaineuse, valeur)\n")
-    ajoute_au_tampon(enchaineuse, "}\n")
+    ajoute_au_tampon(enchaineuse, données.fonction.nom, "(enchaineuse, valeur)\n");
+    ajoute_au_tampon(enchaineuse, "}\n");
 
-    retourne nom_enveloppe
+    retourne nom_enveloppe;
 }

@@ -1,24 +1,24 @@
-importe POSIX
-importe SysFichier
+importe POSIX;
+importe SysFichier;
 
 ErreurConnexion :: erreur {
-    RésolutionHôteImpossible
-    CréationPriseImpossible
-    ConnexionPriseImpossible
-    LiaisonPriseImpossible
-    ÉcoutePriseImpossible
+    RésolutionHôteImpossible;
+    CréationPriseImpossible;
+    ConnexionPriseImpossible;
+    LiaisonPriseImpossible;
+    ÉcoutePriseImpossible;
 }
 
 FichierOuErreur :: union {
-    e: ErreurConnexion
-    f: Fichier
+    e: ErreurConnexion;
+    f: Fichier;
 }
 
 marque_prise_non_bloquante :: fonc (prise: z32)
 {
-    flags := fcntl(prise, F_GETFL, 0)
+    flags := fcntl(prise, F_GETFL, 0);
     // @erreur
-    _ := fcntl(prise, F_SETFL, flags | O_NONBLOCK)
+    _ := fcntl(prise, F_SETFL, flags | O_NONBLOCK);
 }
 
 /* Supprime le délai pour envoyer les paquets TCP, et active l'algorithme de Nagle
@@ -27,183 +27,183 @@ marque_prise_non_bloquante :: fonc (prise: z32)
  */
 prise_tcp_supprime_délai :: fonc (prise: z32) -> bool
 {
-    un := 1
-    retourne setsockopt(prise, IPPROTO_TCP, TCP_NODELAY, *un, taille_de(z32)) >= 0
+    un := 1;
+    retourne setsockopt(prise, IPPROTO_TCP, TCP_NODELAY, *un, taille_de(z32)) >= 0;
 }
 
 ouvre_connexion_serveur :: fonc (hôte: chaine, port: n16, bloquante := faux) -> FichierOuErreur
 {
-    ptr_tampon := crée_chaine_c(hôte)
-    diffère détruit_chaine_c(ptr_tampon)
-    he := gethostbyname(ptr_tampon)
+    ptr_tampon := crée_chaine_c(hôte);
+    diffère détruit_chaine_c(ptr_tampon);
+    he := gethostbyname(ptr_tampon);
 
     si he == nul {
-        retourne ErreurConnexion.RésolutionHôteImpossible
+        retourne ErreurConnexion.RésolutionHôteImpossible;
     }
 
-    drapeaux := SOCK_STREAM
+    drapeaux := SOCK_STREAM;
     saufsi bloquante {
-        drapeaux |= (SOCK_CLOEXEC | SOCK_NONBLOCK)
+        drapeaux |= (SOCK_CLOEXEC | SOCK_NONBLOCK);
     }
 
-    prise := socket(AF_INET, drapeaux, IPPROTO_TCP)
+    prise := socket(AF_INET, drapeaux, IPPROTO_TCP);
 
     si prise == -1 {
-        retourne ErreurConnexion.CréationPriseImpossible
+        retourne ErreurConnexion.CréationPriseImpossible;
     }
 
     saufsi bloquante {
-        marque_prise_non_bloquante(prise)
+        marque_prise_non_bloquante(prise);
     }
 
-    their_addr: sockaddr_in
-    their_addr.sin_family = AF_INET comme n16
-    their_addr.sin_port = htons(port)
-    their_addr.sin_zero[0] = 0
-    their_addr.sin_zero[1] = 0
-    their_addr.sin_zero[2] = 0
-    their_addr.sin_zero[3] = 0
-    their_addr.sin_zero[4] = 0
-    their_addr.sin_zero[5] = 0
-    their_addr.sin_zero[6] = 0
-    their_addr.sin_zero[7] = 0
+    their_addr: sockaddr_in;
+    their_addr.sin_family = AF_INET comme n16;
+    their_addr.sin_port = htons(port);
+    their_addr.sin_zero[0] = 0;
+    their_addr.sin_zero[1] = 0;
+    their_addr.sin_zero[2] = 0;
+    their_addr.sin_zero[3] = 0;
+    their_addr.sin_zero[4] = 0;
+    their_addr.sin_zero[5] = 0;
+    their_addr.sin_zero[6] = 0;
+    their_addr.sin_zero[7] = 0;
 
-    x := he.h_addr_list[0]
-    their_addr.sin_addr = mémoire(x comme *z8 comme *in_addr)
+    x := he.h_addr_list[0];
+    their_addr.sin_addr = mémoire(x comme *z8 comme *in_addr);
 
     si connect(prise, *their_addr comme *sockaddr, taille_de(sockaddr) comme z64) == -1 {
-        err := lis_errno()
+        err := lis_errno();
 
         /* Si la prise est non-bloquante, il est possible que la connexion n'est pas eu le temps
          * de se faire, ce qui est indiquer par EINPROGRESS, donc ne retournons d'erreurs dans ce
          * cas. */
         si err != EINPROGRESS {
-            retourne ErreurConnexion.ConnexionPriseImpossible
+            retourne ErreurConnexion.ConnexionPriseImpossible;
         }
     }
 
-    retourne Fichier(desc = TypePoignéeFichier(prise))
+    retourne Fichier(desc = TypePoignéeFichier(prise));
 }
 
 ouvre_connexion_serveur :: fonc (uri: &URI, bloquante := faux) -> FichierOuErreur
 {
-    retourne ouvre_connexion_serveur(uri.hôte, port_pour_uri(uri), bloquante)
+    retourne ouvre_connexion_serveur(uri.hôte, port_pour_uri(uri), bloquante);
 }
 
 ouvre_connexion_serveur_pour_écoute :: fonc (port: n16, connexions_max: z32) -> FichierOuErreur
 {
-    prise := socket(PF_INET, SOCK_STREAM, 0)
+    prise := socket(PF_INET, SOCK_STREAM, 0);
 
     si prise == -1 {
-        retourne ErreurConnexion.CréationPriseImpossible
+        retourne ErreurConnexion.CréationPriseImpossible;
     }
 
-    addr: sockaddr_in
-    addr.sin_family = PF_INET comme n16
-    addr.sin_port = htons(port)
-    addr.sin_addr.s_addr = INADDR_ANY
-    addr.sin_zero[0] = 0
-    addr.sin_zero[1] = 0
-    addr.sin_zero[2] = 0
-    addr.sin_zero[3] = 0
-    addr.sin_zero[4] = 0
-    addr.sin_zero[5] = 0
-    addr.sin_zero[6] = 0
-    addr.sin_zero[7] = 0
+    addr: sockaddr_in;
+    addr.sin_family = PF_INET comme n16;
+    addr.sin_port = htons(port);
+    addr.sin_addr.s_addr = INADDR_ANY;
+    addr.sin_zero[0] = 0;
+    addr.sin_zero[1] = 0;
+    addr.sin_zero[2] = 0;
+    addr.sin_zero[3] = 0;
+    addr.sin_zero[4] = 0;
+    addr.sin_zero[5] = 0;
+    addr.sin_zero[6] = 0;
+    addr.sin_zero[7] = 0;
 
     si bind(prise, *addr comme *sockaddr, taille_de(sockaddr) comme n64) != 0 {
-        retourne ErreurConnexion.LiaisonPriseImpossible
+        retourne ErreurConnexion.LiaisonPriseImpossible;
     }
 
     si listen(prise, connexions_max) != 0 {
-        retourne ErreurConnexion.ÉcoutePriseImpossible
+        retourne ErreurConnexion.ÉcoutePriseImpossible;
     }
 
-    retourne Fichier(desc = TypePoignéeFichier(prise))
+    retourne Fichier(desc = TypePoignéeFichier(prise));
 }
 
 ErreurPrise :: erreur {
-    PortIllégal
-    CréationImpossible
-    RéutilisationImpossible
-    LiaisonAuPortImpossible
-    ÉcouteSurPortImpossible
+    PortIllégal;
+    CréationImpossible;
+    RéutilisationImpossible;
+    LiaisonAuPortImpossible;
+    ÉcouteSurPortImpossible;
 }
 
 FichierOuErreurPrise :: union {
-    f: Fichier
-    e: ErreurPrise
+    f: Fichier;
+    e: ErreurPrise;
 }
 
 ouvre_connexion_pour_écoute :: fonc (adresse_ip: AdresseIPv4 @inutilisée, port: n16, connexions_max: z32) -> FichierOuErreurPrise
 {
     si port < 1024 {
         // À FAIRE : un port inférieur à 1024 ne peut être précisé que si le processus est privilégié
-        retourne ErreurPrise.PortIllégal
+        retourne ErreurPrise.PortIllégal;
     }
 
-    drapeaux := SOCK_STREAM
-    drapeaux |= (SOCK_CLOEXEC | SOCK_NONBLOCK)
+    drapeaux := SOCK_STREAM;
+    drapeaux |= (SOCK_CLOEXEC | SOCK_NONBLOCK);
 
     /*
         tcp_socket = socket(AF_INET, SOCK_STREAM, 0);
         udp_socket = socket(AF_INET, SOCK_DGRAM, 0);
         raw_socket = socket(AF_INET, SOCK_RAW, protocol);
     */
-    prise := socket(AF_INET, drapeaux, 0)
+    prise := socket(AF_INET, drapeaux, 0);
 
     si prise == -1 {
-        retourne ErreurPrise.CréationImpossible
+        retourne ErreurPrise.CréationImpossible;
     }
 
-    marque_prise_non_bloquante(prise)
+    marque_prise_non_bloquante(prise);
 
-    enable := 1
+    enable := 1;
     si setsockopt(prise, SOL_SOCKET, SO_REUSEADDR, *enable, taille_de(z32)) < 0 {
-        _ := close(prise)
-        retourne ErreurPrise.RéutilisationImpossible
+        _ := close(prise);
+        retourne ErreurPrise.RéutilisationImpossible;
     }
 
-    notre_adresse : sockaddr_in = ---
+    notre_adresse : sockaddr_in = ---;
     // doit toujours être AF_INET
-    notre_adresse.sin_family = AF_INET comme n16
-    notre_adresse.sin_port = htons(port)
+    notre_adresse.sin_family = AF_INET comme n16;
+    notre_adresse.sin_port = htons(port);
     // trouve notre propre adresse
     // À FAIRE : parse l'adresse ip données
-    notre_adresse.sin_addr.s_addr = 0
+    notre_adresse.sin_addr.s_addr = 0;
     // potentiellement inutile de mettre à zéro, mais on ne sait jamais
     pour & notre_adresse.sin_zero {
-        it = 0
+        it = 0;
     }
 
-    err := bind(prise, *notre_adresse comme *sockaddr, taille_de(sockaddr) comme n64)
+    err := bind(prise, *notre_adresse comme *sockaddr, taille_de(sockaddr) comme n64);
     si err == -1 {
-        _ := close(prise)
-        retourne ErreurPrise.LiaisonAuPortImpossible
+        _ := close(prise);
+        retourne ErreurPrise.LiaisonAuPortImpossible;
     }
 
     si listen(prise, connexions_max) == -1 {
-        _ := close(prise)
-        retourne ErreurPrise.ÉcouteSurPortImpossible
+        _ := close(prise);
+        retourne ErreurPrise.ÉcouteSurPortImpossible;
     }
 
-    retourne Fichier(TypePoignéeFichier(prise))
+    retourne Fichier(TypePoignéeFichier(prise));
 }
 
 accepte :: fonc (prise: z32) -> z32
 {
-    adresse: sockaddr_in
-    sin_size := taille_de(sockaddr_in)
+    adresse: sockaddr_in;
+    sin_size := taille_de(sockaddr_in);
 
-    fd_prise := accept(prise, *adresse comme *sockaddr, *sin_size)
+    fd_prise := accept(prise, *adresse comme *sockaddr, *sin_size);
 
     si fd_prise == -1 {
-        retourne -1
+        retourne -1;
     }
 
     // À FAIRE : converti l'adresse
     //cliente.adresse = adresse
     //fichier.desc = TypePoignéeFichier(fd_prise)
 
-    retourne fd_prise
+    retourne fd_prise;
 }
