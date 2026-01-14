@@ -4,12 +4,12 @@
  */
 
 Vecteur :: struct {
-    x := 1.0
-    y := 4.0
-    z := 9.0
+    x := 1.0;
+    y := 4.0;
+    z := 9.0;
 }
 
 principale :: fonc ()
 {
-    v := Vecteur(x = 2.0, y = 4.0, w = 6.0)
+    v := Vecteur(x = 2.0, y = 4.0, w = 6.0);
 }

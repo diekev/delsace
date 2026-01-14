@@ -1,125 +1,125 @@
 
 Syntaxeuse :: struct {
-    lexèmes: []Lexème
-    assembleuse: AssembleuseArbre
+    lexèmes: []Lexème;
+    assembleuse: AssembleuseArbre;
 
-    position := 0
+    position := 0;
 
-    erreurs: [..]chaine
+    erreurs: [..]chaine;
 
-    est_extension := faux
-    fichier_étendu := ""
+    est_extension := faux;
+    fichier_étendu := "";
 
-    inclusions: [..]*NoeudSyntaxique
+    inclusions: [..]*NoeudSyntaxique;
 }
 
 construis_syntaxeuse :: fonc (lexèmes: []Lexème) -> Syntaxeuse
 {
-    syntaxeuse: Syntaxeuse
-    syntaxeuse.lexèmes = lexèmes
-    syntaxeuse.assembleuse = construis_assembleuse()
+    syntaxeuse: Syntaxeuse;
+    syntaxeuse.lexèmes = lexèmes;
+    syntaxeuse.assembleuse = construis_assembleuse();
 
-    retourne syntaxeuse
+    retourne syntaxeuse;
 }
 
 détruit_syntaxeuse :: fonc (syntaxeuse: &Syntaxeuse)
 {
-    déloge(syntaxeuse.erreurs)
-    déloge(syntaxeuse.inclusions)
+    déloge(syntaxeuse.erreurs);
+    déloge(syntaxeuse.inclusions);
 }
 
 lexème_courant :: fonc (syntaxeuse: &Syntaxeuse) -> TypeLexème
 {
-    retourne syntaxeuse.lexèmes[syntaxeuse.position].type_lexème
+    retourne syntaxeuse.lexèmes[syntaxeuse.position].type_lexème;
 }
 
 avance :: fonc (syntaxeuse: &Syntaxeuse) -> rien
 {
-    syntaxeuse.position += 1
+    syntaxeuse.position += 1;
 }
 
 recule :: fonc (syntaxeuse: &Syntaxeuse) -> rien
 {
-    syntaxeuse.position -= 1
+    syntaxeuse.position -= 1;
 }
 
 consomme :: fonc (syntaxeuse: &Syntaxeuse, type: TypeLexème) -> bool
 {
-    t := syntaxeuse.lexème_courant()
-    syntaxeuse.avance()
-    retourne t == type
+    t := syntaxeuse.lexème_courant();
+    syntaxeuse.avance();
+    retourne t == type;
 }
 
 apparie :: fonc (syntaxeuse: &Syntaxeuse, type: TypeLexème) -> bool
 {
-    retourne syntaxeuse.lexème_courant() == type
+    retourne syntaxeuse.lexème_courant() == type;
 }
 
 données :: fonc (syntaxeuse: &Syntaxeuse) -> &Lexème
 {
-    retourne syntaxeuse.lexèmes[syntaxeuse.position - 1]
+    retourne syntaxeuse.lexèmes[syntaxeuse.position - 1];
 }
 
 position :: fonc (syntaxeuse: &Syntaxeuse) -> z32
 {
-    retourne syntaxeuse.position - 1
+    retourne syntaxeuse.position - 1;
 }
 
 fini :: fonc (syntaxeuse: &Syntaxeuse) -> bool
 {
-    retourne syntaxeuse.position >= syntaxeuse.lexèmes.taille || syntaxeuse.possède_erreurs()
+    retourne syntaxeuse.position >= syntaxeuse.lexèmes.taille || syntaxeuse.possède_erreurs();
 }
 
 possède_erreurs :: fonc (syntaxeuse: &Syntaxeuse) -> bool
 {
-    retourne syntaxeuse.erreurs.taille != 0
+    retourne syntaxeuse.erreurs.taille != 0;
 }
 
 performe_syntaxage :: fonc (syntaxeuse: &Syntaxeuse) -> rien
 {
     saufsi syntaxeuse.lexèmes {
-        retourne
+        retourne;
     }
 
-    syntaxeuse.position = 0
+    syntaxeuse.position = 0;
 
-    données_lexème: Lexème
-    _ := syntaxeuse.assembleuse.empile_noeud(TypeNoeud.BLOC, données_lexème)
+    données_lexème: Lexème;
+    _ := syntaxeuse.assembleuse.empile_noeud(TypeNoeud.BLOC, données_lexème);
 
-    syntaxeuse.analyse_page()
+    syntaxeuse.analyse_page();
 
-    syntaxeuse.assembleuse.attends_type(TypeNoeud.BLOC)
+    syntaxeuse.assembleuse.attends_type(TypeNoeud.BLOC);
 }
 
 analyse_page :: fonc (syntaxeuse: &Syntaxeuse) -> rien
 {
     tantque !syntaxeuse.fini() {
         si syntaxeuse.apparie(TypeLexème.CHAINE_CARACTÈRE) {
-            syntaxeuse.avance()
-            syntaxeuse.assembleuse.ajoute_noeud(TypeNoeud.CHAINE_CARACTÈRE, syntaxeuse.données())
+            syntaxeuse.avance();
+            syntaxeuse.assembleuse.ajoute_noeud(TypeNoeud.CHAINE_CARACTÈRE, syntaxeuse.données());
         }
         sinon si syntaxeuse.apparie(TypeLexème.DÉBUT_CONTROLE) {
-            syntaxeuse.analyse_controle()
+            syntaxeuse.analyse_controle();
         }
         sinon si syntaxeuse.apparie(TypeLexème.DÉBUT_VARIABLE) {
-            syntaxeuse.avance()
+            syntaxeuse.avance();
 
             si !syntaxeuse.apparie_expression() {
-                syntaxeuse.rapporte_erreur("attendu une expression après '{{'")
-                retourne
+                syntaxeuse.rapporte_erreur("attendu une expression après '{{'");
+                retourne;
             }
 
-            expr := syntaxeuse.analyse_expression()
-            syntaxeuse.assembleuse.ajoute_noeud(expr)
+            expr := syntaxeuse.analyse_expression();
+            syntaxeuse.assembleuse.ajoute_noeud(expr);
 
             si !syntaxeuse.consomme(TypeLexème.FIN_VARIABLE) {
-                syntaxeuse.rapporte_erreur("Attendu '}}' à la fin de la déclaration d'une variable")
-                retourne
+                syntaxeuse.rapporte_erreur("Attendu '}}' à la fin de la déclaration d'une variable");
+                retourne;
             }
         }
         sinon {
-            syntaxeuse.rapporte_erreur("Lexème inattendu")
-            retourne
+            syntaxeuse.rapporte_erreur("Lexème inattendu");
+            retourne;
         }
     }
 }
@@ -127,264 +127,264 @@ analyse_page :: fonc (syntaxeuse: &Syntaxeuse) -> rien
 analyse_controle :: fonc (syntaxeuse: &Syntaxeuse) -> rien
 {
     si !syntaxeuse.consomme(TypeLexème.DÉBUT_CONTROLE) {
-        syntaxeuse.rapporte_erreur("Attendu '{%'")
-        retourne
+        syntaxeuse.rapporte_erreur("Attendu '{%'");
+        retourne;
     }
 
     si syntaxeuse.apparie(TypeLexème.SI) {
-        syntaxeuse.analyse_si()
+        syntaxeuse.analyse_si();
     }
     sinon si syntaxeuse.apparie(TypeLexème.POUR) {
-        syntaxeuse.analyse_pour()
+        syntaxeuse.analyse_pour();
     }
     sinon si syntaxeuse.apparie(TypeLexème.ÉTEND) {
-        syntaxeuse.avance()
+        syntaxeuse.avance();
 
         si !syntaxeuse.consomme(TypeLexème.CHAINE_CARACTÈRE) {
-            syntaxeuse.rapporte_erreur("Attendu une chaîne de caractère après 'étend'")
-            retourne
+            syntaxeuse.rapporte_erreur("Attendu une chaîne de caractère après 'étend'");
+            retourne;
         }
 
-        nom_fichier := syntaxeuse.données().chn
+        nom_fichier := syntaxeuse.données().chn;
 
-        syntaxeuse.est_extension = vrai
-        syntaxeuse.fichier_étendu = nom_fichier
+        syntaxeuse.est_extension = vrai;
+        syntaxeuse.fichier_étendu = nom_fichier;
 
         si !syntaxeuse.consomme(TypeLexème.FIN_CONTROLE) {
-            syntaxeuse.rapporte_erreur("Attendu '%}'")
-            retourne
+            syntaxeuse.rapporte_erreur("Attendu '%}'");
+            retourne;
         }
     }
     sinon si syntaxeuse.apparie(TypeLexème.INCLUS) {
-        syntaxeuse.avance()
+        syntaxeuse.avance();
 
         si !syntaxeuse.consomme(TypeLexème.CHAINE_CARACTÈRE) {
-            syntaxeuse.rapporte_erreur("Attendu une chaîne de caractère après 'inclus'")
-            retourne
+            syntaxeuse.rapporte_erreur("Attendu une chaîne de caractère après 'inclus'");
+            retourne;
         }
 
-        noeud := syntaxeuse.assembleuse.empile_noeud(TypeNoeud.BLOC, syntaxeuse.données())
-        syntaxeuse.assembleuse.dépile_noeud(TypeNoeud.BLOC)
+        noeud := syntaxeuse.assembleuse.empile_noeud(TypeNoeud.BLOC, syntaxeuse.données());
+        syntaxeuse.assembleuse.dépile_noeud(TypeNoeud.BLOC);
 
-        nom_fichier := syntaxeuse.données().chn
-        noeud.nom = nom_fichier
+        nom_fichier := syntaxeuse.données().chn;
+        noeud.nom = nom_fichier;
 
-        tableau_ajoute(*syntaxeuse.inclusions, noeud)
+        tableau_ajoute(*syntaxeuse.inclusions, noeud);
 
         si !syntaxeuse.consomme(TypeLexème.FIN_CONTROLE) {
-            syntaxeuse.rapporte_erreur("Attendu '%}'")
-            retourne
+            syntaxeuse.rapporte_erreur("Attendu '%}'");
+            retourne;
         }
     }
     sinon si syntaxeuse.apparie(TypeLexème.BLOC) {
-        syntaxeuse.avance()
-        noeud := syntaxeuse.assembleuse.empile_noeud(TypeNoeud.BLOC, syntaxeuse.données())
+        syntaxeuse.avance();
+        noeud := syntaxeuse.assembleuse.empile_noeud(TypeNoeud.BLOC, syntaxeuse.données());
 
         si !syntaxeuse.consomme(TypeLexème.CHAINE_CARACTÈRE) {
-            syntaxeuse.rapporte_erreur("Attendu une chaîne de caractère après 'bloc'")
-            retourne
+            syntaxeuse.rapporte_erreur("Attendu une chaîne de caractère après 'bloc'");
+            retourne;
         }
 
-        nom_bloc := syntaxeuse.données().chn
-        noeud.nom = nom_bloc
+        nom_bloc := syntaxeuse.données().chn;
+        noeud.nom = nom_bloc;
 
         si !syntaxeuse.consomme(TypeLexème.FIN_CONTROLE) {
-            syntaxeuse.rapporte_erreur("Attendu '%}'")
-            retourne
+            syntaxeuse.rapporte_erreur("Attendu '%}'");
+            retourne;
         }
     }
     sinon si syntaxeuse.apparie(TypeLexème.SINON) {
         //assert(syntaxeuse.assembleuse.noeud_courant() == "SI")
-        syntaxeuse.avance()
+        syntaxeuse.avance();
 
         si !syntaxeuse.consomme(TypeLexème.FIN_CONTROLE) {
-            syntaxeuse.rapporte_erreur("Attendu '%}'")
-            retourne
+            syntaxeuse.rapporte_erreur("Attendu '%}'");
+            retourne;
         }
 
-        syntaxeuse.assembleuse.dépile_noeud(TypeNoeud.BLOC)
+        syntaxeuse.assembleuse.dépile_noeud(TypeNoeud.BLOC);
 
-        syntaxeuse.assembleuse.attends_type(TypeNoeud.SI)
+        syntaxeuse.assembleuse.attends_type(TypeNoeud.SI);
 
-        _ := syntaxeuse.assembleuse.empile_noeud(TypeNoeud.BLOC, syntaxeuse.données())
+        _ := syntaxeuse.assembleuse.empile_noeud(TypeNoeud.BLOC, syntaxeuse.données());
 
-        syntaxeuse.analyse_page()
+        syntaxeuse.analyse_page();
     }
     sinon si syntaxeuse.apparie(TypeLexème.FINSI) {
-        syntaxeuse.avance()
+        syntaxeuse.avance();
 
-        syntaxeuse.assembleuse.dépile_noeud(TypeNoeud.BLOC)
+        syntaxeuse.assembleuse.dépile_noeud(TypeNoeud.BLOC);
 
-        syntaxeuse.assembleuse.dépile_noeud(TypeNoeud.SI)
+        syntaxeuse.assembleuse.dépile_noeud(TypeNoeud.SI);
 
         si !syntaxeuse.consomme(TypeLexème.FIN_CONTROLE) {
-            syntaxeuse.rapporte_erreur("Attendu '%}'")
-            retourne
+            syntaxeuse.rapporte_erreur("Attendu '%}'");
+            retourne;
         }
     }
     sinon si syntaxeuse.apparie(TypeLexème.FINPOUR) {
-        syntaxeuse.avance()
+        syntaxeuse.avance();
 
-        syntaxeuse.assembleuse.dépile_noeud(TypeNoeud.BLOC)
+        syntaxeuse.assembleuse.dépile_noeud(TypeNoeud.BLOC);
 
-        syntaxeuse.assembleuse.dépile_noeud(TypeNoeud.POUR)
+        syntaxeuse.assembleuse.dépile_noeud(TypeNoeud.POUR);
 
         si !syntaxeuse.consomme(TypeLexème.FIN_CONTROLE) {
-            syntaxeuse.rapporte_erreur("Attendu '%}'")
-            retourne
+            syntaxeuse.rapporte_erreur("Attendu '%}'");
+            retourne;
         }
     }
     sinon si syntaxeuse.apparie(TypeLexème.FINBLOC) {
-        syntaxeuse.avance()
+        syntaxeuse.avance();
 
-        syntaxeuse.assembleuse.dépile_noeud(TypeNoeud.BLOC)
+        syntaxeuse.assembleuse.dépile_noeud(TypeNoeud.BLOC);
 
         si !syntaxeuse.consomme(TypeLexème.FIN_CONTROLE) {
-            syntaxeuse.rapporte_erreur("Attendu '%}'")
-            retourne
+            syntaxeuse.rapporte_erreur("Attendu '%}'");
+            retourne;
         }
     }
     sinon {
-        syntaxeuse.rapporte_erreur("Identifiant inconnu")
-        retourne
+        syntaxeuse.rapporte_erreur("Identifiant inconnu");
+        retourne;
     }
 }
 
 analyse_si :: fonc (syntaxeuse: &Syntaxeuse) -> rien
 {
     si !syntaxeuse.consomme(TypeLexème.SI) {
-        syntaxeuse.rapporte_erreur("Attendu 'si'")
-        retourne
+        syntaxeuse.rapporte_erreur("Attendu 'si'");
+        retourne;
     }
 
-    _ := syntaxeuse.assembleuse.empile_noeud(TypeNoeud.SI, syntaxeuse.données())
+    _ := syntaxeuse.assembleuse.empile_noeud(TypeNoeud.SI, syntaxeuse.données());
 
-    expr_variable := syntaxeuse.analyse_expression()
-    syntaxeuse.assembleuse.ajoute_noeud(expr_variable)
+    expr_variable := syntaxeuse.analyse_expression();
+    syntaxeuse.assembleuse.ajoute_noeud(expr_variable);
 
     si !syntaxeuse.consomme(TypeLexème.FIN_CONTROLE) {
-        syntaxeuse.rapporte_erreur("Attendu '%}'")
-        retourne
+        syntaxeuse.rapporte_erreur("Attendu '%}'");
+        retourne;
     }
 
-    _ := syntaxeuse.assembleuse.empile_noeud(TypeNoeud.BLOC, syntaxeuse.données())
+    _ := syntaxeuse.assembleuse.empile_noeud(TypeNoeud.BLOC, syntaxeuse.données());
 
-    syntaxeuse.analyse_page()
+    syntaxeuse.analyse_page();
 }
 
 analyse_pour :: fonc (syntaxeuse: &Syntaxeuse) -> rien
 {
     si !syntaxeuse.consomme(TypeLexème.POUR) {
-        syntaxeuse.rapporte_erreur("Attendu 'pour'")
-        retourne
+        syntaxeuse.rapporte_erreur("Attendu 'pour'");
+        retourne;
     }
 
-    _ := syntaxeuse.assembleuse.empile_noeud(TypeNoeud.POUR, syntaxeuse.données())
+    _ := syntaxeuse.assembleuse.empile_noeud(TypeNoeud.POUR, syntaxeuse.données());
 
-    expr_variable := syntaxeuse.analyse_expression()
-    syntaxeuse.assembleuse.ajoute_noeud(expr_variable)
+    expr_variable := syntaxeuse.analyse_expression();
+    syntaxeuse.assembleuse.ajoute_noeud(expr_variable);
 
     si !syntaxeuse.consomme(TypeLexème.DANS) {
-        syntaxeuse.rapporte_erreur("Attendu 'dans'")
-        retourne
+        syntaxeuse.rapporte_erreur("Attendu 'dans'");
+        retourne;
     }
 
-    expr_dans := syntaxeuse.analyse_expression()
-    syntaxeuse.assembleuse.ajoute_noeud(expr_dans)
+    expr_dans := syntaxeuse.analyse_expression();
+    syntaxeuse.assembleuse.ajoute_noeud(expr_dans);
 
     si !syntaxeuse.consomme(TypeLexème.FIN_CONTROLE) {
-        syntaxeuse.rapporte_erreur("Attendu '%}'")
-        retourne
+        syntaxeuse.rapporte_erreur("Attendu '%}'");
+        retourne;
     }
 
-    _ := syntaxeuse.assembleuse.empile_noeud(TypeNoeud.BLOC, syntaxeuse.données())
+    _ := syntaxeuse.assembleuse.empile_noeud(TypeNoeud.BLOC, syntaxeuse.données());
 
-    syntaxeuse.analyse_page()
+    syntaxeuse.analyse_page();
 }
 
 rapporte_erreur :: fonc (syntaxeuse: &Syntaxeuse, message: chaine)
 {
-    syntaxeuse.avance()
+    syntaxeuse.avance();
 
-    enchaineuse: Enchaineuse
-    initialise_enchaineuse(*enchaineuse)
+    enchaineuse: Enchaineuse;
+    initialise_enchaineuse(*enchaineuse);
 
-    lexème := syntaxeuse.données()
+    lexème := syntaxeuse.données();
 
-    imprime_dans_enchaineuse(*enchaineuse, "ligne %, % : %", lexème.ligne, message, lexème.chn)
+    imprime_dans_enchaineuse(*enchaineuse, "ligne %, % : %", lexème.ligne, message, lexème.chn);
 
-    message_erreur := chaine_depuis_enchaineuse(*enchaineuse)
+    message_erreur := chaine_depuis_enchaineuse(*enchaineuse);
 
-    tableau_ajoute(*syntaxeuse.erreurs, message_erreur)
+    tableau_ajoute(*syntaxeuse.erreurs, message_erreur);
 }
 
 apparie_expression :: fonc (syntaxeuse: &Syntaxeuse) -> bool
 {
-    lexème := syntaxeuse.lexème_courant()
+    lexème := syntaxeuse.lexème_courant();
 
     si lexème == TypeLexème.CHAINE_CARACTÈRE {
-        retourne vrai
+        retourne vrai;
     }
 
-    retourne faux
+    retourne faux;
 }
 
 apparie_expression_secondaire :: fonc (syntaxeuse: &Syntaxeuse) -> bool
 {
-    lexème := syntaxeuse.lexème_courant()
+    lexème := syntaxeuse.lexème_courant();
 
     si lexème == TypeLexème.POINT {
-        retourne vrai
+        retourne vrai;
     }
 
-    retourne faux
+    retourne faux;
 }
 
 analyse_expression :: fonc (syntaxeuse: &Syntaxeuse, précédence : z32 = 0) -> *NoeudSyntaxique
 {
-    expr := syntaxeuse.analyse_expression_primaire()
+    expr := syntaxeuse.analyse_expression_primaire();
 
     tantque syntaxeuse.apparie_expression_secondaire() {
         si précédence == 1 {
-            arrête
+            arrête;
         }
 
-        expr = syntaxeuse.analyse_expression_secondaire(expr)
+        expr = syntaxeuse.analyse_expression_secondaire(expr);
     }
 
-    retourne expr
+    retourne expr;
 }
 
 analyse_expression_primaire :: fonc (syntaxeuse: &Syntaxeuse) -> *NoeudSyntaxique
 {
-    lexème := syntaxeuse.lexème_courant()
+    lexème := syntaxeuse.lexème_courant();
 
     si lexème == TypeLexème.CHAINE_CARACTÈRE {
-        syntaxeuse.avance()
+        syntaxeuse.avance();
 
-        noeud := syntaxeuse.assembleuse.crée_noeud(TypeNoeud.VARIABLE, syntaxeuse.données())
+        noeud := syntaxeuse.assembleuse.crée_noeud(TypeNoeud.VARIABLE, syntaxeuse.données());
 
-        retourne noeud
+        retourne noeud;
     }
 
-    retourne nul
+    retourne nul;
 }
 
 analyse_expression_secondaire :: fonc (syntaxeuse: &Syntaxeuse, gauche: *NoeudSyntaxique) -> *NoeudSyntaxique
 {
-    lexème := syntaxeuse.lexème_courant()
+    lexème := syntaxeuse.lexème_courant();
 
     si lexème == TypeLexème.POINT {
-        syntaxeuse.avance()
+        syntaxeuse.avance();
 
-        noeud := syntaxeuse.assembleuse.crée_noeud(TypeNoeud.ACCÈS_RUBRIQUE, syntaxeuse.données())
-        droite := syntaxeuse.analyse_expression(1)
+        noeud := syntaxeuse.assembleuse.crée_noeud(TypeNoeud.ACCÈS_RUBRIQUE, syntaxeuse.données());
+        droite := syntaxeuse.analyse_expression(1);
 
-        noeud.ajoute_noeud(gauche)
-        noeud.ajoute_noeud(droite)
+        noeud.ajoute_noeud(gauche);
+        noeud.ajoute_noeud(droite);
 
-        retourne noeud
+        retourne noeud;
     }
 
-    retourne nul
+    retourne nul;
 }

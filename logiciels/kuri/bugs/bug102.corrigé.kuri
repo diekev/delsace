@@ -3,34 +3,34 @@
  * Catégorie : [validation sémantique, fonction polymorphique, type variadique]
  */
 
-importe Fondation
+importe Fondation;
 
 imprime_arguments_variadiques :: fonc (message: chaine, a: $T, args: ...$S)
 {
-    imprime("%\n", message)
-    imprime("a = %\n", a)
+    imprime("%\n", message);
+    imprime("a = %\n", a);
     pour args {
-        imprime("arg %: %\n", indice_it, it)
+        imprime("arg %: %\n", indice_it, it);
     }
 }
 
 arguments_variadiques :: fonc (a: $T, args: ...T)
 {
-    imprime_arguments_variadiques("arguments_variadiques", a, ...args)
+    imprime_arguments_variadiques("arguments_variadiques", a, ...args);
 }
 
 arguments_variadiques_pointeur :: fonc (a: $T, args: ...*T)
 {
-    imprime_arguments_variadiques("arguments_variadiques_pointeur", a, ...args)
+    imprime_arguments_variadiques("arguments_variadiques_pointeur", a, ...args);
 }
 
 principale :: fonc ()
 {
-    arguments_variadiques(0, 1, 2, 3, 4)
-    v := 0
-    w := 1
-    x := 2
-    y := 3
-    z := 4
-    arguments_variadiques_pointeur(v, *w, *x, *y, *z)
+    arguments_variadiques(0, 1, 2, 3, 4);
+    v := 0;
+    w := 1;
+    x := 2;
+    y := 3;
+    z := 4;
+    arguments_variadiques_pointeur(v, *w, *x, *y, *z);
 }

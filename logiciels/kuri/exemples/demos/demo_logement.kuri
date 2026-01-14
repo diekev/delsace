@@ -1,124 +1,124 @@
-importe Fondation
+importe Fondation;
 
 test_logement_tableau :: fonc ()
 {
-    imprime("------------------------------------\n")
-    imprime("TABLEAU\n\n")
+    imprime("------------------------------------\n");
+    imprime("TABLEAU\n\n");
 
-    tableau := loge_tableau(z32, 10)
+    tableau := loge_tableau(z32, 10);
 
-    imprime("tableau.pointeur : %\n", tableau.pointeur)
-    imprime("tableau.capacité : %\n", tableau.capacité)
-    imprime("tableau.taille   : %\n", tableau.taille)
+    imprime("tableau.pointeur : %\n", tableau.pointeur);
+    imprime("tableau.capacité : %\n", tableau.capacité);
+    imprime("tableau.taille   : %\n", tableau.taille);
 
-    tableau_ajoute(*tableau, 3)
-    tableau_ajoute(*tableau, 4)
-    tableau_ajoute(*tableau, 5)
-    tableau_ajoute(*tableau, 6)
-    tableau_ajoute(*tableau, 7)
-
-    pour tableau {
-        imprime("-- %\n", it)
-    }
-
-    reloge_tableau(tableau, 20)
-
-    imprime("tableau.pointeur : %\n", tableau.pointeur)
-    imprime("tableau.capacité : %\n", tableau.capacité)
-    imprime("tableau.taille   : %\n", tableau.taille)
+    tableau_ajoute(*tableau, 3);
+    tableau_ajoute(*tableau, 4);
+    tableau_ajoute(*tableau, 5);
+    tableau_ajoute(*tableau, 6);
+    tableau_ajoute(*tableau, 7);
 
     pour tableau {
-        imprime("-- %\n", it)
+        imprime("-- %\n", it);
     }
 
-    déloge(tableau)
+    reloge_tableau(tableau, 20);
 
-    imprime("tableau.pointeur : %\n", tableau.pointeur)
-    imprime("tableau.capacité : %\n", tableau.capacité)
-    imprime("tableau.taille   : %\n", tableau.taille)
+    imprime("tableau.pointeur : %\n", tableau.pointeur);
+    imprime("tableau.capacité : %\n", tableau.capacité);
+    imprime("tableau.taille   : %\n", tableau.taille);
 
-    imprime("\n")
+    pour tableau {
+        imprime("-- %\n", it);
+    }
+
+    déloge(tableau);
+
+    imprime("tableau.pointeur : %\n", tableau.pointeur);
+    imprime("tableau.capacité : %\n", tableau.capacité);
+    imprime("tableau.taille   : %\n", tableau.taille);
+
+    imprime("\n");
 }
 
 test_logement_chaine :: fonc ()
 {
-    imprime("------------------------------------\n")
-    imprime("CHAINE\n\n")
+    imprime("------------------------------------\n");
+    imprime("CHAINE\n\n");
 
-    chn := loge_chaine(10)
+    chn := loge_chaine(10);
 
-    imprime("chn.pointeur : %\n", chn.pointeur)
-    imprime("chn.taille   : %\n", chn.taille)
+    imprime("chn.pointeur : %\n", chn.pointeur);
+    imprime("chn.taille   : %\n", chn.taille);
 
-    chn[0] = 'k'
-    chn[1] = 'u'
-    chn[2] = 'r'
-    chn[3] = 'i'
-
-    pour chn {
-        imprime("-- %\n", it)
-    }
-
-    reloge_chaine(chn, 20)
-
-    imprime("chn.pointeur : %\n", chn.pointeur)
-    imprime("chn.taille   : %\n", chn.taille)
+    chn[0] = 'k';
+    chn[1] = 'u';
+    chn[2] = 'r';
+    chn[3] = 'i';
 
     pour chn {
-        imprime("-- %\n", it)
+        imprime("-- %\n", it);
     }
 
-    déloge(chn)
+    reloge_chaine(chn, 20);
 
-    imprime("chn.pointeur : %\n", chn.pointeur)
-    imprime("chn.taille   : %\n", chn.taille)
+    imprime("chn.pointeur : %\n", chn.pointeur);
+    imprime("chn.taille   : %\n", chn.taille);
 
-    imprime("\n")
+    pour chn {
+        imprime("-- %\n", it);
+    }
+
+    déloge(chn);
+
+    imprime("chn.pointeur : %\n", chn.pointeur);
+    imprime("chn.taille   : %\n", chn.taille);
+
+    imprime("\n");
 }
 
 test_logement_scalaire :: fonc ()
 {
-    imprime("------------------------------------\n")
-    imprime("STRUCTURE\n\n")
+    imprime("------------------------------------\n");
+    imprime("STRUCTURE\n\n");
 
     Vecteur :: struct {
-        x := 1
-        y := 2
-        z := 3
+        x := 1;
+        y := 2;
+        z := 3;
     }
 
-    v := loge(Vecteur)
+    v := loge(Vecteur);
 
-    imprime("v   : %\n", v)
-    imprime("v.x : %\n", v.x)
-    imprime("v.y : %\n", v.y)
-    imprime("v.z : %\n", v.z)
+    imprime("v   : %\n", v);
+    imprime("v.x : %\n", v.x);
+    imprime("v.y : %\n", v.y);
+    imprime("v.z : %\n", v.z);
 
-    v.x *= 2
-    v.y *= 2
-    v.z *= 2
+    v.x *= 2;
+    v.y *= 2;
+    v.z *= 2;
 
-    imprime("v.x : %\n", v.x)
-    imprime("v.y : %\n", v.y)
-    imprime("v.z : %\n", v.z)
+    imprime("v.x : %\n", v.x);
+    imprime("v.y : %\n", v.y);
+    imprime("v.z : %\n", v.z);
 
-    reloge(v)
+    reloge(v);
 
-    imprime("v   : %\n", v)
-    imprime("v.x : %\n", v.x)
-    imprime("v.y : %\n", v.y)
-    imprime("v.z : %\n", v.z)
+    imprime("v   : %\n", v);
+    imprime("v.x : %\n", v.x);
+    imprime("v.y : %\n", v.y);
+    imprime("v.z : %\n", v.z);
 
-    déloge(v)
+    déloge(v);
 
-    imprime("v   : %\n", v)
+    imprime("v   : %\n", v);
 
-    imprime("\n")
+    imprime("\n");
 }
 
 principale :: fonc ()
 {
-    test_logement_chaine()
-    test_logement_tableau()
-    test_logement_scalaire()
+    test_logement_chaine();
+    test_logement_tableau();
+    test_logement_scalaire();
 }

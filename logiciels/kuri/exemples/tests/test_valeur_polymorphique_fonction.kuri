@@ -1,38 +1,38 @@
-importe Fondation
-importe Sérialisation
+importe Fondation;
+importe Sérialisation;
 
 imprime_N :: fonc (tampon: *TamponFixe($T, $N) @inutilisée)
 {
-    imprime("N = %\n", N)
+    imprime("N = %\n", N);
 }
 
 test_tampons :: fonc ()
 {
-    tampon8: TamponFixe(T = z32, N = 8)
-    imprime_N(*tampon8)
+    tampon8: TamponFixe(T = z32, N = 8);
+    imprime_N(*tampon8);
 
-    tampon16: TamponFixe(T = z32, N = 16)
-    imprime_N(*tampon16)
+    tampon16: TamponFixe(T = z32, N = 16);
+    imprime_N(*tampon16);
 }
 
 test_valeur :: fonc ($N: z32)
 {
-    imprime("%\n", N)
+    imprime("%\n", N);
 }
 
 fonction_rappel :: fonc ()
 {
-    imprime("Impression depuis fonction rappel !\n")
+    imprime("Impression depuis fonction rappel !\n");
 }
 
 test_valeur_fonction :: fonc ($Fonction: fonc ())
 {
-    Fonction()
+    Fonction();
 }
 
 principale :: fonc ()
 {
-    test_valeur(456789)
-    test_tampons()
-    test_valeur_fonction(fonction_rappel)
+    test_valeur(456789);
+    test_tampons();
+    test_valeur_fonction(fonction_rappel);
 }

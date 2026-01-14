@@ -5,15 +5,15 @@
 
 #portée_fichier
 
-table_virtuelle_error := TableVirtuelleObject(classe = Error)
+table_virtuelle_error := TableVirtuelleObject(classe = Error);
 
 #portée_export
 
 Error :: struct {
-    empl objet: Object
-    table = *table_virtuelle_error
+    empl objet: Object;
+    table = *table_virtuelle_error;
 
-    message: *PrimitiveChaine @slot "[[ErrorData]]"
+    message: *PrimitiveChaine @slot "[[ErrorData]]";
 }
 
 /** \} */
@@ -25,116 +25,116 @@ Error :: struct {
 
 #portée_fichier
 
-table_virtuelle_error_prototype := TableVirtuelleObject(classe = ErrorPrototype)
+table_virtuelle_error_prototype := TableVirtuelleObject(classe = ErrorPrototype);
 
 #portée_export
 
 ErrorPrototype :: struct {
-    empl objet: Object
-    table = *table_virtuelle_error_prototype
+    empl objet: Object;
+    table = *table_virtuelle_error_prototype;
 }
 
 crée_error_prototype :: fonc (realm: *Realm, prototype: *ObjectPrototype) -> *ErrorPrototype
 {
-    tas_de_mémoire := realm.donne_tas_de_mémoire()
-    résultat := tas_de_mémoire.alloue(ErrorPrototype)
-    résultat.prototype = prototype
-    résultat.ajoute_fonction_native(STR_toString, error_prototype_to_string)
-    initialise_error_object(realm, résultat, STR_Error, "")
-    retourne résultat
+    tas_de_mémoire := realm.donne_tas_de_mémoire();
+    résultat := tas_de_mémoire.alloue(ErrorPrototype);
+    résultat.prototype = prototype;
+    résultat.ajoute_fonction_native(STR_toString, error_prototype_to_string);
+    initialise_error_object(realm, résultat, STR_Error, "");
+    retourne résultat;
 }
 
 initialise_error_object :: fonc (realm: *Realm, object: *Object, nom: ECMAString, message: chaine)
 {
     si realm {
-        enchaineuse: Enchaineuse
-        initialise_enchaineuse(*enchaineuse)
+        enchaineuse: Enchaineuse;
+        initialise_enchaineuse(*enchaineuse);
 
-        ajoute_au_tampon(*enchaineuse, message, "\n")
+        ajoute_au_tampon(*enchaineuse, message, "\n");
 
-        imprime_traceback(*enchaineuse, realm)
+        imprime_traceback(*enchaineuse, realm);
 
-        message = chaine_depuis_enchaineuse(*enchaineuse)
+        message = chaine_depuis_enchaineuse(*enchaineuse);
     }
 
-    desc: PropertyDescriptor
-    initialise_property_descriptor(*desc, Valeur(String = crée_chaine(object.donne_tas_de_mémoire(), nom)), Configurable)
-    define_property_or_throw(object, STR_name, desc)
+    desc: PropertyDescriptor;
+    initialise_property_descriptor(*desc, Valeur(String = crée_chaine(object.donne_tas_de_mémoire(), nom)), Configurable);
+    define_property_or_throw(object, STR_name, desc);
 
-    initialise_property_descriptor(*desc, Valeur(String = crée_chaine(object.donne_tas_de_mémoire(), crée_chaine_utf16_unique(message))), DrapeauxPropriété.zéro)
-    define_property_or_throw(object, STR_message, desc)
+    initialise_property_descriptor(*desc, Valeur(String = crée_chaine(object.donne_tas_de_mémoire(), crée_chaine_utf16_unique(message))), DrapeauxPropriété.zéro);
+    define_property_or_throw(object, STR_message, desc);
 }
 
 #portée_module
 
 imprime_traceback :: fonc (enchaineuse: *Enchaineuse, realm: *Realm)
 {
-    mv := realm.donne_mv()
+    mv := realm.donne_mv();
 
     pour > mv.execution_contexts {
         si it.noeud_exécuté_courant {
             si it.script_or_module {
-                lexème := it.noeud_exécuté_courant.lexème
-                texte := it.script_or_module.source.donne_ligne_pour_lexème(lexème)
+                lexème := it.noeud_exécuté_courant.lexème;
+                texte := it.script_or_module.source.donne_ligne_pour_lexème(lexème);
 
-                ligne_pour_erreur := donne_ligne_pour_erreur(texte, lexème.texte.pointeur - texte.pointeur)
+                ligne_pour_erreur := donne_ligne_pour_erreur(texte, lexème.texte.pointeur - texte.pointeur);
 
-                ajoute_au_tampon(enchaineuse, "    at '", ligne_pour_erreur, "'\n")
-                continue
+                ajoute_au_tampon(enchaineuse, "    at '", ligne_pour_erreur, "'\n");
+                continue;
             }
         }
 
         si it.function {
-            ajoute_au_tampon(enchaineuse, "    at ", it.function.donne_nom(), "\n")
+            ajoute_au_tampon(enchaineuse, "    at ", it.function.donne_nom(), "\n");
         }
         sinon si it.script_or_module {
-            ajoute_au_tampon(enchaineuse, "    at script\n")
+            ajoute_au_tampon(enchaineuse, "    at script\n");
         }
         sinon {
-            ajoute_au_tampon(enchaineuse, "    at sans fonction ou script\n")
+            ajoute_au_tampon(enchaineuse, "    at sans fonction ou script\n");
         }
     }
 }
 
 donne_ligne_pour_lexème :: fonc (source: &TexteSource, lexème: *Lexème) -> chaine
 {
-    premier_lexème := source.lexèmes.pointeur
-    dernier_lexème := source.lexèmes.pointeur + source.lexèmes.taille
+    premier_lexème := source.lexèmes.pointeur;
+    dernier_lexème := source.lexèmes.pointeur + source.lexèmes.taille;
 
     saufsi premier_lexème <= lexème < dernier_lexème {
-        retourne "le lexème ne vient pas du script"
+        retourne "le lexème ne vient pas du script";
     }
 
-    début_source := source.texte.pointeur
-    fin_source := début_source + source.texte.taille
+    début_source := source.texte.pointeur;
+    fin_source := début_source + source.texte.taille;
 
-    curseur := lexème.texte.pointeur
+    curseur := lexème.texte.pointeur;
     tantque curseur >= début_source {
         si mémoire(curseur) == '\n' {
-            curseur += 1
-            arrête
+            curseur += 1;
+            arrête;
         }
 
-        curseur -= 1
+        curseur -= 1;
     }
 
-    résultat := chaine(curseur, lexème.texte.pointeur - curseur)
+    résultat := chaine(curseur, lexème.texte.pointeur - curseur);
 
-    curseur = lexème.texte.pointeur
+    curseur = lexème.texte.pointeur;
     tantque curseur < fin_source {
         si mémoire(curseur) == '\n' {
-            arrête
+            arrête;
         }
 
-        résultat.taille += 1
-        curseur += 1
+        résultat.taille += 1;
+        curseur += 1;
     }
 
     si résultat.taille == 0 {
-        retourne "pas de texte trouvé"
+        retourne "pas de texte trouvé";
     }
 
-    retourne résultat
+    retourne résultat;
 }
 
 /* 20.5.3.4 Error.prototype.toString ( )
@@ -142,98 +142,98 @@ donne_ligne_pour_lexème :: fonc (source: &TexteSource, lexème: *Lexème) -> ch
 error_prototype_to_string :: fonc (empl params: *ParamètresObjectCall) -> Valeur
 {
     // 1. Let O be the this value.
-    O := this_value
+    O := this_value;
 
     // 2. If O is not an Object, throw a TypeError exception.
     saufsi O.est_object() {
-        retourne lance_type_error(interpréteuse, "not an Object")
+        retourne lance_type_error(interpréteuse, "not an Object");
     }
 
     // 3. Let name be ? Get(O, "name").
-    name := get(O.donne_objet(), STR_name)
+    name := get(O.donne_objet(), STR_name);
     si interpréteuse.possède_exception() {
-        retourne js_undefined
+        retourne js_undefined;
     }
 
     // 4. If name is undefined, set name to "Error"; otherwise set name to ? ToString(name).
     si name.est_undefined() {
-        name = crée_chaine(interpréteuse.donne_realm(), STR_Error)
+        name = crée_chaine(interpréteuse.donne_realm(), STR_Error);
     }
     sinon {
-        name = to_string(interpréteuse, name)
+        name = to_string(interpréteuse, name);
         si interpréteuse.possède_exception() {
-            retourne js_undefined
+            retourne js_undefined;
         }
     }
 
     // 5. Let msg be ? Get(O, "message").
-    msg := get(O.donne_objet(), STR_message)
+    msg := get(O.donne_objet(), STR_message);
     si interpréteuse.possède_exception() {
-        retourne js_undefined
+        retourne js_undefined;
     }
 
     // 6. If msg is undefined, set msg to the empty String; otherwise set msg to ? ToString(msg).
     si msg.est_undefined() {
-        msg = crée_chaine(interpréteuse.donne_realm(), crée_chaine_utf16_unique_vide())
+        msg = crée_chaine(interpréteuse.donne_realm(), crée_chaine_utf16_unique_vide());
     }
     sinon {
-        msg = to_string(interpréteuse, msg)
+        msg = to_string(interpréteuse, msg);
         si interpréteuse.possède_exception() {
-            retourne js_undefined
+            retourne js_undefined;
         }
     }
 
     // 7. If name is the empty String, return msg.
     si name.String.texte.est_vide() {
-        retourne msg
+        retourne msg;
     }
 
     // 8. If msg is the empty String, return name.
     si msg.String.texte.est_vide() {
-        retourne name
+        retourne name;
     }
 
     // 9. Return the string-concatenation of name, the code unit 0x003A (COLON), the code unit 0x0020 (SPACE), and msg.
-    chn_name := name.String.texte
-    chn_msg := msg.String.texte
-    chn_résultat := imprime_chaine("%: %", chn_name, chn_msg)
+    chn_name := name.String.texte;
+    chn_msg := msg.String.texte;
+    chn_résultat := imprime_chaine("%: %", chn_name, chn_msg);
 
-    retourne crée_chaine(interpréteuse.donne_realm(), crée_chaine_utf16_unique(chn_résultat))
+    retourne crée_chaine(interpréteuse.donne_realm(), crée_chaine_utf16_unique(chn_résultat));
 }
 
 error_constructor_sur_call_or_construct :: fonc (empl params: *ParamètresCallOrConstruct, native_error_prototype: *Object, rappel_allocation_objet: TypeFonctionAllocationObjet) -> Valeur
 {
-    realm := interpréteuse.donne_realm()
+    realm := interpréteuse.donne_realm();
 
     // 1. If NewTarget is undefined, let newTarget be the active function object; else let newTarget be NewTarget.
     si new_target.est_undefined() {
-        new_target.Object = donne_active_function_object(interpréteuse)
+        new_target.Object = donne_active_function_object(interpréteuse);
     }
 
     // 2. Let O be ? OrdinaryCreateFromConstructor(newTarget, "%NativeError.prototype%", « [[ErrorData]] »).
-    new_target_object := new_target.donne_objet().vérifie_comme(Function)
-    O := ordinary_create_from_constructor(realm, new_target_object, native_error_prototype, rappel_allocation_objet)
+    new_target_object := new_target.donne_objet().vérifie_comme(Function);
+    O := ordinary_create_from_constructor(realm, new_target_object, native_error_prototype, rappel_allocation_objet);
     si interpréteuse.possède_exception() {
-        retourne js_undefined
+        retourne js_undefined;
     }
 
     // 3. If message is not undefined, then
-    message := params.donne_argument(0)
+    message := params.donne_argument(0);
     saufsi message.est_undefined() {
         // a. Let msg be ? ToString(message).
-        msg := to_string(interpréteuse, message)
+        msg := to_string(interpréteuse, message);
         si interpréteuse.possède_exception() {
-            retourne js_undefined
+            retourne js_undefined;
         }
 
         // À FAIRE b. Perform CreateNonEnumerableDataPropertyOrThrow(O, "message", msg).
-        create_data_property_or_throw(O, STR_message, msg)
+        create_data_property_or_throw(O, STR_message, msg);
     }
 
     // À FAIRE 4. Perform ? InstallErrorCause(O, options).
 
     // 5. Return O.
-    retourne O
+    retourne O;
 }
 
 /** \} */
@@ -244,53 +244,53 @@ error_constructor_sur_call_or_construct :: fonc (empl params: *ParamètresCallOr
 
 #portée_fichier
 
-table_virtuelle_eval_error := TableVirtuelleObject(classe = EvalError)
-table_virtuelle_range_error := TableVirtuelleObject(classe = RangeError)
-table_virtuelle_reference_error := TableVirtuelleObject(classe = ReferenceError)
-table_virtuelle_syntax_error := TableVirtuelleObject(classe = SyntaxError)
-table_virtuelle_type_error := TableVirtuelleObject(classe = TypeError)
-table_virtuelle_uri_error := TableVirtuelleObject(classe = URIError)
+table_virtuelle_eval_error := TableVirtuelleObject(classe = EvalError);
+table_virtuelle_range_error := TableVirtuelleObject(classe = RangeError);
+table_virtuelle_reference_error := TableVirtuelleObject(classe = ReferenceError);
+table_virtuelle_syntax_error := TableVirtuelleObject(classe = SyntaxError);
+table_virtuelle_type_error := TableVirtuelleObject(classe = TypeError);
+table_virtuelle_uri_error := TableVirtuelleObject(classe = URIError);
 
 #portée_export
 
 EvalError :: struct {
-    empl error: Error
-    table = *table_virtuelle_eval_error
+    empl error: Error;
+    table = *table_virtuelle_eval_error;
 }
 
 RangeError :: struct {
-    empl error: Error
-    table = *table_virtuelle_range_error
+    empl error: Error;
+    table = *table_virtuelle_range_error;
 }
 
 ReferenceError :: struct {
-    empl error: Error
-    table = *table_virtuelle_reference_error
+    empl error: Error;
+    table = *table_virtuelle_reference_error;
 }
 
 SyntaxError :: struct {
-    empl error: Error
-    table = *table_virtuelle_syntax_error
+    empl error: Error;
+    table = *table_virtuelle_syntax_error;
 }
 
 crée_erreur_de_parsage :: fonc (realm: *Realm, message: chaine) -> *SyntaxError
 {
-    tas_de_mémoire := realm.donne_tas_de_mémoire()
-    résultat := tas_de_mémoire.alloue(SyntaxError)
-    résultat.prototype = realm.intrinsics.syntax_error_prototype
-    résultat.message = crée_chaine(realm, crée_chaine_utf16_unique(message))
-    initialise_error_object(nul, résultat, STR_SyntaxError, message)
-    retourne résultat
+    tas_de_mémoire := realm.donne_tas_de_mémoire();
+    résultat := tas_de_mémoire.alloue(SyntaxError);
+    résultat.prototype = realm.intrinsics.syntax_error_prototype;
+    résultat.message = crée_chaine(realm, crée_chaine_utf16_unique(message));
+    initialise_error_object(nul, résultat, STR_SyntaxError, message);
+    retourne résultat;
 }
 
 TypeError :: struct {
-    empl error: Error
-    table = *table_virtuelle_type_error
+    empl error: Error;
+    table = *table_virtuelle_type_error;
 }
 
 URIError :: struct {
-    empl error: Error
-    table = *table_virtuelle_uri_error
+    empl error: Error;
+    table = *table_virtuelle_uri_error;
 }
 
 /** \} */
@@ -300,8 +300,8 @@ URIError :: struct {
 génère_structures_native_errors :: fonc ()
 {
     InfoNativeError :: struct {
-        nom: chaine
-        nom_variable: chaine
+        nom: chaine;
+        nom_variable: chaine;
     }
 
     infos := [
@@ -311,13 +311,13 @@ génère_structures_native_errors :: fonc ()
         InfoNativeError("SyntaxError", "syntax_error"),
         InfoNativeError("TypeError", "type_error"),
         InfoNativeError("URIError", "uri_error")
-    ]
+    ];
 
-    enchaineuse: Enchaineuse
-    initialise_enchaineuse(*enchaineuse)
+    enchaineuse: Enchaineuse;
+    initialise_enchaineuse(*enchaineuse);
 
-    ajoute_au_tampon(*enchaineuse, "importe Chaine\n")
-    ajoute_au_tampon(*enchaineuse, "importe Fondation\n")
+    ajoute_au_tampon(*enchaineuse, "importe Chaine\n");
+    ajoute_au_tampon(*enchaineuse, "importe Fondation\n");
 
     chaine_déclaration_error := «
 #portée_fichier
@@ -361,7 +361,7 @@ crée_\\(1)_prototype :: fonc (tas_de_mémoire: *TasDeMémoire, prototype: *Erro
     résultat.prototype = prototype
     retourne résultat
 }
-»
+»;
     chaine_déclaration_constructor := «
 \\(0)Constructor :: struct {
     empl builtin_function: BuiltInFunction
@@ -398,20 +398,20 @@ crée_\\(1)_instance :: fonc (realm: *Realm) -> *Object
     realm := params.interpréteuse.donne_realm()
     retourne error_constructor_sur_call_or_construct(params, realm.intrinsics.\\(1)_prototype, crée_\\(1)_instance)
 }
-»
+»;
     
-    fmt_imprime_dans_enchaineuse(*enchaineuse, chaine_déclaration_constructor, "Error", "error")
+    fmt_imprime_dans_enchaineuse(*enchaineuse, chaine_déclaration_constructor, "Error", "error");
 
     pour infos {
-        fmt_imprime_dans_enchaineuse(*enchaineuse, chaine_déclaration_error, it.nom, it.nom_variable)
-        fmt_imprime_dans_enchaineuse(*enchaineuse, chaine_déclaration_constructor, it.nom, it.nom_variable)
+        fmt_imprime_dans_enchaineuse(*enchaineuse, chaine_déclaration_error, it.nom, it.nom_variable);
+        fmt_imprime_dans_enchaineuse(*enchaineuse, chaine_déclaration_constructor, it.nom, it.nom_variable);
     }
 
-    texte := chaine_depuis_enchaineuse(*enchaineuse)
-    espace := Compilatrice.compilatrice_espace_courant()
-    module := Compilatrice.compilatrice_donne_module(espace, #chemin_de_ce_module)
-    Compilatrice.ajoute_chaine_au_module(espace, module, texte)
-    déloge(texte)
+    texte := chaine_depuis_enchaineuse(*enchaineuse);
+    espace := Compilatrice.compilatrice_espace_courant();
+    module := Compilatrice.compilatrice_donne_module(espace, #chemin_de_ce_module);
+    Compilatrice.ajoute_chaine_au_module(espace, module, texte);
+    déloge(texte);
 }
 
-#exécute génère_structures_native_errors()
+#exécute génère_structures_native_errors();

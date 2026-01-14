@@ -6,299 +6,299 @@
 #portée_module
 
 TableVirtuelleNoeud :: struct {
-    empl base_event_target: TableVirtuelleEventTarget
+    empl base_event_target: TableVirtuelleEventTarget;
 
-    sur_get_the_parent = node_sur_get_the_parent
+    sur_get_the_parent = node_sur_get_the_parent;
 
     /* Appelé quand le noeud est insérer dans un noeud parent. */
-    sur_insertion: fonc (node: *Node)
+    sur_insertion: fonc (node: *Node);
     /* Appelé quand le noeud devinent connecté. */
-    sur_connexion: fonc (node: *Node)
+    sur_connexion: fonc (node: *Node);
     /* Appelé quand le noeud devinent déconnecté. */
-    sur_déconnexion: fonc (node: *Node)
+    sur_déconnexion: fonc (node: *Node);
     /* Appelé quand les enfants sont changés. */
-    sur_changement_enfants: fonc (node: *Node)
+    sur_changement_enfants: fonc (node: *Node);
     /* Appelé quand le document est devenu fully active. */
-    sur_document_fully_active: fonc (node: *Node)
+    sur_document_fully_active: fonc (node: *Node);
 }
 
 #portée_export
 
 /* Ces valeurs sont tirées de la spécification. */
-ELEMENT_NODE : n16 : 1
-ATTRIBUTE_NODE : n16 : 2
-TEXT_NODE : n16 : 3
-CDATA_SECTION_NODE : n16 : 4
+ELEMENT_NODE : n16 : 1;
+ATTRIBUTE_NODE : n16 : 2;
+TEXT_NODE : n16 : 3;
+CDATA_SECTION_NODE : n16 : 4;
 ENTITY_REFERENCE_NODE : n16 : 5 // legacy
 ENTITY_NODE : n16 : 6 // legacy
-PROCESSING_INSTRUCTION_NODE : n16 : 7
-COMMENT_NODE : n16 : 8
-DOCUMENT_NODE : n16 : 9
-DOCUMENT_TYPE_NODE : n16 : 10
-DOCUMENT_FRAGMENT_NODE : n16 : 11
+PROCESSING_INSTRUCTION_NODE : n16 : 7;
+COMMENT_NODE : n16 : 8;
+DOCUMENT_NODE : n16 : 9;
+DOCUMENT_TYPE_NODE : n16 : 10;
+DOCUMENT_FRAGMENT_NODE : n16 : 11;
 NOTATION_NODE : n16 : 12 // legacy
 
 GenreNoeud :: énum n16 {
-    Element :: ELEMENT_NODE
-    Attr :: ATTRIBUTE_NODE
-    Texte :: TEXT_NODE
-    Section_CDATA :: CDATA_SECTION_NODE
-    ProcessingInstruction :: PROCESSING_INSTRUCTION_NODE
-    Commentaire :: COMMENT_NODE
-    Document :: DOCUMENT_NODE
-    DocumentType :: DOCUMENT_TYPE_NODE
-    DocumentFragment :: DOCUMENT_FRAGMENT_NODE
-    ShadowRoot
+    Element :: ELEMENT_NODE;
+    Attr :: ATTRIBUTE_NODE;
+    Texte :: TEXT_NODE;
+    Section_CDATA :: CDATA_SECTION_NODE;
+    ProcessingInstruction :: PROCESSING_INSTRUCTION_NODE;
+    Commentaire :: COMMENT_NODE;
+    Document :: DOCUMENT_NODE;
+    DocumentType :: DOCUMENT_TYPE_NODE;
+    DocumentFragment :: DOCUMENT_FRAGMENT_NODE;
+    ShadowRoot;
 }
 
 Node :: struct {
-    empl event_target: EventTarget
+    empl event_target: EventTarget;
 
-    genre: GenreNoeud
+    genre: GenreNoeud;
 
-    parent: *Node
-    enfants: [..]*Node
+    parent: *Node;
+    enfants: [..]*Node;
 
-    attributs: [..]*Attr
+    attributs: [..]*Attr;
 
-    document: *Document
+    document: *Document;
 
     /* Slottable. */
     /* https://dom.spec.whatwg.org/#slotable-name */
-    name: DOMString
+    name: DOMString;
     /* https://dom.spec.whatwg.org/#slotable-assigned-slot */
-    assigned_slot: *Element
+    assigned_slot: *Element;
 }
 
 #portée_module
 
 noeud_sur_destruction :: fonc (base: *JS.Cellule)
 {
-    event_target_sur_destruction(base)
-    noeud := base comme *Node
-    noeud_détruit_données(noeud)
+    event_target_sur_destruction(base);
+    noeud := base comme *Node;
+    noeud_détruit_données(noeud);
 }
 
 noeud_sur_document_est_devenu_fully_active :: fonc (noeud: *Node) -> DécisionTraversée
 {
-    table := noeud.table comme *TableVirtuelleNoeud
+    table := noeud.table comme *TableVirtuelleNoeud;
     si table && table.sur_document_fully_active {
-        table.sur_document_fully_active(noeud)
+        table.sur_document_fully_active(noeud);
     }
-    retourne DécisionTraversée.CONTINUE
+    retourne DécisionTraversée.CONTINUE;
 }
 
 node_sur_get_the_parent :: fonc (base: *EventTarget, event: *Event @inutilisée) -> *EventTarget
 {
-    noeud := base comme *Node
+    noeud := base comme *Node;
     // A node’s get the parent algorithm, given an event, returns the node’s assigned slot,
     // if node is assigned; otherwise node’s parent.
     si noeud.assigned_slot {
-        retourne noeud.assigned_slot
+        retourne noeud.assigned_slot;
     }
-    retourne noeud.parent
+    retourne noeud.parent;
 }
 
 #portée_export
 
 noeud_détruit_données :: fonc (noeud: *Node)
 {
-    déloge(noeud.attributs)
-    déloge(noeud.enfants)
+    déloge(noeud.attributs);
+    déloge(noeud.enfants);
 }
 
 est_document :: fonc (noeud: *Node) -> bool
 {
-    retourne noeud.genre == GenreNoeud.Document
+    retourne noeud.genre == GenreNoeud.Document;
 }
 
 est_élément :: fonc (noeud: *Node) -> bool
 {
-    retourne noeud.genre == GenreNoeud.Element
+    retourne noeud.genre == GenreNoeud.Element;
 }
 
 est_élément_type :: fonc (noeud: *Node, type: chaine) -> *Element
 {
     saufsi est_élément(noeud) {
-        retourne nul
+        retourne nul;
     }
 
-    élément := noeud comme *Element
+    élément := noeud comme *Element;
 
     si élément.local_name == type {
-        retourne élément
+        retourne élément;
     }
 
-    retourne nul
+    retourne nul;
 }
 
 est_élément_type :: fonc (noeud: *Node, tag: DOMString) -> *Element
 {
     saufsi est_élément(noeud) {
-        retourne nul
+        retourne nul;
     }
 
-    élément := noeud comme *Element
+    élément := noeud comme *Element;
 
     si élément.local_name == tag {
-        retourne élément
+        retourne élément;
     }
 
-    retourne nul
+    retourne nul;
 }
 
 est_élément_script :: fonc (noeud: *Node) -> bool
 {
-    retourne est_élément_type(noeud, TAG_script) != nul
+    retourne est_élément_type(noeud, TAG_script) != nul;
 }
 
 est_texte :: fonc (noeud: *Node) -> bool
 {
-    retourne noeud.genre == GenreNoeud.Texte || noeud.genre == GenreNoeud.Section_CDATA
+    retourne noeud.genre == GenreNoeud.Texte || noeud.genre == GenreNoeud.Section_CDATA;
 }
 
 /* https://dom.spec.whatwg.org/#exclusive-text-node */
 est_texte_exclusif :: fonc (noeud: *Node) -> bool
 {
-    retourne noeud.genre == GenreNoeud.Texte
+    retourne noeud.genre == GenreNoeud.Texte;
 }
 
 est_commentaire :: fonc (noeud: *Node) -> bool
 {
-    retourne noeud.genre == GenreNoeud.Commentaire
+    retourne noeud.genre == GenreNoeud.Commentaire;
 }
 
 possède_enfants :: fonc (noeud: *Node) -> bool
 {
-    retourne noeud.enfants.taille != 0
+    retourne noeud.enfants.taille != 0;
 }
 
 dernier_enfant :: fonc (noeud: *Node) -> *Node
 {
-    retourne noeud.enfants[noeud.enfants.taille - 1]
+    retourne noeud.enfants[noeud.enfants.taille - 1];
 }
 
 ajoute_enfant :: fonc (parent: *Node, enfant: *Node)
 {
-    enfant.parent = parent
-    tableau_ajoute(*parent.enfants, enfant)
+    enfant.parent = parent;
+    tableau_ajoute(*parent.enfants, enfant);
 
     si enfant.est_élément() {
-        premier_élément_rencontré := faux
+        premier_élément_rencontré := faux;
 
         pour parent.enfants {
             saufsi it.est_élément() {
-                continue
+                continue;
             }
 
-            élément := it comme *Element
+            élément := it comme *Element;
             saufsi premier_élément_rencontré {
-                premier_élément_rencontré = vrai
-                élément.ajoute_pseudo_classe(CSS.PseudoClasses.FirstChild)
+                premier_élément_rencontré = vrai;
+                élément.ajoute_pseudo_classe(CSS.PseudoClasses.FirstChild);
             }
             sinon {
-                élément.enlève_pseudo_classe(CSS.PseudoClasses.FirstChild)
+                élément.enlève_pseudo_classe(CSS.PseudoClasses.FirstChild);
             }
 
-            élément.enlève_pseudo_classe(CSS.PseudoClasses.LastChild)
+            élément.enlève_pseudo_classe(CSS.PseudoClasses.LastChild);
         }
 
-        élément := enfant comme *Element
-        élément.ajoute_pseudo_classe(CSS.PseudoClasses.LastChild)
+        élément := enfant comme *Element;
+        élément.ajoute_pseudo_classe(CSS.PseudoClasses.LastChild);
     }
 
-    table := enfant.table comme *TableVirtuelleNoeud
+    table := enfant.table comme *TableVirtuelleNoeud;
     si table {
         si table.sur_insertion {
-            table.sur_insertion(enfant)
+            table.sur_insertion(enfant);
         }
         si table.sur_connexion && enfant.est_connecté() {
-            table.sur_connexion(enfant)
+            table.sur_connexion(enfant);
         }
     }
 
-    table = parent.table comme *TableVirtuelleNoeud
+    table = parent.table comme *TableVirtuelleNoeud;
     si table && table.sur_changement_enfants {
-        table.sur_changement_enfants(parent)
+        table.sur_changement_enfants(parent);
     }
 }
 
 /* https://dom.spec.whatwg.org/#dom-node-parentnode */
 donne_parent_node :: fonc (noeud: *Node) -> *Node
 {
-    retourne noeud.parent
+    retourne noeud.parent;
 }
 
 /* https://dom.spec.whatwg.org/#get-text-content */
 donne_text_content :: fonc (noeud: *Node @inutilisée) -> DOMString
 {
     // À FAIRE : implémente
-    retourne crée_chaine_utf16_unique_vide()
+    retourne crée_chaine_utf16_unique_vide();
 }
 
 /* https://dom.spec.whatwg.org/#set-text-content */
 définis_text_content :: fonc (noeud: *Node, valeur: DOMString)
 {
     // À FAIRE : standardise
-    assert(noeud.genre == GenreNoeud.Element)
+    assert(noeud.genre == GenreNoeud.Element);
 
-    résultat := create_text_node(noeud.document, valeur)
+    résultat := create_text_node(noeud.document, valeur);
 
-    noeud.enfants.taille = 0
-    tableau_ajoute(*noeud.enfants, résultat)
+    noeud.enfants.taille = 0;
+    tableau_ajoute(*noeud.enfants, résultat);
 }
 
 /* https://dom.spec.whatwg.org/#dom-node-appendchild */
 append_child :: fonc (noeud: *Node, enfant: *Node) -> *Node
 {
-    retourne append(noeud, enfant)
+    retourne append(noeud, enfant);
 }
 
 /* https://dom.spec.whatwg.org/#dom-node-removechild */
 remove_child :: fonc (node: *Node, child: *Node) -> *Node
 {
-    retourne pre_remove(node, child)
+    retourne pre_remove(node, child);
 }
 
 ajoute_attribut :: fonc (noeud: *Node, nom: DOMString, valeur: DOMString) -> *Attr
 {
-    résultat := crée_noeud_attr(noeud.document, nom, valeur)
-    tableau_ajoute(*noeud.attributs, résultat)
-    retourne résultat
+    résultat := crée_noeud_attr(noeud.document, nom, valeur);
+    tableau_ajoute(*noeud.attributs, résultat);
+    retourne résultat;
 }
 
 possède_attribut :: fonc (noeud: *Node, nom: DOMString) -> bool
 {
-    retourne cherche_attribut(noeud.attributs, nom) != nul
+    retourne cherche_attribut(noeud.attributs, nom) != nul;
 }
 
 cherche_attribut :: fonc (noeud: *Node, nom: DOMString) -> *Attr
 {
-    retourne cherche_attribut(noeud.attributs, nom)
+    retourne cherche_attribut(noeud.attributs, nom);
 }
 
 donne_attribut :: fonc (noeud: *Node, nom_qualifié: DOMString) -> Optionnel(DOMString)
 {
-    attribut := cherche_attribut(noeud, nom_qualifié)
+    attribut := cherche_attribut(noeud, nom_qualifié);
     saufsi attribut {
-        retourne
+        retourne;
     }
-    retourne attribut.valeur
+    retourne attribut.valeur;
 }
 
 donne_attribut_ou_chaine_vide :: fonc (noeud: *Node, nom_qualifié: DOMString) -> DOMString
 {
-    attribut := cherche_attribut(noeud, nom_qualifié)
+    attribut := cherche_attribut(noeud, nom_qualifié);
     saufsi attribut {
-        retourne crée_chaine_utf16_unique_vide()
+        retourne crée_chaine_utf16_unique_vide();
     }
-    retourne attribut.valeur
+    retourne attribut.valeur;
 }
 
 /* https://dom.spec.whatwg.org/#concept-node-document */
 donne_node_document :: fonc (noeud: *Node) -> *Document #enligne
 {
-    retourne noeud.document
+    retourne noeud.document;
 }
 
 /* Retourne le premier enfant ayant le tag donné, ou nul si le noeud n'a pas
@@ -306,37 +306,37 @@ donne_node_document :: fonc (noeud: *Node) -> *Document #enligne
 donne_premier_enfant_taggé :: fonc (noeud: *Node, tag: DOMString) -> *Node
 {
     saufsi noeud {
-        retourne nul
+        retourne nul;
     }
 
     pour noeud.enfants {
         si it.est_élément_type(tag) {
-            retourne it
+            retourne it;
         }
     }
 
-    retourne nul
+    retourne nul;
 }
 
 /* https://dom.spec.whatwg.org/#concept-tree-root */
 donne_racine :: fonc (noeud: *Node) -> *Node
 {
-    résultat := noeud
+    résultat := noeud;
     tantque résultat.parent != nul {
-        résultat = résultat.parent
+        résultat = résultat.parent;
     }
-    retourne résultat
+    retourne résultat;
 }
 
 rassemble_texte_noeud :: fonc (noeud: *Node, rappel_pour_texte: fonc (texte: *Text, données: eini), données: eini)
 {
     pour noeud.enfants {
         si it.est_texte() {
-            texte := it comme *Text
-            rappel_pour_texte(texte, données)
+            texte := it comme *Text;
+            rappel_pour_texte(texte, données);
         }
         sinon {
-            rassemble_texte_noeud(it, rappel_pour_texte, données)
+            rassemble_texte_noeud(it, rappel_pour_texte, données);
         }
     }
 }
@@ -345,65 +345,65 @@ rassemble_texte_noeud :: fonc (noeud: *Node, rappel_pour_texte: fonc (texte: *Te
 extrait_texte_noeud :: fonc (noeud: *Node) -> chaine
 {
     ExtractriceTexte :: struct {
-        texte: ChaineUTF16
+        texte: ChaineUTF16;
     }
 
-    rappel_pour_extraction_texte :: fonc (noeud_texte: *Text, données: eini)
+    rappel_pour_extraction_texte :: fonc (noeud_texte: *Text, données: eini);
     {
-        extractrice := mémoire(données.pointeur comme **ExtractriceTexte)
+        extractrice := mémoire(données.pointeur comme **ExtractriceTexte);
 
-        tableau_réserve(*extractrice.texte.unités, noeud_texte.données.taille())
+        tableau_réserve(*extractrice.texte.unités, noeud_texte.données.taille());
 
         pour noeud_texte.données.unités {
-            tableau_ajoute(*extractrice.texte.unités, it)
+            tableau_ajoute(*extractrice.texte.unités, it);
         }
     }
 
-    extractrice: ExtractriceTexte
-    diffère détruit_chaine(extractrice.texte)
+    extractrice: ExtractriceTexte;
+    diffère détruit_chaine(extractrice.texte);
 
-    rassemble_texte_noeud(noeud, rappel_pour_extraction_texte, *extractrice)
+    rassemble_texte_noeud(noeud, rappel_pour_extraction_texte, *extractrice);
 
-    retourne convertis_vers_chaine(extractrice.texte)
+    retourne convertis_vers_chaine(extractrice.texte);
 }
 
 /* https://dom.spec.whatwg.org/#concept-child-text-content */
 donne_contenu_texte_enfant :: fonc (noeud: *Node) -> ChaineUTF16
 {
-    enchaineuse: EnchaineuseUTF16
-    initialise_enchaineuse(enchaineuse)
+    enchaineuse: EnchaineuseUTF16;
+    initialise_enchaineuse(enchaineuse);
 
     pour noeud.enfants {
         saufsi it.est_texte() {
-            continue
+            continue;
         }
 
-        texte := noeud comme *Text
-        ajoute(enchaineuse, texte.données)
+        texte := noeud comme *Text;
+        ajoute(enchaineuse, texte.données);
     }
 
-    retourne chaine_depuis_enchaineuse(enchaineuse)
+    retourne chaine_depuis_enchaineuse(enchaineuse);
 }
 
 /* https://dom.spec.whatwg.org/#concept-descendant-text-content */
 donne_contenu_texte_descandants :: fonc (noeud: *Node) -> ChaineUTF16
 {
-    rappel_pour_extraction_texte_descandants :: fonc (noeud: *Node, enchaineuse: &EnchaineuseUTF16) -> DécisionTraversée
+    rappel_pour_extraction_texte_descandants :: fonc (noeud: *Node, enchaineuse: &EnchaineuseUTF16) -> DécisionTraversée;
     {
         si noeud.est_texte() {
-            texte := noeud comme *Text
-            ajoute(enchaineuse, texte.données)
+            texte := noeud comme *Text;
+            ajoute(enchaineuse, texte.données);
         }
 
-        retourne DécisionTraversée.CONTINUE
+        retourne DécisionTraversée.CONTINUE;
     }
 
-    enchaineuse: EnchaineuseUTF16
-    initialise_enchaineuse(enchaineuse)
+    enchaineuse: EnchaineuseUTF16;
+    initialise_enchaineuse(enchaineuse);
 
-    traverse_noeud(noeud, rappel_pour_extraction_texte_descandants, enchaineuse)
+    traverse_noeud(noeud, rappel_pour_extraction_texte_descandants, enchaineuse);
 
-    retourne chaine_depuis_enchaineuse(enchaineuse)
+    retourne chaine_depuis_enchaineuse(enchaineuse);
 }
 
 /* https://dom.spec.whatwg.org/#concept-node-length */
@@ -411,16 +411,16 @@ donne_longueur :: fonc (noeud: *Node) -> z64
 {
     discr noeud.genre {
         DocumentType {
-            retourne 0
+            retourne 0;
         }
         Commentaire,
         Texte,
         Section_CDATA,
         ProcessingInstruction {
-            retourne texte.données.taille
+            retourne texte.données.taille;
         }
         sinon {
-            retourne noeud.enfants.taille
+            retourne noeud.enfants.taille;
         }
     }
 }
@@ -428,32 +428,32 @@ donne_longueur :: fonc (noeud: *Node) -> z64
 /* https://dom.spec.whatwg.org/#concept-node-empty */
 est_vide :: fonc (noeud: *Node) -> bool
 {
-    retourne noeud.donne_longueur() == 0
+    retourne noeud.donne_longueur() == 0;
 }
 
 /* https://dom.spec.whatwg.org/#ref-for-dom-nonelementparentnode-getelementbyid%E2%91%A1 */
 get_element_by_id :: fonc (noeud: *Node, chn: DOMString) -> *Element
 {
-    retourne get_element_by_id_recursive(noeud, chn)
+    retourne get_element_by_id_recursive(noeud, chn);
 }
 
 get_element_by_id_recursive :: fonc (noeud: *Node, chn: DOMString) -> *Element
 {
     si noeud.est_élément() {
-        valeur := noeud.donne_attribut(ATTR_id)
+        valeur := noeud.donne_attribut(ATTR_id);
         si valeur.possède_valeur() && valeur.Quelque == chn {
-            retourne noeud comme *Element
+            retourne noeud comme *Element;
         }
     }
 
     pour noeud.enfants {
-        élément := get_element_by_id_recursive(it, chn)
+        élément := get_element_by_id_recursive(it, chn);
         si élément {
-            retourne élément
+            retourne élément;
         }
     }
 
-    retourne nul
+    retourne nul;
 }
 
 /** \} */
@@ -466,13 +466,13 @@ get_element_by_id_recursive :: fonc (noeud: *Node, chn: DOMString) -> *Element
 is_shadow_tree :: fonc (node: *Node) -> bool
 {
     /* A shadow tree is a node tree whose root is a shadow root. */
-    retourne racine_est_shadow_root(node)
+    retourne racine_est_shadow_root(node);
 }
 
 /* https://dom.spec.whatwg.org/#connected */
 est_connecté :: fonc (noeud: *Node) -> bool
 {
-    retourne noeud.donne_racine_shadow_including().est_document()
+    retourne noeud.donne_racine_shadow_including().est_document();
 }
 
 /* 4.2.2.1. Slots
@@ -481,13 +481,13 @@ est_connecté :: fonc (noeud: *Node) -> bool
 /* https://dom.spec.whatwg.org/#concept-slot */
 is_slot :: fonc (node: *Node) -> bool
 {
-    retourne (node.genre == GenreNoeud.Element) && is_slot(node comme *Element)
+    retourne (node.genre == GenreNoeud.Element) && is_slot(node comme *Element);
 }
 
 is_slot :: fonc (element: *Element) -> bool
 {
     /* A shadow tree contains zero or more elements that are slots. */
-    retourne is_shadow_tree(element)
+    retourne is_shadow_tree(element);
 }
 
 /* https://dom.spec.whatwg.org/#shadow-tree-slots */
@@ -497,35 +497,35 @@ slot_sur_changement_attribut :: fonc (element: *Element, local_name: DOMString, 
     si is_slot(element) && local_name == ATTR_name && !namespace.possède_valeur() {
         // 1. If value is oldValue, then return.
         si old_value && value && mémoire(old_value) == mémoire(value) {
-            retourne vrai
+            retourne vrai;
         }
 
         // 2. If value is null and oldValue is the empty string, then return.
         si value == nul && mémoire(old_value).est_vide() {
-            retourne vrai
+            retourne vrai;
         }
 
         // 3. If value is the empty string and oldValue is null, then return.
         si value && mémoire(value).est_vide() && old_value == nul {
-            retourne vrai
+            retourne vrai;
         }
 
         // 4. If value is null or the empty string, then set element’s name to the empty string.
         si value == nul || mémoire(value).est_vide() {
-            element.name = crée_chaine_utf16_unique_vide()
+            element.name = crée_chaine_utf16_unique_vide();
         }
         // 5. Otherwise, set element’s name to value.
         sinon {
-            element.name = mémoire(value)
+            element.name = mémoire(value);
         }
 
         // 6. Run assign slottables for a tree with element’s root.
-        root := donne_racine(element)
-        assign_slottables_for_a_tree(root)
-        retourne vrai
+        root := donne_racine(element);
+        assign_slottables_for_a_tree(root);
+        retourne vrai;
     }
 
-    retourne faux
+    retourne faux;
 }
 
 /* 4.2.2.2. Slottables
@@ -535,14 +535,14 @@ slot_sur_changement_attribut :: fonc (element: *Element, local_name: DOMString, 
 is_slottable :: fonc (node: *Node) -> bool
 {
     /* Element and Text nodes are slottables. */
-    retourne node.genre == GenreNoeud.Element || node.genre == GenreNoeud.Texte
+    retourne node.genre == GenreNoeud.Element || node.genre == GenreNoeud.Texte;
 }
 
 /* https://dom.spec.whatwg.org/#slotable-assigned */
 is_assigned :: fonc (node: *Node) -> bool
 {
     /* A slottable is assigned if its assigned slot is non-null. */
-    retourne node.assigned_slot != nul
+    retourne node.assigned_slot != nul;
 }
 
 /* https://dom.spec.whatwg.org/#light-tree-slotables */
@@ -553,40 +553,40 @@ slottable_sur_changement_attribut :: fonc (element: *Element, local_name: DOMStr
     si local_name == ATTR_slot && !namespace.possède_valeur() {
         // 1. If value is oldValue, then return.
         si old_value && value && mémoire(old_value) == mémoire(value) {
-            retourne vrai
+            retourne vrai;
         }
 
         // 2. If value is null and oldValue is the empty string, then return.
         si value == nul && mémoire(old_value).est_vide() {
-            retourne vrai
+            retourne vrai;
         }
 
         // 3. If value is the empty string and oldValue is null, then return.
         si value && mémoire(value).est_vide() && old_value == nul {
-            retourne vrai
+            retourne vrai;
         }
 
         // 4. If value is null or the empty string, then set element’s name to the empty string.
         si value == nul || mémoire(value).est_vide() {
-            element.name = crée_chaine_utf16_unique_vide()
+            element.name = crée_chaine_utf16_unique_vide();
         }
         // 5. Otherwise, set element’s name to value.
         sinon {
-            element.name = mémoire(value)
+            element.name = mémoire(value);
         }
 
         // 6. If element is assigned, then run assign slottables for element’s assigned slot.
         si is_assigned(element) {
-            assign_slottables(element.assigned_slot)
+            assign_slottables(element.assigned_slot);
         }
 
         // 7. Run assign a slot for element.
-        assign_a_slot(element)
+        assign_a_slot(element);
 
-        retourne vrai
+        retourne vrai;
     }
 
-    retourne faux
+    retourne faux;
 }
 
 /* 4.2.2.3. Finding slots and slottables
@@ -597,121 +597,121 @@ find_a_slot :: fonc (slottable: *Node, open := faux) -> *Element
 {
     // 1. If slottable’s parent is null, then return null.
     si slottable.parent == nul {
-        retourne nul
+        retourne nul;
     }
 
     // 2. Let shadow be slottable’s parent’s shadow root.
-    shadow: *ShadowRoot
+    shadow: *ShadowRoot;
     si slottable.parent.genre == GenreNoeud.Element {
-        shadow = (slottable.parent comme *Element).shadow_root
+        shadow = (slottable.parent comme *Element).shadow_root;
     }
 
     // 3. If shadow is null, then return null.
     saufsi shadow {
-        retourne nul
+        retourne nul;
     }
 
     // 4. If open is true and shadow’s mode is not "open", then return null.
     si open == vrai && shadow.mode != ShadowRootMode.open {
-        retourne nul
+        retourne nul;
     }
 
-    traversée: [..]*Node
-    diffère déloge(traversée)
+    traversée: [..]*Node;
+    diffère déloge(traversée);
 
     pour > shadow.enfants {
-        tableau_ajoute(*traversée, it)
+        tableau_ajoute(*traversée, it);
     }
 
     // 5. If shadow’s slot assignment is "manual", then return the slot in shadow’s descendants
     //    whose manually assigned nodes contains slottable, if any; otherwise null.
     si shadow.slot_assignment == SlotAssignment.manual {
         tantque traversée.taille != 0 {
-            noeud := traversée[traversée.taille - 1]
-            traversée.taille -= 1
+            noeud := traversée[traversée.taille - 1];
+            traversée.taille -= 1;
 
             si noeud.genre == GenreNoeud.Element {
                 /* Nous sommes dans un shadow-tree, donc les éléments sont des slots. */
-                slot := noeud comme *Element
+                slot := noeud comme *Element;
                 si tableau_possède_élément(slot.manually_assigned_nodes, slottable) {
-                    retourne slot
+                    retourne slot;
                 }
             }
 
             pour > noeud.enfants {
-                tableau_ajoute(*traversée, it)
+                tableau_ajoute(*traversée, it);
             }
         }
 
-        retourne nul
+        retourne nul;
     }
 
     // 6. Return the first slot in tree order in shadow’s descendants whose name is slottable’s
     // name, if any; otherwise null.
     tantque traversée.taille != 0 {
-        noeud := traversée[traversée.taille - 1]
-        traversée.taille -= 1
+        noeud := traversée[traversée.taille - 1];
+        traversée.taille -= 1;
 
         si noeud.genre == GenreNoeud.Element {
             /* Nous sommes dans un shadow-tree, donc les éléments sont des slots. */
-            slot := noeud comme *Element
+            slot := noeud comme *Element;
 
             si slot.name == slottable.name {
-                retourne slot
+                retourne slot;
             }
         }
 
         pour > noeud.enfants {
-            tableau_ajoute(*traversée, it)
+            tableau_ajoute(*traversée, it);
         }
     }
 
-    retourne nul
+    retourne nul;
 }
 
 /* https://dom.spec.whatwg.org/#find-slotables */
 find_slottables :: fonc (slot: *Element) -> [..]*Node
 {
     // 1. Let result be « ».
-    result: [..]*Node
+    result: [..]*Node;
 
     // 2. Let root be slot’s root.
-    root := donne_racine(slot) comme *ShadowRoot
+    root := donne_racine(slot) comme *ShadowRoot;
 
     // 3. If root is not a shadow root, then return result.
     saufsi root.genre == GenreNoeud.ShadowRoot {
-        retourne result
+        retourne result;
     }
 
     // 4. Let host be root’s host.
-    host := root.host
+    host := root.host;
 
     // 5. If root’s slot assignment is "manual":
     si root.slot_assignment == SlotAssignment.manual {
         // 1. For each slottable slottable of slot’s manually assigned nodes, if slottable’s parent is host, append slottable to result.
         pour slottable dans slot.manually_assigned_nodes {
             si slottable.parent == host {
-                tableau_ajoute(*result, slottable)
+                tableau_ajoute(*result, slottable);
             }
         }
     }
     // 6. Otherwise, for each slottable child slottable of host, in tree order:
     sinon pour slottable dans host.enfants {
         saufsi is_slottable(slottable) {
-            continue
+            continue;
         }
 
         // 1. Let foundSlot be the result of finding a slot given slottable.
-        found_slot := find_a_slot(slottable)
+        found_slot := find_a_slot(slottable);
 
         // 2. If foundSlot is slot, then append slottable to result.
         si found_slot == slot {
-            tableau_ajoute(*result, slottable)
+            tableau_ajoute(*result, slottable);
         }
     }
 
     // 7. Return result.
-    retourne result
+    retourne result;
 }
 
 /* 4.2.2.4. Assigning slottables and slots
@@ -721,46 +721,46 @@ find_slottables :: fonc (slot: *Element) -> [..]*Node
 assign_slottables :: fonc (slot: *Element)
 {
     // 1. Let slottables be the result of finding slottables for slot.
-    slottables := find_slottables(slot)
+    slottables := find_slottables(slot);
 
     // 2. If slottables and slot’s assigned nodes are not identical, then run signal a slot change for slot.
     saufsi tableaux_ont_mêmes_valeurs_désordonnées(slottables, slot.assigned_nodes) {
-        signal_a_slot_change(slot)
+        signal_a_slot_change(slot);
     }
 
     // 3. Set slot’s assigned nodes to slottables.
-    déloge(slot.assigned_nodes)
-    slot.assigned_nodes = slottables
+    déloge(slot.assigned_nodes);
+    slot.assigned_nodes = slottables;
 
     // 4. For each slottable of slottables, set slottable’s assigned slot to slot.
     pour slottable dans slottables {
-        slottable.assigned_slot = slot
+        slottable.assigned_slot = slot;
     }
 }
 
 /* https://dom.spec.whatwg.org/#assign-slotables-for-a-tree */
 assign_slottables_for_a_tree :: fonc (root: *Node)
 {
-    assert(root.genre == GenreNoeud.ShadowRoot)
+    assert(root.genre == GenreNoeud.ShadowRoot);
 
     /* To assign slottables for a tree, given a node root, run 
      * assign slottables for each slot of root’s inclusive descendants, in tree order. */
 
-    traversée: [..]*Node
-    diffère déloge(traversée)
-    tableau_ajoute(*traversée, root)
+    traversée: [..]*Node;
+    diffère déloge(traversée);
+    tableau_ajoute(*traversée, root);
 
     tantque traversée.taille != 0 {
-        noeud := traversée[traversée.taille - 1]
-        traversée.taille -= 1
+        noeud := traversée[traversée.taille - 1];
+        traversée.taille -= 1;
 
         si noeud.genre == GenreNoeud.Element {
             /* Nous sommes dans un shadow-tree, donc les éléments sont des slots. */
-            assign_slottables(noeud comme *Element)
+            assign_slottables(noeud comme *Element);
         }
 
         pour > noeud.enfants {
-            tableau_ajoute(*traversée, it)
+            tableau_ajoute(*traversée, it);
         }
     }
 }
@@ -769,11 +769,11 @@ assign_slottables_for_a_tree :: fonc (root: *Node)
 assign_a_slot :: fonc (slottable: *Node)
 {
     // 1. Let slot be the result of finding a slot with slottable.
-    slot := find_a_slot(slottable)
+    slot := find_a_slot(slottable);
 
     // If slot is non-null, then run assign slottables for slot.
     si slot {
-        assign_slottables(slot)
+        assign_slottables(slot);
     }
 }
 
@@ -785,7 +785,7 @@ signal_a_slot_change :: fonc (slot: *Element @inutilisée)
 {
     // 1. Append slot to slot’s relevant agent’s signal slots.
     // 2. Queue a mutation observer microtask.
-    imprimeln("À FAIRE : [%]", #nom_de_cette_fonction)
+    imprimeln("À FAIRE : [%]", #nom_de_cette_fonction);
 }
 
 /** \} */
@@ -800,75 +800,75 @@ ensure_pre_insertion_validity :: fonc (node: *Node, parent: *Node, child: *Node)
 {
     // 1. If parent is not a Document, DocumentFragment, or Element node, then throw a "HierarchyRequestError" DOMException.
     saufsi fait_partie_de(parent.genre, GenreNoeud.Document, GenreNoeud.DocumentFragment, GenreNoeud.Element) {
-        throw_dom_exception(parent, "HierarchyRequestError", "Parent is not a Document, DocumentFragment, or Element node.")
-        retourne faux
+        throw_dom_exception(parent, "HierarchyRequestError", "Parent is not a Document, DocumentFragment, or Element node.");
+        retourne faux;
     }
 
     // 2. If node is a host-including inclusive ancestor of parent, then throw a "HierarchyRequestError" DOMException.
     si is_host_including_inclusive_ancestor(node, parent) {
-        throw_dom_exception(parent, "HierarchyRequestError", "Node is a host-including inclusive ancestor of parent.")
-        retourne faux
+        throw_dom_exception(parent, "HierarchyRequestError", "Node is a host-including inclusive ancestor of parent.");
+        retourne faux;
     }
 
     // 3. If child is non-null and its parent is not parent, then throw a "NotFoundError" DOMException.
     si child && child.parent != parent {
-        throw_dom_exception(parent, "NotFoundError", "Child's parent is not parent")
-        retourne faux
+        throw_dom_exception(parent, "NotFoundError", "Child's parent is not parent");
+        retourne faux;
     }
 
     // 4. If node is not a DocumentFragment, DocumentType, Element, or CharacterData node, then throw a "HierarchyRequestError" DOMException.
     saufsi fait_partie_de(node.genre, GenreNoeud.DocumentFragment, GenreNoeud.DocumentType, GenreNoeud.Element, GenreNoeud.ProcessingInstruction, GenreNoeud.Commentaire, GenreNoeud.Texte) {
-        throw_dom_exception(parent, "HierarchyRequestError", "Node is not a DocumentFragment, DocumentType, Element, or CharacterData node.")
-        retourne faux
+        throw_dom_exception(parent, "HierarchyRequestError", "Node is not a DocumentFragment, DocumentType, Element, or CharacterData node.");
+        retourne faux;
     }
 
     // 5. If either node is a Text node and parent is a document, or node is a doctype and parent is not a document, then throw a "HierarchyRequestError" DOMException.
     si (node.genre == GenreNoeud.Texte && parent.genre == GenreNoeud.Document) || (node.genre == GenreNoeud.DocumentType && parent.genre != GenreNoeud.Document) {
-        throw_dom_exception(parent, "HierarchyRequestError", "")
-        retourne faux
+        throw_dom_exception(parent, "HierarchyRequestError", "");
+        retourne faux;
     }
 
     // 6. If parent is a document, and any of the statements below, switched on the interface node implements, are true, then throw a "HierarchyRequestError" DOMException.
     si parent.genre == GenreNoeud.Document {
-        nombre_enfants_element_de_parent := donne_nombre_enfants_de_genre(node, GenreNoeud.Element)
-        nombre_enfants_element_de_node := donne_nombre_enfants_de_genre(node, GenreNoeud.Element)
-        nombre_enfants_text_de_node := donne_nombre_enfants_de_genre(node, GenreNoeud.Texte)
+        nombre_enfants_element_de_parent := donne_nombre_enfants_de_genre(node, GenreNoeud.Element);
+        nombre_enfants_element_de_node := donne_nombre_enfants_de_genre(node, GenreNoeud.Element);
+        nombre_enfants_text_de_node := donne_nombre_enfants_de_genre(node, GenreNoeud.Texte);
 
         // DocumentFragment
         si node.genre == GenreNoeud.DocumentFragment {
             // If node has more than one element child or has a Text node child.
             si nombre_enfants_element_de_node > 1 || nombre_enfants_text_de_node != 0 {
-                throw_dom_exception(parent, "HierarchyRequestError", "")
-                retourne faux
+                throw_dom_exception(parent, "HierarchyRequestError", "");
+                retourne faux;
             }
 
             // Otherwise, if node has one element child and either parent has an element child, child is a doctype, or child is non-null and a doctype is following child.
             si nombre_enfants_element_de_node == 1 && (nombre_enfants_element_de_parent >= 1 || (child != nul && child.genre == GenreNoeud.DocumentType) || (child != nul && possède_puiné_de_genre(child, GenreNoeud.DocumentType))) {
-                throw_dom_exception(parent, "HierarchyRequestError", "")
-                retourne faux
+                throw_dom_exception(parent, "HierarchyRequestError", "");
+                retourne faux;
             }
         }
         // Element
         sinon si node.genre == GenreNoeud.Element {
             // parent has an element child, child is a doctype, or child is non-null and a doctype is following child.
             si nombre_enfants_element_de_parent >= 1 && ((child != nul && child.genre == GenreNoeud.DocumentType) || (child != nul && possède_puiné_de_genre(child, GenreNoeud.DocumentType))) {
-                throw_dom_exception(parent, "HierarchyRequestError", "")
-                retourne faux
+                throw_dom_exception(parent, "HierarchyRequestError", "");
+                retourne faux;
             }
         }
         // DocumentType
         sinon si node.genre == GenreNoeud.DocumentType {
-            nombre_enfants_doctype_de_parent := donne_nombre_enfants_de_genre(node, GenreNoeud.DocumentType)
+            nombre_enfants_doctype_de_parent := donne_nombre_enfants_de_genre(node, GenreNoeud.DocumentType);
 
             // parent has a doctype child, child is non-null and an element is preceding child, or child is null and parent has an element child.
             si nombre_enfants_doctype_de_parent && ((child != nul && possède_ainé_de_genre(child, GenreNoeud.Element)) || (child != nul && nombre_enfants_element_de_parent)) {
-                throw_dom_exception(parent, "HierarchyRequestError", "")
-                retourne faux
+                throw_dom_exception(parent, "HierarchyRequestError", "");
+                retourne faux;
             }
         }
     }
 
-    retourne vrai
+    retourne vrai;
 }
 
 /* https://dom.spec.whatwg.org/#concept-node-pre-insert */
@@ -876,44 +876,44 @@ pre_insert :: fonc (node: *Node, parent: *Node, child: *Node) -> *Node
 {
     // 1. Ensure pre-insert validity of node into parent before child.
     saufsi ensure_pre_insertion_validity(node, parent, child) {
-        retourne node
+        retourne node;
     }
 
     // 2. Let referenceChild be child.
-    reference_child := child
+    reference_child := child;
 
     // 3. If referenceChild is node, then set referenceChild to node’s next sibling.
     si reference_child == node {
-        reference_child = donne_next_sibling(node)
+        reference_child = donne_next_sibling(node);
     }
 
     // 4. Insert node into parent before referenceChild.
-    insert(node, parent, reference_child)
+    insert(node, parent, reference_child);
 
     // 5. Return node.
-    retourne node
+    retourne node;
 }
 
 /* https://dom.spec.whatwg.org/#concept-node-insert */
 insert :: fonc (node: *Node, parent: *Node, before_child: *Node @inutilisée, suppress_observers := faux @inutilisée)
 {
     /* À FAIRE : standardise */
-    node.parent = parent
+    node.parent = parent;
 
-    ajoute_enfant(parent, node)
+    ajoute_enfant(parent, node);
 
     // adopt
-    pile: [..]*Node
-    diffère déloge(pile)
+    pile: [..]*Node;
+    diffère déloge(pile);
 
-    tableau_ajoute(*pile, node)
+    tableau_ajoute(*pile, node);
 
     tantque pile.taille != 0 {
-        noeud := enlève_dernier_élément(*pile)
-        noeud.document = parent.document
+        noeud := enlève_dernier_élément(*pile);
+        noeud.document = parent.document;
 
         pour noeud.enfants {
-            tableau_ajoute(*pile, it)
+            tableau_ajoute(*pile, it);
         }
     }
 }
@@ -922,7 +922,7 @@ insert :: fonc (node: *Node, parent: *Node, before_child: *Node @inutilisée, su
 append :: fonc (parent: *Node, node: *Node) -> *Node
 {
     // To append a node to a parent, pre-insert node into parent before null.
-    retourne pre_insert(node, parent, nul)
+    retourne pre_insert(node, parent, nul);
 }
 
 /* https://dom.spec.whatwg.org/#concept-node-replace-all */
@@ -932,26 +932,26 @@ replace_all :: fonc (node: *Node, parent: *Node)
     // removed_nodes := parent.enfants
 
     // 2. Let addedNodes be the empty set.
-    added_nodes: []*Node
+    added_nodes: []*Node;
 
     // 3. If node is a DocumentFragment node, then set addedNodes to node’s children.
     si node != nul && node.table.classe == DocumentFragment {
-        added_nodes = node.enfants
+        added_nodes = node.enfants;
     }
     // 4. Otherwise, if node is non-null, set addedNodes to « node ».
     sinon si node != nul {
-        added_nodes.pointeur = *node
-        added_nodes.taille = 1
+        added_nodes.pointeur = *node;
+        added_nodes.taille = 1;
     }
 
     // 5. Remove all parent’s children, in tree order, with the suppress observers flag set.
     pour parent.enfants {
-        remove(it, vrai)
+        remove(it, vrai);
     }
 
     // 6. If node is non-null, then insert node into parent before null with the suppress observers flag set.
     si node {
-        insert(node, parent, nul, vrai)
+        insert(node, parent, nul, vrai);
     }
 
     // À FAIRE : 7. If either addedNodes or removedNodes is not empty, then queue a tree mutation record for parent with addedNodes, removedNodes, null, and null.
@@ -962,15 +962,15 @@ pre_remove :: fonc (parent: *Node, child: *Node) -> *Node
 {
     // 1. If child’s parent is not parent, then throw a "NotFoundError" DOMException.
     si child.parent != parent {
-        throw_dom_exception(parent.realm, "NotFoundError", "Le noeud n'est pas enfant du parent")
-        retourne nul
+        throw_dom_exception(parent.realm, "NotFoundError", "Le noeud n'est pas enfant du parent");
+        retourne nul;
     }
 
     // 2. Remove child.
-    remove(child)
+    remove(child);
 
     // 3. Return child.
-    retourne child
+    retourne child;
 }
 
 /* https://dom.spec.whatwg.org/#concept-node-remove */
@@ -979,10 +979,10 @@ remove :: fonc (node: *Node, suppress_observers := faux @inutilisée)
     // À FAIRE : complète
 
     // 1. Let parent be node’s parent.
-    parent := node.parent
+    parent := node.parent;
 
     // 2. Assert: parent is non-null.
-    assert(parent != nul)
+    assert(parent != nul);
 
     // 3. Run the live range pre-remove steps, given node.
 
@@ -995,38 +995,38 @@ remove :: fonc (node: *Node, suppress_observers := faux @inutilisée)
     // 7. Remove node from its parent’s children.
     pour parent.enfants {
         si it == node {
-            tableau_supprime_indice(*parent.enfants, indice_it)
-            arrête
+            tableau_supprime_indice(*parent.enfants, indice_it);
+            arrête;
         }
     }
 
     // 8. If node is assigned, then run assign slottables for node’s assigned slot.
     si is_assigned(node) {
-        assign_slottables(node.assigned_slot)
+        assign_slottables(node.assigned_slot);
     }
 
     // 9. If parent’s root is a shadow root, and parent is a slot whose assigned nodes is the empty list,
     //    then run signal a slot change for parent.
-    parent_root := donne_racine(parent)
+    parent_root := donne_racine(parent);
     si parent_root.genre == GenreNoeud.ShadowRoot && is_slot(parent) && (parent comme *Element).assigned_nodes.taille == 0 {
-        signal_a_slot_change(parent comme *Element)
+        signal_a_slot_change(parent comme *Element);
     }
 
     // 10. If node has an inclusive descendant that is a slot:
-    has_a_slot_descendant: bool
+    has_a_slot_descendant: bool;
     pour InclusiveDescendants(node) {
         si is_slot(it) {
-            has_a_slot_descendant = vrai
-            arrête
+            has_a_slot_descendant = vrai;
+            arrête;
         }
     }
 
     si has_a_slot_descendant {
         // 1. Run assign slottables for a tree with parent’s root.
-        assign_slottables_for_a_tree(parent_root)
+        assign_slottables_for_a_tree(parent_root);
 
         // 2. Run assign slottables for a tree with node.
-        assign_slottables_for_a_tree(node)
+        assign_slottables_for_a_tree(node);
     }
 
     // 11. Run the removing steps with node and parent.
@@ -1060,36 +1060,36 @@ donne_node_name :: fonc (noeud: *Node) -> DOMString
     discr noeud.genre {
         Element {
             // À FAIRE : Its HTML-uppercased qualified name.
-            retourne (noeud comme *Element).local_name
+            retourne (noeud comme *Element).local_name;
         }
         Attr {
             // À FAIRE : Its qualified name.
-            retourne (noeud comme *Attr).local_name
+            retourne (noeud comme *Attr).local_name;
         }
         Texte {
-            retourne crée_chaine_utf16_unique("#text")
+            retourne crée_chaine_utf16_unique("#text");
         }
         Section_CDATA {
-            retourne crée_chaine_utf16_unique("#cdata-section")
+            retourne crée_chaine_utf16_unique("#cdata-section");
         }
         ProcessingInstruction {
-            retourne crée_chaine_utf16_unique((noeud comme *NoeudProcessingInstruction).cible)
+            retourne crée_chaine_utf16_unique((noeud comme *NoeudProcessingInstruction).cible);
         }
         Commentaire {
-            retourne crée_chaine_utf16_unique("#comment")
+            retourne crée_chaine_utf16_unique("#comment");
         }
         Document {
-            retourne crée_chaine_utf16_unique("#document")
+            retourne crée_chaine_utf16_unique("#document");
         }
         DocumentType {
-            retourne (noeud comme *DocumentType).nom
+            retourne (noeud comme *DocumentType).nom;
         }
         DocumentFragment {  
-            retourne crée_chaine_utf16_unique("#document-fragment")
+            retourne crée_chaine_utf16_unique("#document-fragment");
         }
     }
 
-    retourne crée_chaine_utf16_unique_vide()
+    retourne crée_chaine_utf16_unique_vide();
 }
 
 /** \} */
@@ -1100,184 +1100,184 @@ donne_node_name :: fonc (noeud: *Node) -> DOMString
 
 donne_indice_dans_parent :: fonc (élément: *Element) -> n32
 {
-    parent := élément.parent
-    assert(parent != nul)
+    parent := élément.parent;
+    assert(parent != nul);
 
-    résultat : n32 = 1
+    résultat : n32 = 1;
 
     pour parent.enfants {
         saufsi est_élément(it) {
-            continue
+            continue;
         }
 
         si it == élément {
-            arrête
+            arrête;
         }
 
-        résultat += 1
+        résultat += 1;
     }
 
-    retourne résultat
+    retourne résultat;
 }
 
 donne_indice_dans_parent_depuis_la_fin :: fonc (élément: *Element) -> n32
 {
-    parent := élément.parent
-    assert(parent != nul)
+    parent := élément.parent;
+    assert(parent != nul);
 
-    résultat : n32 = 1
+    résultat : n32 = 1;
 
     pour > parent.enfants {
         saufsi est_élément(it) {
-            continue
+            continue;
         }
 
         si it == élément {
-            arrête
+            arrête;
         }
 
-        résultat += 1
+        résultat += 1;
     }
 
-    retourne résultat
+    retourne résultat;
 }
 
 donne_indice_de_même_type_dans_parent :: fonc (élément: *Element) -> n32
 {
-    parent := élément.parent
-    assert(parent != nul)
+    parent := élément.parent;
+    assert(parent != nul);
 
-    résultat : n32 = 1
+    résultat : n32 = 1;
 
     pour parent.enfants {
         saufsi est_élément(it) {
-            continue
+            continue;
         }
 
-        adelphe := it comme *Element
+        adelphe := it comme *Element;
         saufsi adelphe.local_name == élément.local_name {
-            continue
+            continue;
         }
 
         si it == élément {
-            arrête
+            arrête;
         }
 
-        résultat += 1
+        résultat += 1;
     }
 
-    retourne résultat
+    retourne résultat;
 }
 
 donne_indice_de_même_type_dans_parent_depuis_la_fin :: fonc (élément: *Element) -> n32
 {
-    parent := élément.parent
-    assert(parent != nul)
+    parent := élément.parent;
+    assert(parent != nul);
 
-    résultat : n32 = 1
+    résultat : n32 = 1;
 
     pour > parent.enfants {
         saufsi est_élément(it) {
-            continue
+            continue;
         }
 
-        adelphe := it comme *Element
+        adelphe := it comme *Element;
         saufsi adelphe.local_name == élément.local_name {
-            continue
+            continue;
         }
 
         si it == élément {
-            arrête
+            arrête;
         }
 
-        résultat += 1
+        résultat += 1;
     }
 
-    retourne résultat
+    retourne résultat;
 }
 
 est_avant_noeud_dans_l_arbre :: fonc (a: *Element, b: *Element) -> bool
 {
     si a.parent == b.parent {
-        indice_a := donne_indice_dans_parent(a)
-        indice_b := donne_indice_dans_parent(b)
-        retourne indice_a < indice_b
+        indice_a := donne_indice_dans_parent(a);
+        indice_b := donne_indice_dans_parent(b);
+        retourne indice_a < indice_b;
     }
 
-    traversée: [..]*Node
-    diffère déloge(traversée)
+    traversée: [..]*Node;
+    diffère déloge(traversée);
 
     pour > a.document.enfants {
-        tableau_ajoute(*traversée, it)
+        tableau_ajoute(*traversée, it);
     }
 
     tantque traversée.taille != 0 {
-        noeud := traversée[traversée.taille - 1]
-        traversée.taille -= 1
+        noeud := traversée[traversée.taille - 1];
+        traversée.taille -= 1;
 
         si noeud == a {
-            retourne vrai
+            retourne vrai;
         }
 
         si noeud == b {
-            retourne faux
+            retourne faux;
         }
 
         pour > noeud.enfants {
-            tableau_ajoute(*traversée, it)
+            tableau_ajoute(*traversée, it);
         }
     }
 
-    retourne faux
+    retourne faux;
 }
 
 donne_nombre_enfants_de_genre :: fonc (node: *Node, genre: GenreNoeud) -> z32
 {
-    résultat: z32
+    résultat: z32;
     pour node.enfants {
         si it.genre == genre {
-            résultat += 1
+            résultat += 1;
         }
     }
-    retourne résultat
+    retourne résultat;
 }
 
 possède_ainé_de_genre :: fonc (node: *Node, genre: GenreNoeud) -> bool
 {
-    parent := node.parent
+    parent := node.parent;
     saufsi parent {
-        retourne faux
+        retourne faux;
     }
     pour parent.enfants {
         si it == node {
-            retourne faux
+            retourne faux;
         }
 
         si it.genre == genre {
-            retourne vrai
+            retourne vrai;
         }
     }
 
-    retourne faux
+    retourne faux;
 }
 
 possède_puiné_de_genre :: fonc (node: *Node, genre: GenreNoeud) -> bool
 {
-    parent := node.parent
+    parent := node.parent;
     saufsi parent {
-        retourne faux
+        retourne faux;
     }
-    node_trouvé := faux
+    node_trouvé := faux;
     pour parent.enfants {
         si node_trouvé && it.genre == genre {
-            retourne vrai
+            retourne vrai;
         }
         si it == node {
-            node_trouvé = vrai
+            node_trouvé = vrai;
         }
     }
 
-    retourne faux
+    retourne faux;
 }
 
 /** \} */
@@ -1290,11 +1290,11 @@ possède_puiné_de_genre :: fonc (node: *Node, genre: GenreNoeud) -> bool
 /* https://dom.spec.whatwg.org/#in-a-document-tree */
 is_in_a_document_tree :: fonc (node: *Node) -> bool
 {
-    root := node.donne_racine()
+    root := node.donne_racine();
     si root {
-        retourne root.genre == GenreNoeud.Document
+        retourne root.genre == GenreNoeud.Document;
     }
-    retourne faux
+    retourne faux;
 }
 
 /** \} */
@@ -1305,35 +1305,35 @@ is_in_a_document_tree :: fonc (node: *Node) -> bool
  * \{ */
 
 Attr :: struct {
-    empl base_noeud: Node
-    table = *table_virtuelle_attr
+    empl base_noeud: Node;
+    table = *table_virtuelle_attr;
 
-    namespace: Optionnel(DOMString)
-    namespace_prefix: Optionnel(DOMString)
-    local_name: DOMString
-    valeur: DOMString
-    élément: *Element
+    namespace: Optionnel(DOMString);
+    namespace_prefix: Optionnel(DOMString);
+    local_name: DOMString;
+    valeur: DOMString;
+    élément: *Element;
 }
 
 crée_noeud_attr :: fonc (document: *Document, nom: DOMString, valeur: DOMString) -> *Attr
 {
-    résultat := crée_platform_object(document.donne_tas_de_mémoire(), document.realm, Attr)
-    résultat.document = document
-    résultat.genre = GenreNoeud.Attr
-    résultat.local_name = nom
-    résultat.valeur = valeur
-    retourne résultat
+    résultat := crée_platform_object(document.donne_tas_de_mémoire(), document.realm, Attr);
+    résultat.document = document;
+    résultat.genre = GenreNoeud.Attr;
+    résultat.local_name = nom;
+    résultat.valeur = valeur;
+    retourne résultat;
 }
 
 cherche_attribut :: fonc (attributs: []*Attr, nom: DOMString) -> *Attr
 {
     pour attributs {
         si it.local_name == nom {
-            retourne it
+            retourne it;
         }
     }
 
-    retourne nul
+    retourne nul;
 }
 
 /* https://dom.spec.whatwg.org/#set-an-existing-attribute-value */
@@ -1341,11 +1341,11 @@ définis_valeur :: fonc (attribut: *Attr, valeur: DOMString)
 {
     // 1. If attribute’s element is null, then set attribute’s value to value.
     si attribut.élément == nul {
-        attribut.valeur = valeur
+        attribut.valeur = valeur;
     }
     // 2. Otherwise, change attribute to value.
     sinon {
-        change_attribut(attribut, valeur)
+        change_attribut(attribut, valeur);
     }
 }
 
@@ -1354,7 +1354,7 @@ définis_valeur :: fonc (attribut: *Attr, valeur: DOMString)
 table_virtuelle_attr := TableVirtuelleNoeud(
     classe = Attr,
     sur_destruction = noeud_sur_destruction
-)
+);
 
 #portée_export
 

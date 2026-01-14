@@ -8,18 +8,18 @@
  * \{ */
 
 Script :: struct {
-    settings_object: *EnvironmentSettings
-    record: *JS.Script
-    parse_error: JS.Valeur
-    error_to_rethrow: JS.Valeur
-    fetch_options: Optionnel(OptionsFetchScript)
-    base_url: *URL @NeVisitePas
+    settings_object: *EnvironmentSettings;
+    record: *JS.Script;
+    parse_error: JS.Valeur;
+    error_to_rethrow: JS.Valeur;
+    fetch_options: Optionnel(OptionsFetchScript);
+    base_url: *URL @NeVisitePas;
 }
 
 ClassicScript :: struct {
-    empl base: Script
+    empl base: Script;
 
-    muted_errors: bool
+    muted_errors: bool;
 }
 
 /** \} */
@@ -30,13 +30,13 @@ ClassicScript :: struct {
  * \{ */
 
 OptionsFetchScript :: struct {
-    cryptographic_nonce: DOMString
-    integrity_metadata: DOMString
-    parser_metadata: Request.ParserMetadata
-    credentials_mode: Request.CredentialsMode
-    referrer_policy: ReferrerPolicy
-    render_blocking: bool
-    fetch_priority: FetchPriorityState
+    cryptographic_nonce: DOMString;
+    integrity_metadata: DOMString;
+    parser_metadata: Request.ParserMetadata;
+    credentials_mode: Request.CredentialsMode;
+    referrer_policy: ReferrerPolicy;
+    render_blocking: bool;
+    fetch_priority: FetchPriorityState;
 }
 
 /** \} */
@@ -51,61 +51,61 @@ create_a_classic_script :: fonc (user_agent: *UserAgent, source: chaine, setting
 {
     // 1. If mutedErrors is true, then set baseURL to about:blank.
     si muted_errors {
-        base_url = donne_about_blank_url()
+        base_url = donne_about_blank_url();
     }
 
     // 2. If scripting is disabled for settings, then set source to the empty string.
     si scripting_est_désactivé(user_agent, settings) {
-        source = ""
+        source = "";
     }
 
     // 3. Let script be a new classic script that this algorithm will subsequently initialize.
-    script := loge(ClassicScript)
+    script := loge(ClassicScript);
 
     // 4. Set script's settings object to settings.
-    script.settings_object = settings
+    script.settings_object = settings;
 
     // 5. Set script's base URL to baseURL.
-    script.base_url = base_url
+    script.base_url = base_url;
 
     // 6. Set script's fetch options to options.
-    script.fetch_options.Quelque = options
+    script.fetch_options.Quelque = options;
 
     // 7. Set script's muted errors to mutedErrors.
-    script.muted_errors = muted_errors
+    script.muted_errors = muted_errors;
 
     // 8. Set script's parse error and error to rethrow to null.
-    script.parse_error = JS.js_null
-    script.error_to_rethrow = JS.js_null
+    script.parse_error = JS.js_null;
+    script.error_to_rethrow = JS.js_null;
 
     // À FAIRE : 9. Record classic script creation time given script and sourceURLForWindowScripts.
 
     // 10. Let result be ParseScript(source, settings's realm, script).
-    host_defined := JS.crée_host_defined(script)
+    host_defined := JS.crée_host_defined(script);
 
     discr JS.parse_script(source, settings.donne_realm(), host_defined) {
         Erreur(e) {
-            error := JS.Valeur(Object = e)
-            imprime("%\n", error)
+            error := JS.Valeur(Object = e);
+            imprime("%\n", error);
 
             // 11. If result is a list of errors, then:
             // 1. Set script's parse error and its error to rethrow to result[0].
-            script.parse_error = error
-            script.error_to_rethrow = error
+            script.parse_error = error;
+            script.error_to_rethrow = error;
 
             // 2. Return script.
-            retourne script
+            retourne script;
         }
         Ok(s) {
             // 12. Set script's record to result.
-            script.record = s
+            script.record = s;
         }
         sinon {
         }
     }
 
     // 13. Return script.
-    retourne script
+    retourne script;
 }
 
 /** \} */
@@ -118,25 +118,25 @@ create_a_classic_script :: fonc (user_agent: *UserAgent, source: chaine, setting
 run_the_classic_script :: fonc (script: *ClassicScript, rethrow_errors := faux) -> JS.CompletionRecord
 {
     // 1. Let settings be the settings object of script.
-    settings := script.settings_object
+    settings := script.settings_object;
 
     // À FAIRE 2. Check if we can run script with settings. If this returns "do not run" then return NormalCompletion(empty).
 
     // 3. Record classic script execution start time given script.
 
     // 4. Prepare to run script given settings.
-    prepare_to_run_script(settings)
+    prepare_to_run_script(settings);
 
     // 5. Let evaluationStatus be null.
-    evaluation_status := JS.normal_completion(JS.js_null)
+    evaluation_status := JS.normal_completion(JS.js_null);
 
     // 6. If script's error to rethrow is not null, then set evaluationStatus to Completion { [[Type]]: throw, [[Value]]: script's error to rethrow, [[Target]]: empty }.
     saufsi JS.est_nulle(script.error_to_rethrow) {
-        evaluation_status = JS.throw_completion(script.error_to_rethrow)
+        evaluation_status = JS.throw_completion(script.error_to_rethrow);
     }
     // 7. Otherwise, set evaluationStatus to ScriptEvaluation(script's record).
     sinon {
-        evaluation_status = JS.script_evaluation(script.record)
+        evaluation_status = JS.script_evaluation(script.record);
     }
 
     // If ScriptEvaluation does not complete because the user agent has aborted the running script, leave evaluationStatus as null.
@@ -146,59 +146,59 @@ run_the_classic_script :: fonc (script: *ClassicScript, rethrow_errors := faux) 
         // 1. If rethrow errors is true and script's muted errors is false, then:
         si rethrow_errors && script.muted_errors == faux {
             // 1. Clean up after running script with settings.
-            cleanup_after_running_script(settings)
+            cleanup_after_running_script(settings);
 
             // 2. Rethrow evaluationStatus.[[Value]].
-            retourne evaluation_status
+            retourne evaluation_status;
         }
 
         // 2. If rethrow errors is true and script's muted errors is true, then:
         si rethrow_errors && script.muted_errors == vrai {
             // 1. Clean up after running script with settings.
-            cleanup_after_running_script(settings)
+            cleanup_after_running_script(settings);
 
             // 2. Throw a "NetworkError" DOMException.
-            realm := settings.donne_realm_execution_context().realm
-            throw_dom_exception(realm, "NetworkError", "")
-            retourne JS.throw_completion(JS.donne_exception(realm))
+            realm := settings.donne_realm_execution_context().realm;
+            throw_dom_exception(realm, "NetworkError", "");
+            retourne JS.throw_completion(JS.donne_exception(realm));
         }
 
         // 3. Otherwise, rethrow errors is false. Perform the following steps:
 
         // 1. Report an exception given by evaluationStatus.[[Value]] for script's settings object's global object.
-        report_an_exception(evaluation_status.valeur.V, script.settings_object.donne_global_object())
+        report_an_exception(evaluation_status.valeur.V, script.settings_object.donne_global_object());
 
         // 2. Clean up after running script with settings.
-        cleanup_after_running_script(settings)
+        cleanup_after_running_script(settings);
 
         // 3. Return evaluationStatus.
-        retourne evaluation_status
+        retourne evaluation_status;
     }
 
     // 9. Clean up after running script with settings.
-    cleanup_after_running_script(settings)
+    cleanup_after_running_script(settings);
 
     // 10. If evaluationStatus is a normal completion, then return evaluationStatus.
     si JS.est_normal(evaluation_status) {
-        retourne evaluation_status
+        retourne evaluation_status;
     }
 
     // 11. If we've reached this point, evaluationStatus was left as null because the script was aborted
     //     prematurely during evaluation.
     //     Return Completion { [[Type]]: throw, [[Value]]: a new "QuotaExceededError" DOMException, [[Target]]: empty }.
-    realm := settings.donne_realm_execution_context().realm
-    throw_dom_exception(realm, "QuotaExceededError", "")
-    retourne JS.throw_completion(JS.donne_exception(realm))
+    realm := settings.donne_realm_execution_context().realm;
+    throw_dom_exception(realm, "QuotaExceededError", "");
+    retourne JS.throw_completion(JS.donne_exception(realm));
 }
 
 /* https://html.spec.whatwg.org/multipage/webappapis.html#prepare-to-run-script */
 prepare_to_run_script :: fonc (settings: *EnvironmentSettings)
 {
-    execution_context := settings.donne_realm_execution_context()
-    mv := JS.donne_mv(JS.donne_tas_de_mémoire(execution_context))
+    execution_context := settings.donne_realm_execution_context();
+    mv := JS.donne_mv(JS.donne_tas_de_mémoire(execution_context));
 
     // 1. Push settings's realm execution context onto the JavaScript execution context stack; it is now the running JavaScript execution context.
-    JS.empile_execution_context(mv, execution_context)
+    JS.empile_execution_context(mv, execution_context);
 
     // À FAIRE : 2. Add settings to the surrounding agent's event loop's currently running task's script evaluation environment settings object set.
 }
@@ -206,14 +206,14 @@ prepare_to_run_script :: fonc (settings: *EnvironmentSettings)
 /* https://html.spec.whatwg.org/multipage/webappapis.html#clean-up-after-running-script */
 cleanup_after_running_script :: fonc (settings: *EnvironmentSettings)
 {
-    execution_context := settings.donne_realm_execution_context()
-    mv := JS.donne_mv(JS.donne_tas_de_mémoire(execution_context))
+    execution_context := settings.donne_realm_execution_context();
+    mv := JS.donne_mv(JS.donne_tas_de_mémoire(execution_context));
 
     // 1. Assert: settings's realm execution context is the running JavaScript execution context.
-    assert(execution_context == JS.donne_running_execution_context(mv))
+    assert(execution_context == JS.donne_running_execution_context(mv));
 
     // 2. Remove settings's realm execution context from the JavaScript execution context stack.
-    JS.dépile_execution_context(mv)
+    JS.dépile_execution_context(mv);
 
     // À FAIRE 3. If the JavaScript execution context stack is now empty, perform a microtask checkpoint. (If this runs scripts, these algorithms will be invoked reentrantly.)
 }
@@ -230,28 +230,28 @@ report_an_exception :: fonc (exception: JS.Valeur, global: *JS.Object)
 {
     // À FAIRE : standardise
 
-    window := JS.vérifie_comme(global, Window)
+    window := JS.vérifie_comme(global, Window);
     
-    mv := JS.donne_mv(JS.donne_tas_de_mémoire(window))
+    mv := JS.donne_mv(JS.donne_tas_de_mémoire(window));
 
-    settings: *EnvironmentSettings
+    settings: *EnvironmentSettings;
     si mv.execution_contexts.taille == 0 {
-        settings = window.donne_relevant_settings_object()
-        execution_context := settings.donne_realm_execution_context()
-        assert(execution_context != nul)
-        JS.empile_execution_context(mv, execution_context)
+        settings = window.donne_relevant_settings_object();
+        execution_context := settings.donne_realm_execution_context();
+        assert(execution_context != nul);
+        JS.empile_execution_context(mv, execution_context);
     }
 
-    chn := JS.to_string(window.realm, exception)
+    chn := JS.to_string(window.realm, exception);
 
     si settings {
-        JS.dépile_execution_context(mv)
+        JS.dépile_execution_context(mv);
     }
 
-    texte_exception := convertis_vers_chaine(chn.texte.donne_chaine_utf16())
+    texte_exception := convertis_vers_chaine(chn.texte.donne_chaine_utf16());
 
-    user_agent := window.document.donne_user_agent()
-    user_agent.rapporte_exception(window.document, texte_exception)
+    user_agent := window.document.donne_user_agent();
+    user_agent.rapporte_exception(window.document, texte_exception);
 }
 
 /** \} */

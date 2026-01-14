@@ -2,18 +2,18 @@
  * Catégorie : [crash, validation sémantique, type union]
  */
 
-importe Fondation
+importe Fondation;
 
 optionnel :: fonc () -> Optionnel(*z32)
 {
-    retourne nul
+    retourne nul;
 }
 
 principale :: fonc ()
 {
-    opt := optionnel()
+    opt := optionnel();
 
     saufsi opt.possède_valeur() {
-        exit(1)
+        exit(1);
     }
 }

@@ -2,16 +2,16 @@
  * Catégorie : [crash, validation sémantique, type nommé, module]
  */
 
-importe Couleur
+importe Couleur;
 
 retourne_plusieurs_couleurs :: fonc () -> [..]Couleur
 {
-    couleurs: [5]Couleur.CouleurRVBA
+    couleurs: [5]Couleur.CouleurRVBA;
 
-    retourne couleurs
+    retourne couleurs;
 }
 
 principale :: fonc ()
 {
-    x := retourne_plusieurs_couleurs()
+    x := retourne_plusieurs_couleurs();
 }

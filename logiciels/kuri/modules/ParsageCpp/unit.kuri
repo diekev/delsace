@@ -3,291 +3,291 @@
  * \{ */
 
 InvocationMacro :: struct {
-    lexème: LexèmePréprocès
-    lexèmes_résultants: [..]LexèmePréprocès
+    lexème: LexèmePréprocès;
+    lexèmes_résultants: [..]LexèmePréprocès;
 
     /* Données copiées de Définition. */
-    lexème_macro: LexèmePréprocès
-    nom_macro: chaine
+    lexème_macro: LexèmePréprocès;
+    nom_macro: chaine;
 }
 
 TranslationUnit :: struct {
-    chemin_racine: chaine
-    info_langage: InfoLangage
-    fichiers: [..]FichierSource
-    lexèmes_préprocès: [..]LexèmePréprocès
+    chemin_racine: chaine;
+    info_langage: InfoLangage;
+    fichiers: [..]FichierSource;
+    lexèmes_préprocès: [..]LexèmePréprocès;
     /* Les lexèmes_préprocès sont convertis en tokens par la parseuse avant le parsage. */
-    tokens: [..]Token
+    tokens: [..]Token;
 
-    declarations: [..]*ASTNode
+    declarations: [..]*ASTNode;
 
-    invocations_macros: [..]InvocationMacro
+    invocations_macros: [..]InvocationMacro;
 
-    maçonne_type: Maçonne_Type
+    maçonne_type: Maçonne_Type;
 
-    builtin_functions: [..]*FunctionDecl
+    builtin_functions: [..]*FunctionDecl;
 }
 
 crée_translation_unit_pour_fichier :: fonc (chemin: chaine) -> *TranslationUnit
 {
-    info_langage := donne_info_langage_pour_fichier(chemin)
-    retourne crée_translation_unit_pour_fichier(chemin, info_langage)
+    info_langage := donne_info_langage_pour_fichier(chemin);
+    retourne crée_translation_unit_pour_fichier(chemin, info_langage);
 }
 
 crée_translation_unit_pour_fichier :: fonc (chemin: chaine, info: InfoLangage) -> *TranslationUnit
 {
-    info_langage := donne_info_langage_valide(info)
+    info_langage := donne_info_langage_valide(info);
 
-    résultat := loge(TranslationUnit)
-    résultat.chemin_racine = chemin
-    résultat.info_langage = info_langage
-    retourne résultat
+    résultat := loge(TranslationUnit);
+    résultat.chemin_racine = chemin;
+    résultat.info_langage = info_langage;
+    retourne résultat;
 }
 
 détruit :: fonc (unit: *TranslationUnit)
 {
     pour unit.invocations_macros {
-        déloge(it.lexèmes_résultants)
+        déloge(it.lexèmes_résultants);
     }
-    déloge(unit.invocations_macros)
-    déloge(unit.lexèmes_préprocès)
-    déloge(unit.tokens)
-    déloge(unit.fichiers)
-    déloge(unit)
+    déloge(unit.invocations_macros);
+    déloge(unit.lexèmes_préprocès);
+    déloge(unit.tokens);
+    déloge(unit.fichiers);
+    déloge(unit);
 }
 
 crée_invocation_de_macro :: fonc (unit: *TranslationUnit, lexème: LexèmePréprocès, macro: *Définition) -> z64
 {
-    résultat := tableau_ajoute_élément(*unit.invocations_macros)
-    résultat.lexème = lexème
-    résultat.lexème_macro = macro.lexème
-    résultat.nom_macro = macro.nom
-    retourne unit.invocations_macros.taille - 1
+    résultat := tableau_ajoute_élément(*unit.invocations_macros);
+    résultat.lexème = lexème;
+    résultat.lexème_macro = macro.lexème;
+    résultat.nom_macro = macro.nom;
+    retourne unit.invocations_macros.taille - 1;
 }
 
 résoud_plage_source :: fonc (unit: *TranslationUnit, plage_source: PlageSource) -> PlageSourceRésolue
 {
-    assert(est_valide(plage_source))
+    assert(est_valide(plage_source));
 
     tantque plage_source.début.invocation != -1 {
-        assert(plage_source.début.invocation == plage_source.fin.invocation)
-        invocation := unit.invocations_macros[plage_source.début.invocation]
-        plage_source = invocation.lexème.plage_source
-        assert(est_valide(plage_source))
+        assert(plage_source.début.invocation == plage_source.fin.invocation);
+        invocation := unit.invocations_macros[plage_source.début.invocation];
+        plage_source = invocation.lexème.plage_source;
+        assert(est_valide(plage_source));
     }
 
-    fichier := *unit.fichiers[plage_source.début.fichier]
+    fichier := *unit.fichiers[plage_source.début.fichier];
 
-    assert(plage_source.début.fichier == plage_source.fin.fichier)
+    assert(plage_source.début.fichier == plage_source.fin.fichier);
 
-    texte_lexème := chaine(fichier.contenu_prétaité.pointeur + plage_source.début.décalage, plage_source.fin.décalage - plage_source.début.décalage)
-    texte_ligne := donne_ligne_pour_erreur(fichier.contenu_prétaité, texte_lexème)
+    texte_lexème := chaine(fichier.contenu_prétaité.pointeur + plage_source.début.décalage, plage_source.fin.décalage - plage_source.début.décalage);
+    texte_ligne := donne_ligne_pour_erreur(fichier.contenu_prétaité, texte_lexème);
 
-    résultat: PlageSourceRésolue
-    résultat.fichier = fichier.chemin
+    résultat: PlageSourceRésolue;
+    résultat.fichier = fichier.chemin;
 
     si texte_ligne {
-        résultat.texte_ligne = texte_ligne
-        résultat.numéro_ligne = 1
+        résultat.texte_ligne = texte_ligne;
+        résultat.numéro_ligne = 1;
 
-        début := fichier.contenu_prétaité.pointeur
-        fin := texte_ligne.pointeur
+        début := fichier.contenu_prétaité.pointeur;
+        fin := texte_ligne.pointeur;
 
         tantque début < fin {
             si mémoire(début) == '\n' {
-                résultat.numéro_ligne += 1
+                résultat.numéro_ligne += 1;
             }
-            début += 1
+            début += 1;
         }
 
-        résultat.numéro_colonne = (texte_lexème.pointeur - texte_ligne.pointeur) comme n64 + 1
-        résultat.numéro_colonne_fin = résultat.numéro_colonne + texte_lexème.taille comme n64
+        résultat.numéro_colonne = (texte_lexème.pointeur - texte_ligne.pointeur) comme n64 + 1;
+        résultat.numéro_colonne_fin = résultat.numéro_colonne + texte_lexème.taille comme n64;
     }
 
-    retourne résultat
+    retourne résultat;
 }
 
 TypeDiagnostique :: énum {
-    ERREUR
-    ERREUR_INTERNE
-    AVERTISSEMENT
-    NOTE
+    ERREUR;
+    ERREUR_INTERNE;
+    AVERTISSEMENT;
+    NOTE;
 }
 
 rapporte_diagnostique :: fonc (unit: *TranslationUnit, type: TypeDiagnostique, lexème: LexèmePréprocès, format: chaine, args: ...eini)
 {
-    rapporte_diagnostique(unit, type, lexème.plage_source, format, ...args)
+    rapporte_diagnostique(unit, type, lexème.plage_source, format, ...args);
 }
 
 rapporte_diagnostique :: fonc (unit: *TranslationUnit, type: TypeDiagnostique, token: Token, format: chaine, args: ...eini)
 {
-    rapporte_diagnostique(unit, type, token.plage_source, format, ...args)
+    rapporte_diagnostique(unit, type, token.plage_source, format, ...args);
 }
 
 rapporte_diagnostique :: fonc (unit: *TranslationUnit, type: TypeDiagnostique, plage_source: PlageSource, format: chaine, args: ...eini)
 {
-    couleur: chaine = ---
-    intitulé: chaine = ---
+    couleur: chaine = ---;
+    intitulé: chaine = ---;
     discr type {
         ERREUR {
-            couleur = "\x1b[31m"
-            intitulé = "erreur"
+            couleur = "\x1b[31m";
+            intitulé = "erreur";
         }
         ERREUR_INTERNE {
-            couleur = "\x1b[31m"
-            intitulé = "erreur interne"
+            couleur = "\x1b[31m";
+            intitulé = "erreur interne";
         }
         AVERTISSEMENT {
-            couleur = "\x1b[35m"
-            intitulé = "avertissement"
+            couleur = "\x1b[35m";
+            intitulé = "avertissement";
         }
         NOTE {
-            couleur = "\x1b[36m"
-            intitulé = "note"
+            couleur = "\x1b[36m";
+            intitulé = "note";
         }
         sinon {
-            couleur = "\x1b[31m"
-            intitulé = "erreur inconnue"
+            couleur = "\x1b[31m";
+            intitulé = "erreur inconnue";
         }
     }
 
     si est_valide(plage_source) {
-        empl plage_source_résolue := résoud_plage_source(unit, plage_source)
-        imprime("\x1b[1m%:%:% ", plage_source_résolue.fichier, numéro_ligne, numéro_colonne)
-        imprime("%% : \x1b[00m", couleur, intitulé)
-        imprimeln(format, ...args)
+        empl plage_source_résolue := résoud_plage_source(unit, plage_source);
+        imprime("\x1b[1m%:%:% ", plage_source_résolue.fichier, numéro_ligne, numéro_colonne);
+        imprime("%% : \x1b[00m", couleur, intitulé);
+        imprimeln(format, ...args);
 
         si texte_ligne {
-            assert(numéro_colonne > 0)
+            assert(numéro_colonne > 0);
 
-            largeur_numéro_ligne := magnitude_décimale(numéro_ligne)
-            largeur_goutière := max(6 comme n64, largeur_numéro_ligne + 2)
+            largeur_numéro_ligne := magnitude_décimale(numéro_ligne);
+            largeur_goutière := max(6 comme n64, largeur_numéro_ligne + 2);
 
             pour largeur_goutière - largeur_numéro_ligne - 1 {
-                imprime(" ")
+                imprime(" ");
             }
 
-            imprime("% | ", numéro_ligne)
+            imprime("% | ", numéro_ligne);
 
             si type != TypeDiagnostique.NOTE {
-                texte_avant_erreur := texte_ligne
-                texte_avant_erreur.taille = numéro_colonne comme z64 - 1
+                texte_avant_erreur := texte_ligne;
+                texte_avant_erreur.taille = numéro_colonne comme z64 - 1;
 
                 si texte_avant_erreur {
-                    imprime("%", texte_avant_erreur)
+                    imprime("%", texte_avant_erreur);
                 }
 
-                texte_à_surligner := avance(texte_ligne, numéro_colonne comme z64 - 1)
-                texte_à_surligner.taille = (numéro_colonne_fin - numéro_colonne) comme z64
+                texte_à_surligner := avance(texte_ligne, numéro_colonne comme z64 - 1);
+                texte_à_surligner.taille = (numéro_colonne_fin - numéro_colonne) comme z64;
 
-                imprime("\x1b[1m%%\x1b[00m", couleur, texte_à_surligner)
+                imprime("\x1b[1m%%\x1b[00m", couleur, texte_à_surligner);
 
-                texte_restant := avance(texte_ligne, numéro_colonne_fin comme z64 - 1)
+                texte_restant := avance(texte_ligne, numéro_colonne_fin comme z64 - 1);
 
-                imprimeln("%", texte_restant)
+                imprimeln("%", texte_restant);
             }
             sinon {
-                imprimeln("%", texte_ligne)
+                imprimeln("%", texte_ligne);
             }
 
-            imprime_gouttière(largeur_goutière)
+            imprime_gouttière(largeur_goutière);
 
             si type != TypeDiagnostique.NOTE {
                 pour numéro_colonne - 1 {
                     si texte_ligne[it] == '\t' {
-                        imprime("\t")
+                        imprime("\t");
                     }
                     sinon {
-                        imprime(" ")
+                        imprime(" ");
                     }
                 }
-                imprime("\x1b[1m%^", couleur)
+                imprime("\x1b[1m%^", couleur);
                 pour numéro_colonne + 1 ... numéro_colonne_fin - 1 {
-                    imprime("~")
+                    imprime("~");
                 }
             }
-            imprime("\x1b[00m\n")
+            imprime("\x1b[00m\n");
 
-            premier_développement := vrai
+            premier_développement := vrai;
 
-            plage_macro := plage_source
-            plage_pour_sousligner := plage_source
+            plage_macro := plage_source;
+            plage_pour_sousligner := plage_source;
 
             tantque plage_macro.début.invocation != -1 {
-                invocation := *unit.invocations_macros[plage_macro.début.invocation]
+                invocation := *unit.invocations_macros[plage_macro.début.invocation];
 
-                imprime_gouttière(largeur_goutière)
-                imprimeln("")
+                imprime_gouttière(largeur_goutière);
+                imprimeln("");
 
-                imprime_gouttière(largeur_goutière)
+                imprime_gouttière(largeur_goutière);
 
                 si premier_développement {
-                    premier_développement = faux
-                    imprime("Le diagnostique est dans le ")
+                    premier_développement = faux;
+                    imprime("Le diagnostique est dans le ");
                 }
                 sinon {
-                    imprime("... qui provient du ")
+                    imprime("... qui provient du ");
                 }
 
-                imprimeln("développement de la macro « % » qui donna le résultat suivant :", invocation.nom_macro)
+                imprimeln("développement de la macro « % » qui donna le résultat suivant :", invocation.nom_macro);
 
-                imprime_gouttière(largeur_goutière)
-                imprimeln("")
+                imprime_gouttière(largeur_goutière);
+                imprimeln("");
 
-                lexème_à_souligner: z64 = -1
+                lexème_à_souligner: z64 = -1;
 
-                imprime_gouttière(largeur_goutière)
-                imprime("   ")
+                imprime_gouttière(largeur_goutière);
+                imprime("   ");
                 pour invocation.lexèmes_résultants {
-                    est_l_intéressé := sont_même_plage_fichier(it.plage_source, plage_pour_sousligner)
+                    est_l_intéressé := sont_même_plage_fichier(it.plage_source, plage_pour_sousligner);
 
                     si est_l_intéressé {
-                        imprime("%", couleur)
+                        imprime("%", couleur);
                     }
 
-                    imprime("%", donne_texte(it))
+                    imprime("%", donne_texte(it));
 
                     si est_l_intéressé {
-                        imprime("\x1b[00m")
-                        lexème_à_souligner = indice_it
+                        imprime("\x1b[00m");
+                        lexème_à_souligner = indice_it;
                     }
                 }
-                imprimeln("")
+                imprimeln("");
 
                 si lexème_à_souligner != -1 {
-                    imprime_gouttière(largeur_goutière)
-                    imprime("   %", couleur)
+                    imprime_gouttière(largeur_goutière);
+                    imprime("   %", couleur);
                     pour invocation.lexèmes_résultants {
                         si lexème_à_souligner == indice_it {
-                            imprime_tildes_pour_texte(donne_texte(it))
-                            arrête
+                            imprime_tildes_pour_texte(donne_texte(it));
+                            arrête;
                         }
                         sinon {
-                            imprime_espaces_pour_texte(donne_texte(it))
+                            imprime_espaces_pour_texte(donne_texte(it));
                         }
                     }
-                    imprimeln("\x1b[00m")
+                    imprimeln("\x1b[00m");
                 }
 
-                imprime_gouttière(largeur_goutière)
-                imprimeln("")
+                imprime_gouttière(largeur_goutière);
+                imprimeln("");
 
-                plage_macro = invocation.lexème.plage_source
-                plage_pour_sousligner = plage_macro
+                plage_macro = invocation.lexème.plage_source;
+                plage_pour_sousligner = plage_macro;
             }
         }
         sinon {
-            imprime("\x1b[1m%% : \x1b[00m", couleur, intitulé)
-            imprimeln(format, ...args)
+            imprime("\x1b[1m%% : \x1b[00m", couleur, intitulé);
+            imprimeln(format, ...args);
         }
     }
     sinon {
-        imprime("\x1b[1m%% : \x1b[00m", couleur, intitulé)
-        imprimeln(format, ...args)
+        imprime("\x1b[1m%% : \x1b[00m", couleur, intitulé);
+        imprimeln(format, ...args);
     }
 
     si type != TypeDiagnostique.NOTE {
-        exit(1)
+        exit(1);
     }
 } @Imprimeuse
 
@@ -296,19 +296,19 @@ rapporte_diagnostique :: fonc (unit: *TranslationUnit, type: TypeDiagnostique, p
 imprime_gouttière :: fonc (largeur: n64)
 {
     pour largeur {
-        imprime(" ")
+        imprime(" ");
     }
-    imprime("| ")
+    imprime("| ");
 }
 
 imprime_espaces_pour_texte :: fonc (texte: chaine)
 {
     pour texte {
         si it == '\t' {
-            imprime("\t")
+            imprime("\t");
         }
         sinon {
-            imprime(" ")
+            imprime(" ");
         }
     }
 }
@@ -316,18 +316,18 @@ imprime_espaces_pour_texte :: fonc (texte: chaine)
 imprime_tildes_pour_texte :: fonc (texte: chaine)
 {
     pour texte {
-        imprime("~")
+        imprime("~");
     }
 }
 
 sont_même_plage_fichier :: fonc (a: PlageSource, b: PlageSource) -> bool
 {
-    retourne sont_même_lieu_source_fichier(a.début, b.début) && sont_même_lieu_source_fichier(a.fin, b.fin)
+    retourne sont_même_lieu_source_fichier(a.début, b.début) && sont_même_lieu_source_fichier(a.fin, b.fin);
 }
 
 sont_même_lieu_source_fichier :: fonc (a: LieuSource, b: LieuSource) -> bool
 {
-    retourne a.fichier == b.fichier && a.décalage == b.décalage
+    retourne a.fichier == b.fichier && a.décalage == b.décalage;
 }
 
 /** \} */

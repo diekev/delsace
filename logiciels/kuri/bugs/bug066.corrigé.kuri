@@ -3,41 +3,41 @@
  * Catégorie : [validation sémantique, portée, fonction polymorphique, type structure]
  */
 
-importe Exétron
+importe Exétron;
 
 boucle_parallèle :: fonc (données: $T, rappel: fonc (plage: *PlageExecution, données: T))
 {
     DonneesTacheCorps :: struct {
-        empl base: DonneesTacheParallele
+        empl base: DonneesTacheParallele;
 
-        rappel: fonc (plage: *PlageExecution, données: T)
+        rappel: fonc (plage: *PlageExecution, données: T);
         /* T n'a pas de taille. */
-        données: T
+        données: T;
     }
 
-    fonction :: fonc (données_tâche: *DonneesTacheParallele, plage: *PlageExecution)
+    fonction :: fonc (données_tâche: *DonneesTacheParallele, plage: *PlageExecution);
     {
-        données_locales := données_tâche comme *DonneesTacheCorps
-        données_locales.rappel(plage, données_locales.données)
+        données_locales := données_tâche comme *DonneesTacheCorps;
+        données_locales.rappel(plage, données_locales.données);
     }
 
-    données_tâche: DonneesTacheCorps
-    données_tâche.rappel = rappel
-    données_tâche.fonction = fonction
-    données_tâche.données = données
+    données_tâche: DonneesTacheCorps;
+    données_tâche.rappel = rappel;
+    données_tâche.fonction = fonction;
+    données_tâche.données = données;
 
-    plage: PlageExecution
-    plage.debut = 0
-    plage.fin = 1024
+    plage: PlageExecution;
+    plage.debut = 0;
+    plage.fin = 1024;
 
-    EXETRON_boucle_parallele_legere(*plage, *données_tâche)
+    EXETRON_boucle_parallele_legere(*plage, *données_tâche);
 }
 
 principale :: fonc ()
 {
-    rappel :: fonc (plage: *PlageExecution @inutilisée, donnees: z32 @inutilisée)
+    rappel :: fonc (plage: *PlageExecution @inutilisée, donnees: z32 @inutilisée);
     {
     }
 
-    boucle_parallèle(6, rappel)
+    boucle_parallèle(6, rappel);
 }
