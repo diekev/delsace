@@ -1,58 +1,58 @@
-importe Compilatrice
-importe Fondation
+importe Compilatrice;
+importe Fondation;
 
-variable_globale: z32
+variable_globale: z32;
 
 attends_compilation_terminée :: fonc (espace: EspaceDeTravail)
 {
     boucle {
-        message := compilatrice_attends_message()
-        diffère compilatrice_message_reçu(message)
+        message := compilatrice_attends_message();
+        diffère compilatrice_message_reçu(message);
 
         si message.espace != espace {
-            continue
+            continue;
         }
 
         si message.genre == GenreMessage.PHASE_COMPILATION {
-            phase := message comme *MessagePhaseCompilation
+            phase := message comme *MessagePhaseCompilation;
 
             si phase.phase == PhaseCompilation.COMPILATION_TERMINÉE {
-                arrête
+                arrête;
             }
         }
     }
 
-    compilatrice_termine_interception(espace)
+    compilatrice_termine_interception(espace);
 }
 
 compile_fichier_erroné :: fonc (chemin: chaine) -> bool
 {
-    options: OptionsDeCompilation
-    options.continue_si_erreur = vrai
+    options: OptionsDeCompilation;
+    options.continue_si_erreur = vrai;
 
-    espace := démarre_un_espace_de_travail("bug", *options)
+    espace := démarre_un_espace_de_travail("bug", *options);
 
-    compilatrice_commence_interception(espace)
+    compilatrice_commence_interception(espace);
 
-    ajoute_fichier_à_la_compilation(espace, chemin)
+    ajoute_fichier_à_la_compilation(espace, chemin);
 
-    attends_compilation_terminée(espace)
+    attends_compilation_terminée(espace);
 
     // À FAIRE : il faudra avoir une IPA pour déterminer l'erreur voulue
-    retourne compilatrice_possède_erreur(espace)
+    retourne compilatrice_possède_erreur(espace);
 }
 
 compile_script_erroné :: fonc (script: chaine) -> bool
 {
-    options: OptionsDeCompilation
-    options.continue_si_erreur = vrai
+    options: OptionsDeCompilation;
+    options.continue_si_erreur = vrai;
 
-    espace := démarre_un_espace_de_travail("bug", *options)
-    compilatrice_commence_interception(espace)
-    ajoute_chaine_à_la_compilation(espace, script)
+    espace := démarre_un_espace_de_travail("bug", *options);
+    compilatrice_commence_interception(espace);
+    ajoute_chaine_à_la_compilation(espace, script);
 
-    attends_compilation_terminée(espace)
+    attends_compilation_terminée(espace);
 
     // À FAIRE : il faudra avoir une IPA pour déterminer l'erreur voulue
-    retourne compilatrice_possède_erreur(espace)
+    retourne compilatrice_possède_erreur(espace);
 }

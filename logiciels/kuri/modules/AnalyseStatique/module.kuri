@@ -1,37 +1,37 @@
 // Module d'analyse statique du code selon différents modèles (NASA, Linux, Google, etc.)
 // À FAIRE : préserve l'information qu'une fonction est marquée comme enlignée
 
-importe Compilatrice
-importe Fondation
-importe GreffeMétaprogramme
-importe LigneDeCommande
-importe Triage
+importe Compilatrice;
+importe Fondation;
+importe GreffeMétaprogramme;
+importe LigneDeCommande;
+importe Triage;
 
 OptionsAnalyse :: struct {
-    imprimeuses: bool = vrai @Aide "Vérifie les appels à toutes les fonctions @Imprimeuse afin de détecter les paramètres manquants."
+    imprimeuses: bool = vrai @Aide "Vérifie les appels à toutes les fonctions @Imprimeuse afin de détecter les paramètres manquants.";
 
-    ligne_de_cache: bool @Aide "Vérifie qu'aucune rubrique de structure ne dépasse une ligne de cache."
-    taille_cache: n8 = 64 @Aide "Précise la taille d'une ligne de cache en octets."
+    ligne_de_cache: bool @Aide "Vérifie qu'aucune rubrique de structure ne dépasse une ligne de cache.";
+    taille_cache: n8 = 64 @Aide "Précise la taille d'une ligne de cache en octets.";
 
-    rembourrage: bool @Aide "Vérifie que le rembourrage inséré entre les rubriques des structure n'est pas excessif."
-    rembourrage_permis: n32 = 24 @Aide "Le rembourrage maximal permis."
+    rembourrage: bool @Aide "Vérifie que le rembourrage inséré entre les rubriques des structure n'est pas excessif.";
+    rembourrage_permis: n32 = 24 @Aide "Le rembourrage maximal permis.";
 
-    nasa: bool @Aide "Controle que le code respecte les instructions de codage de la NASA. Voir https://andrewbanks.com/wp-content/uploads/2019/07/JPL_Coding_Standard_C.pdf"
+    nasa: bool @Aide "Controle que le code respecte les instructions de codage de la NASA. Voir https://andrewbanks.com/wp-content/uploads/2019/07/JPL_Coding_Standard_C.pdf";
 }
 
 GreffonAnalyse :: struct {
-    empl base: GreffonMétaprogramme
+    empl base: GreffonMétaprogramme;
 
-    options: OptionsAnalyse
+    options: OptionsAnalyse;
 }
 
 donne_greffon :: fonc () -> *GreffonMétaprogramme
 {
-    résultat := loge(GreffonAnalyse)
-    résultat.sur_message = greffon_analyse_sur_message
-    résultat.sur_arguments = greffon_analyse_sur_arguments
-    résultat.sur_destruction = greffon_analyse_sur_destruction
-    retourne résultat
+    résultat := loge(GreffonAnalyse);
+    résultat.sur_message = greffon_analyse_sur_message;
+    résultat.sur_arguments = greffon_analyse_sur_arguments;
+    résultat.sur_destruction = greffon_analyse_sur_destruction;
+    retourne résultat;
 }
 
 #portée_fichier
@@ -39,18 +39,18 @@ donne_greffon :: fonc () -> *GreffonMétaprogramme
 greffon_analyse_sur_message :: fonc (greffon: *GreffonAnalyse, message: *Message)
 {
     si message.genre == GenreMessage.TYPAGE_CODE_TERMINÉ {
-        message_typage := message comme *MessageTypageCodeTerminé
+        message_typage := message comme *MessageTypageCodeTerminé;
 
-        vérifie_appels(message.espace, message_typage.code, greffon.options.imprimeuses)
+        vérifie_appels(message.espace, message_typage.code, greffon.options.imprimeuses);
 
         si greffon.options.ligne_de_cache {
-            vérifie_dépassement_ligne_de_cache(message_typage.code, greffon.options)
+            vérifie_dépassement_ligne_de_cache(message_typage.code, greffon.options);
         }
         si greffon.options.rembourrage {
-            vérifie_rembourrage_excessif(message_typage.code, greffon.options)
+            vérifie_rembourrage_excessif(message_typage.code, greffon.options);
         }
         si greffon.options.nasa {
-            vérifie_nasa(message.espace, message_typage.code)
+            vérifie_nasa(message.espace, message_typage.code);
         }
     }
 }
@@ -58,125 +58,125 @@ greffon_analyse_sur_message :: fonc (greffon: *GreffonAnalyse, message: *Message
 greffon_analyse_sur_arguments :: fonc (greffon: *GreffonAnalyse, arguments: []chaine)
 {
     /* Saute le nom du métaprogramme. */
-    _ := consomme(*arguments)
+    _ := consomme(*arguments);
     
-    succès, options, _ := parse_ligne_de_commande(OptionsAnalyse, arguments)
+    succès, options, _ := parse_ligne_de_commande(OptionsAnalyse, arguments);
     si succès {
-        greffon.options = options
+        greffon.options = options;
     }
 }
 
 greffon_analyse_sur_destruction :: fonc (greffon: *GreffonAnalyse)
 {
-    déloge(greffon)
+    déloge(greffon);
 }
 
 vérifie_appels :: fonc (espace: EspaceDeTravail, code: *NoeudCode, vérifie_imprimeuses: bool)
 {
     si code.genre != GenreNoeud.DÉCLARATION_CORPS_FONCTION {
-        retourne
+        retourne;
     }
 
-    corps := code comme *NoeudCodeCorpsFonction
+    corps := code comme *NoeudCodeCorpsFonction;
     pour noeud dans corps.noeuds {
         si noeud.genre == GenreNoeud.EXPRESSION_APPEL {
-            appel := noeud comme *NoeudCodeAppel
+            appel := noeud comme *NoeudCodeAppel;
 
             si appel.expression.genre != GenreNoeud.EXPRESSION_RÉFÉRENCE_DÉCLARATION {
-                continue
+                continue;
             }
 
-            référence := appel.expression comme *NoeudCodeRéférenceDéclaration
+            référence := appel.expression comme *NoeudCodeRéférenceDéclaration;
 
-            déclaration_référée := référence.déclaration_référée
+            déclaration_référée := référence.déclaration_référée;
             saufsi déclaration_référée {
                 // À FAIRE : parfois nous avons une référence nulle
-                continue
+                continue;
             }
 
             si déclaration_référée.genre != GenreNoeud.DÉCLARATION_ENTÊTE_FONCTION {
-                continue
+                continue;
             }
 
-            entête := déclaration_référée comme *NoeudCodeEntêteFonction
-            entête_imprimeuse: *NoeudCodeEntêteFonction
-            première_lettre_en_minuscule := faux
+            entête := déclaration_référée comme *NoeudCodeEntêteFonction;
+            entête_imprimeuse: *NoeudCodeEntêteFonction;
+            première_lettre_en_minuscule := faux;
             pour entête.annotations {
                 si it.nom == "Imprimeuse" {
-                    entête_imprimeuse = entête
+                    entête_imprimeuse = entête;
                 }
                 sinon si it.nom == "Obsolète" {
-                    message_avertissement := "Appel d'une fonction obsolète"
-                    compilatrice_rapporte_avertissement(espace, appel, message_avertissement)
+                    message_avertissement := "Appel d'une fonction obsolète";
+                    compilatrice_rapporte_avertissement(espace, appel, message_avertissement);
                     si it.valeur {
-                        compilatrice_rapporte_info(espace, appel.nom_fichier, appel.numéro_ligne, it.valeur)
+                        compilatrice_rapporte_info(espace, appel.nom_fichier, appel.numéro_ligne, it.valeur);
                     }
                 }
                 sinon si it.nom == "Avertis" {
-                    message_avertissement := "Je doit avertir mais je ne sais pas pourquoi..."
+                    message_avertissement := "Je doit avertir mais je ne sais pas pourquoi...";
                     si it.valeur {
-                        message_avertissement = it.valeur
+                        message_avertissement = it.valeur;
                     }
-                    compilatrice_rapporte_avertissement(espace, appel, message_avertissement)
+                    compilatrice_rapporte_avertissement(espace, appel, message_avertissement);
                 }
                 sinon si it.nom == "PremièreLettreEnMinuscule" {
-                    première_lettre_en_minuscule = vrai
+                    première_lettre_en_minuscule = vrai;
                 }
             }
 
             saufsi entête_imprimeuse && vérifie_imprimeuses {
-                continue
+                continue;
             }
 
-            indice_arg_variadique : z64 = -1
+            indice_arg_variadique : z64 = -1;
             pour arg, indice_arg dans entête_imprimeuse.params {
                 si arg.type.id == GenreInfoType.VARIADIQUE {
-                    indice_arg_variadique = indice_arg
-                    arrête
+                    indice_arg_variadique = indice_arg;
+                    arrête;
                 }
             }
             sansarrêt {
-                continue
+                continue;
             }
 
             si indice_arg_variadique == 0 {
-                compilatrice_rapporte_avertissement(espace, entête_imprimeuse, "Une fonction est marquée @Imprimeuse alors que ses paramètres variadiques sont les premiers. Ils doivent être précédés par une chaine de formattage.")
-                continue
+                compilatrice_rapporte_avertissement(espace, entête_imprimeuse, "Une fonction est marquée @Imprimeuse alors que ses paramètres variadiques sont les premiers. Ils doivent être précédés par une chaine de formattage.");
+                continue;
             }
 
-            indice_arg_formattage := indice_arg_variadique - 1
-            param_formattage := entête_imprimeuse.params[indice_arg_formattage]
+            indice_arg_formattage := indice_arg_variadique - 1;
+            param_formattage := entête_imprimeuse.params[indice_arg_formattage];
             si param_formattage.type.id != GenreInfoType.CHAINE {
-                compilatrice_rapporte_avertissement(espace, entête_imprimeuse, "Une fonction est marquée @Imprimeuse alors que son paramètre de formattage n'est pas de type chaine.")
-                continue
+                compilatrice_rapporte_avertissement(espace, entête_imprimeuse, "Une fonction est marquée @Imprimeuse alors que son paramètre de formattage n'est pas de type chaine.");
+                continue;
             }
 
-            argument_format := appel.paramètres[indice_arg_formattage]
+            argument_format := appel.paramètres[indice_arg_formattage];
             si argument_format.genre != GenreNoeud.EXPRESSION_LITTÉRALE_CHAINE {
-                continue
+                continue;
             }
 
-            nombre_de_pourcentages := 0
-            chn := (argument_format comme *NoeudCodeLittéraleChaine).valeur
+            nombre_de_pourcentages := 0;
+            chn := (argument_format comme *NoeudCodeLittéraleChaine).valeur;
             pour chn {
                 si it == '%' {
-                    nombre_de_pourcentages += 1
+                    nombre_de_pourcentages += 1;
                 }
             }
 
             si première_lettre_en_minuscule && chn {
                 saufsi 'a' <= chn[0] <= 'z' || chn[0] == '%' {
-                    compilatrice_rapporte_erreur(espace, appel, "La première doit être en minuscule")
+                    compilatrice_rapporte_erreur(espace, appel, "La première doit être en minuscule");
                 }
             }
 
-            nombre_de_paramètres_spécifiés := appel.paramètres.taille - indice_arg_variadique
+            nombre_de_paramètres_spécifiés := appel.paramètres.taille - indice_arg_variadique;
 
             si nombre_de_paramètres_spécifiés < nombre_de_pourcentages {
-                compilatrice_rapporte_erreur(espace, appel, "Paramètre manquant pour la fonction d'impression.")
+                compilatrice_rapporte_erreur(espace, appel, "Paramètre manquant pour la fonction d'impression.");
             }
             sinon si nombre_de_paramètres_spécifiés > nombre_de_pourcentages {
-                compilatrice_rapporte_erreur(espace, appel, "Trop de paramètres spécifiés pour la fonction d'impression.")
+                compilatrice_rapporte_erreur(espace, appel, "Trop de paramètres spécifiés pour la fonction d'impression.");
             }
         }
     }
@@ -186,26 +186,26 @@ est_fonction_imprimeuse :: fonc (code: *NoeudCode) -> *NoeudCodeEntêteFonction
 {
     
 
-    retourne entête
+    retourne entête;
 }
 
 vérifie_dépassement_ligne_de_cache :: fonc (code: *NoeudCode, options: OptionsAnalyse)
 {
     si code.genre == GenreNoeud.DÉCLARATION_STRUCTURE && code.type {
-        déclaration := code comme *NoeudCodeStructure
-        type := déclaration.type comme *InfoTypeStructure
+        déclaration := code comme *NoeudCodeStructure;
+        type := déclaration.type comme *InfoTypeStructure;
 
         pour type.rubriques {
             si it.drapeaux.EST_CONSTANTE || it.drapeaux.EST_IMPLICITE {
-                continue
+                continue;
             }
 
             // À FAIRE : tableaux fixes, etc.
-            reste_décalage := it.décalage % 64
+            reste_décalage := it.décalage % 64;
             si reste_décalage comme n32 + it.id.taille_en_octet > options.taille_cache {
-                avertissement := imprime_chaine("Dépassement d'une ligne de cache pour %", it.nom)
-                compilatrice_rapporte_avertissement(code, avertissement)
-                déloge(avertissement)
+                avertissement := imprime_chaine("Dépassement d'une ligne de cache pour %", it.nom);
+                compilatrice_rapporte_avertissement(code, avertissement);
+                déloge(avertissement);
             }
         }
     }
@@ -214,27 +214,27 @@ vérifie_dépassement_ligne_de_cache :: fonc (code: *NoeudCode, options: Options
 vérifie_rembourrage_excessif :: fonc (code: *NoeudCode, options: OptionsAnalyse)
 {
     si code.genre == GenreNoeud.DÉCLARATION_STRUCTURE && code.type {
-        déclaration := code comme *NoeudCodeStructure
-        type := déclaration.type comme *InfoTypeStructure
+        déclaration := code comme *NoeudCodeStructure;
+        type := déclaration.type comme *InfoTypeStructure;
 
-        types_rubriques: [..]*InfoType
-        diffère déloge(types_rubriques)
+        types_rubriques: [..]*InfoType;
+        diffère déloge(types_rubriques);
 
         pour type.rubriques {
             si it.drapeaux.EST_CONSTANTE || it.drapeaux.EST_IMPLICITE {
-                continue
+                continue;
             }
-            tableau_ajoute(*types_rubriques, it.id)
+            tableau_ajoute(*types_rubriques, it.id);
         }
 
-        rembourrage_courant := calcule_rembourrage(types_rubriques)
-        tri_rapide(types_rubriques, tri_types_par_alignement_décroissant)
-        rembourrage_optimal := calcule_rembourrage(types_rubriques)
+        rembourrage_courant := calcule_rembourrage(types_rubriques);
+        tri_rapide(types_rubriques, tri_types_par_alignement_décroissant);
+        rembourrage_optimal := calcule_rembourrage(types_rubriques);
 
         si rembourrage_courant > rembourrage_optimal && (rembourrage_courant - rembourrage_optimal) > options.rembourrage_permis {
-            avertissement := imprime_chaine("Rembourrage excessif : % octets de rembourrage quand % est optimal", rembourrage_courant, rembourrage_optimal)
-            compilatrice_rapporte_avertissement(code, avertissement)
-            déloge(avertissement)
+            avertissement := imprime_chaine("Rembourrage excessif : % octets de rembourrage quand % est optimal", rembourrage_courant, rembourrage_optimal);
+            compilatrice_rapporte_avertissement(code, avertissement);
+            déloge(avertissement);
         }
     }
 }
@@ -242,43 +242,43 @@ vérifie_rembourrage_excessif :: fonc (code: *NoeudCode, options: OptionsAnalyse
 tri_types_par_alignement_décroissant :: fonc (a: *InfoType, b: *InfoType) -> z32
 {
     si a.alignement > b.alignement {
-        retourne 1
+        retourne 1;
     }
 
     si b.alignement > a.alignement {
-        retourne -1
+        retourne -1;
     }
 
-    retourne 0
+    retourne 0;
 }
 
 calcule_rembourrage :: fonc (types: []*InfoType) -> n32
 {
-    résultat: n32
-    taille_courante: n32
+    résultat: n32;
+    taille_courante: n32;
 
-    alignement_max: n32
+    alignement_max: n32;
 
     pour types {
         si it.alignement != 0 {
-            rembourrage := (it.alignement - taille_courante % it.alignement) % it.alignement
-            résultat += rembourrage
+            rembourrage := (it.alignement - taille_courante % it.alignement) % it.alignement;
+            résultat += rembourrage;
 
-            taille_courante += rembourrage
-            taille_courante += it.taille_en_octet
+            taille_courante += rembourrage;
+            taille_courante += it.taille_en_octet;
 
             si it.alignement > alignement_max {
-                alignement_max = it.alignement
+                alignement_max = it.alignement;
             }
         }
     }
 
     si alignement_max != 0 {
-        rembourrage := (alignement_max - taille_courante % alignement_max) % alignement_max
-        résultat += rembourrage
+        rembourrage := (alignement_max - taille_courante % alignement_max) % alignement_max;
+        résultat += rembourrage;
     }
 
-    retourne résultat
+    retourne résultat;
 }
 
 /*
@@ -301,13 +301,13 @@ calcule_rembourrage :: fonc (types: []*InfoType) -> n32
 vérifie_nasa :: fonc (espace: EspaceDeTravail, code: *NoeudCode)
 {
     si code.genre != GenreNoeud.DÉCLARATION_CORPS_FONCTION {
-        retourne
+        retourne;
     }
 
-    corps := code comme *NoeudCodeCorpsFonction
+    corps := code comme *NoeudCodeCorpsFonction;
 
     si est_fonction_trop_longue(corps, 60) {
-        avertis_nasa(espace, corps.entête, ViolationNASA.FONCTION_LONGUE)
+        avertis_nasa(espace, corps.entête, ViolationNASA.FONCTION_LONGUE);
     }
 
     // À FAIRE : pour les boucles, vérification sur la présence d'un "arrête"
@@ -317,29 +317,29 @@ vérifie_nasa :: fonc (espace: EspaceDeTravail, code: *NoeudCode)
         // }
 
         si it.genre == GenreNoeud.INSTRUCTION_BOUCLE {
-            avertis_nasa(espace, it, ViolationNASA.BOUCLE_SANS_LIMITE)
+            avertis_nasa(espace, it, ViolationNASA.BOUCLE_SANS_LIMITE);
         }
         sinon si it.genre == GenreNoeud.INSTRUCTION_TANTQUE {
-            instruction := it comme *NoeudCodeTantque
+            instruction := it comme *NoeudCodeTantque;
             si est_littérale_bool_vrai(instruction.condition) {
-                avertis_nasa(espace, it, ViolationNASA.BOUCLE_SANS_LIMITE)
+                avertis_nasa(espace, it, ViolationNASA.BOUCLE_SANS_LIMITE);
             }
         }
         sinon si it.genre == GenreNoeud.INSTRUCTION_RÉPÈTE {
-            instruction := it comme *NoeudCodeRépète
+            instruction := it comme *NoeudCodeRépète;
             si est_littérale_bool_vrai(instruction.condition) {
-                avertis_nasa(espace, it, ViolationNASA.BOUCLE_SANS_LIMITE)
+                avertis_nasa(espace, it, ViolationNASA.BOUCLE_SANS_LIMITE);
             }
         }
         sinon si it.genre == GenreNoeud.EXPRESSION_RÉFÉRENCE_RUBRIQUE {
-            référence := it comme *NoeudCodeRéférenceRubrique
-            type_accédé := référence.accédée.type
+            référence := it comme *NoeudCodeRéférenceRubrique;
+            type_accédé := référence.accédée.type;
             si type_accédé && type_accédé.id == GenreInfoType.POINTEUR {
                 si référence.accédée.genre == GenreNoeud.EXPRESSION_RÉFÉRENCE_RUBRIQUE {
-                    référence = référence.accédée comme *NoeudCodeRéférenceRubrique
-                    type_accédé = référence.accédée.type
+                    référence = référence.accédée comme *NoeudCodeRéférenceRubrique;
+                    type_accédé = référence.accédée.type;
                     si type_accédé && type_accédé.id == GenreInfoType.POINTEUR {
-                        avertis_nasa(espace, it, ViolationNASA.DÉRÉFENCEMENTS_MULTIPLE_DE_POINTEUR)
+                        avertis_nasa(espace, it, ViolationNASA.DÉRÉFENCEMENTS_MULTIPLE_DE_POINTEUR);
                     }
                 }
             }
@@ -350,97 +350,97 @@ vérifie_nasa :: fonc (espace: EspaceDeTravail, code: *NoeudCode)
 est_littérale_bool_vrai :: fonc (code: *NoeudCode) -> bool
 {
     si code.genre != GenreNoeud.EXPRESSION_LITTÉRALE_BOOLÉEN {
-        retourne faux
+        retourne faux;
     }
-    littérale := code comme *NoeudCodeLittéraleBool
-    retourne littérale.valeur
+    littérale := code comme *NoeudCodeLittéraleBool;
+    retourne littérale.valeur;
 }
 
 ViolationNASA :: énum {
-    FONCTION_LONGUE
-    BOUCLE_SANS_LIMITE
-    POINTEUR_FONCTION
-    DÉRÉFENCEMENTS_MULTIPLE_DE_POINTEUR
+    FONCTION_LONGUE;
+    BOUCLE_SANS_LIMITE;
+    POINTEUR_FONCTION;
+    DÉRÉFENCEMENTS_MULTIPLE_DE_POINTEUR;
 }
 
 avertis_nasa :: fonc (espace: EspaceDeTravail, site: *NoeudCode, violation: ViolationNASA)
 {
     discr violation {
         FONCTION_LONGUE {
-            compilatrice_rapporte_avertissement(espace, site, "La fonction possède plus de 60 lignes, violation de la ligne directrice de la NASA n° 4")
+            compilatrice_rapporte_avertissement(espace, site, "La fonction possède plus de 60 lignes, violation de la ligne directrice de la NASA n° 4");
         }
         BOUCLE_SANS_LIMITE {
             // À FAIRE(langage) : nous obtenons les expressions substituées...
             // compilatrice_rapporte_avertissement(espace, site, "Utilisation d'une boucle sans limite, violation de la ligne directrice de la NASA n° 2")
         }
         POINTEUR_FONCTION {
-            compilatrice_rapporte_avertissement(espace, site, "Utilisation d'un pointeur de fonction, violation de la ligne directrice de la NASA n° 9")
+            compilatrice_rapporte_avertissement(espace, site, "Utilisation d'un pointeur de fonction, violation de la ligne directrice de la NASA n° 9");
         }
         DÉRÉFENCEMENTS_MULTIPLE_DE_POINTEUR {
-            compilatrice_rapporte_avertissement(espace, site, "Plusieurs déréférencement de pointeurs, violation de la ligne directrice de la NASA n° 9")
+            compilatrice_rapporte_avertissement(espace, site, "Plusieurs déréférencement de pointeurs, violation de la ligne directrice de la NASA n° 9");
         }
     }
 }
 
 est_fonction_trop_longue :: fonc (corps: *NoeudCodeCorpsFonction, lignes_max: n32) -> bool
 {
-    bloc := corps.bloc
+    bloc := corps.bloc;
     saufsi bloc && bloc.expressions {
-        retourne faux
+        retourne faux;
     }
 
-    dernière_expression := bloc.expressions[bloc.expressions.taille - 1]
-    début_bloc := bloc.numéro_ligne
-    fin_bloc := dernière_expression.numéro_ligne
+    dernière_expression := bloc.expressions[bloc.expressions.taille - 1];
+    début_bloc := bloc.numéro_ligne;
+    fin_bloc := dernière_expression.numéro_ligne;
 
     // À FAIRE(langage) : nous pouvons avoir une ligne de fin inférieur à la ligne de début
     si fin_bloc < début_bloc {
-        retourne faux
+        retourne faux;
     }
 
     si (fin_bloc - début_bloc) comme n32 <= lignes_max {
-        retourne faux
+        retourne faux;
     }
 
-    entête := corps.entête
+    entête := corps.entête;
     pour entête.annotations {
         si it.nom == "FonctionLongue" {
-            retourne faux
+            retourne faux;
         }
     }
 
-    retourne vrai
+    retourne vrai;
 }
 
 utilise_pointeur_de_fonction :: fonc (type: *InfoType) -> bool
 {
     saufsi type {
-        retourne faux
+        retourne faux;
     }
 
     discr type.id {
         STRUCTURE {
-            type_structure := type comme *InfoTypeStructure
+            type_structure := type comme *InfoTypeStructure;
             pour type_structure.rubriques {
                 si utilise_pointeur_de_fonction(it.id) {
-                    retourne vrai
+                    retourne vrai;
                 }
             }
         }
         UNION {
-            type_union := type comme *InfoTypeUnion
+            type_union := type comme *InfoTypeUnion;
             pour type_union.rubriques {
                 si utilise_pointeur_de_fonction(it.id) {
-                    retourne vrai
+                    retourne vrai;
                 }
             }
         }
         FONCTION {
-            retourne vrai
+            retourne vrai;
         }
         OPAQUE {
-            type_opaque := type comme *InfoTypeOpaque
-            retourne utilise_pointeur_de_fonction(type_opaque.type_opacifié)
+            type_opaque := type comme *InfoTypeOpaque;
+            retourne utilise_pointeur_de_fonction(type_opaque.type_opacifié);
         }
         POINTEUR {}
         RIEN {}
@@ -451,22 +451,22 @@ utilise_pointeur_de_fonction :: fonc (type: *InfoType) -> bool
         TYPE_DE_DONNÉES {}
         TABLEAU,
         TABLEAU_FIXE {
-            type_tableau := type comme *InfoTypeTableau
-            retourne utilise_pointeur_de_fonction(type_tableau.type_pointé)
+            type_tableau := type comme *InfoTypeTableau;
+            retourne utilise_pointeur_de_fonction(type_tableau.type_pointé);
         }
         TRANCHE {}
         ÉNUM {}
         CHAINE {}
         EINI {}
         VARIADIQUE {
-            type_variadique := type comme *InfoTypeVariadique
-            retourne utilise_pointeur_de_fonction(type_variadique.type_élément)
+            type_variadique := type comme *InfoTypeVariadique;
+            retourne utilise_pointeur_de_fonction(type_variadique.type_élément);
         }
         ADRESSE_FONCTION {}
         POLYMORPHIQUE {}
     }
 
-    retourne faux
+    retourne faux;
 }
 
 /*

@@ -1,36 +1,36 @@
 /* Imprime des informations sur un fichier ELF. */
 
-importe Chaine
-importe ELF
-importe Fondation
-importe LigneDeCommande
-importe SysFichier
-importe Tabulation
+importe Chaine;
+importe ELF;
+importe Fondation;
+importe LigneDeCommande;
+importe SysFichier;
+importe Tabulation;
 
 principale :: fonc ()
 {
-    diffère imprime("Fin du programme, mémoire utilisée : %o\n", mémoire_utilisée())
+    diffère imprime("Fin du programme, mémoire utilisée : %o\n", mémoire_utilisée());
 
-    args_ok, arguments, _ := parse_ligne_de_commande(Arguments)
+    args_ok, arguments, _ := parse_ligne_de_commande(Arguments);
     saufsi args_ok && arguments.fichier {
-        imprime("Utilisation : % FICHIER [OPTIONS...]\n", donne_nom_programme())
-        retourne
+        imprime("Utilisation : % FICHIER [OPTIONS...]\n", donne_nom_programme());
+        retourne;
     }
 
-    chm := CheminFichier(arguments.fichier)
-    _, contenu := contenu_fichier_binaire(chm)
-    diffère déloge(contenu)
+    chm := CheminFichier(arguments.fichier);
+    _, contenu := contenu_fichier_binaire(chm);
+    diffère déloge(contenu);
 
-    fichier := crée_fichier_elf(contenu)
+    fichier := crée_fichier_elf(contenu);
 
-    imprime_entête_fichier(*fichier)
+    imprime_entête_fichier(*fichier);
 
     si arguments.sections {
-        imprime_noms_sections(*fichier)
+        imprime_noms_sections(*fichier);
     }
 
     si arguments.symboles {
-        imprime_symboles(*fichier)
+        imprime_symboles(*fichier);
     }
 }
 
@@ -40,9 +40,9 @@ principale :: fonc ()
 
 Arguments :: struct {
     /* Chemin du fichier. */
-    fichier: chaine @anonyme @Aide "Le fichier à parser."
-    sections: bool @Aide "Imprime le noms des sections."
-    symboles: bool @Aide "Imprime les symbles du fichier."
+    fichier: chaine @anonyme @Aide "Le fichier à parser.";
+    sections: bool @Aide "Imprime le noms des sections.";
+    symboles: bool @Aide "Imprime les symbles du fichier.";
 }
 
 /** \} */
@@ -53,7 +53,7 @@ Arguments :: struct {
 
 imprime_entête_fichier :: fonc (fichier: *FichierELF)
 {
-    entête := fichier.entête_fichier()
+    entête := fichier.entête_fichier();
 
     /*
     si contenu[0] != 0x7f comme octet {
@@ -77,29 +77,29 @@ imprime_entête_fichier :: fonc (fichier: *FichierELF)
     }
     */
 
-    tabuleuse := crée_tabuleuse("Nom", "Valeur")
-    diffère détruit_tabuleuse(*tabuleuse)
+    tabuleuse := crée_tabuleuse("Nom", "Valeur");
+    diffère détruit_tabuleuse(*tabuleuse);
 
-    ajoute_ligne(*tabuleuse, "Classe", entête.donne_classe_fichier())
-    ajoute_ligne(*tabuleuse, "Données", entête.donne_encodage_fichier())
-    ajoute_ligne(*tabuleuse, "Version", entête.donne_version_fichier())
-    ajoute_ligne(*tabuleuse, "OS/ABI", entête.donne_chaine_ABI())
-    ajoute_ligne(*tabuleuse, "Version ABI", entête.donne_version_ABI())
-    ajoute_ligne(*tabuleuse, "Type", entête.donne_type_fichier_objet())
-    ajoute_ligne(*tabuleuse, "Machine", entête.donne_chaine_architecture_cible())
-    ajoute_ligne(*tabuleuse, "Version Fichier", entête.donne_version_format_fichier_objet())
-    ajoute_ligne(*tabuleuse, "Adresse du point d'entrée", entête.donne_adresse_point_d_entrée())
-    ajoute_ligne(*tabuleuse, "Début des en-têtes de programme", entête.donne_début_entêtes_de_programme())
-    ajoute_ligne(*tabuleuse, "Début des en-têtes de section", entête.donne_début_entêtes_de_section())
-    ajoute_ligne(*tabuleuse, "Fanions", entête.donne_fanions_processeur())
-    ajoute_ligne(*tabuleuse, "Taille de cet en-tête", entête.donne_taille_entête())
-    ajoute_ligne(*tabuleuse, "Taille de l'en-tête du programme", entête.donne_taille_entête_programme())
-    ajoute_ligne(*tabuleuse, "Nombre d'en-tête du programme", entête.donne_nombre_entête_programme())
-    ajoute_ligne(*tabuleuse, "Taille des en-têtes de section", entête.donne_taille_entête_section())
-    ajoute_ligne(*tabuleuse, "Nombre d'en-tête de section", entête.donne_nombre_entête_section())
-    ajoute_ligne(*tabuleuse, "Table d'index des chaînes d'en-tête de section", entête.donne_index_section_table_des_chaines())
+    ajoute_ligne(*tabuleuse, "Classe", entête.donne_classe_fichier());
+    ajoute_ligne(*tabuleuse, "Données", entête.donne_encodage_fichier());
+    ajoute_ligne(*tabuleuse, "Version", entête.donne_version_fichier());
+    ajoute_ligne(*tabuleuse, "OS/ABI", entête.donne_chaine_ABI());
+    ajoute_ligne(*tabuleuse, "Version ABI", entête.donne_version_ABI());
+    ajoute_ligne(*tabuleuse, "Type", entête.donne_type_fichier_objet());
+    ajoute_ligne(*tabuleuse, "Machine", entête.donne_chaine_architecture_cible());
+    ajoute_ligne(*tabuleuse, "Version Fichier", entête.donne_version_format_fichier_objet());
+    ajoute_ligne(*tabuleuse, "Adresse du point d'entrée", entête.donne_adresse_point_d_entrée());
+    ajoute_ligne(*tabuleuse, "Début des en-têtes de programme", entête.donne_début_entêtes_de_programme());
+    ajoute_ligne(*tabuleuse, "Début des en-têtes de section", entête.donne_début_entêtes_de_section());
+    ajoute_ligne(*tabuleuse, "Fanions", entête.donne_fanions_processeur());
+    ajoute_ligne(*tabuleuse, "Taille de cet en-tête", entête.donne_taille_entête());
+    ajoute_ligne(*tabuleuse, "Taille de l'en-tête du programme", entête.donne_taille_entête_programme());
+    ajoute_ligne(*tabuleuse, "Nombre d'en-tête du programme", entête.donne_nombre_entête_programme());
+    ajoute_ligne(*tabuleuse, "Taille des en-têtes de section", entête.donne_taille_entête_section());
+    ajoute_ligne(*tabuleuse, "Nombre d'en-tête de section", entête.donne_nombre_entête_section());
+    ajoute_ligne(*tabuleuse, "Table d'index des chaînes d'en-tête de section", entête.donne_index_section_table_des_chaines());
 
-    imprime_table(*tabuleuse)
+    imprime_table(*tabuleuse);
 
     /*
     imprime("nombre de sections : %\n", e_shnum)
@@ -165,23 +165,26 @@ imprime_entête_fichier :: fonc (fichier: *FichierELF)
 
 imprime_noms_sections :: fonc (fichier: *FichierELF)
 {
-    entête := fichier.contenu.pointeur comme *EntêteELF64
-    table_symbole := (fichier.contenu.pointeur + entête.e_shoff + entête.e_shstrndx * taille_de(EntêteSectionELF64)) comme *EntêteSectionELF64
+    entête := entête_fichier(fichier);
+    succès_table_chaines, table_chaines := donne_string_table(fichier, entête.e_shstrndx);
+    saufsi succès_table_chaines {
+        imprimeln("Impossible d'obtenir la table de noms des sections");
+        retourne;
+    }
 
-    nombre_de_sections := entête.e_shnum
+    nombre_de_sections := donne_nombre_de_sections(fichier);
 
-    imprime("il y a % sections :\n", nombre_de_sections)
+    imprime("il y a % sections :\n", nombre_de_sections);
 
     pour 0 ... nombre_de_sections - 1 {
-        entête_section := (fichier.contenu.pointeur + entête.e_shoff + it * taille_de(EntêteSectionELF64)) comme *EntêteSectionELF64
+        entête_section := donne_entête_section(fichier, it comme Elf64_Word);
 
-        nom_section_c := (fichier.contenu.pointeur + table_symbole.sh_offset + entête_section.sh_name) comme *z8
-        nom_section := convertis_chaine_c_statique(ChaineC(nom_section_c))
-        imprime("[%] %\n", it, nom_section)
-        imprime("-- adresse  : %\n", FormatEntier(valeur = entête_section.sh_addr, base = 16))
-        imprime("-- décalage : %\n", FormatEntier(valeur = entête_section.sh_offset, base = 16))
-        imprime("-- taille   : %\n", FormatEntier(valeur = entête_section.sh_size, base = 16))
-        imprime("-- type     : %\n", entête_section.sh_type)
+        nom_section := donne_chaine(table_chaines, entête_section.sh_name);
+        imprime("[%] %\n", it, nom_section);
+        imprime("-- adresse  : %\n", FormatEntier(valeur = entête_section.sh_addr, base = 16));
+        imprime("-- décalage : %\n", FormatEntier(valeur = entête_section.sh_offset, base = 16));
+        imprime("-- taille   : %\n", FormatEntier(valeur = entête_section.sh_size, base = 16));
+        imprime("-- type     : %\n", entête_section.sh_type);
     }
 }
 
@@ -193,42 +196,37 @@ imprime_noms_sections :: fonc (fichier: *FichierELF)
 
 imprime_symboles :: fonc (fichier: *FichierELF)
 {
-    table_potentielle := fichier.donne_table_des_symboles()
-    saufsi table_potentielle.possède_valeur() {
-        imprime("Aucune table de symbole trouvée.")
-        retourne
+    succès_table, table := donne_symbol_table(fichier, ".symtab");
+    saufsi succès_table {
+        imprimeln("Aucune table de symbole trouvée.");
+        retourne;
     }
 
-    table := table_potentielle.Quelque
-
-    nombre_de_symboles := donne_nombre_de_symboles(*table)
-
+    nombre_de_symboles := table.symboles.taille;
     si nombre_de_symboles == 0 {
-        imprime("La table de symboles « % » ne contient aucune entrée.\n", donne_nom_table(*table))
-        retourne
+        imprimeln("La table de symboles « .symtab » ne contient aucune entrée.");
+        retourne;
     }
 
-    imprime("La table de symboles « % » contient % entrées : \n", donne_nom_table(*table), nombre_de_symboles)
+    imprime("La table de symboles « .symtab » contient % entrées : \n", nombre_de_symboles);
 
-    tabuleuse := crée_tabuleuse("Numéro", "Valeur", "Taille", "Type", "Lien", "Index", "Nom")
-    diffère détruit_tabuleuse(*tabuleuse)
+    tabuleuse := crée_tabuleuse("Numéro", "Valeur", "Taille", "Type", "Lien", "Index", "Nom");
+    diffère détruit_tabuleuse(*tabuleuse);
 
-    définis_alignement(*tabuleuse, 0, Alignement.DROITE)
-    définis_alignement(*tabuleuse, 1, Alignement.DROITE)
-    définis_alignement(*tabuleuse, 2, Alignement.DROITE)
-    définis_alignement(*tabuleuse, 5, Alignement.DROITE)
+    définis_alignement(*tabuleuse, 0, Alignement.DROITE);
+    définis_alignement(*tabuleuse, 1, Alignement.DROITE);
+    définis_alignement(*tabuleuse, 2, Alignement.DROITE);
+    définis_alignement(*tabuleuse, 5, Alignement.DROITE);
 
-    pour nombre_de_symboles {
-        symbole := donne_symbole(*table, it)
+    pour * symbole, indice_symbole dans table.symboles {
+        nom_symbole := donne_nom_symbole(*table, symbole);
+        index_symbole := symbole.st_shndx;
 
-        nom_symbole := donne_nom_symbole(*table, symbole)
-        index_symbole := symbole.st_shndx
-
-        valeur_symbole := symbole.st_value
-        ajoute_ligne(*tabuleuse, it, valeur_symbole, symbole.st_size, symbole.donne_type(), symbole.donne_liaison(), index_symbole, nom_symbole)
+        valeur_symbole := symbole.st_value;
+        ajoute_ligne(*tabuleuse, indice_symbole, valeur_symbole, symbole.st_size, symbole.donne_type(), symbole.donne_liaison(), index_symbole, nom_symbole);
     }
 
-    imprime_table(*tabuleuse)
+    imprime_table(*tabuleuse);
 }
 
 /** \} */

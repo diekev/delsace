@@ -1,162 +1,162 @@
 // https://franckh.developpez.com/tutoriels/posix/pthreads/
 
-importe Aléa
-importe Chaine
-importe Fondation
-importe Ordinatrice
-importe POSIX
-importe PThread
+importe Aléa;
+importe Chaine;
+importe Fondation;
+importe Ordinatrice;
+importe POSIX;
+importe PThread;
 
 /* ------------------------------------------------------------------------- */
 
 // Structure stockant les informations des threads clients et du magasin.
 store_t :: struct {
-    stock := 20
+    stock := 20;
 
-    thread_store: pthread_t
-    thread_clients: [5]pthread_t
+    thread_store: pthread_t;
+    thread_clients: [5]pthread_t;
 
-    mutex: pthread_mutex_t
-    cond_clients: pthread_cond_t
-    cond_store: pthread_cond_t
+    mutex: pthread_mutex_t;
+    cond_clients: pthread_cond_t;
+    cond_store: pthread_cond_t;
 }
 
 // Fonction pour le thread du magasin.
 fn_store :: fonc (p_data: *rien) -> *rien #sanstrace
 {
-    __init_contexte_fil_exécution()
+    __init_contexte_fil_exécution();
 
-    store := p_data comme *store_t
+    store := p_data comme *store_t;
 
     boucle {
-        _ := pthread_mutex_lock(*store.mutex)
-        _ := pthread_cond_wait(*store.cond_store, *store.mutex)
+        _ := pthread_mutex_lock(*store.mutex);
+        _ := pthread_cond_wait(*store.cond_store, *store.mutex);
 
-        store.stock = 20
-        imprime("Remplissage du stock de % articles !\n", store.stock)
+        store.stock = 20;
+        imprime("Remplissage du stock de % articles !\n", store.stock);
 
-        _ := pthread_cond_signal(*store.cond_clients)
-        _ := pthread_mutex_unlock(*store.mutex)
+        _ := pthread_cond_signal(*store.cond_clients);
+        _ := pthread_mutex_unlock(*store.mutex);
     }
 
-    retourne nul
+    retourne nul;
 }
 
 donnée_client_t :: struct {
-    store: *store_t
-    indice: z32
+    store: *store_t;
+    indice: z32;
 }
 
 // Fonction pour les threads des clients.
 fn_clients :: fonc (p_data: *rien) -> *rien #sanstrace #cliche ri_finale
 {
-    __init_contexte_fil_exécution()
+    __init_contexte_fil_exécution();
 
-    donnée_client := p_data comme *donnée_client_t
-    store := donnée_client.store
-    nb : z32 = donnée_client.indice
+    donnée_client := p_data comme *donnée_client_t;
+    store := donnée_client.store;
+    nb : z32 = donnée_client.indice;
 
-    entropie := graine_aléatoire(nb comme n32)
+    entropie := graine_aléatoire(nb comme n32);
 
     boucle {
-        val : z32 = aléatoire_entre(entropie, 0, 6)
-        sleep(aléatoire_entre(entropie, 0, 3))
+        val : z32 = aléatoire_entre(entropie, 0, 6);
+        sleep(aléatoire_entre(entropie, 0, 3));
 
-        _ := pthread_mutex_lock(*store.mutex)
+        _ := pthread_mutex_lock(*store.mutex);
 
         si val > store.stock {
-            _ := pthread_cond_signal(*store.cond_store)
-            _ := pthread_cond_wait(*store.cond_clients, *store.mutex)
+            _ := pthread_cond_signal(*store.cond_store);
+            _ := pthread_cond_wait(*store.cond_clients, *store.mutex);
         }
 
-        store.stock = store.stock - val
+        store.stock = store.stock - val;
 
-        imprime("Client % prend % du stock, reste % en stock !\n", nb, val, store.stock)
+        imprime("Client % prend % du stock, reste % en stock !\n", nb, val, store.stock);
         //printf("-- pthread_self() : %d\n".pointeur, pthread_getthreadid_np())
 
-        _ := pthread_mutex_unlock(*store.mutex)
+        _ := pthread_mutex_unlock(*store.mutex);
     }
 
-    retourne nul
+    retourne nul;
 }
 
 Tâche :: struct {
-    id_tâche: pthread_t
+    id_tâche: pthread_t;
 
-    rappel: fonc (arg: *rien) -> *rien
-    données_rappel: *rien
+    rappel: fonc (arg: *rien) -> *rien;
+    données_rappel: *rien;
 
-    id: z32
+    id: z32;
 }
 
 lance_tâche :: fonc (tâche_: *rien) -> *rien
 {
-    tâche := tâche_ comme *Tâche
+    tâche := tâche_ comme *Tâche;
 
-    contexte := __contexte_fil_principal
+    contexte := __contexte_fil_principal;
     // contexte().id_tâche = tâche.id
 
     pousse_contexte contexte {
-        tâche.rappel(tâche.données_rappel)
+        tâche.rappel(tâche.données_rappel);
     }
 
-    retourne nul
+    retourne nul;
 }
 
 crée_tâche :: fonc (rappel: fonc (arg: *rien) -> *rien, données_rappel: *rien) -> *Tâche
 {
-    tâche := loge(Tâche)
-    tâche.données_rappel = données_rappel
-    tâche.rappel = rappel
-    tâche.id = 0
+    tâche := loge(Tâche);
+    tâche.données_rappel = données_rappel;
+    tâche.rappel = rappel;
+    tâche.id = 0;
 
-    ret := pthread_create(*tâche.id_tâche, nul, lance_tâche, tâche)
+    ret := pthread_create(*tâche.id_tâche, nul, lance_tâche, tâche);
 
     si ret != 0 {
-        imprime("erreur : %\n", convertis_chaine_c(strerror(ret)))
-        déloge(tâche)
+        imprime("erreur : %\n", convertis_chaine_c(strerror(ret)));
+        déloge(tâche);
     }
 
-    retourne tâche
+    retourne tâche;
 }
 
 SystèmeTâche :: struct {
-    tâches: [..]Tâche
+    tâches: [..]Tâche;
 }
 
 principale :: fonc ()
 {
-    imprime("Il y a sur le système % threads\n", nombre_threads_disponible())
+    imprime("Il y a sur le système % threads\n", nombre_threads_disponible());
 
     //retourne 0
 
-    store := store_t(stock = 20)
-    ret : z32 = 0
+    store := store_t(stock = 20);
+    ret : z32 = 0;
 
-    imprime("Creation du thread du magasin !\n")
-    ret = pthread_create(*store.thread_store, nul, fn_store, *store)
+    imprime("Creation du thread du magasin !\n");
+    ret = pthread_create(*store.thread_store, nul, fn_store, *store);
 
     si ret == 0 {
-        imprime("Creation des threads clients !\n")
+        imprime("Creation des threads clients !\n");
 
         pour fil_client, idx dans store.thread_clients {
-            donnée_client: donnée_client_t
-            donnée_client.store = *store
-            donnée_client.indice = idx comme z32
-            ret = pthread_create(*fil_client, nul, fn_clients, *donnée_client)
+            donnée_client: donnée_client_t;
+            donnée_client.store = *store;
+            donnée_client.indice = idx comme z32;
+            ret = pthread_create(*fil_client, nul, fn_clients, *donnée_client);
 
             si ret != 0 {
-                imprime("erreur : %\n", convertis_chaine_c(strerror(ret)))
+                imprime("erreur : %\n", convertis_chaine_c(strerror(ret)));
             }
         }
     }
     sinon {
-        imprime("erreur : %\n", convertis_chaine_c(strerror(ret)))
+        imprime("erreur : %\n", convertis_chaine_c(strerror(ret)));
     }
 
     pour fil_client dans store.thread_clients {
-        _ := pthread_join(fil_client, nul)
+        _ := pthread_join(fil_client, nul);
     }
 
-    _ := pthread_join(store.thread_store, nul)
+    _ := pthread_join(store.thread_store, nul);
 }

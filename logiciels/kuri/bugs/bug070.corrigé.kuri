@@ -2,7 +2,7 @@
  * Catégorie : [crash, variable globale, type tableau, type structure]
  */
 
-importe Math
+importe Math;
 
 gradient := [
     Vec3(1.0, 1.0, 0.0),
@@ -17,7 +17,7 @@ gradient := [
     Vec3(0.0, -1.0, 1.0),
     Vec3(0.0, 1.0, -1.0),
     Vec3(0.0, -1.0, -1.0)
-]
+];
 
 principale :: fonc ()
 {
@@ -34,11 +34,11 @@ principale :: fonc ()
         Vec3(0.0, -1.0, 1.0),
         Vec3(0.0, 1.0, -1.0),
         Vec3(0.0, -1.0, -1.0)
-    ]
+    ];
 
     pour gradient {
         si it != gradient_locale[indice_it] {
-            exit(1)
+            exit(1);
         }
     }
 }

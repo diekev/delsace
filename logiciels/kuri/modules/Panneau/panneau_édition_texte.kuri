@@ -1,5 +1,5 @@
-importe Chaine
-importe Unicode
+importe Chaine;
+importe Unicode;
 
 /* ------------------------------------------------------------------------- */
 /** \nom PanneauÉditionTexte.
@@ -7,156 +7,156 @@ importe Unicode
 
 RappelsÉditionTexte :: struct {
     /* Appelé à chaque changement. */
-    sur_édition: fonc (rappels: *RappelsÉditionTexte, texte: chaine)
+    sur_édition: fonc (rappels: *RappelsÉditionTexte, texte: chaine);
     /* Appelé lors de la fin de l'édition. */
-    sur_fin_édition: fonc (rappels: *RappelsÉditionTexte, texte: chaine)
+    sur_fin_édition: fonc (rappels: *RappelsÉditionTexte, texte: chaine);
 }
 
 PanneauÉditionTexte :: struct {
-    empl base: Panneau
+    empl base: Panneau;
 
-    rect_texte: RectanglePosDim(z32)
-    texte: ChaineUTF32
-    lieutenant: ChaineUTF32
+    rect_texte: RectanglePosDim(z32);
+    texte: ChaineUTF32;
+    lieutenant: ChaineUTF32;
 
-    en_édition: bool
-    curseur_est_affiché := vrai
+    en_édition: bool;
+    curseur_est_affiché := vrai;
 
-    id_chronomètre: IDChronomètre
+    id_chronomètre: IDChronomètre;
 
-    curseur: CurseurTexte
+    curseur: CurseurTexte;
 
-    rappels: *RappelsÉditionTexte
+    rappels: *RappelsÉditionTexte;
 }
 
 crée_panneau_édition_texte :: fonc (contexte: *ContexteInterface, texte: chaine, parent: *Panneau, lieutenant := "") -> *PanneauÉditionTexte
 {
-    résultat := contexte.crée_panneau(PanneauÉditionTexte)
+    résultat := contexte.crée_panneau(PanneauÉditionTexte);
     si parent {
-        parent.ajoute_enfant(résultat)
+        parent.ajoute_enfant(résultat);
     }
-    résultat.sur_dessin = sur_dessin_panneau_édition_texte
-    résultat.sur_redimension = sur_redimension_panneau_édition_texte
-    résultat.sur_clic_souris = sur_clic_panneau_édition_texte
-    résultat.texte = crée_chaine_utf32(texte)
-    résultat.lieutenant = crée_chaine_utf32(lieutenant)
-    résultat.curseur.texte = *résultat.texte
-    résultat.curseur.panneau = résultat
-    retourne résultat
+    résultat.sur_dessin = sur_dessin_panneau_édition_texte;
+    résultat.sur_redimension = sur_redimension_panneau_édition_texte;
+    résultat.sur_clic_souris = sur_clic_panneau_édition_texte;
+    résultat.texte = crée_chaine_utf32(texte);
+    résultat.lieutenant = crée_chaine_utf32(lieutenant);
+    résultat.curseur.texte = *résultat.texte;
+    résultat.curseur.panneau = résultat;
+    retourne résultat;
 }
 
 donne_texte_pour_dessin :: fonc (panneau: *PanneauÉditionTexte) -> ChaineUTF32
 {
     si panneau.texte.taille() == 0 {
-        retourne panneau.lieutenant
+        retourne panneau.lieutenant;
     }
 
-    retourne panneau.texte
+    retourne panneau.texte;
 }
 
 sur_dessin_panneau_édition_texte :: fonc (empl panneau: *PanneauÉditionTexte, ctx: *ContexteAffichage)
 {
-    thème := ctx.thème
-    peintre := ctx.peintre
-    fonte := ctx.fonte
+    thème := ctx.thème;
+    peintre := ctx.peintre;
+    fonte := ctx.fonte;
 
-    peintre.remplis_rectangle(rect, thème.couleur_arrière_plan)
-    peintre.dessine_rectangle(rect, thème.couleur_contour)
+    peintre.remplis_rectangle(rect, thème.couleur_arrière_plan);
+    peintre.dessine_rectangle(rect, thème.couleur_contour);
 
-    texte_à_dessiner := texte
-    couleur_texte := thème.couleur_texte
+    texte_à_dessiner := texte;
+    couleur_texte := thème.couleur_texte;
 
     si texte_à_dessiner.est_vide() {
-        texte_à_dessiner = lieutenant
-        couleur_texte = thème.couleur_lieutenant
+        texte_à_dessiner = lieutenant;
+        couleur_texte = thème.couleur_lieutenant;
     }
 
-    rect_texte_pour_dessin := rect_texte
-    peintre.dessine_texte(fonte, texte_à_dessiner, rect_texte_pour_dessin, couleur_texte)
+    rect_texte_pour_dessin := rect_texte;
+    peintre.dessine_texte(fonte, texte_à_dessiner, rect_texte_pour_dessin, couleur_texte);
 
     saufsi en_édition {
-        retourne
+        retourne;
     }
 
     si curseur_est_affiché {
-        texte_avant_curseur := texte
-        texte_avant_curseur.points_de_code.taille = curseur.fin
+        texte_avant_curseur := texte;
+        texte_avant_curseur.points_de_code.taille = curseur.fin;
 
-        curseur_x := fonte.donne_largeur_texte(texte_avant_curseur) comme z32
+        curseur_x := fonte.donne_largeur_texte(texte_avant_curseur) comme z32;
 
-        ligne_curseur: Ligne(z32)
-        ligne_curseur.p0.x = rect_texte.x + curseur_x
-        ligne_curseur.p1.x = rect_texte.x + curseur_x
+        ligne_curseur: Ligne(z32);
+        ligne_curseur.p0.x = rect_texte.x + curseur_x;
+        ligne_curseur.p1.x = rect_texte.x + curseur_x;
 
-        ligne_curseur.p0.y = rect_texte.y
-        ligne_curseur.p1.y = rect_texte.y + rect_texte.hauteur
+        ligne_curseur.p0.y = rect_texte.y;
+        ligne_curseur.p1.y = rect_texte.y + rect_texte.hauteur;
 
-        peintre.dessine_segment(ligne_curseur, thème.couleur_curseur_texte)
+        peintre.dessine_segment(ligne_curseur, thème.couleur_curseur_texte);
     }
 
     si curseur.début != curseur.fin {
-        texte_avant_sélection := texte
-        texte_avant_sélection.points_de_code.taille = curseur.début
-        largeur_avant_sélection := fonte.donne_largeur_texte(texte_avant_sélection) comme z32
+        texte_avant_sélection := texte;
+        texte_avant_sélection.points_de_code.taille = curseur.début;
+        largeur_avant_sélection := fonte.donne_largeur_texte(texte_avant_sélection) comme z32;
 
-        texte_jusque_fin_sélection := texte
-        texte_jusque_fin_sélection.points_de_code.taille = curseur.fin
-        largeur_jusque_fin_sélection := fonte.donne_largeur_texte(texte_jusque_fin_sélection) comme z32
+        texte_jusque_fin_sélection := texte;
+        texte_jusque_fin_sélection.points_de_code.taille = curseur.fin;
+        largeur_jusque_fin_sélection := fonte.donne_largeur_texte(texte_jusque_fin_sélection) comme z32;
 
-        rect_sélection := rect_texte
-        rect_sélection.x += largeur_avant_sélection
-        rect_sélection.largeur = largeur_jusque_fin_sélection - largeur_avant_sélection
+        rect_sélection := rect_texte;
+        rect_sélection.x += largeur_avant_sélection;
+        rect_sélection.largeur = largeur_jusque_fin_sélection - largeur_avant_sélection;
 
-        peintre.remplis_rectangle(rect_sélection, thème.couleur_sélection_texte)
+        peintre.remplis_rectangle(rect_sélection, thème.couleur_sélection_texte);
 
-        texte_sélectionné := texte
-        texte_sélectionné.points_de_code.pointeur += curseur.début
-        texte_sélectionné.points_de_code.taille = curseur.fin - curseur.début
+        texte_sélectionné := texte;
+        texte_sélectionné.points_de_code.pointeur += curseur.début;
+        texte_sélectionné.points_de_code.taille = curseur.fin - curseur.début;
 
-        peintre.dessine_texte(fonte, texte_sélectionné, rect_sélection, thème.couleur_texte_sélectionné)
+        peintre.dessine_texte(fonte, texte_sélectionné, rect_sélection, thème.couleur_texte_sélectionné);
     }
 }
 
 sur_redimension_panneau_édition_texte :: fonc (base: *Panneau, rect_disponible: RectanglePosDim(z32))
 {
-    empl panneau := base comme *PanneauÉditionTexte
+    empl panneau := base comme *PanneauÉditionTexte;
 
-    fonte := contexte.fonte
-    métriques := fonte.donne_métriques_fonte()
+    fonte := contexte.fonte;
+    métriques := fonte.donne_métriques_fonte();
 
-    largeur_texte := 70 * métriques.largeur_moyenne + 10
-    hauteur_texte := métriques.donne_hauteur_ligne() + 10
+    largeur_texte := 70 * métriques.largeur_moyenne + 10;
+    hauteur_texte := métriques.donne_hauteur_ligne() + 10;
 
     discr règle_cotation_verticale {
         SurContenu {
             si largeur_texte > rect_disponible.largeur comme r32 {
-                largeur_texte = rect_disponible.largeur comme r32
+                largeur_texte = rect_disponible.largeur comme r32;
             }
         }
         SurLargeurDisponible {
-            largeur_texte = rect_disponible.largeur comme r32
+            largeur_texte = rect_disponible.largeur comme r32;
         }
     }
 
-    rect.x = rect_disponible.x
-    rect.y = rect_disponible.y - hauteur_texte comme z32
-    rect.hauteur = hauteur_texte comme z32
-    rect.largeur = largeur_texte comme z32
+    rect.x = rect_disponible.x;
+    rect.y = rect_disponible.y - hauteur_texte comme z32;
+    rect.hauteur = hauteur_texte comme z32;
+    rect.largeur = largeur_texte comme z32;
 
-    rect_texte = rect
-    rect_texte.réduis(5)
+    rect_texte = rect;
+    rect_texte.réduis(5);
 }
 
 sur_clic_panneau_édition_texte :: fonc (empl panneau: *PanneauÉditionTexte, clic: ClicSouris) -> bool
 {
     saufsi rect.contient(clic.état.où) {
-        retourne faux
+        retourne faux;
     }
 
-    guetteuse: GuetteuseÉditionTexte
-    guetteuse.panneau = panneau
-    commence_guettage(*guetteuse, contexte)
-    retourne vrai
+    guetteuse: GuetteuseÉditionTexte;
+    guetteuse.panneau = panneau;
+    commence_guettage(*guetteuse, contexte);
+    retourne vrai;
 }
 
 /** \} */
@@ -166,31 +166,31 @@ sur_clic_panneau_édition_texte :: fonc (empl panneau: *PanneauÉditionTexte, cl
  * \{ */
 
 ChronomètreClignotageCurseur :: struct {
-    empl base: Chronomètre
-    panneau: *PanneauÉditionTexte
+    empl base: Chronomètre;
+    panneau: *PanneauÉditionTexte;
 
-    délai = 500
+    délai = 500;
 }
 
 crée_chronomètre_clignotage_curseur :: fonc (panneau: *PanneauÉditionTexte) -> *Chronomètre
 {
-    rappel_sur_décompte :: fonc (base: *Chronomètre)
+    rappel_sur_décompte :: fonc (base: *Chronomètre);
     {
-        chrono := base comme *ChronomètreClignotageCurseur
-        chrono.panneau.curseur_est_affiché = !chrono.panneau.curseur_est_affiché
+        chrono := base comme *ChronomètreClignotageCurseur;
+        chrono.panneau.curseur_est_affiché = !chrono.panneau.curseur_est_affiché;
     }
 
-    rappel_sur_destruction :: fonc (base: *Chronomètre)
+    rappel_sur_destruction :: fonc (base: *Chronomètre);
     {
-        chrono := base comme *ChronomètreClignotageCurseur
-        déloge(chrono)
+        chrono := base comme *ChronomètreClignotageCurseur;
+        déloge(chrono);
     }
 
-    résultat := loge(ChronomètreClignotageCurseur)
-    résultat.panneau = panneau
-    résultat.rappel = rappel_sur_décompte
-    résultat.sur_destruction = rappel_sur_destruction
-    retourne résultat
+    résultat := loge(ChronomètreClignotageCurseur);
+    résultat.panneau = panneau;
+    résultat.rappel = rappel_sur_décompte;
+    résultat.sur_destruction = rappel_sur_destruction;
+    retourne résultat;
 }
 
 /** \} */
@@ -200,43 +200,43 @@ crée_chronomètre_clignotage_curseur :: fonc (panneau: *PanneauÉditionTexte) -
  * \{ */
 
 CurseurTexte :: struct {
-    début: z64
-    fin: z64
-    ancre: z64
-    texte: *ChaineUTF32
-    panneau: *PanneauÉditionTexte
-    fut_modifié: bool
+    début: z64;
+    fin: z64;
+    ancre: z64;
+    texte: *ChaineUTF32;
+    panneau: *PanneauÉditionTexte;
+    fut_modifié: bool;
 }
 
 ModeDéplacementCurseur :: énum {
-    GardeAncre
-    DéplaceAncre
+    GardeAncre;
+    DéplaceAncre;
 }
 
 déplace_vers :: fonc (curseur: *CurseurTexte, mode: ModeDéplacementCurseur, position: z64)
 {
-    définis_position(curseur, mode, position)
+    définis_position(curseur, mode, position);
 }
 
 définis_position :: fonc (curseur: *CurseurTexte, mode: ModeDéplacementCurseur, position: z64)
 {
-    position = restreint_position(curseur, position)
+    position = restreint_position(curseur, position);
 
     discr mode {
         GardeAncre {
             si position < curseur.ancre {
-                curseur.début = position
-                curseur.fin = curseur.ancre
+                curseur.début = position;
+                curseur.fin = curseur.ancre;
             }
             sinon {
-                curseur.début = curseur.ancre
-                curseur.fin = position
+                curseur.début = curseur.ancre;
+                curseur.fin = position;
             }
         }
         DéplaceAncre {
-            curseur.début = position
-            curseur.fin = position
-            curseur.ancre = position
+            curseur.début = position;
+            curseur.fin = position;
+            curseur.ancre = position;
         }
     }
 }
@@ -244,98 +244,98 @@ définis_position :: fonc (curseur: *CurseurTexte, mode: ModeDéplacementCurseur
 restreint_position :: fonc (curseur: *CurseurTexte, position: z64) -> z64
 {
     si position > curseur.texte.points_de_code.taille {
-        retourne curseur.texte.points_de_code.taille
+        retourne curseur.texte.points_de_code.taille;
     }
     si position < 0 {
-        retourne 0
+        retourne 0;
     }
-    retourne position
+    retourne position;
 }
 
 efface :: fonc (curseur: *CurseurTexte)
 {
     si curseur.début == curseur.fin {
         si curseur.début == 0 {
-            retourne
+            retourne;
         }
 
-        tableau_supprime_indice(*curseur.texte.points_de_code, curseur.début - 1)
-        définis_position(curseur, ModeDéplacementCurseur.DéplaceAncre, curseur.début - 1)
+        tableau_supprime_indice(*curseur.texte.points_de_code, curseur.début - 1);
+        définis_position(curseur, ModeDéplacementCurseur.DéplaceAncre, curseur.début - 1);
     }
     sinon {
-        tableau_supprime_entre(*curseur.texte.points_de_code, curseur.début, curseur.fin)
-        définis_position(curseur, ModeDéplacementCurseur.DéplaceAncre, curseur.début)
+        tableau_supprime_entre(*curseur.texte.points_de_code, curseur.début, curseur.fin);
+        définis_position(curseur, ModeDéplacementCurseur.DéplaceAncre, curseur.début);
     }
 
-    notifie_changement(curseur)
+    notifie_changement(curseur);
 }
 
 supprime :: fonc (curseur: *CurseurTexte)
 {
     si curseur.début == curseur.fin {
         si curseur.début == curseur.texte.points_de_code.taille {
-            retourne
+            retourne;
         }
 
-        tableau_supprime_indice(*curseur.texte.points_de_code, curseur.début)
+        tableau_supprime_indice(*curseur.texte.points_de_code, curseur.début);
     }
     sinon {
-        tableau_supprime_entre(*curseur.texte.points_de_code, curseur.début, curseur.fin)
+        tableau_supprime_entre(*curseur.texte.points_de_code, curseur.début, curseur.fin);
     }
 
-    définis_position(curseur, ModeDéplacementCurseur.DéplaceAncre, curseur.début)
-    notifie_changement(curseur)
+    définis_position(curseur, ModeDéplacementCurseur.DéplaceAncre, curseur.début);
+    notifie_changement(curseur);
 }
 
 insère :: fonc (curseur: *CurseurTexte, point_de_code: n32)
 {
     si curseur.début == curseur.fin {
-        tableau_insère_indice(*curseur.texte.points_de_code, point_de_code, curseur.début)
+        tableau_insère_indice(*curseur.texte.points_de_code, point_de_code, curseur.début);
     }
     sinon {
-        curseur.texte.points_de_code[curseur.début] = point_de_code
-        tableau_supprime_entre(*curseur.texte.points_de_code, curseur.début + 1, curseur.fin)
+        curseur.texte.points_de_code[curseur.début] = point_de_code;
+        tableau_supprime_entre(*curseur.texte.points_de_code, curseur.début + 1, curseur.fin);
     }
 
-    définis_position(curseur, ModeDéplacementCurseur.DéplaceAncre, curseur.début + 1)
-    notifie_changement(curseur)
+    définis_position(curseur, ModeDéplacementCurseur.DéplaceAncre, curseur.début + 1);
+    notifie_changement(curseur);
 }
 
 notifie_changement :: fonc (curseur: *CurseurTexte)
 {
-    curseur.fut_modifié = vrai
+    curseur.fut_modifié = vrai;
 
-    panneau := curseur.panneau
+    panneau := curseur.panneau;
     saufsi panneau.rappels && panneau.rappels.sur_édition {
-        retourne
+        retourne;
     }
 
-    texte := mémoire(curseur.texte)
+    texte := mémoire(curseur.texte);
 
-    chn := convertis_vers_chaine(texte)
-    diffère déloge(chn)
+    chn := convertis_vers_chaine(texte);
+    diffère déloge(chn);
 
-    panneau.rappels.sur_édition(panneau.rappels, chn)
+    panneau.rappels.sur_édition(panneau.rappels, chn);
 }
 
 notifie_fin_édition :: fonc (curseur: *CurseurTexte)
 {
     saufsi curseur.fut_modifié {
-        retourne
+        retourne;
     }
-    curseur.fut_modifié = vrai
+    curseur.fut_modifié = vrai;
 
-    panneau := curseur.panneau
+    panneau := curseur.panneau;
     saufsi panneau.rappels && panneau.rappels.sur_fin_édition {
-        retourne
+        retourne;
     }
 
-    texte := mémoire(curseur.texte)
+    texte := mémoire(curseur.texte);
 
-    chn := convertis_vers_chaine(texte)
-    diffère déloge(chn)
+    chn := convertis_vers_chaine(texte);
+    diffère déloge(chn);
 
-    panneau.rappels.sur_fin_édition(panneau.rappels, chn)
+    panneau.rappels.sur_fin_édition(panneau.rappels, chn);
 }
 
 /** \} */
@@ -348,154 +348,154 @@ notifie_fin_édition :: fonc (curseur: *CurseurTexte)
     /* La guetteuse est lancée lorsque la souris est pressée dans le rect du texte.
      * Nous attendons le relachement pour voir si l'édition doit commencer
      * (relachement dans le rect) ou être avortée (relachement hors du rect).  */
-    AttenteRelachementClic
-    EnÉdition
-    EnSélection
+    AttenteRelachementClic;
+    EnÉdition;
+    EnSélection;
 }
 
 GuetteuseÉditionTexte :: struct {
-    empl base: Guetteuse
-    panneau: *PanneauÉditionTexte
+    empl base: Guetteuse;
+    panneau: *PanneauÉditionTexte;
 
-    état: ÉtatGuettageÉditionTexte
+    état: ÉtatGuettageÉditionTexte;
 
-    sur_termine_guettage = guetteuse_édition_texte_sur_termine_guettage
-    sur_déplacement_souris = guetteuse_édition_texte_sur_déplacement_souris
-    sur_clic = guetteuse_édition_texte_sur_clic
-    sur_touche_clavier = guetteuse_édition_texte_sur_touche_clavier
+    sur_termine_guettage = guetteuse_édition_texte_sur_termine_guettage;
+    sur_déplacement_souris = guetteuse_édition_texte_sur_déplacement_souris;
+    sur_clic = guetteuse_édition_texte_sur_clic;
+    sur_touche_clavier = guetteuse_édition_texte_sur_touche_clavier;
 }
 
 guetteuse_édition_texte_sur_termine_guettage :: fonc (base: *Guetteuse)
 {
-    empl guetteuse := base comme *GuetteuseÉditionTexte
-    panneau.en_édition = faux
-    panneau.curseur.début = panneau.curseur.fin
+    empl guetteuse := base comme *GuetteuseÉditionTexte;
+    panneau.en_édition = faux;
+    panneau.curseur.début = panneau.curseur.fin;
     // contexte.arrête_chronomètre(panneau.id_chronomètre)
-    notifie_fin_édition(*panneau.curseur)
+    notifie_fin_édition(*panneau.curseur);
 }
 
 guetteuse_édition_texte_sur_déplacement_souris :: fonc (base: *Guetteuse, souris: ÉtatSouris) -> ÉtatÉvènement
 {
-    empl guetteuse := base comme *GuetteuseÉditionTexte
+    empl guetteuse := base comme *GuetteuseÉditionTexte;
 
     saufsi état == ÉtatGuettageÉditionTexte.EnSélection {
-        retourne ÉtatÉvènement.PASSE_AU_PARENT
+        retourne ÉtatÉvènement.PASSE_AU_PARENT;
     }
 
-    indice := donne_position_curseur_pour_souris(panneau, souris)
-    déplace_vers(*panneau.curseur, ModeDéplacementCurseur.GardeAncre, indice)
-    retourne ÉtatÉvènement.CONSOMMÉ
+    indice := donne_position_curseur_pour_souris(panneau, souris);
+    déplace_vers(*panneau.curseur, ModeDéplacementCurseur.GardeAncre, indice);
+    retourne ÉtatÉvènement.CONSOMMÉ;
 }
 
 guetteuse_édition_texte_sur_touche_clavier :: fonc (base: *Guetteuse, touche: InfoToucheClavier) -> ÉtatÉvènement
 {
-    empl guetteuse := base comme *GuetteuseÉditionTexte
+    empl guetteuse := base comme *GuetteuseÉditionTexte;
 
     si touche.type == ToucheClavier.DÉBUT {
-        définis_position(*panneau.curseur, ModeDéplacementCurseur.DéplaceAncre, 0)
-        retourne ÉtatÉvènement.CONSOMMÉ
+        définis_position(*panneau.curseur, ModeDéplacementCurseur.DéplaceAncre, 0);
+        retourne ÉtatÉvènement.CONSOMMÉ;
     }
 
     si touche.type == ToucheClavier.FIN {
-        définis_position(*panneau.curseur, ModeDéplacementCurseur.DéplaceAncre, panneau.texte.taille())
-        retourne ÉtatÉvènement.CONSOMMÉ
+        définis_position(*panneau.curseur, ModeDéplacementCurseur.DéplaceAncre, panneau.texte.taille());
+        retourne ÉtatÉvènement.CONSOMMÉ;
     }
 
     si touche.type == ToucheClavier.FLÈCHE_GAUCHE {
-        définis_position(*panneau.curseur, ModeDéplacementCurseur.DéplaceAncre, panneau.curseur.début - 1)
-        retourne ÉtatÉvènement.CONSOMMÉ
+        définis_position(*panneau.curseur, ModeDéplacementCurseur.DéplaceAncre, panneau.curseur.début - 1);
+        retourne ÉtatÉvènement.CONSOMMÉ;
     }
 
     si touche.type == ToucheClavier.FLÈCHE_DROITE {
-        définis_position(*panneau.curseur, ModeDéplacementCurseur.DéplaceAncre, panneau.curseur.fin + 1)
-        retourne ÉtatÉvènement.CONSOMMÉ
+        définis_position(*panneau.curseur, ModeDéplacementCurseur.DéplaceAncre, panneau.curseur.fin + 1);
+        retourne ÉtatÉvènement.CONSOMMÉ;
     }
 
     si touche.type == ToucheClavier.EFFACE {
-        efface(*panneau.curseur)
-        retourne ÉtatÉvènement.CONSOMMÉ
+        efface(*panneau.curseur);
+        retourne ÉtatÉvènement.CONSOMMÉ;
     }
 
     si touche.type == ToucheClavier.SUPPRIMER {
-        supprime(*panneau.curseur)
-        retourne ÉtatÉvènement.CONSOMMÉ
+        supprime(*panneau.curseur);
+        retourne ÉtatÉvènement.CONSOMMÉ;
     }
 
     si touche.type == ToucheClavier.ENTRÉE {
-        termine_guettage(guetteuse)
-        retourne ÉtatÉvènement.CONSOMMÉ
+        termine_guettage(guetteuse);
+        retourne ÉtatÉvènement.CONSOMMÉ;
     }
 
     si touche.texte.taille != 0 {
-        est_valide := nombre_octets_utf8_rapide(touche.texte.pointeur) == touche.texte.taille
+        est_valide := nombre_octets_utf8_rapide(touche.texte.pointeur) == touche.texte.taille;
         si est_valide {
-            point_de_code := convertis_utf8_utf32(touche.texte.pointeur, touche.texte.taille) comme n32
-            insère(*panneau.curseur, point_de_code)
+            point_de_code := convertis_utf8_utf32(touche.texte.pointeur, touche.texte.taille) comme n32;
+            insère(*panneau.curseur, point_de_code);
         }
 
-        retourne ÉtatÉvènement.CONSOMMÉ
+        retourne ÉtatÉvènement.CONSOMMÉ;
     }
 
-    retourne ÉtatÉvènement.PASSE_AU_PARENT
+    retourne ÉtatÉvènement.PASSE_AU_PARENT;
 }
 
 guetteuse_édition_texte_sur_clic :: fonc (base: *Guetteuse, clic: ClicSouris) -> ÉtatÉvènement
 {
-    empl guetteuse := base comme *GuetteuseÉditionTexte
+    empl guetteuse := base comme *GuetteuseÉditionTexte;
 
     si clic.action == ActionSouris.PRESSÉE {
         si panneau.rect.contient(clic.état.où) {
-            définis_position_curseur_pour_clic(panneau, clic.état)
-            état = ÉtatGuettageÉditionTexte.EnSélection
+            définis_position_curseur_pour_clic(panneau, clic.état);
+            état = ÉtatGuettageÉditionTexte.EnSélection;
         }
         sinon {
-            termine_guettage(guetteuse)
+            termine_guettage(guetteuse);
         }
     }
     sinon si clic.action == ActionSouris.RELACHÉE {
         si panneau.rect.contient(clic.état.où) {
             si état == ÉtatGuettageÉditionTexte.AttenteRelachementClic {
-                état = ÉtatGuettageÉditionTexte.EnÉdition
+                état = ÉtatGuettageÉditionTexte.EnÉdition;
 
-                panneau.en_édition = vrai
+                panneau.en_édition = vrai;
 
                 // chrono := crée_chronomètre_clignotage_curseur(panneau)
-                panneau.curseur_est_affiché = vrai
+                panneau.curseur_est_affiché = vrai;
                 // panneau.id_chronomètre = contexte.crée_chronomètre(chrono)
 
-                définis_position_curseur_pour_clic(panneau, clic.état)
+                définis_position_curseur_pour_clic(panneau, clic.état);
             }
             sinon si état == ÉtatGuettageÉditionTexte.EnSélection {
-                état = ÉtatGuettageÉditionTexte.EnÉdition
+                état = ÉtatGuettageÉditionTexte.EnÉdition;
             }
         }
         sinon si état == ÉtatGuettageÉditionTexte.AttenteRelachementClic {
-            termine_guettage(guetteuse)
+            termine_guettage(guetteuse);
         }
         sinon si état == ÉtatGuettageÉditionTexte.EnSélection {
-            état = ÉtatGuettageÉditionTexte.EnÉdition
+            état = ÉtatGuettageÉditionTexte.EnÉdition;
         }
     }
 
-    retourne ÉtatÉvènement.CONSOMMÉ
+    retourne ÉtatÉvènement.CONSOMMÉ;
 }
 
 définis_position_curseur_pour_clic :: fonc (panneau: *PanneauÉditionTexte, souris: ÉtatSouris)
 {
-    position := donne_position_curseur_pour_souris(panneau, souris)
-    définis_position(*panneau.curseur, ModeDéplacementCurseur.DéplaceAncre, position)
+    position := donne_position_curseur_pour_souris(panneau, souris);
+    définis_position(*panneau.curseur, ModeDéplacementCurseur.DéplaceAncre, position);
 }
 
 donne_position_curseur_pour_souris :: fonc (panneau: *PanneauÉditionTexte, souris: ÉtatSouris) -> z64
 {
-    position_relative := souris.où.x - panneau.rect_texte.x
-    indice := donne_indice_caractère_pour_position(panneau.contexte.fonte, panneau.texte, position_relative comme r32)
+    position_relative := souris.où.x - panneau.rect_texte.x;
+    indice := donne_indice_caractère_pour_position(panneau.contexte.fonte, panneau.texte, position_relative comme r32);
 
     si indice != -1 {
-        retourne indice
+        retourne indice;
     }
 
-    retourne panneau.texte.taille()
+    retourne panneau.texte.taille();
 }
 
 /** \} */

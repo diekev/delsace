@@ -3,7 +3,7 @@
  * Catégorie : [validation sémantique, opérateur, type pointeur, pointeur nul]
  */
 
-importe Support
+importe Support;
 
 foo :: fonc () -> rien
 {
@@ -11,13 +11,13 @@ foo :: fonc () -> rien
 
 est_nul :: fonc (ptr: fonc ()) -> bool
 {
-    retourne ptr == nul
+    retourne ptr == nul;
 }
 
 principale :: fonc ()
 {
-    ptr := foo
+    ptr := foo;
     si est_nul(ptr) {
-        exit(1)
+        exit(1);
     }
 }

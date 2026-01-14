@@ -1,4 +1,4 @@
-importe Fondation
+importe Fondation;
 
 /* Les types opaques sont des alias pour d'autres types, mais différents de ceux-ci.
  * Un type opacifiant le type A aura les mêmes propriétés que A, mais A ne pourra pas se faire passer pour lui.
@@ -11,37 +11,37 @@ importe Fondation
  */
 
 /* Une durée est un lapse de temps. */
-Durée :: #opaque r32
+Durée :: #opaque r32;
 
 /* En infographie nous pouvons avoir différentes notions de temps : le temps depuis le début
  * d'une simulation, le temps entre l'ouverture et la fermeture de l'obturateur de la caméra,
  * ou encore le temps d'échantillonage d'un rayon de lumière pour simuler le flou cinétique.
  */
-Temps :: #opaque r32
+Temps :: #opaque r32;
 
 /* Le temps depuis le début de la simulation. */
-TempsSimulation :: #opaque Temps
+TempsSimulation :: #opaque Temps;
 
 /* Le temps pour échantillonner un flou cinétique. */
-TempsFlouCinétique :: #opaque Temps
+TempsFlouCinétique :: #opaque Temps;
 
 /* Le temps depuis le début de l'ouverture de l'obturateur. */
-TempsObturateur :: #opaque Temps
+TempsObturateur :: #opaque Temps;
 
 // définis TempsObturateur {
 construit :: fonc (t: r32) -> TempsObturateur
 {
     si t < 0.0 || t > 1.0 {
-        retourne
+        retourne;
     }
 
-    retourne TempsObturateur(t)
+    retourne TempsObturateur(t);
 }
 // }
 
-Jour :: #opaque z32
-Mois :: #opaque z32
-Année :: #opaque z32
+Jour :: #opaque z32;
+Mois :: #opaque z32;
+Année :: #opaque z32;
 
 // Comment initialiser un type opaque ?
 
@@ -49,19 +49,19 @@ Année :: #opaque z32
 construit :: fonc (j: z32) -> Jour
 {
     si j < 1 || j > 31 {
-        retourne Jour(1)
+        retourne Jour(1);
     }
 
-    retourne Jour(j)
+    retourne Jour(j);
 }
 //}
 
-Distance :: #opaque z32
+Distance :: #opaque z32;
 
-Mètre :: #opaque Distance
+Mètre :: #opaque Distance;
 
 principale :: fonc ()
 {
-    d := Mètre(Distance(7))
-    imprime("distance : %\n", d)
+    d := Mètre(Distance(7));
+    imprime("distance : %\n", d);
 }

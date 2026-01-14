@@ -1,16 +1,16 @@
-importe HTML
-JS :: importe JavaScript
+importe HTML;
+JS :: importe JavaScript;
 
 principale :: fonc ()
 {
-    mv: JS.MachineVirtuelle
-    JS.initialise_mv(nul, *mv)
-    diffère JS.détruit_données_mv(*mv)
+    mv: JS.MachineVirtuelle;
+    JS.initialise_mv(nul, *mv);
+    diffère JS.détruit_données_mv(*mv);
 
-    paramètres: ParamètresEntropisation
-    paramètres.limite_haute_profondeur = 5
-    paramètres.limite_haute_enfants = 10
-    paramètres.limite_haute_éléments = 100
+    paramètres: ParamètresEntropisation;
+    paramètres.limite_haute_profondeur = 5;
+    paramètres.limite_haute_enfants = 10;
+    paramètres.limite_haute_éléments = 100;
 
-    programme_entropisation(paramètres, *mv)
+    programme_entropisation(paramètres, *mv);
 }

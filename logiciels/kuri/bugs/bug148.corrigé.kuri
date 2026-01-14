@@ -3,11 +3,11 @@
  * Catégorie : [crash, génération code, RI]
  */
 
-importe Fondation
+importe Fondation;
 
 retourne_entier :: fonc () -> z32
 {
-    retourne 1
+    retourne 1;
 }
 
 globale := [
@@ -17,11 +17,11 @@ globale := [
     retourne_entier(),
     retourne_entier(),
     retourne_entier()
-]
+];
 
 principale :: fonc ()
 {
     pour globale {
-        imprime("%\n", it)
+        imprime("%\n", it);
     }
 }

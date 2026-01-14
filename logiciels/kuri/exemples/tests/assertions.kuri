@@ -1,15 +1,15 @@
-importe Compilatrice
-importe Fondation
-importe POSIX // pour write
+importe Compilatrice;
+importe Fondation;
+importe POSIX; // pour write
 
 // ----------------------------------------------------------------------------
 
 test_retour_simple :: fonc () -> z32
 {
-    retourne 256
+    retourne 256;
 }
 
-#assert test_retour_simple() == 256
+#assert test_retour_simple() == 256;
 
 // ----------------------------------------------------------------------------
 
@@ -18,371 +18,371 @@ test_retour_simple :: fonc () -> z32
 // Elle montre un exemple où javascript n'ajoute pas correctement deux grand
 // nombres. Javascript donne 36028797018963970 alors que la bonne réponse est
 // 36028797018963968 (à 2 près).
-#assert 18014398509481984 + 18014398509481984 == 36028797018963968
+#assert 18014398509481984 + 18014398509481984 == 36028797018963968;
 
 // ----------------------------------------------------------------------------
 // Test pointeurs de fonctions
 
 fonction_pointée :: fonc () -> z32
 {
-    retourne 30101991
+    retourne 30101991;
 }
 
 appel_pointeur_fonction_interne :: fonc () -> z32
 {
-    ptr := fonction_pointée
-    retourne ptr()
+    ptr := fonction_pointée;
+    retourne ptr();
 }
 
-#assert appel_pointeur_fonction_interne() == 30101991
+#assert appel_pointeur_fonction_interne() == 30101991;
 
 appel_pointeur_fonction_externe :: fonc () -> bool
 {
-    ptr := compilatrice_donne_options
-    options := ptr()
-    retourne options.niveau_optimisation == NiveauOptimisation.AUCUN
+    ptr := compilatrice_donne_options;
+    options := ptr();
+    retourne options.niveau_optimisation == NiveauOptimisation.AUCUN;
 }
 
-#assert appel_pointeur_fonction_externe()
+#assert appel_pointeur_fonction_externe();
 
 // ----------------------------------------------------------------------------
 // Tests expression mémoire()
 
 test_expressions_mémoire :: fonc () -> bool
 {
-    a := 5
-    b := mémoire(*a)
+    a := 5;
+    b := mémoire(*a);
 
     si b != 5 {
-        retourne faux
+        retourne faux;
     }
 
-    mémoire(*a) = 10
+    mémoire(*a) = 10;
 
     si a != 10 {
-        retourne faux
+        retourne faux;
     }
 
     S :: struct {
-        x: z32
+        x: z32;
     }
 
-    s: S
+    s: S;
 
-    mémoire(*s.x) = 5
+    mémoire(*s.x) = 5;
 
     si s.x != 5 {
-        retourne faux
+        retourne faux;
     }
 
-    s.x = 10
+    s.x = 10;
 
-    b = mémoire(*s.x)
+    b = mémoire(*s.x);
 
     si b != 10 {
-        retourne faux
+        retourne faux;
     }
 
-    retourne vrai
+    retourne vrai;
 }
 
-#assert test_expressions_mémoire()
+#assert test_expressions_mémoire();
 
 // ----------------------------------------------------------------------------
 // Tests chaines
 
 test_taille_chaine :: fonc () -> z64
 {
-    chn := "0123456789"
-    retourne chn.taille
+    chn := "0123456789";
+    retourne chn.taille;
 }
 
-#assert test_taille_chaine() == 10
+#assert test_taille_chaine() == 10;
 
 test_taille_chaine_littérale :: fonc () -> z64
 {
-    retourne "0123456789".taille
+    retourne "0123456789".taille;
 }
 
-#assert test_taille_chaine_littérale() == 10
+#assert test_taille_chaine_littérale() == 10;
 
 test_indexage_chaine :: fonc (indice: z64) -> z64
 {
-    chn := "0123456789"
-    retourne chn[indice]
+    chn := "0123456789";
+    retourne chn[indice];
 }
 
-#assert test_indexage_chaine(0) == '0'
-#assert test_indexage_chaine(1) == '1'
-#assert test_indexage_chaine(2) == '2'
-#assert test_indexage_chaine(3) == '3'
-#assert test_indexage_chaine(4) == '4'
-#assert test_indexage_chaine(5) == '5'
-#assert test_indexage_chaine(6) == '6'
-#assert test_indexage_chaine(7) == '7'
-#assert test_indexage_chaine(8) == '8'
-#assert test_indexage_chaine(9) == '9'
+#assert test_indexage_chaine(0) == '0';
+#assert test_indexage_chaine(1) == '1';
+#assert test_indexage_chaine(2) == '2';
+#assert test_indexage_chaine(3) == '3';
+#assert test_indexage_chaine(4) == '4';
+#assert test_indexage_chaine(5) == '5';
+#assert test_indexage_chaine(6) == '6';
+#assert test_indexage_chaine(7) == '7';
+#assert test_indexage_chaine(8) == '8';
+#assert test_indexage_chaine(9) == '9';
 
 test_indexage_chaine_littérale :: fonc (indice: z64) -> z64
 {
-    retourne "0123456789abcdef"[indice]
+    retourne "0123456789abcdef"[indice];
 }
 
-#assert test_indexage_chaine_littérale(10) == 'a'
-#assert test_indexage_chaine_littérale(11) == 'b'
-#assert test_indexage_chaine_littérale(12) == 'c'
-#assert test_indexage_chaine_littérale(13) == 'd'
-#assert test_indexage_chaine_littérale(14) == 'e'
-#assert test_indexage_chaine_littérale(15) == 'f'
+#assert test_indexage_chaine_littérale(10) == 'a';
+#assert test_indexage_chaine_littérale(11) == 'b';
+#assert test_indexage_chaine_littérale(12) == 'c';
+#assert test_indexage_chaine_littérale(13) == 'd';
+#assert test_indexage_chaine_littérale(14) == 'e';
+#assert test_indexage_chaine_littérale(15) == 'f';
 
 nombre_itérations_chaine :: fonc (chn: chaine) -> z64
 {
-    i : z64 = 0
+    i : z64 = 0;
 
     pour chn {
-        i = indice_it
+        i = indice_it;
     }
 
-    retourne i + 1
+    retourne i + 1;
 }
 
-#assert nombre_itérations_chaine("0123456789") == 10
+#assert nombre_itérations_chaine("0123456789") == 10;
 
 nombre_itérations_chaine_littérale :: fonc () -> z64
 {
-    i : z64 = 0
+    i : z64 = 0;
 
     pour "0123456789abcdef" {
-        i = indice_it
+        i = indice_it;
     }
 
-    retourne i + 1
+    retourne i + 1;
 }
 
-#assert nombre_itérations_chaine_littérale() == 16
+#assert nombre_itérations_chaine_littérale() == 16;
 
 // ----------------------------------------------------------------------------
 // Tests indexage
 
 test_indexage_pointeur :: fonc () -> z32
 {
-    a: z32
-    ptr := *a
-    ptr[0] = 7
-    retourne ptr[0]
+    a: z32;
+    ptr := *a;
+    ptr[0] = 7;
+    retourne ptr[0];
 }
 
-#assert test_indexage_pointeur() == 7
+#assert test_indexage_pointeur() == 7;
 
 test_indexage_tableau_fixe :: fonc () -> z32
 {
-    x: [3]z32
-    x[0] = 1
-    x[x[0]] = 5
-    x[x[0] + x[0]] = 27 + x[1]
+    x: [3]z32;
+    x[0] = 1;
+    x[x[0]] = 5;
+    x[x[0] + x[0]] = 27 + x[1];
 
-    retourne x[2]
+    retourne x[2];
 }
 
-#assert test_indexage_tableau_fixe() == 32
+#assert test_indexage_tableau_fixe() == 32;
 
 test_indexage_tableau_dynamique :: fonc () -> z32
 {
     // À FAIRE
-    retourne 0
+    retourne 0;
 }
 
 // #assert test_indexage_tableau_dynamique() == 0
 
 test_copie_mem :: fonc () -> z32
 {
-    a: z32
-    b := 27
+    a: z32;
+    b := 27;
 
-    copie_mem_nonsur(src = *b, dst = *a, taille = 4)
+    copie_mem_nonsur(src = *b, dst = *a, taille = 4);
 
-    retourne a
+    retourne a;
 }
 
-#assert test_copie_mem() == 27
+#assert test_copie_mem() == 27;
 
 // ----------------------------------------------------------------------------
 // Tests des boucles
 
 nombre_itérations_boucle :: fonc (n: z32) -> z32
 {
-    i := 0
+    i := 0;
 
     boucle {
-        i += 1
+        i += 1;
 
         si i == n {
-            arrête
+            arrête;
         }
     }
 
-    retourne i
+    retourne i;
 }
 
-#assert nombre_itérations_boucle(10) == 10
+#assert nombre_itérations_boucle(10) == 10;
 
 nombre_itérations_répète :: fonc (n: z32) -> z32
 {
-    i := 0
+    i := 0;
 
     répète {
-        i += 1
-    } tantque i != n
+        i += 1;
+    } tantque i != n;
 
-    retourne i
+    retourne i;
 }
 
-#assert nombre_itérations_répète(10) == 10
+#assert nombre_itérations_répète(10) == 10;
 
 nombre_itérations_tantque :: fonc (n: z32) -> z32
 {
-    i := 0
+    i := 0;
 
     tantque i != n {
-        i += 1
+        i += 1;
     }
 
-    retourne i
+    retourne i;
 }
 
-#assert nombre_itérations_tantque(10) == 10
+#assert nombre_itérations_tantque(10) == 10;
 
 nombre_itérations_plage :: fonc (début: z32, fin: z32) -> z32
 {
-    i := 0
+    i := 0;
 
     pour début ... fin {
-        i = indice_it
+        i = indice_it;
     }
 
-    retourne i
+    retourne i;
 }
 
-#assert nombre_itérations_plage(0, 10) == 10
-#assert nombre_itérations_plage(5, 10) == 5
-#assert nombre_itérations_plage(20, 10) == 0
+#assert nombre_itérations_plage(0, 10) == 10;
+#assert nombre_itérations_plage(5, 10) == 5;
+#assert nombre_itérations_plage(20, 10) == 0;
 
 // ----------------------------------------------------------------------------
 // Tests fonctions externes
 
 test_fonction_externe :: fonc ()
 {
-    chn := "\x1b[34mFR\x1b[mAN\x1b[31mCE\x1b[m\n"
-    taille := write(1, chn.pointeur, chn.taille)
+    chn := "\x1b[34mFR\x1b[mAN\x1b[31mCE\x1b[m\n";
+    taille := write(1, chn.pointeur, chn.taille);
 
-    chn = "\x1b[32mIT\x1b[mAL\x1b[31mIE\x1b[m\n"
-    taille = write(1, chn.pointeur, chn.taille)
+    chn = "\x1b[32mIT\x1b[mAL\x1b[31mIE\x1b[m\n";
+    taille = write(1, chn.pointeur, chn.taille);
 }
 
-#exécute test_fonction_externe()
+#exécute test_fonction_externe();
 
 // ----------------------------------------------------------------------------
 // Tests des expressions logiques
 
 test_retour_logique_ou :: fonc (a: bool, b: bool) -> bool
 {
-    retourne a || b
+    retourne a || b;
 }
 
 test_retour_logique_et :: fonc (a: bool, b: bool) -> bool
 {
-    retourne a && b
+    retourne a && b;
 }
 
-#assert test_retour_logique_ou(vrai, vrai) == vrai
-#assert test_retour_logique_ou(vrai, faux) == vrai
-#assert test_retour_logique_ou(faux, vrai) == vrai
-#assert test_retour_logique_ou(faux, faux) == faux
+#assert test_retour_logique_ou(vrai, vrai) == vrai;
+#assert test_retour_logique_ou(vrai, faux) == vrai;
+#assert test_retour_logique_ou(faux, vrai) == vrai;
+#assert test_retour_logique_ou(faux, faux) == faux;
 
-#assert test_retour_logique_et(vrai, vrai) == vrai
-#assert test_retour_logique_et(vrai, faux) == faux
-#assert test_retour_logique_et(faux, vrai) == faux
-#assert test_retour_logique_et(faux, faux) == faux
+#assert test_retour_logique_et(vrai, vrai) == vrai;
+#assert test_retour_logique_et(vrai, faux) == faux;
+#assert test_retour_logique_et(faux, vrai) == faux;
+#assert test_retour_logique_et(faux, faux) == faux;
 
 test_assignation_logique_ou :: fonc (a: bool, b: bool) -> bool
 {
-    c := a || b
-    retourne c
+    c := a || b;
+    retourne c;
 }
 
 test_assignation_logique_et :: fonc (a: bool, b: bool) -> bool
 {
-    c := a && b
-    retourne c
+    c := a && b;
+    retourne c;
 }
 
-#assert test_assignation_logique_ou(vrai, vrai) == vrai
-#assert test_assignation_logique_ou(vrai, faux) == vrai
-#assert test_assignation_logique_ou(faux, vrai) == vrai
-#assert test_assignation_logique_ou(faux, faux) == faux
+#assert test_assignation_logique_ou(vrai, vrai) == vrai;
+#assert test_assignation_logique_ou(vrai, faux) == vrai;
+#assert test_assignation_logique_ou(faux, vrai) == vrai;
+#assert test_assignation_logique_ou(faux, faux) == faux;
 
-#assert test_assignation_logique_et(vrai, vrai) == vrai
-#assert test_assignation_logique_et(vrai, faux) == faux
-#assert test_assignation_logique_et(faux, vrai) == faux
-#assert test_assignation_logique_et(faux, faux) == faux
+#assert test_assignation_logique_et(vrai, vrai) == vrai;
+#assert test_assignation_logique_et(vrai, faux) == faux;
+#assert test_assignation_logique_et(faux, vrai) == faux;
+#assert test_assignation_logique_et(faux, faux) == faux;
 
 test_réassignation_logique_ou :: fonc (a: bool, b: bool) -> bool
 {
-    c := faux
-    c = a || b
-    retourne c
+    c := faux;
+    c = a || b;
+    retourne c;
 }
 
 test_réassignation_logique_et :: fonc (a: bool, b: bool) -> bool
 {
-    c := faux
-    c = a && b
-    retourne c
+    c := faux;
+    c = a && b;
+    retourne c;
 }
 
-#assert test_réassignation_logique_ou(vrai, vrai) == vrai
-#assert test_réassignation_logique_ou(vrai, faux) == vrai
-#assert test_réassignation_logique_ou(faux, vrai) == vrai
-#assert test_réassignation_logique_ou(faux, faux) == faux
+#assert test_réassignation_logique_ou(vrai, vrai) == vrai;
+#assert test_réassignation_logique_ou(vrai, faux) == vrai;
+#assert test_réassignation_logique_ou(faux, vrai) == vrai;
+#assert test_réassignation_logique_ou(faux, faux) == faux;
 
-#assert test_réassignation_logique_et(vrai, vrai) == vrai
-#assert test_réassignation_logique_et(vrai, faux) == faux
-#assert test_réassignation_logique_et(faux, vrai) == faux
-#assert test_réassignation_logique_et(faux, faux) == faux
+#assert test_réassignation_logique_et(vrai, vrai) == vrai;
+#assert test_réassignation_logique_et(vrai, faux) == faux;
+#assert test_réassignation_logique_et(faux, vrai) == faux;
+#assert test_réassignation_logique_et(faux, faux) == faux;
 
 test_argument_logique :: fonc (b: bool) -> bool
 {
-    retourne b
+    retourne b;
 }
 
-#assert test_argument_logique(vrai && vrai) == vrai
-#assert test_argument_logique(vrai && faux) == faux
-#assert test_argument_logique(faux && vrai) == faux
-#assert test_argument_logique(faux && faux) == faux
+#assert test_argument_logique(vrai && vrai) == vrai;
+#assert test_argument_logique(vrai && faux) == faux;
+#assert test_argument_logique(faux && vrai) == faux;
+#assert test_argument_logique(faux && faux) == faux;
 
-#assert test_argument_logique(vrai || vrai) == vrai
-#assert test_argument_logique(vrai || faux) == vrai
-#assert test_argument_logique(faux || vrai) == vrai
-#assert test_argument_logique(faux || faux) == faux
+#assert test_argument_logique(vrai || vrai) == vrai;
+#assert test_argument_logique(vrai || faux) == vrai;
+#assert test_argument_logique(faux || vrai) == vrai;
+#assert test_argument_logique(faux || faux) == faux;
 
 // ----------------------------------------------------------------------------
 // Tests des expressions de comparaisons chainées
 
 sont_dans_l_ordre :: fonc (a: z32, b: z32, c: z32, d: z32) -> bool
 {
-    retourne a <= b <= c <= d
+    retourne a <= b <= c <= d;
 }
 
-#assert sont_dans_l_ordre(0, 10, 15, 20) == vrai
-#assert sont_dans_l_ordre(0, 10, 15, 10) == faux
+#assert sont_dans_l_ordre(0, 10, 15, 20) == vrai;
+#assert sont_dans_l_ordre(0, 10, 15, 10) == faux;
 
 sont_dans_le_désordre :: fonc (a: z32, b: z32, c: z32, d: z32) -> bool
 {
-    retourne !(a <= b <= c <= d)
+    retourne !(a <= b <= c <= d);
 }
 
-#assert sont_dans_le_désordre(0, 10, 15, 20) == faux
-#assert sont_dans_le_désordre(0, 10, 15, 10) == vrai
+#assert sont_dans_le_désordre(0, 10, 15, 20) == faux;
+#assert sont_dans_le_désordre(0, 10, 15, 10) == vrai;
 
 // ----------------------------------------------------------------------------
 // Test des conditions booléennes
@@ -390,145 +390,145 @@ sont_dans_le_désordre :: fonc (a: z32, b: z32, c: z32, d: z32) -> bool
 test_conditions :: fonc () -> z32
 {
     // nombre entier
-    a := 5
+    a := 5;
 
     si !a {
-        retourne 1
+        retourne 1;
     }
 
     saufsi a {
-        retourne 2
+        retourne 2;
     }
 
-    a = 0
+    a = 0;
 
     si a {
-        retourne 3
+        retourne 3;
     }
 
     // chaine
-    chn := ""
+    chn := "";
 
     si chn {
-        retourne 4
+        retourne 4;
     }
 
-    chn = "0"
+    chn = "0";
 
     si !chn {
-        retourne 5
+        retourne 5;
     }
 
     saufsi chn {
-        retourne 6
+        retourne 6;
     }
 
     // littérales booléennes
     si !vrai {
-        retourne 7
+        retourne 7;
     }
 
     si faux {
-        retourne 8
+        retourne 8;
     }
 
     saufsi vrai {
-        retourne 9
+        retourne 9;
     }
 
     si vrai && faux {
-        retourne 10
+        retourne 10;
     }
 
     si faux || faux {
-        retourne 11
+        retourne 11;
     }
 
     // pointeur
-    ptr : *z32 = nul
+    ptr : *z32 = nul;
 
     si ptr {
-        retourne 12
+        retourne 12;
     }
 
-    ptr = *a
+    ptr = *a;
 
     si !ptr {
-        retourne 13
+        retourne 13;
     }
 
     saufsi ptr {
-        retourne 14
+        retourne 14;
     }
 
     // À FAIRE : tableau
 
-    retourne 0
+    retourne 0;
 }
 
-#assert test_conditions() == 0
+#assert test_conditions() == 0;
 
 // ----------------------------------------------------------------------------
 // Tests des structures
 
 Vecteur :: struct {
-    x := 0
-    y := 1
-    z := 2
+    x := 0;
+    y := 1;
+    z := 2;
 }
 
 produit_scalaire :: fonc (v1: Vecteur, v2: Vecteur) -> z32
 {
-    retourne v1.x * v2.x + v1.y * v2.y + v1.z * v2.z
+    retourne v1.x * v2.x + v1.y * v2.y + v1.z * v2.z;
 }
 
 test_structure :: fonc ()
 {
     // initialisation via fonction implicite
     {
-        v: Vecteur
+        v: Vecteur;
     }
 
     // initialisation manuelle
     {
-        v : Vecteur = ---
-        v.x = 1
-        v.y = 2
-        v.z = 4
+        v : Vecteur = ---;
+        v.x = 1;
+        v.y = 2;
+        v.z = 4;
     }
 
     // initialisation via une construction de structure
     {
-        v := Vecteur(x = 2, y = 4, z = 8)
+        v := Vecteur(x = 2, y = 4, z = 8);
     }
 }
 
 test_fonction_init :: fonc () -> z32
 {
-    v : Vecteur = ---
-    init_de(Vecteur)(*v)
+    v : Vecteur = ---;
+    init_de(Vecteur)(*v);
 
-    retourne v.z
+    retourne v.z;
 }
 
-#assert test_fonction_init() == 2
+#assert test_fonction_init() == 2;
 
 // ----------------------------------------------------------------------------
 // Tests des unions
 // À FAIRE : appels : paramètres, retours
 
 EOuR :: union nonsûr {
-    e : z32 = 127
-    f: r32
+    e : z32 = 127;
+    f: r32;
 }
 
 test_union_nonsûr :: fonc () -> bool
 {
     // allocation et modification
-    e: EOuR
+    e: EOuR;
 
     si e.e != 127 {
-        retourne faux
+        retourne faux;
     }
 
     // À FAIRE(langage) : transtypage des unions nonsûres
@@ -546,16 +546,16 @@ test_union_nonsûr :: fonc () -> bool
     // }
 
     // assignation d'un type, ave accès rubrique
-    e.e = 5
+    e.e = 5;
 
     si e.e != 5 {
-        retourne faux
+        retourne faux;
     }
 
-    e.f = 6.0
+    e.f = 6.0;
 
     si e.f != 6.0 {
-        retourne faux
+        retourne faux;
     }
 
     // À FAIRE(langage) : transtypage des unions nonsûres
@@ -572,20 +572,20 @@ test_union_nonsûr :: fonc () -> bool
     //     retourne faux
     // }
 
-    retourne vrai
+    retourne vrai;
 }
 
-#assert test_union_nonsûr()
+#assert test_union_nonsûr();
 
 EOuRS :: union {
-    e : z32 = 127
-    f: r32
+    e : z32 = 127;
+    f: r32;
 }
 
 test_union_sûr :: fonc () -> bool
 {
     // allocation et modification
-    e: EOuRS
+    e: EOuRS;
 
     // À FAIRE(langage) : définit un test pour vérifier qu'une union n'a pas d'initialisation
     // si e != 127 comme z32 {
@@ -594,56 +594,56 @@ test_union_sûr :: fonc () -> bool
 
     // assignation d'un type, sans accès rubrique
     // À FAIRE(langage) : ne permet pas de conversion vers r32 depuis un entier_constant dans ce cas.
-    e = 5 comme z32
+    e = 5 comme z32;
 
     si e != 5 comme z32 {
-        retourne faux
+        retourne faux;
     }
 
-    e = 6.0
+    e = 6.0;
 
     si e != 6.0 {
-        retourne faux
+        retourne faux;
     }
 
     // assignation d'un type, avec accès rubrique
-    e.e = 5
+    e.e = 5;
 
     si e.e != 5 {
-        retourne faux
+        retourne faux;
     }
 
-    e.f = 6.0
+    e.f = 6.0;
 
     si e.f != 6.0 {
-        retourne faux
+        retourne faux;
     }
 
     // transtypage
     // À FAIRE entier_constant échoue ici
-    e = 30101991 comme z32
-    f := e comme z32
+    e = 30101991 comme z32;
+    f := e comme z32;
 
     si f != 30101991 {
-        retourne faux
+        retourne faux;
     }
 
-    e = 138.0
-    g := e comme r32
+    e = 138.0;
+    g := e comme r32;
 
     si g != 138.0 {
-        retourne faux
+        retourne faux;
     }
 
-    retourne vrai
+    retourne vrai;
 }
 
-#assert test_union_sûr()
+#assert test_union_sûr();
 
 test_union_sûr_anonyme :: fonc () -> bool
 {
     // allocation et modification
-    e: z32 | r32
+    e: z32 | r32;
 
     // À FAIRE(langage) : définit un test pour vérifier qu'une union n'a pas d'initialisation
     // si e != 0 comme z32 {
@@ -651,16 +651,16 @@ test_union_sûr_anonyme :: fonc () -> bool
     // }
 
     // // assignation d'un type, sans accès rubrique
-    e = 5 comme z32
+    e = 5 comme z32;
 
     si e != 5 comme z32 {
-        retourne faux
+        retourne faux;
     }
 
-    e = 6.0
+    e = 6.0;
 
     si e != 6.0 {
-        retourne faux
+        retourne faux;
     }
 
     // assignation d'un type, ave accès rubrique
@@ -679,24 +679,24 @@ test_union_sûr_anonyme :: fonc () -> bool
 
     // transtypage
     // À FAIRE entier_constant échoue ici
-    e = 30101991 comme z32
-    f := e comme z32
+    e = 30101991 comme z32;
+    f := e comme z32;
 
     si f != 30101991 {
-        retourne faux
+        retourne faux;
     }
 
-    e = 138.0
-    g := e comme r32
+    e = 138.0;
+    g := e comme r32;
 
     si g != 138.0 {
-        retourne faux
+        retourne faux;
     }
 
-    retourne vrai
+    retourne vrai;
 }
 
-#assert test_union_sûr_anonyme()
+#assert test_union_sûr_anonyme();
 
 // ----------------------------------------------------------------------------
 // Tests des discriminations
@@ -705,70 +705,70 @@ test_discrimination_entier :: fonc (v: z32) -> bool
 {
     discr v {
         1, 2, 3 {
-            retourne vrai
+            retourne vrai;
         }
         8, 9, 10 {
-            retourne vrai
+            retourne vrai;
         }
         sinon {
-            retourne faux
+            retourne faux;
         }
     }
 }
 
-#assert test_discrimination_entier(1) == vrai
-#assert test_discrimination_entier(5) == faux
-#assert test_discrimination_entier(8) == vrai
+#assert test_discrimination_entier(1) == vrai;
+#assert test_discrimination_entier(5) == faux;
+#assert test_discrimination_entier(8) == vrai;
 
 test_discrimination_réel :: fonc (v: r32) -> bool
 {
     discr v {
         1.0, 2.0, 3.0 {
-            retourne vrai
+            retourne vrai;
         }
         8.0, 9.0, 10.0 {
-            retourne vrai
+            retourne vrai;
         }
         sinon {
-            retourne faux
+            retourne faux;
         }
     }
 }
 
-#assert test_discrimination_réel(1.0) == vrai
-#assert test_discrimination_réel(5.0) == faux
-#assert test_discrimination_réel(8.0) == vrai
+#assert test_discrimination_réel(1.0) == vrai;
+#assert test_discrimination_réel(5.0) == faux;
+#assert test_discrimination_réel(8.0) == vrai;
 
 test_discrimination_chaine :: fonc (v: chaine) -> bool
 {
     discr v {
         "kuri" {
-            retourne vrai
+            retourne vrai;
         }
         "langage" {
-            retourne vrai
+            retourne vrai;
         }
         sinon {
-            retourne faux
+            retourne faux;
         }
     }
 }
 
-#assert test_discrimination_chaine("kuri") == vrai
-#assert test_discrimination_chaine("programmation") == faux
-#assert test_discrimination_chaine("langage") == vrai
+#assert test_discrimination_chaine("kuri") == vrai;
+#assert test_discrimination_chaine("programmation") == faux;
+#assert test_discrimination_chaine("langage") == vrai;
 
 // ----------------------------------------------------------------------------
 // Tests des fonctions variadiques
 
 nombre_arguments_variadique_interne :: fonc (args: ...z32) -> z64
 {
-    retourne args.taille
+    retourne args.taille;
 }
 
-#assert nombre_arguments_variadique_interne() == 0
-#assert nombre_arguments_variadique_interne(1, 2, 3, 4, 5) == 5
-#assert nombre_arguments_variadique_interne(3, 4, 5, 6, 7, 8, 9) == 7
+#assert nombre_arguments_variadique_interne() == 0;
+#assert nombre_arguments_variadique_interne(1, 2, 3, 4, 5) == 5;
+#assert nombre_arguments_variadique_interne(3, 4, 5, 6, 7, 8, 9) == 7;
 
 /*
 fonction_test_variadique_externe :: fonc (sentinel: z32, args: ...) -> z32 #compilatrice
@@ -780,53 +780,53 @@ fonction_test_variadique_externe :: fonc (sentinel: z32, args: ...) -> z32 #comp
 // Tests erreur
 
 ErreurTest :: erreur {
-    UneErreurEstSurvenue
-    UneAutreErreurEstSurvenue
+    UneErreurEstSurvenue;
+    UneAutreErreurEstSurvenue;
 }
 
 appel_fonction_avec_erreur_union :: fonc () -> z32 | ErreurTest
 {
-    retourne ErreurTest.UneErreurEstSurvenue
+    retourne ErreurTest.UneErreurEstSurvenue;
 }
 
 appel_fonction_avec_erreur_seule :: fonc () -> ErreurTest
 {
-    retourne ErreurTest.UneErreurEstSurvenue
+    retourne ErreurTest.UneErreurEstSurvenue;
 }
 
 retourne_erreur_depuis_union :: fonc () -> bool
 {
     _ := tente appel_fonction_avec_erreur_union() piège _ {
-        retourne vrai
-    }
+        retourne vrai;
+    };
 
-    retourne faux
+    retourne faux;
 }
 
-#assert retourne_erreur_depuis_union()
+#assert retourne_erreur_depuis_union();
 
 retourne_erreur_seule :: fonc () -> bool
 {
     tente appel_fonction_avec_erreur_seule() piège _ {
-        retourne vrai
-    }
+        retourne vrai;
+    };
 
-    retourne faux
+    retourne faux;
 }
 
-#assert retourne_erreur_seule()
+#assert retourne_erreur_seule();
 
 test_erreur_retournée :: fonc (v: ErreurTest) -> bool
 {
     tente appel_fonction_avec_erreur_seule() piège err {
-        retourne err == v
-    }
+        retourne err == v;
+    };
 
-    retourne faux
+    retourne faux;
 }
 
-#assert test_erreur_retournée(ErreurTest.UneErreurEstSurvenue) == vrai
-#assert test_erreur_retournée(ErreurTest.UneAutreErreurEstSurvenue) == faux
+#assert test_erreur_retournée(ErreurTest.UneErreurEstSurvenue) == vrai;
+#assert test_erreur_retournée(ErreurTest.UneAutreErreurEstSurvenue) == faux;
 
 // ----------------------------------------------------------------------------
 // Tests types
@@ -834,30 +834,30 @@ test_erreur_retournée :: fonc (v: ErreurTest) -> bool
 test_valeur_types :: fonc () -> bool
 {
     si z32 == r32 {
-        retourne faux
+        retourne faux;
     }
 
     si z32 == z64 {
-        retourne faux
+        retourne faux;
     }
 
-    retourne z32 == z32
+    retourne z32 == z32;
 }
 
-#assert test_valeur_types()
+#assert test_valeur_types();
 
 // ----------------------------------------------------------------------------
 // Tests tranche octet
 
 taille_tranche_octet :: fonc (tranche: []octet) -> z64
 {
-    retourne tranche.taille
+    retourne tranche.taille;
 }
 
-#assert taille_tranche_octet(4) == 4
-#assert taille_tranche_octet(6.0 comme r64) == 8
-#assert taille_tranche_octet("kuri") == 4
-#assert taille_tranche_octet([ 0, 1, 2, 3 ]) == 16
+#assert taille_tranche_octet(4) == 4;
+#assert taille_tranche_octet(6.0 comme r64) == 8;
+#assert taille_tranche_octet("kuri") == 4;
+#assert taille_tranche_octet([ 0, 1, 2, 3 ]) == 16;
 
 // À FAIRE : contenu du tableau, conversion depuis d'autres types (tableaux dynamiques)
 
@@ -866,190 +866,190 @@ taille_tranche_octet :: fonc (tranche: []octet) -> z64
 
 test_construction_tableau_fixe :: fonc (indice: z64) -> z32
 {
-    t := [ 0, 1, 2 ]
-    retourne t[indice]
+    t := [ 0, 1, 2 ];
+    retourne t[indice];
 }
 
-#assert test_construction_tableau_fixe(0) == 0
-#assert test_construction_tableau_fixe(1) == 1
-#assert test_construction_tableau_fixe(2) == 2
+#assert test_construction_tableau_fixe(0) == 0;
+#assert test_construction_tableau_fixe(1) == 1;
+#assert test_construction_tableau_fixe(2) == 2;
 
 passe_tableau_fixe :: fonc (t: [3]z32, indice: z64) -> z32
 {
-    retourne t[indice]
+    retourne t[indice];
 }
 
 test_passe_tableau_fixe :: fonc (indice: z64) -> z32
 {
-    t := [ 0, 1, 2 ]
-    retourne passe_tableau_fixe(t, indice)
+    t := [ 0, 1, 2 ];
+    retourne passe_tableau_fixe(t, indice);
 }
 
-#assert test_passe_tableau_fixe(0) == 0
-#assert test_passe_tableau_fixe(1) == 1
-#assert test_passe_tableau_fixe(2) == 2
+#assert test_passe_tableau_fixe(0) == 0;
+#assert test_passe_tableau_fixe(1) == 1;
+#assert test_passe_tableau_fixe(2) == 2;
 
 passe_tranche :: fonc (t: []z32, indice: z64) -> z32
 {
-    retourne t[indice]
+    retourne t[indice];
 }
 
 test_conversion_tranche :: fonc (indice: z64) -> z32
 {
-    t := [ 0, 1, 2 ]
-    retourne passe_tranche(t, indice)
+    t := [ 0, 1, 2 ];
+    retourne passe_tranche(t, indice);
 }
 
-#assert test_conversion_tranche(0) == 0
-#assert test_conversion_tranche(1) == 1
-#assert test_conversion_tranche(2) == 2
+#assert test_conversion_tranche(0) == 0;
+#assert test_conversion_tranche(1) == 1;
+#assert test_conversion_tranche(2) == 2;
 
 test_modification_tableau_boucle :: fonc () -> bool
 {
-    t := [ 0, 1, 2 ]
+    t := [ 0, 1, 2 ];
 
     pour & t {
-        it += 1
+        it += 1;
     }
 
-    retourne t[0] == 1 && t[1] == 2 && t[2] == 3
+    retourne t[0] == 1 && t[1] == 2 && t[2] == 3;
 }
 
-#assert test_modification_tableau_boucle()
+#assert test_modification_tableau_boucle();
 
 // ----------------------------------------------------------------------------
 // Test des globales
 
-GLOBALE := 10
+GLOBALE := 10;
 
 modifie_globale :: fonc (valeur: z32) -> z32
 {
-    GLOBALE = valeur
-    retourne GLOBALE
+    GLOBALE = valeur;
+    retourne GLOBALE;
 }
 
-#assert modifie_globale(27) == 27
+#assert modifie_globale(27) == 27;
 
 // les constructeurs doivent être appelés/générés avant notre métaprogramme
-GLOBALE2 := 10
+GLOBALE2 := 10;
 test_appels_constructeurs_globales :: fonc () -> z32
 {
-    retourne GLOBALE2
+    retourne GLOBALE2;
 }
 
-#assert test_appels_constructeurs_globales() == 10
+#assert test_appels_constructeurs_globales() == 10;
 
 // ----------------------------------------------------------------------------
 // Test infos types
 
 test_info_de_z32 :: fonc () -> bool
 {
-    infos := info_de(z32)
+    infos := info_de(z32);
 
     si infos.id != GenreInfoType.ENTIER {
-        retourne faux
+        retourne faux;
     }
 
     si infos.taille_en_octet != 4 {
-        retourne faux
+        retourne faux;
     }
 
     si !infos.est_signé {
-        retourne faux
+        retourne faux;
     }
 
-    retourne vrai
+    retourne vrai;
 }
 
 test_info_de_r32 :: fonc () -> bool
 {
-    infos := info_de(r32)
+    infos := info_de(r32);
 
     si infos.id != GenreInfoType.RÉEL {
-        retourne faux
+        retourne faux;
     }
 
     si infos.taille_en_octet != 4 {
-        retourne faux
+        retourne faux;
     }
 
-    retourne vrai
+    retourne vrai;
 }
 
 test_info_de_structure :: fonc () -> bool
 {
-    infos := info_de(Vecteur)
+    infos := info_de(Vecteur);
 
     si infos.id != GenreInfoType.STRUCTURE {
-        retourne faux
+        retourne faux;
     }
 
     si infos.taille_en_octet != 12 {
-        retourne faux
+        retourne faux;
     }
 
     si infos.nom.taille != 7 {
-        retourne faux
+        retourne faux;
     }
 
     si infos.nom != "Vecteur" {
-        retourne faux
+        retourne faux;
     }
 
     si infos.rubriques.taille != 3 {
-        retourne faux
+        retourne faux;
     }
 
-    infos_entier := info_de(z32)
+    infos_entier := info_de(z32);
 
     pour infos.rubriques {
         si it.id != infos_entier {
-            retourne faux
+            retourne faux;
         }
 
         si it.id.id != GenreInfoType.ENTIER {
-            retourne faux
+            retourne faux;
         }
     }
 
-    retourne vrai
+    retourne vrai;
 }
 
-#assert test_info_de_z32()
-#assert test_info_de_r32()
-#assert test_info_de_structure()
+#assert test_info_de_z32();
+#assert test_info_de_r32();
+#assert test_info_de_structure();
 
 // ----------------------------------------------------------------------------
 //
 
 test_entier_vers_pointeur_impl :: fonc (valeur: $T, nom: chaine)
 {
-    ptr := valeur comme *rien
-    imprime("ptr_% = %, valeur = %\n", nom, ptr, FormatEntier(valeur, base = 16))
+    ptr := valeur comme *rien;
+    imprime("ptr_% = %, valeur = %\n", nom, ptr, FormatEntier(valeur, base = 16));
 }
 
 test_entier_vers_pointeur :: fonc ()
 {
-    a : z8 = 0x8
-    test_entier_vers_pointeur_impl(a, "a")
-    b : z16 = 0x16
-    test_entier_vers_pointeur_impl(b, "b")
-    c : z32 = 0x32
-    test_entier_vers_pointeur_impl(c, "c")
-    d : z64 = 0x64
-    test_entier_vers_pointeur_impl(d, "d")
+    a : z8 = 0x8;
+    test_entier_vers_pointeur_impl(a, "a");
+    b : z16 = 0x16;
+    test_entier_vers_pointeur_impl(b, "b");
+    c : z32 = 0x32;
+    test_entier_vers_pointeur_impl(c, "c");
+    d : z64 = 0x64;
+    test_entier_vers_pointeur_impl(d, "d");
 
-    e : n8 = 0x18
-    test_entier_vers_pointeur_impl(e, "e")
-    f : n16 = 0x116
-    test_entier_vers_pointeur_impl(f, "f")
-    g : n32 = 0x132
-    test_entier_vers_pointeur_impl(g, "g")
-    h : n64 = 0x164
-    test_entier_vers_pointeur_impl(h, "h")
+    e : n8 = 0x18;
+    test_entier_vers_pointeur_impl(e, "e");
+    f : n16 = 0x116;
+    test_entier_vers_pointeur_impl(f, "f");
+    g : n32 = 0x132;
+    test_entier_vers_pointeur_impl(g, "g");
+    h : n64 = 0x164;
+    test_entier_vers_pointeur_impl(h, "h");
 
-    i := 0x80000 comme *z8
-    test_entier_vers_pointeur_impl(i, "i")
+    i := 0x80000 comme *z8;
+    test_entier_vers_pointeur_impl(i, "i");
 }
 
-#exécute test_entier_vers_pointeur()
+#exécute test_entier_vers_pointeur();

@@ -4,15 +4,15 @@
  */
 
 MaStructure :: struct {
-    x : z32 = 1
-    y := x + 1
+    x : z32 = 1;
+    y := x + 1;
 }
 
 principale :: fonc ()
 {
-    m: MaStructure
+    m: MaStructure;
 
     si m.x != 1 {
-        exit(1)
+        exit(1);
     }
 }

@@ -4,12 +4,12 @@
 
 sur_destruction_générique :: fonc ($TypePanneau: type_de_données) -> fonc (panneau: *Panneau) -> rien
 {
-    rappel_sur_destruction :: fonc (panneau: *Panneau) -> rien
+    rappel_sur_destruction :: fonc (panneau: *Panneau) -> rien;
     {
-        panneau_typé := panneau comme *TypePanneau
-        déloge(panneau_typé)
+        panneau_typé := panneau comme *TypePanneau;
+        déloge(panneau_typé);
     }
-    retourne rappel_sur_destruction
+    retourne rappel_sur_destruction;
 }
 
 /** \} */

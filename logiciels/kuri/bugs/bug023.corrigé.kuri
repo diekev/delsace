@@ -3,12 +3,12 @@
  * Catégorie : [crash, discr, expression quelconque]
  */
 
-importe Support
+importe Support;
 
 TypeÉnum :: énum {
-    X
-    Y
-    Z
+    X;
+    Y;
+    Z;
 }
 
 principale :: fonc ()
@@ -21,9 +21,9 @@ principale :: fonc ()
 
         }
     }
-    ")
+    ");
 
     saufsi erreur_survenue {
-        exit(1)
+        exit(1);
     }
 }

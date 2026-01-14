@@ -1,4 +1,4 @@
-importe Bits
+importe Bits;
 
 /* ------------------------------------------------------------------------- */
 /** \nom Fonction d'allocation.
@@ -6,75 +6,75 @@ importe Bits
 
 allocatrice_liste_libre :: fonc (params: &ParamètresAllocation, données: *BaseAllocatrice) -> *rien
 {
-    nouvelle_taille := params.nouvelle_taille
-    ancienne_taille := params.ancienne_taille
-    ancien_pointeur := params.ancien_pointeur
+    nouvelle_taille := params.nouvelle_taille;
+    ancienne_taille := params.ancienne_taille;
+    ancien_pointeur := params.ancien_pointeur;
 
-    allocatrice := données comme *AllocatriceListeLibre
+    allocatrice := données comme *AllocatriceListeLibre;
 
     discr mode {
         ALLOUE,
         ALLOUE_ALIGNÉ {
             /* À FAIRE : ALLOUE_ALIGNÉ */
-            données.mémoire_utilisée += nouvelle_taille
-            données.nombre_allocations += 1
+            données.mémoire_utilisée += nouvelle_taille;
+            données.nombre_allocations += 1;
 
             si données.pic_de_mémoire < données.mémoire_utilisée {
-                données.pic_de_mémoire = données.mémoire_utilisée
+                données.pic_de_mémoire = données.mémoire_utilisée;
             }
 
-            nouvelle_taille_effective := multiple_de_2_suivant(nouvelle_taille)
+            nouvelle_taille_effective := multiple_de_2_suivant(nouvelle_taille);
 
-            bloc := trouve_un_bloc(allocatrice, nouvelle_taille_effective)
+            bloc := trouve_un_bloc(allocatrice, nouvelle_taille_effective);
             si bloc {
-                retourne bloc
+                retourne bloc;
             }
 
-            params.nouvelle_taille_effective = nouvelle_taille_effective
+            params.nouvelle_taille_effective = nouvelle_taille_effective;
 
-            retourne allocatrice.allocatrice(params, allocatrice.données_allocatrice)
+            retourne allocatrice.allocatrice(params, allocatrice.données_allocatrice);
         }
         RÉALLOUE {
-            ancienne_taille_effective := multiple_de_2_suivant(ancienne_taille)
-            nouvelle_taille_effective := multiple_de_2_suivant(nouvelle_taille)
+            ancienne_taille_effective := multiple_de_2_suivant(ancienne_taille);
+            nouvelle_taille_effective := multiple_de_2_suivant(nouvelle_taille);
 
             si ancienne_taille_effective == nouvelle_taille_effective {
                 /* Nous n'allouons que par blocs de taille équivalente à une
                  * puissance de 2, donc si la nouvelle taille effective est
                  * la même que l'ancienne, retourne le bloc. */
-                retourne ancien_pointeur
+                retourne ancien_pointeur;
             }
 
-            données.mémoire_utilisée += nouvelle_taille_effective - ancienne_taille_effective
-            données.nombre_allocations += 1
-            données.nombre_réallocations += 1
+            données.mémoire_utilisée += nouvelle_taille_effective - ancienne_taille_effective;
+            données.nombre_allocations += 1;
+            données.nombre_réallocations += 1;
 
             si données.pic_de_mémoire < données.mémoire_utilisée {
-                données.pic_de_mémoire = données.mémoire_utilisée
+                données.pic_de_mémoire = données.mémoire_utilisée;
             }
 
-            bloc := trouve_un_bloc(allocatrice, nouvelle_taille_effective)
+            bloc := trouve_un_bloc(allocatrice, nouvelle_taille_effective);
             si bloc {
-                copie_mem_nonsur(src = ancien_pointeur, dst = bloc, taille = ancienne_taille)
-                ajoute_bloc(allocatrice, ancien_pointeur, ancienne_taille_effective)
-                retourne bloc
+                copie_mem_nonsur(src = ancien_pointeur, dst = bloc, taille = ancienne_taille);
+                ajoute_bloc(allocatrice, ancien_pointeur, ancienne_taille_effective);
+                retourne bloc;
             }
 
-            params.nouvelle_taille_effective = nouvelle_taille_effective
-            params.ancienne_taille_effective = ancienne_taille_effective
+            params.nouvelle_taille_effective = nouvelle_taille_effective;
+            params.ancienne_taille_effective = ancienne_taille_effective;
 
-            retourne allocatrice.allocatrice(params, allocatrice.données_allocatrice)
+            retourne allocatrice.allocatrice(params, allocatrice.données_allocatrice);
         }
         DÉSALLOUE {
-            taille_effective := multiple_de_2_suivant(ancienne_taille)
-            données.mémoire_utilisée -= taille_effective
-            données.nombre_désallocations += 1
-            ajoute_bloc(allocatrice, ancien_pointeur, taille_effective)
-            retourne nul
+            taille_effective := multiple_de_2_suivant(ancienne_taille);
+            données.mémoire_utilisée -= taille_effective;
+            données.nombre_désallocations += 1;
+            ajoute_bloc(allocatrice, ancien_pointeur, taille_effective);
+            retourne nul;
         }
     }
 
-    retourne nul
+    retourne nul;
 }
 
 /** \} */
@@ -109,46 +109,46 @@ allocatrice_liste_libre :: fonc (params: &ParamètresAllocation, données: *Base
  * \{ */
 
 AllocatriceListeLibre :: struct {
-    empl base: BaseAllocatrice
+    empl base: BaseAllocatrice;
 
     Noeud :: struct {
-        suivant: *Noeud
+        suivant: *Noeud;
     }
 
     /* L'allocatrice à qui nous demanderons de la mémoire. */
-    allocatrice: TypeFonctionAllocation
-    données_allocatrice : *BaseAllocatrice = nul
+    allocatrice: TypeFonctionAllocation;
+    données_allocatrice : *BaseAllocatrice = nul;
 
     /* Une racine par bloc de taille de magnitude d'une puissance de 2. */
-    racines: [64]*Noeud
+    racines: [64]*Noeud;
 }
 
 installe_allocatrice :: fonc (ctx: *ContexteProgramme, allocatrice: *AllocatriceListeLibre)
 {
     saufsi allocatrice.allocatrice {
-        allocatrice.allocatrice = ctx.allocatrice
-        allocatrice.données_allocatrice = ctx.données_allocatrice
+        allocatrice.allocatrice = ctx.allocatrice;
+        allocatrice.données_allocatrice = ctx.données_allocatrice;
     }
 
-    ctx.allocatrice = allocatrice_liste_libre
-    ctx.données_allocatrice = allocatrice
+    ctx.allocatrice = allocatrice_liste_libre;
+    ctx.données_allocatrice = allocatrice;
 }
 
 détruit_allocatrice :: fonc (allocatrice: *AllocatriceListeLibre)
 {
-    params: ParamètresAllocation
-    params.mode = ModeAllocatrice.DÉSALLOUE
-    params.pos = #position_code_source
+    params: ParamètresAllocation;
+    params.mode = ModeAllocatrice.DÉSALLOUE;
+    params.pos = #position_code_source;
 
     pour allocatrice.racines {
-        taille_bloc := (1 comme z64) << indice_it
-        bloc := it
+        taille_bloc := (1 comme z64) << indice_it;
+        bloc := it;
         tantque bloc != nul {
-            bloc_suivant := bloc.suivant
-            params.ancienne_taille = taille_bloc
-            params.ancien_pointeur = bloc
-            _ := allocatrice.allocatrice(params, allocatrice.données_allocatrice)
-            bloc = bloc_suivant
+            bloc_suivant := bloc.suivant;
+            params.ancienne_taille = taille_bloc;
+            params.ancien_pointeur = bloc;
+            _ := allocatrice.allocatrice(params, allocatrice.données_allocatrice);
+            bloc = bloc_suivant;
         }
     }
 }
@@ -156,38 +156,38 @@ détruit_allocatrice :: fonc (allocatrice: *AllocatriceListeLibre)
 ajoute_bloc :: fonc (allocatrice: *AllocatriceListeLibre, adresse: *rien, taille: z64)
 {
     si taille < taille_de(AllocatriceListeLibre.Noeud) comme z64 {
-        params: ParamètresAllocation
-        params.mode = ModeAllocatrice.DÉSALLOUE
-        params.pos = #position_code_source
-        params.ancienne_taille = taille
-        params.ancien_pointeur = adresse
-        _ := allocatrice.allocatrice(params, allocatrice.données_allocatrice)
-        retourne
+        params: ParamètresAllocation;
+        params.mode = ModeAllocatrice.DÉSALLOUE;
+        params.pos = #position_code_source;
+        params.ancienne_taille = taille;
+        params.ancien_pointeur = adresse;
+        _ := allocatrice.allocatrice(params, allocatrice.données_allocatrice);
+        retourne;
     }
 
-    index_racine := indice_bit_multiple_de_2_suivant(taille)
+    index_racine := indice_bit_multiple_de_2_suivant(taille);
 
-    nouveau_bloc := adresse comme *AllocatriceListeLibre.Noeud
-    nouveau_bloc.suivant = allocatrice.racines[index_racine]
-    allocatrice.racines[index_racine] = nouveau_bloc
+    nouveau_bloc := adresse comme *AllocatriceListeLibre.Noeud;
+    nouveau_bloc.suivant = allocatrice.racines[index_racine];
+    allocatrice.racines[index_racine] = nouveau_bloc;
 }
 
 trouve_un_bloc :: fonc (allocatrice: *AllocatriceListeLibre, taille: z64) -> *rien
 {
     si taille < taille_de(AllocatriceListeLibre.Noeud) comme z64 {
-        retourne nul
+        retourne nul;
     }
 
-    index_racine := indice_bit_multiple_de_2_suivant(taille)
-    bloc_courant := allocatrice.racines[index_racine]
+    index_racine := indice_bit_multiple_de_2_suivant(taille);
+    bloc_courant := allocatrice.racines[index_racine];
     saufsi bloc_courant {
-        retourne nul
+        retourne nul;
     }
 
     /* Retourne le premier bloc. */
-    allocatrice.racines[index_racine] = bloc_courant.suivant
+    allocatrice.racines[index_racine] = bloc_courant.suivant;
 
-    retourne bloc_courant
+    retourne bloc_courant;
 }
 
 /** \} */
