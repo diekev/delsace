@@ -94,9 +94,6 @@ initialise_maçonne_pour_fichier_objet :: fonc (maçonne: *Maçonne_ELF64)
 
     text := crée_section(maçonne, ".text", SHT_PROGBITS);
     text.alignement = 16
-
-    // @Validation,linux définis sh_link
-    // .dynsym The section header index of the associated string table
 }
 
 réinitialise :: fonc (empl maçonne: *Maçonne_ELF64)
@@ -135,11 +132,30 @@ crée_section_de_réadressage :: fonc (empl maçonne: *Maçonne_ELF64, nom: chai
 
 crée_section_symtab :: fonc (maçonne: *Maçonne_ELF64, strtab: *Données_Section_ELF64) -> *Données_Section_ELF64
 {
+    retourne crée_section_table_symbole(maçonne, SHT_SYMTAB, strtab);
+}
+
+crée_section_dynsym :: fonc (maçonne: *Maçonne_ELF64, strtab: *Données_Section_ELF64) -> *Données_Section_ELF64
+{
+    retourne crée_section_table_symbole(maçonne, SHT_DYNSYM, strtab);
+}
+
+crée_section_table_symbole :: fonc (maçonne: *Maçonne_ELF64, type: TypeSection, strtab: *Données_Section_ELF64) -> *Données_Section_ELF64
+{
+    assert(type == SHT_DYNSYM || type == SHT_SYMTAB);
+
     saufsi strtab {
         strtab = crée_section_strtab(maçonne, ".strtab");
     }
 
-    résultat := crée_section(maçonne, ".symtab", SHT_SYMTAB);
+    nom_section := si type == SHT_SYMTAB {
+        ".symtab";
+    }
+    sinon {
+        ".dynsym";
+    }
+
+    résultat := crée_section(maçonne, nom_section, type);
     résultat.alignement = 8;
     résultat.lien = strtab;
     // Alloue le symbole indéfini
