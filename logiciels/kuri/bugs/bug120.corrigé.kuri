@@ -6,15 +6,15 @@
 
 ne_passe_pas_variable :: fonc (variable: z32) -> z32
 {
-    retourne accède_variable(z32)
+    retourne accède_variable(z32);
 }
 
 accède_variable :: fonc ($T: type_de_données) -> T
 {
-    retourne variable
+    retourne variable;
 }
 
 principale :: fonc ()
 {
-    exit(ne_passe_pas_variable(0))
+    exit(ne_passe_pas_variable(0));
 }

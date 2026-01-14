@@ -5,13 +5,13 @@
 
 principale :: fonc ()
 {
-    fonction_avec_si_statique(4)
+    fonction_avec_si_statique(4);
 }
 
 fonction_avec_si_statique :: fonc ($N: z32)
 {
-    tableau: [N]z32
+    tableau: [N]z32;
     #si N == 5 {
-        tableau[0] = 1
+        tableau[0] = 1;
     }
 }

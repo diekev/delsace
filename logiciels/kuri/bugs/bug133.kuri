@@ -4,22 +4,22 @@
  */
 
 Polymorphe :: struct ($T: type_de_données) {
-    x: T
+    x: T;
 }
 
 donne_x :: fonc (poly: Polymorphe($T)) -> T
 {
-    retourne poly.x
+    retourne poly.x;
 }
 
 donne_valeur :: fonc (poly: &Polymorphe($T)) -> T
 {
     /* poly doit être implicitement déréférencé. */
-    retourne poly.donne_x()
+    retourne poly.donne_x();
 }
 
 principale :: fonc ()
 {
-    poly: Polymorphe(z32)
-    exit(poly.donne_valeur())
+    poly: Polymorphe(z32);
+    exit(poly.donne_valeur());
 }

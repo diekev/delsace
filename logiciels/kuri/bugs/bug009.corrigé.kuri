@@ -9,11 +9,11 @@
  * Catégorie : [génération code, initialisation globale, expression quelconque]
  */
 
-Globale := 5 comme n32
+Globale := 5 comme n32;
 
 principale :: fonc ()
 {
     saufsi Globale == 5 {
-        exit(1)
+        exit(1);
     }
 }

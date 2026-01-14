@@ -4,20 +4,20 @@
  */
 
 StructureDeBase :: struct {
-    x: r32
+    x: r32;
 }
 
 StructureEmployeuse :: struct {
-    empl base: StructureDeBase
+    empl base: StructureDeBase;
 }
 
 Union :: union {
-    b: *StructureDeBase
+    b: *StructureDeBase;
 }
 
 principale :: fonc ()
 {
-    b: StructureEmployeuse
+    b: StructureEmployeuse;
 
-    _ : Union = *b
+    _ : Union = *b;
 }
