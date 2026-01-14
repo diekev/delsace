@@ -1,24 +1,24 @@
 /* Cliente pour tester la serveuse. */
 
-importe Compilatrice
-importe Fondation
-importe POSIX
-importe StatHüs
+importe Compilatrice;
+importe Fondation;
+importe POSIX;
+importe StatHüs;
 
 principale :: fonc ()
 {
-    ctx := contexte()
+    ctx := contexte();
 
-    allocatrice := crée_allocatrice_stathüs()
-    diffère détruit_allocatrice(*allocatrice)
-    installe_allocatrice(*ctx, *allocatrice)
+    allocatrice := crée_allocatrice_stathüs();
+    diffère détruit_allocatrice(*allocatrice);
+    installe_allocatrice(*ctx, *allocatrice);
 
     pousse_contexte ctx {
-        tableau: [..]z32
+        tableau: [..]z32;
                 
         pour 100 {
-            tableau_ajoute(*tableau, it)
-            _ := usleep(10_000)
+            tableau_ajoute(*tableau, it);
+            _ := usleep(10_000);
         }
 
         // déloge(tableau)

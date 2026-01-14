@@ -1,9 +1,9 @@
-importe Fondation
-importe Math
-importe Temps
-importe Triage
+importe Fondation;
+importe Math;
+importe Temps;
+importe Triage;
 
-Prof_ENABLED :: vrai
+Prof_ENABLED :: vrai;
 
 /*
 *  Prof_update
@@ -14,11 +14,11 @@ Prof_ENABLED :: vrai
 Prof_update :: fonc (record_data: z32)
 {
     #si Prof_ENABLED {
-        Prof_Begin("iprof_update")
+        Prof_Begin("iprof_update");
 
-        integer_timestamps_per_second: History_Scalar #parséante
-        last_integer_timestamp: Prof_Int64  #parséante
-        current_integer_timestamp: Prof_Int64 #parséante
+        integer_timestamps_per_second: History_Scalar #parséante;
+        last_integer_timestamp: Prof_Int64  #parséante;
+        current_integer_timestamp: Prof_Int64 #parséante;
 
         assert(Prof_num_zones <= MAX_PROFILING_ZONES);
 
@@ -28,7 +28,7 @@ Prof_update :: fonc (record_data: z32)
 
         now := Prof_get_time();
 
-        dt: r64
+        dt: r64;
         si (update_index == 0) {
             dt = FRAME_TIME_INITIAL;
         }
@@ -48,14 +48,14 @@ Prof_update :: fonc (record_data: z32)
         precomputed_factors[0] = 0; // instantaneous.
 
         Prof_get_timestamp(*current_integer_timestamp);
-        timestamp_delta: Prof_Int64
+        timestamp_delta: Prof_Int64;
         si (update_index == 0) {
             sum = 0;
             Prof_traverse(sum_times);
             si (sum == 0) { 
                 sum = 1;
             }
-            timestamp_delta = sum comme Prof_Int64
+            timestamp_delta = sum comme Prof_Int64;
         }
         sinon {
             timestamp_delta = current_integer_timestamp - last_integer_timestamp;
@@ -80,10 +80,10 @@ Prof_update :: fonc (record_data: z32)
             ss_variance := integer_timestamps_per_second.variances[ss_slot] - ss_val*ss_val;
             ss_stdev := racine_carrée(abs(ss_variance));
             ss_ratio := si (ss_val != 0.0) {
-                ss_stdev / abs(ss_val)
+                ss_stdev / abs(ss_val);
             }
             sinon {
-                0.0
+                0.0;
             }
 
             speedstep_warning = (ss_ratio > SPEEDSTEP_DETECTION_RATIO);
@@ -91,7 +91,7 @@ Prof_update :: fonc (record_data: z32)
 
         saufsi record_data {
             Prof_traverse(clear_stack);
-            Prof_End()
+            Prof_End();
             retourne;
         }
 
@@ -104,7 +104,7 @@ Prof_update :: fonc (record_data: z32)
 
         #si Prof_ZONE_HISTORY {
             pour Prof_num_zones {
-                Prof_zones[it].highlevel = *zone_history[it][history_index] comme *rien
+                Prof_zones[it].highlevel = *zone_history[it][history_index] comme *rien;
                 zone_history[it][history_index] = 0;
             }
         }
@@ -113,132 +113,132 @@ Prof_update :: fonc (record_data: z32)
 
         update(*frame_time, dt, precomputed_factors);
 
-        update_index += 1
+        update_index += 1;
         history_index = (history_index + 1) % NUM_FRAME_SLOTS;
 
         Prof_traverse(clear_stack);
 
-        Prof_End()
+        Prof_End();
     } // Prof_ENABLED
 }
 
 Prof_Report_Mode :: énum {
-    Prof_SELF_TIME
-    Prof_HIERARCHICAL_TIME
-    Prof_CALL_GRAPH
+    Prof_SELF_TIME;
+    Prof_HIERARCHICAL_TIME;
+    Prof_CALL_GRAPH;
 }
 
 Prof_Recursion_Mode :: énum {
-    Prof_FLATTEN_RECURSION
-    Prof_SPREAD_RECURSION
+    Prof_FLATTEN_RECURSION;
+    Prof_SPREAD_RECURSION;
 }
 
-Prof_Int64 :: z64
+Prof_Int64 :: z64;
 
 Prof_get_timestamp :: fonc (result: *Prof_Int64)
 {
-    mémoire(result) = intrinsèque_lis_compteur_temporel() comme z64
+    mémoire(result) = intrinsèque_lis_compteur_temporel() comme z64;
 }
 
 Prof_Zone :: struct {
-    name: chaine
-    highlevel: *rien
-    initialized: bool
-    visited: bool
-    pad: [6]octet
+    name: chaine;
+    highlevel: *rien;
+    initialized: bool;
+    visited: bool;
+    pad: [6]octet;
 }
 
 Prof_Zone_Stack :: struct {
-    t_self_start: Prof_Int64
+    t_self_start: Prof_Int64;
 
-    total_self_ticks: Prof_Int64
-    total_hier_ticks: Prof_Int64
+    total_self_ticks: Prof_Int64;
+    total_hier_ticks: Prof_Int64;
 
-    total_entry_count: n32
+    total_entry_count: n32;
 
-    parent: *Prof_Zone_Stack
-    zone: *Prof_Zone
-    recursion_depth: z32
+    parent: *Prof_Zone_Stack;
+    zone: *Prof_Zone;
+    recursion_depth: z32;
 
-    highlevel: *rien
+    highlevel: *rien;
 }
 
 // report functions
 
 Prof_Report_Record :: struct {
-    indent: z32
-    name: chaine
-    number: z32
-    prefix: z8
-    value_flag: z32
-    values: [NUM_VALUES]r64
-    heat: r64
+    indent: z32;
+    name: chaine;
+    number: z32;
+    prefix: z8;
+    value_flag: z32;
+    values: [NUM_VALUES]r64;
+    heat: r64;
 
     // used internally
-    zone: *rien
+    zone: *rien;
 }
 
 Prof_Report :: struct {
-    title: [NUM_TITLE]chaine
-    header: [NUM_HEADER]chaine
-    hilight: z32
-    record: [..]Prof_Report_Record
+    title: [NUM_TITLE]chaine;
+    header: [NUM_HEADER]chaine;
+    hilight: z32;
+    record: [..]Prof_Report_Record;
 }
 
-Prof_time: Prof_Int64
+Prof_time: Prof_Int64;
 
 Prof_Begin_Code :: fonc (zone: *Prof_Zone) #développe
 {
     /* declare a static cache of the zone stack */
-    Prof_cache: *Prof_Zone_Stack #parséante = *Prof_dummy
+    Prof_cache: *Prof_Zone_Stack #parséante = *Prof_dummy;
 
     /* check the cached Zone_Stack and update if needed */
     si Prof_cache.parent != Prof_stack {
-        Prof_cache = Prof_StackAppend(zone)
+        Prof_cache = Prof_StackAppend(zone);
     }
 
-    Prof_cache.total_entry_count += 1
-    Prof_get_timestamp(*Prof_time)
+    Prof_cache.total_entry_count += 1;
+    Prof_get_timestamp(*Prof_time);
 
     /* stop the timer on the parent zone stack */
-    Prof_stack.total_self_ticks += Prof_time - Prof_stack.t_self_start
+    Prof_stack.total_self_ticks += Prof_time - Prof_stack.t_self_start;
 
     /* make cached stack current */
-    Prof_stack = Prof_cache
+    Prof_stack = Prof_cache;
 
     /* start the timer on this stack */
-    Prof_stack.t_self_start = Prof_time
+    Prof_stack.t_self_start = Prof_time;
 }
 
 Prof_End :: fonc () #développe
 {
-    Prof_get_timestamp(*Prof_time)
+    Prof_get_timestamp(*Prof_time);
 
     /* stop timer for current zone stack */
-    Prof_stack.total_self_ticks += Prof_time - Prof_stack.t_self_start
+    Prof_stack.total_self_ticks += Prof_time - Prof_stack.t_self_start;
 
     /* make parent chain current */
-    Prof_stack = Prof_stack.parent
+    Prof_stack = Prof_stack.parent;
 
     /* start timer for parent zone stack */
-    Prof_stack.t_self_start = Prof_time
+    Prof_stack.t_self_start = Prof_time;
 }
 
 Prof_Region :: fonc (zone: *Prof_Zone) #développe
 {
-    Prof_Begin_Code(zone)
+    Prof_Begin_Code(zone);
 }
 
 Prof_Begin :: fonc (nom: chaine) #développe
 {
-    Prof_region: Prof_Zone #parséante
-    Prof_region.name = nom
-    Prof_Begin_Code(*Prof_region)
+    Prof_region: Prof_Zone #parséante;
+    Prof_region.name = nom;
+    Prof_Begin_Code(*Prof_region);
 }
 
 Prof_Scope :: fonc (nom: chaine) #développe
 {
-    Prof_Begin(nom)
+    Prof_Begin(nom);
     // À FAIRE(langage) : compilation infinie si un macro est utilisé en expression de diffère
     diffère { Prof_End() }
 }
@@ -247,25 +247,25 @@ Prof_Scope :: fonc (nom: chaine) #développe
 
 // number of unique zones allowed in the entire application
 // @TODO: remove MAX_PROFILING_ZONES and make it dynamic
-MAX_PROFILING_ZONES :: 512
+MAX_PROFILING_ZONES :: 512;
 
 // report functions
 
-NUM_VALUES :: 4
-NUM_TITLE :: 2
-NUM_HEADER :: (NUM_VALUES+1)
+NUM_VALUES :: 4;
+NUM_TITLE :: 2;
+NUM_HEADER :: (NUM_VALUES+1);
 
 // really internal functions
 #portée_fichier
 
-Prof_region__global := Prof_Zone(name = "_global")
+Prof_region__global := Prof_Zone(name = "_global");
 
 Prof_dummy: Prof_Zone_Stack;  // impossible parent
 Prof_dummy2: Prof_Zone_Stack; 
 Prof_stack := *Prof_dummy2;
 
-Prof_num_zones: z32
-Prof_zones: [MAX_PROFILING_ZONES]*Prof_Zone
+Prof_num_zones: z32;
+Prof_zones: [MAX_PROFILING_ZONES]*Prof_Zone;
 
 MAX_HASH_SIZE :: 65536   // not unlimited, to catch unbalanced BEGIN/END_PROF
 INIT_HASH_SIZE :: 256     // balance resource usage and avoid initial growth
@@ -273,21 +273,21 @@ INIT_HASH_SIZE :: 256     // balance resource usage and avoid initial growth
 init_hash: []*Prof_Zone_Stack = [ *Prof_dummy ];
 zone_hash_mask  := 0;
 
-zone_hash: [..]*Prof_Zone_Stack
-zone_hash_count: z64
+zone_hash: [..]*Prof_Zone_Stack;
+zone_hash_count: z64;
 
 initialise_iprof :: fonc ()
 {
-    zone_hash.pointeur = init_hash.pointeur
-    zone_hash_count = 1
-    zone_hash.taille = 1
-    zone_hash.capacité = 1
+    zone_hash.pointeur = init_hash.pointeur;
+    zone_hash_count = 1;
+    zone_hash.taille = 1;
+    zone_hash.capacité = 1;
 }
-#ajoute_init initialise_iprof()
+#ajoute_init initialise_iprof();
 
 hash :: fonc (z: *Prof_Zone, s: *Prof_Zone_Stack) -> z32
 {
-    n := (z comme z64 + s comme z64) comme z32
+    n := (z comme z64 + s comme z64) comme z32;
     retourne n + (n >> 8);
 }
 
@@ -301,14 +301,14 @@ insert_node :: fonc (q: *Prof_Zone_Stack)
         x = (x + s) & zone_hash_mask;
     }
 
-    zone_hash_count += 1
+    zone_hash_count += 1;
     zone_hash[x] = q;
 }
 
 init_zone :: fonc (zone: *Prof_Zone)
 {
     Prof_zones[Prof_num_zones] = zone;
-    Prof_num_zones += 1
+    Prof_num_zones += 1;
     zone.initialized = vrai;
 }
 
@@ -317,16 +317,16 @@ count_recursion_depth :: fonc (stack: *Prof_Zone_Stack, zone: *Prof_Zone) -> z32
     n := 0;
     tantque stack {
         si stack.zone == zone {
-            n += 1
+            n += 1;
         }
-        stack = stack.parent
+        stack = stack.parent;
     }
-    retourne n
+    retourne n;
 }
 
 createStackNode :: fonc (zone: *Prof_Zone, parent: *Prof_Zone_Stack) -> *Prof_Zone_Stack
 {
-    z := loge(Prof_Zone_Stack)
+    z := loge(Prof_Zone_Stack);
     z.zone = zone;
     z.parent = parent;
     z.total_entry_count = 0;
@@ -341,13 +341,13 @@ createStackNode :: fonc (zone: *Prof_Zone, parent: *Prof_Zone_Stack) -> *Prof_Zo
 init_zone_hash :: fonc (size: z64)
 {
     assert(size <= MAX_HASH_SIZE);
-    zone_hash = loge_tableau(*Prof_Zone_Stack, size)
+    zone_hash = loge_tableau(*Prof_Zone_Stack, size);
     zone_hash.capacité = size;
     zone_hash.taille = size;
-    zone_hash_count = 0
+    zone_hash_count = 0;
     zone_hash_mask  = (size comme z32) - 1;
     pour zone_hash.capacité {
-        zone_hash.pointeur[it] = *Prof_dummy
+        zone_hash.pointeur[it] = *Prof_dummy;
     }
 }
 
@@ -355,7 +355,7 @@ init_zone_hash :: fonc (size: z64)
 // assuming there's a hit in the very first slot
 Prof_StackAppend :: fonc (zone: *Prof_Zone) -> *Prof_Zone_Stack
 {
-    h := hash(zone, Prof_stack)
+    h := hash(zone, Prof_stack);
     x := h & zone_hash_mask;
     z := zone_hash[x];
 
@@ -387,7 +387,7 @@ Prof_StackAppend :: fonc (zone: *Prof_Zone) -> *Prof_Zone_Stack
     // check if we need to grow the table
     // we keep it at most 1/2 full to be very fast
     si zone_hash_count * 2 > zone_hash.capacité {
-        old_hash := zone_hash
+        old_hash := zone_hash;
         n := zone_hash.capacité;
 
         init_zone_hash(zone_hash.capacité * 2);
@@ -406,7 +406,7 @@ Prof_StackAppend :: fonc (zone: *Prof_Zone) -> *Prof_Zone_Stack
     // insert new entry in hash table
     zone_hash_count += 1;
     zone_hash[x] = createStackNode(zone, Prof_stack);
-    retourne zone_hash[x]
+    retourne zone_hash[x];
 }
 
 // visit all Prof_Zone_Stacks
@@ -427,58 +427,58 @@ Prof_init_lowlevel :: fonc ()
 
     // intentionally unbalanced, this wraps everything else
     {
-        Prof_Region(*Prof_region__global)
+        Prof_Region(*Prof_region__global);
     }
 }
 
 // whether zone-self-data is kept to allow the history graph
-Prof_ZONE_HISTORY :: vrai
+Prof_ZONE_HISTORY :: vrai;
 
 // whether full detailed (and large) 
-Prof_CALL_HISTORY :: vrai
+Prof_CALL_HISTORY :: vrai;
 
 // number of frames of history to keep
-NUM_FRAME_SLOTS :: 128
+NUM_FRAME_SLOTS :: 128;
 
 ////////////////////////////////////////////////////////////////////////
 
 // the number of moving averages
-NUM_PROFILE_TRACKER_HISTORY_SLOTS :: 3
+NUM_PROFILE_TRACKER_HISTORY_SLOTS :: 3;
 
 // the number of frames to ignore before starting the moving averages
-NUM_THROWAWAY_UPDATES :: 3
+NUM_THROWAWAY_UPDATES :: 3;
 
 // threshhold for a moving average of an integer to be at zero
-INT_ZERO_THRESHHOLD :: 0.25
+INT_ZERO_THRESHHOLD :: 0.25;
 
 zone_history: [MAX_PROFILING_ZONES][NUM_FRAME_SLOTS]r32; // 256K
 
 // these structures are used solely to track data over time
 History_Scalar :: struct {
-    values: [NUM_PROFILE_TRACKER_HISTORY_SLOTS]r64
-    variances: [NUM_PROFILE_TRACKER_HISTORY_SLOTS]r64
+    values: [NUM_PROFILE_TRACKER_HISTORY_SLOTS]r64;
+    variances: [NUM_PROFILE_TRACKER_HISTORY_SLOTS]r64;
     // #ifdef Prof_CALL_HISTORY
-    history: [NUM_FRAME_SLOTS]r32
+    history: [NUM_FRAME_SLOTS]r32;
 }
 
 Profile_Tracker_Data_Record :: struct {
-    self_time: History_Scalar
-    hierarchical_time: History_Scalar
-    entry_count: History_Scalar
-    max_recursion: z32
+    self_time: History_Scalar;
+    hierarchical_time: History_Scalar;
+    entry_count: History_Scalar;
+    max_recursion: z32;
 }
 
-frame_time: History_Scalar
+frame_time: History_Scalar;
 
-times_to_reach_90_percent: [NUM_PROFILE_TRACKER_HISTORY_SLOTS]r64
-precomputed_factors      : [NUM_PROFILE_TRACKER_HISTORY_SLOTS]r64
+times_to_reach_90_percent: [NUM_PROFILE_TRACKER_HISTORY_SLOTS]r64;
+precomputed_factors      : [NUM_PROFILE_TRACKER_HISTORY_SLOTS]r64;
 
 //static int        num_active_zones;
 update_index: z32     // 2^31 at 100fps = 280 days
-last_update_time: r64
-displayed_quantity: Prof_Report_Mode
+last_update_time: r64;
+displayed_quantity: Prof_Report_Mode;
 
-FRAME_TIME_INITIAL :: 0.001
+FRAME_TIME_INITIAL :: 0.001;
 
 history_index: z32;
 display_frame: z32;
@@ -503,7 +503,7 @@ update :: fonc (s: *History_Scalar, new_value: r64, k_array: []r64)
     }
 
     #si Prof_CALL_HISTORY {
-        s.history[history_index] = new_value comme r32
+        s.history[history_index] = new_value comme r32;
     }
 }
 
@@ -517,7 +517,7 @@ eternity_set :: fonc (s: *History_Scalar, new_value: r64)
     }
 
     #si Prof_CALL_HISTORY {
-        s.history[history_index] = new_value comme r32
+        s.history[history_index] = new_value comme r32;
     }
 }
 
@@ -587,25 +587,25 @@ clear_stack :: fonc (c: *Prof_Zone_Stack)
     c.total_entry_count = 0;
 }
 
-sum: r64
+sum: r64;
 sum_times :: fonc (c: *Prof_Zone_Stack)
 {
-    sum += (c.total_self_ticks comme r64)
+    sum += (c.total_self_ticks comme r64);
 }
 
 timestamps_to_seconds: r64;
 update_history :: fonc (c: *Prof_Zone_Stack)
 {
-    self_time: r64
-    hier_time: r64
-    entry_count: r64
+    self_time: r64;
+    hier_time: r64;
+    entry_count: r64;
 
-    record := c.highlevel comme *Profile_Tracker_Data_Record
+    record := c.highlevel comme *Profile_Tracker_Data_Record;
     z := c.zone;
 
     si record == nul {
-        record = loge(Profile_Tracker_Data_Record)
-        c.highlevel = record comme *rien
+        record = loge(Profile_Tracker_Data_Record);
+        c.highlevel = record comme *rien;
         clear(*record.entry_count);
         clear(*record.self_time);
         clear(*record.hierarchical_time);
@@ -632,30 +632,30 @@ update_history :: fonc (c: *Prof_Zone_Stack)
     }
 
     #si Prof_ZONE_HISTORY {
-        mémoire(z.highlevel comme *r32) += self_time comme r32
+        mémoire(z.highlevel comme *r32) += self_time comme r32;
     }
 }
 
 SPEEDSTEP_DETECTION_RATIO : r64 : 0.08;
-speedstep_warning: bool
+speedstep_warning: bool;
 
 allocate_buffer :: fonc (n: z32) -> *Prof_Report
 {
-    pob := loge(Prof_Report)
-    tableau_redimensionne(pob.record, n)
+    pob := loge(Prof_Report);
+    tableau_redimensionne(pob.record, n);
     retourne pob;
 }
 
 uncounted: z32;
-recurse := Prof_Recursion_Mode.Prof_FLATTEN_RECURSION
+recurse := Prof_Recursion_Mode.Prof_FLATTEN_RECURSION;
 
 propogate_to_zone :: fonc (c: *Prof_Zone_Stack)
 {
-    z := c.zone
-    d := c.highlevel comme *Profile_Tracker_Data_Record
+    z := c.zone;
+    d := c.highlevel comme *Profile_Tracker_Data_Record;
 
     //#if 1
-    r := z.highlevel comme *Prof_Report_Record
+    r := z.highlevel comme *Prof_Report_Record;
     // #else   
     // if (recurse == Prof_FLATTEN_RECURSION)
     // r = (Prof_Report_Record *) z.highlevel;
@@ -672,7 +672,7 @@ propogate_to_zone :: fonc (c: *Prof_Zone_Stack)
         // has to go to reach 0
         si get_value(*d.entry_count) > INT_ZERO_THRESHHOLD {
             si d.max_recursion > r.number {
-                r.number = d.max_recursion
+                r.number = d.max_recursion;
             }
             si c.parent.zone {
                 (c.parent.zone.highlevel comme *Prof_Report_Record).prefix = '+';
@@ -683,7 +683,7 @@ propogate_to_zone :: fonc (c: *Prof_Zone_Stack)
         si display_frame { retourne; }  // no variances when examining history
         }
 
-        t: r64
+        t: r64;
         si displayed_quantity == Prof_Report_Mode.Prof_HIERARCHICAL_TIME {
             t = d.hierarchical_time.variances[slot];
         }
@@ -701,13 +701,13 @@ propogate_to_zone :: fonc (c: *Prof_Zone_Stack)
         }
     }
     sinon {
-        uncounted += 1
+        uncounted += 1;
     }
 }
 
 propogate_expanded :: fonc (c: *Prof_Zone_Stack)
 {
-    d := c.highlevel comme *Profile_Tracker_Data_Record
+    d := c.highlevel comme *Profile_Tracker_Data_Record;
     si d == nul {
         uncounted += 1;
         retourne;
@@ -732,11 +732,11 @@ propogate_expanded :: fonc (c: *Prof_Zone_Stack)
 
         // propogate it to the parents
         si c.parent.zone {
-            r = c.parent.zone.highlevel comme *Prof_Report_Record
+            r = c.parent.zone.highlevel comme *Prof_Report_Record;
             r[1].values[0] += 1000 * get_value(*d.self_time);
             r[1].values[1] += 1000 * get_value(*d.hierarchical_time);
             r[1].values[2] += get_value(*d.entry_count);
-            d = c.parent.highlevel comme *Profile_Tracker_Data_Record
+            d = c.parent.highlevel comme *Profile_Tracker_Data_Record;
             si d.max_recursion > r[1].number && get_value(*d.entry_count) > INT_ZERO_THRESHHOLD {
                 r[1].number = d.max_recursion;
             }
@@ -744,7 +744,7 @@ propogate_expanded :: fonc (c: *Prof_Zone_Stack)
     }
 
     si c.parent.zone == expand {
-        r := c.zone.highlevel comme *Prof_Report_Record
+        r := c.zone.highlevel comme *Prof_Report_Record;
         r[0].values[0] += 1000 * get_value(*d.self_time);
         r[0].values[1] += 1000 * get_value(*d.hierarchical_time);
         r[0].values[2] += get_value(*d.entry_count);
@@ -779,12 +779,12 @@ pob_compare :: fonc (p: Prof_Report_Record, q: Prof_Report_Record) -> z32
     b: r64 = q.values[0];
 
     si b < a {
-        retourne -1
+        retourne -1;
     }
     si b > a {
-        retourne 1
+        retourne 1;
     }
-    retourne 0
+    retourne 0;
 }
 
 pob_expand_compare :: fonc (a: Prof_Report_Record, b: Prof_Report_Record) -> z32
@@ -816,7 +816,7 @@ update_cursor: z32;
 
 Prof_create_report :: fonc () -> *Prof_Report
 {
-    empl Prof_Report_Mode
+    empl Prof_Report_Mode;
 
     s := si displayed_quantity == Prof_CALL_GRAPH { 3 } sinon { 1 }
 
@@ -835,9 +835,9 @@ Prof_create_report :: fonc () -> *Prof_Report
             r[0].indent = 3;
             r[1].indent = 5;
             r[2].indent = 0;
-            r[0].zone = z comme *rien
-            r[1].zone = z comme *rien
-            r[2].zone = z comme *rien
+            r[0].zone = z comme *rien;
+            r[1].zone = z comme *rien;
+            r[2].zone = z comme *rien;
             r[0].prefix = 0;
             r[1].prefix = 0;
             r[2].prefix = 0;
@@ -870,7 +870,7 @@ Prof_create_report :: fonc () -> *Prof_Report
     }
 
     // "%3.3lf ms/frame (fps: %3.2lf)  %s"
-    pob.title[0] = imprime_chaine("% ms/frame (fps: %)  %", avg_frame_time * 1000, fps, displayed_quantity_name)
+    pob.title[0] = imprime_chaine("% ms/frame (fps: %)  %", avg_frame_time * 1000, fps, displayed_quantity_name);
 
     // À FAIRE
     // #si Prof_CALL_HISTORY {
@@ -888,12 +888,12 @@ Prof_create_report :: fonc () -> *Prof_Report
     }
 
     si displayed_quantity == Prof_CALL_GRAPH {
-        r := expand.highlevel comme *Prof_Report_Record
+        r := expand.highlevel comme *Prof_Report_Record;
         Prof_traverse(propogate_expanded);
 
         r[2].prefix = '-';
 
-        j := 0
+        j := 0;
         pour * pob.record {
             si (it.values[0] != 0.0 || it.values[1] != 0.0 || it.values[2] != 0.0) {
                 pob.record[j] = pob.record[indice_it];
@@ -902,11 +902,11 @@ Prof_create_report :: fonc () -> *Prof_Report
         }
         pob.record.taille = j;
 
-        tri_rapide(pob.record, pob_expand_compare)
+        tri_rapide(pob.record, pob_expand_compare);
 
         pour pob.record {
             si it.indent == 5 {
-                it.indent = 3
+                it.indent = 3;
             }
         }
     }
@@ -924,7 +924,7 @@ Prof_create_report :: fonc () -> *Prof_Report
             pob.record[i].heat = compute_heat(pob.record[i].heat, pob.record[i].values[0]);
         }
 
-        tri_rapide(pob.record, pob_compare)
+        tri_rapide(pob.record, pob_compare);
     }
 
     si update_cursor {
@@ -958,10 +958,10 @@ Prof_create_report :: fonc () -> *Prof_Report
 Prof_free_report :: fonc (z: *Prof_Report)
 {
     pour i dans NUM_TITLE {
-        déloge_si_logée(z.title[i])
+        déloge_si_logée(z.title[i]);
     }
     pour i dans NUM_HEADER {
-        déloge_si_logée(z.header[i])
+        déloge_si_logée(z.header[i]);
     }
     déloge(z.record);
     déloge(z);
@@ -998,7 +998,7 @@ Prof_select_parent :: fonc ()
     pour * b.record {
         si it.indent == 0 { arrête }
         si it.zone == old { continue }
-        expand = it.zone comme *Prof_Zone
+        expand = it.zone comme *Prof_Zone;
     }
     Prof_free_report(b);
     update_cursor = 1;
@@ -1047,7 +1047,7 @@ id :: fonc (z: *Prof_Zone) -> z32
         h = (h << 5) + (h >> 27) + (it comme n32);
     }
 
-    retourne h comme z32
+    retourne h comme z32;
 }
 
 Prof_graph :: fonc (num_frames: z32, callback: fonc (id: z32, x0: z32, x1: z32, values: *r32, data: *rien), data: *rien)
@@ -1055,7 +1055,7 @@ Prof_graph :: fonc (num_frames: z32, callback: fonc (id: z32, x0: z32, x1: z32, 
     #si Prof_ZONE_HISTORY {
         h := history_index;
         si num_frames > NUM_FRAME_SLOTS {
-            num_frames = NUM_FRAME_SLOTS
+            num_frames = NUM_FRAME_SLOTS;
         }
 
         pour i dans Prof_num_zones {
@@ -1078,5 +1078,5 @@ Prof_graph :: fonc (num_frames: z32, callback: fonc (id: z32, x0: z32, x1: z32, 
 
 Prof_get_time :: fonc () -> r64
 {
-    retourne maintenant_précis().secondes(r64)
+    retourne maintenant_précis().secondes(r64);
 }

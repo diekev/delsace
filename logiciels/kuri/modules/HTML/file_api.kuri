@@ -4,21 +4,21 @@
  * \{ */
 
 Blob :: struct {
-    empl platform_object: PlatformObject
-    table = *__table_virtuelle_blob
+    empl platform_object: PlatformObject;
+    table = *__table_virtuelle_blob;
 
-    bytes: [..]octet
+    bytes: [..]octet;
 }
 
 #portée_fichier
 
-__table_virtuelle_blob := TableVirtuellePlatformObject(classe = Blob, sur_destruction = blob_sur_destruction)
+__table_virtuelle_blob := TableVirtuellePlatformObject(classe = Blob, sur_destruction = blob_sur_destruction);
 
 blob_sur_destruction :: fonc (base: *JS.Cellule)
 {
-    platform_object_sur_destruction(base)
-    blob := base comme *Blob
-    déloge(blob.bytes)
+    platform_object_sur_destruction(base);
+    blob := base comme *Blob;
+    déloge(blob.bytes);
 }
 
 #portée_export
@@ -35,55 +35,55 @@ MediaSource :: struct {}
 /* https://w3c.github.io/FileAPI/#BlobURLStore */
 BlobURLStore :: struct {
     Entrée :: struct {
-        url_string: chaine
-        entry: *BlobURLEntry
+        url_string: chaine;
+        entry: *BlobURLEntry;
     }
 
-    entrées: [..]Entrée
+    entrées: [..]Entrée;
 }
 
 détruit_données_store :: fonc (store: *BlobURLStore)
 {
     pour store.entrées {
-        déloge(it.url_string)
-        déloge(it.entry)
+        déloge(it.url_string);
+        déloge(it.entry);
     }
 
-    déloge(store.entrées)
+    déloge(store.entrées);
 }
 
 donne_entrée_pour :: fonc (store: *BlobURLStore, url_string: chaine) -> *BlobURLEntry
 {
     pour store.entrées {
         si it.url_string == url_string {
-            retourne it.entry
+            retourne it.entry;
         }
     }
-    retourne nul
+    retourne nul;
 }
 
 BlobURLEntryObject :: union {
-    blob: *Blob
-    media_source: *MediaSource
+    blob: *Blob;
+    media_source: *MediaSource;
 }
 
 est_blob :: fonc (object: BlobURLEntryObject) -> bool
 {
     discr object {
         blob {
-            retourne vrai
+            retourne vrai;
         }
         sinon {
-            retourne faux
+            retourne faux;
         }
     }
-    retourne faux
+    retourne faux;
 }
 
 /* https://w3c.github.io/FileAPI/#blob-url-entry */
 BlobURLEntry :: struct {
-    object: BlobURLEntryObject
-    environment: *EnvironmentSettings
+    object: BlobURLEntryObject;
+    environment: *EnvironmentSettings;
 }
 
 /** \} */
@@ -97,17 +97,17 @@ BlobURLEntry :: struct {
 resolve_a_blob_url :: fonc (user_agent: *UserAgent, url: *URL) -> *BlobURLEntry
 {
     // 1. Assert: url’s scheme is "blob".
-    assert(url.scheme == "blob")
+    assert(url.scheme == "blob");
 
     // 2. Let store be the user agent’s blob URL store.
-    store := *user_agent.blob_url_store
+    store := *user_agent.blob_url_store;
 
     // 3. Let url string be the result of serializing url with the exclude fragment flag set.
-    url_string := url_serializer(url, exclude_fragment = vrai)
-    diffère déloge(url_string)
+    url_string := url_serializer(url, exclude_fragment = vrai);
+    diffère déloge(url_string);
 
     // 4. If store[url string] exists, return store[url string]; otherwise return failure.
-    retourne store.donne_entrée_pour(url_string)
+    retourne store.donne_entrée_pour(url_string);
 }
 
 /** \} */

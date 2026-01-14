@@ -1,73 +1,73 @@
-importe Fondation
-importe Math
-importe Périphériques
+importe Fondation;
+importe Math;
+importe Périphériques;
 
 ContexteExécutionCommande :: struct {
-    souris: ClicSouris
-    souris_prétransformée: ClicSouris
+    souris: ClicSouris;
+    souris_prétransformée: ClicSouris;
     /* Non-nul lors d'une exécution modale. */
-    souris_précédente: Optionnel(ClicSouris)
-    souris_originelle: Optionnel(ClicSouris)
+    souris_précédente: Optionnel(ClicSouris);
+    souris_originelle: Optionnel(ClicSouris);
     /* Métadonnées passée à la commande. */
-    métadonnée: chaine
+    métadonnée: chaine;
 }
 
 donne_delta_position_souris :: fonc (ctx: *ContexteExécutionCommande) -> Vec2
 {
-    résultat: Vec2
+    résultat: Vec2;
 
     discr ctx.souris_précédente {
         Quelque(souris) {
-            résultat.x = (ctx.souris.état.où.x - souris.état.où.x) comme r32
-            résultat.y = (ctx.souris.état.où.y - souris.état.où.y) comme r32
+            résultat.x = (ctx.souris.état.où.x - souris.état.où.x) comme r32;
+            résultat.y = (ctx.souris.état.où.y - souris.état.où.y) comme r32;
         }
         sinon {}
     }
 
-    retourne résultat
+    retourne résultat;
 }
 
 donne_delta_position_souris_originelle :: fonc (ctx: *ContexteExécutionCommande) -> Vec2
 {
-    résultat: Vec2
+    résultat: Vec2;
 
     discr ctx.souris_originelle {
         Quelque(souris) {
-            résultat.x = (souris.état.où.x - ctx.souris.état.où.x) comme r32
-            résultat.y = (souris.état.où.y - ctx.souris.état.où.y) comme r32
+            résultat.x = (souris.état.où.x - ctx.souris.état.où.x) comme r32;
+            résultat.y = (souris.état.où.y - ctx.souris.état.où.y) comme r32;
         }
         sinon {}
     }
 
-    retourne résultat
+    retourne résultat;
 }
 
 RésultatExécutionCommande :: énum {
-    TERMINÉ
-    PASSE_EN_MODAL
-    ANNULÉ
+    TERMINÉ;
+    PASSE_EN_MODAL;
+    ANNULÉ;
 }
 
 /* ------------------------------------------------------------------------- */
 /** \nom GroupeDeCommandes
  * \{ */
 
-IDGroupeCommande :: z32
+IDGroupeCommande :: z32;
 
 GroupeDeCommandes :: struct {
-    groupe_parent: *GroupeDeCommandes
-    identifiant: chaine
+    groupe_parent: *GroupeDeCommandes;
+    identifiant: chaine;
 
-    commandes: [..]*Commande
-    id: IDGroupeCommande
+    commandes: [..]*Commande;
+    id: IDGroupeCommande;
 }
 
 ajoute_commande :: fonc (groupe: *GroupeDeCommandes, identifiant: chaine) -> *Commande
 {
-    résultat := loge(Commande)
-    tableau_ajoute(*groupe.commandes, résultat)
-    résultat.identifiant = identifiant
-    retourne résultat
+    résultat := loge(Commande);
+    tableau_ajoute(*groupe.commandes, résultat);
+    résultat.identifiant = identifiant;
+    retourne résultat;
 }
 
 /** \} */
@@ -77,60 +77,60 @@ ajoute_commande :: fonc (groupe: *GroupeDeCommandes, identifiant: chaine) -> *Co
  * \{ */
 
 Commande :: struct {
-    nom: chaine
-    identifiant: chaine
-    icone: chaine
-    raccourci: Optionnel(RaccourciClavier)
-    bouton_souris: Optionnel(BoutonSouris)
-    action_souris: Optionnel(ActionSouris)
-    modificateur: Optionnel(ModificateurClavier)
+    nom: chaine;
+    identifiant: chaine;
+    icone: chaine;
+    raccourci: Optionnel(RaccourciClavier);
+    bouton_souris: Optionnel(BoutonSouris);
+    action_souris: Optionnel(ActionSouris);
+    modificateur: Optionnel(ModificateurClavier);
 
-    exécute: fonc (ctx: *ContexteExécutionCommande) -> RésultatExécutionCommande
-    exécute_modal: fonc (ctx: *ContexteExécutionCommande)
-    termine_modal: fonc (ctx: *ContexteExécutionCommande)
-    sur_donne_nom: fonc (données_utilisateur: eini) -> chaine
-    sur_est_exécutable: fonc (ctx: *ContexteExécutionCommande) -> bool
+    exécute: fonc (ctx: *ContexteExécutionCommande) -> RésultatExécutionCommande;
+    exécute_modal: fonc (ctx: *ContexteExécutionCommande);
+    termine_modal: fonc (ctx: *ContexteExécutionCommande);
+    sur_donne_nom: fonc (données_utilisateur: eini) -> chaine;
+    sur_est_exécutable: fonc (ctx: *ContexteExécutionCommande) -> bool;
 }
 
 est_commande_clavier :: fonc (commande: *Commande) -> bool
 {
     saufsi commande.raccourci.possède_valeur() {
-        retourne faux
+        retourne faux;
     }
 
     si commande.bouton_souris.possède_valeur() {
-        retourne faux
+        retourne faux;
     }
 
     si commande.action_souris.possède_valeur() {
-        retourne faux
+        retourne faux;
     }
 
     si commande.modificateur.possède_valeur() {
-        retourne faux
+        retourne faux;
     }
 
-    retourne vrai
+    retourne vrai;
 }
 
 donne_nom :: fonc (commande: *Commande, données_utilisateur: eini) -> chaine
 {
     si commande.sur_donne_nom {
-        retourne commande.sur_donne_nom(données_utilisateur)
+        retourne commande.sur_donne_nom(données_utilisateur);
     }
     si commande.nom {
-        retourne commande.nom
+        retourne commande.nom;
     }
-    retourne commande.identifiant
+    retourne commande.identifiant;
 }
 
 est_exécutable :: fonc (commande: *Commande, ctx: *ContexteExécutionCommande) -> bool
 {
-    résultat := vrai
+    résultat := vrai;
     si commande.sur_est_exécutable {
-        résultat = commande.sur_est_exécutable(ctx)
+        résultat = commande.sur_est_exécutable(ctx);
     }
-    retourne résultat
+    retourne résultat;
 }
 
 /** \} */
@@ -140,113 +140,113 @@ est_exécutable :: fonc (commande: *Commande, ctx: *ContexteExécutionCommande) 
  * \{ */
 
 GestionnaireCommande :: struct {
-    groupes: [..]*GroupeDeCommandes
+    groupes: [..]*GroupeDeCommandes;
 
-    ctx_modal: ContexteExécutionCommande
-    commande_modale: *Commande
+    ctx_modal: ContexteExécutionCommande;
+    commande_modale: *Commande;
 }
 
 détruit_données_gestionnaire_commande :: fonc (gestionnaire: *GestionnaireCommande)
 {
     pour gestionnaire.groupes {
-        déloge_tableau_et_ses_éléments(it.commandes)
+        déloge_tableau_et_ses_éléments(it.commandes);
     }
-    déloge_tableau_et_ses_éléments(gestionnaire.groupes)
+    déloge_tableau_et_ses_éléments(gestionnaire.groupes);
 }
 
 détruit_gestionnaire_commande :: fonc (gestionnaire: *GestionnaireCommande)
 {
-    détruit_données_gestionnaire_commande(gestionnaire)
-    déloge(gestionnaire)
+    détruit_données_gestionnaire_commande(gestionnaire);
+    déloge(gestionnaire);
 }
 
 crée_groupe :: fonc (gestionnaire: *GestionnaireCommande, id: IDGroupeCommande, identifiant: chaine) -> *GroupeDeCommandes
 {
-    existant := trouve_groupe_pour_id(gestionnaire, id)
+    existant := trouve_groupe_pour_id(gestionnaire, id);
     si existant {
-        retourne existant
+        retourne existant;
     }
 
-    résultat := loge(GroupeDeCommandes)
-    tableau_ajoute(*gestionnaire.groupes, résultat)
-    résultat.identifiant = identifiant
-    résultat.id = id
-    retourne résultat
+    résultat := loge(GroupeDeCommandes);
+    tableau_ajoute(*gestionnaire.groupes, résultat);
+    résultat.identifiant = identifiant;
+    résultat.id = id;
+    retourne résultat;
 }
 
 crée_groupe :: fonc (gestionnaire: *GestionnaireCommande, parent: *GroupeDeCommandes, id: IDGroupeCommande, identifiant: chaine) -> *GroupeDeCommandes
 {
-    résultat := crée_groupe(gestionnaire, id, identifiant)
-    assert(résultat.groupe_parent == nul)
-    résultat.groupe_parent = parent
-    retourne résultat
+    résultat := crée_groupe(gestionnaire, id, identifiant);
+    assert(résultat.groupe_parent == nul);
+    résultat.groupe_parent = parent;
+    retourne résultat;
 }
 
 trouve_groupe_pour_id :: fonc (gestionnaire: *GestionnaireCommande, id: IDGroupeCommande) -> *GroupeDeCommandes
 {
     pour gestionnaire.groupes {
         si it.id == id {
-            retourne it
+            retourne it;
         }
     }
 
-    retourne nul
+    retourne nul;
 }
 
 sauvegarde_commande_modale :: fonc (gestionnaire: *GestionnaireCommande, commande_modale: *Commande, ctx: *ContexteExécutionCommande)
 {
-    gestionnaire.commande_modale = commande_modale
-    gestionnaire.ctx_modal = mémoire(ctx)
+    gestionnaire.commande_modale = commande_modale;
+    gestionnaire.ctx_modal = mémoire(ctx);
 }
 
 trouve_commande_pour_clic :: fonc (gestionnaire: *GestionnaireCommande, contexte: IDGroupeCommande, souris: ClicSouris) -> *Commande
 {
-    groupe := trouve_groupe_pour_id(gestionnaire, contexte)
+    groupe := trouve_groupe_pour_id(gestionnaire, contexte);
 
     tantque groupe != nul {
         pour groupe.commandes {
             saufsi a_valeur(it.bouton_souris, souris.bouton) {
-                continue
+                continue;
             }
 
             saufsi a_valeur(it.action_souris, souris.action) {
-                continue
+                continue;
             }
 
             si possède_valeur(it.modificateur) && !a_valeur(it.modificateur, souris.état.modificateur) {
-                continue
+                continue;
             }
 
             si !possède_valeur(it.modificateur) && souris.état.modificateur != ModificateurClavier.zéro {
-                continue
+                continue;
             }
 
-            retourne it
+            retourne it;
         }
 
-        groupe = groupe.groupe_parent
+        groupe = groupe.groupe_parent;
     }
 
-    retourne nul
+    retourne nul;
 }
 
 trouve_commande_pour_raccourci :: fonc (gestionnaire: *GestionnaireCommande, contexte: IDGroupeCommande, raccourci: RaccourciClavier) -> *Commande
 {
-    groupe := trouve_groupe_pour_id(gestionnaire, contexte)
+    groupe := trouve_groupe_pour_id(gestionnaire, contexte);
 
     tantque groupe != nul {
         pour groupe.commandes {
             saufsi a_valeur(it.raccourci, raccourci) {
-                continue
+                continue;
             }
 
-            retourne it
+            retourne it;
         }
 
-        groupe = groupe.groupe_parent
+        groupe = groupe.groupe_parent;
     }
 
-    retourne nul
+    retourne nul;
 }
 
 trouve_commande_pour_identifiant :: fonc (gestionnaire: *GestionnaireCommande, identifiant: chaine) -> *Commande
@@ -254,140 +254,140 @@ trouve_commande_pour_identifiant :: fonc (gestionnaire: *GestionnaireCommande, i
     pour gestionnaire.groupes {
         pour commande dans it.commandes {
             si commande.identifiant != identifiant {
-                continue
+                continue;
             }
 
-            retourne commande
+            retourne commande;
         }
     }
 
-    retourne nul
+    retourne nul;
 }
 
 appele_commande_menu :: fonc (gestionnaire: *GestionnaireCommande, ctx: *ContexteExécutionCommande, identifiant: chaine, métadonnée := "")
 {
-    commande := trouve_commande_pour_identifiant(gestionnaire, identifiant)
+    commande := trouve_commande_pour_identifiant(gestionnaire, identifiant);
     saufsi commande {
-        retourne
+        retourne;
     }
 
     saufsi commande.exécute {
-        retourne
+        retourne;
     }
 
-    ctx.métadonnée = métadonnée
+    ctx.métadonnée = métadonnée;
 
     saufsi est_exécutable(commande, ctx) {
-        retourne
+        retourne;
     }
 
-    résultat := commande.exécute(ctx)
+    résultat := commande.exécute(ctx);
 
     discr résultat {
         TERMINÉ { /* OK. */ }
         ANNULÉ { /* OK. */ }
         PASSE_EN_MODAL {
-            gestionnaire.sauvegarde_commande_modale(commande, ctx)
+            gestionnaire.sauvegarde_commande_modale(commande, ctx);
         }
     }
 
-    retourne
+    retourne;
 }
 
 appele_commande :: fonc (gestionnaire: *GestionnaireCommande, ctx: *ContexteExécutionCommande, type_éditrice: z32, souris: ClicSouris) -> bool
 {
-    commande := trouve_commande_pour_clic(gestionnaire, type_éditrice, souris)
+    commande := trouve_commande_pour_clic(gestionnaire, type_éditrice, souris);
     saufsi commande {
-        retourne faux
+        retourne faux;
     }
 
     saufsi commande.exécute {
-        retourne faux
+        retourne faux;
     }
 
     saufsi est_exécutable(commande, ctx) {
-        retourne faux
+        retourne faux;
     }
 
-    ctx.souris = souris
-    ctx.souris_originelle = souris
-    résultat := commande.exécute(ctx)
+    ctx.souris = souris;
+    ctx.souris_originelle = souris;
+    résultat := commande.exécute(ctx);
 
     discr résultat {
         TERMINÉ { /* OK. */ }
         ANNULÉ { /* OK. */ }
         PASSE_EN_MODAL {
-            gestionnaire.sauvegarde_commande_modale(commande, ctx)
+            gestionnaire.sauvegarde_commande_modale(commande, ctx);
         }
     }
 
-    retourne vrai
+    retourne vrai;
 }
 
 appele_commande :: fonc (gestionnaire: *GestionnaireCommande, ctx: *ContexteExécutionCommande, type_éditrice: z32, raccourci: RaccourciClavier, souris: ÉtatSouris) -> bool
 {
-    commande := trouve_commande_pour_raccourci(gestionnaire, type_éditrice, raccourci)
+    commande := trouve_commande_pour_raccourci(gestionnaire, type_éditrice, raccourci);
     saufsi commande {
-        retourne faux
+        retourne faux;
     }
 
     saufsi commande.exécute {
-        retourne faux
+        retourne faux;
     }
 
     saufsi est_exécutable(commande, ctx) {
-        retourne faux
+        retourne faux;
     }
 
-    ctx.souris.état = souris
-    résultat := commande.exécute(ctx)
+    ctx.souris.état = souris;
+    résultat := commande.exécute(ctx);
 
     discr résultat {
         TERMINÉ { /* OK. */ }
         ANNULÉ { /* OK. */ }
         PASSE_EN_MODAL {
-            gestionnaire.sauvegarde_commande_modale(commande, ctx)
+            gestionnaire.sauvegarde_commande_modale(commande, ctx);
         }
     }
 
-    retourne vrai
+    retourne vrai;
 }
 
 ajourne_commande_modale :: fonc (gestionnaire: *GestionnaireCommande, ctx: *ContexteExécutionCommande, souris: ClicSouris, souris_prétransformée: ClicSouris) -> bool
 {
-    commande := gestionnaire.commande_modale
+    commande := gestionnaire.commande_modale;
     saufsi commande {
-        retourne faux
+        retourne faux;
     }
 
     saufsi commande.exécute_modal {
-        retourne faux
+        retourne faux;
     }
 
-    ctx.souris = souris
-    ctx.souris_prétransformée = souris_prétransformée
-    ctx.souris_précédente = gestionnaire.ctx_modal.souris
-    ctx.souris_originelle = gestionnaire.ctx_modal.souris_originelle
+    ctx.souris = souris;
+    ctx.souris_prétransformée = souris_prétransformée;
+    ctx.souris_précédente = gestionnaire.ctx_modal.souris;
+    ctx.souris_originelle = gestionnaire.ctx_modal.souris_originelle;
 
-    commande.exécute_modal(ctx)
+    commande.exécute_modal(ctx);
 
-    gestionnaire.ctx_modal.souris = souris
-    retourne vrai
+    gestionnaire.ctx_modal.souris = souris;
+    retourne vrai;
 }
 
 achève_commande_modale :: fonc (gestionnaire: *GestionnaireCommande, ctx: *ContexteExécutionCommande, souris: ClicSouris) -> bool
 {
-    commande := gestionnaire.commande_modale
+    commande := gestionnaire.commande_modale;
 
     si commande && commande.termine_modal {
-        ctx.souris = souris
-        ctx.souris_précédente = gestionnaire.ctx_modal.souris
-        commande.termine_modal(ctx)
+        ctx.souris = souris;
+        ctx.souris_précédente = gestionnaire.ctx_modal.souris;
+        commande.termine_modal(ctx);
     }
 
-    gestionnaire.commande_modale = nul
-    gestionnaire.ctx_modal = ContexteExécutionCommande()
-    retourne vrai
+    gestionnaire.commande_modale = nul;
+    gestionnaire.ctx_modal = ContexteExécutionCommande();
+    retourne vrai;
 }
 
 /** \} */

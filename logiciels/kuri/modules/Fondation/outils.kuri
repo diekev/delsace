@@ -2,27 +2,27 @@
 /** \nom Définitions de bases pour les contraintes, etc.
  * \{ */
 
-NombreEntierNaturel :: n8 | n16 | n32 | n64
-NombreEntierRelatif :: z8 | z16 | z32 | z64
-NombreEntier :: NombreEntierNaturel | NombreEntierRelatif
-NombreRéel :: r16 | r32 | r64
+NombreEntierNaturel :: n8 | n16 | n32 | n64;
+NombreEntierRelatif :: z8 | z16 | z32 | z64;
+NombreEntier :: NombreEntierNaturel | NombreEntierRelatif;
+NombreRéel :: r16 | r32 | r64;
 
 /** \} */
 
 // Type pour représenter un résultat optionnel
 Optionnel :: union ($T: type_de_données) {
-    Quelque: T
-    Aucun
+    Quelque: T;
+    Aucun;
 }
 
 valeur_ou :: fonc (résultat: Optionnel($T), valeur: T) -> T #enligne
 {
     discr résultat {
         Quelque(v) {
-            retourne v
+            retourne v;
         }
         sinon {
-            retourne valeur
+            retourne valeur;
         }
     }
 }
@@ -31,11 +31,11 @@ valeur_ou_défaut :: fonc (résultat: Optionnel($T)) -> T #enligne
 {
     discr résultat {
         Quelque(v) {
-            retourne v
+            retourne v;
         }
         sinon {
-            valeur_défaut: T
-            retourne valeur_défaut
+            valeur_défaut: T;
+            retourne valeur_défaut;
         }
     }
 }
@@ -44,10 +44,10 @@ possède_valeur :: fonc (résultat: Optionnel($T)) -> bool #enligne
 {
     discr résultat {
         Quelque {
-            retourne vrai
+            retourne vrai;
         }
         sinon {
-            retourne faux
+            retourne faux;
         }
     }
 }
@@ -56,10 +56,10 @@ a_valeur :: fonc (optionnel: Optionnel($T), valeur: T) -> bool
 {
     discr optionnel {
         Quelque(v) {
-            retourne v == valeur
+            retourne v == valeur;
         }
         sinon {
-            retourne faux
+            retourne faux;
         }
     }
 }
@@ -68,27 +68,27 @@ fait_partie_de :: fonc (valeur: $T, liste: ...T) -> bool
 {
     pour liste {
         si valeur == it {
-            retourne vrai
+            retourne vrai;
         }
     }
 
-    retourne faux
+    retourne faux;
 }
 
 /* Type pour représenter la valeur d'une opération réussie, ou une erreur potentielle. */
 Résultat :: union ($TypeOk: type_de_données, $TypeErreur: type_de_données) {
-    Ok: TypeOk
-    Erreur: TypeErreur
+    Ok: TypeOk;
+    Erreur: TypeErreur;
 }
 
 possède_erreur :: fonc (résultat: Résultat($T, $E)) -> bool
 {
     discr (résultat) {
         Erreur {
-            retourne vrai
+            retourne vrai;
         }
         sinon {
-            retourne faux
+            retourne faux;
         }
     }
 }
@@ -96,14 +96,14 @@ possède_erreur :: fonc (résultat: Résultat($T, $E)) -> bool
 est_type_résultat :: fonc (type: *InfoType) -> *InfoTypeUnion
 {
     si type.id != GenreInfoType.UNION {
-        retourne nul
+        retourne nul;
     }
 
-    type_union := type comme *InfoTypeUnion
+    type_union := type comme *InfoTypeUnion;
 
     si type_union.polymorphe_de_base != info_de(Résultat) {
-        retourne nul
+        retourne nul;
     }
 
-    retourne type_union
+    retourne type_union;
 }

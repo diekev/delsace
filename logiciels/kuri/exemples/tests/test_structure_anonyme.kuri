@@ -1,19 +1,19 @@
-importe Fondation
+importe Fondation;
 
 principale :: fonc ()
 {
     x: struct {
-        x: r32
-        y: z32
-        z: bool
+        x: r32;
+        y: z32;
+        z: bool;
     }
 
-    imprimeln("%", x)
+    imprimeln("%", x);
 
     tableau: [4]struct { nom: chaine; valeur: z32 }
 
-    imprimeln("%", tableau)
+    imprimeln("%", tableau);
 
     type := struct { nom: chaine; valeur: z32 }
-    imprimeln("%", type)
+    imprimeln("%", type);
 }

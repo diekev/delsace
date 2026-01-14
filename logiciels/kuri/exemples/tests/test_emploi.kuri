@@ -1,22 +1,22 @@
-importe Fondation
+importe Fondation;
 
 principale :: fonc ()
 {
-    test_modification_paramètre_empl()
-    test_modification_paramètre_empl_indirection()
-    test_modification_locale_via_empl()
-    test_initialisation_rubrique_employée()
-    test_initialisation_spéciale_rubrique_employée()
-    test_initialisation_spéciale_rubrique_avec_indirection()
-    test_initialisation_via_exécute()
-    test_initialisation_via_exécute_indirection()
-    test_transtypage_vers_bases_multiple()
-    test_transtypage_vers_bases_multiple_avec_indirection()
-    test_transtypage_référence_vers_bases_multiple()
-    test_transtypage_référence_vers_bases_multiple_avec_indirection()
-    test_emploi_variable_locale()
-    test_emploi_énum()
-    test_emploi_structure()
+    test_modification_paramètre_empl();
+    test_modification_paramètre_empl_indirection();
+    test_modification_locale_via_empl();
+    test_initialisation_rubrique_employée();
+    test_initialisation_spéciale_rubrique_employée();
+    test_initialisation_spéciale_rubrique_avec_indirection();
+    test_initialisation_via_exécute();
+    test_initialisation_via_exécute_indirection();
+    test_transtypage_vers_bases_multiple();
+    test_transtypage_vers_bases_multiple_avec_indirection();
+    test_transtypage_référence_vers_bases_multiple();
+    test_transtypage_référence_vers_bases_multiple_avec_indirection();
+    test_emploi_variable_locale();
+    test_emploi_énum();
+    test_emploi_structure();
 }
 
 /* ------------------------------------------------------------------------- */
@@ -26,33 +26,33 @@ principale :: fonc ()
 test_modification_paramètre_empl :: fonc ()
 {
     Vecteur :: struct {
-        x := 0
-        y := 0
-        z := 0
+        x := 0;
+        y := 0;
+        z := 0;
     }
 
-    modifie_vecteur :: fonc (empl v: *Vecteur)
+    modifie_vecteur :: fonc (empl v: *Vecteur);
     {
-        x = 1
-        y = 2
-        z = 3
+        x = 1;
+        y = 2;
+        z = 3;
     }
 
-    ne_modifie_pas_vecteur :: fonc (empl v: Vecteur)
+    ne_modifie_pas_vecteur :: fonc (empl v: Vecteur);
     {
-        x = 4
-        y = 5
-        z = 6
+        x = 4;
+        y = 5;
+        z = 6;
     }
 
-    v: Vecteur
-    assert(v.x == 0 && v.y == 0 && v.z == 0)
+    v: Vecteur;
+    assert(v.x == 0 && v.y == 0 && v.z == 0);
 
-    modifie_vecteur(*v)
-    assert(v.x == 1 && v.y == 2 && v.z == 3)
+    modifie_vecteur(*v);
+    assert(v.x == 1 && v.y == 2 && v.z == 3);
 
-    ne_modifie_pas_vecteur(v)
-    assert(v.x == 1 && v.y == 2 && v.z == 3)
+    ne_modifie_pas_vecteur(v);
+    assert(v.x == 1 && v.y == 2 && v.z == 3);
 }
 
 /** \} */
@@ -64,37 +64,37 @@ test_modification_paramètre_empl :: fonc ()
 test_modification_paramètre_empl_indirection :: fonc ()
 {
     Vecteur :: struct {
-        x := 0
-        y := 0
-        z := 0
+        x := 0;
+        y := 0;
+        z := 0;
     }
 
     Point :: struct {
-        empl base: Vecteur
+        empl base: Vecteur;
     }
 
-    modifie_point :: fonc (empl p: *Point)
+    modifie_point :: fonc (empl p: *Point);
     {
-        x = 1
-        y = 2
-        z = 3
+        x = 1;
+        y = 2;
+        z = 3;
     }
 
-    ne_modifie_pas_point :: fonc (empl p: Point)
+    ne_modifie_pas_point :: fonc (empl p: Point);
     {
-        x = 4
-        y = 5
-        z = 6
+        x = 4;
+        y = 5;
+        z = 6;
     }
 
-    p: Point
-    assert(p.x == 0 && p.y == 0 && p.z == 0)
+    p: Point;
+    assert(p.x == 0 && p.y == 0 && p.z == 0);
 
-    modifie_point(*p)
-    assert(p.x == 1 && p.y == 2 && p.z == 3)
+    modifie_point(*p);
+    assert(p.x == 1 && p.y == 2 && p.z == 3);
 
-    ne_modifie_pas_point(p)
-    assert(p.x == 1 && p.y == 2 && p.z == 3)
+    ne_modifie_pas_point(p);
+    assert(p.x == 1 && p.y == 2 && p.z == 3);
 }
 
 /** \} */
@@ -106,18 +106,18 @@ test_modification_paramètre_empl_indirection :: fonc ()
 test_modification_locale_via_empl :: fonc ()
 {
     Vecteur :: struct {
-        x := 0
-        y := 0
-        z := 0
+        x := 0;
+        y := 0;
+        z := 0;
     }
 
-    empl v: Vecteur
-    assert(v.x == 0 && v.y == 0 && v.z == 0)
+    empl v: Vecteur;
+    assert(v.x == 0 && v.y == 0 && v.z == 0);
 
-    x = 5
-    y = 6
-    z = 7
-    assert(v.x == 5 && v.y == 6 && v.z == 7)
+    x = 5;
+    y = 6;
+    z = 7;
+    assert(v.x == 5 && v.y == 6 && v.z == 7);
 }
 
 /** \} */
@@ -129,30 +129,30 @@ test_modification_locale_via_empl :: fonc ()
 test_initialisation_rubrique_employée :: fonc ()
 {
     Base :: struct {
-        x := 1
+        x := 1;
     }
 
     Dérivée :: struct {
-        empl base: Base
+        empl base: Base;
     }
 
-    d: Dérivée
-    assert(d.x == 1)
+    d: Dérivée;
+    assert(d.x == 1);
 }
 
 test_initialisation_spéciale_rubrique_employée :: fonc ()
 {
     Base :: struct {
-        x := 1
+        x := 1;
     }
 
     Dérivée :: struct {
-        empl base: Base
-        x = 2
+        empl base: Base;
+        x = 2;
     }
 
-    d: Dérivée
-    assert(d.x == 2)
+    d: Dérivée;
+    assert(d.x == 2);
 }
 
 /** \} */
@@ -164,20 +164,20 @@ test_initialisation_spéciale_rubrique_employée :: fonc ()
 test_initialisation_spéciale_rubrique_avec_indirection :: fonc ()
 {
     Base1 :: struct {
-        x := 123
+        x := 123;
     }
 
     Base2 :: struct {
-        empl base1: Base1
-        x = 456
+        empl base1: Base1;
+        x = 456;
     }
 
     Base3 :: struct {
-        empl base2: Base2
+        empl base2: Base2;
     }
 
-    b3: Base3
-    assert(b3.x == 456)
+    b3: Base3;
+    assert(b3.x == 456);
 }
 
 /** \} */
@@ -189,19 +189,19 @@ test_initialisation_spéciale_rubrique_avec_indirection :: fonc ()
 test_initialisation_via_exécute :: fonc ()
 {
     Base :: struct {
-        x := 123
+        x := 123;
     }
 
-    construis_base :: fonc () -> Base
+    construis_base :: fonc () -> Base;
     {
-        retourne Base(456)
+        retourne Base(456);
     }
 
-    b: Base
-    assert(b.x == 123)
+    b: Base;
+    assert(b.x == 123);
 
-    b = #exécute construis_base()
-    assert(b.x == 456)
+    b = #exécute construis_base();
+    assert(b.x == 456);
 }
 
 /** \} */
@@ -213,23 +213,23 @@ test_initialisation_via_exécute :: fonc ()
 test_initialisation_via_exécute_indirection :: fonc ()
 {
     Base :: struct {
-        x := 123
+        x := 123;
     }
 
     Base2 :: struct {
-        empl base: Base
+        empl base: Base;
     }
 
-    construis_base :: fonc () -> Base2
+    construis_base :: fonc () -> Base2;
     {
-        retourne Base2(456)
+        retourne Base2(456);
     }
 
-    b: Base2
-    assert(b.x == 123)
+    b: Base2;
+    assert(b.x == 123);
 
-    b = #exécute construis_base()
-    assert(b.x == 456)
+    b = #exécute construis_base();
+    assert(b.x == 456);
 }
 
 /** \} */
@@ -241,56 +241,56 @@ test_initialisation_via_exécute_indirection :: fonc ()
 test_transtypage_vers_bases_multiple :: fonc ()
 {
     Base1 :: struct {
-        rubrique1: chaine
+        rubrique1: chaine;
     }
 
     Base2 :: struct {
-        rubrique2: chaine
+        rubrique2: chaine;
     }
 
     Struct :: struct {
-        empl base1: Base1
-        empl base2: Base2
+        empl base1: Base1;
+        empl base2: Base2;
     }
 
-    modifie_rubrique_base1 :: fonc (base: *Base1)
+    modifie_rubrique_base1 :: fonc (base: *Base1);
     {
-        base.rubrique1 = "rubrique de base1"
+        base.rubrique1 = "rubrique de base1";
     }
 
-    modifie_rubrique_base2 :: fonc (base: *Base2)
+    modifie_rubrique_base2 :: fonc (base: *Base2);
     {
-        base.rubrique2 = "rubrique de base2"
+        base.rubrique2 = "rubrique de base2";
     }
 
-    modifie_rubrique_base1_dérivé :: fonc (base: *Base1)
+    modifie_rubrique_base1_dérivé :: fonc (base: *Base1);
     {
-        dérivé := base comme *Struct
-        dérivé.base1.rubrique1 = "rubrique de base1"
+        dérivé := base comme *Struct;
+        dérivé.base1.rubrique1 = "rubrique de base1";
     }
 
-    modifie_rubrique_base2_dérivé :: fonc (base: *Base2)
+    modifie_rubrique_base2_dérivé :: fonc (base: *Base2);
     {
-        dérivé := base comme *Struct
-        dérivé.base2.rubrique2 = "rubrique de base2"
+        dérivé := base comme *Struct;
+        dérivé.base2.rubrique2 = "rubrique de base2";
     }
 
     /* Dérivé vers base. */
     {
-        s: Struct
-        modifie_rubrique_base1(*s)
-        assert(s.rubrique1 == "rubrique de base1")
-        modifie_rubrique_base2(*s)
-        assert(s.rubrique2 == "rubrique de base2")
+        s: Struct;
+        modifie_rubrique_base1(*s);
+        assert(s.rubrique1 == "rubrique de base1");
+        modifie_rubrique_base2(*s);
+        assert(s.rubrique2 == "rubrique de base2");
     }
 
     /* Base vers dérivé. */
     {
-        s: Struct
-        modifie_rubrique_base1_dérivé(*s)
-        assert(s.rubrique1 == "rubrique de base1")
-        modifie_rubrique_base2_dérivé(*s)
-        assert(s.rubrique2 == "rubrique de base2")
+        s: Struct;
+        modifie_rubrique_base1_dérivé(*s);
+        assert(s.rubrique1 == "rubrique de base1");
+        modifie_rubrique_base2_dérivé(*s);
+        assert(s.rubrique2 == "rubrique de base2");
     }
 }
 
@@ -303,64 +303,64 @@ test_transtypage_vers_bases_multiple :: fonc ()
 test_transtypage_vers_bases_multiple_avec_indirection :: fonc ()
 {
     Base1 :: struct {
-        rubrique1: chaine
+        rubrique1: chaine;
     }
 
     Base2 :: struct {
-        rubrique2: chaine
+        rubrique2: chaine;
     }
 
     Base3 :: struct {
-        un_réel: r32
-        un_bool: bool
-        empl base1: Base1
-        un_tableau: [..]octet
-        empl base2: Base2
+        un_réel: r32;
+        un_bool: bool;
+        empl base1: Base1;
+        un_tableau: [..]octet;
+        empl base2: Base2;
     }
 
     Struct :: struct {
-        un_entier: z32
-        empl base3: Base3
+        un_entier: z32;
+        empl base3: Base3;
     }
 
-    modifie_rubrique_base1 :: fonc (base: *Base1)
+    modifie_rubrique_base1 :: fonc (base: *Base1);
     {
-        base.rubrique1 = "rubrique de base1"
+        base.rubrique1 = "rubrique de base1";
     }
 
-    modifie_rubrique_base2 :: fonc (base: *Base2)
+    modifie_rubrique_base2 :: fonc (base: *Base2);
     {
-        base.rubrique2 = "rubrique de base2"
+        base.rubrique2 = "rubrique de base2";
     }
 
-    modifie_rubrique_base1_dérivé :: fonc (base: *Base1)
+    modifie_rubrique_base1_dérivé :: fonc (base: *Base1);
     {
-        dérivé := base comme *Struct
-        dérivé.base1.rubrique1 = "rubrique de base1"
+        dérivé := base comme *Struct;
+        dérivé.base1.rubrique1 = "rubrique de base1";
     }
 
-    modifie_rubrique_base2_dérivé :: fonc (base: *Base2)
+    modifie_rubrique_base2_dérivé :: fonc (base: *Base2);
     {
-        dérivé := base comme *Struct
-        dérivé.base2.rubrique2 = "rubrique de base2"
+        dérivé := base comme *Struct;
+        dérivé.base2.rubrique2 = "rubrique de base2";
     }
 
     /* Dérivé vers base. */
     {
-        s: Struct
-        modifie_rubrique_base1(*s)
-        assert(s.rubrique1 == "rubrique de base1")
-        modifie_rubrique_base2(*s)
-        assert(s.rubrique2 == "rubrique de base2")
+        s: Struct;
+        modifie_rubrique_base1(*s);
+        assert(s.rubrique1 == "rubrique de base1");
+        modifie_rubrique_base2(*s);
+        assert(s.rubrique2 == "rubrique de base2");
     }
 
     /* Base vers dérivé. */
     {
-        s: Struct
-        modifie_rubrique_base1_dérivé(*s)
-        assert(s.rubrique1 == "rubrique de base1")
-        modifie_rubrique_base2_dérivé(*s)
-        assert(s.rubrique2 == "rubrique de base2")
+        s: Struct;
+        modifie_rubrique_base1_dérivé(*s);
+        assert(s.rubrique1 == "rubrique de base1");
+        modifie_rubrique_base2_dérivé(*s);
+        assert(s.rubrique2 == "rubrique de base2");
     }
 }
 
@@ -373,67 +373,67 @@ test_transtypage_vers_bases_multiple_avec_indirection :: fonc ()
 test_transtypage_référence_vers_bases_multiple :: fonc ()
 {
     Base1 :: struct {
-        rubrique1: chaine
+        rubrique1: chaine;
     }
 
     Base2 :: struct {
-        rubrique2: chaine
+        rubrique2: chaine;
     }
 
     Struct :: struct {
-        empl base1: Base1
-        empl base2: Base2
+        empl base1: Base1;
+        empl base2: Base2;
     }
 
-    modifie_rubrique_base1 :: fonc (base: &Base1)
+    modifie_rubrique_base1 :: fonc (base: &Base1);
     {
-        base.rubrique1 = "rubrique de base1"
+        base.rubrique1 = "rubrique de base1";
     }
 
-    modifie_rubrique_base2 :: fonc (base: &Base2)
+    modifie_rubrique_base2 :: fonc (base: &Base2);
     {
-        base.rubrique2 = "rubrique de base2"
+        base.rubrique2 = "rubrique de base2";
     }
 
-    modifie_rubrique_base1_dérivé :: fonc (base: &Base1)
+    modifie_rubrique_base1_dérivé :: fonc (base: &Base1);
     {
-        dérivé : &Struct = base comme &Struct
-        dérivé.base1.rubrique1 = "rubrique de base1"
+        dérivé : &Struct = base comme &Struct;
+        dérivé.base1.rubrique1 = "rubrique de base1";
     }
 
-    modifie_rubrique_base2_dérivé :: fonc (base: &Base2)
+    modifie_rubrique_base2_dérivé :: fonc (base: &Base2);
     {
-        dérivé : &Struct = base comme &Struct
-        dérivé.base2.rubrique2 = "rubrique de base2"
+        dérivé : &Struct = base comme &Struct;
+        dérivé.base2.rubrique2 = "rubrique de base2";
     }
 
     /* Dérivé vers base. */
     {
-        s: Struct
-        réf_s : &Struct = s
-        modifie_rubrique_base1(réf_s)
-        assert(s.rubrique1 == "rubrique de base1")
-        modifie_rubrique_base2(réf_s)
-        assert(s.rubrique2 == "rubrique de base2")
+        s: Struct;
+        réf_s : &Struct = s;
+        modifie_rubrique_base1(réf_s);
+        assert(s.rubrique1 == "rubrique de base1");
+        modifie_rubrique_base2(réf_s);
+        assert(s.rubrique2 == "rubrique de base2");
     }
 
     /* Dérivé sans référence vers base. */
     {
-        s: Struct
-        modifie_rubrique_base1(s)
-        assert(s.rubrique1 == "rubrique de base1")
-        modifie_rubrique_base2(s)
-        assert(s.rubrique2 == "rubrique de base2")
+        s: Struct;
+        modifie_rubrique_base1(s);
+        assert(s.rubrique1 == "rubrique de base1");
+        modifie_rubrique_base2(s);
+        assert(s.rubrique2 == "rubrique de base2");
     }
 
     /* Base vers dérivé. */
     {
-        s: Struct
-        réf_s : &Struct = s
-        modifie_rubrique_base1_dérivé(réf_s)
-        assert(s.rubrique1 == "rubrique de base1")
-        modifie_rubrique_base2_dérivé(réf_s)
-        assert(s.rubrique2 == "rubrique de base2")
+        s: Struct;
+        réf_s : &Struct = s;
+        modifie_rubrique_base1_dérivé(réf_s);
+        assert(s.rubrique1 == "rubrique de base1");
+        modifie_rubrique_base2_dérivé(réf_s);
+        assert(s.rubrique2 == "rubrique de base2");
     }
 }
 
@@ -446,75 +446,75 @@ test_transtypage_référence_vers_bases_multiple :: fonc ()
 test_transtypage_référence_vers_bases_multiple_avec_indirection :: fonc ()
 {
     Base1 :: struct {
-        rubrique1: chaine
+        rubrique1: chaine;
     }
 
     Base2 :: struct {
-        rubrique2: chaine
+        rubrique2: chaine;
     }
 
     Base3 :: struct {
-        un_réel: r32
-        un_bool: bool
-        empl base1: Base1
-        un_tableau: [..]octet
-        empl base2: Base2
+        un_réel: r32;
+        un_bool: bool;
+        empl base1: Base1;
+        un_tableau: [..]octet;
+        empl base2: Base2;
     }
 
     Struct :: struct {
-        un_entier: z32
-        empl base3: Base3
+        un_entier: z32;
+        empl base3: Base3;
     }
 
-    modifie_rubrique_base1 :: fonc (base: &Base1)
+    modifie_rubrique_base1 :: fonc (base: &Base1);
     {
-        base.rubrique1 = "rubrique de base1"
+        base.rubrique1 = "rubrique de base1";
     }
 
-    modifie_rubrique_base2 :: fonc (base: &Base2)
+    modifie_rubrique_base2 :: fonc (base: &Base2);
     {
-        base.rubrique2 = "rubrique de base2"
+        base.rubrique2 = "rubrique de base2";
     }
 
-    modifie_rubrique_base1_dérivé :: fonc (base: &Base1)
+    modifie_rubrique_base1_dérivé :: fonc (base: &Base1);
     {
-        dérivé : &Struct = base comme &Struct
-        dérivé.base1.rubrique1 = "rubrique de base1"
+        dérivé : &Struct = base comme &Struct;
+        dérivé.base1.rubrique1 = "rubrique de base1";
     }
 
-    modifie_rubrique_base2_dérivé :: fonc (base: &Base2)
+    modifie_rubrique_base2_dérivé :: fonc (base: &Base2);
     {
-        dérivé : &Struct = base comme &Struct
-        dérivé.base2.rubrique2 = "rubrique de base2"
+        dérivé : &Struct = base comme &Struct;
+        dérivé.base2.rubrique2 = "rubrique de base2";
     }
 
     /* Dérivé vers base. */
     {
-        s: Struct
-        réf_s : &Struct = s
-        modifie_rubrique_base1(réf_s)
-        assert(s.rubrique1 == "rubrique de base1")
-        modifie_rubrique_base2(réf_s)
-        assert(s.rubrique2 == "rubrique de base2")
+        s: Struct;
+        réf_s : &Struct = s;
+        modifie_rubrique_base1(réf_s);
+        assert(s.rubrique1 == "rubrique de base1");
+        modifie_rubrique_base2(réf_s);
+        assert(s.rubrique2 == "rubrique de base2");
     }
 
     /* Dérivé sans référence vers base. */
     {
-        s: Struct
-        modifie_rubrique_base1(s)
-        assert(s.rubrique1 == "rubrique de base1")
-        modifie_rubrique_base2(s)
-        assert(s.rubrique2 == "rubrique de base2")
+        s: Struct;
+        modifie_rubrique_base1(s);
+        assert(s.rubrique1 == "rubrique de base1");
+        modifie_rubrique_base2(s);
+        assert(s.rubrique2 == "rubrique de base2");
     }
 
     /* Base vers dérivé. */
     {
-        s: Struct
-        réf_s : &Struct = s
-        modifie_rubrique_base1_dérivé(réf_s)
-        assert(s.rubrique1 == "rubrique de base1")
-        modifie_rubrique_base2_dérivé(réf_s)
-        assert(s.rubrique2 == "rubrique de base2")
+        s: Struct;
+        réf_s : &Struct = s;
+        modifie_rubrique_base1_dérivé(réf_s);
+        assert(s.rubrique1 == "rubrique de base1");
+        modifie_rubrique_base2_dérivé(réf_s);
+        assert(s.rubrique2 == "rubrique de base2");
     }
 }
 
@@ -527,23 +527,23 @@ test_transtypage_référence_vers_bases_multiple_avec_indirection :: fonc ()
 test_emploi_variable_locale :: fonc ()
 {
     Structure :: struct {
-        VALEUR :: 123
-        x: z32
+        VALEUR :: 123;
+        x: z32;
     }
 
     {
-        empl s: Structure
+        empl s: Structure;
 
-        x = 123
-        assert(s.x == 123)
+        x = 123;
+        assert(s.x == 123);
     }
 
     {
-        s: Structure
-        empl s
+        s: Structure;
+        empl s;
 
-        x = 456
-        assert(s.x == 456)
+        x = 456;
+        assert(s.x == 456);
     }
 }
 
@@ -556,28 +556,28 @@ test_emploi_variable_locale :: fonc ()
 test_emploi_énum :: fonc ()
 {
     Énum :: énum {
-        VALEUR1
-        VALEUR2
+        VALEUR1;
+        VALEUR2;
     }
 
-    empl Énum
+    empl Énum;
 
-    x := VALEUR1
-    assert(x == Énum.VALEUR1)
+    x := VALEUR1;
+    assert(x == Énum.VALEUR1);
 }
 
 test_emploi_structure :: fonc ()
 {
     Structure :: struct {
-        VALEUR :: 123
-        x: z32
+        VALEUR :: 123;
+        x: z32;
     }
 
-    empl Structure
+    empl Structure;
 
-    s: Structure
-    s.x = VALEUR
-    assert(s.x == 123)
+    s: Structure;
+    s.x = VALEUR;
+    assert(s.x == 123);
 }
 
 /** \} */

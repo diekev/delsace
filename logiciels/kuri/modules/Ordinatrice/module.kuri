@@ -2,33 +2,33 @@
     Module de manipulation et de requête sur le système.
  */
 
-importe POSIX
+importe POSIX;
 
 // ---------------------------------------------------
 // Boutisme.
 
 commute_boutisme :: fonc (val: *n16) -> rien #enligne
 {
-    v := mémoire(val)
-    v = (v >> 8) | (v << 8)
-    mémoire(val) = v
+    v := mémoire(val);
+    v = (v >> 8) | (v << 8);
+    mémoire(val) = v;
 }
 
 commute_boutisme :: fonc (val: *n32) -> rien #enligne
 {
-    v := mémoire(val)
+    v := mémoire(val);
 
     v = (v >> 24) |
         ((v << 8) & 0x00FF0000) |
         ((v >> 8) & 0x0000FF00) |
         (v << 24);
 
-    mémoire(val) = v
+    mémoire(val) = v;
 }
 
 commute_boutisme :: fonc (val: *n64) -> rien #enligne
 {
-    v := mémoire(val)
+    v := mémoire(val);
 
     v = (v >> 56) |
         ((v << 40) & 0x00FF000000000000) |
@@ -39,50 +39,50 @@ commute_boutisme :: fonc (val: *n64) -> rien #enligne
         ((v >> 40) & 0x000000000000FF00) |
         (v << 56);
 
-    mémoire(val) = v
+    mémoire(val) = v;
 }
 
 commute_boutisme :: fonc (val: *z16) -> rien #enligne
 {
-    commute_boutisme(val comme *n16)
+    commute_boutisme(val comme *n16);
 }
 
 commute_boutisme :: fonc (val: *z32) -> rien #enligne
 {
-    commute_boutisme(val comme *n32)
+    commute_boutisme(val comme *n32);
 }
 
 commute_boutisme :: fonc (val: *z64) -> rien #enligne
 {
-    commute_boutisme(val comme *n64)
+    commute_boutisme(val comme *n64);
 }
 
 commute_boutisme :: fonc (val: *r32) -> rien #enligne
 {
-    commute_boutisme(val comme *n32)
+    commute_boutisme(val comme *n32);
 }
 
 commute_boutisme :: fonc (val: *r64) -> rien #enligne
 {
-    commute_boutisme(val comme *n64)
+    commute_boutisme(val comme *n64);
 }
 
 commute_boutisme :: fonc (tabl: []$T) -> rien #enligne
 {
     pour * val dans tabl {
-        commute_boutisme(val)
+        commute_boutisme(val);
     }
 }
 
 est_petit_boutisme :: fonc () -> bool
 {
-    UN := 1
-    retourne mémoire(*UN comme *z8) == 1
+    UN := 1;
+    retourne mémoire(*UN comme *z8) == 1;
 }
 
 est_grand_boutisme :: fonc () -> bool
 {
-    retourne !petit_boutisme()
+    retourne !petit_boutisme();
 }
 
 // ---------------------------------------------------
@@ -91,74 +91,74 @@ est_grand_boutisme :: fonc () -> bool
 /* Taille, en octet, d'une page mémoire. */
 taille_page_mémoire :: fonc () -> n64
 {
-    retourne sysconf(SysConf.PAGESIZE) comme n64
+    retourne sysconf(SysConf.PAGESIZE) comme n64;
 }
 
 /* Quantité en octet de mémoire vive libre.
  * Ceci utilise AVPHYS_PAGES qui est une extension de GlibC apparemment. */
 mémoire_vive_disponible :: fonc () -> n64
 {
-    pages := sysconf(SysConf.AVPHYS_PAGES) comme n64
-    retourne pages * taille_page_mémoire()
+    pages := sysconf(SysConf.AVPHYS_PAGES) comme n64;
+    retourne pages * taille_page_mémoire();
 }
 
 /* Quantité en octet de mémoire vive totale installée sur le système. */
 mémoire_vive_totale :: fonc () -> n64
 {
-    pages := sysconf(SysConf.PHYS_PAGES) comme n64
-    retourne pages * taille_page_mémoire()
+    pages := sysconf(SysConf.PHYS_PAGES) comme n64;
+    retourne pages * taille_page_mémoire();
 }
 
 /* Nombre de threads disponibles, qui n'ont pas été désactivés par le système d'exploitation. */
 nombre_threads_disponible :: fonc () -> z64
 {
-    retourne sysconf(SysConf.NPROCESSORS_ONLN)
+    retourne sysconf(SysConf.NPROCESSORS_ONLN);
 }
 
 /* Nombre de threads total du processeur. */
 nombre_threads_total :: fonc () -> z64
 {
-    retourne sysconf(SysConf.NPROCESSORS_CONF)
+    retourne sysconf(SysConf.NPROCESSORS_CONF);
 }
 
 // ---------------------------------------------------
 // Informations.
 
 InformationMémoireVive :: struct {
-    disponible: n64
-    totale: n64
+    disponible: n64;
+    totale: n64;
 }
 
 requiers_information_mémoire_vive :: fonc () -> InformationMémoireVive
 {
-    résultat : InformationMémoireVive = ---
-    résultat.disponible = mémoire_vive_disponible()
-    résultat.totale = mémoire_vive_totale()
-    retourne résultat
+    résultat : InformationMémoireVive = ---;
+    résultat.disponible = mémoire_vive_disponible();
+    résultat.totale = mémoire_vive_totale();
+    retourne résultat;
 }
 
 InformationProcesseur :: struct {
-    threads_totaux: n16
-    threads_disponibles: n16
+    threads_totaux: n16;
+    threads_disponibles: n16;
 }
 
 requiers_information_processeur :: fonc () -> InformationProcesseur
 {
-    résultat : InformationProcesseur = ---
-    résultat.threads_totaux = nombre_threads_total() comme n16
-    résultat.threads_disponibles = nombre_threads_disponible() comme n16
-    retourne résultat
+    résultat : InformationProcesseur = ---;
+    résultat.threads_totaux = nombre_threads_total() comme n16;
+    résultat.threads_disponibles = nombre_threads_disponible() comme n16;
+    retourne résultat;
 }
 
 InformationSystème :: struct {
-    mémoire_vive: InformationMémoireVive
-    processeur: InformationProcesseur
+    mémoire_vive: InformationMémoireVive;
+    processeur: InformationProcesseur;
 }
 
 requiers_information_système :: fonc () -> InformationSystème
 {
-    résultat : InformationSystème = ---
-    résultat.mémoire_vive = requiers_information_mémoire_vive()
-    résultat.processeur = requiers_information_processeur()
-    retourne résultat
+    résultat : InformationSystème = ---;
+    résultat.mémoire_vive = requiers_information_mémoire_vive();
+    résultat.processeur = requiers_information_processeur();
+    retourne résultat;
 }

@@ -6,23 +6,23 @@
 
 retourne_une_valeur :: fonc () -> z32
 {
-    retourne 127
+    retourne 127;
 }
 
 principale :: fonc ()
 {
-    b := 5
+    b := 5;
 
     a := si b == 5 {
-        retourne_une_valeur()
+        retourne_une_valeur();
     }
     sinon {
-        8
+        8;
     }
 
     si a == 127 {
-        exit(0)
+        exit(0);
     }
 
-    exit(1)
+    exit(1);
 }

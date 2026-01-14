@@ -1,7 +1,7 @@
 
 Entête :: struct {
-    nom: chaine
-    valeur: chaine
+    nom: chaine;
+    valeur: chaine;
 }
 
 détruit_entête :: fonc (entête: &Entête)
@@ -12,22 +12,22 @@ cherche_entête :: fonc (entêtes: []Entête, clé: chaine) -> *Entête
 {
     pour * entête dans entêtes {
         si entête.nom == clé {
-            retourne entête
+            retourne entête;
         }
     }
 
-    retourne nul
+    retourne nul;
 }
 
 contient_token :: fonc (entête: *Entête, token: chaine) -> bool
 {
-    morceaux := divise(entête.valeur, ',')
-    diffère déloge(morceaux)
+    morceaux := divise(entête.valeur, ',');
+    diffère déloge(morceaux);
     pour morceaux {
-        it = supprime_espaces_blancs(it)
+        it = supprime_espaces_blancs(it);
         si compare_ascii_insensible_à_la_casse(it, token) {
-            retourne vrai
+            retourne vrai;
         }
     }
-    retourne faux
+    retourne faux;
 }

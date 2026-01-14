@@ -2,120 +2,120 @@
 /** \nom Périphériques
  * \{ */
 
-importe Périphériques
+importe Périphériques;
 
 donne_cursor_système :: fonc (type: CursorType) -> TypeCurseurSystème
 {
     discr type {
         auto,
         default {
-            retourne TypeCurseurSystème.FLÈCHE
+            retourne TypeCurseurSystème.FLÈCHE;
         }
         none {
-            retourne TypeCurseurSystème.VIERGE
+            retourne TypeCurseurSystème.VIERGE;
         }
         context_menu {
-            retourne TypeCurseurSystème.MENU_CONTEXTUEL
+            retourne TypeCurseurSystème.MENU_CONTEXTUEL;
         }
         help {
-            retourne TypeCurseurSystème.POINT_D_INTERROGATION
+            retourne TypeCurseurSystème.POINT_D_INTERROGATION;
         }
         pointer {
-            retourne TypeCurseurSystème.MAIN_POINTANT
+            retourne TypeCurseurSystème.MAIN_POINTANT;
         }
         progress {
-            retourne TypeCurseurSystème.PROGRÈS
+            retourne TypeCurseurSystème.PROGRÈS;
         }
         wait {
-            retourne TypeCurseurSystème.ATTENTE
+            retourne TypeCurseurSystème.ATTENTE;
         }
         cell {
-            retourne TypeCurseurSystème.CELLULE
+            retourne TypeCurseurSystème.CELLULE;
         }
         crosshair {
-            retourne TypeCurseurSystème.CROIX
+            retourne TypeCurseurSystème.CROIX;
         }
         text {
-            retourne TypeCurseurSystème.TEXTE
+            retourne TypeCurseurSystème.TEXTE;
         }
         vertical_text {
-            retourne TypeCurseurSystème.TEXTE_VERTICAL
+            retourne TypeCurseurSystème.TEXTE_VERTICAL;
         }
         alias {
-            retourne TypeCurseurSystème.ALIAS
+            retourne TypeCurseurSystème.ALIAS;
         }
         copy {
-            retourne TypeCurseurSystème.COPIE
+            retourne TypeCurseurSystème.COPIE;
         }
         move {
-            retourne TypeCurseurSystème.DÉPLACEMENT
+            retourne TypeCurseurSystème.DÉPLACEMENT;
         }
         no_drop {
-            retourne TypeCurseurSystème.DÉPOSAGE_INTERDIT
+            retourne TypeCurseurSystème.DÉPOSAGE_INTERDIT;
         }
         not_allowed {
-            retourne TypeCurseurSystème.INTERDIT
+            retourne TypeCurseurSystème.INTERDIT;
         }
         grab {
-            retourne TypeCurseurSystème.MAIN_OUVERTE
+            retourne TypeCurseurSystème.MAIN_OUVERTE;
         }
         grabbing {
-            retourne TypeCurseurSystème.MAIN_FERMÉE
+            retourne TypeCurseurSystème.MAIN_FERMÉE;
         }
         e_resize {
-            retourne TypeCurseurSystème.REDIMENSIONNEMENT_EST
+            retourne TypeCurseurSystème.REDIMENSIONNEMENT_EST;
         }
         n_resize {
-            retourne TypeCurseurSystème.REDIMENSIONNEMENT_NORD
+            retourne TypeCurseurSystème.REDIMENSIONNEMENT_NORD;
         }
         ne_resize {
-            retourne TypeCurseurSystème.REDIMENSIONNEMENT_NORD_EST
+            retourne TypeCurseurSystème.REDIMENSIONNEMENT_NORD_EST;
         }
         nw_resize {
-            retourne TypeCurseurSystème.REDIMENSIONNEMENT_NORD_OUEST
+            retourne TypeCurseurSystème.REDIMENSIONNEMENT_NORD_OUEST;
         }
         s_resize {
-            retourne TypeCurseurSystème.REDIMENSIONNEMENT_SUD
+            retourne TypeCurseurSystème.REDIMENSIONNEMENT_SUD;
         }
         se_resize {
-            retourne TypeCurseurSystème.REDIMENSIONNEMENT_SUD_EST
+            retourne TypeCurseurSystème.REDIMENSIONNEMENT_SUD_EST;
         }
         sw_resize {
-            retourne TypeCurseurSystème.REDIMENSIONNEMENT_SUD_OUEST
+            retourne TypeCurseurSystème.REDIMENSIONNEMENT_SUD_OUEST;
         }
         w_resize {
-            retourne TypeCurseurSystème.REDIMENSIONNEMENT_OUEST
+            retourne TypeCurseurSystème.REDIMENSIONNEMENT_OUEST;
         }
         ew_resize {
-            retourne TypeCurseurSystème.REDIMENSIONNEMENT_EST_OUEST
+            retourne TypeCurseurSystème.REDIMENSIONNEMENT_EST_OUEST;
         }
         ns_resize {
-            retourne TypeCurseurSystème.REDIMENSIONNEMENT_NORD_SUD
+            retourne TypeCurseurSystème.REDIMENSIONNEMENT_NORD_SUD;
         }
         nesw_resize {
-            retourne TypeCurseurSystème.REDIMENSIONNEMENT_NORD_EST_SUD_OUEST
+            retourne TypeCurseurSystème.REDIMENSIONNEMENT_NORD_EST_SUD_OUEST;
         }
         nwse_resize {
-            retourne TypeCurseurSystème.REDIMENSIONNEMENT_NORD_OUEST_SUD_EST
+            retourne TypeCurseurSystème.REDIMENSIONNEMENT_NORD_OUEST_SUD_EST;
         }
         col_resize {
-            retourne TypeCurseurSystème.REDIMENSIONNEMENT_COLONNE
+            retourne TypeCurseurSystème.REDIMENSIONNEMENT_COLONNE;
         }
         row_resize {
-            retourne TypeCurseurSystème.REDIMENSIONNEMENT_LIGNE
+            retourne TypeCurseurSystème.REDIMENSIONNEMENT_LIGNE;
         }
         all_scroll {
-            retourne TypeCurseurSystème.DÉFILAGE_OMNI
+            retourne TypeCurseurSystème.DÉFILAGE_OMNI;
         }
         zoom_in {
-            retourne TypeCurseurSystème.ZOOM
+            retourne TypeCurseurSystème.ZOOM;
         }
         zoom_out {
-            retourne TypeCurseurSystème.DÉZOOM
+            retourne TypeCurseurSystème.DÉZOOM;
         }
     }
 
-    retourne TypeCurseurSystème.FLÈCHE
+    retourne TypeCurseurSystème.FLÈCHE;
 }
 
 /** \} */
@@ -124,18 +124,18 @@ donne_cursor_système :: fonc (type: CursorType) -> TypeCurseurSystème
 /** \nom Commandes de rendu
  * \{ */
 
-importe PeintureInterface
+importe PeintureInterface;
 
 dessine_commandes_id :: fonc (peintre: *Peintre, commandes: *CommandesDeRendu, tampon_id: *TamponID)
 {
-    tampon_image: TamponImageGrise32Bit = ---
-    tampon_image.données = tampon_id.données.pointeur
-    tampon_image.largeur = tampon_id.largeur
-    tampon_image.hauteur = tampon_id.hauteur
+    tampon_image: TamponImageGrise32Bit = ---;
+    tampon_image.données = tampon_id.données.pointeur;
+    tampon_image.largeur = tampon_id.largeur;
+    tampon_image.hauteur = tampon_id.hauteur;
 
-    dessine_commandes_id(peintre, commandes, tampon_image)
+    dessine_commandes_id(peintre, commandes, tampon_image);
 
-    tampon_id.fut_dessiné = vrai
+    tampon_id.fut_dessiné = vrai;
 }
 
 /** } */

@@ -16,69 +16,69 @@
 
  */
 
-importe Fondation
-importe InfosInterface
-importe Introspection
-importe SysFichier
-importe Unicode
+importe Fondation;
+importe InfosInterface;
+importe Introspection;
+importe SysFichier;
+importe Unicode;
 
-Alignement :: InfosInterface.Alignement
+Alignement :: InfosInterface.Alignement;
 
 Cellule :: struct {
-    texte: chaine
-    commande: chaine
-    métadonnée: chaine
+    texte: chaine;
+    commande: chaine;
+    métadonnée: chaine;
 }
 
 LigneTabuleuse :: struct {
-    colonnes: [..]Cellule
+    colonnes: [..]Cellule;
 }
 
 Tabuleuse :: struct {
-    lignes: [..]LigneTabuleuse
-    alignements: [..]Alignement
-    nombre_colonnes: z64
+    lignes: [..]LigneTabuleuse;
+    alignements: [..]Alignement;
+    nombre_colonnes: z64;
 
-    chaines_allouées: [..]chaine
+    chaines_allouées: [..]chaine;
 
-    tailles_max_colonnes: [..]r32
+    tailles_max_colonnes: [..]r32;
 }
 
 crée_tabuleuse :: fonc (titres: ...chaine) -> Tabuleuse
 {
-    ligne := crée_ligne(...titres)
-    retourne crée_tabuleuse(ligne)
+    ligne := crée_ligne(...titres);
+    retourne crée_tabuleuse(ligne);
 }
 
 crée_tabuleuse :: fonc (ligne_titre: LigneTabuleuse) -> Tabuleuse
 {
-    tabuleuse: Tabuleuse
-    initialise_tabuleuse(*tabuleuse, ligne_titre)
-    retourne tabuleuse
+    tabuleuse: Tabuleuse;
+    initialise_tabuleuse(*tabuleuse, ligne_titre);
+    retourne tabuleuse;
 }
 
 initialise_tabuleuse :: fonc (tabuleuse: *Tabuleuse, titres: ...chaine)
 {
-    ligne := crée_ligne(...titres)
-    initialise_tabuleuse(tabuleuse, ligne)
+    ligne := crée_ligne(...titres);
+    initialise_tabuleuse(tabuleuse, ligne);
 }
 
 initialise_tabuleuse :: fonc (tabuleuse: *Tabuleuse, ligne_titre: LigneTabuleuse)
 {
-    ajoute_ligne(tabuleuse, ligne_titre)
-    tableau_redimensionne_défaut(tabuleuse.alignements, ligne_titre.colonnes.taille, Alignement.GAUCHE)
+    ajoute_ligne(tabuleuse, ligne_titre);
+    tableau_redimensionne_défaut(tabuleuse.alignements, ligne_titre.colonnes.taille, Alignement.GAUCHE);
 }
 
 détruit_tabuleuse :: fonc (tabuleuse: *Tabuleuse) -> rien
 {
     pour ligne dans tabuleuse.lignes {
-        déloge(ligne.colonnes)
+        déloge(ligne.colonnes);
     }
 
-    déloge_tableau_et_ses_éléments(tabuleuse.chaines_allouées)
-    déloge(tabuleuse.lignes)
-    déloge(tabuleuse.alignements)
-    déloge(tabuleuse.tailles_max_colonnes)
+    déloge_tableau_et_ses_éléments(tabuleuse.chaines_allouées);
+    déloge(tabuleuse.lignes);
+    déloge(tabuleuse.alignements);
+    déloge(tabuleuse.tailles_max_colonnes);
 }
 
 /**
@@ -99,156 +99,156 @@ détruit_tabuleuse :: fonc (tabuleuse: *Tabuleuse) -> rien
  */
 ajoute_ligne :: fonc (tabuleuse: *Tabuleuse, args: ...eini) -> rien
 {
-    ligne: LigneTabuleuse
+    ligne: LigneTabuleuse;
 
     pour arg dans args {
-        cellule := tableau_ajoute_élément(*ligne.colonnes)
-        cellule.texte = donne_chaine_pour_eini(tabuleuse, arg)
+        cellule := tableau_ajoute_élément(*ligne.colonnes);
+        cellule.texte = donne_chaine_pour_eini(tabuleuse, arg);
     }
 
-    ajoute_ligne(tabuleuse, ligne)
+    ajoute_ligne(tabuleuse, ligne);
 }
 
 donne_chaine_pour_eini :: fonc (tabuleuse: *Tabuleuse, arg: eini) -> chaine
 {
     si arg.info.id == GenreInfoType.CHAINE {
-        retourne arg.comme_chaine()
+        retourne arg.comme_chaine();
     }
 
-    enchaineuse: Enchaineuse
-    initialise_enchaineuse(*enchaineuse)
+    enchaineuse: Enchaineuse;
+    initialise_enchaineuse(*enchaineuse);
 
-    imprime_valeur(*enchaineuse, arg, faux)
-    résultat := chaine_depuis_enchaineuse(*enchaineuse)
+    imprime_valeur(*enchaineuse, arg, faux);
+    résultat := chaine_depuis_enchaineuse(*enchaineuse);
 
-    tableau_ajoute(*tabuleuse.chaines_allouées, résultat)
+    tableau_ajoute(*tabuleuse.chaines_allouées, résultat);
 
-    retourne résultat
+    retourne résultat;
 }
 
 ajoute_ligne :: fonc (tabuleuse: *Tabuleuse, args: ...chaine) -> rien
 {
-    ajoute_ligne(tabuleuse, crée_ligne(...args))
+    ajoute_ligne(tabuleuse, crée_ligne(...args));
 }
 
 crée_ligne :: fonc (args: ...chaine) -> LigneTabuleuse
 {
-    résultat: LigneTabuleuse
+    résultat: LigneTabuleuse;
 
     pour arg dans args {
-        cellule := tableau_ajoute_élément(*résultat.colonnes)
-        cellule.texte = arg
+        cellule := tableau_ajoute_élément(*résultat.colonnes);
+        cellule.texte = arg;
     }
 
-    retourne résultat
+    retourne résultat;
 }
 
 ajoute_ligne :: fonc (empl tabuleuse: *Tabuleuse, ligne: LigneTabuleuse) -> rien
 {
     si ligne.colonnes.taille > tailles_max_colonnes.taille {
-        tableau_redimensionne(tailles_max_colonnes, ligne.colonnes.taille)
+        tableau_redimensionne(tailles_max_colonnes, ligne.colonnes.taille);
     }
 
-    tableau_ajoute(*tabuleuse.lignes, ligne)
+    tableau_ajoute(*tabuleuse.lignes, ligne);
 }
 
 définis_alignement :: fonc (tabuleuse: *Tabuleuse, idx: z64, align: Alignement) -> rien
 {
-    tabuleuse.alignements[idx] = align
+    tabuleuse.alignements[idx] = align;
 }
 
 définis_commande :: fonc (tabuleuse: *Tabuleuse, ligne: z64, colonne: z64, commande: chaine, métadonnée: chaine)
 {
-    cellule := *tabuleuse.lignes[ligne].colonnes[colonne]
-    cellule.commande = commande
-    cellule.métadonnée = métadonnée
+    cellule := *tabuleuse.lignes[ligne].colonnes[colonne];
+    cellule.commande = commande;
+    cellule.métadonnée = métadonnée;
 }
 
 imprime_table :: fonc (empl tabuleuse: *Tabuleuse) -> rien
 {
-    enchaineuse: Enchaineuse
-    initialise_enchaineuse(*enchaineuse)
-    diffère détruit_tampons(*enchaineuse)
+    enchaineuse: Enchaineuse;
+    initialise_enchaineuse(*enchaineuse);
+    diffère détruit_tampons(*enchaineuse);
 
-    tableau_remplis_avec(tailles_max_colonnes, 0)
+    tableau_remplis_avec(tailles_max_colonnes, 0);
 
     pour ligne dans tabuleuse.lignes {
         pour cellule, i dans ligne.colonnes {
-            taille_colonne := taille_unicode(cellule.texte) comme r32
+            taille_colonne := taille_unicode(cellule.texte) comme r32;
 
             si tailles_max_colonnes[i] < taille_colonne {
-                tailles_max_colonnes[i] = taille_colonne
+                tailles_max_colonnes[i] = taille_colonne;
             }
         }
     }
 
     /* ajout de marges */
-    taille_ligne : z64 = 0
+    taille_ligne : z64 = 0;
 
     pour t dans tailles_max_colonnes {
-        taille_ligne += t comme z64 + 2
+        taille_ligne += t comme z64 + 2;
     }
 
     /* impression */
-    imprime_ligne_démarcation(*enchaineuse, tailles_max_colonnes)
-    imprime_ligne(*enchaineuse, tabuleuse, *tabuleuse.lignes[0], tailles_max_colonnes)
-    imprime_ligne_démarcation(*enchaineuse, tailles_max_colonnes)
+    imprime_ligne_démarcation(*enchaineuse, tailles_max_colonnes);
+    imprime_ligne(*enchaineuse, tabuleuse, *tabuleuse.lignes[0], tailles_max_colonnes);
+    imprime_ligne_démarcation(*enchaineuse, tailles_max_colonnes);
 
     pour i dans 1 ... tabuleuse.lignes.taille - 1 {
-        imprime_ligne(*enchaineuse, tabuleuse, *tabuleuse.lignes[i], tailles_max_colonnes)
+        imprime_ligne(*enchaineuse, tabuleuse, *tabuleuse.lignes[i], tailles_max_colonnes);
     }
 
-    imprime_ligne_démarcation(*enchaineuse, tailles_max_colonnes)
+    imprime_ligne_démarcation(*enchaineuse, tailles_max_colonnes);
 
-    _ := copie_enchaineuse_fichier(*enchaineuse, sortie_standarde())
+    _ := copie_enchaineuse_fichier(*enchaineuse, sortie_standarde());
 }
 
 imprime_ligne_démarcation :: fonc (enchaineuse: *Enchaineuse, tailles_max_colonnes: []r32) -> rien
 {
     pour taille dans tailles_max_colonnes {
-        ajoute_au_tampon(enchaineuse, "+-")
+        ajoute_au_tampon(enchaineuse, "+-");
 
         pour taille comme z64 {
-            ajoute_au_tampon(enchaineuse, "-")
+            ajoute_au_tampon(enchaineuse, "-");
         }
 
-        ajoute_au_tampon(enchaineuse, "-")
+        ajoute_au_tampon(enchaineuse, "-");
     }
 
-    ajoute_au_tampon(enchaineuse, "+\n")
+    ajoute_au_tampon(enchaineuse, "+\n");
 }
 
 imprime_ligne :: fonc (enchaineuse: *Enchaineuse, tabuleuse: *Tabuleuse, ligne: *LigneTabuleuse, tailles_max_colonnes: []r32) -> rien
 {
     pour cellule, i dans ligne.colonnes {
-        ajoute_au_tampon(enchaineuse, "| ")
+        ajoute_au_tampon(enchaineuse, "| ");
 
         si tabuleuse.alignements[i] == Alignement.DROITE {
             pour tailles_max_colonnes[i] comme z64 - taille_unicode(cellule.texte) {
-                ajoute_au_tampon(enchaineuse, " ")
+                ajoute_au_tampon(enchaineuse, " ");
             }
         }
 
-        ajoute_au_tampon(enchaineuse, cellule.texte)
+        ajoute_au_tampon(enchaineuse, cellule.texte);
 
         si tabuleuse.alignements[i] == Alignement.GAUCHE {
             pour tailles_max_colonnes[i] comme z64 - taille_unicode(cellule.texte) {
-                ajoute_au_tampon(enchaineuse, " ")
+                ajoute_au_tampon(enchaineuse, " ");
             }
         }
 
-        ajoute_au_tampon(enchaineuse, " ")
+        ajoute_au_tampon(enchaineuse, " ");
     }
 
     pour i dans ligne.colonnes.taille ... tailles_max_colonnes.taille - 1 {
-        ajoute_au_tampon(enchaineuse, "| ")
+        ajoute_au_tampon(enchaineuse, "| ");
 
         pour tailles_max_colonnes[i] comme z64 {
-            ajoute_au_tampon(enchaineuse, " ")
+            ajoute_au_tampon(enchaineuse, " ");
         }
 
-        ajoute_au_tampon(enchaineuse, " ")
+        ajoute_au_tampon(enchaineuse, " ");
     }
 
-    ajoute_au_tampon(enchaineuse, "|\n")
+    ajoute_au_tampon(enchaineuse, "|\n");
 }

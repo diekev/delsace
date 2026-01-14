@@ -1,28 +1,28 @@
-importe Aléa
-importe Fondation
-importe Labyrinthe
+importe Aléa;
+importe Fondation;
+importe Labyrinthe;
 
 principale :: fonc ()
 {
-    labyrinthe := crée_labyrinthe(15, 15)
-    diffère détruit_données_labyrinthe(*labyrinthe)
+    labyrinthe := crée_labyrinthe(15, 15);
+    diffère détruit_données_labyrinthe(*labyrinthe);
 
-    entropie := graine_aléatoire(67)
+    entropie := graine_aléatoire(67);
 
-    initialise_murs_eller(*labyrinthe, entropie)
+    initialise_murs_eller(*labyrinthe, entropie);
 
     pour y dans labyrinthe.taille_y {
         pour x dans labyrinthe.taille_x {
-            indice := x + y * labyrinthe.taille_x
+            indice := x + y * labyrinthe.taille_x;
 
             si labyrinthe.données[indice] {
-                imprime("[]")
+                imprime("[]");
             }
             sinon {
-                imprime("  ")
+                imprime("  ");
             }
         }
 
-        imprime("\n")
+        imprime("\n");
     }
 }

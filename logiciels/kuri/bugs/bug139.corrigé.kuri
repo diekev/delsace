@@ -3,9 +3,9 @@
  * Catégorie : [crash]
  */
 
-importe Support
+importe Support;
 
 principale :: fonc ()
 {
-    exit(Support.variable_globale)
+    exit(Support.variable_globale);
 }

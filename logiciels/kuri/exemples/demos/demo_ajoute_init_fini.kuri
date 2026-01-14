@@ -1,19 +1,19 @@
-importe Fondation
+importe Fondation;
 
-#ajoute_init initialisation_du_programme()
-#ajoute_fini issitialisation_du_programme()
+#ajoute_init initialisation_du_programme();
+#ajoute_fini issitialisation_du_programme();
 
 initialisation_du_programme :: fonc ()
 {
-    imprime("Nous sommes dans l'initialisation du programme !\n")
+    imprime("Nous sommes dans l'initialisation du programme !\n");
 }
 
 issitialisation_du_programme :: fonc ()
 {
-    imprime("Nous sommes dans l'issitialisation du programme !\n")
+    imprime("Nous sommes dans l'issitialisation du programme !\n");
 }
 
 principale :: fonc ()
 {
-    imprime("Nous somme dans le programme !\n")
+    imprime("Nous somme dans le programme !\n");
 }

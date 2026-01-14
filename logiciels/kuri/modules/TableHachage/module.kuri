@@ -1,4 +1,4 @@
-importe Fondation
+importe Fondation;
 
 /* ------------------------------------------------------------------------- */
 // Implémentation d'une table de hachage chaine -> chaine
@@ -6,101 +6,101 @@ importe Fondation
 // https://en.wikipedia.org/wiki/Open_addressing
 
 NoeudTableHachage :: struct {
-    clé: chaine
-    valeur: chaine
-    suivant: *NoeudTableHachage
+    clé: chaine;
+    valeur: chaine;
+    suivant: *NoeudTableHachage;
 }
 
 TableHachage :: struct {
-    alvéoles: [..]*NoeudTableHachage
+    alvéoles: [..]*NoeudTableHachage;
 }
 
 crée_table_hachage :: fonc () -> *TableHachage
 {
-    table := loge(TableHachage)
-    table.alvéoles = loge_tableau(*NoeudTableHachage, 10000)
+    table := loge(TableHachage);
+    table.alvéoles = loge_tableau(*NoeudTableHachage, 10000);
 
     pour i dans 0 ... 9999 {
-        table.alvéoles[i] = nul
+        table.alvéoles[i] = nul;
     }
 
-    retourne table
+    retourne table;
 }
 
 décrée_table_hachage :: fonc (table: *TableHachage) -> rien
 {
     pour noeud dans table.alvéoles {
-        n := noeud
+        n := noeud;
 
         tantque n != nul {
-            ns := n.suivant
-            déloge(n)
-            n = ns
+            ns := n.suivant;
+            déloge(n);
+            n = ns;
         }
     }
 
-    déloge(table.alvéoles)
-    déloge(table)
+    déloge(table.alvéoles);
+    déloge(table);
 }
 
 crée_noeud :: fonc (clé: chaine, valeur: chaine) -> *NoeudTableHachage
 {
-    n := loge(NoeudTableHachage)
-    n.clé = clé
-    n.valeur = valeur
-    n.suivant = nul
-    retourne n
+    n := loge(NoeudTableHachage);
+    n.clé = clé;
+    n.valeur = valeur;
+    n.suivant = nul;
+    retourne n;
 }
 
 insère :: fonc (table: *TableHachage, clé: chaine, valeur: chaine) -> rien
 {
-    empreinte := calcule_empreinte(clé) % 10000
+    empreinte := calcule_empreinte(clé) % 10000;
 
-    alvéole := table.alvéoles[empreinte]
+    alvéole := table.alvéoles[empreinte];
 
     si alvéole == nul {
-        table.alvéoles[empreinte] = crée_noeud(clé, valeur)
-        retourne
+        table.alvéoles[empreinte] = crée_noeud(clé, valeur);
+        retourne;
     }
 
     boucle {
         si alvéole.suivant == nul {
-            alvéole.suivant = crée_noeud(clé, valeur)
-            arrête
+            alvéole.suivant = crée_noeud(clé, valeur);
+            arrête;
         }
 
-        alvéole = alvéole.suivant
+        alvéole = alvéole.suivant;
     }
 }
 
 trouve :: fonc (table: *TableHachage, clé: chaine) -> *NoeudTableHachage
 {
-    empreinte := calcule_empreinte(clé) % 10000
+    empreinte := calcule_empreinte(clé) % 10000;
 
-    alvéole := table.alvéoles[empreinte]
+    alvéole := table.alvéoles[empreinte];
 
     si alvéole == nul {
-        retourne nul
+        retourne nul;
     }
 
     boucle {
         si alvéole.clé == clé {
-            retourne alvéole
+            retourne alvéole;
         }
 
         si alvéole.suivant == nul {
-            arrête
+            arrête;
         }
 
-        alvéole = alvéole.suivant
+        alvéole = alvéole.suivant;
     }
 
-    retourne nul
+    retourne nul;
 }
 
 cherche_noeud :: fonc (table: *TableHachage, clé: chaine) -> *NoeudTableHachage
 {
-    retourne trouve(table, clé)
+    retourne trouve(table, clé);
 }
 
 // --------------------------------------------------------------

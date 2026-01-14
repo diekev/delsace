@@ -2,9 +2,9 @@
  * Catégorie : [syntaxage, syntaxe malformée]
  */
 
-importe Support
+importe Support;
 
 principale :: fonc ()
 {
-    x : z32 := 0
+    x : z32 := 0;
 }
