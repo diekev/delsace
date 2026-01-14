@@ -368,7 +368,7 @@ initialise_anonyme :: fonc (anonyme: *Anonyme)
     chemin_projets := chemin_config_utilisateur / "anonyme/projets";
 
     anonyme.chemins.projets_utilisateur = chemin_projets;
-    _ := tente crée_dossiers_pour_chemin(chemin_projets, vrai) piège nonatteignable
+    _ := tente crée_dossiers_pour_chemin(chemin_projets, vrai) piège nonatteignable;
 
     charge_infos_projets :: fonc (info_fichier: InfoVisiteFichier, anonyme: *Anonyme) -> DécisionVisiteFichier;
     {

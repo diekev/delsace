@@ -1,4 +1,4 @@
-importe Chaine // pour ChaineC
+importe Chaine; // pour ChaineC
 
 charge "confname";
 charge "errno";

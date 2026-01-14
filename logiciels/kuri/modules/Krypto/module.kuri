@@ -560,14 +560,14 @@ remplis_avec_octets_cryptographiquement_sécurisés :: fonc (tampon: []octet)
     dev_urandom := tente ouvre_fichier_pour_lecture(CheminFichier("/dev/urandom")) piège _ {
         imprime("Impossible de lire /dev/urandom !\n");
         retourne;
-    }
+    };
 
     diffère _ := ferme(*dev_urandom);
 
     lus := tente lis(*dev_urandom, tampon) piège _ {
         imprime("Impossible de lire un nombre depuis dev_urandom");
         retourne;
-    }
+    };
 
     si lus != tampon.taille {
         imprime("lus : % / %\n", lus, tampon.taille);

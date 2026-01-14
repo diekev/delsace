@@ -129,7 +129,7 @@ principale :: fonc ()
         imprime_prompt_élise(message_éliza);
         imprime_prompt_vous();
 
-        message := tente entrée_standarde().lis_tout() piège nonatteignable
+        message := tente entrée_standarde().lis_tout() piège nonatteignable;
 
         si message.taille == 0 {
             arrête;

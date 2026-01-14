@@ -1,6 +1,6 @@
 /* Module pour dessiner des formes dans un tampon de rendu. */
 
-importe Algorithmes // pour permute
+importe Algorithmes; // pour permute
 importe Couleur;
 importe Fondation;
 importe Image;

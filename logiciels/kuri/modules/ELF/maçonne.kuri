@@ -395,12 +395,12 @@ donne_indice_symbole :: fonc (fichier: *Maçonne_ELF64, symbole: *Elf64_Sym) -> 
     }
 
     /* Écriture du fichier. */
-    sortie := tente ouvre_fichier_crée_si_non_existant(CheminFichier(chemin), pour_écriture_tronquée) piège nonatteignable
+    sortie := tente ouvre_fichier_crée_si_non_existant(CheminFichier(chemin), pour_écriture_tronquée) piège nonatteignable;
     diffère _ := ferme(*sortie);
 
     pour fichier_pagé.pages {
         it.données.taille = it.occupé comme z64;
-        _ := tente écris(*sortie, it.données) piège nonatteignable
+        _ := tente écris(*sortie, it.données) piège nonatteignable;
     }
 }
 

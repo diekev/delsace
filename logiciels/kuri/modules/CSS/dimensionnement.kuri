@@ -1,4 +1,4 @@
-importe Introspection // pour définis_rubrique_active, donne_indice_rubrique_active
+importe Introspection; // pour définis_rubrique_active, donne_indice_rubrique_active
 
 /* Calculs des largeurs, hauteurs, et marges des boxes. */
 

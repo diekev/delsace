@@ -120,12 +120,12 @@ envoie_requête :: fonc (pilote: &PiloteClienteHTTP, requête: &MessageClienteHT
     fichier := tente ouvre_connexion_serveur(requête.uri, vrai) piège err {
         imprime("erreur : %\n", err);
         retourne;
-    }
+    };
 
     tente écris(*fichier, message) piège err {
         imprime("erreur : %\n", err);
         retourne;
-    }
+    };
 
     // lis jusqu'à ce que nous n'ayons plus rien à lire
     parseuse: ParseuseMessageServeuseHTTP;
@@ -136,7 +136,7 @@ envoie_requête :: fonc (pilote: &PiloteClienteHTTP, requête: &MessageClienteHT
         contenu := tente lis_tout(*fichier) piège err {
             imprime("erreur : %\n", err);
             retourne;
-        }
+        };
 
         ajourne_données(*parseuse, contenu);
 

@@ -41,7 +41,7 @@ principale :: fonc ()
     uri := tente parse_uri_standard(chaine_uri) piège err {
         imprime("Une erreur est survenue dans le parsage de l'URI : %\n", err);
         exit(1);
-    }
+    };
 
     imprime("Schéma         : %\n", uri.schéma);
     //imprime("Après slashs   : %\n", après_slashs)
@@ -63,7 +63,7 @@ principale :: fonc ()
     _ := tente appel_fonction_avec_erreur_union() piège err {
         imprime("Une erreur est survenue dans l'appel avec union : %\n", err);
         exit(1);
-    }
+    };
 
     // cas où nous retournons une erreur et quelque chose d'autre dans une union, sans capturer l'erreur
     //r2 := tente appel_fonction_avec_erreur_union() piège nonatteignable
@@ -71,10 +71,10 @@ principale :: fonc ()
     // cas où nous retournons une erreur et rien d'autre
     tente appel_fonction_avec_erreur_seule() piège _ {
         exit(1);
-    }
+    };
 
     // cas où nous retournons une erreur et rien d'autre, sans pièger l'erreur
-    //r4 := tente appel_fonction_avec_erreur_seule() piège nonatteignable
+    //r4 := tente appel_fonction_avec_erreur_seule() piège nonatteignable;
 
     // cas où nous n'avons pas d'erreur
     appel_fonction_sans_erreur();

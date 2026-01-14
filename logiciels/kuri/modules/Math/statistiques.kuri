@@ -8,7 +8,7 @@ interval_confiance_wilson :: fonc (positifs: z32, total: z32, confiance: r32) ->
 
     n := total comme r32;
 
-    z := 1.281551565545 // p_distribution_normale(1.0 - (1.0 - confiance) / 2.0) avec confiance = 0.8
+    z := 1.281551565545; // p_distribution_normale(1.0 - (1.0 - confiance) / 2.0) avec confiance = 0.8
     p := (positifs comme r32) / n;
 
     gauche := p + (z * z) / (2.0 * n);

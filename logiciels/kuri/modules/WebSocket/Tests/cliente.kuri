@@ -73,7 +73,7 @@ donne_url :: fonc (cliente: *ClienteWebSocket) -> URI
         }
     }
 
-    retourne tente parse_uri_standard(cliente.dernière_chaine_uri) piège nonatteignable
+    retourne tente parse_uri_standard(cliente.dernière_chaine_uri) piège nonatteignable;
 }
 
 avance_état :: fonc (cliente: *ClienteWebSocket)
@@ -224,7 +224,7 @@ sur_message_websocket :: fonc (prise: *Prise, opcode: OpCode, données: []octet)
     cliente := données_utilisateur(ctx, ClienteWebSocket);
 
     si cliente.état == ÉtatLancementTests.RequiersNombreDeTest {
-        tests := tente extrait_z32(chaine_depuis_tranche_octets(données)) piège nonatteignable
+        tests := tente extrait_z32(chaine_depuis_tranche_octets(données)) piège nonatteignable;
         cliente.nombre_de_tests = tests;
 
         résultat: [..]octet;

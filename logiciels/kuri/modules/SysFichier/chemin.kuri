@@ -329,7 +329,7 @@ donne_chemin_absolu :: fonc (feuille: CheminFichier) -> CheminFichier
     chemin_courant := tente donne_chemin_courant() piège err {
         imprimeln("Impossible de déterminer le chemin courant : '%'", err);
         retourne copie_chemin(feuille);
-    }
+    };
 
     retourne crée_chemin_absolu(chemin_courant, feuille);
 }

@@ -1004,7 +1004,7 @@ parse_limites_depuis_min_max :: fonc (infos: *InfoType, param: *TableParamètres
             min := tente extrait_z32(chaine_min) piège _ {
                 /* À FAIRE : erreur. */
                 retourne;
-            }
+            };
 
             /* À FAIRE : validation que la valeur est dans les limites du type. */
             limites.min = min;
@@ -1014,7 +1014,7 @@ parse_limites_depuis_min_max :: fonc (infos: *InfoType, param: *TableParamètres
             max := tente extrait_z32(chaine_max) piège _ {
                 /* À FAIRE : erreur. */
                 retourne;
-            }
+            };
 
             /* À FAIRE : validation que la valeur est dans les limites du type. */
             limites.max = max;
@@ -1031,7 +1031,7 @@ parse_limites_depuis_min_max :: fonc (infos: *InfoType, param: *TableParamètres
             min := tente extrait_r32(chaine_min) piège _ {
                 /* À FAIRE : erreur. */
                 retourne;
-            }
+            };
 
             /* À FAIRE : validation que la valeur est dans les limites du type. */
             limites.min = min;
@@ -1041,7 +1041,7 @@ parse_limites_depuis_min_max :: fonc (infos: *InfoType, param: *TableParamètres
             max := tente extrait_r32(chaine_max) piège _ {
                 /* À FAIRE : erreur. */
                 retourne;
-            }
+            };
 
             /* À FAIRE : validation que la valeur est dans les limites du type. */
             limites.max = max;

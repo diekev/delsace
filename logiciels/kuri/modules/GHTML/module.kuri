@@ -1,4 +1,4 @@
-importe Fondation // pour imprime_valeur
+importe Fondation; // pour imprime_valeur
 importe Introspection;
 
 charge "assemblage_arbre";

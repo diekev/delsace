@@ -106,7 +106,7 @@ ouvre_fichier_sortie :: fonc (paramètres: &ParamètresEntropisation) -> *Fichie
         retourne sortie_standarde();
     }
 
-    fichier := tente ouvre_fichier_pour_lecture(paramètres.fichier_sortie) piège nonatteignable
+    fichier := tente ouvre_fichier_pour_lecture(paramètres.fichier_sortie) piège nonatteignable;
 
     résultat := loge(Fichier);
     mémoire(résultat) = fichier;

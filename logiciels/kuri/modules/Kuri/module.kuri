@@ -343,7 +343,7 @@ ajourne_mémoire_débordante :: fonc (alloc: *StockageTemporaire, ancienne_adres
 InfoFonctionTraceAppel :: struct #interface {
     nom: chaine;
     fichier: chaine;
-    adresse: adresse_fonction
+    adresse: adresse_fonction;
     // peut-être que nous pourrions avoir ceci dans le future, en fonction des besoins
     // position: PositionCodeSource
     // desc_type: *InfoTypeFonction
@@ -621,7 +621,7 @@ __stockage_temporaire :: fonc (params: &ParamètresAllocation, données: *BaseAl
             saufsi possède_adresse(alloc, ancien_pointeur) {
                 résultat := allocatrice_défaut(params, données);
                 ajourne_mémoire_débordante(alloc, ancien_pointeur, résultat, nouvelle_taille);
-                retourne résultat    
+                retourne résultat;
             }
 
             si !est_dernière_adresse_allouée(alloc, ancien_pointeur, ancienne_taille) || (alloc.occupé + nouvelle_taille > alloc.taille) {

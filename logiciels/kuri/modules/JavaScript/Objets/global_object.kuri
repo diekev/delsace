@@ -293,7 +293,7 @@ parse_int :: fonc (empl params: *ParamètresObjectCall) -> Valeur
 
     résultat := tente extrait_r64(chn) piège _ {
         retourne lance_type_error(interpréteuse, "value is not a Number");
-    }
+    };
 
     retourne résultat;
 }

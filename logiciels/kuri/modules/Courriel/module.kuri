@@ -281,7 +281,7 @@ envoie_commande_smtp :: fonc (fichier: *Fichier, format: chaine, args: ...eini) 
 
     taille_écrite := tente fichier.écris(message) piège err {
         retourne RéponseServeuse();
-    }
+    };
 
     // imprime("requête: %", message)
 
@@ -293,7 +293,7 @@ envoie_commande_smtp :: fonc (fichier: *Fichier, format: chaine, args: ...eini) 
     réponse := tente lis_tout(fichier) piège err {
         imprime("impossible de lire la réponse !\n");
         retourne RéponseServeuse();
-    }
+    };
 
     retourne parse_réponse_serveuse(réponse);
 } @Imprimeuse
@@ -460,7 +460,7 @@ ouvre_connexion_serveur :: fonc (config: ConfigurationCourriel) -> FichierOuErre
 {
     fichier := tente ouvre_connexion_serveur(config.serveur, config.port(), vrai) piège err {
         retourne err;
-    }
+    };
 
     linger_option := linger(l_onoff = -1, l_linger = 2);
     _ := setsockopt(fichier.desc, SOL_SOCKET, SO_LINGER, *linger_option, taille_de(linger));
@@ -524,9 +524,9 @@ envoie_courriel :: fonc (config: ConfigurationCourriel, courriel: &Courriel) -> 
         }
 
         retourne 1;
-    }
+    };
 
-    diffère _ := tente ferme(*fichier) piège nonatteignable
+    diffère _ := tente ferme(*fichier) piège nonatteignable;
 
     état := ÉtatEnvoiCourriel();
 

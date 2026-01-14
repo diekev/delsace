@@ -309,7 +309,7 @@ initialise_flux_octets_fichier :: fonc (résultat: *FluxOctetsFichier, chemin: C
     résultat.fichier = tente ouvre_fichier(chemin, pour_lecture, 0o644) piège err {
         imprimeln("Impossible d'ouvrir le fichier '%' : %", chemin.chn, err);
         retourne faux;
-    }
+    };
 
     résultat.taille_fichier = détermine_taille_fichier(*résultat.fichier);
     retourne vrai;
@@ -327,7 +327,7 @@ flux_octets_fichier_lis :: fonc (base: *FluxOctets, tampon: []octet) -> z64
     octets_lus := tente lis(*flux.fichier, tampon) piège err {
         imprimeln("Impossible de lire le fichier : %", err);
         retourne 0;
-    }
+    };
 
     flux.curseur += octets_lus;
 
@@ -338,7 +338,7 @@ flux_octets_fichier_positionne :: fonc (flux: *FluxOctetsFichier, position: Posi
 {
     flux.curseur = tente positionne_fichier(*flux.fichier, position) piège _ {
         panique("Impossible de chercher le point dans le fichier !");
-    }
+    };
 }
 
 flux_octets_fichier_donne_position :: fonc (flux: *FluxOctetsFichier) -> PositionFichier

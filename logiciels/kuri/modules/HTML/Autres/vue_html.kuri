@@ -217,7 +217,7 @@ parse_arguments :: fonc () -> (bool, Arguments)
     args_ok, résultat, _ := parse_ligne_de_commande(Arguments);
 
     si résultat.chemin {    
-        chemin_courant := tente donne_chemin_courant() piège nonatteignable
+        chemin_courant := tente donne_chemin_courant() piège nonatteignable;
         diffère déloge(chemin_courant.chn);
 
         chm_abs := crée_chemin_absolu(chemin_courant, CheminFichier(résultat.chemin));

@@ -183,7 +183,7 @@ ferme_base_de_données :: fonc (table: *Table) -> rien
         tente ferme(*paginatrice.fichier) piège _ {
             panique("Échec lors de la fermeture du fichier");
             retourne;
-        }
+        };
     }
 
     pour & page dans paginatrice.pages {

@@ -1095,7 +1095,7 @@ is_array_index :: fonc (property_key: PropertyKey) -> bool
 
     résultat := tente extrait_r64(texte_utf8) piège _ {
         retourne faux;
-    }
+    };
 
     retourne is_non_negative_integral_number(résultat);
 }
@@ -1108,7 +1108,7 @@ to_uint32 :: fonc (property_key: PropertyKey) -> n32
     texte_utf8 := convertis_vers_chaine(texte);
     diffère déloge(texte_utf8);
 
-    résultat := tente extrait_r64(texte_utf8) piège nonatteignable
+    résultat := tente extrait_r64(texte_utf8) piège nonatteignable;
     retourne résultat comme n32;
 }
 

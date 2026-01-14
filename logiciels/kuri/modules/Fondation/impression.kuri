@@ -1,10 +1,10 @@
 // Bibliothèque de flux, d'impression dans stdout.
 
 importe Chaine;
-importe Compilatrice // pour les fonctions de formattages
+importe Compilatrice; // pour les fonctions de formattages
 importe GreffeMétaprogramme;
 importe Introspection;
-importe Math // pour abs, ça fait beaucoup...
+importe Math; // pour abs, ça fait beaucoup...
 importe Numérique;
 importe SysFichier;
 
@@ -91,7 +91,7 @@ copie_enchaineuse_fichier :: fonc (enchaineuse: *Enchaineuse, fichier: *Fichier)
 
         _ := tente système_écris(fichier.desc, src, taille_tampon) piège err {
             retourne err;
-        }
+        };
 
         tampon_courant = tampon_courant.suivant;
     }
@@ -109,7 +109,7 @@ copie_enchaineuse_fichier :: fonc (enchaineuse: *Enchaineuse, chemin: CheminFich
 
     fichier := tente ouvre_fichier_crée_si_non_existant(chemin, raison) piège err {
         retourne err;
-    }
+    };
 
     diffère _ := ferme(*fichier);
 
@@ -318,7 +318,7 @@ imprime_nombre_décimal_haute_précision :: fonc (enchaineuse: *Enchaineuse, f: 
     // Le premier bit de la mantisse a une valeur implicite de 1 et ceci peut
     // être décalé de 127 positions vers la gauche, donc de 125 bits vers la gauche
     // du point binaire, ou 4 mots pour la part entière.
-    part_entière := construis_nombre_haute_précision() // haute_précision<4>
+    part_entière := construis_nombre_haute_précision(); // haute_précision<4>
 
     // Quand notre valeur_exposant est 0 (un nombre entre 1.0 et 2.0),
     // nous avons une mantisse de 24 bits et la valeur implicite du bit le plus haut
@@ -345,7 +345,7 @@ imprime_nombre_décimal_haute_précision :: fonc (enchaineuse: *Enchaineuse, f: 
     // Nous avons une mantisse de 23-bits à droite du point binaire et ceci
     // peut être décalé de 126 positions vers la droite, donc 149 bits, ou
     // 5 mots de 32-bits.
-    frac := construis_nombre_haute_précision() // haute_précision<5>
+    frac := construis_nombre_haute_précision(); // haute_précision<5>
 
     // Quand valeur_exposant est zéro nous voulons décaler 23 bits de mantisse dans
     // la part fractionnelle.
@@ -435,20 +435,20 @@ imprime_nombre_entier :: fonc (enchaineuse: *Enchaineuse, format: FormatEntier) 
 
 z64_depuis_pointeur :: fonc (pointeur: *z8, taille: n32) -> z64
 {
-    si taille == 1 { retourne mémoire(pointeur) }
-    si taille == 2 { retourne mémoire(pointeur comme *z16) }
-    si taille == 4 { retourne mémoire(pointeur comme *z32) }
-    si taille == 8 { retourne mémoire(pointeur comme *z64) }
+    si taille == 1 { retourne mémoire(pointeur); }
+    si taille == 2 { retourne mémoire(pointeur comme *z16); }
+    si taille == 4 { retourne mémoire(pointeur comme *z32); }
+    si taille == 8 { retourne mémoire(pointeur comme *z64); }
 
     retourne 0;
 }
 
 n64_depuis_pointeur :: fonc (pointeur: *z8, taille: n32) -> n64
 {
-    si taille == 1 { retourne mémoire(pointeur comme *n8) }
-    si taille == 2 { retourne mémoire(pointeur comme *n16) }
-    si taille == 4 { retourne mémoire(pointeur comme *n32) }
-    si taille == 8 { retourne mémoire(pointeur comme *n64) }
+    si taille == 1 { retourne mémoire(pointeur comme *n8); }
+    si taille == 2 { retourne mémoire(pointeur comme *n16); }
+    si taille == 4 { retourne mémoire(pointeur comme *n32); }
+    si taille == 8 { retourne mémoire(pointeur comme *n64); }
 
     retourne 0;
 }
@@ -865,12 +865,12 @@ imprime_valeurs_tableau :: fonc (enchaineuse: *Enchaineuse, itératrice: &Itéra
 
 imprime :: fonc (format: chaine, args: ...eini) -> rien
 {
-    _ := tente imprime_dans_fichier(sortie_standarde(), format, ...args) piège nonatteignable
+    _ := tente imprime_dans_fichier(sortie_standarde(), format, ...args) piège nonatteignable;
 } @Imprimeuse
 
 imprime_err :: fonc (format: chaine, args: ...eini) -> rien
 {
-    _ := tente imprime_dans_fichier(sortie_erreur(), format, ...args) piège nonatteignable
+    _ := tente imprime_dans_fichier(sortie_erreur(), format, ...args) piège nonatteignable;
 } @Imprimeuse
 
 imprimeln :: fonc (format: chaine, args: ...eini)

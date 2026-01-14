@@ -148,7 +148,7 @@ valide :: fonc (signataire: &Signataire, valeur_signée: chaine) -> bool
 {
     valeur := tente signataire.dissigne(valeur_signée) piège err {
         retourne faux;
-    }
+    };
 
     retourne vrai;
 }
@@ -195,7 +195,7 @@ dissigne :: fonc (signataire: &SignataireHorodoté, valeur_signée: chaine, âge
 {
     valeur_ := tente signataire.signataire.dissigne(valeur_signée) piège err {
         retourne err;
-    }
+    };
 
     morceaux := divise_depuis_la_fin(valeur_, signataire.signataire.séparateur, 1);
 
@@ -230,7 +230,7 @@ valide :: fonc (signataire: &SignataireHorodoté, valeur_signée: chaine, âge_m
 {
     valeur := tente signataire.dissigne(valeur_signée, âge_max) piège err {
         retourne faux;
-    }
+    };
 
     retourne vrai;
 }

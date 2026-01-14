@@ -1,5 +1,5 @@
 importe Compilatrice;
-importe Fondation // pour déloge(tableau)
+importe Fondation; // pour déloge(tableau)
 
 GreffonMétaprogramme :: struct {
     sur_message: fonc (greffon: *GreffonMétaprogramme, message: *Message);

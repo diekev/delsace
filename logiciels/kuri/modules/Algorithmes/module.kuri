@@ -193,7 +193,7 @@ accumule_selon_kahan_babuska_version_neumaier :: fonc (tableau: []r32) -> r32
         }
         sinon {
             k - m + résultat;
-        }
+        };
 
         résultat = m;
     }

@@ -2,7 +2,7 @@
 
 importe Chaine;
 importe Fondation;
-importe POSIX // pour fork, system, etc.
+importe POSIX; // pour fork, system, etc.
 importe SysFichier;
 
 charge "test_de_programme";
@@ -122,7 +122,7 @@ lis :: fonc (canal: &BaseCanal) -> chaine
     boucle {
         tmp := tente lis_tout(*canal.lecteur) piège _ {
             retourne chaine_depuis_enchaineuse(*enchaineuse);
-        }
+        };
 
         /* Le flux est vide, ou le fichier d'écriture fut fermé. */
         si tmp.taille == 0 {

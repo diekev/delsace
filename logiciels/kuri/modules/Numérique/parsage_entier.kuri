@@ -169,7 +169,7 @@ extrait_n32 :: fonc (chn: chaine) -> n32 | ErreurParsageEntier
 {
     valeur := tente extrait_nombre_naturel(chn, 10) piège err {
         retourne err;
-    }
+    };
 
     retourne valeur comme n32;
 }
@@ -178,7 +178,7 @@ extrait_n16 :: fonc (chn: chaine) -> n16 | ErreurParsageEntier
 {
     valeur := tente extrait_nombre_naturel(chn, 5) piège err {
         retourne err;
-    }
+    };
 
     retourne valeur comme n16;
 }
@@ -187,7 +187,7 @@ extrait_n8 :: fonc (chn: chaine) -> n8 | ErreurParsageEntier
 {
     valeur := tente extrait_nombre_naturel(chn, 3) piège err {
         retourne err;
-    }
+    };
 
     retourne valeur comme n8;
 }
@@ -234,7 +234,7 @@ extrait_z32 :: fonc (chn: chaine) -> z32 | ErreurParsageEntier
 {
     valeur := tente extrait_nombre_relatif(chn, 10) piège err {
         retourne err;
-    }
+    };
 
     retourne valeur comme z32;
 }
@@ -243,7 +243,7 @@ extrait_z16 :: fonc (chn: chaine) -> z16 | ErreurParsageEntier
 {
     valeur := tente extrait_nombre_relatif(chn, 5) piège err {
         retourne err;
-    }
+    };
 
     retourne valeur comme z16;
 }
@@ -252,7 +252,7 @@ extrait_z8 :: fonc (chn: chaine) -> z8 | ErreurParsageEntier
 {
     valeur := tente extrait_nombre_relatif(chn, 3) piège err {
         retourne err;
-    }
+    };
 
     retourne valeur comme z8;
 }
@@ -321,7 +321,7 @@ extrait_r32 :: fonc (chn: chaine) -> r32 | ErreurParsageEntier
 {
     v := tente extrait_nombre_réel_sûr(chn) piège err {
         retourne err;
-    }
+    };
 
     retourne v comme r32;
 }
@@ -330,7 +330,7 @@ extrait_r16 :: fonc (chn: chaine) -> r16 | ErreurParsageEntier
 {
     v := tente extrait_nombre_réel_sûr(chn) piège err {
         retourne err;
-    }
+    };
 
     retourne v comme r16;
 }
@@ -355,7 +355,7 @@ parse_hexadécimal_n16 :: fonc (chn: chaine) -> n16 | ErreurParsageEntier
 {
     v := tente parse_hexadécimal_n64(chn) piège err {
         retourne err;
-    }
+    };
 
     retourne v comme n16;
 }
@@ -364,7 +364,7 @@ parse_hexadécimal_n32 :: fonc (chn: chaine) -> n32 | ErreurParsageEntier
 {
     v := tente parse_hexadécimal_n64(chn) piège err {
         retourne err;
-    }
+    };
 
     retourne v comme n32;
 }
@@ -373,7 +373,7 @@ parse_hexadécimal_z32 :: fonc (chn: chaine) -> z32 | ErreurParsageEntier
 {
     v := tente parse_hexadécimal_n64(chn) piège err {
         retourne err;
-    }
+    };
 
     retourne v comme z32;
 }

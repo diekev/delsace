@@ -48,9 +48,9 @@ EPOLL_EVENTS :: énum_drapeau n32 {
 
 /* Valid opcodes ( "op" parameter ) to issue to epoll_ctl().  */
 EPOLL_CTL_OP :: énum z32 {
-    ADD :: 1 /* Add a file descriptor to the interface.  */
-    DEL :: 2 /* Remove a file descriptor from the interface.  */
-    MOD :: 3 /* Change file descriptor epoll_event structure.  */
+    ADD :: 1; /* Add a file descriptor to the interface.  */
+    DEL :: 2; /* Remove a file descriptor from the interface.  */
+    MOD :: 3; /* Change file descriptor epoll_event structure.  */
 }
 
 epoll_data :: union nonsûr #externe {
@@ -61,8 +61,8 @@ epoll_data :: union nonsûr #externe {
 }
 
 epoll_event :: struct #externe #compacte {
-    events: EPOLL_EVENTS /* Epoll events */
-    data: epoll_data /* User data variable */
+    events: EPOLL_EVENTS; /* Epoll events */
+    data: epoll_data; /* User data variable */
 }
 
 epoll_create :: fonc (size: z32) -> z32 #externe libc;
@@ -80,12 +80,12 @@ epoll_pwait :: fonc (epfd: z32, events: *epoll_event, maxevents: z32, timeout: z
  * \{ */
 
 /* Operations for the `flock' call.  */
-LOCK_SH :: 1 /* Shared lock.  */
-LOCK_EX :: 2 /* Exclusive lock.  */
-LOCK_UN :: 8 /* Unlock.  */
+LOCK_SH :: 1; /* Shared lock.  */
+LOCK_EX :: 2; /* Exclusive lock.  */
+LOCK_UN :: 8; /* Unlock.  */
 
 /* Can be OR'd in to one of the above.  */
-LOCK_NB :: 4 /* Don't block when locking.  */
+LOCK_NB :: 4; /* Don't block when locking.  */
 
 /* Apply or remove an advisory lock, according to OPERATION,
  * on the file FD refers to.  */

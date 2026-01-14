@@ -1,5 +1,5 @@
-importe Math // pour max
-importe Numérique // pour magnitude_décimale
+importe Math; // pour max
+importe Numérique; // pour magnitude_décimale
 
 // @copié de JSON
 donne_ligne_pour_erreur :: fonc (texte: chaine, mot: chaine) -> chaine

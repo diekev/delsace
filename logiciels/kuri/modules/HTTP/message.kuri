@@ -229,7 +229,7 @@ parse_contenu_message_url_encoded :: fonc (message: &MessageClienteHTTP, $T: typ
 
     taille_contenu := tente extrait_z32(chn_taille_contenu) piège err {
         retourne faux, T();
-    }
+    };
 
     type_contenu := entête(message, "Content-Type").valeur;
 

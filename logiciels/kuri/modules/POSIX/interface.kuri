@@ -155,11 +155,11 @@ O_NONBLOCK :: 0o04000;
 
 open :: fonc (chemin: ChaineC, drapeaux: z32, args: ...) -> z32 #externe libc;
 
-F_DUPFD :: 0 /* Duplicate file descriptor.  */
-F_GETFD :: 1 /* Get file descriptor flags.  */
-F_SETFD :: 2 /* Set file descriptor flags.  */
-F_GETFL :: 3 /* Get file status flags.  */
-F_SETFL :: 4 /* Set file status flags.  */
+F_DUPFD :: 0; /* Duplicate file descriptor.  */
+F_GETFD :: 1; /* Get file descriptor flags.  */
+F_SETFD :: 2; /* Set file descriptor flags.  */
+F_GETFL :: 3; /* Get file status flags.  */
+F_SETFL :: 4; /* Set file status flags.  */
 
 fcntl :: fonc (fd: z32, cmd: z32, args: ...) -> z32 #externe libc;
 
@@ -275,38 +275,38 @@ sockaddr_in6 :: struct #externe {
 
 /* User-settable options (used with setsockopt).
  */
-TCP_NODELAY :: 1 /* Don't delay send to coalesce packets  */
-TCP_MAXSEG :: 2 /* Set maximum segment size  */
-TCP_CORK :: 3 /* Control sending of partial frames  */
-TCP_KEEPIDLE :: 4 /* Start keeplives after this period */
-TCP_KEEPINTVL :: 5 /* Interval between keepalives */
-TCP_KEEPCNT :: 6 /* Number of keepalives before death */
-TCP_SYNCNT :: 7 /* Number of SYN retransmits */
-TCP_LINGER2 :: 8 /* Life time of orphaned FIN-WAIT-2 state */
-TCP_DEFER_ACCEPT :: 9 /* Wake up listener only when data arrive */
-TCP_WINDOW_CLAMP :: 10 /* Bound advertised window */
-TCP_INFO :: 11 /* Information about this connection. */
-TCP_QUICKACK :: 12 /* Bock/reenable quick ACKs.  */
-TCP_CONGESTION :: 13 /* Congestion control algorithm.  */
-TCP_MD5SIG :: 14 /* TCP MD5 Signature (RFC2385) */
-TCP_COOKIE_TRANSACTIONS :: 15 /* TCP Cookie Transactions */
-TCP_THIN_LINEAR_TIMEOUTS :: 16 /* Use linear timeouts for thin streams*/
-TCP_THIN_DUPACK :: 17 /* Fast retrans. after 1 dupack */
-TCP_USER_TIMEOUT :: 18 /* How long for loss retry before timeout */
-TCP_REPAIR :: 19 /* TCP sock is under repair right now */
-TCP_REPAIR_QUEUE :: 20 /* Set TCP queue to repair */
-TCP_QUEUE_SEQ :: 21 /* Set sequence number of repaired queue. */
-TCP_REPAIR_OPTIONS :: 22 /* Repair TCP connection options */
-TCP_FASTOPEN :: 23 /* Enable FastOpen on listeners */
-TCP_TIMESTAMP :: 24 /* TCP time stamp */
-TCP_NOTSENT_LOWAT :: 25 /* Limit number of unsent bytes in write queue.  */
-TCP_CC_INFO :: 26 /* Get Congestion Control (optional) info.  */
-TCP_SAVE_SYN :: 27 /* Record SYN headers for new connections.  */
-TCP_SAVED_SYN :: 28 /* Get SYN headers recorded for connection.  */
-TCP_REPAIR_WINDOW :: 29 /* Get/set window parameters.  */
-TCP_FASTOPEN_CONNECT :: 30 /* Attempt FastOpen with connect.  */
-TCP_ULP :: 31 /* Attach a ULP to a TCP connection.  */
-TCP_MD5SIG_EXT :: 32 /* TCP MD5 Signature with extensions.  */
+TCP_NODELAY :: 1; /* Don't delay send to coalesce packets  */
+TCP_MAXSEG :: 2; /* Set maximum segment size  */
+TCP_CORK :: 3; /* Control sending of partial frames  */
+TCP_KEEPIDLE :: 4; /* Start keeplives after this period */
+TCP_KEEPINTVL :: 5; /* Interval between keepalives */
+TCP_KEEPCNT :: 6; /* Number of keepalives before death */
+TCP_SYNCNT :: 7; /* Number of SYN retransmits */
+TCP_LINGER2 :: 8; /* Life time of orphaned FIN-WAIT-2 state */
+TCP_DEFER_ACCEPT :: 9; /* Wake up listener only when data arrive */
+TCP_WINDOW_CLAMP :: 10; /* Bound advertised window */
+TCP_INFO :: 11; /* Information about this connection. */
+TCP_QUICKACK :: 12; /* Bock/reenable quick ACKs.  */
+TCP_CONGESTION :: 13; /* Congestion control algorithm.  */
+TCP_MD5SIG :: 14; /* TCP MD5 Signature (RFC2385) */
+TCP_COOKIE_TRANSACTIONS :: 15; /* TCP Cookie Transactions */
+TCP_THIN_LINEAR_TIMEOUTS :: 16; /* Use linear timeouts for thin streams*/
+TCP_THIN_DUPACK :: 17; /* Fast retrans. after 1 dupack */
+TCP_USER_TIMEOUT :: 18; /* How long for loss retry before timeout */
+TCP_REPAIR :: 19; /* TCP sock is under repair right now */
+TCP_REPAIR_QUEUE :: 20; /* Set TCP queue to repair */
+TCP_QUEUE_SEQ :: 21; /* Set sequence number of repaired queue. */
+TCP_REPAIR_OPTIONS :: 22; /* Repair TCP connection options */
+TCP_FASTOPEN :: 23; /* Enable FastOpen on listeners */
+TCP_TIMESTAMP :: 24; /* TCP time stamp */
+TCP_NOTSENT_LOWAT :: 25; /* Limit number of unsent bytes in write queue.  */
+TCP_CC_INFO :: 26; /* Get Congestion Control (optional) info.  */
+TCP_SAVE_SYN :: 27; /* Record SYN headers for new connections.  */
+TCP_SAVED_SYN :: 28; /* Get SYN headers recorded for connection.  */
+TCP_REPAIR_WINDOW :: 29; /* Get/set window parameters.  */
+TCP_FASTOPEN_CONNECT :: 30; /* Attempt FastOpen with connect.  */
+TCP_ULP :: 31; /* Attach a ULP to a TCP connection.  */
+TCP_MD5SIG_EXT :: 32; /* TCP MD5 Signature with extensions.  */
 
 SOL_TCP :: 6;
 
@@ -354,9 +354,9 @@ __jmp_buf_tag :: struct {
        assume that a `jmp_buf' begins with a `__jmp_buf' and that
        `__mask_was_saved' follows it.  Do not move these members
        or add others before it.  */
-    __jmpbuf: __jmp_buf ;		/* Calling environment.  */
+    __jmpbuf: __jmp_buf;		/* Calling environment.  */
     __mask_was_saved: z32;	/* Saved the signal mask?  */
-    __saved_mask: __sigset_t ;	/* Saved signal mask.  */
+    __saved_mask: __sigset_t;	/* Saved signal mask.  */
 }
 
 __sigset_t :: struct {
@@ -373,10 +373,10 @@ setjmp :: fonc (buf: *__jmp_buf_tag) -> z32 #externe libc;
 /** \nom signal.h
  * \{ */
 
-SIG_ERR :: -1 /* Error return.  */
-SIG_DFL :: 0 /* Default action.  */
-SIG_IGN :: 1 /* Ignore signal.  */
-SIG_HOLD :: 2 /* Add signal to hold mask.  */
+SIG_ERR :: -1; /* Error return.  */
+SIG_DFL :: 0; /* Default action.  */
+SIG_IGN :: 1; /* Ignore signal.  */
+SIG_HOLD :: 2; /* Add signal to hold mask.  */
 
 /* We define here all the signal names listed in POSIX (1003.1-2008);
    as of 1003.1-2013, no additional signals have been added by POSIX.
@@ -390,42 +390,42 @@ SIG_HOLD :: 2 /* Add signal to hold mask.  */
    a process exists without sending it a signal.  */
 
 /* ISO C99 signals.  */
-SIGINT :: 2 /* Interactive attention signal.  */
-SIGILL :: 4 /* Illegal instruction.  */
-SIGABRT :: 6 /* Abnormal termination.  */
-SIGFPE :: 8 /* Erroneous arithmetic operation.  */
-SIGSEGV :: 11 /* Invalid access to storage.  */
-SIGTERM :: 15 /* Termination request.  */
+SIGINT :: 2; /* Interactive attention signal.  */
+SIGILL :: 4; /* Illegal instruction.  */
+SIGABRT :: 6; /* Abnormal termination.  */
+SIGFPE :: 8; /* Erroneous arithmetic operation.  */
+SIGSEGV :: 11; /* Invalid access to storage.  */
+SIGTERM :: 15; /* Termination request.  */
 
 /* Historical signals specified by POSIX. */
-SIGHUP :: 1 /* Hangup.  */
-SIGQUIT :: 3 /* Quit.  */
-SIGTRAP :: 5 /* Trace/breakpoint trap.  */
-SIGKILL :: 9 /* Killed.  */
-SIGBUS :: 10 /* Bus error.  */
-SIGSYS :: 12 /* Bad system call.  */
-SIGPIPE :: 13 /* Broken pipe.  */
-SIGALRM :: 14 /* Alarm clock.  */
+SIGHUP :: 1; /* Hangup.  */
+SIGQUIT :: 3; /* Quit.  */
+SIGTRAP :: 5; /* Trace/breakpoint trap.  */
+SIGKILL :: 9; /* Killed.  */
+SIGBUS :: 10; /* Bus error.  */
+SIGSYS :: 12; /* Bad system call.  */
+SIGPIPE :: 13; /* Broken pipe.  */
+SIGALRM :: 14; /* Alarm clock.  */
 
 /* New(er) POSIX signals (1003.1-2008, 1003.1-2013).  */
-SIGURG :: 16 /* Urgent data is available at a socket.  */
-SIGSTOP :: 17 /* Stop, unblockable.  */
-SIGTSTP :: 18 /* Keyboard stop.  */
-SIGCONT :: 19 /* Continue.  */
-SIGCHLD :: 20 /* Child terminated or stopped.  */
-SIGTTIN :: 21 /* Background read from control terminal.  */
-SIGTTOU :: 22 /* Background write to control terminal.  */
-SIGPOLL :: 23 /* Pollable event occurred (System V).  */
-SIGXCPU :: 24 /* CPU time limit exceeded.  */
-SIGXFSZ :: 25 /* File size limit exceeded.  */
-SIGVTALRM :: 26 /* Virtual timer expired.  */
-SIGPROF :: 27 /* Profiling timer expired.  */
-SIGUSR1 :: 30 /* User-defined signal 1.  */
-SIGUSR2 :: 31 /* User-defined signal 2.  */
+SIGURG :: 16; /* Urgent data is available at a socket.  */
+SIGSTOP :: 17; /* Stop, unblockable.  */
+SIGTSTP :: 18; /* Keyboard stop.  */
+SIGCONT :: 19; /* Continue.  */
+SIGCHLD :: 20; /* Child terminated or stopped.  */
+SIGTTIN :: 21; /* Background read from control terminal.  */
+SIGTTOU :: 22; /* Background write to control terminal.  */
+SIGPOLL :: 23; /* Pollable event occurred (System V).  */
+SIGXCPU :: 24; /* CPU time limit exceeded.  */
+SIGXFSZ :: 25; /* File size limit exceeded.  */
+SIGVTALRM :: 26; /* Virtual timer expired.  */
+SIGPROF :: 27; /* Profiling timer expired.  */
+SIGUSR1 :: 30; /* User-defined signal 1.  */
+SIGUSR2 :: 31; /* User-defined signal 2.  */
 
 /* Nonstandard signals found in all modern POSIX systems
    (including both BSD and Linux).  */
-SIGWINCH :: 28 /* Window size change (4.3 BSD, Sun).  */
+SIGWINCH :: 28; /* Window size change (4.3 BSD, Sun).  */
 
 signal :: fonc (numéro_signal: z32, rappel: fonc (signal: z32)) -> rien #externe libc;
 
@@ -557,22 +557,22 @@ siginfo_t :: struct {
 
 // <bits/siginfo-consts.h>
 
-SI_ASYNCNL :: -60		/* Sent by asynch name lookup completion.  */
-SI_DETHREAD :: -7		/* Sent by execve killing subsidiary threads.  */
-SI_TKILL :: -6			/* Sent by tkill.  */
-SI_SIGIO :: -5			/* Sent by queued SIGIO. */
-SI_ASYNCIO :: -4		/* Sent by AIO completion.  */
-SI_MESGQ :: -3			/* Sent by real time mesq state change.  */
-SI_TIMER :: -2			/* Sent by timer expiration.  */
-SI_QUEUE :: -1			/* Sent by sigqueue.  */
-SI_USER :: 0			/* Sent by kill, sigsend.  */
-SI_KERNEL :: 0x80		/* Send by kernel.  */
+SI_ASYNCNL :: -60;		/* Sent by asynch name lookup completion.  */
+SI_DETHREAD :: -7;		/* Sent by execve killing subsidiary threads.  */
+SI_TKILL :: -6;			/* Sent by tkill.  */
+SI_SIGIO :: -5;			/* Sent by queued SIGIO. */
+SI_ASYNCIO :: -4;		/* Sent by AIO completion.  */
+SI_MESGQ :: -3;			/* Sent by real time mesq state change.  */
+SI_TIMER :: -2;			/* Sent by timer expiration.  */
+SI_QUEUE :: -1;			/* Sent by sigqueue.  */
+SI_USER :: 0;			/* Sent by kill, sigsend.  */
+SI_KERNEL :: 0x80;		/* Send by kernel.  */
 
-TRAP_BRKPT :: 1  /* Process breakpoint.  */
-TRAP_TRACE :: 2  /* Process trace trap.  */
-TRAP_BRANCH :: 3  /* Process taken branch trap.  */
-TRAP_HWBKPT :: 4  /* Hardware breakpoint/watchpoint.  */
-TRAP_UNK :: 5  /* Undiagnosed trap.  */
+TRAP_BRKPT :: 1;  /* Process breakpoint.  */
+TRAP_TRACE :: 2;  /* Process trace trap.  */
+TRAP_BRANCH :: 3;  /* Process taken branch trap.  */
+TRAP_HWBKPT :: 4;  /* Hardware breakpoint/watchpoint.  */
+TRAP_UNK :: 5;  /* Undiagnosed trap.  */
 
 /** \} */
 
@@ -663,22 +663,22 @@ strlen :: fonc (str: *z8) -> n64 #externe libc;
  * \{ */
 
 rusage :: struct {
-    ru_utime: timeval     /* user CPU time used */
-    ru_stime: timeval     /* system CPU time used */
-    ru_maxrss: z64        /* maximum resident set size */
-    ru_ixrss: z64         /* integral shared memory size */
-    ru_idrss: z64         /* integral unshared data size */
-    ru_isrss: z64         /* integral unshared stack size */
-    ru_minflt: z64        /* page reclaims (soft page faults) */
-    ru_majflt: z64        /* page faults (hard page faults) */
-    ru_nswap: z64         /* swaps */
-    ru_inblock: z64       /* block input operations */
-    ru_oublock: z64       /* block output operations */
-    ru_msgsnd: z64        /* IPC messages sent */
-    ru_msgrcv: z64        /* IPC messages received */
-    ru_nsignals: z64      /* signals received */
-    ru_nvcsw: z64         /* voluntary context switches */
-    ru_nivcsw: z64        /* involuntary context switches */
+    ru_utime: timeval;     /* user CPU time used */
+    ru_stime: timeval;     /* system CPU time used */
+    ru_maxrss: z64;        /* maximum resident set size */
+    ru_ixrss: z64;         /* integral shared memory size */
+    ru_idrss: z64;         /* integral unshared data size */
+    ru_isrss: z64;         /* integral unshared stack size */
+    ru_minflt: z64;        /* page reclaims (soft page faults) */
+    ru_majflt: z64;        /* page faults (hard page faults) */
+    ru_nswap: z64;         /* swaps */
+    ru_inblock: z64;       /* block input operations */
+    ru_oublock: z64;       /* block output operations */
+    ru_msgsnd: z64;        /* IPC messages sent */
+    ru_msgrcv: z64;        /* IPC messages received */
+    ru_nsignals: z64;      /* signals received */
+    ru_nvcsw: z64;         /* voluntary context switches */
+    ru_nivcsw: z64;        /* involuntary context switches */
 }
 
 
@@ -719,55 +719,55 @@ sa_family_t :: n16;
 /* Size of struct sockaddr_storage.  */
 _SS_SIZE :: 128;
 
-PF_UNSPEC :: 0 /* Unspecified.  */
-PF_LOCAL :: 1 /* Local to host (pipes and file-domain).  */
-PF_UNIX :: PF_LOCAL /* POSIX name for PF_LOCAL.  */
-PF_FILE :: PF_LOCAL /* Another non-standard name for PF_LOCAL.  */
-PF_INET :: 2 /* IP protocol family.  */
-PF_AX25 :: 3 /* Amateur Radio AX.25.  */
-PF_IPX :: 4 /* Novell Internet Protocol.  */
-PF_APPLETALK :: 5 /* Appletalk DDP.  */
-PF_NETROM :: 6 /* Amateur radio NetROM.  */
-PF_BRIDGE :: 7 /* Multiprotocol bridge.  */
-PF_ATMPVC :: 8 /* ATM PVCs.  */
-PF_X25 :: 9 /* Reserved for X.25 project.  */
-PF_INET6 :: 10 /* IP version 6.  */
-PF_ROSE :: 11 /* Amateur Radio X.25 PLP.  */
-PF_DECnet :: 12 /* Reserved for DECnet project.  */
-PF_NETBEUI :: 13 /* Reserved for 802.2LLC project.  */
-PF_SECURITY :: 14 /* Security callback pseudo AF.  */
-PF_KEY :: 15 /* PF_KEY key management API.  */
+PF_UNSPEC :: 0; /* Unspecified.  */
+PF_LOCAL :: 1; /* Local to host (pipes and file-domain).  */
+PF_UNIX :: PF_LOCAL; /* POSIX name for PF_LOCAL.  */
+PF_FILE :: PF_LOCAL; /* Another non-standard name for PF_LOCAL.  */
+PF_INET :: 2; /* IP protocol family.  */
+PF_AX25 :: 3; /* Amateur Radio AX.25.  */
+PF_IPX :: 4; /* Novell Internet Protocol.  */
+PF_APPLETALK :: 5; /* Appletalk DDP.  */
+PF_NETROM :: 6; /* Amateur radio NetROM.  */
+PF_BRIDGE :: 7; /* Multiprotocol bridge.  */
+PF_ATMPVC :: 8; /* ATM PVCs.  */
+PF_X25 :: 9; /* Reserved for X.25 project.  */
+PF_INET6 :: 10; /* IP version 6.  */
+PF_ROSE :: 11; /* Amateur Radio X.25 PLP.  */
+PF_DECnet :: 12; /* Reserved for DECnet project.  */
+PF_NETBEUI :: 13; /* Reserved for 802.2LLC project.  */
+PF_SECURITY :: 14; /* Security callback pseudo AF.  */
+PF_KEY :: 15; /* PF_KEY key management API.  */
 PF_NETLINK :: 16;
-PF_ROUTE :: PF_NETLINK /* Alias to emulate 4.4BSD.  */
-PF_PACKET :: 17 /* Packet family.  */
-PF_ASH :: 18 /* Ash.  */
-PF_ECONET :: 19 /* Acorn Econet.  */
-PF_ATMSVC :: 20 /* ATM SVCs.  */
-PF_RDS :: 21 /* RDS sockets.  */
-PF_SNA :: 22 /* Linux SNA Project */
-PF_IRDA :: 23 /* IRDA sockets.  */
-PF_PPPOX :: 24 /* PPPoX sockets.  */
-PF_WANPIPE :: 25 /* Wanpipe API sockets.  */
-PF_LLC :: 26 /* Linux LLC.  */
-PF_IB :: 27 /* Native InfiniBand address.  */
-PF_MPLS :: 28 /* MPLS.  */
-PF_CAN :: 29 /* Controller Area Network.  */
-PF_TIPC :: 30 /* TIPC sockets.  */
-PF_BLUETOOTH :: 31 /* Bluetooth sockets.  */
-PF_IUCV :: 32 /* IUCV sockets.  */
-PF_RXRPC :: 33 /* RxRPC sockets.  */
-PF_ISDN :: 34 /* mISDN sockets.  */
-PF_PHONET :: 35 /* Phonet sockets.  */
-PF_IEEE802154 :: 36 /* IEEE 802.15.4 sockets.  */
-PF_CAIF :: 37 /* CAIF sockets.  */
-PF_ALG :: 38 /* Algorithm sockets.  */
-PF_NFC :: 39 /* NFC sockets.  */
-PF_VSOCK :: 40 /* vSockets.  */
-PF_KCM :: 41 /* Kernel Connection Multiplexor.  */
-PF_QIPCRTR :: 42 /* Qualcomm IPC Router.  */
-PF_SMC :: 43 /* SMC sockets.  */
-PF_XDP :: 44 /* XDP sockets.  */
-PF_MAX :: 45 /* For now..  */
+PF_ROUTE :: PF_NETLINK; /* Alias to emulate 4.4BSD.  */
+PF_PACKET :: 17; /* Packet family.  */
+PF_ASH :: 18; /* Ash.  */
+PF_ECONET :: 19; /* Acorn Econet.  */
+PF_ATMSVC :: 20; /* ATM SVCs.  */
+PF_RDS :: 21; /* RDS sockets.  */
+PF_SNA :: 22; /* Linux SNA Project */
+PF_IRDA :: 23; /* IRDA sockets.  */
+PF_PPPOX :: 24; /* PPPoX sockets.  */
+PF_WANPIPE :: 25; /* Wanpipe API sockets.  */
+PF_LLC :: 26; /* Linux LLC.  */
+PF_IB :: 27; /* Native InfiniBand address.  */
+PF_MPLS :: 28; /* MPLS.  */
+PF_CAN :: 29; /* Controller Area Network.  */
+PF_TIPC :: 30; /* TIPC sockets.  */
+PF_BLUETOOTH :: 31; /* Bluetooth sockets.  */
+PF_IUCV :: 32; /* IUCV sockets.  */
+PF_RXRPC :: 33; /* RxRPC sockets.  */
+PF_ISDN :: 34; /* mISDN sockets.  */
+PF_PHONET :: 35; /* Phonet sockets.  */
+PF_IEEE802154 :: 36; /* IEEE 802.15.4 sockets.  */
+PF_CAIF :: 37; /* CAIF sockets.  */
+PF_ALG :: 38; /* Algorithm sockets.  */
+PF_NFC :: 39; /* NFC sockets.  */
+PF_VSOCK :: 40; /* vSockets.  */
+PF_KCM :: 41; /* Kernel Connection Multiplexor.  */
+PF_QIPCRTR :: 42; /* Qualcomm IPC Router.  */
+PF_SMC :: 43; /* SMC sockets.  */
+PF_XDP :: 44; /* XDP sockets.  */
+PF_MAX :: 45; /* For now..  */
 
 AF_UNSPEC :: PF_UNSPEC;
 AF_LOCAL :: PF_LOCAL;
@@ -841,8 +841,8 @@ listen :: fonc (prise: z32, connexions: z32) -> z32 #externe libc;
 accept :: fonc (prise: z32, addr: *sockaddr, taille: *n32) -> z32 #externe libc;
 
 linger :: struct #externe {
-    l_onoff: z32 /* Nonzero to linger on close.  */
-    l_linger: z32 /* Time to linger.  */
+    l_onoff: z32; /* Nonzero to linger on close.  */
+    l_linger: z32; /* Time to linger.  */
 }
 
 // asm-generic/socket.h
@@ -923,17 +923,17 @@ SO_PEERGROUPS :: 59;
 SO_ZEROCOPY :: 60;
 
 // sys/socket_types.h
-SOCK_STREAM :: 1 /* Sequenced, reliable, connection-based byte streams.  */
-SOCK_DGRAM :: 2 /* Connectionless, unreliable datagrams of fixed maximum length.  */
-SOCK_RAW :: 3 /* Raw protocol interface.  */
-SOCK_RDM :: 4 /* Reliably-delivered messages.  */
-SOCK_SEQPACKET :: 5 /* Sequenced, reliable, connection-based, datagrams of fixed maximum length.  */
-SOCK_DCCP :: 6 /* Datagram Congestion Control Protocol.  */
-SOCK_PACKET :: 10 /* Linux specific way of getting packets at the dev level.  For writing rarp and other similar things on the user level. */
+SOCK_STREAM :: 1; /* Sequenced, reliable, connection-based byte streams.  */
+SOCK_DGRAM :: 2; /* Connectionless, unreliable datagrams of fixed maximum length.  */
+SOCK_RAW :: 3; /* Raw protocol interface.  */
+SOCK_RDM :: 4; /* Reliably-delivered messages.  */
+SOCK_SEQPACKET :: 5; /* Sequenced, reliable, connection-based, datagrams of fixed maximum length.  */
+SOCK_DCCP :: 6; /* Datagram Congestion Control Protocol.  */
+SOCK_PACKET :: 10; /* Linux specific way of getting packets at the dev level.  For writing rarp and other similar things on the user level. */
 
 /* Flags to be ORed into the type parameter of socket and socketpair and used for the flags parameter of paccept.  */
-SOCK_CLOEXEC :: 0o02000000 /* Atomically set close-on-exec flag for the new descriptor(s).  */
-SOCK_NONBLOCK :: 0o00004000 /* Atomically mark descriptor(s) as non-blocking.  */
+SOCK_CLOEXEC :: 0o02000000; /* Atomically set close-on-exec flag for the new descriptor(s).  */
+SOCK_NONBLOCK :: 0o00004000; /* Atomically mark descriptor(s) as non-blocking.  */
 
 /** \} */
 
@@ -945,13 +945,13 @@ SOCK_NONBLOCK :: 0o00004000 /* Atomically mark descriptor(s) as non-blocking.  *
 __S_IFMT :: 0o170000 comme n32;
 
 /* Types de fichier  */
-__S_IFDIR :: 0o040000 comme n32 /* Directory.  */
-__S_IFCHR :: 0o020000 comme n32 /* Character device.  */
-__S_IFBLK :: 0o060000 comme n32 /* Block device.  */
-__S_IFREG :: 0o100000 comme n32 /* Regular file.  */
-__S_IFIFO :: 0o010000 comme n32 /* FIFO.  */
-__S_IFLNK :: 0o120000 comme n32 /* Symbolic link.  */
-__S_IFSOCK :: 0o140000 comme n32 /* Socket.  */
+__S_IFDIR :: 0o040000 comme n32; /* Directory.  */
+__S_IFCHR :: 0o020000 comme n32; /* Character device.  */
+__S_IFBLK :: 0o060000 comme n32; /* Block device.  */
+__S_IFREG :: 0o100000 comme n32; /* Regular file.  */
+__S_IFIFO :: 0o010000 comme n32; /* FIFO.  */
+__S_IFLNK :: 0o120000 comme n32; /* Symbolic link.  */
+__S_IFSOCK :: 0o140000 comme n32; /* Socket.  */
 
 // Version 64-bit de la structure 'stat' de "sys/stat.h"
 // La structure devrait s'appeler stat mais nous avons une collision dans le langage
@@ -959,23 +959,23 @@ __S_IFSOCK :: 0o140000 comme n32 /* Socket.  */
 // fonction), nous la renommons struct_stat jusqu'à ce que nous avons un moyen de lever
 // le conflit, l'ambigüité.
 struct_stat :: struct #externe {
-    st_dev: n64 // ID of device containing file
-    st_ino: n64 // inode number
-    st_nlink: n64 // number of hard links
-    st_mode: n32 // protection
-    st_uid: n32 // user ID of owner
-    st_gid: n32 // group ID of owner
-    __pad0: n32 // padding pour la version 64-bit
-    st_rdev: n64 // device ID (if special file)
-    st_size: z64 // total size, in bytes
-    st_blksize: z64 // blocksize for file system I/O
+    st_dev: n64; // ID of device containing file
+    st_ino: n64; // inode number
+    st_nlink: n64; // number of hard links
+    st_mode: n32; // protection
+    st_uid: n32; // user ID of owner
+    st_gid: n32; // group ID of owner
+    __pad0: n32; // padding pour la version 64-bit
+    st_rdev: n64; // device ID (if special file)
+    st_size: z64; // total size, in bytes
+    st_blksize: z64; // blocksize for file system I/O
     st_blocks: z64;
-    st_atime: z64 // time of last access
-    st_atimensec: z64 // Nsecs of last access
-    st_mtime: z64 // time of last modification
-    st_mtimensec: z64 // Nsecs of last modification
-    st_ctime: z64 // time of last status change
-    st_ctimensec: z64 // Nsecs of last status change
+    st_atime: z64; // time of last access
+    st_atimensec: z64; // Nsecs of last access
+    st_mtime: z64; // time of last modification
+    st_mtimensec: z64; // Nsecs of last modification
+    st_ctime: z64; // time of last status change
+    st_ctimensec: z64; // Nsecs of last status change
     __glibc_reserved: [3]z64;
 }
 
@@ -1008,17 +1008,17 @@ mkdir :: fonc (chemin: ChaineC, mode: z32) -> z32 #externe libc;
 fsblkcnt_t :: n64;
 
 struct_statvfs :: struct #externe {
-    f_bsize: n64 /* filesystem block size */
-    f_frsize: n64 /* fragment size */
-    f_blocks: fsblkcnt_t /* size of fs in f_frsize units */
-    f_bfree: fsblkcnt_t /* # free blocks */
-    f_bavail: fsblkcnt_t /* # free blocks for unprivileged users */
-    f_files: fsblkcnt_t /* # inodes */
-    f_ffree: fsblkcnt_t /* # free inodes */
-    f_favail: fsblkcnt_t /* # free inodes for unprivileged users */
-    f_fsid: n64 /* filesystem ID */
-    f_flag: n64 /* mount flags */
-    f_namemax: n64 /* maximum filename length */
+    f_bsize: n64; /* filesystem block size */
+    f_frsize: n64; /* fragment size */
+    f_blocks: fsblkcnt_t; /* size of fs in f_frsize units */
+    f_bfree: fsblkcnt_t; /* # free blocks */
+    f_bavail: fsblkcnt_t; /* # free blocks for unprivileged users */
+    f_files: fsblkcnt_t; /* # inodes */
+    f_ffree: fsblkcnt_t; /* # free inodes */
+    f_favail: fsblkcnt_t; /* # free inodes for unprivileged users */
+    f_fsid: n64; /* filesystem ID */
+    f_flag: n64; /* mount flags */
+    f_namemax: n64; /* maximum filename length */
     __f_spare: [6]z32;
 }
 
@@ -1037,7 +1037,7 @@ statvfs :: fonc (path: ChaineC, s: *struct_statvfs) -> z32 #externe libc;
 
 sockaddr_un :: struct #externe {
     sun_family: sa_family_t;
-    sun_path: [108]z8		/* Path name.  */
+    sun_path: [108]z8;		/* Path name.  */
 }
 
 /** \} */
@@ -1220,14 +1220,14 @@ TCSAFLUSH :: 2;
 NCCS :: 32;
 
 termios :: struct #externe {
-    c_iflag: n32 /* input mode flags */
-    c_oflag: n32 /* output mode flags */
-    c_cflag: n32 /* control mode flags */
-    c_lflag: n32 /* local mode flags */
-    c_line: n8 /* line discipline */
-    c_cc: [NCCS]n8 /* control characters */
-    c_ispeed: n32 /* input speed */
-    c_ospeed: n32 /* output speed */
+    c_iflag: n32; /* input mode flags */
+    c_oflag: n32; /* output mode flags */
+    c_cflag: n32; /* control mode flags */
+    c_lflag: n32; /* local mode flags */
+    c_line: n8; /* line discipline */
+    c_cc: [NCCS]n8; /* control characters */
+    c_ispeed: n32; /* input speed */
+    c_ospeed: n32; /* output speed */
 }
 
 tcgetattr :: fonc (fd: z32, t: *termios) -> rien #externe libc;
@@ -1247,17 +1247,17 @@ time :: fonc (tloc: *time_t) -> z64 #externe libc;
 
 /* ISO C `broken-down time' structure.  */
 tm :: struct #externe {
-    tm_sec: z32 /* Seconds.      [0-60] (1 leap second) */
-    tm_min: z32 /* Minutes.      [0-59] */
-    tm_hour: z32 /* Hours.        [0-23] */
-    tm_mday: z32 /* Day.          [1-31] */
-    tm_mon: z32 /* Month.        [0-11] */
-    tm_year: z32 /* Year - 1900. */
-    tm_wday: z32 /* Day of week.  [0-6] */
-    tm_yday: z32 /* Days in year. [0-365] */
-    tm_isdst: z32 /* DST.          [-1/0/1] */
-    tm_gmtoff: z64 /* Seconds east of UTC.  */
-    tm_zone: ChaineC /* Timezone abbreviation.  */
+    tm_sec: z32; /* Seconds.      [0-60] (1 leap second) */
+    tm_min: z32; /* Minutes.      [0-59] */
+    tm_hour: z32; /* Hours.        [0-23] */
+    tm_mday: z32; /* Day.          [1-31] */
+    tm_mon: z32; /* Month.        [0-11] */
+    tm_year: z32; /* Year - 1900. */
+    tm_wday: z32; /* Day of week.  [0-6] */
+    tm_yday: z32; /* Days in year. [0-365] */
+    tm_isdst: z32; /* DST.          [-1/0/1] */
+    tm_gmtoff: z64; /* Seconds east of UTC.  */
+    tm_zone: ChaineC; /* Timezone abbreviation.  */
 }
 
 localtime :: fonc (tloc: *z64) -> *tm #externe libc;
@@ -1301,8 +1301,8 @@ timeval :: struct #externe {
 
 // À FAIRE : déprécié
 timezone :: struct #externe {
-    tz_minuteswest: z64 // Minutes à l'ouest de GMT
-    tz_dsttime: z64 // Nonzéro si DST est en effet
+    tz_minuteswest: z64; // Minutes à l'ouest de GMT
+    tz_dsttime: z64; // Nonzéro si DST est en effet
 }
 
 gettimeofday :: fonc (val_temps: *timeval, zone_temps: *timezone) -> rien #externe libc;
@@ -1320,12 +1320,12 @@ nanosleep :: fonc (req: *timespec, rem: *timespec) -> z32 #externe libc;
 
 charge "confname";
 
-SEEK_SET :: 0 /* Seek from beginning of file.  */
-SEEK_CUR :: 1 /* Seek from current position.  */
-SEEK_END :: 2 /* Seek from end of file.  */
+SEEK_SET :: 0; /* Seek from beginning of file.  */
+SEEK_CUR :: 1; /* Seek from current position.  */
+SEEK_END :: 2; /* Seek from end of file.  */
 /* Seulement pour GNU */
-SEEK_DATA :: 3 /* Seek to next data. */
-SEEK_HOLE :: 4 /* Seek to next hole. */
+SEEK_DATA :: 3; /* Seek to next data. */
+SEEK_HOLE :: 4; /* Seek to next hole. */
 
 lseek :: fonc (fd: z32, offset: z64, whence: z32) -> z64 #externe libc;
 

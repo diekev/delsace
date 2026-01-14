@@ -138,7 +138,7 @@ lance :: fonc (serveuse: &ServeuseCGI(T = $T))
     uri := tente parse_uri_depuis_chemin_requête(uri_normalisé) piège err {
         écris_bad_request("Chemin malformé");
         retourne;
-    }
+    };
 
     cookies := parse_cookie_client(données.valeur[ParamètresCGI.HTTP_COOKIE]);
     diffère déloge(cookies);
@@ -151,7 +151,7 @@ lance :: fonc (serveuse: &ServeuseCGI(T = $T))
     requête.adresse_ip = tente parse_ipv4(données.valeur[ParamètresCGI.REMOTE_ADDR]) piège err {
         écris_bad_request("IP invalide");
         retourne;
-    }
+    };
 
     diffère si requête.contenu {
         déloge(requête.contenu);
@@ -162,7 +162,7 @@ lance :: fonc (serveuse: &ServeuseCGI(T = $T))
         texte := tente entrée_standarde().lis_tout() piège err {
             imprime("Status: 400 Bad Request\n\n");
             retourne;
-        }
+        };
 
         // taille_contenu := parse_nombre_entier(taille_contenu)
         requête.contenu = texte;

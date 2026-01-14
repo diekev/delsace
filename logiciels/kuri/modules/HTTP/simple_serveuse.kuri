@@ -34,7 +34,7 @@ crée_simple_serveuse :: fonc (adresse: chaine) -> (succès: bool, serveuse: *Si
     uri := tente parse_uri_standard(copie_adresse) piège err {
         imprimeln("Impossible de parser l'adresse de la serveuse : %", err);
         retourne faux, nul;
-    }
+    };
 
     // À FAIRE(uri) : le parsage de "localhost:8080" échoue : localhost devient le schéma, 8080 le chemin
     si uri.hôte == "" || uri.port == "" {
@@ -169,7 +169,7 @@ charge_donnees_requete :: fonc (prise: z32, mon_addresse: &sockaddr_in @inutilis
     requête := tente lis_tout(*fichier) piège err {
         imprime("Erreur lors de la lecture de la prise : %\n", err);
         retourne "";
-    }
+    };
 
     retourne requête;
 }

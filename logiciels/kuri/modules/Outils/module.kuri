@@ -1,6 +1,6 @@
 // Bibliothèque de diverses fonctions utiles dans différents domaines.
 
-importe Algorithmes // pour permute
+importe Algorithmes; // pour permute
 
 // Retourne la valeur passée en paramètre si le drapeau est vrai, sinon, retourne 0.
 // À FAIRE : ceci ne devrait être que pour des entiers naturels puisque que -1 doit être

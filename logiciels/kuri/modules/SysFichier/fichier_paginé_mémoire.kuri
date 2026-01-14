@@ -1,4 +1,4 @@
-importe Math /* Pour min. */
+importe Math; /* Pour min. */
 
 /* À FAIRE : paramétrise */
 TAILLE_PAGE :: 4096;
@@ -146,7 +146,7 @@ supprime_page :: fonc (fichier: *FichierPaginéMémoire, page: *FichierPaginéM�
 {
     fichier_disque := tente ouvre_fichier_crée_si_non_existant(chemin, pour_écriture_tronquée) piège _ {
         retourne;
-    }
+    };
 
     page_courante := fichier.première_page;
     tantque page_courante != nul {

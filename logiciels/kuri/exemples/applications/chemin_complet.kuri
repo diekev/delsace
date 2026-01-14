@@ -20,7 +20,7 @@ principale :: fonc ()
     chemin_courant := tente donne_chemin_courant() piège err {
         imprime("Impossible de déterminer le chemin courant : %\n", err);
         exit(1);
-    }
+    };
     diffère déloge(chemin_courant.chn);
 
     chm_abs := crée_chemin_absolu(chemin_courant, chm);

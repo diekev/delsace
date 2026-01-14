@@ -3,43 +3,43 @@
 
 NUL                    : n32 : 0x00;
 BACKSPACE              : n32 : 0x08;
-TABULATION             : n32 : 0x09 /* '\t' */
-TABULATION_HORIZONTALE : n32 : 0x09 /* '\t' */
-NOUVELLE_LIGNE         : n32 : 0x0A /* '\n' */
-SAUT_DE_LIGNE          : n32 : 0x0A /* '\n' */
-SAUT_DE_PAGE           : n32 : 0x0C /* '\f' */
-RETOUR_CHARIOT         : n32 : 0x0D /* '\r' */
+TABULATION             : n32 : 0x09; /* '\t' */
+TABULATION_HORIZONTALE : n32 : 0x09; /* '\t' */
+NOUVELLE_LIGNE         : n32 : 0x0A; /* '\n' */
+SAUT_DE_LIGNE          : n32 : 0x0A; /* '\n' */
+SAUT_DE_PAGE           : n32 : 0x0C; /* '\f' */
+RETOUR_CHARIOT         : n32 : 0x0D; /* '\r' */
 MOUVEMENT_SORTANT      : n32 : 0x0E;
 SÉPARATEUR_D_UNITÉS    : n32 : 0x1F;
-ESPACE                 : n32 : 0x20 /* ' ' */
-POINT_EXCLAMATION      : n32 : 0x21 /* '!' */
-GUILLEMET              : n32 : 0x22 /* '"' */
-GUILLEMET_ANGLAIS      : n32 : 0x22 /* '"' */
-SIGNE_NOMBRE           : n32 : 0x23 /* '#' */
-ESPERLUETTE            : n32 : 0x26 /* '&' */
-APOSTROPHE             : n32 : 0x27 /* '\'' */
-MOINS                  : n32 : 0x2D /* '-' */
-TRAIT_D_UNION          : n32 : 0x2D /* '-' */
-SIGNE_MOINS            : n32 : 0x2D /* '-' */
-SLASH                  : n32 : 0x2F /* '/' */
-DOUBLE_POINT           : n32 : 0x3A /* ':' */
-POINT_VIRGULE          : n32 : 0x3B /* ';' */
-CHEVRON_OUVRANT        : n32 : 0x3C /* '<' */
-EGAL                   : n32 : 0x3D /* '=' */
-CHEVRON_FERMANT        : n32 : 0x3E /* '>' */
-POINT_INTERROGATION    : n32 : 0x3F /* '?' */
-A_MAJUSCULE            : n32 : 0x41 /* 'A' */
-F_MAJUSCULE            : n32 : 0x46 /* 'F' */
-X_MAJUSCULE            : n32 : 0x58 /* 'X' */
-Z_MAJUSCULE            : n32 : 0x5A /* 'Z' */
-CROCHET_OUVRANT        : n32 : 0x5B /* '[' */
-CROCHET_FERMANT        : n32 : 0x5D /* ']' */
-ACCENT_GRAVE           : n32 : 0x60 /* '`' */
-A_MINUSCULE            : n32 : 0x61 /* 'a' */
-F_MINUSCULE            : n32 : 0x66 /* 'f' */
-X_MINUSCULE            : n32 : 0x78 /* 'x' */
-Z_MINUSCULE            : n32 : 0x7A /* 'z' */
-BARRE_VERTICALE        : n32 : 0x7C /* '|' */
+ESPACE                 : n32 : 0x20; /* ' ' */
+POINT_EXCLAMATION      : n32 : 0x21; /* '!' */
+GUILLEMET              : n32 : 0x22; /* '"' */
+GUILLEMET_ANGLAIS      : n32 : 0x22; /* '"' */
+SIGNE_NOMBRE           : n32 : 0x23; /* '#' */
+ESPERLUETTE            : n32 : 0x26; /* '&' */
+APOSTROPHE             : n32 : 0x27; /* '\'' */
+MOINS                  : n32 : 0x2D; /* '-' */
+TRAIT_D_UNION          : n32 : 0x2D; /* '-' */
+SIGNE_MOINS            : n32 : 0x2D; /* '-' */
+SLASH                  : n32 : 0x2F; /* '/' */
+DOUBLE_POINT           : n32 : 0x3A; /* ':' */
+POINT_VIRGULE          : n32 : 0x3B; /* ';' */
+CHEVRON_OUVRANT        : n32 : 0x3C; /* '<' */
+EGAL                   : n32 : 0x3D; /* '=' */
+CHEVRON_FERMANT        : n32 : 0x3E; /* '>' */
+POINT_INTERROGATION    : n32 : 0x3F; /* '?' */
+A_MAJUSCULE            : n32 : 0x41; /* 'A' */
+F_MAJUSCULE            : n32 : 0x46; /* 'F' */
+X_MAJUSCULE            : n32 : 0x58; /* 'X' */
+Z_MAJUSCULE            : n32 : 0x5A; /* 'Z' */
+CROCHET_OUVRANT        : n32 : 0x5B; /* '[' */
+CROCHET_FERMANT        : n32 : 0x5D; /* ']' */
+ACCENT_GRAVE           : n32 : 0x60; /* '`' */
+A_MINUSCULE            : n32 : 0x61; /* 'a' */
+F_MINUSCULE            : n32 : 0x66; /* 'f' */
+X_MINUSCULE            : n32 : 0x78; /* 'x' */
+Z_MINUSCULE            : n32 : 0x7A; /* 'z' */
+BARRE_VERTICALE        : n32 : 0x7C; /* '|' */
 DELETE                 : n32 : 0x7F;
 
 CARACTÈRE_REMPLACEMENT :: 0xFFFD comme n32;

@@ -130,7 +130,7 @@ convertis_casse_serpent_pour_interface :: fonc (chn: *chaine)
  * \{ */
 
 ChaineFixe :: struct {
-    données: [23]z8 // À FAIRE : polymorphise, 23 est pour HTML
+    données: [23]z8; // À FAIRE : polymorphise, 23 est pour HTML
     taille: z8;
 }
 

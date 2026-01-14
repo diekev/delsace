@@ -48,11 +48,11 @@ dispose_noeuds :: fonc (graphe: *Graphe) -> Optionnel(ÉchecOpération)
 
                 x := tente extrait_r64(lexèmes[2]) piège _ {
                     continue;
-                }
+                };
 
                 y := tente extrait_r64(lexèmes[3]) piège _ {
                     continue;
-                }
+                };
 
                 données := tableau_ajoute_élément(*données_position_noeuds);
                 données.nom = lexèmes[1];

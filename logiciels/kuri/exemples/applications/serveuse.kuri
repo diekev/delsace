@@ -67,7 +67,7 @@ charge_donnees_requete :: fonc (prise: z32, mon_addresse: &sockaddr_in @inutilis
     requête := tente lis_tout(*fichier) piège err {
         imprime("Erreur lors de la lecture de la prise : %\n", err);
         retourne "";
-    }
+    };
 
     retourne requête;
 }

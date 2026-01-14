@@ -826,7 +826,7 @@ parse_attribut_cookie_max_age :: fonc (ctx: *ContexteParsageEntête @inutilisée
         }
     }
 
-    nombre := tente extrait_z64(valeur) piège nonatteignable
+    nombre := tente extrait_z64(valeur) piège nonatteignable;
     résultat.max_age = nombre;
 }
 

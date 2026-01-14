@@ -15,7 +15,7 @@ ouvre_paginatrice :: fonc (chemin: CheminFichier) -> *Paginatrice
     fichier := tente ouvre_fichier_crée_si_non_existant(chemin, pour_lecture_écriture, 0o400 | 0o200) piège err {
         panique("Impossible d'ouvrir le fichier\n");
         retourne nul;
-    }
+    };
 
     paginatrice := loge(Paginatrice);
     paginatrice.utilise_stockage_disque = vrai;
@@ -51,11 +51,11 @@ trouve_page :: fonc (paginatrice: *Paginatrice, indice_page: z32) -> []octet
         si indice_page <= nombre_de_pages && paginatrice.utilise_stockage_disque {
             _ := tente positionne_fichier(*paginatrice.fichier, PositionDébut(indice_page * TAILLE_PAGE)) piège _ {
                 panique("Impossible de chercher le point dans le fichier !");
-            }
+            };
 
             octets_lus := tente lis(*paginatrice.fichier, page) piège _ {
                 panique("Erreur lors de la lecture du fichier !");
-            }
+            };
 
             si octets_lus != TAILLE_PAGE {
                 panique("Erreur lors de la lecture du fichier : nous aurions dû lire % octet, mais en avons lu % !", TAILLE_PAGE, octets_lus);
@@ -78,11 +78,11 @@ flush_paginatrice :: fonc (paginatrice: *Paginatrice, indice_page: z32) -> rien
 
     _ := tente positionne_fichier(*paginatrice.fichier, PositionDébut(indice_page * TAILLE_PAGE)) piège _ {
         panique("Impossible de chercher le point dans le fichier !");
-    }
+    };
 
     octets_écris := tente écris(*paginatrice.fichier, paginatrice.pages[indice_page]) piège _ {
         panique("Erreur lors de l'écriture !");
-    }
+    };
 
     si octets_écris != TAILLE_PAGE {
         panique("Erreur lors de l'écriture : nous aurions écrire % octets, mais en avons écris % !", TAILLE_PAGE, octets_écris);

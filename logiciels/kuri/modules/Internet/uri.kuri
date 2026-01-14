@@ -255,7 +255,7 @@ parse_autorité :: fonc (uri: *URI) -> ErreurURI
 
         tente parse_info_serveur(uri, composant_serveur) piège err {
             retourne err;
-        }
+        };
     }
     sinon {
         si début == -1 {
@@ -265,7 +265,7 @@ parse_autorité :: fonc (uri: *URI) -> ErreurURI
 
         tente parse_info_serveur(uri, composant_serveur) piège err {
             retourne err;
-        }
+        };
     }
 
     si uri.autorité.taille != 0 {
@@ -339,7 +339,7 @@ parse_uri_standard :: fonc (chn: chaine) -> RésultatURI
 
     eu_schéma := tente extrait_schéma(chn, *uri.schéma) piège err {
         retourne err;
-    }
+    };
 
     si eu_schéma {
         chn = avance(chn, uri.schéma.taille + 1);
@@ -363,7 +363,7 @@ parse_uri_standard :: fonc (chn: chaine) -> RésultatURI
 
         tente parse_autorité(*uri) piège err {
             retourne err;
-        }
+        };
     }
     sinon {
         uri.chemin_complet = chn;
@@ -380,7 +380,7 @@ parse_uri_depuis_chaine :: fonc (chn: chaine) -> (bool, URI)
 {
     uri := tente parse_uri_standard(chn) piège _ {
         retourne faux, URI();
-    }
+    };
 
     retourne vrai, uri;
 } @ParsageJSON
@@ -393,7 +393,7 @@ parse_uri_depuis_chemin_requête :: fonc (chn: chaine) -> RésultatURI
 
     tente parse_chemin(*uri) piège err {
         retourne err;
-    }
+    };
 
     retourne uri;
 }
@@ -892,7 +892,7 @@ origine :: fonc (uri: &URI) -> Origine
 // tests unitaires
 
 #test {
-    uri := tente parse_uri_standard("https://john.doe@www.example.com:123/forum/questions/?tag=networking&order=newest#top") piège nonatteignable
+    uri := tente parse_uri_standard("https://john.doe@www.example.com:123/forum/questions/?tag=networking&order=newest#top") piège nonatteignable;
 
     compilatrice_vérifie_égalité(uri.schéma, "https");
     compilatrice_vérifie_égalité(uri.autorité, "john.doe@www.example.com:123");
@@ -905,7 +905,7 @@ origine :: fonc (uri: &URI) -> Origine
 }
 
 #test {
-    uri := tente parse_uri_standard("ldap://[2001:db8::7]/c=GB?objectClass?one") piège nonatteignable
+    uri := tente parse_uri_standard("ldap://[2001:db8::7]/c=GB?objectClass?one") piège nonatteignable;
 
     compilatrice_vérifie_égalité(uri.schéma, "ldap");
     compilatrice_vérifie_égalité(uri.autorité, "[2001:db8::7]");
@@ -918,7 +918,7 @@ origine :: fonc (uri: &URI) -> Origine
 }
 
 #test {
-    uri := tente parse_uri_standard("mailto:John.Doe@example.com") piège nonatteignable
+    uri := tente parse_uri_standard("mailto:John.Doe@example.com") piège nonatteignable;
 
     compilatrice_vérifie_égalité(uri.schéma, "mailto");
     compilatrice_vérifie_égalité(uri.autorité, "");
@@ -931,7 +931,7 @@ origine :: fonc (uri: &URI) -> Origine
 }
 
 #test {
-    uri := tente parse_uri_standard("news:comp.infosystems.www.servers.unix") piège nonatteignable
+    uri := tente parse_uri_standard("news:comp.infosystems.www.servers.unix") piège nonatteignable;
 
     compilatrice_vérifie_égalité(uri.schéma, "news");
     compilatrice_vérifie_égalité(uri.autorité, "");
@@ -944,7 +944,7 @@ origine :: fonc (uri: &URI) -> Origine
 }
 
 #test {
-    uri := tente parse_uri_standard("tel:+1-816-555-1212") piège nonatteignable
+    uri := tente parse_uri_standard("tel:+1-816-555-1212") piège nonatteignable;
 
     compilatrice_vérifie_égalité(uri.schéma, "tel");
     compilatrice_vérifie_égalité(uri.autorité, "");
@@ -957,7 +957,7 @@ origine :: fonc (uri: &URI) -> Origine
 }
 
 #test {
-    uri := tente parse_uri_standard("telnet://192.0.2.16:80/") piège nonatteignable
+    uri := tente parse_uri_standard("telnet://192.0.2.16:80/") piège nonatteignable;
 
     compilatrice_vérifie_égalité(uri.schéma, "telnet");
     compilatrice_vérifie_égalité(uri.autorité, "192.0.2.16:80");
@@ -970,7 +970,7 @@ origine :: fonc (uri: &URI) -> Origine
 }
 
 #test {
-    uri := tente parse_uri_standard("urn:oasis:names:specification:docbook:dtd:xml:4.1.2") piège nonatteignable
+    uri := tente parse_uri_standard("urn:oasis:names:specification:docbook:dtd:xml:4.1.2") piège nonatteignable;
 
     compilatrice_vérifie_égalité(uri.schéma, "urn");
     compilatrice_vérifie_égalité(uri.autorité, "");
@@ -989,7 +989,7 @@ origine :: fonc (uri: &URI) -> Origine
      * voir aussi :
      * - https://www.giac.org/paper/gsec/650/semantic-attacks-url/101497
      */
-    uri := tente parse_uri_standard("ftp://cnn.example.com&story=breaking_news@10.0.0.1/top_story.htm") piège nonatteignable
+    uri := tente parse_uri_standard("ftp://cnn.example.com&story=breaking_news@10.0.0.1/top_story.htm") piège nonatteignable;
 
     compilatrice_vérifie_égalité(uri.schéma, "ftp");
     compilatrice_vérifie_égalité(uri.autorité, "cnn.example.com&story=breaking_news@10.0.0.1");
@@ -1008,7 +1008,7 @@ origine :: fonc (uri: &URI) -> Origine
      * voir aussi :
      * - https://www.giac.org/paper/gsec/650/semantic-attacks-url/101497
      */
-    uri := tente parse_uri_standard("http://www.microsoft.com&item%3Dq209354@www.hwnd.net/pub/mskb/Q209354.asp") piège nonatteignable
+    uri := tente parse_uri_standard("http://www.microsoft.com&item%3Dq209354@www.hwnd.net/pub/mskb/Q209354.asp") piège nonatteignable;
 
     compilatrice_vérifie_égalité(uri.schéma, "http");
     compilatrice_vérifie_égalité(uri.autorité, "www.microsoft.com&item%3Dq209354@www.hwnd.net");
@@ -1026,7 +1026,7 @@ origine :: fonc (uri: &URI) -> Origine
      *
      * À FAIRE : tests dans IPv4
      */
-    uri := tente parse_uri_standard("http://2815984929") piège nonatteignable
+    uri := tente parse_uri_standard("http://2815984929") piège nonatteignable;
 
     compilatrice_vérifie_égalité(uri.schéma, "http");
     compilatrice_vérifie_égalité(uri.autorité, "2815984929");

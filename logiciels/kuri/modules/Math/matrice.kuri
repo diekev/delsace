@@ -1,4 +1,4 @@
-importe Algorithmes // pour échange
+importe Algorithmes; // pour échange
 importe Chaine;
 importe Fondation;
 

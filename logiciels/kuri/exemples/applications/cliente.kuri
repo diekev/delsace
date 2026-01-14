@@ -14,29 +14,29 @@ lance_requête :: fonc (uri: &URI, requête: chaine) -> chaine
 
     fichier := tente ouvre_connexion_serveur(uri.hôte, port) piège _ {
         retourne réponse;
-    }
+    };
 
     si port == 443 {
         ctx_ssl := tente initialise_contexte_ssl_client() piège _ {
             retourne réponse;
-        }
+        };
 
         diffère SSL_CTX_free(ctx_ssl);
 
         fichier_ssl := tente ouvre_fichier_ssl(ctx_ssl, fichier) piège err {
             imprime("erreur lors de l'ouverture du fichier : %\n", err);
             retourne réponse;
-        }
+        };
 
         tente écris(*fichier_ssl, requête) piège err {
             imprime("erreur lors de l'envoie de la requête : %\n", err);
             retourne réponse;
-        }
+        };
 
         réponse = tente lis_tout(*fichier_ssl) piège err {
             imprime("erreur lors de la réception de la réponse : %\n", err);
             retourne réponse;
-        }
+        };
     }
     sinon {
         _ := écris(*fichier, requête);
@@ -60,7 +60,7 @@ principale :: fonc ()
     uri := tente parse_uri_standard(chemin) piège err {
         imprime("Erreur lors du parsage de l'URI : %\n", err);
         exit(1);
-    }
+    };
 
     //imprime(uri, '\n', '\n')
 

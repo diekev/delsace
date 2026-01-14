@@ -700,7 +700,7 @@ parse_n8 :: fonc (texte: chaine, tampon: []octet) -> bool
 {
     v := tente extrait_n8(texte) piège _ {
         retourne faux;
-    }
+    };
 
     copie_mem_nonsur(src = *v, dst = tampon.pointeur, taille = tampon.taille);
     retourne vrai;
@@ -710,7 +710,7 @@ parse_n16 :: fonc (texte: chaine, tampon: []octet) -> bool
 {
     v := tente extrait_n16(texte) piège _ {
         retourne faux;
-    }
+    };
 
     copie_mem_nonsur(src = *v, dst = tampon.pointeur, taille = tampon.taille);
     retourne vrai;
@@ -720,7 +720,7 @@ parse_n32 :: fonc (texte: chaine, tampon: []octet) -> bool
 {
     v := tente extrait_n32(texte) piège _ {
         retourne faux;
-    }
+    };
 
     copie_mem_nonsur(src = *v, dst = tampon.pointeur, taille = tampon.taille);
     retourne vrai;
@@ -730,7 +730,7 @@ parse_n64 :: fonc (texte: chaine, tampon: []octet) -> bool
 {
     v := tente extrait_n64(texte) piège _ {
         retourne faux;
-    }
+    };
 
     copie_mem_nonsur(src = *v, dst = tampon.pointeur, taille = tampon.taille);
     retourne vrai;
@@ -740,7 +740,7 @@ parse_z8 :: fonc (texte: chaine, tampon: []octet) -> bool
 {
     v := tente extrait_z8(texte) piège _ {
         retourne faux;
-    }
+    };
 
     copie_mem_nonsur(src = *v, dst = tampon.pointeur, taille = tampon.taille);
     retourne vrai;
@@ -750,7 +750,7 @@ parse_z16 :: fonc (texte: chaine, tampon: []octet) -> bool
 {
     v := tente extrait_z16(texte) piège _ {
         retourne faux;
-    }
+    };
 
     copie_mem_nonsur(src = *v, dst = tampon.pointeur, taille = tampon.taille);
     retourne vrai;
@@ -760,7 +760,7 @@ parse_z32 :: fonc (texte: chaine, tampon: []octet) -> bool
 {
     v := tente extrait_z32(texte) piège _ {
         retourne faux;
-    }
+    };
 
     copie_mem_nonsur(src = *v, dst = tampon.pointeur, taille = tampon.taille);
     retourne vrai;
@@ -770,7 +770,7 @@ parse_z64 :: fonc (texte: chaine, tampon: []octet) -> bool
 {
     v := tente extrait_z64(texte) piège _ {
         retourne faux;
-    }
+    };
 
     copie_mem_nonsur(src = *v, dst = tampon.pointeur, taille = tampon.taille);
     retourne vrai;
@@ -780,7 +780,7 @@ parse_r16 :: fonc (texte: chaine, tampon: []octet) -> bool
 {
     v := tente extrait_r16(texte) piège _ {
         retourne faux;
-    }
+    };
 
     copie_mem_nonsur(src = *v, dst = tampon.pointeur, taille = tampon.taille);
     retourne vrai;
@@ -790,7 +790,7 @@ parse_r32 :: fonc (texte: chaine, tampon: []octet) -> bool
 {
     v := tente extrait_r32(texte) piège _ {
         retourne faux;
-    }
+    };
 
     copie_mem_nonsur(src = *v, dst = tampon.pointeur, taille = tampon.taille);
     retourne vrai;
@@ -800,7 +800,7 @@ parse_r64 :: fonc (texte: chaine, tampon: []octet) -> bool
 {
     v := tente extrait_r64(texte) piège _ {
         retourne faux;
-    }
+    };
 
     copie_mem_nonsur(src = *v, dst = tampon.pointeur, taille = tampon.taille);
     retourne vrai;

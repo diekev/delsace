@@ -144,13 +144,13 @@ racine_cubique_newton :: fonc (n: r64) -> r64
 
 abs :: fonc (a: $T) -> T #enligne
 {
-    si a < 0 { retourne -a } sinon { retourne a }
+    si a < 0 { retourne -a; } sinon { retourne a; }
     //retourne si a < 0 { -a } sinon { a }
 }
 
 min :: fonc (a: $T, b: T) -> T #enligne
 {
-    si a < b { retourne a } sinon { retourne b }
+    si a < b { retourne a; } sinon { retourne b; }
     //retourne si a < b { a } sinon { b }
 }
 
@@ -169,7 +169,7 @@ min :: fonc (val: $T, vals: ...T) -> T
 
 max :: fonc (a: $T, b: T) -> T #enligne
 {
-    si a > b { retourne a } sinon { retourne b }
+    si a > b { retourne a; } sinon { retourne b; }
     //retourne si a > b { a } sinon { b }
 }
 

@@ -309,7 +309,7 @@ donne_infos_arguments :: fonc ($T: type_de_données) -> []InfoArgument
     nouvelles_chaines: [..]chaine;
     diffère déloge_tableau_et_ses_éléments(nouvelles_chaines);
 
-    indices_rubriques_pour_lettre: [..]struct { point_de_code: n32; compte: n32; indice_rubrique: z64 }
+    indices_rubriques_pour_lettre: [..]struct { point_de_code: n32; compte: n32; indice_rubrique: z64; };
     diffère déloge(indices_rubriques_pour_lettre);
 
     pour infos.rubriques {

@@ -322,7 +322,7 @@ génère_opérateurs_vecteurs :: fonc ()
             imprime_dans_enchaineuse(*enchaineuse, "opérateur % :: (u: Vec%, v: Vec%) -> Vec%\n", op, dimension, dimension, dimension);
             ajoute_au_tampon(*enchaineuse, "{\n");
 
-            init := si op == "/" { "" } sinon { " = ---" }
+            init := si op == "/" { "" } sinon { " = ---" };
 
             imprime_dans_enchaineuse(*enchaineuse, "    résultat: Vec%%\n", dimension, init);
             ajoute_appel_opérateur(*enchaineuse, op, "x", faux);

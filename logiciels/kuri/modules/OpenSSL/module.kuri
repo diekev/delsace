@@ -244,7 +244,7 @@ lis_tout :: fonc (fichier: *FichierSSL) -> ChaineOuErreurSSL
 
 ferme :: fonc (fichier: *FichierSSL) -> rien
 {
-    _ := tente ferme(*fichier.fichier) piège nonatteignable
+    _ := tente ferme(*fichier.fichier) piège nonatteignable;
 
     si fichier.ssl {
         SSL_free(fichier.ssl);

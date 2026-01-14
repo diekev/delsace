@@ -121,14 +121,14 @@ contenu_fichier_binaire :: fonc (chemin: CheminFichier, résultat: &[..]octet) -
     fichier := tente ouvre_fichier(chemin, pour_lecture, 0o644) piège _ {
         imprimeln("Impossible d'ouvrir le fichier %", chemin.chn);
         retourne faux;
-    }
+    };
 
     diffère _ := ferme(*fichier);
 
     tente lis_tout(*fichier, résultat) piège _ {
         imprimeln("Impossible de lire le fichier %", chemin.chn);
         retourne faux;
-    }
+    };
     retourne vrai;
 }
 
@@ -190,12 +190,12 @@ ajoute_au_fichier :: fonc (chemin: chaine, contenu: []octet) -> bool
     fichier := tente ouvre_fichier_crée_si_non_existant(CheminFichier(chemin_temporaire), raison) piège err {
         imprimeln("[%] impossible d'ouvrir le fichier '%' : %\n    NOTE : nous essayons d'ouvrir le fichier temporaire '%'", #nom_de_cette_fonction, chemin, err, chemin_temporaire);
         retourne faux;
-    }
+    };
 
     octets_écris := tente écris(*fichier, contenu) piège err {
         imprimeln("[%] impossible d'écrire dans le fichier '%' : %", #nom_de_cette_fonction, chemin, err);
         retourne faux;
-    }
+    };
 
     si octets_écris != contenu.taille {
         imprimeln("[%] le contenu ne fut pas intégralement écris dans '%' :\n    nous dévios écrire % octet(s), mais nous en avons écris %.", #nom_de_cette_fonction, chemin, contenu.taille, octets_écris);
@@ -266,7 +266,7 @@ ajoute_au_fichier :: fonc (chemin: chaine, enchaineuse: *Enchaineuse) -> bool
     fichier := tente ouvre_fichier_crée_si_non_existant(CheminFichier(chemin_temporaire), raison) piège err {
         imprimeln("[%] impossible d'ouvrir le fichier '%' : %\n    NOTE : nous essayons d'ouvrir le fichier temporaire '%'", #nom_de_cette_fonction, chemin, err, chemin_temporaire);
         retourne faux;
-    }
+    };
 
     tampon_courant := *enchaineuse.tampon;
 
@@ -278,7 +278,7 @@ ajoute_au_fichier :: fonc (chemin: chaine, enchaineuse: *Enchaineuse) -> bool
         octets_écris := tente écris(*fichier, contenu) piège err {
             imprimeln("[%] impossible d'écrire dans le fichier '%' : %", #nom_de_cette_fonction, chemin, err);
             retourne faux;
-        }
+        };
 
         si octets_écris != contenu.taille {
             imprimeln("[%] le contenu ne fut pas intégralement écris dans '%' :\n    nous dévions écrire % octet(s), mais nous en avons écris %.", #nom_de_cette_fonction, chemin, contenu.taille, octets_écris);

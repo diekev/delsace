@@ -340,7 +340,7 @@ parse_état_message_terminé :: fonc (parseuse: *ParseuseHTTP) -> RésultatParsa
 
         taille_contenu := tente extrait_z32(chn_taille_contenu) piège _ {
             retourne erreur_de_parsage("Content-Length n'est pas un nombre");
-        }
+        };
 
         parseuse.une_entête_de_taille_de_contenu_fut_spécifiée = vrai;
         parseuse.contenu_fixe = vrai;
@@ -414,7 +414,7 @@ parse_état_corps_message :: fonc (parseuse: *ParseuseHTTP) -> RésultatParsage
 
         taille_chunk := tente parse_hexadécimal_z32(valeur) piège _ {
             retourne erreur_de_parsage("pas de nombre héxadécimal pour la taille du chunk");
-        }
+        };
 
         /* Fin du message. */
         si taille_chunk == 0 {
@@ -555,7 +555,7 @@ finalise_message :: fonc (parseuse: *ParseuseMessageClienteHTTP) -> MessageClien
 
     message_cliente.uri = tente parse_uri_depuis_chemin_requête(message_cliente.requête) piège _ {
         retourne MessageClienteHTTP();
-    }
+    };
 
     retourne message_cliente;
 }

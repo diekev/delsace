@@ -91,7 +91,7 @@ InfoTypeRubriqueStructure :: struct #interface {
 
     nom: chaine;
     id: *InfoType;
-    décalage: z32 // décalage en octets dans la structure
+    décalage: z32; // décalage en octets dans la structure
     drapeaux: Drapeaux;
     annotations: []*Annotation;
 

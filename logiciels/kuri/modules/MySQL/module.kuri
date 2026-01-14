@@ -71,7 +71,7 @@ requiers_tables_mysql :: fonc (pilote: *PiloteMySQL) -> [..]chaine
 
     connexion := tente crée_connexion(pilote) piège err {
         retourne résultat;
-    }
+    };
 
     diffère ferme_connexion(*connexion);
 
@@ -347,7 +347,7 @@ sélectionne :: fonc (table: &TableMySQL, $T: type_de_données, colonnes: ...cha
     /* tente de nous connecté à la base de données */
     connexion := tente crée_connexion(table.pilote) piège err {
         retourne résultat;
-    }
+    };
     diffère ferme_connexion(*connexion);
 
     /* exécute la requête et construit le résultat */
@@ -444,13 +444,13 @@ insère :: fonc (table: &TableMySQL, valeur: $T, colonnes: ...chaine) -> bool
     /* tente de nous connecté à la base de données */
     connexion := tente crée_connexion(table.pilote) piège _ {
         retourne faux;
-    }
+    };
     diffère ferme_connexion(*connexion);
 
     /* exécute la requête */
     curseur := tente exécute(*connexion, requête) piège _ {
         retourne faux;
-    }
+    };
     diffère détruit_résultat(curseur);
 
     retourne vrai;
@@ -469,12 +469,12 @@ exécute :: fonc (pilote: *PiloteMySQL, requête: chaine, $T: type_de_données, 
     /* tente de nous connecté à la base de données */
     connexion := tente crée_connexion(pilote) piège _ {
         retourne résultat;
-    }
+    };
     diffère ferme_connexion(*connexion);
 
     curseurs := tente exécute(*connexion, requête) piège _ {
         retourne résultat;
-    }
+    };
 
     curseur := curseurs.curseurs[0];
 
@@ -628,7 +628,7 @@ sélectionne_colonnes_depuis_table :: fonc (connexion: *ConnexionMySQL, nom_tabl
 
     résultat_exécution := tente exécute(connexion, requête) piège _ {
         retourne;
-    }
+    };
     diffère détruit_résultat(résultat_exécution);
 
     si résultat_exécution.curseurs.taille != 1 {
@@ -656,7 +656,7 @@ exécute_requête_pour_liste :: fonc (connexion: *ConnexionMySQL, requête: chai
 {
     résultat := tente exécute(connexion, requête) piège _ {
         retourne;
-    }
+    };
     diffère détruit_résultat(résultat);
 
     si résultat.curseurs.taille != 1 {
@@ -682,7 +682,7 @@ exécute_requête_pour_une_valeur :: fonc (connexion: *ConnexionMySQL, requête:
 {
     résultat := tente exécute(connexion, requête) piège _ {
         retourne;
-    }
+    };
     diffère détruit_résultat(résultat);
 
     si résultat.curseurs.taille != 1 {

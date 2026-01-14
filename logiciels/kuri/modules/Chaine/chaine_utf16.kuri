@@ -756,7 +756,7 @@ chaine_depuis_enchaineuse :: fonc (enchaineuse: &EnchaineuseUTF16, réinitialise
     tantque tampon != nul {
         src := *tampon.données[0];
         dst := résultat.unités.pointeur + curseur;
-        taille_mémoire := tampon.occupés * 2 // 2 octets par unités
+        taille_mémoire := tampon.occupés * 2; // 2 octets par unités
 
         copie_mem_nonsur(src = src, dst = dst, taille = taille_mémoire);
 

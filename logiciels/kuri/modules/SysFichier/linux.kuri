@@ -62,23 +62,23 @@ initialise_tableau_correspondances :: fonc () -> [NOMBRE_VALEUR_ERRNO]ErreurFich
     // rename : newpath is an existing directory, but oldpath is not a directory
     résultat[EISDIR] = ErreurFichier.ActionImpossibleSurDossier;
     // À FAIRE
-    résultat[ENXIO] = ErreurFichier.EntréeSortieSpéciale // système_ouvre dépend du type de fichier
-    résultat[ENXIO] = ErreurFichier.FichierTropPetit // système_positionne_fichier où est SEEK_DATA ou SEEK_HOLE, et le décalage dépasse la taille du fichier
+    résultat[ENXIO] = ErreurFichier.EntréeSortieSpéciale; // système_ouvre dépend du type de fichier
+    résultat[ENXIO] = ErreurFichier.FichierTropPetit; // système_positionne_fichier où est SEEK_DATA ou SEEK_HOLE, et le décalage dépasse la taille du fichier
     // À FAIRE : statvfs -> valeurs trop grande pour la structure
     // stat ->  pathname  or  fd  refers to a file whose size, inode number, or number of blocks cannot be represented in, respectively, the types off_t, ino_t, or blkcnt_t.  This error can occur when, for example, an application com‐
     //          piled on a 32-bit platform without -D_FILE_OFFSET_BITS=64 calls stat() on a file whose size exceeds (1<<31)-1 bytes.
-    résultat[EOVERFLOW] = ErreurFichier.FichierTropGrand // système_ouvre
-    résultat[EOVERFLOW] = ErreurFichier.FichierTropPetit // système_positionne_fichier
+    résultat[EOVERFLOW] = ErreurFichier.FichierTropGrand; // système_ouvre
+    résultat[EOVERFLOW] = ErreurFichier.FichierTropPetit; // système_positionne_fichier
 
     // système_ouvre
-    résultat[EDQUOT] = ErreurFichier.EspaceDisqueInsuffisant // O_CREAT
-    résultat[EEXIST] = ErreurFichier.FichierExisteDéjà // O_CREAT & O_EXCL
+    résultat[EDQUOT] = ErreurFichier.EspaceDisqueInsuffisant; // O_CREAT
+    résultat[EEXIST] = ErreurFichier.FichierExisteDéjà; // O_CREAT & O_EXCL
     résultat[EFBIG] = ErreurFichier.FichierTropGrand;
     résultat[EMFILE] = ErreurFichier.LimiteOuvertureFichierAtteinte;
     résultat[ENFILE] = ErreurFichier.LimiteOuvertureFichierAtteinte;
     résultat[ENODEV] = ErreurFichier.MatérielInconnu;
     résultat[EOPNOTSUPP] = ErreurFichier.FichierTemporaireNonSupporté;
-    résultat[ETXTBSY] = ErreurFichier.ImageEnLecture // dépend du drapeau
+    résultat[ETXTBSY] = ErreurFichier.ImageEnLecture; // dépend du drapeau
 
     // système_ferme
     résultat[EBADF] = ErreurFichier.FichierInvalide;
@@ -283,16 +283,16 @@ système_fin_de_fichier :: fonc (fd: TypePoignéeFichier) -> RésultatOpération
 {
     position_courante := tente système_position_courante_fichier(fd) piège err {
         retourne err;
-    }
+    };
 
     fin_de_fichier := tente système_position_fin_fichier(fd) piège err {
         retourne err;
-    }
+    };
 
     // repositionne là où nous étions
     _ := tente système_positionne_fichier(fd, PositionDébut(position_courante)) piège err {
         retourne err;
-    }
+    };
 
     si position_courante >= fin_de_fichier {
         retourne 1;
@@ -318,7 +318,7 @@ crée_lien_symbolique_ex :: fonc (cible: CheminFichier, chemin_lien: CheminFichi
 {
     tente crée_lien_symbolique(cible.chn, chemin_lien.chn) piège err {
         retourne err == ErreurFichier.FichierExisteDéjà;
-    }
+    };
 
     retourne vrai;
 }
@@ -468,7 +468,7 @@ système_verrouille_fichier :: fonc (fichier: *Fichier, verrou: TypeVerrou) -> O
     }
     sinon {
         LOCK_EX;
-    }
+    };
 
     résultat := flock(fichier.desc comme z32, param_flock);
     retourne donne_erreur_si_résultat_invalide(résultat);

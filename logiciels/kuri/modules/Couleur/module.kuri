@@ -1,4 +1,4 @@
-importe Algorithmes // pour permute
+importe Algorithmes; // pour permute
 importe Fondation;
 importe Math;
 

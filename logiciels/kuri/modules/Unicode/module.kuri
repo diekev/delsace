@@ -407,8 +407,8 @@ RunesClés :: énum n32 {
     ESPACE_INSÉCABLE_SANS_CHASSE :: 0xFEFF;
 
     // guillemets
-    GUILLEMET_OUVRANT :: 0x00AB // «
-    GUILLEMET_FERMANT :: 0x00BB // »
+    GUILLEMET_OUVRANT :: 0x00AB; // «
+    GUILLEMET_FERMANT :: 0x00BB; // »
 }
 
 est_espace_blanche_unicode :: fonc (point_de_code: n32) -> bool

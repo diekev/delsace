@@ -181,7 +181,7 @@ visite_fichiers :: fonc (dossier: chaine, récursif: bool, données: $T, procéd
 {
     dossiers_à_visiter: Pile(CheminFichier);
     diffère détruit(dossiers_à_visiter);
-    dossiers_à_visiter.empile(CheminFichier(copie_chaine(dossier))) 
+    dossiers_à_visiter.empile(CheminFichier(copie_chaine(dossier)));
 
     info : InfoVisiteFichier = ---;
 

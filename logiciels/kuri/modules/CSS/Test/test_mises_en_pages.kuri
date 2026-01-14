@@ -157,7 +157,7 @@ visualise_fichiers :: fonc (chemin_navigateur: CheminFichier)
     chemin_courant := tente donne_chemin_courant() piège err {
         imprime("Impossible de déterminer le chemin courant : %\n", err);
         retourne;
-    }
+    };
 
     pour chemins_sources {
         impression := donne_texte_pour_sortie(it);
@@ -192,7 +192,7 @@ visualise_fichiers :: fonc (chemin_navigateur: CheminFichier)
             imprime("Appuyez sur entrée si le test passe, le fichier de sortie sera ajourné, sinon tapez \"non\" ou \"n\" pour passer au suivant\n");
             imprime("> ");
 
-            entrée := tente entrée_standarde().lis_tout() piège nonatteignable
+            entrée := tente entrée_standarde().lis_tout() piège nonatteignable;
             diffère déloge(entrée);
 
             réponse := recule(entrée, 1);

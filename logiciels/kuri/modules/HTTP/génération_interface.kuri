@@ -763,7 +763,7 @@ crée_pilote_client :: fonc (paramètres: *ParamètresGénérationInterface, esp
 
     chm_courant := tente donne_chemin_courant() piège _ {
         compilatrice_rapporte_erreur(espace, "Impossible de déterminer le chemin courant !\n");
-    }
+    };
 
     chm_dossier_pilote := chm_courant / paramètres.dossier_pilote;
     chm_fichier_pilote := chm_dossier_pilote / "module.kuri";

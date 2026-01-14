@@ -219,17 +219,17 @@ console_lis_clé :: fonc () -> CléConsole
     c := tente entrée_standarde().lis_caractère() piège _ {
         imprime("une erreur est survenue lors de la lecture de l'entrée !\n");
         retourne 0 comme CléConsole;
-    }
+    };
 
     si c == '\x1b' {
         seq: [3]z8;
 
-        seq[0] = tente entrée_standarde().lis_caractère() piège nonatteignable
-        seq[1] = tente entrée_standarde().lis_caractère() piège nonatteignable
+        seq[0] = tente entrée_standarde().lis_caractère() piège nonatteignable;
+        seq[1] = tente entrée_standarde().lis_caractère() piège nonatteignable;
 
         si seq[0] == '[' {
             si '0' <= seq[1] <= '9' {
-                seq[2] = tente entrée_standarde().lis_caractère() piège nonatteignable
+                seq[2] = tente entrée_standarde().lis_caractère() piège nonatteignable;
 
                 si seq[2] == '~' {
                     si seq[1] == '1' { retourne CléConsole.Début }

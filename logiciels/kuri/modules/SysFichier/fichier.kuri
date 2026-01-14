@@ -41,7 +41,7 @@ ouvre_fichier :: fonc (chemin: CheminFichier, raison: RaisonOuvertureFichier, pe
 {
     desc := tente système_ouvre(chemin, raison, permissions) piège err {
         retourne err;
-    }
+    };
 
     fichier: Fichier;
     fichier.desc = TypePoignéeFichier(desc);
@@ -97,7 +97,7 @@ crée_dossiers_pour_chemin :: fonc (chemin: CheminFichier, avec_feuille: bool) -
 
         tente système_crée_dossier(chemin_dossier, 0o755) piège err {
             retourne err;
-        }
+        };
     }
 
     retourne 0 comme ErreurFichier;
@@ -107,7 +107,7 @@ ouvre_fichier_crée_si_non_existant :: fonc (chemin: CheminFichier, raison: Rais
 {
     tente crée_dossiers_pour_chemin(chemin, faux) piège err {
         retourne err;
-    }
+    };
 
     /* Garantie la présence de ce drapeau. */
     raison.Création = vrai;
@@ -147,7 +147,7 @@ positionne_fichier :: fonc (fichier: *Fichier, position: PositionFichier) -> Ré
 {
     rés := tente système_positionne_fichier(fichier.desc, position) piège err {
         retourne err;
-    }
+    };
 
     retourne rés;
 }
@@ -161,7 +161,7 @@ copie_fichier :: fonc (source: CheminFichier, destination: CheminFichier) -> boo
 
     fichier_destination := tente ouvre_fichier_crée_si_non_existant(destination, pour_lecture_écriture_tronquée) piège _ {
         retourne faux;
-    }
+    };
 
     _ := écris(*fichier_destination, contenu_source);
     _ := ferme(*fichier_destination);
@@ -238,7 +238,7 @@ détermine_taille_fichier :: fonc (chemin: CheminFichier) -> n64
 {
     fichier := tente ouvre_fichier_pour_lecture(chemin) piège _ {
         retourne 0;
-    }
+    };
 
     diffère _ := ferme(*fichier);
 
@@ -251,11 +251,11 @@ détermine_taille_fichier :: fonc (fichier: *Fichier) -> z64
 {
     résultat := tente positionne_fichier(fichier, PositionFin(0)) piège _ {
         retourne 0;
-    }
+    };
 
     _ := tente positionne_fichier(fichier, PositionDébut(0)) piège _ {
         retourne 0;
-    }
+    };
 
     retourne résultat;
 }
@@ -268,7 +268,7 @@ est_fin_de_fichier :: fonc (fichier: *Fichier) -> bool
 {
     résultat := tente système_fin_de_fichier(fichier.desc) piège _ {
         retourne vrai;
-    }
+    };
 
     retourne résultat == 1;
 }
@@ -280,7 +280,7 @@ lis :: fonc (fichier: *Fichier, tampon: []octet) -> RésultatOpérationFichier
 {
     octets_lus := tente système_lis(fichier.desc, tampon.pointeur comme *z8, tampon.taille) piège err {
         retourne err;
-    }
+    };
 
     retourne octets_lus comme z32;
 }
@@ -296,7 +296,7 @@ lis_n64 :: fonc (fichier: *Fichier) -> RésultatLectureN64
 
     octets_lus := tente système_lis(fichier.desc, *tampon comme *z8, 8) piège err {
         retourne err;
-    }
+    };
 
     si octets_lus != 8 {
         retourne ErreurFichier.Inconnue;
@@ -311,7 +311,7 @@ lis_entier :: fonc (fichier: *Fichier, $T: type_de_données) -> Optionnel(T)
 
     octets_lus := tente lis(fichier, valeur) piège _ {
         retourne;
-    }
+    };
 
     si octets_lus != taille_de(T) comme z32 {
         retourne;
@@ -340,7 +340,7 @@ lis_caractère :: fonc (fichier: *Fichier) -> CaractèreOuErreurFichier
 
     octets_lus := tente système_lis(fichier.desc, *c, 1) piège err {
         retourne err;
-    }
+    };
 
     si octets_lus == 0 {
         retourne '\0';
@@ -377,7 +377,7 @@ lis_tout :: fonc (fichier: *Fichier, résultat: &[..]octet) -> ErreurFichier
         octets_lus := tente système_lis(fichier.desc, *tampon[0], TAILLE_MAX) piège err {
             déloge(résultat);
             retourne err;
-        }
+        };
 
         si octets_lus > 0 {
             ancienne_taille := résultat.taille;
@@ -405,7 +405,7 @@ lis_ligne :: fonc (fichier: *Fichier) -> ChaineOuErreurFichier
     boucle {
         octets_lus := tente système_lis(fichier.desc, *c, 1) piège err {
             retourne err;
-        }
+        };
 
         si octets_lus == 0 {
             arrête;
@@ -428,7 +428,7 @@ lis_tout_depuis_fichier :: fonc (fichier: *Fichier) -> ChaineOuErreurFichier
 {
     taille_fichier := tente positionne_fichier(fichier, PositionFin(0)) piège err {
         retourne err;
-    }
+    };
 
     si taille_fichier == 0 {
         retourne "";
@@ -436,14 +436,14 @@ lis_tout_depuis_fichier :: fonc (fichier: *Fichier) -> ChaineOuErreurFichier
 
     _ := tente positionne_fichier(fichier, PositionDébut(0)) piège err {
         retourne err;
-    }
+    };
 
     résultat := loge_chaine(taille_fichier);
 
     octets_lus := tente système_lis(fichier.desc, résultat.pointeur, résultat.taille) piège err {
         déloge(résultat);
         retourne err;
-    }
+    };
 
     retourne résultat;
 }

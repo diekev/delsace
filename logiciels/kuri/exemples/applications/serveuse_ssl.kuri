@@ -71,19 +71,19 @@ principale :: fonc ()
     ctx := tente initialise_contexte_ssl_serveur() piège err {
         imprime("erreur lors de l'initialisation du contexte SSL serveur : %\n", err);
         exit(1);
-    }
+    };
 
     diffère SSL_CTX_free(ctx);
 
     tente charge_certificats_ssl(ctx, "mycert.pem", "mycert.pem") piège err {
         imprime("erreur lors du chargements des certificats : %\n", err);
         exit(1);
-    }
+    };
 
     serveur := tente ouvre_connexion_serveur_pour_écoute(5005, 10) piège err {
         imprime("erreur lors de ouvre_connexion_serveur_pour_écoute : %\n", err);
         exit(1);
-    }
+    };
 
     diffère _ := ferme(*serveur);
 
