@@ -7,4 +7,4 @@ principale :: fonc ()
 {
 }
 
-foo :: fonc () -> #externe libc
+foo :: fonc () -> #externe libc;

@@ -1,100 +1,100 @@
-importe POSIX
+importe POSIX;
 
 depuis_timespec :: fonc (t: timespec, $T: type_de_données) -> T #enligne
 {
-    temps : T = ---
-    temps.seconde = t.tv_sec
-    temps.nanoseconde = t.tv_nsec
-    retourne temps
+    temps : T = ---;
+    temps.seconde = t.tv_sec;
+    temps.nanoseconde = t.tv_nsec;
+    retourne temps;
 }
 
 vers_timespec :: fonc (temps: $T) -> timespec #enligne
 {
-    t : timespec = ---
-    t.tv_sec = temps.seconde
-    t.tv_nsec = temps.nanoseconde
+    t : timespec = ---;
+    t.tv_sec = temps.seconde;
+    t.tv_nsec = temps.nanoseconde;
 
     /* Assainis les valeurs. Les valeurs négatives sont ignorées. Nous
      * laisserons le système nous dire ce qu'est le problème. */
     si t.tv_nsec > 999_999_999 {
-        t.tv_sec += (t.tv_nsec / 1_000_000_000)
-        t.tv_nsec %= 1_000_000_000
+        t.tv_sec += (t.tv_nsec / 1_000_000_000);
+        t.tv_nsec %= 1_000_000_000;
     }
 
-    retourne t
+    retourne t;
 }
 
 /* Retourne le temps monotonic du système. */
 système_instantané :: fonc () -> Instantané
 {
-    t: timespec
+    t: timespec;
     // @erreur
-    _ := clock_gettime(CLOCK_MONOTONIC_COARSE, *t)
+    _ := clock_gettime(CLOCK_MONOTONIC_COARSE, *t);
 
-    retourne depuis_timespec(t, Instantané)
+    retourne depuis_timespec(t, Instantané);
 }
 
 /* Retourne le temps monotonic précis du système, cette fonction est plus lente
  * que `système_instantané`. */
 système_instantané_précis :: fonc () -> Instantané
 {
-    t: timespec
+    t: timespec;
     // @erreur
-    _ := clock_gettime(CLOCK_MONOTONIC, *t)
+    _ := clock_gettime(CLOCK_MONOTONIC, *t);
 
-    retourne depuis_timespec(t, Instantané)
+    retourne depuis_timespec(t, Instantané);
 }
 
 /* Retourne le temps réel du système. */
 système_temps_réel :: fonc () -> TempsSystème
 {
-    t: timespec
+    t: timespec;
     // @erreur
-    _ := clock_gettime(CLOCK_REALTIME_COARSE, *t)
+    _ := clock_gettime(CLOCK_REALTIME_COARSE, *t);
 
-    retourne depuis_timespec(t, TempsSystème)
+    retourne depuis_timespec(t, TempsSystème);
 }
 
 /* Retourne le temps réel précis du système, cette fonction est plus lente
  * que `système_temps_réel`. */
 système_temps_réel_précis :: fonc () -> TempsSystème
 {
-    t: timespec
+    t: timespec;
     // @erreur
-    _ := clock_gettime(CLOCK_REALTIME, *t)
+    _ := clock_gettime(CLOCK_REALTIME, *t);
 
-    retourne depuis_timespec(t, TempsSystème)
+    retourne depuis_timespec(t, TempsSystème);
 }
 
 système_dors :: fonc (instant: Instantané) -> bool
 {
-    requis := vers_timespec(instant)
-    restant: timespec
+    requis := vers_timespec(instant);
+    restant: timespec;
 
     tantque nanosleep(*requis, *restant) != 0 {
-        errno := lis_errno()
+        errno := lis_errno();
 
         discr errno {
             EFAULT {
                 /* Le kernel n'a pas pu copié les informations depuis l'espace utilisateur.
                  * Il n'y a sans doute rien à faire. */
-                retourne faux
+                retourne faux;
             }
             EINTR {
                 /* Nous avons été interrompu. Recommençons à avec `restant`. */
-                requis = restant
-                init_de(timespec)(*restant)
+                requis = restant;
+                init_de(timespec)(*restant);
             }
             EINVAL {
                 /* Soit tv_nsec est supérieur à 999 999 999, ou nous avons une valeur négative. */
-                retourne faux
+                retourne faux;
             }
             sinon {
                 /* Erreur inconnue. */
-                retourne faux
+                retourne faux;
             }
         }
     }
 
-    retourne vrai
+    retourne vrai;
 }

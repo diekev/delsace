@@ -3,15 +3,15 @@
 probabilité_n_est_premier :: fonc (n: n64) -> r64
 {
     si n < 2 {
-        retourne 0.0
+        retourne 0.0;
     }
 
-    retourne 1.0 / log(n comme r64)
+    retourne 1.0 / log(n comme r64);
 }
 
 est_divisible_par :: fonc (n: n64, d: n64) -> bool
 {
-    retourne n % d == 0
+    retourne n % d == 0;
 }
 
 /* détermine si un nombre est premier via force brute */
@@ -23,114 +23,114 @@ est_premier :: fonc (n: n64) -> bool
      */
     pour 2 ... n - 1 {
         si est_divisible_par(n, it) {
-            retourne faux
+            retourne faux;
         }
     }
 
-    retourne vrai
+    retourne vrai;
 }
 
 est_puissance_de_2 :: fonc (n: n64) -> bool
 {
-    retourne (n & (n - 1)) == 0
+    retourne (n & (n - 1)) == 0;
 }
 
 est_un_moins_une_puissance_de_2 :: fonc (n: n64) -> bool
 {
-    retourne est_puissance_de_2(n + 1)
+    retourne est_puissance_de_2(n + 1);
 }
 
 est_premier_de_mersenne :: fonc (n: n64) -> bool
 {
     /* Un nombre premier de Mersenne a la forme 2^P - 1 */
     si !est_un_moins_une_puissance_de_2(n) {
-        retourne faux
+        retourne faux;
     }
 
-    retourne est_premier(n)
+    retourne est_premier(n);
 }
 
 trouve_premier_bit :: fonc (n: n64) -> n64
 {
-    position := 0
+    position := 0;
 
     pour 0 comme n64 ... 63 comme n64 {
         si (n & (1 << it)) != 0 {
-            retourne it
+            retourne it;
         }
     }
 
-    retourne 0
+    retourne 0;
 }
 
 // Après n == 92, un n64 ne peut contenir le résultat
 n_ième_nombre_de_lucas :: fonc (n: n64) -> n64
 {
-    précédent : n64 = 2
-    courant : n64 = 1
+    précédent : n64 = 2;
+    courant : n64 = 1;
 
     pour n - 1 {
-        tmp := précédent
-        précédent = courant
-        courant += tmp
+        tmp := précédent;
+        précédent = courant;
+        courant += tmp;
     }
 
-    retourne courant
+    retourne courant;
 }
 
 // Après n == 6, un n64 ne peut contenir le résultat
 n_ième_nombre_de_lucas_lehmer :: fonc (n: n64) -> n64
 {
-    courant : n64 = 4
+    courant : n64 = 4;
 
     pour n - 1 {
-        courant *= courant
-        courant -= 2
+        courant *= courant;
+        courant -= 2;
     }
 
-    retourne courant
+    retourne courant;
 }
 
 n_ième_nombre_de_lucas_lehmer_mod_m :: fonc (n: n64, m: n64) -> n64
 {
-    courant : n64 = 4
+    courant : n64 = 4;
 
     si n <= 1 {
-        retourne courant % m
+        retourne courant % m;
     }
 
     pour n - 1 {
-        courant *= courant
-        courant -= 2
-        courant %= m
+        courant *= courant;
+        courant -= 2;
+        courant %= m;
     }
 
-    retourne courant
+    retourne courant;
 }
 
 /* Un nombre est peut-être premier si n|Lucas(n) - 1 */
 est_premier_méthode_de_lucas :: fonc (n: n64) -> bool
 {
-    nombre_de_lucas := n_ième_nombre_de_lucas(n)
+    nombre_de_lucas := n_ième_nombre_de_lucas(n);
 
     si !est_divisible_par(nombre_de_lucas - 1, n) {
-        retourne faux
+        retourne faux;
     }
 
-    retourne est_premier(n)
+    retourne est_premier(n);
 }
 
 nombre_de_mersenne_depuis_puissance :: fonc (p: n64) -> n64
 {
-    retourne (1 << p) - 1
+    retourne (1 << p) - 1;
 }
 
 /* Un nombre n = 2^p - 1 est premier si le nombre Lucas-Lehmer(p - 1) est divisible par n. */
 est_premier_de_mersenne_puissance_seulement :: fonc (p: n64) -> bool
 {
-    n := nombre_de_mersenne_depuis_puissance(p)
-    nombre_de_lucas := n_ième_nombre_de_lucas_lehmer_mod_m(p - 1, n)
-    retourne nombre_de_lucas == 0
+    n := nombre_de_mersenne_depuis_puissance(p);
+    nombre_de_lucas := n_ième_nombre_de_lucas_lehmer_mod_m(p - 1, n);
+    retourne nombre_de_lucas == 0;
 }
 
 // rapide en ce que nous n'utilisons pas la force brute pour les nombres de Mersenne
@@ -138,19 +138,19 @@ est_premier_de_mersenne_puissance_seulement :: fonc (p: n64) -> bool
 est_premier_rapide :: fonc (n: n64) -> bool
 {
     si n == 0 {
-        retourne faux
+        retourne faux;
     }
 
     si n <= 3 {
-        retourne vrai
+        retourne vrai;
     }
 
     si est_un_moins_une_puissance_de_2(n) {
-        puissance := trouve_premier_bit(n - 1)
-        retourne est_premier_de_mersenne_puissance_seulement(puissance)
+        puissance := trouve_premier_bit(n - 1);
+        retourne est_premier_de_mersenne_puissance_seulement(puissance);
     }
 
-    retourne est_premier(n)
+    retourne est_premier(n);
 }
 
 // ---------------------------------------
@@ -159,46 +159,46 @@ est_premier_rapide :: fonc (n: n64) -> bool
 // p.e pour 123 retourne 1 * 2 * 3
 multiplication_des_chiffres :: fonc (n: n64) -> n64
 {
-    résultat : n64 = 1
+    résultat : n64 = 1;
 
     tantque n != 0 {
-        chiffre := n % 10
-        résultat *= chiffre
-        n /= 10
+        chiffre := n % 10;
+        résultat *= chiffre;
+        n /= 10;
     }
 
-    retourne résultat
+    retourne résultat;
 }
 
 // somme les chiffres du nombre n entre eux
 // p.e pour 123 retourne 1 + 2 + 3
 somme_des_chiffres :: fonc (n: n64) -> n64
 {
-    résultat : n64 = 0
+    résultat : n64 = 0;
 
     tantque n != 0 {
-        chiffre := n % 10
-        résultat += chiffre
-        n /= 10
+        chiffre := n % 10;
+        résultat += chiffre;
+        n /= 10;
     }
 
-    retourne résultat
+    retourne résultat;
 }
 
 // inverses l'ordre des chiffres du nombre n
 // p.e pour 123 retourne 321
 inverse_chiffres :: fonc (n: $T) -> T
 {
-    résultat : T = 0
+    résultat : T = 0;
 
     tantque n != 0 {
-        chiffre := n % 10
-        résultat *= 10
-        résultat += chiffre
-        n /= 10
+        chiffre := n % 10;
+        résultat *= 10;
+        résultat += chiffre;
+        n /= 10;
     }
 
-    retourne résultat
+    retourne résultat;
 }
 
 // retourne le nombre de fois que nous pouvons multiplier
@@ -210,14 +210,14 @@ inverse_chiffres :: fonc (n: $T) -> T
 // retournera 2, car l'opération est effecutuée 2 fois
 résistance_multiplicative :: fonc (n: n64) -> n64
 {
-    répétitions : n64 = 0
+    répétitions : n64 = 0;
 
     tantque n > 10 {
-        n = multiplication_des_chiffres(n)
-        répétitions += 1
+        n = multiplication_des_chiffres(n);
+        répétitions += 1;
     }
 
-    retourne répétitions
+    retourne répétitions;
 }
 
 /* Retourne le nombre de chiffres en base 10 du nombre passé en paramètre.
@@ -225,17 +225,17 @@ résistance_multiplicative :: fonc (n: n64) -> n64
 magnitude_décimale :: fonc (n: $T) -> T
 {
     si n == 0 {
-        retourne 1
+        retourne 1;
     }
 
-    résultat : T = 0
+    résultat : T = 0;
 
     tantque n != 0 {
-        résultat += 1
-        n /= 10
+        résultat += 1;
+        n /= 10;
     }
 
-    retourne résultat
+    retourne résultat;
 }
 
 /*

@@ -6,4 +6,4 @@ principale :: fonc ()
 {
 }
 
-foo :: fonc () -> z32 #externe libc
+foo :: fonc () -> z32 #externe libc;

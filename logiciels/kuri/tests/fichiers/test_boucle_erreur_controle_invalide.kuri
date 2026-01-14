@@ -3,7 +3,7 @@
 
 foo :: fonc () -> rien
 {
-	continue
+	continue;
 }
 
 // ------------------------------
@@ -11,5 +11,5 @@ foo :: fonc () -> rien
 
 foo :: fonc () -> rien
 {
-	arrête
+	arrête;
 }

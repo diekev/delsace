@@ -1,4 +1,4 @@
-importe Fondation
+importe Fondation;
 
 // Ce test existe à cause d'un bug dans la gestion des allocations dans la MachineVirtuelle révélé
 // par l'appel à imprime. Le bug étant que des variables dans des blocs étaient allouées sur la pile
@@ -6,12 +6,12 @@ importe Fondation
 
 test :: fonc ()
 {
-    imprime("Ça marche !\n")
+    imprime("Ça marche !\n");
 }
 
-#exécute test()
+#exécute test();
 
 principale :: fonc ()
 {
-    test()
+    test();
 }

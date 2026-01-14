@@ -1,23 +1,23 @@
-importe Compilatrice
-importe Fondation
+importe Compilatrice;
+importe Fondation;
 
 rapporte_erreur :: fonc ()
 {
-    options: OptionsCompilation
-    options.continue_si_erreur = vrai
+    options: OptionsCompilation;
+    options.continue_si_erreur = vrai;
 
-    espace := démarre_un_espace_de_travail("test", *options)
+    espace := démarre_un_espace_de_travail("test", *options);
 
-    compilatrice_rapporte_erreur(espace, "une erreur, oh non !")
+    compilatrice_rapporte_erreur(espace, "une erreur, oh non !");
 
     si compilatrice_possède_erreur(espace) {
-        imprime("Une erreur est survenue dans l'espace !\n")
+        imprime("Une erreur est survenue dans l'espace !\n");
     }
 }
 
-#exécute rapporte_erreur()
+#exécute rapporte_erreur();
 
 principale :: fonc ()
 {
-    imprime("SUCCÈS\n")
+    imprime("SUCCÈS\n");
 }

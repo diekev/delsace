@@ -4,7 +4,7 @@
 foo :: fonc () -> rien
 {
 	tabl : [3]z32;
-	taille := tabl.taille
+	taille := tabl.taille;
 }
 
 // -----------------------------------
@@ -13,7 +13,7 @@ foo :: fonc () -> rien
 foo :: fonc () -> rien
 {
 	tabl : []z32;
-	taille := tabl.taille
+	taille := tabl.taille;
 }
 
 // -----------------------------------

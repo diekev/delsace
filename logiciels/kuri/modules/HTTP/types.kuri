@@ -1,32 +1,32 @@
 /* Type pour les redirections. */
 Redirection :: struct {
-    chemin_redirection: chaine
+    chemin_redirection: chaine;
 }
 
 /* Indique un changement de protocole, pour WebSocket. */
 ChangementProtocole :: struct {
     /* La valeur de Sec-WebSocket-Accept. */
-    sec_websocket_accept: chaine
+    sec_websocket_accept: chaine;
 }
 
 message_depuis_changement_protocole :: fonc (changement: ChangementProtocole) -> MessageServeuseHTTP
 {
-    message: MessageServeuseHTTP
-    message.version = "HTTP/1.1"
-    ajoute_entête(*message, "Upgrade", "websocket")
-    ajoute_entête(*message, "Connection", "Upgrade")
-    ajoute_entête(*message, "Sec-WebSocket-Accept", changement.sec_websocket_accept)
-    message.code_état = CodeÉtatHTTP.SWITCHING_PROTOCOL
+    message: MessageServeuseHTTP;
+    message.version = "HTTP/1.1";
+    ajoute_entête(*message, "Upgrade", "websocket");
+    ajoute_entête(*message, "Connection", "Upgrade");
+    ajoute_entête(*message, "Sec-WebSocket-Accept", changement.sec_websocket_accept);
+    message.code_état = CodeÉtatHTTP.SWITCHING_PROTOCOL;
 
-    retourne message
+    retourne message;
 }
 
 /* Type pour les résultats des routes.
  * Toutes les routes doivent retourner un type dérivé de celui-ci. */
 RésultatServeuseHTTP :: union ($T: type_de_données) {
-    valeur: T
-    redirection: Redirection
-    erreur_http: ErreurHTTP
-    contenu_http: CodeEtContenuHTPP
-    changement_protocol: ChangementProtocole
+    valeur: T;
+    redirection: Redirection;
+    erreur_http: ErreurHTTP;
+    contenu_http: CodeEtContenuHTPP;
+    changement_protocol: ChangementProtocole;
 }

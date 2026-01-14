@@ -5,15 +5,15 @@
  */
 
 Polymorphe :: struct ($T: type_de_données) {
-    x: T
+    x: T;
 }
 
 Interface :: struct {
     /* Les paramètres de monomorphisation manquent. */
-    rappel: fonc (poly: Polymorphe)
+    rappel: fonc (poly: Polymorphe);
 }
 
 principale :: fonc ()
 {
-    i: Interface
+    i: Interface;
 }

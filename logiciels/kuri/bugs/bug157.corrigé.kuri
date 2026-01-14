@@ -6,6 +6,6 @@
 principale :: fonc ()
 {
     pour 10 {
-        reprends it + 5
+        reprends it + 5;
     }
 }

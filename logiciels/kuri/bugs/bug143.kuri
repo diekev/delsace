@@ -3,16 +3,16 @@
  */
 
 SélecteurType :: struct ($N: z32) {
-    TypeTableau :: [N]z32
+    TypeTableau :: [N]z32;
 }
 
 retourne_structure :: fonc ($N: z32) -> [..]SélecteurType(N).TypeTableau
 {
-    résultat: [..][N]z32
-    retourne résultat
+    résultat: [..][N]z32;
+    retourne résultat;
 }
 
 principale :: fonc ()
 {
-    _ := retourne_structure(5)
+    _ := retourne_structure(5);
 }

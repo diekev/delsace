@@ -1,162 +1,162 @@
 // Interface pour la bibliothèque OpenSSL 1.1
 
-importe Chaine
-importe Fondation
-importe SysFichier
+importe Chaine;
+importe Fondation;
+importe SysFichier;
 
-charge "interface_openssl"
+charge "interface_openssl";
 
 // ----------------------------------------------------------------------------
 
 ErreurCertificat :: erreur {
-    FichierCertificationInvalide
-    FichierCléInvalide
-    MésappariementClésPubliquePrivée
+    FichierCertificationInvalide;
+    FichierCléInvalide;
+    MésappariementClésPubliquePrivée;
 }
 
 charge_certificats_ssl :: fonc (ctx: *SSL_CTX, chemin_fichier_certificat: chaine, chemin_fichier_clé: chaine) -> ErreurCertificat
 {
-    ptr_chemin_certificat := crée_chaine_c(chemin_fichier_certificat)
-    diffère détruit_chaine_c(ptr_chemin_certificat)
+    ptr_chemin_certificat := crée_chaine_c(chemin_fichier_certificat);
+    diffère détruit_chaine_c(ptr_chemin_certificat);
     si SSL_CTX_use_certificate_file(ctx, ptr_chemin_certificat, SSL_FILETYPE_PEM) <= 0 {
-        retourne ErreurCertificat.FichierCertificationInvalide
+        retourne ErreurCertificat.FichierCertificationInvalide;
     }
 
-    ptr_chemin_clé := crée_chaine_c(chemin_fichier_clé)
-    diffère détruit_chaine_c(ptr_chemin_clé)
+    ptr_chemin_clé := crée_chaine_c(chemin_fichier_clé);
+    diffère détruit_chaine_c(ptr_chemin_clé);
     si SSL_CTX_use_PrivateKey_file(ctx, ptr_chemin_clé, SSL_FILETYPE_PEM) <= 0 {
-        retourne ErreurCertificat.FichierCléInvalide
+        retourne ErreurCertificat.FichierCléInvalide;
     }
 
     si SSL_CTX_check_private_key(ctx) == 0 {
-        retourne ErreurCertificat.MésappariementClésPubliquePrivée
+        retourne ErreurCertificat.MésappariementClésPubliquePrivée;
     }
 
-    retourne 0 comme ErreurCertificat
+    retourne 0 comme ErreurCertificat;
 }
 
 imprime_certificats_ssl :: fonc (ssl: *SSL_CTX) -> rien
 {
-    cert := SSL_get_peer_certificate(ssl)
+    cert := SSL_get_peer_certificate(ssl);
 
     si cert == nul {
-        imprime("Aucun certificats !\n")
-        retourne
+        imprime("Aucun certificats !\n");
+        retourne;
     }
 
-    imprime("Certificats serveurs :\n")
+    imprime("Certificats serveurs :\n");
 
-    line := X509_NAME_oneline(X509_get_subject_name(cert), nul, 0)
-    imprime("Sujet :\n%\n", convertis_chaine_c(line))
-    free(line comme *z8)
+    line := X509_NAME_oneline(X509_get_subject_name(cert), nul, 0);
+    imprime("Sujet :\n%\n", convertis_chaine_c(line));
+    free(line comme *z8);
 
-    line = X509_NAME_oneline(X509_get_issuer_name(cert), nul, 0)
-    imprime("Émetteur :\n%\n", convertis_chaine_c(line))
-    free(line comme *z8)
+    line = X509_NAME_oneline(X509_get_issuer_name(cert), nul, 0);
+    imprime("Émetteur :\n%\n", convertis_chaine_c(line));
+    free(line comme *z8);
 
-    X509_free(cert)
+    X509_free(cert);
 }
 
 ErreurInitialisationSSL :: erreur {
-    NePeutCréerMéthode
-    NePeutCréerContexte
+    NePeutCréerMéthode;
+    NePeutCréerContexte;
 }
 
 ErreurOuContexteSSL :: union {
-    c: *SSL_CTX
-    e: ErreurInitialisationSSL
+    c: *SSL_CTX;
+    e: ErreurInitialisationSSL;
 }
 
 initialise_contexte_ssl_client :: fonc () -> ErreurOuContexteSSL
 {
-    SSL_library_init()
-    OpenSSL_add_ssl_algorithms()
-    SSL_load_error_strings()
+    SSL_library_init();
+    OpenSSL_add_ssl_algorithms();
+    SSL_load_error_strings();
 
-    method := TLS_client_method()
+    method := TLS_client_method();
 
     si method == nul {
-        retourne ErreurInitialisationSSL.NePeutCréerMéthode
+        retourne ErreurInitialisationSSL.NePeutCréerMéthode;
     }
 
-    ctx := SSL_CTX_new(method)
+    ctx := SSL_CTX_new(method);
 
     si ctx == nul {
         //convertis_erreur_ssl(nul, 0)
-        retourne ErreurInitialisationSSL.NePeutCréerContexte
+        retourne ErreurInitialisationSSL.NePeutCréerContexte;
     }
 
-    retourne ctx
+    retourne ctx;
 }
 
 initialise_contexte_ssl_serveur :: fonc () -> ErreurOuContexteSSL
 {
-    SSL_library_init()
-    OpenSSL_add_all_algorithms()
-    SSL_load_error_strings()
+    SSL_library_init();
+    OpenSSL_add_all_algorithms();
+    SSL_load_error_strings();
 
-    method := TLS_server_method()
+    method := TLS_server_method();
 
     si method == nul {
-        retourne ErreurInitialisationSSL.NePeutCréerMéthode
+        retourne ErreurInitialisationSSL.NePeutCréerMéthode;
     }
 
-    ctx := SSL_CTX_new(method)
+    ctx := SSL_CTX_new(method);
 
     si ctx == nul {
         //convertis_erreur_ssl(nul, 0)
-        retourne ErreurInitialisationSSL.NePeutCréerContexte
+        retourne ErreurInitialisationSSL.NePeutCréerContexte;
     }
 
-    retourne ctx
+    retourne ctx;
 }
 
 ErreurSSL :: erreur {
-    LectureAttendue
-    ÉcritureAttendue
-    ConnexionAttendue
-    AcceptationAttendue
-    RécupérationX509Attendue
-    SSL
-    Aucune
-    RetourneZéro
-    AppelSystème
+    LectureAttendue;
+    ÉcritureAttendue;
+    ConnexionAttendue;
+    AcceptationAttendue;
+    RécupérationX509Attendue;
+    SSL;
+    Aucune;
+    RetourneZéro;
+    AppelSystème;
 }
 
 convertis_erreur_ssl :: fonc (ssl: *ssl_st, code_erreur: z32) -> ErreurSSL
 {
-    erreur_ssl := SSL_get_error(ssl, code_erreur)
+    erreur_ssl := SSL_get_error(ssl, code_erreur);
 
     discr erreur_ssl {
         SSL_ERROR_NONE {
-            retourne ErreurSSL.Aucune
+            retourne ErreurSSL.Aucune;
         }
         SSL_ERROR_ZERO_RETURN {
-            retourne ErreurSSL.RetourneZéro
+            retourne ErreurSSL.RetourneZéro;
         }
         SSL_ERROR_WANT_READ {
-            retourne ErreurSSL.LectureAttendue
+            retourne ErreurSSL.LectureAttendue;
         }
         SSL_ERROR_WANT_WRITE {
-            retourne ErreurSSL.ÉcritureAttendue
+            retourne ErreurSSL.ÉcritureAttendue;
         }
         SSL_ERROR_WANT_CONNECT {
-            retourne ErreurSSL.ConnexionAttendue
+            retourne ErreurSSL.ConnexionAttendue;
         }
         SSL_ERROR_WANT_ACCEPT {
-            retourne ErreurSSL.AcceptationAttendue
+            retourne ErreurSSL.AcceptationAttendue;
         }
         SSL_ERROR_WANT_X509_LOOKUP {
-            retourne ErreurSSL.RécupérationX509Attendue
+            retourne ErreurSSL.RécupérationX509Attendue;
         }
         SSL_ERROR_SYSCALL {
-            retourne ErreurSSL.AppelSystème
+            retourne ErreurSSL.AppelSystème;
         }
         SSL_ERROR_SSL {
-            retourne ErreurSSL.SSL
+            retourne ErreurSSL.SSL;
         }
         sinon {
-            retourne ErreurSSL.SSL
+            retourne ErreurSSL.SSL;
         }
     }
 }
@@ -164,90 +164,90 @@ convertis_erreur_ssl :: fonc (ssl: *ssl_st, code_erreur: z32) -> ErreurSSL
 // Puisque sur les systèmes UNIX tout est un fichier, les prises sont des fichiers, donc utilisons
 // l'interface d'un fichier pour envelopper la logique de lecture et d'écriture pour une connexion SSL
 FichierSSL :: struct {
-    fichier: Fichier
-    ssl: *ssl_st
+    fichier: Fichier;
+    ssl: *ssl_st;
 }
 
 FichierOuErreurSSL :: union {
-    f: FichierSSL
-    e: ErreurSSL
+    f: FichierSSL;
+    e: ErreurSSL;
 }
 
 ouvre_fichier_ssl :: fonc (ctx_ssl: *SSL_CTX, fichier: Fichier) -> FichierOuErreurSSL
 {
-    m_ssl := SSL_new(ctx_ssl)
+    m_ssl := SSL_new(ctx_ssl);
 
     si m_ssl == nul {
-        retourne convertis_erreur_ssl(m_ssl, 0)
+        retourne convertis_erreur_ssl(m_ssl, 0);
     }
 
     si SSL_set_fd(m_ssl, fichier.desc comme z32) == 0 {
-        retourne convertis_erreur_ssl(m_ssl, 0)
+        retourne convertis_erreur_ssl(m_ssl, 0);
     }
 
-    connexion := SSL_connect(m_ssl)
+    connexion := SSL_connect(m_ssl);
 
     si connexion <= 0 {
-        retourne convertis_erreur_ssl(m_ssl, 0)
+        retourne convertis_erreur_ssl(m_ssl, 0);
     }
 
-    fichier_ssl: FichierSSL
-    fichier_ssl.fichier = fichier
-    fichier_ssl.ssl = m_ssl
-    retourne fichier_ssl
+    fichier_ssl: FichierSSL;
+    fichier_ssl.fichier = fichier;
+    fichier_ssl.ssl = m_ssl;
+    retourne fichier_ssl;
 }
 
 écris :: fonc (fichier: *FichierSSL, texte: chaine) -> ErreurSSL
 {
-    taille := SSL_write(fichier.ssl, texte.pointeur, texte.taille comme z32)
+    taille := SSL_write(fichier.ssl, texte.pointeur, texte.taille comme z32);
 
     si taille <= 0 {
-        retourne convertis_erreur_ssl(fichier.ssl, taille)
+        retourne convertis_erreur_ssl(fichier.ssl, taille);
     }
 
-    retourne 0 comme ErreurSSL
+    retourne 0 comme ErreurSSL;
 }
 
 ChaineOuErreurSSL :: union {
-    c: chaine
-    e: ErreurSSL
+    c: chaine;
+    e: ErreurSSL;
 }
 
 lis_tout :: fonc (fichier: *FichierSSL) -> ChaineOuErreurSSL
 {
-    TAILLE_MAX_DONNÉES :: 1024
-    tampon: [TAILLE_MAX_DONNÉES]z8
-    résultat: chaine
+    TAILLE_MAX_DONNÉES :: 1024;
+    tampon: [TAILLE_MAX_DONNÉES]z8;
+    résultat: chaine;
 
     boucle {
-        taille := SSL_read(fichier.ssl, *tampon[0], TAILLE_MAX_DONNÉES)
+        taille := SSL_read(fichier.ssl, *tampon[0], TAILLE_MAX_DONNÉES);
 
         si taille > 0 {
-            ancienne_taille := résultat.taille
-            reloge_chaine(résultat, résultat.taille + taille)
-            copie_mem_nonsur(src = *tampon[0], dst = *résultat[ancienne_taille], taille = taille comme z64)
+            ancienne_taille := résultat.taille;
+            reloge_chaine(résultat, résultat.taille + taille);
+            copie_mem_nonsur(src = *tampon[0], dst = *résultat[ancienne_taille], taille = taille comme z64);
         }
         sinon si taille == 0 {
-            arrête
+            arrête;
         }
         sinon {
-            err := convertis_erreur_ssl(fichier.ssl, taille)
+            err := convertis_erreur_ssl(fichier.ssl, taille);
 
             si err != ErreurSSL.Aucune && err != ErreurSSL.RetourneZéro {
-                retourne convertis_erreur_ssl(fichier.ssl, taille)
+                retourne convertis_erreur_ssl(fichier.ssl, taille);
             }
         }
     }
 
-    retourne résultat
+    retourne résultat;
 }
 
 ferme :: fonc (fichier: *FichierSSL) -> rien
 {
-    _ := tente ferme(*fichier.fichier) piège nonatteignable
+    _ := tente ferme(*fichier.fichier) piège nonatteignable;
 
     si fichier.ssl {
-        SSL_free(fichier.ssl)
+        SSL_free(fichier.ssl);
     }
 }
 
@@ -257,22 +257,22 @@ ferme :: fonc (fichier: *FichierSSL) -> rien
 efface_file_erreur_locale :: fonc (code: z32)
 {
     si code == SSL_ERROR_SSL || code == SSL_ERROR_SYSCALL {
-        ERR_clear_error()
+        ERR_clear_error();
     }
 }
 
 // ------------------------------------------------------------------------
 
 OptionsCréationContexteSSL :: struct {
-    fichier_clé: chaine
-    fichier_certificat: chaine
-    phrase_de_passe: chaine
-    fichier_paramètres_dh: chaine
-    fichier_ca: chaine
+    fichier_clé: chaine;
+    fichier_certificat: chaine;
+    phrase_de_passe: chaine;
+    fichier_paramètres_dh: chaine;
+    fichier_ca: chaine;
 
     /* Cette option est importante pour diminuer la quantité de mémoire utilisée,
      * mais elle dimininue un peu la vittesse d'exécution du programme. */
-    préfère_utilisation_mémoire_basse: bool
+    préfère_utilisation_mémoire_basse: bool;
 }
 
 /* Détruit un SSL_CTX créé depuis des OptionsCréationContexteSSL */
@@ -280,16 +280,16 @@ détruit_contexte_ssl :: fonc (contexte_ssl: *SSL_CTX)
 {
     /* Il est possible qu'un pointeur nul soit passé. */
     saufsi contexte_ssl {
-        retourne
+        retourne;
     }
 
-    phrase_de_passe := SSL_CTX_get_default_passwd_cb_userdata(contexte_ssl)
+    phrase_de_passe := SSL_CTX_get_default_passwd_cb_userdata(contexte_ssl);
     si phrase_de_passe {
-        chn_c_phrasse_de_passe := ChaineC(phrase_de_passe comme *z8)
-        détruit_chaine_c(chn_c_phrasse_de_passe)
+        chn_c_phrasse_de_passe := ChaineC(phrase_de_passe comme *z8);
+        détruit_chaine_c(chn_c_phrasse_de_passe);
     }
 
-    SSL_CTX_free(contexte_ssl)
+    SSL_CTX_free(contexte_ssl);
 }
 
 /* Fonction de rappel pour demander la phrase de passe pour le chiffrage ou déchiffrage d'un fichier certificat.
@@ -305,12 +305,12 @@ détruit_contexte_ssl :: fonc (contexte_ssl: *SSL_CTX)
  */
 rappel_pour_phrase_de_passe :: fonc (tampon: *z8, taille: z32 @inutilisée, drapeaux_lecture_écriture: z32 @inutilisée, données: *rien) -> z32
 {
-    phrase_de_passe := données comme *ChaineC
-    taille_phrase_de_passe := taille_chaine_c(mémoire(phrase_de_passe))
+    phrase_de_passe := données comme *ChaineC;
+    taille_phrase_de_passe := taille_chaine_c(mémoire(phrase_de_passe));
 
-    copie_mem_nonsur(dst = tampon, src = phrase_de_passe, taille = taille_phrase_de_passe)
+    copie_mem_nonsur(dst = tampon, src = phrase_de_passe, taille = taille_phrase_de_passe);
 
-    retourne taille_phrase_de_passe comme z32
+    retourne taille_phrase_de_passe comme z32;
 }
 
 /* Retourne un SSL_CTX paramétré selon les OptionsCréationContexteSSL, ou nul si impossible.
@@ -320,140 +320,140 @@ rappel_pour_phrase_de_passe :: fonc (tampon: *z8, taille: z32 @inutilisée, drap
 crée_contexte_ssl_depuis_options :: fonc (options: &OptionsCréationContexteSSL) -> *SSL_CTX
 {
     /* Crée le contexte */
-    contexte_ssl := SSL_CTX_new(TLS_method())
+    contexte_ssl := SSL_CTX_new(TLS_method());
 
     /* Options par défaut pour ConnexionTCP
      * À FAIRE : paramétrise. */
-    SSL_CTX_set_read_ahead(contexte_ssl, 1)
-    _ := SSL_CTX_set_mode(contexte_ssl, SSL_MODE_ACCEPT_MOVING_WRITE_BUFFER)
+    SSL_CTX_set_read_ahead(contexte_ssl, 1);
+    _ := SSL_CTX_set_mode(contexte_ssl, SSL_MODE_ACCEPT_MOVING_WRITE_BUFFER);
 
     /* Requiers TLS 1.2 minimum.
      * À FAIRE : paramétrise. */
     si SSL_CTX_set_min_proto_version(contexte_ssl, TLS1_2_VERSION) == 0 {
-        détruit_contexte_ssl(contexte_ssl)
-        retourne nul
+        détruit_contexte_ssl(contexte_ssl);
+        retourne nul;
     }
 
     saufsi initialise_contexte_ssl_depuis_options(contexte_ssl, options) {
-        détruit_contexte_ssl(contexte_ssl)
-        retourne nul
+        détruit_contexte_ssl(contexte_ssl);
+        retourne nul;
     }
 
-    retourne contexte_ssl
+    retourne contexte_ssl;
 }
 
 initialise_contexte_ssl_depuis_options :: fonc (contexte_ssl: *SSL_CTX, options: &OptionsCréationContexteSSL) -> bool
 {
     si options.préfère_utilisation_mémoire_basse {
-        _ := SSL_CTX_set_mode(contexte_ssl, SSL_MODE_RELEASE_BUFFERS)
+        _ := SSL_CTX_set_mode(contexte_ssl, SSL_MODE_RELEASE_BUFFERS);
     }
 
     si options.phrase_de_passe {
         /* Lors de la destruction du SSL_CTX, il faut utiliser SSL_CTX_get_default_passwd_cb_userdata
          * et manuellement libérer la ChaineC si présente. */
-        chn_c_phrasse_de_passe := crée_chaine_c(options.phrase_de_passe)
-        SSL_CTX_set_default_passwd_cb_userdata(contexte_ssl, chn_c_phrasse_de_passe comme *z8)
-        SSL_CTX_set_default_passwd_cb(contexte_ssl, rappel_pour_phrase_de_passe)
+        chn_c_phrasse_de_passe := crée_chaine_c(options.phrase_de_passe);
+        SSL_CTX_set_default_passwd_cb_userdata(contexte_ssl, chn_c_phrasse_de_passe comme *z8);
+        SSL_CTX_set_default_passwd_cb(contexte_ssl, rappel_pour_phrase_de_passe);
     }
 
     si options.fichier_certificat {
         saufsi contexte_ssl_charge_fichier_certificat(contexte_ssl, options.fichier_certificat) {
-            retourne faux
+            retourne faux;
         }
     }
 
     si options.fichier_clé {
         saufsi contexte_ssl_charge_fichier_clé_privée(contexte_ssl, options.fichier_clé) {
-            retourne faux
+            retourne faux;
         }
     }
 
     si options.fichier_ca {
         saufsi contexte_ssl_charge_fichier_ca(contexte_ssl, options.fichier_ca) {
-            retourne faux
+            retourne faux;
         }
     }
 
     si options.fichier_paramètres_dh {
         saufsi contexte_ssl_charge_paramètres_dh(contexte_ssl, options.fichier_paramètres_dh) {
-            retourne faux
+            retourne faux;
         }
     }
 
-    retourne vrai
+    retourne vrai;
 }
 
 contexte_ssl_charge_fichier_certificat :: fonc (contexte_ssl: *SSL_CTX, fichier_certificat: chaine) -> bool
 {
-    chn_c_fichier_certificat := crée_chaine_c(fichier_certificat)
-    diffère détruit_chaine_c(chn_c_fichier_certificat)
-    retourne SSL_CTX_use_certificate_chain_file(contexte_ssl, chn_c_fichier_certificat) == 1
+    chn_c_fichier_certificat := crée_chaine_c(fichier_certificat);
+    diffère détruit_chaine_c(chn_c_fichier_certificat);
+    retourne SSL_CTX_use_certificate_chain_file(contexte_ssl, chn_c_fichier_certificat) == 1;
 }
 
 contexte_ssl_charge_fichier_clé_privée :: fonc (contexte_ssl: *SSL_CTX, fichier_clé: chaine) -> bool
 {
-    chn_c_fichier_clé := crée_chaine_c(fichier_clé)
-    diffère détruit_chaine_c(chn_c_fichier_clé)
-    retourne SSL_CTX_use_PrivateKey_file(contexte_ssl, chn_c_fichier_clé, SSL_FILETYPE_PEM) == 1
+    chn_c_fichier_clé := crée_chaine_c(fichier_clé);
+    diffère détruit_chaine_c(chn_c_fichier_clé);
+    retourne SSL_CTX_use_PrivateKey_file(contexte_ssl, chn_c_fichier_clé, SSL_FILETYPE_PEM) == 1;
 }
 
 contexte_ssl_charge_fichier_ca :: fonc (contexte_ssl: *SSL_CTX, fichier_ca: chaine) -> bool
 {
-    chn_c_fichier_ca := crée_chaine_c(fichier_ca)
-    diffère détruit_chaine_c(chn_c_fichier_ca)
+    chn_c_fichier_ca := crée_chaine_c(fichier_ca);
+    diffère détruit_chaine_c(chn_c_fichier_ca);
 
-    ca_list := SSL_load_client_CA_file(chn_c_fichier_ca)
+    ca_list := SSL_load_client_CA_file(chn_c_fichier_ca);
 
     si ca_list == nul {
-        retourne faux
+        retourne faux;
     }
 
-    SSL_CTX_set_client_CA_list(contexte_ssl, ca_list)
+    SSL_CTX_set_client_CA_list(contexte_ssl, ca_list);
 
     si SSL_CTX_load_verify_locations(contexte_ssl, chn_c_fichier_ca, ChaineC(nul)) != 1 {
-        retourne faux
+        retourne faux;
     }
 
-    SSL_CTX_set_verify(contexte_ssl, SSL_VERIFY_PEER, nul)
-    retourne vrai
+    SSL_CTX_set_verify(contexte_ssl, SSL_VERIFY_PEER, nul);
+    retourne vrai;
 }
 
 /* Initialise les paramètres DH éphémères depuis un fichier.
  * Retourne vrai en cas de réussite, faux le cas échéant. */
 contexte_ssl_charge_paramètres_dh :: fonc (contexte_ssl: *SSL_CTX, fichier_paramètres_dh: chaine) -> bool
 {
-    _, contenu := contenu_fichier_texte(fichier_paramètres_dh)
+    _, contenu := contenu_fichier_texte(fichier_paramètres_dh);
 
     saufsi contenu {
-        retourne faux
+        retourne faux;
     }
 
-    bio := BIO_new_mem_buf(contenu.pointeur, contenu.taille comme z32)
-    diffère _ := BIO_free(bio)
+    bio := BIO_new_mem_buf(contenu.pointeur, contenu.taille comme z32);
+    diffère _ := BIO_free(bio);
 
     saufsi bio {
-        retourne faux
+        retourne faux;
     }
 
-    dh_2048 := PEM_read_bio_DHparams(bio, nul, nul, nul)
+    dh_2048 := PEM_read_bio_DHparams(bio, nul, nul, nul);
 
     saufsi dh_2048 {
-        retourne faux
+        retourne faux;
     }
 
-    diffère DH_free(dh_2048)
+    diffère DH_free(dh_2048);
 
     si SSL_CTX_set_tmp_dh(contexte_ssl, dh_2048) != 1 {
-        retourne faux
+        retourne faux;
     }
 
     /* OWASP Cipher String 'A+' (https://www.owasp.org/index.php/TLS_Cipher_String_Cheat_Sheet) */
-    controle := crée_chaine_c("DHE-RSA-AES256-GCM-SHA384:DHE-RSA-AES128-GCM-SHA256:ECDHE-RSA-AES256-GCM-SHA384:ECDHE-RSA-AES128-GCM-SHA256")
-    diffère détruit_chaine_c(controle)
+    controle := crée_chaine_c("DHE-RSA-AES256-GCM-SHA384:DHE-RSA-AES128-GCM-SHA256:ECDHE-RSA-AES256-GCM-SHA384:ECDHE-RSA-AES128-GCM-SHA256");
+    diffère détruit_chaine_c(controle);
 
     si SSL_CTX_set_cipher_list(contexte_ssl, controle) != 1 {
-        retourne faux
+        retourne faux;
     }
 
-    retourne vrai
+    retourne vrai;
 }

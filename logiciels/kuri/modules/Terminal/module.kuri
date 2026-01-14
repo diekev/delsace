@@ -1,30 +1,30 @@
 // Module d'interface avec le terminal/la console
 
-importe Chaine
-importe Fondation
-importe SysFichier
+importe Chaine;
+importe Fondation;
+importe SysFichier;
 
 CouleurTerminal :: énum {
-    BLANC
-    BLEU
-    CYAN
-    GRIS
-    JAUNE
-    MAGENTA
-    ROUGE
-    VERT
+    BLANC;
+    BLEU;
+    CYAN;
+    GRIS;
+    JAUNE;
+    MAGENTA;
+    ROUGE;
+    VERT;
 }
 
 StyleTexte :: énum {
-    RÉINIT
-    GRAS
-    FONCÉ
-    ITALIC
-    SOUSLIGNÉ
-    CLIGNOTE
-    INVERSE
-    CACHE
-    CROISÉ
+    RÉINIT;
+    GRAS;
+    FONCÉ;
+    ITALIC;
+    SOUSLIGNÉ;
+    CLIGNOTE;
+    INVERSE;
+    CACHE;
+    CROISÉ;
 }
 
 chaine_style_texte :: fonc (style: StyleTexte) -> chaine
@@ -41,7 +41,7 @@ chaine_style_texte :: fonc (style: StyleTexte) -> chaine
         CROISÉ { retourne "\x1b[9m" }
     }
 
-    retourne ""
+    retourne "";
 }
 
 chaine_pour_avant_plan :: fonc (couleur: CouleurTerminal) -> chaine
@@ -57,7 +57,7 @@ chaine_pour_avant_plan :: fonc (couleur: CouleurTerminal) -> chaine
         BLANC { retourne "\x1b[37m" }
     }
 
-    retourne ""
+    retourne "";
 }
 
 chaine_pour_arrière_plan :: fonc (couleur: CouleurTerminal) -> chaine
@@ -73,7 +73,7 @@ chaine_pour_arrière_plan :: fonc (couleur: CouleurTerminal) -> chaine
         BLANC { retourne "\x1b[47m" }
     }
 
-    retourne ""
+    retourne "";
 }
 
 // --------------------------------------------
@@ -81,51 +81,51 @@ chaine_pour_arrière_plan :: fonc (couleur: CouleurTerminal) -> chaine
 demande_utilisateur :: fonc (message: chaine)
 {
     si message {
-        imprime("> % : ", message)
+        imprime("> % : ", message);
     }
     sinon {
-        imprime("> ")
+        imprime("> ");
     }
 }
 
 lis_réponse_utilisateur :: fonc () -> chaine
 {
-    réponse := entrée_standarde().lis_tout()
-    réponse = recule(réponse, 1)
-    retourne réponse
+    réponse := entrée_standarde().lis_tout();
+    réponse = recule(réponse, 1);
+    retourne réponse;
 }
 
 DécisionBoucleLEIB :: énum {
-    Continue
-    Arrête
+    Continue;
+    Arrête;
 }
 
 // Lis Exécute Imprime Boucle
 // Read Execute Print Loop
 LEIB :: struct {
-    rappel_chaine_prompt: fonc (leib: *LEIB) -> chaine
-    rappel_exécute: fonc (leib: *LEIB, commande: chaine) -> DécisionBoucleLEIB
+    rappel_chaine_prompt: fonc (leib: *LEIB) -> chaine;
+    rappel_exécute: fonc (leib: *LEIB, commande: chaine) -> DécisionBoucleLEIB;
 }
 
 lance :: fonc (leib: *LEIB)
 {
     saufsi leib.rappel_exécute {
-        retourne
+        retourne;
     }
 
     boucle {
-        chaine_prompt := ""
+        chaine_prompt := "";
         si leib.rappel_chaine_prompt {
-            chaine_prompt = leib.rappel_chaine_prompt(leib)
+            chaine_prompt = leib.rappel_chaine_prompt(leib);
         }
 
-        demande_utilisateur(chaine_prompt)
-        entrée := lis_réponse_utilisateur()
+        demande_utilisateur(chaine_prompt);
+        entrée := lis_réponse_utilisateur();
 
-        décision := leib.rappel_exécute(leib, entrée)
+        décision := leib.rappel_exécute(leib, entrée);
 
         si décision == DécisionBoucleLEIB.Arrête {
-            arrête
+            arrête;
         }
     }
 }

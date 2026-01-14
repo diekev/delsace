@@ -3,12 +3,12 @@
  * Catégorie : [syntaxage, expression virgule]
  */
 
-importe Fondation
+importe Fondation;
 
 Structure :: struct {
-    x: z32
-    y: z32
-    z: z32
+    x: z32;
+    y: z32;
+    z: z32;
 }
 
 principale :: fonc ()
@@ -17,9 +17,9 @@ principale :: fonc ()
         x = 1,
         y = 2
         z = 3
-    )
+    );
 
-    assert(s.x == 1)
-    assert(s.y == 2)
-    assert(s.z == 3)
+    assert(s.x == 1);
+    assert(s.y == 2);
+    assert(s.z == 3);
 }

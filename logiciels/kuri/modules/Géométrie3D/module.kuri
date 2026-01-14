@@ -1,120 +1,120 @@
 /* Module de création de géométrie 3D. */
 
-importe Chaine
-importe Fondation
-importe Numérique
-importe SysFichier
+importe Chaine;
+importe Fondation;
+importe Numérique;
+importe SysFichier;
 
-charge "interface_geometrie3d"
+charge "interface_geometrie3d";
 
-libgmp :: #bibliothèque "gmp"
-libmpfr :: #bibliothèque "mpfr"
-libtbb :: #bibliothèque "tbb"
+libgmp :: #bibliothèque "gmp";
+libmpfr :: #bibliothèque "mpfr";
+libtbb :: #bibliothèque "tbb";
 
-#dépendance_bibliothèque libmpfr libc
-#dépendance_bibliothèque libmpfr libgmp
+#dépendance_bibliothèque libmpfr libc;
+#dépendance_bibliothèque libmpfr libgmp;
 
-#dépendance_bibliothèque libmodule_c_geometrie_3d libtbb
-#dépendance_bibliothèque libmodule_c_geometrie_3d libgmp
-#dépendance_bibliothèque libmodule_c_geometrie_3d libmpfr
+#dépendance_bibliothèque libmodule_c_geometrie_3d libtbb;
+#dépendance_bibliothèque libmodule_c_geometrie_3d libgmp;
+#dépendance_bibliothèque libmodule_c_geometrie_3d libmpfr;
 
 /* Structure contenant des fonctions de rappels devant être renseignées par
  * les applications clientes afin de créer la géométrie. */
 CréatriceGéométrie :: struct {
     /* Débute un nouvel objet dont le nom est passé en paramètre */
-    commence_nouvel_objet: fonc (créatrice: *CréatriceGéométrie, nom: chaine)
+    commence_nouvel_objet: fonc (créatrice: *CréatriceGéométrie, nom: chaine);
 
     /* Ajout un point à la géométrie de sortie. */
-    ajoute_point: fonc (créatrice: *CréatriceGéométrie, x: r32, y: r32, z: r32)
+    ajoute_point: fonc (créatrice: *CréatriceGéométrie, x: r32, y: r32, z: r32);
 
     /* Ajoute un polygone à la géométrie de sortie. */
-    ajoute_polygone: fonc (créatrice: *CréatriceGéométrie, indices: *z32, nombre_d_indices: z32)
+    ajoute_polygone: fonc (créatrice: *CréatriceGéométrie, indices: *z32, nombre_d_indices: z32);
 }
 
 /* Chargement de données depuis des fichiers .obj */
 
 parse_ligne_obj :: fonc (ligne: chaine, créatrice: *CréatriceGéométrie) -> rien
 {
-    nouveau_contexte := contexte()
-    nouveau_contexte.allocatrice = __stockage_temporaire
+    nouveau_contexte := contexte();
+    nouveau_contexte.allocatrice = __stockage_temporaire;
 
-    marque := donne_marque_stockage_temporaire()
-    diffère définis_marque_stockage_temporaire(marque)
+    marque := donne_marque_stockage_temporaire();
+    diffère définis_marque_stockage_temporaire(marque);
 
     // supprime le caractère de nouvelle ligne
-    ligne = recule(ligne, 1)
+    ligne = recule(ligne, 1);
 
     si ligne.taille > 0 && ligne[ligne.taille - 1] == '\r' {
-        ligne = recule(ligne, 1)
+        ligne = recule(ligne, 1);
     }
 
     si ligne.commence_par("f ") {
-        tmp := avance(ligne, 2)
+        tmp := avance(ligne, 2);
 
-        est_quad := faux
+        est_quad := faux;
 
-        polygone: [4]z32
-        taille_polygone: z32
+        polygone: [4]z32;
+        taille_polygone: z32;
 
         pousse_contexte nouveau_contexte {
-            mots := divise(tmp, ' ')
+            mots := divise(tmp, ' ');
 
-            est_quad = mots.taille == 4
+            est_quad = mots.taille == 4;
 
             // À FAIRE: uvs, normaux
-            indices0 := divise(mots[0], '/')
-            idx0 := extrait_nombre_entier(indices0[0]) comme z32
+            indices0 := divise(mots[0], '/');
+            idx0 := extrait_nombre_entier(indices0[0]) comme z32;
 
-            indices1 := divise(mots[1], '/')
-            idx1 := extrait_nombre_entier(indices1[0]) comme z32
+            indices1 := divise(mots[1], '/');
+            idx1 := extrait_nombre_entier(indices1[0]) comme z32;
 
-            indices2 := divise(mots[2], '/')
-            idx2 := extrait_nombre_entier(indices2[0]) comme z32
+            indices2 := divise(mots[2], '/');
+            idx2 := extrait_nombre_entier(indices2[0]) comme z32;
 
-            polygone[0] = idx0 - 1
-            polygone[1] = idx1 - 1
-            polygone[2] = idx2 - 1
+            polygone[0] = idx0 - 1;
+            polygone[1] = idx1 - 1;
+            polygone[2] = idx2 - 1;
 
-            taille_polygone = 3
+            taille_polygone = 3;
             si est_quad {
-                taille_polygone = 4
-                indices3 := divise(mots[3], '/')
-                idx3 := extrait_nombre_entier(indices3[0]) comme z32
-                polygone[3] = idx3 - 1
+                taille_polygone = 4;
+                indices3 := divise(mots[3], '/');
+                idx3 := extrait_nombre_entier(indices3[0]) comme z32;
+                polygone[3] = idx3 - 1;
             }
         }
 
-        créatrice.ajoute_polygone(créatrice, *polygone[0], taille_polygone)
+        créatrice.ajoute_polygone(créatrice, *polygone[0], taille_polygone);
     }
     sinon si ligne.commence_par("v ") {
-        tmp := avance(ligne, 2)
+        tmp := avance(ligne, 2);
 
-        x: r32
-        y: r32
-        z: r32
+        x: r32;
+        y: r32;
+        z: r32;
         pousse_contexte nouveau_contexte {
-            mots := divise(tmp, ' ')
+            mots := divise(tmp, ' ');
 
-            x = extrait_nombre_réel(mots[0]) comme r32
-            y = extrait_nombre_réel(mots[1]) comme r32
-            z = extrait_nombre_réel(mots[2]) comme r32
+            x = extrait_nombre_réel(mots[0]) comme r32;
+            y = extrait_nombre_réel(mots[1]) comme r32;
+            z = extrait_nombre_réel(mots[2]) comme r32;
         }
 
-        créatrice.ajoute_point(créatrice, x, y, z)
+        créatrice.ajoute_point(créatrice, x, y, z);
     }
     sinon si ligne.commence_par("o ") {
-        nom := avance(ligne, 2)
+        nom := avance(ligne, 2);
         si créatrice.commence_nouvel_objet {
-            créatrice.commence_nouvel_objet(créatrice, nom)
+            créatrice.commence_nouvel_objet(créatrice, nom);
         }
     }
 }
 
 crée_géométrie_depuis_fichier_obj :: fonc (créatrice: *CréatriceGéométrie, chemin: CheminFichier)
 {
-    succès, contenu := contenu_fichier_texte(chemin)
+    succès, contenu := contenu_fichier_texte(chemin);
     si succès {
-        pour_chaque_ligne(contenu, créatrice, parse_ligne_obj)
-        déloge(contenu)
+        pour_chaque_ligne(contenu, créatrice, parse_ligne_obj);
+        déloge(contenu);
     }
 }

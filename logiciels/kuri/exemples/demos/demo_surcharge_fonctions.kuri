@@ -1,38 +1,38 @@
 // démonstration de la surchage de fonctions.
 
-importe Fondation
+importe Fondation;
 
 TEST :: struct {
-    fonction: fonc (valeur: eini) -> z32
+    fonction: fonc (valeur: eini) -> z32;
 }
 
 foo :: fonc (args: eini) -> z32
 {
-    imprime("appel foo avec eini\n")
-    imprime("%\n", args)
-    retourne 123
+    imprime("appel foo avec eini\n");
+    imprime("%\n", args);
+    retourne 123;
 }
 
 foo :: fonc (args: chaine) -> z32
 {
-    imprime("appel foo avec chaine\n")
-    imprime("%\n", args)
-    retourne 0
+    imprime("appel foo avec chaine\n");
+    imprime("%\n", args);
+    retourne 0;
 }
 
 principale :: fonc ()
 {
-    t: TEST
-    t.fonction = foo
+    t: TEST;
+    t.fonction = foo;
 
-    x := t.fonction("je ne sais pas")
+    x := t.fonction("je ne sais pas");
 
-    imprime("résultat : %\n", x)
+    imprime("résultat : %\n", x);
 
-    ptr := foo
+    ptr := foo;
 
-    _ := ptr("je ne sais pas")
+    _ := ptr("je ne sais pas");
 
-    _ := foo(1)
-    _ := foo("nouvelle chaine")
+    _ := foo(1);
+    _ := foo("nouvelle chaine");
 }

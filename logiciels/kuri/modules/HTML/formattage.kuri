@@ -1,6 +1,6 @@
 /* Routines de formattage, d'impression, de documents HTML. */
 
-importe Triage
+importe Triage;
 
 /* À FAIRE : options
  * - taille tabulation
@@ -52,269 +52,269 @@ $htmlMin->doRemoveOmittedHtmlTags();                  // remove ommitted html ta
 
 est_élément_optionnel :: fonc (tag: DOMString) -> bool
 {
-    retourne fait_partie_de(tag, TAG_html, TAG_head, TAG_body)
+    retourne fait_partie_de(tag, TAG_html, TAG_head, TAG_body);
 }
 
 ContexteFormattage :: struct {
-    profondeur: z32
-    supprime_espaces_blancs_texte : bool = vrai
-    insère_nouvelle_lignes_après_tags : bool = vrai
-    indente_tags : bool = vrai
+    profondeur: z32;
+    supprime_espaces_blancs_texte : bool = vrai;
+    insère_nouvelle_lignes_après_tags : bool = vrai;
+    indente_tags : bool = vrai;
     /* Supprime les guillemets des attributs si possible. */
-    supprime_guillemets_attributs: bool
-    supprime_slash_tags_auto_fermant: bool
-    supprime_commentaire: bool
+    supprime_guillemets_attributs: bool;
+    supprime_slash_tags_auto_fermant: bool;
+    supprime_commentaire: bool;
     /* Ignore les tags de fins pour les éléments optionnels: html, head, body. */
-    ignore_tag_fin_éléments_optionnels: bool
+    ignore_tag_fin_éléments_optionnels: bool;
 }
 
 initialise_contexte_formattage_minification :: fonc () -> ContexteFormattage
 {
-    ctx: ContexteFormattage
-    ctx.insère_nouvelle_lignes_après_tags = faux
-    ctx.supprime_espaces_blancs_texte = vrai
-    ctx.indente_tags = faux
-    ctx.supprime_guillemets_attributs = vrai
-    ctx.supprime_slash_tags_auto_fermant = vrai
-    ctx.supprime_commentaire = vrai
-    ctx.ignore_tag_fin_éléments_optionnels = vrai
-    retourne ctx
+    ctx: ContexteFormattage;
+    ctx.insère_nouvelle_lignes_après_tags = faux;
+    ctx.supprime_espaces_blancs_texte = vrai;
+    ctx.indente_tags = faux;
+    ctx.supprime_guillemets_attributs = vrai;
+    ctx.supprime_slash_tags_auto_fermant = vrai;
+    ctx.supprime_commentaire = vrai;
+    ctx.ignore_tag_fin_éléments_optionnels = vrai;
+    retourne ctx;
 }
 
 // À FAIRE : gère proprement le texte, notamment vis-à-vis de l'indentation des tags, et les caractères échappés
 formatte_texte :: fonc (contexte_formattage: &ContexteFormattage, texte: ChaineUTF16) -> ChaineUTF16
 {
     saufsi contexte_formattage.supprime_espaces_blancs_texte {
-        retourne texte
+        retourne texte;
     }
-    retourne donne_sous_chaine_entre_espace_blanches(texte)
+    retourne donne_sous_chaine_entre_espace_blanches(texte);
 }
 
 tabulation_au_besoin :: fonc (contexte_formattage: &ContexteFormattage, enchaineuse: *Enchaineuse)
 {
     saufsi contexte_formattage.indente_tags {
-        retourne
+        retourne;
     }
 
     pour contexte_formattage.profondeur {
-        enchaineuse.ajoute_au_tampon("    ")
+        enchaineuse.ajoute_au_tampon("    ");
     }
 }
 
 nouvelle_ligne_après_tag_au_besoin :: fonc (contexte_formattage: &ContexteFormattage, enchaineuse: *Enchaineuse)
 {
     si contexte_formattage.insère_nouvelle_lignes_après_tags {
-        enchaineuse.ajoute_au_tampon("\n")
+        enchaineuse.ajoute_au_tampon("\n");
     }
 }
 
 peut_ignorer_les_guillemets :: fonc (contexte_formattage: &ContexteFormattage, valeur: ChaineUTF16Unique) -> bool
 {
     saufsi contexte_formattage.supprime_guillemets_attributs {
-        retourne faux
+        retourne faux;
     }
 
-    chn := valeur.donne_chaine_utf16()
+    chn := valeur.donne_chaine_utf16();
     pour c dans chn.unités {
         si c == (' ' comme n16) || c == ('/' comme n16) {
-            retourne faux
+            retourne faux;
         }
     }
 
-    retourne vrai
+    retourne vrai;
 }
 
 peut_ignorer_attribut :: fonc (contexte_formattage: &ContexteFormattage @inutilisée, tag: DOMString, attribut: *Attr) -> bool
 {
     si tag == TAG_script {
         // "type" n'est pas requis en HTML5, "charset" et "language" sont dépréciés
-        retourne attribut.local_name == ATTR_type || attribut.local_name == ATTR_charset || attribut.local_name == ATTR_language
+        retourne attribut.local_name == ATTR_type || attribut.local_name == ATTR_charset || attribut.local_name == ATTR_language;
     }
 
     si tag == TAG_style {
         // "type" n'est pas requis en HTML5
-        retourne attribut.local_name == ATTR_type
+        retourne attribut.local_name == ATTR_type;
     }
 
     si tag == TAG_input {
-        retourne attribut.local_name == ATTR_value && attribut.valeur == crée_chaine_utf16_unique("")
+        retourne attribut.local_name == ATTR_value && attribut.valeur == crée_chaine_utf16_unique("");
     }
 
-    retourne faux
+    retourne faux;
 }
 
 compare_attribut :: fonc (a1: *Attr, a2: *Attr) -> z32
 {
     si a1.local_name < a2.local_name {
-        retourne -1
+        retourne -1;
     }
 
     si a1.local_name == a2.local_name {
-        retourne 0
+        retourne 0;
     }
 
-    retourne 1
+    retourne 1;
 }
 
 tri_classes_css :: fonc (chn_classe: DOMString) -> DOMString
 {
-    classes := run_ordered_set_parser(chn_classe)
-    diffère déloge(classes)
+    classes := run_ordered_set_parser(chn_classe);
+    diffère déloge(classes);
 
-    enchaineuse: EnchaineuseUTF16
-    initialise_enchaineuse(enchaineuse)
+    enchaineuse: EnchaineuseUTF16;
+    initialise_enchaineuse(enchaineuse);
 
     pour classes {
         si indice_it > 0 {
-            enchaineuse.ajoute(' ')
+            enchaineuse.ajoute(' ');
         }
-        enchaineuse.ajoute(it.donne_chaine_utf16())
+        enchaineuse.ajoute(it.donne_chaine_utf16());
     }
 
-    résultat := chaine_depuis_enchaineuse(enchaineuse)
-    retourne crée_chaine_utf16_unique(résultat)
+    résultat := chaine_depuis_enchaineuse(enchaineuse);
+    retourne crée_chaine_utf16_unique(résultat);
 }
 
 cueille_et_tri_attributs :: fonc (contexte_formattage: &ContexteFormattage, tag: DOMString, attributs: []*Attr) -> [..]*Attr
 {
-    résultat: [..]*Attr
+    résultat: [..]*Attr;
 
     pour & attributs {
         si peut_ignorer_attribut(contexte_formattage, tag, it) {
-            continue
+            continue;
         }
 
         si tag == TAG_a {
             // "name" est déprécié, remplace par "id"
             si it.local_name == ATTR_name {
-                it.local_name = ATTR_id
+                it.local_name = ATTR_id;
             }
         }
 
         si it.local_name == ATTR_class {
-            nouvelle_valeur := tri_classes_css(it.valeur)
-            it.valeur = nouvelle_valeur
+            nouvelle_valeur := tri_classes_css(it.valeur);
+            it.valeur = nouvelle_valeur;
         }
 
-        tableau_ajoute(*résultat, it)
+        tableau_ajoute(*résultat, it);
     }
 
-    tri_rapide(résultat, compare_attribut)
+    tri_rapide(résultat, compare_attribut);
 
-    retourne résultat
+    retourne résultat;
 }
 
 formatte_noeud :: fonc (contexte_formattage: &ContexteFormattage, noeud: *Node, enchaineuse: *Enchaineuse)
 {
-    flux_sortie := crée_flux_sortie(enchaineuse)
+    flux_sortie := crée_flux_sortie(enchaineuse);
 
     discr noeud.genre {
         DocumentFragment,
         ProcessingInstruction,
         Section_CDATA,
         Attr {
-            retourne
+            retourne;
         }
         Commentaire {
             si contexte_formattage.supprime_commentaire {
-                retourne
+                retourne;
             }
 
-            commentaire := noeud comme *NoeudCommentaire
-            texte := formatte_texte(contexte_formattage, commentaire.données)
+            commentaire := noeud comme *NoeudCommentaire;
+            texte := formatte_texte(contexte_formattage, commentaire.données);
 
-            tabulation_au_besoin(contexte_formattage, enchaineuse)
-            enchaineuse.ajoute_au_tampon("<!--", texte, "-->")
-            nouvelle_ligne_après_tag_au_besoin(contexte_formattage, enchaineuse)
+            tabulation_au_besoin(contexte_formattage, enchaineuse);
+            enchaineuse.ajoute_au_tampon("<!--", texte, "-->");
+            nouvelle_ligne_après_tag_au_besoin(contexte_formattage, enchaineuse);
         }
         Document {
             pour noeud.enfants {
-                formatte_noeud(contexte_formattage, it, enchaineuse)
+                formatte_noeud(contexte_formattage, it, enchaineuse);
             }
         }
         DocumentType {
-            enchaineuse.ajoute_au_tampon("<!DOCTYPE html>")
-            nouvelle_ligne_après_tag_au_besoin(contexte_formattage, enchaineuse)
+            enchaineuse.ajoute_au_tampon("<!DOCTYPE html>");
+            nouvelle_ligne_après_tag_au_besoin(contexte_formattage, enchaineuse);
         }
         Texte {
-            texte := noeud comme *Text
-            données := formatte_texte(contexte_formattage, texte.données)
-            formatte_chaine_utf16(*données, flux_sortie)
+            texte := noeud comme *Text;
+            données := formatte_texte(contexte_formattage, texte.données);
+            formatte_chaine_utf16(*données, flux_sortie);
             //enchaineuse.ajoute_au_tampon(données)
         }
         Element {
-            tabulation_au_besoin(contexte_formattage, enchaineuse)
+            tabulation_au_besoin(contexte_formattage, enchaineuse);
 
-            élément := noeud comme *Element
+            élément := noeud comme *Element;
 
-            garde_tag_sur_la_même_ligne := faux
+            garde_tag_sur_la_même_ligne := faux;
             si élément.local_name == TAG_a || élément.local_name == TAG_p || élément.local_name == TAG_span || élément.local_name == TAG_br {
-                garde_tag_sur_la_même_ligne = vrai
+                garde_tag_sur_la_même_ligne = vrai;
             }
 
             /* Ouverture du tag. */
-            enchaineuse.imprime_dans_enchaineuse("<%", élément.local_name)
+            enchaineuse.imprime_dans_enchaineuse("<%", élément.local_name);
 
             /* Attributs. */
-            attributs := cueille_et_tri_attributs(contexte_formattage, élément.local_name, élément.attributs)
-            diffère déloge(attributs)
+            attributs := cueille_et_tri_attributs(contexte_formattage, élément.local_name, élément.attributs);
+            diffère déloge(attributs);
 
             pour attributs {
-                enchaineuse.ajoute_au_tampon(" ")
-                nom_attribut := it.local_name.donne_chaine_utf16()
-                valeur_attribut := it.valeur.donne_chaine_utf16()
-                formatte_chaine_utf16(*nom_attribut, flux_sortie)
-                enchaineuse.ajoute_au_tampon("=")
+                enchaineuse.ajoute_au_tampon(" ");
+                nom_attribut := it.local_name.donne_chaine_utf16();
+                valeur_attribut := it.valeur.donne_chaine_utf16();
+                formatte_chaine_utf16(*nom_attribut, flux_sortie);
+                enchaineuse.ajoute_au_tampon("=");
 
                 si peut_ignorer_les_guillemets(contexte_formattage, it.valeur) {
                     //enchaineuse.imprime_dans_enchaineuse(" %=%", it.local_name, it.valeur)
-                    formatte_chaine_utf16(*valeur_attribut, flux_sortie)
+                    formatte_chaine_utf16(*valeur_attribut, flux_sortie);
                 }
                 sinon {
                     //enchaineuse.imprime_dans_enchaineuse(" %='%'", it.local_name, it.valeur)
-                    enchaineuse.ajoute_au_tampon("'")
-                    formatte_chaine_utf16(*valeur_attribut, flux_sortie)
-                    enchaineuse.ajoute_au_tampon("'")
+                    enchaineuse.ajoute_au_tampon("'");
+                    formatte_chaine_utf16(*valeur_attribut, flux_sortie);
+                    enchaineuse.ajoute_au_tampon("'");
                 }
             }
 
             si est_tag_auto_fermant(élément.local_name) {
                 si contexte_formattage.supprime_slash_tags_auto_fermant {
-                    enchaineuse.ajoute_au_tampon(">")
+                    enchaineuse.ajoute_au_tampon(">");
                 }
                 sinon {
-                    enchaineuse.ajoute_au_tampon("/>")
+                    enchaineuse.ajoute_au_tampon("/>");
                 }
 
                 saufsi garde_tag_sur_la_même_ligne {
-                    nouvelle_ligne_après_tag_au_besoin(contexte_formattage, enchaineuse)
+                    nouvelle_ligne_après_tag_au_besoin(contexte_formattage, enchaineuse);
                 }
-                retourne
+                retourne;
             }
 
-            enchaineuse.ajoute_au_tampon(">")
+            enchaineuse.ajoute_au_tampon(">");
             saufsi garde_tag_sur_la_même_ligne {
-                nouvelle_ligne_après_tag_au_besoin(contexte_formattage, enchaineuse)
+                nouvelle_ligne_après_tag_au_besoin(contexte_formattage, enchaineuse);
             }
 
             /* Enfants. */
-            contexte_formattage.profondeur += 1
-            indente_tags := contexte_formattage.indente_tags
-            contexte_formattage.indente_tags = !garde_tag_sur_la_même_ligne
+            contexte_formattage.profondeur += 1;
+            indente_tags := contexte_formattage.indente_tags;
+            contexte_formattage.indente_tags = !garde_tag_sur_la_même_ligne;
             pour élément.enfants {
-                formatte_noeud(contexte_formattage, it, enchaineuse)
+                formatte_noeud(contexte_formattage, it, enchaineuse);
             }
-            contexte_formattage.indente_tags = indente_tags
-            contexte_formattage.profondeur -= 1
+            contexte_formattage.indente_tags = indente_tags;
+            contexte_formattage.profondeur -= 1;
 
             /* Fermeture du tag. */
             saufsi contexte_formattage.ignore_tag_fin_éléments_optionnels && est_élément_optionnel(élément.local_name) {
                 saufsi garde_tag_sur_la_même_ligne {
-                    tabulation_au_besoin(contexte_formattage, enchaineuse)
+                    tabulation_au_besoin(contexte_formattage, enchaineuse);
                 }
-                enchaineuse.imprime_dans_enchaineuse("</%>", élément.local_name)
+                enchaineuse.imprime_dans_enchaineuse("</%>", élément.local_name);
                 saufsi garde_tag_sur_la_même_ligne {
-                    nouvelle_ligne_après_tag_au_besoin(contexte_formattage, enchaineuse)
+                    nouvelle_ligne_après_tag_au_besoin(contexte_formattage, enchaineuse);
                 }
             }
         }
@@ -324,27 +324,27 @@ formatte_noeud :: fonc (contexte_formattage: &ContexteFormattage, noeud: *Node, 
 /* Formatte le document et imprime-le dans le fichier sortie. */
 formatte_document :: fonc (document: *Document, fichier_sortie: *Fichier) -> z64
 {
-    contexte_formattage: ContexteFormattage
-    retourne formatte_document(contexte_formattage, document, fichier_sortie)
+    contexte_formattage: ContexteFormattage;
+    retourne formatte_document(contexte_formattage, document, fichier_sortie);
 }
 
 formatte_document :: fonc (contexte_formattage: &ContexteFormattage, document: *Document, fichier_sortie: *Fichier) -> z64
 {
-    enchaineuse: Enchaineuse
-    initialise_enchaineuse(*enchaineuse)
-    diffère détruit_tampons(*enchaineuse)
+    enchaineuse: Enchaineuse;
+    initialise_enchaineuse(*enchaineuse);
+    diffère détruit_tampons(*enchaineuse);
 
-    formatte_noeud(contexte_formattage, document, *enchaineuse)
+    formatte_noeud(contexte_formattage, document, *enchaineuse);
 
-    _ := copie_enchaineuse_fichier(*enchaineuse, fichier_sortie)
+    _ := copie_enchaineuse_fichier(*enchaineuse, fichier_sortie);
 
-    retourne taille_chaine(*enchaineuse)
+    retourne taille_chaine(*enchaineuse);
 }
 
 crée_chaine_formattée :: fonc (contexte_formattage: &ContexteFormattage, document: *Document) -> chaine
 {
-    enchaineuse: Enchaineuse
-    initialise_enchaineuse(*enchaineuse)
-    formatte_noeud(contexte_formattage, document, *enchaineuse)
-    retourne chaine_depuis_enchaineuse(*enchaineuse)
+    enchaineuse: Enchaineuse;
+    initialise_enchaineuse(*enchaineuse);
+    formatte_noeud(contexte_formattage, document, *enchaineuse);
+    retourne chaine_depuis_enchaineuse(*enchaineuse);
 }

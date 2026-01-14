@@ -3,13 +3,13 @@
  * Catégorie : [validation sémantique, construction structure, type polymorphique]
  */
 
-importe Support
+importe Support;
 
 Poly :: struct ($T: type_de_données) {
-    x: T
+    x: T;
 }
 
 principale :: fonc ()
 {
-    _ := Poly(T = z32)(x = 5)
+    _ := Poly(T = z32)(x = 5);
 }

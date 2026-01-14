@@ -1,7 +1,7 @@
 /* Extensions de Dessin. */
 
-importe Chaine
-importe Typographie
+importe Chaine;
+importe Typographie;
 
 /* ------------------------------------------------------------------------- */
 /** \nom Dessin de texte.
@@ -9,123 +9,123 @@ importe Typographie
 
 dessine_texte :: fonc (tampon_de_rendu: *TamponDeRendu, texte: chaine, fonte: *Fonte, rect: RectanglePosDim(z32), couleur: CouleurRVBAN8, effets: *EffetsTexte = nul)
 {
-    glyphes := donne_glyphes(fonte, texte)
-    dessine_glyphes(tampon_de_rendu, glyphes, fonte, rect, couleur, effets)
+    glyphes := donne_glyphes(fonte, texte);
+    dessine_glyphes(tampon_de_rendu, glyphes, fonte, rect, couleur, effets);
 }
 
 dessine_texte :: fonc (tampon_de_rendu: *TamponDeRendu, texte: ChaineUTF16, fonte: *Fonte, rect: RectanglePosDim(z32), couleur: CouleurRVBAN8, effets: *EffetsTexte)
 {
-    glyphes := donne_glyphes(fonte, texte)
-    dessine_glyphes(tampon_de_rendu, glyphes, fonte, rect, couleur, effets)
+    glyphes := donne_glyphes(fonte, texte);
+    dessine_glyphes(tampon_de_rendu, glyphes, fonte, rect, couleur, effets);
 }
 
 dessine_texte :: fonc (tampon_de_rendu: *TamponDeRendu, texte: ChaineUTF32, fonte: *Fonte, rect: RectanglePosDim(z32), couleur: CouleurRVBAN8, effets: *EffetsTexte)
 {
-    glyphes := donne_glyphes(fonte, texte)
-    dessine_glyphes(tampon_de_rendu, glyphes, fonte, rect, couleur, effets)
+    glyphes := donne_glyphes(fonte, texte);
+    dessine_glyphes(tampon_de_rendu, glyphes, fonte, rect, couleur, effets);
 }
 
 dessine_glyphes :: fonc (tampon_de_rendu: *TamponDeRendu, glyphes: []*texture_glyph_t, fonte: *Fonte, rect: RectanglePosDim(z32), couleur: CouleurRVBAN8, effets: *EffetsTexte = nul)
 {
-    métriques := donne_métriques_fonte(fonte)
-    rect.y -= métriques.jambage_inférieur comme z32
+    métriques := donne_métriques_fonte(fonte);
+    rect.y -= métriques.jambage_inférieur comme z32;
 
-    rect_sauf := donne_rect_sûr(tampon_de_rendu, rect)
+    rect_sauf := donne_rect_sûr(tampon_de_rendu, rect);
     si rect_sauf.largeur == 0 || rect_sauf.hauteur == 0 {
-        retourne
+        retourne;
     }
 
-    source_atlas := fonte.atlas.data.pointeur comme *n8
+    source_atlas := fonte.atlas.data.pointeur comme *n8;
 
-    décalage_x := rect.x comme r32
-    début_effets := décalage_x
+    décalage_x := rect.x comme r32;
+    début_effets := décalage_x;
 
-    dernier_glyphe: *texture_glyph_t
+    dernier_glyphe: *texture_glyph_t;
 
     pour glyphes {
-        décalage_x += donne_crénage_avec(it, dernier_glyphe)
+        décalage_x += donne_crénage_avec(it, dernier_glyphe);
 
-        dessine_glyphe(tampon_de_rendu, fonte, it, décalage_x, couleur, source_atlas, rect)
+        dessine_glyphe(tampon_de_rendu, fonte, it, décalage_x, couleur, source_atlas, rect);
 
-        décalage_x += it.advance_x
-        dernier_glyphe = it
+        décalage_x += it.advance_x;
+        dernier_glyphe = it;
     }
 
-    dessine_effets(tampon_de_rendu, fonte, effets, début_effets comme z32, décalage_x comme z32, rect.y)
+    dessine_effets(tampon_de_rendu, fonte, effets, début_effets comme z32, décalage_x comme z32, rect.y);
 }
 
 dessine_glyphe :: fonc (tampon_de_rendu: *TamponDeRendu, fonte: *Fonte, glyph: *texture_glyph_t, décalage_x: r32, couleur: CouleurRVBAN8, source_atlas: *n8, rect: RectanglePosDim(z32))
 {
-    rect_glyphe: RectanglePosDim(z32)
-    rect_glyphe.x = décalage_x comme z32
-    rect_glyphe.y = rect.y + glyph.offset_y - glyph.height comme z32
-    rect_glyphe.largeur = glyph.width comme z32
-    rect_glyphe.hauteur = glyph.height comme z32
+    rect_glyphe: RectanglePosDim(z32);
+    rect_glyphe.x = décalage_x comme z32;
+    rect_glyphe.y = rect.y + glyph.offset_y - glyph.height comme z32;
+    rect_glyphe.largeur = glyph.width comme z32;
+    rect_glyphe.hauteur = glyph.height comme z32;
 
-    rect_sauf := tampon_de_rendu.donne_rect_sûr(rect_glyphe)
+    rect_sauf := tampon_de_rendu.donne_rect_sûr(rect_glyphe);
     si rect_sauf.largeur == 0 || rect_sauf.hauteur == 0 {
-        retourne
+        retourne;
     }
 
-    décalage_y := rect_sauf.y - rect_glyphe.y
+    décalage_y := rect_sauf.y - rect_glyphe.y;
 
-    enjambée_dest := tampon_de_rendu.rect.largeur
-    ligne_dest := tampon_de_rendu.données.pointeur + rect_sauf.y * enjambée_dest + rect_sauf.x
+    enjambée_dest := tampon_de_rendu.rect.largeur;
+    ligne_dest := tampon_de_rendu.données.pointeur + rect_sauf.y * enjambée_dest + rect_sauf.x;
 
-    enjambée_source := fonte.atlas.width comme z32
-    x0_glyphe := (fonte.atlas.width comme r32 * glyph.s0) comme z32
-    y0_glyphe := (fonte.atlas.height comme r32 * glyph.t0) comme z32
-    enjambée_atlas := fonte.atlas.width comme z32
+    enjambée_source := fonte.atlas.width comme z32;
+    x0_glyphe := (fonte.atlas.width comme r32 * glyph.s0) comme z32;
+    y0_glyphe := (fonte.atlas.height comme r32 * glyph.t0) comme z32;
+    enjambée_atlas := fonte.atlas.width comme z32;
 
-    ligne_source := source_atlas + (y0_glyphe + rect_glyphe.hauteur - décalage_y - 1) * enjambée_atlas + x0_glyphe
+    ligne_source := source_atlas + (y0_glyphe + rect_glyphe.hauteur - décalage_y - 1) * enjambée_atlas + x0_glyphe;
 
     pour _ dans rect_sauf.y ... rect_sauf.y + rect_sauf.hauteur - 1 {
-        pixel_dest := ligne_dest
-        pixel_source := ligne_source
+        pixel_dest := ligne_dest;
+        pixel_source := ligne_source;
 
         pour _ dans rect_sauf.x ... rect_sauf.x + rect_sauf.largeur - 1 {
-            valeur := mémoire(pixel_source)
+            valeur := mémoire(pixel_source);
 
-            couleur_pixel := couleur
-            couleur_pixel.a = (((valeur comme r32) / 255.0 * (couleur.a comme r32) / 255.0) * 255.0) comme n8
+            couleur_pixel := couleur;
+            couleur_pixel.a = (((valeur comme r32) / 255.0 * (couleur.a comme r32) / 255.0) * 255.0) comme n8;
 
-            fusionne_pixels_et_alpha(couleur_pixel, pixel_dest)
+            fusionne_pixels_et_alpha(couleur_pixel, pixel_dest);
 
             // Fondation.assert(tampon_de_rendu.données.pointeur <= pixel_dest < tampon_de_rendu.données.pointeur + tampon_de_rendu.données.taille)
 
-            pixel_source += 1
-            pixel_dest += 1
+            pixel_source += 1;
+            pixel_dest += 1;
         }
 
-        ligne_source -= enjambée_source
-        ligne_dest += enjambée_dest
+        ligne_source -= enjambée_source;
+        ligne_dest += enjambée_dest;
     }
 }
 
 dessine_effets :: fonc (tampon_de_rendu: *TamponDeRendu, fonte: *Fonte, effets: *EffetsTexte, x0: z32, x1: z32, y0: z32)
 {
     saufsi effets {
-        retourne
+        retourne;
     }
 
-    ligne: Ligne(z32)
-    ligne.p0.x = x0
-    ligne.p1.x = x1
+    ligne: Ligne(z32);
+    ligne.p0.x = x0;
+    ligne.p1.x = x1;
 
     si effets.surlignage {
-        ligne.p0.y = y0 + fonte.ascender comme z32
-        ligne.p1.y = ligne.p0.y + fonte.underline_thickness comme z32
-        dessine_ligne(tampon_de_rendu, ligne, depuis_couleur_rvba(effets.couleur_surlignage))
+        ligne.p0.y = y0 + fonte.ascender comme z32;
+        ligne.p1.y = ligne.p0.y + fonte.underline_thickness comme z32;
+        dessine_ligne(tampon_de_rendu, ligne, depuis_couleur_rvba(effets.couleur_surlignage));
     }
     si effets.souslignage {
-        ligne.p0.y = y0 + fonte.underline_position comme z32
-        ligne.p1.y = ligne.p0.y + fonte.underline_thickness comme z32
-        dessine_ligne(tampon_de_rendu, ligne, depuis_couleur_rvba(effets.couleur_souslignage))
+        ligne.p0.y = y0 + fonte.underline_position comme z32;
+        ligne.p1.y = ligne.p0.y + fonte.underline_thickness comme z32;
+        dessine_ligne(tampon_de_rendu, ligne, depuis_couleur_rvba(effets.couleur_souslignage));
     }
     si effets.barrage {
-        ligne.p0.y = y0 + (fonte.ascender * 0.33) comme z32
-        ligne.p1.y = ligne.p0.y + fonte.underline_thickness comme z32
-        dessine_ligne(tampon_de_rendu, ligne, depuis_couleur_rvba(effets.couleur_barrage))
+        ligne.p0.y = y0 + (fonte.ascender * 0.33) comme z32;
+        ligne.p1.y = ligne.p0.y + fonte.underline_thickness comme z32;
+        dessine_ligne(tampon_de_rendu, ligne, depuis_couleur_rvba(effets.couleur_barrage));
     }
 }
 

@@ -6,7 +6,7 @@
 
 foo :: fonc (args: ...eini)
 {
-    panique("La mauvaise fonction fut appelée !")
+    panique("La mauvaise fonction fut appelée !");
 }
 
 foo :: fonc ()
@@ -15,5 +15,5 @@ foo :: fonc ()
 
 principale :: fonc ()
 {
-    foo()
+    foo();
 }
