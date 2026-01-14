@@ -1,8 +1,8 @@
-importe ELF
-importe Fondation
-importe LigneDeCommande
+importe ELF;
+importe Fondation;
+importe LigneDeCommande;
 importe Numérique;
-importe SysFichier
+importe SysFichier;
 
 principale :: fonc ()
 {
@@ -69,7 +69,7 @@ principale :: fonc ()
                 exit(1);
             }
 
-            type_section := section.sh_type comme TypeSection
+            type_section := section.sh_type comme TypeSection;
 
             drapeaux := donne_drapeaux(section);
 
@@ -84,11 +84,11 @@ principale :: fonc ()
 
             si section.sh_addralign != 0 && section.sh_addralign != 1 {
                 saufsi est_puissance_de_2(section.sh_addralign) {
-                    imprimeln("La valeur 'sh_addralign' de la section à l'indice '%' n'est pas une puissance de 2.", it)
+                    imprimeln("La valeur 'sh_addralign' de la section à l'indice '%' n'est pas une puissance de 2.", it);
                 }
 
                 si section.sh_addr % section.sh_addralign != 0 {
-                    imprimeln("La valeur 'sh_addr' de la section à l'indice '%' n'est pas congrue à 0 modulo 'sh_addralign.", it)
+                    imprimeln("La valeur 'sh_addr' de la section à l'indice '%' n'est pas congrue à 0 modulo 'sh_addralign.", it);
                 }
             }
 
@@ -159,7 +159,7 @@ valide_symtab :: fonc (fichier: *FichierELF, symtab: *Elf64_Shdr, indice_section
 
     si symboles {
         // Le premier symbole doit être nul.
-        premier_symbole := symboles[0]
+        premier_symbole := symboles[0];
 
         si premier_symbole.st_name != 0 ||
            premier_symbole.st_info != 0 ||
@@ -167,7 +167,7 @@ valide_symtab :: fonc (fichier: *FichierELF, symtab: *Elf64_Shdr, indice_section
            premier_symbole.st_shndx != 0 ||
            premier_symbole.st_value != 0 ||
            premier_symbole.st_size != 0 {
-            imprimeln("La première entrée de la table de symboles à l'indice % doit être nulle.", indice_section)
+            imprimeln("La première entrée de la table de symboles à l'indice % doit être nulle.", indice_section);
             exit(1);
         }
 
@@ -191,7 +191,7 @@ valide_symtab :: fonc (fichier: *FichierELF, symtab: *Elf64_Shdr, indice_section
 
         si indice_premier_symbole_weak_ou_global != -1 && indice_dernier_symbole_local > indice_premier_symbole_weak_ou_global {
             imprimeln("Dans la table de symboles à l'indice %, un symbole LOCAL se trouve après un symbole WEAK ou GLOBAL.", indice_section);
-            exit(1)
+            exit(1);
         }
 
         si symtab.sh_info comme z64 != indice_dernier_symbole_local + 1 {
@@ -239,7 +239,7 @@ valide_entsize :: fonc (section: *Elf64_Shdr, indice_section: Elf64_Word, voulu:
 {
     si section.sh_entsize != voulu {
         nom_macro_section := donne_nom_macro_type_section(section.sh_type comme TypeSection);
-        imprimeln("La valeur 'sh_entsize' de la section '%' à l'indice % doit être de '%'", nom_macro_section, indice_section, voulu)
+        imprimeln("La valeur 'sh_entsize' de la section '%' à l'indice % doit être de '%'", nom_macro_section, indice_section, voulu);
         exit(1);
     }
 }
@@ -250,16 +250,16 @@ valide_lien_vers_section :: fonc (fichier: *FichierELF, section: *Elf64_Shdr, in
 
     valeur_rubrique: Elf64_Word 
     si rubrique == "sh_link" {
-        valeur_rubrique = section.sh_link
+        valeur_rubrique = section.sh_link;
     }
     sinon si rubrique == "sh_info" {
-        valeur_rubrique = section.sh_info
+        valeur_rubrique = section.sh_info;
     }
     sinon {
-        panique("Rubrique inconnue '%'", rubrique)
+        panique("Rubrique inconnue '%'", rubrique);
     }
 
-    section_liée := donne_entête_section(fichier, valeur_rubrique)
+    section_liée := donne_entête_section(fichier, valeur_rubrique);
     saufsi section_liée {
         nom_macro_section := donne_nom_macro_type_section(section.sh_type comme TypeSection);
         imprimeln("La valeur '%' de la section '%' à l'indice % ne pointe pas vers une section existante", rubrique, nom_macro_section, indice_section);
@@ -273,16 +273,16 @@ valide_lien_vers_section :: fonc (fichier: *FichierELF, section: *Elf64_Shdr, in
 
     valeur_rubrique: Elf64_Word 
     si rubrique == "sh_link" {
-        valeur_rubrique = section.sh_link
+        valeur_rubrique = section.sh_link;
     }
     sinon si rubrique == "sh_info" {
-        valeur_rubrique = section.sh_info
+        valeur_rubrique = section.sh_info;
     }
     sinon {
-        panique("Rubrique inconnue '%'", rubrique)
+        panique("Rubrique inconnue '%'", rubrique);
     }
 
-    section_liée := donne_entête_section(fichier, valeur_rubrique)
+    section_liée := donne_entête_section(fichier, valeur_rubrique);
     saufsi section_liée {
         nom_macro_section := donne_nom_macro_type_section(section.sh_type comme TypeSection);
         imprimeln("La valeur '%' de la section '%' à l'indice % ne pointe pas vers une section existante", rubrique, nom_macro_section, indice_section);
@@ -290,23 +290,23 @@ valide_lien_vers_section :: fonc (fichier: *FichierELF, section: *Elf64_Shdr, in
     }
     pour types_possibles {
         si section_liée.sh_type comme TypeSection == it {
-            arrête
+            arrête;
         }
     }
     sansarrêt {
         nom_macro_section := donne_nom_macro_type_section(section.sh_type comme TypeSection);
         imprime("La valeur '%' de la section '%' à l'indice % ne pointe pas vers une section ", rubrique, nom_macro_section, indice_section);
 
-        virgule := "de type"
+        virgule := "de type";
         pour types_possibles {
             nom_type_voulu := donne_nom_macro_type_section(it);
-            imprime("% '%'", virgule, nom_type_voulu)
-            virgule = ", ou de type"
+            imprime("% '%'", virgule, nom_type_voulu);
+            virgule = ", ou de type";
         }
 
         nom_sh_type := donne_nom_macro_type_section(section_liée.sh_type comme TypeSection);
         imprimeln(" mais une section '%'", nom_sh_type);
         exit(1);
     }
-    retourne section_liée
+    retourne section_liée;
 }
