@@ -1,13 +1,13 @@
-importe Fondation
+importe Fondation;
 
 principale :: fonc ()
 {
-    imprime("Bonjour, tout le monde !\n")
-    imprime("Nous allons imprimer les arguments :\n")
+    imprime("Bonjour, tout le monde !\n");
+    imprime("Nous allons imprimer les arguments :\n");
 
-    args := arguments_ligne_commande()
+    args := arguments_ligne_commande();
 
     pour arg, indice dans args {
-        imprime("Argument % = %\n", indice, arg)
+        imprime("Argument % = %\n", indice, arg);
     }
 }

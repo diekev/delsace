@@ -1,283 +1,283 @@
-importe Chaine
-importe Fondation
-importe Numérique
-importe SysFichier
+importe Chaine;
+importe Fondation;
+importe Numérique;
+importe SysFichier;
 
 // https://cstack.github.io/db_tutorial/
 // continuation : https://cstack.github.io/db_tutorial/parts/part5.html
 
 imprime_prompt :: fonc () -> rien
 {
-    imprime("db > ")
+    imprime("db > ");
 }
 
 TypeMétaCommande :: énum z32 {
-    SUCCÈS
-    NON_RECONNUE
+    SUCCÈS;
+    NON_RECONNUE;
 }
 
 méta_commande :: fonc (commande: chaine) -> TypeMétaCommande
 {
     si commande == ".sors" {
-        retourne TypeMétaCommande.SUCCÈS
+        retourne TypeMétaCommande.SUCCÈS;
     }
 
-    retourne TypeMétaCommande.NON_RECONNUE
+    retourne TypeMétaCommande.NON_RECONNUE;
 }
 
 TypeInstruction :: énum z32 {
-    SÉLECTIONNE
-    INSÈRE
+    SÉLECTIONNE;
+    INSÈRE;
 }
 
 Ligne :: struct {
-    id := 0
+    id := 0;
     // Ne pas oublier le caractère nul en fin des chaines
-    nom: [32 + 1]z8
-    courriel: [255 + 1]z8
+    nom: [32 + 1]z8;
+    courriel: [255 + 1]z8;
 }
 
 // @XXX
 copie_chaine_vers_tableau :: fonc (tabl: *z8, chn: chaine) -> rien
 {
-    copie_mem_nonsur(src = chn.pointeur, dst = tabl, taille = chn.taille)
+    copie_mem_nonsur(src = chn.pointeur, dst = tabl, taille = chn.taille);
 }
 
 sérialise_ligne :: fonc (ligne: *Ligne, dest: *octet) -> rien
 {
-    copie_mem_nonsur(src = *ligne.id, dst = dest, taille = TAILLE_ID)
-    copie_mem_nonsur(src = *ligne.nom[0], dst = dest + DÉCALAGE_NOM, taille = TAILLE_NOM)
-    copie_mem_nonsur(src = *ligne.courriel[0], dst = dest + DÉCALAGE_COURRIEL, taille = TAILLE_COURRIEL)
+    copie_mem_nonsur(src = *ligne.id, dst = dest, taille = TAILLE_ID);
+    copie_mem_nonsur(src = *ligne.nom[0], dst = dest + DÉCALAGE_NOM, taille = TAILLE_NOM);
+    copie_mem_nonsur(src = *ligne.courriel[0], dst = dest + DÉCALAGE_COURRIEL, taille = TAILLE_COURRIEL);
 }
 
 désérialise_ligne :: fonc (src: *octet, ligne: *Ligne) -> rien
 {
-    copie_mem_nonsur(dst = *ligne.id, src = src, taille = TAILLE_ID)
-    copie_mem_nonsur(dst = *ligne.nom[0], src = src + DÉCALAGE_NOM, taille = TAILLE_NOM)
-    copie_mem_nonsur(dst = *ligne.courriel[0], src = src + DÉCALAGE_COURRIEL, taille = TAILLE_COURRIEL)
+    copie_mem_nonsur(dst = *ligne.id, src = src, taille = TAILLE_ID);
+    copie_mem_nonsur(dst = *ligne.nom[0], src = src + DÉCALAGE_NOM, taille = TAILLE_NOM);
+    copie_mem_nonsur(dst = *ligne.courriel[0], src = src + DÉCALAGE_COURRIEL, taille = TAILLE_COURRIEL);
 }
 
 Instruction :: struct {
-    type: TypeInstruction
-    ligne_à_insérer: Ligne
+    type: TypeInstruction;
+    ligne_à_insérer: Ligne;
 }
 
 PrépareRésultat :: énum z32 {
-    SUCCÈS
-    INSTRUCTION_NON_RECONNUE
-    ERREUR_SYNTAXE
-    CHAINE_TROP_LONGUE
-    ID_NÉGATIF
+    SUCCÈS;
+    INSTRUCTION_NON_RECONNUE;
+    ERREUR_SYNTAXE;
+    CHAINE_TROP_LONGUE;
+    ID_NÉGATIF;
 }
 
 prépare_instruction :: fonc (commande: chaine, inst: *Instruction) -> PrépareRésultat
 {
-    nouveau_contexte := contexte()
-    nouveau_contexte.allocatrice = __stockage_temporaire
+    nouveau_contexte := contexte();
+    nouveau_contexte.allocatrice = __stockage_temporaire;
 
-    mots: [..]chaine
+    mots: [..]chaine;
 
     pousse_contexte nouveau_contexte {
-        mots = divise(commande, ' ')
+        mots = divise(commande, ' ');
     }
 
     si mots.taille == 0 {
-        retourne PrépareRésultat.INSTRUCTION_NON_RECONNUE
+        retourne PrépareRésultat.INSTRUCTION_NON_RECONNUE;
     }
 
     si mots[0] == "insère" {
         si mots.taille != 4 {
-            retourne PrépareRésultat.ERREUR_SYNTAXE
+            retourne PrépareRésultat.ERREUR_SYNTAXE;
         }
 
-        id := extrait_nombre_entier(mots[1]) comme z32
-        nom := mots[2]
-        courriel := mots[3]
+        id := extrait_nombre_entier(mots[1]) comme z32;
+        nom := mots[2];
+        courriel := mots[3];
 
         si id < 0 {
-            retourne PrépareRésultat.ID_NÉGATIF
+            retourne PrépareRésultat.ID_NÉGATIF;
         }
 
         // À FAIRE : vérifie que tout est dans le bon ordre
-        inst.type = TypeInstruction.INSÈRE
-        inst.ligne_à_insérer.id = id
-        copie_chaine_vers_tableau(*inst.ligne_à_insérer.nom[0], nom)
-        copie_chaine_vers_tableau(*inst.ligne_à_insérer.courriel[0], courriel)
+        inst.type = TypeInstruction.INSÈRE;
+        inst.ligne_à_insérer.id = id;
+        copie_chaine_vers_tableau(*inst.ligne_à_insérer.nom[0], nom);
+        copie_chaine_vers_tableau(*inst.ligne_à_insérer.courriel[0], courriel);
 
         si nom.taille > TAILLE_MAX_NOM {
-            retourne PrépareRésultat.CHAINE_TROP_LONGUE
+            retourne PrépareRésultat.CHAINE_TROP_LONGUE;
         }
 
         si courriel.taille > TAILLE_MAX_COURRIEL {
-            retourne PrépareRésultat.CHAINE_TROP_LONGUE
+            retourne PrépareRésultat.CHAINE_TROP_LONGUE;
         }
 
-        inst.ligne_à_insérer.nom[nom.taille] = '\0'
-        inst.ligne_à_insérer.courriel[courriel.taille] = '\0'
+        inst.ligne_à_insérer.nom[nom.taille] = '\0';
+        inst.ligne_à_insérer.courriel[courriel.taille] = '\0';
 
-        retourne PrépareRésultat.SUCCÈS
+        retourne PrépareRésultat.SUCCÈS;
     }
 
     si mots[0] == "sélectionne" {
-        inst.type = TypeInstruction.SÉLECTIONNE
-        retourne PrépareRésultat.SUCCÈS
+        inst.type = TypeInstruction.SÉLECTIONNE;
+        retourne PrépareRésultat.SUCCÈS;
     }
 
-    retourne PrépareRésultat.INSTRUCTION_NON_RECONNUE
+    retourne PrépareRésultat.INSTRUCTION_NON_RECONNUE;
 }
 
 RésultatExécution :: énum z32 {
-    INVALIDE
-    TABLE_PLEINE
-    SUCCÈS
+    INVALIDE;
+    TABLE_PLEINE;
+    SUCCÈS;
 }
 
 exécute_insertion :: fonc (inst: *Instruction, table: *Table) -> RésultatExécution
 {
     si table.nombre_de_lignes >= LIGNES_MAX_TABLE {
-        retourne RésultatExécution.TABLE_PLEINE
+        retourne RésultatExécution.TABLE_PLEINE;
     }
 
-    ligne_à_insérer := *inst.ligne_à_insérer
+    ligne_à_insérer := *inst.ligne_à_insérer;
 
-    curseur := curseur_fin_de_table(table)
-    slot := valeur_curseur(curseur)
+    curseur := curseur_fin_de_table(table);
+    slot := valeur_curseur(curseur);
 
-    sérialise_ligne(ligne_à_insérer, slot)
+    sérialise_ligne(ligne_à_insérer, slot);
 
-    table.nombre_de_lignes += 1
+    table.nombre_de_lignes += 1;
 
-    déloge(curseur)
+    déloge(curseur);
 
-    retourne RésultatExécution.SUCCÈS
+    retourne RésultatExécution.SUCCÈS;
 }
 
 donne_chaine_depuis_chaine_c_tableau :: fonc (tableau: []z8) -> chaine
 {
-    chn_c := ChaineC(tableau.pointeur)
-    retourne chaine(tableau.pointeur, taille_chaine_c(chn_c))
+    chn_c := ChaineC(tableau.pointeur);
+    retourne chaine(tableau.pointeur, taille_chaine_c(chn_c));
 }
 
 imprime_ligne :: fonc (ligne: *Ligne) -> rien
 {
-    chn_nom := donne_chaine_depuis_chaine_c_tableau(ligne.nom)
-    chn_courriel := donne_chaine_depuis_chaine_c_tableau(ligne.courriel)
-    imprime("(%, %, %)\n", ligne.id, chn_nom, chn_courriel)
+    chn_nom := donne_chaine_depuis_chaine_c_tableau(ligne.nom);
+    chn_courriel := donne_chaine_depuis_chaine_c_tableau(ligne.courriel);
+    imprime("(%, %, %)\n", ligne.id, chn_nom, chn_courriel);
 }
 
 exécute_sélection :: fonc (inst: *Instruction, table: *Table) -> RésultatExécution
 {
-    curseur := curseur_début_de_table(table)
-    ligne: Ligne
+    curseur := curseur_début_de_table(table);
+    ligne: Ligne;
 
     tantque !curseur.est_fin_de_table {
-        slot := valeur_curseur(curseur)
-        désérialise_ligne(slot, *ligne)
-        imprime_ligne(*ligne)
+        slot := valeur_curseur(curseur);
+        désérialise_ligne(slot, *ligne);
+        imprime_ligne(*ligne);
 
-        avance_curseur(curseur)
+        avance_curseur(curseur);
     }
 
-    déloge(curseur)
+    déloge(curseur);
 
-    retourne RésultatExécution.SUCCÈS
+    retourne RésultatExécution.SUCCÈS;
 }
 
 exécute_instruction :: fonc (inst: *Instruction, table: *Table) -> RésultatExécution
 {
     discr inst.type {
         INSÈRE {
-            retourne exécute_insertion(inst, table)
+            retourne exécute_insertion(inst, table);
         }
         SÉLECTIONNE {
-            retourne exécute_sélection(inst, table)
+            retourne exécute_sélection(inst, table);
         }
     }
 
-    retourne RésultatExécution.INVALIDE
+    retourne RésultatExécution.INVALIDE;
 }
 
 principale :: fonc ()
 {
-    args := arguments_ligne_commande()
+    args := arguments_ligne_commande();
 
     si args.taille < 2 {
-        imprime("Un nom de fichier pour la base de données doit être spécifié !\n")
-        exit(1)
+        imprime("Un nom de fichier pour la base de données doit être spécifié !\n");
+        exit(1);
     }
 
     //diffère { imprime("\nFin du programme, mémoire utilisée : %o\n", mémoire_utilisée()); }
-    chemin_fichier := args[1]
+    chemin_fichier := args[1];
 
-    table := ouvre_base_de_données(chemin_fichier)
-    diffère ferme_base_de_données(table)
+    table := ouvre_base_de_données(chemin_fichier);
+    diffère ferme_base_de_données(table);
 
-    marque := donne_marque_stockage_temporaire()
+    marque := donne_marque_stockage_temporaire();
 
-    nouveau_contexte := contexte()
-    nouveau_contexte.allocatrice = __stockage_temporaire
+    nouveau_contexte := contexte();
+    nouveau_contexte.allocatrice = __stockage_temporaire;
 
     boucle {
-        définis_marque_stockage_temporaire(marque)
-        marque = donne_marque_stockage_temporaire()
+        définis_marque_stockage_temporaire(marque);
+        marque = donne_marque_stockage_temporaire();
 
-        imprime_prompt()
+        imprime_prompt();
 
-        entrée: chaine
+        entrée: chaine;
         pousse_contexte nouveau_contexte {
-            entrée = entrée_standarde().lis_ligne()
+            entrée = entrée_standarde().lis_ligne();
         }
 
         si entrée.taille == 0 {
-            imprime("L'entrée est vide\n")
-            continue
+            imprime("L'entrée est vide\n");
+            continue;
         }
 
         si entrée[0] == '.' {
             discr méta_commande(entrée) {
                 SUCCÈS {
                     si entrée == ".sors" {
-                        exit(0)
+                        exit(0);
                     }
 
-                    continue
+                    continue;
                 }
                 NON_RECONNUE {
-                    imprime("commande inconnue : %\n", entrée)
-                    continue
+                    imprime("commande inconnue : %\n", entrée);
+                    continue;
                 }
             }
         }
 
-        instruction: Instruction
+        instruction: Instruction;
         discr prépare_instruction(entrée, *instruction) {
             SUCCÈS {}
             ERREUR_SYNTAXE {
-                imprime("Erreur de syntaxe pour '%'\n", entrée)
+                imprime("Erreur de syntaxe pour '%'\n", entrée);
             }
             INSTRUCTION_NON_RECONNUE {
-                imprime("Mot-clé inconnu au début de '%'\n", entrée)
-                continue
+                imprime("Mot-clé inconnu au début de '%'\n", entrée);
+                continue;
             }
             CHAINE_TROP_LONGUE {
-                imprime("La chaine est trop longue.\n")
-                continue
+                imprime("La chaine est trop longue.\n");
+                continue;
             }
             ID_NÉGATIF {
-                imprime("L'ID doit être positif.\n")
-                continue
+                imprime("L'ID doit être positif.\n");
+                continue;
             }
         }
 
         discr exécute_instruction(*instruction, table) {
             INVALIDE {
-                imprime("Exécution invalide.\n")
+                imprime("Exécution invalide.\n");
             }
             SUCCÈS {
-                imprime("Exécution réussie.\n")
+                imprime("Exécution réussie.\n");
             }
             TABLE_PLEINE {
-                imprime("Erreur: table pleine.\n")
+                imprime("Erreur: table pleine.\n");
             }
         }
     }

@@ -1,50 +1,50 @@
 // Interface pour le module C Aléa
 
-importe Alphabet
-importe Fondation
-importe Introspection
-importe Math
+importe Alphabet;
+importe Fondation;
+importe Introspection;
+importe Math;
 
-charge "halton"
-charge "mersenne_twister"
+charge "halton";
+charge "mersenne_twister";
 
-GNA :: MersenneTwister
+GNA :: MersenneTwister;
 
 crée_gna :: fonc (graine: n32) -> *GNA
 {
-    résultat := loge(MersenneTwister)
-    mémoire(résultat) = crée_mersenne_twister(graine)
-    retourne résultat
+    résultat := loge(MersenneTwister);
+    mémoire(résultat) = crée_mersenne_twister(graine);
+    retourne résultat;
 }
 
 resème :: fonc (gna: *GNA, graine: n32)
 {
-    ensemmence(gna, graine)
+    ensemmence(gna, graine);
 }
 
 détruit_gna :: fonc (gna: *GNA)
 {
-    déloge(gna)
+    déloge(gna);
 }
 
 uniforme :: fonc (gna: *GNA, min: r32, max: r32) -> r32
 {
-    retourne (donne_uniforme(gna, max - min) + min) comme r32
+    retourne (donne_uniforme(gna, max - min) + min) comme r32;
 }
 
 uniforme :: fonc (gna: *GNA, min: r64, max: r64) -> r64
 {
-    retourne donne_uniforme(gna, max - min) + min
+    retourne donne_uniforme(gna, max - min) + min;
 }
 
 normale :: fonc (gna: *GNA, moyenne: r32, écart: r32) -> r32
 {
-    retourne donne_normal(gna, moyenne, écart)
+    retourne donne_normal(gna, moyenne, écart);
 }
 
 normale :: fonc (gna: *GNA, moyenne: r64, écart: r64) -> r64
 {
-    retourne donne_normal(gna, moyenne, écart)
+    retourne donne_normal(gna, moyenne, écart);
 }
 
 // ------------------------------------------------------
@@ -52,101 +52,101 @@ normale :: fonc (gna: *GNA, moyenne: r64, écart: r64) -> r64
 choisit :: fonc (gna: *GNA, tableau: []$T) -> T
 {
     saufsi tableau {
-        valeur_défaut: T
-        retourne valeur_défaut
+        valeur_défaut: T;
+        retourne valeur_défaut;
     }
 
-    index_r32 := gna.uniforme(0 comme r32, (tableau.taille) comme r32)
-    indice := index_r32 comme z64
-    retourne tableau[indice]
+    index_r32 := gna.uniforme(0 comme r32, (tableau.taille) comme r32);
+    indice := index_r32 comme z64;
+    retourne tableau[indice];
 }
 
 mélange_tableau :: fonc (gna: *GNA, tableau: []$T)
 {
     pour tableau.taille {
-        nouvel_index := gna.uniforme(0.0, (tableau.taille - 1) comme r32) comme z64
+        nouvel_index := gna.uniforme(0.0, (tableau.taille - 1) comme r32) comme z64;
 
         si nouvel_index == indice_it {
-            continue
+            continue;
         }
 
-        tmp := tableau.pointeur[indice_it]
-        tableau.pointeur[indice_it] = tableau.pointeur[nouvel_index]
-        tableau.pointeur[nouvel_index] = tmp
+        tmp := tableau.pointeur[indice_it];
+        tableau.pointeur[indice_it] = tableau.pointeur[nouvel_index];
+        tableau.pointeur[nouvel_index] = tmp;
     }
 }
 
 // ------------------------------------------------------
 
 GénératriceDonnéesAléatoire :: struct {
-    gna: *GNA
-    taille_min_chaine := 1
-    taille_max_chaine := 32
+    gna: *GNA;
+    taille_min_chaine := 1;
+    taille_max_chaine := 32;
 }
 
 génère_données_aléatoires :: fonc (génératrice: &GénératriceDonnéesAléatoire, $T: type_de_données) -> T
 {
-    #assert info_de(T).id == GenreInfoType.STRUCTURE
+    #assert info_de(T).id == GenreInfoType.STRUCTURE;
 
-    résultat: T
+    résultat: T;
 
-    info := info_de(T)
+    info := info_de(T);
 
     pour info.rubriques {
-        fonction_parsage := trouve_fonction_génération_données_aléatoires(it.id)
+        fonction_parsage := trouve_fonction_génération_données_aléatoires(it.id);
 
         saufsi fonction_parsage {
-            continue
+            continue;
         }
 
-        tampon: []octet
-        tampon.pointeur = (*résultat comme *z8 + it.décalage)
-        tampon.taille = it.id.taille_en_octet comme z64
+        tampon: []octet;
+        tampon.pointeur = (*résultat comme *z8 + it.décalage);
+        tampon.taille = it.id.taille_en_octet comme z64;
 
         // fonction_parsage.rappel ajournera le ptr_résultat via le tampon
-        fonction_parsage.fonction(génératrice, tampon)
+        fonction_parsage.fonction(génératrice, tampon);
     }
 
-    retourne résultat
+    retourne résultat;
 }
 
 // ------------------------------------------------------
 
 chaine_aléatoire :: fonc (gna: *GNA, alphabet: &Alphabet.Alphabet, taille_min: z32, taille_max: z32) -> chaine
 {
-    nombre_de_caractères := alphabet.taille_alphabet()
+    nombre_de_caractères := alphabet.taille_alphabet();
 
-    min_r32 := 0.0
-    max_r32 := (nombre_de_caractères - 1) comme r32
+    min_r32 := 0.0;
+    max_r32 := (nombre_de_caractères - 1) comme r32;
 
-    taille := gna.uniforme(taille_min comme r32, taille_max comme r32) comme z32
+    taille := gna.uniforme(taille_min comme r32, taille_max comme r32) comme z32;
 
-    enchaineuse: Enchaineuse
-    initialise_enchaineuse(*enchaineuse)
+    enchaineuse: Enchaineuse;
+    initialise_enchaineuse(*enchaineuse);
 
     pour taille {
-        index_r32 := gna.uniforme(min_r32, max_r32)
-        index_z32 := index_r32 comme z32
-        caractère := alphabet.caractère_pour_index(index_z32)
+        index_r32 := gna.uniforme(min_r32, max_r32);
+        index_z32 := index_r32 comme z32;
+        caractère := alphabet.caractère_pour_index(index_z32);
 
-        ajoute_au_tampon(*enchaineuse, caractère)
+        ajoute_au_tampon(*enchaineuse, caractère);
     }
 
-    retourne chaine_depuis_enchaineuse(*enchaineuse)
+    retourne chaine_depuis_enchaineuse(*enchaineuse);
 }
 
 génère_chaine_aléatoire :: fonc (génératrice: &GénératriceDonnéesAléatoire) -> chaine
 {
-    alphabet := crée_alphabet_ascii_pour_nom()
-    diffère détruit_alphabet(alphabet)
-    résultat := chaine_aléatoire(génératrice.gna, alphabet, génératrice.taille_min_chaine, génératrice.taille_max_chaine)
-    retourne résultat
+    alphabet := crée_alphabet_ascii_pour_nom();
+    diffère détruit_alphabet(alphabet);
+    résultat := chaine_aléatoire(génératrice.gna, alphabet, génératrice.taille_min_chaine, génératrice.taille_max_chaine);
+    retourne résultat;
 }
 
 rappel_génère_chaine_aléatoire :: fonc (génératrice: &GénératriceDonnéesAléatoire, ptr: *chaine)
 {
-    résultat := génère_chaine_aléatoire(génératrice)
-    mémoire(ptr) = résultat
+    résultat := génère_chaine_aléatoire(génératrice);
+    mémoire(ptr) = résultat;
 } @FonctionGNA
 /*
 
@@ -188,84 +188,84 @@ entropie.énum_aléatoire(TypeEnum)
 
 pcg_xsh_rr :: fonc (état: &n64) -> n32
 {
-    état_ := xor_shift(état)
-    sortie := ((état_ ^ (état_ >> 18)) >> 27) >>> (état_ >> 59)
-    retourne sortie comme n32
+    état_ := xor_shift(état);
+    sortie := ((état_ ^ (état_ >> 18)) >> 27) >>> (état_ >> 59);
+    retourne sortie comme n32;
 }
 
 xor_shift :: fonc (état: &n32) -> n32
 {
-    x : n32 = état
-    x ^= x << 13
-    x ^= x >> 17
-    x ^= x << 5
-    état = x
-    retourne x
+    x : n32 = état;
+    x ^= x << 13;
+    x ^= x >> 17;
+    x ^= x << 5;
+    état = x;
+    retourne x;
 }
 
 xor_shift :: fonc (état: &n64) -> n64
 {
-    x : n64 = état
-    x ^= x << 13
-    x ^= x >> 7
-    x ^= x << 17
-    état = x
-    retourne x
+    x : n64 = état;
+    x ^= x << 13;
+    x ^= x >> 7;
+    x ^= x << 17;
+    état = x;
+    retourne x;
 }
 
 SérieAléatoire :: struct {
-    état: n32
+    état: n32;
 }
 
 graine_aléatoire :: fonc (graine: n32) -> SérieAléatoire
 {
-    graine = (graine & 0x330e) | (graine << 16)
-    graine = xor_shift(graine)
-    graine = (graine & 0x330e) | (graine << 16)
-    graine = xor_shift(graine)
-    graine = (graine & 0x330e) | (graine << 16)
-    retourne SérieAléatoire(graine)
+    graine = (graine & 0x330e) | (graine << 16);
+    graine = xor_shift(graine);
+    graine = (graine & 0x330e) | (graine << 16);
+    graine = xor_shift(graine);
+    graine = (graine & 0x330e) | (graine << 16);
+    retourne SérieAléatoire(graine);
 }
 
 donne_aléatoire :: fonc (série: *SérieAléatoire) -> n32
 {
-    retourne xor_shift(série.état)
+    retourne xor_shift(série.état);
 }
 
 aléatoire_unilatérale :: fonc (série: &SérieAléatoire) -> r32
 {
-    retourne xor_shift(série.état) comme r32 / ((-1 comme n32) comme r32)
+    retourne xor_shift(série.état) comme r32 / ((-1 comme n32) comme r32);
 }
 
 aléatoire_bilatérale :: fonc (série: &SérieAléatoire) -> r32
 {
-    retourne bilatéral_de(série.aléatoire_unilatérale())
+    retourne bilatéral_de(série.aléatoire_unilatérale());
 }
 
 choix_aléatoire :: fonc (série: *SérieAléatoire, compte: $T) -> T
 {
-    retourne (donne_aléatoire(série) % (compte comme n32)) comme T
+    retourne (donne_aléatoire(série) % (compte comme n32)) comme T;
 }
 
 choix_aléatoire :: fonc (série: *SérieAléatoire, valeurs: []$T) -> T
 {
-    retourne valeurs[choix_aléatoire(série, valeurs.taille)]
+    retourne valeurs[choix_aléatoire(série, valeurs.taille)];
 }
 
 vec3_aléatoire_unilatéral :: fonc (série: &SérieAléatoire) -> Vec3
 {
-    retourne Vec3(série.aléatoire_unilatérale(), série.aléatoire_unilatérale(), série.aléatoire_unilatérale())
+    retourne Vec3(série.aléatoire_unilatérale(), série.aléatoire_unilatérale(), série.aléatoire_unilatérale());
 }
 
 vec3_aléatoire :: fonc (série: &SérieAléatoire) -> Vec3
 {
-    retourne Vec3(série.aléatoire_bilatérale(), série.aléatoire_bilatérale(), série.aléatoire_bilatérale())
+    retourne Vec3(série.aléatoire_bilatérale(), série.aléatoire_bilatérale(), série.aléatoire_bilatérale());
 }
 
 aléatoire_entre :: fonc (série: &SérieAléatoire, min: $T, max: T) -> T
 {
-    résultat := série.aléatoire_unilatérale()
-    retourne (résultat * ((max - min) comme r32)) comme T + min
+    résultat := série.aléatoire_unilatérale();
+    retourne (résultat * ((max - min) comme r32)) comme T + min;
 }
 
 // -------------------------------------------------------------------------
@@ -274,106 +274,106 @@ aléatoire_entre :: fonc (série: &SérieAléatoire, min: $T, max: T) -> T
  * Appendice : Source Code 1 */
 inverse_radical :: fonc (n: n32) -> r64
 {
-    u : r64 = 0.0
-    p : r64 = 0.5
+    u : r64 = 0.0;
+    p : r64 = 0.5;
 
     /* This reverse the bit-wise representation
      * around the decimal point. */
     tantque n != 0 {
         si (n & 1) != 0 {
-            u += p
+            u += p;
         }
 
-        p *= 0.5
-        n >>= 1
+        p *= 0.5;
+        n >>= 1;
     }
 
-    retourne u
+    retourne u;
 }
 
 hammersley_1d :: fonc (n: n32) -> r64
 {
-    retourne inverse_radical(n)
+    retourne inverse_radical(n);
 }
 
 séquence_hammersley_2d :: fonc (n: n32, r: *r64)
 {
     pour s dans 0 ... n - 1 {
-        r[s * 2 + 0] = (s comme r64 + 0.5) / n comme r64
-        r[s * 2 + 1] = inverse_radical(s)
+        r[s * 2 + 0] = (s comme r64 + 0.5) / n comme r64;
+        r[s * 2 + 1] = inverse_radical(s);
     }
 }
 
 // ------------------------------------------------------
 
-importe Compilatrice
+importe Compilatrice;
 
 // À FAIRE: #portée_fichier
-__fonctions_génération_données_aléatoires: [..]FonctionInstrospection(fonc (gén: &GénératriceDonnéesAléatoire, valeur: eini))
+__fonctions_génération_données_aléatoires: [..]FonctionInstrospection(fonc (gén: &GénératriceDonnéesAléatoire, valeur: eini));
 
 trouve_fonction_génération_données_aléatoires :: fonc (info: *InfoType) -> *FonctionInstrospection(fonc (gén: &GénératriceDonnéesAléatoire, valeur: eini))
 {
-    retourne trouve_fonction_pour_type(__fonctions_génération_données_aléatoires, info)
+    retourne trouve_fonction_pour_type(__fonctions_génération_données_aléatoires, info);
 }
 
 fonction_est_valide :: fonc (fonction: *NoeudCodeEntêteFonction) -> DonnéesFonctionPourTableFonction
 {
     si fonction.params.taille != 2 {
-        compilatrice_rapporte_erreur(fonction, "Impossible d'utiliser la fonction comme formatteuse pour l'impression, elle doit avoir 2 paramètres : &GénératriceDonnéesAléatoire, et eini")
+        compilatrice_rapporte_erreur(fonction, "Impossible d'utiliser la fonction comme formatteuse pour l'impression, elle doit avoir 2 paramètres : &GénératriceDonnéesAléatoire, et eini");
     }
 
-    type_premier_paramètre := fonction.params[0].type
-    type_deuxième_paramètre := fonction.params[1].type
+    type_premier_paramètre := fonction.params[0].type;
+    type_deuxième_paramètre := fonction.params[1].type;
 
     si type_premier_paramètre != info_de(&GénératriceDonnéesAléatoire) {
-        compilatrice_rapporte_erreur(fonction.params[0], "Fonction de formattage invalide, le premier paramètre doit être de type « &GénératriceDonnéesAléatoire ».")
+        compilatrice_rapporte_erreur(fonction.params[0], "Fonction de formattage invalide, le premier paramètre doit être de type « &GénératriceDonnéesAléatoire ».");
     }
 
     si type_deuxième_paramètre.id != GenreInfoType.POINTEUR {
-        compilatrice_rapporte_erreur(fonction.params[1], "Fonction de formattage invalide, le deuxième paramètre doit être un pointeur.")
+        compilatrice_rapporte_erreur(fonction.params[1], "Fonction de formattage invalide, le deuxième paramètre doit être un pointeur.");
     }
 
-    pointeur := type_deuxième_paramètre comme *InfoTypePointeur
+    pointeur := type_deuxième_paramètre comme *InfoTypePointeur;
 
-    résultat: DonnéesFonctionPourTableFonction
-    résultat.fonction = fonction
-    résultat.info_type = pointeur.type_pointé
-    retourne résultat
+    résultat: DonnéesFonctionPourTableFonction;
+    résultat.fonction = fonction;
+    résultat.info_type = pointeur.type_pointé;
+    retourne résultat;
 }
 
 génère_fonction_enveloppe :: fonc (enchaineuse: *Enchaineuse, données: DonnéesFonctionPourTableFonction) -> chaine
 {
-    nom_enveloppe := enchaine("enveloppe_pour_gna_", données.fonction.nom)
+    nom_enveloppe := enchaine("enveloppe_pour_gna_", données.fonction.nom);
 
-    module := compilatrice_module_pour_code(données.fonction)
-    nom_module := compilatrice_nom_module(module)
+    module := compilatrice_module_pour_code(données.fonction);
+    nom_module := compilatrice_nom_module(module);
 
-    enchaineuse.ajoute_au_tampon(nom_enveloppe, " :: fonc (génératrice: &Aléa.GénératriceDonnéesAléatoire, valeur: eini)\n")
-    enchaineuse.ajoute_au_tampon("{\n")
+    enchaineuse.ajoute_au_tampon(nom_enveloppe, " :: fonc (génératrice: &Aléa.GénératriceDonnéesAléatoire, valeur: eini)\n");
+    enchaineuse.ajoute_au_tampon("{\n");
     /* Rappel : le type de la fonction doit être un pointeur, mais l'eini stocke un pointeur vers celui-ci. */
-    enchaineuse.ajoute_au_tampon("\tptr := mémoire(valeur.pointeur comme **")
-    imprime_type(enchaineuse, données.info_type, nom_module)
-    enchaineuse.ajoute_au_tampon(")\n")
-    ajoute_au_tampon(enchaineuse, "\t")
+    enchaineuse.ajoute_au_tampon("\tptr := mémoire(valeur.pointeur comme **");
+    imprime_type(enchaineuse, données.info_type, nom_module);
+    enchaineuse.ajoute_au_tampon(")\n");
+    ajoute_au_tampon(enchaineuse, "\t");
     si nom_module {
-        ajoute_au_tampon(enchaineuse, nom_module, ".")
+        ajoute_au_tampon(enchaineuse, nom_module, ".");
     }
-    ajoute_au_tampon(enchaineuse, données.fonction.nom, "(génératrice, ptr)\n")
-    enchaineuse.ajoute_au_tampon("}\n")
+    ajoute_au_tampon(enchaineuse, données.fonction.nom, "(génératrice, ptr)\n");
+    enchaineuse.ajoute_au_tampon("}\n");
 
-    retourne nom_enveloppe
+    retourne nom_enveloppe;
 }
 
 génère_initialisation_gna :: fonc ()
 {
-    créatrice_table_fonctions: CréatriceTableFonction
-    créatrice_table_fonctions.module = compilatrice_module_courant()
-    créatrice_table_fonctions.annotation_désirée = "FonctionGNA"
-    créatrice_table_fonctions.nom_table_fonctions = "__fonctions_génération_données_aléatoires"
-    créatrice_table_fonctions.données_pour_fonction = fonction_est_valide
-    créatrice_table_fonctions.génère_fonction_enveloppe = génère_fonction_enveloppe
+    créatrice_table_fonctions: CréatriceTableFonction;
+    créatrice_table_fonctions.module = compilatrice_module_courant();
+    créatrice_table_fonctions.annotation_désirée = "FonctionGNA";
+    créatrice_table_fonctions.nom_table_fonctions = "__fonctions_génération_données_aléatoires";
+    créatrice_table_fonctions.données_pour_fonction = fonction_est_valide;
+    créatrice_table_fonctions.génère_fonction_enveloppe = génère_fonction_enveloppe;
 
-    crée_table_fonctions(créatrice_table_fonctions)
+    crée_table_fonctions(créatrice_table_fonctions);
 }
 
 // #pré_exécutable génère_initialisation_gna()

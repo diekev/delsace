@@ -3,21 +3,21 @@
  */
 
 ÉnumDrapeau :: énum_drapeau {
-    X
-    Y
-    Z
+    X;
+    Y;
+    Z;
 }
 
 est_X :: fonc (drapeaux: ÉnumDrapeau) -> bool
 {
-    retourne drapeaux.X == vrai
+    retourne drapeaux.X == vrai;
 }
 
 principale :: fonc ()
 {
-    e: ÉnumDrapeau
+    e: ÉnumDrapeau;
 
     si est_X(e) {
-        exit(1)
+        exit(1);
     }
 }

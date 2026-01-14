@@ -5,13 +5,13 @@
 
 test :: fonc (a := 0) -> bool
 {
-    a = 5
-    retourne (a == 5)
+    a = 5;
+    retourne (a == 5);
 }
 
 principale :: fonc ()
 {
     saufsi test() {
-        exit(1)
+        exit(1);
     }
 }

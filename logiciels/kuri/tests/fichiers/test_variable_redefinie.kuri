@@ -3,7 +3,7 @@
 
 foo :: fonc (compte: z32) -> rien
 {
-	compte := 0
+	compte := 0;
 }
 
 // -----------------------------------
@@ -11,18 +11,18 @@ foo :: fonc (compte: z32) -> rien
 
 foo :: fonc () -> rien
 {
-	x := 0
-	x := 0
+	x := 0;
+	x := 0;
 }
 
 // -----------------------------------
 // Cas : Une variable ne peut prendre le nom d'une autre variable globale
 
-x := 0
+x := 0;
 
 foo :: fonc () -> rien
 {
-	x := 0
+	x := 0;
 }
 
 // -----------------------------------
@@ -30,9 +30,9 @@ foo :: fonc () -> rien
 
 foo :: fonc (compte : z32) -> rien
 {
-	a := compte
+	a := compte;
 
 	si compte == 5 {
-		a := compte
+		a := compte;
 	}
 }

@@ -2,75 +2,75 @@
 /* https://html.spec.whatwg.org/multipage/browsing-the-web.html#nested-history */
 NestedHistory :: struct {
     /* unique internal value */
-    id: z32
-    entries: [..]*SessionHistoryEntry
+    id: z32;
+    entries: [..]*SessionHistoryEntry;
 }
 
 /* https://html.spec.whatwg.org/multipage/browsing-the-web.html#document-state-2 */
 DocumentState :: struct {
     /* Utilise un compte de référence pour pouvoir partager les DocumentState. */
-    référence := 1
+    référence := 1;
 
-    document: *Document
-    history_policy_container: *PolicyContainer
-    initiator_origin: Optionnel(Origin)
-    origin: Origin
-    navigable_target_name: chaine
-    about_base_url: *URL
+    document: *Document;
+    history_policy_container: *PolicyContainer;
+    initiator_origin: Optionnel(Origin);
+    origin: Origin;
+    navigable_target_name: chaine;
+    about_base_url: *URL;
     // À FAIRE : complète
-    request_referrer: chaine
+    request_referrer: chaine;
     /* https://html.spec.whatwg.org/multipage/browsing-the-web.html#document-state-request-referrer-policy */
-    request_referrer_policy := default_referrer_policy
-    reload_pending: bool
-    ever_populated: bool
+    request_referrer_policy := default_referrer_policy;
+    reload_pending: bool;
+    ever_populated: bool;
 
-    nested_histories: [..]NestedHistory
+    nested_histories: [..]NestedHistory;
 }
 
 copie_référence :: fonc (state: *DocumentState) -> *DocumentState
 {
-    state.référence += 1
-    retourne state
+    state.référence += 1;
+    retourne state;
 }
 
 clone :: fonc (state: *DocumentState) -> *DocumentState
 {
-    résultat := loge(DocumentState)
-    résultat.document = state.document
-    résultat.history_policy_container = state.history_policy_container
-    résultat.initiator_origin = state.initiator_origin
-    résultat.origin = state.origin
-    résultat.navigable_target_name = state.navigable_target_name
-    résultat.about_base_url = state.about_base_url
-    résultat.request_referrer = state.request_referrer
-    résultat.request_referrer_policy = state.request_referrer_policy
-    résultat.reload_pending = state.reload_pending
-    résultat.ever_populated = state.ever_populated
-    résultat.nested_histories = state.nested_histories
-    retourne résultat
+    résultat := loge(DocumentState);
+    résultat.document = state.document;
+    résultat.history_policy_container = state.history_policy_container;
+    résultat.initiator_origin = state.initiator_origin;
+    résultat.origin = state.origin;
+    résultat.navigable_target_name = state.navigable_target_name;
+    résultat.about_base_url = state.about_base_url;
+    résultat.request_referrer = state.request_referrer;
+    résultat.request_referrer_policy = state.request_referrer_policy;
+    résultat.reload_pending = state.reload_pending;
+    résultat.ever_populated = state.ever_populated;
+    résultat.nested_histories = state.nested_histories;
+    retourne résultat;
 }
 
 détruit_document_state :: fonc (state: *DocumentState)
 {
     saufsi state {
-        retourne
+        retourne;
     }
 
-    state.référence -= 1
+    state.référence -= 1;
     si state.référence > 0 {
-        retourne
+        retourne;
     }
 
-    déloge(state)
+    déloge(state);
 }
 
 /* https://html.spec.whatwg.org/multipage/browsing-the-web.html#session-history-entry */
 SessionHistoryEntry :: struct {
     /* a non-negative integer or "pending", initially "pending" */
-    step: n32
+    step: n32;
 
-    url: *URL
-    document_state: *DocumentState
+    url: *URL;
+    document_state: *DocumentState;
 
     // classic history API state, which is serialized state, initially StructuredSerializeForStorage(null).
 
@@ -89,23 +89,23 @@ SessionHistoryEntry :: struct {
 
 détruit_session_history_entry :: fonc (she: *SessionHistoryEntry)
 {
-    détruit_url(she.url)
-    détruit_document_state(she.document_state)
-    déloge(she)
+    détruit_url(she.url);
+    détruit_document_state(she.document_state);
+    déloge(she);
 }
 
 donne_document :: fonc (she: *SessionHistoryEntry) -> *Document
 {
-    retourne she.document_state.document
+    retourne she.document_state.document;
 }
 
 clone :: fonc (she: *SessionHistoryEntry) -> *SessionHistoryEntry
 {
-    résultat := loge(SessionHistoryEntry)
-    résultat.step = she.step
-    résultat.url = copie_url(she.url)
-    résultat.document_state = clone(she.document_state)
-    retourne résultat
+    résultat := loge(SessionHistoryEntry);
+    résultat.step = she.step;
+    résultat.url = copie_url(she.url);
+    résultat.document_state = clone(she.document_state);
+    retourne résultat;
 }
 
 /* ------------------------------------------------------------------------- */
@@ -113,68 +113,68 @@ clone :: fonc (she: *SessionHistoryEntry) -> *SessionHistoryEntry
  * https://html.spec.whatwg.org/multipage/document-sequences.html#navigables
  * \{ */
 
-IDNavigable :: z32
+IDNavigable :: z32;
 
 /* https://html.spec.whatwg.org/multipage/document-sequences.html#navigable */
 Navigable :: struct {
-    type := #type_de_cette_structure
+    type := #type_de_cette_structure;
 
-    id: IDNavigable
-    parent: *Navigable
+    id: IDNavigable;
+    parent: *Navigable;
     /* XXX - ceci est sensé être implicite ? */
-    enfants: [..]*Navigable
-    current_session_history_entry: *SessionHistoryEntry
-    active_session_history_entry: *SessionHistoryEntry
-    is_closing: bool
-    is_delaying_load_events: bool
+    enfants: [..]*Navigable;
+    current_session_history_entry: *SessionHistoryEntry;
+    active_session_history_entry: *SessionHistoryEntry;
+    is_closing: bool;
+    is_delaying_load_events: bool;
 
     /* https://html.spec.whatwg.org/multipage/browsing-the-web.html#ongoing-navigation */
-    ongoing_navigation: OngoingNavigationType
+    ongoing_navigation: OngoingNavigationType;
 }
 
 initialise_navigable :: fonc (navigable: *Navigable, document_state: *DocumentState, parent: *Navigable = nul)
 {
     // 1. Assert: documentState's document is non-null.
-    assert(document_state.document != nul)
+    assert(document_state.document != nul);
 
     // 2. Let entry be a new session history entry, with
-    entry := loge(SessionHistoryEntry)
-    entry.url = copie_url(document_state.document.url)
-    entry.document_state = document_state
+    entry := loge(SessionHistoryEntry);
+    entry.url = copie_url(document_state.document.url);
+    entry.document_state = document_state;
 
     // 3. Set navigable's current session history entry to entry.
-    navigable.current_session_history_entry = entry
+    navigable.current_session_history_entry = entry;
 
     // 4. Set navigable's active session history entry to entry.
-    navigable.active_session_history_entry = entry
+    navigable.active_session_history_entry = entry;
 
     // 5. Set navigable's parent to parent.
-    navigable.définis_parent(parent)
+    navigable.définis_parent(parent);
 }
 
 définis_parent :: fonc (navigable: *Navigable, parent: *Navigable)
 {
-    assert(navigable.parent == nul)
-    navigable.parent = parent
+    assert(navigable.parent == nul);
+    navigable.parent = parent;
     si parent {
-        tableau_ajoute(*parent.enfants, navigable)
+        tableau_ajoute(*parent.enfants, navigable);
     }
 }
 
 définis_active_session_history_entry :: fonc (navigable: *Navigable, entry: *SessionHistoryEntry)
 {
-    document := donne_document(entry)
+    document := donne_document(entry);
 
     si navigable.est_top_level_traversable() && document != navigable.donne_active_document() {
-        document.notifie_changement_fully_active()
+        document.notifie_changement_fully_active();
     }
 
-    navigable.active_session_history_entry = entry
+    navigable.active_session_history_entry = entry;
 }
 
 donne_active_document :: fonc (navigable: *Navigable) -> *Document
 {
-    retourne donne_document(navigable.active_session_history_entry)
+    retourne donne_document(navigable.active_session_history_entry);
 }
 
 /* https://html.spec.whatwg.org/multipage/document-sequences.html#nav-bc */
@@ -183,80 +183,80 @@ donne_active_browsing_context :: fonc (navigable: *Navigable) -> *BrowsingContex
     /* A navigable's active browsing context is its active document's browsing context.
      * If this navigable is a traversable navigable, then its active browsing context
      * will be a top-level browsing context. */
-    document := navigable.donne_active_document()
+    document := navigable.donne_active_document();
     saufsi document {
-        retourne nul
+        retourne nul;
     }
-    retourne document.browsing_context
+    retourne document.browsing_context;
 }
 
 /* https://html.spec.whatwg.org/multipage/document-sequences.html#nav-wp */
 donne_active_window_proxy :: fonc (navigable: *Navigable) -> *WindowProxy
 {
-    bc := donne_active_browsing_context(navigable)
+    bc := donne_active_browsing_context(navigable);
     saufsi bc {
-        retourne nul
+        retourne nul;
     }
-    retourne bc.window_proxy
+    retourne bc.window_proxy;
 }
 
 /* https://html.spec.whatwg.org/multipage/document-sequences.html#nav-window */
 donne_active_window :: fonc (navigable: *Navigable) -> *Window
 {
-    window_proxy := donne_active_window_proxy(navigable)
+    window_proxy := donne_active_window_proxy(navigable);
     saufsi window_proxy {
-        retourne nul
+        retourne nul;
     }
-    retourne window_proxy.window
+    retourne window_proxy.window;
 }
 
 /* https://html.spec.whatwg.org/multipage/document-sequences.html#nav-container */
 donne_container :: fonc (navigable: *Navigable @inutilisée) -> *Element
 {
-    imprime("À FAIRE : [%]\n", #nom_de_cette_fonction)
-    retourne nul
+    imprime("À FAIRE : [%]\n", #nom_de_cette_fonction);
+    retourne nul;
 }
 
 /* https://html.spec.whatwg.org/multipage/document-sequences.html#nav-container-document */
 donne_container_document :: fonc (navigable: *Navigable) -> *Document
 {
     // 1. If navigable's container is null, then return null.
-    container := donne_container(navigable)
+    container := donne_container(navigable);
     saufsi container {
-        retourne nul
+        retourne nul;
     }
 
     // 2. Return navigable's container's node document.
-    retourne container.document
+    retourne container.document;
 }
 
 /* https://html.spec.whatwg.org/multipage/document-sequences.html#nav-traversable */
 donne_traversable_navigable :: fonc (input_navigable: *Navigable) -> *TraversableNavigable
 {
     // 1. Let navigable be inputNavigable.
-    navigable := input_navigable
+    navigable := input_navigable;
 
     // 2. While navigable is not a traversable navigable, set navigable to navigable's parent.
     tantque navigable.type != TraversableNavigable {
-        navigable = navigable.parent
+        navigable = navigable.parent;
     }
 
     // 3. Return navigable.
-    retourne navigable comme *TraversableNavigable
+    retourne navigable comme *TraversableNavigable;
 }
 
 /*  https://html.spec.whatwg.org/multipage/browsing-the-web.html#getting-session-history-entries */
 donne_session_history_entries :: fonc (user_agent: *UserAgent, navigable: *Navigable) -> *[..]*SessionHistoryEntry
 {
     // 1. Let traversable be navigable's traversable navigable.
-    traversable := donne_traversable_navigable(navigable)
+    traversable := donne_traversable_navigable(navigable);
 
     // 2. Assert: this is running within traversable's session history traversal queue.
-    assert(user_agent.est_exécuté_sur_file_parallèle(traversable))
+    assert(user_agent.est_exécuté_sur_file_parallèle(traversable));
 
     // 3. If navigable is traversable, return traversable's session history entries.
     si navigable == traversable {
-        retourne *traversable.session_history_entries
+        retourne *traversable.session_history_entries;
     }
 
     // 4. Let docStates be an empty ordered set of document states.
@@ -294,8 +294,8 @@ donne_session_history_entries :: fonc (user_agent: *UserAgent, navigable: *Navig
     // }
 
     // 7. Assert: this step is not reached.
-    assert(faux)
-    retourne nul
+    assert(faux);
+    retourne nul;
 }
 
 /* https://html.spec.whatwg.org/multipage/browsing-the-web.html#set-the-ongoing-navigation */
@@ -303,68 +303,68 @@ définis_ongoing_navigation :: fonc (navigable: *Navigable, new_value: OngoingNa
 {
     // 1. If navigable's ongoing navigation is equal to newValue, then return.
     si navigable.ongoing_navigation == new_value {
-        retourne
+        retourne;
     }
 
     // À FAIRE : 2. Inform the navigation API about aborting navigation given navigable.
 
     // 3. Set navigable's ongoing navigation to newValue.
-    navigable.ongoing_navigation = new_value
+    navigable.ongoing_navigation = new_value;
 }
 
 /* https://html.spec.whatwg.org/multipage/document-sequences.html#traversable-navigables */
 TraversableNavigable :: struct {
-    empl base: Navigable
-    type = #type_de_cette_structure
+    empl base: Navigable;
+    type = #type_de_cette_structure;
 
-    current_session_history_entry_step: n32 = 0
-    session_history_entries: [..]*SessionHistoryEntry
-    indice_file_parallèle: z64
-    running_nested_apply_history_step := faux
+    current_session_history_entry_step: n32 = 0;
+    session_history_entries: [..]*SessionHistoryEntry;
+    indice_file_parallèle: z64;
+    running_nested_apply_history_step := faux;
     // A system visibility state, which is either "hidden" or "visible".
 }
 
 détruit_traversable :: fonc (traversable: *TraversableNavigable)
 {
-    déloge_tableau_et_ses_éléments(traversable.session_history_entries, détruit_session_history_entry)
-    déloge(traversable)
+    déloge_tableau_et_ses_éléments(traversable.session_history_entries, détruit_session_history_entry);
+    déloge(traversable);
 }
 
 /* https://html.spec.whatwg.org/multipage/document-sequences.html#top-level-traversable */
 est_top_level_traversable :: fonc (navigable: *Navigable) -> bool
 {
-    retourne navigable.type == TraversableNavigable && navigable.parent == nul
+    retourne navigable.type == TraversableNavigable && navigable.parent == nul;
 }
 
 donne_top_level_traversable :: fonc (input_navigable: *Navigable) -> *TraversableNavigable
 {
     // 1. Let navigable be inputNavigable.
-    navigable := input_navigable
+    navigable := input_navigable;
 
     // 2. While navigable's parent is not null, set navigable to navigable's parent.
     tantque navigable.parent != nul {
-        navigable = navigable.parent
+        navigable = navigable.parent;
     }
 
     // 3. Return navigable.
-    assert(navigable.type == TraversableNavigable)
-    retourne navigable comme *TraversableNavigable
+    assert(navigable.type == TraversableNavigable);
+    retourne navigable comme *TraversableNavigable;
 }
 
 /* https://html.spec.whatwg.org/multipage/document-sequences.html#creating-a-new-top-level-traversable */
 crée_un_nouveau_top_level_traversable :: fonc (user_agent: *UserAgent, opener: *BrowsingContext, target_name: chaine, opener_navigable_for_webdriver : *Navigable = nul) -> *TraversableNavigable
 {
     // 1. Let document be null.
-    document: *Document = nul
+    document: *Document = nul;
 
     // 2. If opener is null, then set document to the second return value of creating a new top-level browsing context and document.
     si opener == nul {
-        _, document_ := crée_un_nouveau_top_level_browsing_context_et_document(user_agent)
-        document = document_
+        _, document_ := crée_un_nouveau_top_level_browsing_context_et_document(user_agent);
+        document = document_;
     }
     // 3. Otherwise, set document to the second return value of creating a new auxiliary browsing context and document given opener.
     sinon {
-        panique("crée_un_nouveau_auxiliary_browsing_context_and_document")
+        panique("crée_un_nouveau_auxiliary_browsing_context_and_document");
     }
 
     // 4. Let documentState be a new document state, with
@@ -373,41 +373,41 @@ crée_un_nouveau_top_level_traversable :: fonc (user_agent: *UserAgent, opener: 
     //    origin                : document's origin
     //    navigable target name : targetName
     //    about base URL        : document's about base URL
-    document_state := loge(DocumentState)
-    document_state.document = document
+    document_state := loge(DocumentState);
+    document_state.document = document;
     si opener != nul {
-        document_state.initiator_origin = document.origin
+        document_state.initiator_origin = document.origin;
     }
-    document_state.origin = document.origin
-    document_state.navigable_target_name = target_name
-    document_state.about_base_url = document.about_base_url
+    document_state.origin = document.origin;
+    document_state.navigable_target_name = target_name;
+    document_state.about_base_url = document.about_base_url;
 
     // 5. Let traversable be a new traversable navigable.
-    traversable := loge(TraversableNavigable)
-    traversable.indice_file_parallèle = user_agent.crée_file_parallèle_pour_traversable()
+    traversable := loge(TraversableNavigable);
+    traversable.indice_file_parallèle = user_agent.crée_file_parallèle_pour_traversable();
 
     // 6. Initialize the navigable traversable given documentState.
-    initialise_navigable(traversable, document_state)
+    initialise_navigable(traversable, document_state);
 
     // 7. Let initialHistoryEntry be traversable's active session history entry.
-    initial_history_entry := traversable.active_session_history_entry
+    initial_history_entry := traversable.active_session_history_entry;
 
     // 8. Set initialHistoryEntry's step to 0.
-    initial_history_entry.step = 0
+    initial_history_entry.step = 0;
 
     // 9. Append initialHistoryEntry to traversable's session history entries.
-    tableau_ajoute(*traversable.session_history_entries, initial_history_entry)
+    tableau_ajoute(*traversable.session_history_entries, initial_history_entry);
 
     // À FAIRE 10. If opener is non-null, then legacy-clone a traversable storage shed given opener's top-level traversable and traversable. [STORAGE]
 
     // 11. Append traversable to the user agent's top-level traversable set.
-    tableau_ajoute(*user_agent.top_level_traversables, traversable)
+    tableau_ajoute(*user_agent.top_level_traversables, traversable);
 
     // 12. Invoke WebDriver BiDi navigable created with traversable and openerNavigableForWebDriver.
-    webdriver_bidi_navigable_created(traversable, opener_navigable_for_webdriver)
+    webdriver_bidi_navigable_created(traversable, opener_navigable_for_webdriver);
 
     // 13. Return traversable.
-    retourne traversable
+    retourne traversable;
 }
 
 /* https://html.spec.whatwg.org/multipage/document-sequences.html#create-a-fresh-top-level-traversable
@@ -415,42 +415,42 @@ crée_un_nouveau_top_level_traversable :: fonc (user_agent: *UserAgent, opener: 
 crée_un_fresh_top_level_traversable :: fonc (user_agent: *UserAgent, initial_navigation_url: *URL) -> *Navigable
 {
     // 1. Let traversable be the result of creating a new top-level traversable given null and the empty string.
-    traversable := crée_un_nouveau_top_level_traversable(user_agent, nul, "")
+    traversable := crée_un_nouveau_top_level_traversable(user_agent, nul, "");
 
     // 2. Navigate traversable to initialNavigationURL using traversable's active document, with documentResource set to initialNavigationPostResource.
-    params: ParamètresNavigationNavigable
-    params.url = initial_navigation_url
-    params.source_document = traversable.donne_active_document()
-    navigate(user_agent, traversable, params)
+    params: ParamètresNavigationNavigable;
+    params.url = initial_navigation_url;
+    params.source_document = traversable.donne_active_document();
+    navigate(user_agent, traversable, params);
 
     // 3. Return traversable.
-    retourne traversable
+    retourne traversable;
 }
 
 /* https://html.spec.whatwg.org/multipage/document-sequences.html#node-navigable */
 donne_node_navigable :: fonc (noeud: *Node) -> *Navigable
 {
-    document := noeud.document
+    document := noeud.document;
     saufsi document {
-        retourne nul
+        retourne nul;
     }
-    browsing_context := document.browsing_context
+    browsing_context := document.browsing_context;
     saufsi browsing_context {
-        retourne nul
+        retourne nul;
     }
 
-    assert(browsing_context.group != nul)
-    assert(browsing_context.group.user_agent != nul)
-    user_agent := browsing_context.group.user_agent
+    assert(browsing_context.group != nul);
+    assert(browsing_context.group.user_agent != nul);
+    user_agent := browsing_context.group.user_agent;
 
     /* À FAIRE : il nous faut tous les navigables. */
     pour user_agent.top_level_traversables {
         si it.donne_active_document() == document {
-            retourne it
+            retourne it;
         }
     }
 
-    retourne nul
+    retourne nul;
 }
 
 /** \} */
@@ -462,56 +462,56 @@ donne_node_navigable :: fonc (noeud: *Node) -> *Navigable
 /* https://html.spec.whatwg.org/multipage/browsers.html#sandboxing-flag-set */
 SandboxingFlags :: énum_drapeau n16 {
     /* Drapaux pour BrowsingContext */
-    Navigation
-    AuxiliaryNavigation
-    TopLevelNavigationWithoutUserActionvation
-    TopLevelNavigationWithUserActionvation
-    Origin
-    Forms
-    PointerLock
-    Scripts
-    AutomaticFeature
-    DocumentDomain
-    PropagatesToAuxiliary
-    Modals
-    OrientationLock
-    Presentation
-    CustomProtocolsNavigation
+    Navigation;
+    AuxiliaryNavigation;
+    TopLevelNavigationWithoutUserActionvation;
+    TopLevelNavigationWithUserActionvation;
+    Origin;
+    Forms;
+    PointerLock;
+    Scripts;
+    AutomaticFeature;
+    DocumentDomain;
+    PropagatesToAuxiliary;
+    Modals;
+    OrientationLock;
+    Presentation;
+    CustomProtocolsNavigation;
 }
 
 /* https://html.spec.whatwg.org/multipage/browsers.html#determining-the-creation-sandboxing-flags */
 détermine_drapeaux_sandboxing :: fonc (context: *BrowsingContext, embedder: *Element) -> SandboxingFlags
 {
-    résultat: SandboxingFlags
+    résultat: SandboxingFlags;
         
     // If embedder is null, then: the flags set on browsing context's popup sandboxing flag set.
     si embedder == nul {
-        résultat |= context.popup_sandboxing_flags
+        résultat |= context.popup_sandboxing_flags;
     }
 
     // If embedder is an element, then: the flags set on embedder's iframe sandboxing flag set.
     si embedder && embedder.local_name == TAG_iframe {
-        iframe := embedder comme *HTMLIFrameElement
-        résultat |= iframe.iframe_sandboxing_flags
+        iframe := embedder comme *HTMLIFrameElement;
+        résultat |= iframe.iframe_sandboxing_flags;
     }
 
     // If embedder is an element, then: the flags set on embedder's node document's active sandboxing flag set.
     si embedder {
-        résultat |= embedder.document.active_sandboxing_flags
+        résultat |= embedder.document.active_sandboxing_flags;
     }
 
-    retourne résultat
+    retourne résultat;
 }
 
 /* https://html.spec.whatwg.org/multipage/browsers.html#concept-origin-opaque */
 Origin :: struct {
     est_opaque: bool // À FAIRE : sépare en deux structures ?
-    valeur_opaque: z32
+    valeur_opaque: z32;
 
     scheme: chaine // ASCII
-    host: Host
-    port: Optionnel(n16)
-    domain: Optionnel(Domain)
+    host: Host;
+    port: Optionnel(n16);
+    domain: Optionnel(Domain);
 }
 
 /* https://html.spec.whatwg.org/multipage/document-sequences.html#determining-the-origin */
@@ -519,30 +519,30 @@ détermine_origin :: fonc (url: *URL, sandbox_flags: SandboxingFlags, source_ori
 {
     // 1. If sandboxFlags has its sandboxed origin browsing context flag set, then return a new opaque origin.
     si sandbox_flags.Origin {
-        retourne crée_nouvelle_origin_opaque()
+        retourne crée_nouvelle_origin_opaque();
     }
 
     // 2. If url is null, then return a new opaque origin.
     saufsi url {
-        retourne crée_nouvelle_origin_opaque()
+        retourne crée_nouvelle_origin_opaque();
     }
 
     // 3. If url is about:srcdoc, then:
     si url.est_about_srcdoc() {
         // 1. Assert: sourceOrigin is non-null.
-        assert(source_origin.possède_valeur())
+        assert(source_origin.possède_valeur());
 
         // 2. Return sourceOrigin.
-        retourne source_origin.Quelque
+        retourne source_origin.Quelque;
     }
 
     // 4. If url matches about:blank and sourceOrigin is non-null, then return sourceOrigin.
     si url.est_about_blank() && source_origin.possède_valeur() {
-        retourne source_origin.Quelque
+        retourne source_origin.Quelque;
     }
 
     // 5. Return url's origin.
-    retourne donne_origin(url)
+    retourne donne_origin(url);
 }
 
 /* https://html.spec.whatwg.org/multipage/browsers.html#same-origin */
@@ -550,28 +550,28 @@ sont_même_origine :: fonc (a: Origin, b: Origin) -> bool
 {
     // 1. If A and B are the same opaque origin, then return true.
     si a.est_opaque && b.est_opaque {
-        retourne a.valeur_opaque == b.valeur_opaque
+        retourne a.valeur_opaque == b.valeur_opaque;
     }
 
     // 2. If A and B are both tuple origins and their schemes, hosts, and port are identical, then return true.
     si !a.est_opaque && !b.est_opaque {
         si a.scheme != b.scheme {
-            retourne faux
+            retourne faux;
         }
 
         si a.host != b.host {
-            retourne faux
+            retourne faux;
         }
 
         si !a.port.possède_valeur() || !b.port.possède_valeur() {
-            retourne faux
+            retourne faux;
         }
 
-        retourne a.port.Quelque == b.port.Quelque
+        retourne a.port.Quelque == b.port.Quelque;
     }
 
     // 3. Return false.
-    retourne faux
+    retourne faux;
 }
 
 /* https://html.spec.whatwg.org/multipage/browsers.html#same-origin-domain */
@@ -579,70 +579,70 @@ sont_même_domaine_origine :: fonc (a: Origin, b: Origin) -> bool
 {
     // 1. If A and B are the same opaque origin, then return true.
     si a.est_opaque && b.est_opaque {
-        retourne a.valeur_opaque == b.valeur_opaque
+        retourne a.valeur_opaque == b.valeur_opaque;
     }
 
     // 2. If A and B are both tuple origins:
     si !a.est_opaque && !b.est_opaque {
         // 1. If A and B's schemes are identical, and their domains are identical and non-null, then return true.
         si a.scheme == b.scheme && a.domain.possède_valeur() && b.domain.possède_valeur() && a.domain.Quelque == b.domain.Quelque {
-            retourne vrai
+            retourne vrai;
         }
 
         // 2. Otherwise, if A and B are same origin and their domains are both null, return true.
         si sont_même_origine(a, b) && !a.domain.possède_valeur() && !b.domain.possède_valeur() {
-            retourne vrai
+            retourne vrai;
         }
     }
 
     // 3. Return false.
-    retourne faux
+    retourne faux;
 }
 
 /* Valeur unique pour chaque origine opaque */
-valeur_origine_opaque: z32
+valeur_origine_opaque: z32;
 
 crée_nouvelle_origin_opaque :: fonc () -> Origin
 {
-    valeur_origine_opaque += 1
-    retourne Origin(vrai, valeur_origine_opaque)
+    valeur_origine_opaque += 1;
+    retourne Origin(vrai, valeur_origine_opaque);
 }
 
 BrowsingContextGroup :: struct {
-    contexts: [..]*BrowsingContext
+    contexts: [..]*BrowsingContext;
     /* À FAIRE : stocke ça ailleurs ou passe le aux fonctions. */
-    user_agent: *UserAgent
+    user_agent: *UserAgent;
 }
 
 détruit_browsing_context_group :: fonc (group: *BrowsingContextGroup)
 {
     pour group.contexts {
-        détruit_browsing_context(it)
+        détruit_browsing_context(it);
     }
-    déloge(group.contexts)
-    déloge(group)
+    déloge(group.contexts);
+    déloge(group);
 }
 
 /* https://html.spec.whatwg.org/multipage/document-sequences.html#windows */
 BrowsingContext :: struct {
-    window_proxy: *WindowProxy
+    window_proxy: *WindowProxy;
 
-    opener_browsing_context: *BrowsingContext
-    opener_origin_at_creation: Optionnel(Origin)
-    popup: bool
-    is_auxiliary: bool
-    initial_url: *URL
+    opener_browsing_context: *BrowsingContext;
+    opener_origin_at_creation: Optionnel(Origin);
+    popup: bool;
+    is_auxiliary: bool;
+    initial_url: *URL;
     /* Seulement pour les contextes de haut-niveau. */
-    popup_sandboxing_flags: SandboxingFlags
+    popup_sandboxing_flags: SandboxingFlags;
 
-    virtual_browsing_context_group_id: z32
+    virtual_browsing_context_group_id: z32;
 
-    group: *BrowsingContextGroup
+    group: *BrowsingContextGroup;
 }
 
 détruit_browsing_context :: fonc (browsing_context: *BrowsingContext)
 {
-    déloge(browsing_context)
+    déloge(browsing_context);
 }
 
 /* A browsing context's active window is its WindowProxy object's [[Window]]
@@ -650,37 +650,37 @@ détruit_browsing_context :: fonc (browsing_context: *BrowsingContext)
 donne_active_window :: fonc (browsing_context: *BrowsingContext) -> *Window
 {
     saufsi browsing_context {
-        retourne nul
+        retourne nul;
     }
     saufsi browsing_context.window_proxy {
-        retourne nul
+        retourne nul;
     }
-    retourne browsing_context.window_proxy.window
+    retourne browsing_context.window_proxy.window;
 }
 
 /* A browsing context's active document is its active window's associated Document. */
 donne_active_document :: fonc (browsing_context: *BrowsingContext) -> *Document
 {
-    active_window := donne_active_window(browsing_context)
+    active_window := donne_active_window(browsing_context);
     saufsi active_window {
-        retourne nul
+        retourne nul;
     }
-    retourne active_window.document
+    retourne active_window.document;
 }
 
 /* A browsing context's top-level traversable is its active document's 
  * navigable's top-level traversable. */
 donne_top_level_traversable :: fonc (browsing_context: *BrowsingContext) -> *TraversableNavigable
 {
-    active_document := donne_active_document(browsing_context)
+    active_document := donne_active_document(browsing_context);
     saufsi active_document {
-        retourne nul
+        retourne nul;
     }
-    navigable := active_document.donne_node_navigable()
+    navigable := active_document.donne_node_navigable();
     saufsi navigable {
-        retourne nul
+        retourne nul;
     }
-    retourne navigable.donne_top_level_traversable()
+    retourne navigable.donne_top_level_traversable();
 }
 
 /* A browsing context whose is auxiliary is true is known as an auxiliary
@@ -688,177 +688,177 @@ donne_top_level_traversable :: fonc (browsing_context: *BrowsingContext) -> *Tra
  * contexts. */
 est_top_level_browsing_context :: fonc (browsing_context: *BrowsingContext) -> bool
 {
-    retourne browsing_context != nul && browsing_context.is_auxiliary
+    retourne browsing_context != nul && browsing_context.is_auxiliary;
 }
 
 /* https://html.spec.whatwg.org/multipage/document-sequences.html#bc-tlbc */
 donne_top_level_browsing_context :: fonc (start: *BrowsingContext) -> *BrowsingContext
 {
     // 1. If start's active document is not fully active, then return null.
-    active_document := start.donne_active_document()
+    active_document := start.donne_active_document();
     saufsi active_document {
-        retourne nul
+        retourne nul;
     }
 
     saufsi active_document.est_fully_active() {
-        retourne nul
+        retourne nul;
     }
 
     // 2. Let navigable be start's active document's node navigable.
-    navigable := active_document.donne_node_navigable()
+    navigable := active_document.donne_node_navigable();
 
     // 3. While navigable's parent is not null, set navigable to navigable's parent.
     tantque navigable.parent != nul {
-        navigable = navigable.parent
+        navigable = navigable.parent;
     }
 
     // 4. Return navigable's active browsing context.
-    retourne navigable.donne_active_browsing_context()
+    retourne navigable.donne_active_browsing_context();
 }
 
 /* https://html.spec.whatwg.org/multipage/document-sequences.html#creating-browsing-contexts */
 crée_browsing_context_et_document :: fonc (user_agent: *UserAgent, creator: *Document, embedder: *Element, group: *BrowsingContextGroup) -> (*BrowsingContext, *Document)
 {
     // 1. Let browsingContext be a new browsing context.
-    browsing_context := loge(BrowsingContext)
+    browsing_context := loge(BrowsingContext);
 
     // 2. Let unsafeContextCreationTime be the unsafe shared current time.
-    unsafe_context_creation_time := unsafe_shared_current_time()
+    unsafe_context_creation_time := unsafe_shared_current_time();
 
     // 3. Let creatorOrigin be null.
-    creator_origin: Optionnel(Origin)
+    creator_origin: Optionnel(Origin);
 
     // 4. Let creatorBaseURL be null.
-    creator_base_url: *URL
+    creator_base_url: *URL;
 
     // 5. If creator is non-null, then:
     si creator {
         // 1. Set creatorOrigin to creator's origin.
-        creator_origin = creator.origin
+        creator_origin = creator.origin;
 
         // 2. Set creatorBaseURL to creator's document base URL.
-        creator_base_url =  creator.donne_base_url()
+        creator_base_url =  creator.donne_base_url();
 
         // 3. Set browsingContext's virtual browsing context group ID to creator's browsing context's top-level browsing context's virtual browsing context group ID.
         creator_browsing_context := creator.browsing_context {
-            top_level_browsing_context := creator_browsing_context.donne_top_level_browsing_context()
+            top_level_browsing_context := creator_browsing_context.donne_top_level_browsing_context();
             si top_level_browsing_context {
-                browsing_context.virtual_browsing_context_group_id = top_level_browsing_context.virtual_browsing_context_group_id
+                browsing_context.virtual_browsing_context_group_id = top_level_browsing_context.virtual_browsing_context_group_id;
             }
         }
     }
 
     // 6. Let sandboxFlags be the result of determining the creation sandboxing flags given browsingContext and embedder.
-    sandbox_flags := détermine_drapeaux_sandboxing(browsing_context, embedder)
+    sandbox_flags := détermine_drapeaux_sandboxing(browsing_context, embedder);
 
     // 7. Let origin be the result of determining the origin given about:blank, sandboxFlags, and creatorOrigin.
-    origin := détermine_origin(donne_about_blank_url(), sandbox_flags, creator_origin)
+    origin := détermine_origin(donne_about_blank_url(), sandbox_flags, creator_origin);
 
     // 8. Let permissionsPolicy be the result of creating a permissions policy given embedder and origin. [PERMISSIONSPOLICY]
-    permissions_policy := create_a_permissions_policy_for_a_navigable(embedder, origin)
+    permissions_policy := create_a_permissions_policy_for_a_navigable(embedder, origin);
 
     // 9. Let agent be the result of obtaining a similar-origin window agent given origin, group, and false.
-    agent := obtain_similar_origin_window_agent(origin, group, faux)
+    agent := obtain_similar_origin_window_agent(origin, group, faux);
 
     // 10. Let realm execution context be the result of creating a new realm given agent and the following customizations:
     //     For the global object, create a new Window object.
     //     For the global this binding, use browsingContext's WindowProxy object.
     ConfigurationRealmBrowsingContext :: struct {
-        empl base: JS.ConfigurationRealm
+        empl base: JS.ConfigurationRealm;
 
-        browsing_context: *BrowsingContext
-        user_agent: *UserAgent
+        browsing_context: *BrowsingContext;
+        user_agent: *UserAgent;
     }
 
-    crée_objet_global :: fonc (base: *JS.ConfigurationRealm, realm: *JS.Realm) -> *JS.Object
+    crée_objet_global :: fonc (base: *JS.ConfigurationRealm, realm: *JS.Realm) -> *JS.Object;
     {
-        configuration := base comme *ConfigurationRealmBrowsingContext
+        configuration := base comme *ConfigurationRealmBrowsingContext;
 
-        tas_de_mémoire := JS.donne_tas_de_mémoire(realm)
+        tas_de_mémoire := JS.donne_tas_de_mémoire(realm);
 
-        window := crée_objet_window(configuration.user_agent, tas_de_mémoire, realm)
+        window := crée_objet_window(configuration.user_agent, tas_de_mémoire, realm);
 
-        window_proxy := JS.alloue(tas_de_mémoire, WindowProxy)
-        configuration.browsing_context.window_proxy = window_proxy
+        window_proxy := JS.alloue(tas_de_mémoire, WindowProxy);
+        configuration.browsing_context.window_proxy = window_proxy;
 
-        retourne window
+        retourne window;
     }
 
-    donne_this_binding_global :: fonc (base: *JS.ConfigurationRealm) -> *JS.Object
+    donne_this_binding_global :: fonc (base: *JS.ConfigurationRealm) -> *JS.Object;
     {
-        configuration := base comme *ConfigurationRealmBrowsingContext
-        retourne configuration.browsing_context.window_proxy
+        configuration := base comme *ConfigurationRealmBrowsingContext;
+        retourne configuration.browsing_context.window_proxy;
     }
 
-    configuration: ConfigurationRealmBrowsingContext
-    configuration.crée_host_instrinsics = initialise_host_intrinsics
-    configuration.browsing_context = browsing_context
-    configuration.user_agent = user_agent
-    configuration.crée_objet_global = crée_objet_global
-    configuration.donne_this_binding_global = donne_this_binding_global
+    configuration: ConfigurationRealmBrowsingContext;
+    configuration.crée_host_instrinsics = initialise_host_intrinsics;
+    configuration.browsing_context = browsing_context;
+    configuration.user_agent = user_agent;
+    configuration.crée_objet_global = crée_objet_global;
+    configuration.donne_this_binding_global = donne_this_binding_global;
 
-    realm_execution_context := crée_un_nouveau_realm(agent, *user_agent.mv, *configuration)
+    realm_execution_context := crée_un_nouveau_realm(agent, *user_agent.mv, *configuration);
 
     // 11. Let topLevelCreationURL be about:blank if embedder is null; otherwise embedder's relevant settings object's top-level creation URL.
-    top_level_creation_url := donne_about_blank_url()
+    top_level_creation_url := donne_about_blank_url();
     si embedder {
-        top_level_creation_url = embedder.donne_relevant_settings_object().top_level_creation_url
+        top_level_creation_url = embedder.donne_relevant_settings_object().top_level_creation_url;
     }
 
     // 12. Let topLevelOrigin be origin if embedder is null; otherwise embedder's relevant settings object's top-level origin.
-    top_level_origin := origin
+    top_level_origin := origin;
     si embedder {
-        top_level_origin = embedder.donne_relevant_settings_object().top_level_origin
+        top_level_origin = embedder.donne_relevant_settings_object().top_level_origin;
     }
 
     // 13. Set up a window environment settings object with about:blank, realm execution context, null, topLevelCreationURL, and topLevelOrigin.
-    set_up_window_environnement_context(donne_about_blank_url(), realm_execution_context, nul, top_level_creation_url, top_level_origin)
-    environment_settings := JS.donne_données(realm_execution_context.realm.host_defined, EnvironmentSettings)
+    set_up_window_environnement_context(donne_about_blank_url(), realm_execution_context, nul, top_level_creation_url, top_level_origin);
+    environment_settings := JS.donne_données(realm_execution_context.realm.host_defined, EnvironmentSettings);
 
     // 14. Let loadTimingInfo be a new document load timing info with its
     //     navigation start time set to the result of calling coarsen time with
     //     unsafeContextCreationTime and the new environment settings object's
     //     cross-origin isolated capability.
-    load_timing_info: DocumentLoadTimingInfo
-    load_timing_info.navigation_start_time = coarsen_time(unsafe_context_creation_time, environment_settings.donne_cross_origin_isolated_capability())
+    load_timing_info: DocumentLoadTimingInfo;
+    load_timing_info.navigation_start_time = coarsen_time(unsafe_context_creation_time, environment_settings.donne_cross_origin_isolated_capability());
 
     // 15. Let document be a new Document, with:
-    document := crée_noeud_document(user_agent.donne_tas_de_mémoire(), realm_execution_context.realm)
+    document := crée_noeud_document(user_agent.donne_tas_de_mémoire(), realm_execution_context.realm);
     // type "html"
-    document.type = "html"
+    document.type = "html";
     // content type = "text/html"
-    document.type_contenu = "text/html"
+    document.type_contenu = "text/html";
     // mode = "quirks"
-    document.mode = ModeDocument.QUIRKS
+    document.mode = ModeDocument.QUIRKS;
     // origin = origin
-    document.origin = origin
+    document.origin = origin;
     // browsing context = browsingContext
-    document.browsing_context = browsing_context
+    document.browsing_context = browsing_context;
     // permissions policy = permissionsPolicy
-    document.permissions_policy = permissions_policy
+    document.permissions_policy = permissions_policy;
     // active sandboxing flag set = sandboxFlags
-    document.active_sandboxing_flags = sandbox_flags
+    document.active_sandboxing_flags = sandbox_flags;
     // load timing info = loadTimingInfo
-    document.load_timing_info = load_timing_info
+    document.load_timing_info = load_timing_info;
     // is initial about:blank = true
-    document.is_initial_about_blank = vrai
+    document.is_initial_about_blank = vrai;
     // about base URL = creatorBaseURL
-    document.about_base_url = creator_base_url
+    document.about_base_url = creator_base_url;
     // allow declarative shadow roots = true
-    document.permets_racines_shadow_déclaratives = vrai
+    document.permets_racines_shadow_déclaratives = vrai;
 
     // À FAIRE : non-spécifié. load_an_html_document appelé plus tard à besoin que
     // window soit déjà associée à un document mais ça ne semble être fait nulle part.
-    window := realm_execution_context.realm.global_object comme *Window
-    window.document = document
+    window := realm_execution_context.realm.global_object comme *Window;
+    window.document = document;
 
     // 16. If creator is non-null, then:
     si creator {
         // 1. Set document's referrer to the serialization of creator's URL.
-        document.referrer = url_serializer(creator.url)
+        document.referrer = url_serializer(creator.url);
 
         // 2. Set document's policy container to a clone of creator's policy container.
-        document.policy_container = clone(creator.policy_container)
+        document.policy_container = clone(creator.policy_container);
 
         // 3. If creator's origin is same origin with creator's relevant settings
         //    object's top-level origin, then set document's cross-origin opener
@@ -870,70 +870,70 @@ crée_browsing_context_et_document :: fonc (user_agent: *UserAgent, creator: *Do
     // À FAIRE 17. Assert: document's URL and document's relevant settings object's creation URL are about:blank.
 
     // 18. Mark document as ready for post-load tasks.
-    mark_as_ready_for_post_load_tasks(document)
+    mark_as_ready_for_post_load_tasks(document);
 
     // 19. Populate with html/head/body given document.
-    populate_with_html_head_body(document)
+    populate_with_html_head_body(document);
 
     // 20. Make active document.
-    make_active(document)
+    make_active(document);
 
     // 21. Completely finish loading document.
-    completely_finish_loading(document)
+    completely_finish_loading(document);
 
     // 22. Return browsingContext and document.
-    retourne browsing_context, document
+    retourne browsing_context, document;
 }
 
 /* https://html.spec.whatwg.org/multipage/document-sequences.html#creating-a-new-top-level-browsing-context */
 crée_un_nouveau_top_level_browsing_context_et_document :: fonc (user_agent: *UserAgent) -> (*BrowsingContext, *Document)
 {
     // 1. Let group and document be the result of creating a new browsing context group and document.
-    group, document := crée_un_nouveau_browsing_context_group_and_document(user_agent)
+    group, document := crée_un_nouveau_browsing_context_group_and_document(user_agent);
 
     // 2. Return group's browsing context set[0] and document.
-    retourne group.contexts[0], document
+    retourne group.contexts[0], document;
 }
 
 /* https://html.spec.whatwg.org/multipage/document-sequences.html#creating-a-new-browsing-context-group-and-document */
 crée_un_nouveau_browsing_context_group_and_document :: fonc (user_agent: *UserAgent) -> (*BrowsingContextGroup, *Document)
 {
     // 1. Let group be a new browsing context group.
-    group := loge(BrowsingContextGroup)
-    group.user_agent = user_agent
+    group := loge(BrowsingContextGroup);
+    group.user_agent = user_agent;
 
     // 2. Append group to the user agent's browsing context group set.
-    tableau_ajoute(*user_agent.browsing_context_groups, group)
+    tableau_ajoute(*user_agent.browsing_context_groups, group);
 
     // 3. Let browsingContext and document be the result of creating a new browsing context and document with null, null, and group.
-    browsing_context, document := crée_browsing_context_et_document(user_agent, nul, nul, group)
+    browsing_context, document := crée_browsing_context_et_document(user_agent, nul, nul, group);
 
     // 4. Append browsingContext to group.
-    browsing_context.group = group
-    tableau_ajoute(*group.contexts, browsing_context)
+    browsing_context.group = group;
+    tableau_ajoute(*group.contexts, browsing_context);
 
     // 5. Return group and document.
-    retourne group, document
+    retourne group, document;
 }
 
 /* https://html.spec.whatwg.org/multipage/webappapis.html#obtain-similar-origin-window-agent */
 obtain_similar_origin_window_agent :: fonc (origin: Origin @inutilisée, groupe: *BrowsingContextGroup @inutilisée, requestsOAC: bool @inutilisée) -> *rien
 {
-    imprime("À FAIRE : [%]\n", #nom_de_cette_fonction)
-    retourne nul
+    imprime("À FAIRE : [%]\n", #nom_de_cette_fonction);
+    retourne nul;
 }
 
 /* https://html.spec.whatwg.org/multipage/webappapis.html#creating-a-new-javascript-realm */
 crée_un_nouveau_realm :: fonc (agent: *rien @inutilisée, mv: *JS.MachineVirtuelle, configuration: *JS.ConfigurationRealm) -> *JS.ExecutionContext
 {
     // 1. Perform InitializeHostDefinedRealm() with the provided customizations for creating the global object and the global this binding.
-    _ := JS.initialise_host_defined_realm(mv, configuration)
+    _ := JS.initialise_host_defined_realm(mv, configuration);
 
     // 2. Let realm execution context be the running JavaScript execution context.
-    realm_execution_context := JS.donne_running_execution_context(mv)
+    realm_execution_context := JS.donne_running_execution_context(mv);
 
     // 3. Remove realm execution context from the JavaScript execution context stack.
-    JS.dépile_execution_context(mv)
+    JS.dépile_execution_context(mv);
 
     // 4. Let realm be realm execution context's Realm component.
 
@@ -946,7 +946,7 @@ crée_un_nouveau_realm :: fonc (agent: *rien @inutilisée, mv: *JS.MachineVirtue
         // 3. Assert: status is true.
 
     // 6. Return realm execution context.
-    retourne realm_execution_context
+    retourne realm_execution_context;
 }
 
 /* https://html.spec.whatwg.org/multipage/nav-history-apis.html#set-up-a-window-environment-settings-object */
@@ -957,59 +957,59 @@ set_up_window_environnement_context :: fonc (creation_url: *URL,
                                              top_level_origin: Origin)
 {
     // 1. Let realm be the value of execution context's Realm component.
-    realm := execution_context.realm
+    realm := execution_context.realm;
 
     // 2. Let window be realm's global object.
-    window := realm.global_object comme *Window
+    window := realm.global_object comme *Window;
 
     // 3. Let settings object be a new environment settings object whose algorithms are defined as follows:
     WindowEnvironment :: struct {
-        empl base_env: EnvironmentSettings
+        empl base_env: EnvironmentSettings;
 
-        execution_context: *JS.ExecutionContext
-        window: *Window
+        execution_context: *JS.ExecutionContext;
+        window: *Window;
     }
 
     // The realm execution context
-    sur_donne_realm_execution_context :: fonc (base: *EnvironmentSettings) -> *JS.ExecutionContext
+    sur_donne_realm_execution_context :: fonc (base: *EnvironmentSettings) -> *JS.ExecutionContext;
     {
         // Return execution context.
-        env := base comme *WindowEnvironment
-        retourne env.execution_context
+        env := base comme *WindowEnvironment;
+        retourne env.execution_context;
     }
 
     // À FAIRE : The module map
     // Return the module map of window's associated Document.
 
     // The API base URL
-    sur_donne_api_base_url :: fonc (base: *EnvironmentSettings) -> *URL
+    sur_donne_api_base_url :: fonc (base: *EnvironmentSettings) -> *URL;
     {
         // Return the current base URL of window's associated Document.
-        env := base comme *WindowEnvironment
-        window := env.window
-        retourne window.document.donne_base_url()
+        env := base comme *WindowEnvironment;
+        window := env.window;
+        retourne window.document.donne_base_url();
     }
 
     // The origin
-    sur_donne_origin :: fonc (base: *EnvironmentSettings) -> Origin
+    sur_donne_origin :: fonc (base: *EnvironmentSettings) -> Origin;
     {
         // Return the origin of window's associated Document.
-        env := base comme *WindowEnvironment
-        window := env.window
-        retourne window.document.origin
+        env := base comme *WindowEnvironment;
+        window := env.window;
+        retourne window.document.origin;
     }
 
     // The policy container
-    sur_donne_policy_container :: fonc (base: *EnvironmentSettings) -> *PolicyContainer
+    sur_donne_policy_container :: fonc (base: *EnvironmentSettings) -> *PolicyContainer;
     {
         // Return the policy container of window's associated Document.
-        env := base comme *WindowEnvironment
-        window := env.window
-        retourne window.document.policy_container
+        env := base comme *WindowEnvironment;
+        window := env.window;
+        retourne window.document.policy_container;
     }
 
     // The cross-origin isolated capability
-    sur_donne_cross_origin_isolated_capability :: fonc (base: *EnvironmentSettings @inutilisée) -> bool
+    sur_donne_cross_origin_isolated_capability :: fonc (base: *EnvironmentSettings @inutilisée) -> bool;
     {
         // À FAIRE
         // Return true if both of the following hold, and false otherwise:
@@ -1017,27 +1017,27 @@ set_up_window_environnement_context :: fonc (creation_url: *URL,
         // realm's agent cluster's cross-origin-isolation mode is "concrete", and
 
         // window's associated Document is allowed to use the "cross-origin-isolated" feature.
-        retourne faux
+        retourne faux;
     }
 
     // The time origin
-    sur_donne_time_origin :: fonc (base: *EnvironmentSettings) -> r64
+    sur_donne_time_origin :: fonc (base: *EnvironmentSettings) -> r64;
     {
         // Return window's associated Document's load timing info's navigation start time.
-        env := base comme *WindowEnvironment
-        window := env.window
-        retourne window.document.load_timing_info.navigation_start_time comme r64
+        env := base comme *WindowEnvironment;
+        window := env.window;
+        retourne window.document.load_timing_info.navigation_start_time comme r64;
     }
 
-    settings_object := loge(WindowEnvironment)
-    settings_object.execution_context = execution_context
-    settings_object.window = window
-    settings_object.sur_donne_realm_execution_context = sur_donne_realm_execution_context
-    settings_object.sur_donne_api_base_url = sur_donne_api_base_url
-    settings_object.sur_donne_origin = sur_donne_origin
-    settings_object.sur_donne_policy_container = sur_donne_policy_container
-    settings_object.sur_donne_cross_origin_isolated_capability = sur_donne_cross_origin_isolated_capability
-    settings_object.sur_donne_time_origin = sur_donne_time_origin
+    settings_object := loge(WindowEnvironment);
+    settings_object.execution_context = execution_context;
+    settings_object.window = window;
+    settings_object.sur_donne_realm_execution_context = sur_donne_realm_execution_context;
+    settings_object.sur_donne_api_base_url = sur_donne_api_base_url;
+    settings_object.sur_donne_origin = sur_donne_origin;
+    settings_object.sur_donne_policy_container = sur_donne_policy_container;
+    settings_object.sur_donne_cross_origin_isolated_capability = sur_donne_cross_origin_isolated_capability;
+    settings_object.sur_donne_time_origin = sur_donne_time_origin;
 
     // À FAIRE 4. If reservedEnvironment is non-null, then:
 
@@ -1048,12 +1048,12 @@ set_up_window_environnement_context :: fonc (creation_url: *URL,
     // 5. Otherwise, set settings object's id to a new unique opaque string, settings object's target browsing context to null, and settings object's active service worker to null.
 
     // 6. Set settings object's creation URL to creationURL, settings object's top-level creation URL to topLevelCreationURL, and settings object's top-level origin to topLevelOrigin.
-    settings_object.creation_url = creation_url
-    settings_object.top_level_creation_url = top_level_creation_url
-    settings_object.top_level_origin = top_level_origin
+    settings_object.creation_url = creation_url;
+    settings_object.top_level_creation_url = top_level_creation_url;
+    settings_object.top_level_origin = top_level_origin;
 
     // 7. Set realm's [[HostDefined]] field to settings object.
-    realm.host_defined = JS.crée_host_defined(settings_object)
+    realm.host_defined = JS.crée_host_defined(settings_object);
 }
 
 /** \} */
@@ -1064,18 +1064,18 @@ set_up_window_environnement_context :: fonc (creation_url: *URL,
 
 /* https://html.spec.whatwg.org/multipage/browsers.html#embedder-policy-value */
 EmbedderPolicyValue :: énum n8 {
-    UnsafeNone
-    RequireCorp
+    UnsafeNone;
+    RequireCorp;
     // Voir commentaire dans la spec avant d'activer ceci.
     // Credentialless
 }
 
 /* https://html.spec.whatwg.org/multipage/browsers.html#embedder-policy */
 EmbedderPolicy :: struct {
-    value := EmbedderPolicyValue.UnsafeNone
-    reporting_endpoint: chaine
-    report_only_value := EmbedderPolicyValue.UnsafeNone
-    report_only_reporting_endpoint: chaine
+    value := EmbedderPolicyValue.UnsafeNone;
+    reporting_endpoint: chaine;
+    report_only_value := EmbedderPolicyValue.UnsafeNone;
+    report_only_reporting_endpoint: chaine;
 }
 
 /** \} */
@@ -1087,34 +1087,34 @@ EmbedderPolicy :: struct {
 
 /* https://html.spec.whatwg.org/multipage/browsers.html#policy-container */
 PolicyContainer :: struct {
-    csp_list: [..]ContentSecurityPolicy
-    embedder_policy: EmbedderPolicy
-    referrer_policy := default_referrer_policy
+    csp_list: [..]ContentSecurityPolicy;
+    embedder_policy: EmbedderPolicy;
+    referrer_policy := default_referrer_policy;
 }
 
 clone :: fonc (source: *PolicyContainer) -> *PolicyContainer
 {
     saufsi source {
-        retourne nul
+        retourne nul;
     }
 
-    résultat := loge(PolicyContainer)
-    résultat.embedder_policy = source.embedder_policy
-    résultat.referrer_policy = source.referrer_policy
+    résultat := loge(PolicyContainer);
+    résultat.embedder_policy = source.embedder_policy;
+    résultat.referrer_policy = source.referrer_policy;
     pour source.csp_list {
-        tableau_ajoute(*résultat.csp_list, it)
+        tableau_ajoute(*résultat.csp_list, it);
     }
-    retourne résultat
+    retourne résultat;
 }
 
 détruit_policy_container :: fonc (policy_container: *PolicyContainer)
 {
     saufsi policy_container {
-        retourne
+        retourne;
     }
 
-    déloge(policy_container.csp_list)
-    déloge(policy_container)
+    déloge(policy_container.csp_list);
+    déloge(policy_container);
 }
 
 /* https://html.spec.whatwg.org/multipage/browsers.html#requires-storing-the-policy-container-in-history */
@@ -1122,16 +1122,16 @@ requires_storing_the_policy_container_in_history :: fonc (url: *URL) -> bool
 {
     // 1. If url's scheme is "blob", then return false.
     si url.scheme == "blob" {
-        retourne faux
+        retourne faux;
     }
 
     // 2. If url is local, then return true.
     si url.is_local() {
-        retourne vrai
+        retourne vrai;
     }
 
     // 3. Return false.
-    retourne faux
+    retourne faux;
 }
 
 /* https://html.spec.whatwg.org/multipage/browsers.html#determining-navigation-params-policy-container */
@@ -1144,34 +1144,34 @@ determine_navigation_params_policy_container :: fonc (response_url: *URL,
     // 1. If historyPolicyContainer is not null, then:
     si history_policy_container != nul {
         // 1. Assert: responseURL requires storing the policy container in history.
-        assert(requires_storing_the_policy_container_in_history(response_url))
+        assert(requires_storing_the_policy_container_in_history(response_url));
 
         // 2. Return a clone of historyPolicyContainer.
-        retourne clone(history_policy_container)
+        retourne clone(history_policy_container);
     }
 
     // 2. If responseURL is about:srcdoc, then:
     si response_url.est_about_srcdoc() {
         // 1. Assert: parentPolicyContainer is not null.
-        assert(parent_policy_container != nul)
+        assert(parent_policy_container != nul);
 
         // 2. Return a clone of parentPolicyContainer.
-        retourne clone(parent_policy_container)
+        retourne clone(parent_policy_container);
     }
 
     // 3. If responseURL is local and initiatorPolicyContainer is not null, 
     //    then return a clone of initiatorPolicyContainer.
     si response_url.is_local() && initiator_policy_container != nul {
-        retourne clone(initiator_policy_container)
+        retourne clone(initiator_policy_container);
     }
 
     // 4. If responsePolicyContainer is not null, then return responsePolicyContainer.
     si response_policy_container != nul {
-        retourne response_policy_container
+        retourne response_policy_container;
     }
 
     // 5. Return a new policy container.
-    retourne loge(PolicyContainer)
+    retourne loge(PolicyContainer);
 }
 
 /** \} */

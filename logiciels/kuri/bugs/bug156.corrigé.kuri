@@ -2,14 +2,14 @@
  * Catégories : [validation sémantique, crash]
  */
 
-importe Fondation
+importe Fondation;
 
 retourne_plusieurs_valeurs :: fonc () -> z32, r32
 {
-    retourne 127, 0.5
+    retourne 127, 0.5;
 }
 
 principale :: fonc ()
 {
-    imprime("%\n", retourne_plusieurs_valeurs())
+    imprime("%\n", retourne_plusieurs_valeurs());
 }

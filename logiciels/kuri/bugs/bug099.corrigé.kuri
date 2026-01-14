@@ -2,7 +2,7 @@
  * Catégorie : [validation sémantique]
  */
 
- - ça marche
+ - ça marche;
 
 principale :: fonc ()
 {

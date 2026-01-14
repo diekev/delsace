@@ -3,16 +3,16 @@
  * Catégorie : [crash, taille structure, structure vide]
  */
 
-importe Fondation
+importe Fondation;
 
 Structure :: struct {
     SousStructure :: struct {
-        z: r32
+        z: r32;
     }
 }
 
 principale :: fonc ()
 {
-    s: Structure
-    imprime("taille_de(Structure) : %\n", taille_de(type_de(s)))
+    s: Structure;
+    imprime("taille_de(Structure) : %\n", taille_de(type_de(s)));
 }

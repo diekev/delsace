@@ -1,93 +1,93 @@
 /* Module de lecture et d'écriture de données sérialisées en JSON. */
 
-importe Fondation
-importe SysFichier
+importe Fondation;
+importe SysFichier;
 
-charge "impression"
-charge "scanner"
+charge "impression";
+charge "scanner";
 
 imprime_erreurs :: fonc (scanner: &ScannerJSON, script: chaine)
 {
     saufsi scanner.possède_erreur {
-        retourne
+        retourne;
     }
 
-    ligne := donne_ligne_pour_erreur(scanner.erreur_, script)
+    ligne := donne_ligne_pour_erreur(scanner.erreur_, script);
 
     discr scanner.erreur_.type {
         Parsage {
-            imprime("Erreur de parsage : ")
+            imprime("Erreur de parsage : ");
         }
         Valeur {
-            imprime("Erreur de syntaxe : ")
+            imprime("Erreur de syntaxe : ");
         }
     }
 
-    imprime("%\n", scanner.erreur_.chn)
+    imprime("%\n", scanner.erreur_.chn);
 
-    imprime("%\n", ligne.texte)
+    imprime("%\n", ligne.texte);
 
     pour ligne.position_curseur {
         si ligne.texte[indice_it] == '\t' {
-            imprime("\t")
+            imprime("\t");
         }
         sinon {
-            imprime(" ")
+            imprime(" ");
         }
     }
-    imprime("^\n")
+    imprime("^\n");
 }
 
 LignePourErreur :: struct {
-    texte: chaine
-    position_curseur: z64
+    texte: chaine;
+    position_curseur: z64;
 }
 
 donne_ligne_pour_erreur :: fonc (e: &Erreur, script: chaine) -> LignePourErreur
 {
-    assert(e.position >= 0)
-    assert(e.position < script.taille)
+    assert(e.position >= 0);
+    assert(e.position < script.taille);
 
-    début := script.pointeur
-    fin := script.pointeur + script.taille
-    ptr_position := script.pointeur + e.position
+    début := script.pointeur;
+    fin := script.pointeur + script.taille;
+    ptr_position := script.pointeur + e.position;
 
-    ptr_début_ligne := ptr_position
+    ptr_début_ligne := ptr_position;
     tantque ptr_début_ligne > début {
         si mémoire(ptr_début_ligne) == '\n' {
-            ptr_début_ligne += 1
-            arrête
+            ptr_début_ligne += 1;
+            arrête;
         }
-        ptr_début_ligne -= 1
+        ptr_début_ligne -= 1;
     }
 
-    ptr_fin_ligne := ptr_position
+    ptr_fin_ligne := ptr_position;
     tantque ptr_fin_ligne < fin {
         si mémoire(ptr_fin_ligne) == '\n' {
-            arrête
+            arrête;
         }
-        ptr_fin_ligne += 1
+        ptr_fin_ligne += 1;
     }
 
-    texte := chaine(ptr_début_ligne, ptr_fin_ligne - ptr_début_ligne)
-    décalage := ptr_position - ptr_début_ligne
-    retourne LignePourErreur(texte, décalage)
+    texte := chaine(ptr_début_ligne, ptr_fin_ligne - ptr_début_ligne);
+    décalage := ptr_position - ptr_début_ligne;
+    retourne LignePourErreur(texte, décalage);
 }
 
 /* Retourne une chaine JSON pour la structure passée. */
 chaine_json_depuis_struct :: fonc (arg: eini) -> chaine
 {
-    enchaineuse: Enchaineuse
-    initialise_enchaineuse(*enchaineuse)
+    enchaineuse: Enchaineuse;
+    initialise_enchaineuse(*enchaineuse);
 
-    imprime_valeur_json(*enchaineuse, arg)
+    imprime_valeur_json(*enchaineuse, arg);
 
-    retourne chaine_depuis_enchaineuse(*enchaineuse)
+    retourne chaine_depuis_enchaineuse(*enchaineuse);
 }
 
 rappel_copie_chaine :: fonc (chn: chaine) -> chaine
 {
-    retourne chn
+    retourne chn;
 }
 
 /* Parse une structure depuis une chaine JSON. Les valeurs chaines de caractères sont
@@ -96,25 +96,25 @@ rappel_copie_chaine :: fonc (chn: chaine) -> chaine
  */
 parse_struct_depuis_chaine_json :: fonc (script: chaine, $T: type_de_données) -> (bool, T)
 {
-    #assert info_de(T).id == GenreInfoType.STRUCTURE
+    #assert info_de(T).id == GenreInfoType.STRUCTURE;
 
-    résultat : T = ---
+    résultat : T = ---;
 
-    scanner: ScannerJSON
-    diffère détruit_scanner(*scanner)
-    initialise_scanner(*scanner, script, résultat, rappel_copie_chaine)
+    scanner: ScannerJSON;
+    diffère détruit_scanner(*scanner);
+    initialise_scanner(*scanner, script, résultat, rappel_copie_chaine);
 
-    empile(*scanner, résultat)
+    empile(*scanner, résultat);
 
-    succès := lis_objet(*scanner) == LexèmeJSON.FIN_OBJET
+    succès := lis_objet(*scanner) == LexèmeJSON.FIN_OBJET;
 
-    dépile(*scanner)
+    dépile(*scanner);
 
-    imprime_erreurs(scanner, script)
+    imprime_erreurs(scanner, script);
 
-    détruit_scanner(*scanner)
+    détruit_scanner(*scanner);
 
-    retourne succès, résultat
+    retourne succès, résultat;
 }
 
 /* Parse une structure depuis un fichier JSON. Les chaines de caractères contenu dans le fichier
@@ -122,31 +122,31 @@ parse_struct_depuis_chaine_json :: fonc (script: chaine, $T: type_de_données) -
  */
 parse_struct_depuis_fichier_json :: fonc (chemin: chaine, $T: type_de_données) -> (bool, T)
 {
-    #assert info_de(T).id == GenreInfoType.STRUCTURE
+    #assert info_de(T).id == GenreInfoType.STRUCTURE;
 
     // À FAIRE : erreur en cas d'absence du fichier
-    chm := CheminFichier(chemin)
-    _, script := contenu_fichier_texte(chm)
+    chm := CheminFichier(chemin);
+    _, script := contenu_fichier_texte(chm);
 
-    diffère déloge(script)
+    diffère déloge(script);
 
-    résultat : T = ---
+    résultat : T = ---;
 
     si !script {
-        retourne faux, résultat
+        retourne faux, résultat;
     }
 
-    scanner: ScannerJSON
-    diffère détruit_scanner(*scanner)
-    initialise_scanner(*scanner, script, résultat, copie_chaine)
+    scanner: ScannerJSON;
+    diffère détruit_scanner(*scanner);
+    initialise_scanner(*scanner, script, résultat, copie_chaine);
 
-    empile(*scanner, résultat)
+    empile(*scanner, résultat);
 
-    succès := lis_objet(*scanner) == LexèmeJSON.FIN_OBJET
+    succès := lis_objet(*scanner) == LexèmeJSON.FIN_OBJET;
 
-    dépile(*scanner)
+    dépile(*scanner);
 
-    imprime_erreurs(scanner, script)
+    imprime_erreurs(scanner, script);
 
-    retourne succès, résultat
+    retourne succès, résultat;
 }

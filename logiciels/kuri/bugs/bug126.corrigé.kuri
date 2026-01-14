@@ -3,43 +3,43 @@
  * Catégorie : [génération code, opérateur pour, diffère]
  */
 
-importe Fondation
+importe Fondation;
 
-valeur_globale: z32
+valeur_globale: z32;
 
 Structure :: struct {
-    itérations: z32
+    itérations: z32;
 }
 
 opérateur pour :: (structure: Structure) -> z32
 {
     pour indice, indice_itération dans structure.itérations {
-        `it = indice
-        `indice_it = indice_itération
+        `it = indice;
+        `indice_it = indice_itération;
 
-        #corps_boucle
+        #corps_boucle;
     }
 }
 
 lance_boucle :: fonc (max_itérations: z32, nombre_itérations: z32)
 {
-    s := Structure(max_itérations)
-    compteur := 0
+    s := Structure(max_itérations);
+    compteur := 0;
 
-    diffère valeur_globale = compteur
+    diffère valeur_globale = compteur;
 
     pour s {
-        imprime("compteur : %, it : %\n", compteur, it)
+        imprime("compteur : %, it : %\n", compteur, it);
         si it == nombre_itérations {
-            retourne
+            retourne;
         }
-        compteur += 1
+        compteur += 1;
     }
 }
 
 principale :: fonc ()
 {
-    lance_boucle(100, 10)
-    imprime("valeur_globale : %\n", valeur_globale)
-    assert(valeur_globale == 10)
+    lance_boucle(100, 10);
+    imprime("valeur_globale : %\n", valeur_globale);
+    assert(valeur_globale == 10);
 }

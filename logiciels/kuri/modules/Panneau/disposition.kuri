@@ -1,81 +1,81 @@
-importe Fondation
-importe InfosInterface
+importe Fondation;
+importe InfosInterface;
 
 Disposition :: struct {
-    direction: Direction
-    rect: RectanglePosDim(z32)
-    panneaux: [..]*Panneau
-    besoin_ajournement_disposition := vrai
+    direction: Direction;
+    rect: RectanglePosDim(z32);
+    panneaux: [..]*Panneau;
+    besoin_ajournement_disposition := vrai;
 }
 
 détruit_données_disposition :: fonc (disposition: *Disposition)
 {
-    déloge_tableau_et_ses_éléments(disposition.panneaux, détruit_panneau)
+    déloge_tableau_et_ses_éléments(disposition.panneaux, détruit_panneau);
 }
 
 ajoute_panneau :: fonc (disposition: *Disposition, panneau: *Panneau)
 {
-    disposition.besoin_ajournement_disposition = vrai
-    tableau_ajoute(*disposition.panneaux, panneau)
+    disposition.besoin_ajournement_disposition = vrai;
+    tableau_ajoute(*disposition.panneaux, panneau);
 }
 
 dessine :: fonc (empl disposition: *Disposition, ctx: *ContexteAffichage)
 {
-    ajourne_disposition(disposition)
+    ajourne_disposition(disposition);
 
     pour panneaux {
-        dessine(it, ctx)
+        dessine(it, ctx);
     }
 }
 
 définis_rectangle :: fonc (empl disposition: *Disposition, nouveau_rect: RectanglePosDim(z32))
 {
-    besoin_ajournement_disposition = vrai
-    rect = nouveau_rect
+    besoin_ajournement_disposition = vrai;
+    rect = nouveau_rect;
 }
 
 ajourne_disposition :: fonc (empl disposition: *Disposition)
 {
-    diffère besoin_ajournement_disposition = faux
+    diffère besoin_ajournement_disposition = faux;
 
     si panneaux.taille == 0 {
-        retourne
+        retourne;
     }
 
     si besoin_ajournement_disposition {
         discr direction {
             HORIZONTALE {
-                largeur_par_élément := rect.largeur / panneaux.taille comme z32
+                largeur_par_élément := rect.largeur / panneaux.taille comme z32;
 
-                rect_panneau : RectanglePosDim(z32) = ---
-                rect_panneau.x = rect.x
-                rect_panneau.y = rect.y
-                rect_panneau.hauteur = rect.hauteur
-                rect_panneau.largeur = largeur_par_élément
+                rect_panneau : RectanglePosDim(z32) = ---;
+                rect_panneau.x = rect.x;
+                rect_panneau.y = rect.y;
+                rect_panneau.hauteur = rect.hauteur;
+                rect_panneau.largeur = largeur_par_élément;
 
                 pour panneaux {
-                    it.redimensionne_panneau(rect_panneau)
-                    rect_panneau.x += largeur_par_élément
+                    it.redimensionne_panneau(rect_panneau);
+                    rect_panneau.x += largeur_par_élément;
                 }
             }
             VERTICALE {
-                hauteur_par_élément := rect.hauteur / panneaux.taille comme z32
+                hauteur_par_élément := rect.hauteur / panneaux.taille comme z32;
 
-                rect_panneau : RectanglePosDim(z32) = ---
-                rect_panneau.x = rect.x
-                rect_panneau.y = rect.y
-                rect_panneau.hauteur = hauteur_par_élément
-                rect_panneau.largeur = rect.largeur
+                rect_panneau : RectanglePosDim(z32) = ---;
+                rect_panneau.x = rect.x;
+                rect_panneau.y = rect.y;
+                rect_panneau.hauteur = hauteur_par_élément;
+                rect_panneau.largeur = rect.largeur;
 
                 pour panneaux {
-                    it.redimensionne_panneau(rect_panneau)
-                    rect_panneau.y += hauteur_par_élément
+                    it.redimensionne_panneau(rect_panneau);
+                    rect_panneau.y += hauteur_par_élément;
                 }
             }
         }
     }
 
     pour panneaux {
-        ajourne_disposition(*it.disposition)
+        ajourne_disposition(*it.disposition);
     }
 }

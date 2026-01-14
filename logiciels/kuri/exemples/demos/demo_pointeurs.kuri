@@ -1,49 +1,49 @@
-importe Fondation
+importe Fondation;
 
 arithmétique_de_pointeur :: fonc ()
 {
-    a := 0x0 comme *z64
-    b := 0xfff0 comme *z64
+    a := 0x0 comme *z64;
+    b := 0xfff0 comme *z64;
 
-    imprime("a := %\nb := %\n", a, b)
+    imprime("a := %\nb := %\n", a, b);
 
     // la différence entre deux pointeurs doit être du nombre d'éléments de ce type entre les deux pointeurs
     // pointeur - pointeur
     {
-        nombre_éléments := b - a
-        imprime("nombre éléments : % (attendu %)\n", nombre_éléments, 0xfff0 / taille_de(z64))
+        nombre_éléments := b - a;
+        imprime("nombre éléments : % (attendu %)\n", nombre_éléments, 0xfff0 / taille_de(z64));
     }
 
     // la soustraction d'un nombre à un pointeur doit être X éléments avant celui-ci
     // pointeur - entier
     {
-        imprime("\ndécrémente b :\n")
-        b -= 1
-        imprime("b := %\n", b)
+        imprime("\ndécrémente b :\n");
+        b -= 1;
+        imprime("b := %\n", b);
 
-        b = b - 1
-        imprime("b := %\n", b)
+        b = b - 1;
+        imprime("b := %\n", b);
     }
 
     // l'addition d'un nombre à un pointeur doit être X éléments après celui-ci
     // pointeur + entier
     // entier + pointeur
     {
-        imprime("\nincrémente a :\n")
-        a += 1
-        imprime("a := %\n", a)
+        imprime("\nincrémente a :\n");
+        a += 1;
+        imprime("a := %\n", a);
 
-        a = a + 1
-        imprime("a := %\n", a)
+        a = a + 1;
+        imprime("a := %\n", a);
 
-        a = 1 + a
-        imprime("a := %\n", a)
+        a = 1 + a;
+        imprime("a := %\n", a);
     }
 }
 
-#exécute arithmétique_de_pointeur()
+#exécute arithmétique_de_pointeur();
 
 principale :: fonc ()
 {
-    arithmétique_de_pointeur()
+    arithmétique_de_pointeur();
 }

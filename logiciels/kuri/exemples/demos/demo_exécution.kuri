@@ -1,124 +1,124 @@
-importe Fondation
-importe Math
+importe Fondation;
+importe Math;
 
 retourne_entier :: fonc () -> z32
 {
-    retourne 127
+    retourne 127;
 }
 
 retourne_réel :: fonc () -> r32
 {
-    retourne Constantes(r32).PI
+    retourne Constantes(r32).PI;
 }
 
 retourne_chaine :: fonc () -> chaine
 {
-    retourne "une chaine de caractère"
+    retourne "une chaine de caractère";
 }
 
 retourne_type :: fonc () -> type_de_données
 {
-    retourne r32
+    retourne r32;
 }
 
 retourne_structure :: fonc () -> Vec3
 {
-    retourne Vec3(1.0, 3.0, 9.0)
+    retourne Vec3(1.0, 3.0, 9.0);
 }
 
 fonction_retournée :: fonc ()
 {
-    imprime("cette fonction fut retournée depuis un exécution !\n")
+    imprime("cette fonction fut retournée depuis un exécution !\n");
 }
 
 retourne_fonction :: fonc () -> fonc ()
 {
-    retourne fonction_retournée
+    retourne fonction_retournée;
 }
 
-Temps :: #opaque r32
+Temps :: #opaque r32;
 
 retourne_opaque :: fonc () -> Temps
 {
-    retourne Temps(60.0)
+    retourne Temps(60.0);
 }
 
 retourne_tuple :: fonc () -> (Vec3, Temps)
 {
-    retourne Vec3(5.0, 6.0, 7.0), Temps(45.0)
+    retourne Vec3(5.0, 6.0, 7.0), Temps(45.0);
 }
 
 retourne_tableau_fixe :: fonc () -> [3]z32
 {
-    retourne [ 9, 8, 7 ]
+    retourne [ 9, 8, 7 ];
 }
 
 retourne_tableau_dyn :: fonc () -> [..]z32
 {
-    tabl: [..]z32
-    tableau_ajoute(*tabl, 4)
-    tableau_ajoute(*tabl, 5)
-    tableau_ajoute(*tabl, 6)
-    retourne tabl
+    tabl: [..]z32;
+    tableau_ajoute(*tabl, 4);
+    tableau_ajoute(*tabl, 5);
+    tableau_ajoute(*tabl, 6);
+    retourne tabl;
 }
 
 UnionNonsure :: union nonsûr {
-    e: z32
-    f: r32
+    e: z32;
+    f: r32;
 }
 
 retourne_union_nonsure :: fonc () -> UnionNonsure
 {
-    retourne 1.0
+    retourne 1.0;
 }
 
 UnionSure :: union {
-    e: z32
-    f: r32
+    e: z32;
+    f: r32;
 }
 
 retourne_union_sure :: fonc () -> UnionSure
 {
-    retourne 2.5
+    retourne 2.5;
 }
 
 principale :: fonc ()
 {
-    entier := #exécute retourne_entier()
-    imprime("entier : %\n", entier)
+    entier := #exécute retourne_entier();
+    imprime("entier : %\n", entier);
 
-    réel := #exécute retourne_réel()
-    imprime("réel : %\n", réel)
+    réel := #exécute retourne_réel();
+    imprime("réel : %\n", réel);
 
-    chn := #exécute retourne_chaine()
-    imprime("chaine : %\n", chn)
+    chn := #exécute retourne_chaine();
+    imprime("chaine : %\n", chn);
 
-    vec := #exécute retourne_structure()
-    imprime("structure : %\n", vec)
+    vec := #exécute retourne_structure();
+    imprime("structure : %\n", vec);
 
     // À FAIRE : retour de types
     // type := #exécute retourne_type()
     // imprime("type : %\n", type)
 
-    fn := #exécute retourne_fonction()
-    imprime("fonction : ")
-    fn()
+    fn := #exécute retourne_fonction();
+    imprime("fonction : ");
+    fn();
 
-    opaque := #exécute retourne_opaque()
-    imprime("opaque : %\n", opaque)
+    opaque := #exécute retourne_opaque();
+    imprime("opaque : %\n", opaque);
 
-    t0, t1 := #exécute retourne_tuple()
-    imprime("t0, t1 : %, %\n", t0, t1)
+    t0, t1 := #exécute retourne_tuple();
+    imprime("t0, t1 : %, %\n", t0, t1);
 
-    tableau_fixe := #exécute retourne_tableau_fixe()
-    imprime("tableau fixe : %\n", tableau_fixe)
+    tableau_fixe := #exécute retourne_tableau_fixe();
+    imprime("tableau fixe : %\n", tableau_fixe);
 
-    tableau_dyn := #exécute retourne_tableau_dyn()
-    imprime("tableau dyn : %\n", tableau_dyn)
+    tableau_dyn := #exécute retourne_tableau_dyn();
+    imprime("tableau dyn : %\n", tableau_dyn);
 
-    union_nonsure := #exécute retourne_union_nonsure()
-    imprime("union nonsûre : %\n", union_nonsure)
+    union_nonsure := #exécute retourne_union_nonsure();
+    imprime("union nonsûre : %\n", union_nonsure);
 
-    union_sure := #exécute retourne_union_sure()
-    imprime("union sûre : %\n", union_sure)
+    union_sure := #exécute retourne_union_sure();
+    imprime("union sûre : %\n", union_sure);
 }

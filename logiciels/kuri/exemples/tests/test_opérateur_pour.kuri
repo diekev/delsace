@@ -1,87 +1,87 @@
-importe Fondation
-importe Introspection
-importe Math
+importe Fondation;
+importe Introspection;
+importe Math;
 
 /* ------------------------------------------------------------------- */
 
 Tablet :: struct {
-    données: [6]z32
+    données: [6]z32;
 }
 
 crée_tablet :: fonc () -> Tablet
 {
-    résultat: Tablet
+    résultat: Tablet;
     pour & résultat.données {
-        it = (indice_it * 3) comme z32
+        it = (indice_it * 3) comme z32;
     }
-    retourne résultat
+    retourne résultat;
 }
 
 opérateur pour :: (tablet: Tablet) -> z32
 {
     pour donnée, indice dans tablet.données {
-        `it = donnée
-        `indice_it = indice
+        `it = donnée;
+        `indice_it = indice;
 
-        #corps_boucle
+        #corps_boucle;
     }
 }
 
 test_boucle_tablet :: fonc ()
 {
-    imprime("------------------- Boucle pour Tablet\n")
+    imprime("------------------- Boucle pour Tablet\n");
 
-    tablet := crée_tablet()
+    tablet := crée_tablet();
     pour tablet {
         si it == 9 {
-            continue
+            continue;
         }
 
-        imprime("% %\n", it, indice_it)
+        imprime("% %\n", it, indice_it);
     }
 }
 
 /* ------------------------------------------------------------------- */
 
 DonnéesRubriqueStructure :: struct {
-    valeur: eini
-    nom: chaine
+    valeur: eini;
+    nom: chaine;
 }
 
 opérateur pour :: (itératrice: ItératriceRubriqueStructure) -> DonnéesRubriqueStructure
 {
-    indice := 0
+    indice := 0;
 
     boucle {
-        rubrique, nom := itératrice.rubrique_suivante()
+        rubrique, nom := itératrice.rubrique_suivante();
 
         saufsi rubrique.est_valide() {
-            arrête
+            arrête;
         }
 
-        données := DonnéesRubriqueStructure(rubrique, nom)
+        données := DonnéesRubriqueStructure(rubrique, nom);
 
-        `it = données
-        `indice_it = indice
+        `it = données;
+        `indice_it = indice;
 
-        indice += 1
+        indice += 1;
 
-        #corps_boucle
+        #corps_boucle;
     }
 }
 
 test_boucle_introspection :: fonc ()
 {
-    imprime("------------------- Boucle pour Introspection\n")
+    imprime("------------------- Boucle pour Introspection\n");
 
-    valeur := Vec3(1.0, 2.0, 3.0)
+    valeur := Vec3(1.0, 2.0, 3.0);
 
     pour crée_itératrice_rubrique(valeur) {
-        imprime("% : %\n", it.nom, it.valeur)
+        imprime("% : %\n", it.nom, it.valeur);
 
         /* Les boucles avec opérateur dans les boucles avec opérateurs fonctionnent. */
         pour données dans crée_itératrice_rubrique(valeur) {
-            imprime("-- % : %\n", données.nom, données.valeur)
+            imprime("-- % : %\n", données.nom, données.valeur);
         }
     }
 }
@@ -90,6 +90,6 @@ test_boucle_introspection :: fonc ()
 
 principale :: fonc ()
 {
-    test_boucle_tablet()
-    test_boucle_introspection()
+    test_boucle_tablet();
+    test_boucle_introspection();
 }

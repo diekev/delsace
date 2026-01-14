@@ -1,7 +1,7 @@
 // ------------------------------
 // Cas : On ne peut importer un module inconnu.
 
-importe "inconnu"
+importe "inconnu";
 
 principale :: fonc (compte : z32, arguments : **z8) -> z32
 {

@@ -1,7 +1,7 @@
-charge "divers"
-charge "entier_ou_décimal"
-charge "haute_précision"
-charge "limites"
-charge "nombre_infini"
-charge "nombre_rationnel"
-charge "parsage_entier"
+charge "divers";
+charge "entier_ou_décimal";
+charge "haute_précision";
+charge "limites";
+charge "nombre_infini";
+charge "nombre_rationnel";
+charge "parsage_entier";

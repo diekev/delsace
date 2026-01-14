@@ -3,17 +3,17 @@
  * Catégorie : [crash, validation sémantique, variable globale, type inconnu]
  */
 
-importe Fondation
+importe Fondation;
 
 foo :: fonc () -> rien
 {
-    a := 1024 / TAILLE_PAGE
-    imprime("a (doit être 128) : %\n", a)
+    a := 1024 / TAILLE_PAGE;
+    imprime("a (doit être 128) : %\n", a);
 }
 
-TAILLE_PAGE :: 8
+TAILLE_PAGE :: 8;
 
 principale :: fonc ()
 {
-    foo()
+    foo();
 }
