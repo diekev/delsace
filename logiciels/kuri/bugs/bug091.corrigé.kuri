@@ -3,13 +3,13 @@
  * Catégorie : [valeur constante, type opaque]
  */
 
-Opaque :: #opaque z32
+Opaque :: #opaque z32;
 
-Valeur :: Opaque(12)
+Valeur :: Opaque(12);
 
 principale :: fonc ()
 {
     saufsi Valeur == 12 {
-        exit(1)
+        exit(1);
     }
 }

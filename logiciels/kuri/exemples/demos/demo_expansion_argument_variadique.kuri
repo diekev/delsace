@@ -1,41 +1,41 @@
-importe Fondation
+importe Fondation;
 
 imprime_args :: fonc (fmt: chaine, args: ...chaine)
 {
-    imprime("%\n", fmt)
+    imprime("%\n", fmt);
 
     pour arg dans args {
-        imprime("-- %\n", arg)
+        imprime("-- %\n", arg);
     }
 }
 
 passe_args :: fonc (args: ...chaine) -> rien
 {
-    imprime_args("passe_args", ...args)
+    imprime_args("passe_args", ...args);
 }
 
 imprime_films :: fonc (fmt: chaine, args: ...chaine) -> rien
 {
-    imprime_args(fmt, ...args)
+    imprime_args(fmt, ...args);
 }
 
 principale :: fonc ()
 {
-    args := arguments_ligne_commande()
+    args := arguments_ligne_commande();
 
-    imprime("% % % % %\n", "test", 1, 2, 3, 4)
+    imprime("% % % % %\n", "test", 1, 2, 3, 4);
 
     // test expansion fonction externe -> erreur de compilation attendue
     //printf("test".pointeur, ...args)
 
     // test expansion tableau dynamique
-    passe_args(...args)
+    passe_args(...args);
 
     // test multiple expansion -> erreur de compilation attendue
     //passe_args(...args, ...args)
 
     // test expansion tableau fixe
-    films := [ "Pulp Fiction", "Inglorious Basterds" ]
+    films := [ "Pulp Fiction", "Inglorious Basterds" ];
 
-    imprime_films("Films de Tarantino : ", ...films)
+    imprime_films("Films de Tarantino : ", ...films);
 }

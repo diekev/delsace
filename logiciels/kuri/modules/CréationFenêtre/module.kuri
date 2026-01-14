@@ -1,57 +1,57 @@
-importe Chaine
-importe Fondation
-importe Math
-importe MIME
-importe OpenGL
-importe Périphériques
+importe Chaine;
+importe Fondation;
+importe Math;
+importe MIME;
+importe OpenGL;
+importe Périphériques;
 
 SystèmeFenêtre :: énum {
-    QT
-    NATIVE
+    QT;
+    NATIVE;
 }
 
 crée_fenêtre :: fonc (largeur: z32, hauteur: z32, titre: chaine, maximisée := faux, index_écran := 0, avec_barre_de_titre_et_bordures := vrai, système := SystèmeFenêtre.QT) -> TypeFenêtre
 {
     si système == SystèmeFenêtre.NATIVE {
-        retourne x11_crée_fenêtre(largeur, hauteur, titre, maximisée, index_écran, avec_barre_de_titre_et_bordures)
+        retourne x11_crée_fenêtre(largeur, hauteur, titre, maximisée, index_écran, avec_barre_de_titre_et_bordures);
     }
 
-    retourne qt_crée_fenêtre(largeur, hauteur, titre, maximisée, index_écran, avec_barre_de_titre_et_bordures)
+    retourne qt_crée_fenêtre(largeur, hauteur, titre, maximisée, index_écran, avec_barre_de_titre_et_bordures);
 }
 
 ajourne_évènements_fenêtre :: fonc (type_fenêtre: TypeFenêtre) -> []Évènement
 {
     si type_fenêtre.système == SystèmeFenêtre.NATIVE {
         pour __évènements {
-            déloge(it.texte)
+            déloge(it.texte);
 
             pour données_mime dans it.mimes {
-                déloge(données_mime.type)
-                déloge(données_mime.données)
+                déloge(données_mime.type);
+                déloge(données_mime.données);
             }
 
-            déloge(it.mimes)
+            déloge(it.mimes);
         }
-        __évènements.taille = 0
-        x11_ajourne_évènements_fenêtre(type_fenêtre)
+        __évènements.taille = 0;
+        x11_ajourne_évènements_fenêtre(type_fenêtre);
     }
     sinon {
-        assert(type_fenêtre.système == SystèmeFenêtre.QT)
-        __évènements.taille = 0
-        qt_ajourne_évènements_fenêtre(type_fenêtre)
+        assert(type_fenêtre.système == SystèmeFenêtre.QT);
+        __évènements.taille = 0;
+        qt_ajourne_évènements_fenêtre(type_fenêtre);
     }
 
-    retourne __évènements
+    retourne __évènements;
 }
 
 requiers_ajournement_fenêtre :: fonc (fenêtre: TypeFenêtre)
 {
     si fenêtre.système == SystèmeFenêtre.NATIVE {
-        x11_requiers_ajournement_fenêtre(fenêtre)
+        x11_requiers_ajournement_fenêtre(fenêtre);
     }
     sinon {
-        assert(fenêtre.système == SystèmeFenêtre.QT)
-        qt_requiers_ajournement_fenêtre(fenêtre)
+        assert(fenêtre.système == SystèmeFenêtre.QT);
+        qt_requiers_ajournement_fenêtre(fenêtre);
     }
 }
 
@@ -61,175 +61,175 @@ requiers_ajournement_fenêtre :: fonc (fenêtre: TypeFenêtre)
 permute_tampons_fenêtre :: fonc (fenêtre: TypeFenêtre)
 {
     si fenêtre.système == SystèmeFenêtre.NATIVE {
-        x11_permute_tampons_fenêtre(fenêtre)
+        x11_permute_tampons_fenêtre(fenêtre);
     }
     sinon {
-        assert(fenêtre.système == SystèmeFenêtre.QT)
-        qt_permute_tampons_fenêtre(fenêtre)
+        assert(fenêtre.système == SystèmeFenêtre.QT);
+        qt_permute_tampons_fenêtre(fenêtre);
     }
 }
 
 donne_taille_fenêtre :: fonc (fenêtre: TypeFenêtre) -> (largeur: z32, hauteur: z32)
 {
     si fenêtre.système == SystèmeFenêtre.NATIVE {
-        retourne x11_donne_taille_fenêtre(fenêtre)
+        retourne x11_donne_taille_fenêtre(fenêtre);
     }
-    assert(fenêtre.système == SystèmeFenêtre.QT)
-    retourne qt_donne_taille_fenêtre(fenêtre)
+    assert(fenêtre.système == SystèmeFenêtre.QT);
+    retourne qt_donne_taille_fenêtre(fenêtre);
 }
 
 définis_titre_fenêtre :: fonc (fenêtre: TypeFenêtre, titre: chaine)
 {
     si fenêtre.système == SystèmeFenêtre.NATIVE {
-        x11_définis_titre_fenêtre(fenêtre, titre)
+        x11_définis_titre_fenêtre(fenêtre, titre);
     }
     sinon {
-        assert(fenêtre.système == SystèmeFenêtre.QT)
-        qt_définis_titre_fenêtre(fenêtre, titre)
+        assert(fenêtre.système == SystèmeFenêtre.QT);
+        qt_définis_titre_fenêtre(fenêtre, titre);
     }
 }
 
 définis_curseur :: fonc (fenêtre: TypeFenêtre, curseur: TypeCurseurSystème)
 {
     si fenêtre.système == SystèmeFenêtre.NATIVE {
-        x11_définis_curseur(fenêtre, curseur)
+        x11_définis_curseur(fenêtre, curseur);
     }
     sinon {
-        assert(fenêtre.système == SystèmeFenêtre.QT)
-        qt_définis_curseur(fenêtre, curseur)
+        assert(fenêtre.système == SystèmeFenêtre.QT);
+        qt_définis_curseur(fenêtre, curseur);
     }
 }
 
 donne_qt_window :: fonc (fenêtre: TypeFenêtre) -> *QT_Window
 {
-    assert(fenêtre.rappels_window != nul)
-    assert(fenêtre.rappels_window.window != nul)
-    retourne fenêtre.rappels_window.window
+    assert(fenêtre.rappels_window != nul);
+    assert(fenêtre.rappels_window.window != nul);
+    retourne fenêtre.rappels_window.window;
 }
 
 active_barre_de_titre_et_bordures :: fonc (fenêtre: TypeFenêtre, oui_non: bool)
 {
     si fenêtre.système == SystèmeFenêtre.NATIVE {
-        x11_active_barre_de_titre_et_bordures(fenêtre, oui_non)
+        x11_active_barre_de_titre_et_bordures(fenêtre, oui_non);
     }
     sinon {
-        assert(fenêtre.système == SystèmeFenêtre.QT)
-        qt_active_barre_de_titre_et_bordures(fenêtre, oui_non)
+        assert(fenêtre.système == SystèmeFenêtre.QT);
+        qt_active_barre_de_titre_et_bordures(fenêtre, oui_non);
     }
 }
 
 possède_barre_de_titre_et_bordures :: fonc (fenêtre: TypeFenêtre) -> bool
 {
     si fenêtre.système == SystèmeFenêtre.NATIVE {
-        retourne x11_possède_barre_de_titre_et_bordures(fenêtre)
+        retourne x11_possède_barre_de_titre_et_bordures(fenêtre);
     }
-    assert(fenêtre.système == SystèmeFenêtre.QT)
-    retourne qt_possède_barre_de_titre_et_bordures(fenêtre)
+    assert(fenêtre.système == SystèmeFenêtre.QT);
+    retourne qt_possède_barre_de_titre_et_bordures(fenêtre);
 }
 
 minimise :: fonc (fenêtre: TypeFenêtre)
 {
     si fenêtre.système == SystèmeFenêtre.NATIVE {
-        x11_fenêtre_minimise(fenêtre)
+        x11_fenêtre_minimise(fenêtre);
     }
     sinon {
-        assert(fenêtre.système == SystèmeFenêtre.QT)
-        qt_fenêtre_minimise(fenêtre)
+        assert(fenêtre.système == SystèmeFenêtre.QT);
+        qt_fenêtre_minimise(fenêtre);
     }
 }
 
 maximise :: fonc (fenêtre: TypeFenêtre)
 {
     si fenêtre.système == SystèmeFenêtre.NATIVE {
-        x11_fenêtre_maximise(fenêtre)
+        x11_fenêtre_maximise(fenêtre);
     }
     sinon {
-        assert(fenêtre.système == SystèmeFenêtre.QT)
-        qt_fenêtre_maximise(fenêtre)
+        assert(fenêtre.système == SystèmeFenêtre.QT);
+        qt_fenêtre_maximise(fenêtre);
     }
 }
 
 permute_plein_écran :: fonc (fenêtre: TypeFenêtre)
 {
     si fenêtre.système == SystèmeFenêtre.NATIVE {
-        x11_fenêtre_permute_plein_écran(fenêtre)
+        x11_fenêtre_permute_plein_écran(fenêtre);
     }
     sinon {
-        assert(fenêtre.système == SystèmeFenêtre.QT)
-        qt_fenêtre_permute_plein_écran(fenêtre)
+        assert(fenêtre.système == SystèmeFenêtre.QT);
+        qt_fenêtre_permute_plein_écran(fenêtre);
     }
 }
 
 ferme :: fonc (fenêtre: TypeFenêtre)
 {
     si fenêtre.système == SystèmeFenêtre.NATIVE {
-        x11_fenêtre_ferme(fenêtre)
+        x11_fenêtre_ferme(fenêtre);
     }
     sinon {
-        assert(fenêtre.système == SystèmeFenêtre.QT)
-        qt_fenêtre_ferme(fenêtre)
+        assert(fenêtre.système == SystèmeFenêtre.QT);
+        qt_fenêtre_ferme(fenêtre);
     }
 }
 
 est_visible :: fonc (fenêtre: TypeFenêtre) -> bool
 {
     si fenêtre.système == SystèmeFenêtre.NATIVE {
-        qt_fenêtre_est_visible(fenêtre)
+        qt_fenêtre_est_visible(fenêtre);
     }
-    assert(fenêtre.système == SystèmeFenêtre.QT)
-    retourne qt_fenêtre_est_visible(fenêtre)
+    assert(fenêtre.système == SystèmeFenêtre.QT);
+    retourne qt_fenêtre_est_visible(fenêtre);
 }
 
 définis_visible :: fonc (fenêtre: TypeFenêtre, oui_non: bool)
 {
     si fenêtre.système == SystèmeFenêtre.NATIVE {
-        x11_fenêtre_définis_visible(fenêtre, oui_non)
+        x11_fenêtre_définis_visible(fenêtre, oui_non);
     }
     sinon {
-        assert(fenêtre.système == SystèmeFenêtre.QT)
-        qt_fenêtre_définis_visible(fenêtre, oui_non)
+        assert(fenêtre.système == SystèmeFenêtre.QT);
+        qt_fenêtre_définis_visible(fenêtre, oui_non);
     }
 }
 
 donne_opacité :: fonc (fenêtre: TypeFenêtre) -> r64
 {
     si fenêtre.système == SystèmeFenêtre.NATIVE {
-        retourne x11_fenêtre_donne_opacité(fenêtre)
+        retourne x11_fenêtre_donne_opacité(fenêtre);
     }
-    assert(fenêtre.système == SystèmeFenêtre.QT)
-    retourne qt_fenêtre_donne_opacité(fenêtre)
+    assert(fenêtre.système == SystèmeFenêtre.QT);
+    retourne qt_fenêtre_donne_opacité(fenêtre);
 }
 
 définis_opacité :: fonc (fenêtre: TypeFenêtre, opacité: r64)
 {
     si fenêtre.système == SystèmeFenêtre.NATIVE {
-        x11_fenêtre_définis_opacité(fenêtre, opacité)
+        x11_fenêtre_définis_opacité(fenêtre, opacité);
     }
     sinon {
-        assert(fenêtre.système == SystèmeFenêtre.QT)
-        qt_fenêtre_définis_opacité(fenêtre, opacité)
+        assert(fenêtre.système == SystèmeFenêtre.QT);
+        qt_fenêtre_définis_opacité(fenêtre, opacité);
     }
 }
 
 TypeFenêtre :: struct {
-    système: SystèmeFenêtre
+    système: SystèmeFenêtre;
 
     /* Pour X11. */
-    données_x11: *DonnéesX11
+    données_x11: *DonnéesX11;
 
     /* Pour Qt. */
-    rappels_window: *RappelsWindow
+    rappels_window: *RappelsWindow;
 }
 
 donne_état_souris :: fonc (fenêtre: TypeFenêtre) -> ÉtatSouris
 {
     si fenêtre.système == SystèmeFenêtre.NATIVE {
-        imprimeln("donne_état_souris non-implémenté pour X11")
-        retourne ÉtatSouris()
+        imprimeln("donne_état_souris non-implémenté pour X11");
+        retourne ÉtatSouris();
     }
 
-    assert(fenêtre.rappels_window != nul)
-    retourne fenêtre.rappels_window.dernière_souris
+    assert(fenêtre.rappels_window != nul);
+    retourne fenêtre.rappels_window.dernière_souris;
 }
 
 /* ------------------------------------------------------------------------- */
@@ -238,368 +238,368 @@ donne_état_souris :: fonc (fenêtre: TypeFenêtre) -> ÉtatSouris
 
 #portée_fichier
 
-__évènements: [..]Évènement
+__évènements: [..]Évènement;
 
-importe Qt
+importe Qt;
 
-__application_qt: *QT_Application
-__taille_arguments_qt: z32 = ---
-__rappels_window: RappelsWindow = ---
+__application_qt: *QT_Application;
+__taille_arguments_qt: z32 = ---;
+__rappels_window: RappelsWindow = ---;
 
 qt_crée_fenêtre :: fonc (largeur: z32, hauteur: z32, titre: chaine, maximisée: bool, index_écran: z32, avec_barre_de_titre_et_bordures: bool) -> TypeFenêtre
 {
-    assert(__application_qt == nul)
+    assert(__application_qt == nul);
 
-    arguments := arguments_ligne_commande()
-    __taille_arguments_qt = arguments.taille comme z32
+    arguments := arguments_ligne_commande();
+    __taille_arguments_qt = arguments.taille comme z32;
     /* Jamais détruite. */
-    __application_qt = QT_cree_application(*__taille_arguments_qt, __arguments_ligne_commande.pointeur)
+    __application_qt = QT_cree_application(*__taille_arguments_qt, __arguments_ligne_commande.pointeur);
 
-    init_de(RappelsWindow)(*__rappels_window)
+    init_de(RappelsWindow)(*__rappels_window);
 
-    window := QT_window_cree_avec_rappels(*__rappels_window)
+    window := QT_window_cree_avec_rappels(*__rappels_window);
 
     si titre {
-        QT_window_set_title(window, vers_qt(titre))
+        QT_window_set_title(window, vers_qt(titre));
     }
 
-    active_barre_de_titre_et_bordures(window, avec_barre_de_titre_et_bordures)
+    active_barre_de_titre_et_bordures(window, avec_barre_de_titre_et_bordures);
 
     si index_écran > 0 && index_écran < QT_application_screen_count() {
-        rect: QT_Rect
-        QT_application_screen_geometry(index_écran, *rect)
-        QT_window_set_position(window, rect.x, rect.y)
+        rect: QT_Rect;
+        QT_application_screen_geometry(index_écran, *rect);
+        QT_window_set_position(window, rect.x, rect.y);
     }
 
-    QT_window_resize(window, largeur, hauteur)
+    QT_window_resize(window, largeur, hauteur);
 
     si maximisée {
-        __rappels_window.fut_maximisée = vrai
-        QT_window_show_maximized(window)
+        __rappels_window.fut_maximisée = vrai;
+        QT_window_show_maximized(window);
     }
     sinon {
-        QT_window_show(window)
+        QT_window_show(window);
     }
 
     /* Garantis la création du contexte OpenGL. */
     tantque !__rappels_window.glctx {
-        QT_application_process_events()
+        QT_application_process_events();
     }
 
-    résultat: TypeFenêtre
-    résultat.système = SystèmeFenêtre.QT
-    résultat.rappels_window = *__rappels_window
-    retourne résultat
+    résultat: TypeFenêtre;
+    résultat.système = SystèmeFenêtre.QT;
+    résultat.rappels_window = *__rappels_window;
+    retourne résultat;
 }
 
 qt_ajourne_évènements_fenêtre :: fonc (fenêtre: TypeFenêtre)
 {
-    assert(fenêtre.rappels_window != nul)
-    assert(fenêtre.rappels_window.window != nul)
-    QT_application_process_events()
+    assert(fenêtre.rappels_window != nul);
+    assert(fenêtre.rappels_window.window != nul);
+    QT_application_process_events();
 }
 
 qt_requiers_ajournement_fenêtre :: fonc (fenêtre: TypeFenêtre)
 {
-    assert(fenêtre.rappels_window != nul)
-    assert(fenêtre.rappels_window.window != nul)
-    QT_window_request_update(fenêtre.rappels_window.window)
+    assert(fenêtre.rappels_window != nul);
+    assert(fenêtre.rappels_window.window != nul);
+    QT_window_request_update(fenêtre.rappels_window.window);
 }
 
 qt_permute_tampons_fenêtre :: fonc (fenêtre: TypeFenêtre)
 {
-    assert(fenêtre.rappels_window != nul)
-    assert(fenêtre.rappels_window.window != nul)
+    assert(fenêtre.rappels_window != nul);
+    assert(fenêtre.rappels_window.window != nul);
 
     si fenêtre.rappels_window.glctx {
-        QT_OpenGL_Context_swap_buffers(fenêtre.rappels_window.glctx, fenêtre.rappels_window.window)
+        QT_OpenGL_Context_swap_buffers(fenêtre.rappels_window.glctx, fenêtre.rappels_window.window);
     }
 }
 
 qt_donne_taille_fenêtre :: fonc (fenêtre: TypeFenêtre) -> (largeur: z32, hauteur: z32)
 {
-    assert(fenêtre.rappels_window != nul)
-    assert(fenêtre.rappels_window.window != nul)
-    retourne QT_window_width(fenêtre.rappels_window.window), QT_window_height(fenêtre.rappels_window.window)
+    assert(fenêtre.rappels_window != nul);
+    assert(fenêtre.rappels_window.window != nul);
+    retourne QT_window_width(fenêtre.rappels_window.window), QT_window_height(fenêtre.rappels_window.window);
 }
 
 qt_définis_titre_fenêtre :: fonc (fenêtre: TypeFenêtre, titre: chaine)
 {
-    assert(fenêtre.rappels_window != nul)
-    assert(fenêtre.rappels_window.window != nul)
-    QT_window_set_title(fenêtre.rappels_window.window, vers_qt(titre))
+    assert(fenêtre.rappels_window != nul);
+    assert(fenêtre.rappels_window.window != nul);
+    QT_window_set_title(fenêtre.rappels_window.window, vers_qt(titre));
 }
 
 qt_définis_curseur :: fonc (fenêtre: TypeFenêtre, curseur: TypeCurseurSystème)
 {
-    assert(fenêtre.rappels_window != nul)
-    assert(fenêtre.rappels_window.window != nul)
-    QT_gui_application_definis_curseur(curseur)
+    assert(fenêtre.rappels_window != nul);
+    assert(fenêtre.rappels_window.window != nul);
+    QT_gui_application_definis_curseur(curseur);
 }
 
 qt_active_barre_de_titre_et_bordures :: fonc (fenêtre: TypeFenêtre, oui_non: bool)
 {
-    assert(fenêtre.rappels_window != nul)
-    assert(fenêtre.rappels_window.window != nul)
-    active_barre_de_titre_et_bordures(fenêtre.rappels_window.window, flags)
+    assert(fenêtre.rappels_window != nul);
+    assert(fenêtre.rappels_window.window != nul);
+    active_barre_de_titre_et_bordures(fenêtre.rappels_window.window, flags);
 }
 
 active_barre_de_titre_et_bordures :: fonc (window: *QT_Window, oui_non: bool)
 {
-    flags := QT_window_flags(window)
+    flags := QT_window_flags(window);
 
     si oui_non {
-        flags &= ~QT_Window_Flags.FramelessWindowHint
+        flags &= ~QT_Window_Flags.FramelessWindowHint;
     }
     sinon {
-        flags |= QT_Window_Flags.FramelessWindowHint
+        flags |= QT_Window_Flags.FramelessWindowHint;
     }
 
-    QT_window_set_flags(window, flags)
+    QT_window_set_flags(window, flags);
 }
 
 qt_possède_barre_de_titre_et_bordures :: fonc (fenêtre: TypeFenêtre) -> bool
 {
-    assert(fenêtre.rappels_window != nul)
-    assert(fenêtre.rappels_window.window != nul)
-    flags := QT_window_flags(fenêtre.rappels_window.window)
-    retourne (flags & QT_Window_Flags.FramelessWindowHint) == (0 comme QT_Window_Flags)
+    assert(fenêtre.rappels_window != nul);
+    assert(fenêtre.rappels_window.window != nul);
+    flags := QT_window_flags(fenêtre.rappels_window.window);
+    retourne (flags & QT_Window_Flags.FramelessWindowHint) == (0 comme QT_Window_Flags);
 }
 
 qt_fenêtre_minimise :: fonc (fenêtre: TypeFenêtre)
 {
-    assert(fenêtre.rappels_window != nul)
-    assert(fenêtre.rappels_window.window != nul)
-    QT_window_show_minimized(fenêtre.rappels_window.window)
+    assert(fenêtre.rappels_window != nul);
+    assert(fenêtre.rappels_window.window != nul);
+    QT_window_show_minimized(fenêtre.rappels_window.window);
 }
 
 qt_fenêtre_maximise :: fonc (fenêtre: TypeFenêtre)
 {
-    assert(fenêtre.rappels_window != nul)
-    assert(fenêtre.rappels_window.window != nul)
-    QT_window_show_maximized(fenêtre.rappels_window.window)
+    assert(fenêtre.rappels_window != nul);
+    assert(fenêtre.rappels_window.window != nul);
+    QT_window_show_maximized(fenêtre.rappels_window.window);
 }
 
 qt_fenêtre_permute_plein_écran :: fonc (fenêtre: TypeFenêtre)
 {
-    assert(fenêtre.rappels_window != nul)
-    assert(fenêtre.rappels_window.window != nul)
+    assert(fenêtre.rappels_window != nul);
+    assert(fenêtre.rappels_window.window != nul);
 
-    rappels := fenêtre.rappels_window
-    window := rappels.window
+    rappels := fenêtre.rappels_window;
+    window := rappels.window;
 
     si QT_window_is_fullscreen(window) {
         si rappels.fut_maximisée {
-            QT_window_show_maximized(window)
+            QT_window_show_maximized(window);
         }
         sinon {
-            QT_window_show_normal(window)
+            QT_window_show_normal(window);
         }
     }
     sinon {
-        rappels.fut_maximisée = QT_window_is_maximized(window)
-        QT_window_show_fullscreen(window)
+        rappels.fut_maximisée = QT_window_is_maximized(window);
+        QT_window_show_fullscreen(window);
     }
 }
 
 qt_fenêtre_ferme :: fonc (fenêtre: TypeFenêtre)
 {
-    assert(fenêtre.rappels_window != nul)
-    assert(fenêtre.rappels_window.window != nul)
-    QT_window_close(fenêtre.rappels_window.window)
+    assert(fenêtre.rappels_window != nul);
+    assert(fenêtre.rappels_window.window != nul);
+    QT_window_close(fenêtre.rappels_window.window);
 }
 
 qt_fenêtre_est_visible :: fonc (fenêtre: TypeFenêtre) -> bool
 {
-    assert(fenêtre.rappels_window != nul)
-    assert(fenêtre.rappels_window.window != nul)
-    retourne QT_window_is_visible(fenêtre.rappels_window.window)
+    assert(fenêtre.rappels_window != nul);
+    assert(fenêtre.rappels_window.window != nul);
+    retourne QT_window_is_visible(fenêtre.rappels_window.window);
 }
 
 qt_fenêtre_définis_visible :: fonc (fenêtre: TypeFenêtre, oui_non: bool)
 {
-    assert(fenêtre.rappels_window != nul)
-    assert(fenêtre.rappels_window.window != nul)
-    QT_window_set_visible(fenêtre.rappels_window.window, oui_non)
+    assert(fenêtre.rappels_window != nul);
+    assert(fenêtre.rappels_window.window != nul);
+    QT_window_set_visible(fenêtre.rappels_window.window, oui_non);
 }
 
 qt_fenêtre_donne_opacité :: fonc (fenêtre: TypeFenêtre) -> r64
 {
-    assert(fenêtre.rappels_window != nul)
-    assert(fenêtre.rappels_window.window != nul)
-    retourne QT_window_opacity(fenêtre.rappels_window.window)
+    assert(fenêtre.rappels_window != nul);
+    assert(fenêtre.rappels_window.window != nul);
+    retourne QT_window_opacity(fenêtre.rappels_window.window);
 }
 
 qt_fenêtre_définis_opacité :: fonc (fenêtre: TypeFenêtre, opacité: r64)
 {
-    assert(fenêtre.rappels_window != nul)
-    assert(fenêtre.rappels_window.window != nul)
-    QT_window_set_opacity(fenêtre.rappels_window.window, opacité)
+    assert(fenêtre.rappels_window != nul);
+    assert(fenêtre.rappels_window.window != nul);
+    QT_window_set_opacity(fenêtre.rappels_window.window, opacité);
 }
 
 RappelsWindow :: struct {
-    empl base: QT_Rappels_Window
+    empl base: QT_Rappels_Window;
 
-    glctx: *QT_OpenGL_Context
-    glew_est_initialisé: bool
-    taille_fenêtre: QT_Taille
-    fut_maximisée: bool
+    glctx: *QT_OpenGL_Context;
+    glew_est_initialisé: bool;
+    taille_fenêtre: QT_Taille;
+    fut_maximisée: bool;
 
-    sur_creation = rappels_window_sur_création
-    sur_evenement = rappels_window_sur_évènement
+    sur_creation = rappels_window_sur_création;
+    sur_evenement = rappels_window_sur_évènement;
 
-    dernière_souris: ÉtatSouris
+    dernière_souris: ÉtatSouris;
 }
 
 rappels_window_sur_création :: fonc (base: *QT_Rappels_Window)
 {
-    rappels := base comme *RappelsWindow
-    window := rappels.window
-    QT_window_set_surface_type(window, QT_Surface_Type.OpenGLSurface)
+    rappels := base comme *RappelsWindow;
+    window := rappels.window;
+    QT_window_set_surface_type(window, QT_Surface_Type.OpenGLSurface);
 }
 
 rappels_window_sur_évènement :: fonc (base: *QT_Rappels_Window, event: QT_Generic_Event) -> bool
 {
-    rappels := base comme *RappelsWindow
+    rappels := base comme *RappelsWindow;
 
-    type := QT_evenement_donne_type(event)
+    type := QT_evenement_donne_type(event);
 
     si type == QT_Event_Type.Expose {
         saufsi rappels.glctx {
-            rappels.glctx = QT_OpenGL_Context_cree_avec_parent(rappels.window)
-            format: QT_Surface_Format
-            QT_initialize_surface_format(*format)
+            rappels.glctx = QT_OpenGL_Context_cree_avec_parent(rappels.window);
+            format: QT_Surface_Format;
+            QT_initialize_surface_format(*format);
 
             /* Active depth buffer. */
-            format.depth_buffer_size = 24
+            format.depth_buffer_size = 24;
 
-            QT_OpenGL_Context_set_format(rappels.glctx, *format)
-            _ := QT_OpenGL_Context_create(rappels.glctx)
-            QT_OpenGL_Context_format(rappels.glctx, *format)
+            QT_OpenGL_Context_set_format(rappels.glctx, *format);
+            _ := QT_OpenGL_Context_create(rappels.glctx);
+            QT_OpenGL_Context_format(rappels.glctx, *format);
         }
 
         si rappels.glctx {
-            _ := QT_OpenGL_Context_make_current(rappels.glctx, rappels.window)
+            _ := QT_OpenGL_Context_make_current(rappels.glctx, rappels.window);
 
             saufsi rappels.glew_est_initialisé {
-                glewExperimental = 1
-                erreur_ := glewInit()
+                glewExperimental = 1;
+                erreur_ := glewInit();
 
                 si erreur_ != 0 {
-                    imprime("Erreur lors de l'initilisation de GLEW !\n")
-                    retourne vrai
+                    imprime("Erreur lors de l'initilisation de GLEW !\n");
+                    retourne vrai;
                 }
-                rappels.glew_est_initialisé = vrai
+                rappels.glew_est_initialisé = vrai;
             }
         }
-        retourne vrai
+        retourne vrai;
     }
 
     si type == QT_Event_Type.Resize {
-        QT_resize_event_donne_taille(event.resize_event, *rappels.taille_fenêtre)
-        retourne vrai
+        QT_resize_event_donne_taille(event.resize_event, *rappels.taille_fenêtre);
+        retourne vrai;
     }
 
     si type == QT_Event_Type.MouseMove {
-        clic := donne_clic_souris_depuis_évènement(event.mouse_event, ActionSouris.DÉPLACÉE)
-        évènement := tableau_ajoute_élément(*__évènements)
-        initialise_depuis_clic(évènement, clic)
-        rappels.dernière_souris = clic.état
-        retourne vrai
+        clic := donne_clic_souris_depuis_évènement(event.mouse_event, ActionSouris.DÉPLACÉE);
+        évènement := tableau_ajoute_élément(*__évènements);
+        initialise_depuis_clic(évènement, clic);
+        rappels.dernière_souris = clic.état;
+        retourne vrai;
     }
 
     si type == QT_Event_Type.Wheel {
-        clic := donne_clic_souris_depuis_évènement(event.wheel_event)
-        évènement := tableau_ajoute_élément(*__évènements)
-        initialise_depuis_clic(évènement, clic)
-        rappels.dernière_souris = clic.état
-        retourne vrai
+        clic := donne_clic_souris_depuis_évènement(event.wheel_event);
+        évènement := tableau_ajoute_élément(*__évènements);
+        initialise_depuis_clic(évènement, clic);
+        rappels.dernière_souris = clic.état;
+        retourne vrai;
     }
 
     si type == QT_Event_Type.MouseButtonPress {
-        clic := donne_clic_souris_depuis_évènement(event.mouse_event, ActionSouris.PRESSÉE)
-        évènement := tableau_ajoute_élément(*__évènements)
-        initialise_depuis_clic(évènement, clic)
-        rappels.dernière_souris = clic.état
-        retourne vrai
+        clic := donne_clic_souris_depuis_évènement(event.mouse_event, ActionSouris.PRESSÉE);
+        évènement := tableau_ajoute_élément(*__évènements);
+        initialise_depuis_clic(évènement, clic);
+        rappels.dernière_souris = clic.état;
+        retourne vrai;
     }
 
     si type == QT_Event_Type.MouseButtonRelease {
-        clic := donne_clic_souris_depuis_évènement(event.mouse_event, ActionSouris.RELACHÉE)
-        évènement := tableau_ajoute_élément(*__évènements)
-        initialise_depuis_clic(évènement, clic)
-        rappels.dernière_souris = clic.état
-        retourne vrai
+        clic := donne_clic_souris_depuis_évènement(event.mouse_event, ActionSouris.RELACHÉE);
+        évènement := tableau_ajoute_élément(*__évènements);
+        initialise_depuis_clic(évènement, clic);
+        rappels.dernière_souris = clic.état;
+        retourne vrai;
     }
 
     si type == QT_Event_Type.Close {
-        évènement := tableau_ajoute_élément(*__évènements)
-        évènement.type = TypeÉvènement.Fermeture
-        retourne faux
+        évènement := tableau_ajoute_élément(*__évènements);
+        évènement.type = TypeÉvènement.Fermeture;
+        retourne faux;
     }
 
     si type == QT_Event_Type.KeyPress || type == QT_Event_Type.KeyRelease {
-        évènement := tableau_ajoute_élément(*__évènements)
-        évènement.type = TypeÉvènement.Clavier
-        évènement.touche = table_conversion_clé[QT_key_event_donne_cle(event.key_event)]
-        évènement.touche_pressée = type == QT_Event_Type.KeyPress
-        évènement.modificateurs = donne_modificateur_clavier_depuis_qt()
-        évènement.texte = QT_key_event_donne_texte(event.key_event).vers_kuri()
-        évènement.compte = QT_key_event_donne_compte(event.key_event)
-        évènement.est_répétée = QT_key_event_est_auto_repete(event.key_event)
-        évènement.code_scan_natif = QT_key_event_donne_code_scan_natif(event.key_event)
-        évènement.modificateurs_natifs = QT_key_event_donne_modificateurs_natifs(event.key_event)
-        évènement.clé_virtuelle_native = QT_key_event_donne_cle_virtuelle_native(event.key_event)
-        retourne vrai
+        évènement := tableau_ajoute_élément(*__évènements);
+        évènement.type = TypeÉvènement.Clavier;
+        évènement.touche = table_conversion_clé[QT_key_event_donne_cle(event.key_event)];
+        évènement.touche_pressée = type == QT_Event_Type.KeyPress;
+        évènement.modificateurs = donne_modificateur_clavier_depuis_qt();
+        évènement.texte = QT_key_event_donne_texte(event.key_event).vers_kuri();
+        évènement.compte = QT_key_event_donne_compte(event.key_event);
+        évènement.est_répétée = QT_key_event_est_auto_repete(event.key_event);
+        évènement.code_scan_natif = QT_key_event_donne_code_scan_natif(event.key_event);
+        évènement.modificateurs_natifs = QT_key_event_donne_modificateurs_natifs(event.key_event);
+        évènement.clé_virtuelle_native = QT_key_event_donne_cle_virtuelle_native(event.key_event);
+        retourne vrai;
     }
 
     si type == QT_Event_Type.DragEnter {
-        QT_drop_event_accepte_action_propose(event.drop_event)
-        retourne vrai
+        QT_drop_event_accepte_action_propose(event.drop_event);
+        retourne vrai;
     }
 
     si type == QT_Event_Type.Drop {
-        mimedata := QT_drop_event_donne_mimedata(event.drop_event)
+        mimedata := QT_drop_event_donne_mimedata(event.drop_event);
 
-        taille_données: z32
-        nombre_de_formats: z32
-        QT_mimedata_donne_infos(mimedata, *nombre_de_formats, *taille_données)
+        taille_données: z32;
+        nombre_de_formats: z32;
+        QT_mimedata_donne_infos(mimedata, *nombre_de_formats, *taille_données);
 
         // À FAIRE : gestion de la mémoire
-        tailles: [..]z32
-        tableau_redimensionne(tailles, 2 * nombre_de_formats)
+        tailles: [..]z32;
+        tableau_redimensionne(tailles, 2 * nombre_de_formats);
 
-        données: [..]octet
-        tableau_redimensionne(données, taille_données)
+        données: [..]octet;
+        tableau_redimensionne(données, taille_données);
 
-        QT_mimedata_exporte_donnees(mimedata, données.pointeur comme *n8, données.taille, tailles.pointeur, tailles.taille)
+        QT_mimedata_exporte_donnees(mimedata, données.pointeur comme *n8, données.taille, tailles.pointeur, tailles.taille);
 
-        mimes: [..]DonnéesMime
-        tableau_réserve(*mimes, nombre_de_formats)
+        mimes: [..]DonnéesMime;
+        tableau_réserve(*mimes, nombre_de_formats);
 
-        pointeur_données := données.pointeur
+        pointeur_données := données.pointeur;
         pour tailles.taille / 2 {
-            taille_type_mime := tailles[indice_it * 2 + 0]
-            taille_données_mime := tailles[indice_it * 2 + 1]
+            taille_type_mime := tailles[indice_it * 2 + 0];
+            taille_données_mime := tailles[indice_it * 2 + 1];
 
-            mime := tableau_ajoute_élément(*mimes)
+            mime := tableau_ajoute_élément(*mimes);
 
-            mime.type = chaine(pointeur_données comme *z8, taille_type_mime)
-            pointeur_données += taille_type_mime
+            mime.type = chaine(pointeur_données comme *z8, taille_type_mime);
+            pointeur_données += taille_type_mime;
 
-            mime.données = chaine(pointeur_données comme *z8, taille_données_mime)
-            pointeur_données += taille_données_mime
+            mime.données = chaine(pointeur_données comme *z8, taille_données_mime);
+            pointeur_données += taille_données_mime;
         }
 
-        évènement := tableau_ajoute_élément(*__évènements)
-        évènement.type = TypeÉvènement.Déposage
-        évènement.mimes = mimes
+        évènement := tableau_ajoute_élément(*__évènements);
+        évènement.type = TypeÉvènement.Déposage;
+        évènement.mimes = mimes;
 
-        QT_drop_event_accepte_action_propose(event.drop_event)
-        retourne vrai
+        QT_drop_event_accepte_action_propose(event.drop_event);
+        retourne vrai;
     }
 
-    retourne faux
+    retourne faux;
 }
 
 /** \} */
@@ -610,50 +610,50 @@ rappels_window_sur_évènement :: fonc (base: *QT_Rappels_Window, event: QT_Gene
 
 #portée_fichier
 
-importe X11
+importe X11;
 
 DonnéesX11 :: struct {
-    display: *Display
-    window: Window
-    xim: XIM
-    xic: XIC
-    wm_delete_window: Atom
+    display: *Display;
+    window: Window;
+    xim: XIM;
+    xic: XIC;
+    wm_delete_window: Atom;
 
     /* Atomes généraux. */
-    NET_WM_WINDOW_OPACITY: Atom
+    NET_WM_WINDOW_OPACITY: Atom;
 
     /* Atomes pour le glissage/déposage. */
-    XdndTypeList: Atom
-    XdndSelection: Atom
-    XdndEnter: Atom
-    XdndPosition: Atom
-    XdndStatus: Atom
-    XdndLeave: Atom
+    XdndTypeList: Atom;
+    XdndSelection: Atom;
+    XdndEnter: Atom;
+    XdndPosition: Atom;
+    XdndStatus: Atom;
+    XdndLeave: Atom;
     XdndDrop: Atom  
-    XdndFinished: Atom
-    XdndActionCopy: Atom
-    XdndActionMove: Atom
-    XdndActionLink: Atom
-    XdndActionAsk: Atom
-    XdndActionPrivate: Atom
-    XtextUriList: Atom
-    XtextPlain: Atom
-    XdndAware: Atom
+    XdndFinished: Atom;
+    XdndActionCopy: Atom;
+    XdndActionMove: Atom;
+    XdndActionLink: Atom;
+    XdndActionAsk: Atom;
+    XdndActionPrivate: Atom;
+    XtextUriList: Atom;
+    XtextPlain: Atom;
+    XdndAware: Atom;
 
     /* Autres données pour le glissage/déposage. */
-    source: n64
-    version: z64
-    format: Atom
+    source: n64;
+    version: z64;
+    format: Atom;
 }
 
-__données_x11: DonnéesX11
+__données_x11: DonnéesX11;
 
 x11_crée_fenêtre :: fonc (largeur: z32, hauteur: z32, titre: chaine, maximisée: bool @inutilisée, index_écran: z32 @inutilisée, avec_barre_de_titre_et_bordures: bool @inutilisée) -> TypeFenêtre
 {
-    display := XOpenDisplay(nul)
+    display := XOpenDisplay(nul);
     si display == nul {
-        imprimeln("X11 : impossible d'ouvrir un display.")
-        exit(1)
+        imprimeln("X11 : impossible d'ouvrir un display.");
+        exit(1);
     }
 
     window := XCreateSimpleWindow(
@@ -665,24 +665,24 @@ x11_crée_fenêtre :: fonc (largeur: z32, hauteur: z32, titre: chaine, maximisé
         hauteur comme n32,
         0,
         0,
-        0)
+        0);
 
-    wm_delete_window := XInternAtom(display, "WM_DELETE_WINDOW".pointeur, False)
-    _ := XSetWMProtocols(display, window, *wm_delete_window, 1)
+    wm_delete_window := XInternAtom(display, "WM_DELETE_WINDOW".pointeur, False);
+    _ := XSetWMProtocols(display, window, *wm_delete_window, 1);
 
     _ := XSetLocaleModifiers("".pointeur);
 
-    chaine_c_titre := crée_chaine_c(titre)
-    diffère détruit_chaine_c(chaine_c_titre)
+    chaine_c_titre := crée_chaine_c(titre);
+    diffère détruit_chaine_c(chaine_c_titre);
 
     // À FAIRE : paramétrise la ressource et la classe
-    ressource_name := chaine_c_titre
-    ressource_class := chaine_c_titre
+    ressource_name := chaine_c_titre;
+    ressource_class := chaine_c_titre;
 
-    xim := XOpenIM(display, nul, ressource_name, ressource_class)
-    xic: XIC
+    xim := XOpenIM(display, nul, ressource_name, ressource_class);
+    xic: XIC;
 
-    masque_évènements: z64 = KeyPressMask | KeyReleaseMask | PointerMotionMask | ButtonPressMask | ButtonReleaseMask | StructureNotifyMask
+    masque_évènements: z64 = KeyPressMask | KeyReleaseMask | PointerMotionMask | ButtonPressMask | ButtonReleaseMask | StructureNotifyMask;
     // ExposureMask | EnterWindowMask | LeaveWindowMask | FocusChangeMask | PropertyChangeMask | KeymapStateMask
    
     si xim {
@@ -716,18 +716,18 @@ x11_crée_fenêtre :: fonc (largeur: z32, hauteur: z32, titre: chaine, maximisé
             // masque_évènements |= fevent
         }
         sinon {
-            imprimeln("X11 : impossible de créer le XInputContext")
+            imprimeln("X11 : impossible de créer le XInputContext");
         }
     }
     sinon {
-        imprimeln("X11 : Impossible d'ouvrir la méthode d'entrée.")
+        imprimeln("X11 : Impossible d'ouvrir la méthode d'entrée.");
     }
 
-    _ := XSelectInput(display, window, masque_évènements)
+    _ := XSelectInput(display, window, masque_évènements);
 
-    x11_définis_titre_fenêtre(display, window, titre)
+    x11_définis_titre_fenêtre(display, window, titre);
 
-    __données_x11.NET_WM_WINDOW_OPACITY = XInternAtom(display, "_NET_WM_WINDOW_OPACITY".pointeur, False)
+    __données_x11.NET_WM_WINDOW_OPACITY = XInternAtom(display, "_NET_WM_WINDOW_OPACITY".pointeur, False);
 
     /* fetching data */
     __données_x11.XdndTypeList = XInternAtom(display, "XdndTypeList".pointeur, False);
@@ -755,41 +755,41 @@ x11_crée_fenêtre :: fonc (largeur: z32, hauteur: z32, titre: chaine, maximisé
     myVersion : n8 = 5;
     _ := XChangeProperty(display, window, __données_x11.XdndAware, 4, 32, PropModeReplace, *myVersion, 1);
 
-    _ := XMapWindow(display, window)
+    _ := XMapWindow(display, window);
 
-    __données_x11.display = display
-    __données_x11.window = window
-    __données_x11.xim = xim
-    __données_x11.xic = xic
-    __données_x11.wm_delete_window = wm_delete_window
+    __données_x11.display = display;
+    __données_x11.window = window;
+    __données_x11.xim = xim;
+    __données_x11.xic = xic;
+    __données_x11.wm_delete_window = wm_delete_window;
 
-    résultat: TypeFenêtre
-    résultat.système = SystèmeFenêtre.NATIVE
-    résultat.données_x11 = *__données_x11
-    retourne résultat
+    résultat: TypeFenêtre;
+    résultat.système = SystèmeFenêtre.NATIVE;
+    résultat.données_x11 = *__données_x11;
+    retourne résultat;
 }
 
 x11_requiers_ajournement_fenêtre :: fonc (fenêtre: TypeFenêtre)
 {
-    imprimeln("À FAIRE : %", #nom_de_cette_fonction)
+    imprimeln("À FAIRE : %", #nom_de_cette_fonction);
 }
 
 x11_permute_tampons_fenêtre :: fonc (fenêtre: TypeFenêtre @inutilisée)
 {
-    imprimeln("À FAIRE : %", #nom_de_cette_fonction)
+    imprimeln("À FAIRE : %", #nom_de_cette_fonction);
 }
 
 x11_donne_taille_fenêtre :: fonc (fenêtre: TypeFenêtre) -> (largeur: z32, hauteur: z32)
 {
-    assert(fenêtre.données_x11.display != nul)
+    assert(fenêtre.données_x11.display != nul);
 
-    root_return: Window
-    x_return: z32
-    y_return: z32
-    w_return: n32
-    h_return: n32
-    border_w_return: n32
-    depth_return: n32
+    root_return: Window;
+    x_return: z32;
+    y_return: z32;
+    w_return: n32;
+    h_return: n32;
+    border_w_return: n32;
+    depth_return: n32;
 
     _ := XGetGeometry(fenêtre.données_x11.display,
                       fenêtre.données_x11.window,
@@ -799,93 +799,93 @@ x11_donne_taille_fenêtre :: fonc (fenêtre: TypeFenêtre) -> (largeur: z32, hau
                       *w_return,
                       *h_return,
                       *border_w_return,
-                      *depth_return)
+                      *depth_return);
 
-    retourne w_return comme z32, h_return comme z32
+    retourne w_return comme z32, h_return comme z32;
 }
 
 x11_définis_titre_fenêtre :: fonc (fenêtre: TypeFenêtre, titre: chaine)
 {
-    x11_définis_titre_fenêtre(fenêtre.données_x11.display, fenêtre.données_x11.window, titre)
+    x11_définis_titre_fenêtre(fenêtre.données_x11.display, fenêtre.données_x11.window, titre);
 }
 
 x11_définis_titre_fenêtre :: fonc (display: *Display, window: Window, titre: chaine)
 {
-    chaine_c_titre := crée_chaine_c(titre)
-    diffère détruit_chaine_c(chaine_c_titre)
+    chaine_c_titre := crée_chaine_c(titre);
+    diffère détruit_chaine_c(chaine_c_titre);
 
     name := XInternAtom(display, "_NET_WM_NAME".pointeur, False);
     utf8str := XInternAtom(display, "UTF8_STRING".pointeur, False);
     
     _ := XChangeProperty(display, window, name, utf8str, 8, PropModeReplace, titre.pointeur comme *n8, titre.taille comme z32);
 
-    _ := XStoreName(display, window, chaine_c_titre)
+    _ := XStoreName(display, window, chaine_c_titre);
 
     _ := XFlush(display);
 }
 
 x11_définis_curseur :: fonc (fenêtre: TypeFenêtre @inutilisée, curseur: TypeCurseurSystème @inutilisée)
 {
-    imprimeln("À FAIRE : %", #nom_de_cette_fonction)
+    imprimeln("À FAIRE : %", #nom_de_cette_fonction);
 }
 
 x11_active_barre_de_titre_et_bordures :: fonc (fenêtre: TypeFenêtre @inutilisée, oui_non: bool @inutilisée)
 {
-    imprimeln("À FAIRE : %", #nom_de_cette_fonction)
+    imprimeln("À FAIRE : %", #nom_de_cette_fonction);
 }
 
 x11_possède_barre_de_titre_et_bordures :: fonc (fenêtre: TypeFenêtre @inutilisée) -> bool
 {
-    imprimeln("À FAIRE : %", #nom_de_cette_fonction)
-    retourne faux
+    imprimeln("À FAIRE : %", #nom_de_cette_fonction);
+    retourne faux;
 }
 
 x11_fenêtre_minimise :: fonc (fenêtre: TypeFenêtre @inutilisée)
 {
-    imprimeln("À FAIRE : %", #nom_de_cette_fonction)
+    imprimeln("À FAIRE : %", #nom_de_cette_fonction);
 }
 
 x11_fenêtre_maximise :: fonc (fenêtre: TypeFenêtre @inutilisée)
 {
-    imprimeln("À FAIRE : %", #nom_de_cette_fonction)
+    imprimeln("À FAIRE : %", #nom_de_cette_fonction);
 }
 
 x11_fenêtre_permute_plein_écran :: fonc (fenêtre: TypeFenêtre @inutilisée)
 {
-    imprimeln("À FAIRE : %", #nom_de_cette_fonction)
+    imprimeln("À FAIRE : %", #nom_de_cette_fonction);
 }
 
 x11_fenêtre_ferme :: fonc (fenêtre: TypeFenêtre)
 {
-    assert(fenêtre.système == SystèmeFenêtre.NATIVE)
+    assert(fenêtre.système == SystèmeFenêtre.NATIVE);
     si type_fenêtre.données_x11.display {
-        _ := XCloseDisplay(type_fenêtre.données_x11.display)
+        _ := XCloseDisplay(type_fenêtre.données_x11.display);
     }
 }
 
 x11_fenêtre_est_visible :: fonc (fenêtre: TypeFenêtre @inutilisée) -> bool
 {
-    imprimeln("À FAIRE : %", #nom_de_cette_fonction)
-    retourne faux
+    imprimeln("À FAIRE : %", #nom_de_cette_fonction);
+    retourne faux;
 }
 
 x11_fenêtre_définis_visible :: fonc (fenêtre: TypeFenêtre @inutilisée, oui_non: bool @inutilisée)
 {
-    imprimeln("À FAIRE : %", #nom_de_cette_fonction)
+    imprimeln("À FAIRE : %", #nom_de_cette_fonction);
 }
 
 x11_fenêtre_donne_opacité :: fonc (fenêtre: TypeFenêtre) -> r64
 {
-    assert(fenêtre.données_x11 != nul)
+    assert(fenêtre.données_x11 != nul);
 
-    empl x11 := fenêtre.données_x11
+    empl x11 := fenêtre.données_x11;
 
     data: *n8;
     result: n64;
 
-    actual_type: Atom = XA_CARDINAL
-    actual_format: z32
-    octets_après: n64
+    actual_type: Atom = XA_CARDINAL;
+    actual_format: z32;
+    octets_après: n64;
 
     _ := XGetWindowProperty(display,
                             window,
@@ -900,64 +900,64 @@ x11_fenêtre_donne_opacité :: fonc (fenêtre: TypeFenêtre) -> r64
                             *octets_après,
                             *data);
 
-    entier_opacité := mémoire(data comme *n64) comme n32
-    valeur := (entier_opacité >> 24)
+    entier_opacité := mémoire(data comme *n64) comme n32;
+    valeur := (entier_opacité >> 24);
 
     si data {
-        _ := XFree(data)
+        _ := XFree(data);
     }
 
-    retourne valeur comme r64 / 255.0
+    retourne valeur comme r64 / 255.0;
 }
 
 x11_fenêtre_définis_opacité :: fonc (fenêtre: TypeFenêtre, opacité: r64)
 {
-    assert(fenêtre.données_x11 != nul)
+    assert(fenêtre.données_x11 != nul);
 
-    empl x11 := fenêtre.données_x11
+    empl x11 := fenêtre.données_x11;
 
-    opacité = restreint(0.0 comme r64, opacité, 1.0)
-    entier_opacité := (opacité * 255.0) comme n8 comme n64
-    valeur := entier_opacité << 24 | 0xffffff
+    opacité = restreint(0.0 comme r64, opacité, 1.0);
+    entier_opacité := (opacité * 255.0) comme n8 comme n64;
+    valeur := entier_opacité << 24 | 0xffffff;
 
     _ := XChangeProperty(display, window, NET_WM_WINDOW_OPACITY, XA_CARDINAL, 32, PropModeReplace, *valeur comme *n8, 1);
 }
 
 x11_ajourne_évènements_fenêtre :: fonc (fenêtre: TypeFenêtre)
 {
-    assert(fenêtre.système == SystèmeFenêtre.NATIVE)
+    assert(fenêtre.système == SystèmeFenêtre.NATIVE);
 
-    empl données_x11 := fenêtre.données_x11
+    empl données_x11 := fenêtre.données_x11;
 
     // À FAIRE : expose, resize
 
     tantque XPending(display) > 0 {
-        event: XEvent
-        _ := XNextEvent(display, *event)
+        event: XEvent;
+        _ := XNextEvent(display, *event);
 
         si event.type == KeyPress {
-            évènement := tableau_ajoute_élément(*__évènements)
-            initialise_évènement_depuis_xkey_event(*event.xkey, faux, évènement)
+            évènement := tableau_ajoute_élément(*__évènements);
+            initialise_évènement_depuis_xkey_event(*event.xkey, faux, évènement);
 
             si xic {
                 tampon_utf8: [16 * 6]z8 // 16 caractères UTF-8
-                status: Status
-                key_sym := évènement.clé_virtuelle_native comme KeySym
-                len := Xutf8LookupString(xic, *event.xkey, *tampon_utf8[0], tampon_utf8.taille comme z32, *key_sym, *status)
+                status: Status;
+                key_sym := évènement.clé_virtuelle_native comme KeySym;
+                len := Xutf8LookupString(xic, *event.xkey, *tampon_utf8[0], tampon_utf8.taille comme z32, *key_sym, *status);
 
-                assert(status != XBufferOverflow)
+                assert(status != XBufferOverflow);
                 // si status == XBufferOverflow {
                 //     utf8_buf = (char *)malloc(len + 5);
                 //     len = Xutf8LookupString(xic, xke, *tampon_utf8, tampon_utf8.taille, *key_sym, *status)
                 // }
 
-                chaine_touche := chaine(*tampon_utf8[0], len)
+                chaine_touche := chaine(*tampon_utf8[0], len);
 
                 si status == XLookupChars || status == XLookupBoth {
                     /* Testons les caractères de controle ASCII.
                      * Enligne `iscntrl` car la locale de l'utilisateur ne doit pas changer. */
                     si ((tampon_utf8[0] < 32 && tampon_utf8[0] > 0) || (tampon_utf8[0] == 127)) {
-                        len = 0
+                        len = 0;
                     }
                 }
                 sinon si status == XLookupKeySym {
@@ -965,51 +965,51 @@ x11_ajourne_évènements_fenêtre :: fonc (fenêtre: TypeFenêtre)
                 }
                 sinon {
                     chaine_status := si status == XLookupNone {
-                        "XLookupNone"
+                        "XLookupNone";
                     }
                     sinon si status == XLookupKeySym {
-                        "XLookupKeySym"
+                        "XLookupKeySym";
                     }
                     sinon {
-                        "Status inconnu"
+                        "Status inconnu";
                     }
 
-                    imprimeln("X11 : impossible de trouver la clé de code  pour % : %", key_sym, chaine_status)
-                    imprimeln("texte : %, xic : %, xim %", chaine_touche, xic, xim)
+                    imprimeln("X11 : impossible de trouver la clé de code  pour % : %", key_sym, chaine_status);
+                    imprimeln("texte : %, xic : %, xim %", chaine_touche, xic, xim);
                 }
 
                 // À FAIRE : supprime ces allocations
-                évènement.texte = copie_chaine(chaine_touche)
+                évènement.texte = copie_chaine(chaine_touche);
             }
         }
         sinon si event.type == KeyRelease {
-            évènement := tableau_ajoute_élément(*__évènements)
-            initialise_évènement_depuis_xkey_event(*event.xkey, faux, évènement)
+            évènement := tableau_ajoute_élément(*__évènements);
+            initialise_évènement_depuis_xkey_event(*event.xkey, faux, évènement);
         }
         sinon si event.type == MotionNotify {
-            évènement := tableau_ajoute_élément(*__évènements)
-            initialise_évènement_depuis_xmotion_event(*event.xmotion, évènement)
+            évènement := tableau_ajoute_élément(*__évènements);
+            initialise_évènement_depuis_xmotion_event(*event.xmotion, évènement);
         }
         sinon si event.type == ButtonPress {
-            évènement := tableau_ajoute_élément(*__évènements)
-            initialise_évènement_depuis_xbutton_event(*event.xbutton, évènement)
+            évènement := tableau_ajoute_élément(*__évènements);
+            initialise_évènement_depuis_xbutton_event(*event.xbutton, évènement);
         }
         sinon si event.type == ButtonRelease {
-            évènement := tableau_ajoute_élément(*__évènements)
-            initialise_évènement_depuis_xbutton_event(*event.xbutton, évènement)
+            évènement := tableau_ajoute_élément(*__évènements);
+            initialise_évènement_depuis_xbutton_event(*event.xbutton, évènement);
         }
         sinon si event.type == ClientMessage {
-            data := event.xclient.data.l
-            atome := data[0] comme Atom
+            data := event.xclient.data.l;
+            atome := data[0] comme Atom;
             si atome == fenêtre.données_x11.wm_delete_window {
-                évènement := tableau_ajoute_élément(*__évènements)
-                évènement.type = TypeÉvènement.Fermeture
-                continue
+                évènement := tableau_ajoute_élément(*__évènements);
+                évènement.type = TypeÉvènement.Fermeture;
+                continue;
             }
 
             si event.xclient.message_type == XdndEnter || event.xclient.message_type == XdndPosition || event.xclient.message_type == XdndDrop {
-                x11_gère_entrée_glissage(*event.xclient, fenêtre.données_x11)
-                continue
+                x11_gère_entrée_glissage(*event.xclient, fenêtre.données_x11);
+                continue;
             }
         }
         sinon si event.type == ConfigureNotify {
@@ -1024,11 +1024,11 @@ x11_ajourne_évènements_fenêtre :: fonc (fenêtre: TypeFenêtre)
                 data: *n8;
                 result: n64;
 
-                actual_type: Atom
-                actual_format: z32
-                octets_après: n64
+                actual_type: Atom;
+                actual_format: z32;
+                octets_après: n64;
 
-                LONG_MAX :: 0xffffffffffffffff
+                LONG_MAX :: 0xffffffffffffffff;
 
                 _ := XGetWindowProperty(display,
                                         event.xselection.requestor,
@@ -1048,36 +1048,36 @@ x11_ajourne_évènements_fenêtre :: fonc (fenêtre: TypeFenêtre)
                 }
 
                 si data {
-                    mime_type := XGetAtomName(display, format)
+                    mime_type := XGetAtomName(display, format);
 
-                    évènement := tableau_ajoute_élément(*__évènements)
-                    évènement.type = TypeÉvènement.Déposage
+                    évènement := tableau_ajoute_élément(*__évènements);
+                    évènement.type = TypeÉvènement.Déposage;
 
-                    mime := tableau_ajoute_élément(*évènement.mimes)
-                    mime.type = convertis_chaine_c(ChaineC(mime_type))
-                    mime.données = convertis_chaine_c(ChaineC(data comme *z8))
+                    mime := tableau_ajoute_élément(*évènement.mimes);
+                    mime.type = convertis_chaine_c(ChaineC(mime_type));
+                    mime.données = convertis_chaine_c(ChaineC(data comme *z8));
 
-                    _ := XFree(data)
+                    _ := XFree(data);
                 }
 
                 si version >= 2 {
-                    reply: XEvent
+                    reply: XEvent;
                     reply.type = ClientMessage;
                     reply.xclient.window = source;
                     reply.xclient.format = 32;
                     reply.xclient.message_type = XdndFinished;
-                    l: [5]z64
+                    l: [5]z64;
                     l[0] = window comme z64;
-                    l[1] = result comme z64
-                    l[2] = XdndActionCopy comme z64
-                    reply.xclient.data.l = l
+                    l[1] = result comme z64;
+                    l[2] = XdndActionCopy comme z64;
+                    reply.xclient.data.l = l;
 
                     _ := XSendEvent(display, source, False, NoEventMask, *reply);
                     _ := XFlush(display);
 
-                    fenêtre.données_x11.format = None comme n64
-                    fenêtre.données_x11.version = 0
-                    fenêtre.données_x11.source = 0
+                    fenêtre.données_x11.format = None comme n64;
+                    fenêtre.données_x11.version = 0;
+                    fenêtre.données_x11.source = 0;
                 }
             }
         }
@@ -1086,39 +1086,39 @@ x11_ajourne_évènements_fenêtre :: fonc (fenêtre: TypeFenêtre)
 
 x11_gère_entrée_glissage :: fonc (xclient_event: *XClientMessageEvent, empl données_x11: *DonnéesX11)
 {
-    reply: XEvent
+    reply: XEvent;
     reply.type = ClientMessage;
     reply.xclient.window = source;
     reply.xclient.format = 32;
-    l: [5]z64
+    l: [5]z64;
     l[0] = window comme z64;
-    reply.xclient.data.l = l
+    reply.xclient.data.l = l;
 
     si xclient_event.message_type == XdndEnter {
-        format = None comme Atom
+        format = None comme Atom;
 
-        client_data := xclient_event.data.l
+        client_data := xclient_event.data.l;
 
         est_liste := client_data[1] & 1;
 
-        source = client_data[0] comme XID
+        source = client_data[0] comme XID;
         version = client_data[1] >> 24;
 
         si version > 5 {
-            imprimeln("X11 : version glissage/déposage non-supportée : %", version)
-            retourne
+            imprimeln("X11 : version glissage/déposage non-supportée : %", version);
+            retourne;
         }
 
-        formats: *Atom
-        formats_réel: [6]Atom
-        compte: n64
+        formats: *Atom;
+        formats_réel: [6]Atom;
+        compte: n64;
 
         si est_liste {
-            actual_type: Atom
-            actual_format: z32
-            octets_après: n64
+            actual_type: Atom;
+            actual_format: z32;
+            octets_après: n64;
 
-            LONG_MAX :: 0xffffffffffffffff
+            LONG_MAX :: 0xffffffffffffffff;
 
             _ := XGetWindowProperty(display,
                                     source,
@@ -1137,16 +1137,16 @@ x11_gère_entrée_glissage :: fonc (xclient_event: *XClientMessageEvent, empl do
             compte = 0;
 
             si client_data[2] != None {
-                formats_réel[compte] = client_data[2] comme Atom
-                compte += 1
+                formats_réel[compte] = client_data[2] comme Atom;
+                compte += 1;
             }
             si client_data[3] != None {
-                formats_réel[compte] = client_data[3] comme Atom
-                compte += 1
+                formats_réel[compte] = client_data[3] comme Atom;
+                compte += 1;
             }
             si client_data[4] != None {
-                formats_réel[compte] = client_data[4] comme Atom
-                compte += 1
+                formats_réel[compte] = client_data[4] comme Atom;
+                compte += 1;
             }
 
             formats = *formats_réel[0];
@@ -1154,7 +1154,7 @@ x11_gère_entrée_glissage :: fonc (xclient_event: *XClientMessageEvent, empl do
 
         pour compte {
             si formats_réel[it] == XtextUriList || formats_réel[it] == XtextPlain {
-                format = formats_réel[it]
+                format = formats_réel[it];
             }
         }
 
@@ -1166,18 +1166,18 @@ x11_gère_entrée_glissage :: fonc (xclient_event: *XClientMessageEvent, empl do
     }
 
     si xclient_event.message_type == XdndPosition && version <= 5 {
-        client_data := xclient_event.data.l
+        client_data := xclient_event.data.l;
 
-        xabs := ((client_data[2] >> 16) & 0xffff) comme z32
-        yabs := ((client_data[2]) & 0xffff) comme z32
+        xabs := ((client_data[2] >> 16) & 0xffff) comme z32;
+        yabs := ((client_data[2]) & 0xffff) comme z32;
 
-        dummy: Window
-        xpos: z32
-        ypos: z32
+        dummy: Window;
+        xpos: z32;
+        ypos: z32;
 
         _ := XTranslateCoordinates(display, XDefaultRootWindow(display), window, xabs, yabs, *xpos, *ypos, *dummy);
 
-        reply.xclient.message_type = XdndStatus
+        reply.xclient.message_type = XdndStatus;
 
         si format != (None comme Atom) {
             l[1] = 1;
@@ -1186,7 +1186,7 @@ x11_gère_entrée_glissage :: fonc (xclient_event: *XClientMessageEvent, empl do
             }
         }
 
-        reply.xclient.data.l = l
+        reply.xclient.data.l = l;
 
         _ := XSendEvent(display, source, False, NoEventMask, *reply);
         _ := XFlush(display);
@@ -1198,7 +1198,7 @@ x11_gère_entrée_glissage :: fonc (xclient_event: *XClientMessageEvent, empl do
             time := CurrentTime;
 
             si version >= 1 {
-                client_data := xclient_event.data.l
+                client_data := xclient_event.data.l;
                 time = client_data[2];
             }
 
@@ -1211,12 +1211,12 @@ x11_gère_entrée_glissage :: fonc (xclient_event: *XClientMessageEvent, empl do
             _ := XSendEvent(display, source, False, NoEventMask, *reply);
             _ := XFlush(display);
 
-            format = None comme n64
-            version = 0
-            source = 0
+            format = None comme n64;
+            version = 0;
+            source = 0;
         }
 
-        retourne
+        retourne;
     }
 }
 

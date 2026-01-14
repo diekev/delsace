@@ -2605,10 +2605,11 @@ RésultatValidation Sémanticienne::valide_expression_retour(NoeudInstructionRet
     else {
         /* Nous pouvons être dans le bloc d'un #test, auquel cas la fonction n'a pas encore été
          * créée car la validation du bloc se fait avant le noeud. Vérifions si tel est le cas. */
-        if (!(racine_validation()->est_exécute() && racine_validation()->ident == ID::test)) {
+        if (!(racine_validation()->est_exécute() && (racine_validation()->ident == ID::test ||
+                                                     racine_validation()->ident == ID::exécute))) {
             m_espace->rapporte_erreur(inst,
                                       "Utilisation de « retourne » en dehors d'une fonction, d'un "
-                                      "opérateur, ou d'un #test");
+                                      "opérateur, d'un #test, ou d'un #exécute");
             return CodeRetourValidation::Erreur;
         }
 
@@ -2722,10 +2723,11 @@ RésultatValidation Sémanticienne::valide_instruction_retourne_multiple(
     else {
         /* Nous pouvons être dans le bloc d'un #test, auquel cas la fonction n'a pas encore été
          * créée car la validation du bloc se fait avant le noeud. Vérifions si tel est le cas. */
-        if (!(racine_validation()->est_exécute() && racine_validation()->ident == ID::test)) {
+        if (!(racine_validation()->est_exécute() && (racine_validation()->ident == ID::test ||
+                                                     racine_validation()->ident == ID::exécute))) {
             m_espace->rapporte_erreur(inst,
                                       "Utilisation de « retourne » en dehors d'une fonction, d'un "
-                                      "opérateur, ou d'un #test");
+                                      "opérateur, d'un #test, ou d'un #exécute");
             return CodeRetourValidation::Erreur;
         }
 

@@ -1,4 +1,4 @@
-importe Ensemble
+importe Ensemble;
 
 /* ------------------------------------------------------------------------- */
 /* ListeEntréesDossier : liste des entrées d'un dossier.
@@ -14,15 +14,15 @@ importe Ensemble
 
 ListeEntréesDossier :: struct {
     /* Chemin du dossier. */
-    chemin: CheminFichier
+    chemin: CheminFichier;
 
-    entrées: [..]EntréeDossier
+    entrées: [..]EntréeDossier;
 }
 
 détruit_liste_entrées_dossier :: fonc (liste: *ListeEntréesDossier)
 {
-    détruit_chemin(liste.chemin)
-    déloge_tableau_et_ses_éléments(liste.entrées, détruit_entrée_dossier)
+    détruit_chemin(liste.chemin);
+    déloge_tableau_et_ses_éléments(liste.entrées, détruit_entrée_dossier);
 }
 
 /* Donne la liste des entrées du dossier, ou une erreur si le chemin ne pointe
@@ -30,37 +30,37 @@ détruit_liste_entrées_dossier :: fonc (liste: *ListeEntréesDossier)
 donne_liste_des_entrées_du_dossier :: fonc (chemin: CheminFichier) -> Résultat(ListeEntréesDossier, ErreurFichier)
 {
     saufsi est_un_dossier(chemin) {
-        retourne ErreurFichier.NEstPasUnDossier
+        retourne ErreurFichier.NEstPasUnDossier;
     }
 
-    résultat: ListeEntréesDossier
-    résultat.chemin = copie_chemin(chemin)
+    résultat: ListeEntréesDossier;
+    résultat.chemin = copie_chemin(chemin);
 
     /* Parse les éléments du dossier. */
-    noms_parsés: [..]DonnéesNumérotageCheminFichier
+    noms_parsés: [..]DonnéesNumérotageCheminFichier;
 
     /* Les éléments ne sont pas détruit directement car ils sont déplacés dans les entrées. */
-    diffère déloge(noms_parsés)
+    diffère déloge(noms_parsés);
 
     pour ExploratriceFichier(chemin) {
-        nom_parsé := parse_nom_fichier_numéroté(it)
-        tableau_ajoute(*noms_parsés, nom_parsé)
+        nom_parsé := parse_nom_fichier_numéroté(it);
+        tableau_ajoute(*noms_parsés, nom_parsé);
     }
 
     /* Parse les entrées du répertoire. */
-    entrées: [..]EntréeRépertoire
-    diffère déloge_tableau_et_ses_éléments(entrées, détruit_entrée_répertoire)
+    entrées: [..]EntréeRépertoire;
+    diffère déloge_tableau_et_ses_éléments(entrées, détruit_entrée_répertoire);
 
     pour noms_parsés {
-        ajoute_entrée(*entrées, it)
+        ajoute_entrée(*entrées, it);
     }
 
     /* Convertis les EntréeRépertoire en EntréeDossier. */
     pour entrées {
-        ajoute_entrée_dossier_depuis_entrée_fichier(*résultat.entrées, it)
+        ajoute_entrée_dossier_depuis_entrée_fichier(*résultat.entrées, it);
     }
 
-    retourne résultat
+    retourne résultat;
 }
 
 /* \} */
@@ -71,89 +71,89 @@ donne_liste_des_entrées_du_dossier :: fonc (chemin: CheminFichier) -> Résultat
 
 EntréeDossier :: struct {
     /* Chemin de base de l'entrée. Si nous avons une séquence, le chemin avec des '#' à la place des chiffres. */
-    chemin: CheminFichier
+    chemin: CheminFichier;
 
     /* Chemin réel. */
-    chemin_effectif: CheminFichier
+    chemin_effectif: CheminFichier;
 
     /* Si séquence, > 1. */
-    nombre_éléments: z32
+    nombre_éléments: z32;
 
     /* Si séquence, premier numéro de celle-ci. Sinon, -1. */
-    premier_numéro: z32
+    premier_numéro: z32;
 
     /* Si séquence, dernier numéro de celle-ci. Sinon, -1. */
-    dernier_numéro: z32
+    dernier_numéro: z32;
 }
 
 détruit_entrée_dossier :: fonc (empl entrée: EntréeDossier)
 {
     si nombre_éléments > 1 {
-        détruit_chemin(chemin)
+        détruit_chemin(chemin);
     }
-    détruit_chemin(chemin_effectif)
+    détruit_chemin(chemin_effectif);
 }
 
 chemin_symbolique :: fonc (entrée: DonnéesNumérotageCheminFichier) -> CheminFichier
 {
-    résultat := copie_chemin(entrée.chemin)
+    résultat := copie_chemin(entrée.chemin);
 
     /* Garantissons que nous modifier le nom du fichier.
      * « chn » peut être le chemin entier. */
-    nom_fichier := résultat.nom_fichier()
+    nom_fichier := résultat.nom_fichier();
     pour entrée.taille_numéro {
-        nom_fichier[entrée.préfixe.taille + it] = '#'
+        nom_fichier[entrée.préfixe.taille + it] = '#';
     }
 
-    retourne résultat
+    retourne résultat;
 }
 
 ajoute_entrée_dossier_depuis_entrée_fichier :: fonc (entrées_dossier: *[..]EntréeDossier, entrée: EntréeRépertoire)
 {
     si entrée.noms_parsés.taille == 1 {
-        ajoute_entrée_dossier(entrées_dossier, entrée.description, -1, -1)
-        retourne
+        ajoute_entrée_dossier(entrées_dossier, entrée.description, -1, -1);
+        retourne;
     }
 
-    premier_numéro : z32 = -1
-    dernier_numéro: z32
+    premier_numéro : z32 = -1;
+    dernier_numéro: z32;
     pour entrée.noms_parsés {
         si premier_numéro != -1 {
             si it.numéro != dernier_numéro + 1 {
                 // nous avons un élément manquant de la séquence.
-                ajoute_entrée_dossier(entrées_dossier, entrée.description, premier_numéro, dernier_numéro)
-                premier_numéro = -1
+                ajoute_entrée_dossier(entrées_dossier, entrée.description, premier_numéro, dernier_numéro);
+                premier_numéro = -1;
             }
         }
 
         si indice_it == 0 || premier_numéro == -1 {
-            premier_numéro = it.numéro
-            dernier_numéro = it.numéro
+            premier_numéro = it.numéro;
+            dernier_numéro = it.numéro;
         }
         sinon {
-            dernier_numéro = it.numéro
+            dernier_numéro = it.numéro;
         }
     }
 
     si premier_numéro != -1 {
-        ajoute_entrée_dossier(entrées_dossier, entrée.description, premier_numéro, dernier_numéro)
+        ajoute_entrée_dossier(entrées_dossier, entrée.description, premier_numéro, dernier_numéro);
     }
 }
 
 ajoute_entrée_dossier :: fonc (entrées_dossier: *[..]EntréeDossier, nom: DonnéesNumérotageCheminFichier, premier_numéro: z32, dernier_numéro: z32)
 {
-    entrée_dossier := tableau_ajoute_élément(entrées_dossier)
-    entrée_dossier.nombre_éléments = dernier_numéro - premier_numéro + 1
-    entrée_dossier.premier_numéro = premier_numéro
-    entrée_dossier.dernier_numéro = dernier_numéro
+    entrée_dossier := tableau_ajoute_élément(entrées_dossier);
+    entrée_dossier.nombre_éléments = dernier_numéro - premier_numéro + 1;
+    entrée_dossier.premier_numéro = premier_numéro;
+    entrée_dossier.dernier_numéro = dernier_numéro;
 
-    entrée_dossier.chemin_effectif = copie_chemin(nom.chemin)
+    entrée_dossier.chemin_effectif = copie_chemin(nom.chemin);
 
     si entrée_dossier.nombre_éléments > 1 {
-        entrée_dossier.chemin = nom.chemin_symbolique()
+        entrée_dossier.chemin = nom.chemin_symbolique();
     }
     sinon {
-        entrée_dossier.chemin = entrée_dossier.chemin_effectif
+        entrée_dossier.chemin = entrée_dossier.chemin_effectif;
     }
 }
 
@@ -167,94 +167,94 @@ ajoute_entrée_dossier :: fonc (entrées_dossier: *[..]EntréeDossier, nom: Donn
  * \{ */
 
 DonnéesNumérotageCheminFichier :: struct {
-    chemin: CheminFichier
+    chemin: CheminFichier;
 
     /* La chaine avant la dernière suite de chiffres. */
-    préfixe: chaine
+    préfixe: chaine;
     /* La chaine après la dernière suite de chiffres. */
-    suffixe: chaine
+    suffixe: chaine;
     /* Le nombre parsé de la dernière suite de chiffres. */
-    numéro: z32
+    numéro: z32;
     /* La taille de la dernière suite de chiffres.
      * À FAIRE : il est possible que la taille varie selon les chemins
      * par exemple test9.png, test10.png, au lieu de test09.png, test10.png. */
-    taille_numéro: z32
+    taille_numéro: z32;
     /* L'extension du fichier. */
-    extension: chaine
+    extension: chaine;
 }
 
 détruit_nom_fichier_numéroté_parsé :: fonc (empl nom: DonnéesNumérotageCheminFichier)
 {
-    détruit_chemin(chemin)
+    détruit_chemin(chemin);
 }
 
 opérateur < :: (nom1: DonnéesNumérotageCheminFichier, nom2: DonnéesNumérotageCheminFichier) -> bool
 {
-    retourne nom1.numéro < nom2.numéro
+    retourne nom1.numéro < nom2.numéro;
 }
 
 opérateur == :: (nom1: DonnéesNumérotageCheminFichier, nom2: DonnéesNumérotageCheminFichier) -> bool
 {
-    retourne nom1.numéro == nom2.numéro
+    retourne nom1.numéro == nom2.numéro;
 }
 
 parse_nom_fichier_numéroté :: fonc (chemin: CheminFichier) -> DonnéesNumérotageCheminFichier
 {
-    chemin = copie_chemin(chemin)
+    chemin = copie_chemin(chemin);
 
-    nom_fichier := chemin.nom_fichier()
+    nom_fichier := chemin.nom_fichier();
 
     /* Trouve la position du premier chiffre en partant de la fin du chemin
      * afin de ne considérer que la dernière séquence de chiffre. */
-    indice_début_nombre : z64 = -1
-    eu_chiffre := faux
+    indice_début_nombre : z64 = -1;
+    eu_chiffre := faux;
     pour > i dans nom_fichier.taille {
         si est_nombre_décimal(nom_fichier[i]) {
-            eu_chiffre = vrai
-            indice_début_nombre = i
-            continue
+            eu_chiffre = vrai;
+            indice_début_nombre = i;
+            continue;
         }
 
-        arrête
+        arrête;
     }
 
-    numéro := -1
-    indice_fin_nombre : z64 = -1
-    taille_numéro := 0
+    numéro := -1;
+    indice_fin_nombre : z64 = -1;
+    taille_numéro := 0;
     si indice_début_nombre != -1 {
-        numéro = 0
+        numéro = 0;
         pour i dans indice_début_nombre ... nom_fichier.taille - 1 {
-            c := nom_fichier[i]
+            c := nom_fichier[i];
 
             saufsi est_nombre_décimal(c) {
-                arrête
+                arrête;
             }
 
-            numéro = numéro * 10 + (c - '0') comme z32
+            numéro = numéro * 10 + (c - '0') comme z32;
 
-            indice_fin_nombre = i
-            taille_numéro += 1
+            indice_fin_nombre = i;
+            taille_numéro += 1;
         }
     }
 
-    résultat: DonnéesNumérotageCheminFichier
-    résultat.chemin = chemin
-    résultat.extension = chemin.extension()
-    résultat.numéro = numéro
-    résultat.taille_numéro = taille_numéro
+    résultat: DonnéesNumérotageCheminFichier;
+    résultat.chemin = chemin;
+    résultat.extension = chemin.extension();
+    résultat.numéro = numéro;
+    résultat.taille_numéro = taille_numéro;
 
     si indice_début_nombre != -1 {
-        résultat.préfixe = nom_fichier.sous_chaine(0, indice_début_nombre)
+        résultat.préfixe = nom_fichier.sous_chaine(0, indice_début_nombre);
     }
     sinon {
-        résultat.préfixe = nom_fichier
+        résultat.préfixe = nom_fichier;
     }
 
     si indice_fin_nombre != -1 && indice_fin_nombre + 1 < nom_fichier.taille - 1 {
-        résultat.suffixe = nom_fichier.sous_chaine(indice_fin_nombre + 1, nom_fichier.taille)
+        résultat.suffixe = nom_fichier.sous_chaine(indice_fin_nombre + 1, nom_fichier.taille);
     }
 
-    retourne résultat
+    retourne résultat;
 }
 
 /* \} */
@@ -265,52 +265,52 @@ parse_nom_fichier_numéroté :: fonc (chemin: CheminFichier) -> DonnéesNumérot
 
 EntréeRépertoire :: struct {
     /* Les noms de fichiers faisant potentiellement partie d'une séquence. */
-    noms_parsés: [..]DonnéesNumérotageCheminFichier
-    description: DonnéesNumérotageCheminFichier
+    noms_parsés: [..]DonnéesNumérotageCheminFichier;
+    description: DonnéesNumérotageCheminFichier;
 }
 
 détruit_entrée_répertoire :: fonc (empl entrée: EntréeRépertoire)
 {
-    déloge_tableau_et_ses_éléments(noms_parsés, détruit_nom_fichier_numéroté_parsé)
+    déloge_tableau_et_ses_éléments(noms_parsés, détruit_nom_fichier_numéroté_parsé);
 }
 
 ajoute_entrée :: fonc (entrées: *[..]EntréeRépertoire, nom: DonnéesNumérotageCheminFichier)
 {
-    entrée := trouve_entrée(entrées, nom)
+    entrée := trouve_entrée(entrées, nom);
 
     saufsi entrée {
-        entrée = tableau_ajoute_élément(entrées)
-        entrée.description = nom
+        entrée = tableau_ajoute_élément(entrées);
+        entrée.description = nom;
     }
 
-    ensemble_ajoute(*entrée.noms_parsés, nom)
+    ensemble_ajoute(*entrée.noms_parsés, nom);
 }
 
 trouve_entrée :: fonc (entrées: *[..]EntréeRépertoire, nom: DonnéesNumérotageCheminFichier) -> *EntréeRépertoire
 {
     pour entrées.taille {
-        entrée := *entrées.pointeur[it]
+        entrée := *entrées.pointeur[it];
 
         si entrée.description.préfixe != nom.préfixe {
-            continue
+            continue;
         }
 
         si entrée.description.suffixe != nom.suffixe {
-            continue
+            continue;
         }
 
         si entrée.description.extension != nom.extension {
-            continue
+            continue;
         }
 
         si entrée.description.numéro == nom.numéro {
-            continue
+            continue;
         }
 
-        retourne entrée
+        retourne entrée;
     }
 
-    retourne nul
+    retourne nul;
 }
 
 /* \} */

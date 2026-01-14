@@ -3,350 +3,350 @@
  * d'IGUMI pour dessiner des formes dans une interface graphique.
  */
 
-importe Chaine
-importe Couleur
-importe Dessin
-importe Fondation
-importe IGUMI
-importe InfosInterface
-importe Image
-importe Math
-importe OpenGL
-importe Typographie
+importe Chaine;
+importe Couleur;
+importe Dessin;
+importe Fondation;
+importe IGUMI;
+importe InfosInterface;
+importe Image;
+importe Math;
+importe OpenGL;
+importe Typographie;
 
 /* ------------------------------------------------------------------------- */
 /** \nom Peintre.
  * \{ */
 
-RectanglePeintre :: RectanglePosDim(r32) | RectanglePosDim(z32)
-CerclePeintre :: Cercle(r32) | Cercle(z32)
-LignePeintre :: Ligne(r32) | Ligne(z32)
-CouleurPeintre :: CouleurRVBA | CouleurRVBAN8
+RectanglePeintre :: RectanglePosDim(r32) | RectanglePosDim(z32);
+CerclePeintre :: Cercle(r32) | Cercle(z32);
+LignePeintre :: Ligne(r32) | Ligne(z32);
+CouleurPeintre :: CouleurRVBA | CouleurRVBAN8;
 
-Largeur :: #opaque z32
-Hauteur :: #opaque z32
+Largeur :: #opaque z32;
+Hauteur :: #opaque z32;
 Taille :: struct {
-    largeur: Largeur
-    hauteur: Hauteur
+    largeur: Largeur;
+    hauteur: Hauteur;
 }
 
 Peintre :: struct {
     /* Définis la taille du canevas. */
-    rappel_définis_fenêtre: fonc (peintre: *Peintre, x: z32, y: z32, taille: Taille)
+    rappel_définis_fenêtre: fonc (peintre: *Peintre, x: z32, y: z32, taille: Taille);
     /* Donne la taille du canevas. */
-    rappel_donne_taille_canevas: fonc (peintre: *Peintre) -> Taille
+    rappel_donne_taille_canevas: fonc (peintre: *Peintre) -> Taille;
 
     /* Efface la cible du rendu. */
-    rappel_efface_cible_rendu: fonc (peintre: *Peintre, couleur: CouleurPeintre)
+    rappel_efface_cible_rendu: fonc (peintre: *Peintre, couleur: CouleurPeintre);
 
     /* Controle la largeur des lignes. */
-    rappel_définis_largeur_ligne: fonc (peintre: *Peintre, largeur: r32)
-    rappel_donne_largeur_ligne: fonc (peintre: *Peintre) -> r32
+    rappel_définis_largeur_ligne: fonc (peintre: *Peintre, largeur: r32);
+    rappel_donne_largeur_ligne: fonc (peintre: *Peintre) -> r32;
 
     /* Controle le rayon des points. */
-    rappel_définis_rayon_point: fonc (peintre: *Peintre, rayon: r32)
-    rappel_donne_rayon_point: fonc (peintre: *Peintre) -> r32
+    rappel_définis_rayon_point: fonc (peintre: *Peintre, rayon: r32);
+    rappel_donne_rayon_point: fonc (peintre: *Peintre) -> r32;
 
     /* Commence un nouveau dessin. */
-    rappel_commence_dessin: fonc (peintre: *Peintre)
+    rappel_commence_dessin: fonc (peintre: *Peintre);
 
     /* Termine le dessin en cours (vide les tampons courant, etc.) */
-    rappel_termine_dessin: fonc (peintre: *Peintre)
+    rappel_termine_dessin: fonc (peintre: *Peintre);
 
     /* Dessine le contour du rectangle avec la couleur donnée. */
-    rappel_dessine_rectangle: fonc (peintre: *Peintre, rect: RectanglePeintre, couleur: CouleurPeintre)
+    rappel_dessine_rectangle: fonc (peintre: *Peintre, rect: RectanglePeintre, couleur: CouleurPeintre);
     /* Remplis le rectangle avec la couleur donnée. */
-    rappel_remplis_rectangle: fonc (peintre: *Peintre, rect: RectanglePeintre, couleur: CouleurPeintre)
+    rappel_remplis_rectangle: fonc (peintre: *Peintre, rect: RectanglePeintre, couleur: CouleurPeintre);
 
     /* Dessine le contour du rectangle arrondi avec la couleur donnée. */
-    rappel_dessine_rectangle_arrondi: fonc (peintre: *Peintre, rect: RectanglePeintre, rayon: r32, couleur: CouleurPeintre)
+    rappel_dessine_rectangle_arrondi: fonc (peintre: *Peintre, rect: RectanglePeintre, rayon: r32, couleur: CouleurPeintre);
     /* Remplis le rectangle arrondi avec la couleur donnée. */
-    rappel_remplis_rectangle_arrondi: fonc (peintre: *Peintre, rect: RectanglePeintre, RayonsRectangle, couleur: CouleurPeintre)
+    rappel_remplis_rectangle_arrondi: fonc (peintre: *Peintre, rect: RectanglePeintre, RayonsRectangle, couleur: CouleurPeintre);
 
     /* Dessine des bordures dans le rectangle spécifié. */
-    rappel_dessine_bordure: fonc (peintre: *Peintre, rect: RectanglePeintre, largeurs: LargeursBordureRectangle, couleurs: CouleursBordureRectangle)
+    rappel_dessine_bordure: fonc (peintre: *Peintre, rect: RectanglePeintre, largeurs: LargeursBordureRectangle, couleurs: CouleursBordureRectangle);
 
     /* Dessine le contour du cercle avec la couleur donnée. */
-    rappel_dessine_cercle: fonc (peintre: *Peintre, cercle: CerclePeintre, couleur: CouleurPeintre)
+    rappel_dessine_cercle: fonc (peintre: *Peintre, cercle: CerclePeintre, couleur: CouleurPeintre);
     /* Remplis le cercle avec la couleur donnée. */
-    rappel_remplis_cercle: fonc (peintre: *Peintre, cercle: CerclePeintre, couleur: CouleurPeintre)
+    rappel_remplis_cercle: fonc (peintre: *Peintre, cercle: CerclePeintre, couleur: CouleurPeintre);
 
     /* Dessine le segment avec la couleur donnée. */
-    rappel_dessine_segment: fonc (peintre: *Peintre, ligne: LignePeintre, couleur: CouleurPeintre)
-    rappel_dessine_segments: fonc (peintre: *Peintre, lignes: []LignePeintre, couleur: CouleurPeintre)
+    rappel_dessine_segment: fonc (peintre: *Peintre, ligne: LignePeintre, couleur: CouleurPeintre);
+    rappel_dessine_segments: fonc (peintre: *Peintre, lignes: []LignePeintre, couleur: CouleurPeintre);
 
     /* Dessine le texte avec la fonte et la couleur données. */
-    rappel_dessine_texte: fonc (peintre: *Peintre, *Fonte, texte: chaine, rect: RectanglePeintre, couleur: CouleurPeintre)
-    rappel_dessine_texte_utf16: fonc (peintre: *Peintre, fonte: *Fonte, texte: ChaineUTF16, rect: RectanglePeintre, couleur: CouleurPeintre, effets: *EffetsTexte)
-    rappel_dessine_texte_utf32: fonc (peintre: *Peintre, fonte: *Fonte, texte: ChaineUTF32, rect: RectanglePeintre, couleur: CouleurPeintre, effets: *EffetsTexte)
+    rappel_dessine_texte: fonc (peintre: *Peintre, *Fonte, texte: chaine, rect: RectanglePeintre, couleur: CouleurPeintre);
+    rappel_dessine_texte_utf16: fonc (peintre: *Peintre, fonte: *Fonte, texte: ChaineUTF16, rect: RectanglePeintre, couleur: CouleurPeintre, effets: *EffetsTexte);
+    rappel_dessine_texte_utf32: fonc (peintre: *Peintre, fonte: *Fonte, texte: ChaineUTF32, rect: RectanglePeintre, couleur: CouleurPeintre, effets: *EffetsTexte);
 
     /* Dessine l'image dans le rectangle donné. */
-    rappel_dessine_image: fonc (peintre: *Peintre, image: *NouvelleImage, rect: RectanglePeintre, couleur: CouleurRVBA)
-    rappel_dessine_sous_image: fonc (peintre: *Peintre, image: *NouvelleImage, rect: RectanglePeintre, RectanglePeintre, params: ParamètresRenduImage, teinte: CouleurRVBA)
+    rappel_dessine_image: fonc (peintre: *Peintre, image: *NouvelleImage, rect: RectanglePeintre, couleur: CouleurRVBA);
+    rappel_dessine_sous_image: fonc (peintre: *Peintre, image: *NouvelleImage, rect: RectanglePeintre, RectanglePeintre, params: ParamètresRenduImage, teinte: CouleurRVBA);
 
     /* Retourne la fonte utilisée pour le dessin de texte. */
-    rappel_donne_fonte: fonc (peintre: *Peintre) -> *Fonte
+    rappel_donne_fonte: fonc (peintre: *Peintre) -> *Fonte;
 
     /* Dessine le tampon sur l'écran.
      * À FAIRE : ceci est une mauvaise architecture ? Le peintre ne devrait pas
      * être responsable du dessiner sur l'écran. Le système serait plus flexible,
      * mais nous ne voulons pas que les détails d'implémentation des peintres se
      * retrouve exposés aux applications clientes. */
-    rappel_dessine_tampon_sur_écran: fonc (peintre: *Peintre)
+    rappel_dessine_tampon_sur_écran: fonc (peintre: *Peintre);
 
     /* Définis le ciseau pour les dessins subséquents. Le ciseau définit les
      * limites d'une zone hors de laquelle rien n'est dessiné. */
-    rappel_définis_ciseau: fonc (peintre: *Peintre, rect: RectanglePeintre)
+    rappel_définis_ciseau: fonc (peintre: *Peintre, rect: RectanglePeintre);
 
-    rappel_destruction: fonc (peintre: *Peintre)
+    rappel_destruction: fonc (peintre: *Peintre);
 
-    ciseaux: [..]RectanglePosDim(r32)
+    ciseaux: [..]RectanglePosDim(r32);
 }
 
 détruit_peintre :: fonc (peintre: *Peintre)
 {
     si peintre && peintre.rappel_destruction {
-        peintre.rappel_destruction(peintre)
+        peintre.rappel_destruction(peintre);
     }
 }
 
 définis_fenêtre :: fonc (peintre: *Peintre, x: z32, y: z32, largeur: z32, hauteur: z32) #enligne
 {
-    définis_fenêtre(peintre, x, y, Taille(Largeur(largeur), Hauteur(hauteur)))
+    définis_fenêtre(peintre, x, y, Taille(Largeur(largeur), Hauteur(hauteur)));
 }
 
 définis_fenêtre :: fonc (peintre: *Peintre, x: z32, y: z32, taille: Taille) #enligne
 {
-    peintre.rappel_définis_fenêtre(peintre, x, y, taille)
+    peintre.rappel_définis_fenêtre(peintre, x, y, taille);
 }
 
 définis_taille_canevas :: fonc (peintre: *Peintre, taille: Taille) -> rien #enligne
 {
-    définis_fenêtre(peintre, 0, 0, taille)
+    définis_fenêtre(peintre, 0, 0, taille);
 }
 
 donne_taille_canevas :: fonc (peintre: *Peintre) -> Taille #enligne
 {
-    retourne peintre.rappel_donne_taille_canevas(peintre)
+    retourne peintre.rappel_donne_taille_canevas(peintre);
 }
 
 efface_cible_rendu :: fonc (peintre: *Peintre)
 {
-    efface_cible_rendu(peintre, CouleurRVBA(0.0, 0.0, 0.0, 1.0))
+    efface_cible_rendu(peintre, CouleurRVBA(0.0, 0.0, 0.0, 1.0));
 }
 
 efface_cible_rendu :: fonc (peintre: *Peintre, couleur: CouleurPeintre)
 {
-    peintre.rappel_efface_cible_rendu(peintre, couleur)
+    peintre.rappel_efface_cible_rendu(peintre, couleur);
 }
 
 définis_largeur_ligne :: fonc (peintre: *Peintre, largeur: r32)
 {
-    peintre.rappel_définis_largeur_ligne(peintre, largeur)
+    peintre.rappel_définis_largeur_ligne(peintre, largeur);
 }
 
 donne_largeur_ligne :: fonc (peintre: *Peintre) -> r32
 {
-    retourne peintre.rappel_donne_largeur_ligne(peintre)
+    retourne peintre.rappel_donne_largeur_ligne(peintre);
 }
 
 définis_rayon_point :: fonc (peintre: *Peintre, rayon: r32)
 {
-    peintre.rappel_définis_rayon_point(peintre, rayon)
+    peintre.rappel_définis_rayon_point(peintre, rayon);
 }
 
 donne_rayon_point :: fonc (peintre: *Peintre) -> r32
 {
-    retourne peintre.donne_rayon_point(peintre)
+    retourne peintre.donne_rayon_point(peintre);
 }
 
 commence_dessin :: fonc (peintre: *Peintre) #enligne
 {
-    peintre.rappel_commence_dessin(peintre)
+    peintre.rappel_commence_dessin(peintre);
 }
 
 termine_dessin :: fonc (peintre: *Peintre) #enligne
 {
-    peintre.rappel_termine_dessin(peintre)
+    peintre.rappel_termine_dessin(peintre);
 }
 
 dessine_rectangle :: fonc (peintre: *Peintre, rectangle: RectanglePeintre, couleur: CouleurPeintre) -> rien #enligne
 {
-    peintre.rappel_dessine_rectangle(peintre, rectangle, couleur)
+    peintre.rappel_dessine_rectangle(peintre, rectangle, couleur);
 }
 
 remplis_rectangle :: fonc (peintre: *Peintre, rectangle: RectanglePeintre, couleur: CouleurPeintre) -> rien #enligne
 {
-    peintre.rappel_remplis_rectangle(peintre, rectangle, couleur)
+    peintre.rappel_remplis_rectangle(peintre, rectangle, couleur);
 }
 
 dessine_rectangle_arrondi :: fonc (peintre: *Peintre, rectangle: RectanglePeintre, rayon: r32, couleur: CouleurPeintre) -> rien #enligne
 {
-    peintre.rappel_dessine_rectangle_arrondi(peintre, rectangle, rayon, couleur)
+    peintre.rappel_dessine_rectangle_arrondi(peintre, rectangle, rayon, couleur);
 }
 
 remplis_rectangle_arrondi :: fonc (peintre: *Peintre, rectangle: RectanglePeintre, rayon: r32, couleur: CouleurPeintre) -> rien #enligne
 {
-    peintre.rappel_remplis_rectangle_arrondi(peintre, rectangle, [rayon, rayon, rayon, rayon], couleur)
+    peintre.rappel_remplis_rectangle_arrondi(peintre, rectangle, [rayon, rayon, rayon, rayon], couleur);
 }
 
 remplis_rectangle_arrondi :: fonc (peintre: *Peintre, rectangle: RectanglePeintre, rayon: RayonsRectangle, couleur: CouleurPeintre) -> rien #enligne
 {
-    peintre.rappel_remplis_rectangle_arrondi(peintre, rectangle, rayon, couleur)
+    peintre.rappel_remplis_rectangle_arrondi(peintre, rectangle, rayon, couleur);
 }
 
 dessine_bordure :: fonc (peintre: *Peintre, rectangle: RectanglePeintre, largeurs: LargeursBordureRectangle, couleurs: CouleursBordureRectangle) -> rien #enligne
 {
-    peintre.rappel_dessine_bordure(peintre, rectangle, largeurs, couleurs)
+    peintre.rappel_dessine_bordure(peintre, rectangle, largeurs, couleurs);
 }
 
 dessine_cercle :: fonc (peintre: *Peintre, cercle: CerclePeintre, couleur: CouleurPeintre) -> rien #enligne
 {
-    peintre.rappel_dessine_cercle(peintre, cercle, couleur)
+    peintre.rappel_dessine_cercle(peintre, cercle, couleur);
 }
 
 remplis_cercle :: fonc (peintre: *Peintre, cercle: CerclePeintre, couleur: CouleurPeintre) -> rien #enligne
 {
-    peintre.rappel_remplis_cercle(peintre, cercle, couleur)
+    peintre.rappel_remplis_cercle(peintre, cercle, couleur);
 }
 
 dessine_segment :: fonc (peintre: *Peintre, x0: $T, y0: T, x1: T, y1: T, couleur: CouleurPeintre)
 {
-    ligne : Ligne(T) = ---
-    ligne.p0.x = x0
-    ligne.p0.y = y0
-    ligne.p1.x = x1
-    ligne.p1.y = y1
-    dessine_segment(peintre, ligne, couleur)
+    ligne : Ligne(T) = ---;
+    ligne.p0.x = x0;
+    ligne.p0.y = y0;
+    ligne.p1.x = x1;
+    ligne.p1.y = y1;
+    dessine_segment(peintre, ligne, couleur);
 }
 
 dessine_segment :: fonc (peintre: *Peintre, p0: Point2D($T), p1: Point2D(T), couleur: CouleurPeintre)
 {
-    ligne : Ligne(T) = ---
-    ligne.p0 = p0
-    ligne.p1 = p1
-    dessine_segment(peintre, ligne, couleur)
+    ligne : Ligne(T) = ---;
+    ligne.p0 = p0;
+    ligne.p1 = p1;
+    dessine_segment(peintre, ligne, couleur);
 }
 
 dessine_segment :: fonc (peintre: *Peintre, ligne: LignePeintre, couleur: CouleurPeintre) -> rien #enligne
 {
-    peintre.rappel_dessine_segment(peintre, ligne, couleur)
+    peintre.rappel_dessine_segment(peintre, ligne, couleur);
 }
 
 dessine_segments :: fonc (peintre: *Peintre, lignes: []Ligne($T), couleur: CouleurPeintre) -> rien #enligne
 {
     pour lignes {
-        peintre.dessine_segment(it, couleur)
+        peintre.dessine_segment(it, couleur);
     }
 }
 
 dessine_segments :: fonc (peintre: *Peintre, lignes: []LignePeintre, couleur: CouleurPeintre) -> rien #enligne
 {
-    peintre.rappel_dessine_segments(peintre, lignes, couleur)
+    peintre.rappel_dessine_segments(peintre, lignes, couleur);
 }
 
 dessine_texte :: fonc (peintre: *Peintre, fonte: *Fonte, texte: chaine, rectangle: RectanglePeintre, couleur: CouleurPeintre, effets : *EffetsTexte = nul @inutilisée) -> rien #enligne
 {
     // À FAIRE : utilisé effets
-    peintre.rappel_dessine_texte(peintre, fonte, texte, rectangle, couleur)
+    peintre.rappel_dessine_texte(peintre, fonte, texte, rectangle, couleur);
 }
 
 dessine_texte :: fonc (peintre: *Peintre, fonte: *Fonte, texte: ChaineUTF16, rectangle: RectanglePeintre, couleur: CouleurPeintre, effets : *EffetsTexte = nul) -> rien #enligne
 {
-    peintre.rappel_dessine_texte_utf16(peintre, fonte, texte, rectangle, couleur, effets)
+    peintre.rappel_dessine_texte_utf16(peintre, fonte, texte, rectangle, couleur, effets);
 }
 
 dessine_texte :: fonc (peintre: *Peintre, fonte: *Fonte, texte: ChaineUTF32, rectangle: RectanglePeintre, couleur: CouleurPeintre, effets : *EffetsTexte = nul) -> rien #enligne
 {
-    peintre.rappel_dessine_texte_utf32(peintre, fonte, texte, rectangle, couleur, effets)
+    peintre.rappel_dessine_texte_utf32(peintre, fonte, texte, rectangle, couleur, effets);
 }
 
 dessine_image :: fonc (peintre: *Peintre, image: *NouvelleImage, rectangle: RectanglePeintre, teinte := CouleurRVBA(1.0, 1.0, 1.0, 1.0)) -> rien #enligne
 {
-    peintre.rappel_dessine_image(peintre, image, rectangle, teinte)
+    peintre.rappel_dessine_image(peintre, image, rectangle, teinte);
 }
 
 dessine_image :: fonc (peintre: *Peintre, image: *NouvelleImage, rectangle_image: RectanglePeintre, rectangle_sous_image: RectanglePeintre, teinte := CouleurRVBA(1.0, 1.0, 1.0, 1.0)) -> rien #enligne
 {
-    paramètres: ParamètresRenduImage
-    peintre.rappel_dessine_sous_image(peintre, image, rectangle_image, rectangle_sous_image, paramètres, teinte)
+    paramètres: ParamètresRenduImage;
+    peintre.rappel_dessine_sous_image(peintre, image, rectangle_image, rectangle_sous_image, paramètres, teinte);
 }
 
 dessine_image :: fonc (peintre: *Peintre, image: *NouvelleImage, rectangle_image: RectanglePeintre, rectangle_sous_image: RectanglePeintre, paramètres: ParamètresRenduImage, teinte := CouleurRVBA(1.0, 1.0, 1.0, 1.0)) -> rien #enligne
 {
-    peintre.rappel_dessine_sous_image(peintre, image, rectangle_image, rectangle_sous_image, paramètres, teinte)
+    peintre.rappel_dessine_sous_image(peintre, image, rectangle_image, rectangle_sous_image, paramètres, teinte);
 }
 
 dessine_image :: fonc (peintre: *Peintre, tampon: TamponImageGrise8Bit, rectangle: RectanglePeintre, teinte := CouleurRVBA(1.0, 1.0, 1.0, 1.0)) -> rien #enligne
 {
-    image: NouvelleImage
-    image.données = tampon.données
-    image.desc.largeur = tampon.largeur comme n32
-    image.desc.hauteur = tampon.hauteur comme n32
-    image.desc.format = FormatPixel.Gris_8
-    dessine_image(peintre, *image, rectangle, teinte)
+    image: NouvelleImage;
+    image.données = tampon.données;
+    image.desc.largeur = tampon.largeur comme n32;
+    image.desc.hauteur = tampon.hauteur comme n32;
+    image.desc.format = FormatPixel.Gris_8;
+    dessine_image(peintre, *image, rectangle, teinte);
 }
 
 dessine_image :: fonc (peintre: *Peintre, tampon: TamponImageRVBA8Bit, rectangle: RectanglePeintre, teinte := CouleurRVBA(1.0, 1.0, 1.0, 1.0)) -> rien #enligne
 {
-    image: NouvelleImage
-    image.données = tampon.données
-    image.desc.largeur = tampon.largeur comme n32
-    image.desc.hauteur = tampon.hauteur comme n32
-    image.desc.format = FormatPixel.RVBA_8
-    dessine_image(peintre, *image, rectangle, teinte)
+    image: NouvelleImage;
+    image.données = tampon.données;
+    image.desc.largeur = tampon.largeur comme n32;
+    image.desc.hauteur = tampon.hauteur comme n32;
+    image.desc.format = FormatPixel.RVBA_8;
+    dessine_image(peintre, *image, rectangle, teinte);
 }
 
 dessine_image :: fonc (peintre: *Peintre, tampon: TamponImageRVBA32Bit, rectangle: RectanglePeintre, teinte := CouleurRVBA(1.0, 1.0, 1.0, 1.0)) -> rien #enligne
 {
-    image: NouvelleImage
-    image.données = tampon.données
-    image.desc.largeur = tampon.largeur comme n32
-    image.desc.hauteur = tampon.hauteur comme n32
-    image.desc.format = FormatPixel.RVBA_32
-    dessine_image(peintre, *image, rectangle, teinte)
+    image: NouvelleImage;
+    image.données = tampon.données;
+    image.desc.largeur = tampon.largeur comme n32;
+    image.desc.hauteur = tampon.hauteur comme n32;
+    image.desc.format = FormatPixel.RVBA_32;
+    dessine_image(peintre, *image, rectangle, teinte);
 }
 
 donne_fonte :: fonc (peintre: *Peintre) -> *Fonte #enligne
 {
-    retourne peintre.rappel_donne_fonte(peintre)
+    retourne peintre.rappel_donne_fonte(peintre);
 }
 
 dessine_tampon_sur_écran :: fonc (peintre: *Peintre) -> rien #enligne
 {
-    peintre.rappel_dessine_tampon_sur_écran(peintre)
+    peintre.rappel_dessine_tampon_sur_écran(peintre);
 }
 
 définis_ciseau :: fonc (peintre: *Peintre, rectangle: RectanglePeintre) -> rien #enligne
 {
-    rect_r32 := donne_rectangle_igumi(rectangle)
+    rect_r32 := donne_rectangle_igumi(rectangle);
 
     si peintre.ciseaux {
-        rect_r32 = donne_intersection(rect_r32, peintre.ciseaux[peintre.ciseaux.taille - 1])
+        rect_r32 = donne_intersection(rect_r32, peintre.ciseaux[peintre.ciseaux.taille - 1]);
     }
 
-    tableau_ajoute(*peintre.ciseaux, rect_r32)
-    peintre.rappel_définis_ciseau(peintre, rect_r32)
+    tableau_ajoute(*peintre.ciseaux, rect_r32);
+    peintre.rappel_définis_ciseau(peintre, rect_r32);
 }
 
 restaure_ciseau :: fonc (peintre: *Peintre) -> rien #enligne
 {
     saufsi peintre.ciseaux {
-        retourne
+        retourne;
     }
 
-    peintre.ciseaux.taille -= 1
+    peintre.ciseaux.taille -= 1;
 
     saufsi peintre.ciseaux {
         /* Par défaut, le ciseau doit être le canevas. */
-        taille := donne_taille_canevas(peintre)
-        rectangle := RectanglePosDim(z32)(0, 0, largeur = taille.largeur comme z32, hauteur = taille.hauteur comme z32)
-        peintre.rappel_définis_ciseau(peintre, rectangle)
-        retourne
+        taille := donne_taille_canevas(peintre);
+        rectangle := RectanglePosDim(z32)(0, 0, largeur = taille.largeur comme z32, hauteur = taille.hauteur comme z32);
+        peintre.rappel_définis_ciseau(peintre, rectangle);
+        retourne;
     }
 
-    rectangle := peintre.ciseaux[peintre.ciseaux.taille - 1]
-    peintre.rappel_définis_ciseau(peintre, rectangle)
+    rectangle := peintre.ciseaux[peintre.ciseaux.taille - 1];
+    peintre.rappel_définis_ciseau(peintre, rectangle);
 }
 
 dessine_grille :: fonc (peintre: *Peintre, rect: RectanglePosDim(r32), lignes: n32, colonnes: n32, couleur: CouleurRVBA)
@@ -378,141 +378,141 @@ dessine_grille :: fonc (peintre: *Peintre, rect: RectanglePosDim(r32), lignes: n
  * \{ */
 
 PeintreDessin :: struct {
-    empl base: Peintre
+    empl base: Peintre;
 
-    tampon_de_rendu: TamponDeRendu
-    tampon_texture: *TamponTexture
+    tampon_de_rendu: TamponDeRendu;
+    tampon_texture: *TamponTexture;
 }
 
 crée_peintre_module_dessin :: fonc (taille_canevas: Taille) -> *PeintreDessin
 {
-    peintre := loge(PeintreDessin)
-    initialise_peintre_dessin(peintre)
-    définis_taille_canevas(peintre, taille_canevas)
-    retourne peintre
+    peintre := loge(PeintreDessin);
+    initialise_peintre_dessin(peintre);
+    définis_taille_canevas(peintre, taille_canevas);
+    retourne peintre;
 }
 
 initialise_peintre_dessin :: fonc (peintre: *PeintreDessin)
 {
-    peintre.rappel_définis_fenêtre = définis_fenêtre_dessin
-    peintre.rappel_donne_taille_canevas = donne_taille_canevas_dessin
-    peintre.rappel_efface_cible_rendu = efface_cible_de_rendu_dessin
-    peintre.rappel_définis_largeur_ligne = définis_largeur_ligne_dessin
-    peintre.rappel_donne_largeur_ligne = donne_largeur_ligne_dessin
-    peintre.rappel_définis_rayon_point = définis_rayon_point_dessin
-    peintre.rappel_donne_rayon_point = donne_rayon_point_dessin
-    peintre.rappel_commence_dessin = commence_dessin_dessin
-    peintre.rappel_termine_dessin = termine_dessin_dessin
-    peintre.rappel_dessine_rectangle = dessine_rectangle_dessin
-    peintre.rappel_remplis_rectangle = remplis_rectangle_dessin
-    peintre.rappel_dessine_rectangle_arrondi = dessine_rectangle_arrondi_dessin
-    peintre.rappel_remplis_rectangle_arrondi = remplis_rectangle_arrondi_dessin
-    peintre.rappel_dessine_bordure = dessine_bordure_dessin
-    peintre.rappel_dessine_cercle = dessine_cercle_dessin
-    peintre.rappel_remplis_cercle = remplis_cercle_dessin
-    peintre.rappel_dessine_segment = dessine_segment_dessin
-    peintre.rappel_dessine_segments = dessine_segments_dessin
-    peintre.rappel_dessine_texte = dessine_texte_dessin
-    peintre.rappel_dessine_texte_utf16 = dessine_texte_utf16_dessin
-    peintre.rappel_dessine_texte_utf32 = dessine_texte_utf32_dessin
-    peintre.rappel_dessine_image = dessine_image_dessin
-    peintre.rappel_dessine_sous_image = dessine_sous_image_dessin
-    peintre.rappel_donne_fonte = donne_fonte_dessin
-    peintre.rappel_dessine_tampon_sur_écran = dessine_tampon_sur_écran_dessin
-    peintre.rappel_définis_ciseau = définis_ciseau_dessin
-    peintre.rappel_destruction = détruit_peintre_dessin
+    peintre.rappel_définis_fenêtre = définis_fenêtre_dessin;
+    peintre.rappel_donne_taille_canevas = donne_taille_canevas_dessin;
+    peintre.rappel_efface_cible_rendu = efface_cible_de_rendu_dessin;
+    peintre.rappel_définis_largeur_ligne = définis_largeur_ligne_dessin;
+    peintre.rappel_donne_largeur_ligne = donne_largeur_ligne_dessin;
+    peintre.rappel_définis_rayon_point = définis_rayon_point_dessin;
+    peintre.rappel_donne_rayon_point = donne_rayon_point_dessin;
+    peintre.rappel_commence_dessin = commence_dessin_dessin;
+    peintre.rappel_termine_dessin = termine_dessin_dessin;
+    peintre.rappel_dessine_rectangle = dessine_rectangle_dessin;
+    peintre.rappel_remplis_rectangle = remplis_rectangle_dessin;
+    peintre.rappel_dessine_rectangle_arrondi = dessine_rectangle_arrondi_dessin;
+    peintre.rappel_remplis_rectangle_arrondi = remplis_rectangle_arrondi_dessin;
+    peintre.rappel_dessine_bordure = dessine_bordure_dessin;
+    peintre.rappel_dessine_cercle = dessine_cercle_dessin;
+    peintre.rappel_remplis_cercle = remplis_cercle_dessin;
+    peintre.rappel_dessine_segment = dessine_segment_dessin;
+    peintre.rappel_dessine_segments = dessine_segments_dessin;
+    peintre.rappel_dessine_texte = dessine_texte_dessin;
+    peintre.rappel_dessine_texte_utf16 = dessine_texte_utf16_dessin;
+    peintre.rappel_dessine_texte_utf32 = dessine_texte_utf32_dessin;
+    peintre.rappel_dessine_image = dessine_image_dessin;
+    peintre.rappel_dessine_sous_image = dessine_sous_image_dessin;
+    peintre.rappel_donne_fonte = donne_fonte_dessin;
+    peintre.rappel_dessine_tampon_sur_écran = dessine_tampon_sur_écran_dessin;
+    peintre.rappel_définis_ciseau = définis_ciseau_dessin;
+    peintre.rappel_destruction = détruit_peintre_dessin;
 }
 
 donne_cercle_dessin :: fonc (cercle: CerclePeintre) -> Cercle(z32)
 {
-    Cercle_r32 :: Cercle(r32)
-    Cercle_z32 :: Cercle(z32)
+    Cercle_r32 :: Cercle(r32);
+    Cercle_z32 :: Cercle(z32);
 
     discr cercle {
         Cercle_r32(c) {
-            retourne Cercle(z32)(c.centre_x comme z32, c.centre_y comme z32, c.rayon comme z32)
+            retourne Cercle(z32)(c.centre_x comme z32, c.centre_y comme z32, c.rayon comme z32);
         }
         Cercle_z32(c) {
-            retourne c
+            retourne c;
         }
         sinon {}
     }
 
-    résultat: Cercle(z32)
-    retourne résultat
+    résultat: Cercle(z32);
+    retourne résultat;
 }
 
 donne_rectangle_dessin :: fonc (rectangle: RectanglePeintre) -> RectanglePosDim(z32)
 {
-    Rectangle_r32 :: RectanglePosDim(r32)
-    Rectangle_z32 :: RectanglePosDim(z32)
+    Rectangle_r32 :: RectanglePosDim(r32);
+    Rectangle_z32 :: RectanglePosDim(z32);
 
     discr rectangle {
         Rectangle_r32(r) {
-            retourne RectanglePosDim(z32)(r.x comme z32, r.y comme z32, r.hauteur comme z32, r.largeur comme z32)
+            retourne RectanglePosDim(z32)(r.x comme z32, r.y comme z32, r.hauteur comme z32, r.largeur comme z32);
         }
         Rectangle_z32(r) {
-            retourne r
+            retourne r;
         }
         sinon {}
     }
 
-    résultat: RectanglePosDim(z32)
-    retourne résultat
+    résultat: RectanglePosDim(z32);
+    retourne résultat;
 }
 
 donne_ligne_dessin :: fonc (ligne: LignePeintre) -> Ligne(z32)
 {
-    Ligne_r32 :: Ligne(r32)
-    Ligne_z32 :: Ligne(z32)
+    Ligne_r32 :: Ligne(r32);
+    Ligne_z32 :: Ligne(z32);
 
     discr ligne {
         Ligne_r32(l) {
-            retourne Ligne(z32)(Point2D(z32)(l.p0.x comme z32, l.p0.y comme z32), Point2D(z32)(l.p1.x comme z32, l.p1.y comme z32))
+            retourne Ligne(z32)(Point2D(z32)(l.p0.x comme z32, l.p0.y comme z32), Point2D(z32)(l.p1.x comme z32, l.p1.y comme z32));
         }
         Ligne_z32(l) {
-            retourne l
+            retourne l;
         }
         sinon {}
     }
 
-    résultat: Ligne(z32)
-    retourne résultat
+    résultat: Ligne(z32);
+    retourne résultat;
 }
 
 donne_couleur_dessin :: fonc (couleur_peintre: CouleurPeintre) -> CouleurRVBAN8
 {
     discr couleur_peintre {
         CouleurRVBA(couleur) {
-            retourne depuis_couleur_rvba(couleur)
+            retourne depuis_couleur_rvba(couleur);
         }
         CouleurRVBAN8(couleur) {
-            retourne couleur
+            retourne couleur;
         }
         sinon {}
     }
 
-    résultat: CouleurRVBAN8
-    retourne résultat
+    résultat: CouleurRVBAN8;
+    retourne résultat;
 }
 
 définis_fenêtre_dessin :: fonc (peintre: *Peintre, x: z32 @inutilisée, y: z32 @inutilisée, taille: Taille)
 {
-    peintre_dessin := peintre comme *PeintreDessin
-    rect := RectanglePosDim(z32)(largeur = taille.largeur comme z32, hauteur = taille.hauteur comme z32)
-    redimensionne_tampon_de_rendu(*peintre_dessin.tampon_de_rendu, rect)
+    peintre_dessin := peintre comme *PeintreDessin;
+    rect := RectanglePosDim(z32)(largeur = taille.largeur comme z32, hauteur = taille.hauteur comme z32);
+    redimensionne_tampon_de_rendu(*peintre_dessin.tampon_de_rendu, rect);
 
     si peintre_dessin.tampon_texture {
-        détruit_tampon_texture(peintre_dessin.tampon_texture)
-        peintre_dessin.tampon_texture = nul
+        détruit_tampon_texture(peintre_dessin.tampon_texture);
+        peintre_dessin.tampon_texture = nul;
     }
 }
 
 donne_taille_canevas_dessin :: fonc (peintre: *Peintre) -> Taille
 {
-    peintre_dessin := peintre comme *PeintreDessin
-    rect := peintre_dessin.tampon_de_rendu.rect
-    retourne Taille(Largeur(rect.largeur), Hauteur(rect.hauteur))
+    peintre_dessin := peintre comme *PeintreDessin;
+    rect := peintre_dessin.tampon_de_rendu.rect;
+    retourne Taille(Largeur(rect.largeur), Hauteur(rect.hauteur));
 }
 
 définis_largeur_ligne_dessin :: fonc (peintre: *PeintreDessin @inutilisée, largeur: r32 @inutilisée)
@@ -522,7 +522,7 @@ définis_largeur_ligne_dessin :: fonc (peintre: *PeintreDessin @inutilisée, lar
 
 donne_largeur_ligne_dessin :: fonc (peintre: *PeintreDessin @inutilisée) -> r32
 {
-    retourne 0.0
+    retourne 0.0;
 }
 
 définis_rayon_point_dessin :: fonc (peintre: *PeintreDessin @inutilisée, rayon: r32 @inutilisée)
@@ -532,7 +532,7 @@ définis_rayon_point_dessin :: fonc (peintre: *PeintreDessin @inutilisée, rayon
 
 donne_rayon_point_dessin :: fonc (peintre: *PeintreDessin @inutilisée) -> r32
 {
-    retourne 0.0
+    retourne 0.0;
 }
 
 commence_dessin_dessin :: fonc (peintre: *PeintreDessin @inutilisée)
@@ -545,155 +545,155 @@ termine_dessin_dessin :: fonc (peintre: *Peintre @inutilisée)
 
 efface_cible_de_rendu_dessin :: fonc (peintre: *Peintre, couleur_peintre: CouleurPeintre)
 {
-    peintre_dessin := peintre comme *PeintreDessin
-    couleur := donne_couleur_dessin(couleur_peintre)
-    remplis_avec(*peintre_dessin.tampon_de_rendu, couleur)
+    peintre_dessin := peintre comme *PeintreDessin;
+    couleur := donne_couleur_dessin(couleur_peintre);
+    remplis_avec(*peintre_dessin.tampon_de_rendu, couleur);
 }
 
 dessine_rectangle_dessin :: fonc (peintre: *Peintre, rectangle_peintre: RectanglePeintre, couleur_peintre: CouleurPeintre)
 {
-    peintre_dessin := peintre comme *PeintreDessin
-    rectangle := donne_rectangle_dessin(rectangle_peintre)
-    couleur := donne_couleur_dessin(couleur_peintre)
-    dessine_rectangle(*peintre_dessin.tampon_de_rendu, rectangle, couleur)
+    peintre_dessin := peintre comme *PeintreDessin;
+    rectangle := donne_rectangle_dessin(rectangle_peintre);
+    couleur := donne_couleur_dessin(couleur_peintre);
+    dessine_rectangle(*peintre_dessin.tampon_de_rendu, rectangle, couleur);
 }
 
 remplis_rectangle_dessin :: fonc (peintre: *Peintre, rectangle_peintre: RectanglePeintre, couleur_peintre: CouleurPeintre)
 {
-    peintre_dessin := peintre comme *PeintreDessin
-    rectangle := donne_rectangle_dessin(rectangle_peintre)
-    couleur := donne_couleur_dessin(couleur_peintre)
-    remplis_rectangle(*peintre_dessin.tampon_de_rendu, rectangle, couleur)
+    peintre_dessin := peintre comme *PeintreDessin;
+    rectangle := donne_rectangle_dessin(rectangle_peintre);
+    couleur := donne_couleur_dessin(couleur_peintre);
+    remplis_rectangle(*peintre_dessin.tampon_de_rendu, rectangle, couleur);
 }
 
 dessine_rectangle_arrondi_dessin :: fonc (peintre: *Peintre, rectangle_peintre: RectanglePeintre, rayon: r32 @inutilisée, couleur_peintre: CouleurPeintre)
 {
-    peintre_dessin := peintre comme *PeintreDessin
-    rectangle := donne_rectangle_dessin(rectangle_peintre)
-    couleur := donne_couleur_dessin(couleur_peintre)
+    peintre_dessin := peintre comme *PeintreDessin;
+    rectangle := donne_rectangle_dessin(rectangle_peintre);
+    couleur := donne_couleur_dessin(couleur_peintre);
     // À FAIRE : rectangle arrondi
-    dessine_rectangle(*peintre_dessin.tampon_de_rendu, rectangle, couleur)
+    dessine_rectangle(*peintre_dessin.tampon_de_rendu, rectangle, couleur);
 }
 
 remplis_rectangle_arrondi_dessin :: fonc (peintre: *Peintre, rectangle_peintre: RectanglePeintre, rayons: RayonsRectangle, couleur_peintre: CouleurPeintre)
 {
-    peintre_dessin := peintre comme *PeintreDessin
-    rectangle := donne_rectangle_dessin(rectangle_peintre)
-    couleur := donne_couleur_dessin(couleur_peintre)
-    remplis_rectangle_arrondi(*peintre_dessin.tampon_de_rendu, rectangle, rayons, couleur)
+    peintre_dessin := peintre comme *PeintreDessin;
+    rectangle := donne_rectangle_dessin(rectangle_peintre);
+    couleur := donne_couleur_dessin(couleur_peintre);
+    remplis_rectangle_arrondi(*peintre_dessin.tampon_de_rendu, rectangle, rayons, couleur);
 }
 
 dessine_bordure_dessin :: fonc (peintre: *Peintre, rectangle_peintre: RectanglePeintre, largeurs_peintre: LargeursBordureRectangle, couleurs: CouleursBordureRectangle)
 {
-    peintre_dessin := peintre comme *PeintreDessin
-    rectangle := donne_rectangle_dessin(rectangle_peintre)
+    peintre_dessin := peintre comme *PeintreDessin;
+    rectangle := donne_rectangle_dessin(rectangle_peintre);
 
     /* NOTE : le haut et la bas sont inversés pour CSS dont l'origine est en haut, alors qu'IGUMI préfère l'origine en bas. */
 
     // À FAIRE : implémente proprement
 
-    largeurs := donne_largeurs_bordure_pour_dessin(largeurs_peintre)
+    largeurs := donne_largeurs_bordure_pour_dessin(largeurs_peintre);
 
     /* Haut. */
     si largeurs[0] != 0 {
-        couleur := donne_couleur_dessin(couleurs.haut)
+        couleur := donne_couleur_dessin(couleurs.haut);
 
-        ligne: Ligne(z32)
-        ligne.p0.x = rectangle.x
-        ligne.p0.y = rectangle.y + rectangle.hauteur
+        ligne: Ligne(z32);
+        ligne.p0.x = rectangle.x;
+        ligne.p0.y = rectangle.y + rectangle.hauteur;
 
-        ligne.p1.x = rectangle.x + rectangle.largeur
-        ligne.p1.y = rectangle.y + rectangle.hauteur
+        ligne.p1.x = rectangle.x + rectangle.largeur;
+        ligne.p1.y = rectangle.y + rectangle.hauteur;
 
         pour largeurs[0] {
-            dessine_ligne(*peintre_dessin.tampon_de_rendu, ligne, couleur)
+            dessine_ligne(*peintre_dessin.tampon_de_rendu, ligne, couleur);
 
-            ligne.p0.y -= 1
-            ligne.p1.y -= 1
+            ligne.p0.y -= 1;
+            ligne.p1.y -= 1;
 
             si largeurs[3] != 0 {
-                ligne.p0.x += 1
+                ligne.p0.x += 1;
             }
             si largeurs[1] != 0 {
-                ligne.p1.x -= 1
+                ligne.p1.x -= 1;
             }
         }
     }
 
     /* Droite. */
     si largeurs[1] != 0 {
-        couleur := donne_couleur_dessin(couleurs.droite)
+        couleur := donne_couleur_dessin(couleurs.droite);
 
-        ligne: Ligne(z32)
-        ligne.p0.x = rectangle.x + rectangle.largeur
-        ligne.p0.y = rectangle.y + rectangle.hauteur
+        ligne: Ligne(z32);
+        ligne.p0.x = rectangle.x + rectangle.largeur;
+        ligne.p0.y = rectangle.y + rectangle.hauteur;
 
-        ligne.p1.x = rectangle.x + rectangle.largeur
-        ligne.p1.y = rectangle.y
+        ligne.p1.x = rectangle.x + rectangle.largeur;
+        ligne.p1.y = rectangle.y;
 
         pour largeurs[1] {
-            dessine_ligne(*peintre_dessin.tampon_de_rendu, ligne, couleur)
+            dessine_ligne(*peintre_dessin.tampon_de_rendu, ligne, couleur);
 
-            ligne.p0.x -= 1
-            ligne.p1.x -= 1
+            ligne.p0.x -= 1;
+            ligne.p1.x -= 1;
 
             si largeurs[0] != 0 {
-                ligne.p0.y -= 1
+                ligne.p0.y -= 1;
             }
             si largeurs[2] != 0 {
-                ligne.p1.y += 1
+                ligne.p1.y += 1;
             }
         }
     }
 
     /* Bas. */
     si largeurs[2] != 0 {
-        couleur := donne_couleur_dessin(couleurs.bas)
+        couleur := donne_couleur_dessin(couleurs.bas);
 
-        ligne: Ligne(z32)
-        ligne.p0.x = rectangle.x
-        ligne.p0.y = rectangle.y
+        ligne: Ligne(z32);
+        ligne.p0.x = rectangle.x;
+        ligne.p0.y = rectangle.y;
 
-        ligne.p1.x = rectangle.x + rectangle.largeur
-        ligne.p1.y = rectangle.y
+        ligne.p1.x = rectangle.x + rectangle.largeur;
+        ligne.p1.y = rectangle.y;
 
         pour largeurs[2] {
-            dessine_ligne(*peintre_dessin.tampon_de_rendu, ligne, couleur)
+            dessine_ligne(*peintre_dessin.tampon_de_rendu, ligne, couleur);
 
-            ligne.p0.y += 1
-            ligne.p1.y += 1
+            ligne.p0.y += 1;
+            ligne.p1.y += 1;
 
             si largeurs[3] != 0 {
-                ligne.p0.x += 1
+                ligne.p0.x += 1;
             }
             si largeurs[1] != 0 {
-                ligne.p1.x -= 1
+                ligne.p1.x -= 1;
             }
         }
     }
 
     /* Gauche. */
     si largeurs[3] != 0 {
-        couleur := donne_couleur_dessin(couleurs.gauche)
+        couleur := donne_couleur_dessin(couleurs.gauche);
 
-        ligne: Ligne(z32)
-        ligne.p0.x = rectangle.x
-        ligne.p0.y = rectangle.y + rectangle.hauteur
+        ligne: Ligne(z32);
+        ligne.p0.x = rectangle.x;
+        ligne.p0.y = rectangle.y + rectangle.hauteur;
 
-        ligne.p1.x = rectangle.x
-        ligne.p1.y = rectangle.y
+        ligne.p1.x = rectangle.x;
+        ligne.p1.y = rectangle.y;
 
         pour largeurs[3] {
-            dessine_ligne(*peintre_dessin.tampon_de_rendu, ligne, couleur)
+            dessine_ligne(*peintre_dessin.tampon_de_rendu, ligne, couleur);
 
-            ligne.p0.x += 1
-            ligne.p1.x += 1
+            ligne.p0.x += 1;
+            ligne.p1.x += 1;
 
             si largeurs[0] != 0 {
-                ligne.p0.y -= 1
+                ligne.p0.y -= 1;
             }
             si largeurs[2] != 0 {
-                ligne.p1.y += 1
+                ligne.p1.y += 1;
             }
         }
     }
@@ -702,133 +702,133 @@ dessine_bordure_dessin :: fonc (peintre: *Peintre, rectangle_peintre: RectangleP
 convertis_largeur_bordure_dessin :: fonc (largeur: r32) -> n32
 {
     si largeur <= 0.0 {
-        retourne 0
+        retourne 0;
     }
     si largeur <= 1.0 {
-        retourne 1
+        retourne 1;
     }
-    retourne (largeur + 0.5) comme n32
+    retourne (largeur + 0.5) comme n32;
 }
 
 donne_largeurs_bordure_pour_dessin :: fonc (largeurs: LargeursBordureRectangle) -> [4]n32
 {
-    résultat: [4]n32 = ---
-    résultat[0] = convertis_largeur_bordure_dessin(largeurs.haut)
-    résultat[1] = convertis_largeur_bordure_dessin(largeurs.droite)
-    résultat[2] = convertis_largeur_bordure_dessin(largeurs.bas)
-    résultat[3] = convertis_largeur_bordure_dessin(largeurs.gauche)
-    retourne résultat
+    résultat: [4]n32 = ---;
+    résultat[0] = convertis_largeur_bordure_dessin(largeurs.haut);
+    résultat[1] = convertis_largeur_bordure_dessin(largeurs.droite);
+    résultat[2] = convertis_largeur_bordure_dessin(largeurs.bas);
+    résultat[3] = convertis_largeur_bordure_dessin(largeurs.gauche);
+    retourne résultat;
 }
 
 dessine_cercle_dessin :: fonc (peintre: *Peintre, cercle_peintre: CerclePeintre, couleur_peintre: CouleurPeintre)
 {
-    peintre_dessin := peintre comme *PeintreDessin
-    cercle := donne_cercle_dessin(cercle_peintre)
-    couleur := donne_couleur_dessin(couleur_peintre)
-    dessine_cercle(*peintre_dessin.tampon_de_rendu, cercle, couleur)
+    peintre_dessin := peintre comme *PeintreDessin;
+    cercle := donne_cercle_dessin(cercle_peintre);
+    couleur := donne_couleur_dessin(couleur_peintre);
+    dessine_cercle(*peintre_dessin.tampon_de_rendu, cercle, couleur);
 }
 
 remplis_cercle_dessin :: fonc (peintre: *Peintre, cercle_peintre: CerclePeintre, couleur_peintre: CouleurPeintre)
 {
-    peintre_dessin := peintre comme *PeintreDessin
-    cercle := donne_cercle_dessin(cercle_peintre)
-    couleur := donne_couleur_dessin(couleur_peintre)
-    remplis_cercle(*peintre_dessin.tampon_de_rendu, cercle, couleur)
+    peintre_dessin := peintre comme *PeintreDessin;
+    cercle := donne_cercle_dessin(cercle_peintre);
+    couleur := donne_couleur_dessin(couleur_peintre);
+    remplis_cercle(*peintre_dessin.tampon_de_rendu, cercle, couleur);
 }
 
 dessine_segment_dessin :: fonc (peintre: *Peintre, segment_peintre: LignePeintre, couleur_peintre: CouleurPeintre)
 {
-    peintre_dessin := peintre comme *PeintreDessin
-    segment := donne_ligne_dessin(segment_peintre)
-    couleur := donne_couleur_dessin(couleur_peintre)
-    dessine_ligne(*peintre_dessin.tampon_de_rendu, segment, couleur)
+    peintre_dessin := peintre comme *PeintreDessin;
+    segment := donne_ligne_dessin(segment_peintre);
+    couleur := donne_couleur_dessin(couleur_peintre);
+    dessine_ligne(*peintre_dessin.tampon_de_rendu, segment, couleur);
 }
 
 dessine_segments_dessin :: fonc (peintre: *Peintre, segments_peintre: []LignePeintre, couleur_peintre: CouleurPeintre)
 {
-    peintre_dessin := peintre comme *PeintreDessin
-    couleur := donne_couleur_dessin(couleur_peintre)
+    peintre_dessin := peintre comme *PeintreDessin;
+    couleur := donne_couleur_dessin(couleur_peintre);
 
     pour segments_peintre {
-        segment := donne_ligne_dessin(it)
-        dessine_ligne(*peintre_dessin.tampon_de_rendu, segment, couleur)
+        segment := donne_ligne_dessin(it);
+        dessine_ligne(*peintre_dessin.tampon_de_rendu, segment, couleur);
     }
 }
 
 dessine_texte_dessin :: fonc (peintre: *Peintre, fonte: *Fonte, texte: chaine, rectangle_peintre: RectanglePeintre, couleur_peintre: CouleurPeintre)
 {
-    peintre_dessin := peintre comme *PeintreDessin
-    rect := donne_rectangle_dessin(rectangle_peintre)
-    couleur := donne_couleur_dessin(couleur_peintre)
-    dessine_texte(*peintre_dessin.tampon_de_rendu, texte, fonte, rect, couleur)
+    peintre_dessin := peintre comme *PeintreDessin;
+    rect := donne_rectangle_dessin(rectangle_peintre);
+    couleur := donne_couleur_dessin(couleur_peintre);
+    dessine_texte(*peintre_dessin.tampon_de_rendu, texte, fonte, rect, couleur);
 }
 
 dessine_texte_utf16_dessin :: fonc (peintre: *Peintre, fonte: *Fonte, texte: ChaineUTF16, rectangle_peintre: RectanglePeintre, couleur_peintre: CouleurPeintre, effets: *EffetsTexte)
 {
-    peintre_dessin := peintre comme *PeintreDessin
-    rect := donne_rectangle_dessin(rectangle_peintre)
-    couleur := donne_couleur_dessin(couleur_peintre)
-    dessine_texte(*peintre_dessin.tampon_de_rendu, texte, fonte, rect, couleur, effets)
+    peintre_dessin := peintre comme *PeintreDessin;
+    rect := donne_rectangle_dessin(rectangle_peintre);
+    couleur := donne_couleur_dessin(couleur_peintre);
+    dessine_texte(*peintre_dessin.tampon_de_rendu, texte, fonte, rect, couleur, effets);
 }
 
 dessine_texte_utf32_dessin :: fonc (peintre: *Peintre, fonte: *Fonte, texte: ChaineUTF32, rectangle_peintre: RectanglePeintre, couleur_peintre: CouleurPeintre, effets: *EffetsTexte)
 {
-    peintre_dessin := peintre comme *PeintreDessin
-    rect := donne_rectangle_dessin(rectangle_peintre)
-    couleur := donne_couleur_dessin(couleur_peintre)
-    dessine_texte(*peintre_dessin.tampon_de_rendu, texte, fonte, rect, couleur, effets)
+    peintre_dessin := peintre comme *PeintreDessin;
+    rect := donne_rectangle_dessin(rectangle_peintre);
+    couleur := donne_couleur_dessin(couleur_peintre);
+    dessine_texte(*peintre_dessin.tampon_de_rendu, texte, fonte, rect, couleur, effets);
 }
 
 dessine_image_dessin :: fonc (peintre: *PeintreDessin, image: *NouvelleImage, rectangle_peintre: RectanglePeintre, teinte: CouleurRVBA @inutilisée)
 {
     // À FAIRE : utilise teinte
-    rect := donne_rectangle_dessin(rectangle_peintre)
-    dessine_image(*peintre.tampon_de_rendu, image, rect)
+    rect := donne_rectangle_dessin(rectangle_peintre);
+    dessine_image(*peintre.tampon_de_rendu, image, rect);
 }
 
 dessine_sous_image_dessin :: fonc (peintre: *Peintre, image: *NouvelleImage, rectangle_image: RectanglePeintre, rectangle_sous_image: RectanglePeintre @inutilisée, paramètres: ParamètresRenduImage @inutilisée, teinte: CouleurRVBA @inutilisée)
 {
     // À FAIRE : utilise teinte
-    peintre_dessin := peintre comme *PeintreDessin
-    rect := donne_rectangle_dessin(rectangle_image)
-    dessine_image(*peintre_dessin.tampon_de_rendu, image, rect)
+    peintre_dessin := peintre comme *PeintreDessin;
+    rect := donne_rectangle_dessin(rectangle_image);
+    dessine_image(*peintre_dessin.tampon_de_rendu, image, rect);
 }
 
 donne_fonte_dessin :: fonc (peintre: *Peintre @inutilisée) -> *Fonte
 {
     // À FAIRE
-    retourne nul
+    retourne nul;
 }
 
 dessine_tampon_sur_écran_dessin :: fonc (peintre: *Peintre)
 {
-    peintre_dessin := peintre comme *PeintreDessin
+    peintre_dessin := peintre comme *PeintreDessin;
 
     si peintre_dessin.tampon_texture == nul {
-        peintre_dessin.tampon_texture = crée_tampon_texture()
+        peintre_dessin.tampon_texture = crée_tampon_texture();
     }
 
-    génère_texture(peintre_dessin.tampon_texture, peintre_dessin.tampon_de_rendu)
+    génère_texture(peintre_dessin.tampon_texture, peintre_dessin.tampon_de_rendu);
 
-    rect := peintre_dessin.tampon_de_rendu.rect
-    glViewport(0, 0, rect.largeur, rect.hauteur)
-    dessine_tampon_texture(peintre_dessin.tampon_texture)
+    rect := peintre_dessin.tampon_de_rendu.rect;
+    glViewport(0, 0, rect.largeur, rect.hauteur);
+    dessine_tampon_texture(peintre_dessin.tampon_texture);
 }
 
 détruit_peintre_dessin :: fonc (base: *Peintre)
 {
-    peintre_dessin := base comme *PeintreDessin
-    détruit_tampon_de_rendu(*peintre_dessin.tampon_de_rendu)
+    peintre_dessin := base comme *PeintreDessin;
+    détruit_tampon_de_rendu(*peintre_dessin.tampon_de_rendu);
     si peintre_dessin.tampon_texture {
-        détruit_tampon_texture(peintre_dessin.tampon_texture)
+        détruit_tampon_texture(peintre_dessin.tampon_texture);
     }
-    déloge(peintre_dessin)
+    déloge(peintre_dessin);
 }
 
 définis_ciseau_dessin :: fonc (peintre: *PeintreDessin, rectangle_peintre: RectanglePeintre)
 {
-    rect := donne_rectangle_dessin(rectangle_peintre)
-    définis_rect_ciseau(*peintre.tampon_de_rendu, rect)
+    rect := donne_rectangle_dessin(rectangle_peintre);
+    définis_rect_ciseau(*peintre.tampon_de_rendu, rect);
 }
 
 /** \} */
@@ -840,233 +840,233 @@ définis_ciseau_dessin :: fonc (peintre: *PeintreDessin, rectangle_peintre: Rect
  * \{ */
 
 PeintreIGUMI :: struct {
-    empl base: Peintre
+    empl base: Peintre;
 
-    ctx: *IGUMI.DonnéesContexteGL
+    ctx: *IGUMI.DonnéesContexteGL;
 }
 
 crée_peintre_igumi :: fonc (taille_canevas: Taille, crée_contexte_unique := faux) -> *PeintreIGUMI
 {
-    peintre := loge(PeintreIGUMI)
-    initialise_peintre_igumi(peintre, taille_canevas, crée_contexte_unique)
-    retourne peintre
+    peintre := loge(PeintreIGUMI);
+    initialise_peintre_igumi(peintre, taille_canevas, crée_contexte_unique);
+    retourne peintre;
 }
 
 initialise_peintre_igumi :: fonc (peintre: *PeintreIGUMI, taille_canevas: Taille, crée_contexte_unique := faux)
 {
     si crée_contexte_unique {
-        peintre.ctx = loge(IGUMI.DonnéesContexteGL)
-        initialise_contexte(peintre.ctx)
+        peintre.ctx = loge(IGUMI.DonnéesContexteGL);
+        initialise_contexte(peintre.ctx);
     }
     sinon {
-        initialise_igumi()
+        initialise_igumi();
     }
 
-    peintre.rappel_définis_fenêtre = définis_fenêtre_igumi
-    peintre.rappel_donne_taille_canevas = donne_taille_canevas_igumi
-    peintre.rappel_efface_cible_rendu = igumi_efface_cible_rendu
-    peintre.rappel_définis_largeur_ligne = définis_largeur_ligne_igumi
-    peintre.rappel_donne_largeur_ligne = donne_largeur_ligne_igumi
-    peintre.rappel_définis_rayon_point = définis_rayon_point_igumi
-    peintre.rappel_donne_rayon_point = donne_rayon_point_igumi
-    peintre.rappel_commence_dessin = commence_dessin_igumi
-    peintre.rappel_termine_dessin = termine_dessin_igumi
-    peintre.rappel_dessine_rectangle = dessine_rectangle_igumi
-    peintre.rappel_remplis_rectangle = remplis_rectangle_igumi
-    peintre.rappel_dessine_rectangle_arrondi = dessine_rectangle_arrondi_igumi
-    peintre.rappel_remplis_rectangle_arrondi = remplis_rectangle_arrondi_igumi
-    peintre.rappel_dessine_bordure = dessine_bordure_igumi
-    peintre.rappel_dessine_cercle = dessine_cercle_igumi
-    peintre.rappel_remplis_cercle = remplis_cercle_igumi
-    peintre.rappel_dessine_segment = dessine_segment_igumi
-    peintre.rappel_dessine_segments = dessine_segments_igumi
-    peintre.rappel_dessine_texte = dessine_texte_igumi
-    peintre.rappel_dessine_texte_utf16 = dessine_texte_utf16_igumi
-    peintre.rappel_dessine_texte_utf32 = dessine_texte_utf32_igumi
-    peintre.rappel_dessine_image = dessine_image_igumi
-    peintre.rappel_dessine_sous_image = dessine_sous_image_igumi
-    peintre.rappel_donne_fonte = donne_fonte_igumi
-    peintre.rappel_dessine_tampon_sur_écran = dessine_tampon_sur_écran_igumi
-    peintre.rappel_définis_ciseau = définis_ciseau_igumi
-    peintre.rappel_destruction = détruit_peintre_igumi
-    définis_taille_canevas(peintre, taille_canevas)
+    peintre.rappel_définis_fenêtre = définis_fenêtre_igumi;
+    peintre.rappel_donne_taille_canevas = donne_taille_canevas_igumi;
+    peintre.rappel_efface_cible_rendu = igumi_efface_cible_rendu;
+    peintre.rappel_définis_largeur_ligne = définis_largeur_ligne_igumi;
+    peintre.rappel_donne_largeur_ligne = donne_largeur_ligne_igumi;
+    peintre.rappel_définis_rayon_point = définis_rayon_point_igumi;
+    peintre.rappel_donne_rayon_point = donne_rayon_point_igumi;
+    peintre.rappel_commence_dessin = commence_dessin_igumi;
+    peintre.rappel_termine_dessin = termine_dessin_igumi;
+    peintre.rappel_dessine_rectangle = dessine_rectangle_igumi;
+    peintre.rappel_remplis_rectangle = remplis_rectangle_igumi;
+    peintre.rappel_dessine_rectangle_arrondi = dessine_rectangle_arrondi_igumi;
+    peintre.rappel_remplis_rectangle_arrondi = remplis_rectangle_arrondi_igumi;
+    peintre.rappel_dessine_bordure = dessine_bordure_igumi;
+    peintre.rappel_dessine_cercle = dessine_cercle_igumi;
+    peintre.rappel_remplis_cercle = remplis_cercle_igumi;
+    peintre.rappel_dessine_segment = dessine_segment_igumi;
+    peintre.rappel_dessine_segments = dessine_segments_igumi;
+    peintre.rappel_dessine_texte = dessine_texte_igumi;
+    peintre.rappel_dessine_texte_utf16 = dessine_texte_utf16_igumi;
+    peintre.rappel_dessine_texte_utf32 = dessine_texte_utf32_igumi;
+    peintre.rappel_dessine_image = dessine_image_igumi;
+    peintre.rappel_dessine_sous_image = dessine_sous_image_igumi;
+    peintre.rappel_donne_fonte = donne_fonte_igumi;
+    peintre.rappel_dessine_tampon_sur_écran = dessine_tampon_sur_écran_igumi;
+    peintre.rappel_définis_ciseau = définis_ciseau_igumi;
+    peintre.rappel_destruction = détruit_peintre_igumi;
+    définis_taille_canevas(peintre, taille_canevas);
 }
 
 donne_cercle_igumi :: fonc (cercle: CerclePeintre) -> Cercle(r32)
 {
-    Cercle_r32 :: Cercle(r32)
-    Cercle_z32 :: Cercle(z32)
+    Cercle_r32 :: Cercle(r32);
+    Cercle_z32 :: Cercle(z32);
 
     discr cercle {
         Cercle_r32(c) {
-            retourne c
+            retourne c;
         }
         Cercle_z32(c) {
-            retourne Cercle(r32)(c.centre_x comme r32, c.centre_y comme r32, c.rayon comme r32)
+            retourne Cercle(r32)(c.centre_x comme r32, c.centre_y comme r32, c.rayon comme r32);
         }
         sinon {}
     }
 
-    résultat: Cercle(r32)
-    retourne résultat
+    résultat: Cercle(r32);
+    retourne résultat;
 }
 
 donne_rectangle_igumi :: fonc (rectangle: RectanglePeintre) -> RectanglePosDim(r32)
 {
-    Rectangle_r32 :: RectanglePosDim(r32)
-    Rectangle_z32 :: RectanglePosDim(z32)
+    Rectangle_r32 :: RectanglePosDim(r32);
+    Rectangle_z32 :: RectanglePosDim(z32);
 
     discr rectangle {
         Rectangle_r32(r) {
-            retourne r
+            retourne r;
         }
         Rectangle_z32(r) {
-            retourne RectanglePosDim(r32)(r.x comme r32, r.y comme r32, r.hauteur comme r32, r.largeur comme r32)
+            retourne RectanglePosDim(r32)(r.x comme r32, r.y comme r32, r.hauteur comme r32, r.largeur comme r32);
         }
         sinon {}
     }
 
-    résultat: RectanglePosDim(r32)
-    retourne résultat
+    résultat: RectanglePosDim(r32);
+    retourne résultat;
 }
 
 donne_ligne_igumi :: fonc (ligne: LignePeintre) -> Ligne(r32)
 {
-    Ligne_r32 :: Ligne(r32)
-    Ligne_z32 :: Ligne(z32)
+    Ligne_r32 :: Ligne(r32);
+    Ligne_z32 :: Ligne(z32);
 
     discr ligne {
         Ligne_r32(l) {
-            retourne l
+            retourne l;
         }
         Ligne_z32(l) {
-            retourne Ligne(r32)(Point2D(r32)(l.p0.x comme r32, l.p0.y comme r32), Point2D(r32)(l.p1.x comme r32, l.p1.y comme r32))
+            retourne Ligne(r32)(Point2D(r32)(l.p0.x comme r32, l.p0.y comme r32), Point2D(r32)(l.p1.x comme r32, l.p1.y comme r32));
         }
         sinon {}
     }
 
-    résultat: Ligne(r32)
-    retourne résultat
+    résultat: Ligne(r32);
+    retourne résultat;
 }
 
 donne_couleur_igumi :: fonc (couleur_peintre: CouleurPeintre) -> CouleurRVBA
 {
     discr couleur_peintre {
         CouleurRVBA(couleur) {
-            retourne couleur
+            retourne couleur;
         }
         CouleurRVBAN8(couleur) {
-            retourne vers_couleur_rvba(couleur)
+            retourne vers_couleur_rvba(couleur);
         }
         sinon {}
     }
 
-    résultat: CouleurRVBA
-    retourne résultat
+    résultat: CouleurRVBA;
+    retourne résultat;
 }
 
 définis_fenêtre_igumi :: fonc (peintre: *Peintre @inutilisée, x: z32, y: z32, taille: Taille)
 {
-    IGUMI.définis_fenêtre(x, y, taille.largeur comme z32, taille.hauteur comme z32)
+    IGUMI.définis_fenêtre(x, y, taille.largeur comme z32, taille.hauteur comme z32);
 }
 
 donne_taille_canevas_igumi :: fonc (peintre: *Peintre @inutilisée) -> Taille
 {
-    retourne Taille(Largeur(IGUMI.donne_largeur_canevas()), Hauteur(IGUMI.donne_hauteur_canevas()))
+    retourne Taille(Largeur(IGUMI.donne_largeur_canevas()), Hauteur(IGUMI.donne_hauteur_canevas()));
 }
 
 igumi_efface_cible_rendu :: fonc (peintre: *PeintreIGUMI @inutilisée, couleur: CouleurPeintre)
 {
-    IGUMI.efface_cible_rendu(donne_couleur_igumi(couleur))
+    IGUMI.efface_cible_rendu(donne_couleur_igumi(couleur));
 }
 
 définis_largeur_ligne_igumi :: fonc (peintre: *Peintre @inutilisée, largeur: r32)
 {
-    IGUMI.termine_immédiat()
-    glLineWidth(largeur)
+    IGUMI.termine_immédiat();
+    glLineWidth(largeur);
 }
 
 donne_largeur_ligne_igumi :: fonc (peintre: *Peintre @inutilisée) -> r32
 {
-    résultat: r32
-    glGetFloatv(GL_LINE_WIDTH, *résultat)
-    retourne résultat
+    résultat: r32;
+    glGetFloatv(GL_LINE_WIDTH, *résultat);
+    retourne résultat;
 }
 
 définis_rayon_point_igumi :: fonc (peintre: *Peintre @inutilisée, rayon: r32)
 {
-    IGUMI.termine_immédiat()
-    glPointSize(rayon)
+    IGUMI.termine_immédiat();
+    glPointSize(rayon);
 }
 
 donne_rayon_point_igumi :: fonc (peintre: *Peintre @inutilisée) -> r32
 {
-    résultat: r32
-    glGetFloatv(GL_POINT_SIZE, *résultat)
-    retourne résultat
+    résultat: r32;
+    glGetFloatv(GL_POINT_SIZE, *résultat);
+    retourne résultat;
 }
 
 commence_dessin_igumi :: fonc (peintre: *PeintreIGUMI @inutilisée)
 {
-    IGUMI.réinitialise_données()
+    IGUMI.réinitialise_données();
 }
 
 termine_dessin_igumi :: fonc (peintre: *PeintreIGUMI @inutilisée)
 {
-    IGUMI.termine_immédiat()
+    IGUMI.termine_immédiat();
 }
 
 dessine_rectangle_igumi :: fonc (peintre: *Peintre @inutilisée, rectangle_peintre: RectanglePeintre, couleur_peintre: CouleurPeintre)
 {
-    rectangle := donne_rectangle_igumi(rectangle_peintre)
-    couleur := donne_couleur_igumi(couleur_peintre)
+    rectangle := donne_rectangle_igumi(rectangle_peintre);
+    couleur := donne_couleur_igumi(couleur_peintre);
 
-    commence_immédiat(ModeImmédiat.LIGNES, IDNuanceur.Basique)
+    commence_immédiat(ModeImmédiat.LIGNES, IDNuanceur.Basique);
 
-    p0 := Point2D(r32)(rectangle.x, rectangle.y)
-    p1 := Point2D(r32)(rectangle.x, rectangle.y + rectangle.hauteur)
-    p2 := Point2D(r32)(rectangle.x + rectangle.largeur, rectangle.y + rectangle.hauteur)
-    p3 := Point2D(r32)(rectangle.x + rectangle.largeur, rectangle.y)
+    p0 := Point2D(r32)(rectangle.x, rectangle.y);
+    p1 := Point2D(r32)(rectangle.x, rectangle.y + rectangle.hauteur);
+    p2 := Point2D(r32)(rectangle.x + rectangle.largeur, rectangle.y + rectangle.hauteur);
+    p3 := Point2D(r32)(rectangle.x + rectangle.largeur, rectangle.y);
 
-    segment_immédiat(p0.x, p0.y, p1.x, p1.y, couleur)
-    segment_immédiat(p1.x, p1.y, p2.x, p2.y, couleur)
-    segment_immédiat(p2.x, p2.y, p3.x, p3.y, couleur)
-    segment_immédiat(p3.x, p3.y, p0.x, p0.y, couleur)
+    segment_immédiat(p0.x, p0.y, p1.x, p1.y, couleur);
+    segment_immédiat(p1.x, p1.y, p2.x, p2.y, couleur);
+    segment_immédiat(p2.x, p2.y, p3.x, p3.y, couleur);
+    segment_immédiat(p3.x, p3.y, p0.x, p0.y, couleur);
 }
 
 remplis_rectangle_igumi :: fonc (peintre: *Peintre @inutilisée, rectangle_peintre: RectanglePeintre, couleur_peintre: CouleurPeintre)
 {
-    rectangle := donne_rectangle_igumi(rectangle_peintre)
-    couleur := donne_couleur_igumi(couleur_peintre)
+    rectangle := donne_rectangle_igumi(rectangle_peintre);
+    couleur := donne_couleur_igumi(couleur_peintre);
 
-    commence_immédiat(ModeImmédiat.TRIANGLES, IDNuanceur.Basique)
+    commence_immédiat(ModeImmédiat.TRIANGLES, IDNuanceur.Basique);
 
-    quad_immédiat(rectangle.x, rectangle.y, rectangle.largeur, rectangle.hauteur, couleur)
+    quad_immédiat(rectangle.x, rectangle.y, rectangle.largeur, rectangle.hauteur, couleur);
 }
 
 dessine_rectangle_arrondi_igumi :: fonc (peintre: *Peintre @inutilisée, rectangle_peintre: RectanglePeintre, rayon: r32, couleur_peintre: CouleurPeintre)
 {
-    rectangle := donne_rectangle_igumi(rectangle_peintre)
-    couleur := donne_couleur_igumi(couleur_peintre)
+    rectangle := donne_rectangle_igumi(rectangle_peintre);
+    couleur := donne_couleur_igumi(couleur_peintre);
 
-    commence_immédiat(ModeImmédiat.LIGNES, IDNuanceur.Basique)
+    commence_immédiat(ModeImmédiat.LIGNES, IDNuanceur.Basique);
 
-    rayon_double := rayon * 2.0
+    rayon_double := rayon * 2.0;
     si rayon_double == rectangle.largeur && rayon_double == rectangle.hauteur {
-        position := rectangle.position_interne(0.5, 0.5)
-        cercle_immédiat(position.x, position.y, rayon, couleur, faux)
-        retourne
+        position := rectangle.position_interne(0.5, 0.5);
+        cercle_immédiat(position.x, position.y, rayon, couleur, faux);
+        retourne;
     }
 
-    contour_quad_arrondi_immédiat(rectangle.x, rectangle.y, rectangle.largeur, rectangle.hauteur, rayon, couleur)
+    contour_quad_arrondi_immédiat(rectangle.x, rectangle.y, rectangle.largeur, rectangle.hauteur, rayon, couleur);
 }
 
 remplis_rectangle_arrondi_igumi :: fonc (peintre: *Peintre @inutilisée, rectangle_peintre: RectanglePeintre, rayon: RayonsRectangle, couleur_peintre: CouleurPeintre)
 {
-    rectangle := donne_rectangle_igumi(rectangle_peintre)
-    couleur := donne_couleur_igumi(couleur_peintre)
+    rectangle := donne_rectangle_igumi(rectangle_peintre);
+    couleur := donne_couleur_igumi(couleur_peintre);
 
-    commence_immédiat(ModeImmédiat.TRIANGLES, IDNuanceur.Basique)
+    commence_immédiat(ModeImmédiat.TRIANGLES, IDNuanceur.Basique);
 
     // rayon_double := rayon * 2.0
     // si rayon_double == rectangle.largeur && rayon_double == rectangle.hauteur {
@@ -1075,146 +1075,146 @@ remplis_rectangle_arrondi_igumi :: fonc (peintre: *Peintre @inutilisée, rectang
     //     retourne
     // }
 
-    quad_arrondi_immédiat(rectangle.x, rectangle.y, rectangle.largeur, rectangle.hauteur, rayon, couleur)
+    quad_arrondi_immédiat(rectangle.x, rectangle.y, rectangle.largeur, rectangle.hauteur, rayon, couleur);
 }
 
 dessine_bordure_igumi :: fonc (peintre: *Peintre @inutilisée, rectangle_peintre: RectanglePeintre, largeurs: LargeursBordureRectangle, couleurs: CouleursBordureRectangle)
 {
-    rectangle := donne_rectangle_igumi(rectangle_peintre)
+    rectangle := donne_rectangle_igumi(rectangle_peintre);
 
-    commence_immédiat(ModeImmédiat.TRIANGLES, IDNuanceur.Basique)
+    commence_immédiat(ModeImmédiat.TRIANGLES, IDNuanceur.Basique);
 
     /* NOTE : le haut et la bas sont inversés pour CSS dont l'origine est en haut, alors qu'IGUMI préfère l'origine en bas. */
 
     si largeurs.haut != 0.0 {
-        x0 := rectangle.x + largeurs.gauche
-        x1 := rectangle.x + rectangle.largeur - largeurs.droite
-        x2 := rectangle.x + rectangle.largeur
-        x3 := rectangle.x
+        x0 := rectangle.x + largeurs.gauche;
+        x1 := rectangle.x + rectangle.largeur - largeurs.droite;
+        x2 := rectangle.x + rectangle.largeur;
+        x3 := rectangle.x;
 
-        y0 := rectangle.y + rectangle.hauteur - largeurs.haut
-        y1 := rectangle.y + rectangle.hauteur
+        y0 := rectangle.y + rectangle.hauteur - largeurs.haut;
+        y1 := rectangle.y + rectangle.hauteur;
 
-        quad_immédiat(Vec3(x0, y0), Vec3(x1, y0), Vec3(x2, y1), Vec3(x3, y1), couleurs.haut)
+        quad_immédiat(Vec3(x0, y0), Vec3(x1, y0), Vec3(x2, y1), Vec3(x3, y1), couleurs.haut);
     }
 
     si largeurs.droite != 0.0 {
-        x0 := rectangle.x + rectangle.largeur - largeurs.droite
-        x1 := rectangle.x + rectangle.largeur
+        x0 := rectangle.x + rectangle.largeur - largeurs.droite;
+        x1 := rectangle.x + rectangle.largeur;
 
-        y0 := rectangle.y + largeurs.gauche
-        y1 := rectangle.y
-        y2 := rectangle.y + rectangle.hauteur
-        y3 := rectangle.y + rectangle.hauteur - largeurs.haut
+        y0 := rectangle.y + largeurs.gauche;
+        y1 := rectangle.y;
+        y2 := rectangle.y + rectangle.hauteur;
+        y3 := rectangle.y + rectangle.hauteur - largeurs.haut;
 
-        quad_immédiat(Vec3(x0, y0), Vec3(x1, y1), Vec3(x1, y2), Vec3(x0, y3), couleurs.droite)
+        quad_immédiat(Vec3(x0, y0), Vec3(x1, y1), Vec3(x1, y2), Vec3(x0, y3), couleurs.droite);
     }
 
     si largeurs.bas != 0.0 {
-        x0 := rectangle.x
-        x1 := rectangle.x + rectangle.largeur
-        x2 := x1 - largeurs.droite
-        x3 := x0 + largeurs.gauche
+        x0 := rectangle.x;
+        x1 := rectangle.x + rectangle.largeur;
+        x2 := x1 - largeurs.droite;
+        x3 := x0 + largeurs.gauche;
 
-        y0 := rectangle.y
-        y1 := rectangle.y + largeurs.bas
+        y0 := rectangle.y;
+        y1 := rectangle.y + largeurs.bas;
 
-        quad_immédiat(Vec3(x0, y0), Vec3(x1, y0), Vec3(x2, y1), Vec3(x3, y1), couleurs.bas)
+        quad_immédiat(Vec3(x0, y0), Vec3(x1, y0), Vec3(x2, y1), Vec3(x3, y1), couleurs.bas);
     }
 
     si largeurs.gauche != 0.0 {
-        x0 := rectangle.x
-        x1 := rectangle.x + largeurs.gauche
+        x0 := rectangle.x;
+        x1 := rectangle.x + largeurs.gauche;
 
-        y3 := rectangle.y
-        y2 := rectangle.y + largeurs.bas
-        y1 := rectangle.y + rectangle.hauteur - largeurs.haut
-        y0 := rectangle.y + rectangle.hauteur
+        y3 := rectangle.y;
+        y2 := rectangle.y + largeurs.bas;
+        y1 := rectangle.y + rectangle.hauteur - largeurs.haut;
+        y0 := rectangle.y + rectangle.hauteur;
 
-        quad_immédiat(Vec3(x0, y0), Vec3(x1, y1), Vec3(x1, y2), Vec3(x0, y3), couleurs.gauche)
+        quad_immédiat(Vec3(x0, y0), Vec3(x1, y1), Vec3(x1, y2), Vec3(x0, y3), couleurs.gauche);
     }
 }
 
 dessine_cercle_igumi :: fonc (peintre: *Peintre @inutilisée, cercle_peintre: CerclePeintre, couleur_peintre: CouleurPeintre)
 {
-    cercle := donne_cercle_igumi(cercle_peintre)
-    couleur := donne_couleur_igumi(couleur_peintre)
+    cercle := donne_cercle_igumi(cercle_peintre);
+    couleur := donne_couleur_igumi(couleur_peintre);
 
-    commence_immédiat(ModeImmédiat.LIGNES, IDNuanceur.Basique)
+    commence_immédiat(ModeImmédiat.LIGNES, IDNuanceur.Basique);
 
-    cercle_immédiat(cercle.centre_x, cercle.centre_y, cercle.rayon, couleur, faux)
+    cercle_immédiat(cercle.centre_x, cercle.centre_y, cercle.rayon, couleur, faux);
 }
 
 remplis_cercle_igumi :: fonc (peintre: *Peintre @inutilisée, cercle_peintre: CerclePeintre, couleur_peintre: CouleurPeintre)
 {
-    cercle := donne_cercle_igumi(cercle_peintre)
-    couleur := donne_couleur_igumi(couleur_peintre)
+    cercle := donne_cercle_igumi(cercle_peintre);
+    couleur := donne_couleur_igumi(couleur_peintre);
 
-    commence_immédiat(ModeImmédiat.TRIANGLES, IDNuanceur.Basique)
+    commence_immédiat(ModeImmédiat.TRIANGLES, IDNuanceur.Basique);
 
-    cercle_immédiat(cercle.centre_x, cercle.centre_y, cercle.rayon, couleur, vrai)
+    cercle_immédiat(cercle.centre_x, cercle.centre_y, cercle.rayon, couleur, vrai);
 }
 
 dessine_segment_igumi :: fonc (peintre: *Peintre @inutilisée, segment_peintre: LignePeintre, couleur_peintre: CouleurPeintre)
 {
-    segment := donne_ligne_igumi(segment_peintre)
-    couleur := donne_couleur_igumi(couleur_peintre)
+    segment := donne_ligne_igumi(segment_peintre);
+    couleur := donne_couleur_igumi(couleur_peintre);
 
-    commence_immédiat(ModeImmédiat.LIGNES, IDNuanceur.Basique)
+    commence_immédiat(ModeImmédiat.LIGNES, IDNuanceur.Basique);
 
-    segment_immédiat(segment.p0.x, segment.p0.y, segment.p1.x, segment.p1.y, couleur)
+    segment_immédiat(segment.p0.x, segment.p0.y, segment.p1.x, segment.p1.y, couleur);
 }
 
 dessine_segments_igumi :: fonc (peintre: *Peintre @inutilisée, segments_peintre: []LignePeintre, couleur_peintre: CouleurPeintre)
 {
-    couleur := donne_couleur_igumi(couleur_peintre)
+    couleur := donne_couleur_igumi(couleur_peintre);
 
-    commence_immédiat(ModeImmédiat.LIGNES, IDNuanceur.Basique)
+    commence_immédiat(ModeImmédiat.LIGNES, IDNuanceur.Basique);
 
     pour segments_peintre {
-        segment := donne_ligne_igumi(it)
-        segment_immédiat(segment.p0.x, segment.p0.y, segment.p1.x, segment.p1.y, couleur)
+        segment := donne_ligne_igumi(it);
+        segment_immédiat(segment.p0.x, segment.p0.y, segment.p1.x, segment.p1.y, couleur);
     }
 }
 
 dessine_texte_igumi :: fonc (peintre: *Peintre @inutilisée, fonte: *Fonte, texte: chaine, rectangle_peintre: RectanglePeintre, couleur_peintre: CouleurPeintre)
 {
-    rect := donne_rectangle_igumi(rectangle_peintre)
-    couleur := donne_couleur_igumi(couleur_peintre)
-    dessine_texte(fonte, texte, rect.x, rect.y, couleur)
+    rect := donne_rectangle_igumi(rectangle_peintre);
+    couleur := donne_couleur_igumi(couleur_peintre);
+    dessine_texte(fonte, texte, rect.x, rect.y, couleur);
 }
 
 dessine_texte_utf16_igumi :: fonc (peintre: *Peintre @inutilisée, fonte: *Fonte, texte: ChaineUTF16, rectangle_peintre: RectanglePeintre, couleur_peintre: CouleurPeintre, effets: *EffetsTexte)
 {
-    rect := donne_rectangle_igumi(rectangle_peintre)
-    couleur := donne_couleur_igumi(couleur_peintre)
-    dessine_texte(fonte, texte, rect.x, rect.y, couleur, effets)
+    rect := donne_rectangle_igumi(rectangle_peintre);
+    couleur := donne_couleur_igumi(couleur_peintre);
+    dessine_texte(fonte, texte, rect.x, rect.y, couleur, effets);
 }
 
 dessine_texte_utf32_igumi :: fonc (peintre: *Peintre @inutilisée, fonte: *Fonte, texte: ChaineUTF32, rectangle_peintre: RectanglePeintre, couleur_peintre: CouleurPeintre, effets: *EffetsTexte)
 {
-    rect := donne_rectangle_igumi(rectangle_peintre)
-    couleur := donne_couleur_igumi(couleur_peintre)
-    dessine_texte(fonte, texte, rect.x, rect.y, couleur, effets)
+    rect := donne_rectangle_igumi(rectangle_peintre);
+    couleur := donne_couleur_igumi(couleur_peintre);
+    dessine_texte(fonte, texte, rect.x, rect.y, couleur, effets);
 }
 
 dessine_image_igumi :: fonc (peintre: *Peintre @inutilisée, image: *NouvelleImage, rectangle_peintre: RectanglePeintre, teinte: CouleurRVBA)
 {
-    rect := donne_rectangle_igumi(rectangle_peintre)
-    paramètres: ParamètresRenduImage
-    image_immédiat(image, rect, rect, paramètres, teinte)
+    rect := donne_rectangle_igumi(rectangle_peintre);
+    paramètres: ParamètresRenduImage;
+    image_immédiat(image, rect, rect, paramètres, teinte);
 }
 
 dessine_sous_image_igumi :: fonc (peintre: *Peintre @inutilisée, image: *NouvelleImage, rectangle_image: RectanglePeintre, rectangle_sous_image: RectanglePeintre, paramètres: ParamètresRenduImage, teinte: CouleurRVBA)
 {
-    rect_image := donne_rectangle_igumi(rectangle_image)
-    rect := donne_rectangle_igumi(rectangle_sous_image)
-    image_immédiat(image, rect_image, rect, paramètres, teinte)
+    rect_image := donne_rectangle_igumi(rectangle_image);
+    rect := donne_rectangle_igumi(rectangle_sous_image);
+    image_immédiat(image, rect_image, rect, paramètres, teinte);
 }
 
 donne_fonte_igumi :: fonc (peintre: *Peintre @inutilisée) -> *Fonte
 {
-    retourne IGUMI.donne_contexte_courant().fonte_globale
+    retourne IGUMI.donne_contexte_courant().fonte_globale;
 }
 
 dessine_tampon_sur_écran_igumi :: fonc (peintre: *Peintre @inutilisée)
@@ -1225,31 +1225,31 @@ dessine_tampon_sur_écran_igumi :: fonc (peintre: *Peintre @inutilisée)
 détruit_peintre_igumi :: fonc (peintre: *PeintreIGUMI)
 {
     si peintre.ctx {
-        issitialise_ctx(peintre.ctx)
+        issitialise_ctx(peintre.ctx);
         si peintre.ctx.utilisateurs == 0 {
-            déloge(peintre.ctx)
+            déloge(peintre.ctx);
         }
     }
     sinon {
-        issitialise_igumi()
+        issitialise_igumi();
     }
 
-    déloge(peintre)
+    déloge(peintre);
 }
 
 définis_ciseau_igumi :: fonc (peintre: *Peintre @inutilisée, rectangle: RectanglePeintre)
 {
-    IGUMI.termine_immédiat()
+    IGUMI.termine_immédiat();
 
     /* Nous utilisons donne_rectangle_dessin afin d'avoir un rectangle dont
      * les valeurs sont des nombres entiers, car les paramètres de glScissor
      * sont des nombres entiers. */
-    rect := donne_rectangle_dessin(rectangle)
+    rect := donne_rectangle_dessin(rectangle);
 
     /* À FAIRE : tient trace de l'état dans pour chaque ciseau sauvegarder dans le peintre. */
-    glEnable(GL_SCISSOR_TEST)
+    glEnable(GL_SCISSOR_TEST);
 
-    glScissor(rect.x, rect.y, rect.largeur, rect.hauteur)
+    glScissor(rect.x, rect.y, rect.largeur, rect.hauteur);
 }
 
 /** \} */

@@ -3,7 +3,7 @@
  * Catégorie : [validation sémantique, portée, diffère, opérateur pour]
  */
 
-importe Fondation
+importe Fondation;
 
 TypePersonnalisé :: struct {
 }
@@ -11,26 +11,26 @@ TypePersonnalisé :: struct {
 opérateur pour :: (type: TypePersonnalisé) -> z32
 {
     pour 1 {
-        `it = 0
-        `indice_it = 0
+        `it = 0;
+        `indice_it = 0;
 
-        #corps_boucle
+        #corps_boucle;
     }
 }
 
 principale :: fonc ()
 {
-    x := 0
-    diffère x = 1
+    x := 0;
+    diffère x = 1;
 
     pour TypePersonnalisé() {
         /* « diffère » est exécuté alors qu'il ne devrait l'être. */
-        continue
+        continue;
     }
 
     si x == 1 {
         // imprime("ÉCHEC !\n")
-        exit(1)
+        exit(1);
     }
 
     // imprime("SUCCÈS !\n")

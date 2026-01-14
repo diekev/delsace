@@ -1,45 +1,45 @@
-importe Chaine
-HTML :: importe HTML
-importe Fondation
-importe Internet
-importe Unicode
+importe Chaine;
+HTML :: importe HTML;
+importe Fondation;
+importe Internet;
+importe Unicode;
 
-charge "arbre_de_disposition"
-charge "contexte_de_formattage"
-charge "dimensionnement"
-charge "globales"
-charge "intéropérabilité"
-charge "lexage"
-charge "media"
-charge "objets"
-charge "parsage"
-charge "rendu"
-charge "stacking_context"
-charge "style"
-charge "terminologie"
+charge "arbre_de_disposition";
+charge "contexte_de_formattage";
+charge "dimensionnement";
+charge "globales";
+charge "intéropérabilité";
+charge "lexage";
+charge "media";
+charge "objets";
+charge "parsage";
+charge "rendu";
+charge "stacking_context";
+charge "style";
+charge "terminologie";
 
-logue_propriétés_non_supportées := vrai
-logue_erreurs_de_parsage := vrai
+logue_propriétés_non_supportées := vrai;
+logue_erreurs_de_parsage := vrai;
 
 lèxe_style :: fonc (contenu: chaine) -> [..]Lexème
 {
-    chn := crée_chaine_utf32(contenu)
-    diffère détruit_chaine(chn)
+    chn := crée_chaine_utf32(contenu);
+    diffère détruit_chaine(chn);
 
-    prétraite(chn)
+    prétraite(chn);
 
-    lexeuse: Lexeuse
-    diffère détruit_données(lexeuse)
-    lexeuse.contenu = chn
+    lexeuse: Lexeuse;
+    diffère détruit_données(lexeuse);
+    lexeuse.contenu = chn;
 
-    lexèmes: [..]Lexème
+    lexèmes: [..]Lexème;
 
     tantque !fini(lexeuse) {
-        lexème := consomme_un_lexème(lexeuse)
-        tableau_ajoute(*lexèmes, lexème)
+        lexème := consomme_un_lexème(lexeuse);
+        tableau_ajoute(*lexèmes, lexème);
     }
 
-    retourne lexèmes
+    retourne lexèmes;
 }
 
 /* 3.3. Preprocessing the input stream
@@ -49,345 +49,345 @@ prétraite :: fonc (chn: &ChaineUTF32)
     pour & chn.points_de_code {
         /* À FAIRE : \r\n => \n */
         si it == RETOUR_CHARIOT || it == SAUT_DE_PAGE {
-            it = NOUVELLE_LIGNE
+            it = NOUVELLE_LIGNE;
         }
     }
 }
 
 apparie_sélecteur :: fonc (selector: []CompoundSelector, indice: z64, élément: *HTML.Element, pseudo_element: *PseudoElement) -> bool
 {
-    compound := selector[indice]
+    compound := selector[indice];
 
     si pseudo_element && compound.simple_selectors[compound.simple_selectors.taille - 1].type != SimpleSelector.Type.PseudoElement {
-        retourne faux
+        retourne faux;
     }
 
     pour compound.simple_selectors {
         saufsi apparie_simple_selector(it, élément, pseudo_element) {
-            retourne faux
+            retourne faux;
         }
     }
 
     si indice == 0 {
-        retourne vrai
+        retourne vrai;
     }
 
     discr compound.combinateur {
         NEXT_SIBLING {
-            parent := élément.parent
+            parent := élément.parent;
 
-            ainé: *HTML.Element
+            ainé: *HTML.Element;
             pour parent.enfants {
                 saufsi HTML.est_élément(it) {
-                    continue
+                    continue;
                 }
 
                 si it == élément {
-                    arrête
+                    arrête;
                 }
 
-                ainé = it comme *HTML.Element
+                ainé = it comme *HTML.Element;
             }
 
             saufsi ainé {
-                retourne faux
+                retourne faux;
             }
 
-            retourne apparie_sélecteur(selector, indice - 1, ainé, nul)
+            retourne apparie_sélecteur(selector, indice - 1, ainé, nul);
         }
         CHILD {
-            parent := élément.parent
+            parent := élément.parent;
             saufsi HTML.est_élément(parent) {
-                retourne faux
+                retourne faux;
             }
 
-            retourne apparie_sélecteur(selector, indice - 1, parent comme *HTML.Element, nul)
+            retourne apparie_sélecteur(selector, indice - 1, parent comme *HTML.Element, nul);
         }
         DESCENDANT {
-            parent := élément.parent
+            parent := élément.parent;
 
             tantque parent != nul {
                 saufsi HTML.est_élément(parent) {
-                    arrête
+                    arrête;
                 }
 
                 si apparie_sélecteur(selector, indice - 1, parent comme *HTML.Element, nul) {
-                    retourne vrai
+                    retourne vrai;
                 }
 
-                parent = parent.parent
+                parent = parent.parent;
             }
 
-            retourne faux
+            retourne faux;
         }
         COLUMN {
-            retourne faux
+            retourne faux;
         }
         SUBSEQUENT_SIBLING {
-            parent := élément.parent
+            parent := élément.parent;
 
             pour parent.enfants {
                 saufsi HTML.est_élément(it) {
-                    continue
+                    continue;
                 }
 
                 si it == élément {
-                    arrête
+                    arrête;
                 }
 
                 si apparie_sélecteur(selector, indice - 1, it comme *HTML.Element, nul) {
-                    retourne vrai
+                    retourne vrai;
                 }
             }
 
-            retourne faux
+            retourne faux;
         }
     }
 
-    retourne faux
+    retourne faux;
 }
 
 apparie_simple_selector :: fonc (simple: &SimpleSelector, élément: *HTML.Element, pseudo_element: *PseudoElement) -> bool
 {
     discr simple.type {
         Attrib {
-            attribut := HTML.donne_attribut(élément, simple.ident)
+            attribut := HTML.donne_attribut(élément, simple.ident);
             saufsi attribut.possède_valeur() {
-                retourne faux
+                retourne faux;
             }
 
             saufsi simple.matcher.possède_valeur() {
                 /* Nous avons un sélecteur de type [attr], nous pouvons retourner vrai ici. */
-                retourne vrai
+                retourne vrai;
             }
 
-            matcher := simple.matcher.Quelque
+            matcher := simple.matcher.Quelque;
 
             /* À FAIRE : sensibilité à la casse. */
             discr matcher {
                 EST_ÉGAL {
-                    retourne simple.attribute_value == attribut.Quelque
+                    retourne simple.attribute_value == attribut.Quelque;
                 }
                 INCLUS {
-                    morceaux := HTML.run_ordered_set_parser(attribut.Quelque)
-                    diffère déloge(morceaux)
+                    morceaux := HTML.run_ordered_set_parser(attribut.Quelque);
+                    diffère déloge(morceaux);
 
                     pour morceaux {
                         si it == simple.attribute_value {
-                            retourne vrai
+                            retourne vrai;
                         }
                     }
 
-                    retourne faux
+                    retourne faux;
                 }
                 DASHMATCH {
                     si simple.attribute_value == attribut.Quelque {
-                        retourne vrai
+                        retourne vrai;
                     }
 
-                    chn_attribut := attribut.Quelque.donne_chaine_utf16()
-                    chn_selector := simple.attribute_value.donne_chaine_utf16()
+                    chn_attribut := attribut.Quelque.donne_chaine_utf16();
+                    chn_selector := simple.attribute_value.donne_chaine_utf16();
 
                     saufsi est_préfixe_de(chn_selector, chn_attribut) {
-                        retourne faux
+                        retourne faux;
                     }
 
-                    retourne chn_attribut.unités[chn_selector.taille()] == ('-' comme n32)
+                    retourne chn_attribut.unités[chn_selector.taille()] == ('-' comme n32);
                 }
                 PREFIXMATCH {
                     si simple.attribute_value == attribut.Quelque {
-                        retourne vrai
+                        retourne vrai;
                     }
-                    chn_attribut := attribut.Quelque.donne_chaine_utf16()
-                    chn_selector := simple.attribute_value.donne_chaine_utf16()
-                    retourne est_préfixe_de(chn_selector, chn_attribut)
+                    chn_attribut := attribut.Quelque.donne_chaine_utf16();
+                    chn_selector := simple.attribute_value.donne_chaine_utf16();
+                    retourne est_préfixe_de(chn_selector, chn_attribut);
                 }
                 SUFFIXMATCH {
                     si simple.attribute_value == attribut.Quelque {
-                        retourne vrai
+                        retourne vrai;
                     }
 
-                    chn_attribut := attribut.Quelque.donne_chaine_utf16()
-                    chn_selector := simple.attribute_value.donne_chaine_utf16()
+                    chn_attribut := attribut.Quelque.donne_chaine_utf16();
+                    chn_selector := simple.attribute_value.donne_chaine_utf16();
 
                     si chn_selector.taille() > chn_attribut.taille() {
-                        retourne faux
+                        retourne faux;
                     }
 
-                    diff := chn_attribut.taille() - chn_selector.taille()
+                    diff := chn_attribut.taille() - chn_selector.taille();
 
-                    sous_chaine_attribut := chn_attribut
-                    sous_chaine_attribut.unités.taille = chn_selector.taille()
-                    sous_chaine_attribut.unités.pointeur += diff
+                    sous_chaine_attribut := chn_attribut;
+                    sous_chaine_attribut.unités.taille = chn_selector.taille();
+                    sous_chaine_attribut.unités.pointeur += diff;
 
-                    retourne chn_selector == sous_chaine_attribut
+                    retourne chn_selector == sous_chaine_attribut;
                 }
                 SUBSTRINGMATCH {
                     si simple.attribute_value == attribut.Quelque {
-                        retourne vrai
+                        retourne vrai;
                     }
 
-                    chn_attribut := attribut.Quelque.donne_chaine_utf16()
-                    chn_selector := simple.attribute_value.donne_chaine_utf16()
+                    chn_attribut := attribut.Quelque.donne_chaine_utf16();
+                    chn_selector := simple.attribute_value.donne_chaine_utf16();
 
                     si chn_selector.taille() > chn_attribut.taille() {
-                        retourne faux
+                        retourne faux;
                     }
 
-                    i := 0
-                    fin := chn_attribut.taille() - chn_selector.taille() + 1
+                    i := 0;
+                    fin := chn_attribut.taille() - chn_selector.taille() + 1;
 
-                    sous_chaine_attribut := chn_attribut
-                    sous_chaine_attribut.unités.taille = chn_selector.taille()
+                    sous_chaine_attribut := chn_attribut;
+                    sous_chaine_attribut.unités.taille = chn_selector.taille();
 
                     tantque i < fin {
                         si chn_selector == sous_chaine_attribut {
-                            retourne vrai
+                            retourne vrai;
                         }
 
-                        sous_chaine_attribut.unités.pointeur += 1
-                        i += 1
+                        sous_chaine_attribut.unités.pointeur += 1;
+                        i += 1;
                     }
 
-                    retourne faux
+                    retourne faux;
                 }
             }
         }
         ID {
-            retourne simple.ident == élément.id
+            retourne simple.ident == élément.id;
         }
         PseudoClass {
             si simple.est_fonction {
                 si simple.ident == PROP_not {
-                    retourne !apparie_sélecteur_fonction(simple.selector_list, élément)
+                    retourne !apparie_sélecteur_fonction(simple.selector_list, élément);
                 }
 
                 si simple.ident == PROP_is || simple.ident == PROP_where {
-                    retourne apparie_sélecteur_fonction(simple.selector_list, élément)
+                    retourne apparie_sélecteur_fonction(simple.selector_list, élément);
                 }
 
                 si simple.ident == PROP_nth_child {
                     saufsi élément.parent {
-                        retourne faux
+                        retourne faux;
                     }
-                    index_dans_parent := HTML.donne_indice_dans_parent(élément)
-                    retourne apparie_nth_child(simple.nth_child, index_dans_parent)
+                    index_dans_parent := HTML.donne_indice_dans_parent(élément);
+                    retourne apparie_nth_child(simple.nth_child, index_dans_parent);
                 }
 
                 si simple.ident == PROP_nth_of_type {
                     saufsi élément.parent {
-                        retourne faux
+                        retourne faux;
                     }
-                    index_dans_parent := HTML.donne_indice_de_même_type_dans_parent(élément)
-                    retourne apparie_nth_child(simple.nth_child, index_dans_parent)
+                    index_dans_parent := HTML.donne_indice_de_même_type_dans_parent(élément);
+                    retourne apparie_nth_child(simple.nth_child, index_dans_parent);
                 }
 
                 si simple.ident == PROP_nth_last_child {
                     saufsi élément.parent {
-                        retourne faux
+                        retourne faux;
                     }
-                    index_dans_parent := HTML.donne_indice_dans_parent_depuis_la_fin(élément)
-                    retourne apparie_nth_child(simple.nth_child, index_dans_parent)
+                    index_dans_parent := HTML.donne_indice_dans_parent_depuis_la_fin(élément);
+                    retourne apparie_nth_child(simple.nth_child, index_dans_parent);
                 }
 
                 si simple.ident == PROP_nth_last_of_type {
                     saufsi élément.parent {
-                        retourne faux
+                        retourne faux;
                     }
-                    index_dans_parent := HTML.donne_indice_de_même_type_dans_parent_depuis_la_fin(élément)
-                    retourne apparie_nth_child(simple.nth_child, index_dans_parent)
+                    index_dans_parent := HTML.donne_indice_de_même_type_dans_parent_depuis_la_fin(élément);
+                    retourne apparie_nth_child(simple.nth_child, index_dans_parent);
                 }
 
                 si simple.ident == PROP_has {
-                    retourne apparie_selector_has(simple.selector_list, élément)
+                    retourne apparie_selector_has(simple.selector_list, élément);
                 }
 
-                retourne faux
+                retourne faux;
             }
 
-            retourne (élément.pseudo_classes & simple.pseudo_classe) == simple.pseudo_classe
+            retourne (élément.pseudo_classes & simple.pseudo_classe) == simple.pseudo_classe;
         }
         Class {
-            classes_élément := HTML.donne_liste_classe(élément)
+            classes_élément := HTML.donne_liste_classe(élément);
 
             pour classes_élément {
                 si compare_ascii_insensible_à_la_casse(it, simple.ident) {
-                    retourne vrai
+                    retourne vrai;
                 }
             }
 
-            retourne faux
+            retourne faux;
         }
         Type {
-            retourne compare_ascii_insensible_à_la_casse(simple.ident, élément.local_name)
+            retourne compare_ascii_insensible_à_la_casse(simple.ident, élément.local_name);
         }
         PseudoElement {
             si pseudo_element {
-                retourne pseudo_element.ident == simple.ident
+                retourne pseudo_element.ident == simple.ident;
             }
-            retourne faux
+            retourne faux;
         }
         Universal {
-            retourne vrai
+            retourne vrai;
         }
     }
 
-    retourne faux
+    retourne faux;
 }
 
 apparie_nth_child :: fonc (nth_child: SimpleSelector.NthChild, indice: n32) -> bool
 {
     si nth_child.A == 0 {
-        retourne nth_child.B == indice comme z32
+        retourne nth_child.B == indice comme z32;
     }
 
-    n := (indice comme z32 - nth_child.B) / nth_child.A
+    n := (indice comme z32 - nth_child.B) / nth_child.A;
     si n < 0 {
-        retourne faux
+        retourne faux;
     }
 
-    retourne (nth_child.A * n + nth_child.B) == indice comme z32
+    retourne (nth_child.A * n + nth_child.B) == indice comme z32;
 }
 
 apparie_sélecteur_fonction :: fonc (selector_list: &SelectorList, élément: *HTML.Element) -> bool
 {
     pour complex dans selector_list.complex_selectors {
         si apparie_sélecteur(complex.compound_selectors, complex.compound_selectors.taille - 1, élément, nul) {
-            retourne vrai
+            retourne vrai;
         }
     }
 
-    retourne faux
+    retourne faux;
 }
 
 apparie_selector_has :: fonc (selector_list: &SelectorList, élément: *HTML.Element) -> bool
 {
     // À FAIRE : combinateur
 
-    traversée: [..]*HTML.Element
-    diffère déloge(traversée)
+    traversée: [..]*HTML.Element;
+    diffère déloge(traversée);
 
     pour > élément.enfants {
         si HTML.est_élément(it) {
-            tableau_ajoute(*traversée, it comme *HTML.Element)
+            tableau_ajoute(*traversée, it comme *HTML.Element);
         }
     }
 
     tantque traversée {
-        élément = enlève_dernier_élément(*traversée)
+        élément = enlève_dernier_élément(*traversée);
 
         si apparie_sélecteur_fonction(selector_list, élément) {
-            retourne vrai
+            retourne vrai;
         }
 
         pour > élément.enfants {
             si HTML.est_élément(it) {
-                tableau_ajoute(*traversée, it comme *HTML.Element)
+                tableau_ajoute(*traversée, it comme *HTML.Element);
             }
         }
     }
 
-    retourne faux
+    retourne faux;
 }
 
 /* ------------------------------------------------------------------------- */
@@ -400,427 +400,427 @@ apparie_selector_has :: fonc (selector_list: &SelectorList, élément: *HTML.Ele
  * \{ */
 
 PseudoClasses :: énum_drapeau n64 {
-    Active
-    AnyLink
-    Blank
-    Checked
-    Current
-    Default
-    Defined
-    Disabled
-    Drop
-    Empty
-    Enabled
-    First
-    FirstChild
-    FirstOfType
-    Fullscreen
-    Future
-    Focus
-    FocusVisible
-    FocusWithin
-    Host
-    Hover
-    Indeterminate
-    InRange
-    Invalid
-    Is
-    LastChild
-    LastOfType
-    Left
-    Link
-    LocalLink
-    OnlyChild
-    OnlyOfType
-    Optional
-    OutOfRange
-    Past
-    PlaceholderShown
-    ReadOnly
-    ReadWrite
-    Required
-    Right
-    Root
-    Scope
-    Target
-    TargetWithin
-    UserInvalid
-    Valid
-    Visited
-    Playing
-    Paused
-    Seeking
-    Buffering
-    Stalled
-    Muted
-    VolumeLocked
-    PopoverOpen
-    UserValid
-    Autofill
-    Modal
-    Backdrop
+    Active;
+    AnyLink;
+    Blank;
+    Checked;
+    Current;
+    Default;
+    Defined;
+    Disabled;
+    Drop;
+    Empty;
+    Enabled;
+    First;
+    FirstChild;
+    FirstOfType;
+    Fullscreen;
+    Future;
+    Focus;
+    FocusVisible;
+    FocusWithin;
+    Host;
+    Hover;
+    Indeterminate;
+    InRange;
+    Invalid;
+    Is;
+    LastChild;
+    LastOfType;
+    Left;
+    Link;
+    LocalLink;
+    OnlyChild;
+    OnlyOfType;
+    Optional;
+    OutOfRange;
+    Past;
+    PlaceholderShown;
+    ReadOnly;
+    ReadWrite;
+    Required;
+    Right;
+    Root;
+    Scope;
+    Target;
+    TargetWithin;
+    UserInvalid;
+    Valid;
+    Visited;
+    Playing;
+    Paused;
+    Seeking;
+    Buffering;
+    Stalled;
+    Muted;
+    VolumeLocked;
+    PopoverOpen;
+    UserValid;
+    Autofill;
+    Modal;
+    Backdrop;
 }
 
 donne_pseudo_classe_pour_nom :: fonc (nom: CSSOMString) -> Optionnel(PseudoClasses)
 {
     si compare_ascii_insensible_à_la_casse(nom, PC_active) {
-        retourne PseudoClasses.Active
+        retourne PseudoClasses.Active;
     }
     si compare_ascii_insensible_à_la_casse(nom, PC_any_link) {
-        retourne PseudoClasses.AnyLink
+        retourne PseudoClasses.AnyLink;
     }
     si compare_ascii_insensible_à_la_casse(nom, PC_blank) {
-        retourne PseudoClasses.Blank
+        retourne PseudoClasses.Blank;
     }
     si compare_ascii_insensible_à_la_casse(nom, PC_checked) {
-        retourne PseudoClasses.Checked
+        retourne PseudoClasses.Checked;
     }
     si compare_ascii_insensible_à_la_casse(nom, PC_current) {
-        retourne PseudoClasses.Current
+        retourne PseudoClasses.Current;
     }
     si compare_ascii_insensible_à_la_casse(nom, PC_default) {
-        retourne PseudoClasses.Default
+        retourne PseudoClasses.Default;
     }
     si compare_ascii_insensible_à_la_casse(nom, PC_defined) {
-        retourne PseudoClasses.Defined
+        retourne PseudoClasses.Defined;
     }
     si compare_ascii_insensible_à_la_casse(nom, PC_disabled) {
-        retourne PseudoClasses.Disabled
+        retourne PseudoClasses.Disabled;
     }
     si compare_ascii_insensible_à_la_casse(nom, PC_drop) {
-        retourne PseudoClasses.Drop
+        retourne PseudoClasses.Drop;
     }
     si compare_ascii_insensible_à_la_casse(nom, PC_empty) {
-        retourne PseudoClasses.Empty
+        retourne PseudoClasses.Empty;
     }
     si compare_ascii_insensible_à_la_casse(nom, PC_enabled) {
-        retourne PseudoClasses.Enabled
+        retourne PseudoClasses.Enabled;
     }
     si compare_ascii_insensible_à_la_casse(nom, PC_first) {
-        retourne PseudoClasses.First
+        retourne PseudoClasses.First;
     }
     si compare_ascii_insensible_à_la_casse(nom, PC_first_child) {
-        retourne PseudoClasses.FirstChild
+        retourne PseudoClasses.FirstChild;
     }
     si compare_ascii_insensible_à_la_casse(nom, PC_first_of_type) {
-        retourne PseudoClasses.FirstOfType
+        retourne PseudoClasses.FirstOfType;
     }
     si compare_ascii_insensible_à_la_casse(nom, PC_fullscreen) {
-        retourne PseudoClasses.Fullscreen
+        retourne PseudoClasses.Fullscreen;
     }
     si compare_ascii_insensible_à_la_casse(nom, PC_future) {
-        retourne PseudoClasses.Future
+        retourne PseudoClasses.Future;
     }
     si compare_ascii_insensible_à_la_casse(nom, PC_focus) {
-        retourne PseudoClasses.Focus
+        retourne PseudoClasses.Focus;
     }
     si compare_ascii_insensible_à_la_casse(nom, PC_focus_visible) {
-        retourne PseudoClasses.FocusVisible
+        retourne PseudoClasses.FocusVisible;
     }
     si compare_ascii_insensible_à_la_casse(nom, PC_focus_within) {
-        retourne PseudoClasses.FocusWithin
+        retourne PseudoClasses.FocusWithin;
     }
     si compare_ascii_insensible_à_la_casse(nom, PC_host) {
-        retourne PseudoClasses.Host
+        retourne PseudoClasses.Host;
     }
     si compare_ascii_insensible_à_la_casse(nom, PC_hover) {
-        retourne PseudoClasses.Hover
+        retourne PseudoClasses.Hover;
     }
     si compare_ascii_insensible_à_la_casse(nom, PC_indeterminate) {
-        retourne PseudoClasses.Indeterminate
+        retourne PseudoClasses.Indeterminate;
     }
     si compare_ascii_insensible_à_la_casse(nom, PC_in_range) {
-        retourne PseudoClasses.InRange
+        retourne PseudoClasses.InRange;
     }
     si compare_ascii_insensible_à_la_casse(nom, PC_invalid) {
-        retourne PseudoClasses.Invalid
+        retourne PseudoClasses.Invalid;
     }
     si compare_ascii_insensible_à_la_casse(nom, PC_is) {
-        retourne PseudoClasses.Is
+        retourne PseudoClasses.Is;
     }
     si compare_ascii_insensible_à_la_casse(nom, PC_last_child) {
-        retourne PseudoClasses.LastChild
+        retourne PseudoClasses.LastChild;
     }
     si compare_ascii_insensible_à_la_casse(nom, PC_last_of_type) {
-        retourne PseudoClasses.LastOfType
+        retourne PseudoClasses.LastOfType;
     }
     si compare_ascii_insensible_à_la_casse(nom, PC_left) {
-        retourne PseudoClasses.Left
+        retourne PseudoClasses.Left;
     }
     si compare_ascii_insensible_à_la_casse(nom, PC_link) {
-        retourne PseudoClasses.Link
+        retourne PseudoClasses.Link;
     }
     si compare_ascii_insensible_à_la_casse(nom, PC_local_link) {
-        retourne PseudoClasses.LocalLink
+        retourne PseudoClasses.LocalLink;
     }
     si compare_ascii_insensible_à_la_casse(nom, PC_only_child) {
-        retourne PseudoClasses.OnlyChild
+        retourne PseudoClasses.OnlyChild;
     }
     si compare_ascii_insensible_à_la_casse(nom, PC_only_of_type) {
-        retourne PseudoClasses.OnlyOfType
+        retourne PseudoClasses.OnlyOfType;
     }
     si compare_ascii_insensible_à_la_casse(nom, PC_optional) {
-        retourne PseudoClasses.Optional
+        retourne PseudoClasses.Optional;
     }
     si compare_ascii_insensible_à_la_casse(nom, PC_out_of_range) {
-        retourne PseudoClasses.OutOfRange
+        retourne PseudoClasses.OutOfRange;
     }
     si compare_ascii_insensible_à_la_casse(nom, PC_past) {
-        retourne PseudoClasses.Past
+        retourne PseudoClasses.Past;
     }
     si compare_ascii_insensible_à_la_casse(nom, PC_placeholder_shown) {
-        retourne PseudoClasses.PlaceholderShown
+        retourne PseudoClasses.PlaceholderShown;
     }
     si compare_ascii_insensible_à_la_casse(nom, PC_read_only) {
-        retourne PseudoClasses.ReadOnly
+        retourne PseudoClasses.ReadOnly;
     }
     si compare_ascii_insensible_à_la_casse(nom, PC_read_write) {
-        retourne PseudoClasses.ReadWrite
+        retourne PseudoClasses.ReadWrite;
     }
     si compare_ascii_insensible_à_la_casse(nom, PC_required) {
-        retourne PseudoClasses.Required
+        retourne PseudoClasses.Required;
     }
     si compare_ascii_insensible_à_la_casse(nom, PC_right) {
-        retourne PseudoClasses.Right
+        retourne PseudoClasses.Right;
     }
     si compare_ascii_insensible_à_la_casse(nom, PC_root) {
-        retourne PseudoClasses.Root
+        retourne PseudoClasses.Root;
     }
     si compare_ascii_insensible_à_la_casse(nom, PC_scope) {
-        retourne PseudoClasses.Scope
+        retourne PseudoClasses.Scope;
     }
     si compare_ascii_insensible_à_la_casse(nom, PC_target) {
-        retourne PseudoClasses.Target
+        retourne PseudoClasses.Target;
     }
     si compare_ascii_insensible_à_la_casse(nom, PC_target_within) {
-        retourne PseudoClasses.TargetWithin
+        retourne PseudoClasses.TargetWithin;
     }
     si compare_ascii_insensible_à_la_casse(nom, PC_user_invalid) {
-        retourne PseudoClasses.UserInvalid
+        retourne PseudoClasses.UserInvalid;
     }
     si compare_ascii_insensible_à_la_casse(nom, PC_valid) {
-        retourne PseudoClasses.Valid
+        retourne PseudoClasses.Valid;
     }
     si compare_ascii_insensible_à_la_casse(nom, PC_visited) {
-        retourne PseudoClasses.Visited
+        retourne PseudoClasses.Visited;
     }
     si compare_ascii_insensible_à_la_casse(nom, PC_playing) {
-        retourne PseudoClasses.Playing
+        retourne PseudoClasses.Playing;
     }
     si compare_ascii_insensible_à_la_casse(nom, PC_paused) {
-        retourne PseudoClasses.Paused
+        retourne PseudoClasses.Paused;
     }
     si compare_ascii_insensible_à_la_casse(nom, PC_seeking) {
-        retourne PseudoClasses.Seeking
+        retourne PseudoClasses.Seeking;
     }
     si compare_ascii_insensible_à_la_casse(nom, PC_buffering) {
-        retourne PseudoClasses.Buffering
+        retourne PseudoClasses.Buffering;
     }
     si compare_ascii_insensible_à_la_casse(nom, PC_stalled) {
-        retourne PseudoClasses.Stalled
+        retourne PseudoClasses.Stalled;
     }
     si compare_ascii_insensible_à_la_casse(nom, PC_muted) {
-        retourne PseudoClasses.Muted
+        retourne PseudoClasses.Muted;
     }
     si compare_ascii_insensible_à_la_casse(nom, PC_volume_locked) {
-        retourne PseudoClasses.VolumeLocked
+        retourne PseudoClasses.VolumeLocked;
     }
     si compare_ascii_insensible_à_la_casse(nom, PC_popover_open) {
-        retourne PseudoClasses.PopoverOpen
+        retourne PseudoClasses.PopoverOpen;
     }
     si compare_ascii_insensible_à_la_casse(nom, PC_user_valid) {
-        retourne PseudoClasses.UserValid
+        retourne PseudoClasses.UserValid;
     }
     si compare_ascii_insensible_à_la_casse(nom, PC_autofill) {
-        retourne PseudoClasses.Autofill
+        retourne PseudoClasses.Autofill;
     }
     si compare_ascii_insensible_à_la_casse(nom, PC_modal) {
-        retourne PseudoClasses.Modal
+        retourne PseudoClasses.Modal;
     }
     si compare_ascii_insensible_à_la_casse(nom, PC_backdrop) {
-        retourne PseudoClasses.Backdrop
+        retourne PseudoClasses.Backdrop;
     }
 
-    imprime("[%] pseudo classe inconnue : %\n", #nom_de_cette_fonction, nom)
+    imprime("[%] pseudo classe inconnue : %\n", #nom_de_cette_fonction, nom);
 }
 
 donne_chaine_pour_pseudo_classe :: fonc (pseudo_classe: PseudoClasses) -> CSSOMString
 {
     si pseudo_classe == PseudoClasses.Active {
-        retourne PC_active
+        retourne PC_active;
     }
     si pseudo_classe == PseudoClasses.AnyLink {
-        retourne PC_any_link
+        retourne PC_any_link;
     }
     si pseudo_classe == PseudoClasses.Blank {
-        retourne PC_blank
+        retourne PC_blank;
     }
     si pseudo_classe == PseudoClasses.Checked {
-        retourne PC_checked
+        retourne PC_checked;
     }
     si pseudo_classe == PseudoClasses.Current {
-        retourne PC_current
+        retourne PC_current;
     }
     si pseudo_classe == PseudoClasses.Default {
-        retourne PC_default
+        retourne PC_default;
     }
     si pseudo_classe == PseudoClasses.Defined {
-        retourne PC_defined
+        retourne PC_defined;
     }
     si pseudo_classe == PseudoClasses.Disabled {
-        retourne PC_disabled
+        retourne PC_disabled;
     }
     si pseudo_classe == PseudoClasses.Drop {
-        retourne PC_drop
+        retourne PC_drop;
     }
     si pseudo_classe == PseudoClasses.Empty {
-        retourne PC_empty
+        retourne PC_empty;
     }
     si pseudo_classe == PseudoClasses.Enabled {
-        retourne PC_enabled
+        retourne PC_enabled;
     }
     si pseudo_classe == PseudoClasses.First {
-        retourne PC_first
+        retourne PC_first;
     }
     si pseudo_classe == PseudoClasses.FirstChild {
-        retourne PC_first_child
+        retourne PC_first_child;
     }
     si pseudo_classe == PseudoClasses.FirstOfType {
-        retourne PC_first_of_type
+        retourne PC_first_of_type;
     }
     si pseudo_classe == PseudoClasses.Fullscreen {
-        retourne PC_fullscreen
+        retourne PC_fullscreen;
     }
     si pseudo_classe == PseudoClasses.Future {
-        retourne PC_future
+        retourne PC_future;
     }
     si pseudo_classe == PseudoClasses.Focus {
-        retourne PC_focus
+        retourne PC_focus;
     }
     si pseudo_classe == PseudoClasses.FocusVisible {
-        retourne PC_focus_visible
+        retourne PC_focus_visible;
     }
     si pseudo_classe == PseudoClasses.FocusWithin {
-        retourne PC_focus_within
+        retourne PC_focus_within;
     }
     si pseudo_classe == PseudoClasses.Host {
-        retourne PC_host
+        retourne PC_host;
     }
     si pseudo_classe == PseudoClasses.Hover {
-        retourne PC_hover
+        retourne PC_hover;
     }
     si pseudo_classe == PseudoClasses.Indeterminate {
-        retourne PC_indeterminate
+        retourne PC_indeterminate;
     }
     si pseudo_classe == PseudoClasses.InRange {
-        retourne PC_in_range
+        retourne PC_in_range;
     }
     si pseudo_classe == PseudoClasses.Invalid {
-        retourne PC_invalid
+        retourne PC_invalid;
     }
     si pseudo_classe == PseudoClasses.Is {
-        retourne PC_is
+        retourne PC_is;
     }
     si pseudo_classe == PseudoClasses.LastChild {
-        retourne PC_last_child
+        retourne PC_last_child;
     }
     si pseudo_classe == PseudoClasses.LastOfType {
-        retourne PC_last_of_type
+        retourne PC_last_of_type;
     }
     si pseudo_classe == PseudoClasses.Left {
-        retourne PC_left
+        retourne PC_left;
     }
     si pseudo_classe == PseudoClasses.Link {
-        retourne PC_link
+        retourne PC_link;
     }
     si pseudo_classe == PseudoClasses.LocalLink {
-        retourne PC_local_link
+        retourne PC_local_link;
     }
     si pseudo_classe == PseudoClasses.OnlyChild {
-        retourne PC_only_child
+        retourne PC_only_child;
     }
     si pseudo_classe == PseudoClasses.OnlyOfType {
-        retourne PC_only_of_type
+        retourne PC_only_of_type;
     }
     si pseudo_classe == PseudoClasses.Optional {
-        retourne PC_optional
+        retourne PC_optional;
     }
     si pseudo_classe == PseudoClasses.OutOfRange {
-        retourne PC_out_of_range
+        retourne PC_out_of_range;
     }
     si pseudo_classe == PseudoClasses.Past {
-        retourne PC_past
+        retourne PC_past;
     }
     si pseudo_classe == PseudoClasses.PlaceholderShown {
-        retourne PC_placeholder_shown
+        retourne PC_placeholder_shown;
     }
     si pseudo_classe == PseudoClasses.ReadOnly {
-        retourne PC_read_only
+        retourne PC_read_only;
     }
     si pseudo_classe == PseudoClasses.ReadWrite {
-        retourne PC_read_write
+        retourne PC_read_write;
     }
     si pseudo_classe == PseudoClasses.Required {
-        retourne PC_required
+        retourne PC_required;
     }
     si pseudo_classe == PseudoClasses.Right {
-        retourne PC_right
+        retourne PC_right;
     }
     si pseudo_classe == PseudoClasses.Root {
-        retourne PC_root
+        retourne PC_root;
     }
     si pseudo_classe == PseudoClasses.Scope {
-        retourne PC_scope
+        retourne PC_scope;
     }
     si pseudo_classe == PseudoClasses.Target {
-        retourne PC_target
+        retourne PC_target;
     }
     si pseudo_classe == PseudoClasses.TargetWithin {
-        retourne PC_target_within
+        retourne PC_target_within;
     }
     si pseudo_classe == PseudoClasses.UserInvalid {
-        retourne PC_user_invalid
+        retourne PC_user_invalid;
     }
     si pseudo_classe == PseudoClasses.Valid {
-        retourne PC_valid
+        retourne PC_valid;
     }
     si pseudo_classe == PseudoClasses.Visited {
-        retourne PC_visited
+        retourne PC_visited;
     }
     si pseudo_classe == PseudoClasses.Playing {
-        retourne PC_playing
+        retourne PC_playing;
     }
     si pseudo_classe == PseudoClasses.Paused {
-        retourne PC_paused
+        retourne PC_paused;
     }
     si pseudo_classe == PseudoClasses.Seeking {
-        retourne PC_seeking
+        retourne PC_seeking;
     }
     si pseudo_classe == PseudoClasses.Buffering {
-        retourne PC_buffering
+        retourne PC_buffering;
     }
     si pseudo_classe == PseudoClasses.Stalled {
-        retourne PC_stalled
+        retourne PC_stalled;
     }
     si pseudo_classe == PseudoClasses.Muted {
-        retourne PC_muted
+        retourne PC_muted;
     }
     si pseudo_classe == PseudoClasses.VolumeLocked {
-        retourne PC_volume_locked
+        retourne PC_volume_locked;
     }
     si pseudo_classe == PseudoClasses.PopoverOpen {
-        retourne PC_popover_open
+        retourne PC_popover_open;
     }
     si pseudo_classe == PseudoClasses.UserValid {
-        retourne PC_user_valid
+        retourne PC_user_valid;
     }
     si pseudo_classe == PseudoClasses.Autofill {
-        retourne PC_autofill
+        retourne PC_autofill;
     }
     si pseudo_classe == PseudoClasses.Modal {
-        retourne PC_modal
+        retourne PC_modal;
     }
-    retourne crée_chaine_utf16_unique("pseudo classe inconnue")
+    retourne crée_chaine_utf16_unique("pseudo classe inconnue");
 }
 
 /** \} */
@@ -832,7 +832,7 @@ donne_chaine_pour_pseudo_classe :: fonc (pseudo_classe: PseudoClasses) -> CSSOMS
  * \{ */
 
 PseudoElement :: struct {
-    ident: CSSOMString
+    ident: CSSOMString;
 }
 
 /** \} */
@@ -844,155 +844,155 @@ PseudoElement :: struct {
 
 /* https://www.w3.org/TR/selectors-4/#specificity-rules */
 Spécificité :: struct {
-    A: n32
-    B: n32
-    C: n32
+    A: n32;
+    B: n32;
+    C: n32;
 }
 
 donne_spécificité_max :: fonc () -> Spécificité
 {
-    retourne Spécificité(0xfffffff, 0xffffffff, 0xfffffffff)
+    retourne Spécificité(0xfffffff, 0xffffffff, 0xfffffffff);
 }
 
 opérateur == :: (s1: Spécificité, s2: Spécificité) -> bool
 {
-    retourne s1.A == s2.A && s1.B == s2.B && s1.C == s2.C
+    retourne s1.A == s2.A && s1.B == s2.B && s1.C == s2.C;
 }
 
 opérateur < :: (s1: Spécificité, s2: Spécificité) -> bool
 {
     si s1.A < s2.A {
-        retourne vrai
+        retourne vrai;
     }
     si s1.A > s2.A {
-        retourne faux
+        retourne faux;
     }
 
     si s1.B < s2.B {
-        retourne vrai
+        retourne vrai;
     }
     si s1.B > s2.B {
-        retourne faux
+        retourne faux;
     }
 
-    retourne s1.C < s2.C
+    retourne s1.C < s2.C;
 }
 
 opérateur > :: (s1: Spécificité, s2: Spécificité) -> bool
 {
     si s1.A > s2.A {
-        retourne vrai
+        retourne vrai;
     }
     si s1.A < s2.A {
-        retourne faux
+        retourne faux;
     }
 
     si s1.B > s2.B {
-        retourne vrai
+        retourne vrai;
     }
     si s1.B < s2.B {
-        retourne faux
+        retourne faux;
     }
 
-    retourne s1.C > s2.C
+    retourne s1.C > s2.C;
 }
 
 SelectorList :: struct {
-    complex_selectors: [..]ComplexSelector
+    complex_selectors: [..]ComplexSelector;
     /* Pour :has(). */
-    combinateur: Combinator
+    combinateur: Combinator;
 }
 
 détruit_données_selector_list :: fonc (selector: *SelectorList)
 {
     pour * selector.complex_selectors {
-        détruit_données_complex_selector(it)
+        détruit_données_complex_selector(it);
     }
 
-    déloge(selector.complex_selectors)
+    déloge(selector.complex_selectors);
 }
 
 calcule_spécificité :: fonc (selector: *SelectorList) -> Spécificité
 {
-    résultat: Spécificité
+    résultat: Spécificité;
 
     pour * selector.complex_selectors {
-        spécificité := calcule_spécificité(it)
+        spécificité := calcule_spécificité(it);
         si spécificité > résultat {
-            résultat = spécificité
+            résultat = spécificité;
         }
     }
 
-    retourne résultat
+    retourne résultat;
 }
 
 imprime_selector_list :: fonc (enchaineuse: *Enchaineuse, selector_list: *SelectorList)
 {
     saufsi selector_list {
-        retourne
+        retourne;
     }
 
     pour * selector_list.complex_selectors {
         si indice_it > 0 {
-            ajoute_au_tampon(enchaineuse, ", ")
+            ajoute_au_tampon(enchaineuse, ", ");
         }
 
-        imprime_complex_selector(enchaineuse, it)
+        imprime_complex_selector(enchaineuse, it);
     }
 } @FormattageImpression
 
 ComplexSelector :: struct {
-    compound_selectors: [..]CompoundSelector
+    compound_selectors: [..]CompoundSelector;
 }
 
 détruit_données_complex_selector :: fonc (selector: *ComplexSelector)
 {
     pour * selector.compound_selectors {
-        détruit_données_compound_selector(it)
+        détruit_données_compound_selector(it);
     }
 
-    déloge(selector.compound_selectors)
+    déloge(selector.compound_selectors);
 }
 
 calcule_spécificité :: fonc (selector: *ComplexSelector) -> Spécificité
 {
-    résultat: Spécificité
+    résultat: Spécificité;
 
     pour * selector.compound_selectors {
-        calcule_spécificité(it, *résultat)
+        calcule_spécificité(it, *résultat);
     }
 
-    retourne résultat
+    retourne résultat;
 }
 
 imprime_complex_selector :: fonc (enchaineuse: *Enchaineuse, complex_selectors: *ComplexSelector)
 {
     saufsi complex_selectors {
-        retourne
+        retourne;
     }
 
     pour * complex_selectors.compound_selectors {
         si indice_it > 0 {
             discr it.combinateur {
                 DESCENDANT {
-                    ajoute_au_tampon(enchaineuse, " ")
+                    ajoute_au_tampon(enchaineuse, " ");
                 }
                 NEXT_SIBLING {
-                    ajoute_au_tampon(enchaineuse, " + ")
+                    ajoute_au_tampon(enchaineuse, " + ");
                 }
                 CHILD {
-                    ajoute_au_tampon(enchaineuse, " > ")
+                    ajoute_au_tampon(enchaineuse, " > ");
                 }
                 SUBSEQUENT_SIBLING {
-                    ajoute_au_tampon(enchaineuse, " ~ ")
+                    ajoute_au_tampon(enchaineuse, " ~ ");
                 }
                 COLUMN {
-                    ajoute_au_tampon(enchaineuse, " || ")
+                    ajoute_au_tampon(enchaineuse, " || ");
                 }
             }
         }
 
-        imprime_compound_selector(enchaineuse, it)
+        imprime_compound_selector(enchaineuse, it);
     }
 } @FormattageImpression
 
@@ -1005,46 +1005,46 @@ Combinator :: énum {
 }
 
 CompoundSelector :: struct {
-    simple_selectors: [..]SimpleSelector
-    combinateur: Combinator
+    simple_selectors: [..]SimpleSelector;
+    combinateur: Combinator;
 }
 
 calcule_spécificité :: fonc (selector: *CompoundSelector, spécificité: *Spécificité)
 {
     pour * selector.simple_selectors {
-        calcule_spécificité(it, spécificité)
+        calcule_spécificité(it, spécificité);
     }
 }
 
 détruit_données_compound_selector :: fonc (selector: *CompoundSelector)
 {
     pour * selector.simple_selectors {
-        détruit_données_simple_selector(it)
+        détruit_données_simple_selector(it);
     }
 
-    déloge(selector.simple_selectors)
+    déloge(selector.simple_selectors);
 }
 
 imprime_compound_selector :: fonc (enchaineuse: *Enchaineuse, compound_selectors: *CompoundSelector)
 {
     saufsi compound_selectors {
-        retourne
+        retourne;
     }
 
     pour * compound_selectors.simple_selectors {
-        imprime_simple_selector(enchaineuse, it)
+        imprime_simple_selector(enchaineuse, it);
     }
 } @FormattageImpression
 
 SimpleSelector :: struct {
     Type :: énum {
-        Type
-        Universal
-        ID
-        Class
-        Attrib
-        PseudoElement
-        PseudoClass
+        Type;
+        Universal;
+        ID;
+        Class;
+        Attrib;
+        PseudoElement;
+        PseudoClass;
     }
 
     AttributeMatcher :: énum {
@@ -1057,43 +1057,43 @@ SimpleSelector :: struct {
     }
 
     AttributeModifier :: énum {
-        I
-        S
+        I;
+        S;
     }
 
     /* Données pour :nth-child(An + B) et :nth-of-type(An + B). */
     NthChild :: struct {
-        A: z32
-        B: z32
+        A: z32;
+        B: z32;
     }
 
-    type: Type
-    namespace_prefix := crée_chaine_utf16_unique_vide()
-    ident := crée_chaine_utf16_unique_vide()
+    type: Type;
+    namespace_prefix := crée_chaine_utf16_unique_vide();
+    ident := crée_chaine_utf16_unique_vide();
 
     /* Pour Attrib. */
-    matcher: Optionnel(AttributeMatcher)
+    matcher: Optionnel(AttributeMatcher);
     /* Valeur pour AttributeMatcher. */
-    attribute_value := crée_chaine_utf16_unique_vide()
-    attribute_modifier: Optionnel(AttributeModifier)
+    attribute_value := crée_chaine_utf16_unique_vide();
+    attribute_modifier: Optionnel(AttributeModifier);
 
     /* Pour les pseudos-classes non-fonctionnelles.
      * Ne doit pas avoir plus que 1 bit actif. */
-    pseudo_classe: PseudoClasses
+    pseudo_classe: PseudoClasses;
 
     /* Pour les pseudos-classes fonctionnelles. */
-    est_fonction: bool
-    selector_list: SelectorList
+    est_fonction: bool;
+    selector_list: SelectorList;
 
     /* Pour :dir. */
-    arg := crée_chaine_utf16_unique_vide()
+    arg := crée_chaine_utf16_unique_vide();
 
-    nth_child: NthChild
+    nth_child: NthChild;
 }
 
 détruit_données_simple_selector :: fonc (selector: *SimpleSelector)
 {
-    détruit_données_selector_list(*selector.selector_list)
+    détruit_données_selector_list(*selector.selector_list);
 }
 
 calcule_spécificité :: fonc (selector: *SimpleSelector, spécificité: *Spécificité)
@@ -1103,19 +1103,19 @@ calcule_spécificité :: fonc (selector: *SimpleSelector, spécificité: *Spéci
             /* Ignore */
         }
         ID {
-            spécificité.A += 1
+            spécificité.A += 1;
         }
         Class,
         Attrib,
         PseudoClass {
             saufsi selector.est_fonction {
-                spécificité.B += 1
-                retourne
+                spécificité.B += 1;
+                retourne;
             }
 
             si selector.ident == PROP_where {
                 /* The specificity of a :where() pseudo-class is replaced by zero. */
-                retourne
+                retourne;
             }
 
             si selector.ident == PROP_is || selector.ident == PROP_not {
@@ -1123,16 +1123,16 @@ calcule_spécificité :: fonc (selector: *SimpleSelector, spécificité: *Spéci
                  * replaced by the specificity of the most specific complex
                  * selector in its selector list argument.
                  * À FAIRE : ":has" */
-                spécifissime := calcule_spécificité(*selector.selector_list)
-                spécificité.A += spécifissime.A
-                spécificité.B += spécifissime.B
-                spécificité.C += spécifissime.C
-                retourne
+                spécifissime := calcule_spécificité(*selector.selector_list);
+                spécificité.A += spécifissime.A;
+                spécificité.B += spécifissime.B;
+                spécificité.C += spécifissime.C;
+                retourne;
             }
         }
         Type,
         PseudoElement {
-            spécificité.C += 1
+            spécificité.C += 1;
         }
     }
 }
@@ -1140,184 +1140,184 @@ calcule_spécificité :: fonc (selector: *SimpleSelector, spécificité: *Spéci
 imprime_simple_selector :: fonc (enchaineuse: *Enchaineuse, selector: *SimpleSelector)
 {
     saufsi selector {
-        ajoute_au_tampon(enchaineuse, "nul")
-        retourne
+        ajoute_au_tampon(enchaineuse, "nul");
+        retourne;
     }
 
     // ajoute_au_tampon(enchaineuse, selector.type, " : ")
     discr selector.type {
         Type {
             saufsi selector.namespace_prefix.est_vide() {
-                ajoute_au_tampon(enchaineuse, selector.namespace_prefix, "|")
+                ajoute_au_tampon(enchaineuse, selector.namespace_prefix, "|");
             }
-            ajoute_au_tampon(enchaineuse, selector.ident)
+            ajoute_au_tampon(enchaineuse, selector.ident);
         }
         Universal {
             saufsi selector.namespace_prefix.est_vide() {
-                ajoute_au_tampon(enchaineuse, selector.namespace_prefix, "|")
+                ajoute_au_tampon(enchaineuse, selector.namespace_prefix, "|");
             }
-            ajoute_au_tampon(enchaineuse, "*")
+            ajoute_au_tampon(enchaineuse, "*");
         }
         PseudoClass {
             saufsi selector.est_fonction {
-                ajoute_au_tampon(enchaineuse, ":", donne_chaine_pour_pseudo_classe(selector.pseudo_classe))
+                ajoute_au_tampon(enchaineuse, ":", donne_chaine_pour_pseudo_classe(selector.pseudo_classe));
             }
             sinon {
-                ajoute_au_tampon(enchaineuse, ":", selector.ident, "(")
+                ajoute_au_tampon(enchaineuse, ":", selector.ident, "(");
 
                 si selector.ident == PROP_dir {
-                    ajoute_au_tampon(enchaineuse, selector.arg)
+                    ajoute_au_tampon(enchaineuse, selector.arg);
                 }
                 sinon si selector.ident == PROP_nth_child || selector.ident == PROP_nth_of_type || selector.ident == PROP_nth_last_child || selector.ident == PROP_nth_last_of_type {
-                    nth_child := selector.nth_child
+                    nth_child := selector.nth_child;
                     si nth_child.A != 0 {
-                        imprime_dans_enchaineuse(enchaineuse, "%n", nth_child.A)
+                        imprime_dans_enchaineuse(enchaineuse, "%n", nth_child.A);
                     }
 
                     si nth_child.B < 0 {
-                        imprime_dans_enchaineuse(enchaineuse, " - %", -nth_child.B)
+                        imprime_dans_enchaineuse(enchaineuse, " - %", -nth_child.B);
                     }
                     sinon si nth_child.B > 0 {
-                        imprime_dans_enchaineuse(enchaineuse, " + %", nth_child.B)
+                        imprime_dans_enchaineuse(enchaineuse, " + %", nth_child.B);
                     }
                     sinon {
-                        imprime_dans_enchaineuse(enchaineuse, "%", nth_child.B)
+                        imprime_dans_enchaineuse(enchaineuse, "%", nth_child.B);
                     }
                 }
                 sinon {
-                    imprime_selector_list(enchaineuse, *selector.selector_list)
+                    imprime_selector_list(enchaineuse, *selector.selector_list);
                 }
 
-                ajoute_au_tampon(enchaineuse, ")")
-                retourne
+                ajoute_au_tampon(enchaineuse, ")");
+                retourne;
             }
         }
         PseudoElement {
-            ajoute_au_tampon(enchaineuse, "::", selector.ident)
+            ajoute_au_tampon(enchaineuse, "::", selector.ident);
         }
         ID {
-            ajoute_au_tampon(enchaineuse, "#", selector.ident)
+            ajoute_au_tampon(enchaineuse, "#", selector.ident);
         }
         Class {
-            ajoute_au_tampon(enchaineuse, ".", selector.ident)
+            ajoute_au_tampon(enchaineuse, ".", selector.ident);
         }
         Attrib {
-            ajoute_au_tampon(enchaineuse, "[", selector.ident)
+            ajoute_au_tampon(enchaineuse, "[", selector.ident);
 
             si selector.matcher.possède_valeur() {
-                matcher := selector.matcher.Quelque
+                matcher := selector.matcher.Quelque;
 
                 discr matcher {
                     EST_ÉGAL {
-                        ajoute_au_tampon(enchaineuse, "=")
+                        ajoute_au_tampon(enchaineuse, "=");
                     }
                     INCLUS {
-                        ajoute_au_tampon(enchaineuse, "~=")
+                        ajoute_au_tampon(enchaineuse, "~=");
                     }
                     DASHMATCH {
-                        ajoute_au_tampon(enchaineuse, "|=")
+                        ajoute_au_tampon(enchaineuse, "|=");
                     }
                     PREFIXMATCH {
-                        ajoute_au_tampon(enchaineuse, "^=")
+                        ajoute_au_tampon(enchaineuse, "^=");
                     }
                     SUFFIXMATCH {
-                        ajoute_au_tampon(enchaineuse, "$=")
+                        ajoute_au_tampon(enchaineuse, "$=");
                     }
                     SUBSTRINGMATCH {
-                        ajoute_au_tampon(enchaineuse, "*=")
+                        ajoute_au_tampon(enchaineuse, "*=");
                     }
                 }
 
-                ajoute_au_tampon(enchaineuse, selector.attribute_value)
+                ajoute_au_tampon(enchaineuse, selector.attribute_value);
 
                 si selector.attribute_modifier.possède_valeur() {
-                    modifier := selector.attribute_modifier.Quelque
+                    modifier := selector.attribute_modifier.Quelque;
 
                     si modifier == SimpleSelector.AttributeModifier.I {
-                        ajoute_au_tampon(enchaineuse, " i")
+                        ajoute_au_tampon(enchaineuse, " i");
                     }
                     sinon {
-                        ajoute_au_tampon(enchaineuse, " s")
+                        ajoute_au_tampon(enchaineuse, " s");
                     }
                 }
             }
-            ajoute_au_tampon(enchaineuse, "]")
+            ajoute_au_tampon(enchaineuse, "]");
         }
         sinon {
-            ajoute_au_tampon(enchaineuse, "IMPRESSION À FAIRE")
+            ajoute_au_tampon(enchaineuse, "IMPRESSION À FAIRE");
         }
     }
 } @FormattageImpression
 
 crée_type_selector :: fonc (namespace_prefix: CSSOMString, ident: CSSOMString) -> SimpleSelector
 {
-    retourne SimpleSelector(SimpleSelector.Type.Type, namespace_prefix, ident)
+    retourne SimpleSelector(SimpleSelector.Type.Type, namespace_prefix, ident);
 }
 
 crée_universal_selector :: fonc (namespace_prefix: CSSOMString) -> SimpleSelector
 {
-    retourne SimpleSelector(SimpleSelector.Type.Universal, namespace_prefix)
+    retourne SimpleSelector(SimpleSelector.Type.Universal, namespace_prefix);
 }
 
 crée_id_selector :: fonc (ident: CSSOMString) -> SimpleSelector
 {
-    retourne SimpleSelector(SimpleSelector.Type.ID, crée_chaine_utf16_unique_vide(), ident)
+    retourne SimpleSelector(SimpleSelector.Type.ID, crée_chaine_utf16_unique_vide(), ident);
 }
 
 crée_class_selector :: fonc (ident: CSSOMString) -> SimpleSelector
 {
-    retourne SimpleSelector(SimpleSelector.Type.Class, crée_chaine_utf16_unique_vide(), ident)
+    retourne SimpleSelector(SimpleSelector.Type.Class, crée_chaine_utf16_unique_vide(), ident);
 }
 
 crée_attribute_selector :: fonc (namespace_prefix: CSSOMString, ident: CSSOMString) -> SimpleSelector
 {
-    retourne SimpleSelector(SimpleSelector.Type.Attrib, namespace_prefix, ident)
+    retourne SimpleSelector(SimpleSelector.Type.Attrib, namespace_prefix, ident);
 }
 
 crée_attribute_selector :: fonc (namespace_prefix: CSSOMString, ident: CSSOMString, matcher: SimpleSelector.AttributeMatcher, value: CSSOMString, modifier: Optionnel(SimpleSelector.AttributeModifier)) -> SimpleSelector
 {
-    retourne SimpleSelector(SimpleSelector.Type.Attrib, namespace_prefix, ident, matcher, value, modifier)
+    retourne SimpleSelector(SimpleSelector.Type.Attrib, namespace_prefix, ident, matcher, value, modifier);
 }
 
 crée_pseudo_class_selector :: fonc (pseudo_classe: PseudoClasses) -> SimpleSelector
 {
-    retourne SimpleSelector(SimpleSelector.Type.PseudoClass, crée_chaine_utf16_unique_vide(), pseudo_classe = pseudo_classe)
+    retourne SimpleSelector(SimpleSelector.Type.PseudoClass, crée_chaine_utf16_unique_vide(), pseudo_classe = pseudo_classe);
 }
 
 crée_pseudo_element_selector :: fonc (ident: CSSOMString) -> SimpleSelector
 {
-    retourne SimpleSelector(SimpleSelector.Type.PseudoElement, crée_chaine_utf16_unique_vide(), ident)
+    retourne SimpleSelector(SimpleSelector.Type.PseudoElement, crée_chaine_utf16_unique_vide(), ident);
 }
 
 crée_function_selector :: fonc (ident: CSSOMString, arguments: SelectorList) -> SimpleSelector
 {
-    résultat: SimpleSelector
-    résultat.type = SimpleSelector.Type.PseudoClass
-    résultat.ident = ident
-    résultat.est_fonction = vrai
-    résultat.selector_list = arguments
-    retourne résultat
+    résultat: SimpleSelector;
+    résultat.type = SimpleSelector.Type.PseudoClass;
+    résultat.ident = ident;
+    résultat.est_fonction = vrai;
+    résultat.selector_list = arguments;
+    retourne résultat;
 }
 
 /* Pour :dir et peut-être d'autres. */
 crée_function_selector :: fonc (ident: CSSOMString, arg: CSSOMString) -> SimpleSelector
 {
-    résultat: SimpleSelector
-    résultat.type = SimpleSelector.Type.PseudoClass
-    résultat.ident = ident
-    résultat.est_fonction = vrai
-    résultat.arg = arg
-    retourne résultat
+    résultat: SimpleSelector;
+    résultat.type = SimpleSelector.Type.PseudoClass;
+    résultat.ident = ident;
+    résultat.est_fonction = vrai;
+    résultat.arg = arg;
+    retourne résultat;
 }
 
 crée_nth_child_selector :: fonc (ident: CSSOMString, nth_child: SimpleSelector.NthChild) -> SimpleSelector
 {
-    résultat: SimpleSelector
-    résultat.type = SimpleSelector.Type.PseudoClass
-    résultat.ident = ident
-    résultat.est_fonction = vrai
-    résultat.nth_child = nth_child
-    retourne résultat
+    résultat: SimpleSelector;
+    résultat.type = SimpleSelector.Type.PseudoClass;
+    résultat.ident = ident;
+    résultat.est_fonction = vrai;
+    résultat.nth_child = nth_child;
+    retourne résultat;
 }
 
 /** \} */

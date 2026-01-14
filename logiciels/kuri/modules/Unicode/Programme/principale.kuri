@@ -1,33 +1,33 @@
-importe Chaine
-importe Fondation
-importe Unicode
+importe Chaine;
+importe Fondation;
+importe Unicode;
 
 principale :: fonc ()
 {
-    rune := Rune(A_MINUSCULE)
+    rune := Rune(A_MINUSCULE);
 
-    f := donne_permutation_casse(unicode_casefold, rune)
+    f := donne_permutation_casse(unicode_casefold, rune);
 
     si !f {
-        imprime("impossible de trouver un fold pour la rune !\n")
-        exit(1)
+        imprime("impossible de trouver un fold pour la rune !\n");
+        exit(1);
     }
 
-    imprime("fold : %\n", mémoire(f))
+    imprime("fold : %\n", mémoire(f));
 
-    rune = applique_permutation(f, rune)
+    rune = applique_permutation(f, rune);
 
-    imprime("nouvelle rune : %\n", rune)
+    imprime("nouvelle rune : %\n", rune);
 
-    texte := crée_chaine_utf32("Kévin Dietrich")
-    imprime("texte : %\n", texte)
+    texte := crée_chaine_utf32("Kévin Dietrich");
+    imprime("texte : %\n", texte);
 
-    en_minuscule_sur_place(texte)
-    imprime("texte : %\n", texte)
+    en_minuscule_sur_place(texte);
+    imprime("texte : %\n", texte);
 
-    en_majuscule_sur_place(texte)
-    imprime("texte : %\n", texte)
+    en_majuscule_sur_place(texte);
+    imprime("texte : %\n", texte);
 
-    en_minuscule_sur_place(texte)
-    imprime("texte : %\n", texte)
+    en_minuscule_sur_place(texte);
+    imprime("texte : %\n", texte);
 }

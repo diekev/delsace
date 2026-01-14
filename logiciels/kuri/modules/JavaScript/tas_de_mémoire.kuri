@@ -1,8 +1,8 @@
-importe POSIX
-importe Temps
+importe POSIX;
+importe Temps;
 
-DÉBOGUGE_MÉMOIRE :: faux
-TAMPONNE_CELLULES_MORTES :: faux
+DÉBOGUGE_MÉMOIRE :: faux;
+TAMPONNE_CELLULES_MORTES :: faux;
 
 /* ------------------------------------------------------------------------- */
 /** \nom TasDeMémoire
@@ -10,15 +10,15 @@ TAMPONNE_CELLULES_MORTES :: faux
  * \{ */
 
 TasDeMémoire :: struct {
-    mv: *MachineVirtuelle
-    blocs: [..]*BlocDeMémoire
+    mv: *MachineVirtuelle;
+    blocs: [..]*BlocDeMémoire;
 
-    doit_ébouer_à_chaque_allocation := faux
-    allocations_entre_ébouages := 10_000
-    allocations_depuis_dernier_ébouage := 0
+    doit_ébouer_à_chaque_allocation := faux;
+    allocations_entre_ébouages := 10_000;
+    allocations_depuis_dernier_ébouage := 0;
 
-    imprime_statistiques := faux
-    temps_allocations: z64
+    imprime_statistiques := faux;
+    temps_allocations: z64;
 }
 
 /* Fonction native pour forcer un ébouage
@@ -26,87 +26,87 @@ TasDeMémoire :: struct {
 fonction_native_éboue :: fonc (empl params: *ParamètresObjectCall) -> Valeur
 {
     #si DÉBOGUGE_MÉMOIRE {
-        imprime("<<<<< ébouage forcé\n")
+        imprime("<<<<< ébouage forcé\n");
     }
-    éboue(interpréteuse.donne_tas_de_mémoire())
+    éboue(interpréteuse.donne_tas_de_mémoire());
     #si DÉBOGUGE_MÉMOIRE {
-        imprime(">>>>> ébouage forcé\n")
+        imprime(">>>>> ébouage forcé\n");
     }
-    retourne js_undefined
+    retourne js_undefined;
 }
 
 détruit_données_tas_de_mémoire :: fonc (tas_de_mémoire: *TasDeMémoire)
 {
     // imprime("[%] %ms\n", #nom_de_cette_fonction, tas_de_mémoire.temps_allocations)
     pour tas_de_mémoire.blocs {
-        détruit_bloc(it)
+        détruit_bloc(it);
     }
 
-    déloge(tas_de_mémoire.blocs)
+    déloge(tas_de_mémoire.blocs);
 }
 
 donne_mv :: fonc (tas_de_mémoire: *TasDeMémoire) -> *MachineVirtuelle
 {
-    retourne tas_de_mémoire.mv
+    retourne tas_de_mémoire.mv;
 }
 
 alloue :: fonc (tas_de_mémoire: *TasDeMémoire, $T: type_de_données) -> *T
 {
-    assert(est_struct_ou_employeuse_de(info_de(T), info_de(Cellule)))
-    résultat := alloue_cellule(tas_de_mémoire, taille_de(T)) comme *T
-    init_de(T)(résultat)
-    assert((résultat comme *Cellule).table != nul)
-    assert((résultat comme *Cellule).table.classe == T)
-    retourne résultat
+    assert(est_struct_ou_employeuse_de(info_de(T), info_de(Cellule)));
+    résultat := alloue_cellule(tas_de_mémoire, taille_de(T)) comme *T;
+    init_de(T)(résultat);
+    assert((résultat comme *Cellule).table != nul);
+    assert((résultat comme *Cellule).table.classe == T);
+    retourne résultat;
 }
 
 alloue_cellule :: fonc (tas_de_mémoire: *TasDeMémoire, taille: n64) -> *rien
 {
     si tas_de_mémoire.doit_ébouer_à_chaque_allocation {
-        éboue(tas_de_mémoire)
+        éboue(tas_de_mémoire);
     }
     sinon si tas_de_mémoire.allocations_depuis_dernier_ébouage > tas_de_mémoire.allocations_entre_ébouages {
-        éboue(tas_de_mémoire)
+        éboue(tas_de_mémoire);
     }
 
-    début := maintenant_précis()
-    diffère tas_de_mémoire.temps_allocations += début.temps_écoulé_millisecondes()
+    début := maintenant_précis();
+    diffère tas_de_mémoire.temps_allocations += début.temps_écoulé_millisecondes();
 
-    tas_de_mémoire.allocations_depuis_dernier_ébouage += 1
+    tas_de_mémoire.allocations_depuis_dernier_ébouage += 1;
 
     pour tas_de_mémoire.blocs {
         si taille > it.taille_cellule {
-            continue
+            continue;
         }
 
-        cellule := it.alloue_cellule()
+        cellule := it.alloue_cellule();
         si cellule {
-            retourne cellule
+            retourne cellule;
         }
     }
 
-    ctx := contexte()
-    ctx.allocatrice = allocatrice_défaut
+    ctx := contexte();
+    ctx.allocatrice = allocatrice_défaut;
 
-    bloc: *BlocDeMémoire
+    bloc: *BlocDeMémoire;
     pousse_contexte ctx {
-        mémoire_bloc := loge_mémoire_alignée(BlocDeMémoire.TAILLE_BLOC comme z64, BlocDeMémoire.TAILLE_BLOC comme z64, info_de(BlocDeMémoire), #position_code_source)
-        bloc = mémoire_bloc comme *BlocDeMémoire
-        init_de(BlocDeMémoire)(bloc)
+        mémoire_bloc := loge_mémoire_alignée(BlocDeMémoire.TAILLE_BLOC comme z64, BlocDeMémoire.TAILLE_BLOC comme z64, info_de(BlocDeMémoire), #position_code_source);
+        bloc = mémoire_bloc comme *BlocDeMémoire;
+        init_de(BlocDeMémoire)(bloc);
     }
 
-    initialise_bloc(bloc, taille)
+    initialise_bloc(bloc, taille);
 
-    bloc.tas_de_mémoire = tas_de_mémoire
-    tableau_ajoute(*tas_de_mémoire.blocs, bloc)
+    bloc.tas_de_mémoire = tas_de_mémoire;
+    tableau_ajoute(*tas_de_mémoire.blocs, bloc);
 
-    retourne bloc.alloue_cellule()
+    retourne bloc.alloue_cellule();
 }
 
 TypeÉbouage :: énum {
-    RAMASSE_MIETTES
+    RAMASSE_MIETTES;
     /* À n'utiliser que pour la destruction. */
-    RAMASSE_TOUT
+    RAMASSE_TOUT;
 }
 
 /* Ramasse les miettes. */
@@ -115,54 +115,54 @@ TypeÉbouage :: énum {
     // début := maintenant_précis()
     // diffère imprime("[%] %ms\n", #nom_de_cette_fonction, début.temps_écoulé_millisecondes())
 
-    racines: [..]*Cellule
-    diffère déloge(racines)
+    racines: [..]*Cellule;
+    diffère déloge(racines);
     si type_ébouage == TypeÉbouage.RAMASSE_MIETTES {
-        rassemble_racines(tas_de_mémoire, *racines)
+        rassemble_racines(tas_de_mémoire, *racines);
     }
 
-    visite_cellules_vivantes(tas_de_mémoire, racines)
+    visite_cellules_vivantes(tas_de_mémoire, racines);
 
-    balaie_cellules_mortes(tas_de_mémoire)
+    balaie_cellules_mortes(tas_de_mémoire);
 
     si tas_de_mémoire.imprime_statistiques {
-        imprime("allocations_depuis_dernier_ébouage : %\n", tas_de_mémoire.allocations_depuis_dernier_ébouage)
-        imprime("nombre de blocs : %\n", tas_de_mémoire.blocs.taille)
+        imprime("allocations_depuis_dernier_ébouage : %\n", tas_de_mémoire.allocations_depuis_dernier_ébouage);
+        imprime("nombre de blocs : %\n", tas_de_mémoire.blocs.taille);
 
-        blocs_pleins := 0
-        blocs_vides := 0
-        blocs_utilisables := 0
+        blocs_pleins := 0;
+        blocs_vides := 0;
+        blocs_utilisables := 0;
 
         pour tas_de_mémoire.blocs {
             si it.est_plein() {
-                blocs_pleins += 1
+                blocs_pleins += 1;
             }
             sinon si it.est_vide() {
-                blocs_vides += 1
+                blocs_vides += 1;
             }
             sinon {
-                blocs_utilisables += 1
+                blocs_utilisables += 1;
             }
         }
 
-        imprime("-- blocs pleins      : %\n", blocs_pleins)
-        imprime("-- blocs vides       : %\n", blocs_vides)
-        imprime("-- blocs utilisables : %\n", blocs_utilisables)
+        imprime("-- blocs pleins      : %\n", blocs_pleins);
+        imprime("-- blocs vides       : %\n", blocs_vides);
+        imprime("-- blocs utilisables : %\n", blocs_utilisables);
     }
 
-    tas_de_mémoire.allocations_depuis_dernier_ébouage = 0
+    tas_de_mémoire.allocations_depuis_dernier_ébouage = 0;
 }
 
 rassemble_racines :: fonc (tas_de_mémoire: *TasDeMémoire, racines: *[..]*Cellule)
 {
-    rassemble_racines(tas_de_mémoire.mv, racines)
+    rassemble_racines(tas_de_mémoire.mv, racines);
 
-    rassemble_racines_en_mémoire(tas_de_mémoire, racines)
+    rassemble_racines_en_mémoire(tas_de_mémoire, racines);
 
     #si DÉBOGUGE_MÉMOIRE {
-        imprime("% (% racine(s))\n", #nom_de_cette_fonction, racines.taille)
+        imprime("% (% racine(s))\n", #nom_de_cette_fonction, racines.taille);
         pour mémoire(racines) {
-            imprime("    + %\n", it)
+            imprime("    + %\n", it);
         }
     }
 }
@@ -170,24 +170,24 @@ rassemble_racines :: fonc (tas_de_mémoire: *TasDeMémoire, racines: *[..]*Cellu
 rassemble_racines_en_mémoire :: fonc (tas_de_mémoire: *TasDeMémoire, racines: *[..]*Cellule) #sansasan
 {
     /* Marqueur pour savoir la fin de la pile de données d'exécution. */
-    marqueur_pile: n64
+    marqueur_pile: n64;
 
     /* Vérifie la présence de cellules dans les registres. */
-    buf: __jmp_buf_tag
-    _ := setjmp(*buf)
+    buf: __jmp_buf_tag;
+    _ := setjmp(*buf);
 
     pour buf.__jmpbuf {
-        cellule_possible := it comme *Cellule
-        ajoute_racine_depuis_cellule_possible(tas_de_mémoire, cellule_possible, racines)
+        cellule_possible := it comme *Cellule;
+        ajoute_racine_depuis_cellule_possible(tas_de_mémoire, cellule_possible, racines);
     }
 
     /* Rassemble les cellules sur la pile d'exécution. */
-    début_pile := (*marqueur_pile) - 1
-    fin_pile := __début_pile
+    début_pile := (*marqueur_pile) - 1;
+    fin_pile := __début_pile;
     tantque début_pile < fin_pile {
-        cellule_possible := mémoire(début_pile) comme *Cellule
-        ajoute_racine_depuis_cellule_possible(tas_de_mémoire, cellule_possible, racines)
-        début_pile += 1
+        cellule_possible := mémoire(début_pile) comme *Cellule;
+        ajoute_racine_depuis_cellule_possible(tas_de_mémoire, cellule_possible, racines);
+        début_pile += 1;
     }
 }
 
@@ -195,22 +195,22 @@ ajoute_racine_depuis_cellule_possible :: fonc (tas_de_mémoire: *TasDeMémoire, 
 {
     pour tas_de_mémoire.blocs {
         saufsi it == donne_bloc_de_mémoire(cellule_possible) {
-            continue
+            continue;
         }
 
-        adresse_bloc := (it + 1) comme *octet
-        assert(adresse_bloc == it.donne_cellule(0))
-        fin_bloc := it comme *octet + BlocDeMémoire.TAILLE_BLOC
+        adresse_bloc := (it + 1) comme *octet;
+        assert(adresse_bloc == it.donne_cellule(0));
+        fin_bloc := it comme *octet + BlocDeMémoire.TAILLE_BLOC;
 
         saufsi adresse_bloc <= cellule_possible < fin_bloc {
-            continue
+            continue;
         }
 
-        décalage_cellule := (cellule_possible - adresse_bloc) comme n64
-        index_cellule := décalage_cellule / it.taille_cellule
+        décalage_cellule := (cellule_possible - adresse_bloc) comme n64;
+        index_cellule := décalage_cellule / it.taille_cellule;
 
         si cellule_possible.vivante && cellule_possible == it.donne_cellule(index_cellule) {
-            ensemble_ajoute(racines, cellule_possible)
+            ensemble_ajoute(racines, cellule_possible);
         }
     }
 }
@@ -218,56 +218,56 @@ ajoute_racine_depuis_cellule_possible :: fonc (tas_de_mémoire: *TasDeMémoire, 
 visite_cellules_vivantes :: fonc (tas_de_mémoire: *TasDeMémoire, racines: []*Cellule)
 {
     VisiteuseVivance :: struct {
-        empl base: VisiteuseCellule
+        empl base: VisiteuseCellule;
     }
 
-    sur_a_visité :: fonc (base: *VisiteuseCellule @inutilisée, cellule: *Cellule)
+    sur_a_visité :: fonc (base: *VisiteuseCellule @inutilisée, cellule: *Cellule);
     {
-        cellule.marqué = vrai
+        cellule.marqué = vrai;
     }
 
-    sur_a_déjà_visité :: fonc (base: *VisiteuseCellule @inutilisée, cellule: *Cellule) -> bool
+    sur_a_déjà_visité :: fonc (base: *VisiteuseCellule @inutilisée, cellule: *Cellule) -> bool;
     {
-        retourne cellule.marqué
+        retourne cellule.marqué;
     }
 
-    visiteuse: VisiteuseVivance
-    diffère déloge(visiteuse.objets_visités)
-    diffère déloge(visiteuse.valeurs_à_visiter)
+    visiteuse: VisiteuseVivance;
+    diffère déloge(visiteuse.objets_visités);
+    diffère déloge(visiteuse.valeurs_à_visiter);
 
-    visiteuse.sur_a_visité = sur_a_visité
-    visiteuse.sur_a_déjà_visité = sur_a_déjà_visité
+    visiteuse.sur_a_visité = sur_a_visité;
+    visiteuse.sur_a_déjà_visité = sur_a_déjà_visité;
 
-    mv := tas_de_mémoire.donne_mv()
+    mv := tas_de_mémoire.donne_mv();
     si mv.hôte {
-        visite_cellules_hôte(mv.hôte, *visiteuse)
+        visite_cellules_hôte(mv.hôte, *visiteuse);
     }
 
     pour racines {
-        visite_cellule_générique(*visiteuse, it)
+        visite_cellule_générique(*visiteuse, it);
     }
 
     tantque visiteuse.valeurs_à_visiter.taille != 0 {
-        valeur := enlève_dernier_élément(*visiteuse.valeurs_à_visiter)
-        visite_valeur(*visiteuse, valeur)
+        valeur := enlève_dernier_élément(*visiteuse.valeurs_à_visiter);
+        visite_valeur(*visiteuse, valeur);
     }
 
     #si DÉBOGUGE_MÉMOIRE {
         pour racines {
-            imprime("    @ %\n", it)
+            imprime("    @ %\n", it);
         }
-        imprime_cellules_vivantes(tas_de_mémoire)
+        imprime_cellules_vivantes(tas_de_mémoire);
     }
 }
 
 imprime_cellules_vivantes :: fonc (tas_de_mémoire: *TasDeMémoire)
 {
-    imprime("%\n", #nom_de_cette_fonction)
+    imprime("%\n", #nom_de_cette_fonction);
 
     pour tas_de_mémoire.blocs {
         pour cellule dans it {
             si cellule.vivante && cellule.marqué {
-                imprime("    ! %\n", cellule)
+                imprime("    ! %\n", cellule);
             }
         }
     }
@@ -276,37 +276,37 @@ imprime_cellules_vivantes :: fonc (tas_de_mémoire: *TasDeMémoire)
 balaie_cellules_mortes :: fonc (tas_de_mémoire: *TasDeMémoire)
 {
     #si DÉBOGUGE_MÉMOIRE {
-        imprime("%\n", #nom_de_cette_fonction)
+        imprime("%\n", #nom_de_cette_fonction);
     }
 
-    blocs_utilisables: [..]*BlocDeMémoire
-    blocs_vides: [..]*BlocDeMémoire
-    diffère déloge(blocs_vides)
+    blocs_utilisables: [..]*BlocDeMémoire;
+    blocs_vides: [..]*BlocDeMémoire;
+    diffère déloge(blocs_vides);
 
     pour tas_de_mémoire.blocs {
         pour cellule dans it {
             si cellule.vivante && !cellule.marqué {
-                it.désalloue(cellule)
+                it.désalloue(cellule);
                 #si DÉBOGUGE_MÉMOIRE {
-                    imprime("    ~ %\n", cellule)
+                    imprime("    ~ %\n", cellule);
                 }
             }
-            cellule.marqué = faux
+            cellule.marqué = faux;
         }
 
         si it.est_vide() {
-            tableau_ajoute(*blocs_vides, it)
+            tableau_ajoute(*blocs_vides, it);
         }
         sinon {
-            tableau_ajoute(*blocs_utilisables, it)
+            tableau_ajoute(*blocs_utilisables, it);
         }
     }
 
-    déloge(tas_de_mémoire.blocs)
-    tas_de_mémoire.blocs = blocs_utilisables
+    déloge(tas_de_mémoire.blocs);
+    tas_de_mémoire.blocs = blocs_utilisables;
 
     pour blocs_vides {
-        détruit_bloc(it)
+        détruit_bloc(it);
     }
 }
 
@@ -318,121 +318,121 @@ balaie_cellules_mortes :: fonc (tas_de_mémoire: *TasDeMémoire)
  * \{ */
 
 BlocDeMémoire :: struct {
-    TAILLE_BLOC : n64 : 16 * 1024
+    TAILLE_BLOC : n64 : 16 * 1024;
 
-    taille_cellule: n64
-    tas_de_mémoire: *TasDeMémoire
+    taille_cellule: n64;
+    tas_de_mémoire: *TasDeMémoire;
 
     EntréeListeLibre :: struct {
-        empl base: Cellule
-        suivante: *EntréeListeLibre
+        empl base: Cellule;
+        suivante: *EntréeListeLibre;
     }
 
-    liste_libre: *EntréeListeLibre
+    liste_libre: *EntréeListeLibre;
 
-    cellules_disponibles: n64
+    cellules_disponibles: n64;
 }
 
 initialise_bloc :: fonc (bloc: *BlocDeMémoire, taille_cellule: n64)
 {
-    bloc.taille_cellule = taille_cellule
+    bloc.taille_cellule = taille_cellule;
 
     pour bloc {
-        liste := it comme *BlocDeMémoire.EntréeListeLibre
-        liste.vivante = faux
+        liste := it comme *BlocDeMémoire.EntréeListeLibre;
+        liste.vivante = faux;
 
         si indice_it comme n64 == bloc.nombre_de_cellules() - 1 {
-            liste.suivante = nul
+            liste.suivante = nul;
         }
         sinon {
-            liste.suivante = bloc.donne_cellule(indice_it comme n64 + 1) comme *BlocDeMémoire.EntréeListeLibre
+            liste.suivante = bloc.donne_cellule(indice_it comme n64 + 1) comme *BlocDeMémoire.EntréeListeLibre;
         }
     }
 
-    bloc.liste_libre = bloc.donne_cellule(0) comme *BlocDeMémoire.EntréeListeLibre
-    bloc.cellules_disponibles = bloc.nombre_de_cellules()
+    bloc.liste_libre = bloc.donne_cellule(0) comme *BlocDeMémoire.EntréeListeLibre;
+    bloc.cellules_disponibles = bloc.nombre_de_cellules();
 }
 
 détruit_bloc :: fonc (bloc: *BlocDeMémoire)
 {
-    ctx := contexte()
-    ctx.allocatrice = allocatrice_défaut
+    ctx := contexte();
+    ctx.allocatrice = allocatrice_défaut;
     pousse_contexte ctx {
-        déloge_mémoire(BlocDeMémoire.TAILLE_BLOC comme z64, bloc, info_de(BlocDeMémoire), #position_code_source)
+        déloge_mémoire(BlocDeMémoire.TAILLE_BLOC comme z64, bloc, info_de(BlocDeMémoire), #position_code_source);
     }
 }
 
 nombre_de_cellules :: fonc (bloc: *BlocDeMémoire) -> n64 #enligne
 {
-    retourne (BlocDeMémoire.TAILLE_BLOC - taille_de(BlocDeMémoire)) / bloc.taille_cellule
+    retourne (BlocDeMémoire.TAILLE_BLOC - taille_de(BlocDeMémoire)) / bloc.taille_cellule;
 }
 
 est_plein :: fonc (bloc: *BlocDeMémoire) -> bool #enligne
 {
-    retourne bloc.cellules_disponibles == 0
+    retourne bloc.cellules_disponibles == 0;
 }
 
 est_vide :: fonc (bloc: *BlocDeMémoire) -> bool #enligne
 {
-    retourne bloc.cellules_disponibles == bloc.nombre_de_cellules()
+    retourne bloc.cellules_disponibles == bloc.nombre_de_cellules();
 }
 
 est_utilisable :: fonc (bloc: *BlocDeMémoire) -> bool #enligne
 {
-    retourne bloc.cellules_disponibles < bloc.nombre_de_cellules()
+    retourne bloc.cellules_disponibles < bloc.nombre_de_cellules();
 }
 
 donne_cellule :: fonc (bloc: *BlocDeMémoire, indice: n64) -> *Cellule
 {
-    stockage := (bloc + 1) comme *octet
-    retourne (stockage + indice * bloc.taille_cellule) comme *Cellule
+    stockage := (bloc + 1) comme *octet;
+    retourne (stockage + indice * bloc.taille_cellule) comme *Cellule;
 }
 
 alloue_cellule :: fonc (bloc: *BlocDeMémoire) -> *Cellule
 {
     saufsi bloc.liste_libre {
-        retourne nul
+        retourne nul;
     }
 
-    bloc.cellules_disponibles -= 1
+    bloc.cellules_disponibles -= 1;
 
-    résultat := bloc.liste_libre
-    bloc.liste_libre = bloc.liste_libre.suivante
-    retourne résultat
+    résultat := bloc.liste_libre;
+    bloc.liste_libre = bloc.liste_libre.suivante;
+    retourne résultat;
 }
 
 désalloue :: fonc (bloc: *BlocDeMémoire, cellule: *Cellule)
 {
-    assert(cellule.vivante == vrai)
-    assert(cellule.marqué == faux)
+    assert(cellule.vivante == vrai);
+    assert(cellule.marqué == faux);
 
-    détruit_cellule(cellule)
+    détruit_cellule(cellule);
 
     #si TAMPONNE_CELLULES_MORTES {
-        pointeur := cellule comme *octet + taille_de(Cellule)
+        pointeur := cellule comme *octet + taille_de(Cellule);
         pour bloc.taille_cellule - taille_de(Cellule) {
-            mémoire(pointeur) = 0xc8
-            pointeur += 1
+            mémoire(pointeur) = 0xc8;
+            pointeur += 1;
         }
     }
 
-    entrée := cellule comme *BlocDeMémoire.EntréeListeLibre
-    entrée.vivante = faux
-    entrée.suivante = bloc.liste_libre
-    bloc.liste_libre = entrée
+    entrée := cellule comme *BlocDeMémoire.EntréeListeLibre;
+    entrée.vivante = faux;
+    entrée.suivante = bloc.liste_libre;
+    bloc.liste_libre = entrée;
 
-    bloc.cellules_disponibles += 1
+    bloc.cellules_disponibles += 1;
 }
 
 opérateur pour :: (bloc: *BlocDeMémoire) -> *Cellule
 {
     pour bloc.nombre_de_cellules() {
-        cellule := bloc.donne_cellule(indice_it)
+        cellule := bloc.donne_cellule(indice_it);
 
-        `it = cellule
-        `indice_it = indice_it comme z64
+        `it = cellule;
+        `indice_it = indice_it comme z64;
 
-        #corps_boucle
+        #corps_boucle;
     }
 }
 
@@ -444,81 +444,81 @@ opérateur pour :: (bloc: *BlocDeMémoire) -> *Cellule
  * \{ */
 
 TableVirtuelleCellule :: struct {
-    classe: type_de_données
-    sur_destruction: fonc (cellule: *Cellule)
+    classe: type_de_données;
+    sur_destruction: fonc (cellule: *Cellule);
 }
 
 #portée_fichier
 
-table_virtuelle_cellule := TableVirtuelleCellule(classe = Cellule)
+table_virtuelle_cellule := TableVirtuelleCellule(classe = Cellule);
 
 #portée_export
 
 Cellule :: struct {
-    table := *table_virtuelle_cellule
-    marqué := faux
-    vivante := vrai
+    table := *table_virtuelle_cellule;
+    marqué := faux;
+    vivante := vrai;
 }
 
 vérifie_comme :: fonc (cellule: *Cellule, $T: type_de_données) -> *T
 {
-    assert(cellule.est_classe(info_de(T)))
-    retourne cellule comme *T
+    assert(cellule.est_classe(info_de(T)));
+    retourne cellule comme *T;
 }
 
 est_classe :: fonc (cellule: *Cellule, info: *InfoTypeStructure) -> bool
 {
-    retourne est_struct_ou_employeuse_de(cellule.donne_info_type_cellule(), info)
+    retourne est_struct_ou_employeuse_de(cellule.donne_info_type_cellule(), info);
 }
 
 donne_info_type_cellule :: fonc (racine: *Cellule) -> *InfoTypeStructure
 {
-    résultat := racine.table.classe comme *InfoTypeStructure
-    assert(résultat != nul)
-    assert(résultat.id == GenreInfoType.STRUCTURE)
-    assert(est_struct_ou_employeuse_de(résultat, info_de(Cellule)))
-    retourne résultat
+    résultat := racine.table.classe comme *InfoTypeStructure;
+    assert(résultat != nul);
+    assert(résultat.id == GenreInfoType.STRUCTURE);
+    assert(est_struct_ou_employeuse_de(résultat, info_de(Cellule)));
+    retourne résultat;
 }
 
 donne_nom_classe :: fonc (cellule: *Cellule) -> chaine
 {
-    infos := donne_info_type_cellule(cellule)
-    retourne infos.nom
+    infos := donne_info_type_cellule(cellule);
+    retourne infos.nom;
 }
 
 donne_classe :: fonc (cellule: *Cellule) -> type_de_données
 {
-    retourne cellule.table.classe
+    retourne cellule.table.classe;
 }
 
 imprime_cellule :: fonc (enchaineuse: *Enchaineuse, addr_cellule: **Cellule)
 {
     saufsi addr_cellule && mémoire(addr_cellule) {
-        ajoute_au_tampon(enchaineuse, "{nul}")
-        retourne
+        ajoute_au_tampon(enchaineuse, "{nul}");
+        retourne;
     }
 
-    cellule := mémoire(addr_cellule)
-    imprime_dans_enchaineuse(enchaineuse, "%{%}", cellule.donne_nom_classe(), cellule comme *rien)
+    cellule := mémoire(addr_cellule);
+    imprime_dans_enchaineuse(enchaineuse, "%{%}", cellule.donne_nom_classe(), cellule comme *rien);
 } @FormattageImpression
 
 détruit_cellule :: fonc (cellule: *Cellule)
 {
     si cellule.table.sur_destruction {
-        cellule.table.sur_destruction(cellule)
+        cellule.table.sur_destruction(cellule);
     }
 }
 
 donne_bloc_de_mémoire :: fonc (cellule: *Cellule) -> *BlocDeMémoire #enligne
 {
-    v := cellule comme n64
-    retourne (v & ~(BlocDeMémoire.TAILLE_BLOC - 1)) comme *BlocDeMémoire
+    v := cellule comme n64;
+    retourne (v & ~(BlocDeMémoire.TAILLE_BLOC - 1)) comme *BlocDeMémoire;
 }
 
 donne_tas_de_mémoire :: fonc (cellule: *Cellule) -> *TasDeMémoire #enligne
 {
-    bloc := cellule.donne_bloc_de_mémoire()
-    retourne bloc.tas_de_mémoire
+    bloc := cellule.donne_bloc_de_mémoire();
+    retourne bloc.tas_de_mémoire;
 }
 
 /** \} */
@@ -528,89 +528,89 @@ donne_tas_de_mémoire :: fonc (cellule: *Cellule) -> *TasDeMémoire #enligne
  * \{ */
 
 InfoValeurÀVisiter :: struct {
-    structure: *InfoTypeStructure
-    rubrique: chaine
-    valeur: eini
+    structure: *InfoTypeStructure;
+    rubrique: chaine;
+    valeur: eini;
 }
 
 VisiteuseCellule :: struct {
-    sur_a_visité: fonc (visiteuse: *VisiteuseCellule, celllule: *Cellule)
-    sur_a_déjà_visité: fonc (visiteuse: *VisiteuseCellule, celllule: *Cellule) -> bool
+    sur_a_visité: fonc (visiteuse: *VisiteuseCellule, celllule: *Cellule);
+    sur_a_déjà_visité: fonc (visiteuse: *VisiteuseCellule, celllule: *Cellule) -> bool;
 
-    objets_visités: [..]*rien
-    valeurs_à_visiter: [..]InfoValeurÀVisiter
+    objets_visités: [..]*rien;
+    valeurs_à_visiter: [..]InfoValeurÀVisiter;
 }
 
 visite_objet :: fonc (visiteuse: *VisiteuseCellule, objet: *$T)
 {
-    valeur : eini = ---
-    valeur.pointeur = objet
-    valeur.info = info_de(T)
+    valeur : eini = ---;
+    valeur.pointeur = objet;
+    valeur.info = info_de(T);
 
-    valeur_à_visiter: InfoValeurÀVisiter
-    valeur_à_visiter.valeur = valeur
-    valeur_à_visiter.structure = valeur.info comme *InfoTypeStructure
+    valeur_à_visiter: InfoValeurÀVisiter;
+    valeur_à_visiter.valeur = valeur;
+    valeur_à_visiter.structure = valeur.info comme *InfoTypeStructure;
 
-    ensemble_ajoute(*visiteuse.objets_visités, objet)
-    tableau_ajoute(*visiteuse.valeurs_à_visiter, valeur_à_visiter)
+    ensemble_ajoute(*visiteuse.objets_visités, objet);
+    tableau_ajoute(*visiteuse.valeurs_à_visiter, valeur_à_visiter);
 }
 
 a_visité :: fonc (visiteuse: *VisiteuseCellule, cellule: *Cellule)
 {
     si visiteuse.sur_a_visité {
-        visiteuse.sur_a_visité(visiteuse, cellule)
+        visiteuse.sur_a_visité(visiteuse, cellule);
     }
 }
 
 a_déjà_visité :: fonc (visiteuse: *VisiteuseCellule, cellule: *Cellule) -> bool
 {
     si visiteuse.sur_a_déjà_visité {
-        retourne visiteuse.sur_a_déjà_visité(visiteuse, cellule)
+        retourne visiteuse.sur_a_déjà_visité(visiteuse, cellule);
     }
 
-    retourne faux
+    retourne faux;
 }
 
 visite_cellule_générique :: fonc (visiteuse: *VisiteuseCellule, racine: *Cellule)
 {
     saufsi racine {
-        retourne
+        retourne;
     }
 
     si a_déjà_visité(visiteuse, racine) {
-        retourne
+        retourne;
     }
 
-    a_visité(visiteuse, racine)
+    a_visité(visiteuse, racine);
 
-    info := donne_info_type_cellule(racine)
+    info := donne_info_type_cellule(racine);
 
-    valeur_eini : eini = ---
-    valeur_eini.pointeur = racine
-    valeur_eini.info = info
+    valeur_eini : eini = ---;
+    valeur_eini.pointeur = racine;
+    valeur_eini.info = info;
 
-    visite_structure(visiteuse, valeur_eini)
+    visite_structure(visiteuse, valeur_eini);
 }
 
 visite_structure :: fonc (visiteuse: *VisiteuseCellule, structure: eini)
 {
-    info := structure.info comme *InfoTypeStructure
+    info := structure.info comme *InfoTypeStructure;
     pour info.rubriques {
         saufsi type_est_intéressant_pour_visite(it.id, faux) {
-            continue
+            continue;
         }
-        rubrique := eini_depuis_info_rubrique(structure, it)
+        rubrique := eini_depuis_info_rubrique(structure, it);
         si possède_annotation(it, "NeVisitePas") {
-            continue
+            continue;
         }
-        tableau_ajoute(*visiteuse.valeurs_à_visiter, InfoValeurÀVisiter(info, it.nom, rubrique))
+        tableau_ajoute(*visiteuse.valeurs_à_visiter, InfoValeurÀVisiter(info, it.nom, rubrique));
     }
 }
 
 visite_valeur :: fonc (visiteuse: *VisiteuseCellule, valeur_à_visiter: InfoValeurÀVisiter)
 {
-    valeur := valeur_à_visiter.valeur
-    info := valeur.info
+    valeur := valeur_à_visiter.valeur;
+    info := valeur.info;
 
     // chaine_type := chaine_pour_type(info)
     // diffère déloge(chaine_type)
@@ -623,92 +623,92 @@ visite_valeur :: fonc (visiteuse: *VisiteuseCellule, valeur_à_visiter: InfoVale
     // }
 
     si info == info_de(*Cellule) {
-        cellule := mémoire(valeur.pointeur comme **Cellule)
+        cellule := mémoire(valeur.pointeur comme **Cellule);
         si cellule == nul {
-            retourne
+            retourne;
         }
 
-        visite_cellule_générique(visiteuse, cellule)
-        retourne
+        visite_cellule_générique(visiteuse, cellule);
+        retourne;
     }
 
     si info.id == GenreInfoType.POINTEUR {
-        infos_pointeur := info comme *InfoTypePointeur
-        type_élément := infos_pointeur.type_pointé
+        infos_pointeur := info comme *InfoTypePointeur;
+        type_élément := infos_pointeur.type_pointé;
 
         saufsi type_élément.id == GenreInfoType.STRUCTURE {
-            retourne
+            retourne;
         }
 
         si est_struct_ou_employeuse_de(type_élément comme *InfoTypeStructure, info_de(Cellule)) {
             /* À FAIRE : la cellule doit être le premier élément. */
-            cellule := mémoire(valeur.pointeur comme **Cellule)
+            cellule := mémoire(valeur.pointeur comme **Cellule);
             // imprime("[visite_cellule_générique] % -> %\n", valeur.pointeur, cellule comme *rien)
-            visite_cellule_générique(visiteuse, cellule)
+            visite_cellule_générique(visiteuse, cellule);
         }
         sinon {
-            adresse := mémoire(valeur.pointeur comme **rien)
+            adresse := mémoire(valeur.pointeur comme **rien);
             saufsi adresse {
-                retourne
+                retourne;
             }
 
             si ensemble_ne_fut_pas_ajouté(*visiteuse.objets_visités, adresse) {
-                retourne
+                retourne;
             }
 
-            valeur_à_visiter.valeur.pointeur = adresse
-            valeur_à_visiter.valeur.info = type_élément
-            tableau_ajoute(*visiteuse.valeurs_à_visiter, valeur_à_visiter)
+            valeur_à_visiter.valeur.pointeur = adresse;
+            valeur_à_visiter.valeur.info = type_élément;
+            tableau_ajoute(*visiteuse.valeurs_à_visiter, valeur_à_visiter);
         }
 
-        retourne
+        retourne;
     }
 
     si info.id == GenreInfoType.STRUCTURE {
         si info == info_de(HostDefined) {
-            host_defined := mémoire(valeur.pointeur comme *HostDefined)
+            host_defined := mémoire(valeur.pointeur comme *HostDefined);
 
             si host_defined.données == nul {
-                retourne
+                retourne;
             }
 
-            valeur_à_visiter.valeur.pointeur = host_defined.données
-            valeur_à_visiter.valeur.info = host_defined.infos
-            tableau_ajoute(*visiteuse.valeurs_à_visiter, valeur_à_visiter)
-            retourne
+            valeur_à_visiter.valeur.pointeur = host_defined.données;
+            valeur_à_visiter.valeur.info = host_defined.infos;
+            tableau_ajoute(*visiteuse.valeurs_à_visiter, valeur_à_visiter);
+            retourne;
         }
 
-        visite_structure(visiteuse, valeur)
-        retourne
+        visite_structure(visiteuse, valeur);
+        retourne;
     }
 
     si info.id == GenreInfoType.UNION {
         si info == info_de(Valeur) {
-            valeur_ := mémoire(valeur.pointeur comme *Valeur)
+            valeur_ := mémoire(valeur.pointeur comme *Valeur);
             si valeur_.est_cellule() {
-                visite_cellule_générique(visiteuse, valeur_.donne_cellule())
+                visite_cellule_générique(visiteuse, valeur_.donne_cellule());
             }
         }
-        retourne
+        retourne;
     }
 
     si info.id == GenreInfoType.TABLEAU_FIXE || info.id == GenreInfoType.TABLEAU {
-        itératrice := crée_itératrice_tableau(valeur)
+        itératrice := crée_itératrice_tableau(valeur);
         si itératrice.type_pointé == info_de(Lexème) {
-            retourne
+            retourne;
         }
         saufsi type_est_intéressant_pour_visite(itératrice.type_pointé, faux) {
-            retourne
+            retourne;
         }
         boucle {
-            élément := itératrice.valeur_suivante()
+            élément := itératrice.valeur_suivante();
             saufsi élément.est_valide() {
-                arrête
+                arrête;
             }
-            valeur_à_visiter.valeur = élément
-            tableau_ajoute(*visiteuse.valeurs_à_visiter, valeur_à_visiter)
+            valeur_à_visiter.valeur = élément;
+            tableau_ajoute(*visiteuse.valeurs_à_visiter, valeur_à_visiter);
         }
-        retourne
+        retourne;
     }
 }
 
@@ -727,15 +727,15 @@ type_est_intéressant_pour_visite :: fonc (info: *InfoType, est_récurif: bool) 
         OCTET,
         TYPE_DE_DONNÉES,
         POLYMORPHIQUE {
-            retourne faux
+            retourne faux;
         }
         TABLEAU {
-            info_tableau := info comme *InfoTypeTableau
-            retourne type_est_intéressant_pour_visite(info_tableau.type_pointé, vrai)
+            info_tableau := info comme *InfoTypeTableau;
+            retourne type_est_intéressant_pour_visite(info_tableau.type_pointé, vrai);
         }
         POINTEUR {
-            info_pointeur := info comme *InfoTypePointeur
-            retourne type_est_intéressant_pour_visite(info_pointeur.type_pointé, vrai)
+            info_pointeur := info comme *InfoTypePointeur;
+            retourne type_est_intéressant_pour_visite(info_pointeur.type_pointé, vrai);
         }
         UNION,
         OPAQUE,
@@ -744,19 +744,19 @@ type_est_intéressant_pour_visite :: fonc (info: *InfoType, est_récurif: bool) 
         VARIADIQUE {}
         STRUCTURE {
             si info == info_de(Cellule) {
-                retourne !est_récurif
+                retourne !est_récurif;
             }
 
             si info == info_de(Lexème) || info == info_de(ECMAString) || info == info_de(TasDeMémoire) || info == info_de(MachineVirtuelle) {
-                retourne faux
+                retourne faux;
             }
 
             si info == info_de(Chaine.ChaineUTF16) {
-                retourne faux
+                retourne faux;
             }
         }
     }
-    retourne vrai
+    retourne vrai;
 }
 
 /** \} */

@@ -7,54 +7,54 @@
 #portée_module
 
 TableVirtuelleElement :: struct {
-    empl base: TableVirtuelleNoeud
+    empl base: TableVirtuelleNoeud;
 
     /* Appelé quand un élément fut dépilé de la pile des éléments ouverts. */
-    sur_dépilement: fonc (element: *Element)
+    sur_dépilement: fonc (element: *Element);
 
     /* Appelé quand un attribut est ajouté, modifié, ou supprimé.
      * La fonction doit retourner si oui ou non l'attribut fut géré. */
-    sur_changement_attribut := element_sur_changement_attribut
+    sur_changement_attribut := element_sur_changement_attribut;
 
     /* Appelé lors de la résolution des propriétés de style pour l'élément. */
-    sur_applique_presentational_hints: fonc (element: *Element, résolveuse: *CSS.RésolveuseStyle)
+    sur_applique_presentational_hints: fonc (element: *Element, résolveuse: *CSS.RésolveuseStyle);
 }
 
 #portée_export
 
 Element :: struct {
-    empl base_noeud: Node
-    table = *table_virtuelle_élément
+    empl base_noeud: Node;
+    table = *table_virtuelle_élément;
 
-    id: DOMString
+    id: DOMString;
 
     /* Uniquement utilisé lors du parsage. */
-    est_sur_pile_éléments_ouvert: bool
-    fut_créé_par_parseuse: bool
+    est_sur_pile_éléments_ouvert: bool;
+    fut_créé_par_parseuse: bool;
 
     espace_de_nom: chaine // DOMString @namespaceURI
-    local_name: DOMString
-    cryptographic_nonce: DOMString
+    local_name: DOMString;
+    cryptographic_nonce: DOMString;
 
-    état_élément_custom: chaine
-    définition_élément_custom: *rien
+    état_élément_custom: chaine;
+    définition_élément_custom: *rien;
 
-    shadow_root: *ShadowRoot
+    shadow_root: *ShadowRoot;
 
-    pseudo_classes: CSS.PseudoClasses
+    pseudo_classes: CSS.PseudoClasses;
 
     /* Slot. À FAIRE (HTMLSlotElement) */
-    assigned_nodes: [..]*Node
+    assigned_nodes: [..]*Node;
     /* https://html.spec.whatwg.org/multipage/scripting.html#manually-assigned-nodes */
-    manually_assigned_nodes: [..]*Node
+    manually_assigned_nodes: [..]*Node;
 
     /* CSS */
-    box: *CSS.Box
+    box: *CSS.Box;
     /* https://html.spec.whatwg.org/multipage/dom.html#attr-style */
-    style: *CSS.CSSStyleDeclaration
+    style: *CSS.CSSStyleDeclaration;
 
     /* Cache */
-    liste_classes: [..]DOMString
+    liste_classes: [..]DOMString;
 }
 
 #portée_module
@@ -63,83 +63,83 @@ table_virtuelle_élément := TableVirtuelleElement(
     classe = Element,
     sur_destruction = élément_sur_destruction,
     sur_changement_attribut = element_sur_changement_attribut
-)
+);
 
 élément_détruit_données :: fonc (élément: *Element)
 {
-    noeud_sur_destruction(élément)
-    CSS.détruit_style_declaration(élément.style)
+    noeud_sur_destruction(élément);
+    CSS.détruit_style_declaration(élément.style);
     si élément.box {
-        élément.box.noeud = nul
+        élément.box.noeud = nul;
     }
-    déloge(élément.liste_classes)
-    déloge(élément.assigned_nodes)
+    déloge(élément.liste_classes);
+    déloge(élément.assigned_nodes);
 }
 
 élément_sur_destruction :: fonc (base: *JS.Cellule)
 {
-    élément := base comme *Element
-    élément_détruit_données(élément)
+    élément := base comme *Element;
+    élément_détruit_données(élément);
 }
 
 element_sur_changement_attribut :: fonc (élément: *Element, local_name: DOMString, vieille_valeur: *DOMString, valeur: *DOMString, espace_de_nom: Optionnel(DOMString)) -> bool
 {
     si vieille_valeur && valeur && mémoire(vieille_valeur) == mémoire(valeur) {
-        retourne vrai
+        retourne vrai;
     }
 
-    _ := slot_sur_changement_attribut(élément, local_name, vieille_valeur, valeur, espace_de_nom)
-    _ := slottable_sur_changement_attribut(élément, local_name, vieille_valeur, valeur, espace_de_nom)
+    _ := slot_sur_changement_attribut(élément, local_name, vieille_valeur, valeur, espace_de_nom);
+    _ := slottable_sur_changement_attribut(élément, local_name, vieille_valeur, valeur, espace_de_nom);
 
     /* https://dom.spec.whatwg.org/#concept-id */
     si local_name == ATTR_id && !espace_de_nom.possède_valeur() {
         // 1. If localName is id, namespace is null, and value is null or the empty string, then unset element’s ID.
         si valeur == nul || mémoire(valeur).est_vide() {
-            élément.id = crée_chaine_utf16_unique_vide()
+            élément.id = crée_chaine_utf16_unique_vide();
         }
         // 2. Otherwise, if localName is id, namespace is null, then set element’s ID to value.
         sinon {
-            élément.id = mémoire(valeur)
+            élément.id = mémoire(valeur);
         }
 
-        élément.document.invalide_style_pour_id(élément, vieille_valeur, valeur)
-        retourne vrai
+        élément.document.invalide_style_pour_id(élément, vieille_valeur, valeur);
+        retourne vrai;
     }
 
     si local_name == ATTR_class {
-        déloge(élément.liste_classes)
+        déloge(élément.liste_classes);
         // À FAIRE : invalide le style pour les classes
         /* Retournons faux pour laisser les objets dérivés gérer décider quoi faire. */
-        retourne faux
+        retourne faux;
     }
 
-    retourne faux
+    retourne faux;
 }
 
 /* https://dom.spec.whatwg.org/#concept-element-attributes-append */
 ajoute_attribut :: fonc (élément: *Element, attribut_lexé: AttributLexé)
 {
     // 1. Append attribute to element’s attribute list.
-    attribut := ajoute_attribut(élément, attribut_lexé.nom, attribut_lexé.valeur)
+    attribut := ajoute_attribut(élément, attribut_lexé.nom, attribut_lexé.valeur);
 
     // 2. Set attribute’s element to element.
-    attribut.élément = élément
+    attribut.élément = élément;
 
     // 3. Handle attribute changes for attribute with element, null, and attribute’s value.
-    gère_changement_attribute(attribut, élément, nul, *attribut.valeur)
+    gère_changement_attribute(attribut, élément, nul, *attribut.valeur);
 }
 
 /* https://dom.spec.whatwg.org/#concept-element-attributes-change */
 change_attribut :: fonc (attribut: *Attr, valeur: DOMString)
 {
     // 1. Let oldValue be attribute’s value.
-    vieille_valeur := attribut.valeur
+    vieille_valeur := attribut.valeur;
 
     // 2. Set attribute’s value to value.
-    attribut.valeur = valeur
+    attribut.valeur = valeur;
 
     // 3. Handle attribute changes for attribute with attribute’s element, oldValue, and value.
-    gère_changement_attribute(attribut, attribut.élément, *vieille_valeur, *valeur)
+    gère_changement_attribute(attribut, attribut.élément, *vieille_valeur, *valeur);
 }
 
 /* https://dom.spec.whatwg.org/#handle-attribute-changes */
@@ -154,33 +154,33 @@ gère_changement_attribute :: fonc (attribut: *Attr, élément: *Element, vieill
 
     // 3. Run the attribute change steps with element, attribute’s local name, oldValue, newValue,
     //    and attribute’s namespace.
-    table := élément.table comme *TableVirtuelleElement
+    table := élément.table comme *TableVirtuelleElement;
     si table && table.sur_changement_attribut {
-        _ := table.sur_changement_attribut(élément, attribut.local_name, vieille_valeur, nouvelle_valeur, attribut.namespace)
+        _ := table.sur_changement_attribut(élément, attribut.local_name, vieille_valeur, nouvelle_valeur, attribut.namespace);
     }
 
-    élément.document.invalide_style_pour_attribut(élément, attribut.local_name)
+    élément.document.invalide_style_pour_attribut(élément, attribut.local_name);
 }
 
 /* https://dom.spec.whatwg.org/#concept-element-attributes-get-value */
 get_an_attribute_value :: fonc (élément: *Element, nom: DOMString) -> DOMString
 {
     // À FAIRE : standardise
-    retourne donne_attribut_ou_chaine_vide(élément, nom)
+    retourne donne_attribut_ou_chaine_vide(élément, nom);
 }
 
 /* https://dom.spec.whatwg.org/#concept-element-attributes-set-value */
 set_an_attribute_value :: fonc (élément: *Element, nom: DOMString, valeur: DOMString)
 {
     // À FAIRE : standardise
-    attribut := cherche_attribut(élément, nom)
+    attribut := cherche_attribut(élément, nom);
     saufsi attribut {
-        attribut_lexé := AttributLexé(nom, valeur)
-        ajoute_attribut(élément, attribut_lexé)
-        retourne
+        attribut_lexé := AttributLexé(nom, valeur);
+        ajoute_attribut(élément, attribut_lexé);
+        retourne;
     }
 
-    change_attribut(attribut, valeur)
+    change_attribut(attribut, valeur);
 }
 
 /* https://dom.spec.whatwg.org/#dom-element-setattribute */
@@ -194,30 +194,30 @@ set_attribute :: fonc (élément: *Element, qualified_name: DOMString, value: DO
 
     // 3. Let attribute be the first attribute in this’s attribute list whose qualified name,
     //    is qualifiedName and null otherwise.
-    attribute := cherche_attribut(élément, qualified_name)
+    attribute := cherche_attribut(élément, qualified_name);
 
     // 4. If attribute is null, create an attribute whose local name is qualifiedName, value
     //    is value, and node document is this’s node document, then append this attribute to this,
     //    and then return.
     si attribute == nul {
         // À FAIRE : révise l'IPA
-        ajoute_attribut(élément, AttributLexé(qualified_name, value))
-        retourne
+        ajoute_attribut(élément, AttributLexé(qualified_name, value));
+        retourne;
     }
 
     // 5. Change attribute to value.
-    change_attribut(attribute, value)
+    change_attribut(attribute, value);
 }
 
 /* https://dom.spec.whatwg.org/#concept-getelementsbyclassname */
 get_elements_by_class_name :: fonc (élément: *Element, class_names: DOMString) -> *HTMLCollection
 {
     // 1. Let classes be the result of running the ordered set parser on classNames.
-    classes := run_ordered_set_parser(class_names)
+    classes := run_ordered_set_parser(class_names);
 
     // 2. If classes is the empty set, return an empty HTMLCollection.
     si classes.taille == 0 {
-        retourne crée_html_collection(élément)
+        retourne crée_html_collection(élément);
     }
 
     // 3. Return an HTMLCollection rooted at root, whose filter matches
@@ -225,20 +225,20 @@ get_elements_by_class_name :: fonc (élément: *Element, class_names: DOMString)
     //    The comparisons for the classes must be done in an ASCII
     //    case-insensitive manner if root’s node document’s mode is "quirks";
     //    otherwise in an identical to manner.
-    résultat := crée_html_collection(élément)
-    résultat.root = élément
-    résultat.filter = crée_filtre_pour_class_name(classes)
-    initialise_collection_pour_filtre(résultat)
-    retourne résultat
+    résultat := crée_html_collection(élément);
+    résultat.root = élément;
+    résultat.filter = crée_filtre_pour_class_name(classes);
+    initialise_collection_pour_filtre(résultat);
+    retourne résultat;
 }
 
 /* https://dom.spec.whatwg.org/#concept-getelementsbytagname */
 get_elements_by_tag_name :: fonc (noeud: *Node, qualified_name: DOMString) -> *HTMLCollection
 {
-    assert(noeud.est_élément() || noeud.est_document())
+    assert(noeud.est_élément() || noeud.est_document());
 
-    résultat := crée_html_collection(noeud)
-    résultat.root = noeud
+    résultat := crée_html_collection(noeud);
+    résultat.root = noeud;
 
     // 1. If qualifiedName is U+002A (*), then return an HTMLCollection rooted at root, whose filter matches only descendant elements.
 
@@ -249,10 +249,10 @@ get_elements_by_tag_name :: fonc (noeud: *Node, qualified_name: DOMString) -> *H
     //     Whose namespace is not the HTML namespace and whose qualified name is qualifiedName.
 
     // 3. Otherwise, return an HTMLCollection rooted at root, whose filter matches descendant elements whose qualified name is qualifiedName. 
-    résultat.filter = crée_filtre_pour_tag_name(qualified_name)
+    résultat.filter = crée_filtre_pour_tag_name(qualified_name);
 
-    initialise_collection_pour_filtre(résultat)
-    retourne résultat
+    initialise_collection_pour_filtre(résultat);
+    retourne résultat;
 }
 
 #portée_export
@@ -260,55 +260,55 @@ get_elements_by_tag_name :: fonc (noeud: *Node, qualified_name: DOMString) -> *H
 donne_liste_classe :: fonc (élément: *Element) -> []DOMString
 {
     saufsi élément.liste_classes {
-        valeur := donne_attribut(élément, ATTR_class)
+        valeur := donne_attribut(élément, ATTR_class);
         si valeur.possède_valeur() {
-            élément.liste_classes = divise_sur_espaces_blanches_ascii(valeur.Quelque)
+            élément.liste_classes = divise_sur_espaces_blanches_ascii(valeur.Quelque);
         }
     }
 
-    retourne élément.liste_classes
+    retourne élément.liste_classes;
 }
 
 /* https://dom.spec.whatwg.org/#valid-element-local-name */
 is_valid_element_local_name :: fonc (name: DOMString) -> bool
 {
-    chn := name.donne_chaine_utf16()
+    chn := name.donne_chaine_utf16();
 
     // 1. If name’s length is 0, then return false.
     si chn.taille() == 0 {
-        retourne faux
+        retourne faux;
     }
 
     // 2. If name’s 0th code point is an ASCII alpha, then:
-    points_de_code := chn.itératrice_points_de_code()
-    point_de_code := point_de_code_suivant(*points_de_code)
+    points_de_code := chn.itératrice_points_de_code();
+    point_de_code := point_de_code_suivant(*points_de_code);
 
     si est_lettre_ascii(point_de_code) {
         // 1. If name contains ASCII whitespace, U+0000 NULL, U+002F (/), or U+003E (>), then return false.
         pour points_de_code {
             si est_ascii_espace_blanche(it) || it == 0x00 || it == 0x2F || it == 0x3E {
-                retourne faux
+                retourne faux;
             }
         }
 
         // 2. Return true.
-        retourne vrai
+        retourne vrai;
     }
 
     // 3. If name’s 0th code point is not U+003A (:), U+005F (_), or in the range U+0080 to U+10FFFF, inclusive, then return false.
     si point_de_code != 0x3A && point_de_code != 0x5F && !(0x80 <= point_de_code <= 0x10FFFF) {
-        retourne faux
+        retourne faux;
     }
 
     // 4. If name’s subsequent code points, if any, are not ASCII alphas, ASCII digits, U+002D (-), U+002E (.), U+003A (:), U+005F (_), or in the range U+0080 to U+10FFFF, inclusive, then return false.
     pour points_de_code {
         saufsi est_ascii_alphanumérique(it) || it == 0x2D || it == 0x2E || it == 0x3A || it == 0x5F || (0x80 <= it <= 0x10FFFF) {
-            retourne faux
+            retourne faux;
         }
     }
 
     // 5. Return true.
-    retourne vrai
+    retourne vrai;
 }
 
 /** \} */

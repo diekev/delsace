@@ -1,4 +1,4 @@
-importe Fondation
+importe Fondation;
 
 /* Cas assignation :
  *  +--------+-----------+-----------+------------------------------+
@@ -29,60 +29,60 @@ importe Fondation
  */
 
 FOO :: struct {
-    a := 123
+    a := 123;
 }
 
 assigne_rubrique_de_référence :: fonc (f: &FOO) -> rien
 {
-    f.a = 987
+    f.a = 987;
 }
 
 assigne_valeur_à_référence :: fonc (a: &z32) -> rien
 {
-    a = 7
+    a = 7;
 }
 
 assigne_référence_à_référence :: fonc (a: &z32, b: &z32) -> rien
 {
-    tmp := a
-    a = b
-    b = tmp
+    tmp := a;
+    a = b;
+    b = tmp;
 }
 
 principale :: fonc ()
 {
-    a := 5
-    imprime("a = %\n", a)
+    a := 5;
+    imprime("a = %\n", a);
 
-    assigne_valeur_à_référence(a)
-    imprime("a = %\n", a)
-
-    /* ------------------------------------------------------------------------- */
-
-    foo: FOO
-
-    imprime("%\n", foo)
-
-    assigne_rubrique_de_référence(foo)
-    imprime("%\n", foo)
+    assigne_valeur_à_référence(a);
+    imprime("a = %\n", a);
 
     /* ------------------------------------------------------------------------- */
 
-    x := 123
-    y := 456
-    imprime("x = %, y = %\n", x, y)
+    foo: FOO;
 
-    assigne_référence_à_référence(x, y)
-    imprime("x = %, y = %\n", x, y)
+    imprime("%\n", foo);
+
+    assigne_rubrique_de_référence(foo);
+    imprime("%\n", foo);
 
     /* ------------------------------------------------------------------------- */
 
-    z := 5
-    imprime("z = %\n", z)
+    x := 123;
+    y := 456;
+    imprime("x = %, y = %\n", x, y);
 
-    w : &z32 = z
-    w = 10
-    imprime("z = %\n", z)
+    assigne_référence_à_référence(x, y);
+    imprime("x = %, y = %\n", x, y);
+
+    /* ------------------------------------------------------------------------- */
+
+    z := 5;
+    imprime("z = %\n", z);
+
+    w : &z32 = z;
+    w = 10;
+    imprime("z = %\n", z);
 
     /* ------------------------------------------------------------------------- */
 }

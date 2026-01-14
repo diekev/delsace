@@ -1,95 +1,95 @@
-importe Introspection
+importe Introspection;
 
 imprime_valeur_json :: fonc (enchaineuse: *Enchaineuse, valeur: eini) -> rien
 {
     discr valeur.info.id {
         OCTET {
-            imprime_nombre_entier(enchaineuse, FormatEntier(valeur = valeur))
+            imprime_nombre_entier(enchaineuse, FormatEntier(valeur = valeur));
         }
         ENTIER {
-            imprime_nombre_entier(enchaineuse, FormatEntier(valeur = valeur))
+            imprime_nombre_entier(enchaineuse, FormatEntier(valeur = valeur));
         }
         RÉEL {
-            imprime_nombre_réel(enchaineuse, FormatRéel(valeur = valeur))
+            imprime_nombre_réel(enchaineuse, FormatRéel(valeur = valeur));
         }
         BOOLÉEN {
-            valeur_ := valeur.comme_bool()
+            valeur_ := valeur.comme_bool();
 
             si valeur_ {
-                ajoute_au_tampon(enchaineuse, "true")
+                ajoute_au_tampon(enchaineuse, "true");
             }
             sinon {
-                ajoute_au_tampon(enchaineuse, "false")
+                ajoute_au_tampon(enchaineuse, "false");
             }
         }
         CHAINE {
-            ajoute_au_tampon(enchaineuse, "\"", valeur.comme_chaine(), "\"")
+            ajoute_au_tampon(enchaineuse, "\"", valeur.comme_chaine(), "\"");
         }
         STRUCTURE {
-            info_arg := valeur.info comme *InfoTypeStructure
+            info_arg := valeur.info comme *InfoTypeStructure;
 
-            ajoute_au_tampon(enchaineuse, "{")
-            idx := 0
+            ajoute_au_tampon(enchaineuse, "{");
+            idx := 0;
 
             pour rubrique dans info_arg.rubriques {
                 si rubrique.drapeaux.EST_CONSTANTE {
-                    continue
+                    continue;
                 }
 
-                nom := rubrique.nom
-                décalage := rubrique.décalage
+                nom := rubrique.nom;
+                décalage := rubrique.décalage;
 
                 si idx != 0 {
-                    ajoute_au_tampon(enchaineuse, ',')
+                    ajoute_au_tampon(enchaineuse, ',');
                 }
 
-                ajoute_au_tampon(enchaineuse, "\"", nom, "\":")
+                ajoute_au_tampon(enchaineuse, "\"", nom, "\":");
 
-                valeur_rubrique : eini = ---
-                valeur_rubrique.pointeur = valeur.pointeur + décalage
-                valeur_rubrique.info = rubrique.id
+                valeur_rubrique : eini = ---;
+                valeur_rubrique.pointeur = valeur.pointeur + décalage;
+                valeur_rubrique.info = rubrique.id;
 
-                imprime_valeur_json(enchaineuse, valeur_rubrique)
+                imprime_valeur_json(enchaineuse, valeur_rubrique);
 
-                idx += 1
+                idx += 1;
             }
 
-            ajoute_au_tampon(enchaineuse, "}")
+            ajoute_au_tampon(enchaineuse, "}");
         }
         TABLEAU,
         TABLEAU_FIXE {
-            indice := 0
-            itératrice := crée_itératrice_tableau(valeur)
+            indice := 0;
+            itératrice := crée_itératrice_tableau(valeur);
 
-            ajoute_au_tampon(enchaineuse, "[")
+            ajoute_au_tampon(enchaineuse, "[");
 
             boucle {
-                valeur_ := itératrice.valeur_suivante()
+                valeur_ := itératrice.valeur_suivante();
 
                 saufsi valeur_.est_valide() {
-                    arrête
+                    arrête;
                 }
 
                 si indice != 0 {
-                    ajoute_au_tampon(enchaineuse, ',')
+                    ajoute_au_tampon(enchaineuse, ',');
                 }
 
-                imprime_valeur(enchaineuse, valeur_, vrai)
-                indice += 1
+                imprime_valeur(enchaineuse, valeur_, vrai);
+                indice += 1;
             }
 
-            ajoute_au_tampon(enchaineuse, "]")
+            ajoute_au_tampon(enchaineuse, "]");
         }
         ÉNUM {
-            imprime_valeur_énum(enchaineuse, valeur)
+            imprime_valeur_énum(enchaineuse, valeur);
         }
         OPAQUE {
-            info_arg := valeur.info comme *InfoTypeOpaque
-            valeur.info = info_arg.type_opacifié
-            imprime_valeur(enchaineuse, valeur, vrai)
+            info_arg := valeur.info comme *InfoTypeOpaque;
+            valeur.info = info_arg.type_opacifié;
+            imprime_valeur(enchaineuse, valeur, vrai);
         }
         sinon {
-            ajoute_au_tampon(enchaineuse, "null")
+            ajoute_au_tampon(enchaineuse, "null");
         }
     }
 }

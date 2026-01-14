@@ -4,13 +4,13 @@
  */
 
 Struct :: struct {
-    x: z32
+    x: z32;
 }
 
 principale :: fonc ()
 {
-    x: ...Struct
+    x: ...Struct;
     si type_de(x) != ...Struct {
-        exit(1)
+        exit(1);
     }
 }
