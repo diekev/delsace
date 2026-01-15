@@ -62,6 +62,13 @@ sémantise_translation_unit_c :: fonc (sémanticienne: *SémanticienneC, unit: *
 
 valide_sémantique_noeud :: fonc (empl sémanticienne: *SémanticienneC, node: *ASTNode)
 {
+    si node.état_validation != État_Validation.NON_VALIDÉ {
+        retourne
+    }
+
+    node.état_validation =  État_Validation.EN_VALIDATION;
+    diffère node.état_validation = État_Validation.VALIDÉ;
+
     discr node.genre {
         TypedefDecl {
             typedef := node comme *TypedefDecl;

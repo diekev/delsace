@@ -4,11 +4,18 @@ importe Introspection;
 /** \nom Noeud de base pour tous les noeuds syntaxique.
  * \{ */
 
+État_Validation :: énum n8 {
+    NON_VALIDÉ;
+    EN_VALIDATION;
+    VALIDÉ;
+}
+
 ASTNode :: struct {
     genre := #type_de_cette_structure;
 
     token: Token;
     type: *Type;
+    état_validation: État_Validation;
 }
 
 /** \} */
