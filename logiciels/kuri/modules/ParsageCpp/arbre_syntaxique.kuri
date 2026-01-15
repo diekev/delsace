@@ -95,6 +95,25 @@ FunctionDefinition :: struct {
     statement: *CompoundStatement;
 }
 
+donne_dernière_instruction :: fonc (statement: *CompoundStatement) -> *ASTNode
+{
+    boucle {
+        si statement.items.taille == 0 {
+            arrête;
+        }
+
+        test := statement.items[statement.items.taille - 1];
+        si test.genre == CompoundStatement {
+            statement = test comme *CompoundStatement;
+            continue;
+        }
+
+        retourne test;
+    }
+
+    retourne nul;
+}
+
 TypeKind :: énum {
     BOOL;
     CHAR;
