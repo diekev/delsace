@@ -747,23 +747,32 @@ valide_sémantique_noeud :: fonc (empl sémanticienne: *SémanticienneC, node: *
                 }
                 unary.type = unit.maçonne_type.int_signed_type;
             }
-            sinon si unary.op == "*" {
-                // À FAIRE : function designator
-                si type_opérande.drapeaux.POINTER == faux {
-                    unary.type = unit.maçonne_type.int_signed_type;
-                    rapporte_erreur(sémanticienne, unary, "l'opérateur unaire '%' doit avoir un type pointeur comme opérande", unary.op);
-                }
-                sinon {
-                    type_pointeur := type_opérande comme *PointerType;
-                    unary.type = type_pointeur.pointed_to;
-                    unary.drapeaux.LVALUE = vrai;
-                }
+        }
+        AddressExpression {
+            address := node comme *AddressExpression;
+            valide_sémantique_noeud(sémanticienne, address.operand);
+
+            type_opérande := address.operand.type;
+            // À FAIRE : The operand of the unary & operator shall be either a function designator, the result of a
+            // [] or unary * operator, or an lvalue that designates an object that is not a bit-field and is
+            // not declared with the register storage-class specifier.
+            address.type = crée_type_pointeur(*unit.maçonne_type, type_opérande);
+        }
+        IndirectionExpression {
+            indirection := node comme *IndirectionExpression;
+            valide_sémantique_noeud(sémanticienne, indirection.operand);
+
+            type_opérande := indirection.operand.type;
+
+            // À FAIRE : function designator
+            si type_opérande.drapeaux.POINTER == faux {
+                indirection.type = unit.maçonne_type.int_signed_type;
+                rapporte_erreur(sémanticienne, indirection, "l'opérateur d'indirection doit avoir un type pointeur comme opérande");
             }
-            sinon si unary.op == "&" {
-                // À FAIRE : The operand of the unary & operator shall be either a function designator, the result of a
-                // [] or unary * operator, or an lvalue that designates an object that is not a bit-field and is
-                // not declared with the register storage-class specifier.
-                unary.type = crée_type_pointeur(*unit.maçonne_type, type_opérande);
+            sinon {
+                type_pointeur := type_opérande comme *PointerType;
+                indirection.type = type_pointeur.pointed_to;
+                indirection.drapeaux.LVALUE = vrai;
             }
         }
         PostFixUpdateExpression {

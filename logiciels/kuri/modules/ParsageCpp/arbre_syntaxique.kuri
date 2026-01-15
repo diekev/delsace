@@ -467,6 +467,20 @@ UnaryExpression :: struct {
     operand: *Expression;
 }
 
+AddressExpression :: struct {
+    empl expr: Expression;
+    genre = #type_de_cette_structure;
+    
+    operand: *Expression;
+}
+
+IndirectionExpression :: struct {
+    empl expr: Expression;
+    genre = #type_de_cette_structure;
+    
+    operand: *Expression;
+}
+
 SizeOfExpression :: struct {
     empl expr: Expression;
     genre = #type_de_cette_structure;

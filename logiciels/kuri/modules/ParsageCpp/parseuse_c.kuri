@@ -2289,7 +2289,7 @@ parse_expression_primaire :: fonc (empl parseuse: *ParseuseC) -> *Expression
 
         résultat = literal;
     }
-    sinon si est_ponctuation(lexème, "-") || est_ponctuation(lexème, "+") || est_ponctuation(lexème, "!") || est_ponctuation(lexème, "~") || est_ponctuation(lexème, "*") || est_ponctuation(lexème, "&") {
+    sinon si est_ponctuation(lexème, "-") || est_ponctuation(lexème, "+") || est_ponctuation(lexème, "!") || est_ponctuation(lexème, "~") {
         consomme(parseuse);
 
         operand := parse_unary_expression(parseuse);
@@ -2299,6 +2299,26 @@ parse_expression_primaire :: fonc (empl parseuse: *ParseuseC) -> *Expression
         unary.operand = operand;
 
         résultat = unary;
+    }
+    sinon si est_ponctuation(lexème, "*") {
+        consomme(parseuse);
+
+        operand := parse_unary_expression(parseuse);
+
+        indirection := crée_noeud(*créatrice, lexème, IndirectionExpression);
+        indirection.operand = operand;
+
+        résultat = indirection;
+    }
+    sinon si est_ponctuation(lexème, "&") {
+        consomme(parseuse);
+
+        operand := parse_unary_expression(parseuse);
+
+        address := crée_noeud(*créatrice, lexème, AddressExpression);
+        address.operand = operand;
+
+        résultat = address;
     }
     sinon si donne_texte(lexème) == "__asm__" {
         consomme(parseuse);
