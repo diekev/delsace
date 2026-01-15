@@ -417,16 +417,35 @@ valide_sémantique_noeud :: fonc (empl sémanticienne: *SémanticienneC, node: *
         }
         IntegerConstant {
             integer := node comme *IntegerConstant
-            // À FAIRE : suffixes, validation taille
+            // À FAIRE : validation taille
 
             valeur := integer.token.lexème.nombre.naturel;
 
-            si valeur <= 0xffffffff {
-                node.type = unit.maçonne_type.int_signed_type;
+            suffixe := integer.token.lexème.suffixe;
+
+            si suffixe == "L" || suffixe == "l" {
+                node.type = unit.maçonne_type.int_long_signed_type;
+            }
+            sinon si suffixe == "LL" || suffixe == "ll" {
+                node.type = unit.maçonne_type.int_long_long_signed_type;
+            }
+            sinon si suffixe == "U" || suffixe == "u" {
+                node.type = unit.maçonne_type.int_unsigned_type;
+            }
+            sinon si suffixe == "LU" || suffixe == "lu" || suffixe == "UL" || suffixe == "ul" {
+                node.type = unit.maçonne_type.int_long_unsigned_type;
+            }
+            sinon si suffixe == "LLU" || suffixe == "llu" || suffixe == "ULL" || suffixe == "ull" {
+                node.type = unit.maçonne_type.int_long_long_unsigned_type;
             }
             sinon {
-                // À FAIRE : différence long/long long
-                node.type = unit.maçonne_type.int_long_signed_type;
+                si valeur <= 0xffffffff {
+                    node.type = unit.maçonne_type.int_signed_type;
+                }
+                sinon {
+                    // À FAIRE : différence long/long long
+                    node.type = unit.maçonne_type.int_long_signed_type;
+                }
             }
         }
         CharacterConstant {
