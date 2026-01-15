@@ -87,6 +87,27 @@ valide_sémantique_noeud :: fonc (empl sémanticienne: *SémanticienneC, node: *
         StructDecl {
             struct_decl := node comme *StructDecl;
 
+            si struct_decl.name {
+                // À FAIRE : différents espaces de noms.
+                decl_existante := donne_symbole(table_de_symboles, struct_decl.name);
+                si decl_existante && decl_existante.genre == StructDecl {
+                    struct_existante := decl_existante comme *StructDecl;
+
+                    si struct_existante.drapeaux.COMPLET == vrai {
+                        // À FAIRE : drapeau spécifique pour dire qu'il y eu un bloc
+                        si struct_decl.declarations {
+                            rapporte_note(sémanticienne, struct_existante, "la structure '%' fut déjà définie ici", struct_existante.name);
+                            rapporte_erreur(sémanticienne, struct_decl, "redéfinition de la structure '%'", struct_decl.name);
+                        }
+
+                        struct_decl.type = struct_existante;
+                        retourne;
+                    }
+                }
+
+                insère_symbole(*table_de_symboles, struct_decl.name, struct_decl);
+            }
+
             field_infos: [..]Field_Info;
             diffère déloge(field_infos);
 
@@ -151,10 +172,6 @@ valide_sémantique_noeud :: fonc (empl sémanticienne: *SémanticienneC, node: *
                 struct_decl.alignement = alignement_max;
                 struct_decl.drapeaux.COMPLET = vrai;
             }
-
-            si struct_decl.name {
-                insère_symbole(*table_de_symboles, struct_decl.name, struct_decl);
-            }
         }
         UnionDecl {
             union_decl := node comme *UnionDecl;
@@ -205,6 +222,8 @@ valide_sémantique_noeud :: fonc (empl sémanticienne: *SémanticienneC, node: *
         }
         VarDecl {
             var_decl := node comme *VarDecl;
+
+            valide_sémantique_noeud(sémanticienne, var_decl.type_expression);
 
             var_decl.type = résoud_type_final(sémanticienne, var_decl.type_expression);
 
@@ -1385,6 +1404,10 @@ résoud_type_final :: fonc (empl sémanticienne: *SémanticienneC, node: *ASTNod
         }
         TypeRef {
             type_ref := node comme *TypeRef;
+            // NOTE : pour les redéclarations de structures qui redéclarent une structure complète.
+            si type_ref.reference_type.type {
+                retourne type_ref.reference_type.type;
+            }
             retourne type_ref.reference_type;
         }
         PointerTypeExpression {
