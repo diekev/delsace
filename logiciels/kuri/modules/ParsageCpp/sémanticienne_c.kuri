@@ -848,7 +848,9 @@ valide_sémantique_noeud :: fonc (empl sémanticienne: *SémanticienneC, node: *
         }
         ConstantArrayExpression {
             constant_array := node comme *ConstantArrayExpression;
-            valide_sémantique_noeud(sémanticienne, constant_array.size_expression);
+            si constant_array.size_expression {
+                valide_sémantique_noeud(sémanticienne, constant_array.size_expression);
+            }
             valide_sémantique_noeud(sémanticienne, constant_array.element_type);
         }
         sinon {
