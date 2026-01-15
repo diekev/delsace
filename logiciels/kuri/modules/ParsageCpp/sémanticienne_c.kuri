@@ -983,12 +983,15 @@ valide_opérateur_égalité :: fonc (empl sémanticienne: *SémanticienneC, bina
         pointeur_gauche := type_gauche comme *PointerType;
         pointeur_droite := type_droite comme *PointerType;
 
+        // À FAIRE : pointer to an object type
+        si pointeur_gauche.pointed_to.kind == TypeKind.VOID || pointeur_droite.pointed_to.kind == TypeKind.VOID {
+            // OK
+        }
         // À FAIRE : qualified or unqualified versions
-        saufsi types_sont_compatibles(pointeur_gauche.pointed_to, pointeur_droite.pointed_to) {
+        sinon saufsi types_sont_compatibles(pointeur_gauche.pointed_to, pointeur_droite.pointed_to) {
             rapporte_erreur_types_incompatibles(sémanticienne, binary);
         }
 
-        // À FAIRE : pointer to an object type vs void*
         // À FAIRE : pointer vs (void *)0
     }
     sinon {
