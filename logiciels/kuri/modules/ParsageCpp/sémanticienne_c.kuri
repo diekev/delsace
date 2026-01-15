@@ -746,6 +746,7 @@ valide_sémantique_noeud :: fonc (empl sémanticienne: *SémanticienneC, node: *
                     rapporte_erreur(sémanticienne, index.right, "impossible de déréférencé le type incomplet '%'", donne_épelage_type(type_pointé));
                 }
 
+                index.drapeaux.LVALUE = vrai;
                 index.type = type_pointé;
             }
             sinon si index.right.type.drapeaux.POINTER && index.left.type.drapeaux.INTEGER {
@@ -757,6 +758,7 @@ valide_sémantique_noeud :: fonc (empl sémanticienne: *SémanticienneC, node: *
                     rapporte_erreur(sémanticienne, index.right, "impossible de déréférencé le type incomplet '%'", donne_épelage_type(type_pointé));
                 }
 
+                index.drapeaux.LVALUE = vrai;
                 index.type = type_pointé;
             }
             sinon {
