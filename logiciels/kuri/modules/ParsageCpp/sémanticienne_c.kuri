@@ -222,16 +222,26 @@ valide_sémantique_noeud :: fonc (empl sémanticienne: *SémanticienneC, node: *
                 }
             }
 
+            possède_liaison := faux;
+
             si var_decl.storage_class_specifier == "static" {
                 var_decl.linkage = Linkage.INTERNAL;
                 var_decl.storage_duration = Storage_Duration.STATIC;
+                possède_liaison = vrai;
             }
             sinon si var_decl.storage_class_specifier == "extern" {
                 var_decl.linkage = Linkage.EXTERNAL;
+                possède_liaison = vrai;
             }
             sinon si var_decl.storage_class_specifier == "" {
                 saufsi fonction_courante {
                     var_decl.linkage = Linkage.EXTERNAL;
+                }
+            }
+
+            saufsi possède_liaison {
+                si var_decl.type.drapeaux.COMPLET == faux {
+                    rapporte_erreur(sémanticienne, var_decl, "impossible de déclarer un objet avec le type incomplet '%'", donne_épelage_type(var_decl.type));
                 }
             }
 
