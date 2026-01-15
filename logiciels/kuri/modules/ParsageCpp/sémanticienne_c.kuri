@@ -416,8 +416,18 @@ valide_sémantique_noeud :: fonc (empl sémanticienne: *SémanticienneC, node: *
             node.type = crée_type_pointeur(*unit.maçonne_type, unit.maçonne_type.char_type);
         }
         IntegerConstant {
+            integer := node comme *IntegerConstant
             // À FAIRE : suffixes, validation taille
-            node.type = unit.maçonne_type.int_signed_type;
+
+            valeur := integer.token.lexème.nombre.naturel;
+
+            si valeur <= 0xffffffff {
+                node.type = unit.maçonne_type.int_signed_type;
+            }
+            sinon {
+                // À FAIRE : différence long/long long
+                node.type = unit.maçonne_type.int_long_signed_type;
+            }
         }
         FloatingConstant {
             // À FAIRE : suffixes, validation taille
