@@ -429,6 +429,14 @@ valide_sémantique_noeud :: fonc (empl sémanticienne: *SémanticienneC, node: *
                 node.type = unit.maçonne_type.int_long_signed_type;
             }
         }
+        CharacterConstant {
+            // À FAIRE : préfixes
+            node.type = unit.maçonne_type.int_signed_type;
+            // À FAIRE : lexage (voir préprocesseur)
+            texte := donne_texte(node.token.lexème);
+            texte = avance(texte, 1);
+            node.token.lexème.nombre.naturel = texte[0] comme n64;
+        }
         FloatingConstant {
             // À FAIRE : suffixes, validation taille
             node.type = unit.maçonne_type.float_type;
