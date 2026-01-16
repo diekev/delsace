@@ -78,7 +78,7 @@ démarre :: fonc (serveuse: &Serveuse) -> rien
         retourne;
     }
 
-    mon_addresse: sockaddr_in // Adresse du connecté
+    mon_addresse: sockaddr_in; // Adresse du connecté
     sin_size := taille_de(sockaddr_in);
 
     boucle {

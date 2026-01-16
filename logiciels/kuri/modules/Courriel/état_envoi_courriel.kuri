@@ -39,7 +39,7 @@ commande_suivante :: fonc (état: &ÉtatEnvoiCourriel, config: &ConfigurationCou
         ConnexionOuverte {
             état.étape = ÉtapeEnvoiCourriel.HELOEnvoyé;
             // 250 ok
-            retourne copie_chaine("EHLO delsace.fr") // À FAIRE : paramètre le domaine
+            retourne copie_chaine("EHLO delsace.fr"); // À FAIRE : paramètre le domaine
         }
         HELOEnvoyé {
             état.étape = ÉtapeEnvoiCourriel.AuthentificationCommencée;

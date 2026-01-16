@@ -253,7 +253,7 @@ génère_instructions_importe :: fonc (liste: *EnsembleDeModules, enchaineuse: *
         chemin_module := compilatrice_chemin_module(it);
 
         si commence_par(chemin_module, liste.chemin_modules_kuri.chn) {
-            ajoute_au_tampon(enchaineuse, "importe ", compilatrice_nom_module(it), "\n");
+            ajoute_au_tampon(enchaineuse, "importe ", compilatrice_nom_module(it), ";\n");
             continue;
         }
 
@@ -261,7 +261,7 @@ génère_instructions_importe :: fonc (liste: *EnsembleDeModules, enchaineuse: *
         tmp_chemin_module := CheminFichier(chemin_module);
         discr tmp_chemin_module.chemin_relatif_à(liste.chemin_racine_compilation) {
             Ok(chemin_relatif) {
-                ajoute_au_tampon(enchaineuse, "importe \"", chemin_relatif.chn, "\"\n");
+                ajoute_au_tampon(enchaineuse, "importe \"", chemin_relatif.chn, "\";\n");
                 détruit_chemin(chemin_relatif);
             }
             sinon {

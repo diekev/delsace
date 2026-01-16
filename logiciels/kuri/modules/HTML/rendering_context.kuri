@@ -68,7 +68,7 @@ donne_fill_style :: fonc (ctx: *CanvasRenderingContext2D) -> DOMString
  * setFillStyle. */
 set_fill_color :: fonc (ctx: *CanvasRenderingContext2D, r: r64, v: r64, b: r64)
 {
-    convertis_canal :: fonc (v: r64) -> n8 #enligne;
+    convertis_canal :: fonc (v: r64) -> n8 #enligne
     {
         si v < 0.0 {
             retourne 0;

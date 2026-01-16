@@ -301,7 +301,7 @@ instersecte_lignes :: fonc (p1: Point2D($T), p2: Point2D(T), p3: Point2D(T), p4:
     }
 
     si p5 {
-        offset := si denom < 0 { -denom / 2 } sinon { denom / 2 };
+        offset := si denom < 0 { -denom / 2; } sinon { denom / 2; };
 
         /* The denom/2 is to get rounding instead of truncating.  It
          * is added or subtracted to the numerator, depending upon the
@@ -309,10 +309,10 @@ instersecte_lignes :: fonc (p1: Point2D($T), p2: Point2D(T), p3: Point2D(T), p4:
          */
 
         num := b1 * c2 - b2 * c1;
-        p5.x = si num < 0 { num - offset } sinon { num + offset };
+        p5.x = si num < 0 { num - offset; } sinon { num + offset; };
 
         num = a2 * c1 - a1 * c2;
-        p5.y = si num < 0 { num - offset } sinon { num + offset };
+        p5.y = si num < 0 { num - offset; } sinon { num + offset; };
 
         p5.x /= denom;
         p5.y /= denom;

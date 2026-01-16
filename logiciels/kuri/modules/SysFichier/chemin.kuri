@@ -123,7 +123,7 @@ chemin_normalisé :: fonc (pile: &Pile(chaine), chemin_est_absolu: bool) -> Chem
         pile_secondaire.données.capacité = 16;
     }
 
-    diffère saufsi utilise_tampon { détruit(pile_secondaire) }
+    diffère saufsi utilise_tampon { détruit(pile_secondaire); }
 
     pile.renverse();
 

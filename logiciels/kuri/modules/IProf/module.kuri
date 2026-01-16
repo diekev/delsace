@@ -84,7 +84,7 @@ Prof_update :: fonc (record_data: z32)
             }
             sinon {
                 0.0;
-            }
+            };
 
             speedstep_warning = (ss_ratio > SPEEDSTEP_DETECTION_RATIO);
         }
@@ -240,7 +240,7 @@ Prof_Scope :: fonc (nom: chaine) #développe
 {
     Prof_Begin(nom);
     // À FAIRE(langage) : compilation infinie si un macro est utilisé en expression de diffère
-    diffère { Prof_End() }
+    diffère { Prof_End(); }
 }
 
 // #define Prof_Counter(z)  Prof_Begin(z) Prof_End
@@ -267,8 +267,8 @@ Prof_stack := *Prof_dummy2;
 Prof_num_zones: z32;
 Prof_zones: [MAX_PROFILING_ZONES]*Prof_Zone;
 
-MAX_HASH_SIZE :: 65536   // not unlimited, to catch unbalanced BEGIN/END_PROF
-INIT_HASH_SIZE :: 256     // balance resource usage and avoid initial growth
+MAX_HASH_SIZE :: 65536;   // not unlimited, to catch unbalanced BEGIN/END_PROF
+INIT_HASH_SIZE :: 256;     // balance resource usage and avoid initial growth
 
 init_hash: []*Prof_Zone_Stack = [ *Prof_dummy ];
 zone_hash_mask  := 0;
@@ -368,7 +368,7 @@ Prof_StackAppend :: fonc (zone: *Prof_Zone) -> *Prof_Zone_Stack
             x = (x + s) & zone_hash_mask;
             z = zone_hash[x];
             si z.parent == Prof_stack && z.zone == zone { retourne z; }
-            si z == *Prof_dummy { arrête }
+            si z == *Prof_dummy { arrête; }
         }
         // loop is guaranteed to terminate because the hash table is never full
     }
@@ -474,7 +474,7 @@ times_to_reach_90_percent: [NUM_PROFILE_TRACKER_HISTORY_SLOTS]r64;
 precomputed_factors      : [NUM_PROFILE_TRACKER_HISTORY_SLOTS]r64;
 
 //static int        num_active_zones;
-update_index: z32     // 2^31 at 100fps = 280 days
+update_index: z32;     // 2^31 at 100fps = 280 days
 last_update_time: r64;
 displayed_quantity: Prof_Report_Mode;
 
@@ -762,7 +762,7 @@ compute_heat :: fonc (variance: r64, value: r64) -> r64
     }
 
     variance = variance - value * value;
-    si variance < 0.0 { variance = 0 }
+    si variance < 0.0 { variance = 0; }
     stdev := racine_carrée(variance);
 
     VARIANCE_TOLERANCE_FACTOR : r64 : 0.5;
@@ -818,7 +818,7 @@ Prof_create_report :: fonc () -> *Prof_Report
 {
     empl Prof_Report_Mode;
 
-    s := si displayed_quantity == Prof_CALL_GRAPH { 3 } sinon { 1 }
+    s := si displayed_quantity == Prof_CALL_GRAPH { 3; } sinon { 1; };
 
     pob := allocate_buffer(Prof_num_zones * s);
     pour i dans Prof_num_zones {
@@ -996,8 +996,8 @@ Prof_select_parent :: fonc ()
     old := expand comme *rien;
     b := Prof_create_report();
     pour * b.record {
-        si it.indent == 0 { arrête }
-        si it.zone == old { continue }
+        si it.indent == 0 { arrête; }
+        si it.zone == old { continue; }
         expand = it.zone comme *Prof_Zone;
     }
     Prof_free_report(b);
@@ -1006,8 +1006,8 @@ Prof_select_parent :: fonc ()
 
 Prof_set_frame :: fonc (num: z32)
 {
-    si num < 0 { num = 0 }
-    si num >= NUM_FRAME_SLOTS { num = NUM_FRAME_SLOTS - 1 }
+    si num < 0 { num = 0; }
+    si num >= NUM_FRAME_SLOTS { num = NUM_FRAME_SLOTS - 1; }
 
     display_frame = num;
 }
@@ -1020,7 +1020,7 @@ Prof_move_frame :: fonc (delta: z32)
 
 Prof_set_smoothing :: fonc (x: z32)
 {
-    si x <= 0 { x = 0 }
+    si x <= 0 { x = 0; }
     si x >= NUM_PROFILE_TRACKER_HISTORY_SLOTS {
         x = NUM_PROFILE_TRACKER_HISTORY_SLOTS - 1;
     }

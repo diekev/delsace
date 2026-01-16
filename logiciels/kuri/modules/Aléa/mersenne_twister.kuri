@@ -162,7 +162,7 @@ ensemmence :: fonc (empl mt: *MersenneTwister, grande_graine: ...n32)
 
     i := 1;
     j : n32 = 0;
-    k := si MersenneTwister.N > grande_graine.taille { MersenneTwister.N } sinon { grande_graine.taille comme z32 }
+    k := si MersenneTwister.N > grande_graine.taille { MersenneTwister.N; } sinon { grande_graine.taille comme z32; };
 
     pour k {
 		état[i] = état[i] ^ ( (état[i-1] ^ (état[i-1] >> 30)) * 1664525 );

@@ -131,68 +131,68 @@ GenreLexème :: énum {
 rafine_genre_lexème_identifiant :: fonc (identifiant: chaine) -> GenreLexème
 {
     si identifiant.taille == 2 {
-        si identifiant == "as" { retourne GenreLexème.As }
-        si identifiant == "do" { retourne GenreLexème.Do }
-        si identifiant == "if" { retourne GenreLexème.If }
-        si identifiant == "in" { retourne GenreLexème.In }
-        si identifiant == "of" { retourne GenreLexème.Of }
+        si identifiant == "as" { retourne GenreLexème.As; }
+        si identifiant == "do" { retourne GenreLexème.Do; }
+        si identifiant == "if" { retourne GenreLexème.If; }
+        si identifiant == "in" { retourne GenreLexème.In; }
+        si identifiant == "of" { retourne GenreLexème.Of; }
     }
     sinon si identifiant.taille == 3 {
-        si identifiant == "for" { retourne GenreLexème.For }
-        si identifiant == "get" { retourne GenreLexème.Get }
-        si identifiant == "let" { retourne GenreLexème.Let }
-        si identifiant == "new" { retourne GenreLexème.New }
-        si identifiant == "set" { retourne GenreLexème.Set }
-        si identifiant == "try" { retourne GenreLexème.Try }
-        si identifiant == "var" { retourne GenreLexème.Var }
+        si identifiant == "for" { retourne GenreLexème.For; }
+        si identifiant == "get" { retourne GenreLexème.Get; }
+        si identifiant == "let" { retourne GenreLexème.Let; }
+        si identifiant == "new" { retourne GenreLexème.New; }
+        si identifiant == "set" { retourne GenreLexème.Set; }
+        si identifiant == "try" { retourne GenreLexème.Try; }
+        si identifiant == "var" { retourne GenreLexème.Var; }
     }
     sinon si identifiant.taille == 4 {
-        si identifiant == "case" { retourne GenreLexème.Case }
-        si identifiant == "else" { retourne GenreLexème.Else }
-        si identifiant == "enum" { retourne GenreLexème.Enum }
-        si identifiant == "from" { retourne GenreLexème.From }
-        si identifiant == "meta" { retourne GenreLexème.Meta }
-        si identifiant == "null" { retourne GenreLexème.Null }
-        si identifiant == "this" { retourne GenreLexème.This }
-        si identifiant == "true" { retourne GenreLexème.True }
-        si identifiant == "void" { retourne GenreLexème.Void }
-        si identifiant == "With" { retourne GenreLexème.With }
+        si identifiant == "case" { retourne GenreLexème.Case; }
+        si identifiant == "else" { retourne GenreLexème.Else; }
+        si identifiant == "enum" { retourne GenreLexème.Enum; }
+        si identifiant == "from" { retourne GenreLexème.From; }
+        si identifiant == "meta" { retourne GenreLexème.Meta; }
+        si identifiant == "null" { retourne GenreLexème.Null; }
+        si identifiant == "this" { retourne GenreLexème.This; }
+        si identifiant == "true" { retourne GenreLexème.True; }
+        si identifiant == "void" { retourne GenreLexème.Void; }
+        si identifiant == "With" { retourne GenreLexème.With; }
     }
     sinon si identifiant.taille == 5 {
-        si identifiant == "async" { retourne GenreLexème.Async }
-        si identifiant == "await" { retourne GenreLexème.Await }
-        si identifiant == "break" { retourne GenreLexème.Break }
-        si identifiant == "catch" { retourne GenreLexème.Catch }
-        si identifiant == "class" { retourne GenreLexème.Class }
-        si identifiant == "const" { retourne GenreLexème.Const }
-        si identifiant == "false" { retourne GenreLexème.False }
-        si identifiant == "super" { retourne GenreLexème.Super }
-        si identifiant == "throw" { retourne GenreLexème.Throw }
-        si identifiant == "while" { retourne GenreLexème.While }
-        si identifiant == "yield" { retourne GenreLexème.Yield }
+        si identifiant == "async" { retourne GenreLexème.Async; }
+        si identifiant == "await" { retourne GenreLexème.Await; }
+        si identifiant == "break" { retourne GenreLexème.Break; }
+        si identifiant == "catch" { retourne GenreLexème.Catch; }
+        si identifiant == "class" { retourne GenreLexème.Class; }
+        si identifiant == "const" { retourne GenreLexème.Const; }
+        si identifiant == "false" { retourne GenreLexème.False; }
+        si identifiant == "super" { retourne GenreLexème.Super; }
+        si identifiant == "throw" { retourne GenreLexème.Throw; }
+        si identifiant == "while" { retourne GenreLexème.While; }
+        si identifiant == "yield" { retourne GenreLexème.Yield; }
     }
     sinon si identifiant.taille == 6 {
-        si identifiant == "delete" { retourne GenreLexème.Delete }
-        si identifiant == "export" { retourne GenreLexème.Export }
-        si identifiant == "import" { retourne GenreLexème.Import }
-        si identifiant == "return" { retourne GenreLexème.Return }
-        si identifiant == "static" { retourne GenreLexème.Static }
-        si identifiant == "switch" { retourne GenreLexème.Switch }
-        si identifiant == "target" { retourne GenreLexème.Target }
-        si identifiant == "typeof" { retourne GenreLexème.Typeof }
+        si identifiant == "delete" { retourne GenreLexème.Delete; }
+        si identifiant == "export" { retourne GenreLexème.Export; }
+        si identifiant == "import" { retourne GenreLexème.Import; }
+        si identifiant == "return" { retourne GenreLexème.Return; }
+        si identifiant == "static" { retourne GenreLexème.Static; }
+        si identifiant == "switch" { retourne GenreLexème.Switch; }
+        si identifiant == "target" { retourne GenreLexème.Target; }
+        si identifiant == "typeof" { retourne GenreLexème.Typeof; }
     }
     sinon si identifiant.taille == 7 {
-        si identifiant == "default" { retourne GenreLexème.Default }
-        si identifiant == "extends" { retourne GenreLexème.Extends }
-        si identifiant == "finally" { retourne GenreLexème.Finally }
+        si identifiant == "default" { retourne GenreLexème.Default; }
+        si identifiant == "extends" { retourne GenreLexème.Extends; }
+        si identifiant == "finally" { retourne GenreLexème.Finally; }
     }
     sinon si identifiant.taille == 8 {
-        si identifiant == "continue" { retourne GenreLexème.Continue }
-        si identifiant == "debugger" { retourne GenreLexème.Debugger }
-        si identifiant == "function" { retourne GenreLexème.Function }
+        si identifiant == "continue" { retourne GenreLexème.Continue; }
+        si identifiant == "debugger" { retourne GenreLexème.Debugger; }
+        si identifiant == "function" { retourne GenreLexème.Function; }
     }
     sinon si identifiant.taille == 10 {
-        si identifiant == "instanceof" { retourne GenreLexème.InstanceOf }
+        si identifiant == "instanceof" { retourne GenreLexème.InstanceOf; }
     }
 
     retourne GenreLexème.Identifiant;
@@ -203,59 +203,59 @@ rafine_genre_lexème_opérateur :: fonc (identifiant: chaine) -> Optionnel(Genre
     si identifiant.taille == 1 {
         c := identifiant[0];
 
-        si c == '+' { retourne GenreLexème.Plus }
-        si c == '-' { retourne GenreLexème.Moins }
-        si c == '/' { retourne GenreLexème.Slash }
-        si c == '*' { retourne GenreLexème.Étoile }
-        si c == '%' { retourne GenreLexème.Pourcent }
-        si c == '<' { retourne GenreLexème.Inférieur }
-        si c == '>' { retourne GenreLexème.Supérieur }
-        si c == '=' { retourne GenreLexème.Égal }
-        si c == '&' { retourne GenreLexème.EtBinaire }
-        si c == '|' { retourne GenreLexème.OuBinaire }
-        si c == '^' { retourne GenreLexème.OuExclusif }
-        si c == '~' { retourne GenreLexème.NonBinaire }
-        si c == '!' { retourne GenreLexème.NonLogique }
-        si c == '?' { retourne GenreLexème.Interrogation }
-        si c == ':' { retourne GenreLexème.DoublePoint }
+        si c == '+' { retourne GenreLexème.Plus; }
+        si c == '-' { retourne GenreLexème.Moins; }
+        si c == '/' { retourne GenreLexème.Slash; }
+        si c == '*' { retourne GenreLexème.Étoile; }
+        si c == '%' { retourne GenreLexème.Pourcent; }
+        si c == '<' { retourne GenreLexème.Inférieur; }
+        si c == '>' { retourne GenreLexème.Supérieur; }
+        si c == '=' { retourne GenreLexème.Égal; }
+        si c == '&' { retourne GenreLexème.EtBinaire; }
+        si c == '|' { retourne GenreLexème.OuBinaire; }
+        si c == '^' { retourne GenreLexème.OuExclusif; }
+        si c == '~' { retourne GenreLexème.NonBinaire; }
+        si c == '!' { retourne GenreLexème.NonLogique; }
+        si c == '?' { retourne GenreLexème.Interrogation; }
+        si c == ':' { retourne GenreLexème.DoublePoint; }
     }
     sinon si identifiant.taille == 2 {
-        si identifiant == "+=" { retourne GenreLexème.PlusÉgal }
-        si identifiant == "-=" { retourne GenreLexème.MoinsÉgal }
-        si identifiant == "*=" { retourne GenreLexème.ÉtoileÉgal }
-        si identifiant == "**" { retourne GenreLexème.Exponentiation }
-        si identifiant == "/=" { retourne GenreLexème.SlashÉgal }
-        si identifiant == "%=" { retourne GenreLexème.PourcentÉgal }
-        si identifiant == "<=" { retourne GenreLexème.InférieurÉgal }
-        si identifiant == ">=" { retourne GenreLexème.SupérieurÉgal }
-        si identifiant == "&=" { retourne GenreLexème.EtBinaireÉgal }
-        si identifiant == "|=" { retourne GenreLexème.OuBinaireÉgal }
-        si identifiant == "^=" { retourne GenreLexème.OuExclusifÉgal }
-        si identifiant == "==" { retourne GenreLexème.EstÉgal }
-        si identifiant == "!=" { retourne GenreLexème.NEspaPasÉgal }
-        si identifiant == "++" { retourne GenreLexème.PlusPlus }
-        si identifiant == "--" { retourne GenreLexème.MoinsMoins }
-        si identifiant == "<<" { retourne GenreLexème.DécalageGauche }
-        si identifiant == ">>" { retourne GenreLexème.DécalageDroite }
-        si identifiant == "&&" { retourne GenreLexème.EtLogique }
-        si identifiant == "||" { retourne GenreLexème.OuLogique }
-        si identifiant == "??" { retourne GenreLexème.Coalesce }
-        si identifiant == "=>" { retourne GenreLexème.Arrow }
-        si identifiant == "?." { retourne GenreLexème.OptionalChaining }
+        si identifiant == "+=" { retourne GenreLexème.PlusÉgal; }
+        si identifiant == "-=" { retourne GenreLexème.MoinsÉgal; }
+        si identifiant == "*=" { retourne GenreLexème.ÉtoileÉgal; }
+        si identifiant == "**" { retourne GenreLexème.Exponentiation; }
+        si identifiant == "/=" { retourne GenreLexème.SlashÉgal; }
+        si identifiant == "%=" { retourne GenreLexème.PourcentÉgal; }
+        si identifiant == "<=" { retourne GenreLexème.InférieurÉgal; }
+        si identifiant == ">=" { retourne GenreLexème.SupérieurÉgal; }
+        si identifiant == "&=" { retourne GenreLexème.EtBinaireÉgal; }
+        si identifiant == "|=" { retourne GenreLexème.OuBinaireÉgal; }
+        si identifiant == "^=" { retourne GenreLexème.OuExclusifÉgal; }
+        si identifiant == "==" { retourne GenreLexème.EstÉgal; }
+        si identifiant == "!=" { retourne GenreLexème.NEspaPasÉgal; }
+        si identifiant == "++" { retourne GenreLexème.PlusPlus; }
+        si identifiant == "--" { retourne GenreLexème.MoinsMoins; }
+        si identifiant == "<<" { retourne GenreLexème.DécalageGauche; }
+        si identifiant == ">>" { retourne GenreLexème.DécalageDroite; }
+        si identifiant == "&&" { retourne GenreLexème.EtLogique; }
+        si identifiant == "||" { retourne GenreLexème.OuLogique; }
+        si identifiant == "??" { retourne GenreLexème.Coalesce; }
+        si identifiant == "=>" { retourne GenreLexème.Arrow; }
+        si identifiant == "?." { retourne GenreLexème.OptionalChaining; }
     }
     sinon si identifiant.taille == 3 {
-        si identifiant == "<<=" { retourne GenreLexème.DécalageGaucheÉgal }
-        si identifiant == ">>=" { retourne GenreLexème.DécalageDroiteÉgal }
-        si identifiant == ">>>" { retourne GenreLexème.DécalageDroiteNaturel }
-        si identifiant == "===" { retourne GenreLexème.EstÉgalStrict }
-        si identifiant == "!==" { retourne GenreLexème.NEspaPasÉgalStrict }
-        si identifiant == "&&=" { retourne GenreLexème.EtLogiqueÉgal }
-        si identifiant == "||=" { retourne GenreLexème.OuLogiqueÉgal }
-        si identifiant == "??=" { retourne GenreLexème.CoalesceÉgal }
-        si identifiant == "**=" { retourne GenreLexème.ExponentiationÉgal }
+        si identifiant == "<<=" { retourne GenreLexème.DécalageGaucheÉgal; }
+        si identifiant == ">>=" { retourne GenreLexème.DécalageDroiteÉgal; }
+        si identifiant == ">>>" { retourne GenreLexème.DécalageDroiteNaturel; }
+        si identifiant == "===" { retourne GenreLexème.EstÉgalStrict; }
+        si identifiant == "!==" { retourne GenreLexème.NEspaPasÉgalStrict; }
+        si identifiant == "&&=" { retourne GenreLexème.EtLogiqueÉgal; }
+        si identifiant == "||=" { retourne GenreLexème.OuLogiqueÉgal; }
+        si identifiant == "??=" { retourne GenreLexème.CoalesceÉgal; }
+        si identifiant == "**=" { retourne GenreLexème.ExponentiationÉgal; }
     }
     sinon si identifiant.taille == 4 {
-        si identifiant == ">>>=" { retourne GenreLexème.DécalageDroiteNaturelÉgal }
+        si identifiant == ">>>=" { retourne GenreLexème.DécalageDroiteNaturelÉgal; }
     }
 }
 

@@ -1462,7 +1462,7 @@ parse_struct_or_union_specifier :: fonc (empl parseuse: *ParseuseC, token: Token
             }
             sinon {
                 "la structure";
-            }
+            };
             rapporte_erreur(parseuse, token_tag, "% n'a aucune rubrique", texte_classe);
         }
     }
@@ -2110,7 +2110,7 @@ parse_expression :: fonc (empl parseuse: *ParseuseC, info_courante: InfoParsageO
             consomme(parseuse);
 
             member_access := crée_noeud(*créatrice, lexème, MemberAccessExpression);
-            member_access.is_arrow = texte == "->" 
+            member_access.is_arrow = texte == "->";
             member_access.left = résultat;
             member_access.right = parse_expression(parseuse, info);
 

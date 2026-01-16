@@ -93,17 +93,17 @@ crée_objet_window :: fonc (user_agent: *UserAgent, tas_de_mémoire: *JS.TasDeM�
         window: *Window;
     }
 
-    flux_sortie_sur_destruction :: fonc (flux: *FluxSortieConsole);
+    flux_sortie_sur_destruction :: fonc (flux: *FluxSortieConsole)
     {
         déloge(flux);
     }
 
-    flux_sortie_sur_log :: fonc (empl flux: *FluxSortieConsole, texte: chaine);
+    flux_sortie_sur_log :: fonc (empl flux: *FluxSortieConsole, texte: chaine)
     {
         user_agent.rapporte_log(window.document, copie_chaine(texte));
     }
 
-    flux_sortie_sur_efface :: fonc (base: *JS.FluxSortieConsole @inutilisée);
+    flux_sortie_sur_efface :: fonc (base: *JS.FluxSortieConsole @inutilisée)
     {
     }
 
@@ -240,7 +240,7 @@ crée_algorithm_pour_timeout :: fonc (window: *Window, handler: *JS.Object) -> *
         handler: *JS.Object;
     }
 
-    sur_run :: fonc (base: *Algorithm);
+    sur_run :: fonc (base: *Algorithm)
     {
         sur_timeout := base comme *SurTimeout;
         window := sur_timeout.window;
