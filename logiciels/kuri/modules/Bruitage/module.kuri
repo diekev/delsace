@@ -268,8 +268,8 @@ dist_Chebychev :: fonc (x: r32, y: r32, z: r32, e: r32 @inutilisée) -> r32
     x = abs(x);
     y = abs(y);
     z = abs(z);
-    t := si x > y { x } sinon { y }
-    t = si z > t { z } sinon { t }
+    t := si x > y { x; } sinon { y; };
+    t = si z > t { z; } sinon { t; };
     retourne t;
 }
 

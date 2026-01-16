@@ -139,7 +139,7 @@ imprime_noeud_graphviz :: fonc (enchaineuse: *Enchaineuse, noeud: *Noeud, nom_po
         décalage: z64;
     }
 
-    donne_index_prise_pour_assignation :: fonc (assignation: AssignationPriseColonne, indice_colonne: z64) -> z64;
+    donne_index_prise_pour_assignation :: fonc (assignation: AssignationPriseColonne, indice_colonne: z64) -> z64
     {
         index_effectif := indice_colonne - assignation.décalage;
         si index_effectif < 0 {
@@ -209,7 +209,7 @@ imprime_noeud_graphviz :: fonc (enchaineuse: *Enchaineuse, noeud: *Noeud, nom_po
         }
 
         max(nombre_entrées, nombre_sorties);
-    }
+    };
 
     taille_noeud := noeud.rectangle().largeur comme r64;
     hauteur_noeud := noeud.rectangle().hauteur comme r64;

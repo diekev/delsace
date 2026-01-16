@@ -211,67 +211,6 @@ static bool est_rune_guillemet(uint32_t rune)
 
 /* ************************************************************************** */
 
-/* Point-virgule implicite.
- *
- * Un point-virgule est ajouté quand nous rencontrons une nouvelle ligne si le
- * dernier identifiant correspond à l'un des cas suivants :
- *
- * - une chaine de caractère (nom de variable) ou un type
- * - une littérale (nombre, chaine, faux, vrai)
- * - une des instructions de controle de flux suivantes : retourne, arrête, continue
- * - une parenthèse ou en un crochet fermant
- */
-static bool doit_ajouter_point_virgule(GenreLexème dernier_id)
-{
-    switch (dernier_id) {
-        default:
-        {
-            return false;
-        }
-        /* types */
-        case GenreLexème::N8:
-        case GenreLexème::N16:
-        case GenreLexème::N32:
-        case GenreLexème::N64:
-        case GenreLexème::R16:
-        case GenreLexème::R32:
-        case GenreLexème::R64:
-        case GenreLexème::Z8:
-        case GenreLexème::Z16:
-        case GenreLexème::Z32:
-        case GenreLexème::Z64:
-        case GenreLexème::BOOL:
-        case GenreLexème::RIEN:
-        case GenreLexème::EINI:
-        case GenreLexème::CHAINE:
-        case GenreLexème::OCTET:
-        case GenreLexème::CHAINE_CARACTERE:
-        case GenreLexème::TYPE_DE_DONNÉES:
-        /* littérales */
-        case GenreLexème::CHAINE_LITTERALE:
-        case GenreLexème::NOMBRE_RÉEL:
-        case GenreLexème::NOMBRE_ENTIER:
-        case GenreLexème::CARACTÈRE:
-        case GenreLexème::VRAI:
-        case GenreLexème::FAUX:
-        case GenreLexème::NUL:
-        /* instructions */
-        case GenreLexème::ARRÊTE:
-        case GenreLexème::CONTINUE:
-        case GenreLexème::REPRENDS:
-        case GenreLexème::RETOURNE:
-        /* fermeture */
-        case GenreLexème::PARENTHESE_FERMANTE:
-        case GenreLexème::CROCHET_FERMANT:
-        case GenreLexème::NON_INITIALISATION:
-        {
-            return true;
-        }
-    }
-}
-
-/* ************************************************************************** */
-
 static int longueur_utf8_depuis_premier_caractère[] = {
     1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
     1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
@@ -415,14 +354,6 @@ void Lexeuse::consomme_espaces_blanches()
                     return;
                 }
 
-                if (c == '\n') {
-                    if (m_imbrication_parenthèses == 0 && m_imbrication_crochets == 0 &&
-                        doit_ajouter_point_virgule(m_dernier_id)) {
-                        this->enregistre_pos_mot();
-                        this->ajoute_caractère();
-                        ajoute_lexème(GenreLexème::POINT_VIRGULE);
-                    }
-                }
                 if ((m_drapeaux & INCLUS_ESPACES_BLANCHES) != 0) {
                     this->enregistre_pos_mot();
                     this->ajoute_caractère();
@@ -620,22 +551,18 @@ Lexème Lexeuse::donne_lexème_suivant()
             APPARIE_CARACTERE_SIMPLE('$', GenreLexème::DOLLAR)
 
             if (c == '(') {
-                m_imbrication_parenthèses += 1;
                 return crée_lexème_opérateur(1, GenreLexème::PARENTHESE_OUVRANTE);
             }
 
             if (c == ')') {
-                m_imbrication_parenthèses -= 1;
                 return crée_lexème_opérateur(1, GenreLexème::PARENTHESE_FERMANTE);
             }
 
             if (c == '[') {
-                m_imbrication_crochets += 1;
                 return crée_lexème_opérateur(1, GenreLexème::CROCHET_OUVRANT);
             }
 
             if (c == ']') {
-                m_imbrication_crochets -= 1;
                 return crée_lexème_opérateur(1, GenreLexème::CROCHET_FERMANT);
             }
 

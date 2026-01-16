@@ -107,7 +107,7 @@ dessine_connexion_interactive :: fonc (graphe: *Graphe, thème: *ThèmeGraphe, p
     sinon {
         prise_sortie := connexion.prise_sortie;
         prise_sortie.rectangle.donne_point_central();
-    }
+    };
 
     p2 := Point2D(r32)(connexion.x, connexion.y);
 

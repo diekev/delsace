@@ -596,8 +596,8 @@ génère_fonction_pour_tags :: fonc (pour_impression: bool) -> chaine
     initialise_enchaineuse(*enchaineuse);
 
     saufsi pour_impression {
-        ajoute_au_tampon(*enchaineuse, "    si terminologie_css_initialisée { retourne }\n");
-        ajoute_au_tampon(*enchaineuse, "    terminologie_css_initialisée = vrai\n");
+        ajoute_au_tampon(*enchaineuse, "    si terminologie_css_initialisée { retourne; }\n");
+        ajoute_au_tampon(*enchaineuse, "    terminologie_css_initialisée = vrai;\n");
     }
 
     lexèmes := compilatrice_lèxe_fichier(#chemin_de_ce_fichier);
@@ -613,7 +613,7 @@ génère_fonction_pour_tags :: fonc (pour_impression: bool) -> chaine
 
         si it.texte.commence_par("PRV_") {
             nom_tag := it.texte.avance(4);
-            ajoute_au_tampon(*enchaineuse, "    ", it.texte, " = crée_chaine_utf16_unique(\"-", nom_tag, "-\")\n");
+            ajoute_au_tampon(*enchaineuse, "    ", it.texte, " = crée_chaine_utf16_unique(\"-", nom_tag, "-\");\n");
             continue;
         }
 
@@ -635,7 +635,7 @@ génère_fonction_pour_tags :: fonc (pour_impression: bool) -> chaine
         diffère déloge(nom_tag);
         remplace_sans_copie(*nom_tag, '_', '-');
 
-        ajoute_au_tampon(*enchaineuse, "    ", it.texte, " = crée_chaine_utf16_unique(\"", nom_tag, "\")\n");
+        ajoute_au_tampon(*enchaineuse, "    ", it.texte, " = crée_chaine_utf16_unique(\"", nom_tag, "\");\n");
     }
 
     retourne chaine_depuis_enchaineuse(*enchaineuse);

@@ -323,42 +323,42 @@ count_reset :: fonc (console: *Console, interpréteuse: *Interpréteuse, nom: EC
 initialise_console :: fonc (console: *Console)
 {
     /* https://console.spec.whatwg.org/#log */
-    fonction_native_log :: fonc (empl params: *ParamètresObjectCall) -> Valeur;
+    fonction_native_log :: fonc (empl params: *ParamètresObjectCall) -> Valeur
     {
         console := this_value.donne_objet().vérifie_comme(Console);
         retourne logger(console, interpréteuse, LogLevel.LOG, arguments);
     }
 
     /* https://console.spec.whatwg.org/#warn */
-    fonction_native_warn :: fonc (empl params: *ParamètresObjectCall) -> Valeur;
+    fonction_native_warn :: fonc (empl params: *ParamètresObjectCall) -> Valeur
     {
         console := this_value.donne_objet().vérifie_comme(Console);
         retourne logger(console, interpréteuse, LogLevel.WARN, arguments);
     }
 
     /* https://console.spec.whatwg.org/#debug */
-    fonction_native_debug :: fonc (empl params: *ParamètresObjectCall) -> Valeur;
+    fonction_native_debug :: fonc (empl params: *ParamètresObjectCall) -> Valeur
     {
         console := this_value.donne_objet().vérifie_comme(Console);
         retourne logger(console, interpréteuse, LogLevel.DEBUG, arguments);
     }
 
     /* https://console.spec.whatwg.org/#info */
-    fonction_native_info :: fonc (empl params: *ParamètresObjectCall) -> Valeur;
+    fonction_native_info :: fonc (empl params: *ParamètresObjectCall) -> Valeur
     {
         console := this_value.donne_objet().vérifie_comme(Console);
         retourne logger(console, interpréteuse, LogLevel.INFO, arguments);
     }
 
     /* https://console.spec.whatwg.org/#error */
-    fonction_native_error :: fonc (empl params: *ParamètresObjectCall) -> Valeur;
+    fonction_native_error :: fonc (empl params: *ParamètresObjectCall) -> Valeur
     {
         console := this_value.donne_objet().vérifie_comme(Console);
         retourne logger(console, interpréteuse, LogLevel.ERROR, arguments);
     }
 
     /* https://console.spec.whatwg.org/#clear */
-    fonction_native_clear :: fonc (empl params: *ParamètresObjectCall) -> Valeur;
+    fonction_native_clear :: fonc (empl params: *ParamètresObjectCall) -> Valeur
     {
         console := this_value.donne_objet().vérifie_comme(Console);
         flux_sortie_efface(console.flux_sortie);
@@ -366,7 +366,7 @@ initialise_console :: fonc (console: *Console)
     }
 
     /* https://console.spec.whatwg.org/#assert */
-    fonction_native_assert :: fonc (empl params: *ParamètresObjectCall) -> Valeur;
+    fonction_native_assert :: fonc (empl params: *ParamètresObjectCall) -> Valeur
     {
         console := this_value.donne_objet().vérifie_comme(Console);
 
@@ -382,7 +382,7 @@ initialise_console :: fonc (console: *Console)
         retourne console_assert(console, interpréteuse, condition, arguments);
     }
 
-    fonction_native_time :: fonc (empl params: *ParamètresObjectCall) -> Valeur;
+    fonction_native_time :: fonc (empl params: *ParamètresObjectCall) -> Valeur
     {
         console := this_value.donne_objet().vérifie_comme(Console);
 
@@ -400,7 +400,7 @@ initialise_console :: fonc (console: *Console)
         retourne js_undefined;
     }
 
-    fonction_native_time_end :: fonc (empl params: *ParamètresObjectCall) -> Valeur;
+    fonction_native_time_end :: fonc (empl params: *ParamètresObjectCall) -> Valeur
     {
         console := this_value.donne_objet().vérifie_comme(Console);
 
@@ -416,7 +416,7 @@ initialise_console :: fonc (console: *Console)
         retourne console.time_end(interpréteuse, S.texte);
     }
 
-    fonction_native_count :: fonc (empl params: *ParamètresObjectCall) -> Valeur;
+    fonction_native_count :: fonc (empl params: *ParamètresObjectCall) -> Valeur
     {
         console := this_value.donne_objet().vérifie_comme(Console);
 
@@ -433,7 +433,7 @@ initialise_console :: fonc (console: *Console)
         retourne js_undefined;
     }
 
-    fonction_native_count_reset :: fonc (empl params: *ParamètresObjectCall) -> Valeur;
+    fonction_native_count_reset :: fonc (empl params: *ParamètresObjectCall) -> Valeur
     {
         console := this_value.donne_objet().vérifie_comme(Console);
 
