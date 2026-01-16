@@ -479,7 +479,7 @@ valide_sémantique_noeud :: fonc (empl sémanticienne: *SémanticienneC, node: *
             reference.referred_declaration = var_existante;
             reference.type = var_existante.type;
 
-            si reference.type.drapeaux.ARRAY && reference.drapeaux.OPÉRANDE_SIZEOF == faux {
+            si reference.type.drapeaux.ARRAY && reference.drapeaux.OPÉRANDE_SIZEOF == faux && reference.drapeaux.OPÉRANDE_ALIGNOF == faux {
                 // À FAIRE : Except when it is the operand of the sizeof operator,
                 //           the _Alignof operator, or the unary & operator, or is a
                 //           string literal used to initialize an array
@@ -898,12 +898,33 @@ valide_sémantique_noeud :: fonc (empl sémanticienne: *SémanticienneC, node: *
 
             sizeof.type = unit.maçonne_type.size_t_type;
         }
+        AlignOfExpression {
+            alignof := node comme *AlignOfExpression;
+
+            /* Nous le mettons en place ici afin de ne pas compliquer la parseuse. */
+            alignof.operand.drapeaux.OPÉRANDE_ALIGNOF = vrai;
+
+            valide_sémantique_noeud(sémanticienne, alignof.operand);
+            alignof.operand.type = résoud_type_final(sémanticienne, alignof.operand);
+
+            type_opérande := alignof.operand.type;
+
+            si type_opérande.drapeaux.FUNCTION {
+                rapporte_erreur(sémanticienne, alignof.operand, "impossible d'utiliser alignof sur un type fonction");
+            }
+            sinon si type_opérande.drapeaux.COMPLET == faux {
+                rapporte_erreur(sémanticienne, alignof.operand, "impossible d'utiliser alignof sur le type incomplet '%'", donne_épelage_type(type_opérande));
+            }
+
+            alignof.type = unit.maçonne_type.size_t_type;
+        }
         PointerType {
 
         }
         Type {
             // Rien à faire.
         }
+        TypeNameExpression {}
         PointerTypeExpression {
 
         }
@@ -1615,6 +1636,15 @@ résoud_type_final :: fonc (empl sémanticienne: *SémanticienneC, node: *ASTNod
                 info := operand.genre comme *InfoTypeStructure;
                 panique("Noeud non-géré %", info.nom);
             }
+        }
+        AlignOfExpression {
+            alignof := node comme *AlignOfExpression;
+            operand := alignof.operand;
+
+            type := résoud_type_final(sémanticienne, operand);
+            assert(type != nul);
+            assert(type.alignement != 0);
+            retourne type.alignement;
         }
         CastExpression {
             // À FAIRE : tient trace du type

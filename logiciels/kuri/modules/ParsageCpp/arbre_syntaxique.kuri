@@ -332,6 +332,7 @@ Drapeaux_Expression :: énum_drapeau {
     LVALUE;
 
     OPÉRANDE_SIZEOF;
+    OPÉRANDE_ALIGNOF;
 }
 
 Expression :: struct {
@@ -482,6 +483,13 @@ IndirectionExpression :: struct {
 }
 
 SizeOfExpression :: struct {
+    empl expr: Expression;
+    genre = #type_de_cette_structure;
+
+    operand: *Expression;
+}
+
+AlignOfExpression :: struct {
     empl expr: Expression;
     genre = #type_de_cette_structure;
 

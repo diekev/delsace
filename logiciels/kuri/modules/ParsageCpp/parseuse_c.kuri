@@ -2211,6 +2211,17 @@ parse_expression_primaire :: fonc (empl parseuse: *ParseuseC) -> *Expression
 
         résultat = sizeof;
     }
+    sinon si est_mot_clé(lexème, "_Alignof") {
+        consomme(parseuse);
+        consomme_ponctuation(parseuse, "(");
+        operand := parse_type_name(parseuse);
+        consomme_ponctuation(parseuse, ")");
+
+        alignof := crée_noeud(*créatrice, lexème, AlignOfExpression);
+        alignof.operand = operand;
+
+        résultat = alignof;
+    }
     sinon si est_mot_clé(lexème, "_Generic") {
         lexème_generic := lexème;
 
