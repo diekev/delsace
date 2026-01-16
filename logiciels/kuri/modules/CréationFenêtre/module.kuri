@@ -629,7 +629,7 @@ DonnéesX11 :: struct {
     XdndPosition: Atom;
     XdndStatus: Atom;
     XdndLeave: Atom;
-    XdndDrop: Atom  
+    XdndDrop: Atom;
     XdndFinished: Atom;
     XdndActionCopy: Atom;
     XdndActionMove: Atom;
@@ -940,7 +940,7 @@ x11_ajourne_évènements_fenêtre :: fonc (fenêtre: TypeFenêtre)
             initialise_évènement_depuis_xkey_event(*event.xkey, faux, évènement);
 
             si xic {
-                tampon_utf8: [16 * 6]z8 // 16 caractères UTF-8
+                tampon_utf8: [16 * 6]z8; // 16 caractères UTF-8
                 status: Status;
                 key_sym := évènement.clé_virtuelle_native comme KeySym;
                 len := Xutf8LookupString(xic, *event.xkey, *tampon_utf8[0], tampon_utf8.taille comme z32, *key_sym, *status);
@@ -972,7 +972,7 @@ x11_ajourne_évènements_fenêtre :: fonc (fenêtre: TypeFenêtre)
                     }
                     sinon {
                         "Status inconnu";
-                    }
+                    };
 
                     imprimeln("X11 : impossible de trouver la clé de code  pour % : %", key_sym, chaine_status);
                     imprimeln("texte : %, xic : %, xim %", chaine_touche, xic, xim);

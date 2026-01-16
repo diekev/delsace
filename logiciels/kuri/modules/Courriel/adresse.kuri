@@ -62,8 +62,8 @@ rappel_génère_adresse_courriel_aléatoire :: fonc (génératrice: &Génératri
 
 DrapeauxCaractères :: énum_drapeau {
     EST_AROBASE;
-    EST_SÉPARATEUR_RELAI // , ou :
-    EST_SÉPARATEUR_ATOME // . ou @
+    EST_SÉPARATEUR_RELAI; // , ou :
+    EST_SÉPARATEUR_ATOME; // . ou @
     EST_POINT;
     EST_CARACTÈRE_LOCAL_VALIDE;
     EST_CARACTÈRE_SPÉCIAL;

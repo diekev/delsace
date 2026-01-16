@@ -408,7 +408,7 @@ plan_to_navigate :: fonc (form: *HTMLFormElement, target_navigable: *Navigable, 
         params: ParamètresNavigationNavigable;
     }
 
-    sur_run :: fonc (base: *Algorithm);
+    sur_run :: fonc (base: *Algorithm)
     {
         empl tâche := base comme *Tâche;
 

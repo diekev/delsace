@@ -175,8 +175,8 @@ TypeParamètre :: énum {
 
     BOUTON :: 40;
 
-    CHAINE :: 50 /* Chaine sur une seule ligne. */
-    TEXTE :: 51 /* Chaine sur plusieurs lignes. */
+    CHAINE :: 50; /* Chaine sur une seule ligne. */
+    TEXTE :: 51; /* Chaine sur plusieurs lignes. */
 
     /* Différentiation des chemins pour l'interface, afin de montrer le bon dialogue. */
     CHEMIN_FICHIER_ENTRÉE :: 60;

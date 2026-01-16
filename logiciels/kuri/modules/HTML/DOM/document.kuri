@@ -104,7 +104,7 @@ Document :: struct {
 
     cross_origin_opener_policy: CrossOriginOpenerPolicy;
 
-    referrer: chaine /* Peut être vide. */
+    referrer: chaine; /* Peut être vide. */
 
     policy_container: *PolicyContainer;
 
@@ -999,7 +999,7 @@ donne_next_sibling :: fonc (node: *Node) -> *Node
         retourne nul;
     }
 
-    node_trouvé := faux    
+    node_trouvé := faux;
     pour parent.enfants {
         si node_trouvé {
             retourne it;

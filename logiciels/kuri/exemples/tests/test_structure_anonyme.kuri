@@ -6,14 +6,14 @@ principale :: fonc ()
         x: r32;
         y: z32;
         z: bool;
-    }
+    };
 
     imprimeln("%", x);
 
-    tableau: [4]struct { nom: chaine; valeur: z32 }
+    tableau: [4]struct { nom: chaine; valeur: z32; };
 
     imprimeln("%", tableau);
 
-    type := struct { nom: chaine; valeur: z32 }
+    type := struct { nom: chaine; valeur: z32; };
     imprimeln("%", type);
 }

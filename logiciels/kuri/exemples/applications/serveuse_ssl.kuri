@@ -88,7 +88,7 @@ principale :: fonc ()
     diffère _ := ferme(*serveur);
 
     boucle {
-        addr: sockaddr_in // Adresse du connecté
+        addr: sockaddr_in; // Adresse du connecté
         len := taille_de(sockaddr_in);
 
         client := accept(serveur.desc comme z32, *addr comme *sockaddr, *len);

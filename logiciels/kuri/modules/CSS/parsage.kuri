@@ -4167,11 +4167,11 @@ donne_type_cursor :: fonc (chn: CSSOMString) -> CursorType
     infos := info_de(CursorType);
     pour infos.noms {
         ajoute_au_tampon(*enchaineuse, "    si chn == PROP_", it, " {\n");
-        ajoute_au_tampon(*enchaineuse, "        retourne CursorType.", it, "\n");
+        ajoute_au_tampon(*enchaineuse, "        retourne CursorType.", it, ";\n");
         ajoute_au_tampon(*enchaineuse, "    }\n");
     }
 
-    ajoute_au_tampon(*enchaineuse, «panique("chn pour curseur invalide")\n»);
+    ajoute_au_tampon(*enchaineuse, «panique("chn pour curseur invalide");\n»);
     retourne chaine_depuis_enchaineuse(*enchaineuse);
 }
 

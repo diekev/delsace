@@ -275,7 +275,7 @@ génère_opérateurs_vecteurs :: fonc ()
 
     dimensions := [2, 3, 4];
 
-    ajoute_appel_opérateur :: fonc (enchaineuse: *Enchaineuse, op: chaine, rubrique: chaine, est_scalaire: bool);
+    ajoute_appel_opérateur :: fonc (enchaineuse: *Enchaineuse, op: chaine, rubrique: chaine, est_scalaire: bool)
     {
         si op == "/" {
             si est_scalaire {
@@ -287,10 +287,10 @@ génère_opérateurs_vecteurs :: fonc ()
         }
 
         si est_scalaire {
-            ajoute_au_tampon(enchaineuse, "    résultat.", rubrique ," = u.", rubrique ," ", op, " s\n");
+            ajoute_au_tampon(enchaineuse, "    résultat.", rubrique ," = u.", rubrique ," ", op, " s;\n");
         }
         sinon {
-            ajoute_au_tampon(enchaineuse, "    résultat.", rubrique ," = u.", rubrique ," ", op, " v.", rubrique ,"\n");
+            ajoute_au_tampon(enchaineuse, "    résultat.", rubrique ," = u.", rubrique ," ", op, " v.", rubrique ,";\n");
         }
 
         si op == "/" {
@@ -305,16 +305,16 @@ génère_opérateurs_vecteurs :: fonc ()
         /* négation */
         imprime_dans_enchaineuse(*enchaineuse, "opérateur - :: (u: Vec%) -> Vec%\n", dimension, dimension);
         ajoute_au_tampon(*enchaineuse, "{\n");
-        imprime_dans_enchaineuse(*enchaineuse, "    résultat: Vec% = ---\n", dimension);
-        ajoute_au_tampon(*enchaineuse, "    résultat.x = -u.x\n");
-        ajoute_au_tampon(*enchaineuse, "    résultat.y = -u.y\n");
+        imprime_dans_enchaineuse(*enchaineuse, "    résultat: Vec% = ---;\n", dimension);
+        ajoute_au_tampon(*enchaineuse, "    résultat.x = -u.x;\n");
+        ajoute_au_tampon(*enchaineuse, "    résultat.y = -u.y;\n");
         si dimension >= 3 {
-            ajoute_au_tampon(*enchaineuse, "    résultat.z = -u.z\n");
+            ajoute_au_tampon(*enchaineuse, "    résultat.z = -u.z;\n");
         }
         si dimension >= 4 {
-            ajoute_au_tampon(*enchaineuse, "    résultat.w = -u.w\n");
+            ajoute_au_tampon(*enchaineuse, "    résultat.w = -u.w;\n");
         }
-        ajoute_au_tampon(*enchaineuse, "    retourne résultat\n");
+        ajoute_au_tampon(*enchaineuse, "    retourne résultat;\n");
         ajoute_au_tampon(*enchaineuse, "}\n");
 
         pour op dans opérateurs_arithmétiques {
@@ -322,9 +322,9 @@ génère_opérateurs_vecteurs :: fonc ()
             imprime_dans_enchaineuse(*enchaineuse, "opérateur % :: (u: Vec%, v: Vec%) -> Vec%\n", op, dimension, dimension, dimension);
             ajoute_au_tampon(*enchaineuse, "{\n");
 
-            init := si op == "/" { "" } sinon { " = ---" };
+            init := si op == "/" { ""; } sinon { " = ---"; };
 
-            imprime_dans_enchaineuse(*enchaineuse, "    résultat: Vec%%\n", dimension, init);
+            imprime_dans_enchaineuse(*enchaineuse, "    résultat: Vec%%;\n", dimension, init);
             ajoute_appel_opérateur(*enchaineuse, op, "x", faux);
             ajoute_appel_opérateur(*enchaineuse, op, "y", faux);
             si dimension >= 3 {
@@ -333,14 +333,14 @@ génère_opérateurs_vecteurs :: fonc ()
             si dimension >= 4 {
                 ajoute_appel_opérateur(*enchaineuse, op, "w", faux);
             }
-            ajoute_au_tampon(*enchaineuse, "    retourne résultat\n");
+            ajoute_au_tampon(*enchaineuse, "    retourne résultat;\n");
             ajoute_au_tampon(*enchaineuse, "}\n");
 
             /* vecteur - scalaire */
             imprime_dans_enchaineuse(*enchaineuse, "opérateur % :: (u: Vec%, s: r32) -> Vec%\n", op, dimension, dimension);
             ajoute_au_tampon(*enchaineuse, "{\n");
 
-            imprime_dans_enchaineuse(*enchaineuse, "    résultat: Vec%%\n", dimension, init);
+            imprime_dans_enchaineuse(*enchaineuse, "    résultat: Vec%%;\n", dimension, init);
             ajoute_appel_opérateur(*enchaineuse, op, "x", vrai);
             ajoute_appel_opérateur(*enchaineuse, op, "y", vrai);
             si dimension >= 3 {
@@ -349,7 +349,7 @@ génère_opérateurs_vecteurs :: fonc ()
             si dimension >= 4 {
                 ajoute_appel_opérateur(*enchaineuse, op, "w", vrai);
             }
-            ajoute_au_tampon(*enchaineuse, "    retourne résultat\n");
+            ajoute_au_tampon(*enchaineuse, "    retourne résultat;\n");
             ajoute_au_tampon(*enchaineuse, "}\n");
 
             si op == "/" {
@@ -357,16 +357,16 @@ génère_opérateurs_vecteurs :: fonc ()
                 imprime_dans_enchaineuse(*enchaineuse, "opérateur % :: (s: r32, v: Vec%) -> Vec%\n", op, dimension, dimension);
                 ajoute_au_tampon(*enchaineuse, "{\n");
 
-                imprime_dans_enchaineuse(*enchaineuse, "    résultat: Vec%%\n", dimension, init);
-                ajoute_au_tampon(*enchaineuse, "    si v.x != 0 { résultat.x = s / v.x }\n");
-                ajoute_au_tampon(*enchaineuse, "    si v.y != 0 { résultat.y = s / v.y }\n");
+                imprime_dans_enchaineuse(*enchaineuse, "    résultat: Vec%%;\n", dimension, init);
+                ajoute_au_tampon(*enchaineuse, "    si v.x != 0 { résultat.x = s / v.x; }\n");
+                ajoute_au_tampon(*enchaineuse, "    si v.y != 0 { résultat.y = s / v.y; }\n");
                 si dimension >= 3 {
-                    ajoute_au_tampon(*enchaineuse, "    si v.z != 0 { résultat.z = s / v.z }\n");
+                    ajoute_au_tampon(*enchaineuse, "    si v.z != 0 { résultat.z = s / v.z; }\n");
                 }
                 si dimension >= 4 {
-                    ajoute_au_tampon(*enchaineuse, "    si v.w != 0 { résultat.w = s / v.w }\n");
+                    ajoute_au_tampon(*enchaineuse, "    si v.w != 0 { résultat.w = s / v.w; }\n");
                 }
-                ajoute_au_tampon(*enchaineuse, "    retourne résultat\n");
+                ajoute_au_tampon(*enchaineuse, "    retourne résultat;\n");
                 ajoute_au_tampon(*enchaineuse, "}\n");
             }
         }
@@ -383,7 +383,7 @@ génère_opérateurs_vecteurs :: fonc ()
             si dimension >= 4 {
                 ajoute_au_tampon(*enchaineuse, " && u.w ", op, " v.w");
             }
-            ajoute_au_tampon(*enchaineuse, "\n    retourne résultat\n");
+            ajoute_au_tampon(*enchaineuse, ";\n    retourne résultat;\n");
             ajoute_au_tampon(*enchaineuse, "}\n");
 
             /* vecteur - scalaire */
@@ -397,15 +397,15 @@ génère_opérateurs_vecteurs :: fonc ()
             si dimension >= 4 {
                 ajoute_au_tampon(*enchaineuse, " && u.w ", op, " s");
             }
-            ajoute_au_tampon(*enchaineuse, "\n    retourne résultat\n");
+            ajoute_au_tampon(*enchaineuse, ";\n    retourne résultat;\n");
             ajoute_au_tampon(*enchaineuse, "}\n");
         }
 
         imprime_dans_enchaineuse(*enchaineuse, "opérateur [] :: (u: Vec%, indice: z64) -> r32\n", dimension);
         ajoute_au_tampon(*enchaineuse, "{\n");
-        imprime_dans_enchaineuse(*enchaineuse, "    assert(indice >= 0 && indice < %)\n", dimension);
-        ajoute_au_tampon(*enchaineuse, "    résultat := (*u.x)[indice]\n");
-        ajoute_au_tampon(*enchaineuse, "    retourne résultat\n");
+        imprime_dans_enchaineuse(*enchaineuse, "    assert(indice >= 0 && indice < %);\n", dimension);
+        ajoute_au_tampon(*enchaineuse, "    résultat := (*u.x)[indice];\n");
+        ajoute_au_tampon(*enchaineuse, "    retourne résultat;\n");
         ajoute_au_tampon(*enchaineuse, "}\n");
     }
 
