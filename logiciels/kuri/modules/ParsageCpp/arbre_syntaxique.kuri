@@ -4,11 +4,18 @@ importe Introspection;
 /** \nom Noeud de base pour tous les noeuds syntaxique.
  * \{ */
 
+État_Validation :: énum n8 {
+    NON_VALIDÉ;
+    EN_VALIDATION;
+    VALIDÉ;
+}
+
 ASTNode :: struct {
     genre := #type_de_cette_structure;
 
     token: Token;
     type: *Type;
+    état_validation: État_Validation;
 }
 
 /** \} */
@@ -86,6 +93,34 @@ FunctionDefinition :: struct {
     storage_class_specifier: chaine;
     linkage: Linkage;
     statement: *CompoundStatement;
+}
+
+donne_dernière_instruction :: fonc (statement: *CompoundStatement) -> *ASTNode
+{
+    boucle {
+        si statement.items.taille == 0 {
+            arrête;
+        }
+
+        test := statement.items[statement.items.taille - 1];
+        si test.genre == CompoundStatement {
+            statement = test comme *CompoundStatement;
+            continue;
+        }
+
+        si test.genre == LabelStatement {
+            label := test comme *LabelStatement;
+            si label.statement.genre == CompoundStatement {
+                statement = label.statement comme *CompoundStatement;
+                continue;
+            }
+            retourne label.statement;
+        }
+
+        retourne test;
+    }
+
+    retourne nul;
 }
 
 TypeKind :: énum {
@@ -306,6 +341,7 @@ Drapeaux_Expression :: énum_drapeau {
     LVALUE;
 
     OPÉRANDE_SIZEOF;
+    OPÉRANDE_ALIGNOF;
 }
 
 Expression :: struct {
@@ -441,7 +477,28 @@ UnaryExpression :: struct {
     operand: *Expression;
 }
 
+AddressExpression :: struct {
+    empl expr: Expression;
+    genre = #type_de_cette_structure;
+    
+    operand: *Expression;
+}
+
+IndirectionExpression :: struct {
+    empl expr: Expression;
+    genre = #type_de_cette_structure;
+    
+    operand: *Expression;
+}
+
 SizeOfExpression :: struct {
+    empl expr: Expression;
+    genre = #type_de_cette_structure;
+
+    operand: *Expression;
+}
+
+AlignOfExpression :: struct {
     empl expr: Expression;
     genre = #type_de_cette_structure;
 
