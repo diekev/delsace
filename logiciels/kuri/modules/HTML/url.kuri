@@ -683,7 +683,7 @@ basic_url_parser :: fonc (input: ChaineUTF16, base : *URL = nul, url : *URL = nu
     }
 
     // 4. Let state be state override if given, or scheme start state otherwise.
-    state := si state_override { mémoire(state_override) } sinon { ÉtatParsageURL.SchemeStart }
+    state := si state_override { mémoire(state_override); } sinon { ÉtatParsageURL.SchemeStart; };
 
     // À FAIRE 5. Set encoding to the result of getting an output encoding from encoding.
 

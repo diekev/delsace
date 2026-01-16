@@ -68,7 +68,7 @@ ValeurEstRenseignée :: struct ($T: type_de_données) #corps_texte {
             continue;
         }
 
-        ajoute_au_tampon(*enchaineuse, it.nom, ": bool\n");
+        ajoute_au_tampon(*enchaineuse, it.nom, ": bool;\n");
     }
 
     retourne chaine_depuis_enchaineuse(*enchaineuse);
@@ -79,7 +79,7 @@ toutes_les_valeurs_sont_renseignées :: fonc (valeurs: ValeurEstRenseignée($T))
     enchaineuse: Enchaineuse;
     initialise_enchaineuse(*enchaineuse);
 
-    ajoute_au_tampon(*enchaineuse, "résultat := vrai\n");
+    ajoute_au_tampon(*enchaineuse, "résultat := vrai;\n");
 
     infos := info_de(T);
     pour infos.rubriques {
@@ -87,10 +87,10 @@ toutes_les_valeurs_sont_renseignées :: fonc (valeurs: ValeurEstRenseignée($T))
             continue;
         }
 
-        ajoute_au_tampon(*enchaineuse, "résultat &&= valeurs.", it.nom, "\n");
+        ajoute_au_tampon(*enchaineuse, "résultat &&= valeurs.", it.nom, ";\n");
     }
 
-    ajoute_au_tampon(*enchaineuse, "retourne résultat");
+    ajoute_au_tampon(*enchaineuse, "retourne résultat;");
 
     retourne chaine_depuis_enchaineuse(*enchaineuse);
 }
@@ -368,18 +368,18 @@ donne_infos_arguments :: fonc ($T: type_de_données) -> []InfoArgument
     }
 
     si infos_arguments.taille == 0 {
-        ajoute_au_tampon(*enchaineuse, "résultat: []InfoArgument\n");
+        ajoute_au_tampon(*enchaineuse, "résultat: []InfoArgument;\n");
     }
     sinon {
-        imprime_dans_enchaineuse(*enchaineuse, "résultat: [%]InfoArgument #parséante\n", infos_arguments.taille);
+        imprime_dans_enchaineuse(*enchaineuse, "résultat: [%]InfoArgument #parséante;\n", infos_arguments.taille);
 
         pour infos_arguments {
-            imprime_dans_enchaineuse(*enchaineuse, "résultat[%].nom = \"%\"\n", indice_it, it.nom);
-            imprime_dans_enchaineuse(*enchaineuse, "résultat[%].indice_rubrique = %\n", indice_it, it.indice_rubrique);
+            imprime_dans_enchaineuse(*enchaineuse, "résultat[%].nom = \"%\";\n", indice_it, it.nom);
+            imprime_dans_enchaineuse(*enchaineuse, "résultat[%].indice_rubrique = %;\n", indice_it, it.indice_rubrique);
         }
     }
 
-    ajoute_au_tampon(*enchaineuse, "retourne résultat");
+    ajoute_au_tampon(*enchaineuse, "retourne résultat;");
 
     résultat := chaine_depuis_enchaineuse(*enchaineuse);
     retourne résultat;

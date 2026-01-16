@@ -7,7 +7,7 @@ importe Flux;
 
 gd_GIF :: struct {
     charge_gif: *FluxOctets;
-    anim_start: PositionFichier // Position dans le FluxOctets
+    anim_start: PositionFichier; // Position dans le FluxOctets
     width, height: n32;
     depth: n16;
     loop_count: n16;
@@ -573,7 +573,7 @@ read_image_data :: fonc (gif: *gd_GIF, interlace: z32) -> z32
     }
     si key comme z32 == stop {
         sub_len, _ := lis_petit_boutisme(gif.charge_gif, n8);
-        assert(sub_len == 0) /* Must be zero! */
+        assert(sub_len == 0); /* Must be zero! */
     }
     positionne(gif.charge_gif, end);
     retourne 0;
