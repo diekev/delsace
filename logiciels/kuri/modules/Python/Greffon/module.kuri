@@ -216,9 +216,9 @@ ajoute_fonction :: fonc (module: &ModulePython, système_type: &SystèmeType, fo
 
 /* Pour chaque type Python, nous enregistrons certaines fonctions permettant de les convertir ou discriminer. */
 FonctionsTypePython :: struct {
-    pour_discrimination: chaine // PyLong_Check, etc.
-    pour_extraction_valeur: chaine // PyLong_AsLong, etc.
-    pour_construction: chaine // PyLong_FromLong, etc.
+    pour_discrimination: chaine; // PyLong_Check, etc.
+    pour_extraction_valeur: chaine; // PyLong_AsLong, etc.
+    pour_construction: chaine; // PyLong_FromLong, etc.
     pour_valeur_unicode_enum: chaine;
 }
 

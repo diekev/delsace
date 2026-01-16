@@ -14,7 +14,7 @@ AllocatriceStats :: struct {
     empl base: BaseAllocatrice;
 
     données_allocatrice: *BaseAllocatrice;
-    allocatrice: TypeFonctionAllocation 
+    allocatrice: TypeFonctionAllocation;
 }
 
 initialise_allocatrice_stats :: fonc (ctx: *ContexteProgramme, alloc: *AllocatriceStats)

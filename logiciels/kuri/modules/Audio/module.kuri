@@ -201,7 +201,7 @@ remplis_avec_onde_carrée :: fonc (données: []z16, nombre_de_canaux: z32, taux_
         }
         sinon {
             -tonalité;
-        }
+        };
 
         décalage_échantillon += 1;
 

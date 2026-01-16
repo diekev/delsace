@@ -328,7 +328,7 @@ crée_données_parsage_classe :: fonc (nom: chaine, clé_classe: CléClasse) -> 
     }
     sinon {
         SpécificationAccès.PRIVÉ;
-    }
+    };
 
     résultat.spécification_accès_défaut = spécification_accès;
     retourne résultat;
@@ -745,7 +745,7 @@ parse_enum :: fonc (parseuse: &ParseuseCPP)
 
     si apparie(parseuse, ':') {
         parseuse.avance();
-        parseuse.avance() // type À FAIRE
+        parseuse.avance(); // type À FAIRE
     }
 
     si apparie(parseuse, '{') {

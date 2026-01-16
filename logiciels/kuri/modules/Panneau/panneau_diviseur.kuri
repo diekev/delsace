@@ -22,7 +22,7 @@ PanneauDiviseur :: struct {
 
 crée_panneau_diviseur :: fonc (ctx: *ContexteInterface) -> *PanneauDiviseur
 {
-    sur_déplacement_souris :: fonc (panneau_diviseur: *PanneauDiviseur, souris: ÉtatSouris);
+    sur_déplacement_souris :: fonc (panneau_diviseur: *PanneauDiviseur, souris: ÉtatSouris)
     {
         panneau_diviseur.est_survolé = panneau_diviseur.souris_pressée || panneau_diviseur.rect.contient(souris.où);
 
@@ -33,7 +33,7 @@ crée_panneau_diviseur :: fonc (ctx: *ContexteInterface) -> *PanneauDiviseur
         }
     }
 
-    sur_clic_souris :: fonc (panneau_diviseur: *PanneauDiviseur, clic: ClicSouris) -> bool;
+    sur_clic_souris :: fonc (panneau_diviseur: *PanneauDiviseur, clic: ClicSouris) -> bool
     {
         saufsi panneau_diviseur.rect.contient(clic.état.où) {
             panneau_diviseur.souris_pressée = faux;
@@ -50,17 +50,17 @@ crée_panneau_diviseur :: fonc (ctx: *ContexteInterface) -> *PanneauDiviseur
         retourne vrai;
     }
 
-    sur_début_survol :: fonc (empl panneau_diviseur: *PanneauDiviseur);
+    sur_début_survol :: fonc (empl panneau_diviseur: *PanneauDiviseur)
     {
         contexte.définis_curseur_souris(TypeCurseurSystème.REDIMENSIONNEMENT_EST_OUEST);
     }
 
-    sur_fin_survol :: fonc (empl panneau_diviseur: *PanneauDiviseur);
+    sur_fin_survol :: fonc (empl panneau_diviseur: *PanneauDiviseur)
     {
         contexte.définis_curseur_souris(TypeCurseurSystème.FLÈCHE);
     }
 
-    sur_dessin :: fonc (panneau_diviseur: *PanneauDiviseur, ctx: *ContexteAffichage);
+    sur_dessin :: fonc (panneau_diviseur: *PanneauDiviseur, ctx: *ContexteAffichage)
     {
         ajourne_disposition(panneau_diviseur);
 
@@ -72,12 +72,12 @@ crée_panneau_diviseur :: fonc (ctx: *ContexteInterface) -> *PanneauDiviseur
         }
         sinon {
             thème.couleur_diviseur;
-        }
+        };
 
         peintre.remplis_rectangle(panneau_diviseur.rect_diviseur, couleur);
     }
 
-    sur_redimension :: fonc (panneau: *Panneau, rect_disponible: RectanglePosDim(z32));
+    sur_redimension :: fonc (panneau: *Panneau, rect_disponible: RectanglePosDim(z32))
     {
         panneau.rect = rect_disponible;
         panneau_diviseur := panneau comme *PanneauDiviseur;

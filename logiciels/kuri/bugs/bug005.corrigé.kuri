@@ -19,23 +19,23 @@ principale :: fonc ()
     b := 8;
     c := 9;
 
-    si a == b;
+    si a == b
     {
 
     }
 
     si (a == b) ||
-        (b == c);
+        (b == c)
         {
 
     }
 
-    pour 10;
+    pour 10
     {
 
     }
 
-    tantque a != 0;
+    tantque a != 0
     {
         a -= 1;
     }

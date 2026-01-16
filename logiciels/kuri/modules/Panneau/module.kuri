@@ -398,17 +398,17 @@ PanneauInterface :: struct {
 
 crée_panneau_interface :: fonc (ctx: *ContexteInterface, rect: RectanglePosDim(z32), élément_central: *Panneau) -> *PanneauInterface
 {
-    sur_clic_souris :: fonc (panneau_interface: *PanneauInterface, clic: ClicSouris) -> bool;
+    sur_clic_souris :: fonc (panneau_interface: *PanneauInterface, clic: ClicSouris) -> bool
     {
         retourne reçoie_clic_souris(panneau_interface, clic);
     }
 
-    sur_dessin :: fonc (panneau_interface: *PanneauInterface, contexte_affichage: *ContexteAffichage);
+    sur_dessin :: fonc (panneau_interface: *PanneauInterface, contexte_affichage: *ContexteAffichage)
     {
         dessine_panneau_interface(panneau_interface, contexte_affichage);
     }
 
-    sur_redimension :: fonc (panneau: *Panneau, rect: RectanglePosDim(z32));
+    sur_redimension :: fonc (panneau: *Panneau, rect: RectanglePosDim(z32))
     {
         panneau_interface := panneau comme *PanneauInterface;
         panneau_interface.rect = rect;

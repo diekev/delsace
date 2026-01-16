@@ -15,7 +15,7 @@ principale :: fonc ()
 
     déloge(tabl);
 
-    tableau_ajoute(*tabl, 1) // crash
+    tableau_ajoute(*tabl, 1); // crash
     tableau_ajoute(*tabl, 1);
 
     déloge(tabl);
