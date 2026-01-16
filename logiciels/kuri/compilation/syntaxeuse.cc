@@ -2990,6 +2990,15 @@ NoeudExpression *Syntaxeuse::analyse_déclaration_fonction(Lexème const *lexèm
 
         // À FAIRE : supprime ceci si nous ne créons plus de blocs à tout va.
         bloc_constantes_polymorphiques.dépile();
+
+        if (!bloc_constantes->rubriques->est_vide() && bloc_constantes_polymorphiques.est_vide()) {
+            POUR (*bloc_constantes->rubriques.verrou_lecture()) {
+                rapporte_erreur("déclaration d'une constante polymorphique hors de paramètres de "
+                                "fonctions ou de types",
+                                it->lexème);
+            }
+        }
+
         dépile_état();
         return résultat;
     }
