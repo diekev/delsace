@@ -658,7 +658,7 @@ construis_table_peut_suivre :: fonc (lexeuse: *SimpleLexeuse)
 
 imprime_tables_de_lexage :: fonc (lexeuse: *SimpleLexeuse)
 {
-    imprime_table :: fonc (table: []$T);
+    imprime_table :: fonc (table: []$T)
     {
         pour table {
             si it == it.zéro {
