@@ -13,7 +13,7 @@ Base :: struct {
 ma_fonction :: fonc (empl x: Struct1) -> z32
 {
     Struct2 :: struct {
-        empl base: Base // ne doit pas coléser avec x.base
+        empl base: Base; // ne doit pas coléser avec x.base
     }
 
     s: Struct2;

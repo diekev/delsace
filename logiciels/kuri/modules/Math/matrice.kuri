@@ -417,15 +417,15 @@ MatriceNxN :: struct ($N: z32, $T: type_de_données) {
 
 VecteurN :: struct ($N: z32, $T: type_de_données) #corps_texte {
     si N == 2 {
-        retourne copie_chaine("x: T; y: T");
+        retourne copie_chaine("x: T; y: T;");
     }
 
     si N == 3 {
-        retourne copie_chaine("x: T; y: T; z: T");
+        retourne copie_chaine("x: T; y: T; z: T;");
     }
 
     si N == 4 {
-        retourne copie_chaine("x: T; y: T; z: T, w: T");
+        retourne copie_chaine("x: T; y: T; z: T, w: T;");
     }
 
     retourne copie_chaine("");

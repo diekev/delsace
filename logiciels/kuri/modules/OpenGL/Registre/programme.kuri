@@ -78,10 +78,10 @@ principale :: fonc ()
     ajoute_au_tampon(*enchaineuse, "/* stats-code ignore fichier */\n\n");
 
     si imports {
-        ajoute_au_tampon(*enchaineuse, imports, "\n\n");
+        ajoute_au_tampon(*enchaineuse, imports, ";\n\n");
     }
 
-    ajoute_au_tampon(*enchaineuse, "lib", bibliothèque, " :: #bibliothèque \"", bibliothèque, "\"\n\n");
+    ajoute_au_tampon(*enchaineuse, "lib", bibliothèque, " :: #bibliothèque \"", bibliothèque, "\";\n\n");
 
     parseuse_c: ParseuseC;
     initialise_parseuse(*parseuse_c);
@@ -117,7 +117,7 @@ principale :: fonc ()
                     type_ref := type_définis comme *TypeRef;
                     imprime_dans_enchaineuse(*enchaineuse, "% :: ", type_ref.nom);
                     imprime_type_kuri(*enchaineuse, type_sous_jacent);
-                    ajoute_au_tampon(*enchaineuse, "\n\n");
+                    ajoute_au_tampon(*enchaineuse, ";\n\n");
                 }
             }
             sinon si noeud.genre == StructDecl {
@@ -129,7 +129,7 @@ principale :: fonc ()
                     ajoute_au_tampon(*enchaineuse, "\n");
                 }
                 sinon {
-                    imprime_dans_enchaineuse(*enchaineuse, "% :: struct #externe\n\n", struct_decl.name);
+                    imprime_dans_enchaineuse(*enchaineuse, "% :: struct #externe;\n\n", struct_decl.name);
                 }
             }
             sinon {

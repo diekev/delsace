@@ -364,9 +364,9 @@ génère_fonction_pour_tags :: fonc (pour_impression: bool) -> chaine
     initialise_enchaineuse(*enchaineuse);
 
     saufsi pour_impression {
-        ajoute_au_tampon(*enchaineuse, "    si tags_initialisés { retourne }\n");
-        ajoute_au_tampon(*enchaineuse, "    tags_initialisés = vrai\n");
-        ajoute_au_tampon(*enchaineuse, "    TAG_vide = crée_chaine_utf16_unique(\"\")\n");
+        ajoute_au_tampon(*enchaineuse, "    si tags_initialisés { retourne; }\n");
+        ajoute_au_tampon(*enchaineuse, "    tags_initialisés = vrai;\n");
+        ajoute_au_tampon(*enchaineuse, "    TAG_vide = crée_chaine_utf16_unique(\"\");\n");
     }
 
     lexèmes := compilatrice_lèxe_fichier(#chemin_de_ce_fichier);
@@ -385,7 +385,7 @@ génère_fonction_pour_tags :: fonc (pour_impression: bool) -> chaine
         }
 
         si pour_impression {
-            ajoute_au_tampon(*enchaineuse, "    imprime(\"", it.texte, " : %\\n\", ", it.texte, ")\n");
+            ajoute_au_tampon(*enchaineuse, "    imprime(\"", it.texte, " : %\\n\", ", it.texte, ");\n");
             continue;
         }
 
@@ -430,7 +430,7 @@ génère_fonction_pour_tags :: fonc (pour_impression: bool) -> chaine
             continue;
         }
 
-        ajoute_au_tampon(*enchaineuse, "    ", it.texte, " = crée_chaine_utf16_unique(\"", nom_tag, "\")\n");
+        ajoute_au_tampon(*enchaineuse, "    ", it.texte, " = crée_chaine_utf16_unique(\"", nom_tag, "\");\n");
     }
 
     retourne chaine_depuis_enchaineuse(*enchaineuse);

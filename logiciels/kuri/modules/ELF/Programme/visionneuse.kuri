@@ -414,7 +414,7 @@ crée_interface :: fonc (empl visionneuse: *VisionneuseELF, largeur: z32, hauteu
                     }
                     sinon {
                         "Fichier ouvert";
-                    }
+                    };
 
                     dispose_texte(texte, config_texte_défaut);
                 }
@@ -1276,7 +1276,7 @@ donne_tabuleuse_données_hex :: fonc (fichier: *DonnéesFichier, fonte: *Fonte, 
             début := curseur;
             fin := (données.pointeur + données.taille);
 
-            hex_depuis_char :: fonc (hex: z8) -> z8;
+            hex_depuis_char :: fonc (hex: z8) -> z8
             {
                 retourne "0123456789ABCDEF"[hex];
             }
