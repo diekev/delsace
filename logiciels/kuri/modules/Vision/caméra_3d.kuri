@@ -318,7 +318,7 @@ ajourne :: fonc (empl caméra: *Caméra3D)
     position.z = cible[2] + distance * cosinus(tête_) * sinus(inclinaison_);
 
     direction = normalise(cible - position);
-    vecteur_haut.y = si (cosinus(tête_)) > 0 { 1.0 } sinon { -1.0 }
+    vecteur_haut.y = si (cosinus(tête_)) > 0 { 1.0; } sinon { -1.0; };
     vecteur_droite = produit_en_croix(direction, vecteur_haut);
 
     ajourne_projection(caméra);

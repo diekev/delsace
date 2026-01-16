@@ -186,7 +186,7 @@ Request :: struct {
 
     /* https://fetch.spec.whatwg.org/#concept-request-body
      * A request has an associated body (null, a byte sequence, or a body). Unless stated otherwise it is null. */
-    body: Optionnel(chaine) // À FAIRE : plus complexe
+    body: Optionnel(chaine); // À FAIRE : plus complexe
 
     /* https://fetch.spec.whatwg.org/#concept-request-client
      * A request has an associated client (null or an environment settings object). */
@@ -215,7 +215,7 @@ Request :: struct {
         Null;
 
         Audio;
-        Beacon 
+        Beacon;
         Body;
         CSS;
         Early_Hints;
@@ -511,7 +511,7 @@ Response :: struct {
 
     header_list: [..]Header;
 
-    body: Optionnel(chaine) // À FAIRE : plus complexe
+    body: Optionnel(chaine); // À FAIRE : plus complexe
 
     /* the empty string, "local", or "validated" */
     cache_state: chaine;
@@ -1360,7 +1360,7 @@ fetch_response_handover :: fonc (user_agent: *UserAgent, fetch_params: *FetchPar
     }
 
     // 4. Let processResponseEndOfBody be the following steps:
-    process_response_end_of_body :: fonc (user_agent: *UserAgent, fetch_params: *FetchParams, reponse: *Response);
+    process_response_end_of_body :: fonc (user_agent: *UserAgent, fetch_params: *FetchParams, reponse: *Response)
     {
         // 1. Let unsafeEndTime be the unsafe shared current time.
         // unsafe_end_time := unsafe_shared_current_time()
@@ -1407,7 +1407,7 @@ fetch_response_handover :: fonc (user_agent: *UserAgent, fetch_params: *FetchPar
     }
     sinon {
         response.donne_internal_response();
-    }
+    };
 
     // 7. If internalResponse’s body is null, then run processResponseEndOfBody.
     saufsi internal_response.body.possède_valeur() {
@@ -1452,7 +1452,7 @@ queue_a_fetch_task_to_run_process_response :: fonc (user_agent: *UserAgent, fetc
         response: *Response;
     }
 
-    sur_run :: fonc (base: *Algorithm);
+    sur_run :: fonc (base: *Algorithm)
     {
         empl tâche := base comme *Tâche;
         fetch_params.process_response.sur_rappel(fetch_params.process_response, response);
@@ -1473,7 +1473,7 @@ crée_process_response_end_of_body_task :: fonc (fetch_params: *FetchParams, res
         response: *Response;
     }
 
-    sur_run :: fonc (base: *Algorithm);
+    sur_run :: fonc (base: *Algorithm)
     {
         empl tâche := base comme *Tâche;
 
@@ -1772,7 +1772,7 @@ http_fetch :: fonc (user_agent: *UserAgent, fetch_params: *FetchParams) -> *Resp
                         response: *Response;
                     }
 
-                    sur_next_manual_redirect :: fonc (base: *Algorithm);
+                    sur_next_manual_redirect :: fonc (base: *Algorithm)
                     {
                         empl params := base comme *NextManualRedirect;
                         nouvelle_réponse := http_redirect_fetch(user_agent, fetch_params, response);
@@ -1916,10 +1916,10 @@ http_network_or_cache_fetch :: fonc (user_agent: *UserAgent, fetch_params: *Fetc
     si possède_valeur(uri.host) {
         chaine_host: chaine;
         si possède_valeur(uri.port) && !est_port_défaut(uri.scheme, uri.port.Quelque) {
-            chaine_host = imprime_chaine("%:%", uri.host.Quelque, uri.port.Quelque) // @FuiteDeMémoire
+            chaine_host = imprime_chaine("%:%", uri.host.Quelque, uri.port.Quelque); // @FuiteDeMémoire
         }
         sinon {
-            chaine_host = copie_chaine(uri.host.Quelque) // @FuiteDeMémoire
+            chaine_host = copie_chaine(uri.host.Quelque); // @FuiteDeMémoire
         }
         ajoute_entête_si_inexistante(request, "Host", chaine_host);
     }
@@ -1933,7 +1933,7 @@ http_network_or_cache_fetch :: fonc (user_agent: *UserAgent, fetch_params: *Fetc
         ajoute_entête_si_inexistante(request, "Connection", "close");
     }
 
-    chaine_user_agent := convertis_vers_chaine(donne_chaine_utf16(user_agent.user_agent_string)) // @FuiteDeMémoire
+    chaine_user_agent := convertis_vers_chaine(donne_chaine_utf16(user_agent.user_agent_string)); // @FuiteDeMémoire
     saufsi chaine_user_agent {
         chaine_user_agent = "Mozilla/5.0 (X11; Linux x86_64) UserAgent/1.0";
     }

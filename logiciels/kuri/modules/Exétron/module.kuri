@@ -200,7 +200,7 @@ contexte_boucle_parallèle :: fonc (rappel: fonc(*$T)(rien), tâches: []T)
             fonction_utilisateur: fonc (*T)(rien);
         }
 
-        fonction_pour_boucle :: fonc (données: *DonnéesTâcheParallele, plage: *PlageExecution) #sanstrace;
+        fonction_pour_boucle :: fonc (données: *DonnéesTâcheParallele, plage: *PlageExecution) #sanstrace
         {
             // À FAIRE : ne le fais que pour chaque fil
             __init_contexte_fil_exécution();

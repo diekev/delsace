@@ -253,7 +253,7 @@ dessine_barre_latérale :: fonc (app: *App)
             }
             sinon {
                 CouleurRVBA();
-            }
+            };
             définis_arrière_plan(arrière_plan);
 
             sur_clic_souris(définis_document_courant, app, indice_it comme z32);
