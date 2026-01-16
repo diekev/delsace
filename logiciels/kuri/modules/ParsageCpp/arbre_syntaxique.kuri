@@ -108,6 +108,15 @@ donne_dernière_instruction :: fonc (statement: *CompoundStatement) -> *ASTNode
             continue;
         }
 
+        si test.genre == LabelStatement {
+            label := test comme *LabelStatement;
+            si label.statement.genre == CompoundStatement {
+                statement = label.statement comme *CompoundStatement;
+                continue;
+            }
+            retourne label.statement;
+        }
+
         retourne test;
     }
 

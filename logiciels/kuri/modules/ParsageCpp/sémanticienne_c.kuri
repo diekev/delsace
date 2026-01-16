@@ -14,6 +14,9 @@ SémanticienneC :: struct {
     switchs_courants: [..]*SwitchStatement;
     cible_break: [..]*ASTNode;
     cible_continue: [..]*ASTNode;
+
+    gotos: [..]*GotoStatement;
+    labels: [..]chaine;
 }
 
 rapporte_erreur_interne :: fonc (sémanticienne: *SémanticienneC, lexème: Token, format: chaine, args: ...eini)
@@ -330,6 +333,16 @@ valide_sémantique_noeud :: fonc (empl sémanticienne: *SémanticienneC, node: *
             valide_sémantique_noeud(sémanticienne, function.statement);
 
             dépile_bloc(*table_de_symboles);
+
+            /* Validation des gotos. */
+            pour goto dans gotos {
+                saufsi ensemble_possède(labels, goto.identifier) {
+                    rapporte_erreur(sémanticienne, goto, "étiquette '%' inconnue", goto.identifier);
+                }
+            }
+
+            gotos.taille = 0;
+            labels.taille = 0;
         }
         ParamDecl {
             // À FAIRE : vérifie duplication
@@ -667,6 +680,17 @@ valide_sémantique_noeud :: fonc (empl sémanticienne: *SémanticienneC, node: *
             si cible_continue.taille == 0 {
                 rapporte_erreur(sémanticienne, node, "continue hors d'une boucle");
             }
+        }
+        GotoStatement {
+            goto := node comme *GotoStatement;
+            tableau_ajoute(*gotos, goto);
+            // À FAIRE : A goto statement shall not jump from outside the scope of an identifier having
+            //           a variably modified type to inside the scope of that identifier.
+        }
+        LabelStatement {
+            label := node comme *LabelStatement;
+            valide_sémantique_noeud(sémanticienne, label.statement);
+            ensemble_ajoute(*labels, label.identifier);
         }
         AssignmentExpression {
             assignment := node comme *AssignmentExpression;
