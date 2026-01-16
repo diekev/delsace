@@ -169,8 +169,8 @@ aléatoire_suivant :: fonc (série: &SérieAléatoire)
 
 }
 
-aléatoire_unilatéral :: fonc () // entre 0.0 et 1.0
-aléatoire_bilatéral :: fonc () // entre -1.0 et 1.0
+aléatoire_unilatéral :: fonc (); // entre 0.0 et 1.0
+aléatoire_bilatéral :: fonc (); // entre -1.0 et 1.0
 
 entropie := graine_aléatoire(1234)
 
@@ -353,12 +353,12 @@ génère_fonction_enveloppe :: fonc (enchaineuse: *Enchaineuse, données: Donné
     /* Rappel : le type de la fonction doit être un pointeur, mais l'eini stocke un pointeur vers celui-ci. */
     enchaineuse.ajoute_au_tampon("\tptr := mémoire(valeur.pointeur comme **");
     imprime_type(enchaineuse, données.info_type, nom_module);
-    enchaineuse.ajoute_au_tampon(")\n");
+    enchaineuse.ajoute_au_tampon(");\n");
     ajoute_au_tampon(enchaineuse, "\t");
     si nom_module {
         ajoute_au_tampon(enchaineuse, nom_module, ".");
     }
-    ajoute_au_tampon(enchaineuse, données.fonction.nom, "(génératrice, ptr)\n");
+    ajoute_au_tampon(enchaineuse, données.fonction.nom, "(génératrice, ptr);\n");
     enchaineuse.ajoute_au_tampon("}\n");
 
     retourne nom_enveloppe;

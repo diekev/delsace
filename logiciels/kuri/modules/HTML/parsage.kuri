@@ -112,7 +112,7 @@ trouve_position_appropriée_pour_insertion :: fonc (parseuse: *Parseuse, cible_o
     sinon {
         // Otherwise, let target be the current node.
         parseuse.noeud_courant();
-    }
+    };
 
     // 2. Determine the adjusted insertion location using the first matching steps from the following list:
     position_ajustée_d_insertion: *Node;
@@ -2774,7 +2774,7 @@ crée_tâche_stop_parsing_étape_6 :: fonc (document: *Document) -> *Algorithm
         document: *Document;
     }
 
-    sur_run :: fonc (base: *Algorithm);
+    sur_run :: fonc (base: *Algorithm)
     {
         tâche := base comme *Tâche;
         document := tâche.document;
@@ -2814,7 +2814,7 @@ crée_tâche_stop_parsing_étape_9 :: fonc (document: *Document) -> *Algorithm
         document: *Document;
     }
 
-    sur_run :: fonc (base: *Algorithm);
+    sur_run :: fonc (base: *Algorithm)
     {
         tâche := base comme *Tâche;
 

@@ -16,22 +16,22 @@ imprime_prompt_vous :: fonc () -> rien
 
 mot_est_dans_la_famille :: fonc (mot: chaine) -> bool
 {
-    si mot == "frère" { retourne vrai }
-    si mot == "père" { retourne vrai }
-    si mot == "mère" { retourne vrai }
-    si mot == "soeur" { retourne vrai }
-    si mot == "fille" { retourne vrai }
-    si mot == "fils" { retourne vrai }
-    si mot == "cousin" { retourne vrai }
-    si mot == "cousine" { retourne vrai }
-    si mot == "tante" { retourne vrai }
-    si mot == "oncle" { retourne vrai }
-    si mot == "tata" { retourne vrai }
-    si mot == "tonton" { retourne vrai }
-    si mot == "papa" { retourne vrai }
-    si mot == "maman" { retourne vrai }
-    si mot == "parrain" { retourne vrai }
-    si mot == "marraine" { retourne vrai }
+    si mot == "frère" { retourne vrai; }
+    si mot == "père" { retourne vrai; }
+    si mot == "mère" { retourne vrai; }
+    si mot == "soeur" { retourne vrai; }
+    si mot == "fille" { retourne vrai; }
+    si mot == "fils" { retourne vrai; }
+    si mot == "cousin" { retourne vrai; }
+    si mot == "cousine" { retourne vrai; }
+    si mot == "tante" { retourne vrai; }
+    si mot == "oncle" { retourne vrai; }
+    si mot == "tata" { retourne vrai; }
+    si mot == "tonton" { retourne vrai; }
+    si mot == "papa" { retourne vrai; }
+    si mot == "maman" { retourne vrai; }
+    si mot == "parrain" { retourne vrai; }
+    si mot == "marraine" { retourne vrai; }
 
     retourne faux;
 }

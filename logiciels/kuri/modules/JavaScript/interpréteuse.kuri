@@ -90,7 +90,7 @@ est_reference_record :: fonc (valeur: ValeurCompletion) -> bool
         V {
             retourne faux;
         }
-        sinon { retourne faux }
+        sinon { retourne faux; }
     }
 }
 

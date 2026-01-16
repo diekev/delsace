@@ -97,7 +97,7 @@ Algorithm :: struct {
 
 crée_algorithm :: fonc (sur_run: fonc (algorithm: *Algorithm), $T: type_de_données) -> *T
 {
-    sur_destruction :: fonc (base: *Algorithm);
+    sur_destruction :: fonc (base: *Algorithm)
     {
         algorithm := base comme *T;
         déloge(algorithm);
@@ -118,7 +118,7 @@ crée_algorithm_pour_fonction :: fonc (params: *$T, fonction: fonc (params: *T))
         fonction: fonc (params: *T);
     }
 
-    sur_run :: fonc (base: *Algorithm);
+    sur_run :: fonc (base: *Algorithm)
     {
         tâche := base comme *Tâche;
         tâche.fonction(*tâche.params);
@@ -418,7 +418,7 @@ crée_tâche_pour_enfiler_tâche :: fonc (user_agent: *UserAgent, tâche_à_enfi
         source: SourceDeTâche;
     }
 
-    sur_run :: fonc (base: *Algorithm);
+    sur_run :: fonc (base: *Algorithm)
     {
         tâche := base comme *Tâche;
 
@@ -446,7 +446,7 @@ crée_tâche_pour_traversable :: fonc (user_agent: *UserAgent, tâche_à_enfiler
         traversable: *TraversableNavigable;
     }
 
-    sur_run :: fonc (base: *Algorithm);
+    sur_run :: fonc (base: *Algorithm)
     {
         tâche := base comme *Tâche;
 
@@ -474,7 +474,7 @@ enfile_une_tâche_pour_lancer_évènement_à_élément :: fonc (user_agent: *Use
         nom: EventType;
     }
 
-    sur_run :: fonc (base: *Algorithm);
+    sur_run :: fonc (base: *Algorithm)
     {
         tâche := base comme *Tâche;
         _ := fire_an_event(tâche.élément, tâche.nom);

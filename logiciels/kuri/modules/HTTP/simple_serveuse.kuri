@@ -188,7 +188,7 @@ opérateur pour :: (requêtes: RequêtesEntrantes) -> Requête
 
     parseuse: ParseuseMessageClienteHTTP;
 
-    mon_addresse: sockaddr_in // Adresse du connecté
+    mon_addresse: sockaddr_in; // Adresse du connecté
     sin_size := taille_de(sockaddr_in);
 
     boucle {

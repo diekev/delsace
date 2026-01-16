@@ -248,9 +248,9 @@ quand_fermeture :: fonc (prise: *Prise)
 // pour supprimer un cache, ajouter max-age=0
 // https://developer.mozilla.org/fr/docs/Web/HTTP/Headers/Cache-Control
 PolitiqueDeCache :: énum {
-    Revalide // no-cache
-    ClientsSeulement // private
-    NeJamaisCacher // no-store
+    Revalide; // no-cache
+    ClientsSeulement; // private
+    NeJamaisCacher; // no-store
 }
 
 écris_réponse :: fonc (prise: *Prise, message: &MessageServeuseHTTP)

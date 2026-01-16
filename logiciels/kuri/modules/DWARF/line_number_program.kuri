@@ -111,7 +111,7 @@ exécute_line_number_program :: fonc (flux: *FluxOctetsMémoire, table: *TableDe
         sinon si opcode == DW_LNS_negate_stmt {
             // The DW_LNS_negate_stmt opcode takes no operands. It sets the is_stmt.
             // register of the state machine to the logical negation of its current value.
-            machine.is_stmt = !machine.is_stmt    
+            machine.is_stmt = !machine.is_stmt;  
         }
         sinon si opcode == DW_LNS_set_basic_block {
             // The DW_LNS_set_basic_block opcode takes no operands. It sets the
