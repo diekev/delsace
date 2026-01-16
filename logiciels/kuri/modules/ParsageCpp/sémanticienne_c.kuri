@@ -1003,6 +1003,19 @@ valide_sémantique_noeud :: fonc (empl sémanticienne: *SémanticienneC, node: *
 
             alignof.type = unit.maçonne_type.size_t_type;
         }
+        TernaryExpression {
+            ternary := node comme *TernaryExpression;
+
+            valide_sémantique_noeud(sémanticienne, ternary.test);
+            valide_sémantique_noeud(sémanticienne, ternary.consequent);
+            valide_sémantique_noeud(sémanticienne, ternary.alternate);
+
+            si ternary.test.type.drapeaux.SCALAR == faux {
+                rapporte_erreur(sémanticienne, ternary.test, "un type scalaire est requis pour la première opérande de l'expression conditionnelle");
+            }
+
+            ternary.type = valide_branches_expression_conditionnelle(sémanticienne, ternary);
+        }
         PointerType {
 
         }
@@ -1326,6 +1339,58 @@ valide_initializer_list :: fonc (empl sémanticienne: *SémanticienneC, objet_ra
     sinon {
         rapporte_erreur_interne(sémanticienne, initializer, "initialisateur pour type '%' non-supporté", donne_épelage_type(type_objet));
     }
+}
+
+valide_branches_expression_conditionnelle :: fonc (sémanticienne: *SémanticienneC, ternary: *TernaryExpression) -> *Type
+{
+    gauche := ternary.consequent;
+    droite := ternary.alternate;
+
+    type_gauche := gauche.type;
+    type_droite := droite.type;
+
+    // — both operands have arithmetic type;
+    si type_gauche.drapeaux.ARITHMETIC && type_droite.drapeaux.ARITHMETIC {
+        // À FAIRE : the result type that would be determined by the usual arithmetic conversions
+        retourne type_gauche;
+    }
+
+    // — both operands have void type;
+    si type_gauche.kind == TypeKind.VOID && type_droite.kind == TypeKind.VOID {
+        retourne type_gauche;
+    }
+
+    si type_gauche.drapeaux.POINTER && type_droite.drapeaux.POINTER {
+        pointeur_gauche := type_gauche comme *PointerType;
+        pointeur_droite := type_droite comme *PointerType;
+
+        // — one operand is a pointer and the other is a null pointer constant; or
+        // — one operand is a pointer to an object type and the other is a pointer
+        //   to a qualified or unqualified version of void.
+        si pointeur_gauche.pointed_to.kind == TypeKind.VOID {
+            retourne pointeur_droite;
+        }
+        si pointeur_droite.pointed_to.kind == TypeKind.VOID {
+            retourne pointeur_gauche;
+        }
+
+        // — both operands are pointers to qualified or unqualified versions of compatible types;
+        saufsi types_sont_compatibles(pointeur_gauche.pointed_to, pointeur_droite.pointed_to) {
+            rapporte_note(sémanticienne, gauche, "le type de la première opérande est '%'", donne_épelage_type(type_gauche));
+            rapporte_note(sémanticienne, droite, "le type de la deuxième opérande est '%'", donne_épelage_type(type_droite));
+            rapporte_erreur(sémanticienne, ternary, "opérandes invalides pour l'expression conditionnelle");
+        }
+
+        // À FAIRE : a pointer to an appropriately qualified version of the composite type;
+        retourne type_gauche;
+    }
+
+    // À FAIRE : — both operands have the same structure or union type;
+
+    rapporte_note(sémanticienne, gauche, "le type de la première opérande est '%'", donne_épelage_type(type_gauche));
+    rapporte_note(sémanticienne, droite, "le type de la deuxième opérande est '%'", donne_épelage_type(type_droite));
+    rapporte_erreur(sémanticienne, ternary, "opérandes invalides pour l'expression conditionnelle");
+    retourne sémanticienne.unit.maçonne_type.int_signed_type;
 }
 
 /* 6.3.2.1 Lvalues, arrays, and function designators */
