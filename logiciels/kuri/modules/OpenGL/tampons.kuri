@@ -56,7 +56,7 @@ génère_tampon :: fonc (id: *n32, data: *rien, size: z64, target: GLuint)
     détruit_tampon(id);
 
     // À FAIRE: feels a bit hackish
-    draw_type := si data { GL_STATIC_DRAW } sinon { GL_DYNAMIC_DRAW }
+    draw_type := si data { GL_STATIC_DRAW; } sinon { GL_DYNAMIC_DRAW; };
 
     glGenBuffers(1, id);
     glBindBuffer(target, mémoire(id));

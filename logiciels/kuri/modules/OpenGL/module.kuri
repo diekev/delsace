@@ -175,35 +175,35 @@ gl_check_framebuffer_status :: fonc ()
 
 donne_chaine_debug_source :: fonc (source: GLenum) -> chaine
 {
-    si source == GL_DEBUG_SOURCE_API { retourne "API" }
-    si source == GL_DEBUG_SOURCE_WINDOW_SYSTEM { retourne "WINDOW" }
-    si source == GL_DEBUG_SOURCE_SHADER_COMPILER { retourne "COMPILER" }
-    si source == GL_DEBUG_SOURCE_THIRD_PARTY { retourne "THIRD PARTY" }
-    si source == GL_DEBUG_SOURCE_APPLICATION { retourne "APPLICATION" }
-    si source == GL_DEBUG_SOURCE_OTHER { retourne "OTHER" }
+    si source == GL_DEBUG_SOURCE_API { retourne "API"; }
+    si source == GL_DEBUG_SOURCE_WINDOW_SYSTEM { retourne "WINDOW"; }
+    si source == GL_DEBUG_SOURCE_SHADER_COMPILER { retourne "COMPILER"; }
+    si source == GL_DEBUG_SOURCE_THIRD_PARTY { retourne "THIRD PARTY"; }
+    si source == GL_DEBUG_SOURCE_APPLICATION { retourne "APPLICATION"; }
+    si source == GL_DEBUG_SOURCE_OTHER { retourne "OTHER"; }
     retourne "INCONNUE";
 }
 
 donne_chaine_debug_type :: fonc (type: GLenum) -> chaine
 {
-    si type == GL_DEBUG_TYPE_ERROR { retourne "ERROR" }
-    si type == GL_DEBUG_TYPE_DEPRECATED_BEHAVIOR { retourne "DEPRECATED BEHAVIOR" }
-    si type == GL_DEBUG_TYPE_UNDEFINED_BEHAVIOR { retourne "UNDEFINED BEHAVIOR" }
-    si type == GL_DEBUG_TYPE_PORTABILITY { retourne "PORTABILITY" }
-    si type == GL_DEBUG_TYPE_PERFORMANCE { retourne "PERFORMANCE" }
-    si type == GL_DEBUG_TYPE_PUSH_GROUP { retourne "PUSH GROUP" }
-    si type == GL_DEBUG_TYPE_POP_GROUP { retourne "POP GROUP" }
-    si type == GL_DEBUG_TYPE_OTHER { retourne "OTHER" }
-    si type == GL_DEBUG_TYPE_MARKER { retourne "MARKER" }
+    si type == GL_DEBUG_TYPE_ERROR { retourne "ERROR"; }
+    si type == GL_DEBUG_TYPE_DEPRECATED_BEHAVIOR { retourne "DEPRECATED BEHAVIOR"; }
+    si type == GL_DEBUG_TYPE_UNDEFINED_BEHAVIOR { retourne "UNDEFINED BEHAVIOR"; }
+    si type == GL_DEBUG_TYPE_PORTABILITY { retourne "PORTABILITY"; }
+    si type == GL_DEBUG_TYPE_PERFORMANCE { retourne "PERFORMANCE"; }
+    si type == GL_DEBUG_TYPE_PUSH_GROUP { retourne "PUSH GROUP"; }
+    si type == GL_DEBUG_TYPE_POP_GROUP { retourne "POP GROUP"; }
+    si type == GL_DEBUG_TYPE_OTHER { retourne "OTHER"; }
+    si type == GL_DEBUG_TYPE_MARKER { retourne "MARKER"; }
     retourne "INCONNU";
 }
 
 donne_chaine_debug_severity :: fonc (severity: GLenum) -> chaine
 {
-    si severity == GL_DEBUG_SEVERITY_HIGH { retourne "HIGH" }
-    si severity == GL_DEBUG_SEVERITY_MEDIUM { retourne "MEDIUM" }
-    si severity == GL_DEBUG_SEVERITY_LOW { retourne "LOW" }
-    si severity == GL_DEBUG_SEVERITY_NOTIFICATION { retourne "NOTE" }
+    si severity == GL_DEBUG_SEVERITY_HIGH { retourne "HIGH"; }
+    si severity == GL_DEBUG_SEVERITY_MEDIUM { retourne "MEDIUM"; }
+    si severity == GL_DEBUG_SEVERITY_LOW { retourne "LOW"; }
+    si severity == GL_DEBUG_SEVERITY_NOTIFICATION { retourne "NOTE"; }
     retourne "INCONNUE";
 }
 

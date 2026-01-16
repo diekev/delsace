@@ -474,7 +474,7 @@ DrapeauxCaractère :: énum_drapeau n16 {
     DébutePréfixeChaine;
     DébuteChaineLittérale;
 
-    DébutePréfixeCaractère    
+    DébutePréfixeCaractère;
     DébuteCaractère;
 
     DébuteCommentaireLigneSingulière;

@@ -1061,7 +1061,7 @@ rapporte_erreur_mécomptage_arguments :: fonc (préprocesseur: *PréProcesseur, 
 {
     pluriel := si arguments_données > 1 {
         "s";
-    }
+    };
 
     saufsi définition.est_intrinsèque {
         // À FAIRE : rapporte la note après l'erreur
@@ -2695,7 +2695,7 @@ parse_expression_primaire :: fonc (préprocesseur: *PréProcesseur, parseuse: *S
 
 imprime_arbre :: fonc (noeud: *ExpressionPréProc)
 {
-    rappel_pour_noeud :: fonc (visiteuse: *VisiteuseArbre(ExpressionPréProc), noeud: *ExpressionPréProc, info: *InfoTypeStructure) -> VisiteEnfants;
+    rappel_pour_noeud :: fonc (visiteuse: *VisiteuseArbre(ExpressionPréProc), noeud: *ExpressionPréProc, info: *InfoTypeStructure) -> VisiteEnfants
     {
         imprime_tabulation(visiteuse.profondeur);
         discr noeud.type {

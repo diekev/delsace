@@ -285,7 +285,7 @@ DonnéesRésultat :: struct ($T: type_de_données) #corps_texte {
 
     pour info.rubriques {
         ajoute_au_tampon(*enchaineuse, it.nom);
-        ajoute_au_tampon(*enchaineuse, ":= faux\n");
+        ajoute_au_tampon(*enchaineuse, ":= faux;\n");
     }
 
     retourne chaine_depuis_enchaineuse(*enchaineuse);

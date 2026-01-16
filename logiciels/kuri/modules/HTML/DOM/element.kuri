@@ -32,7 +32,7 @@ Element :: struct {
     est_sur_pile_éléments_ouvert: bool;
     fut_créé_par_parseuse: bool;
 
-    espace_de_nom: chaine // DOMString @namespaceURI
+    espace_de_nom: chaine; // DOMString @namespaceURI
     local_name: DOMString;
     cryptographic_nonce: DOMString;
 
