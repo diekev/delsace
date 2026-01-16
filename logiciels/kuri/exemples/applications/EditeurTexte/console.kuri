@@ -16,10 +16,10 @@ charge "éditeur";
 CléConsole :: énum {
     Nulle;
     Retour :: 127;
-    AncienRetour :: 'h' & 0x1f // CLÉ_CONTROLE('h')
-    RafraichisConsole :: 'l' & 0x1f // CLÉ_CONTROLE('l')
-    Sauvegarde :: 's' & 0x1f // CLÉ_CONTROLE('s')
-    Recherche :: 'f' & 0x1f // CLÉ_CONTROLE('f')
+    AncienRetour :: 'h' & 0x1f; // CLÉ_CONTROLE('h')
+    RafraichisConsole :: 'l' & 0x1f; // CLÉ_CONTROLE('l')
+    Sauvegarde :: 's' & 0x1f; // CLÉ_CONTROLE('s')
+    Recherche :: 'f' & 0x1f; // CLÉ_CONTROLE('f')
     RetourChariot :: '\r';
     NouvelleLigne :: '\n';
     Échappement :: '\x1b';
@@ -232,25 +232,25 @@ console_lis_clé :: fonc () -> CléConsole
                 seq[2] = tente entrée_standarde().lis_caractère() piège nonatteignable;
 
                 si seq[2] == '~' {
-                    si seq[1] == '1' { retourne CléConsole.Début }
-                    si seq[1] == '3' { retourne CléConsole.Supprime }
-                    si seq[1] == '4' { retourne CléConsole.Fin }
-                    si seq[1] == '5' { retourne CléConsole.PageHaut }
-                    si seq[1] == '6' { retourne CléConsole.PageBas }
-                    si seq[1] == '7' { retourne CléConsole.Début }
-                    si seq[1] == '8' { retourne CléConsole.Fin }
+                    si seq[1] == '1' { retourne CléConsole.Début; }
+                    si seq[1] == '3' { retourne CléConsole.Supprime; }
+                    si seq[1] == '4' { retourne CléConsole.Fin; }
+                    si seq[1] == '5' { retourne CléConsole.PageHaut; }
+                    si seq[1] == '6' { retourne CléConsole.PageBas; }
+                    si seq[1] == '7' { retourne CléConsole.Début; }
+                    si seq[1] == '8' { retourne CléConsole.Fin; }
                 }
             }
-            si seq[1] == 'A' { retourne CléConsole.FlècheHaut }
-            si seq[1] == 'B' { retourne CléConsole.FlècheBas }
-            si seq[1] == 'C' { retourne CléConsole.FlècheDroite }
-            si seq[1] == 'D' { retourne CléConsole.FlècheGauche }
-            si seq[1] == 'F' { retourne CléConsole.Fin }
-            si seq[1] == 'H' { retourne CléConsole.Début }
+            si seq[1] == 'A' { retourne CléConsole.FlècheHaut; }
+            si seq[1] == 'B' { retourne CléConsole.FlècheBas; }
+            si seq[1] == 'C' { retourne CléConsole.FlècheDroite; }
+            si seq[1] == 'D' { retourne CléConsole.FlècheGauche; }
+            si seq[1] == 'F' { retourne CléConsole.Fin; }
+            si seq[1] == 'H' { retourne CléConsole.Début; }
         }
         sinon si seq[0] == 'O' {
-            si seq[1] == 'F' { retourne CléConsole.Fin }
-            si seq[1] == 'H' { retourne CléConsole.Début }
+            si seq[1] == 'F' { retourne CléConsole.Fin; }
+            si seq[1] == 'H' { retourne CléConsole.Début; }
         }
     }
 
@@ -286,7 +286,7 @@ console_gère_clé_pressée :: fonc () -> ActionÉditeur
     }
 
     discr c {
-        Nulle { retourne ActionÉditeur.Rien }
+        Nulle { retourne ActionÉditeur.Rien; }
         FlècheHaut,
         FlècheBas,
         FlècheDroite,

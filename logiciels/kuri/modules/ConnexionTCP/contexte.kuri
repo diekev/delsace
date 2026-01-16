@@ -219,7 +219,7 @@ mute_quand_ouverture :: fonc (ctx: *Contexte, rappel: fonc (prise: *Prise, est_c
     }
     sinon {
         rappel;
-    }
+    };
 }
 
 mute_quand_données_reçues :: fonc (ctx: *Contexte, rappel: fonc (prise: *Prise, données: []octet))
@@ -229,7 +229,7 @@ mute_quand_données_reçues :: fonc (ctx: *Contexte, rappel: fonc (prise: *Prise
     }
     sinon {
         rappel;
-    }
+    };
 }
 
 mute_quand_écriture :: fonc (ctx: *Contexte, rappel: fonc (prise: *Prise))
@@ -239,7 +239,7 @@ mute_quand_écriture :: fonc (ctx: *Contexte, rappel: fonc (prise: *Prise))
     }
     sinon {
         rappel;
-    }
+    };
 }
 
 mute_quand_fermeture :: fonc (ctx: *Contexte, rappel: fonc (prise: *Prise))
@@ -249,7 +249,7 @@ mute_quand_fermeture :: fonc (ctx: *Contexte, rappel: fonc (prise: *Prise))
     }
     sinon {
         rappel;
-    }
+    };
 }
 
 mute_quand_timeout :: fonc (ctx: *Contexte, rappel: fonc (prise: *Prise))
@@ -259,7 +259,7 @@ mute_quand_timeout :: fonc (ctx: *Contexte, rappel: fonc (prise: *Prise))
     }
     sinon {
         rappel;
-    }
+    };
 }
 
 mute_quand_fin :: fonc (ctx: *Contexte, rappel: fonc (prise: *Prise))
@@ -269,7 +269,7 @@ mute_quand_fin :: fonc (ctx: *Contexte, rappel: fonc (prise: *Prise))
     }
     sinon {
         rappel;
-    }
+    };
 }
 
 mute_quand_erreur_connexion :: fonc (ctx: *Contexte, rappel: fonc (prise: *Prise))
@@ -279,5 +279,5 @@ mute_quand_erreur_connexion :: fonc (ctx: *Contexte, rappel: fonc (prise: *Prise
     }
     sinon {
         rappel;
-    }
+    };
 }

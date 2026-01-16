@@ -98,8 +98,8 @@ génère_fonction_pour_tags :: fonc () -> chaine
     enchaineuse: Enchaineuse;
     initialise_enchaineuse(*enchaineuse);
 
-    ajoute_au_tampon(*enchaineuse, "    si terminologie_initialisée { retourne }\n");
-    ajoute_au_tampon(*enchaineuse, "    terminologie_initialisée = vrai\n");
+    ajoute_au_tampon(*enchaineuse, "    si terminologie_initialisée { retourne; }\n");
+    ajoute_au_tampon(*enchaineuse, "    terminologie_initialisée = vrai;\n");
 
     lexèmes := Compilatrice.compilatrice_lèxe_fichier(#chemin_de_ce_fichier);
 
@@ -114,7 +114,7 @@ génère_fonction_pour_tags :: fonc () -> chaine
 
         si it.texte.commence_par("STR_") {
             nom_chn := it.texte.avance(4);
-            ajoute_au_tampon(*enchaineuse, "    ", it.texte, " = crée_chaine_utf16_unique(\"", nom_chn, "\")\n");
+            ajoute_au_tampon(*enchaineuse, "    ", it.texte, " = crée_chaine_utf16_unique(\"", nom_chn, "\");\n");
         }
     }
 

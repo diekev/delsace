@@ -372,27 +372,27 @@ donne_qt_key :: fonc (touche: ToucheClavier) -> QT_Key
 convertis_type_curseur :: fonc (curseur: TypeCurseurSystème) -> QT_CursorShape
 {
     discr curseur {
-        VIERGE { retourne QT_CursorShape.BLANK }
-        FLÈCHE { retourne QT_CursorShape.ARROW }
-        ATTENTE { retourne QT_CursorShape.WAIT }
-        FLÈCHE_AVEC_ATTENTE { retourne QT_CursorShape.BUSY }
-        MAIN_OUVERTE { retourne QT_CursorShape.OPEN_HAND }
-        MAIN_FERMÉE { retourne QT_CursorShape.CLOSED_HAND }
-        TEXTE { retourne QT_CursorShape.IBEAM }
-        TEXTE_VERTICAL { retourne QT_CursorShape.IBEAM }
-        CROIX { retourne QT_CursorShape.CROSS }
-        REDIMENSIONNEMENT_NORD_SUD_EST_OUEST { retourne QT_CursorShape.SIZE_ALL }
-        REDIMENSIONNEMENT_NORD { retourne QT_CursorShape.UP_ARROW }
-        REDIMENSIONNEMENT_EST_OUEST { retourne QT_CursorShape.SIZE_HORIZONTAL }
-        REDIMENSIONNEMENT_NORD_SUD { retourne QT_CursorShape.SIZE_VERTICAL }
-        REDIMENSIONNEMENT_NORD_EST_SUD_OUEST { retourne QT_CursorShape.SIZE_BDIALOG }
-        REDIMENSIONNEMENT_NORD_OUEST_SUD_EST { retourne QT_CursorShape.SIZE_FDIALOG }
-        MAIN_POINTANT { retourne QT_CursorShape.POINTING_HAND }
-        INTERDIT { retourne QT_CursorShape.FORBIDDEN }
-        POINT_D_INTERROGATION { retourne QT_CursorShape.WHATS_THIS }
-        COPIE { retourne QT_CursorShape.DRAG_COPY }
-        DÉPLACEMENT { retourne QT_CursorShape.DRAG_MOVE }
-        ALIAS { retourne QT_CursorShape.DRAG_LINK }
+        VIERGE { retourne QT_CursorShape.BLANK; }
+        FLÈCHE { retourne QT_CursorShape.ARROW; }
+        ATTENTE { retourne QT_CursorShape.WAIT; }
+        FLÈCHE_AVEC_ATTENTE { retourne QT_CursorShape.BUSY; }
+        MAIN_OUVERTE { retourne QT_CursorShape.OPEN_HAND; }
+        MAIN_FERMÉE { retourne QT_CursorShape.CLOSED_HAND; }
+        TEXTE { retourne QT_CursorShape.IBEAM; }
+        TEXTE_VERTICAL { retourne QT_CursorShape.IBEAM; }
+        CROIX { retourne QT_CursorShape.CROSS; }
+        REDIMENSIONNEMENT_NORD_SUD_EST_OUEST { retourne QT_CursorShape.SIZE_ALL; }
+        REDIMENSIONNEMENT_NORD { retourne QT_CursorShape.UP_ARROW; }
+        REDIMENSIONNEMENT_EST_OUEST { retourne QT_CursorShape.SIZE_HORIZONTAL; }
+        REDIMENSIONNEMENT_NORD_SUD { retourne QT_CursorShape.SIZE_VERTICAL; }
+        REDIMENSIONNEMENT_NORD_EST_SUD_OUEST { retourne QT_CursorShape.SIZE_BDIALOG; }
+        REDIMENSIONNEMENT_NORD_OUEST_SUD_EST { retourne QT_CursorShape.SIZE_FDIALOG; }
+        MAIN_POINTANT { retourne QT_CursorShape.POINTING_HAND; }
+        INTERDIT { retourne QT_CursorShape.FORBIDDEN; }
+        POINT_D_INTERROGATION { retourne QT_CursorShape.WHATS_THIS; }
+        COPIE { retourne QT_CursorShape.DRAG_COPY; }
+        DÉPLACEMENT { retourne QT_CursorShape.DRAG_MOVE; }
+        ALIAS { retourne QT_CursorShape.DRAG_LINK; }
         sinon {}
     }
 

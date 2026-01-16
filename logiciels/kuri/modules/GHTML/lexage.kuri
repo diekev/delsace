@@ -32,16 +32,16 @@ Lexème :: struct {
 
 id_identifiant :: fonc (identifiant: chaine) -> TypeLexème
 {
-    si identifiant == "dans" { retourne TypeLexème.DANS }
-    si identifiant == "finpour" { retourne TypeLexème.FINPOUR }
-    si identifiant == "finsi" { retourne TypeLexème.FINSI }
-    si identifiant == "pour" { retourne TypeLexème.POUR }
-    si identifiant == "si" { retourne TypeLexème.SI }
-    si identifiant == "sinon" { retourne TypeLexème.SINON }
-    si identifiant == "étend" { retourne TypeLexème.ÉTEND }
-    si identifiant == "bloc" { retourne TypeLexème.BLOC }
-    si identifiant == "finbloc" { retourne TypeLexème.FINBLOC }
-    si identifiant == "inclus" { retourne TypeLexème.INCLUS }
+    si identifiant == "dans" { retourne TypeLexème.DANS; }
+    si identifiant == "finpour" { retourne TypeLexème.FINPOUR; }
+    si identifiant == "finsi" { retourne TypeLexème.FINSI; }
+    si identifiant == "pour" { retourne TypeLexème.POUR; }
+    si identifiant == "si" { retourne TypeLexème.SI; }
+    si identifiant == "sinon" { retourne TypeLexème.SINON; }
+    si identifiant == "étend" { retourne TypeLexème.ÉTEND; }
+    si identifiant == "bloc" { retourne TypeLexème.BLOC; }
+    si identifiant == "finbloc" { retourne TypeLexème.FINBLOC; }
+    si identifiant == "inclus" { retourne TypeLexème.INCLUS; }
 
     retourne TypeLexème.CHAINE_CARACTÈRE;
 }

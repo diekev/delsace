@@ -279,7 +279,7 @@ GéométrieSélectionRectangle :: struct {
 
 crée_géométrie_rectangulaire :: fonc (éléments: *AdaptriceÉléments) -> *GéométrieSélectionRectangle
 {
-    sur_grandis_chemin :: fonc (base: *GéométrieSélection @inutilisée, chemin: *CheminSélection, point: Point2D(r32));
+    sur_grandis_chemin :: fonc (base: *GéométrieSélection @inutilisée, chemin: *CheminSélection, point: Point2D(r32))
     {
         si chemin.points.taille == 2 {
             chemin.points[1] = point;
@@ -289,7 +289,7 @@ crée_géométrie_rectangulaire :: fonc (éléments: *AdaptriceÉléments) -> *G
         }
     }
 
-    sur_domaine_sélection :: fonc (base: *GéométrieSélection, chemin: *CheminSélection, domaine: *[..]z32 @inutilisée) -> [..]z32;
+    sur_domaine_sélection :: fonc (base: *GéométrieSélection, chemin: *CheminSélection, domaine: *[..]z32 @inutilisée) -> [..]z32
     {
         géométrie := base comme *GéométrieSélectionRectangle;
         adaptrice := géométrie.éléments;
@@ -329,7 +329,7 @@ crée_géométrie_rectangulaire :: fonc (éléments: *AdaptriceÉléments) -> *G
         retourne résultat;
     }
 
-    sur_destruction :: fonc (base: *GéométrieSélection);
+    sur_destruction :: fonc (base: *GéométrieSélection)
     {
         géométrie := base comme *GéométrieSélectionRectangle;
         déloge(géométrie);

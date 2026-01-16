@@ -14,7 +14,7 @@ boucle_parallèle :: fonc (données: $T, rappel: fonc (plage: *PlageExecution, d
         données: S;
     }
 
-    fonction :: fonc (données_tâche: *DonneesTacheParallele, plage: *PlageExecution);
+    fonction :: fonc (données_tâche: *DonneesTacheParallele, plage: *PlageExecution)
     {
         données_locales := données_tâche comme *DonneesTacheCorps(T);
         données_locales.rappel(plage, données_locales.données);
@@ -34,7 +34,7 @@ boucle_parallèle :: fonc (données: $T, rappel: fonc (plage: *PlageExecution, d
 
 principale :: fonc ()
 {
-    rappel :: fonc (plage: *PlageExecution @inutilisée, donnees: z32 @inutilisée);
+    rappel :: fonc (plage: *PlageExecution @inutilisée, donnees: z32 @inutilisée)
     {
     }
 
