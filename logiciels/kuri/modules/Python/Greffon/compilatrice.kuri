@@ -710,9 +710,9 @@ génère_interface_python :: fonc (compilatrice: &CompilatriceModulePython, ench
         compilatrice.ajoute_module_kuri(module);
     }
 
-    ajoute_au_tampon(enchaineuse, "importe Chaine\n");
-    ajoute_au_tampon(enchaineuse, "importe Fondation\n");
-    ajoute_au_tampon(enchaineuse, "importe Python\n");
+    ajoute_au_tampon(enchaineuse, "importe Chaine;\n");
+    ajoute_au_tampon(enchaineuse, "importe Fondation;\n");
+    ajoute_au_tampon(enchaineuse, "importe Python;\n");
 
     saufsi génère_instructions_importe(*compilatrice.modules_kuri_à_importer, enchaineuse) {
         retourne faux;

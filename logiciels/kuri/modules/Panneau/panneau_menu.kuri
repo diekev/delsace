@@ -33,17 +33,17 @@ PanneauBarreDeMenu :: struct {
 
 crée_panneau_barre_de_menu :: fonc (ctx: *ContexteInterface, barre_de_menu: *BarreDeMenu) -> *PanneauBarreDeMenu
 {
-    sur_clic_souris :: fonc (panneau_menu: *PanneauBarreDeMenu, clic: ClicSouris) -> bool;
+    sur_clic_souris :: fonc (panneau_menu: *PanneauBarreDeMenu, clic: ClicSouris) -> bool
     {
         retourne observe_clic(panneau_menu, clic);
     }
 
-    sur_dessin :: fonc (panneau_menu: *PanneauBarreDeMenu, contexte_affichage: *ContexteAffichage);
+    sur_dessin :: fonc (panneau_menu: *PanneauBarreDeMenu, contexte_affichage: *ContexteAffichage)
     {
         dessine(panneau_menu, contexte_affichage);
     }
 
-    sur_destruction :: fonc (panneau: *Panneau);
+    sur_destruction :: fonc (panneau: *Panneau)
     {
         panneau_menu := panneau comme *PanneauBarreDeMenu;
         détruit_panneau_barre_de_menu(panneau_menu);
@@ -395,12 +395,12 @@ PanneauMenu :: struct {
 
 crée_panneau_menu :: fonc (ctx: *ContexteInterface, menu: *Menu, position: Point2D(z32)) -> *PanneauMenu
 {
-    sur_déplacement_souris :: fonc (panneau_menu: *PanneauMenu, souris: ÉtatSouris);
+    sur_déplacement_souris :: fonc (panneau_menu: *PanneauMenu, souris: ÉtatSouris)
     {
         observe_souris(panneau_menu, souris);
     }
 
-    sur_clic_souris :: fonc (empl panneau_menu: *PanneauMenu, clic: ClicSouris) -> bool;
+    sur_clic_souris :: fonc (empl panneau_menu: *PanneauMenu, clic: ClicSouris) -> bool
     {
         saufsi rect.contient(clic.état.où) {
             retourne faux;
@@ -428,12 +428,12 @@ crée_panneau_menu :: fonc (ctx: *ContexteInterface, menu: *Menu, position: Poin
         retourne faux;
     }
 
-    sur_dessin :: fonc (panneau_menu: *PanneauMenu, contexte_affichage: *ContexteAffichage);
+    sur_dessin :: fonc (panneau_menu: *PanneauMenu, contexte_affichage: *ContexteAffichage)
     {
         dessine(panneau_menu, contexte_affichage);
     }
 
-    sur_destruction :: fonc (panneau: *Panneau);
+    sur_destruction :: fonc (panneau: *Panneau)
     {
         panneau_menu := panneau comme *PanneauMenu;
         détruit_panneau_menu(panneau_menu);

@@ -5,7 +5,7 @@ importe Fondation;
 importe SysFichier;
 
 #exécute {
-    ajoute_module :: fonc (chemin: CheminFichier, ensemble: *[..]chaine);
+    ajoute_module :: fonc (chemin: CheminFichier, ensemble: *[..]chaine)
     {
         interdits := [
             ".vscode",
@@ -49,7 +49,7 @@ importe SysFichier;
     initialise_enchaineuse(*enchaineuse);
 
     pour ensemble {
-        ajoute_au_tampon(*enchaineuse, "importe ", it, "\n");
+        ajoute_au_tampon(*enchaineuse, "importe ", it, ";\n");
     }
 
     ajoute_au_tampon(*enchaineuse, "\n");

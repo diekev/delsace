@@ -9,7 +9,7 @@ importe Support;
 principale :: fonc ()
 {
     erreur_survenue := #exécute compile_script_erroné("
-    a := MonÉnum.Valeur
+    a := MonÉnum.Valeur;
     ");
 
     saufsi erreur_survenue {

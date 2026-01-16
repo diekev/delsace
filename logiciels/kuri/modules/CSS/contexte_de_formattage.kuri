@@ -577,7 +577,7 @@ donne_marge_collapsée :: fonc (ctx: *ContexteDeFormattageBloc, box: *Box, derni
         }
         sinon {
             max(marge_parent.taille, marge.taille);
-        }
+        };
 
         résultat: MargeCollapsée;
         résultat.taille = taille;
@@ -673,7 +673,7 @@ donne_marge_collapsée_depuis :: fonc (ctx: *ContexteDeFormattageBloc, box: *Box
     }
     sinon {
         max_positives - max_négatives;
-    }
+    };
 
     retourne résultat;
 }
@@ -1176,7 +1176,7 @@ contexte_formattage_inline_sur_formatte :: fonc (base: *ContexteDeFormattage, bo
                 baseline_box := fragment.box.donne_baseline();
                 si baseline_box.possède_valeur() {
                     position_y := fragment.y + fragment.hauteur;
-                    delta := it.baseline - position_y 
+                    delta := it.baseline - position_y;
                     fragment.y += delta comme r32;
                 }
             }
@@ -2149,7 +2149,7 @@ resolve_flexible_lengths :: fonc (ctx: *ContexteDeFormattageFlex, ligne: *LigneF
     }
     sinon {
         IDPropriété.FlexShrink;
-    }
+    };
 
     // 2. Each item in the flex line has a target main size, initially set to its flex base size.
     //    Each item is initially unfrozen and may become frozen.
