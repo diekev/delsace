@@ -85,7 +85,7 @@ donne_type_contenu :: fonc (message: *MessageHTTP) -> chaine
         résultat = valeur;
     }
 
-    retourne supprime_espaces_blancs(résultat);
+    retourne supprime_espaces_blanches(résultat);
 }
 
 donne_charset :: fonc (message: *MessageHTTP) -> chaine
@@ -120,7 +120,7 @@ donne_charset :: fonc (message: *MessageHTTP) -> chaine
         }
     }
 
-    retourne supprime_espaces_blancs(résultat);
+    retourne supprime_espaces_blanches(résultat);
 }
 
 valeur_entête_ou :: fonc (message: *MessageHTTP, nom: chaine, défaut: chaine) -> chaine

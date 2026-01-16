@@ -14,14 +14,14 @@ est_chaine_statique :: fonc (chn: chaine) -> bool #enligne
     retourne intrinsèque_est_adresse_données_constantes(chn.pointeur);
 }
 
-supprime_espaces_blancs :: fonc (ligne: chaine) -> chaine
+supprime_espaces_blanches :: fonc (ligne: chaine) -> chaine
 {
-    ligne = supprime_espaces_blancs_au_début(ligne);
-    ligne = supprime_espaces_blancs_à_la_fin(ligne);
+    ligne = supprime_espaces_blanches_au_début(ligne);
+    ligne = supprime_espaces_blanches_à_la_fin(ligne);
     retourne ligne;
 }
 
-supprime_espaces_blancs_au_début :: fonc (ligne: chaine) -> chaine
+supprime_espaces_blanches_au_début :: fonc (ligne: chaine) -> chaine
 {
     tantque ligne.taille > 0 {
         saufsi est_espace_blanche(ligne[0]) {
@@ -32,7 +32,7 @@ supprime_espaces_blancs_au_début :: fonc (ligne: chaine) -> chaine
     retourne ligne;
 }
 
-supprime_espaces_blancs_à_la_fin :: fonc (ligne: chaine) -> chaine
+supprime_espaces_blanches_à_la_fin :: fonc (ligne: chaine) -> chaine
 {
     tantque ligne.taille > 0 {
         saufsi est_espace_blanche(ligne[ligne.taille - 1]) {
