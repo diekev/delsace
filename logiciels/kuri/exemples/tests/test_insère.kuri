@@ -7,12 +7,12 @@ importe Fondation;
 
 principale :: fonc () #cliche format_canon
 {
-    #insère "imprime(\"Bonjour, tout le monde !\\n\")";
+    #insère "imprime(\"Bonjour, tout le monde !\\n\");";
 
     #insère #exécute retourne_une_chaine();
 }
 
 retourne_une_chaine :: fonc () -> chaine
 {
-    retourne "imprime(\"Bonjour, depuis une expression retournée par #exécute !\\n\")";
+    retourne "imprime(\"Bonjour, depuis une expression retournée par #exécute !\\n\");";
 }

@@ -2,6 +2,6 @@
  * Catégorie : [syntaxage, compilation infini]
  */
 
-fonction :: fonc (a *rien) // interprété comme a * rien, mais le symbole 'a' n'est pas défini...
+fonction :: fonc (a *rien); // interprété comme a * rien, mais le symbole 'a' n'est pas défini...
 {
 }

@@ -21,7 +21,7 @@ démo_si_comme_expression :: fonc ()
     }
     sinon {
         d;
-    }
+    };
 
     imprime("a = %\n", a);
 }

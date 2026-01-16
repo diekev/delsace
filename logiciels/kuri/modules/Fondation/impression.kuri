@@ -1399,12 +1399,12 @@ génère_fonction_enveloppe :: fonc (enchaineuse: *Enchaineuse, espace: EspaceDe
     module := compilatrice_module_pour_code(espace, données.fonction);
     nom_module := compilatrice_nom_module(module);
     imprime_type(enchaineuse, données.info_type, nom_module);
-    ajoute_au_tampon(enchaineuse, "\n");
+    ajoute_au_tampon(enchaineuse, ";\n");
     ajoute_au_tampon(enchaineuse, "\t");
     si nom_module {
         ajoute_au_tampon(enchaineuse, nom_module, ".");
     }
-    ajoute_au_tampon(enchaineuse, données.fonction.nom, "(enchaineuse, valeur)\n");
+    ajoute_au_tampon(enchaineuse, données.fonction.nom, "(enchaineuse, valeur);\n");
     ajoute_au_tampon(enchaineuse, "}\n");
 
     retourne nom_enveloppe;

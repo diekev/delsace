@@ -12,12 +12,12 @@ PanneauBouton :: struct {
 
 crée_panneau_bouton :: fonc (ctx: *ContexteInterface, parent: *Panneau, bouton: *Bouton) -> *PanneauBouton
 {
-    sur_déplacement_souris :: fonc (panneau_bouton: *PanneauBouton, souris: ÉtatSouris);
+    sur_déplacement_souris :: fonc (panneau_bouton: *PanneauBouton, souris: ÉtatSouris)
     {
         panneau_bouton.souris_dans_rect = panneau_bouton.rect.contient(souris.où);
     }
 
-    sur_clic_souris :: fonc (panneau_bouton: *PanneauBouton, clic: ClicSouris) -> bool;
+    sur_clic_souris :: fonc (panneau_bouton: *PanneauBouton, clic: ClicSouris) -> bool
     {
         saufsi panneau_bouton.rect.contient(clic.état.où) {
             retourne faux;
@@ -33,7 +33,7 @@ crée_panneau_bouton :: fonc (ctx: *ContexteInterface, parent: *Panneau, bouton:
         retourne vrai;
     }
 
-    sur_dessin :: fonc (panneau_bouton: *PanneauBouton, ctx: *ContexteAffichage);
+    sur_dessin :: fonc (panneau_bouton: *PanneauBouton, ctx: *ContexteAffichage)
     {
         peintre := ctx.peintre;
         thème := ctx.thème;

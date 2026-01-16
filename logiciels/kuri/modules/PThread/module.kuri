@@ -1,7 +1,7 @@
 importe POSIX;
 
 // À FAIRE
-sched_param :: struct #externe { sched_priority: z32 }
+sched_param :: struct #externe { sched_priority: z32; }
 cpu_set_t :: struct #externe;
 __clockid_t :: #opaque z32;
 pthread_once_t :: #opaque z32;
