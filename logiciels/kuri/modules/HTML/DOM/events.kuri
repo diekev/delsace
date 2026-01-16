@@ -147,9 +147,9 @@ is_event_handler_content_attribute_name :: fonc (nom: DOMString) -> bool
         si it == "DOMContentLoaded" {
             continue;
         }
-        ajoute_au_tampon(*enchaineuse, "si nom == EVT_on", it, " { retourne vrai }\n");
+        ajoute_au_tampon(*enchaineuse, "si nom == EVT_on", it, " { retourne vrai; }\n");
     }
-    ajoute_au_tampon(*enchaineuse, "retourne faux\n");
+    ajoute_au_tampon(*enchaineuse, "retourne faux;\n");
 
     retourne chaine_depuis_enchaineuse(*enchaineuse);
 }
@@ -164,9 +164,9 @@ donne_event_type_pour_nom_event_handler :: fonc (nom: DOMString) -> EventType
         si it == "DOMContentLoaded" {
             continue;
         }
-        ajoute_au_tampon(*enchaineuse, "si nom == EVT_on", it, " { retourne EventType.", it, "}\n");
+        ajoute_au_tampon(*enchaineuse, "si nom == EVT_on", it, " { retourne EventType.", it, "; }\n");
     }
-    ajoute_au_tampon(*enchaineuse, "panique(\"évènement inconnu : %\", nom)\n");
+    ajoute_au_tampon(*enchaineuse, "panique(\"évènement inconnu : %\", nom);\n");
 
     retourne chaine_depuis_enchaineuse(*enchaineuse);
 }

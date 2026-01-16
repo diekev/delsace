@@ -179,7 +179,7 @@ initialise_élément :: fonc (élément: *Element, document: *Document, texte: D
         retourne;
     }
 
-    table_virtuelle := élément.table comme *TableVirtuelleElement    
+    table_virtuelle := élément.table comme *TableVirtuelleElement;
     si table_virtuelle.sur_dépilement  {
         table_virtuelle.sur_dépilement(élément);
     }
@@ -1288,7 +1288,7 @@ button_element_sur_applique_presentational_hints :: fonc (base: *Element, résol
     /* NOTE : la stylisation ne se retrouve dans aucun standard. Elle reprend le style par défaut de firefox. */
 
     couleur_bordure := CouleurRVBAN8(143, 143, 157, 255);
-    style_bordure := CSS.PROP_solid // outset
+    style_bordure := CSS.PROP_solid; // outset
     largeur_bordure := DimensionValue(Length = 2.0);
     rayon_bordure := DimensionValue(Length = 4.0);
     padding_inline := DimensionValue(Length = 4.0);
@@ -1302,7 +1302,7 @@ button_element_sur_applique_presentational_hints :: fonc (base: *Element, résol
     }
     sinon {
         CouleurRVBAN8(233, 233, 237, 255);
-    }
+    };
 
     CSS.ajoute_presentational_hint(résolveuse, CSS.PROP_color, CSS.donne_valeur_couleur_noire());
 
@@ -2031,7 +2031,7 @@ update_image_data :: fonc (image: *HTMLImageElement)
         image: *HTMLImageElement;
     }
 
-    sur_rappel_process_response :: fonc (base: *BaseProcessResponse, réponse: *Response);
+    sur_rappel_process_response :: fonc (base: *BaseProcessResponse, réponse: *Response)
     {
         diffère détruit_response(réponse);
 
@@ -2056,7 +2056,7 @@ update_image_data :: fonc (image: *HTMLImageElement)
         enfile_une_tâche_pour_lancer_évènement_à_élément(rappel.user_agent, rappel.image, EventType.load);
     }
 
-    sur_destruction_process_response :: fonc (base: *BaseProcessResponse);
+    sur_destruction_process_response :: fonc (base: *BaseProcessResponse)
     {
         rappel := base comme *RappelProcessResponse;
         détruit_request(rappel.request);
@@ -2305,7 +2305,7 @@ définis_checkedness :: fonc (input: *HTMLInputElement, valeur: bool)
  * https://html.spec.whatwg.org/multipage/input.html#radio-button-state-(type=radio) */
 réinitialise_checkedness_radio_button_group :: fonc (racine: *HTMLInputElement)
 {
-    traverse_document_pour_radio_button_group :: fonc (noeud: *Node, input: *HTMLInputElement) -> DécisionTraversée;
+    traverse_document_pour_radio_button_group :: fonc (noeud: *Node, input: *HTMLInputElement) -> DécisionTraversée
     {
         si noeud != input && noeud.table.classe == HTMLInputElement {
             noeud_input := noeud comme *HTMLInputElement;
@@ -2864,7 +2864,7 @@ fetch_and_process_linked_ressource_default :: fonc (user_agent: *UserAgent, el: 
         request: *Request;
     }
 
-    sur_rappel_process_response :: fonc (rappel: *RappelProcessResponse, réponse: *Response);
+    sur_rappel_process_response :: fonc (rappel: *RappelProcessResponse, réponse: *Response)
     {
         diffère détruit_response(réponse);
 
@@ -2890,7 +2890,7 @@ fetch_and_process_linked_ressource_default :: fonc (user_agent: *UserAgent, el: 
         process_the_linked_resource(rappel.link, success, réponse, body_bytes);
     }
 
-    sur_destruction_process_response :: fonc (base: *BaseProcessResponse);
+    sur_destruction_process_response :: fonc (base: *BaseProcessResponse)
     {
         rappel := base comme *RappelProcessResponse;
         détruit_request(rappel.request);
@@ -2960,7 +2960,7 @@ create_a_potential_cors_request :: fonc (url: *URL, destination: Request.Destina
     }
     sinon {
         Request.Mode.CORS;
-    }
+    };
 
     // 2. If same-origin fallback flag is set and mode is "no-cors", set mode to "same-origin".
     si same_origin_fallback_flag && mode == Request.Mode.No_CORS {
@@ -3012,7 +3012,7 @@ create_link_options :: fonc (el: *HTMLLinkElement) -> LinkProcessingOptions
     options: LinkProcessingOptions;
     // destination                  -> the result of translating the state of el's as attribute.
     si el.possède_attribut(ATTR_as) {
-        options.destination = translate_a_preload_destination(el.donne_attribut_ou_chaine_vide(ATTR_as)) // XXX - state
+        options.destination = translate_a_preload_destination(el.donne_attribut_ou_chaine_vide(ATTR_as)); // XXX - state
     }
     sinon {
         options.destination = Request.DestinationType.EmptyString;
@@ -3029,7 +3029,7 @@ create_link_options :: fonc (el: *HTMLLinkElement) -> LinkProcessingOptions
     // environment                  -> document's relevant settings object
     options.environment = document.donne_relevant_settings_object();
     // policy container             -> document's policy container
-    options.policy_container = clone(document.policy_container) // @spec-bug ?
+    options.policy_container = clone(document.policy_container); // @spec-bug ?
     // document                     -> document
     options.document = document;
     // cryptographic nonce metadata -> The current value of el's [[CryptographicNonce]] internal slot
@@ -3392,7 +3392,7 @@ object_element_ajourne :: fonc (object: *HTMLObjectElement)
         object: *HTMLObjectElement;
     }
 
-    sur_run :: fonc (base: *Algorithm);
+    sur_run :: fonc (base: *Algorithm)
     {
         tâche := base comme *Tâche;
         détermine_ce_que_object_représente(tâche.object);
@@ -3500,14 +3500,14 @@ object_représente_data :: fonc (object: *HTMLObjectElement, réponse: *Response
             request: *Request;
         }
 
-        sur_rappel_process_response :: fonc (base: *BaseProcessResponse, réponse: *Response);
+        sur_rappel_process_response :: fonc (base: *BaseProcessResponse, réponse: *Response)
         {
             rappel := base comme *RappelProcessResponse;
             object_représente_data(rappel.object, réponse);
             détruit_response(réponse);
         }
 
-        sur_destruction_process_response :: fonc (base: *BaseProcessResponse);
+        sur_destruction_process_response :: fonc (base: *BaseProcessResponse)
         {
             rappel := base comme *RappelProcessResponse;
             détruit_request(rappel.request);
@@ -3639,7 +3639,7 @@ HTMLScriptElement :: struct {
     document_parseur: *Document;
     document_du_temps_de_préparation: *Document;
 
-    force_async := vrai // À FAIRE : doit être faux lors de l'ajout d'un attribut async
+    force_async := vrai; // À FAIRE : doit être faux lors de l'ajout d'un attribut async
     provient_de_fichier_externe := faux;
     prêt_à_être_exécuté_par_parseuse := faux;
     déjà_commencé := faux;
@@ -3798,7 +3798,7 @@ prépare :: fonc (el: *HTMLScriptElement)
     }
     sinon {
         Request.ParserMetadata.Not_Parser_Inserted;
-    }
+    };
 
     /* 29. */
     options: OptionsFetchScript;
@@ -3859,7 +3859,7 @@ prépare :: fonc (el: *HTMLScriptElement)
             empl base: ScriptFetchComplete;
             élément: *HTMLScriptElement;
         }
-        sur_run :: fonc (base: *ScriptFetchComplete, result: *Script);
+        sur_run :: fonc (base: *ScriptFetchComplete, result: *Script)
         {
             on_complete := base comme *OnComplete;
             // 1. Mark as ready el given result.
@@ -3916,7 +3916,7 @@ prépare :: fonc (el: *HTMLScriptElement)
             tableau_ajoute(scripts, el);
 
             // 3. Set el's steps to run when the result is ready to the following:
-            steps_to_run_when_the_result_is_ready :: fonc (script: *HTMLScriptElement);
+            steps_to_run_when_the_result_is_ready :: fonc (script: *HTMLScriptElement)
             {
                 // 1. Execute the script element el.
                 execute_the_script_element(script);
@@ -4044,7 +4044,7 @@ execute_the_script_element :: fonc (el: *HTMLScriptElement)
     }
 
     // 5. If el's from an external file is true, or el's type is "module", then increment document's ignore-destructive-writes counter.
-    ignore_destructive_writes_fut_incrémenté := faux 
+    ignore_destructive_writes_fut_incrémenté := faux;
     si el.provient_de_fichier_externe || el.type == TypeScript.MODULE {
         document.ignore_destructive_writes += 1;
         ignore_destructive_writes_fut_incrémenté = vrai;
@@ -4122,7 +4122,7 @@ ScriptFetchComplete :: struct {
 
 crée_script_fetch_on_complete :: fonc ($T: type_de_données) -> *T
 {
-    sur_destruction :: fonc (base: *ScriptFetchComplete);
+    sur_destruction :: fonc (base: *ScriptFetchComplete)
     {
         on_complete := base comme *T;
         déloge(on_complete);
@@ -4166,7 +4166,7 @@ fetch_a_classic_script :: fonc (user_agent: *UserAgent, url: *URL, settings_obje
         options: OptionsFetchScript;
     }
 
-    sur_rappel_process_response :: fonc (base: *BaseProcessResponseConsumeBody, response: *Response, null_or_bytes: Optionnel([]octet));
+    sur_rappel_process_response :: fonc (base: *BaseProcessResponseConsumeBody, response: *Response, null_or_bytes: Optionnel([]octet))
     {
         rappel := base comme *RappelProcessResponse;
         diffère détruit_response(response);
@@ -4201,7 +4201,7 @@ fetch_a_classic_script :: fonc (user_agent: *UserAgent, url: *URL, settings_obje
         rappel.on_complete.run(script);
     }
 
-    sur_destruction_process_response :: fonc (base: *BaseProcessResponseConsumeBody);
+    sur_destruction_process_response :: fonc (base: *BaseProcessResponseConsumeBody)
     {
         rappel := base comme *RappelProcessResponse;
         détruit_request(rappel.request);

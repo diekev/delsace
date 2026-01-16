@@ -8,6 +8,18 @@
 #include "lexeuse.hh"
 #include "modules.hh"
 
+kuri::chaine_statique donne_message_lexème_attendu(GenreLexème genre)
+{
+    switch (genre) {
+        case GenreLexème::POINT_VIRGULE:
+            return "attendu un ';'";
+        default:
+            break;
+    }
+
+    return "attendu un lexème inconnu";
+}
+
 BaseSyntaxeuse::BaseSyntaxeuse(Fichier *fichier) : m_lexèmes(fichier->lexèmes), m_fichier(fichier)
 {
     if (m_lexèmes.taille() > 0) {

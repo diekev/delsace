@@ -37,8 +37,8 @@ donne_date_républicaine :: fonc (moment: Date) -> Date
         yeardays += 1;
     }
 
-    this.année += 1 // year starts as year 1
-    this.jour = ((yeardays % 30) + 1) comme z32 // calendar starts on day 1
+    this.année += 1; // year starts as year 1
+    this.jour = ((yeardays % 30) + 1) comme z32; // calendar starts on day 1
     this.mois = (yeardays / 30) comme z32;
 
     // imprime("date républicaine : %\n", this)

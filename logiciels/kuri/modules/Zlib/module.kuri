@@ -52,14 +52,14 @@ Z_DEFAULT_STRATEGY    :: 0;
 
 Z_BINARY   :: 0;
 Z_TEXT     :: 1;
-Z_ASCII    :: Z_TEXT   /* for compatibility with 1.2.2 and earlier */
+Z_ASCII    :: Z_TEXT;   /* for compatibility with 1.2.2 and earlier */
 Z_UNKNOWN  :: 2;
 /* Possible values of the data_type field for deflate() */
 
 Z_DEFLATED :: 8;
 /* The deflate compression method (the only one supported in this version) */
 
-Z_NULL :: 0  /* for initializing zalloc, zfree, opaque */
+Z_NULL :: 0;  /* for initializing zalloc, zfree, opaque */
 
 deflateInit :: fonc (strm: z_streamp, level: z32) -> z32
 {
@@ -199,7 +199,7 @@ décompresse :: fonc (entrée: []octet) -> (z32, [..]octet)
         } tantque (strm.avail_out == 0); /* done when inflate() says it's done */
     } tantque (ret != Z_STREAM_END);
 
-    ret = si ret == Z_STREAM_END { Z_OK } sinon { Z_DATA_ERROR }
+    ret = si ret == Z_STREAM_END { Z_OK; } sinon { Z_DATA_ERROR; };
     retourne ret, résultat;
 }
 

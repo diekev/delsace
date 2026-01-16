@@ -17,6 +17,8 @@ struct chaine;
 
 struct Fichier;
 
+[[nodiscard]] kuri::chaine_statique donne_message_lexème_attendu(GenreLexème genre);
+
 #define REQUIERS_LEXEME(genre, message)                                                           \
     if (!apparie(GenreLexème::genre)) {                                                           \
         rapporte_erreur(message);                                                                 \
@@ -136,6 +138,16 @@ struct BaseSyntaxeuse {
         if (!fini()) {
             m_lexème_courant += 1;
         }
+    }
+
+    inline void consomme(GenreLexème genre_lexème)
+    {
+        if (fini() || m_lexèmes[m_position].genre != genre_lexème) {
+            rapporte_erreur(donne_message_lexème_attendu(genre_lexème));
+            /* Ne retournons pas ici, afin que consomme() fasse progresser la compilation. */
+        }
+
+        return consomme();
     }
 
     inline void consomme(GenreLexème genre_lexème, kuri::chaine_statique message)

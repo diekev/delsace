@@ -85,7 +85,7 @@ crée_filtre_pour_class_name :: fonc (classes: [..]DOMString) -> *HTMLCollection
         classes: [..]DOMString;
     }
 
-    sur_filtre :: fonc (base: *HTMLCollectionFilter, collection: *HTMLCollection, élément: *Element) -> bool;
+    sur_filtre :: fonc (base: *HTMLCollectionFilter, collection: *HTMLCollection, élément: *Element) -> bool
     {
         si élément == collection.root {
             retourne faux;
@@ -119,7 +119,7 @@ crée_filtre_pour_class_name :: fonc (classes: [..]DOMString) -> *HTMLCollection
         retourne vrai;
     }
 
-    sur_destruction :: fonc (base: *HTMLCollectionFilter);
+    sur_destruction :: fonc (base: *HTMLCollectionFilter)
     {
         filtre := base comme *ClassesFilter;
         déloge(filtre.classes);
@@ -140,14 +140,14 @@ crée_filtre_pour_tag_name :: fonc (tag_name: DOMString) -> *HTMLCollectionFilte
         tag_name: DOMString;
     }
 
-    sur_filtre :: fonc (base: *HTMLCollectionFilter, collection: *HTMLCollection @inutilisée, élément: *Element) -> bool;
+    sur_filtre :: fonc (base: *HTMLCollectionFilter, collection: *HTMLCollection @inutilisée, élément: *Element) -> bool
     {
         filtre := base comme *TagNameFilter;
         // À FAIRE : qualified name
         retourne élément.local_name == filtre.tag_name;
     }
 
-    sur_destruction :: fonc (base: *HTMLCollectionFilter);
+    sur_destruction :: fonc (base: *HTMLCollectionFilter)
     {
         filtre := base comme *TagNameFilter;
         déloge(filtre);
