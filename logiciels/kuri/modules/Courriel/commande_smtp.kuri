@@ -188,7 +188,7 @@ parse_commande :: fonc (parseuse: *ParseuseCommande, texte: chaine) -> Résultat
 
         domaine := parseuse.sous_chaine_jusque_indice(position_crlf);
         parseuse.avance(domaine.taille comme z32);
-        parseuse.avance(2) // CRLF
+        parseuse.avance(2); // CRLF
 
         commande := loge(CommandeSMTP_EHLO);
         commande.domaine = domaine;
@@ -279,8 +279,8 @@ parse_adresse_courriel :: fonc (parseuse: *ParseuseChaine) -> Résultat(AdresseC
     chn_adresse := parseuse.sous_chaine_jusque_indice(position_chevron_droit);
 
     parseuse.avance(chn_adresse.taille comme z32);
-    parseuse.avance(1) // >
-    parseuse.avance(2) // CRLF
+    parseuse.avance(1); // >
+    parseuse.avance(2); // CRLF
 
     retourne parse_adresse_courriel(chn_adresse);
 }

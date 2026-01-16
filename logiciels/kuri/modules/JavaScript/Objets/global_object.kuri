@@ -121,7 +121,7 @@ perform_eval :: fonc (interpréteuse: *Interpréteuse, x: Valeur, strict_caller:
     sinon {
         // À FAIRE : ScriptIsStrict
         faux;
-    }
+    };
 
     // 14. Let runningContext be the running execution context.
     // 15. NOTE: If direct is true, runningContext will be the execution context that performed the direct eval. If direct is false, runningContext will be the execution context for the invocation of the eval function.
@@ -400,7 +400,7 @@ encode :: fonc (interpréteuse: *Interpréteuse, string: ECMAString, extra_unesc
             // v. For each element octet of Octets, do
             pour nombre_d_octets {
                 // 1. Let hex be the String representation of octet, formatted as an uppercase hexadecimal number.
-                hex := donne_chaine_hex_pour_octet(octets[it])    
+                hex := donne_chaine_hex_pour_octet(octets[it]);
 
                 // 2. Set R to the string-concatenation of R, "%", and StringPad(hex, 2, "0", start).
                 // À FAIRE : StringPad

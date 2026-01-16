@@ -217,7 +217,7 @@ ObjetHTML :: struct {
 
 objet_html_sur_création_enveloppe :: fonc (base: *Enveloppable @inutilisée, enveloppe: *Enveloppe)
 {
-    fonction_native_ouvre_document :: fonc (empl params: *ParamètresObjectCall) -> Valeur;
+    fonction_native_ouvre_document :: fonc (empl params: *ParamètresObjectCall) -> Valeur
     {
         si arguments.taille == 0 {
             retourne lance_type_error(interpréteuse, "ouvre_document requiers 1 argument");
@@ -263,20 +263,20 @@ crée_propriétés_hôte_objet_global :: fonc (base: *ConfigurationRealm, global
         application: *Application;
     }
 
-    flux_sortie_sur_destruction :: fonc (base: *FluxSortieConsole);
+    flux_sortie_sur_destruction :: fonc (base: *FluxSortieConsole)
     {
         flux := base comme *FluxSortieConsoleQt;
         déloge(flux);
     }
 
-    flux_sortie_sur_log :: fonc (base: *FluxSortieConsole, texte: chaine);
+    flux_sortie_sur_log :: fonc (base: *FluxSortieConsole, texte: chaine)
     {
         flux := base comme *FluxSortieConsoleQt;
         application := flux.application;
         application.sortie_console = copie_chaine(texte);
     }
 
-    flux_sortie_sur_efface :: fonc (base: *FluxSortieConsole);
+    flux_sortie_sur_efface :: fonc (base: *FluxSortieConsole)
     {
         flux := base comme *FluxSortieConsoleQt;
         application := flux.application;

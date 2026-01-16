@@ -7,16 +7,16 @@ TAILLE_MAX_NOM := 32;
 TAILLE_MAX_COURRIEL := 255;
 
 // À FAIRE : la représentation d'une ligne est compacte en mémoire
-TAILLE_ID := 4 // taille_de Ligne.id
-TAILLE_NOM := 33 // taille_de Lige.nom + 1
-TAILLE_COURRIEL := 256 // taille_de Ligne.courriel + 1
+TAILLE_ID := 4; // taille_de Ligne.id
+TAILLE_NOM := 33; // taille_de Lige.nom + 1
+TAILLE_COURRIEL := 256; // taille_de Ligne.courriel + 1
 DÉCALAGE_ID := 0;
 DÉCALAGE_NOM := 4;
 DÉCALAGE_COURRIEL := 37;
 TAILLE_LIGNE := 293;
 
-LIGNES_PAR_PAGES := 14 // TAILLE_PAGE / TAILLE_LIGNE
-LIGNES_MAX_TABLE := 1400 // LIGNES_PAR_PAGES * TABLE_MAX_PAGES
+LIGNES_PAR_PAGES := 14; // TAILLE_PAGE / TAILLE_LIGNE
+LIGNES_MAX_TABLE := 1400; // LIGNES_PAR_PAGES * TABLE_MAX_PAGES
 
 TypeColonne :: énum z32 {
     ENTIER;

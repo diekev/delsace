@@ -8,12 +8,12 @@ importe Fondation;
 
 principale :: fonc ()
 {
-    poly :: fonc (ligne: chaine @inutilisée, valeur: *$T @inutilisée) -> bool;
+    poly :: fonc (ligne: chaine @inutilisée, valeur: *$T @inutilisée) -> bool
     {
         retourne faux;
     }
 
-    rappel_pour_chaque_ligne :: fonc (ligne: chaine, a: z32);
+    rappel_pour_chaque_ligne :: fonc (ligne: chaine, a: z32)
     {
         si poly(ligne, *a) {
             retourne;

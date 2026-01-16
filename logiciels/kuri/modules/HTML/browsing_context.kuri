@@ -505,10 +505,10 @@ détermine_drapeaux_sandboxing :: fonc (context: *BrowsingContext, embedder: *El
 
 /* https://html.spec.whatwg.org/multipage/browsers.html#concept-origin-opaque */
 Origin :: struct {
-    est_opaque: bool // À FAIRE : sépare en deux structures ?
+    est_opaque: bool; // À FAIRE : sépare en deux structures ?
     valeur_opaque: z32;
 
-    scheme: chaine // ASCII
+    scheme: chaine; // ASCII
     host: Host;
     port: Optionnel(n16);
     domain: Optionnel(Domain);
@@ -740,7 +740,7 @@ crée_browsing_context_et_document :: fonc (user_agent: *UserAgent, creator: *Do
         creator_base_url =  creator.donne_base_url();
 
         // 3. Set browsingContext's virtual browsing context group ID to creator's browsing context's top-level browsing context's virtual browsing context group ID.
-        creator_browsing_context := creator.browsing_context {
+        creator_browsing_context := creator.browsing_context; {
             top_level_browsing_context := creator_browsing_context.donne_top_level_browsing_context();
             si top_level_browsing_context {
                 browsing_context.virtual_browsing_context_group_id = top_level_browsing_context.virtual_browsing_context_group_id;
@@ -770,7 +770,7 @@ crée_browsing_context_et_document :: fonc (user_agent: *UserAgent, creator: *Do
         user_agent: *UserAgent;
     }
 
-    crée_objet_global :: fonc (base: *JS.ConfigurationRealm, realm: *JS.Realm) -> *JS.Object;
+    crée_objet_global :: fonc (base: *JS.ConfigurationRealm, realm: *JS.Realm) -> *JS.Object
     {
         configuration := base comme *ConfigurationRealmBrowsingContext;
 
@@ -784,7 +784,7 @@ crée_browsing_context_et_document :: fonc (user_agent: *UserAgent, creator: *Do
         retourne window;
     }
 
-    donne_this_binding_global :: fonc (base: *JS.ConfigurationRealm) -> *JS.Object;
+    donne_this_binding_global :: fonc (base: *JS.ConfigurationRealm) -> *JS.Object
     {
         configuration := base comme *ConfigurationRealmBrowsingContext;
         retourne configuration.browsing_context.window_proxy;
@@ -971,7 +971,7 @@ set_up_window_environnement_context :: fonc (creation_url: *URL,
     }
 
     // The realm execution context
-    sur_donne_realm_execution_context :: fonc (base: *EnvironmentSettings) -> *JS.ExecutionContext;
+    sur_donne_realm_execution_context :: fonc (base: *EnvironmentSettings) -> *JS.ExecutionContext
     {
         // Return execution context.
         env := base comme *WindowEnvironment;
@@ -982,7 +982,7 @@ set_up_window_environnement_context :: fonc (creation_url: *URL,
     // Return the module map of window's associated Document.
 
     // The API base URL
-    sur_donne_api_base_url :: fonc (base: *EnvironmentSettings) -> *URL;
+    sur_donne_api_base_url :: fonc (base: *EnvironmentSettings) -> *URL
     {
         // Return the current base URL of window's associated Document.
         env := base comme *WindowEnvironment;
@@ -991,7 +991,7 @@ set_up_window_environnement_context :: fonc (creation_url: *URL,
     }
 
     // The origin
-    sur_donne_origin :: fonc (base: *EnvironmentSettings) -> Origin;
+    sur_donne_origin :: fonc (base: *EnvironmentSettings) -> Origin
     {
         // Return the origin of window's associated Document.
         env := base comme *WindowEnvironment;
@@ -1000,7 +1000,7 @@ set_up_window_environnement_context :: fonc (creation_url: *URL,
     }
 
     // The policy container
-    sur_donne_policy_container :: fonc (base: *EnvironmentSettings) -> *PolicyContainer;
+    sur_donne_policy_container :: fonc (base: *EnvironmentSettings) -> *PolicyContainer
     {
         // Return the policy container of window's associated Document.
         env := base comme *WindowEnvironment;
@@ -1009,7 +1009,7 @@ set_up_window_environnement_context :: fonc (creation_url: *URL,
     }
 
     // The cross-origin isolated capability
-    sur_donne_cross_origin_isolated_capability :: fonc (base: *EnvironmentSettings @inutilisée) -> bool;
+    sur_donne_cross_origin_isolated_capability :: fonc (base: *EnvironmentSettings @inutilisée) -> bool
     {
         // À FAIRE
         // Return true if both of the following hold, and false otherwise:
@@ -1021,7 +1021,7 @@ set_up_window_environnement_context :: fonc (creation_url: *URL,
     }
 
     // The time origin
-    sur_donne_time_origin :: fonc (base: *EnvironmentSettings) -> r64;
+    sur_donne_time_origin :: fonc (base: *EnvironmentSettings) -> r64
     {
         // Return window's associated Document's load timing info's navigation start time.
         env := base comme *WindowEnvironment;
