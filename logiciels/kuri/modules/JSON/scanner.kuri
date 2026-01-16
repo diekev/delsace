@@ -201,20 +201,20 @@ lis :: fonc (scanner: *ScannerJSON) -> rien
     c := scanner.caractère_courant();
 
     discr c {
-        '(' { scanner.avance(); scanner.lexème = LexèmeJSON.PARENTHÈSE_OUVRANTE }
-        ')' { scanner.avance(); scanner.lexème = LexèmeJSON.PARENTHÈSE_FERMANTE }
-        ',' { scanner.avance(); scanner.lexème = LexèmeJSON.VIRGULE }
-        ':' { scanner.avance(); scanner.lexème = LexèmeJSON.DOUBLE_POINTS }
-        '[' { scanner.avance(); scanner.lexème = LexèmeJSON.CROCHET_OUVRANT }
-        ']' { scanner.avance(); scanner.lexème = LexèmeJSON.CROCHET_FERMANT }
-        '{' { scanner.avance(); scanner.lexème = LexèmeJSON.ACCOLADE_OUVRANTE }
-        '}' { scanner.avance(); scanner.lexème = LexèmeJSON.ACCOLADE_FERMANTE }
-        '"' { scanner.avance(); scanner.lexème = LexèmeJSON.GUILLEMET }
-        't' { scanner.lexème = scanner.lis_true() }
-        'f' { scanner.lexème = scanner.lis_false() }
-        'n' { scanner.lexème = scanner.lis_null() }
-        '-', '0', '1', '2', '3', '4', '5', '6', '7', '8', '9' { scanner.lexème = scanner.lis_nombre() }
-        sinon { scanner.lexème = LexèmeJSON.INVALIDE }
+        '(' { scanner.avance(); scanner.lexème = LexèmeJSON.PARENTHÈSE_OUVRANTE; }
+        ')' { scanner.avance(); scanner.lexème = LexèmeJSON.PARENTHÈSE_FERMANTE; }
+        ',' { scanner.avance(); scanner.lexème = LexèmeJSON.VIRGULE; }
+        ':' { scanner.avance(); scanner.lexème = LexèmeJSON.DOUBLE_POINTS; }
+        '[' { scanner.avance(); scanner.lexème = LexèmeJSON.CROCHET_OUVRANT; }
+        ']' { scanner.avance(); scanner.lexème = LexèmeJSON.CROCHET_FERMANT; }
+        '{' { scanner.avance(); scanner.lexème = LexèmeJSON.ACCOLADE_OUVRANTE; }
+        '}' { scanner.avance(); scanner.lexème = LexèmeJSON.ACCOLADE_FERMANTE; }
+        '"' { scanner.avance(); scanner.lexème = LexèmeJSON.GUILLEMET; }
+        't' { scanner.lexème = scanner.lis_true(); }
+        'f' { scanner.lexème = scanner.lis_false(); }
+        'n' { scanner.lexème = scanner.lis_null(); }
+        '-', '0', '1', '2', '3', '4', '5', '6', '7', '8', '9' { scanner.lexème = scanner.lis_nombre(); }
+        sinon { scanner.lexème = LexèmeJSON.INVALIDE; }
     }
 }
 

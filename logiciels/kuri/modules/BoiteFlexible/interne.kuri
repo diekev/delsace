@@ -523,7 +523,7 @@ donne_barre_de_défilement :: fonc (boite: *BoiteFlexible, direction: Direction)
     }
     sinon {
         *boite.barre_de_défilement_horizontale;
-    }
+    };
 
     résultat := donne_ou_crée_barre(boite.emboiteuse, indice);
     retourne résultat, mémoire(indice);

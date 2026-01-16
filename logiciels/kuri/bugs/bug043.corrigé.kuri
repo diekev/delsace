@@ -8,5 +8,5 @@ importe Fondation;
 principale :: fonc ()
 {
     botte_de_paille := "botte_de_paille";
-    bdf := avance(bdf, 2) // bdf n'est pas déclarée quand nous l'utilisons
+    bdf := avance(bdf, 2); // bdf n'est pas déclarée quand nous l'utilisons
 }

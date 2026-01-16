@@ -3,12 +3,12 @@ importe Fondation;
 
 ajoute :: fonc (a: z32, b: z32) -> z32
 #corps_texte {
-    retourne copie_chaine("retourne a + b");
+    retourne copie_chaine("retourne a + b;");
 }
 
 ajoute_poly :: fonc (a: $T, b: T) -> T
 #corps_texte {
-    retourne copie_chaine("retourne a + b");
+    retourne copie_chaine("retourne a + b;");
 }
 
 test_ajoute :: fonc ()
@@ -29,11 +29,11 @@ opérateur + :: (a: Vecteur($T), b: Vecteur(T)) -> Vecteur(T)
     enchaineuse: Enchaineuse;
     initialise_enchaineuse(*enchaineuse);
 
-    ajoute_au_tampon(*enchaineuse, "résultat := a\n");
-    ajoute_au_tampon(*enchaineuse, "résultat.x += b.x\n");
-    ajoute_au_tampon(*enchaineuse, "résultat.y += b.y\n");
-    ajoute_au_tampon(*enchaineuse, "résultat.z += b.z\n");
-    ajoute_au_tampon(*enchaineuse, "retourne résultat\n");
+    ajoute_au_tampon(*enchaineuse, "résultat := a;\n");
+    ajoute_au_tampon(*enchaineuse, "résultat.x += b.x;\n");
+    ajoute_au_tampon(*enchaineuse, "résultat.y += b.y;\n");
+    ajoute_au_tampon(*enchaineuse, "résultat.z += b.z;\n");
+    ajoute_au_tampon(*enchaineuse, "retourne résultat;\n");
 
     retourne chaine_depuis_enchaineuse(*enchaineuse);
 }
@@ -64,7 +64,7 @@ retourne_plusieurs_valeurs :: fonc () -> (z32, bool, r32)
     enchaineuse: Enchaineuse;
     initialise_enchaineuse(*enchaineuse);
 
-    ajoute_au_tampon(*enchaineuse, "retourne 123, faux, 4.56\n");
+    ajoute_au_tampon(*enchaineuse, "retourne 123, faux, 4.56;\n");
 
     retourne chaine_depuis_enchaineuse(*enchaineuse);
 }
