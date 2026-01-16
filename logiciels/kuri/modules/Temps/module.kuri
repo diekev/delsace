@@ -206,7 +206,7 @@ est_année_bissextile :: fonc (année: z32) -> bool #sanstrace
      * Si X | 100, alors X | 4, or 400 = 4*100, donc si X | 100 et X | 400, alors
      * X | 16.
      */
-    d := si année % 100 != 0 { 4 } sinon { 16 }
+    d := si année % 100 != 0 { 4; } sinon { 16; };
     retourne (année & (d - 1)) == 0;
 }
 
@@ -224,7 +224,7 @@ date_depuis_millisecondes :: fonc (millisecondes: z64) -> Date
 
 weekday_from_days :: fonc (z: z64) -> n32
 {
-    retourne (si z >= -4 { (z + 4) % 7 } sinon { (z + 5) % 7 + 6 }) comme n32;
+    retourne (si z >= -4 { (z + 4) % 7; } sinon { (z + 5) % 7 + 6; }) comme n32;
 }
 
 // https://stackoverflow.com/questions/7960318/math-to-convert-seconds-since-1970-into-date-and-vice-versa
@@ -233,7 +233,7 @@ date_depuis_secondes :: fonc (secondes: z64) -> Date
 {
     z := secondes / 86400;
     z += 719468;
-    era := (si z >= 0 { z } sinon { z - 146096 }) / 146097;
+    era := (si z >= 0 { z; } sinon { z - 146096; }) / 146097;
     doe := (z - era * 146097) comme n32;
     // [0, 146096]
     yoe := (doe - doe / 1460 + doe / 36524 - doe / 146096) / 365;
@@ -245,7 +245,7 @@ date_depuis_secondes :: fonc (secondes: z64) -> Date
     // [0, 11]
     d := doy - (153 * mp + 2) / 5 + 1;
     // [1, 31]
-    m := mp comme z32 + si mp < 10 { 3 } sinon { -9 }
+    m := mp comme z32 + si mp < 10 { 3; } sinon { -9; };
     // [1, 12]
 
     /* Le calendrier de référence commence en mars (après un possible 29 février)
@@ -288,10 +288,10 @@ days_from_civil :: fonc (y: z32, m: n32, d: n32) -> z32
     // static_assert(std::numeric_limits<Int>::digits >= 20,
     //          "This algorithm has not been ported to a 16 bit signed integer");
     y -= (m <= 2) comme z32;
-    era := si y >= 0 { y } sinon { y - 399 } / 400;
-    yoe := (y - era * 400) comme n32 // [0, 399]
-    doy := (153 * si m > 2 { m - 3 } sinon { m + 9 } + 2) / 5 + d - 1 // [0, 365]
-    doe := yoe * 365 + yoe / 4 - yoe / 100 + doy // [0, 146096]
+    era := si y >= 0 { y; } sinon { y - 399; } / 400;
+    yoe := (y - era * 400) comme n32; // [0, 399]
+    doy := (153 * si m > 2 { m - 3; } sinon { m + 9; } + 2) / 5 + d - 1; // [0, 365]
+    doe := yoe * 365 + yoe / 4 - yoe / 100 + doy; // [0, 146096]
     retourne era * 146097 + (doe comme z32) - 719468;
 }
 

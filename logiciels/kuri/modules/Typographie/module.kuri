@@ -702,7 +702,7 @@ texture_font_load_face :: fonc (self: *Fonte, taille: r32, library: *FT_Library,
         imprime_erreur_freetype(error);
         retourne faux;
     }
-    diffère si succès == faux { _ := FT_Done_FreeType(mémoire(library)) }
+    diffère si succès == faux { _ := FT_Done_FreeType(mémoire(library)); }
 
     /* Load face */
     discr self.fileinfo {
@@ -723,7 +723,7 @@ texture_font_load_face :: fonc (self: *Fonte, taille: r32, library: *FT_Library,
         imprime_erreur_freetype(error);
         retourne faux;
     }
-    diffère si succès == faux { _ := FT_Done_Face(mémoire(face)) }
+    diffère si succès == faux { _ := FT_Done_Face(mémoire(face)); }
 
     /* Select charmap */
     error = FT_Select_Charmap(mémoire(face), FT_Encoding.UNICODE);

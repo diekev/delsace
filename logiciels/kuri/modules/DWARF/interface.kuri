@@ -345,7 +345,7 @@ donne_chaine_pour_code_standard_numéro_ligne :: fonc (opcode: n8) -> chaine
 /* Table 7.26: Line number extended opcode encodings */
 DW_LNE_end_sequence : n8 : 0x01;
 DW_LNE_set_address : n8 : 0x02;
-DW_LNE_define_file : n8 : 0x03 // Seulement pour DWARF <= 4
+DW_LNE_define_file : n8 : 0x03; // Seulement pour DWARF <= 4
 DW_LNE_set_discriminator : n8 : 0x04;
 DW_LNE_lo_user : n8 : 0x80;
 DW_LNE_hi_user : n8 : 0xff;

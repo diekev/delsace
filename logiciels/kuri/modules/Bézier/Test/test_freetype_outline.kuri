@@ -134,7 +134,7 @@ charge_chemin_depuis_caractètre :: fonc (chemin_fonte: chaine, point_de_code: n
     //     début = fin + 1
     // }
 
-    move_to :: fonc (point: *FT_Vector, créatrice: *CréatriceChemin) -> z32;
+    move_to :: fonc (point: *FT_Vector, créatrice: *CréatriceChemin) -> z32
     {
         // imprimeln("[%] -> % %", #nom_de_cette_fonction, point.x, point.y)
         ferme_chemin_si_chemin_en_cours(créatrice);
@@ -142,21 +142,21 @@ charge_chemin_depuis_caractètre :: fonc (chemin_fonte: chaine, point_de_code: n
         retourne 0;
     }
 
-    line_to :: fonc (point: *FT_Vector, créatrice: *CréatriceChemin) -> z32;
+    line_to :: fonc (point: *FT_Vector, créatrice: *CréatriceChemin) -> z32
     {
         // imprimeln("[%] -> % %", #nom_de_cette_fonction, point.x, point.y)
         ligne_vers(créatrice, vers_point2d(point, r32));
         retourne 0;
     }
 
-    conic_to :: fonc (control: *FT_Vector, to: *FT_Vector, créatrice: *CréatriceChemin) -> z32;
+    conic_to :: fonc (control: *FT_Vector, to: *FT_Vector, créatrice: *CréatriceChemin) -> z32
     {
         // imprimeln("[%] -> % % to % %", #nom_de_cette_fonction, control.x, control.y, to.x, to.y)
         conique_vers(créatrice, vers_point2d(control, r32), vers_point2d(to, r32), faux);
         retourne 0;
     }
 
-    cubic_to :: fonc (control1: *FT_Vector, control2: *FT_Vector, to: *FT_Vector, créatrice: *CréatriceChemin) -> z32;
+    cubic_to :: fonc (control1: *FT_Vector, control2: *FT_Vector, to: *FT_Vector, créatrice: *CréatriceChemin) -> z32
     {
         // imprimeln("[%] -> % %, % % to % %", #nom_de_cette_fonction, control1.x, control1.y, control2.x, control2.y, to.x, to.y)
         cubique_vers(créatrice, vers_point2d(control1, r32), vers_point2d(control2, r32), vers_point2d(to, r32), faux);

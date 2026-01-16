@@ -56,7 +56,7 @@ sur_dessin_panneau_dossier :: fonc (empl panneau: *PanneauDossier, ctx: *Context
         }
         sinon {
             couleur_grise_claire;
-        }
+        };
 
         remplis_rectangle(peintre, it.rect, couleur);
         dessine_texte(peintre, fonte, it.texte, it.rect_texte, thème.couleur_texte);

@@ -24,7 +24,7 @@ parse_8_caractères :: fonc (ptr: *z8) -> n64
     }
 
     // soustrait '0' de chaque caractère
-    nombre_entier -= 0x3030303030303030 // représentation binaire de la chaine "00000000"
+    nombre_entier -= 0x3030303030303030; // représentation binaire de la chaine "00000000"
 
     // ici le nombre est de forme 0x0N0N_0N0N_0N0N_0N0N où est N est entre 0 et 9
 

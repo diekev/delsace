@@ -2613,7 +2613,7 @@ struct Convertisseuse {
                 os << structure->nom << " :: struct #externe";
 
                 if (structure->rubriques.taille() == 0) {
-                    os << "\n";
+                    os << ";\n";
                     break;
                 }
 

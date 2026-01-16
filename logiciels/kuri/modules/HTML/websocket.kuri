@@ -112,7 +112,7 @@ lance_tâche_pour_établir_connexion_websocket :: fonc (user_agent: *UserAgent, 
         client: *EnvironmentSettings;
     }
 
-    sur_run :: fonc (empl tâche: *Tâche);
+    sur_run :: fonc (empl tâche: *Tâche)
     {
         // À FAIRE : Establish a WebSocket connection given urlRecord, protocols, and client. [FETCH]
         user_agent.lance_requête_websocket(web_socket, client);
@@ -209,7 +209,7 @@ crée_tâche_pour_connexion_websocket_établis :: fonc (user_agent: *UserAgent, 
         web_socket: *WebSocket;
     }
 
-    sur_run :: fonc (empl tâche: *Tâche);
+    sur_run :: fonc (empl tâche: *Tâche)
     {
         // 1. Change the ready state to OPEN (1).
         web_socket.ready_state = WebSocket.OPEN;
@@ -238,7 +238,7 @@ crée_tâche_pour_message_websocket :: fonc (user_agent: *UserAgent, web_socket:
         données: [..]octet;
     }
 
-    sur_run :: fonc (empl tâche: *Tâche);
+    sur_run :: fonc (empl tâche: *Tâche)
     {
         // 1. If ready state is not OPEN (1), then return.
         si web_socket.ready_state != WebSocket.OPEN {
@@ -304,7 +304,7 @@ crée_tâche_pour_début_fermeture_websocket :: fonc (user_agent: *UserAgent, we
         web_socket: *WebSocket;
     }
 
-    sur_run :: fonc (empl tâche: *Tâche);
+    sur_run :: fonc (empl tâche: *Tâche)
     {
         imprime("[%] fermeture_websocket\n", #nom_de_cette_fonction);
         web_socket.ready_state = WebSocket.CLOSING;
@@ -325,7 +325,7 @@ crée_tâche_pour_connexion_websocket_fermée :: fonc (user_agent: *UserAgent, w
         web_socket: *WebSocket;
     }
 
-    sur_run :: fonc (empl tâche: *Tâche);
+    sur_run :: fonc (empl tâche: *Tâche)
     {
         imprime("[%] websocket_fermée\n", #nom_de_cette_fonction);
 

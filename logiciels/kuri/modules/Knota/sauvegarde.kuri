@@ -321,12 +321,12 @@ crée_contexte_lecture_changement :: fonc () -> ContexteLectureGraphe
 
 crée_contexte_lecture_copie :: fonc () -> ContexteLectureGraphe
 {
-    crée_noeud_pour_copie :: fonc (graphe: *Graphe, identifiant: chaine, nom_noeud: chaine) -> *Noeud;
+    crée_noeud_pour_copie :: fonc (graphe: *Graphe, identifiant: chaine, nom_noeud: chaine) -> *Noeud
     {
         retourne graphe.crée_noeud_pour_identifiant_avec_nom(identifiant, nom_noeud, faux);
     }
 
-    crée_connexion_pour_copie :: fonc (graphe: *Graphe, prise_entrée: *PriseEntrée, prise_sortie: *PriseSortie);
+    crée_connexion_pour_copie :: fonc (graphe: *Graphe, prise_entrée: *PriseEntrée, prise_sortie: *PriseSortie)
     {
         graphe.crée_connexion(prise_entrée, prise_sortie);
     }
