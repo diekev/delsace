@@ -7,7 +7,7 @@ importe Fondation;
 
 fonction_corps_texte :: fonc ()
 #corps_texte {
-    retourne copie_chaine("imprime(\"%\", message)");
+    retourne copie_chaine("imprime(\"%\", message);");
 }
 
 principale :: fonc ()

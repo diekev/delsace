@@ -18,7 +18,7 @@ principale :: fonc ()
     }
     sinon {
         8;
-    }
+    };
 
     si a == 127 {
         exit(0);

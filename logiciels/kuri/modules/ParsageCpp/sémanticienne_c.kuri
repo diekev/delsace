@@ -67,7 +67,7 @@ sémantise_translation_unit_c :: fonc (sémanticienne: *SémanticienneC, unit: *
 valide_sémantique_noeud :: fonc (empl sémanticienne: *SémanticienneC, node: *ASTNode)
 {
     si node.état_validation != État_Validation.NON_VALIDÉ {
-        retourne
+        retourne;
     }
 
     node.état_validation =  État_Validation.EN_VALIDATION;
@@ -430,7 +430,7 @@ valide_sémantique_noeud :: fonc (empl sémanticienne: *SémanticienneC, node: *
             node.type = crée_type_pointeur(*unit.maçonne_type, unit.maçonne_type.char_type);
         }
         IntegerConstant {
-            integer := node comme *IntegerConstant
+            integer := node comme *IntegerConstant;
             // À FAIRE : validation taille
 
             valeur := integer.token.lexème.nombre.naturel;
@@ -649,8 +649,8 @@ valide_sémantique_noeud :: fonc (empl sémanticienne: *SémanticienneC, node: *
             tableau_ajoute(*cible_break, node);
             tableau_ajoute(*cible_continue, node);
             valide_sémantique_noeud(sémanticienne, for.statement);
-            cible_continue.taille -= 1
-            cible_break.taille -= 1
+            cible_continue.taille -= 1;
+            cible_break.taille -= 1;
         }
         WhileStatement {
             while := node comme *WhileStatement;
@@ -661,16 +661,16 @@ valide_sémantique_noeud :: fonc (empl sémanticienne: *SémanticienneC, node: *
             tableau_ajoute(*cible_break, node);
             tableau_ajoute(*cible_continue, node);
             valide_sémantique_noeud(sémanticienne, while.statement);
-            cible_continue.taille -= 1
-            cible_break.taille -= 1
+            cible_continue.taille -= 1;
+            cible_break.taille -= 1;
         }
         DoWhileStatement {
             do_while := node comme *DoWhileStatement;
             tableau_ajoute(*cible_break, node);
             tableau_ajoute(*cible_continue, node);
             valide_sémantique_noeud(sémanticienne, do_while.statement);
-            cible_continue.taille -= 1
-            cible_break.taille -= 1
+            cible_continue.taille -= 1;
+            cible_break.taille -= 1;
             valide_sémantique_noeud(sémanticienne, do_while.expression);
             si do_while.expression.type.drapeaux.SCALAR == faux {
                 rapporte_erreur(sémanticienne, do_while.expression.token, "l'expression controlante d'une boucle-do-while doit être de type scalaire");

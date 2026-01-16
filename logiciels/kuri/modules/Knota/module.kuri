@@ -94,7 +94,7 @@ Prise :: struct {
     type: TypePrise;
 
     /* Rectangle pour l'interface. */
-    rectangle: RectanglePosDim(r32) // @mutable
+    rectangle: RectanglePosDim(r32); // @mutable
 } @ToujoursPointeur
 
 PriseEntrée :: struct {
@@ -1099,13 +1099,13 @@ AdaptriceÉlémentsNoeuds :: struct {
 
 initialise_adaptrice_éléments_noeuds :: fonc (graphe: *Graphe)
 {
-    donne_nombre_éléments :: fonc (base: *AdaptriceÉléments) -> z64;
+    donne_nombre_éléments :: fonc (base: *AdaptriceÉléments) -> z64
     {
         adaptrice := base comme *AdaptriceÉlémentsNoeuds;
         retourne adaptrice.graphe.items.taille;
     }
 
-    donne_rectangle :: fonc (base: *AdaptriceÉléments, indice: z64) -> RectanglePosDim(r32);
+    donne_rectangle :: fonc (base: *AdaptriceÉléments, indice: z64) -> RectanglePosDim(r32)
     {
         adaptrice := base comme *AdaptriceÉlémentsNoeuds;
         item := adaptrice.graphe.items[indice];
@@ -1119,7 +1119,7 @@ initialise_adaptrice_éléments_noeuds :: fonc (graphe: *Graphe)
         retourne noeud.rectangle();
     }
 
-    intersecte_rectangle :: fonc (base: *AdaptriceÉléments, indice: z64, rect: RectanglePosDim(r32)) -> bool;
+    intersecte_rectangle :: fonc (base: *AdaptriceÉléments, indice: z64, rect: RectanglePosDim(r32)) -> bool
     {
         adaptrice := base comme *AdaptriceÉlémentsNoeuds;
         item := adaptrice.graphe.items[indice];
@@ -1606,7 +1606,7 @@ définis_noeud_actif :: fonc (graphe: *Graphe, noeud: *Noeud)
 
 CatégorieNoeud :: struct {
     nom: chaine @accessible;
-    noeuds: [..]chaine // @accessible
+    noeuds: [..]chaine; // @accessible
 }
 
 /* ATTENTION ! Ces opérateurs sont pour la recherche et l'insertion
@@ -1774,7 +1774,7 @@ propage_nécessite_exécution :: fonc (graphe: *Graphe)
         visiteuse.ajoute_noeud_à_visiter(it);
     }
 
-    rappel_visite :: fonc (noeud: *Noeud, prise: *PriseEntrée);
+    rappel_visite :: fonc (noeud: *Noeud, prise: *PriseEntrée)
     {
         noeud.marque_amont_prise_modifié(prise);
     }

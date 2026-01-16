@@ -316,87 +316,87 @@ génère_structures_native_errors :: fonc ()
     enchaineuse: Enchaineuse;
     initialise_enchaineuse(*enchaineuse);
 
-    ajoute_au_tampon(*enchaineuse, "importe Chaine\n");
-    ajoute_au_tampon(*enchaineuse, "importe Fondation\n");
+    ajoute_au_tampon(*enchaineuse, "importe Chaine;\n");
+    ajoute_au_tampon(*enchaineuse, "importe Fondation;\n");
 
     chaine_déclaration_error := «
 #portée_fichier
 
-table_virtuelle_\\(1)_prototype := TableVirtuelleObject(classe = \\(0)Prototype)
+table_virtuelle_\\(1)_prototype := TableVirtuelleObject(classe = \\(0)Prototype);
 
 #portée_export
 
 lance_\\(1) :: fonc (interpréteuse: *Interpréteuse, message: chaine) -> Valeur
 {
-    retourne lance_\\(1)(interpréteuse.donne_realm(), message)
+    retourne lance_\\(1)(interpréteuse.donne_realm(), message);
 }
 
 lance_\\(1) :: fonc (realm: *Realm, message: chaine) -> Valeur
 {
-    tas_de_mémoire := realm.donne_tas_de_mémoire()
-    résultat := tas_de_mémoire.alloue(\\(0))
-    résultat.prototype = realm.intrinsics.\\(1)_prototype
-    résultat.message = crée_chaine(realm, crée_chaine_utf16_unique(message))
-    initialise_error_object(realm, résultat, STR_\\(0), message)
-    tas_de_mémoire.mv.définis_exception(résultat)
-    retourne js_undefined
+    tas_de_mémoire := realm.donne_tas_de_mémoire();
+    résultat := tas_de_mémoire.alloue(\\(0));
+    résultat.prototype = realm.intrinsics.\\(1)_prototype;
+    résultat.message = crée_chaine(realm, crée_chaine_utf16_unique(message));
+    initialise_error_object(realm, résultat, STR_\\(0), message);
+    tas_de_mémoire.mv.définis_exception(résultat);
+    retourne js_undefined;
 }
 
 lance_\\(1) :: fonc (cellule: *Cellule, message: chaine) -> Valeur
 {
-    mv := cellule.donne_tas_de_mémoire().mv
-    running_execution_context := donne_running_execution_context(mv)
-    realm := running_execution_context.realm
-    retourne lance_\\(1)(realm, message)
+    mv := cellule.donne_tas_de_mémoire().mv;
+    running_execution_context := donne_running_execution_context(mv);
+    realm := running_execution_context.realm;
+    retourne lance_\\(1)(realm, message);
 }
 
 \\(0)Prototype :: struct {
-    empl objet: Object
-    table = *table_virtuelle_\\(1)_prototype
+    empl objet: Object;
+    table = *table_virtuelle_\\(1)_prototype;
 }
 
 crée_\\(1)_prototype :: fonc (tas_de_mémoire: *TasDeMémoire, prototype: *ErrorPrototype) -> *\\(0)Prototype
 {
-    résultat := tas_de_mémoire.alloue(\\(0)Prototype)
-    résultat.prototype = prototype
-    retourne résultat
+    résultat := tas_de_mémoire.alloue(\\(0)Prototype);
+    résultat.prototype = prototype;
+    retourne résultat;
 }
 »;
     chaine_déclaration_constructor := «
 \\(0)Constructor :: struct {
-    empl builtin_function: BuiltInFunction
-    table = *table_virtuelle_\\(1)_constructor
+    empl builtin_function: BuiltInFunction;
+    table = *table_virtuelle_\\(1)_constructor;
 
-    sur_call_or_construct = \\(1)_call_or_construct
+    sur_call_or_construct = \\(1)_call_or_construct;
 }
 
 crée_\\(1)_constructor :: fonc (realm: *Realm, function_prototype: *FunctionPrototype, prototype: *Object) -> *\\(0)Constructor
 {
-    assert(prototype == realm.intrinsics.\\(1)_prototype)
-    tas_de_mémoire := realm.donne_tas_de_mémoire()
-    résultat := tas_de_mémoire.alloue(\\(0)Constructor)
-    create_builtin_function(résultat, 1, STR_\\(0), realm, function_prototype)
+    assert(prototype == realm.intrinsics.\\(1)_prototype);
+    tas_de_mémoire := realm.donne_tas_de_mémoire();
+    résultat := tas_de_mémoire.alloue(\\(0)Constructor);
+    create_builtin_function(résultat, 1, STR_\\(0), realm, function_prototype);
 
-    résultat.ajoute_propriété(STR_prototype, Valeur(Object = prototype), DrapeauxPropriété.zéro)
+    résultat.ajoute_propriété(STR_prototype, Valeur(Object = prototype), DrapeauxPropriété.zéro);
 
-    prototype.ajoute_propriété(STR_constructor, Valeur(Object = résultat), DrapeauxPropriété.zéro)
+    prototype.ajoute_propriété(STR_constructor, Valeur(Object = résultat), DrapeauxPropriété.zéro);
 
-    retourne résultat
+    retourne résultat;
 }
 
 #portée_fichier
 
-table_virtuelle_\\(1)_constructor := TableVirtuelleBuiltinFunction(classe = \\(0)Constructor)
+table_virtuelle_\\(1)_constructor := TableVirtuelleBuiltinFunction(classe = \\(0)Constructor);
 
 crée_\\(1)_instance :: fonc (realm: *Realm) -> *Object
 {
-    retourne realm.donne_tas_de_mémoire().alloue(\\(0))
+    retourne realm.donne_tas_de_mémoire().alloue(\\(0));
 }
 
 \\(1)_call_or_construct :: fonc (params: *ParamètresCallOrConstruct) -> Valeur
 {
-    realm := params.interpréteuse.donne_realm()
-    retourne error_constructor_sur_call_or_construct(params, realm.intrinsics.\\(1)_prototype, crée_\\(1)_instance)
+    realm := params.interpréteuse.donne_realm();
+    retourne error_constructor_sur_call_or_construct(params, realm.intrinsics.\\(1)_prototype, crée_\\(1)_instance);
 }
 »;
     

@@ -77,7 +77,7 @@ applique_zoom :: fonc (empl caméra: *Caméra2D, delta: r32, où_x: r32, où_y: 
     }
     sinon {
         Constantes(r32).PHI_INV;
-    }
+    };
 
     /* Zoom vers la souris. */
     vieux_zoom := caméra.zoom;
