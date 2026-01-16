@@ -248,7 +248,7 @@ valide_lien_vers_section :: fonc (fichier: *FichierELF, section: *Elf64_Shdr, in
 {
     assert(rubrique != "");
 
-    valeur_rubrique: Elf64_Word 
+    valeur_rubrique: Elf64_Word;
     si rubrique == "sh_link" {
         valeur_rubrique = section.sh_link;
     }
@@ -271,7 +271,7 @@ valide_lien_vers_section :: fonc (fichier: *FichierELF, section: *Elf64_Shdr, in
 {
     assert(rubrique != "");
 
-    valeur_rubrique: Elf64_Word 
+    valeur_rubrique: Elf64_Word;
     si rubrique == "sh_link" {
         valeur_rubrique = section.sh_link;
     }

@@ -235,7 +235,7 @@ donne_fichiers_du_dossier :: fonc (dossier: chaine, récursif := faux) -> [..]ch
 {
     résultat: [..]chaine;
 
-    visite :: fonc (info: InfoVisiteFichier, fichiers: *[..]chaine) -> DécisionVisiteFichier;
+    visite :: fonc (info: InfoVisiteFichier, fichiers: *[..]chaine) -> DécisionVisiteFichier
     {
         saufsi info.est_dossier {
             tableau_ajoute(fichiers, copie_chaine(info.chemin));

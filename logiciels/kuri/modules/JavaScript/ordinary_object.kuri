@@ -263,7 +263,7 @@ validate_and_apply_property_descriptor :: fonc (object: *Object, property_key: P
             }
             sinon {
                 current.configurable.Quelque;
-            }
+            };
 
             // ii. If Desc has a [[Enumerable]] field, let enumerable be Desc.[[Enumerable]];
             //     else let enumerable be current.[[Enumerable]].
@@ -272,7 +272,7 @@ validate_and_apply_property_descriptor :: fonc (object: *Object, property_key: P
             }
             sinon {
                 current.enumerable.Quelque;
-            }
+            };
 
             // iii. Replace the property named P of object O with an accessor property whose [[Configurable]]
             //      and [[Enumerable]] attributes are set to configurable and enumerable, respectively,
@@ -298,7 +298,7 @@ validate_and_apply_property_descriptor :: fonc (object: *Object, property_key: P
             }
             sinon {
                 current.configurable.Quelque;
-            }
+            };
 
             // ii. If Desc has a [[Enumerable]] field, let enumerable be Desc.[[Enumerable]];
             //     else let enumerable be current.[[Enumerable]].
@@ -307,7 +307,7 @@ validate_and_apply_property_descriptor :: fonc (object: *Object, property_key: P
             }
             sinon {
                 current.enumerable.Quelque;
-            }
+            };
 
             // iii. Replace the property named P of object O with a data property whose [[Configurable]]
             //      and [[Enumerable]] attributes are set to configurable and enumerable, respectively,

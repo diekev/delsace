@@ -5,7 +5,7 @@
 
 principale :: fonc ()
 {
-    fonction1 :: fonc () -> z32;
+    fonction1 :: fonc () -> z32
     {
         Struct :: struct {
             x: z32;
@@ -14,7 +14,7 @@ principale :: fonc ()
         exit(s.x);
     }
 
-    fonction2 :: fonc () -> z32;
+    fonction2 :: fonc () -> z32
     {
         Struct :: struct {
             x: z32;

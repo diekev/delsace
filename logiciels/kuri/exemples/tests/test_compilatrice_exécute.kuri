@@ -8,12 +8,12 @@ principale :: fonc ()
 #exécute {
     imprimeln("Avant compilatrice_exécute");
 
-    texte := "imprimeln(\"Bonjour depuis compilatrice_exécute\")";
+    texte := "imprimeln(\"Bonjour depuis compilatrice_exécute\");";
     compilatrice_exécute(texte, nul);
 
     imprimeln("Après compilatrice_exécute");
 
-    texte = "retourne 147";
+    texte = "retourne 147;";
     valeur_retournée: z32;
     compilatrice_exécute(texte, *valeur_retournée);
 
@@ -21,11 +21,11 @@ principale :: fonc ()
 
     chns: [..]chaine;
     diffère déloge(chns);
-    tableau_ajoute(*chns, "résultat: [..]z32\n");
-    tableau_ajoute(*chns, "tableau_ajoute(*résultat, 147)\n");
-    tableau_ajoute(*chns, "tableau_ajoute(*résultat, 258)\n");
-    tableau_ajoute(*chns, "tableau_ajoute(*résultat, 789)\n");
-    tableau_ajoute(*chns, "retourne résultat\n");
+    tableau_ajoute(*chns, "résultat: [..]z32;\n");
+    tableau_ajoute(*chns, "tableau_ajoute(*résultat, 147);\n");
+    tableau_ajoute(*chns, "tableau_ajoute(*résultat, 258);\n");
+    tableau_ajoute(*chns, "tableau_ajoute(*résultat, 789);\n");
+    tableau_ajoute(*chns, "retourne résultat;\n");
 
     texte = enchaine(...chns);
     diffère déloge(texte);

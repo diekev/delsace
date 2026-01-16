@@ -76,7 +76,7 @@ rends_unique :: fonc (tableau: &TableauPartagé($T, $C, $D), copie: fonc (élém
 
     si copie {
         pour & tableau.valeurs {
-            it = copie(*it) 
+            it = copie(*it);
         }
     }
 

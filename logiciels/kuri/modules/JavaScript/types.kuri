@@ -760,8 +760,8 @@ make_private_reference :: fonc (interpréteuse: *Interpréteuse, base_value: Val
 
 PropertyDescriptor :: struct {
     value: Optionnel(Valeur);
-    get: Optionnel(*Object) // ou undefined
-    set: Optionnel(*Object) // ou undefined
+    get: Optionnel(*Object); // ou undefined
+    set: Optionnel(*Object); // ou undefined
     writable: Optionnel(bool);
     configurable: Optionnel(bool);
     enumerable: Optionnel(bool);
@@ -969,7 +969,7 @@ ClassFieldDefinition :: struct {
  * \{ */
 
 PrivateName :: struct {
-    description: ECMAString // ou StringPrimitive?
+    description: ECMAString; // ou StringPrimitive?
 }
 
 opérateur == :: (a: PrivateName, b: PrivateName) -> bool
