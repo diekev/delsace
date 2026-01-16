@@ -579,24 +579,6 @@ distance_levenshtein :: fonc (chn1: chaine, chn2: chaine) -> z64
     retourne coûts[n];
 }
 
-append :: fonc (vers: *chaine, chn: chaine) -> rien
-{
-    si chn.taille == 0 {
-        retourne;
-    }
-
-    tmp := mémoire(vers);
-
-    taille := tmp.taille;
-    reloge_chaine(tmp, tmp.taille + chn.taille);
-
-    pour idx_vers, idx_chn dans taille ... tmp.taille - 1 {
-        tmp[idx_vers] = chn[idx_chn];
-    }
-
-    mémoire(vers) = tmp;
-}
-
 trouve_motif_dans_chaine :: fonc (chn: chaine, motif: chaine, indice_début : z64 = 0) -> z64
 {
     résultat : z64 = -1;
