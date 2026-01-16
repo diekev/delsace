@@ -1438,7 +1438,7 @@ exécute_code_binaire :: fonc (base: *Interpréteuse, noeud: *NoeudSyntaxique) -
                     assert(old_value.est_big_int());
                     // b. Return BigInt::unaryMinus(oldValue).
                     bigint_unary_minus(old_value);
-                }
+                };
                 interprète.définis_accumulateur(résultat);
             }
             InstructionUnaryPlus {

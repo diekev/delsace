@@ -77,9 +77,9 @@ importe SysFichier;
     }
 
     sources_extra := «
-        charge "interface"
-        importe Math
-        #dépendance_bibliothèque libcurve_fit_nd libcmath
+        charge "interface";
+        importe Math;
+        #dépendance_bibliothèque libcurve_fit_nd libcmath;
     »;
 
     espace := compilatrice_espace_courant();

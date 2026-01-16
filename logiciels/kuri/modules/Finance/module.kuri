@@ -116,9 +116,9 @@ test_module_finance :: fonc ()
 
     imprime("mensualité : %\n", m);
 
-    imprime("%\n", mensualité_depuis_capital(16000.0, 0.0425, 60)) // 295.42
-    imprime("%\n", mensualité_depuis_capital(3400.0, 0.0425, 60)) // 62.78
+    imprime("%\n", mensualité_depuis_capital(16000.0, 0.0425, 60)); // 295.42
+    imprime("%\n", mensualité_depuis_capital(3400.0, 0.0425, 60)); // 62.78
 
-    imprime("%\n", capital_depuis_mensualité(295.42, 0.0425, 60)) // 16000
-    imprime("%\n", capital_depuis_mensualité(62.78, 0.0425, 60)) // 3400
+    imprime("%\n", capital_depuis_mensualité(295.42, 0.0425, 60)); // 16000
+    imprime("%\n", capital_depuis_mensualité(62.78, 0.0425, 60)); // 3400
 }

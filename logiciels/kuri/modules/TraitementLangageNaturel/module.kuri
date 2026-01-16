@@ -136,13 +136,13 @@ donne_étiquette_universel :: fonc (étiquette: chaine) -> chaine
     Déterminant;
     ThereExistentiel;
     MotÉtranger;
-    ConjonctionDeSubordination // Préposition
+    ConjonctionDeSubordination; // Préposition
     Adjectif;
     AdjectifComparatif;
     AdjectifSuperlatif;
     MarqueurItemListe;
     Modal;
-    Nom // singulier ou masse
+    Nom; // singulier ou masse
     NomPluriel;
     NomPropre;
     NomProprePluriel;
@@ -155,18 +155,18 @@ donne_étiquette_universel :: fonc (étiquette: chaine) -> chaine
     AdverbeSuperlatif;
     Particule;
     Symbole;
-    To // "vers", "pour"
+    To; // "vers", "pour"
     Interjection;
     VerbeFormeBasique;
     VerbeConjuguéPassé;
-    VerbeParticipePrésent // gérondif
+    VerbeParticipePrésent; // gérondif
     VerbeParticipePassé;
     VerbeSingulierPrésent;
     VerbeSingulierPrésentTiercePersonne;
-    DéterminantWh // Who, what, where, when, whose, etc.
-    PronomWh // Who, what, where, when, whose, etc.
-    PronomWhPossessif // Who, what, where, when, whose, etc.
-    PronomWhActif // Who, what, where, when, whose, etc.
+    DéterminantWh; // Who, what, where, when, whose, etc.
+    PronomWh; // Who, what, where, when, whose, etc.
+    PronomWhPossessif; // Who, what, where, when, whose, etc.
+    PronomWhActif; // Who, what, where, when, whose, etc.
 }
 
 __table_conversion_chaine_étiquette_penn_treebank: [ÉtiquettePennTreebank.nombre_éléments]chaine;

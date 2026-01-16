@@ -91,7 +91,7 @@ crée_table :: fonc (exécutrice: &Exécutrice, cm: *CoulisseMémoire, inst: *In
             }
             MOT_CLÉ_TEXTE {
                 colonne.genre = TypeColonne.CHAINE;
-                colonne.taille = 4 + 251 // 4 pour la taille, 251 pour les caractères
+                colonne.taille = 4 + 251; // 4 pour la taille, 251 pour les caractères
                 colonne.décalage = décalage;
             }
             sinon {
@@ -300,7 +300,7 @@ sélectionne_tables :: fonc (cm: *CoulisseMémoire) -> *Table
     colonne: Colonne;
     colonne.nom = "Tables";
     colonne.genre = TypeColonne.CHAINE;
-    colonne.taille = 255 // À FAIRE
+    colonne.taille = 255; // À FAIRE
 
     colonnes_résultat: [..]Colonne;
     tableau_ajoute(*colonnes_résultat, colonne);

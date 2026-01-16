@@ -270,7 +270,7 @@ pgdc :: fonc (u: n64, v: n64) -> n64
             u = t;
         }
 
-        v = v - u // Here v >= u.
+        v = v - u; // Here v >= u.
     } tantque v != 0;
 
     // restore common factors of 2 */
