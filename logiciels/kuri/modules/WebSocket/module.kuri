@@ -576,7 +576,7 @@ Frame :: struct {
 StatusCode :: énum n16 {
     AucunPrécisé;
     Invalide;
-    IndéfiniParLeStandard // >5000
+    IndéfiniParLeStandard; // >5000
     Normal;
     DépartPair;
     ErreurProtocole;
@@ -711,7 +711,7 @@ donne_code_réponse_pour_status_code :: fonc (status_code: StatusCode) -> n16
         }
         SpécifiquePourApplication,
         UsagePrivé {
-            retourne 1000 // ou écho
+            retourne 1000; // ou écho
         }
     }
 
@@ -1019,6 +1019,6 @@ crée_valeur_sec_websocket_key :: fonc () -> [24]octet
 #test {
     // tiré de l'exemple donné dans la note de https://tools.ietf.org/html/rfc6455#page-24
     rés := calcul_clé_serrage_de_main("dGhlIHNhbXBsZSBub25jZQ==");
-    diffère { déloge(rés) }
+    diffère { déloge(rés); }
     compilatrice_vérifie_égalité(rés, "s3pPLMBiTxaQ9kYGzzhZRbK+xOo=");
 }

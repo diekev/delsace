@@ -91,7 +91,7 @@ principale :: fonc ()
     imprime("Requête envoyée : %\n", requête);
 
     réponse := lance_requête(uri, requête);
-    diffère { déloge(réponse) déloge(requête) }
+    diffère { déloge(réponse); déloge(requête); }
 
     imprime("Réponse :\n%\n", réponse);
 }

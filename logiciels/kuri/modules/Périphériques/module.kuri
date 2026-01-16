@@ -89,8 +89,8 @@ ModificateurClavier :: énum_drapeau {
 }
 
 ÉtatSouris :: struct {
-    quand: z64 // le temps où l'état a été enregistré
-    où: Point2D(z32) // là où la souris se trouve
+    quand: z64; // le temps où l'état a été enregistré
+    où: Point2D(z32); // là où la souris se trouve
     modificateur: ModificateurClavier;
 }
 

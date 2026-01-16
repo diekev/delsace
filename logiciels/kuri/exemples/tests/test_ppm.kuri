@@ -92,7 +92,7 @@ génére_image_noire :: fonc () -> Image
         }
         sinon {
             '0';
-        }
+        };
     }
 
     imprime_dans_enchaineuse(*enchaineuse, "%", tampon);
@@ -110,8 +110,8 @@ génére_image_noire :: fonc () -> Image
     entete: chaine;
 
     discr image.channels {
-        1 { entete = "P2" }
-        3 { entete = "P3" }
+        1 { entete = "P2"; }
+        3 { entete = "P3"; }
         sinon {
             retourne;
         }

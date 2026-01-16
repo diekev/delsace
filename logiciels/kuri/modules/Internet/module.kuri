@@ -107,7 +107,7 @@ parse_ipv6 :: fonc (chn: chaine) -> AdresseIPv6 | ErreurParsageIP
 
     // il ne peut y avoir qu'un seul :: par chaine
     morceaux := divise(chn, "::");
-    diffère { déloge(morceaux) }
+    diffère { déloge(morceaux); }
 
     si morceaux.taille > 2 {
         retourne ErreurParsageIP.NombreÉlémentsIncorrect;
@@ -116,7 +116,7 @@ parse_ipv6 :: fonc (chn: chaine) -> AdresseIPv6 | ErreurParsageIP
     possède_raccourci := morceaux.taille == 2;
 
     morceaux_nombre := divise(morceaux[0], ':');
-    diffère { déloge(morceaux_nombre) }
+    diffère { déloge(morceaux_nombre); }
 
     possède_ipv4 := faux;
     ipv4 : AdresseIPv4 = ---;
@@ -392,7 +392,7 @@ adresse_ipv4_depuis_entier_simple :: fonc (valeur: n32) -> AdresseIPv4
 parse_ipv4 :: fonc (chn: chaine) -> AdresseIPv4 | ErreurParsageIP
 {
     morceaux := divise(chn, '.');
-    diffère { déloge(morceaux) }
+    diffère { déloge(morceaux); }
 
     // il est possible d'obtenir des chaines contenant l'adresse au format décimale :
     // x * 256 ^ 3 + y * 256 ^ 2 + z * 256 + w
@@ -437,7 +437,7 @@ formatte_ipv4 :: fonc (enchaineuse: *Enchaineuse, ptr_ipv4: *AdresseIPv4)
     }
 
     ipv4 := mémoire(ptr_ipv4);
-    tampon : Tamponet // 15 valeurs maximales
+    tampon : Tamponet; // 15 valeurs maximales
 
     pour ipv4 {
         d := it;

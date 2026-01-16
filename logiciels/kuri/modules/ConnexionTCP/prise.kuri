@@ -22,8 +22,8 @@ Prise :: struct {
     info_données_serveuse_: *InfoType;
 
     /* délais */
-    délai: z32 // secondes
-    horodotage_délai: z32 // quand le délai fut mis en place
+    délai: z32; // secondes
+    horodotage_délai: z32; // quand le délai fut mis en place
 
     est_ssl_ : bool = faux;
 }

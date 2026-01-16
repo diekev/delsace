@@ -510,7 +510,7 @@ TableAbbrévPourUnité :: struct {
 AttributAbbréviation :: struct {
     nom: n64;
     forme: n64;
-    valeur: z64 // NOTE : si forme == DW_FORM_implicit_const
+    valeur: z64; // NOTE : si forme == DW_FORM_implicit_const
 }
 
 Abbréviation :: struct {
@@ -755,7 +755,7 @@ TableRNGListPourUnité :: struct {
 }
 
 EntréeRangeList :: struct {
-    code: n8 // DW_RLE_*
+    code: n8; // DW_RLE_*
     valeur1: n64;
     valeur2: n64;
 }
@@ -892,7 +892,7 @@ TableLocListPourUnité :: struct {
 }
 
 EntréeLocList :: struct {
-    code: n8 // DW_LLE_*
+    code: n8; // DW_LLE_*
     valeur1: n64;
     valeur2: n64;
     description: []octet;
@@ -1074,8 +1074,8 @@ donne_file_name :: fonc (table: *TableDebugLineUnité, indice: n64) -> chaine
 }
 
 FileEntryFormat :: struct {
-    content_type: n64 // DW_LNCT_*
-    form: n64 // DW_FORM_*
+    content_type: n64; // DW_LNCT_*
+    form: n64; // DW_FORM_*
 }
 
 FileEntry :: struct {

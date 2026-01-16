@@ -303,7 +303,7 @@ rvb_vers_tsl :: fonc (couleur: CouleurRVBA) -> CouleurTSL
         }
         sinon {
             d / (cmax + cmin);
-        }
+        };
 
         si cmax == r {
             t = (v - b) / d;

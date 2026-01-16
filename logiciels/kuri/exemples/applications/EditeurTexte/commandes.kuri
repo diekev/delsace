@@ -29,10 +29,10 @@ donne_commande_pour_nom :: fonc (nom: chaine) -> fonc (anonyme: *Anonyme)
 
         nom_commande := it.texte.avance("commande_".taille);
 
-        ajoute_au_tampon(*enchaineuse, "    si nom == \"", nom_commande, "\" { retourne ", it.texte, " }\n");
+        ajoute_au_tampon(*enchaineuse, "    si nom == \"", nom_commande, "\" { retourne ", it.texte, "; }\n");
     }
 
-    ajoute_au_tampon(*enchaineuse, "    retourne nul\n");
+    ajoute_au_tampon(*enchaineuse, "    retourne nul;\n");
 
     retourne chaine_depuis_enchaineuse(*enchaineuse);
 }
