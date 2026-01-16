@@ -133,8 +133,6 @@ struct Syntaxeuse : BaseSyntaxeuse {
 
     void requiers_typage(NoeudExpression *noeud);
 
-    bool ignore_point_virgule_implicite();
-
     void analyse_directive_déclaration_variable(BaseDéclarationVariable *déclaration);
     void analyse_directive_symbole_externe(NoeudDéclarationSymbole *déclaration_symbole,
                                            NoeudDirectiveFonction *directive);

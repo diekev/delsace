@@ -820,7 +820,7 @@ FluxSortie :: struct {
 
 crée_flux_sortie :: fonc (enchaineuse: *Enchaineuse) -> FluxSortie
 {
-    ajoute :: fonc (flux_sortie: &FluxSortie, point_de_code: n32);
+    ajoute :: fonc (flux_sortie: &FluxSortie, point_de_code: n32)
     {
         enchaineuse_ := flux_sortie.données comme *Enchaineuse;
 

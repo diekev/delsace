@@ -31,14 +31,14 @@ test_modification_paramètre_empl :: fonc ()
         z := 0;
     }
 
-    modifie_vecteur :: fonc (empl v: *Vecteur);
+    modifie_vecteur :: fonc (empl v: *Vecteur)
     {
         x = 1;
         y = 2;
         z = 3;
     }
 
-    ne_modifie_pas_vecteur :: fonc (empl v: Vecteur);
+    ne_modifie_pas_vecteur :: fonc (empl v: Vecteur)
     {
         x = 4;
         y = 5;
@@ -73,14 +73,14 @@ test_modification_paramètre_empl_indirection :: fonc ()
         empl base: Vecteur;
     }
 
-    modifie_point :: fonc (empl p: *Point);
+    modifie_point :: fonc (empl p: *Point)
     {
         x = 1;
         y = 2;
         z = 3;
     }
 
-    ne_modifie_pas_point :: fonc (empl p: Point);
+    ne_modifie_pas_point :: fonc (empl p: Point)
     {
         x = 4;
         y = 5;
@@ -192,7 +192,7 @@ test_initialisation_via_exécute :: fonc ()
         x := 123;
     }
 
-    construis_base :: fonc () -> Base;
+    construis_base :: fonc () -> Base
     {
         retourne Base(456);
     }
@@ -220,7 +220,7 @@ test_initialisation_via_exécute_indirection :: fonc ()
         empl base: Base;
     }
 
-    construis_base :: fonc () -> Base2;
+    construis_base :: fonc () -> Base2
     {
         retourne Base2(456);
     }
@@ -253,23 +253,23 @@ test_transtypage_vers_bases_multiple :: fonc ()
         empl base2: Base2;
     }
 
-    modifie_rubrique_base1 :: fonc (base: *Base1);
+    modifie_rubrique_base1 :: fonc (base: *Base1)
     {
         base.rubrique1 = "rubrique de base1";
     }
 
-    modifie_rubrique_base2 :: fonc (base: *Base2);
+    modifie_rubrique_base2 :: fonc (base: *Base2)
     {
         base.rubrique2 = "rubrique de base2";
     }
 
-    modifie_rubrique_base1_dérivé :: fonc (base: *Base1);
+    modifie_rubrique_base1_dérivé :: fonc (base: *Base1)
     {
         dérivé := base comme *Struct;
         dérivé.base1.rubrique1 = "rubrique de base1";
     }
 
-    modifie_rubrique_base2_dérivé :: fonc (base: *Base2);
+    modifie_rubrique_base2_dérivé :: fonc (base: *Base2)
     {
         dérivé := base comme *Struct;
         dérivé.base2.rubrique2 = "rubrique de base2";
@@ -323,23 +323,23 @@ test_transtypage_vers_bases_multiple_avec_indirection :: fonc ()
         empl base3: Base3;
     }
 
-    modifie_rubrique_base1 :: fonc (base: *Base1);
+    modifie_rubrique_base1 :: fonc (base: *Base1)
     {
         base.rubrique1 = "rubrique de base1";
     }
 
-    modifie_rubrique_base2 :: fonc (base: *Base2);
+    modifie_rubrique_base2 :: fonc (base: *Base2)
     {
         base.rubrique2 = "rubrique de base2";
     }
 
-    modifie_rubrique_base1_dérivé :: fonc (base: *Base1);
+    modifie_rubrique_base1_dérivé :: fonc (base: *Base1)
     {
         dérivé := base comme *Struct;
         dérivé.base1.rubrique1 = "rubrique de base1";
     }
 
-    modifie_rubrique_base2_dérivé :: fonc (base: *Base2);
+    modifie_rubrique_base2_dérivé :: fonc (base: *Base2)
     {
         dérivé := base comme *Struct;
         dérivé.base2.rubrique2 = "rubrique de base2";
@@ -385,23 +385,23 @@ test_transtypage_référence_vers_bases_multiple :: fonc ()
         empl base2: Base2;
     }
 
-    modifie_rubrique_base1 :: fonc (base: &Base1);
+    modifie_rubrique_base1 :: fonc (base: &Base1)
     {
         base.rubrique1 = "rubrique de base1";
     }
 
-    modifie_rubrique_base2 :: fonc (base: &Base2);
+    modifie_rubrique_base2 :: fonc (base: &Base2)
     {
         base.rubrique2 = "rubrique de base2";
     }
 
-    modifie_rubrique_base1_dérivé :: fonc (base: &Base1);
+    modifie_rubrique_base1_dérivé :: fonc (base: &Base1)
     {
         dérivé : &Struct = base comme &Struct;
         dérivé.base1.rubrique1 = "rubrique de base1";
     }
 
-    modifie_rubrique_base2_dérivé :: fonc (base: &Base2);
+    modifie_rubrique_base2_dérivé :: fonc (base: &Base2)
     {
         dérivé : &Struct = base comme &Struct;
         dérivé.base2.rubrique2 = "rubrique de base2";
@@ -466,23 +466,23 @@ test_transtypage_référence_vers_bases_multiple_avec_indirection :: fonc ()
         empl base3: Base3;
     }
 
-    modifie_rubrique_base1 :: fonc (base: &Base1);
+    modifie_rubrique_base1 :: fonc (base: &Base1)
     {
         base.rubrique1 = "rubrique de base1";
     }
 
-    modifie_rubrique_base2 :: fonc (base: &Base2);
+    modifie_rubrique_base2 :: fonc (base: &Base2)
     {
         base.rubrique2 = "rubrique de base2";
     }
 
-    modifie_rubrique_base1_dérivé :: fonc (base: &Base1);
+    modifie_rubrique_base1_dérivé :: fonc (base: &Base1)
     {
         dérivé : &Struct = base comme &Struct;
         dérivé.base1.rubrique1 = "rubrique de base1";
     }
 
-    modifie_rubrique_base2_dérivé :: fonc (base: &Base2);
+    modifie_rubrique_base2_dérivé :: fonc (base: &Base2)
     {
         dérivé : &Struct = base comme &Struct;
         dérivé.base2.rubrique2 = "rubrique de base2";

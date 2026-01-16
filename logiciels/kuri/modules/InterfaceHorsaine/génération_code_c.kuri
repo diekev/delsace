@@ -701,7 +701,7 @@ définis_classe_cpp :: fonc (enchaineuse: *Enchaineuse, type: *TypeIPA, généra
     }
     sinon {
         "";
-    }
+    };
 
     saufsi type.type_base {
         /* mutable pour éviter d'avoir des const_cast<> dans les fonctions d'accès de rubriques. */
@@ -959,7 +959,7 @@ génère_code_fonction_cpp :: fonc (enchaineuse: *Enchaineuse, système: *Systè
     }
     sinon {
         "";
-    }
+    };
 
     ajoute_au_tampon(enchaineuse, indentation, "inline ");
 

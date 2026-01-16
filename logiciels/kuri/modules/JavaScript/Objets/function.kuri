@@ -138,7 +138,7 @@ ECMAScriptFunction :: struct {
     strict := faux;
     is_class_constructor := faux;
     realm: *Realm;
-    script_or_module: *Script // ScriptOrModule
+    script_or_module: *Script; // ScriptOrModule
     constructor_kind: ConstructorKind;
 
     fields: [..]ClassFieldDefinition;
@@ -881,7 +881,7 @@ function_declaration_instantiation :: fonc (interpréteuse: *Interpréteuse, fun
         }
         sinon {
             arguments_list[indice_it];
-        }
+        };
 
         env.initialize_binding(it, valeur);
     }

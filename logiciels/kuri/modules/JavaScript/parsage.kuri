@@ -822,7 +822,7 @@ parse_for_of_in_statement :: fonc (parseuse: *Parseuse, type_for: TypeFor) -> *S
     }
     sinon {
         GenreLexème.In;
-    }
+    };
 
     left := parseuse.parse_expression(ParamètresParsageExpression(lexème_final = lexème_final));
 
@@ -1921,7 +1921,7 @@ parse_expression_secondaire :: fonc (parseuse: *Parseuse, gauche: *Expression, p
         MoinsMoins {
             parseuse.consomme();
 
-            operation := si lexème.genre == GenreLexème.PlusPlus { UpdateOperation.PostfixIncrement } sinon { UpdateOperation.PostfixDecrement }
+            operation := si lexème.genre == GenreLexème.PlusPlus { UpdateOperation.PostfixIncrement; } sinon { UpdateOperation.PostfixDecrement; };
             update := crée_update_expression(parseuse, lexème, gauche, operation);
 
             /* Les expressions de style var o = {x:i++,y:2} doivent s'arrêter à la virgule (qui est une expression secondaire). */
@@ -2249,7 +2249,7 @@ rapporte_erreur :: fonc (parseuse: *Parseuse, message: chaine)
     }
     sinon {
         parseuse.lexème_courant();
-    }
+    };
 
     rapporte_erreur(parseuse, lexème, message);
 }
