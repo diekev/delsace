@@ -704,7 +704,7 @@ ComputedPropertyName :: struct {
     empl base: Expression;
     type = #type_de_cette_structure;
 
-    expression: *Expression    
+    expression: *Expression; 
 }
 
 crée_computed_property_name :: fonc (parseuse: *Parseuse, lexème: *Lexème, expression: *Expression) -> *ComputedPropertyName
@@ -2105,22 +2105,22 @@ argument_list_evaluation :: fonc (interpréteuse: *InterprèteArbre, arguments: 
  * \{ */
 
 AssignmentOperation :: énum {
-    Assigne /* = */
-    Ajoute /* += */
-    Soustrait /* -= */
-    Exponentiation /* **= */
-    Multiplie /* *= */
-    Divise /* /= */
-    Modulo /* %= */
-    DécalageGauche /* <<= */
-    DécalageDroite /* >>= */
-    DécalageDroiteNaturel /* >>>= */
-    EtBinaire /* &= */
-    OuBinaire /* |= */
-    OuExBinaire /* ^= */
-    Coalesce /* ??= */
-    OuLogique /* ||= */
-    EtLogique /* &&=*/
+    Assigne; /* = */
+    Ajoute; /* += */
+    Soustrait; /* -= */
+    Exponentiation; /* **= */
+    Multiplie; /* *= */
+    Divise; /* /= */
+    Modulo; /* %= */
+    DécalageGauche; /* <<= */
+    DécalageDroite; /* >>= */
+    DécalageDroiteNaturel; /* >>>= */
+    EtBinaire; /* &= */
+    OuBinaire; /* |= */
+    OuExBinaire; /* ^= */
+    Coalesce; /* ??= */
+    OuLogique; /* ||= */
+    EtLogique; /* &&=*/
 }
 
 AssignmentExpression :: struct {
@@ -4657,7 +4657,7 @@ CaseClause :: struct {
     sur_exécution = sur_exécution_case_clause;
 
     test: *Expression;
-    consequent: *Statement // StatementList
+    consequent: *Statement; // StatementList
 }
 
 crée_case_clause :: fonc (parseuse: *Parseuse, lexème: *Lexème, test: *Expression, consequent: *Statement) -> *CaseClause
@@ -4999,7 +4999,7 @@ define_method :: fonc (interpréteuse: *InterprèteArbre, method_definition: *Ob
     sinon {
         // a. Let prototype be %Function.prototype%.
         realm.intrinsics.function_prototype;
-    }
+    };
 
     // 6. Let sourceText be the source text matched by MethodDefinition.
     source_text := donne_texte_source(method_definition);
@@ -6712,13 +6712,13 @@ imprime_arbre :: fonc (noeud: *NoeudSyntaxique)
 
 crée_visiteuse_pour_destruction :: fonc (noeud: *NoeudSyntaxique) -> VisiteuseNoeud
 {
-    rappel_pour_noeud :: fonc (visiteuse: *VisiteuseNoeud @inutilisée, noeud: *NoeudSyntaxique, info: *InfoTypeStructure) -> VisiteEnfants;
+    rappel_pour_noeud :: fonc (visiteuse: *VisiteuseNoeud @inutilisée, noeud: *NoeudSyntaxique, info: *InfoTypeStructure) -> VisiteEnfants
     {
         déloge_mémoire(info.taille_en_octet comme z64, noeud, info, #position_code_source);
         retourne VisiteEnfants.Oui;
     }
 
-    rappel_pour_tableau :: fonc (visiteuse: *VisiteuseNoeud @inutilisée, tableau: [..]*NoeudSyntaxique);
+    rappel_pour_tableau :: fonc (visiteuse: *VisiteuseNoeud @inutilisée, tableau: [..]*NoeudSyntaxique)
     {
         déloge(tableau);
     }
@@ -6802,7 +6802,7 @@ VisteuseDéclarationVar :: struct {
 
 crée_visiteuse_pour_déclarations_var :: fonc (résultat: *VisteuseDéclarationVar, noeud: *NoeudSyntaxique)
 {
-    rappel_pour_noeud :: fonc (base: *VisiteuseNoeud, noeud: *NoeudSyntaxique, info: *InfoTypeStructure @inutilisée) -> VisiteEnfants;
+    rappel_pour_noeud :: fonc (base: *VisiteuseNoeud, noeud: *NoeudSyntaxique, info: *InfoTypeStructure @inutilisée) -> VisiteEnfants
     {
         visiteuse := base comme *VisteuseDéclarationVar;
 
@@ -6882,7 +6882,7 @@ VisteuseDéclarationsLexicales :: struct {
 
 crée_visiteuse_pour_déclarations_lexicales :: fonc (résultat: *VisteuseDéclarationsLexicales, noeud: *NoeudSyntaxique)
 {
-    rappel_pour_noeud :: fonc (base: *VisiteuseNoeud, noeud: *NoeudSyntaxique, info: *InfoTypeStructure @inutilisée) -> VisiteEnfants;
+    rappel_pour_noeud :: fonc (base: *VisiteuseNoeud, noeud: *NoeudSyntaxique, info: *InfoTypeStructure @inutilisée) -> VisiteEnfants
     {
         visiteuse := base comme *VisteuseDéclarationsLexicales;
 

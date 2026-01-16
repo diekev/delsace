@@ -6,16 +6,16 @@
 // À FAIRE : sécurise les données du cookie (voir Flask)
 // IPA : sécurise_cookie, encode_valeur_cookie, décode_valeur_cookie
 Cookie :: struct {
-    nom: chaine // US-ASCII, sauf contrôle, espace, tabulation, ( ) < > @ , : ; \ " / [ ] ? = { }
-    valeur: chaine // US-ASCII sauf les caractères de contrôle, espace, et " , ; \
+    nom: chaine; // US-ASCII, sauf contrôle, espace, tabulation, ( ) < > @ , : ; \ " / [ ] ? = { }
+    valeur: chaine; // US-ASCII sauf les caractères de contrôle, espace, et " , ; \
 
-    expiration: chaine // date <day-name>, <jour> <mois> <année> <heure>:<minute>:<seconde> GMT
-    age_maximum: z32 // non-zéro, en secondes
-    domaine: chaine // domaine où le cookie sera envoyé
+    expiration: chaine; // date <day-name>, <jour> <mois> <année> <heure>:<minute>:<seconde> GMT
+    age_maximum: z32; // non-zéro, en secondes
+    domaine: chaine; // domaine où le cookie sera envoyé
     chemin: chaine;
 
-    est_sécurisé: bool  // n'envoie que si https
-    http_seulement: bool // empêche JavaScript d'accéder au cookie
+    est_sécurisé: bool;  // n'envoie que si https
+    http_seulement: bool; // empêche JavaScript d'accéder au cookie
 
     PolitiqueMêmeSite :: énum {
         None;

@@ -677,7 +677,7 @@ lèxe_regex_littérale :: fonc (empl lexeuse: &Lexeuse) -> Lexème
 //     RegularExpressionFirstChar RegularExpressionChars
 lèxe_regular_expression_body :: fonc (lexeuse: &Lexeuse) -> RésultatLexageRegex
 {
-    résultat := lèxe_regular_expression_first_char(lexeuse) 
+    résultat := lèxe_regular_expression_first_char(lexeuse);
     si résultat != RésultatLexageRegex.Oui {
         retourne résultat;
     }
@@ -999,14 +999,14 @@ donne_lexème_suivant :: fonc (lexeuse: &Lexeuse) -> Lexème
                     retourne crée_lexème(lexeuse, GenreLexème.Spread);
                 }
             }
-            ',' { genre_lexème = GenreLexème.Virgule }
-            ';' { genre_lexème = GenreLexème.PointVirgule }
-            '(' { genre_lexème = GenreLexème.ParenthèseOuvrante }
-            ')' { genre_lexème = GenreLexème.ParenthèseFermante }
-            '{' { genre_lexème = GenreLexème.AccoladeOuvrante }
-            '}' { genre_lexème = GenreLexème.AccoladeFermante }
-            '[' { genre_lexème = GenreLexème.CrochetOuvrant }
-            ']' { genre_lexème = GenreLexème.CrochetFermant }
+            ',' { genre_lexème = GenreLexème.Virgule; }
+            ';' { genre_lexème = GenreLexème.PointVirgule; }
+            '(' { genre_lexème = GenreLexème.ParenthèseOuvrante; }
+            ')' { genre_lexème = GenreLexème.ParenthèseFermante; }
+            '{' { genre_lexème = GenreLexème.AccoladeOuvrante; }
+            '}' { genre_lexème = GenreLexème.AccoladeFermante; }
+            '[' { genre_lexème = GenreLexème.CrochetOuvrant; }
+            ']' { genre_lexème = GenreLexème.CrochetFermant; }
             sinon {
                 rapporte_erreur(lexeuse, "Caractère ponctuant inconnu");
             }

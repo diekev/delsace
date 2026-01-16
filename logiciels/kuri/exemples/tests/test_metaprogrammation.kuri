@@ -21,7 +21,7 @@ génère_fonction_principale :: fonc ()
 
     ajoute_au_tampon(*enchaineuse, "principale :: fonc ()\n");
     ajoute_au_tampon(*enchaineuse, "{\n");
-    ajoute_au_tampon(*enchaineuse, "    exit(32)\n");
+    ajoute_au_tampon(*enchaineuse, "    exit(32);\n");
     ajoute_au_tampon(*enchaineuse, "}\n");
 
     chn_principale := chaine_depuis_enchaineuse(*enchaineuse);

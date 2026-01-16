@@ -221,12 +221,12 @@ visite_cellules_vivantes :: fonc (tas_de_mémoire: *TasDeMémoire, racines: []*C
         empl base: VisiteuseCellule;
     }
 
-    sur_a_visité :: fonc (base: *VisiteuseCellule @inutilisée, cellule: *Cellule);
+    sur_a_visité :: fonc (base: *VisiteuseCellule @inutilisée, cellule: *Cellule)
     {
         cellule.marqué = vrai;
     }
 
-    sur_a_déjà_visité :: fonc (base: *VisiteuseCellule @inutilisée, cellule: *Cellule) -> bool;
+    sur_a_déjà_visité :: fonc (base: *VisiteuseCellule @inutilisée, cellule: *Cellule) -> bool
     {
         retourne cellule.marqué;
     }

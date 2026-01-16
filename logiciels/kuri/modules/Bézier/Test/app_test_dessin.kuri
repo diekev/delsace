@@ -69,7 +69,7 @@ principale :: fonc ()
 }
 
 CodeApplication :: struct {
-    greffon: *rien // NOTE : retourné par dlopen
+    greffon: *rien; // NOTE : retourné par dlopen
     info: InfoFichier;
 
     ajourne_application: TYPE_ajourne_application;
