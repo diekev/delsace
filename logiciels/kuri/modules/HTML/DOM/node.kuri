@@ -29,14 +29,14 @@ ELEMENT_NODE : n16 : 1;
 ATTRIBUTE_NODE : n16 : 2;
 TEXT_NODE : n16 : 3;
 CDATA_SECTION_NODE : n16 : 4;
-ENTITY_REFERENCE_NODE : n16 : 5 // legacy
-ENTITY_NODE : n16 : 6 // legacy
+ENTITY_REFERENCE_NODE : n16 : 5; // legacy
+ENTITY_NODE : n16 : 6; // legacy
 PROCESSING_INSTRUCTION_NODE : n16 : 7;
 COMMENT_NODE : n16 : 8;
 DOCUMENT_NODE : n16 : 9;
 DOCUMENT_TYPE_NODE : n16 : 10;
 DOCUMENT_FRAGMENT_NODE : n16 : 11;
-NOTATION_NODE : n16 : 12 // legacy
+NOTATION_NODE : n16 : 12; // legacy
 
 GenreNoeud :: énum n16 {
     Element :: ELEMENT_NODE;
@@ -348,7 +348,7 @@ extrait_texte_noeud :: fonc (noeud: *Node) -> chaine
         texte: ChaineUTF16;
     }
 
-    rappel_pour_extraction_texte :: fonc (noeud_texte: *Text, données: eini);
+    rappel_pour_extraction_texte :: fonc (noeud_texte: *Text, données: eini)
     {
         extractrice := mémoire(données.pointeur comme **ExtractriceTexte);
 
@@ -388,7 +388,7 @@ donne_contenu_texte_enfant :: fonc (noeud: *Node) -> ChaineUTF16
 /* https://dom.spec.whatwg.org/#concept-descendant-text-content */
 donne_contenu_texte_descandants :: fonc (noeud: *Node) -> ChaineUTF16
 {
-    rappel_pour_extraction_texte_descandants :: fonc (noeud: *Node, enchaineuse: &EnchaineuseUTF16) -> DécisionTraversée;
+    rappel_pour_extraction_texte_descandants :: fonc (noeud: *Node, enchaineuse: &EnchaineuseUTF16) -> DécisionTraversée
     {
         si noeud.est_texte() {
             texte := noeud comme *Text;

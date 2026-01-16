@@ -125,11 +125,11 @@ dessine_élément :: fonc (élément: *PanneauArborescence.Élément, peintre: *
 
 crée_panneau_arborescence :: fonc (ctx: *ContexteInterface, parent: *Panneau) -> *PanneauArborescence
 {
-    sur_déplacement_souris :: fonc (panneau_arborescence: *PanneauArborescence @inutilisée, souris: ÉtatSouris @inutilisée);
+    sur_déplacement_souris :: fonc (panneau_arborescence: *PanneauArborescence @inutilisée, souris: ÉtatSouris @inutilisée)
     {
     }
 
-    sur_clic_souris :: fonc (panneau_arborescence: *PanneauArborescence, clic: ClicSouris) -> bool;
+    sur_clic_souris :: fonc (panneau_arborescence: *PanneauArborescence, clic: ClicSouris) -> bool
     {
         saufsi panneau_arborescence.rect.contient(clic.état.où) {
             retourne faux;
@@ -151,7 +151,7 @@ crée_panneau_arborescence :: fonc (ctx: *ContexteInterface, parent: *Panneau) -
         retourne vrai;
     }
 
-    sur_dessin :: fonc (panneau_arborescence: *PanneauArborescence, ctx: *ContexteAffichage);
+    sur_dessin :: fonc (panneau_arborescence: *PanneauArborescence, ctx: *ContexteAffichage)
     {
         peintre := ctx.peintre;
         thème := ctx.thème;
@@ -169,7 +169,7 @@ crée_panneau_arborescence :: fonc (ctx: *ContexteInterface, parent: *Panneau) -
             }
             sinon {
                 thème.couleur_table_ligne_impaire;
-            }
+            };
 
             remplis_rectangle(peintre, rect_ligne, couleur_ligne);
             rect_ligne.y -= panneau_arborescence.hauteur_élément;

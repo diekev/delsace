@@ -211,17 +211,17 @@ capte_erreur_ajoute_erreur :: fonc (empl params: *ParamètresObjectCall) -> Vale
 
 crée_propriétés_hôte_objet_global :: fonc (base: *ConfigurationRealm @inutilisée, global: *Object)
 {
-    flux_sortie_sur_destruction :: fonc (base: *FluxSortieConsole);
+    flux_sortie_sur_destruction :: fonc (base: *FluxSortieConsole)
     {
         déloge(base);
     }
 
-    flux_sortie_sur_log :: fonc (base: *FluxSortieConsole @inutilisée, texte: chaine);
+    flux_sortie_sur_log :: fonc (base: *FluxSortieConsole @inutilisée, texte: chaine)
     {
         imprime("%", texte);
     }
 
-    flux_sortie_sur_efface :: fonc (base: *FluxSortieConsole @inutilisée);
+    flux_sortie_sur_efface :: fonc (base: *FluxSortieConsole @inutilisée)
     {
     }
 

@@ -997,11 +997,11 @@ imprime_complex_selector :: fonc (enchaineuse: *Enchaineuse, complex_selectors: 
 } @FormattageImpression
 
 Combinator :: énum {
-    DESCENDANT // " "
-    NEXT_SIBLING // "+"
-    CHILD // ">"
-    SUBSEQUENT_SIBLING // "~"
-    COLUMN // "||"
+    DESCENDANT; // " "
+    NEXT_SIBLING; // "+"
+    CHILD; // ">"
+    SUBSEQUENT_SIBLING; // "~"
+    COLUMN; // "||"
 }
 
 CompoundSelector :: struct {
@@ -1048,12 +1048,12 @@ SimpleSelector :: struct {
     }
 
     AttributeMatcher :: énum {
-        EST_ÉGAL /* = */
-        INCLUS /* ~= */
-        DASHMATCH /* |= */
-        PREFIXMATCH /* ^= */
-        SUFFIXMATCH /* $= */
-        SUBSTRINGMATCH /* *= */
+        EST_ÉGAL; /* = */
+        INCLUS; /* ~= */
+        DASHMATCH; /* |= */
+        PREFIXMATCH; /* ^= */
+        SUFFIXMATCH; /* $= */
+        SUBSTRINGMATCH; /* *= */
     }
 
     AttributeModifier :: énum {

@@ -50,8 +50,6 @@ struct Lexeuse {
 
     int m_drapeaux = 0;
     GenreLexème m_dernier_id = GenreLexème::INCONNU;
-    int m_imbrication_parenthèses = 0;
-    int m_imbrication_crochets = 0;
     TypeRappelErreur m_rappel_erreur{};
     bool m_possède_erreur = false;
 

@@ -43,7 +43,7 @@ donne_ou_ajoute_chaine :: fonc (empl section: *Données_Section_ELF64, chn: chai
 
     _, _ := table_insère_si_non_existant(*table_de_chaines, chn, résultat);
 
-    retourne résultat 
+    retourne résultat;
 }
 
 donne_valeur_sh_info :: fonc (maçonne: *Maçonne_ELF64, section: *Données_Section_ELF64) -> Elf64_Word
@@ -153,7 +153,7 @@ crée_section_table_symbole :: fonc (maçonne: *Maçonne_ELF64, type: TypeSectio
     }
     sinon {
         ".dynsym";
-    }
+    };
 
     résultat := crée_section(maçonne, nom_section, type);
     résultat.alignement = 8;
@@ -585,7 +585,7 @@ donne_page_suivante :: fonc (empl fichier: *Fichier_Pagé, adresse: Adresse_Page
 
 ajoute_page :: fonc (empl fichier: *Fichier_Pagé)
 {
-    page := tableau_ajoute_élément(*pages) 
+    page := tableau_ajoute_élément(*pages);
     page.données = loge_tableau(octet, TAILLE_PAGE comme z64);
     page.données.taille = page.données.capacité;
     page.occupé = 0;

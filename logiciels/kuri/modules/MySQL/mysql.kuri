@@ -1,4 +1,4 @@
-importe OpenSSL // MySQL dépends d'OpenSSL
+importe OpenSSL; // MySQL dépends d'OpenSSL
 
 // À FAIRE : trouve quel symbole est dans quelle bibliothèque...
 

@@ -24,7 +24,7 @@ BarreDeDéfilement :: struct {
 crée_barre_de_défilement :: fonc (largeur_vue: r32, hauteur_vue: r32, hauteur_contenu: r32) -> *BarreDeDéfilement
 {
     barre := loge(BarreDeDéfilement);
-    ajourne(barre, largeur_vue, hauteur_vue, hauteur_contenu)    
+    ajourne(barre, largeur_vue, hauteur_vue, hauteur_contenu);
     retourne barre;
 }
 
@@ -1758,7 +1758,7 @@ donne_image_pour_url :: fonc (ctx: *ContexteDessin, url_string: chaine) -> Optio
         url_string: chaine;
     }
 
-    sur_rappel_process_response :: fonc (base: *HTML.BaseProcessResponse, réponse: *HTML.Response);
+    sur_rappel_process_response :: fonc (base: *HTML.BaseProcessResponse, réponse: *HTML.Response)
     {
         diffère HTML.détruit_response(réponse);
 
@@ -1787,7 +1787,7 @@ donne_image_pour_url :: fonc (ctx: *ContexteDessin, url_string: chaine) -> Optio
         HTML.invalide_style_pour_image(rappel.document);
     }
 
-    sur_destruction_process_response :: fonc (base: *HTML.BaseProcessResponse);
+    sur_destruction_process_response :: fonc (base: *HTML.BaseProcessResponse)
     {
         rappel := base comme *RappelProcessResponse;
         HTML.détruit_request(rappel.request);
@@ -2260,7 +2260,7 @@ imprime_élément :: fonc (enchaineuse: *Enchaineuse, box: *Box, message: chaine
     }
     sinon {
         box.donne_élément();
-    }
+    };
 
     si message {
         ajoute_au_tampon(enchaineuse, message, " : ");
