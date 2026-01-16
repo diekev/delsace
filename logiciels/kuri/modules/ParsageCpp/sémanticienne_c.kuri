@@ -13,6 +13,10 @@ SémanticienneC :: struct {
 
     switchs_courants: [..]*SwitchStatement;
     cible_break: [..]*ASTNode;
+    cible_continue: [..]*ASTNode;
+
+    gotos: [..]*GotoStatement;
+    labels: [..]chaine;
 }
 
 rapporte_erreur_interne :: fonc (sémanticienne: *SémanticienneC, lexème: Token, format: chaine, args: ...eini)
@@ -62,6 +66,13 @@ sémantise_translation_unit_c :: fonc (sémanticienne: *SémanticienneC, unit: *
 
 valide_sémantique_noeud :: fonc (empl sémanticienne: *SémanticienneC, node: *ASTNode)
 {
+    si node.état_validation != État_Validation.NON_VALIDÉ {
+        retourne
+    }
+
+    node.état_validation =  État_Validation.EN_VALIDATION;
+    diffère node.état_validation = État_Validation.VALIDÉ;
+
     discr node.genre {
         TypedefDecl {
             typedef := node comme *TypedefDecl;
@@ -79,6 +90,27 @@ valide_sémantique_noeud :: fonc (empl sémanticienne: *SémanticienneC, node: *
         }
         StructDecl {
             struct_decl := node comme *StructDecl;
+
+            si struct_decl.name {
+                // À FAIRE : différents espaces de noms.
+                decl_existante := donne_symbole(table_de_symboles, struct_decl.name);
+                si decl_existante && decl_existante.genre == StructDecl {
+                    struct_existante := decl_existante comme *StructDecl;
+
+                    si struct_existante.drapeaux.COMPLET == vrai {
+                        // À FAIRE : drapeau spécifique pour dire qu'il y eu un bloc
+                        si struct_decl.declarations {
+                            rapporte_note(sémanticienne, struct_existante, "la structure '%' fut déjà définie ici", struct_existante.name);
+                            rapporte_erreur(sémanticienne, struct_decl, "redéfinition de la structure '%'", struct_decl.name);
+                        }
+
+                        struct_decl.type = struct_existante;
+                        retourne;
+                    }
+                }
+
+                insère_symbole(*table_de_symboles, struct_decl.name, struct_decl);
+            }
 
             field_infos: [..]Field_Info;
             diffère déloge(field_infos);
@@ -144,10 +176,6 @@ valide_sémantique_noeud :: fonc (empl sémanticienne: *SémanticienneC, node: *
                 struct_decl.alignement = alignement_max;
                 struct_decl.drapeaux.COMPLET = vrai;
             }
-
-            si struct_decl.name {
-                insère_symbole(*table_de_symboles, struct_decl.name, struct_decl);
-            }
         }
         UnionDecl {
             union_decl := node comme *UnionDecl;
@@ -199,6 +227,8 @@ valide_sémantique_noeud :: fonc (empl sémanticienne: *SémanticienneC, node: *
         VarDecl {
             var_decl := node comme *VarDecl;
 
+            valide_sémantique_noeud(sémanticienne, var_decl.type_expression);
+
             var_decl.type = résoud_type_final(sémanticienne, var_decl.type_expression);
 
             var_existante := donne_symbole(table_de_symboles, var_decl.nom);
@@ -215,16 +245,26 @@ valide_sémantique_noeud :: fonc (empl sémanticienne: *SémanticienneC, node: *
                 }
             }
 
+            possède_liaison := faux;
+
             si var_decl.storage_class_specifier == "static" {
                 var_decl.linkage = Linkage.INTERNAL;
                 var_decl.storage_duration = Storage_Duration.STATIC;
+                possède_liaison = vrai;
             }
             sinon si var_decl.storage_class_specifier == "extern" {
                 var_decl.linkage = Linkage.EXTERNAL;
+                possède_liaison = vrai;
             }
             sinon si var_decl.storage_class_specifier == "" {
                 saufsi fonction_courante {
                     var_decl.linkage = Linkage.EXTERNAL;
+                }
+            }
+
+            saufsi possède_liaison {
+                si var_decl.type.drapeaux.COMPLET == faux {
+                    rapporte_erreur(sémanticienne, var_decl, "impossible de déclarer un objet avec le type incomplet '%'", donne_épelage_type(var_decl.type));
                 }
             }
 
@@ -293,6 +333,16 @@ valide_sémantique_noeud :: fonc (empl sémanticienne: *SémanticienneC, node: *
             valide_sémantique_noeud(sémanticienne, function.statement);
 
             dépile_bloc(*table_de_symboles);
+
+            /* Validation des gotos. */
+            pour goto dans gotos {
+                saufsi ensemble_possède(labels, goto.identifier) {
+                    rapporte_erreur(sémanticienne, goto, "étiquette '%' inconnue", goto.identifier);
+                }
+            }
+
+            gotos.taille = 0;
+            labels.taille = 0;
         }
         ParamDecl {
             // À FAIRE : vérifie duplication
@@ -380,8 +430,45 @@ valide_sémantique_noeud :: fonc (empl sémanticienne: *SémanticienneC, node: *
             node.type = crée_type_pointeur(*unit.maçonne_type, unit.maçonne_type.char_type);
         }
         IntegerConstant {
-            // À FAIRE : suffixes, validation taille
+            integer := node comme *IntegerConstant
+            // À FAIRE : validation taille
+
+            valeur := integer.token.lexème.nombre.naturel;
+
+            suffixe := integer.token.lexème.suffixe;
+
+            si suffixe == "L" || suffixe == "l" {
+                node.type = unit.maçonne_type.int_long_signed_type;
+            }
+            sinon si suffixe == "LL" || suffixe == "ll" {
+                node.type = unit.maçonne_type.int_long_long_signed_type;
+            }
+            sinon si suffixe == "U" || suffixe == "u" {
+                node.type = unit.maçonne_type.int_unsigned_type;
+            }
+            sinon si suffixe == "LU" || suffixe == "lu" || suffixe == "UL" || suffixe == "ul" {
+                node.type = unit.maçonne_type.int_long_unsigned_type;
+            }
+            sinon si suffixe == "LLU" || suffixe == "llu" || suffixe == "ULL" || suffixe == "ull" {
+                node.type = unit.maçonne_type.int_long_long_unsigned_type;
+            }
+            sinon {
+                si valeur <= 0xffffffff {
+                    node.type = unit.maçonne_type.int_signed_type;
+                }
+                sinon {
+                    // À FAIRE : différence long/long long
+                    node.type = unit.maçonne_type.int_long_signed_type;
+                }
+            }
+        }
+        CharacterConstant {
+            // À FAIRE : préfixes
             node.type = unit.maçonne_type.int_signed_type;
+            // À FAIRE : lexage (voir préprocesseur)
+            texte := donne_texte(node.token.lexème);
+            texte = avance(texte, 1);
+            node.token.lexème.nombre.naturel = texte[0] comme n64;
         }
         FloatingConstant {
             // À FAIRE : suffixes, validation taille
@@ -406,7 +493,7 @@ valide_sémantique_noeud :: fonc (empl sémanticienne: *SémanticienneC, node: *
             reference.referred_declaration = var_existante;
             reference.type = var_existante.type;
 
-            si reference.type.drapeaux.ARRAY && reference.drapeaux.OPÉRANDE_SIZEOF == faux {
+            si reference.type.drapeaux.ARRAY && reference.drapeaux.OPÉRANDE_SIZEOF == faux && reference.drapeaux.OPÉRANDE_ALIGNOF == faux {
                 // À FAIRE : Except when it is the operand of the sizeof operator,
                 //           the _Alignof operator, or the unary & operator, or is a
                 //           string literal used to initialize an array
@@ -533,7 +620,7 @@ valide_sémantique_noeud :: fonc (empl sémanticienne: *SémanticienneC, node: *
         }
         BreakStatement {
             si cible_break.taille == 0 {
-                rapporte_erreur(sémanticienne, node, "'break' en dehors d'un 'switch'");
+                rapporte_erreur(sémanticienne, node, "'break' en dehors d'un 'switch' ou d'une boucle");
                 retourne;
             }
         }
@@ -559,7 +646,11 @@ valide_sémantique_noeud :: fonc (empl sémanticienne: *SémanticienneC, node: *
                 valide_sémantique_noeud(sémanticienne, for.update);
             }
 
+            tableau_ajoute(*cible_break, node);
+            tableau_ajoute(*cible_continue, node);
             valide_sémantique_noeud(sémanticienne, for.statement);
+            cible_continue.taille -= 1
+            cible_break.taille -= 1
         }
         WhileStatement {
             while := node comme *WhileStatement;
@@ -567,15 +658,39 @@ valide_sémantique_noeud :: fonc (empl sémanticienne: *SémanticienneC, node: *
             si while.expression.type.drapeaux.SCALAR == faux {
                 rapporte_erreur(sémanticienne, while.expression.token, "l'expression controlante d'une boucle-while doit être de type scalaire");
             }
+            tableau_ajoute(*cible_break, node);
+            tableau_ajoute(*cible_continue, node);
             valide_sémantique_noeud(sémanticienne, while.statement);
+            cible_continue.taille -= 1
+            cible_break.taille -= 1
         }
         DoWhileStatement {
             do_while := node comme *DoWhileStatement;
+            tableau_ajoute(*cible_break, node);
+            tableau_ajoute(*cible_continue, node);
             valide_sémantique_noeud(sémanticienne, do_while.statement);
+            cible_continue.taille -= 1
+            cible_break.taille -= 1
             valide_sémantique_noeud(sémanticienne, do_while.expression);
             si do_while.expression.type.drapeaux.SCALAR == faux {
                 rapporte_erreur(sémanticienne, do_while.expression.token, "l'expression controlante d'une boucle-do-while doit être de type scalaire");
             }
+        }
+        ContinueStatement {
+            si cible_continue.taille == 0 {
+                rapporte_erreur(sémanticienne, node, "continue hors d'une boucle");
+            }
+        }
+        GotoStatement {
+            goto := node comme *GotoStatement;
+            tableau_ajoute(*gotos, goto);
+            // À FAIRE : A goto statement shall not jump from outside the scope of an identifier having
+            //           a variably modified type to inside the scope of that identifier.
+        }
+        LabelStatement {
+            label := node comme *LabelStatement;
+            valide_sémantique_noeud(sémanticienne, label.statement);
+            ensemble_ajoute(*labels, label.identifier);
         }
         AssignmentExpression {
             assignment := node comme *AssignmentExpression;
@@ -641,6 +756,67 @@ valide_sémantique_noeud :: fonc (empl sémanticienne: *SémanticienneC, node: *
                 binary.type = unit.maçonne_type.int_signed_type;
             }
         }
+        UnaryExpression {
+            unary := node comme *UnaryExpression;
+            valide_sémantique_noeud(sémanticienne, unary.operand);
+
+            type_opérande := unary.operand.type;
+
+            si unary.op == "+" {
+                si type_opérande.drapeaux.ARITHMETIC == faux {
+                    rapporte_erreur(sémanticienne, unary, "l'opérateur unaire '%' doit avoir un type arithmétique comme opérande", unary.op);
+                }
+                // À FAIRE : promoted type
+                unary.type = type_opérande;
+            }
+            sinon si unary.op == "-" {
+                si type_opérande.drapeaux.ARITHMETIC == faux {
+                    rapporte_erreur(sémanticienne, unary, "l'opérateur unaire '%' doit avoir un type arithmétique comme opérande", unary.op);
+                }
+                // À FAIRE : promoted type
+                unary.type = type_opérande;
+            }
+            sinon si unary.op == "~" {
+                si type_opérande.drapeaux.INTEGER == faux {
+                    rapporte_erreur(sémanticienne, unary, "l'opérateur unaire '%' doit avoir un type entier comme opérande", unary.op);
+                }
+                // À FAIRE : promoted type
+                unary.type = type_opérande;
+            }
+            sinon si unary.op == "!" {
+                si type_opérande.drapeaux.SCALAR == faux {
+                    rapporte_erreur(sémanticienne, unary, "l'opérateur unaire '%' doit avoir un type scalaire comme opérande", unary.op);
+                }
+                unary.type = unit.maçonne_type.int_signed_type;
+            }
+        }
+        AddressExpression {
+            address := node comme *AddressExpression;
+            valide_sémantique_noeud(sémanticienne, address.operand);
+
+            type_opérande := address.operand.type;
+            // À FAIRE : The operand of the unary & operator shall be either a function designator, the result of a
+            // [] or unary * operator, or an lvalue that designates an object that is not a bit-field and is
+            // not declared with the register storage-class specifier.
+            address.type = crée_type_pointeur(*unit.maçonne_type, type_opérande);
+        }
+        IndirectionExpression {
+            indirection := node comme *IndirectionExpression;
+            valide_sémantique_noeud(sémanticienne, indirection.operand);
+
+            type_opérande := indirection.operand.type;
+
+            // À FAIRE : function designator
+            si type_opérande.drapeaux.POINTER == faux {
+                indirection.type = unit.maçonne_type.int_signed_type;
+                rapporte_erreur(sémanticienne, indirection, "l'opérateur d'indirection doit avoir un type pointeur comme opérande");
+            }
+            sinon {
+                type_pointeur := type_opérande comme *PointerType;
+                indirection.type = type_pointeur.pointed_to;
+                indirection.drapeaux.LVALUE = vrai;
+            }
+        }
         PostFixUpdateExpression {
             postfix := node comme *PostFixUpdateExpression;
 
@@ -673,6 +849,7 @@ valide_sémantique_noeud :: fonc (empl sémanticienne: *SémanticienneC, node: *
                     rapporte_erreur(sémanticienne, index.right, "impossible de déréférencé le type incomplet '%'", donne_épelage_type(type_pointé));
                 }
 
+                index.drapeaux.LVALUE = vrai;
                 index.type = type_pointé;
             }
             sinon si index.right.type.drapeaux.POINTER && index.left.type.drapeaux.INTEGER {
@@ -684,6 +861,7 @@ valide_sémantique_noeud :: fonc (empl sémanticienne: *SémanticienneC, node: *
                     rapporte_erreur(sémanticienne, index.right, "impossible de déréférencé le type incomplet '%'", donne_épelage_type(type_pointé));
                 }
 
+                index.drapeaux.LVALUE = vrai;
                 index.type = type_pointé;
             }
             sinon {
@@ -762,18 +940,41 @@ valide_sémantique_noeud :: fonc (empl sémanticienne: *SémanticienneC, node: *
 
             sizeof.type = unit.maçonne_type.size_t_type;
         }
+        AlignOfExpression {
+            alignof := node comme *AlignOfExpression;
+
+            /* Nous le mettons en place ici afin de ne pas compliquer la parseuse. */
+            alignof.operand.drapeaux.OPÉRANDE_ALIGNOF = vrai;
+
+            valide_sémantique_noeud(sémanticienne, alignof.operand);
+            alignof.operand.type = résoud_type_final(sémanticienne, alignof.operand);
+
+            type_opérande := alignof.operand.type;
+
+            si type_opérande.drapeaux.FUNCTION {
+                rapporte_erreur(sémanticienne, alignof.operand, "impossible d'utiliser alignof sur un type fonction");
+            }
+            sinon si type_opérande.drapeaux.COMPLET == faux {
+                rapporte_erreur(sémanticienne, alignof.operand, "impossible d'utiliser alignof sur le type incomplet '%'", donne_épelage_type(type_opérande));
+            }
+
+            alignof.type = unit.maçonne_type.size_t_type;
+        }
         PointerType {
 
         }
         Type {
             // Rien à faire.
         }
+        TypeNameExpression {}
         PointerTypeExpression {
 
         }
         ConstantArrayExpression {
             constant_array := node comme *ConstantArrayExpression;
-            valide_sémantique_noeud(sémanticienne, constant_array.size_expression);
+            si constant_array.size_expression {
+                valide_sémantique_noeud(sémanticienne, constant_array.size_expression);
+            }
             valide_sémantique_noeud(sémanticienne, constant_array.element_type);
         }
         sinon {
@@ -929,12 +1130,15 @@ valide_opérateur_égalité :: fonc (empl sémanticienne: *SémanticienneC, bina
         pointeur_gauche := type_gauche comme *PointerType;
         pointeur_droite := type_droite comme *PointerType;
 
+        // À FAIRE : pointer to an object type
+        si pointeur_gauche.pointed_to.kind == TypeKind.VOID || pointeur_droite.pointed_to.kind == TypeKind.VOID {
+            // OK
+        }
         // À FAIRE : qualified or unqualified versions
-        saufsi types_sont_compatibles(pointeur_gauche.pointed_to, pointeur_droite.pointed_to) {
+        sinon saufsi types_sont_compatibles(pointeur_gauche.pointed_to, pointeur_droite.pointed_to) {
             rapporte_erreur_types_incompatibles(sémanticienne, binary);
         }
 
-        // À FAIRE : pointer to an object type vs void*
         // À FAIRE : pointer vs (void *)0
     }
     sinon {
@@ -1368,6 +1572,10 @@ résoud_type_final :: fonc (empl sémanticienne: *SémanticienneC, node: *ASTNod
         }
         TypeRef {
             type_ref := node comme *TypeRef;
+            // NOTE : pour les redéclarations de structures qui redéclarent une structure complète.
+            si type_ref.reference_type.type {
+                retourne type_ref.reference_type.type;
+            }
             retourne type_ref.reference_type;
         }
         PointerTypeExpression {
@@ -1470,6 +1678,15 @@ résoud_type_final :: fonc (empl sémanticienne: *SémanticienneC, node: *ASTNod
                 info := operand.genre comme *InfoTypeStructure;
                 panique("Noeud non-géré %", info.nom);
             }
+        }
+        AlignOfExpression {
+            alignof := node comme *AlignOfExpression;
+            operand := alignof.operand;
+
+            type := résoud_type_final(sémanticienne, operand);
+            assert(type != nul);
+            assert(type.alignement != 0);
+            retourne type.alignement;
         }
         CastExpression {
             // À FAIRE : tient trace du type
