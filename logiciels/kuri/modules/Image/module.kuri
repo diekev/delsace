@@ -580,7 +580,7 @@ calcule_empreinte_différentielle :: fonc (image: NouvelleImage) -> n64
             indice := y * largeur_empreinte + x;
             
             si sortie[indice] < sortie[indice + 1] {
-                empreinte |= (1 << bit) 
+                empreinte |= (1 << bit);
             }
 
             bit -= 1;
@@ -634,7 +634,7 @@ calcule_empreinte_moyenne :: fonc (image: NouvelleImage) -> n64
 
     pour sortie {
         si it < moyenne {
-            empreinte |= (1 << bit) 
+            empreinte |= (1 << bit);
         }
 
         bit -= 1;
@@ -989,7 +989,7 @@ WebPGetInfo :: fonc (data: *n8, data_size: n64, width: *z32, height: *z32) -> z3
 WebPDecodeRGBInto :: fonc (data: *n8, data_size: n64, output_buffer: *n8, output_buffer_size: n64, output_stride: z32) -> *n8 #externe libwebp;
 WebPDecodeRGBAInto :: fonc (data: *n8, data_size: n64, output_buffer: *n8, output_buffer_size: n64, output_stride: z32) -> *n8 #externe libwebp;
 
-WEBP_DECODER_ABI_VERSION :: 0x0209    // MAJOR(8b) + MINOR(8b)
+WEBP_DECODER_ABI_VERSION :: 0x0209;    // MAJOR(8b) + MINOR(8b)
 
 WEBP_CSP_MODE :: énum {
     MODE_RGB :: 0;
@@ -1006,7 +1006,7 @@ WEBP_CSP_MODE :: énum {
     MODE_rgbA_4444 :: 10;
     // YUV modes must come after RGB ones.
     MODE_YUV :: 11;
-    MODE_YUVA :: 12  // yuv 4:2:0
+    MODE_YUVA :: 12;  // yuv 4:2:0
     MODE_LAST :: 13;
 }
 
@@ -1152,7 +1152,7 @@ détruit_infos :: fonc (infos: [..]InfoFormatImageSupporté)
 
 compare_info_image_supportée_par_nom :: fonc (a: InfoFormatImageSupporté, b: InfoFormatImageSupporté) -> z32
 {
-    retourne compare_chaine(a.nom_format, b.nom_format)    
+    retourne compare_chaine(a.nom_format, b.nom_format);   
 }
 
 donne_infos_formats_images_supportés :: fonc () -> [..]InfoFormatImageSupporté
@@ -1172,11 +1172,11 @@ donne_infos_formats_images_supportés :: fonc () -> [..]InfoFormatImageSupporté
     paires_type_extensions := divise(chn_liste_extensions, ';');
     diffère déloge(paires_type_extensions);
 
-    type_et_extensions: [..]chaine 
+    type_et_extensions: [..]chaine;
     tableau_réserve(*type_et_extensions, nombre_d_extensions);
     diffère déloge(type_et_extensions);
 
-    extensions: [..]chaine 
+    extensions: [..]chaine;
     tableau_réserve(*extensions, nombre_d_extensions);
     diffère déloge(extensions);
 

@@ -1990,7 +1990,7 @@ cherche_référence_caractère_nommé :: fonc (lexeuse: *Lexeuse) -> bool
 
     /* Plusieurs fonctions s'appelent « commence_par », donc utilisons
      * une enveloppe pour avoir la bonne. */
-    rappel_commence_par :: fonc (chn: chaine, motif: chaine) -> bool;
+    rappel_commence_par :: fonc (chn: chaine, motif: chaine) -> bool
     {
         retourne commence_par(chn, motif);
     }

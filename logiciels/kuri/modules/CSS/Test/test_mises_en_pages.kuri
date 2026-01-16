@@ -228,7 +228,7 @@ donne_chemins_fichiers_sources :: fonc () -> [..]CheminFichier
     diffère détruit_chemin(dossier_parent);
     dossier := dossier_parent / "fichiers/sources";
 
-    visite :: fonc (info: InfoVisiteFichier, fichiers: *[..]CheminFichier) -> DécisionVisiteFichier;
+    visite :: fonc (info: InfoVisiteFichier, fichiers: *[..]CheminFichier) -> DécisionVisiteFichier
     {
         saufsi info.est_dossier {
             chemin := CheminFichier(info.chemin);

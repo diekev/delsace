@@ -959,7 +959,7 @@ crée_table_fonctions :: fonc (créatrice: &CréatriceTableFonction, fonctions: 
     }
 
     pour créatrice.modules_importés {
-        ajoute_au_tampon(*enchaineuse, "importe ", it, "\n");
+        ajoute_au_tampon(*enchaineuse, "importe ", it, ";\n");
     }
 
     /* Création des enveloppes pour les fonctions de parsage. */
@@ -976,7 +976,7 @@ crée_table_fonctions :: fonc (créatrice: &CréatriceTableFonction, fonctions: 
         si créatrice.nom_module {
             ajoute_au_tampon(*enchaineuse, créatrice.nom_module, ".");
         }
-        ajoute_au_tampon(*enchaineuse, créatrice.nom_table_fonctions, ")\n");
+        ajoute_au_tampon(*enchaineuse, créatrice.nom_table_fonctions, ");\n");
     }
 
     pour données_fonctions {
@@ -987,7 +987,7 @@ crée_table_fonctions :: fonc (créatrice: &CréatriceTableFonction, fonctions: 
         ajoute_au_tampon(*enchaineuse, créatrice.nom_table_fonctions, ", info_de(");
         nom_module_fonction := compilatrice_nom_module(compilatrice_module_pour_code(créatrice.espace, it.fonction));
         imprime_type(*enchaineuse, it.info_type, nom_module_fonction);
-        ajoute_au_tampon(*enchaineuse, "), ", it.nom_fonction_enveloppe, ")\n");
+        ajoute_au_tampon(*enchaineuse, "), ", it.nom_fonction_enveloppe, ");\n");
         déloge(it.nom_fonction_enveloppe);
     }
 
@@ -995,8 +995,8 @@ crée_table_fonctions :: fonc (créatrice: &CréatriceTableFonction, fonctions: 
     ajoute_au_tampon(*enchaineuse, "issitialise_", créatrice.nom_table_fonctions, " :: fonc ()\n");
     ajoute_au_tampon(*enchaineuse, "{\n");
     ajoute_au_tampon(*enchaineuse, "}\n");
-    ajoute_au_tampon(*enchaineuse, "#ajoute_init initialise_", créatrice.nom_table_fonctions, "()\n");
-    ajoute_au_tampon(*enchaineuse, "#ajoute_fini issitialise_", créatrice.nom_table_fonctions, "()\n");
+    ajoute_au_tampon(*enchaineuse, "#ajoute_init initialise_", créatrice.nom_table_fonctions, "();\n");
+    ajoute_au_tampon(*enchaineuse, "#ajoute_fini issitialise_", créatrice.nom_table_fonctions, "();\n");
 
     sources := chaine_depuis_enchaineuse(*enchaineuse);
     diffère déloge(sources);
@@ -1017,10 +1017,10 @@ génère_enveloppe_fonction_parsage_octets :: fonc (enchaineuse: *Enchaineuse, d
     si nom_module {
         ajoute_au_tampon(enchaineuse, nom_module, ".");
     }
-    ajoute_au_tampon(enchaineuse, données.fonction.nom, "(chn)\n");
-    ajoute_au_tampon(enchaineuse, "\tsaufsi succès {\n\t\tretourne faux\n\t}\n");
-    ajoute_au_tampon(enchaineuse, "\tFondation.copie_mem_nonsur(src = *valeur, dst = tampon.pointeur, taille = tampon.taille)\n");
-    ajoute_au_tampon(enchaineuse, "\tretourne vrai\n");
+    ajoute_au_tampon(enchaineuse, données.fonction.nom, "(chn);\n");
+    ajoute_au_tampon(enchaineuse, "\tsaufsi succès {\n\t\tretourne faux;\n\t}\n");
+    ajoute_au_tampon(enchaineuse, "\tFondation.copie_mem_nonsur(src = *valeur, dst = tampon.pointeur, taille = tampon.taille);\n");
+    ajoute_au_tampon(enchaineuse, "\tretourne vrai;\n");
     ajoute_au_tampon(enchaineuse, "}\n");
 
     retourne nom_enveloppe;
@@ -1328,17 +1328,17 @@ imprime_corps_fonction_chaine_pour_constantes :: fonc (enchaineuse: *Enchaineuse
 
         nom_type := it.texte.avance(préfixe.taille);
 
-        ajoute_au_tampon(enchaineuse, "    si ", nom_argument, " == ", it.texte, " { retourne \"", nom_type, "\" }\n");
+        ajoute_au_tampon(enchaineuse, "    si ", nom_argument, " == ", it.texte, " { retourne \"", nom_type, "\"; }\n");
     }
 
     si première_constante_utilisateur && dernière_constante_utilisateur {
         ajoute_au_tampon(enchaineuse, "si ", première_constante_utilisateur, " <= ", nom_argument, " <= ", dernière_constante_utilisateur, "{\n");
-        ajoute_au_tampon(enchaineuse, "    retourne \"constante utilisateur\"\n");
+        ajoute_au_tampon(enchaineuse, "    retourne \"constante utilisateur\";\n");
         ajoute_au_tampon(enchaineuse, "}\n");
     }
 
-    ajoute_au_tampon(enchaineuse, "    imprimeln(\"% : %\", #nom_de_cette_fonction, ", nom_argument, ")\n");
-    ajoute_au_tampon(enchaineuse, "    retourne \"ERREUR VALEUR INCONNUE\"\n");
+    ajoute_au_tampon(enchaineuse, "    imprimeln(\"% : %\", #nom_de_cette_fonction, ", nom_argument, ");\n");
+    ajoute_au_tampon(enchaineuse, "    retourne \"ERREUR VALEUR INCONNUE\";\n");
 }
 
 /** \} */
