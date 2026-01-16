@@ -715,6 +715,49 @@ valide_sémantique_noeud :: fonc (empl sémanticienne: *SémanticienneC, node: *
             assignment.type = type;
             assignment.drapeaux.LVALUE = faux;
         }
+        CompoundAssignmentExpression {
+            assignment := node comme *CompoundAssignmentExpression;
+
+            valide_sémantique_noeud(sémanticienne, assignment.left);
+            valide_sémantique_noeud(sémanticienne, assignment.right);
+
+            saufsi est_modifiable_lvalue(assignment.left) {
+                rapporte_erreur(sémanticienne, assignment.left, "une valeur-gauche modifiable est requise à gauche de l'assignement");
+            }
+
+            // À FAIRE : pour les opérateurs autre que += et -= :
+            // (considering the type the left operand would have after lvalue conversion)
+
+            si assignment.op == "+=" || assignment.op == "-=" {
+                type_gauche := assignment.left.type;
+                type_droite := assignment.right.type;
+
+                est_valide := type_gauche.drapeaux.POINTER && type_droite.drapeaux.INTEGER;
+                est_valide ||= type_gauche.drapeaux.ARITHMETIC && type_droite.drapeaux.ARITHMETIC;
+
+                saufsi est_valide {
+                    rapporte_note(sémanticienne, assignment.left, "le type à gauche est '%'", donne_épelage_type(type_gauche));
+                    rapporte_note(sémanticienne, assignment.right, "le type à droite est '%'", donne_épelage_type(type_droite));
+                    rapporte_erreur(sémanticienne, assignment, "opérandes invalides pour l'assignation composée");
+                }
+            }
+            sinon si assignment.op == "*=" || assignment.op == "/=" {
+                valide_opérateur_multiplicatif(sémanticienne, assignment);
+            }
+            sinon si assignment.op == "%=" {
+                valide_opérateur_modulo(sémanticienne, assignment);
+            }
+            sinon si assignment.op == "<<=" || assignment.op == ">>=" {
+                valide_opérateur_décalage(sémanticienne, assignment);
+            }
+            sinon si assignment.op == "|=" || assignment.op == "&=" || assignment.op == "^=" {
+                valide_opérateur_bital(sémanticienne, assignment);
+            }
+
+            type := donne_lvalue_conversion_type(sémanticienne, assignment.left.type);
+            assignment.type = type;
+            assignment.drapeaux.LVALUE = faux;
+        }
         BinaryExpression {
             binary := node comme *BinaryExpression;
             valide_sémantique_noeud(sémanticienne, binary.left);
