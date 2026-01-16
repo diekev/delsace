@@ -13,6 +13,7 @@ SémanticienneC :: struct {
 
     switchs_courants: [..]*SwitchStatement;
     cible_break: [..]*ASTNode;
+    cible_continue: [..]*ASTNode;
 }
 
 rapporte_erreur_interne :: fonc (sémanticienne: *SémanticienneC, lexème: Token, format: chaine, args: ...eini)
@@ -606,7 +607,7 @@ valide_sémantique_noeud :: fonc (empl sémanticienne: *SémanticienneC, node: *
         }
         BreakStatement {
             si cible_break.taille == 0 {
-                rapporte_erreur(sémanticienne, node, "'break' en dehors d'un 'switch'");
+                rapporte_erreur(sémanticienne, node, "'break' en dehors d'un 'switch' ou d'une boucle");
                 retourne;
             }
         }
@@ -632,7 +633,11 @@ valide_sémantique_noeud :: fonc (empl sémanticienne: *SémanticienneC, node: *
                 valide_sémantique_noeud(sémanticienne, for.update);
             }
 
+            tableau_ajoute(*cible_break, node);
+            tableau_ajoute(*cible_continue, node);
             valide_sémantique_noeud(sémanticienne, for.statement);
+            cible_continue.taille -= 1
+            cible_break.taille -= 1
         }
         WhileStatement {
             while := node comme *WhileStatement;
@@ -640,14 +645,27 @@ valide_sémantique_noeud :: fonc (empl sémanticienne: *SémanticienneC, node: *
             si while.expression.type.drapeaux.SCALAR == faux {
                 rapporte_erreur(sémanticienne, while.expression.token, "l'expression controlante d'une boucle-while doit être de type scalaire");
             }
+            tableau_ajoute(*cible_break, node);
+            tableau_ajoute(*cible_continue, node);
             valide_sémantique_noeud(sémanticienne, while.statement);
+            cible_continue.taille -= 1
+            cible_break.taille -= 1
         }
         DoWhileStatement {
             do_while := node comme *DoWhileStatement;
+            tableau_ajoute(*cible_break, node);
+            tableau_ajoute(*cible_continue, node);
             valide_sémantique_noeud(sémanticienne, do_while.statement);
+            cible_continue.taille -= 1
+            cible_break.taille -= 1
             valide_sémantique_noeud(sémanticienne, do_while.expression);
             si do_while.expression.type.drapeaux.SCALAR == faux {
                 rapporte_erreur(sémanticienne, do_while.expression.token, "l'expression controlante d'une boucle-do-while doit être de type scalaire");
+            }
+        }
+        ContinueStatement {
+            si cible_continue.taille == 0 {
+                rapporte_erreur(sémanticienne, node, "continue hors d'une boucle");
             }
         }
         AssignmentExpression {
