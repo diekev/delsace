@@ -877,6 +877,23 @@ valide_sémantique_noeud :: fonc (empl sémanticienne: *SémanticienneC, node: *
 
             postfix.type = operand_type;
         }
+        PrefixUpdateExpression {
+            prefix := node comme *PrefixUpdateExpression;
+
+            valide_sémantique_noeud(sémanticienne, prefix.operand);
+
+            operand_type := prefix.operand.type;
+
+            si operand_type.drapeaux.REAL == faux && operand_type.drapeaux.POINTER == faux {
+                rapporte_erreur(sémanticienne, prefix.operand.token, "l'opérateur préfixe '%' ne peut s'appliquer que sur des types réels ou pointeurs", prefix.op);
+            }
+
+            saufsi est_modifiable_lvalue(prefix.operand) {
+                rapporte_erreur(sémanticienne, prefix.operand, "l'opérateur préfixe '%' requiers une valeur-gauche modifiable comme opérande", prefix.op);
+            }
+
+            prefix.type = operand_type;
+        }
         IndexExpression {
             index := node comme *IndexExpression;
 
