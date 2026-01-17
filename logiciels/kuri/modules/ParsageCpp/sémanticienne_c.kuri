@@ -353,9 +353,11 @@ valide_sémantique_noeud :: fonc (empl sémanticienne: *SémanticienneC, node: *
         }
         CompoundStatement {
             compound := node comme *CompoundStatement;
+            empile_bloc(*table_de_symboles);
             pour compound.items {
                 valide_sémantique_noeud(sémanticienne, it);
             }
+            dépile_bloc(*table_de_symboles);
         }
         ExpressionStatement {
             statement := node comme *ExpressionStatement;
