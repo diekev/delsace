@@ -224,6 +224,57 @@ valide_sémantique_noeud :: fonc (empl sémanticienne: *SémanticienneC, node: *
                 insère_symbole(*table_de_symboles, union_decl.name, union_decl);
             }
         }
+        EnumDecl {
+            enum_decl := node comme *EnumDecl;
+
+            si enum_decl.name {
+                // À FAIRE : différents espaces de noms.
+                decl_existante := donne_symbole(table_de_symboles, enum_decl.name);
+                si decl_existante && decl_existante.genre == EnumDecl {
+                    enum_existante := decl_existante comme *EnumDecl;
+
+                    si enum_existante.drapeaux.COMPLET == vrai {
+                        // À FAIRE : drapeau spécifique pour dire qu'il y eu un bloc
+                        si enum_decl.enumerators {
+                            rapporte_note(sémanticienne, enum_existante, "l'enum '%' fut déjà définie ici", enum_existante.name);
+                            rapporte_erreur(sémanticienne, enum_decl, "redéfinition de l'enum '%'", enum_decl.name);
+                        }
+
+                        enum_decl.type = enum_existante;
+                        retourne;
+                    }
+                }
+
+                insère_symbole(*table_de_symboles, enum_decl.name, enum_decl);
+            }
+
+            si enum_decl.enumerators {
+                // À FAIRE : valide que les valeurs sont représentables par int
+                dernière_valeur: z32;
+                pour enum_decl.enumerators {
+                    si it.expression {
+                        valide_sémantique_noeud(sémanticienne, it.expression);
+                        valeur := évalue_expression_constante(sémanticienne, it.expression);
+                        it.valeur = valeur comme z32;
+                        dernière_valeur = it.valeur + 1;
+                    }
+                    sinon {
+                        it.valeur = dernière_valeur;
+                        dernière_valeur += 1;
+                    }
+
+                    // À FAIRE : sélection du type
+                    it.type = unit.maçonne_type.int_signed_type;
+
+                    // À FAIRE : redéfinitions
+                    nom := donne_texte(it.identifier);
+
+                    insère_symbole(*table_de_symboles, nom, it);
+                }
+
+                enum_decl.drapeaux.COMPLET = vrai;
+            }
+        }
         VarDecl {
             var_decl := node comme *VarDecl;
 

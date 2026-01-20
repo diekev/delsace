@@ -326,6 +326,8 @@ EnumeratorDecl :: struct {
 
     identifier: Token;
     expression: *Expression;
+
+    valeur: z32;
 }
 
 FieldDecl :: struct {
