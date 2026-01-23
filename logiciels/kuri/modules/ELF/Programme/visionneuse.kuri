@@ -33,6 +33,8 @@ importe Typographie;
 
 */
 
+charge "archive";
+
 principale :: fonc ()
 {
     TAILLE_ARÈNE_PERMANENTE :: 32 * 1024 * 1024;
@@ -288,15 +290,43 @@ ouvre_fichier_elf :: fonc (visionneuse: *VisionneuseELF, chemin: CheminFichier)
         retourne;
     }
 
-    saufsi est_fichier_elf(contenu) {
-        rapporte_erreur(visionneuse, "Pas un fichier ELF");
-        retourne;
+    si est_fichier_elf(contenu) {
+        crée_fichier_elf(visionneuse, chemin, contenu);
     }
+    sinon si est_archive_ar(contenu) {
+        succès_archive, archive := parse_archive_ar(contenu);
+        saufsi succès_archive {
+            rapporte_erreur(visionneuse, "Impossible de parser l'archive.");
+            retourne;
+        }
+
+        // À FAIRE : stocke les archives et présente-les correctement dans l'interface.
+        diffère déloge(contenu);
+
+        pour * archive.fichiers {
+            si it.identifiant == "/" || it.identifiant == "//" {
+                continue;
+            }
+            nom_fichier := donne_nom_fichier(*archive, it);
+
+            si est_fichier_elf(it.données) {
+                // À FAIRE : évite de copier les données.
+                données_fichier_archivé := tableau_copie(it.données);
+                crée_fichier_elf(visionneuse, CheminFichier(nom_fichier), données_fichier_archivé);
+            }
+        }
+    }
+    sinon {
+        rapporte_erreur(visionneuse, "% n'est pas un fichier ELF", chemin.chn);
+    }
+}
+
+crée_fichier_elf :: fonc (visionneuse: *VisionneuseELF, chemin: CheminFichier, contenu: [..]octet)
+{
+    assert(est_fichier_elf(contenu));
 
     fichier := loge(*visionneuse.arène, FichierELF);
     initialise_fichier_elf(fichier, contenu);
-
-    visionneuse.fichier_courant = (visionneuse.fichiers.taille comme z32);
 
     données_fichier := tableau_ajoute_élément(*visionneuse.fichiers);
     données_fichier.chemin = copie_chemin(chemin);
