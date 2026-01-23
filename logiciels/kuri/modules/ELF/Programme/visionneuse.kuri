@@ -53,7 +53,7 @@ principale :: fonc ()
     args := tableau_avance(arguments_ligne_commande());
     pour args {
         si est_un_fichier_régulier(CheminFichier(it)) {
-            ouvre_fichier_elf(*visionneuse, CheminFichier(it));
+            ouvre_fichier(*visionneuse, CheminFichier(it));
         }
     }
 
@@ -85,7 +85,7 @@ principale :: fonc ()
                             si commence_par(fichier, schéma) {
                                 fichier = avance(fichier, schéma.taille);
                             }
-                            ouvre_fichier_elf(*visionneuse, CheminFichier(fichier));
+                            ouvre_fichier(*visionneuse, CheminFichier(fichier));
                         }
                     }
                 }
@@ -301,7 +301,7 @@ détruit_données :: fonc (visionneuse: *VisionneuseELF)
     déloge(visionneuse.fichiers);
 }
 
-ouvre_fichier_elf :: fonc (visionneuse: *VisionneuseELF, chemin: CheminFichier)
+ouvre_fichier :: fonc (visionneuse: *VisionneuseELF, chemin: CheminFichier)
 {
     pour visionneuse.fichiers {
         si it.chemin.chn == chemin.chn {
