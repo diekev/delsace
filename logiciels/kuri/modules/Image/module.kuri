@@ -702,6 +702,30 @@ convertis_en_nuances_de_gris :: fonc (image: NouvelleImage) -> NouvelleImage
     retourne résultat;
 }
 
+// À FAIRE : généralise
+convertis_en_32_bit :: fonc (image: NouvelleImage) -> NouvelleImage
+{
+    assert(image.desc.format == FormatPixel.RVB_8);
+
+    desc := image.desc;
+    desc.format = FormatPixel.RVB_32;
+
+    résultat := crée_image(*desc);
+
+    nombre_de_pixels := donne_nombre_de_pixels(desc);
+
+    entrée := image.données comme *n8;
+    sortie := résultat.données comme *r32;
+
+    pour nombre_de_pixels * 3 {
+        mémoire(sortie) = mémoire(entrée) comme r32 / 255.0;
+        sortie += 1;
+        entrée += 1;
+    }
+
+    retourne résultat;
+}
+
 TamponImage :: struct ($T: type_de_données) {
     données: *T;
     largeur: z32;
