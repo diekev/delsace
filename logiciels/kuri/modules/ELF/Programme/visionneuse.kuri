@@ -310,7 +310,7 @@ ouvre_fichier :: fonc (visionneuse: *VisionneuseELF, chemin: CheminFichier)
         }
     }
 
-    succès, contenu := contenu_fichier_binaire(chemin);
+    succès, contenu := lis_fichier_binaire_entier(chemin);
     saufsi succès {
         rapporte_erreur(visionneuse, "Impossible de lire le fichier");
         retourne;
