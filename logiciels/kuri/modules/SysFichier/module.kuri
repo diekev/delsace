@@ -118,7 +118,7 @@ contenu_fichier_binaire :: fonc (chemin: CheminFichier) -> (succès: bool, résu
 
 contenu_fichier_binaire :: fonc (chemin: CheminFichier, résultat: &[..]octet) -> succès: bool
 {
-    fichier := tente ouvre_fichier(chemin, pour_lecture, 0o644) piège _ {
+    fichier := tente ouvre_fichier(chemin, pour_lecture, Permissions_Fichier_Défaut) piège _ {
         imprimeln("Impossible d'ouvrir le fichier %", chemin.chn);
         retourne faux;
     };
@@ -144,7 +144,7 @@ contenu_fichier_texte :: fonc (chemin: chaine) -> (succès: bool, résultat: cha
     retourne contenu_fichier_texte(chm);
 }
 
-lis_fichier_binaire_entier :: fonc (chemin: chaine, permissions := 0o644) -> (succès: bool, résultat: [..]octet)
+lis_fichier_binaire_entier :: fonc (chemin: chaine, permissions := Permissions_Fichier_Défaut) -> (succès: bool, résultat: [..]octet)
 {
     init_de([..]octet)(*résultat);
 
@@ -174,18 +174,18 @@ lis_fichier_binaire_entier :: fonc (chemin: chaine, permissions := 0o644) -> (su
     retourne vrai, résultat;
 }
 
-lis_fichier_binaire_entier :: fonc (chemin: CheminFichier, permissions := 0o644) -> (succès: bool, résultat: [..]octet)
+lis_fichier_binaire_entier :: fonc (chemin: CheminFichier, permissions := Permissions_Fichier_Défaut) -> (succès: bool, résultat: [..]octet)
 {
     retourne lis_fichier_binaire_entier(chemin.chn, permissions);
 }
 
-lis_fichier_texte_entier :: fonc (chemin: chaine, permissions := 0o644) -> (succès: bool, résultat: chaine)
+lis_fichier_texte_entier :: fonc (chemin: chaine, permissions := Permissions_Fichier_Défaut) -> (succès: bool, résultat: chaine)
 {
     succès, octets := lis_fichier_binaire_entier(chemin, permissions);
     retourne succès, chaine(octets.pointeur comme *z8, octets.taille);
 }
 
-lis_fichier_texte_entier :: fonc (chemin: CheminFichier, permissions := 0o644) -> (succès: bool, résultat: chaine)
+lis_fichier_texte_entier :: fonc (chemin: CheminFichier, permissions := Permissions_Fichier_Défaut) -> (succès: bool, résultat: chaine)
 {
     retourne lis_fichier_binaire_entier(chemin.chn, permissions);
 }
