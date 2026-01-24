@@ -144,6 +144,52 @@ contenu_fichier_texte :: fonc (chemin: chaine) -> (succès: bool, résultat: cha
     retourne contenu_fichier_texte(chm);
 }
 
+lis_fichier_binaire_entier :: fonc (chemin: chaine, permissions := 0o644) -> (succès: bool, résultat: [..]octet)
+{
+    init_de([..]octet)(*résultat);
+
+    fichier := tente ouvre_fichier(CheminFichier(chemin), pour_lecture, permissions) piège _ {
+        imprimeln("Impossible d'ouvrir le fichier %", chemin);
+        retourne faux, résultat;
+    };
+    diffère _ := ferme(*fichier);
+
+    taille := détermine_taille_fichier(*fichier);
+    si taille != 0 {
+        tableau_redimensionne(résultat, taille);
+
+        octets_lus := tente système_lis(fichier.desc, résultat.pointeur comme *z8, résultat.taille) piège err {
+            déloge(résultat);
+            imprimeln("Impossible d'ouvrir le fichier % : %", chemin, err);
+            retourne faux, résultat;
+        };
+
+        si octets_lus != résultat.taille {
+            déloge(résultat);
+            imprimeln("Impossible de lire l'entièreté du fichier %, lu %, voulu %", chemin, octets_lus, résultat.taille);
+            retourne faux, résultat;
+        }
+    }
+
+    retourne vrai, résultat;
+}
+
+lis_fichier_binaire_entier :: fonc (chemin: CheminFichier, permissions := 0o644) -> (succès: bool, résultat: [..]octet)
+{
+    retourne lis_fichier_binaire_entier(chemin.chn, permissions);
+}
+
+lis_fichier_texte_entier :: fonc (chemin: chaine, permissions := 0o644) -> (succès: bool, résultat: chaine)
+{
+    succès, octets := lis_fichier_binaire_entier(chemin, permissions);
+    retourne succès, chaine(octets.pointeur comme *z8, octets.taille);
+}
+
+lis_fichier_texte_entier :: fonc (chemin: CheminFichier, permissions := 0o644) -> (succès: bool, résultat: chaine)
+{
+    retourne lis_fichier_binaire_entier(chemin.chn, permissions);
+}
+
 /* ------------------------------------------------------------------------- */
 /** \nom Écriture de fichier
  * \{ */
