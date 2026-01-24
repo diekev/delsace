@@ -215,12 +215,12 @@ Color multiplyBasisFunction(
                                              std::cos(M_PI * components.y * y / double(height)));
             auto const index = (x + y * width) * nombre_canaux;
 
-            c.r += basis * srgbToLinearF(pixels[index]);
+            c.r += basis * srgbToLinear(pixels[index]);
             if (nombre_canaux > 1) {
-                c.g += basis * srgbToLinearF(pixels[index + 1]);
+                c.g += basis * srgbToLinear(pixels[index + 1]);
 
                 if (nombre_canaux > 2) {
-                    c.b += basis * srgbToLinearF(pixels[index + 2]);
+                    c.b += basis * srgbToLinear(pixels[index + 2]);
                 }
             }
         }
