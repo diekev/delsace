@@ -510,13 +510,16 @@ calcule_empreinte_floue :: fonc (image: NouvelleImage, composants_x: z32, compos
 
     discr image.desc.format {
         Gris_8 {
-            panique("non-implémenté");
+            tampon_img := donne_tampon_gris_8bit(image);
+            IMG_calcule_empreinte_floue_octet(tampon_img.données comme *n8, tampon_img.largeur, tampon_img.hauteur, 1, composants_x, composants_y, *tampon[0], *taille_résultat);
         }
         RVB_8 {
-            panique("non-implémenté");
+            tampon_img := donne_tampon_rvb_8bit(image);
+            IMG_calcule_empreinte_floue_octet(tampon_img.données comme *n8, tampon_img.largeur, tampon_img.hauteur, 3, composants_x, composants_y, *tampon[0], *taille_résultat);
         }
         RVBA_8 {
-            panique("non-implémenté");
+            tampon_img := donne_tampon_rvba_8bit(image);
+            IMG_calcule_empreinte_floue_octet(tampon_img.données comme *n8, tampon_img.largeur, tampon_img.hauteur, 4, composants_x, composants_y, *tampon[0], *taille_résultat);
         }
         Gris_32 {
             tampon_img := image.donne_tampon_gris();
