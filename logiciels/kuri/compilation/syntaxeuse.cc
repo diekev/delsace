@@ -1239,7 +1239,7 @@ NoeudExpression *Syntaxeuse::analyse_expression_primaire()
         {
             consomme();
 
-            auto expression_appelée = analyse_expression({});
+            auto expression_appelée = parse_expression_ellipse();
 
             auto expression_piégée = NoeudExpression::nul();
             auto bloc = NoeudBloc::nul();
@@ -1250,7 +1250,7 @@ NoeudExpression *Syntaxeuse::analyse_expression_primaire()
                     consomme();
                 }
                 else {
-                    expression_piégée = analyse_expression({});
+                    expression_piégée = parse_expression_ellipse();
                     bloc = analyse_bloc(TypeBloc::IMPÉRATIF);
                 }
             }
@@ -1542,12 +1542,7 @@ NoeudExpression *Syntaxeuse::analyse_expression_secondaire(
         {
             consomme();
 
-            auto opérande_droite = analyse_expression({});
-            // À FAIRE : réduit la précédence.
-            if (opérande_droite && opérande_droite->est_virgule()) {
-                rapporte_erreur("Expression invalide pour la valeur de l'indice",
-                                opérande_droite->lexème);
-            }
+            auto opérande_droite = parse_expression_ellipse();
             auto noeud = m_contexte->assembleuse->crée_indexage(lexème, gauche, opérande_droite);
 
             consomme(GenreLexème::CROCHET_FERMANT, "attendu un crochet fermant");
@@ -2246,7 +2241,7 @@ NoeudExpression *Syntaxeuse::analyse_instruction_discr()
     auto lexème = lexème_courant();
     consomme();
 
-    auto expression_discriminée = analyse_expression({});
+    auto expression_discriminée = parse_expression_ellipse();
 
     auto noeud_discr = m_contexte->assembleuse->crée_discr(lexème, expression_discriminée);
 
@@ -2376,7 +2371,7 @@ NoeudExpression *Syntaxeuse::analyse_instruction_pour()
         }
 
         noeud->variable = expression;
-        noeud->expression = analyse_expression({});
+        noeud->expression = parse_expression_virgule();
     }
     else {
         auto noeud_it = m_contexte->assembleuse->crée_référence_déclaration(noeud->lexème);
@@ -2417,7 +2412,7 @@ NoeudExpression *Syntaxeuse::analyse_instruction_pousse_contexte()
     auto lexème = lexème_courant();
     consomme();
 
-    auto expression = analyse_expression({});
+    auto expression = parse_expression_ellipse();
     auto noeud = m_contexte->assembleuse->crée_pousse_contexte(lexème, expression);
     noeud->bloc = analyse_bloc(TypeBloc::IMPÉRATIF, true);
     return noeud;
@@ -2433,7 +2428,7 @@ NoeudExpression *Syntaxeuse::analyse_instruction_répète()
 
     consomme(GenreLexème::TANTQUE, "Attendu une 'tantque' après le bloc de 'répète'");
 
-    noeud->condition = analyse_expression({});
+    noeud->condition = parse_expression_ellipse();
 
     consomme(GenreLexème::POINT_VIRGULE);
 
@@ -2538,7 +2533,7 @@ NoeudExpression *Syntaxeuse::analyse_instruction_tantque()
     auto lexème = lexème_courant();
     consomme();
 
-    auto condition = analyse_expression({});
+    auto condition = parse_expression_ellipse();
 
     auto noeud = m_contexte->assembleuse->crée_tantque(lexème, condition);
     noeud->bloc = analyse_bloc(TypeBloc::IMPÉRATIF);
@@ -2663,7 +2658,7 @@ NoeudExpression *Syntaxeuse::analyse_expression_crochet_ouvrant(Lexème const *l
 
 NoeudExpressionTypeTableauFixe *Syntaxeuse::parse_type_tableau_fixe(Lexème const *lexème)
 {
-    auto expression_entre_crochets = analyse_expression({});
+    auto expression_entre_crochets = parse_expression_ellipse();
 
     consomme(GenreLexème::CROCHET_FERMANT, "Attendu un crochet fermant");
 
@@ -2995,6 +2990,15 @@ NoeudExpression *Syntaxeuse::analyse_déclaration_fonction(Lexème const *lexèm
 
         // À FAIRE : supprime ceci si nous ne créons plus de blocs à tout va.
         bloc_constantes_polymorphiques.dépile();
+
+        if (!bloc_constantes->rubriques->est_vide() && bloc_constantes_polymorphiques.est_vide()) {
+            POUR (*bloc_constantes->rubriques.verrou_lecture()) {
+                rapporte_erreur("déclaration d'une constante polymorphique hors de paramètres de "
+                                "fonctions ou de types",
+                                it->lexème);
+            }
+        }
+
         dépile_état();
         return résultat;
     }

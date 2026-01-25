@@ -405,7 +405,7 @@ imprime_html :: fonc (racine: *Noeud, enchaineuse: *Enchaineuse, profondeur : z3
         }
         Texte {
             noeud_texte := racine comme *Texte;
-            texte := supprime_espaces_blancs(noeud_texte.texte);
+            texte := supprime_espaces_blanches(noeud_texte.texte);
             imprime_dans_enchaineuse(enchaineuse, "<p>%</p>", texte);
         }
         Lien {
@@ -482,7 +482,7 @@ imprime_texte_simple :: fonc (racine: *Noeud, enchaineuse: *Enchaineuse, profond
         }
         Texte {
             noeud_texte := racine comme *Texte;
-            texte := supprime_espaces_blancs(noeud_texte.texte);
+            texte := supprime_espaces_blanches(noeud_texte.texte);
             ajoute_au_tampon(enchaineuse, texte);
         }
         Lien {
