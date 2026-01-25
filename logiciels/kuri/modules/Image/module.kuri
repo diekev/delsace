@@ -175,6 +175,14 @@ donne_descriptice_depuis_image_io :: fonc (image: *ImageIO) -> DescriptriceImage
     retourne desc;
 }
 
+copie_image :: fonc (image: NouvelleImage) -> NouvelleImage
+{
+    résultat := crée_image(*image.desc);
+    résultat.source_données = SourceDonnéesImage.Interne;
+    copie_mem_nonsur(src = image.données, dst = résultat.données, taille = donne_taille_données(*image.desc));
+    retourne résultat;
+}
+
 détruit_données_image :: fonc (image: *NouvelleImage)
 {
     si image.source_données == SourceDonnéesImage.Externe {
