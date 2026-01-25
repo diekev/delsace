@@ -461,6 +461,15 @@ linéaire_vers_srgb :: fonc (spectre: Spectre) -> Spectre
     retourne résultat;
 }
 
+linéaire_vers_srgb :: fonc (couleur: CouleurRVBN8) -> CouleurRVBN8
+{
+    résultat := couleur;
+    résultat.r = linéaire_vers_srgb(couleur.r);
+    résultat.v = linéaire_vers_srgb(couleur.v);
+    résultat.b = linéaire_vers_srgb(couleur.b);
+    retourne résultat;
+}
+
 linéaire_vers_srgb :: fonc (couleur: CouleurRVBAN8) -> CouleurRVBAN8
 {
     résultat := couleur;
@@ -497,12 +506,30 @@ linéaire_vers_srgb :: fonc (value: r32) -> r32
     retourne 1.055 * puissance(v, 1.0 / 2.4) - 0.055;
 }
 
+srgb_vers_linéaire :: fonc (couleur: CouleurRVBN8) -> CouleurRVBN8
+{
+    résultat := couleur;
+    résultat.r = srgb_vers_linéaire(couleur.r);
+    résultat.v = srgb_vers_linéaire(couleur.v);
+    résultat.b = srgb_vers_linéaire(couleur.b);
+    retourne résultat;
+}
+
 srgb_vers_linéaire :: fonc (couleur: CouleurRVBAN8) -> CouleurRVBAN8
 {
     résultat := couleur;
     résultat.r = srgb_vers_linéaire(couleur.r);
     résultat.v = srgb_vers_linéaire(couleur.v);
     résultat.b = srgb_vers_linéaire(couleur.b);
+    retourne résultat;
+}
+
+srgb_vers_linéaire :: fonc (couleur: Spectre) -> Spectre
+{
+    résultat := couleur;
+    résultat.x = srgb_vers_linéaire(couleur.x);
+    résultat.y = srgb_vers_linéaire(couleur.y);
+    résultat.z = srgb_vers_linéaire(couleur.z);
     retourne résultat;
 }
 
