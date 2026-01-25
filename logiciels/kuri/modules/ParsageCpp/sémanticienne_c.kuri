@@ -224,6 +224,57 @@ valide_sémantique_noeud :: fonc (empl sémanticienne: *SémanticienneC, node: *
                 insère_symbole(*table_de_symboles, union_decl.name, union_decl);
             }
         }
+        EnumDecl {
+            enum_decl := node comme *EnumDecl;
+
+            si enum_decl.name {
+                // À FAIRE : différents espaces de noms.
+                decl_existante := donne_symbole(table_de_symboles, enum_decl.name);
+                si decl_existante && decl_existante.genre == EnumDecl {
+                    enum_existante := decl_existante comme *EnumDecl;
+
+                    si enum_existante.drapeaux.COMPLET == vrai {
+                        // À FAIRE : drapeau spécifique pour dire qu'il y eu un bloc
+                        si enum_decl.enumerators {
+                            rapporte_note(sémanticienne, enum_existante, "l'enum '%' fut déjà définie ici", enum_existante.name);
+                            rapporte_erreur(sémanticienne, enum_decl, "redéfinition de l'enum '%'", enum_decl.name);
+                        }
+
+                        enum_decl.type = enum_existante;
+                        retourne;
+                    }
+                }
+
+                insère_symbole(*table_de_symboles, enum_decl.name, enum_decl);
+            }
+
+            si enum_decl.enumerators {
+                // À FAIRE : valide que les valeurs sont représentables par int
+                dernière_valeur: z32;
+                pour enum_decl.enumerators {
+                    si it.expression {
+                        valide_sémantique_noeud(sémanticienne, it.expression);
+                        valeur := évalue_expression_constante(sémanticienne, it.expression);
+                        it.valeur = valeur comme z32;
+                        dernière_valeur = it.valeur + 1;
+                    }
+                    sinon {
+                        it.valeur = dernière_valeur;
+                        dernière_valeur += 1;
+                    }
+
+                    // À FAIRE : sélection du type
+                    it.type = unit.maçonne_type.int_signed_type;
+
+                    // À FAIRE : redéfinitions
+                    nom := donne_texte(it.identifier);
+
+                    insère_symbole(*table_de_symboles, nom, it);
+                }
+
+                enum_decl.drapeaux.COMPLET = vrai;
+            }
+        }
         VarDecl {
             var_decl := node comme *VarDecl;
 
@@ -353,9 +404,11 @@ valide_sémantique_noeud :: fonc (empl sémanticienne: *SémanticienneC, node: *
         }
         CompoundStatement {
             compound := node comme *CompoundStatement;
+            empile_bloc(*table_de_symboles);
             pour compound.items {
                 valide_sémantique_noeud(sémanticienne, it);
             }
+            dépile_bloc(*table_de_symboles);
         }
         ExpressionStatement {
             statement := node comme *ExpressionStatement;
@@ -715,6 +768,49 @@ valide_sémantique_noeud :: fonc (empl sémanticienne: *SémanticienneC, node: *
             assignment.type = type;
             assignment.drapeaux.LVALUE = faux;
         }
+        CompoundAssignmentExpression {
+            assignment := node comme *CompoundAssignmentExpression;
+
+            valide_sémantique_noeud(sémanticienne, assignment.left);
+            valide_sémantique_noeud(sémanticienne, assignment.right);
+
+            saufsi est_modifiable_lvalue(assignment.left) {
+                rapporte_erreur(sémanticienne, assignment.left, "une valeur-gauche modifiable est requise à gauche de l'assignement");
+            }
+
+            // À FAIRE : pour les opérateurs autre que += et -= :
+            // (considering the type the left operand would have after lvalue conversion)
+
+            si assignment.op == "+=" || assignment.op == "-=" {
+                type_gauche := assignment.left.type;
+                type_droite := assignment.right.type;
+
+                est_valide := type_gauche.drapeaux.POINTER && type_droite.drapeaux.INTEGER;
+                est_valide ||= type_gauche.drapeaux.ARITHMETIC && type_droite.drapeaux.ARITHMETIC;
+
+                saufsi est_valide {
+                    rapporte_note(sémanticienne, assignment.left, "le type à gauche est '%'", donne_épelage_type(type_gauche));
+                    rapporte_note(sémanticienne, assignment.right, "le type à droite est '%'", donne_épelage_type(type_droite));
+                    rapporte_erreur(sémanticienne, assignment, "opérandes invalides pour l'assignation composée");
+                }
+            }
+            sinon si assignment.op == "*=" || assignment.op == "/=" {
+                valide_opérateur_multiplicatif(sémanticienne, assignment);
+            }
+            sinon si assignment.op == "%=" {
+                valide_opérateur_modulo(sémanticienne, assignment);
+            }
+            sinon si assignment.op == "<<=" || assignment.op == ">>=" {
+                valide_opérateur_décalage(sémanticienne, assignment);
+            }
+            sinon si assignment.op == "|=" || assignment.op == "&=" || assignment.op == "^=" {
+                valide_opérateur_bital(sémanticienne, assignment);
+            }
+
+            type := donne_lvalue_conversion_type(sémanticienne, assignment.left.type);
+            assignment.type = type;
+            assignment.drapeaux.LVALUE = faux;
+        }
         BinaryExpression {
             binary := node comme *BinaryExpression;
             valide_sémantique_noeud(sémanticienne, binary.left);
@@ -833,6 +929,23 @@ valide_sémantique_noeud :: fonc (empl sémanticienne: *SémanticienneC, node: *
             }
 
             postfix.type = operand_type;
+        }
+        PrefixUpdateExpression {
+            prefix := node comme *PrefixUpdateExpression;
+
+            valide_sémantique_noeud(sémanticienne, prefix.operand);
+
+            operand_type := prefix.operand.type;
+
+            si operand_type.drapeaux.REAL == faux && operand_type.drapeaux.POINTER == faux {
+                rapporte_erreur(sémanticienne, prefix.operand.token, "l'opérateur préfixe '%' ne peut s'appliquer que sur des types réels ou pointeurs", prefix.op);
+            }
+
+            saufsi est_modifiable_lvalue(prefix.operand) {
+                rapporte_erreur(sémanticienne, prefix.operand, "l'opérateur préfixe '%' requiers une valeur-gauche modifiable comme opérande", prefix.op);
+            }
+
+            prefix.type = operand_type;
         }
         IndexExpression {
             index := node comme *IndexExpression;
@@ -959,6 +1072,19 @@ valide_sémantique_noeud :: fonc (empl sémanticienne: *SémanticienneC, node: *
             }
 
             alignof.type = unit.maçonne_type.size_t_type;
+        }
+        TernaryExpression {
+            ternary := node comme *TernaryExpression;
+
+            valide_sémantique_noeud(sémanticienne, ternary.test);
+            valide_sémantique_noeud(sémanticienne, ternary.consequent);
+            valide_sémantique_noeud(sémanticienne, ternary.alternate);
+
+            si ternary.test.type.drapeaux.SCALAR == faux {
+                rapporte_erreur(sémanticienne, ternary.test, "un type scalaire est requis pour la première opérande de l'expression conditionnelle");
+            }
+
+            ternary.type = valide_branches_expression_conditionnelle(sémanticienne, ternary);
         }
         PointerType {
 
@@ -1283,6 +1409,58 @@ valide_initializer_list :: fonc (empl sémanticienne: *SémanticienneC, objet_ra
     sinon {
         rapporte_erreur_interne(sémanticienne, initializer, "initialisateur pour type '%' non-supporté", donne_épelage_type(type_objet));
     }
+}
+
+valide_branches_expression_conditionnelle :: fonc (sémanticienne: *SémanticienneC, ternary: *TernaryExpression) -> *Type
+{
+    gauche := ternary.consequent;
+    droite := ternary.alternate;
+
+    type_gauche := gauche.type;
+    type_droite := droite.type;
+
+    // — both operands have arithmetic type;
+    si type_gauche.drapeaux.ARITHMETIC && type_droite.drapeaux.ARITHMETIC {
+        // À FAIRE : the result type that would be determined by the usual arithmetic conversions
+        retourne type_gauche;
+    }
+
+    // — both operands have void type;
+    si type_gauche.kind == TypeKind.VOID && type_droite.kind == TypeKind.VOID {
+        retourne type_gauche;
+    }
+
+    si type_gauche.drapeaux.POINTER && type_droite.drapeaux.POINTER {
+        pointeur_gauche := type_gauche comme *PointerType;
+        pointeur_droite := type_droite comme *PointerType;
+
+        // — one operand is a pointer and the other is a null pointer constant; or
+        // — one operand is a pointer to an object type and the other is a pointer
+        //   to a qualified or unqualified version of void.
+        si pointeur_gauche.pointed_to.kind == TypeKind.VOID {
+            retourne pointeur_droite;
+        }
+        si pointeur_droite.pointed_to.kind == TypeKind.VOID {
+            retourne pointeur_gauche;
+        }
+
+        // — both operands are pointers to qualified or unqualified versions of compatible types;
+        saufsi types_sont_compatibles(pointeur_gauche.pointed_to, pointeur_droite.pointed_to) {
+            rapporte_note(sémanticienne, gauche, "le type de la première opérande est '%'", donne_épelage_type(type_gauche));
+            rapporte_note(sémanticienne, droite, "le type de la deuxième opérande est '%'", donne_épelage_type(type_droite));
+            rapporte_erreur(sémanticienne, ternary, "opérandes invalides pour l'expression conditionnelle");
+        }
+
+        // À FAIRE : a pointer to an appropriately qualified version of the composite type;
+        retourne type_gauche;
+    }
+
+    // À FAIRE : — both operands have the same structure or union type;
+
+    rapporte_note(sémanticienne, gauche, "le type de la première opérande est '%'", donne_épelage_type(type_gauche));
+    rapporte_note(sémanticienne, droite, "le type de la deuxième opérande est '%'", donne_épelage_type(type_droite));
+    rapporte_erreur(sémanticienne, ternary, "opérandes invalides pour l'expression conditionnelle");
+    retourne sémanticienne.unit.maçonne_type.int_signed_type;
 }
 
 /* 6.3.2.1 Lvalues, arrays, and function designators */

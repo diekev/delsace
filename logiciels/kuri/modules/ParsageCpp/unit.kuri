@@ -81,7 +81,7 @@ résoud_plage_source :: fonc (unit: *TranslationUnit, plage_source: PlageSource)
     assert(plage_source.début.fichier == plage_source.fin.fichier);
 
     texte_lexème := chaine(fichier.contenu_prétaité.pointeur + plage_source.début.décalage, plage_source.fin.décalage - plage_source.début.décalage);
-    texte_ligne := donne_ligne_pour_erreur(fichier.contenu_prétaité, texte_lexème);
+    texte_ligne := donne_ligne_contenant_mot(fichier.contenu_prétaité, texte_lexème);
 
     résultat: PlageSourceRésolue;
     résultat.fichier = fichier.chemin;
