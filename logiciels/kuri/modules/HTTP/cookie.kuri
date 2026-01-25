@@ -482,7 +482,7 @@ parse_entête_set_cookie :: fonc (ctx: *ContexteParsageEntête, chn: chaine)
         retourne;
     }
 
-    nom_cookie := supprime_espaces_blancs(sous_chaine(paire_nom_valeur, 0, pos_égal));
+    nom_cookie := supprime_espaces_blanches(sous_chaine(paire_nom_valeur, 0, pos_égal));
     si nom_cookie.taille == 0 {
         retourne;
     }
@@ -510,8 +510,8 @@ parse_entête_set_cookie :: fonc (ctx: *ContexteParsageEntête, chn: chaine)
             valeur_attribut = sous_chaine(valeur_attribut_cookie, pos_égal + 1, valeur_attribut_cookie.taille);
         }
 
-        nom_attribut = supprime_espaces_blancs(nom_attribut);
-        valeur_attribut = supprime_espaces_blancs(valeur_attribut);
+        nom_attribut = supprime_espaces_blanches(nom_attribut);
+        valeur_attribut = supprime_espaces_blanches(valeur_attribut);
 
         parse_attribut_cookie(ctx, nom_attribut, valeur_attribut, *attributs);
         

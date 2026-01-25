@@ -1,6 +1,26 @@
 importe GlibC;
 importe Temps;
 
+Permissions_Unix :: énum_drapeau n32 {
+    EXÉCUTION_UTILISATEUR :: 0o100;
+    ÉCRITURE_UTILISATEUR  :: 0o200;
+    LECTURE_UTILISATEUR   :: 0o400;
+
+    EXÉCUTION_GOUPE       :: 0o010;
+    LECTURE_GOUPE         :: 0o040;
+    ÉCRITURE_GOUPE        :: 0o020;
+
+    EXÉCUTION_AUTRES      :: 0o001;
+    ÉCRITURE_AUTRES       :: 0o002;
+    LECTURE_AUTRES        :: 0o004;
+
+    DÉFAUT :: ÉCRITURE_UTILISATEUR | LECTURE_UTILISATEUR | LECTURE_AUTRES | LECTURE_GOUPE;
+}
+
+Type_Permissions_Fichier :: Permissions_Unix;
+
+Permissions_Fichier_Défaut :: Permissions_Unix.DÉFAUT;
+
 TypePoignéeFichier :: #opaque z32;
 
 système_poignée_fichier_invalide :: fonc () -> TypePoignéeFichier
@@ -169,7 +189,7 @@ système_convertis_raison :: fonc (raison: RaisonOuvertureFichier) -> z32
     retourne drapeaux;
 }
 
-système_ouvre :: fonc (chemin: CheminFichier, raison: RaisonOuvertureFichier, permissions: z32) -> RésultatOpérationFichier
+système_ouvre :: fonc (chemin: CheminFichier, raison: RaisonOuvertureFichier, permissions: Type_Permissions_Fichier) -> RésultatOpérationFichier
 {
     ptr_chemin := crée_chaine_c(chemin.chn);
     diffère détruit_chaine_c(ptr_chemin);
