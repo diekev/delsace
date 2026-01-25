@@ -14,14 +14,14 @@ est_chaine_statique :: fonc (chn: chaine) -> bool #enligne
     retourne intrinsèque_est_adresse_données_constantes(chn.pointeur);
 }
 
-supprime_espaces_blancs :: fonc (ligne: chaine) -> chaine
+supprime_espaces_blanches :: fonc (ligne: chaine) -> chaine
 {
-    ligne = supprime_espaces_blancs_au_début(ligne);
-    ligne = supprime_espaces_blancs_à_la_fin(ligne);
+    ligne = supprime_espaces_blanches_au_début(ligne);
+    ligne = supprime_espaces_blanches_à_la_fin(ligne);
     retourne ligne;
 }
 
-supprime_espaces_blancs_au_début :: fonc (ligne: chaine) -> chaine
+supprime_espaces_blanches_au_début :: fonc (ligne: chaine) -> chaine
 {
     tantque ligne.taille > 0 {
         saufsi est_espace_blanche(ligne[0]) {
@@ -32,7 +32,7 @@ supprime_espaces_blancs_au_début :: fonc (ligne: chaine) -> chaine
     retourne ligne;
 }
 
-supprime_espaces_blancs_à_la_fin :: fonc (ligne: chaine) -> chaine
+supprime_espaces_blanches_à_la_fin :: fonc (ligne: chaine) -> chaine
 {
     tantque ligne.taille > 0 {
         saufsi est_espace_blanche(ligne[ligne.taille - 1]) {
@@ -524,6 +524,37 @@ est_sous_chaine :: fonc (a: chaine, b: chaine) -> bool
     retourne début_a <= début_b <= fin_a && début_a <= fin_b <= fin_a;
 }
 
+donne_ligne_contenant_mot :: fonc (texte: chaine, mot: chaine) -> chaine
+{
+    début := texte.pointeur;
+    fin := texte.pointeur + texte.taille;
+    ptr_position := mot.pointeur;
+
+    saufsi début <= ptr_position < fin {
+        retourne "";
+    }
+
+    ptr_début_ligne := ptr_position;
+    tantque ptr_début_ligne > début {
+        si mémoire(ptr_début_ligne) == '\n' {
+            ptr_début_ligne += 1;
+            arrête;
+        }
+        ptr_début_ligne -= 1;
+    }
+
+    ptr_fin_ligne := ptr_début_ligne;
+    tantque ptr_fin_ligne < fin {
+        si mémoire(ptr_fin_ligne) == '\n' {
+            arrête;
+        }
+        ptr_fin_ligne += 1;
+    }
+
+    résultat := chaine(ptr_début_ligne, ptr_fin_ligne - ptr_début_ligne);
+    retourne résultat;
+}
+
 distance_levenshtein :: fonc (chn1: chaine, chn2: chaine) -> z64
 {
     m := chn1.taille;
@@ -577,24 +608,6 @@ distance_levenshtein :: fonc (chn1: chaine, chn2: chaine) -> z64
     }
 
     retourne coûts[n];
-}
-
-append :: fonc (vers: *chaine, chn: chaine) -> rien
-{
-    si chn.taille == 0 {
-        retourne;
-    }
-
-    tmp := mémoire(vers);
-
-    taille := tmp.taille;
-    reloge_chaine(tmp, tmp.taille + chn.taille);
-
-    pour idx_vers, idx_chn dans taille ... tmp.taille - 1 {
-        tmp[idx_vers] = chn[idx_chn];
-    }
-
-    mémoire(vers) = tmp;
 }
 
 trouve_motif_dans_chaine :: fonc (chn: chaine, motif: chaine, indice_début : z64 = 0) -> z64

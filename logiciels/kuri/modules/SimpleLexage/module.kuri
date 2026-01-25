@@ -658,7 +658,7 @@ construis_table_peut_suivre :: fonc (lexeuse: *SimpleLexeuse)
 
 imprime_tables_de_lexage :: fonc (lexeuse: *SimpleLexeuse)
 {
-    imprime_table :: fonc (table: []$T);
+    imprime_table :: fonc (table: []$T)
     {
         pour table {
             si it == it.zéro {
@@ -1058,31 +1058,10 @@ LignePourErreur :: struct {
     texte: chaine;
 }
 
-// @copié de JSON
 donne_ligne_pour_erreur :: fonc (lexeuse: *SimpleLexeuse) -> LignePourErreur
 {
-    début := lexeuse.texte.pointeur;
-    fin := lexeuse.texte.pointeur + lexeuse.texte.taille;
-    ptr_position := lexeuse.début;
-
-    ptr_début_ligne := ptr_position;
-    tantque ptr_début_ligne > début {
-        si mémoire(ptr_début_ligne) == '\n' {
-            ptr_début_ligne += 1;
-            arrête;
-        }
-        ptr_début_ligne -= 1;
-    }
-
-    ptr_fin_ligne := ptr_début_ligne;
-    tantque ptr_fin_ligne < fin {
-        si mémoire(ptr_fin_ligne) == '\n' {
-            arrête;
-        }
-        ptr_fin_ligne += 1;
-    }
-
-    texte := chaine(ptr_début_ligne, ptr_fin_ligne - ptr_début_ligne);
+    mot := chaine(lexeuse.début, 0);
+    texte := donne_ligne_contenant_mot(lexeuse.texte, mot);
     retourne LignePourErreur(texte);
 }
 

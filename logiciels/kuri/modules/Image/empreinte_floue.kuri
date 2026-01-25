@@ -1,0 +1,386 @@
+
+calcule_empreinte_floue :: fonc (image: NouvelleImage, composants_x: z32, composants_y: z32) -> chaine
+{
+    résultat: chaine;
+
+    discr image.desc.format {
+        Gris_8 {
+            tampon_img := donne_tampon_gris_8bit(image);
+            résultat = calcule_empreinte_floue(tampon_img.données, tampon_img.largeur, tampon_img.hauteur, 3, composants_x, composants_y);
+        }
+        RVB_8 {
+            tampon_img := donne_tampon_rvb_8bit(image);
+            résultat = calcule_empreinte_floue(tampon_img.données comme *n8, tampon_img.largeur, tampon_img.hauteur, 3, composants_x, composants_y);
+        }
+        RVBA_8 {
+            tampon_img := donne_tampon_rvba_8bit(image);
+            résultat = calcule_empreinte_floue(tampon_img.données comme *n8, tampon_img.largeur, tampon_img.hauteur, 4, composants_x, composants_y);
+        }
+        Gris_32 {
+            tampon_img := image.donne_tampon_gris();
+            résultat = calcule_empreinte_floue(tampon_img.données, tampon_img.largeur, tampon_img.hauteur, 1, composants_x, composants_y);
+        }
+        RVB_32 {
+            tampon_img := image.donne_tampon_spectre();
+            résultat = calcule_empreinte_floue(tampon_img.données comme *r32, tampon_img.largeur, tampon_img.hauteur, 3, composants_x, composants_y);
+        }
+        RVBA_32 {
+            tampon_img := image.donne_tampon_rvba();
+            résultat = calcule_empreinte_floue(tampon_img.données comme *r32, tampon_img.largeur, tampon_img.hauteur, 4, composants_x, composants_y);
+        }
+    }
+
+    retourne résultat;
+}
+
+décode_empreinte_floue :: fonc (empreinte: chaine, largeur: n32, hauteur: n32, punch: z32) -> (bool, NouvelleImage)
+{
+    desc: DescriptriceImage;
+    desc.largeur = largeur;
+    desc.hauteur = hauteur;
+    desc.format = FormatPixel.RVB_8;
+
+    résultat := crée_image(*desc);
+
+    saufsi décode_empreinte_floue(empreinte, largeur comme z32, hauteur comme z32, punch, résultat.données comme *n8) {
+        détruit_données_image(*résultat);
+        retourne faux, résultat;
+    }
+
+    retourne vrai, résultat;
+}
+
+#portée_fichier
+
+calcule_empreinte_floue :: fonc (image: *$T,
+                                 largeur: z32,
+                                 hauteur: z32,
+                                 nombre_canaux: z32,
+                                 composants_x: z32,
+                                 composants_y: z32) -> chaine
+{
+    si (largeur < 1 || hauteur < 1 || composants_x < 1 || composants_x > 9 || composants_y < 1 ||
+        composants_y > 9 || !image) {
+        retourne "";
+    }
+
+    factors := loge_tableau(r32, composants_y * composants_x * 3);
+    factors.taille = factors.capacité;
+    diffère déloge(factors);
+
+    ptr_factors := factors.pointeur;
+
+    pour y dans composants_y {
+        pour x dans composants_x {
+            factor := multiplie_fonction_de_base(Component(x, y), largeur comme z32, hauteur comme z32, nombre_canaux, image);
+            ptr_factors[0] = factor.r;
+            ptr_factors[1] = factor.g;
+            ptr_factors[2] = factor.b;
+            ptr_factors += 3;
+        }
+    }
+
+    dc := factors.pointeur;
+    retourne encode_factors(dc, composants_x, composants_y);
+}
+
+Component :: struct {
+    x, y: z32;
+}
+
+Color :: struct {
+    r, g, b: r32;
+}
+
+opérateur * :: (a: Color, b: r32) -> Color
+{
+    résultat := a;
+    résultat.r *= b;
+    résultat.g *= b;
+    résultat.b *= b;
+    retourne résultat;
+}
+
+linéaire_vers_srgb_z32 :: fonc (l: r32) -> z32
+{
+    résultat := linéaire_vers_srgb(l);
+    retourne (résultat * 255.0 + 0.5) comme z32;
+}
+
+encodeDC :: fonc (c: Color) -> z32
+{
+    retourne (linéaire_vers_srgb_z32(c.r) << 16) + (linéaire_vers_srgb_z32(c.g) << 8) + linéaire_vers_srgb_z32(c.b);
+}
+
+signPow :: fonc (value: r32, exp: r32) -> r32
+{
+    retourne copie_signe(puissance(abs(value), exp), value);
+}
+
+encodeAC :: fonc (c: Color, maximumValue: r32) -> z32
+{
+    quantR := max(0.0, min(18.0, plancher(signPow(c.r / maximumValue, 0.5) * 9.0 + 9.5))) comme z32;
+    quantG := max(0.0, min(18.0, plancher(signPow(c.g / maximumValue, 0.5) * 9.0 + 9.5))) comme z32;
+    quantB := max(0.0, min(18.0, plancher(signPow(c.b / maximumValue, 0.5) * 9.0 + 9.5))) comme z32;
+    retourne quantR * 19 * 19 + quantG * 19 + quantB;
+}
+
+multiplie_fonction_de_base :: fonc (components: Component, largeur: z32, hauteur: z32, nombre_canaux: z32, pixels: *$T) -> Color
+{
+    c: Color;
+    normalisation := si (components.x == 0 && components.y == 0)  { 1.0; } sinon { 2.0; };
+
+    pour y dans hauteur {
+        pour x dans largeur {
+            basis := (cosinus(Constantes(r64).PI * (components.x * x) comme r64 / largeur comme r64) *
+                      cosinus(Constantes(r64).PI * (components.y * y) comme r64 / hauteur comme r64)) comme r32;
+            index := (x + y * largeur) * nombre_canaux;
+
+            c.r += basis * srgb_vers_linéaire_r32(pixels[index]);
+            si (nombre_canaux > 1) {
+                c.g += basis * srgb_vers_linéaire_r32(pixels[index + 1]);
+
+                si (nombre_canaux > 2) {
+                    c.b += basis * srgb_vers_linéaire_r32(pixels[index + 2]);
+                }
+            }
+        }
+    }
+
+    scale := normalisation / (largeur * hauteur) comme r32;
+    c *= scale;
+    retourne c;
+}
+
+encode_factors :: fonc (dc: *r32, components_x: z32, components_y: z32) -> chaine
+{
+    ac := dc + 3;
+    acCount := components_x * components_y - 1;
+
+    tampon: [2 + 4 + (9 * 9 - 1) * 2 + 1]z8;
+    ptr := *tampon[0];
+
+    sizeFlag := (components_x - 1) + (components_y - 1) * 9;
+    ptr = encode_int(sizeFlag, 1, ptr);
+
+    maximumValue: r32;
+    si acCount > 0 {
+        actualMaximumValue : r32 = 0;
+        pour i dans acCount * 3 {
+            actualMaximumValue = max(abs(ac[i]), actualMaximumValue);
+        }
+
+        quantisedMaximumValue := max(0, min(82, plancher(actualMaximumValue * 166 - 0.5) comme z32));
+        maximumValue = (quantisedMaximumValue comme r32 + 1) / 166;
+        ptr = encode_int(quantisedMaximumValue, 1, ptr);
+    }
+    sinon {
+        maximumValue = 1;
+        ptr = encode_int(0, 1, ptr);
+    }
+
+    ptr = encode_int(encodeDC(Color(dc[0], dc[1], dc[2])), 4, ptr);
+
+    pour i dans acCount {
+        ptr = encode_int(encodeAC(Color(ac[i * 3 + 0], ac[i * 3 + 1], ac[i * 3 + 2]), maximumValue), 2, ptr);
+    }
+
+    mémoire(ptr) = 0;
+
+    retourne convertis_chaine_c(ChaineC(*tampon[0]));
+}
+    
+characters :: "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz#$%*+,-.:;=?@[]^_{|}~";
+
+table_caractères_empreinte_floue: [256]z8 = ---;
+table_caractères_empreinte_floue_init := faux;
+
+donne_table_caractères_empreinte_floue :: fonc () -> []z8
+{
+    saufsi table_caractères_empreinte_floue_init {
+        pour 256 {
+            table_caractères_empreinte_floue[it] = -1 comme z8;
+        }
+        pour characters {
+            table_caractères_empreinte_floue[it] = indice_it comme z8;
+        }
+        table_caractères_empreinte_floue_init = vrai;
+    }
+
+    retourne table_caractères_empreinte_floue;
+}
+
+encode_int :: fonc (value: z32, length: z32, destination: *z8) -> *z8
+{
+
+    divisor := 1;
+    pour length - 1 {
+        divisor *= 83;
+    }
+
+    pour length {
+        digit := (value / divisor) % 83;
+        divisor /= 83;
+        mémoire(destination) = characters[digit];
+        destination += 1;
+    }
+    retourne destination;
+}
+
+srgb_vers_linéaire_r32 :: fonc (value: r32) -> r32
+{
+    retourne srgb_vers_linéaire(value);
+}
+
+srgb_vers_linéaire_r32 :: fonc (value: n8) -> r32
+{
+    retourne srgb_vers_linéaire(value) comme r32 / 255.0;
+}
+
+srgb_vers_linéaire_r32 :: fonc (value: z32) -> r32
+{
+    retourne srgb_vers_linéaire_r32(value comme n8);
+}
+
+decodeDC :: fonc (value: z32, r: *r32, g: *r32, b: *r32)
+{
+    mémoire(r) = srgb_vers_linéaire_r32(value >> 16);         // R-component
+    mémoire(g) = srgb_vers_linéaire_r32((value >> 8) & 255);  // G-Component
+    mémoire(b) = srgb_vers_linéaire_r32(value & 255);         // B-Component
+}
+
+decodeAC :: fonc (value: z32, maximumValue: r32, r: *r32, g: *r32, b: *r32)
+{
+    quantR := plancher(value comme r32 / (19 * 19) comme r32) comme z32;
+    quantG := plancher(value comme r32 / 19) comme z32 % 19;
+    quantB := value % 19;
+
+    mémoire(r) = signPow((quantR comme r32 - 9) / 9, 2.0) * maximumValue;
+    mémoire(g) = signPow((quantG comme r32 - 9) / 9, 2.0) * maximumValue;
+    mémoire(b) = signPow((quantB comme r32 - 9) / 9, 2.0) * maximumValue;
+}
+
+restreint_vers_n8 :: fonc (valeur: z32) -> n8
+{
+    si valeur < 0 {
+        retourne 0;
+    }
+    si valeur > 255 {
+        retourne 255;
+    }
+    retourne valeur comme n8;
+}
+
+décode_empreinte_floue :: fonc (empreinte: chaine, largeur: z32, hauteur: z32, punch: z32, pixelArray: *n8) -> bool
+{
+    saufsi est_empreinte_floue_valide(empreinte) {
+        retourne faux;
+    }
+
+    si punch < 1 {
+        punch = 1;
+    }
+
+    sizeFlag := decodeToInt(empreinte, 0, 1);
+    numY := plancher(sizeFlag comme r32 / 9.0) comme z32 + 1;
+    numX := (sizeFlag % 9) + 1;
+
+    r, g, b: r32;
+    quantizedMaxValue := decodeToInt(empreinte, 1, 2);
+    si quantizedMaxValue == -1 {
+        retourne faux;
+    }
+
+    maxValue := (quantizedMaxValue comme r32 + 1.0) / 166.0;
+
+    colors_size := numX * numY;
+    colors := loge_tableau(r32, colors_size * 3);
+    colors.taille = colors.capacité;
+    diffère déloge(colors);
+
+    ptr_colors := colors.pointeur;
+
+    pour colors_size {
+        si it == 0 {
+            value := decodeToInt(empreinte, 2, 6);
+            si value == -1 {
+                retourne faux;
+            }
+
+            decodeDC(value, ptr_colors + 0, ptr_colors + 1, ptr_colors + 2);
+        }
+        sinon {
+            value := decodeToInt(empreinte, 4 + it * 2, 6 + it * 2);
+            si value == -1 {
+                retourne faux;
+            }
+
+            decodeAC(value, maxValue * punch comme r32, ptr_colors + 0, ptr_colors + 1, ptr_colors + 2);
+        }
+
+        ptr_colors += 3;
+    }
+
+    octets_par_ligne := largeur * 3;
+
+    pour y dans hauteur {
+        pour x dans largeur {
+            r, g, b: r32;
+
+            pour j dans numY {
+                pour i dans numX {
+                    basics := (cosinus((Constantes(r64).PI * (x * i) comme r64) / largeur comme r64)
+                              * cosinus((Constantes(r64).PI * (y * j) comme r64) / hauteur comme r64)) comme r32;
+                    idx := i + j * numX;
+                    r += colors[idx * 3 + 0] * basics;
+                    g += colors[idx * 3 + 1] * basics;
+                    b += colors[idx * 3 + 2] * basics;
+                }
+            }
+
+            intR := linéaire_vers_srgb_z32(r);
+            intG := linéaire_vers_srgb_z32(g);
+            intB := linéaire_vers_srgb_z32(b);
+
+            pixelArray[3 * x + 0 + y * octets_par_ligne] = restreint_vers_n8(intR);
+            pixelArray[3 * x + 1 + y * octets_par_ligne] = restreint_vers_n8(intG);
+            pixelArray[3 * x + 2 + y * octets_par_ligne] = restreint_vers_n8(intB);
+        }
+    }
+
+    retourne vrai;
+}
+
+est_empreinte_floue_valide :: fonc (empreinte: chaine) -> bool
+{
+    si empreinte.taille < 6 {
+        retourne faux;
+    }
+
+    sizeFlag := decodeToInt(empreinte, 0, 1);  // Get size from first character
+    numY := plancher(sizeFlag comme r32 / 9) comme z32 + 1;
+    numX := (sizeFlag % 9) + 1;
+
+    si empreinte.taille != 4 + 2 * numX * numY {
+        retourne faux;
+    }
+    retourne vrai;
+}
+
+decodeToInt :: fonc (empreinte: chaine, start: z32, end: z32) -> z32
+{
+    résultat := 0;
+
+    chn := chaine(empreinte.pointeur + start, end - start);
+
+    table := donne_table_caractères_empreinte_floue();
+    pour chn {
+        indice := table[it comme n8];
+        si indice == -1 {
+            retourne -1;
+        }
+        résultat = résultat * 83 + indice;
+    }
+
+    retourne résultat;
+}
