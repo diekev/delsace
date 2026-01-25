@@ -306,7 +306,7 @@ initialise_flux_octets_fichier :: fonc (résultat: *FluxOctetsFichier, chemin: C
     résultat.sur_destruction = flux_octets_mémoire_sur_destruction;
     résultat.sur_donne_position = flux_octets_fichier_donne_position;
 
-    résultat.fichier = tente ouvre_fichier(chemin, pour_lecture, 0o644) piège err {
+    résultat.fichier = tente ouvre_fichier(chemin, pour_lecture, Permissions_Fichier_Défaut) piège err {
         imprimeln("Impossible d'ouvrir le fichier '%' : %", chemin.chn, err);
         retourne faux;
     };
