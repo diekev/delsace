@@ -427,39 +427,36 @@ est_valide :: fonc (uri: URI) -> bool
 // Voir RFC3986, section 5.3
 recompose_uri :: fonc (uri: *URI) -> chaine
 {
-    résultat: chaine;
+    résultat: Enchaineuse;
+    initialise_enchaineuse(*résultat);
 
     si uri.schéma_est_défini {
-        append(*résultat, uri.schéma);
-        append(*résultat, ":");
+        ajoute_au_tampon(*résultat, uri.schéma, ":");
     }
 
     si uri.autorité_est_définie && uri.schéma != "data" {
-        append(*résultat, "//");
-        append(*résultat, uri.autorité);
+        ajoute_au_tampon(*résultat, "//", uri.autorité);
     }
 
     si uri.chemin.taille == 0 {
-        append(*résultat, "/");
+        ajoute_au_tampon(*résultat, "/");
     }
     sinon {
         si uri.chemin[0] != '/' && uri.schéma != "data" {
-            append(*résultat, "/");
+            ajoute_au_tampon(*résultat, "/");
         }
-        append(*résultat, uri.chemin);
+        ajoute_au_tampon(*résultat, uri.chemin);
     }
 
     si uri.requête_est_définie {
-        append(*résultat, "?");
-        append(*résultat, uri.requête);
+        ajoute_au_tampon(*résultat, "?", uri.requête);
     }
 
     si uri.fragment_est_défini {
-        append(*résultat, "#");
-        append(*résultat, uri.fragment);
+        ajoute_au_tampon(*résultat, "#", uri.fragment);
     }
 
-    retourne résultat;
+    retourne chaine_depuis_enchaineuse(*résultat);
 }
 
 // Calcul une somme de controle, sur 64bit, pour un URI selon l'algorithme de Fletcher

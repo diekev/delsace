@@ -57,7 +57,7 @@ est_élément_optionnel :: fonc (tag: DOMString) -> bool
 
 ContexteFormattage :: struct {
     profondeur: z32;
-    supprime_espaces_blancs_texte : bool = vrai;
+    supprime_espaces_blanches_texte : bool = vrai;
     insère_nouvelle_lignes_après_tags : bool = vrai;
     indente_tags : bool = vrai;
     /* Supprime les guillemets des attributs si possible. */
@@ -72,7 +72,7 @@ initialise_contexte_formattage_minification :: fonc () -> ContexteFormattage
 {
     ctx: ContexteFormattage;
     ctx.insère_nouvelle_lignes_après_tags = faux;
-    ctx.supprime_espaces_blancs_texte = vrai;
+    ctx.supprime_espaces_blanches_texte = vrai;
     ctx.indente_tags = faux;
     ctx.supprime_guillemets_attributs = vrai;
     ctx.supprime_slash_tags_auto_fermant = vrai;
@@ -84,7 +84,7 @@ initialise_contexte_formattage_minification :: fonc () -> ContexteFormattage
 // À FAIRE : gère proprement le texte, notamment vis-à-vis de l'indentation des tags, et les caractères échappés
 formatte_texte :: fonc (contexte_formattage: &ContexteFormattage, texte: ChaineUTF16) -> ChaineUTF16
 {
-    saufsi contexte_formattage.supprime_espaces_blancs_texte {
+    saufsi contexte_formattage.supprime_espaces_blanches_texte {
         retourne texte;
     }
     retourne donne_sous_chaine_entre_espace_blanches(texte);
