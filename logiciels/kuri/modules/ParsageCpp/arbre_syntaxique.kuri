@@ -326,6 +326,8 @@ EnumeratorDecl :: struct {
 
     identifier: Token;
     expression: *Expression;
+
+    valeur: z32;
 }
 
 FieldDecl :: struct {
@@ -459,13 +461,8 @@ AssignmentExpression :: struct {
 }
 
 CompoundAssignmentExpression :: struct {
-    empl expr: Expression;
+    empl binary_expr: BinaryExpression;
     genre = #type_de_cette_structure;
-
-    // À FAIRE : stocke les lexèmes
-    op: chaine;
-    left: *Expression;
-    right: *Expression;
 }
 
 UnaryExpression :: struct {

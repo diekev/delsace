@@ -228,12 +228,12 @@ supprime_lignes_vides_redondantes_pour_fichier :: fonc (données_fichier: &Donn�
 
 // -------------------------------------
 
-supprime_espaces_blancs_finaux :: fonc (données_fichier: &DonnéesFichier)
+supprime_espaces_blanches_finaux :: fonc (données_fichier: &DonnéesFichier)
 {
     lignes_furent_modifiées := faux;
     pour & données_fichier.lignes {
         ancienne_taille := it.taille;
-        it = supprime_espaces_blancs_à_la_fin(it);
+        it = supprime_espaces_blanches_à_la_fin(it);
 
         si it.taille != ancienne_taille {
             lignes_furent_modifiées = vrai;
