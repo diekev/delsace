@@ -528,6 +528,8 @@ Fichier *Compilatrice::crée_fichier_pour_insère(EspaceDeTravail *espace,
     résultat->directve_insère = insère;
     résultat->id_source_insère = id_source_insère;
     résultat->source = SourceFichier::CHAINE_AJOUTÉE;
+    résultat->espace_pour_site = espace;
+    résultat->site = insère;
     insère->fichier = résultat;
     return résultat;
 }
