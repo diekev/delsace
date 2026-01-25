@@ -1566,6 +1566,8 @@ MétaProgramme *GestionnaireCode::requiers_exécution_pour_ipa(EspaceDeTravail *
     fichier->fonction_compilatrice_exécute = fonction->corps;
     fichier->source = SourceFichier::CHAINE_AJOUTÉE;
     fichier->charge_tampon(TamponSource(texte));
+    fichier->site = site;
+    fichier->espace_pour_site = espace;
 
     résultat->fichier = fichier;
 

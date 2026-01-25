@@ -96,7 +96,7 @@ est_espace_blanche_xml :: fonc (c: z8) -> bool
 
 parse_contenu :: fonc (contenu: chaine, rappel_contenu: fonc (données: eini, s: chaine), données_utilisateur: eini)
 {	
-    contenu = supprime_espaces_blancs_au_début(contenu);
+    contenu = supprime_espaces_blanches_au_début(contenu);
     si contenu {
         si rappel_contenu {
             rappel_contenu(données_utilisateur, contenu);
@@ -116,7 +116,7 @@ parse_élément :: fonc (contenu: chaine,
                        rappel_fin_élément: fonc (données: eini, élément: chaine),
                        données_utilisateur: eini)
 {
-    contenu = supprime_espaces_blancs_au_début(contenu);
+    contenu = supprime_espaces_blanches_au_début(contenu);
 
     si contenu {
         /* Vérifions si nous avons un tag de fin. */
@@ -148,7 +148,7 @@ parse_élément :: fonc (contenu: chaine,
         nombre_d_attributs := 0;
         tantque !est_tag_de_fin && contenu.taille != 0 && nombre_d_attributs < XML_MAX_ATTRIBS {
             /* Sautons les espaces blanches avant le nom de l'attribut. */
-            contenu = supprime_espaces_blancs_au_début(contenu);
+            contenu = supprime_espaces_blanches_au_début(contenu);
             saufsi contenu {
                 arrête;
             }

@@ -162,7 +162,7 @@ mot_courant :: fonc (scanner: *ScannerJSON) -> chaine #enligne
     retourne chaine(*scanner.script[scanner.position_mot], scanner.position - scanner.position_mot);
 }
 
-saute_espaces_blancs :: fonc (scanner: *ScannerJSON) -> rien
+saute_espaces_blanches :: fonc (scanner: *ScannerJSON) -> rien
 {
     tantque !scanner.fini() {
         c := scanner.caractère_courant();
@@ -192,7 +192,7 @@ caractère_courant :: fonc (scanner: *ScannerJSON) -> z8 #enligne
 
 lis :: fonc (scanner: *ScannerJSON) -> rien
 {
-    scanner.saute_espaces_blancs();
+    scanner.saute_espaces_blanches();
 
     si scanner.fini() {
         retourne;
