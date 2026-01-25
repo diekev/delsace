@@ -1,38 +1,6 @@
 importe Math; // pour max
 importe Numérique; // pour magnitude_décimale
 
-// @copié de JSON
-donne_ligne_pour_erreur :: fonc (texte: chaine, mot: chaine) -> chaine
-{
-    début := texte.pointeur;
-    fin := texte.pointeur + texte.taille;
-    ptr_position := mot.pointeur;
-
-    saufsi début <= ptr_position < fin {
-        retourne "";
-    }
-
-    ptr_début_ligne := ptr_position;
-    tantque ptr_début_ligne > début {
-        si mémoire(ptr_début_ligne) == '\n' {
-            ptr_début_ligne += 1;
-            arrête;
-        }
-        ptr_début_ligne -= 1;
-    }
-
-    ptr_fin_ligne := ptr_début_ligne;
-    tantque ptr_fin_ligne < fin {
-        si mémoire(ptr_fin_ligne) == '\n' {
-            arrête;
-        }
-        ptr_fin_ligne += 1;
-    }
-
-    résultat := chaine(ptr_début_ligne, ptr_fin_ligne - ptr_début_ligne);
-    retourne résultat;
-}
-
 /* ------------------------------------------------------------------------- */
 /** \nom Parseuse C
  * \{ */
