@@ -33,6 +33,8 @@ importe Typographie;
 
 */
 
+charge "archive";
+
 principale :: fonc ()
 {
     TAILLE_ARÈNE_PERMANENTE :: 32 * 1024 * 1024;
@@ -51,7 +53,7 @@ principale :: fonc ()
     args := tableau_avance(arguments_ligne_commande());
     pour args {
         si est_un_fichier_régulier(CheminFichier(it)) {
-            ouvre_fichier_elf(*visionneuse, CheminFichier(it));
+            ouvre_fichier(*visionneuse, CheminFichier(it));
         }
     }
 
@@ -83,7 +85,7 @@ principale :: fonc ()
                             si commence_par(fichier, schéma) {
                                 fichier = avance(fichier, schéma.taille);
                             }
-                            ouvre_fichier_elf(*visionneuse, CheminFichier(fichier));
+                            ouvre_fichier(*visionneuse, CheminFichier(fichier));
                         }
                     }
                 }
@@ -186,9 +188,19 @@ donne_image_visualisation_binaire :: fonc (visionneuse: *VisionneuseELF, onglet:
 /** \nom VisionneuseELF
  * \{ */
 
-DonnéesFichier :: struct {
+Type_Fichier_Ouvert :: énum n8 {
+    ARCHIVE;
+    ELF;
+}
+
+Fichier_Ouvert :: struct {
+    type: Type_Fichier_Ouvert;
+    // Si le fichier vient d'une archive, ceci est l'indice du Fichier_Ouvert correspondant.
+    archive_originatrice: z32 = -1;
+
     chemin: CheminFichier;
     fichier: *FichierELF;
+    archive: Archive_Ar;
     contenu: [..]octet;
 
     onglets: [..]Onglet;
@@ -196,7 +208,7 @@ DonnéesFichier :: struct {
     onglet_courant: z32;
 }
 
-détruit_données :: fonc (fichier: *DonnéesFichier)
+détruit_données :: fonc (fichier: *Fichier_Ouvert)
 {
     déloge(fichier.contenu);
 
@@ -206,35 +218,51 @@ détruit_données :: fonc (fichier: *DonnéesFichier)
     déloge(fichier.onglets);
 }
 
-donne_tabuleuse_informations :: fonc (fichier: *DonnéesFichier, fonte: *Fonte, tabuleuse: *Tabuleuse)
+donne_tabuleuse_informations :: fonc (fichier: *Fichier_Ouvert, fonte: *Fonte, tabuleuse: *Tabuleuse)
 {
-    entête := entête_fichier(fichier.fichier);
+    si fichier.type == Type_Fichier_Ouvert.ELF {
+        entête := entête_fichier(fichier.fichier);
 
-    si entête && tabuleuse.lignes.taille == 0 {
-        initialise_tabuleuse(tabuleuse, "Nom", "Valeur");
-        tabuleuse.alignements[0] = Alignement.GAUCHE;
-        tabuleuse.alignements[1] = Alignement.DROITE;
+        si entête && tabuleuse.lignes.taille == 0 {
+            initialise_tabuleuse(tabuleuse, "Nom", "Valeur");
+            tabuleuse.alignements[0] = Alignement.GAUCHE;
+            tabuleuse.alignements[1] = Alignement.DROITE;
 
-        ajoute_ligne(tabuleuse, "Classe", entête.donne_classe_fichier());
-        ajoute_ligne(tabuleuse, "Données", entête.donne_encodage_fichier());
-        ajoute_ligne(tabuleuse, "Version", entête.donne_version_fichier());
-        ajoute_ligne(tabuleuse, "OS/ABI", entête.donne_chaine_ABI());
-        ajoute_ligne(tabuleuse, "Version ABI", entête.donne_version_ABI());
-        ajoute_ligne(tabuleuse, "Type", entête.donne_type_fichier_objet());
-        ajoute_ligne(tabuleuse, "Machine", entête.donne_chaine_architecture_cible());
-        ajoute_ligne(tabuleuse, "Version Fichier", entête.donne_version_format_fichier_objet());
-        ajoute_ligne(tabuleuse, "Adresse du point d'entrée", entête.donne_adresse_point_d_entrée());
-        ajoute_ligne(tabuleuse, "Début des en-têtes de programme", entête.donne_début_entêtes_de_programme());
-        ajoute_ligne(tabuleuse, "Début des en-têtes de section", entête.donne_début_entêtes_de_section());
-        ajoute_ligne(tabuleuse, "Fanions", entête.donne_fanions_processeur());
-        ajoute_ligne(tabuleuse, "Taille de cet en-tête", entête.donne_taille_entête());
-        ajoute_ligne(tabuleuse, "Taille de l'en-tête du programme", entête.donne_taille_entête_programme());
-        ajoute_ligne(tabuleuse, "Nombre d'en-tête du programme", entête.donne_nombre_entête_programme());
-        ajoute_ligne(tabuleuse, "Taille des en-têtes de section", entête.donne_taille_entête_section());
-        ajoute_ligne(tabuleuse, "Nombre d'en-tête de section", entête.donne_nombre_entête_section());
-        ajoute_ligne(tabuleuse, "Table d'indice des chaînes d'en-tête de section", entête.donne_index_section_table_des_chaines());
+            ajoute_ligne(tabuleuse, "Classe", entête.donne_classe_fichier());
+            ajoute_ligne(tabuleuse, "Données", entête.donne_encodage_fichier());
+            ajoute_ligne(tabuleuse, "Version", entête.donne_version_fichier());
+            ajoute_ligne(tabuleuse, "OS/ABI", entête.donne_chaine_ABI());
+            ajoute_ligne(tabuleuse, "Version ABI", entête.donne_version_ABI());
+            ajoute_ligne(tabuleuse, "Type", entête.donne_type_fichier_objet());
+            ajoute_ligne(tabuleuse, "Machine", entête.donne_chaine_architecture_cible());
+            ajoute_ligne(tabuleuse, "Version Fichier", entête.donne_version_format_fichier_objet());
+            ajoute_ligne(tabuleuse, "Adresse du point d'entrée", entête.donne_adresse_point_d_entrée());
+            ajoute_ligne(tabuleuse, "Début des en-têtes de programme", entête.donne_début_entêtes_de_programme());
+            ajoute_ligne(tabuleuse, "Début des en-têtes de section", entête.donne_début_entêtes_de_section());
+            ajoute_ligne(tabuleuse, "Fanions", entête.donne_fanions_processeur());
+            ajoute_ligne(tabuleuse, "Taille de cet en-tête", entête.donne_taille_entête());
+            ajoute_ligne(tabuleuse, "Taille de l'en-tête du programme", entête.donne_taille_entête_programme());
+            ajoute_ligne(tabuleuse, "Nombre d'en-tête du programme", entête.donne_nombre_entête_programme());
+            ajoute_ligne(tabuleuse, "Taille des en-têtes de section", entête.donne_taille_entête_section());
+            ajoute_ligne(tabuleuse, "Nombre d'en-tête de section", entête.donne_nombre_entête_section());
+            ajoute_ligne(tabuleuse, "Table d'indice des chaînes d'en-tête de section", entête.donne_index_section_table_des_chaines());
 
-        initialise_tailles_max_colonnes(tabuleuse, fonte);
+            initialise_tailles_max_colonnes(tabuleuse, fonte);
+        }
+    }
+    sinon {
+        assert(fichier.type == Type_Fichier_Ouvert.ARCHIVE);
+
+        si tabuleuse.lignes.taille == 0 {
+            initialise_tabuleuse(tabuleuse, "Fichier");
+            tabuleuse.alignements[0] = Alignement.GAUCHE;
+
+            pour fichier.archive.fichiers {
+                ajoute_ligne(tabuleuse, it.identifiant);
+            }
+
+            initialise_tailles_max_colonnes(tabuleuse, fonte);
+        }
     }
 }
  
@@ -252,7 +280,7 @@ initialise_tailles_max_colonnes :: fonc (tabuleuse: *Tabuleuse, fonte: *Fonte)
 }
 
 VisionneuseELF :: struct {
-    fichiers: [..]DonnéesFichier;
+    fichiers: [..]Fichier_Ouvert;
 
     arène: ArèneMémoire;
     arène_transiente: ArèneMémoire;
@@ -273,7 +301,7 @@ détruit_données :: fonc (visionneuse: *VisionneuseELF)
     déloge(visionneuse.fichiers);
 }
 
-ouvre_fichier_elf :: fonc (visionneuse: *VisionneuseELF, chemin: CheminFichier)
+ouvre_fichier :: fonc (visionneuse: *VisionneuseELF, chemin: CheminFichier)
 {
     pour visionneuse.fichiers {
         si it.chemin.chn == chemin.chn {
@@ -282,26 +310,55 @@ ouvre_fichier_elf :: fonc (visionneuse: *VisionneuseELF, chemin: CheminFichier)
         }
     }
 
-    succès, contenu := contenu_fichier_binaire(chemin);
+    succès, contenu := lis_fichier_binaire_entier(chemin);
     saufsi succès {
         rapporte_erreur(visionneuse, "Impossible de lire le fichier");
         retourne;
     }
 
-    saufsi est_fichier_elf(contenu) {
-        rapporte_erreur(visionneuse, "Pas un fichier ELF");
-        retourne;
+    si est_fichier_elf(contenu) {
+        crée_fichier_elf(visionneuse, chemin, contenu);
     }
+    sinon si est_archive_ar(contenu) {
+        succès_archive, archive := parse_archive_ar(contenu);
+        saufsi succès_archive {
+            rapporte_erreur(visionneuse, "Impossible de parser l'archive.");
+            retourne;
+        }
+
+        indice_archive := crée_fichier_archive(visionneuse, archive, chemin, contenu);
+
+        pour * archive.fichiers {
+            si it.identifiant == "/" || it.identifiant == "//" {
+                continue;
+            }
+            nom_fichier := donne_nom_fichier(*archive, it);
+
+            si est_fichier_elf(it.données) {
+                // À FAIRE : évite de copier les données.
+                données_fichier_archivé := tableau_copie(it.données);
+                crée_fichier_elf(visionneuse, CheminFichier(nom_fichier), données_fichier_archivé, indice_archive);
+            }
+        }
+    }
+    sinon {
+        rapporte_erreur(visionneuse, "% n'est pas un fichier ELF", chemin.chn);
+    }
+}
+
+crée_fichier_elf :: fonc (visionneuse: *VisionneuseELF, chemin: CheminFichier, contenu: [..]octet, archive_originatrice := -1)
+{
+    assert(est_fichier_elf(contenu));
 
     fichier := loge(*visionneuse.arène, FichierELF);
     initialise_fichier_elf(fichier, contenu);
 
-    visionneuse.fichier_courant = (visionneuse.fichiers.taille comme z32);
-
     données_fichier := tableau_ajoute_élément(*visionneuse.fichiers);
+    données_fichier.type = Type_Fichier_Ouvert.ELF;
     données_fichier.chemin = copie_chemin(chemin);
     données_fichier.fichier = fichier;
     données_fichier.contenu = contenu;
+    données_fichier.archive_originatrice = archive_originatrice;
 
     onglet := tableau_ajoute_élément(*données_fichier.onglets);
     onglet.nom = "Informations";
@@ -311,6 +368,24 @@ ouvre_fichier_elf :: fonc (visionneuse: *VisionneuseELF, chemin: CheminFichier)
 
     onglet = tableau_ajoute_élément(*données_fichier.onglets);
     onglet.nom = "Sections";
+}
+
+crée_fichier_archive :: fonc (visionneuse: *VisionneuseELF, archive: Archive_Ar, chemin: CheminFichier, contenu: [..]octet) -> z32
+{
+    assert(est_archive_ar(contenu));
+
+    résultat := visionneuse.fichiers.taille comme z32;
+
+    fichier_ouvert := tableau_ajoute_élément(*visionneuse.fichiers);
+    fichier_ouvert.type = Type_Fichier_Ouvert.ARCHIVE;
+    fichier_ouvert.chemin = copie_chemin(chemin);
+    fichier_ouvert.archive = archive;
+    fichier_ouvert.contenu = contenu;
+
+    onglet := tableau_ajoute_élément(*fichier_ouvert.onglets);
+    onglet.nom = "Informations";
+
+    retourne résultat;
 }
 
 rapporte_erreur :: fonc (visionneuse: *VisionneuseELF @inutilisée, format: chaine, args: ...eini)
@@ -326,7 +401,7 @@ supprime_fichier_à_l_indice :: fonc (visionneuse: *VisionneuseELF, indice: z32)
     tableau_supprime_indice(*visionneuse.fichiers, indice);
 }
 
-donne_fichier_courant :: fonc (visionneuse: *VisionneuseELF) -> *DonnéesFichier
+donne_fichier_courant :: fonc (visionneuse: *VisionneuseELF) -> *Fichier_Ouvert
 {
     retourne *visionneuse.fichiers[visionneuse.fichier_courant];
 }
@@ -420,7 +495,7 @@ crée_interface :: fonc (empl visionneuse: *VisionneuseELF, largeur: z32, hauteu
                 }
                 termine_rectangle();
 
-                pour visionneuse.fichiers {
+                pour * visionneuse.fichiers {
                     dispose_rectangle();
                     {
                         définis_cotation(CROISSANTE(), FIXE(hauteur_de_ligne));
@@ -429,6 +504,14 @@ crée_interface :: fonc (empl visionneuse: *VisionneuseELF, largeur: z32, hauteu
 
                         si indice_it == visionneuse.fichier_courant {
                             définis_arrière_plan(COULEUR_ITEM_ACTIVE);
+                        }
+
+                        si it.archive_originatrice != -1 {
+                            dispose_rectangle();
+                            {
+                                définis_cotation(FIXE(hauteur_de_ligne), FIXE(hauteur_de_ligne - rembourrage * 2));
+                            }
+                            termine_rectangle();
                         }
 
                         sur_pression_souris(définis_fichier_courant, visionneuse, indice_it comme z32);
@@ -523,7 +606,7 @@ dessine_panneau_fichier :: fonc (visionneuse: *VisionneuseELF, espace: EspaceDis
     termine_rectangle();
 }
 
-dispose_entête_panneau :: fonc (fichier: *DonnéesFichier, texte: chaine, indice: z32)
+dispose_entête_panneau :: fonc (fichier: *Fichier_Ouvert, texte: chaine, indice: z32)
 {
     config_texte := config_texte_défaut;
     fonte := config_texte.fonte;
@@ -551,7 +634,7 @@ dispose_entête_panneau :: fonc (fichier: *DonnéesFichier, texte: chaine, indic
     termine_rectangle();
 }
 
-définis_panneau_courant :: fonc (fichier: *DonnéesFichier, souris: ClicSouris, id: n64 @inutilisée, indice_panneau: z32) -> ÉtatÉvènement
+définis_panneau_courant :: fonc (fichier: *Fichier_Ouvert, souris: ClicSouris, id: n64 @inutilisée, indice_panneau: z32) -> ÉtatÉvènement
 {
     résultat := ÉtatÉvènement.PASSE_AU_PARENT;
     si souris.bouton == BoutonSouris.PRIMAIRE {
@@ -569,10 +652,10 @@ définis_panneau_courant :: fonc (fichier: *DonnéesFichier, souris: ClicSouris,
 /** \name PanneauInformation
  * \{ */
 
-dessine_panneau_informations :: fonc (visionneuse: *VisionneuseELF, fichier: *DonnéesFichier, onglet: *Onglet, espace: EspaceDisponible)
+dessine_panneau_informations :: fonc (visionneuse: *VisionneuseELF, fichier: *Fichier_Ouvert, onglet: *Onglet, espace: EspaceDisponible)
 {
     donne_tabuleuse_informations(fichier, visionneuse.fonte, *onglet.tabuleuse);
-    dessine_tabuleuse(visionneuse, *onglet.tabuleuse, faux, config_texte_défaut, espace, 0);
+    dessine_tabuleuse(visionneuse, *onglet.tabuleuse, fichier.type == Type_Fichier_Ouvert.ARCHIVE, config_texte_défaut, espace, 0);
 }
 
 dessine_tabuleuse :: fonc (visionneuse: *VisionneuseELF, tabuleuse: *Tabuleuse, dessine_titres: bool, config_texte: ConfigurationTexte, espace: EspaceDisponible, décalage: r32)
@@ -733,7 +816,7 @@ sur_pression_entête_section :: fonc (empl info: *InfoCommande, clic: ClicSouris
 /** \name Entêtes de programme
  * \{ */
 
-dessine_panneau_entêtes_programme :: fonc (visionneuse: *VisionneuseELF, fichier: *DonnéesFichier, onglet: *Onglet, espace: EspaceDisponible)
+dessine_panneau_entêtes_programme :: fonc (visionneuse: *VisionneuseELF, fichier: *Fichier_Ouvert, onglet: *Onglet, espace: EspaceDisponible)
 {
     donne_tabuleuse_entêtes_programme(fichier, visionneuse.fonte, *onglet.tabuleuse);
 
@@ -750,7 +833,7 @@ dessine_panneau_entêtes_programme :: fonc (visionneuse: *VisionneuseELF, fichie
 /** \name PanneauVueTables
  * \{ */
 
-dessine_panneau_sections :: fonc (visionneuse: *VisionneuseELF, fichier: *DonnéesFichier, onglet: *Onglet, espace: EspaceDisponible)
+dessine_panneau_sections :: fonc (visionneuse: *VisionneuseELF, fichier: *Fichier_Ouvert, onglet: *Onglet, espace: EspaceDisponible)
 {
     donne_tabuleuse_sections(fichier, visionneuse.fonte, *onglet.tabuleuse);
 
@@ -761,7 +844,7 @@ dessine_panneau_sections :: fonc (visionneuse: *VisionneuseELF, fichier: *Donné
     termine_rectangle_défilable();
 }
 
-dessine_onglet_section :: fonc (visionneuse: *VisionneuseELF, fichier: *DonnéesFichier, onglet: *Onglet, espace: EspaceDisponible)
+dessine_onglet_section :: fonc (visionneuse: *VisionneuseELF, fichier: *Fichier_Ouvert, onglet: *Onglet, espace: EspaceDisponible)
 {
     config_texte := config_texte_défaut;
     données_hex := faux;
@@ -895,7 +978,7 @@ dessine_onglet_section :: fonc (visionneuse: *VisionneuseELF, fichier: *Données
 /** \name Liste de toutes les entêtes de programme.
  * \{ */
 
-donne_tabuleuse_entêtes_programme :: fonc (fichier: *DonnéesFichier, fonte: *Fonte, tabuleuse: *Tabuleuse)
+donne_tabuleuse_entêtes_programme :: fonc (fichier: *Fichier_Ouvert, fonte: *Fonte, tabuleuse: *Tabuleuse)
 {
     entêtes_programme := donne_entêtes_de_programme(fichier.fichier);
 
@@ -970,7 +1053,7 @@ donne_chaine_pour_drapeaux_entête_programme :: fonc (flag: Elf32_Word) -> chain
 /** \name Liste de toutes les sections.
  * \{ */
 
-donne_tabuleuse_sections :: fonc (fichier: *DonnéesFichier, fonte: *Fonte, tabuleuse: *Tabuleuse)
+donne_tabuleuse_sections :: fonc (fichier: *Fichier_Ouvert, fonte: *Fonte, tabuleuse: *Tabuleuse)
 {
     entête := entête_fichier(fichier.fichier);
     // nom = "Sections"
@@ -1059,7 +1142,7 @@ donne_tabuleuse_sections :: fonc (fichier: *DonnéesFichier, fonte: *Fonte, tabu
 /** \name Table Symboles.
  * \{ */
 
-donne_tabuleuse_symboles :: fonc (fichier: *DonnéesFichier, fonte: *Fonte, tabuleuse: *Tabuleuse, nom_section: chaine)
+donne_tabuleuse_symboles :: fonc (fichier: *Fichier_Ouvert, fonte: *Fonte, tabuleuse: *Tabuleuse, nom_section: chaine)
 {
     entête := entête_fichier(fichier.fichier);
 
@@ -1100,7 +1183,7 @@ donne_tabuleuse_symboles :: fonc (fichier: *DonnéesFichier, fonte: *Fonte, tabu
 /** \name Table Comment.
  * \{ */
 
-donne_tabuleuse_comment :: fonc (fichier: *DonnéesFichier, fonte: *Fonte, tabuleuse: *Tabuleuse)
+donne_tabuleuse_comment :: fonc (fichier: *Fichier_Ouvert, fonte: *Fonte, tabuleuse: *Tabuleuse)
 {
     entête := entête_fichier(fichier.fichier);
 
@@ -1130,7 +1213,7 @@ donne_tabuleuse_comment :: fonc (fichier: *DonnéesFichier, fonte: *Fonte, tabul
 /** \name Table Dynamic.
  * \{ */
 
-donne_tabuleuse_dynamic :: fonc (fichier: *DonnéesFichier, fonte: *Fonte, tabuleuse: *Tabuleuse)
+donne_tabuleuse_dynamic :: fonc (fichier: *Fichier_Ouvert, fonte: *Fonte, tabuleuse: *Tabuleuse)
 {
     entête := entête_fichier(fichier.fichier);
 
@@ -1166,7 +1249,7 @@ donne_tabuleuse_dynamic :: fonc (fichier: *DonnéesFichier, fonte: *Fonte, tabul
 /** \name Table .note*
  * \{ */
 
-donne_tabuleuse_note :: fonc (fichier: *DonnéesFichier, fonte: *Fonte, tabuleuse: *Tabuleuse, nom_section: chaine)
+donne_tabuleuse_note :: fonc (fichier: *Fichier_Ouvert, fonte: *Fonte, tabuleuse: *Tabuleuse, nom_section: chaine)
 {
     entête := entête_fichier(fichier.fichier);
 
@@ -1259,7 +1342,7 @@ donne_tabuleuse_note :: fonc (fichier: *DonnéesFichier, fonte: *Fonte, tabuleus
 /** \name Table pour .rodata et les sections non-traitées spécifiquement.
  * \{ */
 
-donne_tabuleuse_données_hex :: fonc (fichier: *DonnéesFichier, fonte: *Fonte, tabuleuse: *Tabuleuse, nom_section: chaine)
+donne_tabuleuse_données_hex :: fonc (fichier: *Fichier_Ouvert, fonte: *Fonte, tabuleuse: *Tabuleuse, nom_section: chaine)
 {
     entête := entête_fichier(fichier.fichier);
 
@@ -1332,7 +1415,7 @@ donne_tabuleuse_données_hex :: fonc (fichier: *DonnéesFichier, fonte: *Fonte, 
 /** \name Table .strtab/.shstrtab
  * \{ */
 
-donne_tabuleuse_table_chaines :: fonc (fichier: *DonnéesFichier, fonte: *Fonte, tabuleuse: *Tabuleuse, nom_section: chaine)
+donne_tabuleuse_table_chaines :: fonc (fichier: *Fichier_Ouvert, fonte: *Fonte, tabuleuse: *Tabuleuse, nom_section: chaine)
 {
     entête := entête_fichier(fichier.fichier);
 
@@ -1364,7 +1447,7 @@ donne_tabuleuse_table_chaines :: fonc (fichier: *DonnéesFichier, fonte: *Fonte,
 /** \name Table .rel
  * \{ */
 
-donne_tabuleuse_rel :: fonc (fichier: *DonnéesFichier, fonte: *Fonte, tabuleuse: *Tabuleuse, nom_section: chaine)
+donne_tabuleuse_rel :: fonc (fichier: *Fichier_Ouvert, fonte: *Fonte, tabuleuse: *Tabuleuse, nom_section: chaine)
 {
     entête := entête_fichier(fichier.fichier);
 
@@ -1399,7 +1482,7 @@ donne_tabuleuse_rel :: fonc (fichier: *DonnéesFichier, fonte: *Fonte, tabuleuse
 /** \name Table .rela
  * \{ */
 
-donne_tabuleuse_rela :: fonc (fichier: *DonnéesFichier, fonte: *Fonte, tabuleuse: *Tabuleuse, nom_section: chaine)
+donne_tabuleuse_rela :: fonc (fichier: *Fichier_Ouvert, fonte: *Fonte, tabuleuse: *Tabuleuse, nom_section: chaine)
 {
     entête := entête_fichier(fichier.fichier);
 
@@ -1437,7 +1520,7 @@ donne_tabuleuse_rela :: fonc (fichier: *DonnéesFichier, fonte: *Fonte, tabuleus
 /** \nom Table .eh_frame
  * \{ */
 
-donne_tabuleuse_eh_frame :: fonc (fichier: *DonnéesFichier, fonte: *Fonte, tabuleuse: *Tabuleuse)
+donne_tabuleuse_eh_frame :: fonc (fichier: *Fichier_Ouvert, fonte: *Fonte, tabuleuse: *Tabuleuse)
 {
     si tabuleuse.lignes.taille == 0 {
         succès, données_eh_frame := parse_données_eh_frame(fichier.fichier);
@@ -1500,7 +1583,7 @@ donne_tabuleuse_eh_frame :: fonc (fichier: *DonnéesFichier, fonte: *Fonte, tabu
 /** \nom Table .debug_info
  * \{ */
 
-donne_tabuleuse_debug_info :: fonc (fichier: *DonnéesFichier, fonte: *Fonte, tabuleuse: *Tabuleuse)
+donne_tabuleuse_debug_info :: fonc (fichier: *Fichier_Ouvert, fonte: *Fonte, tabuleuse: *Tabuleuse)
 {
     si tabuleuse.lignes.taille == 0 {
 
@@ -1526,7 +1609,7 @@ donne_tabuleuse_debug_info :: fonc (fichier: *DonnéesFichier, fonte: *Fonte, ta
 /** \nom Table .debug_abbrev
  * \{ */
 
-donne_tabuleuse_debug_abbrev :: fonc (fichier: *DonnéesFichier, fonte: *Fonte, tabuleuse: *Tabuleuse)
+donne_tabuleuse_debug_abbrev :: fonc (fichier: *Fichier_Ouvert, fonte: *Fonte, tabuleuse: *Tabuleuse)
 {
     si tabuleuse.lignes.taille == 0 {
         succès_table, table := parse_table_abbréviations(fichier.fichier);
@@ -1551,7 +1634,7 @@ donne_tabuleuse_debug_abbrev :: fonc (fichier: *DonnéesFichier, fonte: *Fonte, 
 /** \nom Table .debug_aranges
  * \{ */
 
-donne_tabuleuse_debug_aranges :: fonc (fichier: *DonnéesFichier, fonte: *Fonte, tabuleuse: *Tabuleuse)
+donne_tabuleuse_debug_aranges :: fonc (fichier: *Fichier_Ouvert, fonte: *Fonte, tabuleuse: *Tabuleuse)
 {
     si tabuleuse.lignes.taille == 0 {
         table := parse_table_aranges(fichier.fichier);
@@ -1577,7 +1660,7 @@ donne_tabuleuse_debug_aranges :: fonc (fichier: *DonnéesFichier, fonte: *Fonte,
 /** \nom Table .debug_rnglists
  * \{ */
 
-donne_tabuleuse_debug_rnglists :: fonc (fichier: *DonnéesFichier, fonte: *Fonte, tabuleuse: *Tabuleuse)
+donne_tabuleuse_debug_rnglists :: fonc (fichier: *Fichier_Ouvert, fonte: *Fonte, tabuleuse: *Tabuleuse)
 {
     si tabuleuse.lignes.taille == 0 {
         table := parse_table_rnglists(fichier.fichier);
@@ -1598,7 +1681,7 @@ donne_tabuleuse_debug_rnglists :: fonc (fichier: *DonnéesFichier, fonte: *Fonte
 /** \nom Table .debug_loclists
  * \{ */
 
-donne_tabuleuse_debug_loclists :: fonc (fichier: *DonnéesFichier, fonte: *Fonte, tabuleuse: *Tabuleuse)
+donne_tabuleuse_debug_loclists :: fonc (fichier: *Fichier_Ouvert, fonte: *Fonte, tabuleuse: *Tabuleuse)
 {
     si tabuleuse.lignes.taille == 0 {
         table := parse_table_loclists(fichier.fichier);
@@ -1619,7 +1702,7 @@ donne_tabuleuse_debug_loclists :: fonc (fichier: *DonnéesFichier, fonte: *Fonte
 /** \nom Table .debug_rnglists
  * \{ */
 
-donne_tabuleuse_debug_line :: fonc (fichier: *DonnéesFichier, fonte: *Fonte, tabuleuse: *Tabuleuse)
+donne_tabuleuse_debug_line :: fonc (fichier: *Fichier_Ouvert, fonte: *Fonte, tabuleuse: *Tabuleuse)
 {
     si tabuleuse.lignes.taille == 0 {
         table := parse_table_debug_line(fichier.fichier);
