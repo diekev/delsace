@@ -604,7 +604,7 @@ possède_entête :: fonc (response: *Response, nom: chaine, valeur: chaine) -> b
         diffère déloge(morceaux);
 
         pour morceau dans morceaux {
-            morceau = supprime_espaces_blancs(morceau);
+            morceau = supprime_espaces_blanches(morceau);
             si compare_ascii_insensible_à_la_casse(valeur, morceau) {
                 retourne vrai;
             }
@@ -1983,7 +1983,7 @@ data_url_processor :: fonc (url: *URL) -> Optionnel(DataURLStruct)
     position = position_virgule;
 
     // 6. Strip leading and trailing ASCII whitespace from mimeType.
-    mimetype = supprime_espaces_blancs(mimetype);
+    mimetype = supprime_espaces_blanches(mimetype);
 
     // 7. If position is past the end of input, then return failure.
     si position >= input.taille {
@@ -2016,7 +2016,7 @@ data_url_processor :: fonc (url: *URL) -> Optionnel(DataURLStruct)
         mimetype.taille -= 6;
 
         // 5. Remove trailing U+0020 SPACE code points from mimeType, if any.
-        mimetype = supprime_espaces_blancs_à_la_fin(mimetype);
+        mimetype = supprime_espaces_blanches_à_la_fin(mimetype);
 
         // 6. Remove the last U+003B (;) from mimeType.
         mimetype.taille -= 1;
@@ -2045,7 +2045,7 @@ mime_type_fini_par_base64 :: fonc (mime_type: chaine) -> bool
     }
 
     dernier_paramètre := mime_type.sous_chaine(position_point_virgule + 1, mime_type.taille);
-    dernier_paramètre = supprime_espaces_blancs_au_début(dernier_paramètre);
+    dernier_paramètre = supprime_espaces_blanches_au_début(dernier_paramètre);
     retourne compare_ascii_insensible_à_la_casse(dernier_paramètre, "base64");
 }
 
