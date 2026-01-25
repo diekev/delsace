@@ -7,6 +7,8 @@ importe SysFichier;
 importe Triage;
 importe PThread;
 
+charge "empreinte_floue";
+charge "filtrage";
 charge "gif";
 
 libtbb :: #bibliothèque "tbb";
@@ -172,6 +174,14 @@ donne_descriptice_depuis_image_io :: fonc (image: *ImageIO) -> DescriptriceImage
     }
 
     retourne desc;
+}
+
+copie_image :: fonc (image: NouvelleImage) -> NouvelleImage
+{
+    résultat := crée_image(*image.desc);
+    résultat.source_données = SourceDonnéesImage.Interne;
+    copie_mem_nonsur(src = image.données, dst = résultat.données, taille = donne_taille_données(*image.desc));
+    retourne résultat;
 }
 
 détruit_données_image :: fonc (image: *NouvelleImage)
@@ -495,48 +505,12 @@ liboiio_util :: #bibliothèque "OpenImageIO_Util";
         }
     }
 
+    image_io.taille_donnees = donne_taille_données(*image.desc);
+
     chn_c_sortie := crée_chaine_c(chemin.chn);
     diffère détruit_chaine_c(chn_c_sortie);
 
     _ := IMG_ecris_image(chn_c_sortie comme *z8, *image_io);
-}
-
-calcule_empreinte_floue :: fonc (image: NouvelleImage, composants_x: z32, composants_y: z32) -> chaine
-{
-    tampon: [2 + 4 + (9 * 9 - 1) * 2 + 1]z8;
-    taille_résultat: z64;
-
-    discr image.desc.format {
-        Gris_8 {
-            panique("non-implémenté");
-        }
-        RVB_8 {
-            panique("non-implémenté");
-        }
-        RVBA_8 {
-            panique("non-implémenté");
-        }
-        Gris_32 {
-            tampon_img := image.donne_tampon_gris();
-            IMG_calcule_empreinte_floue_reel(tampon_img.données, tampon_img.largeur, tampon_img.hauteur, 1, composants_x, composants_y, *tampon[0], *taille_résultat);
-        }
-        RVB_32 {
-            tampon_img := image.donne_tampon_spectre();
-            IMG_calcule_empreinte_floue_reel(tampon_img.données comme *r32, tampon_img.largeur, tampon_img.hauteur, 3, composants_x, composants_y, *tampon[0], *taille_résultat);
-        }
-        RVBA_32 {
-            tampon_img := image.donne_tampon_rvba();
-            IMG_calcule_empreinte_floue_reel(tampon_img.données comme *r32, tampon_img.largeur, tampon_img.hauteur, 4, composants_x, composants_y, *tampon[0], *taille_résultat);
-        }
-    }
-
-    résultat := loge_chaine(taille_résultat);
-
-    pour 0 ... taille_résultat - 1 {
-        résultat[it] = tampon[it];
-    }
-
-    retourne résultat;
 }
 
 /* ------------------------------------------------------------------------- */
@@ -732,6 +706,30 @@ convertis_en_nuances_de_gris :: fonc (image: NouvelleImage) -> NouvelleImage
                 pixels_sortie += 1;
             }
         }
+    }
+
+    retourne résultat;
+}
+
+// À FAIRE : généralise
+convertis_en_32_bit :: fonc (image: NouvelleImage) -> NouvelleImage
+{
+    assert(image.desc.format == FormatPixel.RVB_8);
+
+    desc := image.desc;
+    desc.format = FormatPixel.RVB_32;
+
+    résultat := crée_image(*desc);
+
+    nombre_de_pixels := donne_nombre_de_pixels(desc);
+
+    entrée := image.données comme *n8;
+    sortie := résultat.données comme *r32;
+
+    pour nombre_de_pixels * 3 {
+        mémoire(sortie) = mémoire(entrée) comme r32 / 255.0;
+        sortie += 1;
+        entrée += 1;
     }
 
     retourne résultat;
