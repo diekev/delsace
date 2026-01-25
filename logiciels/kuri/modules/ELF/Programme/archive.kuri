@@ -1,0 +1,240 @@
+importe Numérique;
+
+// https://en.wikipedia.org/wiki/Ar_(Unix)
+
+/*
+importe Chaine;
+importe Fondation;
+importe SysFichier;
+
+principale :: fonc ()
+{
+    succès, données_archive := contenu_fichier_binaire("/opt/lib/IMAGE/libboost_filesystem.a");
+    saufsi succès {
+        exit(1);
+    }
+    diffère déloge(données_archive);
+
+    saufsi est_archive_ar(données_archive) {
+        imprimeln("Pas une archive.");
+        exit(1);
+    }
+
+    archive: Archive_Ar;
+    succès, archive = parse_archive_ar(données_archive);
+    saufsi succès {
+        imprimeln("Impossible de parser l'archive");
+        exit(1);
+    }
+
+    imprimeln("nombre de fichiers %", archive.fichiers.taille);
+
+    pour * archive.fichiers {
+        si it.identifiant == "/" || it.identifiant == "//" {
+            continue;
+        }
+        nom_fichier := donne_nom_fichier(*archive, it);
+        imprimeln("%", nom_fichier);
+    }
+
+    table_de_symboles := archive.fichiers[0];
+
+    si table_de_symboles.données {
+        nombre_de_symboles: n32;
+        si table_de_symboles.données.taille > 4 {
+            a := table_de_symboles.données[0] comme n32;
+            b := table_de_symboles.données[1] comme n32;
+            c := table_de_symboles.données[2] comme n32;
+            d := table_de_symboles.données[3] comme n32;
+
+            nombre_de_symboles = a << 24 | b << 16 | c << 8 | d;
+        }
+
+        imprimeln("nombre_de_symboles %", nombre_de_symboles);
+
+        // texte_table_de_symboles := chaine(table_de_symboles.données.pointeur comme *z8, table_de_symboles.données.taille);
+        // imprimeln("%", texte_table_de_symboles);
+    }
+}
+*/
+
+Fichier_Archivé :: struct {
+    identifiant: chaine;
+    horodotage_modification: chaine;
+    id_propriétaire: n32;
+    id_groupe: n32;
+    mode_fichier: n32;
+
+    données: []octet;
+}
+
+Table_De_Symbole_Ar :: struct {
+    fichier: Fichier_Archivé;
+}
+
+donne_nombre_de_symboles :: fonc (table: *Table_De_Symbole_Ar) -> n32
+{
+    résultat: n32;
+
+    si table.fichier.données.taille > 4 {
+        a := table_de_symboles.données[0] comme n32;
+        b := table_de_symboles.données[1] comme n32;
+        c := table_de_symboles.données[2] comme n32;
+        d := table_de_symboles.données[3] comme n32;
+
+        résultat = a << 24 | b << 16 | c << 8 | d;
+    }
+
+    retourne résultat;
+}
+
+Archive_Ar :: struct {
+    données: []octet;
+    table_de_symboles: Table_De_Symbole_Ar;
+    index: Fichier_Archivé;
+    fichiers: [..]Fichier_Archivé;
+}
+
+donne_nom_fichier :: fonc (archive: *Archive_Ar, fichier: *Fichier_Archivé) -> chaine
+{
+    fichier_index := archive.fichiers[1];
+    assert(fichier_index.identifiant == "//");
+
+    texte_fichier_index := chaine(fichier_index.données.pointeur comme *z8, fichier_index.données.taille);
+
+    résultat: chaine;
+
+    si fichier.identifiant[0] == '/' {
+        id := avance(fichier.identifiant, 1);
+        indice := tente extrait_z32(id) piège nonatteignable;
+
+        résultat = avance(texte_fichier_index, indice);
+        pour résultat {
+            si it == '\n' {
+                résultat.taille = indice_it;
+            }
+        }
+    }
+    sinon {
+        résultat = fichier.identifiant;
+    }
+
+    si résultat[résultat.taille - 1] == '/' {
+        résultat.taille -= 1;
+    }
+
+    retourne résultat;
+}
+
+magique_archive := "!<arch>\n";
+
+parse_archive_ar :: fonc (données: []octet) -> (bool, Archive_Ar)
+{
+    archive: Archive_Ar;
+    archive.données = données;
+
+    reste := tableau_avance(données, magique_archive.taille);
+
+    succès: bool;
+
+    tantque reste {
+        // imprimeln("---------------------");
+        fichier_archivé: Fichier_Archivé;
+        succès, fichier_archivé, reste = parse_fichier_archivé(reste);
+        saufsi succès {
+            arrête;
+        }
+
+        tableau_ajoute(*archive.fichiers, fichier_archivé);
+    }
+
+    retourne succès, archive;
+}
+
+parse_fichier_archivé :: fonc (données: []octet) -> (bool, Fichier_Archivé, []octet)
+{
+    résultat: Fichier_Archivé;
+
+    reste := données;
+
+    // 16	File identifier	ASCII
+    identifiant: chaine = ---;
+    identifiant, reste = parse_rubrique_entête(reste, 16);
+    identifiant = rogne_depuis_la_fin(identifiant);
+    // imprimeln("identifiant : '%'", identifiant);
+
+    // 12	File modification timestamp (in seconds)	Decimal
+    timestamp: chaine = ---;
+    timestamp, reste = parse_rubrique_entête(reste, 12);
+    // imprimeln("timestamp : %", timestamp);
+
+    // 6	Owner ID	Decimal
+    owner_id: chaine = ---;
+    owner_id, reste = parse_rubrique_entête(reste, 6);
+    // imprimeln("owner_id : %", owner_id);
+
+    // 6	Group ID	Decimal
+    group_id: chaine = ---;
+    group_id, reste = parse_rubrique_entête(reste, 6);
+    // imprimeln("group_id : %", group_id);
+
+    // 8	File mode (type and permission)	Octal
+    file_mode: chaine = ---;
+    file_mode, reste = parse_rubrique_entête(reste, 8);
+    // imprimeln("file_mode : %", file_mode);
+
+    // 10	File size in bytes	Decimal
+    chn_file_size: chaine = ---;
+    chn_file_size, reste = parse_rubrique_entête(reste, 10);
+    chn_file_size = rogne_depuis_la_fin(chn_file_size);
+    // imprimeln("file_size : %", chn_file_size);
+
+    taille_fichier := tente extrait_z32(chn_file_size) piège nonatteignable;
+
+    // 0x60 0x0A
+    terminateur: chaine = ---;
+    terminateur, reste = parse_rubrique_entête(reste, 2);
+
+    données_fichier := reste;
+    données_fichier.taille = taille_fichier;
+
+    résultat.identifiant = identifiant;
+    résultat.données = données_fichier;
+
+    reste = tableau_avance(reste, taille_fichier);
+
+    retourne vrai, résultat, reste;
+}
+
+parse_rubrique_entête :: fonc (données: []octet, taille: n32) -> (chaine, []octet)
+{
+    si données.taille < taille comme z64 {
+        retourne "", données;
+    }
+
+    résultat := chaine(données.pointeur comme *z8, taille comme z64);
+    reste := tableau_avance(données, taille comme z64);
+    retourne résultat, reste;
+}
+
+est_archive_ar :: fonc (données: []octet) -> bool
+{
+    si données.taille < magique_archive.taille {
+        retourne faux;
+    }
+
+    chn_données := chaine(données.pointeur comme *z8, magique_archive.taille);
+    retourne chn_données == magique_archive;
+}
+
+// À FAIRE : bouge dans Chaine
+rogne_depuis_la_fin :: fonc (chn: chaine) -> chaine
+{
+    tantque chn {
+        si chn[chn.taille - 1] != ' ' {
+            arrête;
+        }
+        chn.taille -= 1;
+    }
+    retourne chn;
+}

@@ -1,0 +1,329 @@
+
+Type_Filtrage_Image :: énum {
+    BOITE;
+    TRIANGULAIRE;
+    QUADRATIC;
+    CUBIC;
+    GAUSSIEN;
+    MITCHELL;
+    CATROM;
+}
+
+donne_rayon_pour_filtre :: fonc (type: Type_Filtrage_Image, rayon: r32) -> r32
+{
+    si type == Type_Filtrage_Image.GAUSSIEN {
+        retourne rayon * 2.57;
+    }
+    retourne rayon;
+}
+
+/* x va de -1 à 1 */
+donne_valeur_filtre :: fonc (type: Type_Filtrage_Image, x: r32) -> r32
+{
+    gaussfac :: 1.6;
+
+    x = abs(x);
+
+    discr type {
+        BOITE {
+            si (x > 1.0) {
+                retourne 0.0;
+            }
+            retourne 1.0;
+        }
+        TRIANGULAIRE {
+            si (x > 1.0) {
+                retourne 0.0;
+            }
+            retourne 1.0 - x;
+        }
+        GAUSSIEN {
+            two_gaussfac2 :: 2.0 * gaussfac * gaussfac;
+            x *= 3.0 * gaussfac;
+            retourne 1.0 / racine_carrée(Constantes(r32).PI * two_gaussfac2) * exp(-x * x / two_gaussfac2);
+        }
+        MITCHELL {
+            retourne donne_valeur_filtre_mitchell(x * gaussfac);
+        }
+        QUADRATIC {
+            retourne donne_valeur_filtre_quadratic(x * gaussfac);
+        }
+        CUBIC {
+            retourne donne_valeur_filtre_cubic(x * gaussfac);
+        }
+        CATROM {
+            retourne donne_valeur_filtre_catrom(x * gaussfac);
+        }
+    }
+
+    retourne 0.0;
+}
+
+donne_valeur_filtre_quadratic :: fonc (x: r32) -> r32
+{
+    si x < 0.0 {
+        x = -x;
+    }
+
+    si x < 0.5 {
+        retourne 0.75 - (x * x);
+    }
+
+    si x < 1.5 {
+        retourne 1.5 * (x - 1.5) * (x - 1.5);
+    }
+
+    retourne 0.0;
+}
+
+donne_valeur_filtre_cubic :: fonc (x: r32) -> r32
+{
+    x2 := x * x;
+
+    si x < 0.0 {
+        x = -x;
+    }
+
+    si x < 1.0 {
+        retourne 0.5 * x * x2 - x2 + 2.0 / 3.0;
+    }
+
+    si x < 2.0 {
+        retourne (2.0 - x) * (2.0 - x) * (2.0 - x) / 6.0;
+    }
+
+    retourne 0.0;
+}
+
+donne_valeur_filtre_catrom :: fonc (x: r32) -> r32
+{
+    x2 := x * x;
+
+    si x < 0.0 {
+        x = -x;
+    }
+
+    si x < 1.0 {
+        retourne 1.5 * x2 * x - 2.5 * x2 + 1.0;
+    }
+
+    si x < 2.0 {
+        retourne -0.5 * x2 * x + 2.5 * x2 - 4.0 * x + 2.0;
+    }
+
+    retourne 0.0;
+}
+
+/* bicubic de Mitchell & Netravali */
+donne_valeur_filtre_mitchell :: fonc (x: r32) -> r32
+{
+    b := 1.0 / 3.0;
+    c := 1.0 / 3.0;
+    p0 := (6.0 - 2.0 * b) / 6.0;
+    p2 := (-18.0 + 12.0 * b + 6.0 * c) / 6.0;
+    p3 := (12.0 - 9.0 * b - 6.0 * c) / 6.0;
+    q0 := (8.0 * b + 24.0 * c) / 6.0;
+    q1 := (-12.0 * b - 48.0 * c) / 6.0;
+    q2 := (6.0 * b + 30.0 * c) / 6.0;
+    q3 := (-b - 6.0 * c) / 6.0;
+
+    si x < -2.0 {
+        retourne 0.0;
+    }
+
+    si x < -1.0 {
+        retourne (q0 - x * (q1 - x * (q2 - x * q3)));
+    }
+
+    si x < 0.0 {
+        retourne (p0 + x * x * (p2 - x * p3));
+    }
+
+    si x < 1.0 {
+        retourne (p0 + x * x * (p2 + x * p3));
+    }
+
+    si x < 2.0 {
+        retourne (q0 + x * (q1 + x * (q2 + x * q3)));
+    }
+
+    retourne 0.0;
+}
+
+Table_Filtrage :: struct {
+    table: [..]r32;
+    taille: z32;
+}
+
+donne_table_filtrage_image :: fonc (type: Type_Filtrage_Image, rayon: r32) -> Table_Filtrage
+{
+    table: [..]r32;
+
+    rayon = donne_rayon_pour_filtre(type, rayon);
+
+    taille := rayon comme z32;
+
+    taille_table := 2 * taille + 1;
+    tableau_redimensionne(table, taille_table);
+
+    fac := si rayon > 0.0 { 1.0 / rayon; };
+    somme := 0.0;
+
+    pour i dans -taille ... taille {
+        x := (i comme r32) * fac;
+        val := donne_valeur_filtre(type, x);
+        somme += val;
+        table[i + taille] = val;
+    }
+
+    somme = 1.0 / somme;
+
+    pour * table {
+        mémoire(it) *= somme;
+    }
+
+    résultat: Table_Filtrage;
+    résultat.table = table;
+    résultat.taille = taille;
+    retourne résultat;
+}
+
+filtre_image :: fonc (image: NouvelleImage, type: Type_Filtrage_Image, rayon: r32) -> NouvelleImage
+{
+    résultat := copie_image(image);
+    filtre_image(image, résultat, type, rayon);
+    retourne résultat;
+}
+
+filtre_image :: fonc (image: NouvelleImage, résultat: NouvelleImage, type: Type_Filtrage_Image, rayon: r32)
+{
+    table := donne_table_filtrage_image(type, rayon);
+    diffère déloge(table.table);
+
+    discr image.desc.format {
+        Gris_8 {
+            panique("format non-supporté %", image.desc.format);
+        }
+        Gris_32 {
+            panique("format non-supporté %", image.desc.format);
+        }
+        RVB_8 {
+            tampon_entrée := donne_tampon_rvb_8bit(image);
+            tampon_sortie := donne_tampon_rvb_8bit(résultat);
+            filtre_image(tampon_entrée, tampon_sortie, table);
+        }
+        RVB_32 {
+            tampon_entrée := donne_tampon_spectre(image);
+            tampon_sortie := donne_tampon_spectre(résultat);
+            filtre_image(tampon_entrée, tampon_sortie, table);
+        }
+        RVBA_8 {
+            panique("format non-supporté %", image.desc.format);
+        }
+        RVBA_32 {
+            panique("format non-supporté %", image.desc.format);
+        }
+        sinon {
+            panique("format non-supporté %", image.desc.format);
+        }
+    }
+}
+
+filtre_image :: fonc (tampon_entrée: TamponImage($T), tampon_sortie: TamponImage(T), empl table_filtrage: Table_Filtrage)
+{
+    assert(tampon_entrée.largeur == tampon_sortie.largeur);
+    assert(tampon_entrée.hauteur == tampon_sortie.hauteur);
+
+    entrée := tampon_entrée.données;
+    sortie := tampon_sortie.données;
+    
+    ligne := entrée;
+
+    pour _ dans tampon_entrée.hauteur {
+        pour x dans tampon_entrée.largeur {
+            #si T == CouleurRVBN8 {
+                valeur_r := 0.0;
+                valeur_v := 0.0;
+                valeur_b := 0.0;
+
+                pour dx dans -taille ... taille {
+                    fx := x comme z32 + dx;
+                    si fx >= 0 && fx < tampon_entrée.largeur comme z32 {
+                        pixel := mémoire(ligne + fx);
+
+                        valeur_r += pixel.r comme r32 * table[dx + taille];
+                        valeur_v += pixel.v comme r32 * table[dx + taille];
+                        valeur_b += pixel.b comme r32 * table[dx + taille];
+                    }
+                }
+
+                sortie.r = (valeur_r) comme n8;
+                sortie.v = (valeur_v) comme n8;
+                sortie.b = (valeur_b) comme n8;
+            }
+            sinon {
+                valeur: T;
+
+                pour dx dans -taille ... taille {
+                    fx := x comme z32 + dx;
+                    si fx >= 0 && fx < tampon_entrée.largeur comme z32 {
+                        pixel := mémoire(ligne + fx);
+                        valeur += pixel * table[dx + taille];
+                    }
+                }
+
+                mémoire(sortie) = valeur;
+            }
+
+            sortie += 1;
+        }
+
+        ligne += tampon_entrée.largeur;
+    }
+
+    colonne := tampon_sortie.données;
+    sortie = tampon_sortie.données;
+
+    pour x dans tampon_entrée.largeur {
+        pour y dans tampon_entrée.hauteur {
+            #si T == CouleurRVBN8 {
+                valeur_r := 0.0;
+                valeur_v := 0.0;
+                valeur_b := 0.0;
+
+                pour dy dans -taille ... taille {
+                    fy := y comme z32 + dy;
+                    si fy >= 0 && fy < tampon_entrée.hauteur comme z32 {
+                        pixel := mémoire(colonne + fy * tampon_entrée.largeur comme z32);
+
+                        valeur_r += pixel.r comme r32 * table[dy + taille];
+                        valeur_v += pixel.v comme r32 * table[dy + taille];
+                        valeur_b += pixel.b comme r32 * table[dy + taille];
+                    }
+                }
+
+                indice_sortie := x + y * tampon_entrée.largeur;
+
+                sortie[indice_sortie].r = (valeur_r) comme n8;
+                sortie[indice_sortie].v = (valeur_v) comme n8;
+                sortie[indice_sortie].b = (valeur_b) comme n8;
+            }
+            sinon {
+                valeur: T;
+
+                pour dy dans -taille ... taille {
+                    fy := y comme z32 + dy;
+                    si fy >= 0 && fy < tampon_entrée.hauteur comme z32 {
+                        pixel := mémoire(colonne + fy * tampon_entrée.largeur comme z32);
+                        valeur += pixel * table[dy + taille];
+                    }
+                }
+
+                indice_sortie := x + y * tampon_entrée.largeur;
+                sortie[indice_sortie] = valeur;
+            }
+        }
+
+        colonne += 1;
+    }
+}

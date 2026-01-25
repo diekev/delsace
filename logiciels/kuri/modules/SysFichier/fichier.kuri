@@ -37,7 +37,7 @@ pour_lecture_écriture_tronquée :: pour_lecture_écriture | RaisonOuvertureFich
 // ----------------------------------------------------------
 // Ouverture de fichier
 
-ouvre_fichier :: fonc (chemin: CheminFichier, raison: RaisonOuvertureFichier, permissions: z32) -> RésultatFichier
+ouvre_fichier :: fonc (chemin: CheminFichier, raison: RaisonOuvertureFichier, permissions: Type_Permissions_Fichier) -> RésultatFichier
 {
     desc := tente système_ouvre(chemin, raison, permissions) piège err {
         retourne err;
@@ -52,12 +52,12 @@ ouvre_fichier :: fonc (chemin: CheminFichier, raison: RaisonOuvertureFichier, pe
 // ouvre_fichier_existant_crée_sinon
 ouvre_fichier :: fonc (chemin: CheminFichier) -> RésultatFichier
 {
-    retourne ouvre_fichier(chemin, pour_lecture_écriture, 0o644);
+    retourne ouvre_fichier(chemin, pour_lecture_écriture, Permissions_Fichier_Défaut);
 }
 
 ouvre_fichier_pour_lecture :: fonc (chemin: CheminFichier) -> RésultatFichier
 {
-    retourne ouvre_fichier(chemin, pour_lecture, 0o644);
+    retourne ouvre_fichier(chemin, pour_lecture, Permissions_Fichier_Défaut);
 }
 
 /* Garantie l'existence de tous les dossiers menant vers la feuille du chemin. */
@@ -112,7 +112,7 @@ ouvre_fichier_crée_si_non_existant :: fonc (chemin: CheminFichier, raison: Rais
     /* Garantie la présence de ce drapeau. */
     raison.Création = vrai;
 
-    retourne ouvre_fichier(chemin, raison, 0o644);
+    retourne ouvre_fichier(chemin, raison, Permissions_Fichier_Défaut);
 }
 
 synchronise :: fonc (fichier: *Fichier) -> Optionnel(ErreurFichier)
