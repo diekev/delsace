@@ -480,7 +480,20 @@ valide_sémantique_noeud :: fonc (empl sémanticienne: *SémanticienneC, node: *
         }
         StringLiteral {
             // À FAIRE : const
-            node.type = crée_type_pointeur(*unit.maçonne_type, unit.maçonne_type.char_type);
+            string := node comme *StringLiteral;
+
+            si string.drapeaux.OPÉRANDE_SIZEOF == vrai || string.drapeaux.OPÉRANDE_ALIGNOF == vrai {
+                texte := donne_texte(string);
+                /* Ajoute 1 pour le caractère de terminaison. */
+                taille_texte := texte.taille comme n64 + 1;
+
+                // À FAIRE : string literal used to initialize an array
+                node.type = crée_type_tableau(*unit.maçonne_type, unit.maçonne_type.char_type, taille_texte);
+            }
+            sinon {
+                // À FAIRE : utilise toujours un type tableau.
+                node.type = crée_type_pointeur(*unit.maçonne_type, unit.maçonne_type.char_type);
+            }
         }
         IntegerConstant {
             integer := node comme *IntegerConstant;

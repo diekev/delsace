@@ -522,6 +522,11 @@ StringLiteral :: struct {
     genre = #type_de_cette_structure;
 }
 
+donne_texte :: fonc (string: *StringLiteral) -> chaine
+{
+    retourne donne_texte_sans_guillemets(string.token.lexème);
+}
+
 PrefixUpdateExpression :: struct {
     empl expr: Expression;
     genre = #type_de_cette_structure;
