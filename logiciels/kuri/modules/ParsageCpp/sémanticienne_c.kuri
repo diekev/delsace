@@ -288,6 +288,11 @@ valide_sémantique_noeud :: fonc (empl sémanticienne: *SémanticienneC, node: *
             }
 
             si var_decl.initializer {
+                saufsi est_type_initialisable(var_decl.type) {
+                    rapporte_note(sémanticienne, var_decl, "le type est '%'", donne_épelage_type(var_decl.type));
+                    rapporte_erreur(sémanticienne, var_decl, "type invalide pour l'initialisation d'une variable");
+                }
+
                 si var_decl.initializer.genre == InitializerList {
                     valide_initializer_list(sémanticienne, var_decl, var_decl.type, var_decl.initializer comme *InitializerList);
                 }
@@ -1148,9 +1153,7 @@ valide_sémantique_noeud :: fonc (empl sémanticienne: *SémanticienneC, node: *
             valide_sémantique_noeud(sémanticienne, compound.type_name);
             compound.type = résoud_type_final(sémanticienne, compound.type_name);
 
-            // À FAIRE : complete object type
-            // À FAIRE : but not a variable length array type
-            saufsi compound.type.drapeaux.COMPLET == vrai || compound.type.kind == TypeKind.INCOMPLETE_ARRAY {
+            saufsi est_type_initialisable(compound.type) {
                 rapporte_note(sémanticienne, compound, "le type est '%'", donne_épelage_type(compound.type));
                 rapporte_erreur(sémanticienne, compound, "une littérale doit être d'un type complet ou d'un type tableau incomplet");
             }
@@ -1184,6 +1187,13 @@ valide_sémantique_noeud :: fonc (empl sémanticienne: *SémanticienneC, node: *
             panique("Noeud non-géré %", info.nom);
         }
     }
+}
+
+est_type_initialisable :: fonc (type: *Type) -> bool
+{
+    // À FAIRE : complete object type
+    // À FAIRE : but not a variable length array type
+    retourne type.drapeaux.COMPLET == vrai || type.kind == TypeKind.INCOMPLETE_ARRAY;
 }
 
 valide_opérateur_multiplicatif :: fonc (empl sémanticienne: *SémanticienneC, binary: *BinaryExpression)
