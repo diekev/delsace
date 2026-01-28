@@ -1147,6 +1147,14 @@ valide_sémantique_noeud :: fonc (empl sémanticienne: *SémanticienneC, node: *
             compound := node comme *CompoundLiteral;
             valide_sémantique_noeud(sémanticienne, compound.type_name);
             compound.type = résoud_type_final(sémanticienne, compound.type_name);
+
+            // À FAIRE : complete object type
+            // À FAIRE : but not a variable length array type
+            saufsi compound.type.drapeaux.COMPLET == vrai || compound.type.kind == TypeKind.INCOMPLETE_ARRAY {
+                rapporte_note(sémanticienne, compound, "le type est '%'", donne_épelage_type(compound.type));
+                rapporte_erreur(sémanticienne, compound, "une littérale doit être d'un type complet ou d'un type tableau incomplet");
+            }
+
             valide_initializer_list(sémanticienne, compound, compound.type, compound.initializer);
         }
         PointerType {
