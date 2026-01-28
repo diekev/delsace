@@ -3,9 +3,6 @@ IPA
 Supprime les tableaux (utilise des tranches, et supprime tableau_statique::capacite)
 Remplace *Module par un ID
 
-// À FAIRE : division par 0 dans la coulisse C
-plancher(x comme r32 / (19 * 19));
-
 // À FAIRE(langage) : a += ; 1
 
 // énum drapeau
