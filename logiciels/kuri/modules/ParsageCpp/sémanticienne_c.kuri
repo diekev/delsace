@@ -1138,6 +1138,11 @@ valide_sémantique_noeud :: fonc (empl sémanticienne: *SémanticienneC, node: *
                 }
             }
 
+            si type_gauche.genre == TypedefDecl {
+                typedef := type_gauche comme *TypedefDecl;
+                type_gauche = typedef.underlying_type.type;
+            }
+
             /* Garantis un type en cas d'erreur. */
             access.type = unit.maçonne_type.int_signed_type;
 
