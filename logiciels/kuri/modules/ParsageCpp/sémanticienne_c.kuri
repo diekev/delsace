@@ -443,6 +443,8 @@ valide_sémantique_noeud :: fonc (empl sémanticienne: *SémanticienneC, node: *
                 retourne;
             }
 
+            // À FAIRE : The expression that denotes the called function shall have type pointer to function
+            // returning void or returning a complete object type other than an array type.
             callee_type := call.callee.type;
             saufsi callee_type.kind == TypeKind.FUNCTION {
                 rapporte_note(sémanticienne, call.callee.token, "le type de l'expression est '%'", donne_épelage_type(callee_type));
@@ -464,10 +466,13 @@ valide_sémantique_noeud :: fonc (empl sémanticienne: *SémanticienneC, node: *
 
                 argument_donné := arguments_donnés[0];
 
-                type_voulu := arguments_voulus[0];
+                type_voulu := donne_type_non_qualifié(arguments_voulus[0]);
                 type_donné := argument_donné.type;
 
-                saufsi types_sont_compatibles_pour_appel(type_voulu, type_donné) {
+                /* Each argument shall have a type such that its value may be assigned
+                 * to an object with the unqualified version of the type of its
+                 * corresponding parameter. */
+                saufsi type_voulu.kind == TypeKind.VARIADIC || types_sont_compatibles_pour_assignation_simple(type_voulu, type_donné) {
                     rapporte_erreur(sémanticienne, argument_donné.token, "types incompatibles pour l'argument : '%' vs '%'", donne_épelage_type(type_voulu), donne_épelage_type(type_donné));
                     retourne;
                 }
@@ -1198,6 +1203,12 @@ valide_sémantique_noeud :: fonc (empl sémanticienne: *SémanticienneC, node: *
     }
 }
 
+donne_type_non_qualifié :: fonc (type: *Type) -> *Type
+{
+    // À FAIRE : supprime les qualifiants.
+    retourne type;
+}
+
 est_type_initialisable :: fonc (type: *Type) -> bool
 {
     // À FAIRE : complete object type
@@ -1737,14 +1748,6 @@ types_sont_compatibles_pour_assignation_simple :: fonc (gauche: *Type, droite: *
     // À FAIRE : — the left operand has type atomic, qualified, or unqualified _Bool, and the right is a
     // pointer
     retourne faux;
-}
-
-types_sont_compatibles_pour_appel :: fonc (attendu: *Type, obtenu: *Type) -> bool
-{
-    si types_sont_compatibles(attendu, obtenu) {
-        retourne vrai;
-    }
-    retourne attendu.kind == TypeKind.VARIADIC;
 }
 
 donne_épelage_type :: fonc (type: *Type) -> chaine
