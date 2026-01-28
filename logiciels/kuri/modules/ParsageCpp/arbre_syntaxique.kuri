@@ -440,8 +440,9 @@ MemberAccessExpression :: struct {
     genre = #type_de_cette_structure;
 
     is_arrow: bool;
+    indice_rubrique_accédée: n32;
     left: *Expression;
-    right: *Expression;
+    identifier: Token;
 }
 
 IndexExpression :: struct {

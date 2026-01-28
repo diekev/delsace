@@ -1099,6 +1099,48 @@ valide_sémantique_noeud :: fonc (empl sémanticienne: *SémanticienneC, node: *
 
             ternary.type = valide_branches_expression_conditionnelle(sémanticienne, ternary);
         }
+        MemberAccessExpression {
+            access := node comme *MemberAccessExpression;
+
+            valide_sémantique_noeud(sémanticienne, access.left);
+
+            type_gauche := access.left.type;
+
+            si type_gauche.drapeaux.POINTER {
+                si access.is_arrow {
+                    type_gauche = (type_gauche comme *PointerType).pointed_to;
+                }
+                sinon {
+                    rapporte_erreur(sémanticienne, access.left, "un type pointeur est attendu à gauche de '->'");
+                }
+            }
+
+            /* Garantis un type en cas d'erreur. */
+            access.type = unit.maçonne_type.int_signed_type;
+
+            si type_gauche.genre == StructDecl {
+                type_struct := type_gauche comme *StructDecl;
+                membre := donne_texte(access.identifier);
+
+                pour type_struct.field_infos {
+                    si it.nom == membre {
+                        access.type = it.type;
+                        access.indice_rubrique_accédée = indice_it comme n32;
+                        arrête;
+                    }
+                }
+                sansarrêt {
+                    rapporte_erreur(sémanticienne, access, "le type '%' n'a pas de rubrique appelée '%'", donne_épelage_type(type_struct), membre);
+                }
+            }
+            sinon {
+                rapporte_erreur(sémanticienne, access.left, "impossible d'accéder à un type non-structurel");
+            }
+
+            si access.left.drapeaux.LVALUE {
+                access.drapeaux.LVALUE = vrai;
+            }
+        }
         PointerType {
 
         }

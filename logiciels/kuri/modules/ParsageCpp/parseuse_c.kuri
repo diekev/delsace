@@ -2077,10 +2077,17 @@ parse_expression :: fonc (empl parseuse: *ParseuseC, info_courante: InfoParsageO
         sinon si texte == "." || texte == "->" {
             consomme(parseuse);
 
+            lexème_suivant := épie_lexème_suivant(parseuse);
+            saufsi est_symbole(lexème_suivant) {
+                rapporte_erreur(parseuse, lexème_suivant, "attendu un identifiant après '%'", texte);
+            }
+
+            consomme(parseuse);
+
             member_access := crée_noeud(*créatrice, lexème, MemberAccessExpression);
             member_access.is_arrow = texte == "->";
             member_access.left = résultat;
-            member_access.right = parse_expression(parseuse, info);
+            member_access.identifier = lexème_suivant;
 
             résultat = member_access;
         }
