@@ -369,6 +369,7 @@ Drapeaux_Expression :: énum_drapeau {
 
     OPÉRANDE_SIZEOF;
     OPÉRANDE_ALIGNOF;
+    INITIALISATION_TABLEAU;
 }
 
 Expression :: struct {

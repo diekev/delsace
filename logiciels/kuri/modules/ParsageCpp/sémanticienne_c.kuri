@@ -293,11 +293,21 @@ valide_sémantique_noeud :: fonc (empl sémanticienne: *SémanticienneC, node: *
                     rapporte_erreur(sémanticienne, var_decl, "type invalide pour l'initialisation d'une variable");
                 }
 
+                si var_decl.type.drapeaux.ARRAY {
+                    var_decl.initializer.drapeaux.INITIALISATION_TABLEAU = vrai;
+                }
+
                 si var_decl.initializer.genre == InitializerList {
                     valide_initializer_list(sémanticienne, var_decl, var_decl.type, var_decl.initializer comme *InitializerList);
                 }
                 sinon {
                     valide_sémantique_noeud(sémanticienne, var_decl.initializer);
+
+                    si var_decl.type.drapeaux.ARRAY {
+                        si var_decl.type.drapeaux.COMPLET == faux {
+                            var_decl.type = var_decl.initializer.type;
+                        }
+                    }
                 }
             }
 
@@ -487,12 +497,11 @@ valide_sémantique_noeud :: fonc (empl sémanticienne: *SémanticienneC, node: *
             // À FAIRE : const
             string := node comme *StringLiteral;
 
-            si string.drapeaux.OPÉRANDE_SIZEOF == vrai || string.drapeaux.OPÉRANDE_ALIGNOF == vrai {
+            si string.drapeaux.OPÉRANDE_SIZEOF == vrai || string.drapeaux.OPÉRANDE_ALIGNOF == vrai || string.drapeaux.INITIALISATION_TABLEAU {
                 texte := donne_texte(string);
                 /* Ajoute 1 pour le caractère de terminaison. */
                 taille_texte := texte.taille comme n64 + 1;
 
-                // À FAIRE : string literal used to initialize an array
                 node.type = crée_type_tableau(*unit.maçonne_type, unit.maçonne_type.char_type, taille_texte);
             }
             sinon {
