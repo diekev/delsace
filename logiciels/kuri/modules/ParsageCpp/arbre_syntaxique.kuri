@@ -300,6 +300,16 @@ StructDecl :: struct {
     field_infos: [..]Field_Info;
 }
 
+donne_field_info :: fonc (struct_decl: *StructDecl, nom: chaine) -> (*Field_Info, z64)
+{
+    pour * struct_decl.field_infos {
+        si it.nom == nom {
+            retourne it, indice_it;
+        }
+    }
+    retourne nul, -1;
+}
+
 UnionDecl :: struct {
     empl base_type: Type;
     genre = #type_de_cette_structure;
@@ -380,6 +390,7 @@ IdentifierDesignator :: struct {
 
     identifier: chaine;
     initializer: *Expression;
+    indice_rubrique_accédée: n32;
 }
 
 IndexDesignator :: struct {

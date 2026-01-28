@@ -1126,14 +1126,12 @@ valide_sémantique_noeud :: fonc (empl sémanticienne: *SémanticienneC, node: *
                 type_struct := type_gauche comme *StructDecl;
                 membre := donne_texte(access.identifier);
 
-                pour type_struct.field_infos {
-                    si it.nom == membre {
-                        access.type = it.type;
-                        access.indice_rubrique_accédée = indice_it comme n32;
-                        arrête;
-                    }
+                field_info, indice := donne_field_info(type_struct, membre);
+                si field_info {
+                    access.type = field_info.type;
+                    access.indice_rubrique_accédée = indice comme n32;
                 }
-                sansarrêt {
+                sinon {
                     rapporte_erreur(sémanticienne, access, "le type '%' n'a pas de rubrique appelée '%'", donne_épelage_type(type_struct), membre);
                 }
             }
@@ -1431,6 +1429,11 @@ valide_sémantique_generic :: fonc (sémanticienne: *SémanticienneC, generic: *
 
 valide_initializer_list :: fonc (empl sémanticienne: *SémanticienneC, objet_racine: *VarDecl, type_objet: *Type, initializer: *InitializerList)
 {
+    si type_objet.kind == TypeKind.TYPEDEF {
+        typedef := type_objet comme *TypedefDecl;
+        type_objet = typedef.underlying_type.type;
+    }
+
     si type_objet.kind != TypeKind.INCOMPLETE_ARRAY && type_objet.drapeaux.COMPLET == faux {
         rapporte_erreur(sémanticienne, initializer, "impossible d'initialiser un objet du type incomplet '%'", donne_épelage_type(type_objet));
     }
@@ -1464,6 +1467,50 @@ valide_initializer_list :: fonc (empl sémanticienne: *SémanticienneC, objet_ra
         }
 
         objet_racine.type = crée_type_tableau(*unit.maçonne_type, type_élément, initializer.initializers.taille comme n64);
+    }
+    sinon si type_objet.genre == StructDecl {
+        type_struct := type_objet comme *StructDecl;
+
+        rubrique_courante: z64 = 0;
+
+        pour initializer.initializers {
+            si rubrique_courante >= type_struct.field_infos.taille {
+                rapporte_erreur(sémanticienne, it, "trop d'initialisateurs pour le type '%'", donne_épelage_type(type_struct));
+                arrête;
+            }
+
+            field_info: *Field_Info;
+            type_opérande: *Type;
+
+            si it.genre == IdentifierDesignator {
+                identifier_designator := it comme *IdentifierDesignator;
+                valide_sémantique_noeud(sémanticienne, identifier_designator.initializer);
+                type_opérande = identifier_designator.initializer.type;
+
+                field_info, rubrique_courante = donne_field_info(type_struct, identifier_designator.identifier);
+                si field_info {
+                    identifier_designator.indice_rubrique_accédée = rubrique_courante comme n32;
+                }
+                sinon {
+                    rapporte_erreur(sémanticienne, it, "la structure '%' n'a pas de rubrique appelée '%'", donne_épelage_type(type_struct), identifier_designator.identifier);
+                    arrête;
+                }
+            }
+            sinon {
+                valide_sémantique_noeud(sémanticienne, it);
+                type_opérande = it.type;
+                field_info = *type_struct.field_infos[rubrique_courante];
+            }
+
+            type_élément := field_info.type;
+            saufsi types_sont_compatibles_pour_assignation_simple(type_élément, type_opérande) {
+                rapporte_erreur(sémanticienne, it, "types incompatibles pour l'initialisation : '%' et '%'", donne_épelage_type(type_élément), donne_épelage_type(type_opérande));
+            }
+
+            it.type = field_info.type;
+
+            rubrique_courante += 1;
+        }
     }
     sinon {
         rapporte_erreur_interne(sémanticienne, initializer, "initialisateur pour type '%' non-supporté", donne_épelage_type(type_objet));
