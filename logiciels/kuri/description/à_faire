@@ -232,6 +232,18 @@ peut_envoyer_en_conversion_noeud_code
     - [?] ajouter kuri::tableau<UnitéCompilation> unité_attendantes; dans UniteCompilation
 
 // ----------------------------------------------------------------------------
+// Modules
+
+paramètres pour les modules
+
+modules comme "types"
+    - simplification de la validation des accès de rubriques
+    - doit être dans les infos-types ?
+    - séparation entre types d'objets et autres types
+        - type objet, type module, type surcharges
+    - ne peut-être dérivé (*Type_Module, [..]Type_Module)
+
+// ----------------------------------------------------------------------------
 // Fonctionnalités diverses
 
 - trouve comment prendre la chaine d'une expression (pour les assertions lors de l'exécution du programme)
@@ -240,7 +252,6 @@ peut_envoyer_en_conversion_noeud_code
 - tests des énums drapeaux dans les conditions des boucles
     voir Cycles/parser, p.e. tantque peut_suivre.IDENTIFIANT == vrai
 - génération de code source pour les fonctions créées par la compilatrice (init_de, etc.) afin d'avoir du texte dans les informations de débogage.
-- paramètres pour les modules
 
 Test pour les retours de pointeurs
 
