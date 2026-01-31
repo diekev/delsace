@@ -367,6 +367,7 @@ TypeRappelUtilisateur :: énum {
     SurPressionSouris;
     SurRelâchementSouris;
     SurClicSouris;
+    SurDoubleClicSouris;
     SurMoletteSouris;
 }
 

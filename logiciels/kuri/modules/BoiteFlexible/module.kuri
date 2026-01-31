@@ -160,6 +160,11 @@ gère_évènement :: fonc (emboiteuse: *Emboiteuse, évènement: &Évènement)
             retourne;
         }
 
+        si évènement.action_souris == ActionSouris.DOUBLE_CLIC {
+            sur_évènement_souris(emboiteuse, SurDoubleClicSouris, évènement.donne_clic_souris());
+            retourne;
+        }
+
         si évènement.action_souris == ActionSouris.RELACHÉE {
             sur_évènement_souris(emboiteuse, SurRelâchementSouris, évènement.donne_clic_souris());
 
@@ -402,6 +407,12 @@ sur_clic_souris :: fonc (rappel: TypeRappelSouris, données: *rien, indice: z32)
 {
     assert(__boite_courante != nul);
     définis_rappel(__boite_courante, TypeRappelUtilisateur.SurClicSouris, rappel, données, indice, faux);
+}
+
+sur_double_clic_souris :: fonc (rappel: TypeRappelSouris, données: *rien, indice: z32)
+{
+    assert(__boite_courante != nul);
+    définis_rappel(__boite_courante, TypeRappelUtilisateur.SurDoubleClicSouris, rappel, données, indice, faux);
 }
 
 sur_molette_souris :: fonc (rappel: TypeRappelSouris, données: *rien, indice: z32)
