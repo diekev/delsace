@@ -532,6 +532,14 @@ rappels_window_sur_évènement :: fonc (base: *QT_Rappels_Window, event: QT_Gene
         retourne vrai;
     }
 
+    si type == QT_Event_Type.MouseButtonDblClick {
+        clic := donne_clic_souris_depuis_évènement(event.mouse_event, ActionSouris.DOUBLE_CLIC);
+        évènement := tableau_ajoute_élément(*__évènements);
+        initialise_depuis_clic(évènement, clic);
+        rappels.dernière_souris = clic.état;
+        retourne vrai;
+    }
+
     si type == QT_Event_Type.Close {
         évènement := tableau_ajoute_élément(*__évènements);
         évènement.type = TypeÉvènement.Fermeture;

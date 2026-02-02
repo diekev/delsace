@@ -160,6 +160,11 @@ gère_évènement :: fonc (emboiteuse: *Emboiteuse, évènement: &Évènement)
             retourne;
         }
 
+        si évènement.action_souris == ActionSouris.DOUBLE_CLIC {
+            sur_évènement_souris(emboiteuse, SurDoubleClicSouris, évènement.donne_clic_souris());
+            retourne;
+        }
+
         si évènement.action_souris == ActionSouris.RELACHÉE {
             sur_évènement_souris(emboiteuse, SurRelâchementSouris, évènement.donne_clic_souris());
 
@@ -402,6 +407,12 @@ sur_clic_souris :: fonc (rappel: TypeRappelSouris, données: *rien, indice: z32)
 {
     assert(__boite_courante != nul);
     définis_rappel(__boite_courante, TypeRappelUtilisateur.SurClicSouris, rappel, données, indice, faux);
+}
+
+sur_double_clic_souris :: fonc (rappel: TypeRappelSouris, données: *rien, indice: z32)
+{
+    assert(__boite_courante != nul);
+    définis_rappel(__boite_courante, TypeRappelUtilisateur.SurDoubleClicSouris, rappel, données, indice, faux);
 }
 
 sur_molette_souris :: fonc (rappel: TypeRappelSouris, données: *rien, indice: z32)
@@ -799,6 +810,22 @@ ajoute_rembourage :: fonc (espace: EspaceDisponible, rembourrage: $T) -> EspaceD
     espace.largeur = soustraction_sure(espace.largeur, (rembourrage * 2) comme n32);
     espace.hauteur = soustraction_sure(espace.hauteur, (rembourrage * 2) comme n32);
     retourne espace;
+}
+
+dispose_séparateur_horizontal :: fonc (largeur: n32, hauteur := 0)
+{
+    assert(__boite_courante != nul);
+    séparateur := __boite_courante.ajoute_enfant();
+    si largeur != 0 {
+        séparateur.disposition.cotation.largeur = FIXE(largeur);
+    }
+    sinon {
+        séparateur.disposition.cotation.largeur = CROISSANTE();
+    }
+
+    si hauteur != 0 {
+        séparateur.disposition.cotation.hauteur = FIXE(hauteur);
+    }
 }
 
 dispose_séparateur_horizontal :: fonc (hauteur := 0)
