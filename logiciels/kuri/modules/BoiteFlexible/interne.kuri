@@ -239,6 +239,7 @@ ajoute_enfant :: fonc (boite: *BoiteFlexible) -> *BoiteFlexible
     enfant := crée_boite(boite.emboiteuse);
     enfant.parent = boite;
     enfant.profondeur = boite.profondeur + 1;
+    enfant.curseur = boite.curseur;
     tableau_ajoute(*boite.enfants, enfant);
     retourne enfant;
 }
@@ -367,6 +368,7 @@ TypeRappelUtilisateur :: énum {
     SurPressionSouris;
     SurRelâchementSouris;
     SurClicSouris;
+    SurDoubleClicSouris;
     SurMoletteSouris;
 }
 

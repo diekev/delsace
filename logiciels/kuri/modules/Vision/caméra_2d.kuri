@@ -136,14 +136,14 @@ centre_sur_image :: fonc (empl caméra: *Caméra2D, largeur_image: z32, hauteur_
     largeur_image += 2 * bordure;
     hauteur_image += 2 * bordure;
 
-    si largeur_image < largeur && hauteur_image < hauteur {
+    ratio_hauteur := hauteur comme r32 / hauteur_image comme r32;
+    ratio_largeur := largeur comme r32 / largeur_image comme r32;
+
+    si ratio_hauteur >= 1.0 && ratio_largeur >= 1.0 {
         définis_zoom(caméra, 1.0);
     }
-    sinon si largeur_image > hauteur_image {
-        définis_zoom(caméra, largeur comme r32 / largeur_image comme r32);
-    }
     sinon {
-        définis_zoom(caméra, hauteur comme r32 / hauteur_image comme r32);
+        définis_zoom(caméra, min(ratio_largeur, ratio_hauteur));
     }
 
     centre_x_image := (largeur_image / 2 - bordure) comme r32;
