@@ -384,7 +384,7 @@ positionne_rects_prises :: fonc (parent: QT_Generic_GraphicsItem, prises: []*$T,
     }
 }
 
-ajourne_rectangles_noeuds :: fonc (noeud: *Noeud)
+ajourne_rectangles_noeuds :: fonc (noeud: *Noeud, origine_en_bas := vrai)
 {
     pos_x := noeud.position.x;
     pos_y := noeud.position.y;
@@ -405,7 +405,12 @@ ajourne_rectangles_noeuds :: fonc (noeud: *Noeud)
     décalage_icone_y := pos_y;
     décalage_texte_x := largeur_noeud;
     décalage_texte_y := pos_y;
-    décalage_sorties_y := pos_y + hauteur_icone + espace_entre_prise_et_noeud;
+    décalage_sorties_y := si origine_en_bas {
+        pos_y - hauteur_prise - espace_entre_prise_et_noeud;
+    }
+    sinon {
+        pos_y + hauteur_icone + espace_entre_prise_et_noeud;
+    };
 
     /* Prises entrées */
     étendue_entrée := (largeur_noeud / noeud.entrées.taille comme r32);
@@ -415,7 +420,13 @@ ajourne_rectangles_noeuds :: fonc (noeud: *Noeud)
     pour noeud.entrées {
         // À FAIRE : connexions multiples
         it.rectangle.x = pos_entrée;
-        it.rectangle.y = pos_y - hauteur_prise - espace_entre_prise_et_noeud;
+        it.rectangle.y = pos_y + hauteur_icone + espace_entre_prise_et_noeud;
+        it.rectangle.y = si origine_en_bas {
+            pos_y + hauteur_icone + espace_entre_prise_et_noeud;
+        }
+        sinon {
+            pos_y - hauteur_prise - espace_entre_prise_et_noeud;
+        };
         it.rectangle.hauteur = hauteur_prise;
         it.rectangle.largeur = largeur_prise;
 
@@ -499,7 +510,7 @@ donne_brosse_pour_corps_noeud :: fonc (noeud: *Noeud) -> QT_Brush
 
 dessine_noeud_générique :: fonc (thème: *ThèmeGraphe, noeud: *Noeud, est_sélectionné: bool) -> *QT_GraphicsRectItem
 {
-    ajourne_rectangles_noeuds(noeud);
+    ajourne_rectangles_noeuds(noeud, faux);
 
     parent: *QT_GraphicsItem;
     résultat := crée_géométrie_noeud(parent, noeud, est_sélectionné);
