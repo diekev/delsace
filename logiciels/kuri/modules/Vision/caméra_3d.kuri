@@ -419,7 +419,7 @@ dls::math::point3f Caméra3D::pos_monde(dls::math::point3f const &pos) const
 zoom :: fonc (caméra: *Caméra3D, delta: r32)
 {
     distance := 0.0;
-    si delta >= 0 {
+    si delta < 0 {
         distance = caméra.distance + caméra.vitesse_zoom;
     }
     sinon {
