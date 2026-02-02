@@ -1733,6 +1733,9 @@ struct Calculatrice {
     }
 };
 
+/* À FAIRE : la validation sémantique modifie récursivement le type des noeuds quand des entiers
+ * constants sont transtypés, mais cette opération ne modifie pas le genre des opérateurs binaires;
+ * donc nous devons vérifier le type des opérandes. */
 AtomeConstante *évalue_opérateur_binaire(InstructionOpBinaire const *inst,
                                          ConstructriceRI &constructrice)
 {
@@ -1768,6 +1771,9 @@ AtomeConstante *évalue_opérateur_binaire(InstructionOpBinaire const *inst,
     switch (inst->op) {
         case OpérateurBinaire::Genre::Addition:
         {
+            if (opérande_gauche->est_constante_réelle()) {
+                APPLIQUE_OPERATION_RÉEL(Addition);
+            }
             APPLIQUE_OPERATION_ENTIER(Addition);
         }
         case OpérateurBinaire::Genre::Addition_Réel:
@@ -1776,6 +1782,9 @@ AtomeConstante *évalue_opérateur_binaire(InstructionOpBinaire const *inst,
         }
         case OpérateurBinaire::Genre::Soustraction:
         {
+            if (opérande_gauche->est_constante_réelle()) {
+                APPLIQUE_OPERATION_RÉEL(Soustraction);
+            }
             APPLIQUE_OPERATION_ENTIER(Soustraction);
         }
         case OpérateurBinaire::Genre::Soustraction_Réel:
@@ -1784,6 +1793,9 @@ AtomeConstante *évalue_opérateur_binaire(InstructionOpBinaire const *inst,
         }
         case OpérateurBinaire::Genre::Multiplication:
         {
+            if (opérande_gauche->est_constante_réelle()) {
+                APPLIQUE_OPERATION_RÉEL(Multiplication);
+            }
             APPLIQUE_OPERATION_ENTIER(Multiplication);
         }
         case OpérateurBinaire::Genre::Multiplication_Réel:
@@ -1793,6 +1805,9 @@ AtomeConstante *évalue_opérateur_binaire(InstructionOpBinaire const *inst,
         case OpérateurBinaire::Genre::Division_Naturel:
         case OpérateurBinaire::Genre::Division_Relatif:
         {
+            if (opérande_gauche->est_constante_réelle()) {
+                APPLIQUE_OPERATION_RÉEL(Division);
+            }
             APPLIQUE_OPERATION_ENTIER(Division);
         }
         case OpérateurBinaire::Genre::Division_Réel:
