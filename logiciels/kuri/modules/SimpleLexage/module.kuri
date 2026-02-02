@@ -357,6 +357,11 @@ donne_symbole :: fonc (lexeuse: *SimpleLexeuse, texte: chaine) -> Lexème
     retourne donne_lexème(lexeuse, TypeLexème.Symbole, texte);
 }
 
+donne_chaine_littérale :: fonc (lexeuse: *SimpleLexeuse) -> Lexème
+{
+    retourne donne_lexème(lexeuse, TypeLexème.ChaineLittérale);
+}
+
 donne_mot_clé :: fonc (lexeuse: *SimpleLexeuse) -> Lexème
 {
     retourne donne_lexème(lexeuse, TypeLexème.MotClé);
