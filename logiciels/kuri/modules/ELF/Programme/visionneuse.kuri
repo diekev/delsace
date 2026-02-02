@@ -115,11 +115,117 @@ principale :: fonc ()
 /** \nom Onglet
  * \{ */
 
+Type_Onglet :: énum n8 {
+    INFORMATIONS;
+    ENTÊTES_PROGRAMME;
+    LISTE_SECTIONS;
+    SECTION;
+}
+
+Rendu_Section :: énum n8 {
+    DONNÉES_HEX;
+    TABULEUSE_COMMENTAIRES;
+    TABULEUSE_DEBUG_ABBREV;
+    TABULEUSE_DEBUG_ARANGES;
+    TABULEUSE_DEBUG_INFO;
+    TABULEUSE_DEBUG_LINE;
+    TABULEUSE_DEBUG_LOCLISTS;
+    TABULEUSE_DEBUG_RNGLISTS;
+    TABULEUSE_DYNAMIC;
+    TABULEUSE_EH_FRAME;
+    TABULEUSE_NOTE;
+    TABULEUSE_REL;
+    TABULEUSE_RELA;
+    TABULEUSE_SYMBOLES;
+    TABULEUSE_TABLE_CHAINES;
+}
+
 Onglet :: struct {
     nom: chaine;
+    type: Type_Onglet;
     type_section: TypeSection;
+    type_rendu: Rendu_Section;
     tabuleuse: Tabuleuse;
     image_binaire: NouvelleImage;
+}
+
+ajoute_onglet_impl :: fonc (onglets: *[..]Onglet, nom: chaine, type_onglet: Type_Onglet) -> *Onglet
+{
+    résultat := tableau_ajoute_élément(onglets);
+    résultat.nom = nom;
+    résultat.type = type_onglet;
+    retourne résultat;
+}
+
+ajoute_onglet :: fonc (onglets: *[..]Onglet, nom: chaine, type_onglet: Type_Onglet)
+{
+    _ := ajoute_onglet_impl(onglets, nom, type_onglet);
+}
+
+ajoute_onglet_section :: fonc (onglets: *[..]Onglet, nom: chaine, type_section: TypeSection)
+{
+    onglet := ajoute_onglet_impl(onglets, nom, Type_Onglet.SECTION);
+    onglet.type_section = type_section;
+
+    si onglet.type_section == SHT_SYMTAB || onglet.type_section == SHT_DYNSYM {
+        onglet.type_rendu = Rendu_Section.TABULEUSE_SYMBOLES;
+    }
+    sinon si onglet.type_section == TypeSection.BitsProgramme {
+        si onglet.nom == ".comment" {
+            onglet.type_rendu = Rendu_Section.TABULEUSE_COMMENTAIRES;
+        }
+        sinon si onglet.nom == ".rodata" {
+            onglet.type_rendu = Rendu_Section.DONNÉES_HEX;
+        }
+        sinon si onglet.nom == ".eh_frame" {
+            onglet.type_rendu = Rendu_Section.TABULEUSE_EH_FRAME;
+        }
+        sinon si onglet.nom == ".debug_info" {
+            onglet.type_rendu = Rendu_Section.TABULEUSE_DEBUG_INFO;
+        }
+        sinon si onglet.nom == ".debug_abbrev" {
+            onglet.type_rendu = Rendu_Section.TABULEUSE_DEBUG_ABBREV;
+        }
+        sinon si onglet.nom == ".debug_aranges" {
+            onglet.type_rendu = Rendu_Section.TABULEUSE_DEBUG_ARANGES;
+        }
+        sinon si onglet.nom == ".debug_rnglists" {
+            onglet.type_rendu = Rendu_Section.TABULEUSE_DEBUG_RNGLISTS;
+        }
+        sinon si onglet.nom == ".debug_line" {
+            onglet.type_rendu = Rendu_Section.TABULEUSE_DEBUG_LINE;
+        }
+        sinon si onglet.nom == ".debug_loclists" {
+            onglet.type_rendu = Rendu_Section.TABULEUSE_DEBUG_LOCLISTS;
+        }
+        sinon si onglet.nom == ".debug_str" {
+            onglet.type_rendu = Rendu_Section.TABULEUSE_TABLE_CHAINES;
+        }
+        sinon si onglet.nom == ".debug_line_str" {
+            onglet.type_rendu = Rendu_Section.TABULEUSE_TABLE_CHAINES;
+        }
+        sinon {
+            onglet.type_rendu = Rendu_Section.DONNÉES_HEX;
+        }
+    }
+    sinon si onglet.type_section == TypeSection.Dynamique {
+        onglet.type_rendu = Rendu_Section.TABULEUSE_DYNAMIC;
+    }
+    sinon si onglet.type_section == TypeSection.Note {
+        onglet.type_rendu = Rendu_Section.TABULEUSE_NOTE;
+    }
+    sinon si onglet.type_section == TypeSection.TableChaine {
+        onglet.type_rendu = Rendu_Section.TABULEUSE_TABLE_CHAINES;
+    }
+    sinon si onglet.type_section == TypeSection.Rel {
+        onglet.type_rendu = Rendu_Section.TABULEUSE_REL;
+    }
+    sinon si onglet.type_section == TypeSection.Rela {
+        onglet.type_rendu = Rendu_Section.TABULEUSE_RELA;
+    }
+    sinon {
+        onglet.type_rendu = Rendu_Section.DONNÉES_HEX;
+    }
 }
 
 donne_image_visualisation_binaire :: fonc (visionneuse: *VisionneuseELF, onglet: *Onglet, données: []octet) -> NouvelleImage
@@ -360,14 +466,9 @@ crée_fichier_elf :: fonc (visionneuse: *VisionneuseELF, chemin: CheminFichier, 
     données_fichier.contenu = contenu;
     données_fichier.archive_originatrice = archive_originatrice;
 
-    onglet := tableau_ajoute_élément(*données_fichier.onglets);
-    onglet.nom = "Informations";
-
-    onglet = tableau_ajoute_élément(*données_fichier.onglets);
-    onglet.nom = "Entêtes Programme";
-
-    onglet = tableau_ajoute_élément(*données_fichier.onglets);
-    onglet.nom = "Sections";
+    ajoute_onglet(*données_fichier.onglets, "Informations", Type_Onglet.INFORMATIONS);
+    ajoute_onglet(*données_fichier.onglets, "Entêtes Programme", Type_Onglet.ENTÊTES_PROGRAMME);
+    ajoute_onglet(*données_fichier.onglets, "Sections", Type_Onglet.LISTE_SECTIONS);
 }
 
 crée_fichier_archive :: fonc (visionneuse: *VisionneuseELF, archive: Archive_Ar, chemin: CheminFichier, contenu: [..]octet) -> z32
@@ -792,10 +893,9 @@ sur_pression_entête_section :: fonc (empl info: *InfoCommande, clic: ClicSouris
                 }
             }
             sansarrêt {
-                onglet := tableau_ajoute_élément(*fichier.onglets);
-                onglet.nom = métadonnée;
-                section := trouve_section(fichier.fichier, onglet.nom);
-                onglet.type_section = donne_type_section(section);
+                section := trouve_section(fichier.fichier, métadonnée);
+                type_section := donne_type_section(section);
+                ajoute_onglet_section(*fichier.onglets, métadonnée, type_section);
                 fichier.onglet_courant = fichier.onglets.taille comme z32 - 1;
             }
         }
@@ -849,77 +949,61 @@ dessine_onglet_section :: fonc (visionneuse: *VisionneuseELF, fichier: *Fichier_
     config_texte := config_texte_défaut;
     données_hex := faux;
 
-    si onglet.type_section == SHT_SYMTAB || onglet.type_section == SHT_DYNSYM {
-        donne_tabuleuse_symboles(fichier, visionneuse.fonte, *onglet.tabuleuse, onglet.nom);
-    }
-    sinon si onglet.type_section == TypeSection.BitsProgramme {
-        si onglet.nom == ".comment" {
-            donne_tabuleuse_comment(fichier, visionneuse.fonte, *onglet.tabuleuse);
-        }
-        sinon si onglet.nom == ".rodata" {
-            donne_tabuleuse_données_hex(fichier, visionneuse.fonte_mono, *onglet.tabuleuse, ".rodata");
-            config_texte = config_texte_mono;
-            données_hex = vrai;
-        }
-        sinon si onglet.nom == ".eh_frame" {
-            donne_tabuleuse_eh_frame(fichier, visionneuse.fonte_mono, *onglet.tabuleuse);
-            config_texte = config_texte_mono;
-        }
-        sinon si onglet.nom == ".debug_info" {
-            donne_tabuleuse_debug_info(fichier, visionneuse.fonte_mono, *onglet.tabuleuse);
-            config_texte = config_texte_mono;
-        }
-        sinon si onglet.nom == ".debug_abbrev" {
-            donne_tabuleuse_debug_abbrev(fichier, visionneuse.fonte_mono, *onglet.tabuleuse);
-            config_texte = config_texte_mono;
-        }
-        sinon si onglet.nom == ".debug_aranges" {
-            donne_tabuleuse_debug_aranges(fichier, visionneuse.fonte_mono, *onglet.tabuleuse);
-            config_texte = config_texte_mono;
-        }
-        sinon si onglet.nom == ".debug_rnglists" {
-            donne_tabuleuse_debug_rnglists(fichier, visionneuse.fonte_mono, *onglet.tabuleuse);
-            config_texte = config_texte_mono;
-        }
-        sinon si onglet.nom == ".debug_line" {
-            donne_tabuleuse_debug_line(fichier, visionneuse.fonte_mono, *onglet.tabuleuse);
-            config_texte = config_texte_mono;
-        }
-        sinon si onglet.nom == ".debug_loclists" {
-            donne_tabuleuse_debug_loclists(fichier, visionneuse.fonte_mono, *onglet.tabuleuse);
-            config_texte = config_texte_mono;
-        }
-        sinon si onglet.nom == ".debug_str" {
-            donne_tabuleuse_table_chaines(fichier, visionneuse.fonte, *onglet.tabuleuse, onglet.nom);
-        }
-        sinon si onglet.nom == ".debug_line_str" {
-            donne_tabuleuse_table_chaines(fichier, visionneuse.fonte, *onglet.tabuleuse, onglet.nom);
-        }
-        sinon {
+    discr onglet.type_rendu {
+        DONNÉES_HEX {
             donne_tabuleuse_données_hex(fichier, visionneuse.fonte_mono, *onglet.tabuleuse, onglet.nom);
             config_texte = config_texte_mono;
             données_hex = vrai;
         }
-    }
-    sinon si onglet.type_section == TypeSection.Dynamique {
-        donne_tabuleuse_dynamic(fichier, visionneuse.fonte, *onglet.tabuleuse);
-    }
-    sinon si onglet.type_section == TypeSection.Note {
-        donne_tabuleuse_note(fichier, visionneuse.fonte, *onglet.tabuleuse, onglet.nom);
-    }
-    sinon si onglet.type_section == TypeSection.TableChaine {
-        donne_tabuleuse_table_chaines(fichier, visionneuse.fonte, *onglet.tabuleuse, onglet.nom);
-    }
-    sinon si onglet.type_section == TypeSection.Rel {
-        donne_tabuleuse_rel(fichier, visionneuse.fonte, *onglet.tabuleuse, onglet.nom);
-    }
-    sinon si onglet.type_section == TypeSection.Rela {
-        donne_tabuleuse_rela(fichier, visionneuse.fonte, *onglet.tabuleuse, onglet.nom);
-    }
-    sinon {
-        donne_tabuleuse_données_hex(fichier, visionneuse.fonte_mono, *onglet.tabuleuse, onglet.nom);
-        config_texte = config_texte_mono;
-        données_hex = vrai;
+        TABULEUSE_COMMENTAIRES {
+            donne_tabuleuse_comment(fichier, visionneuse.fonte, *onglet.tabuleuse);
+        }
+        TABULEUSE_DEBUG_ABBREV {
+            donne_tabuleuse_debug_abbrev(fichier, visionneuse.fonte_mono, *onglet.tabuleuse);
+            config_texte = config_texte_mono;
+        }
+        TABULEUSE_DEBUG_ARANGES {
+            donne_tabuleuse_debug_aranges(fichier, visionneuse.fonte_mono, *onglet.tabuleuse);
+            config_texte = config_texte_mono;
+        }
+        TABULEUSE_DEBUG_INFO {
+            donne_tabuleuse_debug_info(fichier, visionneuse.fonte_mono, *onglet.tabuleuse);
+            config_texte = config_texte_mono;
+        }
+        TABULEUSE_DEBUG_LINE {
+            donne_tabuleuse_debug_line(fichier, visionneuse.fonte_mono, *onglet.tabuleuse);
+            config_texte = config_texte_mono;
+        }
+        TABULEUSE_DEBUG_LOCLISTS {
+            donne_tabuleuse_debug_loclists(fichier, visionneuse.fonte_mono, *onglet.tabuleuse);
+            config_texte = config_texte_mono;
+        }
+        TABULEUSE_DEBUG_RNGLISTS {
+            donne_tabuleuse_debug_rnglists(fichier, visionneuse.fonte_mono, *onglet.tabuleuse);
+            config_texte = config_texte_mono;
+        }
+        TABULEUSE_DYNAMIC {
+            donne_tabuleuse_dynamic(fichier, visionneuse.fonte, *onglet.tabuleuse);
+        }
+        TABULEUSE_EH_FRAME {
+            donne_tabuleuse_eh_frame(fichier, visionneuse.fonte_mono, *onglet.tabuleuse);
+            config_texte = config_texte_mono;
+        }
+        TABULEUSE_NOTE {
+            donne_tabuleuse_note(fichier, visionneuse.fonte, *onglet.tabuleuse, onglet.nom);
+        }
+        TABULEUSE_REL {
+            donne_tabuleuse_rel(fichier, visionneuse.fonte, *onglet.tabuleuse, onglet.nom);
+        }
+        TABULEUSE_RELA {
+            donne_tabuleuse_rela(fichier, visionneuse.fonte, *onglet.tabuleuse, onglet.nom);
+        }
+        TABULEUSE_SYMBOLES {
+            donne_tabuleuse_symboles(fichier, visionneuse.fonte, *onglet.tabuleuse, onglet.nom);
+        }
+        TABULEUSE_TABLE_CHAINES {
+            donne_tabuleuse_table_chaines(fichier, visionneuse.fonte, *onglet.tabuleuse, onglet.nom);
+        }
     }
 
     dispose_rectangle();
