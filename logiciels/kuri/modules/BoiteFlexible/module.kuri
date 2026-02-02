@@ -812,6 +812,22 @@ ajoute_rembourage :: fonc (espace: EspaceDisponible, rembourrage: $T) -> EspaceD
     retourne espace;
 }
 
+dispose_séparateur_horizontal :: fonc (largeur: n32, hauteur := 0)
+{
+    assert(__boite_courante != nul);
+    séparateur := __boite_courante.ajoute_enfant();
+    si largeur != 0 {
+        séparateur.disposition.cotation.largeur = FIXE(largeur);
+    }
+    sinon {
+        séparateur.disposition.cotation.largeur = CROISSANTE();
+    }
+
+    si hauteur != 0 {
+        séparateur.disposition.cotation.hauteur = FIXE(hauteur);
+    }
+}
+
 dispose_séparateur_horizontal :: fonc (hauteur := 0)
 {
     assert(__boite_courante != nul);
