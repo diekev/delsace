@@ -602,6 +602,24 @@ quad_immédiat :: fonc (p0: Vec3, p1: Vec3, p2: Vec3, p3: Vec3, uv0: Vec2, uv1: 
     ajoute_sommets(p3, uv3, couleur);
 }
 
+quad_immédiat :: fonc (rectangle: RectanglePosDim(r32), couleur: CouleurRVBA)
+{
+    quad_immédiat(rectangle.x, rectangle.y, rectangle.largeur, rectangle.hauteur, couleur);
+}
+
+contour_quad_immédiat :: fonc (rectangle: RectanglePosDim(r32), couleur: CouleurRVBA)
+{
+    p0 := Point2D(r32)(rectangle.x, rectangle.y);
+    p1 := Point2D(r32)(rectangle.x, rectangle.y + rectangle.hauteur);
+    p2 := Point2D(r32)(rectangle.x + rectangle.largeur, rectangle.y + rectangle.hauteur);
+    p3 := Point2D(r32)(rectangle.x + rectangle.largeur, rectangle.y);
+
+    segment_immédiat(p0.x, p0.y, p1.x, p1.y, couleur);
+    segment_immédiat(p1.x, p1.y, p2.x, p2.y, couleur);
+    segment_immédiat(p2.x, p2.y, p3.x, p3.y, couleur);
+    segment_immédiat(p3.x, p3.y, p0.x, p0.y, couleur);
+}
+
 /** \} */
 
 /* ------------------------------------------------------------------------- */
@@ -636,6 +654,19 @@ ellipse_immédiat :: fonc (cx: r32, cy: r32, rx: r32, ry: r32, couleur: CouleurR
     segs := NOMBRE_SEGMENTS_CERCLE;
     phi := 0.0;
     cercle_immédiat_impl(cx, cy, rx, ry, segs, phi, couleur, ajoute_centre);
+}
+
+cercle_immédiat :: fonc (cercle: Cercle(r32), couleur: CouleurRVBA, ajoute_centre: bool)
+{
+    cercle_immédiat(cercle.centre_x, cercle.centre_y, cercle.rayon, couleur, ajoute_centre);
+}
+
+cercle_immédiat :: fonc (rect: RectanglePosDim(r32), couleur: CouleurRVBA, ajoute_centre: bool)
+{
+    centre_x := rect.x + rect.largeur * 0.5;
+    centre_y := rect.y + rect.hauteur * 0.5;
+    rayon := min(rect.largeur * 0.5, rect.hauteur * 0.5);
+    cercle_immédiat(centre_x, centre_y, rayon, couleur, ajoute_centre);
 }
 
 cercle_immédiat :: fonc (cx: r32, cy: r32, r: r32, couleur: CouleurRVBA, ajoute_centre: bool)
