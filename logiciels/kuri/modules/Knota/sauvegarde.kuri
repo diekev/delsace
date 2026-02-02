@@ -259,7 +259,7 @@ crée_contexte_lecture_fichier :: fonc () -> ContexteLectureGraphe
 /* Pour lire une sauvegarde de changement, le contexte est le graphe existant. */
 crée_contexte_lecture_changement :: fonc () -> ContexteLectureGraphe
 {
-    rappel_crée_noeud :: fonc (graphe: *Graphe, identifiant: chaine, nom: chaine) -> *Noeud;
+    rappel_crée_noeud :: fonc (graphe: *Graphe, identifiant: chaine, nom: chaine) -> *Noeud
     {
         noeud := graphe.trouve_noeud_pour_nom(nom);
         si noeud {
@@ -275,7 +275,7 @@ crée_contexte_lecture_changement :: fonc () -> ContexteLectureGraphe
         retourne noeud;
     }
 
-    rappel_crée_connexion :: fonc (graphe: *Graphe, prise_entrée: *PriseEntrée, prise_sortie: *PriseSortie);
+    rappel_crée_connexion :: fonc (graphe: *Graphe, prise_entrée: *PriseEntrée, prise_sortie: *PriseSortie)
     {
         /* Vérifie si la connexion existe déjà. */
         si prise_entrée.connexion && prise_entrée.connexion.prise_sortie == prise_sortie {
@@ -287,14 +287,14 @@ crée_contexte_lecture_changement :: fonc () -> ContexteLectureGraphe
         graphe.crée_connexion(prise_entrée, prise_sortie);
     }
 
-    rappel_prépare_lecture_noeuds :: fonc (graphe: *Graphe);
+    rappel_prépare_lecture_noeuds :: fonc (graphe: *Graphe)
     {
         pour graphe.items {
             it.est_actif = faux;
         }
     }
 
-    rappel_termine_lecture_noeuds :: fonc (graphe: *Graphe);
+    rappel_termine_lecture_noeuds :: fonc (graphe: *Graphe)
     {
         nouveaux_noeuds: [..]*ItemGraphe;
         pour graphe.items {
