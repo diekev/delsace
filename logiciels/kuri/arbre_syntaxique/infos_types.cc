@@ -356,10 +356,6 @@ InfoType *ConvertisseuseNoeudCode::crée_info_type_pour(EspaceDeTravail *espace,
 
                 info_type->rubriques = allocatrice_infos_types.donne_tranche(rubriques);
 
-                auto annotations = kuri::tablet<const Annotation *, 6>();
-                copie_annotations(type_struct->annotations, annotations);
-                info_type->annotations = allocatrice_infos_types.donne_tranche(annotations);
-
                 auto structs_employées = kuri::tablet<InfoTypeStructure *, 6>();
                 structs_employées.réserve(type_struct->types_employés.taille());
                 POUR (type_struct->types_employés) {
@@ -369,6 +365,12 @@ InfoType *ConvertisseuseNoeudCode::crée_info_type_pour(EspaceDeTravail *espace,
                 }
                 info_type->structs_employées = allocatrice_infos_types.donne_tranche(
                     structs_employées);
+            }
+
+            if (info_type->annotations.taille() != type_struct->annotations.taille()) {
+                auto annotations = kuri::tablet<const Annotation *, 6>();
+                copie_annotations(type_struct->annotations, annotations);
+                info_type->annotations = allocatrice_infos_types.donne_tranche(annotations);
             }
 
             break;
@@ -415,11 +417,13 @@ InfoType *ConvertisseuseNoeudCode::crée_info_type_pour(EspaceDeTravail *espace,
 
                 info_type->rubriques = allocatrice_infos_types.donne_tranche(rubriques);
 
+                type->info_type = info_type;
+            }
+
+            if (info_type->annotations.taille() != type_union->annotations.taille()) {
                 auto annotations = kuri::tablet<const Annotation *, 6>();
                 copie_annotations(type_union->annotations, annotations);
                 info_type->annotations = allocatrice_infos_types.donne_tranche(annotations);
-
-                type->info_type = info_type;
             }
             break;
         }
