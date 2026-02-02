@@ -513,73 +513,79 @@ parse_initializer :: fonc (parseuse: *ParseuseC) -> *Expression
 {
     lexème_suivant := épie_lexème_suivant(parseuse);
     si est_ponctuation(lexème_suivant, "{") {
-        token := lexème_suivant;
-        consomme(parseuse);
-
-        initializers: [..]*Expression;
-
-        tantque !fini(parseuse) {
-            lexème_suivant = épie_lexème_suivant(parseuse);
-            si est_ponctuation(lexème_suivant, "}") {
-                arrête;
-            }
-
-            si est_ponctuation(lexème_suivant, ".") {
-                consomme(parseuse);
-                lexème_suivant = épie_lexème_suivant(parseuse);
-                saufsi est_symbole(lexème_suivant) {
-                    rapporte_erreur(parseuse, lexème_suivant, "attendu un identifiant");
-                }
-                consomme(parseuse);
-                consomme_ponctuation(parseuse, "=");
-
-                initializer := parse_initializer(parseuse);
-
-                designator := crée_noeud(*parseuse.créatrice, lexème_suivant, IdentifierDesignator);
-                designator.identifier = donne_texte(lexème_suivant);
-                designator.initializer = initializer;
-
-                tableau_ajoute(*initializers, designator);
-            }
-            sinon si est_ponctuation(lexème_suivant, "[") {
-                consomme(parseuse);
-                expression := parse_constant_expression(parseuse);
-                consomme_ponctuation(parseuse, "]");
-                consomme_ponctuation(parseuse, "=");
-
-                initializer := parse_initializer(parseuse);
-
-                designator := crée_noeud(*parseuse.créatrice, lexème_suivant, IndexDesignator);
-                designator.index = expression;
-                designator.initializer = initializer;
-
-                tableau_ajoute(*initializers, designator);
-            }
-            sinon {
-                initializer := parse_initializer(parseuse);
-                tableau_ajoute(*initializers, initializer);
-            }
-
-            lexème_suivant = épie_lexème_suivant(parseuse);
-            saufsi est_ponctuation(lexème_suivant, ",") {
-                arrête;
-            }
-
-            consomme(parseuse);
-        }
-
-        saufsi initializers {
-            rapporte_erreur(parseuse, lexème_suivant, "un initialisateur ne peut pas être vide.");
-        }
-
-        consomme_ponctuation(parseuse, "}");
-
-        résultat := crée_noeud(*parseuse.créatrice, token, InitializerList);
-        résultat.initializers = initializers;
-        retourne résultat;
+        retourne parse_initializer_list(parseuse);
     }
 
     retourne parse_assignment_expression(parseuse);
+}
+
+parse_initializer_list :: fonc (parseuse: *ParseuseC) -> *InitializerList
+{
+    token := épie_lexème_suivant(parseuse);
+    consomme(parseuse);
+
+    initializers: [..]*Expression;
+
+    tantque !fini(parseuse) {
+        lexème_suivant := épie_lexème_suivant(parseuse);
+        si est_ponctuation(lexème_suivant, "}") {
+            arrête;
+        }
+
+        si est_ponctuation(lexème_suivant, ".") {
+            consomme(parseuse);
+            lexème_suivant = épie_lexème_suivant(parseuse);
+            saufsi est_symbole(lexème_suivant) {
+                rapporte_erreur(parseuse, lexème_suivant, "attendu un identifiant");
+            }
+            consomme(parseuse);
+            consomme_ponctuation(parseuse, "=");
+
+            initializer := parse_initializer(parseuse);
+
+            designator := crée_noeud(*parseuse.créatrice, lexème_suivant, IdentifierDesignator);
+            designator.identifier = donne_texte(lexème_suivant);
+            designator.initializer = initializer;
+
+            tableau_ajoute(*initializers, designator);
+        }
+        sinon si est_ponctuation(lexème_suivant, "[") {
+            consomme(parseuse);
+            expression := parse_constant_expression(parseuse);
+            consomme_ponctuation(parseuse, "]");
+            consomme_ponctuation(parseuse, "=");
+
+            initializer := parse_initializer(parseuse);
+
+            designator := crée_noeud(*parseuse.créatrice, lexème_suivant, IndexDesignator);
+            designator.index = expression;
+            designator.initializer = initializer;
+
+            tableau_ajoute(*initializers, designator);
+        }
+        sinon {
+            initializer := parse_initializer(parseuse);
+            tableau_ajoute(*initializers, initializer);
+        }
+
+        lexème_suivant = épie_lexème_suivant(parseuse);
+        saufsi est_ponctuation(lexème_suivant, ",") {
+            arrête;
+        }
+
+        consomme(parseuse);
+    }
+
+    saufsi initializers {
+        lexème_suivant := épie_lexème_suivant(parseuse);
+        rapporte_erreur(parseuse, lexème_suivant, "un initialisateur ne peut pas être vide.");
+    }
+
+    consomme_ponctuation(parseuse, "}");
+
+    résultat := crée_noeud(*parseuse.créatrice, token, InitializerList);
+    résultat.initializers = initializers;
+    retourne résultat;
 }
 
 crée_déclaration_pour_declarator :: fonc (empl parseuse: *ParseuseC, info: *InfoDéclaration, declarator: *Declarator) -> *ASTNode
@@ -2077,10 +2083,17 @@ parse_expression :: fonc (empl parseuse: *ParseuseC, info_courante: InfoParsageO
         sinon si texte == "." || texte == "->" {
             consomme(parseuse);
 
+            lexème_suivant := épie_lexème_suivant(parseuse);
+            saufsi est_symbole(lexème_suivant) {
+                rapporte_erreur(parseuse, lexème_suivant, "attendu un identifiant après '%'", texte);
+            }
+
+            consomme(parseuse);
+
             member_access := crée_noeud(*créatrice, lexème, MemberAccessExpression);
             member_access.is_arrow = texte == "->";
             member_access.left = résultat;
-            member_access.right = parse_expression(parseuse, info);
+            member_access.identifier = lexème_suivant;
 
             résultat = member_access;
         }
@@ -2360,13 +2373,26 @@ parse_expression_primaire :: fonc (empl parseuse: *ParseuseC) -> *Expression
 
             consomme_ponctuation(parseuse, ")");
 
-            operand := parse_unary_expression(parseuse);
+            lexème_suivant = épie_lexème_suivant(parseuse);
 
-            cast := crée_noeud(*créatrice, lexème, CastExpression);
-            cast.cast_type = type_name;
-            cast.expression = operand;
-            
-            résultat = cast;
+            si est_ponctuation(lexème_suivant, "{") {
+                initializer_list := parse_initializer_list(parseuse);
+
+                compound := crée_noeud(*créatrice, lexème, CompoundLiteral);
+                compound.type_name = type_name;
+                compound.initializer = initializer_list;
+
+                résultat = compound;
+            }
+            sinon {
+                operand := parse_unary_expression(parseuse);
+
+                cast := crée_noeud(*créatrice, lexème, CastExpression);
+                cast.cast_type = type_name;
+                cast.expression = operand;
+                
+                résultat = cast;
+            }
         }
         sinon {
             // À FAIRE : note que l'expression possède des parenthèses
