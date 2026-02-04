@@ -203,8 +203,9 @@ principale :: fonc ()
     si nom_fichier == "glx.xml" {
         ajoute_au_tampon(*texte_typedefs, "typedef int XID;\n");
         ajoute_au_tampon(*texte_typedefs, "typedef int Bool;\n");
-        ajoute_au_tampon(*texte_typedefs, "typedef long int64_t;\n");
         ajoute_au_tampon(*texte_typedefs, "typedef struct Display Display;\n");
+        ajoute_au_tampon(*texte_typedefs, "#define int32_t int\n");
+        ajoute_au_tampon(*texte_typedefs, "#define int64_t long\n");
     }
     sinon si nom_fichier == "gl.xml" {
         ajoute_au_tampon(*texte_typedefs, "typedef int khronos_int8_t;\n");
@@ -298,11 +299,17 @@ principale :: fonc ()
                 valeur := avance(énumérant.valeur, quot.taille);
                 valeur = recule(valeur, quot.taille);
 
-                imprime_dans_enchaineuse(*enchaineuse, "% :: \"%\"\n", énumérant.nom, valeur);
+                imprime_dans_enchaineuse(*enchaineuse, "% :: \"%\"", énumérant.nom, valeur);
             }
             sinon {
-                imprime_dans_enchaineuse(*enchaineuse, "% : GLenum : %\n", énumérant.nom, énumérant.valeur);
+                imprime_dans_enchaineuse(*enchaineuse, "% : GLenum : %", énumérant.nom, énumérant.valeur);
+
+                si énumérant.valeur[0] == '-' {
+                    ajoute_au_tampon(*enchaineuse, " comme GLenum");
+                }
             }
+
+            ajoute_au_tampon(*enchaineuse, ";\n");
         }
 
         ajoute_au_tampon(*enchaineuse, "\n");
@@ -330,7 +337,7 @@ principale :: fonc ()
 
         trouvée, type_kuri := donne_valeur_pour_clé(table_des_types, commande.type_retour);
         assert(trouvée);
-        imprime_dans_enchaineuse(*enchaineuse, ") -> % #externe lib%\n", type_kuri, bibliothèque);
+        imprime_dans_enchaineuse(*enchaineuse, ") -> % #externe lib%;\n", type_kuri, bibliothèque);
         ajoute_au_tampon(*enchaineuse, "\n");
     }
 
