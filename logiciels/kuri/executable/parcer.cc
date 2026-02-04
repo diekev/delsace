@@ -889,8 +889,40 @@ static dls::chaine convertis_type(CXType const &type, dico_typedefs const &typed
             if (spelling.trouve("enum ") == 0) {
                 return spelling.sous_chaine(5);
             }
-            std::cerr << "Impossible de convertir le type nommé '" << spelling << "'\n";
-            exit(1);
+
+            if (spelling == "uint8_t") {
+                return "n8";
+            }
+            if (spelling == "int8_t") {
+                return "z8";
+            }
+
+            if (spelling == "uint16_t") {
+                return "n16";
+            }
+            if (spelling == "int16_t") {
+                return "z16";
+            }
+
+            if (spelling == "uint32_t") {
+                return "n32";
+            }
+            if (spelling == "int32_t") {
+                return "z32";
+            }
+
+            if (spelling == "uint64_t") {
+                return "n64";
+            }
+            if (spelling == "int64_t") {
+                return "z64";
+            }
+
+            if (spelling == "bool") {
+                return "bool";
+            }
+
+            return spelling;
         }
     }
 
