@@ -209,28 +209,28 @@ imprime_type_kuri :: fonc (enchaineuse: *Enchaineuse, type_c: *Type)
                 ajoute_au_tampon(enchaineuse, "TYPE_NON_SUPPORTÉ : RECORD");
             }
         }
-        REFERENCE {
-            type_ref := type_c comme *TypeRef;
-            ajoute_au_tampon(enchaineuse, type_ref.nom);
-        }
         TYPEDEF {
-
+            typedef := type_c comme *TypedefDecl;
+            ajoute_au_tampon(enchaineuse, typedef.name);
         }
         FUNCTION {
             type_fonction := type_c comme *FunctionType;
             ajoute_au_tampon(enchaineuse, "fonc (");
             virgule := "";
             pour type_fonction.parameters {
-                si it.type.kind == TypeKind.VOID {
+                // À FAIRE : le premier paramètre 'void' peut-être nul.
+                si it.type == nul || it.type.kind == TypeKind.VOID {
                     assert(indice_it == 0);
                     arrête;
                 }
 
                 ajoute_au_tampon(enchaineuse, virgule);
 
-                si it.name {
-                    ajoute_au_tampon(enchaineuse, it.name, ": ");
-                }
+                // À FAIRE : préserve les noms
+                // si it.name {
+                //     ajoute_au_tampon(enchaineuse, it.name, ": ");
+                // }
+                ajoute_au_tampon(enchaineuse, "arg", indice_it, ": ");
 
                 imprime_type_kuri(enchaineuse, it.type);
                 virgule = ", ";
@@ -254,8 +254,11 @@ déclare_type_kuri :: fonc (enchaineuse: *Enchaineuse, type_c: *Type, nom_typede
             nom_typedef = struct_decl.name;
         }
         imprime_dans_enchaineuse(enchaineuse, "% :: struct {\n", nom_typedef);
-        pour struct_decl.fields {
-            imprime_dans_enchaineuse(enchaineuse, "    %: ", it.name);
+        pour struct_decl.field_infos {
+            si it.est_rembourrage {
+                continue;
+            }
+            imprime_dans_enchaineuse(enchaineuse, "    %: ", it.nom);
             imprime_type_kuri(enchaineuse, it.type);
             ajoute_au_tampon(enchaineuse, "\n");
         }
@@ -267,8 +270,11 @@ déclare_type_kuri :: fonc (enchaineuse: *Enchaineuse, type_c: *Type, nom_typede
             nom_typedef = union_decl.name;
         }
         imprime_dans_enchaineuse(enchaineuse, "% :: union nonsûr {\n", nom_typedef);
-        pour union_decl.fields {
-            imprime_dans_enchaineuse(enchaineuse, "    %: ", it.name);
+        pour union_decl.field_infos {
+            si it.est_rembourrage {
+                continue;
+            }
+            imprime_dans_enchaineuse(enchaineuse, "    %: ", it.nom);
             imprime_type_kuri(enchaineuse, it.type);
             ajoute_au_tampon(enchaineuse, "\n");
         }
