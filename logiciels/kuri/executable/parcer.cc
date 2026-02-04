@@ -963,6 +963,23 @@ static dls::chaine convertis_type(CXType const &type, dico_typedefs &typedefs, i
                 return "bool";
             }
 
+            if (spelling == "wchar_t") {
+                if (WCHAR_WIDTH == 16) {
+                    return "n16";
+                }
+                else if (WCHAR_WIDTH == 32) {
+                    return "n32";
+                }
+            }
+
+            if (spelling == "size_t") {
+                return "n64";
+            }
+
+            if (spelling == "ptrdiff_t") {
+                return "z64";
+            }
+
             return spelling;
         }
     }
