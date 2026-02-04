@@ -232,6 +232,8 @@ active_dependances(
     REQUIERS_BIB_OUTILS
     REQUIERS_BIB_STRUCTURES
     REQUIERS_BIB_TORI
+
+    REQUIERS_TBB
 )
 
 active_dependances(
