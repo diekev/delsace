@@ -744,6 +744,12 @@ static auto determine_nom_anomyme(dls::chaine spelling, dico_typedefs &typedefs,
         auto nom_anonymous = trouve_nom_anonyme(spelling);
 
         if (nom_anonymous != "") {
+            auto iter = typedefs.trouve(nom_anonymous);
+            if (iter != typedefs.fin()) {
+                auto résultat = iter->second[0];
+                return résultat;
+            }
+
             auto nom = "anonyme" + dls::vers_chaine(nombre_anonyme++);
             kuri::tableau<dls::chaine, int64_t> tabl;
             tabl.ajoute(nom);
@@ -758,7 +764,8 @@ static auto determine_nom_anomyme(dls::chaine spelling, dico_typedefs &typedefs,
         return spelling;
     }
 
-    return "anonyme" + dls::vers_chaine(nombre_anonyme++);
+    auto résultat = "anonyme" + dls::vers_chaine(nombre_anonyme++);
+    return résultat;
 }
 
 static auto determine_nom_anomyme(CXType const &type, dico_typedefs &typedefs, int &nombre_anonyme, bool retourne_vide_si_nommé)
