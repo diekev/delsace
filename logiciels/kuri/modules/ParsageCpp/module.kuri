@@ -260,7 +260,7 @@ déclare_type_kuri :: fonc (enchaineuse: *Enchaineuse, type_c: *Type, nom_typede
             }
             imprime_dans_enchaineuse(enchaineuse, "    %: ", it.nom);
             imprime_type_kuri(enchaineuse, it.type);
-            ajoute_au_tampon(enchaineuse, "\n");
+            ajoute_au_tampon(enchaineuse, ";\n");
         }
         ajoute_au_tampon(enchaineuse, "}\n");
     }
@@ -276,7 +276,7 @@ déclare_type_kuri :: fonc (enchaineuse: *Enchaineuse, type_c: *Type, nom_typede
             }
             imprime_dans_enchaineuse(enchaineuse, "    %: ", it.nom);
             imprime_type_kuri(enchaineuse, it.type);
-            ajoute_au_tampon(enchaineuse, "\n");
+            ajoute_au_tampon(enchaineuse, ";\n");
         }
         ajoute_au_tampon(enchaineuse, "}\n");
     }
