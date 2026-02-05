@@ -972,11 +972,11 @@ static dls::chaine convertis_type(CXType const &type, dico_typedefs &typedefs, i
                 }
             }
 
-            if (spelling == "size_t") {
+            if (spelling == "size_t" || spelling == "std::size_t" || spelling == "uintptr_t") {
                 return "n64";
             }
 
-            if (spelling == "ssize_t") {
+            if (spelling == "ssize_t" || spelling == "intptr_t") {
                 return "z64";
             }
 
