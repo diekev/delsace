@@ -1205,7 +1205,7 @@ PyConfig_AddModuleSearchPath :: fonc (config: *PyConfig, chemin: chaine)
     /* Ajout terminateur nul. */
     chaine_ajoute(*chemin_recherche, 0);
 
-    _ := PyWideStringList_Append(*config.module_search_paths, chemin_recherche.points_de_code.pointeur comme *z32);
+    _ := PyWideStringList_Append(*config.module_search_paths, chemin_recherche.points_de_code.pointeur);
     config.module_search_paths_set = 1;
 }
 
