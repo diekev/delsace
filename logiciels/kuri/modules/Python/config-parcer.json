@@ -30,6 +30,10 @@
         "Py_IsNone",
         "_Py_INCREF",
         "_Py_DECREF",
+        "Py_INCREF",
+        "Py_DECREF",
+        "Py_XINCREF",
+        "Py_XDECREF",
         "PyType_HasFeature"
     ]
 }
