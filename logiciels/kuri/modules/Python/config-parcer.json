@@ -34,6 +34,7 @@
         "Py_DECREF",
         "Py_XINCREF",
         "Py_XDECREF",
+        "PyObject_TypeCheck",
         "PyType_HasFeature"
     ]
 }
