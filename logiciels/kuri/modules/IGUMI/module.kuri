@@ -71,7 +71,7 @@ termine_2d :: fonc ()
     glViewport(0, 0, __ctx_courant.largeur_canevas, __ctx_courant.hauteur_canevas);
 }
 
-commence_3d :: fonc (caméra: *Caméra3D)
+commence_3d :: fonc (caméra: *Caméra3D, x := 0, y := 0)
 {
     termine_immédiat();
 
@@ -79,7 +79,7 @@ commence_3d :: fonc (caméra: *Caméra3D)
     assert(__ctx_courant.caméra_3d == nul);
     __ctx_courant.caméra_3d = caméra;
 
-    glViewport(0, 0, caméra.largeur, caméra.hauteur);
+    glViewport(x, y, caméra.largeur, caméra.hauteur);
 }
 
 termine_3d :: fonc ()
