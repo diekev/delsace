@@ -162,6 +162,14 @@ calcul_normal_normalisé :: fonc (a: Vec3, b: Vec3) -> Norm3 #enligne
     retourne nor;
 }
 
+calcule_normale_normalisée :: fonc (a: Vec3, b: Vec3, c: Vec3) -> Vec3
+{
+    ligne1 := b - a;
+    ligne2 := c - a;
+    résultat := calcul_normal_normalisé(ligne1, ligne2);
+    retourne résultat comme Vec3;
+}
+
 normalise :: fonc (v: Vec3) -> Vec3 #enligne
 {
     l := longueur(v);
