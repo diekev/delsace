@@ -4,6 +4,7 @@
 importe Chaine;
 importe Fondation;
 importe Math;
+importe SysFichier;
 
 charge "interface";
 
@@ -1197,6 +1198,28 @@ PyTuple_Check :: fonc (ob: *PyObject) -> bool
 /** \nom Configuration (initconfig.h)
  * \{ */
 
+PyConfig_AddDefaultModuleSearchPaths :: fonc (config: *PyConfig)
+{
+    assert(SYS_EXP == SystèmeExploitation.LINUX);
+
+    PyConfig_AddModuleSearchPath(config, "/usr/lib/python312.zip");
+    PyConfig_AddModuleSearchPath(config, "/usr/lib/python3.12");
+    PyConfig_AddModuleSearchPath(config, "/usr/lib/python3.12/lib-dynload");
+
+    tampon: TamponChemin;
+    err := développe_variables(*tampon, "$HOME/.local/lib/python3.12/site-packages");
+    si err {
+        imprimeln("[%] %", #nom_de_cette_fonction, err);
+    }
+    sinon {
+        chemin_local := donne_chaine_statique(*tampon);
+        PyConfig_AddModuleSearchPath(config, chemin_local);
+    }
+
+    PyConfig_AddModuleSearchPath(config, "/usr/local/lib/python3.12/dist-packages");
+    PyConfig_AddModuleSearchPath(config, "/usr/lib/python3/dist-packages");
+}
+
 PyConfig_AddModuleSearchPath :: fonc (config: *PyConfig, chemin: chaine)
 {
     /* Met en place les chemins. */
@@ -1205,7 +1228,7 @@ PyConfig_AddModuleSearchPath :: fonc (config: *PyConfig, chemin: chaine)
     /* Ajout terminateur nul. */
     chaine_ajoute(*chemin_recherche, 0);
 
-    _ := PyWideStringList_Append(*config.module_search_paths, chemin_recherche.points_de_code.pointeur comme *z32);
+    _ := PyWideStringList_Append(*config.module_search_paths, chemin_recherche.points_de_code.pointeur);
     config.module_search_paths_set = 1;
 }
 

@@ -692,21 +692,40 @@ donne_source_préprocédée :: fonc (préprocesseur: *PréProcesseur, collapse_e
     retourne imprime_lexèmes(préprocesseur.unit.lexèmes_préprocès, collapse_espaces_blanches);
 }
 
-exécute_préprocesseur :: fonc (préprocesseur: *PréProcesseur)
+exécute_préprocesseur :: fonc (préprocesseur: *PréProcesseur, fichier_non_sauvegardé := "")
 {
     assert(préprocesseur.unit != nul);
-    préprocesseur.unit.lexèmes_préprocès = donne_lexèmes_préprocès(préprocesseur);
+    préprocesseur.unit.lexèmes_préprocès = donne_lexèmes_préprocès(préprocesseur, fichier_non_sauvegardé);
 
     si préprocesseur.messagère {
         envoie_message_fin_préprocès(préprocesseur.messagère, préprocesseur.unit);
     }
 }
 
-donne_lexèmes_préprocès :: fonc (préprocesseur: *PréProcesseur) -> [..]LexèmePréprocès
+donne_lexèmes_préprocès :: fonc (préprocesseur: *PréProcesseur, fichier_non_sauvegardé := "") -> [..]LexèmePréprocès
 {
     préprocesseur.compteur = 0;
 
-    empile_fichier(préprocesseur, préprocesseur.unit.chemin_racine, "", faux);
+    saufsi fichier_non_sauvegardé {
+        empile_fichier(préprocesseur, préprocesseur.unit.chemin_racine, "", faux);
+    }
+    sinon {
+        // À FAIRE : déduplique avec empile_fichier
+        indice_fichier := préprocesseur.unit.fichiers.taille;
+        fichier := tableau_ajoute_élément(*préprocesseur.unit.fichiers);
+        fichier.contenu_cru = copie_chaine(fichier_non_sauvegardé);
+        fichier.tampon_contenu_prétaité = prétraite_fichier(fichier.contenu_cru);
+        fichier.contenu_prétaité = chaine_depuis_tranche_octets(fichier.tampon_contenu_prétaité);
+        fichier.trouvé_dans_dossier = "";
+
+        lexeuse := tableau_ajoute_élément(*préprocesseur.lexeuses);
+        lexeuse.fichier = indice_fichier;
+        lexeuse.lexeuse.chemin_fichier = fichier.chemin;
+        initialise_lexeuse_c(*lexeuse.lexeuse);
+        lexeuse.lexeuse.options.INCLUS_TOUT = vrai;
+
+        initialise_lexeuse_pour_texte(*lexeuse.lexeuse, fichier.contenu_prétaité);
+    }
 
     lexèmes: [..]LexèmePréprocès;
 

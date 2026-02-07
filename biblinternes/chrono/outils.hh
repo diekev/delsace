@@ -27,6 +27,7 @@
 #include <assert.h>
 #include <functional>
 #include <sys/time.h>
+#include <stdint.h>
 #include <unistd.h>
 
 namespace dls::chrono {
@@ -76,6 +77,11 @@ public:
 	{
 		return delta(m_temps) / static_cast<double>(D);
 	}
+
+    compte_temps &operator=(double valeur)
+    {
+        this->m_temps = valeur;
+    }
 };
 
 using compte_microseconde = compte_temps<1>;

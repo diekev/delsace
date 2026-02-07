@@ -850,6 +850,24 @@ système_chemin_véritable :: fonc (chemin: CheminFichier) -> Résultat(CheminFi
     retourne CheminFichier(convertis_chaine_c(résultat));
 }
 
+système_chemin_véritable :: fonc (résultat: *TamponChemin) -> ErreurFichier
+{
+    tampon : [TAILLE_MAX_CHEMIN]z8 = ---;
+    ptr_tampon := *tampon[0];
+
+    chn_c_chemin := donne_chaine_c_statique(résultat);
+
+    résultat_realpath := realpath(chn_c_chemin, ChaineC(ptr_tampon));
+    si résultat_realpath comme *z8 == nul {
+        retourne convertis_errno_en_erreur_fichier();
+    }
+
+    taille := taille_chaine_c(résultat_realpath);
+    copie_mem_nonsur(src = ptr_tampon, dst = *résultat.données[0], taille = taille);
+    résultat.occupés = taille comme z32;
+    retourne 0 comme ErreurFichier;
+}
+
 système_renomme :: fonc (orig: CheminFichier, dest: CheminFichier) -> Optionnel(ErreurFichier)
 {
     ptr_chemin_orig := crée_chaine_c(orig.chn);
