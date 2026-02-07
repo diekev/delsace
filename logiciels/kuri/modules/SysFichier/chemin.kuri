@@ -452,10 +452,28 @@ est_chemin_parent_de :: fonc (base: CheminFichier, chemin: CheminFichier) -> boo
  * Cette fonction n'est pas récursive : si une variable d'environnement possède une
  * référence à une autre variable elle ne sera pas développée.
  */
+développe_variables :: fonc (chemin: chaine) -> Résultat(CheminFichier, chaine)
+{
+    retourne développe_variables(CheminFichier(chemin));
+}
+
 développe_variables :: fonc (chemin: CheminFichier) -> Résultat(CheminFichier, chaine)
 {
     tampon: TamponChemin;
+    err := développe_variables(*tampon, chemin);
+    si err {
+        retourne err;
+    }
+    retourne donne_copie_chemin(*tampon);
+}
 
+développe_variables :: fonc (tampon: *TamponChemin, chemin: chaine) -> chaine
+{
+    retourne développe_variables(tampon, CheminFichier(chemin));
+}
+
+développe_variables :: fonc (tampon: *TamponChemin, chemin: CheminFichier) -> chaine
+{
     chn := chemin.chn;
 
     indice : z64 = 0;
@@ -463,7 +481,7 @@ développe_variables :: fonc (chemin: CheminFichier) -> Résultat(CheminFichier,
         it := chn.pointeur[indice];
 
         si it != '$' {
-            saufsi ajoute(*tampon, it) {
+            saufsi ajoute(tampon, it) {
                 retourne copie_chaine("Résultat trop grand pour la sortie");
             }
             indice += 1;
@@ -509,7 +527,7 @@ développe_variables :: fonc (chemin: CheminFichier) -> Résultat(CheminFichier,
                 retourne copie_chaine("Nom de variable vide entre '{}'");
             }
 
-            opt_erreur := copie_variable_environnement(*tampon, mot);
+            opt_erreur := copie_variable_environnement(tampon, mot);
             si opt_erreur.possède_valeur() {
                 retourne opt_erreur.Quelque;
             }
@@ -534,13 +552,13 @@ développe_variables :: fonc (chemin: CheminFichier) -> Résultat(CheminFichier,
             retourne copie_chaine("Nom de variable vide entre '$/'");
         }
 
-        opt_erreur := copie_variable_environnement(*tampon, mot);
+        opt_erreur := copie_variable_environnement(tampon, mot);
         si opt_erreur.possède_valeur() {
             retourne opt_erreur.Quelque;
         }
     }
 
-    retourne donne_copie_chemin(*tampon);
+    retourne "";
 }
 
 /* Copie la valeur de la variable d'environnement dans le tampon.
