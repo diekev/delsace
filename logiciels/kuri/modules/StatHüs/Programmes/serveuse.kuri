@@ -414,7 +414,7 @@ dessine_état_mémoire :: fonc (serveuse: *Serveuse)
         texte = imprime_chaine_temp("% traces triées", serveuse.état_mémoire.traces_triées.taille);
         dispose_texte(texte, ConfigurationTexte(serveuse.petite_fonte, PEAU_OMBRE));
 
-        dispose_séparateur_horizontal(20);
+        dispose_séparateur_horizontal(hauteur = 20);
 
         dispose_bouton(serveuse, "Allocations", sur_sélection_affichage_alloc_ou_traces, 0);
         dispose_bouton(serveuse, "Traces", sur_sélection_affichage_alloc_ou_traces, 1);
