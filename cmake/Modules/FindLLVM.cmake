@@ -13,7 +13,7 @@
 
 # If LLVM_ROOT_DIR was defined in the environment, use it.
 
-set(LLVM_VERSION 15)
+set(LLVM_VERSION 20)
 
 if(LLVM_ROOT_DIR)
     if(DEFINED LLVM_VERSION)

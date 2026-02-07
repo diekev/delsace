@@ -54,21 +54,132 @@ principale :: fonc ()
 
     table_des_types: TableDeHachage(chaine, chaine);
 
-    parseuse_type_c: ParseuseC;
-    initialise_parseuse(*parseuse_type_c);
-
     enchaineuse_type: Enchaineuse;
     initialise_enchaineuse(*enchaineuse_type);
 
+    texte_déclaration_type: Enchaineuse;
+    initialise_enchaineuse(*texte_déclaration_type);
+
+    types_gl := [
+        "GLbitfield",
+        "GLboolean",
+        "GLbyte",
+        "GLchar",
+        "GLcharARB",
+        "GLclampd",
+        "GLclampf",
+        "GLclampx",
+        "GLDEBUGPROC",
+        "GLDEBUGPROCAMD",
+        "GLDEBUGPROCARB",
+        "GLDEBUGPROCKHR",
+        "GLdouble",
+        "GLeglClientBufferEXT",
+        "GLeglImageOES",
+        "GLenum",
+        "GLfixed",
+        "GLfloat",
+        "GLhalfNV",
+        "GLhandleARB",
+        "GLint",
+        "GLint64",
+        "GLint64EXT",
+        "GLintptr",
+        "GLintptrARB",
+        "GLshort",
+        "GLsizei",
+        "GLsizeiptr",
+        "GLsizeiptrARB",
+        "GLsync",
+        "GLubyte",
+        "GLuint",
+        "GLuint64",
+        "GLuint64EXT",
+        "GLushort",
+        "GLvdpauSurfaceNV",
+        "GLVULKANPROCNV",
+    ];
+
+    types_glx := [
+        "Bool",
+        "Colormap",
+        "Display",
+        "DMbuffer",
+        "DMparams",
+        "Font",
+        "GLbitfield",
+        "GLboolean",
+        "GLenum",
+        "GLfloat",
+        "GLint",
+        "GLintptr",
+        "GLsizei",
+        "GLsizeiptr",
+        "GLubyte",
+        "GLuint",
+        "GLXContext",
+        "GLXContextID",
+        "GLXDrawable",
+        "__GLXextFuncPtr",
+        "GLXFBConfig",
+        "GLXFBConfigSGIX",
+        "GLXHyperpipeConfigSGIX",
+        "GLXHyperpipeNetworkSGIX",
+        "GLXPbuffer",
+        "GLXPbufferSGIX",
+        "GLXPixmap",
+        "GLXVideoCaptureDeviceNV",
+        "GLXVideoDeviceNV",
+        "GLXVideoSourceSGIX",
+        "GLXWindow",
+        "Pixmap",
+        "Status",
+        "VLNode",
+        "VLPath",
+        "VLServer",
+        "Window",
+        "XVisualInfo",
+    ];
+
     pour types {
-        initialise_lexeuse_pour_texte(*parseuse_type_c.lexeuse, it);
-        type := parse_type(*parseuse_type_c);
+        si it == "void " {
+            _, _ := table_insère_si_non_existant(*table_des_types, it, "rien");
+            continue;
+        }
 
-        imprime_type_kuri(*enchaineuse_type, type);
+        si nom_fichier == "glx.xml" {
+            pour type_glx dans types_glx {
+                ajoute_au_tampon(*texte_déclaration_type, "typedef int ", type_glx, ";\n");
+            }
+        }
+        sinon si nom_fichier == "gl.xml" {
+            pour type_gl dans types_gl {
+                ajoute_au_tampon(*texte_déclaration_type, "typedef int ", type_gl, ";\n");
+            }
+        }
 
-        type_kuri := chaine_depuis_enchaineuse(*enchaineuse_type);
+        ajoute_au_tampon(*texte_déclaration_type, "#define int32_t int\n");
+        ajoute_au_tampon(*texte_déclaration_type, "#define int64_t long\n");
 
-        _, _ := table_insère_si_non_existant(*table_des_types, it, type_kuri);
+        ajoute_au_tampon(*texte_déclaration_type, it, "  DECLARATION_TYPE;\n");
+
+        source_déclaration := chaine_depuis_enchaineuse(*texte_déclaration_type);
+        unit := parse_et_valide_unité_depuis_texte(source_déclaration);
+
+        sentinelle_trouvée := faux;
+        pour decl dans unit.declarations {
+            si decl.genre == VarDecl {
+                var := decl comme *VarDecl;
+                si var.nom == "DECLARATION_TYPE" {
+                    sentinelle_trouvée = vrai;
+
+                    imprime_type_kuri(*enchaineuse_type, var.type);
+                    type_kuri := chaine_depuis_enchaineuse(*enchaineuse_type);
+                    _, _ := table_insère_si_non_existant(*table_des_types, it, type_kuri);
+                }
+            }
+        }
+        assert(sentinelle_trouvée);
     }
 
     enchaineuse: Enchaineuse;
@@ -83,61 +194,94 @@ principale :: fonc ()
 
     ajoute_au_tampon(*enchaineuse, "lib", bibliothèque, " :: #bibliothèque \"", bibliothèque, "\";\n\n");
 
-    parseuse_c: ParseuseC;
-    initialise_parseuse(*parseuse_c);
+    // -------------------------
+    // Parsage et export des typedefs.
+
+    texte_typedefs: Enchaineuse;
+    initialise_enchaineuse(*texte_typedefs);
+
+    si nom_fichier == "glx.xml" {
+        ajoute_au_tampon(*texte_typedefs, "typedef int XID;\n");
+        ajoute_au_tampon(*texte_typedefs, "typedef int Bool;\n");
+        ajoute_au_tampon(*texte_typedefs, "typedef struct Display Display;\n");
+        ajoute_au_tampon(*texte_typedefs, "#define int32_t int\n");
+        ajoute_au_tampon(*texte_typedefs, "#define int64_t long\n");
+    }
+    sinon si nom_fichier == "gl.xml" {
+        ajoute_au_tampon(*texte_typedefs, "typedef int khronos_int8_t;\n");
+        ajoute_au_tampon(*texte_typedefs, "typedef int khronos_uint8_t;\n");
+        ajoute_au_tampon(*texte_typedefs, "typedef int khronos_int16_t;\n");
+        ajoute_au_tampon(*texte_typedefs, "typedef int khronos_uint16_t;\n");
+        ajoute_au_tampon(*texte_typedefs, "typedef int khronos_int32_t;\n");
+        ajoute_au_tampon(*texte_typedefs, "typedef int khronos_uint32_t;\n");
+        ajoute_au_tampon(*texte_typedefs, "typedef int khronos_int64_t;\n");
+        ajoute_au_tampon(*texte_typedefs, "typedef int khronos_uint64_t;\n");
+        ajoute_au_tampon(*texte_typedefs, "typedef int khronos_float_t;\n");
+        ajoute_au_tampon(*texte_typedefs, "typedef int khronos_intptr_t;\n");
+        ajoute_au_tampon(*texte_typedefs, "typedef int khronos_ssize_t;\n");
+    }
+    ajoute_au_tampon(*texte_typedefs, "int SENTINELLE_EXTRACTION_CODE;\n");
 
     pour parseuse.typedefs {
-        // imprimeln("'%'", it.nom)
-        si it.texte {
-            // imprimeln("-------------------------------")
-            // imprimeln("[% / %] %", indice_it + 1, parseuse.typedefs.taille, it.texte)
+        ajoute_au_tampon(*texte_typedefs, it.texte, "\n");
+    }
 
-            si commence_par(it.texte, "#ifdef __APPLE__") {
-                it.texte = "typedef unsigned int GLhandleARB;";
-            }
+    source_typedefs := chaine_depuis_enchaineuse(*texte_typedefs);
+    diffère déloge(source_typedefs);
 
-            noeud := parse_texte(*parseuse_c, it.texte);
-            // imprime_arbre(noeud)
+    unit := parse_et_valide_unité_depuis_texte(source_typedefs);
 
-            si noeud.genre == TypedefDecl {
-                typedef_decl := noeud comme *TypedefDecl;
-                type_sous_jacent := typedef_decl.underlying_type;
-                type_définis := typedef_decl.type;
-
-                si est_structure_ou_union_anonyme(type_sous_jacent) {
-                    assert(type_définis.genre == TypeRef);
-                    type_ref := type_définis comme *TypeRef;
-                    déclare_type_kuri(*enchaineuse, type_sous_jacent, type_ref.nom);
-                    ajoute_au_tampon(*enchaineuse, "\n");
-                }
-                sinon {
-                    déclare_type_kuri(*enchaineuse, type_sous_jacent);
-
-                    assert(type_définis.genre == TypeRef);
-                    type_ref := type_définis comme *TypeRef;
-                    imprime_dans_enchaineuse(*enchaineuse, "% :: ", type_ref.nom);
-                    imprime_type_kuri(*enchaineuse, type_sous_jacent);
-                    ajoute_au_tampon(*enchaineuse, ";\n\n");
-                }
-            }
-            sinon si noeud.genre == StructDecl {
-                struct_decl := noeud comme *StructDecl;
-                assert(struct_decl.name != "");
-
-                si struct_decl.fields.taille {
-                    déclare_type_kuri(*enchaineuse, struct_decl);
-                    ajoute_au_tampon(*enchaineuse, "\n");
-                }
-                sinon {
-                    imprime_dans_enchaineuse(*enchaineuse, "% :: struct #externe;\n\n", struct_decl.name);
-                }
-            }
-            sinon {
-                imprimeln("Noeud non-géré : %", noeud.genre);
-                exit(1);
+    sentinelle_trouvée := faux;
+    pour unit.declarations {
+        si it.genre == VarDecl {
+            var := it comme *VarDecl;
+            si var.nom == "SENTINELLE_EXTRACTION_CODE" {
+                sentinelle_trouvée = vrai;
+                continue;
             }
         }
+
+        saufsi sentinelle_trouvée {
+            continue;
+        }
+
+        si it.genre == TypedefDecl {
+            typedef_decl := it comme *TypedefDecl;
+            type_sous_jacent := typedef_decl.underlying_type.type;
+
+            si est_structure_ou_union_anonyme(type_sous_jacent) {
+                déclare_type_kuri(*enchaineuse, type_sous_jacent, typedef_decl.name);
+                ajoute_au_tampon(*enchaineuse, "\n");
+            }
+            sinon {
+                déclare_type_kuri(*enchaineuse, type_sous_jacent);
+
+                imprime_dans_enchaineuse(*enchaineuse, "% :: ", typedef_decl.name);
+                imprime_type_kuri(*enchaineuse, type_sous_jacent);
+                ajoute_au_tampon(*enchaineuse, ";\n\n");
+            }
+        }
+        sinon si it.genre == StructDecl {
+            struct_decl := it comme *StructDecl;
+            assert(struct_decl.name != "");
+
+            si struct_decl.field_infos.taille {
+                déclare_type_kuri(*enchaineuse, struct_decl);
+                ajoute_au_tampon(*enchaineuse, "\n");
+            }
+            sinon {
+                imprime_dans_enchaineuse(*enchaineuse, "% :: struct #externe;\n\n", struct_decl.name);
+            }
+        }
+        sinon {
+            type := it.genre comme *InfoTypeStructure;
+            imprimeln("Noeud non-géré : %", type.nom);
+            exit(1);
+        }
     }
+
+    // -------------------------
+    // Export des énumérations.
 
     pour parseuse.énumérations {
         si it.énumérants.taille == 0 {
@@ -155,11 +299,17 @@ principale :: fonc ()
                 valeur := avance(énumérant.valeur, quot.taille);
                 valeur = recule(valeur, quot.taille);
 
-                imprime_dans_enchaineuse(*enchaineuse, "% :: \"%\"\n", énumérant.nom, valeur);
+                imprime_dans_enchaineuse(*enchaineuse, "% :: \"%\"", énumérant.nom, valeur);
             }
             sinon {
-                imprime_dans_enchaineuse(*enchaineuse, "% : GLenum : %\n", énumérant.nom, énumérant.valeur);
+                imprime_dans_enchaineuse(*enchaineuse, "% : GLenum : %", énumérant.nom, énumérant.valeur);
+
+                si énumérant.valeur[0] == '-' {
+                    ajoute_au_tampon(*enchaineuse, " comme GLenum");
+                }
             }
+
+            ajoute_au_tampon(*enchaineuse, ";\n");
         }
 
         ajoute_au_tampon(*enchaineuse, "\n");
@@ -187,7 +337,7 @@ principale :: fonc ()
 
         trouvée, type_kuri := donne_valeur_pour_clé(table_des_types, commande.type_retour);
         assert(trouvée);
-        imprime_dans_enchaineuse(*enchaineuse, ") -> % #externe lib%\n", type_kuri, bibliothèque);
+        imprime_dans_enchaineuse(*enchaineuse, ") -> % #externe lib%;\n", type_kuri, bibliothèque);
         ajoute_au_tampon(*enchaineuse, "\n");
     }
 
@@ -237,7 +387,7 @@ Typedef :: struct {
 ParseuseRegistreGL :: struct {
     nombre_énums: z32;
 
-    énumérations: [..]Énumération   
+    énumérations: [..]Énumération;
     énumération_courante: *Énumération;
 
     commandes: [..]Commande;
@@ -261,7 +411,7 @@ ParseuseRegistreGL :: struct {
     dans_nom_typedef: bool;
 }
 
-début_élément_glx :: fonc (données: eini, élément: chaine, attributs: []Attribut)
+début_élément_glx :: fonc (données: eini, élément: chaine, attributs: []XML.Attribut)
 {
     parseuse := données comme *ParseuseRegistreGL;
 
