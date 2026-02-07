@@ -76,7 +76,7 @@ public:
 			, m_debut(rhs.m_debut)
 		{
 			rhs.m_parent = nullptr;
-			rhs.m_debut = 0.0;
+            rhs.m_debut = 0.0;
 		}
 
 		chronometre_portee &operator=(chronometre_portee &&rhs)
@@ -115,7 +115,7 @@ public:
 	pointeur_chronometre &operator=(pointeur_chronometre &&rhs)
 	{
 		m_pointeur = rhs.m_pointeur;
-		m_flux_sortie = rhs.m_flux_sortie;
+        // m_flux_sortie = rhs.m_flux_sortie;
 		rhs.m_pointeur = nullptr;
 
 		return *this;
