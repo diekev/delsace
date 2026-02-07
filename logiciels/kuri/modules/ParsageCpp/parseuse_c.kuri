@@ -119,15 +119,6 @@ rapporte_erreur :: fonc (parseuse: *ParseuseC, lexème: Token, format: chaine, a
     rapporte_diagnostique(parseuse.unit, TypeDiagnostique.ERREUR, lexème, format, ...args);
 } @Imprimeuse
 
-parse_texte :: fonc (parseuse: *ParseuseC, texte: chaine) -> *ASTNode
-{
-    initialise_lexeuse_pour_texte(*parseuse.lexeuse, texte);
-
-    résultat: *ASTNode;
-
-    retourne résultat;
-}
-
 /* (6.9) translation-unit:
     external-declaration
     translation-unit external-declaration */

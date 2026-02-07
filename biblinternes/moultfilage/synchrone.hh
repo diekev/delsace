@@ -24,6 +24,7 @@
 
 #pragma once
 
+#include <functional>
 #include <shared_mutex>
 
 namespace dls {
