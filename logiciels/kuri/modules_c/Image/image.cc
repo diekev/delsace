@@ -405,7 +405,7 @@ ResultatOperation IMG_ouvre_image_avec_proxy(const char *chemin,
     image->nombre_composants = channels;
     image->format = format;
 
-    if (!input->read_image(typedesc_désiré, image->donnees)) {
+    if (!input->read_image(0, 0, 0, -1, typedesc_désiré, image->donnees)) {
         input->close();
         return ResultatOperation::TYPE_IMAGE_NON_SUPPORTE;
     }
