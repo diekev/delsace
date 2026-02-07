@@ -190,18 +190,18 @@ donne_info_fichier :: fonc (chemin: CheminFichier) -> InfoFichier
 
 donne_info_fichier :: fonc (chemin: chaine) -> InfoFichier
 {
-    résultat: InfoFichier;
-    résultat.taille = détermine_taille_fichier(CheminFichier(chemin));
-
     ptr_chemin := crée_chaine_c(chemin);
     diffère détruit_chaine_c(ptr_chemin);
 
     st: struct_stat;
     ok := stat(ptr_chemin, *st);
-    assert(ok == 0);
-
-    résultat.modification = st.st_mtime;
-
+    
+    // À FAIRE : retourne erreur
+    résultat: InfoFichier;
+    si ok {
+        résultat.taille = détermine_taille_fichier(CheminFichier(chemin));
+        résultat.modification = st.st_mtime;
+    }
     retourne résultat;
 }
 

@@ -20,6 +20,7 @@ libQt6OpenGLWidgets :: #bibliothèque "Qt6OpenGLWidgets";
 libQt6Core :: #bibliothèque "Qt6Core";
 libQt6Gui :: #bibliothèque "Qt6Gui";
 libQt6Network :: #bibliothèque "Qt6Network";
+libQt6Multimedia :: #bibliothèque "Qt6Multimedia";
 
 #dépendance_bibliothèque libQt6Gui libQt6DBus;
 
@@ -41,6 +42,7 @@ libqt_entetes :: #bibliothèque "qt_entetes";
 #dépendance_bibliothèque libqt libQt6Core;
 #dépendance_bibliothèque libqt libQt6Gui;
 #dépendance_bibliothèque libqt libQt6Network;
+#dépendance_bibliothèque libqt libQt6Multimedia;
 
 /* ------------------------------------------------------------------------- */
 /** \nom Utilitaires
