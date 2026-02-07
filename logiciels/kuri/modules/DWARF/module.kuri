@@ -959,6 +959,7 @@ parse_table_loclists :: fonc (fichier: *FichierELF) -> *TableLocLists
                 liste: *LocList = nul;
 
                 tantque est_valide(loclists_unité) {
+                    décalage_code := donne_position(loclists_unité).Début comme z64 comme n64;
                     code, _ := lis_petit_boutisme(loclists_unité, n8);
 
                     // imprimeln("%", donne_chaine_pour_entrée_location_list(code))
@@ -1012,11 +1013,11 @@ parse_table_loclists :: fonc (fichier: *FichierELF) -> *TableLocLists
                             entrée.description = lis_tableau_préfixé_taille_uleb128(loclists_unité);
                         }
                         sinon {
-                            panique("Code inconnu pour l'entrée de la LocListe : %", code);
+                            panique("Code inconnu pour l'entrée de la LocListe : %, au décalage : %", code, décalage_code);
                         }
                     }
 
-                    // imprimeln("%", mémoire(entrée))
+                    // imprimeln("%", mémoire(entrée));
                 }
 
                 si liste {
