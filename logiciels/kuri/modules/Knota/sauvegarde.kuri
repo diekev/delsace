@@ -213,6 +213,7 @@ VersionnageGraphe :: struct {
     doit_lire_cache_utilisateur := vrai;
     doit_lire_table_des_noms := vrai;
     doit_corriger_type_paramètre_bouton := faux;
+    doit_inverser_direction_noeuds := faux;
 
     versionnage_identifiant_noeud: fonc (chn: chaine) -> chaine;
 }
@@ -408,6 +409,16 @@ lis_noeuds :: fonc (lectrice: *LectriceGraphe, graphe: *Graphe)
     si lectrice.ctx_lecture.termine_lecture_noeuds {
         lectrice.ctx_lecture.termine_lecture_noeuds(graphe);
     }
+
+    si graphe.noeud_rendu == nul {
+        pour graphe.itère_noeuds() {
+            si it.sorties.taille == 0 {
+                it.drapeau_rendu = vrai;
+                graphe.définis_noeud_rendu(it);
+                arrête;
+            }
+        }
+    }
 }
 
 lis_identifiant_noeud :: fonc (lectrice: *LectriceGraphe) -> chaine
@@ -440,6 +451,10 @@ lis_un_noeud :: fonc (lectrice: *LectriceGraphe, graphe: *Graphe)
 
     noeud.position.x = lis_valeur_typée(lectrice, r32);
     noeud.position.y = lis_valeur_typée(lectrice, r32);
+
+    si lectrice.versionnage.doit_inverser_direction_noeuds {
+        noeud.position.y = -noeud.position.y;
+    }
 
     si lectrice.versionnage.doit_lire_dimensions_noeuds {
         _ := lis_valeur_typée(lectrice, r32);
