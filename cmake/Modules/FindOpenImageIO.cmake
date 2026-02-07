@@ -24,6 +24,7 @@ ENDIF()
 SET(_openimageio_SEARCH_DIRS
   ${OPENIMAGEIO_ROOT_DIR}
   /opt/lib/oiio
+  /opt/lib/OpenImageIO
 )
 
 FIND_PATH(OPENIMAGEIO_INCLUDE_DIR

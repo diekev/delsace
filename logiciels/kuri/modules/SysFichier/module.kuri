@@ -391,6 +391,11 @@ chemin_véritable :: fonc (chemin: CheminFichier) -> Résultat(CheminFichier, Er
     retourne système_chemin_véritable(chemin);
 }
 
+donne_chemin_véritable :: fonc (tampon: *TamponChemin) -> ErreurFichier
+{
+    retourne système_chemin_véritable(tampon);
+}
+
 renomme :: fonc (orig: CheminFichier, dest: CheminFichier) -> Optionnel(ErreurFichier)
 {
     retourne système_renomme(orig, dest);

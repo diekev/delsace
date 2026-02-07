@@ -71,5 +71,5 @@ set(SOURCES
 list(APPEND BIBLIOTHEQUES dls::algorithmes_image)
 
 compile_module_c(${NOM_PROJET} image image.h Image "${SOURCES}" "${INCLUSIONS}" "${BIBLIOTHEQUES}")
-set_property(TARGET ${NOM_PROJET}_statique PROPERTY CXX_STANDARD 14)
-set_property(TARGET ${NOM_PROJET}_dynamique PROPERTY CXX_STANDARD 14)
+set_property(TARGET ${NOM_PROJET}_statique PROPERTY CXX_STANDARD 17)
+set_property(TARGET ${NOM_PROJET}_dynamique PROPERTY CXX_STANDARD 17)
