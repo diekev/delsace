@@ -3,6 +3,7 @@
 
 #include "statistiques.hh"
 
+#include <algorithm>
 #include <iostream>
 
 #include "structures/enchaineuse.hh"
