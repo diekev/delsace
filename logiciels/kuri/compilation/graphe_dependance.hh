@@ -5,6 +5,8 @@
 
 #include "arbre_syntaxique/prodeclaration.hh"
 
+#include <iosfwd>
+
 #include "structures/ensemblon.hh"
 #include "structures/tableau.hh"
 #include "structures/tableau_compresse.hh"
