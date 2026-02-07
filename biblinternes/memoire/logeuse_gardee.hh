@@ -26,6 +26,7 @@
 
 #include "biblinternes/memoire/logeuse_memoire.hh"
 
+#include <typeinfo>
 #include <limits>
 
 namespace memoire {
