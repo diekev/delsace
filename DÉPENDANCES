@@ -1,0 +1,11 @@
+Pour Qt :
+
+    libxcb-cursor0 libxcb-cursor-dev
+
+Pour Kuri :
+
+    gperf libclang-20-dev llvm-20 llvm-20-dev
+
+Pour les modules C de Kuri :
+
+libfftw3-dev libglew-dev libtbb-dev libeigen3-dev libcgal-dev
