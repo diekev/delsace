@@ -107,6 +107,27 @@ résoud_plage_source :: fonc (unit: *TranslationUnit, plage_source: PlageSource)
     retourne résultat;
 }
 
+parse_et_valide_unité_depuis_texte :: fonc (texte: chaine) -> *TranslationUnit
+{
+    succès, info_langage := donne_info_langage_pour_dialecte("c");
+    assert(succès);
+
+    unit := crée_translation_unit_pour_fichier("", info_langage);
+
+    préprocesseur: PréProcesseur;
+    initialise_préprocesseur(*préprocesseur, unit);
+    exécute_préprocesseur(*préprocesseur, texte);
+
+    parseuse_c: ParseuseC;
+    initialise_parseuse(*parseuse_c, unit);
+    parse_translation_unit(*parseuse_c);
+
+    sémanticienne: SémanticienneC;
+    sémantise_translation_unit_c(*sémanticienne, unit);
+
+    retourne unit;
+}
+
 TypeDiagnostique :: énum {
     ERREUR;
     ERREUR_INTERNE;
