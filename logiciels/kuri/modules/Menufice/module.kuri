@@ -209,6 +209,8 @@ ParamsDispositionBarreDeMenu :: struct {
     couleur_texte_inactif: CouleurRVBA;
     couleur_séparateur: CouleurRVBA;
     taille_séparateur: z32;
+    largeur_min_menu := 120;
+    largeur_max_menu: z32;
 
     sur_pression_entête_menu: TypeRappelSouris;
     données_sur_pression_entête_menu: *rien;
@@ -347,6 +349,14 @@ dispose_élément_menu :: fonc (fonte: *Fonte, texte: ChaineUTF32, texte_pour_ra
     }
     si un_élément_possède_un_raccourci {
         cotation_élément += rembourrage_horizontal * 2;
+    }
+
+    si cotation_élément < params.largeur_min_menu {
+        cotation_élément = params.largeur_min_menu;
+    }
+
+    si cotation_élément > params.largeur_max_menu {
+        cotation_élément = params.largeur_max_menu;
     }
 
     couleur_texte := params.couleur_texte_actif;
