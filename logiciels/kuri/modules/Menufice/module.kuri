@@ -210,7 +210,7 @@ ParamsDispositionBarreDeMenu :: struct {
     couleur_séparateur: CouleurRVBA;
     taille_séparateur: z32;
     largeur_min_menu := 120;
-    largeur_max_menu: z32;
+    largeur_max_menu : z32 = 0x7fffffff;
 
     sur_pression_entête_menu: TypeRappelSouris;
     données_sur_pression_entête_menu: *rien;
