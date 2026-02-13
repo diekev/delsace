@@ -17,14 +17,14 @@ BarreDeMenu :: struct {
     menus: [..]*Menu;
 }
 
-ajoute_menu :: fonc (barre_de_menu: *BarreDeMenu, arène: *ArèneMémoire, texte: chaine) -> *Menu
+ajoute_menu :: fonc (barre_de_menu: *BarreDeMenu, arène: *Arène_Mémoire, texte: chaine) -> *Menu
 {
     // À FAIRE : fuite de mémoire
     texte_utf32 := crée_chaine_utf32(texte);
     retourne ajoute_menu(barre_de_menu, arène, texte_utf32);
 }
 
-ajoute_menu :: fonc (barre_de_menu: *BarreDeMenu, arène: *ArèneMémoire, texte: ChaineUTF32) -> *Menu
+ajoute_menu :: fonc (barre_de_menu: *BarreDeMenu, arène: *Arène_Mémoire, texte: ChaineUTF32) -> *Menu
 {
     résultat := loge(arène, Menu);
     résultat.texte = texte;
