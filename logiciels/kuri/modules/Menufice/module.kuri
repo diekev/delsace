@@ -212,6 +212,9 @@ ParamsDispositionBarreDeMenu :: struct {
     largeur_min_menu := 120;
     largeur_max_menu : z32 = 0x7fffffff;
 
+    /* Icône à afficher pour les items désignant des sous-menus. */
+    icône_flèche_sous_menu: chaine;
+
     sur_pression_entête_menu: TypeRappelSouris;
     données_sur_pression_entête_menu: *rien;
 
@@ -308,6 +311,15 @@ dispose_éléments_menu :: fonc (menu: *Menu, params: *ParamsDispositionBarreDeM
                         largeur_max_texte = largeur_texte;
                     }
                 }
+                SousMenu {
+                    largeur_texte := donne_largeur_texte(fonte, it.texte) comme z32;
+                    si largeur_texte > largeur_max_texte {
+                        largeur_max_texte = largeur_texte;
+                    }
+                    si params.icône_flèche_sous_menu {
+                        un_élément_possède_un_raccourci = vrai;
+                    }
+                }
                 sinon {
                     largeur_texte := donne_largeur_texte(fonte, it.texte) comme z32;
                     si largeur_texte > largeur_max_texte {
@@ -326,10 +338,14 @@ dispose_éléments_menu :: fonc (menu: *Menu, params: *ParamsDispositionBarreDeM
                 }
                 Action(bouton) {
                     est_activé := est_cliquable(bouton, params.données_est_cliquable);
-                    dispose_élément_menu(fonte, it.texte, bouton.texte_pour_raccourci, bouton.icone, largeur_max_texte, un_élément_possède_une_icone, un_élément_possède_un_raccourci, menu, indice_it comme z32, est_activé, params);
+                    dispose_élément_menu(fonte, it.texte, bouton.texte_pour_raccourci, bouton.icone, largeur_max_texte, un_élément_possède_une_icone, un_élément_possède_un_raccourci, menu, indice_it comme z32, est_activé, faux, params);
+                }
+                SousMenu(sous_menu) {
+                    est_activé := sous_menu.éléments.taille != 0;
+                    dispose_élément_menu(fonte, it.texte, "", "", largeur_max_texte, un_élément_possède_une_icone, un_élément_possède_un_raccourci, menu, indice_it comme z32, est_activé, vrai, params);
                 }
                 sinon {
-                    dispose_élément_menu(fonte, it.texte, "", "", largeur_max_texte, un_élément_possède_une_icone, un_élément_possède_un_raccourci, menu, indice_it comme z32, vrai, params);
+                    dispose_élément_menu(fonte, it.texte, "", "", largeur_max_texte, un_élément_possède_une_icone, un_élément_possède_un_raccourci, menu, indice_it comme z32, vrai, faux, params);
                 }
             }
         }
@@ -337,7 +353,7 @@ dispose_éléments_menu :: fonc (menu: *Menu, params: *ParamsDispositionBarreDeM
     termine_rectangle();
 }
 
-dispose_élément_menu :: fonc (fonte: *Fonte, texte: ChaineUTF32, texte_pour_raccourci: chaine, icone: chaine, largeur: z32, un_élément_possède_une_icone: bool, un_élément_possède_un_raccourci: bool, menu: *Menu, indice_élément: z32, est_activé: bool,
+dispose_élément_menu :: fonc (fonte: *Fonte, texte: ChaineUTF32, texte_pour_raccourci: chaine, icone: chaine, largeur: z32, un_élément_possède_une_icone: bool, un_élément_possède_un_raccourci: bool, menu: *Menu, indice_élément: z32, est_activé: bool, est_sous_menu: bool,
                               params: *ParamsDispositionBarreDeMenu)
 {
     rembourrage_horizontal := 8;
@@ -393,6 +409,12 @@ dispose_élément_menu :: fonc (fonte: *Fonte, texte: ChaineUTF32, texte_pour_ra
         si texte_pour_raccourci {
             dispose_séparateur_horizontal();
             dispose_texte(texte_pour_raccourci, ConfigurationTexte(fonte, couleur_texte));
+        }
+
+        si est_sous_menu && params.icône_flèche_sous_menu && params.donne_image_pour_icone {
+            dispose_séparateur_horizontal();
+            image_icone := params.donne_image_pour_icone(params.données_icone, params.icône_flèche_sous_menu);
+            dispose_image(image_icone, Cotation(FIXE(cotation_icone), FIXE(cotation_icone)), couleur_texte);
         }
     }
     termine_rectangle();
