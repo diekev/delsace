@@ -1,5 +1,125 @@
+importe Couleur;
+importe Math;
 importe IGUMI;
 importe Typographie;
+
+/* ------------------------------------------------------------------------- */
+/** \nom Utilitaires
+ * \{ */
+
+ThèmeGraphe :: struct {
+    couleur_texte: CouleurRVBA;
+    couleur_connexion: CouleurRVBA;
+    couleur_connexion_interactive: CouleurRVBA;
+    couleur_connexion_originelle: CouleurRVBA;
+    couleur_connexion_survol: CouleurRVBA;
+}
+
+ajourne_rectangles_noeuds :: fonc (noeud: *Noeud, origine_en_bas := vrai)
+{
+    pos_x := noeud.position.x;
+    pos_y := noeud.position.y;
+
+    hauteur_icone := 64.0;
+    largeur_icone := 64.0;
+
+    hauteur_prise := 16.0;
+    largeur_prise := hauteur_prise;
+
+    hauteur_noeud := hauteur_icone;
+    largeur_noeud := 4.0 * largeur_icone;
+    noeud.largeur = largeur_noeud;
+    noeud.hauteur = hauteur_noeud;
+
+    espace_entre_prise_et_noeud := 0.25 * hauteur_prise;
+
+    décalage_icone_y := pos_y;
+    décalage_texte_x := largeur_noeud;
+    décalage_texte_y := pos_y;
+    décalage_sorties_y := si origine_en_bas {
+        pos_y - hauteur_prise - espace_entre_prise_et_noeud;
+    }
+    sinon {
+        pos_y + hauteur_icone + espace_entre_prise_et_noeud;
+    };
+
+    /* Prises entrées */
+    étendue_entrée := (largeur_noeud / noeud.entrées.taille comme r32);
+    pos_debut_entrées := étendue_entrée * 0.5 - largeur_prise * 0.5;
+    pos_entrée := pos_x + pos_debut_entrées;
+
+    pour noeud.entrées {
+        // À FAIRE : connexions multiples
+        it.rectangle.x = pos_entrée;
+        it.rectangle.y = pos_y + hauteur_icone + espace_entre_prise_et_noeud;
+        it.rectangle.y = si origine_en_bas {
+            pos_y + hauteur_icone + espace_entre_prise_et_noeud;
+        }
+        sinon {
+            pos_y - hauteur_prise - espace_entre_prise_et_noeud;
+        };
+        it.rectangle.hauteur = hauteur_prise;
+        it.rectangle.largeur = largeur_prise;
+
+        pos_entrée += étendue_entrée;
+    }
+
+    /* Prises sorties */
+    étendue_sortie := (largeur_noeud / noeud.sorties.taille comme r32);
+    pos_debut_sorties := étendue_sortie * 0.5 - largeur_prise * 0.5;
+    pos_sortie := pos_x + pos_debut_sorties;
+
+    pour noeud.sorties {
+        it.rectangle.x = pos_sortie;
+        it.rectangle.y = décalage_sorties_y;
+        it.rectangle.hauteur = hauteur_prise;
+        it.rectangle.largeur = largeur_prise;
+
+        pos_sortie += étendue_sortie;
+    }
+
+    /* Icone. */
+    noeud.rectangle_icone.x = pos_x + 1 + 1.5 * largeur_icone;
+    noeud.rectangle_icone.y = décalage_icone_y + 1;
+    noeud.rectangle_icone.largeur = largeur_icone - 2;
+    noeud.rectangle_icone.hauteur = hauteur_icone - 2;
+
+    /* Texte. La hauteur et la largeur seront renseignées lors du dessin. */
+    décalage_texte := 8.0;
+    noeud.rectangle_texte.x = pos_x + décalage_texte_x + décalage_texte;
+    noeud.rectangle_texte.y = décalage_texte_y + hauteur_icone / 2;
+
+    /* Drapeau. */
+    LARGEUR_DRAPEAU :: 24.0;
+    noeud.rectangle_drapeau.x = noeud.position.x + noeud.largeur - LARGEUR_DRAPEAU;
+    noeud.rectangle_drapeau.y = noeud.position.y;
+    noeud.rectangle_drapeau.largeur = LARGEUR_DRAPEAU;
+    noeud.rectangle_drapeau.hauteur = noeud.hauteur;
+}
+
+texte_danjo_pour_menu_catégorisation :: fonc (catégorisation: *CatégorisationNoeuds, identifiant: chaine) -> chaine
+{
+    enchaineuse: Enchaineuse;
+    initialise_enchaineuse(*enchaineuse);
+
+    ajoute_au_tampon(*enchaineuse, "menu \"", identifiant, "\" {\n");
+
+    pour catégorie dans catégorisation.catégories {
+        ajoute_au_tampon(*enchaineuse, "    menu \"", catégorie.nom, "\" {\n");
+
+        pour noeud dans catégorie.noeuds {
+            ajoute_au_tampon(*enchaineuse, "        action(valeur=\"", noeud, "\"; attache=ajouter_noeud; métadonnée=\"", noeud, "\")\n");
+        }
+
+        ajoute_au_tampon(*enchaineuse, "    }\n");
+    }
+
+    ajoute_au_tampon(*enchaineuse, "}\n");
+
+    retourne chaine_depuis_enchaineuse(*enchaineuse);
+}
+
+/** \} */
 
 dessine_graphe_igumi :: fonc (graphe: *Graphe, thème: *ThèmeGraphe, fonte: *Fonte)
 {

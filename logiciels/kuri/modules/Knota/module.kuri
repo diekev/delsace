@@ -6,12 +6,10 @@ importe Observation;
 importe Structures;
 importe SysFichier;
 
-charge "danjo";
 charge "édition";
 charge "graphviz";
 charge "paramètres";
 charge "rendu_igumi";
-charge "rendu_qt";
 charge "sauvegarde";
 
 /* ------------------------------------------------------------------------- */
