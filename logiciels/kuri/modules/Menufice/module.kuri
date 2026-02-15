@@ -116,6 +116,13 @@ gère_clic_souris :: fonc (élément: Menu.Élément)
     }
 }
 
+ferme :: fonc (menu: *Menu)
+{
+    tantque menu != nul {
+        menu.est_ouvert = faux;
+    }
+}
+
 /** \} */
 
 /* ------------------------------------------------------------------------- */
@@ -427,7 +434,7 @@ sur_élément_menu_cliqué :: fonc (menu: *Menu, souris: ClicSouris @inutilisée
     }
 
     gère_clic_souris(menu.éléments[indice]);
-    menu.est_ouvert = faux;
+    ferme(menu);
     retourne ÉtatÉvènement.CONSOMMÉ;
 }
 
