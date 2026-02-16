@@ -1857,8 +1857,37 @@ void GénératriceCodeLLVM::génère_code_pour_instruction(const Instruction *in
         case GenreInstruction::ACCÈS_INDICE:
         {
             auto inst_accès = inst->comme_accès_indice();
-            auto valeur_accédée = génère_code_pour_atome(inst_accès->accédé,
-                                                         UtilisationAtome::POUR_LECTURE);
+
+            llvm::Value *valeur_accédée;
+            if (inst_accès->accédé->genre_atome == Atome::Genre::GLOBALE &&
+                est_globale_pour_tableau_données_constantes(inst_accès->accédé->comme_globale())) {
+                static constexpr auto valeur_nulle = uint64_t(-1);
+                auto décalage = table_globales_dc.valeur_ou(inst_accès->accédé->comme_globale(),
+                                                            valeur_nulle);
+                assert(décalage != valeur_nulle);
+                assert(m_données_constantes != nullptr);
+
+                auto indice = llvm::ConstantInt::get(llvm::Type::getInt64Ty(m_contexte_llvm),
+                                                     décalage);
+
+                auto index_array = llvm::SmallVector<llvm::Value *>();
+                auto type_z32 = llvm::Type::getInt32Ty(m_contexte_llvm);
+                index_array.push_back(llvm::ConstantInt::get(type_z32, 0));
+                index_array.push_back(indice);
+
+                auto indexage = llvm::ConstantExpr::getInBoundsGetElementPtr(
+                    m_type_données_constantes,
+                    llvm::cast<llvm::Constant>(m_données_constantes),
+                    index_array);
+
+                auto type_llvm = convertis_type_llvm(inst_accès->type);
+                valeur_accédée = llvm::ConstantExpr::getBitCast(indexage, type_llvm);
+            }
+            else {
+                valeur_accédée = génère_code_pour_atome(inst_accès->accédé,
+                                                        UtilisationAtome::POUR_LECTURE);
+            }
+
             auto valeur_indice = génère_code_pour_atome(inst_accès->indice,
                                                         UtilisationAtome::POUR_LECTURE);
 
