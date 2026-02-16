@@ -1357,6 +1357,11 @@ insère_noeud :: fonc (graphe: *Graphe, noeud: *Noeud, rend_actif: bool)
         graphe.noeud_actif = noeud;
     }
 
+    saufsi graphe.noeud_rendu {
+        noeud.drapeau_rendu = vrai;
+        définis_noeud_rendu(graphe, noeud);
+    }
+
     graphe.envoie_message(MessageObservable(info_de(Graphe), MessageGrapheNoeudAjouté, noeud));
 }
 
