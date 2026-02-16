@@ -1637,7 +1637,7 @@ catérorisations_noeuds : [..]CatégorisationNoeuds = ---;
  * une autre allocatrice lors de l'exécution du programme puisque plusieurs
  * catégories sont initialisées via ajoute_init qui alloue dans le contexte global.
  * Ainsi, ajouter des catégories après le début de princiaple nous évite de crasher,  */
-alloc_catérigorisations_noeuds: BaseAllocatrice;
+alloc_catégorisations_noeuds: BaseAllocatrice;
 
 crée_catégorisation_noeuds_pour :: fonc (type_graphe: *InfoTypeStructure) -> *CatégorisationNoeuds
 {
@@ -1648,7 +1648,7 @@ crée_catégorisation_noeuds_pour :: fonc (type_graphe: *InfoTypeStructure) -> *
 
     ctx := contexte();
     ctx.allocatrice = allocatrice_défaut;
-    ctx.données_allocatrice = *alloc_catérigorisations_noeuds;
+    ctx.données_allocatrice = *alloc_catégorisations_noeuds;
 
     pousse_contexte ctx {
         résultat := tableau_ajoute_élément(*catérorisations_noeuds);
@@ -1671,7 +1671,7 @@ ajoute_catégorie :: fonc (catégorisation: *CatégorisationNoeuds, nom: chaine)
 {
     ctx := contexte();
     ctx.allocatrice = allocatrice_défaut;
-    ctx.données_allocatrice = *alloc_catérigorisations_noeuds;
+    ctx.données_allocatrice = *alloc_catégorisations_noeuds;
 
     pousse_contexte ctx {
         catégorie: CatégorieNoeud;
@@ -1684,7 +1684,7 @@ ajoute_noeud :: fonc (catégorie: *CatégorieNoeud, identifiant: chaine)
 {
     ctx := contexte();
     ctx.allocatrice = allocatrice_défaut;
-    ctx.données_allocatrice = *alloc_catérigorisations_noeuds;
+    ctx.données_allocatrice = *alloc_catégorisations_noeuds;
 
     pousse_contexte ctx {
         ensemble_ajoute(*catégorie.noeuds, identifiant);
