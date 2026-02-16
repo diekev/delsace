@@ -3212,7 +3212,7 @@ void GénératriceCodeLLVM::génère_code_pour_fonction(AtomeFonction const *ato
 
 void GénératriceCodeLLVM::génère_code_pour_est_adresse_données_constante()
 {
-    auto atome_fonc = données_module.intrinsèqe_est_adresse_données_constantes;
+    auto atome_fonc = données_module.intrinsèque_est_adresse_données_constantes;
     if (atome_fonc == nullptr) {
         return;
     }
@@ -3738,7 +3738,7 @@ void CoulisseLLVM::crée_modules(const ProgrammeRepreInter &repr_inter,
             nombre_instructions += fonction->nombre_d_instructions_avec_entrées_sorties();
 
             if (fonction->est_intrinsèque(GenreIntrinsèque::EST_ADRESSE_DONNÉES_CONSTANTES)) {
-                module_globales->intrinsèqe_est_adresse_données_constantes = fonction;
+                module_globales->intrinsèque_est_adresse_données_constantes = fonction;
             }
 
             if (nombre_instructions < nombre_instructions_par_module &&
