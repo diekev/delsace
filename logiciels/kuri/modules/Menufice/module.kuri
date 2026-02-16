@@ -17,14 +17,14 @@ BarreDeMenu :: struct {
     menus: [..]*Menu;
 }
 
-ajoute_menu :: fonc (barre_de_menu: *BarreDeMenu, arène: *ArèneMémoire, texte: chaine) -> *Menu
+ajoute_menu :: fonc (barre_de_menu: *BarreDeMenu, arène: *Arène_Mémoire, texte: chaine) -> *Menu
 {
     // À FAIRE : fuite de mémoire
     texte_utf32 := crée_chaine_utf32(texte);
     retourne ajoute_menu(barre_de_menu, arène, texte_utf32);
 }
 
-ajoute_menu :: fonc (barre_de_menu: *BarreDeMenu, arène: *ArèneMémoire, texte: ChaineUTF32) -> *Menu
+ajoute_menu :: fonc (barre_de_menu: *BarreDeMenu, arène: *Arène_Mémoire, texte: ChaineUTF32) -> *Menu
 {
     résultat := loge(arène, Menu);
     résultat.texte = texte;
@@ -63,10 +63,14 @@ Menu :: struct {
     Élément :: struct {
         texte: ChaineUTF32;
         données: DonnéesÉlément;
+        /* Rectangle de l'élément dans le menu. */
+        rect: RectanglePosDim(r32);
     }
 
     texte: ChaineUTF32;
     éléments: [..]Élément;
+
+    sous_menu_ouvert: *Menu;
 
     est_ouvert: bool;
     est_pour_énum: bool;
@@ -75,6 +79,10 @@ Menu :: struct {
     x: r32;
     y: r32;
 
+    /* Rectangle de l'entête du menu, soit le rectangle dans une barre de menu, soit dans un menu parent. */
+    rect_entête: RectanglePosDim(r32);
+
+    /* Rectangle des éléments du menu. */
     rect: RectanglePosDim(r32);
 }
 
@@ -113,6 +121,14 @@ gère_clic_souris :: fonc (élément: Menu.Élément)
             bouton.sur_clic(bouton);
         }
         sinon {}
+    }
+}
+
+ferme :: fonc (menu: *Menu)
+{
+    tantque menu != nul {
+        menu.est_ouvert = faux;
+        menu = menu.sous_menu_ouvert;
     }
 }
 
@@ -209,6 +225,11 @@ ParamsDispositionBarreDeMenu :: struct {
     couleur_texte_inactif: CouleurRVBA;
     couleur_séparateur: CouleurRVBA;
     taille_séparateur: z32;
+    largeur_min_menu := 120;
+    largeur_max_menu : z32 = 0x7fffffff;
+
+    /* Icône à afficher pour les items désignant des sous-menus. */
+    icône_flèche_sous_menu: chaine;
 
     sur_pression_entête_menu: TypeRappelSouris;
     données_sur_pression_entête_menu: *rien;
@@ -248,6 +269,8 @@ dispose_menu :: fonc (menu: *Menu, params: *ParamsDispositionBarreDeMenu, fonte:
         définis_cotation(Cotation(hauteur = FIXE(params.hauteur)));
         définis_alignement(AlignementEnfant.Milieu);
         définis_rembourrage(RembourrageUniforme(6));
+
+        menu.rect_entête = donne_rect();
 
         si params.sur_pression_entête_menu {
             sur_pression_souris(params.sur_pression_entête_menu, params.données_sur_pression_entête_menu, indice_menu);
@@ -306,6 +329,15 @@ dispose_éléments_menu :: fonc (menu: *Menu, params: *ParamsDispositionBarreDeM
                         largeur_max_texte = largeur_texte;
                     }
                 }
+                SousMenu {
+                    largeur_texte := donne_largeur_texte(fonte, it.texte) comme z32;
+                    si largeur_texte > largeur_max_texte {
+                        largeur_max_texte = largeur_texte;
+                    }
+                    si params.icône_flèche_sous_menu {
+                        un_élément_possède_un_raccourci = vrai;
+                    }
+                }
                 sinon {
                     largeur_texte := donne_largeur_texte(fonte, it.texte) comme z32;
                     si largeur_texte > largeur_max_texte {
@@ -324,10 +356,14 @@ dispose_éléments_menu :: fonc (menu: *Menu, params: *ParamsDispositionBarreDeM
                 }
                 Action(bouton) {
                     est_activé := est_cliquable(bouton, params.données_est_cliquable);
-                    dispose_élément_menu(fonte, it.texte, bouton.texte_pour_raccourci, bouton.icone, largeur_max_texte, un_élément_possède_une_icone, un_élément_possède_un_raccourci, menu, indice_it comme z32, est_activé, params);
+                    dispose_élément_menu(fonte, it.texte, bouton.texte_pour_raccourci, bouton.icone, largeur_max_texte, un_élément_possède_une_icone, un_élément_possède_un_raccourci, menu, indice_it comme z32, est_activé, nul, params);
+                }
+                SousMenu(sous_menu) {
+                    est_activé := sous_menu.éléments.taille != 0;
+                    dispose_élément_menu(fonte, it.texte, "", "", largeur_max_texte, un_élément_possède_une_icone, un_élément_possède_un_raccourci, menu, indice_it comme z32, est_activé, sous_menu, params);
                 }
                 sinon {
-                    dispose_élément_menu(fonte, it.texte, "", "", largeur_max_texte, un_élément_possède_une_icone, un_élément_possède_un_raccourci, menu, indice_it comme z32, vrai, params);
+                    dispose_élément_menu(fonte, it.texte, "", "", largeur_max_texte, un_élément_possède_une_icone, un_élément_possède_un_raccourci, menu, indice_it comme z32, vrai, nul, params);
                 }
             }
         }
@@ -335,7 +371,7 @@ dispose_éléments_menu :: fonc (menu: *Menu, params: *ParamsDispositionBarreDeM
     termine_rectangle();
 }
 
-dispose_élément_menu :: fonc (fonte: *Fonte, texte: ChaineUTF32, texte_pour_raccourci: chaine, icone: chaine, largeur: z32, un_élément_possède_une_icone: bool, un_élément_possède_un_raccourci: bool, menu: *Menu, indice_élément: z32, est_activé: bool,
+dispose_élément_menu :: fonc (fonte: *Fonte, texte: ChaineUTF32, texte_pour_raccourci: chaine, icone: chaine, largeur: z32, un_élément_possède_une_icone: bool, un_élément_possède_un_raccourci: bool, menu: *Menu, indice_élément: z32, est_activé: bool, est_sous_menu: *Menu,
                               params: *ParamsDispositionBarreDeMenu)
 {
     rembourrage_horizontal := 8;
@@ -347,6 +383,14 @@ dispose_élément_menu :: fonc (fonte: *Fonte, texte: ChaineUTF32, texte_pour_ra
     }
     si un_élément_possède_un_raccourci {
         cotation_élément += rembourrage_horizontal * 2;
+    }
+
+    si cotation_élément < params.largeur_min_menu {
+        cotation_élément = params.largeur_min_menu;
+    }
+
+    si cotation_élément > params.largeur_max_menu {
+        cotation_élément = params.largeur_max_menu;
     }
 
     couleur_texte := params.couleur_texte_actif;
@@ -384,6 +428,15 @@ dispose_élément_menu :: fonc (fonte: *Fonte, texte: ChaineUTF32, texte_pour_ra
             dispose_séparateur_horizontal();
             dispose_texte(texte_pour_raccourci, ConfigurationTexte(fonte, couleur_texte));
         }
+
+        si est_sous_menu && params.icône_flèche_sous_menu && params.donne_image_pour_icone {
+            est_sous_menu.rect_entête = donne_rect();
+            dispose_séparateur_horizontal();
+            image_icone := params.donne_image_pour_icone(params.données_icone, params.icône_flèche_sous_menu);
+            dispose_image(image_icone, Cotation(FIXE(cotation_icone), FIXE(cotation_icone)), couleur_texte);
+        }
+
+        menu.éléments[indice_élément].rect = donne_rect();
     }
     termine_rectangle();
 }
@@ -395,7 +448,7 @@ sur_élément_menu_cliqué :: fonc (menu: *Menu, souris: ClicSouris @inutilisée
     }
 
     gère_clic_souris(menu.éléments[indice]);
-    menu.est_ouvert = faux;
+    ferme(menu);
     retourne ÉtatÉvènement.CONSOMMÉ;
 }
 
