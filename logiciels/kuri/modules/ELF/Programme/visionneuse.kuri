@@ -388,8 +388,8 @@ initialise_tailles_max_colonnes :: fonc (tabuleuse: *Tabuleuse, fonte: *Fonte)
 VisionneuseELF :: struct {
     fichiers: [..]Fichier_Ouvert;
 
-    arène: ArèneMémoire;
-    arène_transiente: ArèneMémoire;
+    arène: Arène_Mémoire;
+    arène_transiente: Arène_Mémoire;
     fichier_courant: z32;
 
     peintre: *Peintre;
