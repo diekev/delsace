@@ -3724,15 +3724,23 @@ void CoulisseLLVM::crée_modules(const ProgrammeRepreInter &repr_inter,
     }
     module->définis_globales(repr_inter.donne_globales());
 
+    auto fonctions = repr_inter.donne_fonctions();
+
     if (!options.parallélise_llvm) {
-        module->définis_fonctions(repr_inter.donne_fonctions());
+        for (int i = 0; i < fonctions.taille(); i++) {
+            auto fonction = fonctions[i];
+            if (fonction->est_intrinsèque(GenreIntrinsèque::EST_ADRESSE_DONNÉES_CONSTANTES)) {
+                module->intrinsèque_est_adresse_données_constantes = fonction;
+                break;
+            }
+        }
+        module->définis_fonctions(fonctions);
     }
     else {
         /* Crée des modules pour les fonctions. */
         constexpr int nombre_instructions_par_module = 20000;
         int nombre_instructions = 0;
         int index_première_fonction = 0;
-        auto fonctions = repr_inter.donne_fonctions();
         for (int i = 0; i < fonctions.taille(); i++) {
             auto fonction = fonctions[i];
             nombre_instructions += fonction->nombre_d_instructions_avec_entrées_sorties();
