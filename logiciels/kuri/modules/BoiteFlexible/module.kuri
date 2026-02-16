@@ -173,6 +173,7 @@ gère_évènement :: fonc (emboiteuse: *Emboiteuse, évènement: &Évènement)
                 _ := appel_rappel(emboiteuse, boite, SurClicSouris, évènement.donne_clic_souris());
             }
 
+            emboiteuse.boite_interagit[SurPressionSouris] = 0;
             retourne;
         }
     }
@@ -677,6 +678,13 @@ est_survolée :: fonc () -> bool
     }
 
     retourne faux;
+}
+
+est_pressée :: fonc () -> bool
+{
+    assert(__boite_courante != nul);
+    emboiteuse := __boite_courante.emboiteuse;
+    retourne __boite_courante.id == emboiteuse.boite_interagit[TypeRappelUtilisateur.SurPressionSouris];
 }
 
 définis_curseur :: fonc (curseur: TypeCurseurSystème)
