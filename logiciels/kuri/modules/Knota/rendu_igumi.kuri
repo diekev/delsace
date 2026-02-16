@@ -1,0 +1,344 @@
+importe Couleur;
+importe Math;
+importe IGUMI;
+importe Typographie;
+
+/* ------------------------------------------------------------------------- */
+/** \nom Utilitaires
+ * \{ */
+
+ThèmeGraphe :: struct {
+    couleur_texte: CouleurRVBA;
+    couleur_connexion: CouleurRVBA;
+    couleur_connexion_interactive: CouleurRVBA;
+    couleur_connexion_originelle: CouleurRVBA;
+    couleur_connexion_survol: CouleurRVBA;
+}
+
+ajourne_rectangles_noeuds :: fonc (noeud: *Noeud, origine_en_bas := vrai)
+{
+    pos_x := noeud.position.x;
+    pos_y := noeud.position.y;
+
+    hauteur_icone := 64.0;
+    largeur_icone := 64.0;
+
+    hauteur_prise := 16.0;
+    largeur_prise := hauteur_prise;
+
+    hauteur_noeud := hauteur_icone;
+    largeur_noeud := 4.0 * largeur_icone;
+    noeud.largeur = largeur_noeud;
+    noeud.hauteur = hauteur_noeud;
+
+    espace_entre_prise_et_noeud := 0.25 * hauteur_prise;
+
+    décalage_icone_y := pos_y;
+    décalage_texte_x := largeur_noeud;
+    décalage_texte_y := pos_y;
+    décalage_sorties_y := si origine_en_bas {
+        pos_y - hauteur_prise - espace_entre_prise_et_noeud;
+    }
+    sinon {
+        pos_y + hauteur_icone + espace_entre_prise_et_noeud;
+    };
+
+    /* Prises entrées */
+    étendue_entrée := (largeur_noeud / noeud.entrées.taille comme r32);
+    pos_debut_entrées := étendue_entrée * 0.5 - largeur_prise * 0.5;
+    pos_entrée := pos_x + pos_debut_entrées;
+
+    pour noeud.entrées {
+        // À FAIRE : connexions multiples
+        it.rectangle.x = pos_entrée;
+        it.rectangle.y = pos_y + hauteur_icone + espace_entre_prise_et_noeud;
+        it.rectangle.y = si origine_en_bas {
+            pos_y + hauteur_icone + espace_entre_prise_et_noeud;
+        }
+        sinon {
+            pos_y - hauteur_prise - espace_entre_prise_et_noeud;
+        };
+        it.rectangle.hauteur = hauteur_prise;
+        it.rectangle.largeur = largeur_prise;
+
+        pos_entrée += étendue_entrée;
+    }
+
+    /* Prises sorties */
+    étendue_sortie := (largeur_noeud / noeud.sorties.taille comme r32);
+    pos_debut_sorties := étendue_sortie * 0.5 - largeur_prise * 0.5;
+    pos_sortie := pos_x + pos_debut_sorties;
+
+    pour noeud.sorties {
+        it.rectangle.x = pos_sortie;
+        it.rectangle.y = décalage_sorties_y;
+        it.rectangle.hauteur = hauteur_prise;
+        it.rectangle.largeur = largeur_prise;
+
+        pos_sortie += étendue_sortie;
+    }
+
+    /* Icone. */
+    noeud.rectangle_icone.x = pos_x + 1 + 1.5 * largeur_icone;
+    noeud.rectangle_icone.y = décalage_icone_y + 1;
+    noeud.rectangle_icone.largeur = largeur_icone - 2;
+    noeud.rectangle_icone.hauteur = hauteur_icone - 2;
+
+    /* Texte. La hauteur et la largeur seront renseignées lors du dessin. */
+    décalage_texte := 8.0;
+    noeud.rectangle_texte.x = pos_x + décalage_texte_x + décalage_texte;
+    noeud.rectangle_texte.y = décalage_texte_y + hauteur_icone / 2;
+
+    /* Drapeau. */
+    LARGEUR_DRAPEAU :: 24.0;
+    noeud.rectangle_drapeau.x = noeud.position.x + noeud.largeur - LARGEUR_DRAPEAU;
+    noeud.rectangle_drapeau.y = noeud.position.y;
+    noeud.rectangle_drapeau.largeur = LARGEUR_DRAPEAU;
+    noeud.rectangle_drapeau.hauteur = noeud.hauteur;
+}
+
+texte_danjo_pour_menu_catégorisation :: fonc (catégorisation: *CatégorisationNoeuds, identifiant: chaine) -> chaine
+{
+    enchaineuse: Enchaineuse;
+    initialise_enchaineuse(*enchaineuse);
+
+    ajoute_au_tampon(*enchaineuse, "menu \"", identifiant, "\" {\n");
+
+    pour catégorie dans catégorisation.catégories {
+        ajoute_au_tampon(*enchaineuse, "    menu \"", catégorie.nom, "\" {\n");
+
+        pour noeud dans catégorie.noeuds {
+            ajoute_au_tampon(*enchaineuse, "        action(valeur=\"", noeud, "\"; attache=ajouter_noeud; métadonnée=\"", noeud, "\")\n");
+        }
+
+        ajoute_au_tampon(*enchaineuse, "    }\n");
+    }
+
+    ajoute_au_tampon(*enchaineuse, "}\n");
+
+    retourne chaine_depuis_enchaineuse(*enchaineuse);
+}
+
+/** \} */
+
+dessine_graphe_igumi :: fonc (graphe: *Graphe, thème: *ThèmeGraphe, fonte: *Fonte)
+{
+    saufsi graphe {
+        retourne;
+    }
+
+    pour graphe.items {
+        saufsi it.type_item == Noeud {
+            continue;
+        }
+        noeud := it comme *Noeud;
+        dessine_noeud_igumi(thème, fonte, noeud, faux, noeud == graphe.noeud_actif);
+
+        pour prise dans noeud.entrées {
+            connexion := prise.connexion;
+            saufsi connexion {
+                continue;
+            }
+
+            rectangle_prise := prise.rectangle;
+            rectangle_lien := connexion.prise_sortie.rectangle;
+
+            p1 := rectangle_prise.donne_point_central();
+            p2 := rectangle_lien.donne_point_central();
+
+            // À FAIRE : IGUMI, taille des lignes
+            // width := 2.0;
+
+            couleur_connexion: CouleurRVBA = ---;
+
+            si graphe.connexion_interactive && connexion == graphe.connexion_interactive.connexion_originelle {
+                couleur_connexion = thème.couleur_connexion_originelle;
+            }
+            sinon si connexion == graphe.connexion_pour_survol_noeud {
+                couleur_connexion = thème.couleur_connexion_survol;
+            }
+            sinon {
+                couleur_connexion = thème.couleur_connexion;
+            }
+
+            IGUMI.commence_immédiat(ModeImmédiat.LIGNES, IDNuanceur.Basique);
+            segment_immédiat(p1.x, p1.y, p2.x, p2.y, couleur_connexion);
+        }
+    }
+
+    dessine_connexion_interactive_igumi(graphe, thème);
+    dessine_outil_sélection_igumi(graphe);
+
+    // si graphe.noeud_pour_information {
+    //     affiche_informations_noeud(vue_graphiques, graphe.noeud_pour_information);
+    // }
+}
+
+dessine_noeud_igumi :: fonc (thème: *ThèmeGraphe, fonte: *Fonte, noeud: *Noeud, est_noeud_détail: bool @inutilisée, est_sélectionné: bool)
+{
+    // si est_noeud_détail {
+    //     dessine_noeud_détail_igumi(thème, noeud, est_sélectionné);
+    // }
+    dessine_noeud_générique_igumi(thème, fonte, noeud, est_sélectionné);
+}
+
+dessine_noeud_générique_igumi :: fonc (thème: *ThèmeGraphe, fonte: *Fonte, noeud: *Noeud, est_sélectionné: bool)
+{
+    ajourne_rectangles_noeuds(noeud);
+
+    rect_noeud := noeud.rectangle();
+
+    // Géométrie noeud
+    couleur_contour := donne_couleur_contour_noeud(est_sélectionné);
+    couleur_corps := donne_couleur_corps_noeud(noeud);
+    IGUMI.commence_immédiat(ModeImmédiat.TRIANGLES, IDNuanceur.Basique);
+    IGUMI.quad_immédiat(rect_noeud, couleur_corps);
+
+    /* nom du noeud */
+    dessine_texte(fonte, noeud.nom, noeud.rectangle_texte.x, noeud.rectangle_texte.y, thème.couleur_texte);
+
+    /* entrées du noeud */
+    pour noeud.entrées {
+        dessine_prise_igumi(it);
+    }
+
+    /* sorties du noeud */
+    pour noeud.sorties {
+        dessine_prise_igumi(it);
+    }
+
+    /* icone */
+    IGUMI.commence_immédiat(ModeImmédiat.TRIANGLES, IDNuanceur.Basique);
+    couleur_icone := donne_couleur_icone_noeud();
+    IGUMI.quad_immédiat(noeud.rectangle_icone, couleur_icone);
+
+    /* drapeau */
+    contour_drapeau := donne_couleur_contour_noeud(faux);
+    couleur_drapeau := donne_couleur_drapeau_noeud(noeud);
+
+    IGUMI.commence_immédiat(ModeImmédiat.TRIANGLES, IDNuanceur.Basique);
+    IGUMI.quad_immédiat(noeud.rectangle_drapeau, couleur_drapeau);
+
+    IGUMI.commence_immédiat(ModeImmédiat.LIGNES, IDNuanceur.Basique);
+    IGUMI.contour_quad_immédiat(noeud.rectangle_drapeau, contour_drapeau);
+
+    IGUMI.contour_quad_immédiat(rect_noeud, couleur_contour);
+}
+
+dessine_prise_igumi :: fonc (prise: *Prise)
+{
+    contour := donne_couleur_contour_noeud(faux);
+    couleur := tsl_vers_rvb(CouleurTSL(0.35, 0.75, 0.3));
+
+    rect := prise.rectangle;
+
+    IGUMI.commence_immédiat(ModeImmédiat.TRIANGLES, IDNuanceur.Basique);
+    IGUMI.cercle_immédiat(rect, couleur, vrai);
+
+    IGUMI.commence_immédiat(ModeImmédiat.LIGNES, IDNuanceur.Basique);
+    IGUMI.cercle_immédiat(rect, contour, faux);
+}
+
+dessine_connexion_interactive_igumi :: fonc (graphe: *Graphe, thème: *ThèmeGraphe)
+{
+    saufsi graphe.connexion_interactive {
+        retourne;
+    }
+
+    connexion := graphe.connexion_interactive;
+
+    /* Nous pouvons recevoir une notification avant que les données furent mises en place. */
+    saufsi connexion.prise_entrée || connexion.prise_sortie {
+        retourne;
+    }
+
+    p1 := si connexion.prise_entrée != nul {
+        prise_entrée := connexion.prise_entrée;
+        prise_entrée.rectangle.donne_point_central();
+    }
+    sinon {
+        prise_sortie := connexion.prise_sortie;
+        prise_sortie.rectangle.donne_point_central();
+    };
+
+    p2 := Point2D(r32)(connexion.x, connexion.y);
+
+    // À FAIRE : IGUMI, taille des lignes
+    // width := 2.0;
+
+    IGUMI.commence_immédiat(ModeImmédiat.LIGNES, IDNuanceur.Basique);
+    segment_immédiat(p1.x, p1.y, p2.x, p2.y, thème.couleur_connexion_interactive);
+}
+
+donne_couleur_icone_noeud :: fonc () -> CouleurRVBA
+{
+    retourne tsl_vers_rvb(CouleurTSL(0.35, 0.75, 0.3));
+}
+
+donne_couleur_corps_noeud :: fonc (noeud: *Noeud) -> CouleurRVBA
+{
+    si noeud.erreurs {
+        retourne CouleurRVBA(1.0, 0.7, 0.04, 1.0);
+    }
+
+    si noeud.est_dans_la_sélection {
+        retourne CouleurRVBA(0.17647 * 1.5, 0.17647 * 1.5, 0.17647 * 1.5, 1.0);
+    }
+
+    /* 0.17647 = 45 / 255 */
+    retourne CouleurRVBA(0.17647, 0.17647, 0.17647, 1.0);
+}
+
+donne_couleur_drapeau_noeud :: fonc (noeud: *Noeud) -> CouleurRVBA
+{
+    si noeud.drapeau_rendu {
+        retourne CouleurRVBA(1.0, 0.5, 1.0, 1.0);
+    }
+
+    retourne donne_couleur_corps_noeud(noeud);
+}
+
+donne_couleur_contour_noeud :: fonc (est_sélectionné: bool) -> CouleurRVBA
+{
+    résultat: CouleurRVBA;
+    si est_sélectionné {
+        résultat = CouleurRVBA(1.0, 1.0, 0.0, 1.0);
+        // résultat.width = 1.0;
+    }
+    sinon {
+        résultat = CouleurRVBA(1.0, 1.0, 1.0, 1.0);
+        // résultat.width = 0.5;
+    }
+    retourne résultat;
+}
+
+dessine_outil_sélection_igumi :: fonc (graphe: *Graphe)
+{
+    saufsi graphe.utilise_outil_sélection {
+        retourne;
+    }
+
+    sélection := graphe.sélection;
+    chemin := sélection.donne_chemin_sélection();
+
+    opt_ancre := chemin.donne_ancre();
+    saufsi opt_ancre.possède_valeur() {
+        retourne;
+    }
+
+    opt_fin_active := chemin.donne_fin_active();
+    saufsi opt_fin_active.possède_valeur() {
+        retourne;
+    }
+
+    ancre := opt_ancre.Quelque;
+    fin_active := opt_fin_active.Quelque;
+
+    rect_item := crée_rectangle_pos_dim(ancre, fin_active);
+
+    IGUMI.commence_immédiat(ModeImmédiat.TRIANGLES, IDNuanceur.Basique);
+    IGUMI.quad_immédiat(rect_item, CouleurRVBA(0.0, 0.0, 1.0, 0.5));
+
+    IGUMI.commence_immédiat(ModeImmédiat.LIGNES, IDNuanceur.Basique);
+    IGUMI.contour_quad_immédiat(rect_item, CouleurRVBA(0.0, 0.0, 1.0, 1.0));
+}
