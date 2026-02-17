@@ -497,6 +497,7 @@ struct InfoDébogageLLVM {
     EspaceDeTravail *espace = nullptr;
     llvm::DICompileUnit *unit = nullptr;
     llvm::DIFile *fichier_racine = nullptr;
+    llvm::DIFile *fichier_chaines_ajoutées = nullptr;
     llvm::DIBuilder *dibuilder = nullptr;
     kuri::table_hachage<Type const *, llvm::DIType *> table_types{"Table types DWARF"};
     kuri::table_hachage<Fichier const *, llvm::DIFile *> table_fichiers{"Table fichiers DWARF"};
@@ -959,9 +960,23 @@ struct InfoDébogageLLVM {
             return fichier_dwarf;
         }
 
-        auto nom_fichier = vers_string_ref(fichier_kuri->donne_nom_avec_extension());
-        auto nom_dossier = vers_string_ref(fichier_kuri->module->chemin());
-        fichier_dwarf = dibuilder->createFile(nom_fichier, nom_dossier);
+        if (fichier_kuri->source == SourceFichier::CHAINE_AJOUTÉE) {
+            if (fichier_chaines_ajoutées) {
+                fichier_dwarf = fichier_chaines_ajoutées;
+            }
+            else {
+                auto nom_fichier = vers_string_ref(".chaines_ajoutées");
+                auto nom_dossier = vers_string_ref("."); // À FAIRE : dossier
+                fichier_dwarf = dibuilder->createFile(nom_fichier, nom_dossier);
+                fichier_chaines_ajoutées = fichier_dwarf;
+            }
+        }
+        else {
+            auto nom_fichier = vers_string_ref(fichier_kuri->donne_nom_avec_extension());
+            auto nom_dossier = vers_string_ref(fichier_kuri->module->chemin());
+            fichier_dwarf = dibuilder->createFile(nom_fichier, nom_dossier);
+        }
+
         table_fichiers.insère(fichier_kuri, fichier_dwarf);
         return fichier_dwarf;
     }
@@ -973,8 +988,9 @@ struct InfoDébogageLLVM {
 
         /* Certains types de bases n'ont pas de lexèmes. */
         if (site != nullptr && site->lexème != nullptr) {
+            auto fichier_kuri = espace->fichier(site->lexème->fichier);
             résultat.file = donne_fichier(site);
-            résultat.ligne = uint32_t(site->lexème->ligne + 1);
+            résultat.ligne = uint32_t(site->lexème->ligne + fichier_kuri->décalage_fichier + 1);
             résultat.colonne = uint32_t(site->lexème->colonne + 1);
         }
 
