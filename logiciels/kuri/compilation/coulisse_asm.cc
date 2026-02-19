@@ -4380,6 +4380,7 @@ void GénératriceCodeASM::génère_code(ProgrammeRepreInter const &repr_inter_p
     os << "global main\n";
     os << "main:\n";
     assembleuse.call(AssembleuseASM::Fonction{"principale", false});
+    assembleuse.mov(AssembleuseASM::Opérande(Registre::RAX), AssembleuseASM::Immédiate32(0), 4);
     assembleuse.ret();
 #endif
 }
