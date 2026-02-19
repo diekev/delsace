@@ -10,9 +10,9 @@
 #ifdef _MSC_VER
 #    define NOMINMAX
 #    include <chrono>
+#    include <profileapi.h>
 #    include <thread>
 #    include <windows.h>
-#    include <profileapi.h>
 #else
 #    include <sys/time.h>
 #    include <unistd.h>
