@@ -11,7 +11,7 @@
 #undef STATISTIQUES_DETAILLEES
 
 #ifdef STATISTIQUES_DETAILLEES
-#    define CHRONO_TYPAGE(entrée_stats, indice)                                                    \
+#    define CHRONO_TYPAGE(entrée_stats, indice)                                                   \
         kuri::chrono::chrono_rappel_milliseconde VARIABLE_ANONYME(chrono)(                        \
             [&](double temps) { entrée_stats.fusionne_entrée(indice, {"", temps}); })
 #else
