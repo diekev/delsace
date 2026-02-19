@@ -137,7 +137,7 @@ struct IndiceBibliothèque {
     static IndiceBibliothèque crée_pour_exécution();
 
     static IndiceBibliothèque crée_pour_options(OptionsDeCompilation const &options,
-                                               int type_liaison);
+                                                int type_liaison);
 };
 
 /** \} */
@@ -159,8 +159,9 @@ struct CheminsBibliothèque {
         const kuri::chemin_systeme nouveaux_chemins[NUM_TYPES_BIBLIOTHÈQUE]
                                                    [NUM_TYPES_INFORMATION_BIBLIOTHÈQUE]);
 
-    /* Crée un indice valide. L'indice donné est considérer comme une requête. Si cette requête n'est
-     * pas possible, retourne un indice vers une requête valide. Sinon, retourne l'indice donné. */
+    /* Crée un indice valide. L'indice donné est considérer comme une requête. Si cette requête
+     * n'est pas possible, retourne un indice vers une requête valide. Sinon, retourne l'indice
+     * donné. */
     IndiceBibliothèque raffine_indice(IndiceBibliothèque const indice) const;
 
     int64_t mémoire_utilisée() const;
