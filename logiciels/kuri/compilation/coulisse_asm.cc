@@ -1902,7 +1902,9 @@ struct GénératriceCodeASM {
                                             AssembleuseASM &assembleuse,
                                             const UtilisationAtome utilisation);
 
-    void génère_code(ProgrammeRepreInter const &repr_inter_programme, Enchaineuse &os);
+    void génère_code(ProgrammeRepreInter const &repr_inter_programme,
+                     Enchaineuse &os,
+                     bool compile_toutes_les_fonctions);
 
     /* Sauvegarde/restaure les registres devant être préservés à travers un appel.
      * @Long-terme : ne préserve que les registres que nous modifions. */
@@ -1934,7 +1936,8 @@ struct GénératriceCodeASM {
 
     void génère_code_pour_fonction(const AtomeFonction *it,
                                    AssembleuseASM &assembleuse,
-                                   Enchaineuse &os);
+                                   Enchaineuse &os,
+                                   bool compile_toutes_les_fonctions);
 
     void génère_code_pour_retourne(const InstructionRetour *inst_retour,
                                    AssembleuseASM &assembleuse);
@@ -4134,69 +4137,65 @@ void GénératriceCodeASM::copie(AssembleuseASM::Opérande dest,
     }
 }
 
-#undef COMPILE_TOUTES_LES_FONCTIONS
-
 static kuri::tableau<AtomeFonction *> donne_fonctions_à_compiler(
-    kuri::tableau_statique<AtomeFonction *> fonctions)
+    kuri::tableau_statique<AtomeFonction *> fonctions, bool compile_toutes_les_fonctions)
 {
-#ifdef COMPILE_TOUTES_LES_FONCTIONS
     kuri::tableau<AtomeFonction *> résultat;
-    POUR (fonctions) {
-        résultat.ajoute(it);
-    }
-    return résultat;
-#else
-    AtomeFonction *fonction_principale = nullptr;
-
-    POUR (fonctions) {
-        if (it->decl && it->decl->ident == ID::principale) {
-            fonction_principale = it;
-            break;
+    if (compile_toutes_les_fonctions) {
+        POUR (fonctions) {
+            résultat.ajoute(it);
         }
     }
+    else {
+        AtomeFonction *fonction_principale = nullptr;
 
-    if (!fonction_principale) {
-        return {};
-    }
-
-    kuri::pile<AtomeFonction *> fonctions_à_visiter;
-    kuri::ensemble<AtomeFonction *> fonctions_visitées;
-
-    kuri::tableau<AtomeFonction *> résultat;
-
-    fonctions_à_visiter.empile(fonction_principale);
-
-    while (!fonctions_à_visiter.est_vide()) {
-        auto fonction = fonctions_à_visiter.dépile();
-
-        if (fonctions_visitées.possède(fonction)) {
-            continue;
+        POUR (fonctions) {
+            if (it->decl && it->decl->ident == ID::principale) {
+                fonction_principale = it;
+                break;
+            }
         }
 
-        résultat.ajoute(fonction);
-        fonctions_visitées.insère(fonction);
+        if (!fonction_principale) {
+            return {};
+        }
 
-        POUR (fonction->instructions) {
-            if (it->est_appel()) {
-                auto appel = it->comme_appel();
-                if (appel->appelé->est_fonction()) {
-                    fonctions_à_visiter.empile(appel->appelé->comme_fonction());
-                }
+        kuri::pile<AtomeFonction *> fonctions_à_visiter;
+        kuri::ensemble<AtomeFonction *> fonctions_visitées;
+
+        fonctions_à_visiter.empile(fonction_principale);
+
+        while (!fonctions_à_visiter.est_vide()) {
+            auto fonction = fonctions_à_visiter.dépile();
+
+            if (fonctions_visitées.possède(fonction)) {
                 continue;
             }
 
-            if (it->est_stocke_mem()) {
-                auto stocke = it->comme_stocke_mem();
-                if (stocke->source->est_fonction()) {
-                    fonctions_à_visiter.empile(stocke->source->comme_fonction());
+            résultat.ajoute(fonction);
+            fonctions_visitées.insère(fonction);
+
+            POUR (fonction->instructions) {
+                if (it->est_appel()) {
+                    auto appel = it->comme_appel();
+                    if (appel->appelé->est_fonction()) {
+                        fonctions_à_visiter.empile(appel->appelé->comme_fonction());
+                    }
+                    continue;
                 }
-                continue;
+
+                if (it->est_stocke_mem()) {
+                    auto stocke = it->comme_stocke_mem();
+                    if (stocke->source->est_fonction()) {
+                        fonctions_à_visiter.empile(stocke->source->comme_fonction());
+                    }
+                    continue;
+                }
             }
         }
     }
 
     return résultat;
-#endif
 }
 
 static void déclare_structure(TypeComposé const *type,
@@ -4239,7 +4238,8 @@ static void déclare_structure(TypeComposé const *type,
 }
 
 void GénératriceCodeASM::génère_code(ProgrammeRepreInter const &repr_inter_programme,
-                                     Enchaineuse &os)
+                                     Enchaineuse &os,
+                                     bool compile_toutes_les_fonctions)
 {
     /* Déclaration des types. */
     os << "struc " << "tranche" << NOUVELLE_LIGNE;
@@ -4260,19 +4260,20 @@ void GénératriceCodeASM::génère_code(ProgrammeRepreInter const &repr_inter_p
 
     /* Prodéclaration des fonctions. */
     auto fonctions = repr_inter_programme.donne_fonctions();
-    auto fonctions_à_compiler = donne_fonctions_à_compiler(fonctions);
+    auto fonctions_à_compiler = donne_fonctions_à_compiler(fonctions,
+                                                           compile_toutes_les_fonctions);
 
     POUR (fonctions) {
         if (it->est_externe) {
             os << "extern " << it->nom << "\n";
         }
         else {
-#ifdef COMPILE_TOUTES_LES_FONCTIONS
-            if (it->nom == "principale") {
-                os << "global __principale\n";
-                continue;
+            if (compile_toutes_les_fonctions) {
+                if (it->nom == "principale") {
+                    os << "global __principale\n";
+                    continue;
+                }
             }
-#endif
             os << "global " << it->nom << "\n";
         }
     }
@@ -4372,34 +4373,34 @@ void GénératriceCodeASM::génère_code(ProgrammeRepreInter const &repr_inter_p
 
         dbg() << "[" << indice_it << " / " << fonctions_à_compiler.taille() << "] "
               << "Compilation de " << it->nom;
-        génère_code_pour_fonction(it, assembleuse, os);
+        génère_code_pour_fonction(it, assembleuse, os, compile_toutes_les_fonctions);
     }
 
     // Fonction de test.
-#ifndef COMPILE_TOUTES_LES_FONCTIONS
-    os << "global main\n";
-    os << "main:\n";
-    assembleuse.call(AssembleuseASM::Fonction{"principale", false});
-    assembleuse.ret();
-#endif
+    if (!compile_toutes_les_fonctions) {
+        os << "global main\n";
+        os << "main:\n";
+        assembleuse.call(AssembleuseASM::Fonction{"principale", false});
+        assembleuse.mov(
+            AssembleuseASM::Opérande(Registre::RAX), AssembleuseASM::Immédiate32(0), 4);
+        assembleuse.ret();
+    }
 }
 
 void GénératriceCodeASM::génère_code_pour_fonction(AtomeFonction const *fonction,
                                                    AssembleuseASM &assembleuse,
-                                                   Enchaineuse &os)
+                                                   Enchaineuse &os,
+                                                   bool compile_toutes_les_fonctions)
 {
     fonction->numérote_instructions();
 
-#ifdef COMPILE_TOUTES_LES_FONCTIONS
-    if (fonction->nom == "principale") {
+    if (compile_toutes_les_fonctions && fonction->nom == "principale") {
         os << "__principale:\n";
     }
     else {
         os << fonction->nom << ":\n";
     }
-#else
-    os << fonction->nom << ":\n";
-#endif
+
     définis_fonction_courante(fonction);
 
     /* Décale de 8 car l'adresse de l'instruction de retour se trouve à RSP. */
@@ -4591,11 +4592,14 @@ std::optional<ErreurCoulisse> CoulisseASM::crée_fichier_objet_impl(
 
     auto &repr_inter_programme = *args.ri_programme;
     auto &typeuse = args.espace->typeuse;
+    auto &compilatrice = args.compilatrice;
+    auto const compile_toutes_les_fonctions =
+        !compilatrice->arguments.débogage_ne_compile_que_nécessaire;
 
     // génère_code_début_fichier(enchaineuse, compilatrice.racine_kuri);
 
     auto génératrice = GénératriceCodeASM{typeuse};
-    génératrice.génère_code(repr_inter_programme, enchaineuse);
+    génératrice.génère_code(repr_inter_programme, enchaineuse, compile_toutes_les_fonctions);
 
     std::ofstream of;
     of.open("/tmp/compilation_kuri_asm.asm");
@@ -4614,42 +4618,48 @@ std::optional<ErreurCoulisse> CoulisseASM::crée_fichier_objet_impl(
 
 std::optional<ErreurCoulisse> CoulisseASM::crée_exécutable_impl(const ArgsLiaisonObjets &args)
 {
-#ifdef COMPILE_TOUTES_LES_FONCTIONS
-    auto &compilatrice = *args.compilatrice;
     auto &espace = *args.espace;
+    auto &compilatrice = *args.compilatrice;
+    auto const compile_toutes_les_fonctions =
+        !compilatrice.arguments.débogage_ne_compile_que_nécessaire;
 
-    kuri::tablet<kuri::chaine_statique, 16> fichiers_objet;
-    auto fichier_point_d_entrée_c = compilatrice.racine_kuri / "fichiers/point_d_entree.c";
-    fichiers_objet.ajoute(fichier_point_d_entrée_c);
+    if (compile_toutes_les_fonctions) {
+        kuri::tablet<kuri::chaine_statique, 16> fichiers_objet;
+        auto fichier_point_d_entrée_c = compilatrice.racine_kuri / "fichiers/point_d_entree.c";
+        fichiers_objet.ajoute(fichier_point_d_entrée_c);
 
-    fichiers_objet.ajoute("/tmp/compilation_kuri_asm.o");
+        fichiers_objet.ajoute("/tmp/compilation_kuri_asm.o");
 
-    auto nom_sortie = nom_sortie_résultat_final(espace.options);
-    auto commande = commande_pour_liaison(
-        espace.options, fichiers_objet, m_bibliothèques, nom_sortie, false);
-    auto err_commande = exécute_commande_externe_erreur(commande,
-                                                        args.compilatrice->arguments.verbeux);
-    if (err_commande.has_value()) {
-        auto message = enchaine("Impossible de lier le compilat. Le lieur a retourné :\n\n",
-                                err_commande.value().message);
-        return ErreurCoulisse{message};
+        auto nom_sortie = nom_sortie_résultat_final(espace.options);
+        auto commande = commande_pour_liaison(
+            espace.options, fichiers_objet, m_bibliothèques, nom_sortie, false);
+        auto err_commande = exécute_commande_externe_erreur(commande,
+                                                            args.compilatrice->arguments.verbeux);
+        if (err_commande.has_value()) {
+            auto message = enchaine("Impossible de lier le compilat. Le lieur a retourné :\n\n",
+                                    err_commande.value().message);
+            return ErreurCoulisse{message};
+        }
     }
-#else
-    auto commande = "gcc -ggdb -lc -o a.out /tmp/compilation_kuri_asm.o";
-    if (system(commande) != 0) {
-        return ErreurCoulisse{"Impossible de lier le fichier objet."};
+    else {
+        auto commande = "gcc -ggdb -lc -o a.out /tmp/compilation_kuri_asm.o";
+        if (system(commande) != 0) {
+            return ErreurCoulisse{"Impossible de lier le fichier objet."};
+        }
     }
-#endif
 
-#ifdef COMPILE_TOUTES_LES_FONCTIONS
-    auto nom_exécutable = enchaine("./", nom_sortie_résultat_final(espace.options), '\0');
+    auto résultat_exécution = 0;
+    if (compile_toutes_les_fonctions) {
+        auto nom_exécutable = enchaine("./", nom_sortie_résultat_final(espace.options), '\0');
 
-    info() << "Exécution de la commande " << nom_exécutable;
+        info() << "Exécution de la commande " << nom_exécutable;
 
-    auto résultat_exécution = system(nom_exécutable.pointeur());
-#else
-    auto résultat_exécution = system("./a.out");
-#endif
+        résultat_exécution = system(nom_exécutable.pointeur());
+    }
+    else {
+        résultat_exécution = system("./a.out");
+    }
+
     dbg() << "=================================================";
     dbg() << "Le programme a retourné :";
 #ifndef _MSC_VER
