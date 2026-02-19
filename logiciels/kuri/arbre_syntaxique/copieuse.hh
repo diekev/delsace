@@ -39,7 +39,8 @@ struct Copieuse {
   private:
     NoeudExpression *trouve_copie(const NoeudExpression *racine);
 
-    void copie_rubriques_de_bases_et_insère(const NoeudExpression *racine, NoeudExpression *nracine);
+    void copie_rubriques_de_bases_et_insère(const NoeudExpression *racine,
+                                            NoeudExpression *nracine);
 };
 
 NoeudExpression *copie_noeud(AssembleuseArbre *assem,
