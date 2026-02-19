@@ -75,6 +75,9 @@ struct ArgumentsCompilatrice {
     bool importe_kuri = true;
     bool compile_en_mode_parallèle = false;
     bool verbeux = false;
+    bool valide_llvm = false;
+    bool parallélise_llvm = false;
+    bool débogage_ne_compile_que_nécessaire = false;
     FormatRapportProfilage format_rapport_profilage = FormatRapportProfilage::BRENDAN_GREGG;
 
     TypeCoulisse coulisse = TypeCoulisse::C;

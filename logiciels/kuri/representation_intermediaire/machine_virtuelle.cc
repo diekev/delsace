@@ -612,6 +612,29 @@ bool MachineVirtuelle::appel_fonction_interne(AtomeFonction *ptr_fonction,
                                               int taille_argument,
                                               FrameAppel *&frame)
 {
+    /* Si nous initialisation un OptionsDeCompilation, hérite des valeurs des options de l'espace
+     * parent. À FAIRE : meilleure détection du tyoe OptionsDeCompilation */
+    if (ptr_fonction->decl &&
+        ptr_fonction->decl->possède_drapeau(DrapeauxNoeudFonction::EST_INITIALISATION_TYPE)) {
+        auto entête = ptr_fonction->decl->comme_entête_fonction();
+        auto type_initialisé = entête->type_initialisé();
+
+        if (type_initialisé->est_type_structure()) {
+            auto struct_initialisée = type_initialisé->comme_type_structure();
+            if (struct_initialisée->ident == ID::OptionsDeCompilation) {
+                if (struct_initialisée->taille_octet != sizeof(OptionsDeCompilation)) {
+                    rapporte_erreur_exécution("erreur interne : initialisation de "
+                                              "OptionsDeCompilation avec des tailles différentes");
+                    return false;
+                }
+
+                auto ptr = dépile<OptionsDeCompilation *>();
+                *ptr = m_métaprogramme->unité->espace->options;
+                return true;
+            }
+        }
+    }
+
     // puisque les arguments utilisent des instructions d'allocations retire la taille des
     // arguments du pointeur de la pile pour ne pas que les allocations ne l'augmente
     décrémente_pointeur_de_pile(taille_argument);
