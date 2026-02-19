@@ -214,7 +214,7 @@ static kuri::chaine_statique donne_compilateur_c(bool utilise_clang)
 #ifdef _MSC_VER
     return "cl";
 #else
-#    ifdef AVEC_LLVM
+#    ifdef AVEC_COULISSE_LLVM
     if (utilise_clang) {
         return COMPILATEUR_CXX_CLANG;
     }
@@ -230,7 +230,7 @@ static kuri::chaine_statique donne_compilateur_cpp(bool utilise_clang)
 #ifdef _MSC_VER
     return "cl";
 #else
-#    ifdef AVEC_LLVM
+#    ifdef AVEC_COULISSE_LLVM
     if (utilise_clang) {
         return COMPILATEUR_CXX_CLANG;
     }
