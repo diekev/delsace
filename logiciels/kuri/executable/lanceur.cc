@@ -235,6 +235,9 @@ static ActionParsageArgument gère_argument_valide_llvm(ParseuseArguments & /*pa
 static ActionParsageArgument gère_argument_parallélise_llvm(ParseuseArguments & /*parseuse*/,
                                                             ArgumentsCompilatrice &résultat);
 
+static ActionParsageArgument gère_argument_débogage_ne_compile_que_nécessaire(ParseuseArguments & /*parseuse*/,
+                                                                              ArgumentsCompilatrice &résultat);
+
 static DescriptionArgumentCompilation descriptions_arguments[] = {
     {"--aide", "-a", "--aide, -a", "Imprime cette aide", gère_argument_aide},
     {"--", "", "", "Débute la liste des arguments pour les métaprogrammes", nullptr},
@@ -326,6 +329,13 @@ static DescriptionArgumentCompilation descriptions_arguments[] = {
      "",
      "Compile le code LLVM en parallèle",
      gère_argument_parallélise_llvm},
+    {"--débogage-ne-compile-que-nécessaire",
+     "",
+     "",
+     "Cette argument ne doit être utilisé que pour le développement de coulisses. Il permet "
+     "de ne compiler que ce qui atteignable depuis la fonction principale (sans les "
+     "initialisations des globales ou du lors-exécution.",
+     gère_argument_débogage_ne_compile_que_nécessaire},
 };
 
 static std::optional<DescriptionArgumentCompilation> donne_description_pour_arg(
@@ -528,6 +538,13 @@ static ActionParsageArgument gère_argument_parallélise_llvm(ParseuseArguments 
                                                        ArgumentsCompilatrice &résultat)
 {
     résultat.parallélise_llvm = true;
+    return ActionParsageArgument::CONTINUE;
+}
+
+static ActionParsageArgument gère_argument_débogage_ne_compile_que_nécessaire(ParseuseArguments & /*parseuse*/,
+                                                                              ArgumentsCompilatrice &résultat)
+{
+    résultat.débogage_ne_compile_que_nécessaire = true;
     return ActionParsageArgument::CONTINUE;
 }
 
