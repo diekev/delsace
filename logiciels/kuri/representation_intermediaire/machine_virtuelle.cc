@@ -611,9 +611,10 @@ bool MachineVirtuelle::appel_fonction_interne(AtomeFonction *ptr_fonction,
                                               int taille_argument,
                                               FrameAppel *&frame)
 {
-    /* Si nous initialisation un OptionsDeCompilation, hérite des valeurs des options de l'espace parent.
-     * À FAIRE : meilleure détection du tyoe OptionsDeCompilation */
-    if (ptr_fonction->decl && ptr_fonction->decl->possède_drapeau(DrapeauxNoeudFonction::EST_INITIALISATION_TYPE)) {
+    /* Si nous initialisation un OptionsDeCompilation, hérite des valeurs des options de l'espace
+     * parent. À FAIRE : meilleure détection du tyoe OptionsDeCompilation */
+    if (ptr_fonction->decl &&
+        ptr_fonction->decl->possède_drapeau(DrapeauxNoeudFonction::EST_INITIALISATION_TYPE)) {
         auto entête = ptr_fonction->decl->comme_entête_fonction();
         auto type_initialisé = entête->type_initialisé();
 
@@ -621,7 +622,8 @@ bool MachineVirtuelle::appel_fonction_interne(AtomeFonction *ptr_fonction,
             auto struct_initialisée = type_initialisé->comme_type_structure();
             if (struct_initialisée->ident == ID::OptionsDeCompilation) {
                 if (struct_initialisée->taille_octet != sizeof(OptionsDeCompilation)) {
-                    rapporte_erreur_exécution("erreur interne : initialisation de OptionsDeCompilation avec des tailles différentes");
+                    rapporte_erreur_exécution("erreur interne : initialisation de "
+                                              "OptionsDeCompilation avec des tailles différentes");
                     return false;
                 }
 

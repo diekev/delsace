@@ -4163,7 +4163,6 @@ static kuri::tableau<AtomeFonction *> donne_fonctions_à_compiler(
         kuri::pile<AtomeFonction *> fonctions_à_visiter;
         kuri::ensemble<AtomeFonction *> fonctions_visitées;
 
-
         fonctions_à_visiter.empile(fonction_principale);
 
         while (!fonctions_à_visiter.est_vide()) {
@@ -4261,7 +4260,8 @@ void GénératriceCodeASM::génère_code(ProgrammeRepreInter const &repr_inter_p
 
     /* Prodéclaration des fonctions. */
     auto fonctions = repr_inter_programme.donne_fonctions();
-    auto fonctions_à_compiler = donne_fonctions_à_compiler(fonctions, compile_toutes_les_fonctions);
+    auto fonctions_à_compiler = donne_fonctions_à_compiler(fonctions,
+                                                           compile_toutes_les_fonctions);
 
     POUR (fonctions) {
         if (it->est_externe) {
@@ -4381,7 +4381,8 @@ void GénératriceCodeASM::génère_code(ProgrammeRepreInter const &repr_inter_p
         os << "global main\n";
         os << "main:\n";
         assembleuse.call(AssembleuseASM::Fonction{"principale", false});
-        assembleuse.mov(AssembleuseASM::Opérande(Registre::RAX), AssembleuseASM::Immédiate32(0), 4);
+        assembleuse.mov(
+            AssembleuseASM::Opérande(Registre::RAX), AssembleuseASM::Immédiate32(0), 4);
         assembleuse.ret();
     }
 }
@@ -4592,7 +4593,8 @@ std::optional<ErreurCoulisse> CoulisseASM::crée_fichier_objet_impl(
     auto &repr_inter_programme = *args.ri_programme;
     auto &typeuse = args.espace->typeuse;
     auto &compilatrice = args.compilatrice;
-    auto const compile_toutes_les_fonctions = !compilatrice->arguments.débogage_ne_compile_que_nécessaire;
+    auto const compile_toutes_les_fonctions =
+        !compilatrice->arguments.débogage_ne_compile_que_nécessaire;
 
     // génère_code_début_fichier(enchaineuse, compilatrice.racine_kuri);
 
@@ -4618,7 +4620,8 @@ std::optional<ErreurCoulisse> CoulisseASM::crée_exécutable_impl(const ArgsLiai
 {
     auto &espace = *args.espace;
     auto &compilatrice = *args.compilatrice;
-    auto const compile_toutes_les_fonctions = !compilatrice.arguments.débogage_ne_compile_que_nécessaire;
+    auto const compile_toutes_les_fonctions =
+        !compilatrice.arguments.débogage_ne_compile_que_nécessaire;
 
     if (compile_toutes_les_fonctions) {
         kuri::tablet<kuri::chaine_statique, 16> fichiers_objet;
@@ -4656,7 +4659,6 @@ std::optional<ErreurCoulisse> CoulisseASM::crée_exécutable_impl(const ArgsLiai
     else {
         résultat_exécution = system("./a.out");
     }
-
 
     dbg() << "=================================================";
     dbg() << "Le programme a retourné :";

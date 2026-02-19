@@ -235,8 +235,8 @@ static ActionParsageArgument gère_argument_valide_llvm(ParseuseArguments & /*pa
 static ActionParsageArgument gère_argument_parallélise_llvm(ParseuseArguments & /*parseuse*/,
                                                             ArgumentsCompilatrice &résultat);
 
-static ActionParsageArgument gère_argument_débogage_ne_compile_que_nécessaire(ParseuseArguments & /*parseuse*/,
-                                                                              ArgumentsCompilatrice &résultat);
+static ActionParsageArgument gère_argument_débogage_ne_compile_que_nécessaire(
+    ParseuseArguments & /*parseuse*/, ArgumentsCompilatrice &résultat);
 
 static DescriptionArgumentCompilation descriptions_arguments[] = {
     {"--aide", "-a", "--aide, -a", "Imprime cette aide", gère_argument_aide},
@@ -319,11 +319,7 @@ static DescriptionArgumentCompilation descriptions_arguments[] = {
      "-v",
      "Imprime plus de détail quant au processus de compilation.",
      gère_argument_verbeux},
-    {"--valide-llvm",
-     "",
-     "",
-     "Valide le code LLVM généré",
-     gère_argument_valide_llvm},
+    {"--valide-llvm", "", "", "Valide le code LLVM généré", gère_argument_valide_llvm},
     {"--parallélise-llvm",
      "",
      "",
@@ -528,21 +524,21 @@ static ActionParsageArgument gère_argument_verbeux(ParseuseArguments & /*parseu
 }
 
 static ActionParsageArgument gère_argument_valide_llvm(ParseuseArguments & /*parseuse*/,
-                                                   ArgumentsCompilatrice &résultat)
+                                                       ArgumentsCompilatrice &résultat)
 {
     résultat.valide_llvm = true;
     return ActionParsageArgument::CONTINUE;
 }
 
 static ActionParsageArgument gère_argument_parallélise_llvm(ParseuseArguments & /*parseuse*/,
-                                                       ArgumentsCompilatrice &résultat)
+                                                            ArgumentsCompilatrice &résultat)
 {
     résultat.parallélise_llvm = true;
     return ActionParsageArgument::CONTINUE;
 }
 
-static ActionParsageArgument gère_argument_débogage_ne_compile_que_nécessaire(ParseuseArguments & /*parseuse*/,
-                                                                              ArgumentsCompilatrice &résultat)
+static ActionParsageArgument gère_argument_débogage_ne_compile_que_nécessaire(
+    ParseuseArguments & /*parseuse*/, ArgumentsCompilatrice &résultat)
 {
     résultat.débogage_ne_compile_que_nécessaire = true;
     return ActionParsageArgument::CONTINUE;
