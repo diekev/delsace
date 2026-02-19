@@ -23,14 +23,14 @@
 #include <llvm/IR/Module.h>
 #include <llvm/InitializePasses.h>
 #include <llvm/MC/TargetRegistry.h>
+#include <llvm/Passes/PassBuilder.h>
 #include <llvm/Support/FileSystem.h>
-#include <llvm/Support/Host.h>
 #include <llvm/Support/ManagedStatic.h>
 #include <llvm/Support/TargetSelect.h>
 #include <llvm/Target/TargetMachine.h>
 #include <llvm/Target/TargetOptions.h>
+#include <llvm/TargetParser/Host.h>
 #include <llvm/Transforms/IPO.h>
-#include <llvm/Transforms/IPO/PassManagerBuilder.h>
 #include <llvm/Transforms/InstCombine/InstCombine.h>
 #include <llvm/Transforms/Instrumentation/AddressSanitizer.h>
 #include <llvm/Transforms/Scalar.h>
@@ -497,6 +497,7 @@ struct InfoDébogageLLVM {
     EspaceDeTravail *espace = nullptr;
     llvm::DICompileUnit *unit = nullptr;
     llvm::DIFile *fichier_racine = nullptr;
+    llvm::DIFile *fichier_chaines_ajoutées = nullptr;
     llvm::DIBuilder *dibuilder = nullptr;
     kuri::table_hachage<Type const *, llvm::DIType *> table_types{"Table types DWARF"};
     kuri::table_hachage<Fichier const *, llvm::DIFile *> table_fichiers{"Table fichiers DWARF"};
@@ -959,9 +960,23 @@ struct InfoDébogageLLVM {
             return fichier_dwarf;
         }
 
-        auto nom_fichier = vers_string_ref(fichier_kuri->donne_nom_avec_extension());
-        auto nom_dossier = vers_string_ref(fichier_kuri->module->chemin());
-        fichier_dwarf = dibuilder->createFile(nom_fichier, nom_dossier);
+        if (fichier_kuri->source == SourceFichier::CHAINE_AJOUTÉE) {
+            if (fichier_chaines_ajoutées) {
+                fichier_dwarf = fichier_chaines_ajoutées;
+            }
+            else {
+                auto nom_fichier = vers_string_ref(".chaines_ajoutées");
+                auto nom_dossier = vers_string_ref(".");  // À FAIRE : dossier
+                fichier_dwarf = dibuilder->createFile(nom_fichier, nom_dossier);
+                fichier_chaines_ajoutées = fichier_dwarf;
+            }
+        }
+        else {
+            auto nom_fichier = vers_string_ref(fichier_kuri->donne_nom_avec_extension());
+            auto nom_dossier = vers_string_ref(fichier_kuri->module->chemin());
+            fichier_dwarf = dibuilder->createFile(nom_fichier, nom_dossier);
+        }
+
         table_fichiers.insère(fichier_kuri, fichier_dwarf);
         return fichier_dwarf;
     }
@@ -973,8 +988,9 @@ struct InfoDébogageLLVM {
 
         /* Certains types de bases n'ont pas de lexèmes. */
         if (site != nullptr && site->lexème != nullptr) {
+            auto fichier_kuri = espace->fichier(site->lexème->fichier);
             résultat.file = donne_fichier(site);
-            résultat.ligne = uint32_t(site->lexème->ligne + 1);
+            résultat.ligne = uint32_t(site->lexème->ligne + fichier_kuri->décalage_fichier + 1);
             résultat.colonne = uint32_t(site->lexème->colonne + 1);
         }
 
@@ -1126,7 +1142,7 @@ llvm::Type *GénératriceCodeLLVM::convertis_type_llvm(Type const *type)
             /* Convertis vers void(*)(), comme en C. */
             auto type_sortie_llvm = llvm::Type::getVoidTy(m_contexte_llvm);
             auto type_fonction = llvm::FunctionType::get(type_sortie_llvm, false);
-            return type_fonction->getPointerTo();
+            return llvm::PointerType::get(type_fonction, 0);
         }
         case GenreNoeud::FONCTION:
         {
@@ -1184,7 +1200,7 @@ llvm::Type *GénératriceCodeLLVM::convertis_type_llvm(Type const *type)
         case GenreNoeud::TYPE_DE_DONNÉES:
         {
             auto type_i8 = convertis_type_llvm(m_espace.typeuse.type_z8);
-            type_llvm = type_i8->getPointerTo();
+            type_llvm = llvm::PointerType::get(type_i8, 0);
             break;
         }
         case GenreNoeud::RÉEL:
@@ -1956,8 +1972,37 @@ void GénératriceCodeLLVM::génère_code_pour_instruction(const Instruction *in
         case GenreInstruction::ACCÈS_INDICE:
         {
             auto inst_accès = inst->comme_accès_indice();
-            auto valeur_accédée = génère_code_pour_atome(inst_accès->accédé,
-                                                         UtilisationAtome::POUR_LECTURE);
+
+            llvm::Value *valeur_accédée;
+            if (inst_accès->accédé->genre_atome == Atome::Genre::GLOBALE &&
+                est_globale_pour_tableau_données_constantes(inst_accès->accédé->comme_globale())) {
+                static constexpr auto valeur_nulle = uint64_t(-1);
+                auto décalage = table_globales_dc.valeur_ou(inst_accès->accédé->comme_globale(),
+                                                            valeur_nulle);
+                assert(décalage != valeur_nulle);
+                assert(m_données_constantes != nullptr);
+
+                auto indice = llvm::ConstantInt::get(llvm::Type::getInt64Ty(m_contexte_llvm),
+                                                     décalage);
+
+                auto index_array = llvm::SmallVector<llvm::Value *>();
+                auto type_z32 = llvm::Type::getInt32Ty(m_contexte_llvm);
+                index_array.push_back(llvm::ConstantInt::get(type_z32, 0));
+                index_array.push_back(indice);
+
+                auto indexage = llvm::ConstantExpr::getInBoundsGetElementPtr(
+                    m_type_données_constantes,
+                    llvm::cast<llvm::Constant>(m_données_constantes),
+                    index_array);
+
+                auto type_llvm = convertis_type_llvm(inst_accès->type);
+                valeur_accédée = llvm::ConstantExpr::getBitCast(indexage, type_llvm);
+            }
+            else {
+                valeur_accédée = génère_code_pour_atome(inst_accès->accédé,
+                                                        UtilisationAtome::POUR_LECTURE);
+            }
+
             auto valeur_indice = génère_code_pour_atome(inst_accès->indice,
                                                         UtilisationAtome::POUR_LECTURE);
 
@@ -2109,7 +2154,7 @@ void GénératriceCodeLLVM::génère_code_pour_instruction(const Instruction *in
                 llvm::Type::getVoidTy(m_module->getContext()), false);
             auto inst_asm = llvm::InlineAsm::get(
                 type_fonction, chaine_asm, contraintes, true, false, llvm::InlineAsm::AD_ATT);
-            llvm::ArrayRef<llvm::Value *> args = llvm::None;
+            llvm::ArrayRef<llvm::Value *> args;
             auto appel = m_builder.CreateCall(inst_asm, args);
             appel->addFnAttr(llvm::Attribute::NoUnwind);
             break;
@@ -3282,7 +3327,7 @@ void GénératriceCodeLLVM::génère_code_pour_fonction(AtomeFonction const *ato
 
 void GénératriceCodeLLVM::génère_code_pour_est_adresse_données_constante()
 {
-    auto atome_fonc = données_module.intrinsèqe_est_adresse_données_constantes;
+    auto atome_fonc = données_module.intrinsèque_est_adresse_données_constantes;
     if (atome_fonc == nullptr) {
         return;
     }
@@ -3377,7 +3422,7 @@ void GénératriceCodeLLVM::génère_code_pour_constructeur_global(const AtomeFo
     auto espace_adressage = m_module->getDataLayout().getProgramAddressSpace();
     auto type_void = llvm::Type::getVoidTy(m_contexte_llvm);
     auto type_i8 = llvm::Type::getInt8Ty(m_contexte_llvm);
-    auto type_void_ptr = type_i8->getPointerTo(espace_adressage);
+    auto type_void_ptr = llvm::PointerType::get(type_i8, espace_adressage);
     auto type_int32 = llvm::Type::getInt32Ty(m_contexte_llvm);
 
     /* Le type de la fonction de constrution est void()*. */
@@ -3455,19 +3500,19 @@ bool initialise_llvm()
     auto &registre = *llvm::PassRegistry::getPassRegistry();
     llvm::initializeCore(registre);
     llvm::initializeScalarOpts(registre);
-    llvm::initializeObjCARCOpts(registre);
+    // llvm::initializeObjCARCOpts(registre);
     llvm::initializeVectorization(registre);
     llvm::initializeIPO(registre);
     llvm::initializeAnalysis(registre);
     llvm::initializeTransformUtils(registre);
     llvm::initializeInstCombine(registre);
-    llvm::initializeInstrumentation(registre);
+    // llvm::initializeInstrumentation(registre);
     llvm::initializeTarget(registre);
 
     /* Pour les passes de transformation de code, seuls celles d'IR à IR sont
      * supportées. */
-    llvm::initializeCodeGenPreparePass(registre);
-    llvm::initializeAtomicExpandPass(registre);
+    // llvm::initializeCodeGenPreparePass(registre);
+    // llvm::initializeAtomicExpandPass(registre);
     llvm::initializeWinEHPreparePass(registre);
     llvm::initializeDwarfEHPrepareLegacyPassPass(registre);
     llvm::initializeSjLjEHPreparePass(registre);
@@ -3573,7 +3618,7 @@ std::optional<ErreurCoulisse> CoulisseLLVM::génère_code_impl(const ArgsGénér
     auto CPU = "generic";
     auto feature = "";
     auto options_cible = llvm::TargetOptions{};
-    auto RM = llvm::Optional<llvm::Reloc::Model>(llvm::Reloc::PIC_);
+    auto RM = std::optional<llvm::Reloc::Model>(llvm::Reloc::PIC_);
     m_machine_cible = cible->createTargetMachine(triplet_cible, CPU, feature, options_cible, RM);
 
     crée_modules(repr_inter, triplet_cible, espace.options);
@@ -3674,19 +3719,19 @@ std::optional<ErreurCoulisse> CoulisseLLVM::crée_exécutable_impl(const ArgsLia
  * Ajoute les passes d'optimisation au manageur en fonction du niveau
  * d'optimisation.
  */
-static void ajoute_passes_pour_optimisation(llvm::PassManagerBuilder &builder,
-                                            int niveau_optimisation,
-                                            int niveau_taille)
-{
-    builder.OptLevel = uint32_t(niveau_optimisation);
-    builder.SizeLevel = uint32_t(niveau_taille);
-    builder.DisableUnrollLoops = (niveau_optimisation == 0);
+// static void ajoute_passes_pour_optimisation(llvm::legacy::PassManagerBuilder &builder,
+//                                             int niveau_optimisation,
+//                                             int niveau_taille)
+// {
+//     builder.OptLevel = uint32_t(niveau_optimisation);
+//     builder.SizeLevel = uint32_t(niveau_taille);
+//     builder.DisableUnrollLoops = (niveau_optimisation == 0);
 
-    /* Pour plus d'informations sur les vectoriseurs, suivre le lien :
-     * http://llvm.org/docs/Vectorizers.html */
-    builder.LoopVectorize = (niveau_optimisation > 1 && niveau_taille < 2);
-    builder.SLPVectorize = (niveau_optimisation > 1 && niveau_taille < 2);
-}
+//     /* Pour plus d'informations sur les vectoriseurs, suivre le lien :
+//      * http://llvm.org/docs/Vectorizers.html */
+//     builder.LoopVectorize = (niveau_optimisation > 1 && niveau_taille < 2);
+//     builder.SLPVectorize = (niveau_optimisation > 1 && niveau_taille < 2);
+// }
 
 #if LLVM_VERSION_MAJOR == 14
 static void ajoute_passes_pour_asan(const llvm::PassManagerBuilder & /* builder */,
@@ -3701,31 +3746,31 @@ static void crée_passes(llvm::legacy::FunctionPassManager &fpm,
                         llvm::legacy::PassManager &pm,
                         OptionsDeCompilation const &options)
 {
-    llvm::PassManagerBuilder builder;
+    llvm::PassBuilder builder;
 
-    switch (options.niveau_optimisation) {
-        case NiveauOptimisation::AUCUN:
-            builder.DisableUnrollLoops = true;
-            break;
-        case NiveauOptimisation::O0:
-            ajoute_passes_pour_optimisation(builder, 0, 0);
-            break;
-        case NiveauOptimisation::O1:
-            ajoute_passes_pour_optimisation(builder, 1, 0);
-            break;
-        case NiveauOptimisation::O2:
-            ajoute_passes_pour_optimisation(builder, 2, 0);
-            break;
-        case NiveauOptimisation::Os:
-            ajoute_passes_pour_optimisation(builder, 2, 1);
-            break;
-        case NiveauOptimisation::Oz:
-            ajoute_passes_pour_optimisation(builder, 2, 2);
-            break;
-        case NiveauOptimisation::O3:
-            ajoute_passes_pour_optimisation(builder, 3, 0);
-            break;
-    }
+    // switch (options.niveau_optimisation) {
+    //     case NiveauOptimisation::AUCUN:
+    //         builder.DisableUnrollLoops = true;
+    //         break;
+    //     case NiveauOptimisation::O0:
+    //         ajoute_passes_pour_optimisation(builder, 0, 0);
+    //         break;
+    //     case NiveauOptimisation::O1:
+    //         ajoute_passes_pour_optimisation(builder, 1, 0);
+    //         break;
+    //     case NiveauOptimisation::O2:
+    //         ajoute_passes_pour_optimisation(builder, 2, 0);
+    //         break;
+    //     case NiveauOptimisation::Os:
+    //         ajoute_passes_pour_optimisation(builder, 2, 1);
+    //         break;
+    //     case NiveauOptimisation::Oz:
+    //         ajoute_passes_pour_optimisation(builder, 2, 2);
+    //         break;
+    //     case NiveauOptimisation::O3:
+    //         ajoute_passes_pour_optimisation(builder, 3, 0);
+    //         break;
+    // }
 
 #if LLVM_VERSION_MAJOR == 14
     if (options.utilise_asan) {
@@ -3735,8 +3780,8 @@ static void crée_passes(llvm::legacy::FunctionPassManager &fpm,
     }
 #endif
 
-    builder.populateModulePassManager(pm);
-    builder.populateFunctionPassManager(fpm);
+    // builder.populateModulePassManager(pm);
+    // builder.populateFunctionPassManager(fpm);
 }
 
 void CoulisseLLVM::crée_fichier_objet(DonnéesModule *module, OptionsDeCompilation const &options)
@@ -3764,7 +3809,7 @@ void CoulisseLLVM::crée_fichier_objet(DonnéesModule *module, OptionsDeCompilat
     }
     passes_pour_fonctions.doFinalization();
 
-    auto type_fichier = llvm::CGFT_ObjectFile;
+    auto type_fichier = llvm::CodeGenFileType::ObjectFile;
 
     if (m_machine_cible->addPassesToEmitFile(passes_pour_modules, dest, nullptr, type_fichier)) {
         module->erreur_fichier_objet = "La machine cible ne peut pas émettre ce type de fichier";
@@ -3794,21 +3839,29 @@ void CoulisseLLVM::crée_modules(const ProgrammeRepreInter &repr_inter,
     }
     module->définis_globales(repr_inter.donne_globales());
 
+    auto fonctions = repr_inter.donne_fonctions();
+
     if (!options.parallélise_llvm) {
-        module->définis_fonctions(repr_inter.donne_fonctions());
+        for (int i = 0; i < fonctions.taille(); i++) {
+            auto fonction = fonctions[i];
+            if (fonction->est_intrinsèque(GenreIntrinsèque::EST_ADRESSE_DONNÉES_CONSTANTES)) {
+                module->intrinsèque_est_adresse_données_constantes = fonction;
+                break;
+            }
+        }
+        module->définis_fonctions(fonctions);
     }
     else {
         /* Crée des modules pour les fonctions. */
         constexpr int nombre_instructions_par_module = 20000;
         int nombre_instructions = 0;
         int index_première_fonction = 0;
-        auto fonctions = repr_inter.donne_fonctions();
         for (int i = 0; i < fonctions.taille(); i++) {
             auto fonction = fonctions[i];
             nombre_instructions += fonction->nombre_d_instructions_avec_entrées_sorties();
 
             if (fonction->est_intrinsèque(GenreIntrinsèque::EST_ADRESSE_DONNÉES_CONSTANTES)) {
-                module_globales->intrinsèqe_est_adresse_données_constantes = fonction;
+                module_globales->intrinsèque_est_adresse_données_constantes = fonction;
             }
 
             if (nombre_instructions < nombre_instructions_par_module &&
