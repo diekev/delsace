@@ -1,0 +1,20 @@
+principale :: fonc ()
+{
+    a := passe_paramètres_entiers(3, 7, 11);
+    saufsi a == 21 {
+        exit(1);
+    }
+
+    b := 4;
+    c := 8;
+    d := 12;
+    e := passe_paramètres_entiers(b, c, d);
+    saufsi e == 24 {
+        exit(1);
+    }
+}
+
+passe_paramètres_entiers :: fonc (a: z32, b: z32, c: z32) -> z32
+{
+    retourne a + b + c;
+}
