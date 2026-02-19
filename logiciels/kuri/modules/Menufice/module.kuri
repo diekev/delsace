@@ -406,7 +406,7 @@ dispose_élément_menu :: fonc (fonte: *Fonte, texte: ChaineUTF32, texte_pour_ra
                             rembourrage = RembourrageDifforme(rembourrage_horizontal comme r32, 8.0),
                             séparation_enfant = rembourrage_horizontal comme r32);
 
-        si est_activé && est_survolée() {
+        si est_activé && (est_survolée() || (est_sous_menu && menu.sous_menu_ouvert == est_sous_menu)) {
             définis_arrière_plan(params.arrière_plan_menu_survolé);
         }
 
