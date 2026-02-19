@@ -23,9 +23,9 @@ using Type = NoeudDéclarationType;
     ENUMERE_TYPE_TRANSFORMATION_EX(CONSTRUIS_EINI)                                                \
     ENUMERE_TYPE_TRANSFORMATION_EX(EXTRAIT_EINI)                                                  \
     ENUMERE_TYPE_TRANSFORMATION_EX(CONSTRUIS_TRANCHE_OCTET)                                       \
-    ENUMERE_TYPE_TRANSFORMATION_EX(CONVERTIS_TABLEAU_FIXE_VERS_TRANCHE)                            \
-    ENUMERE_TYPE_TRANSFORMATION_EX(CONVERTIS_TABLEAU_DYNAMIQUE_VERS_TRANCHE)                       \
-    ENUMERE_TYPE_TRANSFORMATION_EX(PRENDS_RÉFÉRENCE)                                               \
+    ENUMERE_TYPE_TRANSFORMATION_EX(CONVERTIS_TABLEAU_FIXE_VERS_TRANCHE)                           \
+    ENUMERE_TYPE_TRANSFORMATION_EX(CONVERTIS_TABLEAU_DYNAMIQUE_VERS_TRANCHE)                      \
+    ENUMERE_TYPE_TRANSFORMATION_EX(PRENDS_RÉFÉRENCE)                                              \
     ENUMERE_TYPE_TRANSFORMATION_EX(DÉRÉFERENCE)                                                   \
     ENUMERE_TYPE_TRANSFORMATION_EX(R16_VERS_R32)                                                  \
     ENUMERE_TYPE_TRANSFORMATION_EX(R16_VERS_R64)                                                  \
@@ -33,11 +33,11 @@ using Type = NoeudDéclarationType;
     ENUMERE_TYPE_TRANSFORMATION_EX(R64_VERS_R16)                                                  \
     ENUMERE_TYPE_TRANSFORMATION_EX(AUGMENTE_TAILLE_TYPE)                                          \
     ENUMERE_TYPE_TRANSFORMATION_EX(RÉDUIS_TAILLE_TYPE)                                            \
-    ENUMERE_TYPE_TRANSFORMATION_EX(CONVERTIS_VERS_BASE)                                            \
-    ENUMERE_TYPE_TRANSFORMATION_EX(CONVERTIS_VERS_DÉRIVÉ)                                          \
-    ENUMERE_TYPE_TRANSFORMATION_EX(CONVERTIS_ENTIER_CONSTANT)                                      \
-    ENUMERE_TYPE_TRANSFORMATION_EX(CONVERTIS_VERS_PTR_RIEN)                                        \
-    ENUMERE_TYPE_TRANSFORMATION_EX(CONVERTIS_VERS_TYPE_CIBLE)                                      \
+    ENUMERE_TYPE_TRANSFORMATION_EX(CONVERTIS_VERS_BASE)                                           \
+    ENUMERE_TYPE_TRANSFORMATION_EX(CONVERTIS_VERS_DÉRIVÉ)                                         \
+    ENUMERE_TYPE_TRANSFORMATION_EX(CONVERTIS_ENTIER_CONSTANT)                                     \
+    ENUMERE_TYPE_TRANSFORMATION_EX(CONVERTIS_VERS_PTR_RIEN)                                       \
+    ENUMERE_TYPE_TRANSFORMATION_EX(CONVERTIS_VERS_TYPE_CIBLE)                                     \
     ENUMERE_TYPE_TRANSFORMATION_EX(ENTIER_VERS_RÉEL)                                              \
     ENUMERE_TYPE_TRANSFORMATION_EX(RÉEL_VERS_ENTIER)                                              \
     ENUMERE_TYPE_TRANSFORMATION_EX(ENTIER_VERS_POINTEUR)                                          \
@@ -85,7 +85,7 @@ struct TransformationType {
     }
 
     static TransformationType prends_référence_vers_base(Type const *type_cible_,
-                                                        uint32_t décalage_type_base_)
+                                                         uint32_t décalage_type_base_)
     {
         auto résultat = TransformationType(
             TypeTransformation::PRENDS_RÉFÉRENCE_ET_CONVERTIS_VERS_BASE);
