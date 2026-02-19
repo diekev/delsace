@@ -229,6 +229,12 @@ static ActionParsageArgument gère_argument_mode_parallèle(ParseuseArguments &p
 static ActionParsageArgument gère_argument_verbeux(ParseuseArguments &parseuse,
                                                    ArgumentsCompilatrice &résultat);
 
+static ActionParsageArgument gère_argument_valide_llvm(ParseuseArguments & /*parseuse*/,
+                                                       ArgumentsCompilatrice &résultat);
+
+static ActionParsageArgument gère_argument_parallélise_llvm(ParseuseArguments & /*parseuse*/,
+                                                            ArgumentsCompilatrice &résultat);
+
 static DescriptionArgumentCompilation descriptions_arguments[] = {
     {"--aide", "-a", "--aide, -a", "Imprime cette aide", gère_argument_aide},
     {"--", "", "", "Débute la liste des arguments pour les métaprogrammes", nullptr},
@@ -310,6 +316,16 @@ static DescriptionArgumentCompilation descriptions_arguments[] = {
      "-v",
      "Imprime plus de détail quant au processus de compilation.",
      gère_argument_verbeux},
+    {"--valide-llvm",
+     "",
+     "",
+     "Valide le code LLVM généré",
+     gère_argument_valide_llvm},
+    {"--parallélise-llvm",
+     "",
+     "",
+     "Compile le code LLVM en parallèle",
+     gère_argument_parallélise_llvm},
 };
 
 static std::optional<DescriptionArgumentCompilation> donne_description_pour_arg(
@@ -501,6 +517,20 @@ static ActionParsageArgument gère_argument_verbeux(ParseuseArguments & /*parseu
     return ActionParsageArgument::CONTINUE;
 }
 
+static ActionParsageArgument gère_argument_valide_llvm(ParseuseArguments & /*parseuse*/,
+                                                   ArgumentsCompilatrice &résultat)
+{
+    résultat.valide_llvm = true;
+    return ActionParsageArgument::CONTINUE;
+}
+
+static ActionParsageArgument gère_argument_parallélise_llvm(ParseuseArguments & /*parseuse*/,
+                                                       ArgumentsCompilatrice &résultat)
+{
+    résultat.parallélise_llvm = true;
+    return ActionParsageArgument::CONTINUE;
+}
+
 static ActionParsageArgument gère_argument_coulisse(ParseuseArguments &parseuse,
                                                     ArgumentsCompilatrice &résultat)
 {
@@ -623,6 +653,8 @@ static bool compile_fichier(Compilatrice &compilatrice, kuri::chaine_statique ch
     auto options_espace_défaut = OptionsDeCompilation{};
     options_espace_défaut.utilise_trace_appel = !compilatrice.arguments.sans_traces_d_appel;
     options_espace_défaut.coulisse = compilatrice.arguments.coulisse;
+    options_espace_défaut.parallélise_llvm = compilatrice.arguments.parallélise_llvm;
+    options_espace_défaut.valide_ir_llvm = compilatrice.arguments.valide_llvm;
 
     compilatrice.espace_de_travail_défaut = compilatrice.démarre_un_espace_de_travail(
         options_espace_défaut, "Espace 1", dossier);
