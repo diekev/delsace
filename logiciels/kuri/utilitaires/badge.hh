@@ -26,8 +26,10 @@
 
 template <typename T>
 struct Badge {
-private:
-    Badge() {}
+  private:
+    Badge()
+    {
+    }
 
     friend T;
 };

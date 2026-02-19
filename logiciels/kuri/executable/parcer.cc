@@ -738,7 +738,10 @@ static dls::chaine trouve_nom_anonyme(dls::chaine chn)
 
 using dico_typedefs = dls::dico_desordonne<dls::chaine, kuri::tableau<dls::chaine>>;
 
-static auto determine_nom_anomyme(dls::chaine spelling, dico_typedefs &typedefs, int &nombre_anonyme, bool retourne_vide_si_nommé)
+static auto determine_nom_anomyme(dls::chaine spelling,
+                                  dico_typedefs &typedefs,
+                                  int &nombre_anonyme,
+                                  bool retourne_vide_si_nommé)
 {
     if (spelling != "") {
         auto nom_anonymous = trouve_nom_anonyme(spelling);
@@ -768,7 +771,10 @@ static auto determine_nom_anomyme(dls::chaine spelling, dico_typedefs &typedefs,
     return résultat;
 }
 
-static auto determine_nom_anomyme(CXType const &type, dico_typedefs &typedefs, int &nombre_anonyme, bool retourne_vide_si_nommé)
+static auto determine_nom_anomyme(CXType const &type,
+                                  dico_typedefs &typedefs,
+                                  int &nombre_anonyme,
+                                  bool retourne_vide_si_nommé)
 {
     /* le type peut avoir l'information : typedef struct {} TYPE */
     auto spelling = donne_type_spelling(type);
@@ -785,9 +791,13 @@ static auto determine_nom_anomyme(CXCursor cursor, dico_typedefs &typedefs, int 
     return determine_nom_anomyme(clang_getCursorType(cursor), typedefs, nombre_anonyme, false);
 }
 
-static dls::chaine convertis_type(CXType const &type, dico_typedefs &typedefs, int &nombre_anonyme);
+static dls::chaine convertis_type(CXType const &type,
+                                  dico_typedefs &typedefs,
+                                  int &nombre_anonyme);
 
-static dls::chaine convertis_type_fonction(CXType const &type, dico_typedefs &typedefs, int &nombre_anonyme)
+static dls::chaine convertis_type_fonction(CXType const &type,
+                                           dico_typedefs &typedefs,
+                                           int &nombre_anonyme)
 {
     auto nombre_args = clang_getNumArgTypes(type);
 
@@ -897,7 +907,8 @@ static dls::chaine convertis_type(CXType const &type, dico_typedefs &typedefs, i
         }
         case CXType_IncompleteArray: /* p.e. float [] */
         {
-            flux << "*" << convertis_type(clang_getArrayElementType(type), typedefs, nombre_anonyme);
+            flux << "*"
+                 << convertis_type(clang_getArrayElementType(type), typedefs, nombre_anonyme);
             break;
         }
         case CXType_Auto:
@@ -2736,7 +2747,8 @@ struct Convertisseuse {
                         os << virgule;
                     }
 
-                    os << ") -> " << convertis_type(fonction->type_sortie, typedefs, nombre_anonymes);
+                    os << ") -> "
+                       << convertis_type(fonction->type_sortie, typedefs, nombre_anonymes);
                     os << " #externe lib" << nom_bibliothèque_sûr << ";\n";
                 }
 
@@ -2824,7 +2836,8 @@ struct Convertisseuse {
                         os << virgule;
                     }
 
-                    os << ") -> " << convertis_type(fonction->type_sortie, typedefs, nombre_anonymes);
+                    os << ") -> "
+                       << convertis_type(fonction->type_sortie, typedefs, nombre_anonymes);
                 }
                 else {
                     os << convertis_type(typedef_->type_source, typedefs, nombre_anonymes);
@@ -2838,7 +2851,8 @@ struct Convertisseuse {
                 auto transtypage = static_cast<Transtypage *>(syntaxème);
 
                 imprime_arbre(transtypage->expression, os);
-                os << " comme " << convertis_type(transtypage->type_vers, typedefs, nombre_anonymes);
+                os << " comme "
+                   << convertis_type(transtypage->type_vers, typedefs, nombre_anonymes);
                 break;
             }
             case TypeSyntaxème::EXPRESSION:
@@ -2889,13 +2903,15 @@ struct Convertisseuse {
         if (syntaxème->type_syntaxème == TypeSyntaxème::TYPEDEF) {
             auto typedef_ = static_cast<Typedef *>(syntaxème);
 
-            auto nom_type_défini = convertis_type(typedef_->type_défini, typedefs, nombre_anonymes);
+            auto nom_type_défini = convertis_type(
+                typedef_->type_défini, typedefs, nombre_anonymes);
             if (nom_type_défini == "bool" || nom_type_défini == "r16") {
                 return true;
             }
 
             if (!typedef_->type_fonction) {
-                auto nom_type_source = convertis_type(typedef_->type_source, typedefs, nombre_anonymes);
+                auto nom_type_source = convertis_type(
+                    typedef_->type_source, typedefs, nombre_anonymes);
                 if (nom_type_source == nom_type_défini) {
                     /* Par exemple : typedef struct XYZ { } XYZ; */
                     return true;
@@ -3001,7 +3017,8 @@ struct Convertisseuse {
 
                 POUR (config->rubriques_employées) {
                     if (it.nom == variable->nom && variable->type_c.has_value() &&
-                        convertis_type(variable->type_c.value(), typedefs, nombre_anonymes) == it.type) {
+                        convertis_type(variable->type_c.value(), typedefs, nombre_anonymes) ==
+                            it.type) {
                         variable->est_employée = true;
                         if (it.renomme != "") {
                             variable->nom = it.renomme;
