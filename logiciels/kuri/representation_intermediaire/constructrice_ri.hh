@@ -463,7 +463,8 @@ struct CompilatriceRI {
                            const TransformationType &transformation,
                            Atome *place);
 
-    AtomeConstante *crée_constante_info_type_pour_base(GenreInfoType indice, Type const *pour_type);
+    AtomeConstante *crée_constante_info_type_pour_base(GenreInfoType indice,
+                                                       Type const *pour_type);
     void remplis_rubriques_de_bases_info_type(kuri::tableau<AtomeConstante *> &valeurs,
                                               GenreInfoType indice,
                                               Type const *pour_type);

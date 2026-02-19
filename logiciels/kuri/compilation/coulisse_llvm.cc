@@ -966,7 +966,7 @@ struct InfoDébogageLLVM {
             }
             else {
                 auto nom_fichier = vers_string_ref(".chaines_ajoutées");
-                auto nom_dossier = vers_string_ref("."); // À FAIRE : dossier
+                auto nom_dossier = vers_string_ref(".");  // À FAIRE : dossier
                 fichier_dwarf = dibuilder->createFile(nom_fichier, nom_dossier);
                 fichier_chaines_ajoutées = fichier_dwarf;
             }
