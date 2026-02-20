@@ -7,16 +7,17 @@
 #include "utilitaires/algorithmes.hh"
 #include "utilitaires/log.hh"
 
-int main()
+static void compile_fichiers_pour_coulisse(kuri::tableau_statique<kuri::chemin_systeme> chemins,
+                                           kuri::chaine_statique coulisse)
 {
-    auto chemins = kuri::chemin_systeme::fichiers_du_dossier("coulisses");
-
-    kuri::tri_rapide(kuri::tableau_statique<kuri::chemin_systeme>(chemins),
-                     [](kuri::chemin_systeme a, kuri::chemin_systeme b) -> bool { return a < b; });
-
     POUR (chemins) {
         Enchaineuse enchaineuse;
-        enchaineuse.ajoute("kuri --coulisse llvm ");
+        enchaineuse.ajoute("kuri --coulisse ");
+        enchaineuse.ajoute(coulisse);
+        enchaineuse.ajoute(" ");
+        if (coulisse == "asm") {
+            enchaineuse.ajoute("--débogage-ne-compile-que-nécessaire ");
+        }
         enchaineuse.ajoute(it);
         enchaineuse << '\0';
 
@@ -49,6 +50,19 @@ int main()
             dbg() << "Erreur lors de la compilation de " << it;
         }
     }
+}
+
+int main()
+{
+    auto tablet_chemins = kuri::chemin_systeme::fichiers_du_dossier("coulisses");
+    auto chemins = kuri::tableau_statique<kuri::chemin_systeme>(tablet_chemins);
+
+    kuri::tri_rapide(chemins,
+                     [](kuri::chemin_systeme a, kuri::chemin_systeme b) -> bool { return a < b; });
+
+    compile_fichiers_pour_coulisse(chemins, "asm");
+    compile_fichiers_pour_coulisse(chemins, "c");
+    compile_fichiers_pour_coulisse(chemins, "llvm");
 
     return 0;
 }
