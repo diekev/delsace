@@ -4644,7 +4644,8 @@ std::optional<ErreurCoulisse> CoulisseASM::crée_exécutable_impl(const ArgsLiai
     }
     else {
         Enchaineuse enchaineuse;
-        enchaineuse.ajoute("gcc -ggdb -lc -o ");
+        // À FAIRE : passe -Wl,--no-warn-execstack dans toutes la fonction générale de liaison.
+        enchaineuse.ajoute("gcc -Wl,--no-warn-execstack -ggdb -lc -o ");
         enchaineuse.ajoute(nom_sortie);
         enchaineuse.ajoute(" /tmp/compilation_kuri_asm.o");
         enchaineuse << '\0';
