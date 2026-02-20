@@ -107,9 +107,59 @@ static void compile_fichiers_pour_coulisse(kuri::tableau_statique<kuri::chemin_s
     }
 }
 
-int main()
+static bool possède_coulisse(kuri::tableau_statique<kuri::chaine_statique> coulisses,
+                             kuri::chaine_statique coulisse)
 {
-    auto tablet_chemins = kuri::chemin_systeme::fichiers_du_dossier("coulisses");
+    POUR (coulisses) {
+        if (it == coulisse) {
+            return true;
+        }
+    }
+    return false;
+}
+
+int main(int argc, char **argv)
+{
+    kuri::tablet<kuri::chaine_statique, 3> coulisses;
+    kuri::tablet<kuri::chemin_systeme, 16> tablet_chemins;
+
+    for (int i = 1; i < argc; i++) {
+        auto arg = kuri::chaine_statique(argv[i]);
+
+        if (arg == "-c") {
+            if (!possède_coulisse(coulisses, arg)) {
+                coulisses.ajoute("c");
+            }
+        }
+        else if (arg == "-asm") {
+            if (!possède_coulisse(coulisses, arg)) {
+                coulisses.ajoute("asm");
+            }
+        }
+        else if (arg == "-llvm") {
+            if (!possède_coulisse(coulisses, arg)) {
+                coulisses.ajoute("llvm");
+            }
+        }
+        else if (kuri::chemin_systeme::est_fichier_kuri(arg)) {
+            tablet_chemins.ajoute(arg);
+        }
+        else {
+            dbg() << "Argument inconnu : " << arg;
+            return 1;
+        }
+    }
+
+    if (coulisses.est_vide()) {
+        coulisses.ajoute("asm");
+        coulisses.ajoute("c");
+        coulisses.ajoute("llvm");
+    }
+
+    if (tablet_chemins.est_vide()) {
+        tablet_chemins = kuri::chemin_systeme::fichiers_du_dossier("coulisses");
+    }
+
     auto chemins = kuri::tableau_statique<kuri::chemin_systeme>(tablet_chemins);
 
     kuri::tri_rapide(chemins,
@@ -117,9 +167,9 @@ int main()
 
     Résultat_Exécution_Test résultat_exécution;
 
-    compile_fichiers_pour_coulisse(chemins, "asm", &résultat_exécution);
-    compile_fichiers_pour_coulisse(chemins, "c", &résultat_exécution);
-    compile_fichiers_pour_coulisse(chemins, "llvm", &résultat_exécution);
+    POUR (coulisses) {
+        compile_fichiers_pour_coulisse(chemins, it, &résultat_exécution);
+    }
 
     info() << "";
 
