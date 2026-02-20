@@ -7,10 +7,55 @@
 #include "utilitaires/algorithmes.hh"
 #include "utilitaires/log.hh"
 
+enum struct Étape_Échouant : int8_t {
+    INCONNUE,
+    COMPILATION,
+    EXÉCUTION,
+};
+
+struct Info_Test_Échouant {
+    kuri::chaine_statique coulisse = "";
+    kuri::chaine_statique chemin = "";
+    Étape_Échouant étape_échouant{};
+};
+
+struct Résultat_Exécution_Test {
+    int32_t nombre_de_tests = 0;
+    int32_t nombre_de_tests_ignorés = 0;
+    kuri::tableau<Info_Test_Échouant> tests_échouant{};
+};
+
+static bool doit_ignorer_test(kuri::chaine_statique chemin, kuri::chaine_statique coulisse)
+{
+    if (coulisse == "c") {
+        // [-Werror=type-limits]
+        if (chemin == "coulisses/test-021-logique_entier.kuri") {
+            return true;
+        }
+        // [-Werror=overflow]
+        if (chemin == "coulisses/test-022-négation_binaire.kuri") {
+            return true;
+        }
+        // [-Werror=type-limits]
+        if (chemin == "coulisses/test-023-test_décalage_binaire.kuri") {
+            return true;
+        }
+    }
+    return false;
+}
+
 static void compile_fichiers_pour_coulisse(kuri::tableau_statique<kuri::chemin_systeme> chemins,
-                                           kuri::chaine_statique coulisse)
+                                           kuri::chaine_statique coulisse,
+                                           Résultat_Exécution_Test *résultat_exécution)
 {
     POUR (chemins) {
+        résultat_exécution->nombre_de_tests += 1;
+
+        if (doit_ignorer_test(it, coulisse)) {
+            résultat_exécution->nombre_de_tests_ignorés += 1;
+            continue;
+        }
+
         Enchaineuse enchaineuse;
         enchaineuse.ajoute("kuri --coulisse ");
         enchaineuse.ajoute(coulisse);
@@ -19,6 +64,7 @@ static void compile_fichiers_pour_coulisse(kuri::tableau_statique<kuri::chemin_s
             enchaineuse.ajoute("--débogage-ne-compile-que-nécessaire ");
         }
         enchaineuse.ajoute(it);
+        enchaineuse.ajoute(" > /dev/null");
         enchaineuse << '\0';
 
         auto nom_exécutable = it.remplace_extension("");
@@ -30,6 +76,7 @@ static void compile_fichiers_pour_coulisse(kuri::tableau_statique<kuri::chemin_s
 
         auto commande = enchaineuse.chaine();
 
+        info() << "Compilation de '" << it << "'";
         auto résultat = system(commande.pointeur());
         if (résultat == 0) {
             auto commande = enchaine("./", nom_exécutable, '\0');
@@ -37,7 +84,11 @@ static void compile_fichiers_pour_coulisse(kuri::tableau_statique<kuri::chemin_s
             info() << "Exécution de '" << nom_exécutable << "'";
             résultat = system(commande.pointeur());
             if (résultat != 0) {
-                dbg() << "Erreur lors de l'exécution de '" << nom_exécutable << "'";
+                Info_Test_Échouant info;
+                info.chemin = it;
+                info.coulisse = coulisse;
+                info.étape_échouant = Étape_Échouant::EXÉCUTION;
+                résultat_exécution->tests_échouant.ajoute(info);
             }
 
             if (kuri::chemin_systeme::existe(nom_exécutable)) {
@@ -47,7 +98,11 @@ static void compile_fichiers_pour_coulisse(kuri::tableau_statique<kuri::chemin_s
             }
         }
         else {
-            dbg() << "Erreur lors de la compilation de " << it;
+            Info_Test_Échouant info;
+            info.chemin = it;
+            info.coulisse = coulisse;
+            info.étape_échouant = Étape_Échouant::COMPILATION;
+            résultat_exécution->tests_échouant.ajoute(info);
         }
     }
 }
@@ -60,9 +115,52 @@ int main()
     kuri::tri_rapide(chemins,
                      [](kuri::chemin_systeme a, kuri::chemin_systeme b) -> bool { return a < b; });
 
-    compile_fichiers_pour_coulisse(chemins, "asm");
-    compile_fichiers_pour_coulisse(chemins, "c");
-    compile_fichiers_pour_coulisse(chemins, "llvm");
+    Résultat_Exécution_Test résultat_exécution;
+
+    compile_fichiers_pour_coulisse(chemins, "asm", &résultat_exécution);
+    compile_fichiers_pour_coulisse(chemins, "c", &résultat_exécution);
+    compile_fichiers_pour_coulisse(chemins, "llvm", &résultat_exécution);
+
+    info() << "";
+
+    auto tests_échouants = int32_t(résultat_exécution.tests_échouant.taille());
+    auto tests_ignorés = résultat_exécution.nombre_de_tests_ignorés;
+
+    info() << "Nombre de tests : " << résultat_exécution.nombre_de_tests;
+    info() << "      réussites : "
+           << résultat_exécution.nombre_de_tests - tests_échouants - tests_ignorés;
+    info() << "         échecs : " << tests_échouants;
+    info() << "        ignorés : " << tests_ignorés;
+
+    info() << "";
+
+    auto résultat = 0;
+
+    if (résultat_exécution.tests_échouant.taille()) {
+        kuri::chaine_statique coulisse_courante = "";
+        POUR (résultat_exécution.tests_échouant) {
+            if (it.coulisse != coulisse_courante) {
+                info() << "\nPour la coulisse '" << it.coulisse << "'";
+                coulisse_courante = it.coulisse;
+            }
+
+            if (it.étape_échouant == Étape_Échouant::COMPILATION) {
+                info() << "    Échec de la compilation de " << it.chemin;
+            }
+            else if (it.étape_échouant == Étape_Échouant::EXÉCUTION) {
+                info() << "    Échec de l'exécution de " << it.chemin;
+            }
+            else {
+                info() << "    Échec inconnu de " << it.chemin;
+            }
+        }
+
+        info() << "\n[ ÉCHEC ]";
+        résultat = 1;
+    }
+    else {
+        info() << "\n[ SUCCÈS ]";
+    }
 
     return 0;
 }
