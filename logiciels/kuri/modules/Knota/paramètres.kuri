@@ -563,7 +563,7 @@ noms_valeurs_énum :: fonc (param: *TableParamètres.Paramètre) -> []chaine
 {
     info_énum := param.valeur.info comme *InfoTypeÉnum;
     retourne info_énum.noms;
-} //
+}
 
 /* Définition des valeurs. */
 
