@@ -79,10 +79,10 @@ static void compile_fichiers_pour_coulisse(kuri::tableau_statique<kuri::chemin_s
         info() << "Compilation de '" << it << "'";
         auto résultat = system(commande.pointeur());
         if (résultat == 0) {
-            auto commande = enchaine("./", nom_exécutable, '\0');
+            auto commande_exécutable = enchaine("./", nom_exécutable, '\0');
 
             info() << "Exécution de '" << nom_exécutable << "'";
-            résultat = system(commande.pointeur());
+            résultat = system(commande_exécutable.pointeur());
             if (résultat != 0) {
                 Info_Test_Échouant info;
                 info.chemin = it;
