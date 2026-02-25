@@ -212,5 +212,5 @@ int main(int argc, char **argv)
         info() << "\n[ SUCCÈS ]";
     }
 
-    return 0;
+    return résultat;
 }
