@@ -2170,8 +2170,11 @@ static void copie_paramètres_résolus(NoeudExpressionAppel *appel,
             /* À FAIRE : ajout d'un drapeau pour copier les données de validation sémantique,
              * et change noeud.adn pour utiliser ce drapeau afin que les copies ailleurs
              * ne copient que ce dont elles ont besoin. */
-            auto nouveau_it = copie_noeud(
-                assembleuse, it, it->bloc_parent, OptionsCopieNoeud::PRÉSERVE_DRAPEAUX_VALIDATION);
+            auto nouveau_it = copie_noeud(assembleuse,
+                                          it,
+                                          it->bloc_parent,
+                                          OptionsCopieNoeud::PRÉSERVE_DRAPEAUX_VALIDATION |
+                                              OptionsCopieNoeud::PRÉSERVE_BLOCS_PARENTS);
             nouveau_it->drapeaux &= ~DrapeauxNoeud::EST_EXPRESSION_DÉFAUT;
             it = nouveau_it;
         }
