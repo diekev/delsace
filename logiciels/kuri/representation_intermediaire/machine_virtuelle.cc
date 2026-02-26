@@ -3,6 +3,7 @@
 
 #include "machine_virtuelle.hh"
 
+#include <algorithm>  // pour sort
 #include <iostream>
 
 #ifndef _MSC_VER

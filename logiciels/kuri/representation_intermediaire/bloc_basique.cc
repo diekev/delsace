@@ -3,6 +3,8 @@
 
 #include "bloc_basique.hh"
 
+#include <algorithm>  // pour stable_partition
+
 #include "compilation/espace_de_travail.hh"
 
 #include "structures/enchaineuse.hh"

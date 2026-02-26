@@ -3,6 +3,8 @@
 
 #include "constructrice_ri.hh"
 
+#include <algorithm>  // pour rotate
+
 #include "arbre_syntaxique/cas_genre_noeud.hh"
 #include "arbre_syntaxique/infos_types.hh"
 #include "arbre_syntaxique/noeud_expression.hh"

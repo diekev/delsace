@@ -3,6 +3,7 @@
 
 #include "validation_expression_appel.hh"
 
+#include <algorithm>  // pour sort
 #include <variant>
 
 #include "arbre_syntaxique/assembleuse.hh"
