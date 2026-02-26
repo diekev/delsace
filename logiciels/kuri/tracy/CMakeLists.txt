@@ -11,3 +11,4 @@ add_library(${NOM_CIBLE} STATIC "${SOURCES}")
 add_library(kuri::tracy ALIAS kuri_tracy)
 
 set_property(TARGET ${NOM_CIBLE} PROPERTY POSITION_INDEPENDENT_CODE ON)
+desactive_drapeaux_compilation(${NOM_CIBLE})
