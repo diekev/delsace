@@ -701,7 +701,7 @@ void BibliothèquesUtilisées::trie_bibliothèques()
     };
 
     while (!bibliothèques_à_traiter.est_vide()) {
-        auto bibliothèque = bibliothèques_à_traiter.defile();
+        auto bibliothèque = bibliothèques_à_traiter.défile();
 
         if (toutes_les_prépendances_furent_ajoutées(bibliothèque)) {
             bibliothèques_triées.insère(bibliothèque);

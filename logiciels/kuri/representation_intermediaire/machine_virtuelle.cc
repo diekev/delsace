@@ -671,7 +671,7 @@ void MachineVirtuelle::appel_fonction_compilatrice(AtomeFonction *ptr_fonction,
             return;
         }
 
-        auto message = m_métaprogramme->file_message.defile();
+        auto message = m_métaprogramme->file_message.défile();
         empile(message);
         return;
     }

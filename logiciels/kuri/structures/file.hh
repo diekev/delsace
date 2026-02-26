@@ -69,19 +69,19 @@ struct file {
         m_file.efface(fin, m_file.fin());
     }
 
-    type_valeur defile()
+    type_valeur défile()
     {
         auto t = front();
         m_file.supprime_premier();
         return t;
     }
 
-    tableau<type_valeur> defile(int64_t compte)
+    tableau<type_valeur> défile(int64_t compte)
     {
         auto ret = tableau<type_valeur>(compte);
 
         for (auto i = 0; i < compte; ++i) {
-            ret.ajoute(defile());
+            ret.ajoute(défile());
         }
 
         return ret;

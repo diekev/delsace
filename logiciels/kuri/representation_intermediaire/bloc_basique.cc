@@ -645,7 +645,7 @@ bool VisiteuseBlocs::a_visité(Bloc *bloc) const
 Bloc *VisiteuseBlocs::bloc_suivant()
 {
     while (!à_visiter.est_vide()) {
-        auto bloc_courant = à_visiter.defile();
+        auto bloc_courant = à_visiter.défile();
 
         if (blocs_visités.possède(bloc_courant)) {
             continue;
