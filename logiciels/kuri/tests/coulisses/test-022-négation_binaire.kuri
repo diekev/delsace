@@ -1,0 +1,19 @@
+principale :: fonc ()
+{
+    test_négation_binaire(1 comme z8, 0b1111_1110 comme z8);
+    test_négation_binaire(1 comme z16, 0b1111_1111_1111_1110 comme z16);
+    test_négation_binaire(1 comme z32, 0b1111_1111_1111_1111_1111_1111_1111_1110 comme z32);
+    test_négation_binaire(1 comme z64, 0b1111_1111_1111_1111_1111_1111_1111_1111_1111_1111_1111_1111_1111_1111_1111_1110 comme z64);
+    test_négation_binaire(1 comme n8, 0b1111_1110 comme n8);
+    test_négation_binaire(1 comme n16, 0b1111_1111_1111_1110 comme n16);
+    test_négation_binaire(1 comme n32, 0b1111_1111_1111_1111_1111_1111_1111_1110 comme n32);
+    test_négation_binaire(1 comme n64, 0b1111_1111_1111_1111_1111_1111_1111_1111_1111_1111_1111_1111_1111_1111_1111_1110 comme n64);
+}
+
+test_négation_binaire :: fonc (v: $T, résultat: T)
+{
+    a := ~v;
+    saufsi a == résultat {
+        exit(1);
+    }
+}

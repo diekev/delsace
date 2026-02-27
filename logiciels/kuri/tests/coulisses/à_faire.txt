@@ -1,0 +1,12 @@
+xor
+
+test_constante_type
+test pour les déréférencement avec plusieurs indirections (a := mémoire(x comme *octet)) (voir imprime_valeur, z64_depuis_pointeur)
+test charge globale
+indexage pointeur
+indexage de globale
+indexage via rubrique tableau/pointeur
+négation nombre réel
+passage d'adresse à des fonctions
+
+test_structures_constantes
