@@ -1,0 +1,60 @@
+principale :: fonc ()
+{
+    {
+        a := retourne_vrai();
+        saufsi a == vrai {
+            exit(1);
+        }
+
+        b := vrai;
+        saufsi a == b {
+            exit(2);
+        }
+    }
+
+    {
+        a := retourne_faux();
+        saufsi a == faux {
+            exit(3);
+        }
+
+        b := faux;
+        saufsi a == b {
+            exit(4);
+        }
+    }
+
+    {
+        a := retourne_vrai();
+        si a != vrai {
+            exit(5);
+        }
+
+        b := faux;
+        saufsi a != b {
+            exit(6);
+        }
+    }
+
+    {
+        a := retourne_faux();
+        si a != faux {
+            exit(7);
+        }
+
+        b := vrai;
+        saufsi a != b {
+            exit(8);
+        }
+    }
+}
+
+retourne_vrai :: fonc () -> bool
+{
+    retourne vrai;
+}
+
+retourne_faux :: fonc () -> bool
+{
+    retourne faux;
+}

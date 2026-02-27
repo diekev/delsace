@@ -3,6 +3,8 @@
 
 #include "gestionnaire_code.hh"
 
+#include <algorithm>  // pour all_of
+
 #include "arbre_syntaxique/assembleuse.hh"
 #include "arbre_syntaxique/copieuse.hh"
 

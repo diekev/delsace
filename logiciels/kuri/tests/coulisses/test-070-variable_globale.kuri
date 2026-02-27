@@ -1,0 +1,36 @@
+globale := 5;
+globale_bool: bool;
+
+principale :: fonc ()
+{
+    // À FAIRE : nous n'avons pas d'initialisation pour les globales
+    // saufsi globale == 5 {
+    //    exit(1);
+    //}
+
+    a := *globale;
+    mémoire(a) = 7;
+    saufsi globale == 7 {
+        exit(1);
+    }
+
+    globale_bool = faux;
+    test_valeur_bool_faux();
+
+    globale_bool = vrai;
+    test_valeur_bool_vrai();
+}
+
+test_valeur_bool_vrai :: fonc ()
+{
+    saufsi globale_bool {
+        exit(1);
+    }
+}
+
+test_valeur_bool_faux :: fonc ()
+{
+    si globale_bool {
+        exit(1);
+    }
+}

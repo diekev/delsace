@@ -1,0 +1,17 @@
+Structure :: struct {
+    adresse: *rien;
+    x: z32;
+}
+
+principale :: fonc ()
+{
+    s := Structure(x = 789);
+
+    saufsi s.adresse == nul {
+        exit(1);
+    }
+
+    saufsi s.x == 789 {
+        exit(1);
+    }
+}

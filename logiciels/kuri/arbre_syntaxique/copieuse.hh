@@ -17,6 +17,7 @@ enum class OptionsCopieNoeud : uint32_t {
      * ceci est fait lors de la validation sémanantique), mais nous les voulons pour les copies des
      * macros. */
     COPIE_PARAMÈTRES_DANS_RUBRIQUES = (1u << 1),
+    PRÉSERVE_BLOCS_PARENTS = (1u << 2),
 };
 DEFINIS_OPERATEURS_DRAPEAU(OptionsCopieNoeud)
 
