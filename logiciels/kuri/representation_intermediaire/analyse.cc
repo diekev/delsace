@@ -3,6 +3,7 @@
 
 #include "analyse.hh"
 
+#include <algorithm>  // pour rotate
 #include <iostream>
 
 #include "arbre_syntaxique/noeud_expression.hh"
