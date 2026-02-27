@@ -1,0 +1,30 @@
+Structurez64 :: struct {
+    x: z64 = 4;
+    y: z64 = 5;
+    z: z64 = 6;
+}
+
+principale :: fonc ()
+{
+    s := retourne_structure_mémoire();
+    a := s.x + s.y + s.z;
+    si a != 15 {
+        exit(1);
+    }
+
+    s = retourne_structure_mémoire();
+    a = passe_structure_mémoire(s);
+    si a != 15 {
+        exit(1);
+    }
+}
+
+retourne_structure_mémoire :: fonc () -> Structurez64
+{
+    retourne Structurez64();
+}
+
+passe_structure_mémoire :: fonc (s: Structurez64) -> z64
+{
+    retourne s.x + s.y + s.z;
+}
