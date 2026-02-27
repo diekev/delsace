@@ -15,6 +15,7 @@ set(BIBLIOTHEQUES
     kuri_compilation
     kuri_parsage
     kuri_representation_intermediaire
+    kuri::tracy
 )
 
 add_executable(kuri

@@ -28,6 +28,10 @@ endif()
 add_definitions(-DCOMPILATEUR_C_COULISSE_C="${CMAKE_C_COMPILER}")
 add_definitions(-DCOMPILATEUR_CXX_COULISSE_C="${CMAKE_CXX_COMPILER}")
 
+if(CMAKE_BUILD_TYPE MATCHES "Profile")
+    add_definitions(-DTRACY_ENABLE)
+endif()
+
 # ------------------------------------------------------------------------------
 
 set(RACINE_INSTALLATION kuri)
@@ -110,6 +114,7 @@ add_subdirectory(r16)
 add_subdirectory(statistiques)
 add_subdirectory(structures)
 add_subdirectory(tests)
+add_subdirectory(tracy)
 add_subdirectory(utilitaires)
 
 if(AVEC_MODULES_C_KURI)
