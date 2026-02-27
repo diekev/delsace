@@ -1,0 +1,114 @@
+principale :: fonc ()
+{
+    // À FAIRE : xor
+    test_et_binaire_entier();
+    test_ou_binaire_entier();
+}
+
+test_et_binaire_entier :: fonc ()
+{
+    si test_et_binaire_entier(z8) != 15 {
+        exit(1);
+    }
+    si test_et_binaire_entier(z16) != 15 {
+        exit(1);
+    }
+    si test_et_binaire_entier(z32) != 15 {
+        exit(1);
+    }
+    si test_et_binaire_entier(z64) != 15 {
+        exit(1);
+    }
+
+    si test_et_binaire_entier(n8) != 15 {
+        exit(1);
+    }
+    si test_et_binaire_entier(n16) != 15 {
+        exit(1);
+    }
+    si test_et_binaire_entier(n32) != 15 {
+        exit(1);
+    }
+    si test_et_binaire_entier(n64) != 15 {
+        exit(1);
+    }
+}
+
+test_et_binaire_entier :: fonc ($T: type_de_données) -> T
+{
+    a : T = 15;
+    b : T = 0xff;
+    retourne a & b;
+}
+
+test_ou_binaire_entier :: fonc ()
+{
+    si test_ou_binaire_entier(z8) != 255 {
+        exit(1);
+    }
+    si test_ou_binaire_entier(z16) != 255 {
+        exit(1);
+    }
+    si test_ou_binaire_entier(z32) != 255 {
+        exit(1);
+    }
+    si test_ou_binaire_entier(z64) != 255 {
+        exit(1);
+    }
+
+    si test_ou_binaire_entier(n8) != 255 {
+        exit(1);
+    }
+    si test_ou_binaire_entier(n16) != 255 {
+        exit(1);
+    }
+    si test_ou_binaire_entier(n32) != 255 {
+        exit(1);
+    }
+    si test_ou_binaire_entier(n64) != 255 {
+        exit(1);
+    }
+}
+
+test_ou_binaire_entier :: fonc ($T: type_de_données) -> T
+{
+    a : T = 0x0f;
+    b : T = 0xf0;
+    retourne a | b;
+}
+
+test_ou_exclusif_binaire_entier :: fonc ()
+{
+    si test_ou_exclusif_binaire_entier(z8) != 255 {
+        exit(1);
+    }
+    si test_ou_exclusif_binaire_entier(z16) != 255 {
+        exit(1);
+    }
+    si test_ou_exclusif_binaire_entier(z32) != 255 {
+        exit(1);
+    }
+    si test_ou_exclusif_binaire_entier(z64) != 255 {
+        exit(1);
+    }
+
+    si test_ou_exclusif_binaire_entier(n8) != 255 {
+        exit(1);
+    }
+    si test_ou_exclusif_binaire_entier(n16) != 255 {
+        exit(1);
+    }
+    si test_ou_exclusif_binaire_entier(n32) != 255 {
+        exit(1);
+    }
+    si test_ou_exclusif_binaire_entier(n64) != 255 {
+        exit(1);
+    }
+}
+
+test_ou_exclusif_binaire_entier :: fonc ($T: type_de_données) -> T
+{
+    a : T = 0x0f;
+    b : T = 0xf0;
+    retourne a ^ b;
+}
