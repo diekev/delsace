@@ -1,0 +1,39 @@
+principale :: fonc ()
+{
+    tableau: [4]r32 = ---;
+    tableau[0] = 1.0;
+    tableau[1] = 2.0;
+    tableau[2] = 3.0;
+    tableau[3] = 4.0;
+
+    passe_tableau_fixe(tableau);
+
+    tableau = retourne_tableau_fixe();
+    passe_tableau_fixe(tableau);
+}
+
+retourne_tableau_fixe :: fonc () -> [4]r32
+{
+    tableau: [4]r32 = ---;
+    tableau[0] = 1.0;
+    tableau[1] = 2.0;
+    tableau[2] = 3.0;
+    tableau[3] = 4.0;
+    retourne tableau;
+}
+
+passe_tableau_fixe :: fonc (tableau: [4]r32)
+{
+    résultat: r32;
+    résultat += tableau[0];
+    résultat += tableau[1];
+    résultat += tableau[2];
+    résultat += tableau[3];
+    // À FAIRE
+    // pour tableau {
+    //     résultat += it
+    // }
+    saufsi résultat == 10.0 {
+        exit(1);
+    }
+}
