@@ -2817,8 +2817,10 @@ std::optional<ErreurCoulisse> CoulisseC::crée_exécutable_impl(const ArgsLiaiso
 
     auto nom_sortie = nom_sortie_résultat_final(espace.options);
 
-    auto nom_sortie_temporaire = kuri::chemin_systeme::chemin_temporaire(
-        enchaine("kuri-", args.espace->nom, "/", nom_sortie));
+    auto date_début_compilation = compilatrice.donne_date_début_compilation();
+
+    auto nom_sortie_temporaire = enchaine(
+        nom_sortie, "-", imprime_date_format_iso(date_début_compilation));
 
     auto commande = commande_pour_liaison(
         espace.options, fichiers_objet, m_bibliothèques, nom_sortie_temporaire, false);

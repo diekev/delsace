@@ -1,0 +1,24 @@
+Structure :: struct {
+    x: z32 = 1;
+    y: z32 = 2;
+    z: z32 = 3;
+}
+
+principale :: fonc ()
+{
+    s : Structure = retourne_structure_2_registres();
+    g := test_fonction_paramètre_structure(s);
+    saufsi g == 7 {
+        exit(1);
+    }
+}
+
+retourne_structure_2_registres :: fonc () -> Structure
+{
+    retourne Structure();
+}
+
+test_fonction_paramètre_structure :: fonc (s: Structure) -> z32
+{
+    retourne s.x + s.y * s.z;
+}

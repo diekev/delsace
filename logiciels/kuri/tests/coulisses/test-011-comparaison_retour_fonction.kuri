@@ -1,0 +1,20 @@
+principale :: fonc ()
+{
+    saufsi retourne_vrai() {
+        exit(1);
+    }
+
+    si retourne_faux() {
+        exit(2);
+    }
+}
+
+retourne_vrai :: fonc () -> bool
+{
+    retourne vrai;
+}
+
+retourne_faux :: fonc () -> bool
+{
+    retourne faux;
+}
