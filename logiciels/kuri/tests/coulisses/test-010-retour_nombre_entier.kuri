@@ -1,0 +1,12 @@
+principale :: fonc ()
+{
+    a := retourne_nombre_entier();
+    saufsi a == 34 {
+        exit(1);
+    }
+}
+
+retourne_nombre_entier :: fonc () -> z32
+{
+    retourne 34;
+}

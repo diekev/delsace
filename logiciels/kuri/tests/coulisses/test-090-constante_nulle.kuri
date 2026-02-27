@@ -1,0 +1,17 @@
+principale :: fonc ()
+{
+    a := retourne_nul();
+    saufsi a == nul {
+        exit(1);
+    }
+
+    b : *rien = nul;
+    saufsi a == b {
+        exit(2);
+    }
+}
+
+retourne_nul :: fonc () -> *rien
+{
+    retourne nul;
+}

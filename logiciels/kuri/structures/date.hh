@@ -5,6 +5,12 @@
 
 #include <cstdint>
 
+namespace kuri {
+struct chaine;
+}
+
+struct Enchaineuse;
+
 struct TempsSysteme {
     int64_t seconde;
     int64_t nanoseconde;
@@ -31,3 +37,7 @@ inline int secondes_par_an()
 }
 
 Date hui_systeme();
+
+void imprime_date_format_iso(Date date, Enchaineuse &os);
+
+kuri::chaine imprime_date_format_iso(Date date);
