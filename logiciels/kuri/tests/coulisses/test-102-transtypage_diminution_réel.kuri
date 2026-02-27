@@ -1,0 +1,14 @@
+principale :: fonc ()
+{
+    a := retourne_r64();
+    b := a comme r32;
+
+    si b != 5.0 {
+        exit(1);
+    }
+}
+
+retourne_r64 :: fonc () -> r64
+{
+    retourne 5.0;
+}

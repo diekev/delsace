@@ -2217,7 +2217,7 @@ void convertis_fsau(EspaceDeTravail &espace,
         fonction_et_blocs.blocs[0], fonction->param_sortie, UtilisationAtome::RACINE);
 
     while (!blocs.est_vide()) {
-        auto bloc = blocs.defile();
+        auto bloc = blocs.défile();
 
         // dbg() << "dépile bloc " << bloc;
 
