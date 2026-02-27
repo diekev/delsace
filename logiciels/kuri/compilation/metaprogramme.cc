@@ -76,24 +76,6 @@ Enchaineuse &MétaProgramme::donne_logueuse(TypeLogMétaprogramme type_log)
     return *logueuses[indice_logueuse];
 }
 
-static void imprime_date_format_iso(Date date, Enchaineuse &os)
-{
-#define IMPRIME_AVEC_ZERO(x)                                                                      \
-    if ((x) < 10) {                                                                               \
-        os << '0';                                                                                \
-    }                                                                                             \
-    os << x
-
-    os << date.annee;
-    IMPRIME_AVEC_ZERO(date.mois);
-    IMPRIME_AVEC_ZERO(date.jour);
-    IMPRIME_AVEC_ZERO(date.heure);
-    IMPRIME_AVEC_ZERO(date.minute);
-    IMPRIME_AVEC_ZERO(date.seconde);
-
-#undef IMPRIME_AVEC_ZERO
-}
-
 /* ------------------------------------------------------------------------- */
 /** \name État du métaprogramme.
  * \{ */
