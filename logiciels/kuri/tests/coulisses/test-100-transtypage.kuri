@@ -1,0 +1,48 @@
+principale :: fonc ()
+{
+    /* Entiers naturels. */
+    test_augmente_entier(254 comme n8, n16);
+    test_augmente_entier(254 comme n8, n32);
+    test_augmente_entier(254 comme n8, n64);
+    test_augmente_entier(65534 comme n16, n32);
+    test_augmente_entier(65534 comme n16, n64);
+
+    test_diminue_entier(254 comme n64, n8);
+    test_diminue_entier(254 comme n64, n16);
+    test_diminue_entier(254 comme n64, n32);
+    test_diminue_entier(65534 comme n64, n32);
+    test_diminue_entier(65534 comme n64, n16);
+
+    /* Entiers relatifs. */
+    test_augmente_entier(-127 comme z8, z16);
+    test_augmente_entier(-127 comme z8, z32);
+    test_augmente_entier(-127 comme z8, z64);
+    test_augmente_entier(-32767 comme z16, z32);
+    test_augmente_entier(-32767 comme z16, z64);
+
+    test_diminue_entier(-127 comme z64, z8);
+    test_diminue_entier(-127 comme z64, z16);
+    test_diminue_entier(-127 comme z64, z32);
+    test_diminue_entier(-32767 comme z64, z16);
+    test_diminue_entier(-32767 comme z64, z32);
+}
+
+test_augmente_entier :: fonc (valeur: $T1, $T2: type_de_données)
+{
+    a : T1 = valeur;
+    b : T2 = a;
+
+    saufsi b == valeur {
+        exit(1);
+    }
+}
+
+test_diminue_entier :: fonc (valeur: $T1, $T2: type_de_données)
+{
+    a : T1 = valeur;
+    b := a comme T2;
+
+    saufsi b == valeur {
+        exit(1);
+    }
+}
