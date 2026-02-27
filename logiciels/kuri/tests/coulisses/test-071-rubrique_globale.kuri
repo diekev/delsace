@@ -1,0 +1,25 @@
+Vecteur :: struct {
+    x: z64;
+    y: z64;
+}
+
+vecteur: Vecteur;
+
+principale :: fonc ()
+{
+    initialise_vecteur(123, 456);
+
+    saufsi vecteur.x == 123 {
+        exit(1);
+    }
+
+    saufsi vecteur.y == 456 {
+        exit(1);
+    }
+}
+
+initialise_vecteur :: fonc (x: z32, y: z32)
+{
+    vecteur.x = x;
+    vecteur.y = y;
+}
