@@ -1,0 +1,57 @@
+// À FAIRE : meilleurs tests
+principale :: fonc ()
+{
+    test_transtype_réel_vers_entier(r32);
+    test_transtype_réel_vers_entier(r64);
+    // À FAIRE r64
+    test_addition_réel();
+
+    a := passe_et_retourne_réel(3.5);
+    b := passe_et_retourne_réel(1.5);
+    c := (a + b) comme z32;
+    saufsi c == 5 {
+        exit(1);
+    }
+
+    a = passe_et_retourne_réel(3.5 + 1.5);
+    saufsi a == 5.0 {
+        exit(1);
+    }
+}
+
+test_transtype_réel_vers_entier :: fonc ($R: type_de_données)
+{
+    test_transtype_réel_vers_entier(R, z8);
+    test_transtype_réel_vers_entier(R, z16);
+    test_transtype_réel_vers_entier(R, z32);
+    test_transtype_réel_vers_entier(R, z64);
+
+    test_transtype_réel_vers_entier(R, n8);
+    test_transtype_réel_vers_entier(R, n16);
+    test_transtype_réel_vers_entier(R, n32);
+    test_transtype_réel_vers_entier(R, n64);
+}
+
+test_transtype_réel_vers_entier :: fonc ($R: type_de_données, $E: type_de_données)
+{
+    a : R = 3.0;
+    ai := a comme E;
+    saufsi ai == 3 {
+        exit(1);
+    }
+}
+
+test_addition_réel :: fonc ()
+{
+    a := 3.5;
+    b := 1.5;
+    ci := (a + b) comme z32;
+    saufsi ci == 5 {
+        exit(1);
+    }
+}
+
+passe_et_retourne_réel :: fonc (x: r32) -> r32
+{
+    retourne x;
+}

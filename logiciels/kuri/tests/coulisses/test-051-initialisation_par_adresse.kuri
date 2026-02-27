@@ -1,0 +1,13 @@
+principale :: fonc ()
+{
+    a : z32 = ---;
+    init_par_adresse(*a);
+    saufsi a == 5 {
+        exit(1);
+    }
+}
+
+init_par_adresse :: fonc (a: *z32)
+{
+    mémoire(a) = 5;
+}

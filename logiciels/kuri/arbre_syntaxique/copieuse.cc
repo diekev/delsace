@@ -46,5 +46,7 @@ NoeudExpression *copie_noeud(AssembleuseArbre *assem,
     /* Pour simplifier la copie et la gestion des blocs, les blocs parents sont copiés.
      * Par contre, nous ne devons pas copier le bloc parent de la racine. */
     copieuse.insère_copie(bloc_parent, bloc_parent);
-    return copieuse.copie_noeud(racine);
+
+    auto résultat = copieuse.copie_noeud(racine);
+    return résultat;
 }

@@ -1,0 +1,32 @@
+principale :: fonc ()
+{
+    /* Nombre relatifs. */
+    test_transtypage_entier_vers_réel(127 comme z8, r32);
+    test_transtypage_entier_vers_réel(127 comme z16, r32);
+    test_transtypage_entier_vers_réel(127 comme z32, r32);
+    test_transtypage_entier_vers_réel(127 comme z64, r32);
+
+    test_transtypage_entier_vers_réel(127 comme z8, r64);
+    test_transtypage_entier_vers_réel(127 comme z16, r64);
+    test_transtypage_entier_vers_réel(127 comme z32, r64);
+    test_transtypage_entier_vers_réel(127 comme z64, r64);
+
+    /* Nombres naturels. */
+    test_transtypage_entier_vers_réel(127 comme n8, r32);
+    test_transtypage_entier_vers_réel(127 comme n16, r32);
+    test_transtypage_entier_vers_réel(127 comme n32, r32);
+    test_transtypage_entier_vers_réel(127 comme n64, r32);
+
+    test_transtypage_entier_vers_réel(127 comme n8, r64);
+    test_transtypage_entier_vers_réel(127 comme n16, r64);
+    test_transtypage_entier_vers_réel(127 comme n32, r64);
+    test_transtypage_entier_vers_réel(127 comme n64, r64);
+}
+
+test_transtypage_entier_vers_réel :: fonc (e: $E, $R: type_de_données)
+{
+    r := e comme R;
+    saufsi r == 127.0 comme R {
+        exit(1);
+    }
+}

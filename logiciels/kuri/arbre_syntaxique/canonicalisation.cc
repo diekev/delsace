@@ -735,6 +735,16 @@ NoeudExpression *Simplificatrice::simplifie(NoeudExpression *noeud)
 
             POUR (appel->paramètres_résolus) {
                 simplifie(it);
+                /* Remplaçons #position_code_source par sa substitution car nous ne les copions
+                 * plus. @ConditionCritique */
+                if (it && it->possède_drapeau(DrapeauxNoeud::EST_EXPRESSION_DÉFAUT) &&
+                    (it->genre == GenreNoeud::DIRECTIVE_INTROSPECTION)) {
+                    if (it->substitution) {
+                        auto nouveau_it = it->substitution;
+                        it->substitution = nullptr;
+                        it = nouveau_it;
+                    }
+                }
             }
 
             m_site_pour_position_code_source = ancien_site_pour_position_code_source;
