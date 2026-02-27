@@ -595,6 +595,11 @@ kuri::chaine imprime_arbre(NoeudExpression const *racine, int profondeur, bool s
                 else {
                     os << "copie->" << nom_enfant << " = ";
 
+                    if (nom_enfant.nom() == "bloc_parent") {
+                        os << "((m_options & OptionsCopieNoeud::PRÉSERVE_BLOCS_PARENTS) != "
+                              "OptionsCopieNoeud::AUCUNE) ? copie->bloc_parent : ";
+                    }
+
                     if (enfant.type->accede_nom().nom() != "NoeudExpression") {
                         os << "static_cast<" << enfant.type->accede_nom() << " *>(";
                     }

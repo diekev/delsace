@@ -62,3 +62,15 @@ target_include_directories(test_transformation PUBLIC "${INCLUSIONS}")
 target_link_libraries(test_transformation "${BIBLIOTHEQUES}")
 
 add_test(NAME test_transformation COMMAND test_transformation)
+
+################################################################################
+
+if(UNIX)
+    add_executable(test_coulisses test_coulisses.cc)
+    target_link_libraries(test_coulisses kuri::structures)
+    add_test(NAME test_coulisses COMMAND test_coulisses)
+    install(
+	    DIRECTORY coulisses
+	    DESTINATION ${CMAKE_CURRENT_BINARY_DIR}
+    )
+endif()
