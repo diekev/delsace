@@ -1,0 +1,32 @@
+principale :: fonc ()
+{
+    a := test_boucle_pour();
+    saufsi a == 30 {
+        exit(1);
+    }
+
+    b := test_boucle_tantque();
+    saufsi b == 45 {
+        exit(1);
+    }
+}
+
+test_boucle_pour :: fonc () -> z32
+{
+    a := 0;
+    pour 15 {
+        a += 2;
+    }
+    retourne a;
+}
+
+test_boucle_tantque :: fonc () -> z32
+{
+    a := 0;
+    b := 0;
+    tantque b < 15 {
+        a += 2;
+        b += 1;
+    }
+    retourne a + b;
+}
