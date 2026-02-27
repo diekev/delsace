@@ -1,0 +1,188 @@
+principale :: fonc ()
+{  
+    test_addition_entier();
+    test_soustraction_entier();
+    test_multiplication_entier();
+    test_division_entier();
+    test_modulo_entier();
+}
+
+test_addition_entier :: fonc ()
+{
+    si test_addition_entier(z8) != 125 {
+        exit(1);
+    }
+    si test_addition_entier(z16) != 125 {
+        exit(1);
+    }
+    si test_addition_entier(z32) != 125 {
+        exit(1);
+    }
+    si test_addition_entier(z64) != 125 {
+        exit(1);
+    }
+
+    si test_addition_entier(n8) != 125 {
+        exit(1);
+    }
+    si test_addition_entier(n16) != 125 {
+        exit(1);
+    }
+    si test_addition_entier(n32) != 125 {
+        exit(1);
+    }
+    si test_addition_entier(n64) != 125 {
+        exit(1);
+    }
+}
+
+test_addition_entier :: fonc ($T: type_de_données) -> T
+{
+    a : T = 100;
+    b : T = 25;
+    retourne a + b;
+}
+
+test_soustraction_entier :: fonc ()
+{
+    si test_soustraction_entier(z8) != 75 {
+        exit(1);
+    }
+    si test_soustraction_entier(z16) != 75 {
+        exit(1);
+    }
+    si test_soustraction_entier(z32) != 75 {
+        exit(1);
+    }
+    si test_soustraction_entier(z64) != 75 {
+        exit(1);
+    }
+
+    si test_soustraction_entier(n8) != 75 {
+        exit(1);
+    }
+    si test_soustraction_entier(n16) != 75 {
+        exit(1);
+    }
+    si test_soustraction_entier(n32) != 75 {
+        exit(1);
+    }
+    si test_soustraction_entier(n64) != 75 {
+        exit(1);
+    }
+}
+
+test_soustraction_entier :: fonc ($T: type_de_données) -> T
+{
+    a : T = 100;
+    b : T = 25;
+    retourne a - b;
+}
+
+test_multiplication_entier :: fonc ()
+{
+    si test_multiplication_entier(z8) != 100 {
+        exit(1);
+    }
+    si test_multiplication_entier(z16) != 100 {
+        exit(1);
+    }
+    si test_multiplication_entier(z32) != 100 {
+        exit(1);
+    }
+    si test_multiplication_entier(z64) != 100 {
+        exit(1);
+    }
+
+    si test_multiplication_entier(n8) != 100 {
+        exit(1);
+    }
+    si test_multiplication_entier(n16) != 100 {
+        exit(1);
+    }
+    si test_multiplication_entier(n32) != 100 {
+        exit(1);
+    }
+    si test_multiplication_entier(n64) != 100 {
+        exit(1);
+    }
+}
+
+test_multiplication_entier :: fonc ($T: type_de_données) -> T
+{
+    a : T = 4;
+    b : T = 25;
+    retourne a * b;
+}
+
+test_division_entier :: fonc ()
+{
+    si test_division_entier(z8) != 4 {
+        exit(1);
+    }
+    si test_division_entier(z16) != 4 {
+        exit(1);
+    }
+    si test_division_entier(z32) != 4 {
+        exit(1);
+    }
+    si test_division_entier(z64) != 4 {
+        exit(1);
+    }
+
+    si test_division_entier(n8) != 4 {
+        exit(1);
+    }
+    si test_division_entier(n16) != 4 {
+        exit(1);
+    }
+    si test_division_entier(n32) != 4 {
+        exit(1);
+    }
+    si test_division_entier(n64) != 4 {
+        exit(1);
+    }
+}
+
+test_division_entier :: fonc ($T: type_de_données) -> T
+{
+    a : T = 100;
+    b : T = 25;
+    retourne a / b;
+}
+
+test_modulo_entier :: fonc ()
+{
+    si test_modulo_entier(z8) != 15 {
+        exit(1);
+    }
+    si test_modulo_entier(z16) != 15 {
+        exit(1);
+    }
+    si test_modulo_entier(z32) != 15 {
+        exit(1);
+    }
+    si test_modulo_entier(z64) != 15 {
+        exit(1);
+    }
+
+    si test_modulo_entier(n8) != 15 {
+        exit(1);
+    }
+    si test_modulo_entier(n16) != 15 {
+        exit(1);
+    }
+    si test_modulo_entier(n32) != 15 {
+        exit(1);
+    }
+    si test_modulo_entier(n64) != 15 {
+        exit(1);
+    }
+}
+
+test_modulo_entier :: fonc ($T: type_de_données) -> T
+{
+    a : T = 15;
+    b : T = 16;
+    retourne a % b;
+}

@@ -515,15 +515,16 @@ void *BibliothèqueExécutable::operator()(kuri::chaine_statique symbol)
 
 Symbole *Bibliothèque::crée_symbole(kuri::chaine_statique nom_symbole, TypeSymbole type)
 {
-    POUR_TABLEAU_PAGE (symboles) {
-        if (it.nom == nom_symbole) {
-            return &it;
-        }
+    bool trouvé = false;
+    auto symbole_existant = table_de_symboles.trouve(nom_symbole, trouvé);
+    if (trouvé) {
+        return symbole_existant;
     }
 
     auto symbole = symboles.ajoute_élément(type);
     symbole->nom = nom_symbole;
     symbole->bibliothèque = this;
+    table_de_symboles.insère(symbole->nom, symbole);
     return symbole;
 }
 
@@ -566,6 +567,7 @@ int64_t Bibliothèque::mémoire_utilisée() const
         résultat += noms[k].taille();
     }
     résultat += dépendances.taille_mémoire();
+    résultat += table_de_symboles.taille_mémoire();
     return résultat;
 }
 
@@ -699,7 +701,7 @@ void BibliothèquesUtilisées::trie_bibliothèques()
     };
 
     while (!bibliothèques_à_traiter.est_vide()) {
-        auto bibliothèque = bibliothèques_à_traiter.defile();
+        auto bibliothèque = bibliothèques_à_traiter.défile();
 
         if (toutes_les_prépendances_furent_ajoutées(bibliothèque)) {
             bibliothèques_triées.insère(bibliothèque);

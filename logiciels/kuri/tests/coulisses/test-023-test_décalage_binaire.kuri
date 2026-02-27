@@ -1,0 +1,79 @@
+principale :: fonc ()
+{
+    test_décalage_gauche();
+    test_décalage_droite();
+}
+
+test_décalage_gauche :: fonc ()
+{
+    si test_décalage_gauche(z8) != 0xf0 {
+        exit(1);
+    }
+    si test_décalage_gauche(z16) != 0xf0 {
+        exit(1);
+    }
+    si test_décalage_gauche(z32) != 0xf0 {
+        exit(1);
+    }
+    si test_décalage_gauche(z64) != 0xf0 {
+        exit(1);
+    }
+
+    si test_décalage_gauche(n8) != 0xf0 {
+        exit(1);
+    }
+    si test_décalage_gauche(n16) != 0xf0 {
+        exit(1);
+    }
+    si test_décalage_gauche(n32) != 0xf0 {
+        exit(1);
+    }
+    si test_décalage_gauche(n64) != 0xf0 {
+        exit(1);
+    }
+}
+
+test_décalage_gauche :: fonc ($T: type_de_données) -> T
+{
+    a : T = 0x0f;
+    b : T = 4;
+    retourne a << b;
+}
+
+test_décalage_droite :: fonc ()
+{
+    /* Sur 8-bit le signe sur étendu au reste de l'octet,
+     * donc le résultat est 0xff et non 0x0f comme les autres. */
+    si test_décalage_droite(z8) != 0xff {
+        exit(1);
+    }
+    si test_décalage_droite(z16) != 0x0f {
+        exit(1);
+    }
+    si test_décalage_droite(z32) != 0x0f {
+        exit(1);
+    }
+    si test_décalage_droite(z64) != 0x0f {
+        exit(1);
+    }
+
+    si test_décalage_droite(n8) != 0x0f {
+        exit(1);
+    }
+    si test_décalage_droite(n16) != 0x0f {
+        exit(1);
+    }
+    si test_décalage_droite(n32) != 0x0f {
+        exit(1);
+    }
+    si test_décalage_droite(n64) != 0x0f {
+        exit(1);
+    }
+}
+
+test_décalage_droite :: fonc ($T: type_de_données) -> T
+{
+    a : T = 0xf0;
+    b : T = 4;
+    retourne a >> b;
+}
