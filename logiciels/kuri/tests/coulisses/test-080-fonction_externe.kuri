@@ -1,0 +1,10 @@
+write :: fonc (fd: z32, tampon: *z8, taille: z64) -> z32 #externe libc;
+
+principale :: fonc ()
+{
+    chn := "Bonjour\n";
+    a := write(1, chn.pointeur, 8);
+    saufsi a == 8 {
+        exit(1);
+    }
+}
