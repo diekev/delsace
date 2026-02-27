@@ -1,0 +1,13 @@
+principale :: fonc ()
+{
+    a := retourne_un_nombre;
+    b := a();
+    saufsi b == 30 {
+        exit(1);
+    }
+}
+
+retourne_un_nombre :: fonc () -> z32
+{
+    retourne 30;
+}

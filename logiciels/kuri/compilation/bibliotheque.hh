@@ -8,6 +8,7 @@
 #include "structures/chaine.hh"
 #include "structures/chemin_systeme.hh"
 #include "structures/ensemble.hh"
+#include "structures/table_hachage.hh"
 #include "structures/tableau_compresse.hh"
 #include "structures/tableau_page.hh"
 
@@ -220,6 +221,9 @@ struct Bibliothèque {
     CheminsBibliothèque chemins{};
 
     kuri::chaine noms[NUM_TYPES_INFORMATION_BIBLIOTHÈQUE] = {};
+
+    kuri::table_hachage<kuri::chaine_statique, Symbole *> table_de_symboles{
+        "symboles bibliothèque"};
 
     kuri::tableau_compresse<Bibliothèque *, int> dépendances{};
     kuri::tableau_compresse<Bibliothèque *, int> prépendances{};

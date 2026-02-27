@@ -4623,6 +4623,8 @@ std::optional<ErreurCoulisse> CoulisseASM::crée_exécutable_impl(const ArgsLiai
     auto const compile_toutes_les_fonctions =
         !compilatrice.arguments.débogage_ne_compile_que_nécessaire;
 
+    auto nom_sortie = nom_sortie_résultat_final(espace.options);
+
     if (compile_toutes_les_fonctions) {
         kuri::tablet<kuri::chaine_statique, 16> fichiers_objet;
         auto fichier_point_d_entrée_c = compilatrice.racine_kuri / "fichiers/point_d_entree.c";
@@ -4630,7 +4632,6 @@ std::optional<ErreurCoulisse> CoulisseASM::crée_exécutable_impl(const ArgsLiai
 
         fichiers_objet.ajoute("/tmp/compilation_kuri_asm.o");
 
-        auto nom_sortie = nom_sortie_résultat_final(espace.options);
         auto commande = commande_pour_liaison(
             espace.options, fichiers_objet, m_bibliothèques, nom_sortie, false);
         auto err_commande = exécute_commande_externe_erreur(commande,
@@ -4642,30 +4643,19 @@ std::optional<ErreurCoulisse> CoulisseASM::crée_exécutable_impl(const ArgsLiai
         }
     }
     else {
-        auto commande = "gcc -ggdb -lc -o a.out /tmp/compilation_kuri_asm.o";
-        if (system(commande) != 0) {
+        Enchaineuse enchaineuse;
+        // À FAIRE : passe -Wl,--no-warn-execstack dans toutes la fonction générale de liaison.
+        enchaineuse.ajoute("gcc -Wl,--no-warn-execstack -ggdb -lc -o ");
+        enchaineuse.ajoute(nom_sortie);
+        enchaineuse.ajoute(" /tmp/compilation_kuri_asm.o");
+        enchaineuse << '\0';
+
+        auto commande = enchaineuse.chaine();
+        if (system(commande.pointeur()) != 0) {
             return ErreurCoulisse{"Impossible de lier le fichier objet."};
         }
     }
 
-    auto résultat_exécution = 0;
-    if (compile_toutes_les_fonctions) {
-        auto nom_exécutable = enchaine("./", nom_sortie_résultat_final(espace.options), '\0');
-
-        info() << "Exécution de la commande " << nom_exécutable;
-
-        résultat_exécution = system(nom_exécutable.pointeur());
-    }
-    else {
-        résultat_exécution = system("./a.out");
-    }
-
-    dbg() << "=================================================";
-    dbg() << "Le programme a retourné :";
-#ifndef _MSC_VER
-    dbg() << "     " << WEXITSTATUS(résultat_exécution);
-#endif
-    dbg() << "=================================================";
     return {};
 }
 

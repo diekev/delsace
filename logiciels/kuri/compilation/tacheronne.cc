@@ -149,7 +149,7 @@ Tâche OrdonnanceuseTache::tâche_suivante(Tâche &tache_terminee, DrapeauxTache
         }
 
         while (!tâches[i].est_vide()) {
-            auto tâche = tâches[i].defile();
+            auto tâche = tâches[i].défile();
             /* Ignore les tâches des espaces possédant des erreurs. Nous pouvons toujours en avoir
              * dans nos files car il n'y a pas de synchronisation entre le fil du GesionnaireCode
              * et les fils des Tâcheronnes

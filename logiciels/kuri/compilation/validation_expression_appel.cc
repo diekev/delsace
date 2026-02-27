@@ -3,6 +3,7 @@
 
 #include "validation_expression_appel.hh"
 
+#include <algorithm>  // pour sort
 #include <variant>
 
 #include "arbre_syntaxique/assembleuse.hh"
@@ -2163,13 +2164,19 @@ static void copie_paramètres_résolus(NoeudExpressionAppel *appel,
          * de la canonicalisation du code où la même expression pourrait avoir différentes
          * substitution.
          *
-         * Une expression peut être nulle pour les expressions de construction de type. */
-        if (it && it->possède_drapeau(DrapeauxNoeud::EST_EXPRESSION_DÉFAUT)) {
+         * Une expression peut être nulle pour les expressions de construction de type.
+         *
+         * Ne copions pas les #position_code_source. */
+        if (it && it->possède_drapeau(DrapeauxNoeud::EST_EXPRESSION_DÉFAUT) &&
+            (it->genre != GenreNoeud::DIRECTIVE_INTROSPECTION)) {
             /* À FAIRE : ajout d'un drapeau pour copier les données de validation sémantique,
              * et change noeud.adn pour utiliser ce drapeau afin que les copies ailleurs
              * ne copient que ce dont elles ont besoin. */
-            auto nouveau_it = copie_noeud(
-                assembleuse, it, it->bloc_parent, OptionsCopieNoeud::PRÉSERVE_DRAPEAUX_VALIDATION);
+            auto nouveau_it = copie_noeud(assembleuse,
+                                          it,
+                                          it->bloc_parent,
+                                          OptionsCopieNoeud::PRÉSERVE_DRAPEAUX_VALIDATION |
+                                              OptionsCopieNoeud::PRÉSERVE_BLOCS_PARENTS);
             nouveau_it->drapeaux &= ~DrapeauxNoeud::EST_EXPRESSION_DÉFAUT;
             it = nouveau_it;
         }
