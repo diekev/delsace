@@ -1,0 +1,12 @@
+principale :: fonc ()
+{
+    ptr: [..]z32;
+    test_pointeur_nul(ptr.pointeur);
+}
+
+test_pointeur_nul :: fonc (ptr: *rien)
+{
+    saufsi ptr == nul {
+        exit(1);
+    }
+}

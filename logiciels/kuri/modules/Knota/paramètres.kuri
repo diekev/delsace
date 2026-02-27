@@ -54,7 +54,7 @@ donne_filtre_extension_pour_type_fichier :: fonc (type: TypeFichier) -> chaine
             retourne "Ressource Jorjala (*.jjr)";
         }
         Géométrie3D {
-            retourne "STL (*.stl);;WaveFront OBJ (*.obj)";
+            retourne "Tous (*.obj *.stl);;STL (*.stl);;WaveFront OBJ (*.obj)";
         }
     }
 
@@ -563,7 +563,7 @@ noms_valeurs_énum :: fonc (param: *TableParamètres.Paramètre) -> []chaine
 {
     info_énum := param.valeur.info comme *InfoTypeÉnum;
     retourne info_énum.noms;
-} //
+}
 
 /* Définition des valeurs. */
 
