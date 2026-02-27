@@ -1,0 +1,14 @@
+principale :: fonc ()
+{
+    tableau : [4]z32 = ---;
+
+    pour & tableau {
+        it = 123;
+    }
+
+    pour tableau {
+        saufsi it == 123 {
+            exit(1);
+        }
+    }
+}
