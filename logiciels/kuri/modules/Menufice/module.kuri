@@ -295,10 +295,10 @@ dispose_éléments_menu :: fonc (menu: *Menu, params: *ParamsDispositionBarreDeM
     {
         définis_disposition(direction = Direction.Verticale);
         si menu.est_pour_énum {
-            définis_flottance(menu.x, menu.y, ancrage = AncrageFlottante.HAUT_GAUCHE);
+            définis_flottance(menu.x, menu.y, ancrage = Ancrage_Flottante.HAUT_GAUCHE);
         }
         sinon {
-            définis_flottance(ancrage = AncrageFlottante.BAS_GAUCHE);
+            définis_flottance(ancrage = Ancrage_Flottante.BAS_GAUCHE);
         }
         définis_arrière_plan(params.arrière_plan_menu);
 

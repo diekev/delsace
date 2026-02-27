@@ -14,27 +14,27 @@ charge "interne";
 /** \nom Emboiteuse
  * \{ */
 
-ÉditriceTextePourId :: struct {
+Éditrice_Texte_Pour_Id :: struct {
     id: n64;
     éditrice_texte: *ÉditriceTexte;
 }
 
 Emboiteuse :: struct {
-    racine: *BoiteFlexible;
+    racine: *Boite_Flexible;
 
-    toutes_les_boites: [..]*BoiteFlexible;
-    boites_libres: [..]*BoiteFlexible;
+    toutes_les_boites: [..]*Boite_Flexible;
+    boites_libres: [..]*Boite_Flexible;
 
-    traversée_boites: [..]*BoiteFlexible;
+    traversée_boites: [..]*Boite_Flexible;
     boites_à_visiter: [..]z64;
 
-    fragments: [..]FragmentTexte;
+    fragments: [..]Fragment_Texte;
 
-    boites_disposées: [..]BoiteDisposée;
+    boites_disposées: [..]Boite_Disposée;
     boites_disposées_flottantes: [..]z32;
 
-    barres_de_défilement: [..]BarreDeDéfilement;
-    éditrices_textes: [..]ÉditriceTextePourId;
+    barres_de_défilement: [..]Barre_De_Défilement;
+    éditrices_textes: [..]Éditrice_Texte_Pour_Id;
 
     bordures: [..]ConfigurationBordure;
     flottances: [..]Flottance;
@@ -51,14 +51,14 @@ Emboiteuse :: struct {
     id_pressé: n64;
 
     /* Mémoire vive. */
-    croissables: [..]*BoiteFlexible;
-    décroissables: [..]*BoiteFlexible;
+    croissables: [..]*Boite_Flexible;
+    décroissables: [..]*Boite_Flexible;
 
     guetteuse_courante: *Guetteuse;
-    guetteuse_barre: GuetteuseBarreDéfilage;
+    guetteuse_barre: Guetteuse_Barre_Défilage;
 
-    rappels: [..]RappelUtilisateur;
-    boite_interagit: [TypeRappelUtilisateur.nombre_éléments]n64;
+    rappels: [..]Rappel_Utilisateur;
+    boite_interagit: [Type_Rappel_Utilisateur.nombre_éléments]n64;
 }
 
 détruit_données :: fonc (emboiteuse: *Emboiteuse)
@@ -136,7 +136,7 @@ gère_évènement :: fonc (emboiteuse: *Emboiteuse, évènement: &Évènement)
     }
 
     si évènement.type == TypeÉvènement.Souris {
-        empl TypeRappelUtilisateur;
+        empl Type_Rappel_Utilisateur;
         
         position := évènement.état_souris.où;
 
@@ -151,29 +151,29 @@ gère_évènement :: fonc (emboiteuse: *Emboiteuse, évènement: &Évènement)
         }
 
         si évènement.action_souris == ActionSouris.ROULEMENT {
-            sur_évènement_souris(emboiteuse, SurMoletteSouris, évènement.donne_clic_souris());
+            sur_évènement_souris(emboiteuse, SUR_MOLETTE_SOURIS, évènement.donne_clic_souris());
             retourne;
         }
 
         si évènement.action_souris == ActionSouris.PRESSÉE {
-            sur_évènement_souris(emboiteuse, SurPressionSouris, évènement.donne_clic_souris());
+            sur_évènement_souris(emboiteuse, SUR_PRESSION_SOURIS, évènement.donne_clic_souris());
             retourne;
         }
 
         si évènement.action_souris == ActionSouris.DOUBLE_CLIC {
-            sur_évènement_souris(emboiteuse, SurDoubleClicSouris, évènement.donne_clic_souris());
+            sur_évènement_souris(emboiteuse, SUR_DOUBLE_CLIC_SOURIS, évènement.donne_clic_souris());
             retourne;
         }
 
         si évènement.action_souris == ActionSouris.RELACHÉE {
-            sur_évènement_souris(emboiteuse, SurRelâchementSouris, évènement.donne_clic_souris());
+            sur_évènement_souris(emboiteuse, SUR_RELÂCHEMENT_SOURIS, évènement.donne_clic_souris());
 
-            si emboiteuse.boite_interagit[SurPressionSouris] == emboiteuse.boite_interagit[SurRelâchementSouris] {
-                boite := donne_boite_disposée_pour_id(emboiteuse, emboiteuse.boite_interagit[SurRelâchementSouris]);
-                _ := appel_rappel(emboiteuse, boite, SurClicSouris, évènement.donne_clic_souris());
+            si emboiteuse.boite_interagit[SUR_PRESSION_SOURIS] == emboiteuse.boite_interagit[SUR_RELÂCHEMENT_SOURIS] {
+                boite := donne_boite_disposée_pour_id(emboiteuse, emboiteuse.boite_interagit[SUR_RELÂCHEMENT_SOURIS]);
+                _ := appel_rappel(emboiteuse, boite, SUR_CLIC_SOURIS, évènement.donne_clic_souris());
             }
 
-            emboiteuse.boite_interagit[SurPressionSouris] = 0;
+            emboiteuse.boite_interagit[SUR_PRESSION_SOURIS] = 0;
             retourne;
         }
     }
@@ -236,7 +236,7 @@ crée_cotation_image :: fonc (image: NouvelleImage) -> Cotation
     retourne Cotation(FIXE(image.desc.largeur comme z32), FIXE(image.desc.hauteur comme z32));
 }
 
-IndiceRectangle :: énum {
+Indice_Rectangle :: énum {
     GAUCHE :: 0;
     HAUT :: 1;
     DROITE :: 2;
@@ -270,20 +270,20 @@ ConfigurationBordure :: struct {
 donne_largeurs_bordure :: fonc (config: ConfigurationBordure) -> LargeursBordureRectangle
 {
     résultat: LargeursBordureRectangle = ---;
-    résultat.haut = config.largeur[IndiceRectangle.HAUT];
-    résultat.bas = config.largeur[IndiceRectangle.BAS];
-    résultat.gauche = config.largeur[IndiceRectangle.GAUCHE];
-    résultat.droite = config.largeur[IndiceRectangle.DROITE];
+    résultat.haut = config.largeur[Indice_Rectangle.HAUT];
+    résultat.bas = config.largeur[Indice_Rectangle.BAS];
+    résultat.gauche = config.largeur[Indice_Rectangle.GAUCHE];
+    résultat.droite = config.largeur[Indice_Rectangle.DROITE];
     retourne résultat;
 }
 
 donne_couleurs_bordure :: fonc (config: ConfigurationBordure) -> CouleursBordureRectangle
 {
     résultat: CouleursBordureRectangle = ---;
-    résultat.haut = config.couleur[IndiceRectangle.HAUT];
-    résultat.bas = config.couleur[IndiceRectangle.BAS];
-    résultat.gauche = config.couleur[IndiceRectangle.GAUCHE];
-    résultat.droite = config.couleur[IndiceRectangle.DROITE];
+    résultat.haut = config.couleur[Indice_Rectangle.HAUT];
+    résultat.bas = config.couleur[Indice_Rectangle.BAS];
+    résultat.gauche = config.couleur[Indice_Rectangle.GAUCHE];
+    résultat.droite = config.couleur[Indice_Rectangle.DROITE];
     retourne résultat;
 }
 
@@ -336,14 +336,14 @@ termine_rectangle :: fonc ()
     __boite_courante = __boite_courante.parent;
 }
 
-DrapeauxTexte :: énum_drapeau {
+Drapeaux_Texte :: énum_drapeau {
     SANS_FRAGMENTS;
 }
 
 ConfigurationTexte :: struct {
     fonte: *Fonte;
     couleur: CouleurRVBA;
-    drapeaux: DrapeauxTexte;
+    drapeaux: Drapeaux_Texte;
 }
 
 dispose_texte :: fonc (texte: chaine, config := ConfigurationTexte())
@@ -395,31 +395,31 @@ TypeRappelSouris :: fonc (données: *rien, clic: ClicSouris, id_boite: n64, indi
 sur_pression_souris :: fonc (rappel: TypeRappelSouris, données: *rien, indice: z32)
 {
     assert(__boite_courante != nul);
-    définis_rappel(__boite_courante, TypeRappelUtilisateur.SurPressionSouris, rappel, données, indice, faux);
+    définis_rappel(__boite_courante, Type_Rappel_Utilisateur.SUR_PRESSION_SOURIS, rappel, données, indice, faux);
 }
 
 sur_relâchement_souris :: fonc (rappel: TypeRappelSouris, données: *rien, indice: z32)
 {
     assert(__boite_courante != nul);
-    définis_rappel(__boite_courante, TypeRappelUtilisateur.SurRelâchementSouris, rappel, données, indice, faux);
+    définis_rappel(__boite_courante, Type_Rappel_Utilisateur.SUR_RELÂCHEMENT_SOURIS, rappel, données, indice, faux);
 }
 
 sur_clic_souris :: fonc (rappel: TypeRappelSouris, données: *rien, indice: z32)
 {
     assert(__boite_courante != nul);
-    définis_rappel(__boite_courante, TypeRappelUtilisateur.SurClicSouris, rappel, données, indice, faux);
+    définis_rappel(__boite_courante, Type_Rappel_Utilisateur.SUR_CLIC_SOURIS, rappel, données, indice, faux);
 }
 
 sur_double_clic_souris :: fonc (rappel: TypeRappelSouris, données: *rien, indice: z32)
 {
     assert(__boite_courante != nul);
-    définis_rappel(__boite_courante, TypeRappelUtilisateur.SurDoubleClicSouris, rappel, données, indice, faux);
+    définis_rappel(__boite_courante, Type_Rappel_Utilisateur.SUR_DOUBLE_CLIC_SOURIS, rappel, données, indice, faux);
 }
 
 sur_molette_souris :: fonc (rappel: TypeRappelSouris, données: *rien, indice: z32)
 {
     assert(__boite_courante != nul);
-    définis_rappel(__boite_courante, TypeRappelUtilisateur.SurMoletteSouris, rappel, données, indice, faux);
+    définis_rappel(__boite_courante, Type_Rappel_Utilisateur.SUR_MOLETTE_SOURIS, rappel, données, indice, faux);
 }
 
 /** \} */
@@ -520,22 +520,22 @@ ajoute_bordure_uniforme :: fonc (largeur: r32, couleur: CouleurRVBA)
 
 ajoute_bordure_haut :: fonc (largeur: r32, couleur: CouleurRVBA)
 {
-    définis_bordure_courante(largeur, couleur, IndiceRectangle.HAUT);
+    définis_bordure_courante(largeur, couleur, Indice_Rectangle.HAUT);
 }
 
 ajoute_bordure_bas :: fonc (largeur: r32, couleur: CouleurRVBA)
 {
-    définis_bordure_courante(largeur, couleur, IndiceRectangle.BAS);
+    définis_bordure_courante(largeur, couleur, Indice_Rectangle.BAS);
 }
 
 ajoute_bordure_gauche :: fonc (largeur: r32, couleur: CouleurRVBA)
 {
-    définis_bordure_courante(largeur, couleur, IndiceRectangle.GAUCHE);
+    définis_bordure_courante(largeur, couleur, Indice_Rectangle.GAUCHE);
 }
 
 ajoute_bordure_droite :: fonc (largeur: r32, couleur: CouleurRVBA)
 {
-    définis_bordure_courante(largeur, couleur, IndiceRectangle.DROITE);
+    définis_bordure_courante(largeur, couleur, Indice_Rectangle.DROITE);
 }
 
 ConfigurationDéfilage :: struct {
@@ -562,7 +562,7 @@ ajoute_défilage_vertical :: fonc (largeur := 16.0, couleur := CouleurRVBA(0.0, 
     __boite_courante.défilage.couleur_verticale_survolage = couleur_survolage_survolage;
 }
 
-BarreDeDéfilement :: struct {
+Barre_De_Défilement :: struct {
     défilage: r32;
     défilage_max: r32;
     /* hauteur disponible / hauteur contenu */
@@ -573,12 +573,12 @@ BarreDeDéfilement :: struct {
     rect: RectanglePosDim(r32);
 }
 
-donne_barre_défilage_verticale :: fonc () -> *BarreDeDéfilement
+donne_barre_défilage_verticale :: fonc () -> *Barre_De_Défilement
 {
     assert(__boite_courante != nul);
 
     boite := donne_boite_disposée_pour_id(__boite_courante.emboiteuse, __boite_courante.id);
-    si boite && boite.barre_de_défilement_verticale != INDEX_BARRE_DÉFILEMENT_INVALIDE {
+    si boite && boite.barre_de_défilement_verticale != INDICE_BARRE_DÉFILEMENT_INVALIDE {
         retourne *__boite_courante.emboiteuse.barres_de_défilement[boite.barre_de_défilement_verticale];
     }
 
@@ -586,7 +586,7 @@ donne_barre_défilage_verticale :: fonc () -> *BarreDeDéfilement
     retourne barre;
 }
 
-définis_défilage :: fonc (barre: *BarreDeDéfilement, défilage: r32)
+définis_défilage :: fonc (barre: *Barre_De_Défilement, défilage: r32)
 {
     barre.défilage = défilage;
     si barre.ratio != 0.0 {
@@ -610,7 +610,7 @@ définis_arrière_plan :: fonc (couleur := CouleurRVBA())
     __boite_courante.arrière_plan = couleur;
 }
 
-AncrageFlottante :: énum {
+Ancrage_Flottante :: énum {
     HAUT_GAUCHE;
     HAUT_CENTRE;
     HAUT_DROIT;
@@ -624,13 +624,13 @@ AncrageFlottante :: énum {
 
 Flottance :: struct {
     /* Ancrage par rapport au parent. */
-    ancrage: AncrageFlottante;
+    ancrage: Ancrage_Flottante;
     /* Décalages par rapport à l'ancrage. */
     décalage_x := 0.0;
     décalage_y := 0.0;
 }
 
-définis_flottance :: fonc (décalage_x := 0.0, décalage_y := 0.0, ancrage := AncrageFlottante.HAUT_GAUCHE)
+définis_flottance :: fonc (décalage_x := 0.0, décalage_y := 0.0, ancrage := Ancrage_Flottante.HAUT_GAUCHE)
 {
     assert(__boite_courante != nul);
     emboiteuse := __boite_courante.emboiteuse;
@@ -684,7 +684,7 @@ est_pressée :: fonc () -> bool
 {
     assert(__boite_courante != nul);
     emboiteuse := __boite_courante.emboiteuse;
-    retourne __boite_courante.id == emboiteuse.boite_interagit[TypeRappelUtilisateur.SurPressionSouris];
+    retourne __boite_courante.id == emboiteuse.boite_interagit[Type_Rappel_Utilisateur.SUR_PRESSION_SOURIS];
 }
 
 définis_curseur :: fonc (curseur: TypeCurseurSystème)
@@ -711,7 +711,7 @@ définis_éditrice_texte :: fonc (éditrice_texte: *ÉditriceTexte)
         }
     }
     sansarrêt {
-        tableau_ajoute(*emboiteuse.éditrices_textes, ÉditriceTextePourId(__boite_courante.id, éditrice_texte));
+        tableau_ajoute(*emboiteuse.éditrices_textes, Éditrice_Texte_Pour_Id(__boite_courante.id, éditrice_texte));
     }
 }
 
@@ -732,7 +732,7 @@ définis_éditrice_texte :: fonc (emboiteuse: *Emboiteuse, id: n64, éditrice_te
     }
 
     assert(éditrice_texte != nul);
-    tableau_ajoute(*emboiteuse.éditrices_textes, ÉditriceTextePourId(id, éditrice_texte));
+    tableau_ajoute(*emboiteuse.éditrices_textes, Éditrice_Texte_Pour_Id(id, éditrice_texte));
 }
 
 donne_éditrice_texte :: fonc (emboiteuse: *Emboiteuse, id: n64) -> *ÉditriceTexte
@@ -757,8 +757,8 @@ dispose_curseur_éditrice :: fonc (éditrice: *ÉditriceTexte, couleur: CouleurR
             largeur_caractère := métriques.largeur_moyenne;
 
             rembourrage := donne_rembourrage();
-            rembourrage_x := rembourrage.v[IndiceRectangle.GAUCHE];
-            rembourrage_y := rembourrage.v[IndiceRectangle.HAUT];
+            rembourrage_x := rembourrage.v[Indice_Rectangle.GAUCHE];
+            rembourrage_y := rembourrage.v[Indice_Rectangle.HAUT];
 
             dispose_rectangle();
             {
