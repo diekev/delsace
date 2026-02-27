@@ -3,6 +3,8 @@
 
 #include "constructrice_ri.hh"
 
+#include <algorithm>  // pour rotate
+
 #include "arbre_syntaxique/cas_genre_noeud.hh"
 #include "arbre_syntaxique/infos_types.hh"
 #include "arbre_syntaxique/noeud_expression.hh"
@@ -5004,8 +5006,6 @@ AtomeConstante *CompilatriceRI::crée_constante_pour_chaine(kuri::chaine_statiqu
 
     auto type_chaine = m_espace->typeuse.type_chaine;
 
-    AtomeConstante *constante_chaine;
-
     auto taille_chaine_avec_terminateur = static_cast<int>(chaine.taille() + 1);
 
     auto type_tableau = m_espace->typeuse.type_tableau_fixe(m_espace->typeuse.type_z8,
@@ -5029,7 +5029,8 @@ AtomeConstante *CompilatriceRI::crée_constante_pour_chaine(kuri::chaine_statiqu
     rubriques[0] = pointeur_chaine;
     rubriques[1] = taille_chaine;
 
-    constante_chaine = m_constructrice.crée_constante_structure(type_chaine, std::move(rubriques));
+    auto constante_chaine = m_constructrice.crée_constante_structure(type_chaine,
+                                                                     std::move(rubriques));
 
     table_chaines->insère_constante_pour_chaine(chaine, constante_chaine);
 

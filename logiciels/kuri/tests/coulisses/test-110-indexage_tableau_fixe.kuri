@@ -1,0 +1,46 @@
+principale :: fonc ()
+{
+    test_indexage_par_constante();
+    test_indexage_par_expression();
+}
+
+test_indexage_par_constante :: fonc ()
+{
+    témoin : z32 = 255;
+    a: [2]z32 = ---;
+    a[0] = 7;
+    saufsi a[0] == 7 {
+        exit(1);
+    }
+
+    a[1] = a[0] + 1;
+    saufsi a[1] == 8 {
+        exit(1);
+    }
+    saufsi a[0] == 7 {
+        exit(1);
+    }
+
+    a[1] = 5;
+    saufsi a[0] + a[1] == 12 {
+        exit(1);
+    }
+
+    saufsi témoin == 255 {
+        exit(1);
+    }
+}
+
+test_indexage_par_expression :: fonc () #sans_vlt
+{
+    b := [0, 0];
+    indice : z64 = 0;
+    pour 5 {
+        b[indice] += 1;
+        b[indice + 1] += 1;
+    }
+
+    saufsi b[0] + b[1] == 10 {
+        exit(1);
+    }
+}
