@@ -152,7 +152,7 @@ Tâche OrdonnanceuseTache::tâche_suivante(Tâche &tache_terminee, DrapeauxTache
         }
 
         if (!tâches[i].est_vide()) {
-            return tâches[i].defile();
+            return tâches[i].défile();
         }
     }
 

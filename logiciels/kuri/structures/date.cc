@@ -5,6 +5,8 @@
 
 #include <time.h>
 
+#include "enchaineuse.hh"
+
 #ifdef _MSC_VER
 #    include <windows.h>
 
@@ -150,4 +152,29 @@ Date hui_systeme()
     }
 
     return date;
+}
+
+void imprime_date_format_iso(Date date, Enchaineuse &os)
+{
+#define IMPRIME_AVEC_ZERO(x)                                                                      \
+    if ((x) < 10) {                                                                               \
+        os << '0';                                                                                \
+    }                                                                                             \
+    os << x
+
+    os << date.annee;
+    IMPRIME_AVEC_ZERO(date.mois);
+    IMPRIME_AVEC_ZERO(date.jour);
+    IMPRIME_AVEC_ZERO(date.heure);
+    IMPRIME_AVEC_ZERO(date.minute);
+    IMPRIME_AVEC_ZERO(date.seconde);
+
+#undef IMPRIME_AVEC_ZERO
+}
+
+kuri::chaine imprime_date_format_iso(Date date)
+{
+    Enchaineuse enchaineuse;
+    imprime_date_format_iso(date, enchaineuse);
+    return enchaineuse.chaine();
 }

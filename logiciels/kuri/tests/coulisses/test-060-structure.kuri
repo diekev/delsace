@@ -1,0 +1,22 @@
+Structure :: struct {
+    x: z32 = 1;
+    y: z32 = 2;
+    z: z32 = 3;
+}
+
+principale :: fonc ()
+{
+    a := test_structure_entier();
+    saufsi a == 6 {
+        exit(1);
+    }
+}
+
+test_structure_entier :: fonc () -> z32
+{
+    s : Structure = ---;
+    s.x = 1;
+    s.y = 2;
+    s.z = 3;
+    retourne s.x + s.y + s.z;
+}
