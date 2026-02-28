@@ -691,12 +691,15 @@ struct ConstructriceProgrammeFormeRI {
 
     VisiteuseAtome m_visiteuse_atome{};
 
+    VisiteuseType m_visiteuse_types{};
+
   public:
     ConstructriceProgrammeFormeRI(EspaceDeTravail &espace,
                                   CompilatriceRI &compilatrice_ri,
                                   Programme const &programme)
         : m_espace(espace), m_compilatrice_ri(compilatrice_ri), m_programme(programme)
     {
+        m_visiteuse_types.rappel = [&](Type *type_enfant) { ajoute_type(type_enfant, nullptr); };
     }
 
     std::optional<ProgrammeRepreInter> construis_représentation_intermédiaire_programme();
@@ -708,7 +711,7 @@ struct ConstructriceProgrammeFormeRI {
 
     void ajoute_globale(AtomeGlobale *globale, bool visite_globale);
 
-    void ajoute_type(Type *type, bool visite_type);
+    void ajoute_type(Type *type, VisiteuseType *visiteuse);
 
     void génère_ri_fonction_init_globales(AtomeFonction *fonction);
 
@@ -903,13 +906,13 @@ void ConstructriceProgrammeFormeRI::ajoute_dépendances_fonction(AtomeFonction *
         });
     }
 
-    ajoute_type(const_cast<Type *>(fonction->type), true);
+    ajoute_type(const_cast<Type *>(fonction->type), &m_visiteuse_types);
 
     POUR (fonction->instructions) {
         if (!it->type) {
             continue;
         }
-        ajoute_type(const_cast<Type *>(it->type), true);
+        ajoute_type(const_cast<Type *>(it->type), &m_visiteuse_types);
     }
 }
 
@@ -926,7 +929,7 @@ void ConstructriceProgrammeFormeRI::ajoute_globale(AtomeGlobale *globale, bool v
 
     /* Ces types ne sont pas utiles pour le code machine. */
     if (!est_globale_pour_tableau_données_constantes(globale)) {
-        ajoute_type(const_cast<Type *>(globale->type), true);
+        ajoute_type(const_cast<Type *>(globale->type), &m_visiteuse_types);
     }
 
     if (!visite_globale) {
@@ -947,7 +950,7 @@ void ConstructriceProgrammeFormeRI::ajoute_globale(AtomeGlobale *globale, bool v
     });
 }
 
-void ConstructriceProgrammeFormeRI::ajoute_type(Type *type, bool visite_type)
+void ConstructriceProgrammeFormeRI::ajoute_type(Type *type, VisiteuseType *visiteuse)
 {
     if (m_types_utilisés.possède(type)) {
         return;
@@ -962,14 +965,11 @@ void ConstructriceProgrammeFormeRI::ajoute_type(Type *type, bool visite_type)
         ajoute_globale(type->atome_info_type, true);
     }
 
-    if (!visite_type) {
+    if (!visiteuse) {
         return;
     }
 
-    // dbg() << " visite_type " << chaine_type(type);
-
-    VisiteuseType visiteuse{};
-    visiteuse.visite_type(type, [&](Type *type_enfant) { ajoute_type(type_enfant, false); });
+    visiteuse->visite_type(type);
 }
 
 void ConstructriceProgrammeFormeRI::génère_ri_fonction_init_globales(AtomeFonction *fonction)
@@ -1349,13 +1349,14 @@ void ConstructriceProgrammeFormeRI::supprime_types_inutilisés()
     types_utilisés.pour_chaque_element([&](Type const *type) { types_à_visiter.empile(type); });
 
     VisiteuseType visiteuse{};
+    visiteuse.rappel = [&](Type *tv) {
+        types_à_visiter.empile(tv);
+        types_utilisés.insère(tv);
+    };
     visiteuse.visite_types_fonctions_init = false;
     while (!types_à_visiter.est_vide()) {
         auto type = types_à_visiter.dépile();
-        visiteuse.visite_type(const_cast<Type *>(type), [&](Type *tv) {
-            types_à_visiter.empile(tv);
-            types_utilisés.insère(tv);
-        });
+        visiteuse.visite_type(const_cast<Type *>(type));
     }
 
     auto part_type = kuri::partition_stable(
