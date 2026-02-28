@@ -641,7 +641,7 @@ donne_rect :: fonc (emboiteuse: *Emboiteuse, id: n64) -> RectanglePosDim(r32)
 
 enregistre_barre_de_défilement :: fonc (boite: *Boite_Flexible)
 {
-    saufsi boite.défilage.vertical {
+    saufsi boite.défilage.vertical == Type_Défilage.AUTOMATIQUE {
         retourne;
     }
 
@@ -957,10 +957,10 @@ résoud_cotation_croissante_sur_direction_impl :: fonc (boite: *Boite_Flexible, 
     espace_libre := donne_espace_libre(boite, direction == Direction.Verticale);
 
     si espace_libre < 0.0 {
-        si direction == Direction.Verticale && boite.défilage.vertical {
+        si direction == Direction.Verticale && boite.défilage.vertical != Type_Défilage.AUCUN {
             retourne;
         }
-        si direction == Direction.Horizontale && boite.défilage.horizontal {
+        si direction == Direction.Horizontale && boite.défilage.horizontal != Type_Défilage.AUCUN {
             retourne;
         }
     }
@@ -1130,12 +1130,15 @@ calcule_positions :: fonc (boite: *Boite_Flexible)
         décalage_enfants[boite.disposition.direction] += espace;
     }
 
-    si boite.défilage.vertical && boite.id {
+    si boite.défilage.vertical != Type_Défilage.AUCUN && boite.id {
         boite_disposée := donne_boite_disposée_pour_id(boite.emboiteuse, boite.id);
-        si boite_disposée && est_valide(boite_disposée.barre_de_défilement_verticale) {
+        si boite.défilage.vertical == Type_Défilage.AUTOMATIQUE && boite_disposée && est_valide(boite_disposée.barre_de_défilement_verticale) {
             barre := *boite.emboiteuse.barres_de_défilement[boite_disposée.barre_de_défilement_verticale];
             décalage_enfants[Direction.Verticale] -= barre.défilage;
             boite.barre_de_défilement_verticale = boite_disposée.barre_de_défilement_verticale;
+        }
+        sinon si boite.défilage.vertical == Type_Défilage.MANUEL {
+            décalage_enfants[Direction.Verticale] -= boite.défilage.décalage_vertical;
         }
     }
 
@@ -1355,8 +1358,8 @@ génère_commandes :: fonc (emboiteuse: *Emboiteuse)
         rect.largeur = boite.largeur;
         rect.hauteur = boite.hauteur;
 
-        si boite.défilage.vertical || boite.défilage.horizontal {
-            si boite.défilage.vertical && est_valide(boite.barre_de_défilement_verticale) {
+        si boite.défilage.vertical == Type_Défilage.AUTOMATIQUE || boite.défilage.horizontal == Type_Défilage.AUTOMATIQUE {
+            si boite.défilage.vertical == Type_Défilage.AUTOMATIQUE && est_valide(boite.barre_de_défilement_verticale) {
                 barre := *boite.emboiteuse.barres_de_défilement[boite.barre_de_défilement_verticale];
 
                 hauteur_disponible := (boite.hauteur - boite.disposition.rembourrage.v[1] - boite.disposition.rembourrage.v[3]);
@@ -1423,7 +1426,7 @@ donne_parent_avec_barre_défilage :: fonc (boite: *Boite_Flexible) -> *Boite_Fle
 {
     parent := boite.parent;
     tantque parent != nul {
-        si parent.défilage.vertical || parent.défilage.horizontal {
+        si parent.défilage.vertical != Type_Défilage.AUCUN || parent.défilage.horizontal != Type_Défilage.AUCUN {
             arrête;
         }
         parent = parent.parent;
@@ -1440,7 +1443,7 @@ donne_rect_ciselage_défilage :: fonc (boite: *Boite_Flexible) -> RectanglePosDi
     rect_ciselage.largeur = boite.largeur;
     rect_ciselage.hauteur = boite.hauteur;
 
-    si boite.défilage.vertical {
+    si boite.défilage.vertical == Type_Défilage.AUTOMATIQUE {
         rect_ciselage.largeur -= boite.défilage.largeur_verticale;
     }
 
