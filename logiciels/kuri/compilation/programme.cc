@@ -1280,30 +1280,14 @@ void ConstructriceProgrammeFormeRI::supprime_fonctions_inutilisées()
         fonction_à_visiter.empile(it);
     }
 
-    m_visiteuse_atome.réinitialise();
     POUR (m_résultat.globales) {
-        if (peut_ignorer_globale_pour_chercher_fonction(it)) {
-            continue;
+        POUR (it->fonctions_utilisées) {
+            fonction_à_visiter.empile(it);
         }
-        m_visiteuse_atome.visite_atome(it, [&](Atome *atome) {
-            if (atome->est_globale()) {
-                if (peut_ignorer_globale_pour_chercher_fonction(atome->comme_globale())) {
-                    return DécisionVisiteAtome::ARRÊTE;
-                }
-                return DécisionVisiteAtome::CONTINUE;
-            }
-
-            if (atome->est_fonction()) {
-                fonction_à_visiter.empile(atome->comme_fonction());
-                return DécisionVisiteAtome::ARRÊTE;
-            }
-            return DécisionVisiteAtome::CONTINUE;
-        });
     }
 
     kuri::tableau<AtomeFonction *> fonctions_utilisées;
     kuri::ensemble<AtomeFonction *> fonctions_visitées;
-    m_visiteuse_atome.réinitialise();
     while (!fonction_à_visiter.est_vide()) {
         auto fonction = fonction_à_visiter.dépile();
         if (fonctions_visitées.possède(fonction)) {
@@ -1312,15 +1296,9 @@ void ConstructriceProgrammeFormeRI::supprime_fonctions_inutilisées()
 
         fonctions_visitées.insère(fonction);
         fonctions_utilisées.ajoute(fonction);
-        m_visiteuse_atome.réinitialise();
 
-        POUR (fonction->instructions) {
-            m_visiteuse_atome.visite_atome(it, [&](Atome *atome) {
-                if (atome->est_fonction()) {
-                    fonction_à_visiter.empile(atome->comme_fonction());
-                }
-                return DécisionVisiteAtome::CONTINUE;
-            });
+        POUR (fonction->fonctions_utilisées) {
+            fonction_à_visiter.empile(it);
         }
     }
 
