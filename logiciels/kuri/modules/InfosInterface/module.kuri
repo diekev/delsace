@@ -98,6 +98,14 @@ EspaceDisponible :: struct {
     hauteur: n32;
 }
 
+donne_espace_rappetissé :: fonc (espace: EspaceDisponible, par: n32) -> EspaceDisponible
+{
+    résultat := espace;
+    résultat.largeur = soustraction_sure(espace.largeur, par * 2);
+    résultat.hauteur = soustraction_sure(espace.hauteur, par * 2);
+    retourne résultat;
+}
+
 enlève_hauteur :: fonc (espace: EspaceDisponible, delta: n32) -> EspaceDisponible
 {
     espace.hauteur = soustraction_sure(espace.hauteur, delta);

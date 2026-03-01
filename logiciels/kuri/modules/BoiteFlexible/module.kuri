@@ -820,9 +820,7 @@ ajoute_défilage_vertical :: fonc (espace: *EspaceDisponible, largeur_barre: n32
 ajoute_rembourage :: fonc (espace: EspaceDisponible, rembourrage: $T) -> EspaceDisponible
 {
     définis_rembourrage(RembourrageUniforme(rembourrage comme r32));
-    espace.largeur = soustraction_sure(espace.largeur, (rembourrage * 2) comme n32);
-    espace.hauteur = soustraction_sure(espace.hauteur, (rembourrage * 2) comme n32);
-    retourne espace;
+    retourne donne_espace_rappetissé(espace, rembourrage comme n32);
 }
 
 dispose_séparateur_horizontal :: fonc (largeur: n32 = 0, hauteur := 0)
