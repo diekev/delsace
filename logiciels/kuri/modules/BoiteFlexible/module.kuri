@@ -613,6 +613,44 @@ définis_défilage :: fonc (barre: *Barre_De_Défilement, défilage: r32)
     }
 }
 
+// Ajourne le ratio de la barre selon les nouvelles cotations
+// pour les espaces requis et visible.
+//
+// +--------------------------+
+// |                        / | \
+// |                       |  |  |
+// |     cotation_visible <   |  |
+// |                       |  |  |
+// |                        \ |  |
+// +--------------------------+  |
+// |                          |  |
+// |                          |   > cotation_requise
+// |                          |  |
+// |                          |  |
+// |                          |  |
+// |                          |  |
+// |                          |  |
+// |                          |  |
+// |                          | /
+// +--------------------------+
+ajourne_ratio :: fonc (barre: *Barre_De_Défilement, cotation_visible: r32, cotation_requise: r32)
+{
+    si cotation_requise > cotation_visible {
+        ratio := cotation_visible / cotation_requise;
+
+        barre.ratio = ratio;
+        barre.défilage_max = cotation_requise - cotation_visible;
+        si barre.défilage > barre.défilage_max {
+            barre.défilage = barre.défilage_max;
+        }
+    }
+    sinon {
+        barre.ratio = 1.0;
+        barre.défilage_max = 0.0;
+        barre.défilage = 0.0;
+    }
+}
+
 définis_arrière_plan :: fonc (r: r32, v: r32, b: r32, a: r32)
 {
     définis_arrière_plan(CouleurRVBA(r, v, b, a));
