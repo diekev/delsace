@@ -31,13 +31,18 @@ principale :: fonc ()
         BlackPixel(d, s),
         WhitePixel(d, s));
 
-    _ := XSelectInput(d, w, ExposureMask | KeyPressMask);
+    _ := XSelectInput(d, w, ExposureMask | KeyPressMask | PointerMotionMask);
     _ := XMapWindow(d, w);
 
     gc_défaut := DefaultGC(d, s);
 
     wm_delete_window := XInternAtom(d, "WM_DELETE_WINDOW".pointeur, False);
     _ := XSetWMProtocols(d, w, *wm_delete_window, 1);
+
+    _NET_WM_XAPP_PROGRESS := XInternAtom(d, "_NET_WM_XAPP_PROGRESS".pointeur, False);
+    _NET_WM_XAPP_PROGRESS_PULSE := XInternAtom(d, "_NET_WM_XAPP_PROGRESS_PULSE".pointeur, False);
+
+    progrès := 0;
 
     boucle {
         e: _XEvent;
@@ -58,5 +63,31 @@ principale :: fonc ()
         si e.type == KeyPress {
             arrête;
         }
+
+        si progrès <= 100 {
+            progrès_courant := progrès;
+            _ := définis_propriété_cardinale(d, w, _NET_WM_XAPP_PROGRESS, progrès_courant);
+            _ := définis_propriété_cardinale(d, w, _NET_WM_XAPP_PROGRESS_PULSE, 0);
+        }
+        sinon {
+            _ := définis_propriété_cardinale(d, w, _NET_WM_XAPP_PROGRESS, 0);
+            _ := définis_propriété_cardinale(d, w, _NET_WM_XAPP_PROGRESS_PULSE, 1);
+        }
+
+        progrès += 1;
     }
+}
+
+définis_propriété_cardinale :: fonc (display: *Display, window: Window, hint: Atom, cardinal: z32) -> bool
+{
+    résultat: z32;
+
+    si cardinal > 0 {
+        résultat = XChangeProperty(display, window, hint, XA_CARDINAL, 32, PropModeReplace, *cardinal comme *n8, 1);
+    }
+    sinon {
+        résultat = XDeleteProperty(display, window, hint);
+    }
+
+    retourne résultat == 1;
 }
