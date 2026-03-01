@@ -817,15 +817,6 @@ ajoute_défilage_vertical :: fonc (espace: *EspaceDisponible, largeur_barre: n32
     espace.largeur = soustraction_sure(espace.largeur, largeur_barre);
 }
 
-soustraction_sure :: fonc (valeur: n32, à_soustraire: n32) -> n32 #enligne
-{
-    résultat: n32;
-    si valeur >= à_soustraire {
-        résultat = valeur - à_soustraire;
-    }
-    retourne résultat;
-}
-
 ajoute_rembourage :: fonc (espace: EspaceDisponible, rembourrage: $T) -> EspaceDisponible
 {
     définis_rembourrage(RembourrageUniforme(rembourrage comme r32));
