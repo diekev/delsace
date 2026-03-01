@@ -36,6 +36,9 @@ principale :: fonc ()
 
     gc_défaut := DefaultGC(d, s);
 
+    wm_delete_window := XInternAtom(d, "WM_DELETE_WINDOW".pointeur, False);
+    _ := XSetWMProtocols(d, w, *wm_delete_window, 1);
+
     boucle {
         e: _XEvent;
         _ := XNextEvent(d, *e);
@@ -43,6 +46,13 @@ principale :: fonc ()
         si e.type == Expose {
             _ := XFillRectangle(d, w, gc_défaut, 20, 20, 10, 10);
             _ := XDrawString(d, w, gc_défaut, 10, 50, msg.pointeur, msg.taille comme z32);
+        }
+        sinon si e.type == ClientMessage {
+            data := e.xclient.data.l;
+            atome := data[0] comme Atom;
+            si atome == wm_delete_window {
+                arrête;
+            }
         }
 
         si e.type == KeyPress {
