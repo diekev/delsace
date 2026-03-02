@@ -334,6 +334,7 @@ struct CompilatriceRI {
     kuri::tableau<NoeudExpression *> m_instructions_diffères{};
 
     AtomeFonction *m_fonction_courante = nullptr;
+    AtomeGlobale *m_globale_courante = nullptr;
 
     /* Il est possible qu'une boucle retourne tout le temps ou soit infinie,
      * ou qu'un arbre de décision retourne tout le temps.
