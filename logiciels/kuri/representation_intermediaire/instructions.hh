@@ -330,6 +330,8 @@ struct AtomeGlobale : public AtomeConstante {
 
     NoeudDéclarationVariable *decl = nullptr;
 
+    kuri::tableau<AtomeFonction *> fonctions_utilisées{};
+
     EMPECHE_COPIE(AtomeGlobale);
 
     AtomeGlobale(IdentifiantCode *ident_,
@@ -399,6 +401,8 @@ struct AtomeFonction : public AtomeConstante {
     InstructionAllocation *param_sortie = nullptr;
 
     kuri::tableau<Instruction *, int> instructions{};
+
+    kuri::tableau<AtomeFonction *> fonctions_utilisées{};
 
     bool sanstrace = false;
     bool est_externe = false;

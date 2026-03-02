@@ -1807,7 +1807,7 @@ donne_tabuleuse_debug_line :: fonc (fichier: *Fichier_Ouvert, fonte: *Fonte, tab
 /** \nom Utilitaires interface.
  * \{ */
 
-dispose_rectangle_défilable :: fonc (espace_disponible: EspaceDisponible, couleur: CouleurRVBA, décalage_vertical := 0) -> (EspaceDisponible, *BarreDeDéfilement)
+dispose_rectangle_défilable :: fonc (espace_disponible: EspaceDisponible, couleur: CouleurRVBA, décalage_vertical := 0) -> (EspaceDisponible, *Barre_De_Défilement)
 {
     /* Rectangle parent. */
     dispose_rectangle();

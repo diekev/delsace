@@ -12,7 +12,7 @@ importe Typographie;
 #portée_module
 
 /* ------------------------------------------------------------------------- */
-/** \nom BoiteFlexible
+/** \nom Boite_Flexible
  * \{ */
 
 BIT_COTATION_FIXE :: (1 << 17);
@@ -55,7 +55,7 @@ donne_configuration_bordure_courante :: fonc () -> *ConfigurationBordure
     retourne config;
 }
 
-définis_bordure_courante :: fonc (largeur: r32, couleur: CouleurRVBA, indice: IndiceRectangle)
+définis_bordure_courante :: fonc (largeur: r32, couleur: CouleurRVBA, indice: Indice_Rectangle)
 {
     config := donne_configuration_bordure_courante();
     si config {
@@ -73,7 +73,7 @@ est_valide :: fonc (indice: IndexFlottance) -> bool #enligne
     retourne indice comme n16 != FLOTTANCE_INVALIDE comme n16;
 }
 
-BoiteFlexible :: struct {
+Boite_Flexible :: struct {
     Type :: énum n8 {
         Normale;
         Image;
@@ -83,8 +83,8 @@ BoiteFlexible :: struct {
     }
 
     emboiteuse: *Emboiteuse;
-    parent: *BoiteFlexible;
-    enfants: [..]*BoiteFlexible;
+    parent: *Boite_Flexible;
+    enfants: [..]*Boite_Flexible;
 
     id: n64;
     type: Type;
@@ -114,11 +114,11 @@ BoiteFlexible :: struct {
     flottance := FLOTTANCE_INVALIDE;
 
     /* Rappels */
-    rappels: [TypeRappelUtilisateur.nombre_éléments]n32;
+    rappels: [Type_Rappel_Utilisateur.nombre_éléments]n32;
 
     /* mémoire vive */
-    barre_de_défilement_verticale := INDEX_BARRE_DÉFILEMENT_INVALIDE;
-    barre_de_défilement_horizontale := INDEX_BARRE_DÉFILEMENT_INVALIDE;
+    barre_de_défilement_verticale := INDICE_BARRE_DÉFILEMENT_INVALIDE;
+    barre_de_défilement_horizontale := INDICE_BARRE_DÉFILEMENT_INVALIDE;
 
     /* Valeurs calculées. */
     position: Point2D(r32);
@@ -131,7 +131,7 @@ BoiteFlexible :: struct {
     taille_min: [2]r32;
 }
 
-donne_cotation :: fonc (boite: *BoiteFlexible, direction: Direction) -> z32
+donne_cotation :: fonc (boite: *Boite_Flexible, direction: Direction) -> z32
 {
     si direction == Direction.Horizontale {
         retourne donne_cotation(boite.disposition.cotation.largeur);
@@ -139,7 +139,7 @@ donne_cotation :: fonc (boite: *BoiteFlexible, direction: Direction) -> z32
     retourne donne_cotation(boite.disposition.cotation.hauteur);
 }
 
-donne_cotation_min :: fonc (boite: *BoiteFlexible, direction: Direction) -> n32
+donne_cotation_min :: fonc (boite: *Boite_Flexible, direction: Direction) -> n32
 {
     si direction == Direction.Horizontale {
         retourne boite.disposition.cotation.largeur_min;
@@ -147,7 +147,7 @@ donne_cotation_min :: fonc (boite: *BoiteFlexible, direction: Direction) -> n32
     retourne boite.disposition.cotation.hauteur_min;
 }
 
-donne_cotation_max :: fonc (boite: *BoiteFlexible, direction: Direction) -> n32
+donne_cotation_max :: fonc (boite: *Boite_Flexible, direction: Direction) -> n32
 {
     si direction == Direction.Horizontale {
         retourne boite.disposition.cotation.largeur_max;
@@ -155,7 +155,7 @@ donne_cotation_max :: fonc (boite: *BoiteFlexible, direction: Direction) -> n32
     retourne boite.disposition.cotation.hauteur_max;
 }
 
-est_cotation_fixe :: fonc (boite: *BoiteFlexible, direction: Direction) -> bool
+est_cotation_fixe :: fonc (boite: *Boite_Flexible, direction: Direction) -> bool
 {
     si direction == Direction.Horizontale {
         retourne est_cotation_fixe(boite.disposition.cotation.largeur);
@@ -163,7 +163,7 @@ est_cotation_fixe :: fonc (boite: *BoiteFlexible, direction: Direction) -> bool
     retourne est_cotation_fixe(boite.disposition.cotation.hauteur);
 }
 
-est_cotation_croissante :: fonc (boite: *BoiteFlexible, direction: Direction) -> bool
+est_cotation_croissante :: fonc (boite: *Boite_Flexible, direction: Direction) -> bool
 {
     si direction == Direction.Horizontale {
         retourne est_cotation_croissante(boite.disposition.cotation.largeur);
@@ -171,7 +171,7 @@ est_cotation_croissante :: fonc (boite: *BoiteFlexible, direction: Direction) ->
     retourne est_cotation_croissante(boite.disposition.cotation.hauteur);
 }
 
-donne_taille :: fonc (boite: *BoiteFlexible, direction: Direction) -> r32
+donne_taille :: fonc (boite: *Boite_Flexible, direction: Direction) -> r32
 {
     si direction == Direction.Horizontale {
         retourne boite.largeur;
@@ -179,7 +179,7 @@ donne_taille :: fonc (boite: *BoiteFlexible, direction: Direction) -> r32
     retourne boite.hauteur;
 }
 
-définis_taille :: fonc (boite: *BoiteFlexible, direction: Direction, valeur: r32)
+définis_taille :: fonc (boite: *Boite_Flexible, direction: Direction, valeur: r32)
 {
     si direction == Direction.Horizontale {
         boite.largeur = valeur;
@@ -188,7 +188,7 @@ définis_taille :: fonc (boite: *BoiteFlexible, direction: Direction, valeur: r3
     boite.hauteur = valeur;
 }
 
-définis_taille_au_max :: fonc (boite: *BoiteFlexible, direction: Direction, valeur: r32)
+définis_taille_au_max :: fonc (boite: *Boite_Flexible, direction: Direction, valeur: r32)
 {
     si direction == Direction.Horizontale {
         boite.largeur = max(boite.largeur, valeur);
@@ -198,7 +198,7 @@ définis_taille_au_max :: fonc (boite: *BoiteFlexible, direction: Direction, val
     }
 }
 
-donne_rembourrage :: fonc (boite: *BoiteFlexible, direction: Direction) -> r32
+donne_rembourrage :: fonc (boite: *Boite_Flexible, direction: Direction) -> r32
 {
     si direction == Direction.Horizontale {
         retourne boite.disposition.rembourrage.v[0] + boite.disposition.rembourrage.v[2];
@@ -206,7 +206,7 @@ donne_rembourrage :: fonc (boite: *BoiteFlexible, direction: Direction) -> r32
     retourne boite.disposition.rembourrage.v[1] + boite.disposition.rembourrage.v[3];
 }
 
-agrandis_par :: fonc (boite: *BoiteFlexible, direction: Direction, valeur: r32)
+agrandis_par :: fonc (boite: *Boite_Flexible, direction: Direction, valeur: r32)
 {
     si direction == Direction.Horizontale {
         boite.largeur += valeur;
@@ -216,7 +216,7 @@ agrandis_par :: fonc (boite: *BoiteFlexible, direction: Direction, valeur: r32)
     }
 }
 
-donne_alignement :: fonc (boite: *BoiteFlexible, direction: Direction) -> AlignementEnfant
+donne_alignement :: fonc (boite: *Boite_Flexible, direction: Direction) -> AlignementEnfant
 {
     si direction == Direction.Horizontale {
         retourne boite.disposition.alignement_horizontal;
@@ -224,18 +224,18 @@ donne_alignement :: fonc (boite: *BoiteFlexible, direction: Direction) -> Aligne
     retourne boite.disposition.alignement_vertical;
 }
 
-réinitialise :: fonc (boite: *BoiteFlexible)
+réinitialise :: fonc (boite: *Boite_Flexible)
 {
     enfants := boite.enfants;
     enfants.taille = 0;
 
-    init_de(BoiteFlexible)(boite);
+    init_de(Boite_Flexible)(boite);
     boite.enfants = enfants;
 }
 
-ajoute_enfant :: fonc (boite: *BoiteFlexible) -> *BoiteFlexible
+ajoute_enfant :: fonc (boite: *Boite_Flexible) -> *Boite_Flexible
 {
-    assert(boite.type == BoiteFlexible.Type.Normale);
+    assert(boite.type == Boite_Flexible.Type.Normale);
     enfant := crée_boite(boite.emboiteuse);
     enfant.parent = boite;
     enfant.profondeur = boite.profondeur + 1;
@@ -244,42 +244,42 @@ ajoute_enfant :: fonc (boite: *BoiteFlexible) -> *BoiteFlexible
     retourne enfant;
 }
 
-ajoute_image :: fonc (boite: *BoiteFlexible, image: NouvelleImage) -> *BoiteFlexible
+ajoute_image :: fonc (boite: *Boite_Flexible, image: NouvelleImage) -> *Boite_Flexible
 {
     enfant := ajoute_enfant(boite);
-    enfant.type = BoiteFlexible.Type.Image;
+    enfant.type = Boite_Flexible.Type.Image;
     enfant.image = image;
     retourne enfant;
 }
 
-ajoute_procédure :: fonc (boite: *BoiteFlexible, procédure: fonc (données_procédure: *rien, rect: RectanglePosDim(r32)), données_procédure: *rien) -> *BoiteFlexible
+ajoute_procédure :: fonc (boite: *Boite_Flexible, procédure: fonc (données_procédure: *rien, rect: RectanglePosDim(r32)), données_procédure: *rien) -> *Boite_Flexible
 {
     enfant := ajoute_enfant(boite);
-    enfant.type = BoiteFlexible.Type.Procédure;
+    enfant.type = Boite_Flexible.Type.Procédure;
     enfant.procédure = procédure;
     enfant.données_procédure = données_procédure;
     retourne enfant;
 }
 
-ajoute_texte :: fonc (boite: *BoiteFlexible, fonte: *Fonte, texte: chaine) -> *BoiteFlexible
+ajoute_texte :: fonc (boite: *Boite_Flexible, fonte: *Fonte, texte: chaine) -> *Boite_Flexible
 {
     enfant := ajoute_enfant(boite);
-    enfant.type = BoiteFlexible.Type.Texte;
+    enfant.type = Boite_Flexible.Type.Texte;
     enfant.config_texte.fonte = fonte;
     enfant.texte = texte;
     retourne enfant;
 }
 
-ajoute_texte :: fonc (boite: *BoiteFlexible, fonte: *Fonte, texte: ChaineUTF32) -> *BoiteFlexible
+ajoute_texte :: fonc (boite: *Boite_Flexible, fonte: *Fonte, texte: ChaineUTF32) -> *Boite_Flexible
 {
     enfant := ajoute_enfant(boite);
-    enfant.type = BoiteFlexible.Type.TexteUTF32;
+    enfant.type = Boite_Flexible.Type.TexteUTF32;
     enfant.config_texte.fonte = fonte;
     enfant.texte_utf32 = texte;
     retourne enfant;
 }
 
-définis_rappel :: fonc (boite: *BoiteFlexible, type: TypeRappelUtilisateur, rappel: TypeRappelSouris, données: *rien, indice: z32, doit_être_premier: bool)
+définis_rappel :: fonc (boite: *Boite_Flexible, type: Type_Rappel_Utilisateur, rappel: TypeRappelSouris, données: *rien, indice: z32, doit_être_premier: bool)
 {
     emboiteuse := boite.emboiteuse;
 
@@ -350,56 +350,56 @@ rappel_pression_souris_pour_barre_de_défilage :: fonc (emboiteuse: *Emboiteuse,
 /** \nom
  * \{ */
 
-FragmentTexte :: struct {
+Fragment_Texte :: struct {
     texte: chaine;
     largeur: r32;
     est_espace_blanche: bool;
 }
 
-IndexBarreDeDéfilement :: #opaque n16;
-INDEX_BARRE_DÉFILEMENT_INVALIDE :: IndexBarreDeDéfilement(-1 comme n16);
+Indice_Barre_De_Défilement :: #opaque n16;
+INDICE_BARRE_DÉFILEMENT_INVALIDE :: Indice_Barre_De_Défilement(-1 comme n16);
 
-est_valide :: fonc (indice: IndexBarreDeDéfilement) -> bool
+est_valide :: fonc (indice: Indice_Barre_De_Défilement) -> bool
 {
-    retourne indice comme n16 != INDEX_BARRE_DÉFILEMENT_INVALIDE comme n16;
+    retourne indice comme n16 != INDICE_BARRE_DÉFILEMENT_INVALIDE comme n16;
 }
 
-TypeRappelUtilisateur :: énum {
-    SurPressionSouris;
-    SurRelâchementSouris;
-    SurClicSouris;
-    SurDoubleClicSouris;
-    SurMoletteSouris;
+Type_Rappel_Utilisateur :: énum {
+    SUR_PRESSION_SOURIS;
+    SUR_RELÂCHEMENT_SOURIS;
+    SUR_CLIC_SOURIS;
+    SUR_DOUBLE_CLIC_SOURIS;
+    SUR_MOLETTE_SOURIS;
 }
 
-RappelUtilisateur :: struct {
+Rappel_Utilisateur :: struct {
     rappel: TypeRappelSouris;
     données_utilisateur: *rien;
     indice_utilisateur: z32;
     suivant: n32;
 }
 
-BoiteDisposée :: struct {
+Boite_Disposée :: struct {
     parent : z32 = -1;
     premier_enfant: z32 = -1;
     puiné : z32 = -1;
 
     id: n64;
     // est_taggée: bool
-    // type: BoiteFlexible.Type
+    // type: Boite_Flexible.Type
     // id_débogage: chaine
     profondeur: z32;
     rect: RectanglePosDim(r32);
-    barre_de_défilement_verticale := INDEX_BARRE_DÉFILEMENT_INVALIDE;
-    barre_de_défilement_horizontale := INDEX_BARRE_DÉFILEMENT_INVALIDE;
+    barre_de_défilement_verticale := INDICE_BARRE_DÉFILEMENT_INVALIDE;
+    barre_de_défilement_horizontale := INDICE_BARRE_DÉFILEMENT_INVALIDE;
     est_flottante: bool;
 
     curseur: TypeCurseurSystème;
 
-    rappels: [TypeRappelUtilisateur.nombre_éléments]n32;
+    rappels: [Type_Rappel_Utilisateur.nombre_éléments]n32;
 }
 
-appel_rappel :: fonc (emboiteuse: *Emboiteuse, boite: *BoiteDisposée, type: TypeRappelUtilisateur, souris: ClicSouris) -> Optionnel(ÉtatÉvènement)
+appel_rappel :: fonc (emboiteuse: *Emboiteuse, boite: *Boite_Disposée, type: Type_Rappel_Utilisateur, souris: ClicSouris) -> Optionnel(ÉtatÉvènement)
 {
     résultat: Optionnel(ÉtatÉvènement);
 
@@ -417,14 +417,14 @@ appel_rappel :: fonc (emboiteuse: *Emboiteuse, boite: *BoiteDisposée, type: Typ
     retourne résultat;
 }
 
-GuetteuseBarreDéfilage :: struct {
+Guetteuse_Barre_Défilage :: struct {
     empl base: Guetteuse;
 
     emboiteuse: *Emboiteuse;
     indice_barre: z32;
     souris_orig_x: r32;
     souris_orig_y: r32;
-    barre_orig: BarreDeDéfilement;
+    barre_orig: Barre_De_Défilement;
 
     sur_termine_guettage = guetteuse_barre_défilage_sur_termine_guettage;
     sur_déplacement_souris = guetteuse_barre_défilage_sur_déplacement_souris;
@@ -444,13 +444,13 @@ commence_guettage_barre :: fonc (emboiteuse: *Emboiteuse, indice_barre: z32)
 
 guetteuse_barre_défilage_sur_termine_guettage :: fonc (base: *Guetteuse)
 {
-    empl guetteuse := base comme *GuetteuseBarreDéfilage;
+    empl guetteuse := base comme *Guetteuse_Barre_Défilage;
     emboiteuse.guetteuse_courante = nul;
 }
 
 guetteuse_barre_défilage_sur_déplacement_souris :: fonc (base: *Guetteuse, souris: ÉtatSouris) -> ÉtatÉvènement
 {
-    empl guetteuse := base comme *GuetteuseBarreDéfilage;
+    empl guetteuse := base comme *Guetteuse_Barre_Défilage;
 
     barre := *emboiteuse.barres_de_défilement[indice_barre];
 
@@ -472,7 +472,7 @@ guetteuse_barre_défilage_sur_déplacement_souris :: fonc (base: *Guetteuse, sou
 
 guetteuse_barre_défilage_sur_clic :: fonc (base: *Guetteuse, clic: ClicSouris) -> ÉtatÉvènement
 {
-    empl guetteuse := base comme *GuetteuseBarreDéfilage;
+    empl guetteuse := base comme *Guetteuse_Barre_Défilage;
 
     résultat := ÉtatÉvènement.PASSE_AU_PARENT;
 
@@ -486,7 +486,7 @@ guetteuse_barre_défilage_sur_clic :: fonc (base: *Guetteuse, clic: ClicSouris) 
     retourne résultat;
 }
 
-__boite_courante : *BoiteFlexible = nul;
+__boite_courante : *Boite_Flexible = nul;
 
 réinitialise :: fonc (emboiteuse: *Emboiteuse)
 {
@@ -518,7 +518,7 @@ ajoute_flottance :: fonc (emboiteuse: *Emboiteuse, flottance: Flottance) -> Inde
     retourne résultat;
 }
 
-donne_barre_de_défilement :: fonc (boite: *BoiteFlexible, direction: Direction) -> (*BarreDeDéfilement, IndexBarreDeDéfilement)
+donne_barre_de_défilement :: fonc (boite: *Boite_Flexible, direction: Direction) -> (*Barre_De_Défilement, Indice_Barre_De_Défilement)
 {
     indice := si direction == Direction.Verticale {
         *boite.barre_de_défilement_verticale;
@@ -531,26 +531,26 @@ donne_barre_de_défilement :: fonc (boite: *BoiteFlexible, direction: Direction)
     retourne résultat, mémoire(indice);
 }
 
-donne_ou_crée_barre :: fonc (emboiteuse: *Emboiteuse, indice: *IndexBarreDeDéfilement) -> *BarreDeDéfilement
+donne_ou_crée_barre :: fonc (emboiteuse: *Emboiteuse, indice: *Indice_Barre_De_Défilement) -> *Barre_De_Défilement
 {
     si est_valide(mémoire(indice)) {
         retourne *emboiteuse.barres_de_défilement[mémoire(indice)];
     }
 
-    mémoire(indice) = IndexBarreDeDéfilement((emboiteuse.barres_de_défilement.taille) comme n16);
+    mémoire(indice) = Indice_Barre_De_Défilement((emboiteuse.barres_de_défilement.taille) comme n16);
     retourne tableau_ajoute_élément(*emboiteuse.barres_de_défilement);
 }
 
-crée_boite :: fonc (emboiteuse: *Emboiteuse) -> *BoiteFlexible
+crée_boite :: fonc (emboiteuse: *Emboiteuse) -> *Boite_Flexible
 {
-    résultat: *BoiteFlexible;
+    résultat: *Boite_Flexible;
 
     si emboiteuse.boites_libres {
         résultat = emboiteuse.boites_libres[emboiteuse.boites_libres.taille - 1];
         emboiteuse.boites_libres.taille -= 1;
     }
     sinon {
-        résultat = loge(BoiteFlexible);
+        résultat = loge(Boite_Flexible);
     }
 
     saufsi emboiteuse.racine {
@@ -573,16 +573,16 @@ enregistre_disposition :: fonc (emboiteuse: *Emboiteuse)
     enregistre_disposition(emboiteuse, emboiteuse.racine, -1);
 }
 
-enregistre_disposition :: fonc (emboiteuse: *Emboiteuse, boite: *BoiteFlexible, parent: z32)
+enregistre_disposition :: fonc (emboiteuse: *Emboiteuse, boite: *Boite_Flexible, parent: z32)
 {
     enregistre_barre_de_défilement(boite);
 
     indice_boite_disposée := emboiteuse.boites_disposées.taille comme z32;
 
-    si boite.barre_de_défilement_verticale != INDEX_BARRE_DÉFILEMENT_INVALIDE {
+    si boite.barre_de_défilement_verticale != INDICE_BARRE_DÉFILEMENT_INVALIDE {
         // À FAIRE : défilage horizontal
-        définis_rappel(boite, TypeRappelUtilisateur.SurMoletteSouris, rappel_molette_souris_pour_barre_de_défilage, emboiteuse, boite.barre_de_défilement_verticale comme n16 comme z32, vrai);
-        définis_rappel(boite, TypeRappelUtilisateur.SurPressionSouris, rappel_pression_souris_pour_barre_de_défilage, emboiteuse, boite.barre_de_défilement_verticale comme n16 comme z32, vrai);
+        définis_rappel(boite, Type_Rappel_Utilisateur.SUR_MOLETTE_SOURIS, rappel_molette_souris_pour_barre_de_défilage, emboiteuse, boite.barre_de_défilement_verticale comme n16 comme z32, vrai);
+        définis_rappel(boite, Type_Rappel_Utilisateur.SUR_PRESSION_SOURIS, rappel_pression_souris_pour_barre_de_défilage, emboiteuse, boite.barre_de_défilement_verticale comme n16 comme z32, vrai);
     }
 
     boite_disposée := tableau_ajoute_élément(*emboiteuse.boites_disposées);
@@ -606,7 +606,7 @@ enregistre_disposition :: fonc (emboiteuse: *Emboiteuse, boite: *BoiteFlexible, 
 
     pour boite.enfants {
         /* À FAIRE : inclus les textes. */
-        si it.type == BoiteFlexible.Type.Texte || it.type == BoiteFlexible.Type.TexteUTF32 {
+        si it.type == Boite_Flexible.Type.Texte || it.type == Boite_Flexible.Type.TexteUTF32 {
             continue;
         }
 
@@ -639,9 +639,9 @@ donne_rect :: fonc (emboiteuse: *Emboiteuse, id: n64) -> RectanglePosDim(r32)
     retourne RectanglePosDim(r32)();
 }
 
-enregistre_barre_de_défilement :: fonc (boite: *BoiteFlexible)
+enregistre_barre_de_défilement :: fonc (boite: *Boite_Flexible)
 {
-    saufsi boite.défilage.vertical {
+    saufsi boite.défilage.vertical == Type_Défilage.AUTOMATIQUE {
         retourne;
     }
 
@@ -650,24 +650,17 @@ enregistre_barre_de_défilement :: fonc (boite: *BoiteFlexible)
 
     si hauteur_enfants <= hauteur_disponible {
         // À FAIRE : libère la mémoire
-        boite.barre_de_défilement_verticale = INDEX_BARRE_DÉFILEMENT_INVALIDE;
+        boite.barre_de_défilement_verticale = INDICE_BARRE_DÉFILEMENT_INVALIDE;
         retourne;
     }
 
     barre, indice_barre := donne_barre_de_défilement(boite, Direction.Verticale);
     barre.direction = Direction.Verticale;
 
-    nouveau_défilage_max := hauteur_enfants - hauteur_disponible;
-    nouveau_ratio := hauteur_disponible / hauteur_enfants;
-
-    barre.défilage_max = nouveau_défilage_max;
-    barre.ratio = nouveau_ratio;
-    si barre.défilage > barre.défilage_max {
-        barre.défilage = barre.défilage_max;
-    }
+    ajourne_ratio(barre, hauteur_disponible, hauteur_enfants);
 }
 
-sur_évènement_souris :: fonc (emboiteuse: *Emboiteuse, type: TypeRappelUtilisateur, souris: ClicSouris)
+sur_évènement_souris :: fonc (emboiteuse: *Emboiteuse, type: Type_Rappel_Utilisateur, souris: ClicSouris)
 {
     définis_position_souris(emboiteuse, souris);
 
@@ -692,7 +685,7 @@ sur_évènement_souris :: fonc (emboiteuse: *Emboiteuse, type: TypeRappelUtilisa
     }
 }
 
-donne_boite_disposée_pour_id :: fonc (emboiteuse: *Emboiteuse, id: n64) -> *BoiteDisposée
+donne_boite_disposée_pour_id :: fonc (emboiteuse: *Emboiteuse, id: n64) -> *Boite_Disposée
 {
     si emboiteuse.boites_disposées.taille == 0 {
         retourne nul;
@@ -707,7 +700,7 @@ donne_boite_disposée_pour_id :: fonc (emboiteuse: *Emboiteuse, id: n64) -> *Boi
     retourne nul;
 }
 
-donne_boite_sous_souris :: fonc (emboiteuse: *Emboiteuse, ignore_boite: *BoiteDisposée = nul) -> *BoiteDisposée
+donne_boite_sous_souris :: fonc (emboiteuse: *Emboiteuse, ignore_boite: *Boite_Disposée = nul) -> *Boite_Disposée
 {
     si emboiteuse.boites_disposées.taille == 0 {
         retourne nul;
@@ -761,7 +754,7 @@ donne_boite_sous_souris :: fonc (emboiteuse: *Emboiteuse, ignore_boite: *BoiteDi
     retourne boite_courante;
 }
 
-fragmente_texte :: fonc (emboiteuse: *Emboiteuse, boite: *BoiteFlexible)
+fragmente_texte :: fonc (emboiteuse: *Emboiteuse, boite: *Boite_Flexible)
 {
     début := boite.texte.pointeur;
     fin := début + boite.texte.taille;
@@ -807,13 +800,13 @@ fragmente_texte :: fonc (emboiteuse: *Emboiteuse, boite: *BoiteFlexible)
 ajoute_fragment :: fonc (emboiteuse: *Emboiteuse, texte: chaine, est_espace_blanche: bool) -> n32
 {
     résultat := emboiteuse.fragments.taille;
-    tableau_ajoute(*emboiteuse.fragments, FragmentTexte(texte, est_espace_blanche = est_espace_blanche));
+    tableau_ajoute(*emboiteuse.fragments, Fragment_Texte(texte, est_espace_blanche = est_espace_blanche));
     retourne résultat comme n32;
 }
 
-calcule_cotation_sur_direction :: fonc (boite: *BoiteFlexible, direction: Direction)
+calcule_cotation_sur_direction :: fonc (boite: *Boite_Flexible, direction: Direction)
 {
-    si boite.type == BoiteFlexible.Type.Texte {
+    si boite.type == Boite_Flexible.Type.Texte {
         si direction == Direction.Horizontale {
             boite.largeur = donne_largeur_texte(boite.config_texte.fonte, boite.texte);
             boite.largeur_texte = boite.largeur;
@@ -842,7 +835,7 @@ calcule_cotation_sur_direction :: fonc (boite: *BoiteFlexible, direction: Direct
         retourne;
     }
 
-    si boite.type == BoiteFlexible.Type.TexteUTF32 {
+    si boite.type == Boite_Flexible.Type.TexteUTF32 {
         si direction == Direction.Horizontale {
             boite.largeur = donne_largeur_texte(boite.config_texte.fonte, boite.texte_utf32);
             boite.largeur_texte = boite.largeur;
@@ -919,7 +912,7 @@ calcule_cotation_sur_direction :: fonc (boite: *BoiteFlexible, direction: Direct
     boite.définis_taille(direction, cotation);
 }
 
-résoud_cotation_croissante_sur_direction :: fonc (boite: *BoiteFlexible, direction: Direction)
+résoud_cotation_croissante_sur_direction :: fonc (boite: *Boite_Flexible, direction: Direction)
 {
     saufsi boite.enfants {
         retourne;
@@ -932,7 +925,7 @@ résoud_cotation_croissante_sur_direction :: fonc (boite: *BoiteFlexible, direct
     }
 }
 
-résoud_cotation_croissante_sur_direction_impl :: fonc (boite: *BoiteFlexible, direction: Direction)
+résoud_cotation_croissante_sur_direction_impl :: fonc (boite: *Boite_Flexible, direction: Direction)
 {
     si boite.disposition.direction != direction {
         espace_libre := boite.donne_taille(direction) - boite.donne_rembourrage(direction);
@@ -957,10 +950,10 @@ résoud_cotation_croissante_sur_direction_impl :: fonc (boite: *BoiteFlexible, d
     espace_libre := donne_espace_libre(boite, direction == Direction.Verticale);
 
     si espace_libre < 0.0 {
-        si direction == Direction.Verticale && boite.défilage.vertical {
+        si direction == Direction.Verticale && boite.défilage.vertical != Type_Défilage.AUCUN {
             retourne;
         }
-        si direction == Direction.Horizontale && boite.défilage.horizontal {
+        si direction == Direction.Horizontale && boite.défilage.horizontal != Type_Défilage.AUCUN {
             retourne;
         }
     }
@@ -1058,9 +1051,9 @@ résoud_cotation_croissante_sur_direction_impl :: fonc (boite: *BoiteFlexible, d
     }
 }
 
-fragmente_texte :: fonc (boite: *BoiteFlexible)
+fragmente_texte :: fonc (boite: *Boite_Flexible)
 {
-    si boite.type == BoiteFlexible.Type.Texte {
+    si boite.type == Boite_Flexible.Type.Texte {
         premier_fragment := boite.emboiteuse.fragments.pointeur + boite.premier_fragment;
         dernier_fragment := boite.emboiteuse.fragments.pointeur + boite.dernier_fragment + 1;
 
@@ -1109,7 +1102,7 @@ fragmente_texte :: fonc (boite: *BoiteFlexible)
     }
 }
 
-calcule_positions :: fonc (boite: *BoiteFlexible)
+calcule_positions :: fonc (boite: *Boite_Flexible)
 {
     décalage_enfants := [boite.disposition.rembourrage.v[0], boite.disposition.rembourrage.v[1]];
 
@@ -1130,12 +1123,15 @@ calcule_positions :: fonc (boite: *BoiteFlexible)
         décalage_enfants[boite.disposition.direction] += espace;
     }
 
-    si boite.défilage.vertical && boite.id {
+    si boite.défilage.vertical != Type_Défilage.AUCUN && boite.id {
         boite_disposée := donne_boite_disposée_pour_id(boite.emboiteuse, boite.id);
-        si boite_disposée && est_valide(boite_disposée.barre_de_défilement_verticale) {
+        si boite.défilage.vertical == Type_Défilage.AUTOMATIQUE && boite_disposée && est_valide(boite_disposée.barre_de_défilement_verticale) {
             barre := *boite.emboiteuse.barres_de_défilement[boite_disposée.barre_de_défilement_verticale];
             décalage_enfants[Direction.Verticale] -= barre.défilage;
             boite.barre_de_défilement_verticale = boite_disposée.barre_de_défilement_verticale;
+        }
+        sinon si boite.défilage.vertical == Type_Défilage.MANUEL {
+            décalage_enfants[Direction.Verticale] -= boite.défilage.décalage_vertical;
         }
     }
 
@@ -1209,7 +1205,7 @@ calcule_positions :: fonc (boite: *BoiteFlexible)
     }
 }
 
-donne_espace_libre :: fonc (boite: *BoiteFlexible, axe_y: bool) -> r32
+donne_espace_libre :: fonc (boite: *Boite_Flexible, axe_y: bool) -> r32
 {
     espace_occupé := 0.0;
 
@@ -1239,14 +1235,14 @@ donne_espace_libre :: fonc (boite: *BoiteFlexible, axe_y: bool) -> r32
     retourne boite.largeur - espace_occupé;
 }
 
-donne_hauteur_enfants :: fonc (boite: *BoiteFlexible) -> r32
+donne_hauteur_enfants :: fonc (boite: *Boite_Flexible) -> r32
 {
     si boite.enfants.taille == 0 {
         retourne 0.0;
     }
 
-    premier_enfant: *BoiteFlexible;
-    dernier_enfant: *BoiteFlexible;
+    premier_enfant: *Boite_Flexible;
+    dernier_enfant: *Boite_Flexible;
 
     pour boite.enfants {
         si it.flottance.est_valide() {
@@ -1355,8 +1351,8 @@ génère_commandes :: fonc (emboiteuse: *Emboiteuse)
         rect.largeur = boite.largeur;
         rect.hauteur = boite.hauteur;
 
-        si boite.défilage.vertical || boite.défilage.horizontal {
-            si boite.défilage.vertical && est_valide(boite.barre_de_défilement_verticale) {
+        si boite.défilage.vertical == Type_Défilage.AUTOMATIQUE || boite.défilage.horizontal == Type_Défilage.AUTOMATIQUE {
+            si boite.défilage.vertical == Type_Défilage.AUTOMATIQUE && est_valide(boite.barre_de_défilement_verticale) {
                 barre := *boite.emboiteuse.barres_de_défilement[boite.barre_de_défilement_verticale];
 
                 hauteur_disponible := (boite.hauteur - boite.disposition.rembourrage.v[1] - boite.disposition.rembourrage.v[3]);
@@ -1419,11 +1415,11 @@ génère_commandes :: fonc (emboiteuse: *Emboiteuse)
     }
 }
 
-donne_parent_avec_barre_défilage :: fonc (boite: *BoiteFlexible) -> *BoiteFlexible
+donne_parent_avec_barre_défilage :: fonc (boite: *Boite_Flexible) -> *Boite_Flexible
 {
     parent := boite.parent;
     tantque parent != nul {
-        si parent.défilage.vertical || parent.défilage.horizontal {
+        si parent.défilage.vertical != Type_Défilage.AUCUN || parent.défilage.horizontal != Type_Défilage.AUCUN {
             arrête;
         }
         parent = parent.parent;
@@ -1431,7 +1427,7 @@ donne_parent_avec_barre_défilage :: fonc (boite: *BoiteFlexible) -> *BoiteFlexi
     retourne parent;
 }
 
-donne_rect_ciselage_défilage :: fonc (boite: *BoiteFlexible) -> RectanglePosDim(r32)
+donne_rect_ciselage_défilage :: fonc (boite: *Boite_Flexible) -> RectanglePosDim(r32)
 {
     // À FAIRE : ne restreint que dans la bonne direction
     rect_ciselage: RectanglePosDim(r32);
@@ -1440,7 +1436,7 @@ donne_rect_ciselage_défilage :: fonc (boite: *BoiteFlexible) -> RectanglePosDim
     rect_ciselage.largeur = boite.largeur;
     rect_ciselage.hauteur = boite.hauteur;
 
-    si boite.défilage.vertical {
+    si boite.défilage.vertical == Type_Défilage.AUTOMATIQUE {
         rect_ciselage.largeur -= boite.défilage.largeur_verticale;
     }
 
