@@ -2483,7 +2483,7 @@ bool est_type_ptr_octet(const Type *type)
 /** \name VisiteuseType.
  * \{ */
 
-void VisiteuseType::visite_type(Type *type, std::function<void(Type *)> rappel)
+void VisiteuseType::visite_type(Type *type)
 {
     if (!type) {
         return;
@@ -2497,7 +2497,7 @@ void VisiteuseType::visite_type(Type *type, std::function<void(Type *)> rappel)
     rappel(type);
 
     if (visite_types_fonctions_init && type->fonction_init) {
-        visite_type(type->fonction_init->type, rappel);
+        visite_type(type->fonction_init->type);
     }
 
     switch (type->genre) {
@@ -2515,13 +2515,13 @@ void VisiteuseType::visite_type(Type *type, std::function<void(Type *)> rappel)
         case GenreNoeud::RÉFÉRENCE:
         {
             auto référence = type->comme_type_référence();
-            visite_type(référence->type_pointé, rappel);
+            visite_type(référence->type_pointé);
             break;
         }
         case GenreNoeud::POINTEUR:
         {
             auto pointeur = type->comme_type_pointeur();
-            visite_type(pointeur->type_pointé, rappel);
+            visite_type(pointeur->type_pointé);
             break;
         }
         case GenreNoeud::DÉCLARATION_UNION:
@@ -2531,41 +2531,41 @@ void VisiteuseType::visite_type(Type *type, std::function<void(Type *)> rappel)
         {
             auto type_composé = type->comme_type_composé();
             POUR (type_composé->rubriques) {
-                visite_type(it.type, rappel);
+                visite_type(it.type);
             }
             break;
         }
         case GenreNoeud::TABLEAU_DYNAMIQUE:
         {
             auto tableau = type->comme_type_tableau_dynamique();
-            visite_type(tableau->type_pointé, rappel);
+            visite_type(tableau->type_pointé);
             break;
         }
         case GenreNoeud::TYPE_TRANCHE:
         {
             auto tranche = type->comme_type_tranche();
-            visite_type(tranche->type_élément, rappel);
+            visite_type(tranche->type_élément);
             break;
         }
         case GenreNoeud::TABLEAU_FIXE:
         {
             auto tableau = type->comme_type_tableau_fixe();
-            visite_type(tableau->type_pointé, rappel);
+            visite_type(tableau->type_pointé);
             break;
         }
         case GenreNoeud::VARIADIQUE:
         {
             auto variadique = type->comme_type_variadique();
-            visite_type(variadique->type_pointé, rappel);
+            visite_type(variadique->type_pointé);
             break;
         }
         case GenreNoeud::FONCTION:
         {
             auto fonction = type->comme_type_fonction();
             POUR (fonction->types_entrées) {
-                visite_type(it, rappel);
+                visite_type(it);
             }
-            visite_type(fonction->type_sortie, rappel);
+            visite_type(fonction->type_sortie);
             break;
         }
         case GenreNoeud::DÉCLARATION_ÉNUM:
@@ -2573,7 +2573,7 @@ void VisiteuseType::visite_type(Type *type, std::function<void(Type *)> rappel)
         case GenreNoeud::ENUM_DRAPEAU:
         {
             auto type_enum = static_cast<TypeEnum *>(type);
-            visite_type(type_enum->type_sous_jacent, rappel);
+            visite_type(type_enum->type_sous_jacent);
             break;
         }
         case GenreNoeud::TYPE_DE_DONNÉES:
@@ -2587,14 +2587,14 @@ void VisiteuseType::visite_type(Type *type, std::function<void(Type *)> rappel)
         case GenreNoeud::DÉCLARATION_OPAQUE:
         {
             auto type_opaque = type->comme_type_opaque();
-            visite_type(type_opaque->type_opacifié, rappel);
+            visite_type(type_opaque->type_opacifié);
             break;
         }
         case GenreNoeud::TUPLE:
         {
             auto type_tuple = type->comme_type_tuple();
             POUR (type_tuple->rubriques) {
-                visite_type(it.type, rappel);
+                visite_type(it.type);
             }
             break;
         }
