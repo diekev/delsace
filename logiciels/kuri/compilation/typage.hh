@@ -522,8 +522,9 @@ void attentes_sur_types_si_drapeau_manquant(kuri::ensemblon<Type *, 16> const &t
 struct VisiteuseType {
     kuri::ensemble<Type *> visites{};
     bool visite_types_fonctions_init = true;
+    std::function<void(Type *)> rappel{};
 
-    void visite_type(Type *type, std::function<void(Type *)> rappel);
+    void visite_type(Type *type);
 };
 
 /** \} */
