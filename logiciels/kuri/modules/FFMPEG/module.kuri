@@ -81,9 +81,6 @@ ouvre_flux_vidéo_depuis_fichier :: fonc (résultat: *FluxVidéo, chemin: chaine
     input_file := crée_chaine_c(chemin);
     diffère détruit_chaine_c(input_file);
 
-    // Register all available codecs, demuxers, and protocols
-    av_register_all();
-
     // Open input file and allocate format context
     format_ctx: *AVFormatContext;
     si (avformat_open_input(*format_ctx, input_file, nul, nul) < 0) {
@@ -125,7 +122,6 @@ ouvre_flux_vidéo_depuis_fichier :: fonc (résultat: *FluxVidéo, chemin: chaine
     }
 
     codec_ctx := résultat.codec_ctx;
-    imprime("codec_ctx.pix_fmt %\n", codec_ctx.pix_fmt);
 
     // initialize SWS context for software scaling
     sws_ctx := sws_getContext(codec_ctx.width,
