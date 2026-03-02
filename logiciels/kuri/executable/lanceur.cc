@@ -659,7 +659,7 @@ static bool compile_fichier(Compilatrice &compilatrice, kuri::chaine_statique ch
     /* enregistre le dossier d'origine */
     auto dossier_origine = kuri::chemin_systeme::chemin_courant();
 
-    auto chemin = kuri::chemin_systeme::absolu(chemin_fichier);
+    auto chemin = kuri::chemin_systeme::canonique_absolu(chemin_fichier);
 
     auto dossier = chemin.chemin_parent();
 

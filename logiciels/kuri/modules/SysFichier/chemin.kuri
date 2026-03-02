@@ -195,6 +195,12 @@ chemin_relatif_à :: fonc (chemin_cible: CheminFichier, chemin_racine: CheminFic
         retourne ErreurFichier.CheminNonAbsolu;
     }
 
+    chemin_cible = chemin_normalisé(chemin_cible);
+    diffère détruit_chemin(chemin_cible);
+
+    chemin_racine = chemin_normalisé(chemin_racine);
+    diffère détruit_chemin(chemin_racine);
+
     pile_racine := divise_et_empile_chemin(chemin_racine);
     diffère détruit(pile_racine);
 
