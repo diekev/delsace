@@ -1807,6 +1807,7 @@ void CompilatriceRI::crée_appel_fonction_init_type(NoeudExpression const *site_
 {
     auto fonc_init = type->fonction_init;
     auto atome_fonc_init = m_constructrice.trouve_ou_insère_fonction(fonc_init);
+    m_fonction_courante->fonctions_utilisées.ajoute(atome_fonc_init);
     auto params = kuri::tableau<Atome *, int>(1);
 
     /* Les fonctions d'initialisation sont partagées entre certains types donc nous devons
@@ -2187,6 +2188,14 @@ void CompilatriceRI::génère_ri_pour_noeud(NoeudExpression *noeud, Atome *place
             if (decl_ref->est_entête_fonction()) {
                 auto atome_fonc = m_constructrice.trouve_ou_insère_fonction(
                     decl_ref->comme_entête_fonction());
+
+                if (m_fonction_courante) {
+                    m_fonction_courante->fonctions_utilisées.ajoute(atome_fonc);
+                }
+                else if (m_globale_courante) {
+                    m_globale_courante->fonctions_utilisées.ajoute(atome_fonc);
+                }
+
                 empile_valeur(atome_fonc, noeud);
                 return;
             }
@@ -2465,10 +2474,10 @@ void CompilatriceRI::génère_ri_pour_noeud(NoeudExpression *noeud, Atome *place
                     auto type_tableau_fixe = type_gauche->comme_type_tableau_fixe();
                     auto accès_taille = m_constructrice.crée_z64(
                         static_cast<unsigned>(type_tableau_fixe->taille));
-                    génère_protection_limites(accès_taille,
-                                              valeur,
-                                              m_constructrice.trouve_ou_insère_fonction(
-                                                  m_espace->interface_kuri->decl_panique_tableau));
+                    auto fonction_panique = m_constructrice.trouve_ou_insère_fonction(
+                        m_espace->interface_kuri->decl_panique_tableau);
+                    m_fonction_courante->fonctions_utilisées.ajoute(fonction_panique);
+                    génère_protection_limites(accès_taille, valeur, fonction_panique);
                 }
                 empile_valeur(m_constructrice.crée_accès_indice(noeud, pointeur, valeur), noeud);
                 return;
@@ -2479,10 +2488,10 @@ void CompilatriceRI::génère_ri_pour_noeud(NoeudExpression *noeud, Atome *place
                 if (!sans_vlt) {
                     auto accès_taille = m_constructrice.crée_référence_rubrique_et_charge(
                         noeud, pointeur, 1);
-                    génère_protection_limites(accès_taille,
-                                              valeur,
-                                              m_constructrice.trouve_ou_insère_fonction(
-                                                  m_espace->interface_kuri->decl_panique_tableau));
+                    auto fonction_panique = m_constructrice.trouve_ou_insère_fonction(
+                        m_espace->interface_kuri->decl_panique_tableau);
+                    m_fonction_courante->fonctions_utilisées.ajoute(fonction_panique);
+                    génère_protection_limites(accès_taille, valeur, fonction_panique);
                 }
                 pointeur = m_constructrice.crée_référence_rubrique(noeud, pointeur, 0);
                 empile_valeur(m_constructrice.crée_accès_indice(noeud, pointeur, valeur), noeud);
@@ -2493,10 +2502,10 @@ void CompilatriceRI::génère_ri_pour_noeud(NoeudExpression *noeud, Atome *place
                 if (!sans_vlc) {
                     auto accès_taille = m_constructrice.crée_référence_rubrique_et_charge(
                         noeud, pointeur, 1);
-                    génère_protection_limites(accès_taille,
-                                              valeur,
-                                              m_constructrice.trouve_ou_insère_fonction(
-                                                  m_espace->interface_kuri->decl_panique_chaine));
+                    auto fonction_panique = m_constructrice.trouve_ou_insère_fonction(
+                        m_espace->interface_kuri->decl_panique_chaine);
+                    m_fonction_courante->fonctions_utilisées.ajoute(fonction_panique);
+                    génère_protection_limites(accès_taille, valeur, fonction_panique);
                 }
                 pointeur = m_constructrice.crée_référence_rubrique(noeud, pointeur, 0);
                 empile_valeur(m_constructrice.crée_accès_indice(noeud, pointeur, valeur), noeud);
@@ -2954,8 +2963,10 @@ void CompilatriceRI::génère_ri_pour_noeud(NoeudExpression *noeud, Atome *place
                 dbg() << "Aucune fonction init pour " << chaine_type(type_arg);
                 dbg() << erreur::imprime_site(*espace(), noeud);
             });
-            empile_valeur(m_constructrice.trouve_ou_insère_fonction(type_arg->fonction_init),
-                          noeud);
+            auto fonction_init = m_constructrice.trouve_ou_insère_fonction(
+                type_arg->fonction_init);
+            m_fonction_courante->fonctions_utilisées.ajoute(fonction_init);
+            empile_valeur(fonction_init, noeud);
             break;
         }
         case GenreNoeud::EXPRESSION_TAILLE_DE:
@@ -3248,6 +3259,7 @@ void CompilatriceRI::transforme_valeur(NoeudExpression const *noeud,
                                            Atome *valeur_,
                                            NoeudDéclarationEntêteFonction *fonction) {
         auto atome_fonction = m_constructrice.trouve_ou_insère_fonction(fonction);
+        m_fonction_courante->fonctions_utilisées.ajoute(atome_fonction);
 
         valeur_ = crée_charge_mem_si_chargeable(noeud_, valeur_);
 
@@ -3414,10 +3426,10 @@ void CompilatriceRI::transforme_valeur(NoeudExpression const *noeud,
                         noeud, condition, label_si_vrai, label_si_faux);
                     m_constructrice.insère_label(label_si_vrai);
                     // À FAIRE : nous pourrions avoir une erreur différente ici.
-                    m_constructrice.crée_appel(
-                        noeud,
-                        m_constructrice.trouve_ou_insère_fonction(
-                            m_espace->interface_kuri->decl_panique_rubrique_union));
+                    auto fonction_panique = m_constructrice.trouve_ou_insère_fonction(
+                        m_espace->interface_kuri->decl_panique_rubrique_union);
+                    m_fonction_courante->fonctions_utilisées.ajoute(fonction_panique);
+                    m_constructrice.crée_appel(noeud, fonction_panique);
                     m_constructrice.crée_inatteignable(noeud);
                     m_constructrice.insère_label(label_si_faux);
                 }
@@ -3978,9 +3990,10 @@ void CompilatriceRI::génère_ri_pour_accès_rubrique_union(NoeudExpressionRubri
 
         m_constructrice.crée_branche_condition(noeud, condition, label_si_vrai, label_si_faux);
         m_constructrice.insère_label(label_si_vrai);
-        m_constructrice.crée_appel(noeud,
-                                   m_constructrice.trouve_ou_insère_fonction(
-                                       m_espace->interface_kuri->decl_panique_rubrique_union));
+        auto fonction_panique = m_constructrice.trouve_ou_insère_fonction(
+            m_espace->interface_kuri->decl_panique_rubrique_union);
+        m_fonction_courante->fonctions_utilisées.ajoute(fonction_panique);
+        m_constructrice.crée_appel(noeud, fonction_panique);
         m_constructrice.crée_inatteignable(noeud);
         m_constructrice.insère_label(label_si_faux);
     }
@@ -5250,6 +5263,8 @@ void CompilatriceRI::compile_globale(NoeudDéclarationVariable *decl,
         return;
     }
 
+    m_globale_courante = atome;
+
     if (expression && expression->substitution) {
         expression = expression->substitution;
     }
@@ -5311,6 +5326,8 @@ void CompilatriceRI::compile_globale(NoeudDéclarationVariable *decl,
 
     atome->drapeaux |= DrapeauxAtome::RI_FUT_GÉNÉRÉE;
     atome->initialisateur = valeur;
+
+    m_globale_courante = nullptr;
 }
 
 void CompilatriceRI::compile_locale(NoeudExpression *variable,
