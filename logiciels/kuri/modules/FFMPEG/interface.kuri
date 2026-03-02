@@ -6,8 +6,6 @@ libavcodec :: #bibliothèque "avcodec";
 libavutil :: #bibliothèque "avutil";
 libswscale :: #bibliothèque "swscale";
 
-av_register_all :: fonc () -> rien #externe libavformat;
-
 AVClass :: struct #externe;
 AVInputFormat :: struct #externe;
 AVOutputFormat :: struct #externe;
@@ -497,17 +495,9 @@ AVCodecContext :: struct #externe {
 
     b_quant_factor: r32;
 
-    // #if FF_API_PRIVATE_OPT
-    b_frame_strategy: z32;
-    // #endif
-
     b_quant_offset: r32;
 
     has_b_frames: z32;
-
-    // #if FF_API_PRIVATE_OPT
-    mpeg_quant: z32;
-    // #endif
 
     i_quant_factor: r32;
 
@@ -523,16 +513,10 @@ AVCodecContext :: struct #externe {
 
     dark_masking: r32;
 
+    // #if FF_API_SLICE_OFFSET
     slice_count: z32;
-
-    // #if FF_API_PRIVATE_OPT
-    prediction_method: z32;
-    FF_PRED_LEFT ::  0;
-    FF_PRED_PLANE :: 1;
-    FF_PRED_MEDIAN ::2;
-    // #endif
-
     slice_offset: *z32;
+    // #endif
 
     sample_aspect_ratio: AVRational;
 
@@ -562,10 +546,6 @@ AVCodecContext :: struct #externe {
 
     last_predictor_count: z32;
 
-    // #if FF_API_PRIVATE_OPT
-    pre_me: z32;
-    // #endif
-
     me_pre_cmp: z32;
 
     pre_dia_size: z32;
@@ -588,12 +568,6 @@ AVCodecContext :: struct #externe {
 
     inter_matrix: *n16;
 
-    // #if FF_API_PRIVATE_OPT
-    scenechange_threshold: z32;
-
-    noise_reduction: z32;
-    // #endif
-
     intra_dc_precision: z32;
 
     skip_top: z32;
@@ -604,29 +578,13 @@ AVCodecContext :: struct #externe {
 
     mb_lmax: z32;
 
-    // #if FF_API_PRIVATE_OPT
-    me_penalty_compensation: z32;
-    // #endif
-
     bidir_refine: z32;
-
-    // #if FF_API_PRIVATE_OPT
-    brd_scale: z32;
-    // #endif
 
     keyint_min: z32;
 
     refs: z32;
 
-    // #if FF_API_PRIVATE_OPT
-    chromaoffset: z32;
-    // #endif
-
     mv0_threshold: z32;
-
-    // #if FF_API_PRIVATE_OPT
-    b_sensitivity: z32;
-    // #endif
 
     color_primaries: AVColorPrimaries;
 
@@ -643,21 +601,28 @@ AVCodecContext :: struct #externe {
     field_order: AVFieldOrder;
 
     sample_rate: z32; ///< samples per second
+
+    // #if FF_API_OLD_CHANNEL_LAYOUT
     channels: z32;    ///< number of audio channels
+    // #endif
 
     sample_fmt: AVSampleFormat;  ///< sample format
 
     frame_size: z32;
 
+    // #if FF_API_AVCTX_FRAME_NUMBER
     frame_number: z32;
+    // #endif
 
     block_align: z32;
 
     cutoff: z32;
 
+    // #if FF_API_OLD_CHANNEL_LAYOUT
     channel_layout: n64;
 
     request_channel_layout: n64;
+    // #endif
 
     audio_service_type: AVAudioServiceType;
 
@@ -665,8 +630,6 @@ AVCodecContext :: struct #externe {
 
     // int (*get_buffer2)(struct AVCodecContext *s, AVFrame *frame, int flags);
     get_buffer2: adresse_fonction;
-
-    refcounted_frames: z32;
 
     qcompress: r32;  ///< amount of qscale change between easy & hard scenes (0.0-1.0)
     qblur: r32;      ///< amount of qscale smoothing over time (0.0-1.0)
@@ -692,64 +655,7 @@ AVCodecContext :: struct #externe {
 
     rc_initial_buffer_occupancy: z32;
 
-    // #if FF_API_CODER_TYPE
-    FF_CODER_TYPE_VLC ::      0;
-    FF_CODER_TYPE_AC ::       1;
-    FF_CODER_TYPE_RAW ::      2;
-    FF_CODER_TYPE_RLE ::      3;
-    coder_type: z32;
-    // #endif /* FF_API_CODER_TYPE */
-
-    // #if FF_API_PRIVATE_OPT
-    context_model: z32;
-    // #endif
-
-    // #if FF_API_PRIVATE_OPT
-    frame_skip_threshold: z32;
-
-    frame_skip_factor: z32;
-
-    frame_skip_exp: z32;
-
-    frame_skip_cmp: z32;
-    // #endif /* FF_API_PRIVATE_OPT */
-
     trellis: z32;
-
-    // #if FF_API_PRIVATE_OPT
-    min_prediction_order: z32;
-
-    max_prediction_order: z32;
-
-    timecode_frame_start: z64;
-    // #endif
-
-    // #if FF_API_RTP_CALLBACK
-    // void (*rtp_callback)(struct AVCodecContext *avctx, void *data, int size, int mb_nb);
-    rtp_callback: adresse_fonction;
-    // #endif
-
-    // #if FF_API_PRIVATE_OPT
-    rtp_payload_size: z32;   /* The size of the RTP payload: the coder will  */
-                            /* do its best to deliver a chunk with size     */
-                            /* below rtp_payload_size, the chunk will start */
-                            /* with a start code on some codecs like H.263. */
-                            /* This doesn't take account of any particular  */
-                            /* headers inside the transmitted RTP payload.  */
-    // #endif
-
-    // #if FF_API_STAT_BITS
-    mv_bits: z32;
-    header_bits: z32;
-    i_tex_bits: z32;
-    p_tex_bits: z32;
-    i_count: z32;
-    p_count: z32;
-    skip_count: z32;
-    misc_bits: z32;
-
-    frame_bits: z32;
-    // #endif
 
     stats_out: ChaineC;
 
@@ -808,13 +714,6 @@ AVCodecContext :: struct #externe {
     FF_DEBUG_GREEN_MD ::   0x00800000;
     FF_DEBUG_NOMC ::       0x01000000;
 
-    // #if FF_API_DEBUG_MV
-    debug_mv: z32;
-    FF_DEBUG_VIS_MV_P_FOR :: 0x00000001; // visualize forward predicted MVs of P-frames
-    FF_DEBUG_VIS_MV_B_FOR :: 0x00000002; // visualize forward predicted MVs of B-frames
-    FF_DEBUG_VIS_MV_B_BACK ::0x00000004; // visualize backward predicted MVs of B-frames
-    // #endif
-
     err_recognition: z32;
 
     AV_EF_CRCCHECK :: (1<<0);
@@ -827,7 +726,9 @@ AVCodecContext :: struct #externe {
     AV_EF_COMPLIANT :: (1<<17);        ///< consider all spec non compliances as errors
     AV_EF_AGGRESSIVE ::(1<<18);        ///< consider things that a sane encoder should not do as an error
 
+    // #if FF_API_REORDERED_OPAQUE
     reordered_opaque: z64;
+    // #endif
 
     hwaccel: *AVHWAccel;
 
@@ -863,13 +764,7 @@ AVCodecContext :: struct #externe {
 
     bits_per_raw_sample: z32;
 
-    // #if FF_API_LOWRES
     lowres: z32;
-    // #endif
-
-    // #if FF_API_CODED_FRAME
-    coded_frame: *AVFrame;
-    // #endif
 
     thread_count: z32;
 
@@ -878,8 +773,6 @@ AVCodecContext :: struct #externe {
     FF_THREAD_SLICE ::  2; ///< Decode more than one part of a single frame at once
 
     active_thread_type: z32;
-
-    thread_safe_callbacks: z32;
 
     // int (*execute)(struct AVCodecContext *c, int (*func)(struct AVCodecContext *c2, void *arg), void *arg2, int *ret, int count, int size);
     execute: adresse_fonction;
@@ -1016,14 +909,6 @@ AVCodecContext :: struct #externe {
     subtitle_header: *n8;
     subtitle_header_size: z32;
 
-    // #if FF_API_VBV_DELAY
-    vbv_delay: n64;
-    // #endif
-
-    // #if FF_API_SIDEDATA_ONLY_PKT
-    side_data_only_packets: z32;
-    // #endif
-
     initial_padding: z32;
 
     framerate: AVRational;
@@ -1033,10 +918,6 @@ AVCodecContext :: struct #externe {
     pkt_timebase: AVRational;
 
     codec_descriptor: *AVCodecDescriptor;
-
-    // #if !FF_API_LOWRES
-    // lowres: z32
-    // #endif
 
     pts_correction_num_faulty_pts: z64; /// Number of incorrect PTS values so far
     pts_correction_num_faulty_dts: z64; /// Number of incorrect DTS values so far
@@ -1055,13 +936,6 @@ AVCodecContext :: struct #externe {
 
     seek_preroll: z32;
 
-    // #if !FF_API_DEBUG_MV
-    // debug_mv: z32
-    // FF_DEBUG_VIS_MV_P_FOR :: 0x00000001; //visualize forward predicted MVs of P frames
-    // FF_DEBUG_VIS_MV_B_FOR :: 0x00000002; //visualize forward predicted MVs of B frames
-    // FF_DEBUG_VIS_MV_B_BACK ::0x00000004; //visualize backward predicted MVs of B frames
-    // #endif
-
     chroma_intra_matrix: *n16;
 
     dump_separator: *n8;
@@ -1077,12 +951,6 @@ AVCodecContext :: struct #externe {
 
     hw_frames_ctx: *AVBufferRef;
 
-    sub_text_format: z32;
-    FF_SUB_TEXT_FMT_ASS ::             0;
-    // #if FF_API_ASS_TIMING
-    FF_SUB_TEXT_FMT_ASS_WITH_TIMINGS ::1;
-    // #endif
-
     trailing_padding: z32;
 
     max_pixels: z64;
@@ -1096,6 +964,122 @@ AVCodecContext :: struct #externe {
     extra_hw_frames: z32;
 
     discard_damaged_percentage: z32;
+
+    max_samples: z64;
+
+    export_side_data: z32;
+
+    get_encode_buffer: adresse_fonction;
+
+    ch_layout: AVChannelLayout;
+
+    frame_num: z64;
+}
+
+AVChannelOrder :: énum {
+    /**
+     * Only the channel count is specified, without any further information
+     * about the channel order.
+     */
+    AV_CHANNEL_ORDER_UNSPEC;
+    /**
+     * The native channel order, i.e. the channels are in the same order in
+     * which they are defined in the AVChannel enum. This supports up to 63
+     * different channels.
+     */
+    AV_CHANNEL_ORDER_NATIVE;
+    /**
+     * The channel order does not correspond to any other predefined order and
+     * is stored as an explicit map. For example, this could be used to support
+     * layouts with 64 or more channels, or with empty/skipped (AV_CHAN_SILENCE)
+     * channels at arbitrary positions.
+     */
+    AV_CHANNEL_ORDER_CUSTOM;
+    /**
+     * The audio is represented as the decomposition of the sound field into
+     * spherical harmonics. Each channel corresponds to a single expansion
+     * component. Channels are ordered according to ACN (Ambisonic Channel
+     * Number).
+     *
+     * The channel with the index n in the stream contains the spherical
+     * harmonic of degree l and order m given by
+     * @code{.unparsed}
+     *   l   = floor(sqrt(n)),
+     *   m   = n - l * (l + 1).
+     * @endcode
+     *
+     * Conversely given a spherical harmonic of degree l and order m, the
+     * corresponding channel index n is given by
+     * @code{.unparsed}
+     *   n = l * (l + 1) + m.
+     * @endcode
+     *
+     * Normalization is assumed to be SN3D (Schmidt Semi-Normalization)
+     * as defined in AmbiX format $ 2.1.
+     */
+    AV_CHANNEL_ORDER_AMBISONIC;
+}
+
+AVChannelLayout :: struct {
+    /**
+     * Channel order used in this layout.
+     * This is a mandatory field.
+     */
+    order: AVChannelOrder;
+
+    /**
+     * Number of channels in this layout. Mandatory field.
+     */
+    nb_channels: z32;
+
+    /**
+     * Details about which channels are present in this layout.
+     * For AV_CHANNEL_ORDER_UNSPEC, this field is undefined and must not be
+     * used.
+     */
+    // union {
+    //     /**
+    //      * This member must be used for AV_CHANNEL_ORDER_NATIVE, and may be used
+    //      * for AV_CHANNEL_ORDER_AMBISONIC to signal non-diegetic channels.
+    //      * It is a bitmask, where the position of each set bit means that the
+    //      * AVChannel with the corresponding value is present.
+    //      *
+    //      * I.e. when (mask & (1 << AV_CHAN_FOO)) is non-zero, then AV_CHAN_FOO
+    //      * is present in the layout. Otherwise it is not present.
+    //      *
+    //      * @note when a channel layout using a bitmask is constructed or
+    //      * modified manually (i.e.  not using any of the av_channel_layout_*
+    //      * functions), the code doing it must ensure that the number of set bits
+    //      * is equal to nb_channels.
+    //      */
+    //     uint64_t mask;
+    //     /**
+    //      * This member must be used when the channel order is
+    //      * AV_CHANNEL_ORDER_CUSTOM. It is a nb_channels-sized array, with each
+    //      * element signalling the presence of the AVChannel with the
+    //      * corresponding value in map[i].id.
+    //      *
+    //      * I.e. when map[i].id is equal to AV_CHAN_FOO, then AV_CH_FOO is the
+    //      * i-th channel in the audio data.
+    //      *
+    //      * When map[i].id is in the range between AV_CHAN_AMBISONIC_BASE and
+    //      * AV_CHAN_AMBISONIC_END (inclusive), the channel contains an ambisonic
+    //      * component with ACN index (as defined above)
+    //      * n = map[i].id - AV_CHAN_AMBISONIC_BASE.
+    //      *
+    //      * map[i].name may be filled with a 0-terminated string, in which case
+    //      * it will be used for the purpose of identifying the channel with the
+    //      * convenience functions below. Otherise it must be zeroed.
+    //      */
+    //     AVChannelCustom *map;
+    // } u;
+
+    u: *rien;
+
+    /**
+     * For some private data of the user.
+     */
+    opaque: *rien;
 }
 
 AVRational :: struct {
@@ -1166,12 +1150,11 @@ AVCodecParameters :: struct #externe {
 }
 
 AVStream :: struct #externe {
+    av_class: *AVClass;
     index: z32;    /**< stream index in AVFormatContext */
     id: z32;
 
-    // #if FF_API_LAVF_AVCTX
-    codec: *AVCodecContext;
-    // #endif
+    codecpar: *AVCodecParameters;
 
     priv_data: *rien;
 
@@ -1195,21 +1178,18 @@ AVStream :: struct #externe {
 
     attached_pic: AVPacket;
 
+    // #if FF_API_AVSTREAM_SIDE_DATA
     side_data: *AVPacketSideData;
     nb_side_data: z32;
+    // #endif
 
     event_flags: z32;
     AVSTREAM_EVENT_FLAG_METADATA_UPDATED :: 0x0001; ///< The call resulted in updated metadata.
+    AVSTREAM_EVENT_FLAG_NEW_PACKETS :: (1 << 1);
 
     r_frame_rate: AVRational;
 
-    // #if FF_API_LAVF_FFSERVER
-    recommended_encoder_configuration: ChaineC;
-    // #endif
-
-    codecpar: *AVCodecParameters;
-
-    // Des rubriques sensées être privées viennent après.
+    pts_wrap_bits: z32;
 }
 
 AVProgram :: struct #externe;
@@ -1245,10 +1225,6 @@ AVFormatContext :: struct #externe {
     nb_streams: n32;
 
     streams: **AVStream;
-
-    // #if FF_API_FORMAT_FILENAME
-    filename: [1024]z8;
-    // #endif
 
     url: ChaineC;
 
