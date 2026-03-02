@@ -98,14 +98,17 @@ EspaceDisponible :: struct {
     hauteur: n32;
 }
 
+donne_espace_rappetissé :: fonc (espace: EspaceDisponible, par: n32) -> EspaceDisponible
+{
+    résultat := espace;
+    résultat.largeur = soustraction_sure(espace.largeur, par * 2);
+    résultat.hauteur = soustraction_sure(espace.hauteur, par * 2);
+    retourne résultat;
+}
+
 enlève_hauteur :: fonc (espace: EspaceDisponible, delta: n32) -> EspaceDisponible
 {
-    si espace.hauteur >= delta {
-        espace.hauteur -= delta;
-    }
-    sinon {
-        espace.hauteur = 0;
-    }
+    espace.hauteur = soustraction_sure(espace.hauteur, delta);
     retourne espace;
 }
 
@@ -125,6 +128,21 @@ divise_espace :: fonc (espace: EspaceDisponible, direction: Direction, facteur: 
     }
 
     retourne résultat1, résultat2;
+}
+
+/** \} */
+
+/* ------------------------------------------------------------------------- */
+/** \nom Utilitaires
+ * \{ */
+
+soustraction_sure :: fonc (valeur: n32, à_soustraire: n32) -> n32 #enligne
+{
+    résultat: n32;
+    si valeur >= à_soustraire {
+        résultat = valeur - à_soustraire;
+    }
+    retourne résultat;
 }
 
 /** \} */
