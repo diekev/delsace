@@ -163,6 +163,46 @@ trouve_section :: fonc (fichier: *FichierELF, nom: chaine) -> *EntêteSectionELF
     retourne nul;
 }
 
+donne_indice_section :: fonc (fichier: *FichierELF, section: *Elf64_Shdr) -> z64
+{
+    résultat: z64 = -1;
+
+    première_section := donne_entête_section(fichier, 0);
+    si première_section {
+        résultat = section - première_section;
+    }
+
+    retourne résultat;
+}
+
+donne_section_de_réadressage_pour :: fonc (fichier: *FichierELF, pour_section: *Elf64_Shdr, type_réadressage: TypeSection) -> *Elf64_Shdr
+{
+    assert(type_réadressage == TypeSection.Rela);
+
+    résultat: *Elf64_Shdr;
+
+    indice := donne_indice_section(fichier, pour_section);
+    si indice != -1 {
+        nombre_de_sections := donne_nombre_de_sections(fichier);
+
+        pour nombre_de_sections {
+            section := donne_entête_section(fichier, it comme Elf64_Word);
+            si section.sh_type comme TypeSection != type_réadressage {
+                continue;
+            }
+
+            si section.sh_info comme z64 != indice {
+                continue;
+            }
+
+            résultat = section;
+            arrête;
+        }
+    }
+
+    retourne résultat;
+}
+
 /** \} */
 
 /* ------------------------------------------------------------------------- */
@@ -1149,6 +1189,72 @@ parse_pointer_encodé :: fonc (flux: *FluxOctets, encodage: octet) -> PointeurEn
     }
 
     retourne résultat;
+}
+
+/** \} */
+
+/* ------------------------------------------------------------------------- */
+/** \nom Réadressage.
+ * \{ */
+
+applique_réadressage_sur_section :: fonc (fichier: *FichierELF, section_à_réadresser: *Elf64_Shdr)
+{
+    section_de_réadressage := donne_section_de_réadressage_pour(fichier, section_à_réadresser, TypeSection.Rela);
+    saufsi section_de_réadressage {
+        retourne;
+    }
+
+    succès_table, table := donne_symbol_table(fichier, section_de_réadressage.sh_link);
+    saufsi succès_table {
+        imprimeln("Impossible de trouver la table de symboles pour la section de réadressage");
+        retourne;
+    }
+
+    relas := donne_données_section(fichier, section_de_réadressage, Elf64_Rela);
+
+    données_section_à_réadresser := donne_données_section(fichier, section_à_réadresser);
+
+    pour relas {
+        type := ELF64_R_TYPE(it.r_info);
+        indice_symbole := ELF64_R_SYM(it.r_info);
+
+        symbole := donne_symbole(*table, indice_symbole);
+
+        si type == R_X86_64_32 {
+            // S + A
+            S := symbole.st_value;
+            A := it.r_addend;
+
+            valeur := (S comme z64 + A) comme z32;
+
+            si (it.r_offset + 4) comme z64 < données_section_à_réadresser.taille {
+                adresse := données_section_à_réadresser.pointeur + it.r_offset comme z64;
+                mémoire(adresse comme *z32) = valeur;
+            }
+            sinon {
+                imprimeln("Décalage invalide pour le réadressage");
+            }
+        }
+        sinon si type == R_X86_64_64 {
+            // S + A
+            S := symbole.st_value;
+            A := it.r_addend;
+
+            valeur := (S comme z64 + A);
+
+            si (it.r_offset + 8) comme z64 < données_section_à_réadresser.taille {
+                adresse := données_section_à_réadresser.pointeur + it.r_offset comme z64;
+                mémoire(adresse comme *z64) = valeur;
+            }
+            sinon {
+                imprimeln("Décalage invalide pour le réadressage");
+            }
+        }
+        sinon {
+            chn_type := donne_chaine_pour_réadressage_x86_64(type);
+            imprimeln("Réadressage non-supporté : %", chn_type);
+        }
+    }
 }
 
 /** \} */
