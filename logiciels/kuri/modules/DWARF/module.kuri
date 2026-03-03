@@ -1098,7 +1098,7 @@ donne_file_entries :: fonc (table: *TableDebugLine, table_unité: *TableDebugLin
     retourne donne_tranche(table.file_entries, table_unité.file_names);
 }
 
-parse_table_debug_line :: fonc (fichier: *FichierELF) -> *TableDebugLine
+parse_table_debug_line :: fonc (fichier: *FichierELF, applique_réadressage := vrai) -> *TableDebugLine
 {
     résultat: *TableDebugLine;
 
@@ -1106,6 +1106,10 @@ parse_table_debug_line :: fonc (fichier: *FichierELF) -> *TableDebugLine
     section_debug_line_str := trouve_section(fichier, ".debug_line_str");
 
     si section_debug_line {
+        si applique_réadressage {
+            applique_réadressage_sur_section(fichier, section_debug_line);
+        }
+
         données_section_debug_line := donne_données_section(fichier, section_debug_line);
 
         debug_line := crée_flux_octets(données_section_debug_line);
