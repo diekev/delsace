@@ -1074,6 +1074,21 @@ donne_file_name :: fonc (table: *TableDebugLineUnité, indice: n64) -> chaine
     retourne file_entries[indice].path_name;
 }
 
+donne_dossier_pour_fichier :: fonc (table: *TableDebugLineUnité, indice: n64) -> chaine
+{
+    file_entries := donne_file_entries(table.table, table);
+    si file_entries.taille == 0 && indice == 0 {
+        retourne "";
+    }
+
+    directories := donne_include_directories(table.table, table);
+    si directories.taille == 0 {
+        retourne "";
+    }
+
+    retourne directories[file_entries[indice].directory];
+}
+
 FileEntryFormat :: struct {
     content_type: n64; // DW_LNCT_*
     form: n64; // DW_FORM_*
@@ -1096,6 +1111,11 @@ TableDebugLine :: struct {
 donne_file_entries :: fonc (table: *TableDebugLine, table_unité: *TableDebugLineUnité) -> []FileEntry
 {
     retourne donne_tranche(table.file_entries, table_unité.file_names);
+}
+
+donne_include_directories :: fonc (table: *TableDebugLine, table_unité: *TableDebugLineUnité) -> []chaine
+{
+    retourne donne_tranche(table.chaines, table_unité.include_directories);
 }
 
 parse_table_debug_line :: fonc (fichier: *FichierELF, applique_réadressage := vrai) -> *TableDebugLine

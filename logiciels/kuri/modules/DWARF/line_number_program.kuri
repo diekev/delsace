@@ -185,6 +185,12 @@ ajoute_ligne_matrice :: fonc (machine: *StateMachine, table: *TableDebugLineUnit
 {
     si machine.file != 0 {
         file_name := donne_file_name(table, machine.file - 1);
-        imprimeln("%, %, line : %, column %", machine.address, file_name, machine.line, machine.column);
+        directory := donne_dossier_pour_fichier(table, machine.file - 1);
+        imprimeln("%, %, %, line : %, column %",
+                  machine.address,
+                  directory,
+                  file_name,
+                  machine.line,
+                  machine.column);
     }
 }
