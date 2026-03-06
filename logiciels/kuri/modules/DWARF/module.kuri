@@ -95,6 +95,12 @@ définis_valeur_adresse :: fonc (attribut: *AttributDIE, adresse: n64)
     attribut.type = TypeValeurAttributDIE.ADRESSE;
 }
 
+donne_adresse :: fonc (empl attribut: *AttributDIE) -> n64
+{
+    assert(type == TypeValeurAttributDIE.ADRESSE);
+    retourne table.adresses[indice_valeur];
+}
+
 définis_valeur_chaine :: fonc (attribut: *AttributDIE, texte: chaine)
 {
     table := attribut.table;
@@ -103,12 +109,24 @@ définis_valeur_chaine :: fonc (attribut: *AttributDIE, texte: chaine)
     attribut.type = TypeValeurAttributDIE.CHAINE;
 }
 
+donne_chaine :: fonc (empl attribut: *AttributDIE) -> chaine
+{
+    assert(type == TypeValeurAttributDIE.CHAINE);
+    retourne table.chaines[indice_valeur];
+}
+
 définis_valeur_constante_entière :: fonc (attribut: *AttributDIE, constante: n64)
 {
     table := attribut.table;
     attribut.indice_valeur = table.constantes_entières.taille;
     tableau_ajoute(*table.constantes_entières, constante);
     attribut.type = TypeValeurAttributDIE.CONSTANTE_ENTIÈRE;
+}
+
+donne_constante_entière :: fonc (empl attribut: *AttributDIE) -> n64
+{
+    assert(type == TypeValeurAttributDIE.CONSTANTE_ENTIÈRE);
+    retourne table.constantes_entières[indice_valeur];
 }
 
 définis_valeur_constante_implicite :: fonc (attribut: *AttributDIE, constante: z64)
@@ -125,6 +143,12 @@ définis_valeur_décalage_section :: fonc (attribut: *AttributDIE, décalage: n6
     attribut.indice_valeur = table.décalages_sections.taille;
     tableau_ajoute(*table.décalages_sections, DécalageSection(décalage, section));
     attribut.type = TypeValeurAttributDIE.DÉCALAGE_SECTION;
+}
+
+donne_décalage_section :: fonc (empl attribut: *AttributDIE) -> DécalageSection
+{
+    assert(type == TypeValeurAttributDIE.DÉCALAGE_SECTION);
+    retourne table.décalages_sections[indice_valeur];
 }
 
 définis_valeur_référence :: fonc (attribut: *AttributDIE, référence: n64)
