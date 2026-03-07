@@ -237,7 +237,17 @@ aléatoire_unilatérale :: fonc (série: &SérieAléatoire) -> r32
     retourne xor_shift(série.état) comme r32 / ((-1 comme n32) comme r32);
 }
 
+aléatoire_unilatérale :: fonc (série: *SérieAléatoire) -> r32
+{
+    retourne xor_shift(série.état) comme r32 / ((-1 comme n32) comme r32);
+}
+
 aléatoire_bilatérale :: fonc (série: &SérieAléatoire) -> r32
+{
+    retourne bilatéral_de(série.aléatoire_unilatérale());
+}
+
+aléatoire_bilatérale :: fonc (série: *SérieAléatoire) -> r32
 {
     retourne bilatéral_de(série.aléatoire_unilatérale());
 }
@@ -263,6 +273,12 @@ vec3_aléatoire :: fonc (série: &SérieAléatoire) -> Vec3
 }
 
 aléatoire_entre :: fonc (série: &SérieAléatoire, min: $T, max: T) -> T
+{
+    résultat := série.aléatoire_unilatérale();
+    retourne (résultat * ((max - min) comme r32)) comme T + min;
+}
+
+aléatoire_entre :: fonc (série: *SérieAléatoire, min: $T, max: T) -> T
 {
     résultat := série.aléatoire_unilatérale();
     retourne (résultat * ((max - min) comme r32)) comme T + min;
