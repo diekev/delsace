@@ -84,7 +84,7 @@ SystèmeTypeC :: struct {
 
 détruit_données_système_type :: fonc (système: *SystèmeTypeC)
 {
-    déloge_tableau_et_ses_éléments(système.types, détruit_type_c);
+    déloge_tableau_et_ses_éléments(*système.types, détruit_type_c);
 }
 
 initialise_système_type :: fonc (ipa: &IPA, espace_de_nom: chaine) -> SystèmeTypeC

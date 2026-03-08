@@ -48,7 +48,7 @@ __fils_exécutions: [..]InfoFilExécution;
 initialise_file_globale :: fonc ()
 {
     nombre_de_fils := nombre_threads_disponible() - 1;
-    tableau_redimensionne(__fils_exécutions, nombre_de_fils);
+    tableau_redimensionne(*__fils_exécutions, nombre_de_fils);
 
     _ := sem_init(*__file_globale.sémaphore, 0, 0);
 

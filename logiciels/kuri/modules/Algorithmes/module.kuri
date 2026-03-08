@@ -247,7 +247,7 @@ pivote :: fonc (premier: *$T, milieu: *T, dernier: *T) -> *T
     /* À FAIRE : évite d'allouer de la mémoire */
     tampon: [..]T;
     diffère déloge(tampon);
-    tableau_redimensionne(tampon, taille_début);
+    tableau_redimensionne(*tampon, taille_début);
 
     copie_mem_nonsur(src = premier, dst = tampon.pointeur, taille = taille_début * taille_de(T) comme z64);
     déplace_mémoire_nonsur(src = milieu, dst = premier, taille = taille_fin * taille_de(T) comme z64);

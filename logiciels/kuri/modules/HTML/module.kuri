@@ -235,7 +235,7 @@ parse_document :: fonc (realm: *JS.Realm, source: chaine) -> ParsatHTML
     parsat: ParsatHTML;
     parsat.document = parseuse.document;
     parsat.temps = temps;
-    parsat.erreurs = tableau_vole_mémoire(parseuse.erreurs);
+    parsat.erreurs = tableau_vole_mémoire(*parseuse.erreurs);
     retourne parsat;
 }
 
@@ -251,7 +251,7 @@ parse_document :: fonc (tas_de_mémoire: *JS.TasDeMémoire, document: chaine) ->
     parsat: ParsatHTML;
     parsat.document = parseuse.document;
     parsat.temps = temps;
-    parsat.erreurs = tableau_vole_mémoire(parseuse.erreurs);
+    parsat.erreurs = tableau_vole_mémoire(*parseuse.erreurs);
     retourne parsat;
 }
 

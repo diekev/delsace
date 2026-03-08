@@ -3133,7 +3133,7 @@ initialise_données_cellules :: fonc (ctx: *ContexteDeFormattageTable, table: *T
 
     ctx.nombre_de_lignes = indice_ligne;
 
-    tableau_redimensionne(ctx.données_colonnes, ctx.nombre_de_colonnes);
+    tableau_redimensionne(*ctx.données_colonnes, ctx.nombre_de_colonnes);
 
     // imprime("lignes : %, colones : %\n", indice_ligne, ctx.nombre_de_colonnes)
 }

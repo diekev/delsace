@@ -1169,7 +1169,7 @@ donne_tabuleuse_sections :: fonc (fichier: *Fichier_Ouvert, fonte: *Fonte, tabul
 
         indices_entêtes: [..]n32;
         diffère déloge(indices_entêtes);
-        tableau_redimensionne(indices_entêtes, noms_entêtes.taille);
+        tableau_redimensionne(*indices_entêtes, noms_entêtes.taille);
         tableau_iota(indices_entêtes, 0);
 
         tri_rapide(indices_entêtes, noms_entêtes, compare_chaine);

@@ -263,7 +263,7 @@ définis_taille_tampon_id :: fonc (arbre: *ArbreDeDisposition, largeur: z32, hau
     arbre.tampon_id.hauteur = hauteur;
 
     arbre.tampon_id.fut_dessiné = faux;
-    tableau_redimensionne(arbre.tampon_id.données, largeur * hauteur);
+    tableau_redimensionne(*arbre.tampon_id.données, largeur * hauteur);
 }
 
 donne_tampon_id :: fonc (arbre: *ArbreDeDisposition) -> *TamponID

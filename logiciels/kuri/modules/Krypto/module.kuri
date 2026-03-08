@@ -179,7 +179,7 @@ donne_condensat :: fonc (hacheuse: *HACHEUSE) -> Condensat
 
 donne_condensat :: fonc (hacheuse: *HACHEUSE, résultat: *Condensat)
 {
-    tableau_redimensionne(résultat.données, taille_condensat(hacheuse));
+    tableau_redimensionne(*résultat.données, taille_condensat(hacheuse));
     KRYPTO_HACHEUSE_condensat(hacheuse, résultat.données.pointeur comme *n8);
 }
 
@@ -292,7 +292,7 @@ donne_condensat :: fonc (hacheuse: *HACHEUSE_HMAC) -> Condensat
 
 donne_condensat :: fonc (hacheuse: *HACHEUSE_HMAC, résultat: *Condensat)
 {
-    tableau_redimensionne(résultat.données, taille_condensat(hacheuse));
+    tableau_redimensionne(*résultat.données, taille_condensat(hacheuse));
     KRYPTO_HACHEUSE_HMAC_condensat(hacheuse, résultat.données.pointeur comme *n8);
 }
 

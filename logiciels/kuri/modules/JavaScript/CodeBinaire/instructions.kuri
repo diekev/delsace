@@ -747,7 +747,7 @@ exécute_code_binaire :: fonc (base: *Interpréteuse, noeud: *NoeudSyntaxique) -
     }
 
     nombre_registres := interprète.registres.taille;
-    tableau_redimensionne(interprète.registres, nombre_registres + flux.registres comme z64);
+    tableau_redimensionne(*interprète.registres, nombre_registres + flux.registres comme z64);
     diffère interprète.registres.taille = nombre_registres;
 
     registres: ÉtatRegistres;

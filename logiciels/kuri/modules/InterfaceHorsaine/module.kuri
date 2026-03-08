@@ -159,7 +159,7 @@ détruit_type_ipa :: fonc (type: *TypeIPA)
     déloge(type.rubriques);
     déloge(type.types_entrée);
     déloge(type.types_sortie);
-    déloge_tableau_et_ses_éléments(type.fonctions, détruit_données_méthode_ipa);
+    déloge_tableau_et_ses_éléments(*type.fonctions, détruit_données_méthode_ipa);
 
     discr type.constructrice {
         Quelque(méthode) {
@@ -290,8 +290,8 @@ IPA :: struct {
 
 détruit_données_ipa :: fonc (ipa: &IPA)
 {
-    déloge_tableau_et_ses_éléments(ipa.types, détruit_type_ipa);
-    déloge_tableau_et_ses_éléments(ipa.fonctions, détruit_données_méthode_ipa);
+    déloge_tableau_et_ses_éléments(*ipa.types, détruit_type_ipa);
+    déloge_tableau_et_ses_éléments(*ipa.fonctions, détruit_données_méthode_ipa);
     détruit_données(*ipa.table_des_types);
 }
 

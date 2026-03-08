@@ -285,7 +285,7 @@ encode_par_différence :: fonc (données: []$T) -> [..]T
         retourne résultat;
     }
 
-    tableau_redimensionne(résultat, données.taille);
+    tableau_redimensionne(*résultat, données.taille);
 
     précédent: T;
 
@@ -315,7 +315,7 @@ décode_par_différence :: fonc (données: []$T) -> [..]T
         retourne résultat;
     }
 
-    tableau_redimensionne(résultat, données.taille);
+    tableau_redimensionne(*résultat, données.taille);
 
     précédent: T;
 

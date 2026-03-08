@@ -101,7 +101,7 @@ définis_valeur :: fonc (tableau: &TableauPartagé($T, $C, $D), indice: z64, val
     tableau.rends_unique();
 
     si tableau.est_comprimée {
-        tableau_redimensionne(tableau.valeurs, TAILLE_PAGE);
+        tableau_redimensionne(*tableau.valeurs, TAILLE_PAGE);
         pour & tableau.valeurs {
             it = tableau.valeur_constante;
         }

@@ -134,7 +134,7 @@ compresse :: fonc (entrée: []octet, niveau: z32) -> (z32, [..]octet)
         have := 1024 - strm.avail_out;
 
         ancienne_taille := résultat.taille;
-        tableau_redimensionne(résultat, résultat.taille + have comme z64);
+        tableau_redimensionne(*résultat, résultat.taille + have comme z64);
         copie_mem_nonsur(src = *tampon[0], dst = résultat.pointeur + ancienne_taille, taille = have comme z64);
     } tantque (strm.avail_out == 0);
 
@@ -194,7 +194,7 @@ décompresse :: fonc (entrée: []octet) -> (z32, [..]octet)
             /* Quantité de données renvoiée par inflate. */
             have := 1024 - strm.avail_out;
             ancienne_taille := résultat.taille;
-            tableau_redimensionne(résultat, ancienne_taille + have comme z64);
+            tableau_redimensionne(*résultat, ancienne_taille + have comme z64);
             copie_mem_nonsur(src = *tampon[0], dst = résultat.pointeur + ancienne_taille, taille = have comme z64);
         } tantque (strm.avail_out == 0); /* done when inflate() says it's done */
     } tantque (ret != Z_STREAM_END);

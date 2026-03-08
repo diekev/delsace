@@ -13,7 +13,7 @@ loge_tableau :: fonc ($T: type_de_données, taille: z64, pos := #position_code_s
     retourne résultat;
 }
 
-reloge_tableau :: fonc (tableau: &[..]$T, nouvelle_taille: z64, pos := #position_code_source)
+reloge_tableau :: fonc (tableau: *[..]$T, nouvelle_taille: z64, pos := #position_code_source)
 {
     ancienne_taille_en_octets := tableau.capacité * (taille_de(T) comme z64);
     nouvelle_taille_en_octets := nouvelle_taille * (taille_de(T) comme z64);
@@ -72,7 +72,7 @@ tableau_ajoute :: fonc (tableau: *[..]$T, valeurs: ...T)
     tmp := mémoire(tableau);
     diffère mémoire(tableau) = tmp;
     ancienne_taille := tmp.taille;
-    tableau_redimensionne(tmp, tmp.taille + valeurs.taille);
+    tableau_redimensionne(*tmp, tmp.taille + valeurs.taille);
     copie_mem_nonsur(src = valeurs.pointeur, dst = tmp.pointeur + ancienne_taille, taille = valeurs.taille * taille_de(T) comme z64);
 }
 
@@ -107,7 +107,7 @@ tableau_réserve :: fonc (tabl: *[..]$T, taille: z64) -> rien
     mémoire(tabl) = tmp;
 }
 
-tableau_redimensionne_sans_init :: fonc (tabl: &[..]$T, taille: z64) -> rien
+tableau_redimensionne_sans_init :: fonc (tabl: *[..]$T, taille: z64) -> rien
 {
     si taille == tabl.capacité {
         tabl.taille = tabl.capacité;
@@ -123,20 +123,20 @@ tableau_redimensionne_sans_init :: fonc (tabl: &[..]$T, taille: z64) -> rien
     tabl.taille = taille;
 }
 
-tableau_redimensionne :: fonc (tabl: &[..]$T, taille: z64) -> rien
+tableau_redimensionne :: fonc (tabl: *[..]$T, taille: z64) -> rien
 {
     ancienne_taille := tabl.taille;
-    tableau_redimensionne_sans_init(tabl, taille);
+    tableau_redimensionne_sans_init(*tabl, taille);
 
     pour ancienne_taille ... tabl.taille - 1 {
         init_de(T)(*tabl.pointeur[it]);
     }
 }
 
-tableau_redimensionne_défaut :: fonc (tabl: &[..]$T, taille: z64, défaut: T) -> rien
+tableau_redimensionne_défaut :: fonc (tabl: *[..]$T, taille: z64, défaut: T) -> rien
 {
     ancienne_taille := tabl.taille;
-    tableau_redimensionne_sans_init(tabl, taille);
+    tableau_redimensionne_sans_init(*tabl, taille);
 
     pour ancienne_taille ... tabl.taille - 1 {
         tabl.pointeur[it] = défaut;
@@ -263,9 +263,9 @@ tableau_supprime_valeur :: fonc (tabl: *[..]$T, valeur: T)
  * Retourne un tableau ayant les mêmes valeurs que le tableau en paramètre, et réinitialise
  * ce dernier. Ceci est utile pour transférer la propriété d'un tableau.
  */
-tableau_vole_mémoire :: fonc (tableau: &[..]$T) -> [..]T
+tableau_vole_mémoire :: fonc (tableau: *[..]$T) -> [..]T
 {
-    résultat := tableau;
+    résultat := mémoire(tableau);
     tableau.pointeur = nul;
     tableau.taille = 0;
     tableau.capacité = 0;
@@ -315,45 +315,46 @@ indice_élement :: fonc (tableau: []$T, adresse: *T) -> z64 #enligne
     retourne (adresse - tableau.pointeur);
 }
 
-tableau_détruit :: fonc (tableau: &[..]$T)
+tableau_détruit :: fonc (tableau: *[..]$T)
 {
-    déloge(tableau);
+    déloge(mémoire(tableau));
+    init_de([..]T)(tableau);
 }
 
-déloge_tableau_et_ses_éléments :: fonc (tableau: &[..]$T)
+déloge_tableau_et_ses_éléments :: fonc (tableau: *[..]$T)
 {
     /* À FAIRE(langage) : déréférencement automatique */
     pour tableau.taille {
         déloge(tableau.pointeur[it]);
     }
-    déloge(tableau);
+    tableau_détruit(tableau);
 }
 
-déloge_tableau_et_ses_éléments :: fonc (tableau: &[..]$T, rappel_déloge_élément: fonc (v: T))
+déloge_tableau_et_ses_éléments :: fonc (tableau: *[..]$T, rappel_déloge_élément: fonc (v: T))
 {
     /* À FAIRE(langage) : déréférencement automatique */
     pour tableau.taille {
         rappel_déloge_élément(tableau.pointeur[it]);
     }
-    déloge(tableau);
+    tableau_détruit(tableau);
 }
 
-déloge_tableau_et_ses_éléments :: fonc (tableau: &[..]$T, rappel_déloge_élément: fonc (v: &T))
+déloge_tableau_et_ses_éléments :: fonc (tableau: *[..]$T, rappel_déloge_élément: fonc (v: &T))
 {
     /* À FAIRE(langage) : déréférencement automatique */
     pour tableau.taille {
         rappel_déloge_élément(tableau.pointeur[it]);
     }
-    déloge(tableau);
+    tableau_détruit(tableau);
 }
 
-déloge_tableau_et_ses_éléments :: fonc (tableau: &[..]$T, rappel_déloge_élément: fonc (v: *T))
+déloge_tableau_et_ses_éléments :: fonc (tableau: *[..]$T, rappel_déloge_élément: fonc (v: *T))
 {
     /* À FAIRE(langage) : déréférencement automatique */
     pour tableau.taille {
         rappel_déloge_élément(*tableau.pointeur[it]);
     }
-    déloge(tableau);
+    tableau_détruit(tableau);
 }
 
 tableaux_sont_égaux :: fonc (tableau1: []$T, tableau2: []T) -> bool

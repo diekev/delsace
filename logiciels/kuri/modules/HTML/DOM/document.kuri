@@ -154,7 +154,7 @@ document_sur_destruction :: fonc (base: *JS.Cellule)
     CSS.détruit_arbre(document.arbre_de_disposition);
     CSS.détruit_globales_dessin(document.globales_dessin);
     CSS.détruit_résolveuse(document.résolveuse_style);
-    déloge_tableau_et_ses_éléments(document.feuilles_de_style, CSS.détruit_feuille_de_style);
+    déloge_tableau_et_ses_éléments(*document.feuilles_de_style, CSS.détruit_feuille_de_style);
 
     pour document.images_disponibles {
         déloge(it.url);

@@ -93,7 +93,7 @@ crée_tableau_booléen :: fonc (taille: z64) -> TableauBooléen
 {
     résultat: TableauBooléen;
 
-    tableau_redimensionne(résultat.bits, taille);
+    tableau_redimensionne(*résultat.bits, taille);
     résultat.bits.taille = taille;
     résultat.taille_max = taille_max;
 

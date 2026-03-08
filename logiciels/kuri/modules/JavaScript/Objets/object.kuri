@@ -114,7 +114,7 @@ garantis_taille_tableau_élément_pour_indice :: fonc (object: *Object, indice: 
 {
     si indice comme z64 >= object.éléments_indexés.taille {
         ancienne_taille := object.éléments_indexés.taille;
-        tableau_redimensionne(object.éléments_indexés, indice comme z64 + 1);
+        tableau_redimensionne(*object.éléments_indexés, indice comme z64 + 1);
 
         pour ancienne_taille ... object.éléments_indexés.taille - 1 {
             init_de(Object.Propriété)(*object.éléments_indexés[it]);

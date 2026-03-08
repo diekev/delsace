@@ -381,7 +381,7 @@ remplis_tampon_extra :: fonc (empl tampon: *TamponRendu, paramètres: &Paramètr
 crée_tableau_indice_iota :: fonc (nombre_éléments: z64) -> [..]n32
 {
     résultat: [..]n32;
-    tableau_redimensionne(résultat, nombre_éléments);
+    tableau_redimensionne(*résultat, nombre_éléments);
     tableau_iota(résultat, 0);
     retourne résultat;
 }

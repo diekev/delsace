@@ -104,7 +104,7 @@ crée_instruction :: fonc (génératrice: *GénératriceCodeBinaire, $T: type_de
     flux := génératrice.flux;
 
     décalage := flux.instructions.taille;
-    tableau_redimensionne(flux.instructions, décalage + taille_de(T) comme z64);
+    tableau_redimensionne(*flux.instructions, décalage + taille_de(T) comme z64);
     résultat := *flux.instructions[décalage] comme *T;
     init_de(T)(résultat);
     retourne résultat;
@@ -367,7 +367,7 @@ crée_appel :: fonc (génératrice: *GénératriceCodeBinaire, func: Registre, t
 {
     flux := génératrice.flux;
     décalage := flux.instructions.taille;
-    tableau_redimensionne(flux.instructions, décalage + taille_de(InstructionAppel) comme z64 + args.taille * taille_de(Registre) comme z64);
+    tableau_redimensionne(*flux.instructions, décalage + taille_de(InstructionAppel) comme z64 + args.taille * taille_de(Registre) comme z64);
     résultat := *flux.instructions[décalage] comme *InstructionAppel;
     init_de(InstructionAppel)(résultat);
 
@@ -389,7 +389,7 @@ crée_appel_eval :: fonc (génératrice: *GénératriceCodeBinaire, func: Regist
 {
     flux := génératrice.flux;
     décalage := flux.instructions.taille;
-    tableau_redimensionne(flux.instructions, décalage + taille_de(InstructionAppelEval) comme z64 + args.taille * taille_de(Registre) comme z64);
+    tableau_redimensionne(*flux.instructions, décalage + taille_de(InstructionAppelEval) comme z64 + args.taille * taille_de(Registre) comme z64);
     résultat := *flux.instructions[décalage] comme *InstructionAppelEval;
     init_de(InstructionAppelEval)(résultat);
 
@@ -411,7 +411,7 @@ crée_new :: fonc (génératrice: *GénératriceCodeBinaire, func: Registre, arg
 {
     flux := génératrice.flux;
     décalage := flux.instructions.taille;
-    tableau_redimensionne(flux.instructions, décalage + taille_de(InstructionNew) comme z64 + args.taille * taille_de(Registre) comme z64);
+    tableau_redimensionne(*flux.instructions, décalage + taille_de(InstructionNew) comme z64 + args.taille * taille_de(Registre) comme z64);
     résultat := *flux.instructions[décalage] comme *InstructionNew;
     init_de(InstructionNew)(résultat);
 

@@ -326,7 +326,7 @@ TraversableNavigable :: struct {
 
 détruit_traversable :: fonc (traversable: *TraversableNavigable)
 {
-    déloge_tableau_et_ses_éléments(traversable.session_history_entries, détruit_session_history_entry);
+    déloge_tableau_et_ses_éléments(*traversable.session_history_entries, détruit_session_history_entry);
     déloge(traversable);
 }
 
