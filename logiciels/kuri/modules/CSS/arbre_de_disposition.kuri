@@ -1099,7 +1099,7 @@ développe_variables :: fonc (propriétés: *PropriétésDeStyle, value: []Compo
         }
 
         parseuse := initialise_une_parseuse(it.function.value);
-        opt_variable := parse_variables_depuis_arguments(parseuse);
+        opt_variable := parse_variables_depuis_arguments(*parseuse);
         saufsi opt_variable.possède_valeur() {
             continue;
         }

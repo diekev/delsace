@@ -29,13 +29,13 @@ lèxe_style :: fonc (contenu: chaine) -> [..]Lexème
     prétraite(chn);
 
     lexeuse: Lexeuse;
-    diffère détruit_données(lexeuse);
+    diffère détruit_données(*lexeuse);
     lexeuse.contenu = chn;
 
     lexèmes: [..]Lexème;
 
-    tantque !fini(lexeuse) {
-        lexème := consomme_un_lexème(lexeuse);
+    tantque !fini(*lexeuse) {
+        lexème := consomme_un_lexème(*lexeuse);
         tableau_ajoute(*lexèmes, lexème);
     }
 
@@ -44,7 +44,7 @@ lèxe_style :: fonc (contenu: chaine) -> [..]Lexème
 
 /* 3.3. Preprocessing the input stream
  * https://www.w3.org/TR/css-syntax-3/#input-preprocessing */
-prétraite :: fonc (chn: &ChaineUTF32)
+prétraite :: fonc (chn: ChaineUTF32)
 {
     pour & chn.points_de_code {
         /* À FAIRE : \r\n => \n */
