@@ -44,14 +44,14 @@ génère_adresse_courriel_aléatoire :: fonc (gna: *GNA, alphabet: &Alphabet.Alp
     retourne courriel;
 }
 
-génère_adresse_courriel_aléatoire :: fonc (génératrice: GénératriceDonnéesAléatoire) -> AdresseCourriel
+génère_adresse_courriel_aléatoire :: fonc (génératrice: *GénératriceDonnéesAléatoire) -> AdresseCourriel
 {
     alphabet := crée_alphabet_ascii_courriel();
     diffère détruit_alphabet(alphabet);
     retourne génère_adresse_courriel_aléatoire(génératrice.gna, alphabet);
 }
 
-rappel_génère_adresse_courriel_aléatoire :: fonc (génératrice: &GénératriceDonnéesAléatoire, ptr: *AdresseCourriel)
+rappel_génère_adresse_courriel_aléatoire :: fonc (génératrice: *GénératriceDonnéesAléatoire, ptr: *AdresseCourriel)
 {
     adresse := génère_adresse_courriel_aléatoire(génératrice);
     mémoire(ptr) = adresse;
