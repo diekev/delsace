@@ -45,7 +45,7 @@ MéthodeCréationLabyrinthe :: énum {
     ELLER;
 }
 
-initialise_murs :: fonc (labyrinthe: *Labyrinthe, entropie: &SérieAléatoire, méthode: MéthodeCréationLabyrinthe)
+initialise_murs :: fonc (labyrinthe: *Labyrinthe, entropie: *SérieAléatoire, méthode: MéthodeCréationLabyrinthe)
 {
     discr méthode {
         PSEUDO_LABYRINTHE {
@@ -69,7 +69,7 @@ initialise_murs :: fonc (labyrinthe: *Labyrinthe, entropie: &SérieAléatoire, m
  * Tiré de https://twitter.com/pikuma/status/1688966816226246656.
  * \{ */
 
-initialise_murs_pseudo_labyrinthe :: fonc (labyrinthe: *Labyrinthe, entropie: &SérieAléatoire)
+initialise_murs_pseudo_labyrinthe :: fonc (labyrinthe: *Labyrinthe, entropie: *SérieAléatoire)
 {
     taille_x := labyrinthe.taille_x;
     taille_y := labyrinthe.taille_y;
@@ -155,7 +155,7 @@ initialise_murs_pseudo_labyrinthe :: fonc (labyrinthe: *Labyrinthe, entropie: &S
  * Tiré de http://www.neocomputer.org/projects/eller.html.
  * \{ */
 
-initialise_murs_eller :: fonc (labyrinthe: *Labyrinthe, entropie: &SérieAléatoire)
+initialise_murs_eller :: fonc (labyrinthe: *Labyrinthe, entropie: *SérieAléatoire)
 {
     tableau_remplis_avec(labyrinthe.données, faux);
 
@@ -398,7 +398,7 @@ avance_ligne_suivante :: fonc (empl constructrice: *ConstructriceMéthodeEller)
 }
 
 /* Crée des murs à droite des cellules. */
-crée_mur_entre_cellules :: fonc (empl constructrice: *ConstructriceMéthodeEller, entropie: &SérieAléatoire)
+crée_mur_entre_cellules :: fonc (empl constructrice: *ConstructriceMéthodeEller, entropie: *SérieAléatoire)
 {
     pour x dans 1 ... taille_x - 1 {
         cx0 := *ligne_courante[x - 1];
@@ -428,7 +428,7 @@ crée_mur_entre_cellules :: fonc (empl constructrice: *ConstructriceMéthodeElle
     supprime_groupes_vides(constructrice);
 }
 
-crée_chemin_sortie_cellules :: fonc (empl constructrice: *ConstructriceMéthodeEller, entropie: &SérieAléatoire)
+crée_chemin_sortie_cellules :: fonc (empl constructrice: *ConstructriceMéthodeEller, entropie: *SérieAléatoire)
 {
     /* Garantis qu'au moins une cellule de chaque groupe possède une sortie (aucun mur en bas). */
     groupe := constructrice.groupes;
