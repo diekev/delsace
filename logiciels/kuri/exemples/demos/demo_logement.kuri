@@ -21,7 +21,7 @@ test_logement_tableau :: fonc ()
         imprime("-- %\n", it);
     }
 
-    reloge_tableau(tableau, 20);
+    reloge_tableau(*tableau, 20);
 
     imprime("tableau.pointeur : %\n", tableau.pointeur);
     imprime("tableau.capacité : %\n", tableau.capacité);

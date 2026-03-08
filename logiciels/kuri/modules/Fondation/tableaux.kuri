@@ -52,7 +52,7 @@ tableau_ajoute :: fonc (tabl: *[..]$T, valeur: T) -> rien #enligne
             capacité += capacité >> 1;
         }
 
-        reloge_tableau(tmp, capacité);
+        reloge_tableau(*tmp, capacité);
     }
 
     tmp.taille += 1;
@@ -100,11 +100,7 @@ tableau_réserve :: fonc (tabl: *[..]$T, taille: z64) -> rien
         retourne;
     }
 
-    tmp := mémoire(tabl);
-
-    reloge_tableau(tmp, taille);
-
-    mémoire(tabl) = tmp;
+    reloge_tableau(tabl, taille);
 }
 
 tableau_redimensionne_sans_init :: fonc (tabl: *[..]$T, taille: z64) -> rien
@@ -126,7 +122,7 @@ tableau_redimensionne_sans_init :: fonc (tabl: *[..]$T, taille: z64) -> rien
 tableau_redimensionne :: fonc (tabl: *[..]$T, taille: z64) -> rien
 {
     ancienne_taille := tabl.taille;
-    tableau_redimensionne_sans_init(*tabl, taille);
+    tableau_redimensionne_sans_init(tabl, taille);
 
     pour ancienne_taille ... tabl.taille - 1 {
         init_de(T)(*tabl.pointeur[it]);
@@ -136,7 +132,7 @@ tableau_redimensionne :: fonc (tabl: *[..]$T, taille: z64) -> rien
 tableau_redimensionne_défaut :: fonc (tabl: *[..]$T, taille: z64, défaut: T) -> rien
 {
     ancienne_taille := tabl.taille;
-    tableau_redimensionne_sans_init(*tabl, taille);
+    tableau_redimensionne_sans_init(tabl, taille);
 
     pour ancienne_taille ... tabl.taille - 1 {
         tabl.pointeur[it] = défaut;
@@ -171,7 +167,7 @@ tableau_insère_indice :: fonc (tabl: *[..]$T, valeur: T, où: z64) -> rien
 {
     tmp := mémoire(tabl);
 
-    reloge_tableau(tmp, tmp.taille + 1);
+    reloge_tableau(*tmp, tmp.taille + 1);
     tmp.taille += 1;
 
     pour > où + 1 ... tmp.taille - 1 {
