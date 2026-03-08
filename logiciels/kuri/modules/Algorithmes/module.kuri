@@ -214,13 +214,6 @@ permute :: fonc (a: *$T, b: *T) #enligne
     mémoire(b) = tmp;
 }
 
-permute :: fonc (a: &$T, b: &T) #enligne
-{
-    tmp : T = a;
-    a = b;
-    b = tmp;
-}
-
 /** \} */
 
 /* ------------------------------------------------------------------------- */

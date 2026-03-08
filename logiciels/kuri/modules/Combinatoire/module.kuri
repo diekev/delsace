@@ -100,7 +100,7 @@ génère_suite_prouet_thue_morse_double_et_inverse :: fonc (n: n32) -> chaine
             tableau_ajoute(*tmp, it);
         }
 
-        permute(résultat, tmp);
+        permute(*résultat, *tmp);
     }
 
     retourne chaine_depuis_tranche_octets(résultat);
