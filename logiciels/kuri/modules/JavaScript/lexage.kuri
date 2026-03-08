@@ -180,7 +180,7 @@ Lexeuse :: struct {
     dans_commentaire_html: bool;
 }
 
-initialise_lexeuse_depuis_source :: fonc (lexeuse: &Lexeuse, source: *TexteSource)
+initialise_lexeuse_depuis_source :: fonc (lexeuse: *Lexeuse, source: *TexteSource)
 {
     début_source := source.texte.pointeur;
     fin_source := début_source + source.texte.taille;
@@ -192,17 +192,17 @@ initialise_lexeuse_depuis_source :: fonc (lexeuse: &Lexeuse, source: *TexteSourc
     déloge(lexeuse.lexèmes);
 }
 
-fini :: fonc (lexeuse: &Lexeuse) -> bool #enligne
+fini :: fonc (lexeuse: *Lexeuse) -> bool #enligne
 {
     retourne lexeuse.erreur_de_compilation != nul || lexeuse.début_source >= lexeuse.fin_source;
 }
 
-caractère_courant :: fonc (lexeuse: &Lexeuse) -> z8 #enligne
+caractère_courant :: fonc (lexeuse: *Lexeuse) -> z8 #enligne
 {
     retourne mémoire(lexeuse.début_source);
 }
 
-apparie :: fonc (empl lexeuse: &Lexeuse, texte: chaine) -> bool
+apparie :: fonc (empl lexeuse: *Lexeuse, texte: chaine) -> bool
 {
     si début_source + texte.taille >= fin_source {
         retourne faux;
@@ -212,39 +212,39 @@ apparie :: fonc (empl lexeuse: &Lexeuse, texte: chaine) -> bool
     retourne sous_chn == texte;
 }
 
-avance :: fonc (empl lexeuse: &Lexeuse, n := 1) #enligne
+avance :: fonc (empl lexeuse: *Lexeuse, n := 1) #enligne
 {
     début_source += n;
 }
 
-recule :: fonc (empl lexeuse: &Lexeuse, n := 1) #enligne
+recule :: fonc (empl lexeuse: *Lexeuse, n := 1) #enligne
 {
     début_source -= n;
 }
 
-débute_lexème :: fonc (empl lexeuse: &Lexeuse) #enligne
+débute_lexème :: fonc (empl lexeuse: *Lexeuse) #enligne
 {
     début_mot = début_source;
     début_source += 1;
 }
 
-crée_lexème :: fonc (empl lexeuse: &Lexeuse, genre: GenreLexème) -> Lexème
+crée_lexème :: fonc (empl lexeuse: *Lexeuse, genre: GenreLexème) -> Lexème
 {
     retourne Lexème(genre = genre, texte = lexeuse.donne_texte_courant());
 }
 
-donne_texte_courant :: fonc (empl lexeuse: &Lexeuse) -> chaine #enligne
+donne_texte_courant :: fonc (empl lexeuse: *Lexeuse) -> chaine #enligne
 {
     retourne chaine(début_mot, (début_source - début_mot) comme z32);
 }
 
-crée_lexème_pour_caractère :: fonc (lexeuse: &Lexeuse, genre: GenreLexème) -> Lexème
+crée_lexème_pour_caractère :: fonc (lexeuse: *Lexeuse, genre: GenreLexème) -> Lexème
 {
     débute_lexème(lexeuse);
     retourne crée_lexème(lexeuse, genre);
 }
 
-lèxe_nombre :: fonc (empl lexeuse: &Lexeuse) -> Lexème
+lèxe_nombre :: fonc (empl lexeuse: *Lexeuse) -> Lexème
 {
     lexeuse.débute_lexème();
 
@@ -312,29 +312,29 @@ lèxe_nombre :: fonc (empl lexeuse: &Lexeuse) -> Lexème
     retourne crée_lexème(lexeuse, GenreLexème.NombreLittéral);
 }
 
-lèxe_nombre_binaire :: fonc (lexeuse: &Lexeuse) -> Lexème
+lèxe_nombre_binaire :: fonc (lexeuse: *Lexeuse) -> Lexème
 {
     retourne lèxe_nombre_avec_drapeaux(lexeuse, FanionCaractère.EstChiffreBinaire | FanionCaractère.EstSéparateurChiffre);
 }
 
-lèxe_nombre_octal :: fonc (lexeuse: &Lexeuse) -> Lexème
+lèxe_nombre_octal :: fonc (lexeuse: *Lexeuse) -> Lexème
 {
     retourne lèxe_nombre_avec_drapeaux(lexeuse, FanionCaractère.EstChiffreOctal | FanionCaractère.EstSéparateurChiffre);
 }
 
-lèxe_nombre_hexadécimal :: fonc (lexeuse: &Lexeuse) -> Lexème
+lèxe_nombre_hexadécimal :: fonc (lexeuse: *Lexeuse) -> Lexème
 {
     retourne lèxe_nombre_avec_drapeaux(lexeuse, FanionCaractère.EstChiffreHexadécimal | FanionCaractère.EstSéparateurChiffre);
 }
 
-lèxe_nombre_avec_drapeaux :: fonc (lexeuse: &Lexeuse, drapeaux: FanionCaractère) -> Lexème
+lèxe_nombre_avec_drapeaux :: fonc (lexeuse: *Lexeuse, drapeaux: FanionCaractère) -> Lexème
 {
     lexeuse.avance();
     lexeuse.avance_tantque(drapeaux);
     retourne crée_lexème(lexeuse, GenreLexème.NombreLittéral);
 }
 
-avance_tantque :: fonc (lexeuse: &Lexeuse, drapeaux: FanionCaractère)
+avance_tantque :: fonc (lexeuse: *Lexeuse, drapeaux: FanionCaractère)
 {
     tantque !fini(lexeuse) {
         c := lexeuse.caractère_courant();
@@ -472,7 +472,7 @@ parse_nombre_hexadécimal :: fonc (texte: chaine) -> r64
     retourne résultat;
 }
 
-lèxe_chaine_littérale :: fonc (empl lexeuse: &Lexeuse, caractère_final: z8) -> Lexème
+lèxe_chaine_littérale :: fonc (empl lexeuse: *Lexeuse, caractère_final: z8) -> Lexème
 {
     lexeuse.débute_lexème();
     /* N'incluons pas les guillemets. */
@@ -508,7 +508,7 @@ lèxe_chaine_littérale :: fonc (empl lexeuse: &Lexeuse, caractère_final: z8) -
     retourne résultat;
 }
 
-lèxe_template_literal :: fonc (empl lexeuse: &Lexeuse) -> Lexème
+lèxe_template_literal :: fonc (empl lexeuse: *Lexeuse) -> Lexème
 {
     lexeuse.débute_lexème();
     /* N'incluons pas les guillemets. */
@@ -585,7 +585,7 @@ lèxe_template_literal :: fonc (empl lexeuse: &Lexeuse) -> Lexème
     retourne résultat;
 }
 
-droit_traité_slash_comme_début_regex :: fonc (empl lexeuse: &Lexeuse) -> bool
+droit_traité_slash_comme_début_regex :: fonc (empl lexeuse: *Lexeuse) -> bool
 {
     si lexèmes.taille == 0 {
         retourne vrai;
@@ -645,7 +645,7 @@ RésultatLexageRegex :: énum {
 /* https://tc39.es/ecma262/multipage/ecmascript-language-lexical-grammar.html#sec-literals-regular-expression-literals */
 // RegularExpressionLiteral ::
 //     / RegularExpressionBody / RegularExpressionFlags
-lèxe_regex_littérale :: fonc (empl lexeuse: &Lexeuse) -> Lexème
+lèxe_regex_littérale :: fonc (empl lexeuse: *Lexeuse) -> Lexème
 {
     lexeuse.débute_lexème();
 
@@ -675,7 +675,7 @@ lèxe_regex_littérale :: fonc (empl lexeuse: &Lexeuse) -> Lexème
 
 // RegularExpressionBody ::
 //     RegularExpressionFirstChar RegularExpressionChars
-lèxe_regular_expression_body :: fonc (lexeuse: &Lexeuse) -> RésultatLexageRegex
+lèxe_regular_expression_body :: fonc (lexeuse: *Lexeuse) -> RésultatLexageRegex
 {
     résultat := lèxe_regular_expression_first_char(lexeuse);
     si résultat != RésultatLexageRegex.Oui {
@@ -688,7 +688,7 @@ lèxe_regular_expression_body :: fonc (lexeuse: &Lexeuse) -> RésultatLexageRege
 // RegularExpressionChars ::
 //     [empty]
 //     RegularExpressionChars RegularExpressionChar
-lèxe_regular_expression_chars :: fonc (lexeuse: &Lexeuse) -> RésultatLexageRegex
+lèxe_regular_expression_chars :: fonc (lexeuse: *Lexeuse) -> RésultatLexageRegex
 {
     tantque !fini(lexeuse) {
         résultat := lèxe_regular_expression_char(lexeuse);
@@ -703,7 +703,7 @@ lèxe_regular_expression_chars :: fonc (lexeuse: &Lexeuse) -> RésultatLexageReg
 //     RegularExpressionNonTerminator but not one of * or \ or / or [
 //     RegularExpressionBackslashSequence
 //     RegularExpressionClass
-lèxe_regular_expression_first_char :: fonc (lexeuse: &Lexeuse) -> RésultatLexageRegex
+lèxe_regular_expression_first_char :: fonc (lexeuse: *Lexeuse) -> RésultatLexageRegex
 {
     résultat := lèxe_regular_expression_non_terminator(lexeuse, ['*', '\\', '/', '[']);
     si résultat == RésultatLexageRegex.Erreur || résultat == RésultatLexageRegex.Oui {
@@ -728,7 +728,7 @@ lèxe_regular_expression_first_char :: fonc (lexeuse: &Lexeuse) -> RésultatLexa
 //     RegularExpressionNonTerminator but not one of \ or / or [
 //     RegularExpressionBackslashSequence
 //     RegularExpressionClass
-lèxe_regular_expression_char :: fonc (lexeuse: &Lexeuse) -> RésultatLexageRegex
+lèxe_regular_expression_char :: fonc (lexeuse: *Lexeuse) -> RésultatLexageRegex
 {
     si fini(lexeuse) {
         rapporte_erreur(lexeuse, "unexpected end of input");
@@ -750,7 +750,7 @@ lèxe_regular_expression_char :: fonc (lexeuse: &Lexeuse) -> RésultatLexageRege
 
 // RegularExpressionBackslashSequence ::
 //     \ RegularExpressionNonTerminator
-lèxe_regular_expression_backslash_sequence :: fonc (lexeuse: &Lexeuse) -> RésultatLexageRegex
+lèxe_regular_expression_backslash_sequence :: fonc (lexeuse: *Lexeuse) -> RésultatLexageRegex
 {
     si fini(lexeuse) {
         rapporte_erreur(lexeuse, "unexpected end of input");
@@ -769,7 +769,7 @@ lèxe_regular_expression_backslash_sequence :: fonc (lexeuse: &Lexeuse) -> Résu
 
 // RegularExpressionNonTerminator ::
 //     SourceCharacter but not LineTerminator
-lèxe_regular_expression_non_terminator :: fonc (lexeuse: &Lexeuse, exclus: []z8) -> RésultatLexageRegex
+lèxe_regular_expression_non_terminator :: fonc (lexeuse: *Lexeuse, exclus: []z8) -> RésultatLexageRegex
 {
     si fini(lexeuse) {
         rapporte_erreur(lexeuse, "unexpected end of input");
@@ -795,7 +795,7 @@ lèxe_regular_expression_non_terminator :: fonc (lexeuse: &Lexeuse, exclus: []z8
 
 // RegularExpressionClass ::
 //     [ RegularExpressionClassChars ]
-lèxe_regular_expression_class :: fonc (lexeuse: &Lexeuse) -> RésultatLexageRegex
+lèxe_regular_expression_class :: fonc (lexeuse: *Lexeuse) -> RésultatLexageRegex
 {
     si fini(lexeuse) {
         rapporte_erreur(lexeuse, "unexpected end of input");
@@ -832,7 +832,7 @@ lèxe_regular_expression_class :: fonc (lexeuse: &Lexeuse) -> RésultatLexageReg
 // RegularExpressionClassChars ::
 //     [empty]
 //     RegularExpressionClassChars RegularExpressionClassChar
-lèxe_regular_expression_class_chars :: fonc (lexeuse: &Lexeuse) -> RésultatLexageRegex
+lèxe_regular_expression_class_chars :: fonc (lexeuse: *Lexeuse) -> RésultatLexageRegex
 {
     tantque !fini(lexeuse) {
         c := lexeuse.caractère_courant();
@@ -853,7 +853,7 @@ lèxe_regular_expression_class_chars :: fonc (lexeuse: &Lexeuse) -> RésultatLex
 // RegularExpressionClassChar ::
 //     RegularExpressionNonTerminator but not one of ] or \
 //     RegularExpressionBackslashSequence
-lèxe_regular_expression_class_char :: fonc (lexeuse: &Lexeuse) -> RésultatLexageRegex
+lèxe_regular_expression_class_char :: fonc (lexeuse: *Lexeuse) -> RésultatLexageRegex
 {
     si fini(lexeuse) {
         rapporte_erreur(lexeuse, "unexpected end of input");
@@ -871,7 +871,7 @@ lèxe_regular_expression_class_char :: fonc (lexeuse: &Lexeuse) -> RésultatLexa
 // RegularExpressionFlags ::
 //     [empty]
 //     RegularExpressionFlags IdentifierPartChar
-lèxe_regular_expression_flags :: fonc (lexeuse: &Lexeuse)
+lèxe_regular_expression_flags :: fonc (lexeuse: *Lexeuse)
 {
     premier_caractère := vrai;
 
@@ -894,7 +894,7 @@ lèxe_regular_expression_flags :: fonc (lexeuse: &Lexeuse)
     }
 }
 
-lèxe_identifiant :: fonc (empl lexeuse: &Lexeuse, genre_lexème: GenreLexème) -> Lexème
+lèxe_identifiant :: fonc (empl lexeuse: *Lexeuse, genre_lexème: GenreLexème) -> Lexème
 {
     lexeuse.débute_lexème();
 
@@ -932,16 +932,16 @@ lèxe :: fonc (realm: *Realm, source: *TexteSource) -> Optionnel(*SyntaxError)
 {
     lexeuse: Lexeuse;
     lexeuse.realm = realm;
-    initialise_lexeuse_depuis_source(lexeuse, source);
+    initialise_lexeuse_depuis_source(*lexeuse, source);
 
-    tantque !fini(lexeuse) {
-        consomme_espaces_blanches(lexeuse);
+    tantque !fini(*lexeuse) {
+        consomme_espaces_blanches(*lexeuse);
 
-        si fini(lexeuse) {
+        si fini(*lexeuse) {
             arrête;
         }
 
-        lexème := donne_lexème_suivant(lexeuse);
+        lexème := donne_lexème_suivant(*lexeuse);
         tableau_ajoute(*lexeuse.lexèmes, lexème);
     }
 
@@ -954,7 +954,7 @@ lèxe :: fonc (realm: *Realm, source: *TexteSource) -> Optionnel(*SyntaxError)
     }
 }
 
-donne_lexème_suivant :: fonc (lexeuse: &Lexeuse) -> Lexème
+donne_lexème_suivant :: fonc (lexeuse: *Lexeuse) -> Lexème
 {
     c := lexeuse.caractère_courant();
     fanion := fanions_caractères[c comme n8];
@@ -1082,7 +1082,7 @@ donne_lexème_suivant :: fonc (lexeuse: &Lexeuse) -> Lexème
     retourne lèxe_identifiant(lexeuse, GenreLexème.Identifiant);
 }
 
-consomme_espaces_blanches :: fonc (lexeuse: &Lexeuse)
+consomme_espaces_blanches :: fonc (lexeuse: *Lexeuse)
 {
     tantque !fini(lexeuse) {
         c := lexeuse.caractère_courant();
@@ -1142,7 +1142,7 @@ consomme_espaces_blanches :: fonc (lexeuse: &Lexeuse)
     }
 }
 
-consomme_commentaire_ligne_seule :: fonc (lexeuse: &Lexeuse)
+consomme_commentaire_ligne_seule :: fonc (lexeuse: *Lexeuse)
 {
     /* Lèxe commentaire. */
     tantque !fini(lexeuse) {
@@ -1156,7 +1156,7 @@ consomme_commentaire_ligne_seule :: fonc (lexeuse: &Lexeuse)
     }
 }
 
-consomme_commentaire_bloc :: fonc (lexeuse: &Lexeuse)
+consomme_commentaire_bloc :: fonc (lexeuse: *Lexeuse)
 {
     lexeuse.avance(2);
 
@@ -1172,7 +1172,7 @@ consomme_commentaire_bloc :: fonc (lexeuse: &Lexeuse)
     }
 }
 
-rapporte_erreur :: fonc (lexeuse: &Lexeuse, message: chaine)
+rapporte_erreur :: fonc (lexeuse: *Lexeuse, message: chaine)
 {
     si lexeuse.erreur_de_compilation {
         retourne;

@@ -738,8 +738,8 @@ exécute_code_binaire :: fonc (base: *Interpréteuse, noeud: *NoeudSyntaxique) -
         flux = loge(FluxDInstructions);
         génératrice := GénératriceCodeBinaire(flux);
 
-        _ := génère_code_binaire(génératrice, noeud);
-        applique_patchs(génératrice);
+        _ := génère_code_binaire(*génératrice, noeud);
+        applique_patchs(*génératrice);
 
         // imprime_instructions(flux)
 

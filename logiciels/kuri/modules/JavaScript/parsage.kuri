@@ -1497,10 +1497,10 @@ parse_expression_primaire :: fonc (parseuse: *Parseuse) -> *Expression
              * Nous faisons un relexage à partir du lexème courant pour obtenir ladite expression régulière. */
             lexeuse: Lexeuse;
             lexeuse.realm = parseuse.realm;
-            initialise_lexeuse_depuis_source(lexeuse, parseuse.source_text);
+            initialise_lexeuse_depuis_source(*lexeuse, parseuse.source_text);
             lexeuse.début_source = lexème.texte.pointeur;
 
-            lexème_regex_literal := lèxe_regex_littérale(lexeuse);
+            lexème_regex_literal := lèxe_regex_littérale(*lexeuse);
 
             tantque !fini(parseuse) {
                 lexème_à_ignorer := parseuse.lexème_courant();
