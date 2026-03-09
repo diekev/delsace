@@ -12,7 +12,7 @@ principale :: fonc ()
     }
 
     chemins := donne_fichiers_du_dossier(chemin_donnée, vrai);
-    diffère déloge_tableau_et_ses_éléments(chemins);
+    diffère déloge_tableau_et_ses_éléments(*chemins);
 
     fichiers_javascript: [..]chaine;
 

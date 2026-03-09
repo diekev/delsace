@@ -28,7 +28,7 @@ est_terminé :: fonc (état: ÉtatEnvoiCourriel) -> bool #enligne
     retourne état.étape == ÉtapeEnvoiCourriel.EnvoiTerminé;
 }
 
-commande_suivante :: fonc (état: &ÉtatEnvoiCourriel, config: &ConfigurationCourriel, courriel: &Courriel) -> chaine
+commande_suivante :: fonc (état: *ÉtatEnvoiCourriel, config: *ConfigurationCourriel, courriel: *Courriel) -> chaine
 {
     discr état.étape {
         EnvoiNonCommencé {

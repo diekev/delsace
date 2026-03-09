@@ -12,7 +12,7 @@ Serveuse :: struct {
     prise := -1;
 }
 
-construis_serveuse :: fonc (serveuse: &Serveuse, port: n16) -> chaine
+construis_serveuse :: fonc (serveuse: *Serveuse, port: n16) -> chaine
 {
     serveuse.prise = socket(AF_INET, SOCK_STREAM, 0);
 
@@ -49,7 +49,7 @@ construis_serveuse :: fonc (serveuse: &Serveuse, port: n16) -> chaine
     retourne "";
 }
 
-détruit_serveuse :: fonc (serveuse: &Serveuse)
+détruit_serveuse :: fonc (serveuse: *Serveuse)
 {
     si serveuse.prise == -1 {
         retourne;
@@ -58,7 +58,7 @@ détruit_serveuse :: fonc (serveuse: &Serveuse)
     _ := close(serveuse.prise);
 }
 
-charge_donnees_requete :: fonc (prise: z32, mon_addresse: &sockaddr_in @inutilisée) -> chaine
+charge_donnees_requete :: fonc (prise: z32, mon_addresse: *sockaddr_in @inutilisée) -> chaine
 {
     //ip = convertis_chaine_c(inet_ntoa(mon_addresse.sin_addr))
     //imprime("serveur: Reçu connexion de ", ip, '\n')
@@ -72,7 +72,7 @@ charge_donnees_requete :: fonc (prise: z32, mon_addresse: &sockaddr_in @inutilis
     retourne requête;
 }
 
-démarre :: fonc (serveuse: &Serveuse) -> rien
+démarre :: fonc (serveuse: *Serveuse) -> rien
 {
     si serveuse.prise == -1 {
         retourne;
@@ -90,7 +90,7 @@ démarre :: fonc (serveuse: &Serveuse) -> rien
         }
 
         si fork() == 0 {
-            requete := charge_donnees_requete(prise, mon_addresse);
+            requete := charge_donnees_requete(prise, *mon_addresse);
             imprime("requête :\n%\n", requete);
 
             //reponse = repond_requete(requete)
@@ -136,7 +136,7 @@ démarre :: fonc (serveuse: &Serveuse) -> rien
 principale :: fonc ()
 {
     serveuse: Serveuse;
-    _ := construis_serveuse(serveuse, 5009);
+    _ := construis_serveuse(*serveuse, 5009);
 
-    démarre(serveuse);
+    démarre(*serveuse);
 }

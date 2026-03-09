@@ -135,7 +135,7 @@ InfoToucheClavier :: struct {
     modificateur: ModificateurClavier;
 }
 
-donne_info_touche :: fonc (évènement: Évènement) -> InfoToucheClavier
+donne_info_touche :: fonc (évènement: *Évènement) -> InfoToucheClavier
 {
     résultat: InfoToucheClavier;
     résultat.type = évènement.touche;
@@ -497,7 +497,7 @@ TypeÉvènement :: énum {
     mimes: [..]DonnéesMime;
 }
 
-donne_clic_souris :: fonc (empl évènement: &Évènement) -> ClicSouris
+donne_clic_souris :: fonc (empl évènement: *Évènement) -> ClicSouris
 {
     clic: ClicSouris = ---;
     clic.état = état_souris;
@@ -516,7 +516,7 @@ initialise_depuis_clic :: fonc (évènement: *Évènement, clic: ClicSouris)
     évènement.action_souris = clic.action;
 }
 
-donne_raccourci :: fonc (évènement: Évènement) -> RaccourciClavier
+donne_raccourci :: fonc (évènement: *Évènement) -> RaccourciClavier
 {
     résultat: RaccourciClavier = ---;
     résultat.touche = évènement.touche;

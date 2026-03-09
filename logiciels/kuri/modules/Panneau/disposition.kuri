@@ -10,7 +10,7 @@ Disposition :: struct {
 
 détruit_données_disposition :: fonc (disposition: *Disposition)
 {
-    déloge_tableau_et_ses_éléments(disposition.panneaux, détruit_panneau);
+    déloge_tableau_et_ses_éléments(*disposition.panneaux, détruit_panneau);
 }
 
 ajoute_panneau :: fonc (disposition: *Disposition, panneau: *Panneau)

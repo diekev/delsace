@@ -16,7 +16,7 @@ donne_current_settings_object :: fonc (platform_object: *PlatformObject) -> *Env
     saufsi realm {
         retourne nul;
     }
-    retourne JS.donne_données(realm.host_defined, EnvironmentSettings);
+    retourne JS.donne_données(*realm.host_defined, EnvironmentSettings);
 }
 
 donne_current_global_object :: fonc (platform_object: *PlatformObject) -> *JS.Object
@@ -46,7 +46,7 @@ donne_relevant_settings_object :: fonc (platform_object: *PlatformObject) -> *En
     saufsi realm {
         retourne nul;
     }
-    retourne JS.donne_données(realm.host_defined, EnvironmentSettings);
+    retourne JS.donne_données(*realm.host_defined, EnvironmentSettings);
 }
 
 donne_relevant_global_object :: fonc (platform_object: *PlatformObject) -> *JS.Object
@@ -311,7 +311,7 @@ initialise_constructors :: fonc (global: *JS.Object, realm: *JS.Realm)
         desc: JS.PropertyDescriptor;
         JS.initialise_property_descriptor(*desc, JS.Valeur(Object = constructor), JS.DrapeauxPropriété.zéro);
 
-        JS.define_property_or_throw(global, it.nom, desc);
+        JS.define_property_or_throw(global, it.nom, *desc);
     }
 }
 

@@ -66,7 +66,7 @@ PièceJointe :: struct {
     contenu: chaine;
 }
 
-détruit_pièce_jointe :: fonc (pièce_jointe: &PièceJointe)
+détruit_pièce_jointe :: fonc (pièce_jointe: *PièceJointe)
 {
     déloge(pièce_jointe.contenu);
 }
@@ -125,7 +125,7 @@ Courriel :: struct {
     messages: [..]chaine;
 }
 
-détruit_courriel :: fonc (courriel: &Courriel) -> rien
+détruit_courriel :: fonc (courriel: *Courriel) -> rien
 {
     déloge(courriel.messages);
     déloge(courriel.destinataires);
@@ -139,27 +139,27 @@ détruit_courriel :: fonc (courriel: &Courriel) -> rien
     déloge(courriel.pièces_jointes);
 }
 
-ajoute_message :: fonc (courriel: &Courriel, message: chaine)
+ajoute_message :: fonc (courriel: *Courriel, message: chaine)
 {
     tableau_ajoute(*courriel.messages, message);
 }
 
-ajoute_pièce_jointe :: fonc (courriel: &Courriel, pièce: PièceJointe)
+ajoute_pièce_jointe :: fonc (courriel: *Courriel, pièce: PièceJointe)
 {
     tableau_ajoute(*courriel.pièces_jointes, pièce);
 }
 
-ajoute_destinataire :: fonc (courriel: &Courriel, destinataire: AdresseCourriel) -> rien
+ajoute_destinataire :: fonc (courriel: *Courriel, destinataire: AdresseCourriel) -> rien
 {
     tableau_ajoute(*courriel.destinataires, destinataire);
 }
 
-ajoute_destinataire_cc :: fonc (courriel: &Courriel, destinataire: AdresseCourriel) -> rien
+ajoute_destinataire_cc :: fonc (courriel: *Courriel, destinataire: AdresseCourriel) -> rien
 {
     tableau_ajoute(*courriel.destinataires_cc, destinataire);
 }
 
-ajoute_destinataire_bcc :: fonc (courriel: &Courriel, destinataire: AdresseCourriel) -> rien
+ajoute_destinataire_bcc :: fonc (courriel: *Courriel, destinataire: AdresseCourriel) -> rien
 {
     tableau_ajoute(*courriel.destinataires_bcc, destinataire);
 }
@@ -174,7 +174,7 @@ ConfigurationCourriel :: struct {
     mot_de_passe: chaine;
 }
 
-port :: fonc (configuration: &ConfigurationCourriel) -> n16
+port :: fonc (configuration: *ConfigurationCourriel) -> n16
 {
     si configuration.utilise_ssl {
         retourne configuration.port_chiffré;
@@ -202,12 +202,12 @@ RéponseServeuse :: struct {
     textes: [..]chaine;
 }
 
-est_valide :: fonc (réponse: &RéponseServeuse) -> bool
+est_valide :: fonc (réponse: *RéponseServeuse) -> bool
 {
     retourne réponse.status != 0;
 }
 
-détruit_réponse :: fonc (réponse: &RéponseServeuse)
+détruit_réponse :: fonc (réponse: *RéponseServeuse)
 {
     déloge(réponse.texte);
     déloge(réponse.textes);
@@ -299,7 +299,7 @@ envoie_commande_smtp :: fonc (fichier: *Fichier, format: chaine, args: ...eini) 
 } @Imprimeuse
 
 // https://tools.ietf.org/html/rfc5322
-crée_corps_message :: fonc (courriel: &Courriel) -> chaine
+crée_corps_message :: fonc (courriel: *Courriel) -> chaine
 {
     enchaineuse: Enchaineuse;
     initialise_enchaineuse(*enchaineuse);
@@ -329,7 +329,7 @@ crée_corps_message :: fonc (courriel: &Courriel) -> chaine
         ajoute_au_tampon(*enchaineuse, "To: ");
         virgule := "<";
 
-        pour & courriel.destinataires {
+        pour * courriel.destinataires {
             ajoute_au_tampon(*enchaineuse, virgule);
             ajoute_au_tampon(*enchaineuse, it.chn);
             virgule = ">,<";
@@ -342,7 +342,7 @@ crée_corps_message :: fonc (courriel: &Courriel) -> chaine
         ajoute_au_tampon(*enchaineuse, "Cc: ");
         virgule := "<";
 
-        pour & courriel.destinataires_cc {
+        pour * courriel.destinataires_cc {
             ajoute_au_tampon(*enchaineuse, virgule);
             ajoute_au_tampon(*enchaineuse, it.chn);
             virgule = ">,<";
@@ -468,7 +468,7 @@ ouvre_connexion_serveur :: fonc (config: ConfigurationCourriel) -> FichierOuErre
     retourne fichier;
 }
 
-est_valide :: fonc (courriel: &Courriel) -> bool
+est_valide :: fonc (courriel: *Courriel) -> bool
 {
     saufsi courriel.expéditeur.est_valide() {
         retourne faux;
@@ -501,7 +501,7 @@ est_valide :: fonc (courriel: &Courriel) -> bool
 
 // À FAIRE : meilleure type de retour
 // À FAIRE : note les erreurs
-envoie_courriel :: fonc (config: ConfigurationCourriel, courriel: &Courriel) -> z32
+envoie_courriel :: fonc (config: ConfigurationCourriel, courriel: *Courriel) -> z32
 {
     saufsi courriel.est_valide() {
         retourne 1;
@@ -558,9 +558,9 @@ aléafères_zéros :: fonc (chn: chaine) -> chaine
 
     résultat := copie_chaine(chn);
 
-    pour & résultat {
-        si it == '0' {
-            it = gna.uniforme('0' comme r32, '9' comme r32) comme z8;
+    pour * résultat {
+        si mémoire(it) == '0' {
+            mémoire(it) = gna.uniforme('0' comme r32, '9' comme r32) comme z8;
         }
     }
 
