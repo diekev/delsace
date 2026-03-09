@@ -64,7 +64,7 @@ redimensionne :: fonc (structure: *SDT($T), nombre_d_éléments: z64)
     initialise_enchaineuse(*enchaineuse);
 
     pour rubriques_sdt(infos) {
-        ajoute_au_tampon(*enchaineuse, "tableau_redimensionne(structure.", it.nom, ", nombre_d_éléments);\n");
+        ajoute_au_tampon(*enchaineuse, "tableau_redimensionne(*structure.", it.nom, ", nombre_d_éléments);\n");
     }
 
     source := chaine_depuis_enchaineuse(*enchaineuse);

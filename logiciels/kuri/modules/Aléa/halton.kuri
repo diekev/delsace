@@ -44,7 +44,7 @@ init_halton :: fonc (premier: n32) -> SérieHalton
     retourne série;
 }
 
-aléatoire_unilatérale :: fonc (série: &SérieHalton) -> r64
+aléatoire_unilatérale :: fonc (série: *SérieHalton) -> r64
 {
     résultat : r64 = 0.0;
     série.décalage = halton_suivant(série.premier_inverse, série.décalage);
@@ -77,7 +77,7 @@ init_halton :: fonc (premier1: n32, premier2: n32) -> SérieHalton2D
     retourne série;
 }
 
-aléatoire_unilatérale :: fonc (série: &SérieHalton2D) -> [2]r64
+aléatoire_unilatérale :: fonc (série: *SérieHalton2D) -> [2]r64
 {
     série.décalage[0] = halton_suivant(série.premier_inverse[0], série.décalage[0]);
     série.décalage[1] = halton_suivant(série.premier_inverse[1], série.décalage[1]);
@@ -114,7 +114,7 @@ init_halton :: fonc (premier1: n32, premier2: n32, premier3: n32) -> SérieHalto
     retourne série;
 }
 
-aléatoire_unilatérale :: fonc (série: &SérieHalton3D) -> [3]r64
+aléatoire_unilatérale :: fonc (série: *SérieHalton3D) -> [3]r64
 {
     série.décalage[0] = halton_suivant(série.premier_inverse[0], série.décalage[0]);
     série.décalage[1] = halton_suivant(série.premier_inverse[1], série.décalage[1]);

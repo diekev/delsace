@@ -160,7 +160,7 @@ RequêtesEntrantes :: struct {
     serveuse: *SimpleServeuse;
 }
 
-charge_donnees_requete :: fonc (prise: z32, mon_addresse: &sockaddr_in @inutilisée) -> chaine
+charge_donnees_requete :: fonc (prise: z32, mon_addresse: *sockaddr_in @inutilisée) -> chaine
 {
     //ip = convertis_chaine_c(inet_ntoa(mon_addresse.sin_addr))
     //imprime("serveur: Reçu connexion de ", ip, '\n')

@@ -85,22 +85,22 @@ génère_suite_prouet_thue_morse_double_et_inverse :: fonc (n: n32) -> chaine
 
     tantque résultat.taille < n comme z64 {
         tmp.taille = 0;
-        pour & résultat {
-            tableau_ajoute(*tmp, it);
+        pour * résultat {
+            tableau_ajoute(*tmp, mémoire(it));
 
             /* Inverse directement. */
-            si it == 'A' {
-                it = 'B';
+            si mémoire(it) == 'A' {
+                mémoire(it) = 'B';
             }
             sinon {
-                it = 'A';
+                mémoire(it) = 'A';
             }
         }
         pour résultat {
             tableau_ajoute(*tmp, it);
         }
 
-        permute(résultat, tmp);
+        permute(*résultat, *tmp);
     }
 
     retourne chaine_depuis_tranche_octets(résultat);

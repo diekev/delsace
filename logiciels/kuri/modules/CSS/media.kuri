@@ -10,7 +10,7 @@ MediaList :: struct {
 
 détruit_media_list :: fonc (list: *MediaList)
 {
-    déloge_tableau_et_ses_éléments(list.media_queries, détruit_media_query);
+    déloge_tableau_et_ses_éléments(*list.media_queries, détruit_media_query);
     déloge(list);
 }
 

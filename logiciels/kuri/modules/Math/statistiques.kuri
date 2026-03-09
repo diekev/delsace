@@ -301,10 +301,6 @@ calcule_table_occurences :: fonc (données: []octet) -> [256]z32
 {
     table_occurence: [256]z32;
 
-    pour & table_occurence {
-        it = 0;
-    }
-
     pour données {
         table_occurence[it comme n8] += 1;
     }

@@ -129,7 +129,7 @@ donne_position_souris :: fonc (emboiteuse: *Emboiteuse, origine_en_bas: bool) ->
     retourne résultat;
 }
 
-gère_évènement :: fonc (emboiteuse: *Emboiteuse, évènement: &Évènement)
+gère_évènement :: fonc (emboiteuse: *Emboiteuse, évènement: *Évènement)
 {
     si emboiteuse.guetteuse_courante && gère_évènement(emboiteuse.guetteuse_courante, évènement) == ÉtatÉvènement.CONSOMMÉ {
         retourne;

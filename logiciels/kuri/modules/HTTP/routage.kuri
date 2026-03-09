@@ -1,5 +1,5 @@
 
-TypeRappelRoute :: fonc (prise: *Prise, message: &MessageClienteHTTP) -> MessageServeuseHTTP;
+TypeRappelRoute :: fonc (prise: *Prise, message: *MessageClienteHTTP) -> MessageServeuseHTTP;
 
 /* Fonction pour parser une chaine de caractère selon les types trouvées lors
  * de la compilation du programme parent.
@@ -141,16 +141,16 @@ calcul_priorité :: fonc (règles: []RègleRoutage) -> z32
 }
 
 NouvelleRouteuse :: struct {
-    apparie_routes_get: fonc (chemin: chaine, prise: *Prise, message: &MessageClienteHTTP) -> MessageServeuseHTTP;
-    apparie_routes_post: fonc (chemin: chaine, prise: *Prise, message: &MessageClienteHTTP) -> MessageServeuseHTTP;
+    apparie_routes_get: fonc (chemin: chaine, prise: *Prise, message: *MessageClienteHTTP) -> MessageServeuseHTTP;
+    apparie_routes_post: fonc (chemin: chaine, prise: *Prise, message: *MessageClienteHTTP) -> MessageServeuseHTTP;
 
     // À FAIRE
-    rappel_page_non_trouvée: fonc (prise: *Prise, message: &MessageClienteHTTP) -> MessageServeuseHTTP;
+    rappel_page_non_trouvée: fonc (prise: *Prise, message: *MessageClienteHTTP) -> MessageServeuseHTTP;
 
     extension_fichiers: [..]chaine;
 }
 
-apparie_fichiers :: fonc (routeuse: &NouvelleRouteuse, extension: chaine)
+apparie_fichiers :: fonc (routeuse: *NouvelleRouteuse, extension: chaine)
 {
     pour routeuse.extension_fichiers {
         si it == extension {
@@ -161,12 +161,12 @@ apparie_fichiers :: fonc (routeuse: &NouvelleRouteuse, extension: chaine)
     tableau_ajoute(*routeuse.extension_fichiers, extension);
 }
 
-détruit_routeuse :: fonc (routeuse: &NouvelleRouteuse) -> rien
+détruit_routeuse :: fonc (routeuse: *NouvelleRouteuse) -> rien
 {
     déloge(routeuse.extension_fichiers);
 }
 
-apparie_route :: fonc (routeuse: &NouvelleRouteuse, prise: *Prise, message: &MessageClienteHTTP) -> MessageServeuseHTTP
+apparie_route :: fonc (routeuse: *NouvelleRouteuse, prise: *Prise, message: *MessageClienteHTTP) -> MessageServeuseHTTP
 {
     méthode := message.méthode;
     // Utilise message.uri.chemin car message.requête peut contenir également les paramètres de requête et de fragment de l'URI
@@ -194,7 +194,7 @@ chemin_pour_fichier :: fonc (chemin: chaine) -> CheminFichier
     retourne CheminFichier(chemin_fichier);
 }
 
-est_chemin_fichier_supporté :: fonc (routeuse: &NouvelleRouteuse, chemin: chaine) -> bool
+est_chemin_fichier_supporté :: fonc (routeuse: *NouvelleRouteuse, chemin: chaine) -> bool
 {
     chm := chemin_pour_fichier(chemin);
 
@@ -211,7 +211,7 @@ est_chemin_fichier_supporté :: fonc (routeuse: &NouvelleRouteuse, chemin: chain
     retourne faux;
 }
 
-apparie_fichier :: fonc (routeuse: &NouvelleRouteuse @inutilisée, chemin: chaine, prise: *Prise, message: &MessageClienteHTTP) -> MessageServeuseHTTP
+apparie_fichier :: fonc (routeuse: *NouvelleRouteuse @inutilisée, chemin: chaine, prise: *Prise, message: *MessageClienteHTTP) -> MessageServeuseHTTP
 {
     chm := chemin_pour_fichier(chemin);
 

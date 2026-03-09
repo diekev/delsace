@@ -137,7 +137,7 @@ crée_table_pour_bruit :: fonc (graine: n32) -> [256]z32
     }
 
     pour 256 {
-        idx := (série.aléatoire_unilatérale() * 255.0) comme z32;
+        idx := (aléatoire_unilatérale(*série) * 255.0) comme z32;
         tmp := table_locale[it];
         table_locale[it] = table_locale[idx];
         table_locale[idx] = tmp;

@@ -136,7 +136,7 @@ rappel_quand_ouverture :: fonc (prise: *Prise, est_client: bool @inutilisée)
     ajoute_entête(*message, "Sec-WebSocket-Key", chaine_depuis_tranche_octets(données.extrémité.sec_websocket_key));
     ajoute_entête(*message, "Sec-WebSocket-Version", "13");
 
-    données.requête = chaine_pour_message_cliente(message);
+    données.requête = chaine_pour_message_cliente(*message);
     données.décalage_requête = prise.écris(données.requête);
 }
 
