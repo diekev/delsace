@@ -322,8 +322,8 @@ Lexeuse :: struct {
 
 détruit_données :: fonc (lexeuse: *Lexeuse)
 {
-    détruit_chaine(lexeuse.tampon_temporaire);
-    détruit_chaine(lexeuse.tampon_utf32);
+    détruit_chaine(*lexeuse.tampon_temporaire);
+    détruit_chaine(*lexeuse.tampon_utf32);
 }
 
 apparie :: fonc (lexeuse: *Lexeuse, points_de_code: ...z8) -> bool
@@ -644,19 +644,19 @@ consomme_un_lexème_simili_ident :: fonc (lexeuse: *Lexeuse) -> Lexème
  * https://www.w3.org/TR/css-syntax-3/#consume-string-token */
 consomme_un_lexème_chaine :: fonc (lexeuse: *Lexeuse, point_de_code_final: n32) -> Lexème
 {
-    diffère réinitialise(lexeuse.tampon_temporaire);
+    diffère réinitialise(*lexeuse.tampon_temporaire);
 
     tantque !fini(lexeuse) {
         point_de_code := lexeuse.consomme_point_de_code_suivant();
 
         si point_de_code == point_de_code_final {
-            retourne Lexème(GenreLexème.String, valeur = crée_chaine_utf16_unique(lexeuse.tampon_temporaire));
+            retourne Lexème(GenreLexème.String, valeur = crée_chaine_utf16_unique(*lexeuse.tampon_temporaire));
         }
 
         si est_nouvelle_ligne(point_de_code) {
             lexeuse.rapporte_erreur("nouvelle ligne inattendu");
             lexeuse.reconsomme_point_de_code();
-            retourne Lexème(GenreLexème.Bad_String, valeur = crée_chaine_utf16_unique(lexeuse.tampon_temporaire));
+            retourne Lexème(GenreLexème.Bad_String, valeur = crée_chaine_utf16_unique(*lexeuse.tampon_temporaire));
         }
 
         si point_de_code == '\\' {
@@ -677,14 +677,14 @@ consomme_un_lexème_chaine :: fonc (lexeuse: *Lexeuse, point_de_code_final: n32)
         chaine_ajoute(*lexeuse.tampon_temporaire, point_de_code);
     }
 
-    retourne Lexème(GenreLexème.String, valeur = crée_chaine_utf16_unique(lexeuse.tampon_temporaire));
+    retourne Lexème(GenreLexème.String, valeur = crée_chaine_utf16_unique(*lexeuse.tampon_temporaire));
 }
 
 /* 4.3.6 Consume a url token
  * https://www.w3.org/TR/css-syntax-3/#consume-url-token */
 consomme_un_lexème_url :: fonc (lexeuse: *Lexeuse) -> Lexème
 {
-    diffère réinitialise(lexeuse.tampon_temporaire);
+    diffère réinitialise(*lexeuse.tampon_temporaire);
 
     genre_lexème := GenreLexème.Url;
 
@@ -741,7 +741,7 @@ consomme_un_lexème_url :: fonc (lexeuse: *Lexeuse) -> Lexème
         chaine_ajoute(*lexeuse.tampon_temporaire, point_de_code);
     }
 
-    retourne Lexème(genre_lexème, valeur = crée_chaine_utf16_unique(lexeuse.tampon_temporaire));
+    retourne Lexème(genre_lexème, valeur = crée_chaine_utf16_unique(*lexeuse.tampon_temporaire));
 }
 
 donne_valeur_hex_pour_point_de_code :: fonc (point_de_code: n32) -> n32
@@ -908,7 +908,7 @@ vérifie_si_trois_points_de_code_commenceraient_un_nombre :: fonc (lexeuse: *Lex
  * https://www.w3.org/TR/css-syntax-3/#consume-name */
 consomme_une_séquence_identifiante :: fonc (lexeuse: *Lexeuse) -> CSSOMString
 {
-    diffère réinitialise(lexeuse.tampon_temporaire);
+    diffère réinitialise(*lexeuse.tampon_temporaire);
 
     tantque !fini(lexeuse) {
         point_de_code := lexeuse.consomme_point_de_code_suivant();
@@ -928,7 +928,7 @@ consomme_une_séquence_identifiante :: fonc (lexeuse: *Lexeuse) -> CSSOMString
         arrête;
     }
 
-    retourne crée_chaine_utf16_unique(lexeuse.tampon_temporaire);
+    retourne crée_chaine_utf16_unique(*lexeuse.tampon_temporaire);
 }
 
 /* 4.3.12 Consume a number
@@ -937,7 +937,7 @@ consomme_un_nombre :: fonc (lexeuse: *Lexeuse) -> (r64, DrapeauxTypeNombre)
 {
     type := DrapeauxTypeNombre.Integer;
 
-    diffère réinitialise(lexeuse.tampon_utf32);
+    diffère réinitialise(*lexeuse.tampon_utf32);
 
     point_de_code := lexeuse.point_de_code_suivant();
     si point_de_code == '+' || point_de_code == '-' {

@@ -345,7 +345,7 @@ encode :: fonc (interpréteuse: *Interpréteuse, string: ECMAString, extra_unesc
 
     // 2. Let R be the empty String.
     R: EnchaineuseUTF16;
-    initialise_enchaineuse(R);
+    initialise_enchaineuse(*R);
 
     // 3. Let alwaysUnescaped be the string-concatenation of the ASCII word characters and "-.!~*'()".
     always_unescaped := "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789_-.!~*'()";
@@ -378,7 +378,7 @@ encode :: fonc (interpréteuse: *Interpréteuse, string: ECMAString, extra_unesc
             k += 1;
 
             // ii. Set R to the string-concatenation of R and C.
-            R.ajoute(C);
+            ajoute(*R, C);
         }
         // c. Else,
         sinon {
@@ -404,17 +404,17 @@ encode :: fonc (interpréteuse: *Interpréteuse, string: ECMAString, extra_unesc
 
                 // 2. Set R to the string-concatenation of R, "%", and StringPad(hex, 2, "0", start).
                 // À FAIRE : StringPad
-                ajoute(R, '%' comme n16);
-                ajoute(R, hex[0]);
-                ajoute(R, hex[1]);
+                ajoute(*R, '%' comme n16);
+                ajoute(*R, hex[0]);
+                ajoute(*R, hex[1]);
             }
         }
     }
 
     // 7. Return R.
-    résultat16 := chaine_depuis_enchaineuse(R);
+    résultat16 := chaine_depuis_enchaineuse(*R);
     // @fuite-de-mémoire ?
-    résultat := crée_chaine_utf16_unique(résultat16);
+    résultat := crée_chaine_utf16_unique(*résultat16);
     retourne crée_chaine(interpréteuse.donne_realm(), résultat);
 }
 

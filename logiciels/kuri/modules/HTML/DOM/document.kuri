@@ -1180,7 +1180,7 @@ texte_sur_destruction :: fonc (base: *JS.Cellule)
     si texte.box {
         texte.box.noeud = nul;
     }
-    détruit_chaine(texte.données);
+    détruit_chaine(*texte.données);
 }
 
 #portée_export
@@ -1217,7 +1217,7 @@ section_cdata_sur_destruction :: fonc (base: *JS.Cellule)
 {
     noeud_sur_destruction(base);
     section_cdata := base comme *NoeudSectionCDATA;
-    détruit_chaine(section_cdata.données);
+    détruit_chaine(*section_cdata.données);
 }
 
 #portée_export
@@ -1255,7 +1255,7 @@ commentaire_sur_destruction :: fonc (base: *JS.Cellule)
 {
     noeud_sur_destruction(base);
     commentaire := base comme *NoeudCommentaire;
-    détruit_chaine(commentaire.données);
+    détruit_chaine(*commentaire.données);
 }
 
 #portée_export
@@ -1295,8 +1295,8 @@ processing_instruction_sur_destruction :: fonc (base: *JS.Cellule)
 {
     noeud_sur_destruction(base);
     processing_instruction := base comme *NoeudProcessingInstruction;
-    détruit_chaine(processing_instruction.données);
-    détruit_chaine(processing_instruction.cible);
+    détruit_chaine(*processing_instruction.données);
+    détruit_chaine(*processing_instruction.cible);
 }
 
 #portée_export

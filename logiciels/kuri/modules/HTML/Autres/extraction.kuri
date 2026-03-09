@@ -93,7 +93,7 @@ principale :: fonc ()
     sélecteur := sélecteur_opt.Quelque;
 
     parsat := parse_document_depuis_chemin(args.fichier);
-    diffère détruit(parsat);
+    diffère détruit(*parsat);
 
     traversée: [..]*Node;
     diffère déloge(traversée);
@@ -225,7 +225,7 @@ principale :: fonc ()
 
     /* Imprime le document. */
     texte := HTML_fragment_serialization(parsat.document, faux);
-    diffère détruit_chaine(texte);
+    diffère détruit_chaine(*texte);
 
     saufsi args.sortie {
         imprimeln("%", texte);

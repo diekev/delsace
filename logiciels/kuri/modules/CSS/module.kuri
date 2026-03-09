@@ -24,7 +24,7 @@ logue_erreurs_de_parsage := vrai;
 lèxe_style :: fonc (contenu: chaine) -> [..]Lexème
 {
     chn := crée_chaine_utf32(contenu);
-    diffère détruit_chaine(chn);
+    diffère détruit_chaine(*chn);
 
     prétraite(chn);
 

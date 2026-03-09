@@ -175,7 +175,7 @@ donne_chemin_fonte :: fonc (ctx: *GlobalesDessin, famille: CSSOMString, style: c
     diffère déloge(chn_famille);
 
     chaine_c_famille := crée_chaine_c(chn_famille);
-    diffère détruit_chaine_c(chaine_c_famille);
+    diffère détruit_chaine_c(*chaine_c_famille);
 
     _ := FcPatternAddString(pattern, FC_FAMILY.pointeur, chaine_c_famille comme *z8 comme *FcChar8);
 

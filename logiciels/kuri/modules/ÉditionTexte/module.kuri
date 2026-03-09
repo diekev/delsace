@@ -67,9 +67,9 @@ initialise_éditrice :: fonc (éditrice: *ÉditriceTexte, fonte: *Fonte, texte: 
 
 détruit_données :: fonc (éditrice: *ÉditriceTexte)
 {
-    détruit_chaine(éditrice.texte_à_éditer);
+    détruit_chaine(*éditrice.texte_à_éditer);
 
-    pour éditrice.lignes {
+    pour * éditrice.lignes {
         détruit_chaine(it);
     }
     déloge(éditrice.lignes);

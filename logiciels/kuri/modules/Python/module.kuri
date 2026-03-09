@@ -1087,7 +1087,7 @@ Py_fstring_input :: 800;
 PyRun_SimpleString :: fonc (command: chaine) -> bool
 {
     command_c := crée_chaine_c(command);
-    diffère détruit_chaine_c(command_c);
+    diffère détruit_chaine_c(*command_c);
 
     retourne PyRun_SimpleString(command_c) == 0;
 }
@@ -1122,7 +1122,7 @@ imprime_object :: fonc (format: chaine, object: *PyObject)
 donne_attribut :: fonc (o: *PyObject, nom_attribut: chaine) -> *PyObject
 {
     nom_attribut_c := crée_chaine_c(nom_attribut);
-    diffère détruit_chaine_c(nom_attribut_c);
+    diffère détruit_chaine_c(*nom_attribut_c);
 
     retourne PyObject_GetAttrString(o, nom_attribut_c);
 }
@@ -1162,7 +1162,7 @@ PyDict_SetItem :: fonc (p: *PyObject, key: chaine, val: *PyObject) -> z32
 PyModule_New :: fonc (name: chaine) -> *PyObject
 {
     chn_c_name := crée_chaine_c(name);
-    diffère détruit_chaine_c(chn_c_name);
+    diffère détruit_chaine_c(*chn_c_name);
     retourne PyModule_New(chn_c_name);
 }
 
@@ -1175,7 +1175,7 @@ PyModule_New :: fonc (name: chaine) -> *PyObject
 importe_module :: fonc (name: chaine) -> *PyObject
 {
     chn_c := crée_chaine_c(name);
-    diffère détruit_chaine_c(chn_c);
+    diffère détruit_chaine_c(*chn_c);
 
     retourne PyImport_ImportModule(chn_c);
 }
@@ -1224,7 +1224,7 @@ PyConfig_AddModuleSearchPath :: fonc (config: *PyConfig, chemin: chaine)
 {
     /* Met en place les chemins. */
     chemin_recherche := crée_chaine_utf32(chemin);
-    diffère détruit_chaine(chemin_recherche);
+    diffère détruit_chaine(*chemin_recherche);
     /* Ajout terminateur nul. */
     chaine_ajoute(*chemin_recherche, 0);
 

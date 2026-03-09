@@ -152,7 +152,7 @@ chaine_ajoute :: fonc (chn: *ChaineFixe, point_de_code: n32)
     chn.taille += nombre_octets comme z8;
 }
 
-convertis_vers_chaine :: fonc (chn: &ChaineFixe) -> chaine
+convertis_vers_chaine :: fonc (chn: *ChaineFixe) -> chaine
 {
     retourne chaine(*chn.données[0], chn.taille);
 }

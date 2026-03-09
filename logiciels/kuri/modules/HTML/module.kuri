@@ -213,7 +213,7 @@ ParsatHTML :: struct {
     temps: z64;
 }
 
-détruit :: fonc (parsat: &ParsatHTML)
+détruit :: fonc (parsat: *ParsatHTML)
 {
     déloge(parsat.erreurs);
 }

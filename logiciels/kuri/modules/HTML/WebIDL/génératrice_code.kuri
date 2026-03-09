@@ -899,7 +899,7 @@ génère_code_conversion_résultat :: fonc (enchaineuse: *Enchaineuse, type: *Ty
     sinon si type.nom == "DOMString" || type.nom == "USVString" {
         ajoute_au_tampon(enchaineuse, "    str_unique: ChaineUTF16Unique;\n");
         ajoute_au_tampon(enchaineuse, "    #si type_de(résultat) != type_de(ChaineUTF16Unique) {\n");
-        ajoute_au_tampon(enchaineuse, "        str_unique = crée_chaine_utf16_unique(résultat);\n");
+        ajoute_au_tampon(enchaineuse, "        str_unique = crée_chaine_utf16_unique(*résultat);\n");
         ajoute_au_tampon(enchaineuse, "    }\n");
         ajoute_au_tampon(enchaineuse, "    sinon {\n");
         ajoute_au_tampon(enchaineuse, "        str_unique = résultat;\n");

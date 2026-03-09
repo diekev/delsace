@@ -20,7 +20,7 @@ détruit_chaine :: fonc (type_chaine: TypeChaineInternée)
             déloge(type_chaine.chn_native);
         }
         chn_utf32 {
-            détruit_chaine(type_chaine.chn_utf32);
+            détruit_chaine(*type_chaine.chn_utf32);
         }
         sinon {}
     }
@@ -144,7 +144,7 @@ calcule_empreinte :: fonc (type_chaine: TypeChaineInternée) -> n64
     discr type_chaine {
         chn_native {
             chn_utf32 := crée_chaine_utf32(type_chaine.chn_native);
-            diffère détruit_chaine(chn_utf32);
+            diffère détruit_chaine(*chn_utf32);
             retourne calcule_empreinte_djb2(chn_utf32);
         }
         chn_utf32 {

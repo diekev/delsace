@@ -41,10 +41,10 @@ principale :: fonc ()
 
     début := maintenant_précis();
     parsat := parse_document(JS.donne_tas_de_mémoire(*mv), contenu);
-    diffère détruit(parsat);
+    diffère détruit(*parsat);
 
     contexte_formattage := initialise_contexte_formattage_minification();
-    taille_minifiée := formatte_document(contexte_formattage, parsat.document, sortie_standarde());
+    taille_minifiée := formatte_document(*contexte_formattage, parsat.document, sortie_standarde());
     temps := début.temps_écoulé_microsecondes();
 
     imprime("\n");

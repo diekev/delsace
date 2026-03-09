@@ -284,7 +284,7 @@ donne_texte_pour_sortie :: fonc (chemin: CheminFichier) -> chaine
     diffère JavaScript.détruit_données_mv(*mv);
 
     parsat := HTML.parse_document(JavaScript.donne_tas_de_mémoire(*mv), contenu);
-    diffère HTML.détruit(parsat);
+    diffère HTML.détruit(*parsat);
 
     chaine_url := enchaine("file://", chemin.chn);
     diffère déloge(chaine_url);

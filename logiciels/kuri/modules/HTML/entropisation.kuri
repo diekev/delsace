@@ -40,7 +40,7 @@ nombre_enfants_possibles :: fonc (gna: *GNA, tag: DOMString) -> z32
     retourne gna.uniforme(0.0, 10.0) comme z32;
 }
 
-génère_enfants_récusifs :: fonc (ctx_entropie: &ContexteEntropisation, parent: *Element)
+génère_enfants_récusifs :: fonc (ctx_entropie: *ContexteEntropisation, parent: *Element)
 {
     si ctx_entropie.profondeur >= ctx_entropie.profondeur_max {
         retourne;
@@ -100,7 +100,7 @@ ParamètresEntropisation :: struct {
     fichier_sortie: CheminFichier;
 }
 
-ouvre_fichier_sortie :: fonc (paramètres: &ParamètresEntropisation) -> *Fichier
+ouvre_fichier_sortie :: fonc (paramètres: *ParamètresEntropisation) -> *Fichier
 {
     si paramètres.fichier_sortie.chn == "" {
         retourne sortie_standarde();
@@ -113,7 +113,7 @@ ouvre_fichier_sortie :: fonc (paramètres: &ParamètresEntropisation) -> *Fichie
     retourne résultat;
 }
 
-détruit_fichier :: fonc (paramètres: &ParamètresEntropisation, fichier: *Fichier)
+détruit_fichier :: fonc (paramètres: *ParamètresEntropisation, fichier: *Fichier)
 {
     si paramètres.fichier_sortie.chn != "" {
         _ := ferme(fichier);
@@ -127,8 +127,8 @@ programme_entropisation :: fonc (paramètres: ParamètresEntropisation, mv: *JS.
 
     document := crée_document_aléatoire(paramètres, mv);
 
-    fichier := paramètres.ouvre_fichier_sortie();
-    diffère détruit_fichier(paramètres, fichier);
+    fichier := ouvre_fichier_sortie(*paramètres);
+    diffère détruit_fichier(*paramètres, fichier);
 
     _ := formatte_document(document, fichier);
 }
@@ -163,8 +163,8 @@ crée_document_aléatoire :: fonc (paramètres: ParamètresEntropisation, mv: *J
     ctx_entropie.nombre_enfants_max = paramètres.limite_haute_enfants;
     ctx_entropie.nombre_éléments_max = paramètres.limite_haute_éléments;
 
-    génère_enfants_récusifs(ctx_entropie, head);
-    génère_enfants_récusifs(ctx_entropie, body);
+    génère_enfants_récusifs(*ctx_entropie, head);
+    génère_enfants_récusifs(*ctx_entropie, body);
 
     retourne document;
 }

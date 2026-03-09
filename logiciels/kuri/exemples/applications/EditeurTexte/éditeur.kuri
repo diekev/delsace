@@ -37,10 +37,10 @@ importe Unicode;
 
 éditeur_ferme :: fonc (éditeur: *Éditeur) -> rien
 {
-    pour éditeur.lignes_texte {
+    pour * éditeur.lignes_texte {
         détruit_chaine(it);
     }
-    pour éditeur.lignes_rendu {
+    pour * éditeur.lignes_rendu {
         détruit_chaine(it);
     }
 
@@ -195,7 +195,7 @@ ajourne_tampon_rendu :: fonc (éditeur: *Éditeur)
     éditeur.tampon_rendu_est_surannée = faux;
 
     /* À FAIRE : réutilise la mémoire */
-    pour éditeur.lignes_rendu {
+    pour * éditeur.lignes_rendu {
         détruit_chaine(it);
     }
     déloge(éditeur.lignes_rendu);
@@ -313,7 +313,7 @@ donne_ligne_rendu :: fonc (ligne: ChaineUTF32) -> ChaineUTF32
         retourne;
     }
 
-    détruit_chaine(éditeur.lignes_texte[indice_ligne]);
+    détruit_chaine(*éditeur.lignes_texte[indice_ligne]);
     tableau_supprime_indice(*éditeur.lignes_texte, indice_ligne);
     éditeur.marque_modifié();
 }

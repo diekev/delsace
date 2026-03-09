@@ -44,15 +44,15 @@ convertis_chaine_c_statique :: fonc (chn: *z8) -> chaine
     retourne convertis_chaine_c_statique(ChaineC(chn));
 }
 
-détruit_chaine_c :: fonc (chn: &ChaineC)
+détruit_chaine_c :: fonc (chn: *ChaineC)
 {
-    taille := taille_chaine_c(chn);
+    taille := taille_chaine_c(mémoire(chn));
     // ajoute 1 pour inclure le caractère nul en fin de chaine
-    chaine_native := chaine(chn comme *z8, taille + 1);
+    chaine_native := chaine(mémoire(chn) comme *z8, taille + 1);
     déloge(chaine_native);
     // impossible de construire un type opaque si la valeur doit être transformée ?
     ptr : *z8 = nul;
-    chn = ChaineC(ptr);
+    mémoire(chn) = ChaineC(ptr);
 }
 
 taille_chaine_c :: fonc (chn: ChaineC) -> z64

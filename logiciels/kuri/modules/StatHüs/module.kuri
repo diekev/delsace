@@ -251,7 +251,7 @@ envoie_message :: fonc (allocatrice: *AllocatriceStatHüs, params: &ParamètresA
 crée_prise_unix_pour_clientèle :: fonc (chemin_socket: chaine, doit_bloquer := vrai) -> z32
 {
     chaine_c_chemin_socket := crée_chaine_c(chemin_socket);
-    diffère détruit_chaine_c(chaine_c_chemin_socket);
+    diffère détruit_chaine_c(*chaine_c_chemin_socket);
 
     sfd := socket(AF_UNIX, SOCK_STREAM, 0);
     si sfd == -1 {
@@ -283,7 +283,7 @@ crée_prise_unix_pour_clientèle :: fonc (chemin_socket: chaine, doit_bloquer :=
 crée_prise_unix_pour_service :: fonc (chemin_socket: chaine, doit_bloquer := vrai, backlog := 1024) -> z32
 {
     chaine_c_chemin_socket := crée_chaine_c(chemin_socket);
-    diffère détruit_chaine_c(chaine_c_chemin_socket);
+    diffère détruit_chaine_c(*chaine_c_chemin_socket);
 
     sfd := socket(AF_UNIX, SOCK_STREAM, 0);
     si sfd == -1 {

@@ -45,7 +45,7 @@ principale :: fonc ()
 
     début := maintenant_précis();
     parsat := parse_document(JS.donne_tas_de_mémoire(*mv), contenu);
-    diffère détruit(parsat);
+    diffère détruit(*parsat);
 
     taille_formattée := formatte_document(parsat.document, sortie_standarde());
     temps := début.temps_écoulé_microsecondes();

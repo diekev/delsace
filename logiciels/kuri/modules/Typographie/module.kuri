@@ -708,7 +708,7 @@ texture_font_load_face :: fonc (self: *Fonte, taille: r32, library: *FT_Library,
     discr self.fileinfo {
         Fichier(chn) {
             chaine_c := crée_chaine_c(chn);
-            diffère détruit_chaine_c(chaine_c);
+            diffère détruit_chaine_c(*chaine_c);
             error = FT_New_Face(mémoire(library), chaine_c, 0, face);
         }
         Mémoire(mem) {

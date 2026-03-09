@@ -287,7 +287,7 @@ submit :: fonc (form: *HTMLFormElement, submitter: *Element, submitted_from_subm
 
     // 12. Let action be the submitter element's action.
     action := copie_chaine(donne_action(submitter).donne_chaine_utf16());
-    diffère détruit_chaine(action);
+    diffère détruit_chaine(*action);
 
     // 13. If action is the empty string, let action be the URL of the form document.
     si action.est_vide() {

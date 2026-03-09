@@ -360,7 +360,7 @@ extrait_texte_noeud :: fonc (noeud: *Node) -> chaine
     }
 
     extractrice: ExtractriceTexte;
-    diffère détruit_chaine(extractrice.texte);
+    diffère détruit_chaine(*extractrice.texte);
 
     rassemble_texte_noeud(noeud, rappel_pour_extraction_texte, *extractrice);
 
@@ -371,7 +371,7 @@ extrait_texte_noeud :: fonc (noeud: *Node) -> chaine
 donne_contenu_texte_enfant :: fonc (noeud: *Node) -> ChaineUTF16
 {
     enchaineuse: EnchaineuseUTF16;
-    initialise_enchaineuse(enchaineuse);
+    initialise_enchaineuse(*enchaineuse);
 
     pour noeud.enfants {
         saufsi it.est_texte() {
@@ -388,7 +388,7 @@ donne_contenu_texte_enfant :: fonc (noeud: *Node) -> ChaineUTF16
 /* https://dom.spec.whatwg.org/#concept-descendant-text-content */
 donne_contenu_texte_descandants :: fonc (noeud: *Node) -> ChaineUTF16
 {
-    rappel_pour_extraction_texte_descandants :: fonc (noeud: *Node, enchaineuse: &EnchaineuseUTF16) -> DécisionTraversée
+    rappel_pour_extraction_texte_descandants :: fonc (noeud: *Node, enchaineuse: *EnchaineuseUTF16) -> DécisionTraversée
     {
         si noeud.est_texte() {
             texte := noeud comme *Text;
@@ -399,11 +399,11 @@ donne_contenu_texte_descandants :: fonc (noeud: *Node) -> ChaineUTF16
     }
 
     enchaineuse: EnchaineuseUTF16;
-    initialise_enchaineuse(enchaineuse);
+    initialise_enchaineuse(*enchaineuse);
 
-    traverse_noeud(noeud, rappel_pour_extraction_texte_descandants, enchaineuse);
+    traverse_noeud(noeud, rappel_pour_extraction_texte_descandants, *enchaineuse);
 
-    retourne chaine_depuis_enchaineuse(enchaineuse);
+    retourne chaine_depuis_enchaineuse(*enchaineuse);
 }
 
 /* https://dom.spec.whatwg.org/#concept-node-length */
@@ -1073,7 +1073,7 @@ donne_node_name :: fonc (noeud: *Node) -> DOMString
             retourne crée_chaine_utf16_unique("#cdata-section");
         }
         ProcessingInstruction {
-            retourne crée_chaine_utf16_unique((noeud comme *NoeudProcessingInstruction).cible);
+            retourne crée_chaine_utf16_unique(*(noeud comme *NoeudProcessingInstruction).cible);
         }
         Commentaire {
             retourne crée_chaine_utf16_unique("#comment");

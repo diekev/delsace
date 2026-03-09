@@ -159,7 +159,7 @@ détruit_arbre :: fonc (arbre: *ArbreDeDisposition)
         }
         sinon si it.table_virtuelle.type == TextBox {
             texte := it comme *TextBox;
-            détruit_chaine(texte.texte);
+            détruit_chaine(*texte.texte);
             déloge(texte.fragments);
             déloge(texte);
         }
@@ -173,7 +173,7 @@ détruit_arbre :: fonc (arbre: *ArbreDeDisposition)
         }
         sinon si it.table_virtuelle.type == SelectBox {
             select := it comme *SelectBox;
-            détruit_chaine(select.texte);
+            détruit_chaine(*select.texte);
             déloge(select.fragments);
             déloge(select);
         }
@@ -4061,7 +4061,7 @@ SelectBox :: struct {
 
 réinitialise :: fonc (box: *SelectBox)
 {
-    détruit_chaine(box.texte);
+    détruit_chaine(*box.texte);
     box.fragments.taille = 0;
 }
 

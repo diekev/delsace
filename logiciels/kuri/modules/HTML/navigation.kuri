@@ -368,7 +368,7 @@ navigate :: fonc (user_agent: *UserAgent, navigable: *Navigable, empl params: Pa
     //     then:
     si url.fragment.possède_valeur() && equals(url, navigable.active_session_history_entry.url, vrai) {
         // 1. Navigate to a fragment given navigable, url, historyHandling, userInvolvement, navigationAPIState, and navigationId.
-        navigate_to_a_fragment(user_agent, navigable, url, history_handling, user_involvement, navigation_id);
+        navigate_to_a_fragment(user_agent, navigable, url, history_handling, user_involvement, *navigation_id);
 
         // 2. Return.
         retourne;
@@ -761,7 +761,7 @@ evaluate_a_javascript_url :: fonc (user_agent: *UserAgent, target_navigable: *Na
 
     // 6. Let script be the result of creating a classic script given scriptSource, settings, baseURL, and the default script fetch options.
     options: OptionsFetchScript;
-    script := create_a_classic_script(user_agent, script_source, settings, base_url, options);
+    script := create_a_classic_script(user_agent, script_source, settings, base_url, *options);
 
     // 7. Let evaluationStatus be the result of running the classic script script.
     evaluation_status := run_the_classic_script(script);
@@ -857,7 +857,7 @@ navigate_to_a_fragment :: fonc (user_agent: *UserAgent,
                                 url: *URL,
                                 history_handling: NavigationHistoryBehavior,
                                 user_involvement: UserNavigationInvolvement,
-                                navigation_id: &NavigationID @inutilisée)
+                                navigation_id: *NavigationID @inutilisée)
 {
     // 1. Let navigation be navigable's active window's navigation API.
 
@@ -1200,7 +1200,7 @@ attempt_to_populate_the_history_entry_document :: fonc (params: *HistoryEntryPop
         //     documentResource is null, or allowPOST is true and documentResource's request body is not failure,
 
         // then set navigationParams to the result of creating navigation params by fetching given entry, navigable, sourceSnapshotParams, targetSnapshotParams, cspNavigationType, navigationId, and navTimingType.
-        navigation_params, réponse_si_erreur = create_navigation_params_by_fetching(user_agent, entry, navigable, source_snapshot_params, target_snapshot_params, navigation_id, csp_navigation_type, nav_timing_type);
+        navigation_params, réponse_si_erreur = create_navigation_params_by_fetching(user_agent, entry, navigable, *source_snapshot_params, *target_snapshot_params, navigation_id, csp_navigation_type, nav_timing_type);
 
         // 3. Otherwise, if entry's URL's scheme is not a fetch scheme, then set navigationParams to a new non-fetch scheme navigation params, with
         //     id  navigationId
@@ -1368,8 +1368,8 @@ attempt_to_populate_the_history_entry_document :: fonc (params: *HistoryEntryPop
 create_navigation_params_by_fetching :: fonc (user_agent: *UserAgent,
                                               entry: *SessionHistoryEntry,
                                               navigable: *Navigable,
-                                              source_snapshot_params: &SourceSnapshotParams,
-                                              target_snapshot_params: &TargetSnapshotParams @inutilisée,
+                                              source_snapshot_params: *SourceSnapshotParams,
+                                              target_snapshot_params: *TargetSnapshotParams @inutilisée,
                                               navigation_id: Optionnel(NavigationID),
                                               csp_navigation_type: chaine,
                                               nav_timing_type: NavigationTimingType) -> (*NavigationParams, *Response)

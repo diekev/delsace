@@ -191,7 +191,7 @@ donne_info_fichier :: fonc (chemin: CheminFichier) -> InfoFichier
 donne_info_fichier :: fonc (chemin: chaine) -> InfoFichier
 {
     ptr_chemin := crée_chaine_c(chemin);
-    diffère détruit_chaine_c(ptr_chemin);
+    diffère détruit_chaine_c(*ptr_chemin);
 
     st: struct_stat;
     ok := stat(ptr_chemin, *st);

@@ -17,13 +17,13 @@ ErreurCertificat :: erreur {
 charge_certificats_ssl :: fonc (ctx: *SSL_CTX, chemin_fichier_certificat: chaine, chemin_fichier_clé: chaine) -> ErreurCertificat
 {
     ptr_chemin_certificat := crée_chaine_c(chemin_fichier_certificat);
-    diffère détruit_chaine_c(ptr_chemin_certificat);
+    diffère détruit_chaine_c(*ptr_chemin_certificat);
     si SSL_CTX_use_certificate_file(ctx, ptr_chemin_certificat, SSL_FILETYPE_PEM) <= 0 {
         retourne ErreurCertificat.FichierCertificationInvalide;
     }
 
     ptr_chemin_clé := crée_chaine_c(chemin_fichier_clé);
-    diffère détruit_chaine_c(ptr_chemin_clé);
+    diffère détruit_chaine_c(*ptr_chemin_clé);
     si SSL_CTX_use_PrivateKey_file(ctx, ptr_chemin_clé, SSL_FILETYPE_PEM) <= 0 {
         retourne ErreurCertificat.FichierCléInvalide;
     }
@@ -286,7 +286,7 @@ détruit_contexte_ssl :: fonc (contexte_ssl: *SSL_CTX)
     phrase_de_passe := SSL_CTX_get_default_passwd_cb_userdata(contexte_ssl);
     si phrase_de_passe {
         chn_c_phrasse_de_passe := ChaineC(phrase_de_passe comme *z8);
-        détruit_chaine_c(chn_c_phrasse_de_passe);
+        détruit_chaine_c(*chn_c_phrasse_de_passe);
     }
 
     SSL_CTX_free(contexte_ssl);
@@ -386,21 +386,21 @@ initialise_contexte_ssl_depuis_options :: fonc (contexte_ssl: *SSL_CTX, options:
 contexte_ssl_charge_fichier_certificat :: fonc (contexte_ssl: *SSL_CTX, fichier_certificat: chaine) -> bool
 {
     chn_c_fichier_certificat := crée_chaine_c(fichier_certificat);
-    diffère détruit_chaine_c(chn_c_fichier_certificat);
+    diffère détruit_chaine_c(*chn_c_fichier_certificat);
     retourne SSL_CTX_use_certificate_chain_file(contexte_ssl, chn_c_fichier_certificat) == 1;
 }
 
 contexte_ssl_charge_fichier_clé_privée :: fonc (contexte_ssl: *SSL_CTX, fichier_clé: chaine) -> bool
 {
     chn_c_fichier_clé := crée_chaine_c(fichier_clé);
-    diffère détruit_chaine_c(chn_c_fichier_clé);
+    diffère détruit_chaine_c(*chn_c_fichier_clé);
     retourne SSL_CTX_use_PrivateKey_file(contexte_ssl, chn_c_fichier_clé, SSL_FILETYPE_PEM) == 1;
 }
 
 contexte_ssl_charge_fichier_ca :: fonc (contexte_ssl: *SSL_CTX, fichier_ca: chaine) -> bool
 {
     chn_c_fichier_ca := crée_chaine_c(fichier_ca);
-    diffère détruit_chaine_c(chn_c_fichier_ca);
+    diffère détruit_chaine_c(*chn_c_fichier_ca);
 
     ca_list := SSL_load_client_CA_file(chn_c_fichier_ca);
 
@@ -449,7 +449,7 @@ contexte_ssl_charge_paramètres_dh :: fonc (contexte_ssl: *SSL_CTX, fichier_para
 
     /* OWASP Cipher String 'A+' (https://www.owasp.org/index.php/TLS_Cipher_String_Cheat_Sheet) */
     controle := crée_chaine_c("DHE-RSA-AES256-GCM-SHA384:DHE-RSA-AES128-GCM-SHA256:ECDHE-RSA-AES256-GCM-SHA384:ECDHE-RSA-AES128-GCM-SHA256");
-    diffère détruit_chaine_c(controle);
+    diffère détruit_chaine_c(*controle);
 
     si SSL_CTX_set_cipher_list(contexte_ssl, controle) != 1 {
         retourne faux;

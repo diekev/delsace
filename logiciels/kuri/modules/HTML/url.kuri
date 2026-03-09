@@ -103,7 +103,7 @@ convertis_uri_url :: fonc (user_agent: *UserAgent, uri: *URI) -> *URL
     diffère déloge(chn);
 
     chn16 := crée_chaine_utf16(chn);
-    diffère détruit_chaine(chn16);
+    diffère détruit_chaine(*chn16);
 
     retourne url_parser(user_agent, chn16);
 }
@@ -579,7 +579,7 @@ commence_par_lettre_stockage_windows :: fonc (chn: ChaineUTF16) -> bool
 url_parser :: fonc (user_agent: *UserAgent, input: chaine, base : *URL = nul) -> *URL
 {
     chn16 := crée_chaine_utf16(input);
-    diffère détruit_chaine(chn16);
+    diffère détruit_chaine(*chn16);
     retourne url_parser(user_agent, chn16, base);
 }
 
@@ -639,7 +639,7 @@ url_parser :: fonc (user_agent: *UserAgent, input: ChaineUTF16, base : *URL = nu
 basic_url_parser :: fonc (input: chaine, base : *URL = nul, url : *URL = nul, state_override : *ÉtatParsageURL = nul) -> *URL
 {
     chn16 := crée_chaine_utf16(input);
-    diffère détruit_chaine(chn16);
+    diffère détruit_chaine(*chn16);
     retourne basic_url_parser(chn16, base, url, state_override);
 }
 
@@ -671,7 +671,7 @@ basic_url_parser :: fonc (input: ChaineUTF16, base : *URL = nul, url : *URL = nu
 
     input_fut_copié := faux;
     diffère si input_fut_copié {
-        détruit_chaine(input);
+        détruit_chaine(*input);
     }
 
     // 2. If input contains any ASCII tab or newline, invalid-URL-unit validation error.
@@ -840,8 +840,8 @@ BasicURLParser :: struct {
 
 détruit_données :: fonc (parser: *BasicURLParser)
 {
-    détruit_chaine(parser.buffer);
-    détruit_chaine(parser.buffer_opaque_path);
+    détruit_chaine(*parser.buffer);
+    détruit_chaine(*parser.buffer_opaque_path);
 }
 
 fini :: fonc (parser: *BasicURLParser) -> bool

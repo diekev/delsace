@@ -2359,7 +2359,7 @@ définis_value :: fonc (input: *HTMLInputElement, value: DOMString)
     // 2. Set the element's value to the new value.
     crée_shadow_root_pour_édition(input);
     noeud_texte := input.donne_noeud_texte_value();
-    détruit_chaine(noeud_texte.données);
+    détruit_chaine(*noeud_texte.données);
     noeud_texte.données = copie_chaine(value.donne_chaine_utf16());
 
     // 3. Set the element's dirty value flag to true.
@@ -2412,7 +2412,7 @@ input_element_sur_destruction :: fonc (base: *JS.Cellule)
 {
     élément := base comme *HTMLInputElement;
     élément_détruit_données(élément);
-    détruit_chaine(élément.texte_mot_de_passe);
+    détruit_chaine(*élément.texte_mot_de_passe);
 }
 
 input_element_sur_applique_presentational_hints :: fonc (base: *Element, résolveuse: *CSS.RésolveuseStyle)
@@ -2466,7 +2466,7 @@ input_element_sur_changement_attribut :: fonc (base: *Element, local_name: DOMSt
         saufsi input.dirty_value {
             si input.shadow_root {
                 noeud_texte := input.donne_noeud_texte_value();
-                détruit_chaine(noeud_texte.données);
+                détruit_chaine(*noeud_texte.données);
                 si valeur {
                     noeud_texte.données = copie_chaine(mémoire(valeur).donne_chaine_utf16());
                     run_value_sanitization_algorithm(input);
@@ -3888,7 +3888,7 @@ prépare :: fonc (el: *HTMLScriptElement)
         discr el.type {
             CLASSIC {
                 // 1. Let script be the result of creating a classic script using source text, settings object, base URL, and options.
-                script := create_a_classic_script(user_agent, texte_source, settings_object, base_url, options);
+                script := create_a_classic_script(user_agent, texte_source, settings_object, base_url, *options);
 
                 // 2. Mark as ready el given script.
                 mark_as_ready(el, script);
@@ -4192,7 +4192,7 @@ fetch_a_classic_script :: fonc (user_agent: *UserAgent, url: *URL, settings_obje
 
         // 7. Let script be the result of creating a classic script given sourceText, settingsObject, response's URL, options, mutedErrors, and url.
         url := copie_url(rappel.request.donne_url_courant());
-        script := create_a_classic_script(rappel.user_agent, contenu, rappel.settings_object, url, rappel.options);
+        script := create_a_classic_script(rappel.user_agent, contenu, rappel.settings_object, url, *rappel.options);
 
         // 8. Run onComplete given script.
         rappel.on_complete.run(script);

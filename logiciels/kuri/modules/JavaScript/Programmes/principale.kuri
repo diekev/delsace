@@ -236,7 +236,7 @@ objet_html_sur_création_enveloppe :: fonc (base: *Enveloppable @inutilisée, en
         diffère déloge(contenu);
 
         parsat := HTML.parse_document(interpréteuse.donne_realm(), contenu);
-        diffère HTML.détruit(parsat);
+        diffère HTML.détruit(*parsat);
 
         retourne parsat.document;
     }

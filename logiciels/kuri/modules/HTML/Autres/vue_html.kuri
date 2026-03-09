@@ -186,10 +186,10 @@ définis_titre_fenêtre :: fonc (vue_html: *VueHTML, fenêtre: TypeFenêtre, doc
     élément_title := document.donne_title_element();
     si élément_title {
         texte_titre := donne_contenu_texte_descandants(élément_title);
-        diffère détruit_chaine(texte_titre);
+        diffère détruit_chaine(*texte_titre);
 
         texte_filtré := supprime_espace_blanches_autour(texte_titre);
-        diffère détruit_chaine(texte_filtré);
+        diffère détruit_chaine(*texte_filtré);
 
         titre = imprime_chaine("% - VueHTML", texte_filtré);
     }
@@ -299,7 +299,7 @@ donne_image_avec_taille :: fonc (avoirs: *Avoirs, nom_court: chaine, largeur: n3
     diffère déloge(contenu);
 
     chaine_c := crée_chaine_c(chaine(contenu.pointeur comme *z8, contenu.taille));
-    diffère détruit_chaine_c(chaine_c);
+    diffère détruit_chaine_c(*chaine_c);
 
     image_svg: SVGImage;
     si SVG_parse_image_depuis_contenu(chaine_c comme *z8, *image_svg) {
