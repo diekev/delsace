@@ -22,7 +22,7 @@ ListeEntréesDossier :: struct {
 détruit_liste_entrées_dossier :: fonc (liste: *ListeEntréesDossier)
 {
     détruit_chemin(liste.chemin);
-    déloge_tableau_et_ses_éléments(liste.entrées, détruit_entrée_dossier);
+    déloge_tableau_et_ses_éléments(*liste.entrées, détruit_entrée_dossier);
 }
 
 /* Donne la liste des entrées du dossier, ou une erreur si le chemin ne pointe
@@ -49,7 +49,7 @@ donne_liste_des_entrées_du_dossier :: fonc (chemin: CheminFichier) -> Résultat
 
     /* Parse les entrées du répertoire. */
     entrées: [..]EntréeRépertoire;
-    diffère déloge_tableau_et_ses_éléments(entrées, détruit_entrée_répertoire);
+    diffère déloge_tableau_et_ses_éléments(*entrées, détruit_entrée_répertoire);
 
     pour noms_parsés {
         ajoute_entrée(*entrées, it);
@@ -271,7 +271,7 @@ EntréeRépertoire :: struct {
 
 détruit_entrée_répertoire :: fonc (empl entrée: EntréeRépertoire)
 {
-    déloge_tableau_et_ses_éléments(noms_parsés, détruit_nom_fichier_numéroté_parsé);
+    déloge_tableau_et_ses_éléments(*noms_parsés, détruit_nom_fichier_numéroté_parsé);
 }
 
 ajoute_entrée :: fonc (entrées: *[..]EntréeRépertoire, nom: DonnéesNumérotageCheminFichier)

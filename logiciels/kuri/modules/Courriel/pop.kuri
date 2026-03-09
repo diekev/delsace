@@ -71,7 +71,7 @@ SessionPOP :: struct {
     mot_de_passe: Optionnel(chaine)
 }
 
-utilisateur_existe :: fonc (session: &SessionPOP, nom: chaine) -> bool
+utilisateur_existe :: fonc (session: *SessionPOP, nom: chaine) -> bool
 {
     interface := session.interface_serveuse
 
@@ -82,7 +82,7 @@ utilisateur_existe :: fonc (session: &SessionPOP, nom: chaine) -> bool
     retourne interface.utilisateur_existe(interface, nom)
 }
 
-authentifie_utilisateur :: fonc (session: &SessionPOP, nom: chaine, mot_de_passe: chaine) -> bool
+authentifie_utilisateur :: fonc (session: *SessionPOP, nom: chaine, mot_de_passe: chaine) -> bool
 {
     interface := session.authentifie_utilisateur
 
@@ -93,7 +93,7 @@ authentifie_utilisateur :: fonc (session: &SessionPOP, nom: chaine, mot_de_passe
     retourne interface.authentifie_utilisateur(interface, nom, mot_de_passe)
 }
 
-gère_commande :: fonc (session: &SessionPOP, commande: *CommandePOP)
+gère_commande :: fonc (session: *SessionPOP, commande: *CommandePOP)
 {
     si session.état == ÉtatSessionPOP.NonCommencé {
         retourne "-ERR"
@@ -169,7 +169,7 @@ InformationLocalCourriel :: struct {
     fut_supprimé: bool
 }
 
-ouvre_boite_au_lettre :: fonc (session: &SessionPOP) -> bool
+ouvre_boite_au_lettre :: fonc (session: *SessionPOP) -> bool
 {
     // vérrouiller la boite au lettre pour empêcher que des messages soit supprimer par d'autres
 

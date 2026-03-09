@@ -34,12 +34,12 @@ lance_boucle_exécution :: fonc ()
         exécutrice: Exécutrice;
 
         pour inst dans asa.instructions {
-            résultat := exécutrice.exécute_instruction(*cm, inst);
+            résultat := exécute_instruction(*exécutrice, *cm, inst);
 
             discr résultat {
                 Erreur(message) {
                     imprime("%\n", message);
-                    exécutrice.réinitialise();
+                    réinitialise(*exécutrice);
                 }
                 Table(table) {
                     imprime_table(table);

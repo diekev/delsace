@@ -75,7 +75,7 @@ données_cgi :: fonc () -> DonnéesCGI
     retourne données;
 }
 
-détruit_données_cgi :: fonc (données_cgi: &DonnéesCGI)
+détruit_données_cgi :: fonc (données_cgi: *DonnéesCGI)
 {
     pour données_cgi.valeur {
         déloge(it);
@@ -96,22 +96,22 @@ construis_serveuse_cgi :: fonc (données: *$T, intergiciel: fonc (requête: *Req
     retourne serveuse;
 }
 
-détruit_serveuse :: fonc (serveuse: &ServeuseCGI(T = $T))
+détruit_serveuse :: fonc (serveuse: *ServeuseCGI(T = $T))
 {
     détruit_routeuse(*serveuse.routeuse);
 }
 
-rappel_méthode_non_autorisée :: fonc (serveuse: &ServeuseCGI(T = $T), méthode: fonc (requête: *Requête, données: *T) -> RésultatRequête)
+rappel_méthode_non_autorisée :: fonc (serveuse: *ServeuseCGI(T = $T), méthode: fonc (requête: *Requête, données: *T) -> RésultatRequête)
 {
     serveuse.routeuse.rappel_méthode_non_autorisée = méthode;
 }
 
-rappel_page_non_trouvée :: fonc (serveuse: &ServeuseCGI(T = $T), méthode: fonc (requête: *Requête, données: *T) -> RésultatRequête)
+rappel_page_non_trouvée :: fonc (serveuse: *ServeuseCGI(T = $T), méthode: fonc (requête: *Requête, données: *T) -> RésultatRequête)
 {
     serveuse.routeuse.rappel_page_non_trouvée = méthode;
 }
 
-ajoute_route :: fonc (serveuse: &ServeuseCGI(T = $T), chemin: chaine, méthode_get: fonc (requête: *Requête, données: *T) -> RésultatRequête, méthode_post: fonc (requête: *Requête, données: *T) -> RésultatRequête)
+ajoute_route :: fonc (serveuse: *ServeuseCGI(T = $T), chemin: chaine, méthode_get: fonc (requête: *Requête, données: *T) -> RésultatRequête, méthode_post: fonc (requête: *Requête, données: *T) -> RésultatRequête)
 {
     ajoute_route(*serveuse.routeuse, chemin, méthode_get, méthode_post);
 }
@@ -123,7 +123,7 @@ ajoute_route :: fonc (serveuse: &ServeuseCGI(T = $T), chemin: chaine, méthode_g
     imprime("<p>%</p>", message);
 }
 
-lance :: fonc (serveuse: &ServeuseCGI(T = $T))
+lance :: fonc (serveuse: *ServeuseCGI(T = $T))
 {
     début := maintenant_précis().millisecondes();
 
@@ -186,7 +186,7 @@ lance :: fonc (serveuse: &ServeuseCGI(T = $T))
     crée_réponse(résultat);
 }
 
-crée_réponse :: fonc (résultat: &RésultatRequête)
+crée_réponse :: fonc (résultat: *RésultatRequête)
 {
     imprime("Status: %\n", chaine_code_état_http(résultat.status));
 

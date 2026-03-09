@@ -1551,10 +1551,7 @@ donne_tampon_de_rendu :: fonc (canvas: *HTMLCanvasElement) -> TamponDeRendu
 
     si canvas.tampon_de_rendu.rect.largeur != rect.largeur || canvas.tampon_de_rendu.rect.hauteur != rect.hauteur {
         redimensionne_tampon_de_rendu(*canvas.tampon_de_rendu, rect);
-
-        pour & canvas.tampon_de_rendu.données {
-            it = CouleurRVBAN8(0, 0, 0, 0);
-        }
+        tableau_remplis_avec(canvas.tampon_de_rendu.données, CouleurRVBAN8(0, 0, 0, 0));
     }
 
     retourne canvas.tampon_de_rendu;

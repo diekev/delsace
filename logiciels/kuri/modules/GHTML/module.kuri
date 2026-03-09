@@ -141,7 +141,7 @@ génère_page :: fonc (données: *DonnéesGénération, noeud: *NoeudSyntaxique,
                 itératrice := crée_itératrice_tableau(valeur);
 
                 boucle {
-                    valeur_ := itératrice.valeur_suivante();
+                    valeur_ := valeur_suivante(*itératrice);
 
                     saufsi valeur_.est_valide() {
                         arrête;

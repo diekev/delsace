@@ -92,7 +92,7 @@ ajoute_service_fichier :: fonc (serveuse: *ServeuseHTTP, extension: chaine)
         retourne;
     }
 
-    serveuse.routeuse.apparie_fichiers(extension);
+    apparie_fichiers(*serveuse.routeuse, extension);
 }
 
 lance :: fonc (serveuse: *ServeuseHTTP)
@@ -102,7 +102,7 @@ lance :: fonc (serveuse: *ServeuseHTTP)
 
 détruit_serveuse :: fonc (serveuse: *ServeuseHTTP)
 {
-    détruit_routeuse(serveuse.routeuse);
+    détruit_routeuse(*serveuse.routeuse);
     détruit_boucle(serveuse.boucle_évènements);
     détruit_contexte(serveuse.ctx);
     déloge(serveuse);
@@ -163,16 +163,16 @@ quand_données_reçues :: fonc (prise: *Prise, données: []octet)
     }
     sinon {
         message = parseuse.finalise_message();
-        réponse = gère_message(prise, message);
+        réponse = gère_message(prise, *message);
     }
 
-    suite := détermine_suite_connexion_après_réponse(message, réponse);
+    suite := détermine_suite_connexion_après_réponse(*message, *réponse);
 
     si suite == SuiteConnexion.Ferme {
         fusionne_entête(*réponse, "Connection", "close");
     }
 
-    écris_réponse(prise, réponse);
+    écris_réponse(prise, *réponse);
 
     si suite == SuiteConnexion.Ferme {
         prise.ferme();
@@ -194,10 +194,10 @@ quand_données_reçues_websocket :: fonc (prise: *Prise, données: []octet)
     serveuse.rappel_données_websocket(prise, données);
 }
 
-gère_message :: fonc (prise: *Prise, message: &MessageClienteHTTP) -> MessageServeuseHTTP
+gère_message :: fonc (prise: *Prise, message: *MessageClienteHTTP) -> MessageServeuseHTTP
 {
     serveuse := prise.contexte_.accède_serveuse(ServeuseHTTP);
-    retourne apparie_route(serveuse.routeuse, prise, message);
+    retourne apparie_route(*serveuse.routeuse, prise, message);
 }
 
 SuiteConnexion :: énum {
@@ -206,7 +206,7 @@ SuiteConnexion :: énum {
     PasseÀWebSocket;
 }
 
-détermine_suite_connexion_après_réponse :: fonc (message: &MessageClienteHTTP, réponse: &MessageServeuseHTTP) -> SuiteConnexion
+détermine_suite_connexion_après_réponse :: fonc (message: *MessageClienteHTTP, réponse: *MessageServeuseHTTP) -> SuiteConnexion
 {
     connection_message := message.entête("Connection");
     connection_réponse := réponse.entête("Connection");
@@ -253,7 +253,7 @@ PolitiqueDeCache :: énum {
     NeJamaisCacher; // no-store
 }
 
-écris_réponse :: fonc (prise: *Prise, message: &MessageServeuseHTTP)
+écris_réponse :: fonc (prise: *Prise, message: *MessageServeuseHTTP)
 {
     enchaineuse: Enchaineuse;
     initialise_enchaineuse(*enchaineuse);
@@ -413,7 +413,7 @@ erreur_interne :: fonc (contenu : chaine = "") -> MessageServeuseHTTP
     retourne message;
 }
 
-sers_fichier :: fonc (prise: *Prise @inutilisée, message: &MessageClienteHTTP, type_mime: chaine) -> MessageServeuseHTTP
+sers_fichier :: fonc (prise: *Prise @inutilisée, message: *MessageClienteHTTP, type_mime: chaine) -> MessageServeuseHTTP
 {
     chm := chemin_pour_fichier(message.requête);
     _, contenu := contenu_fichier_texte(chm);
