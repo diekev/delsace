@@ -59,10 +59,10 @@ initialise_error_object :: fonc (realm: *Realm, object: *Object, nom: ECMAString
 
     desc: PropertyDescriptor;
     initialise_property_descriptor(*desc, Valeur(String = crée_chaine(object.donne_tas_de_mémoire(), nom)), Configurable);
-    define_property_or_throw(object, STR_name, desc);
+    define_property_or_throw(object, STR_name, *desc);
 
     initialise_property_descriptor(*desc, Valeur(String = crée_chaine(object.donne_tas_de_mémoire(), crée_chaine_utf16_unique(message))), DrapeauxPropriété.zéro);
-    define_property_or_throw(object, STR_message, desc);
+    define_property_or_throw(object, STR_message, *desc);
 }
 
 #portée_module
@@ -75,7 +75,7 @@ imprime_traceback :: fonc (enchaineuse: *Enchaineuse, realm: *Realm)
         si it.noeud_exécuté_courant {
             si it.script_or_module {
                 lexème := it.noeud_exécuté_courant.lexème;
-                texte := it.script_or_module.source.donne_ligne_pour_lexème(lexème);
+                texte := donne_ligne_pour_lexème(*it.script_or_module.source, lexème);
 
                 ligne_pour_erreur := donne_ligne_pour_erreur(texte, lexème.texte.pointeur - texte.pointeur);
 
@@ -96,7 +96,7 @@ imprime_traceback :: fonc (enchaineuse: *Enchaineuse, realm: *Realm)
     }
 }
 
-donne_ligne_pour_lexème :: fonc (source: &TexteSource, lexème: *Lexème) -> chaine
+donne_ligne_pour_lexème :: fonc (source: *TexteSource, lexème: *Lexème) -> chaine
 {
     premier_lexème := source.lexèmes.pointeur;
     dernier_lexème := source.lexèmes.pointeur + source.lexèmes.taille;

@@ -96,7 +96,7 @@ ordinary_get_own_property :: fonc (object: *Object, property_key: PropertyKey) -
     X := mémoire(propriété);
 
     // 4. If X is a data property, then
-    si is_data_propery(X) {
+    si is_data_propery(*X) {
         // a. Set D.[[Value]] to the value of X's [[Value]] attribute.
         D.value = propriété.valeur;
 
@@ -106,7 +106,7 @@ ordinary_get_own_property :: fonc (object: *Object, property_key: PropertyKey) -
     // 5. Else,
     sinon {
         // a. Assert: X is an accessor property.
-        assert(is_accessor_propery(X));
+        assert(is_accessor_propery(*X));
 
         // b. Set D.[[Get]] to the value of X's [[Get]] attribute.
         si propriété.get {
@@ -131,7 +131,7 @@ ordinary_get_own_property :: fonc (object: *Object, property_key: PropertyKey) -
 
 /* 10.1.6.1 [[DefineOwnProperty]] ( P, Desc )
  * https://tc39.es/ecma262/multipage/ordinary-and-exotic-objects-behaviours.html#sec-ordinarydefineownproperty */
-ordinary_define_own_property :: fonc (object: *Object, property_key: PropertyKey, desc: &PropertyDescriptor) -> bool
+ordinary_define_own_property :: fonc (object: *Object, property_key: PropertyKey, desc: *PropertyDescriptor) -> bool
 {
     // 1. Let current be ? O.[[GetOwnProperty]](P).
     current := internal_get_own_property(object, property_key);
@@ -151,7 +151,7 @@ ordinary_define_own_property :: fonc (object: *Object, property_key: PropertyKey
 
 /* 10.1.6.3 ValidateAndApplyPropertyDescriptor ( O, P, extensible, Desc, current )
  * https://tc39.es/ecma262/multipage/ordinary-and-exotic-objects-behaviours.html#sec-validateandapplypropertydescriptor */
-validate_and_apply_property_descriptor :: fonc (object: *Object, property_key: PropertyKey, extensible: bool, desc: &PropertyDescriptor, opt_current: Optionnel(PropertyDescriptor)) -> bool
+validate_and_apply_property_descriptor :: fonc (object: *Object, property_key: PropertyKey, extensible: bool, desc: *PropertyDescriptor, opt_current: Optionnel(PropertyDescriptor)) -> bool
 {
     // 1. Assert: P is a property key.
 
@@ -220,12 +220,12 @@ validate_and_apply_property_descriptor :: fonc (object: *Object, property_key: P
         }
 
         // c. If IsGenericDescriptor(Desc) is false and IsAccessorDescriptor(Desc) is not IsAccessorDescriptor(current), return false.
-        si is_generic_descriptor(desc) == faux && is_accessor_descriptor(desc) != is_accessor_descriptor(current) {
+        si is_generic_descriptor(desc) == faux && is_accessor_descriptor(desc) != is_accessor_descriptor(*current) {
             retourne faux;
         }
 
         // d. If IsAccessorDescriptor(current) is true, then
-        si is_accessor_descriptor(current) {
+        si is_accessor_descriptor(*current) {
             // i. If Desc has a [[Get]] field and SameValue(Desc.[[Get]], current.[[Get]]) is false, return false.
             si desc.get.possède_valeur() && same_value(desc.get.Quelque, current.get.Quelque).est_false() {
                 retourne faux;
@@ -255,7 +255,7 @@ validate_and_apply_property_descriptor :: fonc (object: *Object, property_key: P
     // 6. If O is not undefined, then
     si object {
         // a. If IsDataDescriptor(current) is true and IsAccessorDescriptor(Desc) is true, then
-        si is_data_descriptor(current) && is_accessor_descriptor(desc) {
+        si is_data_descriptor(*current) && is_accessor_descriptor(desc) {
             // i. If Desc has a [[Configurable]] field, let configurable be Desc.[[Configurable]];
             //    else let configurable be current.[[Configurable]].
             configurable := si desc.configurable.possède_valeur() {
@@ -290,7 +290,7 @@ validate_and_apply_property_descriptor :: fonc (object: *Object, property_key: P
             propriété.drapeaux.ENUMERABLE = enumerable;
         }
         // b. Else if IsAccessorDescriptor(current) is true and IsDataDescriptor(Desc) is true, then
-        sinon si is_accessor_descriptor(current) && is_data_descriptor(desc) {
+        sinon si is_accessor_descriptor(*current) && is_data_descriptor(desc) {
             // i. If Desc has a [[Configurable]] field, let configurable be Desc.[[Configurable]];
             //    else let configurable be current.[[Configurable]].
             configurable := si desc.configurable.possède_valeur() {
@@ -410,12 +410,12 @@ ordinary_get :: fonc (object: *Object, property_key: PropertyKey, receiver: Vale
     desc := opt_desc.Quelque;
 
     // 3. If IsDataDescriptor(desc) is true, return desc.[[Value]].
-    si is_data_descriptor(desc) {
+    si is_data_descriptor(*desc) {
         retourne desc.value;
     }
 
     // 4. Assert: IsAccessorDescriptor(desc) is true.
-    assert(is_accessor_descriptor(desc));
+    assert(is_accessor_descriptor(*desc));
 
     // 5. Let getter be desc.[[Get]].
     getter := desc.get;
@@ -471,7 +471,7 @@ ordinary_set_with_own_descriptor :: fonc (object: *Object, property_key: Propert
     }
 
     // 2. If IsDataDescriptor(ownDesc) is true, then
-    si is_data_descriptor(own_desc) {
+    si is_data_descriptor(*own_desc) {
         // a. If ownDesc.[[Writable]] is false, return false.
         si own_desc.writable == faux {
             retourne faux;
@@ -493,7 +493,7 @@ ordinary_set_with_own_descriptor :: fonc (object: *Object, property_key: Propert
             existing_descriptor := opt_existing_descriptor.Quelque;
 
             // i. If IsAccessorDescriptor(existingDescriptor) is true, return false.
-            si is_accessor_descriptor(existing_descriptor) {
+            si is_accessor_descriptor(*existing_descriptor) {
                 retourne faux;
             }
 
@@ -506,7 +506,7 @@ ordinary_set_with_own_descriptor :: fonc (object: *Object, property_key: Propert
             value_desc := PropertyDescriptor(value = valeur);
 
             // iv. Return ? Receiver.[[DefineOwnProperty]](P, valueDesc).
-            retourne internal_define_own_property(receiver.donne_objet(), property_key, value_desc);
+            retourne internal_define_own_property(receiver.donne_objet(), property_key, *value_desc);
         }
         // e. Else,
         sinon {
@@ -518,7 +518,7 @@ ordinary_set_with_own_descriptor :: fonc (object: *Object, property_key: Propert
     }
 
     // 3. Assert: IsAccessorDescriptor(ownDesc) is true.
-    assert(is_accessor_descriptor(own_desc));
+    assert(is_accessor_descriptor(*own_desc));
 
     // 4. Let setter be ownDesc.[[Set]].
     setter := own_desc.set;

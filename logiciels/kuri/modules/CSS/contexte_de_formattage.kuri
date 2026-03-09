@@ -226,7 +226,7 @@ détruit_données_lignes :: fonc (contenant: *ContenantLignesDeFlottants)
     déloge(contenant.lignes);
 }
 
-donne_dernière_ligne :: fonc (contenant: *ContenantLignesDeFlottants, containing_block: &ContainingBlock, gauche: bool) -> *LigneDeFlottants
+donne_dernière_ligne :: fonc (contenant: *ContenantLignesDeFlottants, containing_block: *ContainingBlock, gauche: bool) -> *LigneDeFlottants
 {
     si contenant.lignes.taille == 0 || contenant.réinitialise_pour_clear {
         contenant.réinitialise_pour_clear = faux;
@@ -243,7 +243,7 @@ donne_dernière_ligne :: fonc (contenant: *ContenantLignesDeFlottants, containin
     retourne résultat;
 }
 
-ajoute_une_ligne :: fonc (contenant: *ContenantLignesDeFlottants, containing_block: &ContainingBlock, gauche: bool) -> *LigneDeFlottants
+ajoute_une_ligne :: fonc (contenant: *ContenantLignesDeFlottants, containing_block: *ContainingBlock, gauche: bool) -> *LigneDeFlottants
 {
     résultat := tableau_ajoute_élément(*contenant.lignes);
     résultat.rect.x = containing_block.rect.x;
@@ -786,14 +786,14 @@ dispose_boite_absolute :: fonc (empl ctx: *ContexteDeFormattage, boite: *BoiteAb
     containing_block := donne_containing_block(box, ctx);
     assert(containing_block.box == boite.containing_block);
 
-    args := crée_arguments_dimensionnement_largeur(ctx, box, containing_block, PersonnalisationCotation(), ModeDeFormattage.Normal);
+    args := crée_arguments_dimensionnement_largeur(ctx, box, *containing_block, PersonnalisationCotation(), ModeDeFormattage.Normal);
     args.pos_x_statique = boite.pos_x_statique;
     args.pos_y_statique = boite.pos_y_statique;
     calcule_largeur_et_marges(*args);
     état_calcul_hauteur := calcule_hauteur_et_marges(*args);
 
     si état_calcul_hauteur != ÉtatCalculHauteur.HauteurDépendSurContenu {
-        position_boite_absolue(box, containing_block, faux);
+        position_boite_absolue(box, *containing_block, faux);
     }
 
     available : AvailableSpace = ---;
@@ -806,13 +806,13 @@ dispose_boite_absolute :: fonc (empl ctx: *ContexteDeFormattage, boite: *BoiteAb
         args.calcul_hauteur_après_contenu = vrai;
         _ := calcule_hauteur_et_marges(*args);
 
-        position_boite_absolue(box, containing_block, vrai);
+        position_boite_absolue(box, *containing_block, vrai);
     }
 
     ctx.dispose_les_boites_absolues(box);
 }
 
-position_boite_absolue :: fonc (box: *Box, containing_block: &ContainingBlock, décale: bool)
+position_boite_absolue :: fonc (box: *Box, containing_block: *ContainingBlock, décale: bool)
 {
     bord_gauche := containing_block.rect.x;
     bord_haut := containing_block.rect.y;
@@ -834,14 +834,14 @@ position_boite_absolue :: fonc (box: *Box, containing_block: &ContainingBlock, d
 ajoute_boite_flottante_gauche :: fonc (empl ctx: *ContexteDeFormattageBloc, box: *Box, mode: ModeDeFormattage)
 {
     containing_block := donne_containing_block(box, ctx);
-    largeur_disponible := containing_block.donne_largeur();
+    largeur_disponible := donne_largeur(*containing_block);
 
     bord_gauche := containing_block.rect.x;
     bord_droit := bord_gauche + largeur_disponible;
 
     boite := crée_boite_flottante(box);
 
-    ligne := donne_dernière_ligne(*ctx.lignes_boites_flottantes_gauche, containing_block, vrai);
+    ligne := donne_dernière_ligne(*ctx.lignes_boites_flottantes_gauche, *containing_block, vrai);
 
     boucle {
         boite.position_x = ligne.donne_position_la_plus_à_gauche() comme r32;
@@ -851,7 +851,7 @@ ajoute_boite_flottante_gauche :: fonc (empl ctx: *ContexteDeFormattageBloc, box:
             arrête;
         }
 
-        ligne = ajoute_une_ligne(*ctx.lignes_boites_flottantes_gauche, containing_block, vrai);
+        ligne = ajoute_une_ligne(*ctx.lignes_boites_flottantes_gauche, *containing_block, vrai);
     }
 
     si mode != ModeDeFormattage.BrisureDeLigneExplicite && instersecte_hors_touche(boite.donne_rectangle(), ctx.rect_boites_flottantes_droites) {
@@ -866,7 +866,7 @@ ajoute_boite_flottante_gauche :: fonc (empl ctx: *ContexteDeFormattageBloc, box:
                 }
 
                 si ligne.boites.taille != 0 {
-                    ligne = ajoute_une_ligne(*ctx.lignes_boites_flottantes_gauche, containing_block, vrai);
+                    ligne = ajoute_une_ligne(*ctx.lignes_boites_flottantes_gauche, *containing_block, vrai);
                 }
 
                 boite.position_y = max(boite_droite.position_y + boite_droite.hauteur, ligne.rect.y comme r32);
@@ -890,14 +890,14 @@ ajoute_boite_flottante_gauche :: fonc (empl ctx: *ContexteDeFormattageBloc, box:
 ajoute_boite_flottante_droite :: fonc (empl ctx: *ContexteDeFormattageBloc, box: *Box, mode: ModeDeFormattage)
 {
     containing_block := donne_containing_block(box, ctx);
-    largeur_disponible := containing_block.donne_largeur();
+    largeur_disponible := donne_largeur(*containing_block);
 
     bord_gauche := containing_block.rect.x;
     bord_droit := bord_gauche + largeur_disponible;
 
     boite := crée_boite_flottante(box);
 
-    ligne := donne_dernière_ligne(*ctx.lignes_boites_flottantes_droite, containing_block, faux);
+    ligne := donne_dernière_ligne(*ctx.lignes_boites_flottantes_droite, *containing_block, faux);
 
     boucle {
         boite.position_x = ligne.donne_position_la_plus_à_droite() comme r32 - boite.largeur;
@@ -907,7 +907,7 @@ ajoute_boite_flottante_droite :: fonc (empl ctx: *ContexteDeFormattageBloc, box:
             arrête;
         }
 
-        ligne = ajoute_une_ligne(*ctx.lignes_boites_flottantes_droite, containing_block, faux);
+        ligne = ajoute_une_ligne(*ctx.lignes_boites_flottantes_droite, *containing_block, faux);
     }
 
     si mode != ModeDeFormattage.BrisureDeLigneExplicite && instersecte_hors_touche(boite.donne_rectangle(), ctx.rect_boites_flottantes_gauches) {
@@ -922,7 +922,7 @@ ajoute_boite_flottante_droite :: fonc (empl ctx: *ContexteDeFormattageBloc, box:
                 }
 
                 si ligne.boites.taille != 0 {
-                    ligne = ajoute_une_ligne(*ctx.lignes_boites_flottantes_droite, containing_block, faux);
+                    ligne = ajoute_une_ligne(*ctx.lignes_boites_flottantes_droite, *containing_block, faux);
                 }
 
                 boite.position_y = max(boite_gauche.position_y + boite_gauche.hauteur, ligne.rect.y comme r32);
@@ -1220,8 +1220,8 @@ contexte_formattage_inline_sur_formatte :: fonc (base: *ContexteDeFormattage, bo
         }
 
         it.box.décale_vers_position(min_x comme r32, min_y comme r32);
-        it.box.modèle_de_boite.définis_largeur_contenu((max_x - min_x) comme r32);
-        it.box.modèle_de_boite.définis_hauteur_contenu((max_y - min_y) comme r32);
+        définis_largeur_contenu(*it.box.modèle_de_boite, (max_x - min_x) comme r32);
+        définis_hauteur_contenu(*it.box.modèle_de_boite, (max_y - min_y) comme r32);
     }
 
     déloge(ctx.boites_enlignées);
@@ -2666,7 +2666,7 @@ determine_the_flex_container_used_cross_size :: fonc (ctx: *ContexteDeFormattage
         containing_block := donne_containing_block(ctx.contenant, ctx);
         personnalisation: PersonnalisationCotation;
         personnalisation.outrepas_hauteur = *hauteur_finale;
-        args := crée_arguments_dimensionnement_hauteur(ctx, ctx.contenant, containing_block, personnalisation);
+        args := crée_arguments_dimensionnement_hauteur(ctx, ctx.contenant, *containing_block, personnalisation);
         _ := calcule_hauteur_et_marges(*args);
     }
 }
@@ -2910,7 +2910,7 @@ formatte_table :: fonc (ctx: *ContexteDeFormattageTable, table: *TableBox, avail
         it.maximum_content_width = it.box.modèle_de_boite.bordure.largeur;
 
         containing_block := donne_containing_block(it.box, ctx);
-        résoud_pourcentage_largeurs(ctx, it.box, containing_block);
+        résoud_pourcentage_largeurs(ctx, it.box, *containing_block);
 
         width = it.box.propriétés.donne_valeur_calculée(IDPropriété.Width);
         si width.est_pixels() {
@@ -3032,7 +3032,7 @@ formatte_table :: fonc (ctx: *ContexteDeFormattageTable, table: *TableBox, avail
     containing_block := donne_containing_block(table, ctx);
     personnalisation: PersonnalisationCotation;
     personnalisation.outrepas_largeur = *outrepas_largeur;
-    args := crée_arguments_dimensionnement_largeur(ctx, table, containing_block, personnalisation, ModeDeFormattage.Normal);
+    args := crée_arguments_dimensionnement_largeur(ctx, table, *containing_block, personnalisation, ModeDeFormattage.Normal);
     calcule_largeur_et_marges(*args);
     _ := calcule_hauteur_et_marges(*args);
 
@@ -3085,8 +3085,8 @@ formatte_table :: fonc (ctx: *ContexteDeFormattageTable, table: *TableBox, avail
 
         group_box := it.group_box;
         définis_position(group_box, x_min comme r32, y_min comme r32);
-        définis_largeur_contenu(group_box.modèle_de_boite, (x_max - x_min) comme r32);
-        définis_hauteur_contenu(group_box.modèle_de_boite, (y_max - y_min) comme r32);
+        définis_largeur_contenu(*group_box.modèle_de_boite, (x_max - x_min) comme r32);
+        définis_hauteur_contenu(*group_box.modèle_de_boite, (y_max - y_min) comme r32);
     }
 
     hauteur_du_contenu := params.décalage_y_ligne - décalage_y;
@@ -3096,7 +3096,7 @@ formatte_table :: fonc (ctx: *ContexteDeFormattageTable, table: *TableBox, avail
 
     outrepas_hauteur := crée_outrepas_pour_coter_contenu(hauteur_du_contenu);
     personnalisation.outrepas_hauteur = *outrepas_hauteur;
-    args = crée_arguments_dimensionnement_hauteur(ctx, table, containing_block, personnalisation);
+    args = crée_arguments_dimensionnement_hauteur(ctx, table, *containing_block, personnalisation);
     _ := calcule_hauteur_et_marges(*args);
 }
 
@@ -3133,7 +3133,7 @@ initialise_données_cellules :: fonc (ctx: *ContexteDeFormattageTable, table: *T
 
     ctx.nombre_de_lignes = indice_ligne;
 
-    tableau_redimensionne(ctx.données_colonnes, ctx.nombre_de_colonnes);
+    tableau_redimensionne(*ctx.données_colonnes, ctx.nombre_de_colonnes);
 
     // imprime("lignes : %, colones : %\n", indice_ligne, ctx.nombre_de_colonnes)
 }
@@ -3186,7 +3186,7 @@ récolte_cellules_sur_table_row :: fonc (ctx: *ContexteDeFormattageTable, row: *
 calcule_largeur_table :: fonc (ctx: *ContexteDeFormattageTable, table: *TableBox) -> r64
 {
     containing_block := donne_containing_block(table, ctx);
-    résoud_pourcentage_largeurs(ctx, table, containing_block);
+    résoud_pourcentage_largeurs(ctx, table, *containing_block);
     width := table.propriétés.donne_valeur_calculée(IDPropriété.Width);
 
     // À FAIRE : CAPMIN
@@ -3242,7 +3242,7 @@ calcule_largeur_table :: fonc (ctx: *ContexteDeFormattageTable, table: *TableBox
         retourne used_width;
     }
 
-    largeur_containing_block := containing_block.donne_largeur();
+    largeur_containing_block := donne_largeur(*containing_block);
 
     MAX: r64;
     pour ctx.données_colonnes {
@@ -3329,12 +3329,12 @@ dispose_cellules_ligne :: fonc (ctx: *ContexteDeFormattageTable, ligne: *LigneDe
         }
 
         // À FAIRE : il faudrait plustôt ajuster la hauteur puis déplacer les enfants selon l'alignement de la cellule.
-        it.modèle_de_boite.définis_hauteur_contenu(hauteur_ligne);
+        définis_hauteur_contenu(*it.modèle_de_boite, hauteur_ligne);
     }
 
     définis_position(row, décalage_x, décalage_y_ligne);
-    définis_largeur_contenu(row.modèle_de_boite, largeur_du_contenu comme r32);
-    définis_hauteur_contenu(row.modèle_de_boite, hauteur_ligne);
+    définis_largeur_contenu(*row.modèle_de_boite, largeur_du_contenu comme r32);
+    définis_hauteur_contenu(*row.modèle_de_boite, hauteur_ligne);
 
     décalage_y_ligne += hauteur_ligne;
 

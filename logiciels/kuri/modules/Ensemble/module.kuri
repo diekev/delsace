@@ -50,7 +50,7 @@ ensemble_ajoute_retourne_indice :: fonc (ensemble: *[..]$T, donnée: T) -> z64
 
     tmp := mémoire(ensemble);
 
-    tableau_redimensionne(tmp, taille + 1);
+    tableau_redimensionne(*tmp, taille + 1);
 
     i := taille;
 
