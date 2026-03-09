@@ -64,7 +64,7 @@ imprime_valeur_json :: fonc (enchaineuse: *Enchaineuse, valeur: eini) -> rien
             ajoute_au_tampon(enchaineuse, "[");
 
             boucle {
-                valeur_ := itératrice.valeur_suivante();
+                valeur_ := valeur_suivante(*itératrice);
 
                 saufsi valeur_.est_valide() {
                     arrête;

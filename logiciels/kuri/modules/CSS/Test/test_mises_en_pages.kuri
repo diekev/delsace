@@ -59,10 +59,10 @@ test_mises_en_pages :: fonc () -> bool
     début := maintenant_précis();
 
     chemins_sources := donne_chemins_fichiers_sources();
-    diffère déloge_tableau_et_ses_éléments(chemins_sources, détruit_chemin);
+    diffère déloge_tableau_et_ses_éléments(*chemins_sources, détruit_chemin);
 
     chemins_sorties := donne_chemins_fichiers_sorties(chemins_sources);
-    diffère déloge_tableau_et_ses_éléments(chemins_sources, détruit_chemin);
+    diffère déloge_tableau_et_ses_éléments(*chemins_sources, détruit_chemin);
 
     échecs: [..]CheminFichier;
     diffère déloge(échecs);
@@ -116,10 +116,10 @@ test_mises_en_pages :: fonc () -> bool
 ajourne_fichiers :: fonc ()
 {
     chemins_sources := donne_chemins_fichiers_sources();
-    diffère déloge_tableau_et_ses_éléments(chemins_sources, détruit_chemin);
+    diffère déloge_tableau_et_ses_éléments(*chemins_sources, détruit_chemin);
 
     chemins_sorties := donne_chemins_fichiers_sorties(chemins_sources);
-    diffère déloge_tableau_et_ses_éléments(chemins_sources, détruit_chemin);
+    diffère déloge_tableau_et_ses_éléments(*chemins_sources, détruit_chemin);
 
     pour chemins_sources {
         impression := donne_texte_pour_sortie(it);
@@ -146,10 +146,10 @@ ajourne_fichiers :: fonc ()
 visualise_fichiers :: fonc (chemin_navigateur: CheminFichier)
 {
     chemins_sources := donne_chemins_fichiers_sources();
-    diffère déloge_tableau_et_ses_éléments(chemins_sources, détruit_chemin);
+    diffère déloge_tableau_et_ses_éléments(*chemins_sources, détruit_chemin);
 
     chemins_sorties := donne_chemins_fichiers_sorties(chemins_sources);
-    diffère déloge_tableau_et_ses_éléments(chemins_sources, détruit_chemin);
+    diffère déloge_tableau_et_ses_éléments(*chemins_sources, détruit_chemin);
 
     chemins_échouants: [..]CheminFichier;
     diffère déloge(chemins_échouants);

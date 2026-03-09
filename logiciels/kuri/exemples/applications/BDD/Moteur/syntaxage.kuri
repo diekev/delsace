@@ -61,8 +61,8 @@ parse :: fonc (chn: chaine) -> ASA
     syntaxeuse: Syntaxeuse;
     syntaxeuse.lexèmes = lexèmes;
 
-    tantque !syntaxeuse.fini() {
-        syntaxeuse.parse_instruction();
+    tantque !fini(*syntaxeuse) {
+        parse_instruction(*syntaxeuse);
     }
 
     asa: ASA;
@@ -86,7 +86,7 @@ Syntaxeuse :: struct {
     instructions: [..]*Instruction;
 }
 
-fini :: fonc (syntaxeuse: &Syntaxeuse) -> bool #enligne
+fini :: fonc (syntaxeuse: *Syntaxeuse) -> bool #enligne
 {
     si syntaxeuse.possède_erreur {
         retourne vrai;
@@ -94,22 +94,22 @@ fini :: fonc (syntaxeuse: &Syntaxeuse) -> bool #enligne
     retourne syntaxeuse.curseur >= syntaxeuse.lexèmes.taille;
 }
 
-avance :: fonc (syntaxeuse: &Syntaxeuse) #enligne
+avance :: fonc (syntaxeuse: *Syntaxeuse) #enligne
 {
     syntaxeuse.curseur += 1;
 }
 
-lexème_courant :: fonc (syntaxeuse: &Syntaxeuse) -> Lexème #enligne
+lexème_courant :: fonc (syntaxeuse: *Syntaxeuse) -> Lexème #enligne
 {
     retourne syntaxeuse.lexèmes[syntaxeuse.curseur];
 }
 
-lexème_précédent :: fonc (syntaxeuse: &Syntaxeuse) -> Lexème #enligne
+lexème_précédent :: fonc (syntaxeuse: *Syntaxeuse) -> Lexème #enligne
 {
     retourne syntaxeuse.lexèmes[syntaxeuse.curseur - 1];
 }
 
-apparie_et_consomme :: fonc (syntaxeuse: &Syntaxeuse, genre: GenreLexème) -> bool
+apparie_et_consomme :: fonc (syntaxeuse: *Syntaxeuse, genre: GenreLexème) -> bool
 {
     si syntaxeuse.fini() {
         retourne faux;
@@ -123,7 +123,7 @@ apparie_et_consomme :: fonc (syntaxeuse: &Syntaxeuse, genre: GenreLexème) -> bo
     retourne vrai;
 }
 
-apparie_et_consomme :: fonc (syntaxeuse: &Syntaxeuse, identifiant: chaine) -> bool
+apparie_et_consomme :: fonc (syntaxeuse: *Syntaxeuse, identifiant: chaine) -> bool
 {
     si syntaxeuse.fini() {
         retourne faux;
@@ -143,7 +143,7 @@ apparie_et_consomme :: fonc (syntaxeuse: &Syntaxeuse, identifiant: chaine) -> bo
     retourne vrai;
 }
 
-rapporte_erreur :: fonc (syntaxeuse: &Syntaxeuse, message: chaine, args: ...eini)
+rapporte_erreur :: fonc (syntaxeuse: *Syntaxeuse, message: chaine, args: ...eini)
 {
     si syntaxeuse.possède_erreur {
         retourne;
@@ -153,14 +153,14 @@ rapporte_erreur :: fonc (syntaxeuse: &Syntaxeuse, message: chaine, args: ...eini
     syntaxeuse.possède_erreur = vrai;
 }
 
-crée_instruction :: fonc (syntaxeuse: &Syntaxeuse, $T: type_de_données) -> *T
+crée_instruction :: fonc (syntaxeuse: *Syntaxeuse, $T: type_de_données) -> *T
 {
     inst := loge(T);
     tableau_ajoute(*syntaxeuse.instructions, inst);
     retourne inst;
 }
 
-parse_instruction :: fonc (syntaxeuse: &Syntaxeuse)
+parse_instruction :: fonc (syntaxeuse: *Syntaxeuse)
 {
     lexème := syntaxeuse.lexème_courant();
 
@@ -205,7 +205,7 @@ parse_instruction :: fonc (syntaxeuse: &Syntaxeuse)
 // 3. DEPUIS
 // 4. $table
 // 5. ;
-parse_instruction_sélectionne :: fonc (syntaxeuse: &Syntaxeuse)
+parse_instruction_sélectionne :: fonc (syntaxeuse: *Syntaxeuse)
 {
     inst := syntaxeuse.crée_instruction(InstructionSélection);
 
@@ -238,7 +238,7 @@ parse_instruction_sélectionne :: fonc (syntaxeuse: &Syntaxeuse)
 // 4. [nom-colonne type-colonne, ...]
 // 5. )
 // 6. ;
-parse_instruction_crée :: fonc (syntaxeuse: &Syntaxeuse)
+parse_instruction_crée :: fonc (syntaxeuse: *Syntaxeuse)
 {
     inst := syntaxeuse.crée_instruction(InstructionCréationTable);
 
@@ -313,7 +313,7 @@ parse_instruction_crée :: fonc (syntaxeuse: &Syntaxeuse)
 // 6. $expression [, ...]
 // 7. )
 // 8. ;
-parse_instruction_insère :: fonc (syntaxeuse: &Syntaxeuse)
+parse_instruction_insère :: fonc (syntaxeuse: *Syntaxeuse)
 {
     inst := syntaxeuse.crée_instruction(InstructionInsère);
 
@@ -362,7 +362,7 @@ parse_instruction_insère :: fonc (syntaxeuse: &Syntaxeuse)
     }
 }
 
-parse_expressions :: fonc (syntaxeuse: &Syntaxeuse, exprs: *[..]*Expression) -> bool
+parse_expressions :: fonc (syntaxeuse: *Syntaxeuse, exprs: *[..]*Expression) -> bool
 {
     tantque !syntaxeuse.fini() {
         lexème := syntaxeuse.lexème_courant();

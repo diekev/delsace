@@ -219,7 +219,7 @@ détruit_données_interfaces :: fonc (interfaces: *Interfaces)
         déloge(it.attributs);
         déloge(it.mixins);
     }
-    déloge_tableau_et_ses_éléments(interfaces.contenus_fichiers);
+    déloge_tableau_et_ses_éléments(*interfaces.contenus_fichiers);
     déloge(interfaces.interfaces);
     déloge(interfaces.noms_et_indice_parents);
 }
@@ -268,7 +268,7 @@ compile_interfaces_idl :: fonc () -> chaine
     diffère détruit_chemin(chemin);
 
     chemins := donne_fichiers_du_dossier(chemin);
-    diffère déloge_tableau_et_ses_éléments(chemins);
+    diffère déloge_tableau_et_ses_éléments(*chemins);
 
     pour chemins {
         chm := CheminFichier(it);
@@ -317,7 +317,7 @@ compile_interfaces_idl :: fonc () -> chaine
     }
 
     ajoute_au_tampon(*enchaineuse, "\n    si __table_indexage_prototypes.taille == 0 {\n");
-    ajoute_au_tampon(*enchaineuse, "        tableau_redimensionne(__table_indexage_prototypes, ", interfaces.interfaces.taille, ");\n");
+    ajoute_au_tampon(*enchaineuse, "        tableau_redimensionne(*__table_indexage_prototypes, ", interfaces.interfaces.taille, ");\n");
     pour interfaces.interfaces {
         si it.est_mixin {
             continue;
@@ -333,7 +333,7 @@ compile_interfaces_idl :: fonc () -> chaine
         }
     }
 
-    ajoute_au_tampon(*enchaineuse, "\n    tableau_redimensionne(realm.intrinsics.host_intrinsics, ", nombres_intrinsèques, ");\n");
+    ajoute_au_tampon(*enchaineuse, "\n    tableau_redimensionne(*realm.intrinsics.host_intrinsics, ", nombres_intrinsèques, ");\n");
 
     pour interfaces.interfaces {
         si it.est_mixin {
@@ -356,7 +356,7 @@ compile_interfaces_idl :: fonc () -> chaine
     indice_intrinsèque = interfaces.interfaces.taille;
 
     ajoute_au_tampon(*enchaineuse, "    si __table_constructors.taille == 0 {\n");
-    ajoute_au_tampon(*enchaineuse, "        tableau_redimensionne(__table_constructors, ", nombre_de_constructros, ");\n");
+    ajoute_au_tampon(*enchaineuse, "        tableau_redimensionne(*__table_constructors, ", nombre_de_constructros, ");\n");
     indice_constructor := 0;
     pour interfaces.interfaces {
         saufsi it.constructors {

@@ -256,9 +256,7 @@ alloue :: fonc (table: *Table($TypeClé, $TypeValeur), taille: z64)
     table.occupés.taille = taille;
     table.empreintes.taille = taille;
 
-    pour & table.occupés {
-        it = faux;
-    }
+    tableau_remplis_avec(table.occupés, faux);
 }
 
 détruit :: fonc (table: *Table($TypeClé, $TypeValeur))

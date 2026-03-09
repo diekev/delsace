@@ -17,7 +17,7 @@ PositionSource :: struct {
     colonne: z32;
 }
 
-donne_position_source :: fonc (texte: *TexteSource, lexème: &Lexème) -> PositionSource
+donne_position_source :: fonc (texte: *TexteSource, lexème: Lexème) -> PositionSource
 {
     résultat: PositionSource;
 
