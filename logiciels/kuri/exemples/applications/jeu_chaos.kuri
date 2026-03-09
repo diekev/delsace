@@ -70,9 +70,7 @@ dessine_bmp :: fonc (
     canevas := loge_tableau(z8, hauteur * largeur * 4);
     diffère déloge(canevas);
 
-    pour & v dans canevas {
-        v = 255;
-    }
+    tableau_remplis_avec(canevas, 255);
 
     points_ecran := points_vers_ecran(hauteur, largeur, monde, ecran, points);
     diffère déloge(points_ecran);

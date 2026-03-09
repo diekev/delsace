@@ -15,7 +15,7 @@ NoeudSyntaxique :: struct {
     appartient_à_fonction: bool;
 
     sur_exécution: fonc (noeud: *NoeudSyntaxique, interprète: *InterprèteArbre) -> CompletionRecord;
-    sur_génération_code_binaire: fonc (noeud: *NoeudSyntaxique, génératrice: &GénératriceCodeBinaire) -> Optionnel(Registre);
+    sur_génération_code_binaire: fonc (noeud: *NoeudSyntaxique, génératrice: *GénératriceCodeBinaire) -> Optionnel(Registre);
 }
 
 exécute_noeud :: fonc (noeud: *NoeudSyntaxique, interpréteuse: *InterprèteArbre) -> CompletionRecord
@@ -5073,7 +5073,7 @@ method_definition_evaluation :: fonc (interpréteuse: *InterprèteArbre, method_
             desc.configurable = vrai;
 
             // b. Perform ? DefinePropertyOrThrow(object, propKey, desc).
-            define_property_or_throw(object, donne_property_key(prop_key), desc);
+            define_property_or_throw(object, donne_property_key(prop_key), *desc);
 
             // c. Return unused.
         }
@@ -5117,7 +5117,7 @@ method_definition_evaluation :: fonc (interpréteuse: *InterprèteArbre, method_
             desc.configurable = vrai;
 
             // b. Perform ? DefinePropertyOrThrow(object, propKey, desc).
-            define_property_or_throw(object, donne_property_key(prop_key), desc);
+            define_property_or_throw(object, donne_property_key(prop_key), *desc);
 
             // c. Return unused.
         }

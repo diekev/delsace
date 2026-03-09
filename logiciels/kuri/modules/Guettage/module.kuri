@@ -58,7 +58,7 @@ termine_guettage :: fonc (guetteuse: *Guetteuse)
     PASSE_AU_PARENT;
 }
 
-gère_évènement :: fonc (guetteuse: *Guetteuse, évènement: &Évènement) -> ÉtatÉvènement
+gère_évènement :: fonc (guetteuse: *Guetteuse, évènement: *Évènement) -> ÉtatÉvènement
 {
     si évènement.type == TypeÉvènement.Souris {
         si guetteuse.sur_clic && (évènement.action_souris == ActionSouris.PRESSÉE || évènement.action_souris == ActionSouris.RELACHÉE) {
