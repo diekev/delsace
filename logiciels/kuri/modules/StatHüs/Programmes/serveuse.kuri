@@ -321,7 +321,7 @@ local_server_sur_lecture :: fonc (rappels_server: *RappelsLocalServer, connexion
         }
 
         ancienne_taille := serveuse.données_reçues.taille;
-        tableau_redimensionne(serveuse.données_reçues, serveuse.données_reçues.taille + taille_lue);
+        tableau_redimensionne(*serveuse.données_reçues, serveuse.données_reçues.taille + taille_lue);
         copie_mem_nonsur(src = *tampon[0], dst = serveuse.données_reçues.pointeur + ancienne_taille, taille = taille_lue);
     }
 

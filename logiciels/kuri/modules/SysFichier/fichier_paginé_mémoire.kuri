@@ -45,7 +45,7 @@ aplatis_fichier :: fonc (fichier: FichierPaginéMémoire) -> [..]octet
     taille_octet := donne_taille_fichier(*fichier);
 
     résultat: [..]octet;
-    tableau_redimensionne(résultat, taille_octet);
+    tableau_redimensionne(*résultat, taille_octet);
 
     dst := résultat.pointeur;
 

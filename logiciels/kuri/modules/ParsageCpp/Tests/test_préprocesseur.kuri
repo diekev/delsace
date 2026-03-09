@@ -36,10 +36,10 @@ test_préprocesseur :: fonc () -> bool
     début := maintenant_précis();
 
     chemins_sources := donne_chemins_fichiers_sources();
-    diffère déloge_tableau_et_ses_éléments(chemins_sources, détruit_chemin);
+    diffère déloge_tableau_et_ses_éléments(*chemins_sources, détruit_chemin);
 
     chemins_sorties := donne_chemins_fichiers_sorties(chemins_sources);
-    diffère déloge_tableau_et_ses_éléments(chemins_sources, détruit_chemin);
+    diffère déloge_tableau_et_ses_éléments(*chemins_sources, détruit_chemin);
 
     échecs: [..]CheminFichier;
     diffère déloge(échecs);
@@ -103,10 +103,10 @@ test_préprocesseur :: fonc () -> bool
 ajourne_fichiers :: fonc ()
 {
     chemins_sources := donne_chemins_fichiers_sources();
-    diffère déloge_tableau_et_ses_éléments(chemins_sources, détruit_chemin);
+    diffère déloge_tableau_et_ses_éléments(*chemins_sources, détruit_chemin);
 
     chemins_sorties := donne_chemins_fichiers_sorties(chemins_sources);
-    diffère déloge_tableau_et_ses_éléments(chemins_sources, détruit_chemin);
+    diffère déloge_tableau_et_ses_éléments(*chemins_sources, détruit_chemin);
 
     pour chemins_sources {
         nom_fichier := nom_fichier(it);

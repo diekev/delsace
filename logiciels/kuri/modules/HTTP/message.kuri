@@ -39,7 +39,7 @@ MessageHTTP :: struct {
 
 détruit_message :: fonc (message: *MessageHTTP)
 {
-    pour message.cookies {
+    pour * message.cookies {
         détruit_cookie(it);
     }
 
@@ -134,22 +134,6 @@ valeur_entête_ou :: fonc (message: *MessageHTTP, nom: chaine, défaut: chaine) 
     retourne entête_pour_nom.valeur;
 }
 
-possède_entête :: fonc (message: &MessageHTTP, nom: chaine) -> bool
-{
-    retourne entête(message, nom) != nul;
-}
-
-entête :: fonc (message: &MessageHTTP, nom: chaine) -> *Entête
-{
-    pour * message.entêtes {
-        si compare_ascii_insensible_à_la_casse(it.nom, nom) {
-            retourne it;
-        }
-    }
-
-    retourne nul;
-}
-
 possède_entête :: fonc (message: *MessageHTTP, nom: chaine) -> bool
 {
     retourne entête(message, nom) != nul;
@@ -214,7 +198,7 @@ crée_message_cliente_avec_contenu :: fonc (contenu: ContenuHTTP) -> MessageClie
     retourne message;
 }
 
-parse_contenu_message_url_encoded :: fonc (message: &MessageClienteHTTP, $T: type_de_données) -> (bool, T)
+parse_contenu_message_url_encoded :: fonc (message: *MessageClienteHTTP, $T: type_de_données) -> (bool, T)
 {
     //  À FAIRE : message.parse_contenu() -> Contenu(type_contenu, chaine) | Rien
     si !possède_entête(message, "Content-Length") {
@@ -284,7 +268,7 @@ crée_message_avec_contenu :: fonc (code_état: CodeÉtatHTTP, contenu: ContenuH
     retourne message;
 }
 
-chaine_pour_message_serveuse :: fonc (message: &MessageServeuseHTTP) -> chaine
+chaine_pour_message_serveuse :: fonc (message: *MessageServeuseHTTP) -> chaine
 {
     enchaineuse: Enchaineuse;
     initialise_enchaineuse(*enchaineuse);
@@ -310,7 +294,7 @@ chaine_pour_message_serveuse :: fonc (message: &MessageServeuseHTTP) -> chaine
 // ---------------------------------------------------------
 // Formattage/Impression
 
-chaine_pour_message_cliente :: fonc (message: &MessageClienteHTTP) -> chaine
+chaine_pour_message_cliente :: fonc (message: *MessageClienteHTTP) -> chaine
 {
     enchaineuse: Enchaineuse;
     initialise_enchaineuse(*enchaineuse);

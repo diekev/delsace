@@ -58,7 +58,7 @@ crée_tampon_audio :: fonc (format: FormatAudio, nombre_de_secondes: z32) -> Tam
     résultat: TamponAudio;
     résultat.format = format;
     taille_tampon := donne_taille_données_pour_une_seconde(format) * nombre_de_secondes;
-    tableau_redimensionne(résultat.données, taille_tampon);
+    tableau_redimensionne(*résultat.données, taille_tampon);
     retourne résultat;
 }
 
