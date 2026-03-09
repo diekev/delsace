@@ -47,7 +47,7 @@ RaccourciCommande :: struct {
     contexte: chaine;
 }
 
-donne_raccourci_pour_évènement :: fonc (anonyme: *Anonyme, évènement: Évènement, contexte: chaine) -> *RaccourciCommande
+donne_raccourci_pour_évènement :: fonc (anonyme: *Anonyme, évènement: *Évènement, contexte: chaine) -> *RaccourciCommande
 {
     liste := *anonyme.raccourcis;
     si anonyme.projet_ouvert {
@@ -239,8 +239,8 @@ parse_commandes_compilation :: fonc (lexeuse: *SimpleLexeuse, projet: *Projet)
             // @validation
             texte := lexeuse.donne_texte_jusque_nouvelle_ligne();
             divise(texte, ' ', *info_compilation.commande);
-            pour & info_compilation.commande {
-                it = copie_chaine(it);
+            pour * info_compilation.commande {
+                mémoire(it) = copie_chaine(mémoire(it));
             }
         }
         sinon {
@@ -504,7 +504,7 @@ principale :: fonc ()
 
         largeur, hauteur := donne_taille_fenêtre(fenêtre);
 
-        pour évènements {
+        pour * évènements {
             si it.type == TypeÉvènement.Fermeture {
                 doit_fermer = vrai;
                 arrête;

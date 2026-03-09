@@ -688,7 +688,7 @@ détruit_données :: fonc (fonte: *Fonte)
         sinon {}
     }
 
-    déloge_tableau_et_ses_éléments(fonte.glyphs, texture_glyph_delete);
+    déloge_tableau_et_ses_éléments(*fonte.glyphs, texture_glyph_delete);
 }
 
 texture_font_load_face :: fonc (self: *Fonte, taille: r32, library: *FT_Library, face: *FT_Face) -> (succès: bool)
@@ -1079,7 +1079,7 @@ texture_font_enlarge_atlas :: fonc (self: *Fonte, width_new: n64, height_new: n6
 
     // allocate new tampon
     data_old := ta.data;
-    tableau_redimensionne(ta.data, (width_new * height_new * ta.depth) comme z64);
+    tableau_redimensionne(*ta.data, (width_new * height_new * ta.depth) comme z64);
     tableau_remplis_avec(ta.data, 0);
     // update atlas taille
     ta.width = width_new;
@@ -1204,7 +1204,7 @@ texture_atlas_new :: fonc (width: n64, height: n64, depth: n64) -> *texture_atla
         panique("impossible de loger une instance de texture_atlas_t");
     }
 
-    tableau_redimensionne(self.data, (width * height * depth) comme z64);
+    tableau_redimensionne(*self.data, (width * height * depth) comme z64);
     si self.data.pointeur == nul {
         panique("impossible de loger une instance de texture_atlas_t");
     }

@@ -103,12 +103,12 @@ construis_lexeuse :: fonc (chn: chaine) -> Lexeuse
     retourne lexeuse;
 }
 
-détruit_lexeuse :: fonc (lexeuse: &Lexeuse) -> rien
+détruit_lexeuse :: fonc (lexeuse: *Lexeuse) -> rien
 {
     déloge(lexeuse.lexèmes);
 }
 
-ajoute_lexème_script :: fonc (lexeuse: &Lexeuse, type_lexème: TypeLexème) #enligne
+ajoute_lexème_script :: fonc (lexeuse: *Lexeuse, type_lexème: TypeLexème) #enligne
 {
     lexeuse.ajoute_lexème_potentiel();
 
@@ -119,14 +119,14 @@ ajoute_lexème_script :: fonc (lexeuse: &Lexeuse, type_lexème: TypeLexème) #en
     lexeuse.avance(2);
 }
 
-ajoute_lexème_potentiel :: fonc (lexeuse: &Lexeuse) #enligne
+ajoute_lexème_potentiel :: fonc (lexeuse: *Lexeuse) #enligne
 {
     si lexeuse.taille_mot_courant != 0 {
         lexeuse.pousse_mot(id_identifiant(lexeuse.mot_courant()));
     }
 }
 
-performe_lexage :: fonc (lexeuse: &Lexeuse) -> rien
+performe_lexage :: fonc (lexeuse: *Lexeuse) -> rien
 {
     ÉTAT_HTML :: 0;
     ÉTAT_CONTROLE :: 1;
@@ -177,12 +177,12 @@ performe_lexage :: fonc (lexeuse: &Lexeuse) -> rien
     }
 }
 
-fini :: fonc (lexeuse: &Lexeuse) -> bool
+fini :: fonc (lexeuse: *Lexeuse) -> bool
 {
     retourne lexeuse.début >= lexeuse.fin;
 }
 
-avance :: fonc (lexeuse: &Lexeuse, n: z32) -> rien
+avance :: fonc (lexeuse: *Lexeuse, n: z32) -> rien
 {
     pour n {
         si lexeuse.caractère_courant() == '\n' {
@@ -197,22 +197,22 @@ avance :: fonc (lexeuse: &Lexeuse, n: z32) -> rien
     }
 }
 
-caractère_courant :: fonc (lexeuse: &Lexeuse) -> z8
+caractère_courant :: fonc (lexeuse: *Lexeuse) -> z8
 {
     retourne mémoire(lexeuse.début);
 }
 
-caractère_voisin :: fonc (lexeuse: &Lexeuse, n: z32) -> z8
+caractère_voisin :: fonc (lexeuse: *Lexeuse, n: z32) -> z8
 {
     retourne mémoire(lexeuse.début + n);
 }
 
-mot_courant :: fonc (lexeuse: &Lexeuse) -> chaine
+mot_courant :: fonc (lexeuse: *Lexeuse) -> chaine
 {
     retourne chaine(lexeuse.début_mot, lexeuse.taille_mot_courant);
 }
 
-analyse_caractère_simple :: fonc (lexeuse: &Lexeuse) -> rien
+analyse_caractère_simple :: fonc (lexeuse: *Lexeuse) -> rien
 {
     si est_espace_blanche(lexeuse.caractère_courant()) {
         si lexeuse.taille_mot_courant != 0 {
@@ -237,12 +237,12 @@ analyse_caractère_simple :: fonc (lexeuse: &Lexeuse) -> rien
     }
 }
 
-pousse_caractère :: fonc (lexeuse: &Lexeuse) -> rien
+pousse_caractère :: fonc (lexeuse: *Lexeuse) -> rien
 {
     lexeuse.taille_mot_courant += 1;
 }
 
-pousse_mot :: fonc (lexeuse: &Lexeuse, type_lexème: TypeLexème) -> rien
+pousse_mot :: fonc (lexeuse: *Lexeuse, type_lexème: TypeLexème) -> rien
 {
     données: Lexème;
     données.type_lexème = type_lexème;
@@ -255,7 +255,7 @@ pousse_mot :: fonc (lexeuse: &Lexeuse, type_lexème: TypeLexème) -> rien
     lexeuse.taille_mot_courant = 0;
 }
 
-enregistre_position_mot :: fonc (lexeuse: &Lexeuse) -> rien
+enregistre_position_mot :: fonc (lexeuse: *Lexeuse) -> rien
 {
     lexeuse.pos_mot = lexeuse.position_ligne;
     lexeuse.début_mot = lexeuse.début;

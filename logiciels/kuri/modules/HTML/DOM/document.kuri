@@ -154,7 +154,7 @@ document_sur_destruction :: fonc (base: *JS.Cellule)
     CSS.détruit_arbre(document.arbre_de_disposition);
     CSS.détruit_globales_dessin(document.globales_dessin);
     CSS.détruit_résolveuse(document.résolveuse_style);
-    déloge_tableau_et_ses_éléments(document.feuilles_de_style, CSS.détruit_feuille_de_style);
+    déloge_tableau_et_ses_éléments(*document.feuilles_de_style, CSS.détruit_feuille_de_style);
 
     pour document.images_disponibles {
         déloge(it.url);
@@ -778,7 +778,7 @@ donne_image_pour_url :: fonc (document: *Document, url: chaine) -> ImageDisponib
 
 définis_état_requête_image :: fonc (document: *Document, url: chaine, état: ÉtatRequêteImage)
 {
-    pour & document.images_disponibles {
+    pour * document.images_disponibles {
         si it.url == url {
             it.état = état;
             retourne;
@@ -788,7 +788,7 @@ définis_état_requête_image :: fonc (document: *Document, url: chaine, état: 
 
 définis_données_image :: fonc (document: *Document, url: chaine, données: NouvelleImage)
 {
-    pour & document.images_disponibles {
+    pour * document.images_disponibles {
         si it.url == url {
             it.données = données;
             it.état = ÉtatRequêteImage.Succès;

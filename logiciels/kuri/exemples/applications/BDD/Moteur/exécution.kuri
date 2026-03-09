@@ -7,13 +7,13 @@ Exécutrice :: struct {
     message_erreur: chaine;
 }
 
-réinitialise :: fonc (exécutrice: &Exécutrice)
+réinitialise :: fonc (exécutrice: *Exécutrice)
 {
     exécutrice.possède_erreur = faux;
     déloge(exécutrice.message_erreur);
 }
 
-rapporte_erreur :: fonc (exécutrice: &Exécutrice, message: chaine, args: ...eini)
+rapporte_erreur :: fonc (exécutrice: *Exécutrice, message: chaine, args: ...eini)
 {
     si exécutrice.possède_erreur {
         retourne;
@@ -30,7 +30,7 @@ RésultatExécution :: union {
     Rien;
 }
 
-exécute_instruction :: fonc (exécutrice: &Exécutrice, cm: *CoulisseMémoire, inst: *Instruction) -> RésultatExécution
+exécute_instruction :: fonc (exécutrice: *Exécutrice, cm: *CoulisseMémoire, inst: *Instruction) -> RésultatExécution
 {
     discr inst.genre {
         CRÉE {
@@ -67,7 +67,7 @@ exécute_instruction :: fonc (exécutrice: &Exécutrice, cm: *CoulisseMémoire, 
     }
 }
 
-crée_table :: fonc (exécutrice: &Exécutrice, cm: *CoulisseMémoire, inst: *InstructionCréationTable) -> rien
+crée_table :: fonc (exécutrice: *Exécutrice, cm: *CoulisseMémoire, inst: *InstructionCréationTable) -> rien
 {
     nom_table := inst.nom.valeur;
 
@@ -130,7 +130,7 @@ imprime_tampon :: fonc (tampon: []octet, message: chaine)
     imprime("\n");
 }
 
-insère :: fonc (exécutrice: &Exécutrice, cm: *CoulisseMémoire, inst: *InstructionInsère)
+insère :: fonc (exécutrice: *Exécutrice, cm: *CoulisseMémoire, inst: *InstructionInsère)
 {
     nom_table := inst.table.valeur;
     table := trouve_table(cm, nom_table);
@@ -206,7 +206,7 @@ insère :: fonc (exécutrice: &Exécutrice, cm: *CoulisseMémoire, inst: *Instru
     table.nombre_de_lignes += 1;
 }
 
-sélectionne :: fonc (exécutrice: &Exécutrice, cm: *CoulisseMémoire, inst: *InstructionSélection) -> *Table
+sélectionne :: fonc (exécutrice: *Exécutrice, cm: *CoulisseMémoire, inst: *InstructionSélection) -> *Table
 {
     nom_table := inst.depuis.valeur;
     table := trouve_table(cm, nom_table);

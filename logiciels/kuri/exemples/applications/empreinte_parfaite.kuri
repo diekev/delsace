@@ -94,9 +94,7 @@ principale :: fonc ()
     facteur : n32 = 0;
 
     boucle {
-        pour & slots {
-            it = faux;
-        }
+        tableau_remplis_avec(slots, faux);
 
         pour commandes {
             e := empreinte(it, facteur, nombre_de_slots comme n32);

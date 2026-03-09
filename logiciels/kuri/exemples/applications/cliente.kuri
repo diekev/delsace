@@ -6,7 +6,7 @@ importe LigneDeCommande;
 importe OpenSSL;
 importe SysFichier;
 
-lance_requête :: fonc (uri: &URI, requête: chaine) -> chaine
+lance_requête :: fonc (uri: *URI, requête: chaine) -> chaine
 {
     réponse: chaine;
 
@@ -90,7 +90,7 @@ principale :: fonc ()
 
     imprime("Requête envoyée : %\n", requête);
 
-    réponse := lance_requête(uri, requête);
+    réponse := lance_requête(*uri, requête);
     diffère { déloge(réponse); déloge(requête); }
 
     imprime("Réponse :\n%\n", réponse);

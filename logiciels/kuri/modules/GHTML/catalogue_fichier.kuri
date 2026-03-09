@@ -32,7 +32,7 @@ ajoute_fichier :: fonc (catalogue: *CatalogueFichier, nom_court: chaine, chemin:
 
 détruit_catalogue :: fonc (catalogue: *CatalogueFichier) -> rien
 {
-    pour & fichier dans catalogue.fichiers {
+    pour * fichier dans catalogue.fichiers {
         déloge(fichier.données);
     }
 
