@@ -351,7 +351,7 @@ nombre_de_jours_dans_mois :: fonc (mois: z32, année: z32) -> z32
     - m : minute
     - s : seconde
 */
-formatte :: fonc (date: &Date, format: chaine) -> chaine
+formatte :: fonc (date: *Date, format: chaine) -> chaine
 {
     enchaineuse: Enchaineuse;
     initialise_enchaineuse(*enchaineuse);
@@ -361,7 +361,7 @@ formatte :: fonc (date: &Date, format: chaine) -> chaine
     retourne chaine_depuis_enchaineuse(*enchaineuse);
 }
 
-formatte :: fonc (date: Date, enchaineuse: *Enchaineuse, format: chaine)
+formatte :: fonc (date: *Date, enchaineuse: *Enchaineuse, format: chaine)
 {
     i : z64 = 0;
 

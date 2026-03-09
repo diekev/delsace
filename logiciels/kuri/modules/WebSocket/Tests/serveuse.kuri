@@ -109,7 +109,7 @@ rappel_quand_données_reçues :: fonc (prise: *Prise, données: []octet)
     ajoute_entête(*réponse, "Connection", "Upgrade");
     ajoute_entête(*réponse, "Sec-WebSocket-Accept", données_connexion.extrémité.sec_websocket_accept);
 
-    données_connexion.réponse = chaine_pour_message_serveuse(réponse);
+    données_connexion.réponse = chaine_pour_message_serveuse(*réponse);
     données_connexion.décalage_réponse = prise.écris(données_connexion.réponse);
 }
 

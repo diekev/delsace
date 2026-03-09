@@ -141,12 +141,12 @@ nouvelle_ligne :: fonc (enchaineuse: *Enchaineuse)
     enchaineuse.ajoute_au_tampon("\n");
 }
 
-construis_interface :: fonc (enchaineuse: *Enchaineuse, paramètres: *ParamètresGénérationInterface, données: &DonnéesCréationPointDEntréePage)
+construis_interface :: fonc (enchaineuse: *Enchaineuse, paramètres: *ParamètresGénérationInterface, données: *DonnéesCréationPointDEntréePage)
 {
     infos_paramètres := données.infos_paramètres;
     possède_paramètres_routage := règles_ont_au_moins_un_paramètre(données.règles_routage);
 
-    enchaineuse.imprime_dans_enchaineuse("%_% :: fonc (prise: *Prise, message: &MessageClienteHTTP", données.méthode, données.nom_fonction);
+    enchaineuse.imprime_dans_enchaineuse("%_% :: fonc (prise: *Prise, message: *MessageClienteHTTP", données.méthode, données.nom_fonction);
     si possède_paramètres_routage {
         enchaineuse.imprime_dans_enchaineuse(", paramètres_routage: %", infos_paramètres.paramètres_route.type.nom);
     }
@@ -276,7 +276,7 @@ construis_interface :: fonc (enchaineuse: *Enchaineuse, paramètres: *Paramètre
     enchaineuse.imprime_dans_enchaineuse("\t}\n");
     enchaineuse.nouvelle_ligne();
 
-    enchaineuse.ajoute_au_tampon("\tinitialise_message_depuis_données_connexion(", paramètres.nom_serveuse, ", données_prise, message_serveuse);\n");
+    enchaineuse.ajoute_au_tampon("\tinitialise_message_depuis_données_connexion(", paramètres.nom_serveuse, ", données_prise, *message_serveuse);\n");
     enchaineuse.ajoute_au_tampon("\tretourne message_serveuse;\n");
     enchaineuse.ajoute_au_tampon("}\n");
 }
@@ -596,7 +596,7 @@ crée_interface_pour_fonction :: fonc (paramètres: *ParamètresGénérationInte
         ajoute_au_tampon(*enchaineuse, "importe ", paramètres.module_à_importer, ";\n");
     }
 
-    construis_interface(*enchaineuse, paramètres, données);
+    construis_interface(*enchaineuse, paramètres, *données);
 
     interface := chaine_depuis_enchaineuse(*enchaineuse);
     diffère déloge(interface);
@@ -701,7 +701,7 @@ génère_fonction_appariement_routes :: fonc (enchaineuse: *Enchaineuse, donnée
     };
 
     // À FAIRE : précédence des routes : les routes ayant des paramètres doivent être considérer après celles sans.
-    imprime_dans_enchaineuse(enchaineuse, "apparie_routes_get :: fonc (chemin: chaine%, prise: *Prise%, message: &MessageClienteHTTP%) -> MessageServeuseHTTP\n", inutilisée, inutilisée, inutilisée);
+    imprime_dans_enchaineuse(enchaineuse, "apparie_routes_get :: fonc (chemin: chaine%, prise: *Prise%, message: *MessageClienteHTTP%) -> MessageServeuseHTTP\n", inutilisée, inutilisée, inutilisée);
     imprime_dans_enchaineuse(enchaineuse, "{\n");
     pour données_fonctions {
         si it.méthode != "get" {
@@ -719,7 +719,7 @@ génère_fonction_appariement_routes :: fonc (enchaineuse: *Enchaineuse, donnée
         "";
     };
 
-    imprime_dans_enchaineuse(enchaineuse, "apparie_routes_post :: fonc (chemin: chaine%, prise: *Prise%, message: &MessageClienteHTTP%) -> MessageServeuseHTTP\n", inutilisée, inutilisée, inutilisée);
+    imprime_dans_enchaineuse(enchaineuse, "apparie_routes_post :: fonc (chemin: chaine%, prise: *Prise%, message: *MessageClienteHTTP%) -> MessageServeuseHTTP\n", inutilisée, inutilisée, inutilisée);
     imprime_dans_enchaineuse(enchaineuse, "{\n");
     pour données_fonctions {
         si it.méthode != "post" {
@@ -845,7 +845,7 @@ génère_code_pilote_client :: fonc (paramètres: *ParamètresGénérationInterf
         génère_code_pour_structure(type_paramètre_requête, enchaineuse, *types_utilisés);
 
         /* Déclaration de la fonction et de ses paramètres. */
-        imprime_dans_enchaineuse(enchaineuse, "% :: fonc (pilote: &%", it.nom_fonction, nom_type_pilote);
+        imprime_dans_enchaineuse(enchaineuse, "% :: fonc (pilote: *%", it.nom_fonction, nom_type_pilote);
 
         si type_formulaire {
             chn_type := chaine_pour_type(type_formulaire);

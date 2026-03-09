@@ -34,8 +34,8 @@ construis_noeud :: fonc (t: z32, est_feuille: bool, $C: type_de_données) -> *No
     noeud.t = t;
     noeud.est_feuille = est_feuille;
     noeud.n = 0;
-    tableau_redimensionne(noeud.clés, 2 * t - 1);
-    tableau_redimensionne(noeud.enfants, 2 * t);
+    tableau_redimensionne(*noeud.clés, 2 * t - 1);
+    tableau_redimensionne(*noeud.enfants, 2 * t);
 
     retourne noeud;
 }

@@ -74,7 +74,7 @@ crée_host_defined :: fonc (données: *$T) -> HostDefined
     retourne HostDefined(données, info_de(T));
 }
 
-donne_données :: fonc (host_defined: &HostDefined, $T: type_de_données) -> *T
+donne_données :: fonc (host_defined: *HostDefined, $T: type_de_données) -> *T
 {
     saufsi host_defined.données {
         retourne nul;

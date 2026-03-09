@@ -29,13 +29,13 @@ lèxe_style :: fonc (contenu: chaine) -> [..]Lexème
     prétraite(chn);
 
     lexeuse: Lexeuse;
-    diffère détruit_données(lexeuse);
+    diffère détruit_données(*lexeuse);
     lexeuse.contenu = chn;
 
     lexèmes: [..]Lexème;
 
-    tantque !fini(lexeuse) {
-        lexème := consomme_un_lexème(lexeuse);
+    tantque !fini(*lexeuse) {
+        lexème := consomme_un_lexème(*lexeuse);
         tableau_ajoute(*lexèmes, lexème);
     }
 
@@ -44,12 +44,12 @@ lèxe_style :: fonc (contenu: chaine) -> [..]Lexème
 
 /* 3.3. Preprocessing the input stream
  * https://www.w3.org/TR/css-syntax-3/#input-preprocessing */
-prétraite :: fonc (chn: &ChaineUTF32)
+prétraite :: fonc (chn: ChaineUTF32)
 {
-    pour & chn.points_de_code {
+    pour * chn.points_de_code {
         /* À FAIRE : \r\n => \n */
-        si it == RETOUR_CHARIOT || it == SAUT_DE_PAGE {
-            it = NOUVELLE_LIGNE;
+        si mémoire(it) == RETOUR_CHARIOT || mémoire(it) == SAUT_DE_PAGE {
+            mémoire(it) = NOUVELLE_LIGNE;
         }
     }
 }
@@ -62,7 +62,7 @@ apparie_sélecteur :: fonc (selector: []CompoundSelector, indice: z64, élément
         retourne faux;
     }
 
-    pour compound.simple_selectors {
+    pour * compound.simple_selectors {
         saufsi apparie_simple_selector(it, élément, pseudo_element) {
             retourne faux;
         }
@@ -147,7 +147,7 @@ apparie_sélecteur :: fonc (selector: []CompoundSelector, indice: z64, élément
     retourne faux;
 }
 
-apparie_simple_selector :: fonc (simple: &SimpleSelector, élément: *HTML.Element, pseudo_element: *PseudoElement) -> bool
+apparie_simple_selector :: fonc (simple: *SimpleSelector, élément: *HTML.Element, pseudo_element: *PseudoElement) -> bool
 {
     discr simple.type {
         Attrib {
@@ -259,11 +259,11 @@ apparie_simple_selector :: fonc (simple: &SimpleSelector, élément: *HTML.Eleme
         PseudoClass {
             si simple.est_fonction {
                 si simple.ident == PROP_not {
-                    retourne !apparie_sélecteur_fonction(simple.selector_list, élément);
+                    retourne !apparie_sélecteur_fonction(*simple.selector_list, élément);
                 }
 
                 si simple.ident == PROP_is || simple.ident == PROP_where {
-                    retourne apparie_sélecteur_fonction(simple.selector_list, élément);
+                    retourne apparie_sélecteur_fonction(*simple.selector_list, élément);
                 }
 
                 si simple.ident == PROP_nth_child {
@@ -299,7 +299,7 @@ apparie_simple_selector :: fonc (simple: &SimpleSelector, élément: *HTML.Eleme
                 }
 
                 si simple.ident == PROP_has {
-                    retourne apparie_selector_has(simple.selector_list, élément);
+                    retourne apparie_selector_has(*simple.selector_list, élément);
                 }
 
                 retourne faux;
@@ -349,7 +349,7 @@ apparie_nth_child :: fonc (nth_child: SimpleSelector.NthChild, indice: n32) -> b
     retourne (nth_child.A * n + nth_child.B) == indice comme z32;
 }
 
-apparie_sélecteur_fonction :: fonc (selector_list: &SelectorList, élément: *HTML.Element) -> bool
+apparie_sélecteur_fonction :: fonc (selector_list: *SelectorList, élément: *HTML.Element) -> bool
 {
     pour complex dans selector_list.complex_selectors {
         si apparie_sélecteur(complex.compound_selectors, complex.compound_selectors.taille - 1, élément, nul) {
@@ -360,7 +360,7 @@ apparie_sélecteur_fonction :: fonc (selector_list: &SelectorList, élément: *H
     retourne faux;
 }
 
-apparie_selector_has :: fonc (selector_list: &SelectorList, élément: *HTML.Element) -> bool
+apparie_selector_has :: fonc (selector_list: *SelectorList, élément: *HTML.Element) -> bool
 {
     // À FAIRE : combinateur
 

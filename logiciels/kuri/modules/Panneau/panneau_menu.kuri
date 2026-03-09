@@ -96,7 +96,7 @@ ajourne_disposition :: fonc (empl panneau: *PanneauBarreDeMenu)
     décalage_élément_x = espaçage_élément * 2;
     décalage_élément_y = (rect.hauteur - hauteur_élément) / 2;
 
-    tableau_redimensionne(éléments, barre_de_menu.menus.taille);
+    tableau_redimensionne(*éléments, barre_de_menu.menus.taille);
 
     décalage_élément := décalage_élément_x;
 
@@ -479,7 +479,7 @@ ajourne_disposition :: fonc (empl panneau: *PanneauMenu, ctx: *ContexteAffichage
     espaçage_élément = donne_largeur_texte(ctx.fonte, "0") comme z32;
     décalage_élément_x = espaçage_élément * 2;
 
-    tableau_redimensionne(éléments, menu.éléments.taille);
+    tableau_redimensionne(*éléments, menu.éléments.taille);
 
     largeur_max_élément := 0;
 

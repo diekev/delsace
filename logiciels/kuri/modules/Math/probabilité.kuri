@@ -352,12 +352,12 @@ opérateur / :: (p: Probabilité, n: n64) -> Probabilité
     q: n64;
     r: n64;
 
-    pour & résultat.chiffres {
-        it_n64 := it comme n64 + r * 10;
+    pour * résultat.chiffres {
+        it_n64 := mémoire(it) comme n64 + r * 10;
         q = it_n64 / n;
         r = it_n64 % n;
 
-        it = q comme n8;
+        mémoire(it) = q comme n8;
     }
 
     tantque r != 0 {
