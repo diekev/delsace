@@ -75,8 +75,8 @@ rends_unique :: fonc (tableau: &TableauPartagé($T, $C, $D), copie: fonc (élém
     }
 
     si copie {
-        pour & tableau.valeurs {
-            it = copie(*it);
+        pour * tableau.valeurs {
+            mémoire(it) = copie(it);
         }
     }
 
@@ -101,10 +101,8 @@ définis_valeur :: fonc (tableau: &TableauPartagé($T, $C, $D), indice: z64, val
     tableau.rends_unique();
 
     si tableau.est_comprimée {
-        tableau_redimensionne(tableau.valeurs, TAILLE_PAGE);
-        pour & tableau.valeurs {
-            it = tableau.valeur_constante;
-        }
+        tableau_redimensionne(*tableau.valeurs, TAILLE_PAGE);
+        tableau_remplis_avec(tableau.valeurs, tableau.valeur_constante);
         tableau.est_comprimée = faux;
     }
 

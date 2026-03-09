@@ -1767,23 +1767,23 @@ calcule_style :: fonc (ctx: *ContexteCalculStyle, étape: ÉtapeCalculStyle)
 
     si propriétés.style.valeurs[IDPropriété.BorderStyleLeft].donne_line_style() == LineStyle.None {
         propriétés.définis_valeur_calculée(IDPropriété.BorderWidthLeft, donne_valeur_pixels_zéro());
-        ctx.propriétés_calculées.active(IDPropriété.BorderWidthLeft comme n16);
-        ctx.propriétés_calculées.active(IDPropriété.BorderColorLeft comme n16);
+        active(*ctx.propriétés_calculées, IDPropriété.BorderWidthLeft comme n16);
+        active(*ctx.propriétés_calculées, IDPropriété.BorderColorLeft comme n16);
     }
     si propriétés.style.valeurs[IDPropriété.BorderStyleTop].donne_line_style() == LineStyle.None {
         propriétés.définis_valeur_calculée(IDPropriété.BorderWidthTop, donne_valeur_pixels_zéro());
-        ctx.propriétés_calculées.active(IDPropriété.BorderWidthTop comme n16);
-        ctx.propriétés_calculées.active(IDPropriété.BorderColorTop comme n16);
+        active(*ctx.propriétés_calculées, IDPropriété.BorderWidthTop comme n16);
+        active(*ctx.propriétés_calculées, IDPropriété.BorderColorTop comme n16);
     }
     si propriétés.style.valeurs[IDPropriété.BorderStyleRight].donne_line_style() == LineStyle.None {
         propriétés.définis_valeur_calculée(IDPropriété.BorderWidthRight, donne_valeur_pixels_zéro());
-        ctx.propriétés_calculées.active(IDPropriété.BorderWidthRight comme n16);
-        ctx.propriétés_calculées.active(IDPropriété.BorderColorRight comme n16);
+        active(*ctx.propriétés_calculées, IDPropriété.BorderWidthRight comme n16);
+        active(*ctx.propriétés_calculées, IDPropriété.BorderColorRight comme n16);
     }
     si propriétés.style.valeurs[IDPropriété.BorderStyleBottom].donne_line_style() == LineStyle.None {
         propriétés.définis_valeur_calculée(IDPropriété.BorderWidthBottom, donne_valeur_pixels_zéro());
-        ctx.propriétés_calculées.active(IDPropriété.BorderWidthBottom comme n16);
-        ctx.propriétés_calculées.active(IDPropriété.BorderColorBottom comme n16);
+        active(*ctx.propriétés_calculées, IDPropriété.BorderWidthBottom comme n16);
+        active(*ctx.propriétés_calculées, IDPropriété.BorderColorBottom comme n16);
     }
 
     ids_propriétés := [
@@ -1800,7 +1800,7 @@ calcule_style_manuel :: fonc (ctx: *ContexteCalculStyle, ids_propriétés: []IDP
     propriétés := ctx.propriétés;
 
     pour ids_propriétés {
-        si ctx.propriétés_calculées.est_actif(it comme n16) {
+        si est_actif(*ctx.propriétés_calculées, it comme n16) {
             continue;
         }
 

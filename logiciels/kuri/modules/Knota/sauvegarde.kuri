@@ -571,7 +571,7 @@ lis_cache_utilisateur :: fonc (lectrice: *LectriceGraphe, noeud: *Noeud)
         entrée := cache.crée_entrée_cache(copie_chaine(nom), vrai);
 
         taille_données := lectrice.lis_valeur_typée(z64);
-        tableau_redimensionne(entrée.valeur, taille_données);
+        tableau_redimensionne(*entrée.valeur, taille_données);
 
         lis_octets(lectrice, entrée.valeur);
     }

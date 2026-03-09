@@ -411,7 +411,7 @@ set_default_global_bindings :: fonc (realm: *Realm) -> CompletionRecord
         initialise_property_descriptor(*desc, it.valeur, it.drapeaux);
 
         // c. Perform ? DefinePropertyOrThrow(global, name, desc).
-        define_property_or_throw(global, name, desc);
+        define_property_or_throw(global, name, *desc);
         si realm.possède_exception() {
             retourne throw_completion(realm.donne_exception());
         }

@@ -267,7 +267,7 @@ throw_completion :: fonc (valeur: Valeur) -> CompletionRecord #enligne
     retourne CompletionRecord(CompletionRecord.Type.THROW, ValeurCompletion(valeur));
 }
 
-donne_object :: fonc (completion: &CompletionRecord) -> *Object #enligne
+donne_object :: fonc (completion: *CompletionRecord) -> *Object #enligne
 {
     retourne completion.valeur.V.donne_objet();
 }
