@@ -397,6 +397,16 @@ est_pointeur_de_structure :: fonc (info: *InfoType) -> *InfoTypeStructure
     retourne type_pointé comme *InfoTypeStructure;
 }
 
+est_pointeur_de_structure_nommée :: fonc (info: *InfoType, nom: chaine) -> bool
+{
+    type_pointé := est_pointeur_de(info);
+
+    si !type_pointé {
+        retourne faux;
+    }
+    retourne est_type_structure_nommée(type_pointé, nom);
+}
+
 est_pointeur_de_structure_ou_union :: fonc (info: *InfoType) -> *InfoType
 {
     type_pointé := est_pointeur_de(info);

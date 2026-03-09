@@ -147,7 +147,7 @@ formes := [
     [[1, 0], [1, 1], [2, 1], [0, 1]]
 ];
 
-initialise_tétrimino :: fonc (tétrimino: *Tétrimino, entropie: &SérieAléatoire)
+initialise_tétrimino :: fonc (tétrimino: *Tétrimino, entropie: *SérieAléatoire)
 {
     indice_formes := aléatoire_entre(entropie, 0, formes.taille comme z32);
     tétrimino.cases = formes[indice_formes];
@@ -179,7 +179,7 @@ crée_tetris :: fonc () -> Tetris
     résultat: Tetris;
     résultat.entropie = graine_aléatoire(maintenant_précis().nanoseconde comme n32);
 
-    initialise_tétrimino(*résultat.tétrimino, résultat.entropie);
+    initialise_tétrimino(*résultat.tétrimino, *résultat.entropie);
 
     retourne résultat;
 }
@@ -213,7 +213,7 @@ ajourne_dessin_fenêtre :: fonc (tetris: *Tetris)
     si temps_avant_mouvement <= 0.0 {
         si tetris.tétrimino.y == 0 {
             verrouille_tétrimino(tetris);
-            initialise_tétrimino(*tetris.tétrimino, tetris.entropie);
+            initialise_tétrimino(*tetris.tétrimino, *tetris.entropie);
         }
         sinon {
             déplace_vers_le_bas(*tetris.tétrimino);

@@ -642,7 +642,7 @@ speedstep_warning: bool;
 allocate_buffer :: fonc (n: z32) -> *Prof_Report
 {
     pob := loge(Prof_Report);
-    tableau_redimensionne(pob.record, n);
+    tableau_redimensionne(*pob.record, n);
     retourne pob;
 }
 

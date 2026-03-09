@@ -23,7 +23,7 @@ crée_labyrinthe :: fonc (taille_x: z32, taille_y: z32) -> Labyrinthe
     résultat: Labyrinthe;
     résultat.taille_x = taille_x;
     résultat.taille_y = taille_y;
-    tableau_redimensionne(résultat.données, nombre_de_cellules);
+    tableau_redimensionne(*résultat.données, nombre_de_cellules);
 
     retourne résultat;
 }
@@ -45,7 +45,7 @@ MéthodeCréationLabyrinthe :: énum {
     ELLER;
 }
 
-initialise_murs :: fonc (labyrinthe: *Labyrinthe, entropie: &SérieAléatoire, méthode: MéthodeCréationLabyrinthe)
+initialise_murs :: fonc (labyrinthe: *Labyrinthe, entropie: *SérieAléatoire, méthode: MéthodeCréationLabyrinthe)
 {
     discr méthode {
         PSEUDO_LABYRINTHE {
@@ -69,7 +69,7 @@ initialise_murs :: fonc (labyrinthe: *Labyrinthe, entropie: &SérieAléatoire, m
  * Tiré de https://twitter.com/pikuma/status/1688966816226246656.
  * \{ */
 
-initialise_murs_pseudo_labyrinthe :: fonc (labyrinthe: *Labyrinthe, entropie: &SérieAléatoire)
+initialise_murs_pseudo_labyrinthe :: fonc (labyrinthe: *Labyrinthe, entropie: *SérieAléatoire)
 {
     taille_x := labyrinthe.taille_x;
     taille_y := labyrinthe.taille_y;
@@ -92,7 +92,7 @@ initialise_murs_pseudo_labyrinthe :: fonc (labyrinthe: *Labyrinthe, entropie: &S
 
     est_poste: [..]bool;
     diffère déloge(est_poste);
-    tableau_redimensionne_défaut(est_poste, nombre_de_cellules, faux);
+    tableau_redimensionne_défaut(*est_poste, nombre_de_cellules, faux);
 
     /* Remplis chaque cellule de colonne impaire pour chaque ligne paire. */
     pour y dans taille_y {
@@ -155,7 +155,7 @@ initialise_murs_pseudo_labyrinthe :: fonc (labyrinthe: *Labyrinthe, entropie: &S
  * Tiré de http://www.neocomputer.org/projects/eller.html.
  * \{ */
 
-initialise_murs_eller :: fonc (labyrinthe: *Labyrinthe, entropie: &SérieAléatoire)
+initialise_murs_eller :: fonc (labyrinthe: *Labyrinthe, entropie: *SérieAléatoire)
 {
     tableau_remplis_avec(labyrinthe.données, faux);
 
@@ -229,7 +229,7 @@ initialise_constructrice_eller :: fonc (constructrice: *ConstructriceMéthodeEll
     constructrice.taille_x = taille_x;
     constructrice.taille_y = taille_y;
     constructrice.labyrinthe = labyrinthe;
-    tableau_redimensionne(constructrice.ligne_courante, taille_x);
+    tableau_redimensionne(*constructrice.ligne_courante, taille_x);
 }
 
 détruit_données_constructrice :: fonc (constructrice: *ConstructriceMéthodeEller)
@@ -398,7 +398,7 @@ avance_ligne_suivante :: fonc (empl constructrice: *ConstructriceMéthodeEller)
 }
 
 /* Crée des murs à droite des cellules. */
-crée_mur_entre_cellules :: fonc (empl constructrice: *ConstructriceMéthodeEller, entropie: &SérieAléatoire)
+crée_mur_entre_cellules :: fonc (empl constructrice: *ConstructriceMéthodeEller, entropie: *SérieAléatoire)
 {
     pour x dans 1 ... taille_x - 1 {
         cx0 := *ligne_courante[x - 1];
@@ -428,7 +428,7 @@ crée_mur_entre_cellules :: fonc (empl constructrice: *ConstructriceMéthodeElle
     supprime_groupes_vides(constructrice);
 }
 
-crée_chemin_sortie_cellules :: fonc (empl constructrice: *ConstructriceMéthodeEller, entropie: &SérieAléatoire)
+crée_chemin_sortie_cellules :: fonc (empl constructrice: *ConstructriceMéthodeEller, entropie: *SérieAléatoire)
 {
     /* Garantis qu'au moins une cellule de chaque groupe possède une sortie (aucun mur en bas). */
     groupe := constructrice.groupes;
