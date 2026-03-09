@@ -28,7 +28,7 @@ imprime_adresse_courriel :: fonc (enchaineuse: *Enchaineuse, adresse: *AdresseCo
 
 // -----------------------------------------------------
 
-génère_adresse_courriel_aléatoire :: fonc (gna: *GNA, alphabet: &Alphabet.Alphabet) -> AdresseCourriel
+génère_adresse_courriel_aléatoire :: fonc (gna: *GNA, alphabet: *Alphabet.Alphabet) -> AdresseCourriel
 {
     // À FAIRE: 256 pour la part locale
     // À FAIRE: forward path @domaine1@domaine2:nom_utilisateur@domaine_final
@@ -47,8 +47,8 @@ génère_adresse_courriel_aléatoire :: fonc (gna: *GNA, alphabet: &Alphabet.Alp
 génère_adresse_courriel_aléatoire :: fonc (génératrice: *GénératriceDonnéesAléatoire) -> AdresseCourriel
 {
     alphabet := crée_alphabet_ascii_courriel();
-    diffère détruit_alphabet(alphabet);
-    retourne génère_adresse_courriel_aléatoire(génératrice.gna, alphabet);
+    diffère détruit_alphabet(*alphabet);
+    retourne génère_adresse_courriel_aléatoire(génératrice.gna, *alphabet);
 }
 
 rappel_génère_adresse_courriel_aléatoire :: fonc (génératrice: *GénératriceDonnéesAléatoire, ptr: *AdresseCourriel)

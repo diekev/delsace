@@ -995,7 +995,7 @@ calcul_clé_serrage_de_main :: fonc (clé_donnée: chaine) -> chaine
     diffère déloge(tmp);
 
     sha1 := crée_sha1();
-    diffère sha1.détruit();
+    diffère détruit(*sha1);
 
     sha1.ajourne(tmp);
 

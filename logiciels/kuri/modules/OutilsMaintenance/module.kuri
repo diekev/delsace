@@ -23,12 +23,12 @@ DonnéesFichier :: struct {
     lignes_furent_modifiées := faux;
 }
 
-détruit_données_fichier :: fonc (données: &DonnéesFichier)
+détruit_données_fichier :: fonc (données: *DonnéesFichier)
 {
     détruit_lignes(données);
 }
 
-détruit_lignes :: fonc (données: &DonnéesFichier)
+détruit_lignes :: fonc (données: *DonnéesFichier)
 {
     pour données.lignes {
         si est_ligne_originelle(données, it) {
@@ -42,7 +42,7 @@ détruit_lignes :: fonc (données: &DonnéesFichier)
 }
 
 /* Retourne vrai si la ligne provient du contenu du fichier. */
-est_ligne_originelle :: fonc (données: &DonnéesFichier, ligne: chaine) -> bool
+est_ligne_originelle :: fonc (données: *DonnéesFichier, ligne: chaine) -> bool
 {
     début_contenu := données.contenu.pointeur;
     fin_contenu := début_contenu + données.contenu.taille;
@@ -51,7 +51,7 @@ est_ligne_originelle :: fonc (données: &DonnéesFichier, ligne: chaine) -> bool
     retourne début_contenu <= ligne.pointeur < fin_contenu;
 }
 
-remplace_lignes :: fonc (données: &DonnéesFichier, nouvelles_lignes: [..]chaine)
+remplace_lignes :: fonc (données: *DonnéesFichier, nouvelles_lignes: [..]chaine)
 {
     /* Supprime les vieilles lignes. */
     détruit_lignes(données);
@@ -60,7 +60,7 @@ remplace_lignes :: fonc (données: &DonnéesFichier, nouvelles_lignes: [..]chain
     données.lignes_furent_modifiées = vrai;
 }
 
-données_personnelles :: fonc (données_fichier: &DonnéesFichier, $TypeDonnéesPersonnelles: type_de_données) -> *TypeDonnéesPersonnelles
+données_personnelles :: fonc (données_fichier: *DonnéesFichier, $TypeDonnéesPersonnelles: type_de_données) -> *TypeDonnéesPersonnelles
 {
     si données_fichier.données_utilisateurs.info != info_de(TypeDonnéesPersonnelles) {
         retourne nul;
@@ -90,7 +90,7 @@ données_personnelles :: fonc (données_fichier: &DonnéesFichier, $TypeDonnées
 
 // -------------------------------------
 
-exécute_rappel_pour_fichier :: fonc (racine: CheminFichier, chemin: CheminFichier, données: &DonnéesFichier, rappels: []fonc (données_fichier: &DonnéesFichier), données_utilisateurs: eini)
+exécute_rappel_pour_fichier :: fonc (racine: CheminFichier, chemin: CheminFichier, données: *DonnéesFichier, rappels: []fonc (données_fichier: *DonnéesFichier), données_utilisateurs: eini)
 {
     _ := contenu_fichier_binaire(chemin, données.contenu);
 
@@ -110,17 +110,17 @@ exécute_rappel_pour_fichier :: fonc (racine: CheminFichier, chemin: CheminFichi
 
 // -------------------------------------
 
-exécute_rappel_pour_fichier :: fonc (racine: CheminFichier, chemin: CheminFichier, rappels: []fonc (données_fichier: &DonnéesFichier), données_utilisateurs: eini)
+exécute_rappel_pour_fichier :: fonc (racine: CheminFichier, chemin: CheminFichier, rappels: []fonc (données_fichier: *DonnéesFichier), données_utilisateurs: eini)
 {
     données: DonnéesFichier;
-    diffère détruit_données_fichier(données);
-    exécute_rappel_pour_fichier(racine, chemin, données, rappels, données_utilisateurs);
+    diffère détruit_données_fichier(*données);
+    exécute_rappel_pour_fichier(racine, chemin, *données, rappels, données_utilisateurs);
 }
 
-exécute_rappel_pour_dossier :: fonc (racine: CheminFichier, extensions: []chaine, rappels: []fonc (données_fichier: &DonnéesFichier), données_utilisateurs: eini)
+exécute_rappel_pour_dossier :: fonc (racine: CheminFichier, extensions: []chaine, rappels: []fonc (données_fichier: *DonnéesFichier), données_utilisateurs: eini)
 {
     données: DonnéesFichier;
-    diffère détruit_données_fichier(données);
+    diffère détruit_données_fichier(*données);
 
     exploratrice := crée_exploratrice_fichier(racine);
 
@@ -135,7 +135,7 @@ exécute_rappel_pour_dossier :: fonc (racine: CheminFichier, extensions: []chain
                 }
 
                 si fait_partie_de(chemin.extension(), ...extensions) {
-                    exécute_rappel_pour_fichier(racine, chemin, données, rappels, données_utilisateurs);
+                    exécute_rappel_pour_fichier(racine, chemin, *données, rappels, données_utilisateurs);
                 }
             }
             sinon {
@@ -147,7 +147,7 @@ exécute_rappel_pour_dossier :: fonc (racine: CheminFichier, extensions: []chain
 
 // -------------------------------------
 
-tri_imports_pour_fichier :: fonc (données_fichier: &DonnéesFichier)
+tri_imports_pour_fichier :: fonc (données_fichier: *DonnéesFichier)
 {
     lignes_furent_modifiées := faux;
     lignes := données_fichier.lignes;
@@ -196,7 +196,7 @@ tri_bloc_imports_ou_chargements :: fonc (lignes: []chaine, indice_ligne: z64, d�
 
 // -------------------------------------
 
-supprime_lignes_vides_redondantes_pour_fichier :: fonc (données_fichier: &DonnéesFichier)
+supprime_lignes_vides_redondantes_pour_fichier :: fonc (données_fichier: *DonnéesFichier)
 {
     dernière_ligne_fut_vide := faux;
 
@@ -228,7 +228,7 @@ supprime_lignes_vides_redondantes_pour_fichier :: fonc (données_fichier: &Donn�
 
 // -------------------------------------
 
-supprime_espaces_blanches_finaux :: fonc (données_fichier: &DonnéesFichier)
+supprime_espaces_blanches_finaux :: fonc (données_fichier: *DonnéesFichier)
 {
     lignes_furent_modifiées := faux;
     pour & données_fichier.lignes {
@@ -245,7 +245,7 @@ supprime_espaces_blanches_finaux :: fonc (données_fichier: &DonnéesFichier)
 
 // -------------------------------------
 
-remplaces_tabulation_par_espaces :: fonc (données_fichier: &DonnéesFichier)
+remplaces_tabulation_par_espaces :: fonc (données_fichier: *DonnéesFichier)
 {
     nouvelles_lignes: [..]chaine;
 
@@ -278,7 +278,7 @@ remplaces_tabulation_par_espaces :: fonc (données_fichier: &DonnéesFichier)
 /** \nom Points d'entrée.
  * \{ */
 
-exécute_rappels :: fonc (chemin: CheminFichier, extensions: []chaine, rappels: []fonc (données_fichier: &DonnéesFichier), données_utilisateurs: eini)
+exécute_rappels :: fonc (chemin: CheminFichier, extensions: []chaine, rappels: []fonc (données_fichier: *DonnéesFichier), données_utilisateurs: eini)
 {
     si chemin.est_un_dossier() {
         exécute_rappel_pour_dossier(chemin, extensions, rappels, données_utilisateurs);
@@ -290,19 +290,19 @@ exécute_rappels :: fonc (chemin: CheminFichier, extensions: []chaine, rappels: 
     }
 }
 
-exécute_rappel :: fonc (chemin: CheminFichier, extensions: []chaine, rappel: fonc (données_fichier: &DonnéesFichier), données_utilisateurs: eini)
+exécute_rappel :: fonc (chemin: CheminFichier, extensions: []chaine, rappel: fonc (données_fichier: *DonnéesFichier), données_utilisateurs: eini)
 {
     rappels := [ rappel ];
     exécute_rappels(chemin, extensions, rappels, données_utilisateurs);
 }
 
-exécute_rappels :: fonc (chemin: CheminFichier, extensions: []chaine, rappels: []fonc (données_fichier: &DonnéesFichier))
+exécute_rappels :: fonc (chemin: CheminFichier, extensions: []chaine, rappels: []fonc (données_fichier: *DonnéesFichier))
 {
     données_utilisateurs: eini;
     exécute_rappels(chemin, extensions, rappels, données_utilisateurs);
 }
 
-exécute_rappel :: fonc (chemin: CheminFichier, extensions: []chaine, rappel: fonc (données_fichier: &DonnéesFichier))
+exécute_rappel :: fonc (chemin: CheminFichier, extensions: []chaine, rappel: fonc (données_fichier: *DonnéesFichier))
 {
     rappels := [ rappel ];
     exécute_rappels(chemin, extensions, rappels);

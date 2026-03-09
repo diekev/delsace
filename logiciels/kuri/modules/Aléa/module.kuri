@@ -112,7 +112,7 @@ génère_données_aléatoires :: fonc (génératrice: *GénératriceDonnéesAlé
 
 // ------------------------------------------------------
 
-chaine_aléatoire :: fonc (gna: *GNA, alphabet: &Alphabet.Alphabet, taille_min: z32, taille_max: z32) -> chaine
+chaine_aléatoire :: fonc (gna: *GNA, alphabet: *Alphabet.Alphabet, taille_min: z32, taille_max: z32) -> chaine
 {
     nombre_de_caractères := alphabet.taille_alphabet();
 
@@ -138,8 +138,8 @@ chaine_aléatoire :: fonc (gna: *GNA, alphabet: &Alphabet.Alphabet, taille_min: 
 génère_chaine_aléatoire :: fonc (génératrice: *GénératriceDonnéesAléatoire) -> chaine
 {
     alphabet := crée_alphabet_ascii_pour_nom();
-    diffère détruit_alphabet(alphabet);
-    résultat := chaine_aléatoire(génératrice.gna, alphabet, génératrice.taille_min_chaine, génératrice.taille_max_chaine);
+    diffère détruit_alphabet(*alphabet);
+    résultat := chaine_aléatoire(génératrice.gna, *alphabet, génératrice.taille_min_chaine, génératrice.taille_max_chaine);
     retourne résultat;
 }
 

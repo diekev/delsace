@@ -1703,38 +1703,38 @@ VisiteuseGraphe :: struct {
     noeuds_visités: [..]*Noeud;
 }
 
-détruit :: fonc (empl visiteuse: &VisiteuseGraphe)
+détruit :: fonc (empl visiteuse: *VisiteuseGraphe)
 {
     détruit(pile_de_noeuds);
     déloge(noeuds_visités);
 }
 
-ajoute_noeud_à_visiter :: fonc (empl visiteuse: &VisiteuseGraphe, noeud: *Noeud)
+ajoute_noeud_à_visiter :: fonc (empl visiteuse: *VisiteuseGraphe, noeud: *Noeud)
 {
     pile_de_noeuds.empile(noeud);
 }
 
-possède_noeuds_à_visiter :: fonc (empl visiteuse: &VisiteuseGraphe) -> bool
+possède_noeuds_à_visiter :: fonc (empl visiteuse: *VisiteuseGraphe) -> bool
 {
     retourne !pile_de_noeuds.est_vide();
 }
 
-dépile_noeud_à_visiter :: fonc (empl visiteuse: &VisiteuseGraphe) -> *Noeud
+dépile_noeud_à_visiter :: fonc (empl visiteuse: *VisiteuseGraphe) -> *Noeud
 {
     retourne pile_de_noeuds.dépile();
 }
 
-a_visité_noeud :: fonc (empl visiteuse: &VisiteuseGraphe, noeud: *Noeud) -> bool
+a_visité_noeud :: fonc (empl visiteuse: *VisiteuseGraphe, noeud: *Noeud) -> bool
 {
     retourne ensemble_possède(noeuds_visités, noeud);
 }
 
-marque_noeud_visité :: fonc (empl visiteuse: &VisiteuseGraphe, noeud: *Noeud)
+marque_noeud_visité :: fonc (empl visiteuse: *VisiteuseGraphe, noeud: *Noeud)
 {
     ensemble_ajoute(*noeuds_visités, noeud);
 }
 
-visite_graphe_en_aval :: fonc (visiteuse: &VisiteuseGraphe, rappel: fonc (noeud: *Noeud, prise: *PriseEntrée))
+visite_graphe_en_aval :: fonc (visiteuse: *VisiteuseGraphe, rappel: fonc (noeud: *Noeud, prise: *PriseEntrée))
 {
     tantque visiteuse.possède_noeuds_à_visiter() {
         noeud := visiteuse.dépile_noeud_à_visiter();
@@ -1768,14 +1768,14 @@ propage_nécessite_exécution :: fonc (graphe: *Graphe)
 {
     // imprime("propage_nécessite_exécution(graphe)\n")
     visiteuse: VisiteuseGraphe;
-    diffère détruit(visiteuse);
+    diffère détruit(*visiteuse);
 
     pour graphe.itère_noeuds() {
         saufsi it.nécessite_exécution {
             continue;
         }
 
-        visiteuse.ajoute_noeud_à_visiter(it);
+        ajoute_noeud_à_visiter(*visiteuse, it);
     }
 
     rappel_visite :: fonc (noeud: *Noeud, prise: *PriseEntrée)
@@ -1783,6 +1783,6 @@ propage_nécessite_exécution :: fonc (graphe: *Graphe)
         noeud.marque_amont_prise_modifié(prise);
     }
 
-    visiteuse.visite_graphe_en_aval(rappel_visite);
+    visite_graphe_en_aval(*visiteuse, rappel_visite);
 }
 

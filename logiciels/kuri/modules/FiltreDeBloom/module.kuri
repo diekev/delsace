@@ -6,12 +6,12 @@ FiltreDeBloom :: struct {
     bits: EnsembleDeBits.EnsembleDeBits;
 }
 
-possède_peut_être :: fonc (filtre: &FiltreDeBloom, clé: chaine) -> bool
+possède_peut_être :: fonc (filtre: *FiltreDeBloom, clé: chaine) -> bool
 {
     retourne filtre.bits.est_actif(empreinte1(clé)) && filtre.bits.est_actif(empreinte2(clé)) && (clé.taille < 2 || filtre.bits.est_actif(empreinte3(clé)));
 }
 
-ajoute :: fonc (filtre: &FiltreDeBloom, clé: chaine)
+ajoute :: fonc (filtre: *FiltreDeBloom, clé: chaine)
 {
     filtre.bits.active(empreinte1(clé));
     filtre.bits.active(empreinte2(clé));
@@ -20,7 +20,7 @@ ajoute :: fonc (filtre: &FiltreDeBloom, clé: chaine)
     }
 }
 
-réinitialise :: fonc (filtre: &FiltreDeBloom)
+réinitialise :: fonc (filtre: *FiltreDeBloom)
 {
     filtre.bits.désactive_tout();
 }

@@ -1178,7 +1178,7 @@ calcule_valeur_propriété :: fonc (ctx: *ContexteCalculStyle, info: *InfoTypePr
         calcule_valeur_propriété_générique(déclaration, *ctx.propriétés.style, ctx);
     }
 
-    ctx.propriétés_calculées.active(info.id comme n16);
+    active(*ctx.propriétés_calculées, info.id comme n16);
 }
 
 /* Corrige display en prenant en compte position et float.

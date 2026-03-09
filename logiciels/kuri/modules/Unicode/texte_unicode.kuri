@@ -339,14 +339,14 @@ crée_itératrice_utf8 :: fonc (chn: chaine)
     retourne itératrice;
 }
 
-rune_suivante :: fonc (itératrice: &ItératriceUTF8) -> Rune
+rune_suivante :: fonc (itératrice: *ItératriceUTF8) -> Rune
 {
     ptr := itératrice.chn.pointeur + itératrice.position;
     itératrice.position += nombre_octets_utf8(ptr);
     retourne rune_depuis_pointeur(ptr);
 }
 
-valide :: fonc (itératrice: &ItératriceUTF8) -> bool
+valide :: fonc (itératrice: *ItératriceUTF8) -> bool
 {
     retourne itératrice.position < itératrice.chn.taille;
 }
@@ -354,7 +354,7 @@ valide :: fonc (itératrice: &ItératriceUTF8) -> bool
 // À FAIRE : itérateurs
 /*
 
-    expansion_pour :: fonc (texte: &TexteUnicode) -> Rune #macro
+    expansion_pour :: fonc (texte: *TexteUnicode) -> Rune #macro
     {
         ptr := texte.chn.pointeur
 

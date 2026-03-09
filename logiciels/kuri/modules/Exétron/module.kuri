@@ -31,10 +31,9 @@ détache :: fonc (fil: *TypeFilExécution)
     _ := pthread_detach(fil);
 }
 
-détruit :: fonc (fil: &*TypeFilExécution)
+détruit :: fonc (fil: **TypeFilExécution)
 {
     déloge(fil);
-    fil = nul;
 }
 
 /* ------------------------------------------------------------------------- */

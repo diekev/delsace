@@ -288,7 +288,7 @@ IPA :: struct {
     dossier_sortie: chaine;
 }
 
-détruit_données_ipa :: fonc (ipa: &IPA)
+détruit_données_ipa :: fonc (ipa: *IPA)
 {
     déloge_tableau_et_ses_éléments(*ipa.types, détruit_type_ipa);
     déloge_tableau_et_ses_éléments(*ipa.fonctions, détruit_données_méthode_ipa);
@@ -304,7 +304,7 @@ initialise_ipa :: fonc (espace_de_nom: chaine, nom_module: chaine, dossier_sorti
     retourne résultat;
 }
 
-initialise_génératrice_code_c :: fonc (ipa: &IPA) -> GénératriceCodeC
+initialise_génératrice_code_c :: fonc (ipa: *IPA) -> GénératriceCodeC
 {
     résultat: GénératriceCodeC;
     résultat.ipa = ipa;
@@ -314,13 +314,13 @@ initialise_génératrice_code_c :: fonc (ipa: &IPA) -> GénératriceCodeC
     retourne résultat;
 }
 
-ajoute_type :: fonc (ipa: &IPA, type: *InfoType, drapeaux : DrapeauxTypeIPA = DrapeauxTypeIPA.zéro)
+ajoute_type :: fonc (ipa: *IPA, type: *InfoType, drapeaux : DrapeauxTypeIPA = DrapeauxTypeIPA.zéro)
 {
     résultat := convertis_vers_type_ipa(ipa, type);
     résultat.drapeaux |= drapeaux;
 }
 
-convertis_vers_type_ipa :: fonc (ipa: &IPA, type: *InfoType) -> *TypeIPA
+convertis_vers_type_ipa :: fonc (ipa: *IPA, type: *InfoType) -> *TypeIPA
 {
     type_existant := trouve_type_ipa(ipa, type);
     si type_existant {
@@ -440,7 +440,7 @@ convertis_vers_type_ipa :: fonc (ipa: &IPA, type: *InfoType) -> *TypeIPA
     retourne résultat;
 }
 
-trouve_type_ipa :: fonc (ipa: &IPA, type: *InfoType) -> *TypeIPA
+trouve_type_ipa :: fonc (ipa: *IPA, type: *InfoType) -> *TypeIPA
 {
     résultat: *TypeIPA;
     trouvée, indice_dans_table_des_types := donne_valeur_pour_clé(ipa.table_des_types, type);
@@ -450,7 +450,7 @@ trouve_type_ipa :: fonc (ipa: &IPA, type: *InfoType) -> *TypeIPA
     retourne résultat;
 }
 
-ajoute_méthode :: fonc (ipa: &IPA, noeud_code: *NoeudCodeEntêteFonction)
+ajoute_méthode :: fonc (ipa: *IPA, noeud_code: *NoeudCodeEntêteFonction)
 {
     annotation := annotation_pour_python(noeud_code);
 
@@ -522,7 +522,7 @@ ajoute_sortie :: fonc (fonction: *MéthodeIPA, nom: chaine, type: *InfoType, typ
     sortie.type_ipa = type_ipa;
 }
 
-ajoute_méthodes_pour_rubriques_types :: fonc (ipa: &IPA)
+ajoute_méthodes_pour_rubriques_types :: fonc (ipa: *IPA)
 {
     pour ipa.types {
         nom_type := copie_chaine(it.nom);
@@ -561,7 +561,7 @@ ajoute_méthodes_pour_rubriques_types :: fonc (ipa: &IPA)
     }
 }
 
-finalise_informations_types :: fonc (ipa: &IPA)
+finalise_informations_types :: fonc (ipa: *IPA)
 {
     ajoute_méthodes_pour_rubriques_types(ipa);
 
@@ -588,7 +588,7 @@ finalise_informations_types :: fonc (ipa: &IPA)
     }
 }
 
-ajoute_méthode :: fonc (ipa: &IPA, noeud_code: *NoeudCodeEntêteFonction, type_méthode: *TypeIPA)
+ajoute_méthode :: fonc (ipa: *IPA, noeud_code: *NoeudCodeEntêteFonction, type_méthode: *TypeIPA)
 {
     résultat := convertis_entête_en_méthode_ipa(noeud_code, type_méthode, ipa.espace_de_nom);
 
@@ -602,14 +602,14 @@ ajoute_méthode :: fonc (ipa: &IPA, noeud_code: *NoeudCodeEntêteFonction, type_
     convertis_types_params_méthode(ipa, *résultat);
 }
 
-ajoute_méthode_new :: fonc (ipa: &IPA, noeud_code: *NoeudCodeEntêteFonction, type_méthode: *TypeIPA)
+ajoute_méthode_new :: fonc (ipa: *IPA, noeud_code: *NoeudCodeEntêteFonction, type_méthode: *TypeIPA)
 {
     résultat := convertis_entête_en_méthode_ipa(noeud_code, nul, ipa.espace_de_nom);
     convertis_types_params_méthode(ipa, *résultat);
     type_méthode.constructrice = résultat;
 }
 
-convertis_types_params_méthode :: fonc (ipa: &IPA, méthode: *MéthodeIPA)
+convertis_types_params_méthode :: fonc (ipa: *IPA, méthode: *MéthodeIPA)
 {
     pour & méthode.entrées {
         it.type_ipa = convertis_vers_type_ipa(ipa, it.type);

@@ -47,7 +47,7 @@ RaccourciCommande :: struct {
     contexte: chaine;
 }
 
-donne_raccourci_pour_évènement :: fonc (anonyme: *Anonyme, évènement: Évènement, contexte: chaine) -> *RaccourciCommande
+donne_raccourci_pour_évènement :: fonc (anonyme: *Anonyme, évènement: *Évènement, contexte: chaine) -> *RaccourciCommande
 {
     liste := *anonyme.raccourcis;
     si anonyme.projet_ouvert {
@@ -504,7 +504,7 @@ principale :: fonc ()
 
         largeur, hauteur := donne_taille_fenêtre(fenêtre);
 
-        pour évènements {
+        pour * évènements {
             si it.type == TypeÉvènement.Fermeture {
                 doit_fermer = vrai;
                 arrête;

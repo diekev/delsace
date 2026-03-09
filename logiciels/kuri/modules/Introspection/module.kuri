@@ -540,7 +540,7 @@ crée_itératrice_tableau_tranche :: fonc (valeur: eini) -> ItératriceTableau
     retourne itératrice;
 }
 
-valeur_suivante :: fonc (itératrice: &ItératriceTableau) -> eini
+valeur_suivante :: fonc (itératrice: *ItératriceTableau) -> eini
 {
     résultat: eini;
 
@@ -585,7 +585,7 @@ crée_itératrice_rubrique :: fonc (structure: eini, ignore_rubriques_constantes
     retourne itératrice;
 }
 
-rubrique_suivante :: fonc (itératrice: &ItératriceRubriqueStructure) -> (eini, chaine)
+rubrique_suivante :: fonc (itératrice: *ItératriceRubriqueStructure) -> (eini, chaine)
 {
     résultat: eini;
     nom: chaine;
@@ -881,7 +881,7 @@ CréatriceTableFonction :: struct {
     espace: EspaceDeTravail;
 }
 
-détruit_données_créatrice_table_fonctions :: fonc (créatrice: &CréatriceTableFonction)
+détruit_données_créatrice_table_fonctions :: fonc (créatrice: *CréatriceTableFonction)
 {
     déloge(créatrice.modules_importés);
 }
@@ -892,7 +892,7 @@ DonnéesFonctionPourTableFonction :: struct {
     nom_fonction_enveloppe: chaine;
 }
 
-créatrice_est_valide :: fonc (créatrice: &CréatriceTableFonction) -> bool
+créatrice_est_valide :: fonc (créatrice: *CréatriceTableFonction) -> bool
 {
     saufsi créatrice.nom_table_fonctions {
         retourne faux;
@@ -909,7 +909,7 @@ créatrice_est_valide :: fonc (créatrice: &CréatriceTableFonction) -> bool
     retourne vrai;
 }
 
-ajoute_module :: fonc (créatrice: &CréatriceTableFonction, nom_module: chaine)
+ajoute_module :: fonc (créatrice: *CréatriceTableFonction, nom_module: chaine)
 {
     pour module_importé dans créatrice.modules_importés {
         si module_importé == nom_module {
@@ -921,7 +921,7 @@ ajoute_module :: fonc (créatrice: &CréatriceTableFonction, nom_module: chaine)
     }
 }
 
-crée_table_fonctions :: fonc (créatrice: &CréatriceTableFonction, fonctions: []*NoeudCodeEntêteFonction)
+crée_table_fonctions :: fonc (créatrice: *CréatriceTableFonction, fonctions: []*NoeudCodeEntêteFonction)
 {
     saufsi créatrice.créatrice_est_valide() {
         retourne;

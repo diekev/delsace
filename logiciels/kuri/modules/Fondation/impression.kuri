@@ -711,11 +711,11 @@ imprime_valeur :: fonc (enchaineuse: *Enchaineuse, valeur: eini, échappe_chn: b
         TABLEAU,
         TABLEAU_FIXE {
             itératrice := crée_itératrice_tableau(valeur);
-            imprime_valeurs_tableau(enchaineuse, itératrice, profondeur);
+            imprime_valeurs_tableau(enchaineuse, *itératrice, profondeur);
         }
         TRANCHE {
             itératrice := crée_itératrice_tableau_tranche(valeur);
-            imprime_valeurs_tableau(enchaineuse, itératrice, profondeur);
+            imprime_valeurs_tableau(enchaineuse, *itératrice, profondeur);
         }
         ÉNUM {
             imprime_valeur_énum(enchaineuse, valeur);
@@ -834,7 +834,7 @@ imprime_valeur_énum_drapeau :: fonc (enchaineuse: *Enchaineuse, type_énum: *In
     }
 }
 
-imprime_valeurs_tableau :: fonc (enchaineuse: *Enchaineuse, itératrice: &ItératriceTableau, profondeur: z32)
+imprime_valeurs_tableau :: fonc (enchaineuse: *Enchaineuse, itératrice: *ItératriceTableau, profondeur: z32)
 {
     indice := 0;
     max_élément := 5;
@@ -1320,7 +1320,7 @@ greffon_impression_sur_message :: fonc (greffon: *GreffonImpression, message: *M
     sinon si est_message_phase(message, PhaseCompilation.TYPAGE_TERMINÉ) {
         données := *greffon.données_pour_espace[message.espace - 1];
         saufsi données.table_créée {
-            crée_table_fonctions(données.créatrice_table_fonctions, données.fonctions);
+            crée_table_fonctions(*données.créatrice_table_fonctions, données.fonctions);
             données.table_créée = vrai;
         }
     }
