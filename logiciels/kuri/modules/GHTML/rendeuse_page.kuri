@@ -27,9 +27,9 @@ PageGabarit :: struct {
 
 détruit_page_gabarit :: fonc (page: *PageGabarit) -> rien
 {
-    détruit_lexeuse(page.lexeuse);
-    détruit_assembleuse(page.syntaxeuse.assembleuse);
-    détruit_syntaxeuse(page.syntaxeuse);
+    détruit_lexeuse(*page.lexeuse);
+    détruit_assembleuse(*page.syntaxeuse.assembleuse);
+    détruit_syntaxeuse(*page.syntaxeuse);
 }
 
 RésultatRequêteCache :: union {
@@ -60,10 +60,10 @@ trouve_dans_cache :: fonc (rendeuse_gabarit: *RendeusePage, nom_court: chaine) -
     }
 
     lexeuse := construis_lexeuse(fichier.données);
-    lexeuse.performe_lexage();
+    performe_lexage(*lexeuse);
 
     syntaxeuse := construis_syntaxeuse(lexeuse.lexèmes);
-    syntaxeuse.performe_syntaxage();
+    performe_syntaxage(*syntaxeuse);
 
     si syntaxeuse.erreurs {
         retourne copie_chaine("erreurs de syntaxage");
@@ -82,7 +82,7 @@ trouve_dans_cache :: fonc (rendeuse_gabarit: *RendeusePage, nom_court: chaine) -
         discr recherche_page_étendue {
             page {
                 page_étendue := recherche_page_étendue.page;
-                nouvelle_racine := copie_noeud(syntaxeuse.assembleuse, page_étendue.racine);
+                nouvelle_racine := copie_noeud(*syntaxeuse.assembleuse, page_étendue.racine);
 
                 blocs: [..]*NoeudSyntaxique;
                 rassemble_blocs(racine, *blocs);
@@ -100,7 +100,7 @@ trouve_dans_cache :: fonc (rendeuse_gabarit: *RendeusePage, nom_court: chaine) -
         }
     }
 
-    pour & syntaxeuse.inclusions {
+    pour syntaxeuse.inclusions {
         recherche_page_incluse := trouve_dans_cache(rendeuse_gabarit, it.nom);
 
         discr recherche_page_incluse {
@@ -129,9 +129,9 @@ trouve_dans_cache :: fonc (rendeuse_gabarit: *RendeusePage, nom_court: chaine) -
 
 remplace_enfant :: fonc (parent: *NoeudSyntaxique, enfant: *NoeudSyntaxique, par: *NoeudSyntaxique)
 {
-    pour & parent.enfants {
-        si it == enfant {
-            it = par;
+    pour * parent.enfants {
+        si mémoire(it) == enfant {
+            mémoire(it) = par;
         }
     }
 }
@@ -157,11 +157,11 @@ remplace_blocs :: fonc (nouvelle_racine: *NoeudSyntaxique, blocs: []*NoeudSyntax
         retourne;
     }
 
-    pour & nouvelle_racine.enfants {
+    pour * nouvelle_racine.enfants {
         si it.type == TypeNoeud.BLOC && it.nom != "" {
             pour bloc dans blocs {
                 si it.nom == bloc.nom {
-                    it = bloc;
+                    mémoire(it) = bloc;
                     arrête;
                 }
             }
@@ -169,7 +169,7 @@ remplace_blocs :: fonc (nouvelle_racine: *NoeudSyntaxique, blocs: []*NoeudSyntax
             continue;
         }
 
-        remplace_blocs(it, blocs);
+        remplace_blocs(mémoire(it), blocs);
     }
 }
 

@@ -44,19 +44,19 @@ greffon_python_sur_message :: fonc (greffon: *GreffonPython, message: *Message)
         si code.genre == GenreNoeud.DÉCLARATION_ENTÊTE_FONCTION {
             entête := code comme *NoeudCodeEntêteFonction;
             si greffon.filtre == nul || greffon.filtre(message.espace, entête) {
-                ajoute_fonction_si_annotée(greffon.compilatrice, entête);
+                ajoute_fonction_si_annotée(*greffon.compilatrice, entête);
             }
         }
     }
     sinon si est_message_phase(message, PhaseCompilation.TYPAGE_TERMINÉ) {
-        génère_code(greffon.compilatrice);
+        génère_code(*greffon.compilatrice);
         greffon.code_généré = vrai;
     }
 }
 
 greffon_python_sur_destruction :: fonc (greffon: *GreffonPython)
 {
-    détruit(greffon.compilatrice);
+    détruit(*greffon.compilatrice);
     déloge(greffon);
 }
 
@@ -69,9 +69,9 @@ ModulePython :: struct {
     constantes_chaine: [..]ConstanteChaine;
 }
 
-détruit :: fonc (module: &ModulePython)
+détruit :: fonc (module: *ModulePython)
 {
-    pour module.méthodes {
+    pour * module.méthodes {
         détruit(it);
     }
 
@@ -90,12 +90,12 @@ ConstanteChaine :: struct {
     valeur: chaine;
 }
 
-ajoute_constante_nombre_entier :: fonc (module: &ModulePython, nom: chaine, valeur: z64)
+ajoute_constante_nombre_entier :: fonc (module: *ModulePython, nom: chaine, valeur: z64)
 {
     tableau_ajoute(*module.constantes_nombre_entier, ConstanteNombreEntier(nom, valeur));
 }
 
-ajoute_constante_chaine :: fonc (module: &ModulePython, nom: chaine, valeur: chaine)
+ajoute_constante_chaine :: fonc (module: *ModulePython, nom: chaine, valeur: chaine)
 {
     tableau_ajoute(*module.constantes_chaine, ConstanteChaine(nom, valeur));
 }
@@ -127,14 +127,14 @@ MéthodePython :: struct {
     param_self_est_pointeur := faux;
 }
 
-détruit :: fonc (méthode: &MéthodePython)
+détruit :: fonc (méthode: *MéthodePython)
 {
     déloge(méthode.nom_enveloppe);
     déloge(méthode.paramètres_entrée);
     déloge(méthode.paramètres_sortie);
 }
 
-ne_retourne_rien :: fonc (méthode: &MéthodePython) -> bool
+ne_retourne_rien :: fonc (méthode: *MéthodePython) -> bool
 {
     saufsi méthode.paramètres_sortie {
         retourne vrai;
@@ -144,7 +144,7 @@ ne_retourne_rien :: fonc (méthode: &MéthodePython) -> bool
     retourne méthode.paramètres_sortie.taille == 1 && premier_param.type == nul;
 }
 
-convertis_paramètre :: fonc (param: *NoeudCode, système_type: &SystèmeType) -> ParamètreMéthodePython
+convertis_paramètre :: fonc (param: *NoeudCode, système_type: *SystèmeType) -> ParamètreMéthodePython
 {
     valeur_défaut: *NoeudCode;
     si param.genre == GenreNoeud.DÉCLARATION_VARIABLE {
@@ -180,7 +180,7 @@ est_valeur_défaut_supportée :: fonc (expression: *NoeudCode) -> bool
 }
 
 // ignore_premier_paramètre est pour les fonctions d'allocation, etc.
-méthode_python_depuis_entête :: fonc (entête: *NoeudCodeEntêteFonction, système_type: &SystèmeType, ignore_premier_paramètre := faux) -> MéthodePython
+méthode_python_depuis_entête :: fonc (entête: *NoeudCodeEntêteFonction, système_type: *SystèmeType, ignore_premier_paramètre := faux) -> MéthodePython
 {
     résultat: MéthodePython;
     résultat.nom = entête.nom;
@@ -206,7 +206,7 @@ méthode_python_depuis_entête :: fonc (entête: *NoeudCodeEntêteFonction, syst
     retourne résultat;
 }
 
-ajoute_fonction :: fonc (module: &ModulePython, système_type: &SystèmeType, fonction: *NoeudCodeEntêteFonction)
+ajoute_fonction :: fonc (module: *ModulePython, système_type: *SystèmeType, fonction: *NoeudCodeEntêteFonction)
 {
     méthode := méthode_python_depuis_entête(fonction, système_type);
     tableau_ajoute(*module.méthodes, méthode);
@@ -222,7 +222,7 @@ FonctionsTypePython :: struct {
     pour_valeur_unicode_enum: chaine;
 }
 
-init_fonctions_type_base :: fonc (fonctions: &FonctionsTypePython, pour_discrimination: chaine, pour_extraction: chaine, pour_construction: chaine)
+init_fonctions_type_base :: fonc (fonctions: *FonctionsTypePython, pour_discrimination: chaine, pour_extraction: chaine, pour_construction: chaine)
 {
     fonctions.pour_discrimination = copie_chaine(pour_discrimination);
     fonctions.pour_extraction_valeur = copie_chaine(pour_extraction);
@@ -231,89 +231,89 @@ init_fonctions_type_base :: fonc (fonctions: &FonctionsTypePython, pour_discrimi
 
 /* Entiers relatifs. */
 
-init_fonctions_type_z8 :: fonc (fonctions: &FonctionsTypePython)
+init_fonctions_type_z8 :: fonc (fonctions: *FonctionsTypePython)
 {
     init_fonctions_type_base(fonctions, "PyLong_Check", "PyLong_AsZ8", "PyLong_FromLong");
 }
 
-init_fonctions_type_z16 :: fonc (fonctions: &FonctionsTypePython)
+init_fonctions_type_z16 :: fonc (fonctions: *FonctionsTypePython)
 {
     init_fonctions_type_base(fonctions, "PyLong_Check", "PyLong_AsZ16", "PyLong_FromLong");
 }
 
-init_fonctions_type_z32 :: fonc (fonctions: &FonctionsTypePython)
+init_fonctions_type_z32 :: fonc (fonctions: *FonctionsTypePython)
 {
     init_fonctions_type_base(fonctions, "PyLong_Check", "PyLong_AsZ32", "PyLong_FromLong");
 }
 
-init_fonctions_type_z64 :: fonc (fonctions: &FonctionsTypePython)
+init_fonctions_type_z64 :: fonc (fonctions: *FonctionsTypePython)
 {
     init_fonctions_type_base(fonctions, "PyLong_Check", "PyLong_AsLong", "PyLong_FromLong");
 }
 
 /* Entiers naturels. */
 
-init_fonctions_type_n8 :: fonc (fonctions: &FonctionsTypePython)
+init_fonctions_type_n8 :: fonc (fonctions: *FonctionsTypePython)
 {
     init_fonctions_type_base(fonctions, "PyLong_Check", "PyLong_AsN8", "PyLong_FromN8");
 }
 
-init_fonctions_type_n16 :: fonc (fonctions: &FonctionsTypePython)
+init_fonctions_type_n16 :: fonc (fonctions: *FonctionsTypePython)
 {
     init_fonctions_type_base(fonctions, "PyLong_Check", "PyLong_AsN16", "PyLong_FromN16");
 }
 
-init_fonctions_type_n32 :: fonc (fonctions: &FonctionsTypePython)
+init_fonctions_type_n32 :: fonc (fonctions: *FonctionsTypePython)
 {
     init_fonctions_type_base(fonctions, "PyLong_Check", "PyLong_AsN32", "PyLong_FromN32");
 }
 
-init_fonctions_type_n64 :: fonc (fonctions: &FonctionsTypePython)
+init_fonctions_type_n64 :: fonc (fonctions: *FonctionsTypePython)
 {
     init_fonctions_type_base(fonctions, "PyLong_Check", "PyLong_AsN64", "PyLong_FromN64");
 }
 
 /* Booléen. */
 
-init_fonctions_type_bool :: fonc (fonctions: &FonctionsTypePython)
+init_fonctions_type_bool :: fonc (fonctions: *FonctionsTypePython)
 {
     init_fonctions_type_base(fonctions, "PyBool_Check", "PyBool_AsBool", "PyBool_FromBool");
 }
 
 /* Réel. */
 
-init_fonctions_type_r16 :: fonc (fonctions: &FonctionsTypePython)
+init_fonctions_type_r16 :: fonc (fonctions: *FonctionsTypePython)
 {
     init_fonctions_type_base(fonctions, "PyFloat_Check", "PyFloat_AsR16", "PyFloat_FromDouble");
 }
 
-init_fonctions_type_r32 :: fonc (fonctions: &FonctionsTypePython)
+init_fonctions_type_r32 :: fonc (fonctions: *FonctionsTypePython)
 {
     init_fonctions_type_base(fonctions, "PyFloat_Check", "PyFloat_AsR32", "PyFloat_FromDouble");
 }
 
-init_fonctions_type_r64 :: fonc (fonctions: &FonctionsTypePython)
+init_fonctions_type_r64 :: fonc (fonctions: *FonctionsTypePython)
 {
     init_fonctions_type_base(fonctions, "PyFloat_Check", "PyFloat_AsDouble", "PyFloat_FromDouble");
 }
 
 /* Chaine. */
 
-init_fonctions_type_chaine :: fonc (fonctions: &FonctionsTypePython)
+init_fonctions_type_chaine :: fonc (fonctions: *FonctionsTypePython)
 {
     init_fonctions_type_base(fonctions, "PyUnicode_Check", "PyUnicode_AsChaine", "PyUnicode_FromChaine");
 }
 
 /* Structures, unions, énums, etc. */
 
-init_fonctions_type_structure :: fonc (fonctions: &FonctionsTypePython, nom: chaine)
+init_fonctions_type_structure :: fonc (fonctions: *FonctionsTypePython, nom: chaine)
 {
     fonctions.pour_discrimination = enchaine("Py", nom, "_Check");
     fonctions.pour_extraction_valeur = enchaine("Py", nom, "_As", nom);
     fonctions.pour_construction = enchaine("Py", nom, "_From", nom);
 }
 
-init_fonctions_type_énum :: fonc (fonctions: &FonctionsTypePython, nom: chaine, type_énum: *InfoTypeÉnum)
+init_fonctions_type_énum :: fonc (fonctions: *FonctionsTypePython, nom: chaine, type_énum: *InfoTypeÉnum)
 {
     init_fonctions_type_structure(fonctions, nom);
     fonctions.pour_valeur_unicode_enum = fonction_PyUnicodeEnum_Value_pour_info(type_énum);
@@ -463,16 +463,16 @@ TypePython :: struct {
 
 détruit :: fonc (type: *TypePython)
 {
-    détruit(type.new);
-    détruit(type.init);
-    détruit(type.repr);
-    détruit(type.str);
-    détruit(type.hash);
+    détruit(*type.new);
+    détruit(*type.init);
+    détruit(*type.repr);
+    détruit(*type.str);
+    détruit(*type.hash);
     déloge(type.fonctions.pour_discrimination);
     déloge(type.fonctions.pour_construction);
     déloge(type.fonctions.pour_extraction_valeur);
     déloge(type.rubriques);
-    pour type.méthodes {
+    pour * type.méthodes {
         détruit(it);
     }
     déloge(type.méthodes);
@@ -485,33 +485,33 @@ détruit :: fonc (type: *TypePython)
     déloge(type);
 }
 
-ajoute_méthode :: fonc (type: *TypePython, système_type: &SystèmeType, fonction: *NoeudCodeEntêteFonction)
+ajoute_méthode :: fonc (type: *TypePython, système_type: *SystèmeType, fonction: *NoeudCodeEntêteFonction)
 {
     méthode := méthode_python_depuis_entête(fonction, système_type, vrai);
     tableau_ajoute(*type.méthodes, méthode);
 }
 
-ajoute_méthode_new :: fonc (type: *TypePython, système_type: &SystèmeType, fonction: *NoeudCodeEntêteFonction)
+ajoute_méthode_new :: fonc (type: *TypePython, système_type: *SystèmeType, fonction: *NoeudCodeEntêteFonction)
 {
     type.new = méthode_python_depuis_entête(fonction, système_type, vrai);
 }
 
-ajoute_méthode_init :: fonc (type: *TypePython, système_type: &SystèmeType, fonction: *NoeudCodeEntêteFonction)
+ajoute_méthode_init :: fonc (type: *TypePython, système_type: *SystèmeType, fonction: *NoeudCodeEntêteFonction)
 {
     type.init = méthode_python_depuis_entête(fonction, système_type, vrai);
 }
 
-ajoute_méthode_repr :: fonc (type: *TypePython, système_type: &SystèmeType, fonction: *NoeudCodeEntêteFonction)
+ajoute_méthode_repr :: fonc (type: *TypePython, système_type: *SystèmeType, fonction: *NoeudCodeEntêteFonction)
 {
     type.repr = méthode_python_depuis_entête(fonction, système_type);
 }
 
-ajoute_méthode_str :: fonc (type: *TypePython, système_type: &SystèmeType, fonction: *NoeudCodeEntêteFonction)
+ajoute_méthode_str :: fonc (type: *TypePython, système_type: *SystèmeType, fonction: *NoeudCodeEntêteFonction)
 {
     type.str = méthode_python_depuis_entête(fonction, système_type);
 }
 
-ajoute_méthode_hash :: fonc (type: *TypePython, système_type: &SystèmeType, fonction: *NoeudCodeEntêteFonction)
+ajoute_méthode_hash :: fonc (type: *TypePython, système_type: *SystèmeType, fonction: *NoeudCodeEntêteFonction)
 {
     type.hash = méthode_python_depuis_entête(fonction, système_type);
 }

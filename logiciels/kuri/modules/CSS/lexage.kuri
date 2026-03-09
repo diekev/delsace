@@ -208,12 +208,12 @@ donne_texte :: fonc (lexème: Lexème) -> CSSOMString #enligne
     retourne lexème.valeur;
 }
 
-est_lexème_de_genre :: fonc (lexème: &Lexème, genre: GenreLexème) -> bool #enligne
+est_lexème_de_genre :: fonc (lexème: Lexème, genre: GenreLexème) -> bool #enligne
 {
     retourne lexème.genre == genre;
 }
 
-est_lexème_delim :: fonc (lexème: &Lexème, point_de_code: n32) -> bool
+est_lexème_delim :: fonc (lexème: Lexème, point_de_code: n32) -> bool
 {
     si lexème.genre != GenreLexème.Delim {
         retourne faux;
@@ -297,14 +297,14 @@ est_identifiant :: fonc (lexème: $T, ident: CSSOMString) -> bool
     retourne lexème.est_lexème_de_genre(GenreLexème.Ident) && lexème.donne_texte() == ident;
 }
 
-est_simple_bloc_de_genre :: fonc (lexème: &Lexème @inutilisée, genre: GenreLexème @inutilisée) -> bool
+est_simple_bloc_de_genre :: fonc (lexème: Lexème @inutilisée, genre: GenreLexème @inutilisée) -> bool
 {
     /* Cette fonction n'existe que pour contenter les fonctions génériques
      * travaillant sur Lexème ou ComponentValue. */
     retourne faux;
 }
 
-donne_bloc_simple :: fonc (lexème: &Lexème @inutilisée) -> ParsedSimpleBlock
+donne_bloc_simple :: fonc (lexème: Lexème @inutilisée) -> ParsedSimpleBlock
 {
     /* Cette fonction n'existe que pour contenter les fonctions génériques
      * travaillant sur Lexème ou ComponentValue. */
@@ -320,13 +320,13 @@ Lexeuse :: struct {
     tampon_utf32: ChaineUTF32;
 }
 
-détruit_données :: fonc (lexeuse: &Lexeuse)
+détruit_données :: fonc (lexeuse: *Lexeuse)
 {
     détruit_chaine(lexeuse.tampon_temporaire);
     détruit_chaine(lexeuse.tampon_utf32);
 }
 
-apparie :: fonc (lexeuse: &Lexeuse, points_de_code: ...z8) -> bool
+apparie :: fonc (lexeuse: *Lexeuse, points_de_code: ...z8) -> bool
 {
     si points_de_code.taille + lexeuse.curseur >= lexeuse.contenu.taille() {
         retourne faux;
@@ -341,17 +341,17 @@ apparie :: fonc (lexeuse: &Lexeuse, points_de_code: ...z8) -> bool
     retourne vrai;
 }
 
-avance :: fonc (lexeuse: &Lexeuse, n := 1)
+avance :: fonc (lexeuse: *Lexeuse, n := 1)
 {
     lexeuse.curseur += n;
 }
 
-consomme :: fonc (lexeuse: &Lexeuse)
+consomme :: fonc (lexeuse: *Lexeuse)
 {
     lexeuse.curseur += 1;
 }
 
-point_de_code_suivant :: fonc (lexeuse: &Lexeuse) -> n32
+point_de_code_suivant :: fonc (lexeuse: *Lexeuse) -> n32
 {
     si lexeuse.curseur >= lexeuse.contenu.taille() {
         retourne FIN_DE_FICHIER;
@@ -359,7 +359,7 @@ point_de_code_suivant :: fonc (lexeuse: &Lexeuse) -> n32
     retourne lexeuse.contenu.points_de_code[lexeuse.curseur];
 }
 
-point_de_code_suivant :: fonc (lexeuse: &Lexeuse, décalage: z64) -> n32
+point_de_code_suivant :: fonc (lexeuse: *Lexeuse, décalage: z64) -> n32
 {
     si lexeuse.curseur + décalage >= lexeuse.contenu.taille() {
         retourne FIN_DE_FICHIER;
@@ -367,32 +367,32 @@ point_de_code_suivant :: fonc (lexeuse: &Lexeuse, décalage: z64) -> n32
     retourne lexeuse.contenu.points_de_code[lexeuse.curseur + décalage];
 }
 
-consomme_point_de_code_suivant :: fonc (lexeuse: &Lexeuse) -> n32
+consomme_point_de_code_suivant :: fonc (lexeuse: *Lexeuse) -> n32
 {
     résultat := lexeuse.point_de_code_suivant();
     lexeuse.consomme();
     retourne résultat;
 }
 
-reconsomme_point_de_code :: fonc (lexeuse: &Lexeuse)
+reconsomme_point_de_code :: fonc (lexeuse: *Lexeuse)
 {
     assert(lexeuse.curseur > 0);
     lexeuse.curseur -= 1;
 }
 
-consomme_espaces_blanches :: fonc (lexeuse: &Lexeuse)
+consomme_espaces_blanches :: fonc (lexeuse: *Lexeuse)
 {
     tantque !fini(lexeuse) && est_espace_blanche(lexeuse.point_de_code_suivant()) {
         lexeuse.consomme();
     }
 }
 
-rapporte_erreur :: fonc (lexeuse: &Lexeuse @inutilisée, message: chaine)
+rapporte_erreur :: fonc (lexeuse: *Lexeuse @inutilisée, message: chaine)
 {
     imprime("%\n", message);
 }
 
-fini :: fonc (lexeuse: &Lexeuse) -> bool
+fini :: fonc (lexeuse: *Lexeuse) -> bool
 {
     retourne lexeuse.curseur >= lexeuse.contenu.taille();
 }
@@ -405,7 +405,7 @@ fini :: fonc (lexeuse: &Lexeuse) -> bool
 
 /* 4.3.1 Consume a token
  * https://www.w3.org/TR/css-syntax-3/#consume-token */
-consomme_un_lexème :: fonc (lexeuse: &Lexeuse) -> Lexème
+consomme_un_lexème :: fonc (lexeuse: *Lexeuse) -> Lexème
 {
     consomme_des_commentaires(lexeuse);
 
@@ -565,7 +565,7 @@ consomme_un_lexème :: fonc (lexeuse: &Lexeuse) -> Lexème
 
 /* 4.3.2 Consume comments
  * https://www.w3.org/TR/css-syntax-3/#consume-comment */
-consomme_des_commentaires :: fonc (lexeuse: &Lexeuse)
+consomme_des_commentaires :: fonc (lexeuse: *Lexeuse)
 {
     tantque apparie(lexeuse, '/', '*') {
         lexeuse.avance(2);
@@ -587,7 +587,7 @@ consomme_des_commentaires :: fonc (lexeuse: &Lexeuse)
 
 /* 4.3.3 Consume a numeric token
  * https://www.w3.org/TR/css-syntax-3/#consume-numeric-token */
-consomme_un_lexème_numérique :: fonc (lexeuse: &Lexeuse) -> Lexème
+consomme_un_lexème_numérique :: fonc (lexeuse: *Lexeuse) -> Lexème
 {
     nombre, type := consomme_un_nombre(lexeuse);
 
@@ -606,7 +606,7 @@ consomme_un_lexème_numérique :: fonc (lexeuse: &Lexeuse) -> Lexème
 
 /* 4.3.4 Consume an ident-like token
  * https://www.w3.org/TR/css-syntax-3/#consume-ident-like-token */
-consomme_un_lexème_simili_ident :: fonc (lexeuse: &Lexeuse) -> Lexème
+consomme_un_lexème_simili_ident :: fonc (lexeuse: *Lexeuse) -> Lexème
 {
     string := consomme_une_séquence_identifiante(lexeuse);
 
@@ -642,7 +642,7 @@ consomme_un_lexème_simili_ident :: fonc (lexeuse: &Lexeuse) -> Lexème
 
 /* 4.3.5 Consume a string token
  * https://www.w3.org/TR/css-syntax-3/#consume-string-token */
-consomme_un_lexème_chaine :: fonc (lexeuse: &Lexeuse, point_de_code_final: n32) -> Lexème
+consomme_un_lexème_chaine :: fonc (lexeuse: *Lexeuse, point_de_code_final: n32) -> Lexème
 {
     diffère réinitialise(lexeuse.tampon_temporaire);
 
@@ -682,7 +682,7 @@ consomme_un_lexème_chaine :: fonc (lexeuse: &Lexeuse, point_de_code_final: n32)
 
 /* 4.3.6 Consume a url token
  * https://www.w3.org/TR/css-syntax-3/#consume-url-token */
-consomme_un_lexème_url :: fonc (lexeuse: &Lexeuse) -> Lexème
+consomme_un_lexème_url :: fonc (lexeuse: *Lexeuse) -> Lexème
 {
     diffère réinitialise(lexeuse.tampon_temporaire);
 
@@ -763,7 +763,7 @@ donne_valeur_hex_pour_point_de_code :: fonc (point_de_code: n32) -> n32
 
 /* 4.3.7 Consume an escaped code point
  * https://www.w3.org/TR/css-syntax-3/#consume-escaped-code-point */
-consomme_un_point_de_code_échappé :: fonc (lexeuse: &Lexeuse) -> n32
+consomme_un_point_de_code_échappé :: fonc (lexeuse: *Lexeuse) -> n32
 {
     point_de_code := lexeuse.consomme_point_de_code_suivant();
 
@@ -803,14 +803,14 @@ consomme_un_point_de_code_échappé :: fonc (lexeuse: &Lexeuse) -> n32
 
 /* 4.3.8 Check if two code points are a valid escape
  * https://www.w3.org/TR/css-syntax-3/#starts-with-a-valid-escape */
-forment_un_échappement_valide :: fonc (lexeuse: &Lexeuse) -> bool
+forment_un_échappement_valide :: fonc (lexeuse: *Lexeuse) -> bool
 {
     premier := lexeuse.point_de_code_suivant();
     deuxième := lexeuse.point_de_code_suivant(1);
     retourne sont_un_échappement_valide(premier, deuxième);
 }
 
-forment_un_échappement_valide :: fonc (lexeuse: &Lexeuse, premier: n32) -> bool
+forment_un_échappement_valide :: fonc (lexeuse: *Lexeuse, premier: n32) -> bool
 {
     retourne sont_un_échappement_valide(premier, lexeuse.point_de_code_suivant());
 }
@@ -830,7 +830,7 @@ sont_un_échappement_valide :: fonc (premier: n32, deuxième: n32) -> bool
 
 /* 4.3.9 Check if three code points would start an ident sequence
  * https://www.w3.org/TR/css-syntax-3/#would-start-an-identifier */
-vérifie_si_trois_points_de_code_commenceraient_un_ident :: fonc (lexeuse: &Lexeuse) -> bool
+vérifie_si_trois_points_de_code_commenceraient_un_ident :: fonc (lexeuse: *Lexeuse) -> bool
 {
     premier := lexeuse.point_de_code_suivant();
     deuxième := lexeuse.point_de_code_suivant(1);
@@ -838,7 +838,7 @@ vérifie_si_trois_points_de_code_commenceraient_un_ident :: fonc (lexeuse: &Lexe
     retourne vérifie_si_trois_points_de_code_commenceraient_un_ident(premier, deuxième, troisième);
 }
 
-vérifie_si_trois_points_de_code_commenceraient_un_ident :: fonc (lexeuse: &Lexeuse, premier: n32) -> bool
+vérifie_si_trois_points_de_code_commenceraient_un_ident :: fonc (lexeuse: *Lexeuse, premier: n32) -> bool
 {
     deuxième := lexeuse.point_de_code_suivant();
     troisième := lexeuse.point_de_code_suivant(1);
@@ -872,7 +872,7 @@ vérifie_si_trois_points_de_code_commenceraient_un_ident :: fonc (premier: n32, 
 
 /* 4.3.10 Check if three code points would start a number
  * https://www.w3.org/TR/css-syntax-3/#starts-with-a-number */
-vérifie_si_trois_points_de_code_commenceraient_un_nombre :: fonc (lexeuse: &Lexeuse, premier: n32) -> bool
+vérifie_si_trois_points_de_code_commenceraient_un_nombre :: fonc (lexeuse: *Lexeuse, premier: n32) -> bool
 {
     deuxième := lexeuse.point_de_code_suivant();
     troisième := lexeuse.point_de_code_suivant(1);
@@ -906,7 +906,7 @@ vérifie_si_trois_points_de_code_commenceraient_un_nombre :: fonc (lexeuse: &Lex
 
 /* 4.3.11 Consume an ident sequence
  * https://www.w3.org/TR/css-syntax-3/#consume-name */
-consomme_une_séquence_identifiante :: fonc (lexeuse: &Lexeuse) -> CSSOMString
+consomme_une_séquence_identifiante :: fonc (lexeuse: *Lexeuse) -> CSSOMString
 {
     diffère réinitialise(lexeuse.tampon_temporaire);
 
@@ -933,7 +933,7 @@ consomme_une_séquence_identifiante :: fonc (lexeuse: &Lexeuse) -> CSSOMString
 
 /* 4.3.12 Consume a number
  * https://www.w3.org/TR/css-syntax-3/#consume-number */
-consomme_un_nombre :: fonc (lexeuse: &Lexeuse) -> (r64, DrapeauxTypeNombre)
+consomme_un_nombre :: fonc (lexeuse: *Lexeuse) -> (r64, DrapeauxTypeNombre)
 {
     type := DrapeauxTypeNombre.Integer;
 
@@ -1075,7 +1075,7 @@ convertis_une_chaine_en_un_nombre :: fonc (repr: ChaineUTF32) -> r64
 
 /* 4.3.14 Consume the remnants of a bad url
  * https://www.w3.org/TR/css-syntax-3/#consume-remnants-of-bad-url */
-consomme_les_restes_d_un_url :: fonc (lexeuse: &Lexeuse)
+consomme_les_restes_d_un_url :: fonc (lexeuse: *Lexeuse)
 {
     tantque !fini(lexeuse) {
         point_de_code := lexeuse.consomme_point_de_code_suivant();

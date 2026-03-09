@@ -1494,7 +1494,7 @@ développe_arguments :: fonc (préprocesseur: *PréProcesseur, arguments: []Lex�
             }
 
             arguments_définition: [..][..]LexèmePréprocès;
-            diffère déloge_tableau_et_ses_éléments(arguments_définition);
+            diffère déloge_tableau_et_ses_éléments(*arguments_définition);
 
             sauvegarde_position(*parseuse);
             saute_espaces_blanches_sauf_nouvelle_ligne(*parseuse);
@@ -1922,7 +1922,7 @@ détermine_chemin_absolu :: fonc (préprocesseur: *PréProcesseur, chemins: []ch
 prétraite_fichier :: fonc (contenu: chaine) -> [..]octet
 {
     résultat: [..]octet;
-    tableau_redimensionne_sans_init(résultat, contenu.taille);
+    tableau_redimensionne_sans_init(*résultat, contenu.taille);
 
     entrée := contenu.pointeur;
     sortie := résultat.pointeur comme *z8;
