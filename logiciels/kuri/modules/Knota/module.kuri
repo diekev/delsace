@@ -281,7 +281,7 @@ détruit_section :: fonc (section: InformationsNoeud.Section)
 
 réinitialise :: fonc (infos: *InformationsNoeud)
 {
-    déloge_tableau_et_ses_éléments(infos.sections, détruit_section);
+    déloge_tableau_et_ses_éléments(*infos.sections, détruit_section);
     détruit_section(infos.entête);
     /* Détruit_section ne peut prendre la section par référence, donc nous devons
      * manuellement réinitialiser la mémoire pour éviter un double délogement.
@@ -684,8 +684,8 @@ marques_connexions_inactives :: fonc (connexions: []*Connexion)
 détruit_noeud :: fonc (noeud: *Noeud)
 {
     détruit_données_item_graphe(noeud);
-    déloge_tableau_et_ses_éléments(noeud.entrées, déloge_prise_entrée);
-    déloge_tableau_et_ses_éléments(noeud.sorties, déloge_prise_sortie);
+    déloge_tableau_et_ses_éléments(*noeud.entrées, déloge_prise_entrée);
+    déloge_tableau_et_ses_éléments(*noeud.sorties, déloge_prise_sortie);
 
     réinitialise_erreurs(noeud);
     réinitialise_informations(noeud);
@@ -1052,7 +1052,7 @@ détruit_paire_nom_et_compte :: fonc (paire: DéduplicatriceNom.PaireNomEtCompte
 
 détruit_données_déduplicatrice :: fonc (déduplicatrice: *DéduplicatriceNom)
 {
-    déloge_tableau_et_ses_éléments(déduplicatrice.paires_nom_et_compte, détruit_paire_nom_et_compte);
+    déloge_tableau_et_ses_éléments(*déduplicatrice.paires_nom_et_compte, détruit_paire_nom_et_compte);
 }
 
 /* Supprime les caractères invalide du nom, et si le nom existe déjà, retourne
@@ -1067,7 +1067,7 @@ garantis_nom_valide_et_unique :: fonc (déduplicatrice: *DéduplicatriceNom, nom
     nom = garantis_nom_valide(nom);
     diffère déloge(nom);
 
-    pour & déduplicatrice.paires_nom_et_compte {
+    pour * déduplicatrice.paires_nom_et_compte {
         si it.nom == nom {
             /* Le premier noeud n'a pas de suffixe, donc nous utilisons
              * le compte courant pour définir le suffixe. */
@@ -1244,8 +1244,8 @@ initialise_graphe :: fonc (graphe: *Graphe, table_noeuds: *[..]*TableVirtuelleNo
 /* Détruit les données du graphe, mais pas le graphe lui-même. */
 détruit_données_graphe :: fonc (graphe: *Graphe)
 {
-    déloge_tableau_et_ses_éléments(graphe.items, détruit_item);
-    déloge_tableau_et_ses_éléments(graphe.connexions);
+    déloge_tableau_et_ses_éléments(*graphe.items, détruit_item);
+    déloge_tableau_et_ses_éléments(*graphe.connexions);
     détruit_données_déduplicatrice(*graphe.noms_noeuds_existants);
     si graphe.sélection {
         /* Sélection peut être nulle pour les graphes de copier/coller. */
@@ -1703,38 +1703,38 @@ VisiteuseGraphe :: struct {
     noeuds_visités: [..]*Noeud;
 }
 
-détruit :: fonc (empl visiteuse: &VisiteuseGraphe)
+détruit :: fonc (empl visiteuse: *VisiteuseGraphe)
 {
     détruit(pile_de_noeuds);
     déloge(noeuds_visités);
 }
 
-ajoute_noeud_à_visiter :: fonc (empl visiteuse: &VisiteuseGraphe, noeud: *Noeud)
+ajoute_noeud_à_visiter :: fonc (empl visiteuse: *VisiteuseGraphe, noeud: *Noeud)
 {
     pile_de_noeuds.empile(noeud);
 }
 
-possède_noeuds_à_visiter :: fonc (empl visiteuse: &VisiteuseGraphe) -> bool
+possède_noeuds_à_visiter :: fonc (empl visiteuse: *VisiteuseGraphe) -> bool
 {
     retourne !pile_de_noeuds.est_vide();
 }
 
-dépile_noeud_à_visiter :: fonc (empl visiteuse: &VisiteuseGraphe) -> *Noeud
+dépile_noeud_à_visiter :: fonc (empl visiteuse: *VisiteuseGraphe) -> *Noeud
 {
     retourne pile_de_noeuds.dépile();
 }
 
-a_visité_noeud :: fonc (empl visiteuse: &VisiteuseGraphe, noeud: *Noeud) -> bool
+a_visité_noeud :: fonc (empl visiteuse: *VisiteuseGraphe, noeud: *Noeud) -> bool
 {
     retourne ensemble_possède(noeuds_visités, noeud);
 }
 
-marque_noeud_visité :: fonc (empl visiteuse: &VisiteuseGraphe, noeud: *Noeud)
+marque_noeud_visité :: fonc (empl visiteuse: *VisiteuseGraphe, noeud: *Noeud)
 {
     ensemble_ajoute(*noeuds_visités, noeud);
 }
 
-visite_graphe_en_aval :: fonc (visiteuse: &VisiteuseGraphe, rappel: fonc (noeud: *Noeud, prise: *PriseEntrée))
+visite_graphe_en_aval :: fonc (visiteuse: *VisiteuseGraphe, rappel: fonc (noeud: *Noeud, prise: *PriseEntrée))
 {
     tantque visiteuse.possède_noeuds_à_visiter() {
         noeud := visiteuse.dépile_noeud_à_visiter();
@@ -1768,14 +1768,14 @@ propage_nécessite_exécution :: fonc (graphe: *Graphe)
 {
     // imprime("propage_nécessite_exécution(graphe)\n")
     visiteuse: VisiteuseGraphe;
-    diffère détruit(visiteuse);
+    diffère détruit(*visiteuse);
 
     pour graphe.itère_noeuds() {
         saufsi it.nécessite_exécution {
             continue;
         }
 
-        visiteuse.ajoute_noeud_à_visiter(it);
+        ajoute_noeud_à_visiter(*visiteuse, it);
     }
 
     rappel_visite :: fonc (noeud: *Noeud, prise: *PriseEntrée)
@@ -1783,6 +1783,6 @@ propage_nécessite_exécution :: fonc (graphe: *Graphe)
         noeud.marque_amont_prise_modifié(prise);
     }
 
-    visiteuse.visite_graphe_en_aval(rappel_visite);
+    visite_graphe_en_aval(*visiteuse, rappel_visite);
 }
 

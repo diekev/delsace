@@ -263,7 +263,7 @@ définis_taille_tampon_id :: fonc (arbre: *ArbreDeDisposition, largeur: z32, hau
     arbre.tampon_id.hauteur = hauteur;
 
     arbre.tampon_id.fut_dessiné = faux;
-    tableau_redimensionne(arbre.tampon_id.données, largeur * hauteur);
+    tableau_redimensionne(*arbre.tampon_id.données, largeur * hauteur);
 }
 
 donne_tampon_id :: fonc (arbre: *ArbreDeDisposition) -> *TamponID
@@ -369,12 +369,12 @@ imprime_arbre :: fonc (enchaineuse: *Enchaineuse, racine: *Box, profondeur: n32)
     imprime_dans_enchaineuse(enchaineuse, " <%, %>", modèle.bordure.x, modèle.bordure.y);
 
     /* Cotations horizontales. */
-    cotations := donne_cotations_horizontales(modèle);
+    cotations := donne_cotations_horizontales(*modèle);
     ajoute_au_tampon(enchaineuse, " CH ");
     imprime_cotation(enchaineuse, *cotations);
 
     /* Cotations verticales. */
-    cotations = donne_cotations_verticales(modèle);
+    cotations = donne_cotations_verticales(*modèle);
     ajoute_au_tampon(enchaineuse, " CV ");
     imprime_cotation(enchaineuse, *cotations);
     ajoute_au_tampon(enchaineuse, "\n");
@@ -1099,7 +1099,7 @@ développe_variables :: fonc (propriétés: *PropriétésDeStyle, value: []Compo
         }
 
         parseuse := initialise_une_parseuse(it.function.value);
-        opt_variable := parse_variables_depuis_arguments(parseuse);
+        opt_variable := parse_variables_depuis_arguments(*parseuse);
         saufsi opt_variable.possède_valeur() {
             continue;
         }
@@ -1178,7 +1178,7 @@ calcule_valeur_propriété :: fonc (ctx: *ContexteCalculStyle, info: *InfoTypePr
         calcule_valeur_propriété_générique(déclaration, *ctx.propriétés.style, ctx);
     }
 
-    ctx.propriétés_calculées.active(info.id comme n16);
+    active(*ctx.propriétés_calculées, info.id comme n16);
 }
 
 /* Corrige display en prenant en compte position et float.
@@ -1826,7 +1826,7 @@ ModèleDeBoite :: struct {
     contenu: RectanglePosDim(r32);
 }
 
-décale_horizontalement :: fonc (modèle: &ModèleDeBoite, delta: r32)
+décale_horizontalement :: fonc (modèle: *ModèleDeBoite, delta: r32)
 {
     modèle.marge.x += delta;
     modèle.bordure.x += delta;
@@ -1834,7 +1834,7 @@ décale_horizontalement :: fonc (modèle: &ModèleDeBoite, delta: r32)
     modèle.contenu.x += delta;
 }
 
-décale_verticalement :: fonc (modèle: &ModèleDeBoite, delta: r32)
+décale_verticalement :: fonc (modèle: *ModèleDeBoite, delta: r32)
 {
     modèle.marge.y += delta;
     modèle.bordure.y += delta;
@@ -1842,7 +1842,7 @@ décale_verticalement :: fonc (modèle: &ModèleDeBoite, delta: r32)
     modèle.contenu.y += delta;
 }
 
-définis_hauteur_contenu :: fonc (modèle: &ModèleDeBoite, hauteur: r32)
+définis_hauteur_contenu :: fonc (modèle: *ModèleDeBoite, hauteur: r32)
 {
     modèle.marge.hauteur = hauteur;
     modèle.bordure.hauteur = hauteur;
@@ -1850,7 +1850,7 @@ définis_hauteur_contenu :: fonc (modèle: &ModèleDeBoite, hauteur: r32)
     modèle.rembourrage.hauteur = hauteur;
 }
 
-incrémente_hauteur_contenu :: fonc (modèle: &ModèleDeBoite, hauteur: r32)
+incrémente_hauteur_contenu :: fonc (modèle: *ModèleDeBoite, hauteur: r32)
 {
     modèle.marge.hauteur += hauteur;
     modèle.bordure.hauteur += hauteur;
@@ -1858,7 +1858,7 @@ incrémente_hauteur_contenu :: fonc (modèle: &ModèleDeBoite, hauteur: r32)
     modèle.rembourrage.hauteur += hauteur;
 }
 
-définis_largeur_contenu :: fonc (modèle: &ModèleDeBoite, largeur: r32)
+définis_largeur_contenu :: fonc (modèle: *ModèleDeBoite, largeur: r32)
 {
     modèle.marge.largeur = largeur;
     modèle.bordure.largeur = largeur;
@@ -1866,12 +1866,12 @@ définis_largeur_contenu :: fonc (modèle: &ModèleDeBoite, largeur: r32)
     modèle.rembourrage.largeur = largeur;
 }
 
-définis_largeur :: fonc (modèle: &ModèleDeBoite, largeur: r32)
+définis_largeur :: fonc (modèle: *ModèleDeBoite, largeur: r32)
 {
     modèle.contenu.largeur = largeur;
 }
 
-définis_hauteur :: fonc (modèle: &ModèleDeBoite, hauteur: r32)
+définis_hauteur :: fonc (modèle: *ModèleDeBoite, hauteur: r32)
 {
     modèle.contenu.hauteur = hauteur;
 }
@@ -1903,7 +1903,7 @@ CotationModèleDeBoite :: struct {
     marge_fin: r32;
 }
 
-donne_cotations_horizontales :: fonc (modèle: &ModèleDeBoite) -> CotationModèleDeBoite
+donne_cotations_horizontales :: fonc (modèle: *ModèleDeBoite) -> CotationModèleDeBoite
 {
     résultat: CotationModèleDeBoite;
     résultat.marge_début = modèle.bordure.x - modèle.marge.x;
@@ -1916,7 +1916,7 @@ donne_cotations_horizontales :: fonc (modèle: &ModèleDeBoite) -> CotationModè
     retourne résultat;
 }
 
-donne_cotations_verticales :: fonc (modèle: &ModèleDeBoite) -> CotationModèleDeBoite
+donne_cotations_verticales :: fonc (modèle: *ModèleDeBoite) -> CotationModèleDeBoite
 {
     résultat: CotationModèleDeBoite;
     résultat.marge_début = modèle.bordure.y - modèle.marge.y;
@@ -2290,8 +2290,8 @@ définis_position :: fonc (box: *Box, x: r32, y: r32)
 {
     dx := x - box.modèle_de_boite.marge.x;
     dy := y - box.modèle_de_boite.marge.y;
-    décale_horizontalement(box.modèle_de_boite, dx);
-    décale_verticalement(box.modèle_de_boite, dy);
+    décale_horizontalement(*box.modèle_de_boite, dx);
+    décale_verticalement(*box.modèle_de_boite, dy);
 }
 
 décale_vers_position :: fonc (box: *Box, x: r32, y: r32)
@@ -2303,8 +2303,8 @@ décale_vers_position :: fonc (box: *Box, x: r32, y: r32)
 
 décale :: fonc (box: *Box, x: r32, y: r32)
 {
-    décale_horizontalement(box.modèle_de_boite, x);
-    décale_verticalement(box.modèle_de_boite, y);
+    décale_horizontalement(*box.modèle_de_boite, x);
+    décale_verticalement(*box.modèle_de_boite, y);
     décale_contenu(box, x, y);
 }
 
@@ -2434,22 +2434,22 @@ crée_containing_block_pour_rembourrage :: fonc (box: *Box) -> ContainingBlock
     retourne résultat;
 }
 
-donne_x :: fonc (bloc: &ContainingBlock) -> r32
+donne_x :: fonc (bloc: *ContainingBlock) -> r32
 {
     retourne bloc.rect.x;
 }
 
-donne_y :: fonc (bloc: &ContainingBlock) -> r32
+donne_y :: fonc (bloc: *ContainingBlock) -> r32
 {
     retourne bloc.rect.y;
 }
 
-donne_largeur :: fonc (bloc: &ContainingBlock) -> r32
+donne_largeur :: fonc (bloc: *ContainingBlock) -> r32
 {
     retourne bloc.rect.largeur;
 }
 
-donne_hauteur :: fonc (bloc: &ContainingBlock) -> r32
+donne_hauteur :: fonc (bloc: *ContainingBlock) -> r32
 {
     retourne bloc.rect.hauteur;
 }
@@ -2650,10 +2650,10 @@ ajoute_ligne :: fonc (lignes_tenante: *LignesTenante, ctx: *ContexteDeFormattage
     retourne résultat;
 }
 
-ajoute_fragment :: fonc (lignes_tenante: *LignesTenante, fragment: &Fragment) -> z64
+ajoute_fragment :: fonc (lignes_tenante: *LignesTenante, fragment: *Fragment) -> z64
 {
     résultat := lignes_tenante.fragments.taille;
-    tableau_ajoute(*lignes_tenante.fragments, fragment);
+    tableau_ajoute(*lignes_tenante.fragments, mémoire(fragment));
     retourne résultat;
 }
 
@@ -2756,7 +2756,7 @@ ajoute_fragment :: fonc (empl enligneuse: *Enligneuse, box: *Box, indice_début:
     ligne_courante.largeur_courante += largeur;
     ligne_courante.garantis_hauteur_minimale(hauteur);
 
-    ligne_courante.dernier_fragment = ajoute_fragment(lignes_tenante, fragment);
+    ligne_courante.dernier_fragment = ajoute_fragment(lignes_tenante, *fragment);
 
     résultat := ligne_courante.dernier_fragment;
 
@@ -2975,7 +2975,7 @@ block_box_sur_mesure :: fonc (base: *Box, ctx: *ContexteDeFormattage, mode: Mode
 
     /* À FAIRE : utilise les bonnes formules.
      * https://www.w3.org/TR/2011/REC-CSS2-20110607/visudet.html#Computing_widths_and_margins */
-    args := crée_arguments_dimensionnement_largeur(ctx, box, containing_block, personnalisation, mode);
+    args := crée_arguments_dimensionnement_largeur(ctx, box, *containing_block, personnalisation, mode);
     calcule_largeur_et_marges(*args);
     état_calcul_hauteur := calcule_hauteur_et_marges(*args);
 
@@ -3110,7 +3110,7 @@ inline_box_sur_mesure :: fonc (base: *Box, ctx: *ContexteDeFormattage, mode: Mod
 {
     box := base comme *InlineBox;
     containing_block := donne_containing_block(base, ctx);
-    args := crée_arguments_dimensionnement_largeur(ctx, box, containing_block, personnalisation, mode);
+    args := crée_arguments_dimensionnement_largeur(ctx, box, *containing_block, personnalisation, mode);
     calcule_largeur_et_marges(*args);
     état_calcul_hauteur := calcule_hauteur_et_marges(*args);
 
@@ -3127,7 +3127,7 @@ inline_box_sur_divise_en_lignes :: fonc (base: *Box, enligneuse: *Enligneuse, mo
     ctx := enligneuse.ctx;
     box := base comme *InlineBox;
     containing_block := donne_containing_block(box, ctx);
-    args := crée_arguments_dimensionnement_largeur(ctx, box, containing_block, PersonnalisationCotation(), mode);
+    args := crée_arguments_dimensionnement_largeur(ctx, box, *containing_block, PersonnalisationCotation(), mode);
     calcule_largeur_et_marges(*args);
     _ := calcule_hauteur_et_marges(*args);
 
@@ -3329,7 +3329,7 @@ text_box_sur_divise_en_lignes :: fonc (base: *Box, enligneuse: *Enligneuse, mode
     fonte := détermine_fonte(box, ctx);
     métriques := fonte.donne_métriques_fonte();
 
-    définis_hauteur_contenu(box.modèle_de_boite, métriques.donne_hauteur_ligne());
+    définis_hauteur_contenu(*box.modèle_de_boite, métriques.donne_hauteur_ligne());
 
     /* "On a non-replaced inline element, line-height specifies the height that is used
      * in the calculation of the line box height."
@@ -3394,21 +3394,21 @@ traite_espaces_blanches :: fonc (box: *TextBox)
     si white_space == PROP_normal || white_space == PROP_nowrap || white_space == PROP_pre_line {
         // 1. Any sequence of collapsible spaces and tabs immediately preceding or following a segment
         //    break is removed.
-        collapse_séquences_d_espaces_blanches_autour_bris_segments(box.fragments);
+        collapse_séquences_d_espaces_blanches_autour_bris_segments(*box.fragments);
 
         // 2. Collapsible segment breaks are transformed for rendering according to the segment break
         //    transformation rules.
-        collapse_bris_segments(box.fragments, white_space);
+        collapse_bris_segments(*box.fragments, white_space);
 
         // 3. Every collapsible tab is converted to a collapsible space (U+0020).
-        convertis_tabulations_en_espaces(box.fragments);
+        convertis_tabulations_en_espaces(*box.fragments);
 
         // 4. Any collapsible space immediately following another collapsible space—​even one outside
         //    the boundary of the inline containing that space, provided both spaces are within the
         //    same inline formatting context—​is collapsed to have zero advance width. (It is invisible,
         //    but retains its soft wrap opportunity, if any.)
         // À FAIRE : collapse également (entre les boxes) lors de la disposition
-        collapse_espaces_consécutives(box.fragments);
+        collapse_espaces_consécutives(*box.fragments);
     }
     sinon {
         assert(white_space == PROP_wrap || white_space == PROP_pre || white_space == PROP_pre_wrap || white_space == PROP_break_spaces);
@@ -3462,7 +3462,7 @@ fragmente_texte_avec_espaces_blanches_ascii :: fonc (chn: ChaineUTF16, fragments
     }
 }
 
-collapse_séquences_d_espaces_blanches_autour_bris_segments :: fonc (fragments: &[..]FragmentTexte)
+collapse_séquences_d_espaces_blanches_autour_bris_segments :: fonc (fragments: *[..]FragmentTexte)
 {
     début := fragments.pointeur;
     fin := fragments.pointeur + fragments.taille;
@@ -3505,7 +3505,7 @@ collapse_séquences_d_espaces_blanches_autour_bris_segments :: fonc (fragments: 
 }
 
 /* https://drafts.csswg.org/css-text/#line-break-transform */
-collapse_bris_segments :: fonc (fragments: &[..]FragmentTexte, white_space: CSSOMString)
+collapse_bris_segments :: fonc (fragments: *[..]FragmentTexte, white_space: CSSOMString)
 {
     // When white-space is pre, pre-wrap, break-spaces, or pre-line, segment breaks are
     // not collapsible and are instead transformed into a preserved line feed (U+000A).
@@ -3555,7 +3555,7 @@ collapse_bris_segments :: fonc (fragments: &[..]FragmentTexte, white_space: CSSO
     }
 }
 
-convertis_tabulations_en_espaces :: fonc (fragments: &[..]FragmentTexte)
+convertis_tabulations_en_espaces :: fonc (fragments: *[..]FragmentTexte)
 {
     chn_espace := crée_chaine_utf16_unique(" ").donne_chaine_utf16();
     début := fragments.pointeur;
@@ -3569,7 +3569,7 @@ convertis_tabulations_en_espaces :: fonc (fragments: &[..]FragmentTexte)
     }
 }
 
-collapse_espaces_consécutives :: fonc (fragments: &[..]FragmentTexte)
+collapse_espaces_consécutives :: fonc (fragments: *[..]FragmentTexte)
 {
     début := fragments.pointeur;
     fin := fragments.pointeur + fragments.taille;
@@ -3677,7 +3677,7 @@ replaced_box_sur_mesure :: fonc (base: *Box, ctx: *ContexteDeFormattage, mode: M
         personnalisation_boite.outrepas_hauteur = *outrepas_hauteur;
     }
 
-    args := crée_arguments_dimensionnement_largeur(ctx, box, containing_block, personnalisation_boite, mode);
+    args := crée_arguments_dimensionnement_largeur(ctx, box, *containing_block, personnalisation_boite, mode);
 
     calcule_largeur_et_marges(*args);
     _ := calcule_hauteur_et_marges(*args);
@@ -3832,17 +3832,17 @@ donne_inline_size_pour_text_input :: fonc (box: *ReplacedBox) -> r32
     saufsi size.est_vide() {
         opt_value := HTML.parse_a_non_negative_integer(size);
         si opt_value.possède_valeur() {
-            retourne convert_a_character_width_to_pixels(opt_value.Quelque comme r32, métriques);
+            retourne convert_a_character_width_to_pixels(opt_value.Quelque comme r32, *métriques);
         }
     }
 
     // 3. Otherwise, return the value obtained from applying the converting a character width to
     // pixels algorithm to the number 20.
-    retourne convert_a_character_width_to_pixels(20.0, métriques);
+    retourne convert_a_character_width_to_pixels(20.0, *métriques);
 }
 
 /* https://html.spec.whatwg.org/multipage/rendering.html#converting-a-character-width-to-pixels */
-convert_a_character_width_to_pixels :: fonc (size: r32, métriques: &MétriquesFonte) -> r32
+convert_a_character_width_to_pixels :: fonc (size: r32, métriques: *MétriquesFonte) -> r32
 {
     retourne (size - 1.0) * métriques.largeur_moyenne + métriques.largeur_maximale;
 }
@@ -4091,10 +4091,10 @@ donne_select_labels_width :: fonc (box: *SelectBox, ctx: *ContexteDeFormattage) 
     }
 
     fragmente_texte_avec_espaces_blanches_ascii(box.texte, *box.fragments);
-    collapse_séquences_d_espaces_blanches_autour_bris_segments(box.fragments);
-    collapse_bris_segments(box.fragments, PROP_normal);
-    convertis_tabulations_en_espaces(box.fragments);
-    collapse_espaces_consécutives(box.fragments);
+    collapse_séquences_d_espaces_blanches_autour_bris_segments(*box.fragments);
+    collapse_bris_segments(*box.fragments, PROP_normal);
+    convertis_tabulations_en_espaces(*box.fragments);
+    collapse_espaces_consécutives(*box.fragments);
 
     fonte := détermine_fonte(box, ctx);
 
@@ -4198,7 +4198,7 @@ table_wrapper_box_sur_mesure :: fonc (base: *Box, ctx: *ContexteDeFormattage, mo
 
     containing_block := donne_containing_block(base, ctx);
 
-    args := crée_arguments_dimensionnement_largeur(ctx, box, containing_block, personnalisation, mode);
+    args := crée_arguments_dimensionnement_largeur(ctx, box, *containing_block, personnalisation, mode);
     calcule_largeur_et_marges(*args);
     _ := calcule_hauteur_et_marges(*args);
 
@@ -4215,7 +4215,7 @@ table_wrapper_box_sur_mesure :: fonc (base: *Box, ctx: *ContexteDeFormattage, mo
         largeur_final := crée_outrepas_pour_coter_contenu(box.table.modèle_de_boite.contenu.largeur);
         personnalisation_ := personnalisation;
         personnalisation_.outrepas_largeur = *largeur_final;
-        args = crée_arguments_dimensionnement_largeur(ctx, box, containing_block, personnalisation_, mode);
+        args = crée_arguments_dimensionnement_largeur(ctx, box, *containing_block, personnalisation_, mode);
         calcule_largeur_et_marges(*args);
 
         /* Si les marges ont changés la position, nous devons décaler les descendants. */
@@ -4229,7 +4229,7 @@ table_wrapper_box_sur_mesure :: fonc (base: *Box, ctx: *ContexteDeFormattage, mo
         hauteur_finale := crée_outrepas_pour_coter_contenu(box.table.propriétés.donne_valeur_utilisée(IDPropriété.Height).donne_pixels());
         personnalisation_ := personnalisation;
         personnalisation_.outrepas_hauteur = *hauteur_finale;
-        args = crée_arguments_dimensionnement_hauteur(ctx, box, containing_block, personnalisation_);
+        args = crée_arguments_dimensionnement_hauteur(ctx, box, *containing_block, personnalisation_);
         _ := calcule_hauteur_et_marges(*args);
     }
 }

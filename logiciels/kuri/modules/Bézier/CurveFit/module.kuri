@@ -27,7 +27,7 @@ importe SysFichier;
         fichiers := ["intern/curve_fit_corners_detect.c", "intern/curve_fit_cubic.c", "intern/curve_fit_cubic_refit.c", "intern/generic_heap.c"];
 
         fichiers_objets: [..]chaine;
-        diffère déloge_tableau_et_ses_éléments(fichiers_objets);
+        diffère déloge_tableau_et_ses_éléments(*fichiers_objets);
 
         pour fichiers {
             chemin := CheminFichier(it);

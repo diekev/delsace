@@ -158,7 +158,7 @@ parse_css_style_declaration :: fonc (texte: chaine) -> *CSSStyleDeclaration
 
     parseuse_decl := initialise_une_parseuse(components);
 
-    content := consomme_une_liste_de_déclarations(parseuse_decl);
+    content := consomme_une_liste_de_déclarations(*parseuse_decl);
     si content.decls.taille == 0 {
         imprimeln("Impossible de préparser la déclaration : %", texte);
         exit(1);

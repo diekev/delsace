@@ -135,7 +135,7 @@ crée_hash :: fonc (capacité: z32) -> *Hash
     h := loge(Hash);
     h.capacité = 0;
 
-    tableau_redimensionne(h.noeuds, capacité);
+    tableau_redimensionne(*h.noeuds, capacité);
 
     retourne h;
 }

@@ -95,6 +95,12 @@ définis_valeur_adresse :: fonc (attribut: *AttributDIE, adresse: n64)
     attribut.type = TypeValeurAttributDIE.ADRESSE;
 }
 
+donne_adresse :: fonc (empl attribut: *AttributDIE) -> n64
+{
+    assert(type == TypeValeurAttributDIE.ADRESSE);
+    retourne table.adresses[indice_valeur];
+}
+
 définis_valeur_chaine :: fonc (attribut: *AttributDIE, texte: chaine)
 {
     table := attribut.table;
@@ -103,12 +109,24 @@ définis_valeur_chaine :: fonc (attribut: *AttributDIE, texte: chaine)
     attribut.type = TypeValeurAttributDIE.CHAINE;
 }
 
+donne_chaine :: fonc (empl attribut: *AttributDIE) -> chaine
+{
+    assert(type == TypeValeurAttributDIE.CHAINE);
+    retourne table.chaines[indice_valeur];
+}
+
 définis_valeur_constante_entière :: fonc (attribut: *AttributDIE, constante: n64)
 {
     table := attribut.table;
     attribut.indice_valeur = table.constantes_entières.taille;
     tableau_ajoute(*table.constantes_entières, constante);
     attribut.type = TypeValeurAttributDIE.CONSTANTE_ENTIÈRE;
+}
+
+donne_constante_entière :: fonc (empl attribut: *AttributDIE) -> n64
+{
+    assert(type == TypeValeurAttributDIE.CONSTANTE_ENTIÈRE);
+    retourne table.constantes_entières[indice_valeur];
 }
 
 définis_valeur_constante_implicite :: fonc (attribut: *AttributDIE, constante: z64)
@@ -125,6 +143,12 @@ définis_valeur_décalage_section :: fonc (attribut: *AttributDIE, décalage: n6
     attribut.indice_valeur = table.décalages_sections.taille;
     tableau_ajoute(*table.décalages_sections, DécalageSection(décalage, section));
     attribut.type = TypeValeurAttributDIE.DÉCALAGE_SECTION;
+}
+
+donne_décalage_section :: fonc (empl attribut: *AttributDIE) -> DécalageSection
+{
+    assert(type == TypeValeurAttributDIE.DÉCALAGE_SECTION);
+    retourne table.décalages_sections[indice_valeur];
 }
 
 définis_valeur_référence :: fonc (attribut: *AttributDIE, référence: n64)
@@ -1074,6 +1098,21 @@ donne_file_name :: fonc (table: *TableDebugLineUnité, indice: n64) -> chaine
     retourne file_entries[indice].path_name;
 }
 
+donne_dossier_pour_fichier :: fonc (table: *TableDebugLineUnité, indice: n64) -> chaine
+{
+    file_entries := donne_file_entries(table.table, table);
+    si file_entries.taille == 0 && indice == 0 {
+        retourne "";
+    }
+
+    directories := donne_include_directories(table.table, table);
+    si directories.taille == 0 {
+        retourne "";
+    }
+
+    retourne directories[file_entries[indice].directory];
+}
+
 FileEntryFormat :: struct {
     content_type: n64; // DW_LNCT_*
     form: n64; // DW_FORM_*
@@ -1098,7 +1137,12 @@ donne_file_entries :: fonc (table: *TableDebugLine, table_unité: *TableDebugLin
     retourne donne_tranche(table.file_entries, table_unité.file_names);
 }
 
-parse_table_debug_line :: fonc (fichier: *FichierELF) -> *TableDebugLine
+donne_include_directories :: fonc (table: *TableDebugLine, table_unité: *TableDebugLineUnité) -> []chaine
+{
+    retourne donne_tranche(table.chaines, table_unité.include_directories);
+}
+
+parse_table_debug_line :: fonc (fichier: *FichierELF, applique_réadressage := vrai) -> *TableDebugLine
 {
     résultat: *TableDebugLine;
 
@@ -1106,6 +1150,10 @@ parse_table_debug_line :: fonc (fichier: *FichierELF) -> *TableDebugLine
     section_debug_line_str := trouve_section(fichier, ".debug_line_str");
 
     si section_debug_line {
+        si applique_réadressage {
+            applique_réadressage_sur_section(fichier, section_debug_line);
+        }
+
         données_section_debug_line := donne_données_section(fichier, section_debug_line);
 
         debug_line := crée_flux_octets(données_section_debug_line);
