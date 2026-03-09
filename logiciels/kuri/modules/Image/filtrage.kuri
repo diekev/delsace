@@ -164,7 +164,7 @@ donne_table_filtrage_image :: fonc (type: Type_Filtrage_Image, rayon: r32) -> Ta
     taille := rayon comme z32;
 
     taille_table := 2 * taille + 1;
-    tableau_redimensionne(table, taille_table);
+    tableau_redimensionne(*table, taille_table);
 
     fac := si rayon > 0.0 { 1.0 / rayon; };
     somme := 0.0;

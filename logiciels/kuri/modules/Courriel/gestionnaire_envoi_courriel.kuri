@@ -28,7 +28,7 @@ HistoriqueEnvoiCourriel :: struct {
     messages: [..]MessageSMTP;
 }
 
-détruit_historique :: fonc (historique: &HistoriqueEnvoiCourriel)
+détruit_historique :: fonc (historique: *HistoriqueEnvoiCourriel)
 {
     pour historique.messages {
         discr it {
@@ -49,14 +49,14 @@ détruit_historique :: fonc (historique: &HistoriqueEnvoiCourriel)
     déloge(historique.messages);
 }
 
-ajoute_message_cliente :: fonc (historique: &HistoriqueEnvoiCourriel, texte: chaine)
+ajoute_message_cliente :: fonc (historique: *HistoriqueEnvoiCourriel, texte: chaine)
 {
     // imprime("C: %", texte)
     message : MessageSMTP = MessageClienteSMTP(copie_chaine(texte));
     tableau_ajoute(*historique.messages, message);
 }
 
-ajoute_message_serveuse :: fonc (historique: &HistoriqueEnvoiCourriel, texte: chaine)
+ajoute_message_serveuse :: fonc (historique: *HistoriqueEnvoiCourriel, texte: chaine)
 {
     // imprime("S: %", texte)
     message : MessageSMTP = MessageServeuseSMTP(copie_chaine(texte));
@@ -73,7 +73,7 @@ GestionnaireEnvoiCourriel :: struct {
     boucle_nous_appartient: bool;
 }
 
-détruit_gestionnaire :: fonc (gestionnaire: &GestionnaireEnvoiCourriel)
+détruit_gestionnaire :: fonc (gestionnaire: *GestionnaireEnvoiCourriel)
 {
     détruit_contexte(gestionnaire.ctx);
 
@@ -141,7 +141,7 @@ détruit_données_prise :: fonc (données: *DonnéesPriseEnvoiCourriel)
     détruit_historique(données.historique);
 }
 
-envoie_courriel :: fonc (gestionnaire: &GestionnaireEnvoiCourriel, courriel: Courriel) -> bool
+envoie_courriel :: fonc (gestionnaire: *GestionnaireEnvoiCourriel, courriel: Courriel) -> bool
 {
     uri := uri_depuis_configuration(gestionnaire.config);
     prise := crée_prise_connexion(gestionnaire.ctx, uri, DonnéesPriseEnvoiCourriel);

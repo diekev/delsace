@@ -80,7 +80,7 @@ crée_signataire :: fonc (clés_secrètes: [..]chaine, sel: chaine, séparateur:
 }
 
 /* Crée une signature pour le message passé. */
-crée_signature :: fonc (signataire: &Signataire, message: chaine) -> chaine
+crée_signature :: fonc (signataire: *Signataire, message: chaine) -> chaine
 {
     clé := signataire.dérive_clé(signataire.clés_secrètes[signataire.clés_secrètes.taille - 1]);
     sig := signataire.algorithme.crée_signature(clé, message);
@@ -88,13 +88,13 @@ crée_signature :: fonc (signataire: &Signataire, message: chaine) -> chaine
 }
 
 /* Signe un message. */
-signe :: fonc (signataire: &Signataire, message: chaine) -> chaine
+signe :: fonc (signataire: *Signataire, message: chaine) -> chaine
 {
     retourne enchaine(message, signataire.séparateur, signataire.crée_signature(message));
 }
 
 /* Dérive une clé pour la clé_secrète donnée. */
-dérive_clé :: fonc (signataire: &Signataire, clé_secrète: chaine) -> chaine
+dérive_clé :: fonc (signataire: *Signataire, clé_secrète: chaine) -> chaine
 {
     hmac := crée_hmac(clé_secrète);
     ajourne(hmac, signataire.sel);
@@ -104,7 +104,7 @@ dérive_clé :: fonc (signataire: &Signataire, clé_secrète: chaine) -> chaine
 }
 
 /* Retourne vrai si la signature vient de ce Signataire, selon ses clés_secrètes, retourne faux le cas échéant. */
-vérifie_signature :: fonc (signataire: &Signataire, valeur: chaine, signature: chaine) -> bool
+vérifie_signature :: fonc (signataire: *Signataire, valeur: chaine, signature: chaine) -> bool
 {
     sig := signataire.codec_base_64.décode(signature);
 
@@ -122,7 +122,7 @@ vérifie_signature :: fonc (signataire: &Signataire, valeur: chaine, signature: 
 /* Dissigne un message depuis une valeur_signée en séparant la valeur_signée en un message et une signature.
  * Retourne une ErreurSignature si le séparateur n'est pas trouvable, ou si la signature ne peut être vérifiée.
  * Retourne le message extrait sinon. */
-dissigne :: fonc (signataire: &Signataire, valeur_signée: chaine) -> ErreurSignature | chaine
+dissigne :: fonc (signataire: *Signataire, valeur_signée: chaine) -> ErreurSignature | chaine
 {
     si !valeur_signée.trouve_motif_dans_chaine(signataire.séparateur) {
         retourne ErreurSignature.SéparateurIntrouvable;
@@ -144,7 +144,7 @@ dissigne :: fonc (signataire: &Signataire, valeur_signée: chaine) -> ErreurSign
 }
 
 /* Retourne vrai si la valeur_signée fut signée par ce Signataire. */
-valide :: fonc (signataire: &Signataire, valeur_signée: chaine) -> bool
+valide :: fonc (signataire: *Signataire, valeur_signée: chaine) -> bool
 {
     valeur := tente signataire.dissigne(valeur_signée) piège err {
         retourne faux;
@@ -171,7 +171,7 @@ crée_signataire_horodoté :: fonc (clés_secrètes: [..]chaine, sel: chaine, s�
 }
 
 /* Signe un message en lui ajoutant le temps de création de celui-ci. */
-signe :: fonc (signataire: &SignataireHorodoté, valeur: chaine) -> chaine
+signe :: fonc (signataire: *SignataireHorodoté, valeur: chaine) -> chaine
 {
     // génère un Intanstané
     temps := maintenant_précis().millisecondes();
@@ -191,7 +191,7 @@ signe :: fonc (signataire: &SignataireHorodoté, valeur: chaine) -> chaine
 /* Dissigne le message d'une valeur_signée en vérifiant que le message fut généré dans un laps de temps inférieur à âge_max, en millisecondes.
  * Retourne une ErreurSignature si la valeur_signée ne vient pas de ce SignataireHorodoté ou est périmée.
  * Retourne le message extrait sinon. */
-dissigne :: fonc (signataire: &SignataireHorodoté, valeur_signée: chaine, âge_max: z64) -> ErreurSignature | chaine
+dissigne :: fonc (signataire: *SignataireHorodoté, valeur_signée: chaine, âge_max: z64) -> ErreurSignature | chaine
 {
     valeur_ := tente signataire.signataire.dissigne(valeur_signée) piège err {
         retourne err;
@@ -226,7 +226,7 @@ dissigne :: fonc (signataire: &SignataireHorodoté, valeur_signée: chaine, âge
 }
 
 /* Retourne vrai si la valeur_signée fut générée par ce SignataireHorodoté et que le message n'est pas périmé. */
-valide :: fonc (signataire: &SignataireHorodoté, valeur_signée: chaine, âge_max: z64) -> bool
+valide :: fonc (signataire: *SignataireHorodoté, valeur_signée: chaine, âge_max: z64) -> bool
 {
     valeur := tente signataire.dissigne(valeur_signée, âge_max) piège err {
         retourne faux;

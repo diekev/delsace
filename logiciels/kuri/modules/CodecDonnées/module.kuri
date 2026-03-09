@@ -269,11 +269,11 @@ encode_par_différence_en_place :: fonc (données: []$T)
 {
     précédent: T;
 
-    pour & données {
+    pour * données {
         temp := précédent;
-        précédent = it;
+        précédent = mémoire(it);
 
-        it -= temp;
+        mémoire(it) -= temp;
     }
 }
 
@@ -285,7 +285,7 @@ encode_par_différence :: fonc (données: []$T) -> [..]T
         retourne résultat;
     }
 
-    tableau_redimensionne(résultat, données.taille);
+    tableau_redimensionne(*résultat, données.taille);
 
     précédent: T;
 
@@ -301,9 +301,9 @@ décode_par_différence_en_place :: fonc (données: []$T)
 {
     précédent: T;
 
-    pour & données {
-        it += précédent;
-        précédent = it;
+    pour * données {
+        mémoire(it) += précédent;
+        précédent = mémoire(it);
     }
 }
 
@@ -315,7 +315,7 @@ décode_par_différence :: fonc (données: []$T) -> [..]T
         retourne résultat;
     }
 
-    tableau_redimensionne(résultat, données.taille);
+    tableau_redimensionne(*résultat, données.taille);
 
     précédent: T;
 
