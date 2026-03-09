@@ -908,8 +908,8 @@ test_modification_tableau_boucle :: fonc () -> bool
 {
     t := [ 0, 1, 2 ];
 
-    pour & t {
-        it += 1;
+    pour * t {
+        mémoire(it) += 1;
     }
 
     retourne t[0] == 1 && t[1] == 2 && t[2] == 3;

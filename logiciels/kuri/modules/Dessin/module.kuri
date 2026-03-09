@@ -31,7 +31,7 @@ redimensionne_tampon_de_rendu :: fonc (tampon: *TamponDeRendu, rect: RectanglePo
 {
     tampon.rect = rect;
     tampon.rect_ciseau = rect;
-    tableau_redimensionne(tampon.données, rect.hauteur * rect.largeur);
+    tableau_redimensionne(*tampon.données, rect.hauteur * rect.largeur);
 }
 
 définis_rect_ciseau :: fonc (tampon: *TamponDeRendu, rect: RectanglePosDim(z32))
@@ -180,7 +180,7 @@ dessine_ligne :: fonc (tampon_de_rendu: *TamponDeRendu, ligne: Ligne(z32), coule
     si x_min == x_max {
         /* Ligne(z32) verticale. */
         si y_min > y_max {
-            permute(y_min, y_max);
+            permute(*y_min, *y_max);
         }
 
         dest := tampon_de_rendu.données.pointeur + y_min * tampon_de_rendu.rect.largeur + x_min;
@@ -194,7 +194,7 @@ dessine_ligne :: fonc (tampon_de_rendu: *TamponDeRendu, ligne: Ligne(z32), coule
     sinon si y_min == y_max {
         /* Ligne(z32) horizontale. */
         si x_min > x_max {
-            permute(x_min, x_max);
+            permute(*x_min, *x_max);
         }
 
         dest := tampon_de_rendu.données.pointeur + y_min * tampon_de_rendu.rect.largeur + x_min;

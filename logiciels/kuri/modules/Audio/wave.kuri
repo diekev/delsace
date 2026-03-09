@@ -48,7 +48,7 @@ EntêteWave :: struct {
     type_riff := ID_CHUNK_WAVE_PB;
 }
 
-écris :: fonc (autrice: *AutriceFichierWave, entête: &EntêteWave)
+écris :: fonc (autrice: *AutriceFichierWave, entête: *EntêteWave)
 {
     autrice.écris(entête.chunk);
     autrice.écris(entête.type_riff);
@@ -142,13 +142,13 @@ calcule_bits_moyens_par_secondes :: fonc (chunk: ChunkFormatWave) -> n32
 }
 
 /* Donne le nombre d'échantillons pour la durée en secondes. */
-donne_nombre_échantillons_pour_durée :: fonc (format: &ChunkFormatWave, durée: r64) -> n32
+donne_nombre_échantillons_pour_durée :: fonc (format: *ChunkFormatWave, durée: r64) -> n32
 {
     résultat := format.échantillons_secondes * format.nombre_cannaux;
     retourne ((résultat comme r64 * durée + 0.5) comme n64) comme n32;
 }
 
-écris :: fonc (autrice: *AutriceFichierWave, chunk: &ChunkFormatWave)
+écris :: fonc (autrice: *AutriceFichierWave, chunk: *ChunkFormatWave)
 {
     autrice.écris(chunk.chunk);
     autrice.écris(chunk.tag_format);
@@ -172,7 +172,7 @@ ChunkDonnéesWave :: struct {
     données: []z16;
 }
 
-écris :: fonc (autrice: *AutriceFichierWave, chunk: &ChunkDonnéesWave)
+écris :: fonc (autrice: *AutriceFichierWave, chunk: *ChunkDonnéesWave)
 {
     autrice.écris(chunk.chunk);
     autrice.écris(chunk.données);
