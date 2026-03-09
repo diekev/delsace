@@ -220,13 +220,13 @@ rvb_vers_tsv :: fonc (couleur: CouleurRVBA) -> CouleurTSV
     k : r64 = 0.0;
 
     si v < b {
-        permute(v, b);
+        permute(*v, *b);
         k = -1.0;
     }
 
     min_vb := b;
     si r < v {
-        permute(r, v);
+        permute(*r, *v);
         k = -2.0 / 6.0 - k;
         min_vb = min(v, b);
     }

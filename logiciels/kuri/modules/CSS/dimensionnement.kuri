@@ -312,12 +312,12 @@ ArgumentsDimensionnement :: struct {
     mode: ModeDeFormattage;
 }
 
-crée_arguments_dimensionnement_largeur :: fonc (ctx: *ContexteDeFormattage, box: *Box, containing_block: &ContainingBlock, personnalisation: PersonnalisationCotation, mode: ModeDeFormattage) -> ArgumentsDimensionnement
+crée_arguments_dimensionnement_largeur :: fonc (ctx: *ContexteDeFormattage, box: *Box, containing_block: *ContainingBlock, personnalisation: PersonnalisationCotation, mode: ModeDeFormattage) -> ArgumentsDimensionnement
 {
     résultat: ArgumentsDimensionnement;
     résultat.ctx = ctx;
     résultat.box = box;
-    résultat.containing_block = containing_block;
+    résultat.containing_block = mémoire(containing_block);
     si personnalisation.outrepas_largeur {
         résultat.outrepas_largeur = mémoire(personnalisation.outrepas_largeur);
     }
@@ -327,12 +327,12 @@ crée_arguments_dimensionnement_largeur :: fonc (ctx: *ContexteDeFormattage, box
     retourne résultat;
 }
 
-crée_arguments_dimensionnement_hauteur :: fonc (ctx: *ContexteDeFormattage, box: *Box, containing_block: &ContainingBlock, personnalisation: PersonnalisationCotation) -> ArgumentsDimensionnement
+crée_arguments_dimensionnement_hauteur :: fonc (ctx: *ContexteDeFormattage, box: *Box, containing_block: *ContainingBlock, personnalisation: PersonnalisationCotation) -> ArgumentsDimensionnement
 {
     résultat: ArgumentsDimensionnement;
     résultat.ctx = ctx;
     résultat.box = box;
-    résultat.containing_block = containing_block;
+    résultat.containing_block = mémoire(containing_block);
     si personnalisation.outrepas_hauteur {
         résultat.outrepas_hauteur = mémoire(personnalisation.outrepas_hauteur);
     }
@@ -344,7 +344,7 @@ crée_arguments_dimensionnement_hauteur :: fonc (ctx: *ContexteDeFormattage, box
 calcule_largeur_et_marges :: fonc (empl args: *ArgumentsDimensionnement)
 {
     définis_propriétés(ctx.ctx_calcul_style, box.propriétés);
-    args.width_of_containing_block = args.containing_block.donne_largeur();
+    args.width_of_containing_block = donne_largeur(*args.containing_block);
 
     width := box.propriétés.donne_valeur_calculée(IDPropriété.Width);
 
@@ -509,7 +509,7 @@ calcule_pourcentage :: fonc (valeur: *ValeurDeStyle, référence: r64) -> *Valeu
     retourne crée_valeur_pixels(valeur.donne_percentage() * référence / 100.0);
 }
 
-résoud_pourcentage_largeurs :: fonc (ctx: *ContexteDeFormattage, box: *Box, containing_block: &ContainingBlock)
+résoud_pourcentage_largeurs :: fonc (ctx: *ContexteDeFormattage, box: *Box, containing_block: *ContainingBlock)
 {
     width_of_containing_block := containing_block.donne_largeur();
 
@@ -536,7 +536,7 @@ résoud_pourcentage_largeur_border_radius :: fonc (box: *Box)
     }
 }
 
-résoud_pourcentage_hauteur :: fonc (ctx: *ContexteDeFormattage, box: *Box, containing_block: &ContainingBlock)
+résoud_pourcentage_hauteur :: fonc (ctx: *ContexteDeFormattage, box: *Box, containing_block: *ContainingBlock)
 {
     width_of_containing_block := containing_block.donne_largeur();
     height_of_containing_block := containing_block.donne_hauteur();
@@ -591,11 +591,11 @@ résoud_pourcentage_insets :: fonc (box: *Box, ctx: *ContexteDeFormattage)
 
     définis_propriétés(ctx.ctx_calcul_style, box.propriétés);
 
-    résoud_pourcentage(ctx.ctx_calcul_style, IDPropriété.Top, containing_block.donne_hauteur());
-    résoud_pourcentage(ctx.ctx_calcul_style, IDPropriété.Bottom, containing_block.donne_hauteur());
+    résoud_pourcentage(ctx.ctx_calcul_style, IDPropriété.Top, donne_hauteur(*containing_block));
+    résoud_pourcentage(ctx.ctx_calcul_style, IDPropriété.Bottom, donne_hauteur(*containing_block));
 
-    résoud_pourcentage(ctx.ctx_calcul_style, IDPropriété.Left, containing_block.donne_largeur());
-    résoud_pourcentage(ctx.ctx_calcul_style, IDPropriété.Right, containing_block.donne_largeur());
+    résoud_pourcentage(ctx.ctx_calcul_style, IDPropriété.Left, donne_largeur(*containing_block));
+    résoud_pourcentage(ctx.ctx_calcul_style, IDPropriété.Right, donne_largeur(*containing_block));
 
     pour [IDPropriété.Top, IDPropriété.Bottom, IDPropriété.Left, IDPropriété.Right] {
         box.propriétés.définis_valeur_utilisée(it, box.propriétés.donne_valeur_calculée(it));
@@ -609,7 +609,7 @@ résoud_pourcentage_insets :: fonc (box: *Box, ctx: *ContexteDeFormattage)
 
 calcule_hauteur_et_marges :: fonc (empl args: *ArgumentsDimensionnement) -> ÉtatCalculHauteur
 {
-    résoud_pourcentage_hauteur(ctx, box, containing_block);
+    résoud_pourcentage_hauteur(ctx, box, *containing_block);
 
     fonction_de_calcul := donne_fonction_calcul_hauteur_et_marges(box);
 
@@ -1098,7 +1098,7 @@ calcule_largeur_et_marges_absolutely_positionned_non_replaced_element :: fonc (e
 /* https://www.w3.org/TR/2011/REC-CSS2-20110607/visudet.html#abs-non-replaced-height */
 calcule_hauteur_et_marges_absolutely_positionned_non_replaced_element :: fonc (empl args: *ArgumentsDimensionnement, empl ph: *PropriétésHauteur) -> ÉtatCalculHauteur
 {
-    height_of_containing_block := containing_block.donne_hauteur();
+    height_of_containing_block := donne_hauteur(*containing_block);
 
     // For absolutely positioned elements, the used values of the vertical dimensions must satisfy this constraint:
     // 'top' + 'margin-top' + 'border-top-width' + 'padding-top' + 'height' + 'padding-bottom' + 'border-bottom-width' + 'margin-bottom' + 'bottom' = height of containing block
@@ -1231,7 +1231,7 @@ calcule_hauteur_et_marges_absolutely_positionned_non_replaced_element :: fonc (e
 /* https://www.w3.org/TR/2011/REC-CSS2-20110607/visudet.html#abs-replaced-height */
 calcule_hauteur_et_marges_absolutely_positionned_replaced_element :: fonc (empl args: *ArgumentsDimensionnement, empl ph: *PropriétésHauteur) -> ÉtatCalculHauteur
 {
-    height_of_containing_block := containing_block.donne_hauteur();
+    height_of_containing_block := donne_hauteur(*containing_block);
 
     // 1. The used value of 'height' is determined as for inline replaced elements.
     //    If 'margin-top' or 'margin-bottom' is specified as 'auto' its used value is determined by the rules below.
@@ -1330,7 +1330,7 @@ calcule_largeur_et_marges_inline_replaced_element :: fonc (empl args: *Arguments
         }
         sinon si height.est_percentage() {
             /* À FAIRE : résoud les pourcentages pour la hauteur plus tôt. */
-            width = crée_valeur_pixels(height.donne_percentage() * containing_block.donne_hauteur() * replaced_box.donne_ratio_intrinsèque());
+            width = crée_valeur_pixels(height.donne_percentage() * donne_hauteur(*containing_block) * replaced_box.donne_ratio_intrinsèque());
         }
         sinon {
             width = crée_valeur_pixels(height.donne_pixels() * replaced_box.donne_ratio_intrinsèque());

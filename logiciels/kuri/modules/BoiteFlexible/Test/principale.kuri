@@ -40,7 +40,7 @@ principale :: fonc ()
 
         largeur, hauteur := donne_taille_fenêtre(fenêtre);
 
-        pour évènements {
+        pour * évènements {
             si it.type == TypeÉvènement.Fermeture {
                 doit_fermer = vrai;
                 arrête;
@@ -184,7 +184,7 @@ crée_interface :: fonc (app: *App, largeur: z32, hauteur: z32) -> CommandesDeRe
             }
             termine_rectangle();
 
-            dispose_rectangle(id = "Contenu Principal", config = ConfigurationRectangle(rayon_coin = 8.0), défilage = ConfigurationDéfilage(vertical = vrai));
+            dispose_rectangle(id = "Contenu Principal", config = ConfigurationRectangle(rayon_coin = 8.0), défilage = ConfigurationDéfilage(vertical = Type_Défilage.AUTOMATIQUE));
             {
                 définis_arrière_plan(0.352, 0.352, 0.352, 1.0);
                 définis_disposition(cotation = Cotation(CROISSANTE(), CROISSANTE()), rembourrage = RembourrageUniforme(16.0), séparation_enfant = 16.0, direction = Direction.Verticale);

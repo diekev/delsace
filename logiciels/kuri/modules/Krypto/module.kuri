@@ -148,10 +148,10 @@ crée_keccak_512bits :: fonc () -> *HACHEUSE
     retourne KRYPTO_HACHEUSE_cree_keccak_512bits();
 }
 
-détruit :: fonc (hacheuse: &*HACHEUSE)
+détruit :: fonc (hacheuse: **HACHEUSE)
 {
-    KRYPTO_HACHEUSE_detruit(hacheuse);
-    hacheuse = nul;
+    KRYPTO_HACHEUSE_detruit(mémoire(hacheuse));
+    mémoire(hacheuse) = nul;
 }
 
 ajourne :: fonc (hacheuse: *HACHEUSE, message: chaine)
@@ -179,7 +179,7 @@ donne_condensat :: fonc (hacheuse: *HACHEUSE) -> Condensat
 
 donne_condensat :: fonc (hacheuse: *HACHEUSE, résultat: *Condensat)
 {
-    tableau_redimensionne(résultat.données, taille_condensat(hacheuse));
+    tableau_redimensionne(*résultat.données, taille_condensat(hacheuse));
     KRYPTO_HACHEUSE_condensat(hacheuse, résultat.données.pointeur comme *n8);
 }
 
@@ -266,10 +266,10 @@ crée_hmac_keccak_512bits :: fonc () -> *HACHEUSE_HMAC
     retourne KRYPTO_HACHEUSE_HMAC_cree_keccak_512bits();
 }
 
-détruit :: fonc (hacheuse: &*HACHEUSE_HMAC)
+détruit :: fonc (hacheuse: **HACHEUSE_HMAC)
 {
-    KRYPTO_HACHEUSE_HMAC_detruit(hacheuse);
-    hacheuse = nul;
+    KRYPTO_HACHEUSE_HMAC_detruit(mémoire(hacheuse));
+    mémoire(hacheuse) = nul;
 }
 
 ajourne :: fonc (hacheuse: *HACHEUSE_HMAC, message: chaine)
@@ -292,7 +292,7 @@ donne_condensat :: fonc (hacheuse: *HACHEUSE_HMAC) -> Condensat
 
 donne_condensat :: fonc (hacheuse: *HACHEUSE_HMAC, résultat: *Condensat)
 {
-    tableau_redimensionne(résultat.données, taille_condensat(hacheuse));
+    tableau_redimensionne(*résultat.données, taille_condensat(hacheuse));
     KRYPTO_HACHEUSE_HMAC_condensat(hacheuse, résultat.données.pointeur comme *n8);
 }
 
@@ -327,7 +327,7 @@ compare_condensat :: fonc (a: chaine, b: chaine) -> bool
 démo_chiffre_message :: fonc (message: chaine, clé: chaine) -> chaine
 {
     flux_de_chiffrement := crée_sha256();
-    diffère détruit(flux_de_chiffrement);
+    diffère détruit(*flux_de_chiffrement);
 
     flux_de_chiffrement.ajourne(clé);
 
@@ -343,8 +343,8 @@ xor_chaines :: fonc (chn1: chaine, chn2: chaine)
     compte := 0;
     indice := 0;
 
-    pour & chn1 {
-        it = it ^ (chn2[indice] + compte comme z8);
+    pour * chn1 {
+        mémoire(it) ^= (chn2[indice] + compte comme z8);
 
         indice += 1;
 
@@ -361,7 +361,7 @@ rotation_gauche :: fonc (a: n32, n: n32) -> n32 #enligne
     retourne (a << n) | (a >> (32 - n));
 }
 
-chacha :: fonc (a: &n32, b: &n32, c: &n32, d: &n32)
+chacha :: fonc (a: *n32, b: *n32, c: *n32, d: *n32)
 {
     a_travail := a;
     b_travail := b;
@@ -388,7 +388,7 @@ chacha :: fonc (a: &n32, b: &n32, c: &n32, d: &n32)
     d = d_travail;
 }
 
-chacha_vertical :: fonc (bloc: &[4][4]n32)
+chacha_vertical :: fonc (bloc: *[4][4]n32)
 {
     pour i dans 0 ... 3 {
         a := bloc[i][0];
@@ -403,7 +403,7 @@ chacha_vertical :: fonc (bloc: &[4][4]n32)
     }
 }
 
-chacha_diagonal :: fonc (bloc: &[4][4]n32)
+chacha_diagonal :: fonc (bloc: *[4][4]n32)
 {
     pour i dans 0 ... 3 {
         a := bloc[i][0];
@@ -418,7 +418,7 @@ chacha_diagonal :: fonc (bloc: &[4][4]n32)
     }
 }
 
-convertis_clé :: fonc (a: &n32, b: &n32, c: &n32, d: &n32)
+convertis_clé :: fonc (a: *n32, b: *n32, c: *n32, d: *n32)
 {
     constante := "expand byte-32 k";
 

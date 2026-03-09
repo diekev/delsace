@@ -57,7 +57,7 @@ crée_commande :: fonc (commandes: *CommandesDeRendu, $T: type_de_données) -> *
     commandes.nombre_de_commandes += 1;
 
     décalage := commandes.commandes.taille;
-    tableau_redimensionne(commandes.commandes, décalage + (taille_de(T) comme z64));
+    tableau_redimensionne(*commandes.commandes, décalage + (taille_de(T) comme z64));
 
     résultat := *commandes.commandes[décalage] comme *T;
     init_de(T)(résultat);
