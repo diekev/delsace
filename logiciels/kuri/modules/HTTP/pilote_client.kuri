@@ -47,7 +47,7 @@ GestionnaireCookie :: struct {
     cookies: [..]Cookie;
 }
 
-ajoute_cookie :: fonc (gestionnaire: &GestionnaireCookie, uri: URI, cookie: Cookie)
+ajoute_cookie :: fonc (gestionnaire: *GestionnaireCookie, uri: URI, cookie: Cookie)
 {
 }
 
@@ -62,7 +62,7 @@ est_localhost :: fonc (uri: URI) -> bool
 }
 
 // https://developer.mozilla.org/en-US/docs/Web/HTTP/Cookies
-cookies_pour_requête :: fonc (gestionnaire: &GestionnaireCookie, uri: URI) -> [..]Cookie
+cookies_pour_requête :: fonc (gestionnaire: *GestionnaireCookie, uri: URI) -> [..]Cookie
 {
     // trouve les cookies qui n'ont pas périmés
     // si le schéma est http, seuls les cookies non sûrs sont envoyés, sauf si le domaine est localhost
@@ -86,7 +86,7 @@ PiloteClienteHTTP :: struct {
     uri_serveur: URI;
 }
 
-débute_requête :: fonc (pilote: &PiloteClienteHTTP, méthode: MéthodeHTTP, uri: URI) -> MessageClienteHTTP
+débute_requête :: fonc (pilote: *PiloteClienteHTTP, méthode: MéthodeHTTP, uri: URI) -> MessageClienteHTTP
 {
     message: MessageClienteHTTP;
     message.méthode = chaine_pour_méthode(méthode);
@@ -111,7 +111,7 @@ ajoute_contenu_depuis_formulaire :: fonc (message: *MessageClienteHTTP, formulai
 }
 
 /* Envoie la requête de manière bloquante. */
-envoie_requête :: fonc (pilote: &PiloteClienteHTTP, requête: &MessageClienteHTTP) -> Optionnel(MessageServeuseHTTP)
+envoie_requête :: fonc (pilote: *PiloteClienteHTTP, requête: *MessageClienteHTTP) -> Optionnel(MessageServeuseHTTP)
 {
     message := chaine_pour_message_cliente(requête);
     diffère déloge(message);
@@ -157,7 +157,7 @@ envoie_requête :: fonc (pilote: &PiloteClienteHTTP, requête: &MessageClienteHT
     retourne finalise_message(*parseuse);
 }
 
-traite_réponse :: fonc (pilote: &PiloteClienteHTTP, réponse: &MessageServeuseHTTP)
+traite_réponse :: fonc (pilote: *PiloteClienteHTTP, réponse: *MessageServeuseHTTP)
 {
     pour réponse.entêtes {
         si it.nom == "Set-Cookie" {
@@ -170,7 +170,7 @@ traite_réponse :: fonc (pilote: &PiloteClienteHTTP, réponse: &MessageServeuseH
     }
 }
 
-envoie_requête_et_traite_réponse :: fonc (pilote: &PiloteClienteHTTP, requête: &MessageClienteHTTP) -> Optionnel(MessageServeuseHTTP)
+envoie_requête_et_traite_réponse :: fonc (pilote: *PiloteClienteHTTP, requête: *MessageClienteHTTP) -> Optionnel(MessageServeuseHTTP)
 {
     discr pilote.envoie_requête(requête) {
         Quelque(réponse) {

@@ -376,7 +376,7 @@ ajoute_taille_type :: fonc (infos: &InfosSérialisation, valeur: eini)
                 ajoute_taille(infos, taille_de(z64) comme z64);
 
                 taille_courante := traversée.taille;
-                tableau_redimensionne(traversée, taille_courante + itératrice.taille);
+                tableau_redimensionne(*traversée, taille_courante + itératrice.taille);
 
                 pour > itératrice.taille {
                     traversée[taille_courante + it] = itératrice.valeur_suivante();
@@ -387,7 +387,7 @@ ajoute_taille_type :: fonc (infos: &InfosSérialisation, valeur: eini)
                 ajoute_taille(infos, taille_de(z64) comme z64);
 
                 taille_courante := traversée.taille;
-                tableau_redimensionne(traversée, taille_courante + itératrice.taille);
+                tableau_redimensionne(*traversée, taille_courante + itératrice.taille);
 
                 pour > itératrice.taille {
                     traversée[taille_courante + it] = itératrice.valeur_suivante();
@@ -422,7 +422,7 @@ sérialise_type :: fonc (valeur: eini) -> [..]octet
 sérialise_type :: fonc (valeur: eini, infos_séritalisation: InfosSérialisation) -> [..]octet
 {
     résultat: [..]octet;
-    tableau_redimensionne(résultat, infos_séritalisation.taille_courante);
+    tableau_redimensionne(*résultat, infos_séritalisation.taille_courante);
 
     curseur: z64;
 
@@ -474,7 +474,7 @@ sérialise_type :: fonc (valeur: eini, infos_séritalisation: InfosSérialisatio
                 curseur += taille_de(z64) comme z64;
 
                 taille_courante := traversée.taille;
-                tableau_redimensionne(traversée, taille_courante + itératrice.taille);
+                tableau_redimensionne(*traversée, taille_courante + itératrice.taille);
 
                 pour > itératrice.taille {
                     traversée[taille_courante + it] = itératrice.valeur_suivante();
@@ -487,7 +487,7 @@ sérialise_type :: fonc (valeur: eini, infos_séritalisation: InfosSérialisatio
                 curseur += taille_de(z64) comme z64;
 
                 taille_courante := traversée.taille;
-                tableau_redimensionne(traversée, taille_courante + itératrice.taille);
+                tableau_redimensionne(*traversée, taille_courante + itératrice.taille);
 
                 pour > itératrice.taille {
                     traversée[taille_courante + it] = itératrice.valeur_suivante();
@@ -575,7 +575,7 @@ désérialise_type :: fonc (résultat: eini, données: []octet) -> z64
 
                 // crée un tableau de la bonne taille
                 données_tableau: [..]octet;
-                tableau_redimensionne(données_tableau, taille_données_tableau);
+                tableau_redimensionne(*données_tableau, taille_données_tableau);
                 données_tableau.taille = taille_tableau;
                 données_tableau.capacité = taille_tableau;
 
@@ -585,7 +585,7 @@ désérialise_type :: fonc (résultat: eini, données: []octet) -> z64
                 assert(itératrice.taille == taille_tableau);
 
                 taille_courante := traversée.taille;
-                tableau_redimensionne(traversée, taille_courante + itératrice.taille);
+                tableau_redimensionne(*traversée, taille_courante + itératrice.taille);
 
                 pour > itératrice.taille {
                     traversée[taille_courante + it] = itératrice.valeur_suivante();
@@ -599,7 +599,7 @@ désérialise_type :: fonc (résultat: eini, données: []octet) -> z64
                 assert(taille_tableau == itératrice.taille);
 
                 taille_courante := traversée.taille;
-                tableau_redimensionne(traversée, taille_courante + itératrice.taille);
+                tableau_redimensionne(*traversée, taille_courante + itératrice.taille);
 
                 pour > itératrice.taille {
                     traversée[taille_courante + it] = itératrice.valeur_suivante();

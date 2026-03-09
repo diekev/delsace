@@ -272,7 +272,7 @@ traite_données_reçues :: fonc (extrémité: *Extrémité($TypePrise, $est_clie
     diffère réinitialise(parseuse);
 
     réponses: [..][..]octet;
-    diffère déloge_tableau_et_ses_éléments(réponses);
+    diffère déloge_tableau_et_ses_éléments(*réponses);
 
     doit_fermer_la_prise := faux;
 
@@ -921,7 +921,7 @@ crée_message_websocket_réponse :: fonc (op_code: OpCode, message: []octet, doi
     taille_résultat := calcule_taille_message(message, doit_masquer);
 
     résultat: [..]octet;
-    tableau_redimensionne(résultat, taille_résultat);
+    tableau_redimensionne(*résultat, taille_résultat);
 
     ptr := résultat.pointeur;
     mémoire(ptr) = 0b1000_0000 | op_code comme n8 comme octet;
@@ -975,8 +975,8 @@ crée_message_websocket_réponse :: fonc (op_code: OpCode, message: []octet, doi
 applique_masque :: fonc (données: []octet, masque: z32)
 {
     ptr_masque := *masque comme *octet;
-    pour & données {
-        it = it ^ ptr_masque[indice_it % 4];
+    pour * données {
+        mémoire(it) ^= ptr_masque[indice_it % 4];
     }
 }
 
@@ -995,7 +995,7 @@ calcul_clé_serrage_de_main :: fonc (clé_donnée: chaine) -> chaine
     diffère déloge(tmp);
 
     sha1 := crée_sha1();
-    diffère sha1.détruit();
+    diffère détruit(*sha1);
 
     sha1.ajourne(tmp);
 

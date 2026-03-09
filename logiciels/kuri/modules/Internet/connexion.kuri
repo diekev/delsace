@@ -171,10 +171,6 @@ ouvre_connexion_pour_écoute :: fonc (adresse_ip: AdresseIPv4 @inutilisée, port
     // trouve notre propre adresse
     // À FAIRE : parse l'adresse ip données
     notre_adresse.sin_addr.s_addr = 0;
-    // potentiellement inutile de mettre à zéro, mais on ne sait jamais
-    pour & notre_adresse.sin_zero {
-        it = 0;
-    }
 
     err := bind(prise, *notre_adresse comme *sockaddr, taille_de(sockaddr) comme n64);
     si err == -1 {

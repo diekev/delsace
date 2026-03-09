@@ -55,7 +55,7 @@ DonnéesMessage :: struct {
     contenu: chaine;
 }
 
-ajoute_entête :: fonc (données_message: &DonnéesMessage, nom: PositionChaine, valeur: PositionChaine)
+ajoute_entête :: fonc (données_message: *DonnéesMessage, nom: PositionChaine, valeur: PositionChaine)
 {
     tableau_ajoute(*données_message.positions_entêtes, DonnéesEntête(nom, valeur));
 }
@@ -307,7 +307,7 @@ parse_état_entêtes :: fonc (parseuse: *ParseuseHTTP) -> RésultatParsage
         position_nom := PositionChaine(pos_courante, pos_courante + nom.taille comme z32);
         position_valeur := PositionChaine(début_valeur, début_valeur + valeur.taille comme z32);
 
-        parseuse.données_message.ajoute_entête(position_nom, position_valeur);
+        ajoute_entête(*parseuse.données_message, position_nom, position_valeur);
     }
 
     retourne RésultatParsage.MESSAGE_INCOMPLET;
@@ -317,8 +317,8 @@ parse_état_message_terminé :: fonc (parseuse: *ParseuseHTTP) -> RésultatParsa
 {
     message := parseuse.prépare_message_pour_parsage_contenu();
 
-    si possède_entête(message, "Transfer-Encoding") {
-        chn_transfer_encoding := entête(message, "Transfer-Encoding").valeur;
+    si possède_entête(*message, "Transfer-Encoding") {
+        chn_transfer_encoding := entête(*message, "Transfer-Encoding").valeur;
 
         // À FAIRE : il existe des options
         si chn_transfer_encoding != "chunked" {
@@ -335,8 +335,8 @@ parse_état_message_terminé :: fonc (parseuse: *ParseuseHTTP) -> RésultatParsa
         retourne RésultatParsage.OK;
     }
 
-    si possède_entête(message, "Content-Length") {
-        chn_taille_contenu := entête(message, "Content-Length").valeur;
+    si possède_entête(*message, "Content-Length") {
+        chn_taille_contenu := entête(*message, "Content-Length").valeur;
 
         taille_contenu := tente extrait_z32(chn_taille_contenu) piège _ {
             retourne erreur_de_parsage("Content-Length n'est pas un nombre");

@@ -156,7 +156,7 @@ lis_fichier_binaire_entier :: fonc (chemin: chaine, permissions := Permissions_F
 
     taille := détermine_taille_fichier(*fichier);
     si taille != 0 {
-        tableau_redimensionne(résultat, taille);
+        tableau_redimensionne(*résultat, taille);
 
         octets_lus := tente système_lis(fichier.desc, résultat.pointeur comme *z8, résultat.taille) piège err {
             déloge(résultat);
