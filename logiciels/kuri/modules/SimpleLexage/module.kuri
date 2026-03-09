@@ -507,9 +507,7 @@ construis_tables_de_lexage :: fonc (lexeuse: *SimpleLexeuse)
 
 construis_table_drapeaux_caractères :: fonc (lexeuse: *SimpleLexeuse)
 {
-    pour & lexeuse.table_drapeaux_caractère {
-        it = DrapeauxCaractère.zéro;
-    }
+    tableau_remplis_avec(lexeuse.table_drapeaux_caractère, DrapeauxCaractère.zéro);
 
     caractères_alphabétique :: "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ_";
     pour caractères_alphabétique {
@@ -524,11 +522,11 @@ construis_table_drapeaux_caractères :: fonc (lexeuse: *SimpleLexeuse)
         lexeuse.table_drapeaux_caractère[it] |= DrapeauxCaractère.ChiffreHexadécimal;
     }
 
-    pour & lexeuse.table_drapeaux_caractère {
-        si (it & DrapeauxCaractère.ChiffreHexadécimal) != DrapeauxCaractère.zéro {
+    pour * lexeuse.table_drapeaux_caractère {
+        si (mémoire(it) & DrapeauxCaractère.ChiffreHexadécimal) != DrapeauxCaractère.zéro {
             continue;
         }
-        it |= DrapeauxCaractère.HorsChiffreHexadécimal;
+        mémoire(it) |= DrapeauxCaractère.HorsChiffreHexadécimal;
     }
 
     /* 2 passes pour définir si un caractère n'apparait pas dans un mot-clé. */
@@ -538,12 +536,12 @@ construis_table_drapeaux_caractères :: fonc (lexeuse: *SimpleLexeuse)
         }
     }
 
-    pour & lexeuse.table_drapeaux_caractère {
-        si (it & DrapeauxCaractère.HorsMotClé) != DrapeauxCaractère.zéro {
-            it &= ~DrapeauxCaractère.HorsMotClé;
+    pour * lexeuse.table_drapeaux_caractère {
+        si (mémoire(it) & DrapeauxCaractère.HorsMotClé) != DrapeauxCaractère.zéro {
+            mémoire(it) &= ~DrapeauxCaractère.HorsMotClé;
             continue;
         }
-        it |= DrapeauxCaractère.HorsMotClé;
+        mémoire(it) |= DrapeauxCaractère.HorsMotClé;
     }
 
     caractères_numérique :: "0123456789";
@@ -606,9 +604,7 @@ définis_drapeau_depuis_premier_caractère :: fonc (lexeuse: *SimpleLexeuse, cha
 
 construis_table_peut_suivre :: fonc (lexeuse: *SimpleLexeuse)
 {
-    pour & lexeuse.table_peut_suivre {
-        it = PeutSuivre.zéro;
-    }
+    tableau_remplis_avec(lexeuse.table_peut_suivre, PeutSuivre.zéro);
 
     caractères_alphabétique :: "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ_";
     pour caractères_alphabétique {

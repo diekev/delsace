@@ -179,7 +179,7 @@ cueille_et_tri_attributs :: fonc (contexte_formattage: &ContexteFormattage, tag:
 {
     résultat: [..]*Attr;
 
-    pour & attributs {
+    pour attributs {
         si peut_ignorer_attribut(contexte_formattage, tag, it) {
             continue;
         }

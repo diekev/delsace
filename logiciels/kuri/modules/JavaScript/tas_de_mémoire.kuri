@@ -701,7 +701,7 @@ visite_valeur :: fonc (visiteuse: *VisiteuseCellule, valeur_à_visiter: InfoVale
             retourne;
         }
         boucle {
-            élément := itératrice.valeur_suivante();
+            élément := valeur_suivante(*itératrice);
             saufsi élément.est_valide() {
                 arrête;
             }
