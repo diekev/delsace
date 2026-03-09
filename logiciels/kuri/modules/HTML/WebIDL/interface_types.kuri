@@ -74,7 +74,7 @@ call_a_user_object_operation :: fonc (value: *CallbackType, op_name: chaine @inu
     target := JS.donne_objet(this_arg) comme *PlatformObject;
 
     realm := target.realm;
-    settings := JS.donne_données(realm.host_defined, EnvironmentSettings);
+    settings := JS.donne_données(*realm.host_defined, EnvironmentSettings);
 
     prepare_to_run_script(settings);
 

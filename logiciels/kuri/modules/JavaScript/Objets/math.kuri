@@ -357,7 +357,7 @@ math_pow :: fonc (empl params: *ParamètresObjectCall) -> Valeur
 math_random :: fonc (empl params: *ParamètresObjectCall) -> Valeur
 {
     math := this_value.donne_objet().vérifie_comme(MathObject);
-    résultat := aléatoire_unilatérale(math.entropie);
+    résultat := aléatoire_unilatérale(*math.entropie);
     retourne résultat comme r64;
 }
 

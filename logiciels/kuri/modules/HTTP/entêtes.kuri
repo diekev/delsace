@@ -4,7 +4,7 @@ Entête :: struct {
     valeur: chaine;
 }
 
-détruit_entête :: fonc (entête: &Entête)
+détruit_entête :: fonc (entête: *Entête)
 {
 }
 

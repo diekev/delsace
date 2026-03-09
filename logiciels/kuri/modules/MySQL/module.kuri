@@ -640,8 +640,8 @@ sélectionne_colonnes_depuis_table :: fonc (connexion: *ConnexionMySQL, nom_tabl
     discr résultats {
         Quelque(liste_de_résultat) {
             /* Nous devons copier les chaines. */
-            pour & liste_de_résultat {
-                it = copie(it);
+            pour * liste_de_résultat {
+                mémoire(it) = copie(mémoire(it));
             }
 
             retourne liste_de_résultat;
@@ -667,8 +667,8 @@ exécute_requête_pour_liste :: fonc (connexion: *ConnexionMySQL, requête: chai
     rés := parse_liste_résultat(*résultat.curseurs[0], TypeRésultat, ...colonnes);
     discr rés {
         Quelque(liste) {
-            pour & liste {
-                it = copie(it);
+            pour * liste {
+                mémoire(it) = copie(mémoire(it));
             }
             retourne liste;
         }
