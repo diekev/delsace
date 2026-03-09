@@ -270,8 +270,8 @@ tableau_vole_mémoire :: fonc (tableau: *[..]$T) -> [..]T
 
 tableau_remplis_avec :: fonc (tableau: []$T, valeur: T)
 {
-    pour & v dans tableau {
-        v = valeur;
+    pour * v dans tableau {
+        mémoire(v) = valeur;
     }
 }
 
@@ -399,8 +399,8 @@ dernier_élément :: fonc (tableau: []$T) -> *T
 
 tableau_iota :: fonc (tableau: []$T, valeur_initiale: T)
 {
-    pour & tableau {
-        it = valeur_initiale;
+    pour * tableau {
+        mémoire(it) = valeur_initiale;
         valeur_initiale += (1 comme T);
     }
 }

@@ -963,8 +963,8 @@ crée_table_fonctions :: fonc (créatrice: *CréatriceTableFonction, fonctions: 
     }
 
     /* Création des enveloppes pour les fonctions de parsage. */
-    pour & données_fonctions {
-        it.nom_fonction_enveloppe = créatrice.génère_fonction_enveloppe(*enchaineuse, créatrice.espace, it);
+    pour * données_fonctions {
+        it.nom_fonction_enveloppe = créatrice.génère_fonction_enveloppe(*enchaineuse, créatrice.espace, mémoire(it));
     }
 
     /* Création de la fonction d'initialisation. */

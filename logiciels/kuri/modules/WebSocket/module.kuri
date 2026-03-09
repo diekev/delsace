@@ -975,8 +975,8 @@ crée_message_websocket_réponse :: fonc (op_code: OpCode, message: []octet, doi
 applique_masque :: fonc (données: []octet, masque: z32)
 {
     ptr_masque := *masque comme *octet;
-    pour & données {
-        it = it ^ ptr_masque[indice_it % 4];
+    pour * données {
+        mémoire(it) ^= ptr_masque[indice_it % 4];
     }
 }
 

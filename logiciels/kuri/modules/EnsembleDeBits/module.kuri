@@ -22,9 +22,7 @@ active :: fonc (ensemble: *EnsembleDeBits, indice: n32)
 
 active_tout :: fonc (ensemble: *EnsembleDeBits)
 {
-    pour & ensemble.bits {
-        it = 0b1111_1111;
-    }
+    tableau_remplis_avec(ensemble.bits, 0b1111_1111);
 }
 
 désactive :: fonc (ensemble: *EnsembleDeBits, indice: n32)
@@ -37,15 +35,13 @@ désactive :: fonc (ensemble: *EnsembleDeBits, indice: n32)
 
 désactive_tout :: fonc (ensemble: *EnsembleDeBits)
 {
-    pour & ensemble.bits {
-        it = 0;
-    }
+    tableau_remplis_avec(ensemble.bits, 0);
 }
 
 bascule_tout :: fonc (ensemble: *EnsembleDeBits)
 {
-    pour & ensemble.bits {
-        it ^= it;
+    pour * ensemble.bits {
+        mémoire(it) ^= mémoire(it);
     }
 }
 
@@ -120,9 +116,7 @@ active :: fonc (tableau: *TableauBooléen, indice: z64)
 
 active_tout :: fonc (tableau: *TableauBooléen)
 {
-    pour & tableau.bits {
-        it = -1;
-    }
+    tableau_remplis_avec(tableau.bits, -1);
 }
 
 désactive :: fonc (tableau: *TableauBooléen, indice: z64)
@@ -134,15 +128,13 @@ désactive :: fonc (tableau: *TableauBooléen, indice: z64)
 
 désactive_tout :: fonc (tableau: *TableauBooléen)
 {
-    pour & tableau.bits {
-        it = 0;
-    }
+    tableau_remplis_avec(tableau.bits, 0);
 }
 
 bascule_tout :: fonc (tableau: *TableauBooléen)
 {
-    pour & tableau.bits {
-        it ^= it;
+    pour * tableau.bits {
+        mémoire(it) ^= mémoire(it);
     }
 }
 

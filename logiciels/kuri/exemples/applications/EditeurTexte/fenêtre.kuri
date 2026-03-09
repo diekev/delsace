@@ -239,8 +239,8 @@ parse_commandes_compilation :: fonc (lexeuse: *SimpleLexeuse, projet: *Projet)
             // @validation
             texte := lexeuse.donne_texte_jusque_nouvelle_ligne();
             divise(texte, ' ', *info_compilation.commande);
-            pour & info_compilation.commande {
-                it = copie_chaine(it);
+            pour * info_compilation.commande {
+                mémoire(it) = copie_chaine(mémoire(it));
             }
         }
         sinon {

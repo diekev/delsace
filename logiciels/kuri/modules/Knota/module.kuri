@@ -1067,7 +1067,7 @@ garantis_nom_valide_et_unique :: fonc (déduplicatrice: *DéduplicatriceNom, nom
     nom = garantis_nom_valide(nom);
     diffère déloge(nom);
 
-    pour & déduplicatrice.paires_nom_et_compte {
+    pour * déduplicatrice.paires_nom_et_compte {
         si it.nom == nom {
             /* Le premier noeud n'a pas de suffixe, donc nous utilisons
              * le compte courant pour définir le suffixe. */

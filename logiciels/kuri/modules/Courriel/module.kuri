@@ -329,7 +329,7 @@ crée_corps_message :: fonc (courriel: *Courriel) -> chaine
         ajoute_au_tampon(*enchaineuse, "To: ");
         virgule := "<";
 
-        pour & courriel.destinataires {
+        pour * courriel.destinataires {
             ajoute_au_tampon(*enchaineuse, virgule);
             ajoute_au_tampon(*enchaineuse, it.chn);
             virgule = ">,<";
@@ -342,7 +342,7 @@ crée_corps_message :: fonc (courriel: *Courriel) -> chaine
         ajoute_au_tampon(*enchaineuse, "Cc: ");
         virgule := "<";
 
-        pour & courriel.destinataires_cc {
+        pour * courriel.destinataires_cc {
             ajoute_au_tampon(*enchaineuse, virgule);
             ajoute_au_tampon(*enchaineuse, it.chn);
             virgule = ">,<";
@@ -558,9 +558,9 @@ aléafères_zéros :: fonc (chn: chaine) -> chaine
 
     résultat := copie_chaine(chn);
 
-    pour & résultat {
-        si it == '0' {
-            it = gna.uniforme('0' comme r32, '9' comme r32) comme z8;
+    pour * résultat {
+        si mémoire(it) == '0' {
+            mémoire(it) = gna.uniforme('0' comme r32, '9' comme r32) comme z8;
         }
     }
 

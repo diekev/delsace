@@ -576,9 +576,7 @@ __chaine_indentation_initialisée := faux;
 donne_chaine_indentation :: fonc (profondeur: z32) -> chaine
 {
     saufsi __chaine_indentation_initialisée {
-        pour & __chaine_indentation {
-            it = ' ';
-        }
+        tableau_remplis_avec(__chaine_indentation, ' ');
         __chaine_indentation_initialisée = vrai;
     }
 

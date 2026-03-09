@@ -46,10 +46,10 @@ lèxe_style :: fonc (contenu: chaine) -> [..]Lexème
  * https://www.w3.org/TR/css-syntax-3/#input-preprocessing */
 prétraite :: fonc (chn: ChaineUTF32)
 {
-    pour & chn.points_de_code {
+    pour * chn.points_de_code {
         /* À FAIRE : \r\n => \n */
-        si it == RETOUR_CHARIOT || it == SAUT_DE_PAGE {
-            it = NOUVELLE_LIGNE;
+        si mémoire(it) == RETOUR_CHARIOT || mémoire(it) == SAUT_DE_PAGE {
+            mémoire(it) = NOUVELLE_LIGNE;
         }
     }
 }

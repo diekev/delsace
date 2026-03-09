@@ -343,8 +343,8 @@ xor_chaines :: fonc (chn1: chaine, chn2: chaine)
     compte := 0;
     indice := 0;
 
-    pour & chn1 {
-        it = it ^ (chn2[indice] + compte comme z8);
+    pour * chn1 {
+        mémoire(it) ^= (chn2[indice] + compte comme z8);
 
         indice += 1;
 

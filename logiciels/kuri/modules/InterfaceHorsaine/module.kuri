@@ -611,11 +611,11 @@ ajoute_méthode_new :: fonc (ipa: *IPA, noeud_code: *NoeudCodeEntêteFonction, t
 
 convertis_types_params_méthode :: fonc (ipa: *IPA, méthode: *MéthodeIPA)
 {
-    pour & méthode.entrées {
+    pour * méthode.entrées {
         it.type_ipa = convertis_vers_type_ipa(ipa, it.type);
     }
 
-    pour & méthode.sorties {
+    pour * méthode.sorties {
         it.type_ipa = convertis_vers_type_ipa(ipa, it.type);
     }
 }

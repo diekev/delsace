@@ -43,9 +43,6 @@ empreinte3 :: fonc (clé: chaine) -> n32
 /*
 #test {
     ensemble : EnsembleDeBits.EnsembleDeBits
-    pour & ensemble.bits {
-        it = 0
-    }
 
     ensemble.active(6)
 

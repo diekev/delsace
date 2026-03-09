@@ -157,7 +157,7 @@ initialise_données_globales :: fonc ()
 finalise_lexèmes :: fonc (lexèmes: [..]Lexème)
 {
     /* Résoud les mots-clés depuis les identifiants. */
-    pour & lexèmes {
+    pour * lexèmes {
         saufsi it.genre == GenreLexème.Identifiant {
             continue;
         }

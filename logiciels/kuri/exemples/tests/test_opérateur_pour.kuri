@@ -11,8 +11,8 @@ Tablet :: struct {
 crée_tablet :: fonc () -> Tablet
 {
     résultat: Tablet;
-    pour & résultat.données {
-        it = (indice_it * 3) comme z32;
+    pour * résultat.données {
+        mémoire(it) = (indice_it * 3) comme z32;
     }
     retourne résultat;
 }
