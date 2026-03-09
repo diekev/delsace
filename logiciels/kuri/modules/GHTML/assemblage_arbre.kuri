@@ -34,9 +34,9 @@ lexème :: fonc (noeud: *NoeudSyntaxique) -> TypeLexème
     retourne noeud.données.type_lexème;
 }
 
-copie_noeud :: fonc (assembleuse: &AssembleuseArbre, racine: *NoeudSyntaxique) -> *NoeudSyntaxique
+copie_noeud :: fonc (assembleuse: *AssembleuseArbre, racine: *NoeudSyntaxique) -> *NoeudSyntaxique
 {
-    noeud := assembleuse.crée_noeud(racine.type, racine.données);
+    noeud := assembleuse.crée_noeud(racine.type, *racine.données);
     noeud.nom = racine.nom;
 
     pour racine.enfants {
@@ -59,7 +59,7 @@ construis_assembleuse :: fonc () -> AssembleuseArbre
     retourne assembleuse;
 }
 
-détruit_assembleuse :: fonc (assembleuse: &AssembleuseArbre) -> rien
+détruit_assembleuse :: fonc (assembleuse: *AssembleuseArbre) -> rien
 {
     pour noeud dans assembleuse.noeuds {
         détruit_noeud(noeud);
@@ -70,7 +70,7 @@ détruit_assembleuse :: fonc (assembleuse: &AssembleuseArbre) -> rien
     détruit(assembleuse.pile);
 }
 
-empile_noeud :: fonc (assembleuse: &AssembleuseArbre, type_noeud: TypeNoeud, données: &Lexème) -> *NoeudSyntaxique
+empile_noeud :: fonc (assembleuse: *AssembleuseArbre, type_noeud: TypeNoeud, données: *Lexème) -> *NoeudSyntaxique
 {
     noeud := assembleuse.crée_noeud(type_noeud, données);
 
@@ -84,36 +84,36 @@ empile_noeud :: fonc (assembleuse: &AssembleuseArbre, type_noeud: TypeNoeud, don
     retourne noeud;
 }
 
-ajoute_noeud :: fonc (assembleuse: &AssembleuseArbre, type_noeud: TypeNoeud, données: &Lexème) -> rien
+ajoute_noeud :: fonc (assembleuse: *AssembleuseArbre, type_noeud: TypeNoeud, données: *Lexème) -> rien
 {
     noeud := assembleuse.crée_noeud(type_noeud, données);
     assembleuse.ajoute_noeud(noeud);
 }
 
-ajoute_noeud :: fonc (assembleuse: &AssembleuseArbre, noeud: *NoeudSyntaxique)
+ajoute_noeud :: fonc (assembleuse: *AssembleuseArbre, noeud: *NoeudSyntaxique)
 {
     noeud.parent = assembleuse.pile.tête();
     ajoute_noeud(noeud.parent, noeud);
 }
 
-crée_noeud :: fonc (assembleuse: &AssembleuseArbre, type_noeud: TypeNoeud, données: &Lexème) -> *NoeudSyntaxique
+crée_noeud :: fonc (assembleuse: *AssembleuseArbre, type_noeud: TypeNoeud, données: *Lexème) -> *NoeudSyntaxique
 {
     noeud := loge(NoeudSyntaxique);
     noeud.type = type_noeud;
-    noeud.données = données;
+    noeud.données = mémoire(données);
 
     tableau_ajoute(*assembleuse.noeuds, noeud);
 
     retourne noeud;
 }
 
-dépile_noeud :: fonc (assembleuse: &AssembleuseArbre, type_noeud: TypeNoeud) -> rien
+dépile_noeud :: fonc (assembleuse: *AssembleuseArbre, type_noeud: TypeNoeud) -> rien
 {
     assembleuse.attends_type(type_noeud);
     _ := assembleuse.pile.dépile();
 }
 
-attends_type :: fonc (assembleuse: &AssembleuseArbre, type_noeud: TypeNoeud) -> rien
+attends_type :: fonc (assembleuse: *AssembleuseArbre, type_noeud: TypeNoeud) -> rien
 {
     assert(assembleuse.pile.tête().type == type_noeud);
 }

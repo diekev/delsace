@@ -575,10 +575,10 @@ rappels_window_sur_évènement :: fonc (base: *QT_Rappels_Window, event: QT_Gene
 
         // À FAIRE : gestion de la mémoire
         tailles: [..]z32;
-        tableau_redimensionne(tailles, 2 * nombre_de_formats);
+        tableau_redimensionne(*tailles, 2 * nombre_de_formats);
 
         données: [..]octet;
-        tableau_redimensionne(données, taille_données);
+        tableau_redimensionne(*données, taille_données);
 
         QT_mimedata_exporte_donnees(mimedata, données.pointeur comme *n8, données.taille, tailles.pointeur, tailles.taille);
 

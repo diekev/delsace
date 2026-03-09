@@ -326,7 +326,7 @@ TraversableNavigable :: struct {
 
 détruit_traversable :: fonc (traversable: *TraversableNavigable)
 {
-    déloge_tableau_et_ses_éléments(traversable.session_history_entries, détruit_session_history_entry);
+    déloge_tableau_et_ses_éléments(*traversable.session_history_entries, détruit_session_history_entry);
     déloge(traversable);
 }
 
@@ -813,7 +813,7 @@ crée_browsing_context_et_document :: fonc (user_agent: *UserAgent, creator: *Do
 
     // 13. Set up a window environment settings object with about:blank, realm execution context, null, topLevelCreationURL, and topLevelOrigin.
     set_up_window_environnement_context(donne_about_blank_url(), realm_execution_context, nul, top_level_creation_url, top_level_origin);
-    environment_settings := JS.donne_données(realm_execution_context.realm.host_defined, EnvironmentSettings);
+    environment_settings := JS.donne_données(*realm_execution_context.realm.host_defined, EnvironmentSettings);
 
     // 14. Let loadTimingInfo be a new document load timing info with its
     //     navigation start time set to the result of calling coarsen time with

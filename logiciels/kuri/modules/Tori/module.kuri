@@ -237,7 +237,7 @@ détruit_objet :: fonc (objet: *Objet) -> rien
 
 détruit :: fonc (gestionnaire: *GestionnaireObjet) -> rien
 {
-    déloge_tableau_et_ses_éléments(gestionnaire.objets);
+    déloge_tableau_et_ses_éléments(*gestionnaire.objets);
 }
 
 imprime_json :: fonc (objet: *Objet, tab: z32) -> rien

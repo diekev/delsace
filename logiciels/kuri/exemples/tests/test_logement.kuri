@@ -67,8 +67,8 @@ logement_tableau :: fonc () -> rien
 
     debut := 1.0;
 
-    pour & v dans tabl {
-        v = debut;
+    pour * v dans tabl {
+        mémoire(v) = debut;
         debut *= 3.0;
     }
 

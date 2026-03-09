@@ -942,12 +942,12 @@ Py_compare_énum_chaine :: fonc (valeur_énum: $T, op: z32, valeur_chaine: chain
 
 /* Auxilliaire pour assigner une chaine à un énum. */
 
-Py_AssigneChaineÉnum :: fonc (valeur_énum: &$T, valeur_chaine: chaine) -> z32
+Py_AssigneChaineÉnum :: fonc (valeur_énum: *$T, valeur_chaine: chaine) -> z32
 {
     infos := info_de(T);
     valeur, trouvée := donne_valeur_énum_pour_nom(infos, valeur_chaine);
     si trouvée {
-        valeur_énum = valeur comme T;
+        mémoire(valeur_énum) = valeur comme T;
         retourne 0;
     }
 

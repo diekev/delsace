@@ -121,11 +121,7 @@ parse_ipv6 :: fonc (chn: chaine) -> AdresseIPv6 | ErreurParsageIP
     possède_ipv4 := faux;
     ipv4 : AdresseIPv4 = ---;
 
-    chaines : [8]chaine;
-
-    pour & chaines {
-        it = "";
-    }
+    chaines: [8]chaine;
 
     si !possède_raccourci {
         si morceaux_nombre.taille < 8 {
@@ -164,8 +160,9 @@ parse_ipv6 :: fonc (chn: chaine) -> AdresseIPv6 | ErreurParsageIP
 
     ipv6 : AdresseIPv6 = ---;
 
-    pour & ipv6 {
-        it = 0;
+    // À FAIRE(langage) : tableau_redimensionne_avec
+    pour * ipv6 {
+        mémoire(it) = 0;
     }
 
     pour chaines {
