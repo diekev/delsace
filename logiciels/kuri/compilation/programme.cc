@@ -1281,8 +1281,8 @@ void ConstructriceProgrammeFormeRI::supprime_fonctions_inutilisées()
     }
 
     POUR (m_résultat.globales) {
-        POUR (it->fonctions_utilisées) {
-            fonction_à_visiter.empile(it);
+        POUR_NOMME (fonction_utilisée, it->fonctions_utilisées) {
+            fonction_à_visiter.empile(fonction_utilisée);
         }
     }
 
