@@ -747,7 +747,7 @@ chaine_depuis_enchaineuse :: fonc (enchaineuse: &EnchaineuseUTF16, réinitialise
         retourne résultat;
     }
 
-    tableau_redimensionne(résultat.unités, taille);
+    tableau_redimensionne(*résultat.unités, taille);
 
     curseur := 0;
 

@@ -66,7 +66,7 @@ initialise_tabuleuse :: fonc (tabuleuse: *Tabuleuse, titres: ...chaine)
 initialise_tabuleuse :: fonc (tabuleuse: *Tabuleuse, ligne_titre: LigneTabuleuse)
 {
     ajoute_ligne(tabuleuse, ligne_titre);
-    tableau_redimensionne_défaut(tabuleuse.alignements, ligne_titre.colonnes.taille, Alignement.GAUCHE);
+    tableau_redimensionne_défaut(*tabuleuse.alignements, ligne_titre.colonnes.taille, Alignement.GAUCHE);
 }
 
 détruit_tabuleuse :: fonc (tabuleuse: *Tabuleuse) -> rien
@@ -75,7 +75,7 @@ détruit_tabuleuse :: fonc (tabuleuse: *Tabuleuse) -> rien
         déloge(ligne.colonnes);
     }
 
-    déloge_tableau_et_ses_éléments(tabuleuse.chaines_allouées);
+    déloge_tableau_et_ses_éléments(*tabuleuse.chaines_allouées);
     déloge(tabuleuse.lignes);
     déloge(tabuleuse.alignements);
     déloge(tabuleuse.tailles_max_colonnes);
@@ -146,7 +146,7 @@ crée_ligne :: fonc (args: ...chaine) -> LigneTabuleuse
 ajoute_ligne :: fonc (empl tabuleuse: *Tabuleuse, ligne: LigneTabuleuse) -> rien
 {
     si ligne.colonnes.taille > tailles_max_colonnes.taille {
-        tableau_redimensionne(tailles_max_colonnes, ligne.colonnes.taille);
+        tableau_redimensionne(*tailles_max_colonnes, ligne.colonnes.taille);
     }
 
     tableau_ajoute(*tabuleuse.lignes, ligne);

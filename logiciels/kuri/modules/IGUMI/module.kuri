@@ -311,7 +311,7 @@ initialise_contexte :: fonc (empl ctx: *DonnéesContexteGL)
 
     chemins := #exécute donne_chemins_nuanceurs();
 
-    tableau_redimensionne(ctx.nuanceurs, IDNuanceur.nombre_éléments);
+    tableau_redimensionne(*ctx.nuanceurs, IDNuanceur.nombre_éléments);
     nuanceurs[IDNuanceur.Texte] = crée_nuanceur_depuis_fichier(chemins.chemin_vertex_texte, chemins.chemin_fragment_texte);
     nuanceurs[IDNuanceur.Texte].nom = "texte";
     nuanceurs[IDNuanceur.Basique] = crée_nuanceur_depuis_fichier(chemins.chemin_vertex_base, chemins.chemin_fragment_base);

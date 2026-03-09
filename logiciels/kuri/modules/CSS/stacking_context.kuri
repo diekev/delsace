@@ -27,7 +27,7 @@ construis_arbre_de_stacking_contexts :: fonc (arbre: *ArbreDeDisposition, racine
 
 détruit_stacking_context :: fonc (ctx: *StackingContext)
 {
-    déloge_tableau_et_ses_éléments(ctx.enfants, détruit_stacking_context);
+    déloge_tableau_et_ses_éléments(*ctx.enfants, détruit_stacking_context);
     déloge(ctx);
 }
 

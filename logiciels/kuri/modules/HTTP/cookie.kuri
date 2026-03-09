@@ -72,7 +72,7 @@ copie_cookie :: fonc (source: Cookie) -> Cookie
     retourne crée_cookie(source.nom, source.valeur);
 }
 
-détruit_cookie :: fonc (cookie: &Cookie)
+détruit_cookie :: fonc (cookie: *Cookie)
 {
     déloge(cookie.nom);
     déloge(cookie.valeur);

@@ -59,8 +59,8 @@ fn_clients :: fonc (p_data: *rien) -> *rien #sanstrace #cliche ri_finale
     entropie := graine_aléatoire(nb comme n32);
 
     boucle {
-        val : z32 = aléatoire_entre(entropie, 0, 6);
-        sleep(aléatoire_entre(entropie, 0, 3));
+        val : z32 = aléatoire_entre(*entropie, 0, 6);
+        sleep(aléatoire_entre(*entropie, 0, 3));
 
         _ := pthread_mutex_lock(*store.mutex);
 

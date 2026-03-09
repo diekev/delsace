@@ -82,7 +82,7 @@ génère_méthodes_getset_pour_type :: fonc (enchaineuse: *Enchaineuse, type: *T
                 assigne_énum_depuis_chaine := «
     si PyUnicode_Check(valeur) {
         valeur_chaine := PyUnicode_AsChaine(valeur);
-        retourne Py_AssigneChaineÉnum((instance comme *%PourPython).notre_instance.%, valeur_chaine);
+        retourne Py_AssigneChaineÉnum(*(instance comme *%PourPython).notre_instance.%, valeur_chaine);
     }
 »;
 
@@ -196,7 +196,7 @@ génère_globale_as_mapping :: fonc (enchaineuse: *Enchaineuse, type: *TypePytho
 
 génère_fonction_new :: fonc (enchaineuse: *Enchaineuse, type: *TypePython) -> chaine
 {
-    méthode := type.new;
+    méthode := *type.new;
 
     saufsi méthode.nom {
         retourne copie_chaine("");
@@ -456,7 +456,7 @@ génère_fonctions_protocole_séquences :: fonc (enchaineuse: *Enchaineuse, type
     enchaineuse.ajoute_au_tampon("}\n");
 }
 
-génère_déclaration_type_python :: fonc (enchaineuse: *Enchaineuse, module: &ModulePython, type: *TypePython)
+génère_déclaration_type_python :: fonc (enchaineuse: *Enchaineuse, module: *ModulePython, type: *TypePython)
 {
     /* Déclaration de la structure associée, dérivée de PyObject.
      * Pour une structure appelée « Structure », la version Python s'appelera « StructurePourPython ». */
@@ -492,7 +492,7 @@ génère_déclaration_type_python :: fonc (enchaineuse: *Enchaineuse, module: &M
      */
 
     si type.méthodes {
-        pour type.méthodes {
+        pour * type.méthodes {
             génère_interface_fonction(enchaineuse, it, type);
         }
         nom_tableau := enchaine("méthodes_", type.nom_sauf);
@@ -828,7 +828,7 @@ génère_création_valeur_défaut :: fonc (enchaineuse: *Enchaineuse, valeur_dé
 
 /* Extrait les paramètres des arguments passés à la fonction. Pour le moment ces arguments
  * ont des types conforment à Python. Le nom des arguments doit être "args". */
-génère_parsage_args_tuple :: fonc (enchaineuse: *Enchaineuse, méthode: &MéthodePython, valeur_retour: chaine)
+génère_parsage_args_tuple :: fonc (enchaineuse: *Enchaineuse, méthode: *MéthodePython, valeur_retour: chaine)
 {
     saufsi méthode.paramètres_entrée {
         retourne;
@@ -876,7 +876,7 @@ génère_parsage_args_tuple :: fonc (enchaineuse: *Enchaineuse, méthode: &Méth
 }
 
 /* Convertis les paramètres de fonction vers des objets de type Kuri natif (les types du programme). */
-génère_conversion_args_vers_kuri :: fonc (enchaineuse: *Enchaineuse, méthode: &MéthodePython)
+génère_conversion_args_vers_kuri :: fonc (enchaineuse: *Enchaineuse, méthode: *MéthodePython)
 {
     chaine_pour_extraction_énum := «
     % : %;
@@ -898,7 +898,7 @@ génère_conversion_args_vers_kuri :: fonc (enchaineuse: *Enchaineuse, méthode:
 }
 
 // Génère l'expression d'appel pour le code Kuri de la méthode. La fonction appelante doit gérer la potentielle valeur de retour (nom, assignation, etc.).
-génère_appel_méthode_kuri :: fonc (enchaineuse: *Enchaineuse, méthode: &MéthodePython, premier_paramètre_implicite : chaine = "")
+génère_appel_méthode_kuri :: fonc (enchaineuse: *Enchaineuse, méthode: *MéthodePython, premier_paramètre_implicite : chaine = "")
 {
     enchaineuse.ajoute_au_tampon(méthode.nom);
     virgule := "(";
@@ -923,7 +923,7 @@ génère_appel_méthode_kuri :: fonc (enchaineuse: *Enchaineuse, méthode: &Mét
     enchaineuse.ajoute_au_tampon(");\n");
 }
 
-génère_interface_fonction :: fonc (enchaineuse: *Enchaineuse, méthode: MéthodePython, self : *TypePython = nul)
+génère_interface_fonction :: fonc (enchaineuse: *Enchaineuse, méthode: *MéthodePython, self : *TypePython = nul)
 {
     // À FAIRE : initialisation des variables globales de kuri
 
@@ -1023,7 +1023,7 @@ ajoute_type_à_la_liste :: fonc (enchaineuse: *Enchaineuse, type: *TypePython)
     type.code_pour_init_module_fut_généré = vrai;
 }
 
-génère_initialisation_module :: fonc (enchaineuse: *Enchaineuse, module: &ModulePython, types: []*TypePython)
+génère_initialisation_module :: fonc (enchaineuse: *Enchaineuse, module: *ModulePython, types: []*TypePython)
 {
     génère_tableaux_méthodes(enchaineuse, module.méthodes, "méthodes_du_module");
 
