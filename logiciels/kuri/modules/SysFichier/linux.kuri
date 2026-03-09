@@ -36,10 +36,7 @@ opérateur != :: (p0: TypePoignéeFichier, p1: TypePoignéeFichier) -> bool
 initialise_tableau_correspondances :: fonc () -> [NOMBRE_VALEUR_ERRNO]ErreurFichier
 {
     résultat : [NOMBRE_VALEUR_ERRNO]ErreurFichier = ---;
-
-    pour & résultat {
-        it = ErreurFichier.Inconnue;
-    }
+    tableau_remplis_avec(résultat, ErreurFichier.Inconnue);
 
     // système_chemin_courant : Search permission is denied for one of the components of path.  (See also path_resolution(7).)
     résultat[EACCES] = ErreurFichier.PermissionNonAccordé;

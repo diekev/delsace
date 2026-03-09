@@ -736,7 +736,7 @@ lis_tableau :: fonc (scanner: *ScannerJSON, tableau: eini) -> LexèmeJSON
             }
 
             nouvelle_taille := tampon_tableau.taille + type_pointé.taille_en_octet comme z64;
-            tableau_redimensionne(tampon_tableau, nouvelle_taille);
+            tableau_redimensionne(*tampon_tableau, nouvelle_taille);
 
             tampon := tampon_tableau.pointeur + type_pointé.taille_en_octet comme z32 * indice;
 

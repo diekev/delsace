@@ -84,10 +84,10 @@ SystèmeTypeC :: struct {
 
 détruit_données_système_type :: fonc (système: *SystèmeTypeC)
 {
-    déloge_tableau_et_ses_éléments(système.types, détruit_type_c);
+    déloge_tableau_et_ses_éléments(*système.types, détruit_type_c);
 }
 
-initialise_système_type :: fonc (ipa: &IPA, espace_de_nom: chaine) -> SystèmeTypeC
+initialise_système_type :: fonc (ipa: *IPA, espace_de_nom: chaine) -> SystèmeTypeC
 {
     résultat: SystèmeTypeC;
     résultat.espace_de_nom = espace_de_nom;
@@ -121,7 +121,7 @@ type_requiers_conversion_entre_c_et_cpp :: fonc (type: *InfoType) -> bool
     retourne vrai;
 }
 
-ajoute_type :: fonc (système: *SystèmeTypeC, ipa: &IPA, type: *InfoType) -> *InfoTypeC
+ajoute_type :: fonc (système: *SystèmeTypeC, ipa: *IPA, type: *InfoType) -> *InfoTypeC
 {
     type_existant := trouve_type(système, type);
     si type_existant {
@@ -337,7 +337,7 @@ trouve_type :: fonc (système: *SystèmeTypeC, type: *InfoType) -> *InfoTypeC
     retourne résultat;
 }
 
-ajoute_type_depuis_fonction :: fonc (système: *SystèmeTypeC, ipa: &IPA, fonction: MéthodeIPA)
+ajoute_type_depuis_fonction :: fonc (système: *SystèmeTypeC, ipa: *IPA, fonction: MéthodeIPA)
 {
     pour fonction.entrées {
         _ := ajoute_type(système, ipa, it.type);
@@ -1089,7 +1089,7 @@ génère_liste_paramètres_pour_fonction_cpp :: fonc (enchaineuse: *Enchaineuse,
 
 /* ------------------------------------------------------------------------- */
 
-génère_code_déclaration_type_c :: fonc (enchaineuse: *Enchaineuse, ipa: &IPA, type_courant: *TypeIPA, système_type: *SystèmeTypeC)
+génère_code_déclaration_type_c :: fonc (enchaineuse: *Enchaineuse, ipa: *IPA, type_courant: *TypeIPA, système_type: *SystèmeTypeC)
 {
     si type_courant.drapeaux.TYPE_EST_BASIQUE {
         retourne;
@@ -1435,7 +1435,7 @@ static void imprime_erreur()
 
 /* ------------------------------------------------------------------------- */
 
-génère_code_support_kuri :: fonc (espace: EspaceDeTravail, ipa: &IPA, système_type: *SystèmeTypeC)
+génère_code_support_kuri :: fonc (espace: EspaceDeTravail, ipa: *IPA, système_type: *SystèmeTypeC)
 {
     enchaineuse: Enchaineuse;
     initialise_enchaineuse(*enchaineuse);
@@ -1706,7 +1706,7 @@ convertis_variable_type_c_vers_type_kuri :: fonc (enchaineuse: *Enchaineuse, typ
     }
 }
 
-détermine_modules_utilisés :: fonc (espace: EspaceDeTravail, ipa: &IPA) -> EnsembleDeModules
+détermine_modules_utilisés :: fonc (espace: EspaceDeTravail, ipa: *IPA) -> EnsembleDeModules
 {
     résultat: EnsembleDeModules;
     initialise_ensemble_de_modules(espace, *résultat);
