@@ -9,7 +9,7 @@ principale :: fonc ()
 
     entropie := graine_aléatoire(67);
 
-    initialise_murs_eller(*labyrinthe, entropie);
+    initialise_murs_eller(*labyrinthe, *entropie);
 
     pour y dans labyrinthe.taille_y {
         pour x dans labyrinthe.taille_x {

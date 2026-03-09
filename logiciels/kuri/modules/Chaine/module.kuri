@@ -112,14 +112,14 @@ convertis_casse_serpent_pour_interface :: fonc (chn: *chaine)
     remplace_sans_copie(*chn, '_', ' ');
 
     dernier_est_espace := vrai;
-    pour & mémoire(chn) {
-        si dernier_est_espace && ('a' <= it <= 'z') {
-            it = it - 'a' + 'A';
+    pour * mémoire(chn) {
+        si dernier_est_espace && ('a' <= mémoire(it) <= 'z') {
+            mémoire(it) = mémoire(it) - 'a' + 'A';
             dernier_est_espace = faux;
             continue;
         }
 
-        si it == ' ' {
+        si mémoire(it) == ' ' {
             dernier_est_espace = vrai;
         }
     }
@@ -329,8 +329,8 @@ en_minuscule :: fonc (c: z8) -> z8
 
 en_majuscule :: fonc (chn: chaine) -> chaine
 {
-    pour & c dans chn {
-        c = en_majuscule(c);
+    pour * c dans chn {
+        mémoire(c) = en_majuscule(mémoire(c));
     }
 
     retourne chn;
@@ -338,8 +338,8 @@ en_majuscule :: fonc (chn: chaine) -> chaine
 
 en_minuscule :: fonc (chn: chaine) -> chaine
 {
-    pour & c dans chn {
-        c = en_majuscule(c);
+    pour * c dans chn {
+        mémoire(c) = en_minuscule(mémoire(c));
     }
 
     retourne chn;
@@ -427,9 +427,9 @@ remplace :: fonc (ligne: chaine, c: z8, par: z8) -> chaine
 remplace_sans_copie :: fonc (ligne: *chaine, c: z8, par: z8)
 {
     résultat := mémoire(ligne);
-    pour & résultat {
-        si it == c {
-            it = par;
+    pour * résultat {
+        si mémoire(it) == c {
+            mémoire(it) = par;
         }
     }
     mémoire(ligne) = résultat;
@@ -795,11 +795,8 @@ cherche_aiguille_par_force_brute :: fonc (botte_de_foin: chaine, aiguille: chain
 cherche_aiguille_par_boyer_moore_horspool :: fonc (botte_de_foin: chaine, aiguille: chaine) -> z64
 {
     // crée une table pour définir le nombre de caractères sûrement omissible
-    table: [256]z32;
-
-    pour & table {
-        it = aiguille.taille comme z32;
-    }
+    table: [256]z32 = ---;
+    tableau_remplis_avec(table, aiguille.taille comme z32);
 
     pour 0 ... aiguille.taille - 2 {
         indice_pour_caractère := aiguille[it] comme n8;

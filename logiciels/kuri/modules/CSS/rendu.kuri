@@ -747,9 +747,9 @@ remplis_rectangle_id :: fonc (ctx: *ContexteDessin, box: *Box, rect: RectanglePo
         entropie := graine_aléatoire(box.id + 1);
 
         couleur: CouleurRVBA;
-        couleur.r = aléatoire_unilatérale(entropie);
-        couleur.v = aléatoire_unilatérale(entropie);
-        couleur.b = aléatoire_unilatérale(entropie);
+        couleur.r = aléatoire_unilatérale(*entropie);
+        couleur.v = aléatoire_unilatérale(*entropie);
+        couleur.b = aléatoire_unilatérale(*entropie);
         couleur.a = 1.0;
         commandes.remplis_rectangle(rect, couleur);
         retourne;

@@ -601,11 +601,11 @@ make_constructor :: fonc (realm: *Realm, F: *Function, opt_writable_prototype : 
 
     desc: PropertyDescriptor;
     initialise_property_descriptor(*desc, Valeur(Object = F), drapeau_writable_prototype | Configurable);
-    define_property_or_throw(prototype, STR_constructor, desc);
+    define_property_or_throw(prototype, STR_constructor, *desc);
 
     // 6. Perform ! DefinePropertyOrThrow(F, "prototype", PropertyDescriptor { [[Value]]: prototype, [[Writable]]: writablePrototype, [[Enumerable]]: false, [[Configurable]]: false }).
     initialise_property_descriptor(*desc, Valeur(Object = prototype), drapeau_writable_prototype);
-    define_property_or_throw(F, STR_prototype, desc);
+    define_property_or_throw(F, STR_prototype, *desc);
 
     // 7. Return unused.
 }
@@ -656,7 +656,7 @@ define_method_property :: fonc (home_object: *Object, key: FieldName, closure: *
         desc.configurable = vrai;
 
         // b. Perform ? DefinePropertyOrThrow(homeObject, key, desc).
-        define_property_or_throw(home_object, donne_property_key(key), desc);
+        define_property_or_throw(home_object, donne_property_key(key), *desc);
 
         // c. NOTE: DefinePropertyOrThrow only returns an abrupt completion when attempting to define a class static method whose key is "prototype".
         // d. Return unused.
@@ -710,7 +710,7 @@ set_function_name :: fonc (realm: *Realm, F: *Object, name: FieldName, prefix :=
         desc.value = Valeur(String = crée_chaine(F.donne_tas_de_mémoire(), name.String));
     }
     desc.configurable = vrai;
-    define_property_or_throw(F, STR_name, desc);
+    define_property_or_throw(F, STR_name, *desc);
 
     // 7. Return unused.
 }
@@ -728,7 +728,7 @@ set_function_length :: fonc (F: *Object, length: r64)
     // 2. Perform ! DefinePropertyOrThrow(F, "length", PropertyDescriptor { [[Value]]: 𝔽(length), [[Writable]]: false, [[Enumerable]]: false, [[Configurable]]: true }).
     desc: PropertyDescriptor;
     initialise_property_descriptor(*desc, Valeur(Number = length), Configurable);
-    define_property_or_throw(F, STR_length, desc);
+    define_property_or_throw(F, STR_length, *desc);
 
     // 3. Return unused.
 }

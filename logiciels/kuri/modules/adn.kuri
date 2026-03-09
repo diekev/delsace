@@ -75,12 +75,12 @@ décode_adn :: fonc (valeurs: []octet) -> chaine
 // remplacée par sa paire.
 appariement :: fonc (chn: []octet) -> rien
 {
-    pour & v dans chn {
-        discr v {
-            'a' { v = 't' comme octet }
-            'c' { v = 'g' comme octet }
-            'g' { v = 'c' comme octet }
-            't' { v = 'a' comme octet }
+    pour * v dans chn {
+        discr mémoire(v) {
+            'a' { mémoire(v) = 't' comme octet }
+            'c' { mémoire(v) = 'g' comme octet }
+            'g' { mémoire(v) = 'c' comme octet }
+            't' { mémoire(v) = 'a' comme octet }
             sinon { /* @erreur */ }
         }
     }
