@@ -191,7 +191,7 @@ déloge_mémoire :: fonc (allocatrice: *AllocatriceGardée, ancien_pointeur: *ri
     retourne nul;
 }
 
-allocation_gardée :: fonc (params: &ParamètresAllocation, données: *BaseAllocatrice) -> *rien
+allocation_gardée :: fonc (params: *ParamètresAllocation, données: *BaseAllocatrice) -> *rien
 {
     discr params.mode {
         ALLOUE,

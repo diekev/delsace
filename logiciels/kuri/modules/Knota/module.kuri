@@ -1534,20 +1534,20 @@ donne_noeud_parent :: fonc (noeud: *Noeud) -> *Noeud
 chemin_complet :: fonc (graphe: *Graphe) -> chaine
 {
     pile: Pile(chaine);
-    diffère détruit(pile);
+    diffère détruit(*pile);
 
     noeud_parent := graphe.noeud_parent;
 
     tantque noeud_parent != nul {
-        pile.empile(noeud_parent.nom);
+        empile(*pile, noeud_parent.nom);
         noeud_parent = donne_noeud_parent(noeud_parent);
     }
 
     enchaineuse: Enchaineuse;
     initialise_enchaineuse(*enchaineuse);
 
-    tantque !pile.est_vide() {
-        nom := pile.dépile();
+    tantque !est_vide(*pile) {
+        nom := dépile(*pile);
         ajoute_au_tampon(*enchaineuse, "/", nom);
     }
 
@@ -1705,23 +1705,23 @@ VisiteuseGraphe :: struct {
 
 détruit :: fonc (empl visiteuse: *VisiteuseGraphe)
 {
-    détruit(pile_de_noeuds);
+    détruit(*pile_de_noeuds);
     déloge(noeuds_visités);
 }
 
 ajoute_noeud_à_visiter :: fonc (empl visiteuse: *VisiteuseGraphe, noeud: *Noeud)
 {
-    pile_de_noeuds.empile(noeud);
+    empile(*pile_de_noeuds, noeud);
 }
 
 possède_noeuds_à_visiter :: fonc (empl visiteuse: *VisiteuseGraphe) -> bool
 {
-    retourne !pile_de_noeuds.est_vide();
+    retourne !est_vide(*pile_de_noeuds);
 }
 
 dépile_noeud_à_visiter :: fonc (empl visiteuse: *VisiteuseGraphe) -> *Noeud
 {
-    retourne pile_de_noeuds.dépile();
+    retourne dépile(*pile_de_noeuds);
 }
 
 a_visité_noeud :: fonc (empl visiteuse: *VisiteuseGraphe, noeud: *Noeud) -> bool

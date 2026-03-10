@@ -29,7 +29,7 @@ struct AllocatricePoule {
 
 # À FAIRE: libère mémoire
 
-allocatrice_poule :: fonc (params: &ParamètresAllocation, données: *BaseAllocatrice) -> *rien
+allocatrice_poule :: fonc (params: *ParamètresAllocation, données: *BaseAllocatrice) -> *rien
 {
     alloc := données comme *AllocatricePoule
 

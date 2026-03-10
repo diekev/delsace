@@ -100,7 +100,7 @@ CHEMIN_SOCKET :: "/tmp/.StatHus";
 /** \nom Fonction d'allocation.
  * \{ */
 
-allocatrice_stathüs :: fonc (params: &ParamètresAllocation, données: *BaseAllocatrice) -> *rien
+allocatrice_stathüs :: fonc (params: *ParamètresAllocation, données: *BaseAllocatrice) -> *rien
 {
     allocatrice := données comme *AllocatriceStatHüs;
 
@@ -180,7 +180,7 @@ détruit_allocatrice :: fonc (allocatrice: *AllocatriceStatHüs)
     détruit_extrémité(allocatrice.extrémité);
 }
 
-envoie_message :: fonc (allocatrice: *AllocatriceStatHüs, params: &ParamètresAllocation, adresse: *rien)
+envoie_message :: fonc (allocatrice: *AllocatriceStatHüs, params: *ParamètresAllocation, adresse: *rien)
 {
     si allocatrice.extrémité.nous_ne_pouvons_pas_parler_au_serveur {
         retourne;
@@ -335,7 +335,7 @@ marque_prise_non_bloquante :: fonc (fd: z32) -> bool
     retourne vrai;
 }
 
-ajoute_taille_type :: fonc (infos: &InfosSérialisation, valeur: eini)
+ajoute_taille_type :: fonc (infos: *InfosSérialisation, valeur: eini)
 {
     traversée: [..]eini;
     diffère déloge(traversée);

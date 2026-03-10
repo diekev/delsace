@@ -768,9 +768,9 @@ crée_pilote_client :: fonc (paramètres: *ParamètresGénérationInterface, esp
     chm_dossier_pilote := chm_courant / paramètres.dossier_pilote;
     chm_fichier_pilote := chm_dossier_pilote / "module.kuri";
 
-    diffère détruit_chemin(chm_courant);
-    diffère détruit_chemin(chm_dossier_pilote);
-    diffère détruit_chemin(chm_fichier_pilote);
+    diffère détruit_chemin(*chm_courant);
+    diffère détruit_chemin(*chm_dossier_pilote);
+    diffère détruit_chemin(*chm_fichier_pilote);
 
     enchaineuse: Enchaineuse;
     initialise_enchaineuse(*enchaineuse);

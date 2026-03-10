@@ -106,7 +106,7 @@ parse_texte_format_url :: fonc (texte: chaine, $T: type_de_données) -> (Résult
         }
 
         nom := sous_chaine_jusque_indice(*parseuse, pos);
-        résoud_échappement_url_localement(nom);
+        résoud_échappement_url_localement(*nom);
 
         positionne(*parseuse, pos + 1);
 
@@ -121,7 +121,7 @@ parse_texte_format_url :: fonc (texte: chaine, $T: type_de_données) -> (Résult
         }
 
         valeur := sous_chaine_jusque_indice(*parseuse, pos);
-        résoud_échappement_url_localement(valeur);
+        résoud_échappement_url_localement(*valeur);
 
         positionne(*parseuse, pos + 1);
 

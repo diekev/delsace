@@ -14,7 +14,7 @@ crée_tableau_partagé :: fonc ($T: type_de_données, $CopieValeur: fonc (élém
     retourne résultat;
 }
 
-taille :: fonc (tableau: &TableauPartagé($T, $C, $D)) -> z64
+taille :: fonc (tableau: *TableauPartagé($T, $C, $D)) -> z64
 {
     si tableau.est_comprimée {
         retourne TAILLE_PAGE;
@@ -23,39 +23,39 @@ taille :: fonc (tableau: &TableauPartagé($T, $C, $D)) -> z64
     retourne tableau.valeurs.taille;
 }
 
-nombre_de_références :: fonc (tableau: &TableauPartagé($T, $C, $D)) -> z32
+nombre_de_références :: fonc (tableau: *TableauPartagé($T, $C, $D)) -> z32
 {
     retourne mémoire(tableau.compte_de_référence);
 }
 
-référence :: fonc (tableau: &TableauPartagé($T, $C, $D))
+référence :: fonc (tableau: *TableauPartagé($T, $C, $D))
 {
     mémoire(tableau.compte_de_référence) += 1;
 }
 
-déréférence :: fonc (tableau: &TableauPartagé($T, $C, $D))
+déréférence :: fonc (tableau: *TableauPartagé($T, $C, $D))
 {
     mémoire(tableau.compte_de_référence) -= 1;
 }
 
-est_vide :: fonc (tableau: &TableauPartagé($T, $C, $D)) -> bool
+est_vide :: fonc (tableau: *TableauPartagé($T, $C, $D)) -> bool
 {
     retourne tableau.taille() == 0;
 }
 
-copie :: fonc (tableau: &TableauPartagé($T, $C, $D)) -> TableauPartagé(T, C, D)
+copie :: fonc (tableau: *TableauPartagé($T, $C, $D)) -> TableauPartagé(T, C, D)
 {
     tableau.référence();
     résultat : TableauPartagé(T) = tableau;
     retourne résultat;
 }
 
-est_unique :: fonc (tableau: &TableauPartagé($T, $C, $D)) -> bool
+est_unique :: fonc (tableau: *TableauPartagé($T, $C, $D)) -> bool
 {
     retourne tableau.nombre_de_références() == 1;
 }
 
-rends_unique :: fonc (tableau: &TableauPartagé($T, $C, $D))
+rends_unique :: fonc (tableau: *TableauPartagé($T, $C, $D))
 {
     si tableau.nombre_de_références() == 1 {
         retourne;
@@ -68,7 +68,7 @@ rends_unique :: fonc (tableau: &TableauPartagé($T, $C, $D))
     tableau.référence();
 }
 
-rends_unique :: fonc (tableau: &TableauPartagé($T, $C, $D), copie: fonc (élément: *T) -> T)
+rends_unique :: fonc (tableau: *TableauPartagé($T, $C, $D), copie: fonc (élément: *T) -> T)
 {
     si tableau.nombre_de_références() == 1 {
         retourne;
@@ -87,7 +87,7 @@ rends_unique :: fonc (tableau: &TableauPartagé($T, $C, $D), copie: fonc (élém
     tableau.référence();
 }
 
-détruit :: fonc (tableau: &TableauPartagé($T, $C, $D))
+détruit :: fonc (tableau: *TableauPartagé($T, $C, $D))
 {
     tableau.déréférence();
     si mémoire(tableau.compte_de_référence) == 0 {
@@ -96,7 +96,7 @@ détruit :: fonc (tableau: &TableauPartagé($T, $C, $D))
     }
 }
 
-définis_valeur :: fonc (tableau: &TableauPartagé($T, $C, $D), indice: z64, valeur: T)
+définis_valeur :: fonc (tableau: *TableauPartagé($T, $C, $D), indice: z64, valeur: T)
 {
     tableau.rends_unique();
 
@@ -109,7 +109,7 @@ définis_valeur :: fonc (tableau: &TableauPartagé($T, $C, $D), indice: z64, val
     tableau.valeurs[indice] = valeur;
 }
 
-donne_valeur :: fonc (tableau: &TableauPartagé($T, $C, $D), indice: z64) -> T
+donne_valeur :: fonc (tableau: *TableauPartagé($T, $C, $D), indice: z64) -> T
 {
     si tableau.est_comprimée {
         retourne tableau.valeur_constante;
@@ -117,7 +117,7 @@ donne_valeur :: fonc (tableau: &TableauPartagé($T, $C, $D), indice: z64) -> T
     retourne tableau.valeurs[indice];
 }
 
-mémoire_utilisée :: fonc (tableau: &TableauPartagé($T, $C, $D)) -> z64
+mémoire_utilisée :: fonc (tableau: *TableauPartagé($T, $C, $D)) -> z64
 {
     retourne tableau.valeurs.taille * (taille_de(T) comme z64);
 }

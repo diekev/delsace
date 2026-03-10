@@ -64,23 +64,23 @@ ouvre_fichier_pour_lecture :: fonc (chemin: CheminFichier) -> RésultatFichier
 crée_dossiers_pour_chemin :: fonc (chemin: CheminFichier, avec_feuille: bool) -> ErreurFichier
 {
     pile := divise_et_empile_chemin(chemin);
-    diffère détruit(pile);
+    diffère détruit(*pile);
 
-    si pile.est_vide() {
+    si est_vide(*pile) {
         retourne 0 comme ErreurFichier;
     }
 
     saufsi avec_feuille {
         /* Supprime le dernier élément du chemin. */
-        _ := pile.dépile();
+        _ := dépile(*pile);
     }
 
-    si pile.est_vide() {
+    si est_vide(*pile) {
         /* Nous sommes à la racine sans doute. */
         retourne 0 comme ErreurFichier;
     }
 
-    pile.renverse();
+    renverse(*pile);
 
     tampon: TamponChemin;
 
@@ -88,8 +88,8 @@ crée_dossiers_pour_chemin :: fonc (chemin: CheminFichier, avec_feuille: bool) -
         _ := ajoute(*tampon, séparateur_chemin());
     }
 
-    tantque !pile.est_vide() {
-        saufsi ajoute(*tampon, pile.dépile()) && ajoute(*tampon, séparateur_chemin()) {
+    tantque !est_vide(*pile) {
+        saufsi ajoute(*tampon, dépile(*pile)) && ajoute(*tampon, séparateur_chemin()) {
             retourne ErreurFichier.MémoireInsuffisante;
         }
 
@@ -358,7 +358,7 @@ lis_tout :: fonc (fichier: *Fichier) -> ChaineOuErreurFichier
 {
     résultat: [..]octet;
 
-    erreur_potentielle := lis_tout(fichier, résultat);
+    erreur_potentielle := lis_tout(fichier, *résultat);
     si erreur_potentielle != (0 comme ErreurFichier) {
         retourne erreur_potentielle;
     }
@@ -366,7 +366,7 @@ lis_tout :: fonc (fichier: *Fichier) -> ChaineOuErreurFichier
     retourne chaine_depuis_tranche_octets(résultat);
 }
 
-lis_tout :: fonc (fichier: *Fichier, résultat: &[..]octet) -> ErreurFichier
+lis_tout :: fonc (fichier: *Fichier, résultat: *[..]octet) -> ErreurFichier
 {
     TAILLE_MAX :: 1024;
     tampon : [TAILLE_MAX]z8 = ---;
@@ -375,14 +375,14 @@ lis_tout :: fonc (fichier: *Fichier, résultat: &[..]octet) -> ErreurFichier
 
     boucle {
         octets_lus := tente système_lis(fichier.desc, *tampon[0], TAILLE_MAX) piège err {
-            déloge(résultat);
+            tableau_détruit(résultat);
             retourne err;
         };
 
         si octets_lus > 0 {
             ancienne_taille := résultat.taille;
-            tableau_redimensionne_sans_init(*résultat, résultat.taille + octets_lus);
-            copie_mem_nonsur(src = *tampon[0], dst = *résultat[ancienne_taille], taille = octets_lus);
+            tableau_redimensionne_sans_init(résultat, résultat.taille + octets_lus);
+            copie_mem_nonsur(src = *tampon[0], dst = *résultat.pointeur[ancienne_taille], taille = octets_lus);
 
             si octets_lus < TAILLE_MAX {
                 arrête;
@@ -491,12 +491,12 @@ fichier_invalide :: fonc () -> Fichier
 /* Fais pointer ancien_fichier vers nouveau_fichier. Après cette opération lire
  * depuis et écrire dans ancien_fichier aura le même effet que lire depuis et
  * écrire dans nouveau_fichier. */
-référence_fichier :: fonc (ancien_fichier: &Fichier, nouveau_fichier: *Fichier)
+référence_fichier :: fonc (ancien_fichier: *Fichier, nouveau_fichier: *Fichier)
 {
     système_référence_fichier(ancien_fichier.desc, nouveau_fichier.desc);
 
     si ancien_fichier.desc != nouveau_fichier.desc {
-        _ := ferme(*ancien_fichier);
+        _ := ferme(ancien_fichier);
     }
 }
 

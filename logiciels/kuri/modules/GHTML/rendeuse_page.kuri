@@ -72,8 +72,8 @@ trouve_dans_cache :: fonc (rendeuse_gabarit: *RendeusePage, nom_court: chaine) -
     racine : *NoeudSyntaxique = nul;
 
     /* le fichier est vide */
-    saufsi syntaxeuse.assembleuse.pile.est_vide() {
-        racine = syntaxeuse.assembleuse.pile.tête();
+    saufsi est_vide(*syntaxeuse.assembleuse.pile) {
+        racine = tête(*syntaxeuse.assembleuse.pile);
     }
 
     si syntaxeuse.est_extension {

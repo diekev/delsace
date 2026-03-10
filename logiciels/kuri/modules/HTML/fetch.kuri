@@ -713,10 +713,10 @@ donne_unsafe_response :: fonc (response: *Response) -> *Response
 crée_réponse_pour_hôte_introuvable :: fonc (request: *Request) -> *Response
 {
     chemin_parent_ci_fichier := CheminFichier(#chemin_de_ce_fichier).chemin_parent();
-    diffère détruit_chemin(chemin_parent_ci_fichier);
+    diffère détruit_chemin(*chemin_parent_ci_fichier);
 
     chemin_fichier := chemin_parent_ci_fichier / "Fichiers/erreur-hôte-introuvable.html";
-    diffère détruit_chemin(chemin_fichier);
+    diffère détruit_chemin(*chemin_fichier);
 
     _, contenu := contenu_fichier_texte(chemin_fichier);
     retourne crée_réponse_pour_fichier(request, "text/html", contenu, 0);
@@ -725,10 +725,10 @@ crée_réponse_pour_hôte_introuvable :: fonc (request: *Request) -> *Response
 crée_réponse_pour_hôte_ferma_connexion :: fonc (request: *Request) -> *Response
 {
     chemin_parent_ci_fichier := CheminFichier(#chemin_de_ce_fichier).chemin_parent();
-    diffère détruit_chemin(chemin_parent_ci_fichier);
+    diffère détruit_chemin(*chemin_parent_ci_fichier);
 
     chemin_fichier := chemin_parent_ci_fichier / "Fichiers/erreur-hôte-ferma-connexion.html";
-    diffère détruit_chemin(chemin_fichier);
+    diffère détruit_chemin(*chemin_fichier);
 
     _, contenu := contenu_fichier_texte(chemin_fichier);
     retourne crée_réponse_pour_fichier(request, "text/html", contenu, 0);
@@ -737,10 +737,10 @@ crée_réponse_pour_hôte_ferma_connexion :: fonc (request: *Request) -> *Respon
 crée_réponse_pour_erreur_inconnue :: fonc (request: *Request, détail: chaine) -> *Response
 {
     chemin_parent_ci_fichier := CheminFichier(#chemin_de_ce_fichier).chemin_parent();
-    diffère détruit_chemin(chemin_parent_ci_fichier);
+    diffère détruit_chemin(*chemin_parent_ci_fichier);
 
     chemin_fichier := chemin_parent_ci_fichier / "Fichiers/erreur-inconnue.html";
-    diffère détruit_chemin(chemin_fichier);
+    diffère détruit_chemin(*chemin_fichier);
 
     _, contenu := contenu_fichier_texte(chemin_fichier);
 
@@ -754,10 +754,10 @@ crée_réponse_pour_erreur_inconnue :: fonc (request: *Request, détail: chaine)
 crée_réponse_pour_trop_de_redirections :: fonc (request: *Request) -> *Response
 {
     chemin_parent_ci_fichier := CheminFichier(#chemin_de_ce_fichier).chemin_parent();
-    diffère détruit_chemin(chemin_parent_ci_fichier);
+    diffère détruit_chemin(*chemin_parent_ci_fichier);
 
     chemin_fichier := chemin_parent_ci_fichier / "Fichiers/erreur-trop-de-redirections.html";
-    diffère détruit_chemin(chemin_fichier);
+    diffère détruit_chemin(*chemin_fichier);
 
     _, contenu := contenu_fichier_texte(chemin_fichier);
     résultat := crée_réponse_pour_fichier(request, "text/html", contenu, 0);
@@ -1572,10 +1572,10 @@ scheme_fetch :: fonc (user_agent: *UserAgent, fetch_params: *FetchParams) -> *Re
 
         saufsi fichier_existe(chemin) {
             chemin_parent_ci_fichier := CheminFichier(#chemin_de_ce_fichier).chemin_parent();
-            diffère détruit_chemin(chemin_parent_ci_fichier);
+            diffère détruit_chemin(*chemin_parent_ci_fichier);
 
             chemin_erreur_404 := chemin_parent_ci_fichier / "Fichiers/erreur-404.html";
-            diffère détruit_chemin(chemin_erreur_404);
+            diffère détruit_chemin(*chemin_erreur_404);
 
             _, contenu := contenu_fichier_texte(chemin_erreur_404);
 

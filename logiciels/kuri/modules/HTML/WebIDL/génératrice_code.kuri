@@ -263,9 +263,9 @@ compile_interfaces_idl :: fonc () -> chaine
 
     chemin_fichier := CheminFichier(#chemin_de_ce_fichier);
     chemin_parent := chemin_fichier.chemin_parent();
-    diffère détruit_chemin(chemin_parent);
+    diffère détruit_chemin(*chemin_parent);
     chemin := crée_chemin_absolu(chemin_parent, CheminFichier("fichiers"));
-    diffère détruit_chemin(chemin);
+    diffère détruit_chemin(*chemin);
 
     chemins := donne_fichiers_du_dossier(chemin);
     diffère déloge_tableau_et_ses_éléments(*chemins);

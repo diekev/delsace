@@ -153,20 +153,20 @@ RésultatRequête :: struct {
     curseurs: [..]CurseurRésultat;
 }
 
-ajoute_curseur :: fonc (résultat: &RésultatRequête, curseur: CurseurRésultat)
+ajoute_curseur :: fonc (résultat: *RésultatRequête, curseur: CurseurRésultat)
 {
     tableau_ajoute(*résultat.curseurs, curseur);
 }
 
 // Nous faisons ceci pour avoir une synchronisation entre le nombre d'instructions
 // dans une requête et le contenu du résultat
-ajoute_curseur_vide :: fonc (résultat: &RésultatRequête)
+ajoute_curseur_vide :: fonc (résultat: *RésultatRequête)
 {
     curseur: CurseurRésultat;
     ajoute_curseur(résultat, curseur);
 }
 
-détruit_résultat :: fonc (résultat: &RésultatRequête) -> rien
+détruit_résultat :: fonc (résultat: *RésultatRequête) -> rien
 {
     pour * résultat.curseurs {
         détruit_curseur(it);
@@ -213,16 +213,16 @@ exécute :: fonc (connexion: *ConnexionMySQL, chaine_requête: chaine) -> Curseu
             curseur.nombre_colonne = mysql_num_fields(résultat_mysql);
             curseur.nombre_résultat = mysql_num_rows(résultat_mysql);
 
-            résultat.ajoute_curseur(curseur);
+            ajoute_curseur(*résultat, curseur);
         }
         sinon {
             si mysql_field_count(*connexion.mysql) == 0 {
                 // mysql_affected_rows(*connexion.mysql)
-                résultat.ajoute_curseur_vide();
+                ajoute_curseur_vide(*résultat);
             }
             sinon {
                 log_erreur(*connexion.mysql, "Impossible de récupérer l'ensemble de résultat");
-                détruit_résultat(résultat);
+                détruit_résultat(*résultat);
                 retourne ErreurCurseur.XXX;
             }
         }
@@ -232,7 +232,7 @@ exécute :: fonc (connexion: *ConnexionMySQL, chaine_requête: chaine) -> Curseu
 
         si status > 0 {
             log_erreur(*connexion.mysql, "Impossible d'exécuter l'instruction");
-            détruit_résultat(résultat);
+            détruit_résultat(*résultat);
             retourne ErreurCurseur.XXX;
         }
     } tantque status == 0;
@@ -309,7 +309,7 @@ trouve_info_rubriques_pour_colonnes :: fonc (agent: chaine @inutilisée, info: *
     retourne infos_rubriques;
 }
 
-sélectionne :: fonc (table: &TableMySQL, $T: type_de_données, colonnes: ...chaine) -> [..]T
+sélectionne :: fonc (table: *TableMySQL, $T: type_de_données, colonnes: ...chaine) -> [..]T
 {
     #assert info_de(T).id == GenreInfoType.STRUCTURE;
 
@@ -395,7 +395,7 @@ sélectionne :: fonc (table: &TableMySQL, $T: type_de_données, colonnes: ...cha
     retourne résultat;
 }
 
-insère :: fonc (table: &TableMySQL, valeur: $T, colonnes: ...chaine) -> bool
+insère :: fonc (table: *TableMySQL, valeur: $T, colonnes: ...chaine) -> bool
 {
     #assert info_de(T).id == GenreInfoType.STRUCTURE;
 
@@ -451,7 +451,7 @@ insère :: fonc (table: &TableMySQL, valeur: $T, colonnes: ...chaine) -> bool
     curseur := tente exécute(*connexion, requête) piège _ {
         retourne faux;
     };
-    diffère détruit_résultat(curseur);
+    diffère détruit_résultat(*curseur);
 
     retourne vrai;
 }
@@ -629,7 +629,7 @@ sélectionne_colonnes_depuis_table :: fonc (connexion: *ConnexionMySQL, nom_tabl
     résultat_exécution := tente exécute(connexion, requête) piège _ {
         retourne;
     };
-    diffère détruit_résultat(résultat_exécution);
+    diffère détruit_résultat(*résultat_exécution);
 
     si résultat_exécution.curseurs.taille != 1 {
         retourne;
@@ -657,7 +657,7 @@ exécute_requête_pour_liste :: fonc (connexion: *ConnexionMySQL, requête: chai
     résultat := tente exécute(connexion, requête) piège _ {
         retourne;
     };
-    diffère détruit_résultat(résultat);
+    diffère détruit_résultat(*résultat);
 
     si résultat.curseurs.taille != 1 {
         imprime_log("[MySQL]", "nombre de curseurs incompatible : %\n", résultat.curseurs.taille);
@@ -683,7 +683,7 @@ exécute_requête_pour_une_valeur :: fonc (connexion: *ConnexionMySQL, requête:
     résultat := tente exécute(connexion, requête) piège _ {
         retourne;
     };
-    diffère détruit_résultat(résultat);
+    diffère détruit_résultat(*résultat);
 
     si résultat.curseurs.taille != 1 {
         imprime_log("[MySQL]", "nombre de curseurs incompatible : %\n", résultat.curseurs.taille);

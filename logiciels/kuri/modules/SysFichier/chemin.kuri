@@ -21,7 +21,7 @@ str_chemin_fichier_pour_python :: fonc (chm: *CheminFichier) -> chaine
     retourne copie_chaine(chm.chn);
 } @Python "str"
 
-détruit_chemin :: fonc (chemin: &CheminFichier)
+détruit_chemin :: fonc (chemin: *CheminFichier)
 {
     déloge(chemin.chn);
 }
@@ -99,7 +99,7 @@ nom_fichier_avec_extension :: fonc (chemin: CheminFichier) -> chaine
     retourne sous_chaine(chemin.chn, pos, chemin.chn.taille);
 }
 
-divise_et_empile_chemin :: fonc (pile: &Pile(chaine), chemin: CheminFichier)
+divise_et_empile_chemin :: fonc (pile: *Pile(chaine), chemin: CheminFichier)
 {
     divise(chemin.chn, séparateur_chemin(), *pile.données, faux);
 }
@@ -107,11 +107,11 @@ divise_et_empile_chemin :: fonc (pile: &Pile(chaine), chemin: CheminFichier)
 divise_et_empile_chemin :: fonc (chemin: CheminFichier) -> Pile(chaine)
 {
     résultat: Pile(chaine);
-    divise_et_empile_chemin(résultat, chemin);
+    divise_et_empile_chemin(*résultat, chemin);
     retourne résultat;
 }
 
-chemin_normalisé :: fonc (pile: &Pile(chaine), chemin_est_absolu: bool) -> CheminFichier
+chemin_normalisé :: fonc (pile: *Pile(chaine), chemin_est_absolu: bool) -> CheminFichier
 {
     /* À FAIRE : structure dédiée. */
     tampon: [16]chaine;
@@ -123,7 +123,7 @@ chemin_normalisé :: fonc (pile: &Pile(chaine), chemin_est_absolu: bool) -> Chem
         pile_secondaire.données.capacité = 16;
     }
 
-    diffère saufsi utilise_tampon { détruit(pile_secondaire); }
+    diffère saufsi utilise_tampon { détruit(*pile_secondaire); }
 
     pile.renverse();
 
@@ -136,30 +136,30 @@ chemin_normalisé :: fonc (pile: &Pile(chaine), chemin_est_absolu: bool) -> Chem
 
         si morceau_courant == ".." {
             // À FAIRE : si la pile est vide, retourne un chemin invalide
-            saufsi pile_secondaire.est_vide() {
-                _ := pile_secondaire.dépile();
+            saufsi est_vide(*pile_secondaire) {
+                _ := dépile(*pile_secondaire);
             }
             continue;
         }
 
-        pile_secondaire.empile(morceau_courant);
+        empile(*pile_secondaire, morceau_courant);
     }
 
-    pile_secondaire.renverse();
+    renverse(*pile_secondaire);
 
     enchaineuse: Enchaineuse;
     initialise_enchaineuse(*enchaineuse);
 
     // Arriver ici veut dire que le chemin est valide, mais que soit les composants du
     // chemin ont tous été supprimés, soit que le chemin fut celui de la racine
-    si pile_secondaire.est_vide() {
+    si est_vide(*pile_secondaire) {
         ajoute_au_tampon(*enchaineuse, séparateur_chemin());
     }
 
     premier_slash := vrai;
 
-    tantque !pile_secondaire.est_vide() {
-        morceau_courant := pile_secondaire.dépile();
+    tantque !est_vide(*pile_secondaire) {
+        morceau_courant := dépile(*pile_secondaire);
         si !premier_slash || chemin_est_absolu {
             ajoute_au_tampon(*enchaineuse, séparateur_chemin());
         }
@@ -173,8 +173,8 @@ chemin_normalisé :: fonc (pile: &Pile(chaine), chemin_est_absolu: bool) -> Chem
 chemin_normalisé :: fonc (chemin: CheminFichier) -> CheminFichier
 {
     pile := divise_et_empile_chemin(chemin);
-    diffère détruit(pile);
-    retourne chemin_normalisé(pile, chemin.chn.commence_par(séparateur_chemin()));
+    diffère détruit(*pile);
+    retourne chemin_normalisé(*pile, chemin.chn.commence_par(séparateur_chemin()));
 }
 
 /* Retourne le chemin relatif de chemin_cible par rapport à chemin_racine.
@@ -196,62 +196,62 @@ chemin_relatif_à :: fonc (chemin_cible: CheminFichier, chemin_racine: CheminFic
     }
 
     chemin_cible = chemin_normalisé(chemin_cible);
-    diffère détruit_chemin(chemin_cible);
+    diffère détruit_chemin(*chemin_cible);
 
     chemin_racine = chemin_normalisé(chemin_racine);
-    diffère détruit_chemin(chemin_racine);
+    diffère détruit_chemin(*chemin_racine);
 
     pile_racine := divise_et_empile_chemin(chemin_racine);
-    diffère détruit(pile_racine);
+    diffère détruit(*pile_racine);
 
     pile_cible := divise_et_empile_chemin(chemin_cible);
-    diffère détruit(pile_cible);
+    diffère détruit(*pile_cible);
 
     cible_est_fichier := est_un_fichier_régulier(chemin_cible);
 
     /* Renverse les deux piles afin que la comparaison commence par les dossiers racines. */
-    pile_racine.renverse();
-    pile_cible.renverse();
+    renverse(*pile_racine);
+    renverse(*pile_cible);
 
     boucle {
-        si pile_racine.est_vide() || pile_cible.est_vide() {
+        si est_vide(*pile_racine) || est_vide(*pile_cible) {
             arrête;
         }
 
-        nom_racine := pile_racine.tête();
-        nom_cible := pile_cible.tête();
+        nom_racine := tête(*pile_racine);
+        nom_cible := tête(*pile_cible);
 
         si nom_cible != nom_racine {
             arrête;
         }
 
-        _ := pile_racine.dépile();
-        _ := pile_cible.dépile();
+        _ := dépile(*pile_racine);
+        _ := dépile(*pile_cible);
     }
 
     /* Renverse la pile cible afin que l'empilement se fasse dans le « bon » ordre. */
-    pile_cible.renverse();
+    renverse(*pile_cible);
 
     pile_résultat: Pile(chaine);
-    diffère détruit(pile_résultat);
+    diffère détruit(*pile_résultat);
 
-    tantque !pile_cible.est_vide() {
-        pile_résultat.empile(pile_cible.dépile());
+    tantque !est_vide(*pile_cible) {
+        empile(*pile_résultat, dépile(*pile_cible));
     }
 
-    tantque !pile_racine.est_vide() {
-        pile_résultat.empile("..");
-        _ := pile_racine.dépile();
+    tantque !est_vide(*pile_racine) {
+        empile(*pile_résultat, "..");
+        _ := dépile(*pile_racine);
     }
 
     enchaineuse: Enchaineuse;
     initialise_enchaineuse(*enchaineuse);
 
-    tantque !pile_résultat.est_vide() {
-        ajoute_au_tampon(*enchaineuse, pile_résultat.dépile());
+    tantque !est_vide(*pile_résultat) {
+        ajoute_au_tampon(*enchaineuse, dépile(*pile_résultat));
 
         /* N'ajoute pas de séparateur à la fin des noms de fichiers. */
-        si cible_est_fichier && pile_résultat.est_vide() {
+        si cible_est_fichier && est_vide(*pile_résultat) {
             arrête;
         }
 
@@ -266,7 +266,7 @@ chemin_relatif_à :: fonc (chemin_cible: CheminFichier, chemin_racine: CheminFic
 est_chemin_relatif_à :: fonc (chemin_cible: CheminFichier, chemin_racine: CheminFichier) -> bool
 {
     absolu := crée_chemin_absolu(chemin_racine, chemin_cible);
-    diffère détruit_chemin(absolu);
+    diffère détruit_chemin(*absolu);
     retourne fichier_existe(absolu);
 }
 
@@ -348,11 +348,11 @@ crée_chemin_absolu :: fonc (base: CheminFichier, feuille: CheminFichier) -> Che
 
     // divise selon le séparateur du système
     pile: Pile(chaine);
-    diffère détruit(pile);
-    retourne crée_chemin_absolu(pile, base, feuille);
+    diffère détruit(*pile);
+    retourne crée_chemin_absolu(*pile, base, feuille);
 }
 
-crée_chemin_absolu :: fonc (pile: &Pile(chaine), base: CheminFichier, feuille: CheminFichier) -> CheminFichier
+crée_chemin_absolu :: fonc (pile: *Pile(chaine), base: CheminFichier, feuille: CheminFichier) -> CheminFichier
 {
     divise_et_empile_chemin(pile, base);
     divise_et_empile_chemin(pile, feuille);
@@ -372,26 +372,26 @@ est_relatif :: fonc (chm: CheminFichier) -> bool
 nom_dossier_parent :: fonc (chm: CheminFichier) -> chaine
 {
     pile := divise_et_empile_chemin(chm);
-    diffère détruit(pile);
+    diffère détruit(*pile);
 
     /* Dépile le nom du fichier ou du fichier parent. */
-    _ := pile.dépile();
+    _ := dépile(*pile);
 
-    si pile.est_vide() {
+    si est_vide(*pile) {
         retourne "";
     }
 
-    retourne pile.dépile();
+    retourne dépile(*pile);
 }
 
 chemin_parent :: fonc (chm: CheminFichier) -> CheminFichier
 {
     pile := divise_et_empile_chemin(chm);
-    diffère détruit(pile);
+    diffère détruit(*pile);
 
-    pile.empile("..");
+    empile(*pile, "..");
 
-    retourne chemin_normalisé(pile, chm.chn.commence_par(séparateur_chemin()));
+    retourne chemin_normalisé(*pile, chm.chn.commence_par(séparateur_chemin()));
 }
 
 /* Retourne le nom du premier dossier après le dossier de base.
@@ -403,31 +403,31 @@ premier_dossier_après :: fonc (base: CheminFichier, chm: CheminFichier) -> chai
     chm.chn = avance(chm.chn, base.chn.taille);
 
     pile := divise_et_empile_chemin(chm);
-    diffère détruit(pile);
+    diffère détruit(*pile);
 
-    tantque pile.taille() != 1 {
-        _ := pile.dépile();
+    tantque taille(*pile) != 1 {
+        _ := dépile(*pile);
     }
 
-    retourne pile.dépile();
+    retourne dépile(*pile);
 }
 
 /* Retourne vrai si le chemin `base` est un chemin parent de `chemin`. */
 est_chemin_parent_de :: fonc (base: CheminFichier, chemin: CheminFichier) -> bool
 {
     pile_base := divise_et_empile_chemin(base);
-    diffère détruit(pile_base);
+    diffère détruit(*pile_base);
 
     pile_chemin := divise_et_empile_chemin(chemin);
-    diffère détruit(pile_chemin);
+    diffère détruit(*pile_chemin);
 
     /* Renverse les deux piles afin que la comparaison commence par les dossiers racines. */
-    pile_base.renverse();
-    pile_chemin.renverse();
+    renverse(*pile_base);
+    renverse(*pile_chemin);
 
-    tantque !pile_base.est_vide() {
-        dossier_base := pile_base.dépile();
-        dossier_chemin := pile_chemin.dépile();
+    tantque !est_vide(*pile_base) {
+        dossier_base := dépile(*pile_base);
+        dossier_chemin := dépile(*pile_chemin);
 
         si dossier_base != dossier_chemin {
             retourne faux;

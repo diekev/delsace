@@ -64,7 +64,7 @@ DonnéesPourTest :: struct {
     séries: [..]SérieDeTest;
 }
 
-détruit :: fonc (empl données_test: &DonnéesPourTest)
+détruit :: fonc (empl données_test: *DonnéesPourTest)
 {
     pour séries {
         détruit(it);
@@ -74,21 +74,21 @@ détruit :: fonc (empl données_test: &DonnéesPourTest)
     déloge(séries);
 }
 
-ajoute_série_de_tests :: fonc (données_test: &DonnéesPourTest, fichier: CheminFichier, args: ...chaine)
+ajoute_série_de_tests :: fonc (données_test: *DonnéesPourTest, fichier: CheminFichier, args: ...chaine)
 {
     série: SérieDeTest;
     série.fichier_de_spécification = fichier;
-    ajoute_arguments(série, ...args);
+    ajoute_arguments(*série, ...args);
     tableau_ajoute(*données_test.séries, série);
 }
 
-ajoute_arguments :: fonc (données_test: &DonnéesPourTest, args: ...chaine)
+ajoute_arguments :: fonc (données_test: *DonnéesPourTest, args: ...chaine)
 {
     tableau_ajoute(*série.arguments, ...args);
 }
 
 /* Retourne la liste d'arguments pour le programme afin de lancer cette série de test. */
-arguments_pour_série :: fonc (données_test: &DonnéesPourTest, série: &SérieDeTest) -> [..]chaine
+arguments_pour_série :: fonc (données_test: *DonnéesPourTest, série: *SérieDeTest) -> [..]chaine
 {
     nombre_d_arguments := données_test.arguments.taille + série.arguments.taille;
 
@@ -116,17 +116,17 @@ SérieDeTest :: struct {
     arguments: [..]chaine;
 }
 
-détruit :: fonc (empl série: &SérieDeTest)
+détruit :: fonc (empl série: *SérieDeTest)
 {
     déloge(arguments);
 }
 
-ajoute_arguments :: fonc (série: &SérieDeTest, args: ...chaine)
+ajoute_arguments :: fonc (série: *SérieDeTest, args: ...chaine)
 {
     tableau_ajoute(*série.arguments, ...args);
 }
 
-lance_les_tests_pour_une_série :: fonc (données_test: &DonnéesPourTest, série: &SérieDeTest) -> bool
+lance_les_tests_pour_une_série :: fonc (données_test: *DonnéesPourTest, série: *SérieDeTest) -> bool
 {
     _, contenu := contenu_fichier_texte(série.fichier_de_spécification);
     diffère déloge(contenu);
@@ -160,9 +160,9 @@ lance_les_tests_pour_une_série :: fonc (données_test: &DonnéesPourTest, séri
 
 /* Point d'entrée pour lancer tous les tests. Nous nous arrêtons si l'un d'entre
  * eux échoue, ou si tous les tests passent. */
-lance_les_tests :: fonc (données_test: &DonnéesPourTest) -> bool
+lance_les_tests :: fonc (données_test: *DonnéesPourTest) -> bool
 {
-    pour données_test.séries {
+    pour * données_test.séries {
         saufsi lance_les_tests_pour_une_série(données_test, it) {
             retourne faux;
         }
@@ -171,7 +171,7 @@ lance_les_tests :: fonc (données_test: &DonnéesPourTest) -> bool
     retourne vrai;
 }
 
-lance_test :: fonc (données_test: &DonnéesPourTest, série: &SérieDeTest, commandes: ...chaine) -> [..]chaine
+lance_test :: fonc (données_test: *DonnéesPourTest, série: *SérieDeTest, commandes: ...chaine) -> [..]chaine
 {
     résultat: [..]chaine;
 
@@ -181,13 +181,13 @@ lance_test :: fonc (données_test: &DonnéesPourTest, série: &SérieDeTest, com
     discr ouvre_canal_de_communication(données_test.programme.chn, ...arguments) {
         Quelque(canal) {
             pour commandes {
-                canal.écris(it);
-                canal.écris("\n");
+                écris(*canal, it);
+                écris(*canal, "\n");
             }
 
-            canal.ferme_écriture();
+            ferme_écriture(*canal);
 
-            texte := canal.lis();
+            texte := lis(*canal);
 
             résultat = divise(texte, '\n');
         }
@@ -299,7 +299,7 @@ imprime_cas :: fonc (cas: [..]CasÀTester)
     }
 }
 
-lance_test_cas :: fonc (données_test: &DonnéesPourTest, série: &SérieDeTest, cas: CasÀTester) -> bool
+lance_test_cas :: fonc (données_test: *DonnéesPourTest, série: *SérieDeTest, cas: CasÀTester) -> bool
 {
     résultat := lance_test(données_test, série, ...cas.commandes);
 

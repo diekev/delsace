@@ -267,19 +267,19 @@ Tamponet :: struct {
     taille: z64;
 }
 
-ajoute_au_tampon :: fonc (tampon: &Tamponet, c: z8)
+ajoute_au_tampon :: fonc (tampon: *Tamponet, c: z8)
 {
     tampon.données[tampon.taille] = c;
     tampon.taille += 1;
 }
 
-chaine_depuis_tamponet :: fonc (tampon: &Tamponet) -> chaine
+chaine_depuis_tamponet :: fonc (tampon: *Tamponet) -> chaine
 {
     retourne chaine(*tampon.données[0], tampon.taille);
 }
 
 /* Auxilliaire pour le formattage d'une adresse IPv6. */
-formatte_champs :: fonc (tampon: &Tamponet, champs: n16)
+formatte_champs :: fonc (tampon: *Tamponet, champs: n16)
 {
     si champs == 0 {
         ajoute_au_tampon(tampon, '0');
@@ -346,34 +346,34 @@ formatte_ipv6 :: fonc (enchaineuse: *Enchaineuse, ptr_ipv6: *AdresseIPv6)
 
     /* Ignore la séquence de zéros (remplace par un simple ':'). */
     si séquence_la_plus_longue.indice_début == 0 && séquence_la_plus_longue.nombre_zéros > 1 {
-        ajoute_au_tampon(tampon, ':');
+        ajoute_au_tampon(*tampon, ':');
     }
     /* Formatte jusqu'au début de la séquence de zéros. */
     sinon pour séquence_la_plus_longue.indice_début {
         si it != 0 {
-            ajoute_au_tampon(tampon, ':');
+            ajoute_au_tampon(*tampon, ':');
         }
-        formatte_champs(tampon, ipv6[it]);
+        formatte_champs(*tampon, ipv6[it]);
     }
 
     /* Ignore les séquences entre deux séquences non-égales à zéro (remplace par un simple ':'). */
     si séquence_la_plus_longue.indice_début != 0 && séquence_la_plus_longue.nombre_zéros != 0 {
-        ajoute_au_tampon(tampon, ':');
+        ajoute_au_tampon(*tampon, ':');
     }
 
     /* Ignore la séquence de zéros (remplace par un simple ':'). */
     si séquence_la_plus_longue.indice_fin == 8 {
-        ajoute_au_tampon(tampon, ':');
+        ajoute_au_tampon(*tampon, ':');
     }
     /* Formatte depuis la fin de la séquence de zéros. */
     sinon pour séquence_la_plus_longue.indice_fin ... 7 {
         si it != 0 {
-            ajoute_au_tampon(tampon, ':');
+            ajoute_au_tampon(*tampon, ':');
         }
-        formatte_champs(tampon, ipv6[it]);
+        formatte_champs(*tampon, ipv6[it]);
     }
 
-    ajoute_au_tampon(enchaineuse, chaine_depuis_tamponet(tampon));
+    ajoute_au_tampon(enchaineuse, chaine_depuis_tamponet(*tampon));
 } @FormattageImpression
 
 adresse_ipv4_depuis_entier_simple :: fonc (valeur: n32) -> AdresseIPv4
@@ -441,24 +441,24 @@ formatte_ipv4 :: fonc (enchaineuse: *Enchaineuse, ptr_ipv4: *AdresseIPv4)
 
         centaine := it / 100;
         si centaine != 0 {
-            ajoute_au_tampon(tampon, (centaine + 0x30) comme z8);
+            ajoute_au_tampon(*tampon, (centaine + 0x30) comme z8);
             d %= 100;
         }
 
         dizaine := d / 10;
         si dizaine != 0 || centaine != 0 {
-            ajoute_au_tampon(tampon, (dizaine + 0x30) comme z8);
+            ajoute_au_tampon(*tampon, (dizaine + 0x30) comme z8);
             d %= 10;
         }
 
-        ajoute_au_tampon(tampon, (d + 0x30) comme z8);
+        ajoute_au_tampon(*tampon, (d + 0x30) comme z8);
 
         si indice_it < 3 {
-            ajoute_au_tampon(tampon, '.');
+            ajoute_au_tampon(*tampon, '.');
         }
     }
 
-    ajoute_au_tampon(enchaineuse, chaine_depuis_tamponet(tampon));
+    ajoute_au_tampon(enchaineuse, chaine_depuis_tamponet(*tampon));
 } @FormattageImpression
 
 ErreurConversionIP :: erreur {

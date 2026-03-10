@@ -146,7 +146,7 @@ crée_interface :: fonc (application: *Application, largeur: z32, hauteur: z32) 
             rect := donne_rect();
             application.guetteuse_édition_texte.rect = convertis_type(rect, z32);
             application.guetteuse_édition_texte.rect_texte = application.guetteuse_édition_texte.rect;
-            réduis(application.guetteuse_édition_texte.rect_texte, rembourrage);
+            réduis(*application.guetteuse_édition_texte.rect_texte, rembourrage);
 
             éditrice := *application.éditrice_texte;
 

@@ -28,7 +28,7 @@ crée_contexte_ssl :: fonc (boucle_évènements: *Boucle, options: OptionsCréat
         retourne nul;
     }
 
-    ctx_ssl := crée_contexte_ssl_depuis_options(options);
+    ctx_ssl := crée_contexte_ssl_depuis_options(*options);
     saufsi ctx_ssl {
         retourne nul;
     }

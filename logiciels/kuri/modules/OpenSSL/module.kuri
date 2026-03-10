@@ -317,7 +317,7 @@ rappel_pour_phrase_de_passe :: fonc (tampon: *z8, taille: z32 @inutilisée, drap
  * Puisqu'une phrase de passe peut-être présente, le SSL_CTX doit être détruit
  * via détruit_contexte_ssl().
  */
-crée_contexte_ssl_depuis_options :: fonc (options: &OptionsCréationContexteSSL) -> *SSL_CTX
+crée_contexte_ssl_depuis_options :: fonc (options: *OptionsCréationContexteSSL) -> *SSL_CTX
 {
     /* Crée le contexte */
     contexte_ssl := SSL_CTX_new(TLS_method());
@@ -342,7 +342,7 @@ crée_contexte_ssl_depuis_options :: fonc (options: &OptionsCréationContexteSSL
     retourne contexte_ssl;
 }
 
-initialise_contexte_ssl_depuis_options :: fonc (contexte_ssl: *SSL_CTX, options: &OptionsCréationContexteSSL) -> bool
+initialise_contexte_ssl_depuis_options :: fonc (contexte_ssl: *SSL_CTX, options: *OptionsCréationContexteSSL) -> bool
 {
     si options.préfère_utilisation_mémoire_basse {
         _ := SSL_CTX_set_mode(contexte_ssl, SSL_MODE_RELEASE_BUFFERS);

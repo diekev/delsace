@@ -5,34 +5,34 @@ Pile :: struct ($T: type_de_données) {
     données: [..]T;
 }
 
-détruit :: fonc (pile: &Pile(T = $T)) -> rien
+détruit :: fonc (pile: *Pile(T = $T)) -> rien
 {
     déloge(pile.données);
 }
 
-empile :: fonc (pile: &Pile(T = $T), valeur: T) -> rien
+empile :: fonc (pile: *Pile(T = $T), valeur: T) -> rien
 {
     tableau_ajoute(*pile.données, valeur);
 }
 
-dépile :: fonc (pile: &Pile(T = $T)) -> T #enligne
+dépile :: fonc (pile: *Pile(T = $T)) -> T #enligne
 {
     ret := pile.tête();
     pile.données.taille -= 1;
     retourne ret;
 }
 
-tête :: fonc (pile: &Pile(T = $T)) -> T #enligne
+tête :: fonc (pile: *Pile(T = $T)) -> T #enligne
 {
     retourne pile.données[pile.données.taille - 1];
 }
 
-taille :: fonc (pile: &Pile(T = $T)) -> z64 #enligne
+taille :: fonc (pile: *Pile(T = $T)) -> z64 #enligne
 {
     retourne pile.données.taille;
 }
 
-est_vide :: fonc (pile: &Pile(T = $T)) -> bool #enligne
+est_vide :: fonc (pile: *Pile(T = $T)) -> bool #enligne
 {
     retourne pile.données.taille == 0;
 }
@@ -40,7 +40,7 @@ est_vide :: fonc (pile: &Pile(T = $T)) -> bool #enligne
 /* Duplique l'élément de tête.
  * Si la pile n'a pas au moins un élément, ne fait rien.
  */
-duplique_tête :: fonc (pile: &Pile(T = $T))
+duplique_tête :: fonc (pile: *Pile(T = $T))
 {
     si pile.est_vide() {
         retourne;
@@ -52,7 +52,7 @@ duplique_tête :: fonc (pile: &Pile(T = $T))
 /* Échange l'élément de tête avec celui le précédent.
  * Si la pile n'a pas au moins deux éléments, ne fait rien.
  */
-échange_tête :: fonc (pile: &Pile(T = $T))
+échange_tête :: fonc (pile: *Pile(T = $T))
 {
     si pile.taille() < 2 {
         retourne;
@@ -66,7 +66,7 @@ duplique_tête :: fonc (pile: &Pile(T = $T))
 }
 
 /* Inverse l'ordre des éléments de la pile. */
-renverse :: fonc (pile: &Pile(T = $T))
+renverse :: fonc (pile: *Pile(T = $T))
 {
     tableau_inverse(pile.données);
 }

@@ -22,9 +22,9 @@ dispose_noeuds :: fonc (graphe: *Graphe) -> Optionnel(ÉchecOpération)
 
     discr ouvre_canal_de_communication("dot", "-Tplain") {
         Quelque(canal) {
-            canal.écris(texte);
-            canal.ferme_écriture();
-            texte_résultat := canal.lis();
+            écris(*canal, texte);
+            ferme_écriture(*canal);
+            texte_résultat := lis(*canal);
             diffère déloge(texte_résultat);
 
             lignes := divise(texte_résultat, '\n');

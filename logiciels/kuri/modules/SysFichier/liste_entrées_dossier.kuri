@@ -21,7 +21,7 @@ ListeEntréesDossier :: struct {
 
 détruit_liste_entrées_dossier :: fonc (liste: *ListeEntréesDossier)
 {
-    détruit_chemin(liste.chemin);
+    détruit_chemin(*liste.chemin);
     déloge_tableau_et_ses_éléments(*liste.entrées, détruit_entrée_dossier);
 }
 
@@ -89,9 +89,9 @@ EntréeDossier :: struct {
 détruit_entrée_dossier :: fonc (empl entrée: EntréeDossier)
 {
     si nombre_éléments > 1 {
-        détruit_chemin(chemin);
+        détruit_chemin(*chemin);
     }
-    détruit_chemin(chemin_effectif);
+    détruit_chemin(*chemin_effectif);
 }
 
 chemin_symbolique :: fonc (entrée: DonnéesNumérotageCheminFichier) -> CheminFichier
@@ -185,7 +185,7 @@ DonnéesNumérotageCheminFichier :: struct {
 
 détruit_nom_fichier_numéroté_parsé :: fonc (empl nom: DonnéesNumérotageCheminFichier)
 {
-    détruit_chemin(chemin);
+    détruit_chemin(*chemin);
 }
 
 opérateur < :: (nom1: DonnéesNumérotageCheminFichier, nom2: DonnéesNumérotageCheminFichier) -> bool

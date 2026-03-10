@@ -361,7 +361,7 @@ issitialise_ctx :: fonc (empl ctx: *DonnéesContexteGL)
     déloge(ctx.nuanceurs);
 
     si ctx == *__ctx_défaut {
-        détruit(__frame_buffers);
+        détruit(*__frame_buffers);
     }
 }
 
@@ -910,7 +910,7 @@ donne_paramètres_texture_atlas_fonte :: fonc (atlas: *texture_atlas_t) -> Param
         RIEN
     }
 
-    dessine_texte :: fonc (fonte: &Fonte, x: r32, y: r32, texte: chaine, couleur: Couleur, effet: EffetTexte)
+    dessine_texte :: fonc (fonte: *Fonte, x: r32, y: r32, texte: chaine, couleur: Couleur, effet: EffetTexte)
 */
 dessine_texte :: fonc (fonte: *Fonte, texte: chaine, x: r32, y: r32, couleur: CouleurRVBA)
 {

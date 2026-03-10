@@ -6,13 +6,13 @@ importe SysFichier;
 charge "impression";
 charge "scanner";
 
-imprime_erreurs :: fonc (scanner: &ScannerJSON, script: chaine)
+imprime_erreurs :: fonc (scanner: *ScannerJSON, script: chaine)
 {
     saufsi scanner.possède_erreur {
         retourne;
     }
 
-    ligne := donne_ligne_pour_erreur(scanner.erreur_, script);
+    ligne := donne_ligne_pour_erreur(*scanner.erreur_, script);
 
     discr scanner.erreur_.type {
         Parsage {
@@ -43,7 +43,7 @@ LignePourErreur :: struct {
     position_curseur: z64;
 }
 
-donne_ligne_pour_erreur :: fonc (e: &Erreur, script: chaine) -> LignePourErreur
+donne_ligne_pour_erreur :: fonc (e: *Erreur, script: chaine) -> LignePourErreur
 {
     assert(e.position >= 0);
     assert(e.position < script.taille);
@@ -91,7 +91,7 @@ parse_struct_depuis_chaine_json :: fonc (script: chaine, $T: type_de_données) -
 
     dépile(*scanner);
 
-    imprime_erreurs(scanner, script);
+    imprime_erreurs(*scanner, script);
 
     détruit_scanner(*scanner);
 
@@ -127,7 +127,7 @@ parse_struct_depuis_fichier_json :: fonc (chemin: chaine, $T: type_de_données) 
 
     dépile(*scanner);
 
-    imprime_erreurs(scanner, script);
+    imprime_erreurs(*scanner, script);
 
     retourne succès, résultat;
 }

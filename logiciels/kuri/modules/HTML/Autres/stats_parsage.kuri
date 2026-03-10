@@ -54,12 +54,12 @@ parse_page_et_accumule_stats :: fonc (chemin: CheminFichier, statistiques: *Stat
 parse_pages_dossier_et_accumule_stats :: fonc (dossier: CheminFichier, statistiques: *StatistiquesParsage) -> z32
 {
     exploratrice := crée_exploratrice_fichier(dossier);
-    diffère détruit(exploratrice);
+    diffère détruit(*exploratrice);
 
     nombre_de_fichiers := 0;
 
     boucle {
-        chemin_possible := exploratrice.chemin_suivant();
+        chemin_possible := chemin_suivant(*exploratrice);
 
         discr chemin_possible {
             Quelque(chemin) {

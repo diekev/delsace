@@ -302,7 +302,7 @@ chaine_pour_message_cliente :: fonc (message: *MessageClienteHTTP) -> chaine
     imprime_dans_enchaineuse(*enchaineuse, "% % HTTP/1.1\r\n", message.méthode, message.uri.chemin_complet);
     ajoute_au_tampon(*enchaineuse, "Host: ", message.uri.hôte);
 
-    port := port_pour_uri(message.uri);
+    port := port_pour_uri(*message.uri);
     si port != 80 && port != 443 {
         ajoute_au_tampon(*enchaineuse, ":", message.uri.port);
     }

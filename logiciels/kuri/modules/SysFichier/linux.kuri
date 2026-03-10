@@ -642,14 +642,14 @@ système_chemin_pour_corbeille :: fonc () -> Optionnel(CheminFichier)
     xdg_data_home := système_chemin_pour_variable_environnement("XDG_DATA_HOME");
     si xdg_data_home.possède_valeur() {
         chemin_données := xdg_data_home.Quelque;
-        diffère détruit_chemin(chemin_données);
+        diffère détruit_chemin(*chemin_données);
 
         chemin_potentiel := chemin_données / "Trash";
         si est_un_dossier(chemin_potentiel) {
             retourne chemin_potentiel;
         }
 
-        détruit_chemin(chemin_potentiel);
+        détruit_chemin(*chemin_potentiel);
     }
 
     /* Tente le replis de XDG_DATA_HOME. */
@@ -658,14 +658,14 @@ système_chemin_pour_corbeille :: fonc () -> Optionnel(CheminFichier)
         retourne;
     }
 
-    diffère détruit_chemin(chemin_maison);
+    diffère détruit_chemin(*chemin_maison);
 
     chemin_potentiel := chemin_maison / ".local/share/Trash";
     si est_un_dossier(chemin_potentiel) {
         retourne chemin_potentiel;
     }
 
-    détruit_chemin(chemin_potentiel);
+    détruit_chemin(*chemin_potentiel);
 
     /* Tente un dernier coup avec $HOME/.trash. */
     chemin_potentiel = chemin_maison / ".trash";
@@ -673,7 +673,7 @@ système_chemin_pour_corbeille :: fonc () -> Optionnel(CheminFichier)
         retourne chemin_potentiel;
     }
 
-    détruit_chemin(chemin_potentiel);
+    détruit_chemin(*chemin_potentiel);
 }
 
 /* \} */
@@ -747,11 +747,11 @@ système_déplace_vers_corbeille :: fonc (chemin: CheminFichier) -> Optionnel(Er
     chemin_corbeille := chemin_corbeille_opt.Quelque;
 
     chemin_destination := système_chemin_destination_pour_suppression(chemin_corbeille, chemin);
-    diffère détruit_chemin(chemin_destination);
+    diffère détruit_chemin(*chemin_destination);
 
     nom_fichier_info := imprime_chaine("%.trashinfo", chemin_destination.nom_fichier_avec_extension());
     chemin_fichier_info := chemin_corbeille / "info" / nom_fichier_info;
-    diffère détruit_chemin(chemin_fichier_info);
+    diffère détruit_chemin(*chemin_fichier_info);
     déloge(nom_fichier_info);
 
     /* Écris le fichier d'information avant de déplacer le fichier dans la
@@ -790,7 +790,7 @@ système_chemin_destination_pour_suppression :: fonc (chemin_corbeille: CheminFi
     /* Garantis un nom unique : d'autres fichiers d'autres dossiers peuvent avoir le même nom. */
     indice := 1;
     tantque fichier_existe(chemin_destination) {
-        détruit_chemin(chemin_destination);
+        détruit_chemin(*chemin_destination);
 
         nom_fichier_destination := imprime_chaine("%.%%", nom_fichier, indice, extension);
         chemin_destination = chemin_corbeille / "files" / nom_fichier_destination;

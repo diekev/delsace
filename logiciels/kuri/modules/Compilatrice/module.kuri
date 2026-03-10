@@ -215,13 +215,13 @@ initialise_ensemble_de_modules :: fonc (espace: EspaceDeTravail, liste: *Ensembl
 
     liste.chemin_racine_compilation = CheminFichier(compilatrice_chemin_module(liste.module_racine_compilation));
 
-    détruit_chemin(tmp_chemin_modules);
+    détruit_chemin(*tmp_chemin_modules);
 }
 
 détruit :: fonc (liste: *EnsembleDeModules)
 {
     déloge(liste.modules);
-    détruit_chemin(liste.chemin_modules_kuri);
+    détruit_chemin(*liste.chemin_modules_kuri);
 }
 
 ajoute_module :: fonc (liste: *EnsembleDeModules, module: *Module)
@@ -262,7 +262,7 @@ génère_instructions_importe :: fonc (liste: *EnsembleDeModules, enchaineuse: *
         discr tmp_chemin_module.chemin_relatif_à(liste.chemin_racine_compilation) {
             Ok(chemin_relatif) {
                 ajoute_au_tampon(enchaineuse, "importe \"", chemin_relatif.chn, "\";\n");
-                détruit_chemin(chemin_relatif);
+                détruit_chemin(*chemin_relatif);
             }
             sinon {
                 retourne faux;

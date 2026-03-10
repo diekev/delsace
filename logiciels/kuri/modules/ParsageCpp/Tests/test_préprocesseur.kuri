@@ -138,7 +138,7 @@ donne_chemins_fichiers_sources :: fonc () -> [..]CheminFichier
     résultat: [..]CheminFichier;
 
     dossier_parent := CheminFichier(#chemin_de_ce_fichier).chemin_parent();
-    diffère détruit_chemin(dossier_parent);
+    diffère détruit_chemin(*dossier_parent);
     dossier := dossier_parent / "fichiers/sources";
 
     visite :: fonc (info: InfoVisiteFichier, fichiers: *[..]CheminFichier) -> DécisionVisiteFichier;
@@ -172,10 +172,10 @@ donne_chemins_fichiers_sorties :: fonc (sources: []CheminFichier) -> [..]CheminF
 donne_chemin_pour_fichier_sortie :: fonc (chemin: CheminFichier) -> CheminFichier
 {
     dossier := chemin_parent(chemin);
-    diffère détruit_chemin(dossier);
+    diffère détruit_chemin(*dossier);
 
     tmp := dossier / chemin.nom_fichier_avec_extension();
-    diffère détruit_chemin(tmp);
+    diffère détruit_chemin(*tmp);
 
     résultat: CheminFichier;
     résultat.chn = remplace(tmp.chn, "fichiers/sources", "fichiers/sorties");

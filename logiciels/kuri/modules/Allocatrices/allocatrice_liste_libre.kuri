@@ -4,7 +4,7 @@ importe Bits;
 /** \nom Fonction d'allocation.
  * \{ */
 
-allocatrice_liste_libre :: fonc (params: &ParamètresAllocation, données: *BaseAllocatrice) -> *rien
+allocatrice_liste_libre :: fonc (params: *ParamètresAllocation, données: *BaseAllocatrice) -> *rien
 {
     nouvelle_taille := params.nouvelle_taille;
     ancienne_taille := params.ancienne_taille;

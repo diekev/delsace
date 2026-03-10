@@ -65,7 +65,7 @@ donne_chemin_fichier_css_quirks :: fonc () -> CheminFichier
 {
     chemin_courant := CheminFichier(#chemin_de_ce_fichier);
     chemin_parent := chemin_courant.chemin_parent();
-    diffère détruit_chemin(chemin_parent);
+    diffère détruit_chemin(*chemin_parent);
     résultat := crée_chemin_absolu(chemin_parent, CheminFichier("Fichiers/quirks.css"));
     assert(est_un_fichier_régulier(résultat));
     retourne résultat;
@@ -77,7 +77,7 @@ donne_chemin_fichier_css :: fonc (chemin: chaine) -> CheminFichier
 {
     chemin_courant := CheminFichier(#chemin_de_ce_fichier);
     chemin_parent := chemin_courant.chemin_parent();
-    diffère détruit_chemin(chemin_parent);
+    diffère détruit_chemin(*chemin_parent);
     résultat := crée_chemin_absolu(chemin_parent, CheminFichier(chemin));
     assert(est_un_fichier_régulier(résultat));
     retourne résultat;
@@ -108,7 +108,7 @@ donne_feuille_de_style_quirks :: fonc () -> *CSS.CSSStyleSheet
 donne_feuille_de_style :: fonc (chemin: chaine) -> *CSS.CSSStyleSheet
 {
     chemin_fichier := donne_chemin_fichier_css(chemin);
-    diffère détruit_chemin(chemin_fichier);
+    diffère détruit_chemin(*chemin_fichier);
 
     _, contenu := contenu_fichier_texte(chemin_fichier);
     diffère déloge(contenu);

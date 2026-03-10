@@ -236,15 +236,15 @@ calcule_auto_height_racine_contexte_de_formattage :: fonc (box: *BlockBox) -> r6
     diffère déloge(enfants_aplatis);
 
     pile: Pile(*Box);
-    diffère détruit(pile);
+    diffère détruit(*pile);
 
     pour > box.enfants {
-        pile.empile(it);
+        empile(*pile, it);
     }
 
     // À FAIRE : gère floats, etc.
-    tantque !pile.est_vide() {
-        enfant := pile.dépile();
+    tantque !est_vide(*pile) {
+        enfant := dépile(*pile);
 
         position := enfant.propriétés.donne_valeur_utilisée(IDPropriété.Position);
         si position.est_mot_clé(PROP_absolute) || position.est_mot_clé(PROP_fixed) {
@@ -259,7 +259,7 @@ calcule_auto_height_racine_contexte_de_formattage :: fonc (box: *BlockBox) -> r6
         }
 
         pour > enfant.enfants {
-            pile.empile(it);
+            empile(*pile, it);
         }
     }
 

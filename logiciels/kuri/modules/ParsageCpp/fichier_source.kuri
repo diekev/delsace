@@ -147,7 +147,7 @@ détruit_données_fichier :: fonc (fichier: *FichierSource)
 {
     déloge(fichier.tampon_contenu_prétaité);
     déloge(fichier.contenu_cru);
-    détruit_chemin(fichier.chemin);
+    détruit_chemin(*fichier.chemin);
 }
 
 donne_flux_source :: fonc (fichier: *FichierSource) -> FluxSource

@@ -4146,14 +4146,14 @@ ItératriceArbre :: struct {
 opérateur pour :: (itératrice: ItératriceArbre) -> *Box
 {
     pile: Pile(*Box);
-    diffère détruit(pile);
+    diffère détruit(*pile);
 
-    pile.empile(itératrice.racine);
+    empile(*pile, itératrice.racine);
 
     indice: z64;
 
-    tantque !pile.est_vide() {
-        enfant := pile.dépile();
+    tantque !est_vide(*pile) {
+        enfant := dépile(*pile);
 
         `it = enfant;
         `indice_it = indice;
@@ -4161,7 +4161,7 @@ opérateur pour :: (itératrice: ItératriceArbre) -> *Box
         #corps_boucle;
 
         pour > enfant.enfants {
-            pile.empile(it);
+            empile(*pile, it);
         }
 
         indice += 1;

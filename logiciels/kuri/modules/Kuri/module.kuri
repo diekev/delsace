@@ -77,9 +77,9 @@ ParamètresAllocation :: struct {
     pos: PositionCodeSource;
 }
 
-TypeFonctionAllocation :: fonc (params: &ParamètresAllocation, données: *BaseAllocatrice) -> *rien;
+TypeFonctionAllocation :: fonc (params: *ParamètresAllocation, données: *BaseAllocatrice) -> *rien;
 
-allocatrice_défaut :: fonc (params: &ParamètresAllocation, données: *BaseAllocatrice) -> *rien
+allocatrice_défaut :: fonc (params: *ParamètresAllocation, données: *BaseAllocatrice) -> *rien
 {
     nouvelle_taille := params.nouvelle_taille;
     ancienne_taille := params.ancienne_taille;
@@ -143,7 +143,7 @@ loge_mémoire :: fonc (taille: z64, info: *InfoType, pos: PositionCodeSource) ->
     params.info = info;
     params.pos = pos;
 
-    ptr := contexte().allocatrice(params, contexte().données_allocatrice);
+    ptr := contexte().allocatrice(*params, contexte().données_allocatrice);
 
     saufsi ptr {
         panique_hors_mémoire();
@@ -161,7 +161,7 @@ loge_mémoire_alignée :: fonc (taille: z64, alignement: z64, info: *InfoType, p
     params.info = info;
     params.pos = pos;
 
-    ptr := contexte().allocatrice(params, contexte().données_allocatrice);
+    ptr := contexte().allocatrice(*params, contexte().données_allocatrice);
 
     saufsi ptr {
         panique_hors_mémoire();
@@ -180,7 +180,7 @@ reloge_mémoire :: fonc (ancienne_taille: z64, nouvelle_taille: z64, ancien_poin
     params.info = info;
     params.pos = pos;
 
-    nouveau_pointeur := contexte().allocatrice(params, contexte().données_allocatrice);
+    nouveau_pointeur := contexte().allocatrice(*params, contexte().données_allocatrice);
 
     saufsi nouveau_pointeur {
         panique_hors_mémoire();
@@ -199,7 +199,7 @@ déloge_mémoire :: fonc (taille: z64, pointeur: *rien, info: *InfoType, pos: Po
     params.info = info;
     params.pos = pos;
 
-    _ := contexte().allocatrice(params, contexte().données_allocatrice);
+    _ := contexte().allocatrice(*params, contexte().données_allocatrice);
 }
 
 loge :: fonc ($T: type_de_données, pos := #position_code_source) -> *T
@@ -559,7 +559,7 @@ définis_marque_stockage_temporaire :: fonc (marque: z32) -> rien
             params.mode = ModeAllocatrice.DÉSALLOUE;
             params.ancien_pointeur = it.adresse;
             params.ancienne_taille = it.taille;
-            _ := allocatrice_défaut(params, nul);
+            _ := allocatrice_défaut(*params, nul);
             tableau_supprime_indice(*__contexte_fil_principal.stockage_temporaire.mémoire_débordante, indice_it);
             it.marque = -1;
             it.adresse = nul;
@@ -575,7 +575,7 @@ réinitialise_stockage_temporaire :: fonc () -> rien
     __contexte_fil_principal.stockage_temporaire.occupation_maximale = 0;
 }
 
-alloc_stockage_temporaire :: fonc (alloc: *StockageTemporaire, params: &ParamètresAllocation, données: *BaseAllocatrice) -> *rien
+alloc_stockage_temporaire :: fonc (alloc: *StockageTemporaire, params: *ParamètresAllocation, données: *BaseAllocatrice) -> *rien
 {
     nouvelle_taille := params.nouvelle_taille;
 
@@ -597,7 +597,7 @@ alloc_stockage_temporaire :: fonc (alloc: *StockageTemporaire, params: &Paramèt
     retourne ptr;
 }
 
-__stockage_temporaire :: fonc (params: &ParamètresAllocation, données: *BaseAllocatrice) -> *rien
+__stockage_temporaire :: fonc (params: *ParamètresAllocation, données: *BaseAllocatrice) -> *rien
 {
     nouvelle_taille := params.nouvelle_taille;
     ancienne_taille := params.ancienne_taille;
@@ -630,7 +630,7 @@ __stockage_temporaire :: fonc (params: &ParamètresAllocation, données: *BaseAl
                 params_: ParamètresAllocation;
                 params_.mode = ModeAllocatrice.ALLOUE;
                 params_.nouvelle_taille = nouvelle_taille;
-                résultat := allocatrice_défaut(params_, données);
+                résultat := allocatrice_défaut(*params_, données);
                 saufsi résultat {
                     retourne nul;
                 }

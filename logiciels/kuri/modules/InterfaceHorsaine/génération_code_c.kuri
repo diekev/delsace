@@ -384,10 +384,10 @@ génère_ipa_cpp :: fonc (génératrice: *GénératriceCodeC, espace: EspaceDeTr
     /* Copie le fichier de support C++. */
     chemin_module := #chemin_de_ce_module;
     chemin_fichier_support := CheminFichier(chemin_module) / "support_ipa_cpp.h";
-    diffère détruit_chemin(chemin_fichier_support);
+    diffère détruit_chemin(*chemin_fichier_support);
 
     chemin_destination_fichier_support := CheminFichier(génératrice.dossier_sortie) / "support_ipa_cpp.h";
-    diffère détruit_chemin(chemin_destination_fichier_support);
+    diffère détruit_chemin(*chemin_destination_fichier_support);
 
     saufsi copie_fichier(chemin_fichier_support, chemin_destination_fichier_support) {
         compilatrice_rapporte_erreur("Impossible de copier le fichier de support C++");

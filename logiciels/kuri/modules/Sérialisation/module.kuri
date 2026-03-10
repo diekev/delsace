@@ -108,20 +108,20 @@ Sérialiseuse :: struct {
     curseur: z64;
 }
 
-sérialise_entier :: fonc (sérialiseuse: &Sérialiseuse, entier: $T)
+sérialise_entier :: fonc (sérialiseuse: *Sérialiseuse, entier: $T)
 {
     sérialise_entier(sérialiseuse.tampon, sérialiseuse.curseur, entier);
     sérialiseuse.curseur += (taille_de(T) comme z64);
 }
 
-sérialise_chaine_préfixée_taille :: fonc (sérialiseuse: &Sérialiseuse, chn: chaine, $TypeTaille: type_de_données)
+sérialise_chaine_préfixée_taille :: fonc (sérialiseuse: *Sérialiseuse, chn: chaine, $TypeTaille: type_de_données)
 {
     sérialise_entier(sérialiseuse, chn.taille comme TypeTaille);
     sérialise_chaine_sans_taille(sérialiseuse.tampon, sérialiseuse.curseur, chn);
     sérialiseuse.curseur += chn.taille;
 }
 
-sérialise_chaine_sans_taille :: fonc (sérialiseuse: &Sérialiseuse, chn: chaine)
+sérialise_chaine_sans_taille :: fonc (sérialiseuse: *Sérialiseuse, chn: chaine)
 {
     sérialise_chaine_sans_taille(sérialiseuse.tampon, sérialiseuse.curseur, chn);
     sérialiseuse.curseur += chn.taille;
@@ -135,12 +135,12 @@ InfosSérialisation :: struct {
     taille_courante: z64;
 }
 
-ajoute_taille :: fonc (infos: &InfosSérialisation, taille: z64)
+ajoute_taille :: fonc (infos: *InfosSérialisation, taille: z64)
 {
     infos.taille_courante += taille;
 }
 
-crée_sérialiseuse :: fonc (infos: &InfosSérialisation) -> Sérialiseuse
+crée_sérialiseuse :: fonc (infos: *InfosSérialisation) -> Sérialiseuse
 {
     résultat: Sérialiseuse;
     tampon := loge_tableau(octet, infos.taille_courante);
@@ -162,33 +162,33 @@ crée_désérialiseuse :: fonc (tampon: []octet) -> Désérialiseuse
     retourne Désérialiseuse(tampon);
 }
 
-désérialise_chaine :: fonc (désérialiseuse: &Désérialiseuse) -> chaine
+désérialise_chaine :: fonc (désérialiseuse: *Désérialiseuse) -> chaine
 {
     résultat := désérialise_chaine(désérialiseuse.tampon, désérialiseuse.curseur);
     désérialiseuse.curseur += 4 + résultat.taille;
     retourne résultat;
 }
 
-désérialise_chaine :: fonc (désérialiseuse: &Désérialiseuse, chn: *chaine)
+désérialise_chaine :: fonc (désérialiseuse: *Désérialiseuse, chn: *chaine)
 {
     désérialise_chaine(désérialiseuse.tampon, désérialiseuse.curseur, chn);
     désérialiseuse.curseur += (taille_de(z64) comme z64) + chn.taille;
 }
 
-désérialise_chaine_préfixée_taille :: fonc (désérialiseuse: &Désérialiseuse, chn: *chaine, $TypeTaille: type_de_données)
+désérialise_chaine_préfixée_taille :: fonc (désérialiseuse: *Désérialiseuse, chn: *chaine, $TypeTaille: type_de_données)
 {
     chn.taille = désérialise_entier(désérialiseuse, TypeTaille);
     désérialise_chaine_sans_taille(désérialiseuse.tampon, désérialiseuse.curseur, chn);
     désérialiseuse.curseur += chn.taille;
 }
 
-désérialise_chaine_sans_taille :: fonc (désérialiseuse: &Désérialiseuse, chn: *chaine)
+désérialise_chaine_sans_taille :: fonc (désérialiseuse: *Désérialiseuse, chn: *chaine)
 {
     désérialise_chaine_sans_taille(désérialiseuse.tampon, désérialiseuse.curseur, chn);
     désérialiseuse.curseur += chn.taille;
 }
 
-désérialise_entier :: fonc (désérialiseuse: &Désérialiseuse, $T: type_de_données) -> T
+désérialise_entier :: fonc (désérialiseuse: *Désérialiseuse, $T: type_de_données) -> T
 {
     résultat: T;
     désérialise_entier(désérialiseuse.tampon, désérialiseuse.curseur, *résultat);

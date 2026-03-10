@@ -23,7 +23,7 @@ principale :: fonc ()
     cliente.ctx = ctx;
 
     uri := donne_url(cliente);
-    prise := crée_prise_connexion(ctx, uri, DonnéesPriseWebSocket);
+    prise := crée_prise_connexion(ctx, *uri, DonnéesPriseWebSocket);
     saufsi prise {
         imprime("Impossible de créer une prise pour se connecter au serveur.\n");
         exit(1);
@@ -168,7 +168,7 @@ rappel_quand_fermeture :: fonc (prise: *Prise)
     }
 
     url := cliente.donne_url();
-    nouvelle_prise := crée_prise_connexion(ctx, url, DonnéesPriseWebSocket);
+    nouvelle_prise := crée_prise_connexion(ctx, *url, DonnéesPriseWebSocket);
     saufsi nouvelle_prise {
         imprime("Impossible de créer une prise pour se connecter au serveur.\n");
         exit(1);

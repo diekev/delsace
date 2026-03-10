@@ -214,12 +214,12 @@ opérateur == :: (calc1: CalcFunction, calc2: CalcFunction) -> bool #horsligne
 évalue_calc :: fonc (calc: CalcFunction, genre_valeur_calculée: GenreValeurCalculée, ctx: *ContexteCalculStyle) -> Résultat(*ValeurDeStyle, ErreurDeCalcul)
 {
     pile: Pile(NumericValue);
-    diffère détruit(pile);
+    diffère détruit(*pile);
 
     pour calc.valeurs {
         si it.est_opérateur {
-            droite := pile.dépile();
-            gauche := pile.dépile();
+            droite := dépile(*pile);
+            gauche := dépile(*pile);
             op := it.opérateur_calc;
 
             valeur := applique_opérateur_calc(op, gauche, droite);
@@ -229,7 +229,7 @@ opérateur == :: (calc1: CalcFunction, calc2: CalcFunction) -> bool #horsligne
                 retourne ErreurDeCalcul.FormuleInvalide;
             }
 
-            pile.empile(valeur.Quelque);
+            empile(*pile, valeur.Quelque);
             continue;
         }
 
@@ -257,16 +257,16 @@ opérateur == :: (calc1: CalcFunction, calc2: CalcFunction) -> bool #horsligne
             retourne ErreurDeCalcul.FormuleInvalide;
         }
 
-        pile.empile(numeric_value.Quelque);
+        empile(*pile, numeric_value.Quelque);
     }
 
-    si pile.taille() != 1 {
+    si taille(*pile) != 1 {
         tmp := ValeurCalc(valeur = calc);
         imprime("Trop de valeurs restantes pour : %\n", *tmp);
         retourne ErreurDeCalcul.FormuleInvalide;
     }
 
-    numeric_value := pile.dépile();
+    numeric_value := dépile(*pile);
 
     si numeric_value.type.base_type == "length" {
         retourne crée_valeur_pixels(numeric_value.value);

@@ -92,7 +92,7 @@ données_personnelles :: fonc (données_fichier: *DonnéesFichier, $TypeDonnées
 
 exécute_rappel_pour_fichier :: fonc (racine: CheminFichier, chemin: CheminFichier, données: *DonnéesFichier, rappels: []fonc (données_fichier: *DonnéesFichier), données_utilisateurs: eini)
 {
-    _ := contenu_fichier_binaire(chemin, données.contenu);
+    _ := contenu_fichier_binaire(chemin, *données.contenu);
 
     données.racine_exécution = racine;
     divise(chaine_depuis_tranche_octets(données.contenu), '\n', *données.lignes);
@@ -124,13 +124,13 @@ exécute_rappel_pour_dossier :: fonc (racine: CheminFichier, extensions: []chain
 
     exploratrice := crée_exploratrice_fichier(racine);
 
-    tantque !exploration_finie(exploratrice) {
+    tantque !exploration_finie(*exploratrice) {
         // À FAIRE(langage) : panique dans certains cas
-        candidat := exploratrice.chemin_suivant();
+        candidat := chemin_suivant(*exploratrice);
         discr candidat {
             Quelque(chemin) {
                 si chemin.est_un_dossier() {
-                    exploratrice.empile_dossier(chemin);
+                    empile_dossier(*exploratrice, chemin);
                     continue;
                 }
 

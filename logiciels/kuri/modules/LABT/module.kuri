@@ -114,12 +114,12 @@ ParseuseDocument :: struct {
     erreurs: [..]chaine;
 }
 
-détruit_parseuse :: fonc (parseuse: &ParseuseDocument)
+détruit_parseuse :: fonc (parseuse: *ParseuseDocument)
 {
     déloge(parseuse.erreurs);
 }
 
-possède_erreur :: fonc (parseuse: &ParseuseDocument) -> bool
+possède_erreur :: fonc (parseuse: *ParseuseDocument) -> bool
 {
     retourne parseuse.erreurs.taille != 0;
 }
@@ -151,7 +151,7 @@ parse_document :: fonc (texte: chaine) -> *Document
     parseuse := ParseuseDocument(chn = document.texte_original);
     parseuse.document = document;
 
-    diffère détruit_parseuse(parseuse);
+    diffère détruit_parseuse(*parseuse);
 
     saufsi consomme(*parseuse, '{') {
         rapporte_erreur(*parseuse, "attendu une accolade ouvrante au début du document");
@@ -192,7 +192,7 @@ parse_document :: fonc (texte: chaine) -> *Document
         rapporte_erreur(*parseuse, "des caractères sont à la fin du texte, il est possible que la syntaxe est erronnée");
     }
 
-    si parseuse.possède_erreur() {
+    si possède_erreur(*parseuse) {
         détruit_noeud(document);
 
         pour parseuse.erreurs {
@@ -548,7 +548,7 @@ imprime_hiérarchie :: fonc (racine: *Noeud, profondeur : z32 = 0)
  *
  * Si échec, ne retourne rien.
  */
-parse_document_pour_courriel :: fonc (courriel: &Courriel.Courriel, texte: chaine) -> Optionnel(Courriel.Courriel)
+parse_document_pour_courriel :: fonc (courriel: *Courriel.Courriel, texte: chaine) -> Optionnel(Courriel.Courriel)
 {
     document := parse_document(texte);
 

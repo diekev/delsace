@@ -575,43 +575,43 @@ encode_base96 :: fonc (message: []octet) -> chaine
 
 FluxEncodage :: struct {
     /* Écris une chaine native, encodée en UTF-8, dans le flux. */
-    écris_chaine: fonc (flux: &FluxEncodage, données: chaine, avec_encodage: bool);
+    écris_chaine: fonc (flux: *FluxEncodage, données: chaine, avec_encodage: bool);
 
     /* Écris un point de code UTF-32 dans le flux. */
-    écris_utf32: fonc (flux: &FluxEncodage, point_de_code: n32, avec_encodage: bool);
+    écris_utf32: fonc (flux: *FluxEncodage, point_de_code: n32, avec_encodage: bool);
 
     /* Écris un point de code UTF-8 dans le flux. */
-    écris_utf8: fonc (flux: &FluxEncodage, caractère: z8, avec_encodage: bool);
+    écris_utf8: fonc (flux: *FluxEncodage, caractère: z8, avec_encodage: bool);
 
     enchaineuse: *Enchaineuse;
 }
 
-écris :: fonc (flux: &FluxEncodage, chn: chaine)
+écris :: fonc (flux: *FluxEncodage, chn: chaine)
 {
     flux.écris_chaine(flux, chn, vrai);
 }
 
-écris :: fonc (flux: &FluxEncodage, point_de_code: n32)
+écris :: fonc (flux: *FluxEncodage, point_de_code: n32)
 {
     flux.écris_utf32(flux, point_de_code, vrai);
 }
 
-écris :: fonc (flux: &FluxEncodage, point_de_code: z8)
+écris :: fonc (flux: *FluxEncodage, point_de_code: z8)
 {
     flux.écris_utf8(flux, chn, vrai);
 }
 
-écris_sans_encodage :: fonc (flux: &FluxEncodage, chn: chaine)
+écris_sans_encodage :: fonc (flux: *FluxEncodage, chn: chaine)
 {
     flux.écris_chaine(flux, chn, faux);
 }
 
-écris_sans_encodage :: fonc (flux: &FluxEncodage, point_de_code: n32)
+écris_sans_encodage :: fonc (flux: *FluxEncodage, point_de_code: n32)
 {
     flux.écris_utf32(flux, point_de_code, faux);
 }
 
-écris_sans_encodage :: fonc (flux: &FluxEncodage, point_de_code: z8)
+écris_sans_encodage :: fonc (flux: *FluxEncodage, point_de_code: z8)
 {
     flux.écris_utf8(flux, chn, faux);
 }

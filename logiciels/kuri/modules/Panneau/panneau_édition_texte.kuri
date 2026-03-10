@@ -144,7 +144,7 @@ sur_redimension_panneau_édition_texte :: fonc (base: *Panneau, rect_disponible:
     rect.largeur = largeur_texte comme z32;
 
     rect_texte = rect;
-    rect_texte.réduis(5);
+    réduis(*rect_texte, 5);
 }
 
 sur_clic_panneau_édition_texte :: fonc (empl panneau: *PanneauÉditionTexte, clic: ClicSouris) -> bool

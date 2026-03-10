@@ -2950,12 +2950,12 @@ select_the_indicated_part :: fonc (document: *Document, url: *URL) -> *Element
 find_a_potential_indicated_element :: fonc (document: *Document, fragment: chaine) -> *Element
 {
     pile: Pile(*Node);
-    diffère détruit(pile);
+    diffère détruit(*pile);
 
-    pile.empile(document);
+    empile(*pile, document);
 
-    tantque !pile.est_vide() {
-        noeud := pile.dépile();
+    tantque !est_vide(*pile) {
+        noeud := dépile(*pile);
 
         si noeud.est_élément() {
             élément := noeud comme *Element;
@@ -2975,7 +2975,7 @@ find_a_potential_indicated_element :: fonc (document: *Document, fragment: chain
         }
 
         pour > noeud.enfants {
-            pile.empile(it);
+            empile(*pile, it);
         }
     }
 

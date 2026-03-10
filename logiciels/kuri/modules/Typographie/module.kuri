@@ -154,7 +154,7 @@ donne_fonte :: fonc (nom: chaine, taille_police: r32) -> *Fonte
 {
     chemin_courant := #chemin_de_ce_fichier;
     dossier := CheminFichier(chemin_courant).chemin_parent();
-    diffère détruit_chemin(dossier);
+    diffère détruit_chemin(*dossier);
 
     tampon_chemin: TamponChemin;
     _ := ajoute(*tampon_chemin, dossier);
