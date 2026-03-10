@@ -875,6 +875,14 @@ RésultatValidation Sémanticienne::valide_sémantique_noeud(NoeudExpression *no
                 case GenreNoeud::POINTEUR:
                 {
                     expr->type = type_déréférencé_pour(type_gauche);
+
+#if 0
+                    m_contexte->espace
+                        ->rapporte_avertissement(
+                            noeud, "Utilisation d'une expression d'indexage sur un pointeur.")
+                        .ajoute_message("Ceci est déprécié et sera sans doute supprimé du langage "
+                                        "prochainement.");
+#endif
                     break;
                 }
                 case GenreNoeud::CHAINE:
