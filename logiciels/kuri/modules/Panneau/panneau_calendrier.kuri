@@ -51,7 +51,7 @@ sur_dessin_panneau_calendrier :: fonc (empl panneau: *PanneauCalendrier, ctx: *C
 
     pour 31 {
         chn_texte := imprime_chaine("%", it + 1);
-        diffère déloge(chn_texte);
+        diffère déloge(*chn_texte);
 
         rect_texte: RectanglePosDim(z32);
         rect_texte.hauteur = hauteur_par_ligne comme z32;

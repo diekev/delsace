@@ -1197,7 +1197,6 @@ ffi_type *convertis_type_ffi(Type const *type)
             return &ffi_type_void;
         }
         case GenreNoeud::POINTEUR:
-        case GenreNoeud::RÉFÉRENCE:
         case GenreNoeud::FONCTION:
         case GenreNoeud::TYPE_ADRESSE_FONCTION:
         case GenreNoeud::TYPE_DE_DONNÉES:

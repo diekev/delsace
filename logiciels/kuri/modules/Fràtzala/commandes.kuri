@@ -157,7 +157,7 @@ détruit_données_gestionnaire_commande :: fonc (gestionnaire: *GestionnaireComm
 détruit_gestionnaire_commande :: fonc (gestionnaire: *GestionnaireCommande)
 {
     détruit_données_gestionnaire_commande(gestionnaire);
-    déloge(gestionnaire);
+    déloge(*gestionnaire);
 }
 
 crée_groupe :: fonc (gestionnaire: *GestionnaireCommande, id: IDGroupeCommande, identifiant: chaine) -> *GroupeDeCommandes

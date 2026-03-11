@@ -198,7 +198,6 @@ Ajout de IdentifiantCode pour que les métaprogrammes puissent ne comparer qu'un
 // ----------------------------------------------------------------------------
 // Bugs
 
-- crash dans les exécutables quand nous prenons l'adresse d'une référence
 - compilation infinie si nous n'avons pas de message (voir test_conversion_cpp.kuri)
 - "." à droite de "comme" échoue (peut avec la précédence de !=) : x != 0 comme MonÉnum.Drapeau
 
@@ -319,7 +318,7 @@ plusieurs threads d'exécutions pour le typage ou la génération de RI
 
 remplace les noeuds de dépendances par des unités de compilations
 -- ajoute la liste des dépendances aux unités, ainsi que la raison de la dépendance
--- les types dérivés (pointeurs, références, tableaux, etc.) ne seront plus dans le graphe
+-- les types dérivés (pointeurs, tableaux, etc.) ne seront plus dans le graphe
 
 statistiques pour les reprises de compilation (temps, nombre, où), ainsi que pour le temps passé dans chaque feuille de l'arbre de typage (hors arbre aplatis)
 fusionne des tâches similaires et passes-en plusieurs aux tâcheronnes (afin d'améliorer la cohérence de cache)
@@ -534,8 +533,6 @@ déclaration d'énum, de structures, et d'unions anonymes :
 
 - corrige les infos types des énumérations pour prendre en compte la taille en octet du type
     voir toutes les utilisations de id_info.ÉNUM ou ajoute une fonction dans Introspection
-
-- pouvoir passer des pointeur comme référence
 
 - utilisation des opérateurs + et - sur les énums drapeaux afin de pouvoir ajouter ou soustraire des bits
 

@@ -205,32 +205,32 @@ détruit_objet :: fonc (objet: *Objet) -> rien
 {
     discr objet.id {
         NUL {
-            déloge(objet);
+            déloge(*objet);
         }
         ENTIER {
             obj := objet comme *ObjetEntier;
-            déloge(obj);
+            déloge(*obj);
         }
         RÉEL {
             obj := objet comme *ObjetRéel;
-            déloge(obj);
+            déloge(*obj);
         }
         CHAINE {
             obj := objet comme *ObjetChaine;
-            déloge(obj);
+            déloge(*obj);
         }
         LISTE {
             obj := objet comme *ObjetListe;
 
-            déloge(obj.valeur);
-            déloge(obj);
+            déloge(*obj.valeur);
+            déloge(*obj);
         }
         DICTIONNAIRE {
             obj := objet comme *ObjetDictionnaire;
 
-            déloge(obj.noms);
-            déloge(obj.valeurs);
-            déloge(obj);
+            déloge(*obj.noms);
+            déloge(*obj.valeurs);
+            déloge(*obj);
         }
     }
 }

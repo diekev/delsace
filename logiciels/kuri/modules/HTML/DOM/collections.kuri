@@ -4,7 +4,7 @@ run_ordered_set_parser :: fonc (chn: DOMString) -> [..]DOMString
 {
     // Let inputTokens be the result of splitting input on ASCII whitespace.
     input_tokens := divise_sur_espaces_blanches_ascii(chn);
-    diffère déloge(input_tokens);
+    diffère déloge(*input_tokens);
 
     // Let tokens be a new ordered set.
     tokens: [..]DOMString;
@@ -34,7 +34,7 @@ node_list_sur_destruction :: fonc (base: *JS.Cellule)
 {
     platform_object_sur_destruction(base);
     node_list := base comme *NodeList;
-    déloge(node_list.noeuds);
+    déloge(*node_list.noeuds);
 }
 
 #portée_export
@@ -98,7 +98,7 @@ crée_filtre_pour_class_name :: fonc (classes: [..]DOMString) -> *HTMLCollection
 
         document := collection.root.document;
         classes_élément := divise_sur_espaces_blanches_ascii(valeur.Quelque);
-        diffère déloge(classes_élément);
+        diffère déloge(*classes_élément);
 
         pour classe_élément dans classes_élément {
             pour class dans filtre.classes {
@@ -122,8 +122,8 @@ crée_filtre_pour_class_name :: fonc (classes: [..]DOMString) -> *HTMLCollection
     sur_destruction :: fonc (base: *HTMLCollectionFilter)
     {
         filtre := base comme *ClassesFilter;
-        déloge(filtre.classes);
-        déloge(filtre);
+        déloge(*filtre.classes);
+        déloge(*filtre);
     }
 
     résultat := loge(ClassesFilter);
@@ -150,7 +150,7 @@ crée_filtre_pour_tag_name :: fonc (tag_name: DOMString) -> *HTMLCollectionFilte
     sur_destruction :: fonc (base: *HTMLCollectionFilter)
     {
         filtre := base comme *TagNameFilter;
-        déloge(filtre);
+        déloge(*filtre);
     }
 
     résultat := loge(TagNameFilter);
@@ -240,7 +240,7 @@ détruit_collection :: fonc (collection: *HTMLCollection)
         collection.filter.sur_destruction(collection.filter);
     }
 
-    déloge(collection.éléments);
+    déloge(*collection.éléments);
 }
 
 donne_length :: fonc (collection: *HTMLCollection) -> n32

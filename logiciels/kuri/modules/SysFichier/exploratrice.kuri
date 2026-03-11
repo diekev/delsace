@@ -30,10 +30,10 @@ ExploratriceFichier :: struct {
     pile: Pile(chaine);
 }
 
-détruit :: fonc (exploratrice: &ExploratriceFichier)
+détruit :: fonc (exploratrice: *ExploratriceFichier)
 {
-    détruit(exploratrice.pile_dossiers);
-    détruit(exploratrice.pile);
+    détruit(*exploratrice.pile_dossiers);
+    détruit(*exploratrice.pile);
 }
 
 crée_exploratrice_fichier :: fonc (chemin: CheminFichier) -> ExploratriceFichier
@@ -41,7 +41,7 @@ crée_exploratrice_fichier :: fonc (chemin: CheminFichier) -> ExploratriceFichie
     exploratrice: ExploratriceFichier;
     si est_un_dossier(chemin) {
         exploratrice.racine = chemin;
-        empile_dossier(exploratrice, chemin);
+        empile_dossier(*exploratrice, chemin);
     }
     retourne exploratrice;
 }
@@ -49,10 +49,10 @@ crée_exploratrice_fichier :: fonc (chemin: CheminFichier) -> ExploratriceFichie
 /* Retourne le prochain chemin dans le dossier courant de l'exploration.
  * Le chemin est alloué dynamiquement, et c'est la responsabilité de l'appelant
  * de libérer la mémoire. */
-chemin_suivant :: fonc (exploratrice: &ExploratriceFichier) -> Optionnel(CheminFichier)
+chemin_suivant :: fonc (exploratrice: *ExploratriceFichier) -> Optionnel(CheminFichier)
 {
     tantque !exploration_finie(exploratrice) {
-        dossier_courant := exploratrice.pile_dossiers.tête();
+        dossier_courant := tête(*exploratrice.pile_dossiers);
         entrée := système_lis_une_entrée_du_dossier(dossier_courant.dir);
 
         discr entrée {
@@ -68,7 +68,7 @@ chemin_suivant :: fonc (exploratrice: &ExploratriceFichier) -> Optionnel(CheminF
                 }
 
                 exploratrice.pile.données.taille = 0;
-                retourne crée_chemin_absolu(exploratrice.pile, dossier_courant.chemin_complet, chemin_entrée);
+                retourne crée_chemin_absolu(*exploratrice.pile, dossier_courant.chemin_complet, chemin_entrée);
             }
             sinon {
                 dépile_dossier(exploratrice);
@@ -77,24 +77,24 @@ chemin_suivant :: fonc (exploratrice: &ExploratriceFichier) -> Optionnel(CheminF
     }
 }
 
-exploration_finie :: fonc (exploratrice: &ExploratriceFichier) -> bool
+exploration_finie :: fonc (exploratrice: *ExploratriceFichier) -> bool
 {
-    retourne exploratrice.pile_dossiers.est_vide();
+    retourne est_vide(*exploratrice.pile_dossiers);
 }
 
-empile_dossier :: fonc (exploratrice: &ExploratriceFichier, chemin: CheminFichier)
+empile_dossier :: fonc (exploratrice: *ExploratriceFichier, chemin: CheminFichier)
 {
     discr ouvre_dossier(chemin) {
         Quelque(dir) {
-            exploratrice.pile_dossiers.empile(DonnéesDossierCourant(dir, chemin));
+            empile(*exploratrice.pile_dossiers, DonnéesDossierCourant(dir, chemin));
         }
         sinon {}
     }
 }
 
-dépile_dossier :: fonc (exploratrice: &ExploratriceFichier)
+dépile_dossier :: fonc (exploratrice: *ExploratriceFichier)
 {
-    données := exploratrice.pile_dossiers.dépile();
+    données := dépile(*exploratrice.pile_dossiers);
     système_ferme_dossier(données.dir);
 }
 
@@ -103,13 +103,13 @@ dépile_dossier :: fonc (exploratrice: &ExploratriceFichier)
 pour_chaque_chemin :: fonc (chemin: CheminFichier, données: *$T, rappel: fonc (chemin: CheminFichier, données: *T))
 {
     exploratrice := crée_exploratrice_fichier(chemin);
-    diffère détruit(exploratrice);
+    diffère détruit(*exploratrice);
 
-    tantque !exploratrice.exploration_finie() {
-        discr exploratrice.chemin_suivant() {
+    tantque !exploration_finie(*exploratrice) {
+        discr chemin_suivant(*exploratrice) {
             Quelque(chm) {
                 rappel(chm, données);
-                détruit_chemin(chm);
+                détruit_chemin(*chm);
             }
             sinon {
             }
@@ -122,13 +122,13 @@ pour_chaque_chemin :: fonc (chemin: CheminFichier, données: *$T, rappel: fonc (
 opérateur pour :: (exploratrice: ExploratriceFichier) -> CheminFichier
 {
     exploratrice = crée_exploratrice_fichier(exploratrice.racine);
-    diffère détruit(exploratrice);
+    diffère détruit(*exploratrice);
 
     indice := 0;
 
-    tantque !exploratrice.exploration_finie() {
+    tantque !exploration_finie(*exploratrice) {
         chemin: CheminFichier;
-        discr exploratrice.chemin_suivant() {
+        discr chemin_suivant(*exploratrice) {
             Quelque(chm) {
                 chemin = chm;
             }
@@ -141,7 +141,7 @@ opérateur pour :: (exploratrice: ExploratriceFichier) -> CheminFichier
         `indice_it = indice;
 
         indice += 1;
-        diffère détruit_chemin(chemin);
+        diffère détruit_chemin(*chemin);
 
         #corps_boucle;
     }
@@ -180,14 +180,14 @@ visite_fichiers :: fonc (dossier: CheminFichier, récursif: bool, données: $T, 
 visite_fichiers :: fonc (dossier: chaine, récursif: bool, données: $T, procédure: fonc (info: InfoVisiteFichier, données: T) -> DécisionVisiteFichier, fichiers_à_visiter := FichiersÀVisiter.Fichiers | FichiersÀVisiter.Dossiers)
 {
     dossiers_à_visiter: Pile(CheminFichier);
-    diffère détruit(dossiers_à_visiter);
-    dossiers_à_visiter.empile(CheminFichier(copie_chaine(dossier)));
+    diffère détruit(*dossiers_à_visiter);
+    empile(*dossiers_à_visiter, CheminFichier(copie_chaine(dossier)));
 
     info : InfoVisiteFichier = ---;
 
-    tantque !dossiers_à_visiter.est_vide() {
-        dossier_courant := dossiers_à_visiter.dépile();
-        diffère détruit_chemin(dossier_courant);
+    tantque !est_vide(*dossiers_à_visiter) {
+        dossier_courant := dépile(*dossiers_à_visiter);
+        diffère détruit_chemin(*dossier_courant);
 
         pour ExploratriceFichier(dossier_courant) {
             // À FAIRE : eu_erreur
@@ -211,7 +211,7 @@ visite_fichiers :: fonc (dossier: chaine, récursif: bool, données: $T, procéd
                 }
 
                 si descends_dans_le_dossier {
-                    dossiers_à_visiter.empile(copie_chemin(it));
+                    empile(*dossiers_à_visiter, copie_chemin(it));
                 }
 
                 continue;
