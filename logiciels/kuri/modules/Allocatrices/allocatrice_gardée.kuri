@@ -104,7 +104,7 @@ imprime_liste_mémoire :: fonc (allocatrice: *AllocatriceGardée)
     tantque premier != nul {
         entête := entête_depuis_lien(premier);
         chn_type := chaine_pour_type(entête.info);
-        diffère déloge(chn_type);
+        diffère déloge(*chn_type);
         si entête.est_désynchronisée {
             imprime_dans_enchaineuse(*enchaineuse, "Désynchronisation : le bloc de % octets fut délogé avec une taille de % octets pour le type %\n", entête.taille, entête.taille + entête.est_désynchronisée, chn_type);
         }
@@ -117,7 +117,7 @@ imprime_liste_mémoire :: fonc (allocatrice: *AllocatriceGardée)
 
     rapport := chaine_depuis_enchaineuse(*enchaineuse);
     imprime_log("[AllocatriceGardée]", "%", rapport);
-    déloge(rapport);
+    déloge(*rapport);
 }
 
 loge_mémoire :: fonc (allocatrice: *AllocatriceGardée, taille: z64, info: *InfoType, pos: PositionCodeSource @inutilisée) -> *rien
@@ -191,7 +191,7 @@ déloge_mémoire :: fonc (allocatrice: *AllocatriceGardée, ancien_pointeur: *ri
     retourne nul;
 }
 
-allocation_gardée :: fonc (params: &ParamètresAllocation, données: *BaseAllocatrice) -> *rien
+allocation_gardée :: fonc (params: *ParamètresAllocation, données: *BaseAllocatrice) -> *rien
 {
     discr params.mode {
         ALLOUE,

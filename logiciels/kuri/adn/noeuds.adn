@@ -436,15 +436,6 @@ struct NoeudExpressionPriseAdresse : NoeudExpression {
     NoeudExpression *opérande [code enfant construction]
 }
 
-struct NoeudExpressionPriseRéférence : NoeudExpression {
-    @genre EXPRESSION_PRISE_RÉFÉRENCE
-    @comme prise_référence
-    @code  NoeudCodeExpressionPriseRéférence
-    @genre_valeur DROITE
-
-    NoeudExpression *opérande [code enfant construction]
-}
-
 struct NoeudExpressionNégationLogique : NoeudExpression {
     @genre EXPRESSION_NÉGATION_LOGIQUE
     @comme négation_logique
@@ -878,16 +869,6 @@ struct NoeudDéclarationTypePointeur : NoeudDéclarationType {
     NoeudDéclarationType *type_pointé [code enfant]
 }
 
-struct NoeudDéclarationTypeRéférence : NoeudDéclarationType {
-    @genre RÉFÉRENCE
-    @comme type_référence
-    @code  NoeudCodeTypeRéférence
-    @genre_valeur DROITE
-
-    /* Données pour le type résolu. */
-    NoeudDéclarationType *type_pointé [code enfant]
-}
-
 struct NoeudDéclarationTypeRéel : NoeudDéclarationType {
     @genre RÉEL
     @comme type_réel
@@ -1073,7 +1054,6 @@ struct NoeudPour : NoeudExpression {
     NoeudBloc *bloc_sansarrêt [code enfant]
     NoeudBloc *bloc_sinon [code enfant]
 
-    bool prends_référence [copie]
     bool prends_pointeur [copie]
     GenreLexème lexème_op = .INFERIEUR [copie]
 

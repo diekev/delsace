@@ -283,9 +283,6 @@ InstructionAccèsRubrique::InstructionAccèsRubrique(NoeudExpression const *site
 const Type *InstructionAccèsRubrique::donne_type_accédé() const
 {
     auto type_accédé = accédé->type;
-    if (type_accédé->est_type_référence()) {
-        return type_accédé->comme_type_référence()->type_pointé;
-    }
     return type_accédé->comme_type_pointeur()->type_pointé;
 }
 

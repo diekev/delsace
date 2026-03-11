@@ -679,9 +679,9 @@ impl_release_buffer_proc :: fonc (exporter: *PyObject, view: *Py_buffer)
     objet_tampon.exports -= 1;
 
     si objet_tampon.exports == 0 {
-        déloge(view.shape);
-        déloge(view.strides);
-        déloge(view.suboffsets);
+        déloge(*view.shape);
+        déloge(*view.strides);
+        déloge(*view.suboffsets);
     }
 }
 
@@ -802,13 +802,13 @@ PyErr_DonneChaineErreur :: fonc () -> chaine
     e := PyErr_DonneErreur();
 
     chn_type := donne_chaine_object(e.type);
-    diffère déloge(chn_type);
+    diffère déloge(*chn_type);
 
     chn_valeur := donne_chaine_object(e.valeur);
-    diffère déloge(chn_valeur);
+    diffère déloge(*chn_valeur);
 
     chn_traceback := donne_chaine_object(e.traceback);
-    diffère déloge(chn_traceback);
+    diffère déloge(*chn_traceback);
 
     retourne enchaine("Erreur Python :\n", chn_type, "\n", chn_valeur, "\n", chn_traceback);
 }
@@ -837,8 +837,8 @@ PyErr_MauvaisTypeArgument :: fonc (argument: *PyObject, nom_argument_attendu: ch
     chn_type := PyType_ChaineNom(argument);
     chn_erreur := enchaine("Mauvais type pour l'argument « ", nom_argument_attendu, " » ! Attendu : ", type_argument_attendu, ", obtenu : ", chn_type, " !");
     PyErr_SetObject(PyExc_TypeError, PyUnicode_FromChaine(chn_erreur));
-    déloge(chn_type);
-    déloge(chn_erreur);
+    déloge(*chn_type);
+    déloge(*chn_erreur);
     retourne nul;
 }
 
@@ -848,8 +848,8 @@ PyErr_ComparaisonImpossible :: fonc (opérande: *PyObject, type_autre_opérande:
     chn_type := PyType_ChaineNom(opérande);
     chn_erreur := enchaine("Ne peut comparer un objet de type ", type_autre_opérande, " avec un objet de type", chn_type, " !");
     PyErr_SetObject(PyExc_TypeError, PyUnicode_FromChaine(chn_erreur));
-    déloge(chn_type);
-    déloge(chn_erreur);
+    déloge(*chn_type);
+    déloge(*chn_erreur);
     retourne nul;
 }
 
@@ -859,8 +859,8 @@ PyErr_MauvaisTypeAssignement :: fonc (valeur: *PyObject, type_variable: chaine) 
     chn_type := PyType_ChaineNom(valeur);
     chn_erreur := enchaine("Ne peut assigner un objet de type '", chn_type, "' à un objet de type '", type_variable, "'");
     PyErr_SetObject(PyExc_TypeError, PyUnicode_FromChaine(chn_erreur));
-    déloge(chn_type);
-    déloge(chn_erreur);
+    déloge(*chn_type);
+    déloge(*chn_erreur);
     retourne -1;
 }
 
@@ -870,8 +870,8 @@ PyErr_CléInconnue :: fonc (objet: *PyObject, clé: chaine) -> *PyObject
     chn_type := PyType_ChaineNom(objet);
     chn_erreur := enchaine("Attribut '", clé, "' inconnue pour l'objet de type ", chn_type);
     PyErr_SetObject(PyExc_KeyError, PyUnicode_FromChaine(chn_erreur));
-    déloge(chn_type);
-    déloge(chn_erreur);
+    déloge(*chn_type);
+    déloge(*chn_erreur);
     retourne nul;
 }
 
@@ -881,8 +881,8 @@ PyErr_AttributNonMutable :: fonc (objet: *PyObject, clé: chaine) -> z32
     chn_type := PyType_ChaineNom(objet);
     chn_erreur := enchaine("Attribut '", clé, "' de '", chn_type, "' n'est pas écrivable");
     PyErr_SetObject(PyExc_AttributeError, PyUnicode_FromChaine(chn_erreur));
-    déloge(chn_type);
-    déloge(chn_erreur);
+    déloge(*chn_type);
+    déloge(*chn_erreur);
     retourne -1;
 }
 
@@ -892,8 +892,8 @@ PyErr_AttributNonSupprimable :: fonc (objet: *PyObject, clé: chaine) -> z32
     chn_type := PyType_ChaineNom(objet);
     chn_erreur := enchaine("Attribut '", clé, "' de '", chn_type, "' n'est pas supprimable");
     PyErr_SetObject(PyExc_AttributeError, PyUnicode_FromChaine(chn_erreur));
-    déloge(chn_type);
-    déloge(chn_erreur);
+    déloge(*chn_type);
+    déloge(*chn_erreur);
     retourne -1;
 }
 
@@ -1087,7 +1087,7 @@ Py_fstring_input :: 800;
 PyRun_SimpleString :: fonc (command: chaine) -> bool
 {
     command_c := crée_chaine_c(command);
-    diffère détruit_chaine_c(command_c);
+    diffère détruit_chaine_c(*command_c);
 
     retourne PyRun_SimpleString(command_c) == 0;
 }
@@ -1115,14 +1115,14 @@ donne_chaine_object :: fonc (o: *PyObject) -> chaine
 imprime_object :: fonc (format: chaine, object: *PyObject)
 {
     chn := donne_chaine_object(object);
-    diffère déloge(chn);
+    diffère déloge(*chn);
     imprime(format, chn);
 }
 
 donne_attribut :: fonc (o: *PyObject, nom_attribut: chaine) -> *PyObject
 {
     nom_attribut_c := crée_chaine_c(nom_attribut);
-    diffère détruit_chaine_c(nom_attribut_c);
+    diffère détruit_chaine_c(*nom_attribut_c);
 
     retourne PyObject_GetAttrString(o, nom_attribut_c);
 }
@@ -1162,7 +1162,7 @@ PyDict_SetItem :: fonc (p: *PyObject, key: chaine, val: *PyObject) -> z32
 PyModule_New :: fonc (name: chaine) -> *PyObject
 {
     chn_c_name := crée_chaine_c(name);
-    diffère détruit_chaine_c(chn_c_name);
+    diffère détruit_chaine_c(*chn_c_name);
     retourne PyModule_New(chn_c_name);
 }
 
@@ -1175,7 +1175,7 @@ PyModule_New :: fonc (name: chaine) -> *PyObject
 importe_module :: fonc (name: chaine) -> *PyObject
 {
     chn_c := crée_chaine_c(name);
-    diffère détruit_chaine_c(chn_c);
+    diffère détruit_chaine_c(*chn_c);
 
     retourne PyImport_ImportModule(chn_c);
 }
@@ -1224,7 +1224,7 @@ PyConfig_AddModuleSearchPath :: fonc (config: *PyConfig, chemin: chaine)
 {
     /* Met en place les chemins. */
     chemin_recherche := crée_chaine_utf32(chemin);
-    diffère détruit_chaine(chemin_recherche);
+    diffère détruit_chaine(*chemin_recherche);
     /* Ajout terminateur nul. */
     chaine_ajoute(*chemin_recherche, 0);
 

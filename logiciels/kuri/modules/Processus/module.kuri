@@ -81,40 +81,40 @@ BaseCanal :: struct {
     auteur: Fichier;
 }
 
-écris_avec_sortie_standarde :: fonc (canal: &BaseCanal)
+écris_avec_sortie_standarde :: fonc (canal: *BaseCanal)
 {
     /* Faisons pointé la sortie du programme avec l'entrée du canal. */
-    référence_fichier(canal.auteur, sortie_standarde());
+    référence_fichier(*canal.auteur, sortie_standarde());
     _ := ferme(*canal.lecteur);
 }
 
-lis_avec_entrée_standarde :: fonc (canal: &BaseCanal)
+lis_avec_entrée_standarde :: fonc (canal: *BaseCanal)
 {
     /* Faisons pointé l'entrée du programme avec la sortie du canal. */
-    référence_fichier(canal.lecteur, entrée_standarde());
+    référence_fichier(*canal.lecteur, entrée_standarde());
     _ := ferme(*canal.auteur);
 }
 
-prépare_pour_lecture :: fonc (canal: &BaseCanal)
+prépare_pour_lecture :: fonc (canal: *BaseCanal)
 {
     /* Si nous voulons lire depuis un canal, la partie autrice de celui-ci doit
      * utiliser sa sortie standarde pour écrire. */
     canal.écris_avec_sortie_standarde();
 }
 
-prépare_pour_écriture :: fonc (canal: &BaseCanal)
+prépare_pour_écriture :: fonc (canal: *BaseCanal)
 {
     /* Si nous voulons écrire dans un canal, la partie lectrice de celui-ci
      * doit utiliser son entrée standarde pour lire. */
     canal.lis_avec_entrée_standarde();
 }
 
-écris :: fonc (canal: &BaseCanal, texte: chaine)
+écris :: fonc (canal: *BaseCanal, texte: chaine)
 {
     _ := écris(*canal.auteur, texte);
 }
 
-lis :: fonc (canal: &BaseCanal) -> chaine
+lis :: fonc (canal: *BaseCanal) -> chaine
 {
     enchaineuse: Enchaineuse;
     initialise_enchaineuse(*enchaineuse);
@@ -130,7 +130,7 @@ lis :: fonc (canal: &BaseCanal) -> chaine
         }
 
         ajoute_au_tampon(*enchaineuse, tmp);
-        déloge(tmp);
+        déloge(*tmp);
     }
 
     retourne chaine_depuis_enchaineuse(*enchaineuse);
@@ -242,8 +242,8 @@ ouvre_canal_de_communication :: fonc (programme: chaine, arguments: ...chaine) -
     discr duplique_processus() {
         Enfant {
             /* Le processus enfant sera lu. */
-            canal_lecture.prépare_pour_lecture();
-            canal_écriture.prépare_pour_écriture();
+            prépare_pour_lecture(*canal_lecture);
+            prépare_pour_écriture(*canal_écriture);
 
             remplace_processus_par_programme(programme, ...arguments);
         }
@@ -263,17 +263,17 @@ ouvre_canal_de_communication :: fonc (programme: chaine, arguments: ...chaine) -
     retourne canal;
 }
 
-écris :: fonc (canal: &CanalCommunication, texte: chaine)
+écris :: fonc (canal: *CanalCommunication, texte: chaine)
 {
-    canal.écriture.écris(texte);
+    écris(*canal.écriture, texte);
 }
 
-lis :: fonc (canal: &CanalCommunication) -> chaine
+lis :: fonc (canal: *CanalCommunication) -> chaine
 {
-    retourne canal.lecture.lis();
+    retourne lis(*canal.lecture);
 }
 
-ferme_écriture :: fonc (canal: &CanalCommunication)
+ferme_écriture :: fonc (canal: *CanalCommunication)
 {
     _ := ferme(*canal.écriture.auteur);
 }
@@ -291,7 +291,7 @@ exécute_commande_externe :: fonc (args: ...chaine) -> bool
     ajoute_au_tampon(*enchaineuse, '\0');
 
     commande := chaine_depuis_enchaineuse(*enchaineuse);
-    diffère déloge(commande);
+    diffère déloge(*commande);
 
     retourne exécute_commande_externe(commande);
 }

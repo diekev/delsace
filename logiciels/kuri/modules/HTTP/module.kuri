@@ -105,7 +105,7 @@ détruit_serveuse :: fonc (serveuse: *ServeuseHTTP)
     détruit_routeuse(*serveuse.routeuse);
     détruit_boucle(serveuse.boucle_évènements);
     détruit_contexte(serveuse.ctx);
-    déloge(serveuse);
+    déloge(*serveuse);
 }
 
 DonnéesServeuseHTTP :: struct {
@@ -240,8 +240,8 @@ quand_fermeture :: fonc (prise: *Prise)
     données := prise.accède_données_serveuse(DonnéesServeuseHTTP);
     parseuse := données.parseuse;
     parseuse.réinitialise();
-    déloge(parseuse);
-    déloge(données);
+    déloge(*parseuse);
+    déloge(*données);
 }
 
 // Entête: Cache-Control
@@ -278,7 +278,7 @@ PolitiqueDeCache :: énum {
     pour message.cookies {
         chn_cookie := chaine_cookie_pour_entête_http(it);
         ajoute_au_tampon(*enchaineuse, "Set-Cookie: ", chn_cookie, "\r\n");
-        déloge(chn_cookie);
+        déloge(*chn_cookie);
     }
 
     // Évite le traçage FLoC de Google

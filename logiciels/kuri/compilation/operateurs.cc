@@ -926,24 +926,20 @@ std::optional<Attente> cherche_candidats_opérateurs(EspaceDeTravail &espace,
 
 static Attente attente_sur_opérateur_ou_type(NoeudExpression *noeud, Type *type1, Type *type2)
 {
-    auto est_énum_ou_référence_énum = [](Type *t) -> TypeEnum * {
+    auto est_énum = [](Type *t) -> TypeEnum * {
         if (t->est_type_énum()) {
             return t->comme_type_énum();
-        }
-
-        if (t->est_type_référence() && t->comme_type_référence()->type_pointé->est_type_énum()) {
-            return t->comme_type_référence()->type_pointé->comme_type_énum();
         }
 
         return nullptr;
     };
 
-    auto type1_est_énum = est_énum_ou_référence_énum(type1);
+    auto type1_est_énum = est_énum(type1);
     if (type1_est_énum &&
         !type1_est_énum->possède_drapeau(DrapeauxNoeud::DECLARATION_FUT_VALIDEE)) {
         return Attente::sur_type(type1_est_énum);
     }
-    auto type2_est_énum = est_énum_ou_référence_énum(type2);
+    auto type2_est_énum = est_énum(type2);
     if (type2_est_énum &&
         !type2_est_énum->possède_drapeau(DrapeauxNoeud::DECLARATION_FUT_VALIDEE)) {
         return Attente::sur_type(type2_est_énum);

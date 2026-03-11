@@ -100,7 +100,7 @@ donne_texte_sans_guillemets :: fonc (lexème: LexèmePréprocès) -> chaine #enl
 imprime_lexèmes :: fonc (lexèmes: []LexèmePréprocès, collapse_espaces_blanches: bool) -> chaine
 {
     tmp: [..]LexèmePréprocès;
-    diffère déloge(tmp);
+    diffère déloge(*tmp);
 
     si collapse_espaces_blanches {
         lexèmes = supprime_espace_blanches_autour(lexèmes);

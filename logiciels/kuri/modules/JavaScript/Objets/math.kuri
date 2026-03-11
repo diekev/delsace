@@ -246,7 +246,7 @@ math_max :: fonc (empl params: *ParamètresObjectCall) -> Valeur
 {
     // 1. Let coerced be a new empty List.
     coerced: [..]r64;
-    diffère déloge(coerced);
+    diffère déloge(*coerced);
 
     // 2. For each element arg of args, do
     pour arguments {
@@ -292,7 +292,7 @@ math_min :: fonc (empl params: *ParamètresObjectCall) -> Valeur
 {
     // 1. Let coerced be a new empty List.
     coerced: [..]r64;
-    diffère déloge(coerced);
+    diffère déloge(*coerced);
 
     // 2. For each element arg of args, do
     pour arguments {

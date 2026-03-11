@@ -285,7 +285,7 @@ is_array_index :: fonc (valeur: Valeur) -> bool
         texte := valeur.String.texte.donne_chaine_utf16();
 
         texte_utf8 := convertis_vers_chaine(texte);
-        diffère déloge(texte_utf8);
+        diffère déloge(*texte_utf8);
 
         résultat := tente extrait_r64(texte_utf8) piège _ {
             retourne faux;
@@ -303,7 +303,7 @@ to_uint32 :: fonc (valeur: Valeur) -> n32
         texte := valeur.String.texte.donne_chaine_utf16();
 
         texte_utf8 := convertis_vers_chaine(texte);
-        diffère déloge(texte_utf8);
+        diffère déloge(*texte_utf8);
 
         résultat := tente extrait_r64(texte_utf8) piège _ {
             assert(faux);

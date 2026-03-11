@@ -87,8 +87,8 @@ console_sur_destruction :: fonc (base: *Cellule)
     console := base.vérifie_comme(Console);
     sur_destruction_objet(console);
     flux_sortie_détruit(console.flux_sortie);
-    déloge(console.chronomètres);
-    déloge(console.compteuses);
+    déloge(*console.chronomètres);
+    déloge(*console.compteuses);
 }
 
 LogLevel :: énum {
@@ -112,7 +112,7 @@ console_assert :: fonc (console: *Console, interpréteuse: *Interpréteuse, cond
 
     nouveaux_arguments: [..]Valeur;
     tableau_réserve(*nouveaux_arguments, arguments.taille + 1);
-    diffère déloge(nouveaux_arguments);
+    diffère déloge(*nouveaux_arguments);
 
     si arguments.taille == 0 {
         chn_message := crée_chaine(interpréteuse.donne_tas_de_mémoire(), crée_chaine_utf16_unique("Assertion failed"));
@@ -151,7 +151,7 @@ printer :: fonc (console: *Console, interpréteuse: *Interpréteuse, log_level: 
     }
 
     texte := chaine_depuis_enchaineuse(*enchaineuse);
-    diffère déloge(texte);
+    diffère déloge(*texte);
 
     flux_sortie_log(console.flux_sortie, texte);
 
@@ -244,7 +244,7 @@ time_end :: fonc (console: *Console, interpréteuse: *Interpréteuse, nom: ECMAS
         }
         indice_chronomètre = indice_it;
 
-        déloge(chn_temps);
+        déloge(*chn_temps);
         arrête;
     }
     sansarrêt {
@@ -278,7 +278,7 @@ count :: fonc (console: *Console, interpréteuse: *Interpréteuse, nom: ECMAStri
 
     // 4. Let concat be the concatenation of label, U+003A (:), U+0020 SPACE, and ToString(map[label]).
     concat := imprime_chaine("%: %", nom, compteuse.compte);
-    diffère déloge(concat);
+    diffère déloge(*concat);
 
     valeur_concat := Valeur(String = crée_chaine(interpréteuse.donne_tas_de_mémoire(), crée_chaine_utf16_unique(concat)));
 
@@ -307,7 +307,7 @@ count_reset :: fonc (console: *Console, interpréteuse: *Interpréteuse, nom: EC
     // 1. Let message be a string without any formatting specifiers indicating
     //    generically that the given label does not have an associated count.
     message := imprime_chaine("Unknown counter '%'", nom);
-    diffère déloge(message);
+    diffère déloge(*message);
 
     chn_message := crée_chaine_utf16_unique(message);
     valeur_message := Valeur(String = crée_chaine(interpréteuse.donne_tas_de_mémoire(), chn_message));

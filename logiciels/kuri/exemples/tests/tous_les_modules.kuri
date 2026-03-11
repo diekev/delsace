@@ -50,7 +50,7 @@ importe SysFichier;
     ajoute_au_tampon(*enchaineuse, "principale :: fonc () {}");
 
     chn := chaine_depuis_enchaineuse(*enchaineuse);
-    diffère déloge(chn);
+    diffère déloge(*chn);
 
     ajoute_chaine_à_la_compilation(compilatrice_espace_courant(), chn);
 }
