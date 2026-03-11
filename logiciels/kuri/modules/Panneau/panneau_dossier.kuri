@@ -145,7 +145,7 @@ ajourne_disposition :: fonc (empl panneau: *PanneauDossier)
 
     rect_central = rect;
     rect_central.hauteur = rect.hauteur - hauteur_onglets;
-    rect_central.réduis(1);
+    réduis(*rect_central, 1);
 
     pour * éléments {
         largeur_texte := donne_largeur_texte(fonte, it.texte) comme z32;

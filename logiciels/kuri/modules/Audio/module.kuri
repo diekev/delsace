@@ -64,7 +64,7 @@ crée_tampon_audio :: fonc (format: FormatAudio, nombre_de_secondes: z32) -> Tam
 
 détruit_données :: fonc (tampon: *TamponAudio)
 {
-    déloge(tampon.données);
+    déloge(*tampon.données);
     init_de(FormatAudio)(*tampon.format);
 }
 
@@ -297,7 +297,7 @@ détruit_données_flux :: fonc (flux: *FluxLectureAudio)
 détruit_flux :: fonc (flux: *FluxLectureAudio)
 {
     détruit_données_flux(flux);
-    déloge(flux);
+    déloge(*flux);
 }
 
 est_valide :: fonc (flux: *FluxLectureAudio) -> bool

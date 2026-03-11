@@ -287,13 +287,13 @@ submit :: fonc (form: *HTMLFormElement, submitter: *Element, submitted_from_subm
 
     // 12. Let action be the submitter element's action.
     action := copie_chaine(donne_action(submitter).donne_chaine_utf16());
-    diffère détruit_chaine(action);
+    diffère détruit_chaine(*action);
 
     // 13. If action is the empty string, let action be the URL of the form document.
     si action.est_vide() {
         chn_action := url_serializer(form.document.url);
         action = crée_chaine_utf16(chn_action);
-        déloge(chn_action);
+        déloge(*chn_action);
     }
 
     // 14. Let parsed action be the result of encoding-parsing a URL given action, relative to submitter's node document.
@@ -377,7 +377,7 @@ mutate_action_url :: fonc (form: *HTMLFormElement, entry_list: *EntryList, parse
 
     // Let pairs be the result of converting to a list of name-value pairs with entry list.
     pairs := convert_an_entry_list_to_a_list(entry_list);
-    diffère déloge(pairs);
+    diffère déloge(*pairs);
 
     // Let query be the result of running the application/x-www-form-urlencoded serializer with pairs and encoding.
     query := run_application_x_www_form_urlencode_serializer(pairs);
@@ -449,12 +449,12 @@ EntryList :: struct {
 détruit_entry_list :: fonc (entry_list: *EntryList)
 {
     pour entry_list.entries {
-        déloge(it.name);
-        déloge(it.value);
+        déloge(*it.name);
+        déloge(*it.value);
     }
 
-    déloge(entry_list.entries);
-    déloge(entry_list);
+    déloge(*entry_list.entries);
+    déloge(*entry_list);
 }
 
 /* https://html.spec.whatwg.org/multipage/form-control-infrastructure.html#constructing-the-form-data-set */
@@ -470,7 +470,7 @@ construct_the_entry_list :: fonc (form: *HTMLFormElement, submitter : *Element =
 
     // 3. Let controls be a list of all the submittable elements whose form owner is form, in tree order.
     controls := donne_submittable_elements(form);
-    diffère déloge(controls);
+    diffère déloge(*controls);
 
     // 4. Let entry list be a new empty entry list.
     entry_list := loge(EntryList);

@@ -168,7 +168,7 @@ string_prototype_substring :: fonc (empl params: *ParamètresObjectCall) -> Vale
     substring.unités.pointeur = S16.unités.pointeur + from;
     substring.unités.taille = to - from;
 
-    résultat := crée_chaine_utf16_unique(substring);
+    résultat := crée_chaine_utf16_unique(*substring);
     retourne crée_chaine(interpréteuse.donne_realm(), résultat);
 }
 

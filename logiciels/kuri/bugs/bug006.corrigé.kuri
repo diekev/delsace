@@ -13,5 +13,5 @@ principale :: fonc ()
     ptr := loge_tableau(z32, 32);
     indirection := *ptr;
 
-    déloge(mémoire(indirection));
+    déloge(*mémoire(indirection));
 }

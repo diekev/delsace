@@ -36,6 +36,6 @@ principale :: fonc ()
     // se trouve est déjà à 0
     tableau_ajoute(*x.tabl, 0);
 
-    déloge(x.tabl);
-    déloge(x);
+    déloge(*x.tabl);
+    déloge(*x);
 }

@@ -631,7 +631,7 @@ interprète_code_binaire_sur_destruction :: fonc (base: *Interpréteuse)
 {
     interprète := base comme *InterprèteCodeBinaire;
     détruit_interprète(interprète);
-    déloge(interprète);
+    déloge(*interprète);
 }
 
 donne_accumulateur :: fonc (interprète: *InterprèteCodeBinaire) -> Valeur #enligne
@@ -656,8 +656,8 @@ définis_registre :: fonc (empl état: ÉtatRegistres, registre: Registre, valeu
 
 détruit_interprète :: fonc (interprète: *InterprèteCodeBinaire)
 {
-    déloge(interprète.registres);
-    déloge(interprète.interpréteuse_arbre);
+    déloge(*interprète.registres);
+    déloge(*interprète.interpréteuse_arbre);
 }
 
 donne_code_binaire :: fonc (noeud: *NoeudSyntaxique) -> *FluxDInstructions
@@ -754,12 +754,12 @@ exécute_code_binaire :: fonc (base: *Interpréteuse, noeud: *NoeudSyntaxique) -
     registres.interprète = interprète;
     registres.décalage = nombre_registres;
 
-    nombre_handlers := interprète.exception_handlers.taille();
-    empile(interprète.exception_handlers, DécalageBranche(-1 comme z64));
+    nombre_handlers := taille(*interprète.exception_handlers);
+    empile(*interprète.exception_handlers, DécalageBranche(-1 comme z64));
     diffère interprète.exception_handlers.données.taille = nombre_handlers;
 
-    nombre_environnements := interprète.environments_catch.taille();
-    empile(interprète.environments_catch, nul);
+    nombre_environnements := taille(*interprète.environments_catch);
+    empile(*interprète.environments_catch, nul);
     diffère interprète.environments_catch.données.taille = nombre_environnements;
 
     début := flux.instructions.pointeur;
@@ -1162,7 +1162,7 @@ exécute_code_binaire :: fonc (base: *Interpréteuse, noeud: *NoeudSyntaxique) -
                 appel := it comme *InstructionAppel;
 
                 arguments: [..]Valeur;
-                diffère déloge(arguments);
+                diffère déloge(*arguments);
 
                 pour appel.donne_arguments() {
                     tableau_ajoute(*arguments, donne_registre(registres, it));
@@ -1198,7 +1198,7 @@ exécute_code_binaire :: fonc (base: *Interpréteuse, noeud: *NoeudSyntaxique) -
                 realm := interprète.donne_realm();
 
                 arguments: [..]Valeur;
-                diffère déloge(arguments);
+                diffère déloge(*arguments);
 
                 pour appel.donne_arguments() {
                     tableau_ajoute(*arguments, donne_registre(registres, it));
@@ -1247,7 +1247,7 @@ exécute_code_binaire :: fonc (base: *Interpréteuse, noeud: *NoeudSyntaxique) -
                 new := it comme *InstructionNew;
 
                 arguments: [..]Valeur;
-                diffère déloge(arguments);
+                diffère déloge(*arguments);
 
                 pour new.donne_arguments() {
                     tableau_ajoute(*arguments, donne_registre(registres, it));
@@ -1363,11 +1363,11 @@ exécute_code_binaire :: fonc (base: *Interpréteuse, noeud: *NoeudSyntaxique) -
                     interprète.définis_exception(status.valeur.V);
                 }
                 si old_env != nul {
-                    empile(interprète.environments_catch, old_env);
+                    empile(*interprète.environments_catch, old_env);
                 }
             }
             InstructionSortieBlocCatch {
-                old_env := dépile(interprète.environments_catch);
+                old_env := dépile(*interprète.environments_catch);
                 assert(old_env != nul);
                 mv := interprète.mv;
                 running_execution_context := mv.donne_running_execution_context();
@@ -1384,10 +1384,10 @@ exécute_code_binaire :: fonc (base: *Interpréteuse, noeud: *NoeudSyntaxique) -
                 //  À FAIRE : 5. Perform BlockDeclarationInstantiation(CaseBlock, blockEnv).
 
                 running_execution_context.lexical_environment = block_env;
-                empile(interprète.environments_catch, old_env);
+                empile(*interprète.environments_catch, old_env);
             }
             InstructionSortieSwitch {
-                old_env := dépile(interprète.environments_catch);
+                old_env := dépile(*interprète.environments_catch);
                 assert(old_env != nul);
                 mv := interprète.mv;
                 running_execution_context := mv.donne_running_execution_context();
@@ -1401,10 +1401,10 @@ exécute_code_binaire :: fonc (base: *Interpréteuse, noeud: *NoeudSyntaxique) -
             }
             InstructionEmpileExceptionHandler {
                 inst := it comme *InstructionEmpileExceptionHandler;
-                empile(interprète.exception_handlers, inst.décalage);
+                empile(*interprète.exception_handlers, inst.décalage);
             }
             InstructionDépileExceptionHandler {
-                _ := dépile(interprète.exception_handlers);
+                _ := dépile(*interprète.exception_handlers);
             }
             InstructionNamedEvaluation {
                 inst := it comme *InstructionNamedEvaluation;
@@ -1495,7 +1495,7 @@ exécute_code_binaire :: fonc (base: *Interpréteuse, noeud: *NoeudSyntaxique) -
         }
 
         si interprète.possède_exception() {
-            décalage := interprète.exception_handlers.tête();
+            décalage := tête(*interprète.exception_handlers);
             si décalage == DécalageBranche(-1) {
                 retourne throw_completion(interprète.donne_exception());
             }

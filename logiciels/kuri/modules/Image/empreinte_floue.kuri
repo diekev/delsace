@@ -66,7 +66,7 @@ calcule_empreinte_floue :: fonc (image: *$T,
 
     factors := loge_tableau(r32, composants_y * composants_x * 3);
     factors.taille = factors.capacité;
-    diffère déloge(factors);
+    diffère déloge(*factors);
 
     ptr_factors := factors.pointeur;
 
@@ -296,7 +296,7 @@ décode_empreinte_floue :: fonc (empreinte: chaine, largeur: z32, hauteur: z32, 
     colors_size := numX * numY;
     colors := loge_tableau(r32, colors_size * 3);
     colors.taille = colors.capacité;
-    diffère déloge(colors);
+    diffère déloge(*colors);
 
     ptr_colors := colors.pointeur;
 

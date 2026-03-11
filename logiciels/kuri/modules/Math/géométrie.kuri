@@ -488,7 +488,7 @@ Cercle :: struct ($T: type_de_données) {
     rayon: T;
 }
 
-réduis :: fonc (cercle: &Cercle($T), taille: T)
+réduis :: fonc (cercle: *Cercle($T), taille: T)
 {
     si taille >= cercle.rayon {
         cercle.rayon = 0;
@@ -592,7 +592,7 @@ convertis_type :: fonc (rect: RectanglePosDim($T), $S: type_de_données) -> Rect
     retourne résultat;
 }
 
-agrandis :: fonc (rect: &RectanglePosDim($T), taille: T)
+agrandis :: fonc (rect: *RectanglePosDim($T), taille: T)
 {
     rect.x -= taille;
     rect.y -= taille;
@@ -600,7 +600,7 @@ agrandis :: fonc (rect: &RectanglePosDim($T), taille: T)
     rect.largeur += taille * 2;
 }
 
-réduis :: fonc (rect: &RectanglePosDim($T), taille: T)
+réduis :: fonc (rect: *RectanglePosDim($T), taille: T)
 {
     rect.x += taille;
     rect.y += taille;
@@ -864,24 +864,24 @@ RectanglePur :: struct ($T: type_de_données) {
 }
 
 /* À FAIRE(langage) : les fonctions ne sont pas sélectionnées si nous n'avons pas de références. */
-donne_largeur :: fonc (rect: &RectanglePur($T)) -> T
+donne_largeur :: fonc (rect: RectanglePur($T)) -> T
 {
     retourne rect.droite - rect.gauche;
 }
 
-donne_hauteur :: fonc (rect: &RectanglePur($T)) -> T
+donne_hauteur :: fonc (rect: RectanglePur($T)) -> T
 {
     retourne rect.haut - rect.bas;
 }
 
 /* Limite `rect` afin que ses positions ne dépassent pas celles de `bornes`. */
-découpe_selon :: fonc (rect: &RectanglePur($T), bornes: RectanglePur(T))
+découpe_selon :: fonc (rect: *RectanglePur($T), bornes: RectanglePur(T))
 {
-    si rect.donne_largeur() > bornes.donne_largeur() {
+    si donne_largeur(mémoire(rect)) > bornes.donne_largeur() {
         rect.gauche = bornes.gauche;
         rect.droite = bornes.droite;
     }
-    si rect.donne_hauteur() > bornes.donne_hauteur() {
+    si donne_hauteur(mémoire(rect)) > bornes.donne_hauteur() {
         rect.bas = bornes.bas;
         rect.haut = bornes.haut;
     }
@@ -892,8 +892,8 @@ donne_rectangle_pos_dim :: fonc (rect: RectanglePur($T)) -> RectanglePosDim(T)
     résultat: RectanglePosDim(T);
     résultat.x = rect.gauche;
     résultat.y = rect.bas;
-    résultat.hauteur = rect.donne_hauteur();
-    résultat.largeur = rect.donne_largeur();
+    résultat.hauteur = donne_hauteur(rect);
+    résultat.largeur = donne_largeur(rect);
     retourne résultat;
 }
 

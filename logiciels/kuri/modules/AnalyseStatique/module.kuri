@@ -68,7 +68,7 @@ greffon_analyse_sur_arguments :: fonc (greffon: *GreffonAnalyse, arguments: []ch
 
 greffon_analyse_sur_destruction :: fonc (greffon: *GreffonAnalyse)
 {
-    déloge(greffon);
+    déloge(*greffon);
 }
 
 vérifie_appels :: fonc (espace: EspaceDeTravail, code: *NoeudCode, vérifie_imprimeuses: bool)
@@ -205,7 +205,7 @@ vérifie_dépassement_ligne_de_cache :: fonc (code: *NoeudCode, options: Options
             si reste_décalage comme n32 + it.id.taille_en_octet > options.taille_cache {
                 avertissement := imprime_chaine("Dépassement d'une ligne de cache pour %", it.nom);
                 compilatrice_rapporte_avertissement(code, avertissement);
-                déloge(avertissement);
+                déloge(*avertissement);
             }
         }
     }
@@ -218,7 +218,7 @@ vérifie_rembourrage_excessif :: fonc (code: *NoeudCode, options: OptionsAnalyse
         type := déclaration.type comme *InfoTypeStructure;
 
         types_rubriques: [..]*InfoType;
-        diffère déloge(types_rubriques);
+        diffère déloge(*types_rubriques);
 
         pour type.rubriques {
             si it.drapeaux.EST_CONSTANTE || it.drapeaux.EST_IMPLICITE {
@@ -234,7 +234,7 @@ vérifie_rembourrage_excessif :: fonc (code: *NoeudCode, options: OptionsAnalyse
         si rembourrage_courant > rembourrage_optimal && (rembourrage_courant - rembourrage_optimal) > options.rembourrage_permis {
             avertissement := imprime_chaine("Rembourrage excessif : % octets de rembourrage quand % est optimal", rembourrage_courant, rembourrage_optimal);
             compilatrice_rapporte_avertissement(code, avertissement);
-            déloge(avertissement);
+            déloge(*avertissement);
         }
     }
 }
