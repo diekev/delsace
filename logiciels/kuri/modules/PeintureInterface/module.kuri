@@ -822,7 +822,7 @@ détruit_peintre_dessin :: fonc (base: *Peintre)
     si peintre_dessin.tampon_texture {
         détruit_tampon_texture(peintre_dessin.tampon_texture);
     }
-    déloge(peintre_dessin);
+    déloge(*peintre_dessin);
 }
 
 définis_ciseau_dessin :: fonc (peintre: *PeintreDessin, rectangle_peintre: RectanglePeintre)
@@ -1227,14 +1227,14 @@ détruit_peintre_igumi :: fonc (peintre: *PeintreIGUMI)
     si peintre.ctx {
         issitialise_ctx(peintre.ctx);
         si peintre.ctx.utilisateurs == 0 {
-            déloge(peintre.ctx);
+            déloge(*peintre.ctx);
         }
     }
     sinon {
         issitialise_igumi();
     }
 
-    déloge(peintre);
+    déloge(*peintre);
 }
 
 définis_ciseau_igumi :: fonc (peintre: *Peintre @inutilisée, rectangle: RectanglePeintre)

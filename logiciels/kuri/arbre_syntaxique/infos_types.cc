@@ -298,13 +298,11 @@ InfoType *ConvertisseuseNoeudCode::crée_info_type_pour(EspaceDeTravail *espace,
             break;
         }
         case GenreNoeud::POINTEUR:
-        case GenreNoeud::RÉFÉRENCE:
         {
             auto info_type = allocatrice_infos_types.infos_types_pointeurs.ajoute_élément();
             initialise_entête_info_type(info_type, type, GenreInfoType::POINTEUR);
             info_type->type_pointé = crée_info_type_pour(
                 espace, typeuse, type_déréférencé_pour(type));
-            info_type->est_référence = type->est_type_référence();
 
             type->info_type = info_type;
             type->drapeaux_type |= DrapeauxTypes::INFOS_TYPE_SONT_COMPLÈTES;
@@ -626,11 +624,6 @@ Type *ConvertisseuseNoeudCode::convertis_info_type(Typeuse &typeuse, InfoType *t
             const auto info_type_pointeur = static_cast<const InfoTypePointeur *>(type);
 
             auto type_pointé = convertis_info_type(typeuse, info_type_pointeur->type_pointé);
-
-            if (info_type_pointeur->est_référence) {
-                return typeuse.type_référence_pour(type_pointé);
-            }
-
             return typeuse.type_pointeur_pour(type_pointé);
         }
         case GenreInfoType::TABLEAU:

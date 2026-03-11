@@ -11,7 +11,7 @@ Alphabet :: struct {
 
 détruit_alphabet :: fonc (alphabet: *Alphabet)
 {
-    déloge(alphabet.caractères);
+    déloge(*alphabet.caractères);
 }
 
 taille_alphabet :: fonc (alphabet: *Alphabet) -> z64

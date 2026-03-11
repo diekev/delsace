@@ -7,7 +7,7 @@ charge "interface";
 chaine_environnement :: fonc (nom: chaine) -> chaine
 {
     chn_c_nom := crée_chaine_c(nom);
-    diffère détruit_chaine_c(chn_c_nom);
+    diffère détruit_chaine_c(*chn_c_nom);
 
     chn := getenv(chn_c_nom);
 
@@ -21,10 +21,10 @@ chaine_environnement :: fonc (nom: chaine) -> chaine
 définis_variable_environnemnt :: fonc (nom: chaine, valeur: chaine, remplace: bool) -> bool
 {
     chaine_c_nom := crée_chaine_c(nom);
-    diffère détruit_chaine_c(chaine_c_nom);
+    diffère détruit_chaine_c(*chaine_c_nom);
 
     chaine_c_valeur := crée_chaine_c(valeur);
-    diffère détruit_chaine_c(chaine_c_valeur);
+    diffère détruit_chaine_c(*chaine_c_valeur);
 
     si setenv(chaine_c_nom, chaine_c_valeur, remplace comme z32) == -1 {
         retourne faux;
@@ -36,7 +36,7 @@ définis_variable_environnemnt :: fonc (nom: chaine, valeur: chaine, remplace: b
 supprime_variable_environnement :: fonc (nom: chaine) -> bool
 {
     chaine_c_nom := crée_chaine_c(nom);
-    diffère détruit_chaine_c(chaine_c_nom);
+    diffère détruit_chaine_c(*chaine_c_nom);
     retourne unsetenv(chaine_c_nom) == 0;
 }
 
@@ -115,7 +115,7 @@ dlopen :: fonc (fichier: chaine, mode: z32) -> *rien
     }
 
     fichier_c := crée_chaine_c(fichier);
-    diffère détruit_chaine_c(fichier_c);
+    diffère détruit_chaine_c(*fichier_c);
     retourne dlopen(fichier_c, mode);
 }
 
@@ -126,7 +126,7 @@ dlsym :: fonc (handle: *rien, nom: chaine) -> *rien
     }
 
     nom_c := crée_chaine_c(nom);
-    diffère détruit_chaine_c(nom_c);
+    diffère détruit_chaine_c(*nom_c);
     retourne dlsym(handle, nom_c);
 }
 
@@ -137,7 +137,7 @@ dlsym_func :: fonc (handle: *rien, nom: chaine) -> adresse_fonction
     }
 
     nom_c := crée_chaine_c(nom);
-    diffère détruit_chaine_c(nom_c);
+    diffère détruit_chaine_c(*nom_c);
     retourne dlsym_func(handle, nom_c);
 }
 

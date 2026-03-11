@@ -520,10 +520,10 @@ imprime_styles :: fonc (page_web: *PageWeb)
     }
 
     styles: [..]*CSS.CSSStyleDeclaration;
-    diffère déloge(styles);
+    diffère déloge(*styles);
 
     traversée: [..]*CSS.Box;
-    diffère déloge(traversée);
+    diffère déloge(*traversée);
 
     tableau_ajoute(*traversée, arbre.racine);
 

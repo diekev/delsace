@@ -7,7 +7,7 @@ importe SysFichier;
 #exécute {
     chemin_courant := #chemin_de_ce_fichier;
     dossier := CheminFichier(chemin_courant).chemin_parent();
-    diffère détruit_chemin(dossier);
+    diffère détruit_chemin(*dossier);
 
     tampon_chemin: TamponChemin;
     _ := ajoute(*tampon_chemin, dossier);
@@ -19,7 +19,7 @@ importe SysFichier;
     }
 
     chemin_sortie := copie_chaine(donne_chaine_statique(*tampon_chemin));
-    diffère déloge(chemin_sortie);
+    diffère déloge(*chemin_sortie);
 
     restore_position(*tampon_chemin);
 
@@ -69,7 +69,7 @@ importe SysFichier;
         ajoute_au_tampon(*enchaineuse, '\0');
 
         commande := chaine_depuis_enchaineuse(*enchaineuse);
-        diffère déloge(commande);
+        diffère déloge(*commande);
 
         saufsi exécute_commande_externe(commande) {
             compilatrice_rapporte_erreur("Impossible d'assembler l'archive");

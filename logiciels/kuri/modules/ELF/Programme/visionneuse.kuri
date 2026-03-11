@@ -79,7 +79,7 @@ principale :: fonc ()
                 pour mime dans it.mimes {
                     si mime.type == "text/uri-list" {
                         fichiers := divise(mime.données, "\r\n");
-                        diffère déloge(fichiers);
+                        diffère déloge(*fichiers);
                         pour fichier dans fichiers {
                             schéma := "file://";
                             si commence_par(fichier, schéma) {
@@ -316,12 +316,12 @@ Fichier_Ouvert :: struct {
 
 détruit_données :: fonc (fichier: *Fichier_Ouvert)
 {
-    déloge(fichier.contenu);
+    déloge(*fichier.contenu);
 
     pour * fichier.onglets {
         détruit_tabuleuse(*it.tabuleuse);
     }
-    déloge(fichier.onglets);
+    déloge(*fichier.onglets);
 }
 
 donne_tabuleuse_informations :: fonc (fichier: *Fichier_Ouvert, fonte: *Fonte, tabuleuse: *Tabuleuse)
@@ -404,7 +404,7 @@ détruit_données :: fonc (visionneuse: *VisionneuseELF)
         détruit_données(it);
     }
 
-    déloge(visionneuse.fichiers);
+    déloge(*visionneuse.fichiers);
 }
 
 ouvre_fichier :: fonc (visionneuse: *VisionneuseELF, chemin: CheminFichier)
@@ -1154,7 +1154,7 @@ donne_tabuleuse_sections :: fonc (fichier: *Fichier_Ouvert, fonte: *Fonte, tabul
         indice_ligne : z64 = 1;
 
         noms_entêtes: [..]chaine;
-        diffère déloge(noms_entêtes);
+        diffère déloge(*noms_entêtes);
 
         nombre_de_sections := donne_nombre_de_sections(fichier.fichier) comme Elf64_Word;
         pour nombre_de_sections {
@@ -1168,7 +1168,7 @@ donne_tabuleuse_sections :: fonc (fichier: *Fichier_Ouvert, fonte: *Fonte, tabul
         }
 
         indices_entêtes: [..]n32;
-        diffère déloge(indices_entêtes);
+        diffère déloge(*indices_entêtes);
         tableau_redimensionne(*indices_entêtes, noms_entêtes.taille);
         tableau_iota(indices_entêtes, 0);
 
@@ -1280,7 +1280,7 @@ donne_tabuleuse_comment :: fonc (fichier: *Fichier_Ouvert, fonte: *Fonte, tabule
             chn_données := chaine(données_section.pointeur comme *z8, données_section.taille);
 
             chns := divise(chn_données, '\0');
-            diffère déloge(chns);
+            diffère déloge(*chns);
 
             pour chns {
                 ajoute_ligne(tabuleuse, it);
@@ -1514,7 +1514,7 @@ donne_tabuleuse_table_chaines :: fonc (fichier: *Fichier_Ouvert, fonte: *Fonte, 
             texte := chaine(données.pointeur comme *z8, données.taille);
 
             chaines := divise(texte, '\0');
-            diffère déloge(chaines);
+            diffère déloge(*chaines);
 
             pour chaines {
                 ajoute_ligne(tabuleuse, it);
