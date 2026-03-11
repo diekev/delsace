@@ -189,7 +189,7 @@ système_convertis_raison :: fonc (raison: RaisonOuvertureFichier) -> z32
 système_ouvre :: fonc (chemin: CheminFichier, raison: RaisonOuvertureFichier, permissions: Type_Permissions_Fichier) -> RésultatOpérationFichier
 {
     ptr_chemin := crée_chaine_c(chemin.chn);
-    diffère détruit_chaine_c(ptr_chemin);
+    diffère détruit_chaine_c(*ptr_chemin);
 
     drapeaux := système_convertis_raison(raison);
 
@@ -321,10 +321,10 @@ système_fin_de_fichier :: fonc (fd: TypePoignéeFichier) -> RésultatOpération
 crée_lien_symbolique :: fonc (cible: chaine, chemin_lien: chaine) -> Optionnel(ErreurFichier)
 {
     chn_c_cible := crée_chaine_c(cible);
-    diffère détruit_chaine_c(chn_c_cible);
+    diffère détruit_chaine_c(*chn_c_cible);
 
     chn_c_chemin_lien := crée_chaine_c(chemin_lien);
-    diffère détruit_chaine_c(chn_c_chemin_lien);
+    diffère détruit_chaine_c(*chn_c_chemin_lien);
 
     résultat := symlink(chn_c_cible, chn_c_chemin_lien);
     retourne donne_erreur_si_résultat_invalide(résultat);
@@ -344,7 +344,7 @@ crée_lien_symbolique_ex :: fonc (cible: CheminFichier, chemin_lien: CheminFichi
 système_crée_dossier :: fonc (chemin_dossier: chaine, mode: z32) -> Optionnel(ErreurFichier)
 {
     ptr_chemin := crée_chaine_c(chemin_dossier);
-    diffère détruit_chaine_c(ptr_chemin);
+    diffère détruit_chaine_c(*ptr_chemin);
 
     résultat := mkdir(ptr_chemin, mode);
 
@@ -368,7 +368,7 @@ système_crée_dossier :: fonc (chemin_dossier: chaine, mode: z32) -> Optionnel(
 système_découvre_type_fichier :: fonc (chemin: CheminFichier) -> Résultat(TypeFichier, ErreurFichier)
 {
     ptr_chemin := crée_chaine_c(chemin.chn);
-    diffère détruit_chaine_c(ptr_chemin);
+    diffère détruit_chaine_c(*ptr_chemin);
 
     st: struct_stat;
     ok := stat(ptr_chemin, *st);
@@ -441,7 +441,7 @@ TypePoignéeEntréeDossier :: #opaque *dirent;
 système_ouvre_dossier :: fonc (chemin: CheminFichier) -> Optionnel(TypePoignéeDossier)
 {
     ptr_chemin := crée_chaine_c(chemin.chn);
-    diffère détruit_chaine_c(ptr_chemin);
+    diffère détruit_chaine_c(*ptr_chemin);
 
     dir := opendir(ptr_chemin);
     saufsi dir {
@@ -506,7 +506,7 @@ système_référence_fichier :: fonc (ancien_fd: TypePoignéeFichier, nouveau_fd
 système_espace_disque_disponible :: fonc (chemin: CheminFichier) -> Résultat(n64, ErreurFichier)
 {
     ptr_chemin := crée_chaine_c(chemin.chn);
-    diffère détruit_chaine_c(ptr_chemin);
+    diffère détruit_chaine_c(*ptr_chemin);
 
     s: struct_statvfs;
     résultat := statvfs(ptr_chemin, *s);
@@ -536,7 +536,7 @@ système_chemin_courant :: fonc () -> Résultat(CheminFichier, ErreurFichier)
 système_chemin_courant :: fonc (chemin: CheminFichier) -> Optionnel(ErreurFichier)
 {
     ptr_chemin := crée_chaine_c(chemin.chn);
-    diffère détruit_chaine_c(ptr_chemin);
+    diffère détruit_chaine_c(*ptr_chemin);
     résultat := chdir(ptr_chemin);
     retourne donne_erreur_si_résultat_invalide(résultat);
 }
@@ -642,14 +642,14 @@ système_chemin_pour_corbeille :: fonc () -> Optionnel(CheminFichier)
     xdg_data_home := système_chemin_pour_variable_environnement("XDG_DATA_HOME");
     si xdg_data_home.possède_valeur() {
         chemin_données := xdg_data_home.Quelque;
-        diffère détruit_chemin(chemin_données);
+        diffère détruit_chemin(*chemin_données);
 
         chemin_potentiel := chemin_données / "Trash";
         si est_un_dossier(chemin_potentiel) {
             retourne chemin_potentiel;
         }
 
-        détruit_chemin(chemin_potentiel);
+        détruit_chemin(*chemin_potentiel);
     }
 
     /* Tente le replis de XDG_DATA_HOME. */
@@ -658,14 +658,14 @@ système_chemin_pour_corbeille :: fonc () -> Optionnel(CheminFichier)
         retourne;
     }
 
-    diffère détruit_chemin(chemin_maison);
+    diffère détruit_chemin(*chemin_maison);
 
     chemin_potentiel := chemin_maison / ".local/share/Trash";
     si est_un_dossier(chemin_potentiel) {
         retourne chemin_potentiel;
     }
 
-    détruit_chemin(chemin_potentiel);
+    détruit_chemin(*chemin_potentiel);
 
     /* Tente un dernier coup avec $HOME/.trash. */
     chemin_potentiel = chemin_maison / ".trash";
@@ -673,7 +673,7 @@ système_chemin_pour_corbeille :: fonc () -> Optionnel(CheminFichier)
         retourne chemin_potentiel;
     }
 
-    détruit_chemin(chemin_potentiel);
+    détruit_chemin(*chemin_potentiel);
 }
 
 /* \} */
@@ -713,7 +713,7 @@ système_chemins_système_pour_variable :: fonc (variable: chaine) -> Optionnel(
     saufsi chemins {
         retourne;
     }
-    diffère déloge(chemins);
+    diffère déloge(*chemins);
 
     morceaux := divise(chemins, ':');
 
@@ -747,12 +747,12 @@ système_déplace_vers_corbeille :: fonc (chemin: CheminFichier) -> Optionnel(Er
     chemin_corbeille := chemin_corbeille_opt.Quelque;
 
     chemin_destination := système_chemin_destination_pour_suppression(chemin_corbeille, chemin);
-    diffère détruit_chemin(chemin_destination);
+    diffère détruit_chemin(*chemin_destination);
 
     nom_fichier_info := imprime_chaine("%.trashinfo", chemin_destination.nom_fichier_avec_extension());
     chemin_fichier_info := chemin_corbeille / "info" / nom_fichier_info;
-    diffère détruit_chemin(chemin_fichier_info);
-    déloge(nom_fichier_info);
+    diffère détruit_chemin(*chemin_fichier_info);
+    déloge(*nom_fichier_info);
 
     /* Écris le fichier d'information avant de déplacer le fichier dans la
      * corbeille afin de s'assurer que nous avons l'espace disque nécessaire.
@@ -790,11 +790,11 @@ système_chemin_destination_pour_suppression :: fonc (chemin_corbeille: CheminFi
     /* Garantis un nom unique : d'autres fichiers d'autres dossiers peuvent avoir le même nom. */
     indice := 1;
     tantque fichier_existe(chemin_destination) {
-        détruit_chemin(chemin_destination);
+        détruit_chemin(*chemin_destination);
 
         nom_fichier_destination := imprime_chaine("%.%%", nom_fichier, indice, extension);
         chemin_destination = chemin_corbeille / "files" / nom_fichier_destination;
-        déloge(nom_fichier_destination);
+        déloge(*nom_fichier_destination);
 
         indice += 1;
     }
@@ -836,7 +836,7 @@ système_chemin_véritable :: fonc (chemin: CheminFichier) -> Résultat(CheminFi
     ptr_tampon := *tampon[0];
 
     chn_c_chemin := crée_chaine_c(chemin.chn);
-    diffère détruit_chaine_c(chn_c_chemin);
+    diffère détruit_chaine_c(*chn_c_chemin);
 
     résultat := realpath(chn_c_chemin, ChaineC(ptr_tampon));
 
@@ -868,9 +868,9 @@ système_chemin_véritable :: fonc (résultat: *TamponChemin) -> ErreurFichier
 système_renomme :: fonc (orig: CheminFichier, dest: CheminFichier) -> Optionnel(ErreurFichier)
 {
     ptr_chemin_orig := crée_chaine_c(orig.chn);
-    diffère détruit_chaine_c(ptr_chemin_orig);
+    diffère détruit_chaine_c(*ptr_chemin_orig);
     ptr_chemin_dest := crée_chaine_c(dest.chn);
-    diffère détruit_chaine_c(ptr_chemin_dest);
+    diffère détruit_chaine_c(*ptr_chemin_dest);
 
     résultat := rename(ptr_chemin_orig, ptr_chemin_dest);
     retourne donne_erreur_si_résultat_invalide(résultat);
@@ -879,7 +879,7 @@ système_renomme :: fonc (orig: CheminFichier, dest: CheminFichier) -> Optionnel
 système_supprime :: fonc (chm: CheminFichier) -> Optionnel(ErreurFichier)
 {
     ptr_chemin := crée_chaine_c(chm.chn);
-    diffère détruit_chaine_c(ptr_chemin);
+    diffère détruit_chaine_c(*ptr_chemin);
     résultat := remove(ptr_chemin);
     retourne donne_erreur_si_résultat_invalide(résultat);
 }

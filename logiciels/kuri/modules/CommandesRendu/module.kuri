@@ -41,8 +41,8 @@ CommandesDeRendu :: struct {
 détruit_commandes :: fonc (commandes: *CommandesDeRendu)
 {
     si commandes {
-        déloge(commandes.commandes);
-        déloge(commandes);
+        déloge(*commandes.commandes);
+        déloge(*commandes);
     }
 }
 

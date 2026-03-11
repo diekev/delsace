@@ -57,7 +57,7 @@ greffon_python_sur_message :: fonc (greffon: *GreffonPython, message: *Message)
 greffon_python_sur_destruction :: fonc (greffon: *GreffonPython)
 {
     détruit(*greffon.compilatrice);
-    déloge(greffon);
+    déloge(*greffon);
 }
 
 // À FAIRE : gère proprement les chaines, les chaines C ne sont jamais détruites !
@@ -75,9 +75,9 @@ détruit :: fonc (module: *ModulePython)
         détruit(it);
     }
 
-    déloge(module.méthodes);
-    déloge(module.constantes_nombre_entier);
-    déloge(module.constantes_chaine);
+    déloge(*module.méthodes);
+    déloge(*module.constantes_nombre_entier);
+    déloge(*module.constantes_chaine);
 }
 
 ConstanteNombreEntier :: struct {
@@ -129,9 +129,9 @@ MéthodePython :: struct {
 
 détruit :: fonc (méthode: *MéthodePython)
 {
-    déloge(méthode.nom_enveloppe);
-    déloge(méthode.paramètres_entrée);
-    déloge(méthode.paramètres_sortie);
+    déloge(*méthode.nom_enveloppe);
+    déloge(*méthode.paramètres_entrée);
+    déloge(*méthode.paramètres_sortie);
 }
 
 ne_retourne_rien :: fonc (méthode: *MéthodePython) -> bool
@@ -468,21 +468,21 @@ détruit :: fonc (type: *TypePython)
     détruit(*type.repr);
     détruit(*type.str);
     détruit(*type.hash);
-    déloge(type.fonctions.pour_discrimination);
-    déloge(type.fonctions.pour_construction);
-    déloge(type.fonctions.pour_extraction_valeur);
-    déloge(type.rubriques);
+    déloge(*type.fonctions.pour_discrimination);
+    déloge(*type.fonctions.pour_construction);
+    déloge(*type.fonctions.pour_extraction_valeur);
+    déloge(*type.rubriques);
     pour * type.méthodes {
         détruit(it);
     }
-    déloge(type.méthodes);
+    déloge(*type.méthodes);
     si type.drapeaux.TYPE_EST_TABLEAU || type.drapeaux.TYPE_EST_ITÉRATEUR {
-        déloge(type.nom);
+        déloge(*type.nom);
     }
-    déloge(type.nom_globale_type);
-    déloge(type.nom_sauf);
-    déloge(type.nom_type_kuri);
-    déloge(type);
+    déloge(*type.nom_globale_type);
+    déloge(*type.nom_sauf);
+    déloge(*type.nom_type_kuri);
+    déloge(*type);
 }
 
 ajoute_méthode :: fonc (type: *TypePython, système_type: *SystèmeType, fonction: *NoeudCodeEntêteFonction)

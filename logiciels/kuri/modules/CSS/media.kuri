@@ -11,7 +11,7 @@ MediaList :: struct {
 détruit_media_list :: fonc (list: *MediaList)
 {
     déloge_tableau_et_ses_éléments(*list.media_queries, détruit_media_query);
-    déloge(list);
+    déloge(*list);
 }
 
 /** \} */
@@ -100,7 +100,7 @@ crée_media_query_feature :: fonc (expression: MediaFeatureExpression) -> *Media
 
 détruit_media_query :: fonc (query: *MediaQuery)
 {
-    déloge(query);
+    déloge(*query);
 }
 
 /** \} */

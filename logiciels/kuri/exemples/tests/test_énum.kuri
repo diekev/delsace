@@ -150,7 +150,7 @@ imprime_énum :: fonc ($T: type_de_données)
 
     é := Énum.VALEUR3;
     chaine_valeur := imprime_chaine("%", é);
-    diffère déloge(chaine_valeur);
+    diffère déloge(*chaine_valeur);
     assert(chaine_valeur == "VALEUR3");
 }
 
@@ -164,6 +164,6 @@ imprime_énum_drapeau :: fonc ($T: type_de_données)
 
     é := Énum.valeurs_légales;
     chaine_valeur := imprime_chaine("%", é);
-    diffère déloge(chaine_valeur);
+    diffère déloge(*chaine_valeur);
     assert(chaine_valeur == "VALEUR1 | VALEUR2 | VALEUR3");
 }

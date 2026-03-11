@@ -26,27 +26,27 @@ Noeud :: struct {
 
 détruit_noeud :: fonc (noeud: *Noeud)
 {
-    déloge(noeud.attributs);
+    déloge(*noeud.attributs);
     déloge_tableau_et_ses_éléments(*noeud.enfants, détruit_noeud);
 
     discr noeud.type {
         Chapitre {
             chapitre := noeud comme *Chapitre;
-            déloge(chapitre);
+            déloge(*chapitre);
         }
         Document {
             document := noeud comme *Document;
-            déloge(document.catégories);
-            déloge(document.texte_original);
-            déloge(document);
+            déloge(*document.catégories);
+            déloge(*document.texte_original);
+            déloge(*document);
         }
         Texte {
             noeud_texte := noeud comme *Texte;
-            déloge(noeud_texte);
+            déloge(*noeud_texte);
         }
         Lien {
             noeud_lien := noeud comme *Lien;
-            déloge(noeud_lien);
+            déloge(*noeud_lien);
         }
         sinon {}
     }
@@ -114,12 +114,12 @@ ParseuseDocument :: struct {
     erreurs: [..]chaine;
 }
 
-détruit_parseuse :: fonc (parseuse: &ParseuseDocument)
+détruit_parseuse :: fonc (parseuse: *ParseuseDocument)
 {
-    déloge(parseuse.erreurs);
+    déloge(*parseuse.erreurs);
 }
 
-possède_erreur :: fonc (parseuse: &ParseuseDocument) -> bool
+possède_erreur :: fonc (parseuse: *ParseuseDocument) -> bool
 {
     retourne parseuse.erreurs.taille != 0;
 }
@@ -151,7 +151,7 @@ parse_document :: fonc (texte: chaine) -> *Document
     parseuse := ParseuseDocument(chn = document.texte_original);
     parseuse.document = document;
 
-    diffère détruit_parseuse(parseuse);
+    diffère détruit_parseuse(*parseuse);
 
     saufsi consomme(*parseuse, '{') {
         rapporte_erreur(*parseuse, "attendu une accolade ouvrante au début du document");
@@ -192,7 +192,7 @@ parse_document :: fonc (texte: chaine) -> *Document
         rapporte_erreur(*parseuse, "des caractères sont à la fin du texte, il est possible que la syntaxe est erronnée");
     }
 
-    si parseuse.possède_erreur() {
+    si possède_erreur(*parseuse) {
         détruit_noeud(document);
 
         pour parseuse.erreurs {
@@ -548,7 +548,7 @@ imprime_hiérarchie :: fonc (racine: *Noeud, profondeur : z32 = 0)
  *
  * Si échec, ne retourne rien.
  */
-parse_document_pour_courriel :: fonc (courriel: &Courriel.Courriel, texte: chaine) -> Optionnel(Courriel.Courriel)
+parse_document_pour_courriel :: fonc (courriel: *Courriel.Courriel, texte: chaine) -> Optionnel(Courriel.Courriel)
 {
     document := parse_document(texte);
 

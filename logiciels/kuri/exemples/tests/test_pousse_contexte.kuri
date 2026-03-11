@@ -15,19 +15,19 @@ empreinte_contexte :: fonc () -> chaine
 principale :: fonc ()
 {
     empreinte1 := empreinte_contexte();
-    diffère déloge(empreinte1);
+    diffère déloge(*empreinte1);
 
     nouveau_contexte := contexte();
     nouveau_contexte.stockage_temporaire = nul;
 
     pousse_contexte nouveau_contexte {
         empreinte3 := empreinte_contexte();
-        diffère déloge(empreinte3);
+        diffère déloge(*empreinte3);
         assert(empreinte1 != empreinte3);
     }
 
     empreinte2 := empreinte_contexte();
-    diffère déloge(empreinte2);
+    diffère déloge(*empreinte2);
 
     /* Nous devons avoir le même contexte qu'au début. */
     assert(empreinte1 == empreinte2);

@@ -25,9 +25,9 @@ crée_données_mime :: fonc (type: chaine) -> *DonnéesMime
 
 détruit_données_mime :: fonc (données: *DonnéesMime)
 {
-    déloge_si_logée(données.type);
-    déloge_si_logée(données.données);
-    déloge(données);
+    déloge_si_logée(*données.type);
+    déloge_si_logée(*données.données);
+    déloge(*données);
 }
 
 /* https://mimesniff.spec.whatwg.org/#javascript-mime-type-essence-match */

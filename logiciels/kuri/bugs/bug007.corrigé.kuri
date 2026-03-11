@@ -14,7 +14,7 @@ imprime_log :: fonc (mode: ModeLogage, ident: chaine, format: chaine, args: ...e
     message := imprime_chaine(format, ...args);
 
     __contexte_fil_principal.logueur(message, ident, mode, contexte().données_logueur);
-    déloge(message);
+    déloge(*message);
 }
 
 principale :: fonc ()

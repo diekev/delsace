@@ -131,7 +131,7 @@ détruit_données_ssl_boucle :: fonc (données_ssl_boucle: *DonnéesSSLBoucle)
 
     BIO_meth_free(données_ssl_boucle.méthode_bio_mémoire);
 
-    déloge(données_ssl_boucle);
+    déloge(*données_ssl_boucle);
 }
 
 // -------------------------------------------------------

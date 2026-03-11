@@ -101,9 +101,9 @@ réinitialise :: fonc (empl maçonne: *Maçonne_ELF64)
     pour sections {
         détruit_données(*it.table_de_chaines);
         fichier_pagé_réinitialise(*it.fichier);
-        déloge(it);
+        déloge(*it);
     }
-    déloge(sections);
+    déloge(*sections);
 }
 
 crée_section :: fonc (empl maçonne: *Maçonne_ELF64, nom: chaine, type: TypeSection) -> *Données_Section_ELF64
@@ -429,9 +429,9 @@ Fichier_Pagé :: struct {
 fichier_pagé_réinitialise :: fonc (empl fichier: *Fichier_Pagé)
 {
     pour pages {
-        déloge(it.données);
+        déloge(*it.données);
     }
-    déloge(pages);
+    déloge(*pages);
 }
 
 donne_taille :: fonc (empl fichier: *Fichier_Pagé) -> n64
