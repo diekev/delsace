@@ -113,7 +113,7 @@ valide_sémantique_noeud :: fonc (empl sémanticienne: *SémanticienneC, node: *
             }
 
             field_infos: [..]Field_Info;
-            diffère déloge(field_infos);
+            diffère déloge(*field_infos);
 
             pour struct_decl.declarations {
                 valide_sémantique_noeud(sémanticienne, it);
@@ -1246,9 +1246,9 @@ valide_opérateur_modulo :: fonc (empl sémanticienne: *SémanticienneC, binary:
     }
     sinon {
         chn_type_gauche := donne_épelage_type(type_gauche);
-        diffère déloge(chn_type_gauche);
+        diffère déloge(*chn_type_gauche);
         chn_type_droite := donne_épelage_type(type_droite);
-        diffère déloge(chn_type_droite);
+        diffère déloge(*chn_type_droite);
 
         si type_gauche.drapeaux.INTEGER {
             rapporte_erreur(sémanticienne, binary.right, "l'opérande droite d'un opérateur de modulo doit être de type entier : obtenu '%'", chn_type_droite);
@@ -1416,9 +1416,9 @@ rapporte_erreur_types_incompatibles :: fonc (sémanticienne: *SémanticienneC, b
     type_droite := binary.right.type;
 
     chn_type_gauche := donne_épelage_type(type_gauche);
-    diffère déloge(chn_type_gauche);
+    diffère déloge(*chn_type_gauche);
     chn_type_droite := donne_épelage_type(type_droite);
-    diffère déloge(chn_type_droite);
+    diffère déloge(*chn_type_droite);
     rapporte_erreur(sémanticienne, binary, "types incompatibles pour l'opérateur : obtenu '%' et '%'", chn_type_gauche, chn_type_droite);
 }
 
@@ -1921,7 +1921,7 @@ résoud_type_final :: fonc (empl sémanticienne: *SémanticienneC, node: *ASTNod
 
             // @Vitesse
             types_arguments: [..]*Type;
-            diffère déloge(types_arguments);
+            diffère déloge(*types_arguments);
 
             pour function_type_expr.parameters {
                 saufsi it.type {
@@ -2254,7 +2254,7 @@ table_de_symboles_réinitialise :: fonc (empl table: *Table_De_Symboles)
             bloc_suivant := bloc.parent;
 
             détruit_données(*bloc.symboles);
-            déloge(bloc);
+            déloge(*bloc);
 
             bloc = bloc_suivant;
         }

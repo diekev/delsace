@@ -879,7 +879,7 @@ call_expression_sur_code_binaire :: fonc (noeud: *CallExpression, génératrice:
     this_value = génératrice.crée_stocke();
 
     registres_arguments: [..]Registre;
-    diffère déloge(registres_arguments);
+    diffère déloge(*registres_arguments);
 
     pour noeud.arguments {
         reg_opt_arg := génératrice.génère_code_binaire(it);
@@ -1168,7 +1168,7 @@ new_expression_sur_code_binaire :: fonc (noeud: *NewExpression, génératrice: *
     reg_opt_func = génératrice.crée_stocke();
 
     registres_arguments: [..]Registre;
-    diffère déloge(registres_arguments);
+    diffère déloge(*registres_arguments);
 
     pour arguments {
         reg_opt_arg := génératrice.génère_code_binaire(it);
@@ -1247,7 +1247,7 @@ donne_nom_propriété :: fonc (prop_name: *NoeudSyntaxique) -> ECMAString
     si prop_name.type == NumericLiteral {
         number := prop_name comme *NumericLiteral;
         chn := imprime_chaine("%", number.valeur);
-        diffère déloge(chn);
+        diffère déloge(*chn);
         retourne crée_chaine_utf16_unique(chn);
     }
 
@@ -1328,7 +1328,7 @@ switch_statement_sur_code_binaire :: fonc (switch: *SwitchStatement, génératri
         reg_valeur_discriminant := génératrice.crée_stocke();
 
         index_branches_pour_cas: [..]IndiceBranche;
-        diffère déloge(index_branches_pour_cas);
+        diffère déloge(*index_branches_pour_cas);
 
         label_pour_break := génératrice.crée_label();
 

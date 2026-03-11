@@ -65,7 +65,7 @@ test_mises_en_pages :: fonc () -> bool
     diffère déloge_tableau_et_ses_éléments(*chemins_sources, détruit_chemin);
 
     échecs: [..]CheminFichier;
-    diffère déloge(échecs);
+    diffère déloge(*échecs);
 
     nombre_de_tests_passants: z32;
     nombre_de_tests_ignorés: z32;
@@ -74,7 +74,7 @@ test_mises_en_pages :: fonc () -> bool
         imprime(".");
 
         impression := donne_texte_pour_sortie(it);
-        diffère déloge(impression);
+        diffère déloge(*impression);
 
         chemin_sortie := chemins_sorties[indice_it];
 
@@ -82,7 +82,7 @@ test_mises_en_pages :: fonc () -> bool
         saufsi succès {
             continue;
         }
-        diffère déloge(sortie);
+        diffère déloge(*sortie);
 
         si impression != sortie {
             tableau_ajoute(*échecs, it);
@@ -123,7 +123,7 @@ ajourne_fichiers :: fonc ()
 
     pour chemins_sources {
         impression := donne_texte_pour_sortie(it);
-        diffère déloge(impression);
+        diffère déloge(*impression);
 
         chemin_sortie := chemins_sorties[indice_it];
 
@@ -131,7 +131,7 @@ ajourne_fichiers :: fonc ()
         saufsi succès {
             continue;
         }
-        diffère déloge(original);
+        diffère déloge(*original);
     
         si impression == original {
             continue;
@@ -152,7 +152,7 @@ visualise_fichiers :: fonc (chemin_navigateur: CheminFichier)
     diffère déloge_tableau_et_ses_éléments(*chemins_sources, détruit_chemin);
 
     chemins_échouants: [..]CheminFichier;
-    diffère déloge(chemins_échouants);
+    diffère déloge(*chemins_échouants);
 
     chemin_courant := tente donne_chemin_courant() piège err {
         imprime("Impossible de déterminer le chemin courant : %\n", err);
@@ -161,7 +161,7 @@ visualise_fichiers :: fonc (chemin_navigateur: CheminFichier)
 
     pour chemins_sources {
         impression := donne_texte_pour_sortie(it);
-        // diffère déloge(impression)
+        // diffère déloge(*impression)
 
         chemin_sortie := chemins_sorties[indice_it];
 
@@ -169,17 +169,17 @@ visualise_fichiers :: fonc (chemin_navigateur: CheminFichier)
         saufsi succès {
             continue;
         }
-        // diffère déloge(original)
+        // diffère déloge(*original)
 
         si impression == original {
             continue;
         }
 
         chm_abs := crée_chemin_absolu(chemin_courant, it);
-        // diffère déloge(chm_abs.chn)
+        // diffère déloge(*chm_abs.chn)
 
         commande := imprime_chaine("% %", chemin_navigateur, chm_abs);
-        // diffère déloge(commande)
+        // diffère déloge(*commande)
 
         imprime("\x1b[32m[% / %] Exécution de %\x1b[37m\n", indice_it + 1, chemins_sources.taille, commande);
 
@@ -193,7 +193,7 @@ visualise_fichiers :: fonc (chemin_navigateur: CheminFichier)
             imprime("> ");
 
             entrée := tente entrée_standarde().lis_tout() piège nonatteignable;
-            diffère déloge(entrée);
+            diffère déloge(*entrée);
 
             réponse := recule(entrée, 1);
 
@@ -225,7 +225,7 @@ donne_chemins_fichiers_sources :: fonc () -> [..]CheminFichier
     résultat: [..]CheminFichier;
 
     dossier_parent := CheminFichier(#chemin_de_ce_fichier).chemin_parent();
-    diffère détruit_chemin(dossier_parent);
+    diffère détruit_chemin(*dossier_parent);
     dossier := dossier_parent / "fichiers/sources";
 
     visite :: fonc (info: InfoVisiteFichier, fichiers: *[..]CheminFichier) -> DécisionVisiteFichier
@@ -259,12 +259,12 @@ donne_chemins_fichiers_sorties :: fonc (sources: []CheminFichier) -> [..]CheminF
 donne_chemin_pour_fichier_sortie :: fonc (chemin: CheminFichier) -> CheminFichier
 {
     dossier := chemin_parent(chemin);
-    diffère détruit_chemin(dossier);
+    diffère détruit_chemin(*dossier);
 
     nom_fichier_texte := enchaine(chemin.nom_fichier(), ".txt");
 
     tmp := dossier / nom_fichier_texte;
-    diffère détruit_chemin(tmp);
+    diffère détruit_chemin(*tmp);
 
     résultat: CheminFichier;
     résultat.chn = remplace(tmp.chn, "fichiers/sources", "fichiers/sorties");
@@ -277,17 +277,17 @@ donne_texte_pour_sortie :: fonc (chemin: CheminFichier) -> chaine
     saufsi succès {
         retourne "";
     }
-    diffère déloge(contenu);
+    diffère déloge(*contenu);
 
     mv: JavaScript.MachineVirtuelle;
     JavaScript.initialise_mv(nul, *mv);
     diffère JavaScript.détruit_données_mv(*mv);
 
     parsat := HTML.parse_document(JavaScript.donne_tas_de_mémoire(*mv), contenu);
-    diffère HTML.détruit(parsat);
+    diffère HTML.détruit(*parsat);
 
     chaine_url := enchaine("file://", chemin.chn);
-    diffère déloge(chaine_url);
+    diffère déloge(*chaine_url);
 
     parsat.document.url = HTML.basic_url_parser(chaine_url);
     assert(parsat.document.url != nul);

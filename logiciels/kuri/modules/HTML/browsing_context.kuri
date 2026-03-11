@@ -61,7 +61,7 @@ détruit_document_state :: fonc (state: *DocumentState)
         retourne;
     }
 
-    déloge(state);
+    déloge(*state);
 }
 
 /* https://html.spec.whatwg.org/multipage/browsing-the-web.html#session-history-entry */
@@ -91,7 +91,7 @@ détruit_session_history_entry :: fonc (she: *SessionHistoryEntry)
 {
     détruit_url(she.url);
     détruit_document_state(she.document_state);
-    déloge(she);
+    déloge(*she);
 }
 
 donne_document :: fonc (she: *SessionHistoryEntry) -> *Document
@@ -261,10 +261,10 @@ donne_session_history_entries :: fonc (user_agent: *UserAgent, navigable: *Navig
 
     // 4. Let docStates be an empty ordered set of document states.
     // doc_states_à_vérifier: [..]*DocumentState
-    // diffère déloge(doc_states_à_vérifier)
+    // diffère déloge(*doc_states_à_vérifier)
 
     // doc_states_vérifiés: [..]*DocumentState
-    // diffère déloge(doc_states_vérifiés)
+    // diffère déloge(*doc_states_vérifiés)
 
     // // 5. For each entry of traversable's session history entries, append entry's document state to docStates.
     // pour traversable.session_history_entries {
@@ -327,7 +327,7 @@ TraversableNavigable :: struct {
 détruit_traversable :: fonc (traversable: *TraversableNavigable)
 {
     déloge_tableau_et_ses_éléments(*traversable.session_history_entries, détruit_session_history_entry);
-    déloge(traversable);
+    déloge(*traversable);
 }
 
 /* https://html.spec.whatwg.org/multipage/document-sequences.html#top-level-traversable */
@@ -619,8 +619,8 @@ détruit_browsing_context_group :: fonc (group: *BrowsingContextGroup)
     pour group.contexts {
         détruit_browsing_context(it);
     }
-    déloge(group.contexts);
-    déloge(group);
+    déloge(*group.contexts);
+    déloge(*group);
 }
 
 /* https://html.spec.whatwg.org/multipage/document-sequences.html#windows */
@@ -642,7 +642,7 @@ BrowsingContext :: struct {
 
 détruit_browsing_context :: fonc (browsing_context: *BrowsingContext)
 {
-    déloge(browsing_context);
+    déloge(*browsing_context);
 }
 
 /* A browsing context's active window is its WindowProxy object's [[Window]]
@@ -1113,8 +1113,8 @@ détruit_policy_container :: fonc (policy_container: *PolicyContainer)
         retourne;
     }
 
-    déloge(policy_container.csp_list);
-    déloge(policy_container);
+    déloge(*policy_container.csp_list);
+    déloge(*policy_container);
 }
 
 /* https://html.spec.whatwg.org/multipage/browsers.html#requires-storing-the-policy-container-in-history */

@@ -101,23 +101,23 @@ imprime_progression :: fonc (scanner: *ScannerJSON)
 
 détruit_scanner :: fonc (scanner: *ScannerJSON)
 {
-    détruit(scanner.pile);
-    déloge(scanner.erreur_.chn);
+    détruit(*scanner.pile);
+    déloge(*scanner.erreur_.chn);
 }
 
 empile :: fonc (scanner: *ScannerJSON, valeur: eini) #enligne
 {
-    empile(scanner.pile, valeur);
+    empile(*scanner.pile, valeur);
 }
 
 dépile :: fonc (scanner: *ScannerJSON) #enligne
 {
-    _ := dépile(scanner.pile);
+    _ := dépile(*scanner.pile);
 }
 
 object_courant :: fonc (scanner: *ScannerJSON) -> eini #enligne
 {
-    retourne tête(scanner.pile);
+    retourne tête(*scanner.pile);
 }
 
 rapporte_erreur :: fonc (scanner: *ScannerJSON, type_erreur: TypeErreur, format: chaine, args: ...eini)

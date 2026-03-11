@@ -11,9 +11,9 @@ ChaineUTF16 :: struct {
     unités: [..]n16;
 }
 
-détruit_chaine :: fonc (chn: &ChaineUTF16)
+détruit_chaine :: fonc (chn: *ChaineUTF16)
 {
-    déloge(chn.unités);
+    déloge(*chn.unités);
 }
 
 est_vide :: fonc (chn: ChaineUTF16) -> bool #enligne
@@ -26,7 +26,7 @@ est_vide_ou_uniquement_espaces_blanches :: fonc (chn: ChaineUTF16) -> bool
     retourne donne_position_premier_caractère_non_blanc(chn) == chn.taille();
 }
 
-réinitialise :: fonc (chn: &ChaineUTF16) #enligne
+réinitialise :: fonc (chn: *ChaineUTF16) #enligne
 {
     chn.unités.taille = 0;
 }
@@ -88,7 +88,7 @@ compare_ascii_insensible_à_la_casse :: fonc (chn1: ChaineUTF16, chn2: ChaineUTF
 compare_ascii_insensible_à_la_casse :: fonc (chn: ChaineUTF16, chaine_native: chaine) -> bool
 {
     chn2 := crée_chaine_utf16(chaine_native);
-    diffère détruit_chaine(chn2);
+    diffère détruit_chaine(*chn2);
     retourne compare_ascii_insensible_à_la_casse(chn, chn2);
 }
 
@@ -123,6 +123,11 @@ chaine_ajoute :: fonc (chn: *ChaineUTF16, point_de_code: rune32)
 }
 
 taille :: fonc (chn: ChaineUTF16) -> z64 #enligne
+{
+    retourne chn.unités.taille;
+}
+
+taille :: fonc (chn: *ChaineUTF16) -> z64 #enligne
 {
     retourne chn.unités.taille;
 }
@@ -235,7 +240,7 @@ convertis_vers_chaine :: fonc (chn: ChaineUTF16) -> chaine
     enchaineuse: Enchaineuse;
     initialise_enchaineuse(*enchaineuse);
     flux_sortie := crée_flux_sortie(*enchaineuse);
-    formatte_chaine_utf16(*chn, flux_sortie);
+    formatte_chaine_utf16(*chn, *flux_sortie);
     retourne chaine_depuis_enchaineuse(*enchaineuse);
 }
 
@@ -602,18 +607,18 @@ EnchaineuseUTF16 :: struct {
     liste_libre: *Tampon;
 }
 
-initialise_enchaineuse :: fonc (enchaineuse: &EnchaineuseUTF16)
+initialise_enchaineuse :: fonc (enchaineuse: *EnchaineuseUTF16)
 {
     enchaineuse.tampon_courant = *enchaineuse.tampon;
 }
 
-initialise_enchaineuse_depuis_chaine :: fonc (enchaineuse: &EnchaineuseUTF16, chn: ChaineUTF16)
+initialise_enchaineuse_depuis_chaine :: fonc (enchaineuse: *EnchaineuseUTF16, chn: ChaineUTF16)
 {
     initialise_enchaineuse(enchaineuse);
     enchaineuse.ajoute(chn);
 }
 
-réinitialise :: fonc (enchaineuse: &EnchaineuseUTF16)
+réinitialise :: fonc (enchaineuse: *EnchaineuseUTF16)
 {
     tampon := *enchaineuse.tampon;
     tampon.occupés = 0;
@@ -632,12 +637,12 @@ détruit_liste_tampons :: fonc (tampon: *EnchaineuseUTF16.Tampon)
 {
     tantque tampon != nul {
         tmp := tampon.suivant;
-        déloge(tampon);
+        déloge(*tampon);
         tampon = tmp;
     }
 }
 
-détruit_tampons :: fonc (enchaineuse: &EnchaineuseUTF16)
+détruit_tampons :: fonc (enchaineuse: *EnchaineuseUTF16)
 {
     détruit_liste_tampons(enchaineuse.tampon.suivant);
     enchaineuse.tampon.suivant = nul;
@@ -648,7 +653,7 @@ détruit_tampons :: fonc (enchaineuse: &EnchaineuseUTF16)
     enchaineuse.réinitialise();
 }
 
-taille_chaine :: fonc (enchaineuse: &EnchaineuseUTF16) -> z64
+taille_chaine :: fonc (enchaineuse: *EnchaineuseUTF16) -> z64
 {
     résultat : z64 = 0;
     tampon := *enchaineuse.tampon;
@@ -659,7 +664,7 @@ taille_chaine :: fonc (enchaineuse: &EnchaineuseUTF16) -> z64
     retourne résultat;
 }
 
-ajoute_tampon :: fonc (enchaineuse: &EnchaineuseUTF16) -> *EnchaineuseUTF16.Tampon
+ajoute_tampon :: fonc (enchaineuse: *EnchaineuseUTF16) -> *EnchaineuseUTF16.Tampon
 {
     tampon: *EnchaineuseUTF16.Tampon;
 
@@ -678,12 +683,12 @@ ajoute_tampon :: fonc (enchaineuse: &EnchaineuseUTF16) -> *EnchaineuseUTF16.Tamp
     retourne tampon;
 }
 
-ajoute :: fonc (enchaineuse: &EnchaineuseUTF16, rune: rune8)
+ajoute :: fonc (enchaineuse: *EnchaineuseUTF16, rune: rune8)
 {
     enchaineuse.ajoute(rune comme rune16);
 }
 
-ajoute :: fonc (enchaineuse: &EnchaineuseUTF16, rune: rune16)
+ajoute :: fonc (enchaineuse: *EnchaineuseUTF16, rune: rune16)
 {
     tampon := enchaineuse.tampon_courant;
 
@@ -697,7 +702,7 @@ ajoute :: fonc (enchaineuse: &EnchaineuseUTF16, rune: rune16)
     }
 }
 
-ajoute :: fonc (enchaineuse: &EnchaineuseUTF16, chn: chaine)
+ajoute :: fonc (enchaineuse: *EnchaineuseUTF16, chn: chaine)
 {
     ptr_source := chn.pointeur;
     curseur := 0;
@@ -714,19 +719,19 @@ ajoute :: fonc (enchaineuse: &EnchaineuseUTF16, chn: chaine)
     }
 }
 
-ajoute :: fonc (enchaineuse: &EnchaineuseUTF16, chn: ChaineUTF16Unique)
+ajoute :: fonc (enchaineuse: *EnchaineuseUTF16, chn: ChaineUTF16Unique)
 {
     ajoute(enchaineuse, chn.donne_chaine_utf16());
 }
 
-ajoute :: fonc (enchaineuse: &EnchaineuseUTF16, chn: ChaineUTF16)
+ajoute :: fonc (enchaineuse: *EnchaineuseUTF16, chn: ChaineUTF16)
 {
     pour chn.unités {
         enchaineuse.ajoute(it);
     }
 }
 
-ajoute :: fonc (enchaineuse: &EnchaineuseUTF16, rune: rune32)
+ajoute :: fonc (enchaineuse: *EnchaineuseUTF16, rune: rune32)
 {
     unités: [2]n16;
     taille := utf16_depuis_point_de_code(rune, *unités[0]);
@@ -737,7 +742,7 @@ ajoute :: fonc (enchaineuse: &EnchaineuseUTF16, rune: rune32)
     }
 }
 
-chaine_depuis_enchaineuse :: fonc (enchaineuse: &EnchaineuseUTF16, réinitialise := vrai) -> ChaineUTF16
+chaine_depuis_enchaineuse :: fonc (enchaineuse: *EnchaineuseUTF16, réinitialise := vrai) -> ChaineUTF16
 {
     taille := enchaineuse.taille_chaine();
 
@@ -776,9 +781,9 @@ chaine_depuis_enchaineuse :: fonc (enchaineuse: &EnchaineuseUTF16, réinitialise
 crée_chaine_utf16 :: fonc (chn: chaine) -> ChaineUTF16
 {
     enchaineuse: EnchaineuseUTF16;
-    initialise_enchaineuse(enchaineuse);
-    enchaineuse.ajoute(chn);
-    retourne chaine_depuis_enchaineuse(enchaineuse);
+    initialise_enchaineuse(*enchaineuse);
+    ajoute(*enchaineuse, chn);
+    retourne chaine_depuis_enchaineuse(*enchaineuse);
 }
 
 crée_chaine_utf16 :: fonc (chn: ChaineUTF32) -> ChaineUTF16
@@ -793,7 +798,7 @@ crée_chaine_utf16 :: fonc (chn: ChaineUTF32) -> ChaineUTF16
 crée_chaine_utf16 :: fonc (nombre: z32) -> ChaineUTF16
 {
     enchaineuse: EnchaineuseUTF16;
-    initialise_enchaineuse(enchaineuse);
+    initialise_enchaineuse(*enchaineuse);
 
     si nombre == 0 {
         enchaineuse.ajoute('0');
@@ -813,14 +818,14 @@ crée_chaine_utf16 :: fonc (nombre: z32) -> ChaineUTF16
 
 // Idée pour l'impression de chaines UTF-16
 FluxSortie :: struct {
-    ajoute: fonc (flux: &FluxSortie, point_de_code: n32);
+    ajoute: fonc (flux: *FluxSortie, point_de_code: n32);
 
     données: *rien;
 }
 
 crée_flux_sortie :: fonc (enchaineuse: *Enchaineuse) -> FluxSortie
 {
-    ajoute :: fonc (flux_sortie: &FluxSortie, point_de_code: n32)
+    ajoute :: fonc (flux_sortie: *FluxSortie, point_de_code: n32)
     {
         enchaineuse_ := flux_sortie.données comme *Enchaineuse;
 
@@ -840,7 +845,7 @@ crée_flux_sortie :: fonc (enchaineuse: *Enchaineuse) -> FluxSortie
     retourne flux_sortie;
 }
 
-formatte_chaine_utf16 :: fonc (chn: *ChaineUTF16, flux_sortie: &FluxSortie)
+formatte_chaine_utf16 :: fonc (chn: *ChaineUTF16, flux_sortie: *FluxSortie)
 {
     pour itératrice_points_de_code(mémoire(chn)) {
         flux_sortie.ajoute(flux_sortie, it);
@@ -853,7 +858,7 @@ imprime_chaine_utf16 :: fonc (enchaineuse: *Enchaineuse, chn: *ChaineUTF16)
         retourne;
     }
     flux_sortie := crée_flux_sortie(enchaineuse);
-    formatte_chaine_utf16(chn, flux_sortie);
+    formatte_chaine_utf16(chn, *flux_sortie);
 } @FormattageImpression
 
 /* ------------------------------------------------------------------------- */
@@ -941,11 +946,11 @@ crée_chaine_utf16_unique :: fonc (chn: chaine) -> ChaineUTF16Unique
     }
 
     tmp := crée_chaine_utf16(chn);
-    diffère détruit_chaine(tmp);
-    retourne crée_chaine_utf16_unique(tmp);
+    diffère détruit_chaine(*tmp);
+    retourne crée_chaine_utf16_unique(*tmp);
 }
 
-crée_chaine_utf16_unique :: fonc (chn: &ChaineUTF16) -> ChaineUTF16Unique
+crée_chaine_utf16_unique :: fonc (chn: *ChaineUTF16) -> ChaineUTF16Unique
 {
     si chn.taille() == 0 {
         retourne crée_chaine_utf16_unique_vide();
@@ -958,10 +963,10 @@ crée_chaine_utf16_unique :: fonc (chn: &ChaineUTF16) -> ChaineUTF16Unique
         }
     }
 
-    retourne crée_chaine_utf16_unique(__table_chaines_utf16_uniques, chn);
+    retourne crée_chaine_utf16_unique(*__table_chaines_utf16_uniques, chn);
 }
 
-crée_chaine_utf16_unique :: fonc (chn: &ChaineUTF32) -> ChaineUTF16Unique
+crée_chaine_utf16_unique :: fonc (chn: *ChaineUTF32) -> ChaineUTF16Unique
 {
     si chn.taille() == 0 {
         retourne crée_chaine_utf16_unique_vide();
@@ -974,7 +979,7 @@ crée_chaine_utf16_unique :: fonc (chn: &ChaineUTF32) -> ChaineUTF16Unique
         }
     }
     tmp := crée_chaine_utf16(chn);
-    diffère détruit_chaine(tmp);
+    diffère détruit_chaine(*tmp);
     retourne crée_chaine_utf16_unique(tmp);
 }
 
@@ -1032,7 +1037,7 @@ opérateur > :: (chn1: ChaineUTF16Unique, chn2: ChaineUTF16Unique) -> bool
 
 donne_chaine_utf16 :: fonc (chn: ChaineUTF16Unique) -> ChaineUTF16
 {
-    retourne donne_chaine_pour_indice(__table_chaines_utf16_uniques, chn.valeur);
+    retourne donne_chaine_pour_indice(*__table_chaines_utf16_uniques, chn.valeur);
 }
 
 imprime_chaine_utf16_unique :: fonc (enchaineuse: *Enchaineuse, chn: *ChaineUTF16Unique)
@@ -1062,10 +1067,10 @@ divise_sur_espaces_blanches_ascii :: fonc (chn: ChaineUTF16Unique) -> [..]Chaine
     chn_utf16 := chn.donne_chaine_utf16();
 
     résultat_tmp := chn_utf16.divise_sur_espaces_blanches_ascii();
-    diffère déloge(résultat_tmp);
+    diffère déloge(*résultat_tmp);
 
     résultat: [..]ChaineUTF16Unique;
-    pour résultat_tmp {
+    pour * résultat_tmp {
         tableau_ajoute(*résultat, crée_chaine_utf16_unique(it));
     }
 
@@ -1102,7 +1107,7 @@ supprime_espace_blanches_autour :: fonc (chn: ChaineUTF16Unique) -> ChaineUTF16U
 {
     chn_utf16 := chn.donne_chaine_utf16();
     chn_utf16 = donne_sous_chaine_entre_espace_blanches(chn_utf16);
-    retourne crée_chaine_utf16_unique(chn_utf16);
+    retourne crée_chaine_utf16_unique(*chn_utf16);
 }
 
 /* Comparaison pour tri_rapide. */
@@ -1156,10 +1161,10 @@ opérateur < :: (entrée1: TableChainesUTF16Unique.EntréeCache, entrée2: Table
     retourne entrée1.chn < entrée2.chn;
 }
 
-crée_chaine_utf16_unique :: fonc (table: &TableChainesUTF16Unique, chn: &ChaineUTF16) -> ChaineUTF16Unique
+crée_chaine_utf16_unique :: fonc (table: *TableChainesUTF16Unique, chn: *ChaineUTF16) -> ChaineUTF16Unique
 {
     entrée: TableChainesUTF16Unique.EntréeCache;
-    entrée.chn = chn;
+    entrée.chn = mémoire(chn);
 
     entrée_existante := ensemble_possède_retourne_indice(table.ensemble, entrée);
     si entrée_existante != -1 {
@@ -1187,7 +1192,7 @@ crée_chaine_utf16_unique :: fonc (table: &TableChainesUTF16Unique, chn: &Chaine
 
         indice := table.chaines.taille comme n32;
         entrée.indice = indice;
-        entrée.chn = copie_chaine(chn);
+        entrée.chn = copie_chaine(mémoire(chn));
 
         ensemble_ajoute(*table.ensemble, entrée);
 
@@ -1197,7 +1202,7 @@ crée_chaine_utf16_unique :: fonc (table: &TableChainesUTF16Unique, chn: &Chaine
     }
 }
 
-donne_chaine_pour_indice :: fonc (table: &TableChainesUTF16Unique, indice: n32) -> ChaineUTF16
+donne_chaine_pour_indice :: fonc (table: *TableChainesUTF16Unique, indice: n32) -> ChaineUTF16
 {
     retourne table.chaines[indice comme z64];
 }
@@ -1213,11 +1218,11 @@ détruit_table_chaines_utf16_uniques :: fonc ()
     ctx.données_allocatrice = *alloc_table_chaines_utf16_uniques;
 
     pousse_contexte ctx {
-        pour __table_chaines_utf16_uniques.chaines {
+        pour * __table_chaines_utf16_uniques.chaines {
             détruit_chaine(it);
         }
-        déloge(__table_chaines_utf16_uniques.chaines);
-        déloge(__table_chaines_utf16_uniques.ensemble);
+        déloge(*__table_chaines_utf16_uniques.chaines);
+        déloge(*__table_chaines_utf16_uniques.ensemble);
     }
 }
 
