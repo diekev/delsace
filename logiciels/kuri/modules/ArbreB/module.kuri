@@ -42,9 +42,9 @@ construis_noeud :: fonc (t: z32, est_feuille: bool, $C: type_de_données) -> *No
 
 détruit_noeud :: fonc (noeud: *NoeudArbreB(C = $C)) -> rien
 {
-    déloge(noeud.clés);
-    déloge(noeud.enfants);
-    déloge(noeud);
+    déloge(*noeud.clés);
+    déloge(*noeud.enfants);
+    déloge(*noeud);
 }
 
 traverse :: fonc (noeud: *NoeudArbreB(C = $C)) -> rien
@@ -421,7 +421,7 @@ détruit_arbre :: fonc (arbre: *ArbreB(C = $C)) -> rien
         détruit_noeud(noeud);
     }
 
-    déloge(arbre.noeuds);
+    déloge(*arbre.noeuds);
 }
 
 traverse :: fonc (arbre: *ArbreB(C = $C)) -> rien

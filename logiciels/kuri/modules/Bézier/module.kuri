@@ -142,9 +142,9 @@ Chemin :: struct {
 détruit_données :: fonc (chemin: *Chemin)
 {
     pour chemin.sous_chemins {
-        déloge(it.noeuds);
+        déloge(*it.noeuds);
     }
-    déloge(chemin.sous_chemins);
+    déloge(*chemin.sous_chemins);
 }
 
 SousChemin :: struct {
@@ -297,7 +297,7 @@ CréatriceChemin :: struct {
 
 détruit_données :: fonc (créatrice: *CréatriceChemin)
 {
-    déloge(créatrice.noeuds);
+    déloge(*créatrice.noeuds);
     détruit_données(*créatrice.chemin);
     init_de(CréatriceChemin)(créatrice);
 }
@@ -306,7 +306,7 @@ détruit_données :: fonc (créatrice: *CréatriceChemin)
 donne_chemin :: fonc (créatrice: *CréatriceChemin) -> Chemin
 {
     termine_sous_chemin_courant(créatrice);
-    déloge(créatrice.noeuds);
+    déloge(*créatrice.noeuds);
     résultat := créatrice.chemin;
     init_de(Chemin)(*créatrice.chemin);
     retourne résultat;

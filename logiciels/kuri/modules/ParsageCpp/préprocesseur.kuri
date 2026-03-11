@@ -341,17 +341,17 @@ PréProcesseur :: struct {
 détruit_données :: fonc (préprocesseur: *PréProcesseur)
 {
     préprocesseur.unit = nul;
-    déloge(préprocesseur.macros_indéfinissables);
-    déloge(préprocesseur.chemins_inclusions_système);
-    déloge(préprocesseur.chemins_inclusions_local);
+    déloge(*préprocesseur.macros_indéfinissables);
+    déloge(*préprocesseur.chemins_inclusions_système);
+    déloge(*préprocesseur.chemins_inclusions_local);
     pour * préprocesseur.lexeuses {
-        déloge(it.lexeuse.lexèmes_extras);
+        déloge(*it.lexeuse.lexèmes_extras);
     }
-    déloge(préprocesseur.lexeuses);
-    déloge(préprocesseur.définitions);
-    déloge(préprocesseur.pile_branches);
-    déloge(préprocesseur.macros_inconnus);
-    déloge(préprocesseur.macros_en_développement);
+    déloge(*préprocesseur.lexeuses);
+    déloge(*préprocesseur.définitions);
+    déloge(*préprocesseur.pile_branches);
+    déloge(*préprocesseur.macros_inconnus);
+    déloge(*préprocesseur.macros_en_développement);
     détruit_données(*préprocesseur.table_définitions);
 }
 
@@ -1156,7 +1156,7 @@ InfosDéveloppementMacro :: struct {
 développe_macro :: fonc (sortie: *[..]LexèmePréprocès, préprocesseur: *PréProcesseur, infos: *InfosDéveloppementMacro)
 {
     résultat: [..]LexèmePréprocès;
-    diffère déloge(résultat);
+    diffère déloge(*résultat);
 
     développe_macro_impl(*résultat, préprocesseur, infos, 0);
 
@@ -1199,13 +1199,13 @@ développe_macro_impl :: fonc (sortie: *[..]LexèmePréprocès, préprocesseur: 
     // }
 
     liste_de_remplacement: [..]LexèmePréprocès;
-    diffère déloge(liste_de_remplacement);
+    diffère déloge(*liste_de_remplacement);
 
     possède_collage := substitue_arguments_dans_liste_de_remplacement(*liste_de_remplacement, infos);
     si possède_collage {
         liste_finale: [..]LexèmePréprocès;
         applique_opérateurs_de_collage(préprocesseur, *liste_finale, infos, liste_de_remplacement);
-        déloge(liste_de_remplacement);
+        déloge(*liste_de_remplacement);
         liste_de_remplacement = liste_finale;
     }
 
@@ -1372,7 +1372,7 @@ applique_opérateurs_de_collage :: fonc (préprocesseur: *PréProcesseur, sortie
             parseuse = parseuse_locale;
 
             textes: [..]chaine;
-            diffère déloge(textes);
+            diffère déloge(*textes);
 
             tableau_ajoute(*textes, "\"");
 
@@ -1557,8 +1557,8 @@ parse_définition :: fonc (préprocesseur: *PréProcesseur, lexeuse: *LexeusePr�
         définition = crée_définition(préprocesseur, texte_définition);
     }
     sinon {
-        déloge(définition.paramètres);
-        déloge(définition.lexèmes);
+        déloge(*définition.paramètres);
+        déloge(*définition.lexèmes);
     }
 
     définition.lexème = lexème_source;
@@ -1750,7 +1750,7 @@ ignore_lexèmes_jusque_fin_branche :: fonc (préprocesseur: *PréProcesseur, lex
 empile_fichier :: fonc (préprocesseur: *PréProcesseur, chemin: chaine, trouvé_dans_dossier: chaine, pour_include: bool)
 {
     chemin_normal := chemin_normalisé(CheminFichier(chemin));
-    diffère détruit_chemin(chemin_normal);
+    diffère détruit_chemin(*chemin_normal);
 
     chemin = chemin_normal.chn;
 
@@ -2281,7 +2281,7 @@ parse_expression_if :: fonc (préprocesseur: *PréProcesseur, lexeuse: *LexeuseP
 {
     // @Vitesse
     lexèmes: [..]LexèmePréprocès;
-    diffère déloge(lexèmes);
+    diffère déloge(*lexèmes);
 
     boucle {
         lexème := donne_lexème_suivant_développé(préprocesseur, lexeuse);
@@ -2772,7 +2772,7 @@ donne_lexème_suivant_développé :: fonc (préprocesseur: *PréProcesseur, lexe
             infos_développement.macro = définition;
             // @Vitesse
             liste_de_remplacement: [..]LexèmePréprocès;
-            diffère déloge(liste_de_remplacement);
+            diffère déloge(*liste_de_remplacement);
             développe_macro(*liste_de_remplacement, préprocesseur, *infos_développement);
             ajoute_liste_de_remplacement(préprocesseur, liste_de_remplacement);
             continue;
@@ -2781,7 +2781,7 @@ donne_lexème_suivant_développé :: fonc (préprocesseur: *PréProcesseur, lexe
         /* Cherche la parenthèse. */
         // @Vitesse
         griffonier: [..]LexèmePréprocès;
-        diffère déloge(griffonier);
+        diffère déloge(*griffonier);
 
         lexème := donne_lexème_suivant(préprocesseur, lexeuse);
         tantque est_espace_blanche(lexème) {
@@ -2800,7 +2800,7 @@ donne_lexème_suivant_développé :: fonc (préprocesseur: *PréProcesseur, lexe
         }
 
         /* Parse les paramètres. */
-        déloge(griffonier);
+        déloge(*griffonier);
 
         niveau_parenthèse := 0;
         lexème_fin_paramètre: LexèmePréprocès;
@@ -2847,7 +2847,7 @@ donne_lexème_suivant_développé :: fonc (préprocesseur: *PréProcesseur, lexe
 
         // @Vitesse
         liste_de_remplacement: [..]LexèmePréprocès;
-        diffère déloge(liste_de_remplacement);
+        diffère déloge(*liste_de_remplacement);
 
         développe_macro(*liste_de_remplacement, préprocesseur, *infos_développement);
 

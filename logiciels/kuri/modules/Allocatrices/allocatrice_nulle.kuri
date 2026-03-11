@@ -1,5 +1,5 @@
 /*
-allocatrice_nulle :: fonc (params: &ParamètresAllocation @inutilisée, données: *BaseAllocatrice @inutilisée) -> *rien
+allocatrice_nulle :: fonc (params: *ParamètresAllocation @inutilisée, données: *BaseAllocatrice @inutilisée) -> *rien
 {
     retourne nul
 }

@@ -116,7 +116,7 @@ démarre :: fonc (serveuse: *Serveuse) -> rien
                 perror(ChaineC("send".pointeur));
             }
 
-            déloge(chaine_reponse);
+            déloge(*chaine_reponse);
 
             _ := close(prise);
             exit(0);

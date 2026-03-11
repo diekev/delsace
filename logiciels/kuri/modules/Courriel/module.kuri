@@ -68,7 +68,7 @@ PièceJointe :: struct {
 
 détruit_pièce_jointe :: fonc (pièce_jointe: *PièceJointe)
 {
-    déloge(pièce_jointe.contenu);
+    déloge(*pièce_jointe.contenu);
 }
 
 pièce_jointe_depuis_mémoire :: fonc (nom: chaine, nom_fichier: chaine, contenu: chaine) -> PièceJointe
@@ -127,16 +127,16 @@ Courriel :: struct {
 
 détruit_courriel :: fonc (courriel: *Courriel) -> rien
 {
-    déloge(courriel.messages);
-    déloge(courriel.destinataires);
-    déloge(courriel.destinataires_cc);
-    déloge(courriel.destinataires_bcc);
+    déloge(*courriel.messages);
+    déloge(*courriel.destinataires);
+    déloge(*courriel.destinataires_cc);
+    déloge(*courriel.destinataires_bcc);
 
     pour courriel.pièces_jointes {
         détruit_pièce_jointe(it);
     }
 
-    déloge(courriel.pièces_jointes);
+    déloge(*courriel.pièces_jointes);
 }
 
 ajoute_message :: fonc (courriel: *Courriel, message: chaine)
@@ -209,8 +209,8 @@ est_valide :: fonc (réponse: *RéponseServeuse) -> bool
 
 détruit_réponse :: fonc (réponse: *RéponseServeuse)
 {
-    déloge(réponse.texte);
-    déloge(réponse.textes);
+    déloge(*réponse.texte);
+    déloge(*réponse.textes);
 }
 
 parse_réponse_serveuse :: fonc (texte: chaine) -> RéponseServeuse
@@ -269,7 +269,7 @@ chaine_pour_commande :: fonc (commande: chaine) -> chaine
 envoie_commande_smtp :: fonc (fichier: *Fichier, format: chaine, args: ...eini) -> RéponseServeuse
 {
     message := "";
-    diffère si message { déloge(message); }
+    diffère si message { déloge(*message); }
 
     si format {
         enchaineuse: Enchaineuse;
@@ -318,7 +318,7 @@ crée_corps_message :: fonc (courriel: *Courriel) -> chaine
     imprime_dans_enchaineuse(*enchaineuse, "From: ");
     si expéditeur.nom_utilisateur {
         encodé_base64 := encode_base64(expéditeur.nom_utilisateur);
-        diffère déloge(encodé_base64);
+        diffère déloge(*encodé_base64);
 
         ajoute_au_tampon(*enchaineuse, "=?UTF-8?B?", encodé_base64, "?= ");
     }
@@ -358,7 +358,7 @@ crée_corps_message :: fonc (courriel: *Courriel) -> chaine
     }
 
     séparateur_pièce_jointe: chaine;
-    diffère déloge(séparateur_pièce_jointe);
+    diffère déloge(*séparateur_pièce_jointe);
 
     si courriel.pièces_jointes {
         ajoute_au_tampon(*enchaineuse, "MIME-Version: 1.0\r\n");
@@ -371,7 +371,7 @@ crée_corps_message :: fonc (courriel: *Courriel) -> chaine
     }
 
     séparateur_corps: chaine;
-    diffère déloge(séparateur_corps);
+    diffère déloge(*séparateur_corps);
 
     si courriel.messages.taille > 1 {
         séparateur_corps = aléafères_zéros("=BODY=SEPARATOR=_0000_0000_0000_0000_0000_0000_=");
@@ -416,7 +416,7 @@ crée_corps_message :: fonc (courriel: *Courriel) -> chaine
 
         contenu_encodé := encode_base64(it.contenu);
         ajoute_au_tampon(*enchaineuse, contenu_encodé);
-        déloge(contenu_encodé);
+        déloge(*contenu_encodé);
 
         ajoute_au_tampon(*enchaineuse, "\r\n");
     }
@@ -437,7 +437,7 @@ crée_corps_message :: fonc (courriel: *Courriel) -> chaine
 encode_sujet :: fonc (enchaineuse: *Enchaineuse, sujet: chaine)
 {
     encodé_base_64 := encode_base64(sujet);
-    diffère déloge(encodé_base_64);
+    diffère déloge(*encodé_base_64);
 
     ajoute_au_tampon(enchaineuse, "=?UTF-8?B?", encodé_base_64, "?=");
 }
@@ -445,7 +445,7 @@ encode_sujet :: fonc (enchaineuse: *Enchaineuse, sujet: chaine)
 encode_corps_message :: fonc (enchaineuse: *Enchaineuse, corps: chaine)
 {
     encodé_base_64 := encode_base64(corps);
-    diffère déloge(encodé_base_64);
+    diffère déloge(*encodé_base_64);
 
     pour encodé_base_64 {
         ajoute_au_tampon(enchaineuse, it);
@@ -532,7 +532,7 @@ envoie_courriel :: fonc (config: ConfigurationCourriel, courriel: *Courriel) -> 
 
     tantque !état.est_terminé() {
         commande := commande_suivante(état, config, courriel);
-        diffère déloge(commande);
+        diffère déloge(*commande);
 
         réponse := envoie_commande_smtp(*fichier, commande);
 

@@ -114,7 +114,7 @@ détruit_tampon_texture :: fonc (tampon_texture: *TamponTexture) -> rien
     glDeleteBuffers(1, *tampon_texture.id_tampon_indices);
     détruit_programme(tampon_texture.programme);
 
-    déloge(tampon_texture);
+    déloge(*tampon_texture);
 }
 
 donne_paramètres_texture_pour_tampon_de_rendu :: fonc (données: TamponDeRendu) -> ParamètresTexture2D

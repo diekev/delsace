@@ -562,7 +562,7 @@ tests_validité_adresses :: fonc ()
         part_domaine := gna.choisit(parts_domaines_valides);
 
         adresse := enchaine(part_locale, "@", part_domaine);
-        diffère déloge(adresse);
+        diffère déloge(*adresse);
 
         test_adresse_email_valide(adresse, part_locale, part_domaine);
     }
@@ -575,7 +575,7 @@ tests_validité_adresses :: fonc ()
         part_domaine := gna.choisit(parts_domaines_invalides);
 
         adresse := enchaine(part_locale, "@", part_domaine);
-        diffère déloge(adresse);
+        diffère déloge(*adresse);
 
         test_adresse_email_invalide(adresse);
     }
@@ -586,7 +586,7 @@ tests_validité_adresses :: fonc ()
         part_domaine := gna.choisit(parts_domaines_invalides);
 
         adresse := enchaine(part_locale, "@", part_domaine);
-        diffère déloge(adresse);
+        diffère déloge(*adresse);
 
         test_adresse_email_invalide(adresse);
     }
@@ -597,7 +597,7 @@ tests_validité_adresses :: fonc ()
         part_domaine := gna.choisit(parts_domaines_valides);
 
         adresse := enchaine(part_locale, "@", part_domaine);
-        diffère déloge(adresse);
+        diffère déloge(*adresse);
 
         test_adresse_email_invalide(adresse);
     }

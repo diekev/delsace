@@ -18,18 +18,18 @@ détruit_données_stylesheet :: fonc (stylesheet: *ParsedStyleSheet)
         
         si it.type == ParsedQualifiedRule {
             qualified := it comme *ParsedQualifiedRule;
-            déloge(qualified);
+            déloge(*qualified);
         }
         sinon si it.type == ParsedAtRule {
             at := it comme *ParsedAtRule;
-            déloge(at);
+            déloge(*at);
         }
         sinon {
-            déloge(it);
+            déloge(*it);
         }
     }
 
-    déloge(stylesheet.value);
+    déloge(*stylesheet.value);
 }
 
 ParsedRule :: struct {
@@ -76,7 +76,7 @@ imprime_parse_declaration :: fonc (déclaration: *ParsedDeclaration)
     }
     sinon {
         nom := convertis_vers_chaine(donne_chaine_utf16(déclaration.name));
-        diffère déloge(nom);
+        diffère déloge(*nom);
         ajoute_au_tampon(*enchaineuse, nom, ": ");
 
         pour * déclaration.value {
@@ -89,7 +89,7 @@ imprime_parse_declaration :: fonc (déclaration: *ParsedDeclaration)
     }
 
     chn := chaine_depuis_enchaineuse(*enchaineuse);
-    diffère déloge(chn);
+    diffère déloge(*chn);
     imprime("%", chn);
 }
 
@@ -184,7 +184,7 @@ formatte_component_value :: fonc (enchaineuse: *Enchaineuse, value: *ComponentVa
         function(f) {
             // À FAIRE(langage) : messages codes
             f_name := convertis_vers_chaine(donne_chaine_utf16(f.name));
-            diffère déloge(f_name);
+            diffère déloge(*f_name);
             ajoute_au_tampon(enchaineuse, f_name, "(");
             pour f.value {
                 // À FAIRE(langage) : messages codes
@@ -231,7 +231,7 @@ détruit_tableau_component_value :: fonc (value: *[..]ComponentValue)
         détruit_value(it);
     }
 
-    déloge(tmp);
+    déloge(*tmp);
     mémoire(value) = tmp;
 }
 
@@ -396,7 +396,7 @@ parse_according_to_a_css_grammar :: fonc (input: CSSOMString, grammar: fonc (val
 {
     // 1. Normalize input, and set input to the result.
     chn_input := input.donne_chaine_utf16().convertis_vers_chaine();
-    diffère déloge(chn_input);
+    diffère déloge(*chn_input);
 
     retourne parse_according_to_a_css_grammar(chn_input, grammar);
 }
@@ -452,12 +452,12 @@ détruit_content :: fonc (content: *StyleBlockContent, détruit_valeurs: bool)
             détruit_tableau_component_value(*it.value);
         }
         sinon {
-            déloge(it.value);
+            déloge(*it.value);
         }
     }
 
-    déloge(content.rules);
-    déloge(content.decls);
+    déloge(*content.rules);
+    déloge(*content.decls);
 }
 
 parse_a_style_block_s_contents :: fonc (input: []ComponentValue) -> StyleBlockContent
@@ -480,7 +480,7 @@ parse_a_list_of_declarations :: fonc (input: [..]Lexème) -> StyleBlockContent
 parse_attribut_style :: fonc (valeur: ChaineUTF16) -> *CSSStyleDeclaration
 {
     contenu := convertis_vers_chaine(valeur);
-    diffère déloge(contenu);
+    diffère déloge(*contenu);
 
     lexèmes := lèxe_style(contenu);
     diffère détruit_lexèmes(*lexèmes);
@@ -741,7 +741,7 @@ consomme_le_contenu_d_un_bloc_de_style :: fonc (parseuse: *Parseuse($T)) -> Styl
             }
 
             // @Performance
-            déloge(temp);
+            déloge(*temp);
             continue;
         }
 
@@ -826,7 +826,7 @@ consomme_une_liste_de_déclarations :: fonc (parseuse: *Parseuse($T)) -> StyleBl
             }
 
             // @Performance
-            déloge(temp);
+            déloge(*temp);
             continue;
         }
 
@@ -1848,9 +1848,9 @@ parse_a_media_query_list :: fonc (values: []ComponentValue) -> *MediaList
     groups := parse_a_comma_separated_list_of_component_values(values);
     diffère {
         pour groups {
-            déloge(it);
+            déloge(*it);
         }
-        déloge(groups);
+        déloge(*groups);
     }
 
     si groups.taille == 0 {
@@ -2270,14 +2270,14 @@ rapporte_propriétés_non_supportées :: fonc (ctx: *ContexteParsageFeuilleDeSty
     pour ctx.propriétés_non_supportées {
         // À FAIRE(langage) : messages codes
         nom_prop := convertis_vers_chaine(donne_chaine_utf16(it));
-        diffère déloge(nom_prop);
+        diffère déloge(*nom_prop);
         imprime("[CSS][%] propriété non-supportée : %\n", fonction, nom_prop);
     }
 }
 
 détruit_données_contexte :: fonc (ctx: *ContexteParsageFeuilleDeStyle)
 {
-    déloge(ctx.propriétés_non_supportées);
+    déloge(*ctx.propriétés_non_supportées);
 }
 
 donne_info_type_pour_nom :: fonc (ctx: *ContexteParsageFeuilleDeStyle, nom: CSSOMString) -> *InfoTypePropriété
@@ -2390,7 +2390,7 @@ parse_a_media_rule :: fonc (ctx: *ContexteParsageFeuilleDeStyle, parent_style_sh
 
     parseuse := initialise_une_parseuse(parsed_rule.bloc.value);
     règles := consomme_une_liste_de_règles(*parseuse, vrai);
-    diffère déloge(règles);
+    diffère déloge(*règles);
 
     résultat := loge(CSSMediaRule);
     résultat.parent_style_sheet = parent_style_sheet;
@@ -3037,7 +3037,7 @@ parse_calc_function :: fonc (parseuse: *Parseuse(ComponentValue)) -> Optionnel(*
     parseuse_arguments := initialise_une_parseuse(lexème.function.value);
     
     saufsi parse_calc_sum(*parseuse_arguments, *valeurs) {
-        déloge(valeurs);
+        déloge(*valeurs);
         retourne;
     }
 
@@ -4026,7 +4026,7 @@ parse_valeur_text_decoration_line :: fonc (parseuse: *Parseuse(ComponentValue)) 
     }
 
     mots_clés: [..]CSSOMString;
-    diffère déloge(mots_clés);
+    diffère déloge(*mots_clés);
 
     tantque !fini(parseuse) {
         lexème := parseuse.lexème_courant();
@@ -4298,11 +4298,11 @@ parse_valeur_font_family :: fonc (parseuse: *Parseuse(ComponentValue), pour_shor
     ];
 
     valeurs: [..]CSSOMString;
-    diffère déloge(valeurs);
+    diffère déloge(*valeurs);
 
     /* Pour les familles composées sans guillemets */
     morceaux: [..]CSSOMString;
-    diffère déloge(morceaux);
+    diffère déloge(*morceaux);
 
     tantque !fini(parseuse) {
         lexème := parseuse.lexème_courant();

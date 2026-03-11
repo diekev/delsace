@@ -143,7 +143,7 @@ divise_depuis_le_début :: fonc (entrée: chaine, séparateur: chaine, nombre_ma
     dernière_chaine := avance(entrée, taille_chaine);
     tableau_ajoute(*résultat, dernière_chaine);
 
-    déloge(résultat_temp);
+    déloge(*résultat_temp);
 
     retourne résultat;
 }
@@ -181,7 +181,7 @@ divise_depuis_la_fin :: fonc (entrée: chaine, séparateur: chaine, divisions_ma
         tableau_ajoute(*résultat, résultat_temp[i]);
     }
 
-    déloge(résultat_temp);
+    déloge(*résultat_temp);
 
     retourne résultat;
 }

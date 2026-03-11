@@ -46,7 +46,7 @@ crée_panneau_barre_de_menu :: fonc (ctx: *ContexteInterface, barre_de_menu: *Ba
     sur_destruction :: fonc (panneau: *Panneau)
     {
         panneau_menu := panneau comme *PanneauBarreDeMenu;
-        détruit_panneau_barre_de_menu(panneau_menu);
+        détruit_panneau_barre_de_menu(*panneau_menu);
     }
 
     résultat := ctx.crée_panneau(PanneauBarreDeMenu);
@@ -62,10 +62,10 @@ crée_panneau_barre_de_menu :: fonc (ctx: *ContexteInterface, barre_de_menu: *Ba
     retourne résultat;
 }
 
-détruit_panneau_barre_de_menu :: fonc (panneau: &*PanneauBarreDeMenu)
+détruit_panneau_barre_de_menu :: fonc (panneau: **PanneauBarreDeMenu)
 {
-    déloge(panneau.éléments);
-    déloge(panneau);
+    déloge(*panneau.éléments);
+    déloge(*panneau);
     panneau = nul;
 }
 
@@ -265,16 +265,16 @@ affiche_panneau_menu :: fonc (panneau: *PanneauBarreDeMenu, panneau_menu: *Panne
 dépile_panneau_menu :: fonc (panneau: *PanneauBarreDeMenu)
 {
     panneau_menu := enlève_dernier_élément(*panneau.menus_affichés);
-    détruit_panneau_menu(panneau_menu);
+    détruit_panneau_menu(*panneau_menu);
 }
 
 détruit_panneau_menu :: fonc (empl panneau: *PanneauBarreDeMenu)
 {
-    pour menus_affichés {
+    pour * menus_affichés {
         détruit_panneau_menu(it);
     }
 
-    déloge(menus_affichés);
+    déloge(*menus_affichés);
 
     panneau.sur_menu_fermé();
 }
@@ -436,7 +436,7 @@ crée_panneau_menu :: fonc (ctx: *ContexteInterface, menu: *Menu, position: Poin
     sur_destruction :: fonc (panneau: *Panneau)
     {
         panneau_menu := panneau comme *PanneauMenu;
-        détruit_panneau_menu(panneau_menu);
+        détruit_panneau_menu(*panneau_menu);
     }
 
     résultat := ctx.crée_panneau(PanneauMenu);
@@ -454,10 +454,10 @@ crée_panneau_menu :: fonc (ctx: *ContexteInterface, menu: *Menu, position: Poin
     retourne résultat;
 }
 
-détruit_panneau_menu :: fonc (panneau: &*PanneauMenu)
+détruit_panneau_menu :: fonc (panneau: **PanneauMenu)
 {
-    déloge(panneau.éléments);
-    déloge(panneau);
+    déloge(*panneau.éléments);
+    déloge(*panneau);
     panneau = nul;
 }
 
@@ -605,7 +605,7 @@ dessine :: fonc (empl panneau: *PanneauMenu, ctx: *ContexteAffichage)
             élément_coche := menu.éléments[indice_it].données.Cochage;
 
             si élément_coche.est_coché() {
-                rect_coche.réduis(2);
+                réduis(*rect_coche, 2);
                 rect_coche.x += 1;
                 rect_coche.y += 1;
                 remplis_rectangle(ctx.peintre, rect_coche, thème.couleur_texte);

@@ -232,7 +232,6 @@ static void ajoute_broyage_constantes(Enchaineuse &enchaineuse, NoeudBloc *bloc)
  * Convention :
  * Kv : argument variadique
  * KP : pointeur
- * KR : référence
  * KT : tableau fixe, suivi de la taille
  * Kt : tableau dynamique
  * Ks : introduit un type scalaire, suivi de la chaine du type
@@ -242,7 +241,7 @@ static void ajoute_broyage_constantes(Enchaineuse &enchaineuse, NoeudBloc *bloc)
  *
  * Exemples :
  * *z8 devient KPKsz8
- * &[..]Foo devient KRKtKsFoo
+ * [..]Foo devient KtKsFoo
  */
 static void broye_nom_type(Enchaineuse &enchaineuse, Type *type, bool pour_hiérarchie)
 {
@@ -266,12 +265,6 @@ static void broye_nom_type(Enchaineuse &enchaineuse, Type *type, bool pour_hiér
         case GenreNoeud::TYPE_ADRESSE_FONCTION:
         {
             enchaineuse << "Ks" << type->ident->nom;
-            break;
-        }
-        case GenreNoeud::RÉFÉRENCE:
-        {
-            enchaineuse << "KR";
-            broye_nom_type(enchaineuse, type->comme_type_référence()->type_pointé, false);
             break;
         }
         case GenreNoeud::POINTEUR:

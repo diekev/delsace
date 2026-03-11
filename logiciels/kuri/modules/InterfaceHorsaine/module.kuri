@@ -156,9 +156,9 @@ TypeIPA :: struct {
 
 détruit_type_ipa :: fonc (type: *TypeIPA)
 {
-    déloge(type.rubriques);
-    déloge(type.types_entrée);
-    déloge(type.types_sortie);
+    déloge(*type.rubriques);
+    déloge(*type.types_entrée);
+    déloge(*type.types_sortie);
     déloge_tableau_et_ses_éléments(*type.fonctions, détruit_données_méthode_ipa);
 
     discr type.constructrice {
@@ -168,7 +168,7 @@ détruit_type_ipa :: fonc (type: *TypeIPA)
         sinon {}
     }
 
-    déloge(type);
+    déloge(*type);
 }
 
 /* Informations pour un type faisant partie de l'IPA. */
@@ -193,13 +193,13 @@ MéthodeIPA :: struct {
 /* Par valeur pour déloge_tableau_et_ses_éléments. */
 détruit_données_méthode_ipa :: fonc (méthode: MéthodeIPA)
 {
-    déloge(méthode.entrées);
-    déloge(méthode.sorties);
-    déloge(méthode.nom_pour_fonction_c);
-    déloge(méthode.nom_rappel_pour_table);
+    déloge(*méthode.entrées);
+    déloge(*méthode.sorties);
+    déloge(*méthode.nom_pour_fonction_c);
+    déloge(*méthode.nom_rappel_pour_table);
 
     si méthode.est_accès_rubrique {
-        déloge(méthode.nom);
+        déloge(*méthode.nom);
     }
 }
 
@@ -253,7 +253,7 @@ convertis_entête_en_méthode_ipa :: fonc (entête: *NoeudCodeEntêteFonction, t
     résultat.nom = entête.nom;
     si type_méthode {
         nom_type := copie_chaine(type_méthode.nom);
-        diffère déloge(nom_type);
+        diffère déloge(*nom_type);
         supprime_points_et_parenthèses(*nom_type);
         résultat.nom_rappel_pour_table = enchaine(nom_type, "_", entête.nom);
         résultat.nom_pour_fonction_c = enchaine(espace_de_nom, "_", nom_type, "_", entête.nom);
@@ -526,7 +526,7 @@ ajoute_méthodes_pour_rubriques_types :: fonc (ipa: *IPA)
 {
     pour ipa.types {
         nom_type := copie_chaine(it.nom);
-        diffère déloge(nom_type);
+        diffère déloge(*nom_type);
 
         supprime_points_et_parenthèses(*nom_type);
 
