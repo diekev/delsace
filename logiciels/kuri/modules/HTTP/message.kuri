@@ -43,8 +43,8 @@ détruit_message :: fonc (message: *MessageHTTP)
         détruit_cookie(it);
     }
 
-    déloge(message.cookies);
-    déloge(message.entêtes);
+    déloge(*message.cookies);
+    déloge(*message.entêtes);
 }
 
 ajoute_cookie :: fonc (message: *MessageHTTP, cookie: Cookie)
@@ -74,7 +74,7 @@ donne_type_contenu :: fonc (message: *MessageHTTP) -> chaine
 
     valeur := entête_content_type.valeur;
     morceaux := divise(valeur, ';');
-    diffère déloge(morceaux);
+    diffère déloge(*morceaux);
 
     résultat: chaine;
 
@@ -97,7 +97,7 @@ donne_charset :: fonc (message: *MessageHTTP) -> chaine
 
     valeur := entête_content_type.valeur;
     morceaux := divise(valeur, ';');
-    diffère déloge(morceaux);
+    diffère déloge(*morceaux);
 
     résultat: chaine;
 
@@ -105,7 +105,7 @@ donne_charset :: fonc (message: *MessageHTTP) -> chaine
         pour 1 ... morceaux.taille - 1 {
             morceaux_attribut := divise(morceaux[it], '=');
             // À FAIRE(langage)
-            // diffère déloge(morceaux_attribut)
+            // diffère déloge(*morceaux_attribut)
 
             si morceaux_attribut.taille != 2 {
                 continue;
@@ -302,7 +302,7 @@ chaine_pour_message_cliente :: fonc (message: *MessageClienteHTTP) -> chaine
     imprime_dans_enchaineuse(*enchaineuse, "% % HTTP/1.1\r\n", message.méthode, message.uri.chemin_complet);
     ajoute_au_tampon(*enchaineuse, "Host: ", message.uri.hôte);
 
-    port := port_pour_uri(message.uri);
+    port := port_pour_uri(*message.uri);
     si port != 80 && port != 443 {
         ajoute_au_tampon(*enchaineuse, ":", message.uri.port);
     }

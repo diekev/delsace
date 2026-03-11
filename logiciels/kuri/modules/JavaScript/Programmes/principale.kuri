@@ -146,7 +146,7 @@ crée_interface :: fonc (application: *Application, largeur: z32, hauteur: z32) 
             rect := donne_rect();
             application.guetteuse_édition_texte.rect = convertis_type(rect, z32);
             application.guetteuse_édition_texte.rect_texte = application.guetteuse_édition_texte.rect;
-            réduis(application.guetteuse_édition_texte.rect_texte, rembourrage);
+            réduis(*application.guetteuse_édition_texte.rect_texte, rembourrage);
 
             éditrice := *application.éditrice_texte;
 
@@ -230,13 +230,13 @@ objet_html_sur_création_enveloppe :: fonc (base: *Enveloppable @inutilisée, en
         valeur_arg := params.donne_argument(0).String.texte;
         valeur_arg_utf16 := valeur_arg.donne_chaine_utf16();
         chemin := imprime_chaine("%", valeur_arg_utf16);
-        diffère déloge(chemin);
+        diffère déloge(*chemin);
 
         _, contenu := contenu_fichier_texte(chemin);
-        diffère déloge(contenu);
+        diffère déloge(*contenu);
 
         parsat := HTML.parse_document(interpréteuse.donne_realm(), contenu);
-        diffère HTML.détruit(parsat);
+        diffère HTML.détruit(*parsat);
 
         retourne parsat.document;
     }
@@ -266,7 +266,7 @@ crée_propriétés_hôte_objet_global :: fonc (base: *ConfigurationRealm, global
     flux_sortie_sur_destruction :: fonc (base: *FluxSortieConsole)
     {
         flux := base comme *FluxSortieConsoleQt;
-        déloge(flux);
+        déloge(*flux);
     }
 
     flux_sortie_sur_log :: fonc (base: *FluxSortieConsole, texte: chaine)
@@ -280,7 +280,7 @@ crée_propriétés_hôte_objet_global :: fonc (base: *ConfigurationRealm, global
     {
         flux := base comme *FluxSortieConsoleQt;
         application := flux.application;
-        déloge(application.sortie_console);
+        déloge(*application.sortie_console);
     }
 
     flux := loge(FluxSortieConsoleQt);
@@ -298,7 +298,7 @@ crée_propriétés_hôte_objet_global :: fonc (base: *ConfigurationRealm, global
 
 sauvegarde_texte :: fonc (application: *Application)
 {
-    déloge_si_logée(application.sortie);
+    déloge_si_logée(*application.sortie);
 
     texte := donne_tampon_texte_natif(*application.éditrice_texte);
 

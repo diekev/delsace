@@ -194,9 +194,9 @@ supprime_allocation :: fonc (état: *ÉtatMémoire, adresse: z64)
                 trace.utilisateurs -= 1;
             }
 
-            déloge(it.id);
-            déloge(it.messages);
-            déloge(it.traces);
+            déloge(*it.id);
+            déloge(*it.messages);
+            déloge(*it.traces);
             tableau_supprime_indice(*état.allocations, indice_it);
             si état.allocations.taille == 0 || indice_it == état.allocation_sélectionnée {
                 état.allocation_sélectionnée = -1;
@@ -225,7 +225,7 @@ donne_trace_pour_message :: fonc (état: *ÉtatMémoire, message: MessageInfoAll
     indice := ensemble_possède_retourne_indice(état.condensats_traces, condensat);
     si indice != -1 {
         détruit_données(*condensat);
-        déloge(message.traces);
+        déloge(*message.traces);
         retourne état.traces[indice];
     }
 
@@ -508,7 +508,7 @@ dessine_trace :: fonc (serveuse: *Serveuse, trace: *InfoTraceAllocation, condens
 
         hex := condensat.donne_chaine_hex();
         dispose_texte(imprime_chaine_temp("Condensat : %", hex), ConfigurationTexte(serveuse.petite_fonte, PEAU_OMBRE));
-        déloge(hex);
+        déloge(*hex);
 
         pour trace.traces {
             dispose_texte(it.fichier, ConfigurationTexte(serveuse.petite_fonte, PEAU_OMBRE));

@@ -182,7 +182,7 @@ détruit_navigation_params :: fonc (navigation_params: *NavigationParams)
         si navigation_params.request {
             détruit_request(navigation_params.request);
         }
-        déloge(navigation_params);
+        déloge(*navigation_params);
     }
 }
 
@@ -338,10 +338,10 @@ navigate :: fonc (user_agent: *UserAgent, navigable: *Navigable, empl params: Pa
         active_document := navigable.donne_active_document();
 
         chn_url := url_serializer(url);
-        diffère déloge(chn_url);
+        diffère déloge(*chn_url);
 
         chn_url_active_document := url_serializer(active_document.url);
-        diffère déloge(chn_url_active_document);
+        diffère déloge(*chn_url_active_document);
 
         // 1. If url equals navigable's active document's URL,
         //    and initiatorOriginSnapshot is same origin with targetNavigable's active document's origin,
@@ -368,7 +368,7 @@ navigate :: fonc (user_agent: *UserAgent, navigable: *Navigable, empl params: Pa
     //     then:
     si url.fragment.possède_valeur() && equals(url, navigable.active_session_history_entry.url, vrai) {
         // 1. Navigate to a fragment given navigable, url, historyHandling, userInvolvement, navigationAPIState, and navigationId.
-        navigate_to_a_fragment(user_agent, navigable, url, history_handling, user_involvement, navigation_id);
+        navigate_to_a_fragment(user_agent, navigable, url, history_handling, user_involvement, *navigation_id);
 
         // 2. Return.
         retourne;
@@ -745,7 +745,7 @@ evaluate_a_javascript_url :: fonc (user_agent: *UserAgent, target_navigable: *Na
 {
     // 1. Let urlString be the result of running the URL serializer on url.
     url_string := url_serializer(url);
-    diffère déloge(url_string);
+    diffère déloge(*url_string);
 
     // 2. Let encodedScriptSource be the result of removing the leading "javascript:" from urlString.
     encoded_script_source := url_string.avance("javascript:".taille);
@@ -761,7 +761,7 @@ evaluate_a_javascript_url :: fonc (user_agent: *UserAgent, target_navigable: *Na
 
     // 6. Let script be the result of creating a classic script given scriptSource, settings, baseURL, and the default script fetch options.
     options: OptionsFetchScript;
-    script := create_a_classic_script(user_agent, script_source, settings, base_url, options);
+    script := create_a_classic_script(user_agent, script_source, settings, base_url, *options);
 
     // 7. Let evaluationStatus be the result of running the classic script script.
     evaluation_status := run_the_classic_script(script);
@@ -857,7 +857,7 @@ navigate_to_a_fragment :: fonc (user_agent: *UserAgent,
                                 url: *URL,
                                 history_handling: NavigationHistoryBehavior,
                                 user_involvement: UserNavigationInvolvement,
-                                navigation_id: &NavigationID @inutilisée)
+                                navigation_id: *NavigationID @inutilisée)
 {
     // 1. Let navigation be navigable's active window's navigation API.
 
@@ -1200,7 +1200,7 @@ attempt_to_populate_the_history_entry_document :: fonc (params: *HistoryEntryPop
         //     documentResource is null, or allowPOST is true and documentResource's request body is not failure,
 
         // then set navigationParams to the result of creating navigation params by fetching given entry, navigable, sourceSnapshotParams, targetSnapshotParams, cspNavigationType, navigationId, and navTimingType.
-        navigation_params, réponse_si_erreur = create_navigation_params_by_fetching(user_agent, entry, navigable, source_snapshot_params, target_snapshot_params, navigation_id, csp_navigation_type, nav_timing_type);
+        navigation_params, réponse_si_erreur = create_navigation_params_by_fetching(user_agent, entry, navigable, *source_snapshot_params, *target_snapshot_params, navigation_id, csp_navigation_type, nav_timing_type);
 
         // 3. Otherwise, if entry's URL's scheme is not a fetch scheme, then set navigationParams to a new non-fetch scheme navigation params, with
         //     id  navigationId
@@ -1368,8 +1368,8 @@ attempt_to_populate_the_history_entry_document :: fonc (params: *HistoryEntryPop
 create_navigation_params_by_fetching :: fonc (user_agent: *UserAgent,
                                               entry: *SessionHistoryEntry,
                                               navigable: *Navigable,
-                                              source_snapshot_params: &SourceSnapshotParams,
-                                              target_snapshot_params: &TargetSnapshotParams @inutilisée,
+                                              source_snapshot_params: *SourceSnapshotParams,
+                                              target_snapshot_params: *TargetSnapshotParams @inutilisée,
                                               navigation_id: Optionnel(NavigationID),
                                               csp_navigation_type: chaine,
                                               nav_timing_type: NavigationTimingType) -> (*NavigationParams, *Response)
@@ -1576,7 +1576,7 @@ create_navigation_params_by_fetching :: fonc (user_agent: *UserAgent,
             sur_destruction_process_response :: fonc (base: *BaseProcessResponse)
             {
                 rappel := base comme *RappelProcessResponse;
-                déloge(rappel);
+                déloge(*rappel);
             }
 
             process_response := loge(RappelProcessResponse);
@@ -1907,7 +1907,7 @@ apply_the_history_step :: fonc (user_agent: *UserAgent,
     // 4. Let navigablesCrossingDocuments be the result of getting all navigables that might experience a
     //    cross-document traversal given traversable and targetStep.
     navigables_crossing_documents := get_all_navigables_that_might_experience_a_cross_document_traversal(user_agent, traversable, target_step);
-    diffère déloge(navigables_crossing_documents);
+    diffère déloge(*navigables_crossing_documents);
 
     // 5. If checkForCancelation is true, and the result of checking if unloading is canceled given navigablesCrossingDocuments, traversable, targetStep, and userInvolvementForNavigateEvents is not "continue", then return that result.
     si check_for_canceletion {
@@ -1922,11 +1922,11 @@ apply_the_history_step :: fonc (user_agent: *UserAgent,
 
     // 6. Let changingNavigables be the result of get all navigables whose current session history entry will change or reload given traversable and targetStep.
     changing_navigables := get_all_navigables_whose_current_session_history_entry_will_change_or_reload(user_agent, traversable, target_step);
-    diffère déloge(changing_navigables);
+    diffère déloge(*changing_navigables);
 
     // 7. Let nonchangingNavigablesThatStillNeedUpdates be the result of getting all navigables that only need history object length/index update given traversable and targetStep.
     nonchanging_navigables_that_still_need_updates := get_all_navigables_that_only_need_history_object_length_index_update(user_agent, traversable, target_step);
-    diffère déloge(nonchanging_navigables_that_still_need_updates);
+    diffère déloge(*nonchanging_navigables_that_still_need_updates);
 
     // 8. For each navigable of changingNavigables:
     pour navigable dans changing_navigables {
@@ -1948,7 +1948,7 @@ apply_the_history_step :: fonc (user_agent: *UserAgent,
 
     // 11. Let changingNavigableContinuations be an empty queue of changing navigable continuation states.
     changing_navigable_continuations: [..]ChangingNavigableContinuationState;
-    diffère déloge(changing_navigable_continuations);
+    diffère déloge(*changing_navigable_continuations);
 
     // 12. For each navigable of changingNavigables, queue a global task on the navigation and traversal task source of navigable's active window to run the steps:
     pour navigable dans changing_navigables {
@@ -1958,7 +1958,7 @@ apply_the_history_step :: fonc (user_agent: *UserAgent,
 
     // 13. Let navigablesThatMustWaitBeforeHandlingSyncNavigation be an empty set.
     navigables_that_must_wait_before_handling_sync_navigation: [..]*Navigable;
-    diffère déloge(navigables_that_must_wait_before_handling_sync_navigation);
+    diffère déloge(*navigables_that_must_wait_before_handling_sync_navigation);
 
     // 14. While completedChangeJobs does not equal totalChangeJobs:
     décalage_défilement := 0;
@@ -2464,7 +2464,7 @@ get_the_used_step :: fonc (user_agent: *UserAgent, traversable: *TraversableNavi
 {
     // 1. Let steps be the result of getting all used history steps within traversable.
     steps := get_all_used_history_steps(user_agent, traversable);
-    diffère déloge(steps);
+    diffère déloge(*steps);
  
     // 2. Return the greatest item in steps that is less than or equal to step.
     résultat: n32;
@@ -2586,11 +2586,11 @@ clear_the_forward_session_history :: fonc (user_agent: *UserAgent, navigable: *T
 
     // 3. Let entryLists be the ordered set « navigable's session history entries ».
     entry_lists_à_visiter: [..]*[..]*SessionHistoryEntry;
-    diffère déloge(entry_lists_à_visiter);
+    diffère déloge(*entry_lists_à_visiter);
 
     /* À FAIRE(langage) : utilisation d'un nombre entier car les pointeurs vers tableaux n'ont pas d'opérateurs. */
     entry_lists_visités: [..]n64;
-    diffère déloge(entry_lists_visités);
+    diffère déloge(*entry_lists_visités);
 
     tableau_ajoute(*entry_lists_à_visiter, *navigable.session_history_entries);
 
@@ -2643,10 +2643,10 @@ get_all_used_history_steps :: fonc (user_agent: *UserAgent, traversable: *Traver
             // 2. For each nestedHistory of entry's document state's nested histories, append nestedHistory's entries list to entryLists.
 
     entrées_à_visiter := tableau_copie(traversable.session_history_entries);
-    diffère déloge(entrées_à_visiter);
+    diffère déloge(*entrées_à_visiter);
 
     entrées_visitées: [..]*SessionHistoryEntry;
-    diffère déloge(entrées_visitées);
+    diffère déloge(*entrées_visitées);
 
     tantque entrées_à_visiter.taille != 0 {
         entrée := enlève_dernier_élément(*entrées_à_visiter);
@@ -2950,12 +2950,12 @@ select_the_indicated_part :: fonc (document: *Document, url: *URL) -> *Element
 find_a_potential_indicated_element :: fonc (document: *Document, fragment: chaine) -> *Element
 {
     pile: Pile(*Node);
-    diffère détruit(pile);
+    diffère détruit(*pile);
 
-    pile.empile(document);
+    empile(*pile, document);
 
-    tantque !pile.est_vide() {
-        noeud := pile.dépile();
+    tantque !est_vide(*pile) {
+        noeud := dépile(*pile);
 
         si noeud.est_élément() {
             élément := noeud comme *Element;
@@ -2975,7 +2975,7 @@ find_a_potential_indicated_element :: fonc (document: *Document, fragment: chain
         }
 
         pour > noeud.enfants {
-            pile.empile(it);
+            empile(*pile, it);
         }
     }
 

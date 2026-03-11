@@ -315,7 +315,7 @@ copy_data_properties :: fonc (interpréteuse: *Interpréteuse, target: *Object, 
 
     // 3. Let keys be ? from.[[OwnPropertyKeys]]().
     keys := from.internal_own_property_keys();
-    diffère déloge(keys);
+    diffère déloge(*keys);
 
     si interpréteuse.possède_exception() {
         retourne;

@@ -120,36 +120,36 @@ détruit_commande :: fonc (commande: *CommandeSMTP)
     discr commande.type {
         CommandeSMTP_EHLO {
             EHLO := commande comme *CommandeSMTP_EHLO;
-            déloge(EHLO);
+            déloge(*EHLO);
         }
         CommandeSMTP_AUTH_LOGIN {
-            déloge(commande);
+            déloge(*commande);
         }
         CommandeSMTP_NOM_UTILISATEUR {
             NOM_UTILISATEUR := commande comme *CommandeSMTP_NOM_UTILISATEUR;
-            déloge(NOM_UTILISATEUR);
+            déloge(*NOM_UTILISATEUR);
         }
         CommandeSMTP_MOT_DE_PASSE {
             MOT_DE_PASSE := commande comme *CommandeSMTP_MOT_DE_PASSE;
-            déloge(MOT_DE_PASSE);
+            déloge(*MOT_DE_PASSE);
         }
         CommandeSMTP_MAIL_FROM {
             MAIL_FROM := commande comme *CommandeSMTP_MAIL_FROM;
-            déloge(MAIL_FROM);
+            déloge(*MAIL_FROM);
         }
         CommandeSMTP_RCPT_TO {
             RCPT_TO := commande comme *CommandeSMTP_RCPT_TO;
-            déloge(RCPT_TO);
+            déloge(*RCPT_TO);
         }
         CommandeSMTP_DATA {
-            déloge(commande);
+            déloge(*commande);
         }
         CommandeSMTP_QUIT {
-            déloge(commande);
+            déloge(*commande);
         }
         CommandeSMTP_DonnéesDiverses {
             données := commande comme *CommandeSMTP_DonnéesDiverses;
-            déloge(données);
+            déloge(*données);
         }
         sinon {
             retourne;
@@ -294,10 +294,10 @@ test_parsage_commande :: fonc (texte: chaine) -> bool
 
     discr résultat {
         Ok(commande) {
-            diffère déloge(commande);
+            diffère déloge(*commande);
             discr chaine_pour_commande(commande) {
                 Quelque(chn) {
-                    //diffère déloge(chn)
+                    //diffère déloge(*chn)
                     retourne chn == texte;
                 }
                 sinon {

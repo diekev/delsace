@@ -42,7 +42,7 @@ loge_pile :: fonc (
     retourne ptr
 }
 
-allocatrice_pile :: fonc (params: &ParamètresAllocation, données: *BaseAllocatrice) -> *rien
+allocatrice_pile :: fonc (params: *ParamètresAllocation, données: *BaseAllocatrice) -> *rien
 {
     alloc := données comme *AllocatricePile
 

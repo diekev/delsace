@@ -47,13 +47,13 @@ crée_translation_unit_pour_fichier :: fonc (chemin: chaine, info: InfoLangage) 
 détruit :: fonc (unit: *TranslationUnit)
 {
     pour unit.invocations_macros {
-        déloge(it.lexèmes_résultants);
+        déloge(*it.lexèmes_résultants);
     }
-    déloge(unit.invocations_macros);
-    déloge(unit.lexèmes_préprocès);
-    déloge(unit.tokens);
-    déloge(unit.fichiers);
-    déloge(unit);
+    déloge(*unit.invocations_macros);
+    déloge(*unit.lexèmes_préprocès);
+    déloge(*unit.tokens);
+    déloge(*unit.fichiers);
+    déloge(*unit);
 }
 
 crée_invocation_de_macro :: fonc (unit: *TranslationUnit, lexème: LexèmePréprocès, macro: *Définition) -> z64

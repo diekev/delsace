@@ -74,7 +74,7 @@ logement_tableau :: fonc () -> rien
 
     imprime_tableau(tabl);
 
-    déloge(tabl);
+    déloge(*tabl);
 
     imprime("Tableau délogé : %\n", tabl.pointeur);
     imprime("Taille tableau : %\n", tabl.taille);
@@ -94,7 +94,7 @@ logement_chaine :: fonc () -> rien
 
     imprime("Résultat : %\n", chnr);
 
-    déloge(chnr);
+    déloge(*chnr);
 
     imprime("Chaîne délogée : %\n", chnr.pointeur);
     imprime("Taille chaîne  : %\n", chnr.taille);
