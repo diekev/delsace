@@ -32,7 +32,7 @@ formulaire_depuis_élément :: fonc (élément: *Element) -> Formulaire
     retourne formulaire;
 }
 
-ajoute_entrée :: fonc (formulaire: &Formulaire, input: *Element)
+ajoute_entrée :: fonc (formulaire: *Formulaire, input: *Element)
 {
     entrée: EntréeFormulaire;
     entrée.nom = chaine_ou_défaut(cherche_attribut(input, ATTR_name));
@@ -44,7 +44,7 @@ ajoute_entrée :: fonc (formulaire: &Formulaire, input: *Element)
 // Génère une chaine de caractère au format encodée url pour les données du formulaire.
 // Par exemple : nom=le+nom&mot_de_passe=le+mot+de+passe
 // À FAIRE : paramétrise, aléatorise
-génère_données_formulaire :: fonc (formulaire: &Formulaire) -> chaine
+génère_données_formulaire :: fonc (formulaire: *Formulaire) -> chaine
 {
     enchaineuse: Enchaineuse;
     initialise_enchaineuse(*enchaineuse);
@@ -85,10 +85,10 @@ rappel_recherche_formulaire :: fonc (noeud: *Node, données: eini @inutilisée)
     }
 
     formulaire := formulaire_depuis_élément(élément);
-    diffère déloge(formulaire.entrées);
+    diffère déloge(*formulaire.entrées);
 
     données_envoi_formulaire := génère_données_formulaire(formulaire);
-    diffère déloge(données_envoi_formulaire);
+    diffère déloge(*données_envoi_formulaire);
 
     si formulaire.méthode == "GET" {
         imprime("GET %?% HTTP/1.1\r\n", formulaire.action, données_envoi_formulaire);

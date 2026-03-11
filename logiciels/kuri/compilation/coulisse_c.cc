@@ -550,14 +550,6 @@ void ConvertisseuseTypeC::génère_typedef(Type const *type, Enchaineuse &enchai
 
             break;
         }
-        case GenreNoeud::RÉFÉRENCE:
-        {
-            auto type_pointe = type->comme_type_référence()->type_pointé;
-            génère_typedef(type_pointe, enchaineuse);
-            auto &type_c_pointe = type_c_pour(type_pointe);
-            type_c.typedef_ = enchaine(type_c_pointe.nom, "*");
-            break;
-        }
         case GenreNoeud::POINTEUR:
         {
             auto type_pointe = type->comme_type_pointeur()->type_pointé;
@@ -777,7 +769,6 @@ void ConvertisseuseTypeC::génère_code_pour_type(const Type *type, Enchaineuse 
         case GenreNoeud::ERREUR:
         case GenreNoeud::ENUM_DRAPEAU:
         case GenreNoeud::DÉCLARATION_ÉNUM:
-        case GenreNoeud::RÉFÉRENCE:
         case GenreNoeud::POINTEUR:
         case GenreNoeud::TYPE_ADRESSE_FONCTION:
         {

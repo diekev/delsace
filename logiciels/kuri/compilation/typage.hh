@@ -37,7 +37,6 @@ using TypeFonction = NoeudDéclarationTypeFonction;
 using TypeOpaque = NoeudDéclarationTypeOpaque;
 using TypePointeur = NoeudDéclarationTypePointeur;
 using TypePolymorphique = NoeudDéclarationTypePolymorphique;
-using TypeRéférence = NoeudDéclarationTypeRéférence;
 using TypeTableauDynamique = NoeudDéclarationTypeTableauDynamique;
 using TypeTableauFixe = NoeudDéclarationTypeTableauFixe;
 using TypeTuple = NoeudDéclarationTypeTuple;
@@ -128,7 +127,6 @@ struct Typeuse {
     kuri::tableau_synchrone<Type *> types_simples{};
     AllocatriceNoeud *alloc = nullptr;
     std::mutex mutex_types_pointeurs{};
-    std::mutex mutex_types_références{};
     std::mutex mutex_types_structures{};
     std::mutex mutex_types_enums{};
     std::mutex mutex_types_tableaux_fixes{};
@@ -206,10 +204,6 @@ struct Typeuse {
     NoeudDéclarationTypePointeur *type_ptr_octet = nullptr;
     NoeudDéclarationTypePointeur *type_ptr_rien = nullptr;
 
-    NoeudDéclarationTypeRéférence *type_ref_n8 = nullptr;
-    NoeudDéclarationTypeRéférence *type_ref_n64 = nullptr;
-    NoeudDéclarationTypeRéférence *type_ref_z8 = nullptr;
-
     NoeudDéclarationTypeTableauDynamique *type_tabl_n8 = nullptr;
 
     NoeudDéclarationTypeOpaque *type_octet = nullptr;
@@ -262,8 +256,6 @@ struct Typeuse {
     Type *type_pour_lexème(GenreLexème lexème);
 
     TypePointeur *type_pointeur_pour(Type *type, bool insère_dans_graphe = true);
-
-    TypeRéférence *type_référence_pour(Type *type);
 
     TypeTableauFixe *type_tableau_fixe(Type *type_pointe,
                                        int taille,

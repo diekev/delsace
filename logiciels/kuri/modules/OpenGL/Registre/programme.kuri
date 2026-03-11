@@ -37,7 +37,7 @@ principale :: fonc ()
     }
 
     _, contenu := contenu_fichier_texte(fichier_source);
-    diffère déloge(contenu);
+    diffère déloge(*contenu);
 
     parseuse: ParseuseRegistreGL;
 
@@ -227,7 +227,7 @@ principale :: fonc ()
     }
 
     source_typedefs := chaine_depuis_enchaineuse(*texte_typedefs);
-    diffère déloge(source_typedefs);
+    diffère déloge(*source_typedefs);
 
     unit := parse_et_valide_unité_depuis_texte(source_typedefs);
 

@@ -725,7 +725,6 @@ NoeudExpression *Tacheronne::noeud_syntaxique_depuis_résultat(
         case GenreNoeud::EINI:
         case GenreNoeud::POINTEUR:
         case GenreNoeud::POLYMORPHIQUE:
-        case GenreNoeud::RÉFÉRENCE:
         case GenreNoeud::VARIADIQUE:
         case GenreNoeud::TYPE_ADRESSE_FONCTION:
         {

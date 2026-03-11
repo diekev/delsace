@@ -883,7 +883,7 @@ CréatriceTableFonction :: struct {
 
 détruit_données_créatrice_table_fonctions :: fonc (créatrice: *CréatriceTableFonction)
 {
-    déloge(créatrice.modules_importés);
+    déloge(*créatrice.modules_importés);
 }
 
 DonnéesFonctionPourTableFonction :: struct {
@@ -932,7 +932,7 @@ crée_table_fonctions :: fonc (créatrice: *CréatriceTableFonction, fonctions: 
     }
 
     données_fonctions: [..]DonnéesFonctionPourTableFonction;
-    diffère déloge(données_fonctions);
+    diffère déloge(*données_fonctions);
     pour fonctions {
         données := créatrice.données_pour_fonction(it);
         données.fonction = it;
@@ -943,7 +943,7 @@ crée_table_fonctions :: fonc (créatrice: *CréatriceTableFonction, fonctions: 
     initialise_enchaineuse(*enchaineuse);
 
     /* Création des imports. */
-    diffère déloge(créatrice.modules_importés);
+    diffère déloge(*créatrice.modules_importés);
     créatrice.ajoute_module("Fondation");
     créatrice.ajoute_module("Introspection");
 
@@ -988,7 +988,7 @@ crée_table_fonctions :: fonc (créatrice: *CréatriceTableFonction, fonctions: 
         nom_module_fonction := compilatrice_nom_module(compilatrice_module_pour_code(créatrice.espace, it.fonction));
         imprime_type(*enchaineuse, it.info_type, nom_module_fonction);
         ajoute_au_tampon(*enchaineuse, "), ", it.nom_fonction_enveloppe, ");\n");
-        déloge(it.nom_fonction_enveloppe);
+        déloge(*it.nom_fonction_enveloppe);
     }
 
     ajoute_au_tampon(*enchaineuse, "}\n");
@@ -999,7 +999,7 @@ crée_table_fonctions :: fonc (créatrice: *CréatriceTableFonction, fonctions: 
     ajoute_au_tampon(*enchaineuse, "#ajoute_fini issitialise_", créatrice.nom_table_fonctions, "();\n");
 
     sources := chaine_depuis_enchaineuse(*enchaineuse);
-    diffère déloge(sources);
+    diffère déloge(*sources);
 
     /* Puisque nous utilisons #ajoute_init et #ajoute_fini, nous incluons le code dans le module racine. */
     ajoute_chaine_à_la_compilation(créatrice.espace, sources);
@@ -1145,7 +1145,7 @@ visite_noeud :: fonc (visiteuse: *VisiteuseArbre($T), racine: *T)
     }
 
     traversée: [..]VisiteuseArbre(T).InfoTraversée;
-    diffère déloge(traversée);
+    diffère déloge(*traversée);
 
     début_traversée := tableau_ajoute_élément(*traversée);
     début_traversée.noeud = racine;

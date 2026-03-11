@@ -13,7 +13,7 @@ principale :: fonc ()
     saufsi succès {
         exit(1);
     }
-    diffère déloge(données_archive);
+    diffère déloge(*données_archive);
 
     saufsi est_archive_ar(données_archive) {
         imprimeln("Pas une archive.");
