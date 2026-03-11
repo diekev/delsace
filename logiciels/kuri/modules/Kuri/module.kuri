@@ -80,9 +80,9 @@ ParamètresAllocation :: struct {
     pos: PositionCodeSource;
 }
 
-TypeFonctionAllocation :: fonc (params: &ParamètresAllocation, données: *BaseAllocatrice) -> *rien;
+TypeFonctionAllocation :: fonc (params: *ParamètresAllocation, données: *BaseAllocatrice) -> *rien;
 
-allocatrice_défaut :: fonc (params: &ParamètresAllocation, données: *BaseAllocatrice) -> *rien
+allocatrice_défaut :: fonc (params: *ParamètresAllocation, données: *BaseAllocatrice) -> *rien
 {
     nouvelle_taille := params.nouvelle_taille;
     ancienne_taille := params.ancienne_taille;
@@ -146,7 +146,7 @@ loge_mémoire :: fonc (taille: z64, info: *InfoType, pos: PositionCodeSource) ->
     params.info = info;
     params.pos = pos;
 
-    ptr := contexte().allocatrice(params, contexte().données_allocatrice);
+    ptr := contexte().allocatrice(*params, contexte().données_allocatrice);
 
     saufsi ptr {
         panique_hors_mémoire();
@@ -164,7 +164,7 @@ loge_mémoire_alignée :: fonc (taille: z64, alignement: z64, info: *InfoType, p
     params.info = info;
     params.pos = pos;
 
-    ptr := contexte().allocatrice(params, contexte().données_allocatrice);
+    ptr := contexte().allocatrice(*params, contexte().données_allocatrice);
 
     saufsi ptr {
         panique_hors_mémoire();
@@ -183,7 +183,7 @@ reloge_mémoire :: fonc (ancienne_taille: z64, nouvelle_taille: z64, ancien_poin
     params.info = info;
     params.pos = pos;
 
-    nouveau_pointeur := contexte().allocatrice(params, contexte().données_allocatrice);
+    nouveau_pointeur := contexte().allocatrice(*params, contexte().données_allocatrice);
 
     saufsi nouveau_pointeur {
         panique_hors_mémoire();
@@ -202,7 +202,7 @@ déloge_mémoire :: fonc (taille: z64, pointeur: *rien, info: *InfoType, pos: Po
     params.info = info;
     params.pos = pos;
 
-    _ := contexte().allocatrice(params, contexte().données_allocatrice);
+    _ := contexte().allocatrice(*params, contexte().données_allocatrice);
 }
 
 loge :: fonc ($T: type_de_données, pos := #position_code_source) -> *T
@@ -215,10 +215,10 @@ loge :: fonc ($T: type_de_données, pos := #position_code_source) -> *T
     retourne ptr;
 }
 
-reloge :: fonc (pointeur: &*$T, pos := #position_code_source)
+reloge :: fonc (pointeur: **$T, pos := #position_code_source)
 {
     info := info_de(T);
-    ancien_pointeur := pointeur;
+    ancien_pointeur := mémoire(pointeur);
     nouveau_pointeur := reloge_mémoire(
         info.taille_en_octet comme z64,
         info.taille_en_octet comme z64,
@@ -227,15 +227,15 @@ reloge :: fonc (pointeur: &*$T, pos := #position_code_source)
         pos
     );
 
-    pointeur = nouveau_pointeur;
+    mémoire(pointeur) = nouveau_pointeur;
 }
 
-déloge :: fonc (pointeur: &*$T, pos := #position_code_source)
+déloge :: fonc (pointeur: **$T, pos := #position_code_source)
 {
     info := info_de(T);
-    ancien_pointeur := pointeur;
+    ancien_pointeur := mémoire(pointeur);
     déloge_mémoire(info.taille_en_octet comme z64, ancien_pointeur, info, pos);
-    pointeur = nul;
+    mémoire(pointeur) = nul;
 }
 
 loge_chaine :: fonc (taille: z64, pos := #position_code_source) -> chaine
@@ -244,7 +244,7 @@ loge_chaine :: fonc (taille: z64, pos := #position_code_source) -> chaine
     retourne chaine(ptr comme *z8, taille);
 }
 
-reloge_chaine :: fonc (chn: &chaine, nouvelle_taille: z64, pos := #position_code_source)
+reloge_chaine :: fonc (chn: *chaine, nouvelle_taille: z64, pos := #position_code_source)
 {
     ptr := reloge_mémoire(chn.taille, nouvelle_taille, chn.pointeur, info_de(chaine), pos);
 
@@ -252,7 +252,7 @@ reloge_chaine :: fonc (chn: &chaine, nouvelle_taille: z64, pos := #position_code
     chn.taille = nouvelle_taille;
 }
 
-déloge :: fonc (chn: &chaine, pos := #position_code_source)
+déloge :: fonc (chn: *chaine, pos := #position_code_source)
 {
     /* Les chaines nulles peuvent avoir un pointeur valide car elles pointent
      * vers une chaine ne contenant qu'un caractère nul. */
@@ -263,7 +263,7 @@ déloge :: fonc (chn: &chaine, pos := #position_code_source)
     }
 }
 
-déloge_si_logée :: fonc (chn: &chaine, pos := #position_code_source)
+déloge_si_logée :: fonc (chn: *chaine, pos := #position_code_source)
 {
     saufsi intrinsèque_est_adresse_données_constantes(chn.pointeur) {
         déloge_mémoire(chn.taille, chn.pointeur, info_de(chaine), pos);
@@ -562,7 +562,7 @@ définis_marque_stockage_temporaire :: fonc (marque: z32) -> rien
             params.mode = ModeAllocatrice.DÉSALLOUE;
             params.ancien_pointeur = it.adresse;
             params.ancienne_taille = it.taille;
-            _ := allocatrice_défaut(params, nul);
+            _ := allocatrice_défaut(*params, nul);
             tableau_supprime_indice(*__contexte_fil_principal.stockage_temporaire.mémoire_débordante, indice_it);
             it.marque = -1;
             it.adresse = nul;
@@ -578,7 +578,7 @@ réinitialise_stockage_temporaire :: fonc () -> rien
     __contexte_fil_principal.stockage_temporaire.occupation_maximale = 0;
 }
 
-alloc_stockage_temporaire :: fonc (alloc: *StockageTemporaire, params: &ParamètresAllocation, données: *BaseAllocatrice) -> *rien
+alloc_stockage_temporaire :: fonc (alloc: *StockageTemporaire, params: *ParamètresAllocation, données: *BaseAllocatrice) -> *rien
 {
     nouvelle_taille := params.nouvelle_taille;
 
@@ -600,7 +600,7 @@ alloc_stockage_temporaire :: fonc (alloc: *StockageTemporaire, params: &Paramèt
     retourne ptr;
 }
 
-__stockage_temporaire :: fonc (params: &ParamètresAllocation, données: *BaseAllocatrice) -> *rien
+__stockage_temporaire :: fonc (params: *ParamètresAllocation, données: *BaseAllocatrice) -> *rien
 {
     nouvelle_taille := params.nouvelle_taille;
     ancienne_taille := params.ancienne_taille;
@@ -633,7 +633,7 @@ __stockage_temporaire :: fonc (params: &ParamètresAllocation, données: *BaseAl
                 params_: ParamètresAllocation;
                 params_.mode = ModeAllocatrice.ALLOUE;
                 params_.nouvelle_taille = nouvelle_taille;
-                résultat := allocatrice_défaut(params_, données);
+                résultat := allocatrice_défaut(*params_, données);
                 saufsi résultat {
                     retourne nul;
                 }

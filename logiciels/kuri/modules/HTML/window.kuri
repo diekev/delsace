@@ -15,8 +15,8 @@ window_sur_destruction :: fonc (base: *JS.Cellule)
 {
     event_target_sur_destruction(base);
     window := base comme *Window;
-    déloge(window.chronomètres);
-    déloge(window.animation_frames);
+    déloge(*window.chronomètres);
+    déloge(*window.animation_frames);
 }
 
 #portée_export
@@ -51,7 +51,7 @@ Window :: struct {
 exécute_animation_frames :: fonc (window: *Window)
 {
     animation_frames := window.animation_frames;
-    diffère déloge(animation_frames);
+    diffère déloge(*animation_frames);
 
     window.animation_frames.pointeur = nul;
     window.animation_frames.taille = 0;
@@ -95,7 +95,7 @@ crée_objet_window :: fonc (user_agent: *UserAgent, tas_de_mémoire: *JS.TasDeM�
 
     flux_sortie_sur_destruction :: fonc (flux: *FluxSortieConsole)
     {
-        déloge(flux);
+        déloge(*flux);
     }
 
     flux_sortie_sur_log :: fonc (empl flux: *FluxSortieConsole, texte: chaine)
@@ -559,7 +559,7 @@ donne_protocol :: fonc (location: *Location) -> DOMString
     url := donne_url(location);
 
     chn := enchaine(url.scheme, ":");
-    diffère déloge(chn);
+    diffère déloge(*chn);
 
     retourne crée_chaine_utf16_unique(chn);
 }

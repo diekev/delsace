@@ -130,9 +130,9 @@ URI :: struct {
     fragment_est_défini := faux; // @privé
 }
 
-détruit_uri :: fonc (uri: &URI)
+détruit_uri :: fonc (uri: *URI)
 {
-    déloge_si_logée(uri.uri);
+    déloge_si_logée(*uri.uri);
 }
 
 RésultatURI :: union {
@@ -461,7 +461,7 @@ recompose_uri :: fonc (uri: *URI) -> chaine
 
 // Calcul une somme de controle, sur 64bit, pour un URI selon l'algorithme de Fletcher
 // https://en.wikipedia.org/wiki/Fletcher%27s_checksum
-somme_controle :: fonc (uri: &URI) -> n64
+somme_controle :: fonc (uri: *URI) -> n64
 {
     // nous ne considérons que l'autorité, le chemin et la requête
     somme1 := 0;
@@ -485,22 +485,6 @@ somme_controle :: fonc (uri: &URI) -> n64
     retourne (somme2 comme n64 << 32) | somme1 comme n64;
 }
 
-// À FAIRE(références)
-port_pour_uri :: fonc (uri: &URI) -> n16
-{
-    si uri.port.taille == 0 {
-        si uri.schéma == "http" || uri.schéma == "ws" {
-            retourne 80;
-        }
-
-        si uri.schéma == "https" || uri.schéma == "wss" {
-            retourne 443;
-        }
-    }
-
-    retourne extrait_nombre_entier(uri.port) comme n16;
-}
-
 port_pour_uri :: fonc (uri: *URI) -> n16
 {
     si uri.port.taille == 0 {
@@ -516,7 +500,7 @@ port_pour_uri :: fonc (uri: *URI) -> n16
     retourne extrait_nombre_entier(uri.port) comme n16;
 }
 
-port_par_défaut :: fonc (uri: &URI) -> n16
+port_par_défaut :: fonc (uri: *URI) -> n16
 {
     discr uri.schéma {
         "file" {
@@ -537,7 +521,7 @@ port_par_défaut :: fonc (uri: &URI) -> n16
     }
 }
 
-est_spécial :: fonc (uri: &URI) -> bool
+est_spécial :: fonc (uri: *URI) -> bool
 {
     discr uri.schéma {
         "file",
@@ -554,7 +538,7 @@ est_spécial :: fonc (uri: &URI) -> bool
     }
 }
 
-possède_informations_identité :: fonc (uri: &URI) -> bool
+possède_informations_identité :: fonc (uri: *URI) -> bool
 {
     retourne uri.nom_utilisateur != "" || uri.mot_de_passe != "";
 }
@@ -673,7 +657,7 @@ crée_uri_absolu :: fonc (base: URI, relatif: URI, relativité: RelativitéURI) 
         }
         RÉPERTOIRE_COURANT {
             morceaux_base := divise(base.chemin, '/');
-            diffère déloge(morceaux_base);
+            diffère déloge(*morceaux_base);
 
             enchaineuse: Enchaineuse;
             initialise_enchaineuse(*enchaineuse);
@@ -697,7 +681,7 @@ crée_uri_absolu :: fonc (base: URI, relatif: URI, relativité: RelativitéURI) 
         }
         RÉPERTOIRE_PARENT {
             morceaux_base := divise(base.chemin, '/');
-            diffère déloge(morceaux_base);
+            diffère déloge(*morceaux_base);
 
             enchaineuse: Enchaineuse;
             initialise_enchaineuse(*enchaineuse);
@@ -721,7 +705,7 @@ crée_uri_absolu :: fonc (base: URI, relatif: URI, relativité: RelativitéURI) 
         }
         RACINE_DOCUMENT {
             morceaux_base := divise(base.chemin, '/');
-            diffère déloge(morceaux_base);
+            diffère déloge(*morceaux_base);
 
             enchaineuse: Enchaineuse;
             initialise_enchaineuse(*enchaineuse);
@@ -800,7 +784,7 @@ parse_hôte :: fonc (texte: chaine, n_est_pas_spécial := faux) -> Hôte | bool
     }
 }
 
-sérialise :: fonc (enchaineuse: &Enchaineuse, hôte: Hôte)
+sérialise :: fonc (enchaineuse: *Enchaineuse, hôte: Hôte)
 {
     discr hôte {
         domaine {
@@ -857,7 +841,7 @@ domaine_effectif :: fonc (origine: Origine) -> DomaineEffectif
     }
 }
 
-sérialise :: fonc (enchaineuse: &Enchaineuse, origine: Origine)
+sérialise :: fonc (enchaineuse: *Enchaineuse, origine: Origine)
 {
     discr origine {
         opaque {
@@ -874,7 +858,7 @@ sérialise :: fonc (enchaineuse: &Enchaineuse, origine: Origine)
     }
 }
 
-origine :: fonc (uri: &URI) -> Origine
+origine :: fonc (uri: *URI) -> Origine
 {
     discr uri.schéma {
         "blob" {

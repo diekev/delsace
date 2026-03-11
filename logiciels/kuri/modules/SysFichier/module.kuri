@@ -118,11 +118,11 @@ contenu_fichier_binaire :: fonc (chemin: chaine) -> (succès: bool, résultat: [
 contenu_fichier_binaire :: fonc (chemin: CheminFichier) -> (succès: bool, résultat: [..]octet)
 {
     contenu: [..]octet;
-    succès = contenu_fichier_binaire(chemin, contenu);
+    succès = contenu_fichier_binaire(chemin, *contenu);
     retourne succès, contenu;
 }
 
-contenu_fichier_binaire :: fonc (chemin: CheminFichier, résultat: &[..]octet) -> succès: bool
+contenu_fichier_binaire :: fonc (chemin: CheminFichier, résultat: *[..]octet) -> succès: bool
 {
     fichier := tente ouvre_fichier(chemin, pour_lecture, Permissions_Fichier_Défaut) piège _ {
         imprimeln("Impossible d'ouvrir le fichier %", chemin.chn);
@@ -165,13 +165,13 @@ lis_fichier_binaire_entier :: fonc (chemin: chaine, permissions := Permissions_F
         tableau_redimensionne(*résultat, taille);
 
         octets_lus := tente système_lis(fichier.desc, résultat.pointeur comme *z8, résultat.taille) piège err {
-            déloge(résultat);
+            déloge(*résultat);
             imprimeln("Impossible d'ouvrir le fichier % : %", chemin, err);
             retourne faux, résultat;
         };
 
         si octets_lus != résultat.taille {
-            déloge(résultat);
+            déloge(*résultat);
             imprimeln("Impossible de lire l'entièreté du fichier %, lu %, voulu %", chemin, octets_lus, résultat.taille);
             retourne faux, résultat;
         }
@@ -225,7 +225,7 @@ ajoute_au_fichier :: fonc (chemin: chaine, contenu: []octet) -> bool
     tampon: TamponChemin;
 
     chemin_dossier_tmp := système_chemin_dossier_temporaire();
-    diffère détruit_chemin(chemin_dossier_tmp);
+    diffère détruit_chemin(*chemin_dossier_tmp);
 
     saufsi ajoute(*tampon, chemin_dossier_tmp) {
         imprimeln("[%] impossible d'ajouter le chemin vers le dossier temporaire", #nom_de_cette_fonction);
@@ -301,7 +301,7 @@ ajoute_au_fichier :: fonc (chemin: chaine, enchaineuse: *Enchaineuse) -> bool
     tampon: TamponChemin;
 
     chemin_dossier_tmp := système_chemin_dossier_temporaire();
-    diffère détruit_chemin(chemin_dossier_tmp);
+    diffère détruit_chemin(*chemin_dossier_tmp);
 
     saufsi ajoute(*tampon, chemin_dossier_tmp) {
         imprimeln("[%] impossible d'ajouter le chemin vers le dossier temporaire", #nom_de_cette_fonction);
@@ -401,7 +401,7 @@ renomme :: fonc (orig: CheminFichier, dest: CheminFichier) -> Optionnel(ErreurFi
     retourne système_renomme(orig, dest);
 }
 
-supprime :: fonc (chm: &CheminFichier) -> Optionnel(ErreurFichier)
+supprime :: fonc (chm: CheminFichier) -> Optionnel(ErreurFichier)
 {
     retourne système_supprime(chm);
 }

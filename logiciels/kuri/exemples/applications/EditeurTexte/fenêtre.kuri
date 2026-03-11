@@ -107,7 +107,7 @@ parse_config_depuis_fichier :: fonc (anonyme: *Anonyme, chemin: chaine, projet: 
     saufsi succès {
         retourne;
     }
-    diffère déloge(contenu);
+    diffère déloge(*contenu);
 
     initialise_lexeuse_pour_texte(lexeuse, contenu);
 
@@ -659,7 +659,7 @@ dessine_indicateurs_lignes :: fonc (anonyme: *Anonyme, hauteur: z32)
 dessine_texte :: fonc (empl anonyme: *Anonyme)
 {
     pour anonyme.textes_alloués_par_image {
-        déloge(it);
+        déloge(*it);
     }
     anonyme.textes_alloués_par_image.taille = 0;
 

@@ -198,7 +198,7 @@ filtre_image :: fonc (image: NouvelleImage, type: Type_Filtrage_Image, rayon: r3
 filtre_image :: fonc (image: NouvelleImage, résultat: NouvelleImage, type: Type_Filtrage_Image, rayon: r32)
 {
     table := donne_table_filtrage_image(type, rayon);
-    diffère déloge(table.table);
+    diffère déloge(*table.table);
 
     discr image.desc.format {
         Gris_8 {

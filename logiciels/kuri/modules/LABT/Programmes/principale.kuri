@@ -26,13 +26,13 @@ principale :: fonc ()
 
     {
         chn := imprime(document, ImprimeAuFormat.HTML);
-        diffère déloge(chn);
+        diffère déloge(*chn);
 
         imprime("%\n", chn);
     }
     {
         chn := imprime(document, ImprimeAuFormat.TEXTE_SIMPLE);
-        diffère déloge(chn);
+        diffère déloge(*chn);
 
         imprime("%\n", chn);
     }

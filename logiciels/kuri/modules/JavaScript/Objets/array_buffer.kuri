@@ -18,7 +18,7 @@ array_buffer_sur_destruction :: fonc (base: *Cellule)
 {
     sur_destruction_objet(base);
     array := base comme *ArrayBuffer;
-    déloge(array.bytes);
+    déloge(*array.bytes);
 }
 
 #portée_export
