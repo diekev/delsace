@@ -31,7 +31,7 @@ test_logement_tableau :: fonc ()
         imprime("-- %\n", it);
     }
 
-    déloge(tableau);
+    déloge(*tableau);
 
     imprime("tableau.pointeur : %\n", tableau.pointeur);
     imprime("tableau.capacité : %\n", tableau.capacité);
@@ -59,7 +59,7 @@ test_logement_chaine :: fonc ()
         imprime("-- %\n", it);
     }
 
-    reloge_chaine(chn, 20);
+    reloge_chaine(*chn, 20);
 
     imprime("chn.pointeur : %\n", chn.pointeur);
     imprime("chn.taille   : %\n", chn.taille);
@@ -68,7 +68,7 @@ test_logement_chaine :: fonc ()
         imprime("-- %\n", it);
     }
 
-    déloge(chn);
+    déloge(*chn);
 
     imprime("chn.pointeur : %\n", chn.pointeur);
     imprime("chn.taille   : %\n", chn.taille);
@@ -102,14 +102,14 @@ test_logement_scalaire :: fonc ()
     imprime("v.y : %\n", v.y);
     imprime("v.z : %\n", v.z);
 
-    reloge(v);
+    reloge(*v);
 
     imprime("v   : %\n", v);
     imprime("v.x : %\n", v.x);
     imprime("v.y : %\n", v.y);
     imprime("v.z : %\n", v.z);
 
-    déloge(v);
+    déloge(*v);
 
     imprime("v   : %\n", v);
 

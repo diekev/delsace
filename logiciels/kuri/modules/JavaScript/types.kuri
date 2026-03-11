@@ -362,7 +362,7 @@ number_to_string :: fonc (realm: *Realm, valeur: Valeur, radix_mv: n32) -> Valeu
     part_décimale := x - part_entière;
 
     caractères: [..]z8;
-    diffère déloge(caractères);
+    diffère déloge(*caractères);
 
     chiffres :: "0123456789abcdefghijklmnopqrstuvwxyz";
 
@@ -1091,7 +1091,7 @@ is_array_index :: fonc (property_key: PropertyKey) -> bool
     texte := property_key.String.donne_chaine_utf16();
 
     texte_utf8 := convertis_vers_chaine(texte);
-    diffère déloge(texte_utf8);
+    diffère déloge(*texte_utf8);
 
     résultat := tente extrait_r64(texte_utf8) piège _ {
         retourne faux;
@@ -1106,7 +1106,7 @@ to_uint32 :: fonc (property_key: PropertyKey) -> n32
 
     /* À FAIRE */
     texte_utf8 := convertis_vers_chaine(texte);
-    diffère déloge(texte_utf8);
+    diffère déloge(*texte_utf8);
 
     résultat := tente extrait_r64(texte_utf8) piège nonatteignable;
     retourne résultat comme n32;
@@ -1188,14 +1188,14 @@ concatène :: fonc (realm: *Realm, str_gauche: *PrimitiveChaine, str_droite: *Pr
     chn2 := str_droite.texte.donne_chaine_utf16();
 
     enchaineuse: EnchaineuseUTF16;
-    initialise_enchaineuse(enchaineuse);
+    initialise_enchaineuse(*enchaineuse);
 
-    ajoute(enchaineuse, chn1);
-    ajoute(enchaineuse, chn2);
+    ajoute(*enchaineuse, chn1);
+    ajoute(*enchaineuse, chn2);
 
-    chn := chaine_depuis_enchaineuse(enchaineuse);
-    diffère détruit_chaine(chn);
-    chn_résultat := crée_chaine_utf16_unique(chn);
+    chn := chaine_depuis_enchaineuse(*enchaineuse);
+    diffère détruit_chaine(*chn);
+    chn_résultat := crée_chaine_utf16_unique(*chn);
 
     retourne Valeur(String = crée_chaine(realm, chn_résultat));
 }

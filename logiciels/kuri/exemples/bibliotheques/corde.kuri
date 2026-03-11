@@ -21,7 +21,7 @@ détruit_corde :: fonc (corde: *Corde) -> rien
     détruit_corde(corde.gauche);
     détruit_corde(corde.droite);
 
-    déloge(corde);
+    déloge(*corde);
 }
 
 corde_depuis_chaine :: fonc (chn: chaine) -> *Corde

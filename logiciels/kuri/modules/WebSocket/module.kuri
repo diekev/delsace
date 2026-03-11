@@ -218,7 +218,7 @@ accèpte_serrage_de_main :: fonc (extrémité: *Extrémité($TypePrise, $est_cli
     discr parse_paramètres_serveur_websocket(message) {
         Ok(params) {
             sec_websocket_accept := calcul_clé_serrage_de_main(chaine_depuis_tranche_octets(extrémité.sec_websocket_key));
-            diffère déloge(sec_websocket_accept);
+            diffère déloge(*sec_websocket_accept);
 
             si sec_websocket_accept != params.sec_websocket_accept {
                 imprime("[WebSocket] Sec-WebSocket-Accept invalide pour notre Sec-WebSocket-Key :\n    voulu  : %\n    obtenu : %\n", sec_websocket_accept, params.sec_websocket_accept);
@@ -542,9 +542,9 @@ détruit_message :: fonc (message: *Message)
     saufsi message {
         retourne;
     }
-    déloge(message.frames);
-    déloge(message.données);
-    déloge(message);
+    déloge(*message.frames);
+    déloge(*message.données);
+    déloge(*message);
 }
 
 donne_opcode_pour_réponse :: fonc (message: *Message) -> OpCode
@@ -992,7 +992,7 @@ calcul_clé_serrage_de_main :: fonc (clé_donnée: chaine) -> chaine
     */
 
     tmp := enchaine(clé_donnée, "258EAFA5-E914-47DA-95CA-C5AB0DC85B11");
-    diffère déloge(tmp);
+    diffère déloge(*tmp);
 
     sha1 := crée_sha1();
     diffère détruit(*sha1);
@@ -1019,6 +1019,6 @@ crée_valeur_sec_websocket_key :: fonc () -> [24]octet
 #test {
     // tiré de l'exemple donné dans la note de https://tools.ietf.org/html/rfc6455#page-24
     rés := calcul_clé_serrage_de_main("dGhlIHNhbXBsZSBub25jZQ==");
-    diffère { déloge(rés); }
+    diffère { déloge(*rés); }
     compilatrice_vérifie_égalité(rés, "s3pPLMBiTxaQ9kYGzzhZRbK+xOo=");
 }

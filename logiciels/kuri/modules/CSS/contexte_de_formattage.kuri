@@ -167,7 +167,7 @@ LigneDeFlottants :: struct {
 
 détruit_donnée_ligne :: fonc (ligne: *LigneDeFlottants)
 {
-    déloge(ligne.boites);
+    déloge(*ligne.boites);
 }
 
 ajoute_boite :: fonc (ligne: *LigneDeFlottants, boite: BoiteFlottante)
@@ -223,7 +223,7 @@ détruit_données_lignes :: fonc (contenant: *ContenantLignesDeFlottants)
     pour * contenant.lignes {
         détruit_donnée_ligne(it);
     }
-    déloge(contenant.lignes);
+    déloge(*contenant.lignes);
 }
 
 donne_dernière_ligne :: fonc (contenant: *ContenantLignesDeFlottants, containing_block: *ContainingBlock, gauche: bool) -> *LigneDeFlottants
@@ -323,7 +323,7 @@ ContexteDeFormattageBloc :: struct {
 
 détruit_données_contexte :: fonc (ctx: *ContexteDeFormattageBloc)
 {
-    déloge(ctx.marges);
+    déloge(*ctx.marges);
     détruit_données_lignes(*ctx.lignes_boites_flottantes_gauche);
     détruit_données_lignes(*ctx.lignes_boites_flottantes_droite);
 }
@@ -757,7 +757,7 @@ dispose_boite_absolute :: fonc (empl ctx: *ContexteDeFormattage, box: *BlockBox,
 dispose_les_boites_absolues :: fonc (ctx: *ContexteDeFormattage, containing_block: *Box)
 {
     boites_à_disposer: [..]BoiteAbsolue;
-    diffère déloge(boites_à_disposer);
+    diffère déloge(*boites_à_disposer);
 
     pour ctx.boites_absolues.boites {
         si it.containing_block != containing_block {
@@ -1224,7 +1224,7 @@ contexte_formattage_inline_sur_formatte :: fonc (base: *ContexteDeFormattage, bo
         définis_hauteur_contenu(*it.box.modèle_de_boite, (max_y - min_y) comme r32);
     }
 
-    déloge(ctx.boites_enlignées);
+    déloge(*ctx.boites_enlignées);
 
     discr mode {
         BrisureDeLigneExplicite,
@@ -1795,8 +1795,8 @@ contexte_formattage_flex_sur_formatte :: fonc (base: *ContexteDeFormattage, box:
     ctx.contenant = box;
 
     diffère {
-        déloge(ctx.items);
-        déloge(ctx.lignes);
+        déloge(*ctx.items);
+        déloge(*ctx.lignes);
     }
 
     direction := box.propriétés.donne_valeur_calculée(IDPropriété.FlexDirection).donne_mot_clé();

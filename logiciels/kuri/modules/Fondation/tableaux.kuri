@@ -24,13 +24,11 @@ reloge_tableau :: fonc (tableau: *[..]$T, nouvelle_taille: z64, pos := #position
     tableau.capacité = nouvelle_taille;
 }
 
-déloge :: fonc (tableau: &[..]$T, pos := #position_code_source)
+déloge :: fonc (tableau: *[..]$T, pos := #position_code_source)
 {
     ancienne_taille_en_octets := tableau.capacité * (taille_de(T) comme z64);
     déloge_mémoire(ancienne_taille_en_octets, tableau.pointeur, info_de([..]T), pos);
-    tableau.pointeur = nul;
-    tableau.capacité = 0;
-    tableau.taille = 0;
+    init_de([..]T)(tableau);
 }
 
 tableau_ajoute :: fonc (tabl: *[..]$T, valeur: T) -> rien #enligne
@@ -238,7 +236,7 @@ tableau_supprime_si :: fonc (tableau: *[..]$T, prédicat: fonc (v: T) -> bool)
         tableau_ajoute(*nouveau_tableau, it);
     }
 
-    déloge(temp);
+    déloge(*temp);
 
     mémoire(tableau) = nouveau_tableau;
 }
@@ -311,19 +309,13 @@ indice_élement :: fonc (tableau: []$T, adresse: *T) -> z64 #enligne
     retourne (adresse - tableau.pointeur);
 }
 
-tableau_détruit :: fonc (tableau: *[..]$T)
-{
-    déloge(mémoire(tableau));
-    init_de([..]T)(tableau);
-}
-
 déloge_tableau_et_ses_éléments :: fonc (tableau: *[..]$T)
 {
     /* À FAIRE(langage) : déréférencement automatique */
     pour tableau.taille {
-        déloge(tableau.pointeur[it]);
+        déloge(*tableau.pointeur[it]);
     }
-    tableau_détruit(tableau);
+    déloge(tableau);
 }
 
 déloge_tableau_et_ses_éléments :: fonc (tableau: *[..]$T, rappel_déloge_élément: fonc (v: T))
@@ -332,16 +324,7 @@ déloge_tableau_et_ses_éléments :: fonc (tableau: *[..]$T, rappel_déloge_él�
     pour tableau.taille {
         rappel_déloge_élément(tableau.pointeur[it]);
     }
-    tableau_détruit(tableau);
-}
-
-déloge_tableau_et_ses_éléments :: fonc (tableau: *[..]$T, rappel_déloge_élément: fonc (v: &T))
-{
-    /* À FAIRE(langage) : déréférencement automatique */
-    pour tableau.taille {
-        rappel_déloge_élément(tableau.pointeur[it]);
-    }
-    tableau_détruit(tableau);
+    déloge(tableau);
 }
 
 déloge_tableau_et_ses_éléments :: fonc (tableau: *[..]$T, rappel_déloge_élément: fonc (v: *T))
@@ -350,7 +333,7 @@ déloge_tableau_et_ses_éléments :: fonc (tableau: *[..]$T, rappel_déloge_él�
     pour tableau.taille {
         rappel_déloge_élément(*tableau.pointeur[it]);
     }
-    tableau_détruit(tableau);
+    déloge(tableau);
 }
 
 tableaux_sont_égaux :: fonc (tableau1: []$T, tableau2: []T) -> bool
