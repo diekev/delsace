@@ -15,7 +15,7 @@ CheminSélection :: struct {
 
 détruit_données_chemin :: fonc (chemin: *CheminSélection)
 {
-    déloge(chemin.points);
+    déloge(*chemin.points);
 }
 
 ajoute :: fonc (chemin: *CheminSélection, point: Point2D(r32))
@@ -90,10 +90,10 @@ crée_état_sélection :: fonc (géométrie: *GéométrieSélection, rafraichiss
 
 détruit_état_sélection :: fonc (sélection: *ÉtatSélection)
 {
-    déloge(sélection.sélection_courante);
-    déloge(sélection.état_sélection_éléments);
+    déloge(*sélection.sélection_courante);
+    déloge(*sélection.état_sélection_éléments);
     détruit_données_chemin(*sélection.chemin);
-    déloge(sélection);
+    déloge(*sélection);
 }
 
 donne_géométrie :: fonc (sélection: *ÉtatSélection) -> *GéométrieSélection
@@ -121,7 +121,7 @@ clic :: fonc (empl sélection: *ÉtatSélection, position: Point2D(r32))
 
     ajourne_état_sélection_éléments(sélection, domaine);
     
-    déloge(sélection.sélection_courante);
+    déloge(*sélection.sélection_courante);
     sélection.sélection_courante = domaine;
 
     si rafraichissement && rafraichissement.sur_rafraichissement {
@@ -140,7 +140,7 @@ clic_majuscule :: fonc (empl sélection: *ÉtatSélection, position: Point2D(r32
 
     ajourne_état_sélection_éléments(sélection, domaine);
     
-    déloge(sélection.sélection_courante);
+    déloge(*sélection.sélection_courante);
     sélection.sélection_courante = domaine;
 
     si rafraichissement && rafraichissement.sur_rafraichissement {
@@ -198,7 +198,7 @@ est_sur_sélectionné :: fonc (sélection: *ÉtatSélection, point: Point2D(r32)
     géométrie.grandis_chemin(*chemin, point);
 
     domaine := géométrie.donne_domaine_sélection(*chemin);
-    diffère déloge(domaine);
+    diffère déloge(*domaine);
 
     retourne domaine.taille == 1 && est_sélectionné(sélection, domaine[0]);
 }
@@ -332,7 +332,7 @@ crée_géométrie_rectangulaire :: fonc (éléments: *AdaptriceÉléments) -> *G
     sur_destruction :: fonc (base: *GéométrieSélection)
     {
         géométrie := base comme *GéométrieSélectionRectangle;
-        déloge(géométrie);
+        déloge(*géométrie);
     }
 
     résultat := loge(GéométrieSélectionRectangle);

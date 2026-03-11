@@ -67,7 +67,7 @@ Table :: struct {
 
 détruit_table :: fonc (table: *Table) -> rien
 {
-    déloge(table.lignes);
+    déloge(*table.lignes);
 }
 
 principale :: fonc ()

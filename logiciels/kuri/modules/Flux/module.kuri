@@ -139,7 +139,7 @@ initialise_flux_octets_mémoire :: fonc (résultat: *FluxOctetsMémoire, octets:
 
 flux_octets_mémoire_sur_destruction :: fonc (flux: *FluxOctetsMémoire)
 {
-    déloge(flux);
+    déloge(*flux);
 }
 
 flux_octets_mémoire_est_à_la_fin :: fonc (flux: *FluxOctetsMémoire) -> bool
@@ -317,7 +317,7 @@ initialise_flux_octets_fichier :: fonc (résultat: *FluxOctetsFichier, chemin: C
 
 flux_octets_fichier_sur_destruction :: fonc (flux: *FluxOctetsFichier)
 {
-    déloge(flux);
+    déloge(*flux);
 }
 
 flux_octets_fichier_lis :: fonc (base: *FluxOctets, tampon: []octet) -> z64

@@ -47,7 +47,7 @@ importe GreffeMétaprogramme;
     ajoute_fichier_à_la_compilation(espace, fichier);
 
     espaces: [..]EspaceDeTravail;
-    diffère déloge(espaces);
+    diffère déloge(*espaces);
 
     tableau_ajoute(*espaces, espace);
 

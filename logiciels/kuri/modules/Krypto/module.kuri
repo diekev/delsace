@@ -28,7 +28,7 @@ BCrypt_compare_empreinte :: fonc (mot_de_passe: chaine, empreinte: chaine) -> bo
 
     ok := nempreinte == empreinte;
 
-    déloge(nempreinte);
+    déloge(*nempreinte);
 
     retourne ok;
     // retourne BCrypt_compare_empreinte(mot_de_passe.pointeur, empreinte.pointeur) == 0
@@ -45,7 +45,7 @@ Condensat :: struct {
 
 détruit_données :: fonc (condensat: *Condensat)
 {
-    déloge(condensat.données);
+    déloge(*condensat.données);
 }
 
 donne_chaine :: fonc (condensat: Condensat) -> chaine
@@ -498,7 +498,7 @@ césar :: fonc (message: chaine, clé: z8) -> chaine
     }
 
     tmp := chaine_depuis_enchaineuse(*enchaineuse);
-    diffère déloge(tmp);
+    diffère déloge(*tmp);
 
     retourne prépare_résultat(tmp);
 }
@@ -523,7 +523,7 @@ vigenère :: fonc (message: chaine, clés: ...chaine) -> chaine
     }
 
     tmp := chaine_depuis_enchaineuse(*enchaineuse);
-    diffère déloge(tmp);
+    diffère déloge(*tmp);
 
     retourne prépare_résultat(tmp);
 }
@@ -545,7 +545,7 @@ scytale :: fonc (message: chaine, taille_clé: z32) -> chaine
     }
 
     tmp := chaine_depuis_enchaineuse(*enchaineuse);
-    diffère déloge(tmp);
+    diffère déloge(*tmp);
 
     retourne prépare_résultat(tmp);
 }

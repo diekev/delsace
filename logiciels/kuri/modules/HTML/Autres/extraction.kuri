@@ -32,13 +32,13 @@ parse_document_depuis_chemin :: fonc (chemin: chaine) -> ParsatHTML
     }
 
     _, contenu := contenu_fichier_texte(chemin);
-    diffère déloge(contenu);
+    diffère déloge(*contenu);
 
     parsat := parse_document(JS.donne_tas_de_mémoire(*__mv), contenu);
 
     si parsat.document {
         url := enchaine("file://", chemin);
-        diffère déloge(url);
+        diffère déloge(*url);
         parsat.document.url = basic_url_parser(url);
     }
 
@@ -93,13 +93,13 @@ principale :: fonc ()
     sélecteur := sélecteur_opt.Quelque;
 
     parsat := parse_document_depuis_chemin(args.fichier);
-    diffère détruit(parsat);
+    diffère détruit(*parsat);
 
     traversée: [..]*Node;
-    diffère déloge(traversée);
+    diffère déloge(*traversée);
 
     éléments: [..]*Element;
-    diffère déloge(éléments);
+    diffère déloge(*éléments);
 
     tableau_ajoute(*traversée, parsat.document);
 
@@ -127,7 +127,7 @@ principale :: fonc ()
 
     /* Rassemble les noeuds à garder. */
     noeuds_à_garder: [..]*Node;
-    diffère déloge(noeuds_à_garder);
+    diffère déloge(*noeuds_à_garder);
 
     pour parsat.document.enfants {
         si it.est_document_type() {
@@ -225,7 +225,7 @@ principale :: fonc ()
 
     /* Imprime le document. */
     texte := HTML_fragment_serialization(parsat.document, faux);
-    diffère détruit_chaine(texte);
+    diffère détruit_chaine(*texte);
 
     saufsi args.sortie {
         imprimeln("%", texte);
@@ -233,7 +233,7 @@ principale :: fonc ()
     }
 
     chaine_texte := texte.convertis_vers_chaine();
-    diffère déloge(chaine_texte);
+    diffère déloge(*chaine_texte);
 
     saufsi écris_fichier_entier(args.sortie, chaine_texte) {
         exit(0);

@@ -71,9 +71,9 @@ StatistiquesTests :: struct {
 détruit_données_stats :: fonc (stats: *StatistiquesTests)
 {
     pour stats.erreurs_captées {
-        déloge(it.fichier);
+        déloge(*it.fichier);
     }
-    déloge(stats.erreurs_captées);
+    déloge(*stats.erreurs_captées);
 }
 
 évalue_test :: fonc (chemin: CheminFichier, stats: *StatistiquesTests, utilise_code_binaire: bool)
@@ -81,7 +81,7 @@ détruit_données_stats :: fonc (stats: *StatistiquesTests)
     stats.nombre_de_fichiers += 1;
 
     _, contenu := contenu_fichier_texte(chemin);
-    diffère déloge(contenu);
+    diffère déloge(*contenu);
 
     mv: MachineVirtuelle;
     mv.utilise_code_binaire = utilise_code_binaire;
@@ -123,7 +123,7 @@ crée_environnement_de_test :: fonc (realm: *Realm)
 {
     chemin := "environnement_test.js";
     _, source := contenu_fichier_texte(chemin);
-    diffère déloge(source);
+    diffère déloge(*source);
     _ := exécute_script(realm, source, CheminFichier(chemin));
 }
 
@@ -187,7 +187,7 @@ capte_erreur_sur_destruction :: fonc (base: *Cellule)
     sur_destruction_objet(base);
 
     capte_erreur := base.vérifie_comme(CapteErreur);
-    déloge(capte_erreur.erreurs);
+    déloge(*capte_erreur.erreurs);
 }
 
 capte_erreur_ajoute_erreur :: fonc (empl params: *ParamètresObjectCall) -> Valeur
@@ -213,7 +213,7 @@ crée_propriétés_hôte_objet_global :: fonc (base: *ConfigurationRealm @inutil
 {
     flux_sortie_sur_destruction :: fonc (base: *FluxSortieConsole)
     {
-        déloge(base);
+        déloge(*base);
     }
 
     flux_sortie_sur_log :: fonc (base: *FluxSortieConsole @inutilisée, texte: chaine)

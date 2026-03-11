@@ -65,7 +65,7 @@ donne_chaine_date_républicaine :: fonc (date: Date) -> chaine
     chn_mois := [ "Vendémiaire", "Brumaire", "Frimaire", "Nivôse", "Pluviôse", "Ventôse", "Germinal", "Floréal", "Prairial", "Messidor", "Thermido", "Fructidor" ];
 
     chaine_année := chaine_chiffre_romain(date.année);
-    diffère déloge(chaine_année);
+    diffère déloge(*chaine_année);
 
     retourne imprime_chaine("% % % An %", chn_jour[(date.jour - 1) % 10], date.jour, chn_mois[date.mois], chaine_chiffre_romain(date.année));
 }
