@@ -214,12 +214,12 @@ opérateur == :: (calc1: CalcFunction, calc2: CalcFunction) -> bool #horsligne
 évalue_calc :: fonc (calc: CalcFunction, genre_valeur_calculée: GenreValeurCalculée, ctx: *ContexteCalculStyle) -> Résultat(*ValeurDeStyle, ErreurDeCalcul)
 {
     pile: Pile(NumericValue);
-    diffère détruit(pile);
+    diffère détruit(*pile);
 
     pour calc.valeurs {
         si it.est_opérateur {
-            droite := pile.dépile();
-            gauche := pile.dépile();
+            droite := dépile(*pile);
+            gauche := dépile(*pile);
             op := it.opérateur_calc;
 
             valeur := applique_opérateur_calc(op, gauche, droite);
@@ -229,7 +229,7 @@ opérateur == :: (calc1: CalcFunction, calc2: CalcFunction) -> bool #horsligne
                 retourne ErreurDeCalcul.FormuleInvalide;
             }
 
-            pile.empile(valeur.Quelque);
+            empile(*pile, valeur.Quelque);
             continue;
         }
 
@@ -257,16 +257,16 @@ opérateur == :: (calc1: CalcFunction, calc2: CalcFunction) -> bool #horsligne
             retourne ErreurDeCalcul.FormuleInvalide;
         }
 
-        pile.empile(numeric_value.Quelque);
+        empile(*pile, numeric_value.Quelque);
     }
 
-    si pile.taille() != 1 {
+    si taille(*pile) != 1 {
         tmp := ValeurCalc(valeur = calc);
         imprime("Trop de valeurs restantes pour : %\n", *tmp);
         retourne ErreurDeCalcul.FormuleInvalide;
     }
 
-    numeric_value := pile.dépile();
+    numeric_value := dépile(*pile);
 
     si numeric_value.type.base_type == "length" {
         retourne crée_valeur_pixels(numeric_value.value);
@@ -611,18 +611,18 @@ détruit_valeur_de_style :: fonc (valeur: *ValeurDeStyle)
     }
     sinon si valeur.est_url_absolu() {
         url := valeur.donne_url_absolu();
-        déloge_si_logée(url);
+        déloge_si_logée(*url);
     }
     sinon si valeur.est_calc() {
         calc := valeur.donne_calc();
-        déloge(calc.valeurs);
+        déloge(*calc.valeurs);
     }
     sinon si valeur.est_liste() {
         liste := (valeur comme *ValeurListe).valeur;
         pour liste {
             détruit_valeur_de_style(it);
         }
-        déloge(liste);
+        déloge(*liste);
     }
     sinon si valeur.est_background_position() {
         position := (valeur comme *ValeurBackgroundPosition).valeur;
@@ -1175,13 +1175,13 @@ permute :: fonc (a: *PropriétésDeStyle, b: *PropriétésDeStyle)
 
 détruit_données_propriétés :: fonc (propriétés: *PropriétésDeStyle)
 {
-    déloge(propriétés.déclarations);
+    déloge(*propriétés.déclarations);
 }
 
 détruit_propriétés :: fonc (propriétés: *PropriétésDeStyle)
 {
     détruit_données_propriétés(propriétés);
-    déloge(propriétés);
+    déloge(*propriétés);
 }
 
 ajoute_déclaration :: fonc (propriétés: *PropriétésDeStyle, déclaration: *DéclarationPropriété)
@@ -1736,7 +1736,7 @@ calcule_style :: fonc (ctx: *ContexteCalculStyle, étape: ÉtapeCalculStyle)
 
             _ := info.sur_parsage_shorthand(*ctx_parsage, valeurs);
 
-            déloge(valeurs);
+            déloge(*valeurs);
             continue;
         }
 

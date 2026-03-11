@@ -30,7 +30,7 @@ crée_labyrinthe :: fonc (taille_x: z32, taille_y: z32) -> Labyrinthe
 
 détruit_données_labyrinthe :: fonc (labyrinthe: *Labyrinthe)
 {
-    déloge(labyrinthe.données);
+    déloge(*labyrinthe.données);
     init_de(Labyrinthe)(labyrinthe);
 }
 
@@ -91,7 +91,7 @@ initialise_murs_pseudo_labyrinthe :: fonc (labyrinthe: *Labyrinthe, entropie: *S
     }
 
     est_poste: [..]bool;
-    diffère déloge(est_poste);
+    diffère déloge(*est_poste);
     tableau_redimensionne_défaut(*est_poste, nombre_de_cellules, faux);
 
     /* Remplis chaque cellule de colonne impaire pour chaque ligne paire. */
@@ -236,7 +236,7 @@ détruit_données_constructrice :: fonc (constructrice: *ConstructriceMéthodeEl
 {
     détruit_groupes(constructrice.groupes);
     détruit_groupes(constructrice.groupes_libres);
-    déloge(constructrice.ligne_courante);
+    déloge(*constructrice.ligne_courante);
 }
 
 détruit_groupes :: fonc (groupes: *ConstructriceMéthodeEller.Groupe)
@@ -245,8 +245,8 @@ détruit_groupes :: fonc (groupes: *ConstructriceMéthodeEller.Groupe)
     tantque groupe != nul {
         groupe_suivant := groupe.suivant;
 
-        déloge(groupe.cellules);
-        déloge(groupe);
+        déloge(*groupe.cellules);
+        déloge(*groupe);
 
         groupe = groupe_suivant;
     }

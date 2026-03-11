@@ -186,7 +186,7 @@ détruit_données :: fonc (structure: *SDT($T))
     initialise_enchaineuse(*enchaineuse);
 
     pour rubriques_sdt(infos) {
-        ajoute_au_tampon(*enchaineuse, "déloge(structure.", it.nom, ");\n");
+        ajoute_au_tampon(*enchaineuse, "déloge(*structure.", it.nom, ");\n");
     }
 
     source := chaine_depuis_enchaineuse(*enchaineuse);
@@ -201,7 +201,7 @@ copie :: fonc (structure: *SDT($T))
     initialise_enchaineuse(*enchaineuse);
 
     pour rubriques_sdt(infos) {
-        ajoute_au_tampon(*enchaineuse, "déloge(structure.", it.nom, ");\n");
+        ajoute_au_tampon(*enchaineuse, "déloge(*structure.", it.nom, ");\n");
     }
 
     source := chaine_depuis_enchaineuse(*enchaineuse);

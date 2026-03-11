@@ -71,20 +71,6 @@ static NoeudDéclarationEntêteFonction *est_appel_fonction_intrinsèque(NoeudEx
     return est_appel_fonction_avec_drapeau(expression, DrapeauxNoeudFonction::EST_INTRINSÈQUE);
 }
 
-static bool est_référence_compatible_pointeur(Type const *type_dest, Type const *type_source)
-{
-    if (!type_source->est_type_référence()) {
-        return false;
-    }
-
-    if (type_source->comme_type_référence()->type_pointé !=
-        type_dest->comme_type_pointeur()->type_pointé) {
-        return false;
-    }
-
-    return true;
-}
-
 static bool type_dest_et_type_source_sont_compatibles(Typeuse &typeuse,
                                                       Type const *type_dest,
                                                       Type const *type_source)
@@ -111,21 +97,6 @@ static bool type_dest_et_type_source_sont_compatibles(Typeuse &typeuse,
     /* À FAIRE : supprime les entiers constants. */
     if (type_source->est_type_entier_constant() && est_type_entier(type_élément_dest)) {
         return true;
-    }
-
-    /* Certaines références sont converties en pointeur, nous devons vérifier ce cas. Les erreurs
-     * de sémantiques devraient déjà avoir été attrappées lors de la validation sémantique.
-     * À FAIRE : supprimer les références de la RI, ou les garder totalement. */
-    if (est_référence_compatible_pointeur(type_élément_dest, type_source)) {
-        return true;
-    }
-
-    /* Comme pour au-dessus, dans certains cas une fonction espère une référence mais la valeur est
-     * un pointeur. */
-    if (type_source->est_type_pointeur()) {
-        if (est_référence_compatible_pointeur(type_source, type_élément_dest)) {
-            return true;
-        }
     }
 
     /* On ne peut pas transtyper dans la coulisse C entre une union et son type le plus grand. */
@@ -199,9 +170,6 @@ static bool sont_types_compatibles_pour_param_appel(Type const *paramètre, Type
         return true;
     }
     if (est_type_entier(paramètre) && expression->est_type_entier_constant()) {
-        return true;
-    }
-    if (est_référence_compatible_pointeur(paramètre, expression)) {
         return true;
     }
     return false;
@@ -683,7 +651,7 @@ InstructionStockeMem *ConstructriceRI::crée_stocke_mem(NoeudExpression const *s
                                                        Atome *valeur,
                                                        bool crée_seulement)
 {
-    assert_rappel(ou->type->est_type_pointeur() || ou->type->est_type_référence(), [&]() {
+    assert_rappel(ou->type->est_type_pointeur(), [&]() {
         dbg() << "Le type n'est pas un pointeur : " << chaine_type(ou->type) << '\n'
               << imprime_site(site_);
     });
@@ -719,7 +687,7 @@ InstructionChargeMem *ConstructriceRI::crée_charge_mem(NoeudExpression const *s
                                                        bool crée_seulement)
 {
     /* nous chargeons depuis une adresse en mémoire, donc nous devons avoir un pointeur */
-    assert_rappel(ou->type->est_type_pointeur() || ou->type->est_type_référence(), [&]() {
+    assert_rappel(ou->type->est_type_pointeur(), [&]() {
         dbg() << "Le type est '" << chaine_type(ou->type) << "'\n" << imprime_site(site_);
     });
 
@@ -947,7 +915,7 @@ InstructionAccèsRubrique *ConstructriceRI::crée_référence_rubrique(NoeudExpr
                                                                    int indice,
                                                                    bool crée_seulement)
 {
-    assert_rappel(accédé->type->est_type_pointeur() || accédé->type->est_type_référence(),
+    assert_rappel(accédé->type->est_type_pointeur(),
                   [=]() { dbg() << "Type accédé : '" << chaine_type(accédé->type) << "'"; });
 
     auto const *type_élément = type_déréférencé_pour(accédé->type);
@@ -1398,9 +1366,6 @@ AtomeConstante *ConstructriceRI::crée_initialisation_défaut_pour_type(Type con
         {
             return crée_constante_booléenne(false);
         }
-        /* Les seules réféences pouvant être nulles sont celles générées par la compilatrice pour
-         * les boucles pour. */
-        case GenreNoeud::RÉFÉRENCE:
         case GenreNoeud::POINTEUR:
         case GenreNoeud::FONCTION:
         case GenreNoeud::TYPE_DE_DONNÉES:
@@ -1893,7 +1858,6 @@ void CompilatriceRI::génère_ri_pour_noeud(NoeudExpression *noeud, Atome *place
         case GenreNoeud::ENTIER_NATUREL:
         case GenreNoeud::CHAINE:
         case GenreNoeud::POINTEUR:
-        case GenreNoeud::RÉFÉRENCE:
         case GenreNoeud::EINI:
         case GenreNoeud::ERREUR:
         case GenreNoeud::ENUM_DRAPEAU:
@@ -2516,25 +2480,11 @@ void CompilatriceRI::génère_ri_pour_noeud(NoeudExpression *noeud, Atome *place
             auto prise_adresse = noeud->comme_prise_adresse();
             génère_ri_pour_noeud(prise_adresse->opérande);
             auto valeur = dépile_valeur();
-            if (prise_adresse->opérande->type->est_type_référence()) {
-                valeur = m_constructrice.crée_charge_mem(noeud, valeur);
-            }
 
             if (!expression_gauche) {
                 valeur = crée_temporaire(noeud, valeur);
             }
 
-            empile_valeur(valeur, noeud);
-            return;
-        }
-        case GenreNoeud::EXPRESSION_PRISE_RÉFÉRENCE:
-        {
-            auto prise_référence = noeud->comme_prise_référence();
-            génère_ri_pour_noeud(prise_référence->opérande);
-            auto valeur = dépile_valeur();
-            valeur = m_constructrice.crée_transtype(
-                noeud, noeud->type, valeur, TypeTranstypage::BITS);
-            valeur = crée_temporaire(noeud, valeur);
             empile_valeur(valeur, noeud);
             return;
         }
@@ -2845,14 +2795,6 @@ void CompilatriceRI::génère_ri_pour_noeud(NoeudExpression *noeud, Atome *place
         {
             auto inst = noeud->comme_comme();
             auto expr = inst->expression;
-
-            if (expression_gauche &&
-                inst->transformation.type == TypeTransformation::DÉRÉFERENCE) {
-                génère_ri_pour_noeud(expr);
-                /* déréférence l'adresse du pointeur */
-                empile_valeur(m_constructrice.crée_charge_mem(noeud, dépile_valeur()), noeud);
-                break;
-            }
 
             auto alloc = place;
             if (!alloc) {
@@ -3261,13 +3203,6 @@ void CompilatriceRI::transforme_valeur(NoeudExpression const *noeud,
     switch (transformation.type) {
         case TypeTransformation::IMPOSSIBLE:
         {
-            break;
-        }
-        case TypeTransformation::PRENDS_RÉFÉRENCE_ET_CONVERTIS_VERS_BASE:
-        {
-            assert_rappel(false, [&]() {
-                dbg() << "PRENDS_RÉFÉRENCE_ET_CONVERTIS_VERS_BASE utilisée dans la RI !";
-            });
             break;
         }
         case TypeTransformation::INUTILE:
@@ -3831,17 +3766,6 @@ void CompilatriceRI::transforme_valeur(NoeudExpression const *noeud,
                 noeud, valeur, m_espace->interface_kuri->decl_dls_depuis_r64);
             break;
         }
-        case TypeTransformation::PRENDS_RÉFÉRENCE:
-        {
-            // RÀF : valeur doit déjà être un pointeur
-            break;
-        }
-        case TypeTransformation::DÉRÉFERENCE:
-        {
-            valeur = m_constructrice.crée_charge_mem(noeud, valeur);
-            valeur = m_constructrice.crée_charge_mem(noeud, valeur);
-            break;
-        }
         case TypeTransformation::CONVERTIS_VERS_BASE:
         {
             valeur = crée_transtype_entre_base_et_dérivé(
@@ -3917,7 +3841,7 @@ void CompilatriceRI::génère_ri_pour_accès_rubrique(NoeudExpressionRubrique co
     génère_ri_pour_noeud(accede);
     auto pointeur_accede = dépile_valeur();
 
-    while (type_accede->est_type_pointeur() || type_accede->est_type_référence()) {
+    while (type_accede->est_type_pointeur()) {
         type_accede = type_déréférencé_pour(type_accede);
         pointeur_accede = m_constructrice.crée_charge_mem(noeud, pointeur_accede);
     }
@@ -3940,7 +3864,7 @@ void CompilatriceRI::génère_ri_pour_accès_rubrique_union(NoeudExpressionRubri
     auto ptr_union = dépile_valeur();
     auto type = noeud->accédée->type;
 
-    while (type->est_type_pointeur() || type->est_type_référence()) {
+    while (type->est_type_pointeur()) {
         type = type_déréférencé_pour(type);
         ptr_union = m_constructrice.crée_charge_mem(noeud, ptr_union);
     }
@@ -4295,22 +4219,20 @@ AtomeGlobale *CompilatriceRI::crée_info_type(Type const *type, NoeudExpression 
             type->atome_info_type = crée_info_type_défaut(GenreInfoType::RÉEL, type);
             break;
         }
-        case GenreNoeud::RÉFÉRENCE:
         case GenreNoeud::POINTEUR:
         {
             auto type_deref = type_déréférencé_pour(type);
 
-            /* { rubriques basiques, type_pointé, est_référence } */
-            auto valeurs = kuri::tableau<AtomeConstante *>(3);
+            /* { rubriques basiques, type_pointé } */
+            auto valeurs = kuri::tableau<AtomeConstante *>(2);
             valeurs[0] = crée_constante_info_type_pour_base(GenreInfoType::POINTEUR, type);
-            valeurs[1] = m_constructrice.crée_constante_booléenne(type->est_type_référence());
             if (type_deref) {
-                valeurs[2] = crée_info_type_avec_transtype(type_deref, site);
+                valeurs[1] = crée_info_type_avec_transtype(type_deref, site);
             }
             else {
                 auto type_pointeur_info_type = m_espace->typeuse.type_pointeur_pour(
                     m_espace->typeuse.type_info_type_, false);
-                valeurs[2] = m_constructrice.crée_constante_nulle(type_pointeur_info_type);
+                valeurs[1] = m_constructrice.crée_constante_nulle(type_pointeur_info_type);
             }
 
             type->atome_info_type = crée_globale_info_type(
@@ -5387,7 +5309,7 @@ void CompilatriceRI::ajourne_indice_rubrique_union(NoeudExpression *expression)
     auto noeud = expression->comme_référence_rubrique_union();
     auto type = noeud->accédée->type;
 
-    while (type->est_type_pointeur() || type->est_type_référence()) {
+    while (type->est_type_pointeur()) {
         type = type_déréférencé_pour(type);
     }
 

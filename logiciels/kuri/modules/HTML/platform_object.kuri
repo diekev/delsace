@@ -289,7 +289,7 @@ donne_platform_object :: fonc (interpréteuse: *JS.Interpréteuse, value: JS.Val
     info_type := info_de(Type);
     saufsi est_struct_ou_employeuse_de(JS.donne_info_type_cellule(object), info_type) {
         message := imprime_chaine("object is not a '%'", info_type.nom);
-        diffère déloge(message);
+        diffère déloge(*message);
         _ := JS.lance_type_error(interpréteuse, message);
         retourne nul;
     }

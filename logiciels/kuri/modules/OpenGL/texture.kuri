@@ -27,7 +27,7 @@ initialise_atlas_texture :: fonc (atlas: *AtlasTexture, nombre: n32)
 déloge_atlas_texture :: fonc (atlas: *AtlasTexture)
 {
     détruit_données_atlas(atlas, faux);
-    déloge(atlas);
+    déloge(*atlas);
 }
 
 détruit_données_atlas :: fonc (empl atlas: *AtlasTexture, renouvel: bool)
@@ -109,7 +109,7 @@ initialise_texture_2d :: fonc (texture: *Texture2D, nombre: n32)
 déloge_texture_2d :: fonc (texture: *Texture2D)
 {
     détruit_données_texture(texture, faux);
-    déloge(texture);
+    déloge(*texture);
 }
 
 détruit_données_texture :: fonc (empl texture: *Texture2D, renouvel: bool)

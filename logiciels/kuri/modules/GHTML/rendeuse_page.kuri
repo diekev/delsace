@@ -15,7 +15,7 @@ détruit_rendeuse :: fonc (rendeuse_gabarit: *RendeusePage) -> rien
 
     détruit_catalogue(*rendeuse_gabarit.catalogue);
 
-    déloge(rendeuse_gabarit.cache_page);
+    déloge(*rendeuse_gabarit.cache_page);
 }
 
 PageGabarit :: struct {
@@ -72,8 +72,8 @@ trouve_dans_cache :: fonc (rendeuse_gabarit: *RendeusePage, nom_court: chaine) -
     racine : *NoeudSyntaxique = nul;
 
     /* le fichier est vide */
-    saufsi syntaxeuse.assembleuse.pile.est_vide() {
-        racine = syntaxeuse.assembleuse.pile.tête();
+    saufsi est_vide(*syntaxeuse.assembleuse.pile) {
+        racine = tête(*syntaxeuse.assembleuse.pile);
     }
 
     si syntaxeuse.est_extension {
@@ -87,7 +87,7 @@ trouve_dans_cache :: fonc (rendeuse_gabarit: *RendeusePage, nom_court: chaine) -
                 blocs: [..]*NoeudSyntaxique;
                 rassemble_blocs(racine, *blocs);
                 remplace_blocs(nouvelle_racine, blocs);
-                déloge(blocs);
+                déloge(*blocs);
 
                 racine = nouvelle_racine;
             }
@@ -207,7 +207,7 @@ rends_page :: fonc (rendeuse_gabarit: *RendeusePage, nom_court: chaine, données
     erreur_ := génère_page(*données_génération, page.racine, *enchaineuse);
 
     si erreur_ {
-        diffère déloge(erreur_);
+        diffère déloge(*erreur_);
         retourne enchaine("<h1>Erreur GHTML</h1><div><pre>", erreur_, "</pre><div>");
     }
 

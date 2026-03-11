@@ -79,7 +79,7 @@ ouvre_flux_vidéo_depuis_fichier :: fonc (résultat: *FluxVidéo, chemin: chaine
     détruit_données_flux_vidéo(résultat);
 
     input_file := crée_chaine_c(chemin);
-    diffère détruit_chaine_c(input_file);
+    diffère détruit_chaine_c(*input_file);
 
     // Open input file and allocate format context
     format_ctx: *AVFormatContext;

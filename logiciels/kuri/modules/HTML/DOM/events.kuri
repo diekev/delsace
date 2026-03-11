@@ -236,8 +236,8 @@ table_virtuelle_event := TableVirtuellePlatformObject(
 event_sur_destruction :: fonc (base: *JS.Cellule)
 {
     event := base comme *Event;
-    déloge(event.touch_target_list);
-    déloge(event.path);
+    déloge(*event.touch_target_list);
+    déloge(*event.path);
 }
 
 #portée_export
@@ -377,8 +377,8 @@ event_target_sur_destruction :: fonc (base: *JS.Cellule)
 {
     platform_object_sur_destruction(base);
     target := base comme *EventTarget;
-    déloge(target.listeners);
-    déloge(target.event_handlers);
+    déloge(*target.listeners);
+    déloge(*target.event_handlers);
 }
 
 /* Implémentation défaut pour get_the_parent. */
@@ -557,7 +557,7 @@ donne_document_associé :: fonc (target: *EventTarget) -> *Document
 add_event_listener :: fonc (target: *EventTarget, type: ChaineUTF16Unique, callback: *CallbackType, options : *AddEventListenerOptions = nul)
 {
     chn_type := convertis_vers_chaine(type.donne_chaine_utf16());
-    diffère déloge(chn_type);
+    diffère déloge(*chn_type);
 
     valeur_type, trouvé := donne_valeur_énum_pour_nom(info_de(EventType), chn_type);
     saufsi trouvé {
@@ -840,7 +840,7 @@ dispatch :: fonc (event: *Event, target: *EventTarget, legacy_target_override : 
     event.current_target = nul;
 
     // 8. Set event’s path to the empty list.
-    déloge(event.path);
+    déloge(*event.path);
 
     // 9. Unset event’s dispatch flag, stop propagation flag, and stop immediate propagation flag.
     event.dispatch = faux;
@@ -856,7 +856,7 @@ dispatch :: fonc (event: *Event, target: *EventTarget, legacy_target_override : 
         event.related_target = nul;
 
         // 3. Set event’s touch target list to the empty list.
-        déloge(event.touch_target_list);
+        déloge(*event.touch_target_list);
     }
 
     // 11. If activationTarget is non-null, then:
@@ -909,7 +909,7 @@ invoke :: fonc (struct_: *Event.Path, event: *Event, phase: chaine, legacy_outpu
 
     // 6. Let listeners be a clone of event’s currentTarget attribute value’s event listener list.
     listeners := tableau_copie(event.current_target.listeners);
-    diffère déloge(listeners);
+    diffère déloge(*listeners);
 
     // 7. Let invocationTargetInShadowTree be struct’s invocation-target-in-shadow-tree.
     invocation_target_in_shadow_tree := struct_.invocation_target_in_shadow_tree;

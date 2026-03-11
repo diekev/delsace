@@ -750,14 +750,6 @@ static void aplatis_arbre(NoeudExpression *racine,
             arbre_aplatis.ajoute(prise_adresse);
             break;
         }
-        case GenreNoeud::EXPRESSION_PRISE_RÉFÉRENCE:
-        {
-            auto prise_référence = racine->comme_prise_référence();
-            prise_référence->position |= position;
-            aplatis_arbre(prise_référence->opérande, arbre_aplatis, position);
-            arbre_aplatis.ajoute(prise_référence);
-            break;
-        }
         case GenreNoeud::EXPRESSION_NÉGATION_LOGIQUE:
         {
             auto négation = racine->comme_négation_logique();
@@ -2128,7 +2120,7 @@ kuri::chaine nom_humainement_lisible(NoeudExpression const *noeud)
 Type *donne_type_accédé_effectif(Type *type_accédé)
 {
     /* nous pouvons avoir une référence d'un pointeur, donc déréférence au plus */
-    while (type_accédé->est_type_pointeur() || type_accédé->est_type_référence()) {
+    while (type_accédé->est_type_pointeur()) {
         type_accédé = type_déréférencé_pour(type_accédé);
     }
 
@@ -2183,15 +2175,7 @@ NoeudDéclarationEntêteFonction *crée_entête_pour_initialisation_type(Type *t
         auto déclaration_paramètre = assembleuse->crée_déclaration_variable(
             &lexème_déclaration, type_param, ID::pointeur, nullptr);
         déclaration_paramètre->drapeaux |= DrapeauxNoeud::DECLARATION_FUT_VALIDEE;
-
-        if (type->est_type_référence()) {
-            /* Les références ne sont pas initialisées. Marquons-les comme tel afin de plaire aux
-             * coulisses. */
-            déclaration_paramètre->drapeaux |= DrapeauxNoeud::EST_MARQUÉE_INUTILISÉE;
-        }
-        else {
-            déclaration_paramètre->drapeaux |= DrapeauxNoeud::EST_UTILISEE;
-        }
+        déclaration_paramètre->drapeaux |= DrapeauxNoeud::EST_UTILISEE;
 
         entête->params.ajoute(déclaration_paramètre);
     }
@@ -2306,10 +2290,6 @@ static void crée_initialisation_défaut_pour_type(Type *type,
         {
             auto valeur_défaut = assembleuse->crée_littérale_réel(&lexème_sentinel, type, 0);
             crée_assignation(assembleuse, ref_param, valeur_défaut);
-            break;
-        }
-        case GenreNoeud::RÉFÉRENCE:
-        {
             break;
         }
         case GenreNoeud::POINTEUR:
@@ -2510,7 +2490,6 @@ void crée_noeud_initialisation_type(Contexte *contexte, Type *type)
         case GenreNoeud::ENTIER_RELATIF:
         case GenreNoeud::TYPE_DE_DONNÉES:
         case GenreNoeud::RÉEL:
-        case GenreNoeud::RÉFÉRENCE:
         case GenreNoeud::POINTEUR:
         case GenreNoeud::FONCTION:
         case GenreNoeud::TABLEAU_FIXE:

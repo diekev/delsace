@@ -15,7 +15,7 @@ principale :: fonc ()
     saufsi succès {
         exit(1);
     }
-    diffère déloge(contenu);
+    diffère déloge(*contenu);
 
     saufsi est_fichier_elf(contenu) {
         exit(1);
