@@ -21,6 +21,6 @@ principale :: fonc ()
             _ := usleep(10_000);
         }
 
-        // déloge(tableau)
+        // déloge(*tableau)
     }
 }

@@ -217,7 +217,7 @@ initialise_caméra :: fonc (enveloppe: *Caméra2DObservable)
 détruit_caméra :: fonc (enveloppe: *Caméra2DObservable)
 {
     détruit_données_observable(enveloppe);
-    déloge(enveloppe);
+    déloge(*enveloppe);
 }
 
 donne_hauteur :: fonc (enveloppe: *Caméra2DObservable) -> z32

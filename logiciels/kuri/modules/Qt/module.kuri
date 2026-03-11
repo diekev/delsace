@@ -187,7 +187,7 @@ définis_valeur :: fonc (variant: *QT_Variant, valeur: $T)
             si infos.est_drapeau {
                 valeur_nom := imprime_chaine("%", valeur);
                 variant.definis_chaine(variant, vers_qt(valeur_nom));
-                déloge(valeur_nom);
+                déloge(*valeur_nom);
             }
             sinon {
                 valeur_eini : eini = ---;
@@ -543,7 +543,7 @@ __filtre_tâches_finies_sur_évènement :: fonc (base: *QT_Rappels_Object @inuti
         ctx := contexte();
         ctx.allocatrice = allocatrice_défaut;
         pousse_contexte ctx {
-            déloge(message);
+            déloge(*message);
         }
 
         retourne 1;
@@ -613,7 +613,7 @@ détruit_tampon_rappels :: fonc (tampon: *TamponRappels)
     page_courante := tampon.page_de_base.page_suivante;
     tantque page_courante != nul {
         page_suivante := page_courante.page_suivante;
-        déloge(page_courante);
+        déloge(*page_courante);
         page_courante = page_suivante;
     }
     tampon.page_de_base.occupés = 0;

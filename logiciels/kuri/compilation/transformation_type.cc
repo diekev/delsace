@@ -337,55 +337,6 @@ RésultatTransformation cherche_transformation(Type const *type_de, Type const *
 
             break;
         }
-        case GenreNoeud::RÉFÉRENCE:
-        {
-            auto type_élément_vers = type_vers->comme_type_référence()->type_pointé;
-
-            if (type_de->est_type_référence()) {
-                auto type_élément_de = type_de->comme_type_référence()->type_pointé;
-
-                REQUIERS_TYPE_VALIDE(type_élément_de);
-                REQUIERS_TYPE_VALIDE(type_élément_vers);
-
-                auto décalage_type_base = est_type_de_base(type_élément_de, type_élément_vers);
-                if (décalage_type_base) {
-                    return TransformationType::vers_base(type_vers, décalage_type_base.value());
-                }
-            }
-
-            if (type_élément_vers == type_de) {
-                return TransformationType(TypeTransformation::PRENDS_RÉFÉRENCE);
-            }
-
-            REQUIERS_TYPE_VALIDE(type_de);
-            REQUIERS_TYPE_VALIDE(type_élément_vers);
-
-            auto décalage_type_base = est_type_de_base(type_de, type_élément_vers);
-            if (décalage_type_base) {
-                return TransformationType::prends_référence_vers_base(type_vers,
-                                                                      décalage_type_base.value());
-            }
-
-            if (POUR_TRANSTYPAGE) {
-                if (type_de->est_type_référence()) {
-                    auto type_pointe_de = type_de->comme_type_référence()->type_pointé;
-                    auto type_pointe_vers = type_vers->comme_type_référence()->type_pointé;
-
-                    if (type_pointe_de->est_type_structure() &&
-                        type_pointe_vers->est_type_structure()) {
-                        auto ts_de = type_pointe_de->comme_type_structure();
-                        auto ts_vers = type_pointe_vers->comme_type_structure();
-
-                        décalage_type_base = est_type_de_base(ts_vers, ts_de);
-                        if (décalage_type_base) {
-                            return TransformationType::vers_dérivé(type_vers,
-                                                                   décalage_type_base.value());
-                        }
-                    }
-                }
-            }
-            break;
-        }
         case GenreNoeud::POINTEUR:
         {
             if (type_de->est_type_type_de_données()) {
@@ -642,12 +593,6 @@ RésultatTransformation cherche_transformation(Type const *type_de, Type const *
         return TransformationType{TypeTransformation::EXTRAIT_EINI, type_vers};
     }
 
-    if (type_de->est_type_référence()) {
-        if (type_de->comme_type_référence()->type_pointé == type_vers) {
-            return TransformationType(TypeTransformation::DÉRÉFERENCE);
-        }
-    }
-
     if (type_de->est_type_opaque()) {
         auto type_opacifié = type_de->comme_type_opaque()->type_opacifié;
         auto résultat = cherche_transformation(type_opacifié, type_vers);
@@ -760,10 +705,6 @@ RésultatPoidsTransformation vérifie_compatibilité(Type const *type_vers,
     auto transformation = std::get<TransformationType>(résultat);
 
     auto poids = donne_poids_transformation(transformation.type, ignore_entier_constant);
-
-    if (transformation.type == TypeTransformation::PRENDS_RÉFÉRENCE) {
-        poids = est_valeur_gauche(noeud->genre_valeur) ? 1.0 : 0.0;
-    }
 
     return PoidsTransformation{transformation, poids};
 }

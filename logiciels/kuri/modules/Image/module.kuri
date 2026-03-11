@@ -195,7 +195,7 @@ détruit_données_image :: fonc (image: *NouvelleImage)
     données.pointeur = image.données;
     données.capacité = taille_données;
 
-    déloge(données);
+    déloge(*données);
     image.données = nul;
 
     si image.gif {
@@ -207,7 +207,7 @@ détruit_données_image :: fonc (image: *NouvelleImage)
 charge_image :: fonc (chemin: chaine) -> (bool, NouvelleImage)
 {
     _, contenu := contenu_fichier_binaire(CheminFichier(chemin));
-    diffère déloge(contenu);
+    diffère déloge(*contenu);
     retourne décode_image(contenu, "", chemin);
 }
 
@@ -265,7 +265,7 @@ décode_image :: fonc (données: []octet, type_mime: chaine, chemin := "") -> (b
 
     si type_mime == MIME_image_svg {
         chaine_c := crée_chaine_c(chaine(données.pointeur comme *z8, données.taille));
-        diffère détruit_chaine_c(chaine_c);
+        diffère détruit_chaine_c(*chaine_c);
 
         image_svg: SVGImage;
         saufsi SVG_parse_image_depuis_contenu(chaine_c comme *z8, *image_svg) {
@@ -299,7 +299,7 @@ décode_image :: fonc (données: []octet, type_mime: chaine, chemin := "") -> (b
     diffère IMG_detruit_proxy(proxy_image);
 
     chn_c_chemin := crée_chaine_c(chemin);
-    diffère détruit_chaine_c(chn_c_chemin);
+    diffère détruit_chaine_c(*chn_c_chemin);
 
     image: ImageIO;
     résultat_lecture_image := IMG_ouvre_image_avec_proxy(chn_c_chemin, *image, proxy_image, ImageIO_DataType.UNKNOWN);
@@ -508,7 +508,7 @@ liboiio_util :: #bibliothèque "OpenImageIO_Util";
     image_io.taille_donnees = donne_taille_données(*image.desc);
 
     chn_c_sortie := crée_chaine_c(chemin.chn);
-    diffère détruit_chaine_c(chn_c_sortie);
+    diffère détruit_chaine_c(*chn_c_sortie);
 
     _ := IMG_ecris_image(chn_c_sortie comme *z8, *image_io);
 }
@@ -1143,9 +1143,9 @@ InfoFormatImageSupporté :: struct {
 détruit_infos :: fonc (infos: [..]InfoFormatImageSupporté)
 {
     pour infos {
-        déloge(it.extensions);
+        déloge(*it.extensions);
     }
-    déloge(infos);
+    déloge(*infos);
 }
 
 compare_info_image_supportée_par_nom :: fonc (a: InfoFormatImageSupporté, b: InfoFormatImageSupporté) -> z32
@@ -1168,15 +1168,15 @@ donne_infos_formats_images_supportés :: fonc () -> [..]InfoFormatImageSupporté
     tableau_réserve(*résultat, nombre_de_doubles_points + 3);
 
     paires_type_extensions := divise(chn_liste_extensions, ';');
-    diffère déloge(paires_type_extensions);
+    diffère déloge(*paires_type_extensions);
 
     type_et_extensions: [..]chaine;
     tableau_réserve(*type_et_extensions, nombre_d_extensions);
-    diffère déloge(type_et_extensions);
+    diffère déloge(*type_et_extensions);
 
     extensions: [..]chaine;
     tableau_réserve(*extensions, nombre_d_extensions);
-    diffère déloge(extensions);
+    diffère déloge(*extensions);
 
     pour paires_type_extensions {
         divise(it, ':', *type_et_extensions);

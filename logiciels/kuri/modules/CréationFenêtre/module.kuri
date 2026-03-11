@@ -23,14 +23,14 @@ ajourne_évènements_fenêtre :: fonc (type_fenêtre: TypeFenêtre) -> []Évène
 {
     si type_fenêtre.système == SystèmeFenêtre.NATIVE {
         pour __évènements {
-            déloge(it.texte);
+            déloge(*it.texte);
 
             pour données_mime dans it.mimes {
-                déloge(données_mime.type);
-                déloge(données_mime.données);
+                déloge(*données_mime.type);
+                déloge(*données_mime.données);
             }
 
-            déloge(it.mimes);
+            déloge(*it.mimes);
         }
         __évènements.taille = 0;
         x11_ajourne_évènements_fenêtre(type_fenêtre);
@@ -681,7 +681,7 @@ x11_crée_fenêtre :: fonc (largeur: z32, hauteur: z32, titre: chaine, maximisé
     _ := XSetLocaleModifiers("".pointeur);
 
     chaine_c_titre := crée_chaine_c(titre);
-    diffère détruit_chaine_c(chaine_c_titre);
+    diffère détruit_chaine_c(*chaine_c_titre);
 
     // À FAIRE : paramétrise la ressource et la classe
     ressource_name := chaine_c_titre;
@@ -820,7 +820,7 @@ x11_définis_titre_fenêtre :: fonc (fenêtre: TypeFenêtre, titre: chaine)
 x11_définis_titre_fenêtre :: fonc (display: *Display, window: Window, titre: chaine)
 {
     chaine_c_titre := crée_chaine_c(titre);
-    diffère détruit_chaine_c(chaine_c_titre);
+    diffère détruit_chaine_c(*chaine_c_titre);
 
     name := XInternAtom(display, "_NET_WM_NAME".pointeur, False);
     utf8str := XInternAtom(display, "UTF8_STRING".pointeur, False);

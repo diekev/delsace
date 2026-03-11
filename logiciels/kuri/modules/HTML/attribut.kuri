@@ -5,9 +5,9 @@ AttributLexé :: struct {
     valeur: DOMString;
 }
 
-détruit_attributs :: fonc (attributs: &[..]AttributLexé)
+détruit_attributs :: fonc (attributs: *[..]AttributLexé)
 {
-    déloge(attributs);
+    déloge(*attributs);
 }
 
 cherche_attribut :: fonc (attributs: []AttributLexé, nom: DOMString) -> *AttributLexé

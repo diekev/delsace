@@ -26,7 +26,7 @@ principale :: fonc ()
 
     pour fichiers_javascript {
         sortie := appel_programme_et_donne_sortie("./js", it);
-        diffère déloge(sortie);
+        diffère déloge(*sortie);
 
         si sortie.commence_par("SyntaxError") {
             imprimeln("%", it);

@@ -64,21 +64,21 @@ Emboiteuse :: struct {
 détruit_données :: fonc (emboiteuse: *Emboiteuse)
 {
     pour emboiteuse.toutes_les_boites {
-        déloge(it);
+        déloge(*it);
     }
-    déloge(emboiteuse.toutes_les_boites);
-    déloge(emboiteuse.boites_libres);
-    déloge(emboiteuse.fragments);
-    déloge(emboiteuse.boites_disposées);
-    déloge(emboiteuse.boites_disposées_flottantes);
-    déloge(emboiteuse.barres_de_défilement);
-    déloge(emboiteuse.éditrices_textes);
-    déloge(emboiteuse.bordures);
-    déloge(emboiteuse.croissables);
-    déloge(emboiteuse.décroissables);
-    déloge(emboiteuse.traversée_boites);
-    déloge(emboiteuse.boites_à_visiter);
-    déloge(emboiteuse.rappels);
+    déloge(*emboiteuse.toutes_les_boites);
+    déloge(*emboiteuse.boites_libres);
+    déloge(*emboiteuse.fragments);
+    déloge(*emboiteuse.boites_disposées);
+    déloge(*emboiteuse.boites_disposées_flottantes);
+    déloge(*emboiteuse.barres_de_défilement);
+    déloge(*emboiteuse.éditrices_textes);
+    déloge(*emboiteuse.bordures);
+    déloge(*emboiteuse.croissables);
+    déloge(*emboiteuse.décroissables);
+    déloge(*emboiteuse.traversée_boites);
+    déloge(*emboiteuse.boites_à_visiter);
+    déloge(*emboiteuse.rappels);
 }
 
 commence_disposition :: fonc (emboiteuse: *Emboiteuse, largeur: z32, hauteur: z32)

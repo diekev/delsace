@@ -226,9 +226,9 @@ est_intrinsics :: fonc (realm: *Realm, object: *Object) -> bool
 realm_sur_destruction :: fonc (base: *Cellule)
 {
     realm := base.vérifie_comme(Realm);
-    déloge(realm.chaines_littérales);
-    déloge(realm.chaines);
-    déloge(realm.intrinsics.host_intrinsics);
+    déloge(*realm.chaines_littérales);
+    déloge(*realm.chaines);
+    déloge(*realm.intrinsics.host_intrinsics);
 }
 
 donne_mv :: fonc (realm: *Realm) -> *MachineVirtuelle

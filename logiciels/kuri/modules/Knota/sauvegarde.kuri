@@ -306,7 +306,7 @@ crée_contexte_lecture_changement :: fonc () -> ContexteLectureGraphe
             tableau_ajoute(*nouveaux_noeuds, it);
         }
 
-        déloge(graphe.items);
+        déloge(*graphe.items);
         graphe.items = nouveaux_noeuds;
     }
 
@@ -382,7 +382,7 @@ lis_graphe :: fonc (lectrice: *LectriceGraphe, graphe: *Graphe)
 
         saufsi noeud_actif {
             chemin_graphe := chemin_complet(graphe);
-            diffère déloge(chemin_graphe);
+            diffère déloge(*chemin_graphe);
             rapporte_erreur(lectrice, "Impossible de trouver le noeud actif '%' pour le graphe '%'", nom_noeud_actif, chemin_graphe);
             retourne;
         }
@@ -443,7 +443,7 @@ lis_un_noeud :: fonc (lectrice: *LectriceGraphe, graphe: *Graphe)
     noeud := lectrice.ctx_lecture.crée_noeud(graphe, identifiant, nom_noeud);
     saufsi noeud {
         chemin_graphe := graphe.chemin_complet();
-        diffère déloge(chemin_graphe);
+        diffère déloge(*chemin_graphe);
 
         rapporte_erreur(lectrice, "Impossible de créer un noeud dans '%'", chemin_graphe);
         retourne;
@@ -749,7 +749,7 @@ lis_fichier_copie :: fonc (lectrice: *LectriceGraphe, graphe: *Graphe, souris: *
         nom := it.nom;
         it.nom = "";
         it.définis_nom(nom);
-        déloge(nom);
+        déloge(*nom);
 
         /* Sélectionne */
         si indice_it == 0 {
