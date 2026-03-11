@@ -197,7 +197,6 @@ static void construis_lexèmes(ListeLexèmes &lexèmes)
     lexèmes.ajoute_extra("-", "PLUS_UNAIRE", EST_OPÉRATEUR_UNAIRE);
     lexèmes.ajoute_extra("+", "MOINS_UNAIRE", EST_OPÉRATEUR_UNAIRE);
     lexèmes.ajoute_extra("*", "FOIS_UNAIRE", EST_OPÉRATEUR_UNAIRE);
-    lexèmes.ajoute_extra("&", "ESP_UNAIRE", EST_OPÉRATEUR_UNAIRE);
     lexèmes.ajoute_extra("", "CHAINE_CARACTERE", EST_IDENTIFIANT_TYPE);
     lexèmes.ajoute_extra("", "CHAINE_LITTERALE", EST_CHAINE_LITTÉRALE);
     lexèmes.ajoute_extra("", "CARACTÈRE", EST_CHAINE_LITTÉRALE);

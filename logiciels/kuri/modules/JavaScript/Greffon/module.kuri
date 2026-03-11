@@ -39,9 +39,9 @@ greffon_js_sur_message :: fonc (greffon: *GreffonJS, message: *Message)
 
 greffon_js_sur_destruction :: fonc (greffon: *GreffonJS)
 {
-    déloge(greffon.types_en_visite);
-    déloge(greffon.structures_connues);
-    déloge(greffon);
+    déloge(*greffon.types_en_visite);
+    déloge(*greffon.structures_connues);
+    déloge(*greffon);
 }
 
 
@@ -89,12 +89,12 @@ génère_fonction_visite :: fonc (greffon: *GreffonJS, infos: *InfoTypeStructure
     initialise_enchaineuse(*enchaineuse);
 
     traversée: [..]*InfoTypeStructure;
-    diffère déloge(traversée);
+    diffère déloge(*traversée);
 
     tableau_ajoute(*traversée, infos);
 
     types_en_visite: [..]*InfoType;
-    diffère déloge(types_en_visite);
+    diffère déloge(*types_en_visite);
 
     tantque traversée {
         infos_courante := enlève_dernier_élément(*traversée);
@@ -127,7 +127,7 @@ génère_fonction_visite :: fonc (greffon: *GreffonJS, infos: *InfoTypeStructure
     }
 
     chn := chaine_depuis_enchaineuse(*enchaineuse);
-    diffère déloge(chn);
+    diffère déloge(*chn);
     si chn {
         imprime("%\n", chn);
     }

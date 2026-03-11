@@ -19,7 +19,7 @@ détruit_objet_tampon_tableau :: fonc (objet: *ObjetTamponTableau)
         glDeleteVertexArrays(1, *objet.adresse);
     }
 
-    déloge(objet);
+    déloge(*objet);
 }
 
 attache :: fonc (objet: *ObjetTamponTableau)
@@ -91,13 +91,13 @@ détruit_tampon_objet :: fonc (empl tampon: *TamponObjet)
     pour * tampons_extra {
         détruit_tampon(it);
     }
-    déloge(tampons_extra);
+    déloge(*tampons_extra);
 
     si glIsVertexArray(objet_tableau_sommet) {
         glDeleteVertexArrays(1, *objet_tableau_sommet);
     }
 
-    déloge(tampon);
+    déloge(*tampon);
 }
 
 attache :: fonc (empl tampon: *TamponObjet)
@@ -312,7 +312,7 @@ détruit_tampon_rendu :: fonc (tampon: *TamponRendu)
     si tampon.texture_2d {
         déloge_texture_2d(tampon.texture_2d);
     }
-    déloge(tampon);
+    déloge(*tampon);
 }
 
 initialise_objet_tampon :: fonc (tampon: *TamponRendu)
@@ -338,7 +338,7 @@ ajoute_texture_2d :: fonc (tampon: *TamponRendu) -> *Texture2D
     retourne résultat;
 }
 
-remplis_tampon :: fonc (empl tampon: *TamponRendu, paramètres: &ParamètresCréationTampon)
+remplis_tampon :: fonc (empl tampon: *TamponRendu, paramètres: *ParamètresCréationTampon)
 {
     initialise_objet_tampon(tampon);
 
@@ -360,7 +360,7 @@ remplis_tampon :: fonc (empl tampon: *TamponRendu, paramètres: &ParamètresCré
     vérifie_erreur("Erreur lors de la mise en place de l'attribut");
 }
 
-remplis_tampon_extra :: fonc (empl tampon: *TamponRendu, paramètres: &ParamètresCréationTampon)
+remplis_tampon_extra :: fonc (empl tampon: *TamponRendu, paramètres: *ParamètresCréationTampon)
 {
     initialise_objet_tampon(tampon);
 
@@ -390,7 +390,7 @@ remplis_tampon_principal :: fonc (tampon: *TamponRendu, attribut: chaine, sommet
 {
     params: ParamètresCréationTampon;
     initialise_paramètres_tampon(*params, attribut, sommets, indices);
-    tampon.remplis_tampon(params);
+    tampon.remplis_tampon(*params);
 }
 
 remplis_tampon_principal :: fonc (tampon: *TamponRendu, attribut: chaine, sommets: []Vec3)
@@ -398,21 +398,21 @@ remplis_tampon_principal :: fonc (tampon: *TamponRendu, attribut: chaine, sommet
     indices: []n32;
     params: ParamètresCréationTampon;
     initialise_paramètres_tampon(*params, attribut, sommets, indices);
-    tampon.remplis_tampon(params);
+    tampon.remplis_tampon(*params);
 }
 
 remplis_tampon_extra :: fonc (tampon: *TamponRendu, attribut: chaine, données: []Vec3)
 {
     params: ParamètresCréationTampon;
     initialise_paramètres_extra(*params, attribut, données);
-    tampon.remplis_tampon_extra(params);
+    tampon.remplis_tampon_extra(*params);
 }
 
 remplis_tampon_extra :: fonc (tampon: *TamponRendu, attribut: chaine, données: []CouleurRVBA)
 {
     params: ParamètresCréationTampon;
     initialise_paramètres_extra(*params, attribut, données);
-    tampon.remplis_tampon_extra(params);
+    tampon.remplis_tampon_extra(*params);
 }
 
 dessine :: fonc (empl tampon: *TamponRendu, ctx: *ContexteRendu)

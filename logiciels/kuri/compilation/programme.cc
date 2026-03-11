@@ -1213,7 +1213,6 @@ static bool peut_ignorer_type_pour_chercher_fonction(Type const *type)
         case GenreNoeud::ENTIER_CONSTANT:
         case GenreNoeud::ENTIER_NATUREL:
         case GenreNoeud::ENTIER_RELATIF:
-        case GenreNoeud::RÉFÉRENCE:
         case GenreNoeud::POINTEUR:
         case GenreNoeud::VARIADIQUE:
         {
@@ -1254,35 +1253,6 @@ static bool peut_ignorer_type_pour_chercher_fonction(Type const *type)
     return false;
 }
 
-static bool peut_ignorer_globale_pour_chercher_fonction(AtomeGlobale const *globale)
-{
-    if (globale->est_info_type_de || globale->est_chaine || globale->est_part_info_type) {
-        return true;
-    }
-
-    if (globale->initialisateur == nullptr) {
-        return true;
-    }
-
-    if (est_globale_pour_tableau_données_constantes(globale)) {
-        return true;
-    }
-
-    auto const type = globale->donne_type_alloué();
-    if (type == nullptr) {
-        kuri::chaine_statique nom_globale = "<anonyme>";
-        if (globale->ident) {
-            nom_globale = globale->ident->nom;
-        }
-        dbg() << "Type nul pour " << nom_globale;
-    }
-    if (peut_ignorer_type_pour_chercher_fonction(type)) {
-        return true;
-    }
-
-    return false;
-}
-
 void ConstructriceProgrammeFormeRI::supprime_fonctions_inutilisées()
 {
     kuri::pile<AtomeFonction *> fonction_à_visiter;
@@ -1291,8 +1261,8 @@ void ConstructriceProgrammeFormeRI::supprime_fonctions_inutilisées()
     }
 
     POUR (m_résultat.globales) {
-        POUR (it->fonctions_utilisées) {
-            fonction_à_visiter.empile(it);
+        POUR_NOMME (fonction_utilisée, it->fonctions_utilisées) {
+            fonction_à_visiter.empile(fonction_utilisée);
         }
     }
 

@@ -13,7 +13,7 @@ test_impression_énum :: fonc () -> bool
 {
     a := MonÉnum.VALEUR;
     c := imprime_chaine("%", a);
-    diffère déloge(c);
+    diffère déloge(*c);
 
     retourne c == "VALEUR";
 }

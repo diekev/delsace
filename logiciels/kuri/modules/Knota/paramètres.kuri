@@ -230,7 +230,7 @@ détermine_type_paramètre_depuis_info_type :: fonc (info_type: *InfoType) -> Op
     }
 
     // chn_type := chaine_pour_type(info_type)
-    // diffère déloge(chn_type)
+    // diffère déloge(*chn_type)
     // imprime("Type de paramètre non pris en compte : %\n", chn_type)
 }
 
@@ -489,20 +489,20 @@ détruit_table_paramètres :: fonc (table: *TableParamètres)
     pour table.paramètres {
         si est_type_valeur_chaine(it) {
             valeur_courante := mémoire(it.valeur.pointeur comme *chaine);
-            déloge_si_logée(valeur_courante);
+            déloge_si_logée(*valeur_courante);
             discr it.valeur_défaut {
                 Chaine(c) {
-                    déloge_si_logée(c);
+                    déloge_si_logée(*c);
                 }
                 sinon {}
             }
         }
-        déloge(it);
+        déloge(*it);
     }
 
-    déloge(table.informations_dessin);
-    déloge(table.paramètres);
-    déloge(table);
+    déloge(*table.informations_dessin);
+    déloge(*table.paramètres);
+    déloge(*table);
 }
 
 trouve_paramètre :: fonc (noeud: *Noeud, nom_param: chaine) -> *TableParamètres.Paramètre
@@ -628,7 +628,7 @@ définis_valeur_bool :: fonc (param: *TableParamètres.Paramètre, valeur: bool)
 définis_valeur_chaine :: fonc (param: *TableParamètres.Paramètre, valeur: chaine)
 {
     valeur_courante := mémoire(param.valeur.pointeur comme *chaine);
-    déloge_si_logée(valeur_courante);
+    déloge_si_logée(*valeur_courante);
     définis_valeur(param, copie_chaine(valeur));
 }
 

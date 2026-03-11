@@ -786,7 +786,7 @@ block_declaration_instantiation :: fonc (interpréteuse: *Interpréteuse, code: 
     saufsi lex_declarations {
         retourne;
     }
-    diffère déloge(lex_declarations);
+    diffère déloge(*lex_declarations);
 
     // 2. Let privateEnv be the running execution context's PrivateEnvironment.
     // mv := interpréteuse.mv
@@ -797,7 +797,7 @@ block_declaration_instantiation :: fonc (interpréteuse: *Interpréteuse, code: 
 
     // 3. For each element d of declarations, do
     bound_names: [..]ECMAString;
-    diffère déloge(bound_names);
+    diffère déloge(*bound_names);
 
     pour d dans lex_declarations {
         // a. For each element dn of the BoundNames of d, do
@@ -1913,7 +1913,7 @@ sur_exécution_call_expression :: fonc (base: *NoeudSyntaxique, interpréteuse: 
             saufsi same_value(func, Valeur(Object = realm.intrinsics.eval)).est_false() {
                 //  i. Let argList be ? ArgumentListEvaluation of arguments.
                 arg_list: [..]Valeur;
-                diffère déloge(arg_list);
+                diffère déloge(*arg_list);
 
                 completion_arg_list := argument_list_evaluation(interpréteuse, arguments, *arg_list);
                 saufsi completion_arg_list.est_normal() {
@@ -2005,7 +2005,7 @@ evaluate_call :: fonc (interpréteuse: *InterprèteArbre, func: Valeur, ref: Val
 
     // 3. Let argList be ? ArgumentListEvaluation of arguments.
     arg_list: [..]Valeur;
-    diffère déloge(arg_list);
+    diffère déloge(*arg_list);
 
     completion_arg_list := argument_list_evaluation(interpréteuse, arguments, *arg_list);
     saufsi completion_arg_list.est_normal() {
@@ -3373,7 +3373,7 @@ sur_exécution_for_statement :: fonc (base: *NoeudSyntaxique, interpréteuse: *I
 
         // 4. Let boundNames be the BoundNames of LexicalDeclaration.
         bound_names: [..]ECMAString;
-        diffère déloge(bound_names);
+        diffère déloge(*bound_names);
         donne_bound_names(lexical_declaration, *bound_names);
 
         // 5. For each element dn of boundNames, do
@@ -4346,7 +4346,7 @@ evaluate_new :: fonc (interpréteuse: *InterprèteArbre, construct_expr: *NoeudS
     }
 
     arg_list: [..]Valeur;
-    diffère déloge(arg_list);
+    diffère déloge(*arg_list);
     // 3. If arguments is empty, then
         // a. Let argList be a new empty List.
     // 4. Else,
@@ -4847,7 +4847,7 @@ sur_exécution_template_literal :: fonc (base: *NoeudSyntaxique, interpréteuse:
     }
 
     chaines: [..]*PrimitiveChaine;
-    diffère déloge(chaines);
+    diffère déloge(*chaines);
 
     realm := interpréteuse.donne_realm();
     tableau_ajoute(*chaines, crée_chaine(realm, quasi.value));
@@ -5557,7 +5557,7 @@ class_definition_evaluation :: fonc (interpréteuse: *InterprèteArbre, class_he
     // 6. If ClassBody is present, then
     si class_body {
         private_bound_identifiers := donne_private_bound_identifiers(class_body);
-        diffère déloge(private_bound_identifiers);
+        diffère déloge(*private_bound_identifiers);
 
         // a. For each String dn of the PrivateBoundIdentifiers of ClassBody, do
         pour dn dans private_bound_identifiers {
@@ -5721,7 +5721,7 @@ class_definition_evaluation :: fonc (interpréteuse: *InterprèteArbre, class_he
     // 19. If ClassBody is not present, let elements be a new empty List.
     // 20. Else, let elements be the NonConstructorElements of ClassBody.
     éléments: [..]*NoeudSyntaxique;
-    diffère déloge(éléments);
+    diffère déloge(*éléments);
 
     si class_body {
         pour class_body.éléments {
@@ -5741,14 +5741,14 @@ class_definition_evaluation :: fonc (interpréteuse: *InterprèteArbre, class_he
 
     // 22. Let staticPrivateMethods be a new empty List.
     static_private_methods: [..]PrivateElement;
-    diffère déloge(static_private_methods);
+    diffère déloge(*static_private_methods);
 
     // 23. Let instanceFields be a new empty List.
     instance_fields: [..]ClassFieldDefinition;
 
     // 24. Let staticElements be a new empty List.
     static_elements: [..]ClassElementEvaluationResult;
-    diffère déloge(static_elements);
+    diffère déloge(*static_elements);
 
     // 25. For each ClassElement e of elements, do
     pour e dans éléments {
@@ -6196,7 +6196,7 @@ sur_exécution_super_call :: fonc (base: *NoeudSyntaxique, interpréteuse: *Inte
 
     // 4. Let argList be ? ArgumentListEvaluation of Arguments
     arg_list: [..]Valeur;
-    diffère déloge(arg_list);
+    diffère déloge(*arg_list);
     completion := argument_list_evaluation(interpréteuse, super_call.arguments, *arg_list);
     saufsi completion.est_normal() {
         retourne completion;
@@ -6720,7 +6720,7 @@ crée_visiteuse_pour_destruction :: fonc (noeud: *NoeudSyntaxique) -> VisiteuseN
 
     rappel_pour_tableau :: fonc (visiteuse: *VisiteuseNoeud @inutilisée, tableau: [..]*NoeudSyntaxique)
     {
-        déloge(tableau);
+        déloge(*tableau);
     }
 
     résultat: VisiteuseNoeud;
@@ -6845,7 +6845,7 @@ donne_var_scoped_declarations :: fonc (noeud: *NoeudSyntaxique) -> [..]*NoeudSyn
 donne_var_declared_names :: fonc (noeud: *NoeudSyntaxique) -> [..]ECMAString
 {
     visiteuse: VisteuseDéclarationVar;
-    diffère déloge(visiteuse.déclarations);
+    diffère déloge(*visiteuse.déclarations);
 
     crée_visiteuse_pour_déclarations_var(*visiteuse, noeud);
     visite_noeud(*visiteuse, noeud, visite_noeud_générique);

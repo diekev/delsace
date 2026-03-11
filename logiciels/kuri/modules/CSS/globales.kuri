@@ -69,9 +69,9 @@ détruit_globales_dessin :: fonc (globales: *GlobalesDessin)
         détruit_fonte(it.fonte);
     }
 
-    déloge(globales.fontes_en_cache);
+    déloge(*globales.fontes_en_cache);
     FcConfigDestroy(globales.fontconfig);
-    déloge(globales);
+    déloge(*globales);
 }
 
 GraisseFonte :: énum {
@@ -172,10 +172,10 @@ donne_chemin_fonte :: fonc (ctx: *GlobalesDessin, famille: CSSOMString, style: c
     diffère FcPatternDestroy(pattern);
 
     chn_famille := convertis_vers_chaine(famille.donne_chaine_utf16());
-    diffère déloge(chn_famille);
+    diffère déloge(*chn_famille);
 
     chaine_c_famille := crée_chaine_c(chn_famille);
-    diffère détruit_chaine_c(chaine_c_famille);
+    diffère détruit_chaine_c(*chaine_c_famille);
 
     _ := FcPatternAddString(pattern, FC_FAMILY.pointeur, chaine_c_famille comme *z8 comme *FcChar8);
 

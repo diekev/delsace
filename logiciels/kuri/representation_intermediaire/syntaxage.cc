@@ -134,12 +134,6 @@ LexèmesType PrésyntaxeuseRI::crée_type_pointeur(const Lexème *lexème,
     return {};
 }
 
-LexèmesType PrésyntaxeuseRI::crée_type_référence(const Lexème *lexème,
-                                                 const LexèmesType &type_pointé)
-{
-    return {};
-}
-
 LexèmesType PrésyntaxeuseRI::crée_type_tableau_dynamique(const Lexème *crochet_ouvrant,
                                                          const Lexème *crochet_fermant,
                                                          const LexèmesType &type_élément)
@@ -622,11 +616,6 @@ ConstructriceRI &SyntaxeuseRI::donne_constructrice()
 Type *SyntaxeuseRI::crée_type_pointeur(const Lexème *lexème, Type *type_pointé)
 {
     return m_typeuse.type_pointeur_pour(type_pointé, false);
-}
-
-Type *SyntaxeuseRI::crée_type_référence(const Lexème *lexème, Type *type_pointé)
-{
-    return m_typeuse.type_référence_pour(type_pointé);
 }
 
 Type *SyntaxeuseRI::crée_type_tableau_dynamique(const Lexème *crochet_ouvrant,

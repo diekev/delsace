@@ -78,7 +78,7 @@ données_cgi :: fonc () -> DonnéesCGI
 détruit_données_cgi :: fonc (données_cgi: *DonnéesCGI)
 {
     pour données_cgi.valeur {
-        déloge(it);
+        déloge(*it);
     }
 }
 
@@ -133,7 +133,7 @@ lance :: fonc (serveuse: *ServeuseCGI(T = $T))
 
     // prépare les données de la requête
     uri_normalisé := résoud_échappement_url(données.valeur[ParamètresCGI.REQUEST_URI]);
-    diffère déloge(uri_normalisé);
+    diffère déloge(*uri_normalisé);
 
     uri := tente parse_uri_depuis_chemin_requête(uri_normalisé) piège err {
         écris_bad_request("Chemin malformé");
@@ -141,7 +141,7 @@ lance :: fonc (serveuse: *ServeuseCGI(T = $T))
     };
 
     cookies := parse_cookie_client(données.valeur[ParamètresCGI.HTTP_COOKIE]);
-    diffère déloge(cookies);
+    diffère déloge(*cookies);
 
     requête: Requête;
     requête.uri = uri;
@@ -154,7 +154,7 @@ lance :: fonc (serveuse: *ServeuseCGI(T = $T))
     };
 
     diffère si requête.contenu {
-        déloge(requête.contenu);
+        déloge(*requête.contenu);
     }
 
     taille_contenu := données.valeur[ParamètresCGI.CONTENT_LENGTH];
@@ -197,7 +197,7 @@ crée_réponse :: fonc (résultat: *RésultatRequête)
     pour résultat.cookies {
         chn_cookie := chaine_cookie_pour_entête_http(it);
         imprime("Set-Cookie: %\n", chn_cookie);
-        déloge(chn_cookie);
+        déloge(*chn_cookie);
     }
 
     si résultat.type_contenu {

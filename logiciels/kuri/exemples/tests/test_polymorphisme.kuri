@@ -149,7 +149,7 @@ test_tranche_polymorphique :: fonc ()
 {
     tableau_fixe := [ 0, 1, 2, 3, 4, 5 ];
     tableau_dynamique: [..]z32;
-    diffère déloge(tableau_dynamique);
+    diffère déloge(*tableau_dynamique);
 
     pour tableau_fixe {
         tableau_ajoute(*tableau_dynamique, it);
