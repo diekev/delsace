@@ -425,7 +425,7 @@ interprète_arbre_sur_execution_context :: fonc (base: *Interpréteuse, ec: *Exe
 interprète_arbre_sur_destruction :: fonc (base: *Interpréteuse)
 {
     interprète := base comme *InterprèteArbre;
-    déloge(interprète);
+    déloge(*interprète);
 }
 
 exécute_arbre :: fonc (base: *Interpréteuse, noeud: *NoeudSyntaxique) -> CompletionRecord

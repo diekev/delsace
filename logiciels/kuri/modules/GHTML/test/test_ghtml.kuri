@@ -68,7 +68,7 @@ ancien_test :: fonc ()
         imprime("Page :\n\n");
         résultat := chaine_depuis_enchaineuse(*enchaineuse);
         imprime("%\n", résultat);
-        déloge(résultat);
+        déloge(*résultat);
     }
 
     /*
@@ -115,7 +115,7 @@ ancien_test :: fonc ()
         imprime("Page :\n\n")
         chn := chaine_depuis_enchaineuse(@enchaineuse)
         imprime(enchaineuse.résultat, "\n")
-        déloge(chn)
+        déloge(*chn)
     }
 */
 }
@@ -144,10 +144,10 @@ principale :: fonc ()
     chn := rends_page(*rendeuse_page, "base", données_page);
 
     imprime("résultat :\n%\n", chn);
-    déloge(chn);
+    déloge(*chn);
 
     chn = rends_page(*rendeuse_page, "corps", données_page);
 
     imprime("résultat :\n%\n", chn);
-    déloge(chn);
+    déloge(*chn);
 }

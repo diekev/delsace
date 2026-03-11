@@ -518,19 +518,19 @@ importe Compilatrice;
 
     résultat := date.formatte("%h:%m:%s");
     compilatrice_vérifie_égalité(résultat, "06:37:20");
-    déloge(résultat);
+    déloge(*résultat);
 
     résultat = date.formatte("%J/%M/%A");
     compilatrice_vérifie_égalité(résultat, "22/11/2020");
-    déloge(résultat);
+    déloge(*résultat);
 
     résultat = date.formatte("%J/%M/%A %h:%m:%s");
     compilatrice_vérifie_égalité(résultat, "22/11/2020 06:37:20");
-    déloge(résultat);
+    déloge(*résultat);
 
     résultat = date.formatte("%h:%m:%s %J/%M/%A");
     compilatrice_vérifie_égalité(résultat, "06:37:20 22/11/2020");
-    déloge(résultat);
+    déloge(*résultat);
 }
 
 // ---------------------------------------------------
