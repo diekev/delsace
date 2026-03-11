@@ -4,7 +4,7 @@ importe Périphériques;
 /** \nom Modification interractive des noeuds.
  * \{ */
 
-commence_édition_interractive :: fonc (graphe: *Graphe, souris: &ClicSouris)
+commence_édition_interractive :: fonc (graphe: *Graphe, souris: *ClicSouris)
 {
     graphe.mode_interaction = ModeInteractionGraphe.AUCUNE;
 
@@ -65,7 +65,7 @@ commence_édition_interractive :: fonc (graphe: *Graphe, souris: &ClicSouris)
     }
 }
 
-ajourne_édition_interractive :: fonc (graphe: *Graphe, souris: &ClicSouris, delta: Vec2)
+ajourne_édition_interractive :: fonc (graphe: *Graphe, souris: *ClicSouris, delta: Vec2)
 {
     discr graphe.mode_interaction {
         AUCUNE {
@@ -99,7 +99,7 @@ ajourne_édition_interractive :: fonc (graphe: *Graphe, souris: &ClicSouris, del
     }
 }
 
-termine_édition_interractive :: fonc (graphe: *Graphe, souris: &ClicSouris)
+termine_édition_interractive :: fonc (graphe: *Graphe, souris: *ClicSouris)
 {
     diffère graphe.connexion_pour_survol_noeud = nul;
 
@@ -201,7 +201,7 @@ supprime_sélection :: fonc (graphe: *Graphe) -> bool
     sélection := graphe.sélection;
 
     noeuds_à_supprimer: [..]*Noeud;
-    diffère déloge(noeuds_à_supprimer);
+    diffère déloge(*noeuds_à_supprimer);
 
     pour sélection.donne_éléments_sélectionnés() {
         item := graphe.items[it];
@@ -431,7 +431,7 @@ décale_verticalement_noeuds_en_aval :: fonc (amont: *Noeud, décalage: r32)
 /** \nom Noeud pour information.
  * \{ */
 
-sélectionne_noeud_pour_information :: fonc (graphe: *Graphe, souris: &ClicSouris) -> bool
+sélectionne_noeud_pour_information :: fonc (graphe: *Graphe, souris: *ClicSouris) -> bool
 {
     sélection := graphe.sélection;
     sélection.clic(donne_point_2d_réel(souris.état.où));
@@ -463,7 +463,7 @@ sélectionne_noeud_pour_information :: fonc (graphe: *Graphe, souris: &ClicSouri
 /** \nom Accès du sous-graphe d'un noeud via un clic.
  * \{ */
 
-donne_sous_graphe_pour_clic :: fonc (graphe: *Graphe, souris: &ClicSouris) -> *Graphe
+donne_sous_graphe_pour_clic :: fonc (graphe: *Graphe, souris: *ClicSouris) -> *Graphe
 {
     sélection := graphe.sélection;
     sélection.clic(donne_point_2d_réel(souris.état.où));
@@ -493,7 +493,7 @@ donne_sous_graphe_pour_clic :: fonc (graphe: *Graphe, souris: &ClicSouris) -> *G
 /** \nom Zoom.
  * \{ */
 
-applique_zoom :: fonc (graphe: *Graphe, souris: &ClicSouris)
+applique_zoom :: fonc (graphe: *Graphe, souris: *ClicSouris)
 {
     delta := souris.delta;
 

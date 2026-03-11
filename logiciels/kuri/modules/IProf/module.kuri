@@ -958,13 +958,13 @@ Prof_create_report :: fonc () -> *Prof_Report
 Prof_free_report :: fonc (z: *Prof_Report)
 {
     pour i dans NUM_TITLE {
-        déloge_si_logée(z.title[i]);
+        déloge_si_logée(*z.title[i]);
     }
     pour i dans NUM_HEADER {
-        déloge_si_logée(z.header[i]);
+        déloge_si_logée(*z.header[i]);
     }
-    déloge(z.record);
-    déloge(z);
+    déloge(*z.record);
+    déloge(*z);
 }
 
 Prof_move_cursor :: fonc (num: z32)

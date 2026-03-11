@@ -51,7 +51,6 @@ struct InfoTypeEntier : public InfoType {
 };
 
 struct InfoTypePointeur : public InfoType {
-    bool est_référence = false;
     InfoType *type_pointé = nullptr;
 };
 

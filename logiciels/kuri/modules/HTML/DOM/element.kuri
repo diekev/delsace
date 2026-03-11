@@ -72,8 +72,8 @@ table_virtuelle_élément := TableVirtuelleElement(
     si élément.box {
         élément.box.noeud = nul;
     }
-    déloge(élément.liste_classes);
-    déloge(élément.assigned_nodes);
+    déloge(*élément.liste_classes);
+    déloge(*élément.assigned_nodes);
 }
 
 élément_sur_destruction :: fonc (base: *JS.Cellule)
@@ -107,7 +107,7 @@ element_sur_changement_attribut :: fonc (élément: *Element, local_name: DOMStr
     }
 
     si local_name == ATTR_class {
-        déloge(élément.liste_classes);
+        déloge(*élément.liste_classes);
         // À FAIRE : invalide le style pour les classes
         /* Retournons faux pour laisser les objets dérivés gérer décider quoi faire. */
         retourne faux;

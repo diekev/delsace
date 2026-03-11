@@ -47,7 +47,7 @@ OptionsFetchScript :: struct {
  * \{ */
 
 /* https://html.spec.whatwg.org/multipage/webappapis.html#creating-a-classic-script */
-create_a_classic_script :: fonc (user_agent: *UserAgent, source: chaine, settings: *EnvironmentSettings, base_url: *URL, options: &OptionsFetchScript, muted_errors := faux, source_url_for_window_scripts : *URL = nul @inutilisée) -> *ClassicScript
+create_a_classic_script :: fonc (user_agent: *UserAgent, source: chaine, settings: *EnvironmentSettings, base_url: *URL, options: *OptionsFetchScript, muted_errors := faux, source_url_for_window_scripts : *URL = nul @inutilisée) -> *ClassicScript
 {
     // 1. If mutedErrors is true, then set baseURL to about:blank.
     si muted_errors {
@@ -69,7 +69,7 @@ create_a_classic_script :: fonc (user_agent: *UserAgent, source: chaine, setting
     script.base_url = base_url;
 
     // 6. Set script's fetch options to options.
-    script.fetch_options.Quelque = options;
+    script.fetch_options.Quelque = mémoire(options);
 
     // 7. Set script's muted errors to mutedErrors.
     script.muted_errors = muted_errors;

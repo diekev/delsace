@@ -112,8 +112,11 @@ résoud_échappement_url :: fonc (chn: chaine) -> chaine
     retourne chaine_depuis_enchaineuse(*enchaineuse);
 }
 
-résoud_échappement_url_localement :: fonc (chn: &chaine)
+résoud_échappement_url_localement :: fonc (chaine_crue: *chaine)
 {
+    chn := mémoire(chaine_crue);
+    diffère mémoire(chaine_crue) = chn;
+
     index_d_insertion := 0;
     index_courant := 0;
 
@@ -156,7 +159,7 @@ résoud_échappement_url_localement :: fonc (chn: &chaine)
 
 crée_flux_encodage_url_pour_enchaineuse :: fonc (enchaineuse: *Enchaineuse) -> FluxEncodage
 {
-    écris_chaine :: fonc (flux: &FluxEncodage, chn: chaine, doit_encoder: bool);
+    écris_chaine :: fonc (flux: *FluxEncodage, chn: chaine, doit_encoder: bool);
     {
         si doit_encoder {
             encode_format_url(flux.enchaineuse, chn);
@@ -166,12 +169,12 @@ crée_flux_encodage_url_pour_enchaineuse :: fonc (enchaineuse: *Enchaineuse) -> 
         }
     }
 
-    écris_point_de_code_utf32 :: fonc (flux: &FluxEncodage, point_de_code: n32, doit_encoder: bool);
+    écris_point_de_code_utf32 :: fonc (flux: *FluxEncodage, point_de_code: n32, doit_encoder: bool);
     {
 
     }
 
-    écris_point_de_code_utf8 :: fonc (flux: &FluxEncodage, point_de_code: z8, doit_encoder: bool);
+    écris_point_de_code_utf8 :: fonc (flux: *FluxEncodage, point_de_code: z8, doit_encoder: bool);
     {
         chn := chaine(*point_de_code, 1);
         écris_chaine(flux, chn, doit_encoder);
@@ -180,7 +183,7 @@ crée_flux_encodage_url_pour_enchaineuse :: fonc (enchaineuse: *Enchaineuse) -> 
     retourne FluxEncodage(écris_chaine, écris_point_de_code_utf32, écris_point_de_code_utf8, enchaineuse);
 }
 
-encode_valeur :: fonc (flux_encodage: &FluxEncodage, valeur: eini)
+encode_valeur :: fonc (flux_encodage: *FluxEncodage, valeur: eini)
 {
     info := valeur.info;
 
@@ -205,7 +208,7 @@ encode_valeur :: fonc (flux_encodage: &FluxEncodage, valeur: eini)
             chn := chaine_depuis_enchaineuse(*enchaineuse);
             flux_encodage.écris(chn);
 
-            déloge(chn);
+            déloge(*chn);
         }
         sinon {
             panique("type non supporté dans encode_valeur");

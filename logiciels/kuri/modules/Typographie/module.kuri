@@ -154,7 +154,7 @@ donne_fonte :: fonc (nom: chaine, taille_police: r32) -> *Fonte
 {
     chemin_courant := #chemin_de_ce_fichier;
     dossier := CheminFichier(chemin_courant).chemin_parent();
-    diffère détruit_chemin(dossier);
+    diffère détruit_chemin(*dossier);
 
     tampon_chemin: TamponChemin;
     _ := ajoute(*tampon_chemin, dossier);
@@ -190,13 +190,13 @@ détruit_données_fonte :: fonc (fonte: *Fonte)
 {
     texture_atlas_delete(fonte.atlas);
     détruit_données(fonte);
-    déloge(fonte.glyphes);
+    déloge(*fonte.glyphes);
 }
 
 détruit_fonte :: fonc (fonte: *Fonte)
 {
     détruit_données_fonte(fonte);
-    déloge(fonte);
+    déloge(*fonte);
 }
 
 donne_glyphe :: fonc (fonte: *Fonte, c: *z8) -> *texture_glyph_t
@@ -555,8 +555,8 @@ texture_glyph_new :: fonc () -> *texture_glyph_t
 texture_glyph_delete :: fonc (self: *texture_glyph_t)
 {
     assert(self != nul);
-    déloge(self.kerning);
-    déloge(self);
+    déloge(*self.kerning);
+    déloge(*self);
 }
 
 texture_glyph_get_kerning_impl :: fonc (self: *texture_glyph_t, ucodepoint: n32) -> r32
@@ -680,10 +680,10 @@ détruit_données :: fonc (fonte: *Fonte)
 
     discr fonte.fileinfo {
         Fichier(chn) {
-            déloge_si_logée(chn);
+            déloge_si_logée(*chn);
         }
         Mémoire(mem) {
-            déloge(mem);
+            déloge(*mem);
         }
         sinon {}
     }
@@ -708,7 +708,7 @@ texture_font_load_face :: fonc (self: *Fonte, taille: r32, library: *FT_Library,
     discr self.fileinfo {
         Fichier(chn) {
             chaine_c := crée_chaine_c(chn);
-            diffère détruit_chaine_c(chaine_c);
+            diffère détruit_chaine_c(*chaine_c);
             error = FT_New_Face(mémoire(library), chaine_c, 0, face);
         }
         Mémoire(mem) {
@@ -1105,7 +1105,7 @@ texture_font_enlarge_atlas :: fonc (self: *Fonte, width_new: n64, height_new: n6
                              data_old + old_row_taille + pixel_taille,
                              old_row_taille);
 
-    déloge(data_old);
+    déloge(*data_old);
     // change uv coordinates of existing glyphs to reflect taille change
     mulw := width_old comme r32 / width_new comme r32;
     mulh := height_old comme r32 / height_new comme r32;
@@ -1224,11 +1224,11 @@ texture_atlas_new :: fonc (width: n64, height: n64, depth: n64) -> *texture_atla
 texture_atlas_delete :: fonc (atlas: *texture_atlas_t)
 {
     si atlas {
-        déloge(atlas.data);
-        déloge(atlas.glyph_scratch_buffer);
-        déloge(atlas.distance_byte_scratch_buffer);
-        déloge(atlas.distance_double_scratch_buffer);
-        déloge(atlas);
+        déloge(*atlas.data);
+        déloge(*atlas.glyph_scratch_buffer);
+        déloge(*atlas.distance_byte_scratch_buffer);
+        déloge(*atlas.distance_double_scratch_buffer);
+        déloge(*atlas);
     }
 }
 

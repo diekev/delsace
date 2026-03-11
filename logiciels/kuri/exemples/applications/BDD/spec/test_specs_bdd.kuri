@@ -7,9 +7,9 @@ principale :: fonc ()
     test: DonnéesPourTest;
     test.programme = CheminFichier("../principale");
 
-    test.ajoute_série_de_tests(CheminFichier("specs_bdd"));
+    ajoute_série_de_tests(*test, CheminFichier("specs_bdd"));
 
-    saufsi lance_les_tests(test) {
+    saufsi lance_les_tests(*test) {
         exit(1);
     }
 }

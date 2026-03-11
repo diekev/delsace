@@ -46,14 +46,14 @@ donne_temps_par_image :: fonc (gif: *gd_GIF) -> n32
 gd_close_gif :: fonc (gif: *gd_GIF)
 {
     détruit(gif.charge_gif);
-    déloge(gif.frame);
-    déloge(gif);
+    déloge(*gif.frame);
+    déloge(*gif);
 }
 
 lis_image_gif_fichier :: fonc (chemin: chaine) -> (bool, NouvelleImage)
 {
     succès, contenu := contenu_fichier_binaire(CheminFichier(chemin));
-    diffère déloge(contenu);
+    diffère déloge(*contenu);
     retourne lis_image_gif_mémoire(contenu);
 }
 
@@ -416,8 +416,8 @@ new_table :: fonc (key_size: z32) -> *Table
 
 détruit :: fonc (table: *Table)
 {
-    déloge(table.entries);
-    déloge(table);
+    déloge(*table.entries);
+    déloge(*table);
 }
 
 /* Add table entry. Return value:

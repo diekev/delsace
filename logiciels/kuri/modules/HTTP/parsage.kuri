@@ -113,8 +113,8 @@ erreur_de_parsage :: fonc (message: chaine) -> RésultatParsage
 réinitialise_base :: fonc (parseuse: *ParseuseHTTP)
 {
     détruit_message(*parseuse.message_en_cours);
-    déloge(parseuse.données);
-    déloge(parseuse.données_message.positions_entêtes);
+    déloge(*parseuse.données);
+    déloge(*parseuse.données_message.positions_entêtes);
 }
 
 ajourne_données :: fonc (parseuse: *ParseuseHTTP, données: chaine)
@@ -551,7 +551,7 @@ finalise_message :: fonc (parseuse: *ParseuseMessageClienteHTTP) -> MessageClien
     message_cliente.requête = sous_chaine(parseuse.données, parseuse.données_message.position_requête);
     message_cliente.version = sous_chaine(parseuse.données, parseuse.données_message.position_version);
 
-    résoud_échappement_url_localement(message_cliente.requête);
+    résoud_échappement_url_localement(*message_cliente.requête);
 
     message_cliente.uri = tente parse_uri_depuis_chemin_requête(message_cliente.requête) piège _ {
         retourne MessageClienteHTTP();

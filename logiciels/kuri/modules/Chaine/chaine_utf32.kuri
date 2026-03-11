@@ -9,9 +9,9 @@ copie_chaine :: fonc (chn: ChaineUTF32) -> ChaineUTF32
     retourne résultat;
 }
 
-détruit_chaine :: fonc (chn: &ChaineUTF32) #enligne
+détruit_chaine :: fonc (chn: *ChaineUTF32) #enligne
 {
-    déloge(chn.points_de_code);
+    déloge(*chn.points_de_code);
 }
 
 taille :: fonc (chn: ChaineUTF32) -> z64 #enligne
@@ -42,7 +42,7 @@ chaine_ajoute :: fonc (chn: *ChaineUTF32, point_de_code: n32) #enligne
     tableau_ajoute(*chn.points_de_code, point_de_code);
 }
 
-réinitialise :: fonc (chn: &ChaineUTF32) #enligne
+réinitialise :: fonc (chn: *ChaineUTF32) #enligne
 {
     chn.points_de_code.taille = 0;
 }
@@ -200,14 +200,14 @@ sous_chaine :: fonc (chn: ChaineUTF32, début: z64, fin: z64) -> ChaineUTF32
     retourne résultat;
 }
 
-en_minuscule_sur_place :: fonc (chn: &ChaineUTF32)
+en_minuscule_sur_place :: fonc (chn: *ChaineUTF32)
 {
     pour * chn.points_de_code {
         mémoire(it) = transforme_point_de_code_en_minuscule(mémoire(it));
     }
 }
 
-en_majuscule_sur_place :: fonc (chn: &ChaineUTF32)
+en_majuscule_sur_place :: fonc (chn: *ChaineUTF32)
 {
     pour * chn.points_de_code {
         mémoire(it) = transforme_point_de_code_en_majuscule(mémoire(it));
@@ -221,7 +221,7 @@ principale :: fonc ()
     diffère détruit_chaines_internées()
 
     utf32 := crée_chaine_utf32("kévin")
-    diffère détruit_chaine(utf32)
+    diffère détruit_chaine(*utf32)
 
     pour utf32.points_de_code {
         imprime("%\n", it)

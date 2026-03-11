@@ -370,7 +370,7 @@ parse_external_declaration :: fonc (empl parseuse: *ParseuseC) -> *ASTNode
         retourne résultat;
     }
 
-    diffère déloge(declarators);
+    diffère déloge(*declarators);
 
     déclaration := declarators[0];
 
@@ -466,7 +466,7 @@ parse_declaration :: fonc (empl parseuse: *ParseuseC) -> *ASTNode
     consomme_ponctuation(parseuse, ";");
 
     si declarators.taille == 1 {
-        diffère déloge(declarators);
+        diffère déloge(*declarators);
         retourne declarators[0];
     }
 

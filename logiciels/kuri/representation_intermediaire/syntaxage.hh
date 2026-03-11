@@ -29,8 +29,6 @@ using LexèmesType = kuri::tablet<Lexème *, 6>;
 enum class LexèmeType : uint8_t {
     /* ...pointeur. */
     POINTEUR,
-    /* ...référence. */
-    RÉFÉRENCE,
     /* ...tableau fixe ou dynamique. */
     TABLEAU,
     /* ...varidique. */
@@ -125,7 +123,6 @@ struct BaseSyntaxeuseRI : public BaseSyntaxeuse {
     [[nodiscard]] std::optional<LexèmeType> apparie_lexème_type() const;
     [[nodiscard]] LexèmesType parse_type_nominal();
     [[nodiscard]] TypeType analyse_type();
-    [[nodiscard]] TypeType analyse_type_référence();
     [[nodiscard]] TypeType analyse_type_pointeur();
     [[nodiscard]] TypeType analyse_type_tableau();
     [[nodiscard]] TypeType analyse_type_variadique();
@@ -610,9 +607,6 @@ std::optional<LexèmeType> BaseSyntaxeuseRI<Impl>::apparie_lexème_type() const
     if (apparie(GenreLexème::FOIS)) {
         return LexèmeType::POINTEUR;
     }
-    if (apparie(GenreLexème::ESPERLUETTE)) {
-        return LexèmeType::RÉFÉRENCE;
-    }
     if (apparie(GenreLexème::CROCHET_OUVRANT)) {
         return LexèmeType::TABLEAU;
     }
@@ -676,10 +670,6 @@ typename BaseSyntaxeuseRI<Impl>::TypeType BaseSyntaxeuseRI<Impl>::analyse_type()
         case LexèmeType::POINTEUR:
         {
             return analyse_type_pointeur();
-        }
-        case LexèmeType::RÉFÉRENCE:
-        {
-            return analyse_type_référence();
         }
         case LexèmeType::TABLEAU:
         {
@@ -758,15 +748,6 @@ typename BaseSyntaxeuseRI<Impl>::TypeType BaseSyntaxeuseRI<Impl>::analyse_type()
     }
 
     return {};
-}
-
-template <typename Impl>
-typename BaseSyntaxeuseRI<Impl>::TypeType BaseSyntaxeuseRI<Impl>::analyse_type_référence()
-{
-    auto lexème = m_lexème_courant;
-    consomme();
-    auto type_pointé = analyse_type();
-    return impl()->crée_type_référence(lexème, type_pointé);
 }
 
 template <typename Impl>
@@ -1303,8 +1284,6 @@ class PrésyntaxeuseRI : public BaseSyntaxeuseRI<PrésyntaxeuseRI> {
     /* Types. */
     LexèmesType crée_type_pointeur(Lexème const *lexème, LexèmesType const &type_pointé);
 
-    LexèmesType crée_type_référence(Lexème const *lexème, LexèmesType const &type_pointé);
-
     LexèmesType crée_type_tableau_dynamique(Lexème const *crochet_ouvrant,
                                             Lexème const *crochet_fermant,
                                             LexèmesType const &type_élément);
@@ -1485,8 +1464,6 @@ class SyntaxeuseRI : public BaseSyntaxeuseRI<SyntaxeuseRI> {
 
     /* Types. */
     Type *crée_type_pointeur(Lexème const *lexème, Type *type_pointé);
-
-    Type *crée_type_référence(Lexème const *lexème, Type *type_pointé);
 
     Type *crée_type_tableau_dynamique(Lexème const *crochet_ouvrant,
                                       Lexème const *crochet_fermant,
