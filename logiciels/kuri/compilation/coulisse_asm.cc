@@ -277,7 +277,6 @@ void ConstructriceHuitoctets::construis_huitoctets_récursif(Typeuse &typeuse, T
         case GenreNoeud::ERREUR:
         case GenreNoeud::FONCTION:
         case GenreNoeud::POINTEUR:
-        case GenreNoeud::RÉFÉRENCE:
         case GenreNoeud::ENTIER_NATUREL:
         case GenreNoeud::ENTIER_CONSTANT:
         case GenreNoeud::ENTIER_RELATIF:
@@ -503,7 +502,6 @@ static void donne_classe_argument(Typeuse &typeuse,
         case GenreNoeud::ERREUR:
         case GenreNoeud::FONCTION:
         case GenreNoeud::POINTEUR:
-        case GenreNoeud::RÉFÉRENCE:
         case GenreNoeud::ENTIER_NATUREL:
         case GenreNoeud::ENTIER_CONSTANT:
         case GenreNoeud::ENTIER_RELATIF:
@@ -2909,8 +2907,7 @@ static bool est_type_compatible_registre_entier(Type const *type)
 {
     auto type_primitif = donne_type_primitif(type);
     return est_type_entier(type_primitif) || type->est_type_pointeur() || type->est_type_bool() ||
-           type->est_type_référence() || type->est_type_adresse_fonction() ||
-           type->est_type_fonction();
+           type->est_type_adresse_fonction() || type->est_type_fonction();
 }
 
 /* Atome *atome est l'atome que nous chargeons, Atome *source est soit l'atome, soit son
@@ -3937,7 +3934,7 @@ void GénératriceCodeASM::génère_code_pour_charge_mémoire(InstructionChargeM
 {
     assert((utilisation & UtilisationAtome::POUR_DESTINATION_ÉCRITURE) !=
            UtilisationAtome::AUCUNE);
-    assert(inst_charge->type->est_type_pointeur() || inst_charge->type->est_type_référence());
+    assert(inst_charge->type->est_type_pointeur());
 
     génère_code_pour_atome(inst_charge->chargée, assembleuse, UtilisationAtome::AUCUNE);
 

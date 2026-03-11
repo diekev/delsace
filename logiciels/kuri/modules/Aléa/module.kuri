@@ -325,8 +325,8 @@ fonction_est_valide :: fonc (fonction: *NoeudCodeEntêteFonction) -> DonnéesFon
     type_premier_paramètre := fonction.params[0].type;
     type_deuxième_paramètre := fonction.params[1].type;
 
-    si type_premier_paramètre != info_de(&GénératriceDonnéesAléatoire) {
-        compilatrice_rapporte_erreur(fonction.params[0], "Fonction de formattage invalide, le premier paramètre doit être de type « &GénératriceDonnéesAléatoire ».");
+    si type_premier_paramètre != info_de(*GénératriceDonnéesAléatoire) {
+        compilatrice_rapporte_erreur(fonction.params[0], "Fonction de formattage invalide, le premier paramètre doit être de type « *GénératriceDonnéesAléatoire ».");
     }
 
     si type_deuxième_paramètre.id != GenreInfoType.POINTEUR {

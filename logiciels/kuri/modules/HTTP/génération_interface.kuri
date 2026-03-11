@@ -330,10 +330,6 @@ classifie_paramètre :: fonc (paramètres: *ParamètresGénérationInterface, ty
     sinon si type.id == GenreInfoType.POINTEUR {
         type_pointeur := type comme *InfoTypePointeur;
 
-        si type_pointeur.est_référence {
-            retourne ClassificationParamètre.EST_INCONNU;
-        }
-
         type_pointé := type_pointeur.type_pointé;
 
         si type_pointé.id != GenreInfoType.STRUCTURE {

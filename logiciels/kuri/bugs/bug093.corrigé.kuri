@@ -10,19 +10,17 @@ importe Fondation;
 /* $T et [..]$T sont ambigües, il faudrait un système plus subtil, où le nombre
  * de déréférencement de types est pris en compte.
  */
-vole_données_ :: fonc (v: &$T) -> T
+vole_données_ :: fonc (v: *$T) -> T
 {
-    résultat : T = v;
-    v = T();
+    résultat : T = mémoire(v);
+    init_de(T)(v);
     retourne résultat;
 }
 
-vole_données_ :: fonc (v: &[..]$T) -> [..]T
+vole_données_ :: fonc (v: *[..]$T) -> [..]T
 {
-    résultat : [..]T = v;
-    v.pointeur = nul;
-    v.taille = 0;
-    v.capacité = 0;
+    résultat : [..]T = mémoire(v);
+    init_de([..]T)(v);
     retourne résultat;
 }
 
@@ -31,7 +29,7 @@ principale :: fonc ()
     tabl : []z32 = [ 0, 1, 2, 3, 4 ];
 
     tabl_dyn : [..]z32 = tableau_copie(tabl);
-    tabl_dyn_2 := vole_données_(tabl_dyn);
+    tabl_dyn_2 := vole_données_(*tabl_dyn);
     diffère déloge(*tabl_dyn_2);
 
     assert(tabl_dyn.pointeur == nul);

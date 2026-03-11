@@ -1203,7 +1203,6 @@ static bool peut_ignorer_type_pour_chercher_fonction(Type const *type)
         case GenreNoeud::ENTIER_CONSTANT:
         case GenreNoeud::ENTIER_NATUREL:
         case GenreNoeud::ENTIER_RELATIF:
-        case GenreNoeud::RÉFÉRENCE:
         case GenreNoeud::POINTEUR:
         case GenreNoeud::VARIADIQUE:
         {
