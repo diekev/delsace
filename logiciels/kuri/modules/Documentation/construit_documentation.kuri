@@ -36,10 +36,10 @@ DonnéesDocument :: struct {
     désactive_compilation_espace_défaut();
 
     lexèmes := compilatrice_lèxe_fichier("doc.kuri");
-    diffère déloge(lexèmes);
+    diffère déloge(*lexèmes);
 
     données: [..]DonnéesDocument;
-    diffère déloge(données);
+    diffère déloge(*données);
 
     indice_début: z64;
     taille_code: z64;

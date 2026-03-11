@@ -154,7 +154,7 @@ parse_css_style_declaration :: fonc (texte: chaine) -> *CSSStyleDeclaration
     diffère détruit_lexèmes(*lexèmes);
 
     components := parse_a_list_of_component_values(lexèmes);
-    diffère déloge(components);
+    diffère déloge(*components);
 
     parseuse_decl := initialise_une_parseuse(components);
 

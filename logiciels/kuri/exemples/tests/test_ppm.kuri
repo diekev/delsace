@@ -81,7 +81,7 @@ génére_image_noire :: fonc () -> Image
     nombre_caracteres := taille_x * taille_y;
 
     tampon := loge_chaine(nombre_caracteres);
-    diffère déloge(tampon);
+    diffère déloge(*tampon);
 
     pour image.tampon {
         tampon[indice_it] = si it == 0 {
@@ -147,7 +147,7 @@ génére_image_noire :: fonc () -> Image
 
 détruit_image :: fonc (image: *Image) -> rien
 {
-    déloge(image.tampon);
+    déloge(*image.tampon);
 }
 
 /* ------------------------------------------------------------------------- */

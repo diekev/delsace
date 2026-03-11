@@ -90,7 +90,7 @@ génère_formulaire_depuis_struct :: fonc (valeur: eini, nom_formulaire: chaine,
     initialise_enchaineuse(*enchaineuse);
 
     controles := parse_infos_controles_formulaire(valeur.info comme *InfoTypeStructure);
-    diffère déloge(controles);
+    diffère déloge(*controles);
 
     ajoute_au_tampon(*enchaineuse, "<form");
 

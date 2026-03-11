@@ -145,7 +145,7 @@ table_virtuelle_decl_env := TableVirtuelleCellule(classe = DeclarativeEnvironmen
 declarative_environment_sur_destruction :: fonc (base: *Cellule)
 {
     env := base.vérifie_comme(DeclarativeEnvironment);
-    déloge(env.bindings);
+    déloge(*env.bindings);
 }
 
 #portée_export
