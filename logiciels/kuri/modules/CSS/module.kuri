@@ -170,7 +170,7 @@ apparie_simple_selector :: fonc (simple: *SimpleSelector, élément: *HTML.Eleme
                 }
                 INCLUS {
                     morceaux := HTML.run_ordered_set_parser(attribut.Quelque);
-                    diffère déloge(morceaux);
+                    diffère déloge(*morceaux);
 
                     pour morceaux {
                         si it == simple.attribute_value {
@@ -365,7 +365,7 @@ apparie_selector_has :: fonc (selector_list: *SelectorList, élément: *HTML.Ele
     // À FAIRE : combinateur
 
     traversée: [..]*HTML.Element;
-    diffère déloge(traversée);
+    diffère déloge(*traversée);
 
     pour > élément.enfants {
         si HTML.est_élément(it) {
@@ -909,7 +909,7 @@ détruit_données_selector_list :: fonc (selector: *SelectorList)
         détruit_données_complex_selector(it);
     }
 
-    déloge(selector.complex_selectors);
+    déloge(*selector.complex_selectors);
 }
 
 calcule_spécificité :: fonc (selector: *SelectorList) -> Spécificité
@@ -951,7 +951,7 @@ détruit_données_complex_selector :: fonc (selector: *ComplexSelector)
         détruit_données_compound_selector(it);
     }
 
-    déloge(selector.compound_selectors);
+    déloge(*selector.compound_selectors);
 }
 
 calcule_spécificité :: fonc (selector: *ComplexSelector) -> Spécificité
@@ -1022,7 +1022,7 @@ détruit_données_compound_selector :: fonc (selector: *CompoundSelector)
         détruit_données_simple_selector(it);
     }
 
-    déloge(selector.simple_selectors);
+    déloge(*selector.simple_selectors);
 }
 
 imprime_compound_selector :: fonc (enchaineuse: *Enchaineuse, compound_selectors: *CompoundSelector)

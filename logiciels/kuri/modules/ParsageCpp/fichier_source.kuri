@@ -25,8 +25,8 @@ FluxSource :: struct {
 
 détruit_données_flux :: fonc (flux: *FluxSource)
 {
-    déloge(flux.runes);
-    déloge(flux.décalage_runes);
+    déloge(*flux.runes);
+    déloge(*flux.décalage_runes);
     init_de(FluxSource)(*flux);
 }
 
@@ -145,8 +145,8 @@ construis_fichier_source :: fonc (chemin: chaine, contenu: chaine) -> FichierSou
 
 détruit_données_fichier :: fonc (fichier: *FichierSource)
 {
-    déloge(fichier.tampon_contenu_prétaité);
-    déloge(fichier.contenu_cru);
+    déloge(*fichier.tampon_contenu_prétaité);
+    déloge(*fichier.contenu_cru);
     détruit_chemin(*fichier.chemin);
 }
 

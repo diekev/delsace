@@ -631,7 +631,7 @@ interprète_code_binaire_sur_destruction :: fonc (base: *Interpréteuse)
 {
     interprète := base comme *InterprèteCodeBinaire;
     détruit_interprète(interprète);
-    déloge(interprète);
+    déloge(*interprète);
 }
 
 donne_accumulateur :: fonc (interprète: *InterprèteCodeBinaire) -> Valeur #enligne
@@ -656,8 +656,8 @@ définis_registre :: fonc (empl état: ÉtatRegistres, registre: Registre, valeu
 
 détruit_interprète :: fonc (interprète: *InterprèteCodeBinaire)
 {
-    déloge(interprète.registres);
-    déloge(interprète.interpréteuse_arbre);
+    déloge(*interprète.registres);
+    déloge(*interprète.interpréteuse_arbre);
 }
 
 donne_code_binaire :: fonc (noeud: *NoeudSyntaxique) -> *FluxDInstructions
@@ -1162,7 +1162,7 @@ exécute_code_binaire :: fonc (base: *Interpréteuse, noeud: *NoeudSyntaxique) -
                 appel := it comme *InstructionAppel;
 
                 arguments: [..]Valeur;
-                diffère déloge(arguments);
+                diffère déloge(*arguments);
 
                 pour appel.donne_arguments() {
                     tableau_ajoute(*arguments, donne_registre(registres, it));
@@ -1198,7 +1198,7 @@ exécute_code_binaire :: fonc (base: *Interpréteuse, noeud: *NoeudSyntaxique) -
                 realm := interprète.donne_realm();
 
                 arguments: [..]Valeur;
-                diffère déloge(arguments);
+                diffère déloge(*arguments);
 
                 pour appel.donne_arguments() {
                     tableau_ajoute(*arguments, donne_registre(registres, it));
@@ -1247,7 +1247,7 @@ exécute_code_binaire :: fonc (base: *Interpréteuse, noeud: *NoeudSyntaxique) -
                 new := it comme *InstructionNew;
 
                 arguments: [..]Valeur;
-                diffère déloge(arguments);
+                diffère déloge(*arguments);
 
                 pour new.donne_arguments() {
                     tableau_ajoute(*arguments, donne_registre(registres, it));

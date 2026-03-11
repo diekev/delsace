@@ -10,40 +10,40 @@ détruit_asa :: fonc (asa: *ASA) -> rien
                 inst_crée := inst comme *InstructionCréationTable;
 
                 pour déf dans inst_crée.colonnes {
-                    déloge(déf);
+                    déloge(*déf);
                 }
 
-                déloge(inst_crée.colonnes);
-                déloge(inst_crée);
+                déloge(*inst_crée.colonnes);
+                déloge(*inst_crée);
             }
             SÉLECTIONNE {
                 inst_sél := inst comme *InstructionSélection;
 
                 pour expr dans inst_sél.items {
-                    déloge(expr);
+                    déloge(*expr);
                 }
 
-                déloge(inst_sél.items);
-                déloge(inst_sél);
+                déloge(*inst_sél.items);
+                déloge(*inst_sél);
             }
             INSÈRE {
                 inst_insère := inst comme *InstructionInsère;
 
                 pour expr dans inst_insère.valeurs {
-                    déloge(expr);
+                    déloge(*expr);
                 }
 
-                déloge(inst_insère.valeurs);
-                déloge(inst_insère);
+                déloge(*inst_insère.valeurs);
+                déloge(*inst_insère);
             }
             MÉTA_SORS,
             MÉTA_TABLES {
-                déloge(inst);
+                déloge(*inst);
             }
         }
     }
 
-    déloge(asa.instructions);
+    déloge(*asa.instructions);
 }
 
 parse :: fonc (chn: chaine) -> ASA
@@ -56,7 +56,7 @@ parse :: fonc (chn: chaine) -> ASA
     }
 */
 
-    diffère déloge(lexèmes);
+    diffère déloge(*lexèmes);
 
     syntaxeuse: Syntaxeuse;
     syntaxeuse.lexèmes = lexèmes;

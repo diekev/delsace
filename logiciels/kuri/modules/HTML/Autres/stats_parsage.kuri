@@ -38,7 +38,7 @@ imprime_stats :: fonc (statistiques: StatistiquesParsage)
 parse_page_et_accumule_stats :: fonc (chemin: CheminFichier, statistiques: *StatistiquesParsage)
 {
     _, contenu := contenu_fichier_texte(chemin.chn);
-    diffère déloge(contenu);
+    diffère déloge(*contenu);
 
     mv: JS.MachineVirtuelle;
     JS.initialise_mv(nul, *mv);
@@ -67,7 +67,7 @@ parse_pages_dossier_et_accumule_stats :: fonc (dossier: CheminFichier, statistiq
                     parse_page_et_accumule_stats(chemin, statistiques);
                     nombre_de_fichiers += 1;
                 }
-                déloge(chemin.chn);
+                déloge(*chemin.chn);
             }
             sinon {
                 arrête;

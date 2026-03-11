@@ -24,7 +24,7 @@ resème :: fonc (gna: *GNA, graine: n32)
 
 détruit_gna :: fonc (gna: *GNA)
 {
-    déloge(gna);
+    déloge(*gna);
 }
 
 uniforme :: fonc (gna: *GNA, min: r32, max: r32) -> r32

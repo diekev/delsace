@@ -32,7 +32,7 @@ principale :: fonc ()
 
     tabl_dyn : [..]z32 = tableau_copie(tabl);
     tabl_dyn_2 := vole_données_(tabl_dyn);
-    diffère déloge(tabl_dyn_2);
+    diffère déloge(*tabl_dyn_2);
 
     assert(tabl_dyn.pointeur == nul);
     assert(tabl_dyn.taille == 0);

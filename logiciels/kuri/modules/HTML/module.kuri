@@ -111,7 +111,7 @@ donne_feuille_de_style :: fonc (chemin: chaine) -> *CSS.CSSStyleSheet
     diffère détruit_chemin(*chemin_fichier);
 
     _, contenu := contenu_fichier_texte(chemin_fichier);
-    diffère déloge(contenu);
+    diffère déloge(*contenu);
 
     ctx: CSS.ContexteParsageFeuilleDeStyle;
     diffère CSS.détruit_données_contexte(*ctx);
@@ -215,7 +215,7 @@ ParsatHTML :: struct {
 
 détruit :: fonc (parsat: *ParsatHTML)
 {
-    déloge(parsat.erreurs);
+    déloge(*parsat.erreurs);
 }
 
 /* Parse un document HTML depuis une chaine de caractère. */

@@ -55,7 +55,7 @@ ajourne :: fonc (barre: *BarreDeDéfilement, largeur_vue: r32, hauteur_vue: r32,
 
 détruit :: fonc (barre: *BarreDeDéfilement)
 {
-    déloge(barre);
+    déloge(*barre);
 }
 
 définis_position_y :: fonc (barre: *BarreDeDéfilement, y: r32) -> bool
@@ -134,7 +134,7 @@ détruit_arbre :: fonc (arbre: *ArbreDeDisposition)
     }
 
     pour arbre.boxes {
-        déloge(it.enfants);
+        déloge(*it.enfants);
         si it.propriétés {
             détruit_propriétés(it.propriétés);
         }
@@ -151,75 +151,75 @@ détruit_arbre :: fonc (arbre: *ArbreDeDisposition)
 
         si it.table_virtuelle.type == BlockBox {
             bloc := it comme *BlockBox;
-            déloge(bloc);
+            déloge(*bloc);
         }
         sinon si it.table_virtuelle.type == InlineBox {
             box := it comme *InlineBox;
-            déloge(box);
+            déloge(*box);
         }
         sinon si it.table_virtuelle.type == TextBox {
             texte := it comme *TextBox;
             détruit_chaine(*texte.texte);
-            déloge(texte.fragments);
-            déloge(texte);
+            déloge(*texte.fragments);
+            déloge(*texte);
         }
         sinon si it.table_virtuelle.type == BreakBox {
             bris := it comme *BreakBox;
-            déloge(bris);
+            déloge(*bris);
         }
         sinon si it.table_virtuelle.type == ReplacedBox {
             replaced := it comme *ReplacedBox;
-            déloge(replaced);
+            déloge(*replaced);
         }
         sinon si it.table_virtuelle.type == SelectBox {
             select := it comme *SelectBox;
             détruit_chaine(*select.texte);
-            déloge(select.fragments);
-            déloge(select);
+            déloge(*select.fragments);
+            déloge(*select);
         }
         sinon si it.table_virtuelle.type == TableWrapperBox {
             box := it comme *TableWrapperBox;
-            déloge(box);
+            déloge(*box);
         }
         sinon si it.table_virtuelle.type == TableBox {
             box := it comme *TableBox;
-            déloge(box);
+            déloge(*box);
         }
         sinon si it.table_virtuelle.type == TableColumnGroupBox {
             box := it comme *TableColumnGroupBox;
-            déloge(box);
+            déloge(*box);
         }
         sinon si it.table_virtuelle.type == TableColumnBox {
             box := it comme *TableColumnBox;
-            déloge(box);
+            déloge(*box);
         }
         sinon si it.table_virtuelle.type == TableFooterGroupBox {
             box := it comme *TableFooterGroupBox;
-            déloge(box);
+            déloge(*box);
         }
         sinon si it.table_virtuelle.type == TableHeaderGroupBox {
             box := it comme *TableHeaderGroupBox;
-            déloge(box);
+            déloge(*box);
         }
         sinon si it.table_virtuelle.type == TableRowGroupBox {
             box := it comme *TableRowGroupBox;
-            déloge(box);
+            déloge(*box);
         }
         sinon si it.table_virtuelle.type == TableRowBox {
             box := it comme *TableRowBox;
-            déloge(box);
+            déloge(*box);
         }
         sinon si it.table_virtuelle.type == TableCellBox {
             box := it comme *TableCellBox;
-            déloge(box);
+            déloge(*box);
         }
         sinon si it.table_virtuelle.type == CaptionBox {
             box := it comme *CaptionBox;
-            déloge(box);
+            déloge(*box);
         }
         sinon {
             imprime("box inconnu !");
-            déloge(it);
+            déloge(*it);
         }
     }
 
@@ -228,13 +228,13 @@ détruit_arbre :: fonc (arbre: *ArbreDeDisposition)
     }
 
     détruit_stacking_context(arbre.stacking_context);
-    déloge(arbre.stacking_contexts);
+    déloge(*arbre.stacking_contexts);
     détruit_commandes(arbre.commandes);
     détruit(arbre.défilement_vertical);
-    déloge(arbre.tampon_id.données);
-    déloge(arbre.lignes_tenantes);
-    déloge(arbre.boxes);
-    déloge(arbre);
+    déloge(*arbre.tampon_id.données);
+    déloge(*arbre.lignes_tenantes);
+    déloge(*arbre.boxes);
+    déloge(*arbre);
 }
 
 crée_box :: fonc (arbre: *ArbreDeDisposition, $TypeBox: type_de_données) -> *TypeBox
@@ -313,7 +313,7 @@ imprime_statistiques :: fonc (arbre: *ArbreDeDisposition)
 imprime_arbre :: fonc (arbre: *ArbreDeDisposition)
 {
     résultat := donne_chaine_impression_arbre(arbre);
-    diffère déloge(résultat);
+    diffère déloge(*résultat);
 
     imprime("%\n", résultat);
 }
@@ -640,19 +640,19 @@ donne_règles_pour_classe :: fonc (résolveuse: *RésolveuseStyle, classe: CSSOM
 
 détruit_données_résolveuse :: fonc (résolveuse: *RésolveuseStyle)
 {
-    déloge(résolveuse.déclarations_cascade);
-    déloge(résolveuse.ids_connus);
-    déloge(résolveuse.attrs_connus);
-    déloge(résolveuse.classes_connues);
-    déloge(résolveuse.autres_règles);
+    déloge(*résolveuse.déclarations_cascade);
+    déloge(*résolveuse.ids_connus);
+    déloge(*résolveuse.attrs_connus);
+    déloge(*résolveuse.classes_connues);
+    déloge(*résolveuse.autres_règles);
     pour résolveuse.règles_par_classe {
-        déloge(it.règles);
+        déloge(*it.règles);
     }
-    déloge(résolveuse.règles_par_classe);
+    déloge(*résolveuse.règles_par_classe);
     pour résolveuse.presentational_hints {
         détruit_déclaration(it);
     }
-    déloge(résolveuse.presentational_hints);
+    déloge(*résolveuse.presentational_hints);
 }
 
 détruit_résolveuse :: fonc (résolveuse: *RésolveuseStyle)
@@ -661,7 +661,7 @@ détruit_résolveuse :: fonc (résolveuse: *RésolveuseStyle)
         retourne;
     }
     détruit_données_résolveuse(résolveuse);
-    déloge(résolveuse);
+    déloge(*résolveuse);
 }
 
 /* https://html.spec.whatwg.org/multipage/rendering.html#the-css-user-agent-style-sheet-and-presentational-hints */
@@ -736,7 +736,7 @@ RègleEtSpécificité :: struct {
 collecte_les_règles_appropriées :: fonc (résolveuse: *RésolveuseStyle, élément: *HTML.Element, pseudo_element: *PseudoElement) -> [..]RègleEtSpécificité
 {
     temp: [..]RègleAppariée;
-    diffère déloge(temp);
+    diffère déloge(*temp);
 
     résultat: [..]RègleEtSpécificité;
 
@@ -786,7 +786,7 @@ apparie_règle :: fonc (règle_de_style: RègleAppariée, élément: *HTML.Eleme
 résoud_style :: fonc (résolveuse: *RésolveuseStyle, élément: *HTML.Element, pseudo_element: *PseudoElement, propriétés_parent: *PropriétésDeStyle) -> *PropriétésDeStyle
 {
     règles := collecte_les_règles_appropriées(résolveuse, élément, pseudo_element);
-    diffère déloge(règles);
+    diffère déloge(*règles);
     // imprime("% règle(s) pour %\n", règles.taille, élément.local_name)
 
     si pseudo_element != nul && règles.taille == 0 {
@@ -1397,7 +1397,7 @@ dispose_arbre :: fonc (globales: *GlobalesDessin, arbre: *ArbreDeDisposition, la
     ctx.initial_containing_block = *initial_containing_block;
 
     boites_absolues: GardeBoitesAbsolues;
-    diffère déloge(boites_absolues.boites);
+    diffère déloge(*boites_absolues.boites);
 
     ctx.boites_absolues = *boites_absolues;
 
@@ -1791,7 +1791,7 @@ donne_image_pour_url :: fonc (ctx: *ContexteDessin, url_string: chaine) -> Optio
     {
         rappel := base comme *RappelProcessResponse;
         HTML.détruit_request(rappel.request);
-        déloge(rappel);
+        déloge(*rappel);
     }
 
     process_response := loge(RappelProcessResponse);
@@ -2608,14 +2608,14 @@ réinitialise :: fonc (lignes_tenante: *LignesTenante)
 
 détruit_données :: fonc (lignes_tenante: *LignesTenante)
 {
-    déloge(lignes_tenante.lignes);
-    déloge(lignes_tenante.fragments);
+    déloge(*lignes_tenante.lignes);
+    déloge(*lignes_tenante.fragments);
 }
 
 détruit :: fonc (lignes_tenante: *LignesTenante)
 {
     détruit_données(lignes_tenante);
-    déloge(lignes_tenante);
+    déloge(*lignes_tenante);
 }
 
 donne_ligne_courante :: fonc (lignes_tenante: *LignesTenante, ctx: *ContexteDeFormattageInline) -> *BoiteDeLigne
@@ -3029,7 +3029,7 @@ block_box_corrige_hiérarchie :: fonc (base: *Box, créatrice: *CréatriceArbre)
         bloc_anonyme_courant.ajoute_enfant(it);
     }
 
-    déloge(box.enfants);
+    déloge(*box.enfants);
     box.enfants = nouveaux_enfants;
 }
 
@@ -3194,7 +3194,7 @@ inline_box_corrige_hiérarchie :: fonc (base: *Box, créatrice: *CréatriceArbre
      *
      * https://www.w3.org/TR/2011/REC-CSS2-20110607/visuren.html#anonymous-block-level */
     anciens_enfants := box.enfants;
-    diffère déloge(anciens_enfants);
+    diffère déloge(*anciens_enfants);
 
     inline_box_courant := box;
     inline_box_courant.enfants.pointeur = nul;

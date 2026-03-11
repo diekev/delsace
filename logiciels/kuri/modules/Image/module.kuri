@@ -195,7 +195,7 @@ détruit_données_image :: fonc (image: *NouvelleImage)
     données.pointeur = image.données;
     données.capacité = taille_données;
 
-    déloge(données);
+    déloge(*données);
     image.données = nul;
 
     si image.gif {
@@ -207,7 +207,7 @@ détruit_données_image :: fonc (image: *NouvelleImage)
 charge_image :: fonc (chemin: chaine) -> (bool, NouvelleImage)
 {
     _, contenu := contenu_fichier_binaire(CheminFichier(chemin));
-    diffère déloge(contenu);
+    diffère déloge(*contenu);
     retourne décode_image(contenu, "", chemin);
 }
 
@@ -1143,9 +1143,9 @@ InfoFormatImageSupporté :: struct {
 détruit_infos :: fonc (infos: [..]InfoFormatImageSupporté)
 {
     pour infos {
-        déloge(it.extensions);
+        déloge(*it.extensions);
     }
-    déloge(infos);
+    déloge(*infos);
 }
 
 compare_info_image_supportée_par_nom :: fonc (a: InfoFormatImageSupporté, b: InfoFormatImageSupporté) -> z32
@@ -1168,15 +1168,15 @@ donne_infos_formats_images_supportés :: fonc () -> [..]InfoFormatImageSupporté
     tableau_réserve(*résultat, nombre_de_doubles_points + 3);
 
     paires_type_extensions := divise(chn_liste_extensions, ';');
-    diffère déloge(paires_type_extensions);
+    diffère déloge(*paires_type_extensions);
 
     type_et_extensions: [..]chaine;
     tableau_réserve(*type_et_extensions, nombre_d_extensions);
-    diffère déloge(type_et_extensions);
+    diffère déloge(*type_et_extensions);
 
     extensions: [..]chaine;
     tableau_réserve(*extensions, nombre_d_extensions);
-    diffère déloge(extensions);
+    diffère déloge(*extensions);
 
     pour paires_type_extensions {
         divise(it, ':', *type_et_extensions);

@@ -42,7 +42,7 @@ test_préprocesseur :: fonc () -> bool
     diffère déloge_tableau_et_ses_éléments(*chemins_sources, détruit_chemin);
 
     échecs: [..]CheminFichier;
-    diffère déloge(échecs);
+    diffère déloge(*échecs);
 
     nombre_de_tests_passants: z32;
     nombre_de_tests_ignorés: z32;
@@ -51,7 +51,7 @@ test_préprocesseur :: fonc () -> bool
         imprime(".");
 
         impression := donne_texte_pour_sortie(it);
-        diffère déloge(impression);
+        diffère déloge(*impression);
 
         nom_fichier := nom_fichier(it);
         // À FAIRE : rapporte erreur
@@ -66,7 +66,7 @@ test_préprocesseur :: fonc () -> bool
         saufsi succès {
             continue;
         }
-        diffère déloge(sortie_attendue);
+        diffère déloge(*sortie_attendue);
 
         si impression != sortie_attendue {
             tableau_ajoute(*échecs, it);
@@ -115,13 +115,13 @@ ajourne_fichiers :: fonc ()
         }
 
         impression := donne_texte_pour_sortie(it);
-        diffère déloge(impression);
+        diffère déloge(*impression);
 
         chemin_sortie := chemins_sorties[indice_it];
 
         si est_un_fichier_régulier(chemin_sortie) {
             succès, original := contenu_fichier_texte(chemin_sortie);
-            diffère déloge(original);
+            diffère déloge(*original);
             si succès && impression == original {
                 continue;
             }

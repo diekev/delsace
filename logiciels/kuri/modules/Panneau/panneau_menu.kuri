@@ -64,8 +64,8 @@ crée_panneau_barre_de_menu :: fonc (ctx: *ContexteInterface, barre_de_menu: *Ba
 
 détruit_panneau_barre_de_menu :: fonc (panneau: **PanneauBarreDeMenu)
 {
-    déloge(panneau.éléments);
-    déloge(panneau);
+    déloge(*panneau.éléments);
+    déloge(*panneau);
     panneau = nul;
 }
 
@@ -274,7 +274,7 @@ détruit_panneau_menu :: fonc (empl panneau: *PanneauBarreDeMenu)
         détruit_panneau_menu(it);
     }
 
-    déloge(menus_affichés);
+    déloge(*menus_affichés);
 
     panneau.sur_menu_fermé();
 }
@@ -456,8 +456,8 @@ crée_panneau_menu :: fonc (ctx: *ContexteInterface, menu: *Menu, position: Poin
 
 détruit_panneau_menu :: fonc (panneau: **PanneauMenu)
 {
-    déloge(panneau.éléments);
-    déloge(panneau);
+    déloge(*panneau.éléments);
+    déloge(*panneau);
     panneau = nul;
 }
 

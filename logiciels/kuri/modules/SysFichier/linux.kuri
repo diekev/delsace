@@ -713,7 +713,7 @@ système_chemins_système_pour_variable :: fonc (variable: chaine) -> Optionnel(
     saufsi chemins {
         retourne;
     }
-    diffère déloge(chemins);
+    diffère déloge(*chemins);
 
     morceaux := divise(chemins, ':');
 
@@ -752,7 +752,7 @@ système_déplace_vers_corbeille :: fonc (chemin: CheminFichier) -> Optionnel(Er
     nom_fichier_info := imprime_chaine("%.trashinfo", chemin_destination.nom_fichier_avec_extension());
     chemin_fichier_info := chemin_corbeille / "info" / nom_fichier_info;
     diffère détruit_chemin(*chemin_fichier_info);
-    déloge(nom_fichier_info);
+    déloge(*nom_fichier_info);
 
     /* Écris le fichier d'information avant de déplacer le fichier dans la
      * corbeille afin de s'assurer que nous avons l'espace disque nécessaire.
@@ -794,7 +794,7 @@ système_chemin_destination_pour_suppression :: fonc (chemin_corbeille: CheminFi
 
         nom_fichier_destination := imprime_chaine("%.%%", nom_fichier, indice, extension);
         chemin_destination = chemin_corbeille / "files" / nom_fichier_destination;
-        déloge(nom_fichier_destination);
+        déloge(*nom_fichier_destination);
 
         indice += 1;
     }

@@ -29,7 +29,7 @@ principale :: fonc ()
     diffère détruit_chaines_internées();
 
     _, contenu := contenu_fichier_texte(chm.chn);
-    diffère déloge(contenu);
+    diffère déloge(*contenu);
 
     imprime("%\n", contenu);
 

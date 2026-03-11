@@ -159,7 +159,7 @@ compare_attribut :: fonc (a1: *Attr, a2: *Attr) -> z32
 tri_classes_css :: fonc (chn_classe: DOMString) -> DOMString
 {
     classes := run_ordered_set_parser(chn_classe);
-    diffère déloge(classes);
+    diffère déloge(*classes);
 
     enchaineuse: EnchaineuseUTF16;
     initialise_enchaineuse(*enchaineuse);
@@ -257,7 +257,7 @@ formatte_noeud :: fonc (contexte_formattage: *ContexteFormattage, noeud: *Node, 
 
             /* Attributs. */
             attributs := cueille_et_tri_attributs(contexte_formattage, élément.local_name, élément.attributs);
-            diffère déloge(attributs);
+            diffère déloge(*attributs);
 
             pour attributs {
                 enchaineuse.ajoute_au_tampon(" ");

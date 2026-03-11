@@ -23,14 +23,14 @@ ajourne_évènements_fenêtre :: fonc (type_fenêtre: TypeFenêtre) -> []Évène
 {
     si type_fenêtre.système == SystèmeFenêtre.NATIVE {
         pour __évènements {
-            déloge(it.texte);
+            déloge(*it.texte);
 
             pour données_mime dans it.mimes {
-                déloge(données_mime.type);
-                déloge(données_mime.données);
+                déloge(*données_mime.type);
+                déloge(*données_mime.données);
             }
 
-            déloge(it.mimes);
+            déloge(*it.mimes);
         }
         __évènements.taille = 0;
         x11_ajourne_évènements_fenêtre(type_fenêtre);

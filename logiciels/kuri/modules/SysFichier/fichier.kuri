@@ -157,7 +157,7 @@ positionne_fichier :: fonc (fichier: *Fichier, position: PositionFichier) -> Ré
 copie_fichier :: fonc (source: CheminFichier, destination: CheminFichier) -> bool
 {
     _, contenu_source := contenu_fichier_texte(source);
-    diffère déloge(contenu_source);
+    diffère déloge(*contenu_source);
 
     fichier_destination := tente ouvre_fichier_crée_si_non_existant(destination, pour_lecture_écriture_tronquée) piège _ {
         retourne faux;
@@ -375,7 +375,7 @@ lis_tout :: fonc (fichier: *Fichier, résultat: *[..]octet) -> ErreurFichier
 
     boucle {
         octets_lus := tente système_lis(fichier.desc, *tampon[0], TAILLE_MAX) piège err {
-            tableau_détruit(résultat);
+            déloge(résultat);
             retourne err;
         };
 
@@ -441,7 +441,7 @@ lis_tout_depuis_fichier :: fonc (fichier: *Fichier) -> ChaineOuErreurFichier
     résultat := loge_chaine(taille_fichier);
 
     octets_lus := tente système_lis(fichier.desc, résultat.pointeur, résultat.taille) piège err {
-        déloge(résultat);
+        déloge(*résultat);
         retourne err;
     };
 

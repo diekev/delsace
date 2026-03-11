@@ -9,7 +9,7 @@ importe Numérique;
 dispose_noeuds :: fonc (graphe: *Graphe) -> Optionnel(ÉchecOpération)
 {
     texte := donne_texte_graphviz(graphe, "BT");
-    diffère déloge(texte);
+    diffère déloge(*texte);
 
     DonnéesPositionNoeud :: struct {
         nom: chaine;
@@ -18,17 +18,17 @@ dispose_noeuds :: fonc (graphe: *Graphe) -> Optionnel(ÉchecOpération)
     }
 
     données_position_noeuds: [..]DonnéesPositionNoeud;
-    diffère déloge(données_position_noeuds);
+    diffère déloge(*données_position_noeuds);
 
     discr ouvre_canal_de_communication("dot", "-Tplain") {
         Quelque(canal) {
             écris(*canal, texte);
             ferme_écriture(*canal);
             texte_résultat := lis(*canal);
-            diffère déloge(texte_résultat);
+            diffère déloge(*texte_résultat);
 
             lignes := divise(texte_résultat, '\n');
-            diffère déloge(lignes);
+            diffère déloge(*lignes);
 
             indice_noeud := 0;
 
@@ -40,7 +40,7 @@ dispose_noeuds :: fonc (graphe: *Graphe) -> Optionnel(ÉchecOpération)
                 diffère indice_noeud += 1;
 
                 lexèmes := it.divise(' ');
-                diffère déloge(lexèmes);
+                diffère déloge(*lexèmes);
 
                 saufsi lexèmes.taille >= 4 {
                     continue;

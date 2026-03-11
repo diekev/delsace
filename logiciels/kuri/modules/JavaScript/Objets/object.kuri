@@ -159,10 +159,10 @@ object_instance_crée :: fonc (realm: *Realm) -> *Object
 sur_destruction_objet :: fonc (base: *Cellule)
 {
     objet := base.vérifie_comme(Object);
-    déloge(objet.propriétés);
-    déloge(objet.indice_propriétés);
-    déloge(objet.éléments_indexés);
-    déloge(objet.private_elements);
+    déloge(*objet.propriétés);
+    déloge(*objet.indice_propriétés);
+    déloge(*objet.éléments_indexés);
+    déloge(*objet.private_elements);
 }
 
 ajoute_propriété :: fonc (objet: *Object, nom: PropertyKey, valeur: Valeur, drapeaux: DrapeauxPropriété)
@@ -217,7 +217,7 @@ possède_slot :: fonc (object: *Object, nom: chaine) -> bool
 
     // @allocation-inutile
     traversée: [..]*InfoTypeStructure;
-    diffère déloge(traversée);
+    diffère déloge(*traversée);
 
     tableau_ajoute(*traversée, infos);
 
@@ -466,7 +466,7 @@ object_prototype_to_string :: fonc (empl params: *ParamètresObjectCall) -> Vale
 
     // 17. Return the string-concatenation of "[object ", tag, and "]".
     résultat := enchaine("[object ", tag, "]");
-    diffère déloge(résultat);
+    diffère déloge(*résultat);
     retourne crée_chaine(interpréteuse.donne_realm(), crée_chaine_utf16_unique(résultat));
 }
 

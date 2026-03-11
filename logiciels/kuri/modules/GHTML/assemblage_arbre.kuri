@@ -20,8 +20,8 @@ NoeudSyntaxique :: struct {
 
 détruit_noeud :: fonc (noeud: *NoeudSyntaxique) -> rien
 {
-    déloge(noeud.enfants);
-    déloge(noeud);
+    déloge(*noeud.enfants);
+    déloge(*noeud);
 }
 
 ajoute_noeud :: fonc (noeud: *NoeudSyntaxique, enfant: *NoeudSyntaxique) -> rien
@@ -65,7 +65,7 @@ détruit_assembleuse :: fonc (assembleuse: *AssembleuseArbre) -> rien
         détruit_noeud(noeud);
     }
 
-    déloge(assembleuse.noeuds);
+    déloge(*assembleuse.noeuds);
 
     détruit(*assembleuse.pile);
 }

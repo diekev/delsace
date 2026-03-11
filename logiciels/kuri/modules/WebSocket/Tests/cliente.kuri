@@ -56,7 +56,7 @@ ClienteWebSocket :: struct {
 
 donne_url :: fonc (cliente: *ClienteWebSocket) -> URI
 {
-    déloge_si_logée(cliente.dernière_chaine_uri);
+    déloge_si_logée(*cliente.dernière_chaine_uri);
 
     discr cliente.état {
         RequiersNombreDeTest {
@@ -155,7 +155,7 @@ rappel_quand_fermeture :: fonc (prise: *Prise)
 {
     données_connexion := prise.données_utilisateur(DonnéesPriseWebSocket);
     réinitialise(*données_connexion.parseuse);
-    déloge(données_connexion.requête);
+    déloge(*données_connexion.requête);
 
     ctx := prise.contexte_;
     cliente := données_utilisateur(ctx, ClienteWebSocket);

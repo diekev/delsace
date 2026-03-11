@@ -19,7 +19,7 @@ détruit_objet_tampon_tableau :: fonc (objet: *ObjetTamponTableau)
         glDeleteVertexArrays(1, *objet.adresse);
     }
 
-    déloge(objet);
+    déloge(*objet);
 }
 
 attache :: fonc (objet: *ObjetTamponTableau)
@@ -91,13 +91,13 @@ détruit_tampon_objet :: fonc (empl tampon: *TamponObjet)
     pour * tampons_extra {
         détruit_tampon(it);
     }
-    déloge(tampons_extra);
+    déloge(*tampons_extra);
 
     si glIsVertexArray(objet_tableau_sommet) {
         glDeleteVertexArrays(1, *objet_tableau_sommet);
     }
 
-    déloge(tampon);
+    déloge(*tampon);
 }
 
 attache :: fonc (empl tampon: *TamponObjet)
@@ -312,7 +312,7 @@ détruit_tampon_rendu :: fonc (tampon: *TamponRendu)
     si tampon.texture_2d {
         déloge_texture_2d(tampon.texture_2d);
     }
-    déloge(tampon);
+    déloge(*tampon);
 }
 
 initialise_objet_tampon :: fonc (tampon: *TamponRendu)

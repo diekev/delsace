@@ -23,7 +23,7 @@ str_chemin_fichier_pour_python :: fonc (chm: *CheminFichier) -> chaine
 
 détruit_chemin :: fonc (chemin: *CheminFichier)
 {
-    déloge(chemin.chn);
+    déloge(*chemin.chn);
 }
 
 est_vide :: fonc (chemin: CheminFichier) -> bool
@@ -314,8 +314,8 @@ chemins_sont_équivalents :: fonc (chemin1: CheminFichier, chemin2: CheminFichie
 {
     chemin1_normalisé := chemin_normalisé(chemin1, chemin1.chn.commence_par(séparateur_chemin()));
     chemin2_normalisé := chemin_normalisé(chemin2, chemin2.chn.commence_par(séparateur_chemin()));
-    diffère déloge(chemin1_normalisé.chn);
-    diffère déloge(chemin2_normalisé.chn);
+    diffère déloge(*chemin1_normalisé.chn);
+    diffère déloge(*chemin2_normalisé.chn);
     retourne chemin1_normalisé == chemin2_normalisé;
 }
 

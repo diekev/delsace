@@ -611,18 +611,18 @@ détruit_valeur_de_style :: fonc (valeur: *ValeurDeStyle)
     }
     sinon si valeur.est_url_absolu() {
         url := valeur.donne_url_absolu();
-        déloge_si_logée(url);
+        déloge_si_logée(*url);
     }
     sinon si valeur.est_calc() {
         calc := valeur.donne_calc();
-        déloge(calc.valeurs);
+        déloge(*calc.valeurs);
     }
     sinon si valeur.est_liste() {
         liste := (valeur comme *ValeurListe).valeur;
         pour liste {
             détruit_valeur_de_style(it);
         }
-        déloge(liste);
+        déloge(*liste);
     }
     sinon si valeur.est_background_position() {
         position := (valeur comme *ValeurBackgroundPosition).valeur;
@@ -1175,13 +1175,13 @@ permute :: fonc (a: *PropriétésDeStyle, b: *PropriétésDeStyle)
 
 détruit_données_propriétés :: fonc (propriétés: *PropriétésDeStyle)
 {
-    déloge(propriétés.déclarations);
+    déloge(*propriétés.déclarations);
 }
 
 détruit_propriétés :: fonc (propriétés: *PropriétésDeStyle)
 {
     détruit_données_propriétés(propriétés);
-    déloge(propriétés);
+    déloge(*propriétés);
 }
 
 ajoute_déclaration :: fonc (propriétés: *PropriétésDeStyle, déclaration: *DéclarationPropriété)
@@ -1736,7 +1736,7 @@ calcule_style :: fonc (ctx: *ContexteCalculStyle, étape: ÉtapeCalculStyle)
 
             _ := info.sur_parsage_shorthand(*ctx_parsage, valeurs);
 
-            déloge(valeurs);
+            déloge(*valeurs);
             continue;
         }
 

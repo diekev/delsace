@@ -289,7 +289,7 @@ parse_int :: fonc (empl params: *ParamètresObjectCall) -> Valeur
     }
 
     chn := convertis_vers_chaine(string.texte.donne_chaine_utf16());
-    diffère déloge(chn);
+    diffère déloge(*chn);
 
     résultat := tente extrait_r64(chn) piège _ {
         retourne lance_type_error(interpréteuse, "value is not a Number");
@@ -352,7 +352,7 @@ encode :: fonc (interpréteuse: *Interpréteuse, string: ECMAString, extra_unesc
 
     // 4. Let unescapedSet be the string-concatenation of alwaysUnescaped and extraUnescaped.
     unescaped_set: [..]n16;
-    diffère déloge(unescaped_set);
+    diffère déloge(*unescaped_set);
 
     pour always_unescaped {
         ensemble_ajoute(*unescaped_set, it comme n16);
@@ -537,10 +537,10 @@ parse_json :: fonc (text: *PrimitiveChaine, interpréteuse: *Interpréteuse) -> 
 
     // 2. Let scriptString be the string-concatenation of "(", text, and ");".
     text_en_chaine_native := convertis_vers_chaine(text.texte.donne_chaine_utf16());
-    diffère déloge(text_en_chaine_native);
+    diffère déloge(*text_en_chaine_native);
 
     script_string := enchaine("(", text_en_chaine_native, ")");
-    diffère déloge(script_string);
+    diffère déloge(*script_string);
 
     // 3. Let script be ParseText(scriptString, Script).
     source := crée_texte_source(script_string);

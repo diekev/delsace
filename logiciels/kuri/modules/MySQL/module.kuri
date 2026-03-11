@@ -24,9 +24,9 @@ PiloteMySQL :: struct {
 détruit_pilote :: fonc (pilote: *PiloteMySQL, détruit_config: bool)
 {
     si détruit_config {
-        déloge(pilote.config.utilisateur);
-        déloge(pilote.config.mot_de_passe);
-        déloge(pilote.config.base_de_données);
+        déloge(*pilote.config.utilisateur);
+        déloge(*pilote.config.mot_de_passe);
+        déloge(*pilote.config.base_de_données);
     }
 }
 
@@ -106,7 +106,7 @@ crée_connexion :: fonc (pilote: *PiloteMySQL) -> RésultatConnexionMySQL
     diffère définis_marque_stockage_temporaire(marque);
 
     chaine_ip := chaine_depuis_ip(pilote.config.hôte);
-    diffère déloge(chaine_ip);
+    diffère déloge(*chaine_ip);
     hôte := crée_chaine_c(chaine_ip);
     diffère détruit_chaine_c(*hôte);
     utilisateur := crée_chaine_c(pilote.config.utilisateur);
@@ -172,7 +172,7 @@ détruit_résultat :: fonc (résultat: *RésultatRequête) -> rien
         détruit_curseur(it);
     }
 
-    déloge(résultat.curseurs);
+    déloge(*résultat.curseurs);
 }
 
 ErreurCurseur :: erreur {
@@ -301,7 +301,7 @@ trouve_info_rubriques_pour_colonnes :: fonc (agent: chaine @inutilisée, info: *
             }
         }
         sansarrêt {
-            déloge(infos_rubriques);
+            déloge(*infos_rubriques);
             panique("Colonne '%' introuvable dans le type !", it);
         }
     }
@@ -325,7 +325,7 @@ sélectionne :: fonc (table: *TableMySQL, $T: type_de_données, colonnes: ...cha
         retourne résultat;
     }
 
-    diffère déloge(infos_rubriques);
+    diffère déloge(*infos_rubriques);
 
     /* construit la chaine de la requête */
     enchaineuse: Enchaineuse;
@@ -342,7 +342,7 @@ sélectionne :: fonc (table: *TableMySQL, $T: type_de_données, colonnes: ...cha
     ajoute_au_tampon(*enchaineuse, " FROM ", table.nom, "");
 
     requête := chaine_depuis_enchaineuse(*enchaineuse);
-    diffère déloge(requête);
+    diffère déloge(*requête);
 
     /* tente de nous connecté à la base de données */
     connexion := tente crée_connexion(table.pilote) piège err {
@@ -373,7 +373,7 @@ sélectionne :: fonc (table: *TableMySQL, $T: type_de_données, colonnes: ...cha
             fonction := trouve_fonction_pour_type(table.fonctions_parsages_mysql, rubrique.id);
 
             saufsi fonction {
-                déloge(résultat);
+                déloge(*résultat);
                 retourne résultat;
             }
 
@@ -384,7 +384,7 @@ sélectionne :: fonc (table: *TableMySQL, $T: type_de_données, colonnes: ...cha
             tampon.taille = rubrique.id.taille_en_octet comme z64;
 
             saufsi fonction.rappel(chn, tampon) {
-                déloge(résultat);
+                déloge(*résultat);
                 retourne résultat;
             }
         }
@@ -410,7 +410,7 @@ insère :: fonc (table: *TableMySQL, valeur: $T, colonnes: ...chaine) -> bool
         retourne faux;
     }
 
-    diffère déloge(infos_rubriques);
+    diffère déloge(*infos_rubriques);
 
     enchaineuse: Enchaineuse;
     initialise_enchaineuse(*enchaineuse);
@@ -439,7 +439,7 @@ insère :: fonc (table: *TableMySQL, valeur: $T, colonnes: ...chaine) -> bool
     ajoute_au_tampon(*enchaineuse, ")");
 
     requête := chaine_depuis_enchaineuse(*enchaineuse);
-    diffère déloge(requête);
+    diffère déloge(*requête);
 
     /* tente de nous connecté à la base de données */
     connexion := tente crée_connexion(table.pilote) piège _ {
@@ -464,7 +464,7 @@ exécute :: fonc (pilote: *PiloteMySQL, requête: chaine, $T: type_de_données, 
     résultat: [..]T;
 
     infos_rubriques := trouve_info_rubriques_pour_colonnes("[MySQL]", info, ...colonnes);
-    diffère déloge(infos_rubriques);
+    diffère déloge(*infos_rubriques);
 
     /* tente de nous connecté à la base de données */
     connexion := tente crée_connexion(pilote) piège _ {
@@ -497,7 +497,7 @@ exécute :: fonc (pilote: *PiloteMySQL, requête: chaine, $T: type_de_données, 
             fonction := trouve_fonction_pour_type(fonctions_parsages_mysql, rubrique.id);
 
             saufsi fonction {
-                déloge(résultat);
+                déloge(*résultat);
                 retourne résultat;
             }
 
@@ -508,7 +508,7 @@ exécute :: fonc (pilote: *PiloteMySQL, requête: chaine, $T: type_de_données, 
             tampon.taille = rubrique.id.taille_en_octet comme z64;
 
             saufsi fonction.rappel(chn, tampon) {
-                déloge(résultat);
+                déloge(*résultat);
                 retourne résultat;
             }
         }
@@ -566,7 +566,7 @@ parse_liste_résultat :: fonc (curseur: *CurseurRésultat, $T: type_de_données,
         valeur: T;
 
         saufsi parse_valeur(curseur, valeur, infos_rubriques) {
-            déloge(liste);
+            déloge(*liste);
             retourne;
         }
 
@@ -624,7 +624,7 @@ sélectionne_colonnes_depuis_table :: fonc (connexion: *ConnexionMySQL, nom_tabl
     ajoute_au_tampon(*enchaineuse, " FROM ", nom_table, ";");
 
     requête := chaine_depuis_enchaineuse(*enchaineuse);
-    diffère déloge(requête);
+    diffère déloge(*requête);
 
     résultat_exécution := tente exécute(connexion, requête) piège _ {
         retourne;

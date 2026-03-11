@@ -13,7 +13,7 @@ ChaineUTF16 :: struct {
 
 détruit_chaine :: fonc (chn: *ChaineUTF16)
 {
-    déloge(chn.unités);
+    déloge(*chn.unités);
 }
 
 est_vide :: fonc (chn: ChaineUTF16) -> bool #enligne
@@ -637,7 +637,7 @@ détruit_liste_tampons :: fonc (tampon: *EnchaineuseUTF16.Tampon)
 {
     tantque tampon != nul {
         tmp := tampon.suivant;
-        déloge(tampon);
+        déloge(*tampon);
         tampon = tmp;
     }
 }
@@ -1067,7 +1067,7 @@ divise_sur_espaces_blanches_ascii :: fonc (chn: ChaineUTF16Unique) -> [..]Chaine
     chn_utf16 := chn.donne_chaine_utf16();
 
     résultat_tmp := chn_utf16.divise_sur_espaces_blanches_ascii();
-    diffère déloge(résultat_tmp);
+    diffère déloge(*résultat_tmp);
 
     résultat: [..]ChaineUTF16Unique;
     pour * résultat_tmp {
@@ -1221,8 +1221,8 @@ détruit_table_chaines_utf16_uniques :: fonc ()
         pour * __table_chaines_utf16_uniques.chaines {
             détruit_chaine(it);
         }
-        déloge(__table_chaines_utf16_uniques.chaines);
-        déloge(__table_chaines_utf16_uniques.ensemble);
+        déloge(*__table_chaines_utf16_uniques.chaines);
+        déloge(*__table_chaines_utf16_uniques.ensemble);
     }
 }
 

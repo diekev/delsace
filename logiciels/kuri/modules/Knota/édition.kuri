@@ -201,7 +201,7 @@ supprime_sélection :: fonc (graphe: *Graphe) -> bool
     sélection := graphe.sélection;
 
     noeuds_à_supprimer: [..]*Noeud;
-    diffère déloge(noeuds_à_supprimer);
+    diffère déloge(*noeuds_à_supprimer);
 
     pour sélection.donne_éléments_sélectionnés() {
         item := graphe.items[it];

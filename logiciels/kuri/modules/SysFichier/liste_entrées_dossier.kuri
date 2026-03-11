@@ -40,7 +40,7 @@ donne_liste_des_entrées_du_dossier :: fonc (chemin: CheminFichier) -> Résultat
     noms_parsés: [..]DonnéesNumérotageCheminFichier;
 
     /* Les éléments ne sont pas détruit directement car ils sont déplacés dans les entrées. */
-    diffère déloge(noms_parsés);
+    diffère déloge(*noms_parsés);
 
     pour ExploratriceFichier(chemin) {
         nom_parsé := parse_nom_fichier_numéroté(it);

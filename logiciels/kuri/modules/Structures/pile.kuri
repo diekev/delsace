@@ -7,7 +7,7 @@ Pile :: struct ($T: type_de_données) {
 
 détruit :: fonc (pile: *Pile(T = $T)) -> rien
 {
-    déloge(pile.données);
+    déloge(*pile.données);
 }
 
 empile :: fonc (pile: *Pile(T = $T), valeur: T) -> rien

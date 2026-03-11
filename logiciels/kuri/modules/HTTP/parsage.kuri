@@ -113,8 +113,8 @@ erreur_de_parsage :: fonc (message: chaine) -> RésultatParsage
 réinitialise_base :: fonc (parseuse: *ParseuseHTTP)
 {
     détruit_message(*parseuse.message_en_cours);
-    déloge(parseuse.données);
-    déloge(parseuse.données_message.positions_entêtes);
+    déloge(*parseuse.données);
+    déloge(*parseuse.données_message.positions_entêtes);
 }
 
 ajourne_données :: fonc (parseuse: *ParseuseHTTP, données: chaine)

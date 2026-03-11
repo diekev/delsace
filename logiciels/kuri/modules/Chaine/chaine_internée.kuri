@@ -17,7 +17,7 @@ détruit_chaine :: fonc (type_chaine: TypeChaineInternée)
 {
     discr type_chaine {
         chn_native {
-            déloge(type_chaine.chn_native);
+            déloge(*type_chaine.chn_native);
         }
         chn_utf32 {
             détruit_chaine(*type_chaine.chn_utf32);
@@ -219,7 +219,7 @@ détruit_chaines_internées :: fonc ()
         }
 
         détruit_chaine(v.chn);
-        déloge(v);
+        déloge(*v);
     }
 
     détruit(*table_des_chaines);
@@ -261,10 +261,10 @@ alloue :: fonc (table: *Table($TypeClé, $TypeValeur), taille: z64)
 
 détruit :: fonc (table: *Table($TypeClé, $TypeValeur))
 {
-    déloge(table.clés);
-    déloge(table.occupés);
-    déloge(table.valeurs);
-    déloge(table.empreintes);
+    déloge(*table.clés);
+    déloge(*table.occupés);
+    déloge(*table.valeurs);
+    déloge(*table.empreintes);
     table.capacité = 0;
     table.nombre_éléments = 0;
 }
@@ -290,10 +290,10 @@ agrandis :: fonc (table: *Table($TypeClé, $TypeValeur))
         }
     }
 
-    déloge(vieilles_clés);
-    déloge(vieilles_occupés);
-    déloge(vieilles_valeurs);
-    déloge(vieilles_empreintes);
+    déloge(*vieilles_clés);
+    déloge(*vieilles_occupés);
+    déloge(*vieilles_valeurs);
+    déloge(*vieilles_empreintes);
 }
 
 insère :: fonc (table: *Table($TypeClé, $TypeValeur), clé: TypeClé, valeur: TypeValeur)

@@ -130,7 +130,7 @@ lis :: fonc (canal: *BaseCanal) -> chaine
         }
 
         ajoute_au_tampon(*enchaineuse, tmp);
-        déloge(tmp);
+        déloge(*tmp);
     }
 
     retourne chaine_depuis_enchaineuse(*enchaineuse);
@@ -291,7 +291,7 @@ exécute_commande_externe :: fonc (args: ...chaine) -> bool
     ajoute_au_tampon(*enchaineuse, '\0');
 
     commande := chaine_depuis_enchaineuse(*enchaineuse);
-    diffère déloge(commande);
+    diffère déloge(*commande);
 
     retourne exécute_commande_externe(commande);
 }

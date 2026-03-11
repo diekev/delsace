@@ -11,7 +11,7 @@ copie_chaine :: fonc (chn: ChaineUTF32) -> ChaineUTF32
 
 détruit_chaine :: fonc (chn: *ChaineUTF32) #enligne
 {
-    déloge(chn.points_de_code);
+    déloge(*chn.points_de_code);
 }
 
 taille :: fonc (chn: ChaineUTF32) -> z64 #enligne

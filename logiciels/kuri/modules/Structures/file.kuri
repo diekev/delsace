@@ -9,7 +9,7 @@ File :: struct ($T: type_de_données) {
 
 détruit :: fonc (file: *File(T = $T))
 {
-    déloge(file.données);
+    déloge(*file.données);
     file.taille = 0;
 }
 

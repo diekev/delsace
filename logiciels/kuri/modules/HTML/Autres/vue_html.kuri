@@ -88,11 +88,11 @@ principale :: fonc ()
                 saufsi vue_html.adresse_en_édition {
                     chaine_url := url_serializer(document.url);
                     si chaine_url != vue_html.adresse_courante {
-                        déloge(vue_html.adresse_courante);
+                        déloge(*vue_html.adresse_courante);
                         vue_html.adresse_courante = chaine_url;
                     }
                     sinon {
-                        déloge(chaine_url);
+                        déloge(*chaine_url);
                     }
                 }
 
@@ -195,7 +195,7 @@ définis_titre_fenêtre :: fonc (vue_html: *VueHTML, fenêtre: TypeFenêtre, doc
     }
 
     si titre != vue_html.titre_fenêtre {
-        déloge_si_logée(vue_html.titre_fenêtre);
+        déloge_si_logée(*vue_html.titre_fenêtre);
         vue_html.titre_fenêtre = titre;
         définis_titre_fenêtre(fenêtre, titre);
     }
@@ -218,7 +218,7 @@ parse_arguments :: fonc () -> (bool, Arguments)
 
     si résultat.chemin {    
         chemin_courant := tente donne_chemin_courant() piège nonatteignable;
-        diffère déloge(chemin_courant.chn);
+        diffère déloge(*chemin_courant.chn);
 
         chm_abs := crée_chemin_absolu(chemin_courant, CheminFichier(résultat.chemin));
 
@@ -227,7 +227,7 @@ parse_arguments :: fonc () -> (bool, Arguments)
         }
         sinon {
             résultat.chemin = copie_chaine(résultat.chemin);
-            déloge(chm_abs.chn);
+            déloge(*chm_abs.chn);
         }
     }
 
@@ -261,9 +261,9 @@ détruit_données :: fonc (avoirs: *Avoirs)
 {
     pour avoirs.avoirs {
         détruit_données_image(*it.image);
-        déloge_si_logée(it.nom_court);
+        déloge_si_logée(*it.nom_court);
     }
-    déloge(avoirs.avoirs);
+    déloge(*avoirs.avoirs);
 }
 
 donne_avoir :: fonc (avoirs: *Avoirs, nom_court: chaine) -> *Avoir
@@ -290,13 +290,13 @@ donne_image_avec_taille :: fonc (avoirs: *Avoirs, nom_court: chaine, largeur: n3
     }
 
     chemin := imprime_chaine("Icones/%.svg", nom_court);
-    diffère déloge(chemin);
+    diffère déloge(*chemin);
 
     résultat := tableau_ajoute_élément(*avoirs.avoirs);
     résultat.nom_court = nom_court;
 
     _, contenu := contenu_fichier_binaire(CheminFichier(chemin));
-    diffère déloge(contenu);
+    diffère déloge(*contenu);
 
     chaine_c := crée_chaine_c(chaine(contenu.pointeur comme *z8, contenu.taille));
     diffère détruit_chaine_c(*chaine_c);
@@ -691,13 +691,13 @@ RappelsÉditionTexteNavigation :: struct {
 
 sur_édition_texte_navigation :: fonc (empl rappels: *RappelsÉditionTexteNavigation, chn: chaine)
 {
-    déloge(vue_html.adresse_courante);
+    déloge(*vue_html.adresse_courante);
     vue_html.adresse_courante = copie_chaine(chn);
 }
 
 sur_fin_édition_texte_navigation :: fonc (empl rappels: *RappelsÉditionTexteNavigation, chn: chaine, fut_causée_par_touche_entrée: bool @inutilisée)
 {
-    déloge(vue_html.adresse_courante);
+    déloge(*vue_html.adresse_courante);
     vue_html.adresse_courante = copie_chaine(chn);
     vue_html.adresse_en_édition = faux;
 
@@ -731,9 +731,9 @@ guetteuse_édition_texte_sur_destruction :: fonc (guetteuse: *GuetteuseÉditionT
 {
     guetteuse.vue_html.guetteuse = nul;
     définis_éditrice_texte(*guetteuse.vue_html.emboiteuse, guetteuse.id_boite, nul);
-    déloge(guetteuse.rappels);
-    déloge(guetteuse.éditrice);
-    déloge(guetteuse);
+    déloge(*guetteuse.rappels);
+    déloge(*guetteuse.éditrice);
+    déloge(*guetteuse);
 }
 
 /** \} */
@@ -821,8 +821,8 @@ rappels_interface_sur_destruction :: fonc (rappels: *RappelsInterfaceVueHTML)
         QT_timer_arrete(it.timer);
     }
 
-    déloge(rappels.files_parallèle_pour_traversable);
-    déloge(rappels.timers);
+    déloge(*rappels.files_parallèle_pour_traversable);
+    déloge(*rappels.timers);
 }
 
 RappelsRequête :: struct {
@@ -839,7 +839,7 @@ RappelsRequête :: struct {
 rappels_interface_sur_lancement_requête :: fonc (rappels: *RappelsInterfaceVueHTML, requête: *Request) -> *Response
 {
     rappels_socket := crée_rappel_socket_pour_requête(requête);
-    diffère déloge(rappels_socket);
+    diffère déloge(*rappels_socket);
 
     /* Parent nul pour éviter les problèmes si nous ne sommes dans le fil principal. */
     parent : *QT_Object = nul;
@@ -891,7 +891,7 @@ crée_rappel_socket_pour_requête :: fonc (requête: *Request) -> *RappelsRequê
         ajoute_au_tampon(*enchaineuse, "\r\n");
 
         texte_requête := chaine_depuis_enchaineuse(*enchaineuse);
-        diffère déloge(texte_requête);
+        diffère déloge(*texte_requête);
 
         _ := QT_abstract_socket_write(rappels.socket, texte_requête.pointeur, texte_requête.taille);
         // imprime("Écris : % / %\n", écris, texte_requête.taille)
@@ -943,7 +943,7 @@ crée_rappel_socket_pour_requête :: fonc (requête: *Request) -> *RappelsRequê
 
         si compare_ascii_insensible_à_la_casse(charset, "ISO-8859-1") {
             nouveau_contenu := convertis_iso_8859_1_vers_utf8(message.contenu);
-            déloge(contenu);
+            déloge(*contenu);
             contenu = nouveau_contenu;
         }
 
@@ -1036,7 +1036,7 @@ rappels_interface_crée_file_parallèle_pour_traversable :: fonc (rappels: *Rapp
 rappels_interface_sur_affichage_alerte :: fonc (rappels: *RappelsInterfaceVueHTML @inutilisée, message: DOMString)
 {
     chn_message := convertis_vers_chaine(message.donne_chaine_utf16());
-    diffère déloge(chn_message);
+    diffère déloge(*chn_message);
 
     parent: QT_Generic_Widget;
     _ := QT_message_box_affiche_avertissement(parent, vers_qt("Alerte"), vers_qt(chn_message), QT_StandardButton.OK);

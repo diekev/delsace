@@ -79,7 +79,7 @@ envoie_message :: fonc (extrémité: *Extrémité(vrai), message: MessageInfoAll
     message.entête.taille_message = infos_séritalisation.taille_courante comme z32;
 
     tampon := sérialise_type(message, infos_séritalisation);
-    diffère déloge(tampon);
+    diffère déloge(*tampon);
 
     tampon_à_écrire := tampon;
 
@@ -338,7 +338,7 @@ marque_prise_non_bloquante :: fonc (fd: z32) -> bool
 ajoute_taille_type :: fonc (infos: *InfosSérialisation, valeur: eini)
 {
     traversée: [..]eini;
-    diffère déloge(traversée);
+    diffère déloge(*traversée);
 
     tableau_ajoute(*traversée, valeur);
 
@@ -427,7 +427,7 @@ sérialise_type :: fonc (valeur: eini, infos_séritalisation: InfosSérialisatio
     curseur: z64;
 
     traversée: [..]eini;
-    diffère déloge(traversée);
+    diffère déloge(*traversée);
 
     tableau_ajoute(*traversée, valeur);
 
@@ -520,7 +520,7 @@ désérialise_type :: fonc (résultat: eini, données: []octet) -> z64
     curseur: z64;
 
     traversée: [..]eini;
-    diffère déloge(traversée);
+    diffère déloge(*traversée);
 
     tableau_ajoute(*traversée, résultat);
 

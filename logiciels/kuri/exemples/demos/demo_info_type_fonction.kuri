@@ -15,7 +15,7 @@ imprime_type :: fonc (info: *InfoType) -> rien
     initialise_enchaineuse(*enchaineuse);
     imprime_type(*enchaineuse, info);
     chn := chaine_depuis_enchaineuse(*enchaineuse);
-    diffère déloge(chn);
+    diffère déloge(*chn);
     imprime("%\n", chn);
 }
 

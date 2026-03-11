@@ -159,13 +159,13 @@ lis_fichier_binaire_entier :: fonc (chemin: chaine, permissions := Permissions_F
         tableau_redimensionne(*résultat, taille);
 
         octets_lus := tente système_lis(fichier.desc, résultat.pointeur comme *z8, résultat.taille) piège err {
-            déloge(résultat);
+            déloge(*résultat);
             imprimeln("Impossible d'ouvrir le fichier % : %", chemin, err);
             retourne faux, résultat;
         };
 
         si octets_lus != résultat.taille {
-            déloge(résultat);
+            déloge(*résultat);
             imprimeln("Impossible de lire l'entièreté du fichier %, lu %, voulu %", chemin, octets_lus, résultat.taille);
             retourne faux, résultat;
         }

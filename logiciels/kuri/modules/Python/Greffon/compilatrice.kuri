@@ -210,7 +210,7 @@ détruit :: fonc (système: *SystèmeType)
     pour système.types {
         détruit(it);
     }
-    déloge(système.types);
+    déloge(*système.types);
 }
 
 ajoute_type :: fonc (système: *SystèmeType, info: *InfoType, drapeaux: DrapeauxType)
@@ -748,7 +748,7 @@ génère_code :: fonc (compilatrice: *CompilatriceModulePython)
 {
     discr compilatrice.génère_interface_python() {
         Quelque(source) {
-            diffère déloge(source);
+            diffère déloge(*source);
             ajoute_chaine_à_la_compilation(compilatrice.espace, source);
         }
         sinon {}

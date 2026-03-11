@@ -233,7 +233,7 @@ calcule_auto_height_racine_contexte_de_formattage :: fonc (box: *BlockBox) -> r6
     // this block formatting context are taken into account, e.g., floats inside
     // absolutely positioned descendants or other floats are not.
     enfants_aplatis: [..]*Box;
-    diffère déloge(enfants_aplatis);
+    diffère déloge(*enfants_aplatis);
 
     pile: Pile(*Box);
     diffère détruit(*pile);

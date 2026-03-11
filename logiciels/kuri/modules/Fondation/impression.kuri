@@ -128,7 +128,7 @@ détruit_tampons :: fonc (enchaineuse: *Enchaineuse) -> rien
 
     tantque tampon_courant != nul {
         suivant := tampon_courant.suivant;
-        déloge(tampon_courant);
+        déloge(*tampon_courant);
         tampon_courant = suivant;
     }
 }
@@ -327,7 +327,7 @@ imprime_nombre_décimal_haute_précision :: fonc (enchaineuse: *Enchaineuse, f: 
     insère_bits_du_bas(*part_entière, valeur_mantisse comme n32, 9 + valeur_exposant);
 
     chn_part_entière: [..]z8;
-    diffère déloge(chn_part_entière);
+    diffère déloge(*chn_part_entière);
 
     // Perfome toujours au moins une itération, afin d'avoir un zéro au début.
     répète {
@@ -916,7 +916,7 @@ imprime_log :: fonc (ident: chaine, mode: ModeLogage, format: chaine, args: ...e
     message := imprime_chaine(format, ...args);
     logueur := contexte().logueur;
     logueur(message, ident, mode, contexte().données_logueur);
-    déloge(message);
+    déloge(*message);
 } @Imprimeuse
 
 imprime_log :: fonc (ident: chaine, format: chaine, args: ...eini) -> rien
@@ -1327,10 +1327,10 @@ greffon_impression_sur_message :: fonc (greffon: *GreffonImpression, message: *M
 greffon_impression_sur_destruction :: fonc (greffon: *GreffonImpression)
 {
     pour greffon.données_pour_espace {
-        déloge(it.fonctions);
+        déloge(*it.fonctions);
     }
-    déloge(greffon.données_pour_espace);
-    déloge(greffon);
+    déloge(*greffon.données_pour_espace);
+    déloge(*greffon);
 }
 
 #portée_export // À FAIRE : génère le code dans ce module

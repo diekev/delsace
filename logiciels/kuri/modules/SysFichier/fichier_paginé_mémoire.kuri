@@ -93,7 +93,7 @@ déloge_toutes_les_pages :: fonc (fichier: *FichierPaginéMémoire)
 
     tantque page != nul {
         page_suivante := page.page_suivante;
-        déloge(page);
+        déloge(*page);
         page = page_suivante;
     }
 

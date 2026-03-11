@@ -26,27 +26,27 @@ Noeud :: struct {
 
 détruit_noeud :: fonc (noeud: *Noeud)
 {
-    déloge(noeud.attributs);
+    déloge(*noeud.attributs);
     déloge_tableau_et_ses_éléments(*noeud.enfants, détruit_noeud);
 
     discr noeud.type {
         Chapitre {
             chapitre := noeud comme *Chapitre;
-            déloge(chapitre);
+            déloge(*chapitre);
         }
         Document {
             document := noeud comme *Document;
-            déloge(document.catégories);
-            déloge(document.texte_original);
-            déloge(document);
+            déloge(*document.catégories);
+            déloge(*document.texte_original);
+            déloge(*document);
         }
         Texte {
             noeud_texte := noeud comme *Texte;
-            déloge(noeud_texte);
+            déloge(*noeud_texte);
         }
         Lien {
             noeud_lien := noeud comme *Lien;
-            déloge(noeud_lien);
+            déloge(*noeud_lien);
         }
         sinon {}
     }
@@ -116,7 +116,7 @@ ParseuseDocument :: struct {
 
 détruit_parseuse :: fonc (parseuse: *ParseuseDocument)
 {
-    déloge(parseuse.erreurs);
+    déloge(*parseuse.erreurs);
 }
 
 possède_erreur :: fonc (parseuse: *ParseuseDocument) -> bool

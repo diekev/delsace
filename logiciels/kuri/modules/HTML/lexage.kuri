@@ -223,7 +223,7 @@ initialise_lexeuse :: fonc (document: *ChaineUTF32) -> Lexeuse
 initialise_flux_entrée :: fonc (lexeuse: *Lexeuse, entrée: ChaineUTF16)
 {
     chn := convertis_vers_chaine(entrée);
-    diffère déloge(chn);
+    diffère déloge(*chn);
 
     document := crée_chaine_utf32(chn);
     /* Ajout un point de code pour signifer la fin du fichier, ceci

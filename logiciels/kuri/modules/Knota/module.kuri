@@ -115,7 +115,7 @@ déloge_prise_entrée :: fonc (prise: *PriseEntrée)
     si connexion {
         connexion.active = faux;
     }
-    déloge(prise);
+    déloge(*prise);
 }
 
 PriseSortie :: struct {
@@ -133,9 +133,9 @@ donne_indice :: fonc (prise: *PriseSortie) -> z64
 déloge_prise_sortie :: fonc (prise: *PriseSortie)
 {
     marques_connexions_inactives(prise.connexions);
-    déloge(prise.connexions);
+    déloge(*prise.connexions);
     déconnecte(prise);
-    déloge(prise);
+    déloge(*prise);
 }
 
 déconnecte :: fonc (prise: *PriseEntrée) -> *Connexion
@@ -274,9 +274,9 @@ InformationsNoeud :: struct {
 détruit_section :: fonc (section: InformationsNoeud.Section)
 {
     pour section.infos {
-        déloge(it.texte);
+        déloge(*it.texte);
     }
-    déloge(section.infos);
+    déloge(*section.infos);
 }
 
 réinitialise :: fonc (infos: *InformationsNoeud)
@@ -377,10 +377,10 @@ CacheUtilisateur :: struct {
 détruit_données_cache :: fonc (cache: *CacheUtilisateur)
 {
     pour cache.entrées {
-        déloge_si_logée(it.nom);
-        déloge(it.valeur);
+        déloge_si_logée(*it.nom);
+        déloge(*it.valeur);
     }
-    déloge(cache.entrées);
+    déloge(*cache.entrées);
 }
 
 donne_ou_crée_entrée_cache :: fonc (cache: *CacheUtilisateur, nom: chaine, doit_persister_sur_disque: bool) -> *CacheUtilisateur.Entrée
@@ -440,7 +440,7 @@ ItemGraphe :: struct {
 détruit_données_item_graphe :: fonc (item: *ItemGraphe)
 {
     détruit_données_observable(item);
-    déloge(item.nom);
+    déloge(*item.nom);
 }
 
 détruit_item :: fonc (item: *ItemGraphe)
@@ -476,7 +476,7 @@ définis_nom :: fonc (item: *ItemGraphe, nom: chaine)
         retourne;
     }
 
-    déloge(item.nom);
+    déloge(*item.nom);
 
     graphe := item.graphe_parent;
     item.nom = garantis_nom_valide_et_unique(*graphe.noms_noeuds_existants, nom);
@@ -491,7 +491,7 @@ définis_nom :: fonc (item: *ItemGraphe, nom: chaine)
  * savons que le nom fut déjà unique et valide. */
 définis_nom_sans_vérification :: fonc (item: *ItemGraphe, nom: chaine)
 {
-    déloge(item.nom);
+    déloge(*item.nom);
     item.nom = copie_chaine(nom);
 
     si item.type_item == Noeud {
@@ -569,7 +569,7 @@ identifiant :: fonc (noeud: *Noeud) -> chaine
 /* Invalide le chemin du noeud. Typiquement fait lors du changement de son nom. */
 invalide_chemin_mémoire_vive :: fonc (noeud: *Noeud)
 {
-    déloge(noeud.mémoire_vive.chemin);
+    déloge(*noeud.mémoire_vive.chemin);
 
     graphe := noeud.donne_sous_graphe();
     si graphe {
@@ -583,7 +583,7 @@ donne_chemin_complet :: fonc (noeud: *Noeud) -> chaine
 {
     saufsi noeud.mémoire_vive.chemin {
         chemin_graphe := chemin_complet(noeud.graphe_parent);
-        diffère déloge(chemin_graphe);
+        diffère déloge(*chemin_graphe);
 
         noeud.mémoire_vive.chemin = imprime_chaine("%/%", chemin_graphe, noeud.nom);
     }
@@ -690,7 +690,7 @@ détruit_noeud :: fonc (noeud: *Noeud)
     réinitialise_erreurs(noeud);
     réinitialise_informations(noeud);
 
-    déloge(noeud.mémoire_vive.chemin);
+    déloge(*noeud.mémoire_vive.chemin);
     détruit_table_paramètres(noeud.table_paramètres);
     détruit_données_cache(*noeud.cache);
 
@@ -762,7 +762,7 @@ donne_chemin_pour_paramètre :: fonc (noeud: *Noeud, nom_param: chaine, chemin: 
         }
         Erreur(e) {
             noeud.ajoute_erreur_paramètre(nom_param, e);
-            déloge(e);
+            déloge(*e);
             retourne CheminFichier();
         }
         sinon {
@@ -796,9 +796,9 @@ donne_cache_utilisateur :: fonc (noeud: *Noeud) -> *CacheUtilisateur
 réinitialise_erreurs :: fonc (noeud: *Noeud)
 {
     pour noeud.erreurs {
-        déloge(it.message);
+        déloge(*it.message);
     }
-    déloge(noeud.erreurs);
+    déloge(*noeud.erreurs);
 
     noeud.envoie_message(MessageObservable(info_de(Noeud), MessageNoeudErreursSupprimées));
 }
@@ -888,7 +888,7 @@ donne_informations :: fonc (noeud: *Noeud) -> InformationsNoeud
         si noeud.cache.entrées {
             section := donne_ou_crée_section(*noeud.informations, "Cache Utilisateur");
             /* À FAIRE : fuites de mémoire. */
-            déloge(section.infos);
+            déloge(*section.infos);
 
             pour noeud.cache.entrées {
                 info := tableau_ajoute_élément(*section.infos);
@@ -1047,7 +1047,7 @@ DéduplicatriceNom :: struct {
 
 détruit_paire_nom_et_compte :: fonc (paire: DéduplicatriceNom.PaireNomEtCompte)
 {
-    déloge(paire.nom);
+    déloge(*paire.nom);
 }
 
 détruit_données_déduplicatrice :: fonc (déduplicatrice: *DéduplicatriceNom)
@@ -1065,7 +1065,7 @@ garantis_nom_valide_et_unique :: fonc (déduplicatrice: *DéduplicatriceNom, nom
 {
     nom_noeud := "";
     nom = garantis_nom_valide(nom);
-    diffère déloge(nom);
+    diffère déloge(*nom);
 
     pour * déduplicatrice.paires_nom_et_compte {
         si it.nom == nom {
@@ -1491,7 +1491,7 @@ déconnecte :: fonc (graphe: *Graphe, entrée: *PriseEntrée)
         entrée.marque_amont_prise_modifié();
         tableau_supprime_valeur(*graphe.connexions, connexion);
         graphe.envoie_message(MessageObservable(info_de(Graphe), MessageGrapheConnexionSupprimée));
-        déloge(connexion);
+        déloge(*connexion);
     }
 }
 
@@ -1508,14 +1508,14 @@ termine_création_connexions :: fonc (graphe: *Graphe)
     pour graphe.connexions {
         saufsi it.active {
             _ := déconnecte(it.prise_entrée);
-            déloge(it);
+            déloge(*it);
             continue;
         }
 
         tableau_ajoute(*nouvelles_connexions, it);
     }
 
-    déloge(graphe.connexions);
+    déloge(*graphe.connexions);
     graphe.connexions = nouvelles_connexions;
     graphe.envoie_message(MessageObservable(info_de(Graphe), MessageGrapheConnexionsModifiées));
 }
@@ -1706,7 +1706,7 @@ VisiteuseGraphe :: struct {
 détruit :: fonc (empl visiteuse: *VisiteuseGraphe)
 {
     détruit(*pile_de_noeuds);
-    déloge(noeuds_visités);
+    déloge(*noeuds_visités);
 }
 
 ajoute_noeud_à_visiter :: fonc (empl visiteuse: *VisiteuseGraphe, noeud: *Noeud)

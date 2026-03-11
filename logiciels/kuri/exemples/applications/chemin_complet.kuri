@@ -21,10 +21,10 @@ principale :: fonc ()
         imprime("Impossible de déterminer le chemin courant : %\n", err);
         exit(1);
     };
-    diffère déloge(chemin_courant.chn);
+    diffère déloge(*chemin_courant.chn);
 
     chm_abs := crée_chemin_absolu(chemin_courant, chm);
-    diffère déloge(chm_abs.chn);
+    diffère déloge(*chm_abs.chn);
 
     imprime("%\n", chm_abs.chn);
 }

@@ -45,13 +45,13 @@ InfoTypeC :: struct {
 
 détruit_type_c :: fonc (type: *InfoTypeC)
 {
-    déloge(type.nom_type_c);
-    déloge(type.nom_type_c_élément_tableau);
-    déloge(type.nom_type_cpp);
-    déloge(type.nom_type_kuri_c);
-    déloge(type.transtype_c_vers_cpp);
-    déloge(type.transtype_cpp_vers_c);
-    déloge(type);
+    déloge(*type.nom_type_c);
+    déloge(*type.nom_type_c_élément_tableau);
+    déloge(*type.nom_type_cpp);
+    déloge(*type.nom_type_kuri_c);
+    déloge(*type.transtype_c_vers_cpp);
+    déloge(*type.transtype_cpp_vers_c);
+    déloge(*type);
 }
 
 supprime_points_et_parenthèses :: fonc (chn: *chaine)
@@ -358,19 +358,19 @@ génère_ipa_cpp :: fonc (génératrice: *GénératriceCodeC, espace: EspaceDeTr
     diffère détruit_données_système_type(système_type);
 
     chaine_chemin_entête_c := imprime_chaine("%/%.h", génératrice.dossier_sortie, génératrice.nom_module);
-    diffère déloge(chaine_chemin_entête_c);
+    diffère déloge(*chaine_chemin_entête_c);
 
     chaine_chemin_entête_cpp := imprime_chaine("%/%.hh", génératrice.dossier_sortie, génératrice.nom_module);
-    diffère déloge(chaine_chemin_entête_cpp);
+    diffère déloge(*chaine_chemin_entête_cpp);
 
     chaine_chemin_source_cpp := imprime_chaine("%/%.cc", génératrice.dossier_sortie, génératrice.nom_module);
-    diffère déloge(chaine_chemin_source_cpp);
+    diffère déloge(*chaine_chemin_source_cpp);
 
     chaine_chemin_entête_table := enchaine(génératrice.dossier_sortie, "/table_types.h");
-    diffère déloge(chaine_chemin_entête_table);
+    diffère déloge(*chaine_chemin_entête_table);
 
     chaine_chemin_source_table := enchaine(génératrice.dossier_sortie, "/table_types.c");
-    diffère déloge(chaine_chemin_source_table);
+    diffère déloge(*chaine_chemin_source_table);
 
     ipa := génératrice.ipa;
 
@@ -1235,7 +1235,7 @@ compare_types_par_nom_sélection :: fonc (a: *TypeIPA, b: *TypeIPA) -> bool
 
 détruit_données_table_ipa :: fonc (table: *TableIPA)
 {
-    déloge(table.fonctions);
+    déloge(*table.fonctions);
 }
 
 génère_code_entête_table :: fonc (génératrice: *GénératriceCodeC, table_ipa: *TableIPA, chemin: CheminFichier)
@@ -1490,7 +1490,7 @@ TableauGénériqueIPA :: struct {
 
     // copie_enchaineuse_fichier_ex(*enchaineuse, chemin)
     code := chaine_depuis_enchaineuse(*enchaineuse);
-    diffère déloge(code);
+    diffère déloge(*code);
 
     ajoute_chaine_à_la_compilation(compilatrice_espace_courant(), code);
 }

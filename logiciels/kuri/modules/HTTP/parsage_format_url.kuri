@@ -79,7 +79,7 @@ parse_texte_format_url :: fonc (texte: chaine, $T: type_de_données) -> (Résult
     info := info_de(T);
 
     pointeurs: [..]InfoDonnées;
-    diffère déloge(pointeurs);
+    diffère déloge(*pointeurs);
 
     pour info.rubriques {
         id : InfoDonnées = ---;
@@ -194,7 +194,7 @@ parse_texte_format_url2 :: fonc (texte: chaine, $T: type_de_données) -> (Résul
     info := info_de(T);
 
     pointeurs: [..]InfoDonnées;
-    diffère déloge(pointeurs);
+    diffère déloge(*pointeurs);
 
     pour info.rubriques {
         id : InfoDonnées = ---;

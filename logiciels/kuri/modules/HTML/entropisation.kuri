@@ -117,7 +117,7 @@ détruit_fichier :: fonc (paramètres: *ParamètresEntropisation, fichier: *Fich
 {
     si paramètres.fichier_sortie.chn != "" {
         _ := ferme(fichier);
-        déloge(fichier);
+        déloge(*fichier);
     }
 }
 

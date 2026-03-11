@@ -101,7 +101,7 @@ Lexème :: struct {
 détruit_lexèmes :: fonc (lexèmes: *[..]Lexème)
 {
     tmp := mémoire(lexèmes);
-    déloge(tmp);
+    déloge(*tmp);
     mémoire(lexèmes) = tmp;
 }
 
@@ -114,10 +114,10 @@ formatte_lexème :: fonc (enchaineuse: *Enchaineuse, lexème: *Lexème)
 
     // À FAIRE(langage) : messages codes
     lexème_valeur := convertis_vers_chaine(donne_chaine_utf16(lexème.valeur));
-    diffère déloge(lexème_valeur);
+    diffère déloge(*lexème_valeur);
 
     lexème_unité := convertis_vers_chaine(donne_chaine_utf16(lexème.unité));
-    diffère déloge(lexème_unité);
+    diffère déloge(*lexème_unité);
 
     discr lexème.genre {
         Ident {

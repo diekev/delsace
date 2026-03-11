@@ -54,9 +54,9 @@ détruit_parseuse :: fonc (parseuse: *Parseuse)
 {
     détruit_lexeuse(*parseuse.lexeuse);
     détruit_liste(*parseuse.liste_éléments_actifs_formattage);
-    déloge(parseuse.pile_éléments_ouvert.éléments);
-    déloge(parseuse.pile_insertion_template);
-    déloge(parseuse.erreurs);
+    déloge(*parseuse.pile_éléments_ouvert.éléments);
+    déloge(*parseuse.pile_insertion_template);
+    déloge(*parseuse.erreurs);
 }
 
 parse :: fonc (parseuse: *Parseuse)
@@ -359,7 +359,7 @@ vérifie_lexème_doctype_pour_limited_quirks :: fonc (lexème: *Lexème) -> bool
         ];
 
         chn := convertis_vers_chaine(lexème.identifiant_public_doctype);
-        diffère déloge(chn);
+        diffère déloge(*chn);
 
         pour noms_publics_invalides {
             si it == chn {
@@ -454,7 +454,7 @@ vérifie_lexème_doctype_pour_quirks :: fonc (lexème: *Lexème) -> bool
     /* À FAIRE : ascii insensible à la casse */
     si lexème.doctype_public_id_absent == faux {
         chn := convertis_vers_chaine(lexème.identifiant_public_doctype);
-        diffère déloge(chn);
+        diffère déloge(*chn);
 
         préfixes_publics_invalides := [
             "-//W3C//DTD XHTML 1.0 Frameset//",
@@ -3352,7 +3352,7 @@ détruit_liste :: fonc (liste: *ListeÉlémentsActifsFormattage)
         détruit_lexème(*it.lexème);
     }
 
-    déloge(liste.entrées);
+    déloge(*liste.entrées);
 }
 
 est_vide :: fonc (liste: *ListeÉlémentsActifsFormattage) -> bool

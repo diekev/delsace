@@ -220,7 +220,7 @@ initialise_ensemble_de_modules :: fonc (espace: EspaceDeTravail, liste: *Ensembl
 
 détruit :: fonc (liste: *EnsembleDeModules)
 {
-    déloge(liste.modules);
+    déloge(*liste.modules);
     détruit_chemin(*liste.chemin_modules_kuri);
 }
 

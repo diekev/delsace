@@ -208,7 +208,7 @@ encode_valeur :: fonc (flux_encodage: *FluxEncodage, valeur: eini)
             chn := chaine_depuis_enchaineuse(*enchaineuse);
             flux_encodage.écris(chn);
 
-            déloge(chn);
+            déloge(*chn);
         }
         sinon {
             panique("type non supporté dans encode_valeur");

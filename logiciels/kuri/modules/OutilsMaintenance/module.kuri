@@ -35,10 +35,10 @@ détruit_lignes :: fonc (données: *DonnéesFichier)
             continue;
         }
 
-        déloge_si_logée(it);
+        déloge_si_logée(*it);
     }
 
-    déloge(données.lignes);
+    déloge(*données.lignes);
 }
 
 /* Retourne vrai si la ligne provient du contenu du fichier. */
@@ -223,7 +223,7 @@ supprime_lignes_vides_redondantes_pour_fichier :: fonc (données_fichier: *Donn�
         retourne;
     }
 
-    déloge(nouvelles_lignes);
+    déloge(*nouvelles_lignes);
 }
 
 // -------------------------------------
@@ -271,7 +271,7 @@ remplaces_tabulation_par_espaces :: fonc (données_fichier: *DonnéesFichier)
         retourne;
     }
 
-    déloge(nouvelles_lignes);
+    déloge(*nouvelles_lignes);
 }
 
 /* ------------------------------------------------------------------------- */

@@ -132,7 +132,7 @@ URI :: struct {
 
 détruit_uri :: fonc (uri: *URI)
 {
-    déloge_si_logée(uri.uri);
+    déloge_si_logée(*uri.uri);
 }
 
 RésultatURI :: union {
@@ -657,7 +657,7 @@ crée_uri_absolu :: fonc (base: URI, relatif: URI, relativité: RelativitéURI) 
         }
         RÉPERTOIRE_COURANT {
             morceaux_base := divise(base.chemin, '/');
-            diffère déloge(morceaux_base);
+            diffère déloge(*morceaux_base);
 
             enchaineuse: Enchaineuse;
             initialise_enchaineuse(*enchaineuse);
@@ -681,7 +681,7 @@ crée_uri_absolu :: fonc (base: URI, relatif: URI, relativité: RelativitéURI) 
         }
         RÉPERTOIRE_PARENT {
             morceaux_base := divise(base.chemin, '/');
-            diffère déloge(morceaux_base);
+            diffère déloge(*morceaux_base);
 
             enchaineuse: Enchaineuse;
             initialise_enchaineuse(*enchaineuse);
@@ -705,7 +705,7 @@ crée_uri_absolu :: fonc (base: URI, relatif: URI, relativité: RelativitéURI) 
         }
         RACINE_DOCUMENT {
             morceaux_base := divise(base.chemin, '/');
-            diffère déloge(morceaux_base);
+            diffère déloge(*morceaux_base);
 
             enchaineuse: Enchaineuse;
             initialise_enchaineuse(*enchaineuse);

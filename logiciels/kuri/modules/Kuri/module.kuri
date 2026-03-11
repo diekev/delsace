@@ -212,10 +212,10 @@ loge :: fonc ($T: type_de_données, pos := #position_code_source) -> *T
     retourne ptr;
 }
 
-reloge :: fonc (pointeur: &*$T, pos := #position_code_source)
+reloge :: fonc (pointeur: **$T, pos := #position_code_source)
 {
     info := info_de(T);
-    ancien_pointeur := pointeur;
+    ancien_pointeur := mémoire(pointeur);
     nouveau_pointeur := reloge_mémoire(
         info.taille_en_octet comme z64,
         info.taille_en_octet comme z64,
@@ -224,15 +224,15 @@ reloge :: fonc (pointeur: &*$T, pos := #position_code_source)
         pos
     );
 
-    pointeur = nouveau_pointeur;
+    mémoire(pointeur) = nouveau_pointeur;
 }
 
-déloge :: fonc (pointeur: &*$T, pos := #position_code_source)
+déloge :: fonc (pointeur: **$T, pos := #position_code_source)
 {
     info := info_de(T);
-    ancien_pointeur := pointeur;
+    ancien_pointeur := mémoire(pointeur);
     déloge_mémoire(info.taille_en_octet comme z64, ancien_pointeur, info, pos);
-    pointeur = nul;
+    mémoire(pointeur) = nul;
 }
 
 loge_chaine :: fonc (taille: z64, pos := #position_code_source) -> chaine
@@ -241,7 +241,7 @@ loge_chaine :: fonc (taille: z64, pos := #position_code_source) -> chaine
     retourne chaine(ptr comme *z8, taille);
 }
 
-reloge_chaine :: fonc (chn: &chaine, nouvelle_taille: z64, pos := #position_code_source)
+reloge_chaine :: fonc (chn: *chaine, nouvelle_taille: z64, pos := #position_code_source)
 {
     ptr := reloge_mémoire(chn.taille, nouvelle_taille, chn.pointeur, info_de(chaine), pos);
 
@@ -249,7 +249,7 @@ reloge_chaine :: fonc (chn: &chaine, nouvelle_taille: z64, pos := #position_code
     chn.taille = nouvelle_taille;
 }
 
-déloge :: fonc (chn: &chaine, pos := #position_code_source)
+déloge :: fonc (chn: *chaine, pos := #position_code_source)
 {
     /* Les chaines nulles peuvent avoir un pointeur valide car elles pointent
      * vers une chaine ne contenant qu'un caractère nul. */
@@ -260,7 +260,7 @@ déloge :: fonc (chn: &chaine, pos := #position_code_source)
     }
 }
 
-déloge_si_logée :: fonc (chn: &chaine, pos := #position_code_source)
+déloge_si_logée :: fonc (chn: *chaine, pos := #position_code_source)
 {
     saufsi intrinsèque_est_adresse_données_constantes(chn.pointeur) {
         déloge_mémoire(chn.taille, chn.pointeur, info_de(chaine), pos);

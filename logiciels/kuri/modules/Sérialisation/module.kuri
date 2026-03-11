@@ -297,7 +297,7 @@ TamponOctetDynamique :: struct {
 
 détruit_tampon :: fonc (tampon: *TamponOctetDynamique)
 {
-    déloge(tampon.données);
+    déloge(*tampon.données);
 }
 
 sérialise_entier :: fonc (tampon: *TamponOctetDynamique, entier: z32)
@@ -394,9 +394,9 @@ ajoute_chaine :: fonc (table: *TableDeChaine, chn: chaine) -> z64
 détruit_table_des_chaines :: fonc (table: *TableDeChaine)
 {
     saufsi table.provient_d_un_fichier {
-        déloge(table.index);
+        déloge(*table.index);
     }
-    déloge(table.chaines);
+    déloge(*table.chaines);
 }
 
 /** \} */
@@ -421,8 +421,8 @@ initialise_sauvegardeuse :: fonc (sauvegardeuse: *Sauvegardeuse)
 
 détruit_sauvegardeuse :: fonc (sauvegardeuse: *Sauvegardeuse, préserve_fichier: bool)
 {
-    déloge(sauvegardeuse.table_des_chaines.index);
-    déloge(sauvegardeuse.table_des_chaines.chaines);
+    déloge(*sauvegardeuse.table_des_chaines.index);
+    déloge(*sauvegardeuse.table_des_chaines.chaines);
 
     saufsi préserve_fichier {
         déloge_toutes_les_pages(*sauvegardeuse.fichier);
@@ -508,7 +508,7 @@ détruit_lectrice :: fonc (lectrice: *Lectrice, préserve_données := faux)
 {
     détruit_table_des_chaines(*lectrice.table_des_chaines);
     saufsi préserve_données {
-        déloge(lectrice.données_fichier);
+        déloge(*lectrice.données_fichier);
     }
 }
 

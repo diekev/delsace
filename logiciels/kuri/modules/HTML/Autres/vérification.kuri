@@ -72,7 +72,7 @@ ContexteVérification :: struct {
 
 détruit_contexte_vérification :: fonc (contexte_vérification: *ContexteVérification)
 {
-    déloge(contexte_vérification.diagnositiques);
+    déloge(*contexte_vérification.diagnositiques);
 }
 
 ajoute_diagnostique :: fonc (contexte_vérification: *ContexteVérification, chn: chaine)
@@ -343,7 +343,7 @@ principale :: fonc ()
     diffère détruit_chaines_internées();
 
     _, contenu := contenu_fichier_texte(chm.chn);
-    diffère déloge(contenu);
+    diffère déloge(*contenu);
 
     mv: JS.MachineVirtuelle;
     JS.initialise_mv(nul, *mv);

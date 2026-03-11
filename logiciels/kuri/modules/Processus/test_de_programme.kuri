@@ -70,8 +70,8 @@ détruit :: fonc (empl données_test: *DonnéesPourTest)
         détruit(it);
     }
 
-    déloge(arguments);
-    déloge(séries);
+    déloge(*arguments);
+    déloge(*séries);
 }
 
 ajoute_série_de_tests :: fonc (données_test: *DonnéesPourTest, fichier: CheminFichier, args: ...chaine)
@@ -118,7 +118,7 @@ SérieDeTest :: struct {
 
 détruit :: fonc (empl série: *SérieDeTest)
 {
-    déloge(arguments);
+    déloge(*arguments);
 }
 
 ajoute_arguments :: fonc (série: *SérieDeTest, args: ...chaine)
@@ -129,7 +129,7 @@ ajoute_arguments :: fonc (série: *SérieDeTest, args: ...chaine)
 lance_les_tests_pour_une_série :: fonc (données_test: *DonnéesPourTest, série: *SérieDeTest) -> bool
 {
     _, contenu := contenu_fichier_texte(série.fichier_de_spécification);
-    diffère déloge(contenu);
+    diffère déloge(*contenu);
 
     saufsi contenu {
         imprime("Le fichier de spécification est vide ou introuvable !\n");
@@ -176,7 +176,7 @@ lance_test :: fonc (données_test: *DonnéesPourTest, série: *SérieDeTest, com
     résultat: [..]chaine;
 
     arguments := arguments_pour_série(données_test, série);
-    diffère déloge(arguments);
+    diffère déloge(*arguments);
 
     discr ouvre_canal_de_communication(données_test.programme.chn, ...arguments) {
         Quelque(canal) {

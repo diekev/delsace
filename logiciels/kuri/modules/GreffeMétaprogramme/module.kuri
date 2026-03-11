@@ -1,5 +1,5 @@
 importe Compilatrice;
-importe Fondation; // pour déloge(tableau)
+importe Fondation; // pour déloge(*tableau)
 
 GreffonMétaprogramme :: struct {
     sur_message: fonc (greffon: *GreffonMétaprogramme, message: *Message);
@@ -29,7 +29,7 @@ détruit_greffons :: fonc (greffons: *[..]*GreffonMétaprogramme)
     pour tmp {
         détruit(it);
     }
-    déloge(tmp);
+    déloge(*tmp);
 }
 
 détruit :: fonc (greffon: *GreffonMétaprogramme)

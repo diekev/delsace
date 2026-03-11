@@ -91,8 +91,8 @@ détruit :: fonc (tableau: *TableauPartagé($T, $C, $D))
 {
     tableau.déréférence();
     si mémoire(tableau.compte_de_référence) == 0 {
-        déloge(tableau.valeurs);
-        déloge(tableau.compte_de_référence);
+        déloge(*tableau.valeurs);
+        déloge(*tableau.compte_de_référence);
     }
 }
 

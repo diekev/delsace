@@ -157,15 +157,15 @@ document_sur_destruction :: fonc (base: *JS.Cellule)
     déloge_tableau_et_ses_éléments(*document.feuilles_de_style, CSS.détruit_feuille_de_style);
 
     pour document.images_disponibles {
-        déloge(it.url);
+        déloge(*it.url);
         détruit_données_image(*it.données);
     }
 
     détruit_policy_container(document.policy_container);
 
     détruit_url(document.url);
-    déloge(document.images_disponibles);
-    déloge(document.render_blocking_elements);
+    déloge(*document.images_disponibles);
+    déloge(*document.render_blocking_elements);
 }
 
 document_sur_get_the_parent :: fonc (base: *EventTarget, event: *Event) -> *EventTarget
@@ -278,7 +278,7 @@ donne_current_script :: fonc (document: *Document) -> *HTMLScriptElement
 get_elements_by_name :: fonc (document: *Document, element_name: DOMString) -> *NodeList
 {
     traversée: [..]*Node;
-    diffère déloge(traversée);
+    diffère déloge(*traversée);
 
     tableau_ajoute(*traversée, document);
 
@@ -519,7 +519,7 @@ donne_ancêtre_élément_commun :: fonc (a: *Element, b: *Element) -> *Element
     }
 
     ancêtres_de_a: [..]*Element;
-    diffère déloge(ancêtres_de_a);
+    diffère déloge(*ancêtres_de_a);
 
     noeud := a;
     boucle {
@@ -915,7 +915,7 @@ opérateur pour :: (descendants: Descendants) -> *Node
     assert(descendants.node != nul);
 
     traversée: [..]*Node;
-    diffère déloge(traversée);
+    diffère déloge(*traversée);
 
     pour > descendants.node.enfants {
         tableau_ajoute(*traversée, it);
@@ -951,7 +951,7 @@ opérateur pour :: (inclusive_descendants: InclusiveDescendants) -> *Node
     assert(inclusive_descendants.node != nul);
 
     traversée: [..]*Node;
-    diffère déloge(traversée);
+    diffère déloge(*traversée);
 
     tableau_ajoute(*traversée, inclusive_descendants.node);
     

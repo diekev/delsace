@@ -421,7 +421,7 @@ définis_url :: fonc (request: *Request, url: *URL)
 
 détruit_request :: fonc (request: *Request)
 {
-    déloge(request.header_list);
+    déloge(*request.header_list);
     pour request.url_list {
         détruit_url(it);
     }
@@ -431,8 +431,8 @@ détruit_request :: fonc (request: *Request)
         }
         sinon {}
     }
-    déloge(request.url_list);
-    déloge(request);
+    déloge(*request.url_list);
+    déloge(*request);
 }
 
 donne_url_courant :: fonc (request: *Request) -> *URL
@@ -541,15 +541,15 @@ détruit_response :: fonc (response: *Response)
 {
     si response.body.possède_valeur() {
         body := response.body.Quelque;
-        déloge(body);
+        déloge(*body);
     }
 
     si response.body_info {
-        déloge_si_logée(response.body_info.content_type);
+        déloge_si_logée(*response.body_info.content_type);
     }
 
-    déloge(response.body_info);
-    déloge(response);
+    déloge(*response.body_info);
+    déloge(*response);
 }
 
 définis_url :: fonc (response: *Response, url: *URL)
@@ -601,7 +601,7 @@ possède_entête :: fonc (response: *Response, nom: chaine, valeur: chaine) -> b
 
         valeur_entête := it.value;
         morceaux := divise(valeur_entête, ';');
-        diffère déloge(morceaux);
+        diffère déloge(*morceaux);
 
         pour morceau dans morceaux {
             morceau = supprime_espaces_blanches(morceau);
@@ -745,7 +745,7 @@ crée_réponse_pour_erreur_inconnue :: fonc (request: *Request, détail: chaine)
     _, contenu := contenu_fichier_texte(chemin_fichier);
 
     nouveau_contenu := remplace(contenu, "{{détail}}", détail);
-    déloge(contenu);
+    déloge(*contenu);
     contenu = nouveau_contenu;
 
     retourne crée_réponse_pour_fichier(request, "text/html", contenu, 0);
@@ -858,7 +858,7 @@ détruit_fetch_params :: fonc (empl fetch_params: *FetchParams)
         process_response_consume_body.sur_destruction(process_response_consume_body);
     }
 
-    déloge(fetch_params);
+    déloge(*fetch_params);
 }
 
 /* https://fetch.spec.whatwg.org/#fetch-params-aborted */
@@ -907,7 +907,7 @@ FetchController :: struct {
 
 détruit_fetch_controller :: fonc (fetch_controller: *FetchController)
 {
-    déloge(fetch_controller);
+    déloge(*fetch_controller);
 }
 
 /* https://fetch.spec.whatwg.org/#fetch-controller-process-the-next-manual-redirect */
@@ -1563,10 +1563,10 @@ scheme_fetch :: fonc (user_agent: *UserAgent, fetch_params: *FetchParams) -> *Re
     }
     sinon si schéma == "file" {
         chaine_chemin := donne_chaine_chemin(request.donne_url_courant());
-        diffère déloge(chaine_chemin);
+        diffère déloge(*chaine_chemin);
 
         chaine_chemin_ := résoud_échappement_url(chaine_chemin);
-        diffère déloge(chaine_chemin_);
+        diffère déloge(*chaine_chemin_);
 
         chemin := CheminFichier(chaine_chemin_);
 
@@ -1580,11 +1580,11 @@ scheme_fetch :: fonc (user_agent: *UserAgent, fetch_params: *FetchParams) -> *Re
             _, contenu := contenu_fichier_texte(chemin_erreur_404);
 
             nouveau_contenu := remplace(contenu, "{{nom-navigateur}}", user_agent.nom_navigateur);
-            déloge(contenu);
+            déloge(*contenu);
             contenu = nouveau_contenu;
 
             nouveau_contenu = remplace(contenu, "{{url}}", chemin.chn);
-            déloge(contenu);
+            déloge(*contenu);
             contenu = nouveau_contenu;
 
             retourne crée_réponse_pour_fichier(request, "text/html", contenu, 404);
@@ -1966,7 +1966,7 @@ data_url_processor :: fonc (url: *URL) -> Optionnel(DataURLStruct)
     // 2. Let input be the result of running the URL serializer on dataURL with exclude fragment set to true.
     input := url_serializer(url);
     input_orig := input;
-    diffère déloge(input_orig);
+    diffère déloge(*input_orig);
 
     // 3. Remove the leading "data:" from input.
     input = avance(input, 5);
@@ -1998,7 +1998,7 @@ data_url_processor :: fonc (url: *URL) -> Optionnel(DataURLStruct)
 
     // 10. Let body be the percent-decoding of encodedBody.
     body := résoud_échappement_url(encoded_body);
-    diffère déloge(body);
+    diffère déloge(*body);
 
     // 11. If mimeType ends with U+003B (;), followed by zero or more U+0020 SPACE, followed by an ASCII case-insensitive match for "base64", then:
     si mime_type_fini_par_base64(mimetype) {
@@ -2007,7 +2007,7 @@ data_url_processor :: fonc (url: *URL) -> Optionnel(DataURLStruct)
 
         // 2. Set body to the forgiving-base64 decode of stringBody.
         nouveau_body := décode_base64(string_body);
-        déloge(body);
+        déloge(*body);
         body = nouveau_body;
 
         // À FAIRE : 3. If body is failure, then return failure.

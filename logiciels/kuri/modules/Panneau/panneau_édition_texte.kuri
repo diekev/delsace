@@ -183,7 +183,7 @@ crée_chronomètre_clignotage_curseur :: fonc (panneau: *PanneauÉditionTexte) -
     rappel_sur_destruction :: fonc (base: *Chronomètre);
     {
         chrono := base comme *ChronomètreClignotageCurseur;
-        déloge(chrono);
+        déloge(*chrono);
     }
 
     résultat := loge(ChronomètreClignotageCurseur);
@@ -313,7 +313,7 @@ notifie_changement :: fonc (curseur: *CurseurTexte)
     texte := mémoire(curseur.texte);
 
     chn := convertis_vers_chaine(texte);
-    diffère déloge(chn);
+    diffère déloge(*chn);
 
     panneau.rappels.sur_édition(panneau.rappels, chn);
 }
@@ -333,7 +333,7 @@ notifie_fin_édition :: fonc (curseur: *CurseurTexte)
     texte := mémoire(curseur.texte);
 
     chn := convertis_vers_chaine(texte);
-    diffère déloge(chn);
+    diffère déloge(*chn);
 
     panneau.rappels.sur_fin_édition(panneau.rappels, chn);
 }

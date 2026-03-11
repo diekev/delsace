@@ -72,7 +72,7 @@ détruit_données :: fonc (éditrice: *ÉditriceTexte)
     pour * éditrice.lignes {
         détruit_chaine(it);
     }
-    déloge(éditrice.lignes);
+    déloge(*éditrice.lignes);
 }
 
 démarre_édition :: fonc (éditrice: *ÉditriceTexte)
@@ -420,7 +420,7 @@ efface :: fonc (curseur: *CurseurTexte)
 
                 tableau_ajoute(*ligne_précédente.points_de_code, ...texte.points_de_code);
 
-                déloge(texte.points_de_code);
+                déloge(*texte.points_de_code);
 
                 tableau_supprime_indice(*curseur.éditrice.lignes, indice_ligne_courante);
             }
@@ -483,7 +483,7 @@ notifie_changement :: fonc (curseur: *CurseurTexte)
     }
 
     chn := donne_tampon_texte_natif(curseur.éditrice);
-    diffère déloge(chn);
+    diffère déloge(*chn);
 
     éditrice.rappels.sur_édition(éditrice.rappels, chn);
 }
@@ -501,7 +501,7 @@ notifie_fin_édition :: fonc (curseur: *CurseurTexte, fut_causée_par_touche_ent
     }
 
     chn := donne_tampon_texte_natif(curseur.éditrice);
-    diffère déloge(chn);
+    diffère déloge(*chn);
 
     éditrice.rappels.sur_fin_édition(éditrice.rappels, chn, fut_causée_par_touche_entrée);
 }

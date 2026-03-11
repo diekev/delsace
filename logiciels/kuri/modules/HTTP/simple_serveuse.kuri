@@ -24,10 +24,10 @@ SimpleServeuse :: struct {
 crée_simple_serveuse :: fonc (adresse: chaine) -> (succès: bool, serveuse: *SimpleServeuse)
 {
     copie_adresse := copie_chaine(adresse);
-    diffère déloge(copie_adresse);
+    diffère déloge(*copie_adresse);
 
     si trouve_motif_dans_chaine(copie_adresse, "://") < 0 {
-        déloge(copie_adresse);
+        déloge(*copie_adresse);
         copie_adresse = enchaine("http://", adresse);
     }
 
@@ -128,7 +128,7 @@ répond :: fonc (requête: *Requête, réponse: *Réponse)
         perror(ChaineC("send".pointeur));
     }
 
-    déloge(chaine_message);
+    déloge(*chaine_message);
 
     _ := close(requête.prise);
 }
@@ -201,7 +201,7 @@ opérateur pour :: (requêtes: RequêtesEntrantes) -> Requête
         tantque !message_prêt_pour_finalisation(*parseuse) {
             requete := charge_donnees_requete(prise, mon_addresse);
             ajourne_données(*parseuse, requete);
-            déloge(requete);
+            déloge(*requete);
         }
 
         requête: Requête;
