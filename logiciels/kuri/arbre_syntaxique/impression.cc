@@ -990,9 +990,6 @@ NoeudFormattage *Formatteuse::formatte_noeud(ÉtatImpression état, NoeudExpress
             if (inst->prends_pointeur) {
                 enchaineuse << "* ";
             }
-            else if (inst->prends_référence) {
-                enchaineuse << "& ";
-            }
 
             if (!inst->variable->possède_drapeau(DrapeauxNoeud::EST_IMPLICITE)) {
                 imprime_arbre(enchaineuse, état, inst->variable);
@@ -1462,13 +1459,6 @@ NoeudFormattage *Formatteuse::formatte_noeud(ÉtatImpression état, NoeudExpress
         {
             auto expression = noeud->comme_prise_adresse();
             enchaineuse << "*";
-            imprime_arbre(enchaineuse, état, expression->opérande);
-            break;
-        }
-        case GenreNoeud::EXPRESSION_PRISE_RÉFÉRENCE:
-        {
-            auto expression = noeud->comme_prise_référence();
-            enchaineuse << "&";
             imprime_arbre(enchaineuse, état, expression->opérande);
             break;
         }

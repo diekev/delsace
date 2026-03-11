@@ -43,7 +43,6 @@ InfoTypeEntier :: struct #interface {
 InfoTypePointeur :: struct #interface {
     empl base: InfoType;
 
-    est_référence: bool;
     type_pointé: *InfoType;
 }
 
@@ -296,20 +295,6 @@ InfoTypePolymorphique :: struct #interface {
     ident: chaine;
 }
 
-est_référence_vers :: fonc (info: *InfoType, type_pointé: *InfoType) -> bool
-{
-    si info.id != GenreInfoType.POINTEUR {
-        retourne faux;
-    }
-
-    référence := info comme *InfoTypePointeur;
-    saufsi référence.est_référence {
-        retourne faux;
-    }
-
-    retourne référence.type_pointé == type_pointé;
-}
-
 est_pointeur_vers :: fonc (info: *InfoType, type_pointé: *InfoType) -> bool
 {
     si info.id != GenreInfoType.POINTEUR {
@@ -317,10 +302,6 @@ est_pointeur_vers :: fonc (info: *InfoType, type_pointé: *InfoType) -> bool
     }
 
     pointeur := info comme *InfoTypePointeur;
-    si pointeur.est_référence {
-        retourne faux;
-    }
-
     retourne pointeur.type_pointé == type_pointé;
 }
 
@@ -375,10 +356,6 @@ est_pointeur_de :: fonc (info: *InfoType) -> *InfoType
     }
 
     info_pointeur := info comme *InfoTypePointeur;
-    si info_pointeur.est_référence {
-        retourne nul;
-    }
-
     retourne info_pointeur.type_pointé;
 }
 

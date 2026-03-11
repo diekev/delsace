@@ -123,7 +123,7 @@ détruit_boucle :: fonc (boucle_évènements: *Boucle)
     détruit_données_ssl_boucle(boucle_évènements);
 
     _ := close(boucle_évènements.fd);
-    déloge(boucle_évènements);
+    déloge(*boucle_évènements);
 }
 
 lance :: fonc (boucle_prises: *Boucle)
@@ -222,7 +222,7 @@ dispatch_évènement :: fonc (prise: *Prise, évènements: EPOLL_EVENTS, erreurs
                         prise_acceptée := crée_prise_interne(prise.contexte_, Fichier(TypePoignéeFichier(fichier_client)), prise.info_utilisateur);
 
                         saufsi ajoute_prise(prise.contexte_.boucle_prises, prise_acceptée, EPOLL_EVENTS.EPOLLIN) {
-                            déloge(prise_acceptée);
+                            déloge(*prise_acceptée);
                         }
                         sinon {
                             prise_acceptée.type = TypePrise.PRISE;
@@ -267,7 +267,7 @@ dispatch_évènement :: fonc (prise: *Prise, évènements: EPOLL_EVENTS, erreurs
             si évènements.EPOLLIN {
                 // À FAIRE : utilise un tampon stocké dans la boucle
                 données := prise.lis_tout();
-                diffère déloge(données);
+                diffère déloge(*données);
 
                 si données.taille == 0 {
                     /* À FAIRE : quand le serveur ferme nous pouvons continuer à lire indéfiniememnt. */

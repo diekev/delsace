@@ -254,7 +254,7 @@ crée_tâche_pour_message_websocket :: fonc (user_agent: *UserAgent, web_socket:
             chn := chaine_depuis_tranche_octets(données);
             chn_unique := crée_chaine_utf16_unique(chn);
             message_event.data.String = JS.crée_chaine(web_socket.realm, chn_unique);
-            déloge(données);
+            déloge(*données);
         }
         // type indicates that the data is Binary and binary type is "blob"
         sinon si type == WS.OpCode.FRAME_BINAIRE && web_socket.binary_type == BinaryType.blob {
@@ -281,7 +281,7 @@ crée_tâche_pour_message_websocket :: fonc (user_agent: *UserAgent, web_socket:
         url_origin.port = origin.port;
 
         serialized_origin := url_serializer(*url_origin);
-        diffère déloge(serialized_origin);
+        diffère déloge(*serialized_origin);
 
         message_event.origin = crée_chaine_utf16_unique(serialized_origin);
         _ := dispatch(message_event, web_socket);

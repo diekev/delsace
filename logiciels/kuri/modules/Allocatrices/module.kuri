@@ -35,7 +35,7 @@ StatsAllocations :: struct {
     nombre_désallocations: z64;
 }
 
-allocatrice_stats_alloc :: fonc (params: &ParamètresAllocation, données: *BaseAllocatrice) -> *rien
+allocatrice_stats_alloc :: fonc (params: *ParamètresAllocation, données: *BaseAllocatrice) -> *rien
 {
     nouvelle_taille := params.nouvelle_taille;
     ancienne_taille := params.ancienne_taille;

@@ -147,7 +147,7 @@ vide_données_lecture :: fonc (prise: *Prise)
     si prise.est_prise_ssl() {
         // À FAIRE : garde la mémoire jusqu'à ce que les données furent écris
         tampon := chaine_depuis_enchaineuse(enchaineuse);
-        diffère déloge(tampon);
+        diffère déloge(*tampon);
         retourne écris(prise comme *PriseSSL, tampon);
     }
 

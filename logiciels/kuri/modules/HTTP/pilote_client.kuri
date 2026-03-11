@@ -114,7 +114,7 @@ ajoute_contenu_depuis_formulaire :: fonc (message: *MessageClienteHTTP, formulai
 envoie_requête :: fonc (pilote: *PiloteClienteHTTP, requête: *MessageClienteHTTP) -> Optionnel(MessageServeuseHTTP)
 {
     message := chaine_pour_message_cliente(requête);
-    diffère déloge(message);
+    diffère déloge(*message);
 
     // ouvre_connexion serveuse
     fichier := tente ouvre_connexion_serveur(requête.uri, vrai) piège err {
@@ -140,7 +140,7 @@ envoie_requête :: fonc (pilote: *PiloteClienteHTTP, requête: *MessageClienteHT
 
         ajourne_données(*parseuse, contenu);
 
-        déloge(contenu);
+        déloge(*contenu);
 
         si message_est_erroné(*parseuse) {
             imprime("Erreur de parsage dans le message\n");

@@ -66,15 +66,15 @@ Table :: struct {
 
 détruit_table :: fonc (table: *Table) -> rien
 {
-    déloge(table.desc_colonnes);
-    déloge(table.paginatrice);
-    déloge(table);
+    déloge(*table.desc_colonnes);
+    déloge(*table.paginatrice);
+    déloge(*table);
 }
 
 imprime_table :: fonc (table: *Table) -> rien
 {
     curseur := curseur_début_de_table(table);
-    diffère déloge(curseur);
+    diffère déloge(*curseur);
 
     ligne_titre: LigneTabuleuse;
 
@@ -160,7 +160,7 @@ ferme_base_de_données :: fonc (table: *Table) -> rien
             flush_paginatrice(paginatrice, i);
         }
 
-        déloge(paginatrice.pages[i]);
+        déloge(*paginatrice.pages[i]);
     }
 
     // Une page partielle peut toujours être à écrire à la fin du fichier
@@ -175,7 +175,7 @@ ferme_base_de_données :: fonc (table: *Table) -> rien
                 flush_paginatrice(paginatrice, indice_page);
             }
 
-            déloge(paginatrice.pages[indice_page]);
+            déloge(*paginatrice.pages[indice_page]);
         }
     }
 
@@ -188,7 +188,7 @@ ferme_base_de_données :: fonc (table: *Table) -> rien
 
     pour * page dans paginatrice.pages {
         si page.pointeur != nul {
-            déloge(mémoire(page));
+            déloge(*mémoire(page));
         }
     }
 
