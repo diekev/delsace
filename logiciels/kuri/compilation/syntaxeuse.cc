@@ -94,7 +94,6 @@ static constexpr auto table_drapeaux_lexèmes = [] {
             case GenreLexème::TILDE:
             case GenreLexème::FOIS:
             case GenreLexème::FOIS_UNAIRE:
-            case GenreLexème::ESP_UNAIRE:
             case GenreLexème::ESPERLUETTE:
             case GenreLexème::TROIS_POINTS:
             case GenreLexème::EXPANSION_VARIADIQUE:
@@ -329,7 +328,6 @@ static constexpr auto table_associativité_lexèmes = [] {
             case GenreLexème::TILDE:
             case GenreLexème::PLUS_UNAIRE:
             case GenreLexème::FOIS_UNAIRE:
-            case GenreLexème::ESP_UNAIRE:
             case GenreLexème::MOINS_UNAIRE:
             case GenreLexème::EXPANSION_VARIADIQUE:
             case GenreLexème::ACCENT_GRAVE:
@@ -463,7 +461,6 @@ static constexpr auto table_précédence_lexèmes = [] {
             case GenreLexème::PLUS_UNAIRE:
             case GenreLexème::MOINS_UNAIRE:
             case GenreLexème::FOIS_UNAIRE:
-            case GenreLexème::ESP_UNAIRE:
             case GenreLexème::EXPANSION_VARIADIQUE:
             case GenreLexème::ACCENT_GRAVE:
             {
@@ -1030,12 +1027,6 @@ NoeudExpression *Syntaxeuse::analyse_expression_unaire()
             lexème->genre = GenreLexème::FOIS_UNAIRE;
             break;
         }
-        case GenreLexème::ESPERLUETTE:
-        {
-            lexème->genre = GenreLexème::ESP_UNAIRE;
-            break;
-        }
-        case GenreLexème::ESP_UNAIRE:
         case GenreLexème::EXCLAMATION:
         case GenreLexème::TILDE:
         case GenreLexème::PLUS_UNAIRE:
@@ -1076,11 +1067,6 @@ NoeudExpression *Syntaxeuse::analyse_expression_unaire()
     if (lexème->genre == GenreLexème::FOIS_UNAIRE) {
         auto opérande = analyse_expression({précédence, associativité});
         return m_contexte->assembleuse->crée_prise_adresse(lexème, opérande);
-    }
-
-    if (lexème->genre == GenreLexème::ESP_UNAIRE) {
-        auto opérande = analyse_expression({précédence, associativité});
-        return m_contexte->assembleuse->crée_prise_référence(lexème, opérande);
     }
 
     if (lexème->genre == GenreLexème::EXCLAMATION) {
@@ -2292,32 +2278,11 @@ void Syntaxeuse::analyse_specifiants_instruction_pour(NoeudPour *noeud)
             {
                 return;
             }
-            case GenreLexème::ESPERLUETTE:
-            case GenreLexème::ESP_UNAIRE:
-            {
-                if (noeud->prends_référence) {
-                    rapporte_erreur("redéfinition d'une prise de référence");
-                }
-
-                if (noeud->prends_pointeur) {
-                    rapporte_erreur("définition d'une prise de référence alors qu'une prise de "
-                                    "pointeur fut spécifiée");
-                }
-
-                noeud->prends_référence = true;
-                consomme();
-                break;
-            }
             case GenreLexème::FOIS:
             case GenreLexème::FOIS_UNAIRE:
             {
                 if (noeud->prends_pointeur) {
                     rapporte_erreur("redéfinition d'une prise de pointeur");
-                }
-
-                if (noeud->prends_référence) {
-                    rapporte_erreur("définition d'une prise de pointeur alors qu'une prise de "
-                                    "référence fut spécifiée");
                 }
 
                 noeud->prends_pointeur = true;

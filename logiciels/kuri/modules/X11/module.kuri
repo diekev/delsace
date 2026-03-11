@@ -1818,7 +1818,7 @@ load_x11_auth_token :: fonc () -> Optionnel(AuthToken)
     saufsi fichier_existe(chemin) {
         retourne;
     }
-    diffère détruit_chemin(chemin);
+    diffère détruit_chemin(*chemin);
 
     imprime("%\n", chemin.chn);
 
@@ -1826,7 +1826,7 @@ load_x11_auth_token :: fonc () -> Optionnel(AuthToken)
     si succès == faux || contenu.taille == 0 {
         retourne;
     }
-    diffère déloge(contenu);
+    diffère déloge(*contenu);
 
     tampon : []octet = contenu;
 

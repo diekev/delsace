@@ -48,7 +48,6 @@
     case GenreNoeud::EXPRESSION_PARENTHÈSE:                                                       \
     case GenreNoeud::EXPRESSION_PLAGE:                                                            \
     case GenreNoeud::EXPRESSION_PRISE_ADRESSE:                                                    \
-    case GenreNoeud::EXPRESSION_PRISE_RÉFÉRENCE:                                                  \
     case GenreNoeud::EXPRESSION_RÉFÉRENCE_DÉCLARATION:                                            \
     case GenreNoeud::EXPRESSION_RÉFÉRENCE_RUBRIQUE:                                               \
     case GenreNoeud::EXPRESSION_RÉFÉRENCE_RUBRIQUE_UNION:                                         \
@@ -113,7 +112,6 @@
     case GenreNoeud::POINTEUR:                                                                    \
     case GenreNoeud::POLYMORPHIQUE:                                                               \
     case GenreNoeud::RÉEL:                                                                        \
-    case GenreNoeud::RÉFÉRENCE:                                                                   \
     case GenreNoeud::RIEN:                                                                        \
     case GenreNoeud::TABLEAU_DYNAMIQUE:                                                           \
     case GenreNoeud::TABLEAU_FIXE:                                                                \

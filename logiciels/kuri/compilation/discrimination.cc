@@ -513,12 +513,6 @@ RésultatValidation Sémanticienne::valide_discrimination(NoeudDiscr *inst)
     auto expression = inst->expression_discriminée;
     auto type = expression->type;
 
-    if (type->est_type_référence()) {
-        crée_transtypage_implicite_au_besoin(inst->expression_discriminée,
-                                             TransformationType(TypeTransformation::DÉRÉFERENCE));
-        type = type->comme_type_référence()->type_pointé;
-    }
-
     if (!type->possède_drapeau(DrapeauxNoeud::DECLARATION_FUT_VALIDEE)) {
         return Attente::sur_type(type);
     }

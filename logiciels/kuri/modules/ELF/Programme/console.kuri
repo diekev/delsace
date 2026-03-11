@@ -19,7 +19,7 @@ principale :: fonc ()
 
     chm := CheminFichier(arguments.fichier);
     _, contenu := contenu_fichier_binaire(chm);
-    diffère déloge(contenu);
+    diffère déloge(*contenu);
 
     fichier := crée_fichier_elf(contenu);
 

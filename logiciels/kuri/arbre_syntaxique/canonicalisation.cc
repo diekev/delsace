@@ -233,17 +233,6 @@ NoeudExpression *Simplificatrice::simplifie(NoeudExpression *noeud)
             simplifie(prise_adresse->opérande);
             return prise_adresse;
         }
-        case GenreNoeud::EXPRESSION_PRISE_RÉFÉRENCE:
-        {
-            auto prise_référence = noeud->comme_prise_référence();
-            if (prise_référence->type->est_type_type_de_données()) {
-                prise_référence->substitution = assem->crée_référence_type(prise_référence->lexème,
-                                                                           prise_référence->type);
-                return prise_référence->substitution;
-            }
-            simplifie(prise_référence->opérande);
-            return prise_référence;
-        }
         case GenreNoeud::EXPRESSION_NÉGATION_LOGIQUE:
         {
             auto négation = noeud->comme_négation_logique();
@@ -379,7 +368,7 @@ NoeudExpression *Simplificatrice::simplifie(NoeudExpression *noeud)
                         référence->lexème, déclaration_variable->déclaration_vient_d_un_emploi);
 
                     auto type = ref_decl_var->type;
-                    while (type->est_type_pointeur() || type->est_type_référence()) {
+                    while (type->est_type_pointeur()) {
                         type = type_déréférencé_pour(type);
                     }
 
@@ -1357,14 +1346,11 @@ NoeudExpression *Simplificatrice::simplifie_boucle_pour(NoeudPour *inst)
             auto indexage = assem->crée_indexage(inst->lexème, expr_pointeur, expr_indice, true);
             NoeudExpression *expression_assignee = indexage;
 
-            if (inst->prends_référence || inst->prends_pointeur) {
-                auto noeud_comme = assem->crée_comme(it->lexème, indexage, nullptr);
-                noeud_comme->type = it->type;
-                noeud_comme->transformation = TransformationType(
-                    TypeTransformation::PRENDS_RÉFÉRENCE);
-                noeud_comme->drapeaux |= DrapeauxNoeud::TRANSTYPAGE_IMPLICITE;
+            if (inst->prends_pointeur) {
+                auto prise_adresse = assem->crée_prise_adresse(it->lexème, indexage);
+                prise_adresse->type = it->type;
 
-                expression_assignee = noeud_comme;
+                expression_assignee = prise_adresse;
             }
 
             auto assign_it = assem->crée_assignation_variable(

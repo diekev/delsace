@@ -114,7 +114,7 @@ crée_tâche :: fonc (rappel: fonc (arg: *rien) -> *rien, données_rappel: *rien
 
     si ret != 0 {
         imprime("erreur : %\n", convertis_chaine_c(strerror(ret)));
-        déloge(tâche);
+        déloge(*tâche);
     }
 
     retourne tâche;

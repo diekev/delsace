@@ -105,7 +105,7 @@ construis_lexeuse :: fonc (chn: chaine) -> Lexeuse
 
 détruit_lexeuse :: fonc (lexeuse: *Lexeuse) -> rien
 {
-    déloge(lexeuse.lexèmes);
+    déloge(*lexeuse.lexèmes);
 }
 
 ajoute_lexème_script :: fonc (lexeuse: *Lexeuse, type_lexème: TypeLexème) #enligne

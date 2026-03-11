@@ -585,18 +585,6 @@ void Monomorpheuse::parse_candidats(const NoeudExpression *expression_polymorphi
             erreur_genre_type(site, type_reçu, "n'est pas un pointeur");
         }
     }
-    else if (expression_polymorphique->est_prise_référence()) {
-        auto const prise_référence = expression_polymorphique->comme_prise_référence();
-        if (type_reçu->est_type_référence()) {
-            parse_candidats(
-                prise_référence->opérande, site, type_reçu->comme_type_référence()->type_pointé);
-        }
-        else {
-            /* Il est possible que la référence soit implicite, donc tente d'apparier avec le
-             * type directement. */
-            parse_candidats(prise_référence->opérande, site, type_reçu);
-        }
-    }
     else if (expression_polymorphique->est_expression_type_tranche()) {
         auto type_tranche = expression_polymorphique->comme_expression_type_tranche();
         ajoute_candidats_depuis_déclaration_tranche(type_tranche, site, type_reçu);
@@ -684,14 +672,6 @@ Type *Monomorpheuse::résoud_type_final_impl(const NoeudExpression *expression_p
             return nullptr;
         }
         return typeuse.type_pointeur_pour(type_pointe);
-    }
-    else if (expression_polymorphique->est_prise_référence()) {
-        auto const prise_référence = expression_polymorphique->comme_prise_référence();
-        auto type_pointe = résoud_type_final_impl(prise_référence->opérande);
-        if (!type_pointe) {
-            return nullptr;
-        }
-        return typeuse.type_référence_pour(type_pointe);
     }
     else if (expression_polymorphique->est_expression_type_tableau_fixe()) {
         auto const type_tableau_fixe =
