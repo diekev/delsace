@@ -29,7 +29,7 @@ principale :: fonc ()
     diffère détruit_chaines_internées();
 
     _, contenu := contenu_fichier_texte(chm.chn);
-    diffère déloge(contenu);
+    diffère déloge(*contenu);
 
     imprime("%\n", contenu);
 
@@ -41,10 +41,10 @@ principale :: fonc ()
 
     début := maintenant_précis();
     parsat := parse_document(JS.donne_tas_de_mémoire(*mv), contenu);
-    diffère détruit(parsat);
+    diffère détruit(*parsat);
 
     contexte_formattage := initialise_contexte_formattage_minification();
-    taille_minifiée := formatte_document(contexte_formattage, parsat.document, sortie_standarde());
+    taille_minifiée := formatte_document(*contexte_formattage, parsat.document, sortie_standarde());
     temps := début.temps_écoulé_microsecondes();
 
     imprime("\n");

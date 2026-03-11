@@ -146,8 +146,8 @@ TableDeHachage :: struct ($Clé: type_de_données, $Valeur: type_de_données) {
 
 détruit_données :: fonc (table: *TableDeHachage($Clé, $Valeur))
 {
-    déloge(table.clés);
-    déloge(table.valeurs);
+    déloge(*table.clés);
+    déloge(*table.valeurs);
 }
 
 table_insère :: fonc (table: *TableDeHachage($Clé, $Valeur), clé: Clé, valeur: Valeur)

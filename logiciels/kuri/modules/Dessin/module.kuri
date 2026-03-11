@@ -76,7 +76,7 @@ remplis_avec :: fonc (tampon: *TamponDeRendu, couleur: CouleurRVBAN8)
 
 détruit_tampon_de_rendu :: fonc (tampon: *TamponDeRendu)
 {
-    déloge(tampon.données);
+    déloge(*tampon.données);
 }
 
 donne_rect_sûr :: fonc (tampon: *TamponDeRendu, rect: RectanglePosDim(z32)) -> RectanglePosDim(z32)

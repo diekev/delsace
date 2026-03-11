@@ -189,7 +189,7 @@ initialise_lexeuse_depuis_source :: fonc (lexeuse: *Lexeuse, source: *TexteSourc
     lexeuse.début_mot = début_source;
     lexeuse.début_source = début_source;
     lexeuse.fin_source = fin_source;
-    déloge(lexeuse.lexèmes);
+    déloge(*lexeuse.lexèmes);
 }
 
 fini :: fonc (lexeuse: *Lexeuse) -> bool #enligne

@@ -33,7 +33,7 @@ ParamètresFlocon :: struct {
 Flocon :: #opaque z64;
 Délai :: #opaque z64;
 
-flocon_suivant :: fonc (empl paramètres: &ParamètresFlocon) -> Flocon | Délai
+flocon_suivant :: fonc (empl paramètres: *ParamètresFlocon) -> Flocon | Délai
 {
     horodotage := génère_temps();
 

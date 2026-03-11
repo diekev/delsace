@@ -44,7 +44,7 @@ donne_tas_de_mémoire :: fonc (user_agent: *UserAgent) -> *JS.TasDeMémoire
 détruit_user_agent :: fonc (user_agent: *UserAgent)
 {
     détruit_données_user_agent(user_agent);
-    déloge(user_agent);
+    déloge(*user_agent);
 }
 
 détruit_données_user_agent :: fonc (user_agent: *UserAgent)
@@ -100,7 +100,7 @@ crée_algorithm :: fonc (sur_run: fonc (algorithm: *Algorithm), $T: type_de_donn
     sur_destruction :: fonc (base: *Algorithm)
     {
         algorithm := base comme *T;
-        déloge(algorithm);
+        déloge(*algorithm);
     }
 
     résultat := loge(T);

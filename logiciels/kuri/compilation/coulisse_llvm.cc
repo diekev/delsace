@@ -77,7 +77,7 @@ inline bool adresse_est_nulle(void *adresse)
 
 static inline bool est_type_machine_pointeur(Type const *type)
 {
-    return type->est_type_pointeur() || type->est_type_référence();
+    return type->est_type_pointeur();
 }
 
 static VisibilitéSymbole donne_visibilité_fonction(AtomeFonction const *fonction)
@@ -659,7 +659,6 @@ struct InfoDébogageLLVM {
                 ditype = dibuilder->createBasicType(nom, taille_en_bits, encodage);
                 break;
             }
-            case GenreNoeud::RÉFÉRENCE:
             case GenreNoeud::POINTEUR:
             {
                 auto type_deref = type_déréférencé_pour(type);
@@ -1217,7 +1216,6 @@ llvm::Type *GénératriceCodeLLVM::convertis_type_llvm(Type const *type)
 
             break;
         }
-        case GenreNoeud::RÉFÉRENCE:
         case GenreNoeud::POINTEUR:
         {
             auto type_deref = type_déréférencé_pour(type);

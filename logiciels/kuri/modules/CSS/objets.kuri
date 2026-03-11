@@ -45,7 +45,7 @@ détruit_feuille_de_style :: fonc (stylesheet: *CSSStyleSheet)
 {
     détruit_rule_list(stylesheet.rules);
     HTML.détruit_url(stylesheet.location);
-    déloge(stylesheet);
+    déloge(*stylesheet);
 }
 
 détruit_rule_list :: fonc (list: [..]*CSSRule)
@@ -58,7 +58,7 @@ détruit_rule_list :: fonc (list: [..]*CSSRule)
             détruit_media_rule(it comme *CSSMediaRule);
         }
     }
-    déloge(list);
+    déloge(*list);
 }
 
 /** \} */
@@ -128,7 +128,7 @@ détruit_style_rule :: fonc (rule: *CSSStyleRule)
 {
     détruit_données_selector_list(*rule.selector_list);
     détruit_style_declaration(rule.style);
-    déloge(rule);
+    déloge(*rule);
 }
 
 imprime_règle :: fonc (règle: *CSSStyleRule)
@@ -168,8 +168,8 @@ détruit_style_declaration :: fonc (style: *CSSStyleDeclaration)
         détruit_déclaration(it);
     }
 
-    déloge(style.déclarations);
-    déloge(style);
+    déloge(*style.déclarations);
+    déloge(*style);
 }
 
 ajoute_déclaration :: fonc (style: *CSSStyleDeclaration, déclaration: *DéclarationPropriété)
@@ -223,14 +223,14 @@ détruit_déclaration :: fonc (déclaration: *DéclarationPropriété)
     }
 
     détruit_tableau_component_value(*déclaration.valeur_personnalisée);
-    déloge(déclaration.value);
-    déloge(déclaration);
+    déloge(*déclaration.value);
+    déloge(*déclaration);
 }
 
 imprime_déclaration :: fonc (déclaration: *DéclarationPropriété)
 {
     chaine_valeur := donne_chaine_valeur(déclaration);
-    diffère déloge(chaine_valeur);
+    diffère déloge(*chaine_valeur);
     imprime("    %: %;\n", déclaration.property_name, chaine_valeur);
 }
 
@@ -323,7 +323,7 @@ détruit_media_rule :: fonc (rule: *CSSMediaRule)
 {
     détruit_media_list(rule.media_list);
     détruit_données_media_rule(rule);
-    déloge(rule);
+    déloge(*rule);
 }
 
 /** \} */

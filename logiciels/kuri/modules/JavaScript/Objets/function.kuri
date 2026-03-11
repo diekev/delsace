@@ -155,8 +155,8 @@ ecma_script_function_sur_destruction :: fonc (cellule: *Cellule)
 {
     sur_destruction_objet(cellule);
     function := cellule.vérifie_comme(ECMAScriptFunction);
-    déloge(function.fields);
-    déloge(function.private_methods);
+    déloge(*function.fields);
+    déloge(*function.private_methods);
 }
 
 /* 10.2.1 [[Call]] ( thisArgument, argumentsList )
@@ -682,7 +682,7 @@ set_function_name :: fonc (realm: *Realm, F: *Object, name: FieldName, prefix :=
         // c. Else, set name to the string-concatenation of "[", description, and "]".
         sinon {
             chn := imprime_chaine("[%]", description.Quelque);
-            diffère déloge(chn);
+            diffère déloge(*chn);
 
             name = crée_chaine_utf16_unique(chn);
         }
@@ -754,7 +754,7 @@ function_declaration_instantiation :: fonc (interpréteuse: *Interpréteuse, fun
     // 5. Let parameterNames be the BoundNames of formals.
     // À FAIRE : BoundNames
     parameter_names: [..]ECMAString;
-    diffère déloge(parameter_names);
+    diffère déloge(*parameter_names);
 
     pour formals {
         assert(it.type == Identifier);
@@ -770,21 +770,21 @@ function_declaration_instantiation :: fonc (interpréteuse: *Interpréteuse, fun
 
     // 9. Let varNames be the VarDeclaredNames of code.
     var_names := donne_var_declared_names(code);
-    diffère déloge(var_names);
+    diffère déloge(*var_names);
 
     // 10. Let varDeclarations be the VarScopedDeclarations of code.
     var_declarations := donne_var_scoped_declarations(code);
-    diffère déloge(var_declarations);
+    diffère déloge(*var_declarations);
 
     // 11. Let lexicalNames be the LexicallyDeclaredNames of code.
 
     // 12. Let functionNames be a new empty List.
     function_names: [..]ECMAString;
-    diffère déloge(function_names);
+    diffère déloge(*function_names);
 
     // 13. Let functionsToInitialize be a new empty List.
     functions_to_initialize: [..]*NoeudSyntaxique;
-    diffère déloge(functions_to_initialize);
+    diffère déloge(*functions_to_initialize);
 
     // 14. For each element d of varDeclarations, in reverse List order, do
     pour > d dans var_declarations {
@@ -893,7 +893,7 @@ function_declaration_instantiation :: fonc (interpréteuse: *Interpréteuse, fun
 
         // b. Let instantiatedVarNames be a copy of the List parameterBindings.
         instantiated_names: [..]ECMAString;
-        diffère déloge(instantiated_names);
+        diffère déloge(*instantiated_names);
 
         pour parameter_names {
             ensemble_ajoute(*instantiated_names, it);
@@ -954,11 +954,11 @@ function_declaration_instantiation :: fonc (interpréteuse: *Interpréteuse, fun
 
     // 33. Let lexDeclarations be the LexicallyScopedDeclarations of code.
     lex_declarations := donne_lexically_scoped_declarations(code);
-    diffère déloge(lex_declarations);
+    diffère déloge(*lex_declarations);
 
     // 34. For each element d of lexDeclarations, do
     bound_names: [..]ECMAString;
-    diffère déloge(bound_names);
+    diffère déloge(*bound_names);
 
     pour lex_declarations {
         // a. NOTE: A lexically declared name cannot be the same as a function/generator declaration,
@@ -1042,8 +1042,8 @@ builtin_function_sur_destruction :: fonc (cellule: *Cellule)
 {
     sur_destruction_objet(cellule);
     builtin := cellule comme *BuiltInFunction;
-    déloge(builtin.fields);
-    déloge(builtin.private_methods);
+    déloge(*builtin.fields);
+    déloge(*builtin.private_methods);
 }
 
 #portée_export

@@ -418,7 +418,7 @@ génère_opérateurs_vecteurs :: fonc ()
     }
 
     résultat := chaine_depuis_enchaineuse(*enchaineuse);
-    diffère déloge(résultat);
+    diffère déloge(*résultat);
 
     espace := compilatrice_espace_courant();
     module := compilatrice_donne_module(espace, #chemin_de_ce_module);

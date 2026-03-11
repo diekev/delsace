@@ -72,13 +72,13 @@ initialise_tabuleuse :: fonc (tabuleuse: *Tabuleuse, ligne_titre: LigneTabuleuse
 détruit_tabuleuse :: fonc (tabuleuse: *Tabuleuse) -> rien
 {
     pour ligne dans tabuleuse.lignes {
-        déloge(ligne.colonnes);
+        déloge(*ligne.colonnes);
     }
 
     déloge_tableau_et_ses_éléments(*tabuleuse.chaines_allouées);
-    déloge(tabuleuse.lignes);
-    déloge(tabuleuse.alignements);
-    déloge(tabuleuse.tailles_max_colonnes);
+    déloge(*tabuleuse.lignes);
+    déloge(*tabuleuse.alignements);
+    déloge(*tabuleuse.tailles_max_colonnes);
 }
 
 /**

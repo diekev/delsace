@@ -564,7 +564,7 @@ initialise_caméra :: fonc (enveloppe: *Caméra3DObservable)
 détruit_caméra :: fonc (enveloppe: *Caméra3DObservable)
 {
     détruit_données_observable(enveloppe);
-    déloge(enveloppe);
+    déloge(*enveloppe);
 }
 
 donne_plan_éloigné :: fonc (enveloppe: *Caméra3DObservable) -> r32

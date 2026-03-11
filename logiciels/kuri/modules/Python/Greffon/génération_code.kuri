@@ -132,14 +132,14 @@ génère_globale_as_mapping :: fonc (enchaineuse: *Enchaineuse, type: *TypePytho
 
     /* Génère la fonction pour PyMappingMethods.mp_length. */
     nom_fonction_mp_length := enchaine("mp_length_pour_", type.nom_sauf);
-    diffère déloge(nom_fonction_mp_length);
+    diffère déloge(*nom_fonction_mp_length);
 
     enchaineuse.ajoute_au_tampon(nom_fonction_mp_length, " :: fonc (self: *PyObject @inutilisée) -> Py_ssize_t\n");
     enchaineuse.imprime_dans_enchaineuse("{\nretourne %;\n}\n", type.rubriques.taille);
 
     /* Génère la fonction pour PyMappingMethods.mp_subscript. */
     nom_fonction_mp_subscript := enchaine("mp_subscript_pour_", type.nom_sauf);
-    diffère déloge(nom_fonction_mp_subscript);
+    diffère déloge(*nom_fonction_mp_subscript);
 
     enchaineuse.ajoute_au_tampon(nom_fonction_mp_subscript, " :: fonc (self: *PyObject, key: *PyObject) -> *PyObject\n");
     enchaineuse.ajoute_au_tampon("{\n    nom_rubrique := PyUnicode_AsChaine(key);\n");
@@ -161,7 +161,7 @@ génère_globale_as_mapping :: fonc (enchaineuse: *Enchaineuse, type: *TypePytho
 
     /* Génère la fonction pour PyMappingMethods.mp_ass_subscript. */
     nom_fonction_mp_ass_subscript := "nul";
-    diffère si nom_fonction_mp_ass_subscript != "nul" { déloge(nom_fonction_mp_ass_subscript); }
+    diffère si nom_fonction_mp_ass_subscript != "nul" { déloge(*nom_fonction_mp_ass_subscript); }
 
     si possède_rubrique_mutable {
         nom_fonction_mp_ass_subscript = enchaine("mp_ass_subscript_pour_", type.nom_sauf);
@@ -496,41 +496,41 @@ génère_déclaration_type_python :: fonc (enchaineuse: *Enchaineuse, module: *M
             génère_interface_fonction(enchaineuse, it, type);
         }
         nom_tableau := enchaine("méthodes_", type.nom_sauf);
-        diffère déloge(nom_tableau);
+        diffère déloge(*nom_tableau);
         génère_tableaux_méthodes(enchaineuse, type.méthodes, nom_tableau);
     }
 
     globale_getset := génère_méthodes_getset_pour_type(enchaineuse, type);
-    diffère déloge(globale_getset);
+    diffère déloge(*globale_getset);
 
     /* Afin de supporter les expressions de type : o[key] = v */
     globale_as_mapping := génère_globale_as_mapping(enchaineuse, type);
-    diffère déloge(globale_as_mapping);
+    diffère déloge(*globale_as_mapping);
 
     fonction_new := génère_fonction_new(enchaineuse, type);
-    diffère déloge(fonction_new);
+    diffère déloge(*fonction_new);
 
     // À FAIRE __init__
     // fonction_init := génère_fonction_init(enchaineuse, type)
-    // diffère déloge(fonction_init)
+    // diffère déloge(*fonction_init)
 
     fonction_str := génère_fonction_str(enchaineuse, type);
-    diffère déloge(fonction_str);
+    diffère déloge(*fonction_str);
 
     fonction_repr := génère_fonction_repr(enchaineuse, type);
-    diffère déloge(fonction_repr);
+    diffère déloge(*fonction_repr);
 
     fonction_richcompare := génère_fonction_richcompare(enchaineuse, type);
-    diffère déloge(fonction_richcompare);
+    diffère déloge(*fonction_richcompare);
 
     fonction_itérateur := génère_fonction_pour_créer_itérateur(enchaineuse, type);
-    diffère déloge(fonction_itérateur);
+    diffère déloge(*fonction_itérateur);
 
     fonction_itérateur_next := génère_fonction_itérateur_next(enchaineuse, type);
-    diffère déloge(fonction_itérateur_next);
+    diffère déloge(*fonction_itérateur_next);
 
     fonction_hash := génère_fonction_hash(enchaineuse, type);
-    diffère déloge(fonction_hash);
+    diffère déloge(*fonction_hash);
 
     si type.drapeaux.TYPE_EST_TABLEAU {
         génère_fonctions_protocole_tampons(enchaineuse, type);
@@ -544,7 +544,7 @@ génère_déclaration_type_python :: fonc (enchaineuse: *Enchaineuse, module: *M
 
     /* Le nom requis pour Python, qui est de forme <module>.<nom>. */
     tp_name := enchaine(module.nom, ".", type.nom_sauf);
-    diffère déloge(tp_name);
+    diffère déloge(*tp_name);
 
     enchaineuse.ajoute_au_tampon("    ob_refcnt = 1,\n");
     enchaineuse.ajoute_au_tampon("    ob_size = 0,\n");
@@ -867,7 +867,7 @@ génère_parsage_args_tuple :: fonc (enchaineuse: *Enchaineuse, méthode: *Méth
     /* Vérifie que les types sont ceux attendus. */
     pour méthode.paramètres_entrée {
         chn_erreur := imprime_chaine("Mauvais type pour l'argument % ! Attendu : %, obtenu : ", it.nom, it.type.nom);
-        diffère déloge(chn_erreur);
+        diffère déloge(*chn_erreur);
 
         enchaineuse.ajoute_au_tampon("    saufsi ", it.type.fonctions.pour_discrimination, "(pyobject_", it.nom, ") {\n");
         enchaineuse.ajoute_au_tampon("        retourne PyErr_MauvaisTypeArgument(pyobject_", it.nom, ", \"", it.nom, "\", \"", it.type.nom, "\");\n");
