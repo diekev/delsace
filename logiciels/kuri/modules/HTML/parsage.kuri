@@ -38,7 +38,7 @@ initialise_parseuse :: fonc (tas_de_mémoire: *JS.TasDeMémoire, entrée: chaine
 
     parseuse: Parseuse;
     parseuse.mode_insertion = insère_mode_Initial;
-    parseuse.lexeuse = initialise_lexeuse(flux_utf32);
+    parseuse.lexeuse = initialise_lexeuse(*flux_utf32);
     si document {
         parseuse.document = document;
     }
@@ -54,9 +54,9 @@ détruit_parseuse :: fonc (parseuse: *Parseuse)
 {
     détruit_lexeuse(*parseuse.lexeuse);
     détruit_liste(*parseuse.liste_éléments_actifs_formattage);
-    déloge(parseuse.pile_éléments_ouvert.éléments);
-    déloge(parseuse.pile_insertion_template);
-    déloge(parseuse.erreurs);
+    déloge(*parseuse.pile_éléments_ouvert.éléments);
+    déloge(*parseuse.pile_insertion_template);
+    déloge(*parseuse.erreurs);
 }
 
 parse :: fonc (parseuse: *Parseuse)
@@ -310,16 +310,16 @@ insère_mode_Initial :: fonc (parseuse: *Parseuse, lexème: Lexème)
 
         doctype := crée_noeud_doctype(parseuse.document);
         doctype.nom = lexème.nom;
-        doctype.public_id = crée_chaine_utf16_unique(lexème.identifiant_public_doctype);
-        doctype.system_id = crée_chaine_utf16_unique(lexème.identifiant_système_doctype);
+        doctype.public_id = crée_chaine_utf16_unique(*lexème.identifiant_public_doctype);
+        doctype.system_id = crée_chaine_utf16_unique(*lexème.identifiant_système_doctype);
 
         document := parseuse.document;
         document.ajoute_enfant(doctype);
 
-        si !document.est_iframe_srcdoc() && !document.la_parseuse_ne_peut_changer_le_mode && vérifie_lexème_doctype_pour_quirks(lexème) {
+        si !document.est_iframe_srcdoc() && !document.la_parseuse_ne_peut_changer_le_mode && vérifie_lexème_doctype_pour_quirks(*lexème) {
             document.mode = ModeDocument.QUIRKS;
         }
-        sinon si !document.est_iframe_srcdoc() && !document.la_parseuse_ne_peut_changer_le_mode && vérifie_lexème_doctype_pour_limited_quirks(lexème) {
+        sinon si !document.est_iframe_srcdoc() && !document.la_parseuse_ne_peut_changer_le_mode && vérifie_lexème_doctype_pour_limited_quirks(*lexème) {
             document.mode = ModeDocument.LIMITED_QUIRKS;
         }
 
@@ -340,7 +340,7 @@ insère_mode_Initial :: fonc (parseuse: *Parseuse, lexème: Lexème)
     parseuse.gère_lexème_pour_mode(parseuse.mode_insertion, lexème);
 }
 
-vérifie_lexème_doctype_pour_limited_quirks :: fonc (lexème: &Lexème) -> bool
+vérifie_lexème_doctype_pour_limited_quirks :: fonc (lexème: *Lexème) -> bool
 {
     /* À FAIRE : ascii insensible à la casse */
     si lexème.drapeau_force_quirks {
@@ -359,7 +359,7 @@ vérifie_lexème_doctype_pour_limited_quirks :: fonc (lexème: &Lexème) -> bool
         ];
 
         chn := convertis_vers_chaine(lexème.identifiant_public_doctype);
-        diffère déloge(chn);
+        diffère déloge(*chn);
 
         pour noms_publics_invalides {
             si it == chn {
@@ -449,12 +449,12 @@ vérifie_lexème_doctype_pour_limited_quirks :: fonc (lexème: &Lexème) -> bool
     retourne faux;
 }
 
-vérifie_lexème_doctype_pour_quirks :: fonc (lexème: &Lexème) -> bool
+vérifie_lexème_doctype_pour_quirks :: fonc (lexème: *Lexème) -> bool
 {
     /* À FAIRE : ascii insensible à la casse */
     si lexème.doctype_public_id_absent == faux {
         chn := convertis_vers_chaine(lexème.identifiant_public_doctype);
-        diffère déloge(chn);
+        diffère déloge(*chn);
 
         préfixes_publics_invalides := [
             "-//W3C//DTD XHTML 1.0 Frameset//",
@@ -2872,16 +2872,16 @@ crée_tâche_stop_parsing_étape_9 :: fonc (document: *Document) -> *Algorithm
 HTML_fragment_serialization :: fonc (node: *Node, serializable_shadow_roots: bool) -> ChaineUTF16
 {
     enchaineuse: EnchaineuseUTF16;
-    initialise_enchaineuse(enchaineuse);
+    initialise_enchaineuse(*enchaineuse);
     
-    HTML_fragment_serialization_récursif(enchaineuse, node, serializable_shadow_roots);
+    HTML_fragment_serialization_récursif(*enchaineuse, node, serializable_shadow_roots);
 
-    retourne chaine_depuis_enchaineuse(enchaineuse);
+    retourne chaine_depuis_enchaineuse(*enchaineuse);
 }
 
 #portée_fichier
 
-HTML_fragment_serialization_récursif :: fonc (enchaineuse: &EnchaineuseUTF16, node: *Node, serializable_shadow_roots: bool)
+HTML_fragment_serialization_récursif :: fonc (enchaineuse: *EnchaineuseUTF16, node: *Node, serializable_shadow_roots: bool)
 {
     // À FAIRE : 1. If the node serializes as void, then return the empty string.
 
@@ -2929,7 +2929,7 @@ HTML_fragment_serialization_récursif :: fonc (enchaineuse: &EnchaineuseUTF16, n
     // Nous sommes récursif
 }
 
-sérialise_noeud :: fonc (enchaineuse: &EnchaineuseUTF16, noeud: *Node, serializable_shadow_roots: bool)
+sérialise_noeud :: fonc (enchaineuse: *EnchaineuseUTF16, noeud: *Node, serializable_shadow_roots: bool)
 {
     // À FAIRE : complète
     // 1. Let current node be the child node being processed.
@@ -3352,7 +3352,7 @@ détruit_liste :: fonc (liste: *ListeÉlémentsActifsFormattage)
         détruit_lexème(*it.lexème);
     }
 
-    déloge(liste.entrées);
+    déloge(*liste.entrées);
 }
 
 est_vide :: fonc (liste: *ListeÉlémentsActifsFormattage) -> bool

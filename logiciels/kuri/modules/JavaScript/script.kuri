@@ -7,8 +7,8 @@ TexteSource :: struct {
 
 détruit_données_texte_source :: fonc (source: *TexteSource)
 {
-    déloge(source.texte);
-    déloge(source.lexèmes);
+    déloge(*source.texte);
+    déloge(*source.lexèmes);
 }
 
 PositionSource :: struct {
@@ -232,15 +232,15 @@ global_declaration_instantiation :: fonc (realm: *Realm, script: *NoeudScript, e
 
     // 5. Let varDeclarations be the VarScopedDeclarations of script.
     var_declarations := donne_var_scoped_declarations(script);
-    diffère déloge(var_declarations);
+    diffère déloge(*var_declarations);
 
     // 6. Let functionsToInitialize be a new empty List.
     functions_to_initialize: [..]*NoeudSyntaxique;
-    diffère déloge(functions_to_initialize);
+    diffère déloge(*functions_to_initialize);
 
     // 7. Let declaredFunctionNames be a new empty List.
     declared_function_names: [..]ECMAString;
-    diffère déloge(declared_function_names);
+    diffère déloge(*declared_function_names);
 
     // 8. For each element d of varDeclarations, in reverse List order, do
     pour > d dans var_declarations {
@@ -286,14 +286,14 @@ global_declaration_instantiation :: fonc (realm: *Realm, script: *NoeudScript, e
 
     // 13. Let lexDeclarations be the LexicallyScopedDeclarations of script.
     lex_declarations := donne_lexically_scoped_declarations(script);
-    diffère déloge(lex_declarations);
+    diffère déloge(*lex_declarations);
 
     // 14. Let privateEnv be null.
     private_env: *PrivateEnvironment;
 
     // 15. For each element d of lexDeclarations, do
     bound_names: [..]ECMAString;
-    diffère déloge(bound_names);
+    diffère déloge(*bound_names);
 
     pour lex_declarations {
         // a. NOTE: Lexically declared names are only instantiated here but not initialized.

@@ -8,7 +8,7 @@ test_chemin_courant :: fonc () -> rien
     chemin := donne_chemin_courant();
 
     imprime("chemin courant : %\n", chemin.chn);
-    déloge(chemin.chn);
+    déloge(*chemin.chn);
 
     chemin = CheminFichier("/tmp/");
     définis_chemin_courant(chemin);
@@ -16,7 +16,7 @@ test_chemin_courant :: fonc () -> rien
     chemin = donne_chemin_courant();
 
     imprime("chemin courant : %\n", chemin.chn);
-    déloge(chemin.chn);
+    déloge(*chemin.chn);
 }
 
 test_itération_dossier :: fonc () -> rien
@@ -45,7 +45,7 @@ principale :: fonc ()
     saufsi succès {
         exit(1);
     }
-    diffère déloge(contenu);
+    diffère déloge(*contenu);
 
     chm_sortie := CheminFichier("/tmp/SORITE_test_parcer.cc");
 

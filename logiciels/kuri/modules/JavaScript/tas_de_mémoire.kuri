@@ -42,7 +42,7 @@ détruit_données_tas_de_mémoire :: fonc (tas_de_mémoire: *TasDeMémoire)
         détruit_bloc(it);
     }
 
-    déloge(tas_de_mémoire.blocs);
+    déloge(*tas_de_mémoire.blocs);
 }
 
 donne_mv :: fonc (tas_de_mémoire: *TasDeMémoire) -> *MachineVirtuelle
@@ -116,7 +116,7 @@ TypeÉbouage :: énum {
     // diffère imprime("[%] %ms\n", #nom_de_cette_fonction, début.temps_écoulé_millisecondes())
 
     racines: [..]*Cellule;
-    diffère déloge(racines);
+    diffère déloge(*racines);
     si type_ébouage == TypeÉbouage.RAMASSE_MIETTES {
         rassemble_racines(tas_de_mémoire, *racines);
     }
@@ -232,8 +232,8 @@ visite_cellules_vivantes :: fonc (tas_de_mémoire: *TasDeMémoire, racines: []*C
     }
 
     visiteuse: VisiteuseVivance;
-    diffère déloge(visiteuse.objets_visités);
-    diffère déloge(visiteuse.valeurs_à_visiter);
+    diffère déloge(*visiteuse.objets_visités);
+    diffère déloge(*visiteuse.valeurs_à_visiter);
 
     visiteuse.sur_a_visité = sur_a_visité;
     visiteuse.sur_a_déjà_visité = sur_a_déjà_visité;
@@ -281,7 +281,7 @@ balaie_cellules_mortes :: fonc (tas_de_mémoire: *TasDeMémoire)
 
     blocs_utilisables: [..]*BlocDeMémoire;
     blocs_vides: [..]*BlocDeMémoire;
-    diffère déloge(blocs_vides);
+    diffère déloge(*blocs_vides);
 
     pour tas_de_mémoire.blocs {
         pour cellule dans it {
@@ -302,7 +302,7 @@ balaie_cellules_mortes :: fonc (tas_de_mémoire: *TasDeMémoire)
         }
     }
 
-    déloge(tas_de_mémoire.blocs);
+    déloge(*tas_de_mémoire.blocs);
     tas_de_mémoire.blocs = blocs_utilisables;
 
     pour blocs_vides {
@@ -613,7 +613,7 @@ visite_valeur :: fonc (visiteuse: *VisiteuseCellule, valeur_à_visiter: InfoVale
     info := valeur.info;
 
     // chaine_type := chaine_pour_type(info)
-    // diffère déloge(chaine_type)
+    // diffère déloge(*chaine_type)
 
     // si valeur_à_visiter.rubrique {
     //     imprime("[%] %.%: % (%)\n", #nom_de_cette_fonction, valeur_à_visiter.structure.nom, valeur_à_visiter.rubrique, chaine_type, valeur.pointeur)

@@ -53,7 +53,7 @@ détruit_données_observable :: fonc (observable: *Observable)
         it.supprime_observable(observable);
     }
 
-    déloge(observable.observatrices);
+    déloge(*observable.observatrices);
 }
 
 ajoute_observatrice :: fonc (observable: *Observable, observatrice: *Observatrice)
@@ -121,7 +121,7 @@ détruit_données_observatrice :: fonc (observatrice: *Observatrice)
         it.supprime_observatrice(observatrice);
     }
 
-    déloge(observatrice.observables);
+    déloge(*observatrice.observables);
 }
 
 reçoie_message :: fonc (observatrice: *Observatrice, message: *MessageObservable)

@@ -100,24 +100,6 @@ static void initialise_type_pointeur(Typeuse &typeuse, TypePointeur *résultat, 
     }
 }
 
-static void initialise_type_référence(Typeuse &typeuse,
-                                      TypeRéférence *résultat,
-                                      Type *type_pointe_)
-{
-    assert(type_pointe_);
-
-    résultat->type_pointé = type_pointe_;
-    résultat->taille_octet = typeuse.type_taille_nat->taille_octet;
-    résultat->alignement = typeuse.type_taille_nat->alignement;
-    résultat->drapeaux |= (DrapeauxNoeud::DECLARATION_FUT_VALIDEE);
-
-    if (type_pointe_->possède_drapeau(DrapeauxTypes::TYPE_EST_POLYMORPHIQUE)) {
-        résultat->drapeaux_type |= DrapeauxTypes::TYPE_EST_POLYMORPHIQUE;
-    }
-
-    type_pointe_->drapeaux_type |= DrapeauxTypes::POSSÈDE_TYPE_RÉFÉRENCE;
-}
-
 static void initialise_type_fonction(Typeuse &typeuse,
                                      TypeFonction *résultat,
                                      kuri::tablet<Type *, 6> const &entrées,
@@ -374,10 +356,6 @@ Typeuse::Typeuse(kuri::Synchrone<GrapheDépendance> &g) : graphe_(g)
 
     type_tranche_octet = crée_type_tranche(type_octet, true);
 
-    type_ref_n8 = type_référence_pour(type_n8);
-    type_ref_n64 = type_référence_pour(type_n64);
-    type_ref_z8 = type_référence_pour(type_z8);
-
     type_ptr_n8 = type_pointeur_pour(type_n8);
     type_ptr_z8 = type_pointeur_pour(type_z8);
     type_ptr_rien = type_pointeur_pour(type_rien);
@@ -563,27 +541,6 @@ TypePointeur *Typeuse::type_pointeur_pour(Type *type, bool insère_dans_graphe)
     if (init_type_pointeur) {
         assigne_fonction_init(résultat, init_type_pointeur);
     }
-
-    return résultat;
-}
-
-TypeRéférence *Typeuse::type_référence_pour(Type *type)
-{
-    VERROUILLE(types_références);
-
-    if (type->possède_drapeau(DrapeauxTypes::POSSÈDE_TYPE_RÉFÉRENCE)) {
-        POUR_TABLEAU_PAGE (alloc->m_noeuds_type_référence) {
-            if (it.type_pointé == type) {
-                return &it;
-            }
-        }
-    }
-
-    auto résultat = alloc->m_noeuds_type_référence.ajoute_élément();
-    initialise_type_référence(*this, résultat, type);
-
-    auto graphe = graphe_.verrou_écriture();
-    graphe->connecte_type_type(résultat, type);
 
     return résultat;
 }
@@ -1348,14 +1305,6 @@ static kuri::chaine_statique donne_spécifiant_pointeur(OptionsImpressionType co
     return "*";
 }
 
-static kuri::chaine_statique donne_spécifiant_référence(OptionsImpressionType const options)
-{
-    if (drapeau_est_actif(options, OptionsImpressionType::NORMALISE_SPÉCIFIANT_TYPE)) {
-        return "KR";
-    }
-    return "&";
-}
-
 static kuri::chaine_statique donne_spécifiant_variadique(OptionsImpressionType const options)
 {
     if (drapeau_est_actif(options, OptionsImpressionType::NORMALISE_SPÉCIFIANT_TYPE)) {
@@ -1480,13 +1429,6 @@ static void chaine_type(Enchaineuse &enchaineuse, const Type *type, OptionsImpre
         case GenreNoeud::RÉEL:
         {
             enchaineuse.ajoute(type->ident->nom);
-            return;
-        }
-        case GenreNoeud::RÉFÉRENCE:
-        {
-            enchaineuse.ajoute(donne_spécifiant_référence(options));
-            chaine_type(
-                enchaineuse, static_cast<TypeRéférence const *>(type)->type_pointé, options);
             return;
         }
         case GenreNoeud::POINTEUR:
@@ -1690,10 +1632,6 @@ Type *type_déréférencé_pour(Type const *type)
 {
     if (type->est_type_pointeur()) {
         return type->comme_type_pointeur()->type_pointé;
-    }
-
-    if (type->est_type_référence()) {
-        return type->comme_type_référence()->type_pointé;
     }
 
     if (type->est_type_tableau_fixe()) {
@@ -2170,7 +2108,6 @@ bool peut_être_type_constante(Type const *type)
         case GenreNoeud::EINI:
         /* Les tuples ne sont que pour les retours de fonctions. */
         case GenreNoeud::TUPLE:
-        case GenreNoeud::RÉFÉRENCE:
         case GenreNoeud::POLYMORPHIQUE:
         case GenreNoeud::RIEN:
         {
@@ -2195,7 +2132,6 @@ bool est_type_fondamental(const Type *type)
         case GenreNoeud::EINI:
         case GenreNoeud::CHAINE:
         case GenreNoeud::RIEN:
-        case GenreNoeud::RÉFÉRENCE:
         case GenreNoeud::DÉCLARATION_UNION:
         case GenreNoeud::DÉCLARATION_STRUCTURE:
         case GenreNoeud::TABLEAU_DYNAMIQUE:
@@ -2304,11 +2240,6 @@ static void attentes_sur_types_si_condition_échoue(kuri::ensemblon<Type *, 16> 
                 POUR (type_compose->donne_rubriques_pour_code_machine()) {
                     pile.empile(it.type);
                 }
-                break;
-            }
-            case GenreNoeud::RÉFÉRENCE:
-            {
-                pile.empile(type_courant->comme_type_référence()->type_pointé);
                 break;
             }
             case GenreNoeud::POINTEUR:
@@ -2510,12 +2441,6 @@ void VisiteuseType::visite_type(Type *type)
         case GenreNoeud::RÉEL:
         case GenreNoeud::TYPE_ADRESSE_FONCTION:
         {
-            break;
-        }
-        case GenreNoeud::RÉFÉRENCE:
-        {
-            auto référence = type->comme_type_référence();
-            visite_type(référence->type_pointé);
             break;
         }
         case GenreNoeud::POINTEUR:

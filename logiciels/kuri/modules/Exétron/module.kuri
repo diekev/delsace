@@ -15,7 +15,7 @@ crée_fil_exécution :: fonc (rappel: fonc (arg: *rien) -> *rien, données: *rie
 
     ret := pthread_create(résultat, nul, rappel, données);
     si ret != 0 {
-        déloge(résultat);
+        déloge(*résultat);
         retourne nul;
     }
     retourne résultat;
@@ -33,7 +33,7 @@ détache :: fonc (fil: *TypeFilExécution)
 
 détruit :: fonc (fil: **TypeFilExécution)
 {
-    déloge(fil);
+    déloge(*fil);
 }
 
 /* ------------------------------------------------------------------------- */
@@ -243,7 +243,7 @@ contexte_boucle_parallèle :: fonc (plage: Plage, fonction: fonc (plage: Plage, 
 contexte_boucle_parallèle :: fonc (file: *FileDeTravail, plage: Plage, fonction: fonc (plage: Plage, données: *rien), données: *rien)
 {
     groupe: GroupeDeTâche
-    diffère déloge(groupe.tâches)
+    diffère déloge(*groupe.tâches)
 
     // divise la plage en tâches
 

@@ -120,7 +120,7 @@ défile :: fonc (file: *File) -> rien
         file.cul.suivant = nul;
     }
 
-    déloge(temp);
+    déloge(*temp);
 
     file.nombre_de_pages_remplies -= 1;
 }
@@ -216,8 +216,8 @@ détruit_cache :: fonc (cache: *CacheMRU) -> rien
 {
     détruit_file(cache.file);
     détruit_arbre(cache.arbre);
-    déloge(cache.arbre);
-    déloge(cache);
+    déloge(*cache.arbre);
+    déloge(*cache);
 }
 
 référence_page :: fonc (cache: *CacheMRU, x: z32) -> rien
@@ -229,7 +229,7 @@ référence_page :: fonc (cache: *CacheMRU, x: z32) -> rien
             dernière := cache.file.cul;
             cache.arbre.supprime(dernière.numéro_page);
             dernière.précédent.suivant = nul;
-            déloge(dernière);
+            déloge(*dernière);
         }
     }
     sinon {
@@ -253,17 +253,17 @@ détruit_file :: fonc (file: *File) -> rien
 
     tantque ptr != nul {
         temp := ptr.suivant;
-        déloge(ptr);
+        déloge(*ptr);
         ptr = temp;
     }
 
-    déloge(file);
+    déloge(*file);
 }
 
 détruit_hash :: fonc (hash: *Hash) -> rien
 {
-    déloge(hash.noeuds);
-    déloge(hash);
+    déloge(*hash.noeuds);
+    déloge(*hash);
 }
 
 cherche_clé :: fonc (arbre: *ArbreB($C), clé: z32) -> rien
