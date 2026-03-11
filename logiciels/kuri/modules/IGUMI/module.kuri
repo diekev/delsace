@@ -124,9 +124,9 @@ crée_nuanceur :: fonc (source_vertex: chaine, source_fragment: chaine) -> *Nuan
 crée_nuanceur_depuis_fichier :: fonc (source_vertex: chaine, source_fragment: chaine) -> *NuanceurGL
 {
     _, contenu_source_vertex := contenu_fichier_texte(source_vertex);
-    diffère déloge(contenu_source_vertex);
+    diffère déloge(*contenu_source_vertex);
     _, contenu_source_fragment := contenu_fichier_texte(source_fragment);
-    diffère déloge(contenu_source_fragment);
+    diffère déloge(*contenu_source_fragment);
 
     retourne crée_nuanceur_depuis_sources(contenu_source_vertex, contenu_source_fragment);
 }
@@ -173,7 +173,7 @@ détruit_nuanceur :: fonc (nuanceur: *NuanceurGL)
         retourne;
     }
     détruit_programme(nuanceur.programme);
-    déloge(nuanceur);
+    déloge(*nuanceur);
 }
 
 // À FAIRE : meilleure IPA
@@ -358,10 +358,10 @@ issitialise_ctx :: fonc (empl ctx: *DonnéesContexteGL)
         détruit_nuanceur(it);
     }
 
-    déloge(ctx.nuanceurs);
+    déloge(*ctx.nuanceurs);
 
     si ctx == *__ctx_défaut {
-        détruit(__frame_buffers);
+        détruit(*__frame_buffers);
     }
 }
 
@@ -910,7 +910,7 @@ donne_paramètres_texture_atlas_fonte :: fonc (atlas: *texture_atlas_t) -> Param
         RIEN
     }
 
-    dessine_texte :: fonc (fonte: &Fonte, x: r32, y: r32, texte: chaine, couleur: Couleur, effet: EffetTexte)
+    dessine_texte :: fonc (fonte: *Fonte, x: r32, y: r32, texte: chaine, couleur: Couleur, effet: EffetTexte)
 */
 dessine_texte :: fonc (fonte: *Fonte, texte: chaine, x: r32, y: r32, couleur: CouleurRVBA)
 {

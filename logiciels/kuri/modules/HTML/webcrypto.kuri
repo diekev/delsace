@@ -9,7 +9,7 @@ UUID :: #opaque chaine;
 détruit_uuid :: fonc (uuid: UUID)
 {
     chn := uuid comme chaine;
-    déloge_si_logée(chn);
+    déloge_si_logée(*chn);
 }
 
 opérateur == :: (u1: UUID, u2: UUID) -> bool

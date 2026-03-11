@@ -456,20 +456,20 @@ RappelsÉditionTexteApp :: struct {
 
 sur_édition_texte_qt :: fonc (empl rappels: *RappelsÉditionTexteApp, chn: chaine)
 {
-    déloge_si_logée(app.texte_à_dessiner);
+    déloge_si_logée(*app.texte_à_dessiner);
     app.texte_à_dessiner = copie_chaine(chn);
 }
 
 sur_fin_édition_texte_qt :: fonc (empl rappels: *RappelsÉditionTexteApp, chn: chaine, fut_causée_par_touche_entrée: bool @inutilisée)
 {
-    déloge_si_logée(app.texte_à_dessiner);
+    déloge_si_logée(*app.texte_à_dessiner);
     app.texte_à_dessiner = copie_chaine(chn);
 
     app.guetteuse = nul;
 
     définis_éditrice_texte(*app.emboiteuse, id_boite, nul);
     détruit_données(*rappels.éditrice);
-    déloge(rappels);
+    déloge(*rappels);
 }
 
 démarre_édition_texte :: fonc (app: *App, clic: ClicSouris @inutilisée, id: n64, indice: z32 @inutilisée) -> ÉtatÉvènement
@@ -500,7 +500,7 @@ démarre_édition_texte :: fonc (app: *App, clic: ClicSouris @inutilisée, id: n
 // :GuetteuseÉditionTexte
 guetteuse_édition_texte_sur_destruction :: fonc (guetteuse: *GuetteuseÉditionTexte)
 {
-    déloge(guetteuse);
+    déloge(*guetteuse);
 }
 
 /** \} */

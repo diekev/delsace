@@ -74,15 +74,11 @@ int main()
     auto reussite = true;
 
     reussite &= verifie_transformation(compilatrice, typeuse.type_n8, typeuse.type_n8, true);
-    reussite &= verifie_transformation(compilatrice, typeuse.type_n8, typeuse.type_ref_n8, true);
-    reussite &= verifie_transformation(compilatrice, typeuse.type_ref_n8, typeuse.type_n8, true);
     reussite &= verifie_transformation(compilatrice, typeuse.type_n8, typeuse.type_ptr_n8, false);
     reussite &= verifie_transformation(compilatrice, typeuse.type_ptr_n8, typeuse.type_n8, false);
     reussite &= verifie_transformation(compilatrice, typeuse.type_n8, typeuse.type_z8, false);
-    reussite &= verifie_transformation(compilatrice, typeuse.type_n8, typeuse.type_ref_z8, false);
     reussite &= verifie_transformation(compilatrice, typeuse.type_n8, typeuse.type_ptr_z8, false);
     reussite &= verifie_transformation(compilatrice, typeuse.type_n8, typeuse.type_n64, true);
-    reussite &= verifie_transformation(compilatrice, typeuse.type_n8, typeuse.type_ref_n64, false);
     reussite &= verifie_transformation(compilatrice, typeuse.type_n8, typeuse.type_chaine, false);
     reussite &= verifie_transformation(compilatrice, typeuse.type_r64, typeuse.type_n8, false);
     reussite &= verifie_transformation(compilatrice, typeuse.type_r64, typeuse.type_eini, true);

@@ -34,11 +34,11 @@ détruit_historique :: fonc (historique: *HistoriqueEnvoiCourriel)
         discr it {
             Client(message_client) {
                 // imprime("C: %", message_client.texte)
-                déloge(message_client.texte);
+                déloge(*message_client.texte);
             }
             Serveur(message_serveur) {
                 // imprime("S: %", message_serveur.texte)
-                déloge(message_serveur.texte);
+                déloge(*message_serveur.texte);
             }
             sinon {
                 continue;
@@ -46,7 +46,7 @@ détruit_historique :: fonc (historique: *HistoriqueEnvoiCourriel)
         }
     }
 
-    déloge(historique.messages);
+    déloge(*historique.messages);
 }
 
 ajoute_message_cliente :: fonc (historique: *HistoriqueEnvoiCourriel, texte: chaine)
@@ -137,7 +137,7 @@ DonnéesPriseEnvoiCourriel :: struct {
 
 détruit_données_prise :: fonc (données: *DonnéesPriseEnvoiCourriel)
 {
-    déloge(données.commande_courante);
+    déloge(*données.commande_courante);
     détruit_historique(données.historique);
 }
 
@@ -177,7 +177,7 @@ quand_ouverture :: fonc (prise: *Prise, est_client: bool @inutilisée)
     données := prise.données_utilisateur(DonnéesPriseEnvoiCourriel);
     commande := commande_suivante(données.état, données.config, données.courriel);
     // À FAIRE : gestion de la mémoire
-    //diffère déloge(commande)
+    //diffère déloge(*commande)
     écris_commande(prise, données, commande);
 }
 
@@ -205,7 +205,7 @@ quand_données_reçues :: fonc (prise: *Prise, données: []octet)
 
     commande := commande_suivante(données_prise.état, données_prise.config, données_prise.courriel);
     // À FAIRE : gestion de la mémoire
-    //diffère déloge(commande)
+    //diffère déloge(*commande)
     écris_commande(prise, données_prise, chaine_pour_commande(commande));
 }
 
@@ -227,7 +227,7 @@ quand_écriture :: fonc (prise: *Prise)
 
 écris_commande :: fonc (prise: *Prise, données: *DonnéesPriseEnvoiCourriel, commande: chaine)
 {
-    déloge(données.commande_courante);
+    déloge(*données.commande_courante);
     données.commande_courante = commande;
     données.taille_envoyée = prise.écris(commande);
     données.historique.ajoute_message_cliente(commande);

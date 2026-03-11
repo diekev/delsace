@@ -115,6 +115,6 @@ crée_géométrie_depuis_fichier_obj :: fonc (créatrice: *CréatriceGéométrie
     succès, contenu := contenu_fichier_texte(chemin);
     si succès {
         pour_chaque_ligne(contenu, créatrice, parse_ligne_obj);
-        déloge(contenu);
+        déloge(*contenu);
     }
 }

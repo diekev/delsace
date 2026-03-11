@@ -103,8 +103,8 @@ node_sur_get_the_parent :: fonc (base: *EventTarget, event: *Event @inutilisée)
 
 noeud_détruit_données :: fonc (noeud: *Node)
 {
-    déloge(noeud.attributs);
-    déloge(noeud.enfants);
+    déloge(*noeud.attributs);
+    déloge(*noeud.enfants);
 }
 
 est_document :: fonc (noeud: *Node) -> bool
@@ -360,7 +360,7 @@ extrait_texte_noeud :: fonc (noeud: *Node) -> chaine
     }
 
     extractrice: ExtractriceTexte;
-    diffère détruit_chaine(extractrice.texte);
+    diffère détruit_chaine(*extractrice.texte);
 
     rassemble_texte_noeud(noeud, rappel_pour_extraction_texte, *extractrice);
 
@@ -371,7 +371,7 @@ extrait_texte_noeud :: fonc (noeud: *Node) -> chaine
 donne_contenu_texte_enfant :: fonc (noeud: *Node) -> ChaineUTF16
 {
     enchaineuse: EnchaineuseUTF16;
-    initialise_enchaineuse(enchaineuse);
+    initialise_enchaineuse(*enchaineuse);
 
     pour noeud.enfants {
         saufsi it.est_texte() {
@@ -388,7 +388,7 @@ donne_contenu_texte_enfant :: fonc (noeud: *Node) -> ChaineUTF16
 /* https://dom.spec.whatwg.org/#concept-descendant-text-content */
 donne_contenu_texte_descandants :: fonc (noeud: *Node) -> ChaineUTF16
 {
-    rappel_pour_extraction_texte_descandants :: fonc (noeud: *Node, enchaineuse: &EnchaineuseUTF16) -> DécisionTraversée
+    rappel_pour_extraction_texte_descandants :: fonc (noeud: *Node, enchaineuse: *EnchaineuseUTF16) -> DécisionTraversée
     {
         si noeud.est_texte() {
             texte := noeud comme *Text;
@@ -399,11 +399,11 @@ donne_contenu_texte_descandants :: fonc (noeud: *Node) -> ChaineUTF16
     }
 
     enchaineuse: EnchaineuseUTF16;
-    initialise_enchaineuse(enchaineuse);
+    initialise_enchaineuse(*enchaineuse);
 
-    traverse_noeud(noeud, rappel_pour_extraction_texte_descandants, enchaineuse);
+    traverse_noeud(noeud, rappel_pour_extraction_texte_descandants, *enchaineuse);
 
-    retourne chaine_depuis_enchaineuse(enchaineuse);
+    retourne chaine_depuis_enchaineuse(*enchaineuse);
 }
 
 /* https://dom.spec.whatwg.org/#concept-node-length */
@@ -617,7 +617,7 @@ find_a_slot :: fonc (slottable: *Node, open := faux) -> *Element
     }
 
     traversée: [..]*Node;
-    diffère déloge(traversée);
+    diffère déloge(*traversée);
 
     pour > shadow.enfants {
         tableau_ajoute(*traversée, it);
@@ -729,7 +729,7 @@ assign_slottables :: fonc (slot: *Element)
     }
 
     // 3. Set slot’s assigned nodes to slottables.
-    déloge(slot.assigned_nodes);
+    déloge(*slot.assigned_nodes);
     slot.assigned_nodes = slottables;
 
     // 4. For each slottable of slottables, set slottable’s assigned slot to slot.
@@ -747,7 +747,7 @@ assign_slottables_for_a_tree :: fonc (root: *Node)
      * assign slottables for each slot of root’s inclusive descendants, in tree order. */
 
     traversée: [..]*Node;
-    diffère déloge(traversée);
+    diffère déloge(*traversée);
     tableau_ajoute(*traversée, root);
 
     tantque traversée.taille != 0 {
@@ -904,7 +904,7 @@ insert :: fonc (node: *Node, parent: *Node, before_child: *Node @inutilisée, su
 
     // adopt
     pile: [..]*Node;
-    diffère déloge(pile);
+    diffère déloge(*pile);
 
     tableau_ajoute(*pile, node);
 
@@ -1073,7 +1073,7 @@ donne_node_name :: fonc (noeud: *Node) -> DOMString
             retourne crée_chaine_utf16_unique("#cdata-section");
         }
         ProcessingInstruction {
-            retourne crée_chaine_utf16_unique((noeud comme *NoeudProcessingInstruction).cible);
+            retourne crée_chaine_utf16_unique(*(noeud comme *NoeudProcessingInstruction).cible);
         }
         Commentaire {
             retourne crée_chaine_utf16_unique("#comment");
@@ -1205,7 +1205,7 @@ est_avant_noeud_dans_l_arbre :: fonc (a: *Element, b: *Element) -> bool
     }
 
     traversée: [..]*Node;
-    diffère déloge(traversée);
+    diffère déloge(*traversée);
 
     pour > a.document.enfants {
         tableau_ajoute(*traversée, it);

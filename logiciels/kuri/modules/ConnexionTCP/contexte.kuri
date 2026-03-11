@@ -120,7 +120,7 @@ crée_prise_pour_écoute :: fonc (contexte_: *Contexte, adresse_ip: AdresseIPv4,
     retourne prise;
 }
 
-crée_prise_connexion :: fonc (contexte_: *Contexte, uri: &URI, $TypeDonnées: type_de_données) -> *Prise
+crée_prise_connexion :: fonc (contexte_: *Contexte, uri: *URI, $TypeDonnées: type_de_données) -> *Prise
 {
     saufsi contexte_ {
         retourne nul;

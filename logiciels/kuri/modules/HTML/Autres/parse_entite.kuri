@@ -108,10 +108,10 @@ principale :: fonc ()
     fichier := "entities.json";
     chemin := CheminFichier(chn = fichier);
     _, contenu := contenu_fichier_texte(chemin);
-    diffère déloge(contenu);
+    diffère déloge(*contenu);
 
     données: TableSymboles;
-    diffère déloge(données.symboles);
+    diffère déloge(*données.symboles);
     ptr_données := *données;
 
     pour_chaque_ligne(contenu, ptr_données, rappel_pour_chaque_ligne);

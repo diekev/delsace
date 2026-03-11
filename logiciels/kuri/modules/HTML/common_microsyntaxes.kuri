@@ -305,7 +305,7 @@ parse_a_legacy_colour_value :: fonc (string: DOMString) -> Optionnel(CouleurRVBA
 
     // 5. If input is an ASCII case-insensitive match for one of the named colors, then return the simple color corresponding to that keyword. [CSSCOLOR]
     // À FAIRE : n'utilise que les mots-clés appropriés
-    opt_couleur := CSS.trouve_couleur_pour_mot_clé(crée_chaine_utf16_unique(input));
+    opt_couleur := CSS.trouve_couleur_pour_mot_clé(crée_chaine_utf16_unique(*input));
     si opt_couleur.possède_valeur() {
         retourne opt_couleur;
     }

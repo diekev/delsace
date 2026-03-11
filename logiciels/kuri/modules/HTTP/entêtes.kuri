@@ -22,7 +22,7 @@ cherche_entête :: fonc (entêtes: []Entête, clé: chaine) -> *Entête
 contient_token :: fonc (entête: *Entête, token: chaine) -> bool
 {
     morceaux := divise(entête.valeur, ',');
-    diffère déloge(morceaux);
+    diffère déloge(*morceaux);
     pour morceaux {
         it = supprime_espaces_blanches(it);
         si compare_ascii_insensible_à_la_casse(it, token) {
