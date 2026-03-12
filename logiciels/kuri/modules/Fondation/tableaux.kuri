@@ -260,9 +260,7 @@ tableau_supprime_valeur :: fonc (tabl: *[..]$T, valeur: T)
 tableau_vole_mémoire :: fonc (tableau: *[..]$T) -> [..]T
 {
     résultat := mémoire(tableau);
-    tableau.pointeur = nul;
-    tableau.taille = 0;
-    tableau.capacité = 0;
+    init_de([..]T)(tableau);
     retourne résultat;
 }
 
