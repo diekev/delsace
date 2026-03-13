@@ -1283,7 +1283,7 @@ génère_commandes :: fonc (emboiteuse: *Emboiteuse)
             rect.largeur = boite.largeur;
             rect.hauteur = boite.hauteur;
 
-            boite_pour_ciselage := donne_parent_avec_barre_défilage(boite);
+            boite_pour_ciselage := donne_boite_pour_ciselage(boite);
             si boite_pour_ciselage {
                 rect_ciselage := donne_rect_ciselage_défilage(boite_pour_ciselage);
                 commandes.débute_ciselage(rect_ciselage);
@@ -1413,6 +1413,14 @@ génère_commandes :: fonc (emboiteuse: *Emboiteuse)
             }
         }
     }
+}
+
+donne_boite_pour_ciselage :: fonc (boite: *Boite_Flexible) -> *Boite_Flexible
+{
+    si boite.type == Boite_Flexible.Type.Texte || boite.type == Boite_Flexible.Type.TexteUTF32 {
+        retourne boite.parent;
+    }
+    retourne donne_parent_avec_barre_défilage(boite);
 }
 
 donne_parent_avec_barre_défilage :: fonc (boite: *Boite_Flexible) -> *Boite_Flexible
