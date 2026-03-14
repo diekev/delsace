@@ -549,6 +549,18 @@ rappels_window_sur_évènement :: fonc (base: *QT_Rappels_Window, event: QT_Gene
         retourne faux;
     }
 
+    si type == QT_Event_Type.Enter {
+        évènement := tableau_ajoute_élément(*__évènements);
+        évènement.type = TypeÉvènement.Entrée_Fenêtre;
+        retourne faux;
+    }
+
+    si type == QT_Event_Type.Leave {
+        évènement := tableau_ajoute_élément(*__évènements);
+        évènement.type = TypeÉvènement.Sortie_Fenêtre;
+        retourne faux;
+    }
+
     si type == QT_Event_Type.KeyPress || type == QT_Event_Type.KeyRelease {
         évènement := tableau_ajoute_élément(*__évènements);
         convertis_évènement(event.key_event, évènement);
