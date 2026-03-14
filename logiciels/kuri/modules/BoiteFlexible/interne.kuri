@@ -1301,17 +1301,25 @@ génère_commandes :: fonc (emboiteuse: *Emboiteuse)
                 Texte {
                     /* À FAIRE : décalage de 1 dans le calcul des indices des fragments. */
                     si boite.texte.taille != 0 {
+                        rect_texte := rect;
+
+                        éditrice := donne_éditrice_texte(boite.emboiteuse, boite.parent.id);
+                        si éditrice && éditrice.curseur_est_affiché {
+                            _, delta := donne_position_curseur(boite.parent, éditrice);
+                            rect_texte.x += delta;
+                        }
+
                         premier_fragment := boite.emboiteuse.fragments.pointeur + boite.premier_fragment;
                         dernier_fragment := boite.emboiteuse.fragments.pointeur + boite.dernier_fragment + 1;
                         métriques := boite.config_texte.fonte.donne_métriques_fonte();
 
-                        rect.hauteur = métriques.donne_hauteur_ligne();
+                        rect_texte.hauteur = métriques.donne_hauteur_ligne();
 
                         tantque premier_fragment < dernier_fragment {
-                            commandes.dessine_texte(boite.config_texte.fonte, premier_fragment.texte, rect, boite.config_texte.couleur);
+                            commandes.dessine_texte(boite.config_texte.fonte, premier_fragment.texte, rect_texte, boite.config_texte.couleur);
                             premier_fragment += 1;
 
-                            rect.y += métriques.donne_hauteur_ligne();
+                            rect_texte.y += métriques.donne_hauteur_ligne();
                         }
                     }
                 }
@@ -1391,13 +1399,10 @@ génère_commandes :: fonc (emboiteuse: *Emboiteuse)
 
         éditrice := donne_éditrice_texte(boite.emboiteuse, boite.id);
         si éditrice && éditrice.curseur_est_affiché {
-            texte_avant_curseur := éditrice.texte_à_éditer;
-            texte_avant_curseur.points_de_code.taille = éditrice.curseur.fin;
-
-            curseur_x := éditrice.fonte.donne_largeur_texte(texte_avant_curseur);
+            curseur_x, _ := donne_position_curseur(boite, éditrice);
             hauteur_disponible := (boite.hauteur - boite.disposition.rembourrage.v[1] - boite.disposition.rembourrage.v[3]);
 
-            rect.x = rect.x + boite.disposition.rembourrage.v[0] + curseur_x;
+            rect.x = curseur_x;
             rect.y = rect.y + boite.disposition.rembourrage.v[1];
             rect.largeur = 1.0;
             rect.hauteur = hauteur_disponible;
@@ -1413,6 +1418,32 @@ génère_commandes :: fonc (emboiteuse: *Emboiteuse)
             }
         }
     }
+}
+
+donne_position_curseur :: fonc (boite: *Boite_Flexible, éditrice: *ÉditriceTexte) -> (résultat: r32, delta: r32)
+{
+    rect_x := boite.position.x;
+    rect_largeur := boite.largeur;
+
+    texte_avant_curseur := éditrice.texte_à_éditer;
+    texte_avant_curseur.points_de_code.taille = éditrice.curseur.fin;
+
+    curseur_x := éditrice.fonte.donne_largeur_texte(texte_avant_curseur);
+
+    curseur_x_corrigé := rect_x + boite.disposition.rembourrage.v[0] + curseur_x;
+
+    si curseur_x_corrigé > (rect_x + rect_largeur - boite.disposition.rembourrage.v[2]) {
+        delta = (rect_x + rect_largeur - boite.disposition.rembourrage.v[2]) - curseur_x_corrigé;
+    }
+    sinon si curseur_x_corrigé < rect_x {
+        delta = rect_x - curseur_x_corrigé;
+    }
+    sinon {
+        delta = 0.0;
+    }
+
+    curseur_x_corrigé += delta;
+    retourne curseur_x_corrigé, delta;
 }
 
 donne_boite_pour_ciselage :: fonc (boite: *Boite_Flexible) -> *Boite_Flexible
