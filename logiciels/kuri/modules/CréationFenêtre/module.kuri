@@ -55,6 +55,14 @@ requiers_ajournement_fenêtre :: fonc (fenêtre: TypeFenêtre)
     }
 }
 
+rends_contexte_gl_actif :: fonc (fenêtre: TypeFenêtre)
+{
+    assert(fenêtre.système == SystèmeFenêtre.QT);
+    assert(fenêtre.rappels_window != nul);
+    assert(fenêtre.rappels_window.window != nul);
+     _ := QT_OpenGL_Context_make_current(fenêtre.rappels_window.glctx, fenêtre.rappels_window.window);
+}
+
 // À FAIRE :  déplace permute tampons dans IGUMI
 // - IGUMI.définis_cible_rendu(TypeFenêtre)
 // - IGUMI.permute_tampons()
