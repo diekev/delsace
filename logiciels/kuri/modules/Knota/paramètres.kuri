@@ -357,6 +357,9 @@ parse_annotations_paramètres :: fonc (infos: *InfoTypeRubriqueStructure, param:
         sinon si it.nom == "JSON" {
             param.type_fichier = TypeFichier.JSON;
         }
+        sinon si it.nom == "Lieutenante" {
+            param.lieutenante = it.valeur;
+        }
     }
 
     si chaine_min != "" || chaine_max != "" {
@@ -387,6 +390,7 @@ TableParamètres :: struct {
         struct_paramètres: *ParamètresNoeud;
         identifiant: chaine @accessible;
         nom: chaine @accessible;
+        lieutenante: chaine;
         type: TypeParamètre @accessible;
         /* Pointeur vers la rubrique de struct_paramètres qui correspond à ce paramètre. */
         valeur: eini;
