@@ -509,42 +509,37 @@ rappels_window_sur_évènement :: fonc (base: *QT_Rappels_Window, event: QT_Gene
     }
 
     si type == QT_Event_Type.MouseMove {
-        clic := donne_clic_souris_depuis_évènement(event.mouse_event, ActionSouris.DÉPLACÉE);
         évènement := tableau_ajoute_élément(*__évènements);
-        initialise_depuis_clic(évènement, clic);
-        rappels.dernière_souris = clic.état;
+        convertis_évènement(event.mouse_event, évènement);
+        rappels.dernière_souris = évènement.état_souris;
         retourne vrai;
     }
 
     si type == QT_Event_Type.Wheel {
-        clic := donne_clic_souris_depuis_évènement(event.wheel_event);
         évènement := tableau_ajoute_élément(*__évènements);
-        initialise_depuis_clic(évènement, clic);
-        rappels.dernière_souris = clic.état;
+        convertis_évènement(event.wheel_event, évènement);
+        rappels.dernière_souris = évènement.état_souris;
         retourne vrai;
     }
 
     si type == QT_Event_Type.MouseButtonPress {
-        clic := donne_clic_souris_depuis_évènement(event.mouse_event, ActionSouris.PRESSÉE);
         évènement := tableau_ajoute_élément(*__évènements);
-        initialise_depuis_clic(évènement, clic);
-        rappels.dernière_souris = clic.état;
+        convertis_évènement(event.mouse_event, évènement);
+        rappels.dernière_souris = évènement.état_souris;
         retourne vrai;
     }
 
     si type == QT_Event_Type.MouseButtonRelease {
-        clic := donne_clic_souris_depuis_évènement(event.mouse_event, ActionSouris.RELACHÉE);
         évènement := tableau_ajoute_élément(*__évènements);
-        initialise_depuis_clic(évènement, clic);
-        rappels.dernière_souris = clic.état;
+        convertis_évènement(event.mouse_event, évènement);
+        rappels.dernière_souris = évènement.état_souris;
         retourne vrai;
     }
 
     si type == QT_Event_Type.MouseButtonDblClick {
-        clic := donne_clic_souris_depuis_évènement(event.mouse_event, ActionSouris.DOUBLE_CLIC);
         évènement := tableau_ajoute_élément(*__évènements);
-        initialise_depuis_clic(évènement, clic);
-        rappels.dernière_souris = clic.état;
+        convertis_évènement(event.mouse_event, évènement);
+        rappels.dernière_souris = évènement.état_souris;
         retourne vrai;
     }
 
@@ -556,16 +551,7 @@ rappels_window_sur_évènement :: fonc (base: *QT_Rappels_Window, event: QT_Gene
 
     si type == QT_Event_Type.KeyPress || type == QT_Event_Type.KeyRelease {
         évènement := tableau_ajoute_élément(*__évènements);
-        évènement.type = TypeÉvènement.Clavier;
-        évènement.touche = table_conversion_clé[QT_key_event_donne_cle(event.key_event)];
-        évènement.touche_pressée = type == QT_Event_Type.KeyPress;
-        évènement.modificateurs = donne_modificateur_clavier_depuis_qt();
-        évènement.texte = QT_key_event_donne_texte(event.key_event).vers_kuri();
-        évènement.compte = QT_key_event_donne_compte(event.key_event);
-        évènement.est_répétée = QT_key_event_est_auto_repete(event.key_event);
-        évènement.code_scan_natif = QT_key_event_donne_code_scan_natif(event.key_event);
-        évènement.modificateurs_natifs = QT_key_event_donne_modificateurs_natifs(event.key_event);
-        évènement.clé_virtuelle_native = QT_key_event_donne_cle_virtuelle_native(event.key_event);
+        convertis_évènement(event.key_event, évènement);
         retourne vrai;
     }
 
