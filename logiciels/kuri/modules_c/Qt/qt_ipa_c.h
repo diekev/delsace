@@ -2073,6 +2073,7 @@ void QT_widget_redimensionne(union QT_Generic_Widget widget, struct QT_Taille ta
 struct QT_Taille QT_widget_donne_taille(union QT_Generic_Widget widget);
 void QT_widget_affiche(union QT_Generic_Widget widget);
 void QT_widget_cache(union QT_Generic_Widget widget);
+bool QT_widget_ferme(union QT_Generic_Widget widget);
 void QT_widget_definis_visible(union QT_Generic_Widget widget, bool ouinon);
 void QT_widget_definis_actif(union QT_Generic_Widget widget, bool ouinon);
 union QT_Generic_Widget QT_widget_donne_widget_parent(union QT_Generic_Widget widget);

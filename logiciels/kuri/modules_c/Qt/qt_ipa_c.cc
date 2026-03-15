@@ -2335,6 +2335,12 @@ void QT_widget_cache(QT_Generic_Widget widget)
     qwidget->hide();
 }
 
+bool QT_widget_ferme(QT_Generic_Widget widget)
+{
+    auto qwidget = vers_qt(widget);
+    return qwidget->close();
+}
+
 void QT_widget_definis_visible(QT_Generic_Widget widget, bool ouinon)
 {
     auto qwidget = vers_qt(widget);
