@@ -95,9 +95,7 @@ sauvegarde_un_noeud :: fonc (sauvegardeuse: *Sauvegardeuse, noeud: *Noeud)
     }
 
     table_paramètres := noeud.table_paramètres;
-    si table_paramètres {
-        sauvegarde_paramètres(sauvegardeuse, table_paramètres);
-    }
+    sauvegarde_paramètres(sauvegardeuse, table_paramètres);
 
     /* Cache utilisateur. */
     sauvegarde_cache_utilisateur(sauvegardeuse, noeud);
@@ -110,6 +108,11 @@ sauvegarde_un_noeud :: fonc (sauvegardeuse: *Sauvegardeuse, noeud: *Noeud)
 
 sauvegarde_paramètres :: fonc (sauvegardeuse: *Sauvegardeuse, table_paramètres: *TableParamètres)
 {
+    saufsi table_paramètres {
+        écris_valeur(sauvegardeuse, 0 comme z64);
+        retourne;
+    }
+
     écris_valeur(sauvegardeuse, table_paramètres.paramètres.taille);
 
     pour table_paramètres.paramètres {
@@ -216,6 +219,8 @@ VersionnageGraphe :: struct {
     doit_inverser_direction_noeuds := faux;
 
     versionnage_identifiant_noeud: fonc (chn: chaine) -> chaine;
+
+    doit_lire_table_de_paramètres: fonc (lectrice: *LectriceGraphe, noeud: *Noeud) -> bool;
 }
 
 /** \} */
@@ -471,10 +476,7 @@ lis_un_noeud :: fonc (lectrice: *LectriceGraphe, graphe: *Graphe)
     lis_prises_entrées(lectrice, noeud);
     lis_prises_sorties(lectrice, noeud);
 
-    table_paramètres := noeud.table_paramètres;
-    si table_paramètres {
-        lis_paramètres(lectrice, noeud, table_paramètres);
-    }
+    lis_paramètres(lectrice, noeud);
 
     lis_cache_utilisateur(lectrice, noeud);
 
@@ -484,11 +486,21 @@ lis_un_noeud :: fonc (lectrice: *LectriceGraphe, graphe: *Graphe)
     }
 }
 
-lis_paramètres :: fonc (lectrice: *LectriceGraphe, noeud: *Noeud, table_paramètres: *TableParamètres)
+lis_paramètres :: fonc (lectrice: *LectriceGraphe, noeud: *Noeud)
 {
+    saufsi lectrice.versionnage.doit_lire_table_de_paramètres(lectrice, noeud) {
+        retourne;
+    }
+
+    table_paramètres := noeud.table_paramètres;
+
     /* Écris la valeur.
      * À FAIRE : courbes et rampes. */
     nombre_de_paramètres := lis_valeur_typée(lectrice, z64);
+    saufsi table_paramètres {
+        assert(nombre_de_paramètres == 0);
+        retourne;
+    }
 
     pour nombre_de_paramètres {
         nom := lis_chaine(lectrice);
