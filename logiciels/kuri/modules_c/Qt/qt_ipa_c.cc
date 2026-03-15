@@ -2550,6 +2550,36 @@ QT_Window *QT_widget_donne_window_handle(union QT_Generic_Widget widget)
     return vers_ipa(qwidget->windowHandle());
 }
 
+static Qt::WidgetAttribute convertis_widget_attribute(enum QT_Widget_Attribute attribute)
+{
+    switch (attribute) {
+        ENUMERE_WIDGET_ATTRIBUTE(ENUMERE_TRANSLATION_ENUM_IPA_VERS_QT)
+    }
+    return Qt::WA_Disabled;
+}
+
+void QT_widget_definis_attribut(union QT_Generic_Widget widget, enum QT_Widget_Attribute attribute)
+{
+    VERS_QT(widget);
+    auto qattribute = convertis_widget_attribute(attribute);
+    qwidget->setAttribute(qattribute, true);
+}
+
+void QT_widget_supprime_attribut(union QT_Generic_Widget widget,
+                                 enum QT_Widget_Attribute attribute)
+{
+    VERS_QT(widget);
+    auto qattribute = convertis_widget_attribute(attribute);
+    qwidget->setAttribute(qattribute, false);
+}
+
+bool QT_widget_possede_attribut(union QT_Generic_Widget widget, enum QT_Widget_Attribute attribute)
+{
+    VERS_QT(widget);
+    auto qattribute = convertis_widget_attribute(attribute);
+    return qwidget->testAttribute(qattribute);
+}
+
 /** \} */
 
 /* ------------------------------------------------------------------------- */
