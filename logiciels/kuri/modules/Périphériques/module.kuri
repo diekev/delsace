@@ -476,6 +476,7 @@ TypeÉvènement :: énum {
 
 Évènement :: struct {
     type: TypeÉvènement;
+    id_fenêtre: z32;
 
     /* Pour les évènements souris. */
     état_souris: ÉtatSouris;

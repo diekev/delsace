@@ -10,13 +10,13 @@ SystèmeFenêtre :: énum {
     NATIVE;
 }
 
-crée_fenêtre :: fonc (largeur: z32, hauteur: z32, titre: chaine, maximisée := faux, index_écran := 0, avec_barre_de_titre_et_bordures := vrai, système := SystèmeFenêtre.QT) -> TypeFenêtre
+crée_fenêtre :: fonc (largeur: z32, hauteur: z32, titre: chaine, maximisée := faux, index_écran := 0, avec_barre_de_titre_et_bordures := vrai, système := SystèmeFenêtre.QT, parent: *TypeFenêtre = nul) -> TypeFenêtre
 {
     si système == SystèmeFenêtre.NATIVE {
         retourne x11_crée_fenêtre(largeur, hauteur, titre, maximisée, index_écran, avec_barre_de_titre_et_bordures);
     }
 
-    retourne qt_crée_fenêtre(largeur, hauteur, titre, maximisée, index_écran, avec_barre_de_titre_et_bordures);
+    retourne qt_crée_fenêtre(largeur, hauteur, titre, maximisée, index_écran, avec_barre_de_titre_et_bordures, parent);
 }
 
 ajourne_évènements_fenêtre :: fonc (type_fenêtre: TypeFenêtre) -> []Évènement
@@ -221,6 +221,7 @@ définis_opacité :: fonc (fenêtre: TypeFenêtre, opacité: r64)
 
 TypeFenêtre :: struct {
     système: SystèmeFenêtre;
+    id: z32;
 
     /* Pour X11. */
     données_x11: *DonnéesX11;
@@ -228,6 +229,19 @@ TypeFenêtre :: struct {
     /* Pour Qt. */
     rappels_window: *RappelsWindow;
 }
+
+#portée_fichier
+
+__id_fenêtre: z32;
+
+donne_id_fenêtre_suivant :: fonc () -> z32
+{
+    résultat := __id_fenêtre;
+    __id_fenêtre += 1;
+    retourne résultat;
+}
+
+#portée_export
 
 donne_état_souris :: fonc (fenêtre: TypeFenêtre) -> ÉtatSouris
 {
@@ -248,23 +262,34 @@ donne_état_souris :: fonc (fenêtre: TypeFenêtre) -> ÉtatSouris
 
 __évènements: [..]Évènement;
 
+donne_évènement_pour_fenêtre :: fonc (id: z32) -> *Évènement
+{
+    résultat := tableau_ajoute_élément(*__évènements);
+    résultat.id_fenêtre = id;
+    retourne résultat;
+}
+
 importe Qt;
 
 __application_qt: *QT_Application;
 __taille_arguments_qt: z32 = ---;
 
-qt_crée_fenêtre :: fonc (largeur: z32, hauteur: z32, titre: chaine, maximisée: bool, index_écran: z32, avec_barre_de_titre_et_bordures: bool) -> TypeFenêtre
+qt_crée_fenêtre :: fonc (largeur: z32, hauteur: z32, titre: chaine, maximisée: bool, index_écran: z32, avec_barre_de_titre_et_bordures: bool, parent: *TypeFenêtre) -> TypeFenêtre
 {
-    assert(__application_qt == nul);
+    si __application_qt == nul {
+        arguments := arguments_ligne_commande();
+        __taille_arguments_qt = arguments.taille comme z32;
+        /* Jamais détruite. */
+        __application_qt = QT_cree_application(*__taille_arguments_qt, __arguments_ligne_commande.pointeur);
+    }
 
-    arguments := arguments_ligne_commande();
-    __taille_arguments_qt = arguments.taille comme z32;
-    /* Jamais détruite. */
-    __application_qt = QT_cree_application(*__taille_arguments_qt, __arguments_ligne_commande.pointeur);
+    window_parent: *QT_Window;
+    si parent {
+        window_parent = donne_qt_window(mémoire(parent));
+    }
 
     rappels_window := loge(RappelsWindow);
-
-    window := QT_window_cree_avec_rappels(rappels_window);
+    window := QT_window_cree_avec_rappels_et_parent(rappels_window, window_parent);
 
     si titre {
         QT_window_set_title(window, vers_qt(titre));
@@ -294,8 +319,10 @@ qt_crée_fenêtre :: fonc (largeur: z32, hauteur: z32, titre: chaine, maximisée
     }
 
     résultat: TypeFenêtre;
+    résultat.id = donne_id_fenêtre_suivant();
     résultat.système = SystèmeFenêtre.QT;
     résultat.rappels_window = rappels_window;
+    rappels_window.id_fenêtre = résultat.id;
     retourne résultat;
 }
 
@@ -451,6 +478,7 @@ RappelsWindow :: struct {
     glew_est_initialisé: bool;
     taille_fenêtre: QT_Taille;
     fut_maximisée: bool;
+    id_fenêtre: z32;
 
     sur_creation = rappels_window_sur_création;
     sur_evenement = rappels_window_sur_évènement;
@@ -515,60 +543,60 @@ rappels_window_sur_évènement :: fonc (base: *QT_Rappels_Window, event: QT_Gene
     }
 
     si type == QT_Event_Type.MouseMove {
-        évènement := tableau_ajoute_élément(*__évènements);
+        évènement := donne_évènement_pour_fenêtre(rappels.id_fenêtre);
         convertis_évènement(event.mouse_event, évènement);
         rappels.dernière_souris = évènement.état_souris;
         retourne vrai;
     }
 
     si type == QT_Event_Type.Wheel {
-        évènement := tableau_ajoute_élément(*__évènements);
+        évènement := donne_évènement_pour_fenêtre(rappels.id_fenêtre);
         convertis_évènement(event.wheel_event, évènement);
         rappels.dernière_souris = évènement.état_souris;
         retourne vrai;
     }
 
     si type == QT_Event_Type.MouseButtonPress {
-        évènement := tableau_ajoute_élément(*__évènements);
+        évènement := donne_évènement_pour_fenêtre(rappels.id_fenêtre);
         convertis_évènement(event.mouse_event, évènement);
         rappels.dernière_souris = évènement.état_souris;
         retourne vrai;
     }
 
     si type == QT_Event_Type.MouseButtonRelease {
-        évènement := tableau_ajoute_élément(*__évènements);
+        évènement := donne_évènement_pour_fenêtre(rappels.id_fenêtre);
         convertis_évènement(event.mouse_event, évènement);
         rappels.dernière_souris = évènement.état_souris;
         retourne vrai;
     }
 
     si type == QT_Event_Type.MouseButtonDblClick {
-        évènement := tableau_ajoute_élément(*__évènements);
+        évènement := donne_évènement_pour_fenêtre(rappels.id_fenêtre);
         convertis_évènement(event.mouse_event, évènement);
         rappels.dernière_souris = évènement.état_souris;
         retourne vrai;
     }
 
     si type == QT_Event_Type.Close {
-        évènement := tableau_ajoute_élément(*__évènements);
+        évènement := donne_évènement_pour_fenêtre(rappels.id_fenêtre);
         évènement.type = TypeÉvènement.Fermeture;
         retourne faux;
     }
 
     si type == QT_Event_Type.Enter {
-        évènement := tableau_ajoute_élément(*__évènements);
+        évènement := donne_évènement_pour_fenêtre(rappels.id_fenêtre);
         évènement.type = TypeÉvènement.Entrée_Fenêtre;
         retourne faux;
     }
 
     si type == QT_Event_Type.Leave {
-        évènement := tableau_ajoute_élément(*__évènements);
+        évènement := donne_évènement_pour_fenêtre(rappels.id_fenêtre);
         évènement.type = TypeÉvènement.Sortie_Fenêtre;
         retourne faux;
     }
 
     si type == QT_Event_Type.KeyPress || type == QT_Event_Type.KeyRelease {
-        évènement := tableau_ajoute_élément(*__évènements);
+        évènement := donne_évènement_pour_fenêtre(rappels.id_fenêtre);
         convertis_évènement(event.key_event, évènement);
         retourne vrai;
     }
@@ -611,7 +639,7 @@ rappels_window_sur_évènement :: fonc (base: *QT_Rappels_Window, event: QT_Gene
             pointeur_données += taille_données_mime;
         }
 
-        évènement := tableau_ajoute_élément(*__évènements);
+        évènement := donne_évènement_pour_fenêtre(rappels.id_fenêtre);
         évènement.type = TypeÉvènement.Déposage;
         évènement.mimes = mimes;
 
@@ -664,10 +692,13 @@ DonnéesX11 :: struct {
     source: n64;
     version: z64;
     format: Atom;
+
+    id_fenêtre: z32;
 }
 
 __données_x11: DonnéesX11;
 
+// À FAIRE : fenêtre parent
 x11_crée_fenêtre :: fonc (largeur: z32, hauteur: z32, titre: chaine, maximisée: bool @inutilisée, index_écran: z32 @inutilisée, avec_barre_de_titre_et_bordures: bool @inutilisée) -> TypeFenêtre
 {
     display := XOpenDisplay(nul);
@@ -784,8 +815,10 @@ x11_crée_fenêtre :: fonc (largeur: z32, hauteur: z32, titre: chaine, maximisé
     __données_x11.wm_delete_window = wm_delete_window;
 
     résultat: TypeFenêtre;
+    résultat.id = donne_id_fenêtre_suivant();
     résultat.système = SystèmeFenêtre.NATIVE;
     résultat.données_x11 = *__données_x11;
+    résultat.données_x11.id_fenêtre = résultat.id;
     retourne résultat;
 }
 
@@ -956,7 +989,7 @@ x11_ajourne_évènements_fenêtre :: fonc (fenêtre: TypeFenêtre)
         _ := XNextEvent(display, *event);
 
         si event.type == KeyPress {
-            évènement := tableau_ajoute_élément(*__évènements);
+            évènement := donne_évènement_pour_fenêtre(données_x11.id_fenêtre);
             initialise_évènement_depuis_xkey_event(*event.xkey, faux, évènement);
 
             si xic {
@@ -1003,26 +1036,30 @@ x11_ajourne_évènements_fenêtre :: fonc (fenêtre: TypeFenêtre)
             }
         }
         sinon si event.type == KeyRelease {
-            évènement := tableau_ajoute_élément(*__évènements);
+            évènement := donne_évènement_pour_fenêtre(données_x11.id_fenêtre);
             initialise_évènement_depuis_xkey_event(*event.xkey, faux, évènement);
+            évènement.id_fenêtre = données_x11.id_fenêtre;
         }
         sinon si event.type == MotionNotify {
-            évènement := tableau_ajoute_élément(*__évènements);
+            évènement := donne_évènement_pour_fenêtre(données_x11.id_fenêtre);
             initialise_évènement_depuis_xmotion_event(*event.xmotion, évènement);
+            évènement.id_fenêtre = données_x11.id_fenêtre;
         }
         sinon si event.type == ButtonPress {
-            évènement := tableau_ajoute_élément(*__évènements);
+            évènement := donne_évènement_pour_fenêtre(données_x11.id_fenêtre);
             initialise_évènement_depuis_xbutton_event(*event.xbutton, évènement);
+            évènement.id_fenêtre = données_x11.id_fenêtre;
         }
         sinon si event.type == ButtonRelease {
-            évènement := tableau_ajoute_élément(*__évènements);
+            évènement := donne_évènement_pour_fenêtre(données_x11.id_fenêtre);
             initialise_évènement_depuis_xbutton_event(*event.xbutton, évènement);
+            évènement.id_fenêtre = données_x11.id_fenêtre;
         }
         sinon si event.type == ClientMessage {
             data := event.xclient.data.l;
             atome := data[0] comme Atom;
             si atome == fenêtre.données_x11.wm_delete_window {
-                évènement := tableau_ajoute_élément(*__évènements);
+                évènement := donne_évènement_pour_fenêtre(données_x11.id_fenêtre);
                 évènement.type = TypeÉvènement.Fermeture;
                 continue;
             }
@@ -1070,7 +1107,7 @@ x11_ajourne_évènements_fenêtre :: fonc (fenêtre: TypeFenêtre)
                 si data {
                     mime_type := XGetAtomName(display, format);
 
-                    évènement := tableau_ajoute_élément(*__évènements);
+                    évènement := donne_évènement_pour_fenêtre(données_x11.id_fenêtre);
                     évènement.type = TypeÉvènement.Déposage;
 
                     mime := tableau_ajoute_élément(*évènement.mimes);
