@@ -1471,6 +1471,8 @@ struct QT_Rappels_Window {
 };
 
 struct QT_Window *QT_window_cree_avec_rappels(struct QT_Rappels_Window *rappels);
+struct QT_Window *QT_window_cree_avec_rappels_et_parent(struct QT_Rappels_Window *rappels,
+                                                        struct QT_Window *parent);
 void QT_window_detruit(struct QT_Window *window);
 
 struct QT_Rappels_Window *QT_window_donne_rappels(struct QT_Window *window);
