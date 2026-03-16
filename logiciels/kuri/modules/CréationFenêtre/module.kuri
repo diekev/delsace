@@ -252,7 +252,6 @@ importe Qt;
 
 __application_qt: *QT_Application;
 __taille_arguments_qt: z32 = ---;
-__rappels_window: RappelsWindow = ---;
 
 qt_crée_fenêtre :: fonc (largeur: z32, hauteur: z32, titre: chaine, maximisée: bool, index_écran: z32, avec_barre_de_titre_et_bordures: bool) -> TypeFenêtre
 {
@@ -263,9 +262,9 @@ qt_crée_fenêtre :: fonc (largeur: z32, hauteur: z32, titre: chaine, maximisée
     /* Jamais détruite. */
     __application_qt = QT_cree_application(*__taille_arguments_qt, __arguments_ligne_commande.pointeur);
 
-    init_de(RappelsWindow)(*__rappels_window);
+    rappels_window := loge(RappelsWindow);
 
-    window := QT_window_cree_avec_rappels(*__rappels_window);
+    window := QT_window_cree_avec_rappels(rappels_window);
 
     si titre {
         QT_window_set_title(window, vers_qt(titre));
@@ -282,7 +281,7 @@ qt_crée_fenêtre :: fonc (largeur: z32, hauteur: z32, titre: chaine, maximisée
     QT_window_resize(window, largeur, hauteur);
 
     si maximisée {
-        __rappels_window.fut_maximisée = vrai;
+        rappels_window.fut_maximisée = vrai;
         QT_window_show_maximized(window);
     }
     sinon {
@@ -290,13 +289,13 @@ qt_crée_fenêtre :: fonc (largeur: z32, hauteur: z32, titre: chaine, maximisée
     }
 
     /* Garantis la création du contexte OpenGL. */
-    tantque !__rappels_window.glctx {
+    tantque !rappels_window.glctx {
         QT_application_process_events();
     }
 
     résultat: TypeFenêtre;
     résultat.système = SystèmeFenêtre.QT;
-    résultat.rappels_window = *__rappels_window;
+    résultat.rappels_window = rappels_window;
     retourne résultat;
 }
 
@@ -455,6 +454,7 @@ RappelsWindow :: struct {
 
     sur_creation = rappels_window_sur_création;
     sur_evenement = rappels_window_sur_évènement;
+    sur_destruction = rappels_window_sur_desctruction;
 
     dernière_souris: ÉtatSouris;
 }
@@ -464,6 +464,12 @@ rappels_window_sur_création :: fonc (base: *QT_Rappels_Window)
     rappels := base comme *RappelsWindow;
     window := rappels.window;
     QT_window_set_surface_type(window, QT_Surface_Type.OpenGLSurface);
+}
+
+rappels_window_sur_desctruction :: fonc (base: *QT_Rappels_Window)
+{
+    rappels := base comme *RappelsWindow;
+    déloge(*rappels);
 }
 
 rappels_window_sur_évènement :: fonc (base: *QT_Rappels_Window, event: QT_Generic_Event) -> bool
