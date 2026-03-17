@@ -406,6 +406,7 @@ TableParamètres :: struct {
         est_activable_depuis_interface: bool;
         est_étiquette: bool;
         non_nul: bool;
+        est_extra: bool;
     } @ToujoursPointeur
 
     InformationDessin :: union {
@@ -419,6 +420,8 @@ TableParamètres :: struct {
     paramètres: [..]*Paramètre @accessible;
 
     struct_paramètres: *ParamètresNoeud;
+
+    valeurs_paramètres_extras: [..]eini;
 } @ToujoursPointeur
 
 /* Pour les noeuds n'ayant aucun paramètre. */
@@ -504,6 +507,11 @@ détruit_table_paramètres :: fonc (table: *TableParamètres)
         déloge(*it);
     }
 
+    pour table.valeurs_paramètres_extras {
+        détruit_valeur_paramètre(it);
+    }
+
+    déloge(*table.valeurs_paramètres_extras);
     déloge(*table.informations_dessin);
     déloge(*table.paramètres);
     déloge(*table);
@@ -529,6 +537,83 @@ trouve_paramètre :: fonc (table_paramètres: *TableParamètres, nom_param: chai
     retourne nul;
 }
 
+crée_paramètre_extra :: fonc (table: *TableParamètres, type: TypeParamètre, identifiant: chaine, nom: chaine) -> *TableParamètres.Paramètre
+{
+    assert(trouve_paramètre(table, identifiant) == nul);
+
+    valeur := crée_valeur_pour_paramètre(type);
+
+    nouveau_paramètre := loge(TableParamètres.Paramètre);
+    nouveau_paramètre.type = type;
+    nouveau_paramètre.identifiant = copie_chaine(identifiant);
+    nouveau_paramètre.nom = copie_chaine(nom);
+    nouveau_paramètre.valeur = valeur;
+    nouveau_paramètre.bit_pour_param = table.paramètres.taille comme n64;
+    nouveau_paramètre.est_extra = vrai;
+
+    tableau_ajoute(*table.paramètres, nouveau_paramètre);
+
+    info_dessin := tableau_ajoute_élément(*table.informations_dessin);
+    mémoire(info_dessin) = nouveau_paramètre;
+
+    retourne nouveau_paramètre;
+}
+
+crée_valeur_pour_paramètre :: fonc (type: TypeParamètre) -> eini
+{
+    résultat: eini = ---;
+
+    discr type {
+        VALEUR_BOOLÉENNE {
+            résultat.pointeur = loge(bool);
+            résultat.info = info_de(bool);
+        }
+        NOMBRE_RÉEL {
+            résultat.pointeur = loge(r32);
+            résultat.info = info_de(r32);
+        }
+        NOMBRE_ENTIER {
+            résultat.pointeur = loge(z32);
+            résultat.info = info_de(z32);
+        }
+        VEC2 {
+            résultat.pointeur = loge(Vec2);
+            résultat.info = info_de(Vec2);
+        }
+        VEC3 {
+            résultat.pointeur = loge(Vec3);
+            résultat.info = info_de(Vec3);
+        }
+        BOUTON {
+            résultat.pointeur = nul;
+            résultat.info = nul;
+        }
+        CHAINE,
+        TEXTE,
+        CHEMIN_FICHIER_ENTRÉE,
+        CHEMIN_FICHIER_SORTIE,
+        DOSSIER {
+            résultat.pointeur = loge(chaine);
+            résultat.info = info_de(chaine);
+        }
+        COULEUR {
+            résultat.pointeur = loge(CouleurRVBA);
+            résultat.info = info_de(CouleurRVBA);
+        }
+        ÉNUMÉRATION {
+            résultat.pointeur = loge(z32);
+            résultat.info = info_de(z32);
+        }
+    }
+
+    retourne résultat;
+}
+
+détruit_valeur_paramètre :: fonc (valeur: eini)
+{
+    déloge_mémoire(valeur.info.taille_en_octet comme z64, valeur.pointeur, valeur.info, #position_code_source);
+}
+
 /* ------------------------------------------------------------------------- */
 
 est_type_valeur_chaine :: fonc (param: *TableParamètres.Paramètre) -> bool
@@ -541,12 +626,19 @@ est_type_valeur_chaine :: fonc (param: *TableParamètres.Paramètre) -> bool
 
 est_actif :: fonc (param: *TableParamètres.Paramètre) -> bool
 {
+    si param.est_extra {
+        retourne vrai;
+    }
+
     bit_pour_param := ((1 comme n64) << param.bit_pour_param);
     retourne (param.struct_paramètres._état_params & bit_pour_param) == bit_pour_param;
 }
 
 définis_actif :: fonc (param: *TableParamètres.Paramètre, ouinon: bool)
 {
+    si param.est_extra {
+        retourne;
+    }
     bit_pour_param := ((1 comme n64) << param.bit_pour_param);
 
     si ouinon {
@@ -559,6 +651,9 @@ définis_actif :: fonc (param: *TableParamètres.Paramètre, ouinon: bool)
 
 marque_modifié :: fonc (param: *TableParamètres.Paramètre)
 {
+    si param.est_extra {
+        retourne;
+    }
     bit_pour_param := ((1 comme n64) << param.bit_pour_param);
     param.struct_paramètres._fut_modifié |= bit_pour_param;
 }
@@ -813,7 +908,9 @@ définis_valeur_param :: fonc (noeud: *Noeud, param: *TableParamètres.Paramètr
     définition_valeur(param, nouvelle_valeur);
     noeud.marque_param_modifié(param);
 
-    ajourne_état_paramètres(param.struct_paramètres);
+    saufsi param.est_extra {
+        ajourne_état_paramètres(param.struct_paramètres);
+    }
 }
 
 définis_param_entier :: fonc (noeud: *Noeud, param: *TableParamètres.Paramètre, nouvelle_valeur: z32)

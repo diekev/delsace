@@ -516,16 +516,15 @@ lis_paramètres :: fonc (lectrice: *LectriceGraphe, noeud: *Noeud)
 
         param := table_paramètres.trouve_paramètre(nom);
 
-        saufsi param {
-            rapporte_erreur(lectrice, "Impossible de trouver le paramètre '%'", nom);
-            lectrice.curseur += taille_en_octet;
-            continue;
+        si param {
+            si param.type != type {
+                rapporte_erreur(lectrice, "Changement de type pour le paramètre '%' : lu '%', est '%'", nom, type, param.type);
+                lectrice.curseur += taille_en_octet;
+                continue;
+            }
         }
-
-        si param.type != type {
-            rapporte_erreur(lectrice, "Changement de type pour le paramètre '%' : lu '%', est '%'", nom, type, param.type);
-            lectrice.curseur += taille_en_octet;
-            continue;
+        sinon {
+            param = crée_paramètre_extra(table_paramètres, type, nom, nom);
         }
 
         infos := param.valeur.info;
