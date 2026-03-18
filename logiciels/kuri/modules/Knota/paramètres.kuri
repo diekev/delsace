@@ -391,7 +391,6 @@ TableParamètres :: struct {
         identifiant: chaine @accessible;
         nom: chaine @accessible;
         lieutenante: chaine;
-        type: TypeParamètre @accessible;
         /* Pointeur vers la rubrique de struct_paramètres qui correspond à ce paramètre. */
         valeur: eini;
         valeur_défaut: ValeurDéfautParamètre;
@@ -400,6 +399,7 @@ TableParamètres :: struct {
         limites: Optionnel(LimitesValeurParamètres);
 
         type_chaine_recherchée: TypeChaineRecherchée;
+        type: TypeParamètre @accessible;
         index_prise_pour_recherche_chaine : z64 = -1;
 
         type_fichier: TypeFichier;
