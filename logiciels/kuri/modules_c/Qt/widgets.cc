@@ -156,6 +156,7 @@ OpenGLWidget::OpenGLWidget(QT_Rappels_GLWidget *rappels, QWidget *parent)
 OpenGLWidget::~OpenGLWidget()
 {
     if (m_rappels && m_rappels->sur_destruction) {
+        this->makeCurrent();
         m_rappels->sur_destruction(m_rappels);
     }
 }
