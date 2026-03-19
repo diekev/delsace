@@ -63,7 +63,7 @@ sauvegarde_graphe :: fonc (sauvegardeuse: *Sauvegardeuse, graphe: *Graphe)
     sauvegarde_table_de_noms(sauvegardeuse, graphe);
 }
 
-sauvegarde_items :: fonc (sauvegardeuse: *Sauvegardeuse, items: []*ItemGraphe)
+sauvegarde_items :: fonc (sauvegardeuse: *Sauvegardeuse, items: []*Item_Graphe)
 {
     écris_valeur(sauvegardeuse, items.taille);
 
@@ -95,9 +95,7 @@ sauvegarde_un_noeud :: fonc (sauvegardeuse: *Sauvegardeuse, noeud: *Noeud)
     }
 
     table_paramètres := noeud.table_paramètres;
-    si table_paramètres {
-        sauvegarde_paramètres(sauvegardeuse, table_paramètres);
-    }
+    sauvegarde_paramètres(sauvegardeuse, table_paramètres);
 
     /* Cache utilisateur. */
     sauvegarde_cache_utilisateur(sauvegardeuse, noeud);
@@ -108,8 +106,13 @@ sauvegarde_un_noeud :: fonc (sauvegardeuse: *Sauvegardeuse, noeud: *Noeud)
     }
 }
 
-sauvegarde_paramètres :: fonc (sauvegardeuse: *Sauvegardeuse, table_paramètres: *TableParamètres)
+sauvegarde_paramètres :: fonc (sauvegardeuse: *Sauvegardeuse, table_paramètres: *Table_Paramètres)
 {
+    saufsi table_paramètres {
+        écris_valeur(sauvegardeuse, 0 comme z64);
+        retourne;
+    }
+
     écris_valeur(sauvegardeuse, table_paramètres.paramètres.taille);
 
     pour table_paramètres.paramètres {
@@ -202,11 +205,11 @@ sauvegarde_table_de_noms :: fonc (sauvegardeuse: *Sauvegardeuse, graphe: *Graphe
 /** \} */
 
 /* ------------------------------------------------------------------------- */
-/** \nom VersionnageGraphe
+/** \nom Versionnage_Graphe
  * Paramètres de lecture du graphe. À renseigner par les applications clientes.
  * \{ */
 
-VersionnageGraphe :: struct {
+Versionnage_Graphe :: struct {
     doit_lire_le_nom_du_graphe := faux;
     doit_lire_dimensions_noeuds := faux;
     doit_lire_drapeau_rendu := vrai;
@@ -216,6 +219,8 @@ VersionnageGraphe :: struct {
     doit_inverser_direction_noeuds := faux;
 
     versionnage_identifiant_noeud: fonc (chn: chaine) -> chaine;
+
+    doit_lire_table_de_paramètres: fonc (lectrice: *Lectrice_Graphe, noeud: *Noeud) -> bool;
 }
 
 /** \} */
@@ -224,7 +229,7 @@ VersionnageGraphe :: struct {
 /** \nom Contexte de lecture.
  * \{ */
 
-ContexteLectureGraphe :: struct {
+Contexte_Lecture_Graphe :: struct {
     crée_noeud: fonc (graphe: *Graphe, identifiant: chaine, nom: chaine) -> *Noeud;
 
     /* Optionnels. */
@@ -235,7 +240,7 @@ ContexteLectureGraphe :: struct {
     prépare_lecture_connexions: fonc (graphe: *Graphe);
     termine_lecture_connexions: fonc (graphe: *Graphe);
 
-    crée_connexion: fonc (graphe: *Graphe, entrée: *PriseEntrée, sortie: *PriseSortie);
+    crée_connexion: fonc (graphe: *Graphe, entrée: *Prise_Entrée, sortie: *Prise_Sortie);
 }
 
 crée_noeud_pour_lecture :: fonc (graphe: *Graphe, identifiant: chaine, nom_noeud: chaine) -> *Noeud
@@ -243,22 +248,22 @@ crée_noeud_pour_lecture :: fonc (graphe: *Graphe, identifiant: chaine, nom_noeu
     retourne graphe.crée_noeud_pour_identifiant_avec_nom(identifiant, nom_noeud, faux);
 }
 
-crée_connexion_pour_lecture :: fonc (graphe: *Graphe, prise_entrée: *PriseEntrée, prise_sortie: *PriseSortie)
+crée_connexion_pour_lecture :: fonc (graphe: *Graphe, prise_entrée: *Prise_Entrée, prise_sortie: *Prise_Sortie)
 {
     graphe.crée_connexion(prise_entrée, prise_sortie);
 }
 
 /* Pour lire un fichier, le contexte est la création de nouveaux noeuds. */
-crée_contexte_lecture_fichier :: fonc () -> ContexteLectureGraphe
+crée_contexte_lecture_fichier :: fonc () -> Contexte_Lecture_Graphe
 {
-    résultat: ContexteLectureGraphe;
+    résultat: Contexte_Lecture_Graphe;
     résultat.crée_noeud = crée_noeud_pour_lecture;
     résultat.crée_connexion = crée_connexion_pour_lecture;
     retourne résultat;
 }
 
 /* Pour lire une sauvegarde de changement, le contexte est le graphe existant. */
-crée_contexte_lecture_changement :: fonc () -> ContexteLectureGraphe
+crée_contexte_lecture_changement :: fonc () -> Contexte_Lecture_Graphe
 {
     rappel_crée_noeud :: fonc (graphe: *Graphe, identifiant: chaine, nom: chaine) -> *Noeud
     {
@@ -276,7 +281,7 @@ crée_contexte_lecture_changement :: fonc () -> ContexteLectureGraphe
         retourne noeud;
     }
 
-    rappel_crée_connexion :: fonc (graphe: *Graphe, prise_entrée: *PriseEntrée, prise_sortie: *PriseSortie)
+    rappel_crée_connexion :: fonc (graphe: *Graphe, prise_entrée: *Prise_Entrée, prise_sortie: *Prise_Sortie)
     {
         /* Vérifie si la connexion existe déjà. */
         si prise_entrée.connexion && prise_entrée.connexion.prise_sortie == prise_sortie {
@@ -297,7 +302,7 @@ crée_contexte_lecture_changement :: fonc () -> ContexteLectureGraphe
 
     rappel_termine_lecture_noeuds :: fonc (graphe: *Graphe)
     {
-        nouveaux_noeuds: [..]*ItemGraphe;
+        nouveaux_noeuds: [..]*Item_Graphe;
         pour graphe.items {
             saufsi it.est_actif {
                 détruit_item(it);
@@ -310,7 +315,7 @@ crée_contexte_lecture_changement :: fonc () -> ContexteLectureGraphe
         graphe.items = nouveaux_noeuds;
     }
 
-    résultat: ContexteLectureGraphe;
+    résultat: Contexte_Lecture_Graphe;
     résultat.crée_noeud = rappel_crée_noeud;
     résultat.crée_connexion = rappel_crée_connexion;
     résultat.prépare_lecture_connexions = prépare_création_connexions;
@@ -320,19 +325,19 @@ crée_contexte_lecture_changement :: fonc () -> ContexteLectureGraphe
     retourne résultat;
 }
 
-crée_contexte_lecture_copie :: fonc () -> ContexteLectureGraphe
+crée_contexte_lecture_copie :: fonc () -> Contexte_Lecture_Graphe
 {
     crée_noeud_pour_copie :: fonc (graphe: *Graphe, identifiant: chaine, nom_noeud: chaine) -> *Noeud
     {
         retourne graphe.crée_noeud_pour_identifiant_avec_nom(identifiant, nom_noeud, faux);
     }
 
-    crée_connexion_pour_copie :: fonc (graphe: *Graphe, prise_entrée: *PriseEntrée, prise_sortie: *PriseSortie)
+    crée_connexion_pour_copie :: fonc (graphe: *Graphe, prise_entrée: *Prise_Entrée, prise_sortie: *Prise_Sortie)
     {
         graphe.crée_connexion(prise_entrée, prise_sortie);
     }
 
-    résultat: ContexteLectureGraphe;
+    résultat: Contexte_Lecture_Graphe;
     résultat.crée_noeud = crée_noeud_pour_copie;
     résultat.crée_connexion = crée_connexion_pour_copie;
     retourne résultat;
@@ -341,18 +346,18 @@ crée_contexte_lecture_copie :: fonc () -> ContexteLectureGraphe
 /** \} */
 
 /* ------------------------------------------------------------------------- */
-/** \nom LectriceGraphe
+/** \nom Lectrice_Graphe
  * Lecture des graphes et de leurs noeuds.
  * \{ */
 
-LectriceGraphe :: struct {
+Lectrice_Graphe :: struct {
     empl base: Lectrice;
 
-    versionnage: VersionnageGraphe;
-    ctx_lecture: ContexteLectureGraphe;
+    versionnage: Versionnage_Graphe;
+    ctx_lecture: Contexte_Lecture_Graphe;
 }
 
-lis_graphe :: fonc (lectrice: *LectriceGraphe, graphe: *Graphe)
+lis_graphe :: fonc (lectrice: *Lectrice_Graphe, graphe: *Graphe)
 {
     // Nombre magique pour un graphe.
     saufsi lis_nombre_magique(lectrice, nombre_magique_graphe()) {
@@ -394,7 +399,7 @@ lis_graphe :: fonc (lectrice: *LectriceGraphe, graphe: *Graphe)
     }
 }
 
-lis_noeuds :: fonc (lectrice: *LectriceGraphe, graphe: *Graphe)
+lis_noeuds :: fonc (lectrice: *Lectrice_Graphe, graphe: *Graphe)
 {
     nombre_de_noeuds := lis_valeur_typée(lectrice, z64);
 
@@ -421,7 +426,7 @@ lis_noeuds :: fonc (lectrice: *LectriceGraphe, graphe: *Graphe)
     }
 }
 
-lis_identifiant_noeud :: fonc (lectrice: *LectriceGraphe) -> chaine
+lis_identifiant_noeud :: fonc (lectrice: *Lectrice_Graphe) -> chaine
 {
     résultat := lis_chaine(lectrice);
     si lectrice.versionnage.versionnage_identifiant_noeud {
@@ -430,7 +435,7 @@ lis_identifiant_noeud :: fonc (lectrice: *LectriceGraphe) -> chaine
     retourne résultat;
 }
 
-lis_un_noeud :: fonc (lectrice: *LectriceGraphe, graphe: *Graphe)
+lis_un_noeud :: fonc (lectrice: *Lectrice_Graphe, graphe: *Graphe)
 {
     saufsi lis_nombre_magique(lectrice, nombre_magique_noeud()) {
         rapporte_erreur(lectrice, "Impossible de lire le noeud, le nombre magique est erroné.");
@@ -471,10 +476,7 @@ lis_un_noeud :: fonc (lectrice: *LectriceGraphe, graphe: *Graphe)
     lis_prises_entrées(lectrice, noeud);
     lis_prises_sorties(lectrice, noeud);
 
-    table_paramètres := noeud.table_paramètres;
-    si table_paramètres {
-        lis_paramètres(lectrice, noeud, table_paramètres);
-    }
+    lis_paramètres(lectrice, noeud);
 
     lis_cache_utilisateur(lectrice, noeud);
 
@@ -484,19 +486,29 @@ lis_un_noeud :: fonc (lectrice: *LectriceGraphe, graphe: *Graphe)
     }
 }
 
-lis_paramètres :: fonc (lectrice: *LectriceGraphe, noeud: *Noeud, table_paramètres: *TableParamètres)
+lis_paramètres :: fonc (lectrice: *Lectrice_Graphe, noeud: *Noeud)
 {
+    saufsi lectrice.versionnage.doit_lire_table_de_paramètres(lectrice, noeud) {
+        retourne;
+    }
+
+    table_paramètres := noeud.table_paramètres;
+
     /* Écris la valeur.
      * À FAIRE : courbes et rampes. */
     nombre_de_paramètres := lis_valeur_typée(lectrice, z64);
+    saufsi table_paramètres {
+        assert(nombre_de_paramètres == 0);
+        retourne;
+    }
 
     pour nombre_de_paramètres {
         nom := lis_chaine(lectrice);
-        type := lis_valeur_typée(lectrice, z32) comme TypeParamètre;
+        type := lis_valeur_typée(lectrice, z32) comme Type_Paramètre;
 
         si lectrice.versionnage.doit_corriger_type_paramètre_bouton {
-            si type == TypeParamètre.VEC2 {
-                type = TypeParamètre.BOUTON;
+            si type == Type_Paramètre.VEC2 {
+                type = Type_Paramètre.BOUTON;
             }
         }
 
@@ -504,16 +516,15 @@ lis_paramètres :: fonc (lectrice: *LectriceGraphe, noeud: *Noeud, table_paramè
 
         param := table_paramètres.trouve_paramètre(nom);
 
-        saufsi param {
-            rapporte_erreur(lectrice, "Impossible de trouver le paramètre '%'", nom);
-            lectrice.curseur += taille_en_octet;
-            continue;
+        si param {
+            si param.type != type {
+                rapporte_erreur(lectrice, "Changement de type pour le paramètre '%' : lu '%', est '%'", nom, type, param.type);
+                lectrice.curseur += taille_en_octet;
+                continue;
+            }
         }
-
-        si param.type != type {
-            rapporte_erreur(lectrice, "Changement de type pour le paramètre '%' : lu '%', est '%'", nom, type, param.type);
-            lectrice.curseur += taille_en_octet;
-            continue;
+        sinon {
+            param = crée_paramètre_extra(table_paramètres, type, nom, nom);
         }
 
         infos := param.valeur.info;
@@ -551,7 +562,7 @@ lis_paramètres :: fonc (lectrice: *LectriceGraphe, noeud: *Noeud, table_paramè
     }
 }
 
-lis_cache_utilisateur :: fonc (lectrice: *LectriceGraphe, noeud: *Noeud)
+lis_cache_utilisateur :: fonc (lectrice: *Lectrice_Graphe, noeud: *Noeud)
 {
     saufsi lectrice.versionnage.doit_lire_cache_utilisateur {
         retourne;
@@ -577,7 +588,7 @@ lis_cache_utilisateur :: fonc (lectrice: *LectriceGraphe, noeud: *Noeud)
     }
 }
 
-lis_connexions :: fonc (lectrice: *LectriceGraphe, graphe: *Graphe)
+lis_connexions :: fonc (lectrice: *Lectrice_Graphe, graphe: *Graphe)
 {
     saufsi lis_nombre_magique(lectrice, nombre_magique_connexion()) {
         rapporte_erreur(lectrice, "Impossible de lire les connexions, le nombre magique est erroné.");
@@ -629,7 +640,7 @@ lis_connexions :: fonc (lectrice: *LectriceGraphe, graphe: *Graphe)
     }
 }
 
-lis_prises_entrées :: fonc (lectrice: *LectriceGraphe, noeud: *Noeud)
+lis_prises_entrées :: fonc (lectrice: *Lectrice_Graphe, noeud: *Noeud)
 {
     nombre_de_prises := lis_valeur_typée(lectrice, z64);
 
@@ -647,7 +658,7 @@ lis_prises_entrées :: fonc (lectrice: *LectriceGraphe, noeud: *Noeud)
     }
 }
 
-lis_prises_sorties :: fonc (lectrice: *LectriceGraphe, noeud: *Noeud)
+lis_prises_sorties :: fonc (lectrice: *Lectrice_Graphe, noeud: *Noeud)
 {
     nombre_de_prises := lis_valeur_typée(lectrice, z64);
 
@@ -665,7 +676,7 @@ lis_prises_sorties :: fonc (lectrice: *LectriceGraphe, noeud: *Noeud)
     }
 }
 
-lis_table_des_noms :: fonc (lectrice: *LectriceGraphe, graphe: *Graphe)
+lis_table_des_noms :: fonc (lectrice: *Lectrice_Graphe, graphe: *Graphe)
 {
     saufsi lectrice.versionnage.doit_lire_table_des_noms {
         retourne;
@@ -697,7 +708,7 @@ lis_table_des_noms :: fonc (lectrice: *LectriceGraphe, graphe: *Graphe)
 /** \nom Fichiers de copie.
  * \{ */
 
-crée_fichier_de_copie :: fonc (items: []*ItemGraphe, connexions: []*Connexion) -> [..]octet
+crée_fichier_de_copie :: fonc (items: []*Item_Graphe, connexions: []*Connexion) -> [..]octet
 {
     sauvegardeuse: Sauvegardeuse;
     initialise_sauvegardeuse(*sauvegardeuse);
@@ -717,7 +728,7 @@ crée_fichier_de_copie :: fonc (items: []*ItemGraphe, connexions: []*Connexion) 
     retourne aplatis_fichier(sauvegardeuse.fichier);
 }
 
-lis_fichier_copie :: fonc (lectrice: *LectriceGraphe, graphe: *Graphe, souris: *ÉtatSouris)
+lis_fichier_copie :: fonc (lectrice: *Lectrice_Graphe, graphe: *Graphe, souris: *ÉtatSouris)
 {
     saufsi lis_nombre_magique(lectrice, nombre_magique_fichier_copie()) {
         rapporte_erreur(lectrice, "Impossible de lire la copie, le nombre magique est erroné.");

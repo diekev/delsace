@@ -119,12 +119,8 @@ tableau_redimensionne_sans_init :: fonc (tabl: *[..]$T, taille: z64) -> rien
 
 tableau_redimensionne :: fonc (tabl: *[..]$T, taille: z64) -> rien
 {
-    ancienne_taille := tabl.taille;
-    tableau_redimensionne_sans_init(tabl, taille);
-
-    pour ancienne_taille ... tabl.taille - 1 {
-        init_de(T)(*tabl.pointeur[it]);
-    }
+    valeur: T;
+    tableau_redimensionne_défaut(tabl, taille, valeur);
 }
 
 tableau_redimensionne_défaut :: fonc (tabl: *[..]$T, taille: z64, défaut: T) -> rien
@@ -139,14 +135,10 @@ tableau_redimensionne_défaut :: fonc (tabl: *[..]$T, taille: z64, défaut: T) -
 
 tableau_copie :: fonc (tabl: []$T) -> [..]T
 {
-    tmp := loge_tableau(T, tabl.taille);
-
-    pour tabl {
-        tmp.pointeur[indice_it] = it;
-    }
-
-    tmp.taille = tabl.taille;
-    retourne tmp;
+    résultat := loge_tableau(T, tabl.taille);
+    résultat.taille = tabl.taille;
+    copie_mem_nonsur(src = tabl.pointeur, dst = résultat.pointeur, taille = tableau_taille_mémoire(tabl));
+    retourne résultat;
 }
 
 tableau_copie :: fonc (tabl: []$T, fonction_de_copie: fonc (v: T) -> T) -> [..]T
@@ -260,9 +252,7 @@ tableau_supprime_valeur :: fonc (tabl: *[..]$T, valeur: T)
 tableau_vole_mémoire :: fonc (tableau: *[..]$T) -> [..]T
 {
     résultat := mémoire(tableau);
-    tableau.pointeur = nul;
-    tableau.taille = 0;
-    tableau.capacité = 0;
+    init_de([..]T)(tableau);
     retourne résultat;
 }
 
