@@ -1471,6 +1471,8 @@ struct QT_Rappels_Window {
 };
 
 struct QT_Window *QT_window_cree_avec_rappels(struct QT_Rappels_Window *rappels);
+struct QT_Window *QT_window_cree_avec_rappels_et_parent(struct QT_Rappels_Window *rappels,
+                                                        struct QT_Window *parent);
 void QT_window_detruit(struct QT_Window *window);
 
 struct QT_Rappels_Window *QT_window_donne_rappels(struct QT_Window *window);
@@ -2073,6 +2075,7 @@ void QT_widget_redimensionne(union QT_Generic_Widget widget, struct QT_Taille ta
 struct QT_Taille QT_widget_donne_taille(union QT_Generic_Widget widget);
 void QT_widget_affiche(union QT_Generic_Widget widget);
 void QT_widget_cache(union QT_Generic_Widget widget);
+bool QT_widget_ferme(union QT_Generic_Widget widget);
 void QT_widget_definis_visible(union QT_Generic_Widget widget, bool ouinon);
 void QT_widget_definis_actif(union QT_Generic_Widget widget, bool ouinon);
 union QT_Generic_Widget QT_widget_donne_widget_parent(union QT_Generic_Widget widget);
@@ -2142,6 +2145,118 @@ void QT_widget_accepte_drop(union QT_Generic_Widget widget, bool ouinon);
 struct QT_Style *QT_widget_donne_style(union QT_Generic_Widget widget);
 
 struct QT_Window *QT_widget_donne_window_handle(union QT_Generic_Widget widget);
+
+#define ENUMERE_WIDGET_ATTRIBUTE(O)                                                               \
+    O(QT_WIDGET_ATTRIBUTE_Disabled, Qt::WA_Disabled)                                              \
+    O(QT_WIDGET_ATTRIBUTE_UnderMouse, Qt::WA_UnderMouse)                                          \
+    O(QT_WIDGET_ATTRIBUTE_MouseTracking, Qt::WA_MouseTracking)                                    \
+    O(QT_WIDGET_ATTRIBUTE_OpaquePaintEvent, Qt::WA_OpaquePaintEvent)                              \
+    O(QT_WIDGET_ATTRIBUTE_StaticContents, Qt::WA_StaticContents)                                  \
+    O(QT_WIDGET_ATTRIBUTE_LaidOut, Qt::WA_LaidOut)                                                \
+    O(QT_WIDGET_ATTRIBUTE_PaintOnScreen, Qt::WA_PaintOnScreen)                                    \
+    O(QT_WIDGET_ATTRIBUTE_NoSystemBackground, Qt::WA_NoSystemBackground)                          \
+    O(QT_WIDGET_ATTRIBUTE_UpdatesDisabled, Qt::WA_UpdatesDisabled)                                \
+    O(QT_WIDGET_ATTRIBUTE_Mapped, Qt::WA_Mapped)                                                  \
+    O(QT_WIDGET_ATTRIBUTE_InputMethodEnabled, Qt::WA_InputMethodEnabled)                          \
+    O(QT_WIDGET_ATTRIBUTE_WState_Visible, Qt::WA_WState_Visible)                                  \
+    O(QT_WIDGET_ATTRIBUTE_WState_Hidden, Qt::WA_WState_Hidden)                                    \
+    O(QT_WIDGET_ATTRIBUTE_ForceDisabled, Qt::WA_ForceDisabled)                                    \
+    O(QT_WIDGET_ATTRIBUTE_KeyCompression, Qt::WA_KeyCompression)                                  \
+    O(QT_WIDGET_ATTRIBUTE_PendingMoveEvent, Qt::WA_PendingMoveEvent)                              \
+    O(QT_WIDGET_ATTRIBUTE_PendingResizeEvent, Qt::WA_PendingResizeEvent)                          \
+    O(QT_WIDGET_ATTRIBUTE_SetPalette, Qt::WA_SetPalette)                                          \
+    O(QT_WIDGET_ATTRIBUTE_SetFont, Qt::WA_SetFont)                                                \
+    O(QT_WIDGET_ATTRIBUTE_SetCursor, Qt::WA_SetCursor)                                            \
+    O(QT_WIDGET_ATTRIBUTE_NoChildEventsFromChildren, Qt::WA_NoChildEventsFromChildren)            \
+    O(QT_WIDGET_ATTRIBUTE_WindowModified, Qt::WA_WindowModified)                                  \
+    O(QT_WIDGET_ATTRIBUTE_Resized, Qt::WA_Resized)                                                \
+    O(QT_WIDGET_ATTRIBUTE_Moved, Qt::WA_Moved)                                                    \
+    O(QT_WIDGET_ATTRIBUTE_PendingUpdate, Qt::WA_PendingUpdate)                                    \
+    O(QT_WIDGET_ATTRIBUTE_InvalidSize, Qt::WA_InvalidSize)                                        \
+    O(QT_WIDGET_ATTRIBUTE_CustomWhatsThis, Qt::WA_CustomWhatsThis)                                \
+    O(QT_WIDGET_ATTRIBUTE_LayoutOnEntireRect, Qt::WA_LayoutOnEntireRect)                          \
+    O(QT_WIDGET_ATTRIBUTE_OutsideWSRange, Qt::WA_OutsideWSRange)                                  \
+    O(QT_WIDGET_ATTRIBUTE_GrabbedShortcut, Qt::WA_GrabbedShortcut)                                \
+    O(QT_WIDGET_ATTRIBUTE_TransparentForMouseEvents, Qt::WA_TransparentForMouseEvents)            \
+    O(QT_WIDGET_ATTRIBUTE_PaintUnclipped, Qt::WA_PaintUnclipped)                                  \
+    O(QT_WIDGET_ATTRIBUTE_SetWindowIcon, Qt::WA_SetWindowIcon)                                    \
+    O(QT_WIDGET_ATTRIBUTE_NoMouseReplay, Qt::WA_NoMouseReplay)                                    \
+    O(QT_WIDGET_ATTRIBUTE_DeleteOnClose, Qt::WA_DeleteOnClose)                                    \
+    O(QT_WIDGET_ATTRIBUTE_RightToLeft, Qt::WA_RightToLeft)                                        \
+    O(QT_WIDGET_ATTRIBUTE_SetLayoutDirection, Qt::WA_SetLayoutDirection)                          \
+    O(QT_WIDGET_ATTRIBUTE_NoChildEventsForParent, Qt::WA_NoChildEventsForParent)                  \
+    O(QT_WIDGET_ATTRIBUTE_ForceUpdatesDisabled, Qt::WA_ForceUpdatesDisabled)                      \
+    O(QT_WIDGET_ATTRIBUTE_WState_Created, Qt::WA_WState_Created)                                  \
+    O(QT_WIDGET_ATTRIBUTE_WState_CompressKeys, Qt::WA_WState_CompressKeys)                        \
+    O(QT_WIDGET_ATTRIBUTE_WState_InPaintEvent, Qt::WA_WState_InPaintEvent)                        \
+    O(QT_WIDGET_ATTRIBUTE_WState_Reparented, Qt::WA_WState_Reparented)                            \
+    O(QT_WIDGET_ATTRIBUTE_WState_ConfigPending, Qt::WA_WState_ConfigPending)                      \
+    O(QT_WIDGET_ATTRIBUTE_WState_Polished, Qt::WA_WState_Polished)                                \
+    O(QT_WIDGET_ATTRIBUTE_WState_OwnSizePolicy, Qt::WA_WState_OwnSizePolicy)                      \
+    O(QT_WIDGET_ATTRIBUTE_WState_ExplicitShowHide, Qt::WA_WState_ExplicitShowHide)                \
+    O(QT_WIDGET_ATTRIBUTE_ShowModal, Qt::WA_ShowModal)                                            \
+    O(QT_WIDGET_ATTRIBUTE_MouseNoMask, Qt::WA_MouseNoMask)                                        \
+    O(QT_WIDGET_ATTRIBUTE_NoMousePropagation, Qt::WA_NoMousePropagation)                          \
+    O(QT_WIDGET_ATTRIBUTE_Hover, Qt::WA_Hover)                                                    \
+    O(QT_WIDGET_ATTRIBUTE_InputMethodTransparent, Qt::WA_InputMethodTransparent)                  \
+    O(QT_WIDGET_ATTRIBUTE_QuitOnClose, Qt::WA_QuitOnClose)                                        \
+    O(QT_WIDGET_ATTRIBUTE_KeyboardFocusChange, Qt::WA_KeyboardFocusChange)                        \
+    O(QT_WIDGET_ATTRIBUTE_AcceptDrops, Qt::WA_AcceptDrops)                                        \
+    O(QT_WIDGET_ATTRIBUTE_DropSiteRegistered, Qt::WA_DropSiteRegistered)                          \
+    O(QT_WIDGET_ATTRIBUTE_WindowPropagation, Qt::WA_WindowPropagation)                            \
+    O(QT_WIDGET_ATTRIBUTE_NoX11EventCompression, Qt::WA_NoX11EventCompression)                    \
+    O(QT_WIDGET_ATTRIBUTE_TintedBackground, Qt::WA_TintedBackground)                              \
+    O(QT_WIDGET_ATTRIBUTE_X11OpenGLOverlay, Qt::WA_X11OpenGLOverlay)                              \
+    O(QT_WIDGET_ATTRIBUTE_AlwaysShowToolTips, Qt::WA_AlwaysShowToolTips)                          \
+    O(QT_WIDGET_ATTRIBUTE_MacOpaqueSizeGrip, Qt::WA_MacOpaqueSizeGrip)                            \
+    O(QT_WIDGET_ATTRIBUTE_SetStyle, Qt::WA_SetStyle)                                              \
+    O(QT_WIDGET_ATTRIBUTE_SetLocale, Qt::WA_SetLocale)                                            \
+    O(QT_WIDGET_ATTRIBUTE_MacShowFocusRect, Qt::WA_MacShowFocusRect)                              \
+    O(QT_WIDGET_ATTRIBUTE_MacNormalSize, Qt::WA_MacNormalSize)                                    \
+    O(QT_WIDGET_ATTRIBUTE_MacSmallSize, Qt::WA_MacSmallSize)                                      \
+    O(QT_WIDGET_ATTRIBUTE_MacMiniSize, Qt::WA_MacMiniSize)                                        \
+    O(QT_WIDGET_ATTRIBUTE_LayoutUsesWidgetRect, Qt::WA_LayoutUsesWidgetRect)                      \
+    O(QT_WIDGET_ATTRIBUTE_StyledBackground, Qt::WA_StyledBackground)                              \
+    O(QT_WIDGET_ATTRIBUTE_MacAlwaysShowToolWindow, Qt::WA_MacAlwaysShowToolWindow)                \
+    O(QT_WIDGET_ATTRIBUTE_ShowWithoutActivating, Qt::WA_ShowWithoutActivating)                    \
+    O(QT_WIDGET_ATTRIBUTE_X11BypassTransientForHint, Qt::WA_X11BypassTransientForHint)            \
+    O(QT_WIDGET_ATTRIBUTE_NativeWindow, Qt::WA_NativeWindow)                                      \
+    O(QT_WIDGET_ATTRIBUTE_DontCreateNativeAncestors, Qt::WA_DontCreateNativeAncestors)            \
+    O(QT_WIDGET_ATTRIBUTE_DontShowOnScreen, Qt::WA_DontShowOnScreen)                              \
+    O(QT_WIDGET_ATTRIBUTE_X11NetWmWindowTypeDesktop, Qt::WA_X11NetWmWindowTypeDesktop)            \
+    O(QT_WIDGET_ATTRIBUTE_X11NetWmWindowTypeDock, Qt::WA_X11NetWmWindowTypeDock)                  \
+    O(QT_WIDGET_ATTRIBUTE_X11NetWmWindowTypeToolBar, Qt::WA_X11NetWmWindowTypeToolBar)            \
+    O(QT_WIDGET_ATTRIBUTE_X11NetWmWindowTypeMenu, Qt::WA_X11NetWmWindowTypeMenu)                  \
+    O(QT_WIDGET_ATTRIBUTE_X11NetWmWindowTypeUtility, Qt::WA_X11NetWmWindowTypeUtility)            \
+    O(QT_WIDGET_ATTRIBUTE_X11NetWmWindowTypeSplash, Qt::WA_X11NetWmWindowTypeSplash)              \
+    O(QT_WIDGET_ATTRIBUTE_X11NetWmWindowTypeDialog, Qt::WA_X11NetWmWindowTypeDialog)              \
+    O(QT_WIDGET_ATTRIBUTE_X11NetWmWindowTypeDropDownMenu, Qt::WA_X11NetWmWindowTypeDropDownMenu)  \
+    O(QT_WIDGET_ATTRIBUTE_X11NetWmWindowTypePopupMenu, Qt::WA_X11NetWmWindowTypePopupMenu)        \
+    O(QT_WIDGET_ATTRIBUTE_X11NetWmWindowTypeToolTip, Qt::WA_X11NetWmWindowTypeToolTip)            \
+    O(QT_WIDGET_ATTRIBUTE_X11NetWmWindowTypeNotification, Qt::WA_X11NetWmWindowTypeNotification)  \
+    O(QT_WIDGET_ATTRIBUTE_X11NetWmWindowTypeCombo, Qt::WA_X11NetWmWindowTypeCombo)                \
+    O(QT_WIDGET_ATTRIBUTE_X11NetWmWindowTypeDND, Qt::WA_X11NetWmWindowTypeDND)                    \
+    O(QT_WIDGET_ATTRIBUTE_SetWindowModality, Qt::WA_SetWindowModality)                            \
+    O(QT_WIDGET_ATTRIBUTE_TranslucentBackground, Qt::WA_TranslucentBackground)                    \
+    O(QT_WIDGET_ATTRIBUTE_AcceptTouchEvents, Qt::WA_AcceptTouchEvents)                            \
+    O(QT_WIDGET_ATTRIBUTE_WState_AcceptedTouchBeginEvent, Qt::WA_WState_AcceptedTouchBeginEvent)  \
+    O(QT_WIDGET_ATTRIBUTE_TouchPadAcceptSingleTouchEvents,                                        \
+      Qt::WA_TouchPadAcceptSingleTouchEvents)                                                     \
+    O(QT_WIDGET_ATTRIBUTE_X11DoNotAcceptFocus, Qt::WA_X11DoNotAcceptFocus)                        \
+    O(QT_WIDGET_ATTRIBUTE_AlwaysStackOnTop, Qt::WA_AlwaysStackOnTop)                              \
+    O(QT_WIDGET_ATTRIBUTE_TabletTracking, Qt::WA_TabletTracking)                                  \
+    O(QT_WIDGET_ATTRIBUTE_ContentsMarginsRespectsSafeArea,                                        \
+      Qt::WA_ContentsMarginsRespectsSafeArea)                                                     \
+    O(QT_WIDGET_ATTRIBUTE_StyleSheetTarget, Qt::WA_StyleSheetTarget)
+
+enum QT_Widget_Attribute { ENUMERE_WIDGET_ATTRIBUTE(ENUMERE_DECLARATION_ENUM_IPA) };
+
+void QT_widget_definis_attribut(union QT_Generic_Widget widget,
+                                enum QT_Widget_Attribute attribute);
+void QT_widget_supprime_attribut(union QT_Generic_Widget widget,
+                                 enum QT_Widget_Attribute attribute);
+bool QT_widget_possede_attribut(union QT_Generic_Widget widget,
+                                enum QT_Widget_Attribute attribute);
 
 /** \} */
 

@@ -1387,7 +1387,7 @@ class Window : public QWindow {
     QT_Rappels_Window *m_rappels = nullptr;
 
   public:
-    Window(QT_Rappels_Window *rappels) : m_rappels(rappels)
+    Window(QT_Rappels_Window *rappels, Window *parent) : QWindow(parent), m_rappels(rappels)
     {
         if (!m_rappels) {
             return;
@@ -1428,10 +1428,16 @@ class Window : public QWindow {
     }
 };
 
+struct QT_Window *QT_window_cree_avec_rappels_et_parent(struct QT_Rappels_Window *rappels,
+                                                        struct QT_Window *parent)
+{
+    auto résultat = new Window(rappels, nullptr);
+    return vers_ipa(résultat);
+}
+
 struct QT_Window *QT_window_cree_avec_rappels(struct QT_Rappels_Window *rappels)
 {
-    auto résultat = new Window(rappels);
-    return vers_ipa(résultat);
+    return QT_window_cree_avec_rappels_et_parent(rappels, nullptr);
 }
 
 void QT_window_detruit(struct QT_Window *window)
@@ -2335,6 +2341,12 @@ void QT_widget_cache(QT_Generic_Widget widget)
     qwidget->hide();
 }
 
+bool QT_widget_ferme(QT_Generic_Widget widget)
+{
+    auto qwidget = vers_qt(widget);
+    return qwidget->close();
+}
+
 void QT_widget_definis_visible(QT_Generic_Widget widget, bool ouinon)
 {
     auto qwidget = vers_qt(widget);
@@ -2542,6 +2554,36 @@ QT_Window *QT_widget_donne_window_handle(union QT_Generic_Widget widget)
 {
     VERS_QT(widget);
     return vers_ipa(qwidget->windowHandle());
+}
+
+static Qt::WidgetAttribute convertis_widget_attribute(enum QT_Widget_Attribute attribute)
+{
+    switch (attribute) {
+        ENUMERE_WIDGET_ATTRIBUTE(ENUMERE_TRANSLATION_ENUM_IPA_VERS_QT)
+    }
+    return Qt::WA_Disabled;
+}
+
+void QT_widget_definis_attribut(union QT_Generic_Widget widget, enum QT_Widget_Attribute attribute)
+{
+    VERS_QT(widget);
+    auto qattribute = convertis_widget_attribute(attribute);
+    qwidget->setAttribute(qattribute, true);
+}
+
+void QT_widget_supprime_attribut(union QT_Generic_Widget widget,
+                                 enum QT_Widget_Attribute attribute)
+{
+    VERS_QT(widget);
+    auto qattribute = convertis_widget_attribute(attribute);
+    qwidget->setAttribute(qattribute, false);
+}
+
+bool QT_widget_possede_attribut(union QT_Generic_Widget widget, enum QT_Widget_Attribute attribute)
+{
+    VERS_QT(widget);
+    auto qattribute = convertis_widget_attribute(attribute);
+    return qwidget->testAttribute(qattribute);
 }
 
 /** \} */

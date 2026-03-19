@@ -6,7 +6,7 @@ importe Périphériques;
 
 commence_édition_interractive :: fonc (graphe: *Graphe, souris: *ClicSouris)
 {
-    graphe.mode_interaction = ModeInteractionGraphe.AUCUNE;
+    graphe.mode_interaction = Mode_Interaction_Graphe.AUCUNE;
 
     sélection := graphe.sélection;
 
@@ -17,7 +17,7 @@ commence_édition_interractive :: fonc (graphe: *Graphe, souris: *ClicSouris)
         éléments := sélection.donne_éléments_sélectionnés();
 
         si éléments.taille > 1 {
-            graphe.mode_interaction = ModeInteractionGraphe.DÉPLACE_SÉLECTION_ACTIVE;
+            graphe.mode_interaction = Mode_Interaction_Graphe.DÉPLACE_SÉLECTION_ACTIVE;
             retourne;
         }
 
@@ -25,14 +25,14 @@ commence_édition_interractive :: fonc (graphe: *Graphe, souris: *ClicSouris)
         noeud_actif := graphe.items[éléments[0]] comme *Noeud;
         assert(noeud_actif.type_item == Noeud);
         si commence_connexion_interactive(graphe, noeud_actif, point) {
-            graphe.mode_interaction = ModeInteractionGraphe.CONNEXION_INTERACTIVE;
+            graphe.mode_interaction = Mode_Interaction_Graphe.CONNEXION_INTERACTIVE;
         }
         sinon {
             si noeud_actif.rectangle_drapeau.contient(point) {
                 noeud_actif.bascule_drapeau_rendu();
             }
 
-            graphe.mode_interaction = ModeInteractionGraphe.DÉPLACE_SÉLECTION_ACTIVE;
+            graphe.mode_interaction = Mode_Interaction_Graphe.DÉPLACE_SÉLECTION_ACTIVE;
         }
     
         retourne;
@@ -43,7 +43,7 @@ commence_édition_interractive :: fonc (graphe: *Graphe, souris: *ClicSouris)
 
     si éléments.taille == 0 {
         graphe.définis_noeud_actif(nul);
-        graphe.mode_interaction = ModeInteractionGraphe.UTILISE_OUTIL_SÉLECTION;
+        graphe.mode_interaction = Mode_Interaction_Graphe.UTILISE_OUTIL_SÉLECTION;
         retourne;
     }
 
@@ -55,13 +55,13 @@ commence_édition_interractive :: fonc (graphe: *Graphe, souris: *ClicSouris)
     graphe.définis_noeud_actif(noeud_actif);
 
     si commence_connexion_interactive(graphe, noeud_actif, point) {
-        graphe.mode_interaction = ModeInteractionGraphe.CONNEXION_INTERACTIVE;
+        graphe.mode_interaction = Mode_Interaction_Graphe.CONNEXION_INTERACTIVE;
     }
     sinon {
         si noeud_actif.rectangle_drapeau.contient(point) {
             noeud_actif.bascule_drapeau_rendu();
         }
-        graphe.mode_interaction = ModeInteractionGraphe.DÉPLACE_SÉLECTION_ACTIVE;
+        graphe.mode_interaction = Mode_Interaction_Graphe.DÉPLACE_SÉLECTION_ACTIVE;
     }
 }
 
@@ -110,8 +110,8 @@ termine_édition_interractive :: fonc (graphe: *Graphe, souris: *ClicSouris)
         CONNEXION_INTERACTIVE {
             assert(graphe.connexion_interactive != nul);
             connexion := graphe.connexion_interactive;
-            entrée: *PriseEntrée;
-            sortie: *PriseSortie;
+            entrée: *Prise_Entrée;
+            sortie: *Prise_Sortie;
 
             si connexion.prise_entrée != nul {
                 entrée = connexion.prise_entrée;
@@ -232,7 +232,7 @@ supprime_sélection :: fonc (graphe: *Graphe) -> bool
 /**
  * Retourne vrai si l'entrée et la sortie sont compatibles pour être connectées.
  */
-peut_connecter :: fonc (entrée: *PriseEntrée, sortie: *PriseSortie) -> bool
+peut_connecter :: fonc (entrée: *Prise_Entrée, sortie: *Prise_Sortie) -> bool
 {
     si entrée == nul || sortie == nul {
         retourne faux;
@@ -286,12 +286,12 @@ trouve_prise_contenant :: fonc (prises: []*$T, point: Point2D(r32)) -> *T
     retourne nul;
 }
 
-trouve_prise_sortie :: fonc (noeud: *Noeud, point: Point2D(r32)) -> *PriseSortie
+trouve_prise_sortie :: fonc (noeud: *Noeud, point: Point2D(r32)) -> *Prise_Sortie
 {
     retourne trouve_prise_contenant(noeud.sorties, point);
 }
 
-trouve_prise_sortie :: fonc (graphe: *Graphe, point: Point2D(r32)) -> *PriseSortie
+trouve_prise_sortie :: fonc (graphe: *Graphe, point: Point2D(r32)) -> *Prise_Sortie
 {
     noeud_le_plus_proche := trouve_noeud(graphe, point);
     si noeud_le_plus_proche == nul {
@@ -301,12 +301,12 @@ trouve_prise_sortie :: fonc (graphe: *Graphe, point: Point2D(r32)) -> *PriseSort
     retourne trouve_prise_sortie(noeud_le_plus_proche, point);
 }
 
-trouve_prise_entrée :: fonc (noeud: *Noeud, point: Point2D(r32)) -> *PriseEntrée
+trouve_prise_entrée :: fonc (noeud: *Noeud, point: Point2D(r32)) -> *Prise_Entrée
 {
     retourne trouve_prise_contenant(noeud.entrées, point);
 }
 
-trouve_prise_entrée :: fonc (graphe: *Graphe, point: Point2D(r32)) -> *PriseEntrée
+trouve_prise_entrée :: fonc (graphe: *Graphe, point: Point2D(r32)) -> *Prise_Entrée
 {
     noeud_le_plus_proche := trouve_noeud(graphe, point);
     si noeud_le_plus_proche == nul {
@@ -542,7 +542,7 @@ crée_fichier_de_copie_pour_sélection :: fonc (graphe: *Graphe) -> Optionnel([.
         retourne;
     }
 
-    noeuds_à_copier: [..]*ItemGraphe;
+    noeuds_à_copier: [..]*Item_Graphe;
     connexions_à_copier: [..]*Connexion;
 
     pour éléments {
