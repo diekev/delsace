@@ -4,7 +4,7 @@
 
 importe Fondation;
 
-TypeChaineRecherchée :: énum {
+Type_Chaine_Recherchée :: énum {
     NOM_CANAL_CHAMPS_DE_HAUTEUR;
     NOM_ATTRIBUT_POINT;
     NOM_ATTRIBUT_PRIMITIVE;
@@ -16,9 +16,9 @@ reproduis_bug :: fonc () #cliche ri
     /* Un bit par indice d'entrée où nous devons chercher les canaux.
      * Si le bit N est actif, nous cherchons les canaux dans le noeud
      * connecté à l'indice de prise N. */
-    bits_fonctions_pour_canaux: [TypeChaineRecherchée.nombre_éléments]n64;
+    bits_fonctions_pour_canaux: [Type_Chaine_Recherchée.nombre_éléments]n64;
 
-    bits_fonctions_pour_canaux[TypeChaineRecherchée.NOM_CANAL_CHAMPS_DE_HAUTEUR] |= 2;
+    bits_fonctions_pour_canaux[Type_Chaine_Recherchée.NOM_CANAL_CHAMPS_DE_HAUTEUR] |= 2;
 }
 
 #exécute reproduis_bug();
