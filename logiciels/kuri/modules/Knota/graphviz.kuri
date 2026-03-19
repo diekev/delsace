@@ -6,19 +6,19 @@ importe Numérique;
 /** \nom Disposition automatique des noeuds.
  * \{ */
 
-dispose_noeuds :: fonc (graphe: *Graphe) -> Optionnel(ÉchecOpération)
+dispose_noeuds :: fonc (graphe: *Graphe) -> Optionnel(Échec_Opération)
 {
     texte := donne_texte_graphviz(graphe, "BT");
     diffère déloge(*texte);
 
-    DonnéesPositionNoeud :: struct {
+    Infos_Position_Noeud :: struct {
         nom: chaine;
         x: r32;
         y: r32;
     }
 
-    données_position_noeuds: [..]DonnéesPositionNoeud;
-    diffère déloge(*données_position_noeuds);
+    infos_positions_noeuds: [..]Infos_Position_Noeud;
+    diffère déloge(*infos_positions_noeuds);
 
     discr ouvre_canal_de_communication("dot", "-Tplain") {
         Quelque(canal) {
@@ -54,7 +54,7 @@ dispose_noeuds :: fonc (graphe: *Graphe) -> Optionnel(ÉchecOpération)
                     continue;
                 };
 
-                données := tableau_ajoute_élément(*données_position_noeuds);
+                données := tableau_ajoute_élément(*infos_positions_noeuds);
                 données.nom = lexèmes[1];
                 données.x = (x * 100.0) comme r32;
                 données.y = (y * 100.0) comme r32;
@@ -62,13 +62,13 @@ dispose_noeuds :: fonc (graphe: *Graphe) -> Optionnel(ÉchecOpération)
 
             // À FAIRE(items)
             pour graphe.itère_noeuds() {
-                données := données_position_noeuds[indice_it];
+                données := infos_positions_noeuds[indice_it];
                 assert(it.nom == données.nom);
                 it.définis_position(données.x, données.y);
             }
         }
         sinon {
-            retourne ÉchecOpération("Impossible de se connecter à dot");
+            retourne Échec_Opération("Impossible de se connecter à dot");
         }
     }
 }
@@ -128,40 +128,40 @@ imprime_noeud_graphviz :: fonc (enchaineuse: *Enchaineuse, noeud: *Noeud, nom_po
     nombre_entrées := noeud.entrées.taille;
     nombre_sorties := noeud.sorties.taille;
 
-    ChoixIndexColonne :: énum {
-        PlaceSurPair;
-        PlaceSurImpair;
-        PlaceSurDonné;
+    Choix_Indice_Colonne :: énum {
+        PLACE_SUR_PAIR;
+        PLACE_SUR_IMPAIR;
+        PLACE_SUR_DONNÉ;
     }
 
-    AssignationPriseColonne :: struct {
-        choix_index: ChoixIndexColonne;
+    Assignation_Prise_Colonne :: struct {
+        choix_indice: Choix_Indice_Colonne;
         décalage: z64;
     }
 
-    donne_index_prise_pour_assignation :: fonc (assignation: AssignationPriseColonne, indice_colonne: z64) -> z64
+    donne_index_prise_pour_assignation :: fonc (assignation: Assignation_Prise_Colonne, indice_colonne: z64) -> z64
     {
         index_effectif := indice_colonne - assignation.décalage;
         si index_effectif < 0 {
             retourne -1;
         }
 
-        discr assignation.choix_index {
-            PlaceSurPair {
+        discr assignation.choix_indice {
+            PLACE_SUR_PAIR {
                 si indice_colonne % 2 != 0 {
                     retourne -1;
                 }
 
                 retourne index_effectif / 2;
             }
-            PlaceSurImpair {
+            PLACE_SUR_IMPAIR {
                 si indice_colonne % 2 == 0 {
                     retourne -1;
                 }
 
                 retourne index_effectif / 2;
             }
-            PlaceSurDonné {
+            PLACE_SUR_DONNÉ {
                 retourne index_effectif;
             }
         }
@@ -169,12 +169,12 @@ imprime_noeud_graphviz :: fonc (enchaineuse: *Enchaineuse, noeud: *Noeud, nom_po
         retourne -1;
     }
 
-    assignation_entrée: AssignationPriseColonne;
-    assignation_sortie: AssignationPriseColonne;
+    assignation_entrée: Assignation_Prise_Colonne;
+    assignation_sortie: Assignation_Prise_Colonne;
 
     nombre_de_colonnes := si nombre_entrées == nombre_sorties {
-        assignation_entrée = AssignationPriseColonne(ChoixIndexColonne.PlaceSurDonné, 0);
-        assignation_sortie = AssignationPriseColonne(ChoixIndexColonne.PlaceSurDonné, 0);
+        assignation_entrée = Assignation_Prise_Colonne(Choix_Indice_Colonne.PLACE_SUR_DONNÉ, 0);
+        assignation_sortie = Assignation_Prise_Colonne(Choix_Indice_Colonne.PLACE_SUR_DONNÉ, 0);
 
         nombre_entrées;
     }
@@ -182,14 +182,14 @@ imprime_noeud_graphviz :: fonc (enchaineuse: *Enchaineuse, noeud: *Noeud, nom_po
         si nombre_entrées > nombre_sorties {
             // place les entrées sur les indices paires, sorties sur impaires
             décalage := (nombre_entrées - nombre_sorties) / 2;
-            assignation_entrée = AssignationPriseColonne(ChoixIndexColonne.PlaceSurPair, 0);
-            assignation_sortie = AssignationPriseColonne(ChoixIndexColonne.PlaceSurImpair, décalage);
+            assignation_entrée = Assignation_Prise_Colonne(Choix_Indice_Colonne.PLACE_SUR_PAIR, 0);
+            assignation_sortie = Assignation_Prise_Colonne(Choix_Indice_Colonne.PLACE_SUR_IMPAIR, décalage);
         }
         sinon {
             // place les entrées sur les indices impaires, sorties sur paires
             décalage := (nombre_sorties - nombre_entrées) / 2;
-            assignation_entrée = AssignationPriseColonne(ChoixIndexColonne.PlaceSurImpair, décalage);
-            assignation_sortie = AssignationPriseColonne(ChoixIndexColonne.PlaceSurPair, 0);
+            assignation_entrée = Assignation_Prise_Colonne(Choix_Indice_Colonne.PLACE_SUR_IMPAIR, décalage);
+            assignation_sortie = Assignation_Prise_Colonne(Choix_Indice_Colonne.PLACE_SUR_PAIR, 0);
         }
 
         nombre_entrées + nombre_sorties;
@@ -198,14 +198,14 @@ imprime_noeud_graphviz :: fonc (enchaineuse: *Enchaineuse, noeud: *Noeud, nom_po
         si nombre_entrées > nombre_sorties {
             // décale premier indice
             décalage := (nombre_entrées - nombre_sorties) / 2;
-            assignation_entrée = AssignationPriseColonne(ChoixIndexColonne.PlaceSurDonné, 0);
-            assignation_sortie = AssignationPriseColonne(ChoixIndexColonne.PlaceSurDonné, décalage);
+            assignation_entrée = Assignation_Prise_Colonne(Choix_Indice_Colonne.PLACE_SUR_DONNÉ, 0);
+            assignation_sortie = Assignation_Prise_Colonne(Choix_Indice_Colonne.PLACE_SUR_DONNÉ, décalage);
         }
         sinon {
             // décale premier indice
             décalage := (nombre_sorties - nombre_entrées) / 2;
-            assignation_entrée = AssignationPriseColonne(ChoixIndexColonne.PlaceSurDonné, décalage);
-            assignation_sortie = AssignationPriseColonne(ChoixIndexColonne.PlaceSurDonné, 0);
+            assignation_entrée = Assignation_Prise_Colonne(Choix_Indice_Colonne.PLACE_SUR_DONNÉ, décalage);
+            assignation_sortie = Assignation_Prise_Colonne(Choix_Indice_Colonne.PLACE_SUR_DONNÉ, 0);
         }
 
         max(nombre_entrées, nombre_sorties);
