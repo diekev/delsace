@@ -7,7 +7,7 @@ importe Typographie;
 /** \nom Utilitaires
  * \{ */
 
-ThèmeGraphe :: struct {
+Thème_Graphe :: struct {
     couleur_texte: CouleurRVBA;
     couleur_connexion: CouleurRVBA;
     couleur_connexion_interactive: CouleurRVBA;
@@ -97,7 +97,7 @@ ajourne_rectangles_noeuds :: fonc (noeud: *Noeud, origine_en_bas := vrai)
     noeud.rectangle_drapeau.hauteur = noeud.hauteur;
 }
 
-texte_danjo_pour_menu_catégorisation :: fonc (catégorisation: *CatégorisationNoeuds, identifiant: chaine) -> chaine
+texte_danjo_pour_menu_catégorisation :: fonc (catégorisation: *Catégorisation_Noeuds, identifiant: chaine) -> chaine
 {
     enchaineuse: Enchaineuse;
     initialise_enchaineuse(*enchaineuse);
@@ -121,7 +121,7 @@ texte_danjo_pour_menu_catégorisation :: fonc (catégorisation: *Catégorisation
 
 /** \} */
 
-dessine_graphe_igumi :: fonc (graphe: *Graphe, thème: *ThèmeGraphe, fonte: *Fonte)
+dessine_graphe_igumi :: fonc (graphe: *Graphe, thème: *Thème_Graphe, fonte: *Fonte)
 {
     saufsi graphe {
         retourne;
@@ -174,7 +174,7 @@ dessine_graphe_igumi :: fonc (graphe: *Graphe, thème: *ThèmeGraphe, fonte: *Fo
     // }
 }
 
-dessine_noeud_igumi :: fonc (thème: *ThèmeGraphe, fonte: *Fonte, noeud: *Noeud, est_noeud_détail: bool @inutilisée, est_sélectionné: bool)
+dessine_noeud_igumi :: fonc (thème: *Thème_Graphe, fonte: *Fonte, noeud: *Noeud, est_noeud_détail: bool @inutilisée, est_sélectionné: bool)
 {
     // si est_noeud_détail {
     //     dessine_noeud_détail_igumi(thème, noeud, est_sélectionné);
@@ -182,7 +182,7 @@ dessine_noeud_igumi :: fonc (thème: *ThèmeGraphe, fonte: *Fonte, noeud: *Noeud
     dessine_noeud_générique_igumi(thème, fonte, noeud, est_sélectionné);
 }
 
-dessine_noeud_générique_igumi :: fonc (thème: *ThèmeGraphe, fonte: *Fonte, noeud: *Noeud, est_sélectionné: bool)
+dessine_noeud_générique_igumi :: fonc (thème: *Thème_Graphe, fonte: *Fonte, noeud: *Noeud, est_sélectionné: bool)
 {
     ajourne_rectangles_noeuds(noeud);
 
@@ -239,7 +239,7 @@ dessine_prise_igumi :: fonc (prise: *Prise)
     IGUMI.cercle_immédiat(rect, contour, faux);
 }
 
-dessine_connexion_interactive_igumi :: fonc (graphe: *Graphe, thème: *ThèmeGraphe)
+dessine_connexion_interactive_igumi :: fonc (graphe: *Graphe, thème: *Thème_Graphe)
 {
     saufsi graphe.connexion_interactive {
         retourne;
