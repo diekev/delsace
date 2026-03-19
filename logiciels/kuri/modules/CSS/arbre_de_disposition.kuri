@@ -3197,9 +3197,7 @@ inline_box_corrige_hiérarchie :: fonc (base: *Box, créatrice: *CréatriceArbre
     diffère déloge(*anciens_enfants);
 
     inline_box_courant := box;
-    inline_box_courant.enfants.pointeur = nul;
-    inline_box_courant.enfants.taille = 0;
-    inline_box_courant.enfants.capacité = 0;
+    init_de([..]*Box)(*inline_box_courant.enfants);
 
     pour anciens_enfants {
         si it.est_block_level() {
