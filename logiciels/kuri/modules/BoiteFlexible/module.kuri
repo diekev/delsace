@@ -457,6 +457,11 @@ définis_cotation :: fonc (largeur: z32, hauteur: z32) #enligne
     définis_cotation(Cotation(largeur, hauteur));
 }
 
+définis_cotation :: fonc (espace: EspaceDisponible) #enligne
+{
+    définis_cotation(donne_cotation(espace));
+}
+
 définis_rembourrage :: fonc (rembourrage: Rembourrage)
 {
      assert(__boite_courante != nul);

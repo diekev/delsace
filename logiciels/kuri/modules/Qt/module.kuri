@@ -412,7 +412,64 @@ QT_gui_application_definis_curseur :: fonc (curseur: TypeCurseurSystème)
     QT_gui_application_definis_curseur(convertis_type_curseur(curseur));
 }
 
-/** } */
+/** \} */
+
+/* ------------------------------------------------------------------------- */
+/** \nom Conversion Évènement
+ * \{ */
+
+convertis_évènement :: fonc (mouse_event: *QT_MouseEvent, évènement: *Évènement)
+{
+    action: ActionSouris;
+
+    event: QT_Generic_Event = ---;
+    event.mouse_event = mouse_event;
+    type := QT_evenement_donne_type(event);
+    si type == QT_Event_Type.MouseMove {
+        action = ActionSouris.DÉPLACÉE;
+    }
+    sinon si type == QT_Event_Type.MouseButtonPress {
+        action = ActionSouris.PRESSÉE;
+    }
+    sinon si type == QT_Event_Type.MouseButtonRelease {
+        action = ActionSouris.RELACHÉE;
+    }
+    sinon si type == QT_Event_Type.MouseButtonDblClick {
+        action = ActionSouris.DOUBLE_CLIC;
+    }
+    sinon {
+        panique("type évènement non-géré : %", type);
+    }
+
+    clic := donne_clic_souris_depuis_évènement(mouse_event, action);
+    initialise_depuis_clic(évènement, clic);
+}
+
+convertis_évènement :: fonc (wheel_event: *QT_WheelEvent, évènement: *Évènement)
+{
+    clic := donne_clic_souris_depuis_évènement(wheel_event);
+    initialise_depuis_clic(évènement, clic);
+}
+
+convertis_évènement :: fonc (key_event: *QT_KeyEvent, évènement: *Évènement)
+{
+    event: QT_Generic_Event = ---;
+    event.key_event = key_event;
+    type := QT_evenement_donne_type(event);
+
+    évènement.type = TypeÉvènement.Clavier;
+    évènement.touche = table_conversion_clé[QT_key_event_donne_cle(key_event)];
+    évènement.touche_pressée = type == QT_Event_Type.KeyPress;
+    évènement.modificateurs = donne_modificateur_clavier_depuis_qt();
+    évènement.texte = QT_key_event_donne_texte(key_event).vers_kuri();
+    évènement.compte = QT_key_event_donne_compte(key_event);
+    évènement.est_répétée = QT_key_event_est_auto_repete(key_event);
+    évènement.code_scan_natif = QT_key_event_donne_code_scan_natif(key_event);
+    évènement.modificateurs_natifs = QT_key_event_donne_modificateurs_natifs(key_event);
+    évènement.clé_virtuelle_native = QT_key_event_donne_cle_virtuelle_native(key_event);
+}
+
+/** \} */
 
 /* ------------------------------------------------------------------------- */
 /** \nom FileParallèle

@@ -279,6 +279,20 @@ ImageIO_Chaine IMG_donne_liste_extensions(void)
     return résultat;
 }
 
+void IMG_donne_erreur(ImageIO_Chaine *résultat)
+{
+    auto erreur = OIIO::geterror();
+    if (erreur.size()) {
+        résultat->caractères = new char[erreur.size()];
+        résultat->taille = erreur.size();
+        memcpy(const_cast<char *>(résultat->caractères), erreur.c_str(), erreur.size());
+    }
+    else {
+        résultat->caractères = nullptr;
+        résultat->taille = 0;
+    }
+}
+
 // À FAIRE : paramétrise les calques à écrire.
 ResultatOperation IMG_ecris_image_avec_adaptrice(const char *chemin,
                                                  int64_t taille_chemin,
