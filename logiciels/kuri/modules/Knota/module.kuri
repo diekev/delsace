@@ -48,7 +48,7 @@ MessageGrapheNoeudRenduModifiée :: "noeud_rendu";
 /** \nom Structure de base pour définir des paramètres de noeud.
  * \{ */
 
-ParamètresNoeud :: struct {
+Paramètres_Noeud :: struct {
     /* Chaque bit représente un paramètre dans les structures dérivées.
      * Si un bit est actif, le paramètre sera noté comme actif pour l'interface. */
     _état_params : n64 = 0xffff_ffff_ffff_ffff;
@@ -58,22 +58,22 @@ ParamètresNoeud :: struct {
      * Ceci est remis à zéro après chaque exécution. */
     _fut_modifié : n64 = 0xffff_ffff_ffff_ffff;
 
-    rappel_ajourne_état_paramètres: fonc (params: *ParamètresNoeud);
+    rappel_ajourne_état_paramètres: fonc (params: *Paramètres_Noeud);
 }
 
-ajourne_état_paramètres :: fonc (params: *ParamètresNoeud)
+ajourne_état_paramètres :: fonc (params: *Paramètres_Noeud)
 {
     si params.rappel_ajourne_état_paramètres {
         params.rappel_ajourne_état_paramètres(params);
     }
 }
 
-désactive_tout :: fonc (params: *ParamètresNoeud)
+désactive_tout :: fonc (params: *Paramètres_Noeud)
 {
     params._état_params = 0;
 }
 
-active_tout :: fonc (params: *ParamètresNoeud)
+active_tout :: fonc (params: *Paramètres_Noeud)
 {
     params._état_params = 0xffff_ffff_ffff_ffff;
 }
@@ -96,7 +96,7 @@ Prise :: struct {
     rectangle: RectanglePosDim(r32); // @mutable
 } @ToujoursPointeur
 
-PriseEntrée :: struct {
+Prise_Entrée :: struct {
     empl base: Prise;
 
     /* À FAIRE : multiple connexions. */
@@ -104,12 +104,12 @@ PriseEntrée :: struct {
 }
 
 /* Retourne l'indice de la prise la liste de prises d'entrées du noeud parent. */
-donne_indice :: fonc (prise: *PriseEntrée) -> z64
+donne_indice :: fonc (prise: *Prise_Entrée) -> z64
 {
     retourne tableau_donne_indice(prise.noeud_parent.entrées, prise);
 }
 
-déloge_prise_entrée :: fonc (prise: *PriseEntrée)
+déloge_prise_entrée :: fonc (prise: *Prise_Entrée)
 {
     connexion := déconnecte(prise);
     si connexion {
@@ -118,19 +118,19 @@ déloge_prise_entrée :: fonc (prise: *PriseEntrée)
     déloge(*prise);
 }
 
-PriseSortie :: struct {
+Prise_Sortie :: struct {
     empl base: Prise;
 
     connexions: [..]*Connexion @accessible;
 }
 
 /* Retourne l'indice de la prise la liste de prises de sorties du noeud parent. */
-donne_indice :: fonc (prise: *PriseSortie) -> z64
+donne_indice :: fonc (prise: *Prise_Sortie) -> z64
 {
     retourne tableau_donne_indice(prise.noeud_parent.sorties, prise);
 }
 
-déloge_prise_sortie :: fonc (prise: *PriseSortie)
+déloge_prise_sortie :: fonc (prise: *Prise_Sortie)
 {
     marques_connexions_inactives(prise.connexions);
     déloge(*prise.connexions);
@@ -138,7 +138,7 @@ déloge_prise_sortie :: fonc (prise: *PriseSortie)
     déloge(*prise);
 }
 
-déconnecte :: fonc (prise: *PriseEntrée) -> *Connexion
+déconnecte :: fonc (prise: *Prise_Entrée) -> *Connexion
 {
     saufsi prise.connexion {
         retourne nul;
@@ -158,7 +158,7 @@ déconnecte :: fonc (prise: *PriseEntrée) -> *Connexion
     retourne connexion;
 }
 
-déconnecte :: fonc (prise: *PriseSortie)
+déconnecte :: fonc (prise: *Prise_Sortie)
 {
     pour prise.connexions {
         it.prise_entrée.connexion = nul;
@@ -172,8 +172,8 @@ déconnecte :: fonc (prise: *PriseSortie)
  * \{ */
 
 Connexion :: struct {
-    prise_entrée: *PriseEntrée @accessible;
-    prise_sortie: *PriseSortie @accessible;
+    prise_entrée: *Prise_Entrée @accessible;
+    prise_sortie: *Prise_Sortie @accessible;
     active: bool;
 } @ToujoursPointeur
 
@@ -193,9 +193,9 @@ donne_noeud_sortie :: fonc (connexion: *Connexion) -> *Noeud
 /** \nom Données pour créer une connexion interactivement.
  * \{ */
 
-ConnexionInteractive :: struct {
-    prise_entrée: *PriseEntrée @mutable;
-    prise_sortie: *PriseSortie @mutable;
+Connexion_Interactive :: struct {
+    prise_entrée: *Prise_Entrée @mutable;
+    prise_sortie: *Prise_Sortie @mutable;
 
     /* La connexion d'origine ; non-nulle lorsque la connexion
      * interactive commence par une prise entrée (donc une
@@ -210,10 +210,10 @@ ConnexionInteractive :: struct {
 /** \} */
 
 /* ------------------------------------------------------------------------- */
-/** \nom InformationsNoeud.
+/** \nom Informations_Noeud.
  * \{ */
 
-TypeInformationNoeud :: énum {
+Type_Information_Noeud :: énum {
     EXÉCUTION;
     TEMPS;
     MÉMOIRE;
@@ -223,7 +223,7 @@ TypeInformationNoeud :: énum {
     DÉSALLOCATIONS;
 }
 
-nom_info_pour_type :: fonc (type: TypeInformationNoeud) -> chaine
+nom_info_pour_type :: fonc (type: Type_Information_Noeud) -> chaine
 {
     discr type {
         EXÉCUTION {
@@ -253,7 +253,7 @@ nom_info_pour_type :: fonc (type: TypeInformationNoeud) -> chaine
     }
 }
 
-InformationsNoeud :: struct {
+Informations_Noeud :: struct {
     Information :: struct {
         icone: chaine @accessible;
         nom: chaine @accessible;
@@ -271,7 +271,7 @@ InformationsNoeud :: struct {
     besoin_ajournement := vrai;
 }
 
-détruit_section :: fonc (section: InformationsNoeud.Section)
+détruit_section :: fonc (section: Informations_Noeud.Section)
 {
     pour section.infos {
         déloge(*it.texte);
@@ -279,7 +279,7 @@ détruit_section :: fonc (section: InformationsNoeud.Section)
     déloge(*section.infos);
 }
 
-réinitialise :: fonc (infos: *InformationsNoeud)
+réinitialise :: fonc (infos: *Informations_Noeud)
 {
     déloge_tableau_et_ses_éléments(*infos.sections, détruit_section);
     détruit_section(infos.entête);
@@ -287,11 +287,11 @@ réinitialise :: fonc (infos: *InformationsNoeud)
      * manuellement réinitialiser la mémoire pour éviter un double délogement.
      * Puisque le tableau de section est proprement délogé, nous n'avons pas
      * besoin de faire ceci pour lui. */
-    init_de(InformationsNoeud.Section)(*infos.entête);
+    init_de(Informations_Noeud.Section)(*infos.entête);
     infos.besoin_ajournement = vrai;
 }
 
-donne_ou_crée_section :: fonc (infos: *InformationsNoeud, nom_section: chaine) -> *InformationsNoeud.Section
+donne_ou_crée_section :: fonc (infos: *Informations_Noeud, nom_section: chaine) -> *Informations_Noeud.Section
 {
     pour * infos.sections {
         si it.titre == nom_section {
@@ -307,16 +307,16 @@ donne_ou_crée_section :: fonc (infos: *InformationsNoeud, nom_section: chaine) 
 /** \} */
 
 /* ------------------------------------------------------------------------- */
-/** \nom ErreurNoeud.
+/** \nom Erreur_Noeud.
  * \{ */
 
-TypeErreurNoeud :: énum {
+Type_Erreur_Noeud :: énum {
     GÉNÉRALE;
     PARAMÉTRIQUE;
 }
 
-ErreurNoeud :: struct {
-    type: TypeErreurNoeud @accessible;
+Erreur_Noeud :: struct {
+    type: Type_Erreur_Noeud @accessible;
     nom: chaine;
     message: chaine @accessible;
 }
@@ -324,15 +324,15 @@ ErreurNoeud :: struct {
 /** \} */
 
 /* ------------------------------------------------------------------------- */
-/** \nom TableVirtuelleNoeud.
+/** \nom Table_Virtuelle_Noeud.
  * \{ */
 
-MémoireUtilisée :: struct {
+Mémoire_Utilisée :: struct {
     quantité: n64;
 }
 
 /* Table virtuelle pour chaque noeud. */
-TableVirtuelleNoeud :: struct {
+Table_Virtuelle_Noeud :: struct {
     /* Identifiant de classe du noeud. */
     identifiant: chaine;
 
@@ -349,7 +349,7 @@ TableVirtuelleNoeud :: struct {
     sous_graphe: fonc (noeud: *Noeud) -> *Graphe;
 
     /* Retourne la mémoire utilisée pour le cache du noeud. */
-    mémoire_utilisée_pour_cache: fonc (noeud: *Noeud) -> MémoireUtilisée;
+    mémoire_utilisée_pour_cache: fonc (noeud: *Noeud) -> Mémoire_Utilisée;
 
     /* L'info type du noeud. */
     info_type: *InfoTypeStructure;
@@ -361,10 +361,10 @@ TableVirtuelleNoeud :: struct {
 /** \} */
 
 /* ------------------------------------------------------------------------- */
-/** \nom CacheUtilisateur
+/** \nom Cache_Utilisateur
  * \{ */
 
-CacheUtilisateur :: struct {
+Cache_Utilisateur :: struct {
     Entrée :: struct {
         nom: chaine;
         valeur: [..]octet;
@@ -374,7 +374,7 @@ CacheUtilisateur :: struct {
     entrées: [..]Entrée;
 }
 
-détruit_données_cache :: fonc (cache: *CacheUtilisateur)
+détruit_données_cache :: fonc (cache: *Cache_Utilisateur)
 {
     pour cache.entrées {
         déloge_si_logée(*it.nom);
@@ -383,7 +383,7 @@ détruit_données_cache :: fonc (cache: *CacheUtilisateur)
     déloge(*cache.entrées);
 }
 
-donne_ou_crée_entrée_cache :: fonc (cache: *CacheUtilisateur, nom: chaine, doit_persister_sur_disque: bool) -> *CacheUtilisateur.Entrée
+donne_ou_crée_entrée_cache :: fonc (cache: *Cache_Utilisateur, nom: chaine, doit_persister_sur_disque: bool) -> *Cache_Utilisateur.Entrée
 {
     existante := donne_entrée_cache_pour(cache, nom);
     si existante {
@@ -393,7 +393,7 @@ donne_ou_crée_entrée_cache :: fonc (cache: *CacheUtilisateur, nom: chaine, doi
     retourne crée_entrée_cache(cache, nom, doit_persister_sur_disque);
 }
 
-crée_entrée_cache :: fonc (cache: *CacheUtilisateur, nom: chaine, doit_persister_sur_disque: bool) -> *CacheUtilisateur.Entrée
+crée_entrée_cache :: fonc (cache: *Cache_Utilisateur, nom: chaine, doit_persister_sur_disque: bool) -> *Cache_Utilisateur.Entrée
 {
     entrée := tableau_ajoute_élément(*cache.entrées);
     entrée.nom = nom;
@@ -401,7 +401,7 @@ crée_entrée_cache :: fonc (cache: *CacheUtilisateur, nom: chaine, doit_persist
     retourne entrée;
 }
 
-donne_entrée_cache_pour :: fonc (cache: *CacheUtilisateur, nom: chaine) -> *CacheUtilisateur.Entrée
+donne_entrée_cache_pour :: fonc (cache: *Cache_Utilisateur, nom: chaine) -> *Cache_Utilisateur.Entrée
 {
     pour * cache.entrées {
         si it.nom == nom {
@@ -415,10 +415,10 @@ donne_entrée_cache_pour :: fonc (cache: *CacheUtilisateur, nom: chaine) -> *Cac
 /** } */
 
 /* ------------------------------------------------------------------------- */
-/** \nom ItemGraphe.
+/** \nom Item_Graphe.
  * \{ */
 
-ItemGraphe :: struct {
+Item_Graphe :: struct {
     empl observable: Observable;
 
     type_item: type_de_données;
@@ -437,13 +437,13 @@ ItemGraphe :: struct {
     est_dans_la_sélection := faux;
 }
 
-détruit_données_item_graphe :: fonc (item: *ItemGraphe)
+détruit_données_item_graphe :: fonc (item: *Item_Graphe)
 {
     détruit_données_observable(item);
     déloge(*item.nom);
 }
 
-détruit_item :: fonc (item: *ItemGraphe)
+détruit_item :: fonc (item: *Item_Graphe)
 {
     si item.type_item == Noeud {
         détruit_noeud(item comme *Noeud);
@@ -453,14 +453,14 @@ détruit_item :: fonc (item: *ItemGraphe)
     }
 }
 
-définis_position :: fonc (item: *ItemGraphe, x: r32, y: r32)
+définis_position :: fonc (item: *Item_Graphe, x: r32, y: r32)
 {
     si item.position.x == x && item.position.y == y {
         retourne;
     }
     item.position.x = x;
     item.position.y = y;
-    /* À FAIRE : remplace ceci par ItemGraphe */
+    /* À FAIRE : remplace ceci par Item_Graphe */
     item.envoie_message(MessageObservable(info_de(Noeud), MessageNoeudPositionChangée));
 }
 
@@ -468,7 +468,7 @@ définis_position :: fonc (item: *ItemGraphe, x: r32, y: r32)
  * Si le graphe parent de l'item possède déjà un item nommé de la sorte, ceci
  * modifiera le nom pour être unique.
  * Si le nom possède des caracètres invalides, ceux-ci seront remplacés par un '_'. */
-définis_nom :: fonc (item: *ItemGraphe, nom: chaine)
+définis_nom :: fonc (item: *Item_Graphe, nom: chaine)
 {
     assert(item.graphe_parent != nul);
 
@@ -489,7 +489,7 @@ définis_nom :: fonc (item: *ItemGraphe, nom: chaine)
 /* Définit le nom de l'item sans vérifier que le nom est unique ou valide.
  * Ceci est uilisé lors de la lecture des fichiers de sauvegarde où nous
  * savons que le nom fut déjà unique et valide. */
-définis_nom_sans_vérification :: fonc (item: *ItemGraphe, nom: chaine)
+définis_nom_sans_vérification :: fonc (item: *Item_Graphe, nom: chaine)
 {
     déloge(*item.nom);
     item.nom = copie_chaine(nom);
@@ -506,15 +506,15 @@ définis_nom_sans_vérification :: fonc (item: *ItemGraphe, nom: chaine)
  * \{ */
 
 Noeud :: struct {
-    empl item: ItemGraphe;
+    empl item: Item_Graphe;
     type_item = #type_de_cette_structure;
 
-    table: *TableVirtuelleNoeud;
+    table: *Table_Virtuelle_Noeud;
 
-    entrées: [..]*PriseEntrée @accessible;
-    sorties: [..]*PriseSortie @accessible;
+    entrées: [..]*Prise_Entrée @accessible;
+    sorties: [..]*Prise_Sortie @accessible;
 
-    erreurs: [..]ErreurNoeud @accessible;
+    erreurs: [..]Erreur_Noeud @accessible;
 
     nécessite_exécution := vrai;
 
@@ -522,7 +522,7 @@ Noeud :: struct {
      * À FAIRE : meilleur système. */
     sans_tampon: bool;
 
-    informations: InformationsNoeud;
+    informations: Informations_Noeud;
 
     hauteur: r32 @mutable;
     largeur: r32 @mutable;
@@ -533,10 +533,10 @@ Noeud :: struct {
 
     drapeau_rendu: bool;
 
-    table_paramètres: *TableParamètres @accessible;
+    table_paramètres: *Table_Paramètres @accessible;
 
     /* Informations n'existant que lors de l'exécution du programme. */
-    MémoireVive :: struct {
+    Mémoire_Vive :: struct {
         /* Chemin du noeud, mise en cache lors de la requête de celui-ci. */
         chemin: chaine;
 
@@ -553,8 +553,8 @@ Noeud :: struct {
         stats_allocations: StatsAllocations;
     }
 
-    mémoire_vive: MémoireVive;
-    cache: CacheUtilisateur;
+    mémoire_vive: Mémoire_Vive;
+    cache: Cache_Utilisateur;
 } @ToujoursPointeur
 
 identifiant :: fonc (noeud: *Noeud) -> chaine
@@ -606,7 +606,7 @@ rectangle :: fonc (noeud: *Noeud) -> RectanglePosDim(r32)
     retourne RectanglePosDim(r32)(noeud.position.x, noeud.position.y, noeud.hauteur, noeud.largeur);
 }
 
-prise_entrée :: fonc (noeud: *Noeud, nom: chaine) -> *PriseEntrée
+prise_entrée :: fonc (noeud: *Noeud, nom: chaine) -> *Prise_Entrée
 {
     pour noeud.entrées {
         si it.nom == nom {
@@ -617,7 +617,7 @@ prise_entrée :: fonc (noeud: *Noeud, nom: chaine) -> *PriseEntrée
     retourne nul;
 }
 
-prise_sortie :: fonc (noeud: *Noeud, nom: chaine) -> *PriseSortie
+prise_sortie :: fonc (noeud: *Noeud, nom: chaine) -> *Prise_Sortie
 {
     pour noeud.sorties {
         si it.nom == nom {
@@ -628,14 +628,14 @@ prise_sortie :: fonc (noeud: *Noeud, nom: chaine) -> *PriseSortie
     retourne nul;
 }
 
-marque_amont_prise_modifié :: fonc (noeud: *Noeud, prise: *PriseEntrée)
+marque_amont_prise_modifié :: fonc (noeud: *Noeud, prise: *Prise_Entrée)
 {
     indice_prise := prise.donne_indice();
     noeud.mémoire_vive.amont_prise_modifié |= 1 << (indice_prise comme n32);
     noeud.marque_nécessite_exécution();
 }
 
-marque_amont_prise_modifié :: fonc (entrée: *PriseEntrée)
+marque_amont_prise_modifié :: fonc (entrée: *Prise_Entrée)
 {
     entrée.noeud_parent.marque_amont_prise_modifié(entrée);
 }
@@ -658,7 +658,7 @@ amont_prise_est_modifié :: fonc (noeud: *Noeud, indice: z32)
 
 ajoute_entrée :: fonc (noeud: *Noeud, nom: chaine, type : TypePrise = 0)
 {
-    entrée := loge(PriseEntrée);
+    entrée := loge(Prise_Entrée);
     entrée.noeud_parent = noeud;
     entrée.nom = nom;
     entrée.type = type;
@@ -667,7 +667,7 @@ ajoute_entrée :: fonc (noeud: *Noeud, nom: chaine, type : TypePrise = 0)
 
 ajoute_sortie :: fonc (noeud: *Noeud, nom: chaine, type : TypePrise = 0)
 {
-    sortie := loge(PriseSortie);
+    sortie := loge(Prise_Sortie);
     sortie.noeud_parent = noeud;
     sortie.nom = nom;
     sortie.type = type;
@@ -704,14 +704,14 @@ détruit_noeud :: fonc (noeud: *Noeud)
     }
 }
 
-ÉchecOpération :: struct {
+Échec_Opération :: struct {
     message: chaine @accessible;
 }
 
-crée_noeud :: fonc (noeud_parent: *Noeud, identifiant: chaine, nom := "") -> Résultat(*Noeud, ÉchecOpération)
+crée_noeud :: fonc (noeud_parent: *Noeud, identifiant: chaine, nom := "") -> Résultat(*Noeud, Échec_Opération)
 {
     si identifiant == "" {
-        retourne ÉchecOpération("Identifiant nul passé à crée_noeud");
+        retourne Échec_Opération("Identifiant nul passé à crée_noeud");
     }
     si nom == "" {
         nom = identifiant;
@@ -723,7 +723,7 @@ crée_noeud :: fonc (noeud_parent: *Noeud, identifiant: chaine, nom := "") -> R�
 
 enfants :: fonc (noeud_parent: *Noeud) -> []*Noeud
 {
-    // À FAIRE : fuite de mémoire, il faudra pouvoir utiliser ItératriceNoeud depuis Python
+    // À FAIRE : fuite de mémoire, il faudra pouvoir utiliser Itératrice_Noeud depuis Python
     résultat: [..]*Noeud;
     graphe := noeud_parent.donne_sous_graphe();
     si graphe {
@@ -782,7 +782,7 @@ marque_nécessite_exécution :: fonc (noeud: *Noeud)
     }
 }
 
-donne_cache_utilisateur :: fonc (noeud: *Noeud) -> *CacheUtilisateur
+donne_cache_utilisateur :: fonc (noeud: *Noeud) -> *Cache_Utilisateur
 {
     retourne *noeud.cache;
 }
@@ -805,15 +805,15 @@ réinitialise_erreurs :: fonc (noeud: *Noeud)
 
 ajoute_erreur :: fonc (noeud: *Noeud, format: chaine, args: ...eini)
 {
-    ajoute_erreur_impl(noeud, TypeErreurNoeud.GÉNÉRALE, "", format, ...args);
+    ajoute_erreur_impl(noeud, Type_Erreur_Noeud.GÉNÉRALE, "", format, ...args);
 } @Imprimeuse
 
 ajoute_erreur_paramètre :: fonc (noeud: *Noeud, nom: chaine, format: chaine, args: ...eini)
 {
-    ajoute_erreur_impl(noeud, TypeErreurNoeud.PARAMÉTRIQUE, nom, format, ...args);
+    ajoute_erreur_impl(noeud, Type_Erreur_Noeud.PARAMÉTRIQUE, nom, format, ...args);
 } @Imprimeuse
 
-ajoute_erreur_impl :: fonc (noeud: *Noeud, type: TypeErreurNoeud, nom: chaine, format: chaine, args: ...eini)
+ajoute_erreur_impl :: fonc (noeud: *Noeud, type: Type_Erreur_Noeud, nom: chaine, format: chaine, args: ...eini)
 {
     message := imprime_chaine(format, ...args);
 
@@ -833,7 +833,7 @@ paramètre_est_erroné :: fonc (noeud: *Noeud, nom: chaine) -> bool
 erreur_pour_paramètre :: fonc (noeud: *Noeud, nom: chaine) -> chaine
 {
     pour noeud.erreurs {
-        si it.type == TypeErreurNoeud.PARAMÉTRIQUE && it.nom == nom {
+        si it.type == Type_Erreur_Noeud.PARAMÉTRIQUE && it.nom == nom {
             retourne it.message;
         }
     }
@@ -848,7 +848,7 @@ réinitialise_informations :: fonc (noeud: *Noeud)
     réinitialise(*noeud.informations);
 }
 
-ajoute_information :: fonc (noeud: *Noeud, type: TypeInformationNoeud, format: chaine, args: ...eini)
+ajoute_information :: fonc (noeud: *Noeud, type: Type_Information_Noeud, format: chaine, args: ...eini)
 {
     info := tableau_ajoute_élément(*noeud.informations.entête.infos);
     // À FAIRE : icones
@@ -862,7 +862,7 @@ ajoute_information :: fonc (noeud: *Noeud, type: TypeInformationNoeud, format: c
     }
 } @Imprimeuse
 
-ajoute_information_mémoire :: fonc (noeud: *Noeud, type: TypeInformationNoeud, quantité: n64)
+ajoute_information_mémoire :: fonc (noeud: *Noeud, type: Type_Information_Noeud, quantité: n64)
 {
     suffixe := "octets";
     si quantité >= (1024 * 1024 * 1024) {
@@ -881,7 +881,7 @@ ajoute_information_mémoire :: fonc (noeud: *Noeud, type: TypeInformationNoeud, 
     noeud.ajoute_information(type, "% %", quantité, suffixe);
 }
 
-donne_informations :: fonc (noeud: *Noeud) -> InformationsNoeud
+donne_informations :: fonc (noeud: *Noeud) -> Informations_Noeud
 {
     résultat := *noeud.informations;
     si résultat.besoin_ajournement {
@@ -907,10 +907,10 @@ donne_informations :: fonc (noeud: *Noeud) -> InformationsNoeud
     retourne mémoire(résultat);
 }
 
-mémoire_utilisée :: fonc (noeud: *Noeud) -> MémoireUtilisée
+mémoire_utilisée :: fonc (noeud: *Noeud) -> Mémoire_Utilisée
 {
     saufsi noeud.table && noeud.table.mémoire_utilisée_pour_cache {
-        retourne MémoireUtilisée();
+        retourne Mémoire_Utilisée();
     }
 
     retourne noeud.table.mémoire_utilisée_pour_cache(noeud);
@@ -941,22 +941,22 @@ termine_exécution :: fonc (noeud: *Noeud)
         }
     }
 
-    noeud.ajoute_information(TypeInformationNoeud.TEMPS, "% ms", écoulé_seul);
+    noeud.ajoute_information(Type_Information_Noeud.TEMPS, "% ms", écoulé_seul);
 
     si noeud.mémoire_vive.nombre_d_exécutions > 1 {
-        noeud.ajoute_information(TypeInformationNoeud.EXÉCUTION, "% exécutions", noeud.mémoire_vive.nombre_d_exécutions);
+        noeud.ajoute_information(Type_Information_Noeud.EXÉCUTION, "% exécutions", noeud.mémoire_vive.nombre_d_exécutions);
     }
     sinon si noeud.mémoire_vive.nombre_d_exécutions == 1 {
-        noeud.ajoute_information(TypeInformationNoeud.EXÉCUTION, "1 exécution");
+        noeud.ajoute_information(Type_Information_Noeud.EXÉCUTION, "1 exécution");
     }
 
     mém := noeud.mémoire_utilisée().quantité;
-    noeud.ajoute_information_mémoire(TypeInformationNoeud.MÉMOIRE, mém);
+    noeud.ajoute_information_mémoire(Type_Information_Noeud.MÉMOIRE, mém);
 
-    noeud.ajoute_information_mémoire(TypeInformationNoeud.PIC_DE_MÉMOIRE, noeud.mémoire_vive.stats_allocations.pic_de_mémoire);
-    noeud.ajoute_information(TypeInformationNoeud.ALLOCATIONS, "%", noeud.mémoire_vive.stats_allocations.nombre_allocations);
-    noeud.ajoute_information(TypeInformationNoeud.RÉALLOCATIONS, "%", noeud.mémoire_vive.stats_allocations.nombre_réallocations);
-    noeud.ajoute_information(TypeInformationNoeud.DÉSALLOCATIONS, "%", noeud.mémoire_vive.stats_allocations.nombre_désallocations);
+    noeud.ajoute_information_mémoire(Type_Information_Noeud.PIC_DE_MÉMOIRE, noeud.mémoire_vive.stats_allocations.pic_de_mémoire);
+    noeud.ajoute_information(Type_Information_Noeud.ALLOCATIONS, "%", noeud.mémoire_vive.stats_allocations.nombre_allocations);
+    noeud.ajoute_information(Type_Information_Noeud.RÉALLOCATIONS, "%", noeud.mémoire_vive.stats_allocations.nombre_réallocations);
+    noeud.ajoute_information(Type_Information_Noeud.DÉSALLOCATIONS, "%", noeud.mémoire_vive.stats_allocations.nombre_désallocations);
 
     /* Réinitialise les drapeaux d'exécution et de modification. */
     noeud.nécessite_exécution = faux;
@@ -1036,32 +1036,32 @@ garantis_nom_valide :: fonc (nom: chaine) -> chaine
     retourne résultat;
 }
 
-DéduplicatriceNom :: struct {
-    PaireNomEtCompte :: struct {
+Déduplicatrice_Nom :: struct {
+    Paire_Nom_Et_Compte :: struct {
         nom: chaine;
         compte: z32;
     }
 
-    paires_nom_et_compte: [..]PaireNomEtCompte;
+    paires_nom_et_compte: [..]Paire_Nom_Et_Compte;
 }
 
-détruit_paire_nom_et_compte :: fonc (paire: DéduplicatriceNom.PaireNomEtCompte)
+détruit_paire_nom_et_compte :: fonc (paire: Déduplicatrice_Nom.Paire_Nom_Et_Compte)
 {
     déloge(*paire.nom);
 }
 
-détruit_données_déduplicatrice :: fonc (déduplicatrice: *DéduplicatriceNom)
+détruit_données_déduplicatrice :: fonc (déduplicatrice: *Déduplicatrice_Nom)
 {
     déloge_tableau_et_ses_éléments(*déduplicatrice.paires_nom_et_compte, détruit_paire_nom_et_compte);
 }
 
 /* Supprime les caractères invalide du nom, et si le nom existe déjà, retourne
  * le nom suffixé du nombre d'occurences du nom de base dans la liste des noms
- * utilisés de la DéduplicatriceNom. Sinon retourne le nom valide.
+ * utilisés de la Déduplicatrice_Nom. Sinon retourne le nom valide.
  *
  * La chaine retourné est logé dynamiquement en mémoire, l'appeleur est
  * responsable de sa destruction. */
-garantis_nom_valide_et_unique :: fonc (déduplicatrice: *DéduplicatriceNom, nom: chaine) -> chaine
+garantis_nom_valide_et_unique :: fonc (déduplicatrice: *Déduplicatrice_Nom, nom: chaine) -> chaine
 {
     nom_noeud := "";
     nom = garantis_nom_valide(nom);
@@ -1090,7 +1090,7 @@ garantis_nom_valide_et_unique :: fonc (déduplicatrice: *DéduplicatriceNom, nom
 
 // --------------------------------------------------------------
 
-AdaptriceÉlémentsNoeuds :: struct {
+Adaptrice_Éléments_Noeuds :: struct {
     empl base: AdaptriceÉléments;
 
     graphe: *Graphe;
@@ -1100,13 +1100,13 @@ initialise_adaptrice_éléments_noeuds :: fonc (graphe: *Graphe)
 {
     donne_nombre_éléments :: fonc (base: *AdaptriceÉléments) -> z64
     {
-        adaptrice := base comme *AdaptriceÉlémentsNoeuds;
+        adaptrice := base comme *Adaptrice_Éléments_Noeuds;
         retourne adaptrice.graphe.items.taille;
     }
 
     donne_rectangle :: fonc (base: *AdaptriceÉléments, indice: z64) -> RectanglePosDim(r32)
     {
-        adaptrice := base comme *AdaptriceÉlémentsNoeuds;
+        adaptrice := base comme *Adaptrice_Éléments_Noeuds;
         item := adaptrice.graphe.items[indice];
 
         saufsi item.type_item == Noeud {
@@ -1120,7 +1120,7 @@ initialise_adaptrice_éléments_noeuds :: fonc (graphe: *Graphe)
 
     intersecte_rectangle :: fonc (base: *AdaptriceÉléments, indice: z64, rect: RectanglePosDim(r32)) -> bool
     {
-        adaptrice := base comme *AdaptriceÉlémentsNoeuds;
+        adaptrice := base comme *Adaptrice_Éléments_Noeuds;
         item := adaptrice.graphe.items[indice];
 
         saufsi item.type_item == Noeud {
@@ -1159,7 +1159,7 @@ initialise_adaptrice_éléments_noeuds :: fonc (graphe: *Graphe)
     résultat.intersecte_rectangle = intersecte_rectangle;
 }
 
-RafraichissementSélection :: struct {
+Rafraichissement_Sélection :: struct {
     empl base: RappelRafraichissementSélection;
 
     graphe: *Graphe;
@@ -1169,7 +1169,7 @@ RafraichissementSélection :: struct {
 
 sur_rafraichissement_sélection_graphe :: fonc (base: *RappelRafraichissementSélection, état_sélection_éléments: []ÉtatSélectionÉlément)
 {
-    rappel := base comme *RafraichissementSélection;
+    rappel := base comme *Rafraichissement_Sélection;
     graphe := rappel.graphe;
 
     pour état_sélection_éléments {
@@ -1178,7 +1178,7 @@ sur_rafraichissement_sélection_graphe :: fonc (base: *RappelRafraichissementSé
 }
 
 /* Pour les gérer les différentes réponses à des clics. */
-ModeInteractionGraphe :: énum {
+Mode_Interaction_Graphe :: énum {
     AUCUNE;
     CONNEXION_INTERACTIVE;
     DÉPLACE_SÉLECTION_ACTIVE;
@@ -1188,14 +1188,14 @@ ModeInteractionGraphe :: énum {
 Graphe :: struct {
     empl observable: Observable;
 
-    items: [..]*ItemGraphe;
+    items: [..]*Item_Graphe;
     connexions: [..]*Connexion;
     infos: *InfoTypeStructure;
-    table_noeuds: *[..]*TableVirtuelleNoeud;
+    table_noeuds: *[..]*Table_Virtuelle_Noeud;
 
     /* Les noms des noeuds qui se trouvent déjà dans le graphe.
      * Utilisé afin de garantir un nom unique pour chaque noeud. */
-    noms_noeuds_existants: DéduplicatriceNom;
+    noms_noeuds_existants: Déduplicatrice_Nom;
 
     /* Si ce graphe est un graphe d'un noeud, ceci est le noeud en question. */
     noeud_parent: *Noeud @accessible;
@@ -1213,23 +1213,23 @@ Graphe :: struct {
     noeud_pour_information: *Noeud @accessible;
 
     /* Connexion étant créée par l'utilisateur. */
-    connexion_interactive: *ConnexionInteractive @accessible;
+    connexion_interactive: *Connexion_Interactive @accessible;
     /* Pointé par connexion_interactive lors de la création d'une connexion.
      * Ceci nous évite d'allouer de la mémoire. */
-    connexion_interactive_: ConnexionInteractive;
+    connexion_interactive_: Connexion_Interactive;
 
     connexion_pour_survol_noeud: *Connexion;
 
-    mode_interaction: ModeInteractionGraphe;
-    adaptrice_éléments_noeuds: AdaptriceÉlémentsNoeuds;
-    rafraichissement_sélection: RafraichissementSélection;
+    mode_interaction: Mode_Interaction_Graphe;
+    adaptrice_éléments_noeuds: Adaptrice_Éléments_Noeuds;
+    rafraichissement_sélection: Rafraichissement_Sélection;
     géométrie_sélection: *GéométrieSélection;
     sélection: *ÉtatSélection;
 
     utilise_outil_sélection := faux;
 }
 
-initialise_graphe :: fonc (graphe: *Graphe, table_noeuds: *[..]*TableVirtuelleNoeud, noeud_parent: *Noeud)
+initialise_graphe :: fonc (graphe: *Graphe, table_noeuds: *[..]*Table_Virtuelle_Noeud, noeud_parent: *Noeud)
 {
     graphe.table_noeuds = table_noeuds;
     graphe.noeud_parent = noeud_parent;
@@ -1296,7 +1296,7 @@ identifiant_graphe :: fonc (graphe: *Graphe) -> chaine
     retourne graphe.infos.nom;
 }
 
-table_pour_identifiant :: fonc (table: *[..]*TableVirtuelleNoeud, identifiant: chaine) -> *TableVirtuelleNoeud
+table_pour_identifiant :: fonc (table: *[..]*Table_Virtuelle_Noeud, identifiant: chaine) -> *Table_Virtuelle_Noeud
 {
     saufsi table {
         retourne nul;
@@ -1310,12 +1310,12 @@ table_pour_identifiant :: fonc (table: *[..]*TableVirtuelleNoeud, identifiant: c
     retourne nul;
 }
 
-crée_noeud_pour_identifiant :: fonc (table: *[..]*TableVirtuelleNoeud, identifiant: chaine) -> Résultat(*Noeud, ÉchecOpération)
+crée_noeud_pour_identifiant :: fonc (table: *[..]*Table_Virtuelle_Noeud, identifiant: chaine) -> Résultat(*Noeud, Échec_Opération)
 {
     table_noeud := table_pour_identifiant(table, identifiant);
     saufsi table_noeud {
         message := imprime_chaine("Impossible de créer un noeud pour l'identifiant : '%'", identifiant);
-        retourne ÉchecOpération(message);
+        retourne Échec_Opération(message);
     }
 
     noeud := table_noeud.crée_noeud();
@@ -1323,7 +1323,7 @@ crée_noeud_pour_identifiant :: fonc (table: *[..]*TableVirtuelleNoeud, identifi
     retourne noeud;
 }
 
-crée_noeud_pour_identifiant_avec_nom :: fonc (graphe: *Graphe, identifiant: chaine, nom: chaine, vérifie_nom_unique: bool) -> Résultat(*Noeud, ÉchecOpération)
+crée_noeud_pour_identifiant_avec_nom :: fonc (graphe: *Graphe, identifiant: chaine, nom: chaine, vérifie_nom_unique: bool) -> Résultat(*Noeud, Échec_Opération)
 {
     discr crée_noeud_pour_identifiant(graphe.table_noeuds, identifiant) {
         Ok(noeud) {
@@ -1345,7 +1345,7 @@ crée_noeud_pour_identifiant_avec_nom :: fonc (graphe: *Graphe, identifiant: cha
         sinon {}
     }
 
-    retourne ÉchecOpération("Impossible de créer un noeud pour une raison inconnue");
+    retourne Échec_Opération("Impossible de créer un noeud pour une raison inconnue");
 }
 
 insère_noeud :: fonc (graphe: *Graphe, noeud: *Noeud, rend_actif: bool)
@@ -1399,11 +1399,11 @@ supprime_noeud :: fonc (graphe: *Graphe, noeud: *Noeud)
     détruit_noeud(noeud);
 }
 
-ItératriceNoeud :: struct {
+Itératrice_Noeud :: struct {
     graphe: *Graphe;
 }
 
-opérateur pour :: (itératrice: ItératriceNoeud) -> *Noeud
+opérateur pour :: (itératrice: Itératrice_Noeud) -> *Noeud
 {
     graphe := itératrice.graphe;
     indice_noeud: z64;
@@ -1424,9 +1424,9 @@ opérateur pour :: (itératrice: ItératriceNoeud) -> *Noeud
     }
 }
 
-itère_noeuds :: fonc (graphe: *Graphe) -> ItératriceNoeud
+itère_noeuds :: fonc (graphe: *Graphe) -> Itératrice_Noeud
 {
-    retourne ItératriceNoeud(graphe);
+    retourne Itératrice_Noeud(graphe);
 }
 
 trouve_noeud_pour_nom :: fonc (graphe: *Graphe, nom: chaine) -> *Noeud
@@ -1440,7 +1440,7 @@ trouve_noeud_pour_nom :: fonc (graphe: *Graphe, nom: chaine) -> *Noeud
     retourne nul;
 }
 
-crée_connexion :: fonc (graphe: *Graphe, entrée: *PriseEntrée, sortie: *PriseSortie)
+crée_connexion :: fonc (graphe: *Graphe, entrée: *Prise_Entrée, sortie: *Prise_Sortie)
 {
     connexion: *Connexion;
 
@@ -1484,7 +1484,7 @@ déconnecte :: fonc (graphe: *Graphe, noeud: *Noeud)
     }
 }
 
-déconnecte :: fonc (graphe: *Graphe, entrée: *PriseEntrée)
+déconnecte :: fonc (graphe: *Graphe, entrée: *Prise_Entrée)
 {
     connexion := déconnecte(entrée);
     si connexion {
@@ -1556,7 +1556,7 @@ chemin_complet :: fonc (graphe: *Graphe) -> chaine
 
 // --------------------------------------------------------------
 
-débute_connexion_interactive :: fonc (graphe: *Graphe) -> *ConnexionInteractive
+débute_connexion_interactive :: fonc (graphe: *Graphe) -> *Connexion_Interactive
 {
     graphe.connexion_interactive = *graphe.connexion_interactive_;
     graphe.envoie_message(MessageObservable(info_de(Graphe), MessageGrapheConnexionInteractive));
@@ -1568,7 +1568,7 @@ termine_connexion_interactive :: fonc (graphe: *Graphe)
     saufsi graphe.connexion_interactive {
         retourne;
     }
-    init_de(ConnexionInteractive)(graphe.connexion_interactive);
+    init_de(Connexion_Interactive)(graphe.connexion_interactive);
     graphe.connexion_interactive = nul;
     graphe.envoie_message(MessageObservable(info_de(Graphe), MessageGrapheConnexionInteractive));
 }
@@ -1608,7 +1608,7 @@ définis_noeud_actif :: fonc (graphe: *Graphe, noeud: *Noeud)
 
 // --------------------------------------------------------------
 
-CatégorieNoeud :: struct {
+Catégorie_Noeud :: struct {
     nom: chaine @accessible;
     noeuds: [..]chaine; // @accessible
 }
@@ -1617,29 +1617,29 @@ CatégorieNoeud :: struct {
  * d'enregistrements dans un ensemble ordonné. Seul le nom est
  * considéré comme valide. */
 
-opérateur == :: (a: CatégorieNoeud, b: CatégorieNoeud) -> bool
+opérateur == :: (a: Catégorie_Noeud, b: Catégorie_Noeud) -> bool
 {
     retourne a.nom == b.nom;
 }
 
-opérateur < :: (a: CatégorieNoeud, b: CatégorieNoeud) -> bool
+opérateur < :: (a: Catégorie_Noeud, b: Catégorie_Noeud) -> bool
 {
     retourne a.nom < b.nom;
 }
 
-CatégorisationNoeuds :: struct {
+Catégorisation_Noeuds :: struct {
     type_graphe: *InfoTypeStructure;
-    catégories: [..]CatégorieNoeud @accessible;
+    catégories: [..]Catégorie_Noeud @accessible;
 } @ToujoursPointeur
 
-catérorisations_noeuds : [..]CatégorisationNoeuds = ---;
+catérorisations_noeuds : [..]Catégorisation_Noeuds = ---;
 /* Nous utilisons notre propre allocatrices ici car nous ne pouvons pas utiliser
  * une autre allocatrice lors de l'exécution du programme puisque plusieurs
  * catégories sont initialisées via ajoute_init qui alloue dans le contexte global.
  * Ainsi, ajouter des catégories après le début de princiaple nous évite de crasher,  */
 alloc_catégorisations_noeuds: BaseAllocatrice;
 
-crée_catégorisation_noeuds_pour :: fonc (type_graphe: *InfoTypeStructure) -> *CatégorisationNoeuds
+crée_catégorisation_noeuds_pour :: fonc (type_graphe: *InfoTypeStructure) -> *Catégorisation_Noeuds
 {
     existant := trouve_catégorisation_noeuds_pour(type_graphe);
     si existant {
@@ -1657,7 +1657,7 @@ crée_catégorisation_noeuds_pour :: fonc (type_graphe: *InfoTypeStructure) -> *
     }
 }
 
-trouve_catégorisation_noeuds_pour :: fonc (type_graphe: *InfoTypeStructure) -> *CatégorisationNoeuds
+trouve_catégorisation_noeuds_pour :: fonc (type_graphe: *InfoTypeStructure) -> *Catégorisation_Noeuds
 {
     pour * catérorisations_noeuds {
         si it.type_graphe == type_graphe {
@@ -1667,20 +1667,20 @@ trouve_catégorisation_noeuds_pour :: fonc (type_graphe: *InfoTypeStructure) -> 
     retourne nul;
 }
 
-ajoute_catégorie :: fonc (catégorisation: *CatégorisationNoeuds, nom: chaine) -> *CatégorieNoeud
+ajoute_catégorie :: fonc (catégorisation: *Catégorisation_Noeuds, nom: chaine) -> *Catégorie_Noeud
 {
     ctx := contexte();
     ctx.allocatrice = allocatrice_défaut;
     ctx.données_allocatrice = *alloc_catégorisations_noeuds;
 
     pousse_contexte ctx {
-        catégorie: CatégorieNoeud;
+        catégorie: Catégorie_Noeud;
         catégorie.nom = nom;
         retourne ensemble_ajoute_retourne_adresse(*catégorisation.catégories, catégorie);
     }
 }
 
-ajoute_noeud :: fonc (catégorie: *CatégorieNoeud, identifiant: chaine)
+ajoute_noeud :: fonc (catégorie: *Catégorie_Noeud, identifiant: chaine)
 {
     ctx := contexte();
     ctx.allocatrice = allocatrice_défaut;
@@ -1691,50 +1691,50 @@ ajoute_noeud :: fonc (catégorie: *CatégorieNoeud, identifiant: chaine)
     }
 }
 
-catégorisation_noeuds :: fonc (graphe: *Graphe) -> *CatégorisationNoeuds
+catégorisation_noeuds :: fonc (graphe: *Graphe) -> *Catégorisation_Noeuds
 {
     retourne trouve_catégorisation_noeuds_pour(graphe.infos);
 }
 
 // --------------------------------------------------------------
 
-VisiteuseGraphe :: struct {
+Visiteuse_Graphe :: struct {
     pile_de_noeuds: Pile(*Noeud);
     noeuds_visités: [..]*Noeud;
 }
 
-détruit :: fonc (empl visiteuse: *VisiteuseGraphe)
+détruit :: fonc (empl visiteuse: *Visiteuse_Graphe)
 {
     détruit(*pile_de_noeuds);
     déloge(*noeuds_visités);
 }
 
-ajoute_noeud_à_visiter :: fonc (empl visiteuse: *VisiteuseGraphe, noeud: *Noeud)
+ajoute_noeud_à_visiter :: fonc (empl visiteuse: *Visiteuse_Graphe, noeud: *Noeud)
 {
     empile(*pile_de_noeuds, noeud);
 }
 
-possède_noeuds_à_visiter :: fonc (empl visiteuse: *VisiteuseGraphe) -> bool
+possède_noeuds_à_visiter :: fonc (empl visiteuse: *Visiteuse_Graphe) -> bool
 {
     retourne !est_vide(*pile_de_noeuds);
 }
 
-dépile_noeud_à_visiter :: fonc (empl visiteuse: *VisiteuseGraphe) -> *Noeud
+dépile_noeud_à_visiter :: fonc (empl visiteuse: *Visiteuse_Graphe) -> *Noeud
 {
     retourne dépile(*pile_de_noeuds);
 }
 
-a_visité_noeud :: fonc (empl visiteuse: *VisiteuseGraphe, noeud: *Noeud) -> bool
+a_visité_noeud :: fonc (empl visiteuse: *Visiteuse_Graphe, noeud: *Noeud) -> bool
 {
     retourne ensemble_possède(noeuds_visités, noeud);
 }
 
-marque_noeud_visité :: fonc (empl visiteuse: *VisiteuseGraphe, noeud: *Noeud)
+marque_noeud_visité :: fonc (empl visiteuse: *Visiteuse_Graphe, noeud: *Noeud)
 {
     ensemble_ajoute(*noeuds_visités, noeud);
 }
 
-visite_graphe_en_aval :: fonc (visiteuse: *VisiteuseGraphe, rappel: fonc (noeud: *Noeud, prise: *PriseEntrée))
+visite_graphe_en_aval :: fonc (visiteuse: *Visiteuse_Graphe, rappel: fonc (noeud: *Noeud, prise: *Prise_Entrée))
 {
     tantque visiteuse.possède_noeuds_à_visiter() {
         noeud := visiteuse.dépile_noeud_à_visiter();
@@ -1767,7 +1767,7 @@ visite_graphe_en_aval :: fonc (visiteuse: *VisiteuseGraphe, rappel: fonc (noeud:
 propage_nécessite_exécution :: fonc (graphe: *Graphe)
 {
     // imprime("propage_nécessite_exécution(graphe)\n")
-    visiteuse: VisiteuseGraphe;
+    visiteuse: Visiteuse_Graphe;
     diffère détruit(*visiteuse);
 
     pour graphe.itère_noeuds() {
@@ -1778,7 +1778,7 @@ propage_nécessite_exécution :: fonc (graphe: *Graphe)
         ajoute_noeud_à_visiter(*visiteuse, it);
     }
 
-    rappel_visite :: fonc (noeud: *Noeud, prise: *PriseEntrée)
+    rappel_visite :: fonc (noeud: *Noeud, prise: *Prise_Entrée)
     {
         noeud.marque_amont_prise_modifié(prise);
     }
