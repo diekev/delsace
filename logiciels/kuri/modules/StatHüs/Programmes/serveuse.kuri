@@ -233,10 +233,7 @@ donne_trace_pour_message :: fonc (état: *ÉtatMémoire, message: MessageInfoAll
 
     résultat := loge(InfoTraceAllocation);
 
-    résultat.traces = message.traces;
-    message.traces.taille = 0;
-    message.traces.pointeur = nul;
-    message.traces.capacité = 0;
+    résultat.traces = tableau_vole_mémoire(*message.traces);
 
     pour * résultat.traces {
         it.nom = copie_chaine(it.nom);

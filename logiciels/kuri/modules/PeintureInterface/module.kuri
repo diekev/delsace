@@ -1022,16 +1022,7 @@ dessine_rectangle_igumi :: fonc (peintre: *Peintre @inutilisée, rectangle_peint
     couleur := donne_couleur_igumi(couleur_peintre);
 
     commence_immédiat(ModeImmédiat.LIGNES, IDNuanceur.Basique);
-
-    p0 := Point2D(r32)(rectangle.x, rectangle.y);
-    p1 := Point2D(r32)(rectangle.x, rectangle.y + rectangle.hauteur);
-    p2 := Point2D(r32)(rectangle.x + rectangle.largeur, rectangle.y + rectangle.hauteur);
-    p3 := Point2D(r32)(rectangle.x + rectangle.largeur, rectangle.y);
-
-    segment_immédiat(p0.x, p0.y, p1.x, p1.y, couleur);
-    segment_immédiat(p1.x, p1.y, p2.x, p2.y, couleur);
-    segment_immédiat(p2.x, p2.y, p3.x, p3.y, couleur);
-    segment_immédiat(p3.x, p3.y, p0.x, p0.y, couleur);
+    contour_quad_immédiat(rectangle, couleur);
 }
 
 remplis_rectangle_igumi :: fonc (peintre: *Peintre @inutilisée, rectangle_peintre: RectanglePeintre, couleur_peintre: CouleurPeintre)
