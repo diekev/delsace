@@ -2,11 +2,11 @@ importe Image;
 importe Introspection;
 
 /* ------------------------------------------------------------------------- */
-/** \nom TypeFichier
+/** \nom Type_Fichier
  * \{ */
 
 /* ATTENTION : ne pas changer les valeurs, ajouter les suivantes à la fin. */
-TypeFichier :: énum n8 {
+Type_Fichier :: énum n8 {
     Inconnu :: 0;
     HTML :: 1;
     Image :: 2;
@@ -20,7 +20,7 @@ TypeFichier :: énum n8 {
     Géométrie3D :: 10;
 }
 
-donne_filtre_extension_pour_type_fichier :: fonc (type: TypeFichier) -> chaine
+donne_filtre_extension_pour_type_fichier :: fonc (type: Type_Fichier) -> chaine
 {
     discr type {
         Inconnu {
@@ -65,12 +65,12 @@ donne_filtre_extension_pour_type_fichier :: fonc (type: TypeFichier) -> chaine
 
 /* ------------------------------------------------------------------------- */
 
-ParamètreBouton :: struct {
+Paramètre_Bouton :: struct {
     texte: chaine;
     rappel: fonc (noeud: *Noeud);
 }
 
-ValeurDéfautParamètre :: union {
+Valeur_Défaut_Paramètre :: union {
     Entier: z64;
     Réel: r64;
     Bool: bool;
@@ -78,10 +78,10 @@ ValeurDéfautParamètre :: union {
     Vec2d: Vec2;
     Vec3d: Vec3;
     Couleur: CouleurRVBA;
-    Bouton: ParamètreBouton;
+    Bouton: Paramètre_Bouton;
 }
 
-valeur_défaut_entier_ex :: fonc (valeur: eini, info_type: *InfoType) -> ValeurDéfautParamètre
+valeur_défaut_entier_ex :: fonc (valeur: eini, info_type: *InfoType) -> Valeur_Défaut_Paramètre
 {
     si info_type == info_de(z8) {
         retourne valeur.comme_z8() comme z64;
@@ -107,12 +107,12 @@ valeur_défaut_entier_ex :: fonc (valeur: eini, info_type: *InfoType) -> ValeurD
     retourne valeur.comme_n64() comme z64;
 }
 
-valeur_défaut_entier :: fonc (valeur: eini) -> ValeurDéfautParamètre
+valeur_défaut_entier :: fonc (valeur: eini) -> Valeur_Défaut_Paramètre
 {
     retourne valeur_défaut_entier_ex(valeur, valeur.info);
 }
 
-valeur_défaut_réel :: fonc (valeur: eini) -> ValeurDéfautParamètre
+valeur_défaut_réel :: fonc (valeur: eini) -> Valeur_Défaut_Paramètre
 {
     si valeur.info == info_de(r32) {
         retourne valeur.comme_r32() comme r64;
@@ -120,41 +120,41 @@ valeur_défaut_réel :: fonc (valeur: eini) -> ValeurDéfautParamètre
     retourne valeur.comme_r64();
 }
 
-valeur_défaut_bool :: fonc (valeur: eini) -> ValeurDéfautParamètre
+valeur_défaut_bool :: fonc (valeur: eini) -> Valeur_Défaut_Paramètre
 {
     retourne mémoire(valeur.pointeur comme *bool);
 }
 
-valeur_défaut_chaine :: fonc (valeur: eini) -> ValeurDéfautParamètre
+valeur_défaut_chaine :: fonc (valeur: eini) -> Valeur_Défaut_Paramètre
 {
     chn := mémoire(valeur.pointeur comme *chaine);
     retourne copie_chaine(chn);
 }
 
-valeur_défaut_vec2 :: fonc (valeur: eini) -> ValeurDéfautParamètre
+valeur_défaut_vec2 :: fonc (valeur: eini) -> Valeur_Défaut_Paramètre
 {
     retourne mémoire(valeur.pointeur comme *Vec2);
 }
 
-valeur_défaut_vec3 :: fonc (valeur: eini) -> ValeurDéfautParamètre
+valeur_défaut_vec3 :: fonc (valeur: eini) -> Valeur_Défaut_Paramètre
 {
     retourne mémoire(valeur.pointeur comme *Vec3);
 }
 
-valeur_défaut_couleur :: fonc (valeur: eini) -> ValeurDéfautParamètre
+valeur_défaut_couleur :: fonc (valeur: eini) -> Valeur_Défaut_Paramètre
 {
     retourne mémoire(valeur.pointeur comme *CouleurRVBA);
 }
 
-valeur_défaut_énum :: fonc (valeur: eini) -> ValeurDéfautParamètre
+valeur_défaut_énum :: fonc (valeur: eini) -> Valeur_Défaut_Paramètre
 {
     info_énum := valeur.info comme *InfoTypeÉnum;
     retourne valeur_défaut_entier_ex(valeur, info_énum.type_sous_jacent);
 }
 
-valeur_défaut_bouton :: fonc (valeur: eini) -> ValeurDéfautParamètre
+valeur_défaut_bouton :: fonc (valeur: eini) -> Valeur_Défaut_Paramètre
 {
-    retourne mémoire(valeur.pointeur comme *ParamètreBouton);
+    retourne mémoire(valeur.pointeur comme *Paramètre_Bouton);
 }
 
 /* ------------------------------------------------------------------------- */
@@ -163,7 +163,7 @@ valeur_défaut_bouton :: fonc (valeur: eini) -> ValeurDéfautParamètre
  * doivent pas changer sauf exception.
  * Elles vont de 10 en 10 afin d'avoir de la place pour que des valeurs de
  * types similaires puissent être proches. */
-TypeParamètre :: énum {
+Type_Paramètre :: énum {
     VALEUR_BOOLÉENNE :: 1;
 
     NOMBRE_RÉEL :: 10;
@@ -188,39 +188,39 @@ TypeParamètre :: énum {
     ÉNUMÉRATION :: 80;
 }
 
-InfoCréationParamètre :: struct {
+Info_Création_Paramètre :: struct {
     infos: *InfoType;
-    type: TypeParamètre;
-    rappel_valeur_défault: fonc (valeur: eini) -> ValeurDéfautParamètre;
+    type: Type_Paramètre;
+    rappel_valeur_défault: fonc (valeur: eini) -> Valeur_Défaut_Paramètre;
 }
 
-détermine_type_paramètre_depuis_info_type :: fonc (info_type: *InfoType) -> Optionnel(InfoCréationParamètre)
+détermine_type_paramètre_depuis_info_type :: fonc (info_type: *InfoType) -> Optionnel(Info_Création_Paramètre)
 {
     si info_type.id == GenreInfoType.ÉNUM {
-        retourne InfoCréationParamètre(info_type, TypeParamètre.ÉNUMÉRATION, valeur_défaut_énum);
+        retourne Info_Création_Paramètre(info_type, Type_Paramètre.ÉNUMÉRATION, valeur_défaut_énum);
     }
 
     paires := [
-        InfoCréationParamètre(info_de(n8), TypeParamètre.NOMBRE_ENTIER, valeur_défaut_entier),
-        InfoCréationParamètre(info_de(n16), TypeParamètre.NOMBRE_ENTIER, valeur_défaut_entier),
-        InfoCréationParamètre(info_de(n32), TypeParamètre.NOMBRE_ENTIER, valeur_défaut_entier),
-        InfoCréationParamètre(info_de(n64), TypeParamètre.NOMBRE_ENTIER, valeur_défaut_entier),
-        InfoCréationParamètre(info_de(z8), TypeParamètre.NOMBRE_ENTIER, valeur_défaut_entier),
-        InfoCréationParamètre(info_de(z16), TypeParamètre.NOMBRE_ENTIER, valeur_défaut_entier),
-        InfoCréationParamètre(info_de(z32), TypeParamètre.NOMBRE_ENTIER, valeur_défaut_entier),
-        InfoCréationParamètre(info_de(z64), TypeParamètre.NOMBRE_ENTIER, valeur_défaut_entier),
-        InfoCréationParamètre(info_de(octet), TypeParamètre.NOMBRE_ENTIER, valeur_défaut_entier),
-        InfoCréationParamètre(info_de(r16), TypeParamètre.NOMBRE_RÉEL, valeur_défaut_réel),
-        InfoCréationParamètre(info_de(r32), TypeParamètre.NOMBRE_RÉEL, valeur_défaut_réel),
-        InfoCréationParamètre(info_de(r64), TypeParamètre.NOMBRE_RÉEL, valeur_défaut_réel),
-        InfoCréationParamètre(info_de(chaine), TypeParamètre.CHAINE, valeur_défaut_chaine),
-        InfoCréationParamètre(info_de(bool), TypeParamètre.VALEUR_BOOLÉENNE, valeur_défaut_bool),
+        Info_Création_Paramètre(info_de(n8), Type_Paramètre.NOMBRE_ENTIER, valeur_défaut_entier),
+        Info_Création_Paramètre(info_de(n16), Type_Paramètre.NOMBRE_ENTIER, valeur_défaut_entier),
+        Info_Création_Paramètre(info_de(n32), Type_Paramètre.NOMBRE_ENTIER, valeur_défaut_entier),
+        Info_Création_Paramètre(info_de(n64), Type_Paramètre.NOMBRE_ENTIER, valeur_défaut_entier),
+        Info_Création_Paramètre(info_de(z8), Type_Paramètre.NOMBRE_ENTIER, valeur_défaut_entier),
+        Info_Création_Paramètre(info_de(z16), Type_Paramètre.NOMBRE_ENTIER, valeur_défaut_entier),
+        Info_Création_Paramètre(info_de(z32), Type_Paramètre.NOMBRE_ENTIER, valeur_défaut_entier),
+        Info_Création_Paramètre(info_de(z64), Type_Paramètre.NOMBRE_ENTIER, valeur_défaut_entier),
+        Info_Création_Paramètre(info_de(octet), Type_Paramètre.NOMBRE_ENTIER, valeur_défaut_entier),
+        Info_Création_Paramètre(info_de(r16), Type_Paramètre.NOMBRE_RÉEL, valeur_défaut_réel),
+        Info_Création_Paramètre(info_de(r32), Type_Paramètre.NOMBRE_RÉEL, valeur_défaut_réel),
+        Info_Création_Paramètre(info_de(r64), Type_Paramètre.NOMBRE_RÉEL, valeur_défaut_réel),
+        Info_Création_Paramètre(info_de(chaine), Type_Paramètre.CHAINE, valeur_défaut_chaine),
+        Info_Création_Paramètre(info_de(bool), Type_Paramètre.VALEUR_BOOLÉENNE, valeur_défaut_bool),
         /* Utilise CHEMIN_FICHIER_ENTRÉE par défaut. Le choix entre entrée/sortie doit se faire via une annotation. */
-        InfoCréationParamètre(info_de(CheminFichier), TypeParamètre.CHEMIN_FICHIER_ENTRÉE, valeur_défaut_chaine),
-        InfoCréationParamètre(info_de(Vec2), TypeParamètre.VEC2, valeur_défaut_vec2),
-        InfoCréationParamètre(info_de(Vec3), TypeParamètre.VEC3, valeur_défaut_vec3),
-        InfoCréationParamètre(info_de(CouleurRVBA), TypeParamètre.COULEUR, valeur_défaut_couleur),
-        InfoCréationParamètre(info_de(ParamètreBouton), TypeParamètre.BOUTON, valeur_défaut_bouton)
+        Info_Création_Paramètre(info_de(CheminFichier), Type_Paramètre.CHEMIN_FICHIER_ENTRÉE, valeur_défaut_chaine),
+        Info_Création_Paramètre(info_de(Vec2), Type_Paramètre.VEC2, valeur_défaut_vec2),
+        Info_Création_Paramètre(info_de(Vec3), Type_Paramètre.VEC3, valeur_défaut_vec3),
+        Info_Création_Paramètre(info_de(CouleurRVBA), Type_Paramètre.COULEUR, valeur_défaut_couleur),
+        Info_Création_Paramètre(info_de(Paramètre_Bouton), Type_Paramètre.BOUTON, valeur_défaut_bouton)
     ];
 
     pour paires {
@@ -236,7 +236,7 @@ détermine_type_paramètre_depuis_info_type :: fonc (info_type: *InfoType) -> Op
 
 /* ------------------------------------------------------------------------- */
 
-TypeChaineRecherchée :: énum {
+Type_Chaine_Recherchée :: énum {
     NOM_CANAL_CHAMPS_DE_HAUTEUR;
     NOM_ATTRIBUT_POINT;
     NOM_ATTRIBUT_PRIMITIVE;
@@ -246,7 +246,7 @@ TypeChaineRecherchée :: énum {
 }
 
 // À FAIRE : déduplique avec les fonctions du métaprogramme
-détermine_index_prise_depuis_annotation :: fonc (infos: *InfoTypeRubriqueStructure, param: *TableParamètres.Paramètre, annotation: *Annotation, type: TypeChaineRecherchée)
+détermine_index_prise_depuis_annotation :: fonc (infos: *InfoTypeRubriqueStructure, param: *Table_Paramètres.Paramètre, annotation: *Annotation, type: Type_Chaine_Recherchée)
 {
     si infos.id != info_de(chaine) {
         // compilatrice_rapporte_erreur("ChercheCanal sur un type n'étant pas une chaine")
@@ -269,29 +269,29 @@ détermine_index_prise_depuis_annotation :: fonc (infos: *InfoTypeRubriqueStruct
     param.index_prise_pour_recherche_chaine = indice comme z32;
 }
 
-parse_annotations_paramètres :: fonc (infos: *InfoTypeRubriqueStructure, param: *TableParamètres.Paramètre)
+parse_annotations_paramètres :: fonc (infos: *InfoTypeRubriqueStructure, param: *Table_Paramètres.Paramètre)
 {
     chaine_min := "";
     chaine_max := "";
 
     pour infos.annotations {
         si it.nom == "ChercheCanal" {
-            détermine_index_prise_depuis_annotation(infos, param, it, TypeChaineRecherchée.NOM_CANAL_CHAMPS_DE_HAUTEUR);
+            détermine_index_prise_depuis_annotation(infos, param, it, Type_Chaine_Recherchée.NOM_CANAL_CHAMPS_DE_HAUTEUR);
         }
         sinon si it.nom == "ChercheAttributPoint" {
-            détermine_index_prise_depuis_annotation(infos, param, it, TypeChaineRecherchée.NOM_ATTRIBUT_POINT);
+            détermine_index_prise_depuis_annotation(infos, param, it, Type_Chaine_Recherchée.NOM_ATTRIBUT_POINT);
         }
         sinon si it.nom == "ChercheAttributPrimitive" {
-            détermine_index_prise_depuis_annotation(infos, param, it, TypeChaineRecherchée.NOM_ATTRIBUT_PRIMITIVE);
+            détermine_index_prise_depuis_annotation(infos, param, it, Type_Chaine_Recherchée.NOM_ATTRIBUT_PRIMITIVE);
         }
         sinon si it.nom == "ChercheAttribut" {
-            détermine_index_prise_depuis_annotation(infos, param, it, TypeChaineRecherchée.NOM_ATTRIBUT);
+            détermine_index_prise_depuis_annotation(infos, param, it, Type_Chaine_Recherchée.NOM_ATTRIBUT);
         }
         sinon si it.nom == "ChercheCalque" {
-            détermine_index_prise_depuis_annotation(infos, param, it, TypeChaineRecherchée.NOM_CALQUE);
+            détermine_index_prise_depuis_annotation(infos, param, it, Type_Chaine_Recherchée.NOM_CALQUE);
         }
         sinon si it.nom == "ChercheColonne" {
-            détermine_index_prise_depuis_annotation(infos, param, it, TypeChaineRecherchée.NOM_COLONNE);
+            détermine_index_prise_depuis_annotation(infos, param, it, Type_Chaine_Recherchée.NOM_COLONNE);
         }
         sinon si it.nom == "min" {
             chaine_min = it.valeur;
@@ -300,20 +300,20 @@ parse_annotations_paramètres :: fonc (infos: *InfoTypeRubriqueStructure, param:
             chaine_max = it.valeur;
         }
         sinon si it.nom == "FichierSortie" {
-            saufsi param.type == TypeParamètre.CHEMIN_FICHIER_ENTRÉE {
+            saufsi param.type == Type_Paramètre.CHEMIN_FICHIER_ENTRÉE {
                 // À FAIRE : erreur
                 continue;
             }
 
-            param.type = TypeParamètre.CHEMIN_FICHIER_SORTIE;
+            param.type = Type_Paramètre.CHEMIN_FICHIER_SORTIE;
         }
         sinon si it.nom == "Dossier" {
-            saufsi param.type == TypeParamètre.CHEMIN_FICHIER_ENTRÉE {
+            saufsi param.type == Type_Paramètre.CHEMIN_FICHIER_ENTRÉE {
                 // À FAIRE : erreur
                 continue;
             }
 
-            param.type = TypeParamètre.DOSSIER;
+            param.type = Type_Paramètre.DOSSIER;
         }
         sinon si it.nom == "Activable" {
             param.est_activable_depuis_interface = vrai;
@@ -325,37 +325,40 @@ parse_annotations_paramètres :: fonc (infos: *InfoTypeRubriqueStructure, param:
             param.non_nul = vrai;
         }
         sinon si it.nom == "Texte" {
-            saufsi param.type == TypeParamètre.CHAINE {
+            saufsi param.type == Type_Paramètre.CHAINE {
                 continue;
             }
-            param.type = TypeParamètre.TEXTE;
+            param.type = Type_Paramètre.TEXTE;
         }
         sinon si it.nom == "Alembic" {
-            param.type_fichier = TypeFichier.Alembic;
+            param.type_fichier = Type_Fichier.Alembic;
         }
         sinon si it.nom == "Image" {
-            param.type_fichier = TypeFichier.Image;
+            param.type_fichier = Type_Fichier.Image;
         }
         sinon si it.nom == "Jorjala" {
-            param.type_fichier = TypeFichier.Jorjala;
+            param.type_fichier = Type_Fichier.Jorjala;
         }
         sinon si it.nom == "OpenVDB" {
-            param.type_fichier = TypeFichier.OpenVDB;
+            param.type_fichier = Type_Fichier.OpenVDB;
         }
         sinon si it.nom == "RessourceJorjala" {
-            param.type_fichier = TypeFichier.RessourceJorjala;
+            param.type_fichier = Type_Fichier.RessourceJorjala;
         }
         sinon si it.nom == "Icone" {
-            param.type_fichier = TypeFichier.Icone;
+            param.type_fichier = Type_Fichier.Icone;
         }
         sinon si it.nom == "Géométrie3D" {
-            param.type_fichier = TypeFichier.Géométrie3D;
+            param.type_fichier = Type_Fichier.Géométrie3D;
         }
         sinon si it.nom == "HTML" {
-            param.type_fichier = TypeFichier.HTML;
+            param.type_fichier = Type_Fichier.HTML;
         }
         sinon si it.nom == "JSON" {
-            param.type_fichier = TypeFichier.JSON;
+            param.type_fichier = Type_Fichier.JSON;
+        }
+        sinon si it.nom == "Lieutenante" {
+            param.lieutenante = it.valeur;
         }
     }
 
@@ -382,48 +385,52 @@ donne_valeur_étiquette_table :: fonc (annotations: []*Annotation) -> chaine
     retourne "ANNOTATION TEXTE INEXISTANTE";
 }
 
-TableParamètres :: struct {
+Table_Paramètres :: struct {
     Paramètre :: struct {
-        struct_paramètres: *ParamètresNoeud;
+        struct_paramètres: *Paramètres_Noeud;
         identifiant: chaine @accessible;
         nom: chaine @accessible;
-        type: TypeParamètre @accessible;
+        lieutenante: chaine;
         /* Pointeur vers la rubrique de struct_paramètres qui correspond à ce paramètre. */
         valeur: eini;
-        valeur_défaut: ValeurDéfautParamètre;
+        valeur_défaut: Valeur_Défaut_Paramètre;
         bit_pour_param: n64;
 
-        limites: Optionnel(LimitesValeurParamètres);
+        limites: Optionnel(Limites_Valeur_Paramètres);
 
-        type_chaine_recherchée: TypeChaineRecherchée;
+        type_chaine_recherchée: Type_Chaine_Recherchée;
+        type: Type_Paramètre @accessible;
         index_prise_pour_recherche_chaine : z64 = -1;
 
-        type_fichier: TypeFichier;
+        type_fichier: Type_Fichier;
         est_activable_depuis_interface: bool;
         est_étiquette: bool;
         non_nul: bool;
+        est_extra: bool;
     } @ToujoursPointeur
 
-    InformationDessin :: union {
+    Information_Dessin :: union {
         AjouteEspaceur: EspaçageTableParamètre;
         DessineÉtiquette: chaine;
         DessineParamètre: *Paramètre;
     }
 
-    informations_dessin: [..]InformationDessin;
+    informations_dessin: [..]Information_Dessin;
 
     paramètres: [..]*Paramètre @accessible;
 
-    struct_paramètres: *ParamètresNoeud;
+    struct_paramètres: *Paramètres_Noeud;
+
+    valeurs_paramètres_extras: [..]eini;
 } @ToujoursPointeur
 
 /* Pour les noeuds n'ayant aucun paramètre. */
-crée_table_paramètres_vide :: fonc () -> *TableParamètres
+crée_table_paramètres_vide :: fonc () -> *Table_Paramètres
 {
-    retourne loge(TableParamètres);
+    retourne loge(Table_Paramètres);
 }
 
-crée_table_paramètres :: fonc (paramètres: *ParamètresNoeud, infos: *InfoTypeStructure) -> *TableParamètres
+crée_table_paramètres :: fonc (paramètres: *Paramètres_Noeud, infos: *InfoTypeStructure) -> *Table_Paramètres
 {
     résultat := crée_table_paramètres_vide();
     résultat.struct_paramètres = paramètres;
@@ -458,7 +465,7 @@ crée_table_paramètres :: fonc (paramètres: *ParamètresNoeud, infos: *InfoTyp
 
         valeur_rubrique := eini_depuis_info_rubrique(valeur_struct, it);
 
-        paramètre := loge(TableParamètres.Paramètre);
+        paramètre := loge(Table_Paramètres.Paramètre);
         paramètre.type = info_création_paramètre.type;
         paramètre.identifiant = it.nom;
         paramètre.nom = it.nom;
@@ -480,7 +487,7 @@ crée_table_paramètres :: fonc (paramètres: *ParamètresNoeud, infos: *InfoTyp
     retourne résultat;
 }
 
-détruit_table_paramètres :: fonc (table: *TableParamètres)
+détruit_table_paramètres :: fonc (table: *Table_Paramètres)
 {
     saufsi table {
         retourne;
@@ -500,12 +507,17 @@ détruit_table_paramètres :: fonc (table: *TableParamètres)
         déloge(*it);
     }
 
+    pour table.valeurs_paramètres_extras {
+        détruit_valeur_paramètre(it);
+    }
+
+    déloge(*table.valeurs_paramètres_extras);
     déloge(*table.informations_dessin);
     déloge(*table.paramètres);
     déloge(*table);
 }
 
-trouve_paramètre :: fonc (noeud: *Noeud, nom_param: chaine) -> *TableParamètres.Paramètre
+trouve_paramètre :: fonc (noeud: *Noeud, nom_param: chaine) -> *Table_Paramètres.Paramètre
 {
     table := noeud.table_paramètres;
     saufsi table {
@@ -514,7 +526,7 @@ trouve_paramètre :: fonc (noeud: *Noeud, nom_param: chaine) -> *TableParamètre
     retourne trouve_paramètre(table, nom_param);
 }
 
-trouve_paramètre :: fonc (table_paramètres: *TableParamètres, nom_param: chaine) -> *TableParamètres.Paramètre
+trouve_paramètre :: fonc (table_paramètres: *Table_Paramètres, nom_param: chaine) -> *Table_Paramètres.Paramètre
 {
     pour table_paramètres.paramètres {
         si it.nom == nom_param {
@@ -525,24 +537,108 @@ trouve_paramètre :: fonc (table_paramètres: *TableParamètres, nom_param: chai
     retourne nul;
 }
 
+crée_paramètre_extra :: fonc (table: *Table_Paramètres, type: Type_Paramètre, identifiant: chaine, nom: chaine) -> *Table_Paramètres.Paramètre
+{
+    assert(trouve_paramètre(table, identifiant) == nul);
+
+    valeur := crée_valeur_pour_paramètre(type);
+
+    nouveau_paramètre := loge(Table_Paramètres.Paramètre);
+    nouveau_paramètre.type = type;
+    nouveau_paramètre.identifiant = copie_chaine(identifiant);
+    nouveau_paramètre.nom = copie_chaine(nom);
+    nouveau_paramètre.valeur = valeur;
+    nouveau_paramètre.bit_pour_param = table.paramètres.taille comme n64;
+    nouveau_paramètre.est_extra = vrai;
+
+    tableau_ajoute(*table.paramètres, nouveau_paramètre);
+
+    info_dessin := tableau_ajoute_élément(*table.informations_dessin);
+    mémoire(info_dessin) = nouveau_paramètre;
+
+    retourne nouveau_paramètre;
+}
+
+crée_valeur_pour_paramètre :: fonc (type: Type_Paramètre) -> eini
+{
+    résultat: eini = ---;
+
+    discr type {
+        VALEUR_BOOLÉENNE {
+            résultat.pointeur = loge(bool);
+            résultat.info = info_de(bool);
+        }
+        NOMBRE_RÉEL {
+            résultat.pointeur = loge(r32);
+            résultat.info = info_de(r32);
+        }
+        NOMBRE_ENTIER {
+            résultat.pointeur = loge(z32);
+            résultat.info = info_de(z32);
+        }
+        VEC2 {
+            résultat.pointeur = loge(Vec2);
+            résultat.info = info_de(Vec2);
+        }
+        VEC3 {
+            résultat.pointeur = loge(Vec3);
+            résultat.info = info_de(Vec3);
+        }
+        BOUTON {
+            résultat.pointeur = nul;
+            résultat.info = nul;
+        }
+        CHAINE,
+        TEXTE,
+        CHEMIN_FICHIER_ENTRÉE,
+        CHEMIN_FICHIER_SORTIE,
+        DOSSIER {
+            résultat.pointeur = loge(chaine);
+            résultat.info = info_de(chaine);
+        }
+        COULEUR {
+            résultat.pointeur = loge(CouleurRVBA);
+            résultat.info = info_de(CouleurRVBA);
+        }
+        ÉNUMÉRATION {
+            résultat.pointeur = loge(z32);
+            résultat.info = info_de(z32);
+        }
+    }
+
+    retourne résultat;
+}
+
+détruit_valeur_paramètre :: fonc (valeur: eini)
+{
+    déloge_mémoire(valeur.info.taille_en_octet comme z64, valeur.pointeur, valeur.info, #position_code_source);
+}
+
 /* ------------------------------------------------------------------------- */
 
-est_type_valeur_chaine :: fonc (param: *TableParamètres.Paramètre) -> bool
+est_type_valeur_chaine :: fonc (param: *Table_Paramètres.Paramètre) -> bool
 {
-    si param.type == TypeParamètre.CHEMIN_FICHIER_ENTRÉE || param.type == TypeParamètre.CHEMIN_FICHIER_SORTIE || param.type == TypeParamètre.DOSSIER || param.type == TypeParamètre.CHAINE || param.type == TypeParamètre.TEXTE {
+    si param.type == Type_Paramètre.CHEMIN_FICHIER_ENTRÉE || param.type == Type_Paramètre.CHEMIN_FICHIER_SORTIE || param.type == Type_Paramètre.DOSSIER || param.type == Type_Paramètre.CHAINE || param.type == Type_Paramètre.TEXTE {
         retourne vrai;
     }
     retourne faux;
 }
 
-est_actif :: fonc (param: *TableParamètres.Paramètre) -> bool
+est_actif :: fonc (param: *Table_Paramètres.Paramètre) -> bool
 {
+    si param.est_extra {
+        retourne vrai;
+    }
+
     bit_pour_param := ((1 comme n64) << param.bit_pour_param);
     retourne (param.struct_paramètres._état_params & bit_pour_param) == bit_pour_param;
 }
 
-définis_actif :: fonc (param: *TableParamètres.Paramètre, ouinon: bool)
+définis_actif :: fonc (param: *Table_Paramètres.Paramètre, ouinon: bool)
 {
+    si param.est_extra {
+        retourne;
+    }
     bit_pour_param := ((1 comme n64) << param.bit_pour_param);
 
     si ouinon {
@@ -553,13 +649,16 @@ définis_actif :: fonc (param: *TableParamètres.Paramètre, ouinon: bool)
     param.struct_paramètres._état_params &= ~bit_pour_param;
 }
 
-marque_modifié :: fonc (param: *TableParamètres.Paramètre)
+marque_modifié :: fonc (param: *Table_Paramètres.Paramètre)
 {
+    si param.est_extra {
+        retourne;
+    }
     bit_pour_param := ((1 comme n64) << param.bit_pour_param);
     param.struct_paramètres._fut_modifié |= bit_pour_param;
 }
 
-noms_valeurs_énum :: fonc (param: *TableParamètres.Paramètre) -> []chaine
+noms_valeurs_énum :: fonc (param: *Table_Paramètres.Paramètre) -> []chaine
 {
     info_énum := param.valeur.info comme *InfoTypeÉnum;
     retourne info_énum.noms;
@@ -567,12 +666,12 @@ noms_valeurs_énum :: fonc (param: *TableParamètres.Paramètre) -> []chaine
 
 /* Définition des valeurs. */
 
-définis_valeur :: fonc (param: *TableParamètres.Paramètre, valeur: $T)
+définis_valeur :: fonc (param: *Table_Paramètres.Paramètre, valeur: $T)
 {
     mémoire(param.valeur.pointeur comme *T) = valeur;
 }
 
-définis_valeur_entier_ex :: fonc (param: *TableParamètres.Paramètre, info_type: *InfoType, valeur: z32)
+définis_valeur_entier_ex :: fonc (param: *Table_Paramètres.Paramètre, info_type: *InfoType, valeur: z32)
 {
     si info_type == info_de(z8) {
         définis_valeur(param, valeur comme z8);
@@ -606,12 +705,12 @@ définis_valeur_entier_ex :: fonc (param: *TableParamètres.Paramètre, info_typ
     définis_valeur(param, valeur comme n64);
 }
 
-définis_valeur_entier :: fonc (param: *TableParamètres.Paramètre, valeur: z32)
+définis_valeur_entier :: fonc (param: *Table_Paramètres.Paramètre, valeur: z32)
 {
     définis_valeur_entier_ex(param, param.valeur.info, valeur);
 }
 
-définis_valeur_réel :: fonc (param: *TableParamètres.Paramètre, valeur: r32)
+définis_valeur_réel :: fonc (param: *Table_Paramètres.Paramètre, valeur: r32)
 {
     si param.valeur.info == info_de(r32) {
         définis_valeur(param, valeur);
@@ -620,34 +719,34 @@ définis_valeur_réel :: fonc (param: *TableParamètres.Paramètre, valeur: r32)
     définis_valeur(param, valeur comme r64);
 }
 
-définis_valeur_bool :: fonc (param: *TableParamètres.Paramètre, valeur: bool)
+définis_valeur_bool :: fonc (param: *Table_Paramètres.Paramètre, valeur: bool)
 {
     définis_valeur(param, valeur);
 }
 
-définis_valeur_chaine :: fonc (param: *TableParamètres.Paramètre, valeur: chaine)
+définis_valeur_chaine :: fonc (param: *Table_Paramètres.Paramètre, valeur: chaine)
 {
     valeur_courante := mémoire(param.valeur.pointeur comme *chaine);
     déloge_si_logée(*valeur_courante);
     définis_valeur(param, copie_chaine(valeur));
 }
 
-définis_valeur_vec2 :: fonc (param: *TableParamètres.Paramètre, valeur: Vec2)
+définis_valeur_vec2 :: fonc (param: *Table_Paramètres.Paramètre, valeur: Vec2)
 {
     définis_valeur(param, valeur);
 }
 
-définis_valeur_vec3 :: fonc (param: *TableParamètres.Paramètre, valeur: Vec3)
+définis_valeur_vec3 :: fonc (param: *Table_Paramètres.Paramètre, valeur: Vec3)
 {
     définis_valeur(param, valeur);
 }
 
-définis_valeur_couleur :: fonc (param: *TableParamètres.Paramètre, valeur: CouleurRVBA)
+définis_valeur_couleur :: fonc (param: *Table_Paramètres.Paramètre, valeur: CouleurRVBA)
 {
     définis_valeur(param, valeur);
 }
 
-définis_valeur_énum :: fonc (param: *TableParamètres.Paramètre, valeur: chaine)
+définis_valeur_énum :: fonc (param: *Table_Paramètres.Paramètre, valeur: chaine)
 {
     info_énum := param.valeur.info comme *InfoTypeÉnum;
 
@@ -659,7 +758,7 @@ définis_valeur_énum :: fonc (param: *TableParamètres.Paramètre, valeur: chai
 
 /* Lecture des valeurs */
 
-lis_valeur_entier_ex :: fonc (param: *TableParamètres.Paramètre, info_type: *InfoType) -> z32
+lis_valeur_entier_ex :: fonc (param: *Table_Paramètres.Paramètre, info_type: *InfoType) -> z32
 {
     valeur := param.valeur;
     si info_type == info_de(z8) {
@@ -687,12 +786,12 @@ lis_valeur_entier_ex :: fonc (param: *TableParamètres.Paramètre, info_type: *I
     retourne valeur.comme_n64() comme z32;
 }
 
-lis_valeur_entier :: fonc (param: *TableParamètres.Paramètre) -> z32
+lis_valeur_entier :: fonc (param: *Table_Paramètres.Paramètre) -> z32
 {
     retourne lis_valeur_entier_ex(param, param.valeur.info);
 }
 
-lis_valeur_réel :: fonc (param: *TableParamètres.Paramètre) -> r32
+lis_valeur_réel :: fonc (param: *Table_Paramètres.Paramètre) -> r32
 {
     valeur := param.valeur;
     si valeur.info == info_de(r32) {
@@ -701,87 +800,87 @@ lis_valeur_réel :: fonc (param: *TableParamètres.Paramètre) -> r32
     retourne valeur.comme_r64() comme r32;
 }
 
-lis_valeur_bool :: fonc (param: *TableParamètres.Paramètre) -> bool
+lis_valeur_bool :: fonc (param: *Table_Paramètres.Paramètre) -> bool
 {
     valeur := param.valeur;
     retourne mémoire(valeur.pointeur comme *bool);
 }
 
-lis_valeur_chaine :: fonc (param: *TableParamètres.Paramètre) -> chaine
+lis_valeur_chaine :: fonc (param: *Table_Paramètres.Paramètre) -> chaine
 {
     valeur := param.valeur;
     chn := mémoire(valeur.pointeur comme *chaine);
     retourne chn;
 }
 
-lis_valeur_vec2 :: fonc (param: *TableParamètres.Paramètre) -> Vec2
+lis_valeur_vec2 :: fonc (param: *Table_Paramètres.Paramètre) -> Vec2
 {
     valeur := param.valeur;
     retourne mémoire(valeur.pointeur comme *Vec2);
 }
 
-lis_valeur_vec3 :: fonc (param: *TableParamètres.Paramètre) -> Vec3
+lis_valeur_vec3 :: fonc (param: *Table_Paramètres.Paramètre) -> Vec3
 {
     valeur := param.valeur;
     retourne mémoire(valeur.pointeur comme *Vec3);
 }
 
-lis_valeur_couleur :: fonc (param: *TableParamètres.Paramètre) -> CouleurRVBA
+lis_valeur_couleur :: fonc (param: *Table_Paramètres.Paramètre) -> CouleurRVBA
 {
     valeur := param.valeur;
     retourne mémoire(valeur.pointeur comme *CouleurRVBA);
 }
 
-lis_valeur_énum :: fonc (param: *TableParamètres.Paramètre) -> chaine
+lis_valeur_énum :: fonc (param: *Table_Paramètres.Paramètre) -> chaine
 {
     retourne donne_nom_énum_pour_valeur(param.valeur);
 }
 
 /* Valeur par défaut. */
 
-valeur_défaut_entier :: fonc (param: *TableParamètres.Paramètre) -> z32
+valeur_défaut_entier :: fonc (param: *Table_Paramètres.Paramètre) -> z32
 {
     v := param.valeur_défaut;
     retourne v.Entier comme z32;
 }
 
-valeur_défaut_réel :: fonc (param: *TableParamètres.Paramètre) -> r32
+valeur_défaut_réel :: fonc (param: *Table_Paramètres.Paramètre) -> r32
 {
     v := param.valeur_défaut;
     retourne v.Réel comme r32;
 }
 
-valeur_défaut_bool :: fonc (param: *TableParamètres.Paramètre) -> bool
+valeur_défaut_bool :: fonc (param: *Table_Paramètres.Paramètre) -> bool
 {
     v := param.valeur_défaut;
     retourne v.Bool;
 }
 
-valeur_défaut_chaine :: fonc (param: *TableParamètres.Paramètre) -> chaine
+valeur_défaut_chaine :: fonc (param: *Table_Paramètres.Paramètre) -> chaine
 {
     v := param.valeur_défaut;
     retourne v.Chaine;
 }
 
-valeur_défaut_vec2 :: fonc (param: *TableParamètres.Paramètre) -> Vec2
+valeur_défaut_vec2 :: fonc (param: *Table_Paramètres.Paramètre) -> Vec2
 {
     v := param.valeur_défaut;
     retourne v.Vec2d;
 }
 
-valeur_défaut_vec3 :: fonc (param: *TableParamètres.Paramètre) -> Vec3
+valeur_défaut_vec3 :: fonc (param: *Table_Paramètres.Paramètre) -> Vec3
 {
     v := param.valeur_défaut;
     retourne v.Vec3d;
 }
 
-valeur_défaut_couleur :: fonc (param: *TableParamètres.Paramètre) -> CouleurRVBA
+valeur_défaut_couleur :: fonc (param: *Table_Paramètres.Paramètre) -> CouleurRVBA
 {
     v := param.valeur_défaut;
     retourne v.Couleur;
 }
 
-valeur_défaut_énum :: fonc (param: *TableParamètres.Paramètre) -> chaine
+valeur_défaut_énum :: fonc (param: *Table_Paramètres.Paramètre) -> chaine
 {
     v := param.valeur_défaut;
     info_énum := param.valeur.info comme *InfoTypeÉnum;
@@ -791,15 +890,15 @@ valeur_défaut_énum :: fonc (param: *TableParamètres.Paramètre) -> chaine
 
 /* Définition des valeurs via un noeud */
 
-marque_param_modifié :: fonc (noeud: *Noeud, param: *TableParamètres.Paramètre)
+marque_param_modifié :: fonc (noeud: *Noeud, param: *Table_Paramètres.Paramètre)
 {
     param.marque_modifié();
     noeud.marque_nécessite_exécution();
 }
 
 /* À FAIRE(langage) : impossible d'avoir un paramètre de sous-type dans un type de fonction polymorphique.
- * Le paramètre $TP devrait être TableParamètres.Paramètre, mais ceci échoue. */
-définis_valeur_param :: fonc (noeud: *Noeud, param: *TableParamètres.Paramètre, nouvelle_valeur: $T, lecture_valeur: fonc($TP)(T), définition_valeur: fonc(TP, T)(rien))
+ * Le paramètre $TP devrait être Table_Paramètres.Paramètre, mais ceci échoue. */
+définis_valeur_param :: fonc (noeud: *Noeud, param: *Table_Paramètres.Paramètre, nouvelle_valeur: $T, lecture_valeur: fonc($TP)(T), définition_valeur: fonc(TP, T)(rien))
 {
     ancienne_valeur := lecture_valeur(param);
     si ancienne_valeur == nouvelle_valeur {
@@ -809,50 +908,52 @@ définis_valeur_param :: fonc (noeud: *Noeud, param: *TableParamètres.Paramètr
     définition_valeur(param, nouvelle_valeur);
     noeud.marque_param_modifié(param);
 
-    ajourne_état_paramètres(param.struct_paramètres);
+    saufsi param.est_extra {
+        ajourne_état_paramètres(param.struct_paramètres);
+    }
 }
 
-définis_param_entier :: fonc (noeud: *Noeud, param: *TableParamètres.Paramètre, nouvelle_valeur: z32)
+définis_param_entier :: fonc (noeud: *Noeud, param: *Table_Paramètres.Paramètre, nouvelle_valeur: z32)
 {
     définis_valeur_param(noeud, param, nouvelle_valeur, lis_valeur_entier, définis_valeur_entier);
 }
 
-définis_param_réel :: fonc (noeud: *Noeud, param: *TableParamètres.Paramètre, nouvelle_valeur: r32)
+définis_param_réel :: fonc (noeud: *Noeud, param: *Table_Paramètres.Paramètre, nouvelle_valeur: r32)
 {
     définis_valeur_param(noeud, param, nouvelle_valeur, lis_valeur_réel, définis_valeur_réel);
 }
 
-définis_param_bool :: fonc (noeud: *Noeud, param: *TableParamètres.Paramètre, nouvelle_valeur: bool)
+définis_param_bool :: fonc (noeud: *Noeud, param: *Table_Paramètres.Paramètre, nouvelle_valeur: bool)
 {
     définis_valeur_param(noeud, param, nouvelle_valeur, lis_valeur_bool, définis_valeur_bool);
 }
 
-définis_param_chaine :: fonc (noeud: *Noeud, param: *TableParamètres.Paramètre, nouvelle_valeur: chaine)
+définis_param_chaine :: fonc (noeud: *Noeud, param: *Table_Paramètres.Paramètre, nouvelle_valeur: chaine)
 {
     définis_valeur_param(noeud, param, nouvelle_valeur, lis_valeur_chaine, définis_valeur_chaine);
 }
 
-définis_param_vec2 :: fonc (noeud: *Noeud, param: *TableParamètres.Paramètre, nouvelle_valeur: Vec2)
+définis_param_vec2 :: fonc (noeud: *Noeud, param: *Table_Paramètres.Paramètre, nouvelle_valeur: Vec2)
 {
     définis_valeur_param(noeud, param, nouvelle_valeur, lis_valeur_vec2, définis_valeur_vec2);
 }
 
-définis_param_vec3 :: fonc (noeud: *Noeud, param: *TableParamètres.Paramètre, nouvelle_valeur: Vec3)
+définis_param_vec3 :: fonc (noeud: *Noeud, param: *Table_Paramètres.Paramètre, nouvelle_valeur: Vec3)
 {
     définis_valeur_param(noeud, param, nouvelle_valeur, lis_valeur_vec3, définis_valeur_vec3);
 }
 
-définis_param_couleur :: fonc (noeud: *Noeud, param: *TableParamètres.Paramètre, nouvelle_valeur: CouleurRVBA)
+définis_param_couleur :: fonc (noeud: *Noeud, param: *Table_Paramètres.Paramètre, nouvelle_valeur: CouleurRVBA)
 {
     définis_valeur_param(noeud, param, nouvelle_valeur, lis_valeur_couleur, définis_valeur_couleur);
 }
 
-définis_param_énum :: fonc (noeud: *Noeud, param: *TableParamètres.Paramètre, nouvelle_valeur: chaine)
+définis_param_énum :: fonc (noeud: *Noeud, param: *Table_Paramètres.Paramètre, nouvelle_valeur: chaine)
 {
     définis_valeur_param(noeud, param, nouvelle_valeur, lis_valeur_énum, définis_valeur_énum);
 }
 
-réinitialise_valeur_défaut :: fonc (noeud: *Noeud, param: *TableParamètres.Paramètre)
+réinitialise_valeur_défaut :: fonc (noeud: *Noeud, param: *Table_Paramètres.Paramètre)
 {
     discr param.type {
         VALEUR_BOOLÉENNE {
@@ -889,16 +990,16 @@ réinitialise_valeur_défaut :: fonc (noeud: *Noeud, param: *TableParamètres.Pa
     }
 }
 
-donne_bouton :: fonc (param: *TableParamètres.Paramètre) -> ParamètreBouton
+donne_bouton :: fonc (param: *Table_Paramètres.Paramètre) -> Paramètre_Bouton
 {
-    assert(param.type == TypeParamètre.BOUTON);
-    retourne mémoire(param.valeur.pointeur comme *ParamètreBouton);
+    assert(param.type == Type_Paramètre.BOUTON);
+    retourne mémoire(param.valeur.pointeur comme *Paramètre_Bouton);
 }
 
-sur_pression :: fonc (noeud: *Noeud, param: *TableParamètres.Paramètre)
+sur_pression :: fonc (noeud: *Noeud, param: *Table_Paramètres.Paramètre)
 {
-    assert(param.type == TypeParamètre.BOUTON);
-    bouton := mémoire(param.valeur.pointeur comme *ParamètreBouton);
+    assert(param.type == Type_Paramètre.BOUTON);
+    bouton := mémoire(param.valeur.pointeur comme *Paramètre_Bouton);
     saufsi bouton.rappel {
         retourne;
     }
@@ -909,27 +1010,27 @@ sur_pression :: fonc (noeud: *Noeud, param: *TableParamètres.Paramètre)
 /* Lectures des limites.
  * \{ */
 
-limites_valeur_entier :: fonc (param: *TableParamètres.Paramètre) -> Limites(z32)
+limites_valeur_entier :: fonc (param: *Table_Paramètres.Paramètre) -> Limites(z32)
 {
     retourne param.limites.Quelque.Entier;
 }
 
-limites_valeur_réel :: fonc (param: *TableParamètres.Paramètre) -> Limites(r32)
+limites_valeur_réel :: fonc (param: *Table_Paramètres.Paramètre) -> Limites(r32)
 {
     retourne param.limites.Quelque.Réel;
 }
 
-limites_valeur_vec2 :: fonc (param: *TableParamètres.Paramètre) -> Limites(r32)
+limites_valeur_vec2 :: fonc (param: *Table_Paramètres.Paramètre) -> Limites(r32)
 {
     retourne param.limites.Quelque.Réel;
 }
 
-limites_valeur_vec3 :: fonc (param: *TableParamètres.Paramètre) -> Limites(r32)
+limites_valeur_vec3 :: fonc (param: *Table_Paramètres.Paramètre) -> Limites(r32)
 {
     retourne param.limites.Quelque.Réel;
 }
 
-limites_valeur_couleur :: fonc (param: *TableParamètres.Paramètre) -> Limites(r32)
+limites_valeur_couleur :: fonc (param: *Table_Paramètres.Paramètre) -> Limites(r32)
 {
     retourne param.limites.Quelque.Réel;
 }
@@ -989,16 +1090,16 @@ limites_pour_nombre_réel :: fonc (info: *InfoType @inutilisée) -> Limites(r32)
     retourne résultat;
 }
 
-LimitesValeurParamètres :: union {
+Limites_Valeur_Paramètres :: union {
     Entier: Limites(z32);
     Réel: Limites(r32);
 }
 
-parse_limites_depuis_min_max :: fonc (infos: *InfoType, param: *TableParamètres.Paramètre, chaine_min: chaine, chaine_max: chaine)
+parse_limites_depuis_min_max :: fonc (infos: *InfoType, param: *Table_Paramètres.Paramètre, chaine_min: chaine, chaine_max: chaine)
 {
     si infos.id == GenreInfoType.ENTIER {
         limites := limites_pour_nombre_entier(infos comme *InfoTypeEntier);
-        diffère param.limites = LimitesValeurParamètres(limites);
+        diffère param.limites = Limites_Valeur_Paramètres(limites);
 
         si chaine_min {
             min := tente extrait_z32(chaine_min) piège _ {
@@ -1025,7 +1126,7 @@ parse_limites_depuis_min_max :: fonc (infos: *InfoType, param: *TableParamètres
 
     si infos.id == GenreInfoType.RÉEL || infos == info_de(Vec2) || infos == info_de(Vec3) || infos == info_de(CouleurRVBA) {
         limites := limites_pour_nombre_réel(infos);
-        diffère param.limites = LimitesValeurParamètres(Réel = limites);
+        diffère param.limites = Limites_Valeur_Paramètres(Réel = limites);
 
         si chaine_min {
             min := tente extrait_r32(chaine_min) piège _ {
@@ -1053,7 +1154,7 @@ parse_limites_depuis_min_max :: fonc (infos: *InfoType, param: *TableParamètres
     /* À FAIRE : erreur. */
 }
 
-détermine_limites_paramètres :: fonc (param: *TableParamètres.Paramètre, rubrique: *InfoTypeRubriqueStructure)
+détermine_limites_paramètres :: fonc (param: *Table_Paramètres.Paramètre, rubrique: *InfoTypeRubriqueStructure)
 {
     si param.limites.possède_valeur() {
         /* Nous avons déjà renseignés les limites lors du parsage des annotations. */
@@ -1061,12 +1162,12 @@ détermine_limites_paramètres :: fonc (param: *TableParamètres.Paramètre, rub
     }
 
     si rubrique.id.id == GenreInfoType.ENTIER {
-        param.limites = LimitesValeurParamètres(limites_pour_nombre_entier(rubrique.id comme *InfoTypeEntier));
+        param.limites = Limites_Valeur_Paramètres(limites_pour_nombre_entier(rubrique.id comme *InfoTypeEntier));
         retourne;
     }
 
     si rubrique.id.id == GenreInfoType.RÉEL || rubrique.id == info_de(Vec2) || rubrique.id == info_de(Vec3) || rubrique.id == info_de(CouleurRVBA) {
-        param.limites = LimitesValeurParamètres(Réel = limites_pour_nombre_réel(rubrique.id));
+        param.limites = Limites_Valeur_Paramètres(Réel = limites_pour_nombre_réel(rubrique.id));
         retourne;
     }
 }

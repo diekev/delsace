@@ -79,10 +79,10 @@ EnveloppeParamètresDanjo :: struct {
     empl base: DNJ_Rappels_Enveloppe_Parametre;
 
     noeud: *Noeud;
-    param: *TableParamètres.Paramètre;
+    param: *Table_Paramètres.Paramètre;
 }
 
-crée_enveloppe_paramètre :: fonc (noeud: *Noeud, param: *TableParamètres.Paramètre) -> *EnveloppeParamètresDanjo
+crée_enveloppe_paramètre :: fonc (noeud: *Noeud, param: *Table_Paramètres.Paramètre) -> *EnveloppeParamètresDanjo
 {
     résultat := loge(EnveloppeParamètresDanjo);
     résultat.param = param;
@@ -116,7 +116,7 @@ crée_enveloppe_paramètre :: fonc (noeud: *Noeud, param: *TableParamètres.Para
     retourne résultat;
 }
 
-donne_type_paramètre_danjo :: fonc (param: *TableParamètres.Paramètre) -> Optionnel(DNJ_Type_Parametre)
+donne_type_paramètre_danjo :: fonc (param: *Table_Paramètres.Paramètre) -> Optionnel(DNJ_Type_Parametre)
 {
     discr param.type {
         CHAINE {
@@ -190,7 +190,7 @@ donne_dimensions_vecteur_danjo :: fonc (rappels: *DNJ_Rappels_Enveloppe_Parametr
 {
     enveloppe := rappels comme *EnveloppeParamètresDanjo;
     param := enveloppe.param;
-    si param.type == TypeParamètre.VEC2 {
+    si param.type == Type_Paramètre.VEC2 {
         retourne 2;
     }
     retourne 3;
@@ -320,7 +320,7 @@ définis_paramètre_bool_danjo :: fonc (rappels: *DNJ_Rappels_Enveloppe_Parametr
     enveloppe := rappels comme *EnveloppeParamètresDanjo;
     param := enveloppe.param;
 
-    si param.type == TypeParamètre.VEC2 {
+    si param.type == Type_Paramètre.VEC2 {
         v := param.lis_valeur_vec2();
         r_valeur[0] = v.x;
         r_valeur[1] = v.y;
@@ -339,7 +339,7 @@ définis_paramètre_vecteur_decimal_danjo :: fonc (rappels: *DNJ_Rappels_Envelop
     param := enveloppe.param;
     noeud := enveloppe.noeud;
 
-    si param.type == TypeParamètre.VEC2 {
+    si param.type == Type_Paramètre.VEC2 {
         v := Vec2(nouvelle_valeur[0], nouvelle_valeur[1]);
         noeud.définis_param_vec2(param, v);
         retourne;
@@ -371,7 +371,7 @@ donne_plage_valeur_vecteur_décimal_danjo :: fonc (rappels: *DNJ_Rappels_Envelop
 {
     enveloppe := rappels comme *EnveloppeParamètresDanjo;
     param := enveloppe.param;
-    si param.type == TypeParamètre.VEC2 {
+    si param.type == Type_Paramètre.VEC2 {
         limites := param.limites_valeur_vec2();
         mémoire(r_min) = limites.min;
         mémoire(r_max) = limites.max;
