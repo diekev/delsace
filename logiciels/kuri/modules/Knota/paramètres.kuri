@@ -1,5 +1,6 @@
 importe Image;
 importe Introspection;
+importe SimpleLexage;
 
 /* ------------------------------------------------------------------------- */
 /** \nom Type_Fichier
@@ -1173,3 +1174,158 @@ détermine_limites_paramètres :: fonc (param: *Table_Paramètres.Paramètre, ru
 }
 
 /* \} */
+
+/* ------------------------------------------------------------------------- */
+/** \nom Expression_Paramètre
+ * \{ */
+
+Expression_Paramètre :: struct {
+    texte: chaine;
+    arbre: Arbre_Expression;
+}
+
+détruit_expression :: fonc (expression: *Expression_Paramètre)
+{
+    déloge(*expression.texte);
+    détruit_arbre(*expression.arbre);
+    déloge(*expression);
+}
+
+parse_expression :: fonc (texte_expression: chaine) -> *Expression_Paramètre
+{
+    // À FAIRE : partage ceci
+    lexeuse: SimpleLexeuse;
+    lexeuse.ponctuations = ["(", ")", "+", "-", "*", "/", ".", "..", "$"];
+    lexeuse.mots_clés = ["éval"];
+    lexeuse.apostrophe_est_caractère_constant = vrai;
+
+    lexeuse.sur_rapport_diagnostique = rapporte_erreur_lexage_expression;
+
+    initialise_lexeuse_pour_texte(*lexeuse, texte_expression);
+
+    // À FAIRE : détecte les cas où il n'y a que des espaces
+    lexème := épie_lexème_suivant(*lexeuse);
+    si lexème.type == TypeLexème.FinDeFichier {
+        retourne nul;
+    }
+
+    arbre: Arbre_Expression;
+    diffère détruit_arbre(*arbre);
+
+    arbre.racine = parse_syntaxème(*arbre, *lexeuse);
+
+    lexème = épie_lexème_suivant(*lexeuse);
+    si lexème.type != TypeLexème.FinDeFichier {
+        // il reste des lexèmes à la fin de l'expression -> invalide
+        retourne nul;
+    }
+
+    résultat := loge(Expression_Paramètre);
+    résultat.texte = texte_expression;
+    résultat.arbre = arbre;
+
+    init_de(Arbre_Expression)(*arbre);
+
+    retourne résultat;
+}
+
+parse_syntaxème :: fonc (arbre: *Arbre_Expression, lexeuse: *SimpleLexeuse) -> *Syntaxème_Expession
+{
+    lexème := donne_lexème_suivant(lexeuse);
+    
+    si est_mot_clé(lexème, "éval") {
+        consomme_ponctuation(lexeuse, "(");
+
+        chemin_référencé := donne_chaine_littérale(lexeuse);
+        si lexeuse.possède_erreur {
+            retourne nul;
+        }
+
+        consomme_ponctuation(lexeuse, ")");
+        si lexeuse.possède_erreur {
+            retourne nul;
+        }
+
+        syntaxème := crée_syntaxème(arbre, Syntaxème_Éval);
+        syntaxème.chemin_référencé = donne_texte(chemin_référencé);
+        retourne syntaxème;
+    }
+
+    retourne nul;
+}
+
+rapporte_erreur_lexage_expression :: fonc (données: eini @inutilisée, diagnostique: *Simple_Diagnostique)
+{
+    imprimeln("%", diagnostique.texte_ligne);
+    imprimeln("%", diagnostique.message);
+}
+
+/** \} */
+
+/* ------------------------------------------------------------------------- */
+/** \nom Arbre_Expression
+ * \{ */
+
+Arbre_Expression :: struct {
+    syntaxèmes: [..]*Syntaxème_Expession;
+    racine: *Syntaxème_Expession;
+}
+
+détruit_arbre :: fonc (arbre: *Arbre_Expression)
+{
+    pour arbre.syntaxèmes {
+        info := it.type comme *InfoTypeStructure;
+        déloge_mémoire(info.taille_en_octet comme z64, it, info, #position_code_source);
+    }
+    déloge(*arbre.syntaxèmes);
+    arbre.racine = nul;
+}
+
+crée_syntaxème :: fonc (arbre: *Arbre_Expression, $T: type_de_données) -> *T
+{
+    résultat := loge(T);
+    tableau_ajoute(*arbre.syntaxèmes, résultat);
+    retourne résultat;
+}
+
+imprime_arbre :: fonc (arbre: *Arbre_Expression)
+{
+    rappel_pour_syntaxème :: fonc (visiteuse: *VisiteuseArbre(Syntaxème_Expession), noeud: *Syntaxème_Expession, info: *InfoTypeStructure @inutilisée) -> VisiteEnfants
+    {
+        imprime_tabulation(visiteuse.profondeur);
+
+        si noeud.type == Syntaxème_Éval {
+            éval := noeud comme *Syntaxème_Éval;
+            imprimeln("éval(\"%\")", éval.chemin_référencé);
+        }
+        sinon {
+            infos := noeud.type comme *InfoTypeStructure;
+            imprimeln("TYPE DE SYNTAXÈME INCONNU %", infos.nom);
+        }
+
+        retourne VisiteEnfants.Oui;
+    }
+
+    visiteuse: VisiteuseArbre(Syntaxème_Expession);
+    visiteuse.rappel_pour_noeud = rappel_pour_syntaxème;
+    visite_noeud(*visiteuse, arbre.racine);
+}
+
+/** \} */
+
+/* ------------------------------------------------------------------------- */
+/** \nom Syntaxème_Expression
+ * \{ */
+
+Syntaxème_Expession :: struct {
+    type: type_de_données;
+}
+
+Syntaxème_Éval :: struct {
+    empl base: Syntaxème_Expession;
+    type = Syntaxème_Éval;
+
+    chemin_référencé: chaine;
+}
+
+/** \} */
