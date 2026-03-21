@@ -408,6 +408,8 @@ Table_Paramètres :: struct {
         est_étiquette: bool;
         non_nul: bool;
         est_extra: bool;
+
+        expression: *Expression_Paramètre;
     } @ToujoursPointeur
 
     Information_Dessin :: union {
@@ -504,6 +506,9 @@ détruit_table_paramètres :: fonc (table: *Table_Paramètres)
                 }
                 sinon {}
             }
+        }
+        si it.expression {
+            détruit_expression(it.expression);
         }
         déloge(*it);
     }
@@ -931,7 +936,23 @@ définis_param_bool :: fonc (noeud: *Noeud, param: *Table_Paramètres.Paramètre
 
 définis_param_chaine :: fonc (noeud: *Noeud, param: *Table_Paramètres.Paramètre, nouvelle_valeur: chaine)
 {
-    définis_valeur_param(noeud, param, nouvelle_valeur, lis_valeur_chaine, définis_valeur_chaine);
+    si param.expression {
+        détruit_expression(param.expression);
+        param.expression = nul;
+    }
+
+    // À FAIRE : ne copie pas par défaut
+    copie_nouvelle_chaine := copie_chaine(nouvelle_valeur);
+
+    expression := parse_expression(copie_nouvelle_chaine);
+    si expression {
+        param.expression = expression;
+        définis_valeur_param(noeud, param, "", lis_valeur_chaine, définis_valeur_chaine);
+    }
+    sinon {
+        déloge(*copie_nouvelle_chaine);
+        définis_valeur_param(noeud, param, nouvelle_valeur, lis_valeur_chaine, définis_valeur_chaine);
+    }
 }
 
 définis_param_vec2 :: fonc (noeud: *Noeud, param: *Table_Paramètres.Paramètre, nouvelle_valeur: Vec2)
@@ -1006,6 +1027,35 @@ sur_pression :: fonc (noeud: *Noeud, param: *Table_Paramètres.Paramètre)
     }
     bouton.rappel(noeud);
 }
+
+/* ------------------------------------------------------------------------- */
+/** \nom Évaluation
+ * \{ */
+
+évalue_param_chemin :: fonc (noeud: *Noeud, nom: chaine) -> CheminFichier
+{
+    résultat: CheminFichier = ---;
+    // À FAIRE : fuite de mémoire
+    résultat.chn = évalue_param_chaine(noeud, nom);
+    résultat = donne_chemin_pour_paramètre(noeud, nom, résultat);
+    retourne résultat;
+}
+
+évalue_param_chaine :: fonc (noeud: *Noeud, nom: chaine) -> chaine
+{
+    param := trouve_paramètre(noeud, nom);
+    saufsi param {
+        retourne "";
+    }
+
+    si param.expression {
+        retourne évalue_expression_chaine(param.expression, noeud, nom);
+    }
+
+    retourne lis_valeur_chaine(param);
+}
+
+/** \} */
 
 /* ------------------------------------------------------------------------- */
 /* Lectures des limites.
@@ -1258,6 +1308,103 @@ rapporte_erreur_lexage_expression :: fonc (données: eini @inutilisée, diagnost
 {
     imprimeln("%", diagnostique.texte_ligne);
     imprimeln("%", diagnostique.message);
+}
+
+// À FAIRE : passe les erreurs
+évalue_expression_chaine :: fonc (expression: *Expression_Paramètre, noeud: *Noeud, param: chaine) -> chaine
+{
+    retourne évalue_syntaxème_chaine(expression.arbre.racine, noeud, param);
+}
+
+évalue_syntaxème_chaine :: fonc (syntaxème: *Syntaxème_Expession, noeud: *Noeud, param: chaine) -> chaine
+{
+    discr syntaxème.type {
+        Syntaxème_Éval {
+            éval := syntaxème comme *Syntaxème_Éval;
+
+            chemin_référencé := éval.chemin_référencé;
+            // À FAIRE : déplace ceci lors de la validation
+            saufsi chemin_référencé {
+                ajoute_erreur_paramètre(noeud, param, "Le chemin référencé par éval est vide");
+            }
+            sinon {
+                chemin_de_base := donne_chemin_complet(noeud);
+                chemin_absolu := crée_chemin_absolu(CheminFichier(chemin_de_base), CheminFichier(chemin_référencé));
+                diffère détruit_chemin(*chemin_absolu);
+
+                chemin_parent_référence := chemin_parent(chemin_absolu);
+                diffère détruit_chemin(*chemin_parent_référence);
+
+                référence := nom_fichier(chemin_absolu);
+
+                racine := noeud;
+                tantque racine.graphe_parent {
+                    racine = racine.graphe_parent.noeud_parent;
+                }
+
+                noeud_référencé := donne_noeud_pour_chemin(racine, chemin_parent_référence.chn);
+                saufsi noeud_référencé {
+                    ajoute_erreur_paramètre(noeud, param, "Impossible de trouver le noeud pour le chemin référencé");
+                }
+                sinon {
+                    param_référencé := trouve_paramètre(noeud_référencé, référence);
+                    saufsi param_référencé {
+                        ajoute_erreur_paramètre(noeud, param, "Impossible de trouver le paramètre référencé");
+                    }
+                    sinon {
+                        // À FAIRE : fonction récursive
+                        résultat := lis_valeur_chaine(param_référencé);
+                        retourne copie_chaine(résultat);
+                    }
+                }
+            }
+        }
+        sinon {
+            infos := syntaxème.type comme *InfoTypeStructure;
+            ajoute_erreur_paramètre(noeud, param, "Type de syntaxème inconnu pour l'évaluation : '%'", infos.nom);
+        }
+    }
+    retourne "";
+}
+
+donne_noeud_pour_chemin :: fonc (racine: *Noeud, chemin: chaine) -> *Noeud
+{
+    morceaux := divise(chemin, '/');
+    diffère déloge(*morceaux);
+
+    saufsi morceaux {
+        retourne nul;
+    }
+
+    saufsi morceaux[0] == racine.nom {
+        retourne nul;
+    }
+
+    graphe_courant := donne_sous_graphe(racine);
+    saufsi graphe_courant {
+        retourne nul;
+    }
+
+    pour 1 ... morceaux.taille - 1 {
+        noeud := trouve_noeud_pour_nom(graphe_courant, morceaux[it]);
+        saufsi noeud {
+            retourne nul;
+        }
+
+        graphe := noeud.donne_sous_graphe();
+        saufsi graphe {
+            si it == morceaux.taille - 1 {
+                arrête;
+            }
+
+            retourne nul;
+        }
+
+        graphe_courant = graphe;
+        racine = noeud;
+    }
+
+    retourne racine;
 }
 
 /** \} */
