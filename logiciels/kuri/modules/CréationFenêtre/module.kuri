@@ -10,13 +10,21 @@ SystèmeFenêtre :: énum {
     NATIVE;
 }
 
+Genre_Fenêtre :: énum {
+    NORMALE;
+    MENU;
+}
+
 Options_Création_Fenêtre :: struct {
+    position_x: z32 = -1;
+    position_y: z32 = -1;
     largeur: z32;
     hauteur: z32;
     titre: chaine;
     maximisée: bool;
     indice_écran: z32;
     avec_barre_de_titre_et_bordures: bool;
+    genre_fenêtre: Genre_Fenêtre;
 }
 
 crée_fenêtre :: fonc (largeur: z32, hauteur: z32, titre: chaine, maximisée := faux, index_écran := 0, avec_barre_de_titre_et_bordures := vrai, système := SystèmeFenêtre.QT, parent: *Port_Fenêtre_Native = nul) -> Port_Fenêtre_Native
@@ -325,6 +333,16 @@ qt_crée_fenêtre :: fonc (empl options: *Options_Création_Fenêtre, parent: *P
     }
 
     QT_window_resize(window, largeur, hauteur);
+
+    si genre_fenêtre == Genre_Fenêtre.MENU {
+        flags := QT_window_flags(window);
+        flags |= QT_Window_Flags.Popup;
+        QT_window_set_flags(window, flags);
+    }
+
+    si position_x != -1 && position_y != -1 {
+        QT_window_set_position(window, position_x, position_y);
+    }
 
     si maximisée {
         rappels_window.fut_maximisée = vrai;
