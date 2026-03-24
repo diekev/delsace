@@ -248,6 +248,17 @@ définis_opacité :: fonc (fenêtre: Port_Fenêtre_Native, opacité: r64)
     }
 }
 
+Position_Globale :: struct {
+    x: z32;
+    y: z32;
+}
+
+donne_position_globale :: fonc (fenêtre: Port_Fenêtre_Native, x: z32, y: z32) -> Position_Globale
+{
+    assert(fenêtre.système == SystèmeFenêtre.QT);
+    retourne qt_fenêtre_donne_position_globale(fenêtre, x, y);
+}
+
 Port_Fenêtre_Native :: struct {
     système: SystèmeFenêtre;
     id: z32;
@@ -508,6 +519,18 @@ qt_fenêtre_définis_opacité :: fonc (fenêtre: Port_Fenêtre_Native, opacité:
     assert(fenêtre.rappels_window != nul);
     assert(fenêtre.rappels_window.window != nul);
     QT_window_set_opacity(fenêtre.rappels_window.window, opacité);
+}
+
+qt_fenêtre_donne_position_globale :: fonc (fenêtre: Port_Fenêtre_Native, x: z32, y: z32) -> Position_Globale
+{
+    assert(fenêtre.rappels_window != nul);
+    assert(fenêtre.rappels_window.window != nul);
+
+    point: QT_Point = ---;
+    point.x = x;
+    point.y = y;
+    QT_window_map_to_global(fenêtre.rappels_window.window, *point, *point);
+    retourne Position_Globale(point.x, point.y);
 }
 
 RappelsWindow :: struct {
