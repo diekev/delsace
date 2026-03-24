@@ -10,13 +10,34 @@ SystèmeFenêtre :: énum {
     NATIVE;
 }
 
+Options_Création_Fenêtre :: struct {
+    largeur: z32;
+    hauteur: z32;
+    titre: chaine;
+    maximisée: bool;
+    indice_écran: z32;
+    avec_barre_de_titre_et_bordures: bool;
+}
+
 crée_fenêtre :: fonc (largeur: z32, hauteur: z32, titre: chaine, maximisée := faux, index_écran := 0, avec_barre_de_titre_et_bordures := vrai, système := SystèmeFenêtre.QT, parent: *Port_Fenêtre_Native = nul) -> Port_Fenêtre_Native
 {
+    options: Options_Création_Fenêtre;
+    options.largeur = largeur;
+    options.hauteur = hauteur;
+    options.maximisée = maximisée;
+    options.titre = titre;
+    options.indice_écran = index_écran;
+    options.avec_barre_de_titre_et_bordures = avec_barre_de_titre_et_bordures;
+    retourne crée_fenêtre(*options, système, parent);
+}
+
+crée_fenêtre :: fonc (options: *Options_Création_Fenêtre, système := SystèmeFenêtre.QT, parent: *Port_Fenêtre_Native = nul) -> Port_Fenêtre_Native
+{
     si système == SystèmeFenêtre.NATIVE {
-        retourne x11_crée_fenêtre(largeur, hauteur, titre, maximisée, index_écran, avec_barre_de_titre_et_bordures);
+        retourne x11_crée_fenêtre(options);
     }
 
-    retourne qt_crée_fenêtre(largeur, hauteur, titre, maximisée, index_écran, avec_barre_de_titre_et_bordures, parent);
+    retourne qt_crée_fenêtre(options, parent);
 }
 
 ajourne_évènements_fenêtre :: fonc (type_fenêtre: Port_Fenêtre_Native) -> []Évènement
@@ -274,7 +295,7 @@ importe Qt;
 __application_qt: *QT_Application;
 __taille_arguments_qt: z32 = ---;
 
-qt_crée_fenêtre :: fonc (largeur: z32, hauteur: z32, titre: chaine, maximisée: bool, index_écran: z32, avec_barre_de_titre_et_bordures: bool, parent: *Port_Fenêtre_Native) -> Port_Fenêtre_Native
+qt_crée_fenêtre :: fonc (empl options: *Options_Création_Fenêtre, parent: *Port_Fenêtre_Native) -> Port_Fenêtre_Native
 {
     si __application_qt == nul {
         arguments := arguments_ligne_commande();
@@ -297,9 +318,9 @@ qt_crée_fenêtre :: fonc (largeur: z32, hauteur: z32, titre: chaine, maximisée
 
     active_barre_de_titre_et_bordures(window, avec_barre_de_titre_et_bordures);
 
-    si index_écran > 0 && index_écran < QT_application_screen_count() {
+    si indice_écran > 0 && indice_écran < QT_application_screen_count() {
         rect: QT_Rect;
-        QT_application_screen_geometry(index_écran, *rect);
+        QT_application_screen_geometry(indice_écran, *rect);
         QT_window_set_position(window, rect.x, rect.y);
     }
 
@@ -699,7 +720,7 @@ DonnéesX11 :: struct {
 __données_x11: DonnéesX11;
 
 // À FAIRE : fenêtre parent
-x11_crée_fenêtre :: fonc (largeur: z32, hauteur: z32, titre: chaine, maximisée: bool @inutilisée, index_écran: z32 @inutilisée, avec_barre_de_titre_et_bordures: bool @inutilisée) -> Port_Fenêtre_Native
+x11_crée_fenêtre :: fonc (empl options: *Options_Création_Fenêtre) -> Port_Fenêtre_Native
 {
     display := XOpenDisplay(nul);
     si display == nul {
