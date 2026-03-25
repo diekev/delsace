@@ -23,7 +23,7 @@ Options_Création_Fenêtre :: struct {
     titre: chaine;
     maximisée: bool;
     indice_écran: z32;
-    avec_barre_de_titre_et_bordures: bool;
+    avec_barre_de_titre_et_bordures: bool = vrai;
     genre_fenêtre: Genre_Fenêtre;
 }
 
