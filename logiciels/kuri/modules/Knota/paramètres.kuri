@@ -1264,6 +1264,11 @@ parse_expression :: fonc (texte_expression: chaine) -> *Expression_Paramètre
 
     arbre.racine = parse_syntaxème(*arbre, *lexeuse);
 
+    saufsi arbre.racine {
+        /* Pas une expression, ou une erreur eue lieu. */
+        retourne nul;
+    }
+
     lexème = épie_lexème_suivant(*lexeuse);
     si lexème.type != TypeLexème.FinDeFichier {
         // il reste des lexèmes à la fin de l'expression -> invalide
