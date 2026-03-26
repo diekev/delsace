@@ -973,8 +973,8 @@ x11_fenêtre_permute_plein_écran :: fonc (fenêtre: Port_Fenêtre_Native @inuti
 x11_fenêtre_ferme :: fonc (fenêtre: Port_Fenêtre_Native)
 {
     assert(fenêtre.système == SystèmeFenêtre.NATIVE);
-    si type_fenêtre.données_x11.display {
-        _ := XCloseDisplay(type_fenêtre.données_x11.display);
+    si fenêtre.données_x11.display {
+        _ := XCloseDisplay(fenêtre.données_x11.display);
     }
 }
 
