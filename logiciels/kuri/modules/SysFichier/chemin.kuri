@@ -697,6 +697,22 @@ ajoute_avec_séparateur :: fonc (tampon: *TamponChemin, chn: chaine) -> bool
     retourne ajoute(tampon, chn);
 }
 
+ajoute_avec_séparateur_entre :: fonc (tampon: *TamponChemin, chns: ...chaine) -> bool
+{
+    pour chns {
+        saufsi ajoute(tampon, it) {
+            retourne faux;
+        }
+
+        si indice_it < chns.taille - 1 {
+            saufsi ajoute(tampon, séparateur_chemin()) {
+                retourne faux;
+            }
+        }
+    }
+    retourne vrai;
+}
+
 donne_dernier_caractère :: fonc (tampon: *TamponChemin) -> z8
 {
     si tampon.occupés == 0 {
