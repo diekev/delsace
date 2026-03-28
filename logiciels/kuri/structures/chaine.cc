@@ -5,7 +5,6 @@
 
 #include <cstring>
 #include <iostream>
-#include <utility>
 
 #include "tableau.hh"
 
