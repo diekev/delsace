@@ -130,15 +130,14 @@ if(AVEC_KURI_PARCER AND AVEC_LLVM)
     set(INCLUSIONS
         ${CMAKE_CURRENT_SOURCE_DIR}
         ${CMAKE_CURRENT_SOURCE_DIR}/../
-        ${CMAKE_CURRENT_SOURCE_DIR}/../../../../
-        ${INCLUSIONS_DELSACE_CHRONO}
         ${CLANG_INCLUDE_DIR}
     )
 
     set(BIBLIOTHEQUES
         ${BIBLIOTHEQUE_CXX_FILESYSTEM}
         bib_outils
-        bib_json
+        kuri_compilation
+        kuri_parsage
         kuri_structures
         ${CLANG_LIBRARIES}
         ${LLVM_LIBRARY}
@@ -146,6 +145,8 @@ if(AVEC_KURI_PARCER AND AVEC_LLVM)
 
     add_executable(${NOM_PROJET}
         parcer.cc
+        json.cc
+        json.hh
     )
 
     get_target_property(EXTLIB_COMPILE_FLAGS ${NOM_PROJET} COMPILE_OPTIONS)
