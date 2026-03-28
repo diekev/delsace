@@ -53,11 +53,13 @@ install(
 if(AVEC_KURI_REMPLACE)
     add_executable(kuri_remplace
         kuri_remplace.cc
+        json.cc
+        json.hh
     )
 
     target_include_directories(kuri_remplace PUBLIC "${INCLUSIONS}")
 
-    target_link_libraries(kuri_remplace "${BIBLIOTHEQUES}" bib_json dls::outils)
+    target_link_libraries(kuri_remplace "${BIBLIOTHEQUES}")
 
     install(
         TARGETS kuri_remplace RUNTIME DESTINATION ${RACINE_INSTALLATION}
