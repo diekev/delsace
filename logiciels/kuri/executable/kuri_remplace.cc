@@ -4,7 +4,7 @@
 #include <fstream>
 #include <iostream>
 
-#include "biblinternes/json/json.hh"
+#include "json.hh"
 
 #include "compilation/compilatrice.hh"
 #include "compilation/erreur.h"
@@ -12,8 +12,6 @@
 #include "parsage/lexeuse.hh"
 #include "parsage/modules.hh"
 #include "parsage/outils_lexemes.hh"
-
-#include "options.hh"
 
 #include "structures/chemin_systeme.hh"
 
@@ -24,15 +22,15 @@
  */
 
 struct Configuration {
-    kuri::tableau<dls::chaine> dossiers{};
-    kuri::tableau<dls::chaine> fichiers{};
+    kuri::tableau<kuri::chaine> dossiers{};
+    kuri::tableau<kuri::chaine> fichiers{};
 
-    using paire = std::pair<dls::chaine, dls::chaine>;
+    using paire = std::pair<kuri::chaine, kuri::chaine>;
 
     kuri::tableau<paire> mots_cles{};
 };
 
-static void analyse_liste_chemin(tori::ObjetTableau *tableau, kuri::tableau<dls::chaine> &chaines)
+static void analyse_liste_chemin(tori::ObjetTableau *tableau, kuri::tableau<kuri::chaine> &chaines)
 {
     for (auto objet : tableau->valeur) {
         if (objet->type != tori::type_objet::CHAINE) {
@@ -131,7 +129,8 @@ static void reecris_fichier(kuri::chemin_systeme &chemin, Configuration const &c
             auto trouve = false;
 
             for (auto const &paire : config.mots_cles) {
-                if (paire.first != dls::chaine(lexeme.chaine.pointeur(), lexeme.chaine.taille())) {
+                if (paire.first !=
+                    kuri::chaine(lexeme.chaine.pointeur(), lexeme.chaine.taille())) {
                     continue;
                 }
 
@@ -179,7 +178,7 @@ int main(int argc, char **argv)
     }
 
     for (auto const &chemin_dossier : config.dossiers) {
-        auto chemin = kuri::chemin_systeme(chemin_dossier.c_str());
+        auto chemin = kuri::chemin_systeme(chemin_dossier);
 
         if (!kuri::chemin_systeme::existe(chemin)) {
             std::cerr << "Le chemin " << chemin << " ne pointe vers rien !\n";
@@ -191,7 +190,7 @@ int main(int argc, char **argv)
             continue;
         }
 
-        for (auto donnees : kuri::chemin_systeme::fichiers_du_dossier_recursif(chemin)) {
+        for (auto donnees : kuri::chemin_systeme::fichiers_du_dossier_récursif(chemin)) {
             if (donnees.extension() != ".kuri") {
                 continue;
             }
@@ -201,7 +200,7 @@ int main(int argc, char **argv)
     }
 
     for (auto const &chemin_fichier : config.fichiers) {
-        auto chemin = kuri::chemin_systeme(chemin_fichier.c_str());
+        auto chemin = kuri::chemin_systeme(chemin_fichier);
 
         if (!kuri::chemin_systeme::existe(chemin)) {
             std::cerr << "Le chemin " << chemin << " ne pointe vers rien !\n";

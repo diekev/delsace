@@ -321,6 +321,115 @@ struct table_hachage {
         nombre_elements += 1;
         return indice;
     }
+
+  public:
+    struct itératrice {
+        typedef std::forward_iterator_tag iterator_category;
+        typedef std::pair<Clé, Valeur> value_type;
+        typedef std::pair<Clé, Valeur> *pointer;
+        typedef std::pair<Clé, Valeur> &reference;
+
+        kuri::tableau_statique<Clé> cles{};
+        kuri::tableau_statique<Valeur> valeurs{};
+        kuri::tableau_statique<char> occupés{};
+        int64_t indice_courant = -1;
+
+        bool operator==(itératrice autre)
+        {
+            return indice_courant == autre.indice_courant;
+        }
+
+        bool operator!=(itératrice autre)
+        {
+            return indice_courant != autre.indice_courant;
+        }
+
+        itératrice &operator++()
+        {
+            indice_courant++;
+            while (indice_courant < occupés.taille() && occupés[indice_courant] == false) {
+                indice_courant++;
+            }
+
+            if (indice_courant >= occupés.taille()) {
+                indice_courant = -1;
+            }
+
+            return *this;
+        }
+
+        std::pair<Clé, Valeur> operator*()
+        {
+            std::pair<Clé, Valeur> résultat;
+            résultat.first = cles[indice_courant];
+            résultat.second = valeurs[indice_courant];
+            return résultat;
+        }
+    };
+
+    struct itératrice_const {
+        typedef std::forward_iterator_tag iterator_category;
+        typedef const std::pair<Clé, Valeur> value_type;
+        typedef const std::pair<Clé, Valeur> *pointer;
+        typedef const std::pair<Clé, Valeur> &reference;
+
+        kuri::tableau_statique<Clé> cles{};
+        kuri::tableau_statique<Valeur> valeurs{};
+        kuri::tableau_statique<char> occupés{};
+        int64_t indice_courant = -1;
+
+        bool operator==(itératrice_const autre)
+        {
+            return indice_courant == autre.indice_courant;
+        }
+
+        bool operator!=(itératrice_const autre)
+        {
+            return indice_courant != autre.indice_courant;
+        }
+
+        itératrice_const &operator++()
+        {
+            indice_courant++;
+            while (indice_courant < occupés.taille() && occupés[indice_courant] == false) {
+                indice_courant++;
+            }
+
+            if (indice_courant >= occupés.taille()) {
+                indice_courant = -1;
+            }
+
+            return *this;
+        }
+
+        const std::pair<Clé, Valeur> operator*()
+        {
+            std::pair<Clé, Valeur> résultat;
+            résultat.first = cles[indice_courant];
+            résultat.second = valeurs[indice_courant];
+            return résultat;
+        }
+    };
+
+    itératrice begin()
+    {
+        return itératrice{cles, valeurs, occupés, -1};
+    }
+
+    itératrice end()
+    {
+        return itératrice{};
+    }
+
+    itératrice_const begin() const
+    {
+        return itératrice_const{cles, valeurs, occupés, -1};
+    }
+
+    itératrice_const end() const
+    {
+        return itératrice_const{};
+    }
 };
 
 }  // namespace kuri
