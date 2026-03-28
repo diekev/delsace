@@ -101,7 +101,7 @@ Prise_Entrée :: struct {
 
     /* À FAIRE : multiple connexions. */
     connexion: *Connexion @accessible;
-}
+} @ToujoursPointeur
 
 /* Retourne l'indice de la prise la liste de prises d'entrées du noeud parent. */
 donne_indice :: fonc (prise: *Prise_Entrée) -> z64
@@ -122,7 +122,7 @@ Prise_Sortie :: struct {
     empl base: Prise;
 
     connexions: [..]*Connexion @accessible;
-}
+} @ToujoursPointeur
 
 /* Retourne l'indice de la prise la liste de prises de sorties du noeud parent. */
 donne_indice :: fonc (prise: *Prise_Sortie) -> z64
