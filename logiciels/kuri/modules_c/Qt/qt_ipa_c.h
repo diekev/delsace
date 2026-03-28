@@ -1335,6 +1335,39 @@ enum QT_Keyboard_Modifier QT_application_donne_modificateurs_clavier(void);
 /** \} */
 
 /* ------------------------------------------------------------------------- */
+/** \name QT_Position
+ * \{ */
+
+struct QT_Position {
+    int x;
+    int y;
+};
+
+/** \} */
+
+/* ------------------------------------------------------------------------- */
+/** \name QT_Point
+ * \{ */
+
+struct QT_Point {
+    int x;
+    int y;
+};
+
+/** \} */
+
+/* ------------------------------------------------------------------------- */
+/** \name QT_PointF
+ * \{ */
+
+struct QT_PointF {
+    double x;
+    double y;
+};
+
+/** \} */
+
+/* ------------------------------------------------------------------------- */
 /** \name QT_Shortcut
  * \{ */
 
@@ -1503,6 +1536,9 @@ void QT_window_set_flags(struct QT_Window *window, enum QT_Window_Flags flags);
 void QT_window_set_icon(struct QT_Window *window, struct QT_Icon *icon);
 double QT_window_opacity(struct QT_Window *window);
 void QT_window_set_opacity(struct QT_Window *window, double opacity);
+void QT_window_map_to_global(struct QT_Window *window,
+                             struct QT_Point *point,
+                             struct QT_Point *r_point);
 
 /** \} */
 
@@ -1578,39 +1614,6 @@ void QT_OpenGL_Context_set_share_context(struct QT_OpenGL_Context *context,
                                          struct QT_OpenGL_Context *share_context);
 bool QT_OpenGL_Context_are_sharing(struct QT_OpenGL_Context *context1,
                                    struct QT_OpenGL_Context *context2);
-
-/** \} */
-
-/* ------------------------------------------------------------------------- */
-/** \name QT_Position
- * \{ */
-
-struct QT_Position {
-    int x;
-    int y;
-};
-
-/** \} */
-
-/* ------------------------------------------------------------------------- */
-/** \name QT_Point
- * \{ */
-
-struct QT_Point {
-    int x;
-    int y;
-};
-
-/** \} */
-
-/* ------------------------------------------------------------------------- */
-/** \name QT_PointF
- * \{ */
-
-struct QT_PointF {
-    double x;
-    double y;
-};
 
 /** \} */
 

@@ -10,16 +10,45 @@ SystèmeFenêtre :: énum {
     NATIVE;
 }
 
-crée_fenêtre :: fonc (largeur: z32, hauteur: z32, titre: chaine, maximisée := faux, index_écran := 0, avec_barre_de_titre_et_bordures := vrai, système := SystèmeFenêtre.QT, parent: *TypeFenêtre = nul) -> TypeFenêtre
-{
-    si système == SystèmeFenêtre.NATIVE {
-        retourne x11_crée_fenêtre(largeur, hauteur, titre, maximisée, index_écran, avec_barre_de_titre_et_bordures);
-    }
-
-    retourne qt_crée_fenêtre(largeur, hauteur, titre, maximisée, index_écran, avec_barre_de_titre_et_bordures, parent);
+Genre_Fenêtre :: énum {
+    NORMALE;
+    MENU;
 }
 
-ajourne_évènements_fenêtre :: fonc (type_fenêtre: TypeFenêtre) -> []Évènement
+Options_Création_Fenêtre :: struct {
+    position_x: z32 = -1;
+    position_y: z32 = -1;
+    largeur: z32;
+    hauteur: z32;
+    titre: chaine;
+    maximisée: bool;
+    indice_écran: z32;
+    avec_barre_de_titre_et_bordures: bool = vrai;
+    genre_fenêtre: Genre_Fenêtre;
+}
+
+crée_fenêtre :: fonc (largeur: z32, hauteur: z32, titre: chaine, maximisée := faux, index_écran := 0, avec_barre_de_titre_et_bordures := vrai, système := SystèmeFenêtre.QT, parent: *Port_Fenêtre_Native = nul) -> Port_Fenêtre_Native
+{
+    options: Options_Création_Fenêtre;
+    options.largeur = largeur;
+    options.hauteur = hauteur;
+    options.maximisée = maximisée;
+    options.titre = titre;
+    options.indice_écran = index_écran;
+    options.avec_barre_de_titre_et_bordures = avec_barre_de_titre_et_bordures;
+    retourne crée_fenêtre(*options, système, parent);
+}
+
+crée_fenêtre :: fonc (options: *Options_Création_Fenêtre, système := SystèmeFenêtre.QT, parent: *Port_Fenêtre_Native = nul) -> Port_Fenêtre_Native
+{
+    si système == SystèmeFenêtre.NATIVE {
+        retourne x11_crée_fenêtre(options);
+    }
+
+    retourne qt_crée_fenêtre(options, parent);
+}
+
+ajourne_évènements_fenêtre :: fonc (type_fenêtre: Port_Fenêtre_Native) -> []Évènement
 {
     si type_fenêtre.système == SystèmeFenêtre.NATIVE {
         pour __évènements {
@@ -44,7 +73,7 @@ ajourne_évènements_fenêtre :: fonc (type_fenêtre: TypeFenêtre) -> []Évène
     retourne __évènements;
 }
 
-requiers_ajournement_fenêtre :: fonc (fenêtre: TypeFenêtre)
+requiers_ajournement_fenêtre :: fonc (fenêtre: Port_Fenêtre_Native)
 {
     si fenêtre.système == SystèmeFenêtre.NATIVE {
         x11_requiers_ajournement_fenêtre(fenêtre);
@@ -55,7 +84,7 @@ requiers_ajournement_fenêtre :: fonc (fenêtre: TypeFenêtre)
     }
 }
 
-rends_contexte_gl_actif :: fonc (fenêtre: TypeFenêtre)
+rends_contexte_gl_actif :: fonc (fenêtre: Port_Fenêtre_Native)
 {
     assert(fenêtre.système == SystèmeFenêtre.QT);
     assert(fenêtre.rappels_window != nul);
@@ -64,9 +93,9 @@ rends_contexte_gl_actif :: fonc (fenêtre: TypeFenêtre)
 }
 
 // À FAIRE :  déplace permute tampons dans IGUMI
-// - IGUMI.définis_cible_rendu(TypeFenêtre)
+// - IGUMI.définis_cible_rendu(Port_Fenêtre_Native)
 // - IGUMI.permute_tampons()
-permute_tampons_fenêtre :: fonc (fenêtre: TypeFenêtre)
+permute_tampons_fenêtre :: fonc (fenêtre: Port_Fenêtre_Native)
 {
     si fenêtre.système == SystèmeFenêtre.NATIVE {
         x11_permute_tampons_fenêtre(fenêtre);
@@ -77,7 +106,7 @@ permute_tampons_fenêtre :: fonc (fenêtre: TypeFenêtre)
     }
 }
 
-donne_taille_fenêtre :: fonc (fenêtre: TypeFenêtre) -> (largeur: z32, hauteur: z32)
+donne_taille_fenêtre :: fonc (fenêtre: Port_Fenêtre_Native) -> (largeur: z32, hauteur: z32)
 {
     si fenêtre.système == SystèmeFenêtre.NATIVE {
         retourne x11_donne_taille_fenêtre(fenêtre);
@@ -86,7 +115,7 @@ donne_taille_fenêtre :: fonc (fenêtre: TypeFenêtre) -> (largeur: z32, hauteur
     retourne qt_donne_taille_fenêtre(fenêtre);
 }
 
-définis_titre_fenêtre :: fonc (fenêtre: TypeFenêtre, titre: chaine)
+définis_titre_fenêtre :: fonc (fenêtre: Port_Fenêtre_Native, titre: chaine)
 {
     si fenêtre.système == SystèmeFenêtre.NATIVE {
         x11_définis_titre_fenêtre(fenêtre, titre);
@@ -97,7 +126,7 @@ définis_titre_fenêtre :: fonc (fenêtre: TypeFenêtre, titre: chaine)
     }
 }
 
-définis_curseur :: fonc (fenêtre: TypeFenêtre, curseur: TypeCurseurSystème)
+définis_curseur :: fonc (fenêtre: Port_Fenêtre_Native, curseur: TypeCurseurSystème)
 {
     si fenêtre.système == SystèmeFenêtre.NATIVE {
         x11_définis_curseur(fenêtre, curseur);
@@ -108,14 +137,14 @@ définis_curseur :: fonc (fenêtre: TypeFenêtre, curseur: TypeCurseurSystème)
     }
 }
 
-donne_qt_window :: fonc (fenêtre: TypeFenêtre) -> *QT_Window
+donne_qt_window :: fonc (fenêtre: Port_Fenêtre_Native) -> *QT_Window
 {
     assert(fenêtre.rappels_window != nul);
     assert(fenêtre.rappels_window.window != nul);
     retourne fenêtre.rappels_window.window;
 }
 
-active_barre_de_titre_et_bordures :: fonc (fenêtre: TypeFenêtre, oui_non: bool)
+active_barre_de_titre_et_bordures :: fonc (fenêtre: Port_Fenêtre_Native, oui_non: bool)
 {
     si fenêtre.système == SystèmeFenêtre.NATIVE {
         x11_active_barre_de_titre_et_bordures(fenêtre, oui_non);
@@ -126,7 +155,7 @@ active_barre_de_titre_et_bordures :: fonc (fenêtre: TypeFenêtre, oui_non: bool
     }
 }
 
-possède_barre_de_titre_et_bordures :: fonc (fenêtre: TypeFenêtre) -> bool
+possède_barre_de_titre_et_bordures :: fonc (fenêtre: Port_Fenêtre_Native) -> bool
 {
     si fenêtre.système == SystèmeFenêtre.NATIVE {
         retourne x11_possède_barre_de_titre_et_bordures(fenêtre);
@@ -135,7 +164,7 @@ possède_barre_de_titre_et_bordures :: fonc (fenêtre: TypeFenêtre) -> bool
     retourne qt_possède_barre_de_titre_et_bordures(fenêtre);
 }
 
-minimise :: fonc (fenêtre: TypeFenêtre)
+minimise :: fonc (fenêtre: Port_Fenêtre_Native)
 {
     si fenêtre.système == SystèmeFenêtre.NATIVE {
         x11_fenêtre_minimise(fenêtre);
@@ -146,7 +175,7 @@ minimise :: fonc (fenêtre: TypeFenêtre)
     }
 }
 
-maximise :: fonc (fenêtre: TypeFenêtre)
+maximise :: fonc (fenêtre: Port_Fenêtre_Native)
 {
     si fenêtre.système == SystèmeFenêtre.NATIVE {
         x11_fenêtre_maximise(fenêtre);
@@ -157,7 +186,7 @@ maximise :: fonc (fenêtre: TypeFenêtre)
     }
 }
 
-permute_plein_écran :: fonc (fenêtre: TypeFenêtre)
+permute_plein_écran :: fonc (fenêtre: Port_Fenêtre_Native)
 {
     si fenêtre.système == SystèmeFenêtre.NATIVE {
         x11_fenêtre_permute_plein_écran(fenêtre);
@@ -168,7 +197,7 @@ permute_plein_écran :: fonc (fenêtre: TypeFenêtre)
     }
 }
 
-ferme :: fonc (fenêtre: TypeFenêtre)
+ferme :: fonc (fenêtre: Port_Fenêtre_Native)
 {
     si fenêtre.système == SystèmeFenêtre.NATIVE {
         x11_fenêtre_ferme(fenêtre);
@@ -179,7 +208,7 @@ ferme :: fonc (fenêtre: TypeFenêtre)
     }
 }
 
-est_visible :: fonc (fenêtre: TypeFenêtre) -> bool
+est_visible :: fonc (fenêtre: Port_Fenêtre_Native) -> bool
 {
     si fenêtre.système == SystèmeFenêtre.NATIVE {
         qt_fenêtre_est_visible(fenêtre);
@@ -188,7 +217,7 @@ est_visible :: fonc (fenêtre: TypeFenêtre) -> bool
     retourne qt_fenêtre_est_visible(fenêtre);
 }
 
-définis_visible :: fonc (fenêtre: TypeFenêtre, oui_non: bool)
+définis_visible :: fonc (fenêtre: Port_Fenêtre_Native, oui_non: bool)
 {
     si fenêtre.système == SystèmeFenêtre.NATIVE {
         x11_fenêtre_définis_visible(fenêtre, oui_non);
@@ -199,7 +228,7 @@ définis_visible :: fonc (fenêtre: TypeFenêtre, oui_non: bool)
     }
 }
 
-donne_opacité :: fonc (fenêtre: TypeFenêtre) -> r64
+donne_opacité :: fonc (fenêtre: Port_Fenêtre_Native) -> r64
 {
     si fenêtre.système == SystèmeFenêtre.NATIVE {
         retourne x11_fenêtre_donne_opacité(fenêtre);
@@ -208,7 +237,7 @@ donne_opacité :: fonc (fenêtre: TypeFenêtre) -> r64
     retourne qt_fenêtre_donne_opacité(fenêtre);
 }
 
-définis_opacité :: fonc (fenêtre: TypeFenêtre, opacité: r64)
+définis_opacité :: fonc (fenêtre: Port_Fenêtre_Native, opacité: r64)
 {
     si fenêtre.système == SystèmeFenêtre.NATIVE {
         x11_fenêtre_définis_opacité(fenêtre, opacité);
@@ -219,7 +248,18 @@ définis_opacité :: fonc (fenêtre: TypeFenêtre, opacité: r64)
     }
 }
 
-TypeFenêtre :: struct {
+Position_Globale :: struct {
+    x: z32;
+    y: z32;
+}
+
+donne_position_globale :: fonc (fenêtre: Port_Fenêtre_Native, x: z32, y: z32) -> Position_Globale
+{
+    assert(fenêtre.système == SystèmeFenêtre.QT);
+    retourne qt_fenêtre_donne_position_globale(fenêtre, x, y);
+}
+
+Port_Fenêtre_Native :: struct {
     système: SystèmeFenêtre;
     id: z32;
 
@@ -243,7 +283,7 @@ donne_id_fenêtre_suivant :: fonc () -> z32
 
 #portée_export
 
-donne_état_souris :: fonc (fenêtre: TypeFenêtre) -> ÉtatSouris
+donne_état_souris :: fonc (fenêtre: Port_Fenêtre_Native) -> ÉtatSouris
 {
     si fenêtre.système == SystèmeFenêtre.NATIVE {
         imprimeln("donne_état_souris non-implémenté pour X11");
@@ -274,7 +314,7 @@ importe Qt;
 __application_qt: *QT_Application;
 __taille_arguments_qt: z32 = ---;
 
-qt_crée_fenêtre :: fonc (largeur: z32, hauteur: z32, titre: chaine, maximisée: bool, index_écran: z32, avec_barre_de_titre_et_bordures: bool, parent: *TypeFenêtre) -> TypeFenêtre
+qt_crée_fenêtre :: fonc (empl options: *Options_Création_Fenêtre, parent: *Port_Fenêtre_Native) -> Port_Fenêtre_Native
 {
     si __application_qt == nul {
         arguments := arguments_ligne_commande();
@@ -297,13 +337,23 @@ qt_crée_fenêtre :: fonc (largeur: z32, hauteur: z32, titre: chaine, maximisée
 
     active_barre_de_titre_et_bordures(window, avec_barre_de_titre_et_bordures);
 
-    si index_écran > 0 && index_écran < QT_application_screen_count() {
+    si indice_écran > 0 && indice_écran < QT_application_screen_count() {
         rect: QT_Rect;
-        QT_application_screen_geometry(index_écran, *rect);
+        QT_application_screen_geometry(indice_écran, *rect);
         QT_window_set_position(window, rect.x, rect.y);
     }
 
     QT_window_resize(window, largeur, hauteur);
+
+    si genre_fenêtre == Genre_Fenêtre.MENU {
+        flags := QT_window_flags(window);
+        flags |= QT_Window_Flags.Popup;
+        QT_window_set_flags(window, flags);
+    }
+
+    si position_x != -1 && position_y != -1 {
+        QT_window_set_position(window, position_x, position_y);
+    }
 
     si maximisée {
         rappels_window.fut_maximisée = vrai;
@@ -318,7 +368,7 @@ qt_crée_fenêtre :: fonc (largeur: z32, hauteur: z32, titre: chaine, maximisée
         QT_application_process_events();
     }
 
-    résultat: TypeFenêtre;
+    résultat: Port_Fenêtre_Native;
     résultat.id = donne_id_fenêtre_suivant();
     résultat.système = SystèmeFenêtre.QT;
     résultat.rappels_window = rappels_window;
@@ -326,21 +376,21 @@ qt_crée_fenêtre :: fonc (largeur: z32, hauteur: z32, titre: chaine, maximisée
     retourne résultat;
 }
 
-qt_ajourne_évènements_fenêtre :: fonc (fenêtre: TypeFenêtre)
+qt_ajourne_évènements_fenêtre :: fonc (fenêtre: Port_Fenêtre_Native)
 {
     assert(fenêtre.rappels_window != nul);
     assert(fenêtre.rappels_window.window != nul);
     QT_application_process_events();
 }
 
-qt_requiers_ajournement_fenêtre :: fonc (fenêtre: TypeFenêtre)
+qt_requiers_ajournement_fenêtre :: fonc (fenêtre: Port_Fenêtre_Native)
 {
     assert(fenêtre.rappels_window != nul);
     assert(fenêtre.rappels_window.window != nul);
     QT_window_request_update(fenêtre.rappels_window.window);
 }
 
-qt_permute_tampons_fenêtre :: fonc (fenêtre: TypeFenêtre)
+qt_permute_tampons_fenêtre :: fonc (fenêtre: Port_Fenêtre_Native)
 {
     assert(fenêtre.rappels_window != nul);
     assert(fenêtre.rappels_window.window != nul);
@@ -350,28 +400,28 @@ qt_permute_tampons_fenêtre :: fonc (fenêtre: TypeFenêtre)
     }
 }
 
-qt_donne_taille_fenêtre :: fonc (fenêtre: TypeFenêtre) -> (largeur: z32, hauteur: z32)
+qt_donne_taille_fenêtre :: fonc (fenêtre: Port_Fenêtre_Native) -> (largeur: z32, hauteur: z32)
 {
     assert(fenêtre.rappels_window != nul);
     assert(fenêtre.rappels_window.window != nul);
     retourne QT_window_width(fenêtre.rappels_window.window), QT_window_height(fenêtre.rappels_window.window);
 }
 
-qt_définis_titre_fenêtre :: fonc (fenêtre: TypeFenêtre, titre: chaine)
+qt_définis_titre_fenêtre :: fonc (fenêtre: Port_Fenêtre_Native, titre: chaine)
 {
     assert(fenêtre.rappels_window != nul);
     assert(fenêtre.rappels_window.window != nul);
     QT_window_set_title(fenêtre.rappels_window.window, vers_qt(titre));
 }
 
-qt_définis_curseur :: fonc (fenêtre: TypeFenêtre, curseur: TypeCurseurSystème)
+qt_définis_curseur :: fonc (fenêtre: Port_Fenêtre_Native, curseur: TypeCurseurSystème)
 {
     assert(fenêtre.rappels_window != nul);
     assert(fenêtre.rappels_window.window != nul);
     QT_gui_application_definis_curseur(curseur);
 }
 
-qt_active_barre_de_titre_et_bordures :: fonc (fenêtre: TypeFenêtre, oui_non: bool)
+qt_active_barre_de_titre_et_bordures :: fonc (fenêtre: Port_Fenêtre_Native, oui_non: bool)
 {
     assert(fenêtre.rappels_window != nul);
     assert(fenêtre.rappels_window.window != nul);
@@ -392,7 +442,7 @@ active_barre_de_titre_et_bordures :: fonc (window: *QT_Window, oui_non: bool)
     QT_window_set_flags(window, flags);
 }
 
-qt_possède_barre_de_titre_et_bordures :: fonc (fenêtre: TypeFenêtre) -> bool
+qt_possède_barre_de_titre_et_bordures :: fonc (fenêtre: Port_Fenêtre_Native) -> bool
 {
     assert(fenêtre.rappels_window != nul);
     assert(fenêtre.rappels_window.window != nul);
@@ -400,21 +450,21 @@ qt_possède_barre_de_titre_et_bordures :: fonc (fenêtre: TypeFenêtre) -> bool
     retourne (flags & QT_Window_Flags.FramelessWindowHint) == (0 comme QT_Window_Flags);
 }
 
-qt_fenêtre_minimise :: fonc (fenêtre: TypeFenêtre)
+qt_fenêtre_minimise :: fonc (fenêtre: Port_Fenêtre_Native)
 {
     assert(fenêtre.rappels_window != nul);
     assert(fenêtre.rappels_window.window != nul);
     QT_window_show_minimized(fenêtre.rappels_window.window);
 }
 
-qt_fenêtre_maximise :: fonc (fenêtre: TypeFenêtre)
+qt_fenêtre_maximise :: fonc (fenêtre: Port_Fenêtre_Native)
 {
     assert(fenêtre.rappels_window != nul);
     assert(fenêtre.rappels_window.window != nul);
     QT_window_show_maximized(fenêtre.rappels_window.window);
 }
 
-qt_fenêtre_permute_plein_écran :: fonc (fenêtre: TypeFenêtre)
+qt_fenêtre_permute_plein_écran :: fonc (fenêtre: Port_Fenêtre_Native)
 {
     assert(fenêtre.rappels_window != nul);
     assert(fenêtre.rappels_window.window != nul);
@@ -436,39 +486,51 @@ qt_fenêtre_permute_plein_écran :: fonc (fenêtre: TypeFenêtre)
     }
 }
 
-qt_fenêtre_ferme :: fonc (fenêtre: TypeFenêtre)
+qt_fenêtre_ferme :: fonc (fenêtre: Port_Fenêtre_Native)
 {
     assert(fenêtre.rappels_window != nul);
     assert(fenêtre.rappels_window.window != nul);
     QT_window_close(fenêtre.rappels_window.window);
 }
 
-qt_fenêtre_est_visible :: fonc (fenêtre: TypeFenêtre) -> bool
+qt_fenêtre_est_visible :: fonc (fenêtre: Port_Fenêtre_Native) -> bool
 {
     assert(fenêtre.rappels_window != nul);
     assert(fenêtre.rappels_window.window != nul);
     retourne QT_window_is_visible(fenêtre.rappels_window.window);
 }
 
-qt_fenêtre_définis_visible :: fonc (fenêtre: TypeFenêtre, oui_non: bool)
+qt_fenêtre_définis_visible :: fonc (fenêtre: Port_Fenêtre_Native, oui_non: bool)
 {
     assert(fenêtre.rappels_window != nul);
     assert(fenêtre.rappels_window.window != nul);
     QT_window_set_visible(fenêtre.rappels_window.window, oui_non);
 }
 
-qt_fenêtre_donne_opacité :: fonc (fenêtre: TypeFenêtre) -> r64
+qt_fenêtre_donne_opacité :: fonc (fenêtre: Port_Fenêtre_Native) -> r64
 {
     assert(fenêtre.rappels_window != nul);
     assert(fenêtre.rappels_window.window != nul);
     retourne QT_window_opacity(fenêtre.rappels_window.window);
 }
 
-qt_fenêtre_définis_opacité :: fonc (fenêtre: TypeFenêtre, opacité: r64)
+qt_fenêtre_définis_opacité :: fonc (fenêtre: Port_Fenêtre_Native, opacité: r64)
 {
     assert(fenêtre.rappels_window != nul);
     assert(fenêtre.rappels_window.window != nul);
     QT_window_set_opacity(fenêtre.rappels_window.window, opacité);
+}
+
+qt_fenêtre_donne_position_globale :: fonc (fenêtre: Port_Fenêtre_Native, x: z32, y: z32) -> Position_Globale
+{
+    assert(fenêtre.rappels_window != nul);
+    assert(fenêtre.rappels_window.window != nul);
+
+    point: QT_Point = ---;
+    point.x = x;
+    point.y = y;
+    QT_window_map_to_global(fenêtre.rappels_window.window, *point, *point);
+    retourne Position_Globale(point.x, point.y);
 }
 
 RappelsWindow :: struct {
@@ -699,7 +761,7 @@ DonnéesX11 :: struct {
 __données_x11: DonnéesX11;
 
 // À FAIRE : fenêtre parent
-x11_crée_fenêtre :: fonc (largeur: z32, hauteur: z32, titre: chaine, maximisée: bool @inutilisée, index_écran: z32 @inutilisée, avec_barre_de_titre_et_bordures: bool @inutilisée) -> TypeFenêtre
+x11_crée_fenêtre :: fonc (empl options: *Options_Création_Fenêtre) -> Port_Fenêtre_Native
 {
     display := XOpenDisplay(nul);
     si display == nul {
@@ -814,7 +876,7 @@ x11_crée_fenêtre :: fonc (largeur: z32, hauteur: z32, titre: chaine, maximisé
     __données_x11.xic = xic;
     __données_x11.wm_delete_window = wm_delete_window;
 
-    résultat: TypeFenêtre;
+    résultat: Port_Fenêtre_Native;
     résultat.id = donne_id_fenêtre_suivant();
     résultat.système = SystèmeFenêtre.NATIVE;
     résultat.données_x11 = *__données_x11;
@@ -822,17 +884,17 @@ x11_crée_fenêtre :: fonc (largeur: z32, hauteur: z32, titre: chaine, maximisé
     retourne résultat;
 }
 
-x11_requiers_ajournement_fenêtre :: fonc (fenêtre: TypeFenêtre)
+x11_requiers_ajournement_fenêtre :: fonc (fenêtre: Port_Fenêtre_Native)
 {
     imprimeln("À FAIRE : %", #nom_de_cette_fonction);
 }
 
-x11_permute_tampons_fenêtre :: fonc (fenêtre: TypeFenêtre @inutilisée)
+x11_permute_tampons_fenêtre :: fonc (fenêtre: Port_Fenêtre_Native @inutilisée)
 {
     imprimeln("À FAIRE : %", #nom_de_cette_fonction);
 }
 
-x11_donne_taille_fenêtre :: fonc (fenêtre: TypeFenêtre) -> (largeur: z32, hauteur: z32)
+x11_donne_taille_fenêtre :: fonc (fenêtre: Port_Fenêtre_Native) -> (largeur: z32, hauteur: z32)
 {
     assert(fenêtre.données_x11.display != nul);
 
@@ -857,7 +919,7 @@ x11_donne_taille_fenêtre :: fonc (fenêtre: TypeFenêtre) -> (largeur: z32, hau
     retourne w_return comme z32, h_return comme z32;
 }
 
-x11_définis_titre_fenêtre :: fonc (fenêtre: TypeFenêtre, titre: chaine)
+x11_définis_titre_fenêtre :: fonc (fenêtre: Port_Fenêtre_Native, titre: chaine)
 {
     x11_définis_titre_fenêtre(fenêtre.données_x11.display, fenêtre.données_x11.window, titre);
 }
@@ -877,57 +939,57 @@ x11_définis_titre_fenêtre :: fonc (display: *Display, window: Window, titre: c
     _ := XFlush(display);
 }
 
-x11_définis_curseur :: fonc (fenêtre: TypeFenêtre @inutilisée, curseur: TypeCurseurSystème @inutilisée)
+x11_définis_curseur :: fonc (fenêtre: Port_Fenêtre_Native @inutilisée, curseur: TypeCurseurSystème @inutilisée)
 {
     imprimeln("À FAIRE : %", #nom_de_cette_fonction);
 }
 
-x11_active_barre_de_titre_et_bordures :: fonc (fenêtre: TypeFenêtre @inutilisée, oui_non: bool @inutilisée)
+x11_active_barre_de_titre_et_bordures :: fonc (fenêtre: Port_Fenêtre_Native @inutilisée, oui_non: bool @inutilisée)
 {
     imprimeln("À FAIRE : %", #nom_de_cette_fonction);
 }
 
-x11_possède_barre_de_titre_et_bordures :: fonc (fenêtre: TypeFenêtre @inutilisée) -> bool
+x11_possède_barre_de_titre_et_bordures :: fonc (fenêtre: Port_Fenêtre_Native @inutilisée) -> bool
 {
     imprimeln("À FAIRE : %", #nom_de_cette_fonction);
     retourne faux;
 }
 
-x11_fenêtre_minimise :: fonc (fenêtre: TypeFenêtre @inutilisée)
+x11_fenêtre_minimise :: fonc (fenêtre: Port_Fenêtre_Native @inutilisée)
 {
     imprimeln("À FAIRE : %", #nom_de_cette_fonction);
 }
 
-x11_fenêtre_maximise :: fonc (fenêtre: TypeFenêtre @inutilisée)
+x11_fenêtre_maximise :: fonc (fenêtre: Port_Fenêtre_Native @inutilisée)
 {
     imprimeln("À FAIRE : %", #nom_de_cette_fonction);
 }
 
-x11_fenêtre_permute_plein_écran :: fonc (fenêtre: TypeFenêtre @inutilisée)
+x11_fenêtre_permute_plein_écran :: fonc (fenêtre: Port_Fenêtre_Native @inutilisée)
 {
     imprimeln("À FAIRE : %", #nom_de_cette_fonction);
 }
 
-x11_fenêtre_ferme :: fonc (fenêtre: TypeFenêtre)
+x11_fenêtre_ferme :: fonc (fenêtre: Port_Fenêtre_Native)
 {
     assert(fenêtre.système == SystèmeFenêtre.NATIVE);
-    si type_fenêtre.données_x11.display {
-        _ := XCloseDisplay(type_fenêtre.données_x11.display);
+    si fenêtre.données_x11.display {
+        _ := XCloseDisplay(fenêtre.données_x11.display);
     }
 }
 
-x11_fenêtre_est_visible :: fonc (fenêtre: TypeFenêtre @inutilisée) -> bool
+x11_fenêtre_est_visible :: fonc (fenêtre: Port_Fenêtre_Native @inutilisée) -> bool
 {
     imprimeln("À FAIRE : %", #nom_de_cette_fonction);
     retourne faux;
 }
 
-x11_fenêtre_définis_visible :: fonc (fenêtre: TypeFenêtre @inutilisée, oui_non: bool @inutilisée)
+x11_fenêtre_définis_visible :: fonc (fenêtre: Port_Fenêtre_Native @inutilisée, oui_non: bool @inutilisée)
 {
     imprimeln("À FAIRE : %", #nom_de_cette_fonction);
 }
 
-x11_fenêtre_donne_opacité :: fonc (fenêtre: TypeFenêtre) -> r64
+x11_fenêtre_donne_opacité :: fonc (fenêtre: Port_Fenêtre_Native) -> r64
 {
     assert(fenêtre.données_x11 != nul);
 
@@ -963,7 +1025,7 @@ x11_fenêtre_donne_opacité :: fonc (fenêtre: TypeFenêtre) -> r64
     retourne valeur comme r64 / 255.0;
 }
 
-x11_fenêtre_définis_opacité :: fonc (fenêtre: TypeFenêtre, opacité: r64)
+x11_fenêtre_définis_opacité :: fonc (fenêtre: Port_Fenêtre_Native, opacité: r64)
 {
     assert(fenêtre.données_x11 != nul);
 
@@ -976,7 +1038,7 @@ x11_fenêtre_définis_opacité :: fonc (fenêtre: TypeFenêtre, opacité: r64)
     _ := XChangeProperty(display, window, NET_WM_WINDOW_OPACITY, XA_CARDINAL, 32, PropModeReplace, *valeur comme *n8, 1);
 }
 
-x11_ajourne_évènements_fenêtre :: fonc (fenêtre: TypeFenêtre)
+x11_ajourne_évènements_fenêtre :: fonc (fenêtre: Port_Fenêtre_Native)
 {
     assert(fenêtre.système == SystèmeFenêtre.NATIVE);
 
