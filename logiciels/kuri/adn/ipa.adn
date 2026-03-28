@@ -42,7 +42,7 @@ fonction compilatrice_module_pour_code(EspaceDeTravail *espace, NoeudCode * code
 
 /* Retourne le module ayant défini le type, ou nul si aucun ne l'a défini
  * (par exemple pour les types de bases comme z32). */
-fonction compilatrice_module_pour_type(InfoType * type) -> Module *
+fonction compilatrice_module_pour_type(EspaceDeTravail *espace, InfoType * type) -> Module *
 @compilatrice
 
 /* Retourne le nom du module (à savoir le nom du dossier), ou une chaine vide si le module

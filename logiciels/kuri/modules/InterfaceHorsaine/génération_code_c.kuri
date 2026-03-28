@@ -1712,7 +1712,7 @@ détermine_modules_utilisés :: fonc (espace: EspaceDeTravail, ipa: *IPA) -> Ens
     initialise_ensemble_de_modules(espace, *résultat);
 
     pour ipa.types {
-        module := compilatrice_module_pour_type(it.infos);
+        module := compilatrice_module_pour_type(espace, it.infos);
         ajoute_module(*résultat, module);
     }
 
