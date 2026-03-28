@@ -28,10 +28,7 @@
 
 #include <clang-c/Index.h>
 
-#include "biblinternes/json/json.hh"
-#include "biblinternes/structures/chaine.hh"
-#include "biblinternes/structures/dico_desordonne.hh"
-#include "biblinternes/structures/dico_fixe.hh"
+#include "parsage/modules.hh"
 
 #include "structures/chaine.hh"
 #include "structures/chemin_systeme.hh"
@@ -41,6 +38,9 @@
 #include "structures/tableau.hh"
 
 #include "utilitaires/divers.hh"
+#include "utilitaires/log.hh"
+
+#include "json.hh"
 
 /* À FAIRE :
  * - 'auto'
@@ -60,23 +60,29 @@
  * - gestion correcte des typedefs, notamment pour typedef struct XXX { ... } XXX;
  */
 
+static const char *donne_chaine_c(kuri::chaine_statique chn)
+{
+    auto std_string = std::string(chn.pointeur(), size_t(chn.taille()));
+    return strdup(std_string.c_str());
+}
+
 /* ------------------------------------------------------------------------- */
 /** \nom Configuration
  * \{ */
 
 struct RubriqueEmployée {
-    dls::chaine nom{};
-    dls::chaine type{};
-    dls::chaine renomme{};
+    kuri::chaine nom{};
+    kuri::chaine type{};
+    kuri::chaine renomme{};
 };
 
 struct Configuration {
-    dls::chaine fichier{};
-    dls::chaine fichier_sortie{};
-    kuri::tableau<dls::chaine> args{};
-    kuri::tableau<dls::chaine> inclusions{};
-    kuri::tableau<dls::chaine> modules_à_importer{};
-    dls::chaine nom_bibliothèque{};
+    kuri::chaine fichier{};
+    kuri::chaine fichier_sortie{};
+    kuri::tableau<kuri::chaine> args{};
+    kuri::tableau<kuri::chaine> inclusions{};
+    kuri::tableau<kuri::chaine> modules_à_importer{};
+    kuri::chaine nom_bibliothèque{};
     /* Dépendances sur les bibliothèques internes ; celles installées dans modules/Kuri. */
     kuri::tableau<kuri::chaine> dépendances_biblinternes{};
     /* Dépendances sur les bibliothèques internes ; celles installées dans modules/Kuri. */
@@ -85,18 +91,18 @@ struct Configuration {
     kuri::chemin_systeme dossier_source{};
 
     bool fichier_est_composite = false;
-    dls::chaine fichier_tmp{};
+    kuri::chaine fichier_tmp{};
 
     kuri::tableau<RubriqueEmployée> rubriques_employées{};
-    kuri::ensemble<dls::chaine> fonctions_à_ignorer{};
-    kuri::ensemble<dls::chaine> fichiers_à_inclure{};
-    kuri::ensemble<dls::chaine> types_à_ignorer{};
+    kuri::ensemble<kuri::chaine> fonctions_à_ignorer{};
+    kuri::ensemble<kuri::chaine> fichiers_à_inclure{};
+    kuri::ensemble<kuri::chaine> types_à_ignorer{};
 };
 
-static kuri::tableau<dls::chaine> parse_tableau_de_chaines(tori::ObjetDictionnaire *dico,
-                                                           dls::chaine nom)
+static kuri::tableau<kuri::chaine> parse_tableau_de_chaines(tori::ObjetDictionnaire *dico,
+                                                            kuri::chaine_statique nom)
 {
-    kuri::tableau<dls::chaine> résultat;
+    kuri::tableau<kuri::chaine> résultat;
 
     auto tableau = cherche_tableau(dico, nom);
 
@@ -111,7 +117,7 @@ static kuri::tableau<dls::chaine> parse_tableau_de_chaines(tori::ObjetDictionnai
                 exit(1);
             }
 
-            auto obj_chaine = extrait_chaine(objet.get());
+            auto obj_chaine = tori::extrait_chaine(objet.get());
             résultat.ajoute(obj_chaine->valeur);
         }
     }
@@ -119,10 +125,10 @@ static kuri::tableau<dls::chaine> parse_tableau_de_chaines(tori::ObjetDictionnai
     return résultat;
 }
 
-kuri::ensemble<dls::chaine> parse_ensemble_de_chaines(tori::ObjetDictionnaire *dico,
-                                                      dls::chaine nom)
+kuri::ensemble<kuri::chaine> parse_ensemble_de_chaines(tori::ObjetDictionnaire *dico,
+                                                       kuri::chaine_statique nom)
 {
-    auto résultat = kuri::ensemble<dls::chaine>();
+    auto résultat = kuri::ensemble<kuri::chaine>();
     auto tableau = parse_tableau_de_chaines(dico, nom);
     POUR (tableau) {
         résultat.insère(it);
@@ -130,7 +136,7 @@ kuri::ensemble<dls::chaine> parse_ensemble_de_chaines(tori::ObjetDictionnaire *d
     return résultat;
 }
 
-static dls::chaine parse_chaine(tori::ObjetDictionnaire *dico, dls::chaine nom)
+static kuri::chaine parse_chaine(tori::ObjetDictionnaire *dico, kuri::chaine_statique nom)
 {
     auto objet = cherche_chaine(dico, nom);
     if (objet != nullptr) {
@@ -163,7 +169,7 @@ static auto analyse_configuration(const char *chemin)
 
     if (obj_fichier->type == tori::type_objet::CHAINE) {
         config.fichier = static_cast<tori::ObjetChaine *>(obj_fichier)->valeur;
-        auto chemin_fichier_source = kuri::chemin_systeme(config.fichier.c_str());
+        auto chemin_fichier_source = kuri::chemin_systeme(config.fichier);
         config.dossier_source = chemin_fichier_source.chemin_parent();
     }
     else if (obj_fichier->type == tori::type_objet::TABLEAU) {
@@ -182,20 +188,10 @@ static auto analyse_configuration(const char *chemin)
             }
 
             auto obj_chaine = static_cast<tori::ObjetChaine *>(it.get());
-            std::ifstream ifs;
-            ifs.open(obj_chaine->valeur.c_str());
+            auto texte_source = charge_contenu_fichier(obj_chaine->valeur);
+            ss << texte_source;
 
-            if (!ifs.is_open()) {
-                std::cerr << "Impossible de lire le fichier \"" << obj_chaine->valeur << "\"";
-                return config;
-            }
-
-            auto chaine = dls::chaine((std::istreambuf_iterator<char>(ifs)),
-                                      (std::istreambuf_iterator<char>()));
-            ss << chaine;
-
-            auto dossier_fichier =
-                kuri::chemin_systeme(obj_chaine->valeur.c_str()).chemin_parent();
+            auto dossier_fichier = kuri::chemin_systeme(obj_chaine->valeur).chemin_parent();
             dossiers.ajoute(dossier_fichier);
         }
 
@@ -208,12 +204,13 @@ static auto analyse_configuration(const char *chemin)
         ss_tmp << "/tmp/parcer-" << obj_fichier << ".h";
 
         auto nom_fichier_tmp = ss_tmp.str();
+        auto nom_fichier_tmp_kuri = kuri::chaine(nom_fichier_tmp.c_str());
 
         std::ofstream fichier_tmp(nom_fichier_tmp.c_str());
         fichier_tmp << ss.str();
 
-        config.fichier = nom_fichier_tmp;
-        config.fichier_tmp = nom_fichier_tmp;
+        config.fichier = nom_fichier_tmp_kuri;
+        config.fichier_tmp = nom_fichier_tmp_kuri;
         config.fichier_est_composite = true;
 
         auto premier_dossier = dossiers[0];
@@ -286,7 +283,7 @@ static auto analyse_configuration(const char *chemin)
 
 static std::optional<Configuration> valide_configuration(Configuration config)
 {
-    if (!kuri::chemin_systeme::existe(config.fichier.c_str())) {
+    if (!kuri::chemin_systeme::existe(config.fichier)) {
         std::cerr << "Le fichier \"" << config.fichier << "\" n'existe pas !\n";
         return {};
     }
@@ -399,12 +396,12 @@ static kuri::tableau<const char *> parse_arguments_depuis_config(Configuration c
     auto args = kuri::tableau<const char *>();
 
     for (auto const &arg : config.args) {
-        args.ajoute(arg.c_str());
+        args.ajoute(donne_chaine_c(arg));
     }
 
     for (auto const &inclusion : config.inclusions) {
         args.ajoute("-I");
-        args.ajoute(inclusion.c_str());
+        args.ajoute(donne_chaine_c(inclusion));
     }
 
     return args;
@@ -424,17 +421,17 @@ static std::optional<Configuration> crée_configuration_depuis_arguments(int arg
 /** \nom Utilitaires
  * \{ */
 
-static dls::chaine convertis_chaine(CXString string)
+static kuri::chaine convertis_chaine(CXString string)
 {
     auto c_str = clang_getCString(string);
-    auto résultat = dls::chaine();
+    auto résultat = kuri::chaine();
     if (c_str && strcmp(c_str, "") != 0) {
-        résultat = dls::chaine(c_str);
+        résultat = kuri::chaine(c_str);
     }
     return résultat;
 }
 
-static dls::chaine donne_nom_fichier(CXFile file)
+static kuri::chaine donne_nom_fichier(CXFile file)
 {
     auto comment = clang_getFileName(file);
     auto résultat = convertis_chaine(comment);
@@ -442,7 +439,7 @@ static dls::chaine donne_nom_fichier(CXFile file)
     return résultat;
 }
 
-static dls::chaine donne_commentaire(CXCursor cursor)
+static kuri::chaine donne_commentaire(CXCursor cursor)
 {
     auto comment = clang_Cursor_getRawCommentText(cursor);
     auto résultat = convertis_chaine(comment);
@@ -450,7 +447,7 @@ static dls::chaine donne_commentaire(CXCursor cursor)
     return résultat;
 }
 
-static dls::chaine donne_cursor_spelling(CXCursor cursor)
+static kuri::chaine donne_cursor_spelling(CXCursor cursor)
 {
     auto spelling = clang_getCursorSpelling(cursor);
     auto résultat = convertis_chaine(spelling);
@@ -458,7 +455,7 @@ static dls::chaine donne_cursor_spelling(CXCursor cursor)
     return résultat;
 }
 
-static dls::chaine donne_type_spelling(CXType cursor)
+static kuri::chaine donne_type_spelling(CXType cursor)
 {
     auto spelling = clang_getTypeSpelling(cursor);
     auto résultat = convertis_chaine(spelling);
@@ -527,7 +524,7 @@ enum class TypeSyntaxème {
 
 struct Syntaxème {
     TypeSyntaxème type_syntaxème = TypeSyntaxème::DÉFAUT;
-    dls::chaine commentaire = "";
+    kuri::chaine commentaire = "";
 
     std::optional<CXType> type_c{};
 
@@ -540,8 +537,8 @@ struct Syntaxème {
     virtual ~Syntaxème() = default;
 };
 
-struct Module : public Syntaxème {
-    DECLARE_CONTRUCTEUR_DÉFAUT(Module, MDOULE)
+struct DéclarationModule : public Syntaxème {
+    DECLARE_CONTRUCTEUR_DÉFAUT(DéclarationModule, MDOULE)
 
     kuri::tableau<Syntaxème *> déclarations{};
 };
@@ -549,7 +546,7 @@ struct Module : public Syntaxème {
 struct DéclarationÉnum : public Syntaxème {
     DECLARE_CONTRUCTEUR_DÉFAUT(DéclarationÉnum, DÉCLARATION_ÉNUM)
 
-    dls::chaine nom = "";
+    kuri::chaine nom = "";
     CXType type_sous_jacent{};
     kuri::tableau<Syntaxème *> rubriques{};
 };
@@ -557,14 +554,14 @@ struct DéclarationÉnum : public Syntaxème {
 struct DéclarationStruct : public Syntaxème {
     DECLARE_CONTRUCTEUR_DÉFAUT(DéclarationStruct, DÉCLARATION_STRUCT)
 
-    dls::chaine nom = "";
+    kuri::chaine nom = "";
     kuri::tableau<Syntaxème *> rubriques{};
 };
 
 struct DéclarationUnion : public Syntaxème {
     DECLARE_CONTRUCTEUR_DÉFAUT(DéclarationUnion, DÉCLARATION_UNION)
 
-    dls::chaine nom = "";
+    kuri::chaine nom = "";
     kuri::tableau<Syntaxème *> rubriques{};
 };
 
@@ -580,7 +577,7 @@ struct DéclarationVariable : public Syntaxème {
     bool est_variadique = false;
     bool est_employée = false;
 
-    dls::chaine nom{};
+    kuri::chaine nom{};
     Expression *expression = nullptr;
 };
 
@@ -588,14 +585,14 @@ struct DéclarationConstante : public Syntaxème {
     EMPECHE_COPIE(DéclarationConstante);
     DECLARE_CONTRUCTEUR_DÉFAUT(DéclarationConstante, DÉCLARATION_CONSTANTE)
 
-    dls::chaine nom{};
+    kuri::chaine nom{};
     Expression *expression = nullptr;
 };
 
 struct DéclarationFonction : public Syntaxème {
     DECLARE_CONTRUCTEUR_DÉFAUT(DéclarationFonction, DÉCLARATION_FONCTION)
 
-    dls::chaine nom = "";
+    kuri::chaine nom = "";
     CXType type_sortie = {};
     bool est_inline = false;
     kuri::tableau<DéclarationVariable *> paramètres{};
@@ -617,7 +614,7 @@ struct Expression : public Syntaxème {
     {
     }
 
-    dls::chaine texte{};
+    kuri::chaine texte{};
 };
 
 struct ExpressionUnaire : public Expression {
@@ -647,7 +644,7 @@ struct Syntaxeuse {
     kuri::tableau<Syntaxème *> syntaxèmes{};
     kuri::tableau<DéclarationStruct *> toutes_les_structures{};
 
-    Module *module = nullptr;
+    DéclarationModule *module = nullptr;
 
     kuri::pile<Syntaxème *> noeud_courant{};
 
@@ -674,7 +671,7 @@ struct Syntaxeuse {
         return résultat;
     }
 
-    Expression *crée_expression(dls::chaine texte)
+    Expression *crée_expression(kuri::chaine texte)
     {
         auto résultat = this->crée<Expression>();
         résultat->texte = texte;
@@ -721,7 +718,7 @@ std::ostream &operator<<(std::ostream &stream, const CXString &str)
  * dans la liste des typedefs afin de ne pas avoir à ce soucier de la
  * possibilité d'avoir un mot-clé dans la chaine.
  */
-static dls::chaine trouve_nom_anonyme(dls::chaine chn)
+static kuri::chaine trouve_nom_anonyme(kuri::chaine chn)
 {
     auto pos_anonymous = chn.trouve("(anonymous");
 
@@ -732,43 +729,42 @@ static dls::chaine trouve_nom_anonyme(dls::chaine chn)
         }
     }
 
-    auto pos_slash = chn.trouve_premier_de('/');
+    auto pos_slash = chn.trouve('/');
     return chn.sous_chaine(pos_slash);
 }
 
-using dico_typedefs = dls::dico_desordonne<dls::chaine, kuri::tableau<dls::chaine>>;
+using dico_typedefs = kuri::table_hachage<kuri::chaine, kuri::tableau<kuri::chaine>>;
 
-static auto determine_nom_anomyme(dls::chaine spelling,
-                                  dico_typedefs &typedefs,
-                                  int &nombre_anonyme,
-                                  bool retourne_vide_si_nommé)
+static kuri::chaine determine_nom_anomyme(kuri::chaine spelling,
+                                          dico_typedefs &typedefs,
+                                          int &nombre_anonyme,
+                                          bool retourne_vide_si_nommé)
 {
     if (spelling != "") {
         auto nom_anonymous = trouve_nom_anonyme(spelling);
 
         if (nom_anonymous != "") {
-            auto iter = typedefs.trouve(nom_anonymous);
-            if (iter != typedefs.fin()) {
-                auto résultat = iter->second[0];
-                return résultat;
+            auto trouvé = false;
+            auto tableau = typedefs.trouve(nom_anonymous, trouvé);
+            if (trouvé) {
+                return tableau[0];
             }
 
-            auto nom = "anonyme" + dls::vers_chaine(nombre_anonyme++);
-            kuri::tableau<dls::chaine, int64_t> tabl;
+            auto nom = enchaine("anonyme", nombre_anonyme++);
+            kuri::tableau<kuri::chaine> tabl;
             tabl.ajoute(nom);
-            typedefs.insere({nom_anonymous, tabl});
+            typedefs.insère(nom_anonymous, tabl);
             return nom;
         }
 
         if (retourne_vide_si_nommé) {
-            return dls::chaine("");
+            return "";
         }
 
         return spelling;
     }
 
-    auto résultat = "anonyme" + dls::vers_chaine(nombre_anonyme++);
-    return résultat;
+    return enchaine("anonyme", nombre_anonyme++);
 }
 
 static auto determine_nom_anomyme(CXType const &type,
@@ -791,17 +787,17 @@ static auto determine_nom_anomyme(CXCursor cursor, dico_typedefs &typedefs, int 
     return determine_nom_anomyme(clang_getCursorType(cursor), typedefs, nombre_anonyme, false);
 }
 
-static dls::chaine convertis_type(CXType const &type,
-                                  dico_typedefs &typedefs,
-                                  int &nombre_anonyme);
+static kuri::chaine convertis_type(CXType const &type,
+                                   dico_typedefs &typedefs,
+                                   int &nombre_anonyme);
 
-static dls::chaine convertis_type_fonction(CXType const &type,
-                                           dico_typedefs &typedefs,
-                                           int &nombre_anonyme)
+static kuri::chaine convertis_type_fonction(CXType const &type,
+                                            dico_typedefs &typedefs,
+                                            int &nombre_anonyme)
 {
     auto nombre_args = clang_getNumArgTypes(type);
 
-    auto flux = std::stringstream();
+    auto flux = Enchaineuse();
     flux << "fonc (";
 
     for (int i = 0; i < nombre_args; i++) {
@@ -814,37 +810,56 @@ static dls::chaine convertis_type_fonction(CXType const &type,
 
     flux << ") -> " << convertis_type(clang_getResultType(type), typedefs, nombre_anonyme);
 
-    return flux.str();
+    return flux.chaine();
 }
 
-static dls::chaine convertis_type(CXType const &type, dico_typedefs &typedefs, int &nombre_anonyme)
+static kuri::chaine_statique donne_chaine_type_natif(CXTypeKind kind)
 {
-    static auto dico_type = dls::cree_dico(
-        dls::paire{CXType_Void, kuri::chaine_statique("rien")},
-        dls::paire{CXType_Bool, kuri::chaine_statique("bool")},
-        dls::paire{CXType_Char_U, kuri::chaine_statique("n8")},
-        dls::paire{CXType_UChar, kuri::chaine_statique("n8")},
-        dls::paire{CXType_UShort, kuri::chaine_statique("n16")},
-        dls::paire{CXType_UInt, kuri::chaine_statique("n32")},
-        dls::paire{CXType_ULong, kuri::chaine_statique("n64")},
-        dls::paire{CXType_ULongLong, kuri::chaine_statique("n64")},
-        dls::paire{CXType_Char_S, kuri::chaine_statique("z8")},
-        dls::paire{CXType_SChar, kuri::chaine_statique("z8")},
-        dls::paire{CXType_Short, kuri::chaine_statique("z16")},
-        dls::paire{CXType_Int, kuri::chaine_statique("z32")},
-        dls::paire{CXType_Long, kuri::chaine_statique("z64")},
-        dls::paire{CXType_LongLong, kuri::chaine_statique("z64")},
-        dls::paire{CXType_Float, kuri::chaine_statique("r32")},
-        dls::paire{CXType_Double, kuri::chaine_statique("r64")},
-        dls::paire{CXType_LongDouble, kuri::chaine_statique("r64")});
+    if (kind == CXType_Void)
+        return "rien";
+    if (kind == CXType_Bool)
+        return "bool";
+    if (kind == CXType_Char_U)
+        return "n8";
+    if (kind == CXType_UChar)
+        return "n8";
+    if (kind == CXType_UShort)
+        return "n16";
+    if (kind == CXType_UInt)
+        return "n32";
+    if (kind == CXType_ULong)
+        return "n64";
+    if (kind == CXType_ULongLong)
+        return "n64";
+    if (kind == CXType_Char_S)
+        return "z8";
+    if (kind == CXType_SChar)
+        return "z8";
+    if (kind == CXType_Short)
+        return "z16";
+    if (kind == CXType_Int)
+        return "z32";
+    if (kind == CXType_Long)
+        return "z64";
+    if (kind == CXType_LongLong)
+        return "z64";
+    if (kind == CXType_Float)
+        return "r32";
+    if (kind == CXType_Double)
+        return "r64";
+    if (kind == CXType_LongDouble)
+        return "r64";
+    return "";
+}
 
+static kuri::chaine convertis_type(CXType const &type,
+                                   dico_typedefs &typedefs,
+                                   int &nombre_anonyme)
+{
     auto kind = type.kind;
-
-    auto plg_type = dico_type.trouve(kind);
-
-    if (!plg_type.est_finie()) {
-        auto chaine_résultat = plg_type.front().second;
-        return dls::chaine(chaine_résultat.pointeur(), chaine_résultat.taille());
+    auto chaine_type_natif = donne_chaine_type_natif(kind);
+    if (chaine_type_natif != "") {
+        return chaine_type_natif;
     }
 
     auto type_fonction_opt = est_type_fonction(type);
@@ -852,7 +867,7 @@ static dls::chaine convertis_type(CXType const &type, dico_typedefs &typedefs, i
         return convertis_type_fonction(type_fonction_opt.value(), typedefs, nombre_anonyme);
     }
 
-    auto flux = std::stringstream();
+    auto flux = Enchaineuse();
 
     switch (kind) {
         default:
@@ -895,12 +910,9 @@ static dls::chaine convertis_type(CXType const &type, dico_typedefs &typedefs, i
 
             /* Détecte typedef int32_t int, etc., mais uniquement pour les types primitifs de C. */
             auto canonique = clang_getCanonicalType(type);
-            plg_type = dico_type.trouve(canonique.kind);
-            if (!plg_type.est_finie()) {
-                if (typedefs.trouve(spelling) != typedefs.fin()) {
-                    auto chaine_résultat = plg_type.front().second;
-                    return dls::chaine(chaine_résultat.pointeur(), chaine_résultat.taille());
-                }
+            chaine_type_natif = donne_chaine_type_natif(canonique.kind);
+            if (chaine_type_natif != "") {
+                return chaine_type_natif;
             }
 
             return spelling;
@@ -999,7 +1011,7 @@ static dls::chaine convertis_type(CXType const &type, dico_typedefs &typedefs, i
         }
     }
 
-    return flux.str();
+    return flux.chaine();
 }
 
 static auto rassemble_enfants(CXCursor cursor)
@@ -1048,7 +1060,7 @@ static inline const clang::Expr *getCursorExpr(CXCursor c)
     return clang::dyn_cast_or_null<clang::Expr>(getCursorStmt(c));
 }
 
-static dls::chaine determine_operateur_binaire(CXCursor cursor, CXTranslationUnit trans_unit)
+static kuri::chaine determine_operateur_binaire(CXCursor cursor, CXTranslationUnit trans_unit)
 {
     /* Méthode tirée de
      * https://www.mail-archive.com/cfe-commits@cs.uiuc.edu/msg95414.html
@@ -1059,7 +1071,7 @@ static dls::chaine determine_operateur_binaire(CXCursor cursor, CXTranslationUni
 
     if (expr != nullptr) {
         auto op = clang::cast<clang::BinaryOperator>(expr);
-        return op->getOpcodeStr().str();
+        return op->getOpcodeStr().str().c_str();
     }
 
     /* Si la méthode au-dessus échoue, utilise celle-ci tirée de
@@ -1071,7 +1083,7 @@ static dls::chaine determine_operateur_binaire(CXCursor cursor, CXTranslationUni
     unsigned nombre_tokens = 0;
     clang_tokenize(trans_unit, range, &tokens, &nombre_tokens);
 
-    dls::chaine résultat;
+    kuri::chaine résultat;
 
     for (unsigned i = 0; i < nombre_tokens; i++) {
         auto loc_tok = clang_getTokenLocation(trans_unit, tokens[i]);
@@ -1111,7 +1123,7 @@ static auto determine_operateur_unaire(CXCursor cursor, CXTranslationUnit trans_
     clang_tokenize(trans_unit, range, &tokens, &nombre_tokens);
 
     if (tokens == nullptr) {
-        return dls::chaine();
+        return kuri::chaine();
     }
 
     auto spelling = clang_getTokenSpelling(trans_unit, tokens[0]);
@@ -1123,7 +1135,7 @@ static auto determine_operateur_unaire(CXCursor cursor, CXTranslationUnit trans_
         spelling = clang_getTokenSpelling(trans_unit, tokens[nombre_tokens - 1]);
     }
 
-    dls::chaine chn = clang_getCString(spelling);
+    kuri::chaine chn = clang_getCString(spelling);
     clang_disposeString(spelling);
 
     clang_disposeTokens(trans_unit, tokens, nombre_tokens);
@@ -1139,12 +1151,12 @@ static auto determine_expression_unaire(CXCursor cursor, CXTranslationUnit trans
     clang_tokenize(trans_unit, range, &tokens, &nombre_tokens);
 
     if (tokens == nullptr) {
-        return dls::chaine();
+        return kuri::chaine();
     }
 
     auto spelling = clang_getTokenSpelling(trans_unit, tokens[0]);
 
-    dls::chaine chn = clang_getCString(spelling);
+    kuri::chaine chn = clang_getCString(spelling);
     clang_disposeString(spelling);
 
     clang_disposeTokens(trans_unit, tokens, nombre_tokens);
@@ -1153,7 +1165,7 @@ static auto determine_expression_unaire(CXCursor cursor, CXTranslationUnit trans
 }
 
 // https://stackoverflow.com/questions/10692015/libclang-get-primitive-value
-static dls::chaine donne_chaine_pour_litérale(CXCursor cursor, CXTranslationUnit trans_unit)
+static kuri::chaine donne_chaine_pour_litérale(CXCursor cursor, CXTranslationUnit trans_unit)
 {
     auto expr = getCursorExpr(cursor);
 
@@ -1162,7 +1174,7 @@ static dls::chaine donne_chaine_pour_litérale(CXCursor cursor, CXTranslationUni
             auto op = clang::cast<clang::IntegerLiteral>(expr);
             std::stringstream stream;
             stream << op->getValue().getLimitedValue();
-            return stream.str();
+            return stream.str().c_str();
         }
     }
 
@@ -1175,7 +1187,7 @@ static dls::chaine donne_chaine_pour_litérale(CXCursor cursor, CXTranslationUni
         return donne_cursor_spelling(cursor);
     }
 
-    dls::chaine résultat;
+    kuri::chaine résultat;
 
     if (cursor.kind == CXCursorKind::CXCursor_CXXBoolLiteralExpr) {
         CXString s = clang_getTokenSpelling(trans_unit, tokens[0]);
@@ -1193,7 +1205,7 @@ static dls::chaine donne_chaine_pour_litérale(CXCursor cursor, CXTranslationUni
             len = len - 1;
         }
 
-        résultat = dls::chaine(str, int64_t(len));
+        résultat = kuri::chaine(str, int64_t(len));
         clang_disposeString(s);
     }
     else {
@@ -1248,7 +1260,7 @@ static auto tokens_typealias(CXCursor cursor, CXTranslationUnit trans_unit, dico
     }
 
     auto nom = convertis_chaine(clang_getTokenSpelling(trans_unit, tokens[1]));
-    auto morceaux = kuri::tableau<dls::chaine>();
+    auto morceaux = kuri::tableau<kuri::chaine>();
 
     for (auto i = 3u; i < nombre_tokens; ++i) {
         auto spelling = clang_getTokenSpelling(trans_unit, tokens[i]);
@@ -1257,7 +1269,7 @@ static auto tokens_typealias(CXCursor cursor, CXTranslationUnit trans_unit, dico
     }
     std::cerr << '\n';
 
-    dico.insere({nom, morceaux});
+    dico.insère(nom, morceaux);
 
     clang_disposeTokens(trans_unit, tokens, nombre_tokens);
 }
@@ -1318,11 +1330,11 @@ static EnfantsBoucleFor determine_enfants_for(CXCursor cursor,
     return res;
 }
 
-static dls::chaine donne_préfixe_valeur_énum(dls::chaine const &nom_énum)
+static kuri::chaine donne_préfixe_valeur_énum(kuri::chaine const &nom_énum)
 {
     auto résultat = nom_énum;
     if (résultat[résultat.taille() - 1] != '_') {
-        résultat += "_";
+        résultat = enchaine(résultat, "_");
     }
 
     for (auto &c : résultat) {
@@ -1334,8 +1346,8 @@ static dls::chaine donne_préfixe_valeur_énum(dls::chaine const &nom_énum)
     return résultat;
 }
 
-static dls::chaine donne_nom_constante_énum_sans_préfixe(dls::chaine const &nom_constante,
-                                                         dls::chaine const &préfixe_énum)
+static kuri::chaine donne_nom_constante_énum_sans_préfixe(kuri::chaine const &nom_constante,
+                                                          kuri::chaine const &préfixe_énum)
 {
     if (nom_constante.taille() < préfixe_énum.taille()) {
         return nom_constante;
@@ -1363,32 +1375,32 @@ struct Convertisseuse {
     /* pour les structures, unions, et énumérations anonymes */
     int nombre_anonymes = 0;
 
-    kuri::pile<dls::chaine> noms_structure{};
+    kuri::pile<kuri::chaine> noms_structure{};
 
-    dico_typedefs typedefs{};
+    dico_typedefs typedefs{"typedefs"};
 
     kuri::ensemble<CXCursorKind> cursors_non_pris_en_charges{};
     kuri::ensemble<kuri::chaine> fichiers_ignorés{};
 
     kuri::ensemble<kuri::chaine> modules_importes{};
 
-    kuri::ensemble<dls::chaine> commentaires_imprimés{};
+    kuri::ensemble<kuri::chaine> commentaires_imprimés{};
 
     /* Les fonctions peuvent être prodéclarées plusieurs fois en C/C++, nous ne voulons les
      * déclarer qu'une seule dans le code généré. */
-    kuri::ensemble<dls::chaine> fonctions_déjà_déclarées{};
+    kuri::ensemble<kuri::chaine> fonctions_déjà_déclarées{};
 
-    dls::chaine nom_bibliothèque_sûr{};
+    kuri::chaine nom_bibliothèque_sûr{};
 
     Configuration *config = nullptr;
 
-    dls::chaine m_préfixe_énum_courant{};
+    kuri::chaine m_préfixe_énum_courant{};
 
-    void ajoute_typedef(dls::chaine &&nom_typedef, dls::chaine &&nom_type)
+    void ajoute_typedef(kuri::chaine &&nom_typedef, kuri::chaine &&nom_type)
     {
-        kuri::tableau<dls::chaine> tabl;
+        kuri::tableau<kuri::chaine> tabl;
         tabl.ajoute(nom_type);
-        typedefs.insere({nom_typedef, tabl});
+        typedefs.insère(nom_typedef, tabl);
     }
 
     auto imprime_commentaire(CXCursor cursor, std::ostream &os)
@@ -1397,7 +1409,7 @@ struct Convertisseuse {
         auto c_str = clang_getCString(comment);
 
         if (c_str != nullptr) {
-            auto chn = dls::chaine(c_str);
+            auto chn = kuri::chaine(c_str);
 
             if (chn != "") {
                 imprime_tab(os);
@@ -1434,7 +1446,7 @@ struct Convertisseuse {
         CXCursor cursor = clang_getTranslationUnitCursor(trans_unit);
         // imprime_asa(cursor, 0, std::cout);
 
-        auto module = syntaxeuse.crée<Module>();
+        auto module = syntaxeuse.crée<DéclarationModule>();
         syntaxeuse.module = module;
         syntaxeuse.noeud_courant.empile(module);
         convertis(cursor, trans_unit, flux_sortie);
@@ -1495,8 +1507,8 @@ struct Convertisseuse {
         }
 
         if (config->fichiers_à_inclure.taille() != 0) {
-            auto chaine_chemin_fichier = dls::chaine(chemin_fichier.pointeur(),
-                                                     chemin_fichier.taille());
+            auto chaine_chemin_fichier = kuri::chaine(chemin_fichier.pointeur(),
+                                                      chemin_fichier.taille());
             return !config->fichiers_à_inclure.possède(chaine_chemin_fichier);
         }
 
@@ -1549,8 +1561,7 @@ struct Convertisseuse {
                     clang_getExpansionLocation(loc, &file, &line, &column, &offset);
 
                     auto nom_fichier = donne_nom_fichier(file);
-                    auto nom_fichier_c = kuri::chemin_systeme(
-                        kuri::chaine_statique(nom_fichier.c_str(), nom_fichier.taille()));
+                    auto nom_fichier_c = kuri::chemin_systeme(nom_fichier);
 
                     //  À FAIRE: option pour controler ceci.
                     if (doit_ignorer_fichier(nom_fichier_c)) {
@@ -1607,7 +1618,7 @@ struct Convertisseuse {
                             }
 
                             auto variable = syntaxeuse.crée<DéclarationVariable>(cursor);
-                            variable->nom = "bitfield" + dls::vers_chaine(indice_enfant);
+                            variable->nom = enchaine("bitfield", indice_enfant);
                             variable->type_c = clang_getCursorType(enfant);
 
                             structure->rubriques.ajoute(variable);
@@ -2598,7 +2609,7 @@ struct Convertisseuse {
             auto variable = syntaxeuse.crée<DéclarationVariable>(param);
             variable->nom = donne_cursor_spelling(param);
             if (variable->nom == "") {
-                variable->nom = "anonyme" + dls::vers_chaine(i);
+                variable->nom = enchaine("anonyme", i);
             }
             variable->type_c = clang_getCursorType(param);
             fonction->paramètres.ajoute(variable);
@@ -2609,7 +2620,7 @@ struct Convertisseuse {
         if (clang_isFunctionTypeVariadic(clang_getCursorType(cursor)) &&
             fonction->paramètres.taille() != 0) {
             auto variable = syntaxeuse.crée<DéclarationVariable>();
-            variable->nom = "anonyme" + dls::vers_chaine(enfants.taille());
+            variable->nom = enchaine("anonyme", enfants.taille());
             variable->est_variadique = true;
             fonction->paramètres.ajoute(variable);
         }
@@ -2651,7 +2662,7 @@ struct Convertisseuse {
             }
             case TypeSyntaxème::MDOULE:
             {
-                auto module = static_cast<Module *>(syntaxème);
+                auto module = static_cast<DéclarationModule *>(syntaxème);
                 POUR (module->déclarations) {
                     if (doit_ignorer_déclaration(it)) {
                         continue;
@@ -2929,7 +2940,7 @@ struct Convertisseuse {
         return false;
     }
 
-    void ajoute_imports_pour_structures(Module *module, std::ostream &flux_sortie)
+    void ajoute_imports_pour_structures(DéclarationModule *module, std::ostream &flux_sortie)
     {
         POUR (module->déclarations) {
             if (it->type_syntaxème != TypeSyntaxème::DÉCLARATION_STRUCT) {
@@ -3085,7 +3096,7 @@ int main(int argc, char **argv)
 #else
     CXUnsavedFile *unsaved_files = nullptr;
     unsigned num_unsaved_files = 0;
-    const char *filename = config.fichier.c_str();
+    const char *filename = donne_chaine_c(config.fichier);
 #endif
 
     CXIndex index = clang_createIndex(0, 0);
@@ -3104,7 +3115,7 @@ int main(int argc, char **argv)
         exit(-1);
     }
 
-    auto fichier_source = kuri::chemin_systeme(config.fichier.c_str());
+    auto fichier_source = kuri::chemin_systeme(config.fichier);
     auto fichier_entête = fichier_source;
     fichier_entête = fichier_entête.remplace_extension(".hh");
 
@@ -3127,7 +3138,7 @@ int main(int argc, char **argv)
 
             auto loc = clang_getDiagnosticLocation(diag);
 
-            CXFile file = clang_getFile(unit, config.fichier.c_str());
+            CXFile file = clang_getFile(unit, donne_chaine_c(config.fichier));
 
             size_t taille = 0;
             auto tampon = clang_getFileContents(unit, file, &taille);
@@ -3183,7 +3194,8 @@ int main(int argc, char **argv)
     }
 
     if (config.fichier_sortie != "") {
-        std::ofstream fichier(config.fichier_sortie.c_str());
+        auto chemin_fichier_sortie = kuri::chemin_systeme(config.fichier_sortie);
+        std::ofstream fichier(vers_std_path(chemin_fichier_sortie));
         fichier << "/* stats-code ignore fichier */\n\n";
         convertisseuse.convertis(unit, fichier);
     }
@@ -3212,7 +3224,10 @@ int main(int argc, char **argv)
     clang_disposeIndex(index);
 
     if (config.fichier_est_composite && config.fichier_tmp.taille() != 0) {
-        remove(config.fichier_tmp.c_str());
+        auto fut_supprimé = kuri::chemin_systeme::supprime(config.fichier_tmp);
+        if (!fut_supprimé) {
+            dbg() << "Impossible de supprimer " << config.fichier_tmp;
+        }
     }
 
     return 0;
