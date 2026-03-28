@@ -1157,10 +1157,6 @@ texture_atlas_t :: struct {
      */
     used: n64;
     /**
-     * Texture identity (OpenGL)
-     */
-    id: n32;
-    /**
      * Set to 1 if new glyphs were loaded. Can be set to 0 by
      * clients to dynamically update the OpenGL texture.
      */
@@ -1259,7 +1255,7 @@ texture_atlas_set_region :: fonc (self: *texture_atlas_t,
                          taille = (width * depth) comme z64);
     }
 
-    self.dirty = 1;
+    self.dirty += 1;
 }
 
 texture_atlas_get_glyph_buffer :: fonc (self: *texture_atlas_t, width: n64, height: n64) -> []octet

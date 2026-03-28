@@ -179,7 +179,7 @@ ouvre_page :: fonc (vue_html: *VueHTML, chaine_uri: chaine)
     vue_html.page_web = crée_page_web(navigable);
 }
 
-définis_titre_fenêtre :: fonc (vue_html: *VueHTML, fenêtre: TypeFenêtre, document: *Document)
+définis_titre_fenêtre :: fonc (vue_html: *VueHTML, fenêtre: Port_Fenêtre_Native, document: *Document)
 {
     titre := "VueHTML";
 
@@ -746,7 +746,7 @@ RappelsInterfaceVueHTML :: struct {
     empl base: RappelsInterface;
     
     vue_html: *VueHTML;
-    fenêtre: TypeFenêtre;
+    fenêtre: Port_Fenêtre_Native;
     window: *QT_Window;
 
     files_parallèles: [..]FileParallèle;
@@ -764,7 +764,7 @@ RappelsInterfaceVueHTML :: struct {
 évènement_sur_tâche_parallèle := -1;
 évènement_sur_tâche_traversable := -1;
 
-initialise_rappels_interface :: fonc (résultat: *RappelsInterfaceVueHTML, vue_html: *VueHTML, fenêtre: TypeFenêtre)
+initialise_rappels_interface :: fonc (résultat: *RappelsInterfaceVueHTML, vue_html: *VueHTML, fenêtre: Port_Fenêtre_Native)
 {
     résultat.fenêtre = fenêtre;
     résultat.window = donne_qt_window(fenêtre);
