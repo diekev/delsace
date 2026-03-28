@@ -1,6 +1,7 @@
 importe Compilatrice;
 importe Chaine;
 importe Couleur;
+importe Ensemble;
 importe Fondation;
 importe Image;
 importe InfosInterface;
@@ -266,6 +267,11 @@ FormatVertexXId :: struct {
     id: n32;
 }
 
+Infos_Texture_Fonte :: struct {
+    id_texture: n32;
+    génération: n32;
+}
+
 DonnéesContexteGL :: struct {
     initialisé := faux;
     utilisateurs := 0;
@@ -287,7 +293,7 @@ DonnéesContexteGL :: struct {
     dernier_mode: ModeImmédiat;
     dernier_nuanceur := (-1 comme IDNuanceur);
     dernière_fonte: *Fonte;
-    fontes_utilisées: [..]*Fonte;
+    fontes_utilisées: TableDeHachage(*Fonte, Infos_Texture_Fonte);
 
     dernier_mode_id: ModeImmédiat;
     dernier_nuanceur_id := (-1 comme IDNuanceur);
@@ -363,6 +369,8 @@ issitialise_ctx :: fonc (empl ctx: *DonnéesContexteGL)
     si ctx == *__ctx_défaut {
         détruit(*__frame_buffers);
     }
+
+    détruit_données(*ctx.fontes_utilisées);
 }
 
 donne_contexte_courant :: fonc () -> *DonnéesContexteGL
@@ -396,12 +404,13 @@ réinitialise_données :: fonc ()
 
     dernier_nuanceur = (-1 comme IDNuanceur);
     dernière_fonte = nul;
-    pour fontes_utilisées {
-        si glIsTexture(it.atlas.id) {
-            glDeleteTextures(1, *it.atlas.id);
+    pour fontes_utilisées.valeurs {
+        si glIsTexture(it.id_texture) {
+            glDeleteTextures(1, *it.id_texture);
         }
     }
-    fontes_utilisées.taille = 0;
+    fontes_utilisées.clés.taille = 0;
+    fontes_utilisées.valeurs.taille = 0;
 }
 
 commence_immédiat :: fonc (mode: ModeImmédiat, id_nuanceur: IDNuanceur, fonte : *Fonte = nul)
@@ -949,11 +958,11 @@ dessine_glyphes :: fonc (glyphes: []*texture_glyph_t, fonte: *Fonte, x: r32, y: 
     // diffère saufsi gl_blend_est_actif { glDisable(GL_BLEND) }
     glEnable(GL_BLEND);
 
-    garantis_texture_pour_atlas(fonte);
+    id_texture := garantis_texture_pour_atlas(fonte);
 
     glUseProgram(nuanceur_texte.programme);
 
-    glBindTexture(GL_TEXTURE_2D, fonte.atlas.id);
+    glBindTexture(GL_TEXTURE_2D, id_texture);
 
     définis_uniforme(nuanceur_texte.loc_atlas, 0 comme z32);
 
@@ -984,21 +993,25 @@ dessine_glyphes :: fonc (glyphes: []*texture_glyph_t, fonte: *Fonte, x: r32, y: 
     }
 }
 
-garantis_texture_pour_atlas :: fonc (fonte: *Fonte)
+garantis_texture_pour_atlas :: fonc (fonte: *Fonte) -> n32
 {
     empl __ctx_courant;
 
-    saufsi glIsTexture(fonte.atlas.id) {
-        glGenTextures(1, *fonte.atlas.id);
-        tableau_ajoute(*fontes_utilisées, fonte);
-        fonte.atlas.dirty = 1;
+    trouvé, infos_texture := donne_valeur_pour_clé(fontes_utilisées, fonte);
+    saufsi trouvé {
+        glGenTextures(1, *infos_texture.id_texture);
+        infos_texture.génération = 0xffffffff;
     }
 
-    si fonte.atlas.dirty {
+    si fonte.atlas.dirty != infos_texture.génération {
         params := donne_paramètres_texture_atlas_fonte(fonte.atlas);
-        définis_texture_2d(fonte.atlas.id, *params);
-        fonte.atlas.dirty = 0;
+        définis_texture_2d(infos_texture.id_texture, *params);
+        infos_texture.génération = fonte.atlas.dirty;
+
+        table_insère(*fontes_utilisées, fonte, infos_texture);
     }
+
+    retourne infos_texture.id_texture;
 }
 
 glyphe_immédiat :: fonc (glyph: *texture_glyph_t, x: r32, y: r32, couleur: CouleurRVBA)
