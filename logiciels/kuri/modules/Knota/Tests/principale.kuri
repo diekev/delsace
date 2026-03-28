@@ -1,0 +1,13 @@
+importe Fondation;
+importe Knota;
+
+principale :: fonc ()
+{
+    texte_expression := «éval("../chemin")»;
+
+    expression := parse_expression(texte_expression);
+
+    si expression {
+        imprime_arbre(*expression.arbre);
+    }
+}
