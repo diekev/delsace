@@ -1619,6 +1619,17 @@ void QT_window_set_opacity(struct QT_Window *window, double opacity)
     qwindow->setOpacity(opacity);
 }
 
+void QT_window_map_to_global(struct QT_Window *window, QT_Point *point, QT_Point *r_point)
+{
+    if (!r_point) {
+        return;
+    }
+
+    VERS_QT(window);
+    auto résultat = qwindow->mapToGlobal(QPoint(point->x, point->y));
+    *r_point = QT_Point{résultat.x(), résultat.y()};
+}
+
 /** \} */
 
 /* ------------------------------------------------------------------------- */
