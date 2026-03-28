@@ -706,7 +706,7 @@ génère_interface_python :: fonc (compilatrice: *CompilatriceModulePython, ench
 {
     /* Garantie la présence des modules pour les types, puisque certains types ne sont inclus que via des rubriques d'autres types. */
     pour compilatrice.système_type.types {
-        module := compilatrice_module_pour_type(it.type_kuri);
+        module := compilatrice_module_pour_type(compilatrice.espace, it.type_kuri);
         compilatrice.ajoute_module_kuri(module);
     }
 
