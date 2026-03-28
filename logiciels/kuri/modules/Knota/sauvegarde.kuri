@@ -118,6 +118,12 @@ sauvegarde_paramètres :: fonc (sauvegardeuse: *Sauvegardeuse, table_paramètres
     pour table_paramètres.paramètres {
         écris_chaine(sauvegardeuse, it.nom);
         écris_valeur(sauvegardeuse, it.type comme z32);
+        écris_valeur(sauvegardeuse, it.expression != nul);
+
+        si it.expression {
+            écris_chaine(sauvegardeuse, it.expression.texte);
+            continue;
+        }
 
         infos := it.valeur.info;
         écris_valeur(sauvegardeuse, infos.taille_en_octet);
@@ -217,6 +223,7 @@ Versionnage_Graphe :: struct {
     doit_lire_table_des_noms := vrai;
     doit_corriger_type_paramètre_bouton := faux;
     doit_inverser_direction_noeuds := faux;
+    doit_lire_expressions := faux;
 
     versionnage_identifiant_noeud: fonc (chn: chaine) -> chaine;
 
@@ -506,6 +513,21 @@ lis_paramètres :: fonc (lectrice: *Lectrice_Graphe, noeud: *Noeud)
         nom := lis_chaine(lectrice);
         type := lis_valeur_typée(lectrice, z32) comme Type_Paramètre;
 
+        param := table_paramètres.trouve_paramètre(nom);
+        saufsi param {
+            param = crée_paramètre_extra(table_paramètres, type, nom, nom);
+        }
+
+        si lectrice.versionnage.doit_lire_expressions {
+            possède_expression := lis_valeur_typée(lectrice, bool);
+
+            si possède_expression {
+                texte_expression := lis_chaine(lectrice);
+                param.expression = parse_expression(copie_chaine(texte_expression));
+                continue;
+            }
+        }
+
         si lectrice.versionnage.doit_corriger_type_paramètre_bouton {
             si type == Type_Paramètre.VEC2 {
                 type = Type_Paramètre.BOUTON;
@@ -514,17 +536,10 @@ lis_paramètres :: fonc (lectrice: *Lectrice_Graphe, noeud: *Noeud)
 
         taille_en_octet := lis_valeur_typée(lectrice, n32);
 
-        param := table_paramètres.trouve_paramètre(nom);
-
-        si param {
-            si param.type != type {
-                rapporte_erreur(lectrice, "Changement de type pour le paramètre '%' : lu '%', est '%'", nom, type, param.type);
-                lectrice.curseur += taille_en_octet;
-                continue;
-            }
-        }
-        sinon {
-            param = crée_paramètre_extra(table_paramètres, type, nom, nom);
+        si param.type != type {
+            rapporte_erreur(lectrice, "Changement de type pour le paramètre '%' : lu '%', est '%'", nom, type, param.type);
+            lectrice.curseur += taille_en_octet;
+            continue;
         }
 
         infos := param.valeur.info;
