@@ -18,8 +18,80 @@ chaine_environnement :: fonc (nom: chaine) -> chaine
     retourne convertis_chaine_c(chn);
 }
 
-définis_variable_environnemnt :: fonc (nom: chaine, valeur: chaine, remplace: bool) -> bool
+Standard_Variable_Environnement :: énum {
+    /* POSIX dans l'espace de nom global. */
+    POSIX_GLOBAL;
+    /* POSIX dans l'espace de nom application. */
+    POSIX_APPLICATION;
+    /* Doit s'en tenir au jeu de caractères portables. */
+    AUCUN;
+}
+
+/* https://pubs.opengroup.org/onlinepubs/000095399/basedefs/xbd_chap08.html */
+est_nom_variable_environnement_valide :: fonc (nom: chaine, standard: Standard_Variable_Environnement) -> bool
 {
+    saufsi nom {
+        retourne faux;
+    }
+
+    discr standard {
+        POSIX_GLOBAL {
+            si '0' <= nom[0] <= '9' {
+                retourne faux;
+            }
+
+            pour nom {
+                saufsi ('A' <= it <= 'Z') || ('0' <= it <= '9') || it == '_' {
+                    retourne faux;
+                }
+            }
+
+            retourne vrai;
+        }
+        POSIX_APPLICATION {
+            si '0' <= nom[0] <= '9' {
+                retourne faux;
+            }
+
+            pour nom {
+                saufsi ('A' <= it <= 'Z') || ('a' <= it <= 'z') || ('0' <= it <= '9') || it == '_' {
+                    retourne faux;
+                }
+            }
+
+            retourne vrai;
+        }
+        AUCUN {
+            /* À FAIRE : Portable Character Set. */
+            pour nom {
+                si it == 0 || it == '=' {
+                    retourne faux;
+                }
+
+                saufsi est_caractère_jeu_portable(it) {
+                    retourne faux;
+                }
+            }
+
+            retourne vrai;
+        }
+    }
+
+    retourne faux;
+}
+
+/* https://pubs.opengroup.org/onlinepubs/000095399/basedefs/xbd_chap06.html#tagtcjh_3 */
+est_caractère_jeu_portable :: fonc (caractère: z8) -> bool
+{
+    retourne caractère == 0x0 || (0x07 <= caractère <= 0x0D) || (0x20 <= caractère <= 0x7E);
+}
+
+définis_variable_environnemnt :: fonc (nom: chaine, valeur: chaine, remplace: bool, standard := Standard_Variable_Environnement.POSIX_GLOBAL) -> bool
+{
+    saufsi est_nom_variable_environnement_valide(nom, standard) {
+        retourne faux;
+    }
+
     chaine_c_nom := crée_chaine_c(nom);
     diffère détruit_chaine_c(*chaine_c_nom);
 
