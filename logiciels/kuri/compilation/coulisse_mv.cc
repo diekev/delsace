@@ -39,6 +39,7 @@ std::optional<ErreurCoulisse> CoulisseMV::génère_code_impl(const ArgsGénérat
         auto type = it->est_info_type_de;
         type->info_type = convertisseuse_noeud_code->crée_info_type_pour(
             &espace, espace.typeuse, const_cast<Type *>(type));
+        espace.typeuse.définis_info_type_pour_type(type->info_type, type);
         assert(type->info_type);
     }
 
