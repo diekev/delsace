@@ -135,7 +135,6 @@ if(AVEC_KURI_PARCER AND AVEC_LLVM)
 
     set(BIBLIOTHEQUES
         ${BIBLIOTHEQUE_CXX_FILESYSTEM}
-        bib_outils
         kuri_compilation
         kuri_parsage
         kuri_structures
