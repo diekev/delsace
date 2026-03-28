@@ -47,6 +47,13 @@ ModeÉditionTexte :: énum {
     curseur: CurseurTexte;
     en_édition: bool;
     curseur_est_affiché: bool;
+
+    /* Ces rappels sont utilisés pour implémenter le copier/coller.
+     * sur_coller doit retourner la chaine à coller.
+     * La chaine retournée doit être allouée, et sera délogée manuellement. À FAIRE : supprime ce requis. */
+    sur_copier: fonc (données: eini, texte: chaine);
+    sur_coller: fonc (données: eini) -> chaine;
+    données_copie_colle: eini;
 }
 
 initialise_éditrice :: fonc (éditrice: *ÉditriceTexte, fonte: *Fonte, texte: chaine, rappels: *RappelsÉditionTexte, mode := ModeÉditionTexte.UNE_SEULE_LIGNE)
@@ -225,6 +232,32 @@ sur_touche_clavier :: fonc (éditrice: *ÉditriceTexte, touche: InfoToucheClavie
         retourne;
     }
 
+    si touche.type == ToucheClavier.C && touche.modificateur == ModificateurClavier.CONTROL && éditrice.sur_copier {
+        texte_à_copier := donne_texte_sélectionné(*éditrice.curseur);
+        si texte_à_copier {
+            éditrice.sur_copier(éditrice.données_copie_colle, texte_à_copier);
+        }
+        retourne;
+    }
+
+    si touche.type == ToucheClavier.X && touche.modificateur == ModificateurClavier.CONTROL {
+        texte_à_copier := donne_texte_sélectionné(*éditrice.curseur);
+        si texte_à_copier && éditrice.sur_copier {
+            éditrice.sur_copier(éditrice.données_copie_colle, texte_à_copier);
+        }
+        efface(*éditrice.curseur);
+        retourne;
+    }
+
+    si touche.type == ToucheClavier.V && touche.modificateur == ModificateurClavier.CONTROL && éditrice.sur_coller {
+        texte_à_coller := éditrice.sur_coller(éditrice.données_copie_colle);
+        diffère déloge_si_logée(*texte_à_coller);
+        si texte_à_coller {
+            insère(*éditrice.curseur, texte_à_coller);
+        }
+        retourne;
+    }
+
     si touche.texte.taille != 0 {
         est_valide := nombre_octets_utf8_rapide(touche.texte.pointeur) == touche.texte.taille;
         si est_valide {
@@ -295,6 +328,25 @@ CurseurTexte :: struct {
 ModeDéplacementCurseur :: énum {
     GardeAncre;
     DéplaceAncre;
+}
+
+donne_texte_sélectionné :: fonc (curseur: *CurseurTexte) -> chaine
+{
+    si curseur.éditrice.mode == ModeÉditionTexte.UNE_SEULE_LIGNE {
+        si curseur.début == curseur.fin {
+            retourne "";
+        }
+
+        ligne := donne_ligne_courante(curseur);
+
+        sous_chaine: ChaineUTF32 = ---;
+        sous_chaine.points_de_code.pointeur = ligne.points_de_code.pointeur + curseur.début;
+        sous_chaine.points_de_code.taille = curseur.fin - curseur.début;
+        retourne convertis_vers_chaine(sous_chaine);
+    }
+
+    imprimeln("À FAIRE : sélection du texte sur plusieurs lignes");
+    retourne "";
 }
 
 donne_ligne_courante :: fonc (curseur: *CurseurTexte) -> *ChaineUTF32
@@ -454,6 +506,25 @@ supprime :: fonc (curseur: *CurseurTexte)
     }
 
     définis_position(curseur, ModeDéplacementCurseur.DéplaceAncre, curseur.début);
+    notifie_changement(curseur);
+}
+
+insère :: fonc (curseur: *CurseurTexte, texte_à_insérer: chaine)
+{
+    texte := donne_ligne_courante(curseur);
+
+    si curseur.début != curseur.fin {
+        tableau_supprime_entre(*texte.points_de_code, curseur.début, curseur.fin);
+    }
+
+    position := curseur.début;
+
+    pour itératrice_points_de_code(texte_à_insérer) {
+        tableau_insère_indice(*texte.points_de_code, it, position);
+        position += 1;
+    }
+
+    définis_position(curseur, ModeDéplacementCurseur.DéplaceAncre, position);
     notifie_changement(curseur);
 }
 

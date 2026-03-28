@@ -124,6 +124,12 @@ OptionsLexage :: énum_drapeau {
     INCLUS_TOUT :: INCLUS_COMMENTAIRES | INCLUS_ESPACE_BLANCHES | INCLUS_GUILLEMETS;
 }
 
+Simple_Diagnostique :: struct {
+    décalage: z64;
+    texte_ligne: chaine;
+    message: chaine;
+}
+
 SimpleLexeuse :: struct {
     début: *z8;
     fin: *z8;
@@ -162,6 +168,10 @@ SimpleLexeuse :: struct {
 
     /* Fonction optionnelle utilisée pour lexer les littérales de nombre entier ou réel. */
     sur_lexage_littérale_numérique: fonc (lexeuse: *SimpleLexeuse) -> Lexème;
+
+    sur_rapport_diagnostique: fonc (données_diagnositique: eini, diagnostique: *Simple_Diagnostique);
+    données_diagnositique: eini;
+    possède_erreur: bool;
 }
 
 initialise_lexeuse_pour_texte :: fonc (lexeuse: *SimpleLexeuse, texte: chaine)
@@ -180,6 +190,13 @@ initialise_lexeuse_pour_texte :: fonc (lexeuse: *SimpleLexeuse, texte: chaine)
         si it.taille < lexeuse.taille_mot_clé_min {
             lexeuse.taille_mot_clé_min = it.taille comme z32;
         }
+    }
+
+    lexeuse.possède_erreur = faux;
+
+    saufsi lexeuse.sur_rapport_diagnostique {
+        lexeuse.sur_rapport_diagnostique = sur_rapport_diagnostique_défaut;
+        init_de(eini)(*lexeuse.données_diagnositique);
     }
 }
 
@@ -422,9 +439,10 @@ donne_lexème :: fonc (lexeuse: *SimpleLexeuse, type: TypeLexème, texte: chaine
         retourne lexème;
     }
     rapporte_erreur(lexeuse, lexème, texte);
+    retourne Lexème(type = TypeLexème.FinDeFichier);
 }
 
-rapporte_erreur :: fonc (lexeuse: *SimpleLexeuse, lexème: Lexème, type_voulu: TypeLexème) #sansretour
+rapporte_erreur :: fonc (lexeuse: *SimpleLexeuse, lexème: Lexème, type_voulu: TypeLexème)
 {
     voulu := "non-spécifié";
     discr type_voulu {
@@ -457,12 +475,27 @@ rapporte_erreur :: fonc (lexeuse: *SimpleLexeuse, lexème: Lexème, type_voulu: 
     rapporte_erreur(lexeuse, lexème, voulu);
 }
 
-rapporte_erreur :: fonc (lexeuse: *SimpleLexeuse, lexème: Lexème, voulu: chaine) #sansretour
+rapporte_erreur :: fonc (lexeuse: *SimpleLexeuse, lexème: Lexème, voulu: chaine)
 {
+    lexeuse.possède_erreur = vrai;
+
     lexeuse.début = lexème.donne_texte().pointeur;
     ligne := donne_ligne_pour_erreur(lexeuse);
-    imprimeln("%", ligne.texte);
-    imprimeln("Attendu '%', obtenu '%'", voulu, lexème.donne_texte());
+
+    diagnostique: Simple_Diagnostique;
+    diagnostique.décalage = lexeuse.début - lexeuse.texte.pointeur;
+    diagnostique.texte_ligne = ligne.texte;
+    diagnostique.message = imprime_chaine("Attendu '%', obtenu '%'", voulu, lexème.donne_texte());
+
+    lexeuse.sur_rapport_diagnostique(lexeuse.données_diagnositique, *diagnostique);
+
+    déloge(*diagnostique.message);
+}
+
+sur_rapport_diagnostique_défaut :: fonc (données: eini @inutilisée, diagnostique: *Simple_Diagnostique)
+{
+    imprimeln("%", diagnostique.texte_ligne);
+    imprimeln("%", diagnostique.message);
     exit(1);
 }
 
