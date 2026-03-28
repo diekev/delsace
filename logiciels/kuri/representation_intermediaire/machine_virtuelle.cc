@@ -920,7 +920,8 @@ void MachineVirtuelle::appel_fonction_compilatrice(AtomeFonction *ptr_fonction,
     if (EST_FONCTION_COMPILATRICE(compilatrice_module_pour_type)) {
         auto info_type = dépile<InfoType *>();
         RAPPORTE_ERREUR_SI_NUL(info_type, "Reçu un InfoType nul");
-        auto espace = m_métaprogramme->unité->espace;
+        auto id_espace_reçu = dépile<int>();
+        auto espace = compilatrice.donne_espace_de_travail(id_espace_reçu);
         const auto decl = espace->typeuse.decl_pour_info_type(info_type);
         if (!decl) {
             empile(nullptr);

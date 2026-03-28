@@ -8,6 +8,14 @@
  * Le paramètre `semence` sers à modifier le résultat afin de pouvoir utiliser
  * la fonction dans le cadre de la recherche d'un hachage parfait.
  *
+ * Cette méthode est populaire, mais elle est séquentielle.
+ * Par exemple, des chaines séquentielles, telles que l'on peut trouver dans
+ * des séries de frames de rendu (image1, image2, image3, etc.), les empreintes
+ * seront séquentielles puisque les chaines de bases ne diffèrent que via leurs
+ * derniers caractères qui sont séquentiels.
+ * Ainsi, utiliser cette procédure pour produire des empreintes pour des tables
+ * de hachage placera les éléments dans des créneaux séquentiels.
+ *
  * http://www.cse.yorku.ca/~oz/hash.html
  */
 calcule_empreinte_djb2 :: fonc (chn: chaine, semence: n64) -> n64
