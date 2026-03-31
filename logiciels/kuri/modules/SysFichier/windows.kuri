@@ -1,0 +1,35 @@
+importe Windows
+
+// À FAIRE
+RésultatOpérationFichier :: union {
+    e: ErreurFichier
+    r: z32
+}
+
+// À FAIRE
+TypePoignéeDossier :: HANDLE
+TypePoignéeEntréeDossier :: HANDLE
+
+TypePoignéeFichier :: HANDLE
+
+système_écris :: fonc (fd: TypePoignéeFichier, ptr: *z8, taille: z64) -> RésultatOpérationFichier
+{
+    num_écris: DWORD
+    saufsi WriteFile(fd, ptr, taille comme DWORD, *num_écris, nul) {
+        // À FAIRE : erreur
+	retourne ErreurFichier.Inconnue
+    }
+    retourne num_écris comme z32
+}
+
+fichier_sortie_standarde: Fichier
+
+système_sortie_standarde :: fonc () -> *Fichier
+{
+    si fichier_sortie_standarde.desc == nul {
+        fichier_sortie_standarde.desc = GetStdHandle(STD_OUTPUT_HANDLE)
+        assert(fichier_sortie_standarde.desc != nul)
+    }
+    retourne *fichier_sortie_standarde
+}
+
