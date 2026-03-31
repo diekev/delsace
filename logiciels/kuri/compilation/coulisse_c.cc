@@ -983,21 +983,34 @@ static void génère_code_début_fichier(Enchaineuse &enchaineuse, kuri::chaine_
 #ifdef __GNUC__
 #  define TOUJOURS_ENLIGNE __attribute__((always_inline)) inline
 #else
-#  define TOUJOURS_ENLIGNE
+#  ifdef _MSC_VER
+#    define TOUJOURS_ENLIGNE __forceinline
+#  else
+#    define TOUJOURS_ENLIGNE
+#  endif
 #endif
 
 #ifdef __GNUC__
 #  define TOUJOURS_HORSLIGNE __attribute__((noinline))
 #else
-#  define TOUJOURS_HORSLIGNE
+#  ifdef _MSC_VER
+#    define TOUJOURS_HORSLIGNE __declspec(noinline)
+#  else
+#    define TOUJOURS_HORSLIGNE
+#  endif
 #endif
 
 #if __GNUC__ >= 4
 #  define SYMBOLE_PUBLIC __attribute__ ((visibility ("default")))
 #  define SYMBOLE_LOCAL  __attribute__ ((visibility ("hidden")))
 #else
-#  define SYMBOLE_PUBLIC
-#  define SYMBOLE_LOCAL
+#  ifdef _MSC_VER
+#    define SYMBOLE_PUBLIC __declspec(dllexport)
+#    define SYMBOLE_LOCAL
+#  else
+#    define SYMBOLE_PUBLIC
+#    define SYMBOLE_LOCAL
+#  endif
 #endif
 
 #ifdef __GNUC__
@@ -1067,7 +1080,11 @@ static void déclare_visibilité_globale(Enchaineuse &os,
     }
 
     if (valeur_globale->donne_partage_mémoire() == PartageMémoire::LOCAL) {
+#ifdef _MSC_VER
+        os << "_Thread_local ";
+#else
         os << "__thread ";
+#endif
     }
 
     if (valeur_globale->est_constante) {
@@ -1893,7 +1910,9 @@ void GénératriceCodeC::déclare_fonction(Enchaineuse &os,
 
         if (atome_fonc->decl &&
             atome_fonc->decl->possède_drapeau(DrapeauxNoeudFonction::EST_INITIALISATION_TYPE)) {
+#ifndef _MSC_VER
             os << "__attribute__ ((nonnull (1))) ";
+#endif
         }
     }
     else {
@@ -1908,7 +1927,11 @@ void GénératriceCodeC::déclare_fonction(Enchaineuse &os,
                 }
 
                 if (atome_fonc->decl->possède_drapeau(DrapeauxNoeudFonction::EST_SANSRETOUR)) {
+#ifdef _MSC_VER
+                    os << " __declspec(noreturn) ";
+#else
                     os << " __attribute__((noreturn)) ";
+#endif
                 }
             }
             else {
@@ -1923,14 +1946,22 @@ void GénératriceCodeC::déclare_fonction(Enchaineuse &os,
             }
 
             if (atome_fonc->decl->ident == ID::__point_d_entree_dynamique) {
+#ifndef _MSC_VER
                 os << " __attribute__((constructor)) ";
+#endif
             }
             else if (atome_fonc->decl->ident == ID::__point_de_sortie_dynamique) {
+#ifndef _MSC_VER
                 os << " __attribute__((destructor)) ";
+#endif
             }
 
             if (atome_fonc->decl->possède_drapeau(DrapeauxNoeudFonction::FORCE_SANS_ASAN)) {
+#ifdef _MSC_VER
+                os << " __declspec(no_sanitize_address) ";
+#else
                 os << " __attribute__((no_sanitize_address)) ";
+#endif
             }
         }
     }
