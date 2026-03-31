@@ -125,8 +125,10 @@ void EspaceDeTravail::progresse_phase_pour_tâche_terminée(GenreTâche genre_t�
             break;
         }
         case GenreTâche::TYPAGE:
+        case GenreTâche::CONVERSION_NOEUD_CODE:
         {
-            if (nombre_de_tâches[size_t(genre_tâche)] == 0 &&
+            if ((nombre_de_tâches[size_t(GenreTâche::TYPAGE)] +
+                 nombre_de_tâches[size_t(GenreTâche::CONVERSION_NOEUD_CODE)]) == 0 &&
                 phase == PhaseCompilation::PARSAGE_TERMINÉ) {
                 nouvelle_phase = PhaseCompilation::TYPAGE_TERMINÉ;
 
@@ -153,7 +155,6 @@ void EspaceDeTravail::progresse_phase_pour_tâche_terminée(GenreTâche genre_t�
         case GenreTâche::DORS:
         case GenreTâche::COMPILATION_TERMINÉE:
         case GenreTâche::CREATION_FONCTION_INIT_TYPE:
-        case GenreTâche::CONVERSION_NOEUD_CODE:
         case GenreTâche::ENVOIE_MESSAGE:
         case GenreTâche::GENERATION_CODE_MACHINE:
         case GenreTâche::LIAISON_PROGRAMME:
@@ -184,6 +185,7 @@ void EspaceDeTravail::regresse_phase_pour_tâche_ajoutée(GenreTâche genre_tâc
             break;
         }
         case GenreTâche::TYPAGE:
+        case GenreTâche::CONVERSION_NOEUD_CODE:
         {
             if (phase > PhaseCompilation::PARSAGE_TERMINÉ) {
                 nouvelle_phase = PhaseCompilation::PARSAGE_TERMINÉ;
@@ -215,7 +217,6 @@ void EspaceDeTravail::regresse_phase_pour_tâche_ajoutée(GenreTâche genre_tâc
         case GenreTâche::DORS:
         case GenreTâche::COMPILATION_TERMINÉE:
         case GenreTâche::CREATION_FONCTION_INIT_TYPE:
-        case GenreTâche::CONVERSION_NOEUD_CODE:
         case GenreTâche::ENVOIE_MESSAGE:
         case GenreTâche::EXECUTION:
         case GenreTâche::NOMBRE_ELEMENTS:

@@ -466,14 +466,7 @@ bool Tacheronne::gère_tâche()
             case GenreTâche::ENVOIE_MESSAGE:
             {
                 assert(drapeau_est_actif(drapeaux, DrapeauxTacheronne::PEUT_ENVOYER_MESSAGE));
-                auto messagère = compilatrice.messagère.verrou_ecriture();
-                if (!messagère->est_interception_commencée()) {
-                    compilatrice.gestionnaire_code->message_reçu(tâche.unité->message);
-                }
-                else {
-                    messagère->envoie_message(tâche.unité->message);
-                }
-
+                // compilatrice.messagère->envoie_message(tâche.unité->message);
                 compilatrice.gestionnaire_code->tâche_unité_terminée(tâche.unité);
                 break;
             }

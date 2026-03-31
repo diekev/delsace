@@ -1315,6 +1315,7 @@ UnitéCompilation *GestionnaireCode::requiers_noeud_code(EspaceDeTravail *espace
 {
     std::unique_lock verrou(m_mutex);
     auto unité = crée_unité(espace, RaisonDÊtre::CONVERSION_NOEUD_CODE, true);
+    TACHE_AJOUTEE(CONVERSION_NOEUD_CODE);
     unité->noeud = noeud;
     return unité;
 }
@@ -2007,8 +2008,6 @@ void GestionnaireCode::typage_terminé(UnitéCompilation *unité)
     UnitéCompilation *unité_pour_ri = nullptr;
     UnitéCompilation *unité_pour_noeud_code = nullptr;
 
-    /* Envoi un message, nous attendrons dessus si nécessaire. */
-    const auto message = m_compilatrice->messagère->ajoute_message_typage_code(espace, noeud);
     const auto doit_envoyer_en_ri = noeud_requiers_generation_ri(noeud);
     if (doit_envoyer_en_ri) {
         TACHE_AJOUTEE(GENERATION_RI);
@@ -2017,11 +2016,9 @@ void GestionnaireCode::typage_terminé(UnitéCompilation *unité)
         ajoute_unité_à_liste_attente(unité);
     }
 
-    if (message) {
+    if (m_compilatrice->messagère->doit_envoyer_message_typage_code(espace)) {
         unité_pour_noeud_code = requiers_noeud_code(espace, noeud);
-        auto unité_message = crée_unité_pour_message(espace, message);
-        unité_message->ajoute_attente(Attente::sur_noeud_code(unité_pour_noeud_code, noeud));
-        unité->ajoute_attente(Attente::sur_message(unité_message, message));
+        unité->ajoute_attente(Attente::sur_noeud_code(unité_pour_noeud_code, noeud));
     }
 
     // rassemble toutes les dépendances de la fonction ou de la globale
@@ -2082,11 +2079,6 @@ void GestionnaireCode::optimisation_terminée(UnitéCompilation *unité)
 void GestionnaireCode::envoi_message_terminé(UnitéCompilation *unité)
 {
     unité->définis_état(UnitéCompilation::État::COMPILATION_TERMINÉE);
-}
-
-void GestionnaireCode::message_reçu(Message const *message)
-{
-    const_cast<Message *>(message)->message_reçu = true;
 }
 
 void GestionnaireCode::execution_terminée(UnitéCompilation *unité)
@@ -2168,9 +2160,26 @@ void GestionnaireCode::liaison_programme_terminée(UnitéCompilation *unité)
     unité->définis_état(UnitéCompilation::État::COMPILATION_TERMINÉE);
 }
 
+// À FAIRE : nous pourrions peut-être supprimer les tâches d'envoie de messages
 void GestionnaireCode::conversion_noeud_code_terminée(UnitéCompilation *unité)
 {
+    auto espace = unité->espace;
+    auto noeud = unité->noeud;
+
+    auto unité_noeud = *donne_adresse_unité(noeud);
+
+    const auto message = m_compilatrice->messagère->ajoute_message_typage_code(
+        espace, noeud, unité_noeud);
+    assert_rappel(message != nullptr, [&]() {
+        dbg() << noeud->genre << " : " << nom_humainement_lisible(noeud);
+        dbg() << "La raison d'être de l'unité_noeud (" << unité_noeud << ") est "
+              << unité_noeud->donne_raison_d_être();
+        dbg() << "La raison d'être de l'unité (" << unité << ") est       "
+              << unité->donne_raison_d_être();
+    });
+
     unité->définis_état(UnitéCompilation::État::COMPILATION_TERMINÉE);
+    TACHE_TERMINEE(CONVERSION_NOEUD_CODE);
 }
 
 void GestionnaireCode::fonction_initialisation_type_créée(UnitéCompilation *unité)
