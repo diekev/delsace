@@ -144,6 +144,8 @@ struct UnitéCompilation {
      * d'être est pour le typage. */
     ArbreAplatis *arbre_aplatis = nullptr;
 
+    int nombre_de_messages_sur_lesquels_on_attend = 0;
+
     explicit UnitéCompilation(EspaceDeTravail *esp) : espace(esp)
     {
     }
@@ -158,7 +160,7 @@ struct UnitéCompilation {
   public:
     bool est_prête() const
     {
-        return m_attentes.est_vide();
+        return m_attentes.est_vide() && nombre_de_messages_sur_lesquels_on_attend == 0;
     }
 
     void définis_état(État nouvelle_état)
