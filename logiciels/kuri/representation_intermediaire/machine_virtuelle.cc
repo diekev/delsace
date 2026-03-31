@@ -680,13 +680,22 @@ void MachineVirtuelle::appel_fonction_compilatrice(AtomeFonction *ptr_fonction,
 
     if (EST_FONCTION_COMPILATRICE(compilatrice_attends_message)) {
         std::unique_lock verrou(m_métaprogramme->mutex_file_message);
+
+        /* Marque le dernier message lu comme étant reçu. */
+        auto dernier_message = m_métaprogramme->dernier_message_passé;
+        if (dernier_message.unité) {
+            dernier_message.marque_reçu();
+            m_métaprogramme->dernier_message_passé = {};
+        }
+
         if (m_métaprogramme->file_message.est_vide()) {
             résultat = RésultatInterprétation::PASSE_AU_SUIVANT;
             return;
         }
 
         auto message = m_métaprogramme->file_message.défile();
-        empile(message);
+        m_métaprogramme->dernier_message_passé = message;
+        empile(message.message);
         return;
     }
 
@@ -897,13 +906,6 @@ void MachineVirtuelle::appel_fonction_compilatrice(AtomeFonction *ptr_fonction,
         auto espace = compilatrice.donne_espace_de_travail(id_espace_reçu);
         RAPPORTE_ERREUR_SI_NUL(espace, "Reçu un espace de travail nul");
         empile(compilatrice.possède_erreur(espace));
-        return;
-    }
-
-    if (EST_FONCTION_COMPILATRICE(compilatrice_message_reçu)) {
-        auto message = dépile<Message *>();
-        RAPPORTE_ERREUR_SI_NUL(message, "Reçu un message nul");
-        compilatrice.gestionnaire_code->message_reçu(message);
         return;
     }
 
