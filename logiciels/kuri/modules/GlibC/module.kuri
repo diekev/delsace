@@ -20,9 +20,20 @@ va_list :: struct {
 /** \nom C11
  * \{ */
 
-aligned_alloc :: fonc (alignment: n64, taille: n64) -> *rien #externe libc;
+#si SYS_EXP == SystèmeExploitation.LINUX {
+    aligned_alloc :: fonc (alignment: n64, taille: n64) -> *rien #externe libc;
+}
+sinon {
+    // À FAIRE(Windows) : aligned_alloc, alligned_free
+    aligned_alloc :: fonc (alignement: n64 @inutilisée, taille: n64) -> *rien
+    {
+        retourne malloc(taille);
+    }
+}
 
 /** \} */
+
+#si SYS_EXP == SystèmeExploitation.LINUX {
 
 /* ------------------------------------------------------------------------- */
 /** \nom sys/epoll.h
@@ -155,3 +166,5 @@ timerfd_settime :: fonc (fd: z32, flags: z32, new_value: *itimerspec, old_value:
 timerfd_gettime :: fonc (fd: z32, curr_value: *itimerspec) -> z32 #externe libc;
 
 /** \} */
+
+}
