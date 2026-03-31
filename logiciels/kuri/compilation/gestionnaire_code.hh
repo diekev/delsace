@@ -242,8 +242,6 @@ class GestionnaireCode {
     /* Fin d'une tâche. */
     void tâche_unité_terminée(UnitéCompilation *unité);
 
-    void message_reçu(Message const *message);
-
     void rassemble_statistiques(Statistiques &stats) const;
 
     NoeudBloc *crée_bloc_racine(Typeuse &typeuse);

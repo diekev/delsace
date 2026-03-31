@@ -54,6 +54,19 @@ void DonnéesConstantesExécutions::rassemble_statistiques(Statistiques &stats) 
 
     stats.ajoute_mémoire_utilisée("Machine Virtuelle", mémoire_mv);
 }
+/* ------------------------------------------------------------------------- */
+/** \name InfoMessage.
+ * \{ */
+
+void InfoMessage::marque_reçu() const
+{
+    if (unité) {
+        unité->nombre_de_messages_sur_lesquels_on_attend -= 1;
+        assert(unité->nombre_de_messages_sur_lesquels_on_attend >= 0);
+    }
+}
+
+/** \} */
 
 MétaProgramme::~MétaProgramme()
 {
