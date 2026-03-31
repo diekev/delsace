@@ -244,6 +244,8 @@ static kuri::tablet<kuri::chemin_systeme, 16> chemins_systeme_pour(ArchitectureC
     if (architecture == ArchitectureCible::X64) {
         ajoute_chemins_depuis_env("LIB", résultat, chemins_connus);
         ajoute_chemins_depuis_env("LIBPATH", résultat, chemins_connus);
+        // Pour Kernel32
+        résultat.ajoute("C:\\Windows\\System32\\");
     }
     // A FAIRE : version 32-bit
 #else
@@ -445,6 +447,17 @@ int64_t CheminsBibliothèque::mémoire_utilisée() const
     return résultat;
 }
 
+void CheminsBibliothèque::cliche() const
+{
+    for (int p = 0; p < NUM_TYPES_PLATEFORME; p++) {
+        for (int i = 0; i < NUM_TYPES_BIBLIOTHÈQUE; i++) {
+            for (int j = 0; j < NUM_TYPES_INFORMATION_BIBLIOTHÈQUE; j++) {
+                dbg() << p << " " << i << " " << j << " " << m_chemins[p][i][j];
+            }
+        }
+    }
+}
+
 /** \} */
 
 /* ------------------------------------------------------------------------- */
@@ -535,6 +548,10 @@ bool Bibliothèque::charge(EspaceDeTravail *espace)
     }
 
     auto chemin_dynamique = chemins.donne_chemin(IndiceBibliothèque::crée_pour_exécution());
+
+    if (nom == "Kernel32") {
+        chemin_dynamique = "C:\\Windows\\System32\\Kernel32.dll";
+    }
 
     if (chemin_dynamique == "") {
         espace
@@ -830,7 +847,16 @@ Bibliothèque *GestionnaireBibliothèques::crée_bibliothèque(EspaceDeTravail &
 
     if (nom != "") {
         bibliothèque->nom = nom;
-        résoud_chemins_bibliothèque(espace, site, bibliothèque);
+        if (nom == "ucrt") {
+            kuri::chemin_systeme chemins_ucrt[NUM_TYPES_BIBLIOTHÈQUE][NUM_TYPES_INFORMATION_BIBLIOTHÈQUE] = {};
+                                                    // "C:\Program Files (x86)\Windows Kits\10\Redist\10.0.26100.0\ucrt\DLLs\x64\ucrtbase.dll"
+            chemins_ucrt[DYNAMIQUE][POUR_PRODUCTION] = "C:/Program Files (x86)/Windows Kits/10/Redist/10.0.26100.0/ucrt/DLLs/x64/ucrtbase.dll";
+            chemins_ucrt[STATIQUE][POUR_PRODUCTION] = "C:\\Program Files (x86)\\Windows Kits\\10\\lib\\10.0.26100.0\\ucrt\\x64\\liburct.lib";
+            bibliothèque->chemins.définis_chemins(PLATEFORME_64_BIT, chemins_ucrt);
+        }
+        else {
+            résoud_chemins_bibliothèque(espace, site, bibliothèque);
+        }
     }
 
     bibliothèque->site = site;
