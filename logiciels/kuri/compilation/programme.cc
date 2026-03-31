@@ -543,7 +543,7 @@ static void imprime_détails_déclaration_à_valider(Enchaineuse &enchaineuse,
     }
 #endif
     POUR (unité_corps->donne_attentes()) {
-        enchaineuse << "-- Attente : " << it.donne_commentaire() << '\n';
+        enchaineuse << "-- Attente : " << it.donne_commentaire(unité_corps) << '\n';
     }
 }
 
