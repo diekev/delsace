@@ -7,8 +7,6 @@ attends_compilation_terminée :: fonc (espace: EspaceDeTravail)
 {
     boucle {
         message := compilatrice_attends_message();
-        diffère compilatrice_message_reçu(message);
-
         si message.espace != espace {
             continue;
         }
