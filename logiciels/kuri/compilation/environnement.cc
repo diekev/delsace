@@ -241,6 +241,18 @@ static kuri::chaine_statique donne_compilateur_cpp(bool utilise_clang)
 #endif
 }
 
+static kuri::chaine_statique donne_lieur(bool utilise_clang)
+{
+#ifdef _MSC_VER
+    return "link";
+#else
+    if (utilise_clang) {
+        return COMPILATEUR_CXX_CLANG;
+    }
+    return COMPILATEUR_CXX_COULISSE_C;
+#endif
+}
+
 /* Pour les options d'avertissements et d'erreurs de GCC, voir :
  * https://gcc.gnu.org/onlinedocs/gcc/Warning-Options.html */
 static TableauOptions options_pour_fichier_objet(kuri::chaine_statique compilateur,
@@ -404,6 +416,10 @@ static kuri::chaine commande_pour_fichier_objet_impl(OptionsDeCompilation const 
     }
 
 #ifdef _MSC_VER
+    /* Utilisation de C11 pour _Alignas, _Thread_Local, etc. */
+    enchaineuse << "/std:c11 ";
+    /* Chutis l'avertissement sur const manquant pour les assignements. */
+    enchaineuse << "/wd4090 ";
     /* NOTE : le nom de sortie doit être collé à "/Fo" */
     enchaineuse << "\"" << fichier_entrée << "\"" << " /Fo" << '"' << fichier_sortie << '"';
 #else
@@ -455,12 +471,44 @@ kuri::chaine commande_pour_liaison(OptionsDeCompilation const &options,
                                    kuri::chaine_statique chemin_sortie,
                                    bool utilise_clang)
 {
-    auto compilateur = donne_compilateur_cpp(utilise_clang);
+    auto compilateur = donne_lieur(utilise_clang);
     auto options_compilateur = options_pour_liaison(compilateur, options, utilise_clang);
 
     Enchaineuse enchaineuse;
     enchaineuse << compilateur << " ";
 
+#ifdef _MSC_VER
+    enchaineuse << "/machine:X64 ";
+
+    POUR (fichiers_entrée) {
+        enchaineuse << "\"" << it << "\" ";
+    }
+
+    enchaineuse << chemin_fichier_objet_r16(options.architecture) << " ";
+
+    enchaineuse << " /OUT:\"" << nom_sortie_résultat_final(options) << "\" ";
+
+    POUR (bibliothèques.donne_tableau()) {
+        if (it->nom == "r16") {
+            continue;
+        }
+
+        auto chemin_parent = it->chemin_de_base(options);
+        if (chemin_parent.taille() != 0) {
+            enchaineuse << "/LIBPATH:\"" << chemin_parent << "\" ";
+        }
+
+        auto const liaison = donne_type_liaison_pour_bibliothèque(options, bibliothèques, *it);
+        enchaineuse << it->nom;
+
+        if (liaison == TypeLiaison::STATIQUE) {
+            enchaineuse << ".lib ";
+        }
+        else {
+            enchaineuse << ".dll ";
+        }
+    }
+#else
     POUR (options_compilateur) {
         enchaineuse << it << " ";
     }
@@ -534,6 +582,7 @@ kuri::chaine commande_pour_liaison(OptionsDeCompilation const &options,
     enchaineuse << " -Wl,-Bdynamic";
 
     enchaineuse << " -o \"" << chemin_sortie << "\"";
+#endif
 
     /* Terminateur nul afin de pouvoir passer la commande à #system. */
     enchaineuse << '\0';
