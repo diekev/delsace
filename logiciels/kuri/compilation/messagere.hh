@@ -12,6 +12,7 @@ struct EspaceDeTravail;
 struct MétaProgramme;
 struct Module;
 struct NoeudExpression;
+struct UnitéCompilation;
 
 struct Messagère {
   private:
@@ -41,8 +42,12 @@ struct Messagère {
     void ajoute_message_module_ouvert(EspaceDeTravail *espace, Module *module);
     void ajoute_message_module_fermé(EspaceDeTravail *espace, Module *module);
     void ajoute_message_espace_créé(EspaceDeTravail *espace, EspaceDeTravail *nouvelle_espace);
-    Message *ajoute_message_typage_code(EspaceDeTravail *espace, NoeudExpression *noeud);
+    Message *ajoute_message_typage_code(EspaceDeTravail *espace,
+                                        NoeudExpression *noeud,
+                                        UnitéCompilation *unité);
     Message *ajoute_message_phase_compilation(EspaceDeTravail *espace);
+
+    bool doit_envoyer_message_typage_code(EspaceDeTravail *espace) const;
 
     int64_t mémoire_utilisée() const;
 
@@ -50,5 +55,5 @@ struct Messagère {
 
     void termine_interception(EspaceDeTravail *espace, MétaProgramme *métaprogramme);
 
-    void envoie_message(Message *message);
+    void envoie_message(Message *message, UnitéCompilation *unité);
 };
