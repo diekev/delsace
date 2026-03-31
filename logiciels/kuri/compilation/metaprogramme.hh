@@ -124,6 +124,19 @@ std::ostream &operator<<(std::ostream &os, ÉtatMétaprogramme état);
 /** \} */
 
 /* ------------------------------------------------------------------------- */
+/** \name InfoMessage.
+ * \{ */
+
+struct InfoMessage {
+    Message const *message = nullptr;
+    UnitéCompilation *unité = nullptr;
+
+    void marque_reçu() const;
+};
+
+/** \} */
+
+/* ------------------------------------------------------------------------- */
 /** \name MétaProgramme.
  * \{ */
 
@@ -179,7 +192,8 @@ struct MétaProgramme {
     ComportementMétaprogramme comportement{};
 
     std::mutex mutex_file_message{};
-    kuri::file<Message const *> file_message{};
+    kuri::file<InfoMessage> file_message{};
+    InfoMessage dernier_message_passé{};
 
   private:
     /* Les logs d'empilage peuvent être très lourds. Nous ne devrions les préserver que si les
