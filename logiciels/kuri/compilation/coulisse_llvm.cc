@@ -1305,6 +1305,105 @@ llvm::Type *GénératriceCodeLLVM::convertis_type_llvm(Type const *type)
     return type_llvm;
 }
 
+#if 0
+llvm::Type *GénératriceCodeLLVM::donne_type_pour_iba(Type const *type)
+{
+    auto type_llvm = table_types_iba.valeur_ou(type, nullptr);
+
+    if (type_llvm != nullptr) {
+        /* Note: normalement les types des pointeurs vers les fonctions doivent
+         * être des pointeurs, mais les types fonctions sont partagés entre les
+         * fonctions et les variables, donc un type venant d'une fonction n'aura
+         * pas le pointeur. Ajoutons-le. */
+        if (type->est_type_fonction() && !type_llvm->isPointerTy()) {
+            return llvm::PointerType::get(type_llvm, 0);
+        }
+
+        return type_llvm;
+    }
+
+    if (type == nullptr) {
+        return nullptr;
+    }
+
+    switch (type->genre) {
+        case GenreNoeud::POLYMORPHIQUE:
+        case GenreNoeud::TYPE_ADRESSE_FONCTION:
+        case GenreNoeud::FONCTION:
+        case GenreNoeud::EINI:
+        case GenreNoeud::CHAINE:
+        case GenreNoeud::RIEN:
+        case GenreNoeud::BOOL:
+        case GenreNoeud::OCTET:
+        case GenreNoeud::ENTIER_CONSTANT:
+        case GenreNoeud::ENTIER_NATUREL:
+        case GenreNoeud::ENTIER_RELATIF:
+        case GenreNoeud::TYPE_DE_DONNÉES:
+        case GenreNoeud::RÉEL:
+        case GenreNoeud::RÉFÉRENCE:
+        case GenreNoeud::POINTEUR:
+        case GenreNoeud::VARIADIQUE:
+        case GenreNoeud::TYPE_TRANCHE:
+        case GenreNoeud::DÉCLARATION_ÉNUM:
+        case GenreNoeud::ERREUR:
+        case GenreNoeud::ENUM_DRAPEAU:
+        {
+            assert(type->taille_octet <= 16);
+            type_llvm = convertis_type_llvm(type);
+            break;
+        }
+        case GenreNoeud::TUPLE:
+        {
+            return convertis_type_composé(type->comme_type_tuple(), "tuple");
+        }
+        case GenreNoeud::DÉCLARATION_UNION:
+        {
+            auto type_struct = type->comme_type_union();
+
+            if (type_struct->type_structure) {
+                type_llvm = donne_type_iba(type_struct->type_structure);
+                break;
+            }
+
+            assert(type_struct->est_nonsure);
+            auto type_le_plus_grand = type_struct->type_le_plus_grand;
+            type_llvm = donne_type_iba(type_le_plus_grand);
+            break;
+        }
+        case GenreNoeud::DÉCLARATION_STRUCTURE:
+        {
+            return convertis_type_composé(type->comme_type_structure(), "struct");
+        }
+        case GenreNoeud::TABLEAU_DYNAMIQUE:
+        {
+            return convertis_type_composé(type->comme_type_tableau_dynamique(), "tableau");
+        }
+        case GenreNoeud::TABLEAU_FIXE:
+        {
+            auto type_deref_llvm = convertis_type_llvm(type_déréférencé_pour(type));
+            auto const taille = type->comme_type_tableau_fixe()->taille;
+
+            type_llvm = llvm::ArrayType::get(type_deref_llvm, static_cast<uint64_t>(taille));
+            break;
+        }
+        case GenreNoeud::DÉCLARATION_OPAQUE:
+        {
+            auto type_opaque = type->comme_type_opaque();
+            type_llvm = donne_type_iba(type_opaque->type_opacifié);
+            break;
+        }
+        CAS_POUR_NOEUDS_HORS_TYPES:
+        {
+            assert_rappel(false, [&]() { dbg() << "Noeud non-géré pour type : " << type->genre; });
+            break;
+        }
+    }
+
+    table_types_iba.insère(type, type_llvm);
+    return type_llvm;
+}
+#endif
+
 enum class MéthodePassageParamètre : int8_t {
     NORMALE,
     PAR_ADRESSE,
