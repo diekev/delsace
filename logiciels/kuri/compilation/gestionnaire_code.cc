@@ -1395,7 +1395,9 @@ UnitéCompilation *GestionnaireCode::requiers_génération_code_machine(EspaceDe
 {
     auto unité = crée_unité(espace, RaisonDÊtre::GENERATION_CODE_MACHINE, true);
     unité->programme = programme;
-    TACHE_AJOUTEE(GENERATION_CODE_MACHINE);
+    if (!programme->pour_métaprogramme()) {
+        TACHE_AJOUTEE(GENERATION_CODE_MACHINE);
+    }
     return unité;
 }
 
@@ -1403,7 +1405,9 @@ void GestionnaireCode::requiers_liaison_executable(EspaceDeTravail *espace, Prog
 {
     auto unité = crée_unité(espace, RaisonDÊtre::LIAISON_PROGRAMME, true);
     unité->programme = programme;
-    TACHE_AJOUTEE(LIAISON_PROGRAMME);
+    if (!programme->pour_métaprogramme()) {
+        TACHE_AJOUTEE(LIAISON_PROGRAMME);
+    }
 }
 
 void GestionnaireCode::ajoute_requêtes_pour_attente(EspaceDeTravail *espace, Attente attente)

@@ -341,8 +341,12 @@ Phase *EspaceDeTravail::donne_phase(GenreTâche genre_tâche)
 
 void EspaceDeTravail::imprime_compte_tâches(std::ostream &os) const
 {
-    for (int i = 0; i < int(GenreTâche::NOMBRE_ELEMENTS); i++) {
-        os << "-- tâche " << GenreTâche(i) << " " << nombre_de_tâches[i].load() << '\n';
+    // for (int i = 0; i < int(GenreTâche::NOMBRE_ELEMENTS); i++) {
+    //     os << "-- tâche " << GenreTâche(i) << " " << nombre_de_tâches[i].load() << '\n';
+    // }
+
+    for (auto phase : m_phases) {
+        os << "-- phase " << phase.id << " : " << phase.nombre_de_tâches << '\n';
     }
 }
 
@@ -356,7 +360,11 @@ Message *EspaceDeTravail::change_de_phase(kuri::Synchrone<Messagère> &messagèr
               << " vers " << nouvelle_phase << ", id " << id_phase;                               \
     }
 
-    IMPRIME_CHANGEMENT_DE_PHASE("Espace 1")
+    // IMPRIME_CHANGEMENT_DE_PHASE("Espace 1")
+
+    // if (nom == "Espace 1" && nouvelle_phase == PhaseCompilation::APRÈS_LIAISON_EXÉCUTABLE) {
+    //     imprime_compte_tâches(std::cerr);
+    // }
 
     // if (m_id_phase_courante == PhaseCompilation::COMPILATION_TERMINÉE) {
     //     /* Il est possible qu'un espace ajoute des choses à compiler mais que celui-ci n'utilise
