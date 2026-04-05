@@ -78,7 +78,7 @@ importe SysFichier;
 
     sources_extra := «
         charge "interface";
-        importe Math;
+        libcmath :: #bibliothèque "m";
         #dépendance_bibliothèque libcurve_fit_nd libcmath;
     »;
 
