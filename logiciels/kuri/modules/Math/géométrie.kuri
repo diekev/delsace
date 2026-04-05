@@ -65,6 +65,11 @@ opérateur - :: (p0: Point2D(r32), p1: Point2D(r32)) -> Vec2
     retourne Vec2(p0.x - p1.x, p0.y - p1.y);
 }
 
+opérateur - :: (p0: Point2D(r32), v: Vec2) -> Point2D(r32)
+{
+    retourne Point2D(r32)(p0.x - v.x, p0.y - v.y);
+}
+
 opérateur * :: (p0: Point2D($T), r: T) -> Point2D(T)
 {
     retourne Point2D(T)(p0.x * r, p0.y * r);
