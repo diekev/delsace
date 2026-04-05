@@ -1,4 +1,5 @@
 importe Algorithmes; // pour permute
+importe Aléa;
 importe Fondation;
 importe Math;
 
@@ -161,6 +162,50 @@ vers_couleur_rvba :: fonc (couleur: CouleurRVBAN8) -> CouleurRVBA
 depuis_couleur_rvba :: fonc (couleur: CouleurRVBA) -> CouleurRVBAN8 #enligne
 {
     retourne CouleurRVBAN8((couleur.r * 255.0) comme n8, (couleur.v * 255.0) comme n8, (couleur.b * 255.0) comme n8, (couleur.a * 255.0) comme n8);
+}
+
+donne_couleur_8bit_avec_tramage :: fonc (couleur: CouleurRVBA, entropie: *SérieAléatoire) -> CouleurRVBAN8 #enligne
+{
+    résultat: CouleurRVBAN8 = ---;
+    résultat.r = donne_fréquence_8bit_avec_tramage(couleur.r, entropie);
+    si sont_environ_égaux(couleur.r, couleur.v) && sont_environ_égaux(couleur.r, couleur.b) {
+        /* Gardons les couleurs grises grises. */
+        résultat.v = résultat.r;
+        résultat.b = résultat.r;
+    }
+    sinon {
+        résultat.v = donne_fréquence_8bit_avec_tramage(couleur.v, entropie);
+        résultat.b = donne_fréquence_8bit_avec_tramage(couleur.b, entropie);
+    }
+    résultat.a = (couleur.a * 255.0) comme n8;
+    retourne résultat;
+}
+
+sont_environ_égaux :: fonc (a: r32, b: r32) -> bool #enligne
+{
+    // À FAIRE : compare proprement (selon la magnitude, les ULPs, etc).
+    retourne abs(a - b) <= 0.000001;
+}
+
+donne_fréquence_8bit_avec_tramage :: fonc (fréquence: r32, entropie: *SérieAléatoire) -> n8
+{
+    fréquence *= 255.0;
+    si fréquence <= 0.0 {
+        retourne 0;
+    }
+    si fréquence >= 255.0 {
+        retourne 255;
+    }
+
+    x := plancher(fréquence);
+    y := plafond(fréquence);
+    p := fréquence - x;
+    xi := aléatoire_unilatérale(entropie);
+
+    si p < xi {
+        retourne x comme n8;
+    }
+    retourne y comme n8;
 }
 
 mélange_couleurs :: fonc (c0: CouleurRVBAN8, c1: CouleurRVBAN8, alpha: r32) -> CouleurRVBAN8
