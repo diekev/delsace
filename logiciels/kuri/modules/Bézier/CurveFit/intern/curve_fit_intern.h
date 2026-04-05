@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2016, Blender Foundation.
+ * Copyright (c) 2016, Campbell Barton.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
@@ -24,34 +24,46 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#ifndef __GENERIC_HEAP_H__
-#define __GENERIC_HEAP_H__
+#ifndef __CURVE_FIT_INTERN_H__
+#define __CURVE_FIT_INTERN_H__
 
-/** \file generic_heap.h
- *  \ingroup curve_fit
+#ifndef __CURVE_FIT_UINT_DEFINED__
+#define __CURVE_FIT_UINT_DEFINED__
+typedef unsigned int uint;
+#endif
+
+/**
+ * Internal header for shared declarations between curve_fit_cubic.c
+ * and curve_fit_cubic_refit.c.
  */
 
-struct Heap;
-struct HeapNode;
-typedef struct Heap Heap;
-typedef struct HeapNode HeapNode;
+/* Split point calculation functions (implemented in curve_fit_cubic.c) */
 
-typedef void (*HeapFreeFP)(void *ptr);
+#define SPLIT_POINT_INVALID ((uint)-1)
 
-Heap        *HEAP_new(unsigned int tot_reserve);
-bool         HEAP_is_empty(const Heap *heap);
-void         HEAP_free(Heap *heap, HeapFreeFP ptrfreefp);
-void        *HEAP_node_ptr(HeapNode *node);
-void         HEAP_remove(Heap *heap, HeapNode *node);
-HeapNode    *HEAP_insert(Heap *heap, double value, void *ptr);
-void         HEAP_insert_or_update(Heap *heap, HeapNode **node_p, double value, void *ptr);
-void        *HEAP_popmin(Heap *heap);
-void         HEAP_clear(Heap *heap, HeapFreeFP ptrfreefp);
-unsigned int HEAP_size(const Heap *heap);
-HeapNode    *HEAP_top(Heap *heap);
-double       HEAP_top_value(const Heap *heap);
-void         HEAP_node_value_update(Heap *heap, HeapNode *node, double value);
-void         HEAP_node_value_update_ptr(Heap *heap, HeapNode *node, double value, void *ptr);
-double       HEAP_node_value(const HeapNode *node);
+uint split_point_find_sign_change(
+        const double *points,
+        const uint points_len,
+        const uint index_l, const uint index_r,
+        const uint dims);
 
-#endif  /* __GENERIC_HEAP_H__ */
+uint split_point_find_max_distance(
+        const double *points,
+        const uint points_len,
+        const uint index_l, const uint index_r,
+        const uint dims);
+
+uint split_point_find_max_on_axis(
+        const double *points,
+        const uint points_len,
+        const uint index_l, const uint index_r,
+        const double *axis,
+        const uint dims);
+
+uint split_point_find_inflection(
+        const double *points,
+        const uint points_len,
+        const uint index_l, const uint index_r,
+        const uint dims);
+
+#endif  /* __CURVE_FIT_INTERN_H__ */
