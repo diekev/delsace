@@ -32,7 +32,7 @@ struct Configuration {
 
 static void analyse_liste_chemin(tori::ObjetTableau *tableau, kuri::tableau<kuri::chaine> &chaines)
 {
-    for (auto objet : tableau->valeur) {
+    for (auto &&objet : tableau->valeur) {
         if (objet->type != tori::type_objet::CHAINE) {
             std::cerr << "liste : l'objet n'est pas une chaine !\n";
             continue;
@@ -81,7 +81,7 @@ static Configuration analyse_configuration(const char *chemin)
             return config;
         }
 
-        for (auto objet : obj_mots_cles->valeur) {
+        for (auto &&objet : obj_mots_cles->valeur) {
             auto const &nom_objet = objet.first;
 
             if (objet.second->type != tori::type_objet::CHAINE) {
