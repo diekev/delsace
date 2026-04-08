@@ -509,7 +509,11 @@ opérateur * :: (s1: r32, s2: Spectre) -> Spectre
     retourne Spectre(s1 * s2.x, s1 * s2.y, s1 * s2.z);
 }
 
-/* Conversion d'espaces colorimétriques. */
+/** \} */
+
+/* ------------------------------------------------------------------------- */
+/** \nom Conversion d'espaces colorimétriques
+ * \{ */
 
 linéaire_vers_srgb :: fonc (spectre: Spectre) -> Spectre
 {
@@ -522,25 +526,16 @@ linéaire_vers_srgb :: fonc (spectre: Spectre) -> Spectre
     retourne résultat;
 }
 
-linéaire_vers_srgb :: fonc (couleur: CouleurRVBN8) -> CouleurRVBN8
+linéaire_vers_srgb :: fonc (couleur: RVB($T)) -> RVB(T)
 {
-    résultat := couleur;
+    résultat: RVB(T) = ---;
     résultat.r = linéaire_vers_srgb(couleur.r);
     résultat.v = linéaire_vers_srgb(couleur.v);
     résultat.b = linéaire_vers_srgb(couleur.b);
     retourne résultat;
 }
 
-linéaire_vers_srgb :: fonc (couleur: CouleurRVBAN8) -> CouleurRVBAN8
-{
-    résultat := couleur;
-    résultat.r = linéaire_vers_srgb(couleur.r);
-    résultat.v = linéaire_vers_srgb(couleur.v);
-    résultat.b = linéaire_vers_srgb(couleur.b);
-    retourne résultat;
-}
-
-linéaire_vers_srgb :: fonc (couleur: CouleurRVBA) -> CouleurRVBA
+linéaire_vers_srgb :: fonc (couleur: RVBA($T)) -> RVBA(T)
 {
     résultat := couleur;
     résultat.r = linéaire_vers_srgb(couleur.r);
@@ -567,7 +562,7 @@ linéaire_vers_srgb :: fonc (value: r32) -> r32
     retourne 1.055 * puissance(v, 1.0 / 2.4) - 0.055;
 }
 
-srgb_vers_linéaire :: fonc (couleur: CouleurRVBN8) -> CouleurRVBN8
+srgb_vers_linéaire :: fonc (couleur: RVB($T)) -> RVB(T)
 {
     résultat := couleur;
     résultat.r = srgb_vers_linéaire(couleur.r);
@@ -576,7 +571,7 @@ srgb_vers_linéaire :: fonc (couleur: CouleurRVBN8) -> CouleurRVBN8
     retourne résultat;
 }
 
-srgb_vers_linéaire :: fonc (couleur: CouleurRVBAN8) -> CouleurRVBAN8
+srgb_vers_linéaire :: fonc (couleur: RVBA($T)) -> RVBA(T)
 {
     résultat := couleur;
     résultat.r = srgb_vers_linéaire(couleur.r);
@@ -591,15 +586,6 @@ srgb_vers_linéaire :: fonc (couleur: Spectre) -> Spectre
     résultat.x = srgb_vers_linéaire(couleur.x);
     résultat.y = srgb_vers_linéaire(couleur.y);
     résultat.z = srgb_vers_linéaire(couleur.z);
-    retourne résultat;
-}
-
-srgb_vers_linéaire :: fonc (couleur: CouleurRVBA) -> CouleurRVBA
-{
-    résultat := couleur;
-    résultat.r = srgb_vers_linéaire(couleur.r);
-    résultat.v = srgb_vers_linéaire(couleur.v);
-    résultat.b = srgb_vers_linéaire(couleur.b);
     retourne résultat;
 }
 
