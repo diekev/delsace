@@ -109,22 +109,6 @@ restreint :: fonc (couleur: CouleurRVBA, min: r32, max: r32) -> CouleurRVBA
     retourne résultat;
 }
 
-/**
- * Luminance calculée selon la recommandation ITU-R BT.709
- * https://en.wikipedia.org/wiki/Relative_luminance
- *
- * Les vraies valeurs sont :
- * ``Y = 0.2126390059(R) + 0.7151686788(V) + 0.0721923154(B)``
- * selon : "Derivation of Basic Television Color Equations", RP 177-1993
- *
- * Puisque ces valeurs ont une somme supérieure à 1.0, nous utilisons une des
- * valeurs tronquées pour que le résultat ne dépasse pas 1.0.
- */
-luminance :: fonc (c: CouleurRVBA) -> r32
-{
-    retourne c.r * 0.212671 + c.v * 0.715160 + c.b * 0.072169;
-}
-
 /** \} */
 
 /* ------------------------------------------------------------------------- */
@@ -240,9 +224,40 @@ mélange_couleurs :: fonc (c0: CouleurRVBAN8, c1: CouleurRVBAN8, alpha: n8) -> C
     retourne résultat;
 }
 
-luminance :: fonc (c: CouleurRVBAN8) -> n8
+/** \} */
+
+/* ------------------------------------------------------------------------- */
+/** \nom Luminance
+ *
+ * Luminance calculée selon la recommandation ITU-R BT.709
+ * https://en.wikipedia.org/wiki/Relative_luminance
+ *
+ * Les vraies valeurs sont :
+ * ``Y = 0.2126390059(R) + 0.7151686788(V) + 0.0721923154(B)``
+ * selon : "Derivation of Basic Television Color Equations", RP 177-1993
+ *
+ * Puisque ces valeurs ont une somme supérieure à 1.0, nous utilisons une des
+ * valeurs tronquées pour que le résultat ne dépasse pas 1.0.
+ * \{ */
+
+donne_luminance :: fonc (r: $T, v: T, b: T) -> T
 {
-    retourne (c.r comme r32 * 0.212671 + c.v comme r32 * 0.715160 + c.b comme r32 * 0.072169) comme n8;
+    #si T == n8 {
+        retourne (r comme r32 * 0.212671 + v comme r32 * 0.715160 + b comme r32 * 0.072169) comme T;
+    }
+    sinon {
+        retourne r * 0.212671 + v * 0.715160 + b * 0.072169;
+    }
+}
+
+donne_luminance :: fonc (c: RVB($T)) -> T
+{
+    retourne donne_luminance(c.r, c.v, c.b);
+}
+
+donne_luminance :: fonc (c: RVBA($T)) -> T
+{
+    retourne donne_luminance(c.r, c.v, c.b);
 }
 
 /** \} */
@@ -410,8 +425,8 @@ tsl_vers_rvb :: fonc (couleur: CouleurTSL) -> CouleurRVBA
  */
 calcule_contraste_local :: fonc (zone: CouleurRVBA, fond: CouleurRVBA) -> r32
 {
-    luminosite_fond := luminance(fond);
-    luminosite_zone := luminance(zone);
+    luminosite_fond := donne_luminance(fond);
+    luminosite_zone := donne_luminance(zone);
 
     résultat := luminosite_zone;
 
