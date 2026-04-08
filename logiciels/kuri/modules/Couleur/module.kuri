@@ -6,42 +6,78 @@ importe Math;
 charge "mélange";
 
 /* ------------------------------------------------------------------------- */
+/** \nom RVB
+ * \{ */
+
+RVB :: struct (T: type_de_données) {
+    r: T;
+    v: T;
+    b: T;
+}
+
+opérateur == :: (a: RVB($T), b: RVB(T)) -> bool
+{
+    retourne a.r == b.r && a.v == b.v && a.b == b.b;
+}
+
+ajoute_alpha :: fonc (rvb: RVB($T), alpha: T) -> RVBA(T)
+{
+    résultat: RVBA(T) = ---;
+    résultat.r = rvb.r;
+    résultat.v = rvb.v;
+    résultat.b = rvb.b;
+    résultat.a = alpha;
+    retourne résultat;
+}
+
+/** \} */
+
+/* ------------------------------------------------------------------------- */
+/** \nom RVBA
+ * \{ */
+
+RVBA :: struct (T: type_de_données) {
+    r: T;
+    v: T;
+    b: T;
+    a: T;
+}
+
+opérateur == :: (a: RVBA($T), b: RVBA(T)) -> bool
+{
+    retourne a.r == b.r && a.v == b.v && a.b == b.b && a.a == b.a;
+}
+
+opérateur [] :: (couleur: RVBA($T), indice: z64) -> T
+{
+    assert(indice >= 0);
+    assert(indice <= 3);
+    ptr := *couleur.r;
+    retourne ptr[indice];
+}
+
+donne_rvb :: fonc (rvba: RVBA($T)) -> RVB(T)
+{
+    résultat: RVB(T) = ---;
+    résultat.r = rvb.r;
+    résultat.v = rvb.v;
+    résultat.b = rvb.b;
+    retourne résultat;
+}
+
+/** \} */
+
+/* ------------------------------------------------------------------------- */
 /** \nom CouleurRVBA
  * \{ */
 
-CouleurRVBA :: struct {
-    r := 0.0 @mutable;
-    v := 0.0 @mutable;
-    b := 0.0 @mutable;
-    a := 0.0 @mutable;
-}
+CouleurRVBA :: RVBA(r32);
 
 init_couleur_pour_python :: fonc (couleur: *CouleurRVBA) -> bool
 {
     init_de(CouleurRVBA)(couleur);
     retourne vrai;
 } @Python "new"
-
-opérateur == :: (couleur1: CouleurRVBA, couleur2: CouleurRVBA) -> bool
-{
-    si couleur1.r != couleur2.r {
-        retourne faux;
-    }
-
-    si couleur1.v != couleur2.v {
-        retourne faux;
-    }
-
-    si couleur1.b != couleur2.b {
-        retourne faux;
-    }
-
-    si couleur1.a != couleur2.a {
-        retourne faux;
-    }
-
-    retourne vrai;
-}
 
 opérateur * :: (a: CouleurRVBA, b: r32) -> CouleurRVBA
 {
@@ -61,14 +97,6 @@ opérateur + :: (a: CouleurRVBA, b: CouleurRVBA) -> CouleurRVBA
     résultat.b += b.b;
     résultat.a += b.a;
     retourne résultat;
-}
-
-opérateur [] :: (couleur: CouleurRVBA, indice: z64) -> r32
-{
-    assert(indice >= 0);
-    assert(indice <= 3);
-    ptr := *couleur.r;
-    retourne ptr[indice];
 }
 
 restreint :: fonc (couleur: CouleurRVBA, min: r32, max: r32) -> CouleurRVBA
@@ -103,16 +131,7 @@ luminance :: fonc (c: CouleurRVBA) -> r32
 /** \nom CouleurRVB sur 8-bit
  * \{ */
 
-CouleurRVBN8 :: struct {
-    r: n8;
-    v: n8;
-    b: n8;
-}
-
-opérateur == :: (a: CouleurRVBN8, b: CouleurRVBN8) -> bool
-{
-    retourne a.r == b.r && a.v == b.v && a.b == b.b;
-}
+CouleurRVBN8 :: RVB(n8);
 
 /** \} */
 
@@ -120,25 +139,7 @@ opérateur == :: (a: CouleurRVBN8, b: CouleurRVBN8) -> bool
 /** \nom CouleurRVBA sur 8-bit
  * \{ */
 
-CouleurRVBAN8 :: struct {
-    r: n8;
-    v: n8;
-    b: n8;
-    a: n8;
-}
-
-opérateur == :: (a: CouleurRVBAN8, b: CouleurRVBAN8) -> bool
-{
-    retourne a.r == b.r && a.v == b.v && a.b == b.b && a.a == b.a;
-}
-
-opérateur [] :: (couleur: CouleurRVBAN8, indice: z64) -> n8
-{
-    assert(indice >= 0);
-    assert(indice <= 3);
-    ptr := *couleur.r;
-    retourne ptr[indice];
-}
+CouleurRVBAN8 :: RVBA(n8);
 
 couleur_rouge := CouleurRVBAN8(255, 0, 0, 255);
 couleur_vert := CouleurRVBAN8(0, 255, 0, 255);
