@@ -141,12 +141,12 @@ interpole_linéaire :: fonc (c0: CouleurRVBAN8, poids: r32, c1: CouleurRVBAN8) -
 
 vers_couleur_rvba :: fonc (couleur: CouleurRVBAN8) -> CouleurRVBA
 {
-    retourne CouleurRVBA(couleur.r comme r32 / 255.0, couleur.v comme r32 / 255.0, couleur.b comme r32 / 255.0, couleur.a comme r32 / 255.0);
+    retourne CouleurRVBA(n8_vers_r32(couleur.r), n8_vers_r32(couleur.v), n8_vers_r32(couleur.b), n8_vers_r32(couleur.a));
 }
 
 depuis_couleur_rvba :: fonc (couleur: CouleurRVBA) -> CouleurRVBAN8 #enligne
 {
-    retourne CouleurRVBAN8((couleur.r * 255.0) comme n8, (couleur.v * 255.0) comme n8, (couleur.b * 255.0) comme n8, (couleur.a * 255.0) comme n8);
+    retourne CouleurRVBAN8(r32_vers_n8(couleur.r), r32_vers_n8(couleur.v), r32_vers_n8(couleur.b), r32_vers_n8(couleur.a));
 }
 
 donne_couleur_8bit_avec_tramage :: fonc (couleur: CouleurRVBA, entropie: *SérieAléatoire) -> CouleurRVBAN8 #enligne
@@ -162,7 +162,7 @@ donne_couleur_8bit_avec_tramage :: fonc (couleur: CouleurRVBA, entropie: *Série
         résultat.v = donne_fréquence_8bit_avec_tramage(couleur.v, entropie);
         résultat.b = donne_fréquence_8bit_avec_tramage(couleur.b, entropie);
     }
-    résultat.a = (couleur.a * 255.0) comme n8;
+    résultat.a = r32_vers_n8(couleur.a);
     retourne résultat;
 }
 
@@ -195,7 +195,7 @@ donne_fréquence_8bit_avec_tramage :: fonc (fréquence: r32, entropie: *SérieAl
 
 mélange_couleurs :: fonc (c0: CouleurRVBAN8, c1: CouleurRVBAN8, alpha: r32) -> CouleurRVBAN8
 {
-    retourne mélange_couleurs(c0, c1, (alpha * 255.0) comme n8);
+    retourne mélange_couleurs(c0, c1, r32_vers_n8(alpha));
 }
 
 mélange_couleurs :: fonc (c0: CouleurRVBAN8, c1: CouleurRVBAN8, alpha: n8) -> CouleurRVBAN8
@@ -548,7 +548,8 @@ linéaire_vers_srgb :: fonc (couleur: RVBA($T)) -> RVBA(T)
 
 linéaire_vers_srgb :: fonc (valeur: n8) -> n8 #enligne
 {
-    retourne (linéaire_vers_srgb(valeur comme r32 / 255.0) * 255.0 + 0.5) comme n8;
+    résultat := linéaire_vers_srgb(n8_vers_r32(valeur));
+    retourne r32_vers_n8(résultat);
 }
 
 linéaire_vers_srgb :: fonc (value: r32) -> r32
@@ -591,7 +592,8 @@ srgb_vers_linéaire :: fonc (couleur: Spectre) -> Spectre
 
 srgb_vers_linéaire :: fonc (valeur: n8) -> n8 #enligne
 {
-    retourne (srgb_vers_linéaire(valeur comme r32 / 255.0) * 255.0 + 0.5) comme n8;
+    résultat := srgb_vers_linéaire(n8_vers_r32(valeur));
+    retourne r32_vers_n8(résultat);
 }
 
 srgb_vers_linéaire :: fonc (valeur: r32) -> r32
@@ -600,6 +602,30 @@ srgb_vers_linéaire :: fonc (valeur: r32) -> r32
         retourne puissance((valeur + 0.055) / 1.055, 2.4);
     }
     retourne valeur / 12.92;
+}
+
+/** \} */
+
+#portée_fichier
+
+/* ------------------------------------------------------------------------- */
+/** \nom Utilitaires
+ * \{ */
+
+r32_vers_n8 :: fonc (v: r32) -> n8 #enligne
+{
+    si v <= 0.0 {
+        retourne 0;
+    }
+    si v >= 1.0 {
+        retourne 255;
+    }
+    retourne (v * 255.0 + 0.5) comme n8;
+}
+
+n8_vers_r32 :: fonc (v: n8) -> r32 #enligne
+{
+    retourne (v comme r32 / 255.0);
 }
 
 /** \} */
