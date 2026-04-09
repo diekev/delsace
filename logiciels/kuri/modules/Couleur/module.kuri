@@ -30,6 +30,15 @@ ajoute_alpha :: fonc (rvb: RVB($T), alpha: T) -> RVBA(T)
     retourne résultat;
 }
 
+restreint :: fonc (couleur: RVB($T), min: T, max: T) -> RVB(T)
+{
+    résultat := couleur;
+    restreint(*résultat.r, min, max);
+    restreint(*résultat.v, min, max);
+    restreint(*résultat.b, min, max);
+    retourne résultat;
+}
+
 /** \} */
 
 /* ------------------------------------------------------------------------- */
@@ -65,6 +74,16 @@ donne_rvb :: fonc (rvba: RVBA($T)) -> RVB(T)
     retourne résultat;
 }
 
+restreint :: fonc (couleur: RVBA($T), min: T, max: T) -> RVBA(T)
+{
+    résultat := couleur;
+    restreint(*résultat.r, min, max);
+    restreint(*résultat.v, min, max);
+    restreint(*résultat.b, min, max);
+    restreint(*résultat.a, min, max);
+    retourne résultat;
+}
+
 /** \} */
 
 /* ------------------------------------------------------------------------- */
@@ -96,16 +115,6 @@ opérateur + :: (a: CouleurRVBA, b: CouleurRVBA) -> CouleurRVBA
     résultat.v += b.v;
     résultat.b += b.b;
     résultat.a += b.a;
-    retourne résultat;
-}
-
-restreint :: fonc (couleur: CouleurRVBA, min: r32, max: r32) -> CouleurRVBA
-{
-    résultat := couleur;
-    restreint(*résultat.r, min, max);
-    restreint(*résultat.v, min, max);
-    restreint(*résultat.b, min, max);
-    restreint(*résultat.a, min, max);
     retourne résultat;
 }
 
