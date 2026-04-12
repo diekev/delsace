@@ -634,18 +634,13 @@ convertis_en_nuances_de_gris :: fonc (image: NouvelleImage) -> NouvelleImage
             desc.format = FormatPixel.Gris_8;
             résultat = crée_image(*desc);
 
-            pixels_entrée := image.données comme *n8;
+            pixels_entrée := image.données comme *RVB(n8);
             pixels_sortie := résultat.données comme *n8;
 
             pour nombre_de_pixels {
-                r := mémoire(pixels_entrée) comme r32 / 255.0;
-                v := mémoire(pixels_entrée + 1) comme r32 / 255.0;
-                b := mémoire(pixels_entrée + 2) comme r32 / 255.0;
+                mémoire(pixels_sortie) = donne_luminance(mémoire(pixels_entrée));
 
-                l := luminance(CouleurRVBA(r, v, b));
-                mémoire(pixels_sortie) = (l * 255.0) comme n8;
-
-                pixels_entrée += 3;
+                pixels_entrée += 1;
                 pixels_sortie += 1;
             }
         }
@@ -653,18 +648,13 @@ convertis_en_nuances_de_gris :: fonc (image: NouvelleImage) -> NouvelleImage
             desc.format = FormatPixel.Gris_32;
             résultat = crée_image(*desc);
 
-            pixels_entrée := image.données comme *r32;
+            pixels_entrée := image.données comme *RVB(r32);
             pixels_sortie := résultat.données comme *r32;
 
             pour nombre_de_pixels {
-                r := mémoire(pixels_entrée);
-                v := mémoire(pixels_entrée + 1);
-                b := mémoire(pixels_entrée + 2);
+                mémoire(pixels_sortie) = donne_luminance(mémoire(pixels_entrée));
 
-                l := luminance(CouleurRVBA(r, v, b));
-                mémoire(pixels_sortie) = l;
-
-                pixels_entrée += 3;
+                pixels_entrée += 1;
                 pixels_sortie += 1;
             }
         }
@@ -672,18 +662,13 @@ convertis_en_nuances_de_gris :: fonc (image: NouvelleImage) -> NouvelleImage
             desc.format = FormatPixel.Gris_8;
             résultat = crée_image(*desc);
 
-            pixels_entrée := image.données comme *n8;
+            pixels_entrée := image.données comme *RVBA(n8);
             pixels_sortie := résultat.données comme *n8;
 
             pour nombre_de_pixels {
-                r := mémoire(pixels_entrée) comme r32 / 255.0;
-                v := mémoire(pixels_entrée + 1) comme r32 / 255.0;
-                b := mémoire(pixels_entrée + 2) comme r32 / 255.0;
+                mémoire(pixels_sortie) = donne_luminance(mémoire(pixels_entrée));
 
-                l := luminance(CouleurRVBA(r, v, b));
-                mémoire(pixels_sortie) = (l * 255.0) comme n8;
-
-                pixels_entrée += 4;
+                pixels_entrée += 1;
                 pixels_sortie += 1;
             }
         }
@@ -691,18 +676,13 @@ convertis_en_nuances_de_gris :: fonc (image: NouvelleImage) -> NouvelleImage
             desc.format = FormatPixel.Gris_32;
             résultat = crée_image(*desc);
 
-            pixels_entrée := image.données comme *r32;
+            pixels_entrée := image.données comme *RVBA(r32);
             pixels_sortie := résultat.données comme *r32;
 
             pour nombre_de_pixels {
-                r := mémoire(pixels_entrée);
-                v := mémoire(pixels_entrée + 1);
-                b := mémoire(pixels_entrée + 2);
+                mémoire(pixels_sortie) = donne_luminance(mémoire(pixels_entrée));
 
-                l := luminance(CouleurRVBA(r, v, b));
-                mémoire(pixels_sortie) = l;
-
-                pixels_entrée += 4;
+                pixels_entrée += 1;
                 pixels_sortie += 1;
             }
         }
