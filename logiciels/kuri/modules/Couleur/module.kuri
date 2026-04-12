@@ -6,42 +6,97 @@ importe Math;
 charge "mélange";
 
 /* ------------------------------------------------------------------------- */
+/** \nom RVB
+ * \{ */
+
+RVB :: struct (T: type_de_données) {
+    r: T;
+    v: T;
+    b: T;
+}
+
+opérateur == :: (a: RVB($T), b: RVB(T)) -> bool
+{
+    retourne a.r == b.r && a.v == b.v && a.b == b.b;
+}
+
+ajoute_alpha :: fonc (rvb: RVB($T), alpha: T) -> RVBA(T)
+{
+    résultat: RVBA(T) = ---;
+    résultat.r = rvb.r;
+    résultat.v = rvb.v;
+    résultat.b = rvb.b;
+    résultat.a = alpha;
+    retourne résultat;
+}
+
+restreint :: fonc (couleur: RVB($T), min: T, max: T) -> RVB(T)
+{
+    résultat := couleur;
+    restreint(*résultat.r, min, max);
+    restreint(*résultat.v, min, max);
+    restreint(*résultat.b, min, max);
+    retourne résultat;
+}
+
+/** \} */
+
+/* ------------------------------------------------------------------------- */
+/** \nom RVBA
+ * \{ */
+
+RVBA :: struct (T: type_de_données) {
+    r: T;
+    v: T;
+    b: T;
+    a: T;
+}
+
+opérateur == :: (a: RVBA($T), b: RVBA(T)) -> bool
+{
+    retourne a.r == b.r && a.v == b.v && a.b == b.b && a.a == b.a;
+}
+
+opérateur [] :: (couleur: RVBA($T), indice: z64) -> T
+{
+    assert(indice >= 0);
+    assert(indice <= 3);
+    ptr := *couleur.r;
+    retourne ptr[indice];
+}
+
+donne_rvb :: fonc (rvba: RVBA($T)) -> RVB(T)
+{
+    résultat: RVB(T) = ---;
+    résultat.r = rvb.r;
+    résultat.v = rvb.v;
+    résultat.b = rvb.b;
+    retourne résultat;
+}
+
+restreint :: fonc (couleur: RVBA($T), min: T, max: T) -> RVBA(T)
+{
+    résultat := couleur;
+    restreint(*résultat.r, min, max);
+    restreint(*résultat.v, min, max);
+    restreint(*résultat.b, min, max);
+    restreint(*résultat.a, min, max);
+    retourne résultat;
+}
+
+/** \} */
+
+/* ------------------------------------------------------------------------- */
 /** \nom CouleurRVBA
  * \{ */
 
-CouleurRVBA :: struct {
-    r := 0.0 @mutable;
-    v := 0.0 @mutable;
-    b := 0.0 @mutable;
-    a := 0.0 @mutable;
-}
+CouleurRVBA :: RVBA(r32);
 
 init_couleur_pour_python :: fonc (couleur: *CouleurRVBA) -> bool
 {
     init_de(CouleurRVBA)(couleur);
     retourne vrai;
 } @Python "new"
-
-opérateur == :: (couleur1: CouleurRVBA, couleur2: CouleurRVBA) -> bool
-{
-    si couleur1.r != couleur2.r {
-        retourne faux;
-    }
-
-    si couleur1.v != couleur2.v {
-        retourne faux;
-    }
-
-    si couleur1.b != couleur2.b {
-        retourne faux;
-    }
-
-    si couleur1.a != couleur2.a {
-        retourne faux;
-    }
-
-    retourne vrai;
-}
 
 opérateur * :: (a: CouleurRVBA, b: r32) -> CouleurRVBA
 {
@@ -63,56 +118,13 @@ opérateur + :: (a: CouleurRVBA, b: CouleurRVBA) -> CouleurRVBA
     retourne résultat;
 }
 
-opérateur [] :: (couleur: CouleurRVBA, indice: z64) -> r32
-{
-    assert(indice >= 0);
-    assert(indice <= 3);
-    ptr := *couleur.r;
-    retourne ptr[indice];
-}
-
-restreint :: fonc (couleur: CouleurRVBA, min: r32, max: r32) -> CouleurRVBA
-{
-    résultat := couleur;
-    restreint(*résultat.r, min, max);
-    restreint(*résultat.v, min, max);
-    restreint(*résultat.b, min, max);
-    restreint(*résultat.a, min, max);
-    retourne résultat;
-}
-
-/**
- * Luminance calculée selon la recommandation ITU-R BT.709
- * https://en.wikipedia.org/wiki/Relative_luminance
- *
- * Les vraies valeurs sont :
- * ``Y = 0.2126390059(R) + 0.7151686788(V) + 0.0721923154(B)``
- * selon : "Derivation of Basic Television Color Equations", RP 177-1993
- *
- * Puisque ces valeurs ont une somme supérieure à 1.0, nous utilisons une des
- * valeurs tronquées pour que le résultat ne dépasse pas 1.0.
- */
-luminance :: fonc (c: CouleurRVBA) -> r32
-{
-    retourne c.r * 0.212671 + c.v * 0.715160 + c.b * 0.072169;
-}
-
 /** \} */
 
 /* ------------------------------------------------------------------------- */
 /** \nom CouleurRVB sur 8-bit
  * \{ */
 
-CouleurRVBN8 :: struct {
-    r: n8;
-    v: n8;
-    b: n8;
-}
-
-opérateur == :: (a: CouleurRVBN8, b: CouleurRVBN8) -> bool
-{
-    retourne a.r == b.r && a.v == b.v && a.b == b.b;
-}
+CouleurRVBN8 :: RVB(n8);
 
 /** \} */
 
@@ -120,25 +132,7 @@ opérateur == :: (a: CouleurRVBN8, b: CouleurRVBN8) -> bool
 /** \nom CouleurRVBA sur 8-bit
  * \{ */
 
-CouleurRVBAN8 :: struct {
-    r: n8;
-    v: n8;
-    b: n8;
-    a: n8;
-}
-
-opérateur == :: (a: CouleurRVBAN8, b: CouleurRVBAN8) -> bool
-{
-    retourne a.r == b.r && a.v == b.v && a.b == b.b && a.a == b.a;
-}
-
-opérateur [] :: (couleur: CouleurRVBAN8, indice: z64) -> n8
-{
-    assert(indice >= 0);
-    assert(indice <= 3);
-    ptr := *couleur.r;
-    retourne ptr[indice];
-}
+CouleurRVBAN8 :: RVBA(n8);
 
 couleur_rouge := CouleurRVBAN8(255, 0, 0, 255);
 couleur_vert := CouleurRVBAN8(0, 255, 0, 255);
@@ -156,12 +150,12 @@ interpole_linéaire :: fonc (c0: CouleurRVBAN8, poids: r32, c1: CouleurRVBAN8) -
 
 vers_couleur_rvba :: fonc (couleur: CouleurRVBAN8) -> CouleurRVBA
 {
-    retourne CouleurRVBA(couleur.r comme r32 / 255.0, couleur.v comme r32 / 255.0, couleur.b comme r32 / 255.0, couleur.a comme r32 / 255.0);
+    retourne CouleurRVBA(n8_vers_r32(couleur.r), n8_vers_r32(couleur.v), n8_vers_r32(couleur.b), n8_vers_r32(couleur.a));
 }
 
 depuis_couleur_rvba :: fonc (couleur: CouleurRVBA) -> CouleurRVBAN8 #enligne
 {
-    retourne CouleurRVBAN8((couleur.r * 255.0) comme n8, (couleur.v * 255.0) comme n8, (couleur.b * 255.0) comme n8, (couleur.a * 255.0) comme n8);
+    retourne CouleurRVBAN8(r32_vers_n8(couleur.r), r32_vers_n8(couleur.v), r32_vers_n8(couleur.b), r32_vers_n8(couleur.a));
 }
 
 donne_couleur_8bit_avec_tramage :: fonc (couleur: CouleurRVBA, entropie: *SérieAléatoire) -> CouleurRVBAN8 #enligne
@@ -177,7 +171,7 @@ donne_couleur_8bit_avec_tramage :: fonc (couleur: CouleurRVBA, entropie: *Série
         résultat.v = donne_fréquence_8bit_avec_tramage(couleur.v, entropie);
         résultat.b = donne_fréquence_8bit_avec_tramage(couleur.b, entropie);
     }
-    résultat.a = (couleur.a * 255.0) comme n8;
+    résultat.a = r32_vers_n8(couleur.a);
     retourne résultat;
 }
 
@@ -210,7 +204,7 @@ donne_fréquence_8bit_avec_tramage :: fonc (fréquence: r32, entropie: *SérieAl
 
 mélange_couleurs :: fonc (c0: CouleurRVBAN8, c1: CouleurRVBAN8, alpha: r32) -> CouleurRVBAN8
 {
-    retourne mélange_couleurs(c0, c1, (alpha * 255.0) comme n8);
+    retourne mélange_couleurs(c0, c1, r32_vers_n8(alpha));
 }
 
 mélange_couleurs :: fonc (c0: CouleurRVBAN8, c1: CouleurRVBAN8, alpha: n8) -> CouleurRVBAN8
@@ -239,9 +233,40 @@ mélange_couleurs :: fonc (c0: CouleurRVBAN8, c1: CouleurRVBAN8, alpha: n8) -> C
     retourne résultat;
 }
 
-luminance :: fonc (c: CouleurRVBAN8) -> n8
+/** \} */
+
+/* ------------------------------------------------------------------------- */
+/** \nom Luminance
+ *
+ * Luminance calculée selon la recommandation ITU-R BT.709
+ * https://en.wikipedia.org/wiki/Relative_luminance
+ *
+ * Les vraies valeurs sont :
+ * ``Y = 0.2126390059(R) + 0.7151686788(V) + 0.0721923154(B)``
+ * selon : "Derivation of Basic Television Color Equations", RP 177-1993
+ *
+ * Puisque ces valeurs ont une somme supérieure à 1.0, nous utilisons une des
+ * valeurs tronquées pour que le résultat ne dépasse pas 1.0.
+ * \{ */
+
+donne_luminance :: fonc (r: $T, v: T, b: T) -> T
 {
-    retourne (c.r comme r32 * 0.212671 + c.v comme r32 * 0.715160 + c.b comme r32 * 0.072169) comme n8;
+    #si T == n8 {
+        retourne (r comme r32 * 0.212671 + v comme r32 * 0.715160 + b comme r32 * 0.072169) comme T;
+    }
+    sinon {
+        retourne r * 0.212671 + v * 0.715160 + b * 0.072169;
+    }
+}
+
+donne_luminance :: fonc (c: RVB($T)) -> T
+{
+    retourne donne_luminance(c.r, c.v, c.b);
+}
+
+donne_luminance :: fonc (c: RVBA($T)) -> T
+{
+    retourne donne_luminance(c.r, c.v, c.b);
 }
 
 /** \} */
@@ -409,8 +434,8 @@ tsl_vers_rvb :: fonc (couleur: CouleurTSL) -> CouleurRVBA
  */
 calcule_contraste_local :: fonc (zone: CouleurRVBA, fond: CouleurRVBA) -> r32
 {
-    luminosite_fond := luminance(fond);
-    luminosite_zone := luminance(zone);
+    luminosite_fond := donne_luminance(fond);
+    luminosite_zone := donne_luminance(zone);
 
     résultat := luminosite_zone;
 
@@ -493,7 +518,11 @@ opérateur * :: (s1: r32, s2: Spectre) -> Spectre
     retourne Spectre(s1 * s2.x, s1 * s2.y, s1 * s2.z);
 }
 
-/* Conversion d'espaces colorimétriques. */
+/** \} */
+
+/* ------------------------------------------------------------------------- */
+/** \nom Conversion d'espaces colorimétriques
+ * \{ */
 
 linéaire_vers_srgb :: fonc (spectre: Spectre) -> Spectre
 {
@@ -506,25 +535,16 @@ linéaire_vers_srgb :: fonc (spectre: Spectre) -> Spectre
     retourne résultat;
 }
 
-linéaire_vers_srgb :: fonc (couleur: CouleurRVBN8) -> CouleurRVBN8
+linéaire_vers_srgb :: fonc (couleur: RVB($T)) -> RVB(T)
 {
-    résultat := couleur;
+    résultat: RVB(T) = ---;
     résultat.r = linéaire_vers_srgb(couleur.r);
     résultat.v = linéaire_vers_srgb(couleur.v);
     résultat.b = linéaire_vers_srgb(couleur.b);
     retourne résultat;
 }
 
-linéaire_vers_srgb :: fonc (couleur: CouleurRVBAN8) -> CouleurRVBAN8
-{
-    résultat := couleur;
-    résultat.r = linéaire_vers_srgb(couleur.r);
-    résultat.v = linéaire_vers_srgb(couleur.v);
-    résultat.b = linéaire_vers_srgb(couleur.b);
-    retourne résultat;
-}
-
-linéaire_vers_srgb :: fonc (couleur: CouleurRVBA) -> CouleurRVBA
+linéaire_vers_srgb :: fonc (couleur: RVBA($T)) -> RVBA(T)
 {
     résultat := couleur;
     résultat.r = linéaire_vers_srgb(couleur.r);
@@ -537,7 +557,8 @@ linéaire_vers_srgb :: fonc (couleur: CouleurRVBA) -> CouleurRVBA
 
 linéaire_vers_srgb :: fonc (valeur: n8) -> n8 #enligne
 {
-    retourne (linéaire_vers_srgb(valeur comme r32 / 255.0) * 255.0 + 0.5) comme n8;
+    résultat := linéaire_vers_srgb(n8_vers_r32(valeur));
+    retourne r32_vers_n8(résultat);
 }
 
 linéaire_vers_srgb :: fonc (value: r32) -> r32
@@ -551,7 +572,7 @@ linéaire_vers_srgb :: fonc (value: r32) -> r32
     retourne 1.055 * puissance(v, 1.0 / 2.4) - 0.055;
 }
 
-srgb_vers_linéaire :: fonc (couleur: CouleurRVBN8) -> CouleurRVBN8
+srgb_vers_linéaire :: fonc (couleur: RVB($T)) -> RVB(T)
 {
     résultat := couleur;
     résultat.r = srgb_vers_linéaire(couleur.r);
@@ -560,7 +581,7 @@ srgb_vers_linéaire :: fonc (couleur: CouleurRVBN8) -> CouleurRVBN8
     retourne résultat;
 }
 
-srgb_vers_linéaire :: fonc (couleur: CouleurRVBAN8) -> CouleurRVBAN8
+srgb_vers_linéaire :: fonc (couleur: RVBA($T)) -> RVBA(T)
 {
     résultat := couleur;
     résultat.r = srgb_vers_linéaire(couleur.r);
@@ -578,18 +599,10 @@ srgb_vers_linéaire :: fonc (couleur: Spectre) -> Spectre
     retourne résultat;
 }
 
-srgb_vers_linéaire :: fonc (couleur: CouleurRVBA) -> CouleurRVBA
-{
-    résultat := couleur;
-    résultat.r = srgb_vers_linéaire(couleur.r);
-    résultat.v = srgb_vers_linéaire(couleur.v);
-    résultat.b = srgb_vers_linéaire(couleur.b);
-    retourne résultat;
-}
-
 srgb_vers_linéaire :: fonc (valeur: n8) -> n8 #enligne
 {
-    retourne (srgb_vers_linéaire(valeur comme r32 / 255.0) * 255.0 + 0.5) comme n8;
+    résultat := srgb_vers_linéaire(n8_vers_r32(valeur));
+    retourne r32_vers_n8(résultat);
 }
 
 srgb_vers_linéaire :: fonc (valeur: r32) -> r32
@@ -598,6 +611,30 @@ srgb_vers_linéaire :: fonc (valeur: r32) -> r32
         retourne puissance((valeur + 0.055) / 1.055, 2.4);
     }
     retourne valeur / 12.92;
+}
+
+/** \} */
+
+#portée_fichier
+
+/* ------------------------------------------------------------------------- */
+/** \nom Utilitaires
+ * \{ */
+
+r32_vers_n8 :: fonc (v: r32) -> n8 #enligne
+{
+    si v <= 0.0 {
+        retourne 0;
+    }
+    si v >= 1.0 {
+        retourne 255;
+    }
+    retourne (v * 255.0 + 0.5) comme n8;
+}
+
+n8_vers_r32 :: fonc (v: n8) -> r32 #enligne
+{
+    retourne (v comme r32 / 255.0);
 }
 
 /** \} */
