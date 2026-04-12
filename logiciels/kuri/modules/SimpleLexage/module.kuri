@@ -408,8 +408,11 @@ donne_texte_jusque_nouvelle_ligne :: fonc (lexeuse: *SimpleLexeuse) -> chaine
 
     début := lexeuse.début;
 
+    eu_nouvelle_ligne := faux;
+
     tantque !fini(lexeuse) {
         si mémoire(lexeuse.début) == '\n' {
+            eu_nouvelle_ligne = vrai;
             lexeuse.début += 1;
             arrête;
         }
@@ -417,7 +420,8 @@ donne_texte_jusque_nouvelle_ligne :: fonc (lexeuse: *SimpleLexeuse) -> chaine
         lexeuse.début += 1;
     }
 
-    résultat := chaine(début, lexeuse.début - début - 1);
+    taille_chaine := lexeuse.début - début - eu_nouvelle_ligne comme z32;
+    résultat := chaine(début, taille_chaine);
     retourne résultat;
 }
 
