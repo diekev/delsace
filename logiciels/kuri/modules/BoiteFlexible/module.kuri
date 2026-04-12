@@ -554,6 +554,7 @@ ConfigurationDéfilage :: struct {
     horizontal: Type_Défilage;
 
     décalage_vertical := 0.0;
+    ratio_vertical := 1.0;
     largeur_verticale := 16.0;
     couleur_verticale := CouleurRVBA(0.0, 0.0, 0.0, 0.7);
     couleur_verticale_survolage := CouleurRVBA(0.5, 0.5, 0.5, 0.7);
@@ -574,11 +575,12 @@ ajoute_défilage_vertical :: fonc (largeur := 16.0, couleur := CouleurRVBA(0.0, 
     __boite_courante.défilage.couleur_verticale_survolage = couleur_survolage_survolage;
 }
 
-ajoute_défilage_vertical_manuel :: fonc (décalage: r32)
+ajoute_défilage_vertical_manuel :: fonc (décalage: r32, ratio: r32)
 {
     assert(__boite_courante != nul);
     __boite_courante.défilage.vertical = Type_Défilage.MANUEL;
     __boite_courante.défilage.décalage_vertical = décalage;
+    __boite_courante.défilage.ratio_vertical = ratio;
 }
 
 Barre_De_Défilement :: struct {
