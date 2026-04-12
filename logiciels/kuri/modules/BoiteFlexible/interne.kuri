@@ -1478,6 +1478,9 @@ donne_rect_ciselage_défilage :: fonc (boite: *Boite_Flexible) -> RectanglePosDi
     si boite.défilage.vertical == Type_Défilage.AUTOMATIQUE {
         rect_ciselage.largeur -= boite.défilage.largeur_verticale;
     }
+    sinon si boite.défilage.vertical == Type_Défilage.MANUEL {
+        rect_ciselage.hauteur *= boite.défilage.ratio_vertical;
+    }
 
     retourne rect_ciselage;
 }
