@@ -657,6 +657,13 @@ RésultatExpression évalue_expression(const EspaceDeTravail *espace,
         {
             auto expression_appel = b->comme_appel();
 
+            if (expression_appel->type->est_type_type_de_données()) {
+                auto type_de_données = expression_appel->type->comme_type_type_de_données();
+                if (type_de_données->type_connu) {
+                    return ValeurExpression(type_de_données->type_connu);
+                }
+            }
+
             if (expression_appel->aide_génération_code != CONSTRUIS_OPAQUE) {
                 return erreur_évaluation(b,
                                          "Impossible d'utiliser une expression d'appel qui n'est "
