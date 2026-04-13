@@ -370,12 +370,17 @@ dispose_image :: fonc (image: NouvelleImage, cotation: Cotation, teinte := Coule
     boite.teinte = teinte;
 }
 
-dispose_procédure :: fonc (procédure: fonc (données_procédure: *rien, rect: RectanglePosDim(r32)), données_procédure: *rien, id := "", cotation := Cotation())
+dispose_procédure :: fonc (procédure: fonc (données_procédure: *rien, rect: RectanglePosDim(r32)), données_procédure: *rien, id := "", cotation := Cotation(), pos := #position_code_source)
 {
     assert(__boite_courante != nul);
     boite := __boite_courante.ajoute_procédure(procédure, données_procédure);
     boite.disposition.cotation = cotation;
-    boite.id = calcule_empreinte_djb2(id);
+    si id {
+        boite.id = calcule_empreinte_djb2(id);
+    }
+    sinon {
+        boite.id = donne_empreinte(pos, combine_empreintes(__boite_courante.id, __boite_courante.enfants.taille comme n64));
+    }
     __boite_courante = boite;
 }
 
