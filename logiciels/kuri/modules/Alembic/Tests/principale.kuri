@@ -1,0 +1,189 @@
+importe Alembic;
+importe Fondation;
+importe LigneDeCommande;
+
+// -----------------------------------
+
+accède_nombre_calques :: fonc (ctx: *ContexteOuvertureArchive) -> z32
+{
+    fichier := ctx.donnees_utilisateur comme *FichierCache;
+    retourne fichier.calques.taille comme z32;
+}
+
+accède_chemin_calque :: fonc (ctx: *ContexteOuvertureArchive, indice: n64, pointeur_chemin: **z8, taille_chemin: *n64)
+{
+    fichier := ctx.donnees_utilisateur comme *FichierCache;
+
+    si indice comme z64 >= fichier.calques.taille {
+        retourne;
+    }
+
+    calque := fichier.calques[indice];
+
+    mémoire(pointeur_chemin) = calque.chemin.pointeur;
+    mémoire(taille_chemin) = calque.chemin.taille comme n64;
+}
+
+initialise_contexte_ouverture_archive :: fonc (fichier: *FichierCache) -> ContexteOuvertureArchive
+{
+    ctx: ContexteOuvertureArchive;
+    ctx.donnees_utilisateur = fichier;
+    ctx.nombre_de_chemins = accède_nombre_calques;
+    ctx.chemin = accède_chemin_calque;
+    ctx.police_erreur = nul;
+    ctx.nombre_de_flux_ogawa_desires = nul;
+    ctx.strategie_lecture_ogawa = nul;
+    ctx.erreur_aucun_chemin = nul;
+    ctx.erreur_archive_invalide = nul;
+    retourne ctx;
+}
+
+// -----------------------------------
+
+extrait_nom_courant_traverse :: fonc (ctx: *ContexteTraverseArchive @inutilisée, pointeur: *z8, taille: n64) -> rien
+{
+    chn := chaine(pointeur, taille comme z64);
+    imprime("nom: %\n", chn);
+}
+
+initialise_contexte_traverse :: fonc () -> ContexteTraverseArchive
+{
+    ctx: ContexteTraverseArchive;
+    ctx.extrait_nom_courant = extrait_nom_courant_traverse;
+    ctx.annule = nul;
+    ctx.donnees_utilisateur = nul;
+    retourne ctx;
+}
+
+// -----------------------------------
+
+nuage_points_réserve_points :: fonc (données: *rien @inutilisée, nombre: n64)
+{
+    imprime("Il y a % points\n", nombre);
+}
+
+nuage_points_ajoute_un_point :: fonc (données: *rien @inutilisée, x: r32, y: r32, z: r32)
+{
+    imprime("Ajoute un point: % % %\n", x, y, z);
+}
+
+// -----------------------------------
+
+initialise_convertisseuse_polymesh :: fonc (convertisseuse: *ConvertisseusePolyMesh @inutilisée)
+{
+    imprime("PolyMesh\n");
+}
+
+initialise_convertisseuse_subd :: fonc (convertisseuse: *ConvertisseuseSubD @inutilisée)
+{
+    imprime("SubD\n");
+}
+
+initialise_convertisseuse_points :: fonc (convertisseuse: *ConvertisseusePoints)
+{
+    convertisseuse.reserve_points = nuage_points_réserve_points;
+    convertisseuse.ajoute_un_point = nuage_points_ajoute_un_point;
+    convertisseuse.ajoute_tous_les_points = nul;
+    convertisseuse.reserve_index = nul;
+    convertisseuse.ajoute_index_point = nul;
+}
+
+initialise_convertisseuse_courbes :: fonc (convertisseuse: *ConvertisseuseCourbes @inutilisée)
+{
+    imprime("Courbes\n");
+}
+
+initialise_convertisseuse_nurbs :: fonc (convertisseuse: *ConvertisseuseNurbs @inutilisée)
+{
+    imprime("N.U.R.B.S.\n");
+}
+
+initialise_convertisseuse_xform :: fonc (convertisseuse: *ConvertisseuseXform @inutilisée)
+{
+    imprime("XForm\n");
+}
+
+initialise_contexte_lecture_cache :: fonc () -> ContexteLectureCache
+{
+    ctx: ContexteLectureCache;
+    ctx.initialise_convertisseuse_polymesh = initialise_convertisseuse_polymesh;
+    ctx.initialise_convertisseuse_subd = initialise_convertisseuse_subd;
+    ctx.initialise_convertisseuse_points = initialise_convertisseuse_points;
+    ctx.initialise_convertisseuse_courbes = initialise_convertisseuse_courbes;
+    ctx.initialise_convertisseuse_nurbs = initialise_convertisseuse_nurbs;
+    ctx.initialise_convertisseuse_xform = initialise_convertisseuse_xform;
+    retourne ctx;
+}
+
+// -----------------------------------
+
+FichierCache :: struct {
+    poignée_abc: *ArchiveCache;
+
+    calques: [..]CalqueFichierCache;
+}
+
+CalqueFichierCache :: struct {
+    chemin: chaine;
+}
+
+ajoute_calque :: fonc (fichier: *FichierCache, chemin: chaine)
+{
+    calque := CalqueFichierCache(chemin);
+    tableau_ajoute(*fichier.calques, calque);
+}
+
+ouvre_fichier_cache :: fonc (fichier: *FichierCache) -> bool
+{
+    ctx_kuri := initialise_contexte_kuri();
+    ctx_ouverture := initialise_contexte_ouverture_archive(fichier);
+
+    poignée := ABC_cree_archive(*ctx_kuri, *ctx_ouverture);
+
+    saufsi poignée {
+        retourne faux;
+    }
+
+    imprime("Fichier ouvert !\n");
+
+    fichier.poignée_abc = poignée;
+    retourne vrai;
+}
+
+rassemble_noms_objets :: fonc (fichier: *FichierCache)
+{
+    ctx_kuri := initialise_contexte_kuri();
+    ctx_traverse := initialise_contexte_traverse();
+
+    ABC_traverse_archive(*ctx_kuri, fichier.poignée_abc, *ctx_traverse);
+}
+
+principale :: fonc ()
+{
+    chemin := parse_argument_chemin();
+    saufsi chemin {
+        exit(1);
+    }
+
+    fichier: FichierCache;
+    ajoute_calque(*fichier, chemin);
+
+    // À FAIRE : pas d'erreur
+    saufsi ouvre_fichier_cache(*fichier) {
+        exit(1);
+    }
+
+    rassemble_noms_objets(*fichier);
+
+    // ctx_kuri := initialise_contexte_kuri();
+    // lectrice := ABC_crée_lectrice_cache(*ctx_kuri, fichier.poignée_abc, "/Plane/PlaneShape");
+
+    // saufsi lectrice {
+    //     exit(1);
+    // }
+
+    // imprime("Lectrice créée !\n");
+
+    // ctx_lecture_cache := initialise_contexte_lecture_cache();
+    // ABC_lis_objet(*ctx_kuri, *ctx_lecture_cache, lectrice, 0.0);
+}
