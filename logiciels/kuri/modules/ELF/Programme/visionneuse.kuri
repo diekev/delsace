@@ -686,7 +686,7 @@ dessine_panneau_fichier :: fonc (visionneuse: *VisionneuseELF, espace: EspaceDis
         dispose_rectangle();
         {
             définis_cotation(CROISSANTE(), CROISSANTE());
-            espace = ajoute_rembourage(espace, rembourrage);
+            espace = ajoute_rembourrage(espace, rembourrage);
 
             si onglet.nom == "Informations" {
                 définis_alignement(AlignementEnfant.Milieu);
@@ -1025,7 +1025,7 @@ dessine_onglet_section :: fonc (visionneuse: *VisionneuseELF, fichier: *Fichier_
 
             dispose_rectangle();
             {
-                espace = ajoute_rembourage(espace, 8);
+                espace = ajoute_rembourrage(espace, 8);
                 définis_cotation(donne_cotation(espace));
                 ajoute_bordure_gauche(2.0, COULEUR_FOND);
                 définis_direction(Direction.Verticale);

@@ -867,7 +867,7 @@ ajoute_défilage_vertical :: fonc (espace: *EspaceDisponible, largeur_barre: n32
     espace.largeur = soustraction_sure(espace.largeur, largeur_barre);
 }
 
-ajoute_rembourage :: fonc (espace: EspaceDisponible, rembourrage: $T) -> EspaceDisponible
+ajoute_rembourrage :: fonc (espace: EspaceDisponible, rembourrage: $T) -> EspaceDisponible
 {
     définis_rembourrage(RembourrageUniforme(rembourrage comme r32));
     retourne donne_espace_rappetissé(espace, rembourrage comme n32);
