@@ -364,7 +364,7 @@ assembleuse_objet::ptr_objet analyseuse_grammaire::objet() const
 
 void analyseuse_grammaire::analyse_objet()
 {
-    CONSOMME_IDENTIFIANT(nom_objet, "Attendu une chaine de caractères");
+    CONSOMME_IDENTIFIANT_VOID(nom_objet, "Attendu une chaine de caractères");
     consomme(GenreLexème::DOUBLE_POINTS);
 
     analyse_valeur(lexème_nom_objet->chaine);
