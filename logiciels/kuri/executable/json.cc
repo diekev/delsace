@@ -424,7 +424,7 @@ void analyseuse_grammaire::analyse_valeur(kuri::chaine_statique nom_objet)
 
             auto obj = m_assembleuse.cree_objet(nom_objet, tori::type_objet::NOMBRE_ENTIER);
             auto obj_chaine = static_cast<tori::ObjetNombreEntier *>(obj.get());
-            obj_chaine->valeur = lexème->valeur_entiere;
+            obj_chaine->valeur = long(lexème->valeur_entiere);
 
             break;
         }
