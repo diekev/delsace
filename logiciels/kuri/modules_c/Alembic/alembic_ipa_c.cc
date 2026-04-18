@@ -13,6 +13,8 @@
 #include "AbcKuri/alembic_export.hh"
 #include "AbcKuri/alembic_import.hh"
 
+#include "../InterfaceCKuri/contexte_kuri.hh"
+
 /*
     - [x] Alembic
     - [ ] OpenColorIO (reprend code de Sergey)
@@ -180,3 +182,272 @@ void ABC_lis_attributs(ContexteKuri *ctx_kuri,
     AbcKuri::lis_attributs(ctx_kuri, lectrice, convertisseuse, temps);
 }
 }
+
+/* ------------------------------------------------------------------------- */
+/** \nom Export
+ * \{ */
+
+using namespace Alembic;
+
+static std::string vers_std_string(struct Abc_String string)
+{
+    if (string.characters == nullptr) {
+        return "";
+    }
+    return std::string(string.characters, string.size);
+}
+
+static std::string vers_std_string_ou_défaut(struct Abc_String string, std::string_view défaut)
+{
+    if (string.characters == nullptr) {
+        return std::string(défaut.data(), défaut.size());
+    }
+    return std::string(string.characters, string.size);
+}
+
+struct Abc_Output_Object_Base {
+    Abc_Output_Object_Base *next = nullptr;
+    Abc_Output_Archive *archive = nullptr;
+
+    virtual ~Abc_Output_Object_Base() = default;
+};
+
+struct Abc_Output_Xform : public Abc_Output_Object_Base {
+    Abc::OObject object{};
+    AbcGeom::OXformSchema schema{};
+};
+
+struct Abc_Output_Points : public Abc_Output_Object_Base {
+    AbcGeom::OPoints object{};
+};
+
+struct Abc_Output_Archive {
+    ContexteKuri *ctx_kuri = nullptr;
+    Abc::OArchive *archive = nullptr;
+
+    Abc_Output_Xform *racine = nullptr;
+
+    Abc_Output_Object_Base *objects = nullptr;
+};
+
+static void initialise_metadonnées(struct Abc_Output_Archive_Metadata *metadata,
+                                   Abc::MetaData &abc_metadata)
+{
+    auto nom_application = vers_std_string_ou_défaut(metadata->application_name, "unknown");
+    abc_metadata.set(Abc::kApplicationNameKey, nom_application);
+
+    auto description = vers_std_string_ou_défaut(metadata->user_description, "unknown");
+    abc_metadata.set(Abc::kUserDescriptionKey, description);
+
+    if (metadata->fps > 0.0) {
+        abc_metadata.set("FramesPerTimeUnit", std::to_string(metadata->fps));
+    }
+
+    time_t raw_time;
+    time(&raw_time);
+    char buffer[128];
+
+#if defined _WIN32 || defined _WIN64
+    ctime_s(buffer, 128, &raw_time);
+#else
+    ctime_r(&raw_time, buffer);
+#endif
+
+    const std::size_t buffer_len = strlen(buffer);
+    if (buffer_len > 0 && buffer[buffer_len - 1] == '\n') {
+        buffer[buffer_len - 1] = '\0';
+    }
+
+    abc_metadata.set(Alembic::Abc::kDateWrittenKey, buffer);
+}
+
+struct Abc_Output_Archive *abc_output_archive_create(ContexteKuri *ctx_kuri,
+                                                     struct Abc_String path,
+                                                     struct Abc_Output_Archive_Metadata *metadata)
+{
+    auto str_chemin = vers_std_string(path);
+
+    Abc::MetaData abc_metadata;
+    initialise_metadonnées(metadata, abc_metadata);
+
+    AbcCoreOgawa::WriteArchive archive_writer;
+    Abc::ErrorHandler::Policy policy = Abc::ErrorHandler::kThrowPolicy;
+
+    auto oarchive = kuri_loge<Abc::OArchive>(
+        ctx_kuri, AbcCoreOgawa::WriteArchive(), str_chemin, abc_metadata, policy);
+
+    auto résultat = kuri_loge<Abc_Output_Archive>(ctx_kuri);
+    résultat->ctx_kuri = ctx_kuri;
+    résultat->archive = oarchive;
+    résultat->racine = nullptr;
+    résultat->objects = nullptr;
+    return résultat;
+}
+
+void abc_output_archive_destroy(struct Abc_Output_Archive *archive)
+{
+    if (archive) {
+        auto object = archive->objects;
+        while (object != nullptr) {
+            auto next_object = object->next;
+            kuri_deloge(archive->ctx_kuri, object);
+            object = next_object;
+        }
+        kuri_deloge(archive->ctx_kuri, archive->archive);
+        kuri_deloge(archive->ctx_kuri, archive);
+    }
+}
+
+template <typename T>
+T *crée_objet_sortie(Abc_Output_Archive *archive)
+{
+    auto résultat = kuri_loge<T>(archive->ctx_kuri);
+    résultat->next = archive->objects;
+    archive->objects = résultat;
+    résultat->archive = archive;
+    return résultat;
+}
+
+Abc_Output_Xform *abc_output_archive_root_object_get(Abc_Output_Archive *archive)
+{
+    if (archive->racine) {
+        return archive->racine;
+    }
+
+    auto racine = crée_objet_sortie<Abc_Output_Xform>(archive);
+    racine->object = archive->archive->getTop();
+    archive->racine = racine;
+    return racine;
+}
+
+Abc_Output_Xform *abc_output_xform_create(Abc_Output_Xform *parent, Abc_String nom)
+{
+    auto archive = parent->archive;
+    auto résultat = crée_objet_sortie<Abc_Output_Xform>(archive);
+    auto oxform = AbcGeom::OXform(parent->object, vers_std_string(nom));
+    résultat->object = oxform;
+    résultat->schema = oxform.getSchema();
+    return résultat;
+}
+
+struct Abc_Output_Xform_Sample {
+    ContexteKuri *ctx_kuri = nullptr;
+    AbcGeom::XformSample sample{};
+};
+
+Abc_Output_Xform_Sample *abc_output_xform_sample_create(Abc_Output_Archive *archive)
+{
+    auto résultat = kuri_loge<Abc_Output_Xform_Sample>(archive->ctx_kuri);
+    résultat->ctx_kuri = archive->ctx_kuri;
+    return résultat;
+}
+
+void abc_output_xform_sample_reset(Abc_Output_Xform_Sample *sample)
+{
+    sample->sample = {};
+}
+
+void abc_output_xform_sample_destroy(Abc_Output_Xform_Sample *sample)
+{
+    if (sample) {
+        kuri_deloge(sample->ctx_kuri, sample);
+    }
+}
+
+void abc_output_xform_sample_set_matrix(Abc_Output_Xform_Sample *sample, float *matrix)
+{
+    double m[4][4];
+
+    for (int j = 0; j < 4; j++) {
+        for (int i = 0; i < 4; i++) {
+            m[i][j] = matrix[j * 4 + i];
+        }
+    }
+
+    sample->sample.setMatrix(m);
+}
+
+void abc_output_xform_sample_set_inherits_xform(Abc_Output_Xform_Sample *sample, bool inherits)
+{
+    sample->sample.setInheritsXforms(inherits);
+}
+
+void abc_output_xform_sample_set(Abc_Output_Xform *xform, Abc_Output_Xform_Sample *sample)
+{
+    xform->schema.set(sample->sample);
+}
+
+Abc_Output_Points *abc_output_points_create(Abc_Output_Xform *parent, Abc_String nom)
+{
+    auto archive = parent->archive;
+    auto résultat = crée_objet_sortie<Abc_Output_Points>(archive);
+    résultat->object = AbcGeom::OPoints(parent->object, vers_std_string(nom));
+    return résultat;
+}
+
+struct Abc_Output_Points_Sample {
+    ContexteKuri *ctx_kuri = nullptr;
+    AbcGeom::OPointsSchema::Sample sample{};
+};
+
+Abc_Output_Points_Sample *abc_output_points_sample_create(Abc_Output_Archive *archive)
+{
+    auto résultat = kuri_loge<Abc_Output_Points_Sample>(archive->ctx_kuri);
+    résultat->ctx_kuri = archive->ctx_kuri;
+    return résultat;
+}
+
+void abc_output_points_sample_reset(Abc_Output_Points_Sample *sample)
+{
+    sample->sample = {};
+}
+
+void abc_output_points_sample_destroy(Abc_Output_Points_Sample *sample)
+{
+    if (sample) {
+        kuri_deloge(sample->ctx_kuri, sample);
+    }
+}
+
+void abc_output_points_sample_positions_set(Abc_Output_Points_Sample *sample,
+                                            float *positions,
+                                            uint64_t num_positions)
+{
+    auto p3f_sample = AbcGeom::P3fArraySample(reinterpret_cast<AbcGeom::V3f *>(positions),
+                                              num_positions);
+    sample->sample.setPositions(p3f_sample);
+}
+
+void abc_output_points_sample_velocities_set(Abc_Output_Points_Sample *sample,
+                                             float *velocities,
+                                             uint64_t num_velocities)
+{
+    auto v3f_sample = AbcGeom::V3fArraySample(reinterpret_cast<AbcGeom::V3f *>(velocities),
+                                              num_velocities);
+    sample->sample.setVelocities(v3f_sample);
+}
+
+void abc_output_points_sample_widths_set(Abc_Output_Points_Sample *sample,
+                                         float *widths,
+                                         uint64_t num_widths)
+{
+    auto values = AbcGeom::FloatArraySample(widths, num_widths);
+    auto f_sample = AbcGeom::OFloatGeomParam::Sample(values, AbcGeom::GeometryScope::kVertexScope);
+    sample->sample.setWidths(f_sample);
+}
+
+void abc_output_points_sample_ids_set(Abc_Output_Points_Sample *sample,
+                                      uint64_t *ids,
+                                      uint64_t num_ids)
+{
+    auto uint64_sample = AbcGeom::UInt64ArraySample(ids, num_ids);
+    sample->sample.setIds(uint64_sample);
+}
+
+void abc_output_points_sample_set(Abc_Output_Points *points, Abc_Output_Points_Sample *sample)
+{
+    auto &opoints = points->object;
+    opoints.getSchema().set(sample->sample);
+}
+
+/** \} */

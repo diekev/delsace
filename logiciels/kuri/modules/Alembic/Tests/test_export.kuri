@@ -1,0 +1,61 @@
+importe Alembic;
+
+vers_abc_string :: fonc (chn: chaine) -> Abc_String
+{
+    retourne Abc_String(chn.pointeur, chn.taille comme n64);
+}
+
+abc_output_archive_create :: fonc (chemin: chaine) -> *Abc_Output_Archive
+{
+    ctx_kuri := *ctx_kuri_pour_alembic;
+    metadata: Abc_Output_Archive_Metadata;
+
+    retourne abc_output_archive_create(ctx_kuri, vers_abc_string(chemin), *metadata);
+}
+
+abc_output_xform_create :: fonc (parent: *Abc_Output_Xform, nom: chaine) -> *Abc_Output_Xform
+{
+    retourne abc_output_xform_create(parent, vers_abc_string(nom));
+}
+
+abc_output_points_create :: fonc (parent: *Abc_Output_Xform, nom: chaine) -> *Abc_Output_Points
+{
+    retourne abc_output_points_create(parent, vers_abc_string(nom));
+}
+
+principale :: fonc ()
+{
+    chemin := "/tmp/test-points.abc";
+
+    archive := abc_output_archive_create(chemin);
+    diffère abc_output_archive_destroy(archive);
+
+    racine := abc_output_archive_root_object_get(archive);
+
+    matrice_objet_point := abc_output_xform_create(racine, "PointCloud");
+
+    matrix_sample := abc_output_xform_sample_create(archive);
+    diffère abc_output_xform_sample_destroy(matrix_sample);
+
+    matrix: [4][4]r32;
+    matrix[0][0] = 1.0;
+    matrix[1][1] = 1.0;
+    matrix[2][2] = 1.0;
+    matrix[3][3] = 1.0;
+
+    abc_output_xform_sample_set_matrix(matrix_sample, *matrix[0][0]);
+
+    abc_output_xform_sample_set(matrice_objet_point, matrix_sample);
+
+    objet_point := abc_output_points_create(matrice_objet_point, "PointCloudPoints");
+    point_sample := abc_output_points_sample_create(archive);
+    diffère abc_output_points_sample_destroy(point_sample);
+
+    position := [1.0, 0.0, 0.0];
+    abc_output_points_sample_positions_set(point_sample, *position[0], 1);
+
+    ids := n64.[0];
+    abc_output_points_sample_ids_set(point_sample, *ids[0], 1);
+
+    abc_output_points_sample_set(objet_point, point_sample);
+}
