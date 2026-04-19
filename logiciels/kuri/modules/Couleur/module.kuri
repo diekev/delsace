@@ -424,6 +424,23 @@ tsl_vers_rvb :: fonc (couleur: CouleurTSL) -> CouleurRVBA
 
 /** \} */
 
+/* ------------------------------------------------------------------------- */
+/** \nom Utilitaires pour les teintes.
+ * \{ */
+
+modulo_teinte :: fonc (teinte: r32) -> r32
+{
+    si teinte > 1.0 {
+        retourne teinte - 1.0;
+    }
+    si teinte < 0.0 {
+        retourne teinte + 1.0;
+    }
+    retourne teinte;
+}
+
+/** \} */
+
 // -------------------------------------------------------------------------
 
 /**
