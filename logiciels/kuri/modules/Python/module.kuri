@@ -723,7 +723,7 @@ PyUnicodeEnum_Check :: fonc (object: *PyObject, info: *InfoTypeÉnum) -> bool
 PyUnicodeEnum_Value :: fonc (object: *PyObject, info: *InfoTypeÉnum) -> z32
 {
     chn := PyUnicode_AsChaine(object);
-    valeur, trouvée := donne_valeur_énum_pour_nom(info, chn);
+    valeur, trouvée := donne_valeur_énum_pour_nom_type_sous_jacent(info, chn);
     si trouvée {
         retourne valeur;
     }
