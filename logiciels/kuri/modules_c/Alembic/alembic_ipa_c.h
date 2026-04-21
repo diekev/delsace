@@ -108,6 +108,34 @@ struct Abc_Output_Archive *abc_output_archive_create(struct ContexteKuri *ctx_ku
  */
 void abc_output_archive_destroy(struct Abc_Output_Archive *archive);
 
+struct Abc_Time_Sample_Index {
+    uint32_t value;
+};
+
+/**
+ * @brief abc_output_archive_default_time_sampling Retourne le Abc_Time_Sample_Index utilisé par
+ * défaut.
+ */
+struct Abc_Time_Sample_Index abc_output_archive_default_time_sampling(
+    struct Abc_Output_Archive *archive);
+
+/**
+ * @brief abc_output_archive_create_time_sampling Ajoute un TimeSampling à l'archive et retourne
+ * son indice.
+ * @param archive
+ * @param echantillons Les échantillons pour le TimeSampling. Chaque échantillons est le temps
+ * depuis le début de l'animation.
+ * @param nombre_d_echantillons Le nombre d'échantillons. Peut être 0, dans ce cas les échantillons
+ * sont ignorés.
+ * @param temps_par_cycle La durée d'un cycle d'échantillon.
+ * @return L'indice du TimeSampling dans la poule de TimeSampling de l'archive.
+ */
+struct Abc_Time_Sample_Index abc_output_archive_create_time_sampling(
+    struct Abc_Output_Archive *archive,
+    double *echantillons,
+    uint64_t nombre_d_echantillons,
+    double temps_par_cycle);
+
 /**
  * @brief abc_output_archive_root_object_get Retourne l'objet racine de l'archive.
  */
@@ -120,7 +148,8 @@ struct Abc_Output_Xform *abc_output_archive_root_object_get(struct Abc_Output_Ar
  * @return L'objet xform créé.
  */
 struct Abc_Output_Xform *abc_output_xform_create(struct Abc_Output_Xform *parent,
-                                                 struct Abc_String nom);
+                                                 struct Abc_String nom,
+                                                 struct Abc_Time_Sample_Index time_sample_index);
 
 struct Abc_Output_Xform_Sample;
 struct Abc_Output_Xform_Sample *abc_output_xform_sample_create(struct Abc_Output_Archive *archive);
@@ -139,7 +168,8 @@ void abc_output_xform_sample_set(struct Abc_Output_Xform *xform,
  * @return L'objet points créé.
  */
 struct Abc_Output_Points *abc_output_points_create(struct Abc_Output_Xform *parent,
-                                                   struct Abc_String nom);
+                                                   struct Abc_String nom,
+                                                   struct Abc_Time_Sample_Index time_sample_index);
 
 struct Abc_Output_Points_Sample;
 struct Abc_Output_Points_Sample *abc_output_points_sample_create(

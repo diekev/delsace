@@ -284,6 +284,34 @@ struct Abc_Output_Archive *abc_output_archive_create(ContexteKuri *ctx_kuri,
     return résultat;
 }
 
+struct Abc_Time_Sample_Index abc_output_archive_default_time_sampling(
+    struct Abc_Output_Archive * /*archive*/)
+{
+    return Abc_Time_Sample_Index{0};
+}
+
+struct Abc_Time_Sample_Index abc_output_archive_create_time_sampling(
+    struct Abc_Output_Archive *archive,
+    double *echantillons,
+    uint64_t nombre_d_echantillons,
+    double temps_par_cycle)
+{
+    Abc::TimeSamplingPtr time_sampling_ptr;
+
+    if (nombre_d_echantillons == 0 || echantillons == nullptr) {
+        time_sampling_ptr = Abc::TimeSamplingPtr(new Abc::TimeSampling());
+    }
+    else {
+        std::vector<double> samples(echantillons, echantillons + nombre_d_echantillons);
+        Abc::TimeSamplingType ts(uint32_t(nombre_d_echantillons), temps_par_cycle);
+        time_sampling_ptr = Abc::TimeSamplingPtr(new Abc::TimeSampling(ts, samples));
+    }
+
+    struct Abc_Time_Sample_Index résultat;
+    résultat.value = archive->archive->addTimeSampling(*time_sampling_ptr);
+    return résultat;
+}
+
 void abc_output_archive_destroy(struct Abc_Output_Archive *archive)
 {
     if (archive) {
@@ -320,13 +348,16 @@ Abc_Output_Xform *abc_output_archive_root_object_get(Abc_Output_Archive *archive
     return racine;
 }
 
-Abc_Output_Xform *abc_output_xform_create(Abc_Output_Xform *parent, Abc_String nom)
+Abc_Output_Xform *abc_output_xform_create(Abc_Output_Xform *parent,
+                                          Abc_String nom,
+                                          Abc_Time_Sample_Index time_sample_index)
 {
     auto archive = parent->archive;
     auto résultat = crée_objet_sortie<Abc_Output_Xform>(archive);
     auto oxform = AbcGeom::OXform(parent->object, vers_std_string(nom));
     résultat->object = oxform;
     résultat->schema = oxform.getSchema();
+    résultat->schema.setTimeSampling(time_sample_index.value);
     return résultat;
 }
 
@@ -377,11 +408,14 @@ void abc_output_xform_sample_set(Abc_Output_Xform *xform, Abc_Output_Xform_Sampl
     xform->schema.set(sample->sample);
 }
 
-Abc_Output_Points *abc_output_points_create(Abc_Output_Xform *parent, Abc_String nom)
+Abc_Output_Points *abc_output_points_create(Abc_Output_Xform *parent,
+                                            Abc_String nom,
+                                            Abc_Time_Sample_Index time_sample_index)
 {
     auto archive = parent->archive;
     auto résultat = crée_objet_sortie<Abc_Output_Points>(archive);
-    résultat->object = AbcGeom::OPoints(parent->object, vers_std_string(nom));
+    résultat->object = AbcGeom::OPoints(
+        parent->object, vers_std_string(nom), time_sample_index.value);
     return résultat;
 }
 

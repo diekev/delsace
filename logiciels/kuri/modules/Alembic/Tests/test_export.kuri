@@ -1,4 +1,5 @@
 importe Alembic;
+importe Math;
 
 vers_abc_string :: fonc (chn: chaine) -> Abc_String
 {
@@ -7,32 +8,51 @@ vers_abc_string :: fonc (chn: chaine) -> Abc_String
 
 abc_output_archive_create :: fonc (chemin: chaine) -> *Abc_Output_Archive
 {
-    ctx_kuri := *ctx_kuri_pour_alembic;
     metadata: Abc_Output_Archive_Metadata;
-
-    retourne abc_output_archive_create(ctx_kuri, vers_abc_string(chemin), *metadata);
+    retourne abc_output_archive_create(chemin, *metadata);
 }
 
-abc_output_xform_create :: fonc (parent: *Abc_Output_Xform, nom: chaine) -> *Abc_Output_Xform
+abc_output_archive_create :: fonc (chemin: chaine, metadata: *Abc_Output_Archive_Metadata) -> *Abc_Output_Archive
 {
-    retourne abc_output_xform_create(parent, vers_abc_string(nom));
+    ctx_kuri := *ctx_kuri_pour_alembic;
+    retourne abc_output_archive_create(ctx_kuri, vers_abc_string(chemin), metadata);
 }
 
-abc_output_points_create :: fonc (parent: *Abc_Output_Xform, nom: chaine) -> *Abc_Output_Points
+abc_output_archive_create_time_sampling :: fonc (archive: *Abc_Output_Archive, échantillons: []r64, temps_par_cycle: r64) -> Abc_Time_Sample_Index
 {
-    retourne abc_output_points_create(parent, vers_abc_string(nom));
+    retourne abc_output_archive_create_time_sampling(archive, échantillons.pointeur, échantillons.taille comme n64, temps_par_cycle);
+}
+
+abc_output_xform_create :: fonc (parent: *Abc_Output_Xform, nom: chaine, ts: Abc_Time_Sample_Index) -> *Abc_Output_Xform
+{
+    retourne abc_output_xform_create(parent, vers_abc_string(nom), ts);
+}
+
+abc_output_points_create :: fonc (parent: *Abc_Output_Xform, nom: chaine, ts: Abc_Time_Sample_Index) -> *Abc_Output_Points
+{
+    retourne abc_output_points_create(parent, vers_abc_string(nom), ts);
 }
 
 principale :: fonc ()
 {
     chemin := "/tmp/test-points.abc";
 
-    archive := abc_output_archive_create(chemin);
+    metadata: Abc_Output_Archive_Metadata;
+    metadata.application_name = vers_abc_string("Jorjala");
+    metadata.fps = 24.0;
+
+    archive := abc_output_archive_create(chemin, *metadata);
     diffère abc_output_archive_destroy(archive);
+
+    ts_défaut := abc_output_archive_default_time_sampling(archive);
 
     racine := abc_output_archive_root_object_get(archive);
 
-    matrice_objet_point := abc_output_xform_create(racine, "PointCloud");
+    échantillons := [1.0 / metadata.fps];
+    temps_par_cycle := 1.0 / metadata.fps;
+    ts_animation := abc_output_archive_create_time_sampling(archive, échantillons, temps_par_cycle);
+
+    matrice_objet_point := abc_output_xform_create(racine, "PointCloud", ts_défaut);
 
     matrix_sample := abc_output_xform_sample_create(archive);
     diffère abc_output_xform_sample_destroy(matrix_sample);
@@ -47,15 +67,36 @@ principale :: fonc ()
 
     abc_output_xform_sample_set(matrice_objet_point, matrix_sample);
 
-    objet_point := abc_output_points_create(matrice_objet_point, "PointCloudPoints");
+    objet_point := abc_output_points_create(matrice_objet_point, "PointCloudPoints", ts_animation);
     point_sample := abc_output_points_sample_create(archive);
     diffère abc_output_points_sample_destroy(point_sample);
 
-    position := [1.0, 0.0, 0.0];
-    abc_output_points_sample_positions_set(point_sample, *position[0], 1);
+    cx := 0.0;
+    cy := 0.0;
 
-    ids := n64.[0];
-    abc_output_points_sample_ids_set(point_sample, *ids[0], 1);
+    rx := 1.0;
+    ry := 1.0;
 
-    abc_output_points_sample_set(objet_point, point_sample);
+    segs := 100;
+
+    phi_delta := Constantes(r32).TAU / segs comme r32;
+
+    phi := 0.0;
+
+    pour segs {
+        abc_output_points_sample_reset(point_sample);
+
+        ca0 := cx + cosinus(phi) * rx;
+        sa0 := cy + sinus(phi) * ry;
+
+        phi += phi_delta;
+
+        position := Vec3(ca0, 0.0, sa0);
+        abc_output_points_sample_positions_set(point_sample, *position.x, 1);
+
+        ids := n64.[0];
+        abc_output_points_sample_ids_set(point_sample, *ids[0], 1);
+
+        abc_output_points_sample_set(objet_point, point_sample);
+    }
 }
