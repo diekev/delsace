@@ -193,6 +193,80 @@ void abc_output_points_sample_set(struct Abc_Output_Points *points,
 
 /** \} */
 
+/* ------------------------------------------------------------------------- */
+/** \nom Abc_Output_Curves
+ * \{ */
+
+enum Abc_Curve_Periodicity {
+    ABC_CURVE_PERIODICITY_NON_PERIODIC = 0,
+    ABC_CURVE_PERIODICITY_PERIODIC = 1,
+};
+
+enum Abc_Curve_Type {
+    ABC_CURVE_TYPE_CUBIC = 0,
+    ABC_CURVE_TYPE_LINEAR = 1,
+    ABC_CURVE_TYPE_VARIABLE_ORDER = 2,
+};
+
+enum Abc_Basis_Type {
+    ABC_BASIS_TYPE_NO_BASIS = 0,
+    ABC_BASIS_TYPE_BEZIER_BASIS = 1,
+    ABC_BASIS_TYPE_B_SPLINE_BASIS = 2,
+    ABC_BASIS_TYPE_CATMULLROM_BASIS = 3,
+    ABC_BASIS_TYPE_HERMITE_BASIS = 4,
+    ABC_BASIS_TYPE_POWER_BASIS = 5,
+};
+
+struct Abc_Output_Curves;
+
+struct Abc_Output_Curves *abc_output_curves_create(struct Abc_Output_Xform *parent,
+                                                   struct Abc_String nom,
+                                                   struct Abc_Time_Sample_Index time_sample_index);
+
+struct Abc_Output_Curves_Sample;
+
+struct Abc_Output_Curves_Sample *abc_output_curves_sample_create(
+    struct Abc_Output_Archive *archive);
+void abc_output_curves_sample_reset(struct Abc_Output_Curves_Sample *sample);
+void abc_output_curves_sample_destroy(struct Abc_Output_Curves_Sample *sample);
+void abc_output_curves_sample_type_set(struct Abc_Output_Curves_Sample *sample,
+                                       enum Abc_Curve_Type type);
+void abc_output_curves_sample_wrap_set(struct Abc_Output_Curves_Sample *sample,
+                                       enum Abc_Curve_Periodicity wrap);
+void abc_output_curves_sample_basis_set(struct Abc_Output_Curves_Sample *sample,
+                                        enum Abc_Basis_Type basis);
+void abc_output_curves_sample_positions_set(struct Abc_Output_Curves_Sample *sample,
+                                            float *positions,
+                                            uint64_t num_positions);
+void abc_output_curves_sample_position_weights_set(struct Abc_Output_Curves_Sample *sample,
+                                                   float *weights,
+                                                   uint64_t num_weights);
+void abc_output_curves_sample_velocities_set(struct Abc_Output_Curves_Sample *sample,
+                                             float *velocities,
+                                             uint64_t num_velocities);
+void abc_output_curves_sample_widths_set(struct Abc_Output_Curves_Sample *sample,
+                                         float *widths,
+                                         uint64_t num_widths);
+void abc_output_curves_sample_curves_num_vertices_set(struct Abc_Output_Curves_Sample *sample,
+                                                      int *num_vertices,
+                                                      uint64_t num_nun_vertices);
+void abc_output_curves_sample_orders_set(struct Abc_Output_Curves_Sample *sample,
+                                         uint8_t *values,
+                                         uint64_t num_values);
+void abc_output_curves_sample_knots_set(struct Abc_Output_Curves_Sample *sample,
+                                        float *values,
+                                        uint64_t num_values);
+void abc_output_curves_sample_uvs_set(struct Abc_Output_Curves_Sample *sample,
+                                      float *values,
+                                      uint64_t num_values);
+void abc_output_curves_sample_normals_set(struct Abc_Output_Curves_Sample *sample,
+                                          float *values,
+                                          uint64_t num_values);
+void abc_output_curves_sample_set(struct Abc_Output_Curves *curves,
+                                  struct Abc_Output_Curves_Sample *sample);
+
+/** \} */
+
 #ifdef __cplusplus
 }
 #endif

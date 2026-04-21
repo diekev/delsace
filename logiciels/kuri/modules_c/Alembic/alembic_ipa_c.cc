@@ -221,6 +221,10 @@ struct Abc_Output_Points : public Abc_Output_Object_Base {
     AbcGeom::OPoints object{};
 };
 
+struct Abc_Output_Curves : public Abc_Output_Object_Base {
+    AbcGeom::OCurves object{};
+};
+
 struct Abc_Output_Archive {
     ContexteKuri *ctx_kuri = nullptr;
     Abc::OArchive *archive = nullptr;
@@ -482,6 +486,151 @@ void abc_output_points_sample_set(Abc_Output_Points *points, Abc_Output_Points_S
 {
     auto &opoints = points->object;
     opoints.getSchema().set(sample->sample);
+}
+
+/** \} */
+
+/* ------------------------------------------------------------------------- */
+/** \nom Abc_Output_Curves
+ * \{ */
+
+Abc_Output_Curves *abc_output_curves_create(Abc_Output_Xform *parent,
+                                            Abc_String nom,
+                                            Abc_Time_Sample_Index time_sample_index)
+{
+    auto archive = parent->archive;
+    auto résultat = crée_objet_sortie<Abc_Output_Curves>(archive);
+    résultat->object = AbcGeom::OCurves(
+        parent->object, vers_std_string(nom), time_sample_index.value);
+    return résultat;
+}
+
+struct Abc_Output_Curves_Sample {
+    ContexteKuri *ctx_kuri = nullptr;
+    AbcGeom::OCurvesSchema::Sample sample{};
+};
+
+Abc_Output_Curves_Sample *abc_output_curves_sample_create(Abc_Output_Archive *archive)
+{
+    auto résultat = kuri_loge<Abc_Output_Curves_Sample>(archive->ctx_kuri);
+    résultat->ctx_kuri = archive->ctx_kuri;
+    return résultat;
+}
+
+void abc_output_curves_sample_reset(Abc_Output_Curves_Sample *sample)
+{
+    sample->sample = {};
+}
+
+void abc_output_curves_sample_destroy(Abc_Output_Curves_Sample *sample)
+{
+    if (sample) {
+        kuri_deloge(sample->ctx_kuri, sample);
+    }
+}
+
+void abc_output_curves_sample_type_set(Abc_Output_Curves_Sample *sample, Abc_Curve_Type type)
+{
+    AbcGeom::CurveType itype = static_cast<AbcGeom::CurveType>(type);
+    sample->sample.setType(itype);
+}
+
+void abc_output_curves_sample_wrap_set(Abc_Output_Curves_Sample *sample,
+                                       Abc_Curve_Periodicity wrap)
+{
+    AbcGeom::CurvePeriodicity iwrap = static_cast<AbcGeom::CurvePeriodicity>(wrap);
+    sample->sample.setWrap(iwrap);
+}
+
+void abc_output_curves_sample_basis_set(Abc_Output_Curves_Sample *sample, Abc_Basis_Type basis)
+{
+    AbcGeom::BasisType ibasis = static_cast<AbcGeom::BasisType>(basis);
+    sample->sample.setBasis(ibasis);
+}
+
+void abc_output_curves_sample_positions_set(Abc_Output_Curves_Sample *sample,
+                                            float *positions,
+                                            uint64_t num_positions)
+{
+    auto p3f_sample = AbcGeom::P3fArraySample(reinterpret_cast<AbcGeom::V3f *>(positions),
+                                              num_positions);
+    sample->sample.setPositions(p3f_sample);
+}
+
+void abc_output_curves_sample_position_weights_set(Abc_Output_Curves_Sample *sample,
+                                                   float *weights,
+                                                   uint64_t num_weights)
+{
+    auto values = AbcGeom::FloatArraySample(weights, num_weights);
+    sample->sample.setPositionWeights(values);
+}
+
+void abc_output_curves_sample_velocities_set(Abc_Output_Curves_Sample *sample,
+                                             float *velocities,
+                                             uint64_t num_velocities)
+{
+    auto v3f_sample = AbcGeom::V3fArraySample(reinterpret_cast<AbcGeom::V3f *>(velocities),
+                                              num_velocities);
+    sample->sample.setVelocities(v3f_sample);
+}
+
+void abc_output_curves_sample_widths_set(Abc_Output_Curves_Sample *sample,
+                                         float *widths,
+                                         uint64_t num_widths)
+{
+    auto values = AbcGeom::FloatArraySample(widths, num_widths);
+    auto f_sample = AbcGeom::OFloatGeomParam::Sample(values, AbcGeom::GeometryScope::kVertexScope);
+    sample->sample.setWidths(f_sample);
+}
+
+void abc_output_curves_sample_curves_num_vertices_set(Abc_Output_Curves_Sample *sample,
+                                                      int *num_vertices,
+                                                      uint64_t num_nun_vertices)
+{
+    auto values = AbcGeom::Int32ArraySample(num_vertices, num_nun_vertices);
+    sample->sample.setCurvesNumVertices(values);
+}
+
+void abc_output_curves_sample_orders_set(Abc_Output_Curves_Sample *sample,
+                                         uint8_t *values,
+                                         uint64_t num_values)
+{
+    auto array_sample = AbcGeom::UcharArraySample(values, num_values);
+    sample->sample.setKnots(array_sample);
+}
+
+void abc_output_curves_sample_knots_set(Abc_Output_Curves_Sample *sample,
+                                        float *values,
+                                        uint64_t num_values)
+{
+    auto array_sample = AbcGeom::FloatArraySample(values, num_values);
+    sample->sample.setOrders(array_sample);
+}
+
+void abc_output_curves_sample_uvs_set(Abc_Output_Curves_Sample *sample,
+                                      float *values,
+                                      uint64_t num_values)
+{
+    auto array_sample = AbcGeom::V2fArraySample(reinterpret_cast<Abc::V2f *>(values), num_values);
+    auto geom_param = AbcGeom::OV2fGeomParam::Sample(array_sample,
+                                                     AbcGeom::GeometryScope::kUniformScope);
+    sample->sample.setUVs(geom_param);
+}
+
+void abc_output_curves_sample_normals_set(Abc_Output_Curves_Sample *sample,
+                                          float *values,
+                                          uint64_t num_values)
+{
+    auto array_sample = AbcGeom::N3fArraySample(reinterpret_cast<Abc::N3f *>(values), num_values);
+    auto geom_param = AbcGeom::ON3fGeomParam::Sample(array_sample,
+                                                     AbcGeom::GeometryScope::kUniformScope);
+    sample->sample.setNormals(geom_param);
+}
+
+void abc_output_curves_sample_set(Abc_Output_Curves *curves, Abc_Output_Curves_Sample *sample)
+{
+    auto &ocurves = curves->object;
+    ocurves.getSchema().set(sample->sample);
 }
 
 /** \} */
