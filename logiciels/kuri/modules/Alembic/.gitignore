@@ -1,4 +1,5 @@
 interface_alembic.kuri
+Tests/test_export
 
 *.a
 *.so
