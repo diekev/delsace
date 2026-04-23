@@ -1309,6 +1309,7 @@ void QT_clipboard_efface(struct QT_Clipboard *clipboard, enum QT_Clipboard_Mode 
     O(QT_KEY_LastNumberRedial, Qt::Key_LastNumberRedial)                                          \
     O(QT_KEY_Camera, Qt::Key_Camera)                                                              \
     O(QT_KEY_CameraFocus, Qt::Key_CameraFocus)                                                    \
+    O(QT_KEY_Keyboard, Qt::Key_Keyboard)                                                          \
     O(QT_KEY_unknown, Qt::Key_unknown)
 
 enum QT_Key { ENUMERE_CLE_CLAVIER(ENUMERE_DECLARATION_ENUM_IPA) };
@@ -1482,13 +1483,9 @@ enum QT_Surface_Type { ENUMERE_SURFACE_TYPE(ENUMERE_DECLARATION_ENUM_IPA) };
       Qt::WindowOverridesSystemGestures,                                                          \
       0x00100000)                                                                                 \
     O(QT_WINDOW_FLAGS_WindowDoesNotAcceptFocus, Qt::WindowDoesNotAcceptFocus, 0x00200000)         \
-    O(QT_WINDOW_FLAGS_MaximizeUsingFullscreenGeometryHint,                                        \
-      Qt::MaximizeUsingFullscreenGeometryHint,                                                    \
-      0x00400000)                                                                                 \
     O(QT_WINDOW_FLAGS_CustomizeWindowHint, Qt::CustomizeWindowHint, 0x02000000)                   \
     O(QT_WINDOW_FLAGS_WindowStaysOnBottomHint, Qt::WindowStaysOnBottomHint, 0x04000000)           \
     O(QT_WINDOW_FLAGS_WindowCloseButtonHint, Qt::WindowCloseButtonHint, 0x08000000)               \
-    O(QT_WINDOW_FLAGS_MacWindowToolBarButtonHint, Qt::MacWindowToolBarButtonHint, 0x10000000)     \
     O(QT_WINDOW_FLAGS_BypassGraphicsProxyWidget, Qt::BypassGraphicsProxyWidget, 0x20000000)       \
     O(QT_WINDOW_FLAGS_NoDropShadowWindowHint, Qt::NoDropShadowWindowHint, 0x40000000)             \
     O(QT_WINDOW_FLAGS_WindowFullscreenButtonHint, Qt::WindowFullscreenButtonHint, 0x80000000)
@@ -3151,6 +3148,9 @@ enum QT_Item_Edit_Triggers { ENUMERE_ITEM_EDIT_TRIGGERS(ENUMERE_DECLARATION_ENUM
     O(QT_ITEM_DATA_ROLE_ToolTipProperty, Qt::ToolTipPropertyRole)                                 \
     O(QT_ITEM_DATA_ROLE_StatusTipProperty, Qt::StatusTipPropertyRole)                             \
     O(QT_ITEM_DATA_ROLE_WhatsThisProperty, Qt::WhatsThisPropertyRole)                             \
+    O(QT_ITEM_DATA_ROLE_RangeModelDataRole, Qt::RangeModelDataRole)                               \
+    O(QT_ITEM_DATA_ROLE_StandardItemFlagsRole, Qt::StandardItemFlagsRole)                         \
+    O(QT_ITEM_DATA_ROLE_FileInfoRole, Qt::FileInfoRole)                                           \
     O(QT_ITEM_DATA_ROLE_UserRole, Qt::UserRole)
 
 enum QT_Item_Data_Role { ENUMERE_ITEM_DATA_ROLE(ENUMERE_DECLARATION_ENUM_IPA) };
