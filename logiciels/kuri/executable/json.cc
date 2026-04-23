@@ -364,7 +364,7 @@ assembleuse_objet::ptr_objet analyseuse_grammaire::objet() const
 
 void analyseuse_grammaire::analyse_objet()
 {
-    CONSOMME_IDENTIFIANT(nom_objet, "Attendu une chaine de caractères");
+    CONSOMME_IDENTIFIANT_VOID(nom_objet, "Attendu une chaine de caractères");
     consomme(GenreLexème::DOUBLE_POINTS);
 
     analyse_valeur(lexème_nom_objet->chaine);
@@ -424,7 +424,7 @@ void analyseuse_grammaire::analyse_valeur(kuri::chaine_statique nom_objet)
 
             auto obj = m_assembleuse.cree_objet(nom_objet, tori::type_objet::NOMBRE_ENTIER);
             auto obj_chaine = static_cast<tori::ObjetNombreEntier *>(obj.get());
-            obj_chaine->valeur = lexème->valeur_entiere;
+            obj_chaine->valeur = long(lexème->valeur_entiere);
 
             break;
         }
