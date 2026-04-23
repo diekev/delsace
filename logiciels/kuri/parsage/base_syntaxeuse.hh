@@ -50,6 +50,14 @@ struct Fichier;
     }                                                                                             \
     consomme()
 
+#define CONSOMME_IDENTIFIANT_VOID(nom, message)                                                   \
+    if (!apparie(GenreLexème::CHAINE_CARACTERE)) {                                                \
+        rapporte_erreur(message);                                                                 \
+        return;                                                                                   \
+    }                                                                                             \
+    auto const lexème_##nom = lexème_courant();                                                   \
+    consomme()
+
 #define CONSOMME_IDENTIFIANT(nom, message, ...)                                                   \
     if (!apparie(GenreLexème::CHAINE_CARACTERE)) {                                                \
         rapporte_erreur(message);                                                                 \
