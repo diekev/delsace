@@ -640,7 +640,7 @@ struct Transtypage : public Expression {
     CXType type_vers{};
 };
 
-struct Syntaxeuse {
+struct SyntaxeuseParcer {
     kuri::tableau<Syntaxème *> syntaxèmes{};
     kuri::tableau<DéclarationStruct *> toutes_les_structures{};
 
@@ -648,7 +648,7 @@ struct Syntaxeuse {
 
     kuri::pile<Syntaxème *> noeud_courant{};
 
-    ~Syntaxeuse()
+    ~SyntaxeuseParcer()
     {
         POUR (syntaxèmes) {
             delete it;
@@ -1367,7 +1367,7 @@ static kuri::chaine donne_nom_constante_énum_sans_préfixe(kuri::chaine const &
 }
 
 struct Convertisseuse {
-    Syntaxeuse syntaxeuse{};
+    SyntaxeuseParcer syntaxeuse{};
     kuri::chemin_systeme fichier_source{};
     kuri::chemin_systeme fichier_entête{};
 
@@ -3146,8 +3146,8 @@ int main(int argc, char **argv)
             uint32_t ligne = 0;
             uint32_t colonne = 0;
             uint32_t décalage = 0;
-            auto filename = clang_getFileName(file);
-            std::cerr << filename << ":\n";
+            auto diagnostic_filename = clang_getFileName(file);
+            std::cerr << diagnostic_filename << ":\n";
             clang_getExpansionLocation(loc, &file, &ligne, &colonne, &décalage);
             imprime_ligne(std::string(tampon, taille), ligne, colonne, décalage);
             clang_disposeDiagnostic(diag);
