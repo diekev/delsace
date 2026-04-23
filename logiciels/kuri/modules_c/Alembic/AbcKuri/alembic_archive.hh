@@ -19,6 +19,7 @@ struct ContexteTraverseArchive;
 // fonctions "extern C".
 struct ArchiveCache {
     Abc::IArchive archive{};
+    ContexteKuri *ctx_kuri = nullptr;
 
     Abc::IArchive &iarchive()
     {
