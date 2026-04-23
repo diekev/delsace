@@ -14,6 +14,11 @@ ABC_crée_lectrice_cache :: fonc (ctx_kuri: *ContexteKuri, archive: *ArchiveCach
     retourne ABC_cree_lectrice_cache(ctx_kuri, archive, chemin.pointeur, chemin.taille comme n64);
 }
 
+vers_abc_string :: fonc (chn: chaine) -> Abc_String
+{
+    retourne Abc_String(chn.pointeur, chn.taille comme n64);
+}
+
 /* ------------------------------------------------------------------------- */
 /** \nom Contexte Kuri pour Alembic
  * \{ */
