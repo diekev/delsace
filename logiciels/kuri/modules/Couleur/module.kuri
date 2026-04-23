@@ -424,6 +424,85 @@ tsl_vers_rvb :: fonc (couleur: CouleurTSL) -> CouleurRVBA
 
 /** \} */
 
+/* ------------------------------------------------------------------------- */
+/** \nom Utilitaires pour les teintes.
+ * \{ */
+
+modulo_teinte :: fonc (teinte: r32) -> r32
+{
+    si teinte > 1.0 {
+        retourne teinte - 1.0;
+    }
+    si teinte < 0.0 {
+        retourne teinte + 1.0;
+    }
+    retourne teinte;
+}
+
+
+Nom_Teinte_Remarquable :: énum {
+    ROUGE;
+    JAUNE;
+    VERT;
+    CYAN;
+    BLEU;
+    MAGENTA;
+}
+
+Arrêt_De_Teinte_Remarquable :: struct {
+    teinte: Nom_Teinte_Remarquable;
+    position: r32;
+}
+
+Décomposition_Teintes :: struct {
+    poids: [Nom_Teinte_Remarquable.nombre_éléments]r32;
+}
+
+décompose_en_teintes :: fonc (rvba: RVBA(r32)) -> Décomposition_Teintes
+{
+    tsl := rvb_vers_tsl(rvba);
+    retourne décompose_en_teintes(tsl.t);
+}
+
+décompose_en_teintes :: fonc (teinte: r32) -> Décomposition_Teintes
+{
+    résultat: Décomposition_Teintes;
+
+    pour __arrêts_de_teintes_remarquables.taille - 1 {
+        arrêt_courant := *__arrêts_de_teintes_remarquables[it];
+        arrêt_suivant := *__arrêts_de_teintes_remarquables[it + 1];
+
+        si arrêt_courant.position <= teinte <= arrêt_suivant.position {
+            // Les teintes remarquables sont écartées de 1 / 6.
+            // Pour étendre la teinte relative au premier arrêt, nous devons diviser par 1 / 6,
+            // ou tout simplement multiplier par 6.
+            t := (teinte - arrêt_courant.position) * 6.0;
+            résultat.poids[arrêt_courant.teinte] = 1.0 - t;
+            résultat.poids[arrêt_suivant.teinte] = t;
+            arrête;
+        }
+    }
+
+    retourne résultat;
+}
+
+#portée_fichier
+
+// À FAIRE(langage) : erreur de compilation si #parséante
+__arrêts_de_teintes_remarquables: [7]Arrêt_De_Teinte_Remarquable = [
+    Arrêt_De_Teinte_Remarquable(Nom_Teinte_Remarquable.ROUGE, 0.0),
+    Arrêt_De_Teinte_Remarquable(Nom_Teinte_Remarquable.JAUNE, 1.0 / 6.0),
+    Arrêt_De_Teinte_Remarquable(Nom_Teinte_Remarquable.VERT, 2.0 / 6.0),
+    Arrêt_De_Teinte_Remarquable(Nom_Teinte_Remarquable.CYAN, 0.5),
+    Arrêt_De_Teinte_Remarquable(Nom_Teinte_Remarquable.BLEU, 4.0 / 6.0),
+    Arrêt_De_Teinte_Remarquable(Nom_Teinte_Remarquable.MAGENTA, 5.0 / 6.0),
+    Arrêt_De_Teinte_Remarquable(Nom_Teinte_Remarquable.ROUGE, 1.0),
+];
+
+#portée_export
+
+/** \} */
+
 // -------------------------------------------------------------------------
 
 /**
