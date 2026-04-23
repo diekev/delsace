@@ -94,6 +94,22 @@ void abc_metadata_iterator_destroy(struct Abc_MetaData_Iterator *iterator);
 /** \} */
 
 /* ------------------------------------------------------------------------- */
+/** \nom Abc_Geometry_Scope
+ * \{ */
+
+enum Abc_Geometry_Scope {
+    CONSTANT = 0,
+    UNIFORM = 1,
+    VARYING = 2,
+    VERTEX = 3,
+    FACE_VARYING = 4,
+
+    UNKNOWN = 127
+};
+
+/** \} */
+
+/* ------------------------------------------------------------------------- */
 /** \nom Abc_Input_Archive
  * \{ */
 
@@ -286,7 +302,8 @@ void abc_output_curves_sample_velocities_set(struct Abc_Output_Curves_Sample *sa
                                              uint64_t num_velocities);
 void abc_output_curves_sample_widths_set(struct Abc_Output_Curves_Sample *sample,
                                          float *widths,
-                                         uint64_t num_widths);
+                                         uint64_t num_widths,
+                                         enum Abc_Geometry_Scope scope);
 void abc_output_curves_sample_curves_num_vertices_set(struct Abc_Output_Curves_Sample *sample,
                                                       int *num_vertices,
                                                       uint64_t num_nun_vertices);
@@ -298,10 +315,12 @@ void abc_output_curves_sample_knots_set(struct Abc_Output_Curves_Sample *sample,
                                         uint64_t num_values);
 void abc_output_curves_sample_uvs_set(struct Abc_Output_Curves_Sample *sample,
                                       float *values,
-                                      uint64_t num_values);
+                                      uint64_t num_values,
+                                      enum Abc_Geometry_Scope scope);
 void abc_output_curves_sample_normals_set(struct Abc_Output_Curves_Sample *sample,
                                           float *values,
-                                          uint64_t num_values);
+                                          uint64_t num_values,
+                                          enum Abc_Geometry_Scope scope);
 void abc_output_curves_sample_set(struct Abc_Output_Curves *curves,
                                   struct Abc_Output_Curves_Sample *sample);
 

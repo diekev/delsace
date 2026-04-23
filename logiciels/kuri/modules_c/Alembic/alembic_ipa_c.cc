@@ -698,10 +698,12 @@ void abc_output_curves_sample_velocities_set(Abc_Output_Curves_Sample *sample,
 
 void abc_output_curves_sample_widths_set(Abc_Output_Curves_Sample *sample,
                                          float *widths,
-                                         uint64_t num_widths)
+                                         uint64_t num_widths,
+                                         enum Abc_Geometry_Scope scope)
 {
     auto values = AbcGeom::FloatArraySample(widths, num_widths);
-    auto f_sample = AbcGeom::OFloatGeomParam::Sample(values, AbcGeom::GeometryScope::kVertexScope);
+    auto f_sample = AbcGeom::OFloatGeomParam::Sample(values,
+                                                     static_cast<AbcGeom::GeometryScope>(scope));
     sample->sample.setWidths(f_sample);
 }
 
@@ -731,21 +733,23 @@ void abc_output_curves_sample_knots_set(Abc_Output_Curves_Sample *sample,
 
 void abc_output_curves_sample_uvs_set(Abc_Output_Curves_Sample *sample,
                                       float *values,
-                                      uint64_t num_values)
+                                      uint64_t num_values,
+                                      Abc_Geometry_Scope scope)
 {
     auto array_sample = AbcGeom::V2fArraySample(reinterpret_cast<Abc::V2f *>(values), num_values);
     auto geom_param = AbcGeom::OV2fGeomParam::Sample(array_sample,
-                                                     AbcGeom::GeometryScope::kUniformScope);
+                                                     static_cast<AbcGeom::GeometryScope>(scope));
     sample->sample.setUVs(geom_param);
 }
 
 void abc_output_curves_sample_normals_set(Abc_Output_Curves_Sample *sample,
                                           float *values,
-                                          uint64_t num_values)
+                                          uint64_t num_values,
+                                          enum Abc_Geometry_Scope scope)
 {
     auto array_sample = AbcGeom::N3fArraySample(reinterpret_cast<Abc::N3f *>(values), num_values);
     auto geom_param = AbcGeom::ON3fGeomParam::Sample(array_sample,
-                                                     AbcGeom::GeometryScope::kUniformScope);
+                                                     static_cast<AbcGeom::GeometryScope>(scope));
     sample->sample.setNormals(geom_param);
 }
 
