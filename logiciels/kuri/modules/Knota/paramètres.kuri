@@ -756,7 +756,7 @@ définis_valeur_énum :: fonc (param: *Table_Paramètres.Paramètre, valeur: cha
 {
     info_énum := param.valeur.info comme *InfoTypeÉnum;
 
-    valeur_énum, trouvée := donne_valeur_énum_pour_nom(info_énum, valeur);
+    valeur_énum, trouvée := donne_valeur_énum_pour_nom_type_sous_jacent(info_énum, valeur);
     si trouvée {
         définis_valeur_entier_ex(param, info_énum.type_sous_jacent, valeur_énum);
     }

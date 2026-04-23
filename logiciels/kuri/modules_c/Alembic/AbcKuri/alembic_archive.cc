@@ -122,6 +122,7 @@ ArchiveCache *cree_archive(ContexteKuri *ctx_kuri, ContexteOuvertureArchive *ctx
 
     auto poignee = kuri_loge<ArchiveCache>(ctx_kuri);
     poignee->archive = iarchive;
+    poignee->ctx_kuri = ctx_kuri;
     return poignee;
 }
 

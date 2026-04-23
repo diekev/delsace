@@ -1,0 +1,200 @@
+importe Alembic;
+importe Math;
+
+abc_output_archive_create :: fonc (chemin: chaine) -> *Abc_Output_Archive
+{
+    metadata: Abc_Output_Archive_Metadata;
+    retourne abc_output_archive_create(chemin, *metadata);
+}
+
+abc_output_archive_create :: fonc (chemin: chaine, metadata: *Abc_Output_Archive_Metadata) -> *Abc_Output_Archive
+{
+    ctx_kuri := *ctx_kuri_pour_alembic;
+    retourne abc_output_archive_create(ctx_kuri, vers_abc_string(chemin), metadata);
+}
+
+abc_output_archive_create_time_sampling :: fonc (archive: *Abc_Output_Archive, échantillons: []r64, temps_par_cycle: r64) -> Abc_Time_Sample_Index
+{
+    retourne abc_output_archive_create_time_sampling(archive, échantillons.pointeur, échantillons.taille comme n64, temps_par_cycle);
+}
+
+abc_output_xform_create :: fonc (parent: *Abc_Output_Xform, nom: chaine, ts: Abc_Time_Sample_Index) -> *Abc_Output_Xform
+{
+    retourne abc_output_xform_create(parent, vers_abc_string(nom), ts);
+}
+
+abc_output_points_create :: fonc (parent: *Abc_Output_Xform, nom: chaine, ts: Abc_Time_Sample_Index) -> *Abc_Output_Points
+{
+    retourne abc_output_points_create(parent, vers_abc_string(nom), ts);
+}
+
+abc_output_curves_create :: fonc (parent: *Abc_Output_Xform, nom: chaine, time_sample_index: Abc_Time_Sample_Index) -> *Abc_Output_Curves
+{
+    retourne abc_output_curves_create(parent, vers_abc_string(nom), time_sample_index);
+}
+
+abc_output_curves_sample_positions_set :: fonc (sample: *Abc_Output_Curves_Sample, positions: []Vec3)
+{
+    abc_output_curves_sample_positions_set(sample, positions.pointeur comme *r32, positions.taille comme n64);
+}
+
+abc_output_curves_sample_curves_num_vertices_set :: fonc (sample: *Abc_Output_Curves_Sample, num_vertices: []z32)
+{
+    abc_output_curves_sample_curves_num_vertices_set(sample, num_vertices.pointeur, num_vertices.taille comme n64);
+}
+
+abc_output_curves_sample_widths_set :: fonc (sample: *Abc_Output_Curves_Sample, values: []r32, scope: Abc_Geometry_Scope)
+{
+    abc_output_curves_sample_widths_set(sample, values.pointeur, values.taille comme n64, scope);
+}
+
+principale :: fonc ()
+{
+    crée_test_rayons_courbes("/tmp/curve-with-width.abc", vrai);
+    crée_test_rayons_courbes("/tmp/curve-without-width.abc", faux);
+    crée_test_rayons_points("/tmp/point-with-width.abc", vrai);
+    crée_test_rayons_points("/tmp/point-without-width.abc", faux);
+}
+
+crée_test_rayons_courbes :: fonc (chemin: chaine, export_rayon: bool)
+{
+    metadata: Abc_Output_Archive_Metadata;
+    metadata.application_name = vers_abc_string("Jorjala");
+    metadata.fps = 24.0;
+
+    archive := abc_output_archive_create(chemin, *metadata);
+    diffère abc_output_archive_destroy(archive);
+
+    ts_défaut := abc_output_archive_default_time_sampling(archive);
+
+    racine := abc_output_archive_root_object_get(archive);
+
+    matrice_curves := crée_xform_neutre_pour_objet(archive, racine, "Curves", ts_défaut);
+
+    échantillons := [1.0 / metadata.fps];
+    temps_par_cycle := 1.0 / metadata.fps;
+    ts_animation := abc_output_archive_create_time_sampling(archive, échantillons, temps_par_cycle);
+
+    curves := abc_output_curves_create(matrice_curves, "CurvesGeom", ts_animation);
+
+    curves_sample := abc_output_curves_sample_create(archive);
+    diffère abc_output_curves_sample_destroy(curves_sample);
+
+    cx := 0.0;
+    cy := 0.0;
+
+    rx := 1.0;
+    ry := 1.0;
+
+    segs := 100;
+
+    phi_delta := Constantes(r32).TAU / segs comme r32;
+
+    phi := 0.0;
+
+    pour segs {
+        abc_output_curves_sample_reset(curves_sample);
+
+        ca0 := cx + cosinus(phi) * rx;
+        sa0 := cy + sinus(phi) * ry;
+
+        phi += phi_delta;
+
+        abc_output_curves_sample_type_set(curves_sample, Abc_Curve_Type.LINEAR);
+
+        abc_output_curves_sample_basis_set(curves_sample, Abc_Basis_Type.NO_BASIS);
+
+        positions := [Vec3(0.0, 0.0, 0.0), Vec3(ca0, 0.0, sa0)];
+        abc_output_curves_sample_positions_set(curves_sample, positions);
+
+        num_vertices := z32.[2];
+        abc_output_curves_sample_curves_num_vertices_set(curves_sample, num_vertices);
+
+        si export_rayon {
+            width := 50 - abs((it + 1) - 50);
+            widths := r32.[width comme r32 * 0.01, width comme r32 * 0.01];
+            abc_output_curves_sample_widths_set(curves_sample, widths, Abc_Geometry_Scope.VERTEX);
+        }
+
+        abc_output_curves_sample_set(curves, curves_sample);
+    }
+}
+
+crée_test_rayons_points :: fonc (chemin: chaine, export_rayon: bool)
+{
+    metadata: Abc_Output_Archive_Metadata;
+    metadata.application_name = vers_abc_string("Jorjala");
+    metadata.fps = 24.0;
+
+    archive := abc_output_archive_create(chemin, *metadata);
+    diffère abc_output_archive_destroy(archive);
+
+    ts_défaut := abc_output_archive_default_time_sampling(archive);
+
+    racine := abc_output_archive_root_object_get(archive);
+
+    échantillons := [1.0 / metadata.fps];
+    temps_par_cycle := 1.0 / metadata.fps;
+    ts_animation := abc_output_archive_create_time_sampling(archive, échantillons, temps_par_cycle);
+
+    matrice_objet_point := crée_xform_neutre_pour_objet(archive, racine, "PointCloud", ts_défaut);
+
+    objet_point := abc_output_points_create(matrice_objet_point, "PointCloudPoints", ts_animation);
+    point_sample := abc_output_points_sample_create(archive);
+    diffère abc_output_points_sample_destroy(point_sample);
+
+    cx := 0.0;
+    cy := 0.0;
+
+    rx := 1.0;
+    ry := 1.0;
+
+    segs := 100;
+
+    phi_delta := Constantes(r32).TAU / segs comme r32;
+
+    phi := 0.0;
+
+    pour segs {
+        abc_output_points_sample_reset(point_sample);
+
+        ca0 := cx + cosinus(phi) * rx;
+        sa0 := cy + sinus(phi) * ry;
+
+        phi += phi_delta;
+
+        position := Vec3(ca0, 0.0, sa0);
+        abc_output_points_sample_positions_set(point_sample, *position.x, 1);
+
+        ids := n64.[0];
+        abc_output_points_sample_ids_set(point_sample, *ids[0], 1);
+
+        si export_rayon {
+            width := 50 - abs((it + 1) - 50);
+            widths := r32.[width comme r32 * 0.01];
+            abc_output_points_sample_widths_set(point_sample, *widths[0], 1);
+        }
+
+        abc_output_points_sample_set(objet_point, point_sample);
+    }
+}
+
+crée_xform_neutre_pour_objet :: fonc (archive: *Abc_Output_Archive, parent: *Abc_Output_Xform, nom: chaine, ts: Abc_Time_Sample_Index) -> *Abc_Output_Xform
+{
+    résultat := abc_output_xform_create(parent, nom, ts);
+
+    matrix_sample := abc_output_xform_sample_create(archive);
+    diffère abc_output_xform_sample_destroy(matrix_sample);
+
+    matrix: [4][4]r32;
+    matrix[0][0] = 1.0;
+    matrix[1][1] = 1.0;
+    matrix[2][2] = 1.0;
+    matrix[3][3] = 1.0;
+
+    abc_output_xform_sample_set_matrix(matrix_sample, *matrix[0][0]);
+
+    abc_output_xform_sample_set(résultat, matrix_sample);
+
+    retourne résultat;
+}
