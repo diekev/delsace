@@ -192,14 +192,6 @@ struct Abc_MetaData {
     Abc::MetaData metadata{};
 };
 
-Abc_MetaData *abc_input_archive_get_metadata(ArchiveCache *archive)
-{
-    auto résultat = kuri_loge<Abc_MetaData>(archive->ctx_kuri);
-    résultat->ctx_kuri = archive->ctx_kuri;
-    résultat->metadata = archive->iarchive().getTop().getMetaData();
-    return résultat;
-}
-
 void abc_metadata_destroy(struct Abc_MetaData *metadata)
 {
     if (metadata) {
@@ -255,6 +247,60 @@ void abc_metadata_iterator_destroy(struct Abc_MetaData_Iterator *iterator)
         auto iterator_impl = static_cast<Abc_MetaData_Iterator_Impl *>(iterator);
         kuri_deloge(iterator->metadata->ctx_kuri, iterator_impl);
     }
+}
+
+/** \} */
+
+/* ------------------------------------------------------------------------- */
+/** \nom Abc_Input_Archive
+ * \{ */
+
+struct Abc_Input_Archive {
+    ContexteKuri *ctx_kuri = nullptr;
+    Abc::IArchive iarchive{};
+};
+
+struct Abc_Input_Archive *abc_input_archive_create(ContexteKuri *ctx_kuri,
+                                                   struct Abc_String *chemins,
+                                                   uint64_t nombre_de_chemins)
+{
+    if (nombre_de_chemins == 0) {
+        return nullptr;
+    }
+
+    std::vector<std::string> strings_chemins;
+    for (size_t i = 0; i < nombre_de_chemins; ++i) {
+        strings_chemins.push_back(std::string(chemins->characters, chemins->size));
+        chemins += 1;
+    }
+
+    // À FAIRE : paramétrage
+    Alembic::AbcCoreFactory::IFactory factory;
+
+    Abc::IArchive iarchive = factory.getArchive(strings_chemins);
+    if (!iarchive.valid()) {
+        return nullptr;
+    }
+
+    auto résultat = kuri_loge<Abc_Input_Archive>(ctx_kuri);
+    résultat->iarchive = iarchive;
+    résultat->ctx_kuri = ctx_kuri;
+    return résultat;
+}
+
+void abc_input_archive_destroy(struct Abc_Input_Archive *archive)
+{
+    if (archive) {
+        kuri_deloge(archive->ctx_kuri, archive);
+    }
+}
+
+Abc_MetaData *abc_input_archive_get_metadata(Abc_Input_Archive *archive)
+{
+    auto résultat = kuri_loge<Abc_MetaData>(archive->ctx_kuri);
+    résultat->ctx_kuri = archive->ctx_kuri;
+    résultat->metadata = archive->iarchive.getTop().getMetaData();
+    return résultat;
 }
 
 /** \} */

@@ -75,8 +75,6 @@ struct Abc_String {
 
 struct Abc_MetaData;
 
-struct Abc_MetaData *abc_input_archive_get_metadata(struct ArchiveCache *archive);
-
 void abc_metadata_destroy(struct Abc_MetaData *metadata);
 
 struct Abc_MetaData_Iterator {
@@ -92,6 +90,22 @@ struct Abc_MetaData_Iterator {
 struct Abc_MetaData_Iterator *abc_metadata_get_iterator(struct Abc_MetaData *metadata);
 
 void abc_metadata_iterator_destroy(struct Abc_MetaData_Iterator *iterator);
+
+/** \} */
+
+/* ------------------------------------------------------------------------- */
+/** \nom Abc_Input_Archive
+ * \{ */
+
+struct Abc_Input_Archive;
+
+struct Abc_Input_Archive *abc_input_archive_create(struct ContexteKuri *ctx_kuri,
+                                                   struct Abc_String *chemins,
+                                                   uint64_t nombre_de_chemins);
+
+void abc_input_archive_destroy(struct Abc_Input_Archive *archive);
+
+struct Abc_MetaData *abc_input_archive_get_metadata(struct Abc_Input_Archive *archive);
 
 /** \} */
 

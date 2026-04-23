@@ -1,11 +1,6 @@
 importe Alembic;
 importe Math;
 
-vers_abc_string :: fonc (chn: chaine) -> Abc_String
-{
-    retourne Abc_String(chn.pointeur, chn.taille comme n64);
-}
-
 abc_output_archive_create :: fonc (chemin: chaine) -> *Abc_Output_Archive
 {
     metadata: Abc_Output_Archive_Metadata;

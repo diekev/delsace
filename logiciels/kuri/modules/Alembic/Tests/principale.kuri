@@ -172,6 +172,12 @@ tri_par_application :: fonc (a: Application_Et_Description, b: Application_Et_De
     retourne compare_chaine(a.application, b.application);
 }
 
+abc_input_archive_create :: fonc (chemin: chaine) -> *Abc_Input_Archive
+{
+    chemin_abc := vers_abc_string(chemin);
+    retourne abc_input_archive_create(*ctx_kuri_pour_alembic, *chemin_abc, 1);
+}
+
 principale :: fonc ()
 {
     chemin := parse_argument_chemin();
@@ -187,16 +193,14 @@ principale :: fonc ()
     applications_et_descriptions: [..]Application_Et_Description;
 
     pour chemins {
-        fichier: FichierCache;
-        diffère ABC_detruit_archive(*ctx_kuri_pour_alembic, fichier.poignée_abc);
-        ajoute_calque(*fichier, it);
-
-        // À FAIRE : pas d'erreur
-        saufsi ouvre_fichier_cache(*fichier) {
+        iarchive := abc_input_archive_create(it);
+        saufsi iarchive {
+            imprimeln("Impossible d'ouvrir l'archive '%'", it);
             continue;
         }
+        diffère abc_input_archive_destroy(iarchive);
 
-        metadata := abc_input_archive_get_metadata(fichier.poignée_abc);
+        metadata := abc_input_archive_get_metadata(iarchive);
         diffère abc_metadata_destroy(metadata);
 
         iterator := abc_metadata_get_iterator(metadata);
