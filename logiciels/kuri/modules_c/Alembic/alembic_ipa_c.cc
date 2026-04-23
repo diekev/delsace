@@ -184,6 +184,82 @@ void ABC_lis_attributs(ContexteKuri *ctx_kuri,
 }
 
 /* ------------------------------------------------------------------------- */
+/** \nom MetaData
+ * \{ */
+
+struct Abc_MetaData {
+    ContexteKuri *ctx_kuri = nullptr;
+    Abc::MetaData metadata{};
+};
+
+Abc_MetaData *abc_input_archive_get_metadata(ArchiveCache *archive)
+{
+    auto résultat = kuri_loge<Abc_MetaData>(archive->ctx_kuri);
+    résultat->ctx_kuri = archive->ctx_kuri;
+    résultat->metadata = archive->iarchive().getTop().getMetaData();
+    return résultat;
+}
+
+void abc_metadata_destroy(struct Abc_MetaData *metadata)
+{
+    if (metadata) {
+        kuri_deloge(metadata->ctx_kuri, metadata);
+    }
+}
+
+struct Abc_MetaData_Iterator_Impl : public Abc_MetaData_Iterator {
+    Abc::MetaData::const_iterator current{};
+    Abc::MetaData::const_iterator end{};
+};
+
+static bool abc_metadata_iterator_next(Abc_MetaData_Iterator *iterator,
+                                       Abc_String *key,
+                                       Abc_String *value)
+{
+    auto iterator_impl = static_cast<Abc_MetaData_Iterator_Impl *>(iterator);
+
+    if (iterator_impl->current == iterator_impl->end) {
+        return false;
+    }
+
+    if (key) {
+        key->characters = iterator_impl->current->first.data();
+        key->size = iterator_impl->current->first.size();
+    }
+    if (value) {
+        value->characters = iterator_impl->current->second.data();
+        value->size = iterator_impl->current->second.size();
+    }
+
+    iterator_impl->current++;
+    return true;
+}
+
+struct Abc_MetaData_Iterator *abc_metadata_get_iterator(struct Abc_MetaData *metadata)
+{
+    if (!metadata) {
+        return nullptr;
+    }
+
+    auto résultat = kuri_loge<Abc_MetaData_Iterator_Impl>(metadata->ctx_kuri);
+    résultat->metadata = metadata;
+    résultat->next = abc_metadata_iterator_next;
+    résultat->current = résultat->metadata->metadata.begin();
+    résultat->end = résultat->metadata->metadata.end();
+    return résultat;
+}
+
+void abc_metadata_iterator_destroy(struct Abc_MetaData_Iterator *iterator)
+{
+    if (iterator) {
+        auto iterator_impl = static_cast<Abc_MetaData_Iterator_Impl *>(iterator);
+        kuri_deloge(iterator->metadata->ctx_kuri, iterator_impl);
+    }
+}
+
+/** \} */
+
+/* ------------------------------------------------------------------------- */
 /** \nom Export
  * \{ */
 

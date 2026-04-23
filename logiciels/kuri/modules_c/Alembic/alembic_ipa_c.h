@@ -64,14 +64,40 @@ struct EcrivainCache *ABC_cree_instance(struct ContexteKuri *ctx,
 
 void ABC_ecris_donnees(struct AutriceArchive *autrice);
 
-/* ------------------------------------------------------------------------- */
-/** \nom Export
- * \{ */
-
 struct Abc_String {
     const char *characters;
     uint64_t size;
 };
+
+/* ------------------------------------------------------------------------- */
+/** \nom MetaData
+ * \{ */
+
+struct Abc_MetaData;
+
+struct Abc_MetaData *abc_input_archive_get_metadata(struct ArchiveCache *archive);
+
+void abc_metadata_destroy(struct Abc_MetaData *metadata);
+
+struct Abc_MetaData_Iterator {
+    struct Abc_MetaData *metadata;
+
+    /* Retourne vrai si une valeur fut renseignée dans key et value.
+     * Retourne faux si l'itérateur est à la fin. */
+    bool (*next)(struct Abc_MetaData_Iterator *iterator,
+                 struct Abc_String *key,
+                 struct Abc_String *value);
+};
+
+struct Abc_MetaData_Iterator *abc_metadata_get_iterator(struct Abc_MetaData *metadata);
+
+void abc_metadata_iterator_destroy(struct Abc_MetaData_Iterator *iterator);
+
+/** \} */
+
+/* ------------------------------------------------------------------------- */
+/** \nom Export
+ * \{ */
 
 struct Abc_Output_Archive_Metadata {
     struct Abc_String application_name;
