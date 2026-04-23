@@ -1,6 +1,9 @@
 importe Alembic;
+importe Chaine;
 importe Fondation;
 importe LigneDeCommande;
+importe SysFichier;
+importe Triage;
 
 // -----------------------------------
 
@@ -143,8 +146,6 @@ ouvre_fichier_cache :: fonc (fichier: *FichierCache) -> bool
         retourne faux;
     }
 
-    imprime("Fichier ouvert !\n");
-
     fichier.poignée_abc = poignée;
     retourne vrai;
 }
@@ -161,6 +162,16 @@ vers_kuri :: fonc (chn: Abc_String) -> chaine
     retourne chaine(chn.characters, chn.size comme z64);
 }
 
+Application_Et_Description :: struct {
+    application: chaine;
+    description: chaine;
+}
+
+tri_par_application :: fonc (a: Application_Et_Description, b: Application_Et_Description) -> z32
+{
+    retourne compare_chaine(a.application, b.application);
+}
+
 principale :: fonc ()
 {
     chemin := parse_argument_chemin();
@@ -168,32 +179,92 @@ principale :: fonc ()
         exit(1);
     }
 
-    fichier: FichierCache;
-    ajoute_calque(*fichier, chemin);
+    chemins: [..]chaine;
+    diffère déloge_tableau_et_ses_éléments(*chemins);
 
-    // À FAIRE : pas d'erreur
-    saufsi ouvre_fichier_cache(*fichier) {
-        exit(1);
-    }
+    donne_chemins_du_dossier_récursif(chemin, *chemins);
 
-    // rassemble_noms_objets(*fichier);
+    applications_et_descriptions: [..]Application_Et_Description;
 
-    metadata := abc_input_archive_get_metadata(fichier.poignée_abc);
-    diffère abc_metadata_destroy(metadata);
+    pour chemins {
+        fichier: FichierCache;
+        diffère ABC_detruit_archive(*ctx_kuri_pour_alembic, fichier.poignée_abc);
+        ajoute_calque(*fichier, it);
 
-    iterator := abc_metadata_get_iterator(metadata);
-    diffère abc_metadata_iterator_destroy(iterator);
-
-    boucle {
-        clé: Abc_String;
-        valeur: Abc_String;
-
-        saufsi iterator.next(iterator, *clé, *valeur) {
-            arrête;
+        // À FAIRE : pas d'erreur
+        saufsi ouvre_fichier_cache(*fichier) {
+            continue;
         }
 
-        imprimeln("% : %", vers_kuri(clé), vers_kuri(valeur));
+        metadata := abc_input_archive_get_metadata(fichier.poignée_abc);
+        diffère abc_metadata_destroy(metadata);
+
+        iterator := abc_metadata_get_iterator(metadata);
+        diffère abc_metadata_iterator_destroy(iterator);
+
+        application: chaine;
+        description: chaine;
+
+        boucle {
+            clé: Abc_String;
+            valeur: Abc_String;
+
+            saufsi iterator.next(iterator, *clé, *valeur) {
+                arrête;
+            }
+
+            si vers_kuri(clé) == "_ai_Application" {
+                application = copie_chaine(vers_kuri(valeur));
+            }
+            sinon si vers_kuri(clé) == "_ai_Description" {
+                description = copie_chaine(vers_kuri(valeur));
+            }
+        }
+
+        si application || description {
+            données := tableau_ajoute_élément(*applications_et_descriptions);
+            données.application = application;
+            données.description = description;
+        }
     }
+
+    tri_rapide(applications_et_descriptions, tri_par_application);
+
+    application_courante := "";
+    pour applications_et_descriptions {
+        si application_courante != it.application {
+            imprimeln("%", it.application);
+            application_courante = it.application;
+        }
+        imprimeln("    %", it.description);
+    }
+
+    // fichier: FichierCache;
+    // ajoute_calque(*fichier, chemin);
+
+    // // À FAIRE : pas d'erreur
+    // saufsi ouvre_fichier_cache(*fichier) {
+    //     exit(1);
+    // }
+
+    // // rassemble_noms_objets(*fichier);
+
+    // metadata := abc_input_archive_get_metadata(fichier.poignée_abc);
+    // diffère abc_metadata_destroy(metadata);
+
+    // iterator := abc_metadata_get_iterator(metadata);
+    // diffère abc_metadata_iterator_destroy(iterator);
+
+    // boucle {
+    //     clé: Abc_String;
+    //     valeur: Abc_String;
+
+    //     saufsi iterator.next(iterator, *clé, *valeur) {
+    //         arrête;
+    //     }
+
+    //     imprimeln("% : %", vers_kuri(clé), vers_kuri(valeur));
+    // }
 
     // ctx_kuri := initialise_contexte_kuri();
     // lectrice := ABC_crée_lectrice_cache(*ctx_kuri, fichier.poignée_abc, "/Plane/PlaneShape");
@@ -206,4 +277,26 @@ principale :: fonc ()
 
     // ctx_lecture_cache := initialise_contexte_lecture_cache();
     // ABC_lis_objet(*ctx_kuri, *ctx_lecture_cache, lectrice, 0.0);
+}
+
+donne_chemins_du_dossier_récursif :: fonc (dossier: chaine, résultat: *[..]chaine)
+{
+    dossiers: [..]chaine;
+    diffère déloge(*dossiers);
+
+    tableau_ajoute(*dossiers, copie_chaine(dossier));
+
+    tantque dossiers {
+        dossier_courant := enlève_dernier_élément(*dossiers);
+        diffère déloge(*dossier_courant);
+
+        pour ExploratriceFichier(CheminFichier(dossier_courant)) {
+            si compare_ascii_insensible_à_la_casse(it.extension(), ".abc") {
+                tableau_ajoute(résultat, copie_chaine(it.chn));
+            }
+            sinon si est_un_dossier(it) {
+                tableau_ajoute(*dossiers, copie_chaine(it.chn));
+            }
+        }
+    }
 }
