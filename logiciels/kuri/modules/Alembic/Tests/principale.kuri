@@ -188,7 +188,7 @@ principale :: fonc ()
     chemins: [..]chaine;
     diffère déloge_tableau_et_ses_éléments(*chemins);
 
-    donne_chemins_du_dossier_récursif(chemin, *chemins);
+    donne_chemins_du_dossier_récursif(chemin, *chemins, ".abc");
 
     applications_et_descriptions: [..]Application_Et_Description;
 
@@ -281,26 +281,4 @@ principale :: fonc ()
 
     // ctx_lecture_cache := initialise_contexte_lecture_cache();
     // ABC_lis_objet(*ctx_kuri, *ctx_lecture_cache, lectrice, 0.0);
-}
-
-donne_chemins_du_dossier_récursif :: fonc (dossier: chaine, résultat: *[..]chaine)
-{
-    dossiers: [..]chaine;
-    diffère déloge(*dossiers);
-
-    tableau_ajoute(*dossiers, copie_chaine(dossier));
-
-    tantque dossiers {
-        dossier_courant := enlève_dernier_élément(*dossiers);
-        diffère déloge(*dossier_courant);
-
-        pour ExploratriceFichier(CheminFichier(dossier_courant)) {
-            si compare_ascii_insensible_à_la_casse(it.extension(), ".abc") {
-                tableau_ajoute(résultat, copie_chaine(it.chn));
-            }
-            sinon si est_un_dossier(it) {
-                tableau_ajoute(*dossiers, copie_chaine(it.chn));
-            }
-        }
-    }
 }
