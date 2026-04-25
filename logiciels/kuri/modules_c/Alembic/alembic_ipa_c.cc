@@ -683,6 +683,8 @@ DEFINE_COMMON_SAMPLE_FONCTIONS(Xform, xform)
 
 void abc_output_xform_sample_set_matrix(Abc_Output_Xform_Sample *sample, Abc_M44d *matrix)
 {
+    // À FAIRE : généralise les assertions
+    static_assert(sizeof(Abc_M44d) == sizeof(Abc::M44d));
     sample->sample.setMatrix(*reinterpret_cast<Abc::M44d *>(matrix));
 }
 

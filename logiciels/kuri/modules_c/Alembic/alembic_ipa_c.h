@@ -288,7 +288,7 @@ typedef struct Abc_Quatd {
     X(3, f, float)                                                                                \
     X(3, d, double)                                                                               \
     X(4, f, float)                                                                                \
-    X(4, d, float)
+    X(4, d, double)
 
 #define DEFINE_ABC_MATRIX_TYPE(dim, suffix, data_type)                                            \
     typedef struct Abc_M##dim##dim##suffix {                                                      \
