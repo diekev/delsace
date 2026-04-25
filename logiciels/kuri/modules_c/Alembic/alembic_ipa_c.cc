@@ -426,6 +426,26 @@ ENUMERATE_ABC_ATTRIBUTE_TYPES(DEFINE_ABC_OUTPUT_GEOM_PARAMS)
 
 #undef DECLARE_ABC_OUTPUT_GEOM_PARAMS
 
+#define MAKE_TYPED_SAMPLE_FROM_ARRAY_SAMPLE(type_geom, type_abc_value, type_c, nom_court)         \
+    static AbcGeom::type_geom##ArraySample make_typed_sample(                                     \
+        Abc_##type_geom##_Array_Sample sample)                                                    \
+    {                                                                                             \
+        return make_array_sample<AbcGeom::type_geom##ArraySample>(sample.values,                  \
+                                                                  sample.num_values);             \
+    }
+
+ENUMERATE_ABC_ATTRIBUTE_TYPES(MAKE_TYPED_SAMPLE_FROM_ARRAY_SAMPLE)
+
+#undef MAKE_TYPED_SAMPLE_FROM_ARRAY_SAMPLE
+
+#define DEFINE_OUTPUT_SAMPLE_FUNCTIONS(uname, lname, snake_name, method, sample_type)             \
+    void abc_output_##lname##_sample_##snake_name(                                                \
+        struct Abc_Output_##uname##_Sample *lname##_sample, struct sample_type sample)            \
+    {                                                                                             \
+        auto typed_sample = make_typed_sample(sample);                                            \
+        lname##_sample->sample.method(typed_sample);                                              \
+    }
+
 /** \} */
 
 /* ------------------------------------------------------------------------- */
@@ -695,23 +715,7 @@ struct Abc_Output_Points_Sample {
 
 DEFINE_COMMON_SAMPLE_FONCTIONS(Points, points)
 
-void abc_output_points_sample_positions_set(Abc_Output_Points_Sample *sample,
-                                            float *positions,
-                                            uint64_t num_positions)
-{
-    auto p3f_sample = AbcGeom::P3fArraySample(reinterpret_cast<AbcGeom::V3f *>(positions),
-                                              num_positions);
-    sample->sample.setPositions(p3f_sample);
-}
-
-void abc_output_points_sample_velocities_set(Abc_Output_Points_Sample *sample,
-                                             float *velocities,
-                                             uint64_t num_velocities)
-{
-    auto v3f_sample = AbcGeom::V3fArraySample(reinterpret_cast<AbcGeom::V3f *>(velocities),
-                                              num_velocities);
-    sample->sample.setVelocities(v3f_sample);
-}
+ENUMERATE_POINTS_SAMPLE_INTERFACE(DEFINE_OUTPUT_SAMPLE_FUNCTIONS)
 
 void abc_output_points_sample_widths_set(Abc_Output_Points_Sample *sample,
                                          float *widths,
@@ -722,14 +726,6 @@ void abc_output_points_sample_widths_set(Abc_Output_Points_Sample *sample,
     auto f_sample = AbcGeom::OFloatGeomParam::Sample(values,
                                                      static_cast<AbcGeom::GeometryScope>(scope));
     sample->sample.setWidths(f_sample);
-}
-
-void abc_output_points_sample_ids_set(Abc_Output_Points_Sample *sample,
-                                      uint64_t *ids,
-                                      uint64_t num_ids)
-{
-    auto uint64_sample = AbcGeom::UInt64ArraySample(ids, num_ids);
-    sample->sample.setIds(uint64_sample);
 }
 
 /** \} */
@@ -756,6 +752,8 @@ struct Abc_Output_Curves_Sample {
 
 DEFINE_COMMON_SAMPLE_FONCTIONS(Curves, curves)
 
+ENUMERATE_CURVES_SAMPLE_INTERFACE(DEFINE_OUTPUT_SAMPLE_FUNCTIONS)
+
 void abc_output_curves_sample_type_set(Abc_Output_Curves_Sample *sample, Abc_Curve_Type type)
 {
     AbcGeom::CurveType itype = static_cast<AbcGeom::CurveType>(type);
@@ -775,32 +773,6 @@ void abc_output_curves_sample_basis_set(Abc_Output_Curves_Sample *sample, Abc_Ba
     sample->sample.setBasis(ibasis);
 }
 
-void abc_output_curves_sample_positions_set(Abc_Output_Curves_Sample *sample,
-                                            float *positions,
-                                            uint64_t num_positions)
-{
-    auto p3f_sample = AbcGeom::P3fArraySample(reinterpret_cast<AbcGeom::V3f *>(positions),
-                                              num_positions);
-    sample->sample.setPositions(p3f_sample);
-}
-
-void abc_output_curves_sample_position_weights_set(Abc_Output_Curves_Sample *sample,
-                                                   float *weights,
-                                                   uint64_t num_weights)
-{
-    auto values = AbcGeom::FloatArraySample(weights, num_weights);
-    sample->sample.setPositionWeights(values);
-}
-
-void abc_output_curves_sample_velocities_set(Abc_Output_Curves_Sample *sample,
-                                             float *velocities,
-                                             uint64_t num_velocities)
-{
-    auto v3f_sample = AbcGeom::V3fArraySample(reinterpret_cast<AbcGeom::V3f *>(velocities),
-                                              num_velocities);
-    sample->sample.setVelocities(v3f_sample);
-}
-
 void abc_output_curves_sample_widths_set(Abc_Output_Curves_Sample *sample,
                                          float *widths,
                                          uint64_t num_widths,
@@ -810,30 +782,6 @@ void abc_output_curves_sample_widths_set(Abc_Output_Curves_Sample *sample,
     auto f_sample = AbcGeom::OFloatGeomParam::Sample(values,
                                                      static_cast<AbcGeom::GeometryScope>(scope));
     sample->sample.setWidths(f_sample);
-}
-
-void abc_output_curves_sample_curves_num_vertices_set(Abc_Output_Curves_Sample *sample,
-                                                      int *num_vertices,
-                                                      uint64_t num_nun_vertices)
-{
-    auto values = AbcGeom::Int32ArraySample(num_vertices, num_nun_vertices);
-    sample->sample.setCurvesNumVertices(values);
-}
-
-void abc_output_curves_sample_orders_set(Abc_Output_Curves_Sample *sample,
-                                         uint8_t *values,
-                                         uint64_t num_values)
-{
-    auto array_sample = AbcGeom::UcharArraySample(values, num_values);
-    sample->sample.setKnots(array_sample);
-}
-
-void abc_output_curves_sample_knots_set(Abc_Output_Curves_Sample *sample,
-                                        float *values,
-                                        uint64_t num_values)
-{
-    auto array_sample = AbcGeom::FloatArraySample(values, num_values);
-    sample->sample.setOrders(array_sample);
 }
 
 void abc_output_curves_sample_uvs_set(Abc_Output_Curves_Sample *sample,

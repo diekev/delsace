@@ -367,6 +367,16 @@ typedef OTypedGeomParam<C4hTPTraits>             OC4hGeomParam;
     X(String, std::string, Abc_String, string)                                                    \
     ENUMERATE_ABC_ATTRIBUTE_SPECIAL(X)
 
+#define DECLARE_ABC_TYPED_ARRAY_SAMPLE(type_geom, type_abc_value, type_c, nom_court)              \
+    struct Abc_##type_geom##_Array_Sample {                                                       \
+        type_c *values;                                                                           \
+        uint64_t num_values;                                                                      \
+    };
+
+ENUMERATE_ABC_ATTRIBUTE_TYPES(DECLARE_ABC_TYPED_ARRAY_SAMPLE)
+
+#undef DECLARE_ABC_TYPED_ARRAY_SAMPLE
+
 #define DECLARE_ABC_OUTPUT_GEOM_PARAMS(type_geom, type_abc_value, type_c, nom_court)              \
     struct Abc_Output_##type_geom##_Geom_Param;                                                   \
     struct Abc_Output_##type_geom##_Geom_Param_Sample {                                           \
@@ -406,6 +416,10 @@ ENUMERATE_ABC_ATTRIBUTE_TYPES(DECLARE_ABC_OUTPUT_GEOM_PARAMS)
         struct Abc_Output_##uppercase_name##_Sample *sample);                                     \
     void abc_output_##lowercase_name##_sample_set_from_previous(                                  \
         struct Abc_Output_##uppercase_name *lowercase_name);
+
+#define DECLARE_OUTPUT_SAMPLE_SET_FUNCTION(uname, lname, snake_name, method, sample_type)         \
+    void abc_output_##lname##_sample_##snake_name(                                                \
+        struct Abc_Output_##uname##_Sample *lname##_sample, struct sample_type sample);
 
 /* ------------------------------------------------------------------------- */
 /** \nom Abc_Output_Xform
@@ -448,21 +462,19 @@ struct Abc_Output_Points *abc_output_points_create(struct Abc_Output_Xform *pare
                                                    struct Abc_String nom,
                                                    struct Abc_Time_Sample_Index time_sample_index);
 
+// X(uname, lname, snake_name, method, sample_type)
+#define ENUMERATE_POINTS_SAMPLE_INTERFACE(X)                                                      \
+    X(Points, points, positions_set, setPositions, Abc_P3f_Array_Sample)                          \
+    X(Points, points, velocities_set, setVelocities, Abc_V3f_Array_Sample)                        \
+    X(Points, points, ids_set, setIds, Abc_UInt64_Array_Sample)
+
 struct Abc_Output_Points_Sample;
 DECLARE_COMMON_SAMPLE_FONCTIONS(Points, points)
-void abc_output_points_sample_positions_set(struct Abc_Output_Points_Sample *sample,
-                                            float *positions,
-                                            uint64_t num_positions);
-void abc_output_points_sample_velocities_set(struct Abc_Output_Points_Sample *sample,
-                                             float *velocities,
-                                             uint64_t num_velocities);
+ENUMERATE_POINTS_SAMPLE_INTERFACE(DECLARE_OUTPUT_SAMPLE_SET_FUNCTION)
 void abc_output_points_sample_widths_set(struct Abc_Output_Points_Sample *sample,
                                          float *widths,
                                          uint64_t num_widths,
                                          enum Abc_Geometry_Scope scope);
-void abc_output_points_sample_ids_set(struct Abc_Output_Points_Sample *sample,
-                                      uint64_t *ids,
-                                      uint64_t num_ids);
 
 /** \} */
 
@@ -496,8 +508,18 @@ struct Abc_Output_Curves *abc_output_curves_create(struct Abc_Output_Xform *pare
                                                    struct Abc_String nom,
                                                    struct Abc_Time_Sample_Index time_sample_index);
 
+// X(uname, lname, snake_name, method, sample_type)
+#define ENUMERATE_CURVES_SAMPLE_INTERFACE(X)                                                      \
+    X(Curves, curves, positions_set, setPositions, Abc_P3f_Array_Sample)                          \
+    X(Curves, curves, velocities_set, setVelocities, Abc_V3f_Array_Sample)                        \
+    X(Curves, curves, position_weights_set, setPositionWeights, Abc_Float_Array_Sample)           \
+    X(Curves, curves, curves_num_vertices_set, setCurvesNumVertices, Abc_Int32_Array_Sample)      \
+    X(Curves, curves, orders_set, setOrders, Abc_Uchar_Array_Sample)                              \
+    X(Curves, curves, knots_set, setKnots, Abc_Float_Array_Sample)
+
 struct Abc_Output_Curves_Sample;
 DECLARE_COMMON_SAMPLE_FONCTIONS(Curves, curves)
+ENUMERATE_CURVES_SAMPLE_INTERFACE(DECLARE_OUTPUT_SAMPLE_SET_FUNCTION)
 
 void abc_output_curves_sample_type_set(struct Abc_Output_Curves_Sample *sample,
                                        enum Abc_Curve_Type type);
@@ -505,28 +527,10 @@ void abc_output_curves_sample_wrap_set(struct Abc_Output_Curves_Sample *sample,
                                        enum Abc_Curve_Periodicity wrap);
 void abc_output_curves_sample_basis_set(struct Abc_Output_Curves_Sample *sample,
                                         enum Abc_Basis_Type basis);
-void abc_output_curves_sample_positions_set(struct Abc_Output_Curves_Sample *sample,
-                                            float *positions,
-                                            uint64_t num_positions);
-void abc_output_curves_sample_position_weights_set(struct Abc_Output_Curves_Sample *sample,
-                                                   float *weights,
-                                                   uint64_t num_weights);
-void abc_output_curves_sample_velocities_set(struct Abc_Output_Curves_Sample *sample,
-                                             float *velocities,
-                                             uint64_t num_velocities);
 void abc_output_curves_sample_widths_set(struct Abc_Output_Curves_Sample *sample,
                                          float *widths,
                                          uint64_t num_widths,
                                          enum Abc_Geometry_Scope scope);
-void abc_output_curves_sample_curves_num_vertices_set(struct Abc_Output_Curves_Sample *sample,
-                                                      int *num_vertices,
-                                                      uint64_t num_nun_vertices);
-void abc_output_curves_sample_orders_set(struct Abc_Output_Curves_Sample *sample,
-                                         uint8_t *values,
-                                         uint64_t num_values);
-void abc_output_curves_sample_knots_set(struct Abc_Output_Curves_Sample *sample,
-                                        float *values,
-                                        uint64_t num_values);
 void abc_output_curves_sample_uvs_set(struct Abc_Output_Curves_Sample *sample,
                                       float *values,
                                       uint64_t num_values,

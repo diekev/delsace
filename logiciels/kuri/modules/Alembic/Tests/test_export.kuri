@@ -28,6 +28,22 @@ abc_output_points_create :: fonc (parent: *Abc_Output_Xform, nom: chaine, ts: Ab
     retourne abc_output_points_create(parent, vers_abc_string(nom), ts);
 }
 
+abc_output_points_sample_positions_set :: fonc (sample: *Abc_Output_Points_Sample, positions: []Vec3)
+{
+    array_sample: Abc_P3f_Array_Sample = ---;
+    array_sample.values = positions.pointeur comme *Abc_V3f;
+    array_sample.num_values = positions.taille comme n64;
+    abc_output_points_sample_positions_set(sample, array_sample);
+}
+
+abc_output_points_sample_ids_set :: fonc (sample: *Abc_Output_Points_Sample, ids: []n64)
+{
+    array_sample: Abc_UInt64_Array_Sample = ---;
+    array_sample.values = ids.pointeur;
+    array_sample.num_values = ids.taille comme n64;
+    abc_output_points_sample_ids_set(sample, array_sample);
+}
+
 abc_output_curves_create :: fonc (parent: *Abc_Output_Xform, nom: chaine, time_sample_index: Abc_Time_Sample_Index) -> *Abc_Output_Curves
 {
     retourne abc_output_curves_create(parent, vers_abc_string(nom), time_sample_index);
@@ -35,12 +51,18 @@ abc_output_curves_create :: fonc (parent: *Abc_Output_Xform, nom: chaine, time_s
 
 abc_output_curves_sample_positions_set :: fonc (sample: *Abc_Output_Curves_Sample, positions: []Vec3)
 {
-    abc_output_curves_sample_positions_set(sample, positions.pointeur comme *r32, positions.taille comme n64);
+    array_sample: Abc_P3f_Array_Sample = ---;
+    array_sample.values = positions.pointeur comme *Abc_V3f;
+    array_sample.num_values = positions.taille comme n64;
+    abc_output_curves_sample_positions_set(sample, array_sample);
 }
 
 abc_output_curves_sample_curves_num_vertices_set :: fonc (sample: *Abc_Output_Curves_Sample, num_vertices: []z32)
 {
-    abc_output_curves_sample_curves_num_vertices_set(sample, num_vertices.pointeur, num_vertices.taille comme n64);
+    array_sample: Abc_Int32_Array_Sample = ---;
+    array_sample.values = num_vertices.pointeur;
+    array_sample.num_values = num_vertices.taille comme n64;
+    abc_output_curves_sample_curves_num_vertices_set(sample, array_sample);
 }
 
 abc_output_curves_sample_widths_set :: fonc (sample: *Abc_Output_Curves_Sample, values: []r32, scope: Abc_Geometry_Scope)
@@ -164,10 +186,10 @@ crée_test_rayons_points :: fonc (chemin: chaine, export_rayon: bool)
         phi += phi_delta;
 
         position := Vec3(ca0, 0.0, sa0);
-        abc_output_points_sample_positions_set(point_sample, *position.x, 1);
+        abc_output_points_sample_positions_set(point_sample, [position]);
 
         ids := n64.[0];
-        abc_output_points_sample_ids_set(point_sample, *ids[0], 1);
+        abc_output_points_sample_ids_set(point_sample, ids);
 
         si export_rayon {
             width := 50 - abs((it + 1) - 50);
