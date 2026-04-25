@@ -67,6 +67,10 @@ void ABC_ecris_donnees(struct AutriceArchive *autrice);
 typedef struct Abc_String {
     const char *characters;
     uint64_t size;
+
+#ifdef __cplusplus
+    operator std::string();
+#endif
 } Abc_String;
 
 typedef struct Abc_Milimeters {
@@ -109,6 +113,12 @@ typedef struct Abc_Seconds {
 struct Abc_MetaData;
 
 void abc_metadata_destroy(struct Abc_MetaData *metadata);
+
+void abc_metadata_set(struct Abc_MetaData *metadata, Abc_String key, Abc_String data);
+void abc_metadata_set_unique(struct Abc_MetaData *metadata, Abc_String key, Abc_String data);
+void abc_metadata_append(struct Abc_MetaData *metadata, struct Abc_MetaData *source);
+void abc_metadata_append_only_unique(struct Abc_MetaData *metadata, struct Abc_MetaData *source);
+void abc_metadata_append_unique(struct Abc_MetaData *metadata, struct Abc_MetaData *source);
 
 struct Abc_MetaData_Iterator {
     struct Abc_MetaData *metadata;

@@ -203,6 +203,11 @@ static std::string vers_std_string_ou_défaut(struct Abc_String string, std::str
     return std::string(string.characters, string.size);
 }
 
+Abc_String::operator std::string()
+{
+    return vers_std_string(*this);
+}
+
 /** \} */
 
 /* ------------------------------------------------------------------------- */
@@ -219,6 +224,33 @@ void abc_metadata_destroy(struct Abc_MetaData *metadata)
     if (metadata) {
         kuri_deloge(metadata->ctx_kuri, metadata);
     }
+}
+
+void abc_metadata_set(struct Abc_MetaData *metadata, Abc_String key, Abc_String data)
+{
+    metadata->metadata.set(key, data);
+}
+
+void abc_metadata_set_unique(struct Abc_MetaData *metadata, Abc_String key, Abc_String data)
+{
+    metadata->metadata.setUnique(key, data);
+}
+
+// À FAIRE : get, getRequired
+
+void abc_metadata_append(struct Abc_MetaData *metadata, struct Abc_MetaData *source)
+{
+    metadata->metadata.append(source->metadata);
+}
+
+void abc_metadata_append_only_unique(struct Abc_MetaData *metadata, struct Abc_MetaData *source)
+{
+    metadata->metadata.appendOnlyUnique(source->metadata);
+}
+
+void abc_metadata_append_unique(struct Abc_MetaData *metadata, struct Abc_MetaData *source)
+{
+    metadata->metadata.appendUnique(source->metadata);
 }
 
 struct Abc_MetaData_Iterator_Impl : public Abc_MetaData_Iterator {
