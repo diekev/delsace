@@ -246,6 +246,7 @@ void abc_output_points_sample_ids_set(struct Abc_Output_Points_Sample *sample,
                                       uint64_t num_ids);
 void abc_output_points_sample_set(struct Abc_Output_Points *points,
                                   struct Abc_Output_Points_Sample *sample);
+void abc_output_points_sample_set_from_previous(struct Abc_Output_Points *points);
 
 /** \} */
 
@@ -323,6 +324,7 @@ void abc_output_curves_sample_normals_set(struct Abc_Output_Curves_Sample *sampl
                                           enum Abc_Geometry_Scope scope);
 void abc_output_curves_sample_set(struct Abc_Output_Curves *curves,
                                   struct Abc_Output_Curves_Sample *sample);
+void abc_output_curves_sample_set_from_previous(struct Abc_Output_Curves *curves);
 
 /** \} */
 

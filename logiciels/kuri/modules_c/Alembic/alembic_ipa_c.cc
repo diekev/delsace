@@ -610,6 +610,11 @@ void abc_output_points_sample_set(Abc_Output_Points *points, Abc_Output_Points_S
     opoints.getSchema().set(sample->sample);
 }
 
+void abc_output_points_sample_set_from_previous(struct Abc_Output_Points *points)
+{
+    points->object.getSchema().setFromPrevious();
+}
+
 /** \} */
 
 /* ------------------------------------------------------------------------- */
@@ -757,6 +762,11 @@ void abc_output_curves_sample_set(Abc_Output_Curves *curves, Abc_Output_Curves_S
 {
     auto &ocurves = curves->object;
     ocurves.getSchema().set(sample->sample);
+}
+
+void abc_output_curves_sample_set_from_previous(Abc_Output_Curves *curves)
+{
+    curves->object.getSchema().setFromPrevious();
 }
 
 /** \} */
