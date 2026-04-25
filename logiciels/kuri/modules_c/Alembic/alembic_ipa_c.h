@@ -462,7 +462,8 @@ ENUMERATE_ABC_ATTRIBUTE_TYPES(DECLARE_ABC_OUTPUT_GEOM_PARAMS)
     struct Abc_Output_Compound_Property *abc_output_##lname##_arb_geom_params_get(                \
         struct Abc_Output_##uname *lname);                                                        \
     struct Abc_Output_Compound_Property *abc_output_##lname##_user_properties_get(                \
-        struct Abc_Output_##uname *lname);
+        struct Abc_Output_##uname *lname);                                                        \
+    struct Abc_MetaData *abc_output_##lname##_metadata_get(struct Abc_Output_##uname *lname);
 
 /* ------------------------------------------------------------------------- */
 /** \nom Abc_Output_Xform

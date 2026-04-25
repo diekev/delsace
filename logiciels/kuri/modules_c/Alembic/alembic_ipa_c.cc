@@ -474,6 +474,14 @@ ENUMERATE_ABC_ATTRIBUTE_TYPES(DEFINE_ABC_OUTPUT_GEOM_PARAMS)
             lname->user_properties_initialized = true;                                            \
         }                                                                                         \
         return &lname->user_properties;                                                           \
+    }                                                                                             \
+    Abc_MetaData *abc_output_##lname##_metadata_get(struct Abc_Output_##uname *lname)             \
+    {                                                                                             \
+        if (!lname->metadata_initialized) {                                                       \
+            lname->get_metadata(&lname->metadata_);                                               \
+            lname->metadata_initialized = true;                                                   \
+        }                                                                                         \
+        return &lname->metadata_;                                                                 \
     }
 
 /** \} */
@@ -490,9 +498,11 @@ struct Abc_Output_Object_Base {
 
     Abc_Output_Compound_Property arb_geom_params{};
     Abc_Output_Compound_Property user_properties{};
+    Abc_MetaData metadata_{};
 
     bool arb_geom_params_initialized = false;
     bool user_properties_initialized = false;
+    bool metadata_initialized = false;
 
     virtual ~Abc_Output_Object_Base() = default;
 };
@@ -520,6 +530,11 @@ struct Abc_Output_Xform : public Abc_Output_Object_Base {
     {
         prop->prop = schema.getUserProperties();
     }
+
+    void get_metadata(Abc_MetaData *metadata)
+    {
+        metadata->metadata = object.getMetaData();
+    }
 };
 
 struct Abc_Output_Points : public Abc_Output_Object_Base {
@@ -544,6 +559,11 @@ struct Abc_Output_Points : public Abc_Output_Object_Base {
     {
         prop->prop = object.getSchema().getUserProperties();
     }
+
+    void get_metadata(Abc_MetaData *metadata)
+    {
+        metadata->metadata = object.getMetaData();
+    }
 };
 
 struct Abc_Output_Curves : public Abc_Output_Object_Base {
@@ -567,6 +587,11 @@ struct Abc_Output_Curves : public Abc_Output_Object_Base {
     void get_user_properties(Abc_Output_Compound_Property *prop)
     {
         prop->prop = object.getSchema().getUserProperties();
+    }
+
+    void get_metadata(Abc_MetaData *metadata)
+    {
+        metadata->metadata = object.getMetaData();
     }
 };
 
@@ -863,6 +888,11 @@ struct Abc_Output_FaceSet : public Abc_Output_Object_Base {
     {
         prop->prop = object.getSchema().getUserProperties();
     }
+
+    void get_metadata(Abc_MetaData *metadata)
+    {
+        metadata->metadata = object.getMetaData();
+    }
 };
 
 DEFINE_COMMON_OBJECT_FUNCTIONS(FaceSet, faceset)
@@ -903,6 +933,11 @@ struct Abc_Output_PolyMesh : public Abc_Output_Object_Base {
     void get_user_properties(Abc_Output_Compound_Property *prop)
     {
         prop->prop = object.getSchema().getUserProperties();
+    }
+
+    void get_metadata(Abc_MetaData *metadata)
+    {
+        metadata->metadata = object.getMetaData();
     }
 };
 
@@ -967,6 +1002,11 @@ struct Abc_Output_SubD : public Abc_Output_Object_Base {
     void get_user_properties(Abc_Output_Compound_Property *prop)
     {
         prop->prop = object.getSchema().getUserProperties();
+    }
+
+    void get_metadata(Abc_MetaData *metadata)
+    {
+        metadata->metadata = object.getMetaData();
     }
 };
 
@@ -1055,6 +1095,11 @@ struct Abc_Output_Camera : public Abc_Output_Object_Base {
     void get_user_properties(Abc_Output_Compound_Property *prop)
     {
         prop->prop = object.getSchema().getUserProperties();
+    }
+
+    void get_metadata(Abc_MetaData *metadata)
+    {
+        metadata->metadata = object.getMetaData();
     }
 };
 
