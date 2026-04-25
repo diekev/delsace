@@ -535,7 +535,6 @@ void abc_output_curves_sample_basis_set(struct Abc_Output_Curves_Sample *sample,
  * \{ */
 
 struct Abc_Output_FaceSet;
-;
 
 // X(uname, lname, snake_name, method, sample_type)
 #define ENUMERATE_FACESET_SAMPLE_INTERFACE(X)                                                     \
