@@ -371,6 +371,32 @@ ENUMERATE_ABC_ATTRIBUTE_SPECIAL(MAKE_TYPED_ARRAY_SAMPLE)
 
 #undef MAKE_TYPED_ARRAY_SAMPLE
 
+#define MAKE_TYPED_SAMPLE_FROM_ARRAY_SAMPLE(type_geom, type_abc_value, type_c, nom_court)         \
+    static AbcGeom::type_geom##ArraySample make_typed_sample(                                     \
+        Abc_##type_geom##_Array_Sample sample)                                                    \
+    {                                                                                             \
+        return make_array_sample<AbcGeom::type_geom##ArraySample>(sample.values,                  \
+                                                                  sample.num_values);             \
+    }                                                                                             \
+    static AbcGeom::O##type_geom##GeomParam::Sample make_typed_sample(                            \
+        Abc_Output_##type_geom##_Geom_Param_Sample param_sample)                                  \
+    {                                                                                             \
+        auto array_sample = make_array_sample<AbcGeom::type_geom##ArraySample>(                   \
+            param_sample.values, param_sample.num_values);                                        \
+        auto abc_scope = static_cast<AbcGeom::GeometryScope>(param_sample.scope);                 \
+        if (param_sample.indices) {                                                               \
+            auto indices = AbcGeom::UInt32ArraySample(param_sample.indices,                       \
+                                                      param_sample.num_indices);                  \
+            return AbcGeom::O##type_geom##GeomParam::Sample(array_sample, indices, abc_scope);    \
+        }                                                                                         \
+        auto sample = AbcGeom::O##type_geom##GeomParam::Sample(array_sample, abc_scope);          \
+        return sample;                                                                            \
+    }
+
+ENUMERATE_ABC_ATTRIBUTE_TYPES(MAKE_TYPED_SAMPLE_FROM_ARRAY_SAMPLE)
+
+#undef MAKE_TYPED_SAMPLE_FROM_ARRAY_SAMPLE
+
 #define DEFINE_ABC_OUTPUT_GEOM_PARAMS(type_geom, type_abc_value, type_c, nom_court)               \
     struct Abc_Output_##type_geom##_Geom_Param {                                                  \
         AbcGeom::O##type_geom##GeomParam param;                                                   \
@@ -406,51 +432,14 @@ ENUMERATE_ABC_ATTRIBUTE_SPECIAL(MAKE_TYPED_ARRAY_SAMPLE)
         struct Abc_Output_##type_geom##_Geom_Param_Sample *sample)                                \
     {                                                                                             \
         if (sample->values) {                                                                     \
-            auto values = make_array_sample<AbcGeom::type_geom##ArraySample>(sample->values,      \
-                                                                             sample->num_values); \
-            auto abc_scope = static_cast<AbcGeom::GeometryScope>(sample->scope);                  \
-            if (sample->indices) {                                                                \
-                auto indices = AbcGeom::UInt32ArraySample(sample->indices, sample->num_indices);  \
-                auto param_sample = AbcGeom::O##type_geom##GeomParam::Sample(                     \
-                    values, indices, abc_scope);                                                  \
-                param->param.set(param_sample);                                                   \
-            }                                                                                     \
-            else {                                                                                \
-                auto param_sample = AbcGeom::O##type_geom##GeomParam::Sample(values, abc_scope);  \
-                param->param.set(param_sample);                                                   \
-            }                                                                                     \
+            auto param_sample = make_typed_sample(*sample);                                       \
+            param->param.set(param_sample);                                                       \
         }                                                                                         \
     }
 
 ENUMERATE_ABC_ATTRIBUTE_TYPES(DEFINE_ABC_OUTPUT_GEOM_PARAMS)
 
 #undef DECLARE_ABC_OUTPUT_GEOM_PARAMS
-
-#define MAKE_TYPED_SAMPLE_FROM_ARRAY_SAMPLE(type_geom, type_abc_value, type_c, nom_court)         \
-    static AbcGeom::type_geom##ArraySample make_typed_sample(                                     \
-        Abc_##type_geom##_Array_Sample sample)                                                    \
-    {                                                                                             \
-        return make_array_sample<AbcGeom::type_geom##ArraySample>(sample.values,                  \
-                                                                  sample.num_values);             \
-    }                                                                                             \
-    static AbcGeom::O##type_geom##GeomParam::Sample make_typed_sample(                            \
-        Abc_Output_##type_geom##_Geom_Param_Sample param_sample)                                  \
-    {                                                                                             \
-        auto array_sample = make_array_sample<AbcGeom::type_geom##ArraySample>(                   \
-            param_sample.values, param_sample.num_values);                                        \
-        auto abc_scope = static_cast<AbcGeom::GeometryScope>(param_sample.scope);                 \
-        if (param_sample.indices) {                                                               \
-            auto indices = AbcGeom::UInt32ArraySample(param_sample.indices,                       \
-                                                      param_sample.num_indices);                  \
-            return AbcGeom::O##type_geom##GeomParam::Sample(array_sample, indices, abc_scope);    \
-        }                                                                                         \
-        auto sample = AbcGeom::O##type_geom##GeomParam::Sample(array_sample, abc_scope);          \
-        return sample;                                                                            \
-    }
-
-ENUMERATE_ABC_ATTRIBUTE_TYPES(MAKE_TYPED_SAMPLE_FROM_ARRAY_SAMPLE)
-
-#undef MAKE_TYPED_SAMPLE_FROM_ARRAY_SAMPLE
 
 #define DEFINE_OUTPUT_SAMPLE_FUNCTIONS(uname, lname, snake_name, method, sample_type)             \
     void abc_output_##lname##_sample_##snake_name(                                                \
