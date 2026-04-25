@@ -258,7 +258,8 @@ void abc_output_points_sample_velocities_set(struct Abc_Output_Points_Sample *sa
                                              uint64_t num_velocities);
 void abc_output_points_sample_widths_set(struct Abc_Output_Points_Sample *sample,
                                          float *widths,
-                                         uint64_t num_widths);
+                                         uint64_t num_widths,
+                                         enum Abc_Geometry_Scope scope);
 void abc_output_points_sample_ids_set(struct Abc_Output_Points_Sample *sample,
                                       uint64_t *ids,
                                       uint64_t num_ids);

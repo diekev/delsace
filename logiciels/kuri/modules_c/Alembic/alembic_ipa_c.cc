@@ -589,10 +589,12 @@ void abc_output_points_sample_velocities_set(Abc_Output_Points_Sample *sample,
 
 void abc_output_points_sample_widths_set(Abc_Output_Points_Sample *sample,
                                          float *widths,
-                                         uint64_t num_widths)
+                                         uint64_t num_widths,
+                                         Abc_Geometry_Scope scope)
 {
     auto values = AbcGeom::FloatArraySample(widths, num_widths);
-    auto f_sample = AbcGeom::OFloatGeomParam::Sample(values, AbcGeom::GeometryScope::kVertexScope);
+    auto f_sample = AbcGeom::OFloatGeomParam::Sample(values,
+                                                     static_cast<AbcGeom::GeometryScope>(scope));
     sample->sample.setWidths(f_sample);
 }
 
