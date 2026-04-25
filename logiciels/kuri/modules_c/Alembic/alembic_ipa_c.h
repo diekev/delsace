@@ -394,6 +394,19 @@ ENUMERATE_ABC_ATTRIBUTE_TYPES(DECLARE_ABC_OUTPUT_GEOM_PARAMS)
 
 /** \} */
 
+#define DECLARE_COMMON_SAMPLE_FONCTIONS(uppercase_name, lowercase_name)                           \
+    struct Abc_Output_##uppercase_name##_Sample *abc_output_##lowercase_name##_sample_create(     \
+        struct Abc_Output_Archive *archive);                                                      \
+    void abc_output_##lowercase_name##_sample_reset(                                              \
+        struct Abc_Output_##uppercase_name##_Sample *sample);                                     \
+    void abc_output_##lowercase_name##_sample_destroy(                                            \
+        struct Abc_Output_##uppercase_name##_Sample *sample);                                     \
+    void abc_output_##lowercase_name##_sample_set(                                                \
+        struct Abc_Output_##uppercase_name *lowercase_name,                                       \
+        struct Abc_Output_##uppercase_name##_Sample *sample);                                     \
+    void abc_output_##lowercase_name##_sample_set_from_previous(                                  \
+        struct Abc_Output_##uppercase_name *lowercase_name);
+
 /* ------------------------------------------------------------------------- */
 /** \nom Abc_Output_Xform
  * \{ */
@@ -414,14 +427,10 @@ struct Abc_Output_Xform *abc_output_xform_create(struct Abc_Output_Xform *parent
                                                  struct Abc_Time_Sample_Index time_sample_index);
 
 struct Abc_Output_Xform_Sample;
-struct Abc_Output_Xform_Sample *abc_output_xform_sample_create(struct Abc_Output_Archive *archive);
-void abc_output_xform_sample_reset(struct Abc_Output_Xform_Sample *sample);
-void abc_output_xform_sample_destroy(struct Abc_Output_Xform_Sample *sample);
+DECLARE_COMMON_SAMPLE_FONCTIONS(Xform, xform)
 void abc_output_xform_sample_set_matrix(struct Abc_Output_Xform_Sample *sample, Abc_M44d *matrix);
 void abc_output_xform_sample_set_inherits_xform(struct Abc_Output_Xform_Sample *sample,
                                                 bool inherits);
-void abc_output_xform_sample_set(struct Abc_Output_Xform *xform,
-                                 struct Abc_Output_Xform_Sample *sample);
 
 /** \} */
 
@@ -440,10 +449,7 @@ struct Abc_Output_Points *abc_output_points_create(struct Abc_Output_Xform *pare
                                                    struct Abc_Time_Sample_Index time_sample_index);
 
 struct Abc_Output_Points_Sample;
-struct Abc_Output_Points_Sample *abc_output_points_sample_create(
-    struct Abc_Output_Archive *archive);
-void abc_output_points_sample_reset(struct Abc_Output_Points_Sample *sample);
-void abc_output_points_sample_destroy(struct Abc_Output_Points_Sample *sample);
+DECLARE_COMMON_SAMPLE_FONCTIONS(Points, points)
 void abc_output_points_sample_positions_set(struct Abc_Output_Points_Sample *sample,
                                             float *positions,
                                             uint64_t num_positions);
@@ -457,9 +463,6 @@ void abc_output_points_sample_widths_set(struct Abc_Output_Points_Sample *sample
 void abc_output_points_sample_ids_set(struct Abc_Output_Points_Sample *sample,
                                       uint64_t *ids,
                                       uint64_t num_ids);
-void abc_output_points_sample_set(struct Abc_Output_Points *points,
-                                  struct Abc_Output_Points_Sample *sample);
-void abc_output_points_sample_set_from_previous(struct Abc_Output_Points *points);
 
 /** \} */
 
@@ -494,11 +497,8 @@ struct Abc_Output_Curves *abc_output_curves_create(struct Abc_Output_Xform *pare
                                                    struct Abc_Time_Sample_Index time_sample_index);
 
 struct Abc_Output_Curves_Sample;
+DECLARE_COMMON_SAMPLE_FONCTIONS(Curves, curves)
 
-struct Abc_Output_Curves_Sample *abc_output_curves_sample_create(
-    struct Abc_Output_Archive *archive);
-void abc_output_curves_sample_reset(struct Abc_Output_Curves_Sample *sample);
-void abc_output_curves_sample_destroy(struct Abc_Output_Curves_Sample *sample);
 void abc_output_curves_sample_type_set(struct Abc_Output_Curves_Sample *sample,
                                        enum Abc_Curve_Type type);
 void abc_output_curves_sample_wrap_set(struct Abc_Output_Curves_Sample *sample,
@@ -535,9 +535,6 @@ void abc_output_curves_sample_normals_set(struct Abc_Output_Curves_Sample *sampl
                                           float *values,
                                           uint64_t num_values,
                                           enum Abc_Geometry_Scope scope);
-void abc_output_curves_sample_set(struct Abc_Output_Curves *curves,
-                                  struct Abc_Output_Curves_Sample *sample);
-void abc_output_curves_sample_set_from_previous(struct Abc_Output_Curves *curves);
 
 /** \} */
 

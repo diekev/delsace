@@ -444,14 +444,44 @@ struct Abc_Output_Object_Base {
 struct Abc_Output_Xform : public Abc_Output_Object_Base {
     Abc::OObject object{};
     AbcGeom::OXformSchema schema{};
+
+    void set_sample(AbcGeom::OXformSchema::sample_type &sample)
+    {
+        schema.set(sample);
+    }
+
+    void set_from_previous()
+    {
+        schema.setFromPrevious();
+    }
 };
 
 struct Abc_Output_Points : public Abc_Output_Object_Base {
     AbcGeom::OPoints object{};
+
+    void set_sample(AbcGeom::OPointsSchema::Sample &sample)
+    {
+        object.getSchema().set(sample);
+    }
+
+    void set_from_previous()
+    {
+        object.getSchema().setFromPrevious();
+    }
 };
 
 struct Abc_Output_Curves : public Abc_Output_Object_Base {
     AbcGeom::OCurves object{};
+
+    void set_sample(AbcGeom::OCurvesSchema::Sample &sample)
+    {
+        object.getSchema().set(sample);
+    }
+
+    void set_from_previous()
+    {
+        object.getSchema().setFromPrevious();
+    }
 };
 
 struct Abc_Output_Archive {
@@ -594,29 +624,42 @@ Abc_Output_Xform *abc_output_xform_create(Abc_Output_Xform *parent,
     return résultat;
 }
 
+#define DEFINE_COMMON_SAMPLE_FONCTIONS(uppercase_name, lowercase_name)                            \
+    Abc_Output_##uppercase_name##_Sample *abc_output_##lowercase_name##_sample_create(            \
+        Abc_Output_Archive *archive)                                                              \
+    {                                                                                             \
+        auto résultat = kuri_loge<Abc_Output_##uppercase_name##_Sample>(archive->ctx_kuri);       \
+        résultat->ctx_kuri = archive->ctx_kuri;                                                   \
+        return résultat;                                                                          \
+    }                                                                                             \
+    void abc_output_##lowercase_name##_sample_reset(Abc_Output_##uppercase_name##_Sample *sample) \
+    {                                                                                             \
+        sample->sample.reset();                                                                   \
+    }                                                                                             \
+    void abc_output_##lowercase_name##_sample_destroy(                                            \
+        Abc_Output_##uppercase_name##_Sample *sample)                                             \
+    {                                                                                             \
+        if (sample) {                                                                             \
+            kuri_deloge(sample->ctx_kuri, sample);                                                \
+        }                                                                                         \
+    }                                                                                             \
+    void abc_output_##lowercase_name##_sample_set(Abc_Output_##uppercase_name *lowercase_name,    \
+                                                  Abc_Output_##uppercase_name##_Sample *sample)   \
+    {                                                                                             \
+        lowercase_name->set_sample(sample->sample);                                               \
+    }                                                                                             \
+    void abc_output_##lowercase_name##_sample_set_from_previous(                                  \
+        Abc_Output_##uppercase_name *lowercase_name)                                              \
+    {                                                                                             \
+        lowercase_name->set_from_previous();                                                      \
+    }
+
 struct Abc_Output_Xform_Sample {
     ContexteKuri *ctx_kuri = nullptr;
     AbcGeom::XformSample sample{};
 };
 
-Abc_Output_Xform_Sample *abc_output_xform_sample_create(Abc_Output_Archive *archive)
-{
-    auto résultat = kuri_loge<Abc_Output_Xform_Sample>(archive->ctx_kuri);
-    résultat->ctx_kuri = archive->ctx_kuri;
-    return résultat;
-}
-
-void abc_output_xform_sample_reset(Abc_Output_Xform_Sample *sample)
-{
-    sample->sample = {};
-}
-
-void abc_output_xform_sample_destroy(Abc_Output_Xform_Sample *sample)
-{
-    if (sample) {
-        kuri_deloge(sample->ctx_kuri, sample);
-    }
-}
+DEFINE_COMMON_SAMPLE_FONCTIONS(Xform, xform)
 
 void abc_output_xform_sample_set_matrix(Abc_Output_Xform_Sample *sample, Abc_M44d *matrix)
 {
@@ -628,10 +671,11 @@ void abc_output_xform_sample_set_inherits_xform(Abc_Output_Xform_Sample *sample,
     sample->sample.setInheritsXforms(inherits);
 }
 
-void abc_output_xform_sample_set(Abc_Output_Xform *xform, Abc_Output_Xform_Sample *sample)
-{
-    xform->schema.set(sample->sample);
-}
+/** \} */
+
+/* ------------------------------------------------------------------------- */
+/** \nom Abc_Output_Points
+ * \{ */
 
 Abc_Output_Points *abc_output_points_create(Abc_Output_Xform *parent,
                                             Abc_String nom,
@@ -649,24 +693,7 @@ struct Abc_Output_Points_Sample {
     AbcGeom::OPointsSchema::Sample sample{};
 };
 
-Abc_Output_Points_Sample *abc_output_points_sample_create(Abc_Output_Archive *archive)
-{
-    auto résultat = kuri_loge<Abc_Output_Points_Sample>(archive->ctx_kuri);
-    résultat->ctx_kuri = archive->ctx_kuri;
-    return résultat;
-}
-
-void abc_output_points_sample_reset(Abc_Output_Points_Sample *sample)
-{
-    sample->sample = {};
-}
-
-void abc_output_points_sample_destroy(Abc_Output_Points_Sample *sample)
-{
-    if (sample) {
-        kuri_deloge(sample->ctx_kuri, sample);
-    }
-}
+DEFINE_COMMON_SAMPLE_FONCTIONS(Points, points)
 
 void abc_output_points_sample_positions_set(Abc_Output_Points_Sample *sample,
                                             float *positions,
@@ -705,17 +732,6 @@ void abc_output_points_sample_ids_set(Abc_Output_Points_Sample *sample,
     sample->sample.setIds(uint64_sample);
 }
 
-void abc_output_points_sample_set(Abc_Output_Points *points, Abc_Output_Points_Sample *sample)
-{
-    auto &opoints = points->object;
-    opoints.getSchema().set(sample->sample);
-}
-
-void abc_output_points_sample_set_from_previous(struct Abc_Output_Points *points)
-{
-    points->object.getSchema().setFromPrevious();
-}
-
 /** \} */
 
 /* ------------------------------------------------------------------------- */
@@ -738,24 +754,7 @@ struct Abc_Output_Curves_Sample {
     AbcGeom::OCurvesSchema::Sample sample{};
 };
 
-Abc_Output_Curves_Sample *abc_output_curves_sample_create(Abc_Output_Archive *archive)
-{
-    auto résultat = kuri_loge<Abc_Output_Curves_Sample>(archive->ctx_kuri);
-    résultat->ctx_kuri = archive->ctx_kuri;
-    return résultat;
-}
-
-void abc_output_curves_sample_reset(Abc_Output_Curves_Sample *sample)
-{
-    sample->sample = {};
-}
-
-void abc_output_curves_sample_destroy(Abc_Output_Curves_Sample *sample)
-{
-    if (sample) {
-        kuri_deloge(sample->ctx_kuri, sample);
-    }
-}
+DEFINE_COMMON_SAMPLE_FONCTIONS(Curves, curves)
 
 void abc_output_curves_sample_type_set(Abc_Output_Curves_Sample *sample, Abc_Curve_Type type)
 {
@@ -857,17 +856,6 @@ void abc_output_curves_sample_normals_set(Abc_Output_Curves_Sample *sample,
     auto geom_param = AbcGeom::ON3fGeomParam::Sample(array_sample,
                                                      static_cast<AbcGeom::GeometryScope>(scope));
     sample->sample.setNormals(geom_param);
-}
-
-void abc_output_curves_sample_set(Abc_Output_Curves *curves, Abc_Output_Curves_Sample *sample)
-{
-    auto &ocurves = curves->object;
-    ocurves.getSchema().set(sample->sample);
-}
-
-void abc_output_curves_sample_set_from_previous(Abc_Output_Curves *curves)
-{
-    curves->object.getSchema().setFromPrevious();
 }
 
 /** \} */
