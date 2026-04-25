@@ -67,7 +67,11 @@ abc_output_curves_sample_curves_num_vertices_set :: fonc (sample: *Abc_Output_Cu
 
 abc_output_curves_sample_widths_set :: fonc (sample: *Abc_Output_Curves_Sample, values: []r32, scope: Abc_Geometry_Scope)
 {
-    abc_output_curves_sample_widths_set(sample, values.pointeur, values.taille comme n64, scope);
+    geom_param: Abc_Output_Float_Geom_Param_Sample;
+    geom_param.values = values.pointeur;
+    geom_param.num_values = values.taille comme n64;
+    geom_param.scope = scope;
+    abc_output_curves_sample_widths_set(sample, geom_param);
 }
 
 principale :: fonc ()
@@ -194,7 +198,13 @@ crée_test_rayons_points :: fonc (chemin: chaine, export_rayon: bool)
         si export_rayon {
             width := 50 - abs((it + 1) - 50);
             widths := r32.[width comme r32 * 0.01];
-            abc_output_points_sample_widths_set(point_sample, *widths[0], 1, Abc_Geometry_Scope.VERTEX);
+
+            geom_param: Abc_Output_Float_Geom_Param_Sample;
+            geom_param.values = *widths[0];
+            geom_param.num_values = 1;
+            geom_param.scope = Abc_Geometry_Scope.VERTEX;
+
+            abc_output_points_sample_widths_set(point_sample, geom_param);
         }
 
         abc_output_points_sample_set(objet_point, point_sample);

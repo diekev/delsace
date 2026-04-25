@@ -432,6 +432,20 @@ ENUMERATE_ABC_ATTRIBUTE_TYPES(DEFINE_ABC_OUTPUT_GEOM_PARAMS)
     {                                                                                             \
         return make_array_sample<AbcGeom::type_geom##ArraySample>(sample.values,                  \
                                                                   sample.num_values);             \
+    }                                                                                             \
+    static AbcGeom::O##type_geom##GeomParam::Sample make_typed_sample(                            \
+        Abc_Output_##type_geom##_Geom_Param_Sample param_sample)                                  \
+    {                                                                                             \
+        auto array_sample = make_array_sample<AbcGeom::type_geom##ArraySample>(                   \
+            param_sample.values, param_sample.num_values);                                        \
+        auto abc_scope = static_cast<AbcGeom::GeometryScope>(param_sample.scope);                 \
+        if (param_sample.indices) {                                                               \
+            auto indices = AbcGeom::UInt32ArraySample(param_sample.indices,                       \
+                                                      param_sample.num_indices);                  \
+            return AbcGeom::O##type_geom##GeomParam::Sample(array_sample, indices, abc_scope);    \
+        }                                                                                         \
+        auto sample = AbcGeom::O##type_geom##GeomParam::Sample(array_sample, abc_scope);          \
+        return sample;                                                                            \
     }
 
 ENUMERATE_ABC_ATTRIBUTE_TYPES(MAKE_TYPED_SAMPLE_FROM_ARRAY_SAMPLE)
@@ -719,17 +733,6 @@ DEFINE_COMMON_SAMPLE_FONCTIONS(Points, points)
 
 ENUMERATE_POINTS_SAMPLE_INTERFACE(DEFINE_OUTPUT_SAMPLE_FUNCTIONS)
 
-void abc_output_points_sample_widths_set(Abc_Output_Points_Sample *sample,
-                                         float *widths,
-                                         uint64_t num_widths,
-                                         Abc_Geometry_Scope scope)
-{
-    auto values = AbcGeom::FloatArraySample(widths, num_widths);
-    auto f_sample = AbcGeom::OFloatGeomParam::Sample(values,
-                                                     static_cast<AbcGeom::GeometryScope>(scope));
-    sample->sample.setWidths(f_sample);
-}
-
 /** \} */
 
 /* ------------------------------------------------------------------------- */
@@ -773,39 +776,6 @@ void abc_output_curves_sample_basis_set(Abc_Output_Curves_Sample *sample, Abc_Ba
 {
     AbcGeom::BasisType ibasis = static_cast<AbcGeom::BasisType>(basis);
     sample->sample.setBasis(ibasis);
-}
-
-void abc_output_curves_sample_widths_set(Abc_Output_Curves_Sample *sample,
-                                         float *widths,
-                                         uint64_t num_widths,
-                                         enum Abc_Geometry_Scope scope)
-{
-    auto values = AbcGeom::FloatArraySample(widths, num_widths);
-    auto f_sample = AbcGeom::OFloatGeomParam::Sample(values,
-                                                     static_cast<AbcGeom::GeometryScope>(scope));
-    sample->sample.setWidths(f_sample);
-}
-
-void abc_output_curves_sample_uvs_set(Abc_Output_Curves_Sample *sample,
-                                      float *values,
-                                      uint64_t num_values,
-                                      Abc_Geometry_Scope scope)
-{
-    auto array_sample = AbcGeom::V2fArraySample(reinterpret_cast<Abc::V2f *>(values), num_values);
-    auto geom_param = AbcGeom::OV2fGeomParam::Sample(array_sample,
-                                                     static_cast<AbcGeom::GeometryScope>(scope));
-    sample->sample.setUVs(geom_param);
-}
-
-void abc_output_curves_sample_normals_set(Abc_Output_Curves_Sample *sample,
-                                          float *values,
-                                          uint64_t num_values,
-                                          enum Abc_Geometry_Scope scope)
-{
-    auto array_sample = AbcGeom::N3fArraySample(reinterpret_cast<Abc::N3f *>(values), num_values);
-    auto geom_param = AbcGeom::ON3fGeomParam::Sample(array_sample,
-                                                     static_cast<AbcGeom::GeometryScope>(scope));
-    sample->sample.setNormals(geom_param);
 }
 
 /** \} */
