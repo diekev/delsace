@@ -581,6 +581,54 @@ ENUMERATE_POLYMESH_SAMPLE_INTERFACE(DECLARE_OUTPUT_SAMPLE_SET_FUNCTION)
 
 /** \} */
 
+/* ------------------------------------------------------------------------- */
+/** \nom Abc_Output_SubD
+ * \{ */
+
+struct Abc_Output_SubD;
+
+struct Abc_Output_SubD *abc_output_subd_create(struct Abc_Output_Xform *parent,
+                                               struct Abc_String nom,
+                                               struct Abc_Time_Sample_Index time_sample_index);
+
+struct Abc_Output_FaceSet *abc_output_subd_create_face_set(struct Abc_Output_SubD *subd,
+                                                           struct Abc_String name);
+
+void abc_output_subd_set_uv_source_name(struct Abc_Output_SubD *subd, struct Abc_String name);
+
+#define ENUMERATE_SUBD_SAMPLE_INTERFACE(X)                                                        \
+    X(SubD, subd, positions_set, setPositions, Abc_P3f_Array_Sample)                              \
+    X(SubD, subd, velocities_set, setVelocities, Abc_V3f_Array_Sample)                            \
+    X(SubD, subd, face_indices_set, setFaceIndices, Abc_Int32_Array_Sample)                       \
+    X(SubD, subd, face_counts_set, setFaceCounts, Abc_Int32_Array_Sample)                         \
+    X(SubD, subd, uvs_set, setUVs, Abc_Output_V2f_Geom_Param_Sample)                              \
+    X(SubD, subd, crease_indices_set, setCreaseIndices, Abc_Int32_Array_Sample)                   \
+    X(SubD, subd, crease_lenghts_set, setCreaseLengths, Abc_Int32_Array_Sample)                   \
+    X(SubD, subd, crease_sharpnesses_set, setCreaseSharpnesses, Abc_Float_Array_Sample)           \
+    X(SubD, subd, corner_indices_set, setCornerIndices, Abc_Int32_Array_Sample)                   \
+    X(SubD, subd, corner_sharpnesses_set, setCornerSharpnesses, Abc_Float_Array_Sample)           \
+    X(SubD, subd, holes_set, setHoles, Abc_Int32_Array_Sample)
+
+struct Abc_Output_SubD_Sample;
+
+DECLARE_COMMON_SAMPLE_FONCTIONS(SubD, subd)
+
+ENUMERATE_SUBD_SAMPLE_INTERFACE(DECLARE_OUTPUT_SAMPLE_SET_FUNCTION)
+
+void abc_output_subd_sample_face_varying_interpolate_boundary_set(
+    struct Abc_Output_SubD_Sample *sample, int value);
+
+void abc_output_subd_sample_face_varying_propagate_corners_set(
+    struct Abc_Output_SubD_Sample *sample, int value);
+
+void abc_output_subd_sample_interpolate_boundary_set(struct Abc_Output_SubD_Sample *sample,
+                                                     int value);
+
+void abc_output_subd_sample_subdivision_scheme_set(struct Abc_Output_SubD_Sample *sample,
+                                                   struct Abc_String value);
+
+/** \} */
+
 #ifdef __cplusplus
 }
 #endif

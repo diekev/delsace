@@ -848,3 +848,79 @@ DEFINE_COMMON_SAMPLE_FONCTIONS(PolyMesh, polymesh)
 ENUMERATE_POLYMESH_SAMPLE_INTERFACE(DEFINE_OUTPUT_SAMPLE_FUNCTIONS)
 
 /** \} */
+
+/* ------------------------------------------------------------------------- */
+/** \nom Abc_Output_SubD
+ * \{ */
+
+struct Abc_Output_SubD : public Abc_Output_Object_Base {
+    AbcGeom::OSubD object{};
+
+    void set_sample(AbcGeom::OSubDSchema::Sample &sample)
+    {
+        object.getSchema().set(sample);
+    }
+
+    void set_from_previous()
+    {
+        object.getSchema().setFromPrevious();
+    }
+};
+
+Abc_Output_SubD *abc_output_subd_create(Abc_Output_Xform *parent,
+                                        Abc_String nom,
+                                        Abc_Time_Sample_Index time_sample_index)
+{
+    auto archive = parent->archive;
+    auto résultat = crée_objet_sortie<Abc_Output_SubD>(archive);
+    résultat->object = AbcGeom::OSubD(
+        parent->object, vers_std_string(nom), time_sample_index.value);
+    return résultat;
+}
+
+Abc_Output_FaceSet *abc_output_subd_create_face_set(Abc_Output_SubD *subd, Abc_String name)
+{
+    auto result = crée_objet_sortie<Abc_Output_FaceSet>(subd->archive);
+    result->object = subd->object.getSchema().createFaceSet(vers_std_string(name));
+    return result;
+}
+
+void abc_output_subd_set_uv_source_name(Abc_Output_SubD *subd, Abc_String name)
+{
+    subd->object.getSchema().setUVSourceName(vers_std_string(name));
+}
+
+struct Abc_Output_SubD_Sample {
+    ContexteKuri *ctx_kuri = nullptr;
+    AbcGeom::OSubDSchema::Sample sample{};
+};
+
+DEFINE_COMMON_SAMPLE_FONCTIONS(SubD, subd)
+
+ENUMERATE_SUBD_SAMPLE_INTERFACE(DEFINE_OUTPUT_SAMPLE_FUNCTIONS)
+
+void abc_output_subd_sample_face_varying_interpolate_boundary_set(
+    struct Abc_Output_SubD_Sample *sample, int value)
+{
+    sample->sample.setFaceVaryingInterpolateBoundary(value);
+}
+
+void abc_output_subd_sample_face_varying_propagate_corners_set(
+    struct Abc_Output_SubD_Sample *sample, int value)
+{
+    sample->sample.setFaceVaryingPropagateCorners(value);
+}
+
+void abc_output_subd_sample_interpolate_boundary_set(struct Abc_Output_SubD_Sample *sample,
+                                                     int value)
+{
+    sample->sample.setInterpolateBoundary(value);
+}
+
+void abc_output_subd_sample_subdivision_scheme_set(struct Abc_Output_SubD_Sample *sample,
+                                                   Abc_String value)
+{
+    sample->sample.setSubdivisionScheme(vers_std_string(value));
+}
+
+/** \} */
