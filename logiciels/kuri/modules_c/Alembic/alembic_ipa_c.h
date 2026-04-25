@@ -164,6 +164,12 @@ struct Abc_Output_Archive *abc_output_archive_create(struct ContexteKuri *ctx_ku
  */
 void abc_output_archive_destroy(struct Abc_Output_Archive *archive);
 
+/** \} */
+
+/* ------------------------------------------------------------------------- */
+/** \nom Abc_Time_Sample_Index
+ * \{ */
+
 struct Abc_Time_Sample_Index {
     uint32_t value;
 };
@@ -192,6 +198,12 @@ struct Abc_Time_Sample_Index abc_output_archive_create_time_sampling(
     uint64_t nombre_d_echantillons,
     double temps_par_cycle);
 
+/** \} */
+
+/* ------------------------------------------------------------------------- */
+/** \nom Abc_Output_Xform
+ * \{ */
+
 /**
  * @brief abc_output_archive_root_object_get Retourne l'objet racine de l'archive.
  */
@@ -216,6 +228,12 @@ void abc_output_xform_sample_set_inherits_xform(struct Abc_Output_Xform_Sample *
                                                 bool inherits);
 void abc_output_xform_sample_set(struct Abc_Output_Xform *xform,
                                  struct Abc_Output_Xform_Sample *sample);
+
+/** \} */
+
+/* ------------------------------------------------------------------------- */
+/** \nom Abc_Output_Points
+ * \{ */
 
 /**
  * @brief abc_output_points_create Crée un object de type Points.
