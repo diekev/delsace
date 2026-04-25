@@ -186,13 +186,13 @@ crée_xform_neutre_pour_objet :: fonc (archive: *Abc_Output_Archive, parent: *Ab
     matrix_sample := abc_output_xform_sample_create(archive);
     diffère abc_output_xform_sample_destroy(matrix_sample);
 
-    matrix: [4][4]r32;
-    matrix[0][0] = 1.0;
-    matrix[1][1] = 1.0;
-    matrix[2][2] = 1.0;
-    matrix[3][3] = 1.0;
+    matrix: Abc_M44d;
+    matrix.x[0][0] = 1.0;
+    matrix.x[1][1] = 1.0;
+    matrix.x[2][2] = 1.0;
+    matrix.x[3][3] = 1.0;
 
-    abc_output_xform_sample_set_matrix(matrix_sample, *matrix[0][0]);
+    abc_output_xform_sample_set_matrix(matrix_sample, *matrix);
 
     abc_output_xform_sample_set(résultat, matrix_sample);
 

@@ -417,7 +417,7 @@ struct Abc_Output_Xform_Sample;
 struct Abc_Output_Xform_Sample *abc_output_xform_sample_create(struct Abc_Output_Archive *archive);
 void abc_output_xform_sample_reset(struct Abc_Output_Xform_Sample *sample);
 void abc_output_xform_sample_destroy(struct Abc_Output_Xform_Sample *sample);
-void abc_output_xform_sample_set_matrix(struct Abc_Output_Xform_Sample *sample, float *matrix);
+void abc_output_xform_sample_set_matrix(struct Abc_Output_Xform_Sample *sample, Abc_M44d *matrix);
 void abc_output_xform_sample_set_inherits_xform(struct Abc_Output_Xform_Sample *sample,
                                                 bool inherits);
 void abc_output_xform_sample_set(struct Abc_Output_Xform *xform,

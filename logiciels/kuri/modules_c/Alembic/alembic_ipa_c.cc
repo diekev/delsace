@@ -618,17 +618,9 @@ void abc_output_xform_sample_destroy(Abc_Output_Xform_Sample *sample)
     }
 }
 
-void abc_output_xform_sample_set_matrix(Abc_Output_Xform_Sample *sample, float *matrix)
+void abc_output_xform_sample_set_matrix(Abc_Output_Xform_Sample *sample, Abc_M44d *matrix)
 {
-    double m[4][4];
-
-    for (int j = 0; j < 4; j++) {
-        for (int i = 0; i < 4; i++) {
-            m[i][j] = matrix[j * 4 + i];
-        }
-    }
-
-    sample->sample.setMatrix(m);
+    sample->sample.setMatrix(*reinterpret_cast<Abc::M44d *>(matrix));
 }
 
 void abc_output_xform_sample_set_inherits_xform(Abc_Output_Xform_Sample *sample, bool inherits)
