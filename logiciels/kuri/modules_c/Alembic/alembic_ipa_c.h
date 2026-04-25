@@ -64,10 +64,10 @@ struct EcrivainCache *ABC_cree_instance(struct ContexteKuri *ctx,
 
 void ABC_ecris_donnees(struct AutriceArchive *autrice);
 
-struct Abc_String {
+typedef struct Abc_String {
     const char *characters;
     uint64_t size;
-};
+} Abc_String;
 
 /* ------------------------------------------------------------------------- */
 /** \nom MetaData
@@ -197,6 +197,157 @@ struct Abc_Time_Sample_Index abc_output_archive_create_time_sampling(
     double *echantillons,
     uint64_t nombre_d_echantillons,
     double temps_par_cycle);
+
+/** \} */
+
+/* ------------------------------------------------------------------------- */
+/** \nom Abc_Output_Compound_Property
+ * \{ */
+
+struct Abc_Output_Compound_Property;
+
+/** \} */
+
+/* ------------------------------------------------------------------------- */
+/** \nom Abc_Output_Compound_Property
+ * \{ */
+
+#define ENUMERATE_VEC_TYPES(X)                                                                    \
+    X(s, short)                                                                                   \
+    X(i, int)                                                                                     \
+    X(f, float)                                                                                   \
+    X(d, double)
+
+#define DECLARE_VEC_TYPES(vec_suffix, type)                                                       \
+    typedef struct Abc_V2##vec_suffix {                                                           \
+        type x;                                                                                   \
+        type y;                                                                                   \
+    } Abc_V2##vec_suffix;                                                                         \
+    typedef struct Abc_V3##vec_suffix {                                                           \
+        type x;                                                                                   \
+        type y;                                                                                   \
+        type z;                                                                                   \
+    } Abc_V3##vec_suffix;
+
+ENUMERATE_VEC_TYPES(DECLARE_VEC_TYPES)
+
+#undef DECLARE_VEC_TYPES
+
+#define ENUMERATE_BOX_TYPES(X)                                                                    \
+    X(Box2s, V2s)                                                                                 \
+    X(Box2i, V2i)                                                                                 \
+    X(Box2f, V2f)                                                                                 \
+    X(Box2d, V2d)                                                                                 \
+    X(Box3s, V3s)                                                                                 \
+    X(Box3i, V3i)                                                                                 \
+    X(Box3f, V3f)                                                                                 \
+    X(Box3d, V3d)
+
+#define DECLARE_BOX_TYPES(box_name, vec_type)                                                     \
+    typedef struct Abc_##box_name {                                                               \
+        Abc_##vec_type min;                                                                       \
+        Abc_##vec_type max;                                                                       \
+    } Abc_##box_name;
+
+ENUMERATE_BOX_TYPES(DECLARE_BOX_TYPES)
+
+#undef DECLARE_BOX_TYPES
+
+// À FAIRE :
+/*
+
+typedef OTypedGeomParam<Float16TPTraits>         OHalfGeomParam;
+typedef OTypedGeomParam<WstringTPTraits>         OWstringGeomParam;
+
+typedef OTypedGeomParam<P2sTPTraits>             OP2sGeomParam;
+typedef OTypedGeomParam<P2iTPTraits>             OP2iGeomParam;
+typedef OTypedGeomParam<P2fTPTraits>             OP2fGeomParam;
+typedef OTypedGeomParam<P2dTPTraits>             OP2dGeomParam;
+
+typedef OTypedGeomParam<P3sTPTraits>             OP3sGeomParam;
+typedef OTypedGeomParam<P3iTPTraits>             OP3iGeomParam;
+typedef OTypedGeomParam<P3fTPTraits>             OP3fGeomParam;
+typedef OTypedGeomParam<P3dTPTraits>             OP3dGeomParam;
+
+typedef OTypedGeomParam<M33fTPTraits>            OM33fGeomParam;
+typedef OTypedGeomParam<M33dTPTraits>            OM33dGeomParam;
+typedef OTypedGeomParam<M44fTPTraits>            OM44fGeomParam;
+typedef OTypedGeomParam<M44dTPTraits>            OM44dGeomParam;
+
+typedef OTypedGeomParam<QuatfTPTraits>           OQuatfGeomParam;
+typedef OTypedGeomParam<QuatdTPTraits>           OQuatdGeomParam;
+
+typedef OTypedGeomParam<C3hTPTraits>             OC3hGeomParam;
+typedef OTypedGeomParam<C3fTPTraits>             OC3fGeomParam;
+typedef OTypedGeomParam<C3cTPTraits>             OC3cGeomParam;
+
+typedef OTypedGeomParam<C4hTPTraits>             OC4hGeomParam;
+typedef OTypedGeomParam<C4fTPTraits>             OC4fGeomParam;
+typedef OTypedGeomParam<C4cTPTraits>             OC4cGeomParam;
+
+typedef OTypedGeomParam<N2fTPTraits>             ON2fGeomParam;
+typedef OTypedGeomParam<N2dTPTraits>             ON2dGeomParam;
+
+typedef OTypedGeomParam<N3fTPTraits>             ON3fGeomParam;
+typedef OTypedGeomParam<N3dTPTraits>             ON3dGeomParam;
+
+
+ */
+// X(nom pour type, type c primitif)
+#define ENUMERATE_ABC_ATTRIBUTE_TYPES(X)                                                          \
+    X(Bool, bool)                                                                                 \
+    X(Uchar, uint8_t)                                                                             \
+    X(Char, int8_t)                                                                               \
+    X(UInt16, uint16_t)                                                                           \
+    X(Int16, int16_t)                                                                             \
+    X(UInt32, uint32_t)                                                                           \
+    X(Int32, int32_t)                                                                             \
+    X(UInt64, uint64_t)                                                                           \
+    X(Int64, int64_t)                                                                             \
+    X(Float, float)                                                                               \
+    X(Double, double)                                                                             \
+    X(String, Abc_String)                                                                         \
+    X(V2s, Abc_V2s)                                                                               \
+    X(V2i, Abc_V2i)                                                                               \
+    X(V2f, Abc_V2f)                                                                               \
+    X(V2d, Abc_V2d)                                                                               \
+    X(V3s, Abc_V3s)                                                                               \
+    X(V3i, Abc_V3i)                                                                               \
+    X(V3f, Abc_V3f)                                                                               \
+    X(V3d, Abc_V3d)                                                                               \
+    X(Box2s, Abc_Box2s)                                                                           \
+    X(Box2i, Abc_Box2i)                                                                           \
+    X(Box2f, Abc_Box2f)                                                                           \
+    X(Box2d, Abc_Box2d)                                                                           \
+    X(Box3s, Abc_Box3s)                                                                           \
+    X(Box3i, Abc_Box3i)                                                                           \
+    X(Box3f, Abc_Box3f)                                                                           \
+    X(Box3d, Abc_Box3d)
+
+#define DECLARE_ABC_OUTPUT_GEOM_PARAMS(nom_abc, type_c)                                           \
+    struct Abc_Output_##nom_abc##_Geom_Param;                                                     \
+    struct Abc_Output_##nom_abc##_Geom_Param_Sample {                                             \
+        type_c *values;                                                                           \
+        uint64_t num_values;                                                                      \
+        uint32_t *indices;                                                                        \
+        uint64_t num_indices;                                                                     \
+        enum Abc_Geometry_Scope scope;                                                            \
+    };                                                                                            \
+    struct Abc_Output_##nom_abc##_Geom_Param *abc_output_##type_c##_geom_param_create(            \
+        struct Abc_Output_Compound_Property *parent,                                              \
+        struct Abc_String name,                                                                   \
+        bool is_indexed,                                                                          \
+        enum Abc_Geometry_Scope scope,                                                            \
+        uint64_t array_extent);                                                                   \
+    void abc_output_##type_c##_geom_param_set_time_sampling(                                      \
+        struct Abc_Output_##nom_abc##_Geom_Param *param, struct Abc_Time_Sample_Index index);     \
+    void abc_output_##type_c##_geom_param_sample_set(                                             \
+        struct Abc_Output_##nom_abc##_Geom_Param *param,                                          \
+        struct Abc_Output_##nom_abc##_Geom_Param_Sample *sample);
+
+ENUMERATE_ABC_ATTRIBUTE_TYPES(DECLARE_ABC_OUTPUT_GEOM_PARAMS)
+
+#undef DECLARE_ABC_OUTPUT_GEOM_PARAMS
 
 /** \} */
 

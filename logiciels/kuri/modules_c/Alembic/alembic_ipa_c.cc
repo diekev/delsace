@@ -184,6 +184,28 @@ void ABC_lis_attributs(ContexteKuri *ctx_kuri,
 }
 
 /* ------------------------------------------------------------------------- */
+/** \nom Abc_String
+ * \{ */
+
+static std::string vers_std_string(struct Abc_String string)
+{
+    if (string.characters == nullptr) {
+        return "";
+    }
+    return std::string(string.characters, string.size);
+}
+
+static std::string vers_std_string_ou_défaut(struct Abc_String string, std::string_view défaut)
+{
+    if (string.characters == nullptr) {
+        return std::string(défaut.data(), défaut.size());
+    }
+    return std::string(string.characters, string.size);
+}
+
+/** \} */
+
+/* ------------------------------------------------------------------------- */
 /** \nom MetaData
  * \{ */
 
@@ -306,26 +328,138 @@ Abc_MetaData *abc_input_archive_get_metadata(Abc_Input_Archive *archive)
 /** \} */
 
 /* ------------------------------------------------------------------------- */
+/** \nom Abc_Output_Compound_Property
+ * \{ */
+
+struct Abc_Output_Compound_Property {
+    ContexteKuri *ctx_kuri;
+    AbcGeom::OCompoundProperty prop;
+};
+
+/** \} */
+
+/* ------------------------------------------------------------------------- */
+/** \nom Abc_Output_Typed_Geom_Param
+ * \{ */
+
+template <typename Abc_Sample_Type, typename T>
+auto make_array_sample(T *values, uint64_t num_values)
+{
+    return Abc_Sample_Type(values, num_values);
+}
+
+template <>
+auto make_array_sample<AbcGeom::BoolArraySample>(bool *values, uint64_t num_values)
+{
+    return AbcGeom::BoolArraySample(reinterpret_cast<Abc::bool_t *>(values), num_values);
+}
+
+template <>
+auto make_array_sample<AbcGeom::StringArraySample>(Abc_String *values, uint64_t num_values)
+{
+    std::vector<std::string> strings;
+    strings.resize(num_values);
+    for (uint64_t i = 0; i < num_values; i++) {
+        strings[i] = vers_std_string(*values++);
+    }
+    return AbcGeom::StringArraySample(strings.data(), num_values);
+}
+
+#define MAKE_VEC_ARRAY_SAMPLE(vec_suffix, type)                                                   \
+    template <>                                                                                   \
+    auto make_array_sample<AbcGeom::V2##vec_suffix##ArraySample>(Abc_V2##vec_suffix * values,     \
+                                                                 uint64_t num_values)             \
+    {                                                                                             \
+        return AbcGeom::V2##vec_suffix##ArraySample(                                              \
+            reinterpret_cast<Abc::V2##vec_suffix *>(values), num_values);                         \
+    }                                                                                             \
+    template <>                                                                                   \
+    auto make_array_sample<AbcGeom::V3##vec_suffix##ArraySample>(Abc_V3##vec_suffix * values,     \
+                                                                 uint64_t num_values)             \
+    {                                                                                             \
+        return AbcGeom::V3##vec_suffix##ArraySample(                                              \
+            reinterpret_cast<Abc::V3##vec_suffix *>(values), num_values);                         \
+    }
+
+ENUMERATE_VEC_TYPES(MAKE_VEC_ARRAY_SAMPLE)
+
+#undef MAKE_VEC_ARRAY_SAMPLE
+
+#define MAKE_BOX_ARRAY_SAMPLE(box_name, vec_type)                                                 \
+    template <>                                                                                   \
+    auto make_array_sample<AbcGeom::box_name##ArraySample>(Abc_##box_name * values,               \
+                                                           uint64_t num_values)                   \
+    {                                                                                             \
+        return AbcGeom::box_name##ArraySample(reinterpret_cast<Abc::box_name *>(values),          \
+                                              num_values);                                        \
+    }
+
+ENUMERATE_BOX_TYPES(MAKE_BOX_ARRAY_SAMPLE)
+
+#undef MAKE_BOX_ARRAY_SAMPLE
+
+#define DEFINE_ABC_OUTPUT_GEOM_PARAMS(nom_abc, type_c)                                            \
+    struct Abc_Output_##nom_abc##_Geom_Param {                                                    \
+        AbcGeom::O##nom_abc##GeomParam param;                                                     \
+        using ABC_ARRAY_SAMPLE_TYPE = AbcGeom::nom_abc##ArraySample;                              \
+        using KURI_ARRAY_SAMPLE_TYPE = Abc_Output_##nom_abc##_Geom_Param_Sample;                  \
+    };                                                                                            \
+    struct Abc_Output_##nom_abc##_Geom_Param *abc_output_##type_c##_geom_param_create(            \
+        struct Abc_Output_Compound_Property *parent,                                              \
+        struct Abc_String name,                                                                   \
+        bool is_indexed,                                                                          \
+        enum Abc_Geometry_Scope scope,                                                            \
+        uint64_t array_extent)                                                                    \
+    {                                                                                             \
+        if (parent == nullptr) {                                                                  \
+            return nullptr;                                                                       \
+        }                                                                                         \
+        auto résultat = kuri_loge<Abc_Output_##nom_abc##_Geom_Param>(parent->ctx_kuri);           \
+        résultat->param = AbcGeom::O##nom_abc##GeomParam(                                         \
+            parent->prop,                                                                         \
+            vers_std_string(name),                                                                \
+            is_indexed,                                                                           \
+            static_cast<AbcGeom::GeometryScope>(scope),                                           \
+            array_extent);                                                                        \
+        return résultat;                                                                          \
+    }                                                                                             \
+    void abc_output_##type_c##_geom_param_set_time_sampling(                                      \
+        struct Abc_Output_##nom_abc##_Geom_Param *param, struct Abc_Time_Sample_Index index)      \
+    {                                                                                             \
+        param->param.setTimeSampling(index.value);                                                \
+    }                                                                                             \
+    void abc_output_##type_c##_geom_param_sample_set(                                             \
+        struct Abc_Output_##nom_abc##_Geom_Param *param,                                          \
+        struct Abc_Output_##nom_abc##_Geom_Param_Sample *sample)                                  \
+    {                                                                                             \
+        if (sample->values) {                                                                     \
+            auto values = make_array_sample<AbcGeom::nom_abc##ArraySample>(sample->values,        \
+                                                                           sample->num_values);   \
+            auto abc_scope = static_cast<AbcGeom::GeometryScope>(sample->scope);                  \
+            if (sample->indices) {                                                                \
+                auto indices = AbcGeom::UInt32ArraySample(sample->indices, sample->num_indices);  \
+                auto param_sample = AbcGeom::O##nom_abc##GeomParam::Sample(                       \
+                    values, indices, abc_scope);                                                  \
+                param->param.set(param_sample);                                                   \
+            }                                                                                     \
+            else {                                                                                \
+                auto param_sample = AbcGeom::O##nom_abc##GeomParam::Sample(values, abc_scope);    \
+                param->param.set(param_sample);                                                   \
+            }                                                                                     \
+        }                                                                                         \
+    }
+
+ENUMERATE_ABC_ATTRIBUTE_TYPES(DEFINE_ABC_OUTPUT_GEOM_PARAMS)
+
+#undef DECLARE_ABC_OUTPUT_GEOM_PARAMS
+
+/** \} */
+
+/* ------------------------------------------------------------------------- */
 /** \nom Export
  * \{ */
 
 using namespace Alembic;
-
-static std::string vers_std_string(struct Abc_String string)
-{
-    if (string.characters == nullptr) {
-        return "";
-    }
-    return std::string(string.characters, string.size);
-}
-
-static std::string vers_std_string_ou_défaut(struct Abc_String string, std::string_view défaut)
-{
-    if (string.characters == nullptr) {
-        return std::string(défaut.data(), défaut.size());
-    }
-    return std::string(string.characters, string.size);
-}
 
 struct Abc_Output_Object_Base {
     Abc_Output_Object_Base *next = nullptr;
