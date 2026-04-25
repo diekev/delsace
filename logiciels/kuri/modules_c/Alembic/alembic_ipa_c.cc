@@ -456,6 +456,26 @@ ENUMERATE_ABC_ATTRIBUTE_TYPES(DEFINE_ABC_OUTPUT_GEOM_PARAMS)
         lname##_sample->sample.method(sample);                                                    \
     }
 
+#define DEFINE_COMMON_OBJECT_FUNCTIONS(uname, lname)                                              \
+    Abc_Output_Compound_Property *abc_output_##lname##_arb_geom_params_get(                       \
+        struct Abc_Output_##uname *lname)                                                         \
+    {                                                                                             \
+        if (!lname->arb_geom_params_initialized) {                                                \
+            lname->get_arb_geom_params(&lname->arb_geom_params);                                  \
+            lname->arb_geom_params_initialized = true;                                            \
+        }                                                                                         \
+        return &lname->arb_geom_params;                                                           \
+    }                                                                                             \
+    Abc_Output_Compound_Property *abc_output_##lname##_user_properties_get(                       \
+        struct Abc_Output_##uname *lname)                                                         \
+    {                                                                                             \
+        if (!lname->user_properties_initialized) {                                                \
+            lname->get_user_properties(&lname->user_properties);                                  \
+            lname->user_properties_initialized = true;                                            \
+        }                                                                                         \
+        return &lname->user_properties;                                                           \
+    }
+
 /** \} */
 
 /* ------------------------------------------------------------------------- */
@@ -467,6 +487,12 @@ using namespace Alembic;
 struct Abc_Output_Object_Base {
     Abc_Output_Object_Base *next = nullptr;
     Abc_Output_Archive *archive = nullptr;
+
+    Abc_Output_Compound_Property arb_geom_params{};
+    Abc_Output_Compound_Property user_properties{};
+
+    bool arb_geom_params_initialized = false;
+    bool user_properties_initialized = false;
 
     virtual ~Abc_Output_Object_Base() = default;
 };
@@ -484,6 +510,16 @@ struct Abc_Output_Xform : public Abc_Output_Object_Base {
     {
         schema.setFromPrevious();
     }
+
+    void get_arb_geom_params(Abc_Output_Compound_Property *prop)
+    {
+        prop->prop = schema.getArbGeomParams();
+    }
+
+    void get_user_properties(Abc_Output_Compound_Property *prop)
+    {
+        prop->prop = schema.getUserProperties();
+    }
 };
 
 struct Abc_Output_Points : public Abc_Output_Object_Base {
@@ -498,6 +534,16 @@ struct Abc_Output_Points : public Abc_Output_Object_Base {
     {
         object.getSchema().setFromPrevious();
     }
+
+    void get_arb_geom_params(Abc_Output_Compound_Property *prop)
+    {
+        prop->prop = object.getSchema().getArbGeomParams();
+    }
+
+    void get_user_properties(Abc_Output_Compound_Property *prop)
+    {
+        prop->prop = object.getSchema().getUserProperties();
+    }
 };
 
 struct Abc_Output_Curves : public Abc_Output_Object_Base {
@@ -511,6 +557,16 @@ struct Abc_Output_Curves : public Abc_Output_Object_Base {
     void set_from_previous()
     {
         object.getSchema().setFromPrevious();
+    }
+
+    void get_arb_geom_params(Abc_Output_Compound_Property *prop)
+    {
+        prop->prop = object.getSchema().getArbGeomParams();
+    }
+
+    void get_user_properties(Abc_Output_Compound_Property *prop)
+    {
+        prop->prop = object.getSchema().getUserProperties();
     }
 };
 
@@ -641,6 +697,8 @@ Abc_Output_Xform *abc_output_archive_root_object_get(Abc_Output_Archive *archive
     return racine;
 }
 
+DEFINE_COMMON_OBJECT_FUNCTIONS(Xform, xform)
+
 Abc_Output_Xform *abc_output_xform_create(Abc_Output_Xform *parent,
                                           Abc_String nom,
                                           Abc_Time_Sample_Index time_sample_index)
@@ -720,6 +778,8 @@ Abc_Output_Points *abc_output_points_create(Abc_Output_Xform *parent,
     return résultat;
 }
 
+DEFINE_COMMON_OBJECT_FUNCTIONS(Points, points)
+
 struct Abc_Output_Points_Sample {
     ContexteKuri *ctx_kuri = nullptr;
     AbcGeom::OPointsSchema::Sample sample{};
@@ -745,6 +805,8 @@ Abc_Output_Curves *abc_output_curves_create(Abc_Output_Xform *parent,
         parent->object, vers_std_string(nom), time_sample_index.value);
     return résultat;
 }
+
+DEFINE_COMMON_OBJECT_FUNCTIONS(Curves, curves)
 
 struct Abc_Output_Curves_Sample {
     ContexteKuri *ctx_kuri = nullptr;
@@ -791,7 +853,19 @@ struct Abc_Output_FaceSet : public Abc_Output_Object_Base {
     void set_from_previous()
     {
     }
+
+    void get_arb_geom_params(Abc_Output_Compound_Property *prop)
+    {
+        prop->prop = object.getSchema().getArbGeomParams();
+    }
+
+    void get_user_properties(Abc_Output_Compound_Property *prop)
+    {
+        prop->prop = object.getSchema().getUserProperties();
+    }
 };
+
+DEFINE_COMMON_OBJECT_FUNCTIONS(FaceSet, faceset)
 
 struct Abc_Output_FaceSet_Sample {
     ContexteKuri *ctx_kuri = nullptr;
@@ -820,6 +894,16 @@ struct Abc_Output_PolyMesh : public Abc_Output_Object_Base {
     {
         object.getSchema().setFromPrevious();
     }
+
+    void get_arb_geom_params(Abc_Output_Compound_Property *prop)
+    {
+        prop->prop = object.getSchema().getArbGeomParams();
+    }
+
+    void get_user_properties(Abc_Output_Compound_Property *prop)
+    {
+        prop->prop = object.getSchema().getUserProperties();
+    }
 };
 
 Abc_Output_PolyMesh *abc_output_poly_mesh_create(Abc_Output_Xform *parent,
@@ -832,6 +916,8 @@ Abc_Output_PolyMesh *abc_output_poly_mesh_create(Abc_Output_Xform *parent,
         parent->object, vers_std_string(nom), time_sample_index.value);
     return résultat;
 }
+
+DEFINE_COMMON_OBJECT_FUNCTIONS(PolyMesh, polymesh)
 
 Abc_Output_FaceSet *abc_output_polymesh_create_face_set(Abc_Output_PolyMesh *mesh, Abc_String name)
 {
@@ -872,6 +958,16 @@ struct Abc_Output_SubD : public Abc_Output_Object_Base {
     {
         object.getSchema().setFromPrevious();
     }
+
+    void get_arb_geom_params(Abc_Output_Compound_Property *prop)
+    {
+        prop->prop = object.getSchema().getArbGeomParams();
+    }
+
+    void get_user_properties(Abc_Output_Compound_Property *prop)
+    {
+        prop->prop = object.getSchema().getUserProperties();
+    }
 };
 
 Abc_Output_SubD *abc_output_subd_create(Abc_Output_Xform *parent,
@@ -884,6 +980,8 @@ Abc_Output_SubD *abc_output_subd_create(Abc_Output_Xform *parent,
         parent->object, vers_std_string(nom), time_sample_index.value);
     return résultat;
 }
+
+DEFINE_COMMON_OBJECT_FUNCTIONS(SubD, subd)
 
 Abc_Output_FaceSet *abc_output_subd_create_face_set(Abc_Output_SubD *subd, Abc_String name)
 {
@@ -948,6 +1046,16 @@ struct Abc_Output_Camera : public Abc_Output_Object_Base {
     {
         object.getSchema().setFromPrevious();
     }
+
+    void get_arb_geom_params(Abc_Output_Compound_Property *prop)
+    {
+        prop->prop = object.getSchema().getArbGeomParams();
+    }
+
+    void get_user_properties(Abc_Output_Compound_Property *prop)
+    {
+        prop->prop = object.getSchema().getUserProperties();
+    }
 };
 
 Abc_Output_Camera *abc_output_camera_create(Abc_Output_Xform *parent,
@@ -960,6 +1068,8 @@ Abc_Output_Camera *abc_output_camera_create(Abc_Output_Xform *parent,
         parent->object, vers_std_string(nom), time_sample_index.value);
     return résultat;
 }
+
+DEFINE_COMMON_OBJECT_FUNCTIONS(Camera, camera)
 
 struct Abc_Output_Camera_Sample {
     ContexteKuri *ctx_kuri = nullptr;
