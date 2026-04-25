@@ -233,6 +233,27 @@ ENUMERATE_VEC_TYPES(DECLARE_VEC_TYPES)
 
 #undef DECLARE_VEC_TYPES
 
+#define ENUMERATE_COLOR_TYPES(X)                                                                  \
+    X(c, uint8_t)                                                                                 \
+    X(f, float)
+
+#define DECLARE_COLOR_TYPES(suffix, type)                                                         \
+    typedef struct Abc_C3##suffix {                                                               \
+        type x;                                                                                   \
+        type y;                                                                                   \
+        type z;                                                                                   \
+    } Abc_C3##suffix;                                                                             \
+    typedef struct Abc_C4##suffix {                                                               \
+        type r;                                                                                   \
+        type g;                                                                                   \
+        type b;                                                                                   \
+        type a;                                                                                   \
+    } Abc_C4##suffix;
+
+ENUMERATE_COLOR_TYPES(DECLARE_COLOR_TYPES)
+
+#undef DECLARE_COLOR_TYPES
+
 #define ENUMERATE_BOX_TYPES(X)                                                                    \
     X(Box2s, V2s)                                                                                 \
     X(Box2i, V2i)                                                                                 \
@@ -253,97 +274,119 @@ ENUMERATE_BOX_TYPES(DECLARE_BOX_TYPES)
 
 #undef DECLARE_BOX_TYPES
 
+typedef struct Abc_Quatf {
+    float r;
+    Abc_V3f v;
+} Abc_Quatf;
+
+typedef struct Abc_Quatd {
+    double r;
+    Abc_V3d v;
+} Abc_Quatd;
+
+#define ENUMERATE_ABC_MATRIX_TYPES(X)                                                             \
+    X(3, f, float)                                                                                \
+    X(3, d, double)                                                                               \
+    X(4, f, float)                                                                                \
+    X(4, d, float)
+
+#define DEFINE_ABC_MATRIX_TYPE(dim, suffix, data_type)                                            \
+    typedef struct Abc_M##dim##dim##suffix {                                                      \
+        data_type x[dim][dim];                                                                    \
+    } Abc_M##dim##dim##suffix;
+
+ENUMERATE_ABC_MATRIX_TYPES(DEFINE_ABC_MATRIX_TYPE)
+
+#undef DEFINE_ABC_MATRIX_TYPE
+
 // À FAIRE :
 /*
 
 typedef OTypedGeomParam<Float16TPTraits>         OHalfGeomParam;
 typedef OTypedGeomParam<WstringTPTraits>         OWstringGeomParam;
-
-typedef OTypedGeomParam<P2sTPTraits>             OP2sGeomParam;
-typedef OTypedGeomParam<P2iTPTraits>             OP2iGeomParam;
-typedef OTypedGeomParam<P2fTPTraits>             OP2fGeomParam;
-typedef OTypedGeomParam<P2dTPTraits>             OP2dGeomParam;
-
-typedef OTypedGeomParam<P3sTPTraits>             OP3sGeomParam;
-typedef OTypedGeomParam<P3iTPTraits>             OP3iGeomParam;
-typedef OTypedGeomParam<P3fTPTraits>             OP3fGeomParam;
-typedef OTypedGeomParam<P3dTPTraits>             OP3dGeomParam;
-
-typedef OTypedGeomParam<M33fTPTraits>            OM33fGeomParam;
-typedef OTypedGeomParam<M33dTPTraits>            OM33dGeomParam;
-typedef OTypedGeomParam<M44fTPTraits>            OM44fGeomParam;
-typedef OTypedGeomParam<M44dTPTraits>            OM44dGeomParam;
-
-typedef OTypedGeomParam<QuatfTPTraits>           OQuatfGeomParam;
-typedef OTypedGeomParam<QuatdTPTraits>           OQuatdGeomParam;
-
 typedef OTypedGeomParam<C3hTPTraits>             OC3hGeomParam;
-typedef OTypedGeomParam<C3fTPTraits>             OC3fGeomParam;
-typedef OTypedGeomParam<C3cTPTraits>             OC3cGeomParam;
-
 typedef OTypedGeomParam<C4hTPTraits>             OC4hGeomParam;
-typedef OTypedGeomParam<C4fTPTraits>             OC4fGeomParam;
-typedef OTypedGeomParam<C4cTPTraits>             OC4cGeomParam;
-
-typedef OTypedGeomParam<N2fTPTraits>             ON2fGeomParam;
-typedef OTypedGeomParam<N2dTPTraits>             ON2dGeomParam;
-
-typedef OTypedGeomParam<N3fTPTraits>             ON3fGeomParam;
-typedef OTypedGeomParam<N3dTPTraits>             ON3dGeomParam;
-
 
  */
-// X(nom pour type, type c primitif)
-#define ENUMERATE_ABC_ATTRIBUTE_TYPES(X)                                                          \
-    X(Bool, bool)                                                                                 \
-    X(Uchar, uint8_t)                                                                             \
-    X(Char, int8_t)                                                                               \
-    X(UInt16, uint16_t)                                                                           \
-    X(Int16, int16_t)                                                                             \
-    X(UInt32, uint32_t)                                                                           \
-    X(Int32, int32_t)                                                                             \
-    X(UInt64, uint64_t)                                                                           \
-    X(Int64, int64_t)                                                                             \
-    X(Float, float)                                                                               \
-    X(Double, double)                                                                             \
-    X(String, Abc_String)                                                                         \
-    X(V2s, Abc_V2s)                                                                               \
-    X(V2i, Abc_V2i)                                                                               \
-    X(V2f, Abc_V2f)                                                                               \
-    X(V2d, Abc_V2d)                                                                               \
-    X(V3s, Abc_V3s)                                                                               \
-    X(V3i, Abc_V3i)                                                                               \
-    X(V3f, Abc_V3f)                                                                               \
-    X(V3d, Abc_V3d)                                                                               \
-    X(Box2s, Abc_Box2s)                                                                           \
-    X(Box2i, Abc_Box2i)                                                                           \
-    X(Box2f, Abc_Box2f)                                                                           \
-    X(Box2d, Abc_Box2d)                                                                           \
-    X(Box3s, Abc_Box3s)                                                                           \
-    X(Box3i, Abc_Box3i)                                                                           \
-    X(Box3f, Abc_Box3f)                                                                           \
-    X(Box3d, Abc_Box3d)
 
-#define DECLARE_ABC_OUTPUT_GEOM_PARAMS(nom_abc, type_c)                                           \
-    struct Abc_Output_##nom_abc##_Geom_Param;                                                     \
-    struct Abc_Output_##nom_abc##_Geom_Param_Sample {                                             \
+// Ces attributs requiers des conversions spéciales
+// #define X(type_geom, type_abc_value, type_c, nom_court)
+#define ENUMERATE_ABC_ATTRIBUTE_SPECIAL(X)                                                        \
+    X(Bool, bool_t, bool, bool)                                                                   \
+    X(V2s, V2s, Abc_V2s, v2s)                                                                     \
+    X(V2i, V2i, Abc_V2i, v2i)                                                                     \
+    X(V2f, V2f, Abc_V2f, v2f)                                                                     \
+    X(V2d, V2d, Abc_V2d, v2d)                                                                     \
+    X(V3s, V3s, Abc_V3s, v3s)                                                                     \
+    X(V3i, V3i, Abc_V3i, v3i)                                                                     \
+    X(V3f, V3f, Abc_V3f, v3f)                                                                     \
+    X(V3d, V3d, Abc_V3d, v3d)                                                                     \
+    X(P2s, V2s, Abc_V2s, p2s)                                                                     \
+    X(P2i, V2i, Abc_V2i, p2i)                                                                     \
+    X(P2f, V2f, Abc_V2f, p2f)                                                                     \
+    X(P2d, V2d, Abc_V2d, p2d)                                                                     \
+    X(P3s, V3s, Abc_V3s, p3s)                                                                     \
+    X(P3i, V3i, Abc_V3i, p3i)                                                                     \
+    X(P3f, V3f, Abc_V3f, p3f)                                                                     \
+    X(P3d, V3d, Abc_V3d, p3d)                                                                     \
+    X(Box2s, Box2s, Abc_Box2s, box2s)                                                             \
+    X(Box2i, Box2i, Abc_Box2i, box2i)                                                             \
+    X(Box2f, Box2f, Abc_Box2f, box2f)                                                             \
+    X(Box2d, Box2d, Abc_Box2d, box2d)                                                             \
+    X(Box3s, Box3s, Abc_Box3s, box3s)                                                             \
+    X(Box3i, Box3i, Abc_Box3i, box3i)                                                             \
+    X(Box3f, Box3f, Abc_Box3f, box3f)                                                             \
+    X(Box3d, Box3d, Abc_Box3d, box3d)                                                             \
+    X(Quatf, Quatf, Abc_Quatf, quatf)                                                             \
+    X(Quatd, Quatd, Abc_Quatd, quatd)                                                             \
+    X(N2f, V2f, Abc_V2f, n2f)                                                                     \
+    X(N2d, V2d, Abc_V2d, n2d)                                                                     \
+    X(N3f, V3f, Abc_V3f, n3f)                                                                     \
+    X(N3d, V3d, Abc_V3d, n3d)                                                                     \
+    X(C3c, C3c, Abc_C3c, c3c)                                                                     \
+    X(C3f, C3f, Abc_C3f, c3f)                                                                     \
+    X(C4c, C4c, Abc_C4c, c4c)                                                                     \
+    X(C4f, C4f, Abc_C4f, c4f)                                                                     \
+    X(M33f, M33f, Abc_M33f, m33f)                                                                 \
+    X(M33d, M33d, Abc_M33d, m33d)                                                                 \
+    X(M44f, M44f, Abc_M44f, m44f)                                                                 \
+    X(M44d, M44d, Abc_M44d, m44d)
+
+// #define X(type_geom, type_abc_value, type_c, nom_court)
+#define ENUMERATE_ABC_ATTRIBUTE_TYPES(X)                                                          \
+    X(Uchar, uint8_t, uint8_t, uchar)                                                             \
+    X(Char, int8_t, int8_t, char)                                                                 \
+    X(UInt16, uint16_t, uint16_t, uint16)                                                         \
+    X(Int16, int16_t, int16_t, int16)                                                             \
+    X(UInt32, uint32_t, uint32_t, uint32)                                                         \
+    X(Int32, int32_t, int32_t, int32)                                                             \
+    X(UInt64, uint64_t, uint64_t, uint64)                                                         \
+    X(Int64, int64_t, int64_t, int64)                                                             \
+    X(Float, float, float, float)                                                                 \
+    X(Double, double, double, double)                                                             \
+    X(String, std::string, Abc_String, string)                                                    \
+    ENUMERATE_ABC_ATTRIBUTE_SPECIAL(X)
+
+#define DECLARE_ABC_OUTPUT_GEOM_PARAMS(type_geom, type_abc_value, type_c, nom_court)              \
+    struct Abc_Output_##type_geom##_Geom_Param;                                                   \
+    struct Abc_Output_##type_geom##_Geom_Param_Sample {                                           \
         type_c *values;                                                                           \
         uint64_t num_values;                                                                      \
         uint32_t *indices;                                                                        \
         uint64_t num_indices;                                                                     \
         enum Abc_Geometry_Scope scope;                                                            \
     };                                                                                            \
-    struct Abc_Output_##nom_abc##_Geom_Param *abc_output_##type_c##_geom_param_create(            \
+    struct Abc_Output_##type_geom##_Geom_Param *abc_output_##nom_court##_geom_param_create(       \
         struct Abc_Output_Compound_Property *parent,                                              \
         struct Abc_String name,                                                                   \
         bool is_indexed,                                                                          \
         enum Abc_Geometry_Scope scope,                                                            \
         uint64_t array_extent);                                                                   \
-    void abc_output_##type_c##_geom_param_set_time_sampling(                                      \
-        struct Abc_Output_##nom_abc##_Geom_Param *param, struct Abc_Time_Sample_Index index);     \
-    void abc_output_##type_c##_geom_param_sample_set(                                             \
-        struct Abc_Output_##nom_abc##_Geom_Param *param,                                          \
-        struct Abc_Output_##nom_abc##_Geom_Param_Sample *sample);
+    void abc_output_##nom_court##_geom_param_set_time_sampling(                                   \
+        struct Abc_Output_##type_geom##_Geom_Param *param, struct Abc_Time_Sample_Index index);   \
+    void abc_output_##nom_court##_geom_param_sample_set(                                          \
+        struct Abc_Output_##type_geom##_Geom_Param *param,                                        \
+        struct Abc_Output_##type_geom##_Geom_Param_Sample *sample);
 
 ENUMERATE_ABC_ATTRIBUTE_TYPES(DECLARE_ABC_OUTPUT_GEOM_PARAMS)
 
