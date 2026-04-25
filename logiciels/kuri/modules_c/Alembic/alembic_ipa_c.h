@@ -530,6 +530,57 @@ void abc_output_curves_sample_basis_set(struct Abc_Output_Curves_Sample *sample,
 
 /** \} */
 
+/* ------------------------------------------------------------------------- */
+/** \nom Abc_Output_FaceSet
+ * \{ */
+
+struct Abc_Output_FaceSet;
+;
+
+// X(uname, lname, snake_name, method, sample_type)
+#define ENUMERATE_FACESET_SAMPLE_INTERFACE(X)                                                     \
+    X(FaceSet, faceset, faces_set, setFaces, Abc_Int32_Array_Sample)
+
+struct Abc_Output_FaceSet_Sample;
+DECLARE_COMMON_SAMPLE_FONCTIONS(FaceSet, faceset)
+ENUMERATE_FACESET_SAMPLE_INTERFACE(DECLARE_OUTPUT_SAMPLE_SET_FUNCTION)
+
+/** \} */
+
+/* ------------------------------------------------------------------------- */
+/** \nom Abc_Output_PolyMesh
+ * \{ */
+
+struct Abc_Output_PolyMesh;
+
+struct Abc_Output_PolyMesh *abc_output_poly_mesh_create(
+    struct Abc_Output_Xform *parent,
+    struct Abc_String nom,
+    struct Abc_Time_Sample_Index time_sample_index);
+
+struct Abc_Output_FaceSet *abc_output_polymesh_create_face_set(struct Abc_Output_PolyMesh *mesh,
+                                                               struct Abc_String name);
+
+void abc_output_polymesh_set_uv_source_name(struct Abc_Output_PolyMesh *mesh,
+                                            struct Abc_String name);
+
+// X(uname, lname, snake_name, method, sample_type)
+#define ENUMERATE_POLYMESH_SAMPLE_INTERFACE(X)                                                    \
+    X(PolyMesh, polymesh, positions_set, setPositions, Abc_P3f_Array_Sample)                      \
+    X(PolyMesh, polymesh, velocities_set, setVelocities, Abc_V3f_Array_Sample)                    \
+    X(PolyMesh, polymesh, face_indices_set, setFaceIndices, Abc_Int32_Array_Sample)               \
+    X(PolyMesh, polymesh, face_counts_set, setFaceCounts, Abc_Int32_Array_Sample)                 \
+    X(PolyMesh, polymesh, uvs_set, setUVs, Abc_Output_V2f_Geom_Param_Sample)                      \
+    X(PolyMesh, polymesh, normals_set, setNormals, Abc_Output_N3f_Geom_Param_Sample)
+
+struct Abc_Output_PolyMesh_Sample;
+
+DECLARE_COMMON_SAMPLE_FONCTIONS(PolyMesh, polymesh)
+
+ENUMERATE_POLYMESH_SAMPLE_INTERFACE(DECLARE_OUTPUT_SAMPLE_SET_FUNCTION)
+
+/** \} */
+
 #ifdef __cplusplus
 }
 #endif

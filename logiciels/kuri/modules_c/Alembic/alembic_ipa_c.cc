@@ -768,3 +768,83 @@ void abc_output_curves_sample_basis_set(Abc_Output_Curves_Sample *sample, Abc_Ba
 }
 
 /** \} */
+
+/* ------------------------------------------------------------------------- */
+/** \nom Abc_Output_FaceSet
+ * \{ */
+
+struct Abc_Output_FaceSet : public Abc_Output_Object_Base {
+    AbcGeom::OFaceSet object;
+
+    void set_sample(AbcGeom::OFaceSetSchema::Sample &sample)
+    {
+        object.getSchema().set(sample);
+    }
+
+    void set_from_previous()
+    {
+    }
+};
+
+struct Abc_Output_FaceSet_Sample {
+    ContexteKuri *ctx_kuri = nullptr;
+    AbcGeom::OFaceSetSchema::Sample sample{};
+};
+
+DEFINE_COMMON_SAMPLE_FONCTIONS(FaceSet, faceset)
+
+ENUMERATE_FACESET_SAMPLE_INTERFACE(DEFINE_OUTPUT_SAMPLE_FUNCTIONS)
+
+/** \} */
+
+/* ------------------------------------------------------------------------- */
+/** \nom Abc_Output_PolyMesh
+ * \{ */
+
+struct Abc_Output_PolyMesh : public Abc_Output_Object_Base {
+    AbcGeom::OPolyMesh object{};
+
+    void set_sample(AbcGeom::OPolyMeshSchema::Sample &sample)
+    {
+        object.getSchema().set(sample);
+    }
+
+    void set_from_previous()
+    {
+        object.getSchema().setFromPrevious();
+    }
+};
+
+Abc_Output_PolyMesh *abc_output_poly_mesh_create(Abc_Output_Xform *parent,
+                                                 Abc_String nom,
+                                                 Abc_Time_Sample_Index time_sample_index)
+{
+    auto archive = parent->archive;
+    auto résultat = crée_objet_sortie<Abc_Output_PolyMesh>(archive);
+    résultat->object = AbcGeom::OPolyMesh(
+        parent->object, vers_std_string(nom), time_sample_index.value);
+    return résultat;
+}
+
+Abc_Output_FaceSet *abc_output_polymesh_create_face_set(Abc_Output_PolyMesh *mesh, Abc_String name)
+{
+    auto result = crée_objet_sortie<Abc_Output_FaceSet>(mesh->archive);
+    result->object = mesh->object.getSchema().createFaceSet(vers_std_string(name));
+    return result;
+}
+
+void abc_output_polymesh_set_uv_source_name(Abc_Output_PolyMesh *mesh, Abc_String name)
+{
+    mesh->object.getSchema().setUVSourceName(vers_std_string(name));
+}
+
+struct Abc_Output_PolyMesh_Sample {
+    ContexteKuri *ctx_kuri = nullptr;
+    AbcGeom::OPolyMeshSchema::Sample sample{};
+};
+
+DEFINE_COMMON_SAMPLE_FONCTIONS(PolyMesh, polymesh)
+
+ENUMERATE_POLYMESH_SAMPLE_INTERFACE(DEFINE_OUTPUT_SAMPLE_FUNCTIONS)
+
+/** \} */
