@@ -449,6 +449,13 @@ ENUMERATE_ABC_ATTRIBUTE_TYPES(DEFINE_ABC_OUTPUT_GEOM_PARAMS)
         lname##_sample->sample.method(typed_sample);                                              \
     }
 
+#define DEFINE_OUTPUT_SAMPLE_SCALAR_FUNCTIONS(uname, lname, snake_name, method, sample_type)      \
+    void abc_output_##lname##_sample_##snake_name(                                                \
+        struct Abc_Output_##uname##_Sample *lname##_sample, sample_type sample)                   \
+    {                                                                                             \
+        lname##_sample->sample.method(sample);                                                    \
+    }
+
 /** \} */
 
 /* ------------------------------------------------------------------------- */
@@ -922,5 +929,54 @@ void abc_output_subd_sample_subdivision_scheme_set(struct Abc_Output_SubD_Sample
 {
     sample->sample.setSubdivisionScheme(vers_std_string(value));
 }
+
+/** \} */
+
+/* ------------------------------------------------------------------------- */
+/** \nom Abc_Output_Camera
+ * \{ */
+
+struct Abc_Output_Camera : public Abc_Output_Object_Base {
+    AbcGeom::OCamera object{};
+
+    void set_sample(AbcGeom::CameraSample &sample)
+    {
+        object.getSchema().set(sample);
+    }
+
+    void set_from_previous()
+    {
+        object.getSchema().setFromPrevious();
+    }
+};
+
+Abc_Output_Camera *abc_output_camera_create(Abc_Output_Xform *parent,
+                                            Abc_String nom,
+                                            Abc_Time_Sample_Index time_sample_index)
+{
+    auto archive = parent->archive;
+    auto résultat = crée_objet_sortie<Abc_Output_Camera>(archive);
+    résultat->object = AbcGeom::OCamera(
+        parent->object, vers_std_string(nom), time_sample_index.value);
+    return résultat;
+}
+
+struct Abc_Output_Camera_Sample {
+    ContexteKuri *ctx_kuri = nullptr;
+    AbcGeom::CameraSample sample{};
+};
+
+DEFINE_COMMON_SAMPLE_FONCTIONS(Camera, camera)
+
+struct Abc_Output_Camera_Sample *abc_output_camera_sample_create_window(
+    struct Abc_Output_Archive *archive, double top, double bottom, double left, double right)
+{
+    auto résultat = kuri_loge<Abc_Output_Camera_Sample>(archive->ctx_kuri);
+    résultat->ctx_kuri = archive->ctx_kuri;
+    résultat->sample = AbcGeom::CameraSample(top, bottom, left, right);
+    return résultat;
+}
+
+ENUMERATE_OUTPUT_CAMERA_SAMPLE_SCALAR_INTERFACE(DEFINE_OUTPUT_SAMPLE_SCALAR_FUNCTIONS)
 
 /** \} */

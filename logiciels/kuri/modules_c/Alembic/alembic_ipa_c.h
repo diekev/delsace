@@ -69,6 +69,39 @@ typedef struct Abc_String {
     uint64_t size;
 } Abc_String;
 
+typedef struct Abc_Milimeters {
+    double value;
+
+#ifdef __cplusplus
+    operator double()
+    {
+        return value;
+    }
+#endif
+} Abc_Milimeters;
+
+typedef struct Abc_Centimeters {
+    double value;
+
+#ifdef __cplusplus
+    operator double()
+    {
+        return value;
+    }
+#endif
+} Abc_Centimeters;
+
+typedef struct Abc_Seconds {
+    double value;
+
+#ifdef __cplusplus
+    operator double()
+    {
+        return value;
+    }
+#endif
+} Abc_Seconds;
+
 /* ------------------------------------------------------------------------- */
 /** \nom MetaData
  * \{ */
@@ -421,6 +454,10 @@ ENUMERATE_ABC_ATTRIBUTE_TYPES(DECLARE_ABC_OUTPUT_GEOM_PARAMS)
     void abc_output_##lname##_sample_##snake_name(                                                \
         struct Abc_Output_##uname##_Sample *lname##_sample, struct sample_type sample);
 
+#define DECLARE_OUTPUT_SAMPLE_SCALAR_FUNCTIONS(uname, lname, snake_name, method, sample_type)     \
+    void abc_output_##lname##_sample_##snake_name(                                                \
+        struct Abc_Output_##uname##_Sample *lname##_sample, sample_type sample);
+
 /* ------------------------------------------------------------------------- */
 /** \nom Abc_Output_Xform
  * \{ */
@@ -625,6 +662,45 @@ void abc_output_subd_sample_interpolate_boundary_set(struct Abc_Output_SubD_Samp
 
 void abc_output_subd_sample_subdivision_scheme_set(struct Abc_Output_SubD_Sample *sample,
                                                    struct Abc_String value);
+
+/** \} */
+
+/* ------------------------------------------------------------------------- */
+/** \nom Abc_Output_Camera
+ * \{ */
+
+struct Abc_Output_Camera;
+
+struct Abc_Output_Camera *abc_output_camera_create(struct Abc_Output_Xform *parent,
+                                                   struct Abc_String nom,
+                                                   struct Abc_Time_Sample_Index time_sample_index);
+
+#define ENUMERATE_OUTPUT_CAMERA_SAMPLE_SCALAR_INTERFACE(X)                                        \
+    X(Camera, camera, focal_length_set, setFocalLength, Abc_Milimeters)                           \
+    X(Camera, camera, horizontal_aperture_set, setHorizontalAperture, Abc_Centimeters)            \
+    X(Camera, camera, horizontal_film_offset_set, setHorizontalFilmOffset, Abc_Centimeters)       \
+    X(Camera, camera, vertical_aperture_set, setVerticalAperture, Abc_Centimeters)                \
+    X(Camera, camera, vertical_film_offset_set, setVerticalFilmOffset, Abc_Centimeters)           \
+    X(Camera, camera, lens_squeeze_ratio_set, setLensSqueezeRatio, double)                        \
+    X(Camera, camera, overscan_left_set, setOverScanLeft, double)                                 \
+    X(Camera, camera, overscan_right_set, setOverScanRight, double)                               \
+    X(Camera, camera, overscan_top_set, setOverScanTop, double)                                   \
+    X(Camera, camera, overscan_bottom_set, setOverScanBottom, double)                             \
+    X(Camera, camera, fstop_set, setFStop, double)                                                \
+    X(Camera, camera, focus_distance_set, setFocusDistance, Abc_Centimeters)                      \
+    X(Camera, camera, shutter_open_set, setShutterOpen, Abc_Seconds)                              \
+    X(Camera, camera, shutter_close_set, setShutterClose, Abc_Seconds)                            \
+    X(Camera, camera, near_clipping_plane_set, setNearClippingPlane, Abc_Centimeters)             \
+    X(Camera, camera, far_clipping_plane_set, setFarClippingPlane, Abc_Centimeters)
+
+struct Abc_Output_Camera_Sample;
+
+DECLARE_COMMON_SAMPLE_FONCTIONS(Camera, camera)
+
+struct Abc_Output_Camera_Sample *abc_output_camera_sample_create_window(
+    struct Abc_Output_Archive *archive, double top, double bottom, double left, double right);
+
+ENUMERATE_OUTPUT_CAMERA_SAMPLE_SCALAR_INTERFACE(DECLARE_OUTPUT_SAMPLE_SCALAR_FUNCTIONS)
 
 /** \} */
 
