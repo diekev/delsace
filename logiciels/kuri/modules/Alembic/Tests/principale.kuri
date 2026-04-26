@@ -438,5 +438,10 @@ imprime_properties :: fonc (props: *Abc_Input_Compound_Property, nom: chaine)
         abc_property_header_get_name(prop_header, *prop_header_name);
 
         imprimeln("        %", vers_kuri(prop_header_name));
+
+        metadata := abc_property_header_get_metadata(prop_header);
+        diffère abc_metadata_destroy(metadata);
+
+        imprime_metadata(metadata);
     }
 }

@@ -353,6 +353,7 @@ struct Abc_Input_Archive {
 struct Abc_Property_Header {
     const Alembic::AbcCoreAbstract::PropertyHeader &header;
     Abc_Property_Header *next;
+    ContexteKuri *ctx_kuri;
 };
 
 void abc_property_header_get_name(struct Abc_Property_Header *header, struct Abc_String *name)
@@ -382,7 +383,10 @@ bool abc_property_header_is_simple(struct Abc_Property_Header *header)
     return header->header.isSimple();
 }
 
-// À FAIRE const MetaData &getMetaData() const { return m_metaData; }
+Abc_MetaData *abc_property_header_get_metadata(struct Abc_Property_Header *header)
+{
+    return make_metadata(header->ctx_kuri, header->header.getMetaData());
+}
 
 void abc_property_header_get_data_type(struct Abc_Property_Header *header,
                                        struct Abc_Data_Type *r_data_type)
@@ -422,6 +426,7 @@ struct Abc_Property_Header *abc_input_compound_property_get_property_header(
 {
     const Alembic::AbcCoreAbstract::PropertyHeader &header = prop->prop.getPropertyHeader(i);
     auto résultat = kuri_loge<Abc_Property_Header>(prop->archive->ctx_kuri, header);
+    résultat->ctx_kuri = prop->archive->ctx_kuri;
     résultat->next = prop->archive->prop_headers;
     prop->archive->prop_headers = résultat;
     return résultat;

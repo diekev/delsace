@@ -401,6 +401,7 @@ bool abc_property_header_is_scalar(struct Abc_Property_Header *header);
 bool abc_property_header_is_array(struct Abc_Property_Header *header);
 bool abc_property_header_is_compound(struct Abc_Property_Header *header);
 bool abc_property_header_is_simple(struct Abc_Property_Header *header);
+struct Abc_MetaData *abc_property_header_get_metadata(struct Abc_Property_Header *header);
 void abc_property_header_get_data_type(struct Abc_Property_Header *header,
                                        struct Abc_Data_Type *r_data_type);
 
