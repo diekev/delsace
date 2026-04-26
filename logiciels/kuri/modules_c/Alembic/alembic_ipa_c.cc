@@ -541,6 +541,7 @@ Abc_Input_Compound_Property *get_arb_geom_params(TypedObject *object)
 {
     if (object->arb_geom_params_initialized == false) {
         object->arb_geom_params.prop = object->typed_object.getSchema().getArbGeomParams();
+        object->arb_geom_params.archive = object->archive;
         object->arb_geom_params_initialized = true;
     }
     return &object->arb_geom_params;
@@ -555,7 +556,7 @@ template <typename TypedObject>
 Abc_Input_Compound_Property *get_user_properties(TypedObject *object)
 {
     if (object->user_properties_initialized == false) {
-        object->user_properties.prop = object->typed_object.getSchema().getArbGeomParams();
+        object->user_properties.archive = object->archive;
         object->user_properties_initialized = true;
     }
     return &object->user_properties;
