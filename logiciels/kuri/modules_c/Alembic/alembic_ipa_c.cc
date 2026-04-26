@@ -333,6 +333,7 @@ bool abc_metadata_iterator_next(Abc_MetaData_Iterator *iterator,
 
 struct Abc_Object_Header {
     const AbcGeom::ObjectHeader &header;
+    Abc_Object_Header *next = nullptr;
 };
 
 void abc_object_header_get_name(struct Abc_Object_Header *header, Abc_String *name)
@@ -355,6 +356,9 @@ ENUMERATE_INPUT_OBJECT_TYPES(DECLARE_OBJECT_MATCHES_FUNCTIONS)
 struct Abc_Input_Archive {
     ContexteKuri *ctx_kuri = nullptr;
     Abc::IArchive iarchive{};
+
+    Abc_Object_Header *headers = nullptr;
+    Abc_Input_Object *objects = nullptr;
 };
 
 /* ------------------------------------------------------------------------- */
@@ -363,8 +367,19 @@ struct Abc_Input_Archive {
 
 struct Abc_Input_Object {
     Abc_Input_Archive *archive = nullptr;
+    Abc_Input_Object *next = nullptr;
     AbcGeom::IObject untyped_object{};
 };
+
+template <typename T>
+T *make_object(Abc_Input_Archive *archive)
+{
+    auto résultat = kuri_loge<T>(archive->ctx_kuri);
+    résultat->archive = archive;
+    résultat->next = résultat->archive->objects;
+    résultat->archive->objects = résultat;
+    return résultat;
+}
 
 bool abc_input_object_valid(struct Abc_Input_Object *object)
 {
@@ -381,15 +396,16 @@ struct Abc_Object_Header *abc_input_object_get_child_header(struct Abc_Input_Obj
 {
     const AbcGeom::ObjectHeader &header = object->untyped_object.getChildHeader(i);
     auto résultat = kuri_loge<Abc_Object_Header>(object->archive->ctx_kuri, header);
+    résultat->next = object->archive->headers;
+    object->archive->headers = résultat;
     return résultat;
 }
 
 struct Abc_Input_Object *abc_input_object_get_child(struct Abc_Input_Object *object,
                                                     struct Abc_String name)
 {
-    auto résultat = kuri_loge<Abc_Input_Object>(object->archive->ctx_kuri);
+    auto résultat = make_object<Abc_Input_Object>(object->archive);
     résultat->untyped_object = object->untyped_object.getChild(name);
-    résultat->archive = object->archive;
     return résultat;
 }
 
@@ -409,8 +425,7 @@ bool abc_input_object_is_instance_root(struct Abc_Input_Object *object)
     };                                                                                            \
     Abc_Input_##type_kuri *abc_input_##lname##_get(Abc_Input_Object *parent, Abc_String name)     \
     {                                                                                             \
-        auto résultat = kuri_loge<Abc_Input_##type_kuri>(parent->archive->ctx_kuri);              \
-        résultat->archive = parent->archive;                                                      \
+        auto résultat = make_object<Abc_Input_##type_kuri>(parent->archive);                      \
         résultat->typed_object = type_abc(parent->untyped_object, name);                          \
         résultat->untyped_object = résultat->typed_object;                                        \
         return résultat;                                                                          \
@@ -456,6 +471,8 @@ struct Abc_Input_Archive *abc_input_archive_create(ContexteKuri *ctx_kuri,
 void abc_input_archive_destroy(struct Abc_Input_Archive *archive)
 {
     if (archive) {
+        kuri_deloge_liste(archive->ctx_kuri, archive->headers);
+        kuri_deloge_liste(archive->ctx_kuri, archive->objects);
         kuri_deloge(archive->ctx_kuri, archive);
     }
 }
@@ -470,8 +487,7 @@ Abc_MetaData *abc_input_archive_get_metadata(Abc_Input_Archive *archive)
 
 Abc_Input_Object *abc_input_archive_get_top(Abc_Input_Archive *archive)
 {
-    auto résultat = kuri_loge<Abc_Input_Object>(archive->ctx_kuri);
-    résultat->archive = archive;
+    auto résultat = make_object<Abc_Input_Object>(archive);
     résultat->untyped_object = archive->iarchive.getTop();
     return résultat;
 }
