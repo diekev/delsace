@@ -208,6 +208,14 @@ Abc_String::operator std::string()
     return vers_std_string(*this);
 }
 
+static void vers_abc_string(Abc_String *result, const std::string &name)
+{
+    if (result) {
+        result->characters = name.c_str();
+        result->size = name.size();
+    }
+}
+
 /** \} */
 
 /* ------------------------------------------------------------------------- */
@@ -306,13 +314,102 @@ void abc_metadata_iterator_destroy(struct Abc_MetaData_Iterator *iterator)
 /** \} */
 
 /* ------------------------------------------------------------------------- */
-/** \nom Abc_Input_Archive
+/** \nom Abc_Object_Header
  * \{ */
+
+struct Abc_Object_Header {
+    const AbcGeom::ObjectHeader &header;
+};
+
+void abc_object_header_get_name(struct Abc_Object_Header *header, Abc_String *name)
+{
+    vers_abc_string(name, header->header.getName());
+}
+
+#define DECLARE_OBJECT_MATCHES_FUNCTIONS(type_abc, type_kuri, lname)                              \
+    bool abc_object_header_matches_##lname(struct Abc_Object_Header *header)                      \
+    {                                                                                             \
+        return type_abc::matches(header->header);                                                 \
+    }
+
+ENUMERATE_INPUT_OBJECT_TYPES(DECLARE_OBJECT_MATCHES_FUNCTIONS)
+
+#undef DECLARE_OBJECT_MATCHES_FUNCTIONS
+
+/** \} */
 
 struct Abc_Input_Archive {
     ContexteKuri *ctx_kuri = nullptr;
     Abc::IArchive iarchive{};
 };
+
+/* ------------------------------------------------------------------------- */
+/** \nom Abc_Input_Object
+ * \{ */
+
+struct Abc_Input_Object {
+    Abc_Input_Archive *archive = nullptr;
+    AbcGeom::IObject untyped_object{};
+};
+
+bool abc_input_object_valid(struct Abc_Input_Object *object)
+{
+    return object && object->untyped_object.valid();
+}
+
+uint64_t abc_input_object_get_num_children(struct Abc_Input_Object *object)
+{
+    return object->untyped_object.getNumChildren();
+}
+
+struct Abc_Object_Header *abc_input_object_get_child_header(struct Abc_Input_Object *object,
+                                                            uint64_t i)
+{
+    const AbcGeom::ObjectHeader &header = object->untyped_object.getChildHeader(i);
+    auto résultat = kuri_loge<Abc_Object_Header>(object->archive->ctx_kuri, header);
+    return résultat;
+}
+
+struct Abc_Input_Object *abc_input_object_get_child(struct Abc_Input_Object *object,
+                                                    struct Abc_String name)
+{
+    auto résultat = kuri_loge<Abc_Input_Object>(object->archive->ctx_kuri);
+    résultat->untyped_object = object->untyped_object.getChild(name);
+    résultat->archive = object->archive;
+    return résultat;
+}
+
+void abc_input_object_get_full_name(struct Abc_Input_Object *object, struct Abc_String *name)
+{
+    vers_abc_string(name, object->untyped_object.getFullName());
+}
+
+bool abc_input_object_is_instance_root(struct Abc_Input_Object *object)
+{
+    return object->untyped_object.isInstanceRoot();
+}
+
+#define DECLARE_TYPED_INPUT_OBJECTS(type_abc, type_kuri, lname)                                   \
+    struct Abc_Input_##type_kuri : public Abc_Input_Object {                                      \
+        type_abc typed_object{};                                                                  \
+    };                                                                                            \
+    Abc_Input_##type_kuri *abc_input_##lname##_get(Abc_Input_Object *parent, Abc_String name)     \
+    {                                                                                             \
+        auto résultat = kuri_loge<Abc_Input_##type_kuri>(parent->archive->ctx_kuri);              \
+        résultat->archive = parent->archive;                                                      \
+        résultat->typed_object = type_abc(parent->untyped_object, name);                          \
+        résultat->untyped_object = résultat->typed_object;                                        \
+        return résultat;                                                                          \
+    }
+
+ENUMERATE_INPUT_OBJECT_TYPES(DECLARE_TYPED_INPUT_OBJECTS)
+
+#undef DECLARE_TYPED_INPUT_OBJECTS
+/** \} */
+
+/* ------------------------------------------------------------------------- */
+/** \nom Abc_Input_Archive
+ * \{ */
 
 struct Abc_Input_Archive *abc_input_archive_create(ContexteKuri *ctx_kuri,
                                                    struct Abc_String *chemins,
@@ -354,6 +451,14 @@ Abc_MetaData *abc_input_archive_get_metadata(Abc_Input_Archive *archive)
     auto résultat = kuri_loge<Abc_MetaData>(archive->ctx_kuri);
     résultat->ctx_kuri = archive->ctx_kuri;
     résultat->metadata = archive->iarchive.getTop().getMetaData();
+    return résultat;
+}
+
+Abc_Input_Object *abc_input_archive_get_top(Abc_Input_Archive *archive)
+{
+    auto résultat = kuri_loge<Abc_Input_Object>(archive->ctx_kuri);
+    résultat->archive = archive;
+    résultat->untyped_object = archive->iarchive.getTop();
     return résultat;
 }
 

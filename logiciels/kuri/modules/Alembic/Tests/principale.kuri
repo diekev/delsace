@@ -185,6 +185,51 @@ principale :: fonc ()
         exit(1);
     }
 
+    imprime_hiérarchie_archive(chemin);
+    // imprime_métadonnées_archives(chemin);
+
+    // fichier: FichierCache;
+    // ajoute_calque(*fichier, chemin);
+
+    // // À FAIRE : pas d'erreur
+    // saufsi ouvre_fichier_cache(*fichier) {
+    //     exit(1);
+    // }
+
+    // // rassemble_noms_objets(*fichier);
+
+    // metadata := abc_input_archive_get_metadata(fichier.poignée_abc);
+    // diffère abc_metadata_destroy(metadata);
+
+    // iterator := abc_metadata_get_iterator(metadata);
+    // diffère abc_metadata_iterator_destroy(iterator);
+
+    // boucle {
+    //     clé: Abc_String;
+    //     valeur: Abc_String;
+
+    //     saufsi iterator.next(iterator, *clé, *valeur) {
+    //         arrête;
+    //     }
+
+    //     imprimeln("% : %", vers_kuri(clé), vers_kuri(valeur));
+    // }
+
+    // ctx_kuri := initialise_contexte_kuri();
+    // lectrice := ABC_crée_lectrice_cache(*ctx_kuri, fichier.poignée_abc, "/Plane/PlaneShape");
+
+    // saufsi lectrice {
+    //     exit(1);
+    // }
+
+    // imprime("Lectrice créée !\n");
+
+    // ctx_lecture_cache := initialise_contexte_lecture_cache();
+    // ABC_lis_objet(*ctx_kuri, *ctx_lecture_cache, lectrice, 0.0);
+}
+
+imprime_métadonnées_archives :: fonc (chemin: chaine)
+{
     chemins: [..]chaine;
     diffère déloge_tableau_et_ses_éléments(*chemins);
 
@@ -242,43 +287,42 @@ principale :: fonc ()
         }
         imprimeln("    %", it.description);
     }
+}
 
-    // fichier: FichierCache;
-    // ajoute_calque(*fichier, chemin);
+imprime_hiérarchie_archive :: fonc (chemin: chaine)
+{
+    iarchive := abc_input_archive_create(chemin);
+    saufsi iarchive {
+        imprimeln("Impossible d'ouvrir l'archive '%'", chemin);
+        retourne;
+    }
+    diffère abc_input_archive_destroy(iarchive);
 
-    // // À FAIRE : pas d'erreur
-    // saufsi ouvre_fichier_cache(*fichier) {
-    //     exit(1);
-    // }
+    top := abc_input_archive_get_top(iarchive);
+    saufsi abc_input_object_valid(top) {
+        imprimeln("L'object top n'est pas valide");
+        retourne;
+    }
 
-    // // rassemble_noms_objets(*fichier);
+    pour abc_input_object_get_num_children(top) {
+        header := abc_input_object_get_child_header(top, it);
+        traverse_hiérarchie(top, header);
+    }
+}
 
-    // metadata := abc_input_archive_get_metadata(fichier.poignée_abc);
-    // diffère abc_metadata_destroy(metadata);
+traverse_hiérarchie :: fonc (parent: *Abc_Input_Object, header: *Abc_Object_Header)
+{
+    nom: Abc_String;
+    abc_object_header_get_name(header, *nom);
+    next_object := abc_input_object_get_child(parent, nom);
 
-    // iterator := abc_metadata_get_iterator(metadata);
-    // diffère abc_metadata_iterator_destroy(iterator);
+    si abc_input_object_valid(next_object) {
+        abc_input_object_get_full_name(next_object, *nom);
+        imprimeln("%", vers_kuri(nom));
 
-    // boucle {
-    //     clé: Abc_String;
-    //     valeur: Abc_String;
-
-    //     saufsi iterator.next(iterator, *clé, *valeur) {
-    //         arrête;
-    //     }
-
-    //     imprimeln("% : %", vers_kuri(clé), vers_kuri(valeur));
-    // }
-
-    // ctx_kuri := initialise_contexte_kuri();
-    // lectrice := ABC_crée_lectrice_cache(*ctx_kuri, fichier.poignée_abc, "/Plane/PlaneShape");
-
-    // saufsi lectrice {
-    //     exit(1);
-    // }
-
-    // imprime("Lectrice créée !\n");
-
-    // ctx_lecture_cache := initialise_contexte_lecture_cache();
-    // ABC_lis_objet(*ctx_kuri, *ctx_lecture_cache, lectrice, 0.0);
+        pour abc_input_object_get_num_children(next_object) {
+            header = abc_input_object_get_child_header(next_object, it);
+            traverse_hiérarchie(next_object, header);
+        }
+    }
 }

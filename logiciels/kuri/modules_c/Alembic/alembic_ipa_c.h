@@ -396,6 +396,66 @@ struct Abc_Data_Type {
 /** \} */
 
 /* ------------------------------------------------------------------------- */
+/** \nom Abc_Object_Header
+ * \{ */
+
+struct Abc_Object_Header;
+
+void abc_object_header_get_name(struct Abc_Object_Header *header, Abc_String *name);
+
+#define ENUMERATE_INPUT_OBJECT_TYPES(X)                                                           \
+    X(AbcGeom::IXform, Xform, xform)                                                              \
+    X(AbcGeom::ISubD, SubD, subd)                                                                 \
+    X(AbcGeom::IPolyMesh, PolyMesh, polymesh)                                                     \
+    X(AbcGeom::ICurves, Curves, curves)                                                           \
+    X(AbcGeom::IFaceSet, FaceSet, faceset)                                                        \
+    X(AbcGeom::IPoints, Points, points)                                                           \
+    X(AbcGeom::ILight, Light, light)                                                              \
+    X(AbcGeom::INuPatch, NuPatch, nupatch)                                                        \
+    X(AbcGeom::ICamera, Camera, camera)                                                           \
+    X(Alembic::AbcMaterial::IMaterial, Material, material)
+
+#define DECLARE_OBJECT_MATCHES_FUNCTIONS(type_abc, type_kuri, lname)                              \
+    bool abc_object_header_matches_##lname(struct Abc_Object_Header *header);
+
+ENUMERATE_INPUT_OBJECT_TYPES(DECLARE_OBJECT_MATCHES_FUNCTIONS)
+
+#undef DECLARE_OBJECT_MATCHES_FUNCTIONS
+
+/** \} */
+
+/* ------------------------------------------------------------------------- */
+/** \nom Abc_Input_Object
+ * \{ */
+
+struct Abc_Input_Object;
+
+bool abc_input_object_valid(struct Abc_Input_Object *object);
+
+uint64_t abc_input_object_get_num_children(struct Abc_Input_Object *object);
+
+struct Abc_Object_Header *abc_input_object_get_child_header(struct Abc_Input_Object *object,
+                                                            uint64_t i);
+
+struct Abc_Input_Object *abc_input_object_get_child(struct Abc_Input_Object *object,
+                                                    struct Abc_String name);
+
+void abc_input_object_get_full_name(struct Abc_Input_Object *object, struct Abc_String *name);
+
+bool abc_input_object_is_instance_root(struct Abc_Input_Object *object);
+
+#define DECLARE_TYPED_INPUT_OBJECTS(type_abc, type_kuri, lname)                                   \
+    struct Abc_Input_##type_kuri;                                                                 \
+    struct Abc_Input_##type_kuri *abc_input_##lname##_get(struct Abc_Input_Object *parent,        \
+                                                          struct Abc_String name);
+
+ENUMERATE_INPUT_OBJECT_TYPES(DECLARE_TYPED_INPUT_OBJECTS)
+
+#undef DECLARE_TYPED_INPUT_OBJECTS
+
+/** \} */
+
+/* ------------------------------------------------------------------------- */
 /** \nom Abc_Input_Archive
  * \{ */
 
@@ -408,6 +468,8 @@ struct Abc_Input_Archive *abc_input_archive_create(struct ContexteKuri *ctx_kuri
 void abc_input_archive_destroy(struct Abc_Input_Archive *archive);
 
 struct Abc_MetaData *abc_input_archive_get_metadata(struct Abc_Input_Archive *archive);
+
+struct Abc_Input_Object *abc_input_archive_get_top(struct Abc_Input_Archive *archive);
 
 /** \} */
 
