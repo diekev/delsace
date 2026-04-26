@@ -246,6 +246,14 @@ struct Abc_MetaData {
     Abc_MetaData_Iterator *iterators = nullptr;
 };
 
+static Abc_MetaData *make_metadata(ContexteKuri *ctx_kuri, const Abc::MetaData &metadata)
+{
+    auto résultat = kuri_loge<Abc_MetaData>(ctx_kuri);
+    résultat->ctx_kuri = ctx_kuri;
+    résultat->metadata = metadata;
+    return résultat;
+}
+
 void abc_metadata_destroy(struct Abc_MetaData *metadata)
 {
     if (metadata) {
@@ -443,10 +451,7 @@ void abc_object_header_get_full_name(struct Abc_Object_Header *header, Abc_Strin
 
 Abc_MetaData *abc_object_header_get_metadata(struct Abc_Object_Header *header)
 {
-    auto résultat = kuri_loge<Abc_MetaData>(header->ctx_kuri);
-    résultat->ctx_kuri = header->ctx_kuri;
-    résultat->metadata = header->header.getMetaData();
-    return résultat;
+    return make_metadata(header->ctx_kuri, header->header.getMetaData());
 }
 
 #define DECLARE_OBJECT_MATCHES_FUNCTIONS(type_abc, type_kuri, lname)                              \
@@ -637,10 +642,7 @@ void abc_input_archive_destroy(struct Abc_Input_Archive *archive)
 
 Abc_MetaData *abc_input_archive_get_metadata(Abc_Input_Archive *archive)
 {
-    auto résultat = kuri_loge<Abc_MetaData>(archive->ctx_kuri);
-    résultat->ctx_kuri = archive->ctx_kuri;
-    résultat->metadata = archive->iarchive.getTop().getMetaData();
-    return résultat;
+    return make_metadata(archive->ctx_kuri, archive->iarchive.getTop().getMetaData());
 }
 
 Abc_Input_Object *abc_input_archive_get_top(Abc_Input_Archive *archive)
