@@ -371,8 +371,49 @@ struct Abc_Output_Compound_Property {
 /** \} */
 
 /* ------------------------------------------------------------------------- */
-/** \nom Abc_Output_Typed_Geom_Param
+/** \nom Abc_Output_Scalar_Property
  * \{ */
+
+struct Abc_Output_Scalar_Property {
+    Abc_Output_Compound_Property *parent = nullptr;
+    AbcGeom::OScalarProperty prop{};
+};
+
+Abc_Output_Scalar_Property *abc_output_scalar_property_create(Abc_Output_Compound_Property *parent,
+                                                              Abc_String name,
+                                                              Abc_Data_Type data_type,
+                                                              Abc_Time_Sample_Index ts_index)
+{
+    auto abc_data_type = Alembic::AbcCoreAbstract::DataType(
+        static_cast<Alembic::AbcCoreAbstract::PlainOldDataType>(data_type.pod_type),
+        data_type.extent);
+
+    auto résultat = kuri_loge<Abc_Output_Scalar_Property>(parent->ctx_kuri);
+    résultat->parent = parent;
+    résultat->prop = AbcGeom::OScalarProperty(parent->prop, name, abc_data_type);
+    résultat->prop.setTimeSampling(ts_index.value);
+    return résultat;
+}
+
+void abc_output_scalar_property_set_from_previous(struct Abc_Output_Scalar_Property *prop)
+{
+    prop->prop.setFromPrevious();
+}
+
+#define DEFINE_SCALAR_PROPERTY_SETTER(type_geom, type_abc_value, type_c, nom_court)               \
+    void abc_output_scalar_property_##nom_court##_set(struct Abc_Output_Scalar_Property *prop,    \
+                                                      type_c sample)                              \
+    {                                                                                             \
+        using AbcGeom::bool_t;                                                                    \
+        type_abc_value sample_value = sample;                                                     \
+        prop->prop.set(&sample_value);                                                            \
+    }
+
+ENUMERATE_ABC_POD_TYPE(DEFINE_SCALAR_PROPERTY_SETTER)
+
+#undef DEFINE_SCALAR_PROPERTY_SETTER
+
+/** \} */
 
 template <typename Abc_Sample_Type, typename T>
 auto make_array_sample(T *values, uint64_t num_values)
@@ -428,6 +469,54 @@ ENUMERATE_ABC_ATTRIBUTE_SPECIAL(MAKE_TYPED_ARRAY_SAMPLE)
 ENUMERATE_ABC_ATTRIBUTE_TYPES(MAKE_TYPED_SAMPLE_FROM_ARRAY_SAMPLE)
 
 #undef MAKE_TYPED_SAMPLE_FROM_ARRAY_SAMPLE
+
+/* ------------------------------------------------------------------------- */
+/** \nom Abc_Output_Array_Property
+ * \{ */
+
+struct Abc_Output_Array_Property {
+    Abc_Output_Compound_Property *parent = nullptr;
+    AbcGeom::OArrayProperty prop{};
+};
+
+Abc_Output_Array_Property *abc_output_array_property_create(Abc_Output_Compound_Property *parent,
+                                                            Abc_String name,
+                                                            Abc_Data_Type data_type,
+                                                            Abc_Time_Sample_Index ts_index)
+{
+    auto abc_data_type = Alembic::AbcCoreAbstract::DataType(
+        static_cast<Alembic::AbcCoreAbstract::PlainOldDataType>(data_type.pod_type),
+        data_type.extent);
+
+    auto résultat = kuri_loge<Abc_Output_Array_Property>(parent->ctx_kuri);
+    résultat->parent = parent;
+    résultat->prop = AbcGeom::OArrayProperty(parent->prop, name, abc_data_type);
+    résultat->prop.setTimeSampling(ts_index.value);
+    return résultat;
+}
+
+void abc_output_array_property_set_from_previous(struct Abc_Output_Scalar_Property *prop)
+{
+    prop->prop.setFromPrevious();
+}
+
+#define DECLARE_ARRAY_PROPERTY_SETTER(type_geom, type_abc_value, type_c, nom_court)               \
+    void abc_output_array_property_##nom_court##_set(                                             \
+        struct Abc_Output_Array_Property *prop, struct Abc_##type_geom##_Array_Sample sample)     \
+    {                                                                                             \
+        auto array_sample = make_typed_sample(sample);                                            \
+        prop->prop.set(array_sample);                                                             \
+    }
+
+ENUMERATE_ABC_POD_TYPE(DECLARE_ARRAY_PROPERTY_SETTER)
+
+#undef DECLARE_ARRAY_PROPERTY_SETTER
+
+/** \} */
+
+/* ------------------------------------------------------------------------- */
+/** \nom Abc_Output_Typed_Geom_Param
+ * \{ */
 
 #define DEFINE_ABC_OUTPUT_GEOM_PARAMS(type_geom, type_abc_value, type_c, nom_court)               \
     struct Abc_Output_##type_geom##_Geom_Param {                                                  \

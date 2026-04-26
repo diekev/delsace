@@ -106,155 +106,6 @@ typedef struct Abc_Seconds {
 #endif
 } Abc_Seconds;
 
-/* ------------------------------------------------------------------------- */
-/** \nom MetaData
- * \{ */
-
-struct Abc_MetaData;
-
-void abc_metadata_destroy(struct Abc_MetaData *metadata);
-
-void abc_metadata_set(struct Abc_MetaData *metadata, Abc_String key, Abc_String data);
-void abc_metadata_set_unique(struct Abc_MetaData *metadata, Abc_String key, Abc_String data);
-void abc_metadata_append(struct Abc_MetaData *metadata, struct Abc_MetaData *source);
-void abc_metadata_append_only_unique(struct Abc_MetaData *metadata, struct Abc_MetaData *source);
-void abc_metadata_append_unique(struct Abc_MetaData *metadata, struct Abc_MetaData *source);
-
-struct Abc_MetaData_Iterator {
-    struct Abc_MetaData *metadata;
-
-    /* Retourne vrai si une valeur fut renseignée dans key et value.
-     * Retourne faux si l'itérateur est à la fin. */
-    bool (*next)(struct Abc_MetaData_Iterator *iterator,
-                 struct Abc_String *key,
-                 struct Abc_String *value);
-};
-
-struct Abc_MetaData_Iterator *abc_metadata_get_iterator(struct Abc_MetaData *metadata);
-
-void abc_metadata_iterator_destroy(struct Abc_MetaData_Iterator *iterator);
-
-/** \} */
-
-/* ------------------------------------------------------------------------- */
-/** \nom Abc_Geometry_Scope
- * \{ */
-
-enum Abc_Geometry_Scope {
-    CONSTANT = 0,
-    UNIFORM = 1,
-    VARYING = 2,
-    VERTEX = 3,
-    FACE_VARYING = 4,
-
-    UNKNOWN = 127
-};
-
-/** \} */
-
-/* ------------------------------------------------------------------------- */
-/** \nom Abc_Input_Archive
- * \{ */
-
-struct Abc_Input_Archive;
-
-struct Abc_Input_Archive *abc_input_archive_create(struct ContexteKuri *ctx_kuri,
-                                                   struct Abc_String *chemins,
-                                                   uint64_t nombre_de_chemins);
-
-void abc_input_archive_destroy(struct Abc_Input_Archive *archive);
-
-struct Abc_MetaData *abc_input_archive_get_metadata(struct Abc_Input_Archive *archive);
-
-/** \} */
-
-/* ------------------------------------------------------------------------- */
-/** \nom Export
- * \{ */
-
-struct Abc_Output_Archive_Metadata {
-    struct Abc_String application_name;
-    struct Abc_String user_description;
-    double fps;
-};
-
-struct Abc_Output_Archive;
-
-struct Abc_Output_Xform;
-struct Abc_Output_Points;
-
-union Abc_Output_Object {
-    struct Abc_Output_Xform *xform;
-    struct Abc_Output_Points *points;
-};
-
-/**
- * @brief abc_output_archive_create Crée une archive Alembic pour y écrire des objets.
- * @param ctx_kuri Le contexte Kuri utilisé pour toutes les allocations.
- * @param path Le chemin où sera écris le fichier. Si un fichier existe déjà à ce chemin, il sera
- * surécrit.
- * @param metadata Les métadonnées de l'archive. DOIT être non-nul.
- * @return Une instance de Abc_Output_Archive.
- */
-struct Abc_Output_Archive *abc_output_archive_create(struct ContexteKuri *ctx_kuri,
-                                                     struct Abc_String path,
-                                                     struct Abc_Output_Archive_Metadata *metadata);
-
-/**
- * @brief abc_output_archive_destroy Détruit l'archive. Rien ne sera écris tant que ceci n'est pas
- * appelé.
- * @param archive L'archive à détruire. Peut être nulle.
- */
-void abc_output_archive_destroy(struct Abc_Output_Archive *archive);
-
-/** \} */
-
-/* ------------------------------------------------------------------------- */
-/** \nom Abc_Time_Sample_Index
- * \{ */
-
-struct Abc_Time_Sample_Index {
-    uint32_t value;
-};
-
-/**
- * @brief abc_output_archive_default_time_sampling Retourne le Abc_Time_Sample_Index utilisé par
- * défaut.
- */
-struct Abc_Time_Sample_Index abc_output_archive_default_time_sampling(
-    struct Abc_Output_Archive *archive);
-
-/**
- * @brief abc_output_archive_create_time_sampling Ajoute un TimeSampling à l'archive et retourne
- * son indice.
- * @param archive
- * @param echantillons Les échantillons pour le TimeSampling. Chaque échantillons est le temps
- * depuis le début de l'animation.
- * @param nombre_d_echantillons Le nombre d'échantillons. Peut être 0, dans ce cas les échantillons
- * sont ignorés.
- * @param temps_par_cycle La durée d'un cycle d'échantillon.
- * @return L'indice du TimeSampling dans la poule de TimeSampling de l'archive.
- */
-struct Abc_Time_Sample_Index abc_output_archive_create_time_sampling(
-    struct Abc_Output_Archive *archive,
-    double *echantillons,
-    uint64_t nombre_d_echantillons,
-    double temps_par_cycle);
-
-/** \} */
-
-/* ------------------------------------------------------------------------- */
-/** \nom Abc_Output_Compound_Property
- * \{ */
-
-struct Abc_Output_Compound_Property;
-
-/** \} */
-
-/* ------------------------------------------------------------------------- */
-/** \nom Abc_Output_Compound_Property
- * \{ */
-
 #define ENUMERATE_VEC_TYPES(X)                                                                    \
     X(s, short)                                                                                   \
     X(i, int)                                                                                     \
@@ -420,33 +271,6 @@ ENUMERATE_ABC_ATTRIBUTE_TYPES(DECLARE_ABC_TYPED_ARRAY_SAMPLE)
 
 #undef DECLARE_ABC_TYPED_ARRAY_SAMPLE
 
-#define DECLARE_ABC_OUTPUT_GEOM_PARAMS(type_geom, type_abc_value, type_c, nom_court)              \
-    struct Abc_Output_##type_geom##_Geom_Param;                                                   \
-    struct Abc_Output_##type_geom##_Geom_Param_Sample {                                           \
-        type_c *values;                                                                           \
-        uint64_t num_values;                                                                      \
-        uint32_t *indices;                                                                        \
-        uint64_t num_indices;                                                                     \
-        enum Abc_Geometry_Scope scope;                                                            \
-    };                                                                                            \
-    struct Abc_Output_##type_geom##_Geom_Param *abc_output_##nom_court##_geom_param_create(       \
-        struct Abc_Output_Compound_Property *parent,                                              \
-        struct Abc_String name,                                                                   \
-        bool is_indexed,                                                                          \
-        enum Abc_Geometry_Scope scope,                                                            \
-        uint64_t array_extent);                                                                   \
-    void abc_output_##nom_court##_geom_param_set_time_sampling(                                   \
-        struct Abc_Output_##type_geom##_Geom_Param *param, struct Abc_Time_Sample_Index index);   \
-    void abc_output_##nom_court##_geom_param_sample_set(                                          \
-        struct Abc_Output_##type_geom##_Geom_Param *param,                                        \
-        struct Abc_Output_##type_geom##_Geom_Param_Sample *sample);
-
-ENUMERATE_ABC_ATTRIBUTE_TYPES(DECLARE_ABC_OUTPUT_GEOM_PARAMS)
-
-#undef DECLARE_ABC_OUTPUT_GEOM_PARAMS
-
-/** \} */
-
 #define DECLARE_COMMON_SAMPLE_FONCTIONS(uppercase_name, lowercase_name)                           \
     struct Abc_Output_##uppercase_name##_Sample *abc_output_##lowercase_name##_sample_create(     \
         struct Abc_Output_Archive *archive);                                                      \
@@ -474,6 +298,280 @@ ENUMERATE_ABC_ATTRIBUTE_TYPES(DECLARE_ABC_OUTPUT_GEOM_PARAMS)
     struct Abc_Output_Compound_Property *abc_output_##lname##_user_properties_get(                \
         struct Abc_Output_##uname *lname);                                                        \
     struct Abc_MetaData *abc_output_##lname##_metadata_get(struct Abc_Output_##uname *lname);
+
+/* ------------------------------------------------------------------------- */
+/** \nom MetaData
+ * \{ */
+
+struct Abc_MetaData;
+
+void abc_metadata_destroy(struct Abc_MetaData *metadata);
+
+void abc_metadata_set(struct Abc_MetaData *metadata, Abc_String key, Abc_String data);
+void abc_metadata_set_unique(struct Abc_MetaData *metadata, Abc_String key, Abc_String data);
+void abc_metadata_append(struct Abc_MetaData *metadata, struct Abc_MetaData *source);
+void abc_metadata_append_only_unique(struct Abc_MetaData *metadata, struct Abc_MetaData *source);
+void abc_metadata_append_unique(struct Abc_MetaData *metadata, struct Abc_MetaData *source);
+
+struct Abc_MetaData_Iterator {
+    struct Abc_MetaData *metadata;
+
+    /* Retourne vrai si une valeur fut renseignée dans key et value.
+     * Retourne faux si l'itérateur est à la fin. */
+    bool (*next)(struct Abc_MetaData_Iterator *iterator,
+                 struct Abc_String *key,
+                 struct Abc_String *value);
+};
+
+struct Abc_MetaData_Iterator *abc_metadata_get_iterator(struct Abc_MetaData *metadata);
+
+void abc_metadata_iterator_destroy(struct Abc_MetaData_Iterator *iterator);
+
+/** \} */
+
+/* ------------------------------------------------------------------------- */
+/** \nom Abc_Geometry_Scope
+ * \{ */
+
+enum Abc_Geometry_Scope {
+    CONSTANT = 0,
+    UNIFORM = 1,
+    VARYING = 2,
+    VERTEX = 3,
+    FACE_VARYING = 4,
+
+    UNKNOWN = 127
+};
+
+/** \} */
+
+/* ------------------------------------------------------------------------- */
+/** \nom Abc_Plain_Old_Data_Type
+ * \{ */
+
+enum Abc_Plain_Old_Data_Type {
+    ABC_PLAIN_OLD_DATA_BOOLEAN,
+    ABC_PLAIN_OLD_DATA_UINT8,
+    ABC_PLAIN_OLD_DATA_INT8,
+    ABC_PLAIN_OLD_DATA_UINT16,
+    ABC_PLAIN_OLD_DATA_INT16,
+    ABC_PLAIN_OLD_DATA_UINT32,
+    ABC_PLAIN_OLD_DATA_INT32,
+    ABC_PLAIN_OLD_DATA_UINT64,
+    ABC_PLAIN_OLD_DATA_INT64,
+    ABC_PLAIN_OLD_DATA_FLOAT16,
+    ABC_PLAIN_OLD_DATA_FLOAT32,
+    ABC_PLAIN_OLD_DATA_FLOAT64,
+    ABC_PLAIN_OLD_DATA_STRING,
+    ABC_PLAIN_OLD_DATA_WSTRING,
+    ABC_PLAIN_OLD_DATA_UNKNOWN = 127,
+};
+
+// #define X(type_geom, type_abc_value, type_c, nom_court)
+#define ENUMERATE_ABC_POD_TYPE(X)                                                                 \
+    X(Bool, bool_t, bool, bool)                                                                   \
+    X(Uchar, uint8_t, uint8_t, uchar)                                                             \
+    X(Char, int8_t, int8_t, char)                                                                 \
+    X(UInt16, uint16_t, uint16_t, uint16)                                                         \
+    X(Int16, int16_t, int16_t, int16)                                                             \
+    X(UInt32, uint32_t, uint32_t, uint32)                                                         \
+    X(Int32, int32_t, int32_t, int32)                                                             \
+    X(UInt64, uint64_t, uint64_t, uint64)                                                         \
+    X(Int64, int64_t, int64_t, int64)                                                             \
+    X(Float, float, float, float)                                                                 \
+    X(Double, double, double, double)                                                             \
+    X(String, std::string, Abc_String, string)
+
+/** \} */
+
+/* ------------------------------------------------------------------------- */
+/** \nom Abc_Data_Type
+ * \{ */
+
+struct Abc_Data_Type {
+    enum Abc_Plain_Old_Data_Type pod_type;
+    uint8_t extent;
+};
+
+/** \} */
+
+/* ------------------------------------------------------------------------- */
+/** \nom Abc_Input_Archive
+ * \{ */
+
+struct Abc_Input_Archive;
+
+struct Abc_Input_Archive *abc_input_archive_create(struct ContexteKuri *ctx_kuri,
+                                                   struct Abc_String *chemins,
+                                                   uint64_t nombre_de_chemins);
+
+void abc_input_archive_destroy(struct Abc_Input_Archive *archive);
+
+struct Abc_MetaData *abc_input_archive_get_metadata(struct Abc_Input_Archive *archive);
+
+/** \} */
+
+/* ------------------------------------------------------------------------- */
+/** \nom Export
+ * \{ */
+
+struct Abc_Output_Archive_Metadata {
+    struct Abc_String application_name;
+    struct Abc_String user_description;
+    double fps;
+};
+
+struct Abc_Output_Archive;
+
+struct Abc_Output_Xform;
+struct Abc_Output_Points;
+
+union Abc_Output_Object {
+    struct Abc_Output_Xform *xform;
+    struct Abc_Output_Points *points;
+};
+
+/**
+ * @brief abc_output_archive_create Crée une archive Alembic pour y écrire des objets.
+ * @param ctx_kuri Le contexte Kuri utilisé pour toutes les allocations.
+ * @param path Le chemin où sera écris le fichier. Si un fichier existe déjà à ce chemin, il sera
+ * surécrit.
+ * @param metadata Les métadonnées de l'archive. DOIT être non-nul.
+ * @return Une instance de Abc_Output_Archive.
+ */
+struct Abc_Output_Archive *abc_output_archive_create(struct ContexteKuri *ctx_kuri,
+                                                     struct Abc_String path,
+                                                     struct Abc_Output_Archive_Metadata *metadata);
+
+/**
+ * @brief abc_output_archive_destroy Détruit l'archive. Rien ne sera écris tant que ceci n'est pas
+ * appelé.
+ * @param archive L'archive à détruire. Peut être nulle.
+ */
+void abc_output_archive_destroy(struct Abc_Output_Archive *archive);
+
+/** \} */
+
+/* ------------------------------------------------------------------------- */
+/** \nom Abc_Time_Sample_Index
+ * \{ */
+
+struct Abc_Time_Sample_Index {
+    uint32_t value;
+};
+
+/**
+ * @brief abc_output_archive_default_time_sampling Retourne le Abc_Time_Sample_Index utilisé par
+ * défaut.
+ */
+struct Abc_Time_Sample_Index abc_output_archive_default_time_sampling(
+    struct Abc_Output_Archive *archive);
+
+/**
+ * @brief abc_output_archive_create_time_sampling Ajoute un TimeSampling à l'archive et retourne
+ * son indice.
+ * @param archive
+ * @param echantillons Les échantillons pour le TimeSampling. Chaque échantillons est le temps
+ * depuis le début de l'animation.
+ * @param nombre_d_echantillons Le nombre d'échantillons. Peut être 0, dans ce cas les échantillons
+ * sont ignorés.
+ * @param temps_par_cycle La durée d'un cycle d'échantillon.
+ * @return L'indice du TimeSampling dans la poule de TimeSampling de l'archive.
+ */
+struct Abc_Time_Sample_Index abc_output_archive_create_time_sampling(
+    struct Abc_Output_Archive *archive,
+    double *echantillons,
+    uint64_t nombre_d_echantillons,
+    double temps_par_cycle);
+
+/** \} */
+
+/* ------------------------------------------------------------------------- */
+/** \nom Abc_Output_Compound_Property
+ * \{ */
+
+struct Abc_Output_Compound_Property;
+
+/** \} */
+
+/* ------------------------------------------------------------------------- */
+/** \nom Abc_Output_Scalar_Property
+ * \{ */
+
+struct Abc_Output_Scalar_Property;
+
+struct Abc_Output_Scalar_Property *abc_output_scalar_property_create(
+    struct Abc_Output_Compound_Property *parent,
+    struct Abc_String name,
+    struct Abc_Data_Type data_type,
+    struct Abc_Time_Sample_Index ts_index);
+
+void abc_output_scalar_property_set_from_previous(struct Abc_Output_Scalar_Property *prop);
+
+#define DECLARE_SCALAR_PROPERTY_SETTER(type_geom, type_abc_value, type_c, nom_court)              \
+    void abc_output_scalar_property_##nom_court##_set(struct Abc_Output_Scalar_Property *prop,    \
+                                                      type_c sample);
+
+ENUMERATE_ABC_POD_TYPE(DECLARE_SCALAR_PROPERTY_SETTER)
+
+#undef DECLARE_SCALAR_PROPERTY_SETTER
+
+/** \} */
+
+/* ------------------------------------------------------------------------- */
+/** \nom Abc_Output_Array_Property
+ * \{ */
+
+struct Abc_Output_Array_Property;
+
+struct Abc_Output_Array_Property *abc_output_array_property_create(
+    struct Abc_Output_Compound_Property *parent,
+    struct Abc_String name,
+    struct Abc_Data_Type data_type,
+    struct Abc_Time_Sample_Index ts_index);
+
+void abc_output_array_property_set_from_previous(struct Abc_Output_Scalar_Property *prop);
+
+#define DECLARE_ARRAY_PROPERTY_SETTER(type_geom, type_abc_value, type_c, nom_court)               \
+    void abc_output_array_property_##nom_court##_set(                                             \
+        struct Abc_Output_Array_Property *prop, struct Abc_##type_geom##_Array_Sample sample);
+
+ENUMERATE_ABC_POD_TYPE(DECLARE_ARRAY_PROPERTY_SETTER)
+
+#undef DECLARE_ARRAY_PROPERTY_SETTER
+
+/** \} */
+
+/* ------------------------------------------------------------------------- */
+/** \nom Abc_Output_TYPE_Geom_Param
+ * \{ */
+
+#define DECLARE_ABC_OUTPUT_GEOM_PARAMS(type_geom, type_abc_value, type_c, nom_court)              \
+    struct Abc_Output_##type_geom##_Geom_Param;                                                   \
+    struct Abc_Output_##type_geom##_Geom_Param_Sample {                                           \
+        type_c *values;                                                                           \
+        uint64_t num_values;                                                                      \
+        uint32_t *indices;                                                                        \
+        uint64_t num_indices;                                                                     \
+        enum Abc_Geometry_Scope scope;                                                            \
+    };                                                                                            \
+    struct Abc_Output_##type_geom##_Geom_Param *abc_output_##nom_court##_geom_param_create(       \
+        struct Abc_Output_Compound_Property *parent,                                              \
+        struct Abc_String name,                                                                   \
+        bool is_indexed,                                                                          \
+        enum Abc_Geometry_Scope scope,                                                            \
+        uint64_t array_extent);                                                                   \
+    void abc_output_##nom_court##_geom_param_set_time_sampling(                                   \
+        struct Abc_Output_##type_geom##_Geom_Param *param, struct Abc_Time_Sample_Index index);   \
+    void abc_output_##nom_court##_geom_param_sample_set(                                          \
+        struct Abc_Output_##type_geom##_Geom_Param *param,                                        \
+        struct Abc_Output_##type_geom##_Geom_Param_Sample *sample);
+
+ENUMERATE_ABC_ATTRIBUTE_TYPES(DECLARE_ABC_OUTPUT_GEOM_PARAMS)
+
+#undef DECLARE_ABC_OUTPUT_GEOM_PARAMS
+
+/** \} */
 
 /* ------------------------------------------------------------------------- */
 /** \nom Abc_Output_Xform
