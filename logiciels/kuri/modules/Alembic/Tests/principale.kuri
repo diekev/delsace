@@ -314,13 +314,19 @@ traverse_hiérarchie :: fonc (parent: Abc_Generic_Input_Object, header: *Abc_Obj
     nom: Abc_String;
     abc_object_header_get_name(header, *nom);
     next_object: Abc_Generic_Input_Object;
+    user_properties: *Abc_Input_Compound_Property;
+    arb_geom_params: *Abc_Input_Compound_Property;
     
     si abc_object_header_matches_camera(header) {
         camera := abc_input_camera_get(parent, nom);
+        user_properties = abc_input_camera_get_user_properties(camera);
+        arb_geom_params = abc_input_camera_get_arb_geom_params(camera);
         next_object = camera;
     }
     sinon si abc_object_header_matches_curves(header) {
         curves := abc_input_curves_get(parent, nom);
+        user_properties = abc_input_curves_get_user_properties(curves);
+        arb_geom_params = abc_input_curves_get_arb_geom_params(curves);
         next_object = curves;
     }
     sinon si abc_object_header_matches_faceset(header) {
@@ -328,34 +334,53 @@ traverse_hiérarchie :: fonc (parent: Abc_Generic_Input_Object, header: *Abc_Obj
     }
     sinon si abc_object_header_matches_light(header) {
         light := abc_input_light_get(parent, nom);
+        user_properties = abc_input_light_get_user_properties(light);
+        arb_geom_params = abc_input_light_get_arb_geom_params(light);
         next_object = light;
     }
     sinon si abc_object_header_matches_material(header) {
         material := abc_input_material_get(parent, nom);
+        user_properties = abc_input_material_get_user_properties(material);
+        arb_geom_params = abc_input_material_get_arb_geom_params(material);
         next_object = material;
     }
     sinon si abc_object_header_matches_nupatch(header) {
         nupatch := abc_input_nupatch_get(parent, nom);
+        user_properties = abc_input_nupatch_get_user_properties(nupatch);
+        arb_geom_params = abc_input_nupatch_get_arb_geom_params(nupatch);
         next_object = nupatch;
     }
     sinon si abc_object_header_matches_points(header) {
         points := abc_input_points_get(parent, nom);
+        user_properties = abc_input_points_get_user_properties(points);
+        arb_geom_params = abc_input_points_get_arb_geom_params(points);
         next_object = points;
     }
     sinon si abc_object_header_matches_polymesh(header) {
         polymesh := abc_input_polymesh_get(parent, nom);
+        user_properties = abc_input_polymesh_get_user_properties(polymesh);
+        arb_geom_params = abc_input_polymesh_get_arb_geom_params(polymesh);
         next_object = polymesh;
     }
     sinon si abc_object_header_matches_subd(header) {
         subd := abc_input_subd_get(parent, nom);
+        user_properties = abc_input_subd_get_user_properties(subd);
+        arb_geom_params = abc_input_subd_get_arb_geom_params(subd);
         next_object = subd;
     }
     sinon si abc_object_header_matches_xform(header) {
         xform := abc_input_xform_get(parent, nom);
+        user_properties = abc_input_xform_get_user_properties(xform);
+        arb_geom_params = abc_input_xform_get_arb_geom_params(xform);
         next_object = xform;
     }
     sinon {
         next_object = abc_input_object_get_child(parent, nom);
+
+        si abc_input_object_is_instance_root(next_object.object) {
+            abc_input_object_get_full_name(next_object, *nom);
+            imprimeln("%", vers_kuri(nom));
+        }
     }
 
     si abc_input_object_valid(next_object) {
@@ -365,6 +390,13 @@ traverse_hiérarchie :: fonc (parent: Abc_Generic_Input_Object, header: *Abc_Obj
         metadata := abc_object_header_get_metadata(header);
         diffère abc_metadata_destroy(metadata);
         imprime_metadata(metadata);
+
+        si user_properties {
+            imprime_properties(user_properties, "User Properties");
+        }
+        si arb_geom_params {
+            imprime_properties(arb_geom_params, "Arb Geom Params");
+        }
 
         pour abc_input_object_get_num_children(next_object) {
             header = abc_input_object_get_child_header(next_object, it);
@@ -385,5 +417,26 @@ imprime_metadata :: fonc (metadata: *Abc_MetaData)
         }
 
         imprimeln("    % : %", vers_kuri(clé), vers_kuri(valeur));
+    }
+}
+
+imprime_properties :: fonc (props: *Abc_Input_Compound_Property, nom: chaine)
+{
+    saufsi abc_input_compound_property_valid(props) {
+       retourne;
+    }
+
+    imprimeln("    %", nom);
+    num := abc_input_compound_property_get_num_properties(props);
+    si num == 0 {
+        imprimeln("        No properties");
+    }
+
+    pour num {
+        prop_header := abc_input_compound_property_get_property_header(props, it);
+        prop_header_name: Abc_String;
+        abc_property_header_get_name(prop_header, *prop_header_name);
+
+        imprimeln("        %", vers_kuri(prop_header_name));
     }
 }
