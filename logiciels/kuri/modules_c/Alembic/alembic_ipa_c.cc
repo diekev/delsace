@@ -556,6 +556,7 @@ template <typename TypedObject>
 Abc_Input_Compound_Property *get_user_properties(TypedObject *object)
 {
     if (object->user_properties_initialized == false) {
+        object->user_properties.prop = object->typed_object.getSchema().getUserProperties();
         object->user_properties.archive = object->archive;
         object->user_properties_initialized = true;
     }
