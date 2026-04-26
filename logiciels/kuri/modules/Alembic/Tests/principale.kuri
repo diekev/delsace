@@ -362,9 +362,28 @@ traverse_hiérarchie :: fonc (parent: Abc_Generic_Input_Object, header: *Abc_Obj
         abc_input_object_get_full_name(next_object, *nom);
         imprimeln("%", vers_kuri(nom));
 
+        metadata := abc_object_header_get_metadata(header);
+        diffère abc_metadata_destroy(metadata);
+        imprime_metadata(metadata);
+
         pour abc_input_object_get_num_children(next_object) {
             header = abc_input_object_get_child_header(next_object, it);
             traverse_hiérarchie(next_object, header);
         }
+    }
+}
+
+imprime_metadata :: fonc (metadata: *Abc_MetaData)
+{
+    iterator := abc_metadata_get_iterator(metadata);
+    boucle {
+        clé: Abc_String;
+        valeur: Abc_String;
+
+        saufsi abc_metadata_iterator_next(iterator, *clé, *valeur) {
+            arrête;
+        }
+
+        imprimeln("    % : %", vers_kuri(clé), vers_kuri(valeur));
     }
 }

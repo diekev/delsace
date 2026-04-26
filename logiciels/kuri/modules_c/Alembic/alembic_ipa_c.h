@@ -427,6 +427,10 @@ struct Abc_Object_Header;
 
 void abc_object_header_get_name(struct Abc_Object_Header *header, Abc_String *name);
 
+void abc_object_header_get_full_name(struct Abc_Object_Header *header, Abc_String *name);
+
+struct Abc_MetaData *abc_object_header_get_metadata(struct Abc_Object_Header *header);
+
 #define ENUMERATE_INPUT_OBJECT_TYPES(X)                                                           \
     X(AbcGeom::IXform, Xform, xform)                                                              \
     X(AbcGeom::ISubD, SubD, subd)                                                                 \

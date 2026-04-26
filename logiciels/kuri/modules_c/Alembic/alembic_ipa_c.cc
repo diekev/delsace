@@ -423,11 +423,25 @@ struct Abc_Property_Header *abc_input_compound_property_get_property_header(
 struct Abc_Object_Header {
     const AbcGeom::ObjectHeader &header;
     Abc_Object_Header *next = nullptr;
+    ContexteKuri *ctx_kuri = nullptr;
 };
 
 void abc_object_header_get_name(struct Abc_Object_Header *header, Abc_String *name)
 {
     vers_abc_string(name, header->header.getName());
+}
+
+void abc_object_header_get_full_name(struct Abc_Object_Header *header, Abc_String *name)
+{
+    vers_abc_string(name, header->header.getFullName());
+}
+
+Abc_MetaData *abc_object_header_get_metadata(struct Abc_Object_Header *header)
+{
+    auto résultat = kuri_loge<Abc_MetaData>(header->ctx_kuri);
+    résultat->ctx_kuri = header->ctx_kuri;
+    résultat->metadata = header->header.getMetaData();
+    return résultat;
 }
 
 #define DECLARE_OBJECT_MATCHES_FUNCTIONS(type_abc, type_kuri, lname)                              \
@@ -493,6 +507,7 @@ struct Abc_Object_Header *abc_input_object_get_child_header(Abc_Generic_Input_Ob
 {
     const AbcGeom::ObjectHeader &header = object.object->untyped_object.getChildHeader(i);
     auto résultat = kuri_loge<Abc_Object_Header>(object.object->archive->ctx_kuri, header);
+    résultat->ctx_kuri = object.object->archive->ctx_kuri;
     résultat->next = object.object->archive->headers;
     object.object->archive->headers = résultat;
     return résultat;
