@@ -478,37 +478,37 @@ T *make_object(Abc_Input_Archive *archive)
     return résultat;
 }
 
-bool abc_input_object_valid(struct Abc_Input_Object *object)
+bool abc_input_object_valid(Abc_Generic_Input_Object object)
 {
-    return object && object->untyped_object.valid();
+    return object.object && object.object->untyped_object.valid();
 }
 
-uint64_t abc_input_object_get_num_children(struct Abc_Input_Object *object)
+uint64_t abc_input_object_get_num_children(Abc_Generic_Input_Object object)
 {
-    return object->untyped_object.getNumChildren();
+    return object.object->untyped_object.getNumChildren();
 }
 
-struct Abc_Object_Header *abc_input_object_get_child_header(struct Abc_Input_Object *object,
+struct Abc_Object_Header *abc_input_object_get_child_header(Abc_Generic_Input_Object object,
                                                             uint64_t i)
 {
-    const AbcGeom::ObjectHeader &header = object->untyped_object.getChildHeader(i);
-    auto résultat = kuri_loge<Abc_Object_Header>(object->archive->ctx_kuri, header);
-    résultat->next = object->archive->headers;
-    object->archive->headers = résultat;
+    const AbcGeom::ObjectHeader &header = object.object->untyped_object.getChildHeader(i);
+    auto résultat = kuri_loge<Abc_Object_Header>(object.object->archive->ctx_kuri, header);
+    résultat->next = object.object->archive->headers;
+    object.object->archive->headers = résultat;
     return résultat;
 }
 
-struct Abc_Input_Object *abc_input_object_get_child(struct Abc_Input_Object *object,
+struct Abc_Input_Object *abc_input_object_get_child(Abc_Generic_Input_Object object,
                                                     struct Abc_String name)
 {
-    auto résultat = make_object<Abc_Input_Object>(object->archive);
-    résultat->untyped_object = object->untyped_object.getChild(name);
+    auto résultat = make_object<Abc_Input_Object>(object.object->archive);
+    résultat->untyped_object = object.object->untyped_object.getChild(name);
     return résultat;
 }
 
-void abc_input_object_get_full_name(struct Abc_Input_Object *object, struct Abc_String *name)
+void abc_input_object_get_full_name(Abc_Generic_Input_Object object, struct Abc_String *name)
 {
-    vers_abc_string(name, object->untyped_object.getFullName());
+    vers_abc_string(name, object.object->untyped_object.getFullName());
 }
 
 bool abc_input_object_is_instance_root(struct Abc_Input_Object *object)
@@ -547,10 +547,11 @@ static Abc_Input_Compound_Property *get_user_properties(Abc_Input_Material *obje
 }
 
 #define DECLARE_TYPED_INPUT_OBJECTS(type_abc, type_kuri, lname)                                   \
-    Abc_Input_##type_kuri *abc_input_##lname##_get(Abc_Input_Object *parent, Abc_String name)     \
+    Abc_Input_##type_kuri *abc_input_##lname##_get(Abc_Generic_Input_Object parent,               \
+                                                   Abc_String name)                               \
     {                                                                                             \
-        auto résultat = make_object<Abc_Input_##type_kuri>(parent->archive);                      \
-        résultat->typed_object = type_abc(parent->untyped_object, name);                          \
+        auto résultat = make_object<Abc_Input_##type_kuri>(parent.object->archive);               \
+        résultat->typed_object = type_abc(parent.object->untyped_object, name);                   \
         résultat->untyped_object = résultat->typed_object;                                        \
         return résultat;                                                                          \
     }                                                                                             \

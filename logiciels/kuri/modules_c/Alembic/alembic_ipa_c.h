@@ -454,23 +454,35 @@ ENUMERATE_INPUT_OBJECT_TYPES(DECLARE_OBJECT_MATCHES_FUNCTIONS)
 
 struct Abc_Input_Object;
 
-bool abc_input_object_valid(struct Abc_Input_Object *object);
+union Abc_Generic_Input_Object {
+    struct Abc_Input_Object *object;
 
-uint64_t abc_input_object_get_num_children(struct Abc_Input_Object *object);
+#define DECLARE_TYPED_INPUT_OBJECTS(type_abc, type_kuri, lname)                                   \
+    struct Abc_Input_##type_kuri *lname;
 
-struct Abc_Object_Header *abc_input_object_get_child_header(struct Abc_Input_Object *object,
+    ENUMERATE_INPUT_OBJECT_TYPES(DECLARE_TYPED_INPUT_OBJECTS)
+
+#undef DECLARE_TYPED_INPUT_OBJECTS
+};
+
+bool abc_input_object_valid(union Abc_Generic_Input_Object object);
+
+uint64_t abc_input_object_get_num_children(union Abc_Generic_Input_Object object);
+
+struct Abc_Object_Header *abc_input_object_get_child_header(union Abc_Generic_Input_Object object,
                                                             uint64_t i);
 
-struct Abc_Input_Object *abc_input_object_get_child(struct Abc_Input_Object *object,
+struct Abc_Input_Object *abc_input_object_get_child(union Abc_Generic_Input_Object object,
                                                     struct Abc_String name);
 
-void abc_input_object_get_full_name(struct Abc_Input_Object *object, struct Abc_String *name);
+void abc_input_object_get_full_name(union Abc_Generic_Input_Object object,
+                                    struct Abc_String *name);
 
 bool abc_input_object_is_instance_root(struct Abc_Input_Object *object);
 
 #define DECLARE_TYPED_INPUT_OBJECTS(type_abc, type_kuri, lname)                                   \
     struct Abc_Input_##type_kuri;                                                                 \
-    struct Abc_Input_##type_kuri *abc_input_##lname##_get(struct Abc_Input_Object *parent,        \
+    struct Abc_Input_##type_kuri *abc_input_##lname##_get(union Abc_Generic_Input_Object parent,  \
                                                           struct Abc_String name);                \
     struct Abc_Input_Compound_Property *abc_input_##lname##_get_arb_geom_params(                  \
         struct Abc_Input_##type_kuri *object);                                                    \
