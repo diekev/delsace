@@ -399,6 +399,11 @@ struct Abc_Input_Compound_Property {
     AbcGeom::ICompoundProperty prop{};
 };
 
+bool abc_input_compound_property_valid(struct Abc_Input_Compound_Property *props)
+{
+    return props && props->prop.valid();
+}
+
 uint64_t abc_input_compound_property_get_num_properties(struct Abc_Input_Compound_Property *prop)
 {
     return prop->prop.getNumProperties();

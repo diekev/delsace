@@ -412,6 +412,8 @@ void abc_property_header_get_data_type(struct Abc_Property_Header *header,
 
 struct Abc_Input_Compound_Property;
 
+bool abc_input_compound_property_valid(struct Abc_Input_Compound_Property *props);
+
 uint64_t abc_input_compound_property_get_num_properties(struct Abc_Input_Compound_Property *prop);
 
 struct Abc_Property_Header *abc_input_compound_property_get_property_header(
