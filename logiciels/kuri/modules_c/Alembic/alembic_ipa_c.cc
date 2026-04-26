@@ -327,6 +327,95 @@ bool abc_metadata_iterator_next(Abc_MetaData_Iterator *iterator,
 
 /** \} */
 
+struct Abc_Property_Header;
+
+struct Abc_Input_Archive {
+    ContexteKuri *ctx_kuri = nullptr;
+    Abc::IArchive iarchive{};
+
+    Abc_Object_Header *headers = nullptr;
+    Abc_Input_Object *objects = nullptr;
+    Abc_Property_Header *prop_headers = nullptr;
+};
+
+/* ------------------------------------------------------------------------- */
+/** \nom Abc_Property_Header
+ * \{ */
+
+struct Abc_Property_Header {
+    const Alembic::AbcCoreAbstract::PropertyHeader &header;
+    Abc_Property_Header *next;
+};
+
+void abc_property_header_get_name(struct Abc_Property_Header *header, struct Abc_String *name)
+{
+    vers_abc_string(name, header->header.getName());
+}
+
+// À FAIRE PropertyType getPropertyType() const { return m_propertyType; }
+
+bool abc_property_header_is_scalar(struct Abc_Property_Header *header)
+{
+    return header->header.isScalar();
+}
+
+bool abc_property_header_is_array(struct Abc_Property_Header *header)
+{
+    return header->header.isArray();
+}
+
+bool abc_property_header_is_compound(struct Abc_Property_Header *header)
+{
+    return header->header.isCompound();
+}
+
+bool abc_property_header_is_simple(struct Abc_Property_Header *header)
+{
+    return header->header.isSimple();
+}
+
+// À FAIRE const MetaData &getMetaData() const { return m_metaData; }
+
+void abc_property_header_get_data_type(struct Abc_Property_Header *header,
+                                       struct Abc_Data_Type *r_data_type)
+{
+    if (r_data_type) {
+        auto const &abc_data_type = header->header.getDataType();
+        r_data_type->pod_type = static_cast<Abc_Plain_Old_Data_Type>(abc_data_type.getPod());
+        r_data_type->extent = abc_data_type.getExtent();
+    }
+}
+
+// À FAIRE TimeSamplingPtr getTimeSampling() const
+
+/** \} */
+
+/* ------------------------------------------------------------------------- */
+/** \nom Abc_Input_Compound_Property
+ * \{ */
+
+struct Abc_Input_Compound_Property {
+    Abc_Input_Archive *archive = nullptr;
+    AbcGeom::ICompoundProperty prop{};
+};
+
+uint64_t abc_input_compound_property_get_num_properties(struct Abc_Input_Compound_Property *prop)
+{
+    return prop->prop.getNumProperties();
+}
+
+struct Abc_Property_Header *abc_input_compound_property_get_property_header(
+    struct Abc_Input_Compound_Property *prop, uint64_t i)
+{
+    const Alembic::AbcCoreAbstract::PropertyHeader &header = prop->prop.getPropertyHeader(i);
+    auto résultat = kuri_loge<Abc_Property_Header>(prop->archive->ctx_kuri, header);
+    résultat->next = prop->archive->prop_headers;
+    prop->archive->prop_headers = résultat;
+    return résultat;
+}
+
+/** \} */
+
 /* ------------------------------------------------------------------------- */
 /** \nom Abc_Object_Header
  * \{ */
@@ -353,14 +442,6 @@ ENUMERATE_INPUT_OBJECT_TYPES(DECLARE_OBJECT_MATCHES_FUNCTIONS)
 
 /** \} */
 
-struct Abc_Input_Archive {
-    ContexteKuri *ctx_kuri = nullptr;
-    Abc::IArchive iarchive{};
-
-    Abc_Object_Header *headers = nullptr;
-    Abc_Input_Object *objects = nullptr;
-};
-
 /* ------------------------------------------------------------------------- */
 /** \nom Abc_Input_Object
  * \{ */
@@ -369,8 +450,24 @@ struct Abc_Input_Object {
     Abc_Input_Archive *archive = nullptr;
     Abc_Input_Object *next = nullptr;
     AbcGeom::IObject untyped_object{};
+
+    Abc_Input_Compound_Property arb_geom_params{};
+    Abc_Input_Compound_Property user_properties{};
+    Abc_MetaData metadata_{};
+
+    bool arb_geom_params_initialized = false;
+    bool user_properties_initialized = false;
+    bool metadata_initialized = false;
 };
 
+#define DECLARE_TYPED_INPUT_OBJECTS(type_abc, type_kuri, lname)                                   \
+    struct Abc_Input_##type_kuri : public Abc_Input_Object {                                      \
+        type_abc typed_object{};                                                                  \
+    };
+
+ENUMERATE_INPUT_OBJECT_TYPES(DECLARE_TYPED_INPUT_OBJECTS)
+
+#undef DECLARE_TYPED_INPUT_OBJECTS
 template <typename T>
 T *make_object(Abc_Input_Archive *archive)
 {
@@ -419,16 +516,53 @@ bool abc_input_object_is_instance_root(struct Abc_Input_Object *object)
     return object->untyped_object.isInstanceRoot();
 }
 
+template <typename TypedObject>
+Abc_Input_Compound_Property *get_arb_geom_params(TypedObject *object)
+{
+    if (object->arb_geom_params_initialized == false) {
+        object->arb_geom_params.prop = object->typed_object.getSchema().getArbGeomParams();
+        object->arb_geom_params_initialized = true;
+    }
+    return &object->arb_geom_params;
+}
+
+static Abc_Input_Compound_Property *get_arb_geom_params(Abc_Input_Material *object)
+{
+    return &object->arb_geom_params;
+}
+
+template <typename TypedObject>
+Abc_Input_Compound_Property *get_user_properties(TypedObject *object)
+{
+    if (object->user_properties_initialized == false) {
+        object->user_properties.prop = object->typed_object.getSchema().getArbGeomParams();
+        object->user_properties_initialized = true;
+    }
+    return &object->user_properties;
+}
+
+static Abc_Input_Compound_Property *get_user_properties(Abc_Input_Material *object)
+{
+    return &object->user_properties;
+}
+
 #define DECLARE_TYPED_INPUT_OBJECTS(type_abc, type_kuri, lname)                                   \
-    struct Abc_Input_##type_kuri : public Abc_Input_Object {                                      \
-        type_abc typed_object{};                                                                  \
-    };                                                                                            \
     Abc_Input_##type_kuri *abc_input_##lname##_get(Abc_Input_Object *parent, Abc_String name)     \
     {                                                                                             \
         auto résultat = make_object<Abc_Input_##type_kuri>(parent->archive);                      \
         résultat->typed_object = type_abc(parent->untyped_object, name);                          \
         résultat->untyped_object = résultat->typed_object;                                        \
         return résultat;                                                                          \
+    }                                                                                             \
+    Abc_Input_Compound_Property *abc_input_##lname##_get_arb_geom_params(                         \
+        Abc_Input_##type_kuri *object)                                                            \
+    {                                                                                             \
+        return get_arb_geom_params(object);                                                       \
+    }                                                                                             \
+    Abc_Input_Compound_Property *abc_input_##lname##_get_user_properties(                         \
+        Abc_Input_##type_kuri *object)                                                            \
+    {                                                                                             \
+        return get_user_properties(object);                                                       \
     }
 
 ENUMERATE_INPUT_OBJECT_TYPES(DECLARE_TYPED_INPUT_OBJECTS)
@@ -473,6 +607,7 @@ void abc_input_archive_destroy(struct Abc_Input_Archive *archive)
     if (archive) {
         kuri_deloge_liste(archive->ctx_kuri, archive->headers);
         kuri_deloge_liste(archive->ctx_kuri, archive->objects);
+        kuri_deloge_liste(archive->ctx_kuri, archive->prop_headers);
         kuri_deloge(archive->ctx_kuri, archive);
     }
 }

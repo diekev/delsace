@@ -392,6 +392,34 @@ struct Abc_Data_Type {
 /** \} */
 
 /* ------------------------------------------------------------------------- */
+/** \nom Abc_Property_Header
+ * \{ */
+
+struct Abc_Property_Header;
+void abc_property_header_get_name(struct Abc_Property_Header *header, struct Abc_String *name);
+bool abc_property_header_is_scalar(struct Abc_Property_Header *header);
+bool abc_property_header_is_array(struct Abc_Property_Header *header);
+bool abc_property_header_is_compound(struct Abc_Property_Header *header);
+bool abc_property_header_is_simple(struct Abc_Property_Header *header);
+void abc_property_header_get_data_type(struct Abc_Property_Header *header,
+                                       struct Abc_Data_Type *r_data_type);
+
+/** \} */
+
+/* ------------------------------------------------------------------------- */
+/** \nom Abc_Input_Compound_Property
+ * \{ */
+
+struct Abc_Input_Compound_Property;
+
+uint64_t abc_input_compound_property_get_num_properties(struct Abc_Input_Compound_Property *prop);
+
+struct Abc_Property_Header *abc_input_compound_property_get_property_header(
+    struct Abc_Input_Compound_Property *prop, uint64_t i);
+
+/** \} */
+
+/* ------------------------------------------------------------------------- */
 /** \nom Abc_Object_Header
  * \{ */
 
@@ -443,7 +471,11 @@ bool abc_input_object_is_instance_root(struct Abc_Input_Object *object);
 #define DECLARE_TYPED_INPUT_OBJECTS(type_abc, type_kuri, lname)                                   \
     struct Abc_Input_##type_kuri;                                                                 \
     struct Abc_Input_##type_kuri *abc_input_##lname##_get(struct Abc_Input_Object *parent,        \
-                                                          struct Abc_String name);
+                                                          struct Abc_String name);                \
+    struct Abc_Input_Compound_Property *abc_input_##lname##_get_arb_geom_params(                  \
+        struct Abc_Input_##type_kuri *object);                                                    \
+    struct Abc_Input_Compound_Property *abc_input_##lname##_get_user_properties(                  \
+        struct Abc_Input_##type_kuri *object);
 
 ENUMERATE_INPUT_OBJECT_TYPES(DECLARE_TYPED_INPUT_OBJECTS)
 
