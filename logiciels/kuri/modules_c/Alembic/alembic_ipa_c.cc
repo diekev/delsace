@@ -46,6 +46,16 @@
     - recalcule les normaux
  */
 
+template <typename T>
+void kuri_deloge_liste(ContexteKuri *ctx_kuri, T *liste)
+{
+    while (liste != nullptr) {
+        auto next = liste->next;
+        kuri_deloge(ctx_kuri, liste);
+        liste = next;
+    }
+}
+
 extern "C" {
 
 ArchiveCache *ABC_cree_archive(ContexteKuri *ctx_kuri, ContexteOuvertureArchive *ctx)
@@ -222,14 +232,24 @@ static void vers_abc_string(Abc_String *result, const std::string &name)
 /** \nom MetaData
  * \{ */
 
+struct Abc_MetaData_Iterator {
+    struct Abc_MetaData *metadata = nullptr;
+    /* Pour la liste libre. */
+    Abc_MetaData_Iterator *next = nullptr;
+    Abc::MetaData::const_iterator current{};
+    Abc::MetaData::const_iterator end{};
+};
+
 struct Abc_MetaData {
     ContexteKuri *ctx_kuri = nullptr;
     Abc::MetaData metadata{};
+    Abc_MetaData_Iterator *iterators = nullptr;
 };
 
 void abc_metadata_destroy(struct Abc_MetaData *metadata)
 {
     if (metadata) {
+        kuri_deloge_liste(metadata->ctx_kuri, metadata->iterators);
         kuri_deloge(metadata->ctx_kuri, metadata);
     }
 }
@@ -261,54 +281,48 @@ void abc_metadata_append_unique(struct Abc_MetaData *metadata, struct Abc_MetaDa
     metadata->metadata.appendUnique(source->metadata);
 }
 
-struct Abc_MetaData_Iterator_Impl : public Abc_MetaData_Iterator {
-    Abc::MetaData::const_iterator current{};
-    Abc::MetaData::const_iterator end{};
-};
-
-static bool abc_metadata_iterator_next(Abc_MetaData_Iterator *iterator,
-                                       Abc_String *key,
-                                       Abc_String *value)
-{
-    auto iterator_impl = static_cast<Abc_MetaData_Iterator_Impl *>(iterator);
-
-    if (iterator_impl->current == iterator_impl->end) {
-        return false;
-    }
-
-    if (key) {
-        key->characters = iterator_impl->current->first.data();
-        key->size = iterator_impl->current->first.size();
-    }
-    if (value) {
-        value->characters = iterator_impl->current->second.data();
-        value->size = iterator_impl->current->second.size();
-    }
-
-    iterator_impl->current++;
-    return true;
-}
-
 struct Abc_MetaData_Iterator *abc_metadata_get_iterator(struct Abc_MetaData *metadata)
 {
     if (!metadata) {
         return nullptr;
     }
 
-    auto résultat = kuri_loge<Abc_MetaData_Iterator_Impl>(metadata->ctx_kuri);
+    Abc_MetaData_Iterator *résultat;
+    if (metadata->iterators) {
+        résultat = metadata->iterators;
+        metadata->iterators = metadata->iterators->next;
+    }
+    else {
+        résultat = kuri_loge<Abc_MetaData_Iterator>(metadata->ctx_kuri);
+    }
     résultat->metadata = metadata;
-    résultat->next = abc_metadata_iterator_next;
+    résultat->next = nullptr;
     résultat->current = résultat->metadata->metadata.begin();
     résultat->end = résultat->metadata->metadata.end();
     return résultat;
 }
 
-void abc_metadata_iterator_destroy(struct Abc_MetaData_Iterator *iterator)
+bool abc_metadata_iterator_next(Abc_MetaData_Iterator *iterator,
+                                Abc_String *key,
+                                Abc_String *value)
 {
-    if (iterator) {
-        auto iterator_impl = static_cast<Abc_MetaData_Iterator_Impl *>(iterator);
-        kuri_deloge(iterator->metadata->ctx_kuri, iterator_impl);
+    if (iterator->current == iterator->end) {
+        iterator->next = iterator->metadata->iterators;
+        iterator->metadata->iterators = iterator;
+        return false;
     }
+
+    if (key) {
+        key->characters = iterator->current->first.data();
+        key->size = iterator->current->first.size();
+    }
+    if (value) {
+        value->characters = iterator->current->second.data();
+        value->size = iterator->current->second.size();
+    }
+
+    iterator->current++;
+    return true;
 }
 
 /** \} */

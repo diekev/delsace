@@ -313,19 +313,15 @@ void abc_metadata_append(struct Abc_MetaData *metadata, struct Abc_MetaData *sou
 void abc_metadata_append_only_unique(struct Abc_MetaData *metadata, struct Abc_MetaData *source);
 void abc_metadata_append_unique(struct Abc_MetaData *metadata, struct Abc_MetaData *source);
 
-struct Abc_MetaData_Iterator {
-    struct Abc_MetaData *metadata;
-
-    /* Retourne vrai si une valeur fut renseignée dans key et value.
-     * Retourne faux si l'itérateur est à la fin. */
-    bool (*next)(struct Abc_MetaData_Iterator *iterator,
-                 struct Abc_String *key,
-                 struct Abc_String *value);
-};
+struct Abc_MetaData_Iterator;
 
 struct Abc_MetaData_Iterator *abc_metadata_get_iterator(struct Abc_MetaData *metadata);
 
-void abc_metadata_iterator_destroy(struct Abc_MetaData_Iterator *iterator);
+/* Retourne vrai si une valeur fut renseignée dans key et value.
+ * Retourne faux si l'itérateur est à la fin. */
+bool abc_metadata_iterator_next(struct Abc_MetaData_Iterator *iterator,
+                                struct Abc_String *key,
+                                struct Abc_String *value);
 
 /** \} */
 

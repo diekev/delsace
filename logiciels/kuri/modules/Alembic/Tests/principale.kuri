@@ -185,8 +185,8 @@ principale :: fonc ()
         exit(1);
     }
 
-    imprime_hiérarchie_archive(chemin);
-    // imprime_métadonnées_archives(chemin);
+    // imprime_hiérarchie_archive(chemin);
+    imprime_métadonnées_archives(chemin);
 
     // fichier: FichierCache;
     // ajoute_calque(*fichier, chemin);
@@ -249,7 +249,6 @@ imprime_métadonnées_archives :: fonc (chemin: chaine)
         diffère abc_metadata_destroy(metadata);
 
         iterator := abc_metadata_get_iterator(metadata);
-        diffère abc_metadata_iterator_destroy(iterator);
 
         application: chaine;
         description: chaine;
@@ -258,7 +257,7 @@ imprime_métadonnées_archives :: fonc (chemin: chaine)
             clé: Abc_String;
             valeur: Abc_String;
 
-            saufsi iterator.next(iterator, *clé, *valeur) {
+            saufsi abc_metadata_iterator_next(iterator, *clé, *valeur) {
                 arrête;
             }
 
