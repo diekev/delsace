@@ -790,12 +790,25 @@ Abc_Input_Object *abc_input_archive_get_top(Abc_Input_Archive *archive)
 
 /** \} */
 
+struct Abc_Output_Object_Base;
+
+struct Abc_Output_Archive {
+    ContexteKuri *ctx_kuri = nullptr;
+    Abc::OArchive *archive = nullptr;
+
+    Abc_Output_Xform *racine = nullptr;
+
+    Abc_Output_Object_Base *objects = nullptr;
+
+    Abc_Output_Scalar_Property *scalar_props = nullptr;
+};
+
 /* ------------------------------------------------------------------------- */
 /** \nom Abc_Output_Compound_Property
  * \{ */
 
 struct Abc_Output_Compound_Property {
-    ContexteKuri *ctx_kuri;
+    Abc_Output_Archive *archive;
     AbcGeom::OCompoundProperty prop;
 };
 
@@ -807,6 +820,7 @@ struct Abc_Output_Compound_Property {
 
 struct Abc_Output_Scalar_Property {
     Abc_Output_Compound_Property *parent = nullptr;
+    Abc_Output_Scalar_Property *next = nullptr;
     AbcGeom::OScalarProperty prop{};
 };
 
@@ -819,10 +833,12 @@ Abc_Output_Scalar_Property *abc_output_scalar_property_create(Abc_Output_Compoun
         static_cast<Alembic::AbcCoreAbstract::PlainOldDataType>(data_type.pod_type),
         data_type.extent);
 
-    auto résultat = kuri_loge<Abc_Output_Scalar_Property>(parent->ctx_kuri);
+    auto résultat = kuri_loge<Abc_Output_Scalar_Property>(parent->archive->ctx_kuri);
     résultat->parent = parent;
     résultat->prop = AbcGeom::OScalarProperty(parent->prop, name, abc_data_type);
     résultat->prop.setTimeSampling(ts_index.value);
+    résultat->next = parent->archive->scalar_props;
+    parent->archive->scalar_props = résultat;
     return résultat;
 }
 
@@ -919,7 +935,7 @@ Abc_Output_Array_Property *abc_output_array_property_create(Abc_Output_Compound_
         static_cast<Alembic::AbcCoreAbstract::PlainOldDataType>(data_type.pod_type),
         data_type.extent);
 
-    auto résultat = kuri_loge<Abc_Output_Array_Property>(parent->ctx_kuri);
+    auto résultat = kuri_loge<Abc_Output_Array_Property>(parent->archive->ctx_kuri);
     résultat->parent = parent;
     résultat->prop = AbcGeom::OArrayProperty(parent->prop, name, abc_data_type);
     résultat->prop.setTimeSampling(ts_index.value);
@@ -965,7 +981,8 @@ ENUMERATE_ABC_POD_TYPE(DECLARE_ARRAY_PROPERTY_SETTER)
         if (parent == nullptr) {                                                                  \
             return nullptr;                                                                       \
         }                                                                                         \
-        auto résultat = kuri_loge<Abc_Output_##type_geom##_Geom_Param>(parent->ctx_kuri);         \
+        auto résultat = kuri_loge<Abc_Output_##type_geom##_Geom_Param>(                           \
+            parent->archive->ctx_kuri);                                                           \
         résultat->param = AbcGeom::O##type_geom##GeomParam(                                       \
             parent->prop,                                                                         \
             vers_std_string(name),                                                                \
@@ -1014,7 +1031,7 @@ ENUMERATE_ABC_ATTRIBUTE_TYPES(DEFINE_ABC_OUTPUT_GEOM_PARAMS)
     {                                                                                             \
         if (!lname->arb_geom_params_initialized) {                                                \
             lname->get_arb_geom_params(&lname->arb_geom_params);                                  \
-            lname->arb_geom_params.ctx_kuri = lname->archive->ctx_kuri;                           \
+            lname->arb_geom_params.archive = lname->archive;                                      \
             lname->arb_geom_params_initialized = true;                                            \
         }                                                                                         \
         return &lname->arb_geom_params;                                                           \
@@ -1024,7 +1041,7 @@ ENUMERATE_ABC_ATTRIBUTE_TYPES(DEFINE_ABC_OUTPUT_GEOM_PARAMS)
     {                                                                                             \
         if (!lname->user_properties_initialized) {                                                \
             lname->get_user_properties(&lname->user_properties);                                  \
-            lname->user_properties.ctx_kuri = lname->archive->ctx_kuri;                           \
+            lname->user_properties.archive = lname->archive;                                      \
             lname->user_properties_initialized = true;                                            \
         }                                                                                         \
         return &lname->user_properties;                                                           \
@@ -1150,15 +1167,6 @@ struct Abc_Output_Curves : public Abc_Output_Object_Base {
     }
 };
 
-struct Abc_Output_Archive {
-    ContexteKuri *ctx_kuri = nullptr;
-    Abc::OArchive *archive = nullptr;
-
-    Abc_Output_Xform *racine = nullptr;
-
-    Abc_Output_Object_Base *objects = nullptr;
-};
-
 static void initialise_metadonnées(struct Abc_Output_Archive_Metadata *metadata,
                                    Abc::MetaData &abc_metadata)
 {
@@ -1245,6 +1253,7 @@ void abc_output_archive_destroy(struct Abc_Output_Archive *archive)
 {
     if (archive) {
         auto object = archive->objects;
+        kuri_deloge_liste(archive->ctx_kuri, archive->scalar_props);
         while (object != nullptr) {
             auto next_object = object->next;
             kuri_deloge(archive->ctx_kuri, object);
