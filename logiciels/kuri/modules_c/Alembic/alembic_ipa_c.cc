@@ -63,10 +63,14 @@ void kuri_deloge_liste(ContexteKuri *ctx_kuri, T *liste)
     }
 }
 
+#define ABC_STRING_FROM_C_STRING(x) Abc_String{x, sizeof(x) - 1}
+
 Abc_Attribute_Type_Descriptor *abc_get_attribute_type_descriptors(uint64_t *r_len)
 {
 #define DECLARE_DESCRIPTOR(type_geom, type_abc, type_c, nom_court)                                \
-    {#type_geom, #type_c, #nom_court},
+    {ABC_STRING_FROM_C_STRING(#type_geom),                                                        \
+     ABC_STRING_FROM_C_STRING(#type_c),                                                           \
+     ABC_STRING_FROM_C_STRING(#nom_court)},
 
     static Abc_Attribute_Type_Descriptor descriptors[] = {
         ENUMERATE_ABC_ATTRIBUTE_TYPES(DECLARE_DESCRIPTOR)};
@@ -83,7 +87,9 @@ Abc_Attribute_Type_Descriptor *abc_get_attribute_type_descriptors(uint64_t *r_le
 Abc_Attribute_Type_Descriptor *abc_get_pod_type_descriptors(uint64_t *r_len)
 {
 #define DECLARE_DESCRIPTOR(type_geom, type_abc, type_c, nom_court)                                \
-    {#type_geom, #type_c, #nom_court},
+    {ABC_STRING_FROM_C_STRING(#type_geom),                                                        \
+     ABC_STRING_FROM_C_STRING(#type_c),                                                           \
+     ABC_STRING_FROM_C_STRING(#nom_court)},
 
     static Abc_Attribute_Type_Descriptor descriptors[] = {
         ENUMERATE_ABC_POD_TYPE(DECLARE_DESCRIPTOR)};
