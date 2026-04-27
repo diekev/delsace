@@ -392,11 +392,42 @@ struct Abc_Data_Type {
 /** \} */
 
 /* ------------------------------------------------------------------------- */
+/** \nom Abc_Property_Type
+ * \{ */
+
+enum Abc_Property_Type {
+    ABC_PROPERTY_TYPE_COMPOUND = 0,
+    ABC_PROPERTY_TYPE_SCALAR = 1,
+    ABC_PROPERTY_TYPE_ARRAY = 2,
+};
+
+/** \} */
+
+/* ------------------------------------------------------------------------- */
+/** \nom Abc_Sample_Selector
+ * \{ */
+
+enum Abc_Time_Index_Type {
+    ABC_TIME_INDEX_TYPE_NEAR_INDEX,
+    ABC_TIME_INDEX_TYPE_FLOOR_INDEX,
+    ABC_TIME_INDEX_TYPE_CEIL_INDEX,
+};
+
+struct Abc_Sample_Selector {
+    int64_t requested_index;
+    double requested_time;
+    enum Abc_Time_Index_Type requested_time_index_type;
+};
+
+/** \} */
+
+/* ------------------------------------------------------------------------- */
 /** \nom Abc_Property_Header
  * \{ */
 
 struct Abc_Property_Header;
 void abc_property_header_get_name(struct Abc_Property_Header *header, struct Abc_String *name);
+enum Abc_Property_Type abc_property_header_get_property_type(struct Abc_Property_Header *header);
 bool abc_property_header_is_scalar(struct Abc_Property_Header *header);
 bool abc_property_header_is_array(struct Abc_Property_Header *header);
 bool abc_property_header_is_compound(struct Abc_Property_Header *header);
@@ -419,6 +450,27 @@ uint64_t abc_input_compound_property_get_num_properties(struct Abc_Input_Compoun
 
 struct Abc_Property_Header *abc_input_compound_property_get_property_header(
     struct Abc_Input_Compound_Property *prop, uint64_t i);
+
+/** \} */
+
+/* ------------------------------------------------------------------------- */
+/** \nom Abc_Input_Scalar_Property
+ * \{ */
+
+struct Abc_Input_Scalar_Property;
+
+struct Abc_Input_Scalar_Property *abc_input_compound_property_get_scalar(
+    struct Abc_Input_Compound_Property *props, struct Abc_String name);
+uint64_t abc_input_scalar_property_get_num_samples(struct Abc_Input_Scalar_Property *prop);
+bool abc_input_scalar_property_is_constant(struct Abc_Input_Scalar_Property *prop);
+
+#define DECLARE_SCALAR_PROPERTY_GETTER(type_geom, type_abc_value, type_c, nom_court)              \
+    type_c abc_input_scalar_property_##nom_court##_get(struct Abc_Input_Scalar_Property *prop,    \
+                                                       struct Abc_Sample_Selector selector);
+
+ENUMERATE_ABC_POD_TYPE(DECLARE_SCALAR_PROPERTY_GETTER)
+
+#undef DECLARE_SCALAR_PROPERTY_GETTER
 
 /** \} */
 

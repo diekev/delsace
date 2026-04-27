@@ -344,7 +344,35 @@ struct Abc_Input_Archive {
     Abc_Object_Header *headers = nullptr;
     Abc_Input_Object *objects = nullptr;
     Abc_Property_Header *prop_headers = nullptr;
+    Abc_Input_Scalar_Property *scalar_props = nullptr;
 };
+
+/* ------------------------------------------------------------------------- */
+/** \nom Abc_Sample_Selector
+ * \{ */
+
+static Abc::ISampleSelector get_sample_selector(Abc_Sample_Selector selector)
+{
+    // Notre version de l'énumération possède `NearIndex` à 0 pour qu'une valeur à défaut
+    // possède la même valeur que Alembic.
+    // Pour convertir, nous pouvons simplement faire (v + 2) % 3
+    //
+    // Nom   | Alembic | IPA
+    // ------+---------+----
+    // Floor |       0 |   1
+    // Ceil  |       1 |   2
+    // Near  |       2 |   0
+    auto time_index_type = static_cast<Abc::ISampleSelector::TimeIndexType>(
+        (selector.requested_time_index_type + 2) % 3);
+
+    if (selector.requested_index == -1) {
+        return Abc::ISampleSelector(selector.requested_time, time_index_type);
+    }
+
+    return Abc::ISampleSelector(selector.requested_index, time_index_type);
+}
+
+/** \} */
 
 /* ------------------------------------------------------------------------- */
 /** \nom Abc_Property_Header
@@ -361,7 +389,10 @@ void abc_property_header_get_name(struct Abc_Property_Header *header, struct Abc
     vers_abc_string(name, header->header.getName());
 }
 
-// À FAIRE PropertyType getPropertyType() const { return m_propertyType; }
+enum Abc_Property_Type abc_property_header_get_property_type(struct Abc_Property_Header *header)
+{
+    return static_cast<Abc_Property_Type>(header->header.getPropertyType());
+}
 
 bool abc_property_header_is_scalar(struct Abc_Property_Header *header)
 {
@@ -431,6 +462,77 @@ struct Abc_Property_Header *abc_input_compound_property_get_property_header(
     prop->archive->prop_headers = résultat;
     return résultat;
 }
+
+/** \} */
+
+/* ------------------------------------------------------------------------- */
+/** \nom Abc_Input_Scalar_Property
+ * \{ */
+
+struct Abc_Input_Scalar_Property {
+    AbcGeom::IScalarProperty prop{};
+    Abc_Input_Scalar_Property *next = nullptr;
+    std::string tampon_pour_get{};
+};
+
+struct Abc_Input_Scalar_Property *abc_input_compound_property_get_scalar(
+    struct Abc_Input_Compound_Property *props, struct Abc_String name)
+{
+    auto résultat = kuri_loge<Abc_Input_Scalar_Property>(props->archive->ctx_kuri);
+    résultat->prop = AbcGeom::IScalarProperty(props->prop, name);
+    résultat->next = props->archive->scalar_props;
+    props->archive->scalar_props = résultat;
+    return résultat;
+}
+
+uint64_t abc_input_scalar_property_get_num_samples(struct Abc_Input_Scalar_Property *prop)
+{
+    return prop->prop.getNumSamples();
+}
+
+bool abc_input_scalar_property_is_constant(struct Abc_Input_Scalar_Property *prop)
+{
+    return prop->prop.isConstant();
+}
+
+template <typename T>
+T get_property_value_impl(struct Abc_Input_Scalar_Property *prop,
+                          struct Abc_Sample_Selector selector)
+{
+    T result;
+    prop->prop.get(&result, get_sample_selector(selector));
+    return result;
+}
+
+template <>
+bool get_property_value_impl<bool>(struct Abc_Input_Scalar_Property *prop,
+                                   struct Abc_Sample_Selector selector)
+{
+    Abc::bool_t result;
+    prop->prop.get(&result, get_sample_selector(selector));
+    return result;
+}
+
+template <>
+Abc_String get_property_value_impl<Abc_String>(struct Abc_Input_Scalar_Property *prop,
+                                               struct Abc_Sample_Selector selector)
+{
+    prop->prop.get(&prop->tampon_pour_get, get_sample_selector(selector));
+    Abc_String result;
+    vers_abc_string(&result, prop->tampon_pour_get);
+    return result;
+}
+
+#define DECLARE_SCALAR_PROPERTY_GETTER(type_geom, type_abc_value, type_c, nom_court)              \
+    type_c abc_input_scalar_property_##nom_court##_get(struct Abc_Input_Scalar_Property *prop,    \
+                                                       struct Abc_Sample_Selector selector)       \
+    {                                                                                             \
+        return get_property_value_impl<type_c>(prop, selector);                                   \
+    }
+
+ENUMERATE_ABC_POD_TYPE(DECLARE_SCALAR_PROPERTY_GETTER)
+
+#undef DECLARE_SCALAR_PROPERTY_GETTER
 
 /** \} */
 
