@@ -47,6 +47,13 @@
  */
 
 template <typename T>
+void liste_ajoute(T **tête, T *élément)
+{
+    élément->next = *tête;
+    *tête = élément;
+}
+
+template <typename T>
 void kuri_deloge_liste(ContexteKuri *ctx_kuri, T *liste)
 {
     while (liste != nullptr) {
@@ -315,8 +322,7 @@ bool abc_metadata_iterator_next(Abc_MetaData_Iterator *iterator,
                                 Abc_String *value)
 {
     if (iterator->current == iterator->end) {
-        iterator->next = iterator->metadata->iterators;
-        iterator->metadata->iterators = iterator;
+        liste_ajoute(&iterator->metadata->iterators, iterator);
         return false;
     }
 
@@ -458,8 +464,7 @@ struct Abc_Property_Header *abc_input_compound_property_get_property_header(
     const Alembic::AbcCoreAbstract::PropertyHeader &header = prop->prop.getPropertyHeader(i);
     auto résultat = kuri_loge<Abc_Property_Header>(prop->archive->ctx_kuri, header);
     résultat->ctx_kuri = prop->archive->ctx_kuri;
-    résultat->next = prop->archive->prop_headers;
-    prop->archive->prop_headers = résultat;
+    liste_ajoute(&prop->archive->prop_headers, résultat);
     return résultat;
 }
 
@@ -480,8 +485,7 @@ struct Abc_Input_Scalar_Property *abc_input_compound_property_get_scalar(
 {
     auto résultat = kuri_loge<Abc_Input_Scalar_Property>(props->archive->ctx_kuri);
     résultat->prop = AbcGeom::IScalarProperty(props->prop, name);
-    résultat->next = props->archive->scalar_props;
-    props->archive->scalar_props = résultat;
+    liste_ajoute(&props->archive->scalar_props, résultat);
     return résultat;
 }
 
@@ -604,8 +608,7 @@ T *make_object(Abc_Input_Archive *archive)
 {
     auto résultat = kuri_loge<T>(archive->ctx_kuri);
     résultat->archive = archive;
-    résultat->next = résultat->archive->objects;
-    résultat->archive->objects = résultat;
+    liste_ajoute(&résultat->archive->objects, static_cast<Abc_Input_Object *>(résultat));
     return résultat;
 }
 
@@ -625,8 +628,7 @@ struct Abc_Object_Header *abc_input_object_get_child_header(Abc_Generic_Input_Ob
     const AbcGeom::ObjectHeader &header = object.object->untyped_object.getChildHeader(i);
     auto résultat = kuri_loge<Abc_Object_Header>(object.object->archive->ctx_kuri, header);
     résultat->ctx_kuri = object.object->archive->ctx_kuri;
-    résultat->next = object.object->archive->headers;
-    object.object->archive->headers = résultat;
+    liste_ajoute(&object.object->archive->headers, résultat);
     return résultat;
 }
 
@@ -837,8 +839,7 @@ Abc_Output_Scalar_Property *abc_output_scalar_property_create(Abc_Output_Compoun
     résultat->parent = parent;
     résultat->prop = AbcGeom::OScalarProperty(parent->prop, name, abc_data_type);
     résultat->prop.setTimeSampling(ts_index.value);
-    résultat->next = parent->archive->scalar_props;
-    parent->archive->scalar_props = résultat;
+    liste_ajoute(&parent->archive->scalar_props, résultat);
     return résultat;
 }
 
@@ -1268,8 +1269,7 @@ template <typename T>
 T *crée_objet_sortie(Abc_Output_Archive *archive)
 {
     auto résultat = kuri_loge<T>(archive->ctx_kuri);
-    résultat->next = archive->objects;
-    archive->objects = résultat;
+    liste_ajoute(&archive->objects, static_cast<Abc_Output_Object_Base *>(résultat));
     résultat->archive = archive;
     return résultat;
 }
