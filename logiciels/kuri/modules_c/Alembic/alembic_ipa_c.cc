@@ -1255,11 +1255,7 @@ void abc_output_archive_destroy(struct Abc_Output_Archive *archive)
     if (archive) {
         auto object = archive->objects;
         kuri_deloge_liste(archive->ctx_kuri, archive->scalar_props);
-        while (object != nullptr) {
-            auto next_object = object->next;
-            kuri_deloge(archive->ctx_kuri, object);
-            object = next_object;
-        }
+        kuri_deloge_liste(archive->ctx_kuri, archive->objects);
         kuri_deloge(archive->ctx_kuri, archive->archive);
         kuri_deloge(archive->ctx_kuri, archive);
     }
