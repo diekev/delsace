@@ -1031,10 +1031,10 @@ ENUMERATE_ABC_ATTRIBUTE_TYPES(MAKE_TYPED_SAMPLE_FROM_ARRAY_SAMPLE)
         prop->typed_prop.setTimeSampling(index.value);                                            \
     }                                                                                             \
     void abc_output_##nom_court##_scalar_property_set(                                            \
-        struct Abc_Output_##type_geom##_Scalar_Property *prop, type_c value)                      \
+        struct Abc_Output_##type_geom##_Scalar_Property *prop, type_c *value)                     \
     {                                                                                             \
         using value_conv = value_converter<type_c>;                                               \
-        type_abc_value sample_value = value_conv::convert_value(&value);                          \
+        type_abc_value sample_value = value_conv::convert_value(value);                           \
         prop->typed_prop.set(sample_value);                                                       \
     }
 

@@ -705,7 +705,7 @@ ENUMERATE_ABC_POD_TYPE(DECLARE_SCALAR_PROPERTY_SETTER)
         struct Abc_Output_##type_geom##_Scalar_Property *prop,                                    \
         struct Abc_Time_Sample_Index index);                                                      \
     void abc_output_##nom_court##_scalar_property_set(                                            \
-        struct Abc_Output_##type_geom##_Scalar_Property *prop, type_c value);
+        struct Abc_Output_##type_geom##_Scalar_Property *prop, type_c *value);
 
 ENUMERATE_ABC_ATTRIBUTE_TYPES(DECLARE_ABC_TYPED_SCALAR_PROPERTY)
 
