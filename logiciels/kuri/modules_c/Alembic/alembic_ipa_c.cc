@@ -63,6 +63,23 @@ void kuri_deloge_liste(ContexteKuri *ctx_kuri, T *liste)
     }
 }
 
+Abc_Attribute_Type_Descriptor *abc_get_attribute_type_descriptors(uint64_t *r_len)
+{
+#define DECLARE_DESCRIPTOR(type_geom, type_abc, type_c, nom_court)                                \
+    {#type_geom, #type_c, #nom_court},
+
+    static Abc_Attribute_Type_Descriptor descriptors[] = {
+        ENUMERATE_ABC_ATTRIBUTE_TYPES(DECLARE_DESCRIPTOR)};
+
+#undef DECLARE_DESCRIPTOR
+
+    if (r_len) {
+        *r_len = sizeof(descriptors) / sizeof(descriptors[0]);
+    }
+
+    return descriptors;
+}
+
 /* ------------------------------------------------------------------------- */
 /** \nom Abc_Output_Camera
  * \{ */

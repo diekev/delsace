@@ -274,6 +274,14 @@ ENUMERATE_ABC_ATTRIBUTE_TYPES(DECLARE_ABC_TYPED_ARRAY_SAMPLE)
 
 #undef DECLARE_ABC_TYPED_ARRAY_SAMPLE
 
+struct Abc_Attribute_Type_Descriptor {
+    const char *type_geom;
+    const char *type_ipa;
+    const char *nom_court;
+};
+
+struct Abc_Attribute_Type_Descriptor *abc_get_attribute_type_descriptors(uint64_t *r_len);
+
 #define DECLARE_COMMON_SAMPLE_FONCTIONS(uppercase_name, lowercase_name)                           \
     struct Abc_Output_##uppercase_name##_Sample *abc_output_##lowercase_name##_sample_create(     \
         struct Abc_Output_Archive *archive);                                                      \
