@@ -477,8 +477,9 @@ uint64_t abc_input_scalar_property_get_num_samples(struct Abc_Input_Scalar_Prope
 bool abc_input_scalar_property_is_constant(struct Abc_Input_Scalar_Property *prop);
 
 #define DECLARE_SCALAR_PROPERTY_GETTER(type_geom, type_abc_value, type_c, nom_court)              \
-    type_c abc_input_scalar_property_##nom_court##_get(struct Abc_Input_Scalar_Property *prop,    \
-                                                       struct Abc_Sample_Selector selector);
+    void abc_input_scalar_property_##nom_court##_get(struct Abc_Input_Scalar_Property *prop,      \
+                                                     type_c *result,                              \
+                                                     struct Abc_Sample_Selector selector);
 
 ENUMERATE_ABC_POD_TYPE(DECLARE_SCALAR_PROPERTY_GETTER)
 

@@ -578,38 +578,38 @@ bool abc_input_scalar_property_is_constant(struct Abc_Input_Scalar_Property *pro
 }
 
 template <typename T>
-T get_property_value_impl(struct Abc_Input_Scalar_Property *prop,
-                          struct Abc_Sample_Selector selector)
+void get_property_value_impl(struct Abc_Input_Scalar_Property *prop,
+                             T *result,
+                             struct Abc_Sample_Selector selector)
 {
-    T result;
-    prop->prop.get(&result, get_sample_selector(selector));
-    return result;
+    prop->prop.get(result, get_sample_selector(selector));
 }
 
 template <>
-bool get_property_value_impl<bool>(struct Abc_Input_Scalar_Property *prop,
+void get_property_value_impl<bool>(struct Abc_Input_Scalar_Property *prop,
+                                   bool *result,
                                    struct Abc_Sample_Selector selector)
 {
-    Abc::bool_t result;
-    prop->prop.get(&result, get_sample_selector(selector));
-    return result;
+    Abc::bool_t tmp_result;
+    prop->prop.get(&tmp_result, get_sample_selector(selector));
+    *result = tmp_result;
 }
 
 template <>
-Abc_String get_property_value_impl<Abc_String>(struct Abc_Input_Scalar_Property *prop,
-                                               struct Abc_Sample_Selector selector)
+void get_property_value_impl<Abc_String>(struct Abc_Input_Scalar_Property *prop,
+                                         Abc_String *result,
+                                         struct Abc_Sample_Selector selector)
 {
     prop->prop.get(&prop->tampon_pour_get, get_sample_selector(selector));
-    Abc_String result;
-    vers_abc_string(&result, prop->tampon_pour_get);
-    return result;
+    vers_abc_string(result, prop->tampon_pour_get);
 }
 
 #define DECLARE_SCALAR_PROPERTY_GETTER(type_geom, type_abc_value, type_c, nom_court)              \
-    type_c abc_input_scalar_property_##nom_court##_get(struct Abc_Input_Scalar_Property *prop,    \
-                                                       struct Abc_Sample_Selector selector)       \
+    void abc_input_scalar_property_##nom_court##_get(struct Abc_Input_Scalar_Property *prop,      \
+                                                     type_c *result,                              \
+                                                     struct Abc_Sample_Selector selector)         \
     {                                                                                             \
-        return get_property_value_impl<type_c>(prop, selector);                                   \
+        return get_property_value_impl<type_c>(prop, result, selector);                           \
     }
 
 ENUMERATE_ABC_POD_TYPE(DECLARE_SCALAR_PROPERTY_GETTER)
