@@ -3,8 +3,8 @@
 
 #include "alembic.h"
 
+#include <fstream>
 #include <string_view>
-#include <variant>
 
 #include "alembic_ipa_c.h"
 #include "alembic_types.h"
@@ -718,15 +718,44 @@ struct Abc_Input_Archive *abc_input_archive_create(ContexteKuri *ctx_kuri,
     }
 
     std::vector<std::string> strings_chemins;
+    std::string filename;
     for (size_t i = 0; i < nombre_de_chemins; ++i) {
-        strings_chemins.push_back(std::string(chemins->characters, chemins->size));
-        chemins += 1;
+        filename = *chemins++;
+        strings_chemins.push_back(filename);
     }
 
-    // À FAIRE : paramétrage
-    Alembic::AbcCoreFactory::IFactory factory;
+    Abc::IArchive iarchive;
 
-    Abc::IArchive iarchive = factory.getArchive(strings_chemins);
+    try {
+        Alembic::AbcCoreOgawa::ReadArchive archive_reader;
+        iarchive = Abc::IArchive(
+            archive_reader(filename), Abc::kWrapExisting, Abc::ErrorHandler::kThrowPolicy);
+    }
+    catch (const Abc::Exception &e) {
+        std::cerr << e.what() << '\n';
+
+        /* Inspect the file to see whether it's actually a HDF5 file. */
+        char header[4]; /* char(0x89) + "HDF" */
+        std::ifstream the_file(filename.c_str(), std::ios::in | std::ios::binary);
+        if (!the_file) {
+            std::cerr << "Unable to open " << filename << std::endl;
+        }
+        else if (!the_file.read(header, sizeof(header))) {
+            std::cerr << "Unable to read from " << filename << std::endl;
+        }
+        else if (strncmp(header + 1, "HDF", 3) != 0) {
+            std::cerr << filename << " has an unknown file format, unable to read." << std::endl;
+        }
+        else {
+            std::cerr << filename << " is in the obsolete HDF5 format, unable to read."
+                      << std::endl;
+        }
+
+        if (the_file.is_open()) {
+            the_file.close();
+        }
+    }
+
     if (!iarchive.valid()) {
         return nullptr;
     }
