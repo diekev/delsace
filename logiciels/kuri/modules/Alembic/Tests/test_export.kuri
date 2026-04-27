@@ -74,12 +74,176 @@ abc_output_curves_sample_widths_set :: fonc (sample: *Abc_Output_Curves_Sample, 
     abc_output_curves_sample_widths_set(sample, geom_param);
 }
 
+/* ------------------------------------------------------------------------- */
+/** \nom OCompoundProperty
+ * \{ */
+
+importe Fondation;
+
+add_scalar_property :: fonc (props: *Abc_Output_Compound_Property, name: chaine, data_type: Abc_Data_Type, ts_index: Abc_Time_Sample_Index) -> *Abc_Output_Scalar_Property
+{
+    retourne abc_output_scalar_property_create(props, vers_abc_string(name), data_type, ts_index);
+}
+
+add_scalar_property :: fonc (props: *Abc_Output_Compound_Property, name: chaine, valeur: $T, ts_index: Abc_Time_Sample_Index)
+{
+    #si T == bool {
+        data_type: Abc_Data_Type;
+        data_type.extent = 1;
+        data_type.pod_type = Abc_Plain_Old_Data_Type.BOOLEAN;
+        prop := add_scalar_property(props, name, data_type, ts_index);
+        abc_output_scalar_property_bool_set(prop, valeur);
+    }
+    sinon si T == n8 {
+        data_type: Abc_Data_Type;
+        data_type.extent = 1;
+        data_type.pod_type = Abc_Plain_Old_Data_Type.UINT8;
+        prop := add_scalar_property(props, name, data_type, ts_index);
+        abc_output_scalar_property_uchar_set(prop, valeur);
+    }
+    sinon si T == z8 {
+        data_type: Abc_Data_Type;
+        data_type.extent = 1;
+        data_type.pod_type = Abc_Plain_Old_Data_Type.INT8;
+        prop := add_scalar_property(props, name, data_type, ts_index);
+        abc_output_scalar_property_char_set(prop, valeur);
+    }
+    sinon si T == n16 {
+        data_type: Abc_Data_Type;
+        data_type.extent = 1;
+        data_type.pod_type = Abc_Plain_Old_Data_Type.UINT16;
+        prop := add_scalar_property(props, name, data_type, ts_index);
+        abc_output_scalar_property_uint16_set(prop, valeur);
+    }
+    sinon si T == z16 {
+        data_type: Abc_Data_Type;
+        data_type.extent = 1;
+        data_type.pod_type = Abc_Plain_Old_Data_Type.INT16;
+        prop := add_scalar_property(props, name, data_type, ts_index);
+        abc_output_scalar_property_int16_set(prop, valeur);
+    }
+    sinon si T == n32 {
+        data_type: Abc_Data_Type;
+        data_type.extent = 1;
+        data_type.pod_type = Abc_Plain_Old_Data_Type.UINT32;
+        prop := add_scalar_property(props, name, data_type, ts_index);
+        abc_output_scalar_property_uint32_set(prop, valeur);
+    }
+    sinon si T == z32 {
+        data_type: Abc_Data_Type;
+        data_type.extent = 1;
+        data_type.pod_type = Abc_Plain_Old_Data_Type.INT32;
+        prop := add_scalar_property(props, name, data_type, ts_index);
+        abc_output_scalar_property_int32_set(prop, valeur);
+    }
+    sinon si T == n64 {
+        data_type: Abc_Data_Type;
+        data_type.extent = 1;
+        data_type.pod_type = Abc_Plain_Old_Data_Type.UINT64;
+        prop := add_scalar_property(props, name, data_type, ts_index);
+        abc_output_scalar_property_uint64_set(prop, valeur);
+    }
+    sinon si T == z64 {
+        data_type: Abc_Data_Type;
+        data_type.extent = 1;
+        data_type.pod_type = Abc_Plain_Old_Data_Type.INT64;
+        prop := add_scalar_property(props, name, data_type, ts_index);
+        abc_output_scalar_property_int64_set(prop, valeur);
+    }
+    // sinon si T == r16 {
+    // FLOAT16;
+    // }
+    sinon si T == r32 {
+        data_type: Abc_Data_Type;
+        data_type.extent = 1;
+        data_type.pod_type = Abc_Plain_Old_Data_Type.FLOAT32;
+        prop := add_scalar_property(props, name, data_type, ts_index);
+        abc_output_scalar_property_float_set(prop, valeur);
+    }
+    sinon si T == r64 {
+        data_type: Abc_Data_Type;
+        data_type.extent = 1;
+        data_type.pod_type = Abc_Plain_Old_Data_Type.FLOAT64;
+        prop := add_scalar_property(props, name, data_type, ts_index);
+        abc_output_scalar_property_double_set(prop, valeur);
+    }
+    sinon si T == chaine {
+        data_type: Abc_Data_Type;
+        data_type.extent = 1;
+        data_type.pod_type = Abc_Plain_Old_Data_Type.STRING;
+        prop := add_scalar_property(props, name, data_type, ts_index);
+        abc_output_scalar_property_string_set(prop, vers_abc_string(valeur));
+    }
+    sinon si T == Abc_String {
+        data_type: Abc_Data_Type;
+        data_type.extent = 1;
+        data_type.pod_type = Abc_Plain_Old_Data_Type.STRING;
+        prop := add_scalar_property(props, name, data_type, ts_index);
+        abc_output_scalar_property_string_set(prop, valeur);
+    }
+    sinon {
+        imprimeln("Type de données non-supporté");
+    }
+}
+
+/** \} */
+
 principale :: fonc ()
 {
-    crée_test_rayons_courbes("/tmp/curve-with-width.abc", vrai);
-    crée_test_rayons_courbes("/tmp/curve-without-width.abc", faux);
-    crée_test_rayons_points("/tmp/point-with-width.abc", vrai);
-    crée_test_rayons_points("/tmp/point-without-width.abc", faux);
+    crée_test_user_props_scalar("/tmp/scalar-props-in-user-props.abc", vrai);
+    crée_test_user_props_scalar("/tmp/scalar-props-in-geom-params.abc", faux);
+    // crée_test_rayons_courbes("/tmp/curve-with-width.abc", vrai);
+    // crée_test_rayons_courbes("/tmp/curve-without-width.abc", faux);
+    // crée_test_rayons_points("/tmp/point-with-width.abc", vrai);
+    // crée_test_rayons_points("/tmp/point-without-width.abc", faux);
+}
+
+crée_test_user_props_scalar :: fonc (chemin: chaine, dans_user_props: bool)
+{
+    metadata: Abc_Output_Archive_Metadata;
+    metadata.application_name = vers_abc_string("Jorjala");
+    metadata.fps = 24.0;
+
+    archive := abc_output_archive_create(chemin, *metadata);
+    diffère abc_output_archive_destroy(archive);
+
+    ts_défaut := abc_output_archive_default_time_sampling(archive);
+
+    racine := abc_output_archive_root_object_get(archive);
+
+    matrice_objet_point := crée_xform_neutre_pour_objet(archive, racine, "PointCloud", ts_défaut);
+
+    objet_point := abc_output_points_create(matrice_objet_point, "PointCloudPoints", ts_défaut);
+    point_sample := abc_output_points_sample_create(archive);
+    diffère abc_output_points_sample_destroy(point_sample);
+
+    position := Vec3(0.0, 0.0, 0.0);
+    abc_output_points_sample_positions_set(point_sample, [position]);
+
+    ids := n64.[0];
+    abc_output_points_sample_ids_set(point_sample, ids);
+
+    abc_output_points_sample_set(objet_point, point_sample);
+
+    user_props := si dans_user_props {
+        abc_output_points_user_properties_get(objet_point);
+    }
+    sinon {
+        abc_output_points_arb_geom_params_get(objet_point);
+    };
+
+    add_scalar_property(user_props, "prop-bool", vrai, ts_défaut);
+    add_scalar_property(user_props, "prop-int8", 123 comme z8, ts_défaut);
+    add_scalar_property(user_props, "prop-int16", 123 comme z16, ts_défaut);
+    add_scalar_property(user_props, "prop-int32", 123, ts_défaut);
+    add_scalar_property(user_props, "prop-int64", 123 comme z64, ts_défaut);
+    add_scalar_property(user_props, "prop-uint8", 123 comme n8, ts_défaut);
+    add_scalar_property(user_props, "prop-uint16", 123 comme n16, ts_défaut);
+    add_scalar_property(user_props, "prop-uint32", 123 comme n32, ts_défaut);
+    add_scalar_property(user_props, "prop-uint64", 123 comme n64, ts_défaut);
+    add_scalar_property(user_props, "prop-float32", 1.23, ts_défaut);
+    add_scalar_property(user_props, "prop-float64", 1.23 comme r64, ts_défaut);
+    add_scalar_property(user_props, "prop-string", "123", ts_défaut);
 }
 
 crée_test_rayons_courbes :: fonc (chemin: chaine, export_rayon: bool)
