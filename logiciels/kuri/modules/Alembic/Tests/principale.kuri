@@ -157,11 +157,6 @@ rassemble_noms_objets :: fonc (fichier: *FichierCache)
     ABC_traverse_archive(*ctx_kuri_pour_alembic, fichier.poignée_abc, *ctx_traverse);
 }
 
-vers_kuri :: fonc (chn: Abc_String) -> chaine
-{
-    retourne chaine(chn.characters, chn.size comme z64);
-}
-
 Application_Et_Description :: struct {
     application: chaine;
     description: chaine;

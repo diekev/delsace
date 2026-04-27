@@ -19,6 +19,16 @@ vers_abc_string :: fonc (chn: chaine) -> Abc_String
     retourne Abc_String(chn.pointeur, chn.taille comme n64);
 }
 
+vers_kuri :: fonc (chn: Abc_String) -> chaine
+{
+    retourne chaine(chn.characters, chn.size comme z64);
+}
+
+opérateur == :: (a: Abc_String, b: chaine) -> bool
+{
+    retourne vers_kuri(a) == b;
+}
+
 /* ------------------------------------------------------------------------- */
 /** \nom Contexte Kuri pour Alembic
  * \{ */

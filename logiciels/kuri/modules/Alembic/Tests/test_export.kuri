@@ -1,4 +1,6 @@
 importe Alembic;
+importe Chaine;
+importe Numérique;
 importe Math;
 
 abc_output_archive_create :: fonc (chemin: chaine) -> *Abc_Output_Archive
@@ -188,6 +190,74 @@ add_scalar_property :: fonc (props: *Abc_Output_Compound_Property, name: chaine,
 
 /** \} */
 
+abc_donne_descripteurs_attributs :: fonc () -> []Abc_Attribute_Type_Descriptor
+{
+    résultat: []Abc_Attribute_Type_Descriptor;
+    résultat.pointeur = abc_get_attribute_type_descriptors(*résultat.taille comme *n64);
+    retourne résultat;
+}
+
+abc_donne_descripteurs_pod :: fonc () -> []Abc_Attribute_Type_Descriptor
+{
+    résultat: []Abc_Attribute_Type_Descriptor;
+    résultat.pointeur = abc_get_pod_type_descriptors(*résultat.taille comme *n64);
+    retourne résultat;
+}
+
+est_type_pod :: fonc (type: chaine) -> bool
+{
+    descripteurs := abc_donne_descripteurs_pod();
+
+    pour descripteurs {
+        si it.type_geom == type {
+            retourne vrai;
+        }
+    }
+
+    retourne faux;
+}
+
+Info_Nom_Type_Abc :: struct {
+    préfixe: chaine;
+    suffixe: chaine;
+    taille: n32;
+}
+
+donne_info_nom_type_abc :: fonc (type: chaine) -> Info_Nom_Type_Abc
+{
+    résultat: Info_Nom_Type_Abc;
+
+    si type == "Quatf" || type == "Quatd" {
+        résultat.préfixe = type;
+        résultat.préfixe.taille = 4;
+        résultat.suffixe = avance(type, 4);
+    }
+    sinon {
+        résultat.préfixe = type;
+        résultat.préfixe.taille = 0;
+
+        tantque type.taille != 0 {
+            saufsi est_alphabétique(type[0]) {
+                arrête;
+            }
+
+            résultat.préfixe.taille += 1;
+            type = avance(type, 1);
+        }
+
+        si type.taille != 0 {
+            succès, valeur, reste := consomme_nombre_entier(type);
+            assert(succès);
+
+            résultat.taille = valeur comme n32;
+
+            résultat.suffixe = reste;
+        }
+    }
+
+    retourne résultat;
+}
+
 principale :: fonc ()
 {
     crée_test_user_props_scalar("/tmp/scalar-props-in-user-props.abc", vrai);
@@ -232,18 +302,147 @@ crée_test_user_props_scalar :: fonc (chemin: chaine, dans_user_props: bool)
         abc_output_points_arb_geom_params_get(objet_point);
     };
 
-    add_scalar_property(user_props, "prop-bool", vrai, ts_défaut);
-    add_scalar_property(user_props, "prop-int8", 123 comme z8, ts_défaut);
-    add_scalar_property(user_props, "prop-int16", 123 comme z16, ts_défaut);
-    add_scalar_property(user_props, "prop-int32", 123, ts_défaut);
-    add_scalar_property(user_props, "prop-int64", 123 comme z64, ts_défaut);
-    add_scalar_property(user_props, "prop-uint8", 123 comme n8, ts_défaut);
-    add_scalar_property(user_props, "prop-uint16", 123 comme n16, ts_défaut);
-    add_scalar_property(user_props, "prop-uint32", 123 comme n32, ts_défaut);
-    add_scalar_property(user_props, "prop-uint64", 123 comme n64, ts_défaut);
-    add_scalar_property(user_props, "prop-float32", 1.23, ts_défaut);
-    add_scalar_property(user_props, "prop-float64", 1.23 comme r64, ts_défaut);
-    add_scalar_property(user_props, "prop-string", "123", ts_défaut);
+    ajoute_propriétés_scalaires(user_props, ts_défaut);
+}
+
+ajoute_propriétés_scalaires :: fonc (parent: *Abc_Output_Compound_Property, ts: Abc_Time_Sample_Index)
+#corps_texte {
+    descripteurs := abc_donne_descripteurs_attributs();
+
+    enchaineuse: Enchaineuse;
+    initialise_enchaineuse(*enchaineuse);
+
+    pour descripteurs {
+        type_geom := vers_kuri(it.type_geom);
+        type_ipa := vers_kuri(it.type_ipa);
+        nom_court := vers_kuri(it.nom_court);
+
+        ajoute_au_tampon(*enchaineuse, "// ", type_geom, "\n");
+
+        imprime_dans_enchaineuse(*enchaineuse, "prop_% := abc_output_%_scalar_property_create(parent, vers_abc_string(\"prop-%\"));\n", nom_court, nom_court, nom_court);
+        imprime_dans_enchaineuse(*enchaineuse, "abc_output_%_scalar_property_set_time_sample_index(prop_%, ts);\n", nom_court, nom_court);
+
+        si est_type_pod(type_geom) {
+            chaine_valeur := "";
+            si type_geom == "String" {
+                chaine_valeur = "vers_abc_string(\"123\")";
+            }
+            sinon si type_geom == "Bool" {
+                chaine_valeur = "vrai";
+            }
+            sinon si type_geom == "Float" || type_geom == "Double" {
+                chaine_valeur = "1.23";
+            }
+            sinon {
+                chaine_valeur = "123";
+            }
+
+            imprime_dans_enchaineuse(*enchaineuse, "abc_output_%_scalar_property_set(prop_%, %);\n", nom_court, nom_court, chaine_valeur);
+        }
+        sinon {
+            nom_valeur := imprime_chaine("valeur_%", nom_court);
+            diffère déloge(*nom_valeur);
+
+            imprime_dans_enchaineuse(*enchaineuse, "%: % = ---;\n", nom_valeur, type_ipa);
+
+            info := donne_info_nom_type_abc(type_geom);
+            si info.préfixe == "Box" {
+                imprime_dans_enchaineuse(*enchaineuse, "%.min.x = 123;\n", nom_valeur);
+                imprime_dans_enchaineuse(*enchaineuse, "%.min.y = 147;\n", nom_valeur);
+                imprime_dans_enchaineuse(*enchaineuse, "%.max.x = 456;\n", nom_valeur);
+                imprime_dans_enchaineuse(*enchaineuse, "%.max.y = 258;\n", nom_valeur);
+
+                si info.taille == 3 {
+                    imprime_dans_enchaineuse(*enchaineuse, "%.min.z = 789;\n", nom_valeur);
+                    imprime_dans_enchaineuse(*enchaineuse, "%.max.z = 369;\n", nom_valeur);
+                }
+                sinon si info.taille != 2 {
+                    panique("taille non-gérée : %", info.taille);
+                }
+            }
+            sinon si info.préfixe == "M" {
+                si info.taille == 33 {
+                    pour i dans 3 {
+                        pour j dans 3 {
+                            imprime_dans_enchaineuse(*enchaineuse, "%.x[%][%] = %;\n", nom_valeur, i, j, i * 3 + j);
+                        }
+                    }
+                }
+                sinon si info.taille == 44 {
+                    pour i dans 4 {
+                        pour j dans 4 {
+                            imprime_dans_enchaineuse(*enchaineuse, "%.x[%][%] = %;\n", nom_valeur, i, j, i * 4 + j);
+                        }
+                    }
+                }
+                sinon {
+                    panique("taille non-gérée : %", info.taille);
+                }
+            }
+            sinon si info.préfixe == "Quat" {
+                imprime_dans_enchaineuse(*enchaineuse, "%.r = 123;\n", nom_valeur);
+                imprime_dans_enchaineuse(*enchaineuse, "%.v.x = 147;\n", nom_valeur);
+                imprime_dans_enchaineuse(*enchaineuse, "%.v.y = 258;\n", nom_valeur);
+                imprime_dans_enchaineuse(*enchaineuse, "%.v.z = 369;\n", nom_valeur);
+            }
+            sinon si info.préfixe == "C" {
+                si info.taille == 3 {
+                    si info.suffixe == "c" {
+                        imprime_dans_enchaineuse(*enchaineuse, "%.x = 0x1a;\n", nom_valeur);
+                        imprime_dans_enchaineuse(*enchaineuse, "%.y = 0x2b;\n", nom_valeur);
+                        imprime_dans_enchaineuse(*enchaineuse, "%.z = 0x3c;\n", nom_valeur);
+                    }
+                    sinon si info.suffixe == "f" {
+                        imprime_dans_enchaineuse(*enchaineuse, "%.x = 0.123;\n", nom_valeur);
+                        imprime_dans_enchaineuse(*enchaineuse, "%.y = 0.456;\n", nom_valeur);
+                        imprime_dans_enchaineuse(*enchaineuse, "%.z = 0.789;\n", nom_valeur);
+                    }
+                    sinon {
+                        panique("suffixe non-géré : %", info.suffixe);
+                    }
+                }
+                sinon si info.taille == 4 {
+                    si info.suffixe == "c" {
+                        imprime_dans_enchaineuse(*enchaineuse, "%.r = 0x1a;\n", nom_valeur);
+                        imprime_dans_enchaineuse(*enchaineuse, "%.g = 0x2b;\n", nom_valeur);
+                        imprime_dans_enchaineuse(*enchaineuse, "%.b = 0x3c;\n", nom_valeur);
+                        imprime_dans_enchaineuse(*enchaineuse, "%.a = 0x4d;\n", nom_valeur);
+                    }
+                    sinon si info.suffixe == "f" {
+                        imprime_dans_enchaineuse(*enchaineuse, "%.r = 0.123;\n", nom_valeur);
+                        imprime_dans_enchaineuse(*enchaineuse, "%.g = 0.456;\n", nom_valeur);
+                        imprime_dans_enchaineuse(*enchaineuse, "%.b = 0.789;\n", nom_valeur);
+                        imprime_dans_enchaineuse(*enchaineuse, "%.a = 0.159;\n", nom_valeur);
+                    }
+                    sinon {
+                        panique("suffixe non-géré : %", info.suffixe);
+                    }
+                }
+                sinon {
+                    panique("taille non-gérée : %", info.taille);
+                }
+            }
+            sinon {
+                assert(info.préfixe == "N" || info.préfixe == "P" || info.préfixe == "V");
+
+                imprime_dans_enchaineuse(*enchaineuse, "%.x = 123;\n", nom_valeur);
+                imprime_dans_enchaineuse(*enchaineuse, "%.y = 456;\n", nom_valeur);
+
+                si info.taille == 3 {
+                    imprime_dans_enchaineuse(*enchaineuse, "%.z = 789;\n", nom_valeur);
+                }
+                sinon si info.taille != 2 {
+                    panique("taille non-gérée : %", info.taille);
+                }
+            }
+
+            imprime_dans_enchaineuse(*enchaineuse, "abc_output_%_scalar_property_set(prop_%, %);\n", nom_court, nom_court, nom_valeur);
+        }
+
+        ajoute_au_tampon(*enchaineuse, "\n");
+    }
+
+    retourne chaine_depuis_enchaineuse(*enchaineuse);
 }
 
 crée_test_rayons_courbes :: fonc (chemin: chaine, export_rayon: bool)
