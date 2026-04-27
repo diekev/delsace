@@ -281,6 +281,7 @@ struct Abc_Attribute_Type_Descriptor {
 };
 
 struct Abc_Attribute_Type_Descriptor *abc_get_attribute_type_descriptors(uint64_t *r_len);
+struct Abc_Attribute_Type_Descriptor *abc_get_pod_type_descriptors(uint64_t *r_len);
 
 #define DECLARE_COMMON_SAMPLE_FONCTIONS(uppercase_name, lowercase_name)                           \
     struct Abc_Output_##uppercase_name##_Sample *abc_output_##lowercase_name##_sample_create(     \
