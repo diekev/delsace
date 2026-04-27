@@ -63,6 +63,44 @@ void kuri_deloge_liste(ContexteKuri *ctx_kuri, T *liste)
     }
 }
 
+/* ------------------------------------------------------------------------- */
+/** \nom Abc_Output_Camera
+ * \{ */
+
+template <typename Type_IPA>
+struct value_converter {
+    using Type_Abc = Type_IPA;
+
+    static Type_Abc convert_value(Type_IPA *ptr)
+    {
+        return *ptr;
+    }
+};
+
+template <>
+struct value_converter<Abc_String> {
+    using Type_Abc = std::string;
+
+    static Type_Abc convert_value(Abc_String *ptr)
+    {
+        return *ptr;
+    }
+};
+
+#define DECLARE_VALUE_CONVERTER(type_geom, type_abc, type_c, nom_court)                           \
+    template <>                                                                                   \
+    struct value_converter<type_c> {                                                              \
+        using Type_Abc = type_abc;                                                                \
+        static Type_Abc convert_value(type_c *ptr)                                                \
+        {                                                                                         \
+            return *reinterpret_cast<type_abc *>(ptr);                                            \
+        }                                                                                         \
+    };
+
+ENUMERATE_ABC_ATTRIBUTE_SPECIAL_UNIQUE(DECLARE_VALUE_CONVERTER)
+
+/** \} */
+
 extern "C" {
 
 ArchiveCache *ABC_cree_archive(ContexteKuri *ctx_kuri, ContexteOuvertureArchive *ctx)
@@ -803,6 +841,7 @@ struct Abc_Output_Archive {
     Abc_Output_Object_Base *objects = nullptr;
 
     Abc_Output_Scalar_Property *scalar_props = nullptr;
+    Abc_Output_Array_Property *array_props = nullptr;
 };
 
 /* ------------------------------------------------------------------------- */
@@ -824,7 +863,19 @@ struct Abc_Output_Scalar_Property {
     Abc_Output_Compound_Property *parent = nullptr;
     Abc_Output_Scalar_Property *next = nullptr;
     AbcGeom::OScalarProperty prop{};
+
+    virtual ~Abc_Output_Scalar_Property() = default;
 };
+
+template <typename T>
+T *make_output_scalar_prop(Abc_Output_Compound_Property *parent)
+{
+    auto résultat = kuri_loge<T>(parent->archive->ctx_kuri);
+    résultat->parent = parent;
+    liste_ajoute(&parent->archive->scalar_props,
+                 static_cast<Abc_Output_Scalar_Property *>(résultat));
+    return résultat;
+}
 
 Abc_Output_Scalar_Property *abc_output_scalar_property_create(Abc_Output_Compound_Property *parent,
                                                               Abc_String name,
@@ -835,11 +886,9 @@ Abc_Output_Scalar_Property *abc_output_scalar_property_create(Abc_Output_Compoun
         static_cast<Alembic::AbcCoreAbstract::PlainOldDataType>(data_type.pod_type),
         data_type.extent);
 
-    auto résultat = kuri_loge<Abc_Output_Scalar_Property>(parent->archive->ctx_kuri);
-    résultat->parent = parent;
+    auto résultat = make_output_scalar_prop<Abc_Output_Scalar_Property>(parent);
     résultat->prop = AbcGeom::OScalarProperty(parent->prop, name, abc_data_type);
     résultat->prop.setTimeSampling(ts_index.value);
-    liste_ajoute(&parent->archive->scalar_props, résultat);
     return résultat;
 }
 
@@ -852,7 +901,6 @@ void abc_output_scalar_property_set_from_previous(struct Abc_Output_Scalar_Prope
     void abc_output_scalar_property_##nom_court##_set(struct Abc_Output_Scalar_Property *prop,    \
                                                       type_c sample)                              \
     {                                                                                             \
-        using AbcGeom::bool_t;                                                                    \
         type_abc_value sample_value = sample;                                                     \
         prop->prop.set(&sample_value);                                                            \
     }
@@ -884,7 +932,7 @@ auto make_array_sample<AbcGeom::StringArraySample>(Abc_String *values, uint64_t 
     template <>                                                                                   \
     auto make_array_sample<AbcGeom::type_geom##ArraySample>(type_c * values, uint64_t num_values) \
     {                                                                                             \
-        return AbcGeom::type_geom##ArraySample(reinterpret_cast<Abc::type_abc_value *>(values),   \
+        return AbcGeom::type_geom##ArraySample(reinterpret_cast<type_abc_value *>(values),        \
                                                num_values);                                       \
     }
 
@@ -919,11 +967,50 @@ ENUMERATE_ABC_ATTRIBUTE_TYPES(MAKE_TYPED_SAMPLE_FROM_ARRAY_SAMPLE)
 #undef MAKE_TYPED_SAMPLE_FROM_ARRAY_SAMPLE
 
 /* ------------------------------------------------------------------------- */
+/** \nom Typed Abc_Output_Scalar_Property
+ * \{ */
+
+#define DEFINE_ABC_TYPED_SCALAR_PROPERTY(type_geom, type_abc_value, type_c, nom_court)            \
+    struct Abc_Output_##type_geom##_Scalar_Property : public Abc_Output_Scalar_Property {         \
+        Abc::O##type_geom##Property typed_prop{};                                                 \
+    };                                                                                            \
+    struct Abc_Output_##type_geom##_Scalar_Property                                               \
+        *abc_output_##nom_court##_scalar_property_create(                                         \
+            struct Abc_Output_Compound_Property *parent, Abc_String name)                         \
+    {                                                                                             \
+        auto résultat = make_output_scalar_prop<Abc_Output_##type_geom##_Scalar_Property>(        \
+            parent);                                                                              \
+        résultat->typed_prop = Abc::O##type_geom##Property(parent->prop, name);                   \
+        résultat->prop = résultat->typed_prop;                                                    \
+        return résultat;                                                                          \
+    }                                                                                             \
+    void abc_output_##nom_court##_scalar_property_set_time_sample_index(                          \
+        struct Abc_Output_##type_geom##_Scalar_Property *prop,                                    \
+        struct Abc_Time_Sample_Index index)                                                       \
+    {                                                                                             \
+        prop->typed_prop.setTimeSampling(index.value);                                            \
+    }                                                                                             \
+    void abc_output_##nom_court##_scalar_property_set(                                            \
+        struct Abc_Output_##type_geom##_Scalar_Property *prop, type_c value)                      \
+    {                                                                                             \
+        using value_conv = value_converter<type_c>;                                               \
+        type_abc_value sample_value = value_conv::convert_value(&value);                          \
+        prop->typed_prop.set(sample_value);                                                       \
+    }
+
+ENUMERATE_ABC_ATTRIBUTE_TYPES(DEFINE_ABC_TYPED_SCALAR_PROPERTY)
+
+#undef DEFINE_ABC_TYPED_SCALAR_PROPERTY
+
+/** \} */
+
+/* ------------------------------------------------------------------------- */
 /** \nom Abc_Output_Array_Property
  * \{ */
 
 struct Abc_Output_Array_Property {
     Abc_Output_Compound_Property *parent = nullptr;
+    Abc_Output_Array_Property *next = nullptr;
     AbcGeom::OArrayProperty prop{};
 };
 
@@ -940,6 +1027,7 @@ Abc_Output_Array_Property *abc_output_array_property_create(Abc_Output_Compound_
     résultat->parent = parent;
     résultat->prop = AbcGeom::OArrayProperty(parent->prop, name, abc_data_type);
     résultat->prop.setTimeSampling(ts_index.value);
+    liste_ajoute(&parent->archive->array_props, résultat);
     return résultat;
 }
 
@@ -1255,6 +1343,7 @@ void abc_output_archive_destroy(struct Abc_Output_Archive *archive)
     if (archive) {
         auto object = archive->objects;
         kuri_deloge_liste(archive->ctx_kuri, archive->scalar_props);
+        kuri_deloge_liste(archive->ctx_kuri, archive->array_props);
         kuri_deloge_liste(archive->ctx_kuri, archive->objects);
         kuri_deloge(archive->ctx_kuri, archive->archive);
         kuri_deloge(archive->ctx_kuri, archive);

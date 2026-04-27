@@ -205,46 +205,49 @@ typedef OTypedGeomParam<C4hTPTraits>             OC4hGeomParam;
 
 // Ces attributs requiers des conversions spéciales
 // #define X(type_geom, type_abc_value, type_c, nom_court)
+#define ENUMERATE_ABC_ATTRIBUTE_SPECIAL_UNIQUE(X)                                                 \
+    X(Bool, Abc::bool_t, bool, bool)                                                              \
+    X(V2s, Abc::V2s, Abc_V2s, v2s)                                                                \
+    X(V2i, Abc::V2i, Abc_V2i, v2i)                                                                \
+    X(V2f, Abc::V2f, Abc_V2f, v2f)                                                                \
+    X(V2d, Abc::V2d, Abc_V2d, v2d)                                                                \
+    X(V3s, Abc::V3s, Abc_V3s, v3s)                                                                \
+    X(V3i, Abc::V3i, Abc_V3i, v3i)                                                                \
+    X(V3f, Abc::V3f, Abc_V3f, v3f)                                                                \
+    X(V3d, Abc::V3d, Abc_V3d, v3d)                                                                \
+    X(Box2s, Abc::Box2s, Abc_Box2s, box2s)                                                        \
+    X(Box2i, Abc::Box2i, Abc_Box2i, box2i)                                                        \
+    X(Box2f, Abc::Box2f, Abc_Box2f, box2f)                                                        \
+    X(Box2d, Abc::Box2d, Abc_Box2d, box2d)                                                        \
+    X(Box3s, Abc::Box3s, Abc_Box3s, box3s)                                                        \
+    X(Box3i, Abc::Box3i, Abc_Box3i, box3i)                                                        \
+    X(Box3f, Abc::Box3f, Abc_Box3f, box3f)                                                        \
+    X(Box3d, Abc::Box3d, Abc_Box3d, box3d)                                                        \
+    X(Quatf, Abc::Quatf, Abc_Quatf, quatf)                                                        \
+    X(Quatd, Abc::Quatd, Abc_Quatd, quatd)                                                        \
+    X(C3c, Abc::C3c, Abc_C3c, c3c)                                                                \
+    X(C3f, Abc::C3f, Abc_C3f, c3f)                                                                \
+    X(C4c, Abc::C4c, Abc_C4c, c4c)                                                                \
+    X(C4f, Abc::C4f, Abc_C4f, c4f)                                                                \
+    X(M33f, Abc::M33f, Abc_M33f, m33f)                                                            \
+    X(M33d, Abc::M33d, Abc_M33d, m33d)                                                            \
+    X(M44f, Abc::M44f, Abc_M44f, m44f)                                                            \
+    X(M44d, Abc::M44d, Abc_M44d, m44d)
+
 #define ENUMERATE_ABC_ATTRIBUTE_SPECIAL(X)                                                        \
-    X(Bool, bool_t, bool, bool)                                                                   \
-    X(V2s, V2s, Abc_V2s, v2s)                                                                     \
-    X(V2i, V2i, Abc_V2i, v2i)                                                                     \
-    X(V2f, V2f, Abc_V2f, v2f)                                                                     \
-    X(V2d, V2d, Abc_V2d, v2d)                                                                     \
-    X(V3s, V3s, Abc_V3s, v3s)                                                                     \
-    X(V3i, V3i, Abc_V3i, v3i)                                                                     \
-    X(V3f, V3f, Abc_V3f, v3f)                                                                     \
-    X(V3d, V3d, Abc_V3d, v3d)                                                                     \
-    X(P2s, V2s, Abc_V2s, p2s)                                                                     \
-    X(P2i, V2i, Abc_V2i, p2i)                                                                     \
-    X(P2f, V2f, Abc_V2f, p2f)                                                                     \
-    X(P2d, V2d, Abc_V2d, p2d)                                                                     \
-    X(P3s, V3s, Abc_V3s, p3s)                                                                     \
-    X(P3i, V3i, Abc_V3i, p3i)                                                                     \
-    X(P3f, V3f, Abc_V3f, p3f)                                                                     \
-    X(P3d, V3d, Abc_V3d, p3d)                                                                     \
-    X(Box2s, Box2s, Abc_Box2s, box2s)                                                             \
-    X(Box2i, Box2i, Abc_Box2i, box2i)                                                             \
-    X(Box2f, Box2f, Abc_Box2f, box2f)                                                             \
-    X(Box2d, Box2d, Abc_Box2d, box2d)                                                             \
-    X(Box3s, Box3s, Abc_Box3s, box3s)                                                             \
-    X(Box3i, Box3i, Abc_Box3i, box3i)                                                             \
-    X(Box3f, Box3f, Abc_Box3f, box3f)                                                             \
-    X(Box3d, Box3d, Abc_Box3d, box3d)                                                             \
-    X(Quatf, Quatf, Abc_Quatf, quatf)                                                             \
-    X(Quatd, Quatd, Abc_Quatd, quatd)                                                             \
-    X(N2f, V2f, Abc_V2f, n2f)                                                                     \
-    X(N2d, V2d, Abc_V2d, n2d)                                                                     \
-    X(N3f, V3f, Abc_V3f, n3f)                                                                     \
-    X(N3d, V3d, Abc_V3d, n3d)                                                                     \
-    X(C3c, C3c, Abc_C3c, c3c)                                                                     \
-    X(C3f, C3f, Abc_C3f, c3f)                                                                     \
-    X(C4c, C4c, Abc_C4c, c4c)                                                                     \
-    X(C4f, C4f, Abc_C4f, c4f)                                                                     \
-    X(M33f, M33f, Abc_M33f, m33f)                                                                 \
-    X(M33d, M33d, Abc_M33d, m33d)                                                                 \
-    X(M44f, M44f, Abc_M44f, m44f)                                                                 \
-    X(M44d, M44d, Abc_M44d, m44d)
+    ENUMERATE_ABC_ATTRIBUTE_SPECIAL_UNIQUE(X)                                                     \
+    X(P2s, Abc::V2s, Abc_V2s, p2s)                                                                \
+    X(P2i, Abc::V2i, Abc_V2i, p2i)                                                                \
+    X(P2f, Abc::V2f, Abc_V2f, p2f)                                                                \
+    X(P2d, Abc::V2d, Abc_V2d, p2d)                                                                \
+    X(P3s, Abc::V3s, Abc_V3s, p3s)                                                                \
+    X(P3i, Abc::V3i, Abc_V3i, p3i)                                                                \
+    X(P3f, Abc::V3f, Abc_V3f, p3f)                                                                \
+    X(P3d, Abc::V3d, Abc_V3d, p3d)                                                                \
+    X(N2f, Abc::V2f, Abc_V2f, n2f)                                                                \
+    X(N2d, Abc::V2d, Abc_V2d, n2d)                                                                \
+    X(N3f, Abc::V3f, Abc_V3f, n3f)                                                                \
+    X(N3d, Abc::V3d, Abc_V3d, n3d)
 
 // #define X(type_geom, type_abc_value, type_c, nom_court)
 #define ENUMERATE_ABC_ATTRIBUTE_TYPES(X)                                                          \
@@ -365,7 +368,7 @@ enum Abc_Plain_Old_Data_Type {
 
 // #define X(type_geom, type_abc_value, type_c, nom_court)
 #define ENUMERATE_ABC_POD_TYPE(X)                                                                 \
-    X(Bool, bool_t, bool, bool)                                                                   \
+    X(Bool, Abc::bool_t, bool, bool)                                                              \
     X(Uchar, uint8_t, uint8_t, uchar)                                                             \
     X(Char, int8_t, int8_t, char)                                                                 \
     X(UInt16, uint16_t, uint16_t, uint16)                                                         \
@@ -676,6 +679,27 @@ void abc_output_scalar_property_set_from_previous(struct Abc_Output_Scalar_Prope
 ENUMERATE_ABC_POD_TYPE(DECLARE_SCALAR_PROPERTY_SETTER)
 
 #undef DECLARE_SCALAR_PROPERTY_SETTER
+
+/** \} */
+
+/* ------------------------------------------------------------------------- */
+/** \nom Typed Abc_Output_Scalar_Property
+ * \{ */
+
+#define DECLARE_ABC_TYPED_SCALAR_PROPERTY(type_geom, type_abc_value, type_c, nom_court)           \
+    struct Abc_Output_##type_geom##_Scalar_Property;                                              \
+    struct Abc_Output_##type_geom##_Scalar_Property                                               \
+        *abc_output_##nom_court##_scalar_property_create(                                         \
+            struct Abc_Output_Compound_Property *parent, Abc_String name);                        \
+    void abc_output_##nom_court##_scalar_property_set_time_sample_index(                          \
+        struct Abc_Output_##type_geom##_Scalar_Property *prop,                                    \
+        struct Abc_Time_Sample_Index index);                                                      \
+    void abc_output_##nom_court##_scalar_property_set(                                            \
+        struct Abc_Output_##type_geom##_Scalar_Property *prop, type_c value);
+
+ENUMERATE_ABC_ATTRIBUTE_TYPES(DECLARE_ABC_TYPED_SCALAR_PROPERTY)
+
+#undef DECLARE_ABC_TYPED_SCALAR_PROPERTY
 
 /** \} */
 
