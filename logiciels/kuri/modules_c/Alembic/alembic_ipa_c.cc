@@ -1014,6 +1014,7 @@ ENUMERATE_ABC_ATTRIBUTE_TYPES(DEFINE_ABC_OUTPUT_GEOM_PARAMS)
     {                                                                                             \
         if (!lname->arb_geom_params_initialized) {                                                \
             lname->get_arb_geom_params(&lname->arb_geom_params);                                  \
+            lname->arb_geom_params.ctx_kuri = lname->archive->ctx_kuri;                           \
             lname->arb_geom_params_initialized = true;                                            \
         }                                                                                         \
         return &lname->arb_geom_params;                                                           \
@@ -1023,6 +1024,7 @@ ENUMERATE_ABC_ATTRIBUTE_TYPES(DEFINE_ABC_OUTPUT_GEOM_PARAMS)
     {                                                                                             \
         if (!lname->user_properties_initialized) {                                                \
             lname->get_user_properties(&lname->user_properties);                                  \
+            lname->user_properties.ctx_kuri = lname->archive->ctx_kuri;                           \
             lname->user_properties_initialized = true;                                            \
         }                                                                                         \
         return &lname->user_properties;                                                           \
@@ -1031,6 +1033,7 @@ ENUMERATE_ABC_ATTRIBUTE_TYPES(DEFINE_ABC_OUTPUT_GEOM_PARAMS)
     {                                                                                             \
         if (!lname->metadata_initialized) {                                                       \
             lname->get_metadata(&lname->metadata_);                                               \
+            lname->metadata_.ctx_kuri = lname->archive->ctx_kuri;                                 \
             lname->metadata_initialized = true;                                                   \
         }                                                                                         \
         return &lname->metadata_;                                                                 \
