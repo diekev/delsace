@@ -314,6 +314,73 @@ static void vers_abc_string(Abc_String *result, const std::string &name)
 /** \} */
 
 /* ------------------------------------------------------------------------- */
+/** \nom Array_Sample
+ * \{ */
+
+struct Array_Sample_Data {
+    std::vector<std::string> strings{};
+};
+
+template <typename Abc_Sample_Type, typename T>
+auto make_array_sample(T *values, uint64_t num_values, Array_Sample_Data *)
+{
+    return Abc_Sample_Type(values, num_values);
+}
+
+template <>
+auto make_array_sample<AbcGeom::StringArraySample>(Abc_String *values,
+                                                   uint64_t num_values,
+                                                   Array_Sample_Data *sample_data)
+{
+    sample_data->strings.resize(num_values);
+    for (uint64_t i = 0; i < num_values; i++) {
+        sample_data->strings[i] = vers_std_string(*values++);
+    }
+    return AbcGeom::StringArraySample(sample_data->strings.data(), num_values);
+}
+
+#define MAKE_TYPED_ARRAY_SAMPLE(type_geom, type_abc_value, type_c, nom_court)                     \
+    template <>                                                                                   \
+    auto make_array_sample<AbcGeom::type_geom##ArraySample>(                                      \
+        type_c * values, uint64_t num_values, Array_Sample_Data *)                                \
+    {                                                                                             \
+        return AbcGeom::type_geom##ArraySample(reinterpret_cast<type_abc_value *>(values),        \
+                                               num_values);                                       \
+    }
+
+ENUMERATE_ABC_ATTRIBUTE_SPECIAL(MAKE_TYPED_ARRAY_SAMPLE)
+
+#undef MAKE_TYPED_ARRAY_SAMPLE
+
+#define MAKE_TYPED_SAMPLE_FROM_ARRAY_SAMPLE(type_geom, type_abc_value, type_c, nom_court)         \
+    static AbcGeom::type_geom##ArraySample make_typed_sample(                                     \
+        Abc_##type_geom##_Array_Sample sample, Array_Sample_Data *sample_data)                    \
+    {                                                                                             \
+        return make_array_sample<AbcGeom::type_geom##ArraySample>(                                \
+            sample.values, sample.num_values, sample_data);                                       \
+    }                                                                                             \
+    static AbcGeom::O##type_geom##GeomParam::Sample make_typed_sample(                            \
+        Abc_Output_##type_geom##_Geom_Param_Sample param_sample, Array_Sample_Data *sample_data)  \
+    {                                                                                             \
+        auto array_sample = make_array_sample<AbcGeom::type_geom##ArraySample>(                   \
+            param_sample.values, param_sample.num_values, sample_data);                           \
+        auto abc_scope = static_cast<AbcGeom::GeometryScope>(param_sample.scope);                 \
+        if (param_sample.indices) {                                                               \
+            auto indices = AbcGeom::UInt32ArraySample(param_sample.indices,                       \
+                                                      param_sample.num_indices);                  \
+            return AbcGeom::O##type_geom##GeomParam::Sample(array_sample, indices, abc_scope);    \
+        }                                                                                         \
+        auto sample = AbcGeom::O##type_geom##GeomParam::Sample(array_sample, abc_scope);          \
+        return sample;                                                                            \
+    }
+
+ENUMERATE_ABC_ATTRIBUTE_TYPES(MAKE_TYPED_SAMPLE_FROM_ARRAY_SAMPLE)
+
+#undef MAKE_TYPED_SAMPLE_FROM_ARRAY_SAMPLE
+
+/** \} */
+
+/* ------------------------------------------------------------------------- */
 /** \nom MetaData
  * \{ */
 
@@ -927,73 +994,6 @@ void abc_output_property_set_from_previous(union Abc_Generic_Output_Scalar_Prope
 {
     prop.prop->prop.setFromPrevious();
 }
-
-/** \} */
-
-struct Array_Sample_Data {
-    std::vector<std::string> strings{};
-};
-
-template <typename Abc_Sample_Type, typename T>
-auto make_array_sample(T *values, uint64_t num_values, Array_Sample_Data *)
-{
-    return Abc_Sample_Type(values, num_values);
-}
-
-template <>
-auto make_array_sample<AbcGeom::StringArraySample>(Abc_String *values,
-                                                   uint64_t num_values,
-                                                   Array_Sample_Data *sample_data)
-{
-    sample_data->strings.resize(num_values);
-    for (uint64_t i = 0; i < num_values; i++) {
-        sample_data->strings[i] = vers_std_string(*values++);
-    }
-    return AbcGeom::StringArraySample(sample_data->strings.data(), num_values);
-}
-
-#define MAKE_TYPED_ARRAY_SAMPLE(type_geom, type_abc_value, type_c, nom_court)                     \
-    template <>                                                                                   \
-    auto make_array_sample<AbcGeom::type_geom##ArraySample>(                                      \
-        type_c * values, uint64_t num_values, Array_Sample_Data *)                                \
-    {                                                                                             \
-        return AbcGeom::type_geom##ArraySample(reinterpret_cast<type_abc_value *>(values),        \
-                                               num_values);                                       \
-    }
-
-ENUMERATE_ABC_ATTRIBUTE_SPECIAL(MAKE_TYPED_ARRAY_SAMPLE)
-
-#undef MAKE_TYPED_ARRAY_SAMPLE
-
-#define MAKE_TYPED_SAMPLE_FROM_ARRAY_SAMPLE(type_geom, type_abc_value, type_c, nom_court)         \
-    static AbcGeom::type_geom##ArraySample make_typed_sample(                                     \
-        Abc_##type_geom##_Array_Sample sample, Array_Sample_Data *sample_data)                    \
-    {                                                                                             \
-        return make_array_sample<AbcGeom::type_geom##ArraySample>(                                \
-            sample.values, sample.num_values, sample_data);                                       \
-    }                                                                                             \
-    static AbcGeom::O##type_geom##GeomParam::Sample make_typed_sample(                            \
-        Abc_Output_##type_geom##_Geom_Param_Sample param_sample, Array_Sample_Data *sample_data)  \
-    {                                                                                             \
-        auto array_sample = make_array_sample<AbcGeom::type_geom##ArraySample>(                   \
-            param_sample.values, param_sample.num_values, sample_data);                           \
-        auto abc_scope = static_cast<AbcGeom::GeometryScope>(param_sample.scope);                 \
-        if (param_sample.indices) {                                                               \
-            auto indices = AbcGeom::UInt32ArraySample(param_sample.indices,                       \
-                                                      param_sample.num_indices);                  \
-            return AbcGeom::O##type_geom##GeomParam::Sample(array_sample, indices, abc_scope);    \
-        }                                                                                         \
-        auto sample = AbcGeom::O##type_geom##GeomParam::Sample(array_sample, abc_scope);          \
-        return sample;                                                                            \
-    }
-
-ENUMERATE_ABC_ATTRIBUTE_TYPES(MAKE_TYPED_SAMPLE_FROM_ARRAY_SAMPLE)
-
-#undef MAKE_TYPED_SAMPLE_FROM_ARRAY_SAMPLE
-
-/* ------------------------------------------------------------------------- */
-/** \nom Typed Abc_Output_Scalar_Property
- * \{ */
 
 #define DEFINE_ABC_TYPED_SCALAR_PROPERTY(type_geom, type_abc_value, type_c, nom_court)            \
     struct Abc_Output_##type_geom##_Property : public Abc_Output_Scalar_Property {                \
