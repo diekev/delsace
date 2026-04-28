@@ -462,134 +462,13 @@ imprime_properties :: fonc (props: *Abc_Input_Compound_Property, nom: chaine)
 
     pour prop_index dans num {
         prop_header := abc_input_compound_property_get_property_header(props, prop_index);
-        prop_header_name: Abc_String;
-        abc_property_header_get_name(prop_header, *prop_header_name);
-
         prop_type := abc_property_header_get_property_type(prop_header);
 
-        data_type: Abc_Data_Type;
-        abc_property_header_get_data_type(prop_header, *data_type);
-
-        imprimeln("        % (%, %, %)", vers_kuri(prop_header_name), prop_type, data_type.pod_type, data_type.extent);
-
-        assert(data_type.extent <= 16);
-
         si prop_type == Abc_Property_Type.SCALAR {
-            prop := abc_input_compound_property_get_scalar(props, prop_header_name);
-
-            discr data_type.pod_type {
-                BOOLEAN {
-                    valeurs: [16]bool;
-                    abc_input_scalar_property_bool_get(prop, *valeurs[0], Abc_Sample_Selector());
-                    imprime("           ");
-                    pour data_type.extent {
-                        imprime(" %", valeurs[it]);
-                    }
-                    imprime("\n");
-                }
-                UINT8 {
-                    valeurs: [16]n8;
-                    abc_input_scalar_property_uchar_get(prop, *valeurs[0], Abc_Sample_Selector());
-                    imprime("           ");
-                    pour data_type.extent {
-                        imprime(" %", valeurs[it]);
-                    }
-                    imprime("\n");
-                }
-                INT8 {
-                    valeurs: [16]z8;
-                    abc_input_scalar_property_char_get(prop, *valeurs[0], Abc_Sample_Selector());
-                    imprime("           ");
-                    pour data_type.extent {
-                        imprime(" %", valeurs[it]);
-                    }
-                    imprime("\n");
-                }
-                UINT16 {
-                    valeurs: [16]n16;
-                    abc_input_scalar_property_uint16_get(prop, *valeurs[0], Abc_Sample_Selector());
-                    imprime("           ");
-                    pour data_type.extent {
-                        imprime(" %", valeurs[it]);
-                    }
-                    imprime("\n");
-                }
-                INT16 {
-                    valeurs: [16]z16;
-                    abc_input_scalar_property_int16_get(prop, *valeurs[0], Abc_Sample_Selector());
-                    imprime("           ");
-                    pour data_type.extent {
-                        imprime(" %", valeurs[it]);
-                    }
-                    imprime("\n");
-                }
-                UINT32 {
-                    valeurs: [16]n32;
-                    abc_input_scalar_property_uint32_get(prop, *valeurs[0], Abc_Sample_Selector());
-                    imprime("           ");
-                    pour data_type.extent {
-                        imprime(" %", valeurs[it]);
-                    }
-                    imprime("\n");
-                }
-                INT32 {
-                    valeurs: [16]z32;
-                    abc_input_scalar_property_int32_get(prop, *valeurs[0], Abc_Sample_Selector());
-                    imprime("           ");
-                    pour data_type.extent {
-                        imprime(" %", valeurs[it]);
-                    }
-                    imprime("\n");
-                }
-                UINT64 {
-                    valeurs: [16]n64;
-                    abc_input_scalar_property_uint64_get(prop, *valeurs[0], Abc_Sample_Selector());
-                    imprime("           ");
-                    pour data_type.extent {
-                        imprime(" %", valeurs[it]);
-                    }
-                    imprime("\n");
-                }
-                INT64 {
-                    valeurs: [16]z64;
-                    abc_input_scalar_property_int64_get(prop, *valeurs[0], Abc_Sample_Selector());
-                    imprime("           ");
-                    pour data_type.extent {
-                        imprime(" %", valeurs[it]);
-                    }
-                    imprime("\n");
-                }
-                FLOAT16 {}
-                FLOAT32 {
-                    valeurs: [16]r32;
-                    abc_input_scalar_property_float_get(prop, *valeurs[0], Abc_Sample_Selector());
-                    imprime("           ");
-                    pour data_type.extent {
-                        imprime(" %", valeurs[it]);
-                    }
-                    imprime("\n");
-                }
-                FLOAT64 {
-                    valeurs: [16]r64;
-                    abc_input_scalar_property_double_get(prop, *valeurs[0], Abc_Sample_Selector());
-                    imprime("           ");
-                    pour data_type.extent {
-                        imprime(" %", valeurs[it]);
-                    }
-                    imprime("\n");
-                }
-                STRING {
-                    valeurs: [16]Abc_String;
-                    abc_input_scalar_property_string_get(prop, *valeurs[0], Abc_Sample_Selector());
-                    imprime("           ");
-                    pour data_type.extent {
-                        imprime(" %", vers_kuri(valeurs[it]));
-                    }
-                    imprime("\n");
-                }
-                WSTRING {}
-                UNKNOWN {}
-            }
+            imprime_propriété_scalaire(props, prop_header);
+        }
+        sinon si prop_type == Abc_Property_Type.ARRAY {
+            imprime_propriété_array(props, prop_header);
         }
 
         metadata := abc_property_header_get_metadata(prop_header);
@@ -597,4 +476,150 @@ imprime_properties :: fonc (props: *Abc_Input_Compound_Property, nom: chaine)
 
         imprime_metadata(metadata);
     }
+}
+
+imprime_propriété_scalaire :: fonc (props: *Abc_Input_Compound_Property, prop_header: *Abc_Property_Header)
+{
+    prop_name: Abc_String;
+    abc_property_header_get_name(prop_header, *prop_name);
+
+    prop_type := abc_property_header_get_property_type(prop_header);
+
+    data_type: Abc_Data_Type;
+    abc_property_header_get_data_type(prop_header, *data_type);
+
+    imprimeln("        % (%, %, %)", vers_kuri(prop_name), prop_type, data_type.pod_type, data_type.extent);
+
+    assert(data_type.extent <= 16);
+
+    prop := abc_input_compound_property_get_scalar(props, prop_name);
+
+    discr data_type.pod_type {
+        BOOLEAN {
+            valeurs: [16]bool;
+            abc_input_scalar_property_bool_get(prop, *valeurs[0], Abc_Sample_Selector());
+            imprime("           ");
+            pour data_type.extent {
+                imprime(" %", valeurs[it]);
+            }
+            imprime("\n");
+        }
+        UINT8 {
+            valeurs: [16]n8;
+            abc_input_scalar_property_uchar_get(prop, *valeurs[0], Abc_Sample_Selector());
+            imprime("           ");
+            pour data_type.extent {
+                imprime(" %", valeurs[it]);
+            }
+            imprime("\n");
+        }
+        INT8 {
+            valeurs: [16]z8;
+            abc_input_scalar_property_char_get(prop, *valeurs[0], Abc_Sample_Selector());
+            imprime("           ");
+            pour data_type.extent {
+                imprime(" %", valeurs[it]);
+            }
+            imprime("\n");
+        }
+        UINT16 {
+            valeurs: [16]n16;
+            abc_input_scalar_property_uint16_get(prop, *valeurs[0], Abc_Sample_Selector());
+            imprime("           ");
+            pour data_type.extent {
+                imprime(" %", valeurs[it]);
+            }
+            imprime("\n");
+        }
+        INT16 {
+            valeurs: [16]z16;
+            abc_input_scalar_property_int16_get(prop, *valeurs[0], Abc_Sample_Selector());
+            imprime("           ");
+            pour data_type.extent {
+                imprime(" %", valeurs[it]);
+            }
+            imprime("\n");
+        }
+        UINT32 {
+            valeurs: [16]n32;
+            abc_input_scalar_property_uint32_get(prop, *valeurs[0], Abc_Sample_Selector());
+            imprime("           ");
+            pour data_type.extent {
+                imprime(" %", valeurs[it]);
+            }
+            imprime("\n");
+        }
+        INT32 {
+            valeurs: [16]z32;
+            abc_input_scalar_property_int32_get(prop, *valeurs[0], Abc_Sample_Selector());
+            imprime("           ");
+            pour data_type.extent {
+                imprime(" %", valeurs[it]);
+            }
+            imprime("\n");
+        }
+        UINT64 {
+            valeurs: [16]n64;
+            abc_input_scalar_property_uint64_get(prop, *valeurs[0], Abc_Sample_Selector());
+            imprime("           ");
+            pour data_type.extent {
+                imprime(" %", valeurs[it]);
+            }
+            imprime("\n");
+        }
+        INT64 {
+            valeurs: [16]z64;
+            abc_input_scalar_property_int64_get(prop, *valeurs[0], Abc_Sample_Selector());
+            imprime("           ");
+            pour data_type.extent {
+                imprime(" %", valeurs[it]);
+            }
+            imprime("\n");
+        }
+        FLOAT16 {}
+        FLOAT32 {
+            valeurs: [16]r32;
+            abc_input_scalar_property_float_get(prop, *valeurs[0], Abc_Sample_Selector());
+            imprime("           ");
+            pour data_type.extent {
+                imprime(" %", valeurs[it]);
+            }
+            imprime("\n");
+        }
+        FLOAT64 {
+            valeurs: [16]r64;
+            abc_input_scalar_property_double_get(prop, *valeurs[0], Abc_Sample_Selector());
+            imprime("           ");
+            pour data_type.extent {
+                imprime(" %", valeurs[it]);
+            }
+            imprime("\n");
+        }
+        STRING {
+            valeurs: [16]Abc_String;
+            abc_input_scalar_property_string_get(prop, *valeurs[0], Abc_Sample_Selector());
+            imprime("           ");
+            pour data_type.extent {
+                imprime(" %", vers_kuri(valeurs[it]));
+            }
+            imprime("\n");
+        }
+        WSTRING {}
+        UNKNOWN {}
+    }
+}
+
+imprime_propriété_array :: fonc (props: *Abc_Input_Compound_Property, prop_header: *Abc_Property_Header)
+{
+    prop_name: Abc_String;
+    abc_property_header_get_name(prop_header, *prop_name);
+
+    prop_type := abc_property_header_get_property_type(prop_header);
+
+    data_type: Abc_Data_Type;
+    abc_property_header_get_data_type(prop_header, *data_type);
+
+    imprimeln("        % (%, %, %)", vers_kuri(prop_name), prop_type, data_type.pod_type, data_type.extent);
+
+    assert(data_type.extent <= 16);
 }
