@@ -947,6 +947,7 @@ struct Abc_Output_Archive {
 
     Abc_Output_Object_Base *objects = nullptr;
 
+    Abc_Output_Compound_Property *compound_props = nullptr;
     Abc_Output_Scalar_Property *scalar_props = nullptr;
     Abc_Output_Array_Property *array_props = nullptr;
 };
@@ -958,7 +959,18 @@ struct Abc_Output_Archive {
 struct Abc_Output_Compound_Property {
     Abc_Output_Archive *archive;
     AbcGeom::OCompoundProperty prop;
+    Abc_Output_Compound_Property *next;
 };
+
+Abc_Output_Compound_Property *abc_output_compound_property_create(
+    Abc_Output_Compound_Property *parent, Abc_String name)
+{
+    auto résultat = kuri_loge<Abc_Output_Compound_Property>(parent->archive->ctx_kuri);
+    résultat->prop = AbcGeom::OCompoundProperty(parent->prop, name);
+    résultat->archive = parent->archive;
+    liste_ajoute(&résultat->archive->compound_props, résultat);
+    return résultat;
+}
 
 /** \} */
 
@@ -1375,6 +1387,7 @@ void abc_output_archive_destroy(struct Abc_Output_Archive *archive)
         auto object = archive->objects;
         kuri_deloge_liste(archive->ctx_kuri, archive->scalar_props);
         kuri_deloge_liste(archive->ctx_kuri, archive->array_props);
+        kuri_deloge_liste(archive->ctx_kuri, archive->compound_props);
         kuri_deloge_liste(archive->ctx_kuri, archive->objects);
         kuri_deloge(archive->ctx_kuri, archive->archive);
         kuri_deloge(archive->ctx_kuri, archive);

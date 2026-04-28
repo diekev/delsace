@@ -666,6 +666,9 @@ struct Abc_Time_Sample_Index abc_output_archive_create_time_sampling(
 
 struct Abc_Output_Compound_Property;
 
+struct Abc_Output_Compound_Property *abc_output_compound_property_create(
+    struct Abc_Output_Compound_Property *parent, struct Abc_String name);
+
 /** \} */
 
 /* ------------------------------------------------------------------------- */
