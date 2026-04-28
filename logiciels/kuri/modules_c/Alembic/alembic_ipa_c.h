@@ -106,6 +106,10 @@ typedef struct Abc_Seconds {
 #endif
 } Abc_Seconds;
 
+typedef struct Abc_Half {
+    uint16_t value;
+} Abc_Half;
+
 #define ENUMERATE_VEC_TYPES(X)                                                                    \
     X(s, short)                                                                                   \
     X(i, int)                                                                                     \
@@ -129,6 +133,7 @@ ENUMERATE_VEC_TYPES(DECLARE_VEC_TYPES)
 
 #define ENUMERATE_COLOR_TYPES(X)                                                                  \
     X(c, uint8_t)                                                                                 \
+    X(h, Abc_Half)                                                                                \
     X(f, float)
 
 #define DECLARE_COLOR_TYPES(suffix, type)                                                         \
@@ -196,10 +201,7 @@ ENUMERATE_ABC_MATRIX_TYPES(DEFINE_ABC_MATRIX_TYPE)
 // À FAIRE :
 /*
 
-typedef OTypedGeomParam<Float16TPTraits>         OHalfGeomParam;
 typedef OTypedGeomParam<WstringTPTraits>         OWstringGeomParam;
-typedef OTypedGeomParam<C3hTPTraits>             OC3hGeomParam;
-typedef OTypedGeomParam<C4hTPTraits>             OC4hGeomParam;
 
  */
 
@@ -207,6 +209,7 @@ typedef OTypedGeomParam<C4hTPTraits>             OC4hGeomParam;
 // #define X(type_geom, type_abc_value, type_c, nom_court)
 #define ENUMERATE_ABC_ATTRIBUTE_SPECIAL_UNIQUE(X)                                                 \
     X(Bool, Abc::bool_t, bool, bool)                                                              \
+    X(Half, Abc::float16_t, Abc_Half, half)                                                       \
     X(V2s, Abc::V2s, Abc_V2s, v2s)                                                                \
     X(V2i, Abc::V2i, Abc_V2i, v2i)                                                                \
     X(V2f, Abc::V2f, Abc_V2f, v2f)                                                                \
@@ -226,8 +229,10 @@ typedef OTypedGeomParam<C4hTPTraits>             OC4hGeomParam;
     X(Quatf, Abc::Quatf, Abc_Quatf, quatf)                                                        \
     X(Quatd, Abc::Quatd, Abc_Quatd, quatd)                                                        \
     X(C3c, Abc::C3c, Abc_C3c, c3c)                                                                \
+    X(C3h, Abc::C3h, Abc_C3h, c3h)                                                                \
     X(C3f, Abc::C3f, Abc_C3f, c3f)                                                                \
     X(C4c, Abc::C4c, Abc_C4c, c4c)                                                                \
+    X(C4h, Abc::C4h, Abc_C4h, c4h)                                                                \
     X(C4f, Abc::C4f, Abc_C4f, c4f)                                                                \
     X(M33f, Abc::M33f, Abc_M33f, m33f)                                                            \
     X(M33d, Abc::M33d, Abc_M33d, m33d)                                                            \
@@ -386,6 +391,7 @@ enum Abc_Plain_Old_Data_Type {
     X(Int32, int32_t, int32_t, int32)                                                             \
     X(UInt64, uint64_t, uint64_t, uint64)                                                         \
     X(Int64, int64_t, int64_t, int64)                                                             \
+    X(Half, Abc::float16_t, Abc_Half, half)                                                       \
     X(Float, float, float, float)                                                                 \
     X(Double, double, double, double)                                                             \
     X(String, std::string, Abc_String, string)

@@ -136,6 +136,9 @@ donne_type_kuri_pour_type_geom :: fonc (type: chaine) -> chaine
     si type == "Int64" {
         retourne "z64";
     }
+    si type == "Half" {
+        retourne "r16";
+    }
     panique("type inconnu : %", type);
 }
 
@@ -351,6 +354,10 @@ ajoute_propriétés_scalaires :: fonc (parent: *Abc_Output_Compound_Property, ts
                 chaine_valeur = "vrai";
                 type_valeur = "bool";
             }
+            sinon si type_geom == "Half" {
+                chaine_valeur = "vers_abc_half(1.23)";
+                type_valeur = "Abc_Half";
+            }
             sinon si type_geom == "Float" || type_geom == "Double" {
                 chaine_valeur = "1.23";
                 type_valeur = donne_type_kuri_pour_type_geom(type_geom);
@@ -412,6 +419,11 @@ ajoute_propriétés_scalaires :: fonc (parent: *Abc_Output_Compound_Property, ts
                         imprime_dans_enchaineuse(*enchaineuse, "%.y = 0x2b;\n", nom_valeur);
                         imprime_dans_enchaineuse(*enchaineuse, "%.z = 0x3c;\n", nom_valeur);
                     }
+                    sinon si info.suffixe == "h" {
+                        imprime_dans_enchaineuse(*enchaineuse, "%.x = vers_abc_half(0.123);\n", nom_valeur);
+                        imprime_dans_enchaineuse(*enchaineuse, "%.y = vers_abc_half(0.456);\n", nom_valeur);
+                        imprime_dans_enchaineuse(*enchaineuse, "%.z = vers_abc_half(0.789);\n", nom_valeur);
+                    }
                     sinon si info.suffixe == "f" {
                         imprime_dans_enchaineuse(*enchaineuse, "%.x = 0.123;\n", nom_valeur);
                         imprime_dans_enchaineuse(*enchaineuse, "%.y = 0.456;\n", nom_valeur);
@@ -427,6 +439,12 @@ ajoute_propriétés_scalaires :: fonc (parent: *Abc_Output_Compound_Property, ts
                         imprime_dans_enchaineuse(*enchaineuse, "%.g = 0x2b;\n", nom_valeur);
                         imprime_dans_enchaineuse(*enchaineuse, "%.b = 0x3c;\n", nom_valeur);
                         imprime_dans_enchaineuse(*enchaineuse, "%.a = 0x4d;\n", nom_valeur);
+                    }
+                    sinon si info.suffixe == "h" {
+                        imprime_dans_enchaineuse(*enchaineuse, "%.r = vers_abc_half(0.123);\n", nom_valeur);
+                        imprime_dans_enchaineuse(*enchaineuse, "%.g = vers_abc_half(0.456);\n", nom_valeur);
+                        imprime_dans_enchaineuse(*enchaineuse, "%.b = vers_abc_half(0.789);\n", nom_valeur);
+                        imprime_dans_enchaineuse(*enchaineuse, "%.a = vers_abc_half(0.159);\n", nom_valeur);
                     }
                     sinon si info.suffixe == "f" {
                         imprime_dans_enchaineuse(*enchaineuse, "%.r = 0.123;\n", nom_valeur);
@@ -495,6 +513,10 @@ ajoute_propriétés_arrays :: fonc (parent: *Abc_Output_Compound_Property, ts: A
                 chaine_valeur = "vrai";
                 type_valeur = "bool";
             }
+            sinon si type_geom == "Half" {
+                chaine_valeur = "vers_abc_half(1.23)";
+                type_valeur = "Abc_Half";
+            }
             sinon si type_geom == "Float" || type_geom == "Double" {
                 chaine_valeur = "1.23";
                 type_valeur = donne_type_kuri_pour_type_geom(type_geom);
@@ -556,6 +578,11 @@ ajoute_propriétés_arrays :: fonc (parent: *Abc_Output_Compound_Property, ts: A
                         imprime_dans_enchaineuse(*enchaineuse, "%.y = 0x2b;\n", nom_valeur);
                         imprime_dans_enchaineuse(*enchaineuse, "%.z = 0x3c;\n", nom_valeur);
                     }
+                    sinon si info.suffixe == "h" {
+                        imprime_dans_enchaineuse(*enchaineuse, "%.x = vers_abc_half(0.123);\n", nom_valeur);
+                        imprime_dans_enchaineuse(*enchaineuse, "%.y = vers_abc_half(0.456);\n", nom_valeur);
+                        imprime_dans_enchaineuse(*enchaineuse, "%.z = vers_abc_half(0.789);\n", nom_valeur);
+                    }
                     sinon si info.suffixe == "f" {
                         imprime_dans_enchaineuse(*enchaineuse, "%.x = 0.123;\n", nom_valeur);
                         imprime_dans_enchaineuse(*enchaineuse, "%.y = 0.456;\n", nom_valeur);
@@ -571,6 +598,12 @@ ajoute_propriétés_arrays :: fonc (parent: *Abc_Output_Compound_Property, ts: A
                         imprime_dans_enchaineuse(*enchaineuse, "%.g = 0x2b;\n", nom_valeur);
                         imprime_dans_enchaineuse(*enchaineuse, "%.b = 0x3c;\n", nom_valeur);
                         imprime_dans_enchaineuse(*enchaineuse, "%.a = 0x4d;\n", nom_valeur);
+                    }
+                    sinon si info.suffixe == "h" {
+                        imprime_dans_enchaineuse(*enchaineuse, "%.r = vers_abc_half(0.123);\n", nom_valeur);
+                        imprime_dans_enchaineuse(*enchaineuse, "%.g = vers_abc_half(0.456);\n", nom_valeur);
+                        imprime_dans_enchaineuse(*enchaineuse, "%.b = vers_abc_half(0.789);\n", nom_valeur);
+                        imprime_dans_enchaineuse(*enchaineuse, "%.a = vers_abc_half(0.159);\n", nom_valeur);
                     }
                     sinon si info.suffixe == "f" {
                         imprime_dans_enchaineuse(*enchaineuse, "%.r = 0.123;\n", nom_valeur);

@@ -576,7 +576,15 @@ imprime_propriété_scalaire :: fonc (props: *Abc_Input_Compound_Property, prop_
             }
             imprime("\n");
         }
-        FLOAT16 {}
+        FLOAT16 {
+            valeurs: [16]Abc_Half;
+            abc_input_scalar_property_half_get(prop, *valeurs[0], Abc_Sample_Selector());
+            imprime("           ");
+            pour data_type.extent {
+                imprime(" %", vers_r16(valeurs[it]));
+            }
+            imprime("\n");
+        }
         FLOAT32 {
             valeurs: [16]r32;
             abc_input_scalar_property_float_get(prop, *valeurs[0], Abc_Sample_Selector());
