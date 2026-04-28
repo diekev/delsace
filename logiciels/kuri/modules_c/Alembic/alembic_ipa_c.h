@@ -738,6 +738,28 @@ ENUMERATE_ABC_POD_TYPE(DECLARE_ARRAY_PROPERTY_SETTER)
 /** \} */
 
 /* ------------------------------------------------------------------------- */
+/** \nom Typed Abc_Output_Array_Property
+ * \{ */
+
+#define DECLARE_ABC_TYPED_ARRAY_PROPERTY(type_geom, type_abc_value, type_c, nom_court)            \
+    struct Abc_Output_##type_geom##_Array_Property;                                               \
+    struct Abc_Output_##type_geom##_Array_Property                                                \
+        *abc_output_##nom_court##_array_property_create(                                          \
+            struct Abc_Output_Compound_Property *parent, Abc_String name);                        \
+    void abc_output_##nom_court##_array_property_set_time_sample_index(                           \
+        struct Abc_Output_##type_geom##_Array_Property *prop,                                     \
+        struct Abc_Time_Sample_Index index);                                                      \
+    void abc_output_##nom_court##_array_property_set(                                             \
+        struct Abc_Output_##type_geom##_Array_Property *prop,                                     \
+        struct Abc_##type_geom##_Array_Sample sample);
+
+ENUMERATE_ABC_ATTRIBUTE_TYPES(DECLARE_ABC_TYPED_ARRAY_PROPERTY)
+
+#undef DECLARE_ABC_TYPED_ARRAY_PROPERTY
+
+/** \} */
+
+/* ------------------------------------------------------------------------- */
 /** \nom Abc_Output_TYPE_Geom_Param
  * \{ */
 

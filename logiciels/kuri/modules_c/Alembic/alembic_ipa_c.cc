@@ -951,26 +951,32 @@ ENUMERATE_ABC_POD_TYPE(DEFINE_SCALAR_PROPERTY_SETTER)
 
 /** \} */
 
+struct Array_Sample_Data {
+    std::vector<std::string> strings{};
+};
+
 template <typename Abc_Sample_Type, typename T>
-auto make_array_sample(T *values, uint64_t num_values)
+auto make_array_sample(T *values, uint64_t num_values, Array_Sample_Data *)
 {
     return Abc_Sample_Type(values, num_values);
 }
 
 template <>
-auto make_array_sample<AbcGeom::StringArraySample>(Abc_String *values, uint64_t num_values)
+auto make_array_sample<AbcGeom::StringArraySample>(Abc_String *values,
+                                                   uint64_t num_values,
+                                                   Array_Sample_Data *sample_data)
 {
-    std::vector<std::string> strings;
-    strings.resize(num_values);
+    sample_data->strings.resize(num_values);
     for (uint64_t i = 0; i < num_values; i++) {
-        strings[i] = vers_std_string(*values++);
+        sample_data->strings[i] = vers_std_string(*values++);
     }
-    return AbcGeom::StringArraySample(strings.data(), num_values);
+    return AbcGeom::StringArraySample(sample_data->strings.data(), num_values);
 }
 
 #define MAKE_TYPED_ARRAY_SAMPLE(type_geom, type_abc_value, type_c, nom_court)                     \
     template <>                                                                                   \
-    auto make_array_sample<AbcGeom::type_geom##ArraySample>(type_c * values, uint64_t num_values) \
+    auto make_array_sample<AbcGeom::type_geom##ArraySample>(                                      \
+        type_c * values, uint64_t num_values, Array_Sample_Data *)                                \
     {                                                                                             \
         return AbcGeom::type_geom##ArraySample(reinterpret_cast<type_abc_value *>(values),        \
                                                num_values);                                       \
@@ -982,16 +988,16 @@ ENUMERATE_ABC_ATTRIBUTE_SPECIAL(MAKE_TYPED_ARRAY_SAMPLE)
 
 #define MAKE_TYPED_SAMPLE_FROM_ARRAY_SAMPLE(type_geom, type_abc_value, type_c, nom_court)         \
     static AbcGeom::type_geom##ArraySample make_typed_sample(                                     \
-        Abc_##type_geom##_Array_Sample sample)                                                    \
+        Abc_##type_geom##_Array_Sample sample, Array_Sample_Data *sample_data)                    \
     {                                                                                             \
-        return make_array_sample<AbcGeom::type_geom##ArraySample>(sample.values,                  \
-                                                                  sample.num_values);             \
+        return make_array_sample<AbcGeom::type_geom##ArraySample>(                                \
+            sample.values, sample.num_values, sample_data);                                       \
     }                                                                                             \
     static AbcGeom::O##type_geom##GeomParam::Sample make_typed_sample(                            \
-        Abc_Output_##type_geom##_Geom_Param_Sample param_sample)                                  \
+        Abc_Output_##type_geom##_Geom_Param_Sample param_sample, Array_Sample_Data *sample_data)  \
     {                                                                                             \
         auto array_sample = make_array_sample<AbcGeom::type_geom##ArraySample>(                   \
-            param_sample.values, param_sample.num_values);                                        \
+            param_sample.values, param_sample.num_values, sample_data);                           \
         auto abc_scope = static_cast<AbcGeom::GeometryScope>(param_sample.scope);                 \
         if (param_sample.indices) {                                                               \
             auto indices = AbcGeom::UInt32ArraySample(param_sample.indices,                       \
@@ -1052,7 +1058,20 @@ struct Abc_Output_Array_Property {
     Abc_Output_Compound_Property *parent = nullptr;
     Abc_Output_Array_Property *next = nullptr;
     AbcGeom::OArrayProperty prop{};
+    Array_Sample_Data sample_data{};
+
+    virtual ~Abc_Output_Array_Property() = default;
 };
+
+template <typename T>
+T *make_output_array_prop(Abc_Output_Compound_Property *parent)
+{
+    auto résultat = kuri_loge<T>(parent->archive->ctx_kuri);
+    résultat->parent = parent;
+    liste_ajoute(&parent->archive->array_props,
+                 static_cast<Abc_Output_Array_Property *>(résultat));
+    return résultat;
+}
 
 Abc_Output_Array_Property *abc_output_array_property_create(Abc_Output_Compound_Property *parent,
                                                             Abc_String name,
@@ -1080,7 +1099,7 @@ void abc_output_array_property_set_from_previous(struct Abc_Output_Scalar_Proper
     void abc_output_array_property_##nom_court##_set(                                             \
         struct Abc_Output_Array_Property *prop, struct Abc_##type_geom##_Array_Sample sample)     \
     {                                                                                             \
-        auto array_sample = make_typed_sample(sample);                                            \
+        auto array_sample = make_typed_sample(sample, &prop->sample_data);                        \
         prop->prop.set(array_sample);                                                             \
     }
 
@@ -1091,12 +1110,49 @@ ENUMERATE_ABC_POD_TYPE(DECLARE_ARRAY_PROPERTY_SETTER)
 /** \} */
 
 /* ------------------------------------------------------------------------- */
+/** \nom Typed Abc_Output_Array_Property
+ * \{ */
+
+#define DEFINE_ABC_TYPED_ARRAY_PROPERTY(type_geom, type_abc_value, type_c, nom_court)             \
+    struct Abc_Output_##type_geom##_Array_Property : public Abc_Output_Array_Property {           \
+        Abc::O##type_geom##ArrayProperty typed_prop{};                                            \
+    };                                                                                            \
+    struct Abc_Output_##type_geom##_Array_Property                                                \
+        *abc_output_##nom_court##_array_property_create(                                          \
+            struct Abc_Output_Compound_Property *parent, Abc_String name)                         \
+    {                                                                                             \
+        auto résultat = make_output_array_prop<Abc_Output_##type_geom##_Array_Property>(parent);  \
+        résultat->typed_prop = Abc::O##type_geom##ArrayProperty(parent->prop, name);              \
+        résultat->prop = résultat->typed_prop;                                                    \
+        return résultat;                                                                          \
+    }                                                                                             \
+    void abc_output_##nom_court##_array_property_set_time_sample_index(                           \
+        struct Abc_Output_##type_geom##_Array_Property *prop, struct Abc_Time_Sample_Index index) \
+    {                                                                                             \
+        prop->typed_prop.setTimeSampling(index.value);                                            \
+    }                                                                                             \
+    void abc_output_##nom_court##_array_property_set(                                             \
+        struct Abc_Output_##type_geom##_Array_Property *prop,                                     \
+        struct Abc_##type_geom##_Array_Sample sample)                                             \
+    {                                                                                             \
+        auto array_sample = make_typed_sample(sample, &prop->sample_data);                        \
+        prop->typed_prop.set(array_sample);                                                       \
+    }
+
+ENUMERATE_ABC_ATTRIBUTE_TYPES(DEFINE_ABC_TYPED_ARRAY_PROPERTY)
+
+#undef DEFINE_ABC_TYPED_ARRAY_PROPERTY
+
+/** \} */
+
+/* ------------------------------------------------------------------------- */
 /** \nom Abc_Output_Typed_Geom_Param
  * \{ */
 
 #define DEFINE_ABC_OUTPUT_GEOM_PARAMS(type_geom, type_abc_value, type_c, nom_court)               \
     struct Abc_Output_##type_geom##_Geom_Param {                                                  \
         AbcGeom::O##type_geom##GeomParam param;                                                   \
+        Array_Sample_Data sample_data;                                                            \
         using ABC_ARRAY_SAMPLE_TYPE = AbcGeom::type_geom##ArraySample;                            \
         using KURI_ARRAY_SAMPLE_TYPE = Abc_Output_##type_geom##_Geom_Param_Sample;                \
     };                                                                                            \
@@ -1130,7 +1186,7 @@ ENUMERATE_ABC_POD_TYPE(DECLARE_ARRAY_PROPERTY_SETTER)
         struct Abc_Output_##type_geom##_Geom_Param_Sample *sample)                                \
     {                                                                                             \
         if (sample->values) {                                                                     \
-            auto param_sample = make_typed_sample(*sample);                                       \
+            auto param_sample = make_typed_sample(*sample, &param->sample_data);                  \
             param->param.set(param_sample);                                                       \
         }                                                                                         \
     }
@@ -1143,7 +1199,7 @@ ENUMERATE_ABC_ATTRIBUTE_TYPES(DEFINE_ABC_OUTPUT_GEOM_PARAMS)
     void abc_output_##lname##_sample_##snake_name(                                                \
         struct Abc_Output_##uname##_Sample *lname##_sample, struct sample_type sample)            \
     {                                                                                             \
-        auto typed_sample = make_typed_sample(sample);                                            \
+        auto typed_sample = make_typed_sample(sample, &lname##_sample->sample_data);              \
         lname##_sample->sample.method(typed_sample);                                              \
     }
 
@@ -1497,6 +1553,7 @@ DEFINE_COMMON_OBJECT_FUNCTIONS(Points, points)
 struct Abc_Output_Points_Sample {
     ContexteKuri *ctx_kuri = nullptr;
     AbcGeom::OPointsSchema::Sample sample{};
+    Array_Sample_Data sample_data{};
 };
 
 DEFINE_COMMON_SAMPLE_FONCTIONS(Points, points)
@@ -1525,6 +1582,7 @@ DEFINE_COMMON_OBJECT_FUNCTIONS(Curves, curves)
 struct Abc_Output_Curves_Sample {
     ContexteKuri *ctx_kuri = nullptr;
     AbcGeom::OCurvesSchema::Sample sample{};
+    Array_Sample_Data sample_data{};
 };
 
 DEFINE_COMMON_SAMPLE_FONCTIONS(Curves, curves)
@@ -1589,6 +1647,7 @@ DEFINE_COMMON_OBJECT_FUNCTIONS(FaceSet, faceset)
 struct Abc_Output_FaceSet_Sample {
     ContexteKuri *ctx_kuri = nullptr;
     AbcGeom::OFaceSetSchema::Sample sample{};
+    Array_Sample_Data sample_data{};
 };
 
 DEFINE_COMMON_SAMPLE_FONCTIONS(FaceSet, faceset)
@@ -1658,6 +1717,7 @@ void abc_output_polymesh_set_uv_source_name(Abc_Output_PolyMesh *mesh, Abc_Strin
 struct Abc_Output_PolyMesh_Sample {
     ContexteKuri *ctx_kuri = nullptr;
     AbcGeom::OPolyMeshSchema::Sample sample{};
+    Array_Sample_Data sample_data{};
 };
 
 DEFINE_COMMON_SAMPLE_FONCTIONS(PolyMesh, polymesh)
@@ -1727,6 +1787,7 @@ void abc_output_subd_set_uv_source_name(Abc_Output_SubD *subd, Abc_String name)
 struct Abc_Output_SubD_Sample {
     ContexteKuri *ctx_kuri = nullptr;
     AbcGeom::OSubDSchema::Sample sample{};
+    Array_Sample_Data sample_data{};
 };
 
 DEFINE_COMMON_SAMPLE_FONCTIONS(SubD, subd)

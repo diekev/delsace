@@ -295,15 +295,17 @@ donne_info_nom_type_abc :: fonc (type: chaine) -> Info_Nom_Type_Abc
 
 principale :: fonc ()
 {
-    crée_test_user_props_scalar("/tmp/scalar-props-in-user-props.abc", vrai);
-    crée_test_user_props_scalar("/tmp/scalar-props-in-geom-params.abc", faux);
+    crée_test_user_props("/tmp/scalar-props-in-user-props.abc", vrai, vrai);
+    crée_test_user_props("/tmp/scalar-props-in-geom-params.abc", vrai, faux);
+    crée_test_user_props("/tmp/array-props-in-user-props.abc", faux, vrai);
+    crée_test_user_props("/tmp/array-props-in-geom-params.abc", faux, faux);
     // crée_test_rayons_courbes("/tmp/curve-with-width.abc", vrai);
     // crée_test_rayons_courbes("/tmp/curve-without-width.abc", faux);
     // crée_test_rayons_points("/tmp/point-with-width.abc", vrai);
     // crée_test_rayons_points("/tmp/point-without-width.abc", faux);
 }
 
-crée_test_user_props_scalar :: fonc (chemin: chaine, dans_user_props: bool)
+crée_test_user_props :: fonc (chemin: chaine, scalaire: bool, dans_user_props: bool)
 {
     metadata: Abc_Output_Archive_Metadata;
     metadata.application_name = vers_abc_string("Jorjala");
@@ -337,7 +339,12 @@ crée_test_user_props_scalar :: fonc (chemin: chaine, dans_user_props: bool)
         abc_output_points_arb_geom_params_get(objet_point);
     };
 
-    ajoute_propriétés_scalaires(user_props, ts_défaut);
+    si scalaire {
+        ajoute_propriétés_scalaires(user_props, ts_défaut);
+    }
+    sinon {
+        ajoute_propriétés_arrays(user_props, ts_défaut);
+    }
 }
 
 ajoute_propriétés_scalaires :: fonc (parent: *Abc_Output_Compound_Property, ts: Abc_Time_Sample_Index)
@@ -478,6 +485,153 @@ ajoute_propriétés_scalaires :: fonc (parent: *Abc_Output_Compound_Property, ts
         }
 
         imprime_dans_enchaineuse(*enchaineuse, "abc_output_%_scalar_property_set(prop_%, *%);\n", nom_court, nom_court, nom_valeur);
+        ajoute_au_tampon(*enchaineuse, "\n");
+    }
+
+    retourne chaine_depuis_enchaineuse(*enchaineuse);
+}
+
+ajoute_propriétés_arrays :: fonc (parent: *Abc_Output_Compound_Property, ts: Abc_Time_Sample_Index)
+#corps_texte {
+    descripteurs := abc_donne_descripteurs_attributs();
+
+    enchaineuse: Enchaineuse;
+    initialise_enchaineuse(*enchaineuse);
+
+    pour descripteurs {
+        type_geom := vers_kuri(it.type_geom);
+        type_ipa := vers_kuri(it.type_ipa);
+        nom_court := vers_kuri(it.nom_court);
+
+        ajoute_au_tampon(*enchaineuse, "// ", type_geom, "\n");
+
+        imprime_dans_enchaineuse(*enchaineuse, "prop_% := abc_output_%_array_property_create(parent, vers_abc_string(\"prop_%\"));\n", nom_court, nom_court, nom_court);
+        imprime_dans_enchaineuse(*enchaineuse, "abc_output_%_array_property_set_time_sample_index(prop_%, ts);\n", nom_court, nom_court);
+
+        nom_valeur := imprime_chaine("valeur_%", nom_court);
+        diffère déloge(*nom_valeur);
+
+        si est_type_pod(type_geom) {
+            chaine_valeur := "";
+            type_valeur := "";
+            si type_geom == "String" {
+                chaine_valeur = "vers_abc_string(\"123\")";
+                type_valeur = "Abc_String";
+            }
+            sinon si type_geom == "Bool" {
+                chaine_valeur = "vrai";
+                type_valeur = "bool";
+            }
+            sinon si type_geom == "Float" || type_geom == "Double" {
+                chaine_valeur = "1.23";
+                type_valeur = donne_type_kuri_pour_type_geom(type_geom);
+            }
+            sinon {
+                chaine_valeur = "123";
+                type_valeur = donne_type_kuri_pour_type_geom(type_geom);
+            }
+
+            imprime_dans_enchaineuse(*enchaineuse, "%: % = %;\n", nom_valeur, type_valeur, chaine_valeur);
+        }
+        sinon {
+            imprime_dans_enchaineuse(*enchaineuse, "%: % = ---;\n", nom_valeur, type_ipa);
+
+            info := donne_info_nom_type_abc(type_geom);
+            si info.préfixe == "Box" {
+                imprime_dans_enchaineuse(*enchaineuse, "%.min.x = 123;\n", nom_valeur);
+                imprime_dans_enchaineuse(*enchaineuse, "%.min.y = 147;\n", nom_valeur);
+                imprime_dans_enchaineuse(*enchaineuse, "%.max.x = 456;\n", nom_valeur);
+                imprime_dans_enchaineuse(*enchaineuse, "%.max.y = 258;\n", nom_valeur);
+
+                si info.taille == 3 {
+                    imprime_dans_enchaineuse(*enchaineuse, "%.min.z = 789;\n", nom_valeur);
+                    imprime_dans_enchaineuse(*enchaineuse, "%.max.z = 369;\n", nom_valeur);
+                }
+                sinon si info.taille != 2 {
+                    panique("taille non-gérée : %", info.taille);
+                }
+            }
+            sinon si info.préfixe == "M" {
+                si info.taille == 33 {
+                    pour i dans 3 {
+                        pour j dans 3 {
+                            imprime_dans_enchaineuse(*enchaineuse, "%.x[%][%] = %;\n", nom_valeur, i, j, i * 3 + j);
+                        }
+                    }
+                }
+                sinon si info.taille == 44 {
+                    pour i dans 4 {
+                        pour j dans 4 {
+                            imprime_dans_enchaineuse(*enchaineuse, "%.x[%][%] = %;\n", nom_valeur, i, j, i * 4 + j);
+                        }
+                    }
+                }
+                sinon {
+                    panique("taille non-gérée : %", info.taille);
+                }
+            }
+            sinon si info.préfixe == "Quat" {
+                imprime_dans_enchaineuse(*enchaineuse, "%.r = 123;\n", nom_valeur);
+                imprime_dans_enchaineuse(*enchaineuse, "%.v.x = 147;\n", nom_valeur);
+                imprime_dans_enchaineuse(*enchaineuse, "%.v.y = 258;\n", nom_valeur);
+                imprime_dans_enchaineuse(*enchaineuse, "%.v.z = 369;\n", nom_valeur);
+            }
+            sinon si info.préfixe == "C" {
+                si info.taille == 3 {
+                    si info.suffixe == "c" {
+                        imprime_dans_enchaineuse(*enchaineuse, "%.x = 0x1a;\n", nom_valeur);
+                        imprime_dans_enchaineuse(*enchaineuse, "%.y = 0x2b;\n", nom_valeur);
+                        imprime_dans_enchaineuse(*enchaineuse, "%.z = 0x3c;\n", nom_valeur);
+                    }
+                    sinon si info.suffixe == "f" {
+                        imprime_dans_enchaineuse(*enchaineuse, "%.x = 0.123;\n", nom_valeur);
+                        imprime_dans_enchaineuse(*enchaineuse, "%.y = 0.456;\n", nom_valeur);
+                        imprime_dans_enchaineuse(*enchaineuse, "%.z = 0.789;\n", nom_valeur);
+                    }
+                    sinon {
+                        panique("suffixe non-géré : %", info.suffixe);
+                    }
+                }
+                sinon si info.taille == 4 {
+                    si info.suffixe == "c" {
+                        imprime_dans_enchaineuse(*enchaineuse, "%.r = 0x1a;\n", nom_valeur);
+                        imprime_dans_enchaineuse(*enchaineuse, "%.g = 0x2b;\n", nom_valeur);
+                        imprime_dans_enchaineuse(*enchaineuse, "%.b = 0x3c;\n", nom_valeur);
+                        imprime_dans_enchaineuse(*enchaineuse, "%.a = 0x4d;\n", nom_valeur);
+                    }
+                    sinon si info.suffixe == "f" {
+                        imprime_dans_enchaineuse(*enchaineuse, "%.r = 0.123;\n", nom_valeur);
+                        imprime_dans_enchaineuse(*enchaineuse, "%.g = 0.456;\n", nom_valeur);
+                        imprime_dans_enchaineuse(*enchaineuse, "%.b = 0.789;\n", nom_valeur);
+                        imprime_dans_enchaineuse(*enchaineuse, "%.a = 0.159;\n", nom_valeur);
+                    }
+                    sinon {
+                        panique("suffixe non-géré : %", info.suffixe);
+                    }
+                }
+                sinon {
+                    panique("taille non-gérée : %", info.taille);
+                }
+            }
+            sinon {
+                assert(info.préfixe == "N" || info.préfixe == "P" || info.préfixe == "V");
+
+                imprime_dans_enchaineuse(*enchaineuse, "%.x = 123;\n", nom_valeur);
+                imprime_dans_enchaineuse(*enchaineuse, "%.y = 456;\n", nom_valeur);
+
+                si info.taille == 3 {
+                    imprime_dans_enchaineuse(*enchaineuse, "%.z = 789;\n", nom_valeur);
+                }
+                sinon si info.taille != 2 {
+                    panique("taille non-gérée : %", info.taille);
+                }
+            }
+        }
+
+        imprime_dans_enchaineuse(*enchaineuse, "%_array_sample: Abc_%_Array_Sample;\n", nom_court, type_geom);
+        imprime_dans_enchaineuse(*enchaineuse, "%_array_sample.values = *%;\n", nom_court, nom_valeur);
+        imprime_dans_enchaineuse(*enchaineuse, "%_array_sample.num_values = 1;\n", nom_court);
+        imprime_dans_enchaineuse(*enchaineuse, "abc_output_%_array_property_set(prop_%, %_array_sample);\n", nom_court, nom_court, nom_court);
         ajoute_au_tampon(*enchaineuse, "\n");
     }
 
