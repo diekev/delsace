@@ -479,7 +479,7 @@ ajoute_propriétés_arrays :: fonc (parent: *Abc_Output_Compound_Property, ts: A
         ajoute_au_tampon(*enchaineuse, "// ", type_geom, "\n");
 
         imprime_dans_enchaineuse(*enchaineuse, "prop_% := abc_output_%_array_property_create(parent, vers_abc_string(\"prop_%\"));\n", nom_court, nom_court, nom_court);
-        imprime_dans_enchaineuse(*enchaineuse, "abc_output_%_array_property_set_time_sample_index(prop_%, ts);\n", nom_court, nom_court);
+        imprime_dans_enchaineuse(*enchaineuse, "abc_output_array_property_set_time_sample_index(prop_%, ts);\n", nom_court);
 
         nom_valeur := imprime_chaine("valeur_%", nom_court);
         diffère déloge(*nom_valeur);

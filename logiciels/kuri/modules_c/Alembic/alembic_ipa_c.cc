@@ -1044,67 +1044,31 @@ T *make_output_array_prop(Abc_Output_Compound_Property *parent)
     return résultat;
 }
 
-Abc_Output_Array_Property *abc_output_array_property_create(Abc_Output_Compound_Property *parent,
-                                                            Abc_String name,
-                                                            Abc_Data_Type data_type,
-                                                            Abc_Time_Sample_Index ts_index)
+void abc_output_array_property_set_from_previous(Abc_Generic_Output_Array_Property prop)
 {
-    auto abc_data_type = Alembic::AbcCoreAbstract::DataType(
-        static_cast<Alembic::AbcCoreAbstract::PlainOldDataType>(data_type.pod_type),
-        data_type.extent);
-
-    auto résultat = kuri_loge<Abc_Output_Array_Property>(parent->archive->ctx_kuri);
-    résultat->parent = parent;
-    résultat->prop = AbcGeom::OArrayProperty(parent->prop, name, abc_data_type);
-    résultat->prop.setTimeSampling(ts_index.value);
-    liste_ajoute(&parent->archive->array_props, résultat);
-    return résultat;
+    prop.prop->prop.setFromPrevious();
 }
 
-void abc_output_array_property_set_from_previous(struct Abc_Output_Scalar_Property *prop)
+void abc_output_array_property_set_time_sample_index(Abc_Generic_Output_Array_Property prop,
+                                                     Abc_Time_Sample_Index index)
 {
-    prop->prop.setFromPrevious();
+    prop.prop->prop.setTimeSampling(index.value);
 }
-
-#define DECLARE_ARRAY_PROPERTY_SETTER(type_geom, type_abc_value, type_c, nom_court)               \
-    void abc_output_array_property_##nom_court##_set(                                             \
-        struct Abc_Output_Array_Property *prop, struct Abc_##type_geom##_Array_Sample sample)     \
-    {                                                                                             \
-        auto array_sample = make_typed_sample(sample, &prop->sample_data);                        \
-        prop->prop.set(array_sample);                                                             \
-    }
-
-ENUMERATE_ABC_POD_TYPE(DECLARE_ARRAY_PROPERTY_SETTER)
-
-#undef DECLARE_ARRAY_PROPERTY_SETTER
-
-/** \} */
-
-/* ------------------------------------------------------------------------- */
-/** \nom Typed Abc_Output_Array_Property
- * \{ */
 
 #define DEFINE_ABC_TYPED_ARRAY_PROPERTY(type_geom, type_abc_value, type_c, nom_court)             \
     struct Abc_Output_##type_geom##_Array_Property : public Abc_Output_Array_Property {           \
         Abc::O##type_geom##ArrayProperty typed_prop{};                                            \
     };                                                                                            \
-    struct Abc_Output_##type_geom##_Array_Property                                                \
-        *abc_output_##nom_court##_array_property_create(                                          \
-            struct Abc_Output_Compound_Property *parent, Abc_String name)                         \
+    Abc_Output_##type_geom##_Array_Property *abc_output_##nom_court##_array_property_create(      \
+        Abc_Output_Compound_Property *parent, Abc_String name)                                    \
     {                                                                                             \
         auto résultat = make_output_array_prop<Abc_Output_##type_geom##_Array_Property>(parent);  \
         résultat->typed_prop = Abc::O##type_geom##ArrayProperty(parent->prop, name);              \
         résultat->prop = résultat->typed_prop;                                                    \
         return résultat;                                                                          \
     }                                                                                             \
-    void abc_output_##nom_court##_array_property_set_time_sample_index(                           \
-        struct Abc_Output_##type_geom##_Array_Property *prop, struct Abc_Time_Sample_Index index) \
-    {                                                                                             \
-        prop->typed_prop.setTimeSampling(index.value);                                            \
-    }                                                                                             \
     void abc_output_##nom_court##_array_property_set(                                             \
-        struct Abc_Output_##type_geom##_Array_Property *prop,                                     \
-        struct Abc_##type_geom##_Array_Sample sample)                                             \
+        Abc_Output_##type_geom##_Array_Property *prop, Abc_##type_geom##_Array_Sample sample)     \
     {                                                                                             \
         auto array_sample = make_typed_sample(sample, &prop->sample_data);                        \
         prop->typed_prop.set(array_sample);                                                       \

@@ -711,36 +711,11 @@ void abc_output_property_set_from_previous(union Abc_Generic_Output_Scalar_Prope
 
 struct Abc_Output_Array_Property;
 
-struct Abc_Output_Array_Property *abc_output_array_property_create(
-    struct Abc_Output_Compound_Property *parent,
-    struct Abc_String name,
-    struct Abc_Data_Type data_type,
-    struct Abc_Time_Sample_Index ts_index);
-
-void abc_output_array_property_set_from_previous(struct Abc_Output_Scalar_Property *prop);
-
-#define DECLARE_ARRAY_PROPERTY_SETTER(type_geom, type_abc_value, type_c, nom_court)               \
-    void abc_output_array_property_##nom_court##_set(                                             \
-        struct Abc_Output_Array_Property *prop, struct Abc_##type_geom##_Array_Sample sample);
-
-ENUMERATE_ABC_POD_TYPE(DECLARE_ARRAY_PROPERTY_SETTER)
-
-#undef DECLARE_ARRAY_PROPERTY_SETTER
-
-/** \} */
-
-/* ------------------------------------------------------------------------- */
-/** \nom Typed Abc_Output_Array_Property
- * \{ */
-
 #define DECLARE_ABC_TYPED_ARRAY_PROPERTY(type_geom, type_abc_value, type_c, nom_court)            \
     struct Abc_Output_##type_geom##_Array_Property;                                               \
     struct Abc_Output_##type_geom##_Array_Property                                                \
         *abc_output_##nom_court##_array_property_create(                                          \
             struct Abc_Output_Compound_Property *parent, Abc_String name);                        \
-    void abc_output_##nom_court##_array_property_set_time_sample_index(                           \
-        struct Abc_Output_##type_geom##_Array_Property *prop,                                     \
-        struct Abc_Time_Sample_Index index);                                                      \
     void abc_output_##nom_court##_array_property_set(                                             \
         struct Abc_Output_##type_geom##_Array_Property *prop,                                     \
         struct Abc_##type_geom##_Array_Sample sample);
@@ -748,6 +723,22 @@ ENUMERATE_ABC_POD_TYPE(DECLARE_ARRAY_PROPERTY_SETTER)
 ENUMERATE_ABC_ATTRIBUTE_TYPES(DECLARE_ABC_TYPED_ARRAY_PROPERTY)
 
 #undef DECLARE_ABC_TYPED_ARRAY_PROPERTY
+
+union Abc_Generic_Output_Array_Property {
+    struct Abc_Output_Array_Property *prop;
+
+#define DECLARE_ABC_TYPED_ARRAY_PROPERTY(type_geom, type_abc_value, type_c, nom_court)            \
+    struct Abc_Output_##type_geom##_Array_Property *prop_##nom_court;
+
+    ENUMERATE_ABC_ATTRIBUTE_TYPES(DECLARE_ABC_TYPED_ARRAY_PROPERTY)
+
+#undef DECLARE_ABC_TYPED_ARRAY_PROPERTY
+};
+
+void abc_output_array_property_set_time_sample_index(union Abc_Generic_Output_Array_Property prop,
+                                                     struct Abc_Time_Sample_Index index);
+
+void abc_output_array_property_set_from_previous(union Abc_Generic_Output_Array_Property prop);
 
 /** \} */
 
