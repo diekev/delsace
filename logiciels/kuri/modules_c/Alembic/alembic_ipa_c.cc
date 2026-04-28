@@ -917,37 +917,16 @@ T *make_output_scalar_prop(Abc_Output_Compound_Property *parent)
     return résultat;
 }
 
-Abc_Output_Scalar_Property *abc_output_scalar_property_create(Abc_Output_Compound_Property *parent,
-                                                              Abc_String name,
-                                                              Abc_Data_Type data_type,
-                                                              Abc_Time_Sample_Index ts_index)
+void abc_output_property_set_time_sample_index(union Abc_Generic_Output_Scalar_Property prop,
+                                               struct Abc_Time_Sample_Index index)
 {
-    auto abc_data_type = Alembic::AbcCoreAbstract::DataType(
-        static_cast<Alembic::AbcCoreAbstract::PlainOldDataType>(data_type.pod_type),
-        data_type.extent);
-
-    auto résultat = make_output_scalar_prop<Abc_Output_Scalar_Property>(parent);
-    résultat->prop = AbcGeom::OScalarProperty(parent->prop, name, abc_data_type);
-    résultat->prop.setTimeSampling(ts_index.value);
-    return résultat;
+    prop.prop->prop.setTimeSampling(index.value);
 }
 
-void abc_output_scalar_property_set_from_previous(struct Abc_Output_Scalar_Property *prop)
+void abc_output_property_set_from_previous(union Abc_Generic_Output_Scalar_Property prop)
 {
-    prop->prop.setFromPrevious();
+    prop.prop->prop.setFromPrevious();
 }
-
-#define DEFINE_SCALAR_PROPERTY_SETTER(type_geom, type_abc_value, type_c, nom_court)               \
-    void abc_output_scalar_property_##nom_court##_set(struct Abc_Output_Scalar_Property *prop,    \
-                                                      type_c sample)                              \
-    {                                                                                             \
-        type_abc_value sample_value = sample;                                                     \
-        prop->prop.set(&sample_value);                                                            \
-    }
-
-ENUMERATE_ABC_POD_TYPE(DEFINE_SCALAR_PROPERTY_SETTER)
-
-#undef DEFINE_SCALAR_PROPERTY_SETTER
 
 /** \} */
 
@@ -1017,27 +996,19 @@ ENUMERATE_ABC_ATTRIBUTE_TYPES(MAKE_TYPED_SAMPLE_FROM_ARRAY_SAMPLE)
  * \{ */
 
 #define DEFINE_ABC_TYPED_SCALAR_PROPERTY(type_geom, type_abc_value, type_c, nom_court)            \
-    struct Abc_Output_##type_geom##_Scalar_Property : public Abc_Output_Scalar_Property {         \
+    struct Abc_Output_##type_geom##_Property : public Abc_Output_Scalar_Property {                \
         Abc::O##type_geom##Property typed_prop{};                                                 \
     };                                                                                            \
-    struct Abc_Output_##type_geom##_Scalar_Property                                               \
-        *abc_output_##nom_court##_scalar_property_create(                                         \
-            struct Abc_Output_Compound_Property *parent, Abc_String name)                         \
+    Abc_Output_##type_geom##_Property *abc_output_##nom_court##_property_create(                  \
+        Abc_Output_Compound_Property *parent, Abc_String name)                                    \
     {                                                                                             \
-        auto résultat = make_output_scalar_prop<Abc_Output_##type_geom##_Scalar_Property>(        \
-            parent);                                                                              \
+        auto résultat = make_output_scalar_prop<Abc_Output_##type_geom##_Property>(parent);       \
         résultat->typed_prop = Abc::O##type_geom##Property(parent->prop, name);                   \
         résultat->prop = résultat->typed_prop;                                                    \
         return résultat;                                                                          \
     }                                                                                             \
-    void abc_output_##nom_court##_scalar_property_set_time_sample_index(                          \
-        struct Abc_Output_##type_geom##_Scalar_Property *prop,                                    \
-        struct Abc_Time_Sample_Index index)                                                       \
-    {                                                                                             \
-        prop->typed_prop.setTimeSampling(index.value);                                            \
-    }                                                                                             \
-    void abc_output_##nom_court##_scalar_property_set(                                            \
-        struct Abc_Output_##type_geom##_Scalar_Property *prop, type_c *value)                     \
+    void abc_output_##nom_court##_property_set(Abc_Output_##type_geom##_Property *prop,           \
+                                               type_c *value)                                     \
     {                                                                                             \
         using value_conv = value_converter<type_c>;                                               \
         type_abc_value sample_value = value_conv::convert_value(value);                           \

@@ -674,42 +674,34 @@ struct Abc_Output_Compound_Property;
 
 struct Abc_Output_Scalar_Property;
 
-struct Abc_Output_Scalar_Property *abc_output_scalar_property_create(
-    struct Abc_Output_Compound_Property *parent,
-    struct Abc_String name,
-    struct Abc_Data_Type data_type,
-    struct Abc_Time_Sample_Index ts_index);
-
 void abc_output_scalar_property_set_from_previous(struct Abc_Output_Scalar_Property *prop);
 
-#define DECLARE_SCALAR_PROPERTY_SETTER(type_geom, type_abc_value, type_c, nom_court)              \
-    void abc_output_scalar_property_##nom_court##_set(struct Abc_Output_Scalar_Property *prop,    \
-                                                      type_c sample);
-
-ENUMERATE_ABC_POD_TYPE(DECLARE_SCALAR_PROPERTY_SETTER)
-
-#undef DECLARE_SCALAR_PROPERTY_SETTER
-
-/** \} */
-
-/* ------------------------------------------------------------------------- */
-/** \nom Typed Abc_Output_Scalar_Property
- * \{ */
-
 #define DECLARE_ABC_TYPED_SCALAR_PROPERTY(type_geom, type_abc_value, type_c, nom_court)           \
-    struct Abc_Output_##type_geom##_Scalar_Property;                                              \
-    struct Abc_Output_##type_geom##_Scalar_Property                                               \
-        *abc_output_##nom_court##_scalar_property_create(                                         \
-            struct Abc_Output_Compound_Property *parent, Abc_String name);                        \
-    void abc_output_##nom_court##_scalar_property_set_time_sample_index(                          \
-        struct Abc_Output_##type_geom##_Scalar_Property *prop,                                    \
-        struct Abc_Time_Sample_Index index);                                                      \
-    void abc_output_##nom_court##_scalar_property_set(                                            \
-        struct Abc_Output_##type_geom##_Scalar_Property *prop, type_c *value);
+    struct Abc_Output_##type_geom##_Property;                                                     \
+    struct Abc_Output_##type_geom##_Property *abc_output_##nom_court##_property_create(           \
+        struct Abc_Output_Compound_Property *parent, Abc_String name);                            \
+    void abc_output_##nom_court##_property_set(struct Abc_Output_##type_geom##_Property *prop,    \
+                                               type_c *value);
 
 ENUMERATE_ABC_ATTRIBUTE_TYPES(DECLARE_ABC_TYPED_SCALAR_PROPERTY)
 
 #undef DECLARE_ABC_TYPED_SCALAR_PROPERTY
+
+union Abc_Generic_Output_Scalar_Property {
+    struct Abc_Output_Scalar_Property *prop;
+
+#define DECLARE_ABC_TYPED_SCALAR_PROPERTY(type_geom, type_abc_value, type_c, nom_court)           \
+    struct Abc_Output_##type_geom##_Property *prop_##nom_court;
+
+    ENUMERATE_ABC_ATTRIBUTE_TYPES(DECLARE_ABC_TYPED_SCALAR_PROPERTY)
+
+#undef DECLARE_ABC_TYPED_SCALAR_PROPERTY
+};
+
+void abc_output_property_set_time_sample_index(union Abc_Generic_Output_Scalar_Property prop,
+                                               struct Abc_Time_Sample_Index index);
+
+void abc_output_property_set_from_previous(union Abc_Generic_Output_Scalar_Property prop);
 
 /** \} */
 

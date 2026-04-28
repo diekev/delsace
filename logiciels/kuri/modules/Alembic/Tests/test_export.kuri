@@ -1,5 +1,6 @@
 importe Alembic;
 importe Chaine;
+importe Fondation;
 importe Numérique;
 importe Math;
 
@@ -75,120 +76,6 @@ abc_output_curves_sample_widths_set :: fonc (sample: *Abc_Output_Curves_Sample, 
     geom_param.scope = scope;
     abc_output_curves_sample_widths_set(sample, geom_param);
 }
-
-/* ------------------------------------------------------------------------- */
-/** \nom OCompoundProperty
- * \{ */
-
-importe Fondation;
-
-add_scalar_property :: fonc (props: *Abc_Output_Compound_Property, name: chaine, data_type: Abc_Data_Type, ts_index: Abc_Time_Sample_Index) -> *Abc_Output_Scalar_Property
-{
-    retourne abc_output_scalar_property_create(props, vers_abc_string(name), data_type, ts_index);
-}
-
-add_scalar_property :: fonc (props: *Abc_Output_Compound_Property, name: chaine, valeur: $T, ts_index: Abc_Time_Sample_Index)
-{
-    #si T == bool {
-        data_type: Abc_Data_Type;
-        data_type.extent = 1;
-        data_type.pod_type = Abc_Plain_Old_Data_Type.BOOLEAN;
-        prop := add_scalar_property(props, name, data_type, ts_index);
-        abc_output_scalar_property_bool_set(prop, valeur);
-    }
-    sinon si T == n8 {
-        data_type: Abc_Data_Type;
-        data_type.extent = 1;
-        data_type.pod_type = Abc_Plain_Old_Data_Type.UINT8;
-        prop := add_scalar_property(props, name, data_type, ts_index);
-        abc_output_scalar_property_uchar_set(prop, valeur);
-    }
-    sinon si T == z8 {
-        data_type: Abc_Data_Type;
-        data_type.extent = 1;
-        data_type.pod_type = Abc_Plain_Old_Data_Type.INT8;
-        prop := add_scalar_property(props, name, data_type, ts_index);
-        abc_output_scalar_property_char_set(prop, valeur);
-    }
-    sinon si T == n16 {
-        data_type: Abc_Data_Type;
-        data_type.extent = 1;
-        data_type.pod_type = Abc_Plain_Old_Data_Type.UINT16;
-        prop := add_scalar_property(props, name, data_type, ts_index);
-        abc_output_scalar_property_uint16_set(prop, valeur);
-    }
-    sinon si T == z16 {
-        data_type: Abc_Data_Type;
-        data_type.extent = 1;
-        data_type.pod_type = Abc_Plain_Old_Data_Type.INT16;
-        prop := add_scalar_property(props, name, data_type, ts_index);
-        abc_output_scalar_property_int16_set(prop, valeur);
-    }
-    sinon si T == n32 {
-        data_type: Abc_Data_Type;
-        data_type.extent = 1;
-        data_type.pod_type = Abc_Plain_Old_Data_Type.UINT32;
-        prop := add_scalar_property(props, name, data_type, ts_index);
-        abc_output_scalar_property_uint32_set(prop, valeur);
-    }
-    sinon si T == z32 {
-        data_type: Abc_Data_Type;
-        data_type.extent = 1;
-        data_type.pod_type = Abc_Plain_Old_Data_Type.INT32;
-        prop := add_scalar_property(props, name, data_type, ts_index);
-        abc_output_scalar_property_int32_set(prop, valeur);
-    }
-    sinon si T == n64 {
-        data_type: Abc_Data_Type;
-        data_type.extent = 1;
-        data_type.pod_type = Abc_Plain_Old_Data_Type.UINT64;
-        prop := add_scalar_property(props, name, data_type, ts_index);
-        abc_output_scalar_property_uint64_set(prop, valeur);
-    }
-    sinon si T == z64 {
-        data_type: Abc_Data_Type;
-        data_type.extent = 1;
-        data_type.pod_type = Abc_Plain_Old_Data_Type.INT64;
-        prop := add_scalar_property(props, name, data_type, ts_index);
-        abc_output_scalar_property_int64_set(prop, valeur);
-    }
-    // sinon si T == r16 {
-    // FLOAT16;
-    // }
-    sinon si T == r32 {
-        data_type: Abc_Data_Type;
-        data_type.extent = 1;
-        data_type.pod_type = Abc_Plain_Old_Data_Type.FLOAT32;
-        prop := add_scalar_property(props, name, data_type, ts_index);
-        abc_output_scalar_property_float_set(prop, valeur);
-    }
-    sinon si T == r64 {
-        data_type: Abc_Data_Type;
-        data_type.extent = 1;
-        data_type.pod_type = Abc_Plain_Old_Data_Type.FLOAT64;
-        prop := add_scalar_property(props, name, data_type, ts_index);
-        abc_output_scalar_property_double_set(prop, valeur);
-    }
-    sinon si T == chaine {
-        data_type: Abc_Data_Type;
-        data_type.extent = 1;
-        data_type.pod_type = Abc_Plain_Old_Data_Type.STRING;
-        prop := add_scalar_property(props, name, data_type, ts_index);
-        abc_output_scalar_property_string_set(prop, vers_abc_string(valeur));
-    }
-    sinon si T == Abc_String {
-        data_type: Abc_Data_Type;
-        data_type.extent = 1;
-        data_type.pod_type = Abc_Plain_Old_Data_Type.STRING;
-        prop := add_scalar_property(props, name, data_type, ts_index);
-        abc_output_scalar_property_string_set(prop, valeur);
-    }
-    sinon {
-        imprimeln("Type de données non-supporté");
-    }
-}
-
-/** \} */
 
 abc_donne_descripteurs_attributs :: fonc () -> []Abc_Attribute_Type_Descriptor
 {
@@ -447,8 +334,8 @@ ajoute_propriétés_scalaires :: fonc (parent: *Abc_Output_Compound_Property, ts
 
         ajoute_au_tampon(*enchaineuse, "// ", type_geom, "\n");
 
-        imprime_dans_enchaineuse(*enchaineuse, "prop_% := abc_output_%_scalar_property_create(parent, vers_abc_string(\"prop_%\"));\n", nom_court, nom_court, nom_court);
-        imprime_dans_enchaineuse(*enchaineuse, "abc_output_%_scalar_property_set_time_sample_index(prop_%, ts);\n", nom_court, nom_court);
+        imprime_dans_enchaineuse(*enchaineuse, "prop_% := abc_output_%_property_create(parent, vers_abc_string(\"prop_%\"));\n", nom_court, nom_court, nom_court);
+        imprime_dans_enchaineuse(*enchaineuse, "abc_output_property_set_time_sample_index(prop_%, ts);\n", nom_court);
 
         nom_valeur := imprime_chaine("valeur_%", nom_court);
         diffère déloge(*nom_valeur);
@@ -570,7 +457,7 @@ ajoute_propriétés_scalaires :: fonc (parent: *Abc_Output_Compound_Property, ts
             }
         }
 
-        imprime_dans_enchaineuse(*enchaineuse, "abc_output_%_scalar_property_set(prop_%, *%);\n", nom_court, nom_court, nom_valeur);
+        imprime_dans_enchaineuse(*enchaineuse, "abc_output_%_property_set(prop_%, *%);\n", nom_court, nom_court, nom_valeur);
         ajoute_au_tampon(*enchaineuse, "\n");
     }
 
