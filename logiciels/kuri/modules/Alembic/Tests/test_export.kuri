@@ -293,8 +293,94 @@ donne_info_nom_type_abc :: fonc (type: chaine) -> Info_Nom_Type_Abc
     retourne résultat;
 }
 
+donne_extent :: fonc (desc: Abc_Attribute_Type_Descriptor) -> n32
+{
+    info := donne_info_nom_type_abc(vers_kuri(desc.type_geom));
+
+    extent: n32;
+
+    si est_type_pod(vers_kuri(desc.type_geom)) {
+        extent = 1;
+    }
+    sinon si info.préfixe == "Quat" {
+        extent = 4;
+    }
+    sinon si info.taille == 33 {
+        extent = 9;
+    }
+    sinon si info.taille == 44 {
+        extent = 16;
+    }
+    sinon si info.préfixe == "Box" {
+        extent = 2 * info.taille;
+    }
+    sinon {
+        extent = info.taille;
+    }
+
+    retourne extent;
+}
+
+donne_interpretation :: fonc (desc: Abc_Attribute_Type_Descriptor) -> chaine
+{
+    résultat: chaine;
+
+    info := donne_info_nom_type_abc(vers_kuri(desc.type_geom));
+
+    si info.préfixe == "V" {
+        résultat = "vector";
+    }
+    sinon si info.préfixe == "N" {
+        résultat = "normal";
+    }
+    sinon si info.préfixe == "P" {
+        résultat = "point";
+    }
+    sinon si info.préfixe == "Box" {
+        résultat = "box";
+    }
+    sinon si info.préfixe == "M" {
+        résultat = "matrix";
+    }
+    sinon si info.préfixe == "Quat" {
+        résultat = "quat";
+    }
+    sinon si info.préfixe == "C" {
+        si info.taille == 3 {
+            résultat = "rgb";
+        }
+        sinon {
+            résultat = "rgba";
+        }
+    }
+
+    retourne résultat;
+}
+
+imprime_infos_types_attributs_pour_python :: fonc ()
+{
+    desc := abc_donne_descripteurs_attributs();
+
+    imprimeln("class AbcAttributeTypeInfo():");
+    imprimeln("    def __init__(self, name, extent, interpretation):");
+    imprimeln("        self.name = name");
+    imprimeln("        self.extent = extent");
+    imprimeln("        self.interpretation = interpretation");
+    imprimeln("");
+    imprimeln("attribute_type_infos = [");
+    pour desc {
+        extent := donne_extent(it);
+        interpretation := donne_interpretation(it);
+        imprimeln("    AbcAttributeTypeInfo('%', %, '%'),", vers_kuri(it.nom_court), extent, interpretation);
+    }
+    imprimeln("]");
+    imprimeln("");
+}
+
 principale :: fonc ()
 {
+    // imprime_infos_types_attributs_pour_python();
+
     crée_test_user_props("/tmp/scalar-props-in-user-props.abc", vrai, vrai);
     crée_test_user_props("/tmp/scalar-props-in-geom-params.abc", vrai, faux);
     crée_test_user_props("/tmp/array-props-in-user-props.abc", faux, vrai);
