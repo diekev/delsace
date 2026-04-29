@@ -411,6 +411,13 @@ traverse_hiérarchie :: fonc (parent: Abc_Generic_Input_Object, header: *Abc_Obj
         diffère abc_metadata_destroy(metadata);
         imprime_metadata(metadata);
 
+        visibility_prop := abc_input_object_get_visibility_property(next_object);
+        si abc_input_scalar_property_valid(visibility_prop) {
+            visibility_char: z8;
+            abc_input_scalar_property_char_get(visibility_prop, *visibility_char, Abc_Sample_Selector());
+            imprimeln("    visibility : %", visibility_char comme z32 comme Abc_Object_Visibility);
+        }
+
         si user_properties {
             imprime_properties(user_properties, "User Properties");
         }
