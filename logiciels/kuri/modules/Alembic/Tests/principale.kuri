@@ -240,6 +240,22 @@ principale :: fonc ()
 
 chemin_archive_courante: chaine;
 
+imprime_temps_archive :: fonc (chemin: chaine)
+{
+    iarchive := abc_input_archive_create(chemin);
+    saufsi iarchive {
+        imprimeln("Impossible d'ouvrir l'archive '%'", chemin);
+        retourne;
+    }
+    diffère abc_input_archive_destroy(iarchive);
+
+    start_time: r64;
+    end_time: r64;
+    abc_input_archive_get_start_and_end_time(iarchive, *start_time, *end_time);
+
+    imprimeln("% % %", chemin, start_time, end_time);
+}
+
 imprime_métadonnées_archives :: fonc (chemin: chaine)
 {
     chemins: [..]chaine;

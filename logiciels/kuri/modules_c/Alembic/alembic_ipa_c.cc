@@ -954,6 +954,21 @@ Abc_Input_Object *abc_input_archive_get_top(Abc_Input_Archive *archive)
     return résultat;
 }
 
+void abc_input_archive_get_start_and_end_time(struct Abc_Input_Archive *archive,
+                                              double *r_start_time,
+                                              double *r_end_time)
+{
+    double start_time;
+    double end_time;
+    Alembic::Abc::GetArchiveStartAndEndTime(archive->iarchive, start_time, end_time);
+    if (r_start_time) {
+        *r_start_time = start_time;
+    }
+    if (r_end_time) {
+        *r_end_time = end_time;
+    }
+}
+
 /** \} */
 
 struct Abc_Output_Object_Base;

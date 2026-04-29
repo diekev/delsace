@@ -599,6 +599,10 @@ struct Abc_MetaData *abc_input_archive_get_metadata(struct Abc_Input_Archive *ar
 
 struct Abc_Input_Object *abc_input_archive_get_top(struct Abc_Input_Archive *archive);
 
+void abc_input_archive_get_start_and_end_time(struct Abc_Input_Archive *archive,
+                                              double *r_start_time,
+                                              double *r_end_time);
+
 /** \} */
 
 /* ------------------------------------------------------------------------- */
