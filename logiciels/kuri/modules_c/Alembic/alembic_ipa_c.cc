@@ -624,36 +624,14 @@ struct Abc_Input_Scalar_Property {
     Abc_Input_Scalar_Property *next = nullptr;
     std::string tampon_pour_get{};
 
-    static Abc_Input_Scalar_Property *make(Abc_Input_Archive *archive)
+    template <typename T>
+    static T *make(Abc_Input_Archive *archive)
     {
-        auto résultat = kuri_loge<Abc_Input_Scalar_Property>(archive->ctx_kuri);
-        liste_ajoute(&archive->scalar_props, résultat);
+        auto résultat = kuri_loge<T>(archive->ctx_kuri);
+        liste_ajoute(&archive->scalar_props, static_cast<Abc_Input_Scalar_Property *>(résultat));
         return résultat;
     }
 };
-
-struct Abc_Input_Scalar_Property *abc_input_compound_property_get_scalar(
-    struct Abc_Input_Compound_Property *props, struct Abc_String name)
-{
-    auto résultat = Abc_Input_Scalar_Property::make(props->archive);
-    résultat->prop = AbcGeom::IScalarProperty(props->prop, name);
-    return résultat;
-}
-
-uint64_t abc_input_scalar_property_get_num_samples(struct Abc_Input_Scalar_Property *prop)
-{
-    return prop->prop.getNumSamples();
-}
-
-bool abc_input_scalar_property_is_constant(struct Abc_Input_Scalar_Property *prop)
-{
-    return prop->prop.isConstant();
-}
-
-bool abc_input_scalar_property_valid(Abc_Input_Scalar_Property *prop)
-{
-    return prop->prop.valid();
-}
 
 template <typename T>
 void get_property_value_impl(struct Abc_Input_Scalar_Property *prop,
@@ -682,17 +660,41 @@ void get_property_value_impl<Abc_String>(struct Abc_Input_Scalar_Property *prop,
     vers_abc_string(result, prop->tampon_pour_get);
 }
 
-#define DECLARE_SCALAR_PROPERTY_GETTER(type_geom, type_abc_value, type_c, nom_court)              \
-    void abc_input_scalar_property_##nom_court##_get(struct Abc_Input_Scalar_Property *prop,      \
-                                                     type_c *result,                              \
-                                                     struct Abc_Sample_Selector selector)         \
+#define DECLARE_ABC_TYPED_SCALAR_PROPERTY(type_geom, type_abc_value, type_c, nom_court)           \
+    struct Abc_Input_##type_geom##_Property : public Abc_Input_Scalar_Property {};                \
+    struct Abc_Input_##type_geom##_Property *abc_input_##nom_court##_property(                    \
+        struct Abc_Input_Compound_Property *parent, Abc_String name)                              \
+    {                                                                                             \
+        auto résultat = Abc_Input_Scalar_Property::make<Abc_Input_##type_geom##_Property>(        \
+            parent->archive);                                                                     \
+        résultat->prop = AbcGeom::IScalarProperty(parent->prop, name);                            \
+        return résultat;                                                                          \
+    }                                                                                             \
+    void abc_input_##nom_court##_property_get(struct Abc_Input_##type_geom##_Property *prop,      \
+                                              type_c *result,                                     \
+                                              struct Abc_Sample_Selector selector)                \
     {                                                                                             \
         return get_property_value_impl<type_c>(prop, result, selector);                           \
     }
 
-ENUMERATE_ABC_POD_TYPE(DECLARE_SCALAR_PROPERTY_GETTER)
+ENUMERATE_ABC_ATTRIBUTE_TYPES(DECLARE_ABC_TYPED_SCALAR_PROPERTY)
 
-#undef DECLARE_SCALAR_PROPERTY_GETTER
+#undef DECLARE_ABC_TYPED_SCALAR_PROPERTY
+
+uint64_t abc_input_scalar_property_get_num_samples(union Abc_Generic_Input_Scalar_Property prop)
+{
+    return prop.prop->prop.getNumSamples();
+}
+
+bool abc_input_scalar_property_is_constant(union Abc_Generic_Input_Scalar_Property prop)
+{
+    return prop.prop->prop.isConstant();
+}
+
+bool abc_input_scalar_property_valid(union Abc_Generic_Input_Scalar_Property prop)
+{
+    return prop.prop->prop.valid();
+}
 
 /** \} */
 
@@ -806,12 +808,23 @@ bool abc_input_object_is_instance_root(struct Abc_Input_Object *object)
     return object->untyped_object.isInstanceRoot();
 }
 
-Abc_Input_Scalar_Property *abc_input_object_get_visibility_property(
+struct Abc_Input_Visibility_Property : public Abc_Input_Scalar_Property {};
+
+Abc_Input_Visibility_Property *abc_input_object_get_visibility_property(
     Abc_Generic_Input_Object object)
 {
-    auto résultat = Abc_Input_Scalar_Property::make(object.object->archive);
+    auto résultat = Abc_Input_Scalar_Property::make<Abc_Input_Visibility_Property>(
+        object.object->archive);
     résultat->prop = Alembic::AbcGeom::GetVisibilityProperty(object.object->untyped_object);
     return résultat;
+}
+
+Abc_Object_Visibility abc_input_visibility_property_get(Abc_Input_Visibility_Property *prop,
+                                                        Abc_Sample_Selector selector)
+{
+    int8_t valeur;
+    prop->prop.get(&valeur, get_sample_selector(selector));
+    return static_cast<Abc_Object_Visibility>(valeur);
 }
 
 template <typename TypedObject>

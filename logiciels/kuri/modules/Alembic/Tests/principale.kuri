@@ -429,9 +429,8 @@ traverse_hiérarchie :: fonc (parent: Abc_Generic_Input_Object, header: *Abc_Obj
 
         visibility_prop := abc_input_object_get_visibility_property(next_object);
         si abc_input_scalar_property_valid(visibility_prop) {
-            visibility_char: z8;
-            abc_input_scalar_property_char_get(visibility_prop, *visibility_char, Abc_Sample_Selector());
-            imprimeln("    visibility : %", visibility_char comme z32 comme Abc_Object_Visibility);
+            visibility := abc_input_visibility_property_get(visibility_prop, Abc_Sample_Selector());
+            imprimeln("    visibility : %", visibility);
         }
 
         si user_properties {
@@ -515,12 +514,11 @@ imprime_propriété_scalaire :: fonc (props: *Abc_Input_Compound_Property, prop_
 
     assert(data_type.extent <= 16);
 
-    prop := abc_input_compound_property_get_scalar(props, prop_name);
-
     discr data_type.pod_type {
         BOOLEAN {
+            prop := abc_input_bool_property(props, prop_name);
             valeurs: [16]bool;
-            abc_input_scalar_property_bool_get(prop, *valeurs[0], Abc_Sample_Selector());
+            abc_input_bool_property_get(prop, *valeurs[0], Abc_Sample_Selector());
             imprime("           ");
             pour data_type.extent {
                 imprime(" %", valeurs[it]);
@@ -528,8 +526,9 @@ imprime_propriété_scalaire :: fonc (props: *Abc_Input_Compound_Property, prop_
             imprime("\n");
         }
         UINT8 {
+            prop := abc_input_uchar_property(props, prop_name);
             valeurs: [16]n8;
-            abc_input_scalar_property_uchar_get(prop, *valeurs[0], Abc_Sample_Selector());
+            abc_input_uchar_property_get(prop, *valeurs[0], Abc_Sample_Selector());
             imprime("           ");
             pour data_type.extent {
                 imprime(" %", valeurs[it]);
@@ -537,8 +536,9 @@ imprime_propriété_scalaire :: fonc (props: *Abc_Input_Compound_Property, prop_
             imprime("\n");
         }
         INT8 {
+            prop := abc_input_char_property(props, prop_name);
             valeurs: [16]z8;
-            abc_input_scalar_property_char_get(prop, *valeurs[0], Abc_Sample_Selector());
+            abc_input_char_property_get(prop, *valeurs[0], Abc_Sample_Selector());
             imprime("           ");
             pour data_type.extent {
                 imprime(" %", valeurs[it]);
@@ -546,8 +546,9 @@ imprime_propriété_scalaire :: fonc (props: *Abc_Input_Compound_Property, prop_
             imprime("\n");
         }
         UINT16 {
+            prop := abc_input_uint16_property(props, prop_name);
             valeurs: [16]n16;
-            abc_input_scalar_property_uint16_get(prop, *valeurs[0], Abc_Sample_Selector());
+            abc_input_uint16_property_get(prop, *valeurs[0], Abc_Sample_Selector());
             imprime("           ");
             pour data_type.extent {
                 imprime(" %", valeurs[it]);
@@ -555,8 +556,9 @@ imprime_propriété_scalaire :: fonc (props: *Abc_Input_Compound_Property, prop_
             imprime("\n");
         }
         INT16 {
+            prop := abc_input_int16_property(props, prop_name);
             valeurs: [16]z16;
-            abc_input_scalar_property_int16_get(prop, *valeurs[0], Abc_Sample_Selector());
+            abc_input_int16_property_get(prop, *valeurs[0], Abc_Sample_Selector());
             imprime("           ");
             pour data_type.extent {
                 imprime(" %", valeurs[it]);
@@ -564,8 +566,9 @@ imprime_propriété_scalaire :: fonc (props: *Abc_Input_Compound_Property, prop_
             imprime("\n");
         }
         UINT32 {
+            prop := abc_input_uint32_property(props, prop_name);
             valeurs: [16]n32;
-            abc_input_scalar_property_uint32_get(prop, *valeurs[0], Abc_Sample_Selector());
+            abc_input_uint32_property_get(prop, *valeurs[0], Abc_Sample_Selector());
             imprime("           ");
             pour data_type.extent {
                 imprime(" %", valeurs[it]);
@@ -573,8 +576,9 @@ imprime_propriété_scalaire :: fonc (props: *Abc_Input_Compound_Property, prop_
             imprime("\n");
         }
         INT32 {
+            prop := abc_input_int32_property(props, prop_name);
             valeurs: [16]z32;
-            abc_input_scalar_property_int32_get(prop, *valeurs[0], Abc_Sample_Selector());
+            abc_input_int32_property_get(prop, *valeurs[0], Abc_Sample_Selector());
             imprime("           ");
             pour data_type.extent {
                 imprime(" %", valeurs[it]);
@@ -582,8 +586,9 @@ imprime_propriété_scalaire :: fonc (props: *Abc_Input_Compound_Property, prop_
             imprime("\n");
         }
         UINT64 {
+            prop := abc_input_uint64_property(props, prop_name);
             valeurs: [16]n64;
-            abc_input_scalar_property_uint64_get(prop, *valeurs[0], Abc_Sample_Selector());
+            abc_input_uint64_property_get(prop, *valeurs[0], Abc_Sample_Selector());
             imprime("           ");
             pour data_type.extent {
                 imprime(" %", valeurs[it]);
@@ -591,8 +596,9 @@ imprime_propriété_scalaire :: fonc (props: *Abc_Input_Compound_Property, prop_
             imprime("\n");
         }
         INT64 {
+            prop := abc_input_int64_property(props, prop_name);
             valeurs: [16]z64;
-            abc_input_scalar_property_int64_get(prop, *valeurs[0], Abc_Sample_Selector());
+            abc_input_int64_property_get(prop, *valeurs[0], Abc_Sample_Selector());
             imprime("           ");
             pour data_type.extent {
                 imprime(" %", valeurs[it]);
@@ -600,8 +606,9 @@ imprime_propriété_scalaire :: fonc (props: *Abc_Input_Compound_Property, prop_
             imprime("\n");
         }
         FLOAT16 {
+            prop := abc_input_half_property(props, prop_name);
             valeurs: [16]Abc_Half;
-            abc_input_scalar_property_half_get(prop, *valeurs[0], Abc_Sample_Selector());
+            abc_input_half_property_get(prop, *valeurs[0], Abc_Sample_Selector());
             imprime("           ");
             pour data_type.extent {
                 imprime(" %", vers_r16(valeurs[it]));
@@ -609,8 +616,9 @@ imprime_propriété_scalaire :: fonc (props: *Abc_Input_Compound_Property, prop_
             imprime("\n");
         }
         FLOAT32 {
+            prop := abc_input_float_property(props, prop_name);
             valeurs: [16]r32;
-            abc_input_scalar_property_float_get(prop, *valeurs[0], Abc_Sample_Selector());
+            abc_input_float_property_get(prop, *valeurs[0], Abc_Sample_Selector());
             imprime("           ");
             pour data_type.extent {
                 imprime(" %", valeurs[it]);
@@ -618,8 +626,9 @@ imprime_propriété_scalaire :: fonc (props: *Abc_Input_Compound_Property, prop_
             imprime("\n");
         }
         FLOAT64 {
+            prop := abc_input_double_property(props, prop_name);
             valeurs: [16]r64;
-            abc_input_scalar_property_double_get(prop, *valeurs[0], Abc_Sample_Selector());
+            abc_input_double_property_get(prop, *valeurs[0], Abc_Sample_Selector());
             imprime("           ");
             pour data_type.extent {
                 imprime(" %", valeurs[it]);
@@ -627,8 +636,9 @@ imprime_propriété_scalaire :: fonc (props: *Abc_Input_Compound_Property, prop_
             imprime("\n");
         }
         STRING {
+            prop := abc_input_string_property(props, prop_name);
             valeurs: [16]Abc_String;
-            abc_input_scalar_property_string_get(prop, *valeurs[0], Abc_Sample_Selector());
+            abc_input_string_property_get(prop, *valeurs[0], Abc_Sample_Selector());
             imprime("           ");
             pour data_type.extent {
                 imprime(" %", vers_kuri(valeurs[it]));

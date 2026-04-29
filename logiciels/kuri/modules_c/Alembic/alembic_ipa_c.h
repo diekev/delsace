@@ -477,20 +477,35 @@ struct Abc_Property_Header *abc_input_compound_property_get_property_header(
 
 struct Abc_Input_Scalar_Property;
 
-struct Abc_Input_Scalar_Property *abc_input_compound_property_get_scalar(
-    struct Abc_Input_Compound_Property *props, struct Abc_String name);
-uint64_t abc_input_scalar_property_get_num_samples(struct Abc_Input_Scalar_Property *prop);
-bool abc_input_scalar_property_is_constant(struct Abc_Input_Scalar_Property *prop);
-bool abc_input_scalar_property_valid(struct Abc_Input_Scalar_Property *prop);
+#define DECLARE_ABC_TYPED_SCALAR_PROPERTY(type_geom, type_abc_value, type_c, nom_court)           \
+    struct Abc_Input_##type_geom##_Property;                                                      \
+    struct Abc_Input_##type_geom##_Property *abc_input_##nom_court##_property(                    \
+        struct Abc_Input_Compound_Property *parent, Abc_String name);                             \
+    void abc_input_##nom_court##_property_get(struct Abc_Input_##type_geom##_Property *prop,      \
+                                              type_c *result,                                     \
+                                              struct Abc_Sample_Selector selector);
 
-#define DECLARE_SCALAR_PROPERTY_GETTER(type_geom, type_abc_value, type_c, nom_court)              \
-    void abc_input_scalar_property_##nom_court##_get(struct Abc_Input_Scalar_Property *prop,      \
-                                                     type_c *result,                              \
-                                                     struct Abc_Sample_Selector selector);
+ENUMERATE_ABC_ATTRIBUTE_TYPES(DECLARE_ABC_TYPED_SCALAR_PROPERTY)
 
-ENUMERATE_ABC_POD_TYPE(DECLARE_SCALAR_PROPERTY_GETTER)
+struct Abc_Input_Visibility_Property;
 
-#undef DECLARE_SCALAR_PROPERTY_GETTER
+#undef DECLARE_ABC_TYPED_SCALAR_PROPERTY
+
+union Abc_Generic_Input_Scalar_Property {
+    struct Abc_Input_Scalar_Property *prop;
+    struct Abc_Input_Visibility_Property *prop_visibility;
+
+#define DECLARE_ABC_TYPED_SCALAR_PROPERTY(type_geom, type_abc_value, type_c, nom_court)           \
+    struct Abc_Input_##type_geom##_Property *prop_##nom_court;
+
+    ENUMERATE_ABC_ATTRIBUTE_TYPES(DECLARE_ABC_TYPED_SCALAR_PROPERTY)
+
+#undef DECLARE_ABC_TYPED_SCALAR_PROPERTY
+};
+
+uint64_t abc_input_scalar_property_get_num_samples(union Abc_Generic_Input_Scalar_Property prop);
+bool abc_input_scalar_property_is_constant(union Abc_Generic_Input_Scalar_Property prop);
+bool abc_input_scalar_property_valid(union Abc_Generic_Input_Scalar_Property prop);
 
 /** \} */
 
@@ -565,8 +580,10 @@ void abc_input_object_get_full_name(union Abc_Generic_Input_Object object,
 
 bool abc_input_object_is_instance_root(struct Abc_Input_Object *object);
 
-struct Abc_Input_Scalar_Property *abc_input_object_get_visibility_property(
+struct Abc_Input_Visibility_Property *abc_input_object_get_visibility_property(
     union Abc_Generic_Input_Object object);
+enum Abc_Object_Visibility abc_input_visibility_property_get(
+    struct Abc_Input_Visibility_Property *prop, struct Abc_Sample_Selector selector);
 
 #define DECLARE_TYPED_INPUT_OBJECTS(type_abc, type_kuri, lname)                                   \
     struct Abc_Input_##type_kuri;                                                                 \
@@ -696,8 +713,6 @@ struct Abc_Output_Compound_Property *abc_output_compound_property_create(
  * \{ */
 
 struct Abc_Output_Scalar_Property;
-
-void abc_output_scalar_property_set_from_previous(struct Abc_Output_Scalar_Property *prop);
 
 #define DECLARE_ABC_TYPED_SCALAR_PROPERTY(type_geom, type_abc_value, type_c, nom_court)           \
     struct Abc_Output_##type_geom##_Property;                                                     \
