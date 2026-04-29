@@ -984,7 +984,7 @@ void abc_input_archive_get_start_and_end_time(struct Abc_Input_Archive *archive,
 
 /** \} */
 
-struct Abc_Output_Object_Base;
+struct Abc_Output_Object;
 
 struct Abc_Output_Archive {
     ContexteKuri *ctx_kuri = nullptr;
@@ -992,7 +992,7 @@ struct Abc_Output_Archive {
 
     Abc_Output_Xform *racine = nullptr;
 
-    Abc_Output_Object_Base *objects = nullptr;
+    Abc_Output_Object *objects = nullptr;
 
     Abc_Output_Compound_Property *compound_props = nullptr;
     Abc_Output_Scalar_Property *scalar_props = nullptr;
@@ -1034,12 +1034,11 @@ struct Abc_Output_Scalar_Property {
 };
 
 template <typename T>
-T *make_output_scalar_prop(Abc_Output_Compound_Property *parent)
+T *make_output_scalar_prop(Abc_Output_Archive *archive, Abc_Output_Compound_Property *parent)
 {
-    auto résultat = kuri_loge<T>(parent->archive->ctx_kuri);
+    auto résultat = kuri_loge<T>(archive->ctx_kuri);
     résultat->parent = parent;
-    liste_ajoute(&parent->archive->scalar_props,
-                 static_cast<Abc_Output_Scalar_Property *>(résultat));
+    liste_ajoute(&archive->scalar_props, static_cast<Abc_Output_Scalar_Property *>(résultat));
     return résultat;
 }
 
@@ -1061,7 +1060,8 @@ void abc_output_property_set_from_previous(union Abc_Generic_Output_Scalar_Prope
     Abc_Output_##type_geom##_Property *abc_output_##nom_court##_property_create(                  \
         Abc_Output_Compound_Property *parent, Abc_String name)                                    \
     {                                                                                             \
-        auto résultat = make_output_scalar_prop<Abc_Output_##type_geom##_Property>(parent);       \
+        auto résultat = make_output_scalar_prop<Abc_Output_##type_geom##_Property>(               \
+            parent->archive, parent);                                                             \
         résultat->typed_prop = Abc::O##type_geom##Property(parent->prop, name);                   \
         résultat->prop = résultat->typed_prop;                                                    \
         return résultat;                                                                          \
@@ -1243,8 +1243,8 @@ ENUMERATE_ABC_ATTRIBUTE_TYPES(DEFINE_ABC_OUTPUT_GEOM_PARAMS)
 
 using namespace Alembic;
 
-struct Abc_Output_Object_Base {
-    Abc_Output_Object_Base *next = nullptr;
+struct Abc_Output_Object {
+    Abc_Output_Object *next = nullptr;
     Abc_Output_Archive *archive = nullptr;
 
     Abc_Output_Compound_Property arb_geom_params{};
@@ -1255,10 +1255,31 @@ struct Abc_Output_Object_Base {
     bool user_properties_initialized = false;
     bool metadata_initialized = false;
 
-    virtual ~Abc_Output_Object_Base() = default;
+    virtual ~Abc_Output_Object() = default;
+
+    virtual AbcGeom::OObject &get_object() = 0;
 };
 
-struct Abc_Output_Xform : public Abc_Output_Object_Base {
+struct Abc_Output_Visibility_Property : public Abc_Output_Scalar_Property {};
+
+Abc_Output_Visibility_Property *abc_output_object_create_visibility_property(
+    Abc_Generic_Output_Object object, Abc_Time_Sample_Index index)
+{
+    auto résultat = make_output_scalar_prop<Abc_Output_Visibility_Property>(object.object->archive,
+                                                                            nullptr);
+    résultat->prop = Alembic::AbcGeom::CreateVisibilityProperty(object.object->get_object(),
+                                                                index.value);
+    return résultat;
+}
+
+void abc_output_visibility_property_set(Abc_Output_Visibility_Property *prop,
+                                        Abc_Object_Visibility visibility)
+{
+    int8_t ovisibility = int8_t(visibility);
+    prop->prop.set(&ovisibility);
+}
+
+struct Abc_Output_Xform : public Abc_Output_Object {
     Abc::OObject object{};
     AbcGeom::OXformSchema schema{};
 
@@ -1286,9 +1307,14 @@ struct Abc_Output_Xform : public Abc_Output_Object_Base {
     {
         metadata->metadata = object.getMetaData();
     }
+
+    AbcGeom::OObject &get_object() override
+    {
+        return object;
+    }
 };
 
-struct Abc_Output_Points : public Abc_Output_Object_Base {
+struct Abc_Output_Points : public Abc_Output_Object {
     AbcGeom::OPoints object{};
 
     void set_sample(AbcGeom::OPointsSchema::Sample &sample)
@@ -1315,9 +1341,14 @@ struct Abc_Output_Points : public Abc_Output_Object_Base {
     {
         metadata->metadata = object.getMetaData();
     }
+
+    AbcGeom::OObject &get_object() override
+    {
+        return object;
+    }
 };
 
-struct Abc_Output_Curves : public Abc_Output_Object_Base {
+struct Abc_Output_Curves : public Abc_Output_Object {
     AbcGeom::OCurves object{};
 
     void set_sample(AbcGeom::OCurvesSchema::Sample &sample)
@@ -1343,6 +1374,11 @@ struct Abc_Output_Curves : public Abc_Output_Object_Base {
     void get_metadata(Abc_MetaData *metadata)
     {
         metadata->metadata = object.getMetaData();
+    }
+
+    AbcGeom::OObject &get_object() override
+    {
+        return object;
     }
 };
 
@@ -1445,7 +1481,7 @@ template <typename T>
 T *crée_objet_sortie(Abc_Output_Archive *archive)
 {
     auto résultat = kuri_loge<T>(archive->ctx_kuri);
-    liste_ajoute(&archive->objects, static_cast<Abc_Output_Object_Base *>(résultat));
+    liste_ajoute(&archive->objects, static_cast<Abc_Output_Object *>(résultat));
     résultat->archive = archive;
     return résultat;
 }
@@ -1609,7 +1645,7 @@ void abc_output_curves_sample_basis_set(Abc_Output_Curves_Sample *sample, Abc_Ba
 /** \nom Abc_Output_FaceSet
  * \{ */
 
-struct Abc_Output_FaceSet : public Abc_Output_Object_Base {
+struct Abc_Output_FaceSet : public Abc_Output_Object {
     AbcGeom::OFaceSet object;
 
     void set_sample(AbcGeom::OFaceSetSchema::Sample &sample)
@@ -1635,6 +1671,11 @@ struct Abc_Output_FaceSet : public Abc_Output_Object_Base {
     {
         metadata->metadata = object.getMetaData();
     }
+
+    AbcGeom::OObject &get_object() override
+    {
+        return object;
+    }
 };
 
 DEFINE_COMMON_OBJECT_FUNCTIONS(FaceSet, faceset)
@@ -1655,7 +1696,7 @@ ENUMERATE_FACESET_SAMPLE_INTERFACE(DEFINE_OUTPUT_SAMPLE_FUNCTIONS)
 /** \nom Abc_Output_PolyMesh
  * \{ */
 
-struct Abc_Output_PolyMesh : public Abc_Output_Object_Base {
+struct Abc_Output_PolyMesh : public Abc_Output_Object {
     AbcGeom::OPolyMesh object{};
 
     void set_sample(AbcGeom::OPolyMeshSchema::Sample &sample)
@@ -1681,6 +1722,11 @@ struct Abc_Output_PolyMesh : public Abc_Output_Object_Base {
     void get_metadata(Abc_MetaData *metadata)
     {
         metadata->metadata = object.getMetaData();
+    }
+
+    AbcGeom::OObject &get_object() override
+    {
+        return object;
     }
 };
 
@@ -1725,7 +1771,7 @@ ENUMERATE_POLYMESH_SAMPLE_INTERFACE(DEFINE_OUTPUT_SAMPLE_FUNCTIONS)
 /** \nom Abc_Output_SubD
  * \{ */
 
-struct Abc_Output_SubD : public Abc_Output_Object_Base {
+struct Abc_Output_SubD : public Abc_Output_Object {
     AbcGeom::OSubD object{};
 
     void set_sample(AbcGeom::OSubDSchema::Sample &sample)
@@ -1751,6 +1797,11 @@ struct Abc_Output_SubD : public Abc_Output_Object_Base {
     void get_metadata(Abc_MetaData *metadata)
     {
         metadata->metadata = object.getMetaData();
+    }
+
+    AbcGeom::OObject &get_object() override
+    {
+        return object;
     }
 };
 
@@ -1819,7 +1870,7 @@ void abc_output_subd_sample_subdivision_scheme_set(struct Abc_Output_SubD_Sample
 /** \nom Abc_Output_Camera
  * \{ */
 
-struct Abc_Output_Camera : public Abc_Output_Object_Base {
+struct Abc_Output_Camera : public Abc_Output_Object {
     AbcGeom::OCamera object{};
 
     void set_sample(AbcGeom::CameraSample &sample)
@@ -1845,6 +1896,11 @@ struct Abc_Output_Camera : public Abc_Output_Object_Base {
     void get_metadata(Abc_MetaData *metadata)
     {
         metadata->metadata = object.getMetaData();
+    }
+
+    AbcGeom::OObject &get_object() override
+    {
+        return object;
     }
 };
 

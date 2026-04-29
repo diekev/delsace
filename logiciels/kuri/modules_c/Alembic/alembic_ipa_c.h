@@ -634,14 +634,6 @@ struct Abc_Output_Archive_Metadata {
 
 struct Abc_Output_Archive;
 
-struct Abc_Output_Xform;
-struct Abc_Output_Points;
-
-union Abc_Output_Object {
-    struct Abc_Output_Xform *xform;
-    struct Abc_Output_Points *points;
-};
-
 /**
  * @brief abc_output_archive_create Crée une archive Alembic pour y écrire des objets.
  * @param ctx_kuri Le contexte Kuri utilisé pour toutes les allocations.
@@ -694,6 +686,38 @@ struct Abc_Time_Sample_Index abc_output_archive_create_time_sampling(
     double *echantillons,
     uint64_t nombre_d_echantillons,
     double temps_par_cycle);
+
+/** \} */
+
+/* ------------------------------------------------------------------------- */
+/** \nom Abc_Output_Object
+ * \{ */
+
+struct Abc_Output_Object;
+struct Abc_Output_Xform;
+struct Abc_Output_Points;
+struct Abc_Output_Curves;
+struct Abc_Output_PolyMesh;
+struct Abc_Output_SubD;
+struct Abc_Output_FaceSet;
+
+union Abc_Generic_Output_Object {
+    struct Abc_Output_Object *object;
+    struct Abc_Output_Xform *xform;
+    struct Abc_Output_Points *points;
+    struct Abc_Output_Curves *curves;
+    struct Abc_Output_PolyMesh *polymesh;
+    struct Abc_Output_SubD *subd;
+    struct Abc_Output_FaceSet *faceset;
+};
+
+struct Abc_Output_Visibility_Property;
+
+struct Abc_Output_Visibility_Property *abc_output_object_create_visibility_property(
+    union Abc_Generic_Output_Object object, struct Abc_Time_Sample_Index index);
+
+void abc_output_visibility_property_set(struct Abc_Output_Visibility_Property *prop,
+                                        enum Abc_Object_Visibility visibility);
 
 /** \} */
 
