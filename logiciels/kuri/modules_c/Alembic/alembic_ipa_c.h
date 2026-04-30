@@ -700,6 +700,7 @@ struct Abc_Output_Curves;
 struct Abc_Output_PolyMesh;
 struct Abc_Output_SubD;
 struct Abc_Output_FaceSet;
+struct Abc_Output_Camera;
 
 union Abc_Generic_Output_Object {
     struct Abc_Output_Object *object;
@@ -709,6 +710,7 @@ union Abc_Generic_Output_Object {
     struct Abc_Output_PolyMesh *polymesh;
     struct Abc_Output_SubD *subd;
     struct Abc_Output_FaceSet *faceset;
+    struct Abc_Output_Camera *camera;
 };
 
 struct Abc_Output_Visibility_Property;
