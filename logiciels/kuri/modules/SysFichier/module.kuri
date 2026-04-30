@@ -406,6 +406,56 @@ supprime :: fonc (chm: CheminFichier) -> Optionnel(ErreurFichier)
     retourne système_supprime(chm);
 }
 
+donne_chemins_du_dossier :: fonc (dossier: chaine, résultat: *[..]chaine, extensions: ...chaine)
+{
+    pour ExploratriceFichier(CheminFichier(dossier)) {
+        si extension.taille != 0 && !est_une_extension_parmi(it.extension(), ...extensions) {
+            continue;
+        }
+
+        tableau_ajoute(résultat, copie_chaine(it.chn));
+    }
+}
+
+donne_chemins_du_dossier_récursif :: fonc (dossier: chaine, résultat: *[..]chaine, extensions: ...chaine)
+{
+    dossiers: [..]chaine;
+    diffère déloge(*dossiers);
+
+    tableau_ajoute(*dossiers, copie_chaine(dossier));
+
+    tantque dossiers {
+        dossier_courant := enlève_dernier_élément(*dossiers);
+        diffère déloge(*dossier_courant);
+
+        pour ExploratriceFichier(CheminFichier(dossier_courant)) {
+            si est_un_dossier(it) {
+                tableau_ajoute(*dossiers, copie_chaine(it.chn));
+                continue;
+            }
+
+            // À FAIRE(langage) : conversion en expression booléenne des expressions variadiques
+            // À FAIRE(langage) : passage des expressions variadiques sans expansion
+            si extensions.taille != 0 && !est_une_extension_parmi(it.extension(), ...extensions) {
+                continue;
+            }
+
+            tableau_ajoute(résultat, copie_chaine(it.chn));
+        }
+    }
+}
+
+est_une_extension_parmi :: fonc (test: chaine, extensions: ...chaine) -> bool
+{
+    pour extensions {
+        si compare_ascii_insensible_à_la_casse(test, it) {
+            retourne vrai;
+        }
+    }
+
+    retourne faux;
+}
+
 est_une_extension_parmi :: fonc (chn: chaine, extensions: []chaine) -> bool
 {
     pour extensions {
