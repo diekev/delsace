@@ -1279,109 +1279,6 @@ void abc_output_visibility_property_set(Abc_Output_Visibility_Property *prop,
     prop->prop.set(&ovisibility);
 }
 
-struct Abc_Output_Xform : public Abc_Output_Object {
-    Abc::OObject object{};
-    AbcGeom::OXformSchema schema{};
-
-    void set_sample(AbcGeom::OXformSchema::sample_type &sample)
-    {
-        schema.set(sample);
-    }
-
-    void set_from_previous()
-    {
-        schema.setFromPrevious();
-    }
-
-    void get_arb_geom_params(Abc_Output_Compound_Property *prop)
-    {
-        prop->prop = schema.getArbGeomParams();
-    }
-
-    void get_user_properties(Abc_Output_Compound_Property *prop)
-    {
-        prop->prop = schema.getUserProperties();
-    }
-
-    void get_metadata(Abc_MetaData *metadata)
-    {
-        metadata->metadata = object.getMetaData();
-    }
-
-    AbcGeom::OObject &get_object() override
-    {
-        return object;
-    }
-};
-
-struct Abc_Output_Points : public Abc_Output_Object {
-    AbcGeom::OPoints object{};
-
-    void set_sample(AbcGeom::OPointsSchema::Sample &sample)
-    {
-        object.getSchema().set(sample);
-    }
-
-    void set_from_previous()
-    {
-        object.getSchema().setFromPrevious();
-    }
-
-    void get_arb_geom_params(Abc_Output_Compound_Property *prop)
-    {
-        prop->prop = object.getSchema().getArbGeomParams();
-    }
-
-    void get_user_properties(Abc_Output_Compound_Property *prop)
-    {
-        prop->prop = object.getSchema().getUserProperties();
-    }
-
-    void get_metadata(Abc_MetaData *metadata)
-    {
-        metadata->metadata = object.getMetaData();
-    }
-
-    AbcGeom::OObject &get_object() override
-    {
-        return object;
-    }
-};
-
-struct Abc_Output_Curves : public Abc_Output_Object {
-    AbcGeom::OCurves object{};
-
-    void set_sample(AbcGeom::OCurvesSchema::Sample &sample)
-    {
-        object.getSchema().set(sample);
-    }
-
-    void set_from_previous()
-    {
-        object.getSchema().setFromPrevious();
-    }
-
-    void get_arb_geom_params(Abc_Output_Compound_Property *prop)
-    {
-        prop->prop = object.getSchema().getArbGeomParams();
-    }
-
-    void get_user_properties(Abc_Output_Compound_Property *prop)
-    {
-        prop->prop = object.getSchema().getUserProperties();
-    }
-
-    void get_metadata(Abc_MetaData *metadata)
-    {
-        metadata->metadata = object.getMetaData();
-    }
-
-    AbcGeom::OObject &get_object() override
-    {
-        return object;
-    }
-};
-
 static void initialise_metadonnées(struct Abc_Output_Archive_Metadata *metadata,
                                    Abc::MetaData &abc_metadata)
 {
@@ -1486,6 +1383,47 @@ T *crée_objet_sortie(Abc_Output_Archive *archive)
     return résultat;
 }
 
+/** \} */
+
+/* ------------------------------------------------------------------------- */
+/** \nom Abc_Output_Xform
+ * \{ */
+
+struct Abc_Output_Xform : public Abc_Output_Object {
+    Abc::OObject object{};
+    AbcGeom::OXformSchema schema{};
+
+    void set_sample(AbcGeom::OXformSchema::sample_type &sample)
+    {
+        schema.set(sample);
+    }
+
+    void set_from_previous()
+    {
+        schema.setFromPrevious();
+    }
+
+    void get_arb_geom_params(Abc_Output_Compound_Property *prop)
+    {
+        prop->prop = schema.getArbGeomParams();
+    }
+
+    void get_user_properties(Abc_Output_Compound_Property *prop)
+    {
+        prop->prop = schema.getUserProperties();
+    }
+
+    void get_metadata(Abc_MetaData *metadata)
+    {
+        metadata->metadata = object.getMetaData();
+    }
+
+    AbcGeom::OObject &get_object() override
+    {
+        return object;
+    }
+};
+
 Abc_Output_Xform *abc_output_archive_root_object_get(Abc_Output_Archive *archive)
 {
     if (archive->racine) {
@@ -1569,6 +1507,40 @@ void abc_output_xform_sample_set_inherits_xform(Abc_Output_Xform_Sample *sample,
 /** \nom Abc_Output_Points
  * \{ */
 
+struct Abc_Output_Points : public Abc_Output_Object {
+    AbcGeom::OPoints object{};
+
+    void set_sample(AbcGeom::OPointsSchema::Sample &sample)
+    {
+        object.getSchema().set(sample);
+    }
+
+    void set_from_previous()
+    {
+        object.getSchema().setFromPrevious();
+    }
+
+    void get_arb_geom_params(Abc_Output_Compound_Property *prop)
+    {
+        prop->prop = object.getSchema().getArbGeomParams();
+    }
+
+    void get_user_properties(Abc_Output_Compound_Property *prop)
+    {
+        prop->prop = object.getSchema().getUserProperties();
+    }
+
+    void get_metadata(Abc_MetaData *metadata)
+    {
+        metadata->metadata = object.getMetaData();
+    }
+
+    AbcGeom::OObject &get_object() override
+    {
+        return object;
+    }
+};
+
 Abc_Output_Points *abc_output_points_create(Abc_Output_Xform *parent,
                                             Abc_String nom,
                                             Abc_Time_Sample_Index time_sample_index)
@@ -1597,6 +1569,40 @@ ENUMERATE_POINTS_SAMPLE_INTERFACE(DEFINE_OUTPUT_SAMPLE_FUNCTIONS)
 /* ------------------------------------------------------------------------- */
 /** \nom Abc_Output_Curves
  * \{ */
+
+struct Abc_Output_Curves : public Abc_Output_Object {
+    AbcGeom::OCurves object{};
+
+    void set_sample(AbcGeom::OCurvesSchema::Sample &sample)
+    {
+        object.getSchema().set(sample);
+    }
+
+    void set_from_previous()
+    {
+        object.getSchema().setFromPrevious();
+    }
+
+    void get_arb_geom_params(Abc_Output_Compound_Property *prop)
+    {
+        prop->prop = object.getSchema().getArbGeomParams();
+    }
+
+    void get_user_properties(Abc_Output_Compound_Property *prop)
+    {
+        prop->prop = object.getSchema().getUserProperties();
+    }
+
+    void get_metadata(Abc_MetaData *metadata)
+    {
+        metadata->metadata = object.getMetaData();
+    }
+
+    AbcGeom::OObject &get_object() override
+    {
+        return object;
+    }
+};
 
 Abc_Output_Curves *abc_output_curves_create(Abc_Output_Xform *parent,
                                             Abc_String nom,
