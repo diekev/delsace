@@ -1,4 +1,7 @@
 importe Alembic;
+importe Chaine;
+importe Fondation;
+importe Numérique;
 importe Math;
 
 abc_output_archive_create :: fonc (chemin: chaine) -> *Abc_Output_Archive
@@ -28,6 +31,22 @@ abc_output_points_create :: fonc (parent: *Abc_Output_Xform, nom: chaine, ts: Ab
     retourne abc_output_points_create(parent, vers_abc_string(nom), ts);
 }
 
+abc_output_points_sample_positions_set :: fonc (sample: *Abc_Output_Points_Sample, positions: []Vec3)
+{
+    array_sample: Abc_P3f_Array_Sample = ---;
+    array_sample.values = positions.pointeur comme *Abc_V3f;
+    array_sample.num_values = positions.taille comme n64;
+    abc_output_points_sample_positions_set(sample, array_sample);
+}
+
+abc_output_points_sample_ids_set :: fonc (sample: *Abc_Output_Points_Sample, ids: []n64)
+{
+    array_sample: Abc_UInt64_Array_Sample = ---;
+    array_sample.values = ids.pointeur;
+    array_sample.num_values = ids.taille comme n64;
+    abc_output_points_sample_ids_set(sample, array_sample);
+}
+
 abc_output_curves_create :: fonc (parent: *Abc_Output_Xform, nom: chaine, time_sample_index: Abc_Time_Sample_Index) -> *Abc_Output_Curves
 {
     retourne abc_output_curves_create(parent, vers_abc_string(nom), time_sample_index);
@@ -35,25 +54,599 @@ abc_output_curves_create :: fonc (parent: *Abc_Output_Xform, nom: chaine, time_s
 
 abc_output_curves_sample_positions_set :: fonc (sample: *Abc_Output_Curves_Sample, positions: []Vec3)
 {
-    abc_output_curves_sample_positions_set(sample, positions.pointeur comme *r32, positions.taille comme n64);
+    array_sample: Abc_P3f_Array_Sample = ---;
+    array_sample.values = positions.pointeur comme *Abc_V3f;
+    array_sample.num_values = positions.taille comme n64;
+    abc_output_curves_sample_positions_set(sample, array_sample);
 }
 
 abc_output_curves_sample_curves_num_vertices_set :: fonc (sample: *Abc_Output_Curves_Sample, num_vertices: []z32)
 {
-    abc_output_curves_sample_curves_num_vertices_set(sample, num_vertices.pointeur, num_vertices.taille comme n64);
+    array_sample: Abc_Int32_Array_Sample = ---;
+    array_sample.values = num_vertices.pointeur;
+    array_sample.num_values = num_vertices.taille comme n64;
+    abc_output_curves_sample_curves_num_vertices_set(sample, array_sample);
 }
 
 abc_output_curves_sample_widths_set :: fonc (sample: *Abc_Output_Curves_Sample, values: []r32, scope: Abc_Geometry_Scope)
 {
-    abc_output_curves_sample_widths_set(sample, values.pointeur, values.taille comme n64, scope);
+    geom_param: Abc_Output_Float_Geom_Param_Sample;
+    geom_param.values = values.pointeur;
+    geom_param.num_values = values.taille comme n64;
+    geom_param.scope = scope;
+    abc_output_curves_sample_widths_set(sample, geom_param);
+}
+
+abc_donne_descripteurs_attributs :: fonc () -> []Abc_Attribute_Type_Descriptor
+{
+    résultat: []Abc_Attribute_Type_Descriptor;
+    résultat.pointeur = abc_get_attribute_type_descriptors(*résultat.taille comme *n64);
+    retourne résultat;
+}
+
+abc_donne_descripteurs_pod :: fonc () -> []Abc_Attribute_Type_Descriptor
+{
+    résultat: []Abc_Attribute_Type_Descriptor;
+    résultat.pointeur = abc_get_pod_type_descriptors(*résultat.taille comme *n64);
+    retourne résultat;
+}
+
+est_type_pod :: fonc (type: chaine) -> bool
+{
+    descripteurs := abc_donne_descripteurs_pod();
+
+    pour descripteurs {
+        si it.type_geom == type {
+            retourne vrai;
+        }
+    }
+
+    retourne faux;
+}
+
+donne_type_kuri_pour_type_geom :: fonc (type: chaine) -> chaine
+{
+    si type == "Float" {
+        retourne "r32";
+    }
+    si type == "Double" {
+        retourne "r64";
+    }
+    si type == "Uchar" {
+        retourne "n8";
+    }
+    si type == "Char" {
+        retourne "z8";
+    }
+    si type == "UInt16" {
+        retourne "n16";
+    }
+    si type == "Int16" {
+        retourne "z16";
+    }
+    si type == "UInt32" {
+        retourne "n32";
+    }
+    si type == "Int32" {
+        retourne "z32";
+    }
+    si type == "UInt64" {
+        retourne "n64";
+    }
+    si type == "Int64" {
+        retourne "z64";
+    }
+    si type == "Half" {
+        retourne "r16";
+    }
+    panique("type inconnu : %", type);
+}
+
+Info_Nom_Type_Abc :: struct {
+    préfixe: chaine;
+    suffixe: chaine;
+    taille: n32;
+}
+
+donne_info_nom_type_abc :: fonc (type: chaine) -> Info_Nom_Type_Abc
+{
+    résultat: Info_Nom_Type_Abc;
+
+    si type == "Quatf" || type == "Quatd" {
+        résultat.préfixe = type;
+        résultat.préfixe.taille = 4;
+        résultat.suffixe = avance(type, 4);
+    }
+    sinon {
+        résultat.préfixe = type;
+        résultat.préfixe.taille = 0;
+
+        tantque type.taille != 0 {
+            saufsi est_alphabétique(type[0]) {
+                arrête;
+            }
+
+            résultat.préfixe.taille += 1;
+            type = avance(type, 1);
+        }
+
+        si type.taille != 0 {
+            succès, valeur, reste := consomme_nombre_entier(type);
+            assert(succès);
+
+            résultat.taille = valeur comme n32;
+
+            résultat.suffixe = reste;
+        }
+    }
+
+    retourne résultat;
+}
+
+donne_extent :: fonc (desc: Abc_Attribute_Type_Descriptor) -> n32
+{
+    info := donne_info_nom_type_abc(vers_kuri(desc.type_geom));
+
+    extent: n32;
+
+    si est_type_pod(vers_kuri(desc.type_geom)) {
+        extent = 1;
+    }
+    sinon si info.préfixe == "Quat" {
+        extent = 4;
+    }
+    sinon si info.taille == 33 {
+        extent = 9;
+    }
+    sinon si info.taille == 44 {
+        extent = 16;
+    }
+    sinon si info.préfixe == "Box" {
+        extent = 2 * info.taille;
+    }
+    sinon {
+        extent = info.taille;
+    }
+
+    retourne extent;
+}
+
+donne_interpretation :: fonc (desc: Abc_Attribute_Type_Descriptor) -> chaine
+{
+    résultat: chaine;
+
+    info := donne_info_nom_type_abc(vers_kuri(desc.type_geom));
+
+    si info.préfixe == "V" {
+        résultat = "vector";
+    }
+    sinon si info.préfixe == "N" {
+        résultat = "normal";
+    }
+    sinon si info.préfixe == "P" {
+        résultat = "point";
+    }
+    sinon si info.préfixe == "Box" {
+        résultat = "box";
+    }
+    sinon si info.préfixe == "M" {
+        résultat = "matrix";
+    }
+    sinon si info.préfixe == "Quat" {
+        résultat = "quat";
+    }
+    sinon si info.préfixe == "C" {
+        si info.taille == 3 {
+            résultat = "rgb";
+        }
+        sinon {
+            résultat = "rgba";
+        }
+    }
+
+    retourne résultat;
+}
+
+imprime_infos_types_attributs_pour_python :: fonc ()
+{
+    desc := abc_donne_descripteurs_attributs();
+
+    imprimeln("class AbcAttributeTypeInfo():");
+    imprimeln("    def __init__(self, name, extent, interpretation):");
+    imprimeln("        self.name = name");
+    imprimeln("        self.extent = extent");
+    imprimeln("        self.interpretation = interpretation");
+    imprimeln("");
+    imprimeln("attribute_type_infos = [");
+    pour desc {
+        extent := donne_extent(it);
+        interpretation := donne_interpretation(it);
+        imprimeln("    AbcAttributeTypeInfo('%', %, '%'),", vers_kuri(it.nom_court), extent, interpretation);
+    }
+    imprimeln("]");
+    imprimeln("");
 }
 
 principale :: fonc ()
 {
-    crée_test_rayons_courbes("/tmp/curve-with-width.abc", vrai);
-    crée_test_rayons_courbes("/tmp/curve-without-width.abc", faux);
-    crée_test_rayons_points("/tmp/point-with-width.abc", vrai);
-    crée_test_rayons_points("/tmp/point-without-width.abc", faux);
+    // imprime_infos_types_attributs_pour_python();
+
+    // crée_test_user_props("/tmp/scalar-props-in-user-props.abc", vrai, vrai);
+    // crée_test_user_props("/tmp/scalar-props-in-geom-params.abc", vrai, faux);
+    // crée_test_user_props("/tmp/array-props-in-user-props.abc", faux, vrai);
+    // crée_test_user_props("/tmp/array-props-in-geom-params.abc", faux, faux);
+    // crée_test_rayons_courbes("/tmp/curve-with-width.abc", vrai);
+    // crée_test_rayons_courbes("/tmp/curve-without-width.abc", faux);
+    // crée_test_rayons_points("/tmp/point-with-width.abc", vrai);
+    // crée_test_rayons_points("/tmp/point-without-width.abc", faux);
+
+    crée_test_visibilité("/tmp/visibility-hidden.abc");
+    crée_test_visibilité("/tmp/visibility-parent-hidden-child-visible.abc", Abc_Object_Visibility.HIDDEN, Abc_Object_Visibility.VISIBLE);
+    crée_test_visibilité("/tmp/visibility-parent-hidden-child-deferred.abc", Abc_Object_Visibility.HIDDEN, Abc_Object_Visibility.DEFERRED);
+    crée_test_visibilité("/tmp/visibility-parent-visible-child-deferred.abc", Abc_Object_Visibility.VISIBLE, Abc_Object_Visibility.DEFERRED);
+}
+
+crée_test_user_props :: fonc (chemin: chaine, scalaire: bool, dans_user_props: bool)
+{
+    metadata: Abc_Output_Archive_Metadata;
+    metadata.application_name = vers_abc_string("Jorjala");
+    metadata.fps = 24.0;
+
+    archive := abc_output_archive_create(chemin, *metadata);
+    diffère abc_output_archive_destroy(archive);
+
+    ts_défaut := abc_output_archive_default_time_sampling(archive);
+
+    racine := abc_output_archive_root_object_get(archive);
+
+    matrice_objet_point := crée_xform_neutre_pour_objet(archive, racine, "PointCloud", ts_défaut);
+
+    objet_point := abc_output_points_create(matrice_objet_point, "PointCloudPoints", ts_défaut);
+    point_sample := abc_output_points_sample_create(archive);
+    diffère abc_output_points_sample_destroy(point_sample);
+
+    position := Vec3(0.0, 0.0, 0.0);
+    abc_output_points_sample_positions_set(point_sample, [position]);
+
+    ids := n64.[0];
+    abc_output_points_sample_ids_set(point_sample, ids);
+
+    abc_output_points_sample_set(objet_point, point_sample);
+
+    user_props := si dans_user_props {
+        abc_output_points_user_properties_get(objet_point);
+    }
+    sinon {
+        abc_output_points_arb_geom_params_get(objet_point);
+    };
+
+    si scalaire {
+        ajoute_propriétés_scalaires(user_props, ts_défaut);
+    }
+    sinon {
+        ajoute_propriétés_arrays(user_props, ts_défaut);
+    }
+}
+
+ajoute_propriétés_scalaires :: fonc (parent: *Abc_Output_Compound_Property, ts: Abc_Time_Sample_Index)
+#corps_texte {
+    descripteurs := abc_donne_descripteurs_attributs();
+
+    enchaineuse: Enchaineuse;
+    initialise_enchaineuse(*enchaineuse);
+
+    pour descripteurs {
+        type_geom := vers_kuri(it.type_geom);
+        type_ipa := vers_kuri(it.type_ipa);
+        nom_court := vers_kuri(it.nom_court);
+
+        ajoute_au_tampon(*enchaineuse, "// ", type_geom, "\n");
+
+        imprime_dans_enchaineuse(*enchaineuse, "prop_% := abc_output_%_property_create(parent, vers_abc_string(\"prop_%\"));\n", nom_court, nom_court, nom_court);
+        imprime_dans_enchaineuse(*enchaineuse, "abc_output_property_set_time_sample_index(prop_%, ts);\n", nom_court);
+
+        nom_valeur := imprime_chaine("valeur_%", nom_court);
+        diffère déloge(*nom_valeur);
+
+        si est_type_pod(type_geom) {
+            chaine_valeur := "";
+            type_valeur := "";
+            si type_geom == "String" {
+                chaine_valeur = "vers_abc_string(\"123\")";
+                type_valeur = "Abc_String";
+            }
+            sinon si type_geom == "Bool" {
+                chaine_valeur = "vrai";
+                type_valeur = "bool";
+            }
+            sinon si type_geom == "Half" {
+                chaine_valeur = "vers_abc_half(1.23)";
+                type_valeur = "Abc_Half";
+            }
+            sinon si type_geom == "Float" || type_geom == "Double" {
+                chaine_valeur = "1.23";
+                type_valeur = donne_type_kuri_pour_type_geom(type_geom);
+            }
+            sinon {
+                chaine_valeur = "123";
+                type_valeur = donne_type_kuri_pour_type_geom(type_geom);
+            }
+
+            imprime_dans_enchaineuse(*enchaineuse, "%: % = %;\n", nom_valeur, type_valeur, chaine_valeur);
+        }
+        sinon {
+            imprime_dans_enchaineuse(*enchaineuse, "%: % = ---;\n", nom_valeur, type_ipa);
+
+            info := donne_info_nom_type_abc(type_geom);
+            si info.préfixe == "Box" {
+                imprime_dans_enchaineuse(*enchaineuse, "%.min.x = 123;\n", nom_valeur);
+                imprime_dans_enchaineuse(*enchaineuse, "%.min.y = 147;\n", nom_valeur);
+                imprime_dans_enchaineuse(*enchaineuse, "%.max.x = 456;\n", nom_valeur);
+                imprime_dans_enchaineuse(*enchaineuse, "%.max.y = 258;\n", nom_valeur);
+
+                si info.taille == 3 {
+                    imprime_dans_enchaineuse(*enchaineuse, "%.min.z = 789;\n", nom_valeur);
+                    imprime_dans_enchaineuse(*enchaineuse, "%.max.z = 369;\n", nom_valeur);
+                }
+                sinon si info.taille != 2 {
+                    panique("taille non-gérée : %", info.taille);
+                }
+            }
+            sinon si info.préfixe == "M" {
+                si info.taille == 33 {
+                    pour i dans 3 {
+                        pour j dans 3 {
+                            imprime_dans_enchaineuse(*enchaineuse, "%.x[%][%] = %;\n", nom_valeur, i, j, i * 3 + j);
+                        }
+                    }
+                }
+                sinon si info.taille == 44 {
+                    pour i dans 4 {
+                        pour j dans 4 {
+                            imprime_dans_enchaineuse(*enchaineuse, "%.x[%][%] = %;\n", nom_valeur, i, j, i * 4 + j);
+                        }
+                    }
+                }
+                sinon {
+                    panique("taille non-gérée : %", info.taille);
+                }
+            }
+            sinon si info.préfixe == "Quat" {
+                imprime_dans_enchaineuse(*enchaineuse, "%.r = 123;\n", nom_valeur);
+                imprime_dans_enchaineuse(*enchaineuse, "%.v.x = 147;\n", nom_valeur);
+                imprime_dans_enchaineuse(*enchaineuse, "%.v.y = 258;\n", nom_valeur);
+                imprime_dans_enchaineuse(*enchaineuse, "%.v.z = 369;\n", nom_valeur);
+            }
+            sinon si info.préfixe == "C" {
+                si info.taille == 3 {
+                    si info.suffixe == "c" {
+                        imprime_dans_enchaineuse(*enchaineuse, "%.x = 0x1a;\n", nom_valeur);
+                        imprime_dans_enchaineuse(*enchaineuse, "%.y = 0x2b;\n", nom_valeur);
+                        imprime_dans_enchaineuse(*enchaineuse, "%.z = 0x3c;\n", nom_valeur);
+                    }
+                    sinon si info.suffixe == "h" {
+                        imprime_dans_enchaineuse(*enchaineuse, "%.x = vers_abc_half(0.123);\n", nom_valeur);
+                        imprime_dans_enchaineuse(*enchaineuse, "%.y = vers_abc_half(0.456);\n", nom_valeur);
+                        imprime_dans_enchaineuse(*enchaineuse, "%.z = vers_abc_half(0.789);\n", nom_valeur);
+                    }
+                    sinon si info.suffixe == "f" {
+                        imprime_dans_enchaineuse(*enchaineuse, "%.x = 0.123;\n", nom_valeur);
+                        imprime_dans_enchaineuse(*enchaineuse, "%.y = 0.456;\n", nom_valeur);
+                        imprime_dans_enchaineuse(*enchaineuse, "%.z = 0.789;\n", nom_valeur);
+                    }
+                    sinon {
+                        panique("suffixe non-géré : %", info.suffixe);
+                    }
+                }
+                sinon si info.taille == 4 {
+                    si info.suffixe == "c" {
+                        imprime_dans_enchaineuse(*enchaineuse, "%.r = 0x1a;\n", nom_valeur);
+                        imprime_dans_enchaineuse(*enchaineuse, "%.g = 0x2b;\n", nom_valeur);
+                        imprime_dans_enchaineuse(*enchaineuse, "%.b = 0x3c;\n", nom_valeur);
+                        imprime_dans_enchaineuse(*enchaineuse, "%.a = 0x4d;\n", nom_valeur);
+                    }
+                    sinon si info.suffixe == "h" {
+                        imprime_dans_enchaineuse(*enchaineuse, "%.r = vers_abc_half(0.123);\n", nom_valeur);
+                        imprime_dans_enchaineuse(*enchaineuse, "%.g = vers_abc_half(0.456);\n", nom_valeur);
+                        imprime_dans_enchaineuse(*enchaineuse, "%.b = vers_abc_half(0.789);\n", nom_valeur);
+                        imprime_dans_enchaineuse(*enchaineuse, "%.a = vers_abc_half(0.159);\n", nom_valeur);
+                    }
+                    sinon si info.suffixe == "f" {
+                        imprime_dans_enchaineuse(*enchaineuse, "%.r = 0.123;\n", nom_valeur);
+                        imprime_dans_enchaineuse(*enchaineuse, "%.g = 0.456;\n", nom_valeur);
+                        imprime_dans_enchaineuse(*enchaineuse, "%.b = 0.789;\n", nom_valeur);
+                        imprime_dans_enchaineuse(*enchaineuse, "%.a = 0.159;\n", nom_valeur);
+                    }
+                    sinon {
+                        panique("suffixe non-géré : %", info.suffixe);
+                    }
+                }
+                sinon {
+                    panique("taille non-gérée : %", info.taille);
+                }
+            }
+            sinon {
+                assert(info.préfixe == "N" || info.préfixe == "P" || info.préfixe == "V");
+
+                imprime_dans_enchaineuse(*enchaineuse, "%.x = 123;\n", nom_valeur);
+                imprime_dans_enchaineuse(*enchaineuse, "%.y = 456;\n", nom_valeur);
+
+                si info.taille == 3 {
+                    imprime_dans_enchaineuse(*enchaineuse, "%.z = 789;\n", nom_valeur);
+                }
+                sinon si info.taille != 2 {
+                    panique("taille non-gérée : %", info.taille);
+                }
+            }
+        }
+
+        imprime_dans_enchaineuse(*enchaineuse, "abc_output_%_property_set(prop_%, *%);\n", nom_court, nom_court, nom_valeur);
+        ajoute_au_tampon(*enchaineuse, "\n");
+    }
+
+    retourne chaine_depuis_enchaineuse(*enchaineuse);
+}
+
+ajoute_propriétés_arrays :: fonc (parent: *Abc_Output_Compound_Property, ts: Abc_Time_Sample_Index)
+#corps_texte {
+    descripteurs := abc_donne_descripteurs_attributs();
+
+    enchaineuse: Enchaineuse;
+    initialise_enchaineuse(*enchaineuse);
+
+    pour descripteurs {
+        type_geom := vers_kuri(it.type_geom);
+        type_ipa := vers_kuri(it.type_ipa);
+        nom_court := vers_kuri(it.nom_court);
+
+        ajoute_au_tampon(*enchaineuse, "// ", type_geom, "\n");
+
+        imprime_dans_enchaineuse(*enchaineuse, "prop_% := abc_output_%_array_property_create(parent, vers_abc_string(\"prop_%\"));\n", nom_court, nom_court, nom_court);
+        imprime_dans_enchaineuse(*enchaineuse, "abc_output_array_property_set_time_sample_index(prop_%, ts);\n", nom_court);
+
+        nom_valeur := imprime_chaine("valeur_%", nom_court);
+        diffère déloge(*nom_valeur);
+
+        si est_type_pod(type_geom) {
+            chaine_valeur := "";
+            type_valeur := "";
+            si type_geom == "String" {
+                chaine_valeur = "vers_abc_string(\"123\")";
+                type_valeur = "Abc_String";
+            }
+            sinon si type_geom == "Bool" {
+                chaine_valeur = "vrai";
+                type_valeur = "bool";
+            }
+            sinon si type_geom == "Half" {
+                chaine_valeur = "vers_abc_half(1.23)";
+                type_valeur = "Abc_Half";
+            }
+            sinon si type_geom == "Float" || type_geom == "Double" {
+                chaine_valeur = "1.23";
+                type_valeur = donne_type_kuri_pour_type_geom(type_geom);
+            }
+            sinon {
+                chaine_valeur = "123";
+                type_valeur = donne_type_kuri_pour_type_geom(type_geom);
+            }
+
+            imprime_dans_enchaineuse(*enchaineuse, "%: % = %;\n", nom_valeur, type_valeur, chaine_valeur);
+        }
+        sinon {
+            imprime_dans_enchaineuse(*enchaineuse, "%: % = ---;\n", nom_valeur, type_ipa);
+
+            info := donne_info_nom_type_abc(type_geom);
+            si info.préfixe == "Box" {
+                imprime_dans_enchaineuse(*enchaineuse, "%.min.x = 123;\n", nom_valeur);
+                imprime_dans_enchaineuse(*enchaineuse, "%.min.y = 147;\n", nom_valeur);
+                imprime_dans_enchaineuse(*enchaineuse, "%.max.x = 456;\n", nom_valeur);
+                imprime_dans_enchaineuse(*enchaineuse, "%.max.y = 258;\n", nom_valeur);
+
+                si info.taille == 3 {
+                    imprime_dans_enchaineuse(*enchaineuse, "%.min.z = 789;\n", nom_valeur);
+                    imprime_dans_enchaineuse(*enchaineuse, "%.max.z = 369;\n", nom_valeur);
+                }
+                sinon si info.taille != 2 {
+                    panique("taille non-gérée : %", info.taille);
+                }
+            }
+            sinon si info.préfixe == "M" {
+                si info.taille == 33 {
+                    pour i dans 3 {
+                        pour j dans 3 {
+                            imprime_dans_enchaineuse(*enchaineuse, "%.x[%][%] = %;\n", nom_valeur, i, j, i * 3 + j);
+                        }
+                    }
+                }
+                sinon si info.taille == 44 {
+                    pour i dans 4 {
+                        pour j dans 4 {
+                            imprime_dans_enchaineuse(*enchaineuse, "%.x[%][%] = %;\n", nom_valeur, i, j, i * 4 + j);
+                        }
+                    }
+                }
+                sinon {
+                    panique("taille non-gérée : %", info.taille);
+                }
+            }
+            sinon si info.préfixe == "Quat" {
+                imprime_dans_enchaineuse(*enchaineuse, "%.r = 123;\n", nom_valeur);
+                imprime_dans_enchaineuse(*enchaineuse, "%.v.x = 147;\n", nom_valeur);
+                imprime_dans_enchaineuse(*enchaineuse, "%.v.y = 258;\n", nom_valeur);
+                imprime_dans_enchaineuse(*enchaineuse, "%.v.z = 369;\n", nom_valeur);
+            }
+            sinon si info.préfixe == "C" {
+                si info.taille == 3 {
+                    si info.suffixe == "c" {
+                        imprime_dans_enchaineuse(*enchaineuse, "%.x = 0x1a;\n", nom_valeur);
+                        imprime_dans_enchaineuse(*enchaineuse, "%.y = 0x2b;\n", nom_valeur);
+                        imprime_dans_enchaineuse(*enchaineuse, "%.z = 0x3c;\n", nom_valeur);
+                    }
+                    sinon si info.suffixe == "h" {
+                        imprime_dans_enchaineuse(*enchaineuse, "%.x = vers_abc_half(0.123);\n", nom_valeur);
+                        imprime_dans_enchaineuse(*enchaineuse, "%.y = vers_abc_half(0.456);\n", nom_valeur);
+                        imprime_dans_enchaineuse(*enchaineuse, "%.z = vers_abc_half(0.789);\n", nom_valeur);
+                    }
+                    sinon si info.suffixe == "f" {
+                        imprime_dans_enchaineuse(*enchaineuse, "%.x = 0.123;\n", nom_valeur);
+                        imprime_dans_enchaineuse(*enchaineuse, "%.y = 0.456;\n", nom_valeur);
+                        imprime_dans_enchaineuse(*enchaineuse, "%.z = 0.789;\n", nom_valeur);
+                    }
+                    sinon {
+                        panique("suffixe non-géré : %", info.suffixe);
+                    }
+                }
+                sinon si info.taille == 4 {
+                    si info.suffixe == "c" {
+                        imprime_dans_enchaineuse(*enchaineuse, "%.r = 0x1a;\n", nom_valeur);
+                        imprime_dans_enchaineuse(*enchaineuse, "%.g = 0x2b;\n", nom_valeur);
+                        imprime_dans_enchaineuse(*enchaineuse, "%.b = 0x3c;\n", nom_valeur);
+                        imprime_dans_enchaineuse(*enchaineuse, "%.a = 0x4d;\n", nom_valeur);
+                    }
+                    sinon si info.suffixe == "h" {
+                        imprime_dans_enchaineuse(*enchaineuse, "%.r = vers_abc_half(0.123);\n", nom_valeur);
+                        imprime_dans_enchaineuse(*enchaineuse, "%.g = vers_abc_half(0.456);\n", nom_valeur);
+                        imprime_dans_enchaineuse(*enchaineuse, "%.b = vers_abc_half(0.789);\n", nom_valeur);
+                        imprime_dans_enchaineuse(*enchaineuse, "%.a = vers_abc_half(0.159);\n", nom_valeur);
+                    }
+                    sinon si info.suffixe == "f" {
+                        imprime_dans_enchaineuse(*enchaineuse, "%.r = 0.123;\n", nom_valeur);
+                        imprime_dans_enchaineuse(*enchaineuse, "%.g = 0.456;\n", nom_valeur);
+                        imprime_dans_enchaineuse(*enchaineuse, "%.b = 0.789;\n", nom_valeur);
+                        imprime_dans_enchaineuse(*enchaineuse, "%.a = 0.159;\n", nom_valeur);
+                    }
+                    sinon {
+                        panique("suffixe non-géré : %", info.suffixe);
+                    }
+                }
+                sinon {
+                    panique("taille non-gérée : %", info.taille);
+                }
+            }
+            sinon {
+                assert(info.préfixe == "N" || info.préfixe == "P" || info.préfixe == "V");
+
+                imprime_dans_enchaineuse(*enchaineuse, "%.x = 123;\n", nom_valeur);
+                imprime_dans_enchaineuse(*enchaineuse, "%.y = 456;\n", nom_valeur);
+
+                si info.taille == 3 {
+                    imprime_dans_enchaineuse(*enchaineuse, "%.z = 789;\n", nom_valeur);
+                }
+                sinon si info.taille != 2 {
+                    panique("taille non-gérée : %", info.taille);
+                }
+            }
+        }
+
+        imprime_dans_enchaineuse(*enchaineuse, "%_array_sample: Abc_%_Array_Sample;\n", nom_court, type_geom);
+        imprime_dans_enchaineuse(*enchaineuse, "%_array_sample.values = *%;\n", nom_court, nom_valeur);
+        imprime_dans_enchaineuse(*enchaineuse, "%_array_sample.num_values = 1;\n", nom_court);
+        imprime_dans_enchaineuse(*enchaineuse, "abc_output_%_array_property_set(prop_%, %_array_sample);\n", nom_court, nom_court, nom_court);
+        ajoute_au_tampon(*enchaineuse, "\n");
+    }
+
+    retourne chaine_depuis_enchaineuse(*enchaineuse);
 }
 
 crée_test_rayons_courbes :: fonc (chemin: chaine, export_rayon: bool)
@@ -164,15 +757,21 @@ crée_test_rayons_points :: fonc (chemin: chaine, export_rayon: bool)
         phi += phi_delta;
 
         position := Vec3(ca0, 0.0, sa0);
-        abc_output_points_sample_positions_set(point_sample, *position.x, 1);
+        abc_output_points_sample_positions_set(point_sample, [position]);
 
         ids := n64.[0];
-        abc_output_points_sample_ids_set(point_sample, *ids[0], 1);
+        abc_output_points_sample_ids_set(point_sample, ids);
 
         si export_rayon {
             width := 50 - abs((it + 1) - 50);
             widths := r32.[width comme r32 * 0.01];
-            abc_output_points_sample_widths_set(point_sample, *widths[0], 1);
+
+            geom_param: Abc_Output_Float_Geom_Param_Sample;
+            geom_param.values = *widths[0];
+            geom_param.num_values = 1;
+            geom_param.scope = Abc_Geometry_Scope.VERTEX;
+
+            abc_output_points_sample_widths_set(point_sample, geom_param);
         }
 
         abc_output_points_sample_set(objet_point, point_sample);
@@ -186,15 +785,108 @@ crée_xform_neutre_pour_objet :: fonc (archive: *Abc_Output_Archive, parent: *Ab
     matrix_sample := abc_output_xform_sample_create(archive);
     diffère abc_output_xform_sample_destroy(matrix_sample);
 
-    matrix: [4][4]r32;
-    matrix[0][0] = 1.0;
-    matrix[1][1] = 1.0;
-    matrix[2][2] = 1.0;
-    matrix[3][3] = 1.0;
+    matrix: Abc_M44d;
+    matrix.x[0][0] = 1.0;
+    matrix.x[1][1] = 1.0;
+    matrix.x[2][2] = 1.0;
+    matrix.x[3][3] = 1.0;
 
-    abc_output_xform_sample_set_matrix(matrix_sample, *matrix[0][0]);
+    abc_output_xform_sample_set_matrix(matrix_sample, *matrix);
 
     abc_output_xform_sample_set(résultat, matrix_sample);
 
     retourne résultat;
+}
+
+crée_test_visibilité :: fonc (chemin: chaine)
+{
+    metadata: Abc_Output_Archive_Metadata;
+    metadata.application_name = vers_abc_string("Jorjala");
+    metadata.fps = 24.0;
+
+    archive := abc_output_archive_create(chemin, *metadata);
+    diffère abc_output_archive_destroy(archive);
+
+    ts_défaut := abc_output_archive_default_time_sampling(archive);
+
+    racine := abc_output_archive_root_object_get(archive);
+
+    _ := crée_objet_points_simple(archive, racine, "VISIBLE", ts_défaut);
+
+    courbes := crée_objet_courbes_simple(archive, racine, "HIDDEN", ts_défaut);
+
+    visibility_prop := abc_output_object_create_visibility_property(courbes, ts_défaut);
+    abc_output_visibility_property_set(visibility_prop, Abc_Object_Visibility.HIDDEN);
+}
+
+crée_test_visibilité :: fonc (chemin: chaine, visibilité_parent: Abc_Object_Visibility, visibilité_enfant: Abc_Object_Visibility)
+{
+    metadata: Abc_Output_Archive_Metadata;
+    metadata.application_name = vers_abc_string("Jorjala");
+    metadata.fps = 24.0;
+
+    archive := abc_output_archive_create(chemin, *metadata);
+    diffère abc_output_archive_destroy(archive);
+
+    ts_défaut := abc_output_archive_default_time_sampling(archive);
+
+    racine := abc_output_archive_root_object_get(archive);
+
+    nom_parent := imprime_chaine("%", visibilité_parent);
+    nom_enfant := imprime_chaine("%", visibilité_enfant);
+
+    parent := crée_xform_neutre_pour_objet(archive, racine, nom_parent, ts_défaut);
+    visibility_prop := abc_output_object_create_visibility_property(parent, ts_défaut);
+    abc_output_visibility_property_set(visibility_prop, visibilité_parent);
+
+    enfant := abc_output_points_create(parent, nom_enfant, ts_défaut);
+    initialise_points_simple(archive, enfant);
+    visibility_prop = abc_output_object_create_visibility_property(enfant, ts_défaut);
+    abc_output_visibility_property_set(visibility_prop, visibilité_enfant);
+}
+
+crée_objet_points_simple :: fonc (archive: *Abc_Output_Archive, parent: *Abc_Output_Xform, nom: chaine, ts: Abc_Time_Sample_Index) -> *Abc_Output_Points
+{
+    matrice_objet_point := crée_xform_neutre_pour_objet(archive, parent, nom, ts);
+    objet_point := abc_output_points_create(matrice_objet_point, "PointCloud", ts);
+    initialise_points_simple(archive, objet_point);
+    retourne objet_point;
+}
+
+initialise_points_simple :: fonc (archive: *Abc_Output_Archive, points: *Abc_Output_Points)
+{
+    point_sample := abc_output_points_sample_create(archive);
+    diffère abc_output_points_sample_destroy(point_sample);
+
+    position := Vec3(0.0, 0.0, 0.0);
+    abc_output_points_sample_positions_set(point_sample, [position]);
+
+    ids := n64.[0];
+    abc_output_points_sample_ids_set(point_sample, ids);
+
+    abc_output_points_sample_set(points, point_sample);
+}
+
+crée_objet_courbes_simple :: fonc (archive: *Abc_Output_Archive, parent: *Abc_Output_Xform, nom: chaine, ts: Abc_Time_Sample_Index) -> *Abc_Output_Curves
+{
+    matrice_curves := crée_xform_neutre_pour_objet(archive, parent, nom, ts);
+
+    curves := abc_output_curves_create(matrice_curves, "Curves", ts);
+
+    curves_sample := abc_output_curves_sample_create(archive);
+    diffère abc_output_curves_sample_destroy(curves_sample);
+
+    abc_output_curves_sample_type_set(curves_sample, Abc_Curve_Type.LINEAR);
+
+    abc_output_curves_sample_basis_set(curves_sample, Abc_Basis_Type.NO_BASIS);
+
+    positions := [Vec3(0.0, 0.0, 0.0), Vec3(1.0, 0.0, 0.0)];
+    abc_output_curves_sample_positions_set(curves_sample, positions);
+
+    num_vertices := z32.[2];
+    abc_output_curves_sample_curves_num_vertices_set(curves_sample, num_vertices);
+
+    abc_output_curves_sample_set(curves, curves_sample);
+
+    retourne curves;
 }
