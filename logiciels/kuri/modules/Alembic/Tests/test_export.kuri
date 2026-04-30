@@ -271,14 +271,19 @@ principale :: fonc ()
 {
     // imprime_infos_types_attributs_pour_python();
 
-    crée_test_user_props("/tmp/scalar-props-in-user-props.abc", vrai, vrai);
-    crée_test_user_props("/tmp/scalar-props-in-geom-params.abc", vrai, faux);
-    crée_test_user_props("/tmp/array-props-in-user-props.abc", faux, vrai);
-    crée_test_user_props("/tmp/array-props-in-geom-params.abc", faux, faux);
+    // crée_test_user_props("/tmp/scalar-props-in-user-props.abc", vrai, vrai);
+    // crée_test_user_props("/tmp/scalar-props-in-geom-params.abc", vrai, faux);
+    // crée_test_user_props("/tmp/array-props-in-user-props.abc", faux, vrai);
+    // crée_test_user_props("/tmp/array-props-in-geom-params.abc", faux, faux);
     // crée_test_rayons_courbes("/tmp/curve-with-width.abc", vrai);
     // crée_test_rayons_courbes("/tmp/curve-without-width.abc", faux);
     // crée_test_rayons_points("/tmp/point-with-width.abc", vrai);
     // crée_test_rayons_points("/tmp/point-without-width.abc", faux);
+
+    crée_test_visibilité("/tmp/visibility-hidden.abc");
+    crée_test_visibilité("/tmp/visibility-parent-hidden-child-visible.abc", Abc_Object_Visibility.HIDDEN, Abc_Object_Visibility.VISIBLE);
+    crée_test_visibilité("/tmp/visibility-parent-hidden-child-deferred.abc", Abc_Object_Visibility.HIDDEN, Abc_Object_Visibility.DEFERRED);
+    crée_test_visibilité("/tmp/visibility-parent-visible-child-deferred.abc", Abc_Object_Visibility.VISIBLE, Abc_Object_Visibility.DEFERRED);
 }
 
 crée_test_user_props :: fonc (chemin: chaine, scalaire: bool, dans_user_props: bool)
@@ -791,4 +796,97 @@ crée_xform_neutre_pour_objet :: fonc (archive: *Abc_Output_Archive, parent: *Ab
     abc_output_xform_sample_set(résultat, matrix_sample);
 
     retourne résultat;
+}
+
+crée_test_visibilité :: fonc (chemin: chaine)
+{
+    metadata: Abc_Output_Archive_Metadata;
+    metadata.application_name = vers_abc_string("Jorjala");
+    metadata.fps = 24.0;
+
+    archive := abc_output_archive_create(chemin, *metadata);
+    diffère abc_output_archive_destroy(archive);
+
+    ts_défaut := abc_output_archive_default_time_sampling(archive);
+
+    racine := abc_output_archive_root_object_get(archive);
+
+    _ := crée_objet_points_simple(archive, racine, "VISIBLE", ts_défaut);
+
+    courbes := crée_objet_courbes_simple(archive, racine, "HIDDEN", ts_défaut);
+
+    visibility_prop := abc_output_object_create_visibility_property(courbes, ts_défaut);
+    abc_output_visibility_property_set(visibility_prop, Abc_Object_Visibility.HIDDEN);
+}
+
+crée_test_visibilité :: fonc (chemin: chaine, visibilité_parent: Abc_Object_Visibility, visibilité_enfant: Abc_Object_Visibility)
+{
+    metadata: Abc_Output_Archive_Metadata;
+    metadata.application_name = vers_abc_string("Jorjala");
+    metadata.fps = 24.0;
+
+    archive := abc_output_archive_create(chemin, *metadata);
+    diffère abc_output_archive_destroy(archive);
+
+    ts_défaut := abc_output_archive_default_time_sampling(archive);
+
+    racine := abc_output_archive_root_object_get(archive);
+
+    nom_parent := imprime_chaine("%", visibilité_parent);
+    nom_enfant := imprime_chaine("%", visibilité_enfant);
+
+    parent := crée_xform_neutre_pour_objet(archive, racine, nom_parent, ts_défaut);
+    visibility_prop := abc_output_object_create_visibility_property(parent, ts_défaut);
+    abc_output_visibility_property_set(visibility_prop, visibilité_parent);
+
+    enfant := abc_output_points_create(parent, nom_enfant, ts_défaut);
+    initialise_points_simple(archive, enfant);
+    visibility_prop = abc_output_object_create_visibility_property(enfant, ts_défaut);
+    abc_output_visibility_property_set(visibility_prop, visibilité_enfant);
+}
+
+crée_objet_points_simple :: fonc (archive: *Abc_Output_Archive, parent: *Abc_Output_Xform, nom: chaine, ts: Abc_Time_Sample_Index) -> *Abc_Output_Points
+{
+    matrice_objet_point := crée_xform_neutre_pour_objet(archive, parent, nom, ts);
+    objet_point := abc_output_points_create(matrice_objet_point, "PointCloud", ts);
+    initialise_points_simple(archive, objet_point);
+    retourne objet_point;
+}
+
+initialise_points_simple :: fonc (archive: *Abc_Output_Archive, points: *Abc_Output_Points)
+{
+    point_sample := abc_output_points_sample_create(archive);
+    diffère abc_output_points_sample_destroy(point_sample);
+
+    position := Vec3(0.0, 0.0, 0.0);
+    abc_output_points_sample_positions_set(point_sample, [position]);
+
+    ids := n64.[0];
+    abc_output_points_sample_ids_set(point_sample, ids);
+
+    abc_output_points_sample_set(points, point_sample);
+}
+
+crée_objet_courbes_simple :: fonc (archive: *Abc_Output_Archive, parent: *Abc_Output_Xform, nom: chaine, ts: Abc_Time_Sample_Index) -> *Abc_Output_Curves
+{
+    matrice_curves := crée_xform_neutre_pour_objet(archive, parent, nom, ts);
+
+    curves := abc_output_curves_create(matrice_curves, "Curves", ts);
+
+    curves_sample := abc_output_curves_sample_create(archive);
+    diffère abc_output_curves_sample_destroy(curves_sample);
+
+    abc_output_curves_sample_type_set(curves_sample, Abc_Curve_Type.LINEAR);
+
+    abc_output_curves_sample_basis_set(curves_sample, Abc_Basis_Type.NO_BASIS);
+
+    positions := [Vec3(0.0, 0.0, 0.0), Vec3(1.0, 0.0, 0.0)];
+    abc_output_curves_sample_positions_set(curves_sample, positions);
+
+    num_vertices := z32.[2];
+    abc_output_curves_sample_curves_num_vertices_set(curves_sample, num_vertices);
+
+    abc_output_curves_sample_set(curves, curves_sample);
+
+    retourne curves;
 }
