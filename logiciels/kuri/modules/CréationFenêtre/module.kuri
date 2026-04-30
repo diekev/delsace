@@ -348,6 +348,7 @@ qt_crée_fenêtre :: fonc (empl options: *Options_Création_Fenêtre, parent: *P
     si genre_fenêtre == Genre_Fenêtre.MENU {
         flags := QT_window_flags(window);
         flags |= QT_Window_Flags.Popup;
+        flags |= QT_Window_Flags.WindowStaysOnTopHint;
         QT_window_set_flags(window, flags);
     }
 
