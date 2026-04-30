@@ -19,6 +19,35 @@ vers_abc_string :: fonc (chn: chaine) -> Abc_String
     retourne Abc_String(chn.pointeur, chn.taille comme n64);
 }
 
+vers_kuri :: fonc (chn: Abc_String) -> chaine
+{
+    retourne chaine(chn.characters, chn.size comme z64);
+}
+
+opérateur == :: (a: Abc_String, b: chaine) -> bool
+{
+    retourne vers_kuri(a) == b;
+}
+
+vers_abc_half :: fonc (v: r16) -> Abc_Half
+{
+    résultat: Abc_Half = ---;
+    copie_mem_nonsur(src = *v, dst = *résultat.value, taille = 2);
+    retourne résultat;
+}
+
+vers_abc_half :: fonc (v: r32) -> Abc_Half
+{
+    retourne vers_abc_half(v comme r16);
+}
+
+vers_r16 :: fonc (v: Abc_Half) -> r16
+{
+    résultat: r16 = ---;
+    copie_mem_nonsur(dst = *résultat, src = *v.value, taille = 2);
+    retourne résultat;
+}
+
 /* ------------------------------------------------------------------------- */
 /** \nom Contexte Kuri pour Alembic
  * \{ */
