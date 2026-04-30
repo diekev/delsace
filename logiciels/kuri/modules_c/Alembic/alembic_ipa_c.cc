@@ -1515,10 +1515,11 @@ Abc_Output_Xform *abc_output_xform_create(Abc_Output_Xform *parent,
 
 #define DEFINE_COMMON_SAMPLE_FONCTIONS(uppercase_name, lowercase_name)                            \
     Abc_Output_##uppercase_name##_Sample *abc_output_##lowercase_name##_sample_create(            \
-        Abc_Output_Archive *archive)                                                              \
+        Abc_Output_##uppercase_name *lowercase_name)                                              \
     {                                                                                             \
-        auto résultat = kuri_loge<Abc_Output_##uppercase_name##_Sample>(archive->ctx_kuri);       \
-        résultat->ctx_kuri = archive->ctx_kuri;                                                   \
+        auto résultat = kuri_loge<Abc_Output_##uppercase_name##_Sample>(                          \
+            lowercase_name->archive->ctx_kuri);                                                   \
+        résultat->ctx_kuri = lowercase_name->archive->ctx_kuri;                                   \
         return résultat;                                                                          \
     }                                                                                             \
     void abc_output_##lowercase_name##_sample_reset(Abc_Output_##uppercase_name##_Sample *sample) \

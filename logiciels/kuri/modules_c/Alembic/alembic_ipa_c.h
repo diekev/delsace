@@ -290,7 +290,7 @@ struct Abc_Attribute_Type_Descriptor *abc_get_pod_type_descriptors(uint64_t *r_l
 
 #define DECLARE_COMMON_SAMPLE_FONCTIONS(uppercase_name, lowercase_name)                           \
     struct Abc_Output_##uppercase_name##_Sample *abc_output_##lowercase_name##_sample_create(     \
-        struct Abc_Output_Archive *archive);                                                      \
+        struct Abc_Output_##uppercase_name *lowercase_name);                                      \
     void abc_output_##lowercase_name##_sample_reset(                                              \
         struct Abc_Output_##uppercase_name##_Sample *sample);                                     \
     void abc_output_##lowercase_name##_sample_destroy(                                            \

@@ -299,10 +299,10 @@ crée_test_user_props :: fonc (chemin: chaine, scalaire: bool, dans_user_props: 
 
     racine := abc_output_archive_root_object_get(archive);
 
-    matrice_objet_point := crée_xform_neutre_pour_objet(archive, racine, "PointCloud", ts_défaut);
+    matrice_objet_point := crée_xform_neutre_pour_objet(racine, "PointCloud", ts_défaut);
 
     objet_point := abc_output_points_create(matrice_objet_point, "PointCloudPoints", ts_défaut);
-    point_sample := abc_output_points_sample_create(archive);
+    point_sample := abc_output_points_sample_create(objet_point);
     diffère abc_output_points_sample_destroy(point_sample);
 
     position := Vec3(0.0, 0.0, 0.0);
@@ -662,7 +662,7 @@ crée_test_rayons_courbes :: fonc (chemin: chaine, export_rayon: bool)
 
     racine := abc_output_archive_root_object_get(archive);
 
-    matrice_curves := crée_xform_neutre_pour_objet(archive, racine, "Curves", ts_défaut);
+    matrice_curves := crée_xform_neutre_pour_objet(racine, "Curves", ts_défaut);
 
     échantillons := [1.0 / metadata.fps];
     temps_par_cycle := 1.0 / metadata.fps;
@@ -670,7 +670,7 @@ crée_test_rayons_courbes :: fonc (chemin: chaine, export_rayon: bool)
 
     curves := abc_output_curves_create(matrice_curves, "CurvesGeom", ts_animation);
 
-    curves_sample := abc_output_curves_sample_create(archive);
+    curves_sample := abc_output_curves_sample_create(curves);
     diffère abc_output_curves_sample_destroy(curves_sample);
 
     cx := 0.0;
@@ -730,10 +730,10 @@ crée_test_rayons_points :: fonc (chemin: chaine, export_rayon: bool)
     temps_par_cycle := 1.0 / metadata.fps;
     ts_animation := abc_output_archive_create_time_sampling(archive, échantillons, temps_par_cycle);
 
-    matrice_objet_point := crée_xform_neutre_pour_objet(archive, racine, "PointCloud", ts_défaut);
+    matrice_objet_point := crée_xform_neutre_pour_objet(racine, "PointCloud", ts_défaut);
 
     objet_point := abc_output_points_create(matrice_objet_point, "PointCloudPoints", ts_animation);
-    point_sample := abc_output_points_sample_create(archive);
+    point_sample := abc_output_points_sample_create(objet_point);
     diffère abc_output_points_sample_destroy(point_sample);
 
     cx := 0.0;
@@ -778,11 +778,11 @@ crée_test_rayons_points :: fonc (chemin: chaine, export_rayon: bool)
     }
 }
 
-crée_xform_neutre_pour_objet :: fonc (archive: *Abc_Output_Archive, parent: *Abc_Output_Xform, nom: chaine, ts: Abc_Time_Sample_Index) -> *Abc_Output_Xform
+crée_xform_neutre_pour_objet :: fonc (parent: *Abc_Output_Xform, nom: chaine, ts: Abc_Time_Sample_Index) -> *Abc_Output_Xform
 {
     résultat := abc_output_xform_create(parent, nom, ts);
 
-    matrix_sample := abc_output_xform_sample_create(archive);
+    matrix_sample := abc_output_xform_sample_create(résultat);
     diffère abc_output_xform_sample_destroy(matrix_sample);
 
     matrix: Abc_M44d;
@@ -811,9 +811,9 @@ crée_test_visibilité :: fonc (chemin: chaine)
 
     racine := abc_output_archive_root_object_get(archive);
 
-    _ := crée_objet_points_simple(archive, racine, "VISIBLE", ts_défaut);
+    _ := crée_objet_points_simple(racine, "VISIBLE", ts_défaut);
 
-    courbes := crée_objet_courbes_simple(archive, racine, "HIDDEN", ts_défaut);
+    courbes := crée_objet_courbes_simple(racine, "HIDDEN", ts_défaut);
 
     visibility_prop := abc_output_object_create_visibility_property(courbes, ts_défaut);
     abc_output_visibility_property_set(visibility_prop, Abc_Object_Visibility.HIDDEN);
@@ -835,27 +835,27 @@ crée_test_visibilité :: fonc (chemin: chaine, visibilité_parent: Abc_Object_V
     nom_parent := imprime_chaine("%", visibilité_parent);
     nom_enfant := imprime_chaine("%", visibilité_enfant);
 
-    parent := crée_xform_neutre_pour_objet(archive, racine, nom_parent, ts_défaut);
+    parent := crée_xform_neutre_pour_objet(racine, nom_parent, ts_défaut);
     visibility_prop := abc_output_object_create_visibility_property(parent, ts_défaut);
     abc_output_visibility_property_set(visibility_prop, visibilité_parent);
 
     enfant := abc_output_points_create(parent, nom_enfant, ts_défaut);
-    initialise_points_simple(archive, enfant);
+    initialise_points_simple(enfant);
     visibility_prop = abc_output_object_create_visibility_property(enfant, ts_défaut);
     abc_output_visibility_property_set(visibility_prop, visibilité_enfant);
 }
 
-crée_objet_points_simple :: fonc (archive: *Abc_Output_Archive, parent: *Abc_Output_Xform, nom: chaine, ts: Abc_Time_Sample_Index) -> *Abc_Output_Points
+crée_objet_points_simple :: fonc (parent: *Abc_Output_Xform, nom: chaine, ts: Abc_Time_Sample_Index) -> *Abc_Output_Points
 {
-    matrice_objet_point := crée_xform_neutre_pour_objet(archive, parent, nom, ts);
+    matrice_objet_point := crée_xform_neutre_pour_objet(parent, nom, ts);
     objet_point := abc_output_points_create(matrice_objet_point, "PointCloud", ts);
-    initialise_points_simple(archive, objet_point);
+    initialise_points_simple(objet_point);
     retourne objet_point;
 }
 
-initialise_points_simple :: fonc (archive: *Abc_Output_Archive, points: *Abc_Output_Points)
+initialise_points_simple :: fonc (points: *Abc_Output_Points)
 {
-    point_sample := abc_output_points_sample_create(archive);
+    point_sample := abc_output_points_sample_create(points);
     diffère abc_output_points_sample_destroy(point_sample);
 
     position := Vec3(0.0, 0.0, 0.0);
@@ -867,13 +867,13 @@ initialise_points_simple :: fonc (archive: *Abc_Output_Archive, points: *Abc_Out
     abc_output_points_sample_set(points, point_sample);
 }
 
-crée_objet_courbes_simple :: fonc (archive: *Abc_Output_Archive, parent: *Abc_Output_Xform, nom: chaine, ts: Abc_Time_Sample_Index) -> *Abc_Output_Curves
+crée_objet_courbes_simple :: fonc (parent: *Abc_Output_Xform, nom: chaine, ts: Abc_Time_Sample_Index) -> *Abc_Output_Curves
 {
-    matrice_curves := crée_xform_neutre_pour_objet(archive, parent, nom, ts);
+    matrice_curves := crée_xform_neutre_pour_objet(parent, nom, ts);
 
     curves := abc_output_curves_create(matrice_curves, "Curves", ts);
 
-    curves_sample := abc_output_curves_sample_create(archive);
+    curves_sample := abc_output_curves_sample_create(curves);
     diffère abc_output_curves_sample_destroy(curves_sample);
 
     abc_output_curves_sample_type_set(curves_sample, Abc_Curve_Type.LINEAR);
