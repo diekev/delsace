@@ -701,6 +701,7 @@ struct Abc_Output_PolyMesh;
 struct Abc_Output_SubD;
 struct Abc_Output_FaceSet;
 struct Abc_Output_Camera;
+struct Abc_Output_NuPatch;
 
 union Abc_Generic_Output_Object {
     struct Abc_Output_Object *object;
@@ -711,6 +712,7 @@ union Abc_Generic_Output_Object {
     struct Abc_Output_SubD *subd;
     struct Abc_Output_FaceSet *faceset;
     struct Abc_Output_Camera *camera;
+    struct Abc_Output_NuPatch *nupatch;
 };
 
 struct Abc_Output_Visibility_Property;
@@ -1094,6 +1096,53 @@ struct Abc_Output_Camera_Sample *abc_output_camera_sample_create_window(
     struct Abc_Output_Archive *archive, double top, double bottom, double left, double right);
 
 ENUMERATE_OUTPUT_CAMERA_SAMPLE_SCALAR_INTERFACE(DECLARE_OUTPUT_SAMPLE_SCALAR_FUNCTIONS)
+
+/** \} */
+
+/* ------------------------------------------------------------------------- */
+/** \nom Abc_Output_NuPatch
+ * \{ */
+
+struct Abc_Output_NuPatch *abc_output_nupatch_create(
+    struct Abc_Output_Xform *parent,
+    struct Abc_String nom,
+    struct Abc_Time_Sample_Index time_sample_index);
+
+DECLARE_COMMON_OBJECT_FUNCTIONS(NuPatch, nupatch)
+
+#define ENUMERATE_OUTPUT_NUPATCH_SAMPLE_SCALAR_INTERFACE(X)                                       \
+    X(NuPatch, nupatch, nu_set, setNu, int32_t)                                                   \
+    X(NuPatch, nupatch, nv_set, setNv, int32_t)                                                   \
+    X(NuPatch, nupatch, u_order_set, setUOrder, int32_t)                                          \
+    X(NuPatch, nupatch, v_order_set, setVOrder, int32_t)
+
+#define ENUMERATE_OUTPUT_NUPATCH_SAMPLE_INTERFACE(X)                                              \
+    X(NuPatch, nupatch, positions_set, setPositions, Abc_P3f_Array_Sample)                        \
+    X(NuPatch, nupatch, positions_weights_set, setPositionWeights, Abc_Float_Array_Sample)        \
+    X(NuPatch, nupatch, u_knot_set, setUKnot, Abc_Float_Array_Sample)                             \
+    X(NuPatch, nupatch, v_knot_set, setVKnot, Abc_Float_Array_Sample)                             \
+    X(NuPatch, nupatch, uvs_set, setUVs, Abc_Output_V2f_Geom_Param_Sample)                        \
+    X(NuPatch, nupatch, normals_set, setNormals, Abc_Output_N3f_Geom_Param_Sample)                \
+    X(NuPatch, nupatch, velocities_set, setVelocities, Abc_V3f_Array_Sample)
+
+struct Abc_Output_NuPatch_Sample;
+
+DECLARE_COMMON_SAMPLE_FONCTIONS(NuPatch, nupatch)
+
+ENUMERATE_OUTPUT_NUPATCH_SAMPLE_SCALAR_INTERFACE(DECLARE_OUTPUT_SAMPLE_SCALAR_FUNCTIONS)
+ENUMERATE_OUTPUT_NUPATCH_SAMPLE_INTERFACE(DECLARE_OUTPUT_SAMPLE_SET_FUNCTION)
+
+void abc_output_nupatch_sample_trim_curve_set(struct Abc_Output_NuPatch_Sample *sample,
+                                              int32_t trim_n_loops,
+                                              struct Abc_Int32_Array_Sample trim_n_curves,
+                                              struct Abc_Int32_Array_Sample trim_n,
+                                              struct Abc_Int32_Array_Sample trim_order,
+                                              struct Abc_Float_Array_Sample trim_knot,
+                                              struct Abc_Float_Array_Sample trim_min,
+                                              struct Abc_Float_Array_Sample trim_max,
+                                              struct Abc_Float_Array_Sample trim_u,
+                                              struct Abc_Float_Array_Sample trim_v,
+                                              struct Abc_Float_Array_Sample trim_w);
 
 /** \} */
 

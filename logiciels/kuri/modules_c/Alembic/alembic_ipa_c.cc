@@ -1943,3 +1943,101 @@ struct Abc_Output_Camera_Sample *abc_output_camera_sample_create_window(
 ENUMERATE_OUTPUT_CAMERA_SAMPLE_SCALAR_INTERFACE(DEFINE_OUTPUT_SAMPLE_SCALAR_FUNCTIONS)
 
 /** \} */
+
+/* ------------------------------------------------------------------------- */
+/** \nom Abc_Output_NuPatch
+ * \{ */
+
+struct Abc_Output_NuPatch : public Abc_Output_Object {
+    AbcGeom::ONuPatch object{};
+
+    void set_sample(AbcGeom::ONuPatchSchema::Sample &sample)
+    {
+        object.getSchema().set(sample);
+    }
+
+    void set_from_previous()
+    {
+        object.getSchema().setFromPrevious();
+    }
+
+    void get_arb_geom_params(Abc_Output_Compound_Property *prop)
+    {
+        prop->prop = object.getSchema().getArbGeomParams();
+    }
+
+    void get_user_properties(Abc_Output_Compound_Property *prop)
+    {
+        prop->prop = object.getSchema().getUserProperties();
+    }
+
+    void get_metadata(Abc_MetaData *metadata)
+    {
+        metadata->metadata = object.getMetaData();
+    }
+
+    AbcGeom::OObject &get_object() override
+    {
+        return object;
+    }
+};
+
+Abc_Output_NuPatch *abc_output_nupatch_create(Abc_Output_Xform *parent,
+                                              Abc_String nom,
+                                              Abc_Time_Sample_Index time_sample_index)
+{
+    auto archive = parent->archive;
+    auto résultat = crée_objet_sortie<Abc_Output_NuPatch>(archive);
+    résultat->object = AbcGeom::ONuPatch(
+        parent->object, vers_std_string(nom), time_sample_index.value);
+    return résultat;
+}
+
+DEFINE_COMMON_OBJECT_FUNCTIONS(NuPatch, nupatch)
+
+struct Abc_Output_NuPatch_Sample {
+    ContexteKuri *ctx_kuri = nullptr;
+    AbcGeom::ONuPatchSchema::Sample sample{};
+    Array_Sample_Data sample_data{};
+};
+
+DEFINE_COMMON_SAMPLE_FONCTIONS(NuPatch, nupatch)
+
+ENUMERATE_OUTPUT_NUPATCH_SAMPLE_SCALAR_INTERFACE(DEFINE_OUTPUT_SAMPLE_SCALAR_FUNCTIONS)
+ENUMERATE_OUTPUT_NUPATCH_SAMPLE_INTERFACE(DEFINE_OUTPUT_SAMPLE_FUNCTIONS)
+
+void abc_output_nupatch_sample_trim_curve_set(Abc_Output_NuPatch_Sample *sample,
+                                              int32_t trim_n_loops,
+                                              Abc_Int32_Array_Sample trim_n_curves,
+                                              Abc_Int32_Array_Sample trim_n,
+                                              Abc_Int32_Array_Sample trim_order,
+                                              Abc_Float_Array_Sample trim_knot,
+                                              Abc_Float_Array_Sample trim_min,
+                                              Abc_Float_Array_Sample trim_max,
+                                              Abc_Float_Array_Sample trim_u,
+                                              Abc_Float_Array_Sample trim_v,
+                                              Abc_Float_Array_Sample trim_w)
+{
+    auto i_trim_n_curves = make_typed_sample(trim_n_curves, &sample->sample_data);
+    auto i_trim_n = make_typed_sample(trim_n, &sample->sample_data);
+    auto i_trim_order = make_typed_sample(trim_order, &sample->sample_data);
+    auto i_trim_knot = make_typed_sample(trim_knot, &sample->sample_data);
+    auto i_trim_min = make_typed_sample(trim_min, &sample->sample_data);
+    auto i_trim_max = make_typed_sample(trim_max, &sample->sample_data);
+    auto i_trim_u = make_typed_sample(trim_u, &sample->sample_data);
+    auto i_trim_v = make_typed_sample(trim_v, &sample->sample_data);
+    auto i_trim_w = make_typed_sample(trim_w, &sample->sample_data);
+
+    sample->sample.setTrimCurve(trim_n_loops,
+                                i_trim_n_curves,
+                                i_trim_n,
+                                i_trim_order,
+                                i_trim_knot,
+                                i_trim_min,
+                                i_trim_max,
+                                i_trim_u,
+                                i_trim_v,
+                                i_trim_w);
+}
+
+/** \} */
