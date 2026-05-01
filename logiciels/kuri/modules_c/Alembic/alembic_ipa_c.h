@@ -701,6 +701,7 @@ struct Abc_Output_SubD;
 struct Abc_Output_FaceSet;
 struct Abc_Output_Camera;
 struct Abc_Output_NuPatch;
+struct Abc_Output_Light;
 
 union Abc_Generic_Output_Object {
     struct Abc_Output_Object *object;
@@ -712,6 +713,7 @@ union Abc_Generic_Output_Object {
     struct Abc_Output_FaceSet *faceset;
     struct Abc_Output_Camera *camera;
     struct Abc_Output_NuPatch *nupatch;
+    struct Abc_Output_Light *light;
 };
 
 struct Abc_Output_Visibility_Property;
@@ -1142,6 +1144,21 @@ void abc_output_nupatch_sample_trim_curve_set(struct Abc_Output_NuPatch_Sample *
                                               struct Abc_Float_Array_Sample trim_u,
                                               struct Abc_Float_Array_Sample trim_v,
                                               struct Abc_Float_Array_Sample trim_w);
+
+/** \} */
+
+/* ------------------------------------------------------------------------- */
+/** \nom Abc_Output_Light
+ * \{ */
+
+struct Abc_Output_Light *abc_output_light_create(struct Abc_Output_Xform *parent,
+                                                 struct Abc_String nom,
+                                                 struct Abc_Time_Sample_Index time_sample_index);
+
+DECLARE_COMMON_OBJECT_FUNCTIONS(Light, light)
+
+void abc_output_light_set_camera_sample(struct Abc_Output_Light *light,
+                                        struct Abc_Output_Camera_Sample *sample);
 
 /** \} */
 

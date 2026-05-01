@@ -2040,3 +2040,57 @@ void abc_output_nupatch_sample_trim_curve_set(Abc_Output_NuPatch_Sample *sample,
 }
 
 /** \} */
+
+/* ------------------------------------------------------------------------- */
+/** \nom Abc_Output_Light
+ * \{ */
+
+struct Abc_Output_Light : public Abc_Output_Object {
+    AbcGeom::OLight object{};
+
+    void set_from_previous()
+    {
+        object.getSchema().setFromPrevious();
+    }
+
+    void get_arb_geom_params(Abc_Output_Compound_Property *prop)
+    {
+        prop->prop = object.getSchema().getArbGeomParams();
+    }
+
+    void get_user_properties(Abc_Output_Compound_Property *prop)
+    {
+        prop->prop = object.getSchema().getUserProperties();
+    }
+
+    void get_metadata(Abc_MetaData *metadata)
+    {
+        metadata->metadata = object.getMetaData();
+    }
+
+    AbcGeom::OObject &get_object() override
+    {
+        return object;
+    }
+};
+
+Abc_Output_Light *abc_output_light_create(Abc_Output_Xform *parent,
+                                          Abc_String nom,
+                                          Abc_Time_Sample_Index time_sample_index)
+{
+    auto archive = parent->archive;
+    auto résultat = crée_objet_sortie<Abc_Output_Light>(archive);
+    résultat->object = AbcGeom::OLight(
+        parent->object, vers_std_string(nom), time_sample_index.value);
+    return résultat;
+}
+
+DEFINE_COMMON_OBJECT_FUNCTIONS(Light, light)
+
+void abc_output_light_set_camera_sample(struct Abc_Output_Light *light,
+                                        struct Abc_Output_Camera_Sample *sample)
+{
+    light->object.getSchema().setCameraSample(sample->sample);
+}
+
+/** \} */
