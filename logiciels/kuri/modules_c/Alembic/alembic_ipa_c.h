@@ -297,9 +297,7 @@ struct Abc_Attribute_Type_Descriptor *abc_get_pod_type_descriptors(uint64_t *r_l
         struct Abc_Output_##uppercase_name##_Sample *sample);                                     \
     void abc_output_##lowercase_name##_sample_set(                                                \
         struct Abc_Output_##uppercase_name *lowercase_name,                                       \
-        struct Abc_Output_##uppercase_name##_Sample *sample);                                     \
-    void abc_output_##lowercase_name##_sample_set_from_previous(                                  \
-        struct Abc_Output_##uppercase_name *lowercase_name);
+        struct Abc_Output_##uppercase_name##_Sample *sample);
 
 #define DECLARE_OUTPUT_SAMPLE_SET_FUNCTION(uname, lname, snake_name, method, sample_type)         \
     void abc_output_##lname##_sample_##snake_name(                                                \
@@ -314,7 +312,8 @@ struct Abc_Attribute_Type_Descriptor *abc_get_pod_type_descriptors(uint64_t *r_l
         struct Abc_Output_##uname *lname);                                                        \
     struct Abc_Output_Compound_Property *abc_output_##lname##_user_properties_get(                \
         struct Abc_Output_##uname *lname);                                                        \
-    struct Abc_MetaData *abc_output_##lname##_metadata_get(struct Abc_Output_##uname *lname);
+    struct Abc_MetaData *abc_output_##lname##_metadata_get(struct Abc_Output_##uname *lname);     \
+    void abc_output_##lname##_sample_set_from_previous(struct Abc_Output_##uname *lname);
 
 /* ------------------------------------------------------------------------- */
 /** \nom MetaData

@@ -1233,6 +1233,10 @@ ENUMERATE_ABC_ATTRIBUTE_TYPES(DEFINE_ABC_OUTPUT_GEOM_PARAMS)
             lname->metadata_initialized = true;                                                   \
         }                                                                                         \
         return &lname->metadata_;                                                                 \
+    }                                                                                             \
+    void abc_output_##lname##_sample_set_from_previous(Abc_Output_##uname *lname)                 \
+    {                                                                                             \
+        lname->set_from_previous();                                                               \
     }
 
 /** \} */
@@ -1475,11 +1479,6 @@ Abc_Output_Xform *abc_output_xform_create(Abc_Output_Xform *parent,
                                                   Abc_Output_##uppercase_name##_Sample *sample)   \
     {                                                                                             \
         lowercase_name->set_sample(sample->sample);                                               \
-    }                                                                                             \
-    void abc_output_##lowercase_name##_sample_set_from_previous(                                  \
-        Abc_Output_##uppercase_name *lowercase_name)                                              \
-    {                                                                                             \
-        lowercase_name->set_from_previous();                                                      \
     }
 
 struct Abc_Output_Xform_Sample {
