@@ -702,6 +702,7 @@ struct Abc_Output_FaceSet;
 struct Abc_Output_Camera;
 struct Abc_Output_NuPatch;
 struct Abc_Output_Light;
+struct Abc_Output_Material;
 
 union Abc_Generic_Output_Object {
     struct Abc_Output_Object *object;
@@ -714,6 +715,7 @@ union Abc_Generic_Output_Object {
     struct Abc_Output_Camera *camera;
     struct Abc_Output_NuPatch *nupatch;
     struct Abc_Output_Light *light;
+    struct Abc_Output_Material *material;
 };
 
 struct Abc_Output_Visibility_Property;
@@ -1155,10 +1157,58 @@ struct Abc_Output_Light *abc_output_light_create(struct Abc_Output_Xform *parent
                                                  struct Abc_String nom,
                                                  struct Abc_Time_Sample_Index time_sample_index);
 
-DECLARE_COMMON_OBJECT_FUNCTIONS(Light, light)
+DECLARE_COMMON_OUTPUT_OBJECT_FUNCTIONS(Light, light)
 
 void abc_output_light_set_camera_sample(struct Abc_Output_Light *light,
                                         struct Abc_Output_Camera_Sample *sample);
+
+/** \} */
+
+/* ------------------------------------------------------------------------- */
+/** \nom Abc_Output_Material
+ * \{ */
+
+struct Abc_Output_Material *abc_output_material_create(struct Abc_Output_Xform *parent,
+                                                       struct Abc_String nom);
+
+struct Abc_MetaData *abc_output_material_metadata_get(struct Abc_Output_Material *metarial);
+
+void abc_output_material_set_shader(struct Abc_Output_Material *material,
+                                    Abc_String target,
+                                    Abc_String shader_type,
+                                    Abc_String shader_name);
+
+struct Abc_Output_Compound_Property *abc_output_material_get_shader_parameters(
+    struct Abc_Output_Material *material, Abc_String target, Abc_String shader_type);
+
+void abc_output_material_add_network_node(struct Abc_Output_Material *material,
+                                          Abc_String node_name,
+                                          Abc_String target,
+                                          Abc_String node_type);
+
+void abc_output_material_set_network_node_connection(struct Abc_Output_Material *material,
+                                                     Abc_String node_name,
+                                                     Abc_String input_name,
+                                                     Abc_String connected_node_name,
+                                                     Abc_String connected_output_name);
+
+struct Abc_Output_Compound_Property *abc_output_material_get_network_node_parameters(
+    struct Abc_Output_Material *material, Abc_String node_name);
+
+void abc_output_material_set_network_terminal(struct Abc_Output_Material *material,
+                                              Abc_String target,
+                                              Abc_String shader_type,
+                                              Abc_String node_name,
+                                              Abc_String output_name);
+
+void abc_output_material_set_network_interface_parameter_mapping(
+    struct Abc_Output_Material *material,
+    Abc_String interface_param_name,
+    Abc_String map_to_node_name,
+    Abc_String map_to_param_name);
+
+struct Abc_Output_Compound_Property *abc_output_material_get_network_interface_parameters(
+    struct Abc_Output_Material *material);
 
 /** \} */
 

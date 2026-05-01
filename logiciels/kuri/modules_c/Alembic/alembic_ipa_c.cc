@@ -1009,13 +1009,19 @@ struct Abc_Output_Compound_Property {
     Abc_Output_Compound_Property *next;
 };
 
+Abc_Output_Compound_Property *make_output_compound_property(Abc_Output_Archive *archive)
+{
+    auto résultat = kuri_loge<Abc_Output_Compound_Property>(archive->ctx_kuri);
+    résultat->archive = archive;
+    liste_ajoute(&résultat->archive->compound_props, résultat);
+    return résultat;
+}
+
 Abc_Output_Compound_Property *abc_output_compound_property_create(
     Abc_Output_Compound_Property *parent, Abc_String name)
 {
-    auto résultat = kuri_loge<Abc_Output_Compound_Property>(parent->archive->ctx_kuri);
+    auto résultat = make_output_compound_property(parent->archive);
     résultat->prop = AbcGeom::OCompoundProperty(parent->prop, name);
-    résultat->archive = parent->archive;
-    liste_ajoute(&résultat->archive->compound_props, résultat);
     return résultat;
 }
 
@@ -2091,6 +2097,112 @@ void abc_output_light_set_camera_sample(struct Abc_Output_Light *light,
                                         struct Abc_Output_Camera_Sample *sample)
 {
     light->object.getSchema().setCameraSample(sample->sample);
+}
+
+/** \} */
+
+/* ------------------------------------------------------------------------- */
+/** \nom Abc_Output_Material
+ * \{ */
+
+struct Abc_Output_Material : public Abc_Output_Object {
+    AbcMaterial::OMaterial object{};
+
+    void get_metadata(Abc_MetaData *metadata)
+    {
+        metadata->metadata = object.getMetaData();
+    }
+
+    AbcGeom::OObject &get_object() override
+    {
+        return object;
+    }
+};
+
+Abc_Output_Material *abc_output_material_create(Abc_Output_Xform *parent, Abc_String nom)
+{
+    auto archive = parent->archive;
+    auto résultat = crée_objet_sortie<Abc_Output_Material>(archive);
+    résultat->object = AbcMaterial::OMaterial(parent->object, nom);
+    return résultat;
+}
+
+Abc_MetaData *abc_output_material_metadata_get(struct Abc_Output_Material *metarial)
+{
+    if (!metarial->metadata_initialized) {
+        metarial->get_metadata(&metarial->metadata_);
+        metarial->metadata_.ctx_kuri = metarial->archive->ctx_kuri;
+        metarial->metadata_initialized = true;
+    }
+    return &metarial->metadata_;
+}
+
+void abc_output_material_set_shader(Abc_Output_Material *material,
+                                    Abc_String target,
+                                    Abc_String shader_type,
+                                    Abc_String shader_name)
+{
+    material->object.getSchema().setShader(target, shader_type, shader_name);
+}
+
+Abc_Output_Compound_Property *abc_output_material_get_shader_parameters(
+    Abc_Output_Material *material, Abc_String target, Abc_String shader_type)
+{
+    auto résultat = make_output_compound_property(material->archive);
+    résultat->prop = material->object.getSchema().getShaderParameters(target, shader_type);
+    return résultat;
+}
+
+void abc_output_material_add_network_node(Abc_Output_Material *material,
+                                          Abc_String node_name,
+                                          Abc_String target,
+                                          Abc_String node_type)
+{
+    material->object.getSchema().addNetworkNode(node_name, target, node_type);
+}
+
+void abc_output_material_set_network_node_connection(Abc_Output_Material *material,
+                                                     Abc_String node_name,
+                                                     Abc_String input_name,
+                                                     Abc_String connected_node_name,
+                                                     Abc_String connected_output_name)
+{
+    material->object.getSchema().setNetworkNodeConnection(
+        node_name, input_name, connected_node_name, connected_output_name);
+}
+
+Abc_Output_Compound_Property *abc_output_material_get_network_node_parameters(
+    Abc_Output_Material *material, Abc_String node_name)
+{
+    auto résultat = make_output_compound_property(material->archive);
+    résultat->prop = material->object.getSchema().getNetworkNodeParameters(node_name);
+    return résultat;
+}
+
+void abc_output_material_set_network_terminal(Abc_Output_Material *material,
+                                              Abc_String target,
+                                              Abc_String shader_type,
+                                              Abc_String node_name,
+                                              Abc_String output_name)
+{
+    material->object.getSchema().setNetworkTerminal(target, shader_type, node_name, output_name);
+}
+
+void abc_output_material_set_network_interface_parameter_mapping(Abc_Output_Material *material,
+                                                                 Abc_String interface_param_name,
+                                                                 Abc_String map_to_node_name,
+                                                                 Abc_String map_to_param_name)
+{
+    material->object.getSchema().setNetworkInterfaceParameterMapping(
+        interface_param_name, map_to_node_name, map_to_param_name);
+}
+
+Abc_Output_Compound_Property *abc_output_material_get_network_interface_parameters(
+    Abc_Output_Material *material)
+{
+    auto résultat = make_output_compound_property(material->archive);
+    résultat->prop = material->object.getSchema().getNetworkInterfaceParameters();
+    return résultat;
 }
 
 /** \} */
