@@ -307,7 +307,7 @@ struct Abc_Attribute_Type_Descriptor *abc_get_pod_type_descriptors(uint64_t *r_l
     void abc_output_##lname##_sample_##snake_name(                                                \
         struct Abc_Output_##uname##_Sample *lname##_sample, sample_type sample);
 
-#define DECLARE_COMMON_OBJECT_FUNCTIONS(uname, lname)                                             \
+#define DECLARE_COMMON_OUTPUT_OBJECT_FUNCTIONS(uname, lname)                                      \
     struct Abc_Output_Compound_Property *abc_output_##lname##_arb_geom_params_get(                \
         struct Abc_Output_##uname *lname);                                                        \
     struct Abc_Output_Compound_Property *abc_output_##lname##_user_properties_get(                \
@@ -859,7 +859,7 @@ struct Abc_Output_Xform *abc_output_xform_create(struct Abc_Output_Xform *parent
                                                  struct Abc_String nom,
                                                  struct Abc_Time_Sample_Index time_sample_index);
 
-DECLARE_COMMON_OBJECT_FUNCTIONS(Xform, xform)
+DECLARE_COMMON_OUTPUT_OBJECT_FUNCTIONS(Xform, xform)
 
 struct Abc_Output_Xform_Sample;
 DECLARE_COMMON_SAMPLE_FONCTIONS(Xform, xform)
@@ -883,7 +883,7 @@ struct Abc_Output_Points *abc_output_points_create(struct Abc_Output_Xform *pare
                                                    struct Abc_String nom,
                                                    struct Abc_Time_Sample_Index time_sample_index);
 
-DECLARE_COMMON_OBJECT_FUNCTIONS(Points, points)
+DECLARE_COMMON_OUTPUT_OBJECT_FUNCTIONS(Points, points)
 
 // X(uname, lname, snake_name, method, sample_type)
 #define ENUMERATE_POINTS_SAMPLE_INTERFACE(X)                                                      \
@@ -928,7 +928,7 @@ struct Abc_Output_Curves *abc_output_curves_create(struct Abc_Output_Xform *pare
                                                    struct Abc_String nom,
                                                    struct Abc_Time_Sample_Index time_sample_index);
 
-DECLARE_COMMON_OBJECT_FUNCTIONS(Curves, curves)
+DECLARE_COMMON_OUTPUT_OBJECT_FUNCTIONS(Curves, curves)
 
 // X(uname, lname, snake_name, method, sample_type)
 #define ENUMERATE_CURVES_SAMPLE_INTERFACE(X)                                                      \
@@ -961,7 +961,7 @@ void abc_output_curves_sample_basis_set(struct Abc_Output_Curves_Sample *sample,
 
 struct Abc_Output_FaceSet;
 
-DECLARE_COMMON_OBJECT_FUNCTIONS(FaceSet, faceset)
+DECLARE_COMMON_OUTPUT_OBJECT_FUNCTIONS(FaceSet, faceset)
 
 // X(uname, lname, snake_name, method, sample_type)
 #define ENUMERATE_FACESET_SAMPLE_INTERFACE(X)                                                     \
@@ -984,7 +984,7 @@ struct Abc_Output_PolyMesh *abc_output_poly_mesh_create(
     struct Abc_String nom,
     struct Abc_Time_Sample_Index time_sample_index);
 
-DECLARE_COMMON_OBJECT_FUNCTIONS(PolyMesh, polymesh)
+DECLARE_COMMON_OUTPUT_OBJECT_FUNCTIONS(PolyMesh, polymesh)
 
 struct Abc_Output_FaceSet *abc_output_polymesh_create_face_set(struct Abc_Output_PolyMesh *mesh,
                                                                struct Abc_String name);
@@ -1019,7 +1019,7 @@ struct Abc_Output_SubD *abc_output_subd_create(struct Abc_Output_Xform *parent,
                                                struct Abc_String nom,
                                                struct Abc_Time_Sample_Index time_sample_index);
 
-DECLARE_COMMON_OBJECT_FUNCTIONS(SubD, subd)
+DECLARE_COMMON_OUTPUT_OBJECT_FUNCTIONS(SubD, subd)
 
 struct Abc_Output_FaceSet *abc_output_subd_create_face_set(struct Abc_Output_SubD *subd,
                                                            struct Abc_String name);
@@ -1069,7 +1069,7 @@ struct Abc_Output_Camera *abc_output_camera_create(struct Abc_Output_Xform *pare
                                                    struct Abc_String nom,
                                                    struct Abc_Time_Sample_Index time_sample_index);
 
-DECLARE_COMMON_OBJECT_FUNCTIONS(Camera, camera)
+DECLARE_COMMON_OUTPUT_OBJECT_FUNCTIONS(Camera, camera)
 
 #define ENUMERATE_OUTPUT_CAMERA_SAMPLE_SCALAR_INTERFACE(X)                                        \
     X(Camera, camera, focal_length_set, setFocalLength, Abc_Milimeters)                           \
@@ -1109,7 +1109,7 @@ struct Abc_Output_NuPatch *abc_output_nupatch_create(
     struct Abc_String nom,
     struct Abc_Time_Sample_Index time_sample_index);
 
-DECLARE_COMMON_OBJECT_FUNCTIONS(NuPatch, nupatch)
+DECLARE_COMMON_OUTPUT_OBJECT_FUNCTIONS(NuPatch, nupatch)
 
 #define ENUMERATE_OUTPUT_NUPATCH_SAMPLE_SCALAR_INTERFACE(X)                                       \
     X(NuPatch, nupatch, nu_set, setNu, int32_t)                                                   \

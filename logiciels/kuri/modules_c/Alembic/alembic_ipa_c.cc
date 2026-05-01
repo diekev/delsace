@@ -1204,7 +1204,7 @@ ENUMERATE_ABC_ATTRIBUTE_TYPES(DEFINE_ABC_OUTPUT_GEOM_PARAMS)
         lname##_sample->sample.method(sample);                                                    \
     }
 
-#define DEFINE_COMMON_OBJECT_FUNCTIONS(uname, lname)                                              \
+#define DEFINE_COMMON_OUTPUT_OBJECT_FUNCTIONS(uname, lname)                                       \
     Abc_Output_Compound_Property *abc_output_##lname##_arb_geom_params_get(                       \
         struct Abc_Output_##uname *lname)                                                         \
     {                                                                                             \
@@ -1440,7 +1440,7 @@ Abc_Output_Xform *abc_output_archive_root_object_get(Abc_Output_Archive *archive
     return racine;
 }
 
-DEFINE_COMMON_OBJECT_FUNCTIONS(Xform, xform)
+DEFINE_COMMON_OUTPUT_OBJECT_FUNCTIONS(Xform, xform)
 
 Abc_Output_Xform *abc_output_xform_create(Abc_Output_Xform *parent,
                                           Abc_String nom,
@@ -1551,7 +1551,7 @@ Abc_Output_Points *abc_output_points_create(Abc_Output_Xform *parent,
     return résultat;
 }
 
-DEFINE_COMMON_OBJECT_FUNCTIONS(Points, points)
+DEFINE_COMMON_OUTPUT_OBJECT_FUNCTIONS(Points, points)
 
 struct Abc_Output_Points_Sample {
     ContexteKuri *ctx_kuri = nullptr;
@@ -1614,7 +1614,7 @@ Abc_Output_Curves *abc_output_curves_create(Abc_Output_Xform *parent,
     return résultat;
 }
 
-DEFINE_COMMON_OBJECT_FUNCTIONS(Curves, curves)
+DEFINE_COMMON_OUTPUT_OBJECT_FUNCTIONS(Curves, curves)
 
 struct Abc_Output_Curves_Sample {
     ContexteKuri *ctx_kuri = nullptr;
@@ -1684,7 +1684,7 @@ struct Abc_Output_FaceSet : public Abc_Output_Object {
     }
 };
 
-DEFINE_COMMON_OBJECT_FUNCTIONS(FaceSet, faceset)
+DEFINE_COMMON_OUTPUT_OBJECT_FUNCTIONS(FaceSet, faceset)
 
 struct Abc_Output_FaceSet_Sample {
     ContexteKuri *ctx_kuri = nullptr;
@@ -1747,7 +1747,7 @@ Abc_Output_PolyMesh *abc_output_poly_mesh_create(Abc_Output_Xform *parent,
     return résultat;
 }
 
-DEFINE_COMMON_OBJECT_FUNCTIONS(PolyMesh, polymesh)
+DEFINE_COMMON_OUTPUT_OBJECT_FUNCTIONS(PolyMesh, polymesh)
 
 Abc_Output_FaceSet *abc_output_polymesh_create_face_set(Abc_Output_PolyMesh *mesh, Abc_String name)
 {
@@ -1822,7 +1822,7 @@ Abc_Output_SubD *abc_output_subd_create(Abc_Output_Xform *parent,
     return résultat;
 }
 
-DEFINE_COMMON_OBJECT_FUNCTIONS(SubD, subd)
+DEFINE_COMMON_OUTPUT_OBJECT_FUNCTIONS(SubD, subd)
 
 Abc_Output_FaceSet *abc_output_subd_create_face_set(Abc_Output_SubD *subd, Abc_String name)
 {
@@ -1921,7 +1921,7 @@ Abc_Output_Camera *abc_output_camera_create(Abc_Output_Xform *parent,
     return résultat;
 }
 
-DEFINE_COMMON_OBJECT_FUNCTIONS(Camera, camera)
+DEFINE_COMMON_OUTPUT_OBJECT_FUNCTIONS(Camera, camera)
 
 struct Abc_Output_Camera_Sample {
     ContexteKuri *ctx_kuri = nullptr;
@@ -1992,7 +1992,7 @@ Abc_Output_NuPatch *abc_output_nupatch_create(Abc_Output_Xform *parent,
     return résultat;
 }
 
-DEFINE_COMMON_OBJECT_FUNCTIONS(NuPatch, nupatch)
+DEFINE_COMMON_OUTPUT_OBJECT_FUNCTIONS(NuPatch, nupatch)
 
 struct Abc_Output_NuPatch_Sample {
     ContexteKuri *ctx_kuri = nullptr;
@@ -2085,7 +2085,7 @@ Abc_Output_Light *abc_output_light_create(Abc_Output_Xform *parent,
     return résultat;
 }
 
-DEFINE_COMMON_OBJECT_FUNCTIONS(Light, light)
+DEFINE_COMMON_OUTPUT_OBJECT_FUNCTIONS(Light, light)
 
 void abc_output_light_set_camera_sample(struct Abc_Output_Light *light,
                                         struct Abc_Output_Camera_Sample *sample)
