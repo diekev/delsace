@@ -1630,6 +1630,18 @@ void QT_window_map_to_global(struct QT_Window *window, QT_Point *point, QT_Point
     *r_point = QT_Point{résultat.x(), résultat.y()};
 }
 
+void QT_window_set_mouse_grab_enabled(struct QT_Window *window, bool oui_non)
+{
+    VERS_QT(window);
+    qwindow->setMouseGrabEnabled(oui_non);
+}
+
+void QT_window_set_keyboard_grab_enabled(struct QT_Window *window, bool oui_non)
+{
+    VERS_QT(window);
+    qwindow->setKeyboardGrabEnabled(oui_non);
+}
+
 /** \} */
 
 /* ------------------------------------------------------------------------- */
