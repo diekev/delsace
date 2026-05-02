@@ -552,6 +552,70 @@ void QT_fenetre_principale_ajoute_barre_a_outils(struct QT_Fenetre_Principale *f
 /** \} */
 
 /* ------------------------------------------------------------------------- */
+/** \name QT_Position
+ * \{ */
+
+struct QT_Position {
+    int x;
+    int y;
+};
+
+/** \} */
+
+/* ------------------------------------------------------------------------- */
+/** \name QT_Point
+ * \{ */
+
+struct QT_Point {
+    int x;
+    int y;
+};
+
+/** \} */
+
+/* ------------------------------------------------------------------------- */
+/** \name QT_PointF
+ * \{ */
+
+struct QT_PointF {
+    double x;
+    double y;
+};
+
+/** \} */
+
+/* ------------------------------------------------------------------------- */
+/** \name QT_Rect
+ * \{ */
+
+struct QT_Rect {
+    int x;
+    int y;
+    int largeur;
+    int hauteur;
+};
+
+struct QT_Point QT_rect_donne_bas_gauche(struct QT_Rect rect);
+struct QT_Point QT_rect_donne_bas_droit(struct QT_Rect rect);
+struct QT_Point QT_rect_donne_haut_gauche(struct QT_Rect rect);
+struct QT_Point QT_rect_donne_haut_droit(struct QT_Rect rect);
+
+/** \} */
+
+/* ------------------------------------------------------------------------- */
+/** \name QT_RectF
+ * \{ */
+
+struct QT_RectF {
+    double x;
+    double y;
+    double largeur;
+    double hauteur;
+};
+
+/** \} */
+
+/* ------------------------------------------------------------------------- */
 /** \name QT_Application
  * \{ */
 
@@ -591,8 +655,6 @@ void QT_application_process_events();
 struct QT_Thread *QT_application_thread();
 
 int QT_application_screen_count();
-
-struct QT_Rect;
 
 void QT_application_screen_geometry(int index, struct QT_Rect *rect);
 
@@ -1336,39 +1398,6 @@ enum QT_Keyboard_Modifier QT_application_donne_modificateurs_clavier(void);
 /** \} */
 
 /* ------------------------------------------------------------------------- */
-/** \name QT_Position
- * \{ */
-
-struct QT_Position {
-    int x;
-    int y;
-};
-
-/** \} */
-
-/* ------------------------------------------------------------------------- */
-/** \name QT_Point
- * \{ */
-
-struct QT_Point {
-    int x;
-    int y;
-};
-
-/** \} */
-
-/* ------------------------------------------------------------------------- */
-/** \name QT_PointF
- * \{ */
-
-struct QT_PointF {
-    double x;
-    double y;
-};
-
-/** \} */
-
-/* ------------------------------------------------------------------------- */
 /** \name QT_Shortcut
  * \{ */
 
@@ -1538,6 +1567,7 @@ void QT_window_map_to_global(struct QT_Window *window,
                              struct QT_Point *r_point);
 void QT_window_set_mouse_grab_enabled(struct QT_Window *window, bool oui_non);
 void QT_window_set_keyboard_grab_enabled(struct QT_Window *window, bool oui_non);
+struct QT_Rect QT_window_geometry(struct QT_Window *window);
 
 /** \} */
 
@@ -1613,37 +1643,6 @@ void QT_OpenGL_Context_set_share_context(struct QT_OpenGL_Context *context,
                                          struct QT_OpenGL_Context *share_context);
 bool QT_OpenGL_Context_are_sharing(struct QT_OpenGL_Context *context1,
                                    struct QT_OpenGL_Context *context2);
-
-/** \} */
-
-/* ------------------------------------------------------------------------- */
-/** \name QT_Rect
- * \{ */
-
-struct QT_Rect {
-    int x;
-    int y;
-    int largeur;
-    int hauteur;
-};
-
-struct QT_Point QT_rect_donne_bas_gauche(struct QT_Rect rect);
-struct QT_Point QT_rect_donne_bas_droit(struct QT_Rect rect);
-struct QT_Point QT_rect_donne_haut_gauche(struct QT_Rect rect);
-struct QT_Point QT_rect_donne_haut_droit(struct QT_Rect rect);
-
-/** \} */
-
-/* ------------------------------------------------------------------------- */
-/** \name QT_RectF
- * \{ */
-
-struct QT_RectF {
-    double x;
-    double y;
-    double largeur;
-    double hauteur;
-};
 
 /** \} */
 

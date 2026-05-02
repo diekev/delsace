@@ -1640,6 +1640,14 @@ void QT_window_set_keyboard_grab_enabled(struct QT_Window *window, bool oui_non)
 {
     VERS_QT(window);
     qwindow->setKeyboardGrabEnabled(oui_non);
+
+    qwindow->geometry();
+}
+
+QT_Rect QT_window_geometry(struct QT_Window *window)
+{
+    VERS_QT(window);
+    return vers_ipa(qwindow->geometry());
 }
 
 /** \} */
