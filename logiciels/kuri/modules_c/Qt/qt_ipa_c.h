@@ -1565,6 +1565,9 @@ void QT_window_set_opacity(struct QT_Window *window, double opacity);
 void QT_window_map_to_global(struct QT_Window *window,
                              struct QT_Point *point,
                              struct QT_Point *r_point);
+void QT_window_map_from_global(struct QT_Window *window,
+                               struct QT_Point *point,
+                               struct QT_Point *r_point);
 void QT_window_set_mouse_grab_enabled(struct QT_Window *window, bool oui_non);
 void QT_window_set_keyboard_grab_enabled(struct QT_Window *window, bool oui_non);
 struct QT_Rect QT_window_geometry(struct QT_Window *window);
