@@ -272,6 +272,14 @@ termine_saisie_clavier :: fonc (fenêtre: Port_Fenêtre_Native)
     qt_fenêtre_termine_saisie_clavier(fenêtre);
 }
 
+donne_géométrie :: fonc (fenêtre: *Port_Fenêtre_Native) -> RectanglePosDim(z32)
+{
+    assert(fenêtre.système == SystèmeFenêtre.QT);
+    résultat: RectanglePosDim(z32);
+    résultat = qt_fenêtre_donne_géométrie(fenêtre);
+    retourne résultat;
+}
+
 Position_Globale :: struct {
     x: z32;
     y: z32;
@@ -588,6 +596,20 @@ qt_fenêtre_termine_saisie_clavier :: fonc (fenêtre: Port_Fenêtre_Native)
     assert(fenêtre.rappels_window.window != nul);
 
     QT_window_set_keyboard_grab_enabled(fenêtre.rappels_window.window, faux);
+}
+
+qt_fenêtre_donne_géométrie :: fonc (fenêtre: *Port_Fenêtre_Native) -> RectanglePosDim(z32)
+{
+    assert(fenêtre.rappels_window != nul);
+    assert(fenêtre.rappels_window.window != nul);
+
+    rect := QT_window_geometry(fenêtre.rappels_window.window);
+    résultat: RectanglePosDim(z32) = ---;
+    résultat.x = rect.x;
+    résultat.y = rect.y;
+    résultat.hauteur = rect.hauteur;
+    résultat.largeur = rect.largeur;
+    retourne résultat;
 }
 
 RappelsWindow :: struct {
