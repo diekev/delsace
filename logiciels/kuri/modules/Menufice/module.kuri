@@ -388,16 +388,18 @@ donne_info_cotation_menu :: fonc (menu: *Menu, params: *ParamsDispositionBarreDe
     retourne résultat;
 }
 
-dispose_éléments_menu :: fonc (menu: *Menu, params: *ParamsDispositionBarreDeMenu, fonte: *Fonte)
+dispose_éléments_menu :: fonc (menu: *Menu, params: *ParamsDispositionBarreDeMenu, fonte: *Fonte, position_manuelle := faux)
 {
     dispose_rectangle();
     {
         définis_disposition(direction = Direction.Verticale);
-        si menu.est_pour_énum {
-            définis_flottance(menu.x, menu.y, ancrage = Ancrage_Flottante.HAUT_GAUCHE);
-        }
-        sinon {
-            définis_flottance(ancrage = Ancrage_Flottante.BAS_GAUCHE);
+        saufsi position_manuelle {
+            si menu.est_pour_énum {
+                définis_flottance(menu.x, menu.y, ancrage = Ancrage_Flottante.HAUT_GAUCHE);
+            }
+            sinon {
+                définis_flottance(ancrage = Ancrage_Flottante.BAS_GAUCHE);
+            }
         }
         définis_arrière_plan(params.arrière_plan_menu);
 
