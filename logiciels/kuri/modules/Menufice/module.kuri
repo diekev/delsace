@@ -238,6 +238,8 @@ ParamsDispositionBarreDeMenu :: struct {
     données_icone: *rien;
 
     données_est_cliquable: eini;
+
+    dessine_sous_menus_ouverts: bool = vrai;
 }
 
 dispose_barre_de_menu :: fonc (barre_de_menu: *BarreDeMenu,
@@ -280,7 +282,7 @@ dispose_menu :: fonc (menu: *Menu, params: *ParamsDispositionBarreDeMenu, fonte:
             définis_arrière_plan(params.arrière_plan_menu_survolé);
         }
 
-        si menu.est_ouvert {
+        si params.dessine_sous_menus_ouverts && menu.est_ouvert {
             dispose_éléments_menu(menu, params, fonte);
         }
 
