@@ -27,6 +27,7 @@ Guetteuse :: struct {
     plateforme: *PlateformeGuettage;
     sur_termine_guettage: fonc (guetteuse: *Guetteuse);
     sur_clic: fonc (guetteuse: *Guetteuse, clic: ClicSouris) -> ÉtatÉvènement;
+    sur_roulement_souris: fonc (guetteuse: *Guetteuse, clic: ClicSouris) -> ÉtatÉvènement;
     sur_déplacement_souris: fonc (guetteuse: *Guetteuse, état: ÉtatSouris) -> ÉtatÉvènement;
     sur_touche_clavier: fonc (guetteuse: *Guetteuse, info: InfoToucheClavier) -> ÉtatÉvènement;
     sur_destruction: fonc (guetteuse: *Guetteuse);
@@ -67,6 +68,10 @@ gère_évènement :: fonc (guetteuse: *Guetteuse, évènement: *Évènement) -> 
 
         si guetteuse.sur_déplacement_souris && (évènement.action_souris == ActionSouris.DÉPLACÉE) {
             retourne guetteuse.sur_déplacement_souris(guetteuse, évènement.état_souris);
+        }
+
+        si guetteuse.sur_roulement_souris && (évènement.action_souris == ActionSouris.ROULEMENT) {
+            retourne guetteuse.sur_roulement_souris(guetteuse, donne_clic_souris(évènement));
         }
 
         retourne ÉtatÉvènement.PASSE_AU_PARENT;
