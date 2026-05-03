@@ -87,6 +87,34 @@ gère_évènement :: fonc (guetteuse: *Guetteuse, évènement: *Évènement) -> 
     retourne ÉtatÉvènement.PASSE_AU_PARENT;
 }
 
+initialise_guetteuse_pour_tout_consommer :: fonc (guetteuse: *Guetteuse)
+{
+    guetteuse.sur_clic = guetteuse_consomme_clic_souris;
+    guetteuse.sur_roulement_souris = guetteuse_consomme_roulement_souris;
+    guetteuse.sur_déplacement_souris = guetteuse_consomme_déplacement_souris;
+    guetteuse.sur_touche_clavier = guetteuse_consomme_touche_clavier;
+}
+
+guetteuse_consomme_clic_souris :: fonc (guetteuse: *Guetteuse @inutilisée, clic: ClicSouris @inutilisée) -> ÉtatÉvènement
+{
+    retourne ÉtatÉvènement.CONSOMMÉ;
+}
+
+guetteuse_consomme_roulement_souris :: fonc (guetteuse: *Guetteuse @inutilisée, clic: ClicSouris @inutilisée) -> ÉtatÉvènement
+{
+    retourne ÉtatÉvènement.CONSOMMÉ;
+}
+
+guetteuse_consomme_déplacement_souris :: fonc (guetteuse: *Guetteuse @inutilisée, état: ÉtatSouris @inutilisée) -> ÉtatÉvènement
+{
+    retourne ÉtatÉvènement.CONSOMMÉ;
+}
+
+guetteuse_consomme_touche_clavier :: fonc (guetteuse: *Guetteuse @inutilisée, info: InfoToucheClavier @inutilisée) -> ÉtatÉvènement
+{
+    retourne ÉtatÉvènement.CONSOMMÉ;
+}
+
 /** \} */
 
 /* ------------------------------------------------------------------------- */
