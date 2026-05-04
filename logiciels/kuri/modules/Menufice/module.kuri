@@ -443,9 +443,9 @@ dispose_élément_menu :: fonc (fonte: *Fonte, texte: ChaineUTF32, texte_pour_ra
     {
         sur_pression_souris(sur_élément_menu_cliqué, menu, indice_élément);
 
-        définis_disposition(cotation = Cotation(FIXE(info_cotation_menu.largeur)),
-                            rembourrage = RembourrageDifforme(info_cotation_menu.rembourrage_horizontal comme r32, info_cotation_menu.rembourrage_vertical comme r32),
-                            séparation_enfant = info_cotation_menu.rembourrage_horizontal comme r32);
+        définis_cotation(Cotation(FIXE(info_cotation_menu.largeur)));
+        définis_rembourrage(RembourrageDifforme(info_cotation_menu.rembourrage_horizontal comme r32, info_cotation_menu.rembourrage_vertical comme r32));
+        définis_séparation_enfant(info_cotation_menu.rembourrage_horizontal comme r32);
 
         si est_activé && (est_survolée() || (est_sous_menu && menu.sous_menu_ouvert == est_sous_menu)) {
             définis_arrière_plan(params.arrière_plan_menu_survolé);
