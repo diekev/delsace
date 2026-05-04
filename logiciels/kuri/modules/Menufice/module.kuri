@@ -379,6 +379,9 @@ donne_info_cotation_menu :: fonc (menu: *Menu, params: *ParamsDispositionBarreDe
 
     métriques_fonte := donne_métriques_fonte(fonte);
     hauteur_de_ligne := donne_hauteur_ligne(métriques_fonte);
+    si hauteur_de_ligne < cotation_icone comme r32 {
+        hauteur_de_ligne = cotation_icone comme r32;
+    }
 
     résultat.hauteur = ((hauteur_de_ligne * (menu.éléments.taille - nombre_de_séparateurs) comme r32) + (nombre_de_séparateurs * params.taille_séparateur) comme r32) comme n32;
     résultat.hauteur += ((menu.éléments.taille - nombre_de_séparateurs) * rembourrage_vertical * 2) comme n32;
