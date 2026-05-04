@@ -383,8 +383,14 @@ donne_info_cotation_menu :: fonc (menu: *Menu, params: *ParamsDispositionBarreDe
         hauteur_de_ligne = cotation_icone comme r32;
     }
 
-    résultat.hauteur = ((hauteur_de_ligne * (menu.éléments.taille - nombre_de_séparateurs) comme r32) + (nombre_de_séparateurs * params.taille_séparateur) comme r32) comme n32;
-    résultat.hauteur += ((menu.éléments.taille - nombre_de_séparateurs) * rembourrage_vertical * 2) comme n32;
+    hauteur_élément := hauteur_de_ligne + rembourrage_vertical comme r32 * 2;
+
+    nombre_éléments_hors_séparateurs := menu.éléments.taille - nombre_de_séparateurs;
+
+    hauteur_totale := hauteur_élément * nombre_éléments_hors_séparateurs comme r32;
+    hauteur_totale += (nombre_de_séparateurs * params.taille_séparateur) comme r32;
+
+    résultat.hauteur = hauteur_totale comme n32;
 
     résultat.rembourrage_horizontal = rembourrage_horizontal;
     résultat.rembourrage_vertical = rembourrage_vertical;
