@@ -637,6 +637,31 @@ void abc_input_archive_get_start_and_end_time(struct Abc_Input_Archive *archive,
 /** \} */
 
 /* ------------------------------------------------------------------------- */
+/** \nom Abc_Input_PolyMesh_Sample
+ * \{ */
+
+struct Abc_Input_PolyMesh_Sample;
+
+struct Abc_Input_PolyMesh_Sample *abc_input_polymesh_get_sample(
+    struct Abc_Input_PolyMesh *polymesh, struct Abc_Sample_Selector selector);
+
+void abc_input_polymesh_sample_destroy(struct Abc_Input_PolyMesh_Sample *sample);
+
+struct Abc_P3f_Array_Sample abc_input_polymesh_sample_get_positions(
+    struct Abc_Input_PolyMesh_Sample *sample);
+
+struct Abc_V3f_Array_Sample abc_input_polymesh_sample_get_velocities(
+    struct Abc_Input_PolyMesh_Sample *sample);
+
+struct Abc_Int32_Array_Sample abc_input_polymesh_sample_get_face_indices(
+    struct Abc_Input_PolyMesh_Sample *sample);
+
+struct Abc_Int32_Array_Sample abc_input_polymesh_sample_get_face_counts(
+    struct Abc_Input_PolyMesh_Sample *sample);
+
+/** \} */
+
+/* ------------------------------------------------------------------------- */
 /** \nom Export
  * \{ */
 
