@@ -1,0 +1,243 @@
+importe Alembic;
+importe Ensemble;
+importe Fondation;
+importe LigneDeCommande;
+importe SysFichier;
+
+principale :: fonc ()
+{
+    chemin := parse_argument_chemin();
+    saufsi chemin {
+        exit(1);
+    }
+
+    si est_un_dossier(CheminFichier(chemin)) {
+        chemins: [..]chaine;
+        diffère déloge_tableau_et_ses_éléments(*chemins);
+
+        donne_chemins_du_dossier_récursif(chemin, *chemins, ".abc");
+
+        pour chemins {
+            polymesh2subd(it);
+        }
+    }
+    sinon {
+        polymesh2subd(chemin);
+    }
+}
+
+polymesh2subd :: fonc (chemin: chaine)
+{
+    iarchive := abc_input_archive_create(chemin);
+    saufsi iarchive {
+        imprimeln("Impossible d'ouvrir l'archive '%'", chemin);
+        retourne;
+    }
+    diffère abc_input_archive_destroy(iarchive);
+
+    top := abc_input_archive_get_top(iarchive);
+    saufsi abc_input_object_valid(top) {
+        imprimeln("L'object top n'est pas valide");
+        retourne;
+    }
+
+    polymeshes: [..]*Abc_Input_PolyMesh;
+
+    pour abc_input_object_get_num_children(top) {
+        header := abc_input_object_get_child_header(top, it);
+        traverse_hiérarchie(top, header, *polymeshes);
+    }
+
+    /* Sortie. */
+    saufsi polymeshes {
+        retourne;
+    }
+
+    tampon_chemin_sortie: TamponChemin;
+    _ := ajoute(*tampon_chemin_sortie, "/tmp/");
+    _ := ajoute(*tampon_chemin_sortie, nom_fichier(CheminFichier(chemin)));
+    _ := ajoute(*tampon_chemin_sortie, "-subd.abc");
+
+    chemin_sortie := donne_chaine_statique(*tampon_chemin_sortie);
+
+    imprimeln("Écriture de %...", chemin_sortie);
+
+    metadata: Abc_Output_Archive_Metadata;
+    metadata.application_name = vers_abc_string("Jorjala");
+    metadata.fps = 24.0;
+
+    oarchive := abc_output_archive_create(chemin_sortie, *metadata);
+    diffère abc_output_archive_destroy(oarchive);
+
+    ts_défaut := abc_output_archive_default_time_sampling(oarchive);
+
+    racine := abc_output_archive_root_object_get(oarchive);
+
+    pour polymeshes {
+        convertis_polymesh(oarchive, racine, it, ts_défaut);
+    }
+}
+
+traverse_hiérarchie :: fonc (parent: Abc_Generic_Input_Object, header: *Abc_Object_Header, résultat: *[..]*Abc_Input_PolyMesh)
+{
+    nom: Abc_String;
+    abc_object_header_get_name(header, *nom);
+    next_object: Abc_Generic_Input_Object;
+
+    si abc_object_header_matches_polymesh(header) {
+        polymesh := abc_input_polymesh_get(parent, nom);
+        tableau_ajoute(résultat, polymesh);
+    }
+    sinon si abc_object_header_matches_xform(header) {
+        xform := abc_input_xform_get(parent, nom);
+        next_object = xform;
+    }
+    sinon {
+        /* Ignore. */
+    }
+
+    si abc_input_object_valid(next_object) {
+        pour abc_input_object_get_num_children(next_object) {
+            header = abc_input_object_get_child_header(next_object, it);
+            traverse_hiérarchie(next_object, header, résultat);
+        }
+    }
+}
+
+convertis_polymesh :: fonc (archive: *Abc_Output_Archive, racine: *Abc_Output_Xform, polymesh: *Abc_Input_PolyMesh, ts_parent: Abc_Time_Sample_Index)
+{
+    nom: Abc_String;
+    abc_input_object_get_full_name(polymesh, *nom);
+
+    time_sampling := abc_input_polymesh_get_time_sampling(polymesh);
+
+    num_samples := abc_input_polymesh_get_num_samples(polymesh);
+
+    chaine_chemin_polymesh := vers_kuri(nom);
+    chemin_polymesh := CheminFichier(chaine_chemin_polymesh);
+
+    chemin_parent_polymesh := chemin_parent(chemin_polymesh);
+
+    nom_polymesh := nom_fichier(chemin_polymesh);
+    nom_parent := nom_fichier(chemin_parent_polymesh);
+
+    ts_subd := abc_output_archive_create_time_sampling(archive, time_sampling);
+    matrice_subd := crée_xform_neutre_pour_objet(racine, nom_parent, ts_parent);
+    subd := abc_output_subd_create(matrice_subd, nom_polymesh, ts_subd);
+
+    pour num_samples {
+        sample_time := abc_time_sampling_get_sample_time(time_sampling, it comme z64);
+
+        selector: Abc_Sample_Selector;
+        selector.requested_index = -1;
+        selector.requested_time = sample_time;
+
+        sample := abc_input_polymesh_get_sample(polymesh, selector);
+        diffère abc_input_polymesh_sample_destroy(sample);
+
+        points := abc_input_polymesh_sample_get_positions(sample);
+        velocities := abc_input_polymesh_sample_get_velocities(sample);
+        face_indices := abc_input_polymesh_sample_get_face_indices(sample);
+        face_counts := abc_input_polymesh_sample_get_face_counts(sample);
+
+        subd_sample := abc_output_subd_sample_create(subd);
+        diffère abc_output_subd_sample_destroy(subd_sample);
+
+        abc_output_subd_sample_positions_set(subd_sample, points);
+        abc_output_subd_sample_face_indices_set(subd_sample, face_indices);
+        abc_output_subd_sample_face_counts_set(subd_sample, face_counts);
+
+        si velocities.values {
+            abc_output_subd_sample_velocities_set(subd_sample, velocities);
+        }
+
+        abc_output_subd_sample_set(subd, subd_sample);
+    }
+}
+
+imprime_time_sampling :: fonc (time_sampling: *Abc_Time_Sampling)
+{
+    num_stored_times := abc_time_sampling_get_num_stored_times(time_sampling);
+
+    times: [..]r64;
+    tableau_redimensionne(*times, num_stored_times comme z64);
+
+    abc_time_sampling_get_stored_times(time_sampling, *times.pointeur, *times.taille comme *n64);
+
+    imprimeln("% times", times.taille);
+    pour times {
+        imprimeln("-- %", it);
+    }
+
+    time_sampling_type: Abc_Time_Sampling_Type;
+    abc_time_sampling_get_time_sampling_type(time_sampling, *time_sampling_type);
+
+    imprimeln("%", time_sampling_type);
+}
+
+abc_output_archive_create_time_sampling :: fonc (archive: *Abc_Output_Archive, time_sampling: *Abc_Time_Sampling) -> Abc_Time_Sample_Index
+{
+    times: *r64;
+    num_times: n64;
+    abc_time_sampling_get_stored_times(time_sampling, *times, *num_times);
+
+    time_sampling_type: Abc_Time_Sampling_Type;
+    abc_time_sampling_get_time_sampling_type(time_sampling, *time_sampling_type);
+
+    retourne abc_output_archive_create_time_sampling(archive, times, num_times, time_sampling_type.time_per_cycle);
+}
+
+valide_sample :: fonc (sample: *Abc_Input_PolyMesh_Sample)
+{
+    donne_tranche :: fonc (sample: Abc_Int32_Array_Sample) -> []z32
+    {
+        résultat: []z32 = ---;
+        résultat.pointeur = sample.values;
+        résultat.taille = sample.num_values comme z64;
+        retourne résultat;
+    }
+
+    face_indices := abc_input_polymesh_sample_get_face_indices(sample);
+    face_counts := abc_input_polymesh_sample_get_face_counts(sample);
+
+    vertex_vues: [..]z32;
+    diffère déloge(*vertex_vues);
+
+    tranche_face_counts := donne_tranche(face_counts);
+    tranche_face_indices := donne_tranche(face_indices);
+
+    indice_face_index := 0;
+
+    pour compte, indice_compte dans tranche_face_counts {
+        si compte == 0 {
+            imprimeln("Un polygone a zéro vertex !\n");
+            arrête;
+        }
+
+        vertex_vues.taille = 0;
+
+        duplication := faux;
+
+        pour nombre_de_coins dans compte {
+            vertex_index := tranche_face_indices[indice_face_index];
+
+            si ensemble_possède(vertex_vues, vertex_index) {
+                duplication = vrai;
+            }
+            ensemble_ajoute(*vertex_vues, vertex_index);
+            indice_face_index += 1;
+        }
+
+        si duplication {
+            indice_face_index -= compte;
+
+            imprimeln("-- face % contient des vertex en double", indice_compte);
+
+            pour nombre_de_coins dans compte {
+                imprime("   %", tranche_face_indices[indice_face_index]);
+                indice_face_index += 1;
+            }
+            imprime("\n");
+        }
+    }
+}
