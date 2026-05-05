@@ -1,4 +1,5 @@
 importe Alembic;
+importe Ensemble;
 importe Fondation;
 importe LigneDeCommande;
 importe SysFichier;
@@ -184,4 +185,59 @@ abc_output_archive_create_time_sampling :: fonc (archive: *Abc_Output_Archive, t
     abc_time_sampling_get_time_sampling_type(time_sampling, *time_sampling_type);
 
     retourne abc_output_archive_create_time_sampling(archive, times, num_times, time_sampling_type.time_per_cycle);
+}
+
+valide_sample :: fonc (sample: *Abc_Input_PolyMesh_Sample)
+{
+    donne_tranche :: fonc (sample: Abc_Int32_Array_Sample) -> []z32
+    {
+        résultat: []z32 = ---;
+        résultat.pointeur = sample.values;
+        résultat.taille = sample.num_values comme z64;
+        retourne résultat;
+    }
+
+    face_indices := abc_input_polymesh_sample_get_face_indices(sample);
+    face_counts := abc_input_polymesh_sample_get_face_counts(sample);
+
+    vertex_vues: [..]z32;
+    diffère déloge(*vertex_vues);
+
+    tranche_face_counts := donne_tranche(face_counts);
+    tranche_face_indices := donne_tranche(face_indices);
+
+    indice_face_index := 0;
+
+    pour compte, indice_compte dans tranche_face_counts {
+        si compte == 0 {
+            imprimeln("Un polygone a zéro vertex !\n");
+            arrête;
+        }
+
+        vertex_vues.taille = 0;
+
+        duplication := faux;
+
+        pour nombre_de_coins dans compte {
+            vertex_index := tranche_face_indices[indice_face_index];
+
+            si ensemble_possède(vertex_vues, vertex_index) {
+                duplication = vrai;
+            }
+            ensemble_ajoute(*vertex_vues, vertex_index);
+            indice_face_index += 1;
+        }
+
+        si duplication {
+            indice_face_index -= compte;
+
+            imprimeln("-- face % contient des vertex en double", indice_compte);
+
+            pour nombre_de_coins dans compte {
+                imprime("   %", tranche_face_indices[indice_face_index]);
+                indice_face_index += 1;
+            }
+            imprime("\n");
+        }
+    }
 }
