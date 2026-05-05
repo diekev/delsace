@@ -524,6 +524,52 @@ ENUMERATE_ABC_ATTRIBUTE_TYPES(DECLARE_ABC_TYPED_ARRAY_PROPERTY)
 /** \} */
 
 /* ------------------------------------------------------------------------- */
+/** \nom Abc_Input_Geom_Param
+ * \{ */
+
+struct Abc_Input_Geom_Param;
+
+#define DECLARE_INPUT_GEOM_PARAM(type_geom, type_abc_value, type_c, nom_court)                    \
+    struct Abc_Input_##type_geom##_Geom_Param;                                                    \
+    uint64_t abc_input_##nom_court##_geom_param_get_num_samples(                                  \
+        struct Abc_Input_##type_geom##_Geom_Param *param);                                        \
+    void abc_input_##nom_court##_geom_param_get_data_type(                                        \
+        struct Abc_Input_##type_geom##_Geom_Param *param, struct Abc_Data_Type *r_data_type);     \
+    uint64_t abc_input_##nom_court##_geom_param_get_array_extent(                                 \
+        struct Abc_Input_##type_geom##_Geom_Param *param);                                        \
+    bool abc_input_##nom_court##_geom_param_is_indexed(                                           \
+        struct Abc_Input_##type_geom##_Geom_Param *param);                                        \
+    enum Abc_Geometry_Scope abc_input_##nom_court##_geom_param_get_scope(                         \
+        struct Abc_Input_##type_geom##_Geom_Param *param);                                        \
+    void abc_input_##nom_court##_geom_param_get_name(                                             \
+        struct Abc_Input_##type_geom##_Geom_Param *param, struct Abc_String *r_name);             \
+    struct Abc_Time_Sampling *abc_input_##nom_court##_geom_param_get_time_sampling(               \
+        struct Abc_Input_##type_geom##_Geom_Param *param);                                        \
+    struct Abc_MetaData *abc_input_##nom_court##_geom_param_get_metadata(                         \
+        struct Abc_Input_##type_geom##_Geom_Param *param);                                        \
+    struct Abc_Input_##type_geom##_Geom_Param_Sample {                                            \
+        type_c *values;                                                                           \
+        uint64_t num_values;                                                                      \
+        uint32_t *indices;                                                                        \
+        uint64_t num_indices;                                                                     \
+        enum Abc_Geometry_Scope scope;                                                            \
+    };                                                                                            \
+    void abc_input_##nom_court##_geom_param_get_indexed(                                          \
+        struct Abc_Input_##type_geom##_Geom_Param *param,                                         \
+        struct Abc_Input_##type_geom##_Geom_Param_Sample *sample,                                 \
+        struct Abc_Sample_Selector selector);                                                     \
+    void abc_input_##nom_court##_geom_param_get_expanded(                                         \
+        struct Abc_Input_##type_geom##_Geom_Param *param,                                         \
+        struct Abc_Input_##type_geom##_Geom_Param_Sample *sample,                                 \
+        struct Abc_Sample_Selector selector);
+
+ENUMERATE_ABC_ATTRIBUTE_TYPES(DECLARE_INPUT_GEOM_PARAM)
+
+#undef DECLARE_INPUT_GEOM_PARAM
+
+/** \} */
+
+/* ------------------------------------------------------------------------- */
 /** \nom Abc_Object_Header
  * \{ */
 

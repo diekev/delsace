@@ -578,6 +578,15 @@ struct Abc_Input_Archive {
     Abc_Time_Sampling *time_samplings = nullptr;
 };
 
+struct Abc_Time_Sampling *make_time_sampling(struct Abc_Input_Archive *archive,
+                                             Abc::TimeSamplingPtr ptr)
+{
+    auto résultat = kuri_loge<Abc_Time_Sampling>(archive->ctx_kuri);
+    résultat->ptr = ptr;
+    liste_ajoute(&archive->time_samplings, résultat);
+    return résultat;
+}
+
 /* ------------------------------------------------------------------------- */
 /** \nom Abc_Sample_Selector
  * \{ */
@@ -650,14 +659,19 @@ Abc_MetaData *abc_property_header_get_metadata(struct Abc_Property_Header *heade
     return make_metadata(header->ctx_kuri, header->header.getMetaData());
 }
 
-void abc_property_header_get_data_type(struct Abc_Property_Header *header,
-                                       struct Abc_Data_Type *r_data_type)
+static void make_abc_data_type(const AbcGeom::DataType &abc_data_type,
+                               struct Abc_Data_Type *r_data_type)
 {
     if (r_data_type) {
-        auto const &abc_data_type = header->header.getDataType();
         r_data_type->pod_type = static_cast<Abc_Plain_Old_Data_Type>(abc_data_type.getPod());
         r_data_type->extent = abc_data_type.getExtent();
     }
+}
+
+void abc_property_header_get_data_type(struct Abc_Property_Header *header,
+                                       struct Abc_Data_Type *r_data_type)
+{
+    make_abc_data_type(header->header.getDataType(), r_data_type);
 }
 
 // À FAIRE TimeSamplingPtr getTimeSampling() const
@@ -807,6 +821,88 @@ T *make_input_array_prop(Abc_Input_Archive *archive)
 ENUMERATE_ABC_ATTRIBUTE_TYPES(DEFINE_ABC_TYPED_ARRAY_PROPERTY)
 
 #undef DEFINE_ABC_TYPED_ARRAY_PROPERTY
+
+/** \} */
+
+/* ------------------------------------------------------------------------- */
+/** \nom Abc_Input_Geom_Param
+ * \{ */
+
+struct Abc_Input_Geom_Param {
+    Abc_Input_Archive *archive = nullptr;
+};
+
+#define DEFINE_INPUT_GEOM_PARAM(type_geom, type_abc_value, type_c, nom_court)                     \
+    struct Abc_Input_##type_geom##_Geom_Param : public Abc_Input_Geom_Param {                     \
+        AbcGeom::I##type_geom##GeomParam param{};                                                 \
+        AbcGeom::I##type_geom##GeomParam::Sample sample{};                                        \
+    };                                                                                            \
+    uint64_t abc_input_##nom_court##_geom_param_get_num_samples(                                  \
+        struct Abc_Input_##type_geom##_Geom_Param *param)                                         \
+    {                                                                                             \
+        return param->param.getNumSamples();                                                      \
+    }                                                                                             \
+    void abc_input_##nom_court##_geom_param_get_data_type(                                        \
+        struct Abc_Input_##type_geom##_Geom_Param *param, struct Abc_Data_Type *r_data_type)      \
+    {                                                                                             \
+        make_abc_data_type(param->param.getDataType(), r_data_type);                              \
+    }                                                                                             \
+    uint64_t abc_input_##nom_court##_geom_param_get_array_extent(                                 \
+        struct Abc_Input_##type_geom##_Geom_Param *param)                                         \
+    {                                                                                             \
+        return param->param.getArrayExtent();                                                     \
+    }                                                                                             \
+    bool abc_input_##nom_court##_geom_param_is_indexed(                                           \
+        struct Abc_Input_##type_geom##_Geom_Param *param)                                         \
+    {                                                                                             \
+        return param->param.isIndexed();                                                          \
+    }                                                                                             \
+    enum Abc_Geometry_Scope abc_input_##nom_court##_geom_param_get_scope(                         \
+        struct Abc_Input_##type_geom##_Geom_Param *param)                                         \
+    {                                                                                             \
+        return static_cast<Abc_Geometry_Scope>(param->param.getScope());                          \
+    }                                                                                             \
+    void abc_input_##nom_court##_geom_param_get_name(                                             \
+        struct Abc_Input_##type_geom##_Geom_Param *param, struct Abc_String *r_name)              \
+    {                                                                                             \
+        vers_abc_string(r_name, param->param.getName());                                          \
+    }                                                                                             \
+    struct Abc_Time_Sampling *abc_input_##nom_court##_geom_param_get_time_sampling(               \
+        struct Abc_Input_##type_geom##_Geom_Param *param)                                         \
+    {                                                                                             \
+        return make_time_sampling(param->archive, param->param.getTimeSampling());                \
+    }                                                                                             \
+    struct Abc_MetaData *abc_input_##nom_court##_geom_param_get_metadata(                         \
+        Abc_Input_##type_geom##_Geom_Param *param)                                                \
+    {                                                                                             \
+        return make_metadata(param->archive->ctx_kuri, param->param.getMetaData());               \
+    }                                                                                             \
+    void abc_input_##nom_court##_geom_param_get_indexed(                                          \
+        struct Abc_Input_##type_geom##_Geom_Param *param,                                         \
+        struct Abc_Input_##type_geom##_Geom_Param_Sample *sample,                                 \
+        struct Abc_Sample_Selector selector)                                                      \
+    {                                                                                             \
+        param->param.getIndexed(param->sample, get_sample_selector(selector));                    \
+    }                                                                                             \
+    void abc_input_##nom_court##_geom_param_get_expanded(                                         \
+        struct Abc_Input_##type_geom##_Geom_Param *param,                                         \
+        struct Abc_Input_##type_geom##_Geom_Param_Sample *sample,                                 \
+        struct Abc_Sample_Selector selector)                                                      \
+    {                                                                                             \
+        param->param.getExpanded(param->sample, get_sample_selector(selector));                   \
+    }
+
+ENUMERATE_ABC_ATTRIBUTE_TYPES(DEFINE_INPUT_GEOM_PARAM)
+
+#undef DEFINE_INPUT_GEOM_PARAM
+
+/*
+
+ Abc::ICompoundProperty getParent() const;
+
+ const AbcA::PropertyHeader &getHeader() const;
+
+ */
 
 /** \} */
 
@@ -1003,10 +1099,8 @@ ENUMERATE_INPUT_OBJECT_TYPES(DECLARE_TYPED_INPUT_OBJECTS)
 
 struct Abc_Time_Sampling *abc_input_polymesh_get_time_sampling(struct Abc_Input_PolyMesh *polymesh)
 {
-    auto résultat = kuri_loge<Abc_Time_Sampling>(polymesh->archive->ctx_kuri);
-    résultat->ptr = polymesh->typed_object.getSchema().getTimeSampling();
-    liste_ajoute(&polymesh->archive->time_samplings, résultat);
-    return résultat;
+    return make_time_sampling(polymesh->archive,
+                              polymesh->typed_object.getSchema().getTimeSampling());
 }
 
 uint64_t abc_input_polymesh_get_num_samples(struct Abc_Input_PolyMesh *polymesh)
