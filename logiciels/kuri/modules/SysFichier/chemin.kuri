@@ -88,7 +88,7 @@ nom_fichier_avec_extension :: fonc (chemin: CheminFichier) -> chaine
         retourne chemin.chn;
     }
 
-    si pos > 0 {
+    si pos >= 0 {
         pos += 1;
     }
 
