@@ -486,6 +486,84 @@ bool abc_metadata_iterator_next(Abc_MetaData_Iterator *iterator,
 
 /** \} */
 
+/* ------------------------------------------------------------------------- */
+/** \nom Abc_Time_Sampling
+ * \{ */
+
+struct Abc_Time_Sampling {
+    Abc_Time_Sampling *next = nullptr;
+    Abc::TimeSamplingPtr ptr = nullptr;
+};
+
+uint64_t abc_time_sampling_get_num_stored_times(struct Abc_Time_Sampling *time_sampling)
+{
+    return time_sampling->ptr->getNumStoredTimes();
+}
+
+void abc_time_sampling_get_stored_times(struct Abc_Time_Sampling *time_sampling,
+                                        double **r_times,
+                                        uint64_t *r_num_times)
+{
+    if (r_times && r_num_times) {
+        const std::vector<Abc::chrono_t> &stored_times = time_sampling->ptr->getStoredTimes();
+        *r_times = const_cast<double *>(stored_times.data());
+        *r_num_times = stored_times.size();
+    }
+}
+
+void abc_time_sampling_get_time_sampling_type(struct Abc_Time_Sampling *time_sampling,
+                                              struct Abc_Time_Sampling_Type *r_type)
+{
+    if (r_type) {
+        auto type = time_sampling->ptr->getTimeSamplingType();
+        r_type->time_per_cycle = type.getTimePerCycle();
+        r_type->num_samples_per_cycle = type.getNumSamplesPerCycle();
+    }
+}
+
+double abc_time_sampling_get_sample_time(struct Abc_Time_Sampling *time_sampling, int64_t index)
+{
+    return time_sampling->ptr->getSampleTime(index);
+}
+
+void abc_time_sampling_get_floor_index(struct Abc_Time_Sampling *time_sampling,
+                                       double time,
+                                       int64_t num_samples,
+                                       struct Abc_Sample_Time_Index *r_index)
+{
+    if (r_index) {
+        auto result = time_sampling->ptr->getFloorIndex(time, num_samples);
+        r_index->index = result.first;
+        r_index->time = result.second;
+    }
+}
+
+void abc_time_sampling_get_ceil_index(struct Abc_Time_Sampling *time_sampling,
+                                      double time,
+                                      int64_t num_samples,
+                                      struct Abc_Sample_Time_Index *r_index)
+{
+    if (r_index) {
+        auto result = time_sampling->ptr->getCeilIndex(time, num_samples);
+        r_index->index = result.first;
+        r_index->time = result.second;
+    }
+}
+
+void abc_time_sampling_get_near_index(struct Abc_Time_Sampling *time_sampling,
+                                      double time,
+                                      int64_t num_samples,
+                                      struct Abc_Sample_Time_Index *r_index)
+{
+    if (r_index) {
+        auto result = time_sampling->ptr->getNearIndex(time, num_samples);
+        r_index->index = result.first;
+        r_index->time = result.second;
+    }
+}
+
+/** \} */
+
 struct Abc_Property_Header;
 
 struct Abc_Input_Archive {
@@ -497,6 +575,7 @@ struct Abc_Input_Archive {
     Abc_Property_Header *prop_headers = nullptr;
     Abc_Input_Scalar_Property *scalar_props = nullptr;
     Abc_Input_Array_Property *array_props = nullptr;
+    Abc_Time_Sampling *time_samplings = nullptr;
 };
 
 /* ------------------------------------------------------------------------- */
@@ -922,6 +1001,20 @@ ENUMERATE_INPUT_OBJECT_TYPES(DECLARE_TYPED_INPUT_OBJECTS)
 /** \nom Abc_Input_PolyMesh_Sample
  * \{ */
 
+struct Abc_Time_Sampling *abc_input_polymesh_get_time_sampling(struct Abc_Input_PolyMesh *polymesh)
+{
+    auto résultat = kuri_loge<Abc_Time_Sampling>(polymesh->archive->ctx_kuri);
+    résultat->ptr = polymesh->typed_object.getSchema().getTimeSampling();
+    liste_ajoute(&polymesh->archive->time_samplings, résultat);
+    return résultat;
+}
+
+uint64_t abc_input_polymesh_get_num_samples(struct Abc_Input_PolyMesh *polymesh)
+{
+    auto résultat = polymesh->typed_object.getSchema().getNumSamples();
+    return résultat;
+}
+
 struct Abc_Input_PolyMesh_Sample {
     Abc_Input_Archive *archive = nullptr;
     AbcGeom::IPolyMeshSchema::Sample sample{};
@@ -1107,6 +1200,11 @@ void abc_input_archive_get_start_and_end_time(struct Abc_Input_Archive *archive,
     if (r_end_time) {
         *r_end_time = end_time;
     }
+}
+
+uint32_t abc_input_archive_get_num_time_sampling(struct Abc_Input_Archive *archive)
+{
+    return archive->iarchive.getNumTimeSamplings();
 }
 
 /** \} */

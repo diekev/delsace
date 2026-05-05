@@ -640,6 +640,11 @@ void abc_input_archive_get_start_and_end_time(struct Abc_Input_Archive *archive,
 /** \nom Abc_Input_PolyMesh_Sample
  * \{ */
 
+struct Abc_Time_Sampling *abc_input_polymesh_get_time_sampling(
+    struct Abc_Input_PolyMesh *polymesh);
+
+uint64_t abc_input_polymesh_get_num_samples(struct Abc_Input_PolyMesh *polymesh);
+
 struct Abc_Input_PolyMesh_Sample;
 
 struct Abc_Input_PolyMesh_Sample *abc_input_polymesh_get_sample(
@@ -691,6 +696,44 @@ struct Abc_Output_Archive *abc_output_archive_create(struct ContexteKuri *ctx_ku
  * @param archive L'archive à détruire. Peut être nulle.
  */
 void abc_output_archive_destroy(struct Abc_Output_Archive *archive);
+
+/** \} */
+
+/* ------------------------------------------------------------------------- */
+/** \nom Abc_Time_Sampling
+ * \{ */
+
+struct Abc_Time_Sampling_Type {
+    uint32_t num_samples_per_cycle;
+    double time_per_cycle;
+};
+
+struct Abc_Sample_Time_Index {
+    int64_t index;
+    double time;
+};
+
+struct Abc_Time_Sampling;
+
+uint64_t abc_time_sampling_get_num_stored_times(struct Abc_Time_Sampling *time_sampling);
+void abc_time_sampling_get_stored_times(struct Abc_Time_Sampling *time_sampling,
+                                        double **r_times,
+                                        uint64_t *r_num_times);
+void abc_time_sampling_get_time_sampling_type(struct Abc_Time_Sampling *time_sampling,
+                                              struct Abc_Time_Sampling_Type *r_type);
+double abc_time_sampling_get_sample_time(struct Abc_Time_Sampling *time_sampling, int64_t index);
+void abc_time_sampling_get_floor_index(struct Abc_Time_Sampling *time_sampling,
+                                       double time,
+                                       int64_t num_samples,
+                                       struct Abc_Sample_Time_Index *r_index);
+void abc_time_sampling_get_ceil_index(struct Abc_Time_Sampling *time_sampling,
+                                      double time,
+                                      int64_t num_samples,
+                                      struct Abc_Sample_Time_Index *r_index);
+void abc_time_sampling_get_near_index(struct Abc_Time_Sampling *time_sampling,
+                                      double time,
+                                      int64_t num_samples,
+                                      struct Abc_Sample_Time_Index *r_index);
 
 /** \} */
 
