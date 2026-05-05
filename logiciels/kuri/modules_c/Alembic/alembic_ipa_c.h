@@ -509,6 +509,21 @@ bool abc_input_scalar_property_valid(union Abc_Generic_Input_Scalar_Property pro
 /** \} */
 
 /* ------------------------------------------------------------------------- */
+/** \nom Abc_Input_Array_Property
+ * \{ */
+
+struct Abc_Input_Array_Property;
+
+#define DECLARE_ABC_TYPED_ARRAY_PROPERTY(type_geom, type_abc_value, type_c, nom_court)            \
+    struct Abc_Input_##type_geom##_Array_Property;
+
+ENUMERATE_ABC_ATTRIBUTE_TYPES(DECLARE_ABC_TYPED_ARRAY_PROPERTY)
+
+#undef DECLARE_ABC_TYPED_ARRAY_PROPERTY
+
+/** \} */
+
+/* ------------------------------------------------------------------------- */
 /** \nom Abc_Object_Header
  * \{ */
 

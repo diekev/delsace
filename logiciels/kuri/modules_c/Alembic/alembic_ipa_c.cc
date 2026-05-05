@@ -496,6 +496,7 @@ struct Abc_Input_Archive {
     Abc_Input_Object *objects = nullptr;
     Abc_Property_Header *prop_headers = nullptr;
     Abc_Input_Scalar_Property *scalar_props = nullptr;
+    Abc_Input_Array_Property *array_props = nullptr;
 };
 
 /* ------------------------------------------------------------------------- */
@@ -695,6 +696,38 @@ bool abc_input_scalar_property_valid(union Abc_Generic_Input_Scalar_Property pro
 {
     return prop.prop->prop.valid();
 }
+
+/** \} */
+
+/* ------------------------------------------------------------------------- */
+/** \nom Abc_Input_Array_Property
+ * \{ */
+
+struct Abc_Input_Array_Property {
+    Abc_Input_Compound_Property *parent = nullptr;
+    Abc_Input_Array_Property *next = nullptr;
+    AbcGeom::IArrayProperty prop{};
+    Array_Sample_Data sample_data{};
+
+    virtual ~Abc_Input_Array_Property() = default;
+};
+
+template <typename T>
+T *make_input_array_prop(Abc_Input_Archive *archive)
+{
+    auto résultat = kuri_loge<T>(archive->ctx_kuri);
+    liste_ajoute(&archive->array_props, static_cast<Abc_Input_Array_Property *>(résultat));
+    return résultat;
+}
+
+#define DEFINE_ABC_TYPED_ARRAY_PROPERTY(type_geom, type_abc_value, type_c, nom_court)             \
+    struct Abc_Input_##type_geom##_Array_Property : public Abc_Input_Array_Property {             \
+        Abc::I##type_geom##ArrayProperty typed_prop{};                                            \
+    };
+
+ENUMERATE_ABC_ATTRIBUTE_TYPES(DEFINE_ABC_TYPED_ARRAY_PROPERTY)
+
+#undef DEFINE_ABC_TYPED_ARRAY_PROPERTY
 
 /** \} */
 
@@ -951,6 +984,8 @@ void abc_input_archive_destroy(struct Abc_Input_Archive *archive)
         kuri_deloge_liste(archive->ctx_kuri, archive->headers);
         kuri_deloge_liste(archive->ctx_kuri, archive->objects);
         kuri_deloge_liste(archive->ctx_kuri, archive->prop_headers);
+        kuri_deloge_liste(archive->ctx_kuri, archive->scalar_props);
+        kuri_deloge_liste(archive->ctx_kuri, archive->array_props);
         kuri_deloge(archive->ctx_kuri, archive);
     }
 }
