@@ -167,12 +167,6 @@ tri_par_application :: fonc (a: Application_Et_Description, b: Application_Et_De
     retourne compare_chaine(a.application, b.application);
 }
 
-abc_input_archive_create :: fonc (chemin: chaine) -> *Abc_Input_Archive
-{
-    chemin_abc := vers_abc_string(chemin);
-    retourne abc_input_archive_create(*ctx_kuri_pour_alembic, *chemin_abc, 1);
-}
-
 principale :: fonc ()
 {
     chemin := parse_argument_chemin();
