@@ -486,6 +486,84 @@ bool abc_metadata_iterator_next(Abc_MetaData_Iterator *iterator,
 
 /** \} */
 
+/* ------------------------------------------------------------------------- */
+/** \nom Abc_Time_Sampling
+ * \{ */
+
+struct Abc_Time_Sampling {
+    Abc_Time_Sampling *next = nullptr;
+    Abc::TimeSamplingPtr ptr = nullptr;
+};
+
+uint64_t abc_time_sampling_get_num_stored_times(struct Abc_Time_Sampling *time_sampling)
+{
+    return time_sampling->ptr->getNumStoredTimes();
+}
+
+void abc_time_sampling_get_stored_times(struct Abc_Time_Sampling *time_sampling,
+                                        double **r_times,
+                                        uint64_t *r_num_times)
+{
+    if (r_times && r_num_times) {
+        const std::vector<Abc::chrono_t> &stored_times = time_sampling->ptr->getStoredTimes();
+        *r_times = const_cast<double *>(stored_times.data());
+        *r_num_times = stored_times.size();
+    }
+}
+
+void abc_time_sampling_get_time_sampling_type(struct Abc_Time_Sampling *time_sampling,
+                                              struct Abc_Time_Sampling_Type *r_type)
+{
+    if (r_type) {
+        auto type = time_sampling->ptr->getTimeSamplingType();
+        r_type->time_per_cycle = type.getTimePerCycle();
+        r_type->num_samples_per_cycle = type.getNumSamplesPerCycle();
+    }
+}
+
+double abc_time_sampling_get_sample_time(struct Abc_Time_Sampling *time_sampling, int64_t index)
+{
+    return time_sampling->ptr->getSampleTime(index);
+}
+
+void abc_time_sampling_get_floor_index(struct Abc_Time_Sampling *time_sampling,
+                                       double time,
+                                       int64_t num_samples,
+                                       struct Abc_Sample_Time_Index *r_index)
+{
+    if (r_index) {
+        auto result = time_sampling->ptr->getFloorIndex(time, num_samples);
+        r_index->index = result.first;
+        r_index->time = result.second;
+    }
+}
+
+void abc_time_sampling_get_ceil_index(struct Abc_Time_Sampling *time_sampling,
+                                      double time,
+                                      int64_t num_samples,
+                                      struct Abc_Sample_Time_Index *r_index)
+{
+    if (r_index) {
+        auto result = time_sampling->ptr->getCeilIndex(time, num_samples);
+        r_index->index = result.first;
+        r_index->time = result.second;
+    }
+}
+
+void abc_time_sampling_get_near_index(struct Abc_Time_Sampling *time_sampling,
+                                      double time,
+                                      int64_t num_samples,
+                                      struct Abc_Sample_Time_Index *r_index)
+{
+    if (r_index) {
+        auto result = time_sampling->ptr->getNearIndex(time, num_samples);
+        r_index->index = result.first;
+        r_index->time = result.second;
+    }
+}
+
+/** \} */
+
 struct Abc_Property_Header;
 
 struct Abc_Input_Archive {
@@ -496,7 +574,18 @@ struct Abc_Input_Archive {
     Abc_Input_Object *objects = nullptr;
     Abc_Property_Header *prop_headers = nullptr;
     Abc_Input_Scalar_Property *scalar_props = nullptr;
+    Abc_Input_Array_Property *array_props = nullptr;
+    Abc_Time_Sampling *time_samplings = nullptr;
 };
+
+struct Abc_Time_Sampling *make_time_sampling(struct Abc_Input_Archive *archive,
+                                             Abc::TimeSamplingPtr ptr)
+{
+    auto résultat = kuri_loge<Abc_Time_Sampling>(archive->ctx_kuri);
+    résultat->ptr = ptr;
+    liste_ajoute(&archive->time_samplings, résultat);
+    return résultat;
+}
 
 /* ------------------------------------------------------------------------- */
 /** \nom Abc_Sample_Selector
@@ -570,14 +659,19 @@ Abc_MetaData *abc_property_header_get_metadata(struct Abc_Property_Header *heade
     return make_metadata(header->ctx_kuri, header->header.getMetaData());
 }
 
-void abc_property_header_get_data_type(struct Abc_Property_Header *header,
-                                       struct Abc_Data_Type *r_data_type)
+static void make_abc_data_type(const AbcGeom::DataType &abc_data_type,
+                               struct Abc_Data_Type *r_data_type)
 {
     if (r_data_type) {
-        auto const &abc_data_type = header->header.getDataType();
         r_data_type->pod_type = static_cast<Abc_Plain_Old_Data_Type>(abc_data_type.getPod());
         r_data_type->extent = abc_data_type.getExtent();
     }
+}
+
+void abc_property_header_get_data_type(struct Abc_Property_Header *header,
+                                       struct Abc_Data_Type *r_data_type)
+{
+    make_abc_data_type(header->header.getDataType(), r_data_type);
 }
 
 // À FAIRE TimeSamplingPtr getTimeSampling() const
@@ -695,6 +789,120 @@ bool abc_input_scalar_property_valid(union Abc_Generic_Input_Scalar_Property pro
 {
     return prop.prop->prop.valid();
 }
+
+/** \} */
+
+/* ------------------------------------------------------------------------- */
+/** \nom Abc_Input_Array_Property
+ * \{ */
+
+struct Abc_Input_Array_Property {
+    Abc_Input_Compound_Property *parent = nullptr;
+    Abc_Input_Array_Property *next = nullptr;
+    AbcGeom::IArrayProperty prop{};
+    Array_Sample_Data sample_data{};
+
+    virtual ~Abc_Input_Array_Property() = default;
+};
+
+template <typename T>
+T *make_input_array_prop(Abc_Input_Archive *archive)
+{
+    auto résultat = kuri_loge<T>(archive->ctx_kuri);
+    liste_ajoute(&archive->array_props, static_cast<Abc_Input_Array_Property *>(résultat));
+    return résultat;
+}
+
+#define DEFINE_ABC_TYPED_ARRAY_PROPERTY(type_geom, type_abc_value, type_c, nom_court)             \
+    struct Abc_Input_##type_geom##_Array_Property : public Abc_Input_Array_Property {             \
+        Abc::I##type_geom##ArrayProperty typed_prop{};                                            \
+    };
+
+ENUMERATE_ABC_ATTRIBUTE_TYPES(DEFINE_ABC_TYPED_ARRAY_PROPERTY)
+
+#undef DEFINE_ABC_TYPED_ARRAY_PROPERTY
+
+/** \} */
+
+/* ------------------------------------------------------------------------- */
+/** \nom Abc_Input_Geom_Param
+ * \{ */
+
+struct Abc_Input_Geom_Param {
+    Abc_Input_Archive *archive = nullptr;
+};
+
+#define DEFINE_INPUT_GEOM_PARAM(type_geom, type_abc_value, type_c, nom_court)                     \
+    struct Abc_Input_##type_geom##_Geom_Param : public Abc_Input_Geom_Param {                     \
+        AbcGeom::I##type_geom##GeomParam param{};                                                 \
+        AbcGeom::I##type_geom##GeomParam::Sample sample{};                                        \
+    };                                                                                            \
+    uint64_t abc_input_##nom_court##_geom_param_get_num_samples(                                  \
+        struct Abc_Input_##type_geom##_Geom_Param *param)                                         \
+    {                                                                                             \
+        return param->param.getNumSamples();                                                      \
+    }                                                                                             \
+    void abc_input_##nom_court##_geom_param_get_data_type(                                        \
+        struct Abc_Input_##type_geom##_Geom_Param *param, struct Abc_Data_Type *r_data_type)      \
+    {                                                                                             \
+        make_abc_data_type(param->param.getDataType(), r_data_type);                              \
+    }                                                                                             \
+    uint64_t abc_input_##nom_court##_geom_param_get_array_extent(                                 \
+        struct Abc_Input_##type_geom##_Geom_Param *param)                                         \
+    {                                                                                             \
+        return param->param.getArrayExtent();                                                     \
+    }                                                                                             \
+    bool abc_input_##nom_court##_geom_param_is_indexed(                                           \
+        struct Abc_Input_##type_geom##_Geom_Param *param)                                         \
+    {                                                                                             \
+        return param->param.isIndexed();                                                          \
+    }                                                                                             \
+    enum Abc_Geometry_Scope abc_input_##nom_court##_geom_param_get_scope(                         \
+        struct Abc_Input_##type_geom##_Geom_Param *param)                                         \
+    {                                                                                             \
+        return static_cast<Abc_Geometry_Scope>(param->param.getScope());                          \
+    }                                                                                             \
+    void abc_input_##nom_court##_geom_param_get_name(                                             \
+        struct Abc_Input_##type_geom##_Geom_Param *param, struct Abc_String *r_name)              \
+    {                                                                                             \
+        vers_abc_string(r_name, param->param.getName());                                          \
+    }                                                                                             \
+    struct Abc_Time_Sampling *abc_input_##nom_court##_geom_param_get_time_sampling(               \
+        struct Abc_Input_##type_geom##_Geom_Param *param)                                         \
+    {                                                                                             \
+        return make_time_sampling(param->archive, param->param.getTimeSampling());                \
+    }                                                                                             \
+    struct Abc_MetaData *abc_input_##nom_court##_geom_param_get_metadata(                         \
+        Abc_Input_##type_geom##_Geom_Param *param)                                                \
+    {                                                                                             \
+        return make_metadata(param->archive->ctx_kuri, param->param.getMetaData());               \
+    }                                                                                             \
+    void abc_input_##nom_court##_geom_param_get_indexed(                                          \
+        struct Abc_Input_##type_geom##_Geom_Param *param,                                         \
+        struct Abc_Input_##type_geom##_Geom_Param_Sample *sample,                                 \
+        struct Abc_Sample_Selector selector)                                                      \
+    {                                                                                             \
+        param->param.getIndexed(param->sample, get_sample_selector(selector));                    \
+    }                                                                                             \
+    void abc_input_##nom_court##_geom_param_get_expanded(                                         \
+        struct Abc_Input_##type_geom##_Geom_Param *param,                                         \
+        struct Abc_Input_##type_geom##_Geom_Param_Sample *sample,                                 \
+        struct Abc_Sample_Selector selector)                                                      \
+    {                                                                                             \
+        param->param.getExpanded(param->sample, get_sample_selector(selector));                   \
+    }
+
+ENUMERATE_ABC_ATTRIBUTE_TYPES(DEFINE_INPUT_GEOM_PARAM)
+
+#undef DEFINE_INPUT_GEOM_PARAM
+
+/*
+
+ Abc::ICompoundProperty getParent() const;
+
+ const AbcA::PropertyHeader &getHeader() const;
+
+ */
 
 /** \} */
 
@@ -882,6 +1090,110 @@ static Abc_Input_Compound_Property *get_user_properties(Abc_Input_Material *obje
 ENUMERATE_INPUT_OBJECT_TYPES(DECLARE_TYPED_INPUT_OBJECTS)
 
 #undef DECLARE_TYPED_INPUT_OBJECTS
+
+/** \} */
+
+/* ------------------------------------------------------------------------- */
+/** \nom Abc_Input_PolyMesh_Sample
+ * \{ */
+
+struct Abc_Time_Sampling *abc_input_polymesh_get_time_sampling(struct Abc_Input_PolyMesh *polymesh)
+{
+    return make_time_sampling(polymesh->archive,
+                              polymesh->typed_object.getSchema().getTimeSampling());
+}
+
+uint64_t abc_input_polymesh_get_num_samples(struct Abc_Input_PolyMesh *polymesh)
+{
+    auto résultat = polymesh->typed_object.getSchema().getNumSamples();
+    return résultat;
+}
+
+struct Abc_Input_PolyMesh_Sample {
+    Abc_Input_Archive *archive = nullptr;
+    AbcGeom::IPolyMeshSchema::Sample sample{};
+};
+
+struct Abc_Input_PolyMesh_Sample *abc_input_polymesh_get_sample(
+    struct Abc_Input_PolyMesh *polymesh, struct Abc_Sample_Selector selector)
+{
+    auto résultat = kuri_loge<Abc_Input_PolyMesh_Sample>(polymesh->archive->ctx_kuri);
+    résultat->archive = polymesh->archive;
+    polymesh->typed_object.getSchema().get(résultat->sample, get_sample_selector(selector));
+    return résultat;
+}
+
+void abc_input_polymesh_sample_destroy(struct Abc_Input_PolyMesh_Sample *sample)
+{
+    if (sample) {
+        kuri_deloge(sample->archive->ctx_kuri, sample);
+    }
+}
+
+struct Abc_P3f_Array_Sample abc_input_polymesh_sample_get_positions(
+    struct Abc_Input_PolyMesh_Sample *sample)
+{
+    auto ptr = sample->sample.getPositions();
+
+    auto résultat = Abc_P3f_Array_Sample();
+    if (ptr) {
+        résultat.values = reinterpret_cast<Abc_V3f *>(const_cast<Abc::V3f *>(ptr->get()));
+        résultat.num_values = ptr->size();
+    }
+    return résultat;
+}
+
+struct Abc_V3f_Array_Sample abc_input_polymesh_sample_get_velocities(
+    struct Abc_Input_PolyMesh_Sample *sample)
+{
+    auto ptr = sample->sample.getVelocities();
+
+    auto résultat = Abc_V3f_Array_Sample();
+    if (ptr) {
+        résultat.values = reinterpret_cast<Abc_V3f *>(const_cast<Abc::V3f *>(ptr->get()));
+        résultat.num_values = ptr->size();
+    }
+    else {
+        résultat.values = nullptr;
+        résultat.num_values = 0;
+    }
+    return résultat;
+}
+
+struct Abc_Int32_Array_Sample abc_input_polymesh_sample_get_face_indices(
+    struct Abc_Input_PolyMesh_Sample *sample)
+{
+    auto ptr = sample->sample.getFaceIndices();
+
+    auto résultat = Abc_Int32_Array_Sample();
+    if (ptr) {
+        résultat.values = reinterpret_cast<int32_t *>(const_cast<int *>(ptr->get()));
+        résultat.num_values = ptr->size();
+    }
+    else {
+        résultat.values = nullptr;
+        résultat.num_values = 0;
+    }
+    return résultat;
+}
+
+struct Abc_Int32_Array_Sample abc_input_polymesh_sample_get_face_counts(
+    struct Abc_Input_PolyMesh_Sample *sample)
+{
+    auto ptr = sample->sample.getFaceCounts();
+
+    auto résultat = Abc_Int32_Array_Sample();
+    if (ptr) {
+        résultat.values = reinterpret_cast<int32_t *>(const_cast<int *>(ptr->get()));
+        résultat.num_values = ptr->size();
+    }
+    else {
+        résultat.values = nullptr;
+        résultat.num_values = 0;
+    }
+    return résultat;
+}
+
 /** \} */
 
 /* ------------------------------------------------------------------------- */
@@ -951,6 +1263,8 @@ void abc_input_archive_destroy(struct Abc_Input_Archive *archive)
         kuri_deloge_liste(archive->ctx_kuri, archive->headers);
         kuri_deloge_liste(archive->ctx_kuri, archive->objects);
         kuri_deloge_liste(archive->ctx_kuri, archive->prop_headers);
+        kuri_deloge_liste(archive->ctx_kuri, archive->scalar_props);
+        kuri_deloge_liste(archive->ctx_kuri, archive->array_props);
         kuri_deloge(archive->ctx_kuri, archive);
     }
 }
@@ -982,6 +1296,11 @@ void abc_input_archive_get_start_and_end_time(struct Abc_Input_Archive *archive,
     }
 }
 
+uint32_t abc_input_archive_get_num_time_sampling(struct Abc_Input_Archive *archive)
+{
+    return archive->iarchive.getNumTimeSamplings();
+}
+
 /** \} */
 
 struct Abc_Output_Object;
@@ -1009,13 +1328,19 @@ struct Abc_Output_Compound_Property {
     Abc_Output_Compound_Property *next;
 };
 
+Abc_Output_Compound_Property *make_output_compound_property(Abc_Output_Archive *archive)
+{
+    auto résultat = kuri_loge<Abc_Output_Compound_Property>(archive->ctx_kuri);
+    résultat->archive = archive;
+    liste_ajoute(&résultat->archive->compound_props, résultat);
+    return résultat;
+}
+
 Abc_Output_Compound_Property *abc_output_compound_property_create(
     Abc_Output_Compound_Property *parent, Abc_String name)
 {
-    auto résultat = kuri_loge<Abc_Output_Compound_Property>(parent->archive->ctx_kuri);
+    auto résultat = make_output_compound_property(parent->archive);
     résultat->prop = AbcGeom::OCompoundProperty(parent->prop, name);
-    résultat->archive = parent->archive;
-    liste_ajoute(&résultat->archive->compound_props, résultat);
     return résultat;
 }
 
@@ -1204,7 +1529,7 @@ ENUMERATE_ABC_ATTRIBUTE_TYPES(DEFINE_ABC_OUTPUT_GEOM_PARAMS)
         lname##_sample->sample.method(sample);                                                    \
     }
 
-#define DEFINE_COMMON_OBJECT_FUNCTIONS(uname, lname)                                              \
+#define DEFINE_COMMON_OUTPUT_OBJECT_FUNCTIONS(uname, lname)                                       \
     Abc_Output_Compound_Property *abc_output_##lname##_arb_geom_params_get(                       \
         struct Abc_Output_##uname *lname)                                                         \
     {                                                                                             \
@@ -1233,6 +1558,10 @@ ENUMERATE_ABC_ATTRIBUTE_TYPES(DEFINE_ABC_OUTPUT_GEOM_PARAMS)
             lname->metadata_initialized = true;                                                   \
         }                                                                                         \
         return &lname->metadata_;                                                                 \
+    }                                                                                             \
+    void abc_output_##lname##_sample_set_from_previous(Abc_Output_##uname *lname)                 \
+    {                                                                                             \
+        lname->set_from_previous();                                                               \
     }
 
 /** \} */
@@ -1278,109 +1607,6 @@ void abc_output_visibility_property_set(Abc_Output_Visibility_Property *prop,
     int8_t ovisibility = int8_t(visibility);
     prop->prop.set(&ovisibility);
 }
-
-struct Abc_Output_Xform : public Abc_Output_Object {
-    Abc::OObject object{};
-    AbcGeom::OXformSchema schema{};
-
-    void set_sample(AbcGeom::OXformSchema::sample_type &sample)
-    {
-        schema.set(sample);
-    }
-
-    void set_from_previous()
-    {
-        schema.setFromPrevious();
-    }
-
-    void get_arb_geom_params(Abc_Output_Compound_Property *prop)
-    {
-        prop->prop = schema.getArbGeomParams();
-    }
-
-    void get_user_properties(Abc_Output_Compound_Property *prop)
-    {
-        prop->prop = schema.getUserProperties();
-    }
-
-    void get_metadata(Abc_MetaData *metadata)
-    {
-        metadata->metadata = object.getMetaData();
-    }
-
-    AbcGeom::OObject &get_object() override
-    {
-        return object;
-    }
-};
-
-struct Abc_Output_Points : public Abc_Output_Object {
-    AbcGeom::OPoints object{};
-
-    void set_sample(AbcGeom::OPointsSchema::Sample &sample)
-    {
-        object.getSchema().set(sample);
-    }
-
-    void set_from_previous()
-    {
-        object.getSchema().setFromPrevious();
-    }
-
-    void get_arb_geom_params(Abc_Output_Compound_Property *prop)
-    {
-        prop->prop = object.getSchema().getArbGeomParams();
-    }
-
-    void get_user_properties(Abc_Output_Compound_Property *prop)
-    {
-        prop->prop = object.getSchema().getUserProperties();
-    }
-
-    void get_metadata(Abc_MetaData *metadata)
-    {
-        metadata->metadata = object.getMetaData();
-    }
-
-    AbcGeom::OObject &get_object() override
-    {
-        return object;
-    }
-};
-
-struct Abc_Output_Curves : public Abc_Output_Object {
-    AbcGeom::OCurves object{};
-
-    void set_sample(AbcGeom::OCurvesSchema::Sample &sample)
-    {
-        object.getSchema().set(sample);
-    }
-
-    void set_from_previous()
-    {
-        object.getSchema().setFromPrevious();
-    }
-
-    void get_arb_geom_params(Abc_Output_Compound_Property *prop)
-    {
-        prop->prop = object.getSchema().getArbGeomParams();
-    }
-
-    void get_user_properties(Abc_Output_Compound_Property *prop)
-    {
-        prop->prop = object.getSchema().getUserProperties();
-    }
-
-    void get_metadata(Abc_MetaData *metadata)
-    {
-        metadata->metadata = object.getMetaData();
-    }
-
-    AbcGeom::OObject &get_object() override
-    {
-        return object;
-    }
-};
 
 static void initialise_metadonnées(struct Abc_Output_Archive_Metadata *metadata,
                                    Abc::MetaData &abc_metadata)
@@ -1486,6 +1712,47 @@ T *crée_objet_sortie(Abc_Output_Archive *archive)
     return résultat;
 }
 
+/** \} */
+
+/* ------------------------------------------------------------------------- */
+/** \nom Abc_Output_Xform
+ * \{ */
+
+struct Abc_Output_Xform : public Abc_Output_Object {
+    Abc::OObject object{};
+    AbcGeom::OXformSchema schema{};
+
+    void set_sample(AbcGeom::OXformSchema::sample_type &sample)
+    {
+        schema.set(sample);
+    }
+
+    void set_from_previous()
+    {
+        schema.setFromPrevious();
+    }
+
+    void get_arb_geom_params(Abc_Output_Compound_Property *prop)
+    {
+        prop->prop = schema.getArbGeomParams();
+    }
+
+    void get_user_properties(Abc_Output_Compound_Property *prop)
+    {
+        prop->prop = schema.getUserProperties();
+    }
+
+    void get_metadata(Abc_MetaData *metadata)
+    {
+        metadata->metadata = object.getMetaData();
+    }
+
+    AbcGeom::OObject &get_object() override
+    {
+        return object;
+    }
+};
+
 Abc_Output_Xform *abc_output_archive_root_object_get(Abc_Output_Archive *archive)
 {
     if (archive->racine) {
@@ -1498,7 +1765,7 @@ Abc_Output_Xform *abc_output_archive_root_object_get(Abc_Output_Archive *archive
     return racine;
 }
 
-DEFINE_COMMON_OBJECT_FUNCTIONS(Xform, xform)
+DEFINE_COMMON_OUTPUT_OBJECT_FUNCTIONS(Xform, xform)
 
 Abc_Output_Xform *abc_output_xform_create(Abc_Output_Xform *parent,
                                           Abc_String nom,
@@ -1515,10 +1782,11 @@ Abc_Output_Xform *abc_output_xform_create(Abc_Output_Xform *parent,
 
 #define DEFINE_COMMON_SAMPLE_FONCTIONS(uppercase_name, lowercase_name)                            \
     Abc_Output_##uppercase_name##_Sample *abc_output_##lowercase_name##_sample_create(            \
-        Abc_Output_Archive *archive)                                                              \
+        Abc_Output_##uppercase_name *lowercase_name)                                              \
     {                                                                                             \
-        auto résultat = kuri_loge<Abc_Output_##uppercase_name##_Sample>(archive->ctx_kuri);       \
-        résultat->ctx_kuri = archive->ctx_kuri;                                                   \
+        auto résultat = kuri_loge<Abc_Output_##uppercase_name##_Sample>(                          \
+            lowercase_name->archive->ctx_kuri);                                                   \
+        résultat->ctx_kuri = lowercase_name->archive->ctx_kuri;                                   \
         return résultat;                                                                          \
     }                                                                                             \
     void abc_output_##lowercase_name##_sample_reset(Abc_Output_##uppercase_name##_Sample *sample) \
@@ -1536,11 +1804,6 @@ Abc_Output_Xform *abc_output_xform_create(Abc_Output_Xform *parent,
                                                   Abc_Output_##uppercase_name##_Sample *sample)   \
     {                                                                                             \
         lowercase_name->set_sample(sample->sample);                                               \
-    }                                                                                             \
-    void abc_output_##lowercase_name##_sample_set_from_previous(                                  \
-        Abc_Output_##uppercase_name *lowercase_name)                                              \
-    {                                                                                             \
-        lowercase_name->set_from_previous();                                                      \
     }
 
 struct Abc_Output_Xform_Sample {
@@ -1568,6 +1831,40 @@ void abc_output_xform_sample_set_inherits_xform(Abc_Output_Xform_Sample *sample,
 /** \nom Abc_Output_Points
  * \{ */
 
+struct Abc_Output_Points : public Abc_Output_Object {
+    AbcGeom::OPoints object{};
+
+    void set_sample(AbcGeom::OPointsSchema::Sample &sample)
+    {
+        object.getSchema().set(sample);
+    }
+
+    void set_from_previous()
+    {
+        object.getSchema().setFromPrevious();
+    }
+
+    void get_arb_geom_params(Abc_Output_Compound_Property *prop)
+    {
+        prop->prop = object.getSchema().getArbGeomParams();
+    }
+
+    void get_user_properties(Abc_Output_Compound_Property *prop)
+    {
+        prop->prop = object.getSchema().getUserProperties();
+    }
+
+    void get_metadata(Abc_MetaData *metadata)
+    {
+        metadata->metadata = object.getMetaData();
+    }
+
+    AbcGeom::OObject &get_object() override
+    {
+        return object;
+    }
+};
+
 Abc_Output_Points *abc_output_points_create(Abc_Output_Xform *parent,
                                             Abc_String nom,
                                             Abc_Time_Sample_Index time_sample_index)
@@ -1579,7 +1876,7 @@ Abc_Output_Points *abc_output_points_create(Abc_Output_Xform *parent,
     return résultat;
 }
 
-DEFINE_COMMON_OBJECT_FUNCTIONS(Points, points)
+DEFINE_COMMON_OUTPUT_OBJECT_FUNCTIONS(Points, points)
 
 struct Abc_Output_Points_Sample {
     ContexteKuri *ctx_kuri = nullptr;
@@ -1597,6 +1894,40 @@ ENUMERATE_POINTS_SAMPLE_INTERFACE(DEFINE_OUTPUT_SAMPLE_FUNCTIONS)
 /** \nom Abc_Output_Curves
  * \{ */
 
+struct Abc_Output_Curves : public Abc_Output_Object {
+    AbcGeom::OCurves object{};
+
+    void set_sample(AbcGeom::OCurvesSchema::Sample &sample)
+    {
+        object.getSchema().set(sample);
+    }
+
+    void set_from_previous()
+    {
+        object.getSchema().setFromPrevious();
+    }
+
+    void get_arb_geom_params(Abc_Output_Compound_Property *prop)
+    {
+        prop->prop = object.getSchema().getArbGeomParams();
+    }
+
+    void get_user_properties(Abc_Output_Compound_Property *prop)
+    {
+        prop->prop = object.getSchema().getUserProperties();
+    }
+
+    void get_metadata(Abc_MetaData *metadata)
+    {
+        metadata->metadata = object.getMetaData();
+    }
+
+    AbcGeom::OObject &get_object() override
+    {
+        return object;
+    }
+};
+
 Abc_Output_Curves *abc_output_curves_create(Abc_Output_Xform *parent,
                                             Abc_String nom,
                                             Abc_Time_Sample_Index time_sample_index)
@@ -1608,7 +1939,7 @@ Abc_Output_Curves *abc_output_curves_create(Abc_Output_Xform *parent,
     return résultat;
 }
 
-DEFINE_COMMON_OBJECT_FUNCTIONS(Curves, curves)
+DEFINE_COMMON_OUTPUT_OBJECT_FUNCTIONS(Curves, curves)
 
 struct Abc_Output_Curves_Sample {
     ContexteKuri *ctx_kuri = nullptr;
@@ -1678,7 +2009,7 @@ struct Abc_Output_FaceSet : public Abc_Output_Object {
     }
 };
 
-DEFINE_COMMON_OBJECT_FUNCTIONS(FaceSet, faceset)
+DEFINE_COMMON_OUTPUT_OBJECT_FUNCTIONS(FaceSet, faceset)
 
 struct Abc_Output_FaceSet_Sample {
     ContexteKuri *ctx_kuri = nullptr;
@@ -1741,7 +2072,7 @@ Abc_Output_PolyMesh *abc_output_poly_mesh_create(Abc_Output_Xform *parent,
     return résultat;
 }
 
-DEFINE_COMMON_OBJECT_FUNCTIONS(PolyMesh, polymesh)
+DEFINE_COMMON_OUTPUT_OBJECT_FUNCTIONS(PolyMesh, polymesh)
 
 Abc_Output_FaceSet *abc_output_polymesh_create_face_set(Abc_Output_PolyMesh *mesh, Abc_String name)
 {
@@ -1816,7 +2147,7 @@ Abc_Output_SubD *abc_output_subd_create(Abc_Output_Xform *parent,
     return résultat;
 }
 
-DEFINE_COMMON_OBJECT_FUNCTIONS(SubD, subd)
+DEFINE_COMMON_OUTPUT_OBJECT_FUNCTIONS(SubD, subd)
 
 Abc_Output_FaceSet *abc_output_subd_create_face_set(Abc_Output_SubD *subd, Abc_String name)
 {
@@ -1915,7 +2246,7 @@ Abc_Output_Camera *abc_output_camera_create(Abc_Output_Xform *parent,
     return résultat;
 }
 
-DEFINE_COMMON_OBJECT_FUNCTIONS(Camera, camera)
+DEFINE_COMMON_OUTPUT_OBJECT_FUNCTIONS(Camera, camera)
 
 struct Abc_Output_Camera_Sample {
     ContexteKuri *ctx_kuri = nullptr;
@@ -1934,5 +2265,263 @@ struct Abc_Output_Camera_Sample *abc_output_camera_sample_create_window(
 }
 
 ENUMERATE_OUTPUT_CAMERA_SAMPLE_SCALAR_INTERFACE(DEFINE_OUTPUT_SAMPLE_SCALAR_FUNCTIONS)
+
+/** \} */
+
+/* ------------------------------------------------------------------------- */
+/** \nom Abc_Output_NuPatch
+ * \{ */
+
+struct Abc_Output_NuPatch : public Abc_Output_Object {
+    AbcGeom::ONuPatch object{};
+
+    void set_sample(AbcGeom::ONuPatchSchema::Sample &sample)
+    {
+        object.getSchema().set(sample);
+    }
+
+    void set_from_previous()
+    {
+        object.getSchema().setFromPrevious();
+    }
+
+    void get_arb_geom_params(Abc_Output_Compound_Property *prop)
+    {
+        prop->prop = object.getSchema().getArbGeomParams();
+    }
+
+    void get_user_properties(Abc_Output_Compound_Property *prop)
+    {
+        prop->prop = object.getSchema().getUserProperties();
+    }
+
+    void get_metadata(Abc_MetaData *metadata)
+    {
+        metadata->metadata = object.getMetaData();
+    }
+
+    AbcGeom::OObject &get_object() override
+    {
+        return object;
+    }
+};
+
+Abc_Output_NuPatch *abc_output_nupatch_create(Abc_Output_Xform *parent,
+                                              Abc_String nom,
+                                              Abc_Time_Sample_Index time_sample_index)
+{
+    auto archive = parent->archive;
+    auto résultat = crée_objet_sortie<Abc_Output_NuPatch>(archive);
+    résultat->object = AbcGeom::ONuPatch(
+        parent->object, vers_std_string(nom), time_sample_index.value);
+    return résultat;
+}
+
+DEFINE_COMMON_OUTPUT_OBJECT_FUNCTIONS(NuPatch, nupatch)
+
+struct Abc_Output_NuPatch_Sample {
+    ContexteKuri *ctx_kuri = nullptr;
+    AbcGeom::ONuPatchSchema::Sample sample{};
+    Array_Sample_Data sample_data{};
+};
+
+DEFINE_COMMON_SAMPLE_FONCTIONS(NuPatch, nupatch)
+
+ENUMERATE_OUTPUT_NUPATCH_SAMPLE_SCALAR_INTERFACE(DEFINE_OUTPUT_SAMPLE_SCALAR_FUNCTIONS)
+ENUMERATE_OUTPUT_NUPATCH_SAMPLE_INTERFACE(DEFINE_OUTPUT_SAMPLE_FUNCTIONS)
+
+void abc_output_nupatch_sample_trim_curve_set(Abc_Output_NuPatch_Sample *sample,
+                                              int32_t trim_n_loops,
+                                              Abc_Int32_Array_Sample trim_n_curves,
+                                              Abc_Int32_Array_Sample trim_n,
+                                              Abc_Int32_Array_Sample trim_order,
+                                              Abc_Float_Array_Sample trim_knot,
+                                              Abc_Float_Array_Sample trim_min,
+                                              Abc_Float_Array_Sample trim_max,
+                                              Abc_Float_Array_Sample trim_u,
+                                              Abc_Float_Array_Sample trim_v,
+                                              Abc_Float_Array_Sample trim_w)
+{
+    auto i_trim_n_curves = make_typed_sample(trim_n_curves, &sample->sample_data);
+    auto i_trim_n = make_typed_sample(trim_n, &sample->sample_data);
+    auto i_trim_order = make_typed_sample(trim_order, &sample->sample_data);
+    auto i_trim_knot = make_typed_sample(trim_knot, &sample->sample_data);
+    auto i_trim_min = make_typed_sample(trim_min, &sample->sample_data);
+    auto i_trim_max = make_typed_sample(trim_max, &sample->sample_data);
+    auto i_trim_u = make_typed_sample(trim_u, &sample->sample_data);
+    auto i_trim_v = make_typed_sample(trim_v, &sample->sample_data);
+    auto i_trim_w = make_typed_sample(trim_w, &sample->sample_data);
+
+    sample->sample.setTrimCurve(trim_n_loops,
+                                i_trim_n_curves,
+                                i_trim_n,
+                                i_trim_order,
+                                i_trim_knot,
+                                i_trim_min,
+                                i_trim_max,
+                                i_trim_u,
+                                i_trim_v,
+                                i_trim_w);
+}
+
+/** \} */
+
+/* ------------------------------------------------------------------------- */
+/** \nom Abc_Output_Light
+ * \{ */
+
+struct Abc_Output_Light : public Abc_Output_Object {
+    AbcGeom::OLight object{};
+
+    void set_from_previous()
+    {
+        object.getSchema().setFromPrevious();
+    }
+
+    void get_arb_geom_params(Abc_Output_Compound_Property *prop)
+    {
+        prop->prop = object.getSchema().getArbGeomParams();
+    }
+
+    void get_user_properties(Abc_Output_Compound_Property *prop)
+    {
+        prop->prop = object.getSchema().getUserProperties();
+    }
+
+    void get_metadata(Abc_MetaData *metadata)
+    {
+        metadata->metadata = object.getMetaData();
+    }
+
+    AbcGeom::OObject &get_object() override
+    {
+        return object;
+    }
+};
+
+Abc_Output_Light *abc_output_light_create(Abc_Output_Xform *parent,
+                                          Abc_String nom,
+                                          Abc_Time_Sample_Index time_sample_index)
+{
+    auto archive = parent->archive;
+    auto résultat = crée_objet_sortie<Abc_Output_Light>(archive);
+    résultat->object = AbcGeom::OLight(
+        parent->object, vers_std_string(nom), time_sample_index.value);
+    return résultat;
+}
+
+DEFINE_COMMON_OUTPUT_OBJECT_FUNCTIONS(Light, light)
+
+void abc_output_light_set_camera_sample(struct Abc_Output_Light *light,
+                                        struct Abc_Output_Camera_Sample *sample)
+{
+    light->object.getSchema().setCameraSample(sample->sample);
+}
+
+/** \} */
+
+/* ------------------------------------------------------------------------- */
+/** \nom Abc_Output_Material
+ * \{ */
+
+struct Abc_Output_Material : public Abc_Output_Object {
+    AbcMaterial::OMaterial object{};
+
+    void get_metadata(Abc_MetaData *metadata)
+    {
+        metadata->metadata = object.getMetaData();
+    }
+
+    AbcGeom::OObject &get_object() override
+    {
+        return object;
+    }
+};
+
+Abc_Output_Material *abc_output_material_create(Abc_Output_Xform *parent, Abc_String nom)
+{
+    auto archive = parent->archive;
+    auto résultat = crée_objet_sortie<Abc_Output_Material>(archive);
+    résultat->object = AbcMaterial::OMaterial(parent->object, nom);
+    return résultat;
+}
+
+Abc_MetaData *abc_output_material_metadata_get(struct Abc_Output_Material *metarial)
+{
+    if (!metarial->metadata_initialized) {
+        metarial->get_metadata(&metarial->metadata_);
+        metarial->metadata_.ctx_kuri = metarial->archive->ctx_kuri;
+        metarial->metadata_initialized = true;
+    }
+    return &metarial->metadata_;
+}
+
+void abc_output_material_set_shader(Abc_Output_Material *material,
+                                    Abc_String target,
+                                    Abc_String shader_type,
+                                    Abc_String shader_name)
+{
+    material->object.getSchema().setShader(target, shader_type, shader_name);
+}
+
+Abc_Output_Compound_Property *abc_output_material_get_shader_parameters(
+    Abc_Output_Material *material, Abc_String target, Abc_String shader_type)
+{
+    auto résultat = make_output_compound_property(material->archive);
+    résultat->prop = material->object.getSchema().getShaderParameters(target, shader_type);
+    return résultat;
+}
+
+void abc_output_material_add_network_node(Abc_Output_Material *material,
+                                          Abc_String node_name,
+                                          Abc_String target,
+                                          Abc_String node_type)
+{
+    material->object.getSchema().addNetworkNode(node_name, target, node_type);
+}
+
+void abc_output_material_set_network_node_connection(Abc_Output_Material *material,
+                                                     Abc_String node_name,
+                                                     Abc_String input_name,
+                                                     Abc_String connected_node_name,
+                                                     Abc_String connected_output_name)
+{
+    material->object.getSchema().setNetworkNodeConnection(
+        node_name, input_name, connected_node_name, connected_output_name);
+}
+
+Abc_Output_Compound_Property *abc_output_material_get_network_node_parameters(
+    Abc_Output_Material *material, Abc_String node_name)
+{
+    auto résultat = make_output_compound_property(material->archive);
+    résultat->prop = material->object.getSchema().getNetworkNodeParameters(node_name);
+    return résultat;
+}
+
+void abc_output_material_set_network_terminal(Abc_Output_Material *material,
+                                              Abc_String target,
+                                              Abc_String shader_type,
+                                              Abc_String node_name,
+                                              Abc_String output_name)
+{
+    material->object.getSchema().setNetworkTerminal(target, shader_type, node_name, output_name);
+}
+
+void abc_output_material_set_network_interface_parameter_mapping(Abc_Output_Material *material,
+                                                                 Abc_String interface_param_name,
+                                                                 Abc_String map_to_node_name,
+                                                                 Abc_String map_to_param_name)
+{
+    material->object.getSchema().setNetworkInterfaceParameterMapping(
+        interface_param_name, map_to_node_name, map_to_param_name);
+}
+
+Abc_Output_Compound_Property *abc_output_material_get_network_interface_parameters(
+    Abc_Output_Material *material)
+{
+    auto résultat = make_output_compound_property(material->archive);
+    résultat->prop = material->object.getSchema().getNetworkInterfaceParameters();
+    return résultat;
+}
 
 /** \} */
