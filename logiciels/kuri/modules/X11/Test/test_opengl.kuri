@@ -147,7 +147,7 @@ principale :: fonc ()
     }
     _ := glXMakeCurrent(display, window, context);
 
-    gl_donne_chaine :: fonc (name: GLenum) -> chaine;
+    gl_donne_chaine :: fonc (name: GLenum) -> chaine
     {
         str := glGetString(name);
         retourne convertis_chaine_c_statique(str comme *z8);
