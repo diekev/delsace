@@ -1,5 +1,6 @@
 interface_alembic.kuri
 Tests/test_export
+Tests/polymesh2subd
 
 *.a
 *.so
