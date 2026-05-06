@@ -334,8 +334,7 @@ donne_id_fenêtre_suivant :: fonc () -> z32
 donne_état_souris :: fonc (fenêtre: Port_Fenêtre_Native) -> ÉtatSouris
 {
     si fenêtre.système == SystèmeFenêtre.NATIVE {
-        imprimeln("donne_état_souris non-implémenté pour X11");
-        retourne ÉtatSouris();
+        retourne fenêtre.données_x11.dernière_souris;
     }
 
     assert(fenêtre.rappels_window != nul);
@@ -865,6 +864,8 @@ DonnéesX11 :: struct {
     format: Atom;
 
     id_fenêtre: z32;
+
+    dernière_souris: ÉtatSouris;
 }
 
 __données_x11: DonnéesX11;
@@ -1235,16 +1236,19 @@ x11_ajourne_évènements_fenêtre :: fonc (fenêtre: Port_Fenêtre_Native)
         sinon si event.type == MotionNotify {
             évènement := donne_évènement_pour_fenêtre(données_x11.id_fenêtre);
             initialise_évènement_depuis_xmotion_event(*event.xmotion, évènement);
+            dernière_souris = évènement.état_souris;
             évènement.id_fenêtre = données_x11.id_fenêtre;
         }
         sinon si event.type == ButtonPress {
             évènement := donne_évènement_pour_fenêtre(données_x11.id_fenêtre);
             initialise_évènement_depuis_xbutton_event(*event.xbutton, évènement);
+            dernière_souris = évènement.état_souris;
             évènement.id_fenêtre = données_x11.id_fenêtre;
         }
         sinon si event.type == ButtonRelease {
             évènement := donne_évènement_pour_fenêtre(données_x11.id_fenêtre);
             initialise_évènement_depuis_xbutton_event(*event.xbutton, évènement);
+            dernière_souris = évènement.état_souris;
             évènement.id_fenêtre = données_x11.id_fenêtre;
         }
         sinon si event.type == ClientMessage {
