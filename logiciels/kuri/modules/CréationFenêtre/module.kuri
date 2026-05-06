@@ -86,10 +86,15 @@ requiers_ajournement_fenêtre :: fonc (fenêtre: Port_Fenêtre_Native)
 
 rends_contexte_gl_actif :: fonc (fenêtre: Port_Fenêtre_Native)
 {
-    assert(fenêtre.système == SystèmeFenêtre.QT);
-    assert(fenêtre.rappels_window != nul);
-    assert(fenêtre.rappels_window.window != nul);
-     _ := QT_OpenGL_Context_make_current(fenêtre.rappels_window.glctx, fenêtre.rappels_window.window);
+    si fenêtre.système == SystèmeFenêtre.NATIVE {
+        _ := glXMakeCurrent(fenêtre.données_x11.display, fenêtre.données_x11.window, fenêtre.données_x11.context_opengl);
+    }
+    sinon {
+        assert(fenêtre.système == SystèmeFenêtre.QT);
+        assert(fenêtre.rappels_window != nul);
+        assert(fenêtre.rappels_window.window != nul);
+        _ := QT_OpenGL_Context_make_current(fenêtre.rappels_window.glctx, fenêtre.rappels_window.window);
+    }
 }
 
 // À FAIRE :  déplace permute tampons dans IGUMI
@@ -827,6 +832,8 @@ importe X11;
 DonnéesX11 :: struct {
     display: *Display;
     window: Window;
+    visual: *XVisualInfo;
+    context_opengl: GLXContext;
     xim: XIM;
     xic: XIC;
     wm_delete_window: Atom;
@@ -871,16 +878,35 @@ x11_crée_fenêtre :: fonc (empl options: *Options_Création_Fenêtre) -> Port_F
         exit(1);
     }
 
-    window := XCreateSimpleWindow(
-        display,
-        XDefaultRootWindow(display),
-        0,
-        0,
-        largeur comme n32,
-        hauteur comme n32,
-        0,
-        0,
-        0);
+    id_écran := DefaultScreen(display);
+
+    visual, context := crée_contexte_opengl_x11(display, id_écran);
+
+    parent := RootWindow(display, id_écran);
+    x := 0;
+    y := 0;
+    largeur_bordure: n32 = 1;
+    profondeur := visual.depth;
+    classe := InputOutput comme n32;
+    masque_valeur := (CWBackPixel | CWColormap | CWBorderPixel | CWEventMask) comme n64;
+
+    attributs: XSetWindowAttributes;
+    attributs.border_pixel = BlackPixel(display, id_écran);
+    attributs.background_pixel = WhitePixel(display, id_écran);
+    attributs.override_redirect = True;
+    attributs.colormap = XCreateColormap(display, parent, visual.visual, AllocNone);
+    attributs.event_mask = ExposureMask | KeyPressMask | StructureNotifyMask;
+
+    window := XCreateWindow(display,
+                            parent,
+                            x, y,
+                            largeur comme n32, hauteur comme n32,
+                            largeur_bordure,
+                            profondeur,
+                            classe,
+                            visual.visual,
+                            masque_valeur,
+                            *attributs);
 
     wm_delete_window := XInternAtom(display, "WM_DELETE_WINDOW".pointeur, False);
     _ := XSetWMProtocols(display, window, *wm_delete_window, 1);
@@ -977,6 +1003,8 @@ x11_crée_fenêtre :: fonc (empl options: *Options_Création_Fenêtre) -> Port_F
     __données_x11.xim = xim;
     __données_x11.xic = xic;
     __données_x11.wm_delete_window = wm_delete_window;
+    __données_x11.visual = visual;
+    __données_x11.context_opengl = context;
 
     résultat: Port_Fenêtre_Native;
     résultat.id = donne_id_fenêtre_suivant();
@@ -991,9 +1019,9 @@ x11_requiers_ajournement_fenêtre :: fonc (fenêtre: Port_Fenêtre_Native)
     imprimeln("À FAIRE : %", #nom_de_cette_fonction);
 }
 
-x11_permute_tampons_fenêtre :: fonc (fenêtre: Port_Fenêtre_Native @inutilisée)
+x11_permute_tampons_fenêtre :: fonc (fenêtre: Port_Fenêtre_Native)
 {
-    imprimeln("À FAIRE : %", #nom_de_cette_fonction);
+    glXSwapBuffers(fenêtre.données_x11.display, fenêtre.données_x11.window);
 }
 
 x11_donne_taille_fenêtre :: fonc (fenêtre: Port_Fenêtre_Native) -> (largeur: z32, hauteur: z32)
