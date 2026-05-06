@@ -1234,7 +1234,15 @@ x11_ajourne_évènements_fenêtre :: fonc (fenêtre: Port_Fenêtre_Native)
             évènement.id_fenêtre = données_x11.id_fenêtre;
         }
         sinon si event.type == MotionNotify {
-            évènement := donne_évènement_pour_fenêtre(données_x11.id_fenêtre);
+            évènement: *Évènement;
+
+            si __évènements.taille && __évènements[__évènements.taille - 1].action_souris == ActionSouris.DÉPLACÉE {
+                évènement = *__évènements[__évènements.taille - 1];
+            }
+            sinon {
+                évènement = donne_évènement_pour_fenêtre(données_x11.id_fenêtre);
+            }
+
             initialise_évènement_depuis_xmotion_event(*event.xmotion, évènement);
             dernière_souris = évènement.état_souris;
             évènement.id_fenêtre = données_x11.id_fenêtre;
