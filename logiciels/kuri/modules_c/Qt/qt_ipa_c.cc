@@ -1661,6 +1661,12 @@ QT_Rect QT_window_geometry(struct QT_Window *window)
     return vers_ipa(qwindow->geometry());
 }
 
+void QT_window_set_cursor(struct QT_Window *window, enum QT_CursorShape shape)
+{
+    VERS_QT(window);
+    qwindow->setCursor(convertis_forme_curseur(shape));
+}
+
 /** \} */
 
 /* ------------------------------------------------------------------------- */

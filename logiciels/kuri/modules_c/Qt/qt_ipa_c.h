@@ -1571,6 +1571,7 @@ void QT_window_map_from_global(struct QT_Window *window,
 void QT_window_set_mouse_grab_enabled(struct QT_Window *window, bool oui_non);
 void QT_window_set_keyboard_grab_enabled(struct QT_Window *window, bool oui_non);
 struct QT_Rect QT_window_geometry(struct QT_Window *window);
+void QT_window_set_cursor(struct QT_Window *window, enum QT_CursorShape shape);
 
 /** \} */
 

@@ -466,7 +466,7 @@ qt_définis_curseur :: fonc (fenêtre: Port_Fenêtre_Native, curseur: TypeCurseu
 {
     assert(fenêtre.rappels_window != nul);
     assert(fenêtre.rappels_window.window != nul);
-    QT_gui_application_definis_curseur(curseur);
+    QT_window_set_cursor(fenêtre.rappels_window.window, curseur);
 }
 
 qt_active_barre_de_titre_et_bordures :: fonc (fenêtre: Port_Fenêtre_Native, oui_non: bool)
