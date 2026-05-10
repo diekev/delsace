@@ -1448,10 +1448,11 @@ donne_position_curseur :: fonc (boite: *Boite_Flexible, éditrice: *ÉditriceTex
 
 donne_boite_pour_ciselage :: fonc (boite: *Boite_Flexible) -> *Boite_Flexible
 {
-    si boite.type == Boite_Flexible.Type.Texte || boite.type == Boite_Flexible.Type.TexteUTF32 {
-        retourne boite.parent;
+    résultat := donne_parent_avec_barre_défilage(boite);
+    si résultat == nul && (boite.type == Boite_Flexible.Type.Texte || boite.type == Boite_Flexible.Type.TexteUTF32) {
+        résultat = boite.parent;
     }
-    retourne donne_parent_avec_barre_défilage(boite);
+    retourne résultat;
 }
 
 donne_parent_avec_barre_défilage :: fonc (boite: *Boite_Flexible) -> *Boite_Flexible
