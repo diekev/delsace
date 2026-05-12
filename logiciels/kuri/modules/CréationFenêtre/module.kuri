@@ -891,9 +891,35 @@ DonnéesX11 :: struct {
     dernière_souris: ÉtatSouris;
 }
 
-__données_x11: DonnéesX11;
-
 #portée_fichier
+
+__utilisateurs_display: z32;
+__display: *Display;
+
+x11_donne_display :: fonc () -> *Display
+{
+    si __display == nul {
+        __display = XOpenDisplay(nul);
+        si __display == nul {
+            imprimeln("X11 : impossible d'ouvrir un display.");
+            exit(1);
+        }
+    }
+
+    __utilisateurs_display += 1;
+
+    retourne __display;
+}
+
+x11_ferme_display :: fonc ()
+{
+    __utilisateurs_display -= 1;
+    assert(__utilisateurs_display >= 0);
+    si __display && __utilisateurs_display == 0 {
+        _ := XCloseDisplay(__display);
+        __display = nul;
+    }
+}
 
 x11_donne_masque_évènements_pour_pointeur :: fonc () -> z64
 {
@@ -910,11 +936,7 @@ x11_donne_masque_évènements :: fonc () -> z64
 // À FAIRE : fenêtre parent
 x11_crée_fenêtre :: fonc (empl options: *Options_Création_Fenêtre) -> Port_Fenêtre_Native
 {
-    display := XOpenDisplay(nul);
-    si display == nul {
-        imprimeln("X11 : impossible d'ouvrir un display.");
-        exit(1);
-    }
+    display := x11_donne_display();
 
     id_écran := DefaultScreen(display);
 
@@ -1005,55 +1027,57 @@ x11_crée_fenêtre :: fonc (empl options: *Options_Création_Fenêtre) -> Port_F
 
     x11_définis_titre_fenêtre(display, window, titre);
 
-    __données_x11.NET_WM_WINDOW_OPACITY = XInternAtom(display, "_NET_WM_WINDOW_OPACITY".pointeur, False);
+    données_x11 := loge(DonnéesX11);
+
+    données_x11.NET_WM_WINDOW_OPACITY = XInternAtom(display, "_NET_WM_WINDOW_OPACITY".pointeur, False);
 
     /* https://specifications.freedesktop.org/wm-spec/1.3/ar01s05.html */
-    __données_x11._NET_WM_STATE = XInternAtom(display, "_NET_WM_STATE".pointeur, False);
-    __données_x11._NET_WM_STATE_MAXIMIZED_HORZ = XInternAtom(display, "_NET_WM_STATE_MAXIMIZED_HORZ".pointeur, False);
-    __données_x11._NET_WM_STATE_MAXIMIZED_VERT = XInternAtom(display, "_NET_WM_STATE_MAXIMIZED_VERT".pointeur, False);
-    __données_x11._NET_WM_STATE_FULLSCREEN = XInternAtom(display, "_NET_WM_STATE_FULLSCREEN".pointeur, False);
-    __données_x11._MOTIF_WM_HINTS = XInternAtom(display, "_MOTIF_WM_HINTS".pointeur, False);
+    données_x11._NET_WM_STATE = XInternAtom(display, "_NET_WM_STATE".pointeur, False);
+    données_x11._NET_WM_STATE_MAXIMIZED_HORZ = XInternAtom(display, "_NET_WM_STATE_MAXIMIZED_HORZ".pointeur, False);
+    données_x11._NET_WM_STATE_MAXIMIZED_VERT = XInternAtom(display, "_NET_WM_STATE_MAXIMIZED_VERT".pointeur, False);
+    données_x11._NET_WM_STATE_FULLSCREEN = XInternAtom(display, "_NET_WM_STATE_FULLSCREEN".pointeur, False);
+    données_x11._MOTIF_WM_HINTS = XInternAtom(display, "_MOTIF_WM_HINTS".pointeur, False);
 
     /* fetching data */
-    __données_x11.XdndTypeList = XInternAtom(display, "XdndTypeList".pointeur, False);
-    __données_x11.XdndSelection = XInternAtom(display, "XdndSelection".pointeur, False);
+    données_x11.XdndTypeList = XInternAtom(display, "XdndTypeList".pointeur, False);
+    données_x11.XdndSelection = XInternAtom(display, "XdndSelection".pointeur, False);
 
     /* client messages */
-    __données_x11.XdndEnter = XInternAtom(display, "XdndEnter".pointeur, False);
-    __données_x11.XdndPosition = XInternAtom(display, "XdndPosition".pointeur, False);
-    __données_x11.XdndStatus = XInternAtom(display, "XdndStatus".pointeur, False);
-    __données_x11.XdndLeave = XInternAtom(display, "XdndLeave".pointeur, False);    
-    __données_x11.XdndDrop = XInternAtom(display, "XdndDrop".pointeur, False);  
-    __données_x11.XdndFinished = XInternAtom(display, "XdndFinished".pointeur, False);
+    données_x11.XdndEnter = XInternAtom(display, "XdndEnter".pointeur, False);
+    données_x11.XdndPosition = XInternAtom(display, "XdndPosition".pointeur, False);
+    données_x11.XdndStatus = XInternAtom(display, "XdndStatus".pointeur, False);
+    données_x11.XdndLeave = XInternAtom(display, "XdndLeave".pointeur, False);    
+    données_x11.XdndDrop = XInternAtom(display, "XdndDrop".pointeur, False);  
+    données_x11.XdndFinished = XInternAtom(display, "XdndFinished".pointeur, False);
 
     /* actions */
-    __données_x11.XdndActionCopy = XInternAtom(display, "XdndActionCopy".pointeur, False);
-    __données_x11.XdndActionMove = XInternAtom(display, "XdndActionMove".pointeur, False);
-    __données_x11.XdndActionLink = XInternAtom(display, "XdndActionLink".pointeur, False);
-    __données_x11.XdndActionAsk = XInternAtom(display, "XdndActionAsk".pointeur, False);
-    __données_x11.XdndActionPrivate = XInternAtom(display, "XdndActionPrivate".pointeur, False);
+    données_x11.XdndActionCopy = XInternAtom(display, "XdndActionCopy".pointeur, False);
+    données_x11.XdndActionMove = XInternAtom(display, "XdndActionMove".pointeur, False);
+    données_x11.XdndActionLink = XInternAtom(display, "XdndActionLink".pointeur, False);
+    données_x11.XdndActionAsk = XInternAtom(display, "XdndActionAsk".pointeur, False);
+    données_x11.XdndActionPrivate = XInternAtom(display, "XdndActionPrivate".pointeur, False);
 
-    __données_x11.XtextUriList = XInternAtom(display, "text/uri-list".pointeur, False); 
-    __données_x11.XtextPlain = XInternAtom(display, "text/plain".pointeur, False);
+    données_x11.XtextUriList = XInternAtom(display, "text/uri-list".pointeur, False); 
+    données_x11.XtextPlain = XInternAtom(display, "text/plain".pointeur, False);
 
-    __données_x11.XdndAware = XInternAtom(display, "XdndAware".pointeur, False);
+    données_x11.XdndAware = XInternAtom(display, "XdndAware".pointeur, False);
     myVersion : n8 = 5;
-    _ := XChangeProperty(display, window, __données_x11.XdndAware, 4, 32, PropModeReplace, *myVersion, 1);
+    _ := XChangeProperty(display, window, données_x11.XdndAware, 4, 32, PropModeReplace, *myVersion, 1);
 
     _ := XMapWindow(display, window);
 
-    __données_x11.display = display;
-    __données_x11.window = window;
-    __données_x11.xim = xim;
-    __données_x11.xic = xic;
-    __données_x11.wm_delete_window = wm_delete_window;
-    __données_x11.visual = visual;
-    __données_x11.context_opengl = context;
+    données_x11.display = display;
+    données_x11.window = window;
+    données_x11.xim = xim;
+    données_x11.xic = xic;
+    données_x11.wm_delete_window = wm_delete_window;
+    données_x11.visual = visual;
+    données_x11.context_opengl = context;
 
     résultat: Port_Fenêtre_Native;
     résultat.id = donne_id_fenêtre_suivant();
     résultat.système = SystèmeFenêtre.NATIVE;
-    résultat.données_x11 = *__données_x11;
+    résultat.données_x11 = données_x11;
     résultat.données_x11.id_fenêtre = résultat.id;
 
     si maximisée {
@@ -1174,9 +1198,8 @@ x11_fenêtre_permute_plein_écran :: fonc (fenêtre: Port_Fenêtre_Native)
 x11_fenêtre_ferme :: fonc (fenêtre: Port_Fenêtre_Native)
 {
     assert(fenêtre.système == SystèmeFenêtre.NATIVE);
-    si fenêtre.données_x11.display {
-        _ := XCloseDisplay(fenêtre.données_x11.display);
-    }
+    x11_ferme_display();
+    déloge(*fenêtre.données_x11);
 }
 
 x11_fenêtre_est_visible :: fonc (fenêtre: Port_Fenêtre_Native @inutilisée) -> bool
