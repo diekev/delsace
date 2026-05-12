@@ -412,7 +412,7 @@ crée_contexte_opengl_x11 :: fonc (display: *Display, id_écran: z32) -> (*XVisu
         exit(1);
     }
 
-    imprimeln("GLX version %.%", version_glx_majeure, version_glx_mineure);
+    // imprimeln("GLX version %.%", version_glx_majeure, version_glx_mineure);
 
     attributs_glx: []GLenum = [
         GLX_X_RENDERABLE    , True comme GLenum,
@@ -435,7 +435,7 @@ crée_contexte_opengl_x11 :: fonc (display: *Display, id_écran: z32) -> (*XVisu
         imprimeln("Impossible d'obtenir un tampon de frame");
         exit(1);
     }
-    imprimeln("Trouvé % tampons de frame possible", nombre_de_tampons_de_frame);
+    // imprimeln("Trouvé % tampons de frame possible", nombre_de_tampons_de_frame);
 
     // Prennons la configuration avec le plus d'échantillons
     indice_meilleur_tampon : z64 = -1;
@@ -488,7 +488,7 @@ crée_contexte_opengl_x11 :: fonc (display: *Display, id_écran: z32) -> (*XVisu
 
     glxExts := glXQueryExtensionsString(display, id_écran);
     extensions := convertis_chaine_c_statique(glxExts);
-    imprimeln("%", extensions);
+    // imprimeln("%", extensions);
 
     context: GLXContext;
     si trouve_motif_dans_chaine(extensions, "GLX_ARB_create_context") != -1 {
@@ -500,12 +500,12 @@ crée_contexte_opengl_x11 :: fonc (display: *Display, id_écran: z32) -> (*XVisu
     _ := XSync(display, False);
 
     // Verifying that context is a direct context
-    si !glXIsDirect(display, context) {
-        imprimeln("Contexte indirect");
-    }
-    sinon {
-        imprimeln("Contexte direct");
-    }
+    // si !glXIsDirect(display, context) {
+    //     imprimeln("Contexte indirect");
+    // }
+    // sinon {
+    //     imprimeln("Contexte direct");
+    // }
 
     retourne visual, context;
 }
