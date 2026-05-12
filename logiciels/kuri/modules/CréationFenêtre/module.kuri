@@ -286,8 +286,11 @@ Position_Globale :: struct {
 
 donne_position_globale :: fonc (fenêtre: Port_Fenêtre_Native, x: z32, y: z32) -> Position_Globale
 {
-    assert(fenêtre.système == SystèmeFenêtre.QT);
-    retourne qt_fenêtre_donne_position_globale(fenêtre, x, y);
+    géométrie := donne_géométrie(*fenêtre);
+    résultat: Position_Globale = ---;
+    résultat.x = x + géométrie.x;
+    résultat.y = y + géométrie.y;
+    retourne résultat;
 }
 
 Position_Locale :: struct {
@@ -297,8 +300,11 @@ Position_Locale :: struct {
 
 donne_position_locale :: fonc (fenêtre: Port_Fenêtre_Native, position: Position_Globale) -> Position_Locale
 {
-    assert(fenêtre.système == SystèmeFenêtre.QT);
-    retourne qt_fenêtre_donne_position_locale(fenêtre, position);
+    géométrie := donne_géométrie(*fenêtre);
+    résultat: Position_Locale = ---;
+    résultat.x = position.x - géométrie.x;
+    résultat.y = position.y - géométrie.y;
+    retourne résultat;
 }
 
 Port_Fenêtre_Native :: struct {
