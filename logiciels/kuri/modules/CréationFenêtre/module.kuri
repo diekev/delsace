@@ -268,9 +268,14 @@ termine_saisie_clavier :: fonc (fenêtre: Port_Fenêtre_Native)
 
 donne_géométrie :: fonc (fenêtre: *Port_Fenêtre_Native) -> RectanglePosDim(z32)
 {
-    assert(fenêtre.système == SystèmeFenêtre.QT);
     résultat: RectanglePosDim(z32);
-    résultat = qt_fenêtre_donne_géométrie(fenêtre);
+    si fenêtre.système == SystèmeFenêtre.QT {
+        résultat = qt_fenêtre_donne_géométrie(fenêtre);
+    }
+    sinon {
+        assert(fenêtre.système == SystèmeFenêtre.NATIVE);
+        résultat = x11_fenêtre_donne_géométrie(mémoire(fenêtre));
+    }
     retourne résultat;
 }
 
@@ -1020,7 +1025,7 @@ x11_permute_tampons_fenêtre :: fonc (fenêtre: Port_Fenêtre_Native)
     glXSwapBuffers(fenêtre.données_x11.display, fenêtre.données_x11.window);
 }
 
-x11_donne_taille_fenêtre :: fonc (fenêtre: Port_Fenêtre_Native) -> (largeur: z32, hauteur: z32)
+x11_fenêtre_donne_géométrie :: fonc (fenêtre: Port_Fenêtre_Native) -> RectanglePosDim(z32)
 {
     assert(fenêtre.données_x11.display != nul);
 
@@ -1042,7 +1047,18 @@ x11_donne_taille_fenêtre :: fonc (fenêtre: Port_Fenêtre_Native) -> (largeur: 
                       *border_w_return,
                       *depth_return);
 
-    retourne w_return comme z32, h_return comme z32;
+    résultat: RectanglePosDim(z32) = ---;
+    résultat.x = x_return;
+    résultat.y = y_return;
+    résultat.largeur = w_return comme z32;
+    résultat.hauteur = h_return comme z32;
+    retourne résultat;
+}
+
+x11_donne_taille_fenêtre :: fonc (fenêtre: Port_Fenêtre_Native) -> (largeur: z32, hauteur: z32)
+{
+    géométrie := x11_fenêtre_donne_géométrie(fenêtre);
+    retourne géométrie.largeur, géométrie.hauteur;
 }
 
 x11_définis_titre_fenêtre :: fonc (fenêtre: Port_Fenêtre_Native, titre: chaine)
