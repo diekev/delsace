@@ -1775,6 +1775,138 @@ XGetVisualInfo :: fonc (display: *Display, vinfo_mask: z64, vinfo_template: *XVi
 
 /** \} */
 
+/* ------------------------------------------------------------------------- */
+/** \nom cursorfont.h
+ * \{ */
+
+cursorfont_donne_nom_curseur :: fonc (type: TypeCurseurSystème) -> chaine
+{
+    discr type {
+        VIERGE {
+            retourne "arrow";
+        }
+        FLÈCHE {
+            retourne "arrow";
+        }
+        TEXTE {
+            retourne "term";
+        }
+        TEXTE_VERTICAL {
+            retourne "term";
+        }
+        ATTENTE {
+            retourne "watch";
+        }
+        CROIX {
+            retourne "cross";
+        }
+        FLÈCHE_AVEC_ATTENTE {
+            retourne "watch";
+        }
+        INTERDIT {
+            retourne "arrow";
+        }
+        MAIN_OUVERTE {
+            retourne "arrow";
+        }
+        MAIN_FERMÉE {
+            retourne "arrow";
+        }
+        MAIN_POINTANT {
+            retourne "hand2";
+        }
+        POINT_D_INTERROGATION {
+            retourne "arrow";
+        }
+        MENU_CONTEXTUEL {
+            retourne "arrow";
+        }
+        CELLULE {
+            retourne "arrow";
+        }
+        ALIAS {
+            retourne "arrow";
+        }
+        COPIE {
+            retourne "arrow";
+        }
+        DÉPLACEMENT {
+            retourne "arrow";
+        }
+        DÉPOSAGE_INTERDIT {
+            retourne "arrow";
+        }
+        DÉFILAGE_OMNI {
+            retourne "arrow";
+        }
+        REDIMENSIONNEMENT_COLONNE {
+            retourne "arrow";
+        }
+        REDIMENSIONNEMENT_LIGNE {
+            retourne "arrow";
+        }
+        REDIMENSIONNEMENT_EST {
+            retourne "arrow";
+        }
+        REDIMENSIONNEMENT_NORD {
+            retourne "arrow";
+        }
+        REDIMENSIONNEMENT_NORD_EST {
+            retourne "arrow";
+        }
+        REDIMENSIONNEMENT_NORD_OUEST {
+            retourne "arrow";
+        }
+        REDIMENSIONNEMENT_SUD {
+            retourne "arrow";
+        }
+        REDIMENSIONNEMENT_SUD_EST {
+            retourne "arrow";
+        }
+        REDIMENSIONNEMENT_SUD_OUEST {
+            retourne "arrow";
+        }
+        REDIMENSIONNEMENT_OUEST {
+            retourne "arrow";
+        }
+        REDIMENSIONNEMENT_EST_OUEST {
+            retourne "sb_h_double_arrow";
+        }
+        REDIMENSIONNEMENT_NORD_SUD {
+            retourne "sb_v_double_arrow";
+        }
+        REDIMENSIONNEMENT_NORD_EST_SUD_OUEST {
+            retourne "arrow";
+        }
+        REDIMENSIONNEMENT_NORD_OUEST_SUD_EST {
+            retourne "arrow";
+        }
+        REDIMENSIONNEMENT_NORD_SUD_EST_OUEST {
+            retourne "arrow";
+        }
+        ZOOM {
+            retourne "arrow";
+        }
+        DÉZOOM {
+            retourne "arrow";
+        }
+    }
+
+    retourne "arrow";
+}
+
+/** \} */
+
+/* ------------------------------------------------------------------------- */
+/** \nom Xcursor/Xcursor.h
+ * \{ */
+
+libXcursor :: #bibliothèque "Xcursor";
+
+XcursorLibraryLoadCursor :: fonc (dpy: *Display, file: *z8) -> Cursor #externe libXcursor;
+
+/** \} */
+
 #portée_fichier
 
 /* ------------------------------------------------------------------------- */
