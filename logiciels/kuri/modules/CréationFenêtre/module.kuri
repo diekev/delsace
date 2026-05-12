@@ -1070,9 +1070,20 @@ x11_définis_titre_fenêtre :: fonc (display: *Display, window: Window, titre: c
     _ := XFlush(display);
 }
 
-x11_définis_curseur :: fonc (fenêtre: Port_Fenêtre_Native @inutilisée, curseur: TypeCurseurSystème @inutilisée)
+x11_définis_curseur :: fonc (fenêtre: Port_Fenêtre_Native, curseur: TypeCurseurSystème)
 {
-    imprimeln("À FAIRE : %", #nom_de_cette_fonction);
+    /* À FAIRE : utilise le thème :
+    char* theme = XcursorGetTheme(display);
+    const int size = XcursorGetDefaultSize(display);
+    const char* name = ...;
+    XcursorImage* image = XcursorLibraryLoadImage(name, theme, size);
+    cursor = XcursorImageLoadCursor(display, image);
+    XcursorImageDestroy(image);
+      */
+
+    nom_curseur := cursorfont_donne_nom_curseur(curseur);
+    cursor := XcursorLibraryLoadCursor(fenêtre.données_x11.display, nom_curseur.pointeur);
+    _ := XDefineCursor(fenêtre.données_x11.display, fenêtre.données_x11.window, cursor);
 }
 
 x11_active_barre_de_titre_et_bordures :: fonc (fenêtre: Port_Fenêtre_Native @inutilisée, oui_non: bool @inutilisée)
