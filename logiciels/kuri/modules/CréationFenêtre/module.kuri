@@ -836,9 +836,15 @@ DonnéesX11 :: struct {
     xim: XIM;
     xic: XIC;
     wm_delete_window: Atom;
+    est_plein_écran: bool;
 
     /* Atomes généraux. */
     NET_WM_WINDOW_OPACITY: Atom;
+    _NET_WM_STATE: Atom;
+    _NET_WM_STATE_MAXIMIZED_HORZ: Atom;
+    _NET_WM_STATE_MAXIMIZED_VERT: Atom;
+    _NET_WM_STATE_FULLSCREEN: Atom;
+    _MOTIF_WM_HINTS: Atom;
 
     /* Atomes pour le glissage/déposage. */
     XdndTypeList: Atom;
@@ -971,6 +977,13 @@ x11_crée_fenêtre :: fonc (empl options: *Options_Création_Fenêtre) -> Port_F
 
     __données_x11.NET_WM_WINDOW_OPACITY = XInternAtom(display, "_NET_WM_WINDOW_OPACITY".pointeur, False);
 
+    /* https://specifications.freedesktop.org/wm-spec/1.3/ar01s05.html */
+    __données_x11._NET_WM_STATE = XInternAtom(display, "_NET_WM_STATE".pointeur, False);
+    __données_x11._NET_WM_STATE_MAXIMIZED_HORZ = XInternAtom(display, "_NET_WM_STATE_MAXIMIZED_HORZ".pointeur, False);
+    __données_x11._NET_WM_STATE_MAXIMIZED_VERT = XInternAtom(display, "_NET_WM_STATE_MAXIMIZED_VERT".pointeur, False);
+    __données_x11._NET_WM_STATE_FULLSCREEN = XInternAtom(display, "_NET_WM_STATE_FULLSCREEN".pointeur, False);
+    __données_x11._MOTIF_WM_HINTS = XInternAtom(display, "_MOTIF_WM_HINTS".pointeur, False);
+
     /* fetching data */
     __données_x11.XdndTypeList = XInternAtom(display, "XdndTypeList".pointeur, False);
     __données_x11.XdndSelection = XInternAtom(display, "XdndSelection".pointeur, False);
@@ -1012,6 +1025,11 @@ x11_crée_fenêtre :: fonc (empl options: *Options_Création_Fenêtre) -> Port_F
     résultat.système = SystèmeFenêtre.NATIVE;
     résultat.données_x11 = *__données_x11;
     résultat.données_x11.id_fenêtre = résultat.id;
+
+    si maximisée {
+        x11_fenêtre_maximise(résultat);
+    }
+
     retourne résultat;
 }
 
@@ -1102,14 +1120,19 @@ x11_fenêtre_minimise :: fonc (fenêtre: Port_Fenêtre_Native @inutilisée)
     imprimeln("À FAIRE : %", #nom_de_cette_fonction);
 }
 
-x11_fenêtre_maximise :: fonc (fenêtre: Port_Fenêtre_Native @inutilisée)
+x11_fenêtre_maximise :: fonc (fenêtre: Port_Fenêtre_Native)
 {
-    imprimeln("À FAIRE : %", #nom_de_cette_fonction);
+    empl données := fenêtre.données_x11;
+    définis_net_wm_maximised(display, visual, window, _NET_WM_STATE, _NET_WM_STATE_MAXIMIZED_HORZ, _NET_WM_STATE_MAXIMIZED_VERT, vrai);
 }
 
-x11_fenêtre_permute_plein_écran :: fonc (fenêtre: Port_Fenêtre_Native @inutilisée)
+x11_fenêtre_permute_plein_écran :: fonc (fenêtre: Port_Fenêtre_Native)
 {
-    imprimeln("À FAIRE : %", #nom_de_cette_fonction);
+    empl données := fenêtre.données_x11;
+    définis_net_wm_maximised(display, visual, window, _NET_WM_STATE, _NET_WM_STATE_MAXIMIZED_HORZ, _NET_WM_STATE_MAXIMIZED_VERT, est_plein_écran);
+    définis_netwm_fullscreen(display, visual, window, _NET_WM_STATE, _NET_WM_STATE_FULLSCREEN, !est_plein_écran);
+    définis_motif_plein_écran(display, window, _MOTIF_WM_HINTS, !est_plein_écran);
+    est_plein_écran = !est_plein_écran;
 }
 
 x11_fenêtre_ferme :: fonc (fenêtre: Port_Fenêtre_Native)
