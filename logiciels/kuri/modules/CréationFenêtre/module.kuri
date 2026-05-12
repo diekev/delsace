@@ -41,6 +41,10 @@ crée_fenêtre :: fonc (largeur: z32, hauteur: z32, titre: chaine, maximisée :=
 
 crée_fenêtre :: fonc (options: *Options_Création_Fenêtre, système := SystèmeFenêtre.QT, parent: *Port_Fenêtre_Native = nul) -> Port_Fenêtre_Native
 {
+    si parent {
+        système = parent.système;
+    }
+
     si système == SystèmeFenêtre.NATIVE {
         retourne x11_crée_fenêtre(options);
     }
