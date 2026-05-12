@@ -248,26 +248,46 @@ définis_opacité :: fonc (fenêtre: Port_Fenêtre_Native, opacité: r64)
 
 commence_saisie_souris :: fonc (fenêtre: Port_Fenêtre_Native)
 {
-    assert(fenêtre.système == SystèmeFenêtre.QT);
-    qt_fenêtre_commence_saisie_souris(fenêtre);
+    si fenêtre.système == SystèmeFenêtre.QT {
+        qt_fenêtre_commence_saisie_souris(fenêtre);
+    }
+    sinon {
+        assert(fenêtre.système == SystèmeFenêtre.NATIVE);
+        x11_fenêtre_commence_saisie_souris(fenêtre);
+    }
 }
 
 termine_saisie_souris :: fonc (fenêtre: Port_Fenêtre_Native)
 {
-    assert(fenêtre.système == SystèmeFenêtre.QT);
-    qt_fenêtre_termine_saisie_souris(fenêtre);
+    si fenêtre.système == SystèmeFenêtre.QT {
+        qt_fenêtre_termine_saisie_souris(fenêtre);
+    }
+    sinon {
+        assert(fenêtre.système == SystèmeFenêtre.NATIVE);
+        x11_fenêtre_termine_saisie_souris(fenêtre);
+    }
 }
 
 commence_saisie_clavier :: fonc (fenêtre: Port_Fenêtre_Native)
 {
-    assert(fenêtre.système == SystèmeFenêtre.QT);
-    qt_fenêtre_commence_saisie_clavier(fenêtre);
+    si fenêtre.système == SystèmeFenêtre.QT {
+        qt_fenêtre_commence_saisie_clavier(fenêtre);
+    }
+    sinon {
+        assert(fenêtre.système == SystèmeFenêtre.NATIVE);
+        x11_fenêtre_commence_saisie_clavier(fenêtre);
+    }
 }
 
 termine_saisie_clavier :: fonc (fenêtre: Port_Fenêtre_Native)
 {
-    assert(fenêtre.système == SystèmeFenêtre.QT);
-    qt_fenêtre_termine_saisie_clavier(fenêtre);
+    si fenêtre.système == SystèmeFenêtre.QT {
+        qt_fenêtre_termine_saisie_clavier(fenêtre);
+    }
+    sinon {
+        assert(fenêtre.système == SystèmeFenêtre.NATIVE);
+        x11_fenêtre_termine_saisie_clavier(fenêtre);
+    }
 }
 
 donne_géométrie :: fonc (fenêtre: *Port_Fenêtre_Native) -> RectanglePosDim(z32)
@@ -873,6 +893,20 @@ DonnéesX11 :: struct {
 
 __données_x11: DonnéesX11;
 
+#portée_fichier
+
+x11_donne_masque_évènements_pour_pointeur :: fonc () -> z64
+{
+    retourne PointerMotionMask | ButtonPressMask | ButtonReleaseMask | EnterWindowMask | LeaveWindowMask | FocusChangeMask;
+}
+
+x11_donne_masque_évènements :: fonc () -> z64
+{
+    résultat := x11_donne_masque_évènements_pour_pointeur();
+    // ExposureMask | PropertyChangeMask | KeymapStateMask
+    retourne résultat | KeyPressMask | KeyReleaseMask | StructureNotifyMask;
+}
+
 // À FAIRE : fenêtre parent
 x11_crée_fenêtre :: fonc (empl options: *Options_Création_Fenêtre) -> Port_Fenêtre_Native
 {
@@ -927,8 +961,7 @@ x11_crée_fenêtre :: fonc (empl options: *Options_Création_Fenêtre) -> Port_F
     xim := XOpenIM(display, nul, ressource_name, ressource_class);
     xic: XIC;
 
-    masque_évènements: z64 = KeyPressMask | KeyReleaseMask | PointerMotionMask | ButtonPressMask | ButtonReleaseMask | StructureNotifyMask;
-    // ExposureMask | EnterWindowMask | LeaveWindowMask | FocusChangeMask | PropertyChangeMask | KeymapStateMask
+    masque_évènements := x11_donne_masque_évènements();
    
     si xim {
         // À FAIRE
@@ -1515,6 +1548,64 @@ x11_gère_entrée_glissage :: fonc (xclient_event: *XClientMessageEvent, empl do
         }
 
         retourne;
+    }
+}
+
+x11_fenêtre_commence_saisie_souris :: fonc (fenêtre: Port_Fenêtre_Native)
+{
+    display := fenêtre.données_x11.display;
+    grab_window := fenêtre.données_x11.window;
+    owner_events := False;
+    event_mask := x11_donne_masque_évènements_pour_pointeur() comme n32;
+    pointer_mode := GrabModeAsync;
+    keyboard_mode := GrabModeAsync;
+    confine_to := RootWindow(display, DefaultScreen(display));
+    cursor := None comme n64;
+    time := CurrentTime comme n64;
+
+    résultat := XGrabPointer(display, grab_window, owner_events, event_mask, pointer_mode, keyboard_mode, confine_to, cursor, time);
+    x11_vérifie_erreur_grab(résultat, #nom_de_cette_fonction);
+}
+
+x11_fenêtre_termine_saisie_souris :: fonc (fenêtre: Port_Fenêtre_Native)
+{
+    _ := XUngrabPointer(fenêtre.données_x11.display, CurrentTime comme n64);
+}
+
+x11_fenêtre_commence_saisie_clavier :: fonc (fenêtre: Port_Fenêtre_Native)
+{
+    display := fenêtre.données_x11.display;
+    window := fenêtre.données_x11.window;
+    owner_events := False;
+    pointer_mode := GrabModeAsync;
+    keyboard_mode := GrabModeAsync;
+    time := CurrentTime comme n64;
+
+    résultat := XGrabKeyboard(display, window, owner_events, pointer_mode, keyboard_mode, time);
+    x11_vérifie_erreur_grab(résultat, #nom_de_cette_fonction);
+}
+
+x11_fenêtre_termine_saisie_clavier :: fonc (fenêtre: Port_Fenêtre_Native)
+{
+    _ := XUngrabKeyboard(fenêtre.données_x11.display, CurrentTime comme n64);
+}
+
+x11_vérifie_erreur_grab :: fonc (résultat: z32, fonction: chaine)
+{
+    si résultat == AlreadyGrabbed {
+        imprimeln("[%] AlreadyGrabbed", fonction);
+    }
+    sinon si résultat == GrabInvalidTime {
+        imprimeln("[%] GrabInvalidTime", fonction);
+    }
+    sinon si résultat == GrabNotViewable {
+        imprimeln("[%] GrabNotViewable", fonction);
+    }
+    sinon si résultat == GrabFrozen {
+        imprimeln("[%] GrabFrozen", fonction);
+    }
+    sinon si résultat != GrabSuccess {
+        imprimeln("[%] erreur inconnue %", fonction, résultat);
     }
 }
 
