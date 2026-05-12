@@ -73,17 +73,6 @@ ajourne_évènements_fenêtre :: fonc (type_fenêtre: Port_Fenêtre_Native) -> [
     retourne __évènements;
 }
 
-requiers_ajournement_fenêtre :: fonc (fenêtre: Port_Fenêtre_Native)
-{
-    si fenêtre.système == SystèmeFenêtre.NATIVE {
-        x11_requiers_ajournement_fenêtre(fenêtre);
-    }
-    sinon {
-        assert(fenêtre.système == SystèmeFenêtre.QT);
-        qt_requiers_ajournement_fenêtre(fenêtre);
-    }
-}
-
 rends_contexte_gl_actif :: fonc (fenêtre: Port_Fenêtre_Native)
 {
     si fenêtre.système == SystèmeFenêtre.NATIVE {
@@ -429,13 +418,6 @@ qt_ajourne_évènements_fenêtre :: fonc (fenêtre: Port_Fenêtre_Native)
     assert(fenêtre.rappels_window != nul);
     assert(fenêtre.rappels_window.window != nul);
     QT_application_process_events();
-}
-
-qt_requiers_ajournement_fenêtre :: fonc (fenêtre: Port_Fenêtre_Native)
-{
-    assert(fenêtre.rappels_window != nul);
-    assert(fenêtre.rappels_window.window != nul);
-    QT_window_request_update(fenêtre.rappels_window.window);
 }
 
 qt_permute_tampons_fenêtre :: fonc (fenêtre: Port_Fenêtre_Native)
@@ -1031,11 +1013,6 @@ x11_crée_fenêtre :: fonc (empl options: *Options_Création_Fenêtre) -> Port_F
     }
 
     retourne résultat;
-}
-
-x11_requiers_ajournement_fenêtre :: fonc (fenêtre: Port_Fenêtre_Native)
-{
-    imprimeln("À FAIRE : %", #nom_de_cette_fonction);
 }
 
 x11_permute_tampons_fenêtre :: fonc (fenêtre: Port_Fenêtre_Native)
