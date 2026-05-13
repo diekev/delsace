@@ -1,4 +1,5 @@
 importe Chaine;
+importe Ensemble;
 importe Fondation;
 importe Math;
 importe MIME;
@@ -895,6 +896,7 @@ DonnéesX11 :: struct {
 
 __utilisateurs_display: z32;
 __display: *Display;
+__table_id_fenêtre: TableDeHachage(Window, z32);
 
 x11_donne_display :: fonc () -> *Display
 {
@@ -918,6 +920,7 @@ x11_ferme_display :: fonc ()
     si __display && __utilisateurs_display == 0 {
         _ := XCloseDisplay(__display);
         __display = nul;
+        détruit_données(*__table_id_fenêtre);
     }
 }
 
@@ -1096,6 +1099,8 @@ x11_crée_fenêtre :: fonc (empl options: *Options_Création_Fenêtre, port_pare
     résultat.système = SystèmeFenêtre.NATIVE;
     résultat.données_x11 = données_x11;
     résultat.données_x11.id_fenêtre = résultat.id;
+
+    table_insère(*__table_id_fenêtre, window, résultat.id);
 
     si maximisée {
         x11_fenêtre_maximise(résultat);
@@ -1303,9 +1308,15 @@ x11_ajourne_évènements_fenêtre :: fonc (fenêtre: Port_Fenêtre_Native)
         event: XEvent;
         _ := XNextEvent(display, *event);
 
+        id_port_trouvé, id_port_fenêtre := donne_valeur_pour_clé(__table_id_fenêtre, event.xany.window);
+        saufsi id_port_trouvé {
+            continue;
+        }
+
         si event.type == KeyPress {
-            évènement := donne_évènement_pour_fenêtre(données_x11.id_fenêtre);
+            évènement := donne_évènement_pour_fenêtre(id_port_fenêtre);
             initialise_évènement_depuis_xkey_event(*event.xkey, faux, évènement);
+            évènement.id_fenêtre = id_port_fenêtre;
 
             si xic {
                 tampon_utf8: [16 * 6]z8; // 16 caractères UTF-8
@@ -1351,9 +1362,9 @@ x11_ajourne_évènements_fenêtre :: fonc (fenêtre: Port_Fenêtre_Native)
             }
         }
         sinon si event.type == KeyRelease {
-            évènement := donne_évènement_pour_fenêtre(données_x11.id_fenêtre);
+            évènement := donne_évènement_pour_fenêtre(id_port_fenêtre);
             initialise_évènement_depuis_xkey_event(*event.xkey, faux, évènement);
-            évènement.id_fenêtre = données_x11.id_fenêtre;
+            évènement.id_fenêtre = id_port_fenêtre;
         }
         sinon si event.type == MotionNotify {
             évènement: *Évènement;
@@ -1362,30 +1373,30 @@ x11_ajourne_évènements_fenêtre :: fonc (fenêtre: Port_Fenêtre_Native)
                 évènement = *__évènements[__évènements.taille - 1];
             }
             sinon {
-                évènement = donne_évènement_pour_fenêtre(données_x11.id_fenêtre);
+                évènement = donne_évènement_pour_fenêtre(id_port_fenêtre);
             }
 
             initialise_évènement_depuis_xmotion_event(*event.xmotion, évènement);
             dernière_souris = évènement.état_souris;
-            évènement.id_fenêtre = données_x11.id_fenêtre;
+            évènement.id_fenêtre = id_port_fenêtre;
         }
         sinon si event.type == ButtonPress {
-            évènement := donne_évènement_pour_fenêtre(données_x11.id_fenêtre);
+            évènement := donne_évènement_pour_fenêtre(id_port_fenêtre);
             initialise_évènement_depuis_xbutton_event(*event.xbutton, évènement);
             dernière_souris = évènement.état_souris;
-            évènement.id_fenêtre = données_x11.id_fenêtre;
+            évènement.id_fenêtre = id_port_fenêtre;
         }
         sinon si event.type == ButtonRelease {
-            évènement := donne_évènement_pour_fenêtre(données_x11.id_fenêtre);
+            évènement := donne_évènement_pour_fenêtre(id_port_fenêtre);
             initialise_évènement_depuis_xbutton_event(*event.xbutton, évènement);
             dernière_souris = évènement.état_souris;
-            évènement.id_fenêtre = données_x11.id_fenêtre;
+            évènement.id_fenêtre = id_port_fenêtre;
         }
         sinon si event.type == ClientMessage {
             data := event.xclient.data.l;
             atome := data[0] comme Atom;
             si atome == fenêtre.données_x11.wm_delete_window {
-                évènement := donne_évènement_pour_fenêtre(données_x11.id_fenêtre);
+                évènement := donne_évènement_pour_fenêtre(id_port_fenêtre);
                 évènement.type = TypeÉvènement.Fermeture;
                 continue;
             }
@@ -1433,7 +1444,7 @@ x11_ajourne_évènements_fenêtre :: fonc (fenêtre: Port_Fenêtre_Native)
                 si data {
                     mime_type := XGetAtomName(display, format);
 
-                    évènement := donne_évènement_pour_fenêtre(données_x11.id_fenêtre);
+                    évènement := donne_évènement_pour_fenêtre(id_port_fenêtre);
                     évènement.type = TypeÉvènement.Déposage;
 
                     mime := tableau_ajoute_élément(*évènement.mimes);
