@@ -973,7 +973,20 @@ x11_crée_fenêtre :: fonc (empl options: *Options_Création_Fenêtre, port_pare
                             *attributs);
 
     wm_delete_window := XInternAtom(display, "WM_DELETE_WINDOW".pointeur, False);
-    _ := XSetWMProtocols(display, window, *wm_delete_window, 1);
+    wm_take_focus := XInternAtom(display, "WM_TAKE_FOCUS".pointeur, False);
+
+    atoms := [wm_delete_window, wm_take_focus];
+    _ := XSetWMProtocols(display, window, *atoms[0], 2);
+
+    /* Set the window hints */
+    {
+        xwmhints := XAllocWMHints();
+        xwmhints.initial_state = NormalState;
+        xwmhints.input = True;
+        xwmhints.flags = InputHint | StateHint;
+        _ := XSetWMHints(display, window, xwmhints);
+        _ := XFree(xwmhints);
+    }
 
     _ := XSetLocaleModifiers("".pointeur);
 
@@ -1096,6 +1109,8 @@ x11_crée_fenêtre :: fonc (empl options: *Options_Création_Fenêtre, port_pare
             _ := XChangeProperty(display, window, wt_atom, XA_ATOM, 32, PropModeReplace, *type_atom comme *n8, 1);
         }
     }
+
+    _ := XFlush(display);
 
     retourne résultat;
 }
