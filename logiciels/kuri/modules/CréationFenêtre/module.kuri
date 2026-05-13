@@ -46,7 +46,7 @@ crée_fenêtre :: fonc (options: *Options_Création_Fenêtre, système := Systè
     }
 
     si système == SystèmeFenêtre.NATIVE {
-        retourne x11_crée_fenêtre(options);
+        retourne x11_crée_fenêtre(options, parent);
     }
 
     retourne qt_crée_fenêtre(options, parent);
@@ -934,7 +934,7 @@ x11_donne_masque_évènements :: fonc () -> z64
 }
 
 // À FAIRE : fenêtre parent
-x11_crée_fenêtre :: fonc (empl options: *Options_Création_Fenêtre) -> Port_Fenêtre_Native
+x11_crée_fenêtre :: fonc (empl options: *Options_Création_Fenêtre, port_parent: *Port_Fenêtre_Native @inutilisée) -> Port_Fenêtre_Native
 {
     display := x11_donne_display();
 
