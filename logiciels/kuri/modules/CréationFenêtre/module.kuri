@@ -846,15 +846,11 @@ rappels_window_sur_évènement :: fonc (base: *QT_Rappels_Window, event: QT_Gene
 
 importe X11;
 
-DonnéesX11 :: struct {
+Système_X11 :: struct {
     display: *Display;
-    window: Window;
-    visual: *XVisualInfo;
-    context_opengl: GLXContext;
-    xim: XIM;
-    xic: XIC;
+
+    wm_take_focus: Atom;
     wm_delete_window: Atom;
-    est_plein_écran: bool;
 
     /* Atomes généraux. */
     NET_WM_WINDOW_OPACITY: Atom;
@@ -881,6 +877,17 @@ DonnéesX11 :: struct {
     XtextUriList: Atom;
     XtextPlain: Atom;
     XdndAware: Atom;
+}
+
+DonnéesX11 :: struct {
+    système: *Système_X11;
+    display: *Display;
+    window: Window;
+    visual: *XVisualInfo;
+    context_opengl: GLXContext;
+    xim: XIM;
+    xic: XIC;
+    est_plein_écran: bool;
 
     /* Autres données pour le glissage/déposage. */
     source: n64;
@@ -895,32 +902,73 @@ DonnéesX11 :: struct {
 #portée_fichier
 
 __utilisateurs_display: z32;
-__display: *Display;
+__système_x11: Système_X11;
 __table_id_fenêtre: TableDeHachage(Window, z32);
 
-x11_donne_display :: fonc () -> *Display
+x11_donne_système :: fonc () -> *Système_X11
 {
-    si __display == nul {
-        __display = XOpenDisplay(nul);
-        si __display == nul {
+    si __système_x11.display == nul {
+        __système_x11.display = XOpenDisplay(nul);
+        si __système_x11.display == nul {
             imprimeln("X11 : impossible d'ouvrir un display.");
             exit(1);
         }
+
+        initialise_système_x11(*__système_x11);
     }
 
     __utilisateurs_display += 1;
 
-    retourne __display;
+    retourne *__système_x11;
+}
+
+initialise_système_x11 :: fonc (empl système: *Système_X11)
+{
+    wm_delete_window = XInternAtom(display, "WM_DELETE_WINDOW".pointeur, False);
+    wm_take_focus = XInternAtom(display, "WM_TAKE_FOCUS".pointeur, False);
+
+    NET_WM_WINDOW_OPACITY = XInternAtom(display, "_NET_WM_WINDOW_OPACITY".pointeur, False);
+
+    /* https://specifications.freedesktop.org/wm-spec/1.3/ar01s05.html */
+    _NET_WM_STATE = XInternAtom(display, "_NET_WM_STATE".pointeur, False);
+    _NET_WM_STATE_MAXIMIZED_HORZ = XInternAtom(display, "_NET_WM_STATE_MAXIMIZED_HORZ".pointeur, False);
+    _NET_WM_STATE_MAXIMIZED_VERT = XInternAtom(display, "_NET_WM_STATE_MAXIMIZED_VERT".pointeur, False);
+    _NET_WM_STATE_FULLSCREEN = XInternAtom(display, "_NET_WM_STATE_FULLSCREEN".pointeur, False);
+    _MOTIF_WM_HINTS = XInternAtom(display, "_MOTIF_WM_HINTS".pointeur, False);
+
+    /* fetching data */
+    XdndTypeList = XInternAtom(display, "XdndTypeList".pointeur, False);
+    XdndSelection = XInternAtom(display, "XdndSelection".pointeur, False);
+
+    /* client messages */
+    XdndEnter = XInternAtom(display, "XdndEnter".pointeur, False);
+    XdndPosition = XInternAtom(display, "XdndPosition".pointeur, False);
+    XdndStatus = XInternAtom(display, "XdndStatus".pointeur, False);
+    XdndLeave = XInternAtom(display, "XdndLeave".pointeur, False);    
+    XdndDrop = XInternAtom(display, "XdndDrop".pointeur, False);  
+    XdndFinished = XInternAtom(display, "XdndFinished".pointeur, False);
+
+    /* actions */
+    XdndActionCopy = XInternAtom(display, "XdndActionCopy".pointeur, False);
+    XdndActionMove = XInternAtom(display, "XdndActionMove".pointeur, False);
+    XdndActionLink = XInternAtom(display, "XdndActionLink".pointeur, False);
+    XdndActionAsk = XInternAtom(display, "XdndActionAsk".pointeur, False);
+    XdndActionPrivate = XInternAtom(display, "XdndActionPrivate".pointeur, False);
+
+    XtextUriList = XInternAtom(display, "text/uri-list".pointeur, False); 
+    XtextPlain = XInternAtom(display, "text/plain".pointeur, False);
+
+    XdndAware = XInternAtom(display, "XdndAware".pointeur, False);
 }
 
 x11_ferme_display :: fonc ()
 {
     __utilisateurs_display -= 1;
     assert(__utilisateurs_display >= 0);
-    si __display && __utilisateurs_display == 0 {
-        _ := XCloseDisplay(__display);
-        __display = nul;
+    si __utilisateurs_display == 0 {
+        _ := XCloseDisplay(__système_x11.display);
         détruit_données(*__table_id_fenêtre);
+        init_de(Système_X11)(*__système_x11);
     }
 }
 
@@ -939,7 +987,8 @@ x11_donne_masque_évènements :: fonc () -> z64
 // À FAIRE : fenêtre parent
 x11_crée_fenêtre :: fonc (empl options: *Options_Création_Fenêtre, port_parent: *Port_Fenêtre_Native @inutilisée) -> Port_Fenêtre_Native
 {
-    display := x11_donne_display();
+    système := x11_donne_système();
+    display := système.display;
 
     id_écran := DefaultScreen(display);
 
@@ -975,10 +1024,8 @@ x11_crée_fenêtre :: fonc (empl options: *Options_Création_Fenêtre, port_pare
                             masque_valeur,
                             *attributs);
 
-    wm_delete_window := XInternAtom(display, "WM_DELETE_WINDOW".pointeur, False);
-    wm_take_focus := XInternAtom(display, "WM_TAKE_FOCUS".pointeur, False);
 
-    atoms := [wm_delete_window, wm_take_focus];
+    atoms := [système.wm_delete_window, système.wm_take_focus];
     _ := XSetWMProtocols(display, window, *atoms[0], 2);
 
     /* Set the window hints */
@@ -1048,49 +1095,17 @@ x11_crée_fenêtre :: fonc (empl options: *Options_Création_Fenêtre, port_pare
     x11_définis_titre_fenêtre(display, window, titre);
 
     données_x11 := loge(DonnéesX11);
-
-    données_x11.NET_WM_WINDOW_OPACITY = XInternAtom(display, "_NET_WM_WINDOW_OPACITY".pointeur, False);
-
-    /* https://specifications.freedesktop.org/wm-spec/1.3/ar01s05.html */
-    données_x11._NET_WM_STATE = XInternAtom(display, "_NET_WM_STATE".pointeur, False);
-    données_x11._NET_WM_STATE_MAXIMIZED_HORZ = XInternAtom(display, "_NET_WM_STATE_MAXIMIZED_HORZ".pointeur, False);
-    données_x11._NET_WM_STATE_MAXIMIZED_VERT = XInternAtom(display, "_NET_WM_STATE_MAXIMIZED_VERT".pointeur, False);
-    données_x11._NET_WM_STATE_FULLSCREEN = XInternAtom(display, "_NET_WM_STATE_FULLSCREEN".pointeur, False);
-    données_x11._MOTIF_WM_HINTS = XInternAtom(display, "_MOTIF_WM_HINTS".pointeur, False);
-
-    /* fetching data */
-    données_x11.XdndTypeList = XInternAtom(display, "XdndTypeList".pointeur, False);
-    données_x11.XdndSelection = XInternAtom(display, "XdndSelection".pointeur, False);
-
-    /* client messages */
-    données_x11.XdndEnter = XInternAtom(display, "XdndEnter".pointeur, False);
-    données_x11.XdndPosition = XInternAtom(display, "XdndPosition".pointeur, False);
-    données_x11.XdndStatus = XInternAtom(display, "XdndStatus".pointeur, False);
-    données_x11.XdndLeave = XInternAtom(display, "XdndLeave".pointeur, False);    
-    données_x11.XdndDrop = XInternAtom(display, "XdndDrop".pointeur, False);  
-    données_x11.XdndFinished = XInternAtom(display, "XdndFinished".pointeur, False);
-
-    /* actions */
-    données_x11.XdndActionCopy = XInternAtom(display, "XdndActionCopy".pointeur, False);
-    données_x11.XdndActionMove = XInternAtom(display, "XdndActionMove".pointeur, False);
-    données_x11.XdndActionLink = XInternAtom(display, "XdndActionLink".pointeur, False);
-    données_x11.XdndActionAsk = XInternAtom(display, "XdndActionAsk".pointeur, False);
-    données_x11.XdndActionPrivate = XInternAtom(display, "XdndActionPrivate".pointeur, False);
-
-    données_x11.XtextUriList = XInternAtom(display, "text/uri-list".pointeur, False); 
-    données_x11.XtextPlain = XInternAtom(display, "text/plain".pointeur, False);
-
-    données_x11.XdndAware = XInternAtom(display, "XdndAware".pointeur, False);
+    
     myVersion : n8 = 5;
-    _ := XChangeProperty(display, window, données_x11.XdndAware, 4, 32, PropModeReplace, *myVersion, 1);
+    _ := XChangeProperty(display, window, système.XdndAware, 4, 32, PropModeReplace, *myVersion, 1);
 
     _ := XMapWindow(display, window);
 
+    données_x11.système = système;
     données_x11.display = display;
     données_x11.window = window;
     données_x11.xim = xim;
     données_x11.xic = xic;
-    données_x11.wm_delete_window = wm_delete_window;
     données_x11.visual = visual;
     données_x11.context_opengl = context;
 
@@ -1216,15 +1231,15 @@ x11_fenêtre_minimise :: fonc (fenêtre: Port_Fenêtre_Native @inutilisée)
 x11_fenêtre_maximise :: fonc (fenêtre: Port_Fenêtre_Native)
 {
     empl données := fenêtre.données_x11;
-    définis_net_wm_maximised(display, visual, window, _NET_WM_STATE, _NET_WM_STATE_MAXIMIZED_HORZ, _NET_WM_STATE_MAXIMIZED_VERT, vrai);
+    définis_net_wm_maximised(display, visual, window, système._NET_WM_STATE, système._NET_WM_STATE_MAXIMIZED_HORZ, système._NET_WM_STATE_MAXIMIZED_VERT, vrai);
 }
 
 x11_fenêtre_permute_plein_écran :: fonc (fenêtre: Port_Fenêtre_Native)
 {
     empl données := fenêtre.données_x11;
-    définis_net_wm_maximised(display, visual, window, _NET_WM_STATE, _NET_WM_STATE_MAXIMIZED_HORZ, _NET_WM_STATE_MAXIMIZED_VERT, est_plein_écran);
-    définis_netwm_fullscreen(display, visual, window, _NET_WM_STATE, _NET_WM_STATE_FULLSCREEN, !est_plein_écran);
-    définis_motif_plein_écran(display, window, _MOTIF_WM_HINTS, !est_plein_écran);
+    définis_net_wm_maximised(display, visual, window, système._NET_WM_STATE, système._NET_WM_STATE_MAXIMIZED_HORZ, système._NET_WM_STATE_MAXIMIZED_VERT, est_plein_écran);
+    définis_netwm_fullscreen(display, visual, window, système._NET_WM_STATE, système._NET_WM_STATE_FULLSCREEN, !est_plein_écran);
+    définis_motif_plein_écran(display, window, système._MOTIF_WM_HINTS, !est_plein_écran);
     est_plein_écran = !est_plein_écran;
 }
 
@@ -1395,13 +1410,13 @@ x11_ajourne_évènements_fenêtre :: fonc (fenêtre: Port_Fenêtre_Native)
         sinon si event.type == ClientMessage {
             data := event.xclient.data.l;
             atome := data[0] comme Atom;
-            si atome == fenêtre.données_x11.wm_delete_window {
+            si atome == fenêtre.données_x11.système.wm_delete_window {
                 évènement := donne_évènement_pour_fenêtre(id_port_fenêtre);
                 évènement.type = TypeÉvènement.Fermeture;
                 continue;
             }
 
-            si event.xclient.message_type == XdndEnter || event.xclient.message_type == XdndPosition || event.xclient.message_type == XdndDrop {
+            si event.xclient.message_type == système.XdndEnter || event.xclient.message_type == système.XdndPosition || event.xclient.message_type == système.XdndDrop {
                 x11_gère_entrée_glissage(*event.xclient, fenêtre.données_x11);
                 continue;
             }
@@ -1414,7 +1429,7 @@ x11_ajourne_évènements_fenêtre :: fonc (fenêtre: Port_Fenêtre_Native)
         sinon si event.type == ReparentNotify {}
         sinon si event.type == SelectionNotify {
             /* Vérifions si nous avons un déposage */
-            si event.xselection.property == XdndSelection {
+            si event.xselection.property == système.XdndSelection {
                 data: *n8;
                 result: n64;
 
@@ -1459,11 +1474,11 @@ x11_ajourne_évènements_fenêtre :: fonc (fenêtre: Port_Fenêtre_Native)
                     reply.type = ClientMessage;
                     reply.xclient.window = source;
                     reply.xclient.format = 32;
-                    reply.xclient.message_type = XdndFinished;
+                    reply.xclient.message_type = système.XdndFinished;
                     l: [5]z64;
                     l[0] = window comme z64;
                     l[1] = result comme z64;
-                    l[2] = XdndActionCopy comme z64;
+                    l[2] = système.XdndActionCopy comme z64;
                     reply.xclient.data.l = l;
 
                     _ := XSendEvent(display, source, False, NoEventMask, *reply);
@@ -1488,7 +1503,7 @@ x11_gère_entrée_glissage :: fonc (xclient_event: *XClientMessageEvent, empl do
     l[0] = window comme z64;
     reply.xclient.data.l = l;
 
-    si xclient_event.message_type == XdndEnter {
+    si xclient_event.message_type == système.XdndEnter {
         format = None comme Atom;
 
         client_data := xclient_event.data.l;
@@ -1516,7 +1531,7 @@ x11_gère_entrée_glissage :: fonc (xclient_event: *XClientMessageEvent, empl do
 
             _ := XGetWindowProperty(display,
                                     source,
-                                    XdndTypeList,
+                                    système.XdndTypeList,
                                     0,
                                     LONG_MAX,
                                     False,
@@ -1547,7 +1562,7 @@ x11_gère_entrée_glissage :: fonc (xclient_event: *XClientMessageEvent, empl do
         }
 
         pour compte {
-            si formats_réel[it] == XtextUriList || formats_réel[it] == XtextPlain {
+            si formats_réel[it] == système.XtextUriList || formats_réel[it] == système.XtextPlain {
                 format = formats_réel[it];
             }
         }
@@ -1559,7 +1574,7 @@ x11_gère_entrée_glissage :: fonc (xclient_event: *XClientMessageEvent, empl do
         retourne;
     }
 
-    si xclient_event.message_type == XdndPosition && version <= 5 {
+    si xclient_event.message_type == système.XdndPosition && version <= 5 {
         client_data := xclient_event.data.l;
 
         xabs := ((client_data[2] >> 16) & 0xffff) comme z32;
@@ -1571,12 +1586,12 @@ x11_gère_entrée_glissage :: fonc (xclient_event: *XClientMessageEvent, empl do
 
         _ := XTranslateCoordinates(display, XDefaultRootWindow(display), window, xabs, yabs, *xpos, *ypos, *dummy);
 
-        reply.xclient.message_type = XdndStatus;
+        reply.xclient.message_type = système.XdndStatus;
 
         si format != (None comme Atom) {
             l[1] = 1;
             si version >= 2 {
-                l[4] = XdndActionCopy comme z64;
+                l[4] = système.XdndActionCopy comme z64;
             }
         }
 
@@ -1587,7 +1602,7 @@ x11_gère_entrée_glissage :: fonc (xclient_event: *XClientMessageEvent, empl do
         retourne;
     }
 
-    si xclient_event.message_type == XdndDrop && version <= 5 {
+    si xclient_event.message_type == système.XdndDrop && version <= 5 {
         si format != (None comme Atom) {
             time := CurrentTime;
 
@@ -1596,11 +1611,11 @@ x11_gère_entrée_glissage :: fonc (xclient_event: *XClientMessageEvent, empl do
                 time = client_data[2];
             }
 
-            _ := XConvertSelection(display, XdndSelection, format, XdndSelection, window, time comme n64);
+            _ := XConvertSelection(display, système.XdndSelection, format, système.XdndSelection, window, time comme n64);
         }
         // Nous rejetons le déposage.
         sinon si version >= 2 {
-            reply.xclient.message_type = XdndFinished;
+            reply.xclient.message_type = système.XdndFinished;
 
             _ := XSendEvent(display, source, False, NoEventMask, *reply);
             _ := XFlush(display);
