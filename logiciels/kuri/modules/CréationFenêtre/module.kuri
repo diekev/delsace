@@ -1089,7 +1089,7 @@ x11_crée_fenêtre :: fonc (empl options: *Options_Création_Fenêtre) -> Port_F
     }
 
     si options.genre_fenêtre == Genre_Fenêtre.MENU {
-        type_atom := XInternAtom(display, "_NET_WM_WINDOW_TYPE_MENU".pointeur, False);
+        type_atom := XInternAtom(display, "_NET_WM_WINDOW_TYPE_DROPDOWN_MENU".pointeur, False);
         wt_atom := XInternAtom(display, "_NET_WM_WINDOW_TYPE".pointeur, False);
 
         si type_atom != None comme n64 && wt_atom != None comme n64 {
