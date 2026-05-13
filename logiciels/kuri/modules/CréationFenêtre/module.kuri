@@ -766,6 +766,7 @@ rappels_window_sur_évènement :: fonc (base: *QT_Rappels_Window, event: QT_Gene
     si type == QT_Event_Type.Close {
         évènement := donne_évènement_pour_fenêtre(rappels.id_fenêtre);
         évènement.type = TypeÉvènement.Fermeture;
+        QT_evenement_ignore(event);
         retourne faux;
     }
 
