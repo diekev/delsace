@@ -29,7 +29,7 @@ Options_Création_Fenêtre :: struct {
     genre_fenêtre: Genre_Fenêtre;
 }
 
-crée_fenêtre :: fonc (largeur: z32, hauteur: z32, titre: chaine, maximisée := faux, index_écran := 0, avec_barre_de_titre_et_bordures := vrai, système := SystèmeFenêtre.QT, parent: *Port_Fenêtre_Native = nul) -> Port_Fenêtre_Native
+crée_fenêtre :: fonc (largeur: z32, hauteur: z32, titre: chaine, maximisée := faux, index_écran := 0, avec_barre_de_titre_et_bordures := vrai, système := SystèmeFenêtre.NATIVE, parent: *Port_Fenêtre_Native = nul) -> Port_Fenêtre_Native
 {
     options: Options_Création_Fenêtre;
     options.largeur = largeur;
@@ -41,7 +41,7 @@ crée_fenêtre :: fonc (largeur: z32, hauteur: z32, titre: chaine, maximisée :=
     retourne crée_fenêtre(*options, système, parent);
 }
 
-crée_fenêtre :: fonc (options: *Options_Création_Fenêtre, système := SystèmeFenêtre.QT, parent: *Port_Fenêtre_Native = nul) -> Port_Fenêtre_Native
+crée_fenêtre :: fonc (options: *Options_Création_Fenêtre, système := SystèmeFenêtre.NATIVE, parent: *Port_Fenêtre_Native = nul) -> Port_Fenêtre_Native
 {
     si parent {
         système = parent.système;
