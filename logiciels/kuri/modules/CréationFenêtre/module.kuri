@@ -844,6 +844,7 @@ rappels_window_sur_évènement :: fonc (base: *QT_Rappels_Window, event: QT_Gene
 
 #portée_fichier
 
+importe POSIX;
 importe X11;
 
 Système_X11 :: struct {
@@ -1036,6 +1037,14 @@ x11_crée_fenêtre :: fonc (empl options: *Options_Création_Fenêtre, port_pare
         xwmhints.flags = InputHint | StateHint;
         _ := XSetWMHints(display, window, xwmhints);
         _ := XFree(xwmhints);
+    }
+
+    /* set the process ID (_NET_WM_PID) */
+    {
+        _NET_WM_PID := XInternAtom(display, "_NET_WM_PID".pointeur, False);
+        pid := getpid();
+        _ := XChangeProperty(
+            display, window, _NET_WM_PID, XA_CARDINAL, 32, PropModeReplace, *pid comme *n8, 1);
     }
 
     _ := XSetLocaleModifiers("".pointeur);
