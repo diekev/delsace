@@ -1453,12 +1453,12 @@ initialise_évènement_depuis_xbutton_event :: fonc (xbutton_event: *XButtonEven
     }
     sinon si xbutton_event.button == Button4 && xbutton_event.type == ButtonPress {
         résultat.action_souris = ActionSouris.ROULEMENT;
-        résultat.delta_souris = -1;
+        résultat.delta_souris = 1;
         BoutonSouris.MOLETTE;
     }
     sinon si xbutton_event.button == Button5 && xbutton_event.type == ButtonPress {
         résultat.action_souris = ActionSouris.ROULEMENT;
-        résultat.delta_souris = 1;
+        résultat.delta_souris = -1;
         BoutonSouris.MOLETTE;
     }
     sinon {
