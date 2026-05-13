@@ -943,8 +943,12 @@ x11_crée_fenêtre :: fonc (empl options: *Options_Création_Fenêtre) -> Port_F
     visual, context := crée_contexte_opengl_x11(display, id_écran);
 
     parent := RootWindow(display, id_écran);
-    x := 0;
-    y := 0;
+    x := si position_x != -1 {
+        position_x;
+    };
+    y := si position_y != -1 {
+        position_y;
+    };
     largeur_bordure: n32 = 1;
     profondeur := visual.depth;
     classe := InputOutput comme n32;
