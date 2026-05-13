@@ -1084,6 +1084,15 @@ x11_crée_fenêtre :: fonc (empl options: *Options_Création_Fenêtre) -> Port_F
         x11_fenêtre_maximise(résultat);
     }
 
+    si options.genre_fenêtre == Genre_Fenêtre.MENU {
+        type_atom := XInternAtom(display, "_NET_WM_WINDOW_TYPE_MENU".pointeur, False);
+        wt_atom := XInternAtom(display, "_NET_WM_WINDOW_TYPE".pointeur, False);
+
+        si type_atom != None comme n64 && wt_atom != None comme n64 {
+            _ := XChangeProperty(display, window, wt_atom, XA_ATOM, 32, PropModeReplace, *type_atom comme *n8, 1);
+        }
+    }
+
     retourne résultat;
 }
 
