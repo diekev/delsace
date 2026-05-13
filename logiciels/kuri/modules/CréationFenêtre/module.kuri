@@ -1607,6 +1607,7 @@ x11_gère_entrée_glissage :: fonc (xclient_event: *XClientMessageEvent, empl do
         pour compte {
             si formats[it] == système.XtextUriList || formats[it] == système.XtextPlain {
                 format = formats[it];
+                arrête;
             }
         }
 
