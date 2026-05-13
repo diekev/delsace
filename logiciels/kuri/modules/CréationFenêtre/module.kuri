@@ -5,6 +5,7 @@ importe Math;
 importe MIME;
 importe OpenGL;
 importe Périphériques;
+importe Temps;
 
 SystèmeFenêtre :: énum {
     QT;
@@ -1331,6 +1332,11 @@ x11_fenêtre_définis_opacité :: fonc (fenêtre: Port_Fenêtre_Native, opacité
     _ := XChangeProperty(display, window, NET_WM_WINDOW_OPACITY, XA_CARDINAL, 32, PropModeReplace, *valeur comme *n8, 1);
 }
 
+// À FAIRE : gère mieux la détection de double-clics
+__dernier_relâchement: Évènement;
+__temps_dernier_relâchement: z64;
+__temps_double_clic: z64 = 500;
+
 x11_ajourne_évènements_fenêtre :: fonc (fenêtre: Port_Fenêtre_Native)
 {
     assert(fenêtre.système == SystèmeFenêtre.NATIVE);
@@ -1420,12 +1426,21 @@ x11_ajourne_évènements_fenêtre :: fonc (fenêtre: Port_Fenêtre_Native)
             initialise_évènement_depuis_xbutton_event(*event.xbutton, évènement);
             dernière_souris = évènement.état_souris;
             évènement.id_fenêtre = id_port_fenêtre;
+
+            temps := maintenant_précis().millisecondes();
+
+            si (temps - __temps_dernier_relâchement) < __temps_double_clic && __dernier_relâchement.bouton_souris == évènement.bouton_souris {
+                évènement.action_souris = ActionSouris.DOUBLE_CLIC;
+            }
         }
         sinon si event.type == ButtonRelease {
             évènement := donne_évènement_pour_fenêtre(id_port_fenêtre);
             initialise_évènement_depuis_xbutton_event(*event.xbutton, évènement);
             dernière_souris = évènement.état_souris;
             évènement.id_fenêtre = id_port_fenêtre;
+
+            __temps_dernier_relâchement = maintenant_précis().millisecondes();
+            __dernier_relâchement = mémoire(évènement);
         }
         sinon si event.type == ClientMessage {
             data := event.xclient.data.l;
