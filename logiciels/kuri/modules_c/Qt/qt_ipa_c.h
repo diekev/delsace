@@ -1871,6 +1871,7 @@ enum QT_Event_Type { ENUMERE_EVENT_TYPE(ENUMERE_DECLARATION_ENUM_IPA) };
 enum QT_Event_Type QT_evenement_donne_type(union QT_Generic_Event evenement);
 void QT_evenement_accepte(union QT_Generic_Event evenement);
 void QT_evenement_marque_accepte(union QT_Generic_Event evenement, int accepte);
+void QT_evenement_ignore(union QT_Generic_Event evenement);
 int QT_enregistre_evenement_personnel(void);
 void *QT_event_perso_donne_donnees(struct QT_Evenement *event);
 
