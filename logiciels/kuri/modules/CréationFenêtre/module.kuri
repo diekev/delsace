@@ -1246,8 +1246,8 @@ x11_fenêtre_permute_plein_écran :: fonc (fenêtre: Port_Fenêtre_Native)
 x11_fenêtre_ferme :: fonc (fenêtre: Port_Fenêtre_Native)
 {
     assert(fenêtre.système == SystèmeFenêtre.NATIVE);
-    x11_ferme_display();
     _ := XDestroyWindow(fenêtre.données_x11.display, fenêtre.données_x11.window);
+    x11_ferme_display();
     déloge(*fenêtre.données_x11);
 }
 
