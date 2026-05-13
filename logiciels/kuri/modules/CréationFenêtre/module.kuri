@@ -1444,6 +1444,14 @@ x11_ajourne_évènements_fenêtre :: fonc (fenêtre: Port_Fenêtre_Native)
             // nouvelle_largeur := event.xconfigure.width comme n32
             // nouvelle_hauteur := event.xconfigure.height comme n32
         }
+        sinon si event.type == EnterNotify {
+            évènement := donne_évènement_pour_fenêtre(id_port_fenêtre);
+            évènement.type = TypeÉvènement.Entrée_Fenêtre;
+        }
+        sinon si event.type == LeaveNotify {
+            évènement := donne_évènement_pour_fenêtre(id_port_fenêtre);
+            évènement.type = TypeÉvènement.Sortie_Fenêtre;
+        }
         sinon si event.type == MapNotify {}
         sinon si event.type == ReparentNotify {}
         sinon si event.type == SelectionNotify {
