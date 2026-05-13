@@ -1026,8 +1026,10 @@ x11_crée_fenêtre :: fonc (empl options: *Options_Création_Fenêtre, port_pare
                             *attributs);
 
 
-    atoms := [système.wm_delete_window, système.wm_take_focus];
-    _ := XSetWMProtocols(display, window, *atoms[0], 2);
+    {
+        atoms := [système.wm_delete_window, système.wm_take_focus];
+        _ := XSetWMProtocols(display, window, *atoms[0], 2);
+    }
 
     /* Set the window hints */
     {
@@ -1127,7 +1129,15 @@ x11_crée_fenêtre :: fonc (empl options: *Options_Création_Fenêtre, port_pare
     table_insère(*__table_id_fenêtre, window, résultat.id);
 
     si maximisée {
-        x11_fenêtre_maximise(résultat);
+        atoms := [système._NET_WM_STATE_MAXIMIZED_VERT, système._NET_WM_STATE_MAXIMIZED_HORZ];
+        _ := XChangeProperty(display,
+                             window,
+                             système._NET_WM_STATE,
+                             XA_ATOM,
+                             32,
+                             PropModeReplace,
+                             *atoms[0] comme *n8,
+                             atoms.taille comme z32);
     }
 
     si options.genre_fenêtre == Genre_Fenêtre.MENU {
