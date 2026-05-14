@@ -176,7 +176,7 @@ chemin_normalisé :: fonc (chemin: CheminFichier) -> CheminFichier
 {
     tampon: TamponChemin;
     _ := ajoute(*tampon, chemin);
-    normalise_chemin(tampon);
+    normalise_chemin(*tampon);
     retourne donne_copie_chemin(*tampon);
 }
 
