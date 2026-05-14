@@ -610,6 +610,16 @@ quad_immédiat :: fonc (x: r32, y: r32, largeur: r32, hauteur: r32, couleur: Cou
     quad_immédiat(p0, p1, p2, p3, couleur);
 }
 
+quad_immédiat :: fonc (p0: Vec2, p1: Vec2, p2: Vec2, p3: Vec2, couleur: CouleurRVBA)
+{
+    donne_vec3 :: fonc (v: Vec2) -> Vec3 #enligne
+    {
+        retourne Vec3(v.x, v.y, 0.0);
+    }
+
+    quad_immédiat(donne_vec3(p0), donne_vec3(p1), donne_vec3(p2), donne_vec3(p3), couleur);
+}
+
 quad_immédiat :: fonc (p0: Vec3, p1: Vec3, p2: Vec3, p3: Vec3, couleur: CouleurRVBA)
 {
     ajoute_sommets(p0, couleur);
