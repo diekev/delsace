@@ -412,6 +412,11 @@ QT_gui_application_definis_curseur :: fonc (curseur: TypeCurseurSystème)
     QT_gui_application_definis_curseur(convertis_type_curseur(curseur));
 }
 
+QT_window_set_cursor :: fonc (window: *QT_Window, curseur: TypeCurseurSystème)
+{
+    QT_window_set_cursor(window, convertis_type_curseur(curseur));
+}
+
 /** \} */
 
 /* ------------------------------------------------------------------------- */
