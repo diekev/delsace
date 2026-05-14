@@ -113,6 +113,13 @@ divise_et_empile_chemin :: fonc (chemin: CheminFichier) -> Pile(chaine)
 
 chemin_normalisé :: fonc (pile: *Pile(chaine), chemin_est_absolu: bool) -> CheminFichier
 {
+    tampon_chemin: TamponChemin;
+    chemin_normalisé(*tampon_chemin, pile, chemin_est_absolu);
+    retourne donne_copie_chemin(*tampon_chemin);
+}
+
+chemin_normalisé :: fonc (tampon_chemin: *TamponChemin, pile: *Pile(chaine), chemin_est_absolu: bool)
+{
     /* À FAIRE : structure dédiée. */
     tampon: [16]chaine;
     utilise_tampon := pile.taille() < 16;
@@ -147,13 +154,10 @@ chemin_normalisé :: fonc (pile: *Pile(chaine), chemin_est_absolu: bool) -> Chem
 
     renverse(*pile_secondaire);
 
-    enchaineuse: Enchaineuse;
-    initialise_enchaineuse(*enchaineuse);
-
     // Arriver ici veut dire que le chemin est valide, mais que soit les composants du
     // chemin ont tous été supprimés, soit que le chemin fut celui de la racine
     si est_vide(*pile_secondaire) {
-        ajoute_au_tampon(*enchaineuse, séparateur_chemin());
+        _ := ajoute(tampon_chemin, séparateur_chemin());
     }
 
     premier_slash := vrai;
@@ -161,20 +165,31 @@ chemin_normalisé :: fonc (pile: *Pile(chaine), chemin_est_absolu: bool) -> Chem
     tantque !est_vide(*pile_secondaire) {
         morceau_courant := dépile(*pile_secondaire);
         si !premier_slash || chemin_est_absolu {
-            ajoute_au_tampon(*enchaineuse, séparateur_chemin());
+            _ := ajoute(tampon_chemin, séparateur_chemin());
         }
-        ajoute_au_tampon(*enchaineuse, morceau_courant);
+        _ := ajoute(tampon_chemin, morceau_courant);
         premier_slash = faux;
     }
-
-    retourne CheminFichier(chaine_depuis_enchaineuse(*enchaineuse));
 }
 
 chemin_normalisé :: fonc (chemin: CheminFichier) -> CheminFichier
 {
+    tampon: TamponChemin;
+    _ := ajoute(*tampon, chemin);
+    normalise_chemin(*tampon);
+    retourne donne_copie_chemin(*tampon);
+}
+
+normalise_chemin :: fonc (tampon: *TamponChemin)
+{
+    chemin := donne_chemin_statique(tampon);
     pile := divise_et_empile_chemin(chemin);
     diffère détruit(*pile);
-    retourne chemin_normalisé(*pile, chemin.chn.commence_par(séparateur_chemin()));
+
+    absolu := chemin.chn.commence_par(séparateur_chemin());
+
+    réinitialise(tampon);
+    chemin_normalisé(tampon, *pile, absolu);
 }
 
 /* Retourne le chemin relatif de chemin_cible par rapport à chemin_racine.
