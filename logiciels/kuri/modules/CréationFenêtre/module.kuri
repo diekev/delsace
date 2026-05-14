@@ -367,6 +367,43 @@ donne_état_souris :: fonc (fenêtre: Port_Fenêtre_Native) -> ÉtatSouris
     retourne fenêtre.rappels_window.dernière_souris;
 }
 
+fenêtre_ajoute_au_presse_papier :: fonc (fenêtre: Port_Fenêtre_Native, données_mime: *DonnéesMime)
+{
+    si fenêtre.système == SystèmeFenêtre.QT {
+        mimedata := QT_cree_mimedata();
+        QT_mimedata_definis_donnee(mimedata, vers_qt(données_mime.type), données_mime.données.pointeur comme *n8, données_mime.données.taille comme n64);
+
+        presse_papier := QT_application_donne_clipboard();
+        QT_clipboard_definis_mimedata(presse_papier, mimedata, QT_Clipboard_Mode.Clipboard);
+    }
+    sinon {
+        assert(fenêtre.système == SystèmeFenêtre.NATIVE);
+        imprimeln("À FAIRE : [X11] fenêtre_ajoute_au_presse_papier");
+    }
+}
+
+fenêtre_donne_presse_papier :: fonc (fenêtre: Port_Fenêtre_Native, données_mime: *DonnéesMime)
+{
+    si fenêtre.système == SystèmeFenêtre.QT {
+        presse_papier := QT_application_donne_clipboard();
+        mimedata := QT_clipboard_donne_mimedata(presse_papier, QT_Clipboard_Mode.Clipboard);
+
+        saufsi mimedata && QT_mimedata_a_format(mimedata, données_mime.type.vers_qt()) {
+            retourne;
+        }
+
+        données := QT_mimedata_donne_donnee(mimedata, données_mime.type.vers_qt());
+        diffère QT_byte_array_detruit(*données);
+
+        chn := chaine(données.donnees comme *z8, données.taille_donnees comme z64);
+        données_mime.données = copie_chaine(chn);
+    }
+    sinon {
+        assert(fenêtre.système == SystèmeFenêtre.NATIVE);
+        imprimeln("À FAIRE : [X11] fenêtre_donne_presse_papier");
+    }
+}
+
 /* ------------------------------------------------------------------------- */
 /** \nom Qt
  * \{ */
