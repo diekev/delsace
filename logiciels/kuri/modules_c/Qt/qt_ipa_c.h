@@ -1571,6 +1571,7 @@ void QT_window_map_from_global(struct QT_Window *window,
 void QT_window_set_mouse_grab_enabled(struct QT_Window *window, bool oui_non);
 void QT_window_set_keyboard_grab_enabled(struct QT_Window *window, bool oui_non);
 struct QT_Rect QT_window_geometry(struct QT_Window *window);
+void QT_window_set_cursor(struct QT_Window *window, enum QT_CursorShape shape);
 
 /** \} */
 
@@ -1870,6 +1871,7 @@ enum QT_Event_Type { ENUMERE_EVENT_TYPE(ENUMERE_DECLARATION_ENUM_IPA) };
 enum QT_Event_Type QT_evenement_donne_type(union QT_Generic_Event evenement);
 void QT_evenement_accepte(union QT_Generic_Event evenement);
 void QT_evenement_marque_accepte(union QT_Generic_Event evenement, int accepte);
+void QT_evenement_ignore(union QT_Generic_Event evenement);
 int QT_enregistre_evenement_personnel(void);
 void *QT_event_perso_donne_donnees(struct QT_Evenement *event);
 
