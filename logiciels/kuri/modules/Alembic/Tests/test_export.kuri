@@ -207,10 +207,12 @@ principale :: fonc ()
     // crée_test_rayons_points("/tmp/point-with-width.abc", vrai);
     // crée_test_rayons_points("/tmp/point-without-width.abc", faux);
 
-    crée_test_visibilité("/tmp/visibility-hidden.abc");
-    crée_test_visibilité("/tmp/visibility-parent-hidden-child-visible.abc", Abc_Object_Visibility.HIDDEN, Abc_Object_Visibility.VISIBLE);
-    crée_test_visibilité("/tmp/visibility-parent-hidden-child-deferred.abc", Abc_Object_Visibility.HIDDEN, Abc_Object_Visibility.DEFERRED);
-    crée_test_visibilité("/tmp/visibility-parent-visible-child-deferred.abc", Abc_Object_Visibility.VISIBLE, Abc_Object_Visibility.DEFERRED);
+    // crée_test_visibilité("/tmp/visibility-hidden.abc");
+    // crée_test_visibilité("/tmp/visibility-parent-hidden-child-visible.abc", Abc_Object_Visibility.HIDDEN, Abc_Object_Visibility.VISIBLE);
+    // crée_test_visibilité("/tmp/visibility-parent-hidden-child-deferred.abc", Abc_Object_Visibility.HIDDEN, Abc_Object_Visibility.DEFERRED);
+    // crée_test_visibilité("/tmp/visibility-parent-visible-child-deferred.abc", Abc_Object_Visibility.VISIBLE, Abc_Object_Visibility.DEFERRED);
+
+    crée_test_visibilité_animée("/tmp/visibility-animated.abc");
 }
 
 crée_test_user_props :: fonc (chemin: chaine, scalaire: bool, dans_user_props: bool)
@@ -750,6 +752,53 @@ crée_test_visibilité :: fonc (chemin: chaine, visibilité_parent: Abc_Object_V
     initialise_points_simple(enfant);
     visibility_prop = abc_output_object_create_visibility_property(enfant, ts_défaut);
     abc_output_visibility_property_set(visibility_prop, visibilité_enfant);
+}
+
+crée_test_visibilité_animée :: fonc (chemin: chaine)
+{
+    metadata: Abc_Output_Archive_Metadata;
+    metadata.application_name = vers_abc_string("Jorjala");
+    metadata.fps = 24.0;
+
+    archive := abc_output_archive_create(chemin, *metadata);
+    diffère abc_output_archive_destroy(archive);
+
+    ts_défaut := abc_output_archive_default_time_sampling(archive);
+
+    racine := abc_output_archive_root_object_get(archive);
+
+    parent := crée_xform_neutre_pour_objet(racine, "ANIMATED", ts_défaut);
+
+    échantillons := [1.0 / metadata.fps];
+    temps_par_cycle := 1.0 / metadata.fps;
+    ts_animation := abc_output_archive_create_time_sampling(archive, échantillons, temps_par_cycle);
+
+    enfant := abc_output_points_create(parent, "ANIMATED-SHAPE", ts_défaut);
+    initialise_points_simple(enfant);
+    visibility_prop := abc_output_object_create_visibility_property(enfant, ts_animation);
+
+    a := 0;
+    b := 1;
+    c := a + b;
+    a = b;
+    b = c;
+
+    visibilité_enfant := Abc_Object_Visibility.VISIBLE;
+
+    pour 24 {
+        si it + 1 == c {
+            visibilité_enfant = Abc_Object_Visibility.VISIBLE;
+
+            c = a + b;
+            a = b;
+            b = c;
+        }
+        sinon {
+            visibilité_enfant = Abc_Object_Visibility.HIDDEN;
+        }
+
+        abc_output_visibility_property_set(visibility_prop, visibilité_enfant);
+    }
 }
 
 crée_objet_points_simple :: fonc (parent: *Abc_Output_Xform, nom: chaine, ts: Abc_Time_Sample_Index) -> *Abc_Output_Points

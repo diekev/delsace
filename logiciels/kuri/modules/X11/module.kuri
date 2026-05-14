@@ -1453,12 +1453,12 @@ initialise_évènement_depuis_xbutton_event :: fonc (xbutton_event: *XButtonEven
     }
     sinon si xbutton_event.button == Button4 && xbutton_event.type == ButtonPress {
         résultat.action_souris = ActionSouris.ROULEMENT;
-        résultat.delta_souris = -1;
+        résultat.delta_souris = 1;
         BoutonSouris.MOLETTE;
     }
     sinon si xbutton_event.button == Button5 && xbutton_event.type == ButtonPress {
         résultat.action_souris = ActionSouris.ROULEMENT;
-        résultat.delta_souris = 1;
+        résultat.delta_souris = -1;
         BoutonSouris.MOLETTE;
     }
     sinon {
@@ -1772,6 +1772,270 @@ XVisualInfo :: struct {
 }
 
 XGetVisualInfo :: fonc (display: *Display, vinfo_mask: z64, vinfo_template: *XVisualInfo, nitems_return: *z32) -> *XVisualInfo #externe libX11;
+
+/** \} */
+
+/* ------------------------------------------------------------------------- */
+/** \nom cursorfont.h
+ * \{ */
+
+cursorfont_donne_nom_curseur :: fonc (type: TypeCurseurSystème) -> chaine
+{
+    discr type {
+        VIERGE {
+            retourne "arrow";
+        }
+        FLÈCHE {
+            retourne "arrow";
+        }
+        TEXTE {
+            retourne "term";
+        }
+        TEXTE_VERTICAL {
+            retourne "term";
+        }
+        ATTENTE {
+            retourne "watch";
+        }
+        CROIX {
+            retourne "cross";
+        }
+        FLÈCHE_AVEC_ATTENTE {
+            retourne "watch";
+        }
+        INTERDIT {
+            retourne "arrow";
+        }
+        MAIN_OUVERTE {
+            retourne "arrow";
+        }
+        MAIN_FERMÉE {
+            retourne "arrow";
+        }
+        MAIN_POINTANT {
+            retourne "hand2";
+        }
+        POINT_D_INTERROGATION {
+            retourne "arrow";
+        }
+        MENU_CONTEXTUEL {
+            retourne "arrow";
+        }
+        CELLULE {
+            retourne "arrow";
+        }
+        ALIAS {
+            retourne "arrow";
+        }
+        COPIE {
+            retourne "arrow";
+        }
+        DÉPLACEMENT {
+            retourne "arrow";
+        }
+        DÉPOSAGE_INTERDIT {
+            retourne "arrow";
+        }
+        DÉFILAGE_OMNI {
+            retourne "arrow";
+        }
+        REDIMENSIONNEMENT_COLONNE {
+            retourne "arrow";
+        }
+        REDIMENSIONNEMENT_LIGNE {
+            retourne "arrow";
+        }
+        REDIMENSIONNEMENT_EST {
+            retourne "arrow";
+        }
+        REDIMENSIONNEMENT_NORD {
+            retourne "arrow";
+        }
+        REDIMENSIONNEMENT_NORD_EST {
+            retourne "arrow";
+        }
+        REDIMENSIONNEMENT_NORD_OUEST {
+            retourne "arrow";
+        }
+        REDIMENSIONNEMENT_SUD {
+            retourne "arrow";
+        }
+        REDIMENSIONNEMENT_SUD_EST {
+            retourne "arrow";
+        }
+        REDIMENSIONNEMENT_SUD_OUEST {
+            retourne "arrow";
+        }
+        REDIMENSIONNEMENT_OUEST {
+            retourne "arrow";
+        }
+        REDIMENSIONNEMENT_EST_OUEST {
+            retourne "sb_h_double_arrow";
+        }
+        REDIMENSIONNEMENT_NORD_SUD {
+            retourne "sb_v_double_arrow";
+        }
+        REDIMENSIONNEMENT_NORD_EST_SUD_OUEST {
+            retourne "arrow";
+        }
+        REDIMENSIONNEMENT_NORD_OUEST_SUD_EST {
+            retourne "arrow";
+        }
+        REDIMENSIONNEMENT_NORD_SUD_EST_OUEST {
+            retourne "arrow";
+        }
+        ZOOM {
+            retourne "arrow";
+        }
+        DÉZOOM {
+            retourne "arrow";
+        }
+    }
+
+    retourne "arrow";
+}
+
+/** \} */
+
+/* ------------------------------------------------------------------------- */
+/** \nom Xcursor/Xcursor.h
+ * \{ */
+
+libXcursor :: #bibliothèque "Xcursor";
+
+XcursorLibraryLoadCursor :: fonc (dpy: *Display, file: *z8) -> Cursor #externe libXcursor;
+
+/** \} */
+
+/* ------------------------------------------------------------------------- */
+/** \nom Xutil.h
+ * \{ */
+
+/* definition for flags of XWMHints */
+
+InputHint :: 		(1 << 0);
+StateHint :: 		(1 << 1);
+IconPixmapHint ::		(1 << 2);
+IconWindowHint ::		(1 << 3);
+IconPositionHint :: 	(1 << 4);
+IconMaskHint ::		(1 << 5);
+WindowGroupHint ::		(1 << 6);
+AllHints :: (InputHint|StateHint|IconPixmapHint|IconWindowHint|IconPositionHint|IconMaskHint|WindowGroupHint);
+XUrgencyHint ::		(1 << 8);
+
+/* definitions for initial window state */
+WithdrawnState :: 0;	/* for windows that are not mapped */
+NormalState :: 1;	/* most applications want to start this way */
+IconicState :: 3;	/* application wants to start as an icon */
+
+XWMHints :: struct {
+	flags: z64;	/* marks which fields in this structure are defined */
+	input: Bool;	/* does this application rely on the window manager to
+			get keyboard input? */
+	initial_state: z32;	/* see below */
+	icon_pixmap: Pixmap;	/* pixmap to be used as icon */
+	icon_window: Window; 	/* window to be used as icon */
+	icon_x, icon_y: z32; 	/* initial position of icon */
+	icon_mask: Pixmap;	/* icon mask bitmap */
+	window_group: XID;	/* id of related window group */
+	/* this structure may be extended in the future */
+}
+
+XAllocWMHints :: fonc () -> *XWMHints #externe libX11;
+
+XSetWMHints :: fonc (display: *Display, w: Window, wm_hints: *XWMHints) -> z32  #externe libX11;
+
+/** \} */
+
+/* ------------------------------------------------------------------------- */
+/** \nom NET_WM
+ * \{ */
+
+_NET_WM_STATE_ADD :: 1;
+_NET_WM_STATE_REMOVE :: 0;
+
+définis_netwm_fullscreen :: fonc (display: *Display, visual_info: *XVisualInfo, window: Window, net_wm_state: Atom, net_wm_state_fullscreen: Atom, ouinon: bool)
+{
+    xev: XEvent;
+    xev.type = ClientMessage;
+    xev.xclient.serial = 0;
+    xev.xclient.send_event = True;
+    xev.xclient.window = window;
+    xev.xclient.message_type = net_wm_state;
+    xev.xclient.format = 32;
+    l: [5]z64;
+
+    si ouinon {
+        l[0] = _NET_WM_STATE_ADD;
+    }
+    sinon {
+        l[0] = _NET_WM_STATE_REMOVE;
+    }
+    l[1] = net_wm_state_fullscreen comme z64;
+    // l[3] = 1 // normal application
+
+    xev.xclient.data.l = l;
+
+    _ := XSendEvent(display, RootWindow(display, visual_info.screen), False, SubstructureRedirectMask | SubstructureNotifyMask, *xev);
+}
+
+// Non-documentée ? Tirée de Blender.
+MotifWmHints :: struct {
+    flags: z64;
+    functions: z64;
+    decorations: z64;
+    input_mode: z64;
+}
+
+MWM_HINTS_FUNCTIONS : z64 : (1 << 0);
+MWM_HINTS_DECORATIONS : z64 : (1 << 1);
+
+MWM_FUNCTION_ALL : z64 : (1 << 0);
+MWM_FUNCTION_RESIZE : z64 : (1 << 1);
+MWM_FUNCTION_MOVE : z64 : (1 << 2);
+MWM_FUNCTION_MINIMIZE : z64 : (1 << 3);
+MWM_FUNCTION_MAXIMIZE : z64 : (1 << 4);
+MWM_FUNCTION_CLOSE : z64 : (1 << 5);
+
+définis_motif_plein_écran :: fonc (display: *Display, window: Window, motif_wm_hints: Atom, ouinon: bool)
+{
+    hints: MotifWmHints;
+    hints.flags = MWM_HINTS_DECORATIONS;
+
+    si ouinon {
+        hints.decorations = 0;
+    }
+    sinon {
+        hints.decorations = 1;
+    }
+
+    _ := XChangeProperty(display, window, motif_wm_hints, motif_wm_hints, 32, PropModeReplace, *hints comme *n8, 4);
+}
+
+définis_net_wm_maximised :: fonc (display: *Display, visual_info: *XVisualInfo, window: Window, net_wm_state: Atom, net_wm_state_maximized_horz: Atom, net_wm_state_maximized_vert: Atom, ouinon: bool)
+{
+    xev: XEvent;
+    xev.type = ClientMessage;
+    xev.xclient.serial = 0;
+    xev.xclient.send_event = True;
+    xev.xclient.window = window;
+    xev.xclient.message_type = net_wm_state;
+    xev.xclient.format = 32;
+    l: [5]z64;
+
+    si ouinon {
+        l[0] = _NET_WM_STATE_ADD;
+    }
+    sinon {
+        l[0] = _NET_WM_STATE_REMOVE;
+    }
+    l[1] = net_wm_state_maximized_horz comme z64;
+    l[2] = net_wm_state_maximized_vert comme z64;
+
+    xev.xclient.data.l = l;
+
+    _ := XSendEvent(display, RootWindow(display, visual_info.screen), False, SubstructureRedirectMask | SubstructureNotifyMask, *xev);
+}
 
 /** \} */
 
