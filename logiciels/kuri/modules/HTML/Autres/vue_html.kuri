@@ -133,11 +133,6 @@ principale :: fonc ()
 /** \nom VueHTML
  * \{ */
 
-EntréeFileDeTâche :: struct {
-    source: Task_Source;
-    algorithm: *Algorithm;
-}
-
 VueHTML :: struct {
     empl base: UserAgent;
 
