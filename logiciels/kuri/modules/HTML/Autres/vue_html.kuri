@@ -138,7 +138,7 @@ principale :: fonc ()
  * \{ */
 
 EntréeFileDeTâche :: struct {
-    source: SourceDeTâche;
+    source: Task_Source;
     algorithm: *Algorithm;
 }
 
@@ -977,7 +977,7 @@ rappels_interface_sur_spin_event_loop :: fonc (rappels: *RappelsInterfaceVueHTML
     QT_application_process_events();
 }
 
-rappels_interface_sur_enfile_une_tâche :: fonc (rappels: *RappelsInterfaceVueHTML, source: SourceDeTâche, algorithm: *Algorithm)
+rappels_interface_sur_enfile_une_tâche :: fonc (rappels: *RappelsInterfaceVueHTML, source: Task_Source, algorithm: *Algorithm)
 {
     tâche := tableau_ajoute_élément(*rappels.vue_html.file_de_tâche);
     tâche.source = source;

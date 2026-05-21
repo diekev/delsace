@@ -1030,7 +1030,7 @@ crée_un_nouveau_browsing_context_group_and_document :: fonc (user_agent: *UserA
 }
 
 /* https://html.spec.whatwg.org/multipage/webappapis.html#creating-a-new-javascript-realm */
-crée_un_nouveau_realm :: fonc (agent: *Agent @inutilisée, mv: *JS.MachineVirtuelle, configuration: *JS.ConfigurationRealm) -> *JS.ExecutionContext
+crée_un_nouveau_realm :: fonc (agent: *Agent, mv: *JS.MachineVirtuelle, configuration: *JS.ConfigurationRealm) -> *JS.ExecutionContext
 {
     // 1. Perform InitializeHostDefinedRealm() with the provided customizations for creating the global object and the global this binding.
     _ := JS.initialise_host_defined_realm(mv, configuration);
@@ -1042,7 +1042,11 @@ crée_un_nouveau_realm :: fonc (agent: *Agent @inutilisée, mv: *JS.MachineVirtu
     JS.dépile_execution_context(mv);
 
     // 4. Let realm be realm execution context's Realm component.
+    realm := realm_execution_context.realm;
 
+    // À FAIRE(javascript) : déplace ceci dans InitializeHostDefinedRealm()
+    realm.agent_signifier = agent.signifier;
+    
     // À FAIRE 5. If agent's agent cluster's cross-origin isolation mode is "none", then:
 
         // 1. Let global be realm's global object.
