@@ -2301,8 +2301,7 @@ changing_navigable_continuations_steps :: fonc (user_agent: *UserAgent,
         //   completionSteps set to queue a global task on the navigation and traversal task source given navigable's active window to run afterDocumentPopulated.
 
         tâche_after_document_populated := crée_tâche_pour_after_document_populated(populated_target_entry, vrai, navigable, changing_navigable_continuation, changing_navigable_continuations);
-        // À FAIRE : navigable.active_window
-        completion_steps := crée_tâche_pour_enfiler_tâche(user_agent, tâche_after_document_populated, Task_Source.NavigationEtTraversée);
+        completion_steps := crée_tâche_pour_enfiler_tâche(user_agent, tâche_after_document_populated, Task_Source.NavigationEtTraversée, navigable.donne_active_window());
 
         history_entry_population_params: HistoryEntryPopulationParams;
         history_entry_population_params.user_agent = user_agent;

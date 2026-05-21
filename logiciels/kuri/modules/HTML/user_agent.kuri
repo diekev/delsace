@@ -67,6 +67,17 @@ définis_rappels_interface :: fonc (user_agent: *UserAgent, rappels: *RappelsInt
     user_agent.rappels_interface = rappels;
 }
 
+process_event_loops :: fonc (user_agent: *UserAgent)
+{
+    pour user_agent.browsing_context_groups {
+        pour map dans it.agent_cluster_map {
+            pour agent dans map.agent_cluster.agents {
+                process_loop(agent.event_loop);
+            }
+        }
+    }
+}
+
 /** \} */
 
 /* ------------------------------------------------------------------------- */
@@ -156,9 +167,7 @@ RappelsInterface :: struct {
     sur_lancement_requête: fonc (rappels: *RappelsInterface, request: *Request) -> *Response;
     sur_lancement_requête_websocket: fonc (rappels: *RappelsInterface, ws: *WebSocket, env: *EnvironmentSettings);
     sur_envoie_message_websocket: fonc (rappels: *RappelsInterface, ws: *WebSocket, WS.OpCode, [..]octet);
-    sur_spin_event_loop: fonc (rappels: *RappelsInterface);
     sur_élément_survolé: fonc (rappels: *RappelsInterface);
-    sur_enfile_une_tâche: fonc (rappels: *RappelsInterface, source: Task_Source, algorithm: *Algorithm);
     sur_tâche_parallèle: fonc (rappels: *RappelsInterface, algorithm: *Algorithm);
     sur_tâche_traversable: fonc (rappels: *RappelsInterface, traversable: *TraversableNavigable, algorithm: *Algorithm);
     sur_est_exécuté_sur_fil_principal: fonc (rappels: *RappelsInterface) -> bool;
@@ -181,16 +190,6 @@ détruit_rappels :: fonc (rappels: *RappelsInterface)
     si rappels.sur_destruction {
         rappels.sur_destruction(rappels);
     }
-}
-
-spin_event_loop :: fonc (user_agent: *UserAgent)
-{
-    rappels := user_agent.rappels_interface;
-    saufsi rappels && rappels.sur_spin_event_loop {
-        retourne;
-    }
-
-    rappels.sur_spin_event_loop(rappels);
 }
 
 notifie_élément_survolé :: fonc (user_agent: *UserAgent)
@@ -230,16 +229,6 @@ envoie_message_websocket :: fonc (user_agent: *UserAgent, web_socket: *WebSocket
         retourne;
     }
     rappels.sur_envoie_message_websocket(rappels, web_socket, type, données);
-}
-
-enfile_une_tâche :: fonc (user_agent: *UserAgent, source: Task_Source, algorithm: *Algorithm)
-{
-    rappels := user_agent.rappels_interface;
-    saufsi rappels && rappels.sur_enfile_une_tâche {
-        retourne;
-    }
-
-    rappels.sur_enfile_une_tâche(rappels, source, algorithm);
 }
 
 /* https://html.spec.whatwg.org/multipage/infrastructure.html#in-parallel */
@@ -398,7 +387,7 @@ affiche_menu_contextuel_pour :: fonc (user_agent: *UserAgent, élément: *Elemen
 /** \nom Création de tâches.
  * \{ */
 
-crée_tâche_pour_enfiler_tâche :: fonc (user_agent: *UserAgent, tâche_à_enfiler: *Algorithm, source: Task_Source) -> *Algorithm
+crée_tâche_pour_enfiler_tâche :: fonc (user_agent: *UserAgent, tâche_à_enfiler: *Algorithm, source: Task_Source, global: *JS.Object) -> *Algorithm
 {
     Tâche :: struct {
         empl base: Algorithm;
@@ -406,6 +395,7 @@ crée_tâche_pour_enfiler_tâche :: fonc (user_agent: *UserAgent, tâche_à_enfi
         user_agent: *UserAgent;
         tâche_à_enfiler: *Algorithm;
         source: Task_Source;
+        global: *JS.Object;
     }
 
     sur_run :: fonc (base: *Algorithm)
@@ -415,14 +405,16 @@ crée_tâche_pour_enfiler_tâche :: fonc (user_agent: *UserAgent, tâche_à_enfi
         user_agent := tâche.user_agent;
         tâche_à_enfiler := tâche.tâche_à_enfiler;
         source := tâche.source;
+        global := tâche.global;
 
-        user_agent.enfile_une_tâche(source, tâche_à_enfiler);
+        queue_a_global_task(user_agent, source, global, tâche_à_enfiler);
     }
 
     tâche := crée_algorithm(sur_run, Tâche);
     tâche.user_agent = user_agent;
     tâche.tâche_à_enfiler = tâche_à_enfiler;
     tâche.source = source;
+    tâche.global = global;
     retourne tâche;
 }
 

@@ -295,7 +295,7 @@ Task_Queue :: struct {
 Event_Loop :: struct {
     queues: [..]Task_Queue;
 
-    currently_running_task: *Task;
+    currently_running_task: Optionnel(Task);
     microtask_queue: Task_Queue;
 
     performing_a_microtask_checkpoint: bool;
@@ -308,7 +308,7 @@ donne_queue_pour_source :: fonc (event_loop: *Event_Loop, source: Task_Source) -
 {
     indice_queue := source comme z32;
 
-    si event_loop.queues.taille < indice_queue {
+    si event_loop.queues.taille < indice_queue + 1 {
         tableau_redimensionne(*event_loop.queues, indice_queue + 1);
     }
 
@@ -430,6 +430,50 @@ get_implied_document :: fonc (event_loop: *Event_Loop @inutilisée) -> *Document
 
     // Assert: this step is never reached, because one of the previous conditions is true.
     retourne nul;
+}
+
+/** \} */
+
+/* ------------------------------------------------------------------------- */
+/** \nom 8.1.7.3 Processing model
+ * https://html.spec.whatwg.org/multipage/webappapis.html#event-loop-processing-model
+ * \{ */
+
+donne_first_runnable_task :: fonc (event_loop: *Event_Loop) -> Optionnel(Task)
+{
+    pour * event_loop.queues {
+        pour task, indice_task dans it.tasks {
+            // À FAIRE : est_fully_active nous ne fait pas progresser lors des chargements
+            si is_runnable(*task) || vrai {
+                tableau_supprime_indice(*it.tasks, indice_task);
+                retourne task;
+            }
+        }
+    }
+}
+
+process_loop :: fonc (event_loop: *Event_Loop)
+{
+    // À FAIRE : standardise
+
+    task_opt := donne_first_runnable_task(event_loop);
+    si possède_valeur(task_opt) {
+        task := task_opt.Quelque;
+        event_loop.currently_running_task = task;
+        run(task.steps);
+        init_de(Optionnel(Task))(*event_loop.currently_running_task);
+    }
+}
+
+/* https://html.spec.whatwg.org/multipage/webappapis.html#spin-the-event-loop */
+spin_the_event_loop :: fonc (user_agent: *UserAgent, platform_object: *PlatformObject)
+{
+    agent := donne_relevant_agent(user_agent, platform_object);
+    assert(agent != nul);
+    event_loop := agent.event_loop;
+    assert(event_loop != nul);
+
+    process_loop(event_loop);
 }
 
 /** \} */

@@ -75,11 +75,7 @@ principale :: fonc ()
             gère_évènement(*vue_html.emboiteuse, it);
         }
 
-        si vue_html.file_de_tâche {
-            tâche := vue_html.file_de_tâche[0];
-            tableau_supprime_indice(*vue_html.file_de_tâche, 0);
-            run(tâche.algorithm);
-        }
+        process_event_loops(*vue_html);
 
         si vue_html.page_web.navigable {
             document := donne_document(*vue_html.page_web);
@@ -161,8 +157,6 @@ VueHTML :: struct {
 
     guetteuse: *Guetteuse;
     guetteuse_est_dans_page: bool;
-
-    file_de_tâche: [..]EntréeFileDeTâche;
 }
 
 ouvre_page :: fonc (vue_html: *VueHTML, chaine_uri: chaine)
@@ -772,8 +766,6 @@ initialise_rappels_interface :: fonc (résultat: *RappelsInterfaceVueHTML, vue_h
 
     résultat.sur_destruction = rappels_interface_sur_destruction;
     résultat.sur_lancement_requête = rappels_interface_sur_lancement_requête;
-    résultat.sur_spin_event_loop = rappels_interface_sur_spin_event_loop;
-    résultat.sur_enfile_une_tâche = rappels_interface_sur_enfile_une_tâche;
     résultat.sur_tâche_parallèle = rappels_interface_sur_tâche_parallèle;
     résultat.sur_tâche_traversable = rappels_interface_sur_tâche_traversable;
     résultat.sur_est_exécuté_sur_fil_principal = rappels_interface_sur_est_exécuté_sur_fil_principal;
@@ -836,7 +828,7 @@ RappelsRequête :: struct {
     début_requête: Instantané;
 }
 
-rappels_interface_sur_lancement_requête :: fonc (rappels: *RappelsInterfaceVueHTML, requête: *Request) -> *Response
+rappels_interface_sur_lancement_requête :: fonc (rappels: *RappelsInterfaceVueHTML @inutilisée, requête: *Request) -> *Response
 {
     rappels_socket := crée_rappel_socket_pour_requête(requête);
     diffère déloge(*rappels_socket);
@@ -859,7 +851,7 @@ rappels_interface_sur_lancement_requête :: fonc (rappels: *RappelsInterfaceVueH
     }
 
     tantque rappels_socket.response == nul {
-        rappels_interface_sur_spin_event_loop(rappels);
+        QT_application_process_events();
     }
 
     retourne rappels_socket.response;
@@ -970,18 +962,6 @@ crée_rappel_socket_pour_requête :: fonc (requête: *Request) -> *RappelsRequê
     rappels.sur_connexion = sur_connexion;
     rappels.sur_erreur = sur_erreur;
     retourne rappels;
-}
-
-rappels_interface_sur_spin_event_loop :: fonc (rappels: *RappelsInterfaceVueHTML @inutilisée)
-{
-    QT_application_process_events();
-}
-
-rappels_interface_sur_enfile_une_tâche :: fonc (rappels: *RappelsInterfaceVueHTML, source: Task_Source, algorithm: *Algorithm)
-{
-    tâche := tableau_ajoute_élément(*rappels.vue_html.file_de_tâche);
-    tâche.source = source;
-    tâche.algorithm = algorithm;
 }
 
 rappels_interface_sur_tâche_parallèle :: fonc (rappels: *RappelsInterfaceVueHTML, algorithm: *Algorithm)
