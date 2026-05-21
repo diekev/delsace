@@ -1,0 +1,269 @@
+/* ------------------------------------------------------------------------- */
+/** \nom 7.1.1.1 Sites
+ * https://html.spec.whatwg.org/multipage/browsers.html#sites
+ * \{ */
+
+Scheme_And_Host :: struct {
+    scheme: chaine; // ASCII
+    host: Host;
+}
+
+opérateur == :: (a: Scheme_And_Host, b: Scheme_And_Host) -> bool
+{
+    retourne a.scheme == b.scheme && a.host == b.host;
+}
+
+/* https://html.spec.whatwg.org/multipage/browsers.html#site */
+Site :: union {
+    opaque_origin: Origin;
+    scheme_and_host: Scheme_And_Host;
+}
+
+opérateur == :: (a: Site, b: Site) -> bool
+{
+    discr a {
+        opaque_origin(oa) {
+            discr b {
+                opaque_origin(ob) {
+                    retourne oa == ob;
+                }
+                sinon {
+                    retourne faux;
+                }
+            }
+        }
+        scheme_and_host(sa) {
+            discr b {
+                scheme_and_host(sb) {
+                    retourne sa == sb;
+                }
+                sinon {
+                    retourne faux;
+                }
+            }
+        }
+        sinon {}
+    }
+
+    retourne faux;
+}
+
+/* https://html.spec.whatwg.org/multipage/browsers.html#obtain-a-site */
+obtain_a_site :: fonc (origin: Origin) -> Site
+{
+    // 1. If origin is an opaque origin, then return origin.
+    si origin.est_opaque {
+        retourne origin;
+    }
+
+    résultat: Scheme_And_Host = ---;
+    résultat.scheme = origin.scheme;
+    résultat.host = origin.host;
+
+    // 2. If origin's host's registrable domain is null, then return (origin's scheme, origin's host).
+    registrable_domain := get_registrable_domain(origin.host);
+    saufsi registrable_domain {
+        retourne résultat;
+    }
+
+    // 3. Return (origin's scheme, origin's host's registrable domain).
+    résultat.host = registrable_domain;
+    retourne résultat;
+}
+
+/** \} */
+
+/* ------------------------------------------------------------------------- */
+/** \nom 8.1.2 Agents and agent clusters
+ * https://html.spec.whatwg.org/multipage/webappapis.html#agents-and-agent-clusters
+ * \{ */
+
+Agent_Signifier :: z32;
+
+crée_agent_signifier :: fonc () -> Agent_Signifier
+{
+    unique_internal_value: z32 #parséante;
+    unique_internal_value += 1;
+    retourne unique_internal_value;
+}
+
+Agent :: struct {
+    event_loop: *Event_Loop;
+    can_block: bool;
+    signifier: Agent_Signifier;
+}
+
+/* https://html.spec.whatwg.org/multipage/webappapis.html#create-an-agent */
+create_an_agent :: fonc (can_block: bool) -> *Agent
+{
+    // 1. Let signifier be a new unique internal value.
+    signifier := crée_agent_signifier();
+
+    // 2. Let candidateExecution be a new candidate execution.
+
+    // 3. Let agent be a new agent whose [[CanBlock]] is canBlock, [[Signifier]] is signifier, [[CandidateExecution]] is candidateExecution, and [[IsLockFree1]], [[IsLockFree2]], and [[LittleEndian]] are set at the implementation's discretion.
+    agent := loge(Agent);
+    agent.can_block = can_block;
+    agent.signifier = signifier;
+
+    // 4. Set agent's event loop to a new event loop.
+    agent.event_loop = loge(Event_Loop);
+
+    // 5. Return agent.
+    retourne agent;
+}
+
+/** \} */
+
+/* ------------------------------------------------------------------------- */
+/** \nom 8.1.2.2 Integration with the JavaScript agent cluster formalism
+ * \{ */
+
+/* https://html.spec.whatwg.org/multipage/webappapis.html#agent-cluster-key */
+Agent_Cluster_Key :: union {
+    site: Site;
+    tuple_origin: Tuple_Origin;
+}
+
+opérateur == :: (a: Agent_Cluster_Key, b: Agent_Cluster_Key) -> bool
+{
+    discr a {
+        site(sa) {
+            discr b {
+                site(sb) {
+                    retourne sa == sb;
+                }
+                sinon {
+                    retourne faux;
+                }
+            }
+        }
+        tuple_origin(ta) {
+            discr b {
+                tuple_origin(tb) {
+                    retourne ta == tb;
+                }
+                sinon {
+                    retourne faux;
+                }
+            }
+        }
+        sinon {}
+    }
+
+    retourne faux;
+}
+
+is_origin :: fonc (key: Agent_Cluster_Key) -> bool
+{
+    discr key {
+        tuple_origin {
+            retourne vrai;
+        }
+        sinon {
+            retourne faux;
+        }
+    }
+}
+
+Agent_Cluster :: struct {
+    agents: [..]*Agent;
+    cross_origin_isolation_mode: chaine;
+    is_origin_keyed: bool;
+}
+
+/* https://html.spec.whatwg.org/multipage/webappapis.html#obtain-similar-origin-window-agent */
+obtain_similar_origin_window_agent :: fonc (origin: Origin, groupe: *BrowsingContextGroup, requestsOAC: bool) -> *Agent
+{
+    // 1. Let site be the result of obtaining a site with origin.
+    site := obtain_a_site(origin);
+
+    // 2. Let key be site.
+    key: Agent_Cluster_Key = site;
+
+    // 3. If group's cross-origin isolation mode is not "none", then set key to origin.
+    si groupe.cross_origin_isolation_mode != "none" {
+        key = origin.tuple;
+    }
+    // 4. Otherwise, if group's historical agent cluster key map[origin] exists, then set key to group's historical agent cluster key map[origin].
+    sinon si donne_historical_agent_cluster_key(groupe, origin) {
+        key = mémoire(donne_historical_agent_cluster_key(groupe, origin));
+    }
+    // 5. Otherwise:
+    sinon {
+        // 1. If requestsOAC is true, then set key to origin.
+        si requestsOAC {
+            key = origin.tuple;
+        }
+
+        // 2. Set group's historical agent cluster key map[origin] to key.
+        définis_historical_agent_cluster_key(groupe, origin, key);
+    }
+
+    // 6. If group's agent cluster map[key] does not exist:
+    agent_cluster := donne_agent_cluster(groupe, key);
+    si agent_cluster == nul {
+        // 1. Let agentCluster be a new agent cluster.
+        agent_cluster = loge(Agent_Cluster);
+
+        // 2. Set agentCluster's cross-origin isolation mode to group's cross-origin isolation mode.
+        agent_cluster.cross_origin_isolation_mode = groupe.cross_origin_isolation_mode;
+
+        // 3. If key is an origin:
+        si is_origin(key) {
+            // 1. Assert: key is origin.
+            assert(key.tuple_origin == origin.tuple);
+
+            // 2. Set agentCluster's is origin-keyed to true.
+            agent_cluster.is_origin_keyed = vrai;
+        }
+
+        // 4. Add the result of creating an agent, given false, to agentCluster.
+        agent := create_an_agent(faux);
+        tableau_ajoute(*agent_cluster.agents, agent);
+
+        // 5. Set group's agent cluster map[key] to agentCluster.
+        définis_agent_cluster(groupe, key, agent_cluster);
+    }
+
+    // Return the single similar-origin window agent contained in group's agent cluster map[key].
+    assert(agent_cluster.agents.taille == 1);
+    retourne agent_cluster.agents[0];
+}
+
+/** \} */
+
+
+Task :: struct {
+    is_microtask: bool;
+
+    steps: *Algorithm;
+    // source: Task_Source;
+    document: *Document;
+    // A script evaluation environment settings object set
+    // A set of environment settings objects used for tracking script evaluation during the task.
+}
+
+is_runnable :: fonc (task: *Task) -> bool
+{
+    // A task is runnable if its document is either null or fully active.
+    retourne task.document == nul || est_fully_active(task.document);
+}
+
+Task_Queue :: struct {
+    tasks: [..]*Task;
+}
+
+// 8.1.7 Event loops
+// https://html.spec.whatwg.org/multipage/webappapis.html#event-loop
+Event_Loop :: struct {
+    queues: [..]Task_Queue;
+
+    currently_running_task: *Task;
+    microtask_queue: Task_Queue;
+
+    performing_a_microtask_checkpoint: bool;
+
+    last_render_opportunity_time: DOMHighResTimeStamp;
+    last_idle_period_start_time: DOMHighResTimeStamp;
+}
