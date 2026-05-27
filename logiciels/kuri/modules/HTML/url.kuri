@@ -24,6 +24,13 @@ est_point_code_interdit_pour_hôte :: fonc (point_de_code: n32) -> bool
     retourne faux;
 }
 
+/* https://url.spec.whatwg.org/#host-registrable-domain */
+get_registrable_domain :: fonc (host: Host) -> Host
+{
+    // À FAIRE
+    retourne host;
+}
+
 /** \} */
 
 /* ------------------------------------------------------------------------- */
