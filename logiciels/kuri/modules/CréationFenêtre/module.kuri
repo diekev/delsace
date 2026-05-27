@@ -404,6 +404,16 @@ fenêtre_donne_presse_papier :: fonc (fenêtre: Port_Fenêtre_Native, données_m
     }
 }
 
+définis_icône_depuis_chemin :: fonc (fenêtre: Port_Fenêtre_Native, chemin: chaine)
+{
+    si fenêtre.système == SystèmeFenêtre.QT {
+        qt_définis_icône_depuis_chemin(fenêtre, chemin);
+    }
+    sinon {
+        x11_définis_icône_depuis_chemin(fenêtre, chemin);
+    }
+}
+
 /* ------------------------------------------------------------------------- */
 /** \nom Qt
  * \{ */
@@ -693,6 +703,14 @@ qt_fenêtre_donne_géométrie :: fonc (fenêtre: *Port_Fenêtre_Native) -> Recta
     résultat.hauteur = rect.hauteur;
     résultat.largeur = rect.largeur;
     retourne résultat;
+}
+
+qt_définis_icône_depuis_chemin :: fonc (fenêtre: Port_Fenêtre_Native, chemin: chaine)
+{
+    qicon := QT_cree_icon_chemin(vers_qt(chemin));
+    qwindow := donne_qt_window(fenêtre);
+    QT_window_set_icon(qwindow, qicon);
+    QT_detruit_icon(qicon);
 }
 
 RappelsWindow :: struct {
@@ -1766,6 +1784,12 @@ x11_vérifie_erreur_grab :: fonc (résultat: z32, fonction: chaine)
     sinon si résultat != GrabSuccess {
         imprimeln("[%] erreur inconnue %", fonction, résultat);
     }
+}
+
+x11_définis_icône_depuis_chemin :: fonc (fenêtre: Port_Fenêtre_Native, chemin: chaine @inutilisée)
+{
+    assert(fenêtre.système == SystèmeFenêtre.NATIVE);
+    imprimeln("À FAIRE : [%]", #nom_de_cette_fonction);
 }
 
 /** \} */
