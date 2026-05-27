@@ -3,21 +3,130 @@
 /** \nom 2.2 Policies
  * \{ */
 
+/* https://w3c.github.io/webappsec-csp/#csp-directives */
+Directive :: struct {
+    sur_inline_check: fonc (directive: *Directive, element: *Element, type: chaine, policy: *ContentSecurityPolicy, source: chaine) -> chaine;
+}
+
+inline_check :: fonc (directive: *Directive @inutilisée, element: *Element @inutilisée, type: chaine @inutilisée, policy: *ContentSecurityPolicy @inutilisée, source: chaine @inutilisée) -> chaine
+{
+    imprimeln("À FAIRE : [%]", #nom_de_cette_fonction);
+    retourne "Allowed";
+}
+
+Policy_Disposition :: énum n8 {
+    enforce;
+    report;
+}
+
 /* https://w3c.github.io/webappsec-csp/#content-security-policy-object */
 ContentSecurityPolicy :: struct {
+    directives: [..]Directive;
+    disposition: Policy_Disposition;
+}
+
+/** \} */
+
+/* ------------------------------------------------------------------------- */
+/** \nom 2.4 Violations
+ * https://w3c.github.io/webappsec-csp/#framework-violation
+ * \{ */
+
+TableVirtuelleViolation :: struct {
+    empl object: JS.TableVirtuelleObject;
+
+    classe = Violation;
+    sur_destruction = platform_object_sur_destruction;
+}
+
+__table_virtuelle_violation: TableVirtuelleViolation;
+
+Violation :: struct {
+    empl plateform_object: PlatformObject;
+    table = *__table_virtuelle_violation;
+
+    global_object: *JS.Object;
+    policy: *ContentSecurityPolicy;
+    effective_directive: chaine;
+    resource: chaine;
+    element: *Element;
+}
+
+// https://w3c.github.io/webappsec-csp/#create-violation-for-global
+create_a_violation_object_for_global :: fonc (global: *JS.Object, policy: *ContentSecurityPolicy, directive: chaine) -> *Violation
+{
+    // 1. Let violation be a new violation whose global object is global, policy is policy, effective directive is directive, and resource is null.
+    violation := crée_platform_object(global comme *PlatformObject, Violation);
+    violation.global_object = global;
+    violation.policy = policy;
+    violation.effective_directive = directive;
+    violation.resource = "";
+
+    imprimeln("À FAIRE : [%]", #nom_de_cette_fonction);
+
+    // 2. If the user agent is currently executing script, and can extract a source file’s URL, line number, and column number from the global, set violation’s source file, line number, and column number accordingly.
+
+    // 3. If global is a Window object, set violation’s referrer to global’s document’s referrer.
+
+    // 4. Set violation’s status to the HTTP status code for the resource associated with violation’s global object.
+
+    // 5. Return violation.
+    retourne violation;
 }
 
 /** \} */
 
 /* https://w3c.github.io/webappsec-csp/#should-block-inline */
-should_element_s_inline_behavior_be_blocked :: fonc (élément: *Element, type: chaine @inutilisée, source: chaine @inutilisée) -> chaine
+should_element_s_inline_behavior_be_blocked :: fonc (element: *Element, type: chaine, source: chaine) -> chaine
 {
-    assert(élément != nul);
+    // 1. Assert: element is not null.
+    assert(element != nul);
 
+    // 2. Let result be "Allowed".
     résultat := "Allowed";
 
-    imprimeln("À FAIRE : [%]", #nom_de_cette_fonction);
+    // 3. For each policy of element’s Document’s global object’s CSP list’s policies:
+    global_object := donne_relevant_global_object(element.document);
+    csp_list := retrieve_the_csp_list_of_an_object(global_object);
 
+    pour * policy dans csp_list {
+        // 1. For each directive of policy’s directive set:
+        pour * directive dans policy.directives {
+            // 1. If directive’s inline check returns "Allowed" when executed upon element,
+            //    type, policy and source, skip to the next directive.
+            si inline_check(directive, element, type, policy, source) {
+                continue;
+            }
+
+            // 2. Let directive-name be the result of executing
+            //    § 6.8.2 Get the effective directive for inline checks on type.
+            directive_name := get_the_effective_directive_for_inline_checks(type);
+
+            // 3. Otherwise, let violation be the result of executing
+            //    § 2.4.1 Create a violation object for global, policy,
+            //    and directive on the current settings object’s global object, policy,
+            //    and directive-name.
+            violation := create_a_violation_object_for_global(global_object, policy, directive_name);
+
+            // 4. Set violation’s resource to "inline".
+            violation.resource = "inline";
+
+            // 5. Set violation’s element to element.
+            violation.element = element;
+
+            // À FAIRE 6. If directive’s value contains the expression "'report-sample'", then set violation’s sample to the substring of source containing its first 40 characters.
+
+            // 7. Execute § 5.5 Report a violation on violation.
+            report_a_violation(violation);
+
+            // 8. If policy’s disposition is "enforce", then set result to "Blocked".
+            si policy.disposition == Policy_Disposition.enforce {
+                résultat = "Blocked";
+            }
+        }
+    }
+
+    // 4. Return result.
     retourne résultat;
 }
 
@@ -31,4 +140,65 @@ should_navigation_request_be_blocked :: fonc (navigation_request: *Request @inut
     imprimeln("À FAIRE : [%]", #nom_de_cette_fonction);
 
     retourne résultat;
+}
+
+// 4.2.2. Retrieve the CSP list of an object
+// https://w3c.github.io/webappsec-csp/#get-csp-of-object
+retrieve_the_csp_list_of_an_object :: fonc (object: *JS.Object) -> []ContentSecurityPolicy
+{
+    résultat: []ContentSecurityPolicy;
+    
+    // 1. If object is a Document return object’s policy container’s CSP list.
+    si object.table.classe == Document {
+        document := JS.vérifie_comme(object, Document);
+        container := document.policy_container;
+        si container {
+            résultat = container.csp_list;
+        }
+    }
+    // 2. If object is a Window or a WorkerGlobalScope or a WorkletGlobalScope, return environment settings object’s policy container’s CSP list.
+    // À FAIRE : WorkerGlobalScope, WorkletGlobalScope
+    sinon si object.table.classe == Window {
+        settings := donne_relevant_settings_object(object comme *PlatformObject);
+        container := donne_policy_container(settings);
+        si container {
+            résultat = container.csp_list;
+        }
+    }
+
+    // 3. Return null.
+    retourne résultat;
+}
+
+/* ------------------------------------------------------------------------- */
+/** \nom 5.5. Report a violation
+ * https://w3c.github.io/webappsec-csp/#report-violation
+ * \{ */
+
+report_a_violation :: fonc (violation: *Violation @inutilisée)
+{
+    imprimeln("À FAIRE : [%]", #nom_de_cette_fonction);
+}
+
+/** \} */
+
+// https://w3c.github.io/webappsec-csp/#effective-directive-for-inline-check
+// 6.8.2. Get the effective directive for inline checks
+get_the_effective_directive_for_inline_checks :: fonc (type: chaine) -> chaine
+{
+    // 1. Switch on type:
+    si type == "script" || type == "navigation" {
+        retourne "script-src-elem";
+    }
+    si type == "script attribute" {
+        retourne "script-src-attr";
+    }
+    si type == "style" {
+        retourne "style-src-elem";
+    }
+    si type == "style attribute" {
+        retourne "style-src-attr";
+    }
+    // Return null.
+    retourne "";
 }

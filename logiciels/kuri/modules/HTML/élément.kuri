@@ -3399,7 +3399,7 @@ object_element_ajourne :: fonc (object: *HTMLObjectElement)
     tâche.object = object;
 
     document.things_that_delay_the_load_event += 1;
-    user_agent.queue_an_element_task(SourceDeTâche.ManipulationDOM, object, tâche);
+    user_agent.queue_an_element_task(Task_Source.ManipulationDOM, object, tâche);
 }
 
 détermine_ce_que_object_représente :: fonc (object: *HTMLObjectElement)
