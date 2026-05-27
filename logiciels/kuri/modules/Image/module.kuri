@@ -534,12 +534,25 @@ calcule_empreinte_différentielle :: fonc (image: NouvelleImage) -> n64
     gris := convertis_en_nuances_de_gris(image);
     diffère détruit_données_image(*gris);
 
-    tampon_gris := gris.donne_tampon_gris();
+    si gris.desc.format == FormatPixel.Gris_32 {
+        tampon_gris := gris.donne_tampon_gris();
+        retourne calcule_empreinte_différentielle(tampon_gris);
+    }
 
-    sortie: [9 * 8]r32 = ---;
+    si gris.desc.format == FormatPixel.Gris_8 {
+        tampon_gris := gris.donne_tampon_gris_8bit();
+        retourne calcule_empreinte_différentielle(tampon_gris);
+    }
+
+    panique("non-implémenté pour format : %", image.desc.format);
+}
+
+calcule_empreinte_différentielle :: fonc (tampon_gris: TamponImage($T)) -> n64
+{
+    sortie: [9 * 8]T = ---;
     largeur_empreinte := 9;
     hauteur_empreinte := 8;
-    tampon_empreinte: TamponImage(r32);
+    tampon_empreinte: TamponImage(T);
     tampon_empreinte.données = *sortie[0];
     tampon_empreinte.largeur = largeur_empreinte;
     tampon_empreinte.hauteur = hauteur_empreinte;

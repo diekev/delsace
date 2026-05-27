@@ -2061,9 +2061,9 @@ struct Abc_Output_PolyMesh : public Abc_Output_Object {
     }
 };
 
-Abc_Output_PolyMesh *abc_output_poly_mesh_create(Abc_Output_Xform *parent,
-                                                 Abc_String nom,
-                                                 Abc_Time_Sample_Index time_sample_index)
+Abc_Output_PolyMesh *abc_output_polymesh_create(Abc_Output_Xform *parent,
+                                                Abc_String nom,
+                                                Abc_Time_Sample_Index time_sample_index)
 {
     auto archive = parent->archive;
     auto résultat = crée_objet_sortie<Abc_Output_PolyMesh>(archive);
