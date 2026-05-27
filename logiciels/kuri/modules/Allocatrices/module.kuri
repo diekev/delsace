@@ -95,6 +95,11 @@ Arène_Mémoire :: struct {
     compte_temp: z32;
 }
 
+initialise_arène :: fonc (arène: *Arène_Mémoire, avec_mémoire: []octet)
+{
+    initialise_arène(arène, avec_mémoire.pointeur, avec_mémoire.taille comme IndiceMémoire);
+}
+
 initialise_arène :: fonc (arène: *Arène_Mémoire, base: *octet, taille: IndiceMémoire)
 {
     arène.base = base;
