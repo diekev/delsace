@@ -428,7 +428,7 @@ plan_to_navigate :: fonc (form: *HTMLFormElement, target_navigable: *Navigable, 
     tâche.params = params;
 
     user_agent := params.source_document.donne_user_agent();
-    user_agent.queue_an_element_task(SourceDeTâche.ManipulationDOM, form, tâche);
+    user_agent.queue_an_element_task(Task_Source.ManipulationDOM, form, tâche);
 
     // 5. Set the form's planned navigation to the just-queued task.
     form.planned_navigation = tâche;
