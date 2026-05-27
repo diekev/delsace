@@ -198,6 +198,8 @@ principale :: fonc ()
 {
     // imprime_infos_types_attributs_pour_python();
 
+    crée_test_mauvaise_géométrie_maillage();
+
     // crée_test_user_props("/tmp/scalar-props-in-user-props.abc", vrai, vrai);
     // crée_test_user_props("/tmp/scalar-props-in-geom-params.abc", vrai, faux);
     // crée_test_user_props("/tmp/array-props-in-user-props.abc", faux, vrai);
@@ -212,7 +214,65 @@ principale :: fonc ()
     // crée_test_visibilité("/tmp/visibility-parent-hidden-child-deferred.abc", Abc_Object_Visibility.HIDDEN, Abc_Object_Visibility.DEFERRED);
     // crée_test_visibilité("/tmp/visibility-parent-visible-child-deferred.abc", Abc_Object_Visibility.VISIBLE, Abc_Object_Visibility.DEFERRED);
 
-    crée_test_visibilité_animée("/tmp/visibility-animated.abc");
+    // crée_test_visibilité_animée("/tmp/visibility-animated.abc");
+}
+
+crée_test_mauvaise_géométrie_maillage :: fonc ()
+{
+    positions := [
+        Vec3(-1.0, 0.0, -1.0),
+        Vec3( 1.0, 0.0, -1.0),
+        Vec3( 1.0, 0.0,  1.0),
+        Vec3(-1.0, 0.0,  1.0),
+    ];
+
+    face_indices := [0, 1, 2, 3];
+
+    face_counts := [4, 4, 4, 4];
+
+    crée_fichier_mauvaise_géométrie("/tmp/74200-bad-face-counts-polymesh.abc", positions, face_counts, face_indices, faux);
+    crée_fichier_mauvaise_géométrie("/tmp/74200-bad-face-counts-subd.abc", positions, face_counts, face_indices, vrai);
+}
+
+crée_fichier_mauvaise_géométrie :: fonc (chemin: chaine, positions: []Vec3, face_counts: []z32, face_indices: []z32, exporte_en_subd: bool)
+{
+    metadata: Abc_Output_Archive_Metadata;
+    metadata.application_name = vers_abc_string("Jorjala");
+    metadata.fps = 24.0;
+
+    archive := abc_output_archive_create(chemin, *metadata);
+    diffère abc_output_archive_destroy(archive);
+
+    ts_défaut := abc_output_archive_default_time_sampling(archive);
+
+    racine := abc_output_archive_root_object_get(archive);
+
+    si exporte_en_subd {
+        matrice_objet_subd := crée_xform_neutre_pour_objet(racine, "SubD", ts_défaut);
+
+        subd := abc_output_subd_create(matrice_objet_subd, "SubDShape", ts_défaut);
+
+        sample := abc_output_subd_sample_create(subd);
+        diffère abc_output_subd_sample_destroy(sample);
+
+        abc_output_subd_sample_positions_set(sample, positions);
+        abc_output_subd_sample_face_indices_set(sample, face_indices);
+        abc_output_subd_sample_face_counts_set(sample, face_counts);
+        abc_output_subd_sample_set(subd, sample);
+    }
+    sinon {
+        matrice_objet_mesh := crée_xform_neutre_pour_objet(racine, "PolyMesh", ts_défaut);
+
+        mesh := abc_output_polymesh_create(matrice_objet_mesh, "PolyMeshShape", ts_défaut);
+
+        sample := abc_output_polymesh_sample_create(mesh);
+        diffère abc_output_polymesh_sample_destroy(sample);
+
+        abc_output_polymesh_sample_positions_set(sample, positions);
+        abc_output_polymesh_sample_face_indices_set(sample, face_indices);
+        abc_output_polymesh_sample_face_counts_set(sample, face_counts);
+        abc_output_polymesh_sample_set(mesh, sample);
+    }
 }
 
 crée_test_user_props :: fonc (chemin: chaine, scalaire: bool, dans_user_props: bool)
