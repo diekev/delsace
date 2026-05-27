@@ -13,6 +13,7 @@ charge "browsing_context";
 charge "common_microsyntaxes";
 charge "entités";
 charge "entropisation";
+charge "event_loop";
 charge "events";
 charge "fetch";
 charge "file_api";
