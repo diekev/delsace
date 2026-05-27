@@ -1614,7 +1614,7 @@ finalise_insertion_script_mode_texte :: fonc (parseuse: *Parseuse)
         user_agent := document.donne_user_agent();
         si user_agent {
             tantque (has_a_style_sheet_that_is_blocking_scripts(document) || script.prêt_à_être_exécuté_par_parseuse == faux) {
-                user_agent.spin_event_loop();
+                spin_the_event_loop(user_agent, document);
             }
         }
 
@@ -2714,7 +2714,7 @@ stop_parsing :: fonc (empl parseuse: *Parseuse)
         script := document.scripts_that_will_execute_when_the_document_has_finished_parsing[0];
 
         tantque !script.prêt_à_être_exécuté_par_parseuse || has_a_style_sheet_that_is_blocking_scripts(document) {
-            user_agent.spin_event_loop();
+            spin_the_event_loop(user_agent, document);
         }
 
         // 2. Execute the script element given by the first script in the list of scripts that will execute when the
@@ -2730,18 +2730,18 @@ stop_parsing :: fonc (empl parseuse: *Parseuse)
     //    to run the following substeps:
     si user_agent {
         tâche := crée_tâche_stop_parsing_étape_6(document);
-        user_agent.queue_a_global_task(SourceDeTâche.ManipulationDOM, document.donne_relevant_global_object(), tâche);
+        user_agent.queue_a_global_task(Task_Source.ManipulationDOM, document.donne_relevant_global_object(), tâche);
     }
 
     // 7. Spin the event loop until the set of scripts that will execute as soon as possible and the list of scripts that will execute in order as soon as possible are empty.
     tantque user_agent != nul {
         si document.scripts_that_will_execute_as_soon_as_possible.taille != 0 {
-            user_agent.spin_event_loop();
+            spin_the_event_loop(user_agent, document);
             continue;
         }
 
         si document.scripts_that_will_execute_in_order_as_soon_as_possible.taille != 0 {
-            user_agent.spin_event_loop();
+            spin_the_event_loop(user_agent, document);
             continue;
         }
 
@@ -2750,13 +2750,13 @@ stop_parsing :: fonc (empl parseuse: *Parseuse)
 
     // 8. Spin the event loop until there is nothing that delays the load event in the Document.
     tantque document.things_that_delay_the_load_event != 0 {
-        user_agent.spin_event_loop();
+        spin_the_event_loop(user_agent, document);
     }
 
     // 9. Queue a global task on the DOM manipulation task source given the Document's relevant global object to run the following steps:
     si user_agent {
         tâche := crée_tâche_stop_parsing_étape_9(document);
-        user_agent.queue_a_global_task(SourceDeTâche.ManipulationDOM, document.donne_relevant_global_object(), tâche);
+        user_agent.queue_a_global_task(Task_Source.ManipulationDOM, document.donne_relevant_global_object(), tâche);
     }
 
     // 10. If the Document's print when loaded flag is set, then run the printing steps.
