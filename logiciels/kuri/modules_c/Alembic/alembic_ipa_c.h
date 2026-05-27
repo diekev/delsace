@@ -1110,7 +1110,7 @@ ENUMERATE_FACESET_SAMPLE_INTERFACE(DECLARE_OUTPUT_SAMPLE_SET_FUNCTION)
 
 struct Abc_Output_PolyMesh;
 
-struct Abc_Output_PolyMesh *abc_output_poly_mesh_create(
+struct Abc_Output_PolyMesh *abc_output_polymesh_create(
     struct Abc_Output_Xform *parent,
     struct Abc_String nom,
     struct Abc_Time_Sample_Index time_sample_index);
