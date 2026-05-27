@@ -503,15 +503,63 @@ détermine_drapeaux_sandboxing :: fonc (context: *BrowsingContext, embedder: *El
     retourne résultat;
 }
 
+/* ------------------------------------------------------------------------- */
+/** \nom 7.1.1 Origins
+ * \{ */
+
+/* https://html.spec.whatwg.org/multipage/browsers.html#concept-origin-tuple */
+Tuple_Origin :: struct {
+    scheme: chaine; // ASCII
+    host: Host;
+    port: Optionnel(n16);
+    domain: Optionnel(Domain);
+}
+
+opérateur == :: (a: Tuple_Origin, b: Tuple_Origin) -> bool
+{
+    si a.scheme != b.scheme {
+        retourne faux;
+    }
+
+    si a.host != b.host {
+        retourne faux;
+    }
+
+    si possède_valeur(a.port) && possède_valeur(b.port) {
+        si a.port.Quelque != b.port.Quelque {
+            retourne faux;
+        }
+    }
+    
+    si possède_valeur(a.port) || possède_valeur(b.port) {
+        retourne faux;
+    }
+
+
+    si possède_valeur(a.domain) && possède_valeur(b.domain) {
+        si a.domain.Quelque != b.domain.Quelque {
+            retourne faux;
+        }
+    }
+    
+    si possède_valeur(a.domain) || possède_valeur(b.domain) {
+        retourne faux;
+    }
+
+    retourne vrai;
+}
+
 /* https://html.spec.whatwg.org/multipage/browsers.html#concept-origin-opaque */
 Origin :: struct {
     est_opaque: bool; // À FAIRE : sépare en deux structures ?
     valeur_opaque: z32;
 
-    scheme: chaine; // ASCII
-    host: Host;
-    port: Optionnel(n16);
-    domain: Optionnel(Domain);
+    empl tuple: Tuple_Origin;
+}
+
+opérateur == :: (a: Origin, b: Origin) -> bool
+{
+    retourne sont_même_origine(a, b);
 }
 
 /* https://html.spec.whatwg.org/multipage/document-sequences.html#determining-the-origin */
@@ -608,10 +656,27 @@ crée_nouvelle_origin_opaque :: fonc () -> Origin
     retourne Origin(vrai, valeur_origine_opaque);
 }
 
+/** \} */
+
 BrowsingContextGroup :: struct {
     contexts: [..]*BrowsingContext;
     /* À FAIRE : stocke ça ailleurs ou passe le aux fonctions. */
     user_agent: *UserAgent;
+
+    cross_origin_isolation_mode: chaine = "none";
+
+    Agent_Cluster_Map_Entry :: struct {
+        key: Agent_Cluster_Key;
+        agent_cluster: *Agent_Cluster; // À FAIRE : weak pointer
+    }
+
+    Historical_Agent_Cluster_Key_Map_Entry :: struct {
+        origin: Origin;
+        key: Agent_Cluster_Key;
+    }
+
+    agent_cluster_map: [..]Agent_Cluster_Map_Entry;
+    historical_agent_cluster_key_map: [..]Historical_Agent_Cluster_Key_Map_Entry;
 }
 
 détruit_browsing_context_group :: fonc (group: *BrowsingContextGroup)
@@ -619,8 +684,56 @@ détruit_browsing_context_group :: fonc (group: *BrowsingContextGroup)
     pour group.contexts {
         détruit_browsing_context(it);
     }
+    déloge(*group.agent_cluster_map);
+    déloge(*group.historical_agent_cluster_key_map);
     déloge(*group.contexts);
     déloge(*group);
+}
+
+donne_agent_cluster :: fonc (group: *BrowsingContextGroup, key: Agent_Cluster_Key) -> *Agent_Cluster
+{
+    pour group.agent_cluster_map {
+        si it.key == key {
+            retourne it.agent_cluster;
+        }
+    }
+    retourne nul;
+}
+
+définis_agent_cluster :: fonc (group: *BrowsingContextGroup, key: Agent_Cluster_Key, cluster: *Agent_Cluster)
+{
+    pour * group.agent_cluster_map {
+        si it.key == key {
+            it.agent_cluster = cluster;
+            retourne;
+        }
+    }
+    map := tableau_ajoute_élément(*group.agent_cluster_map);
+    map.key = key;
+    map.agent_cluster = cluster;
+}
+
+donne_historical_agent_cluster_key :: fonc (group: *BrowsingContextGroup, origin: Origin) -> *Agent_Cluster_Key
+{
+    pour * group.historical_agent_cluster_key_map {
+        si it.origin == origin {
+            retourne *it.key;
+        }
+    }
+    retourne nul;
+}
+
+définis_historical_agent_cluster_key :: fonc (group: *BrowsingContextGroup, origin: Origin, key: Agent_Cluster_Key)
+{
+    pour * group.historical_agent_cluster_key_map {
+        si it.origin == origin {
+            it.key = key;
+            retourne;
+        }
+    }
+    map := tableau_ajoute_élément(*group.historical_agent_cluster_key_map);
+    map.origin = origin;
+    map.key = key;
 }
 
 /* https://html.spec.whatwg.org/multipage/document-sequences.html#windows */
@@ -916,15 +1029,8 @@ crée_un_nouveau_browsing_context_group_and_document :: fonc (user_agent: *UserA
     retourne group, document;
 }
 
-/* https://html.spec.whatwg.org/multipage/webappapis.html#obtain-similar-origin-window-agent */
-obtain_similar_origin_window_agent :: fonc (origin: Origin @inutilisée, groupe: *BrowsingContextGroup @inutilisée, requestsOAC: bool @inutilisée) -> *rien
-{
-    imprime("À FAIRE : [%]\n", #nom_de_cette_fonction);
-    retourne nul;
-}
-
 /* https://html.spec.whatwg.org/multipage/webappapis.html#creating-a-new-javascript-realm */
-crée_un_nouveau_realm :: fonc (agent: *rien @inutilisée, mv: *JS.MachineVirtuelle, configuration: *JS.ConfigurationRealm) -> *JS.ExecutionContext
+crée_un_nouveau_realm :: fonc (agent: *Agent, mv: *JS.MachineVirtuelle, configuration: *JS.ConfigurationRealm) -> *JS.ExecutionContext
 {
     // 1. Perform InitializeHostDefinedRealm() with the provided customizations for creating the global object and the global this binding.
     _ := JS.initialise_host_defined_realm(mv, configuration);
@@ -936,7 +1042,11 @@ crée_un_nouveau_realm :: fonc (agent: *rien @inutilisée, mv: *JS.MachineVirtue
     JS.dépile_execution_context(mv);
 
     // 4. Let realm be realm execution context's Realm component.
+    realm := realm_execution_context.realm;
 
+    // À FAIRE(javascript) : déplace ceci dans InitializeHostDefinedRealm()
+    realm.agent_signifier = agent.signifier;
+    
     // À FAIRE 5. If agent's agent cluster's cross-origin isolation mode is "none", then:
 
         // 1. Let global be realm's global object.
