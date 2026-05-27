@@ -143,6 +143,19 @@ personality :: fonc (persona: n64) -> z32 #externe libc;
 /** \} */
 
 /* ------------------------------------------------------------------------- */
+/** \nom sys/eventfd.h
+ * \{ */
+
+/* Flags for eventfd.  */
+EFD_SEMAPHORE :: 0o0000001;
+EFD_CLOEXEC :: 0o2000000;
+EFD_NONBLOCK :: 0o0004000;
+
+eventfd :: fonc (initval: n32, flags: z32) -> z32 #externe libc;
+
+/** \} */
+
+/* ------------------------------------------------------------------------- */
 /** \nom sys/timerfd.h
  * \{ */
 
