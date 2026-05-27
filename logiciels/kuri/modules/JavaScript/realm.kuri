@@ -191,6 +191,8 @@ Realm :: struct {
     global_environment: *GlobalEnvironment;
     host_defined: HostDefined;
 
+    agent_signifier: z32;
+
     /* Cache pour toutes les chaines littérales. */
     chaines_littérales: [..]*PrimitiveChaine;
     /* Cache pour les autres chaines. */
