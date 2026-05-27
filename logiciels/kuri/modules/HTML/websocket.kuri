@@ -225,7 +225,7 @@ crée_tâche_pour_connexion_websocket_établis :: fonc (user_agent: *UserAgent, 
     tâche := crée_algorithm(sur_run, Tâche);
     tâche.web_socket = web_socket;
 
-    user_agent.enfile_une_tâche(SourceDeTâche.WebSocket, tâche);
+    user_agent.enfile_une_tâche(Task_Source.WebSocket, tâche);
 }
 
 crée_tâche_pour_message_websocket :: fonc (user_agent: *UserAgent, web_socket: *WebSocket, type: WS.OpCode, données: []octet)
@@ -292,7 +292,7 @@ crée_tâche_pour_message_websocket :: fonc (user_agent: *UserAgent, web_socket:
     tâche.type = type;
     tâche.données = tableau_copie(données);
 
-    user_agent.enfile_une_tâche(SourceDeTâche.WebSocket, tâche);
+    user_agent.enfile_une_tâche(Task_Source.WebSocket, tâche);
 }
 
 crée_tâche_pour_début_fermeture_websocket :: fonc (user_agent: *UserAgent, web_socket: *WebSocket)
@@ -313,7 +313,7 @@ crée_tâche_pour_début_fermeture_websocket :: fonc (user_agent: *UserAgent, we
     tâche := crée_algorithm(sur_run, Tâche);
     tâche.web_socket = web_socket;
 
-    user_agent.enfile_une_tâche(SourceDeTâche.WebSocket, tâche);
+    user_agent.enfile_une_tâche(Task_Source.WebSocket, tâche);
 }
 
 crée_tâche_pour_connexion_websocket_fermée :: fonc (user_agent: *UserAgent, web_socket: *WebSocket)
@@ -348,7 +348,7 @@ crée_tâche_pour_connexion_websocket_fermée :: fonc (user_agent: *UserAgent, w
     tâche := crée_algorithm(sur_run, Tâche);
     tâche.web_socket = web_socket;
 
-    user_agent.enfile_une_tâche(SourceDeTâche.WebSocket, tâche);
+    user_agent.enfile_une_tâche(Task_Source.WebSocket, tâche);
 }
 
 /** \} */

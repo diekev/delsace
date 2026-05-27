@@ -67,6 +67,17 @@ définis_rappels_interface :: fonc (user_agent: *UserAgent, rappels: *RappelsInt
     user_agent.rappels_interface = rappels;
 }
 
+process_event_loops :: fonc (user_agent: *UserAgent)
+{
+    pour user_agent.browsing_context_groups {
+        pour map dans it.agent_cluster_map {
+            pour agent dans map.agent_cluster.agents {
+                process_loop(agent.event_loop);
+            }
+        }
+    }
+}
+
 /** \} */
 
 /* ------------------------------------------------------------------------- */
@@ -147,16 +158,6 @@ run :: fonc (algorithm: *Algorithm)
 
 /** \} */
 
-/* https://html.spec.whatwg.org/multipage/webappapis.html#generic-task-sources */
-SourceDeTâche :: énum {
-    ManipulationDOM;
-    InteractionUtilisateur;
-    Réseautage;
-    NavigationEtTraversée;
-    Rendu;
-    WebSocket;
-}
-
 /* ------------------------------------------------------------------------- */
 /** \nom RappelsInterface
  * \{ */
@@ -166,9 +167,7 @@ RappelsInterface :: struct {
     sur_lancement_requête: fonc (rappels: *RappelsInterface, request: *Request) -> *Response;
     sur_lancement_requête_websocket: fonc (rappels: *RappelsInterface, ws: *WebSocket, env: *EnvironmentSettings);
     sur_envoie_message_websocket: fonc (rappels: *RappelsInterface, ws: *WebSocket, WS.OpCode, [..]octet);
-    sur_spin_event_loop: fonc (rappels: *RappelsInterface);
     sur_élément_survolé: fonc (rappels: *RappelsInterface);
-    sur_enfile_une_tâche: fonc (rappels: *RappelsInterface, source: SourceDeTâche, algorithm: *Algorithm);
     sur_tâche_parallèle: fonc (rappels: *RappelsInterface, algorithm: *Algorithm);
     sur_tâche_traversable: fonc (rappels: *RappelsInterface, traversable: *TraversableNavigable, algorithm: *Algorithm);
     sur_est_exécuté_sur_fil_principal: fonc (rappels: *RappelsInterface) -> bool;
@@ -191,16 +190,6 @@ détruit_rappels :: fonc (rappels: *RappelsInterface)
     si rappels.sur_destruction {
         rappels.sur_destruction(rappels);
     }
-}
-
-spin_event_loop :: fonc (user_agent: *UserAgent)
-{
-    rappels := user_agent.rappels_interface;
-    saufsi rappels && rappels.sur_spin_event_loop {
-        retourne;
-    }
-
-    rappels.sur_spin_event_loop(rappels);
 }
 
 notifie_élément_survolé :: fonc (user_agent: *UserAgent)
@@ -240,16 +229,6 @@ envoie_message_websocket :: fonc (user_agent: *UserAgent, web_socket: *WebSocket
         retourne;
     }
     rappels.sur_envoie_message_websocket(rappels, web_socket, type, données);
-}
-
-enfile_une_tâche :: fonc (user_agent: *UserAgent, source: SourceDeTâche, algorithm: *Algorithm)
-{
-    rappels := user_agent.rappels_interface;
-    saufsi rappels && rappels.sur_enfile_une_tâche {
-        retourne;
-    }
-
-    rappels.sur_enfile_une_tâche(rappels, source, algorithm);
 }
 
 /* https://html.spec.whatwg.org/multipage/infrastructure.html#in-parallel */
@@ -408,14 +387,15 @@ affiche_menu_contextuel_pour :: fonc (user_agent: *UserAgent, élément: *Elemen
 /** \nom Création de tâches.
  * \{ */
 
-crée_tâche_pour_enfiler_tâche :: fonc (user_agent: *UserAgent, tâche_à_enfiler: *Algorithm, source: SourceDeTâche) -> *Algorithm
+crée_tâche_pour_enfiler_tâche :: fonc (user_agent: *UserAgent, tâche_à_enfiler: *Algorithm, source: Task_Source, global: *JS.Object) -> *Algorithm
 {
     Tâche :: struct {
         empl base: Algorithm;
 
         user_agent: *UserAgent;
         tâche_à_enfiler: *Algorithm;
-        source: SourceDeTâche;
+        source: Task_Source;
+        global: *JS.Object;
     }
 
     sur_run :: fonc (base: *Algorithm)
@@ -425,14 +405,16 @@ crée_tâche_pour_enfiler_tâche :: fonc (user_agent: *UserAgent, tâche_à_enfi
         user_agent := tâche.user_agent;
         tâche_à_enfiler := tâche.tâche_à_enfiler;
         source := tâche.source;
+        global := tâche.global;
 
-        user_agent.enfile_une_tâche(source, tâche_à_enfiler);
+        queue_a_global_task(user_agent, source, global, tâche_à_enfiler);
     }
 
     tâche := crée_algorithm(sur_run, Tâche);
     tâche.user_agent = user_agent;
     tâche.tâche_à_enfiler = tâche_à_enfiler;
     tâche.source = source;
+    tâche.global = global;
     retourne tâche;
 }
 
@@ -485,85 +467,12 @@ enfile_une_tâche_pour_lancer_évènement_à_élément :: fonc (user_agent: *Use
     tâche.élément = élément;
     tâche.nom = nom;
 
-    user_agent.queue_an_element_task(SourceDeTâche.ManipulationDOM, élément, tâche);
+    user_agent.queue_an_element_task(Task_Source.ManipulationDOM, élément, tâche);
 }
 
 queue_a_task_to_fire_error_at_element :: fonc (user_agent: *UserAgent, élément: *Element)
 {
     enfile_une_tâche_pour_lancer_évènement_à_élément(user_agent, élément, EventType.error);
-}
-
-/** \} */
-
-/* ------------------------------------------------------------------------- */
-/** \nom 8.1.7.2 Queuing tasks
- * https://html.spec.whatwg.org/multipage/webappapis.html#queuing-tasks
- * \{ */
-
-/* https://html.spec.whatwg.org/multipage/webappapis.html#queue-a-task */
-queue_a_task :: fonc (user_agent: *UserAgent, source: SourceDeTâche, steps: *Algorithm, event_loop : *rien = nul @inutilisée, document : *Document = nul @inutilisée)
-{
-    // À FAIRE : 1. If event loop was not given, set event loop to the implied event loop.
-
-    // 2. If document was not given, set document to the implied document.
-
-    // 3. Let task be a new task.
-
-    // 4. Set task's steps to steps.
-
-    // 5. Set task's source to source.
-
-    // 6. Set task's document to the document.
-
-    // 7. Set task's script evaluation environment settings object set to an empty set.
-
-    // 8. Let queue be the task queue to which source is associated on event loop.
-
-    // 9. Append task to queue.
-    user_agent.enfile_une_tâche(source, steps);
-}
-
-/* https://html.spec.whatwg.org/multipage/webappapis.html#queue-a-global-task */
-queue_a_global_task :: fonc (user_agent: *UserAgent, source: SourceDeTâche, global_object: *JS.Object @inutilisée, steps: *Algorithm)
-{
-    // À FAIRE : 1. Let event loop be global's relevant agent's event loop.
-
-    // 2. Let document be global's associated Document, if global is a Window object; otherwise null.
-
-    // 3. Queue a task given source, event loop, document, and steps.
-    queue_a_task(user_agent, source, steps);
-}
-
-/* https://html.spec.whatwg.org/multipage/webappapis.html#queue-an-element-task */
-queue_an_element_task :: fonc (user_agent: *UserAgent, source: SourceDeTâche, élément: *Element, steps: *Algorithm)
-{
-    // 1. Let global be element's relevant global object.
-    global := donne_relevant_global_object(élément);
-
-    // 2. Queue a global task given source, global, and steps.
-    queue_a_global_task(user_agent, source, global, steps);
-}
-
-/* https://html.spec.whatwg.org/multipage/webappapis.html#queue-a-microtask */
-queue_a_microtask :: fonc (user_agent: *UserAgent, steps: *Algorithm, document : *Document = nul)
-{
-    // À FAIRE : 1. Assert: there is a surrounding agent. I.e., this algorithm is not called while in parallel.
-
-    // 2. Let eventLoop be the surrounding agent's event loop.
-
-    // 3. If document was not given, set document to the implied document.
-
-    // 4. Let microtask be a new task.
-
-    // 5. Set microtask's steps to steps.
-
-    // 6. Set microtask's source to the microtask task source.
-
-    // 7. Set microtask's document to document.
-
-    // 8. Set microtask's script evaluation environment settings object set to an empty set.
-
-    // 9. Enqueue microtask on eventLoop's microtask queue.
 }
 
 /** \} */
