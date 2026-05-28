@@ -146,7 +146,7 @@ lance :: fonc (boucle_prises: *Boucle)
             retourne;
         }
 
-        évènements_prêts: [..]epoll_event;
+        évènements_prêts: []epoll_event;
         évènements_prêts.pointeur = *boucle_prises.évènements[0];
         évènements_prêts.taille = nfds;
 
