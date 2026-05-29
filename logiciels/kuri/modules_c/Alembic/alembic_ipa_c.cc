@@ -1304,6 +1304,14 @@ static bool abc_input_object_schema_has_face_set(Input_Schema_Object_Type *objec
 
 /* ------------------------------------------------------------------------- */
 /** \nom Abc_Input_PolyMesh_Sample
+ * À FAIRE
+ *   MeshTopologyVariance getTopologyVariance() const;
+ *   IV2fGeomParam getUVsParam() const
+ *   IN3fGeomParam getNormalsParam() const
+ *   Abc::IInt32ArrayProperty getFaceCountsProperty() const
+ *   Abc::IInt32ArrayProperty getFaceIndicesProperty() const
+ *   Abc::IP3fArrayProperty getPositionsProperty() const
+ *   Abc::IV3fArrayProperty getVelocitiesProperty() const
  * \{ */
 
 struct Abc_Input_PolyMesh_Sample {
@@ -1338,6 +1346,23 @@ DEFINE_POLYMESH_SAMPLE_ARRAY_GET_FUNCTIONS(DEFINE_INPUT_SAMPLE_ARRAY_GET_FUNCTIO
 
 /* ------------------------------------------------------------------------- */
 /** \nom Abc_Input_SubD_Sample
+ * À FAIRE
+ *   MeshTopologyVariance getTopologyVariance() const;
+ *   Abc::IInt32ArrayProperty getFaceCountsProperty() const
+ *   Abc::IInt32ArrayProperty getFaceIndicesProperty() const
+ *   Abc::IP3fArrayProperty getPositionsProperty() const
+ *   Abc::IInt32Property getFaceVaryingInterpolateBoundaryProperty() const
+ *   Abc::IInt32Property getFaceVaryingPropagateCornersProperty() const
+ *   Abc::IInt32Property getInterpolateBoundaryProperty() const
+ *   Abc::IInt32ArrayProperty getCreaseIndicesProperty() const
+ *   Abc::IInt32ArrayProperty getCreaseLengthsProperty() const
+ *   Abc::IFloatArrayProperty getCreaseSharpnessesProperty() const
+ *   Abc::IInt32ArrayProperty getCornerIndicesProperty() const
+ *   Abc::IFloatArrayProperty getCornerSharpnessesProperty() const
+ *   Abc::IInt32ArrayProperty getHolesProperty() const { return m_holesProperty; }
+ *   Abc::IStringProperty getSubdivisionSchemeProperty() const
+ *   Abc::IV3fArrayProperty getVelocitiesProperty() const
+ *   IV2fGeomParam getUVsParam() const
  * \{ */
 
 struct Abc_Input_SubD_Sample {
@@ -1382,6 +1407,9 @@ Abc_String abc_input_subd_sample_get_subdivision_scheme(struct Abc_Input_SubD_Sa
 
 /* ------------------------------------------------------------------------- */
 /** \nom Abc_Input_FaceSet_Sample
+ *  À FAIRE:
+ *    FaceSetExclusivity getFaceExclusivity() const;
+ *    Abc::IInt32ArrayProperty getFacesProperty() const
  * \{ */
 
 struct Abc_Input_FaceSet_Sample {
