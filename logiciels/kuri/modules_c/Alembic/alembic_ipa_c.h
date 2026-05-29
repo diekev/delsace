@@ -789,6 +789,21 @@ DEFINE_FACE_SET_SAMPLE_ARRAY_GET_FUNCTIONS(DECLARE_INPUT_SAMPLE_ARRAY_GET_FUNCTI
 /** \} */
 
 /* ------------------------------------------------------------------------- */
+/** \nom Abc_Input_Points_Sample
+ * \{ */
+
+DECLARE_COMMON_INPUT_SAMPLE_FUNCTIONS(Points, points)
+
+#define DEFINE_POINTS_SAMPLE_ARRAY_GET_FUNCTIONS(X)                                               \
+    X(Points, points, get_positions, getPositions, Abc_P3f_Array_Sample)                          \
+    X(Points, points, get_velocities, getVelocities, Abc_V3f_Array_Sample)                        \
+    X(Points, points, get_ids, getIds, Abc_UInt64_Array_Sample)
+
+DEFINE_POINTS_SAMPLE_ARRAY_GET_FUNCTIONS(DECLARE_INPUT_SAMPLE_ARRAY_GET_FUNCTION)
+
+/** \} */
+
+/* ------------------------------------------------------------------------- */
 /** \nom Export
  * \{ */
 

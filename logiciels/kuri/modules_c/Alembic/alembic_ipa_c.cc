@@ -458,6 +458,20 @@ static Abc_Int32_Array_Sample get_input_array_sample(const Abc::Int32ArraySample
     return résultat;
 }
 
+static Abc_UInt64_Array_Sample get_input_array_sample(const Abc::UInt64ArraySamplePtr &ptr)
+{
+    auto résultat = Abc_UInt64_Array_Sample();
+    if (ptr) {
+        résultat.values = reinterpret_cast<uint64_t *>(const_cast<uint64_t *>(ptr->get()));
+        résultat.num_values = ptr->size();
+    }
+    else {
+        résultat.values = nullptr;
+        résultat.num_values = 0;
+    }
+    return résultat;
+}
+
 static Abc_Float_Array_Sample get_input_array_sample(const Abc::FloatArraySamplePtr &ptr)
 {
     auto résultat = Abc_Float_Array_Sample();
@@ -1420,6 +1434,26 @@ struct Abc_Input_FaceSet_Sample {
 DEFINE_COMMON_INPUT_SAMPLE_FUNCTIONS(FaceSet, face_set)
 
 DEFINE_FACE_SET_SAMPLE_ARRAY_GET_FUNCTIONS(DEFINE_INPUT_SAMPLE_ARRAY_GET_FUNCTION)
+
+/** \} */
+
+/* ------------------------------------------------------------------------- */
+/** \nom Abc_Input_Points_Sample
+ *  À FAIRE:
+ *    Abc::IP3fArrayProperty getPositionsProperty() const
+ *    Abc::IV3fArrayProperty getVelocitiesProperty() const
+ *    Abc::IUInt64ArrayProperty getIdsProperty() const
+ *    IFloatGeomParam getWidthsParam() const
+ * \{ */
+
+struct Abc_Input_Points_Sample {
+    Abc_Input_Archive *archive = nullptr;
+    AbcGeom::IPointsSchema::Sample sample{};
+};
+
+DEFINE_COMMON_INPUT_SAMPLE_FUNCTIONS(Points, points)
+
+DEFINE_POINTS_SAMPLE_ARRAY_GET_FUNCTIONS(DEFINE_INPUT_SAMPLE_ARRAY_GET_FUNCTION)
 
 /** \} */
 
