@@ -785,6 +785,31 @@ Abc_String abc_input_subd_sample_get_subdivision_scheme(struct Abc_Input_SubD_Sa
 /** \} */
 
 /* ------------------------------------------------------------------------- */
+/** \nom Abc_Input_FaceSet_Sample
+ * \{ */
+
+struct Abc_Time_Sampling *abc_input_face_set_get_time_sampling(struct Abc_Input_FaceSet *face_set);
+
+uint64_t abc_input_face_set_get_num_samples(struct Abc_Input_FaceSet *face_set);
+
+struct Abc_Input_FaceSet_Sample;
+
+struct Abc_Input_FaceSet_Sample *abc_input_face_set_get_sample(
+    struct Abc_Input_FaceSet *face_set, struct Abc_Sample_Selector selector);
+
+void abc_input_face_set_sample_destroy(struct Abc_Input_FaceSet_Sample *sample);
+
+void abc_input_face_set_sample_get_self_bounds(struct Abc_Input_FaceSet_Sample *face_set_sample,
+                                               Abc_Box3d *r_box);
+
+#define DEFINE_FACE_SET_SAMPLE_ARRAY_GET_FUNCTIONS(X)                                             \
+    X(FaceSet, face_set, get_faces, getFaces, Abc_Int32_Array_Sample)
+
+DEFINE_FACE_SET_SAMPLE_ARRAY_GET_FUNCTIONS(DECLARE_INPUT_SAMPLE_ARRAY_GET_FUNCTION)
+
+/** \} */
+
+/* ------------------------------------------------------------------------- */
 /** \nom Export
  * \{ */
 

@@ -1393,6 +1393,54 @@ Abc_String abc_input_subd_sample_get_subdivision_scheme(struct Abc_Input_SubD_Sa
 /** \} */
 
 /* ------------------------------------------------------------------------- */
+/** \nom Abc_Input_FaceSet_Sample
+ * \{ */
+
+struct Abc_Time_Sampling *abc_input_face_set_get_time_sampling(struct Abc_Input_FaceSet *face_set)
+{
+    return make_time_sampling(face_set->archive,
+                              face_set->typed_object.getSchema().getTimeSampling());
+}
+
+uint64_t abc_input_face_set_get_num_samples(struct Abc_Input_FaceSet *face_set)
+{
+    auto résultat = face_set->typed_object.getSchema().getNumSamples();
+    return résultat;
+}
+
+struct Abc_Input_FaceSet_Sample {
+    Abc_Input_Archive *archive = nullptr;
+    AbcGeom::IFaceSetSchema::Sample sample{};
+};
+
+struct Abc_Input_FaceSet_Sample *abc_input_face_set_get_sample(struct Abc_Input_FaceSet *face_set,
+                                                               struct Abc_Sample_Selector selector)
+{
+    auto résultat = kuri_loge<Abc_Input_FaceSet_Sample>(face_set->archive->ctx_kuri);
+    résultat->archive = face_set->archive;
+    face_set->typed_object.getSchema().get(résultat->sample, get_sample_selector(selector));
+    return résultat;
+}
+
+void abc_input_face_set_sample_destroy(struct Abc_Input_FaceSet_Sample *sample)
+{
+    if (sample) {
+        kuri_deloge(sample->archive->ctx_kuri, sample);
+    }
+}
+
+void abc_input_face_set_sample_get_self_bounds(struct Abc_Input_FaceSet_Sample *face_set_sample,
+                                               Abc_Box3d *r_box)
+{
+    auto résultat = face_set_sample->sample.getSelfBounds();
+    *r_box = import_value_converter<Abc::Box3d>::convert_value(&résultat);
+}
+
+DEFINE_FACE_SET_SAMPLE_ARRAY_GET_FUNCTIONS(DEFINE_INPUT_SAMPLE_ARRAY_GET_FUNCTION)
+
+/** \} */
+
+/* ------------------------------------------------------------------------- */
 /** \nom Abc_Input_Archive
  * \{ */
 
