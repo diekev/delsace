@@ -692,14 +692,19 @@ void abc_input_archive_get_start_and_end_time(struct Abc_Input_Archive *archive,
 
 #define DECLARE_COMMON_INPUT_SAMPLE_FUNCTIONS(uname, lname)                                       \
     struct Abc_Input_##uname##_Sample;                                                            \
+    bool abc_input_##lname##_schema_is_constant(struct Abc_Input_##uname *lname);                 \
     struct Abc_Time_Sampling *abc_input_##lname##_get_time_sampling(                              \
         struct Abc_Input_##uname *lname);                                                         \
     uint64_t abc_input_##lname##_get_num_samples(struct Abc_Input_##uname *lname);                \
+    void abc_input_##lname##_schema_reset(struct Abc_Input_##uname *lname);                       \
+    bool abc_input_##lname##_schema_valid(struct Abc_Input_##uname *lname);                       \
     struct Abc_Input_##uname##_Sample *abc_input_##lname##_get_sample(                            \
         struct Abc_Input_##uname *lname, struct Abc_Sample_Selector selector);                    \
     void abc_input_##lname##_sample_destroy(struct Abc_Input_##uname##_Sample *sample);           \
     void abc_input_##lname##_sample_get_self_bounds(                                              \
-        struct Abc_Input_##uname##_Sample *lname##_sample, Abc_Box3d *r_box);
+        struct Abc_Input_##uname##_Sample *lname##_sample, Abc_Box3d *r_box);                     \
+    bool abc_input_##lname##_sample_valid(struct Abc_Input_##uname##_Sample *lname##_sample);     \
+    void abc_input_##lname##_sample_reset(struct Abc_Input_##uname##_Sample *lname##_sample);
 
 /* ------------------------------------------------------------------------- */
 /** \nom Abc_Input_PolyMesh_Sample

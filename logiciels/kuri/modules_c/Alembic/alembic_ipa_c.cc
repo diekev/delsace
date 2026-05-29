@@ -1212,10 +1212,22 @@ ENUMERATE_INPUT_OBJECT_TYPES(DECLARE_TYPED_INPUT_OBJECTS)
         return make_time_sampling(lname->archive,                                                 \
                                   lname->typed_object.getSchema().getTimeSampling());             \
     }                                                                                             \
+    bool abc_input_##lname##_schema_is_constant(struct Abc_Input_##uname *lname)                  \
+    {                                                                                             \
+        return lname->typed_object.getSchema().isConstant();                                      \
+    }                                                                                             \
     uint64_t abc_input_##lname##_get_num_samples(struct Abc_Input_##uname *lname)                 \
     {                                                                                             \
         auto résultat = lname->typed_object.getSchema().getNumSamples();                          \
         return résultat;                                                                          \
+    }                                                                                             \
+    void abc_input_##lname##_schema_reset(struct Abc_Input_##uname *lname)                        \
+    {                                                                                             \
+        lname->typed_object.getSchema().reset();                                                  \
+    }                                                                                             \
+    bool abc_input_##lname##_schema_valid(struct Abc_Input_##uname *lname)                        \
+    {                                                                                             \
+        return lname->typed_object.getSchema().valid();                                           \
     }                                                                                             \
     struct Abc_Input_##uname##_Sample *abc_input_##lname##_get_sample(                            \
         struct Abc_Input_##uname *lname, struct Abc_Sample_Selector selector)                     \
@@ -1236,6 +1248,14 @@ ENUMERATE_INPUT_OBJECT_TYPES(DECLARE_TYPED_INPUT_OBJECTS)
     {                                                                                             \
         auto résultat = lname##_sample->sample.getSelfBounds();                                   \
         *r_box = import_value_converter<Abc::Box3d>::convert_value(&résultat);                    \
+    }                                                                                             \
+    bool abc_input_##lname##_sample_valid(struct Abc_Input_##uname##_Sample *lname##_sample)      \
+    {                                                                                             \
+        return lname##_sample->sample.valid();                                                    \
+    }                                                                                             \
+    void abc_input_##lname##_sample_reset(struct Abc_Input_##uname##_Sample *lname##_sample)      \
+    {                                                                                             \
+        lname##_sample->sample.reset();                                                           \
     }
 
 /* ------------------------------------------------------------------------- */
