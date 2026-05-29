@@ -1223,6 +1223,7 @@ uint64_t abc_input_subd_get_num_samples(struct Abc_Input_SubD *subd)
 struct Abc_Input_SubD_Sample {
     Abc_Input_Archive *archive = nullptr;
     AbcGeom::ISubDSchema::Sample sample{};
+    std::string subdivision_scheme{};
 };
 
 struct Abc_Input_SubD_Sample *abc_input_subd_get_sample(struct Abc_Input_SubD *subd,
@@ -1243,6 +1244,15 @@ void abc_input_subd_sample_destroy(struct Abc_Input_SubD_Sample *sample)
 
 DEFINE_SUBD_SAMPLE_SCALAR_GET_FUNCTION(DEFINE_INPUT_SAMPLE_SCALAR_GET_FUNCTION)
 DEFINE_SUBD_SAMPLE_ARRAY_GET_FUNCTIONS(DEFINE_INPUT_SAMPLE_ARRAY_GET_FUNCTION)
+
+Abc_String abc_input_subd_sample_get_subdivision_scheme(struct Abc_Input_SubD_Sample *subd_sample)
+{
+    subd_sample->subdivision_scheme = subd_sample->sample.getSubdivisionScheme();
+
+    Abc_String résultat;
+    vers_abc_string(&résultat, subd_sample->subdivision_scheme);
+    return résultat;
+}
 
 /** \} */
 

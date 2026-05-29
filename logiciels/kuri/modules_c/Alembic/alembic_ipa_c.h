@@ -755,6 +755,8 @@ void abc_input_subd_sample_destroy(struct Abc_Input_SubD_Sample *sample);
 DEFINE_SUBD_SAMPLE_ARRAY_GET_FUNCTIONS(DECLARE_INPUT_SAMPLE_ARRAY_GET_FUNCTION)
 DEFINE_SUBD_SAMPLE_SCALAR_GET_FUNCTION(DECLARE_INPUT_SAMPLE_SCALAR_GET_FUNCTION)
 
+Abc_String abc_input_subd_sample_get_subdivision_scheme(struct Abc_Input_SubD_Sample *subd_sample);
+
 /** \} */
 
 /* ------------------------------------------------------------------------- */
