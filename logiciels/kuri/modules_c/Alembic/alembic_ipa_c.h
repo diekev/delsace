@@ -690,14 +690,22 @@ void abc_input_archive_get_start_and_end_time(struct Abc_Input_Archive *archive,
     struct sample_type abc_input_##lname##_sample_##snake_name(                                   \
         struct Abc_Input_##uname##_Sample *lname##_sample);
 
+#define DECLARE_COMMON_INPUT_SAMPLE_FUNCTIONS(uname, lname)                                       \
+    struct Abc_Input_##uname##_Sample;                                                            \
+    struct Abc_Time_Sampling *abc_input_##lname##_get_time_sampling(                              \
+        struct Abc_Input_##uname *lname);                                                         \
+    uint64_t abc_input_##lname##_get_num_samples(struct Abc_Input_##uname *lname);                \
+    struct Abc_Input_##uname##_Sample *abc_input_##lname##_get_sample(                            \
+        struct Abc_Input_##uname *lname, struct Abc_Sample_Selector selector);                    \
+    void abc_input_##lname##_sample_destroy(struct Abc_Input_##uname##_Sample *sample);           \
+    void abc_input_##lname##_sample_get_self_bounds(                                              \
+        struct Abc_Input_##uname##_Sample *lname##_sample, Abc_Box3d *r_box);
+
 /* ------------------------------------------------------------------------- */
 /** \nom Abc_Input_PolyMesh_Sample
  * \{ */
 
-struct Abc_Time_Sampling *abc_input_polymesh_get_time_sampling(
-    struct Abc_Input_PolyMesh *polymesh);
-
-uint64_t abc_input_polymesh_get_num_samples(struct Abc_Input_PolyMesh *polymesh);
+DECLARE_COMMON_INPUT_SAMPLE_FUNCTIONS(PolyMesh, polymesh)
 
 void abc_input_polymesh_schema_get_face_set_names(struct Abc_Input_PolyMesh *polymesh,
                                                   Abc_String **r_names,
@@ -708,16 +716,6 @@ struct Abc_Input_FaceSet *abc_input_polymesh_schema_get_face_set(
 
 bool abc_input_polymesh_schema_has_face_set(struct Abc_Input_PolyMesh *polymesh,
                                             Abc_String face_set_name);
-
-struct Abc_Input_PolyMesh_Sample;
-
-struct Abc_Input_PolyMesh_Sample *abc_input_polymesh_get_sample(
-    struct Abc_Input_PolyMesh *polymesh, struct Abc_Sample_Selector selector);
-
-void abc_input_polymesh_sample_destroy(struct Abc_Input_PolyMesh_Sample *sample);
-
-void abc_input_polymesh_sample_get_self_bounds(struct Abc_Input_PolyMesh_Sample *polymesh_sample,
-                                               Abc_Box3d *r_box);
 
 #define DEFINE_POLYMESH_SAMPLE_ARRAY_GET_FUNCTIONS(X)                                             \
     X(PolyMesh, polymesh, get_positions, getPositions, Abc_P3f_Array_Sample)                      \
@@ -733,9 +731,7 @@ DEFINE_POLYMESH_SAMPLE_ARRAY_GET_FUNCTIONS(DECLARE_INPUT_SAMPLE_ARRAY_GET_FUNCTI
 /** \nom Abc_Input_SubD_Sample
  * \{ */
 
-struct Abc_Time_Sampling *abc_input_subd_get_time_sampling(struct Abc_Input_SubD *subd);
-
-uint64_t abc_input_subd_get_num_samples(struct Abc_Input_SubD *subd);
+DECLARE_COMMON_INPUT_SAMPLE_FUNCTIONS(SubD, subd)
 
 void abc_input_subd_schema_get_face_set_names(struct Abc_Input_SubD *subd,
                                               Abc_String **r_names,
@@ -745,16 +741,6 @@ struct Abc_Input_FaceSet *abc_input_subd_schema_get_face_set(struct Abc_Input_Su
                                                              Abc_String face_set_name);
 
 bool abc_input_subd_schema_has_face_set(struct Abc_Input_SubD *subd, Abc_String face_set_name);
-
-struct Abc_Input_SubD_Sample;
-
-struct Abc_Input_SubD_Sample *abc_input_subd_get_sample(struct Abc_Input_SubD *subd,
-                                                        struct Abc_Sample_Selector selector);
-
-void abc_input_subd_sample_destroy(struct Abc_Input_SubD_Sample *sample);
-
-void abc_input_subd_sample_get_self_bounds(struct Abc_Input_SubD_Sample *subd_sample,
-                                           Abc_Box3d *r_box);
 
 #define DEFINE_SUBD_SAMPLE_SCALAR_GET_FUNCTION(X)                                                 \
     X(SubD,                                                                                       \
@@ -788,19 +774,7 @@ Abc_String abc_input_subd_sample_get_subdivision_scheme(struct Abc_Input_SubD_Sa
 /** \nom Abc_Input_FaceSet_Sample
  * \{ */
 
-struct Abc_Time_Sampling *abc_input_face_set_get_time_sampling(struct Abc_Input_FaceSet *face_set);
-
-uint64_t abc_input_face_set_get_num_samples(struct Abc_Input_FaceSet *face_set);
-
-struct Abc_Input_FaceSet_Sample;
-
-struct Abc_Input_FaceSet_Sample *abc_input_face_set_get_sample(
-    struct Abc_Input_FaceSet *face_set, struct Abc_Sample_Selector selector);
-
-void abc_input_face_set_sample_destroy(struct Abc_Input_FaceSet_Sample *sample);
-
-void abc_input_face_set_sample_get_self_bounds(struct Abc_Input_FaceSet_Sample *face_set_sample,
-                                               Abc_Box3d *r_box);
+DECLARE_COMMON_INPUT_SAMPLE_FUNCTIONS(FaceSet, face_set)
 
 #define DEFINE_FACE_SET_SAMPLE_ARRAY_GET_FUNCTIONS(X)                                             \
     X(FaceSet, face_set, get_faces, getFaces, Abc_Int32_Array_Sample)
