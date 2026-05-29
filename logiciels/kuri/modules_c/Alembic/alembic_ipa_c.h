@@ -699,6 +699,16 @@ struct Abc_Time_Sampling *abc_input_polymesh_get_time_sampling(
 
 uint64_t abc_input_polymesh_get_num_samples(struct Abc_Input_PolyMesh *polymesh);
 
+void abc_input_polymesh_schema_get_face_set_names(struct Abc_Input_PolyMesh *polymesh,
+                                                  Abc_String **r_names,
+                                                  uint64_t *r_count);
+
+struct Abc_Input_FaceSet *abc_input_polymesh_schema_get_face_set(
+    struct Abc_Input_PolyMesh *polymesh, Abc_String face_set_name);
+
+bool abc_input_polymesh_schema_has_face_set(struct Abc_Input_PolyMesh *polymesh,
+                                            Abc_String face_set_name);
+
 struct Abc_Input_PolyMesh_Sample;
 
 struct Abc_Input_PolyMesh_Sample *abc_input_polymesh_get_sample(
@@ -726,6 +736,15 @@ DEFINE_POLYMESH_SAMPLE_ARRAY_GET_FUNCTIONS(DECLARE_INPUT_SAMPLE_ARRAY_GET_FUNCTI
 struct Abc_Time_Sampling *abc_input_subd_get_time_sampling(struct Abc_Input_SubD *subd);
 
 uint64_t abc_input_subd_get_num_samples(struct Abc_Input_SubD *subd);
+
+void abc_input_subd_schema_get_face_set_names(struct Abc_Input_SubD *subd,
+                                              Abc_String **r_names,
+                                              uint64_t *r_count);
+
+struct Abc_Input_FaceSet *abc_input_subd_schema_get_face_set(struct Abc_Input_SubD *subd,
+                                                             Abc_String face_set_name);
+
+bool abc_input_subd_schema_has_face_set(struct Abc_Input_SubD *subd, Abc_String face_set_name);
 
 struct Abc_Input_SubD_Sample;
 

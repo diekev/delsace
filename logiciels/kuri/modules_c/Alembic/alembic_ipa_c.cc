@@ -1053,6 +1053,9 @@ struct Abc_Input_Object {
     bool arb_geom_params_initialized = false;
     bool user_properties_initialized = false;
     bool metadata_initialized = false;
+
+    std::vector<std::string> face_set_names_std_string{};
+    std::vector<Abc_String> face_set_names_abc_string{};
 };
 
 #define DECLARE_TYPED_INPUT_OBJECTS(type_abc, type_kuri, lname)                                   \
@@ -1203,6 +1206,50 @@ ENUMERATE_INPUT_OBJECT_TYPES(DECLARE_TYPED_INPUT_OBJECTS)
     }
 
 /* ------------------------------------------------------------------------- */
+/** \nom Face sets extraction.
+ * \{ */
+
+template <typename Input_Schema_Object_Type>
+static void abc_input_object_schema_get_face_set_names(Input_Schema_Object_Type *object,
+                                                       Abc_String **r_names,
+                                                       uint64_t *r_count)
+{
+    if (object->face_set_names_std_string.empty()) {
+        object->typed_object.getSchema().getFaceSetNames(object->face_set_names_std_string);
+
+        object->face_set_names_abc_string.resize(object->face_set_names_std_string.size());
+
+        auto strings = object->face_set_names_abc_string.data();
+        auto num_strings = object->face_set_names_abc_string.size();
+        for (auto i = 0ul; i < num_strings; i++) {
+            vers_abc_string(strings++, object->face_set_names_std_string[i]);
+        }
+    }
+
+    *r_names = object->face_set_names_abc_string.data();
+    *r_count = object->face_set_names_abc_string.size();
+}
+
+template <typename Input_Schema_Object_Type>
+struct Abc_Input_FaceSet *abc_input_object_schema_get_face_set(Input_Schema_Object_Type *object,
+                                                               Abc_String face_set_name)
+{
+    Abc_Input_FaceSet *résultat = make_object<Abc_Input_FaceSet>(object->archive);
+    résultat->typed_object = object->typed_object.getSchema().getFaceSet(face_set_name);
+    résultat->untyped_object = résultat->typed_object;
+    return résultat;
+}
+
+template <typename Input_Schema_Object_Type>
+static bool abc_input_object_schema_has_face_set(Input_Schema_Object_Type *object,
+                                                 Abc_String face_set_name)
+{
+    return object->typed_object.getSchema().hasFaceSet(face_set_name);
+}
+
+/** \} */
+
+/* ------------------------------------------------------------------------- */
 /** \nom Abc_Input_PolyMesh_Sample
  * \{ */
 
@@ -1216,6 +1263,25 @@ uint64_t abc_input_polymesh_get_num_samples(struct Abc_Input_PolyMesh *polymesh)
 {
     auto résultat = polymesh->typed_object.getSchema().getNumSamples();
     return résultat;
+}
+
+void abc_input_polymesh_schema_get_face_set_names(struct Abc_Input_PolyMesh *polymesh,
+                                                  Abc_String **r_names,
+                                                  uint64_t *r_count)
+{
+    abc_input_object_schema_get_face_set_names(polymesh, r_names, r_count);
+}
+
+struct Abc_Input_FaceSet *abc_input_polymesh_schema_get_face_set(
+    struct Abc_Input_PolyMesh *polymesh, Abc_String face_set_name)
+{
+    return abc_input_object_schema_get_face_set(polymesh, face_set_name);
+}
+
+bool abc_input_polymesh_schema_has_face_set(struct Abc_Input_PolyMesh *polymesh,
+                                            Abc_String face_set_name)
+{
+    return abc_input_object_schema_has_face_set(polymesh, face_set_name);
 }
 
 struct Abc_Input_PolyMesh_Sample {
@@ -1265,6 +1331,24 @@ uint64_t abc_input_subd_get_num_samples(struct Abc_Input_SubD *subd)
     return résultat;
 }
 
+void abc_input_subd_schema_get_face_set_names(struct Abc_Input_SubD *subd,
+                                              Abc_String **r_names,
+                                              uint64_t *r_count)
+{
+    abc_input_object_schema_get_face_set_names(subd, r_names, r_count);
+}
+
+struct Abc_Input_FaceSet *abc_input_subd_schema_get_face_set(struct Abc_Input_SubD *subd,
+                                                             Abc_String face_set_name)
+{
+    return abc_input_object_schema_get_face_set(subd, face_set_name);
+}
+
+bool abc_input_subd_schema_has_face_set(struct Abc_Input_SubD *subd, Abc_String face_set_name)
+{
+    return abc_input_object_schema_has_face_set(subd, face_set_name);
+}
+
 struct Abc_Input_SubD_Sample {
     Abc_Input_Archive *archive = nullptr;
     AbcGeom::ISubDSchema::Sample sample{};
@@ -1305,6 +1389,7 @@ Abc_String abc_input_subd_sample_get_subdivision_scheme(struct Abc_Input_SubD_Sa
     vers_abc_string(&résultat, subd_sample->subdivision_scheme);
     return résultat;
 }
+
 /** \} */
 
 /* ------------------------------------------------------------------------- */
