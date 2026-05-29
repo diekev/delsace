@@ -706,17 +706,13 @@ struct Abc_Input_PolyMesh_Sample *abc_input_polymesh_get_sample(
 
 void abc_input_polymesh_sample_destroy(struct Abc_Input_PolyMesh_Sample *sample);
 
-struct Abc_P3f_Array_Sample abc_input_polymesh_sample_get_positions(
-    struct Abc_Input_PolyMesh_Sample *sample);
+#define DEFINE_POLYMESH_SAMPLE_ARRAY_GET_FUNCTIONS(X)                                             \
+    X(PolyMesh, polymesh, get_positions, getPositions, Abc_P3f_Array_Sample)                      \
+    X(PolyMesh, polymesh, get_velocities, getVelocities, Abc_V3f_Array_Sample)                    \
+    X(PolyMesh, polymesh, get_face_indices, getFaceIndices, Abc_Int32_Array_Sample)               \
+    X(PolyMesh, polymesh, get_face_counts, getFaceCounts, Abc_Int32_Array_Sample)
 
-struct Abc_V3f_Array_Sample abc_input_polymesh_sample_get_velocities(
-    struct Abc_Input_PolyMesh_Sample *sample);
-
-struct Abc_Int32_Array_Sample abc_input_polymesh_sample_get_face_indices(
-    struct Abc_Input_PolyMesh_Sample *sample);
-
-struct Abc_Int32_Array_Sample abc_input_polymesh_sample_get_face_counts(
-    struct Abc_Input_PolyMesh_Sample *sample);
+DEFINE_POLYMESH_SAMPLE_ARRAY_GET_FUNCTIONS(DECLARE_INPUT_SAMPLE_ARRAY_GET_FUNCTION)
 
 /** \} */
 

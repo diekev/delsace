@@ -1201,69 +1201,7 @@ void abc_input_polymesh_sample_destroy(struct Abc_Input_PolyMesh_Sample *sample)
     }
 }
 
-struct Abc_P3f_Array_Sample abc_input_polymesh_sample_get_positions(
-    struct Abc_Input_PolyMesh_Sample *sample)
-{
-    auto ptr = sample->sample.getPositions();
-
-    auto résultat = Abc_P3f_Array_Sample();
-    if (ptr) {
-        résultat.values = reinterpret_cast<Abc_V3f *>(const_cast<Abc::V3f *>(ptr->get()));
-        résultat.num_values = ptr->size();
-    }
-    return résultat;
-}
-
-struct Abc_V3f_Array_Sample abc_input_polymesh_sample_get_velocities(
-    struct Abc_Input_PolyMesh_Sample *sample)
-{
-    auto ptr = sample->sample.getVelocities();
-
-    auto résultat = Abc_V3f_Array_Sample();
-    if (ptr) {
-        résultat.values = reinterpret_cast<Abc_V3f *>(const_cast<Abc::V3f *>(ptr->get()));
-        résultat.num_values = ptr->size();
-    }
-    else {
-        résultat.values = nullptr;
-        résultat.num_values = 0;
-    }
-    return résultat;
-}
-
-struct Abc_Int32_Array_Sample abc_input_polymesh_sample_get_face_indices(
-    struct Abc_Input_PolyMesh_Sample *sample)
-{
-    auto ptr = sample->sample.getFaceIndices();
-
-    auto résultat = Abc_Int32_Array_Sample();
-    if (ptr) {
-        résultat.values = reinterpret_cast<int32_t *>(const_cast<int *>(ptr->get()));
-        résultat.num_values = ptr->size();
-    }
-    else {
-        résultat.values = nullptr;
-        résultat.num_values = 0;
-    }
-    return résultat;
-}
-
-struct Abc_Int32_Array_Sample abc_input_polymesh_sample_get_face_counts(
-    struct Abc_Input_PolyMesh_Sample *sample)
-{
-    auto ptr = sample->sample.getFaceCounts();
-
-    auto résultat = Abc_Int32_Array_Sample();
-    if (ptr) {
-        résultat.values = reinterpret_cast<int32_t *>(const_cast<int *>(ptr->get()));
-        résultat.num_values = ptr->size();
-    }
-    else {
-        résultat.values = nullptr;
-        résultat.num_values = 0;
-    }
-    return résultat;
-}
+DEFINE_POLYMESH_SAMPLE_ARRAY_GET_FUNCTIONS(DEFINE_INPUT_SAMPLE_ARRAY_GET_FUNCTION)
 
 /** \} */
 
