@@ -706,6 +706,9 @@ struct Abc_Input_PolyMesh_Sample *abc_input_polymesh_get_sample(
 
 void abc_input_polymesh_sample_destroy(struct Abc_Input_PolyMesh_Sample *sample);
 
+void abc_input_polymesh_sample_get_self_bounds(struct Abc_Input_PolyMesh_Sample *polymesh_sample,
+                                               Abc_Box3d *r_box);
+
 #define DEFINE_POLYMESH_SAMPLE_ARRAY_GET_FUNCTIONS(X)                                             \
     X(PolyMesh, polymesh, get_positions, getPositions, Abc_P3f_Array_Sample)                      \
     X(PolyMesh, polymesh, get_velocities, getVelocities, Abc_V3f_Array_Sample)                    \
@@ -730,6 +733,9 @@ struct Abc_Input_SubD_Sample *abc_input_subd_get_sample(struct Abc_Input_SubD *s
                                                         struct Abc_Sample_Selector selector);
 
 void abc_input_subd_sample_destroy(struct Abc_Input_SubD_Sample *sample);
+
+void abc_input_subd_sample_get_self_bounds(struct Abc_Input_SubD_Sample *subd_sample,
+                                           Abc_Box3d *r_box);
 
 #define DEFINE_SUBD_SAMPLE_SCALAR_GET_FUNCTION(X)                                                 \
     X(SubD,                                                                                       \

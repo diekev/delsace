@@ -104,7 +104,42 @@ Abc_Attribute_Type_Descriptor *abc_get_pod_type_descriptors(uint64_t *r_len)
 }
 
 /* ------------------------------------------------------------------------- */
-/** \nom Abc_Output_Camera
+/** \nom Abc_String
+ * \{ */
+
+static std::string vers_std_string(struct Abc_String string)
+{
+    if (string.characters == nullptr) {
+        return "";
+    }
+    return std::string(string.characters, string.size);
+}
+
+static std::string vers_std_string_ou_défaut(struct Abc_String string, std::string_view défaut)
+{
+    if (string.characters == nullptr) {
+        return std::string(défaut.data(), défaut.size());
+    }
+    return std::string(string.characters, string.size);
+}
+
+Abc_String::operator std::string()
+{
+    return vers_std_string(*this);
+}
+
+static void vers_abc_string(Abc_String *result, const std::string &name)
+{
+    if (result) {
+        result->characters = name.c_str();
+        result->size = name.size();
+    }
+}
+
+/** \} */
+
+/* ------------------------------------------------------------------------- */
+/** \nom value_converter
  * \{ */
 
 template <typename Type_IPA>
@@ -138,6 +173,44 @@ struct value_converter<Abc_String> {
     };
 
 ENUMERATE_ABC_ATTRIBUTE_SPECIAL_UNIQUE(DECLARE_VALUE_CONVERTER)
+
+#undef DECLARE_VALUE_CONVERTER
+
+template <typename Type_Abc>
+struct import_value_converter {
+    using Type_IPA = Type_Abc;
+
+    static Type_IPA convert_value(Type_Abc *ptr)
+    {
+        return *ptr;
+    }
+};
+
+template <>
+struct import_value_converter<std::string> {
+    using Type_IPA = Abc_String;
+
+    static Type_IPA convert_value(std::string *ptr)
+    {
+        Abc_String résultat;
+        vers_abc_string(&résultat, *ptr);
+        return résultat;
+    }
+};
+
+#define DECLARE_VALUE_CONVERTER(type_geom, type_abc, type_c, nom_court)                           \
+    template <>                                                                                   \
+    struct import_value_converter<type_abc> {                                                     \
+        using Type_IPA = type_c;                                                                  \
+        static Type_IPA convert_value(type_abc *ptr)                                              \
+        {                                                                                         \
+            return *reinterpret_cast<Type_IPA *>(ptr);                                            \
+        }                                                                                         \
+    };
+
+ENUMERATE_ABC_ATTRIBUTE_SPECIAL_UNIQUE(DECLARE_VALUE_CONVERTER)
+
+#undef DECLARE_VALUE_CONVERTER
 
 /** \} */
 
@@ -277,41 +350,6 @@ void ABC_lis_attributs(ContexteKuri *ctx_kuri,
     AbcKuri::lis_attributs(ctx_kuri, lectrice, convertisseuse, temps);
 }
 }
-
-/* ------------------------------------------------------------------------- */
-/** \nom Abc_String
- * \{ */
-
-static std::string vers_std_string(struct Abc_String string)
-{
-    if (string.characters == nullptr) {
-        return "";
-    }
-    return std::string(string.characters, string.size);
-}
-
-static std::string vers_std_string_ou_défaut(struct Abc_String string, std::string_view défaut)
-{
-    if (string.characters == nullptr) {
-        return std::string(défaut.data(), défaut.size());
-    }
-    return std::string(string.characters, string.size);
-}
-
-Abc_String::operator std::string()
-{
-    return vers_std_string(*this);
-}
-
-static void vers_abc_string(Abc_String *result, const std::string &name)
-{
-    if (result) {
-        result->characters = name.c_str();
-        result->size = name.size();
-    }
-}
-
-/** \} */
 
 /* ------------------------------------------------------------------------- */
 /** \nom Array_Sample
@@ -1201,6 +1239,13 @@ void abc_input_polymesh_sample_destroy(struct Abc_Input_PolyMesh_Sample *sample)
     }
 }
 
+void abc_input_polymesh_sample_get_self_bounds(struct Abc_Input_PolyMesh_Sample *polymesh_sample,
+                                               Abc_Box3d *r_box)
+{
+    auto résultat = polymesh_sample->sample.getSelfBounds();
+    *r_box = import_value_converter<Abc::Box3d>::convert_value(&résultat);
+}
+
 DEFINE_POLYMESH_SAMPLE_ARRAY_GET_FUNCTIONS(DEFINE_INPUT_SAMPLE_ARRAY_GET_FUNCTION)
 
 /** \} */
@@ -1242,6 +1287,13 @@ void abc_input_subd_sample_destroy(struct Abc_Input_SubD_Sample *sample)
     }
 }
 
+void abc_input_subd_sample_get_self_bounds(struct Abc_Input_SubD_Sample *subd_sample,
+                                           Abc_Box3d *r_box)
+{
+    auto résultat = subd_sample->sample.getSelfBounds();
+    *r_box = import_value_converter<Abc::Box3d>::convert_value(&résultat);
+}
+
 DEFINE_SUBD_SAMPLE_SCALAR_GET_FUNCTION(DEFINE_INPUT_SAMPLE_SCALAR_GET_FUNCTION)
 DEFINE_SUBD_SAMPLE_ARRAY_GET_FUNCTIONS(DEFINE_INPUT_SAMPLE_ARRAY_GET_FUNCTION)
 
@@ -1253,7 +1305,6 @@ Abc_String abc_input_subd_sample_get_subdivision_scheme(struct Abc_Input_SubD_Sa
     vers_abc_string(&résultat, subd_sample->subdivision_scheme);
     return résultat;
 }
-
 /** \} */
 
 /* ------------------------------------------------------------------------- */
