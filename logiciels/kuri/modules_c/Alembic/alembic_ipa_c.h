@@ -682,6 +682,14 @@ void abc_input_archive_get_start_and_end_time(struct Abc_Input_Archive *archive,
 
 /** \} */
 
+#define DECLARE_INPUT_SAMPLE_SCALAR_GET_FUNCTION(uname, lname, snake_name, method, sample_type)   \
+    sample_type abc_input_##lname##_sample_##snake_name(                                          \
+        struct Abc_Input_##uname##_Sample *lname##_sample);
+
+#define DECLARE_INPUT_SAMPLE_ARRAY_GET_FUNCTION(uname, lname, snake_name, method, sample_type)    \
+    struct sample_type abc_input_##lname##_sample_##snake_name(                                   \
+        struct Abc_Input_##uname##_Sample *lname##_sample);
+
 /* ------------------------------------------------------------------------- */
 /** \nom Abc_Input_PolyMesh_Sample
  * \{ */
@@ -709,6 +717,47 @@ struct Abc_Int32_Array_Sample abc_input_polymesh_sample_get_face_indices(
 
 struct Abc_Int32_Array_Sample abc_input_polymesh_sample_get_face_counts(
     struct Abc_Input_PolyMesh_Sample *sample);
+
+/** \} */
+
+/* ------------------------------------------------------------------------- */
+/** \nom Abc_Input_SubD_Sample
+ * \{ */
+
+struct Abc_Time_Sampling *abc_input_subd_get_time_sampling(struct Abc_Input_SubD *subd);
+
+uint64_t abc_input_subd_get_num_samples(struct Abc_Input_SubD *subd);
+
+struct Abc_Input_SubD_Sample;
+
+struct Abc_Input_SubD_Sample *abc_input_subd_get_sample(struct Abc_Input_SubD *subd,
+                                                        struct Abc_Sample_Selector selector);
+
+void abc_input_subd_sample_destroy(struct Abc_Input_SubD_Sample *sample);
+
+#define DEFINE_SUBD_SAMPLE_SCALAR_GET_FUNCTION(X)                                                 \
+    X(SubD,                                                                                       \
+      subd,                                                                                       \
+      get_face_varying_interpolate_boundary,                                                      \
+      getFaceVaryingInterpolateBoundary,                                                          \
+      int32_t)                                                                                    \
+    X(SubD, subd, get_face_varying_propagate_corners, getFaceVaryingPropagateCorners, int32_t)    \
+    X(SubD, subd, get_interpolate_boundary, getInterpolateBoundary, int32_t)
+
+#define DEFINE_SUBD_SAMPLE_ARRAY_GET_FUNCTIONS(X)                                                 \
+    X(SubD, subd, get_positions, getPositions, Abc_P3f_Array_Sample)                              \
+    X(SubD, subd, get_velocities, getVelocities, Abc_V3f_Array_Sample)                            \
+    X(SubD, subd, get_face_indices, getFaceIndices, Abc_Int32_Array_Sample)                       \
+    X(SubD, subd, get_face_counts, getFaceCounts, Abc_Int32_Array_Sample)                         \
+    X(SubD, subd, get_crease_indices, getCreaseIndices, Abc_Int32_Array_Sample)                   \
+    X(SubD, subd, get_crease_lengths, getCreaseLengths, Abc_Int32_Array_Sample)                   \
+    X(SubD, subd, get_crease_sharpnesses, getCreaseSharpnesses, Abc_Float_Array_Sample)           \
+    X(SubD, subd, get_corner_indices, getCornerIndices, Abc_Int32_Array_Sample)                   \
+    X(SubD, subd, get_corner_sharpnesses, getCornerSharpnesses, Abc_Float_Array_Sample)           \
+    X(SubD, subd, get_holes, getHoles, Abc_Int32_Array_Sample)
+
+DEFINE_SUBD_SAMPLE_ARRAY_GET_FUNCTIONS(DECLARE_INPUT_SAMPLE_ARRAY_GET_FUNCTION)
+DEFINE_SUBD_SAMPLE_SCALAR_GET_FUNCTION(DECLARE_INPUT_SAMPLE_SCALAR_GET_FUNCTION)
 
 /** \} */
 

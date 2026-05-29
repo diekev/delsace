@@ -378,6 +378,62 @@ ENUMERATE_ABC_ATTRIBUTE_TYPES(MAKE_TYPED_SAMPLE_FROM_ARRAY_SAMPLE)
 
 #undef MAKE_TYPED_SAMPLE_FROM_ARRAY_SAMPLE
 
+static Abc_P3f_Array_Sample get_input_array_sample(const Abc::P3fArraySamplePtr &ptr)
+{
+    auto résultat = Abc_P3f_Array_Sample();
+    if (ptr) {
+        résultat.values = reinterpret_cast<Abc_V3f *>(const_cast<Abc::V3f *>(ptr->get()));
+        résultat.num_values = ptr->size();
+    }
+    else {
+        résultat.values = nullptr;
+        résultat.num_values = 0;
+    }
+    return résultat;
+}
+
+static Abc_V3f_Array_Sample get_input_array_sample(const Abc::V3fArraySamplePtr &ptr)
+{
+    auto résultat = Abc_V3f_Array_Sample();
+    if (ptr) {
+        résultat.values = reinterpret_cast<Abc_V3f *>(const_cast<Abc::V3f *>(ptr->get()));
+        résultat.num_values = ptr->size();
+    }
+    else {
+        résultat.values = nullptr;
+        résultat.num_values = 0;
+    }
+    return résultat;
+}
+
+static Abc_Int32_Array_Sample get_input_array_sample(const Abc::Int32ArraySamplePtr &ptr)
+{
+    auto résultat = Abc_Int32_Array_Sample();
+    if (ptr) {
+        résultat.values = reinterpret_cast<int32_t *>(const_cast<int *>(ptr->get()));
+        résultat.num_values = ptr->size();
+    }
+    else {
+        résultat.values = nullptr;
+        résultat.num_values = 0;
+    }
+    return résultat;
+}
+
+static Abc_Float_Array_Sample get_input_array_sample(const Abc::FloatArraySamplePtr &ptr)
+{
+    auto résultat = Abc_Float_Array_Sample();
+    if (ptr) {
+        résultat.values = reinterpret_cast<float *>(const_cast<float *>(ptr->get()));
+        résultat.num_values = ptr->size();
+    }
+    else {
+        résultat.values = nullptr;
+        résultat.num_values = 0;
+    }
+    return résultat;
+}
+
 /** \} */
 
 /* ------------------------------------------------------------------------- */
@@ -1093,6 +1149,21 @@ ENUMERATE_INPUT_OBJECT_TYPES(DECLARE_TYPED_INPUT_OBJECTS)
 
 /** \} */
 
+#define DEFINE_INPUT_SAMPLE_SCALAR_GET_FUNCTION(uname, lname, snake_name, method, sample_type)    \
+    sample_type abc_input_##lname##_sample_##snake_name(                                          \
+        struct Abc_Input_##uname##_Sample *lname##_sample)                                        \
+    {                                                                                             \
+        return lname##_sample->sample.method();                                                   \
+    }
+
+#define DEFINE_INPUT_SAMPLE_ARRAY_GET_FUNCTION(uname, lname, snake_name, method, sample_type)     \
+    sample_type abc_input_##lname##_sample_##snake_name(                                          \
+        struct Abc_Input_##uname##_Sample *lname##_sample)                                        \
+    {                                                                                             \
+        auto ptr = lname##_sample->sample.method();                                               \
+        return get_input_array_sample(ptr);                                                       \
+    }
+
 /* ------------------------------------------------------------------------- */
 /** \nom Abc_Input_PolyMesh_Sample
  * \{ */
@@ -1193,6 +1264,47 @@ struct Abc_Int32_Array_Sample abc_input_polymesh_sample_get_face_counts(
     }
     return résultat;
 }
+
+/** \} */
+
+/* ------------------------------------------------------------------------- */
+/** \nom Abc_Input_SubD_Sample
+ * \{ */
+
+struct Abc_Time_Sampling *abc_input_subd_get_time_sampling(struct Abc_Input_SubD *subd)
+{
+    return make_time_sampling(subd->archive, subd->typed_object.getSchema().getTimeSampling());
+}
+
+uint64_t abc_input_subd_get_num_samples(struct Abc_Input_SubD *subd)
+{
+    auto résultat = subd->typed_object.getSchema().getNumSamples();
+    return résultat;
+}
+
+struct Abc_Input_SubD_Sample {
+    Abc_Input_Archive *archive = nullptr;
+    AbcGeom::ISubDSchema::Sample sample{};
+};
+
+struct Abc_Input_SubD_Sample *abc_input_subd_get_sample(struct Abc_Input_SubD *subd,
+                                                        struct Abc_Sample_Selector selector)
+{
+    auto résultat = kuri_loge<Abc_Input_SubD_Sample>(subd->archive->ctx_kuri);
+    résultat->archive = subd->archive;
+    subd->typed_object.getSchema().get(résultat->sample, get_sample_selector(selector));
+    return résultat;
+}
+
+void abc_input_subd_sample_destroy(struct Abc_Input_SubD_Sample *sample)
+{
+    if (sample) {
+        kuri_deloge(sample->archive->ctx_kuri, sample);
+    }
+}
+
+DEFINE_SUBD_SAMPLE_SCALAR_GET_FUNCTION(DEFINE_INPUT_SAMPLE_SCALAR_GET_FUNCTION)
+DEFINE_SUBD_SAMPLE_ARRAY_GET_FUNCTIONS(DEFINE_INPUT_SAMPLE_ARRAY_GET_FUNCTION)
 
 /** \} */
 
