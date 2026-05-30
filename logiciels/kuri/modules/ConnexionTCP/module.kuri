@@ -181,9 +181,9 @@ dispatch_évènement :: fonc (prise: *Prise, évènements: EPOLL_EVENTS, erreurs
 
     discr prise.type {
         RAPPEL {
-            ptr_rappel := prise.données_utilisateur(fonc (ctx: *Contexte));
-            rappel := mémoire(ptr_rappel);
-            rappel(prise.contexte_);
+            ptr_fonction := prise.données_utilisateur(*Fonction_De_Rappel);
+            fonction := mémoire(ptr_fonction);
+            fonction.fonction(fonction, prise.contexte_);
 
             /* Il faut lire le fichier pour dire au système que nous avons pris en compte l'évènement. */
             vide_données_lecture(prise);
