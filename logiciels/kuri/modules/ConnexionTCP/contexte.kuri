@@ -201,7 +201,7 @@ crée_prise_pour_rappel :: fonc (ctx: *Contexte, fd: z32, rappel: *Fonction_De_R
 #portée_export
 
 /* Crée une prise pour être notifié par des évènements.
- * Pour être notifié, il faut d'abord écrire dans la prise.
+ * Pour être notifié, il faut d'abord écrire dans la prise ou appeler #notifie_nouvel_évènement.
  */
 crée_prise_évènements :: fonc (ctx: *Contexte, rappel: *Fonction_De_Rappel) -> *Prise
 {

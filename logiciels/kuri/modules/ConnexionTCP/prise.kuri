@@ -174,3 +174,17 @@ vide_données_lecture :: fonc (prise: *Prise)
 
     retourne taille_chaine(enchaineuse) comme z32;
 }
+
+notifie_nouvel_évènement :: fonc (prise: *Prise)
+{
+    assert(prise.type == TypePrise.RAPPEL);
+
+    valeur: n64 = 1;
+
+    // À FAIRE : utilise des tranches d'octets pour #écris
+    chn_valeur: chaine = ---;
+    chn_valeur.pointeur = *valeur comme *z8;
+    chn_valeur.taille = 8;
+
+    écris(prise, chn_valeur);
+}
