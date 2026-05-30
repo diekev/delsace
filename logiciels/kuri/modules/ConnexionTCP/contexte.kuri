@@ -200,6 +200,25 @@ crée_prise_pour_rappel :: fonc (ctx: *Contexte, fd: z32, rappel: *Fonction_De_R
 
 #portée_export
 
+/* Crée une prise pour être notifié par des évènements.
+ * Pour être notifié, il faut d'abord écrire dans la prise.
+ */
+crée_prise_évènements :: fonc (ctx: *Contexte, rappel: *Fonction_De_Rappel) -> *Prise
+{
+    saufsi ctx {
+        retourne nul;
+    }
+
+    fd := eventfd(0, 0);
+    si fd == -1 {
+        imprimeln("[%] impossible de créer un descripteur pour eventfd", #nom_de_cette_fonction);
+        retourne nul;
+    }
+
+    résultat := crée_prise_pour_rappel(ctx, fd, rappel);
+    retourne résultat;
+}
+
 crée_prise_impl :: fonc (contexte_: *Contexte, fichier: Fichier, info_données_externes: *InfoType, $TypePrise: type_de_données) -> *Prise
 {
     taille_à_loger := (taille_de(TypePrise) + info_données_externes.taille_en_octet) comme z64;
