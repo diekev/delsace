@@ -120,7 +120,13 @@ crée_prise_pour_écoute :: fonc (contexte_: *Contexte, adresse_ip: AdresseIPv4,
     retourne prise;
 }
 
-crée_prise_connexion :: fonc (contexte_: *Contexte, uri: *URI, $TypeDonnées: type_de_données) -> *Prise
+crée_prise_connexion :: fonc (contexte_: *Contexte, uri: *URI, $Type_Données: type_de_données) -> *Prise
+{
+    port := port_pour_uri(uri);
+    retourne crée_prise_connexion(contexte_, uri.hôte, port, Type_Données);
+}
+
+crée_prise_connexion :: fonc (contexte_: *Contexte, hôte: chaine, port: n16, $Type_Données: type_de_données) -> *Prise
 {
     saufsi contexte_ {
         retourne nul;
@@ -128,14 +134,12 @@ crée_prise_connexion :: fonc (contexte_: *Contexte, uri: *URI, $TypeDonnées: t
 
     // imprime("crée_prise_connexion\n")
 
-    port := port_pour_uri(uri);
-
-    fichier := tente ouvre_connexion_serveur(uri.hôte, port, vrai) piège _ {
+    fichier := tente ouvre_connexion_serveur(hôte, port, vrai) piège _ {
         // imprime("erreur lors de l'ouverture d'une connexion: %\n", err)
         retourne nul;
     };
 
-    prise := crée_prise_interne(contexte_, fichier, info_de(TypeDonnées));
+    prise := crée_prise_interne(contexte_, fichier, info_de(Type_Données));
     prise.type = TypePrise.SEMI_PRISE;
 
     si !ajoute_prise(contexte_.boucle_prises, prise, EPOLL_EVENTS.EPOLLOUT) {
