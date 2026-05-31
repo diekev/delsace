@@ -186,5 +186,5 @@ notifie_nouvel_évènement :: fonc (prise: *Prise)
     chn_valeur.pointeur = *valeur comme *z8;
     chn_valeur.taille = 8;
 
-    écris(prise, chn_valeur);
+    _ := écris(prise, chn_valeur);
 }
