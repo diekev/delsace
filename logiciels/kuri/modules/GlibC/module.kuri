@@ -153,6 +153,15 @@ EFD_NONBLOCK :: 0o0004000;
 
 eventfd :: fonc (initval: n32, flags: z32) -> z32 #externe libc;
 
+/* Type for event counter.  */
+eventfd_t :: n64;
+
+/* Read event counter and possibly wait for events.  */
+eventfd_read :: fonc (__fd: z32, __value: *eventfd_t) -> z32 #externe libc;
+
+/* Increment event counter.  */
+eventfd_write :: fonc (__fd: z32, __value: eventfd_t) -> z32 #externe libc;
+
 /** \} */
 
 /* ------------------------------------------------------------------------- */
