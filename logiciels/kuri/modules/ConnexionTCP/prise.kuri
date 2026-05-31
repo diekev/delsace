@@ -178,13 +178,14 @@ vide_données_lecture :: fonc (prise: *Prise)
 notifie_nouvel_évènement :: fonc (prise: *Prise)
 {
     assert(prise.type == TypePrise.RAPPEL);
-
     valeur: n64 = 1;
+    _ := eventfd_write(prise.fichier.desc, valeur);
+}
 
-    // À FAIRE : utilise des tranches d'octets pour #écris
-    chn_valeur: chaine = ---;
-    chn_valeur.pointeur = *valeur comme *z8;
-    chn_valeur.taille = 8;
-
-    _ := écris(prise, chn_valeur);
+lis_nombre_évènements :: fonc (prise: *Prise) -> (succès: bool, compte: n64)
+{
+    assert(prise.type == TypePrise.RAPPEL);
+    value: n64;
+    résultat := eventfd_read(prise.fichier.desc, *value);
+    retourne résultat == 0, value;
 }
