@@ -215,7 +215,7 @@ dispatch_évènement :: fonc (prise: *Prise, évènements: EPOLL_EVENTS, erreurs
             fonction.fonction(fonction, prise.contexte_);
 
             /* Il faut lire le fichier pour dire au système que nous avons pris en compte l'évènement. */
-            vide_données_lecture(prise);
+            // vide_données_lecture(prise);
         }
         SEMI_PRISE {
             si évènements.EPOLLOUT {
