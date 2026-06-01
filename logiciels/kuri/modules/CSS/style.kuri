@@ -719,7 +719,7 @@ sont_mêmes_valeurs :: fonc (a: *ValeurDeStyle, b: *ValeurDeStyle) -> bool
 
 donne_line_style :: fonc (valeur: *ValeurDeStyle) -> LineStyle
 {
-    assert(valeur.type == TypeValeurDeStyle.MotClé);
+    assert_égalité(valeur.type, TypeValeurDeStyle.MotClé);
 
     si valeur.est_mot_clé(PROP_none) {
         retourne LineStyle.None;
@@ -762,7 +762,7 @@ donne_text_decoration_line :: fonc (valeur: *ValeurDeStyle) -> TextDecorationLin
         retourne donne_text_decoration_line_pour_mot_clé(valeur.donne_mot_clé());
     }
 
-    assert(valeur.type == TypeValeurDeStyle.Liste);
+    assert_égalité(valeur.type, TypeValeurDeStyle.Liste);
     liste := valeur.donne_liste();
     résultat: TextDecorationLine;
     pour liste {
@@ -773,73 +773,73 @@ donne_text_decoration_line :: fonc (valeur: *ValeurDeStyle) -> TextDecorationLin
 
 donne_cursor_type :: fonc (valeur: *ValeurDeStyle) -> CursorType
 {
-    assert(valeur.type == TypeValeurDeStyle.MotClé);
+    assert_égalité(valeur.type, TypeValeurDeStyle.MotClé);
     retourne donne_type_cursor(valeur.donne_mot_clé());
 }
 
 donne_mot_clé :: fonc (valeur: *ValeurDeStyle) -> CSSOMString
 {
-    assert(valeur.type == TypeValeurDeStyle.MotClé);
+    assert_égalité(valeur.type, TypeValeurDeStyle.MotClé);
     retourne (valeur comme *ValeurMotClé).valeur;
 }
 
 donne_liste :: fonc (valeur: *ValeurDeStyle) -> []*ValeurDeStyle
 {
-    assert(valeur.type == TypeValeurDeStyle.Liste);
+    assert_égalité(valeur.type, TypeValeurDeStyle.Liste);
     retourne (valeur comme *ValeurListe).valeur;
 }
 
 donne_url :: fonc (valeur: *ValeurDeStyle) -> CSSOMString
 {
-    assert(valeur.type == TypeValeurDeStyle.URL);
+    assert_égalité(valeur.type, TypeValeurDeStyle.URL);
     retourne (valeur comme *ValeurURL).valeur;
 }
 
 donne_url_absolu :: fonc (valeur: *ValeurDeStyle) -> chaine
 {
-    assert(valeur.type == TypeValeurDeStyle.URLAbsolu);
+    assert_égalité(valeur.type, TypeValeurDeStyle.URLAbsolu);
     retourne (valeur comme *ValeurURLAbsolu).valeur;
 }
 
 donne_string :: fonc (valeur: *ValeurDeStyle) -> CSSOMString
 {
-    assert(valeur.type == TypeValeurDeStyle.String);
+    assert_égalité(valeur.type, TypeValeurDeStyle.String);
     retourne (valeur comme *ValeurString).valeur;
 }
 
 donne_couleur :: fonc (valeur: *ValeurDeStyle) -> CouleurRVBAN8
 {
-    assert(valeur.type == TypeValeurDeStyle.Couleur);
+    assert_égalité(valeur.type, TypeValeurDeStyle.Couleur);
     retourne (valeur comme *ValeurCouleur).valeur;
 }
 
 donne_integer :: fonc (valeur: *ValeurDeStyle) -> r64
 {
-    assert(valeur.type == TypeValeurDeStyle.Integer);
+    assert_égalité(valeur.type, TypeValeurDeStyle.Integer);
     retourne (valeur comme *ValeurInteger).valeur;
 }
 
 donne_number :: fonc (valeur: *ValeurDeStyle) -> r64
 {
-    assert(valeur.type == TypeValeurDeStyle.Number);
+    assert_égalité(valeur.type, TypeValeurDeStyle.Number);
     retourne (valeur comme *ValeurNumber).valeur;
 }
 
 donne_percentage :: fonc (valeur: *ValeurDeStyle) -> r64
 {
-    assert(valeur.type == TypeValeurDeStyle.Percentage);
+    assert_égalité(valeur.type, TypeValeurDeStyle.Percentage);
     retourne (valeur comme *ValeurPercentage).valeur;
 }
 
 donne_longueur :: fonc (valeur: *ValeurDeStyle) -> Longueur
 {
-    assert(valeur.type == TypeValeurDeStyle.Longueur);
+    assert_égalité(valeur.type, TypeValeurDeStyle.Longueur);
     retourne (valeur comme *ValeurLongueur).valeur;
 }
 
 donne_pixels :: fonc (valeur: *ValeurDeStyle) -> r64
 {
-    assert(valeur.type == TypeValeurDeStyle.Pixels);
+    assert_égalité(valeur.type, TypeValeurDeStyle.Pixels);
     retourne (valeur comme *ValeurPixels).valeur;
 }
 
@@ -853,19 +853,19 @@ donne_pixels_ou_zéro_si_auto :: fonc (valeur: *ValeurDeStyle) -> r64
 
 donne_variable :: fonc (valeur: *ValeurDeStyle) -> Variable
 {
-    assert(valeur.type == TypeValeurDeStyle.Variable);
+    assert_égalité(valeur.type, TypeValeurDeStyle.Variable);
     retourne (valeur comme *ValeurVariable).valeur;
 }
 
 donne_calc :: fonc (valeur: *ValeurDeStyle) -> CalcFunction
 {
-    assert(valeur.type == TypeValeurDeStyle.Calc);
+    assert_égalité(valeur.type, TypeValeurDeStyle.Calc);
     retourne (valeur comme *ValeurCalc).valeur;
 }
 
 donne_display :: fonc (valeur: *ValeurDeStyle) -> Display
 {
-    assert(valeur.type == TypeValeurDeStyle.Display);
+    assert_égalité(valeur.type, TypeValeurDeStyle.Display);
     retourne (valeur comme *ValeurDisplay).valeur;
 }
 
@@ -878,19 +878,19 @@ donne_background_repeat :: fonc (valeur: *ValeurDeStyle) -> BackgroundRepeat
         b.vertical = PROP_repeat;
         retourne b;
     }
-    assert(valeur.type == TypeValeurDeStyle.BackgroundRepeat);
+    assert_égalité(valeur.type, TypeValeurDeStyle.BackgroundRepeat);
     retourne (valeur comme *ValeurBackgroundRepeat).valeur;
 }
 
 donne_background_position :: fonc (valeur: *ValeurDeStyle) -> BackgroundPosition
 {
-    assert(valeur.type == TypeValeurDeStyle.BackgroundPosition);
+    assert_égalité(valeur.type, TypeValeurDeStyle.BackgroundPosition);
     retourne (valeur comme *ValeurBackgroundPosition).valeur;
 }
 
 donne_background_size :: fonc (valeur: *ValeurDeStyle) -> BackgroundSize
 {
-    assert(valeur.type == TypeValeurDeStyle.BackgroundSize);
+    assert_égalité(valeur.type, TypeValeurDeStyle.BackgroundSize);
     retourne (valeur comme *ValeurBackgroundSize).valeur;
 }
 
