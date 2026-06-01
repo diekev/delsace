@@ -120,7 +120,13 @@ crée_prise_pour_écoute :: fonc (contexte_: *Contexte, adresse_ip: AdresseIPv4,
     retourne prise;
 }
 
-crée_prise_connexion :: fonc (contexte_: *Contexte, uri: *URI, $TypeDonnées: type_de_données) -> *Prise
+crée_prise_connexion :: fonc (contexte_: *Contexte, uri: *URI, $Type_Données: type_de_données) -> *Prise
+{
+    port := port_pour_uri(uri);
+    retourne crée_prise_connexion(contexte_, uri.hôte, port, Type_Données);
+}
+
+crée_prise_connexion :: fonc (contexte_: *Contexte, hôte: chaine, port: n16, $Type_Données: type_de_données) -> *Prise
 {
     saufsi contexte_ {
         retourne nul;
@@ -128,14 +134,12 @@ crée_prise_connexion :: fonc (contexte_: *Contexte, uri: *URI, $TypeDonnées: t
 
     // imprime("crée_prise_connexion\n")
 
-    port := port_pour_uri(uri);
-
-    fichier := tente ouvre_connexion_serveur(uri.hôte, port, vrai) piège _ {
+    fichier := tente ouvre_connexion_serveur(hôte, port, vrai) piège _ {
         // imprime("erreur lors de l'ouverture d'une connexion: %\n", err)
         retourne nul;
     };
 
-    prise := crée_prise_interne(contexte_, fichier, info_de(TypeDonnées));
+    prise := crée_prise_interne(contexte_, fichier, info_de(Type_Données));
     prise.type = TypePrise.SEMI_PRISE;
 
     si !ajoute_prise(contexte_.boucle_prises, prise, EPOLL_EVENTS.EPOLLOUT) {
@@ -146,7 +150,14 @@ crée_prise_connexion :: fonc (contexte_: *Contexte, uri: *URI, $TypeDonnées: t
     retourne prise;
 }
 
-crée_chronomètre :: fonc (ctx: *Contexte, interval: z32, commence_dans: z32, rappel: fonc (ctx: *Contexte)) -> *Prise
+Fonction_De_Rappel :: struct {
+    fonction: fonc (fonction: *Fonction_De_Rappel, ctx: *Contexte);
+}
+
+/* Crée un chronomètre dans le ctx passé.
+ * La Fonction_De_Rappel doit être valide pour toute la durée du chronomètre.
+ */
+crée_chronomètre :: fonc (ctx: *Contexte, interval: z32, commence_dans: z32, rappel: *Fonction_De_Rappel) -> *Prise
 {
     saufsi ctx {
         retourne nul;
@@ -168,10 +179,18 @@ crée_chronomètre :: fonc (ctx: *Contexte, interval: z32, commence_dans: z32, r
         retourne nul;
     }
 
+    résultat := crée_prise_pour_rappel(ctx, fd, rappel);
+    retourne résultat;
+}
+
+#portée_fichier
+
+crée_prise_pour_rappel :: fonc (ctx: *Contexte, fd: z32, rappel: *Fonction_De_Rappel) -> *Prise
+{
     fichier := Fichier(TypePoignéeFichier(fd));
-    prise := crée_prise_interne(ctx, fichier, info_de(fonc (ctx: *Contexte)));
+    prise := crée_prise_interne(ctx, fichier, info_de(*Fonction_De_Rappel));
     prise.type = TypePrise.RAPPEL;
-    ptr_fonc := prise.données_utilisateur(fonc (ctx: *Contexte));
+    ptr_fonc := prise.données_utilisateur(*Fonction_De_Rappel);
     mémoire(ptr_fonc) = rappel;
 
     si !ajoute_prise(ctx.boucle_prises, prise, EPOLL_EVENTS.EPOLLIN) {
@@ -181,6 +200,27 @@ crée_chronomètre :: fonc (ctx: *Contexte, interval: z32, commence_dans: z32, r
     }
 
     retourne prise;
+}
+
+#portée_export
+
+/* Crée une prise pour être notifié par des évènements.
+ * Pour être notifié, il faut d'abord écrire dans la prise ou appeler #notifie_nouvel_évènement.
+ */
+crée_prise_évènements :: fonc (ctx: *Contexte, rappel: *Fonction_De_Rappel) -> *Prise
+{
+    saufsi ctx {
+        retourne nul;
+    }
+
+    fd := eventfd(0, 0);
+    si fd == -1 {
+        imprimeln("[%] impossible de créer un descripteur pour eventfd", #nom_de_cette_fonction);
+        retourne nul;
+    }
+
+    résultat := crée_prise_pour_rappel(ctx, fd, rappel);
+    retourne résultat;
 }
 
 crée_prise_impl :: fonc (contexte_: *Contexte, fichier: Fichier, info_données_externes: *InfoType, $TypePrise: type_de_données) -> *Prise
