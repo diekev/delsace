@@ -237,3 +237,6 @@ SSL_FILETYPE_ASN1 :: X509_FILETYPE_ASN1;
 
 ERR_print_errors_cb :: fonc (cb : fonc (chn: ChaineC, arg1: n64, arg2: *rien) -> z32, u : *rien) -> rien #externe libssl;
 ERR_clear_error :: fonc () #externe libssl;
+ERR_get_error :: fonc () -> n64 #externe libssl;
+
+ERR_error_string :: fonc (code: n64, tampon: *z8) -> *z8 #externe libssl;
