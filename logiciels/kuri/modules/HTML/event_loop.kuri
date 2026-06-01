@@ -323,7 +323,7 @@ donne_queue_pour_source :: fonc (event_loop: *Event_Loop, source: Task_Source) -
  * \{ */
 
 /* https://html.spec.whatwg.org/multipage/webappapis.html#queue-a-task */
-queue_a_task :: fonc (source: Task_Source, steps: *Algorithm, event_loop : *Event_Loop = nul, document : *Document = nul)
+queue_a_task :: fonc (user_agent: *UserAgent @inutilisée, source: Task_Source, steps: *Algorithm, event_loop : *Event_Loop = nul, document : *Document = nul)
 {
     // 1. If event loop was not given, set event loop to the implied event loop.
     si event_loop == nul {
@@ -376,7 +376,7 @@ queue_a_global_task :: fonc (user_agent: *UserAgent, source: Task_Source, global
     }
 
     // 3. Queue a task given source, event loop, document, and steps.
-    queue_a_task(source, steps, event_loop, document);
+    queue_a_task(user_agent, source, steps, event_loop, document);
 }
 
 /* https://html.spec.whatwg.org/multipage/webappapis.html#queue-an-element-task */
