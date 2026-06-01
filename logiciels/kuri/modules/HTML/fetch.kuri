@@ -463,6 +463,17 @@ ajoute_entête_si_inexistante :: fonc (request: *Request, nom: chaine, valeur: c
     }
 }
 
+fusionne_entête :: fonc (request: *Request, nom: chaine, valeur: chaine)
+{
+    pour * request.header_list {
+        si compare_ascii_insensible_à_la_casse(it.name, nom) {
+            it.value = valeur;
+            retourne;
+        }
+    }
+    ajoute_entête(request, nom, valeur);
+}
+
 /* https://fetch.spec.whatwg.org/#subresource-request */
 is_subressource :: fonc (request: *Request) -> bool
 {
@@ -1924,7 +1935,8 @@ http_network_or_cache_fetch :: fonc (user_agent: *UserAgent, fetch_params: *Fetc
         sinon {
             chaine_host = copie_chaine(uri.host.Quelque); // @FuiteDeMémoire
         }
-        ajoute_entête_si_inexistante(request, "Host", chaine_host);
+        /* Ajourne l'hôte si nous avons une redirection. */
+        fusionne_entête(request, "Host", chaine_host);
     }
 
     ajoute_entête_si_inexistante(request, "Accept-Encoding", "identity");

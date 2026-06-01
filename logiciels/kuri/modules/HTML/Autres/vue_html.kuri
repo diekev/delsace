@@ -1,6 +1,7 @@
 importe BoiteFlexible;
 importe Chaine;
 importe CodecDonnées;
+importe ConnexionTCP;
 importe Couleur;
 importe CréationFenêtre;
 importe ÉditionTexte;
@@ -13,9 +14,10 @@ importe InfosInterface;
 importe LigneDeCommande;
 importe Math;
 importe OpenGL;
+importe OpenSSL;
+importe PThread;
 importe PeintureInterface;
 importe Périphériques;
-importe Qt;
 importe SysFichier;
 importe Temps;
 importe Typographie;
@@ -76,6 +78,7 @@ principale :: fonc ()
         }
 
         process_event_loops(*vue_html);
+        évalue_chronomètres(*rappels_user_agent);
 
         si vue_html.page_web.navigable {
             document := donne_document(*vue_html.page_web);
@@ -100,6 +103,8 @@ principale :: fonc ()
         }
 
         vue_html.page_est_survolée = faux;
+
+        rends_contexte_gl_actif(fenêtre);
 
         dessine_fenêtre(*vue_html, largeur, hauteur);
 
@@ -728,36 +733,292 @@ guetteuse_édition_texte_sur_destruction :: fonc (guetteuse: *GuetteuseÉditionT
 /** \} */
 
 /* ------------------------------------------------------------------------- */
+/** \nom Boucle d'évènements
+ * \{ */
+
+Boucle_Évènement_VueHTML :: struct {
+    boucle_: *Boucle;
+    ctx_http: *Contexte;
+    ctx_https: *Contexte;
+}
+
+crée_boucle_évènement :: fonc () -> *Boucle_Évènement_VueHTML
+{
+    résultat := loge(Boucle_Évènement_VueHTML);
+    résultat.boucle_ = crée_boucle();
+    résultat.ctx_http = crée_contexte_vide(résultat.boucle_, z32);
+    initialise_contexte_boucle(résultat.ctx_http);
+    options_ssl := OptionsCréationContexteSSL();
+    résultat.ctx_https = crée_contexte_vide(résultat.boucle_, *options_ssl, z32);
+    initialise_contexte_boucle(résultat.ctx_https);
+    retourne résultat;
+}
+
+initialise_contexte_boucle :: fonc (ctx: *Contexte)
+{
+    ctx.mute_quand_ouverture(rappel_quand_ouverture_prise);
+    ctx.mute_quand_données_reçues(rappel_quand_données_reçues_prise);
+    ctx.mute_quand_fermeture(rappel_quand_fermeture_prise);
+    ctx.mute_quand_écriture(rappel_quand_écriture_prise);
+    ctx.mute_quand_erreur_connexion(rappel_quand_erreur_connexion_prise);
+}
+
+détruit_boucle_évènement :: fonc (boucle_: *Boucle_Évènement_VueHTML)
+{
+    détruit_boucle(boucle_.boucle_);
+    détruit_contexte(boucle_.ctx_http);
+    détruit_contexte(boucle_.ctx_https);
+    déloge(boucle_);
+}
+
+Fonction_Vidange_File_Parallèle :: struct {
+    empl base: Fonction_De_Rappel;
+    fonction = sur_vidange_file_parallèle;
+
+    file: *File_Parallèle_VueHTML;
+}
+
+sur_vidange_file_parallèle :: fonc (base: *Fonction_De_Rappel, ctx: *Contexte @inutilisée)
+{
+    fonction := base comme *Fonction_Vidange_File_Parallèle;
+    file := fonction.file;
+
+    algorithmes := donne_algorithmes_et_réinitialise_tableau(file);
+    diffère déloge(*algorithmes);
+
+    pour algorithmes {
+        run(it);
+    }
+
+    si algorithmes.taille != 0 {
+        vide_données_lecture(file.prise_évènements);
+    }
+}
+
+File_Parallèle_VueHTML :: struct {
+    thread: pthread_t;
+    boucle_évènement: *Boucle_Évènement_VueHTML;
+    prise_évènements: *Prise;
+    mutex_algorithmes: pthread_mutex_t;
+    algorithmes: [..]*Algorithm;
+    fonction_de_rappel: Fonction_Vidange_File_Parallèle;
+}
+
+crée_file_parallèle :: fonc () -> *File_Parallèle_VueHTML
+{
+    résultat := loge(File_Parallèle_VueHTML);
+    initialise_file_parallèle(résultat);
+
+    enveloppe_lance_file :: fonc (arg: *rien) -> *rien #sanstrace
+    {
+        __init_contexte_fil_exécution();
+        file := arg comme *File_Parallèle_VueHTML;
+        lance_file_parallèle(file);
+        retourne nul;
+    }
+
+    _ := pthread_create(*résultat.thread, nul, enveloppe_lance_file, résultat);
+
+    retourne résultat;
+}
+
+donne_algorithmes_et_réinitialise_tableau :: fonc (file: *File_Parallèle_VueHTML) -> [..]*Algorithm
+{
+    _ := pthread_mutex_lock(*file.mutex_algorithmes);
+    diffère _ := pthread_mutex_unlock(*file.mutex_algorithmes);
+
+    résultat := file.algorithmes;
+    init_de([..]*Algorithm)(*file.algorithmes);
+    retourne résultat;
+}
+
+initialise_file_parallèle :: fonc (file: *File_Parallèle_VueHTML)
+{
+    _ := pthread_mutex_init(*file.mutex_algorithmes, nul);
+    file.boucle_évènement = crée_boucle_évènement();
+    file.fonction_de_rappel.file = file;
+    file.prise_évènements = crée_prise_évènements(file.boucle_évènement.ctx_http, *file.fonction_de_rappel);
+}
+
+lance_file_parallèle :: fonc (file: *File_Parallèle_VueHTML)
+{
+    lance(file.boucle_évènement.boucle_);
+}
+
+enfile_algorithm :: fonc (file: *File_Parallèle_VueHTML, algorithm: *Algorithm)
+{
+    _ := pthread_mutex_lock(*file.mutex_algorithmes);
+    diffère _ := pthread_mutex_unlock(*file.mutex_algorithmes);
+    tableau_ajoute(*file.algorithmes, algorithm);
+    notifie_nouvel_évènement(file.prise_évènements);
+}
+
+/** \} */
+
+/* ------------------------------------------------------------------------- */
+/** \nom Rappels pour les prises de réseautage
+ * \{ */
+
+Données_Prise_Réseau :: struct {
+    parseuse: ParseuseMessageServeuseHTTP;
+    requête: *Request;
+    response: *Response;
+
+    temps_parsage_http: z64;
+    début_requête: Instantané;
+
+    texte_requête: chaine;
+    décalage_écriture_requête: z64;
+}
+
+rappel_quand_ouverture_prise :: fonc (prise: *Prise, est_client: bool @inutilisée)
+{
+    données_prise := données_utilisateur(prise, Données_Prise_Réseau);
+    données_prise.début_requête = maintenant_précis();
+
+    enchaineuse: Enchaineuse;
+    initialise_enchaineuse(*enchaineuse);
+
+    uri := données_prise.requête.donne_url_courant();
+
+    ajoute_au_tampon(*enchaineuse, données_prise.requête.method, " ");
+    sérialise_chemin(*enchaineuse, uri);
+    sérialise_requête(*enchaineuse, uri);
+
+    ajoute_au_tampon(*enchaineuse, " HTTP/1.1\r\n");
+
+    pour données_prise.requête.header_list {
+        ajoute_au_tampon(*enchaineuse, it.name, ": ", it.value, "\r\n");
+    }
+
+    ajoute_au_tampon(*enchaineuse, "\r\n");
+
+    texte_requête := chaine_depuis_enchaineuse(*enchaineuse);
+    données_prise.texte_requête = texte_requête;
+
+    données_prise.décalage_écriture_requête = écris(prise, données_prise.texte_requête);
+}
+
+rappel_quand_données_reçues_prise :: fonc (prise: *Prise, données: []octet)
+{
+    données_prise := données_utilisateur(prise, Données_Prise_Réseau);
+
+    parseuse := *données_prise.parseuse;
+    chn_données := chaine_depuis_tranche_octets(données);
+    ajourne_données(parseuse, chn_données);
+
+    si message_est_erroné(parseuse) {
+        imprime("Erreur de parsage");
+        ferme(prise);
+        retourne;
+    }
+
+    saufsi message_prêt_pour_finalisation(parseuse) {
+        retourne;
+    }
+
+    imprime("Temps de parsage HTTP : %\n", données_prise.temps_parsage_http);
+    imprime("Temps requête         : %\n", données_prise.début_requête.temps_écoulé_microsecondes());
+
+    message := finalise_message(parseuse);
+
+    response := crée_réponse(données_prise.requête);
+    response.status = message.status;
+
+    pour message.entêtes {
+        response.ajoute_entête(copie_chaine(it.nom), copie_chaine(it.valeur));
+    }
+
+    si message.contenu.taille != 0 {
+        contenu := copie_chaine(message.contenu);
+        content_type := donne_type_contenu(*message);
+        charset := donne_charset(*message);
+
+        si compare_ascii_insensible_à_la_casse(charset, "ISO-8859-1") {
+            nouveau_contenu := convertis_iso_8859_1_vers_utf8(message.contenu);
+            déloge(*contenu);
+            contenu = nouveau_contenu;
+        }
+
+        body_info := loge(ResponseBodyInfo);
+        body_info.decodede_size = message.contenu.taille comme z32;
+        body_info.content_type = copie_chaine(content_type);
+
+        response.body_info = body_info;
+        response.body = contenu;
+    }
+
+    données_prise.response = response;
+
+    réinitialise(parseuse);
+
+    ferme(prise);
+}
+
+rappel_quand_fermeture_prise :: fonc (prise: *Prise)
+{
+    données_prise := données_utilisateur(prise, Données_Prise_Réseau);
+    réinitialise(*données_prise.parseuse);
+    déloge(*données_prise.texte_requête);
+}
+
+rappel_quand_écriture_prise :: fonc (prise: *Prise)
+{
+    données_prise := données_utilisateur(prise, Données_Prise_Réseau);
+    si données_prise.décalage_écriture_requête < données_prise.texte_requête.taille {
+        texte_requête := avance(données_prise.texte_requête, données_prise.décalage_écriture_requête);
+        données_prise.décalage_écriture_requête += écris(prise, texte_requête);
+    }
+    sinon {
+        imprimeln("On nous demande d'écrire quelque chose mais il n'y a plus rien.");
+    }
+}
+
+rappel_quand_erreur_connexion_prise :: fonc (prise: *Prise)
+{
+    données_prise := données_utilisateur(prise, Données_Prise_Réseau);
+
+    si données_prise.response {
+        /* Nous avons eu une réponse, ignore l'erreur potentielle. */
+        retourne;
+    }
+
+    données_prise.response = crée_réponse_pour_hôte_introuvable(données_prise.requête);
+}
+
+/** \} */
+
+/* ------------------------------------------------------------------------- */
 /** \nom RappelsInterfaceVueHTML
  * \{ */
+
+Chronomètre_Plateforme :: struct {
+    algorithm: *Algorithm;
+    délai: z32;
+    se_répète: bool;
+    id: z32;
+    début: Instantané;
+}
 
 RappelsInterfaceVueHTML :: struct {
     empl base: RappelsInterface;
     
     vue_html: *VueHTML;
     fenêtre: Port_Fenêtre_Native;
-    window: *QT_Window;
+    id_fil_principal: pthread_t;
 
-    files_parallèles: [..]FileParallèle;
-    files_parallèle_pour_traversable: [..]FileParallèle;
+    files_parallèles: [..]*File_Parallèle_VueHTML;
+    files_parallèle_pour_traversable: [..]*File_Parallèle_VueHTML;
 
-    DonnéesTimer :: struct {
-        timer: *QT_Timer;
-        id: z32;
-    }
-
-    timers: [..]DonnéesTimer;
-    id_timer: z32;
+    chronomètres: [..]Chronomètre_Plateforme;
+    id_chronomètres: z32;
 }
-
-évènement_sur_tâche_parallèle := -1;
-évènement_sur_tâche_traversable := -1;
 
 initialise_rappels_interface :: fonc (résultat: *RappelsInterfaceVueHTML, vue_html: *VueHTML, fenêtre: Port_Fenêtre_Native)
 {
     résultat.fenêtre = fenêtre;
-    résultat.window = donne_qt_window(fenêtre);
     résultat.vue_html = vue_html;
+    résultat.id_fil_principal = pthread_self();
 
     résultat.sur_destruction = rappels_interface_sur_destruction;
     résultat.sur_lancement_requête = rappels_interface_sur_lancement_requête;
@@ -773,198 +1034,97 @@ initialise_rappels_interface :: fonc (résultat: *RappelsInterfaceVueHTML, vue_h
 
     nombres_de_threads := 2;
 
-    évènement_sur_tâche_parallèle = QT_enregistre_evenement_personnel();
-    évènement_sur_tâche_traversable = QT_enregistre_evenement_personnel();
-
-    params: ParamètresFileParallèle;
-    params.type_évènement = évènement_sur_tâche_parallèle;
-    params.sur_évènement = file_parallèle_sur_évènement;
-
     pour nombres_de_threads {
-        file := crée_file_parallèle(params);
+        file := crée_file_parallèle();
         tableau_ajoute(*résultat.files_parallèles, file);
     }
 }
 
-file_parallèle_sur_évènement :: fonc (évènement: *QT_Evenement)
+évalue_chronomètres :: fonc (plateforme: *RappelsInterfaceVueHTML)
 {
-    algorithm := QT_event_perso_donne_donnees(évènement) comme *Algorithm;
-    run(algorithm);
+    pour * plateforme.chronomètres {
+        temps_écoulé := it.début.temps_écoulé_millisecondes();
+        si temps_écoulé >= it.délai {
+            it.début = maintenant_précis();
+            si it.algorithm.sur_run {
+                it.algorithm.sur_run(it.algorithm);
+            }
+
+            saufsi it.se_répète {
+                tableau_supprime_indice(*plateforme.chronomètres, indice_it);
+                reprends it;
+            }
+        }
+    }
 }
 
 rappels_interface_sur_destruction :: fonc (rappels: *RappelsInterfaceVueHTML)
 {
     pour rappels.files_parallèles {
-        QT_thread_quit(it.thread);
-        QT_thread_wait(it.thread);
+        _ := pthread_join(it.thread, nul);
+        déloge(*it);
     }
 
     pour rappels.files_parallèle_pour_traversable {
-        QT_thread_quit(it.thread);
-        QT_thread_wait(it.thread);
-    }
-
-    pour rappels.timers {
-        QT_timer_arrete(it.timer);
+        _ := pthread_join(it.thread, nul);
+        déloge(*it);
     }
 
     déloge(*rappels.files_parallèle_pour_traversable);
-    déloge(*rappels.timers);
+    déloge(*rappels.chronomètres);
 }
 
-RappelsRequête :: struct {
-    empl base: QT_Rappels_Socket;
-
-    requête: *Request;
-    parseuse: ParseuseMessageServeuseHTTP;
-    response: *Response;
-
-    temps_parsage_http: z64;
-    début_requête: Instantané;
-}
-
-rappels_interface_sur_lancement_requête :: fonc (rappels: *RappelsInterfaceVueHTML @inutilisée, requête: *Request) -> *Response
+rappels_interface_sur_lancement_requête :: fonc (rappels: *RappelsInterfaceVueHTML, requête: *Request) -> *Response
 {
-    rappels_socket := crée_rappel_socket_pour_requête(requête);
-    diffère déloge(*rappels_socket);
-
-    /* Parent nul pour éviter les problèmes si nous ne sommes dans le fil principal. */
-    parent : *QT_Object = nul;
+    file := donne_file_courante(rappels);
 
     uri := requête.donne_url_courant();
     hôte := uri.host;
     port := donne_port_ou_défaut(uri);
 
-    si uri.scheme == "http" {
-        prise := QT_cree_ssl_socket_rappels(parent, rappels_socket);
-        QT_abstract_socket_connect_to_host(prise, hôte.vers_qt(), port);
+    ctx := si uri.scheme == "http" {
+        file.boucle_évènement.ctx_http;
     }
     sinon {
         assert(uri.scheme == "https");
-        prise := QT_cree_ssl_socket_rappels(parent, rappels_socket);
-        QT_ssl_socket_connect_to_host_encrypted(prise, hôte.vers_qt(), port);
+        file.boucle_évènement.ctx_https;
+    };
+
+    prise := crée_prise_connexion(ctx, hôte, port, Données_Prise_Réseau);
+    données_prise := données_utilisateur(prise, Données_Prise_Réseau);
+    init_de(Données_Prise_Réseau)(données_prise);
+    données_prise.requête = requête;
+
+    tantque données_prise.response == nul {
+        _ := traite_évènements_une_fois(file.boucle_évènement.boucle_);
     }
 
-    tantque rappels_socket.response == nul {
-        QT_application_process_events();
-    }
-
-    retourne rappels_socket.response;
+    retourne données_prise.response;
 }
 
-crée_rappel_socket_pour_requête :: fonc (requête: *Request) -> *RappelsRequête
+donne_file_courante :: fonc (plateforme: *RappelsInterfaceVueHTML) -> *File_Parallèle_VueHTML
 {
-    sur_connexion :: fonc (base: *QT_Rappels_Socket)
-    {
-        rappels := base comme *RappelsRequête;
-
-        rappels.début_requête = maintenant_précis();
-
-        enchaineuse: Enchaineuse;
-        initialise_enchaineuse(*enchaineuse);
-
-        uri := rappels.requête.donne_url_courant();
-
-        ajoute_au_tampon(*enchaineuse, rappels.requête.method, " ");
-        sérialise_chemin(*enchaineuse, uri);
-        sérialise_requête(*enchaineuse, uri);
-
-        ajoute_au_tampon(*enchaineuse, " HTTP/1.1\r\n");
-
-        pour rappels.requête.header_list {
-            ajoute_au_tampon(*enchaineuse, it.name, ": ", it.value, "\r\n");
+    pour plateforme.files_parallèles {
+        si it.thread == pthread_self() {
+            retourne it;
         }
-
-        ajoute_au_tampon(*enchaineuse, "\r\n");
-
-        texte_requête := chaine_depuis_enchaineuse(*enchaineuse);
-        diffère déloge(*texte_requête);
-
-        _ := QT_abstract_socket_write(rappels.socket, texte_requête.pointeur, texte_requête.taille);
-        // imprime("Écris : % / %\n", écris, texte_requête.taille)
     }
 
-    sur_erreur :: fonc (base: *QT_Rappels_Socket, error: QT_Socket_Error)
-    {
-        rappels := base comme *RappelsRequête;
-        imprime("Erreur %\n", error);
-        rappels.response = network_error(rappels.requête);
+    pour plateforme.files_parallèle_pour_traversable {
+        si it.thread == pthread_self() {
+            retourne it;
+        }
     }
 
-    sur_prêt_à_lire :: fonc (base: *QT_Rappels_Socket)
-    {
-        rappels := base comme *RappelsRequête;
-        parseuse := *rappels.parseuse;
-
-        enchaineuse: Enchaineuse;
-        initialise_enchaineuse(*enchaineuse);
-
-        octets_lu := QT_abstract_socket_read(rappels.socket, *enchaineuse.tampon_courant.données[0], TAILLE_TAMPON_ENCHAINEUSE);
-
-        enchaineuse.tampon_courant.occupé = octets_lu comme z32;
-
-        lu := chaine_depuis_enchaineuse(*enchaineuse);
-
-        début_parsage_http := maintenant_précis();
-        ajourne_données(parseuse, lu);
-        rappels.temps_parsage_http += début_parsage_http.temps_écoulé_microsecondes();
-
-        si message_est_erroné(parseuse) {
-            imprime("Erreur de parsage");
-            QT_abstract_socket_close(rappels.socket);
-            retourne;
-        }
-
-        saufsi message_prêt_pour_finalisation(parseuse) {
-            retourne;
-        }
-
-        imprime("Temps de parsage HTTP : %\n", rappels.temps_parsage_http);
-        imprime("Temps requête         : %\n", rappels.début_requête.temps_écoulé_microsecondes());
-
-        message := finalise_message(parseuse);
-
-        contenu := copie_chaine(message.contenu);
-        content_type := donne_type_contenu(*message);
-        charset := donne_charset(*message);
-
-        si compare_ascii_insensible_à_la_casse(charset, "ISO-8859-1") {
-            nouveau_contenu := convertis_iso_8859_1_vers_utf8(message.contenu);
-            déloge(*contenu);
-            contenu = nouveau_contenu;
-        }
-
-        response := crée_réponse(rappels.requête);
-        response.status = message.status;
-
-        body_info := loge(ResponseBodyInfo);
-        body_info.decodede_size = message.contenu.taille comme z32;
-        body_info.content_type = copie_chaine(content_type);
-
-        response.body_info = body_info;
-        response.body = contenu;
-
-        rappels.response = response;
-
-        réinitialise(parseuse);
-
-        QT_abstract_socket_close(rappels.socket);
-    }
-
-    rappels := loge(RappelsRequête);
-    rappels.requête = requête;
-    rappels.sur_pret_a_lire = sur_prêt_à_lire;
-    rappels.sur_connexion = sur_connexion;
-    rappels.sur_erreur = sur_erreur;
-    retourne rappels;
+    retourne nul;
 }
 
 rappels_interface_sur_tâche_parallèle :: fonc (rappels: *RappelsInterfaceVueHTML, algorithm: *Algorithm)
 {
     /* Donne la tâche au premier thread qui n'est pas le nôtre. */
     pour rappels.files_parallèles {
-        si it.thread != QT_thread_courant() {
-            QT_application_poste_evenement_et_donnees(it.filtre_évènement, évènement_sur_tâche_parallèle, algorithm);
+        si it.thread != pthread_self() {
+            enfile_algorithm(it, algorithm);
             retourne;
         }
     }
@@ -975,88 +1135,60 @@ rappels_interface_sur_tâche_parallèle :: fonc (rappels: *RappelsInterfaceVueHT
 rappels_interface_sur_tâche_traversable :: fonc (rappels: *RappelsInterfaceVueHTML, traversable: *TraversableNavigable, algorithm: *Algorithm)
 {
     file := rappels.files_parallèle_pour_traversable[traversable.indice_file_parallèle];
-    QT_application_poste_evenement_et_donnees(file.filtre_évènement, évènement_sur_tâche_traversable, algorithm);
+    enfile_algorithm(file, algorithm);
 }
 
-rappels_interface_sur_est_exécuté_sur_fil_principal :: fonc (rappels: *RappelsInterfaceVueHTML @inutilisée) -> bool
+rappels_interface_sur_est_exécuté_sur_fil_principal :: fonc (rappels: *RappelsInterfaceVueHTML) -> bool
 {
-    retourne QT_thread_courant() == QT_application_thread();
+    retourne pthread_self() == rappels.id_fil_principal;
 }
 
-rappels_interface_sur_est_exécuté_en_parallèle :: fonc (rappels: *RappelsInterfaceVueHTML @inutilisée) -> bool
+rappels_interface_sur_est_exécuté_en_parallèle :: fonc (rappels: *RappelsInterfaceVueHTML) -> bool
 {
-    retourne QT_thread_courant() != QT_application_thread();
+    retourne pthread_self() != rappels.id_fil_principal;
 }
 
 rappels_interface_sur_est_exécuté_sur_file_parallèle :: fonc (rappels: *RappelsInterfaceVueHTML, traversable: *TraversableNavigable) -> bool
 {
     file := rappels.files_parallèle_pour_traversable[traversable.indice_file_parallèle];
-    retourne QT_thread_courant() == file.thread;
+    retourne pthread_self() == file.thread;
 }
 
 rappels_interface_crée_file_parallèle_pour_traversable :: fonc (rappels: *RappelsInterfaceVueHTML) -> z64
 {
     résultat := rappels.files_parallèle_pour_traversable.taille;
 
-    params: ParamètresFileParallèle;
-    params.type_évènement = évènement_sur_tâche_traversable;
-    params.sur_évènement = file_parallèle_sur_évènement;
-
-    file := crée_file_parallèle(params);
+    file := crée_file_parallèle();
     tableau_ajoute(*rappels.files_parallèle_pour_traversable, file);
 
     retourne résultat;
 }
 
-rappels_interface_sur_affichage_alerte :: fonc (rappels: *RappelsInterfaceVueHTML @inutilisée, message: DOMString)
+rappels_interface_sur_affichage_alerte :: fonc (rappels: *RappelsInterfaceVueHTML @inutilisée, message: DOMString @inutilisée)
 {
-    chn_message := convertis_vers_chaine(message.donne_chaine_utf16());
-    diffère déloge(*chn_message);
-
-    parent: QT_Generic_Widget;
-    _ := QT_message_box_affiche_avertissement(parent, vers_qt("Alerte"), vers_qt(chn_message), QT_StandardButton.OK);
+    // À FAIRE : implémente
 }
 
 rappels_interface_sur_création_timeout :: fonc (rappels: *RappelsInterfaceVueHTML, algorithm: *Algorithm, time_out: z32, se_répète: bool) -> z32
 {
-    RappelTimer :: struct {
-        empl base: QT_Rappels_Timer;
-        algorithm: *Algorithm;
-    }
+    id := rappels.id_chronomètres;
+    rappels.id_chronomètres += 1;
 
-    sur_timeout :: fonc (base: *QT_Rappels_Timer)
-    {
-        rappel := base comme *RappelTimer;
-        si rappel.algorithm.sur_run {
-            rappel.algorithm.sur_run(rappel.algorithm);
-        }
-    }
-
-    rappel_timer := QT_loge_rappel(RappelTimer);
-    rappel_timer.algorithm = algorithm;
-    rappel_timer.sur_timeout = sur_timeout;
-
-    timer := QT_cree_timer(rappel_timer);
-    QT_timer_definis_se_repete(timer, se_répète);
-
-    id := rappels.id_timer;
-    rappels.id_timer += 1;
-
-    données := tableau_ajoute_élément(*rappels.timers);
-    données.timer = timer;
-    données.id = id;
-
-    QT_timer_debute(timer, time_out);
+    chronomètre_plateforme := tableau_ajoute_élément(*rappels.chronomètres);
+    chronomètre_plateforme.délai = time_out;
+    chronomètre_plateforme.début = maintenant_précis();
+    chronomètre_plateforme.se_répète = se_répète;
+    chronomètre_plateforme.id = id;
+    chronomètre_plateforme.algorithm = algorithm;
 
     retourne id;
 }
 
 rappels_interface_sur_destruction_timeout :: fonc (rappels: *RappelsInterfaceVueHTML, id: z32)
 {
-    pour rappels.timers {
+    pour rappels.chronomètres {
         si it.id == id {
-            QT_timer_arrete(it.timer);
-            tableau_supprime_indice(*rappels.timers, indice_it);
+            tableau_supprime_indice(*rappels.chronomètres, indice_it);
             retourne;
         }
     }
