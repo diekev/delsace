@@ -81,6 +81,7 @@ Boucle :: struct {
     MAX_EVENTS :: 1024;
     // À FAIRE : crash dans init_de() si la valeur est initialisée
     évènements: [MAX_EVENTS]epoll_event = ---;
+    évènements_prêts: []epoll_event;
     fd: z32;
 
     prises_fermées: *Prise;
@@ -133,47 +134,75 @@ lance :: fonc (boucle_prises: *Boucle)
 
     // tantque boucle_prises.num_fds
     tantque boucle_prises.nombre_de_prises_lancées != 0 && !boucle_prises.stop {
-        /* Emit pre callback */
-        //us_internal_loop_pre(loop);
-
-        // imprime("attente sur un évènement !\n")
-        nfds := epoll_wait(boucle_prises.fd, *boucle_prises.évènements[0], Boucle.MAX_EVENTS, -1);
-
-        si nfds == -1 {
-            // imprime("[epoll_wait] erreur !\n")
-            // perror("epoll_wait");
-            // exit(EXIT_FAILURE);
+        saufsi traite_évènements_une_fois(boucle_prises) {
             retourne;
         }
-
-        évènements_prêts: [..]epoll_event;
-        évènements_prêts.pointeur = *boucle_prises.évènements[0];
-        évènements_prêts.taille = nfds;
-
-        pour évènements_prêts {
-            prise := it.data.ptr comme *Prise;
-
-            si !prise {
-                continue;
-            }
-
-            // À FAIRE: traduit vers nos types
-            évènements := it.events;
-            erreurs := (it.events & (EPOLL_EVENTS.EPOLLERR | EPOLL_EVENTS.EPOLLHUP));
-
-            // events &= us_poll_events(poll);
-
-            // À FAIRE(langage) : conditions pour les énumérations
-            si évènements != EPOLL_EVENTS.zéro || erreurs != EPOLL_EVENTS.zéro {
-                dispatch_évènement(prise, évènements, erreurs);
-            }
-        }
-
-        /* Emit post callback */
-        // À FAIRE: libération de la mémoire
-        // us_internal_loop_post(loop);
     }
 }
+
+/* Attends sur les prises suivies par la boucle qu'au moins l'une d'entre elles
+ * possède un évènement à traiter.
+ *
+ * Le paramètre `temporisation`, en millisecondes, sers à définir le temps à attendre
+ * avant d'arrêter l'attente. Si -1, l'attente est infinie.
+ *
+ * Retourne faux si une erreur est survenue lors de l'attente.
+ */
+traite_évènements_une_fois :: fonc (boucle_prises: *Boucle, temporisation := -1) -> bool
+{
+    /* Nous pouvons être appelé récursivement. */
+    traite_évènements_prêts(boucle_prises);
+
+    /* Emit pre callback */
+    //us_internal_loop_pre(loop);
+
+    nfds := epoll_wait(boucle_prises.fd, *boucle_prises.évènements[0], Boucle.MAX_EVENTS, temporisation);
+    si nfds == -1 {
+        // imprime("[epoll_wait] erreur !\n")
+        // perror("epoll_wait");
+        // exit(EXIT_FAILURE);
+        retourne faux;
+    }
+
+    boucle_prises.évènements_prêts.pointeur = *boucle_prises.évènements[0];
+    boucle_prises.évènements_prêts.taille = nfds;
+
+    traite_évènements_prêts(boucle_prises);
+
+    /* Emit post callback */
+    // À FAIRE: libération de la mémoire
+    // us_internal_loop_post(loop);
+
+    retourne vrai;
+}
+
+#portée_fichier
+
+traite_évènements_prêts :: fonc (boucle_prises: *Boucle)
+{
+    tantque boucle_prises.évènements_prêts {
+        it := boucle_prises.évènements_prêts[0];
+        boucle_prises.évènements_prêts = tableau_avance(boucle_prises.évènements_prêts, 1);
+        prise := it.data.ptr comme *Prise;
+
+        si !prise {
+            continue;
+        }
+
+        // À FAIRE: traduit vers nos types
+        évènements := it.events;
+        erreurs := (it.events & (EPOLL_EVENTS.EPOLLERR | EPOLL_EVENTS.EPOLLHUP));
+
+        // events &= us_poll_events(poll);
+
+        // À FAIRE(langage) : conditions pour les énumérations
+        si évènements != EPOLL_EVENTS.zéro || erreurs != EPOLL_EVENTS.zéro {
+            dispatch_évènement(prise, évènements, erreurs);
+        }
+    } 
+}
+
+#portée_export
 
 dispatch_évènement :: fonc (prise: *Prise, évènements: EPOLL_EVENTS, erreurs: EPOLL_EVENTS)
 {
@@ -181,12 +210,12 @@ dispatch_évènement :: fonc (prise: *Prise, évènements: EPOLL_EVENTS, erreurs
 
     discr prise.type {
         RAPPEL {
-            ptr_rappel := prise.données_utilisateur(fonc (ctx: *Contexte));
-            rappel := mémoire(ptr_rappel);
-            rappel(prise.contexte_);
+            ptr_fonction := prise.données_utilisateur(*Fonction_De_Rappel);
+            fonction := mémoire(ptr_fonction);
+            fonction.fonction(fonction, prise.contexte_);
 
             /* Il faut lire le fichier pour dire au système que nous avons pris en compte l'évènement. */
-            vide_données_lecture(prise);
+            // vide_données_lecture(prise);
         }
         SEMI_PRISE {
             si évènements.EPOLLOUT {
