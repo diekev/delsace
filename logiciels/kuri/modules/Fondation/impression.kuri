@@ -1140,6 +1140,16 @@ assert :: fonc (expr: bool, pos := #position_code_source) -> rien
     panique("Une assertion a échoué");
 }
 
+assert_égalité :: fonc (a: $T, b: T, pos := #position_code_source) -> rien
+{
+    si a != b {
+        imprime("%:% : les valeurs ne sont pas égales !\n", pos.fichier, pos.ligne);
+        imprime("      la première valeur est %\n", a);
+        imprime("      la deuxième valeur est %\n", b);
+        panique("Une assertion a échoué");
+    }
+}
+
 /* ------------------------------------------------------------------------- */
 /** \nom Impression nouveau format
  * \{ */
