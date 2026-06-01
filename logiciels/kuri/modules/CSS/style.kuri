@@ -1725,18 +1725,19 @@ calcule_style :: fonc (ctx: *ContexteCalculStyle, étape: ÉtapeCalculStyle)
             }
 
             valeurs := développe_variables(propriétés, it.valeur_personnalisée);
+            si valeurs {
+                ctx_parsage: ContexteParsageShorthandVariable;
+                ctx_parsage.sur_ajoute_propriété = contexte_parsage_shorthand_variable_ajoute_propriété;
+                ctx_parsage.ctx_calcul_style = ctx;
 
-            ctx_parsage: ContexteParsageShorthandVariable;
-            ctx_parsage.sur_ajoute_propriété = contexte_parsage_shorthand_variable_ajoute_propriété;
-            ctx_parsage.ctx_calcul_style = ctx;
+                déclaration_parsée: ParsedDeclaration;
+                déclaration_parsée.name = info.nom;
+                ctx_parsage.déclaration_parsée = *déclaration_parsée;
 
-            déclaration_parsée: ParsedDeclaration;
-            déclaration_parsée.name = info.nom;
-            ctx_parsage.déclaration_parsée = *déclaration_parsée;
+                _ := info.sur_parsage_shorthand(*ctx_parsage, valeurs);
 
-            _ := info.sur_parsage_shorthand(*ctx_parsage, valeurs);
-
-            déloge(*valeurs);
+                déloge(*valeurs);
+            }
             continue;
         }
 
