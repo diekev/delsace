@@ -104,7 +104,42 @@ Abc_Attribute_Type_Descriptor *abc_get_pod_type_descriptors(uint64_t *r_len)
 }
 
 /* ------------------------------------------------------------------------- */
-/** \nom Abc_Output_Camera
+/** \nom Abc_String
+ * \{ */
+
+static std::string vers_std_string(struct Abc_String string)
+{
+    if (string.characters == nullptr) {
+        return "";
+    }
+    return std::string(string.characters, string.size);
+}
+
+static std::string vers_std_string_ou_défaut(struct Abc_String string, std::string_view défaut)
+{
+    if (string.characters == nullptr) {
+        return std::string(défaut.data(), défaut.size());
+    }
+    return std::string(string.characters, string.size);
+}
+
+Abc_String::operator std::string()
+{
+    return vers_std_string(*this);
+}
+
+static void vers_abc_string(Abc_String *result, const std::string &name)
+{
+    if (result) {
+        result->characters = name.c_str();
+        result->size = name.size();
+    }
+}
+
+/** \} */
+
+/* ------------------------------------------------------------------------- */
+/** \nom value_converter
  * \{ */
 
 template <typename Type_IPA>
@@ -138,6 +173,44 @@ struct value_converter<Abc_String> {
     };
 
 ENUMERATE_ABC_ATTRIBUTE_SPECIAL_UNIQUE(DECLARE_VALUE_CONVERTER)
+
+#undef DECLARE_VALUE_CONVERTER
+
+template <typename Type_Abc>
+struct import_value_converter {
+    using Type_IPA = Type_Abc;
+
+    static Type_IPA convert_value(Type_Abc *ptr)
+    {
+        return *ptr;
+    }
+};
+
+template <>
+struct import_value_converter<std::string> {
+    using Type_IPA = Abc_String;
+
+    static Type_IPA convert_value(std::string *ptr)
+    {
+        Abc_String résultat;
+        vers_abc_string(&résultat, *ptr);
+        return résultat;
+    }
+};
+
+#define DECLARE_VALUE_CONVERTER(type_geom, type_abc, type_c, nom_court)                           \
+    template <>                                                                                   \
+    struct import_value_converter<type_abc> {                                                     \
+        using Type_IPA = type_c;                                                                  \
+        static Type_IPA convert_value(type_abc *ptr)                                              \
+        {                                                                                         \
+            return *reinterpret_cast<Type_IPA *>(ptr);                                            \
+        }                                                                                         \
+    };
+
+ENUMERATE_ABC_ATTRIBUTE_SPECIAL_UNIQUE(DECLARE_VALUE_CONVERTER)
+
+#undef DECLARE_VALUE_CONVERTER
 
 /** \} */
 
@@ -279,41 +352,6 @@ void ABC_lis_attributs(ContexteKuri *ctx_kuri,
 }
 
 /* ------------------------------------------------------------------------- */
-/** \nom Abc_String
- * \{ */
-
-static std::string vers_std_string(struct Abc_String string)
-{
-    if (string.characters == nullptr) {
-        return "";
-    }
-    return std::string(string.characters, string.size);
-}
-
-static std::string vers_std_string_ou_défaut(struct Abc_String string, std::string_view défaut)
-{
-    if (string.characters == nullptr) {
-        return std::string(défaut.data(), défaut.size());
-    }
-    return std::string(string.characters, string.size);
-}
-
-Abc_String::operator std::string()
-{
-    return vers_std_string(*this);
-}
-
-static void vers_abc_string(Abc_String *result, const std::string &name)
-{
-    if (result) {
-        result->characters = name.c_str();
-        result->size = name.size();
-    }
-}
-
-/** \} */
-
-/* ------------------------------------------------------------------------- */
 /** \nom Array_Sample
  * \{ */
 
@@ -377,6 +415,76 @@ ENUMERATE_ABC_ATTRIBUTE_SPECIAL(MAKE_TYPED_ARRAY_SAMPLE)
 ENUMERATE_ABC_ATTRIBUTE_TYPES(MAKE_TYPED_SAMPLE_FROM_ARRAY_SAMPLE)
 
 #undef MAKE_TYPED_SAMPLE_FROM_ARRAY_SAMPLE
+
+static Abc_P3f_Array_Sample get_input_array_sample(const Abc::P3fArraySamplePtr &ptr)
+{
+    auto résultat = Abc_P3f_Array_Sample();
+    if (ptr) {
+        résultat.values = reinterpret_cast<Abc_V3f *>(const_cast<Abc::V3f *>(ptr->get()));
+        résultat.num_values = ptr->size();
+    }
+    else {
+        résultat.values = nullptr;
+        résultat.num_values = 0;
+    }
+    return résultat;
+}
+
+static Abc_V3f_Array_Sample get_input_array_sample(const Abc::V3fArraySamplePtr &ptr)
+{
+    auto résultat = Abc_V3f_Array_Sample();
+    if (ptr) {
+        résultat.values = reinterpret_cast<Abc_V3f *>(const_cast<Abc::V3f *>(ptr->get()));
+        résultat.num_values = ptr->size();
+    }
+    else {
+        résultat.values = nullptr;
+        résultat.num_values = 0;
+    }
+    return résultat;
+}
+
+static Abc_Int32_Array_Sample get_input_array_sample(const Abc::Int32ArraySamplePtr &ptr)
+{
+    auto résultat = Abc_Int32_Array_Sample();
+    if (ptr) {
+        résultat.values = reinterpret_cast<int32_t *>(const_cast<int *>(ptr->get()));
+        résultat.num_values = ptr->size();
+    }
+    else {
+        résultat.values = nullptr;
+        résultat.num_values = 0;
+    }
+    return résultat;
+}
+
+static Abc_UInt64_Array_Sample get_input_array_sample(const Abc::UInt64ArraySamplePtr &ptr)
+{
+    auto résultat = Abc_UInt64_Array_Sample();
+    if (ptr) {
+        résultat.values = reinterpret_cast<uint64_t *>(const_cast<uint64_t *>(ptr->get()));
+        résultat.num_values = ptr->size();
+    }
+    else {
+        résultat.values = nullptr;
+        résultat.num_values = 0;
+    }
+    return résultat;
+}
+
+static Abc_Float_Array_Sample get_input_array_sample(const Abc::FloatArraySamplePtr &ptr)
+{
+    auto résultat = Abc_Float_Array_Sample();
+    if (ptr) {
+        résultat.values = reinterpret_cast<float *>(const_cast<float *>(ptr->get()));
+        résultat.num_values = ptr->size();
+    }
+    else {
+        résultat.values = nullptr;
+        résultat.num_values = 0;
+    }
+    return résultat;
+}
 
 /** \} */
 
@@ -959,6 +1067,9 @@ struct Abc_Input_Object {
     bool arb_geom_params_initialized = false;
     bool user_properties_initialized = false;
     bool metadata_initialized = false;
+
+    std::vector<std::string> face_set_names_std_string{};
+    std::vector<Abc_String> face_set_names_abc_string{};
 };
 
 #define DECLARE_TYPED_INPUT_OBJECTS(type_abc, type_kuri, lname)                                   \
@@ -1093,106 +1204,256 @@ ENUMERATE_INPUT_OBJECT_TYPES(DECLARE_TYPED_INPUT_OBJECTS)
 
 /** \} */
 
+#define DEFINE_INPUT_SAMPLE_SCALAR_GET_FUNCTION(uname, lname, snake_name, method, sample_type)    \
+    sample_type abc_input_##lname##_sample_##snake_name(                                          \
+        struct Abc_Input_##uname##_Sample *lname##_sample)                                        \
+    {                                                                                             \
+        return lname##_sample->sample.method();                                                   \
+    }
+
+#define DEFINE_INPUT_SAMPLE_ARRAY_GET_FUNCTION(uname, lname, snake_name, method, sample_type)     \
+    sample_type abc_input_##lname##_sample_##snake_name(                                          \
+        struct Abc_Input_##uname##_Sample *lname##_sample)                                        \
+    {                                                                                             \
+        auto ptr = lname##_sample->sample.method();                                               \
+        return get_input_array_sample(ptr);                                                       \
+    }
+
+#define DEFINE_COMMON_INPUT_SAMPLE_FUNCTIONS(uname, lname)                                        \
+    struct Abc_Time_Sampling *abc_input_##lname##_get_time_sampling(                              \
+        struct Abc_Input_##uname *lname)                                                          \
+    {                                                                                             \
+        return make_time_sampling(lname->archive,                                                 \
+                                  lname->typed_object.getSchema().getTimeSampling());             \
+    }                                                                                             \
+    bool abc_input_##lname##_schema_is_constant(struct Abc_Input_##uname *lname)                  \
+    {                                                                                             \
+        return lname->typed_object.getSchema().isConstant();                                      \
+    }                                                                                             \
+    uint64_t abc_input_##lname##_get_num_samples(struct Abc_Input_##uname *lname)                 \
+    {                                                                                             \
+        auto résultat = lname->typed_object.getSchema().getNumSamples();                          \
+        return résultat;                                                                          \
+    }                                                                                             \
+    void abc_input_##lname##_schema_reset(struct Abc_Input_##uname *lname)                        \
+    {                                                                                             \
+        lname->typed_object.getSchema().reset();                                                  \
+    }                                                                                             \
+    bool abc_input_##lname##_schema_valid(struct Abc_Input_##uname *lname)                        \
+    {                                                                                             \
+        return lname->typed_object.getSchema().valid();                                           \
+    }                                                                                             \
+    struct Abc_Input_##uname##_Sample *abc_input_##lname##_get_sample(                            \
+        struct Abc_Input_##uname *lname, struct Abc_Sample_Selector selector)                     \
+    {                                                                                             \
+        auto résultat = kuri_loge<Abc_Input_##uname##_Sample>(lname->archive->ctx_kuri);          \
+        résultat->archive = lname->archive;                                                       \
+        lname->typed_object.getSchema().get(résultat->sample, get_sample_selector(selector));     \
+        return résultat;                                                                          \
+    }                                                                                             \
+    void abc_input_##lname##_sample_destroy(struct Abc_Input_##uname##_Sample *sample)            \
+    {                                                                                             \
+        if (sample) {                                                                             \
+            kuri_deloge(sample->archive->ctx_kuri, sample);                                       \
+        }                                                                                         \
+    }                                                                                             \
+    void abc_input_##lname##_sample_get_self_bounds(                                              \
+        struct Abc_Input_##uname##_Sample *lname##_sample, Abc_Box3d *r_box)                      \
+    {                                                                                             \
+        auto résultat = lname##_sample->sample.getSelfBounds();                                   \
+        *r_box = import_value_converter<Abc::Box3d>::convert_value(&résultat);                    \
+    }                                                                                             \
+    bool abc_input_##lname##_sample_valid(struct Abc_Input_##uname##_Sample *lname##_sample)      \
+    {                                                                                             \
+        return lname##_sample->sample.valid();                                                    \
+    }                                                                                             \
+    void abc_input_##lname##_sample_reset(struct Abc_Input_##uname##_Sample *lname##_sample)      \
+    {                                                                                             \
+        lname##_sample->sample.reset();                                                           \
+    }
+
 /* ------------------------------------------------------------------------- */
-/** \nom Abc_Input_PolyMesh_Sample
+/** \nom Face sets extraction.
  * \{ */
 
-struct Abc_Time_Sampling *abc_input_polymesh_get_time_sampling(struct Abc_Input_PolyMesh *polymesh)
+template <typename Input_Schema_Object_Type>
+static void abc_input_object_schema_get_face_set_names(Input_Schema_Object_Type *object,
+                                                       Abc_String **r_names,
+                                                       uint64_t *r_count)
 {
-    return make_time_sampling(polymesh->archive,
-                              polymesh->typed_object.getSchema().getTimeSampling());
+    if (object->face_set_names_std_string.empty()) {
+        object->typed_object.getSchema().getFaceSetNames(object->face_set_names_std_string);
+
+        object->face_set_names_abc_string.resize(object->face_set_names_std_string.size());
+
+        auto strings = object->face_set_names_abc_string.data();
+        auto num_strings = object->face_set_names_abc_string.size();
+        for (auto i = 0ul; i < num_strings; i++) {
+            vers_abc_string(strings++, object->face_set_names_std_string[i]);
+        }
+    }
+
+    *r_names = object->face_set_names_abc_string.data();
+    *r_count = object->face_set_names_abc_string.size();
 }
 
-uint64_t abc_input_polymesh_get_num_samples(struct Abc_Input_PolyMesh *polymesh)
+template <typename Input_Schema_Object_Type>
+struct Abc_Input_FaceSet *abc_input_object_schema_get_face_set(Input_Schema_Object_Type *object,
+                                                               Abc_String face_set_name)
 {
-    auto résultat = polymesh->typed_object.getSchema().getNumSamples();
+    Abc_Input_FaceSet *résultat = make_object<Abc_Input_FaceSet>(object->archive);
+    résultat->typed_object = object->typed_object.getSchema().getFaceSet(face_set_name);
+    résultat->untyped_object = résultat->typed_object;
     return résultat;
 }
+
+template <typename Input_Schema_Object_Type>
+static bool abc_input_object_schema_has_face_set(Input_Schema_Object_Type *object,
+                                                 Abc_String face_set_name)
+{
+    return object->typed_object.getSchema().hasFaceSet(face_set_name);
+}
+
+/** \} */
+
+/* ------------------------------------------------------------------------- */
+/** \nom Abc_Input_PolyMesh_Sample
+ * À FAIRE
+ *   MeshTopologyVariance getTopologyVariance() const;
+ *   IV2fGeomParam getUVsParam() const
+ *   IN3fGeomParam getNormalsParam() const
+ *   Abc::IInt32ArrayProperty getFaceCountsProperty() const
+ *   Abc::IInt32ArrayProperty getFaceIndicesProperty() const
+ *   Abc::IP3fArrayProperty getPositionsProperty() const
+ *   Abc::IV3fArrayProperty getVelocitiesProperty() const
+ * \{ */
 
 struct Abc_Input_PolyMesh_Sample {
     Abc_Input_Archive *archive = nullptr;
     AbcGeom::IPolyMeshSchema::Sample sample{};
 };
 
-struct Abc_Input_PolyMesh_Sample *abc_input_polymesh_get_sample(
-    struct Abc_Input_PolyMesh *polymesh, struct Abc_Sample_Selector selector)
+DEFINE_COMMON_INPUT_SAMPLE_FUNCTIONS(PolyMesh, polymesh)
+
+void abc_input_polymesh_schema_get_face_set_names(struct Abc_Input_PolyMesh *polymesh,
+                                                  Abc_String **r_names,
+                                                  uint64_t *r_count)
 {
-    auto résultat = kuri_loge<Abc_Input_PolyMesh_Sample>(polymesh->archive->ctx_kuri);
-    résultat->archive = polymesh->archive;
-    polymesh->typed_object.getSchema().get(résultat->sample, get_sample_selector(selector));
+    abc_input_object_schema_get_face_set_names(polymesh, r_names, r_count);
+}
+
+struct Abc_Input_FaceSet *abc_input_polymesh_schema_get_face_set(
+    struct Abc_Input_PolyMesh *polymesh, Abc_String face_set_name)
+{
+    return abc_input_object_schema_get_face_set(polymesh, face_set_name);
+}
+
+bool abc_input_polymesh_schema_has_face_set(struct Abc_Input_PolyMesh *polymesh,
+                                            Abc_String face_set_name)
+{
+    return abc_input_object_schema_has_face_set(polymesh, face_set_name);
+}
+
+DEFINE_POLYMESH_SAMPLE_ARRAY_GET_FUNCTIONS(DEFINE_INPUT_SAMPLE_ARRAY_GET_FUNCTION)
+
+/** \} */
+
+/* ------------------------------------------------------------------------- */
+/** \nom Abc_Input_SubD_Sample
+ * À FAIRE
+ *   MeshTopologyVariance getTopologyVariance() const;
+ *   Abc::IInt32ArrayProperty getFaceCountsProperty() const
+ *   Abc::IInt32ArrayProperty getFaceIndicesProperty() const
+ *   Abc::IP3fArrayProperty getPositionsProperty() const
+ *   Abc::IInt32Property getFaceVaryingInterpolateBoundaryProperty() const
+ *   Abc::IInt32Property getFaceVaryingPropagateCornersProperty() const
+ *   Abc::IInt32Property getInterpolateBoundaryProperty() const
+ *   Abc::IInt32ArrayProperty getCreaseIndicesProperty() const
+ *   Abc::IInt32ArrayProperty getCreaseLengthsProperty() const
+ *   Abc::IFloatArrayProperty getCreaseSharpnessesProperty() const
+ *   Abc::IInt32ArrayProperty getCornerIndicesProperty() const
+ *   Abc::IFloatArrayProperty getCornerSharpnessesProperty() const
+ *   Abc::IInt32ArrayProperty getHolesProperty() const { return m_holesProperty; }
+ *   Abc::IStringProperty getSubdivisionSchemeProperty() const
+ *   Abc::IV3fArrayProperty getVelocitiesProperty() const
+ *   IV2fGeomParam getUVsParam() const
+ * \{ */
+
+struct Abc_Input_SubD_Sample {
+    Abc_Input_Archive *archive = nullptr;
+    AbcGeom::ISubDSchema::Sample sample{};
+    std::string subdivision_scheme{};
+};
+
+DEFINE_COMMON_INPUT_SAMPLE_FUNCTIONS(SubD, subd)
+
+void abc_input_subd_schema_get_face_set_names(struct Abc_Input_SubD *subd,
+                                              Abc_String **r_names,
+                                              uint64_t *r_count)
+{
+    abc_input_object_schema_get_face_set_names(subd, r_names, r_count);
+}
+
+struct Abc_Input_FaceSet *abc_input_subd_schema_get_face_set(struct Abc_Input_SubD *subd,
+                                                             Abc_String face_set_name)
+{
+    return abc_input_object_schema_get_face_set(subd, face_set_name);
+}
+
+bool abc_input_subd_schema_has_face_set(struct Abc_Input_SubD *subd, Abc_String face_set_name)
+{
+    return abc_input_object_schema_has_face_set(subd, face_set_name);
+}
+
+DEFINE_SUBD_SAMPLE_SCALAR_GET_FUNCTION(DEFINE_INPUT_SAMPLE_SCALAR_GET_FUNCTION)
+DEFINE_SUBD_SAMPLE_ARRAY_GET_FUNCTIONS(DEFINE_INPUT_SAMPLE_ARRAY_GET_FUNCTION)
+
+Abc_String abc_input_subd_sample_get_subdivision_scheme(struct Abc_Input_SubD_Sample *subd_sample)
+{
+    subd_sample->subdivision_scheme = subd_sample->sample.getSubdivisionScheme();
+
+    Abc_String résultat;
+    vers_abc_string(&résultat, subd_sample->subdivision_scheme);
     return résultat;
 }
 
-void abc_input_polymesh_sample_destroy(struct Abc_Input_PolyMesh_Sample *sample)
-{
-    if (sample) {
-        kuri_deloge(sample->archive->ctx_kuri, sample);
-    }
-}
+/** \} */
 
-struct Abc_P3f_Array_Sample abc_input_polymesh_sample_get_positions(
-    struct Abc_Input_PolyMesh_Sample *sample)
-{
-    auto ptr = sample->sample.getPositions();
+/* ------------------------------------------------------------------------- */
+/** \nom Abc_Input_FaceSet_Sample
+ *  À FAIRE:
+ *    FaceSetExclusivity getFaceExclusivity() const;
+ *    Abc::IInt32ArrayProperty getFacesProperty() const
+ * \{ */
 
-    auto résultat = Abc_P3f_Array_Sample();
-    if (ptr) {
-        résultat.values = reinterpret_cast<Abc_V3f *>(const_cast<Abc::V3f *>(ptr->get()));
-        résultat.num_values = ptr->size();
-    }
-    return résultat;
-}
+struct Abc_Input_FaceSet_Sample {
+    Abc_Input_Archive *archive = nullptr;
+    AbcGeom::IFaceSetSchema::Sample sample{};
+};
 
-struct Abc_V3f_Array_Sample abc_input_polymesh_sample_get_velocities(
-    struct Abc_Input_PolyMesh_Sample *sample)
-{
-    auto ptr = sample->sample.getVelocities();
+DEFINE_COMMON_INPUT_SAMPLE_FUNCTIONS(FaceSet, face_set)
 
-    auto résultat = Abc_V3f_Array_Sample();
-    if (ptr) {
-        résultat.values = reinterpret_cast<Abc_V3f *>(const_cast<Abc::V3f *>(ptr->get()));
-        résultat.num_values = ptr->size();
-    }
-    else {
-        résultat.values = nullptr;
-        résultat.num_values = 0;
-    }
-    return résultat;
-}
+DEFINE_FACE_SET_SAMPLE_ARRAY_GET_FUNCTIONS(DEFINE_INPUT_SAMPLE_ARRAY_GET_FUNCTION)
 
-struct Abc_Int32_Array_Sample abc_input_polymesh_sample_get_face_indices(
-    struct Abc_Input_PolyMesh_Sample *sample)
-{
-    auto ptr = sample->sample.getFaceIndices();
+/** \} */
 
-    auto résultat = Abc_Int32_Array_Sample();
-    if (ptr) {
-        résultat.values = reinterpret_cast<int32_t *>(const_cast<int *>(ptr->get()));
-        résultat.num_values = ptr->size();
-    }
-    else {
-        résultat.values = nullptr;
-        résultat.num_values = 0;
-    }
-    return résultat;
-}
+/* ------------------------------------------------------------------------- */
+/** \nom Abc_Input_Points_Sample
+ *  À FAIRE:
+ *    Abc::IP3fArrayProperty getPositionsProperty() const
+ *    Abc::IV3fArrayProperty getVelocitiesProperty() const
+ *    Abc::IUInt64ArrayProperty getIdsProperty() const
+ *    IFloatGeomParam getWidthsParam() const
+ * \{ */
 
-struct Abc_Int32_Array_Sample abc_input_polymesh_sample_get_face_counts(
-    struct Abc_Input_PolyMesh_Sample *sample)
-{
-    auto ptr = sample->sample.getFaceCounts();
+struct Abc_Input_Points_Sample {
+    Abc_Input_Archive *archive = nullptr;
+    AbcGeom::IPointsSchema::Sample sample{};
+};
 
-    auto résultat = Abc_Int32_Array_Sample();
-    if (ptr) {
-        résultat.values = reinterpret_cast<int32_t *>(const_cast<int *>(ptr->get()));
-        résultat.num_values = ptr->size();
-    }
-    else {
-        résultat.values = nullptr;
-        résultat.num_values = 0;
-    }
-    return résultat;
-}
+DEFINE_COMMON_INPUT_SAMPLE_FUNCTIONS(Points, points)
+
+DEFINE_POINTS_SAMPLE_ARRAY_GET_FUNCTIONS(DEFINE_INPUT_SAMPLE_ARRAY_GET_FUNCTION)
 
 /** \} */
 
