@@ -10,7 +10,7 @@ est_actif :: fonc (ensemble: *EnsembleDeBits, indice: n32) -> bool
 {
     indice_octet := indice / 8;
     indice_bit := indice comme n8 % 8;
-    retourne (ensemble.bits[indice_octet] >> indice_bit) != 0;
+    retourne ensemble.bits[indice_octet] == (1 << indice_bit);
 }
 
 active :: fonc (ensemble: *EnsembleDeBits, indice: n32)
