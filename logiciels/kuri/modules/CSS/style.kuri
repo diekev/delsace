@@ -2764,7 +2764,9 @@ calcule_display_pour_mot_clé :: fonc (mot_clé: CSSOMString) -> *ValeurDeStyle
 {
     résultat: Display;
 
-    si mot_clé == PROP_none {
+    /* À FAIRE : le comportement de "contents" dépend de l'élément auquel il s'applique.
+     * https://drafts.csswg.org/css-display/#unbox */
+    si mot_clé == PROP_none || mot_clé == PROP_contents {
         résultat.outer_type = Display.Type.None;
     }
     sinon si mot_clé == PROP_block {
