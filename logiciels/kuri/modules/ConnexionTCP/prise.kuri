@@ -194,6 +194,7 @@ Type_Erreur_Connexion :: énum {
     INCONNUE;
     HÔTE_FERMA_LA_CONNEXION;
     SSL;
+    INTERNE_SSL;
 
     // Erreurs potentielles
     // CONNEXION_RÉFUSÉE
@@ -215,7 +216,6 @@ Type_Erreur_Connexion :: énum {
     // PROXY_NON_TROUVÉ
     // PROTOCOL_PROXY
     // OPÉRATION
-    // INTERNE_SSL
     // DONNÉES_UTILISATEUR_INVALIDE_SSL
     // TEMPORAIRE
 }
