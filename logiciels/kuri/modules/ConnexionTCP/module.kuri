@@ -220,7 +220,7 @@ dispatch_évènement :: fonc (prise: *Prise, évènements: EPOLL_EVENTS, erreurs
         SEMI_PRISE {
             si évènements.EPOLLOUT {
                 si erreurs != EPOLL_EVENTS.zéro {
-                    prise.contexte_.quand_erreur_connexion_(prise);
+                    notifie_erreur(prise, erreurs);
                     prise.ferme_connexion_en_cours();
                 }
                 sinon {
@@ -275,6 +275,7 @@ dispatch_évènement :: fonc (prise: *Prise, évènements: EPOLL_EVENTS, erreurs
         }
         PRISE {
             si erreurs != EPOLL_EVENTS.zéro {
+                notifie_erreur(prise, erreurs);
                 prise.ferme();
                 retourne;
             }
@@ -342,7 +343,7 @@ initialise_rappels_pour_contexte_vide :: fonc (ctx: *Contexte)
     {
     }
 
-    rappel_vide_quand_erreur_connexion :: fonc (prise: *Prise @inutilisée)
+    rappel_vide_quand_erreur_connexion :: fonc (prise: *Prise @inutilisée, type: Type_Erreur_Connexion @inutilisée, détail: chaine @inutilisée)
     {
     }
 

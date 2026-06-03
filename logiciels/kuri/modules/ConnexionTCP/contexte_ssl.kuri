@@ -143,6 +143,7 @@ sur_données_reçues_ssl :: fonc (prise: *Prise, données: []octet)
             si err != SSL_ERROR_WANT_READ && err != SSL_ERROR_WANT_WRITE {
                 efface_file_erreur_locale(err);
                 /* Erreur critique, fermons la connexion. */
+                notifie_erreur(prise, Type_Erreur_Connexion.SSL);
                 prise.ferme();
                 retourne;
             }
@@ -155,6 +156,7 @@ sur_données_reçues_ssl :: fonc (prise: *Prise, données: []octet)
 
             /* Présumons que nous avons vider le tampon, ou alors il y eu une erreur. */
             si données_ssl_boucle.ssl_read_input_length {
+                notifie_erreur(prise, Type_Erreur_Connexion.SSL);
                 prise.ferme();
                 retourne;
             }
@@ -283,7 +285,7 @@ contexte_ssl_parasite_quand_fin :: fonc (ctx: *ContextePriseSSL @inutilisée, ra
     retourne sur_fin_ssl;
 }
 
-contexte_ssl_parasite_quand_erreur_connexion :: fonc (ctx: *ContextePriseSSL @inutilisée, rappel: fonc (prise: *Prise)) -> type_de(rappel)
+contexte_ssl_parasite_quand_erreur_connexion :: fonc (ctx: *ContextePriseSSL @inutilisée, rappel: fonc (prise: *Prise, type: Type_Erreur_Connexion, détail: chaine)) -> type_de(rappel)
 {
     retourne rappel;
 }

@@ -9,7 +9,7 @@ Contexte :: struct {
     quand_fermeture_: fonc (prise: *Prise);
     quand_timeout_: fonc (prise: *Prise);
     quand_fin_: fonc (prise: *Prise);
-    quand_erreur_connexion_: fonc (prise: *Prise);
+    quand_erreur_connexion_: fonc (prise: *Prise, type: Type_Erreur_Connexion, détail: chaine);
 
     taille_mémoire: z64;
     info_utilisateur: *InfoType;
@@ -312,7 +312,7 @@ mute_quand_fin :: fonc (ctx: *Contexte, rappel: fonc (prise: *Prise))
     };
 }
 
-mute_quand_erreur_connexion :: fonc (ctx: *Contexte, rappel: fonc (prise: *Prise))
+mute_quand_erreur_connexion :: fonc (ctx: *Contexte, rappel: fonc (prise: *Prise, type: Type_Erreur_Connexion, détail: chaine))
 {
     ctx.quand_erreur_connexion_ = si ctx.est_ssl() {
         contexte_ssl_parasite_quand_erreur_connexion(ctx comme *ContextePriseSSL, rappel);

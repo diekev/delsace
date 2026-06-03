@@ -189,3 +189,50 @@ lis_nombre_évènements :: fonc (prise: *Prise) -> (succès: bool, compte: n64)
     résultat := eventfd_read(prise.fichier.desc, *value);
     retourne résultat == 0, value;
 }
+
+Type_Erreur_Connexion :: énum {
+    INCONNUE;
+    HÔTE_FERMA_LA_CONNEXION;
+    SSL;
+
+    // Erreurs potentielles
+    // CONNEXION_RÉFUSÉE
+    // HÔTE_INTROUVABLE
+    // ACCÈS_PRISE
+    // RESOURCE_PRISE
+    // TIMEOUT
+    // DATAGRAMME_TROP_LARGE
+    // RÉSEAU
+    // ADRESSE_EN_UTILISATION
+    // ADRESSE_PRISE_NON_DISPONIBLE
+    // OPÉRATION_PRISE_NON_SUPPORTÉE
+    // OPÉRATION_PRISE_NON_TERMINÉE
+    // AUTHENTIFICATION_PROXY_REQUISE
+    // ÉCHEC_SERRAGE_DE_MAIN_SSL
+    // CONNEXION_PROXY_REFUSÉE
+    // CONNEXION_PROXY_FERMÉE
+    // CONNEXION_PROXY_TIMEOUT
+    // PROXY_NON_TROUVÉ
+    // PROTOCOL_PROXY
+    // OPÉRATION
+    // INTERNE_SSL
+    // DONNÉES_UTILISATEUR_INVALIDE_SSL
+    // TEMPORAIRE
+}
+
+notifie_erreur :: fonc (prise: *Prise, events: EPOLL_EVENTS)
+{
+    si (events & EPOLL_EVENTS.EPOLLHUP) != EPOLL_EVENTS.zéro {
+        notifie_erreur(prise, Type_Erreur_Connexion.HÔTE_FERMA_LA_CONNEXION);
+    }
+    sinon {
+        notifie_erreur(prise, Type_Erreur_Connexion.INCONNUE);
+    }
+}
+
+notifie_erreur :: fonc (prise: *Prise, type: Type_Erreur_Connexion, détail := "")
+{
+    si prise.contexte_.quand_erreur_connexion_ {
+        prise.contexte_.quand_erreur_connexion_(prise, type, détail);
+    }
+}
