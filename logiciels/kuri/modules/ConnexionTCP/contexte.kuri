@@ -184,19 +184,32 @@ crée_prise_connexion :: fonc (contexte_: *Contexte, hôte: chaine, port: n16, $
         retourne nul;
     }
 
-    // imprime("crée_prise_connexion\n")
-
-    fichier := tente ouvre_connexion_serveur(hôte, port, vrai) piège _ {
-        // imprime("erreur lors de l'ouverture d'une connexion: %\n", err)
-        retourne nul;
-    };
-
-    prise := crée_prise_interne(contexte_, fichier, info_de(Type_Données));
+    prise := crée_prise_interne(contexte_, Fichier(), info_de(Type_Données));
     prise.type = TypePrise.SEMI_PRISE;
+
+    prise.fichier = tente ouvre_connexion_serveur(hôte, port, vrai) piège err {
+        discr err {
+            RésolutionHôteImpossible {
+                notifie_erreur(prise, Type_Erreur_Connexion.HÔTE_INTROUVABLE);
+            }
+            CréationPriseImpossible {
+                notifie_erreur(prise, Type_Erreur_Connexion.INCONNUE);
+            }
+            ConnexionPriseImpossible {
+                notifie_erreur(prise, Type_Erreur_Connexion.INCONNUE);
+            }
+            sinon {
+                notifie_erreur(prise, Type_Erreur_Connexion.INCONNUE);
+            }
+        }
+
+        prise.ferme_connexion_en_cours();
+        retourne prise;
+    };
 
     si !ajoute_prise(contexte_.boucle_prises, prise, EPOLL_EVENTS.EPOLLOUT) {
         prise.ferme();
-        retourne nul;
+        retourne prise;
     }
 
     retourne prise;
