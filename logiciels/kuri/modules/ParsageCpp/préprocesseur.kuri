@@ -166,6 +166,11 @@ sur_développement_has_builtin :: fonc (préprocesseur: *PréProcesseur, argumen
     retourne crée_lexème_nombre_naturel(préprocesseur, 0);
 }
 
+sur_développement_has_attribute :: fonc (préprocesseur: *PréProcesseur, arguments: [..][..]LexèmePréprocès @inutilisée) -> LexèmePréprocès
+{
+    retourne crée_lexème_nombre_naturel(préprocesseur, 0);
+}
+
 sur_développement_has_cpp_attribute :: fonc (préprocesseur: *PréProcesseur, arguments: [..][..]LexèmePréprocès @inutilisée) -> LexèmePréprocès
 {
     retourne crée_lexème_nombre_naturel(préprocesseur, 0);
@@ -545,6 +550,7 @@ initialise_préprocesseur :: fonc (préprocesseur: *PréProcesseur, unit: *Trans
 
     ajoute_définition_intrinsèque(préprocesseur, "__has_builtin", 1, sur_développement_has_builtin);
     ajoute_définition_intrinsèque(préprocesseur, "__has_cpp_attribute", 1, sur_développement_has_cpp_attribute);
+    ajoute_définition_intrinsèque(préprocesseur, "__has_attribute", 1, sur_développement_has_attribute);
 
     ajoute_définition_intrinsèque(préprocesseur, "__has_include", 1, sur_développement_has_include);
     ajoute_définition_intrinsèque(préprocesseur, "__has_include_next", 1, sur_développement_has_include_next);
