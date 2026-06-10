@@ -1219,6 +1219,31 @@ ENUMERATE_INPUT_OBJECT_TYPES(DECLARE_TYPED_INPUT_OBJECTS)
         return get_input_array_sample(ptr);                                                       \
     }
 
+#define DEFINE_COMMON_INPUT_SCHEMA_FUNCTIONS(uname, lname)                                        \
+    struct Abc_Time_Sampling *abc_input_##lname##_schema_get_time_sampling(                       \
+        struct Abc_Input_##uname *lname)                                                          \
+    {                                                                                             \
+        return make_time_sampling(lname->archive,                                                 \
+                                  lname->typed_object.getSchema().getTimeSampling());             \
+    }                                                                                             \
+    bool abc_input_##lname##_schema_is_constant(struct Abc_Input_##uname *lname)                  \
+    {                                                                                             \
+        return lname->typed_object.getSchema().isConstant();                                      \
+    }                                                                                             \
+    uint64_t abc_input_##lname##_get_num_samples(struct Abc_Input_##uname *lname)                 \
+    {                                                                                             \
+        auto résultat = lname->typed_object.getSchema().getNumSamples();                          \
+        return résultat;                                                                          \
+    }                                                                                             \
+    void abc_input_##lname##_schema_reset(struct Abc_Input_##uname *lname)                        \
+    {                                                                                             \
+        lname->typed_object.getSchema().reset();                                                  \
+    }                                                                                             \
+    bool abc_input_##lname##_schema_valid(struct Abc_Input_##uname *lname)                        \
+    {                                                                                             \
+        return lname->typed_object.getSchema().valid();                                           \
+    }
+
 #define DEFINE_COMMON_INPUT_SAMPLE_FUNCTIONS(uname, lname)                                        \
     struct Abc_Time_Sampling *abc_input_##lname##_get_time_sampling(                              \
         struct Abc_Input_##uname *lname)                                                          \
@@ -1454,6 +1479,108 @@ struct Abc_Input_Points_Sample {
 DEFINE_COMMON_INPUT_SAMPLE_FUNCTIONS(Points, points)
 
 DEFINE_POINTS_SAMPLE_ARRAY_GET_FUNCTIONS(DEFINE_INPUT_SAMPLE_ARRAY_GET_FUNCTION)
+
+/** \} */
+
+/* ------------------------------------------------------------------------- */
+/** \nom Abc_Camera_Sample
+ * \{ */
+
+struct Abc_Camera_Sample {
+    ContexteKuri *ctx_kuri = nullptr;
+    AbcGeom::CameraSample sample{};
+};
+
+void abc_camera_sample_get_screen_window(struct Abc_Camera_Sample *sample,
+                                         double *r_top,
+                                         double *r_bottom,
+                                         double *r_left,
+                                         double *r_right)
+{
+    double top;
+    double bottom;
+    double left;
+    double right;
+    sample->sample.getScreenWindow(top, bottom, left, right);
+    *r_top = top;
+    *r_bottom = bottom;
+    *r_left = left;
+    *r_right = right;
+}
+
+#define DEFINE_CAMERA_SAMPLE_GET_SET(nom_ipa, nom_method, type_ipa)                               \
+    type_ipa abc_camera_sample_get_##nom_ipa(struct Abc_Camera_Sample *sample)                    \
+    {                                                                                             \
+        return sample->sample.get##nom_method();                                                  \
+    }                                                                                             \
+    void abc_camera_sample_set_##nom_ipa(struct Abc_Camera_Sample *sample, type_ipa value)        \
+    {                                                                                             \
+        sample->sample.set##nom_method(value);                                                    \
+    }
+
+ENUMERATE_CAMERA_SAMPLE_PROPERTIES_SIMPLE(DEFINE_CAMERA_SAMPLE_GET_SET);
+
+#undef DEFINE_CAMERA_SAMPLE_GET_SET
+
+#define DEFINE_CAMERA_SAMPLE_GET_SET(nom_ipa, nom_method, type_ipa)                               \
+    void abc_camera_sample_get_##nom_ipa(struct Abc_Camera_Sample *sample, type_ipa *value)       \
+    {                                                                                             \
+        *value = sample->sample.get##nom_method();                                                \
+    }                                                                                             \
+    void abc_camera_sample_set_##nom_ipa(struct Abc_Camera_Sample *sample, type_ipa *value)       \
+    {                                                                                             \
+        sample->sample.set##nom_method(*value);                                                   \
+    }
+
+ENUMERATE_CAMERA_SAMPLE_PROPERTIES_COMPLEX(DEFINE_CAMERA_SAMPLE_GET_SET);
+
+#undef DEFINE_CAMERA_SAMPLE_GET_SET
+
+void abc_camera_sample_reset(struct Abc_Camera_Sample *sample)
+{
+    sample->sample.reset();
+}
+
+void abc_camera_sample_destroy(struct Abc_Camera_Sample *sample)
+{
+    if (sample) {
+        kuri_deloge(sample->ctx_kuri, sample);
+    }
+}
+
+double abc_camera_sample_get_core_value(struct Abc_Camera_Sample *sample, uint64_t index)
+{
+    return sample->sample.getCoreValue(index);
+}
+
+double abc_camera_sample_get_field_of_view(struct Abc_Camera_Sample *sample)
+{
+    return sample->sample.getFieldOfView();
+}
+
+/** \} */
+
+/* ------------------------------------------------------------------------- */
+/** \nom Abc_Input_Camera
+ * \{ */
+
+DEFINE_COMMON_INPUT_SCHEMA_FUNCTIONS(Camera, camera)
+
+struct Abc_Camera_Sample *abc_input_camera_schema_get_value(struct Abc_Input_Camera *camera,
+                                                            struct Abc_Sample_Selector selector)
+{
+    auto résultat = kuri_loge<Abc_Camera_Sample>(camera->archive->ctx_kuri);
+    résultat->ctx_kuri = camera->archive->ctx_kuri;
+    résultat->sample = camera->typed_object.getSchema().getValue(get_sample_selector(selector));
+    return résultat;
+}
+
+void abc_input_camera_schema_get(struct Abc_Input_Camera *camera,
+                                 struct Abc_Camera_Sample *sample,
+                                 struct Abc_Sample_Selector selector)
+{
+    camera->typed_object.getSchema().get(sample->sample, get_sample_selector(selector));
+}
 
 /** \} */
 
@@ -2509,23 +2636,28 @@ Abc_Output_Camera *abc_output_camera_create(Abc_Output_Xform *parent,
 
 DEFINE_COMMON_OUTPUT_OBJECT_FUNCTIONS(Camera, camera)
 
-struct Abc_Output_Camera_Sample {
-    ContexteKuri *ctx_kuri = nullptr;
-    AbcGeom::CameraSample sample{};
-};
+struct Abc_Camera_Sample *abc_output_camera_create_sample(struct Abc_Output_Camera *camera)
+{
+    auto résultat = kuri_loge<Abc_Camera_Sample>(camera->archive->ctx_kuri);
+    résultat->ctx_kuri = camera->archive->ctx_kuri;
+    résultat->sample = AbcGeom::CameraSample();
+    return résultat;
+}
 
-DEFINE_COMMON_SAMPLE_FONCTIONS(Camera, camera)
-
-struct Abc_Output_Camera_Sample *abc_output_camera_sample_create_window(
+struct Abc_Camera_Sample *abc_output_camera_sample_create_window(
     struct Abc_Output_Archive *archive, double top, double bottom, double left, double right)
 {
-    auto résultat = kuri_loge<Abc_Output_Camera_Sample>(archive->ctx_kuri);
+    auto résultat = kuri_loge<Abc_Camera_Sample>(archive->ctx_kuri);
     résultat->ctx_kuri = archive->ctx_kuri;
     résultat->sample = AbcGeom::CameraSample(top, bottom, left, right);
     return résultat;
 }
 
-ENUMERATE_OUTPUT_CAMERA_SAMPLE_SCALAR_INTERFACE(DEFINE_OUTPUT_SAMPLE_SCALAR_FUNCTIONS)
+void abc_output_camera_sample_set(struct Abc_Output_Camera *camera,
+                                  struct Abc_Camera_Sample *sample)
+{
+    camera->set_sample(sample->sample);
+}
 
 /** \} */
 
@@ -2674,7 +2806,7 @@ Abc_Output_Light *abc_output_light_create(Abc_Output_Xform *parent,
 DEFINE_COMMON_OUTPUT_OBJECT_FUNCTIONS(Light, light)
 
 void abc_output_light_set_camera_sample(struct Abc_Output_Light *light,
-                                        struct Abc_Output_Camera_Sample *sample)
+                                        struct Abc_Camera_Sample *sample)
 {
     light->object.getSchema().setCameraSample(sample->sample);
 }
