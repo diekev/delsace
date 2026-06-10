@@ -35,48 +35,6 @@ ALIGNEMENT_DONNÉES_UTILISATEUR :: 16;
 
 // --------------------------------------------------
 
-ajoute_prise :: fonc (boucle_prises: *Boucle, prise: *Prise, évènements: EPOLL_EVENTS) -> bool
-{
-    // imprime("ajoute une prise.\n")
-    ev: epoll_event;
-    ev.events = évènements | EPOLL_EVENTS.EPOLLET;
-    ev.data.ptr = prise;
-
-    si epoll_ctl(boucle_prises.fd, EPOLL_CTL_OP.ADD, prise.fichier.desc comme z32, *ev) == -1 {
-        // imprime("[epoll_ctl] impossible de créer un control pour la prise !\n")
-        retourne faux;
-    }
-
-    boucle_prises.nombre_de_prises_lancées += 1;
-
-    retourne vrai;
-}
-
-change_évènement :: fonc (prise: *Prise, boucle_prises: *Boucle, évènement: EPOLL_EVENTS)
-{
-    // imprime("change_évènement.\n")
-    ev: epoll_event;
-    ev.events = évènement | EPOLL_EVENTS.EPOLLET;
-    ev.data.ptr = prise;
-
-    si epoll_ctl(boucle_prises.fd, EPOLL_CTL_OP.MOD, prise.fichier.desc comme z32, *ev) == -1 {
-        // imprime("[epoll_ctl] impossible de changer un control pour la prise !\n")
-        retourne;
-    }
-}
-
-enlève_prise :: fonc (boucle_prises: *Boucle, prise: *Prise)
-{
-    boucle_prises.nombre_de_prises_lancées -= 1;
-
-    // imprime("enlève_prise.\n")
-    ev: epoll_event;
-    si epoll_ctl(boucle_prises.fd, EPOLL_CTL_OP.DEL, prise.fichier.desc comme z32, *ev) == -1 {
-        // imprime("[epoll_ctl] impossible de changer un control pour la prise !\n")
-        retourne;
-    }
-}
-
 Boucle :: struct {
     MAX_EVENTS :: 1024;
     // À FAIRE : crash dans init_de() si la valeur est initialisée
@@ -202,8 +160,6 @@ traite_évènements_prêts :: fonc (boucle_prises: *Boucle)
     } 
 }
 
-#portée_export
-
 dispatch_évènement :: fonc (prise: *Prise, évènements: EPOLL_EVENTS, erreurs: EPOLL_EVENTS)
 {
     // imprime("dispatch_évènement: % % %\n", prise.type, évènements, erreurs)
@@ -220,7 +176,7 @@ dispatch_évènement :: fonc (prise: *Prise, évènements: EPOLL_EVENTS, erreurs
         SEMI_PRISE {
             si évènements.EPOLLOUT {
                 si erreurs != EPOLL_EVENTS.zéro {
-                    prise.contexte_.quand_erreur_connexion_(prise);
+                    notifie_erreur(prise, erreurs);
                     prise.ferme_connexion_en_cours();
                 }
                 sinon {
@@ -275,6 +231,7 @@ dispatch_évènement :: fonc (prise: *Prise, évènements: EPOLL_EVENTS, erreurs
         }
         PRISE {
             si erreurs != EPOLL_EVENTS.zéro {
+                notifie_erreur(prise, erreurs);
                 prise.ferme();
                 retourne;
             }
@@ -313,58 +270,46 @@ dispatch_évènement :: fonc (prise: *Prise, évènements: EPOLL_EVENTS, erreurs
     }
 }
 
-/* Initialise les fonctions de rappels pour un contexte « vide », c'est-à-dire qui ne fait rien.
- * Ceci nous sers principalement pour nous assurer que les pointeurs de fonction du contexte sont
- * propremenet initialisés et nous évite de toujours les vérifier avant de les appeler. */
-initialise_rappels_pour_contexte_vide :: fonc (ctx: *Contexte)
+change_évènement :: fonc (prise: *Prise, boucle_prises: *Boucle, évènement: EPOLL_EVENTS)
 {
-    rappel_vide_quand_ouverture :: fonc (prise: *Prise @inutilisée, est_client: bool @inutilisée)
-    {
-    }
+    // imprime("change_évènement.\n")
+    ev: epoll_event;
+    ev.events = évènement | EPOLL_EVENTS.EPOLLET;
+    ev.data.ptr = prise;
 
-    rappel_vide_quand_données_reçues :: fonc (prise: *Prise @inutilisée, données: []octet @inutilisée)
-    {
+    si epoll_ctl(boucle_prises.fd, EPOLL_CTL_OP.MOD, prise.fichier.desc comme z32, *ev) == -1 {
+        // imprime("[epoll_ctl] impossible de changer un control pour la prise !\n")
+        retourne;
     }
-
-    rappel_vide_quand_écriture :: fonc (prise: *Prise @inutilisée)
-    {
-    }
-
-    rappel_vide_quand_fermeture :: fonc (prise: *Prise @inutilisée)
-    {
-    }
-
-    rappel_vide_quand_timeout :: fonc (prise: *Prise @inutilisée)
-    {
-    }
-
-    rappel_vide_quand_fin :: fonc (prise: *Prise @inutilisée)
-    {
-    }
-
-    rappel_vide_quand_erreur_connexion :: fonc (prise: *Prise @inutilisée)
-    {
-    }
-
-    ctx.mute_quand_ouverture(rappel_vide_quand_ouverture);
-    ctx.mute_quand_données_reçues(rappel_vide_quand_données_reçues);
-    ctx.mute_quand_écriture(rappel_vide_quand_écriture);
-    ctx.mute_quand_fermeture(rappel_vide_quand_fermeture);
-    ctx.mute_quand_timeout(rappel_vide_quand_timeout);
-    ctx.mute_quand_fin(rappel_vide_quand_fin);
-    ctx.mute_quand_erreur_connexion(rappel_vide_quand_erreur_connexion);
 }
 
-// Fonction auxilliaire pour créer un contexte valide, mais dont les rappels ne font rien
-// utile pour les développements.
-crée_contexte_vide :: fonc (boucle_évènements: *Boucle, options: *OptionsCréationContexteSSL, $T: type_de_données) -> *Contexte
+#portée_module
+
+ajoute_prise :: fonc (boucle_prises: *Boucle, prise: *Prise, évènements: EPOLL_EVENTS) -> bool
 {
-    ctx := crée_contexte(boucle_évènements, options, T);
-    initialise_rappels_pour_contexte_vide(ctx);
-    retourne ctx;
+    // imprime("ajoute une prise.\n")
+    ev: epoll_event;
+    ev.events = évènements | EPOLL_EVENTS.EPOLLET;
+    ev.data.ptr = prise;
+
+    si epoll_ctl(boucle_prises.fd, EPOLL_CTL_OP.ADD, prise.fichier.desc comme z32, *ev) == -1 {
+        // imprime("[epoll_ctl] impossible de créer un control pour la prise !\n")
+        retourne faux;
+    }
+
+    boucle_prises.nombre_de_prises_lancées += 1;
+
+    retourne vrai;
 }
 
-crée_contexte_vide :: fonc (boucle_évènements: *Boucle, $T: type_de_données) -> *Contexte
+enlève_prise :: fonc (boucle_prises: *Boucle, prise: *Prise)
 {
-    retourne crée_contexte_vide(boucle_évènements, nul, T);
+    boucle_prises.nombre_de_prises_lancées -= 1;
+
+    // imprime("enlève_prise.\n")
+    ev: epoll_event;
+    si epoll_ctl(boucle_prises.fd, EPOLL_CTL_OP.DEL, prise.fichier.desc comme z32, *ev) == -1 {
+        // imprime("[epoll_ctl] impossible de changer un control pour la prise !\n")
+        retourne;
+    }
 }
