@@ -77,6 +77,9 @@ typedef struct Abc_Milimeters {
     double value;
 
 #ifdef __cplusplus
+    Abc_Milimeters(double v) : value(v)
+    {
+    }
     operator double()
     {
         return value;
@@ -88,6 +91,9 @@ typedef struct Abc_Centimeters {
     double value;
 
 #ifdef __cplusplus
+    Abc_Centimeters(double v) : value(v)
+    {
+    }
     operator double()
     {
         return value;
@@ -99,6 +105,9 @@ typedef struct Abc_Seconds {
     double value;
 
 #ifdef __cplusplus
+    Abc_Seconds(double v) : value(v)
+    {
+    }
     operator double()
     {
         return value;
@@ -690,6 +699,14 @@ void abc_input_archive_get_start_and_end_time(struct Abc_Input_Archive *archive,
     struct sample_type abc_input_##lname##_sample_##snake_name(                                   \
         struct Abc_Input_##uname##_Sample *lname##_sample);
 
+#define DECLARE_COMMON_INPUT_SCHEMA_FUNCTIONS(uname, lname)                                       \
+    bool abc_input_##lname##_schema_is_constant(struct Abc_Input_##uname *lname);                 \
+    struct Abc_Time_Sampling *abc_input_##lname##_get_time_sampling(                              \
+        struct Abc_Input_##uname *lname);                                                         \
+    uint64_t abc_input_##lname##_schema_get_num_samples(struct Abc_Input_##uname *lname);         \
+    void abc_input_##lname##_schema_reset(struct Abc_Input_##uname *lname);                       \
+    bool abc_input_##lname##_schema_valid(struct Abc_Input_##uname *lname);
+
 #define DECLARE_COMMON_INPUT_SAMPLE_FUNCTIONS(uname, lname)                                       \
     struct Abc_Input_##uname##_Sample;                                                            \
     bool abc_input_##lname##_schema_is_constant(struct Abc_Input_##uname *lname);                 \
@@ -800,6 +817,77 @@ DECLARE_COMMON_INPUT_SAMPLE_FUNCTIONS(Points, points)
     X(Points, points, get_ids, getIds, Abc_UInt64_Array_Sample)
 
 DEFINE_POINTS_SAMPLE_ARRAY_GET_FUNCTIONS(DECLARE_INPUT_SAMPLE_ARRAY_GET_FUNCTION)
+
+/** \} */
+
+/* ------------------------------------------------------------------------- */
+/** \nom Abc_Camera_Sample
+ * \{ */
+
+#define ENUMERATE_CAMERA_SAMPLE_PROPERTIES_SIMPLE(X)                                              \
+    X(lens_squeeze_ratio, LensSqueezeRatio, double)                                               \
+    X(overscan_left, OverScanLeft, double)                                                        \
+    X(overscan_right, OverScanRight, double)                                                      \
+    X(overscan_top, OverScanTop, double)                                                          \
+    X(overscan_bottom, OverScanBottom, double)                                                    \
+    X(fstop, FStop, double)
+
+#define ENUMERATE_CAMERA_SAMPLE_PROPERTIES_COMPLEX(X)                                             \
+    X(focal_length, FocalLength, Abc_Milimeters)                                                  \
+    X(horizontal_aperture, HorizontalAperture, Abc_Centimeters)                                   \
+    X(horizontal_film_offset, HorizontalFilmOffset, Abc_Centimeters)                              \
+    X(vertical_aperture, VerticalAperture, Abc_Centimeters)                                       \
+    X(vertical_film_offset, VerticalFilmOffset, Abc_Centimeters)                                  \
+    X(focus_distance, FocusDistance, Abc_Centimeters)                                             \
+    X(shutter_open, ShutterOpen, Abc_Seconds)                                                     \
+    X(shutter_close, ShutterClose, Abc_Seconds)                                                   \
+    X(near_clipping_plane, NearClippingPlane, Abc_Centimeters)                                    \
+    X(far_clipping_plane, FarClippingPlane, Abc_Centimeters)
+
+struct Abc_Camera_Sample;
+
+void abc_camera_sample_get_screen_window(struct Abc_Camera_Sample *sample,
+                                         double *r_top,
+                                         double *r_bottom,
+                                         double *r_left,
+                                         double *r_right);
+
+#define DECLARE_CAMERA_SAMPLE_GET_SET(nom_ipa, nom_method, type_ipa)                              \
+    type_ipa abc_camera_sample_get_##nom_ipa(struct Abc_Camera_Sample *sample);                   \
+    void abc_camera_sample_set_##nom_ipa(struct Abc_Camera_Sample *sample, type_ipa value);
+
+ENUMERATE_CAMERA_SAMPLE_PROPERTIES_SIMPLE(DECLARE_CAMERA_SAMPLE_GET_SET);
+
+#undef DECLARE_CAMERA_SAMPLE_GET_SET
+
+#define DECLARE_CAMERA_SAMPLE_GET_SET(nom_ipa, nom_method, type_ipa)                              \
+    void abc_camera_sample_get_##nom_ipa(struct Abc_Camera_Sample *sample, type_ipa *value);      \
+    void abc_camera_sample_set_##nom_ipa(struct Abc_Camera_Sample *sample, type_ipa *value);
+
+ENUMERATE_CAMERA_SAMPLE_PROPERTIES_COMPLEX(DECLARE_CAMERA_SAMPLE_GET_SET);
+
+#undef DECLARE_CAMERA_SAMPLE_GET_SET
+
+void abc_camera_sample_reset(struct Abc_Camera_Sample *sample);
+
+double abc_camera_sample_get_core_value(struct Abc_Camera_Sample *sample, uint64_t index);
+
+double abc_camera_sample_get_field_of_view(struct Abc_Camera_Sample *sample);
+
+/** \} */
+
+/* ------------------------------------------------------------------------- */
+/** \nom Abc_Input_Camera
+ * \{ */
+
+DECLARE_COMMON_INPUT_SCHEMA_FUNCTIONS(Camera, camera)
+
+struct Abc_Camera_Sample *abc_input_camera_schema_get_value(struct Abc_Input_Camera *camera,
+                                                            struct Abc_Sample_Selector selector);
+
+void abc_input_camera_schema_get(struct Abc_Input_Camera *camera,
+                                 struct Abc_Camera_Sample *sample,
+                                 struct Abc_Sample_Selector selector);
 
 /** \} */
 
@@ -1293,32 +1381,13 @@ struct Abc_Output_Camera *abc_output_camera_create(struct Abc_Output_Xform *pare
 
 DECLARE_COMMON_OUTPUT_OBJECT_FUNCTIONS(Camera, camera)
 
-#define ENUMERATE_OUTPUT_CAMERA_SAMPLE_SCALAR_INTERFACE(X)                                        \
-    X(Camera, camera, focal_length_set, setFocalLength, Abc_Milimeters)                           \
-    X(Camera, camera, horizontal_aperture_set, setHorizontalAperture, Abc_Centimeters)            \
-    X(Camera, camera, horizontal_film_offset_set, setHorizontalFilmOffset, Abc_Centimeters)       \
-    X(Camera, camera, vertical_aperture_set, setVerticalAperture, Abc_Centimeters)                \
-    X(Camera, camera, vertical_film_offset_set, setVerticalFilmOffset, Abc_Centimeters)           \
-    X(Camera, camera, lens_squeeze_ratio_set, setLensSqueezeRatio, double)                        \
-    X(Camera, camera, overscan_left_set, setOverScanLeft, double)                                 \
-    X(Camera, camera, overscan_right_set, setOverScanRight, double)                               \
-    X(Camera, camera, overscan_top_set, setOverScanTop, double)                                   \
-    X(Camera, camera, overscan_bottom_set, setOverScanBottom, double)                             \
-    X(Camera, camera, fstop_set, setFStop, double)                                                \
-    X(Camera, camera, focus_distance_set, setFocusDistance, Abc_Centimeters)                      \
-    X(Camera, camera, shutter_open_set, setShutterOpen, Abc_Seconds)                              \
-    X(Camera, camera, shutter_close_set, setShutterClose, Abc_Seconds)                            \
-    X(Camera, camera, near_clipping_plane_set, setNearClippingPlane, Abc_Centimeters)             \
-    X(Camera, camera, far_clipping_plane_set, setFarClippingPlane, Abc_Centimeters)
+struct Abc_Camera_Sample *abc_output_camera_create_sample(struct Abc_Output_Camera *camera);
 
-struct Abc_Output_Camera_Sample;
-
-DECLARE_COMMON_SAMPLE_FONCTIONS(Camera, camera)
-
-struct Abc_Output_Camera_Sample *abc_output_camera_sample_create_window(
+struct Abc_Camera_Sample *abc_output_camera_sample_create_window(
     struct Abc_Output_Archive *archive, double top, double bottom, double left, double right);
 
-ENUMERATE_OUTPUT_CAMERA_SAMPLE_SCALAR_INTERFACE(DECLARE_OUTPUT_SAMPLE_SCALAR_FUNCTIONS)
+void abc_output_camera_sample_set(struct Abc_Output_Camera *camera,
+                                  struct Abc_Camera_Sample *sample);
 
 /** \} */
 
@@ -1380,7 +1449,7 @@ struct Abc_Output_Light *abc_output_light_create(struct Abc_Output_Xform *parent
 DECLARE_COMMON_OUTPUT_OBJECT_FUNCTIONS(Light, light)
 
 void abc_output_light_set_camera_sample(struct Abc_Output_Light *light,
-                                        struct Abc_Output_Camera_Sample *sample);
+                                        struct Abc_Camera_Sample *sample);
 
 /** \} */
 

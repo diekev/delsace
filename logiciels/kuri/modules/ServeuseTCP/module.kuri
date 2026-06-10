@@ -125,7 +125,7 @@ rappel_quand_fin :: fonc (serveuse: *ServeuseTCP, rappel: fonc (prise: *Prise))
     serveuse.ctx.mute_quand_fin(rappel);
 }
 
-rappel_quand_erreur_connexion :: fonc (serveuse: *ServeuseTCP, rappel: fonc (prise: *Prise))
+rappel_quand_erreur_connexion :: fonc (serveuse: *ServeuseTCP, rappel: fonc (prise: *Prise, type: Type_Erreur_Connexion, détail: chaine))
 {
     serveuse.ctx.mute_quand_erreur_connexion(rappel);
 }
