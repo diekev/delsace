@@ -409,7 +409,7 @@ supprime :: fonc (chm: CheminFichier) -> Optionnel(ErreurFichier)
 donne_chemins_du_dossier :: fonc (dossier: chaine, résultat: *[..]chaine, extensions: ...chaine)
 {
     pour ExploratriceFichier(CheminFichier(dossier)) {
-        si extension.taille != 0 && !est_une_extension_parmi(it.extension(), ...extensions) {
+        si extensions.taille != 0 && !est_une_extension_parmi(it.extension(), ...extensions) {
             continue;
         }
 
