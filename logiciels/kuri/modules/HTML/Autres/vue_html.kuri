@@ -974,7 +974,7 @@ rappel_quand_écriture_prise :: fonc (prise: *Prise)
     }
 }
 
-rappel_quand_erreur_connexion_prise :: fonc (prise: *Prise)
+rappel_quand_erreur_connexion_prise :: fonc (prise: *Prise, type: Type_Erreur_Connexion @inutilisée, détail: chaine @inutilisée)
 {
     données_prise := données_utilisateur(prise, Données_Prise_Réseau);
 
