@@ -252,3 +252,70 @@ imprime_ligne :: fonc (enchaineuse: *Enchaineuse, tabuleuse: *Tabuleuse, ligne: 
 
     ajoute_au_tampon(enchaineuse, "|\n");
 }
+
+/* ------------------------------------------------------------------------- */
+/** \nom Tabuleuse_Procédurelle
+ * \{ */
+
+Rôle_Données_Requise :: énum {
+    CONTENU;
+}
+
+Adresse_Cellule :: struct {
+    ligne: n64;
+    colonne: n64;
+}
+
+Drapeaux_Tabuleuse :: énum_drapeau {
+    CACHE_ENTÊTE;
+    CELLULES_MODIFIABLES;
+}
+
+Tabuleuse_Procédurelle :: struct {
+    drapeaux: Drapeaux_Tabuleuse;
+    cotation_colonnes: [..]r64;
+
+    sur_donne_nombre_de_colonnes: fonc (base: *Tabuleuse_Procédurelle) -> n64;
+    sur_donne_nombre_de_lignes: fonc (base: *Tabuleuse_Procédurelle) -> n64;
+    sur_donne_données_entête: fonc (tabuleuse: *Tabuleuse_Procédurelle, adresse: Adresse_Cellule, rôle: Rôle_Données_Requise, résultat: *eini);
+    sur_donne_données_cellule: fonc (tabuleuse: *Tabuleuse_Procédurelle, adresse: Adresse_Cellule, rôle: Rôle_Données_Requise, résultat: *eini);
+}
+
+donne_nombre_de_colonnes :: fonc (tabuleuse: *Tabuleuse_Procédurelle) -> n64
+{
+    si tabuleuse.sur_donne_nombre_de_colonnes {
+        retourne tabuleuse.sur_donne_nombre_de_colonnes(tabuleuse);
+    }
+    retourne 0;
+}
+
+donne_nombre_de_lignes :: fonc (tabuleuse: *Tabuleuse_Procédurelle) -> n64
+{
+    si tabuleuse.sur_donne_nombre_de_lignes {
+        retourne tabuleuse.sur_donne_nombre_de_lignes(tabuleuse);
+    }
+    retourne 0;
+}
+
+donne_données_entête :: fonc (tabuleuse: *Tabuleuse_Procédurelle, rôle: Rôle_Données_Requise, résultat: *eini)
+{
+    si tabuleuse.sur_donne_données_entête {
+        tabuleuse.sur_donne_données_entête(tabuleuse, rôle, résultat);
+    }
+}
+
+donne_données_entête :: fonc (tabuleuse: *Tabuleuse_Procédurelle, adresse: Adresse_Cellule, rôle: Rôle_Données_Requise, résultat: *eini)
+{
+    si tabuleuse.sur_donne_données_entête {
+        tabuleuse.sur_donne_données_entête(tabuleuse, adresse, rôle, résultat);
+    }
+}
+
+donne_données_cellule :: fonc (tabuleuse: *Tabuleuse_Procédurelle, adresse: Adresse_Cellule, rôle: Rôle_Données_Requise, résultat: *eini)
+{
+    si tabuleuse.donne_données_cellule {
+        tabuleuse.donne_données_cellule(tabuleuse, adresse, rôle, résultat);
+    }
+}
+
+/** \} */
