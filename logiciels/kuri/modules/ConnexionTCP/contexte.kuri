@@ -1,4 +1,14 @@
-
+/* ------------------------------------------------------------------------- */
+/** \nom Contexte.
+ *
+ * Le Contexte sers à définir des action à performer sur les différents
+ * évènements survenant au cours de la vie d'une #Prise.
+ *
+ * Il n'y a pas de limites sur le nombre de Contexte qu'une application
+ * client peut créer. Par exemple, pour un navigateur Web, nous pouvons
+ * avoir un Contexte normal pour les connexions "http" et un ContexteSSL
+ * pour les connexions "https".
+ */
 Contexte :: struct {
     boucle_prises: *Boucle;
 
@@ -9,7 +19,7 @@ Contexte :: struct {
     quand_fermeture_: fonc (prise: *Prise);
     quand_timeout_: fonc (prise: *Prise);
     quand_fin_: fonc (prise: *Prise);
-    quand_erreur_connexion_: fonc (prise: *Prise);
+    quand_erreur_connexion_: fonc (prise: *Prise, type: Type_Erreur_Connexion, détail: chaine);
 
     taille_mémoire: z64;
     info_utilisateur: *InfoType;
@@ -19,6 +29,81 @@ Contexte :: struct {
     info_serveuse: *InfoType;
 
     est_ssl_ := faux;
+}
+
+crée_contexte :: fonc (boucle_prises: *Boucle, options: *OptionsCréationContexteSSL, $TypeDonnées: type_de_données) -> *Contexte
+{
+    si options {
+        retourne crée_contexte_ssl(boucle_prises, mémoire(options), TypeDonnées);
+    }
+
+    retourne crée_contexte_impl(boucle_prises, Contexte, TypeDonnées);
+}
+
+// Fonction auxilliaire pour créer un contexte valide, mais dont les rappels ne font rien
+// utile pour les développements.
+crée_contexte_vide :: fonc (boucle_évènements: *Boucle, options: *OptionsCréationContexteSSL, $T: type_de_données) -> *Contexte
+{
+    ctx := crée_contexte(boucle_évènements, options, T);
+    initialise_rappels_pour_contexte_vide(ctx);
+    retourne ctx;
+}
+
+crée_contexte_vide :: fonc (boucle_évènements: *Boucle, $T: type_de_données) -> *Contexte
+{
+    retourne crée_contexte_vide(boucle_évènements, nul, T);
+}
+
+/* Initialise les fonctions de rappels pour un contexte « vide », c'est-à-dire qui ne fait rien.
+ * Ceci nous sers principalement pour nous assurer que les pointeurs de fonction du contexte sont
+ * propremenet initialisés et nous évite de toujours les vérifier avant de les appeler. */
+initialise_rappels_pour_contexte_vide :: fonc (ctx: *Contexte)
+{
+    rappel_vide_quand_ouverture :: fonc (prise: *Prise @inutilisée, est_client: bool @inutilisée)
+    {
+    }
+
+    rappel_vide_quand_données_reçues :: fonc (prise: *Prise @inutilisée, données: []octet @inutilisée)
+    {
+    }
+
+    rappel_vide_quand_écriture :: fonc (prise: *Prise @inutilisée)
+    {
+    }
+
+    rappel_vide_quand_fermeture :: fonc (prise: *Prise @inutilisée)
+    {
+    }
+
+    rappel_vide_quand_timeout :: fonc (prise: *Prise @inutilisée)
+    {
+    }
+
+    rappel_vide_quand_fin :: fonc (prise: *Prise @inutilisée)
+    {
+    }
+
+    rappel_vide_quand_erreur_connexion :: fonc (prise: *Prise @inutilisée, type: Type_Erreur_Connexion @inutilisée, détail: chaine @inutilisée)
+    {
+    }
+
+    ctx.mute_quand_ouverture(rappel_vide_quand_ouverture);
+    ctx.mute_quand_données_reçues(rappel_vide_quand_données_reçues);
+    ctx.mute_quand_écriture(rappel_vide_quand_écriture);
+    ctx.mute_quand_fermeture(rappel_vide_quand_fermeture);
+    ctx.mute_quand_timeout(rappel_vide_quand_timeout);
+    ctx.mute_quand_fin(rappel_vide_quand_fin);
+    ctx.mute_quand_erreur_connexion(rappel_vide_quand_erreur_connexion);
+}
+
+détruit_contexte :: fonc (ctx: *Contexte)
+{
+    si ctx.est_ssl() {
+        détruit_contexte_ssl(ctx comme *ContextePriseSSL);
+        retourne;
+    }
+
+    déloge_mémoire(ctx.taille_mémoire, ctx, info_de(Contexte), #position_code_source);
 }
 
 est_ssl :: fonc (ctx: *Contexte) -> bool #enligne
@@ -58,44 +143,11 @@ données_utilisateur :: fonc (contexte_: *Contexte, $TypeDonnées: type_de_donn�
     retourne (contexte_ + 1) comme *TypeDonnées;
 }
 
-/* Fonction de création d'un contexte selon son type (Contexte ou ContextePriseSSL)
- * Ceci allouera une quantité suffisante de mémoire pour tenir le contexte et une instance des TypeDeDonnéesUtilisateur. */
-crée_contexte_impl :: fonc (boucle_prises: *Boucle, $TypeDuContexte: type_de_données, $TypeDeDonnéesUtilisateur: type_de_données) -> *TypeDuContexte
-{
-    taille_à_loger := (taille_de(TypeDuContexte) + taille_de(TypeDeDonnéesUtilisateur)) comme z64;
-    mém_contexte_ := loge_mémoire(taille_à_loger, info_de(TypeDuContexte), #position_code_source);
+/** \} */
 
-    contexte_ := mém_contexte_ comme *TypeDuContexte;
-    init_de(TypeDuContexte)(contexte_);
-
-    contexte_.boucle_prises = boucle_prises;
-    contexte_.taille_mémoire = taille_à_loger;
-    contexte_.info_utilisateur = info_de(TypeDeDonnéesUtilisateur);
-
-    retourne contexte_;
-}
-
-crée_contexte :: fonc (boucle_prises: *Boucle, options: *OptionsCréationContexteSSL, $TypeDonnées: type_de_données) -> *Contexte
-{
-    si options {
-        retourne crée_contexte_ssl(boucle_prises, mémoire(options), TypeDonnées);
-    }
-
-    retourne crée_contexte_impl(boucle_prises, Contexte, TypeDonnées);
-}
-
-détruit_contexte :: fonc (ctx: *Contexte)
-{
-    si ctx.est_ssl() {
-        détruit_contexte_ssl(ctx comme *ContextePriseSSL);
-        retourne;
-    }
-
-    déloge_mémoire(ctx.taille_mémoire, ctx, info_de(Contexte), #position_code_source);
-}
-
-// -----------------------------------------------------
-// Création de prises
+/* ------------------------------------------------------------------------- */
+/** \nom Création de prises.
+ * \{ */
 
 crée_prise_pour_écoute :: fonc (contexte_: *Contexte, adresse_ip: AdresseIPv4, port: n16, connexions_max: z32, $TypeDonnées: type_de_données) -> *Prise
 {
@@ -132,19 +184,32 @@ crée_prise_connexion :: fonc (contexte_: *Contexte, hôte: chaine, port: n16, $
         retourne nul;
     }
 
-    // imprime("crée_prise_connexion\n")
-
-    fichier := tente ouvre_connexion_serveur(hôte, port, vrai) piège _ {
-        // imprime("erreur lors de l'ouverture d'une connexion: %\n", err)
-        retourne nul;
-    };
-
-    prise := crée_prise_interne(contexte_, fichier, info_de(Type_Données));
+    prise := crée_prise_interne(contexte_, Fichier(), info_de(Type_Données));
     prise.type = TypePrise.SEMI_PRISE;
+
+    prise.fichier = tente ouvre_connexion_serveur(hôte, port, vrai) piège err {
+        discr err {
+            RésolutionHôteImpossible {
+                notifie_erreur(prise, Type_Erreur_Connexion.HÔTE_INTROUVABLE);
+            }
+            CréationPriseImpossible {
+                notifie_erreur(prise, Type_Erreur_Connexion.INCONNUE);
+            }
+            ConnexionPriseImpossible {
+                notifie_erreur(prise, Type_Erreur_Connexion.INCONNUE);
+            }
+            sinon {
+                notifie_erreur(prise, Type_Erreur_Connexion.INCONNUE);
+            }
+        }
+
+        prise.ferme_connexion_en_cours();
+        retourne prise;
+    };
 
     si !ajoute_prise(contexte_.boucle_prises, prise, EPOLL_EVENTS.EPOLLOUT) {
         prise.ferme();
-        retourne nul;
+        retourne prise;
     }
 
     retourne prise;
@@ -183,27 +248,6 @@ crée_chronomètre :: fonc (ctx: *Contexte, interval: z32, commence_dans: z32, r
     retourne résultat;
 }
 
-#portée_fichier
-
-crée_prise_pour_rappel :: fonc (ctx: *Contexte, fd: z32, rappel: *Fonction_De_Rappel) -> *Prise
-{
-    fichier := Fichier(TypePoignéeFichier(fd));
-    prise := crée_prise_interne(ctx, fichier, info_de(*Fonction_De_Rappel));
-    prise.type = TypePrise.RAPPEL;
-    ptr_fonc := prise.données_utilisateur(*Fonction_De_Rappel);
-    mémoire(ptr_fonc) = rappel;
-
-    si !ajoute_prise(ctx.boucle_prises, prise, EPOLL_EVENTS.EPOLLIN) {
-        // imprime("Impossible d'ajouter la prise !\n")
-        détruit_prise(prise);
-        retourne nul;
-    }
-
-    retourne prise;
-}
-
-#portée_export
-
 /* Crée une prise pour être notifié par des évènements.
  * Pour être notifié, il faut d'abord écrire dans la prise ou appeler #notifie_nouvel_évènement.
  */
@@ -223,34 +267,11 @@ crée_prise_évènements :: fonc (ctx: *Contexte, rappel: *Fonction_De_Rappel) -
     retourne résultat;
 }
 
-crée_prise_impl :: fonc (contexte_: *Contexte, fichier: Fichier, info_données_externes: *InfoType, $TypePrise: type_de_données) -> *Prise
-{
-    taille_à_loger := (taille_de(TypePrise) + info_données_externes.taille_en_octet) comme z64;
-    mém_prise := loge_mémoire(taille_à_loger, info_de(TypePrise), #position_code_source);
+/** \} */
 
-    prise := mém_prise comme *TypePrise;
-    init_de(TypePrise)(prise);
-
-    prise.fichier = fichier;
-    prise.contexte_ = contexte_;
-    prise.taille_mémoire = taille_à_loger;
-    prise.info_utilisateur = info_données_externes;
-    retourne prise;
-}
-
-crée_prise_interne :: fonc (contexte_: *Contexte, fichier: Fichier, info_données_externes: *InfoType) -> *Prise
-{
-    si contexte_.est_ssl() {
-        prise := crée_prise_impl(contexte_, fichier, info_données_externes, PriseSSL);
-        prise.est_ssl_ = vrai;
-        retourne prise;
-    }
-
-    retourne crée_prise_impl(contexte_, fichier, info_données_externes, Prise);
-}
-
-// -----------------------------------------------------
-// Mise en place des rappels.
+/* ------------------------------------------------------------------------- */
+/** \nom Définition des rappels pour un Contexte.
+ * \{ */
 
 mute_quand_ouverture :: fonc (ctx: *Contexte, rappel: fonc (prise: *Prise, est_client: bool))
 {
@@ -312,7 +333,7 @@ mute_quand_fin :: fonc (ctx: *Contexte, rappel: fonc (prise: *Prise))
     };
 }
 
-mute_quand_erreur_connexion :: fonc (ctx: *Contexte, rappel: fonc (prise: *Prise))
+mute_quand_erreur_connexion :: fonc (ctx: *Contexte, rappel: fonc (prise: *Prise, type: Type_Erreur_Connexion, détail: chaine))
 {
     ctx.quand_erreur_connexion_ = si ctx.est_ssl() {
         contexte_ssl_parasite_quand_erreur_connexion(ctx comme *ContextePriseSSL, rappel);
@@ -321,3 +342,73 @@ mute_quand_erreur_connexion :: fonc (ctx: *Contexte, rappel: fonc (prise: *Prise
         rappel;
     };
 }
+
+/** \} */
+
+/* ------------------------------------------------------------------------- */
+/** \nom Fonctions auxiliaires pour la création de prises et de contextes.
+ * \{ */
+
+#portée_module
+
+/* Fonction de création d'un contexte selon son type (Contexte ou ContextePriseSSL)
+ * Ceci allouera une quantité suffisante de mémoire pour tenir le contexte et une instance des TypeDeDonnéesUtilisateur. */
+crée_contexte_impl :: fonc (boucle_prises: *Boucle, $TypeDuContexte: type_de_données, $TypeDeDonnéesUtilisateur: type_de_données) -> *TypeDuContexte
+{
+    taille_à_loger := (taille_de(TypeDuContexte) + taille_de(TypeDeDonnéesUtilisateur)) comme z64;
+    mém_contexte_ := loge_mémoire(taille_à_loger, info_de(TypeDuContexte), #position_code_source);
+
+    contexte_ := mém_contexte_ comme *TypeDuContexte;
+    init_de(TypeDuContexte)(contexte_);
+
+    contexte_.boucle_prises = boucle_prises;
+    contexte_.taille_mémoire = taille_à_loger;
+    contexte_.info_utilisateur = info_de(TypeDeDonnéesUtilisateur);
+
+    retourne contexte_;
+}
+
+crée_prise_impl :: fonc (contexte_: *Contexte, fichier: Fichier, info_données_externes: *InfoType, $TypePrise: type_de_données) -> *Prise
+{
+    taille_à_loger := (taille_de(TypePrise) + info_données_externes.taille_en_octet) comme z64;
+    mém_prise := loge_mémoire(taille_à_loger, info_de(TypePrise), #position_code_source);
+
+    prise := mém_prise comme *TypePrise;
+    init_de(TypePrise)(prise);
+
+    prise.fichier = fichier;
+    prise.contexte_ = contexte_;
+    prise.taille_mémoire = taille_à_loger;
+    prise.info_utilisateur = info_données_externes;
+    retourne prise;
+}
+
+crée_prise_interne :: fonc (contexte_: *Contexte, fichier: Fichier, info_données_externes: *InfoType) -> *Prise
+{
+    si contexte_.est_ssl() {
+        prise := crée_prise_impl(contexte_, fichier, info_données_externes, PriseSSL);
+        prise.est_ssl_ = vrai;
+        retourne prise;
+    }
+
+    retourne crée_prise_impl(contexte_, fichier, info_données_externes, Prise);
+}
+
+crée_prise_pour_rappel :: fonc (ctx: *Contexte, fd: z32, rappel: *Fonction_De_Rappel) -> *Prise
+{
+    fichier := Fichier(TypePoignéeFichier(fd));
+    prise := crée_prise_interne(ctx, fichier, info_de(*Fonction_De_Rappel));
+    prise.type = TypePrise.RAPPEL;
+    ptr_fonc := prise.données_utilisateur(*Fonction_De_Rappel);
+    mémoire(ptr_fonc) = rappel;
+
+    si !ajoute_prise(ctx.boucle_prises, prise, EPOLL_EVENTS.EPOLLIN) {
+        // imprime("Impossible d'ajouter la prise !\n")
+        détruit_prise(prise);
+        retourne nul;
+    }
+
+    retourne prise;
+}
+
+/** \} */
