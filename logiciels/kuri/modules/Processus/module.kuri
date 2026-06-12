@@ -76,6 +76,11 @@ remplace_processus_par_programme :: fonc (programme: chaine, arguments: ...chain
 // Si un canal est en mode lecture, y écrire est proscris. Inversement, en mode
 // écriture, y lire est proscris.
 
+Sortie_Écoutée :: énum {
+    SORTIE_STANDARDE;
+    SORTIE_ERREUR;
+}
+
 BaseCanal :: struct {
     lecteur: Fichier;
     auteur: Fichier;
@@ -88,6 +93,13 @@ BaseCanal :: struct {
     _ := ferme(*canal.lecteur);
 }
 
+écris_avec_erreur_standarde :: fonc (canal: *BaseCanal)
+{
+    /* Faisons pointé la sortie du programme avec l'entrée du canal. */
+    référence_fichier(*canal.auteur, sortie_erreur());
+    _ := ferme(*canal.lecteur);
+}
+
 lis_avec_entrée_standarde :: fonc (canal: *BaseCanal)
 {
     /* Faisons pointé l'entrée du programme avec la sortie du canal. */
@@ -95,11 +107,17 @@ lis_avec_entrée_standarde :: fonc (canal: *BaseCanal)
     _ := ferme(*canal.auteur);
 }
 
-prépare_pour_lecture :: fonc (canal: *BaseCanal)
+prépare_pour_lecture :: fonc (canal: *BaseCanal, sortie_écoutée: Sortie_Écoutée)
 {
     /* Si nous voulons lire depuis un canal, la partie autrice de celui-ci doit
      * utiliser sa sortie standarde pour écrire. */
-    canal.écris_avec_sortie_standarde();
+    si sortie_écoutée == Sortie_Écoutée.SORTIE_ERREUR {
+        écris_avec_erreur_standarde(canal);
+    }
+    sinon {
+        assert(sortie_écoutée == Sortie_Écoutée.SORTIE_STANDARDE);
+        écris_avec_sortie_standarde(canal);
+    }
 }
 
 prépare_pour_écriture :: fonc (canal: *BaseCanal)
@@ -185,7 +203,7 @@ ouvre_canal_lecture :: fonc (programme: chaine, arguments: ...chaine) -> Optionn
         }
         Parent {
             /* Le processus père lira. */
-            canal.prépare_pour_lecture();
+            canal.prépare_pour_lecture(Sortie_Écoutée.SORTIE_STANDARDE);
         }
         sinon {
             retourne;
@@ -219,6 +237,11 @@ CanalCommunication :: struct {
 
 ouvre_canal_de_communication :: fonc (programme: chaine, arguments: ...chaine) -> Optionnel(CanalCommunication)
 {
+    retourne ouvre_canal_de_communication(Sortie_Écoutée.SORTIE_STANDARDE, programme, ...arguments);
+}
+
+ouvre_canal_de_communication :: fonc (sortie_écoutée: Sortie_Écoutée, programme: chaine, arguments: ...chaine) -> Optionnel(CanalCommunication)
+{
     canal_lecture: CanalLecture;
     discr crée_canal_lecture() {
         Quelque(c) {
@@ -242,7 +265,7 @@ ouvre_canal_de_communication :: fonc (programme: chaine, arguments: ...chaine) -
     discr duplique_processus() {
         Enfant {
             /* Le processus enfant sera lu. */
-            prépare_pour_lecture(*canal_lecture);
+            prépare_pour_lecture(*canal_lecture, sortie_écoutée);
             prépare_pour_écriture(*canal_écriture);
 
             remplace_processus_par_programme(programme, ...arguments);
