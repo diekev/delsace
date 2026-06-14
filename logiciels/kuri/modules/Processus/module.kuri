@@ -7,27 +7,27 @@ importe SysFichier;
 
 charge "test_de_programme";
 
-IDProcessus :: #opaque z32;
+ID_Processus :: #opaque z32;
 
 /* Retourne l'identifiant du processus courant. */
-id_processus_courant :: fonc () -> IDProcessus
+id_processus_courant :: fonc () -> ID_Processus
 {
-    retourne IDProcessus(getpid());
+    retourne ID_Processus(getpid());
 }
 
-ProcessusParent :: #opaque z32;
-ProcessusEnfant :: #opaque z32;
+Processus_Parent :: #opaque z32;
+Processus_Enfant :: #opaque z32;
 
-DuplicationProcessus :: union {
-    Parent: ProcessusParent;
-    Enfant: ProcessusEnfant;
+Duplication_Processus :: union {
+    Parent: Processus_Parent;
+    Enfant: Processus_Enfant;
     Rien;
 }
 
 /* Duplique le processus courant. La valeur de retour peut être discriminée
  * pour savoir si nous sommes dans le processus parent ou enfant.
  * Si la valeur de retour est nulle, la duplication a échouée. */
-duplique_processus :: fonc () -> DuplicationProcessus
+duplique_processus :: fonc () -> Duplication_Processus
 {
     pid := fork();
 
@@ -36,10 +36,10 @@ duplique_processus :: fonc () -> DuplicationProcessus
     }
 
     si pid == 0 {
-        retourne ProcessusEnfant(pid);
+        retourne Processus_Enfant(pid);
     }
 
-    retourne ProcessusParent(pid);
+    retourne Processus_Parent(pid);
 }
 
 /* Remplace le processus courant par un programme. */
@@ -71,7 +71,7 @@ remplace_processus_par_programme :: fonc (programme: chaine, arguments: ...chain
 }
 
 // ----------------------------------------------------------------------------
-// BaseCanal : structure de base pour représenter un canal unidirectionnel de
+// Base_Canal : structure de base pour représenter un canal unidirectionnel de
 // communication. Le canal possède un point pour lire, et un point pour écrire.
 // Si un canal est en mode lecture, y écrire est proscris. Inversement, en mode
 // écriture, y lire est proscris.
@@ -81,33 +81,33 @@ Sortie_Écoutée :: énum {
     SORTIE_ERREUR;
 }
 
-BaseCanal :: struct {
+Base_Canal :: struct {
     lecteur: Fichier;
     auteur: Fichier;
 }
 
-écris_avec_sortie_standarde :: fonc (canal: *BaseCanal)
+écris_avec_sortie_standarde :: fonc (canal: *Base_Canal)
 {
     /* Faisons pointé la sortie du programme avec l'entrée du canal. */
     référence_fichier(*canal.auteur, sortie_standarde());
     _ := ferme(*canal.lecteur);
 }
 
-écris_avec_erreur_standarde :: fonc (canal: *BaseCanal)
+écris_avec_erreur_standarde :: fonc (canal: *Base_Canal)
 {
     /* Faisons pointé la sortie du programme avec l'entrée du canal. */
     référence_fichier(*canal.auteur, sortie_erreur());
     _ := ferme(*canal.lecteur);
 }
 
-lis_avec_entrée_standarde :: fonc (canal: *BaseCanal)
+lis_avec_entrée_standarde :: fonc (canal: *Base_Canal)
 {
     /* Faisons pointé l'entrée du programme avec la sortie du canal. */
     référence_fichier(*canal.lecteur, entrée_standarde());
     _ := ferme(*canal.auteur);
 }
 
-prépare_pour_lecture :: fonc (canal: *BaseCanal, sortie_écoutée: Sortie_Écoutée)
+prépare_pour_lecture :: fonc (canal: *Base_Canal, sortie_écoutée: Sortie_Écoutée)
 {
     /* Si nous voulons lire depuis un canal, la partie autrice de celui-ci doit
      * utiliser sa sortie standarde pour écrire. */
@@ -120,19 +120,19 @@ prépare_pour_lecture :: fonc (canal: *BaseCanal, sortie_écoutée: Sortie_Écou
     }
 }
 
-prépare_pour_écriture :: fonc (canal: *BaseCanal)
+prépare_pour_écriture :: fonc (canal: *Base_Canal)
 {
     /* Si nous voulons écrire dans un canal, la partie lectrice de celui-ci
      * doit utiliser son entrée standarde pour lire. */
     canal.lis_avec_entrée_standarde();
 }
 
-écris :: fonc (canal: *BaseCanal, texte: chaine)
+écris :: fonc (canal: *Base_Canal, texte: chaine)
 {
     _ := écris(*canal.auteur, texte);
 }
 
-lis :: fonc (canal: *BaseCanal) -> chaine
+lis :: fonc (canal: *Base_Canal) -> chaine
 {
     enchaineuse: Enchaineuse;
     initialise_enchaineuse(*enchaineuse);
@@ -154,7 +154,7 @@ lis :: fonc (canal: *BaseCanal) -> chaine
     retourne chaine_depuis_enchaineuse(*enchaineuse);
 }
 
-ouvre_canal :: fonc ($TypeCanal: type_de_données) -> Optionnel(TypeCanal)
+ouvre_canal :: fonc ($Type_Canal: type_de_données) -> Optionnel(Type_Canal)
 {
     fds: [2]z32;
 
@@ -164,28 +164,28 @@ ouvre_canal :: fonc ($TypeCanal: type_de_données) -> Optionnel(TypeCanal)
         retourne;
     }
 
-    résultat : TypeCanal = ---;
+    résultat : Type_Canal = ---;
     résultat.lecteur = Fichier(TypePoignéeFichier(fds[0]));
     résultat.auteur = Fichier(TypePoignéeFichier(fds[1]));
     retourne résultat;
 }
 
 // ----------------------------------------------------------------------------
-// CanalLecture : canal qui ne peut que être lu. Écrire dans ce canal ne fera
+// Canal_Lecture : canal qui ne peut que être lu. Écrire dans ce canal ne fera
 // rien, ou corromprera les données.
 
-CanalLecture :: struct {
-    empl base: BaseCanal;
+Canal_Lecture :: struct {
+    empl base: Base_Canal;
 }
 
-crée_canal_lecture :: fonc () -> Optionnel(CanalLecture)
+crée_canal_lecture :: fonc () -> Optionnel(Canal_Lecture)
 {
-    retourne ouvre_canal(CanalLecture);
+    retourne ouvre_canal(Canal_Lecture);
 }
 
-ouvre_canal_lecture :: fonc (programme: chaine, arguments: ...chaine) -> Optionnel(CanalLecture)
+ouvre_canal_lecture :: fonc (programme: chaine, arguments: ...chaine) -> Optionnel(Canal_Lecture)
 {
-    canal: CanalLecture;
+    canal: Canal_Lecture;
     discr crée_canal_lecture() {
         Quelque(c) {
             canal = c;
@@ -214,35 +214,35 @@ ouvre_canal_lecture :: fonc (programme: chaine, arguments: ...chaine) -> Optionn
 }
 
 // ----------------------------------------------------------------------------
-// CanalLecture : canal qui ne peut que être écris. Lire depuis ce canal ne fera
+// Canal_Écriture : canal qui ne peut que être écris. Lire depuis ce canal ne fera
 // rien, ou corromprera les données.
 
-CanalÉcriture :: struct {
-    empl base: BaseCanal;
+Canal_Écriture :: struct {
+    empl base: Base_Canal;
 }
 
-crée_canal_écriture :: fonc () -> Optionnel(CanalÉcriture)
+crée_canal_écriture :: fonc () -> Optionnel(Canal_Écriture)
 {
-    retourne ouvre_canal(CanalÉcriture);
+    retourne ouvre_canal(Canal_Écriture);
 }
 
 // ----------------------------------------------------------------------------
-// CanalCommunication : canal bidirectionnel où l'on peut lire les et écrire
+// Canal_Communication : canal bidirectionnel où l'on peut lire les et écrire
 // des données.
 
-CanalCommunication :: struct {
-    lecture: CanalLecture;
-    écriture: CanalÉcriture;
+Canal_Communication :: struct {
+    lecture: Canal_Lecture;
+    écriture: Canal_Écriture;
 }
 
-ouvre_canal_de_communication :: fonc (programme: chaine, arguments: ...chaine) -> Optionnel(CanalCommunication)
+ouvre_canal_de_communication :: fonc (programme: chaine, arguments: ...chaine) -> Optionnel(Canal_Communication)
 {
     retourne ouvre_canal_de_communication(Sortie_Écoutée.SORTIE_STANDARDE, programme, ...arguments);
 }
 
-ouvre_canal_de_communication :: fonc (sortie_écoutée: Sortie_Écoutée, programme: chaine, arguments: ...chaine) -> Optionnel(CanalCommunication)
+ouvre_canal_de_communication :: fonc (sortie_écoutée: Sortie_Écoutée, programme: chaine, arguments: ...chaine) -> Optionnel(Canal_Communication)
 {
-    canal_lecture: CanalLecture;
+    canal_lecture: Canal_Lecture;
     discr crée_canal_lecture() {
         Quelque(c) {
             canal_lecture = c;
@@ -252,7 +252,7 @@ ouvre_canal_de_communication :: fonc (sortie_écoutée: Sortie_Écoutée, progra
         }
     }
 
-    canal_écriture: CanalÉcriture;
+    canal_écriture: Canal_Écriture;
     discr crée_canal_écriture() {
         Quelque(canal) {
             canal_écriture = canal;
@@ -280,23 +280,23 @@ ouvre_canal_de_communication :: fonc (sortie_écoutée: Sortie_Écoutée, progra
         }
     }
 
-    canal: CanalCommunication;
+    canal: Canal_Communication;
     canal.lecture = canal_lecture;
     canal.écriture = canal_écriture;
     retourne canal;
 }
 
-écris :: fonc (canal: *CanalCommunication, texte: chaine)
+écris :: fonc (canal: *Canal_Communication, texte: chaine)
 {
     écris(*canal.écriture, texte);
 }
 
-lis :: fonc (canal: *CanalCommunication) -> chaine
+lis :: fonc (canal: *Canal_Communication) -> chaine
 {
     retourne lis(*canal.lecture);
 }
 
-ferme_écriture :: fonc (canal: *CanalCommunication)
+ferme_écriture :: fonc (canal: *Canal_Communication)
 {
     _ := ferme(*canal.écriture.auteur);
 }
