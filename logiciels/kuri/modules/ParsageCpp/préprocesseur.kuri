@@ -1,5 +1,6 @@
 importe Chaine;
 importe Ensemble;
+importe Processus;
 importe Sérialisation;
 importe Temps;
 
@@ -360,22 +361,18 @@ détruit_données :: fonc (préprocesseur: *PréProcesseur)
     détruit_données(*préprocesseur.table_définitions);
 }
 
-initialise_préprocesseur :: fonc (préprocesseur: *PréProcesseur, unit: *TranslationUnit)
+initialise_préprocesseur :: fonc (préprocesseur: *PréProcesseur, unit: *TranslationUnit, version_gcc_désirée := 0)
 {
     assert(unit != nul);
 
     préprocesseur.unit = unit;
 
+    saufsi initialise_préprocesseur_pour_prétendre_être_gcc(préprocesseur, unit, version_gcc_désirée) {
+        retourne;
+    }
+
     discr préprocesseur.unit.info_langage.langage {
         C {
-            // GCC 14
-            // echo | gcc -x c -E -v -
-            tableau_ajoute(*préprocesseur.chemins_inclusions_système, ".");
-            tableau_ajoute(*préprocesseur.chemins_inclusions_système, "/usr/lib/gcc/x86_64-linux-gnu/14/include");
-            tableau_ajoute(*préprocesseur.chemins_inclusions_système, "/usr/local/include");
-            tableau_ajoute(*préprocesseur.chemins_inclusions_système, "/usr/include/x86_64-linux-gnu");
-            tableau_ajoute(*préprocesseur.chemins_inclusions_système, "/usr/include");
-
             ajoute_définition(préprocesseur, "__STDC_VERSION__", préprocesseur.unit.info_langage.standard);
 
             interdits := [
@@ -396,19 +393,7 @@ initialise_préprocesseur :: fonc (préprocesseur: *PréProcesseur, unit: *Trans
             }
         }
         CPP {
-            // G++ 12
-            // echo | gcc -x c++ -E -v -
-            tableau_ajoute(*préprocesseur.chemins_inclusions_système, ".");
-            tableau_ajoute(*préprocesseur.chemins_inclusions_système, "/usr/include/c++/14");
-            tableau_ajoute(*préprocesseur.chemins_inclusions_système, "/usr/include/x86_64-linux-gnu/c++/14");
-            tableau_ajoute(*préprocesseur.chemins_inclusions_système, "/usr/include/c++/14/backward");
-            tableau_ajoute(*préprocesseur.chemins_inclusions_système, "/usr/lib/gcc/x86_64-linux-gnu/14/include");
-            tableau_ajoute(*préprocesseur.chemins_inclusions_système, "/usr/local/include");
-            tableau_ajoute(*préprocesseur.chemins_inclusions_système, "/usr/include/x86_64-linux-gnu");
-            tableau_ajoute(*préprocesseur.chemins_inclusions_système, "/usr/include");
-
             ajoute_définition(préprocesseur, "__cplusplus", préprocesseur.unit.info_langage.standard);
-            ajoute_définition(préprocesseur, "__GNUG__", 14);
         }
     }
 
@@ -416,7 +401,6 @@ initialise_préprocesseur :: fonc (préprocesseur: *PréProcesseur, unit: *Trans
     ajoute_définition(préprocesseur, "__unix__", 1);
     ajoute_définition(préprocesseur, "__x86_64__", 1);
 
-    ajoute_définition(préprocesseur, "__GNUC__", 14);
     ajoute_définition(préprocesseur, "__GNUC_MINOR__", 3);
     ajoute_définition(préprocesseur, "__GNUC_PATCHLEVEL__", 0);
 
@@ -571,6 +555,111 @@ initialise_préprocesseur :: fonc (préprocesseur: *PréProcesseur, unit: *Trans
 
     /* Voir https://gcc.gnu.org/onlinedocs/gcc-8.3.0/gccint/Instruction-Output.html */
     ajoute_définition(préprocesseur, "__USER_LABEL_PREFIX__", "");
+}
+
+initialise_préprocesseur_pour_prétendre_être_gcc :: fonc (préprocesseur: *PréProcesseur, unit: *TranslationUnit, version_gcc_désirée := 0) -> bool
+{
+    marque := donne_marque_stockage_temporaire();
+    diffère définis_marque_stockage_temporaire(marque);
+
+    // À FAIRE : permet de configurer la version
+    nom_gcc := "gcc";
+    si version_gcc_désirée {
+        nom_gcc = imprime_chaine_temp("gcc-%", version_gcc_désirée);
+    }
+
+    langage_gcc := "";
+
+    discr unit.info_langage.langage {
+        C {
+            langage_gcc = "c";
+        }
+        CPP {
+            langage_gcc = "c++";
+        }
+        sinon {
+            imprimeln("Langage inconnu pour prétendre être GCC : %", unit.info_langage.langage);
+            retourne faux;
+        }
+    }
+
+    version_gcc_détectée: z64 = 0;
+
+    discr ouvre_canal_de_communication(Sortie_Écoutée.SORTIE_ERREUR, nom_gcc, "-x", langage_gcc, "-E", "-v", "-o", "/tmp/mqlskdjf.c", "-") {
+        Quelque(canal) {
+            ferme_écriture(*canal);
+
+            texte_résultat := lis(*canal);
+            diffère déloge(*texte_résultat);
+
+            lignes := divise(texte_résultat, '\n');
+            diffère déloge(*lignes);
+
+            dans_include_local := faux;
+            dans_include_global := faux;
+
+            pour ligne dans lignes {
+                si commence_par(ligne, "gcc version ") {
+                    chaine_version_gcc := avance(ligne, "gcc version ".taille);
+                    succès, valeur_version, _ := consomme_nombre_entier(chaine_version_gcc);
+                    si succès {
+                        version_gcc_détectée = valeur_version;
+                    }
+                }
+                sinon si commence_par(ligne, "#include \"...\"") {
+                    assert(dans_include_global == faux);
+                    assert(dans_include_local == faux);
+
+                    dans_include_local = vrai;
+                }
+                sinon si commence_par(ligne, "#include <...>") {
+                    si dans_include_local {
+                        dans_include_local = faux;
+                    }
+                    assert(dans_include_global == faux);
+
+                    dans_include_global = vrai;
+                }
+                sinon si commence_par(ligne, "End of search list.") {
+                    si dans_include_global {
+                        dans_include_global = faux;
+                    }
+                    sinon si dans_include_local {
+                        dans_include_local = faux;
+                    }
+                }
+                sinon {
+                    si dans_include_global {
+                        ligne = supprime_espaces_blanches(ligne);
+                        tableau_ajoute(*préprocesseur.chemins_inclusions_système, copie_chaine(ligne));
+                    }
+                    sinon si dans_include_local {
+                        ligne = supprime_espaces_blanches(ligne);
+                        tableau_ajoute(*préprocesseur.chemins_inclusions_local, copie_chaine(ligne));
+                    }
+                }
+            }
+        }
+        sinon {
+            imprimeln("Impossible d'appeler GCC pour déterminer les chemins d'inclusions");
+            retourne faux;
+        }
+    }
+
+    si version_gcc_détectée == 0 {
+        imprimeln("Impossible de déterminer la version de GCC");
+        retourne faux;
+    }
+
+    imprimeln("Utilisant les chemins d'inclusion de GCC %...", version_gcc_détectée);
+
+    si unit.info_langage.langage == Langage.CPP {
+        ajoute_définition(préprocesseur, "__GNUG__", version_gcc_détectée comme n64);
+    }
+
+    ajoute_définition(préprocesseur, "__GNUC__", version_gcc_détectée comme n64);
+
+    retourne vrai;
 }
 
 ajoute_définition :: fonc (préprocesseur: *PréProcesseur, nom: chaine, valeur: n64)
