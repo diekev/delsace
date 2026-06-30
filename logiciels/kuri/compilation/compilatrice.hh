@@ -82,6 +82,8 @@ struct ArgumentsCompilatrice {
 
     TypeCoulisse coulisse = TypeCoulisse::C;
 
+    CompilationPour compilation_pour = CompilationPour::PRODUCTION;
+
     /* Fichier où inscrire les fichiers utilisés si --emets_fichiers_utilises fut renseigné. */
     kuri::chemin_systeme chemin_fichier_utilises{};
 

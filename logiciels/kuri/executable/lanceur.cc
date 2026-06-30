@@ -236,6 +236,9 @@ static ActionParsageArgument gère_argument_valide_llvm(ParseuseArguments & /*pa
 static ActionParsageArgument gère_argument_parallélise_llvm(ParseuseArguments & /*parseuse*/,
                                                             ArgumentsCompilatrice &résultat);
 
+static ActionParsageArgument gère_argument_pour(ParseuseArguments &parseuse,
+                                                ArgumentsCompilatrice &résultat);
+
 static ActionParsageArgument gère_argument_débogage_ne_compile_que_nécessaire(
     ParseuseArguments & /*parseuse*/, ArgumentsCompilatrice &résultat);
 
@@ -333,6 +336,11 @@ static DescriptionArgumentCompilation descriptions_arguments[] = {
      "de ne compiler que ce qui atteignable depuis la fonction principale (sans les "
      "initialisations des globales ou du lors-exécution.",
      gère_argument_débogage_ne_compile_que_nécessaire},
+    {"--pour",
+     "-p",
+     "--pour {débogage|profilage|production}",
+     "Détermine le niveau d'information de débogage contenu dans l'exécutable",
+     gère_argument_pour},
 };
 
 static std::optional<DescriptionArgumentCompilation> donne_description_pour_arg(
@@ -538,6 +546,34 @@ static ActionParsageArgument gère_argument_parallélise_llvm(ParseuseArguments 
     return ActionParsageArgument::CONTINUE;
 }
 
+static ActionParsageArgument gère_argument_pour(ParseuseArguments &parseuse,
+                                                ArgumentsCompilatrice &résultat)
+{
+    auto arg = parseuse.donne_argument_suivant();
+    if (!arg.has_value()) {
+        dbg() << "Argument manquant après --pour.";
+        return ActionParsageArgument::ARRÊTE_CAR_ERREUR;
+    }
+
+    if (arg.value() == "débogage") {
+        résultat.compilation_pour = CompilationPour::DÉBOGAGE;
+        return ActionParsageArgument::CONTINUE;
+    }
+
+    if (arg.value() == "profilage") {
+        résultat.compilation_pour = CompilationPour::PROFILAGE;
+        return ActionParsageArgument::CONTINUE;
+    }
+
+    if (arg.value() == "production") {
+        résultat.compilation_pour = CompilationPour::PRODUCTION;
+        return ActionParsageArgument::CONTINUE;
+    }
+
+    dbg() << "Type de compilation \"" << arg.value() << "\" inconnu.";
+    return ActionParsageArgument::ARRÊTE_CAR_ERREUR;
+}
+
 static ActionParsageArgument gère_argument_débogage_ne_compile_que_nécessaire(
     ParseuseArguments & /*parseuse*/, ArgumentsCompilatrice &résultat)
 {
@@ -669,6 +705,7 @@ static bool compile_fichier(Compilatrice &compilatrice, kuri::chaine_statique ch
     options_espace_défaut.coulisse = compilatrice.arguments.coulisse;
     options_espace_défaut.parallélise_llvm = compilatrice.arguments.parallélise_llvm;
     options_espace_défaut.valide_ir_llvm = compilatrice.arguments.valide_llvm;
+    options_espace_défaut.compilation_pour = compilatrice.arguments.compilation_pour;
 
     compilatrice.espace_de_travail_défaut = compilatrice.démarre_un_espace_de_travail(
         options_espace_défaut, "Espace 1", dossier);
