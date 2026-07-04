@@ -1,12 +1,84 @@
-libr16 :: #bibliothèque "r16";
+__table_r16_r32: [65536]r32 #compilatrice #ailleurs;
+__table_r32_r16: [512]n16 #compilatrice #ailleurs;
 
-DLS_vers_r32 :: fonc (h: r16) -> r32 #interface #externe libr16;
+Naturel_Ou_Réel :: union nonsûr {
+    i: n32;
+    f: r32;
+}
 
-DLS_vers_r64 :: fonc (a: r16) -> r64 #interface #externe libr16;
+DLS_vers_r32 :: fonc (valeur: r16) -> r32 #interface #enligne
+{
+    h := mémoire(*valeur comme *n16);
+    résultat := __table_r16_r32[h];
+    retourne résultat;
+}
 
-DLS_depuis_r32 :: fonc (v: r32) -> r16 #interface #externe libr16;
+DLS_vers_r64 :: fonc (valeur: r16) -> r64 #interface #enligne
+{
+    retourne DLS_vers_r32(valeur) comme r64;
+}
 
-DLS_depuis_r64 :: fonc (v: r64) -> r16 #interface #externe libr16;
+DLS_fabs :: fonc (f: r32) -> r32
+{
+    si f < 0.0 {
+        retourne -f;
+    }
+    retourne f;
+}
+
+DLS_depuis_r32_except :: fonc (i: n32) -> n16
+{
+    résultat: n16 = ---;
+
+    s := ((i >> 16) & 0x8000);
+    e := (((i >> 13) & 0x3fc00) - 0x1c000) comme z32;
+
+    si e <= 0 {
+        /* Dénormalisée. */
+        u: Naturel_Ou_Réel;
+        u.i = i;
+        résultat = (s | (DLS_fabs(u.f) * 1.6777216e7 + 0.5) comme n32) comme n16;
+    }
+    sinon si e == 0x23c00 {
+        /* Soit infini, soit nan. Préservons les bits les plus significatis de m pour le code nan. */
+        résultat = (s | 0x7c00 | ((i & 0x7fffff) >> 13)) comme n16;
+    }
+    sinon {
+        /* Surcharge, convertisonns en infini. */
+        résultat = (s | 0x7c00) comme n16;
+    }
+
+    retourne résultat;
+}
+
+DLS_depuis_r32 :: fonc (val: r32) -> r16 #interface #enligne
+{
+    résultat: n16 = ---;
+
+    si val == 0.0 {
+        résultat = 0;
+    }
+    sinon {
+        u: Naturel_Ou_Réel;
+        u.f = val;
+
+        e := __table_r32_r16[(u.i >> 23) & 0x1ff];
+
+        si e {
+            résultat = (e + (((u.i & 0x7fffff) + 0x1000) >> 13)) comme n16;
+        }
+        sinon {
+            résultat = DLS_depuis_r32_except(u.i);
+        }
+    }
+
+    retourne mémoire(*résultat comme *r16);
+}
+
+DLS_depuis_r64 :: fonc (v: r64) -> r16 #interface #enligne
+{
+    retourne DLS_depuis_r32(v comme r32);
+}
 
 /* ************* opérateurs unaires ************* */
 
