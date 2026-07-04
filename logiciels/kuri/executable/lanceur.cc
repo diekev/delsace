@@ -688,11 +688,6 @@ static bool compile_fichier(Compilatrice &compilatrice, kuri::chaine_statique ch
 {
     auto début_compilation = kuri::chrono::compte_seconde();
 
-    /* Compile les objets pour le support des r16 afin d'avoir la bibliothèque r16. */
-    if (!precompile_objet_r16(kuri::chaine_statique(compilatrice.racine_kuri))) {
-        return false;
-    }
-
     /* enregistre le dossier d'origine */
     auto dossier_origine = kuri::chemin_systeme::chemin_courant();
 
@@ -715,7 +710,6 @@ static bool compile_fichier(Compilatrice &compilatrice, kuri::chaine_statique ch
         exit(1);
     }
 
-    /* Initialise les bibliothèques après avoir généré les objets r16. */
     if (!GestionnaireBibliothèques::initialise_bibliothèques_pour_exécution(compilatrice)) {
         return false;
     }
