@@ -96,10 +96,14 @@ enum class DrapeauxNoeud : uint32_t {
 
     EST_VOLATILE = (1u << 30),  // decl var
 
-    /* Pour la déduplication des noeuds dans l'arbre syntaxique, ceci marque un noeud réutilisé. */
-    EST_RÉUTILISÉ = (1u << 31),
+    /* Pour les globales connues de la compilatrice. Le stockage des données est controlé par cette
+     * dernière. */
+    EST_STOCKÉE_AILLEURS = (1u << 31),  // decl var
 
-    FUT_APLATIS = (1u << 32),
+    /* Pour la déduplication des noeuds dans l'arbre syntaxique, ceci marque un noeud réutilisé. */
+    EST_RÉUTILISÉ = (1u << 32),
+
+    FUT_APLATIS = (1u << 33),
 };
 
 DEFINIS_OPERATEURS_DRAPEAU(DrapeauxNoeud)
