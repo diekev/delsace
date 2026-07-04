@@ -14,6 +14,8 @@
 #include "compilation/espace_de_travail.hh"
 #include "compilation/portee.hh"
 
+#include "r16/r16_tables.h"
+
 #include "statistiques/statistiques.hh"
 
 #include "structures/enchaineuse.hh"
@@ -5178,58 +5180,89 @@ void CompilatriceRI::compile_globale(NoeudDéclarationVariable *decl,
         expression = expression->substitution;
     }
 
-    auto const méthode_construction = détermine_méthode_construction_globale(expression,
-                                                                             transformation);
+    auto const est_tableau_r16 = decl->possède_drapeau(DrapeauxNoeud::EST_STOCKÉE_AILLEURS) &&
+                                 (atome->ident == ID::__table_r32_r16 ||
+                                  atome->ident == ID::__table_r16_r32);
 
-    switch (méthode_construction) {
-        case MéthodeConstructionGlobale::TABLEAU_CONSTANT:
-        {
-            génère_ri_pour_noeud(expression);
-            valeur = static_cast<AtomeConstante *>(dépile_valeur());
-            break;
+    if (est_tableau_r16) {
+        auto type_alloué = decl->type->comme_type_tableau_fixe();
+
+        auto taille = type_alloué->taille_octet;
+        char *pointeur = nullptr;
+
+        if (atome->ident == ID::__table_r32_r16) {
+            pointeur = reinterpret_cast<char *>(table_r32_r16);
         }
-        case MéthodeConstructionGlobale::TABLEAU_FIXE_A_CONVERTIR:
-        {
-            auto type_tableau_fixe = expression->type->comme_type_tableau_fixe();
+        else if (atome->ident == ID::__table_r16_r32) {
+            pointeur = reinterpret_cast<char *>(table_r16_r32);
+        }
 
-            /* Crée une globale pour le tableau fixe, et utilise celle-ci afin
-             * d'initialiser le tableau dynamique. */
-            auto ident = m_compilatrice.donne_identifiant_pour_globale("données_initilisateur");
-            auto globale_tableau = m_constructrice.crée_globale(
-                *ident, expression->type, nullptr, false, false);
+        auto initialisateur = m_constructrice.crée_constante_tableau_données_constantes(
+            type_alloué, pointeur, taille);
 
-            if (decl->bloc_pour_initialisation_globale) {
-                expression = decl->bloc_pour_initialisation_globale;
+        initialisateur->définis_alignement(type_alloué->alignement);
+
+        valeur = initialisateur;
+    }
+    else {
+        auto const méthode_construction = détermine_méthode_construction_globale(expression,
+                                                                                 transformation);
+
+        if (decl->ident == ID::__table_r32_r16) {
+            dbg() << méthode_construction;
+        }
+
+        switch (méthode_construction) {
+            case MéthodeConstructionGlobale::TABLEAU_CONSTANT:
+            {
+                génère_ri_pour_noeud(expression);
+                valeur = static_cast<AtomeConstante *>(dépile_valeur());
+                break;
             }
-            /* La construction du tableau devra se faire via la fonction
-             * d'initialisation des globales. */
-            m_espace->constructeurs_globaux->ajoute({globale_tableau, expression, {}});
+            case MéthodeConstructionGlobale::TABLEAU_FIXE_A_CONVERTIR:
+            {
+                auto type_tableau_fixe = expression->type->comme_type_tableau_fixe();
 
-            valeur = m_constructrice.crée_initialisation_tableau_global(globale_tableau,
-                                                                        type_tableau_fixe);
-            break;
-        }
-        case MéthodeConstructionGlobale::NORMALE:
-        {
-            if (decl->bloc_pour_initialisation_globale) {
-                expression = decl->bloc_pour_initialisation_globale;
+                /* Crée une globale pour le tableau fixe, et utilise celle-ci afin
+                 * d'initialiser le tableau dynamique. */
+                auto ident = m_compilatrice.donne_identifiant_pour_globale(
+                    "données_initilisateur");
+                auto globale_tableau = m_constructrice.crée_globale(
+                    *ident, expression->type, nullptr, false, false);
+
+                if (decl->bloc_pour_initialisation_globale) {
+                    expression = decl->bloc_pour_initialisation_globale;
+                }
+                /* La construction du tableau devra se faire via la fonction
+                 * d'initialisation des globales. */
+                m_espace->constructeurs_globaux->ajoute({globale_tableau, expression, {}});
+
+                valeur = m_constructrice.crée_initialisation_tableau_global(globale_tableau,
+                                                                            type_tableau_fixe);
+                break;
             }
-            m_espace->constructeurs_globaux->ajoute({atome, expression, transformation});
-            break;
-        }
-        case MéthodeConstructionGlobale::PAR_VALEUR_DEFAUT:
-        {
-            valeur = m_constructrice.crée_initialisation_défaut_pour_type(decl->type);
-            break;
-        }
-        case MéthodeConstructionGlobale::SANS_INITIALISATION:
-        {
-            /* Rien à faire. */
-            break;
+            case MéthodeConstructionGlobale::NORMALE:
+            {
+                if (decl->bloc_pour_initialisation_globale) {
+                    expression = decl->bloc_pour_initialisation_globale;
+                }
+                m_espace->constructeurs_globaux->ajoute({atome, expression, transformation});
+                break;
+            }
+            case MéthodeConstructionGlobale::PAR_VALEUR_DEFAUT:
+            {
+                valeur = m_constructrice.crée_initialisation_défaut_pour_type(decl->type);
+                break;
+            }
+            case MéthodeConstructionGlobale::SANS_INITIALISATION:
+            {
+                /* Rien à faire. */
+                break;
+            }
         }
     }
 
-    if (atome->ident == ID::__table_des_types) {
+    if (atome->ident == ID::__table_des_types || est_tableau_r16) {
         atome->est_constante = true;
     }
 
