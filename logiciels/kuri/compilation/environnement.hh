@@ -58,12 +58,6 @@ kuri::chemin_systeme chemin_executable_temporaire_pour(kuri::chaine_statique nom
  * pour générer le chemin "Module/lib/x86_64-linux-gnu". */
 kuri::chemin_systeme suffixe_chemin_module_pour_bibliothèque(ArchitectureCible architecture_cible);
 
-/* Retourne le chemin où la bibliothèque r16 sera installée pour l'architecture donnée. */
-kuri::chemin_systeme chemin_de_base_pour_bibliothèque_r16(ArchitectureCible architecture_cible);
-
-/* Retourne le chemin vers le fichier objet des tables r16 pour l'architecture donné. */
-kuri::chemin_systeme chemin_fichier_objet_r16(ArchitectureCible architecture_cible);
-
 /* Retourne une commande pour appeler le compilateur C afin de compiler un fichier objet depuis le
  * fichier donné en entrée.
  */
@@ -79,11 +73,6 @@ kuri::chaine commande_pour_liaison(OptionsDeCompilation const &options,
                                    BibliothèquesUtilisées const &bibliothèques,
                                    kuri::chaine_statique chemin_sortie,
                                    bool utilise_clang);
-
-bool precompile_objet_r16(kuri::chemin_systeme const &chemin_racine_kuri);
-
-bool compile_objet_r16(kuri::chemin_systeme const &chemin_racine_kuri,
-                       ArchitectureCible architecture_cible);
 
 /**
  * Exécute une commande externe. Retourne vrai si la commande fut exécutée avec succès.

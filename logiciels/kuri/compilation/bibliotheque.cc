@@ -17,8 +17,6 @@
 
 #include "parsage/lexeuse.hh"
 
-#include "r16/r16_c.h"
-
 #include "statistiques/statistiques.hh"
 
 #include "structures/chemin_systeme.hh"
@@ -129,26 +127,6 @@ void notre_free(void *ptr)
     free(ptr);
 }
 
-static float vers_r32(uint16_t f)
-{
-    return DLS_vers_r32(f);
-}
-
-static uint16_t depuis_r32(float f)
-{
-    return DLS_depuis_r32(f);
-}
-
-static double vers_r64(uint16_t f)
-{
-    return DLS_vers_r64(f);
-}
-
-static uint16_t depuis_r64(double f)
-{
-    return DLS_depuis_r64(f);
-}
-
 /* ------------------------------------------------------------------------- */
 /** \name Utilitaires.
  * \{ */
@@ -233,9 +211,6 @@ static void ajoute_chemins_depuis_env(const char *variable,
 static kuri::tablet<kuri::chemin_systeme, 16> chemins_systeme_pour(ArchitectureCible architecture)
 {
     kuri::tablet<kuri::chemin_systeme, 16> résultat;
-
-    /* Pour les tables r16. */
-    résultat.ajoute(chemin_de_base_pour_bibliothèque_r16(architecture));
 
 #ifdef _MSC_VER
     kuri::ensemblon<kuri::chaine_statique, 16> chemins_connus;
@@ -775,23 +750,6 @@ bool GestionnaireBibliothèques::initialise_bibliothèques_pour_exécution(Compi
     free_->définis_adresse_pour_exécution(
         reinterpret_cast<Symbole::type_adresse_fonction>(notre_free));
 
-    /* La bibliothèque r16. */
-    auto bibr16 = gestionnaire->crée_bibliothèque(
-        *espace, nullptr, table_idents->identifiant_pour_chaine("libr16"), "r16");
-
-    bibr16->crée_symbole("DLS_vers_r32", TypeSymbole::FONCTION)
-        ->définis_adresse_pour_exécution(
-            reinterpret_cast<Symbole::type_adresse_fonction>(vers_r32));
-    bibr16->crée_symbole("DLS_depuis_r32", TypeSymbole::FONCTION)
-        ->définis_adresse_pour_exécution(
-            reinterpret_cast<Symbole::type_adresse_fonction>(depuis_r32));
-    bibr16->crée_symbole("DLS_vers_r64", TypeSymbole::FONCTION)
-        ->définis_adresse_pour_exécution(
-            reinterpret_cast<Symbole::type_adresse_fonction>(vers_r64));
-    bibr16->crée_symbole("DLS_depuis_r64", TypeSymbole::FONCTION)
-        ->définis_adresse_pour_exécution(
-            reinterpret_cast<Symbole::type_adresse_fonction>(depuis_r64));
-
 #ifndef _MSC_VER
     /* La bibliothèque pthread. */
     gestionnaire->crée_bibliothèque(
@@ -848,10 +806,16 @@ Bibliothèque *GestionnaireBibliothèques::crée_bibliothèque(EspaceDeTravail &
     if (nom != "") {
         bibliothèque->nom = nom;
         if (nom == "ucrt") {
-            kuri::chemin_systeme chemins_ucrt[NUM_TYPES_BIBLIOTHÈQUE][NUM_TYPES_INFORMATION_BIBLIOTHÈQUE] = {};
-                                                    // "C:\Program Files (x86)\Windows Kits\10\Redist\10.0.26100.0\ucrt\DLLs\x64\ucrtbase.dll"
-            chemins_ucrt[DYNAMIQUE][POUR_PRODUCTION] = "C:/Program Files (x86)/Windows Kits/10/Redist/10.0.26100.0/ucrt/DLLs/x64/ucrtbase.dll";
-            chemins_ucrt[STATIQUE][POUR_PRODUCTION] = "C:\\Program Files (x86)\\Windows Kits\\10\\lib\\10.0.26100.0\\ucrt\\x64\\liburct.lib";
+            kuri::chemin_systeme chemins_ucrt[NUM_TYPES_BIBLIOTHÈQUE]
+                                             [NUM_TYPES_INFORMATION_BIBLIOTHÈQUE] = {};
+            // "C:\Program Files (x86)\Windows
+            // Kits\10\Redist\10.0.26100.0\ucrt\DLLs\x64\ucrtbase.dll"
+            chemins_ucrt[DYNAMIQUE][POUR_PRODUCTION] =
+                "C:/Program Files (x86)/Windows "
+                "Kits/10/Redist/10.0.26100.0/ucrt/DLLs/x64/ucrtbase.dll";
+            chemins_ucrt[STATIQUE][POUR_PRODUCTION] =
+                "C:\\Program Files (x86)\\Windows "
+                "Kits\\10\\lib\\10.0.26100.0\\ucrt\\x64\\liburct.lib";
             bibliothèque->chemins.définis_chemins(PLATEFORME_64_BIT, chemins_ucrt);
         }
         else {
