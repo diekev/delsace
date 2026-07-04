@@ -94,6 +94,10 @@ enum class DrapeauxNoeud : uint32_t {
 
     EST_PARSÉANTE = (1u << 29),  // decl var
     EST_VOLATILE = (1u << 30),   // decl var
+
+    /* Pour les globales connues de la compilatrice. Le stockage des données est controlé par cette
+     * dernière. */
+    EST_STOCKÉE_AILLEURS = (1u << 31),  // decl var
 };
 
 DEFINIS_OPERATEURS_DRAPEAU(DrapeauxNoeud)

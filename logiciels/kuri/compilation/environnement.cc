@@ -126,20 +126,6 @@ kuri::chemin_systeme suffixe_chemin_module_pour_bibliothèque(ArchitectureCible 
     return suffixes[static_cast<int>(architecture_cible)];
 }
 
-kuri::chemin_systeme chemin_de_base_pour_bibliothèque_r16(ArchitectureCible architecture_cible)
-{
-    const auto suffixe = suffixe_chemin_module_pour_bibliothèque(architecture_cible);
-    return kuri::chemin_systeme::chemin_temporaire(suffixe);
-}
-
-kuri::chemin_systeme chemin_fichier_objet_r16(ArchitectureCible architecture_cible)
-{
-    const kuri::chaine_statique noms_de_base_fichiers[2] = {"r16_tables_x86", "r16_tables_x64"};
-    const auto fichier_objet = nom_fichier_objet_pour(
-        noms_de_base_fichiers[int(architecture_cible)]);
-    return kuri::chemin_systeme::chemin_temporaire(fichier_objet);
-}
-
 static kuri::chaine_statique chaine_pour_niveau_optimisation(NiveauOptimisation niveau)
 {
     switch (niveau) {
@@ -484,15 +470,9 @@ kuri::chaine commande_pour_liaison(OptionsDeCompilation const &options,
         enchaineuse << "\"" << it << "\" ";
     }
 
-    enchaineuse << chemin_fichier_objet_r16(options.architecture) << " ";
-
     enchaineuse << " /OUT:\"" << nom_sortie_résultat_final(options) << "\" ";
 
     POUR (bibliothèques.donne_tableau()) {
-        if (it->nom == "r16") {
-            continue;
-        }
-
         auto chemin_parent = it->chemin_de_base(options);
         if (chemin_parent.taille() != 0) {
             enchaineuse << "/LIBPATH:\"" << chemin_parent << "\" ";
@@ -521,18 +501,11 @@ kuri::chaine commande_pour_liaison(OptionsDeCompilation const &options,
         enchaineuse << "\"" << it << "\" ";
     }
 
-    /* Ajoute le fichier objet pour les r16. */
-    enchaineuse << chemin_fichier_objet_r16(options.architecture) << " ";
-
     /* Détermine d'abord les chemins pour rpath. Il est possible que deux bibliothèques du même
      * dossier soient liées différement. Sans ça, si la statique précèdait la dynamique, rpath ne
      * serait pas mis en place dans la boucle suivante. */
     auto chemin_requiers_rpath = std::set<kuri::chemin_systeme>();
     POUR (bibliothèques.donne_tableau()) {
-        if (it->nom == "r16") {
-            continue;
-        }
-
         auto chemin_parent = it->chemin_de_base(options);
         if (chemin_parent.taille() == 0) {
             continue;
@@ -545,10 +518,6 @@ kuri::chaine commande_pour_liaison(OptionsDeCompilation const &options,
 
     auto chemins_utilisés = std::set<kuri::chemin_systeme>();
     POUR (bibliothèques.donne_tableau()) {
-        if (it->nom == "r16") {
-            continue;
-        }
-
         auto chemin_parent = it->chemin_de_base(options);
         if (chemin_parent.taille() == 0) {
             continue;
@@ -567,10 +536,6 @@ kuri::chaine commande_pour_liaison(OptionsDeCompilation const &options,
     }
 
     POUR (bibliothèques.donne_tableau()) {
-        if (it->nom == "r16") {
-            continue;
-        }
-
         auto const liaison = donne_type_liaison_pour_bibliothèque(options, bibliothèques, *it);
         enchaineuse << " " << donne_commande_pour_type_liaison(liaison);
         enchaineuse << " -l" << it->nom_pour_liaison(options);
@@ -588,16 +553,6 @@ kuri::chaine commande_pour_liaison(OptionsDeCompilation const &options,
     enchaineuse << '\0';
 
     return enchaineuse.chaine();
-}
-
-/* Crée une commande système pour appeler le compilateur natif afin de créer un fichier objet. */
-static kuri::chaine commande_pour_fichier_objet_r16(OptionsDeCompilation const &options,
-                                                    kuri::chaine_statique nom_entrée,
-                                                    kuri::chaine_statique nom_sortie,
-                                                    bool utilise_clang)
-{
-    return commande_pour_fichier_objet_impl(
-        options, donne_compilateur_cpp(utilise_clang), nom_entrée, nom_sortie, utilise_clang);
 }
 
 /* Crée une commande système pour appeler le compilateur natif afin de créer une bibliothèque
@@ -637,75 +592,6 @@ static bool exécute_commande(kuri::chaine_statique commande)
 
     if (!exécute_commande_externe(commande)) {
         dbg() << "Impossible de compiler les tables de conversion R16 !";
-        return false;
-    }
-
-    return true;
-}
-
-/* À FAIRE(r16) : il faudra proprement gérer les architectures pour les r16, ou trouver des
- * algorithmes pour supprimer les tables */
-bool precompile_objet_r16(const kuri::chemin_systeme &chemin_racine_kuri)
-{
-    /* Objet pour la liaison statique de la bibliothèque. */
-    if (!compile_objet_r16(chemin_racine_kuri, ArchitectureCible::X64)) {
-        return false;
-    }
-
-    /* Objet pour la liaison statique de la bibliothèque. */
-
-    const auto fichier_objet = nom_bibliothèque_dynamique_pour("r16", true);
-    const auto chemin_objet = chemin_de_base_pour_bibliothèque_r16(ArchitectureCible::X64) /
-                              fichier_objet;
-
-    if (kuri::chemin_systeme::existe(chemin_objet)) {
-        return true;
-    }
-
-    const auto chemin_fichier = chemin_racine_kuri / "fichiers/r16_tables.cc";
-    /* assure l'existence des dossiers parents */
-    kuri::chemin_systeme::crée_dossiers(chemin_objet.chemin_parent());
-
-    const auto commande = commande_pour_bibliothèque_dynamique(
-        chemin_fichier, chemin_objet, ArchitectureCible::X64, false);
-
-    if (!exécute_commande(commande)) {
-        return false;
-    }
-
-    if (!kuri::chemin_systeme::existe(chemin_objet)) {
-        dbg() << "Le fichier compilé « " << chemin_objet << " » n'existe pas !";
-        return false;
-    }
-
-    return true;
-}
-
-bool compile_objet_r16(const kuri::chemin_systeme &chemin_racine_kuri,
-                       ArchitectureCible architecture_cible)
-{
-    const auto chemin_objet = chemin_fichier_objet_r16(architecture_cible);
-
-    if (kuri::chemin_systeme::existe(chemin_objet)) {
-        return true;
-    }
-
-    const auto chemin_fichier = chemin_racine_kuri / "fichiers/r16_tables.cc";
-
-    OptionsDeCompilation options;
-    options.architecture = architecture_cible;
-    options.résultat = RésultatCompilation::FICHIER_OBJET;
-    options.code_indépendent_de_position = true;
-
-    const auto commande = commande_pour_fichier_objet_r16(
-        options, chemin_fichier, chemin_objet, false);
-
-    if (!exécute_commande(commande)) {
-        return false;
-    }
-
-    if (!kuri::chemin_systeme::existe(chemin_objet)) {
-        dbg() << "Le fichier compilé « " << chemin_objet << " » n'existe pas !";
         return false;
     }
 

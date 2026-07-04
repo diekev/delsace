@@ -4098,6 +4098,8 @@ enum DirectiveDeVariable : uint32_t {
     MÉMOIRE_GLOBALE = (1u << 4),
     MÉMOIRE_LOCALE = (1u << 5),
     VOLATILE = (1U << 6),
+    COMPILATRICE = (1U << 7),
+    AILLEURS = (1U << 8),
 };
 DEFINIS_OPERATEURS_DRAPEAU(DirectiveDeVariable)
 
@@ -4207,6 +4209,24 @@ void Syntaxeuse::analyse_directive_déclaration_variable(BaseDéclarationVariabl
             consomme();
             directives |= DirectiveDeVariable::VOLATILE;
             déclaration->drapeaux |= DrapeauxNoeud::EST_VOLATILE;
+        }
+        else if (lexème_directive->ident == ID::compilatrice) {
+            if (déclaration->ident != ID::__table_r16_r32 &&
+                déclaration->ident != ID::__table_r32_r16) {
+                rapporte_erreur("Utilisation de #compilatrice sur une variable inconnue.");
+            }
+            consomme();
+            directives |= DirectiveDeVariable::COMPILATRICE;
+            déclaration->visibilité_symbole = VisibilitéSymbole::INTERNE;
+            déclaration->partage_mémoire = PartageMémoire::GLOBAL;
+        }
+        else if (lexème_directive->ident == ID::ailleurs) {
+            if (!EST_DRAPEAU_ACTIF(DirectiveDeVariable, directives, COMPILATRICE)) {
+                rapporte_erreur("Utilisation de #ailleurs sans #compilatrice.");
+            }
+            consomme();
+            directives |= DirectiveDeVariable::AILLEURS;
+            déclaration->drapeaux |= DrapeauxNoeud::EST_STOCKÉE_AILLEURS;
         }
         else {
             rapporte_erreur("Directive de déclaration de variable inconnue.");
