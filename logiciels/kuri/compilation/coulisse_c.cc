@@ -1078,8 +1078,6 @@ void ConvertisseuseTypeC::génère_constructeur_cpp(kuri::chaine_statique nom_ty
 
 static void génère_code_début_fichier(Enchaineuse &enchaineuse, kuri::chaine_statique racine_kuri)
 {
-    enchaineuse << "#include <" << racine_kuri << "/fichiers/r16_c.h>\n";
-
     auto const préambule = R"(
 #include <stdint.h>
 
@@ -3017,10 +3015,6 @@ std::optional<ErreurCoulisse> CoulisseC::crée_exécutable_impl(const ArgsLiaiso
 #ifdef CMAKE_BUILD_TYPE_PROFILE
     return {};
 #else
-    if (!compile_objet_r16(compilatrice.racine_kuri, espace.options.architecture)) {
-        return ErreurCoulisse{"Impossible de compiler l'objet pour r16."};
-    }
-
     kuri::tablet<kuri::chaine_statique, 16> fichiers_objet;
     POUR (m_fichiers) {
         if (it.est_entête) {
