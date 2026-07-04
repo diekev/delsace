@@ -15,6 +15,8 @@
 #include "compilation/metaprogramme.hh"
 #include "compilation/programme.hh"
 
+#include "r16/r16_tables.h"
+
 #include "structures/enchaineuse.hh"
 
 #include "utilitaires/log.hh"
@@ -1271,6 +1273,23 @@ bool CompilatriceCodeBinaire::génère_code(ProgrammeRepreInter const &repr_inte
         }
     }
 
+    /* Les globales pour les tableaux de support r16 doivent avoir des adresses valides pour
+     * l'exécution. Étant données qu'elles ont un initialisateur qui les « transforment » en
+     * données constantes, elles ne sont pas compilées avec les autres globales, donc nous
+     * les cherchons manuellement. */
+    auto opt_données_constantes = repr_inter.donne_données_constantes();
+    if (opt_données_constantes.has_value()) {
+        auto données_constantes = opt_données_constantes.value();
+        POUR (données_constantes->tableaux_constants) {
+            if (it.globale->decl &&
+                it.globale->decl->possède_drapeau(DrapeauxNoeud::EST_STOCKÉE_AILLEURS) &&
+                (it.globale->ident == ID::__table_r32_r16 ||
+                 it.globale->ident == ID::__table_r16_r32)) {
+                ajoute_globale(it.globale);
+            }
+        }
+    }
+
     kuri::tableau<AtomeGlobale *> globales_requérant_génération_code;
     POUR (repr_inter.donne_globales_non_info_types()) {
         if (it->indice != -1) {
@@ -2179,15 +2198,29 @@ bool CompilatriceCodeBinaire::ajoute_globale(AtomeGlobale *globale) const
     if (globale->est_info_type_de) {
         adresse_pour_exécution = globale->est_info_type_de->info_type;
     }
-    else if (globale->decl && globale->decl->données_externes) {
-        auto decl = globale->decl;
-        if (!decl->données_externes->symbole->charge(
-                espace, decl, RaisonRechercheSymbole::EXÉCUTION_MÉTAPROGRAMME)) {
-            return false;
-        }
+    else if (globale->decl) {
+        if (globale->decl->données_externes) {
+            /* Nous avons une globale venant d'une bibliothèque. */
+            auto decl = globale->decl;
+            if (!decl->données_externes->symbole->charge(
+                    espace, decl, RaisonRechercheSymbole::EXÉCUTION_MÉTAPROGRAMME)) {
+                return false;
+            }
 
-        adresse_pour_exécution =
-            decl->données_externes->symbole->donne_adresse_objet_pour_exécution();
+            adresse_pour_exécution =
+                decl->données_externes->symbole->donne_adresse_objet_pour_exécution();
+        }
+        else if (globale->decl->possède_drapeau(DrapeauxNoeud::EST_STOCKÉE_AILLEURS)) {
+            if (globale->ident == ID::__table_r16_r32) {
+                adresse_pour_exécution = table_r16_r32;
+            }
+            else if (globale->ident == ID::__table_r32_r16) {
+                adresse_pour_exécution = table_r32_r16;
+            }
+            else {
+                espace->rapporte_erreur(globale->decl, "Globale #ailleurs inconnue");
+            }
+        }
     }
 
     auto type_globale = globale->donne_type_alloué();
