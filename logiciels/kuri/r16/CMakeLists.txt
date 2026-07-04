@@ -11,9 +11,3 @@ set(SOURCES
 
 add_library(${NOM_BIBLIOTHEQUE} STATIC ${SOURCES})
 add_library(kuri::r16 ALIAS kuri_r16)
-
-install(
-	FILES ${SOURCES}
-	DESTINATION kuri/fichiers
-)
-
