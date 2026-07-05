@@ -4033,9 +4033,16 @@ NoeudBloc *Syntaxeuse::analyse_bloc_rubriques_structure_ou_union(
             noeud->drapeaux |= DrapeauxNoeud::EST_RUBRIQUE_STRUCTURE;
             consomme(GenreLexème::POINT_VIRGULE);
         }
-
-        if (noeud->est_empl() || noeud->est_assignation_variable() || noeud->est_exécute() ||
-            noeud->est_déclaration_constante() || noeud->est_déclaration_variable_multiple()) {
+        else if (noeud->est_empl()) {
+            auto empl = noeud->comme_empl();
+            if (empl->expression->est_déclaration_variable()) {
+                empl->expression->drapeaux |= DrapeauxNoeud::EST_RUBRIQUE_STRUCTURE;
+            }
+            consomme(GenreLexème::POINT_VIRGULE);
+        }
+        else if (noeud->est_assignation_variable() || noeud->est_exécute() ||
+                 noeud->est_déclaration_constante() ||
+                 noeud->est_déclaration_variable_multiple()) {
             consomme(GenreLexème::POINT_VIRGULE);
         }
 
