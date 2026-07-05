@@ -43,22 +43,23 @@ using Type = NoeudDéclarationType;
     ENUMERE_TYPE_INFO_TYPES(O)                                                                    \
     ENUMERE_TYPE_INTERFACE_HORS_INFOS_TYPES(O)
 
-#define ENUMERE_FONCTIONS_INTERFACE_MODULE_KURI(Op)                                               \
-    Op(decl_panique, ID::panique) Op(decl_panique_memoire, ID::panique_hors_memoire)              \
-        Op(decl_panique_tableau, ID::panique_depassement_limites_tableau)                         \
-            Op(decl_panique_chaine, ID::panique_depassement_limites_chaine) Op(                   \
-                decl_panique_rubrique_union,                                                      \
-                ID::panique_rubrique_union) Op(decl_panique_erreur, ID::panique_erreur_non_geree) \
-                Op(decl_rappel_panique_défaut, ID::__rappel_panique_défaut) Op(                   \
-                    decl_r16_vers_r32, ID::r16_vers_r32) Op(decl_r16_vers_r64, ID::r16_vers_r64)  \
-                    Op(decl_r16_depuis_r32, ID::r16_depuis_r32)                                   \
-                        Op(decl_r16_depuis_r64, ID::r16_depuis_r64)                               \
-                            Op(decl_creation_contexte, ID::crée_contexte)                         \
-                                Op(decl_init_execution_kuri, ID::init_execution_kuri)             \
-                                    Op(decl_fini_execution_kuri, ID::fini_execution_kuri)         \
-                                        Op(decl_init_globales_kuri, ID::init_globales_kuri)       \
-                                            Op(decl_vérifie_typage_extraction_eini,               \
-                                               ID::vérifie_typage_extraction_eini)
+#define ENUMERE_FONCTIONS_INTERFACE_MODULE_KURI(O)                                                \
+    O(decl_panique, ID::panique)                                                                  \
+    O(decl_panique_memoire, ID::panique_hors_memoire)                                             \
+    O(decl_panique_tableau, ID::panique_depassement_limites_tableau)                              \
+    O(decl_panique_chaine, ID::panique_depassement_limites_chaine)                                \
+    O(decl_panique_rubrique_union, ID::panique_rubrique_union)                                    \
+    O(decl_panique_erreur, ID::panique_erreur_non_geree)                                          \
+    O(decl_rappel_panique_défaut, ID::__rappel_panique_défaut)                                    \
+    O(decl_r16_vers_r32, ID::r16_vers_r32)                                                        \
+    O(decl_r16_vers_r64, ID::r16_vers_r64)                                                        \
+    O(decl_r16_depuis_r32, ID::r16_depuis_r32)                                                    \
+    O(decl_r16_depuis_r64, ID::r16_depuis_r64)                                                    \
+    O(decl_creation_contexte, ID::crée_contexte)                                                  \
+    O(decl_init_execution_kuri, ID::init_execution_kuri)                                          \
+    O(decl_fini_execution_kuri, ID::fini_execution_kuri)                                          \
+    O(decl_init_globales_kuri, ID::init_globales_kuri)                                            \
+    O(decl_vérifie_typage_extraction_eini, ID::vérifie_typage_extraction_eini)
 
 struct InterfaceKuri {
 #define DECLARATION_RUBRIQUE(nom_rubrique, id)                                                    \
