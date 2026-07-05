@@ -188,7 +188,7 @@ struct Programme {
     void ajoute_globale(NoeudDéclarationVariable *globale);
 
     void ajoute_type(Type *type, RaisonAjoutType raison, NoeudExpression *noeud);
-    void ajoute_init_de(Type *type);
+    void ajoute_init_de(Type *type, RaisonAjoutType raison, NoeudExpression *noeud);
     void ajoute_info_de(Type *type);
 
     bool possède(NoeudDéclarationEntêteFonction *fonction) const
@@ -211,6 +211,11 @@ struct Programme {
         return m_info_de.possède(type);
     }
 
+    bool possède_init_types(Type *type) const
+    {
+        return m_init_de.possède(type);
+    }
+
     kuri::tableau_statique<NoeudDéclarationEntêteFonction *> fonctions() const
     {
         return m_fonctions.donne_éléments();
@@ -229,6 +234,11 @@ struct Programme {
     kuri::tableau_statique<Type *> info_de() const
     {
         return m_info_de.donne_éléments();
+    }
+
+    kuri::tableau_statique<Type *> init_types() const
+    {
+        return m_init_de.donne_éléments();
     }
 
     /* Retourne vrai si toutes les fonctions, toutes les globales, et tous les types utilisés par

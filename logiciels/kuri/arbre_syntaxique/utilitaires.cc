@@ -2177,6 +2177,7 @@ NoeudDéclarationEntêteFonction *crée_entête_pour_initialisation_type(Type *t
         static Lexème lexème_déclaration = {};
         auto déclaration_paramètre = assembleuse->crée_déclaration_variable(
             &lexème_déclaration, type_param, ID::pointeur, nullptr);
+        déclaration_paramètre->drapeaux |= DrapeauxNoeud::EST_PARAMETRE;
         déclaration_paramètre->drapeaux |= DrapeauxNoeud::DECLARATION_FUT_VALIDEE;
         déclaration_paramètre->drapeaux |= DrapeauxNoeud::EST_UTILISEE;
 
@@ -2188,6 +2189,7 @@ NoeudDéclarationEntêteFonction *crée_entête_pour_initialisation_type(Type *t
         static const Lexème lexème_rien = {"rien", {}, GenreLexème::RIEN, 0, 0, 0};
         auto déclaration_paramètre = crée_retour_défaut_fonction(
             assembleuse, typeuse, &lexème_rien);
+        déclaration_paramètre->drapeaux |= DrapeauxNoeud::EST_PARAMETRE;
         déclaration_paramètre->drapeaux |= DrapeauxNoeud::DECLARATION_FUT_VALIDEE;
 
         entête->params_sorties.ajoute(déclaration_paramètre);
