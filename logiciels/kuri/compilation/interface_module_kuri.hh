@@ -50,9 +50,9 @@ using Type = NoeudDéclarationType;
                 decl_panique_rubrique_union,                                                      \
                 ID::panique_rubrique_union) Op(decl_panique_erreur, ID::panique_erreur_non_geree) \
                 Op(decl_rappel_panique_défaut, ID::__rappel_panique_défaut) Op(                   \
-                    decl_dls_vers_r32, ID::DLS_vers_r32) Op(decl_dls_vers_r64, ID::DLS_vers_r64)  \
-                    Op(decl_dls_depuis_r32, ID::DLS_depuis_r32)                                   \
-                        Op(decl_dls_depuis_r64, ID::DLS_depuis_r64)                               \
+                    decl_r16_vers_r32, ID::r16_vers_r32) Op(decl_r16_vers_r64, ID::r16_vers_r64)  \
+                    Op(decl_r16_depuis_r32, ID::r16_depuis_r32)                                   \
+                        Op(decl_r16_depuis_r64, ID::r16_depuis_r64)                               \
                             Op(decl_creation_contexte, ID::crée_contexte)                         \
                                 Op(decl_init_execution_kuri, ID::init_execution_kuri)             \
                                     Op(decl_fini_execution_kuri, ID::fini_execution_kuri)         \
