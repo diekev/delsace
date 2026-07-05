@@ -151,6 +151,12 @@ void GrapheDépendance::ajoute_dépendances(NoeudDépendance &noeud, DonnéesDé
         return kuri::DécisionItération::Continue;
     });
 
+    kuri::pour_chaque_élément(données.init_de_utilisés, [&](auto &type) {
+        auto noeud_type = crée_noeud_type(type);
+        connecte_noeuds(noeud, *noeud_type, TypeRelation::UTILISE_INIT_TYPE);
+        return kuri::DécisionItération::Continue;
+    });
+
     kuri::pour_chaque_élément(données.fonctions_utilisées, [&](auto &fonction_utilisée) {
         auto noeud_type = crée_noeud_fonction(
             const_cast<NoeudDéclarationEntêteFonction *>(fonction_utilisée));
