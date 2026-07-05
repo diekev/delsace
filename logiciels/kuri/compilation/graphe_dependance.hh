@@ -40,6 +40,7 @@ enum class TypeNoeudDependance {
 #define ENUMERE_TYPES_RELATION                                                                    \
     ENUMERE_TYPE_RELATION_EX(INVALIDE)                                                            \
     ENUMERE_TYPE_RELATION_EX(UTILISE_TYPE)                                                        \
+    ENUMERE_TYPE_RELATION_EX(UTILISE_INIT_TYPE)                                                   \
     ENUMERE_TYPE_RELATION_EX(UTILISE_FONCTION)                                                    \
     ENUMERE_TYPE_RELATION_EX(UTILISE_GLOBALE)
 
@@ -223,6 +224,7 @@ struct GrapheDépendance {
             auto accepte = relation.type == TypeRelation::UTILISE_TYPE;
             accepte |= relation.type == TypeRelation::UTILISE_FONCTION;
             accepte |= relation.type == TypeRelation::UTILISE_GLOBALE;
+            accepte |= relation.type == TypeRelation::UTILISE_INIT_TYPE;
 
             if (!accepte) {
                 continue;
