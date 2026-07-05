@@ -399,20 +399,20 @@ void RassembleuseDependances::rassemble_dépendances(NoeudExpression *racine)
             }
         }
         else if (transformation.type == TypeTransformation::R16_VERS_R32) {
-            assert(interface->decl_dls_vers_r32);
-            ajoute_fonction(interface->decl_dls_vers_r32);
+            assert(interface->decl_r16_vers_r32);
+            ajoute_fonction(interface->decl_r16_vers_r32);
         }
         else if (transformation.type == TypeTransformation::R16_VERS_R64) {
-            assert(interface->decl_dls_vers_r64);
-            ajoute_fonction(interface->decl_dls_vers_r64);
+            assert(interface->decl_r16_vers_r64);
+            ajoute_fonction(interface->decl_r16_vers_r64);
         }
         else if (transformation.type == TypeTransformation::R32_VERS_R16) {
-            assert(interface->decl_dls_depuis_r32);
-            ajoute_fonction(interface->decl_dls_depuis_r32);
+            assert(interface->decl_r16_depuis_r32);
+            ajoute_fonction(interface->decl_r16_depuis_r32);
         }
         else if (transformation.type == TypeTransformation::R64_VERS_R16) {
-            assert(interface->decl_dls_depuis_r64);
-            ajoute_fonction(interface->decl_dls_depuis_r64);
+            assert(interface->decl_r16_depuis_r64);
+            ajoute_fonction(interface->decl_r16_depuis_r64);
         }
         else if (transformation.type == TypeTransformation::CONSTRUIS_EINI) {
             ajoute_info_de(type);
