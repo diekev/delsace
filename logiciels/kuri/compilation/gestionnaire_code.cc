@@ -231,7 +231,7 @@ static bool ajoute_dépendances_au_programme(GrapheDépendance &graphe,
         return kuri::DécisionItération::Continue;
     });
     kuri::pour_chaque_élément(dépendances.init_de_utilisés, [&](auto &type) {
-        programme.ajoute_init_de(type);
+        programme.ajoute_init_de(type, RaisonAjoutType::DÉPENDANCE_DIRECTE, noeud);
         return kuri::DécisionItération::Continue;
     });
     kuri::pour_chaque_élément(dépendances.info_de_utilisés, [&](auto &type) {
@@ -254,6 +254,7 @@ static bool ajoute_dépendances_au_programme(GrapheDépendance &graphe,
                 auto accepte = relation.type == TypeRelation::UTILISE_TYPE;
                 accepte |= relation.type == TypeRelation::UTILISE_FONCTION;
                 accepte |= relation.type == TypeRelation::UTILISE_GLOBALE;
+                accepte |= relation.type == TypeRelation::UTILISE_INIT_TYPE;
 
                 if (!accepte) {
                     continue;
@@ -270,10 +271,13 @@ static bool ajoute_dépendances_au_programme(GrapheDépendance &graphe,
                         relation.noeud_fin->globale());
                 }
                 else if (relation.noeud_fin->est_type()) {
-                    programme.ajoute_type(
-                        relation.noeud_fin->type(), RaisonAjoutType::DÉPENDACE_INDIRECTE, decl);
-                    données_dépendances.dépendances_épendues.types_utilisés.insère(
-                        relation.noeud_fin->type());
+                    auto type = relation.noeud_fin->type();
+                    if (relation.type == TypeRelation::UTILISE_INIT_TYPE) {
+                        données_dépendances.dépendances_épendues.init_de_utilisés.insère(type);
+                        programme.ajoute_init_de(type, RaisonAjoutType::DÉPENDACE_INDIRECTE, decl);
+                    }
+                    programme.ajoute_type(type, RaisonAjoutType::DÉPENDACE_INDIRECTE, decl);
+                    données_dépendances.dépendances_épendues.types_utilisés.insère(type);
                 }
             }
         });
@@ -330,6 +334,27 @@ struct RassembleuseDependances {
 
     void rassemble_dépendances(NoeudExpression *racine);
 };
+
+static bool déclaration_requiers_init_de(const NoeudDéclarationVariable *déclaration)
+{
+    if (déclaration->expression) {
+        return false;
+    }
+
+    /* Pour ce genre de déclarations, les fonctions init_de sont ajoutées au besoin. */
+    if (déclaration->possède_drapeau(
+            DrapeauxNoeud::EST_PARAMETRE | DrapeauxNoeud::EST_RUBRIQUE_STRUCTURE |
+            DrapeauxNoeud::EST_STOCKÉE_AILLEURS | DrapeauxNoeud::EST_GLOBALE)) {
+        return false;
+    }
+
+    /* Les types fondamentaux sont toujours initialisés via une assignation. */
+    if (est_type_fondamental(déclaration->type)) {
+        return false;
+    }
+
+    return true;
+}
 
 /* Traverse l'arbre syntaxique de la racine spécifiée et rassemble les fonctions, types, et
  * globales utilisées. */
@@ -583,8 +608,7 @@ void RassembleuseDependances::rassemble_dépendances(NoeudExpression *racine)
                 ajoute_type(déclaration->type);
                 rassemble_dépendances(déclaration->expression);
 
-                if (!déclaration->expression &&
-                    !déclaration->possède_drapeau(DrapeauxNoeud::EST_PARAMETRE)) {
+                if (déclaration_requiers_init_de(déclaration)) {
                     ajoute_init_de(déclaration->type);
                 }
             }
@@ -692,8 +716,6 @@ void GestionnaireCode::garantie_typage_des_dépendances(
             requiers_typage(espace, type);
         }
 
-        requiers_initialisation_type(espace, type);
-
         if (type->est_type_fonction()) {
             auto type_fonction = type->comme_type_fonction();
             auto type_retour = type_fonction->type_sortie;
@@ -731,6 +753,11 @@ void GestionnaireCode::garantie_typage_des_dépendances(
             }
         }
 
+        return kuri::DécisionItération::Continue;
+    });
+
+    kuri::pour_chaque_élément(dépendances.dépendances.init_de_utilisés, [&](auto &type) {
+        requiers_initialisation_type(espace, type);
         return kuri::DécisionItération::Continue;
     });
 }
@@ -1162,7 +1189,9 @@ void GestionnaireCode::ajoute_attentes_sur_initialisations_types(NoeudExpression
 {
     auto entête = donne_entête_fonction(noeud);
     if (!entête || entête->possède_drapeau(DrapeauxNoeudFonction::EST_INITIALISATION_TYPE |
-                                           DrapeauxNoeudFonction::EST_OPÉRATAUR_SYNTHÉTIQUE)) {
+                                           DrapeauxNoeudFonction::EST_OPÉRATAUR_SYNTHÉTIQUE |
+                                           DrapeauxNoeudFonction::EST_INTRINSÈQUE |
+                                           DrapeauxNoeudFonction::EST_EXTERNE)) {
         return;
     }
 
@@ -1187,6 +1216,7 @@ void GestionnaireCode::ajoute_attentes_sur_initialisations_types(NoeudExpression
     }
 
     POUR (attentes_possibles) {
+        it = Attente::sur_initialisation_type(it.type());
         ajoute_requêtes_pour_attente(unité->espace, it);
         unité->ajoute_attente(it);
     }
@@ -1417,9 +1447,6 @@ void GestionnaireCode::ajoute_requêtes_pour_attente(EspaceDeTravail *espace, At
         if (type_requiers_typage(type)) {
             requiers_typage(espace, type);
         }
-        /* Ceci est pour gérer les requêtes de fonctions d'initialisation avant la génération de
-         * RI. */
-        requiers_initialisation_type(espace, type);
     }
     else if (attente.est<AttenteSurDéclaration>()) {
         NoeudDéclaration *decl = attente.déclaration();
@@ -2256,7 +2283,7 @@ void GestionnaireCode::fonction_initialisation_type_créée(UnitéCompilation *u
 
     POUR (programmes_en_cours) {
         if (it->espace() == unité->espace) {
-            if (it->possède(unité->type)) {
+            if (it->possède_init_types(unité->type)) {
                 it->ajoute_fonction(fonction);
             }
         }
