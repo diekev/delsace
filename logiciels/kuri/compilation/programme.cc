@@ -116,9 +116,6 @@ void Programme::ajoute_type(Type *type, RaisonAjoutType raison, NoeudExpression 
     m_éléments_sont_sales[TYPES][POUR_TYPAGE] = true;
     m_éléments_sont_sales[TYPES][POUR_RI] = true;
 
-    if (type->fonction_init) {
-        ajoute_fonction(type->fonction_init);
-    }
 
 #if 1
     static_cast<void>(raison);
@@ -141,9 +138,36 @@ void Programme::ajoute_type(Type *type, RaisonAjoutType raison, NoeudExpression 
     }
 }
 
-void Programme::ajoute_init_de(Type *type)
+void Programme::ajoute_init_de(Type *type, RaisonAjoutType raison, NoeudExpression *noeud)
 {
-    m_init_de.insère(type);
+    if (!m_init_de.insère(type)) {
+        if (type->fonction_init) {
+            ajoute_fonction(type->fonction_init);
+        }
+        return;
+    }
+
+#if 1
+    static_cast<void>(raison);
+    static_cast<void>(noeud);
+#else
+    if (!m_pour_métaprogramme) {
+        auto chaine_directe_indirecte = kuri::chaine_statique("  directe");
+        if (raison == RaisonAjoutType::DÉPENDACE_INDIRECTE) {
+            chaine_directe_indirecte = "indirecte";
+        }
+
+        dbg() << "Dépendence " << chaine_directe_indirecte << " de "
+              << nom_humainement_lisible(noeud) << " : init_de(" << chaine_type(type) << ")";
+    }
+#endif
+
+    m_éléments_sont_sales[TYPES][POUR_RI] |= true;
+    m_éléments_sont_sales[TYPES][POUR_RI] |= type->fonction_init == nullptr;
+
+    if (type->fonction_init) {
+        ajoute_fonction(type->fonction_init);
+    }
 }
 
 void Programme::ajoute_info_de(Type *type)
@@ -229,7 +253,7 @@ bool Programme::ri_générées(DiagnostiqueÉtatCompilation &diagnostique) const
 
     if (m_éléments_sont_sales[TYPES][POUR_RI]) {
         POUR (m_types.donne_éléments()) {
-            if (!requiers_fonction_initialisation(it)) {
+            if (!possède_init_types(it)) {
                 continue;
             }
 
