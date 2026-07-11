@@ -446,7 +446,9 @@ void RassembleuseDependances::rassemble_dépendances(NoeudExpression *racine)
         true,
         [&](NoeudExpression const *noeud) -> DecisionVisiteNoeud {
             /* N'ajoutons pas de dépendances sur les déclarations de types nichées. */
-            if ((noeud->est_type_structure() || noeud->est_type_énum()) && noeud != racine) {
+            if ((noeud->est_type_structure() || noeud->est_type_énum() ||
+                 noeud->est_corps_fonction()) &&
+                noeud != racine) {
                 return DecisionVisiteNoeud::IGNORE_ENFANTS;
             }
 
@@ -476,11 +478,6 @@ void RassembleuseDependances::rassemble_dépendances(NoeudExpression *racine)
                         ajoute_type(noeud->type);
                     }
                 }
-            }
-
-            if (noeud->est_corps_fonction() && racine != noeud) {
-                /* Ignore le corps qui ne fut pas encore typé. */
-                return DecisionVisiteNoeud::IGNORE_ENFANTS;
             }
 
             if (noeud->est_référence_déclaration()) {
