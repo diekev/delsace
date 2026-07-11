@@ -403,13 +403,12 @@ void RassembleuseDependances::rassemble_dépendances(NoeudExpression *racine)
             ajoute_info_de(type);
         }
         else if (transformation.type == TypeTransformation::EXTRAIT_EINI) {
-            ajoute_info_de(type);
+            auto type_cible = const_cast<Type *>(transformation.type_cible);
+            ajoute_info_de(type_cible);
             assert(interface->decl_vérifie_typage_extraction_eini);
             ajoute_fonction(interface->decl_vérifie_typage_extraction_eini);
 
-            auto type_cible = transformation.type_cible;
-            auto ptr_type_cible = espace->typeuse.type_pointeur_pour(
-                const_cast<Type *>(type_cible), false);
+            auto ptr_type_cible = espace->typeuse.type_pointeur_pour(type_cible, false);
             auto ptr_ptr_type_cible = espace->typeuse.type_pointeur_pour(ptr_type_cible, false);
             ajoute_type(ptr_type_cible);
             ajoute_type(ptr_ptr_type_cible);
