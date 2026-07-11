@@ -372,6 +372,17 @@ void RassembleuseDependances::rassemble_dépendances(NoeudExpression *racine)
                 ajoute_fonction(interface->decl_panique_rubrique_union);
             }
         }
+        else if (transformation.type == TypeTransformation::CONSTRUIS_UNION) {
+            auto type_union = transformation.type_cible->comme_type_union();
+            auto rubrique = type_union->rubriques[int32_t(transformation.indice_rubrique)];
+
+            /* Ajout du type pointeur du type rubrique pour la génération de code. */
+            auto type_ptr_rubrique = espace->typeuse.type_pointeur_pour(rubrique.type, false);
+            ajoute_type(type_ptr_rubrique);
+
+            auto type_ptr_type = espace->typeuse.type_pointeur_pour(type, false);
+            ajoute_type(type_ptr_type);
+        }
         else if (transformation.type == TypeTransformation::R16_VERS_R32) {
             assert(interface->decl_r16_vers_r32);
             ajoute_fonction(interface->decl_r16_vers_r32);
@@ -395,6 +406,21 @@ void RassembleuseDependances::rassemble_dépendances(NoeudExpression *racine)
             ajoute_info_de(type);
             assert(interface->decl_vérifie_typage_extraction_eini);
             ajoute_fonction(interface->decl_vérifie_typage_extraction_eini);
+
+            auto type_cible = transformation.type_cible;
+            auto ptr_type_cible = espace->typeuse.type_pointeur_pour(
+                const_cast<Type *>(type_cible), false);
+            auto ptr_ptr_type_cible = espace->typeuse.type_pointeur_pour(ptr_type_cible, false);
+            ajoute_type(ptr_type_cible);
+            ajoute_type(ptr_ptr_type_cible);
+        }
+        else if (transformation.type == TypeTransformation::CONVERTIS_VERS_BASE ||
+                 transformation.type == TypeTransformation::CONVERTIS_VERS_DÉRIVÉ) {
+            /* Ajout du type pointeur du type cible pour la génération de code. */
+            auto type_cible = transformation.type_cible;
+            auto ptr_type_cible = espace->typeuse.type_pointeur_pour(
+                const_cast<Type *>(type_cible), false);
+            ajoute_type(ptr_type_cible);
         }
 
         /* Nous avons besoin d'un type pointeur pour le type cible pour la génération de
@@ -436,8 +462,19 @@ void RassembleuseDependances::rassemble_dépendances(NoeudExpression *racine)
                         ajoute_type(type_de_données);
                     }
                 }
-                else {
-                    ajoute_type(noeud->type);
+                else if (noeud != racine) {
+                    if (noeud->type->est_type_variadique()) {
+                        auto type_variadique = noeud->type->comme_type_variadique();
+                        if (type_variadique->type_tranche) {
+                            ajoute_type(type_variadique->type_tranche);
+                        }
+                        else {
+                            ajoute_type(type_variadique);
+                        }
+                    }
+                    else {
+                        ajoute_type(noeud->type);
+                    }
                 }
             }
 
@@ -555,9 +592,40 @@ void RassembleuseDependances::rassemble_dépendances(NoeudExpression *racine)
                 }
             }
             else if (noeud->est_référence_rubrique_union()) {
-                auto interface = espace->interface_kuri;
-                assert(interface->decl_panique_rubrique_union);
-                ajoute_fonction(interface->decl_panique_rubrique_union);
+                auto rubricage_union = noeud->comme_référence_rubrique_union();
+                auto type = rubricage_union->accédée->type;
+
+                while (type->est_type_pointeur()) {
+                    type = type_déréférencé_pour(type);
+                    ajoute_type(type);
+                }
+
+                auto type_union = type->comme_type_union();
+                if (!type_union->est_nonsure) {
+                    auto interface = espace->interface_kuri;
+                    assert(interface->decl_panique_rubrique_union);
+                    ajoute_fonction(interface->decl_panique_rubrique_union);
+                }
+
+                auto indice_rubrique = rubricage_union->indice_rubrique;
+                auto type_rubrique = type_union->rubriques[indice_rubrique].type;
+
+                /* Ajout du type pointeur du type rubrique pour la génération de code.
+                 * À FAIRE : déplace le transtypage dans la canonicalisation. */
+                auto type_pointeur = espace->typeuse.type_pointeur_pour(type_rubrique, false);
+                ajoute_type(type_pointeur);
+            }
+            else if (noeud->est_référence_rubrique()) {
+                auto rubricage = noeud->comme_référence_rubrique();
+                auto type = rubricage->accédée->type;
+
+                /* type peut être nul si nous avons un accès de module. */
+                if (type) {
+                    while (type->est_type_pointeur()) {
+                        type = type_déréférencé_pour(type);
+                        ajoute_type(type);
+                    }
+                }
             }
             else if (noeud->est_comme()) {
                 auto comme = noeud->comme_comme();
