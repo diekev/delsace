@@ -32,8 +32,6 @@ erreur de compilation
 
 erreur/avertissement si - unaire utilisé sur nombre naturel
 
-aucune collision de symboles entre les énums ou structures et les constantes
-
 erreur de compilation :
     fonction :: fonc (a: z32)
     fonction :: fonc (a: z32, b := 5)

@@ -3823,6 +3823,10 @@ RésultatValidation Sémanticienne::valide_énum(NoeudEnum *decl)
 {
     CHRONO_TYPAGE(m_stats_typage.énumérations, ENUMERATION__VALIDATION);
 
+    if (vérifie_redéfinition_symbole(decl, decl->bloc_parent->bloc_parent)) {
+        return CodeRetourValidation::Erreur;
+    }
+
     if (decl->est_type_erreur()) {
         decl->type_sous_jacent = m_espace->typeuse.type_z32;
     }
