@@ -3337,7 +3337,6 @@ void Syntaxeuse::analyse_directives_fonction(NoeudDéclarationEntêteFonction *n
             drapeaux_fonction |= DrapeauxNoeudFonction::EST_SSE2;
             drapeaux_fonction |= DrapeauxNoeudFonction::FORCE_SANSTRACE;
             drapeaux_fonction |= DrapeauxNoeudFonction::FORCE_SANSBROYAGE;
-            consomme();
         }
         else {
             rapporte_erreur("Directive de fonction inconnue.");
