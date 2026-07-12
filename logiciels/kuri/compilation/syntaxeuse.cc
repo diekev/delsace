@@ -794,13 +794,13 @@ bool Syntaxeuse::apparie_instruction() const
 
 NoeudExpression *Syntaxeuse::parse_expression_virgule()
 {
-    return analyse_expression(DonnéesPrécédence{PRÉCÉDENCE_VIRGULE});
+    return analyse_expression(DonnéesPrécédence{PRÉCÉDENCE_VIRGULE}, true);
 }
 
-NoeudExpression *Syntaxeuse::parse_expression_ellipse()
+NoeudExpression *Syntaxeuse::parse_expression_ellipse(bool expression_peut_être_nulle)
 {
     auto précédence = précédence_pour_opérateur(GenreLexème::TROIS_POINTS);
-    return analyse_expression(DonnéesPrécédence{précédence});
+    return analyse_expression(DonnéesPrécédence{précédence}, expression_peut_être_nulle);
 }
 
 NoeudExpression *Syntaxeuse::parse_déclaration_paramètre(bool type_seul_autorisé)
@@ -969,10 +969,14 @@ NoeudExpression *Syntaxeuse::parse_un_argument_appel()
     return expression;
 }
 
-NoeudExpression *Syntaxeuse::analyse_expression(DonnéesPrécédence const &données_précédence)
+NoeudExpression *Syntaxeuse::analyse_expression(DonnéesPrécédence const &données_précédence,
+                                                bool expression_peut_être_nulle)
 {
     auto expression = analyse_expression_primaire();
     if (!expression) {
+        if (!expression_peut_être_nulle) {
+            rapporte_erreur("attendu une expression");
+        }
         return nullptr;
     }
 
@@ -4314,7 +4318,7 @@ NoeudExpression *Syntaxeuse::parse_expression_type()
     m_nous_sommes_dans_type = true;
 
     /* Nous utilisons par la précédence de ':' pour pouvoir s'arrêter au virgules. */
-    auto résultat = parse_expression_ellipse();
+    auto résultat = parse_expression_ellipse(true);
 
     m_nous_sommes_dans_type = ancien_nous_sommes_dans_type;
 
