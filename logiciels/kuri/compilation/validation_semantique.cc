@@ -4113,13 +4113,7 @@ RésultatValidation Sémanticienne::valide_structure(NoeudStruct *decl)
     }
 
     if (!decl->est_monomorphisation) {
-        auto decl_précédente = trouve_dans_bloc(
-            decl->bloc_parent, decl, decl->bloc_parent->bloc_parent);
-
-        // la bibliothèque C a des symboles qui peuvent être les mêmes pour les fonctions et les
-        // structres (p.e. stat)
-        if (decl_précédente != nullptr && decl_précédente->genre == decl->genre) {
-            rapporte_erreur_redéfinition_symbole(decl, decl_précédente);
+        if (vérifie_redéfinition_symbole(decl, decl->bloc_parent->bloc_parent)) {
             return CodeRetourValidation::Erreur;
         }
     }
@@ -4360,13 +4354,7 @@ RésultatValidation Sémanticienne::valide_union(NoeudUnion *decl)
     CHRONO_TYPAGE(m_stats_typage.structures, STRUCTURE__VALIDATION);
 
     if (!decl->est_monomorphisation) {
-        auto decl_précédente = trouve_dans_bloc(
-            decl->bloc_parent, decl, decl->bloc_parent->bloc_parent);
-
-        // la bibliothèque C a des symboles qui peuvent être les mêmes pour les fonctions et les
-        // structres (p.e. stat)
-        if (decl_précédente != nullptr && decl_précédente->genre == decl->genre) {
-            rapporte_erreur_redéfinition_symbole(decl, decl_précédente);
+        if (vérifie_redéfinition_symbole(decl, decl->bloc_parent->bloc_parent)) {
             return CodeRetourValidation::Erreur;
         }
     }
@@ -4496,14 +4484,8 @@ RésultatValidation Sémanticienne::valide_déclaration_variable(NoeudDéclarati
     {
         CHRONO_TYPAGE(m_stats_typage.validation_decl, DECLARATION_VARIABLES__REDEFINITION);
         if (decl->ident && decl->ident != ID::_) {
-            auto decl_prec = trouve_dans_bloc(
-                decl->bloc_parent, decl, bloc_final, fonction_courante());
-
-            if (decl_prec != nullptr && decl_prec->genre == decl->genre) {
-                if (decl->lexème->ligne > decl_prec->lexème->ligne) {
-                    rapporte_erreur_redéfinition_symbole(decl, decl_prec);
-                    return CodeRetourValidation::Erreur;
-                }
+            if (vérifie_redéfinition_symbole(decl, bloc_final)) {
+                return CodeRetourValidation::Erreur;
             }
         }
     }
@@ -4669,14 +4651,8 @@ RésultatValidation Sémanticienne::valide_déclaration_variable_multiple(
         {
             CHRONO_TYPAGE(m_stats_typage.validation_decl, DECLARATION_VARIABLES__REDEFINITION);
             if (it.decl->ident && it.decl->ident != ID::_) {
-                auto decl_prec = trouve_dans_bloc(
-                    it.decl->bloc_parent, it.decl, bloc_final, fonction_courante());
-
-                if (decl_prec != nullptr && decl_prec->genre == decl->genre) {
-                    if (decl->lexème->ligne > decl_prec->lexème->ligne) {
-                        rapporte_erreur_redéfinition_symbole(it.ref_decl, decl_prec);
-                        return CodeRetourValidation::Erreur;
-                    }
+                if (vérifie_redéfinition_symbole(it.decl, bloc_final)) {
+                    return CodeRetourValidation::Erreur;
                 }
             }
         }
@@ -4919,9 +4895,7 @@ RésultatValidation Sémanticienne::valide_déclaration_constante(NoeudDéclarat
         return CodeRetourValidation::Erreur;
     }
 
-    auto decl_prec = trouve_dans_bloc(decl->bloc_parent, decl, nullptr, fonction_courante());
-    if (decl_prec != nullptr && decl_prec != decl) {
-        rapporte_erreur_redéfinition_symbole(decl, decl_prec);
+    if (vérifie_redéfinition_symbole(decl, nullptr)) {
         return CodeRetourValidation::Erreur;
     }
 
@@ -5283,6 +5257,19 @@ void Sémanticienne::rapporte_erreur(const char *message,
                                     erreur::Genre genre)
 {
     m_espace->rapporte_erreur(noeud, message, genre);
+}
+
+bool Sémanticienne::vérifie_redéfinition_symbole(NoeudDéclaration *decl, NoeudBloc *bloc_final)
+{
+    auto decl_prec = trouve_dans_bloc(decl->bloc_parent, decl, bloc_final, fonction_courante());
+    /* La bibliothèque C a des symboles qui peuvent être les mêmes pour les fonctions et les
+     * structres (p.e. stat) donc vérifions si le genre est le même. */
+    if (decl_prec != nullptr && decl_prec != decl && decl_prec->genre == decl->genre) {
+        rapporte_erreur_redéfinition_symbole(decl, decl_prec);
+        return true;
+    }
+
+    return false;
 }
 
 void Sémanticienne::rapporte_erreur_redéfinition_symbole(NoeudExpression *decl,
