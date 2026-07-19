@@ -240,7 +240,6 @@ modules comme "types"
 
 - trouve comment prendre la chaine d'une expression (pour les assertions lors de l'exécution du programme)
 - "kuri init" pour créer des projets ?
-- pouvoir construire n'importe quel type via une expression d'appel (p.e. z32(123), r32(1.5))
 - tests des énums drapeaux dans les conditions des boucles
     voir Cycles/parser, p.e. tantque peut_suivre.IDENTIFIANT == vrai
 - génération de code source pour les fonctions créées par la compilatrice (init_de, etc.) afin d'avoir du texte dans les informations de débogage.
@@ -263,44 +262,6 @@ Test pour les retours de pointeurs
 - passe les drapeaux de fonction aux métaprogrammes
 
 discr énumérations : ignore les noms qui ont des valeurs similaires, rapporte erreur si deux noms de valeurs égales sont utilisés en même temps
-
-// ----------------------------------------------------------------------------
-// Table des types
-
-ajout de TableDesTypes + suppression Type.index_dans_table_des_types
-
-struct TableDesTypes {
-    private:
-        kuri::tableau<Type const *> m_types{};
-
-        kuri::table_hachage<Type const *, int32_t> m_index_pour_types{};
-
-    public:
-        kuri::tableau<Type const *> donne_copie_table() const;
-
-        void ajoute_type(Type const *type)
-        {
-            if (m_index_pour_types.possède(type)) {
-                return;
-            }
-
-            auto index = int32_t(m_types.taille());
-            m_types.ajoute(type);
-            m_index_pour_types.insère(type, m_index);
-        }
-
-        std::optional<int32_t> donne_index_pour_type(Type const *type)
-        {
-            bool trouvé = false;
-            int32_t index = m_index_pour_types.trouve(type, trouvé);
-
-            if (!trouvé) {
-                return {};
-            }
-
-            return index;
-        }
-};
 
 // ----------------------------------------------------------------------------
 // Compilatrice
@@ -523,9 +484,6 @@ déclaration d'énum, de structures, et d'unions anonymes :
     voir cas dans Jorjala/LCC
 
 - impossible d'utiliser mémoire sur un pointeur de tableau fixe (voir Unicode, qui devrait prendre un *[4]n8 au lieu d'un *n8)
-
-- corrige les infos types des énumérations pour prendre en compte la taille en octet du type
-    voir toutes les utilisations de id_info.ÉNUM ou ajoute une fonction dans Introspection
 
 - utilisation des opérateurs + et - sur les énums drapeaux afin de pouvoir ajouter ou soustraire des bits
 
