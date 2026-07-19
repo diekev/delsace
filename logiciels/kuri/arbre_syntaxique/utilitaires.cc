@@ -1681,10 +1681,6 @@ void NoeudBloc::ajoute_rubrique(NoeudDéclaration *decl)
 
     if (decl->est_déclaration_symbole()) {
         auto decl_existante = déclaration_pour_ident(decl->ident);
-        if (decl_existante == decl) {
-            // À FAIRE : les blocs des #si peuvent ajouter plusieurs fois une variable
-            return;
-        }
         if (decl_existante && decl_existante->est_déclaration_symbole()) {
             ajoute_à_ensemble_de_surcharge(decl_existante, decl);
         }

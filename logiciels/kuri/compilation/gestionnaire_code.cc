@@ -2136,6 +2136,9 @@ void GestionnaireCode::typage_terminé(UnitéCompilation *unité)
 
         if (bloc) {
             POUR (*bloc->rubriques.verrou_écriture()) {
+                /* Ajout du drapeaux EST_GLOBALE pour éviter que le noeud ne soit ajouté deux fois
+                 * au bloc. */
+                it->drapeaux |= DrapeauxNoeud::EST_GLOBALE;
                 bloc_parent->ajoute_rubrique(it);
             }
             POUR (*bloc->expressions.verrou_écriture()) {
