@@ -458,7 +458,8 @@ RésultatValidation Sémanticienne::valide_sémantique_noeud(NoeudExpression *no
                 m_compilatrice.gestionnaire_bibliothèques->crée_bibliothèque(
                     *m_unité->espace, noeud, noeud->ident, lexème_nom_bibliothèque->chaine);
             noeud->drapeaux |= DrapeauxNoeud::DECLARATION_FUT_VALIDEE;
-            noeud->bloc_parent->ajoute_rubrique(noeud->comme_déclaration_bibliothèque());
+            noeud->bloc_parent->ajoute_rubrique(m_unité->espace,
+                                                noeud->comme_déclaration_bibliothèque());
             break;
         }
         case GenreNoeud::DÉCLARATION_ENTÊTE_FONCTION:
@@ -3268,7 +3269,7 @@ RésultatValidation Sémanticienne::valide_référence_déclaration(NoeudExpress
             déclaration_constante->drapeaux |= DrapeauxNoeud::DECLARATION_FUT_VALIDEE;
             déclaration_constante->drapeaux |= DrapeauxNoeud::DECLARATION_TYPE_POLYMORPHIQUE;
             déclaration_constante->drapeaux |= DrapeauxNoeud::EXPRESSION_TYPE_EST_CONTRAINTE_POLY;
-            fonction->bloc_constantes->ajoute_rubrique(déclaration_constante);
+            fonction->bloc_constantes->ajoute_rubrique(m_unité->espace, déclaration_constante);
 
             // Faisons pointer la référence originelle vers la nouvelle déclaration.
             expr->déclaration_référée = déclaration_constante;
@@ -3666,7 +3667,7 @@ RésultatValidation Sémanticienne::valide_énum_impl(NoeudEnum *decl)
         auto decl_expr = it->comme_déclaration_constante();
         decl_expr->type = decl;
 
-        decl->bloc->ajoute_rubrique(decl_expr);
+        decl->bloc->ajoute_rubrique(m_unité->espace, decl_expr);
 
         if (decl_expr->expression_type != nullptr) {
             rapporte_erreur("Expression d'énumération déclarée avec un type", it);
@@ -4578,7 +4579,7 @@ RésultatValidation Sémanticienne::valide_déclaration_variable(NoeudDéclarati
              * syntaxeuse. */
             if (!decl->possède_drapeau(DrapeauxNoeud::EST_VALEUR_POLYMORPHIQUE)) {
                 auto bloc_parent = decl->bloc_parent;
-                bloc_parent->ajoute_rubrique(decl);
+                bloc_parent->ajoute_rubrique(m_unité->espace, decl);
             }
         }
 
@@ -4840,7 +4841,7 @@ RésultatValidation Sémanticienne::valide_déclaration_variable_multiple(
                  * syntaxeuse. */
                 if (!decl_var->possède_drapeau(DrapeauxNoeud::EST_VALEUR_POLYMORPHIQUE)) {
                     auto bloc_parent = decl_var->bloc_parent;
-                    bloc_parent->ajoute_rubrique(decl_var);
+                    bloc_parent->ajoute_rubrique(m_unité->espace, decl_var);
                 }
             }
 
@@ -4972,7 +4973,7 @@ RésultatValidation Sémanticienne::valide_déclaration_constante(NoeudDéclarat
     decl->drapeaux |= DrapeauxNoeud::DECLARATION_FUT_VALIDEE;
 
     if (!decl->possède_drapeau(DrapeauxNoeud::EST_GLOBALE)) {
-        decl->bloc_parent->ajoute_rubrique(decl);
+        decl->bloc_parent->ajoute_rubrique(m_unité->espace, decl);
     }
 
     return CodeRetourValidation::OK;
@@ -6181,13 +6182,13 @@ RésultatValidation Sémanticienne::valide_instruction_pour(NoeudPour *inst)
 
     inst->decl_it = crée_déclaration_pour_variable(m_assembleuse, variable, type_itérateur, true);
     variables->expressions[0] = inst->decl_it;
-    bloc->ajoute_rubrique(inst->decl_it);
+    bloc->ajoute_rubrique(m_unité->espace, inst->decl_it);
 
     if (possède_index) {
         inst->decl_indice_it = crée_déclaration_pour_variable(
             m_assembleuse, variables->expressions[1], typage_itérande.type_index, false);
         variables->expressions[1] = inst->decl_indice_it;
-        bloc->ajoute_rubrique(inst->decl_indice_it);
+        bloc->ajoute_rubrique(m_unité->espace, inst->decl_indice_it);
     }
     else {
         /* Crée une déclaration pour « indice_it » si ni le programme, ni la syntaxeuse n'en
@@ -6218,7 +6219,8 @@ RésultatValidation Sémanticienne::valide_instruction_pour(NoeudPour *inst)
     auto opérateur_pour = table_opérateurs->opérateur_pour;
 
     /* Copie le macro. */
-    auto copie_macro = copie_noeud(m_assembleuse,
+    auto copie_macro = copie_noeud(m_unité->espace,
+                                   m_assembleuse,
                                    opérateur_pour,
                                    opérateur_pour->bloc_parent,
                                    OptionsCopieNoeud::PRÉSERVE_DRAPEAUX_VALIDATION |
@@ -6882,7 +6884,7 @@ RésultatValidation Sémanticienne::valide_instruction_empl_énum(
         decl->valeur_expression = valeur_expression;
         decl->genre_valeur = GenreValeur::DROITE;
 
-        bloc_parent->ajoute_rubrique(decl);
+        bloc_parent->ajoute_rubrique(m_unité->espace, decl);
     }
 
     return CodeRetourValidation::OK;
@@ -6957,7 +6959,7 @@ RésultatValidation Sémanticienne::valide_instruction_empl_déclaration(
         decl_rubrique->expression = it.expression_valeur_défaut;
         decl_rubrique->genre_valeur = GenreValeur::TRANSCENDANTALE;
 
-        bloc_parent->ajoute_rubrique(decl_rubrique);
+        bloc_parent->ajoute_rubrique(m_unité->espace, decl_rubrique);
     }
 
     return CodeRetourValidation::OK;

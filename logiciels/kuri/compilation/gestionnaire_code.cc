@@ -1187,7 +1187,7 @@ void GestionnaireCode::requiers_typage(EspaceDeTravail *espace, NoeudExpression 
             // préserve les constantes polymorphiques
             if (fonction->possède_drapeau(DrapeauxNoeudFonction::EST_MONOMORPHISATION)) {
                 POUR (*entête->bloc_constantes->rubriques.verrou_lecture()) {
-                    fonction->bloc_constantes->ajoute_rubrique(it);
+                    fonction->bloc_constantes->ajoute_rubrique(espace, it);
                 }
             }
 
@@ -1221,9 +1221,9 @@ void GestionnaireCode::requiers_typage(EspaceDeTravail *espace, NoeudExpression 
 
             if (decl->est_monomorphisation) {
                 decl->bloc_constantes->rubriques.avec_verrou_écriture(
-                    [fonction](kuri::tableau<NoeudDéclaration *, int> &rubriques) {
+                    [fonction, espace](kuri::tableau<NoeudDéclaration *, int> &rubriques) {
                         POUR (rubriques) {
-                            fonction->bloc_constantes->ajoute_rubrique(it);
+                            fonction->bloc_constantes->ajoute_rubrique(espace, it);
                         }
                     });
                 fonction->site_monomorphisation = decl->site_monomorphisation;
@@ -1598,10 +1598,10 @@ void GestionnaireCode::rassemble_statistiques(Statistiques &statistiques) const
     statistiques.ajoute_mémoire_utilisée("Gestionnaire Code", mémoire);
 }
 
-NoeudBloc *GestionnaireCode::crée_bloc_racine(Typeuse &typeuse)
+NoeudBloc *GestionnaireCode::crée_bloc_racine(EspaceDeTravail *espace, Typeuse &typeuse)
 {
 #define CREE_DECLARATION_TYPE_PLATEFORME(nom)                                                     \
-    résultat->ajoute_rubrique(typeuse.nom);                                                       \
+    résultat->ajoute_rubrique(espace, typeuse.nom);                                               \
     typeuse.nom->expression_type = m_assembleuse->crée_référence_déclaration(                     \
         nullptr, typeuse.nom->comme_déclaration_type());                                          \
     typeuse.nom->bloc_parent = résultat;
@@ -1978,7 +1978,7 @@ void GestionnaireCode::ajoute_noeud_de_haut_niveau(NoeudExpression *it,
         auto noeud_déclaration = inst->noeud_déclaration;
         if (noeud_déclaration->ident == nullptr) {
             noeud_déclaration->ident = module->nom();
-            noeud_déclaration->bloc_parent->ajoute_rubrique(noeud_déclaration);
+            noeud_déclaration->bloc_parent->ajoute_rubrique(espace, noeud_déclaration);
         }
         noeud_déclaration->module = module;
 
@@ -2139,7 +2139,7 @@ void GestionnaireCode::typage_terminé(UnitéCompilation *unité)
                 /* Ajout du drapeaux EST_GLOBALE pour éviter que le noeud ne soit ajouté deux fois
                  * au bloc. */
                 it->drapeaux |= DrapeauxNoeud::EST_GLOBALE;
-                bloc_parent->ajoute_rubrique(it);
+                bloc_parent->ajoute_rubrique(espace, it);
             }
             POUR (*bloc->expressions.verrou_écriture()) {
                 ajoute_noeud_de_haut_niveau(it, espace, fichier);
