@@ -34,7 +34,7 @@ principale :: fonc ()
 
         évènements := ajourne_évènements_fenêtre(fenêtre);
 
-        largeur, hauteur := donne_taille_fenêtre(fenêtre);
+        largeur, hauteur = donne_taille_fenêtre(fenêtre);
         taille_canevas = Taille(largeur = Largeur(largeur), hauteur = Hauteur(hauteur));
         peintre.définis_taille_canevas(taille_canevas);
 
