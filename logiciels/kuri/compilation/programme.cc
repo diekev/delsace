@@ -116,7 +116,6 @@ void Programme::ajoute_type(Type *type, RaisonAjoutType raison, NoeudExpression 
     m_éléments_sont_sales[TYPES][POUR_TYPAGE] = true;
     m_éléments_sont_sales[TYPES][POUR_RI] = true;
 
-
 #if 1
     static_cast<void>(raison);
     static_cast<void>(noeud);
@@ -1301,10 +1300,21 @@ void ConstructriceProgrammeFormeRI::supprime_fonctions_inutilisées()
     });
 
     m_résultat.fonctions.redimensionne(part.vrai.taille());
+
+#if 0
+    if (part.faux.taille()) {
+        dbg() << part.faux.taille() << " fonction(s) inutilisée(s)";
+
+        POUR (part.faux) {
+            dbg() << nom_humainement_lisible(it->decl);
+        }
+    }
+#endif
 }
 
 void ConstructriceProgrammeFormeRI::supprime_types_inutilisés()
 {
+
     kuri::ensemble<Type const *> types_utilisés;
     POUR (m_résultat.globales) {
         types_utilisés.insère(it->donne_type_alloué());
@@ -1356,6 +1366,30 @@ void ConstructriceProgrammeFormeRI::supprime_types_inutilisés()
     auto part_type = kuri::partition_stable(
         m_résultat.types, [&](auto &type) { return types_utilisés.possède(type); });
     m_résultat.types.redimensionne(part_type.vrai.taille());
+
+#if 0
+    if (part_type.faux.taille()) {
+        dbg() << part_type.faux.taille() << " type(s) inutilisé(s)";
+
+        auto genres_types_inutilisés = std::array<int, NOMBRE_DE_GenreNoeud>();
+        POUR (genres_types_inutilisés) {
+            it = 0;
+        }
+
+        POUR (part_type.faux) {
+            genres_types_inutilisés[size_t(it->genre)] += 1;
+            if (it->genre != GenreNoeud::FONCTION) {
+                dbg() << nom_humainement_lisible(it);
+            }
+        }
+
+        POUR_INDICE (genres_types_inutilisés) {
+            if (it) {
+                dbg() << GenreNoeud(indice_it) << " = " << it;
+            }
+        }
+    }
+#endif
 }
 
 /** \} */
