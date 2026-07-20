@@ -23,12 +23,13 @@ DEFINIS_OPERATEURS_DRAPEAU(OptionsCopieNoeud)
 
 struct Copieuse {
   private:
+    EspaceDeTravail *m_espace;
     AssembleuseArbre *assem;
     kuri::table_hachage<NoeudExpression const *, NoeudExpression *> noeuds_copies{"noeud_copiés"};
     OptionsCopieNoeud m_options{};
 
   public:
-    Copieuse(AssembleuseArbre *assembleuse, OptionsCopieNoeud options);
+    Copieuse(EspaceDeTravail *espace, AssembleuseArbre *assembleuse, OptionsCopieNoeud options);
 
     EMPECHE_COPIE(Copieuse);
 
@@ -44,7 +45,8 @@ struct Copieuse {
                                             NoeudExpression *nracine);
 };
 
-NoeudExpression *copie_noeud(AssembleuseArbre *assem,
+NoeudExpression *copie_noeud(EspaceDeTravail *espace,
+                             AssembleuseArbre *assem,
                              const NoeudExpression *racine,
                              NoeudBloc *bloc_parent,
                              OptionsCopieNoeud options);
