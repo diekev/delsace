@@ -1648,7 +1648,9 @@ static void init_table_hachage_rubriques(PointeurTableauVerrouillé<NoeudDéclar
     }
 }
 
-static void ajoute_à_ensemble_de_surcharge(NoeudDéclaration *decl, NoeudDéclaration *à_ajouter)
+static void ajoute_à_ensemble_de_surcharge(EspaceDeTravail *espace,
+                                           NoeudDéclaration *decl,
+                                           NoeudDéclaration *à_ajouter)
 {
     if (decl->est_entête_fonction()) {
         auto entête_existante = decl->comme_entête_fonction();
@@ -1672,13 +1674,10 @@ static void ajoute_à_ensemble_de_surcharge(NoeudDéclaration *decl, NoeudDécla
         return;
     }
 
-    assert_rappel(false, [&]() {
-        dbg() << "Pas d'ensemble de surcharges pour " << decl->genre << ", "
-              << nom_humainement_lisible(decl);
-    });
+    espace->erreur_interne(à_ajouter, "Pas d'ensemble de surcharges");
 }
 
-void NoeudBloc::ajoute_rubrique(NoeudDéclaration *decl)
+void NoeudBloc::ajoute_rubrique(EspaceDeTravail *espace, NoeudDéclaration *decl)
 {
     if (decl->ident == ID::_ || decl->ident == nullptr) {
         /* Inutile d'avoir les variables ignorées ou les temporaires créées lors de la
@@ -1689,8 +1688,12 @@ void NoeudBloc::ajoute_rubrique(NoeudDéclaration *decl)
 
     if (decl->est_déclaration_symbole()) {
         auto decl_existante = déclaration_pour_ident(decl->ident);
+        if (decl_existante == decl) {
+            espace->erreur_interne(decl,
+                                   "Ajout d'une déclaration plusieurs fois à son bloc parent");
+        }
         if (decl_existante && decl_existante->est_déclaration_symbole()) {
-            ajoute_à_ensemble_de_surcharge(decl_existante, decl);
+            ajoute_à_ensemble_de_surcharge(espace, decl_existante, decl);
         }
     }
 
@@ -1714,7 +1717,7 @@ void NoeudBloc::ajoute_rubrique_au_début(NoeudDéclaration *decl)
     rubriques_->ajoute_au_début(decl);
 }
 
-void NoeudBloc::fusionne_rubriques(NoeudBloc *de)
+void NoeudBloc::fusionne_rubriques(EspaceDeTravail *espace, NoeudBloc *de)
 {
     if (!de) {
         /* Permet de passer un bloc nul. */
@@ -1722,7 +1725,7 @@ void NoeudBloc::fusionne_rubriques(NoeudBloc *de)
     }
 
     POUR ((*de->rubriques.verrou_lecture())) {
-        ajoute_rubrique(it);
+        ajoute_rubrique(espace, it);
     }
 }
 

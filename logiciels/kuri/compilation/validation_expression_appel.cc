@@ -2152,7 +2152,8 @@ static RésultatValidation sélectionne_candidate(NoeudExpressionAppel const *ex
     return CodeRetourValidation::OK;
 }
 
-static void copie_paramètres_résolus(NoeudExpressionAppel *appel,
+static void copie_paramètres_résolus(EspaceDeTravail &espace,
+                                     NoeudExpressionAppel *appel,
                                      CandidateAppariement const *candidate,
                                      AssembleuseArbre *assembleuse)
 {
@@ -2171,7 +2172,8 @@ static void copie_paramètres_résolus(NoeudExpressionAppel *appel,
             /* À FAIRE : ajout d'un drapeau pour copier les données de validation sémantique,
              * et change noeud.adn pour utiliser ce drapeau afin que les copies ailleurs
              * ne copient que ce dont elles ont besoin. */
-            auto nouveau_it = copie_noeud(assembleuse,
+            auto nouveau_it = copie_noeud(&espace,
+                                          assembleuse,
                                           it,
                                           it->bloc_parent,
                                           OptionsCopieNoeud::PRÉSERVE_DRAPEAUX_VALIDATION |
@@ -2249,7 +2251,7 @@ RésultatValidation valide_appel_fonction(Compilatrice &compilatrice,
     CHRONO_TYPAGE(sémanticienne.donne_stats_typage().validation_appel,
                   VALIDATION_APPEL__COPIE_DONNEES);
 
-    copie_paramètres_résolus(expr, candidate, contexte->assembleuse);
+    copie_paramètres_résolus(espace, expr, candidate, contexte->assembleuse);
 
     if (candidate->note == CANDIDATE_EST_APPEL_FONCTION) {
         auto decl_fonction_appelée = candidate->noeud_decl->comme_entête_fonction();
@@ -2274,7 +2276,8 @@ RésultatValidation valide_appel_fonction(Compilatrice &compilatrice,
             decl_fonction_appelée = noeud_decl;
         }
         else if (decl_fonction_appelée->possède_drapeau(DrapeauxNoeudFonction::EST_MACRO)) {
-            auto copie_macro = copie_noeud(contexte->assembleuse,
+            auto copie_macro = copie_noeud(contexte->espace,
+                                           contexte->assembleuse,
                                            decl_fonction_appelée,
                                            decl_fonction_appelée->bloc_parent,
                                            OptionsCopieNoeud::PRÉSERVE_DRAPEAUX_VALIDATION |

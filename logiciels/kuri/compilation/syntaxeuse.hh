@@ -125,11 +125,12 @@ struct Syntaxeuse : BaseSyntaxeuse {
     bool apparie_instruction() const;
 
     NoeudExpression *parse_expression_virgule();
-    NoeudExpression *parse_expression_ellipse();
+    NoeudExpression *parse_expression_ellipse(bool expression_peut_être_nulle = false);
     NoeudExpression *parse_déclaration_paramètre(bool type_seul_autorisé);
     NoeudDéclarationVariable *parse_un_paramètre_de_sortie(int32_t indice);
     NoeudExpression *parse_un_argument_appel();
-    NoeudExpression *analyse_expression(DonnéesPrécédence const &données_precedence);
+    NoeudExpression *analyse_expression(DonnéesPrécédence const &données_precedence,
+                                        bool expression_peut_être_nulle = false);
     NoeudExpression *analyse_expression_unaire();
     NoeudExpression *analyse_expression_primaire();
     NoeudExpression *analyse_expression_secondaire(NoeudExpression *gauche,
