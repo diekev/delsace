@@ -448,7 +448,7 @@ static Abc_Int32_Array_Sample get_input_array_sample(const Abc::Int32ArraySample
 {
     auto résultat = Abc_Int32_Array_Sample();
     if (ptr) {
-        résultat.values = reinterpret_cast<int32_t *>(const_cast<int *>(ptr->get()));
+        résultat.values = const_cast<int32_t *>(ptr->get());
         résultat.num_values = ptr->size();
     }
     else {
@@ -462,7 +462,7 @@ static Abc_UInt64_Array_Sample get_input_array_sample(const Abc::UInt64ArraySamp
 {
     auto résultat = Abc_UInt64_Array_Sample();
     if (ptr) {
-        résultat.values = reinterpret_cast<uint64_t *>(const_cast<uint64_t *>(ptr->get()));
+        résultat.values = const_cast<uint64_t *>(ptr->get());
         résultat.num_values = ptr->size();
     }
     else {
@@ -476,7 +476,7 @@ static Abc_Float_Array_Sample get_input_array_sample(const Abc::FloatArraySample
 {
     auto résultat = Abc_Float_Array_Sample();
     if (ptr) {
-        résultat.values = reinterpret_cast<float *>(const_cast<float *>(ptr->get()));
+        résultat.values = const_cast<float *>(ptr->get());
         résultat.num_values = ptr->size();
     }
     else {
@@ -717,7 +717,7 @@ static Abc::ISampleSelector get_sample_selector(Abc_Sample_Selector selector)
         return Abc::ISampleSelector(selector.requested_time, time_index_type);
     }
 
-    return Abc::ISampleSelector(selector.requested_index, time_index_type);
+    return Abc::ISampleSelector(selector.requested_index);
 }
 
 /** \} */
@@ -1711,9 +1711,9 @@ struct Abc_Output_Archive {
  * \{ */
 
 struct Abc_Output_Compound_Property {
-    Abc_Output_Archive *archive;
-    AbcGeom::OCompoundProperty prop;
-    Abc_Output_Compound_Property *next;
+    Abc_Output_Archive *archive = nullptr;
+    AbcGeom::OCompoundProperty prop{};
+    Abc_Output_Compound_Property *next = nullptr;
 };
 
 Abc_Output_Compound_Property *make_output_compound_property(Abc_Output_Archive *archive)
@@ -1858,8 +1858,8 @@ ENUMERATE_ABC_ATTRIBUTE_TYPES(DEFINE_ABC_TYPED_ARRAY_PROPERTY)
 
 #define DEFINE_ABC_OUTPUT_GEOM_PARAMS(type_geom, type_abc_value, type_c, nom_court)               \
     struct Abc_Output_##type_geom##_Geom_Param {                                                  \
-        AbcGeom::O##type_geom##GeomParam param;                                                   \
-        Array_Sample_Data sample_data;                                                            \
+        AbcGeom::O##type_geom##GeomParam param{};                                                 \
+        Array_Sample_Data sample_data{};                                                          \
         using ABC_ARRAY_SAMPLE_TYPE = AbcGeom::type_geom##ArraySample;                            \
         using KURI_ARRAY_SAMPLE_TYPE = Abc_Output_##type_geom##_Geom_Param_Sample;                \
     };                                                                                            \
@@ -2081,7 +2081,6 @@ struct Abc_Time_Sample_Index abc_output_archive_create_time_sampling(
 void abc_output_archive_destroy(struct Abc_Output_Archive *archive)
 {
     if (archive) {
-        auto object = archive->objects;
         kuri_deloge_liste(archive->ctx_kuri, archive->scalar_props);
         kuri_deloge_liste(archive->ctx_kuri, archive->array_props);
         kuri_deloge_liste(archive->ctx_kuri, archive->compound_props);
@@ -2365,7 +2364,7 @@ void abc_output_curves_sample_basis_set(Abc_Output_Curves_Sample *sample, Abc_Ba
  * \{ */
 
 struct Abc_Output_FaceSet : public Abc_Output_Object {
-    AbcGeom::OFaceSet object;
+    AbcGeom::OFaceSet object{};
 
     void set_sample(AbcGeom::OFaceSetSchema::Sample &sample)
     {

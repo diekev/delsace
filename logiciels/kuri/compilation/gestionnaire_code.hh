@@ -266,7 +266,7 @@ class GestionnaireCode {
 
     void rassemble_statistiques(Statistiques &stats) const;
 
-    NoeudBloc *crée_bloc_racine(Typeuse &typeuse);
+    NoeudBloc *crée_bloc_racine(EspaceDeTravail *espace, Typeuse &typeuse);
 
     MétaProgramme *requiers_exécution_pour_ipa(EspaceDeTravail *espace,
                                                NoeudExpression const *site,

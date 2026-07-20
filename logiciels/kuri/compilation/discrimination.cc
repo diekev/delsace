@@ -211,7 +211,7 @@ static bool crée_variable_pour_expression_test(EspaceDeTravail *espace,
     déclaration_pour_expression->genre_valeur = GenreValeur::TRANSCENDANTALE;
 
     bloc_insertion->expressions->ajoute_au_début(déclaration_pour_expression);
-    bloc_insertion->ajoute_rubrique(déclaration_pour_expression);
+    bloc_insertion->ajoute_rubrique(espace, déclaration_pour_expression);
 
     paire_discr->variable_capturée = déclaration_pour_expression;
 
