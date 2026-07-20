@@ -285,7 +285,6 @@ décode_empreinte_floue :: fonc (empreinte: chaine, largeur: z32, hauteur: z32, 
     numY := plancher(sizeFlag comme r32 / 9.0) comme z32 + 1;
     numX := (sizeFlag % 9) + 1;
 
-    r, g, b: r32;
     quantizedMaxValue := decodeToInt(empreinte, 1, 2);
     si quantizedMaxValue == -1 {
         retourne faux;
