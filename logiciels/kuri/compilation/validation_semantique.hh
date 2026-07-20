@@ -239,6 +239,7 @@ struct Sémanticienne {
     CodeRetourValidation résoud_type_final(NoeudExpression *expression_type, Type *&type_final);
 
     void rapporte_erreur(const char *message, const NoeudExpression *noeud, erreur::Genre genre);
+    bool vérifie_redéfinition_symbole(NoeudDéclaration *decl, NoeudBloc *bloc_final);
     void rapporte_erreur_redéfinition_symbole(NoeudExpression *decl, NoeudDéclaration *decl_prec);
     void rapporte_erreur_redéfinition_fonction(NoeudDéclarationEntêteFonction *decl,
                                                NoeudDéclaration *decl_prec);

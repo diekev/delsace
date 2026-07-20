@@ -201,6 +201,9 @@ struct EspaceDeTravail {
     Erreur rapporte_info(SiteSource site, kuri::chaine_statique message) const;
     Erreur rapporte_info_externe(ParamètresErreurExterne const &params) const;
 
+    Erreur erreur_interne(NoeudExpression const *site,
+                          kuri::chaine_statique message,
+                          erreur::Genre genre = erreur::Genre::NORMAL) const;
     Erreur rapporte_erreur(NoeudExpression const *site,
                            kuri::chaine_statique message,
                            erreur::Genre genre = erreur::Genre::NORMAL) const;
