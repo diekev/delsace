@@ -211,22 +211,6 @@ static kuri::chaine_statique donne_compilateur_c(bool utilise_clang)
 #endif
 }
 
-static kuri::chaine_statique donne_compilateur_cpp(bool utilise_clang)
-{
-#ifdef _MSC_VER
-    return "cl";
-#else
-#    ifdef AVEC_COULISSE_LLVM
-    if (utilise_clang) {
-        return COMPILATEUR_CXX_CLANG;
-    }
-#    else
-    static_cast<void>(utilise_clang);
-#    endif
-    return COMPILATEUR_CXX_COULISSE_C;
-#endif
-}
-
 static kuri::chaine_statique donne_lieur(bool utilise_clang)
 {
 #ifdef _MSC_VER
@@ -553,49 +537,6 @@ kuri::chaine commande_pour_liaison(OptionsDeCompilation const &options,
     enchaineuse << '\0';
 
     return enchaineuse.chaine();
-}
-
-/* Crée une commande système pour appeler le compilateur natif afin de créer une bibliothèque
- * dynamique. */
-static kuri::chaine commande_pour_bibliothèque_dynamique(kuri::chaine_statique nom_entrée,
-                                                         kuri::chaine_statique nom_sortie,
-                                                         ArchitectureCible architecture_cible,
-                                                         bool utilise_clang)
-{
-    Enchaineuse enchaineuse;
-    enchaineuse << donne_compilateur_cpp(utilise_clang);
-
-#ifdef _MSC_VER
-    enchaineuse << " /D_USRDLL /D_WINDLL " << "\"" << nom_entrée << "\""
-                << " /link /DLL /OUT:" << nom_sortie;
-#else
-    enchaineuse << " -shared -fPIC ";
-
-    if (architecture_cible == ArchitectureCible::X86) {
-        enchaineuse << " -m32 ";
-    }
-
-    enchaineuse << nom_entrée;
-    enchaineuse << " -o ";
-    enchaineuse << nom_sortie;
-#endif
-
-    /* Nous devons construire une chaine C, donc ajoutons un terminateur nul. */
-    enchaineuse << '\0';
-
-    return enchaineuse.chaine();
-}
-
-static bool exécute_commande(kuri::chaine_statique commande)
-{
-    info() << "Compilation des tables de conversion R16...";
-
-    if (!exécute_commande_externe(commande)) {
-        dbg() << "Impossible de compiler les tables de conversion R16 !";
-        return false;
-    }
-
-    return true;
 }
 
 kuri::chaine donne_contenu_fichier_erreur(kuri::chaine_statique chemin)

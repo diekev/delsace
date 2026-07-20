@@ -177,6 +177,7 @@ static NoeudBloc *bloc_constantes_pour(NoeudExpression const *noeud)
 }
 
 static std::pair<NoeudExpression *, bool> monomorphise_au_besoin(
+    EspaceDeTravail *espace,
     AssembleuseArbre *assembleuse,
     NoeudExpression const *a_copier,
     Monomorphisations *monomorphisations,
@@ -189,7 +190,7 @@ static std::pair<NoeudExpression *, bool> monomorphise_au_besoin(
     }
 
     auto copie = copie_noeud(
-        assembleuse, a_copier, a_copier->bloc_parent, OptionsCopieNoeud::AUCUNE);
+        espace, assembleuse, a_copier, a_copier->bloc_parent, OptionsCopieNoeud::AUCUNE);
     auto bloc_constantes = bloc_constantes_pour(copie);
 
     /* Ajourne les constantes dans le bloc. */
@@ -211,7 +212,7 @@ static std::pair<NoeudExpression *, bool> monomorphise_au_besoin(
             }
             déclaration = assembleuse->crée_déclaration_constante(
                 paramètre->lexème, nullptr, déclaration_paramètre->expression_type);
-            bloc_constantes->ajoute_rubrique(déclaration);
+            bloc_constantes->ajoute_rubrique(espace, déclaration);
             déclaration->bloc_parent = bloc_constantes;
         }
         auto decl_constante = déclaration->comme_déclaration_constante();
@@ -236,7 +237,8 @@ std::pair<NoeudDéclarationEntêteFonction *, bool> monomorphise_au_besoin(
     kuri::tableau<ItemMonomorphisation, int> &&items_monomorphisation,
     bool pour_cuisson)
 {
-    auto [copie, copie_nouvelle] = monomorphise_au_besoin(contexte->assembleuse,
+    auto [copie, copie_nouvelle] = monomorphise_au_besoin(contexte->espace,
+                                                          contexte->assembleuse,
                                                           decl,
                                                           decl->monomorphisations,
                                                           std::move(items_monomorphisation),
@@ -284,7 +286,8 @@ NoeudDéclarationClasse *monomorphise_au_besoin(
     NoeudExpression *site,
     kuri::tableau<ItemMonomorphisation, int> &&items_monomorphisation)
 {
-    auto [copie, copie_nouvelle] = monomorphise_au_besoin(contexte->assembleuse,
+    auto [copie, copie_nouvelle] = monomorphise_au_besoin(contexte->espace,
+                                                          contexte->assembleuse,
                                                           decl_struct,
                                                           decl_struct->monomorphisations,
                                                           std::move(items_monomorphisation),
