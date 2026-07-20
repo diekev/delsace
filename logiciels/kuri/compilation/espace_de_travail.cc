@@ -34,7 +34,7 @@ EspaceDeTravail::EspaceDeTravail(Compilatrice &compilatrice,
     auto ops = opérateurs.verrou_écriture();
     enregistre_opérateurs_basiques(typeuse, *ops);
 
-    m_bloc_racine = compilatrice.gestionnaire_code->crée_bloc_racine(typeuse);
+    m_bloc_racine = compilatrice.gestionnaire_code->crée_bloc_racine(this, typeuse);
 
     POUR (nombre_de_tâches) {
         it = 0;
@@ -345,6 +345,13 @@ Erreur EspaceDeTravail::rapporte_info_externe(ParamètresErreurExterne const &pa
 {
     possède_erreur = true;
     return ::rapporte_info(this, params);
+}
+
+Erreur EspaceDeTravail::erreur_interne(NoeudExpression const *site,
+                                       kuri::chaine_statique message,
+                                       erreur::Genre genre) const
+{
+    return rapporte_erreur(site, message, genre);
 }
 
 Erreur EspaceDeTravail::rapporte_erreur(NoeudExpression const *site,

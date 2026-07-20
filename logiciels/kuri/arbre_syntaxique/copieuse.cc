@@ -3,8 +3,10 @@
 
 #include "copieuse.hh"
 
-Copieuse::Copieuse(AssembleuseArbre *assembleuse, OptionsCopieNoeud options)
-    : assem(assembleuse), m_options(options)
+Copieuse::Copieuse(EspaceDeTravail *espace,
+                   AssembleuseArbre *assembleuse,
+                   OptionsCopieNoeud options)
+    : m_espace(espace), assem(assembleuse), m_options(options)
 {
 }
 
@@ -37,12 +39,13 @@ void Copieuse::insère_copie(const NoeudExpression *racine, NoeudExpression *cop
     noeuds_copies.insère(racine, copie);
 }
 
-NoeudExpression *copie_noeud(AssembleuseArbre *assem,
+NoeudExpression *copie_noeud(EspaceDeTravail *espace,
+                             AssembleuseArbre *assem,
                              const NoeudExpression *racine,
                              NoeudBloc *bloc_parent,
                              OptionsCopieNoeud options)
 {
-    Copieuse copieuse(assem, options);
+    Copieuse copieuse(espace, assem, options);
     /* Pour simplifier la copie et la gestion des blocs, les blocs parents sont copiés.
      * Par contre, nous ne devons pas copier le bloc parent de la racine. */
     copieuse.insère_copie(bloc_parent, bloc_parent);
