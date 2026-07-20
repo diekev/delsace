@@ -3760,25 +3760,25 @@ void CompilatriceRI::transforme_valeur(NoeudExpression const *noeud,
         case TypeTransformation::R16_VERS_R32:
         {
             valeur = transforme_avec_fonction(
-                noeud, valeur, m_espace->interface_kuri->decl_dls_vers_r32);
+                noeud, valeur, m_espace->interface_kuri->decl_r16_vers_r32);
             break;
         }
         case TypeTransformation::R16_VERS_R64:
         {
             valeur = transforme_avec_fonction(
-                noeud, valeur, m_espace->interface_kuri->decl_dls_vers_r64);
+                noeud, valeur, m_espace->interface_kuri->decl_r16_vers_r64);
             break;
         }
         case TypeTransformation::R32_VERS_R16:
         {
             valeur = transforme_avec_fonction(
-                noeud, valeur, m_espace->interface_kuri->decl_dls_depuis_r32);
+                noeud, valeur, m_espace->interface_kuri->decl_r16_depuis_r32);
             break;
         }
         case TypeTransformation::R64_VERS_R16:
         {
             valeur = transforme_avec_fonction(
-                noeud, valeur, m_espace->interface_kuri->decl_dls_depuis_r64);
+                noeud, valeur, m_espace->interface_kuri->decl_r16_depuis_r64);
             break;
         }
         case TypeTransformation::CONVERTIS_VERS_BASE:

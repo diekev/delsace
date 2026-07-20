@@ -856,7 +856,7 @@ void abc_camera_sample_get_screen_window(struct Abc_Camera_Sample *sample,
     type_ipa abc_camera_sample_get_##nom_ipa(struct Abc_Camera_Sample *sample);                   \
     void abc_camera_sample_set_##nom_ipa(struct Abc_Camera_Sample *sample, type_ipa value);
 
-ENUMERATE_CAMERA_SAMPLE_PROPERTIES_SIMPLE(DECLARE_CAMERA_SAMPLE_GET_SET);
+ENUMERATE_CAMERA_SAMPLE_PROPERTIES_SIMPLE(DECLARE_CAMERA_SAMPLE_GET_SET)
 
 #undef DECLARE_CAMERA_SAMPLE_GET_SET
 
@@ -864,7 +864,7 @@ ENUMERATE_CAMERA_SAMPLE_PROPERTIES_SIMPLE(DECLARE_CAMERA_SAMPLE_GET_SET);
     void abc_camera_sample_get_##nom_ipa(struct Abc_Camera_Sample *sample, type_ipa *value);      \
     void abc_camera_sample_set_##nom_ipa(struct Abc_Camera_Sample *sample, type_ipa *value);
 
-ENUMERATE_CAMERA_SAMPLE_PROPERTIES_COMPLEX(DECLARE_CAMERA_SAMPLE_GET_SET);
+ENUMERATE_CAMERA_SAMPLE_PROPERTIES_COMPLEX(DECLARE_CAMERA_SAMPLE_GET_SET)
 
 #undef DECLARE_CAMERA_SAMPLE_GET_SET
 
