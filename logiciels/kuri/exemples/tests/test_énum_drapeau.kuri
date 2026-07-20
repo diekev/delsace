@@ -269,4 +269,42 @@ principale :: fonc ()
     test_raccourcis_assignation_énumération_drapeau();
     tests_activations_drapeaux();
     test_conjonction_énum_simple();
+    test_négation_binaire();
+}
+
+test_négation_binaire :: fonc ()
+{
+    Drapeaux_Tests :: énum_drapeau {
+        A;
+        B;
+        C;
+    }
+
+    a := Drapeaux_Tests.A | Drapeaux_Tests.C;
+    b := ~a.A;
+
+    assert(a.A == vrai);
+    assert(a.B == faux);
+    assert(a.C == vrai);
+
+    assert(b.A == faux);
+    assert(b.B == vrai);
+    assert(b.C == vrai);
+
+    Struct_Drapeaux :: struct {
+        a: Drapeaux_Tests;
+        b: Drapeaux_Tests;
+    }
+
+    s: Struct_Drapeaux;
+    s.a = Drapeaux_Tests.A | Drapeaux_Tests.C;
+    s.b = ~a.A;
+
+    assert(s.a.A == vrai);
+    assert(s.a.B == faux);
+    assert(s.a.C == vrai);
+
+    assert(s.b.A == faux);
+    assert(s.b.B == vrai);
+    assert(s.b.C == vrai);
 }

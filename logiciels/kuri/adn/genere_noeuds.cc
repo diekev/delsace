@@ -29,7 +29,7 @@ static const char *copie_extra_entête_fonction = R"(
              * sont placés par la Syntaxeuse directement dans les rubriques. */
             POUR (*orig->bloc_constantes->rubriques.verrou_écriture()) {
                 auto copie_rubrique = copie_noeud(it);
-                copie->bloc_constantes->ajoute_rubrique(copie_rubrique->comme_déclaration_constante());
+                copie->bloc_constantes->ajoute_rubrique(m_espace, copie_rubrique->comme_déclaration_constante());
             }
             copie->drapeaux_fonction = (orig->drapeaux_fonction & DrapeauxNoeudFonction::BITS_COPIABLES);
             )";
@@ -47,7 +47,7 @@ static const char *copie_extra_bloc = R"(
             copie->réserve_rubriques(orig->nombre_de_rubriques());
             POUR (*copie->expressions.verrou_lecture()) {
                 if (it->est_déclaration_type() || it->est_entête_fonction()) {
-                    copie->ajoute_rubrique(it->comme_déclaration());
+                    copie->ajoute_rubrique(m_espace, it->comme_déclaration());
                 }
             })";
 
@@ -58,7 +58,7 @@ static const char *copie_extra_structure = R"(
                  * sont placés par la Syntaxeuse directement dans les rubriques. */
                 POUR (*orig->bloc_constantes->rubriques.verrou_écriture()) {
                     auto copie_rubrique = copie_noeud(it);
-                    copie->bloc_constantes->ajoute_rubrique(copie_rubrique->comme_déclaration_constante());
+                    copie->bloc_constantes->ajoute_rubrique(m_espace, copie_rubrique->comme_déclaration_constante());
                 }
             }
 )";
@@ -70,7 +70,7 @@ static const char *copie_extra_union = R"(
                  * sont placés par la Syntaxeuse directement dans les rubriques. */
                 POUR (*orig->bloc_constantes->rubriques.verrou_écriture()) {
                     auto copie_rubrique = copie_noeud(it);
-                    copie->bloc_constantes->ajoute_rubrique(copie_rubrique->comme_déclaration_constante());
+                    copie->bloc_constantes->ajoute_rubrique(m_espace, copie_rubrique->comme_déclaration_constante());
                 }
             }
 )";
