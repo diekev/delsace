@@ -537,7 +537,7 @@ Syntaxeuse::Syntaxeuse(Contexte *contexte, UnitéCompilation const *unité)
                 noeud_module->module = m_contexte->espace->module_kuri;
                 noeud_module->ident = ID::Kuri;
                 noeud_module->bloc_parent = module->bloc;
-                noeud_module->bloc_parent->ajoute_rubrique(noeud_module);
+                noeud_module->bloc_parent->ajoute_rubrique(m_contexte->espace, noeud_module);
                 noeud_module->drapeaux |= DrapeauxNoeud::DECLARATION_FUT_VALIDEE;
             }
 
@@ -601,7 +601,8 @@ void Syntaxeuse::quand_commence()
         m_contexte->assembleuse->bloc_courant(bloc_parent);
 
         type_structure->bloc = analyse_bloc(TypeBloc::TYPE, false);
-        type_structure->bloc->fusionne_rubriques(type_structure->bloc_constantes);
+        type_structure->bloc->fusionne_rubriques(m_contexte->espace,
+                                                 type_structure->bloc_constantes);
         type_structure->est_corps_texte = false;
     }
 
@@ -690,7 +691,8 @@ void Syntaxeuse::analyse_une_chose()
                 assert_rappel(noeud->bloc_parent, [&]() {
                     dbg() << erreur::imprime_site(*m_unité->espace, noeud) << "\n" << noeud->genre;
                 });
-                noeud->bloc_parent->ajoute_rubrique(noeud->comme_base_déclaration_variable());
+                noeud->bloc_parent->ajoute_rubrique(m_contexte->espace,
+                                                    noeud->comme_base_déclaration_variable());
                 if (noeud->ident == ID::__contexte_fil_principal) {
                     m_contexte->espace->globale_contexte_programme =
                         noeud->comme_déclaration_variable();
@@ -794,13 +796,13 @@ bool Syntaxeuse::apparie_instruction() const
 
 NoeudExpression *Syntaxeuse::parse_expression_virgule()
 {
-    return analyse_expression(DonnéesPrécédence{PRÉCÉDENCE_VIRGULE});
+    return analyse_expression(DonnéesPrécédence{PRÉCÉDENCE_VIRGULE}, true);
 }
 
-NoeudExpression *Syntaxeuse::parse_expression_ellipse()
+NoeudExpression *Syntaxeuse::parse_expression_ellipse(bool expression_peut_être_nulle)
 {
     auto précédence = précédence_pour_opérateur(GenreLexème::TROIS_POINTS);
-    return analyse_expression(DonnéesPrécédence{précédence});
+    return analyse_expression(DonnéesPrécédence{précédence}, expression_peut_être_nulle);
 }
 
 NoeudExpression *Syntaxeuse::parse_déclaration_paramètre(bool type_seul_autorisé)
@@ -877,7 +879,7 @@ NoeudExpression *Syntaxeuse::parse_déclaration_paramètre(bool type_seul_autori
                 rapporte_erreur("redéfinition de la constante polymorphique", lexème_nom);
             }
 
-            bloc_constantes->ajoute_rubrique(résultat);
+            bloc_constantes->ajoute_rubrique(m_contexte->espace, résultat);
         }
 
         return résultat;
@@ -969,10 +971,14 @@ NoeudExpression *Syntaxeuse::parse_un_argument_appel()
     return expression;
 }
 
-NoeudExpression *Syntaxeuse::analyse_expression(DonnéesPrécédence const &données_précédence)
+NoeudExpression *Syntaxeuse::analyse_expression(DonnéesPrécédence const &données_précédence,
+                                                bool expression_peut_être_nulle)
 {
     auto expression = analyse_expression_primaire();
     if (!expression) {
+        if (!expression_peut_être_nulle) {
+            rapporte_erreur("attendu une expression");
+        }
         return nullptr;
     }
 
@@ -1381,7 +1387,7 @@ NoeudExpression *Syntaxeuse::analyse_expression_primaire()
                     rapporte_erreur("redéfinition du type polymorphique");
                 }
 
-                bloc_constantes->ajoute_rubrique(noeud_decl_param);
+                bloc_constantes->ajoute_rubrique(m_contexte->espace, noeud_decl_param);
             }
             else if (!m_est_déclaration_type_opaque) {
                 rapporte_erreur("déclaration d'un type polymorphique hors d'une fonction, d'une "
@@ -1578,7 +1584,7 @@ NoeudExpression *Syntaxeuse::analyse_expression_secondaire(
                         m_est_déclaration_type_opaque = true;
                         noeud->expression_type = parse_expression_type();
                         m_est_déclaration_type_opaque = false;
-                        noeud->bloc_parent->ajoute_rubrique(noeud);
+                        noeud->bloc_parent->ajoute_rubrique(m_contexte->espace, noeud);
                         recycle_référence(gauche->comme_référence_déclaration());
                         return noeud;
                     }
@@ -2825,7 +2831,7 @@ NoeudExpression *Syntaxeuse::analyse_déclaration_enum(Lexème const *lexème_no
     dépile_état();
 
     /* Attend d'avoir toutes les informations avant d'ajouter aux rubriques. */
-    noeud_decl->bloc_parent->ajoute_rubrique(noeud_decl);
+    noeud_decl->bloc_parent->ajoute_rubrique(m_contexte->espace, noeud_decl);
     return noeud_decl;
 }
 
@@ -3073,7 +3079,7 @@ NoeudExpression *Syntaxeuse::analyse_déclaration_fonction(Lexème const *lexèm
     }
 
     /* Attend d'avoir toutes les informations avant d'ajouter aux rubriques. */
-    noeud->bloc_parent->ajoute_rubrique(noeud);
+    noeud->bloc_parent->ajoute_rubrique(m_contexte->espace, noeud);
 
     return noeud;
 }
@@ -3333,7 +3339,6 @@ void Syntaxeuse::analyse_directives_fonction(NoeudDéclarationEntêteFonction *n
             drapeaux_fonction |= DrapeauxNoeudFonction::EST_SSE2;
             drapeaux_fonction |= DrapeauxNoeudFonction::FORCE_SANSTRACE;
             drapeaux_fonction |= DrapeauxNoeudFonction::FORCE_SANSBROYAGE;
-            consomme();
         }
         else {
             rapporte_erreur("Directive de fonction inconnue.");
@@ -3725,7 +3730,7 @@ NoeudExpression *Syntaxeuse::analyse_déclaration_structure(Lexème const *lexè
 
     /* N'ajoute la structure au bloc parent que lorsque nous avons son bloc, ou la validation
      * sémantique pourrait accéder un bloc nul. */
-    noeud_decl->bloc_parent->ajoute_rubrique(noeud_decl);
+    noeud_decl->bloc_parent->ajoute_rubrique(m_contexte->espace, noeud_decl);
 
     return noeud_decl;
 }
@@ -3756,7 +3761,7 @@ NoeudExpression *Syntaxeuse::analyse_déclaration_union(Lexème const *lexème_n
 
     /* N'ajoute la structure au bloc parent que lorsque nous avons son bloc, ou la validation
      * sémantique pourrait accéder un bloc nul. */
-    noeud_decl->bloc_parent->ajoute_rubrique(noeud_decl);
+    noeud_decl->bloc_parent->ajoute_rubrique(m_contexte->espace, noeud_decl);
 
     return noeud_decl;
 }
@@ -3932,7 +3937,7 @@ void Syntaxeuse::analyse_paramètres_polymorphiques_structure_ou_union(
             lexème_identifiant, nullptr, expression_type);
         decl_constante->drapeaux |= DrapeauxNoeud::EST_VALEUR_POLYMORPHIQUE;
 
-        noeud->bloc_constantes->ajoute_rubrique(decl_constante);
+        noeud->bloc_constantes->ajoute_rubrique(m_contexte->espace, decl_constante);
 
         if (!apparie(GenreLexème::VIRGULE)) {
             break;
@@ -4296,7 +4301,7 @@ NoeudInstructionImporte *Syntaxeuse::analyse_importe(Lexème const *lexème,
                                  ->comme_déclaration_module();
     noeud_déclaration->ident = noeud->ident;
     noeud_déclaration->bloc_parent->ajoute_expression(noeud_déclaration);
-    noeud_déclaration->bloc_parent->ajoute_rubrique(noeud_déclaration);
+    noeud_déclaration->bloc_parent->ajoute_rubrique(m_contexte->espace, noeud_déclaration);
     requiers_typage(noeud_déclaration);
 
     noeud->noeud_déclaration = noeud_déclaration;
@@ -4314,7 +4319,7 @@ NoeudExpression *Syntaxeuse::parse_expression_type()
     m_nous_sommes_dans_type = true;
 
     /* Nous utilisons par la précédence de ':' pour pouvoir s'arrêter au virgules. */
-    auto résultat = parse_expression_ellipse();
+    auto résultat = parse_expression_ellipse(true);
 
     m_nous_sommes_dans_type = ancien_nous_sommes_dans_type;
 

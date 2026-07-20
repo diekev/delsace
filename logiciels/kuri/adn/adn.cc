@@ -204,9 +204,9 @@ void ProtéineStruct::génère_code_cpp(FluxSortieCPP &os, bool pour_entête)
                   "table_rubriques{\"rubriques_bloc\"};\n";
             os << "\tint nombre_de_rubriques() const;\n";
             os << "\tvoid réserve_rubriques(int nombre);\n";
-            os << "\tvoid ajoute_rubrique(NoeudDéclaration *decl);\n";
+            os << "\tvoid ajoute_rubrique(EspaceDeTravail *espace, NoeudDéclaration *decl);\n";
             os << "\tvoid ajoute_rubrique_au_début(NoeudDéclaration *decl);\n";
-            os << "\tvoid fusionne_rubriques(NoeudBloc *de);\n";
+            os << "\tvoid fusionne_rubriques(EspaceDeTravail *espace, NoeudBloc *de);\n";
             os << "\tNoeudDéclaration *rubrique_pour_indice(int indice) const;\n";
             os << "\tNoeudDéclaration *déclaration_pour_ident(IdentifiantCode const "
                   "*ident_recherche) const;\n";
