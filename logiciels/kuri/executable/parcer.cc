@@ -1420,13 +1420,28 @@ struct Convertisseuse {
         clang_disposeString(comment);
     }
 
-    void rapporte_cursor_non_pris_en_charge(CXCursor cursor, std::ostream &flux_sortie)
+    void rapporte_cursor_non_pris_en_charge(CXTranslationUnit trans_unit,
+                                            CXCursor cursor,
+                                            std::ostream &flux_sortie)
     {
         cursors_non_pris_en_charges.insère(clang_getCursorKind(cursor));
         imprime_position_source_cursor(cursor, flux_sortie);
         flux_sortie << "Cursor '" << clang_getCursorSpelling(cursor) << "' of kind '"
                     << clang_getCursorKindSpelling(clang_getCursorKind(cursor)) << "' of type '"
                     << clang_getTypeSpelling(clang_getCursorType(cursor)) << "'\n";
+
+        CXSourceRange range = clang_getCursorExtent(cursor);
+        CXToken *tokens = nullptr;
+        unsigned nombre_tokens = 0;
+        clang_tokenize(trans_unit, range, &tokens, &nombre_tokens);
+        if (tokens) {
+            flux_sortie << "// Source du curseur :\n//";
+            for (unsigned i = 0; i < nombre_tokens; i++) {
+                auto spelling = clang_getTokenSpelling(trans_unit, tokens[i]);
+                flux_sortie << spelling;
+            }
+            flux_sortie << "\n";
+        }
     }
 
     void imprime_position_source_cursor(CXCursor cursor, std::ostream &flux_sortie)
@@ -1529,7 +1544,7 @@ struct Convertisseuse {
         switch (cursor.kind) {
             default:
             {
-                rapporte_cursor_non_pris_en_charge(cursor, flux_sortie);
+                rapporte_cursor_non_pris_en_charge(trans_unit, cursor, flux_sortie);
                 break;
             }
             case CXCursorKind::CXCursor_InclusionDirective:
@@ -1716,7 +1731,7 @@ struct Convertisseuse {
             }
             case CXCursorKind::CXCursor_TypeRef:
             {
-                rapporte_cursor_non_pris_en_charge(cursor, flux_sortie);
+                rapporte_cursor_non_pris_en_charge(trans_unit, cursor, flux_sortie);
 #if 0
                 /* pour les constructeurs entre autres */
                 flux_sortie << clang_getTypeSpelling(clang_getCursorType(cursor));
@@ -1795,7 +1810,7 @@ struct Convertisseuse {
             }
             case CXCursorKind::CXCursor_DeclStmt:
             {
-                rapporte_cursor_non_pris_en_charge(cursor, flux_sortie);
+                rapporte_cursor_non_pris_en_charge(trans_unit, cursor, flux_sortie);
 #if 0
                 imprime_commentaire(cursor, flux_sortie);
 
@@ -1887,7 +1902,7 @@ struct Convertisseuse {
         switch (cursor.kind) {
             default:
             {
-                rapporte_cursor_non_pris_en_charge(cursor, flux_sortie);
+                rapporte_cursor_non_pris_en_charge(trans_unit, cursor, flux_sortie);
                 break;
             }
             case CXCursorKind::CXCursor_CXXThisExpr:
@@ -1896,7 +1911,7 @@ struct Convertisseuse {
             }
             case CXCursorKind::CXCursor_CallExpr:
             {
-                rapporte_cursor_non_pris_en_charge(cursor, flux_sortie);
+                rapporte_cursor_non_pris_en_charge(trans_unit, cursor, flux_sortie);
 #if 0
                 auto enfants = rassemble_enfants(cursor);
 
@@ -1929,7 +1944,7 @@ struct Convertisseuse {
             }
             case CXCursorKind::CXCursor_InitListExpr:
             {
-                rapporte_cursor_non_pris_en_charge(cursor, flux_sortie);
+                rapporte_cursor_non_pris_en_charge(trans_unit, cursor, flux_sortie);
 #if 0
                 auto enfants = rassemble_enfants(cursor);
 
@@ -1947,7 +1962,7 @@ struct Convertisseuse {
             }
             case CXCursorKind::CXCursor_CompoundStmt:
             {
-                rapporte_cursor_non_pris_en_charge(cursor, flux_sortie);
+                rapporte_cursor_non_pris_en_charge(trans_unit, cursor, flux_sortie);
 #if 0
                 /* NOTE : un CompoundStmt correspond à un bloc, et peut donc contenir plusieurs
                  * instructions, par exemple :
@@ -1986,7 +2001,7 @@ struct Convertisseuse {
             }
             case CXCursorKind::CXCursor_IfStmt:
             {
-                rapporte_cursor_non_pris_en_charge(cursor, flux_sortie);
+                rapporte_cursor_non_pris_en_charge(trans_unit, cursor, flux_sortie);
 #if 0
                 auto enfants = rassemble_enfants(cursor);
 
@@ -2045,7 +2060,7 @@ struct Convertisseuse {
             }
             case CXCursorKind::CXCursor_WhileStmt:
             {
-                rapporte_cursor_non_pris_en_charge(cursor, flux_sortie);
+                rapporte_cursor_non_pris_en_charge(trans_unit, cursor, flux_sortie);
 #if 0
                 auto enfants = rassemble_enfants(cursor);
 
@@ -2064,7 +2079,7 @@ struct Convertisseuse {
             }
             case CXCursorKind::CXCursor_DoStmt:
             {
-                rapporte_cursor_non_pris_en_charge(cursor, flux_sortie);
+                rapporte_cursor_non_pris_en_charge(trans_unit, cursor, flux_sortie);
 #if 0
                 auto enfants = rassemble_enfants(cursor);
 
@@ -2081,7 +2096,7 @@ struct Convertisseuse {
             }
             case CXCursorKind::CXCursor_ForStmt:
             {
-                rapporte_cursor_non_pris_en_charge(cursor, flux_sortie);
+                rapporte_cursor_non_pris_en_charge(trans_unit, cursor, flux_sortie);
 #if 0
                 /* Transforme :
                  * for (int i = 0; i < 10; ++i) {
@@ -2143,7 +2158,7 @@ struct Convertisseuse {
             }
             case CXCursorKind::CXCursor_BreakStmt:
             {
-                rapporte_cursor_non_pris_en_charge(cursor, flux_sortie);
+                rapporte_cursor_non_pris_en_charge(trans_unit, cursor, flux_sortie);
 #if 0
                 flux_sortie << "arrête";
 #endif
@@ -2151,7 +2166,7 @@ struct Convertisseuse {
             }
             case CXCursorKind::CXCursor_ContinueStmt:
             {
-                rapporte_cursor_non_pris_en_charge(cursor, flux_sortie);
+                rapporte_cursor_non_pris_en_charge(trans_unit, cursor, flux_sortie);
 #if 0
                 flux_sortie << "continue";
 #endif
@@ -2159,7 +2174,7 @@ struct Convertisseuse {
             }
             case CXCursorKind::CXCursor_ReturnStmt:
             {
-                rapporte_cursor_non_pris_en_charge(cursor, flux_sortie);
+                rapporte_cursor_non_pris_en_charge(trans_unit, cursor, flux_sortie);
 #if 0
                 flux_sortie << "retourne ";
                 convertis_enfants(cursor, trans_unit, flux_sortie);
@@ -2168,7 +2183,7 @@ struct Convertisseuse {
             }
             case CXCursorKind::CXCursor_SwitchStmt:
             {
-                rapporte_cursor_non_pris_en_charge(cursor, flux_sortie);
+                rapporte_cursor_non_pris_en_charge(trans_unit, cursor, flux_sortie);
 #if 0
                 auto enfants = rassemble_enfants(cursor);
 
@@ -2186,7 +2201,7 @@ struct Convertisseuse {
             }
             case CXCursorKind::CXCursor_DefaultStmt:
             {
-                rapporte_cursor_non_pris_en_charge(cursor, flux_sortie);
+                rapporte_cursor_non_pris_en_charge(trans_unit, cursor, flux_sortie);
 #if 0
                 /* À FAIRE : gestion propre du cas défaut, le langage possède un
                  * 'sinon' qu'il faudra utiliser correctement */
@@ -2196,7 +2211,7 @@ struct Convertisseuse {
             }
             case CXCursorKind::CXCursor_CaseStmt:
             {
-                rapporte_cursor_non_pris_en_charge(cursor, flux_sortie);
+                rapporte_cursor_non_pris_en_charge(trans_unit, cursor, flux_sortie);
 #if 0
                 /* L'arbre des cas est ainsi :
                  * case
@@ -2279,7 +2294,7 @@ struct Convertisseuse {
             }
             case CXCursorKind::CXCursor_ArraySubscriptExpr:
             {
-                rapporte_cursor_non_pris_en_charge(cursor, flux_sortie);
+                rapporte_cursor_non_pris_en_charge(trans_unit, cursor, flux_sortie);
 #if 0
                 auto enfants = rassemble_enfants(cursor);
                 assert(enfants.taille() == 2);
@@ -2293,7 +2308,7 @@ struct Convertisseuse {
             }
             case CXCursorKind::CXCursor_MemberRefExpr:
             {
-                rapporte_cursor_non_pris_en_charge(cursor, flux_sortie);
+                rapporte_cursor_non_pris_en_charge(trans_unit, cursor, flux_sortie);
 #if 0
                 auto enfants = rassemble_enfants(cursor);
 
@@ -2334,7 +2349,7 @@ struct Convertisseuse {
                 auto chn = determine_operateur_unaire(cursor, trans_unit);
 
                 if (chn == "++" || chn == "--") {
-                    rapporte_cursor_non_pris_en_charge(cursor, flux_sortie);
+                    rapporte_cursor_non_pris_en_charge(trans_unit, cursor, flux_sortie);
                     break;
                 }
 
@@ -2355,7 +2370,7 @@ struct Convertisseuse {
             }
             case CXCursorKind::CXCursor_ConditionalOperator:
             {
-                rapporte_cursor_non_pris_en_charge(cursor, flux_sortie);
+                rapporte_cursor_non_pris_en_charge(trans_unit, cursor, flux_sortie);
 #if 0
                 auto enfants = rassemble_enfants(cursor);
                 assert(enfants.taille() == 3);
@@ -2386,7 +2401,7 @@ struct Convertisseuse {
             }
             case CXCursorKind::CXCursor_UnexposedDecl:
             {
-                rapporte_cursor_non_pris_en_charge(cursor, flux_sortie);
+                rapporte_cursor_non_pris_en_charge(trans_unit, cursor, flux_sortie);
 #if 0
                 convertis_enfants(cursor, trans_unit, flux_sortie);
 #endif
@@ -2423,7 +2438,7 @@ struct Convertisseuse {
             }
             case CXCursorKind::CXCursor_UnaryExpr:
             {
-                rapporte_cursor_non_pris_en_charge(cursor, flux_sortie);
+                rapporte_cursor_non_pris_en_charge(trans_unit, cursor, flux_sortie);
 #if 0
                 auto chn = determine_expression_unaire(cursor, trans_unit);
 
@@ -2440,7 +2455,7 @@ struct Convertisseuse {
             }
             case CXCursorKind::CXCursor_StmtExpr:
             {
-                rapporte_cursor_non_pris_en_charge(cursor, flux_sortie);
+                rapporte_cursor_non_pris_en_charge(trans_unit, cursor, flux_sortie);
 #if 0
                 convertis_enfants(cursor, trans_unit, flux_sortie);
 #endif
@@ -2461,7 +2476,7 @@ struct Convertisseuse {
             }
             case CXCursorKind::CXCursor_CXXNewExpr:
             {
-                rapporte_cursor_non_pris_en_charge(cursor, flux_sortie);
+                rapporte_cursor_non_pris_en_charge(trans_unit, cursor, flux_sortie);
 #if 0
                 auto enfants = rassemble_enfants(cursor);
                 auto cxtype = clang_getCursorType(cursor);
@@ -2483,7 +2498,7 @@ struct Convertisseuse {
             }
             case CXCursorKind::CXCursor_CXXDeleteExpr:
             {
-                rapporte_cursor_non_pris_en_charge(cursor, flux_sortie);
+                rapporte_cursor_non_pris_en_charge(trans_unit, cursor, flux_sortie);
 #if 0
                 flux_sortie << "déloge ";
                 convertis_enfants(cursor, trans_unit, flux_sortie);
@@ -2492,7 +2507,7 @@ struct Convertisseuse {
             }
             case CXCursorKind::CXCursor_CXXForRangeStmt:
             {
-                rapporte_cursor_non_pris_en_charge(cursor, flux_sortie);
+                rapporte_cursor_non_pris_en_charge(trans_unit, cursor, flux_sortie);
 #if 0
                 auto enfants = rassemble_enfants(cursor);
 
@@ -2509,7 +2524,7 @@ struct Convertisseuse {
             }
             case CXCursorKind::CXCursor_NamespaceRef:
             {
-                rapporte_cursor_non_pris_en_charge(cursor, flux_sortie);
+                rapporte_cursor_non_pris_en_charge(trans_unit, cursor, flux_sortie);
 #if 0
                 flux_sortie << clang_getCursorSpelling(cursor) << '.';
 #endif
@@ -2517,7 +2532,7 @@ struct Convertisseuse {
             }
             case CXCursorKind::CXCursor_TemplateRef:
             {
-                rapporte_cursor_non_pris_en_charge(cursor, flux_sortie);
+                rapporte_cursor_non_pris_en_charge(trans_unit, cursor, flux_sortie);
 #if 0
                 flux_sortie << clang_getCursorSpelling(cursor) << '.';
 #endif

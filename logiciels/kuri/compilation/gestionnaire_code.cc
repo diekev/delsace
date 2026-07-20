@@ -398,6 +398,17 @@ void RassembleuseDependances::rassemble_dépendances(NoeudExpression *racine)
                 ajoute_fonction(interface->decl_panique_rubrique_union);
             }
         }
+        else if (transformation.type == TypeTransformation::CONSTRUIS_UNION) {
+            auto type_union = transformation.type_cible->comme_type_union();
+            auto rubrique = type_union->rubriques[int32_t(transformation.indice_rubrique)];
+
+            /* Ajout du type pointeur du type rubrique pour la génération de code. */
+            auto type_ptr_rubrique = espace->typeuse.type_pointeur_pour(rubrique.type, false);
+            ajoute_type(type_ptr_rubrique);
+
+            auto type_ptr_type = espace->typeuse.type_pointeur_pour(type, false);
+            ajoute_type(type_ptr_type);
+        }
         else if (transformation.type == TypeTransformation::R16_VERS_R32) {
             assert(interface->decl_r16_vers_r32);
             ajoute_fonction(interface->decl_r16_vers_r32);
@@ -418,9 +429,23 @@ void RassembleuseDependances::rassemble_dépendances(NoeudExpression *racine)
             ajoute_info_de(type);
         }
         else if (transformation.type == TypeTransformation::EXTRAIT_EINI) {
-            ajoute_info_de(type);
+            auto type_cible = const_cast<Type *>(transformation.type_cible);
+            ajoute_info_de(type_cible);
             assert(interface->decl_vérifie_typage_extraction_eini);
             ajoute_fonction(interface->decl_vérifie_typage_extraction_eini);
+
+            auto ptr_type_cible = espace->typeuse.type_pointeur_pour(type_cible, false);
+            auto ptr_ptr_type_cible = espace->typeuse.type_pointeur_pour(ptr_type_cible, false);
+            ajoute_type(ptr_type_cible);
+            ajoute_type(ptr_ptr_type_cible);
+        }
+        else if (transformation.type == TypeTransformation::CONVERTIS_VERS_BASE ||
+                 transformation.type == TypeTransformation::CONVERTIS_VERS_DÉRIVÉ) {
+            /* Ajout du type pointeur du type cible pour la génération de code. */
+            auto type_cible = transformation.type_cible;
+            auto ptr_type_cible = espace->typeuse.type_pointeur_pour(
+                const_cast<Type *>(type_cible), false);
+            ajoute_type(ptr_type_cible);
         }
 
         /* Nous avons besoin d'un type pointeur pour le type cible pour la génération de
@@ -446,7 +471,9 @@ void RassembleuseDependances::rassemble_dépendances(NoeudExpression *racine)
         true,
         [&](NoeudExpression const *noeud) -> DecisionVisiteNoeud {
             /* N'ajoutons pas de dépendances sur les déclarations de types nichées. */
-            if ((noeud->est_type_structure() || noeud->est_type_énum()) && noeud != racine) {
+            if ((noeud->est_type_structure() || noeud->est_type_énum() ||
+                 noeud->est_corps_fonction()) &&
+                noeud != racine) {
                 return DecisionVisiteNoeud::IGNORE_ENFANTS;
             }
 
@@ -462,14 +489,20 @@ void RassembleuseDependances::rassemble_dépendances(NoeudExpression *racine)
                         ajoute_type(type_de_données);
                     }
                 }
-                else {
-                    ajoute_type(noeud->type);
+                else if (noeud != racine) {
+                    if (noeud->type->est_type_variadique()) {
+                        auto type_variadique = noeud->type->comme_type_variadique();
+                        if (type_variadique->type_tranche) {
+                            ajoute_type(type_variadique->type_tranche);
+                        }
+                        else {
+                            ajoute_type(type_variadique);
+                        }
+                    }
+                    else {
+                        ajoute_type(noeud->type);
+                    }
                 }
-            }
-
-            if (noeud->est_corps_fonction() && racine != noeud) {
-                /* Ignore le corps qui ne fut pas encore typé. */
-                return DecisionVisiteNoeud::IGNORE_ENFANTS;
             }
 
             if (noeud->est_référence_déclaration()) {
@@ -581,9 +614,40 @@ void RassembleuseDependances::rassemble_dépendances(NoeudExpression *racine)
                 }
             }
             else if (noeud->est_référence_rubrique_union()) {
-                auto interface = espace->interface_kuri;
-                assert(interface->decl_panique_rubrique_union);
-                ajoute_fonction(interface->decl_panique_rubrique_union);
+                auto rubricage_union = noeud->comme_référence_rubrique_union();
+                auto type = rubricage_union->accédée->type;
+
+                while (type->est_type_pointeur()) {
+                    type = type_déréférencé_pour(type);
+                    ajoute_type(type);
+                }
+
+                auto type_union = type->comme_type_union();
+                if (!type_union->est_nonsure) {
+                    auto interface = espace->interface_kuri;
+                    assert(interface->decl_panique_rubrique_union);
+                    ajoute_fonction(interface->decl_panique_rubrique_union);
+                }
+
+                auto indice_rubrique = rubricage_union->indice_rubrique;
+                auto type_rubrique = type_union->rubriques[indice_rubrique].type;
+
+                /* Ajout du type pointeur du type rubrique pour la génération de code.
+                 * À FAIRE : déplace le transtypage dans la canonicalisation. */
+                auto type_pointeur = espace->typeuse.type_pointeur_pour(type_rubrique, false);
+                ajoute_type(type_pointeur);
+            }
+            else if (noeud->est_référence_rubrique()) {
+                auto rubricage = noeud->comme_référence_rubrique();
+                auto type = rubricage->accédée->type;
+
+                /* type peut être nul si nous avons un accès de module. */
+                if (type) {
+                    while (type->est_type_pointeur()) {
+                        type = type_déréférencé_pour(type);
+                        ajoute_type(type);
+                    }
+                }
             }
             else if (noeud->est_comme()) {
                 auto comme = noeud->comme_comme();
@@ -1149,7 +1213,7 @@ void GestionnaireCode::requiers_typage(EspaceDeTravail *espace, NoeudExpression 
             // préserve les constantes polymorphiques
             if (fonction->possède_drapeau(DrapeauxNoeudFonction::EST_MONOMORPHISATION)) {
                 POUR (*entête->bloc_constantes->rubriques.verrou_lecture()) {
-                    fonction->bloc_constantes->ajoute_rubrique(it);
+                    fonction->bloc_constantes->ajoute_rubrique(espace, it);
                 }
             }
 
@@ -1183,9 +1247,9 @@ void GestionnaireCode::requiers_typage(EspaceDeTravail *espace, NoeudExpression 
 
             if (decl->est_monomorphisation) {
                 decl->bloc_constantes->rubriques.avec_verrou_écriture(
-                    [fonction](kuri::tableau<NoeudDéclaration *, int> &rubriques) {
+                    [fonction, espace](kuri::tableau<NoeudDéclaration *, int> &rubriques) {
                         POUR (rubriques) {
-                            fonction->bloc_constantes->ajoute_rubrique(it);
+                            fonction->bloc_constantes->ajoute_rubrique(espace, it);
                         }
                     });
                 fonction->site_monomorphisation = decl->site_monomorphisation;
@@ -1593,10 +1657,10 @@ void GestionnaireCode::rassemble_statistiques(Statistiques &statistiques) const
     statistiques.ajoute_mémoire_utilisée("Gestionnaire Code", mémoire);
 }
 
-NoeudBloc *GestionnaireCode::crée_bloc_racine(Typeuse &typeuse)
+NoeudBloc *GestionnaireCode::crée_bloc_racine(EspaceDeTravail *espace, Typeuse &typeuse)
 {
 #define CREE_DECLARATION_TYPE_PLATEFORME(nom)                                                     \
-    résultat->ajoute_rubrique(typeuse.nom);                                                       \
+    résultat->ajoute_rubrique(espace, typeuse.nom);                                               \
     typeuse.nom->expression_type = m_assembleuse->crée_référence_déclaration(                     \
         nullptr, typeuse.nom->comme_déclaration_type());                                          \
     typeuse.nom->bloc_parent = résultat;
@@ -1973,7 +2037,7 @@ void GestionnaireCode::ajoute_noeud_de_haut_niveau(NoeudExpression *it,
         auto noeud_déclaration = inst->noeud_déclaration;
         if (noeud_déclaration->ident == nullptr) {
             noeud_déclaration->ident = module->nom();
-            noeud_déclaration->bloc_parent->ajoute_rubrique(noeud_déclaration);
+            noeud_déclaration->bloc_parent->ajoute_rubrique(espace, noeud_déclaration);
         }
         noeud_déclaration->module = module;
 
@@ -2132,7 +2196,10 @@ void GestionnaireCode::typage_terminé(UnitéCompilation *unité)
 
         if (bloc) {
             POUR (*bloc->rubriques.verrou_écriture()) {
-                bloc_parent->ajoute_rubrique(it);
+                /* Ajout du drapeaux EST_GLOBALE pour éviter que le noeud ne soit ajouté deux fois
+                 * au bloc. */
+                it->drapeaux |= DrapeauxNoeud::EST_GLOBALE;
+                bloc_parent->ajoute_rubrique(espace, it);
             }
             POUR (*bloc->expressions.verrou_écriture()) {
                 ajoute_noeud_de_haut_niveau(it, espace, fichier);
