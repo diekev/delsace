@@ -586,13 +586,6 @@ NoeudExpression *Simplificatrice::simplifie(NoeudExpression *noeud)
             auto discr = noeud->comme_discr();
             return simplifie_discr(discr);
         }
-        case GenreNoeud::EXPRESSION_PARENTHÈSE:
-        {
-            auto parenthèse = noeud->comme_parenthèse();
-            simplifie(parenthèse->expression);
-            parenthèse->substitution = parenthèse->expression;
-            return parenthèse->substitution;
-        }
         case GenreNoeud::INSTRUCTION_TENTE:
         {
             return simplifie_tente(noeud->comme_tente());
@@ -2817,10 +2810,6 @@ static NoeudExpressionSélection *peut_être_compilée_avec_sélection(NoeudSi *
     }
 
     auto condition = inst_si->condition;
-    if (condition->est_parenthèse()) {
-        condition = condition->comme_parenthèse()->expression;
-    }
-
     if (condition->est_expression_logique()) {
         /* Nous ignorons les expressions logiques car elles doivent être compilées différements
          * lorsque dans une condition de « si ». */
