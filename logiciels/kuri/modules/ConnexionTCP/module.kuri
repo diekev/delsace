@@ -114,7 +114,7 @@ traite_évènements_une_fois :: fonc (boucle_prises: *Boucle, temporisation := -
     /* Emit pre callback */
     //us_internal_loop_pre(loop);
 
-    nfds := epoll_wait(boucle_prises.fd, *boucle_prises.évènements[0], Boucle.MAX_EVENTS, temporisation);
+    nfds := epoll_wait(boucle_prises.fd, boucle_prises.évènements.données, Boucle.MAX_EVENTS, temporisation);
     si nfds == -1 {
         // imprime("[epoll_wait] erreur !\n")
         // perror("epoll_wait");
@@ -122,7 +122,7 @@ traite_évènements_une_fois :: fonc (boucle_prises: *Boucle, temporisation := -
         retourne faux;
     }
 
-    boucle_prises.évènements_prêts.pointeur = *boucle_prises.évènements[0];
+    boucle_prises.évènements_prêts.pointeur = boucle_prises.évènements.données;
     boucle_prises.évènements_prêts.taille = nfds;
 
     traite_évènements_prêts(boucle_prises);

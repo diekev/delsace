@@ -1102,5 +1102,5 @@ donne_nom_snake_case :: fonc (chn: chaine, griffonier: *Griffonier) -> chaine
         curseur += 1;
     }
 
-    retourne chaine(*griffonier.données[0], griffonier.curseur);
+    retourne chaine(griffonier.données.données, griffonier.curseur);
 }

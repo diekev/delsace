@@ -114,7 +114,7 @@ opérateur == :: (chn: ChaineUTF16, chaine_native: chaine) -> bool
 chaine_ajoute :: fonc (chn: *ChaineUTF16, point_de_code: rune32)
 {
     unités: [2]n16;
-    taille := utf16_depuis_point_de_code(point_de_code, *unités[0]);
+    taille := utf16_depuis_point_de_code(point_de_code, unités.données);
 
     chn.ajoute(unités[0]);
     si taille == 2 {
@@ -734,7 +734,7 @@ ajoute :: fonc (enchaineuse: *EnchaineuseUTF16, chn: ChaineUTF16)
 ajoute :: fonc (enchaineuse: *EnchaineuseUTF16, rune: rune32)
 {
     unités: [2]n16;
-    taille := utf16_depuis_point_de_code(rune, *unités[0]);
+    taille := utf16_depuis_point_de_code(rune, unités.données);
 
     enchaineuse.ajoute(unités[0]);
     si taille == 2 {
@@ -759,7 +759,7 @@ chaine_depuis_enchaineuse :: fonc (enchaineuse: *EnchaineuseUTF16, réinitialise
     tampon := *enchaineuse.tampon;
 
     tantque tampon != nul {
-        src := *tampon.données[0];
+        src := tampon.données.données;
         dst := résultat.unités.pointeur + curseur;
         taille_mémoire := tampon.occupés * 2; // 2 octets par unités
 

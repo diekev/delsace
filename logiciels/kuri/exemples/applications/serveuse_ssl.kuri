@@ -26,12 +26,12 @@ Servlet :: fonc (ssl: *ssl_st) -> rien
     }
     sinon {
         //imprime_certificats_ssl(ssl)
-        bytes := SSL_read(ssl, *buf[0], 1024);
+        bytes := SSL_read(ssl, buf.données, 1024);
 
         si bytes > 0 {
             buf[bytes] = '\0';
-            chn: chaine;
-            chn.pointeur = *buf[0];
+            chn: chaine = ---;
+            chn.pointeur = buf.données;
             chn.taille = bytes;
             imprime("Client msg: \"%\"\n", chn);
 

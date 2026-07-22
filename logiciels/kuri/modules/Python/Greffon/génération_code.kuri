@@ -553,7 +553,7 @@ génère_déclaration_type_python :: fonc (enchaineuse: *Enchaineuse, module: *M
     enchaineuse.ajoute_au_tampon("    tp_flags = 1 << 10 | 1 << 18,\n");
 
     si type.méthodes {
-        enchaineuse.ajoute_au_tampon("    tp_methods = *méthodes_", type.nom_sauf, "[0],\n");
+        enchaineuse.ajoute_au_tampon("    tp_methods = méthodes_", type.nom_sauf, ".données,\n");
     }
 
     si fonction_new {
@@ -582,7 +582,7 @@ génère_déclaration_type_python :: fonc (enchaineuse: *Enchaineuse, module: *M
     }
 
     si globale_getset {
-        enchaineuse.ajoute_au_tampon("    tp_getset = *", globale_getset, "[0],\n");
+        enchaineuse.ajoute_au_tampon("    tp_getset = ", globale_getset, ".données,\n");
     }
 
     si type.base {

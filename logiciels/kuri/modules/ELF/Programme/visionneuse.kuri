@@ -1480,8 +1480,8 @@ donne_tabuleuse_données_hex :: fonc (fichier: *Fichier_Ouvert, fonte: *Fonte, t
                     }
                 }
 
-                texte_données: chaine;
-                texte_données.pointeur = *tampon_texte_données.données[0];
+                texte_données: chaine = ---;
+                texte_données.pointeur = tampon_texte_données.données.données;
                 texte_données.taille = tampon_texte_données.curseur;
 
                 ajoute_ligne(tabuleuse, décalage, copie_chaine(texte_données), texte);

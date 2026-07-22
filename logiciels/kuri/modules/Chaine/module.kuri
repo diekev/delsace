@@ -154,7 +154,7 @@ chaine_ajoute :: fonc (chn: *ChaineFixe, point_de_code: n32)
 
 convertis_vers_chaine :: fonc (chn: *ChaineFixe) -> chaine
 {
-    retourne chaine(*chn.données[0], chn.taille);
+    retourne chaine(chn.données.données, chn.taille);
 }
 
 /** \} */

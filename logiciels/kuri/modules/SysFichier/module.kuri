@@ -324,7 +324,7 @@ ajoute_au_fichier :: fonc (chemin: chaine, enchaineuse: *Enchaineuse) -> bool
 
     tantque tampon_courant != nul {
         contenu: []octet = ---;
-        contenu.pointeur = *tampon_courant.données[0];
+        contenu.pointeur = tampon_courant.données.données;
         contenu.taille = tampon_courant.occupé;
 
         octets_écris := tente écris(*fichier, contenu) piège err {

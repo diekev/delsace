@@ -52,7 +52,7 @@ crée_globales_dessin :: fonc () -> *GlobalesDessin
     résultat.image_checkbox.desc.largeur = 10;
     résultat.image_checkbox.desc.format = FormatPixel.RVBA_8;
     résultat.image_checkbox.source_données = SourceDonnéesImage.Externe;
-    résultat.image_checkbox.données = *données_image_checkbox[0];
+    résultat.image_checkbox.données = données_image_checkbox.données;
 
     résultat.fontconfig = fontconfig;
 

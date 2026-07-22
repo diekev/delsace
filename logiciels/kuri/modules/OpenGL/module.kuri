@@ -78,7 +78,7 @@ initialise_opengl :: fonc () -> bool
 sauvegarde_glviewport_temporaire :: fonc () #développe
 {
     ancien_viewport: [4]GLint;
-    glGetIntegerv(GL_VIEWPORT, *ancien_viewport[0]);
+    glGetIntegerv(GL_VIEWPORT, ancien_viewport.données);
     diffère glViewport(ancien_viewport[0], ancien_viewport[1], ancien_viewport[2], ancien_viewport[3]);
 }
 

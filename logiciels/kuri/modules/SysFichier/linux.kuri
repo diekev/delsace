@@ -833,7 +833,7 @@ système_écris_fichier_info_corbeille :: fonc (chemin_fichier_info: CheminFichi
 système_chemin_véritable :: fonc (chemin: CheminFichier) -> Résultat(CheminFichier, ErreurFichier)
 {
     tampon : [TAILLE_MAX_CHEMIN]z8 = ---;
-    ptr_tampon := *tampon[0];
+    ptr_tampon := tampon.données;
 
     chn_c_chemin := crée_chaine_c(chemin.chn);
     diffère détruit_chaine_c(*chn_c_chemin);
@@ -891,13 +891,13 @@ système_chemin_exécutable :: fonc () -> Résultat(CheminFichier, ErreurFichier
     TAILLE_TAMPON_READLINK :: 1024;
     tampon : [TAILLE_TAMPON_READLINK]z8 = ---;
 
-    lus := readlink(ChaineC("/proc/self/exe".pointeur), *tampon[0], TAILLE_TAMPON_READLINK comme n64);
+    lus := readlink(ChaineC("/proc/self/exe".pointeur), tampon.données, TAILLE_TAMPON_READLINK comme n64);
     si lus < 0 {
         retourne convertis_errno_en_erreur_fichier();
     }
 
     chn := loge_chaine(lus);
-    copie_mem_nonsur(src = *tampon[0], dst = chn.pointeur, taille = lus);
+    copie_mem_nonsur(src = tampon.données, dst = chn.pointeur, taille = lus);
 
     résultat.chn = chn;
 

@@ -51,7 +51,7 @@ aplatis_fichier :: fonc (fichier: FichierPaginéMémoire) -> [..]octet
 
     page := fichier.première_page;
     tantque page != nul {
-        src := *page.données[0];
+        src := page.données.données;
 
         copie_mem_nonsur(src = src, dst = dst, taille = page.occupé);
 

@@ -220,12 +220,12 @@ lis_tout :: fonc (fichier: *FichierSSL) -> ChaineOuErreurSSL
     résultat: chaine;
 
     boucle {
-        taille := SSL_read(fichier.ssl, *tampon[0], TAILLE_MAX_DONNÉES);
+        taille := SSL_read(fichier.ssl, tampon.données, TAILLE_MAX_DONNÉES);
 
         si taille > 0 {
             ancienne_taille := résultat.taille;
             reloge_chaine(*résultat, résultat.taille + taille);
-            copie_mem_nonsur(src = *tampon[0], dst = *résultat[ancienne_taille], taille = taille comme z64);
+            copie_mem_nonsur(src = tampon.données, dst = *résultat[ancienne_taille], taille = taille comme z64);
         }
         sinon si taille == 0 {
             arrête;
