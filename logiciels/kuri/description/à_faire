@@ -426,9 +426,6 @@ partage entre types
 // ----------------------------------------------------------------------------
 // Bas Fruitage
 
-ajout d'une propriété "pointeur" aux tableaux fixes pour obtenir le pointeur vers le premier élément (au lien de @x[0])
-   -- mention dans test_logement.kuri
-
 ajout de tranches pour les tableaux et les chaines
 
     chn1 := "une chaine"

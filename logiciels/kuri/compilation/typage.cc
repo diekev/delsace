@@ -558,6 +558,8 @@ TypeTableauFixe *Typeuse::type_tableau_fixe(Type *type_pointe, int taille, bool 
         }
     }
 
+    auto type_pointeur_des_données = type_pointeur_pour(type_pointe, false);
+
     // les décalages sont à zéros car ceci n'est pas vraiment une structure
     auto rubriques = kuri::tableau<RubriqueTypeComposé, int>();
     rubriques.ajoute({nullptr,
@@ -567,6 +569,13 @@ TypeTableauFixe *Typeuse::type_tableau_fixe(Type *type_pointe, int taille, bool 
                       uint64_t(taille),
                       nullptr,
                       RubriqueTypeComposé::EST_CONSTANTE});
+    rubriques.ajoute({nullptr,
+                      type_pointeur_des_données,
+                      ID::données,
+                      0,
+                      0,
+                      nullptr,
+                      RubriqueTypeComposé::EST_IMPLICITE});
 
     auto type = alloc->m_noeuds_type_tableau_fixe.ajoute_élément();
     initialise_type_tableau_fixe(type, type_pointe, taille, std::move(rubriques));

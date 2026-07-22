@@ -2369,6 +2369,21 @@ NoeudExpression *Simplificatrice::simplifie_référence_rubrique(
         }
     }
 
+    if (type_accédé->est_type_tableau_fixe() && lexème->ident == ID::données) {
+        /* Transforme en *accédée[0]. */
+        auto type_tableau_fixe = type_accédé->comme_type_tableau_fixe();
+        auto zéro = assem->crée_littérale_entier(accédée->lexème, typeuse.type_z64, 0);
+        auto indexage = assem->crée_indexage(accédée->lexème, accédée, zéro, true);
+        indexage->type = type_tableau_fixe->type_pointé;
+
+        auto prise_adresse = assem->crée_prise_adresse(accédée->lexème, indexage);
+        prise_adresse->type = typeuse.type_pointeur_pour(type_tableau_fixe->type_pointé, false);
+
+        ref_rubrique->substitution = prise_adresse;
+        simplifie(ref_rubrique->accédée);
+        return ref_rubrique;
+    }
+
     auto type_composé = type_accédé->comme_type_composé();
     auto &rubrique = type_composé->rubriques[ref_rubrique->indice_rubrique];
 

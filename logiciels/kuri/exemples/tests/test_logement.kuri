@@ -120,8 +120,7 @@ test_fichier :: fonc () -> rien
 
         imprime("Lu ", nread, " octets\n");
 
-        // À FAIRE : prend pointeur automatiquement
-        chn := chaine(*tpn[0], nread comme z64);
+        chn := chaine(tpn.données, nread comme z64);
 
         imprime(chn, "\n");
 
