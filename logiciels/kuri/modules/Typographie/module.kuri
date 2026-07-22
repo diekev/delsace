@@ -871,7 +871,7 @@ texture_font_load_glyph :: fonc (self: *Fonte, codepoint: n32) -> bool
         flags |= FT_LOAD_TARGET_LCD();
 
         si self.filtering {
-            _ := FT_Library_SetLcdFilterWeights(library, *self.lcd_weights[0]);
+            _ := FT_Library_SetLcdFilterWeights(library, self.lcd_weights.données);
         }
     }
     sinon si HRES == 1 {

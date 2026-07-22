@@ -830,10 +830,10 @@ crée_flux_sortie :: fonc (enchaineuse: *Enchaineuse) -> FluxSortie
         enchaineuse_ := flux_sortie.données comme *Enchaineuse;
 
         séquence: [4]n8;
-        taille := point_de_code_vers_utf8(point_de_code, *séquence[0]);
+        taille := point_de_code_vers_utf8(point_de_code, séquence.données);
 
-        chn: chaine;
-        chn.pointeur = *séquence[0] comme *z8;
+        chn: chaine = ---;
+        chn.pointeur = séquence.données comme *z8;
         chn.taille = taille;
 
         ajoute_au_tampon(enchaineuse_, chn);

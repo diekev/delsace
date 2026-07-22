@@ -126,7 +126,7 @@ chemin_normalisé :: fonc (tampon_chemin: *TamponChemin, pile: *Pile(chaine), ch
 
     pile_secondaire: Pile(chaine);
     si utilise_tampon {
-        pile_secondaire.données.pointeur = *tampon[0];
+        pile_secondaire.données.pointeur = tampon.données;
         pile_secondaire.données.capacité = 16;
     }
 
@@ -627,18 +627,18 @@ donne_copie_chemin :: fonc (tampon: *TamponChemin) -> CheminFichier
 
 donne_chemin_statique :: fonc (tampon: *TamponChemin) -> CheminFichier
 {
-    retourne CheminFichier(chaine(*tampon.données[0], tampon.occupés));
+    retourne CheminFichier(chaine(tampon.données.données, tampon.occupés));
 }
 
 donne_chaine_statique :: fonc (tampon: *TamponChemin) -> chaine
 {
-    retourne chaine(*tampon.données[0], tampon.occupés);
+    retourne chaine(tampon.données.données, tampon.occupés);
 }
 
 donne_chaine_c_statique :: fonc (tampon: *TamponChemin) -> ChaineC
 {
     tampon.données[tampon.occupés] = '\0';
-    retourne ChaineC(*tampon.données[0]);
+    retourne ChaineC(tampon.données.données);
 }
 
 ajoute :: fonc (tampon: *TamponChemin, chns: ...chaine) -> bool

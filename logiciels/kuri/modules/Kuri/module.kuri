@@ -879,7 +879,7 @@ __initialise_contexte_extra :: fonc (ctx: *ContexteProgramme, trace_appel: *Trac
 
     ctx.données_allocatrice = base_allocatrice;
 
-    stockage_temporaire.données = *__tampon_stockage_tamporaire[0];
+    stockage_temporaire.données = __tampon_stockage_tamporaire.données;
     stockage_temporaire.taille = __tampon_stockage_tamporaire.taille comme z32;
     stockage_temporaire.occupé = 0;
     stockage_temporaire.occupation_maximale = 0;

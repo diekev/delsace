@@ -1085,7 +1085,7 @@ x11_crée_fenêtre :: fonc (empl options: *Options_Création_Fenêtre, port_pare
 
     {
         atoms := [système.wm_delete_window, système.wm_take_focus];
-        _ := XSetWMProtocols(display, window, *atoms[0], 2);
+        _ := XSetWMProtocols(display, window, atoms.données, 2);
     }
 
     /* Set the window hints */
@@ -1193,7 +1193,7 @@ x11_crée_fenêtre :: fonc (empl options: *Options_Création_Fenêtre, port_pare
                              XA_ATOM,
                              32,
                              PropModeReplace,
-                             *atoms[0] comme *n8,
+                             atoms.données comme *n8,
                              atoms.taille comme z32);
     }
 
@@ -1418,7 +1418,7 @@ x11_ajourne_évènements_fenêtre :: fonc (fenêtre: Port_Fenêtre_Native)
                 tampon_utf8: [16 * 6]z8; // 16 caractères UTF-8
                 status: Status;
                 key_sym := évènement.clé_virtuelle_native comme KeySym;
-                len := Xutf8LookupString(xic, *event.xkey, *tampon_utf8[0], tampon_utf8.taille comme z32, *key_sym, *status);
+                len := Xutf8LookupString(xic, *event.xkey, tampon_utf8.données, tampon_utf8.taille comme z32, *key_sym, *status);
 
                 assert(status != XBufferOverflow);
                 // si status == XBufferOverflow {
@@ -1426,7 +1426,7 @@ x11_ajourne_évènements_fenêtre :: fonc (fenêtre: Port_Fenêtre_Native)
                 //     len = Xutf8LookupString(xic, xke, *tampon_utf8, tampon_utf8.taille, *key_sym, *status)
                 // }
 
-                chaine_touche := chaine(*tampon_utf8[0], len);
+                chaine_touche := chaine(tampon_utf8.données, len);
 
                 si status == XLookupChars || status == XLookupBoth {
                     /* Testons les caractères de controle ASCII.
@@ -1656,7 +1656,7 @@ x11_gère_entrée_glissage :: fonc (xclient_event: *XClientMessageEvent, empl do
                 compte += 1;
             }
 
-            formats = *formats_réel[0];
+            formats = formats_réel.données;
         }
 
         pour compte {

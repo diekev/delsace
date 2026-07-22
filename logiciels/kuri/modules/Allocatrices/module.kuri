@@ -194,7 +194,7 @@ imprime_chaine :: fonc (arène: *Arène_Mémoire, format: chaine, args: ...eini)
 
     tantque tampon_courant != nul {
         taille_tampon : z64 = tampon_courant.occupé;
-        src := *tampon_courant.données[0];
+        src := tampon_courant.données.données;
         dst := curseur_dest;
 
         copie_mem_nonsur(src = src, dst = dst, taille = taille_tampon);

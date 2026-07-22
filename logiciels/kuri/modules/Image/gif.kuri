@@ -153,7 +153,7 @@ Table :: struct {
 gd_open_gif :: fonc (charge_gif: *FluxOctets) -> *gd_GIF
 {
     sigver: [3]z8;
-    chn_sigver := chaine(*sigver[0], 3);
+    chn_sigver := chaine(sigver.données, 3);
 
     /* Header */
     _ := lis(charge_gif, sigver);
@@ -340,10 +340,10 @@ read_comment_ext :: fonc (gif: *gd_GIF)
 read_application_ext :: fonc (gif: *gd_GIF)
 {
     app_id: [8]z8;
-    chn_app_id := chaine(*app_id[0], app_id.taille);
+    chn_app_id := chaine(app_id.données, app_id.taille);
 
     app_auth_code: [3]z8;
-    chn_app_auth_code := chaine(*app_auth_code[0], app_auth_code.taille);
+    chn_app_auth_code := chaine(app_auth_code.données, app_auth_code.taille);
 
     /* Discard block size (always 0x0B). */
     bloc_size, _ := lis_petit_boutisme(gif.charge_gif, n8);

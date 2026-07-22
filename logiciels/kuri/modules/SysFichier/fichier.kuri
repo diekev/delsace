@@ -374,7 +374,7 @@ lis_tout :: fonc (fichier: *Fichier, résultat: *[..]octet) -> ErreurFichier
     résultat.taille = 0;
 
     boucle {
-        octets_lus := tente système_lis(fichier.desc, *tampon[0], TAILLE_MAX) piège err {
+        octets_lus := tente système_lis(fichier.desc, tampon.données, TAILLE_MAX) piège err {
             déloge(résultat);
             retourne err;
         };
@@ -382,7 +382,7 @@ lis_tout :: fonc (fichier: *Fichier, résultat: *[..]octet) -> ErreurFichier
         si octets_lus > 0 {
             ancienne_taille := résultat.taille;
             tableau_redimensionne_sans_init(résultat, résultat.taille + octets_lus);
-            copie_mem_nonsur(src = *tampon[0], dst = *résultat.pointeur[ancienne_taille], taille = octets_lus);
+            copie_mem_nonsur(src = tampon.données, dst = *résultat.pointeur[ancienne_taille], taille = octets_lus);
 
             si octets_lus < TAILLE_MAX {
                 arrête;

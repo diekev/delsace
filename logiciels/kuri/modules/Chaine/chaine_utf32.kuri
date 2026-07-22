@@ -180,9 +180,9 @@ imprime_chaine_utf32 :: fonc (enchaineuse: *Enchaineuse, chn: *ChaineUTF32)
 
     séquence: [4]n8;
     pour chn.points_de_code {
-        taille := point_de_code_vers_utf8(it, *séquence[0]);
+        taille := point_de_code_vers_utf8(it, séquence.données);
 
-        tmp  := chaine(*séquence[0] comme *z8, taille);
+        tmp  := chaine(séquence.données comme *z8, taille);
         ajoute_au_tampon(enchaineuse, tmp);
     }
 } @FormattageImpression

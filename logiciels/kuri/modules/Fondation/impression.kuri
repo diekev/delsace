@@ -65,7 +65,7 @@ chaine_depuis_enchaineuse :: fonc (enchaineuse: *Enchaineuse, réinitialise := v
 
     tantque tampon_courant != nul {
         taille_tampon : z64 = tampon_courant.occupé;
-        src := *tampon_courant.données[0];
+        src := tampon_courant.données.données;
         dst := *chn[curseur];
 
         copie_mem_nonsur(src = src, dst = dst, taille = taille_tampon);
@@ -87,7 +87,7 @@ copie_enchaineuse_fichier :: fonc (enchaineuse: *Enchaineuse, fichier: *Fichier)
 
     tantque tampon_courant != nul {
         taille_tampon := tampon_courant.occupé;
-        src := *tampon_courant.données[0];
+        src := tampon_courant.données.données;
 
         _ := tente système_écris(fichier.desc, src, taille_tampon) piège err {
             retourne err;
@@ -224,7 +224,7 @@ ajoute_au_tampon :: fonc (enchaineuse: *Enchaineuse, chn: chaine) -> rien
             tampon = ajoute_tampon(enchaineuse);
 
             src = *chn[chn.taille - delta];
-            dst = *tampon.données[0];
+            dst = tampon.données.données;
 
             taille = TAILLE_TAMPON_ENCHAINEUSE;
 
@@ -581,7 +581,7 @@ donne_chaine_indentation :: fonc (profondeur: z32) -> chaine
     }
 
     taille_chaine := profondeur * 4;
-    chaine_indentation := chaine(*__chaine_indentation[0], __chaine_indentation.taille);
+    chaine_indentation := chaine(__chaine_indentation.données, __chaine_indentation.taille);
     retourne chaine_indentation.sous_chaine(0, taille_chaine);
 }
 
