@@ -68,7 +68,7 @@ calcule_empreinte_floue :: fonc (image: *$T,
     factors.taille = factors.capacité;
     diffère déloge(*factors);
 
-    ptr_factors := factors.pointeur;
+    ptr_factors := factors.données;
 
     pour y dans composants_y {
         pour x dans composants_x {
@@ -80,7 +80,7 @@ calcule_empreinte_floue :: fonc (image: *$T,
         }
     }
 
-    dc := factors.pointeur;
+    dc := factors.données;
     retourne encode_factors(dc, composants_x, composants_y);
 }
 

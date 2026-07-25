@@ -21,7 +21,7 @@ crée_chaine_c :: fonc (chn: chaine) -> ChaineC
 crée_chaine_c_temp :: fonc (chn: chaine) -> ChaineC
 {
     tampon := logement_temp(chn.taille + 1);
-    copie_mem_nonsur(src = chn.pointeur, dst = tampon, taille = chn.taille);
+    copie_mem_nonsur(src = chn.caractères, dst = tampon, taille = chn.taille);
     tampon[chn.taille] = '\0' comme octet;
     retourne ChaineC(tampon comme *z8);
 }

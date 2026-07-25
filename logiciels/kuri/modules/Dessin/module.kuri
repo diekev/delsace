@@ -43,7 +43,7 @@ définis_rect_ciseau :: fonc (tampon: *TamponDeRendu, rect: RectanglePosDim(z32)
 
 donne_nouvelle_image_depuis_données :: fonc (tampon: *TamponDeRendu) -> NouvelleImage
 {
-    retourne crée_image_pour_données_externe(tampon.données.pointeur, tampon.rect.largeur comme n32, tampon.rect.hauteur comme n32, FormatPixel.RVBA_8, DirectionImage.BasEnHaut);
+    retourne crée_image_pour_données_externe(tampon.données.données, tampon.rect.largeur comme n32, tampon.rect.hauteur comme n32, FormatPixel.RVBA_8, DirectionImage.BasEnHaut);
 }
 
 /* Ceci remplis inconditionnellement le tampon avec la couleur (pas de fusion, etc.).
@@ -797,7 +797,7 @@ dessine_image_rvba :: fonc (tampon_de_rendu: *TamponDeRendu, image: ImageIO, rec
     décalage_x := rect_sauf.x - rect.x;
     décalage_y := rect_sauf.y - rect.y;
 
-    dest := tampon_de_rendu.données.pointeur;
+    dest := tampon_de_rendu.données.données;
     enjambée_dest := tampon_de_rendu.rect.largeur;
 
     source := image.donnees;
@@ -821,7 +821,7 @@ dessine_image_rvba_à_l_échelle :: fonc (tampon_de_rendu: *TamponDeRendu, image
     ratio_largeur := image.largeur comme r32 / rect.largeur comme r32;
     ratio_hauteur := image.hauteur comme r32 / rect.hauteur comme r32;
 
-    dest := tampon_de_rendu.données.pointeur;
+    dest := tampon_de_rendu.données.données;
     enjambée_dest := tampon_de_rendu.rect.largeur;
 
     source := image.donnees;
@@ -842,7 +842,7 @@ dessine_image_rvb :: fonc (tampon_de_rendu: *TamponDeRendu, image: ImageIO, rect
     décalage_x := rect_sauf.x - rect.x;
     décalage_y := rect_sauf.y - rect.y;
 
-    dest := tampon_de_rendu.données.pointeur;
+    dest := tampon_de_rendu.données.données;
     enjambée_dest := tampon_de_rendu.rect.largeur;
 
     source := image.donnees;
@@ -863,7 +863,7 @@ dessine_image_rvb_à_l_échelle :: fonc (tampon_de_rendu: *TamponDeRendu, image:
     ratio_largeur := image.largeur comme r32 / rect.largeur comme r32;
     ratio_hauteur := image.hauteur comme r32 / rect.hauteur comme r32;
 
-    dest := tampon_de_rendu.données.pointeur;
+    dest := tampon_de_rendu.données.données;
     enjambée_dest := tampon_de_rendu.rect.largeur;
 
     source := image.donnees;

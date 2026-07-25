@@ -692,7 +692,7 @@ initalise_types_base :: fonc (fonctions: *[..]FonctionParsage)
  * aucune copie n'en est faite, nous supposons que le texte est toujours valide. */
 parse_chaine :: fonc (texte: chaine, tampon: []octet) -> bool
 {
-    copie_mem_nonsur(src = *texte, dst = tampon.pointeur, taille = tampon.taille);
+    copie_mem_nonsur(src = *texte, dst = tampon.données, taille = tampon.taille);
     retourne vrai;
 }
 
@@ -1019,7 +1019,7 @@ génère_enveloppe_fonction_parsage_octets :: fonc (enchaineuse: *Enchaineuse, d
     }
     ajoute_au_tampon(enchaineuse, données.fonction.nom, "(chn);\n");
     ajoute_au_tampon(enchaineuse, "\tsaufsi succès {\n\t\tretourne faux;\n\t}\n");
-    ajoute_au_tampon(enchaineuse, "\tFondation.copie_mem_nonsur(src = *valeur, dst = tampon.pointeur, taille = tampon.taille);\n");
+    ajoute_au_tampon(enchaineuse, "\tFondation.copie_mem_nonsur(src = *valeur, dst = tampon.données, taille = tampon.taille);\n");
     ajoute_au_tampon(enchaineuse, "\tretourne vrai;\n");
     ajoute_au_tampon(enchaineuse, "}\n");
 

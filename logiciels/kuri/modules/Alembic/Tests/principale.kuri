@@ -23,7 +23,7 @@ accède_chemin_calque :: fonc (ctx: *ContexteOuvertureArchive, indice: n64, poin
 
     calque := fichier.calques[indice];
 
-    mémoire(pointeur_chemin) = calque.chemin.pointeur;
+    mémoire(pointeur_chemin) = calque.chemin.caractères;
     mémoire(taille_chemin) = calque.chemin.taille comme n64;
 }
 

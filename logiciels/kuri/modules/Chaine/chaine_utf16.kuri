@@ -162,15 +162,15 @@ divise_chaine :: fonc (chn: ChaineUTF16, délimiteur: n32) -> [..]ChaineUTF16
 
     répète {
         token: ChaineUTF16;
-        token.unités.pointeur = chn.unités.pointeur + position;
+        token.unités.données = chn.unités.données + position;
         token.unités.taille = 0;
 
-        tantque position < chn.taille() && chn.unités.pointeur[position] != délimiteur {
+        tantque position < chn.taille() && chn.unités.données[position] != délimiteur {
             token.unités.taille += 1;
             position += 1;
         }
 
-        // assert(chn.unités.pointeur[position] == délimiteur)
+        // assert(chn.unités.données[position] == délimiteur)
         tableau_ajoute(*résultat, token);
         position += 1;
     } tantque position < chn.taille();
@@ -312,7 +312,7 @@ opérateur > :: (a: ChaineUTF16, b: ChaineUTF16) -> bool
 avance :: fonc (chn: ChaineUTF16, pas: z64) -> ChaineUTF16 #enligne
 {
     résultat := chn;
-    résultat.unités.pointeur += pas;
+    résultat.unités.données += pas;
     résultat.unités.taille -= pas;
     retourne résultat;
 }

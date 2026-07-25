@@ -616,10 +616,10 @@ visite_valeur :: fonc (visiteuse: *VisiteuseCellule, valeur_à_visiter: InfoVale
     // diffère déloge(*chaine_type)
 
     // si valeur_à_visiter.rubrique {
-    //     imprime("[%] %.%: % (%)\n", #nom_de_cette_fonction, valeur_à_visiter.structure.nom, valeur_à_visiter.rubrique, chaine_type, valeur.pointeur)
+    //     imprime("[%] %.%: % (%)\n", #nom_de_cette_fonction, valeur_à_visiter.structure.nom, valeur_à_visiter.rubrique, chaine_type, valeur.données)
     // }
     // sinon {
-    //     imprime("[%] %: % (%)\n", #nom_de_cette_fonction, valeur_à_visiter.structure.nom, chaine_type, valeur.pointeur)
+    //     imprime("[%] %: % (%)\n", #nom_de_cette_fonction, valeur_à_visiter.structure.nom, chaine_type, valeur.données)
     // }
 
     si info == info_de(*Cellule) {
@@ -643,7 +643,7 @@ visite_valeur :: fonc (visiteuse: *VisiteuseCellule, valeur_à_visiter: InfoVale
         si est_struct_ou_employeuse_de(type_élément comme *InfoTypeStructure, info_de(Cellule)) {
             /* À FAIRE : la cellule doit être le premier élément. */
             cellule := mémoire(valeur.données comme **Cellule);
-            // imprime("[visite_cellule_générique] % -> %\n", valeur.pointeur, cellule comme *rien)
+            // imprime("[visite_cellule_générique] % -> %\n", valeur.données, cellule comme *rien)
             visite_cellule_générique(visiteuse, cellule);
         }
         sinon {

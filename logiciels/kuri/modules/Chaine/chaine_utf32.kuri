@@ -195,7 +195,7 @@ sous_chaine :: fonc (chn: ChaineUTF32, début: z64, fin: z64) -> ChaineUTF32
     assert(fin < chn.taille());
 
     résultat: ChaineUTF32;
-    résultat.points_de_code.pointeur = chn.points_de_code.pointeur + début;
+    résultat.points_de_code.données = chn.points_de_code.données + début;
     résultat.points_de_code.taille = (fin - début) + 1;
     retourne résultat;
 }

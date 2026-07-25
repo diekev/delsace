@@ -11,7 +11,7 @@ charge "lexage";
 
 est_chaine_statique :: fonc (chn: chaine) -> bool #enligne
 {
-    retourne intrinsèque_est_adresse_données_constantes(chn.pointeur);
+    retourne intrinsèque_est_adresse_données_constantes(chn.caractères);
 }
 
 supprime_espaces_blanches :: fonc (ligne: chaine) -> chaine
@@ -169,7 +169,7 @@ ItératriceUTF32 :: struct {
 
 opérateur pour :: (itératrice: ItératriceUTF32) -> rune32
 {
-    ptr_source := itératrice.chn.pointeur;
+    ptr_source := itératrice.chn.caractères;
     curseur := 0;
 
     indice := 0;
@@ -213,7 +213,7 @@ chaine_ajoute :: fonc (chn: *chaine, donnée: chaine)
 
 inverse :: fonc (chn: *chaine) -> rien
 {
-    inverse(chn.pointeur, chn.pointeur + chn.pointeur.taille);
+    inverse(chn.caractères, chn.caractères + chn.caractères.taille);
 }
 
 copie_chaine :: fonc (chn: chaine) -> chaine
@@ -487,7 +487,7 @@ premier_n_caractère :: fonc (ligne: chaine, taille: z64) -> chaine
         taille_min = ligne.taille;
     }
 
-    retourne chaine(ligne.pointeur, taille_min);
+    retourne chaine(ligne.caractères, taille_min);
 }
 
 dernier_n_caractère :: fonc (ligne: chaine, taille: z64) -> chaine
@@ -498,7 +498,7 @@ dernier_n_caractère :: fonc (ligne: chaine, taille: z64) -> chaine
         taille_min = ligne.taille;
     }
 
-    retourne chaine(ligne.pointeur + ligne.taille - taille_min, taille_min);
+    retourne chaine(ligne.caractères + ligne.taille - taille_min, taille_min);
 }
 
 sous_chaine :: fonc (chn: chaine, pos_début: z64, pos_fin: z64) -> chaine #enligne

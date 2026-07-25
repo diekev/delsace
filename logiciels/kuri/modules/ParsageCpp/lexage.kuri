@@ -352,8 +352,8 @@ LexeusePréProcès :: struct {
     }
 
     // À FAIRE : ceci n'est pas propre.
-    décalage_début_lexème := lexème.début - lexeuse.lexeuse.texte.pointeur;
-    décalage_fin_lexème := lexème.fin - lexeuse.lexeuse.texte.pointeur;
+    décalage_début_lexème := lexème.début - lexeuse.lexeuse.texte.caractères;
+    décalage_fin_lexème := lexème.fin - lexeuse.lexeuse.texte.caractères;
 
     plage_source: PlageSource;
     plage_source.début.fichier = lexeuse.fichier;
@@ -466,8 +466,8 @@ consomme_jusque_nouvelle_ligne :: fonc (lexeuse: *SimpleLexeuse)
 crée_lexème_symbole :: fonc (texte: chaine) -> LexèmePréprocès
 {
     résultat: Lexème;
-    résultat.début = texte.pointeur;
-    résultat.fin = texte.pointeur + texte.taille;
+    résultat.début = texte.caractères;
+    résultat.fin = texte.caractères + texte.taille;
     résultat.type = TypeLexème.Symbole;
     retourne LexèmePréprocès(résultat);
 }
@@ -475,8 +475,8 @@ crée_lexème_symbole :: fonc (texte: chaine) -> LexèmePréprocès
 crée_lexème_chaine_littérale :: fonc (texte: chaine) -> LexèmePréprocès
 {
     résultat: Lexème;
-    résultat.début = texte.pointeur;
-    résultat.fin = texte.pointeur + texte.taille;
+    résultat.début = texte.caractères;
+    résultat.fin = texte.caractères + texte.taille;
     résultat.type = TypeLexème.ChaineLittérale;
     retourne LexèmePréprocès(résultat);
 }

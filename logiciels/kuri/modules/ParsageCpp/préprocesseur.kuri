@@ -760,8 +760,8 @@ crée_lexème_nombre_naturel :: fonc (préprocesseur: *PréProcesseur @inutilis�
 
     // @FuiteDeMémoire
     texte := imprime_chaine("%", valeur);
-    résultat.lexème.début = texte.pointeur;
-    résultat.lexème.fin = texte.pointeur + texte.taille;
+    résultat.lexème.début = texte.caractères;
+    résultat.lexème.fin = texte.caractères + texte.taille;
 
     retourne résultat;
 }
@@ -1092,9 +1092,9 @@ donne_lexèmes_préprocès :: fonc (préprocesseur: *PréProcesseur, fichier_non
 /* Phase de traduction 6 : Adjacent string literal tokens are concatenated */
 exécute_phase_de_traduction_6 :: fonc (lexèmes: *[..]LexèmePréprocès)
 {
-    entrée := lexèmes.pointeur;
-    sortie := lexèmes.pointeur;
-    fin := lexèmes.pointeur + lexèmes.taille;
+    entrée := lexèmes.données;
+    sortie := lexèmes.données;
+    fin := lexèmes.données + lexèmes.taille;
 
     dernier_lexème_chaine_littérale: *LexèmePréprocès;
 
@@ -1126,7 +1126,7 @@ exécute_phase_de_traduction_6 :: fonc (lexèmes: *[..]LexèmePréprocès)
         sortie += 1;
     }
 
-    lexèmes.taille = sortie - lexèmes.pointeur;
+    lexèmes.taille = sortie - lexèmes.données;
 }
 
 donne_lexeuse_courante :: fonc (préprocesseur: *PréProcesseur) -> *LexeusePréProcès
@@ -2019,9 +2019,9 @@ prétraite_fichier :: fonc (contenu: chaine) -> [..]octet
     résultat: [..]octet;
     tableau_redimensionne_sans_init(*résultat, contenu.taille);
 
-    entrée := contenu.pointeur;
-    sortie := résultat.pointeur comme *z8;
-    fin := contenu.pointeur + contenu.taille;
+    entrée := contenu.caractères;
+    sortie := résultat.données comme *z8;
+    fin := contenu.caractères + contenu.taille;
 
     tantque entrée < fin {
         c := mémoire(entrée);

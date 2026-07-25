@@ -342,7 +342,7 @@ décode_image :: fonc (données: []octet, type_mime: chaine, chemin := "") -> (b
 pixels_comme :: fonc (image: NouvelleImage, $T: type_de_données) -> []T
 {
     tableau : []T = ---;
-    tableau.pointeur = image.données comme *T;
+    tableau.données = image.données comme *T;
     tableau.taille = image.hauteur * image.largeur;
     retourne tableau;
 }

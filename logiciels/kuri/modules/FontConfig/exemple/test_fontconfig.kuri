@@ -12,7 +12,7 @@ principale :: fonc ()
     pattern := FcPatternCreate();
     diffère FcPatternDestroy(pattern);
 
-    _ := FcPatternAddString(pattern, FC_FAMILY.pointeur, nom.pointeur comme *FcChar8);
+    _ := FcPatternAddString(pattern, FC_FAMILY.pointeur, nom.caractères comme *FcChar8);
 
     _ := FcConfigSubstitute(conf, pattern, FcMatchKind.FcMatchPattern);
     FcDefaultSubstitute(pattern);
@@ -41,7 +41,7 @@ test_fontconfig1 :: fonc ()
     nom := "Times New Roman";
 
     conf := FcInitLoadConfigAndFonts();
-    pat := FcNameParse(nom.pointeur comme *FcChar8);
+    pat := FcNameParse(nom.caractères comme *FcChar8);
     si pat == nul {
         exit(2);
     }

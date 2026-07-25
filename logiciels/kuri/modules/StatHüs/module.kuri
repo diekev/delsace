@@ -454,7 +454,7 @@ sérialise_type :: fonc (valeur: eini, infos_séritalisation: InfosSérialisatio
                 mémoire((résultat.pointeur + curseur) comme *z64) = chn.taille;
                 curseur += taille_de(z64) comme z64;
 
-                copie_mem_nonsur(src = chn.pointeur, dst = résultat.pointeur + curseur, taille = chn.taille);
+                copie_mem_nonsur(src = chn.caractères, dst = résultat.pointeur + curseur, taille = chn.taille);
                 curseur += chn.taille;
             }
             STRUCTURE {
@@ -546,7 +546,7 @@ désérialise_type :: fonc (résultat: eini, données: []octet) -> z64
                 chn.taille = mémoire((données.pointeur + curseur) comme *z64);
                 assert(chn.taille >= 0);
                 curseur += taille_de(z64) comme z64;
-                chn.pointeur = (données.pointeur + curseur) comme *z8;
+                chn.caractères = (données.pointeur + curseur) comme *z8;
                 curseur += chn.taille;
             }
             STRUCTURE {

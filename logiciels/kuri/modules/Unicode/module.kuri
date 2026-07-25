@@ -490,9 +490,9 @@ __table_accents_vers_ascii : [NOMBRE_PAIRES_ACCENT_ASCII]PaireAccentAscii = ---;
 
 remplace_caractères_accentués :: fonc (chn: *chaine)
 {
-    ptr_source := chn.pointeur;
+    ptr_source := chn.caractères;
     ptr_final := ptr_source + chn.taille;
-    ptr_dest := chn.pointeur;
+    ptr_dest := chn.caractères;
 
     saufsi __table_accents_vers_ascii_fut_initialisé {
         initialise_table_accents_ascii();
@@ -532,7 +532,7 @@ remplace_caractères_accentués :: fonc (chn: *chaine)
         }
     }
 
-    chn.taille = ptr_dest - chn.pointeur;
+    chn.taille = ptr_dest - chn.caractères;
 }
 
 /** \} */

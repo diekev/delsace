@@ -17,7 +17,7 @@ BCrypt_genere_empreinte :: fonc (mot_de_passe: chaine, charge_travail := 12) -> 
     // loge un tampon afin de pouvoir gérer la mémoire de notre côté
     résultat := loge_chaine(BCrypt_taille_tampon());
 
-    BCrypt_genere_empreinte(mot_de_passe.pointeur, charge_travail, résultat.pointeur);
+    BCrypt_genere_empreinte(mot_de_passe.caractères, charge_travail, résultat.caractères);
 
     retourne résultat;
 }
@@ -31,7 +31,7 @@ BCrypt_compare_empreinte :: fonc (mot_de_passe: chaine, empreinte: chaine) -> bo
     déloge(*nempreinte);
 
     retourne ok;
-    // retourne BCrypt_compare_empreinte(mot_de_passe.pointeur, empreinte.pointeur) == 0
+    // retourne BCrypt_compare_empreinte(mot_de_passe.caractères, empreinte.caractères) == 0
 }
 
 /* ------------------------------------------------------------------------- */
@@ -274,13 +274,13 @@ détruit :: fonc (hacheuse: **HACHEUSE_HMAC)
 
 ajourne :: fonc (hacheuse: *HACHEUSE_HMAC, message: chaine)
 {
-    KRYPTO_HACHEUSE_HMAC_ajourne(hacheuse, message.pointeur, message.taille comme n64);
+    KRYPTO_HACHEUSE_HMAC_ajourne(hacheuse, message.caractères, message.taille comme n64);
 }
 
 ajourne :: fonc (hacheuse: *HACHEUSE_HMAC, message: $T)
 {
     c := chaine(*message comme *z8, taille_de(T) comme z64);
-    KRYPTO_HACHEUSE_HMAC_ajourne(hacheuse, c.pointeur, c.taille comme n64);
+    KRYPTO_HACHEUSE_HMAC_ajourne(hacheuse, c.données, c.taille comme n64);
 }
 
 donne_condensat :: fonc (hacheuse: *HACHEUSE_HMAC) -> Condensat
@@ -293,13 +293,13 @@ donne_condensat :: fonc (hacheuse: *HACHEUSE_HMAC) -> Condensat
 donne_condensat :: fonc (hacheuse: *HACHEUSE_HMAC, résultat: *Condensat)
 {
     tableau_redimensionne(*résultat.données, taille_condensat(hacheuse));
-    KRYPTO_HACHEUSE_HMAC_condensat(hacheuse, résultat.données.pointeur comme *n8);
+    KRYPTO_HACHEUSE_HMAC_condensat(hacheuse, résultat.données.données comme *n8);
 }
 
 donne_condensat_hex :: fonc (hacheuse: *HACHEUSE_HMAC) -> chaine
 {
     résultat := loge_chaine(2 * taille_condensat(hacheuse));
-    KRYPTO_HACHEUSE_HMAC_condensat_hex(hacheuse, résultat.pointeur);
+    KRYPTO_HACHEUSE_HMAC_condensat_hex(hacheuse, résultat.caractères);
     retourne résultat;
 }
 
@@ -317,7 +317,7 @@ taille_condensat :: fonc (hacheuse: *HACHEUSE_HMAC) -> z32
 
 compare_condensat :: fonc (a: chaine, b: chaine) -> bool
 {
-    retourne KRYPTO_HACHEUSE_compare_condensat(a.pointeur comme *n8, a.taille comme n64, b.pointeur comme *n8, b.taille comme n64) == 0;
+    retourne KRYPTO_HACHEUSE_compare_condensat(a.caractères comme *n8, a.taille comme n64, b.caractères comme *n8, b.taille comme n64) == 0;
 }
 
 // ------------------------------------------------------
@@ -422,10 +422,10 @@ convertis_clé :: fonc (a: *n32, b: *n32, c: *n32, d: *n32)
 {
     constante := "expand byte-32 k";
 
-    a = mémoire(constante.pointeur comme *n32);
-    b = mémoire((constante.pointeur + 4) comme *n32);
-    c = mémoire((constante.pointeur + 8) comme *n32);
-    d = mémoire((constante.pointeur + 16) comme *n32);
+    a = mémoire(constante.caractères comme *n32);
+    b = mémoire((constante.caractères + 4) comme *n32);
+    c = mémoire((constante.caractères + 8) comme *n32);
+    d = mémoire((constante.caractères + 16) comme *n32);
 }
 
 test_chache :: fonc ()

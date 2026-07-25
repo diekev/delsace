@@ -347,7 +347,7 @@ init_zone_hash :: fonc (size: z64)
     zone_hash_count = 0;
     zone_hash_mask  = (size comme z32) - 1;
     pour zone_hash.capacité {
-        zone_hash.pointeur[it] = *Prof_dummy;
+        zone_hash.données[it] = *Prof_dummy;
     }
 }
 

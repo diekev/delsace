@@ -12,7 +12,7 @@ charge "interface_alembic";
 
 ABC_crée_lectrice_cache :: fonc (ctx_kuri: *ContexteKuri, archive: *ArchiveCache, chemin: chaine) -> *LectriceCache
 {
-    retourne ABC_cree_lectrice_cache(ctx_kuri, archive, chemin.pointeur, chemin.taille comme n64);
+    retourne ABC_cree_lectrice_cache(ctx_kuri, archive, chemin.caractères, chemin.taille comme n64);
 }
 
 vers_abc_string :: fonc (chn: chaine) -> Abc_String
@@ -92,7 +92,7 @@ détruit_autrice :: fonc (autrice: *AutriceArchive)
 
 crée_écrivain_objet :: fonc (autrice: *AutriceArchive, parent: *EcrivainCache, nom: chaine, type_objet: eTypeObjetAbc, données: *rien) -> Optionnel(*EcrivainCache)
 {
-    résultat := ABC_cree_ecrivain_cache(*ctx_kuri_pour_alembic, autrice, parent, nom.pointeur, nom.taille comme n64, données, type_objet);
+    résultat := ABC_cree_ecrivain_cache(*ctx_kuri_pour_alembic, autrice, parent, nom.caractères, nom.taille comme n64, données, type_objet);
     saufsi résultat {
         retourne;
     }
@@ -107,7 +107,7 @@ crée_écrivain_objet_racine :: fonc (autrice: *AutriceArchive, nom: chaine, typ
 
 crée_écrivain_instance :: fonc (autrice: *AutriceArchive, parent: *EcrivainCache, origine: *EcrivainCache, nom: chaine) -> Optionnel(*EcrivainCache)
 {
-    résultat := ABC_cree_instance(*ctx_kuri_pour_alembic, autrice, parent, origine, nom.pointeur, nom.taille comme n64);
+    résultat := ABC_cree_instance(*ctx_kuri_pour_alembic, autrice, parent, origine, nom.données, nom.taille comme n64);
     saufsi résultat {
         retourne;
     }
@@ -146,7 +146,7 @@ abc_output_archive_create :: fonc (chemin: chaine, metadata: *Abc_Output_Archive
 
 abc_output_archive_create_time_sampling :: fonc (archive: *Abc_Output_Archive, échantillons: []r64, temps_par_cycle: r64) -> Abc_Time_Sample_Index
 {
-    retourne abc_output_archive_create_time_sampling(archive, échantillons.pointeur, échantillons.taille comme n64, temps_par_cycle);
+    retourne abc_output_archive_create_time_sampling(archive, échantillons.données, échantillons.taille comme n64, temps_par_cycle);
 }
 
 abc_output_xform_create :: fonc (parent: *Abc_Output_Xform, nom: chaine, ts: Abc_Time_Sample_Index) -> *Abc_Output_Xform
@@ -162,7 +162,7 @@ abc_output_points_create :: fonc (parent: *Abc_Output_Xform, nom: chaine, ts: Ab
 abc_output_points_sample_positions_set :: fonc (sample: *Abc_Output_Points_Sample, positions: []Vec3)
 {
     array_sample: Abc_P3f_Array_Sample = ---;
-    array_sample.values = positions.pointeur comme *Abc_V3f;
+    array_sample.values = positions.données comme *Abc_V3f;
     array_sample.num_values = positions.taille comme n64;
     abc_output_points_sample_positions_set(sample, array_sample);
 }
@@ -170,7 +170,7 @@ abc_output_points_sample_positions_set :: fonc (sample: *Abc_Output_Points_Sampl
 abc_output_points_sample_ids_set :: fonc (sample: *Abc_Output_Points_Sample, ids: []n64)
 {
     array_sample: Abc_UInt64_Array_Sample = ---;
-    array_sample.values = ids.pointeur;
+    array_sample.values = ids.données;
     array_sample.num_values = ids.taille comme n64;
     abc_output_points_sample_ids_set(sample, array_sample);
 }
@@ -183,7 +183,7 @@ abc_output_curves_create :: fonc (parent: *Abc_Output_Xform, nom: chaine, time_s
 abc_output_curves_sample_positions_set :: fonc (sample: *Abc_Output_Curves_Sample, positions: []Vec3)
 {
     array_sample: Abc_P3f_Array_Sample = ---;
-    array_sample.values = positions.pointeur comme *Abc_V3f;
+    array_sample.values = positions.données comme *Abc_V3f;
     array_sample.num_values = positions.taille comme n64;
     abc_output_curves_sample_positions_set(sample, array_sample);
 }
@@ -191,7 +191,7 @@ abc_output_curves_sample_positions_set :: fonc (sample: *Abc_Output_Curves_Sampl
 abc_output_curves_sample_curves_num_vertices_set :: fonc (sample: *Abc_Output_Curves_Sample, num_vertices: []z32)
 {
     array_sample: Abc_Int32_Array_Sample = ---;
-    array_sample.values = num_vertices.pointeur;
+    array_sample.values = num_vertices.données;
     array_sample.num_values = num_vertices.taille comme n64;
     abc_output_curves_sample_curves_num_vertices_set(sample, array_sample);
 }
@@ -199,7 +199,7 @@ abc_output_curves_sample_curves_num_vertices_set :: fonc (sample: *Abc_Output_Cu
 abc_output_curves_sample_widths_set :: fonc (sample: *Abc_Output_Curves_Sample, values: []r32, scope: Abc_Geometry_Scope)
 {
     geom_param: Abc_Output_Float_Geom_Param_Sample;
-    geom_param.values = values.pointeur;
+    geom_param.values = values.données;
     geom_param.num_values = values.taille comme n64;
     geom_param.scope = scope;
     abc_output_curves_sample_widths_set(sample, geom_param);
@@ -213,7 +213,7 @@ abc_output_subd_create :: fonc (parent: *Abc_Output_Xform, nom: chaine, time_sam
 abc_output_subd_sample_positions_set :: fonc (sample: *Abc_Output_SubD_Sample, positions: []Vec3)
 {
     array_sample: Abc_P3f_Array_Sample = ---;
-    array_sample.values = positions.pointeur comme *Abc_V3f;
+    array_sample.values = positions.données comme *Abc_V3f;
     array_sample.num_values = positions.taille comme n64;
     abc_output_subd_sample_positions_set(sample, array_sample);
 }
@@ -221,7 +221,7 @@ abc_output_subd_sample_positions_set :: fonc (sample: *Abc_Output_SubD_Sample, p
 abc_output_subd_sample_face_counts_set :: fonc (sample: *Abc_Output_SubD_Sample, values: []z32)
 {
     array_sample: Abc_Int32_Array_Sample = ---;
-    array_sample.values = values.pointeur;
+    array_sample.values = values.données;
     array_sample.num_values = values.taille comme n64;
     abc_output_subd_sample_face_counts_set(sample, array_sample);
 }
@@ -229,7 +229,7 @@ abc_output_subd_sample_face_counts_set :: fonc (sample: *Abc_Output_SubD_Sample,
 abc_output_subd_sample_face_indices_set :: fonc (sample: *Abc_Output_SubD_Sample, values: []z32)
 {
     array_sample: Abc_Int32_Array_Sample = ---;
-    array_sample.values = values.pointeur;
+    array_sample.values = values.données;
     array_sample.num_values = values.taille comme n64;
     abc_output_subd_sample_face_indices_set(sample, array_sample);
 }
@@ -242,7 +242,7 @@ abc_output_polymesh_create :: fonc (parent: *Abc_Output_Xform, nom: chaine, time
 abc_output_polymesh_sample_positions_set :: fonc (sample: *Abc_Output_PolyMesh_Sample, positions: []Vec3)
 {
     array_sample: Abc_P3f_Array_Sample = ---;
-    array_sample.values = positions.pointeur comme *Abc_V3f;
+    array_sample.values = positions.données comme *Abc_V3f;
     array_sample.num_values = positions.taille comme n64;
     abc_output_polymesh_sample_positions_set(sample, array_sample);
 }
@@ -250,7 +250,7 @@ abc_output_polymesh_sample_positions_set :: fonc (sample: *Abc_Output_PolyMesh_S
 abc_output_polymesh_sample_face_counts_set :: fonc (sample: *Abc_Output_PolyMesh_Sample, values: []z32)
 {
     array_sample: Abc_Int32_Array_Sample = ---;
-    array_sample.values = values.pointeur;
+    array_sample.values = values.données;
     array_sample.num_values = values.taille comme n64;
     abc_output_polymesh_sample_face_counts_set(sample, array_sample);
 }
@@ -258,7 +258,7 @@ abc_output_polymesh_sample_face_counts_set :: fonc (sample: *Abc_Output_PolyMesh
 abc_output_polymesh_sample_face_indices_set :: fonc (sample: *Abc_Output_PolyMesh_Sample, values: []z32)
 {
     array_sample: Abc_Int32_Array_Sample = ---;
-    array_sample.values = values.pointeur;
+    array_sample.values = values.données;
     array_sample.num_values = values.taille comme n64;
     abc_output_polymesh_sample_face_indices_set(sample, array_sample);
 }
