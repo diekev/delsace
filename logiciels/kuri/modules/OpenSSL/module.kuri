@@ -199,7 +199,7 @@ ouvre_fichier_ssl :: fonc (ctx_ssl: *SSL_CTX, fichier: Fichier) -> FichierOuErre
 
 écris :: fonc (fichier: *FichierSSL, texte: chaine) -> ErreurSSL
 {
-    taille := SSL_write(fichier.ssl, texte.pointeur, texte.taille comme z32);
+    taille := SSL_write(fichier.ssl, texte.caractères, texte.taille comme z32);
 
     si taille <= 0 {
         retourne convertis_erreur_ssl(fichier.ssl, taille);
@@ -220,12 +220,12 @@ lis_tout :: fonc (fichier: *FichierSSL) -> ChaineOuErreurSSL
     résultat: chaine;
 
     boucle {
-        taille := SSL_read(fichier.ssl, *tampon[0], TAILLE_MAX_DONNÉES);
+        taille := SSL_read(fichier.ssl, tampon.données, TAILLE_MAX_DONNÉES);
 
         si taille > 0 {
             ancienne_taille := résultat.taille;
             reloge_chaine(*résultat, résultat.taille + taille);
-            copie_mem_nonsur(src = *tampon[0], dst = *résultat[ancienne_taille], taille = taille comme z64);
+            copie_mem_nonsur(src = tampon.données, dst = *résultat[ancienne_taille], taille = taille comme z64);
         }
         sinon si taille == 0 {
             arrête;
@@ -428,7 +428,7 @@ contexte_ssl_charge_paramètres_dh :: fonc (contexte_ssl: *SSL_CTX, fichier_para
         retourne faux;
     }
 
-    bio := BIO_new_mem_buf(contenu.pointeur, contenu.taille comme z32);
+    bio := BIO_new_mem_buf(contenu.caractères, contenu.taille comme z32);
     diffère _ := BIO_free(bio);
 
     saufsi bio {

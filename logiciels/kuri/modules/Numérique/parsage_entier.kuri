@@ -57,13 +57,13 @@ extrait_n64_nonsûr :: fonc (chn: chaine) -> n64
 
     tantque curseur < taille {
         résultat *= 100_000_000;
-        résultat += parse_8_caractères(chn.pointeur + curseur);
+        résultat += parse_8_caractères(chn.caractères + curseur);
         curseur += 8;
     }
 
     pour i dans taille ... chn.taille - 1 {
         résultat *= 10;
-        résultat += (chn.pointeur[i] - '0') comme n64;
+        résultat += (chn.caractères[i] - '0') comme n64;
     }
 
     retourne résultat;

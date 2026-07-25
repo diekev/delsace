@@ -110,7 +110,7 @@ sur_dessin_panneau_édition_texte :: fonc (empl panneau: *PanneauÉditionTexte, 
         peintre.remplis_rectangle(rect_sélection, thème.couleur_sélection_texte);
 
         texte_sélectionné := texte;
-        texte_sélectionné.points_de_code.pointeur += curseur.début;
+        texte_sélectionné.points_de_code.données += curseur.début;
         texte_sélectionné.points_de_code.taille = curseur.fin - curseur.début;
 
         peintre.dessine_texte(fonte, texte_sélectionné, rect_sélection, thème.couleur_texte_sélectionné);
@@ -427,9 +427,9 @@ guetteuse_édition_texte_sur_touche_clavier :: fonc (base: *Guetteuse, touche: I
     }
 
     si touche.texte.taille != 0 {
-        est_valide := nombre_octets_utf8_rapide(touche.texte.pointeur) == touche.texte.taille;
+        est_valide := nombre_octets_utf8_rapide(touche.texte.caractères) == touche.texte.taille;
         si est_valide {
-            point_de_code := convertis_utf8_utf32(touche.texte.pointeur, touche.texte.taille) comme n32;
+            point_de_code := convertis_utf8_utf32(touche.texte.caractères, touche.texte.taille) comme n32;
             insère(*panneau.curseur, point_de_code);
         }
 

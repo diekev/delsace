@@ -165,7 +165,7 @@ marque_modifié :: fonc (éditeur: *Éditeur)
     si éditeur.chemin_fichier == "" {
         éditeur.chemin_fichier = rappel_prompt();
 
-        si éditeur.chemin_fichier.pointeur == nul {
+        si éditeur.chemin_fichier.caractères == nul {
             éditeur_ajourne_message_status(éditeur, "Sauvegarde avortée !");
             retourne;
         }

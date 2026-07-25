@@ -336,7 +336,7 @@ donne_infos_arguments :: fonc ($T: type_de_données) -> []InfoArgument
         }
 
         si nom_rubrique.taille != 1 {
-            première_rune := convertis_utf8_utf32(nom_rubrique.pointeur) comme n32;
+            première_rune := convertis_utf8_utf32(nom_rubrique.caractères) comme n32;
 
             pour * indice dans indices_rubriques_pour_lettre {
                 si indice.point_de_code == première_rune {
@@ -356,8 +356,8 @@ donne_infos_arguments :: fonc ($T: type_de_données) -> []InfoArgument
     pour indices_rubriques_pour_lettre {
         si it.compte == 1 {
             tampon_texte_rune: [6]n8;
-            nombre_de_caractères := point_de_code_vers_utf8(it.point_de_code, *tampon_texte_rune[0]);
-            texte_rune := chaine(*tampon_texte_rune[0] comme *z8, nombre_de_caractères);
+            nombre_de_caractères := point_de_code_vers_utf8(it.point_de_code, tampon_texte_rune.données);
+            texte_rune := chaine(tampon_texte_rune.données comme *z8, nombre_de_caractères);
             texte_rune = copie_chaine(texte_rune);
             tableau_ajoute(*nouvelles_chaines, texte_rune);
 
@@ -409,8 +409,8 @@ donne_nom_pour_argument :: fonc (info: *InfoTypeRubriqueStructure) -> chaine
 
 consomme :: fonc (tableau: *[]$T) -> T
 {
-    résultat := tableau.pointeur[0];
-    tableau.pointeur += 1;
+    résultat := tableau.données[0];
+    tableau.données += 1;
     tableau.taille -= 1;
     retourne résultat;
 }

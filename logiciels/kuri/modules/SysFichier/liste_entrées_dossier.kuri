@@ -289,7 +289,7 @@ ajoute_entrée :: fonc (entrées: *[..]EntréeRépertoire, nom: DonnéesNumérot
 trouve_entrée :: fonc (entrées: *[..]EntréeRépertoire, nom: DonnéesNumérotageCheminFichier) -> *EntréeRépertoire
 {
     pour entrées.taille {
-        entrée := *entrées.pointeur[it];
+        entrée := *entrées.données[it];
 
         si entrée.description.préfixe != nom.préfixe {
             continue;

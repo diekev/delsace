@@ -395,7 +395,7 @@ encode :: fonc (interpréteuse: *Interpréteuse, string: ECMAString, extra_unesc
 
             // iv. Let Octets be the List of octets resulting by applying the UTF-8 transformation to cp.[[CodePoint]].
             octets: [4]n8;
-            nombre_d_octets := point_de_code_vers_utf8(cp.point_de_code, *octets[0]);
+            nombre_d_octets := point_de_code_vers_utf8(cp.point_de_code, octets.données);
 
             // v. For each element octet of Octets, do
             pour nombre_d_octets {

@@ -193,7 +193,7 @@ consomme_espaces_blanches :: fonc (chn: chaine) -> chaine
             arrête;
         }
         chn.taille -= 1;
-        chn.pointeur += 1;
+        chn.caractères += 1;
     }
 
     retourne chn;
@@ -228,7 +228,7 @@ consomme_jusque_espace_blanche :: fonc (chn: chaine) -> (part: chaine, reste: ch
             arrête;
         }
         chn.taille -= 1;
-        chn.pointeur += 1;
+        chn.caractères += 1;
         résultat.taille += 1;
     }
 

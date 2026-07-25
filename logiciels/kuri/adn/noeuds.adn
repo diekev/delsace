@@ -513,15 +513,6 @@ struct NoeudExpressionRéférenceOpérateurUnaire : NoeudExpression {
     OpérateurUnaire const *op [copie]
 }
 
-struct NoeudExpressionParenthèse : NoeudExpression {
-    @genre EXPRESSION_PARENTHÈSE
-    @comme parenthèse
-    @code  NoeudCodeParenthèse
-    @genre_valeur TRANSCENDANTALE
-
-    NoeudExpression *expression [code enfant construction]
-}
-
 struct NoeudExpressionPlage : NoeudExpression {
     @genre EXPRESSION_PLAGE
     @comme plage

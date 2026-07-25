@@ -108,15 +108,15 @@ imprime_lexèmes :: fonc (lexèmes: []LexèmePréprocès, collapse_espaces_blanc
         tmp = tableau_copie(lexèmes);
         lexèmes = tmp;
 
-        début := lexèmes.pointeur;
-        fin := lexèmes.pointeur + lexèmes.taille;
+        début := lexèmes.données;
+        fin := lexèmes.données + lexèmes.taille;
         sortie := début;
 
         tantque début < fin {
             lexème := mémoire(début);
 
             si est_lexème_nouvelle_ligne(lexème) {
-                tantque sortie > lexèmes.pointeur {
+                tantque sortie > lexèmes.données {
                     lexème_précédent := mémoire(sortie - 1);
                     saufsi est_espace_blanche(lexème_précédent) {
                         arrête;
@@ -139,7 +139,7 @@ imprime_lexèmes :: fonc (lexèmes: []LexèmePréprocès, collapse_espaces_blanc
             début += 1;
         }
 
-        lexèmes.taille = sortie - lexèmes.pointeur;
+        lexèmes.taille = sortie - lexèmes.données;
     }
 
     enchaineuse: Enchaineuse;
@@ -155,9 +155,9 @@ imprime_lexèmes :: fonc (lexèmes: []LexèmePréprocès, collapse_espaces_blanc
 
 supprime_espace_blanches :: fonc (lexèmes: *[..]LexèmePréprocès) -> []LexèmePréprocès
 {
-    entrée := lexèmes.pointeur;
-    sortie := lexèmes.pointeur;
-    fin := lexèmes.pointeur + lexèmes.taille;
+    entrée := lexèmes.données;
+    sortie := lexèmes.données;
+    fin := lexèmes.données + lexèmes.taille;
 
     tantque entrée < fin {
         si entrée.lexème.type != TypeLexème.EspaceBlanche {
@@ -168,7 +168,7 @@ supprime_espace_blanches :: fonc (lexèmes: *[..]LexèmePréprocès) -> []Lexèm
         entrée += 1;
     }
 
-    lexèmes.taille = sortie - lexèmes.pointeur;
+    lexèmes.taille = sortie - lexèmes.données;
 
     retourne mémoire(lexèmes);
 }
@@ -182,7 +182,7 @@ supprime_espace_blanches_autour :: fonc (lexèmes: []LexèmePréprocès) -> []Le
             arrête;
         }
 
-        résultat.pointeur += 1;
+        résultat.données += 1;
         résultat.taille -= 1;
     }
 
@@ -202,7 +202,7 @@ supprime_espace_blanches_autour :: fonc (lexèmes: *[..]LexèmePréprocès)
     tmp: []LexèmePréprocès = mémoire(lexèmes);
     tmp = supprime_espace_blanches_autour(tmp);
 
-    insertion := lexèmes.pointeur;
+    insertion := lexèmes.données;
 
     pour tmp {
         mémoire(insertion) = it;
@@ -344,16 +344,16 @@ LexeusePréProcès :: struct {
     si lexème.type == TypeLexème.Commentaire {
         lexème.type = TypeLexème.EspaceBlanche;
         espace_blanche := " ";
-        lexème.début = espace_blanche.pointeur;
-        lexème.fin = espace_blanche.pointeur + espace_blanche.taille;
+        lexème.début = espace_blanche.caractères;
+        lexème.fin = espace_blanche.caractères + espace_blanche.taille;
     }
     si lexème.type != TypeLexème.EspaceBlanche && lexème.type != TypeLexème.FinDeFichier {
         lexeuse.dernier_lexème_non_espace_blanche = donne_texte(lexème);
     }
 
     // À FAIRE : ceci n'est pas propre.
-    décalage_début_lexème := lexème.début - lexeuse.lexeuse.texte.pointeur;
-    décalage_fin_lexème := lexème.fin - lexeuse.lexeuse.texte.pointeur;
+    décalage_début_lexème := lexème.début - lexeuse.lexeuse.texte.caractères;
+    décalage_fin_lexème := lexème.fin - lexeuse.lexeuse.texte.caractères;
 
     plage_source: PlageSource;
     plage_source.début.fichier = lexeuse.fichier;
@@ -466,8 +466,8 @@ consomme_jusque_nouvelle_ligne :: fonc (lexeuse: *SimpleLexeuse)
 crée_lexème_symbole :: fonc (texte: chaine) -> LexèmePréprocès
 {
     résultat: Lexème;
-    résultat.début = texte.pointeur;
-    résultat.fin = texte.pointeur + texte.taille;
+    résultat.début = texte.caractères;
+    résultat.fin = texte.caractères + texte.taille;
     résultat.type = TypeLexème.Symbole;
     retourne LexèmePréprocès(résultat);
 }
@@ -475,8 +475,8 @@ crée_lexème_symbole :: fonc (texte: chaine) -> LexèmePréprocès
 crée_lexème_chaine_littérale :: fonc (texte: chaine) -> LexèmePréprocès
 {
     résultat: Lexème;
-    résultat.début = texte.pointeur;
-    résultat.fin = texte.pointeur + texte.taille;
+    résultat.début = texte.caractères;
+    résultat.fin = texte.caractères + texte.taille;
     résultat.type = TypeLexème.ChaineLittérale;
     retourne LexèmePréprocès(résultat);
 }
@@ -498,7 +498,7 @@ supprime_espace_blanches_autour :: fonc (lexèmes: []Lexème) -> []Lexème
             arrête;
         }
 
-        résultat.pointeur += 1;
+        résultat.données += 1;
         résultat.taille -= 1;
     }
 
@@ -518,7 +518,7 @@ supprime_espace_blanches_autour :: fonc (lexèmes: *[..]Lexème)
     tmp: []Lexème = mémoire(lexèmes);
     tmp = supprime_espace_blanches_autour(tmp);
 
-    insertion := lexèmes.pointeur;
+    insertion := lexèmes.données;
 
     pour tmp {
         mémoire(insertion) = it;
