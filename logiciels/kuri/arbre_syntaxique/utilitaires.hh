@@ -63,7 +63,7 @@ enum class DrapeauxNoeud : uint32_t {
     DECLARATION_TYPE_POLYMORPHIQUE = (1 << 8),       // decl var
     DECLARATION_FUT_VALIDEE = (1 << 9),              // déclaration
     RI_FUT_GENEREE = (1 << 10),                      // déclaration
-    CODE_BINAIRE_FUT_GENERE = (1 << 11),             // déclaration
+    EST_ENTRE_PARENTHÈSE = (1 << 11),                // expression
     TRANSTYPAGE_IMPLICITE = (1 << 12),               // expr comme
     EST_PARAMETRE = (1 << 13),                       // decl var
     EST_VALEUR_POLYMORPHIQUE = (1 << 14),            // decl var

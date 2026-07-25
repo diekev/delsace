@@ -158,7 +158,7 @@ ouvre_canal :: fonc ($Type_Canal: type_de_données) -> Optionnel(Type_Canal)
 {
     fds: [2]z32;
 
-    résultat_pipe := pipe(*fds[0]);
+    résultat_pipe := pipe(fds.données);
 
     si résultat_pipe == -1 {
         retourne;
@@ -333,7 +333,7 @@ exécute_commande_externe :: fonc (commande: chaine) -> bool
     commande_non_suffixé := recule(commande, 1);
     imprimeln("Exécution de : %", commande_non_suffixé);
 
-    si system(ChaineC(commande.pointeur)) != 0 {
+    si system(ChaineC(commande.caractères)) != 0 {
         retourne faux;
     }
 

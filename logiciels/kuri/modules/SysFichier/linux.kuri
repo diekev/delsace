@@ -454,7 +454,7 @@ système_ouvre_dossier :: fonc (chemin: CheminFichier) -> Optionnel(TypePoignée
 système_chemin_pour_dossier :: fonc (poignée: TypePoignéeEntréeDossier) -> CheminFichier
 {
     entrée := poignée comme *dirent;
-    chn_c := ChaineC(*entrée.d_name[0]);
+    chn_c := ChaineC(entrée.d_name.données);
     taille := taille_chaine_c(chn_c);
     chn := chaine(chn_c comme *z8, taille);
     retourne CheminFichier(chn);
@@ -523,7 +523,7 @@ système_espace_disque_disponible :: fonc (chemin: CheminFichier) -> Résultat(n
 système_chemin_courant :: fonc () -> Résultat(CheminFichier, ErreurFichier)
 {
     tampon : [1024]z8 = ---;
-    pointeur := getcwd(ChaineC(*tampon[0]), 1024);
+    pointeur := getcwd(ChaineC(tampon.données), 1024);
 
     si (pointeur comme *z8) == nul {
         retourne convertis_errno_en_erreur_fichier();
@@ -544,7 +544,7 @@ système_chemin_courant :: fonc (chemin: CheminFichier) -> Optionnel(ErreurFichi
 système_donne_chemin_exécutable :: fonc (tampon_chemin: *TamponChemin, imprime_erreur: bool) -> bool
 {
     résultat := vrai;
-    len := readlink(ChaineC("/proc/self/exe".pointeur), *tampon_chemin.données[0], TAILLE_MAX_CHEMIN comme n64);
+    len := readlink(ChaineC("/proc/self/exe".caractères), tampon_chemin.données.données, TAILLE_MAX_CHEMIN comme n64);
     si len < 0 {
         si imprime_erreur {
             imprimeln("impossible de déterminer le chemin de l'exécutable");
@@ -833,7 +833,7 @@ système_écris_fichier_info_corbeille :: fonc (chemin_fichier_info: CheminFichi
 système_chemin_véritable :: fonc (chemin: CheminFichier) -> Résultat(CheminFichier, ErreurFichier)
 {
     tampon : [TAILLE_MAX_CHEMIN]z8 = ---;
-    ptr_tampon := *tampon[0];
+    ptr_tampon := tampon.données;
 
     chn_c_chemin := crée_chaine_c(chemin.chn);
     diffère détruit_chaine_c(*chn_c_chemin);
@@ -850,7 +850,7 @@ système_chemin_véritable :: fonc (chemin: CheminFichier) -> Résultat(CheminFi
 système_chemin_véritable :: fonc (résultat: *TamponChemin) -> ErreurFichier
 {
     tampon : [TAILLE_MAX_CHEMIN]z8 = ---;
-    ptr_tampon := *tampon[0];
+    ptr_tampon := tampon.données;
 
     chn_c_chemin := donne_chaine_c_statique(résultat);
 
@@ -860,7 +860,7 @@ système_chemin_véritable :: fonc (résultat: *TamponChemin) -> ErreurFichier
     }
 
     taille := taille_chaine_c(résultat_realpath);
-    copie_mem_nonsur(src = ptr_tampon, dst = *résultat.données[0], taille = taille);
+    copie_mem_nonsur(src = ptr_tampon, dst = résultat.données.données, taille = taille);
     résultat.occupés = taille comme z32;
     retourne 0 comme ErreurFichier;
 }
@@ -891,13 +891,13 @@ système_chemin_exécutable :: fonc () -> Résultat(CheminFichier, ErreurFichier
     TAILLE_TAMPON_READLINK :: 1024;
     tampon : [TAILLE_TAMPON_READLINK]z8 = ---;
 
-    lus := readlink(ChaineC("/proc/self/exe".pointeur), *tampon[0], TAILLE_TAMPON_READLINK comme n64);
+    lus := readlink(ChaineC("/proc/self/exe".caractères), tampon.données, TAILLE_TAMPON_READLINK comme n64);
     si lus < 0 {
         retourne convertis_errno_en_erreur_fichier();
     }
 
     chn := loge_chaine(lus);
-    copie_mem_nonsur(src = *tampon[0], dst = chn.pointeur, taille = lus);
+    copie_mem_nonsur(src = tampon.données, dst = chn.caractères, taille = lus);
 
     résultat.chn = chn;
 

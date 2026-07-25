@@ -5823,7 +5823,7 @@ class_definition_evaluation :: fonc (interpréteuse: *InterprèteArbre, class_he
                 }
 
                 // 4. Replace pe in container with combined.
-                container.pointeur[indice_it] = combined;
+                container.données[indice_it] = combined;
 
                 arrête;
             }
@@ -6576,7 +6576,7 @@ visite_noeud_générique :: fonc (visiteuse: *VisiteuseNoeud, racine: *NoeudSynt
     }
 
     valeur_eini : eini = ---;
-    valeur_eini.pointeur = racine;
+    valeur_eini.données = racine;
     valeur_eini.info = info;
 
     visite_structure(visiteuse, valeur_eini);
@@ -6593,7 +6593,7 @@ visite_structure :: fonc (visiteuse: *VisiteuseNoeud, valeur_eini: eini)
     pour info.rubriques {
         si est_type_adresse_noeud_syntaxique(it.id) {
             rubrique := eini_depuis_info_rubrique(valeur_eini, it);
-            expression := mémoire(rubrique.pointeur comme **NoeudSyntaxique);
+            expression := mémoire(rubrique.données comme **NoeudSyntaxique);
             si expression == nul {
                 continue;
             }
@@ -6611,7 +6611,7 @@ visite_structure :: fonc (visiteuse: *VisiteuseNoeud, valeur_eini: eini)
         si est_type_adresse_tableau_noeud_syntaxique(it.id) {
             rubrique := eini_depuis_info_rubrique(valeur_eini, it);
 
-            tableau := mémoire(rubrique.pointeur comme *[..]*NoeudSyntaxique);
+            tableau := mémoire(rubrique.données comme *[..]*NoeudSyntaxique);
 
             pour noeud dans tableau {
                 visiteuse.profondeur += 1;

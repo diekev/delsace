@@ -1047,18 +1047,18 @@ crée_style_pour_bloc_anonyme :: fonc (résolveuse: *RésolveuseStyle, bloc: *Bl
     déclaration_display: DéclarationPropriété;
     déclaration_display.info = donne_info_type_pour_nom(PROP_display);
     déclaration_display.property_name = PROP_display;
-    déclaration_display.value.pointeur = *display;
+    déclaration_display.value.données = *display;
     déclaration_display.value.taille = 1;
 
     ptr_déclaration_display := *déclaration_display;
 
     résultat := crée_propriétés_de_style(bloc_parent.propriétés);
-    résultat.déclarations.pointeur = *ptr_déclaration_display;
+    résultat.déclarations.données = *ptr_déclaration_display;
     résultat.déclarations.taille = 1;
 
     calcule_style(résolveuse, résultat, bloc_parent.propriétés);
 
-    résultat.déclarations.pointeur = nul;
+    résultat.déclarations.données = nul;
     résultat.déclarations.taille = 0;
 
     bloc.propriétés = résultat;
@@ -1083,7 +1083,7 @@ contexte_parsage_shorthand_variable_ajoute_propriété :: fonc (ctx: *ContextePa
     déclaration: DéclarationPropriété;
     déclaration.info = info;
     déclaration.property_name = nom;
-    déclaration.value.pointeur = *v;
+    déclaration.value.données = *v;
     déclaration.value.taille = 1;
 
     calcule_valeur_propriété(ctx.ctx_calcul_style, info, *déclaration);
@@ -2665,7 +2665,7 @@ donne_fragments_ligne :: fonc (lignes_tenante: *LignesTenante, ligne: *BoiteDeLi
 donne_fragments :: fonc (lignes_tenante: *LignesTenante, premier_fragment: z64, dernier_fragment: z64) -> []Fragment
 {
     résultat : []Fragment = ---;
-    résultat.pointeur = lignes_tenante.fragments.pointeur + premier_fragment;
+    résultat.données = lignes_tenante.fragments.données + premier_fragment;
     résultat.taille = dernier_fragment - premier_fragment;
     retourne résultat;
 }
@@ -3426,8 +3426,8 @@ fragmente_texte_avec_espaces_blanches_ascii :: fonc (chn: ChaineUTF16, fragments
 
     texte: ChaineUTF16;
 
-    tantque position < chn.taille() && est_ascii_espace_blanche(chn.unités.pointeur[position]) {
-        texte.unités.pointeur = chn.unités.pointeur + position;
+    tantque position < chn.taille() && est_ascii_espace_blanche(chn.unités.données[position]) {
+        texte.unités.données = chn.unités.données + position;
         texte.unités.taille = 1;
         tableau_ajoute(fragments, FragmentTexte(texte, vrai));
 
@@ -3435,10 +3435,10 @@ fragmente_texte_avec_espaces_blanches_ascii :: fonc (chn: ChaineUTF16, fragments
     }
 
     tantque position < chn.taille() {
-        texte.unités.pointeur = chn.unités.pointeur + position;
+        texte.unités.données = chn.unités.données + position;
         texte.unités.taille = 0;
 
-        tantque position < chn.taille() && !est_ascii_espace_blanche(chn.unités.pointeur[position]) {
+        tantque position < chn.taille() && !est_ascii_espace_blanche(chn.unités.données[position]) {
             texte.unités.taille += 1;
             position += 1;
         }
@@ -3447,11 +3447,11 @@ fragmente_texte_avec_espaces_blanches_ascii :: fonc (chn: ChaineUTF16, fragments
             tableau_ajoute(fragments, FragmentTexte(texte, faux));
         }
 
-        texte.unités.pointeur = chn.unités.pointeur + position;
+        texte.unités.données = chn.unités.données + position;
         texte.unités.taille = 0;
 
-        tantque position < chn.taille() && est_ascii_espace_blanche(chn.unités.pointeur[position]) {
-            texte.unités.pointeur = chn.unités.pointeur + position;
+        tantque position < chn.taille() && est_ascii_espace_blanche(chn.unités.données[position]) {
+            texte.unités.données = chn.unités.données + position;
             texte.unités.taille = 1;
             tableau_ajoute(fragments, FragmentTexte(texte, vrai));
 
@@ -3462,8 +3462,8 @@ fragmente_texte_avec_espaces_blanches_ascii :: fonc (chn: ChaineUTF16, fragments
 
 collapse_séquences_d_espaces_blanches_autour_bris_segments :: fonc (fragments: *[..]FragmentTexte)
 {
-    début := fragments.pointeur;
-    fin := fragments.pointeur + fragments.taille;
+    début := fragments.données;
+    fin := fragments.données + fragments.taille;
 
     entrée := début;
     sortie := début;
@@ -3513,8 +3513,8 @@ collapse_bris_segments :: fonc (fragments: *[..]FragmentTexte, white_space: CSSO
 
     // 1. First, any collapsible segment break immediately following another collapsible
     // segment break is removed.
-    début := fragments.pointeur;
-    fin := fragments.pointeur + fragments.taille;
+    début := fragments.données;
+    fin := fragments.données + fragments.taille;
 
     entrée := début;
     sortie := début;
@@ -3544,7 +3544,7 @@ collapse_bris_segments :: fonc (fragments: *[..]FragmentTexte, white_space: CSSO
     // The rules for this operation are UA-defined in this level.
     chn_espace := crée_chaine_utf16_unique(" ").donne_chaine_utf16();
 
-    début = fragments.pointeur;
+    début = fragments.données;
     tantque début < fin {
         si début.texte.unités[0] == 0x0A {
             début.texte = chn_espace;
@@ -3556,8 +3556,8 @@ collapse_bris_segments :: fonc (fragments: *[..]FragmentTexte, white_space: CSSO
 convertis_tabulations_en_espaces :: fonc (fragments: *[..]FragmentTexte)
 {
     chn_espace := crée_chaine_utf16_unique(" ").donne_chaine_utf16();
-    début := fragments.pointeur;
-    fin := fragments.pointeur + fragments.taille;
+    début := fragments.données;
+    fin := fragments.données + fragments.taille;
 
     tantque début < fin {
         si début.texte.unités[0] == '\t' comme n32 {
@@ -3569,8 +3569,8 @@ convertis_tabulations_en_espaces :: fonc (fragments: *[..]FragmentTexte)
 
 collapse_espaces_consécutives :: fonc (fragments: *[..]FragmentTexte)
 {
-    début := fragments.pointeur;
-    fin := fragments.pointeur + fragments.taille;
+    début := fragments.données;
+    fin := fragments.données + fragments.taille;
 
     dernier_fut_espace_blanche := faux;
 
@@ -4336,7 +4336,7 @@ remove_irrelevant_boxes :: fonc (box: *Box)
             it.traite_comme_display_none = vrai;
         }
 
-        premier := box.enfants.pointeur;
+        premier := box.enfants.données;
         dernier := premier + box.enfants.taille;
 
         insertion := premier;
@@ -4352,7 +4352,7 @@ remove_irrelevant_boxes :: fonc (box: *Box)
             insertion += 1;
         }
 
-        box.enfants.taille = insertion - box.enfants.pointeur;
+        box.enfants.taille = insertion - box.enfants.données;
     }
 
     // 4. If a box B is an anonymous inline containing only white space, and is
@@ -4385,7 +4385,7 @@ generate_missing_child_wrappers :: fonc (box: *Box, créatrice: *CréatriceArbre
     si box.table_virtuelle.type == TableBox {
         table := box comme *TableBox;
 
-        premier := box.enfants.pointeur;
+        premier := box.enfants.données;
         dernier := premier + box.enfants.taille;
 
         insertion := premier;
@@ -4423,7 +4423,7 @@ generate_missing_child_wrappers :: fonc (box: *Box, créatrice: *CréatriceArbre
             }
         }
 
-        box.enfants.taille = insertion - box.enfants.pointeur;
+        box.enfants.taille = insertion - box.enfants.données;
     }
 
     // 2. If a child C of a row group box is not a 'table-row' box, then
@@ -4450,7 +4450,7 @@ generate_missing_child_wrappers :: fonc (box: *Box, créatrice: *CréatriceArbre
     si box.table_virtuelle.type == TableRowBox {
         table_row_box := box comme *TableRowBox;
 
-        premier := box.enfants.pointeur;
+        premier := box.enfants.données;
         dernier := premier + box.enfants.taille;
 
         insertion := premier;
@@ -4488,7 +4488,7 @@ generate_missing_child_wrappers :: fonc (box: *Box, créatrice: *CréatriceArbre
             }
         }
 
-        box.enfants.taille = insertion - box.enfants.pointeur;
+        box.enfants.taille = insertion - box.enfants.données;
     }
 }
 

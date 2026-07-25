@@ -878,7 +878,7 @@ donne_restant :: fonc (empl parser: *BasicURLParser) -> ChaineUTF16
     }
 
     résultat := input;
-    résultat.unités.pointeur += (pointer + 1);
+    résultat.unités.données += (pointer + 1);
     résultat.unités.taille -= (pointer + 1);
     retourne résultat;
 }
@@ -890,7 +890,7 @@ donne_sous_chaine_depuis_pointeur :: fonc (empl parser: *BasicURLParser) -> Chai
     }
 
     résultat := input;
-    résultat.unités.pointeur += pointer;
+    résultat.unités.données += pointer;
     résultat.unités.taille -= pointer;
     retourne résultat;
 }
