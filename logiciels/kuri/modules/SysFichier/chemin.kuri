@@ -126,7 +126,7 @@ chemin_normalisé :: fonc (tampon_chemin: *TamponChemin, pile: *Pile(chaine), ch
 
     pile_secondaire: Pile(chaine);
     si utilise_tampon {
-        pile_secondaire.données.pointeur = *tampon[0];
+        pile_secondaire.données.données = tampon.données;
         pile_secondaire.données.capacité = 16;
     }
 
@@ -499,7 +499,7 @@ développe_variables :: fonc (tampon: *TamponChemin, chemin: CheminFichier) -> c
 
     indice : z64 = 0;
     tantque indice < chn.taille {
-        it := chn.pointeur[indice];
+        it := chn.caractères[indice];
 
         si it != '$' {
             saufsi ajoute(tampon, it) {
@@ -514,7 +514,7 @@ développe_variables :: fonc (tampon: *TamponChemin, chemin: CheminFichier) -> c
             retourne copie_chaine("Entrée tronquée après '$'");
         }
 
-        it = chn.pointeur[indice];
+        it = chn.caractères[indice];
 
         si it == '{' {
             indice += 1;
@@ -527,7 +527,7 @@ développe_variables :: fonc (tampon: *TamponChemin, chemin: CheminFichier) -> c
 
             accolade_fermante_trouvée := faux;
             tantque indice < chn.taille {
-                it = chn.pointeur[indice];
+                it = chn.caractères[indice];
 
                 si it == '}' {
                     accolade_fermante_trouvée = vrai;
@@ -558,7 +558,7 @@ développe_variables :: fonc (tampon: *TamponChemin, chemin: CheminFichier) -> c
         début_variable := indice;
         taille_mot := 0;
         tantque indice < chn.taille {
-            it = chn.pointeur[indice];
+            it = chn.caractères[indice];
 
             si it == séparateur_chemin() {
                 arrête;
@@ -627,18 +627,18 @@ donne_copie_chemin :: fonc (tampon: *TamponChemin) -> CheminFichier
 
 donne_chemin_statique :: fonc (tampon: *TamponChemin) -> CheminFichier
 {
-    retourne CheminFichier(chaine(*tampon.données[0], tampon.occupés));
+    retourne CheminFichier(chaine(tampon.données.données, tampon.occupés));
 }
 
 donne_chaine_statique :: fonc (tampon: *TamponChemin) -> chaine
 {
-    retourne chaine(*tampon.données[0], tampon.occupés);
+    retourne chaine(tampon.données.données, tampon.occupés);
 }
 
 donne_chaine_c_statique :: fonc (tampon: *TamponChemin) -> ChaineC
 {
     tampon.données[tampon.occupés] = '\0';
-    retourne ChaineC(*tampon.données[0]);
+    retourne ChaineC(tampon.données.données);
 }
 
 ajoute :: fonc (tampon: *TamponChemin, chns: ...chaine) -> bool
@@ -674,7 +674,7 @@ ajoute :: fonc (tampon: *TamponChemin, chn: chaine) -> bool
         retourne faux;
     }
 
-    src := chn.pointeur;
+    src := chn.caractères;
     dst := *tampon.données[tampon.occupés];
     taille := chn.taille;
 

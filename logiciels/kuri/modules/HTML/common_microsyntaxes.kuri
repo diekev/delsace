@@ -10,7 +10,7 @@ parse_an_integer :: fonc (string: DOMString) -> Optionnel(z32)
     input := string.donne_chaine_utf16();
 
     // 2. Let position be a pointer into input, initially pointing at the start of the string.
-    position := PositionVariable(input.unités.pointeur);
+    position := PositionVariable(input.unités.données);
 
     // 3. Let sign have the value "positive".
     sign := faux;
@@ -19,7 +19,7 @@ parse_an_integer :: fonc (string: DOMString) -> Optionnel(z32)
     skip_ascii_whitespace(input, *position);
 
     // 5. If position is past the end of input, return an error.
-    fin := input.unités.pointeur + input.taille();
+    fin := input.unités.données + input.taille();
     si position.position >= fin {
         retourne;
     }
@@ -119,13 +119,13 @@ parse_a_dimension_value :: fonc (string: DOMString) -> Optionnel(DimensionValue)
     input := string.donne_chaine_utf16();
 
     // 2. Let position be a position variable for input, initially pointing at the start of input.
-    position := PositionVariable(input.unités.pointeur);
+    position := PositionVariable(input.unités.données);
 
     // 3. Skip ASCII whitespace within input given position.
     skip_ascii_whitespace(input, *position);
 
     // 4. If position is past the end of input or the code point at position within input is not an ASCII digit, then return failure.
-    fin := input.unités.pointeur + input.taille();
+    fin := input.unités.données + input.taille();
     si position.position >= fin || !est_chiffre_ascii(mémoire(position.position)) {
         retourne;
     }
@@ -188,7 +188,7 @@ parse_a_dimension_value :: fonc (string: DOMString) -> Optionnel(DimensionValue)
 current_dimension_value :: fonc (value: r64, input: ChaineUTF16, position: *PositionVariable) -> DimensionValue
 {
     // 1. If position is past the end of input, then return value as a length.
-    fin := input.unités.pointeur + input.taille();
+    fin := input.unités.données + input.taille();
     si position.position >= fin {
         retourne DimensionValue(Length = value);
     }
@@ -220,10 +220,10 @@ collect_a_sequence_of_code_points :: fonc (input: ChaineUTF16, position: *Positi
 {
     // 1. Let result be the empty string.
     result: ChaineUTF16;
-    result.unités.pointeur = position.position;
+    result.unités.données = position.position;
 
     // 2. While position doesn’t point past the end of input and the code point at position within input meets the condition condition:
-    fin := input.unités.pointeur + input.taille();
+    fin := input.unités.données + input.taille();
 
     tantque position.position < fin && condition(mémoire(position.position)) {
         // 1. Append that code point to the end of result.
@@ -339,7 +339,7 @@ parse_a_legacy_colour_value :: fonc (string: DOMString) -> Optionnel(CouleurRVBA
 
     // 9. If the first character in input is a U+0023 NUMBER SIGN character (#), remove it.
     si input.unités[0] == 0x23 {
-        input.unités.pointeur += 1;
+        input.unités.données += 1;
         input.unités.taille -= 1;
     }
 

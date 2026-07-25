@@ -275,7 +275,7 @@ ajoute_au_tampon :: fonc (tampon: *Tamponet, c: z8)
 
 chaine_depuis_tamponet :: fonc (tampon: *Tamponet) -> chaine
 {
-    retourne chaine(*tampon.données[0], tampon.taille);
+    retourne chaine(tampon.données.données, tampon.taille);
 }
 
 /* Auxilliaire pour le formattage d'une adresse IPv6. */

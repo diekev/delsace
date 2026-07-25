@@ -7,48 +7,48 @@ importe SysFichier;
 
 désérialise_chaine :: fonc (ligne: []octet, décalage: z64) -> chaine
 {
-    ptr := ligne.pointeur + décalage;
+    ptr := ligne.données + décalage;
 
     taille := mémoire(ptr comme *z32);
 
-    ptr = ligne.pointeur + décalage + 4;
+    ptr = ligne.données + décalage + 4;
 
     retourne chaine(ptr comme *z8, taille);
 }
 
 désérialise_entier :: fonc (ligne: []octet, décalage: z64) -> z32
 {
-    ptr := ligne.pointeur + décalage;
+    ptr := ligne.données + décalage;
     retourne mémoire(ptr comme *z32);
 }
 
 désérialise_entier :: fonc (octets: []octet, décalage: z64, entier: *z32)
 {
-    slot := (octets.pointeur + décalage) comme *z32;
+    slot := (octets.données + décalage) comme *z32;
     mémoire(entier) = mémoire(slot);
 }
 
 désérialise_entier :: fonc (octets: []octet, décalage: z64, entier: *z64)
 {
-    slot := (octets.pointeur + décalage) comme *z64;
+    slot := (octets.données + décalage) comme *z64;
     mémoire(entier) = mémoire(slot);
 }
 
 désérialise_chaine :: fonc (octets: []octet, décalage: z64, chn: *chaine)
 {
     désérialise_entier(octets, décalage, *chn.taille);
-    chn.pointeur = (octets.pointeur + décalage + taille_de(z64) comme z32) comme *z8;
+    chn.caractères = (octets.données + décalage + taille_de(z64) comme z32) comme *z8;
 }
 
 désérialise_chaine_sans_taille :: fonc (octets: []octet, décalage: z64, chn: *chaine)
 {
-    chn.pointeur = (octets.pointeur + décalage) comme *z8;
+    chn.caractères = (octets.données + décalage) comme *z8;
 }
 
 lis_grand_boutisme :: fonc (tampon: []octet, $T: type_de_données) -> (T, []octet)
 {
     assert(tampon.taille >= taille_de(T) comme z64);
-    résultat := mémoire(tampon.pointeur comme *T);
+    résultat := mémoire(tampon.données comme *T);
     commute_boutisme(*résultat);
     reste := tableau_avance(tampon, taille_de(T) comme z64);
     retourne résultat, reste;
@@ -57,7 +57,7 @@ lis_grand_boutisme :: fonc (tampon: []octet, $T: type_de_données) -> (T, []octe
 lis_petit_boutisme :: fonc (tampon: []octet, $T: type_de_données) -> (T, []octet)
 {
     assert(tampon.taille >= taille_de(T) comme z64);
-    résultat := mémoire(tampon.pointeur comme *T);
+    résultat := mémoire(tampon.données comme *T);
     reste := tableau_avance(tampon, taille_de(T) comme z64);
     retourne résultat, reste;
 }
@@ -65,7 +65,7 @@ lis_petit_boutisme :: fonc (tampon: []octet, $T: type_de_données) -> (T, []octe
 lis_données :: fonc (tampon: []octet, $T: type_de_données) -> (T, []octet)
 {
     assert(tampon.taille >= taille_de(T) comme z64);
-    résultat := mémoire(tampon.pointeur comme *T);
+    résultat := mémoire(tampon.données comme *T);
     reste := tableau_avance(tampon, taille_de(T) comme z64);
     retourne résultat, reste;
 }
@@ -75,10 +75,10 @@ lis_données :: fonc (tampon: []octet, $T: type_de_données) -> (T, []octet)
 
 sérialise_chaine :: fonc (ligne: []octet, décalage: z64, chn: chaine) -> rien
 {
-    slot_taille := (ligne.pointeur + décalage) comme *z32;
+    slot_taille := (ligne.données + décalage) comme *z32;
     mémoire(slot_taille) = chn.taille comme z32;
 
-    slot_données := (ligne.pointeur + décalage + 4) comme *z8;
+    slot_données := (ligne.données + décalage + 4) comme *z8;
 
     pour c, idx dans chn {
         slot_données[idx] = c;
@@ -87,7 +87,7 @@ sérialise_chaine :: fonc (ligne: []octet, décalage: z64, chn: chaine) -> rien
 
 sérialise_chaine_sans_taille :: fonc (octets: []octet, décalage: z64, chn: chaine)
 {
-    slot_données := (octets.pointeur + décalage) comme *z8;
+    slot_données := (octets.données + décalage) comme *z8;
 
     pour c, idx dans chn {
         slot_données[idx] = c;
@@ -96,7 +96,7 @@ sérialise_chaine_sans_taille :: fonc (octets: []octet, décalage: z64, chn: cha
 
 sérialise_entier :: fonc (octets: []octet, décalage: z64, entier: $T)
 {
-    slot := (octets.pointeur + décalage) comme *T;
+    slot := (octets.données + décalage) comme *T;
     mémoire(slot) = entier;
 }
 
@@ -494,7 +494,7 @@ Lectrice :: struct {
 initialise_lectrice :: fonc (lectrice: *Lectrice, données_fichier: [..]octet)
 {
     lectrice.données_fichier = données_fichier;
-    lectrice.curseur = lectrice.données_fichier.pointeur;
+    lectrice.curseur = lectrice.données_fichier.données;
 }
 
 rapporte_erreur :: fonc (base: *Lectrice, message: chaine, args: ...eini)
@@ -545,10 +545,10 @@ lis_chaine :: fonc (lectrice: *Lectrice) -> chaine
 
 lis_octets :: fonc (lectrice: *Lectrice, dest: []octet)
 {
-    assert(lectrice.curseur + dest.taille <= lectrice.données_fichier.pointeur + lectrice.données_fichier.taille);
+    assert(lectrice.curseur + dest.taille <= lectrice.données_fichier.données + lectrice.données_fichier.taille);
 
     src := lectrice.curseur;
-    dst := dest.pointeur;
+    dst := dest.données;
 
     copie_mem_nonsur(src = src, dst = dst, taille = dest.taille);
 
@@ -568,7 +568,7 @@ lis_table_des_chaines :: fonc (lectrice: *Lectrice)
     ancien_curseur := lectrice.curseur;
     diffère lectrice.curseur = ancien_curseur;
 
-    lectrice.curseur = lectrice.données_fichier.pointeur + décalage;
+    lectrice.curseur = lectrice.données_fichier.données + décalage;
 
     table := *lectrice.table_des_chaines;
     table.provient_d_un_fichier = vrai;
@@ -576,7 +576,7 @@ lis_table_des_chaines :: fonc (lectrice: *Lectrice)
     nombre_de_chaines := lis_valeur_typée(lectrice, z64);
 
     table.index.taille = nombre_de_chaines + 1;
-    table.index.pointeur = lectrice.curseur comme *z64;
+    table.index.données = lectrice.curseur comme *z64;
 
     lectrice.curseur += (nombre_de_chaines + 1) * taille_de(z64) comme z64;
 
@@ -585,7 +585,7 @@ lis_table_des_chaines :: fonc (lectrice: *Lectrice)
 
         chn: chaine;
         chn.taille = taille_chaine;
-        chn.pointeur = lectrice.curseur comme *z8;
+        chn.caractères = lectrice.curseur comme *z8;
         tableau_ajoute(*table.chaines, chn);
 
         lectrice.curseur += chn.taille;

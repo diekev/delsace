@@ -65,7 +65,7 @@ initialise_cache_image_vidéo :: fonc (empl flux_vidéo: *FluxVidéo)
         // Assign appropriate parts of buffer to image planes in pFrameRGB
         // Note that pFrameRGB is an AVFrame, but AVFrame is a superset
         // of AVPicture
-        av_image_fill_arrays(*frame_rgb.data[0], *frame_rgb.linesize[0], tampon_image, AVPixelFormat.AV_PIX_FMT_RGB24, codec_ctx.width, codec_ctx.height, 1);
+        av_image_fill_arrays(frame_rgb.data.données, frame_rgb.linesize.données, tampon_image, AVPixelFormat.AV_PIX_FMT_RGB24, codec_ctx.width, codec_ctx.height, 1);
 
         file_images[it].frame_rgb = frame_rgb;
         file_images[it].tampon_image = tampon_image;
@@ -267,9 +267,9 @@ flux_vidéo_sur_paquet_vidéo_défaut :: fonc (flux_vidéo: *FluxVidéo, paquet:
         image_vidéo := *file_images[indice_écriture_file];
 
         // Convert the image from its native format to RGB
-        _ := sws_scale(sws_ctx, *frame.data[0],
-                *frame.linesize[0], 0, codec_ctx.height,
-                *image_vidéo.frame_rgb.data[0], *image_vidéo.frame_rgb.linesize[0]);
+        _ := sws_scale(sws_ctx, frame.data.données,
+                frame.linesize.données, 0, codec_ctx.height,
+                image_vidéo.frame_rgb.data.données, image_vidéo.frame_rgb.linesize.données);
 
         indice_écriture_file += 1;
         si indice_écriture_file >= TAILLE_CACHE_IMAGE {

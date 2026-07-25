@@ -40,7 +40,7 @@ Ligne :: struct {
 // @XXX
 copie_chaine_vers_tableau :: fonc (tabl: *z8, chn: chaine) -> rien
 {
-    copie_mem_nonsur(src = chn.pointeur, dst = tabl, taille = chn.taille);
+    copie_mem_nonsur(src = chn.caractères, dst = tabl, taille = chn.taille);
 }
 
 sérialise_ligne :: fonc (ligne: *Ligne, dest: *octet) -> rien
@@ -154,8 +154,8 @@ exécute_insertion :: fonc (inst: *Instruction, table: *Table) -> RésultatExéc
 
 donne_chaine_depuis_chaine_c_tableau :: fonc (tableau: []z8) -> chaine
 {
-    chn_c := ChaineC(tableau.pointeur);
-    retourne chaine(tableau.pointeur, taille_chaine_c(chn_c));
+    chn_c := ChaineC(tableau.données);
+    retourne chaine(tableau.données, taille_chaine_c(chn_c));
 }
 
 imprime_ligne :: fonc (ligne: *Ligne) -> rien

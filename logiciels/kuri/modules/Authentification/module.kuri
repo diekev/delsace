@@ -209,7 +209,7 @@ dissigne :: fonc (signataire: *SignataireHorodoté, valeur_signée: chaine, âge
     décodé := signataire.signataire.codec_base_64.décode(signature);
 
     // convertis en entier, À FAIRE : ceci est absolument merdique
-    temps := mémoire(décodé.pointeur comme *z64);
+    temps := mémoire(décodé.caractères comme *z64);
 
     // compare le temps avec max_age
     temps_courant := maintenant_précis().millisecondes();

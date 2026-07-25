@@ -64,10 +64,10 @@ encode_base64 :: fonc (src: []octet, dst: []octet)
 {
     assert(dst.taille == donne_taille_base64(src));
 
-    ptr_src := src.pointeur;
-    fin_src := src.pointeur + src.taille;
+    ptr_src := src.données;
+    fin_src := src.données + src.taille;
 
-    ptr_dst := dst.pointeur;
+    ptr_dst := dst.données;
 
     char_array_3: [3]n8;
 
@@ -186,8 +186,8 @@ décode_base64 :: fonc (chn: chaine) -> chaine
     initialise_enchaineuse(*enchaineuse);
 
     temp := 0;
-    curseur := chn.pointeur;
-    fin := chn.pointeur + chn.taille;
+    curseur := chn.caractères;
+    fin := chn.caractères + chn.taille;
 
     tantque curseur < fin {
         pour 0 ... 3 {
@@ -638,7 +638,7 @@ convertis_iso_8859_1_vers_utf8 :: fonc (texte: chaine) -> chaine
 
     résultat := loge_chaine(taille_résultat);
 
-    ptr_sortie := résultat.pointeur comme *n8;
+    ptr_sortie := résultat.caractères comme *n8;
 
     pour texte {
         si it >= 0 {

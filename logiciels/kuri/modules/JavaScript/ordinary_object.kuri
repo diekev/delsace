@@ -532,7 +532,7 @@ ordinary_set_with_own_descriptor :: fonc (object: *Object, property_key: Propert
     mv := receiver.donne_objet().donne_tas_de_mémoire().donne_mv();
 
     arguments: []Valeur;
-    arguments.pointeur = *valeur;
+    arguments.données = *valeur;
     arguments.taille = 1;
 
     _ := call(mv, setter.Quelque, receiver, arguments);

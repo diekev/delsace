@@ -21,14 +21,14 @@ donne_position_source :: fonc (texte: *TexteSource, lexème: Lexème) -> Positio
 {
     résultat: PositionSource;
 
-    décalage_lexème := (lexème.texte.pointeur - texte.texte.pointeur);
+    décalage_lexème := (lexème.texte.caractères - texte.texte.caractères);
 
     si décalage_lexème < 0 || décalage_lexème >= texte.texte.taille {
         retourne résultat;
     }
 
     /* Compte les lignes. */
-    début_ligne := texte.texte.pointeur;
+    début_ligne := texte.texte.caractères;
     décalage := début_ligne;
     ligne := 0;
     pour texte.texte {
@@ -38,17 +38,17 @@ donne_position_source :: fonc (texte: *TexteSource, lexème: Lexème) -> Positio
         }
 
         décalage += 1;
-        si décalage >= lexème.texte.pointeur {
+        si décalage >= lexème.texte.caractères {
             arrête;
         }
     }
 
     résultat.ligne = ligne;
-    résultat.colonne = (lexème.texte.pointeur - début_ligne) comme z32;
+    résultat.colonne = (lexème.texte.caractères - début_ligne) comme z32;
 
     résultat.texte_ligne = chaine(début_ligne, 0);
 
-    fin_texte := texte.texte.pointeur + texte.texte.taille;
+    fin_texte := texte.texte.caractères + texte.texte.taille;
     tantque début_ligne < fin_texte {
         si mémoire(début_ligne) == '\n' {
             arrête;
@@ -432,7 +432,7 @@ donne_ligne_pour_erreur :: fonc (texte: chaine, colonne: z64) -> LignePourErreur
 
         si colonne < décalage {
             ligne_coupée: chaine;
-            ligne_coupée.pointeur = texte.pointeur;
+            ligne_coupée.caractères = texte.caractères;
             ligne_coupée.taille = MAX_CARACTÈRES_PAR_LIGNE;
 
             résultat.texte = ligne_coupée;
@@ -443,7 +443,7 @@ donne_ligne_pour_erreur :: fonc (texte: chaine, colonne: z64) -> LignePourErreur
         /* Enlève 5 pour le " ... " au début de l'impression. */
         indice_colonne := colonne - décalage - 5;
         ligne_coupée: chaine;
-        ligne_coupée.pointeur = texte.pointeur + colonne - décalage;
+        ligne_coupée.caractères = texte.caractères + colonne - décalage;
         ligne_coupée.taille = décalage * 2;
 
         résultat.texte = ligne_coupée;

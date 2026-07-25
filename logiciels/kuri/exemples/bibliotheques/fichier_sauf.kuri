@@ -635,10 +635,10 @@ _stderr := 0;
 principale :: fonc ()
 {
     fn_chn = "test_file";
-    fn = fn_chn.pointeur;
+    fn = fn_chn.caractères;
 
     linkFn_chn = "test_file.link";
-    linkFn = linkFn_chn.pointeur;
+    linkFn = linkFn_chn.caractères;
 
     r : z32; // result codes
     f : z32; // file descriptor
@@ -656,7 +656,7 @@ principale :: fonc ()
     correctMask : n32;
 
     data_chn = "0123456789";
-    data = data_chn.pointeur;
+    data = data_chn.caractères;
     n : z64;
 
     // no umask

@@ -76,10 +76,10 @@ test_copie_mem :: fonc () -> rien
     imprimeln("Chaine : %", chn);
 
     a: []octet;
-    a.pointeur = *chn[3];
+    a.données = *chn[3];
     a.taille = 7;
     b: []octet;
-    b.pointeur = *chn[0];
+    b.données = *chn[0];
     b.taille = 10;
 
     copie_mem(a, b, 7);
