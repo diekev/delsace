@@ -143,7 +143,7 @@ parse_texte_format_url :: fonc (texte: chaine, $T: type_de_données) -> (Résult
         }
 
         tampon: []octet;
-        tampon.pointeur = id.ptr_résultat comme *octet;
+        tampon.données = id.ptr_résultat comme *octet;
         tampon.taille = id.info.id.taille_en_octet comme z64;
 
         // fonction_parsage.rappel ajournera le ptr_résultat via le tampon

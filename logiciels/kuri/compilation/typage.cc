@@ -375,7 +375,7 @@ Typeuse::Typeuse(kuri::Synchrone<GrapheDépendance> &g) : graphe_(g)
     initialise_type_pointeur(*this, type_ptr_nul, nullptr);
 
     auto rubriques_eini = kuri::tableau<RubriqueTypeComposé, int>();
-    rubriques_eini.ajoute({nullptr, type_ptr_rien, ID::pointeur});
+    rubriques_eini.ajoute({nullptr, type_ptr_rien, ID::données});
     /* À FAIRE : type_info_type_ n'est pas encore parsé. */
     rubriques_eini.ajoute({nullptr, type_pointeur_pour(type_info_type_), ID::info});
     type_eini = alloc->m_noeuds_type_eini.ajoute_élément();
@@ -386,7 +386,7 @@ Typeuse::Typeuse(kuri::Synchrone<GrapheDépendance> &g) : graphe_(g)
     calcule_taille_type_composé(type_eini, false, 0);
 
     auto rubriques_chaine = kuri::tableau<RubriqueTypeComposé, int>();
-    rubriques_chaine.ajoute({nullptr, type_ptr_z8, ID::pointeur});
+    rubriques_chaine.ajoute({nullptr, type_ptr_z8, ID::caractères});
     rubriques_chaine.ajoute({nullptr, type_z64, ID::taille});
     type_chaine = alloc->m_noeuds_type_chaine.ajoute_élément();
     type_chaine->ident = ID::chaine;
@@ -558,6 +558,8 @@ TypeTableauFixe *Typeuse::type_tableau_fixe(Type *type_pointe, int taille, bool 
         }
     }
 
+    auto type_pointeur_des_données = type_pointeur_pour(type_pointe, false);
+
     // les décalages sont à zéros car ceci n'est pas vraiment une structure
     auto rubriques = kuri::tableau<RubriqueTypeComposé, int>();
     rubriques.ajoute({nullptr,
@@ -567,6 +569,13 @@ TypeTableauFixe *Typeuse::type_tableau_fixe(Type *type_pointe, int taille, bool 
                       uint64_t(taille),
                       nullptr,
                       RubriqueTypeComposé::EST_CONSTANTE});
+    rubriques.ajoute({nullptr,
+                      type_pointeur_des_données,
+                      ID::données,
+                      0,
+                      0,
+                      nullptr,
+                      RubriqueTypeComposé::EST_IMPLICITE});
 
     auto type = alloc->m_noeuds_type_tableau_fixe.ajoute_élément();
     initialise_type_tableau_fixe(type, type_pointe, taille, std::move(rubriques));
@@ -615,7 +624,7 @@ TypeTableauDynamique *Typeuse::type_tableau_dynamique(Type *type_pointe, bool in
     }
 
     auto rubriques = kuri::tableau<RubriqueTypeComposé, int>();
-    rubriques.ajoute({nullptr, type_pointeur_pour(type_pointe), ID::pointeur});
+    rubriques.ajoute({nullptr, type_pointeur_pour(type_pointe), ID::données});
     rubriques.ajoute({nullptr, type_z64, ID::taille});
     rubriques.ajoute({nullptr, type_z64, ID::capacité});
 
@@ -646,7 +655,7 @@ NoeudDéclarationTypeTranche *Typeuse::crée_type_tranche(Type *type_élément,
     }
 
     auto rubriques = kuri::tableau<RubriqueTypeComposé, int>();
-    rubriques.ajoute({nullptr, type_pointeur_pour(type_élément), ID::pointeur});
+    rubriques.ajoute({nullptr, type_pointeur_pour(type_élément), ID::données});
     rubriques.ajoute({nullptr, type_z64, ID::taille});
 
     auto type = alloc->m_noeuds_type_tranche.ajoute_élément();
@@ -673,7 +682,7 @@ TypeVariadique *Typeuse::type_variadique(Type *type_pointe)
     }
 
     auto rubriques = kuri::tableau<RubriqueTypeComposé, int>();
-    rubriques.ajoute({nullptr, type_pointeur_pour(type_pointe), ID::pointeur});
+    rubriques.ajoute({nullptr, type_pointeur_pour(type_pointe), ID::données});
     rubriques.ajoute({nullptr, type_z64, ID::taille});
 
     auto type = alloc->m_noeuds_type_variadique.ajoute_élément();

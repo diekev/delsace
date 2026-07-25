@@ -145,7 +145,7 @@ rappel_quand_écriture :: fonc (prise: *Prise)
     données := prise.données_utilisateur(DonnéesPriseWebSocket);
 
     requête := données.requête;
-    requête.pointeur += données.décalage_requête;
+    requête.caractères += données.décalage_requête;
     requête.taille -= données.décalage_requête;
 
     données.décalage_requête += prise.écris(requête);

@@ -4,7 +4,7 @@
  * Catégorie : [validation sémantique, portée, fonction polymorphique]
  */
 
-ne_passe_pas_variable :: fonc (variable: z32) -> z32
+ne_passe_pas_variable :: fonc (variable: z32 @inutilisée) -> z32
 {
     retourne accède_variable(z32);
 }

@@ -28,7 +28,7 @@ est_fichier_elf :: fonc (contenu: []octet) -> bool
         retourne faux;
     }
 
-    entête := contenu.pointeur comme *Elf64_Ehdr;
+    entête := contenu.données comme *Elf64_Ehdr;
 
     magique := [ELFMAG0, ELFMAG1, ELFMAG2, ELFMAG3];
     pour magique {
@@ -65,7 +65,7 @@ initialise_fichier_elf :: fonc (fichier: *FichierELF, contenu: []octet)
 
 entête_fichier :: fonc (fichier: *FichierELF) -> *EntêteELF64
 {
-    retourne fichier.contenu.pointeur comme *EntêteELF64;
+    retourne fichier.contenu.données comme *EntêteELF64;
 }
 
 donne_entêtes_de_programme :: fonc (fichier: *FichierELF) -> []Elf64_Phdr
@@ -75,7 +75,7 @@ donne_entêtes_de_programme :: fonc (fichier: *FichierELF) -> []Elf64_Phdr
     entête := fichier.entête_fichier();
     si entête {
         si entête.e_phoff > 0 && entête.e_phoff comme z64 < fichier.contenu.taille {
-            résultat.pointeur = (fichier.contenu.pointeur + entête.e_phoff) comme *Elf64_Phdr;
+            résultat.données = (fichier.contenu.données + entête.e_phoff) comme *Elf64_Phdr;
             // À FAIRE : validation
             résultat.taille = entête.e_phnum comme z64;
         }
@@ -120,7 +120,7 @@ donne_entête_section :: fonc (fichier: *FichierELF, indice: Elf64_Word) -> *Ent
         imprimeln("La section à l'indice '%' est hors des limites du fichier.", indice);
         retourne nul;
     }
-    retourne (fichier.contenu.pointeur + décalage) comme *EntêteSectionELF64;
+    retourne (fichier.contenu.données + décalage) comme *EntêteSectionELF64;
 }
 
 trouve_section :: fonc (fichier: *FichierELF, type: TypeSection) -> *EntêteSectionELF64
@@ -601,8 +601,8 @@ donne_données_section :: fonc (fichier: *FichierELF, section: *EntêteSectionEL
     résultat: []octet;
 
     si section.sh_offset comme z64 < fichier.contenu.taille && (section.sh_offset + section.sh_size) comme z64 <= fichier.contenu.taille {
-        données_section := fichier.contenu.pointeur + section.sh_offset;
-        résultat.pointeur = données_section;
+        données_section := fichier.contenu.données + section.sh_offset;
+        résultat.données = données_section;
         résultat.taille = section.sh_size comme z64;
     }
     sinon {
@@ -616,7 +616,7 @@ donne_données_section :: fonc (fichier: *FichierELF, section: *EntêteSectionEL
 {
     données := donne_données_section(fichier, section);
     résultat: []T = ---;
-    résultat.pointeur = données.pointeur comme *T;
+    résultat.données = données.données comme *T;
     résultat.taille = données.taille / taille_de(T) comme z64;
     retourne résultat;
 }
@@ -693,7 +693,7 @@ donne_chaine :: fonc (table: String_Table_ELF64, décalage: Elf64_Word) -> chain
 {
     résultat: chaine;
     si décalage comme z64 < table.données.taille {
-        nom_c := table.données.pointeur + décalage;
+        nom_c := table.données.données + décalage;
         résultat = convertis_chaine_c_statique(ChaineC(nom_c comme *z8));
     }
     retourne résultat;
@@ -861,7 +861,7 @@ donne_entrées_section_dynamic :: fonc (fichier: *FichierELF) -> []Elf64_Dyn
 
         si données_section {
             si données_section.taille % taille_de(Elf64_Addr) comme z64 == 0 {
-                résultat.pointeur = données_section.pointeur comme *Elf64_Dyn;
+                résultat.données = données_section.données comme *Elf64_Dyn;
                 résultat.taille = données_section.taille / taille_de(Elf64_Addr) comme z64;
 
                 pour résultat {
@@ -956,7 +956,7 @@ DonnéesEHFrame :: struct {
 donne_fdes :: fonc (données: *DonnéesEHFrame, cie: *CommonInformationEntry64) -> []FrameDescriptionEntry64
 {
     résultat: []FrameDescriptionEntry64;
-    résultat.pointeur = données.fdes.pointeur + cie.indice_premier_fde;
+    résultat.données = données.fdes.données + cie.indice_premier_fde;
     résultat.taille = cie.un_après_indice_dernier_fde - cie.indice_premier_fde;
     retourne résultat;
 }
@@ -1228,7 +1228,7 @@ applique_réadressage_sur_section :: fonc (fichier: *FichierELF, section_à_réa
             valeur := (S comme z64 + A) comme z32;
 
             si (it.r_offset + 4) comme z64 < données_section_à_réadresser.taille {
-                adresse := données_section_à_réadresser.pointeur + it.r_offset comme z64;
+                adresse := données_section_à_réadresser.données + it.r_offset comme z64;
                 mémoire(adresse comme *z32) = valeur;
             }
             sinon {
@@ -1243,7 +1243,7 @@ applique_réadressage_sur_section :: fonc (fichier: *FichierELF, section_à_réa
             valeur := (S comme z64 + A);
 
             si (it.r_offset + 8) comme z64 < données_section_à_réadresser.taille {
-                adresse := données_section_à_réadresser.pointeur + it.r_offset comme z64;
+                adresse := données_section_à_réadresser.données + it.r_offset comme z64;
                 mémoire(adresse comme *z64) = valeur;
             }
             sinon {

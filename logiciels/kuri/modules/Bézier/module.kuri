@@ -19,7 +19,7 @@ UTILISE_ANALYSEUR_DIFFÉRENTIEL :: vrai;
         retourne;
     }
 
-    début := échantillons.pointeur comme *r32;
+    début := échantillons.données comme *r32;
 
     #si UTILISE_ANALYSEUR_DIFFÉRENTIEL {
         échantillonne_courbe_bézier(p0.x, p1.x, p2.x, p3.x, début, échantillons.taille comme z32, taille_de(Point2D(r32)) comme z32);
@@ -251,7 +251,7 @@ adpate_sous_chemin_aux_points :: fonc (sous_chemin: *SousChemin, points: []Point
     points_résultants: *r32;
     nombre_points_résultants: n32;
 
-    points_entrée: *r32 = points.pointeur comme *r32;
+    points_entrée: *r32 = points.données comme *r32;
     résultat := curve_fit_cubic_to_points_fl(points_entrée, points.taille comme n32, 2,
                                              seuil_erreur_max,
                                              Curve_Fit_Calc.HIGH_QUALIY,

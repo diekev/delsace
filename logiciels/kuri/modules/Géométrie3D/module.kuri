@@ -84,7 +84,7 @@ parse_ligne_obj :: fonc (ligne: chaine, créatrice: *CréatriceGéométrie) -> r
             }
         }
 
-        créatrice.ajoute_polygone(créatrice, *polygone[0], taille_polygone);
+        créatrice.ajoute_polygone(créatrice, polygone.données, taille_polygone);
     }
     sinon si ligne.commence_par("v ") {
         tmp := avance(ligne, 2);

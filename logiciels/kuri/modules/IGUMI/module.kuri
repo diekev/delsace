@@ -477,12 +477,12 @@ termine_immédiat :: fonc ()
     installe_format_xcnu(nuanceur);
 
     saufsi données_tampon_xcnu.données_tampon_initialisées {
-        glBufferData(GL_ARRAY_BUFFER, ((MAX_SOMMETS_IMMÉDIAT comme n32) * taille_de(FormatVertexXCNU)) comme GLsizei, s.pointeur, GL_DYNAMIC_DRAW);
+        glBufferData(GL_ARRAY_BUFFER, ((MAX_SOMMETS_IMMÉDIAT comme n32) * taille_de(FormatVertexXCNU)) comme GLsizei, s.données, GL_DYNAMIC_DRAW);
         vérifie_erreur("termine_immédiat.glBufferData");
         données_tampon_xcnu.données_tampon_initialisées = vrai;
     }
 
-    glBufferSubData(GL_ARRAY_BUFFER, 0, (compte * taille_de(FormatVertexXCNU)) comme GLsizei, s.pointeur);
+    glBufferSubData(GL_ARRAY_BUFFER, 0, (compte * taille_de(FormatVertexXCNU)) comme GLsizei, s.données);
     vérifie_erreur("termine_immédiat_id.glBufferSubData");
 
     si dernier_mode == ModeImmédiat.TRIANGLES {
@@ -915,7 +915,7 @@ donne_paramètres_texture_atlas_fonte :: fonc (atlas: *texture_atlas_t) -> Param
     résultat: ParamètresTexture2D;
     résultat.largeur = atlas.width comme z32;
     résultat.hauteur = atlas.height comme z32;
-    résultat.données = atlas.data.pointeur;
+    résultat.données = atlas.data.données;
     résultat.bordure = 0;
     résultat.type = GL_UNSIGNED_BYTE;
     résultat.format = GL_RED;
@@ -1368,12 +1368,12 @@ termine_immédiat_id :: fonc ()
     installe_format_xid(nuanceur);
 
     saufsi données_tampon_id.données_tampon_initialisées {
-        glBufferData(GL_ARRAY_BUFFER, ((MAX_SOMMETS_IMMÉDIAT comme n32) * taille_de(FormatVertexXId)) comme GLsizei, s.pointeur, GL_DYNAMIC_DRAW);
+        glBufferData(GL_ARRAY_BUFFER, ((MAX_SOMMETS_IMMÉDIAT comme n32) * taille_de(FormatVertexXId)) comme GLsizei, s.données, GL_DYNAMIC_DRAW);
         vérifie_erreur("termine_immédiat.glBufferData");
         données_tampon_id.données_tampon_initialisées = vrai;
     }
 
-    glBufferSubData(GL_ARRAY_BUFFER, 0, (compte * taille_de(FormatVertexXId)) comme GLsizei, s.pointeur);
+    glBufferSubData(GL_ARRAY_BUFFER, 0, (compte * taille_de(FormatVertexXId)) comme GLsizei, s.données);
     vérifie_erreur("termine_immédiat_id.glBufferSubData");
 
     si dernier_mode_id == ModeImmédiat.TRIANGLES {
