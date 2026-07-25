@@ -1400,7 +1400,7 @@ texture_atlas_clear :: fonc (self: *texture_atlas_t)
     node.z = self.width - 2;
     tableau_ajoute(*self.nodes, node);
 
-    memset(self.data.pointeur, 0, self.width * self.height * self.depth);
+    memset(self.data.données, 0, self.width * self.height * self.depth);
 }
 
 /** \} */

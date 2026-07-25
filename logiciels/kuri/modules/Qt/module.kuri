@@ -192,7 +192,7 @@ définis_valeur :: fonc (variant: *QT_Variant, valeur: $T)
             sinon {
                 valeur_eini : eini = ---;
                 valeur_eini.info = infos;
-                valeur_eini.pointeur = *valeur;
+                valeur_eini.données = *valeur;
                 nom := donne_nom_énum_pour_valeur(valeur_eini);
                 variant.definis_chaine(variant, vers_qt(nom));
             }

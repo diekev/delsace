@@ -73,17 +73,17 @@ inflateInit :: fonc (strm: z_streamp) -> z32
 
 deflateInit2 :: fonc (strm: z_streamp, level: z32, method: z32, windowBits: z32, memLevel: z32, strategy: z32) -> z32
 {
-    retourne deflateInit2_(strm, level, method, windowBits, memLevel, strategy, ZLIB_VERSION.pointeur, taille_de(z_stream) comme z32);
+    retourne deflateInit2_(strm, level, method, windowBits, memLevel, strategy, ZLIB_VERSION.caractères, taille_de(z_stream) comme z32);
 }
 
 inflateInit2 :: fonc (strm: z_streamp, windowBits: z32) -> z32
 {
-    retourne inflateInit2_(strm, windowBits, ZLIB_VERSION.pointeur, taille_de(z_stream) comme z32);
+    retourne inflateInit2_(strm, windowBits, ZLIB_VERSION.caractères, taille_de(z_stream) comme z32);
 }
 
 inflateBackInit :: fonc (strm: z_streamp, windowBits: z32, window: *n8) -> z32
 {
-    retourne inflateBackInit_(strm, windowBits, window, ZLIB_VERSION.pointeur, taille_de(z_stream) comme z32);
+    retourne inflateBackInit_(strm, windowBits, window, ZLIB_VERSION.caractères, taille_de(z_stream) comme z32);
 }
 
 // gzgetc :: fonc (file: gzFile) -> z32

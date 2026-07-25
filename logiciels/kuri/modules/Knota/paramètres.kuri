@@ -1015,7 +1015,7 @@ réinitialise_valeur_défaut :: fonc (noeud: *Noeud, param: *Table_Paramètres.P
 donne_bouton :: fonc (param: *Table_Paramètres.Paramètre) -> Paramètre_Bouton
 {
     assert(param.type == Type_Paramètre.BOUTON);
-    retourne mémoire(param.valeur.pointeur comme *Paramètre_Bouton);
+    retourne mémoire(param.valeur.données comme *Paramètre_Bouton);
 }
 
 sur_pression :: fonc (noeud: *Noeud, param: *Table_Paramètres.Paramètre)

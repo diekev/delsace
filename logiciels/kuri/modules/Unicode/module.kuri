@@ -476,8 +476,8 @@ initialise_table_accents_ascii :: fonc ()
     ];
 
     pour paires_unicode_ascii {
-        n := nombre_octets_utf8(it[0].pointeur);
-        rune := Rune(convertis_utf8_utf32(it[0].pointeur, n) comme n32);
+        n := nombre_octets_utf8(it[0].caractères);
+        rune := Rune(convertis_utf8_utf32(it[0].caractères, n) comme n32);
         __table_accents_vers_ascii[indice_it] = PaireAccentAscii(rune, it[1][0]);
     }
 

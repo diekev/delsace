@@ -205,21 +205,21 @@ définis_uniforme :: fonc (adresse: z32, valeur: r32)
 définis_uniforme :: fonc (adresse: z32, valeur: [..]z32)
 {
     si adresse != -1 {
-        glUniform1iv(adresse, valeur.taille comme GLsizei, valeur.pointeur);
+        glUniform1iv(adresse, valeur.taille comme GLsizei, valeur.données);
     }
 }
 
 définis_uniforme :: fonc (adresse: z32, valeur: [..]n32)
 {
     si adresse != -1 {
-        glUniform1uiv(adresse, valeur.taille comme GLsizei, valeur.pointeur);
+        glUniform1uiv(adresse, valeur.taille comme GLsizei, valeur.données);
     }
 }
 
 définis_uniforme :: fonc (adresse: z32, valeur: [..]r32)
 {
     si adresse != -1 {
-        glUniform1fv(adresse, valeur.taille comme GLsizei, valeur.pointeur);
+        glUniform1fv(adresse, valeur.taille comme GLsizei, valeur.données);
     }
 }
 

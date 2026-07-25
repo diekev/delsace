@@ -12,7 +12,7 @@ principale :: fonc ()
     pattern := FcPatternCreate();
     diffère FcPatternDestroy(pattern);
 
-    _ := FcPatternAddString(pattern, FC_FAMILY.pointeur, nom.caractères comme *FcChar8);
+    _ := FcPatternAddString(pattern, FC_FAMILY.caractères, nom.caractères comme *FcChar8);
 
     _ := FcConfigSubstitute(conf, pattern, FcMatchKind.FcMatchPattern);
     FcDefaultSubstitute(pattern);
@@ -25,7 +25,7 @@ principale :: fonc ()
     }
 
     value: FcValue;
-    résultat := FcPatternGet(match, FC_FILE.pointeur, 0, *value);
+    résultat := FcPatternGet(match, FC_FILE.caractères, 0, *value);
     si résultat == FcResult.FcResultMatch {
         filepath := convertis_chaine_c(ChaineC(value.u.f comme *z8));
         imprimeln("chemin : %", filepath);
@@ -50,7 +50,7 @@ test_fontconfig1 :: fonc ()
     FcDefaultSubstitute(pat);
 
     fs := FcFontSetCreate();
-    os := FcObjectSetBuild(FC_FAMILY.pointeur, FC_STYLE.pointeur, FC_FILE.pointeur, nul);
+    os := FcObjectSetBuild(FC_FAMILY.caractères, FC_STYLE.caractères, FC_FILE.caractères, nul);
 
     result: FcResult;
     font_patterns := FcFontSort(conf, pat, FcTrue, nul, *result);
@@ -77,7 +77,7 @@ test_fontconfig1 :: fonc ()
             diffère FcPatternDestroy(font);
 
             v: FcValue;
-            _ := FcPatternGet(font, FC_FILE.pointeur, 0, *v);
+            _ := FcPatternGet(font, FC_FILE.caractères, 0, *v);
 
             filepath := convertis_chaine_c(ChaineC(v.u.f comme *z8));
             imprimeln("path: %", filepath);

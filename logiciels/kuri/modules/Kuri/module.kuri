@@ -686,7 +686,7 @@ logement_temp :: fonc (taille: z64) -> *octet
 
     pousse_contexte nouveau_contexte {
         tmp := loge_tableau(octet, taille);
-        ptr = tmp.pointeur;
+        ptr = tmp.données;
     }
 
     retourne ptr;

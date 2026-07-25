@@ -1488,7 +1488,7 @@ applique_opérateurs_de_collage :: fonc (préprocesseur: *PréProcesseur, sortie
 
         si est_ponctuation(lexème, "##") && !lexème.vient_d_un_argument {
             tantque sortie.taille > 0 {
-                si est_espace_blanche(sortie.pointeur[sortie.taille - 1]) {
+                si est_espace_blanche(sortie.données[sortie.taille - 1]) {
                     sortie.taille -= 1;
                 }
                 sinon {
@@ -1497,7 +1497,7 @@ applique_opérateurs_de_collage :: fonc (préprocesseur: *PréProcesseur, sortie
             }
 
             si sortie.taille > 0 {
-                lexème_précédent := sortie.pointeur[sortie.taille - 1];
+                lexème_précédent := sortie.données[sortie.taille - 1];
                 sortie.taille -= 1;
 
                 tantque !fini(*parseuse) {
@@ -2047,7 +2047,7 @@ prétraite_fichier :: fonc (contenu: chaine) -> [..]octet
         sortie += 1;
     }
 
-    résultat.taille = (sortie comme *octet) - résultat.pointeur;
+    résultat.taille = (sortie comme *octet) - résultat.données;
     retourne résultat;
 }
 

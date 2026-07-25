@@ -213,9 +213,9 @@ initialise_paramètres_tampon :: fonc (params: *ParamètresCréationTampon, attr
 {
     params.attribut = attribut;
     params.dimension_attribut = 2;
-    params.pointeur_sommets = sommets.pointeur;
+    params.pointeur_sommets = sommets.données;
     params.taille_octet_sommets = tableau_taille_mémoire(sommets) comme n64;
-    params.pointeur_indice = indices.pointeur;
+    params.pointeur_indice = indices.données;
     params.taille_octet_indices = tableau_taille_mémoire(indices) comme n64;
 
     si indices.taille != 0 {

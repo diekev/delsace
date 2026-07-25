@@ -25,7 +25,7 @@ opérateur pour :: (itératrice: ItéractriceInstruction) -> *Instruction
 {
     assert(itératrice.flux != nul);
 
-    début := itératrice.flux.instructions.pointeur;
+    début := itératrice.flux.instructions.données;
     fin := début + itératrice.flux.instructions.taille;
 
     indice : z64 = 0;

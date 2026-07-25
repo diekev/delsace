@@ -367,7 +367,7 @@ sélectionne :: fonc (table: *TableMySQL, $T: type_de_données, colonnes: ...cha
             rubrique := infos_rubriques[i];
 
             valeur_rubrique : eini = ---;
-            valeur_rubrique.pointeur = eini_valeur.pointeur + rubrique.décalage;
+            valeur_rubrique.données = eini_valeur.données + rubrique.décalage;
             valeur_rubrique.info = rubrique.id;
 
             fonction := trouve_fonction_pour_type(table.fonctions_parsages_mysql, rubrique.id);
@@ -380,7 +380,7 @@ sélectionne :: fonc (table: *TableMySQL, $T: type_de_données, colonnes: ...cha
             chn := colonne_suivante(*curseur);
 
             tampon: []octet;
-            tampon.pointeur = valeur_rubrique.pointeur comme *z8;
+            tampon.données = valeur_rubrique.données comme *z8;
             tampon.taille = rubrique.id.taille_en_octet comme z64;
 
             saufsi fonction.rappel(chn, tampon) {

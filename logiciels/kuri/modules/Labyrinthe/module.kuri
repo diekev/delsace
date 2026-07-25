@@ -76,7 +76,7 @@ initialise_murs_pseudo_labyrinthe :: fonc (labyrinthe: *Labyrinthe, entropie: *S
     nombre_de_cellules := taille_x * taille_y;
 
     /* Remplis les murs autour du labyrinthe. */
-    pointeur := labyrinthe.données.pointeur;
+    pointeur := labyrinthe.données.données;
     pour y dans taille_y {
         pour x dans taille_x {
             si x == 0 || y == 0 || y == (taille_y - 1) || x == taille_x - 1 {
