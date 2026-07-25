@@ -642,7 +642,7 @@ génère_déclaration_fonctions_pour_python :: fonc (enchaineuse: *Enchaineuse, 
     enchaineuse.ajoute_au_tampon(type.fonctions.pour_construction, "_générique :: fonc (valeur: eini) -> *PyObject\n");
     enchaineuse.ajoute_au_tampon("{\n");
     enchaineuse.ajoute_au_tampon("    assert(valeur.info == info_de(", symbole_pointeur, type.nom_type_kuri, "));\n");
-    enchaineuse.ajoute_au_tampon("    retourne ", type.fonctions.pour_construction, "(mémoire(valeur.pointeur comme *", symbole_pointeur, type.nom_type_kuri, "));\n");
+    enchaineuse.ajoute_au_tampon("    retourne ", type.fonctions.pour_construction, "(mémoire(valeur.données comme *", symbole_pointeur, type.nom_type_kuri, "));\n");
     enchaineuse.ajoute_au_tampon("}\n");
 }
 

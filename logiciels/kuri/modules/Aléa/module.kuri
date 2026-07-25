@@ -351,7 +351,7 @@ génère_fonction_enveloppe :: fonc (enchaineuse: *Enchaineuse, données: Donné
     enchaineuse.ajoute_au_tampon(nom_enveloppe, " :: fonc (génératrice: *Aléa.GénératriceDonnéesAléatoire, valeur: eini)\n");
     enchaineuse.ajoute_au_tampon("{\n");
     /* Rappel : le type de la fonction doit être un pointeur, mais l'eini stocke un pointeur vers celui-ci. */
-    enchaineuse.ajoute_au_tampon("\tptr := mémoire(valeur.pointeur comme **");
+    enchaineuse.ajoute_au_tampon("\tptr := mémoire(valeur.données comme **");
     imprime_type(enchaineuse, données.info_type, nom_module);
     enchaineuse.ajoute_au_tampon(");\n");
     ajoute_au_tampon(enchaineuse, "\t");

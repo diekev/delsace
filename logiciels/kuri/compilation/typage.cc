@@ -375,7 +375,7 @@ Typeuse::Typeuse(kuri::Synchrone<GrapheDépendance> &g) : graphe_(g)
     initialise_type_pointeur(*this, type_ptr_nul, nullptr);
 
     auto rubriques_eini = kuri::tableau<RubriqueTypeComposé, int>();
-    rubriques_eini.ajoute({nullptr, type_ptr_rien, ID::pointeur});
+    rubriques_eini.ajoute({nullptr, type_ptr_rien, ID::données});
     /* À FAIRE : type_info_type_ n'est pas encore parsé. */
     rubriques_eini.ajoute({nullptr, type_pointeur_pour(type_info_type_), ID::info});
     type_eini = alloc->m_noeuds_type_eini.ajoute_élément();

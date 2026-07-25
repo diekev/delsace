@@ -3084,7 +3084,7 @@ translate_a_potential_destination :: fonc (potential_destination_: DOMString) ->
             // À FAIRE(langage) : erreur de compilation
             // retourne donne_eini_valeur_énum_indice(info_destination_type, indice_it) comme Request.DestinationType
             résultat := donne_eini_valeur_énum_indice(info_destination_type, indice_it);
-            retourne mémoire(résultat.pointeur comme *Request.DestinationType);
+            retourne mémoire(résultat.données comme *Request.DestinationType);
         }
     }
 

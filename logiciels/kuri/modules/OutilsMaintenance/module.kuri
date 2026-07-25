@@ -66,7 +66,7 @@ données_personnelles :: fonc (données_fichier: *DonnéesFichier, $TypeDonnées
         retourne nul;
     }
 
-    retourne données_fichier.données_utilisateurs.pointeur comme *TypeDonnéesPersonnelles;
+    retourne données_fichier.données_utilisateurs.données comme *TypeDonnéesPersonnelles;
 }
 
 /** \} */

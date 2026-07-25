@@ -544,7 +544,7 @@ VisiteuseCellule :: struct {
 visite_objet :: fonc (visiteuse: *VisiteuseCellule, objet: *$T)
 {
     valeur : eini = ---;
-    valeur.pointeur = objet;
+    valeur.données = objet;
     valeur.info = info_de(T);
 
     valeur_à_visiter: InfoValeurÀVisiter;
@@ -586,7 +586,7 @@ visite_cellule_générique :: fonc (visiteuse: *VisiteuseCellule, racine: *Cellu
     info := donne_info_type_cellule(racine);
 
     valeur_eini : eini = ---;
-    valeur_eini.pointeur = racine;
+    valeur_eini.données = racine;
     valeur_eini.info = info;
 
     visite_structure(visiteuse, valeur_eini);
@@ -623,7 +623,7 @@ visite_valeur :: fonc (visiteuse: *VisiteuseCellule, valeur_à_visiter: InfoVale
     // }
 
     si info == info_de(*Cellule) {
-        cellule := mémoire(valeur.pointeur comme **Cellule);
+        cellule := mémoire(valeur.données comme **Cellule);
         si cellule == nul {
             retourne;
         }
@@ -642,12 +642,12 @@ visite_valeur :: fonc (visiteuse: *VisiteuseCellule, valeur_à_visiter: InfoVale
 
         si est_struct_ou_employeuse_de(type_élément comme *InfoTypeStructure, info_de(Cellule)) {
             /* À FAIRE : la cellule doit être le premier élément. */
-            cellule := mémoire(valeur.pointeur comme **Cellule);
+            cellule := mémoire(valeur.données comme **Cellule);
             // imprime("[visite_cellule_générique] % -> %\n", valeur.pointeur, cellule comme *rien)
             visite_cellule_générique(visiteuse, cellule);
         }
         sinon {
-            adresse := mémoire(valeur.pointeur comme **rien);
+            adresse := mémoire(valeur.données comme **rien);
             saufsi adresse {
                 retourne;
             }
@@ -656,7 +656,7 @@ visite_valeur :: fonc (visiteuse: *VisiteuseCellule, valeur_à_visiter: InfoVale
                 retourne;
             }
 
-            valeur_à_visiter.valeur.pointeur = adresse;
+            valeur_à_visiter.valeur.données = adresse;
             valeur_à_visiter.valeur.info = type_élément;
             tableau_ajoute(*visiteuse.valeurs_à_visiter, valeur_à_visiter);
         }
@@ -666,13 +666,13 @@ visite_valeur :: fonc (visiteuse: *VisiteuseCellule, valeur_à_visiter: InfoVale
 
     si info.id == GenreInfoType.STRUCTURE {
         si info == info_de(HostDefined) {
-            host_defined := mémoire(valeur.pointeur comme *HostDefined);
+            host_defined := mémoire(valeur.données comme *HostDefined);
 
             si host_defined.données == nul {
                 retourne;
             }
 
-            valeur_à_visiter.valeur.pointeur = host_defined.données;
+            valeur_à_visiter.valeur.données = host_defined.données;
             valeur_à_visiter.valeur.info = host_defined.infos;
             tableau_ajoute(*visiteuse.valeurs_à_visiter, valeur_à_visiter);
             retourne;
@@ -684,7 +684,7 @@ visite_valeur :: fonc (visiteuse: *VisiteuseCellule, valeur_à_visiter: InfoVale
 
     si info.id == GenreInfoType.UNION {
         si info == info_de(Valeur) {
-            valeur_ := mémoire(valeur.pointeur comme *Valeur);
+            valeur_ := mémoire(valeur.données comme *Valeur);
             si valeur_.est_cellule() {
                 visite_cellule_générique(visiteuse, valeur_.donne_cellule());
             }
