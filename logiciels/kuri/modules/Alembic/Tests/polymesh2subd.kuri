@@ -162,7 +162,7 @@ imprime_time_sampling :: fonc (time_sampling: *Abc_Time_Sampling)
     times: [..]r64;
     tableau_redimensionne(*times, num_stored_times comme z64);
 
-    abc_time_sampling_get_stored_times(time_sampling, *times.pointeur, *times.taille comme *n64);
+    abc_time_sampling_get_stored_times(time_sampling, *times.données, *times.taille comme *n64);
 
     imprimeln("% times", times.taille);
     pour times {
@@ -192,7 +192,7 @@ valide_sample :: fonc (sample: *Abc_Input_PolyMesh_Sample)
     donne_tranche :: fonc (sample: Abc_Int32_Array_Sample) -> []z32
     {
         résultat: []z32 = ---;
-        résultat.pointeur = sample.values;
+        résultat.données = sample.values;
         résultat.taille = sample.num_values comme z64;
         retourne résultat;
     }

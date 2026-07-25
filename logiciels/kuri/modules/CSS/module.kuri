@@ -218,7 +218,7 @@ apparie_simple_selector :: fonc (simple: *SimpleSelector, élément: *HTML.Eleme
 
                     sous_chaine_attribut := chn_attribut;
                     sous_chaine_attribut.unités.taille = chn_selector.taille();
-                    sous_chaine_attribut.unités.pointeur += diff;
+                    sous_chaine_attribut.unités.données += diff;
 
                     retourne chn_selector == sous_chaine_attribut;
                 }
@@ -245,7 +245,7 @@ apparie_simple_selector :: fonc (simple: *SimpleSelector, élément: *HTML.Eleme
                             retourne vrai;
                         }
 
-                        sous_chaine_attribut.unités.pointeur += 1;
+                        sous_chaine_attribut.unités.données += 1;
                         i += 1;
                     }
 

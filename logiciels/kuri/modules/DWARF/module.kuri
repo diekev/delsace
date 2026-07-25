@@ -22,7 +22,7 @@ donne_taille :: fonc (indexage: IndexageTranche) -> z64 #enligne
 donne_tranche :: fonc (tableau: []$T, indexage: IndexageTranche) -> []T #enligne
 {
     résultat: []T = ---;
-    résultat.pointeur = tableau.pointeur + indexage.premier;
+    résultat.données = tableau.données + indexage.premier;
     résultat.taille = donne_taille(indexage);
     retourne résultat;
 }
@@ -1397,7 +1397,7 @@ lis_tranche :: fonc (flux: *FluxOctetsMémoire, taille: z64, $T: type_de_donnée
 {
     tranche_octets := lis_tranche_octet(flux, taille);
     résultat: []T;
-    résultat.pointeur = tranche_octets.pointeur comme *T;
+    résultat.données = tranche_octets.données comme *T;
     résultat.taille = tranche_octets.taille / taille_de(T) comme z64;
     retourne résultat;
 }

@@ -182,8 +182,8 @@ timespec_depuis_ms :: fonc (ms: z64) -> timespec
 
 dlopen :: fonc (fichier: chaine, mode: z32) -> *rien
 {
-    si intrinsèque_est_adresse_données_constantes(fichier.pointeur) {
-        retourne dlopen(ChaineC(fichier.pointeur), mode);
+    si intrinsèque_est_adresse_données_constantes(fichier.caractères) {
+        retourne dlopen(ChaineC(fichier.caractères), mode);
     }
 
     fichier_c := crée_chaine_c(fichier);
@@ -193,8 +193,8 @@ dlopen :: fonc (fichier: chaine, mode: z32) -> *rien
 
 dlsym :: fonc (handle: *rien, nom: chaine) -> *rien
 {
-    si intrinsèque_est_adresse_données_constantes(nom.pointeur) {
-        retourne dlsym(handle, ChaineC(nom.pointeur));
+    si intrinsèque_est_adresse_données_constantes(nom.caractères) {
+        retourne dlsym(handle, ChaineC(nom.caractères));
     }
 
     nom_c := crée_chaine_c(nom);
@@ -204,8 +204,8 @@ dlsym :: fonc (handle: *rien, nom: chaine) -> *rien
 
 dlsym_func :: fonc (handle: *rien, nom: chaine) -> adresse_fonction
 {
-    si intrinsèque_est_adresse_données_constantes(nom.pointeur) {
-        retourne dlsym_func(handle, ChaineC(nom.pointeur));
+    si intrinsèque_est_adresse_données_constantes(nom.caractères) {
+        retourne dlsym_func(handle, ChaineC(nom.caractères));
     }
 
     nom_c := crée_chaine_c(nom);

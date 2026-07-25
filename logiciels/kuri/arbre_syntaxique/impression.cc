@@ -131,14 +131,6 @@ static std::ostream &operator<<(std::ostream &os, Indentation const indent)
     return os;
 }
 
-static NoeudExpression const *donne_expression_sans_parenthèse(NoeudExpression const *expression)
-{
-    while (expression->est_parenthèse()) {
-        expression = expression->comme_parenthèse()->expression;
-    }
-    return expression;
-}
-
 static void imprime_ident(Enchaineuse &enchaineuse, IdentifiantCode const *ident)
 {
     if (!ident) {
@@ -586,8 +578,15 @@ static void imprime_arbre(Enchaineuse &enchaineuse,
         return;
     }
 
+    if (noeud->possède_drapeau(DrapeauxNoeud::EST_ENTRE_PARENTHÈSE)) {
+        enchaineuse << "(";
+    }
+
     if (état.préfére_substitution && noeud->substitution) {
         imprime_arbre(enchaineuse, état, noeud->substitution);
+        if (noeud->possède_drapeau(DrapeauxNoeud::EST_ENTRE_PARENTHÈSE)) {
+            enchaineuse << ")";
+        }
         return;
     }
 
@@ -866,7 +865,7 @@ static void imprime_arbre(Enchaineuse &enchaineuse,
         {
             auto inst = noeud->comme_tantque();
             imprime_lexème_mot_clé(enchaineuse, inst, true);
-            imprime_arbre(enchaineuse, état, donne_expression_sans_parenthèse(inst->condition));
+            imprime_arbre(enchaineuse, état, inst->condition);
             enchaineuse << " ";
             état.imprime_indent_avant_bloc = false;
             imprime_arbre(enchaineuse, état, inst->bloc);
@@ -880,7 +879,7 @@ static void imprime_arbre(Enchaineuse &enchaineuse,
             état.imprime_nouvelle_ligne_après_bloc = false;
             imprime_arbre(enchaineuse, état, inst->bloc);
             enchaineuse << " tantque ";
-            imprime_arbre(enchaineuse, état, donne_expression_sans_parenthèse(inst->condition));
+            imprime_arbre(enchaineuse, état, inst->condition);
             break;
         }
         case GenreNoeud::INSTRUCTION_POUR:
@@ -1094,14 +1093,6 @@ static void imprime_arbre(Enchaineuse &enchaineuse,
             imprime_arbre(enchaineuse, état, expression->fin);
             break;
         }
-        case GenreNoeud::EXPRESSION_PARENTHÈSE:
-        {
-            auto expression = noeud->comme_parenthèse();
-            enchaineuse << "(";
-            imprime_arbre(enchaineuse, état, expression->expression);
-            enchaineuse << ")";
-            break;
-        }
         case GenreNoeud::EXPRESSION_NÉGATION_LOGIQUE:
         {
             auto expression = noeud->comme_négation_logique();
@@ -1153,7 +1144,7 @@ static void imprime_arbre(Enchaineuse &enchaineuse,
             else {
                 imprime_lexème_mot_clé(enchaineuse, "si", true);
             }
-            imprime_arbre(enchaineuse, état, donne_expression_sans_parenthèse(inst->condition));
+            imprime_arbre(enchaineuse, état, inst->condition);
             état.imprime_indent_avant_bloc = false;
             auto est_sur_même_ligne = le_noeud_est_sur_une_ligne(inst);
             état.imprime_nouvelle_ligne_après_bloc = !est_sur_même_ligne;
@@ -1177,7 +1168,7 @@ static void imprime_arbre(Enchaineuse &enchaineuse,
             auto inst = noeud->comme_si_statique();
             enchaineuse << "#";
             imprime_lexème_mot_clé(enchaineuse, inst, true);
-            imprime_arbre(enchaineuse, état, donne_expression_sans_parenthèse(inst->condition));
+            imprime_arbre(enchaineuse, état, inst->condition);
             état.imprime_indent_avant_bloc = false;
             enchaineuse << " ";
             imprime_arbre(enchaineuse, état, inst->bloc_si_vrai);
@@ -1625,6 +1616,10 @@ static void imprime_arbre(Enchaineuse &enchaineuse,
         {
             break;
         }
+    }
+
+    if (noeud->possède_drapeau(DrapeauxNoeud::EST_ENTRE_PARENTHÈSE)) {
+        enchaineuse << ")";
     }
 }
 

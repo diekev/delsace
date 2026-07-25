@@ -89,7 +89,7 @@ DonnéesDocument :: struct {
         }
         sinon {
             sous_lexèmes: [..]Lexème;
-            sous_lexèmes.pointeur = *lexèmes[it.indice_début];
+            sous_lexèmes.données = *lexèmes[it.indice_début];
             sous_lexèmes.taille = it.indice_fin - it.indice_début;
 
             // supprime les espaces blancs au début du code
@@ -99,7 +99,7 @@ DonnéesDocument :: struct {
                 }
 
                 sous_lexèmes.taille -= 1;
-                sous_lexèmes.pointeur += 1;
+                sous_lexèmes.données += 1;
             }
 
             // supprime les espaces blancs à la fin du code

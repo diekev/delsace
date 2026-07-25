@@ -345,13 +345,13 @@ PyUnicode_CheckExact :: fonc (ob: *PyObject) -> bool
 PyUnicode_AsChaine :: fonc (unicode: *PyObject) -> chaine
 {
     résultat : chaine = ---;
-    résultat.pointeur = PyUnicode_AsUTF8AndSize(unicode, *résultat.taille);
+    résultat.caractères = PyUnicode_AsUTF8AndSize(unicode, *résultat.taille);
     retourne résultat;
 }
 
 PyUnicode_FromChaine :: fonc (chn: chaine) -> *PyObject
 {
-    retourne PyUnicode_FromStringAndSize(chn.pointeur, chn.taille);
+    retourne PyUnicode_FromStringAndSize(chn.caractères, chn.taille);
 }
 
 // ---------------------------------------------------
@@ -615,10 +615,10 @@ format_tampon_pour_info_type :: fonc (info: *InfoType) -> chaine
 
 remplis_champs_requis_py_buffer_générique :: fonc (view: *Py_buffer, tableau: []$T)
 {
-    view.buf = tableau.pointeur;
+    view.buf = tableau.données;
     view.itemsize = taille_de(T) comme Py_ssize_t;
     view.len = (tableau.taille comme n32 * taille_de(T)) comme Py_ssize_t;
-    view.format = format_tampon_pour_info_type(info_de(T)).pointeur;
+    view.format = format_tampon_pour_info_type(info_de(T)).caractères;
 
     // À FAIRE : tableau de tableau
     view.ndim = 1;
@@ -1094,7 +1094,7 @@ PyRun_SimpleString :: fonc (command: chaine) -> bool
 
 PyEval_EvalCodeEx :: fonc (co: *PyObject, globals: *PyObject, locals: *PyObject, args: []*PyObject, kws: []*PyObject, defs: []*PyObject, kwdefs: *PyObject, closure: *PyObject) -> *PyObject
 {
-    retourne PyEval_EvalCodeEx(co, globals, locals, args.pointeur, args.taille comme z32, kws.pointeur, kws.taille comme z32, defs.pointeur, defs.taille comme z32);
+    retourne PyEval_EvalCodeEx(co, globals, locals, args.données, args.taille comme z32, kws.données, kws.taille comme z32, defs.données, defs.taille comme z32);
 }
 
 /** } */
@@ -1228,7 +1228,7 @@ PyConfig_AddModuleSearchPath :: fonc (config: *PyConfig, chemin: chaine)
     /* Ajout terminateur nul. */
     chaine_ajoute(*chemin_recherche, 0);
 
-    _ := PyWideStringList_Append(*config.module_search_paths, chemin_recherche.points_de_code.pointeur);
+    _ := PyWideStringList_Append(*config.module_search_paths, chemin_recherche.points_de_code.données);
     config.module_search_paths_set = 1;
 }
 

@@ -152,7 +152,7 @@ accumule :: fonc (tableau: []$T, valeur_initiale: $V, rappel: fonc (t: T) -> V) 
 
 accumule :: fonc (tableau: []$T, valeur_initiale: T) -> T
 {
-    retourne accumule(tableau.pointeur, tableau.pointeur + tableau.taille, valeur_initiale);
+    retourne accumule(tableau.données, tableau.données + tableau.taille, valeur_initiale);
 }
 
 accumule :: fonc (premier: *$T, dernier: *T) -> T
@@ -249,9 +249,9 @@ pivote :: fonc (premier: *$T, milieu: *T, dernier: *T) -> *T
     diffère déloge(*tampon);
     tableau_redimensionne(*tampon, taille_début);
 
-    copie_mem_nonsur(src = premier, dst = tampon.pointeur, taille = taille_début * taille_de(T) comme z64);
+    copie_mem_nonsur(src = premier, dst = tampon.données, taille = taille_début * taille_de(T) comme z64);
     déplace_mémoire_nonsur(src = milieu, dst = premier, taille = taille_fin * taille_de(T) comme z64);
-    copie_mem_nonsur(src = tampon.pointeur, dst = dernier - taille_début, taille = taille_début * taille_de(T) comme z64);
+    copie_mem_nonsur(src = tampon.données, dst = dernier - taille_début, taille = taille_début * taille_de(T) comme z64);
 
     retourne suivant(premier, taille_fin);
 }
@@ -403,7 +403,7 @@ copie_depuis_la_fin :: fonc (premier: *$T, dernier: *T, résultat: *T)
 
 énième_élément :: fonc (tableau: []$T, indice: z64, comp: fonc (a: T, b: T) -> bool) -> T
 {
-    début := tableau.pointeur;
+    début := tableau.données;
     élément := début + indice;
     fin := début + tableau.taille;
 
