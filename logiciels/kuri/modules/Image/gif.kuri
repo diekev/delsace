@@ -76,7 +76,7 @@ lis_frame_gif :: fonc (gif: *gd_GIF, résultat: NouvelleImage) -> bool
     assert(gif == résultat.gif);
 
     tampon: []octet;
-    tampon.pointeur = résultat.données;
+    tampon.données = résultat.données;
     tampon.taille = donne_taille_données(*résultat.desc);
 
     saufsi est_valide(gif.charge_gif) {
@@ -126,7 +126,7 @@ gd_Palette :: struct {
 lis_palette :: fonc (flux: *FluxOctets, palette: *gd_Palette)
 {
     gtc: []octet;
-    gtc.pointeur = *palette.colors;
+    gtc.données = *palette.colors;
     gtc.taille = 3 * palette.size;
     _ := lis(flux, gtc);
 }
@@ -153,7 +153,7 @@ Table :: struct {
 gd_open_gif :: fonc (charge_gif: *FluxOctets) -> *gd_GIF
 {
     sigver: [3]z8;
-    chn_sigver := chaine(*sigver[0], 3);
+    chn_sigver := chaine(sigver.données, 3);
 
     /* Header */
     _ := lis(charge_gif, sigver);
@@ -208,12 +208,12 @@ gd_open_gif :: fonc (charge_gif: *FluxOctets) -> *gd_GIF
     tableau_redimensionne(*gif.frame, 4 * width comme z32 * height comme z32);
     tableau_remplis_avec(gif.frame, 0);
 
-    gif.canvas.pointeur = *gif.frame[width comme n32 * height];
+    gif.canvas.données = *gif.frame[width comme n32 * height];
     gif.canvas.taille = 3 * width comme z32 * height comme z32;
 
     si gif.possède_gct {
         tableau_frame: []n8;
-        tableau_frame.pointeur = gif.frame.pointeur comme *n8;
+        tableau_frame.données = gif.frame.données comme *n8;
         tableau_frame.taille = width comme z32 * height comme z32;
         tableau_remplis_avec(tableau_frame, gif.bgindex);
 
@@ -255,7 +255,7 @@ gd_get_frame :: fonc (gif: *gd_GIF) -> z32
 
 gd_render_frame :: fonc (gif: *gd_GIF, tampon: []octet)
 {
-    copie_mem_nonsur(dst = tampon.pointeur, src = gif.canvas.pointeur, taille = gif.width comme z32 * gif.height comme z32 * 3);
+    copie_mem_nonsur(dst = tampon.données, src = gif.canvas.données, taille = gif.width comme z32 * gif.height comme z32 * 3);
     render_frame_rect(gif, tampon);
 }
 
@@ -340,10 +340,10 @@ read_comment_ext :: fonc (gif: *gd_GIF)
 read_application_ext :: fonc (gif: *gd_GIF)
 {
     app_id: [8]z8;
-    chn_app_id := chaine(*app_id[0], app_id.taille);
+    chn_app_id := chaine(app_id.données, app_id.taille);
 
     app_auth_code: [3]z8;
-    chn_app_auth_code := chaine(*app_auth_code[0], app_auth_code.taille);
+    chn_app_auth_code := chaine(app_auth_code.données, app_auth_code.taille);
 
     /* Discard block size (always 0x0B). */
     bloc_size, _ := lis_petit_boutisme(gif.charge_gif, n8);

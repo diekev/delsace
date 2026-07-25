@@ -63,27 +63,27 @@ Z_NULL :: 0;  /* for initializing zalloc, zfree, opaque */
 
 deflateInit :: fonc (strm: z_streamp, level: z32) -> z32
 {
-    retourne deflateInit_(strm, level, ZLIB_VERSION.pointeur, taille_de(z_stream) comme z32);
+    retourne deflateInit_(strm, level, ZLIB_VERSION.caractères, taille_de(z_stream) comme z32);
 }
 
 inflateInit :: fonc (strm: z_streamp) -> z32
 {
-    retourne inflateInit_(strm, ZLIB_VERSION.pointeur, taille_de(z_stream) comme z32);
+    retourne inflateInit_(strm, ZLIB_VERSION.caractères, taille_de(z_stream) comme z32);
 }
 
 deflateInit2 :: fonc (strm: z_streamp, level: z32, method: z32, windowBits: z32, memLevel: z32, strategy: z32) -> z32
 {
-    retourne deflateInit2_(strm, level, method, windowBits, memLevel, strategy, ZLIB_VERSION.pointeur, taille_de(z_stream) comme z32);
+    retourne deflateInit2_(strm, level, method, windowBits, memLevel, strategy, ZLIB_VERSION.caractères, taille_de(z_stream) comme z32);
 }
 
 inflateInit2 :: fonc (strm: z_streamp, windowBits: z32) -> z32
 {
-    retourne inflateInit2_(strm, windowBits, ZLIB_VERSION.pointeur, taille_de(z_stream) comme z32);
+    retourne inflateInit2_(strm, windowBits, ZLIB_VERSION.caractères, taille_de(z_stream) comme z32);
 }
 
 inflateBackInit :: fonc (strm: z_streamp, windowBits: z32, window: *n8) -> z32
 {
-    retourne inflateBackInit_(strm, windowBits, window, ZLIB_VERSION.pointeur, taille_de(z_stream) comme z32);
+    retourne inflateBackInit_(strm, windowBits, window, ZLIB_VERSION.caractères, taille_de(z_stream) comme z32);
 }
 
 // gzgetc :: fonc (file: gzFile) -> z32
@@ -119,13 +119,13 @@ compresse :: fonc (entrée: []octet, niveau: z32) -> (z32, [..]octet)
 
     /* Compresse jusqu'à la fin du flux d'entrée. */
     strm.avail_in = entrée.taille comme n32;
-    strm.next_in = entrée.pointeur comme *n8;
+    strm.next_in = entrée.données comme *n8;
 
     tampon: [1024]n8;
 
     répète {
         strm.avail_out = 1024;
-        strm.next_out = *tampon[0];
+        strm.next_out = tampon.données;
 
         ret = deflate(*strm, Z_FINISH);   /* Pas de mauvaise valeur de retour. */
         assert(ret != Z_STREAM_ERROR); /* state not clobbered */
@@ -135,7 +135,7 @@ compresse :: fonc (entrée: []octet, niveau: z32) -> (z32, [..]octet)
 
         ancienne_taille := résultat.taille;
         tableau_redimensionne(*résultat, résultat.taille + have comme z64);
-        copie_mem_nonsur(src = *tampon[0], dst = résultat.pointeur + ancienne_taille, taille = have comme z64);
+        copie_mem_nonsur(src = tampon.données, dst = résultat.données + ancienne_taille, taille = have comme z64);
     } tantque (strm.avail_out == 0);
 
     assert(strm.avail_in == 0); /* all input will be used */
@@ -169,10 +169,10 @@ décompresse :: fonc (entrée: []octet) -> (z32, [..]octet)
         }
 
         entrée.taille -= entrée_courante.taille;
-        entrée.pointeur += entrée_courante.taille;
+        entrée.données += entrée_courante.taille;
 
         strm.avail_in = entrée_courante.taille comme n32;
-        strm.next_in = entrée_courante.pointeur comme *n8;
+        strm.next_in = entrée_courante.données comme *n8;
         si strm.avail_in == 0 {
             arrête;
         }
@@ -180,7 +180,7 @@ décompresse :: fonc (entrée: []octet) -> (z32, [..]octet)
         /* run inflate() on input until output buffer not full */
         répète {
             strm.avail_out = 1024;
-            strm.next_out = *tampon[0];
+            strm.next_out = tampon.données;
 
             ret = inflate(*strm, Z_NO_FLUSH);
             assert(ret != Z_STREAM_ERROR); /* state not clobbered */
@@ -195,7 +195,7 @@ décompresse :: fonc (entrée: []octet) -> (z32, [..]octet)
             have := 1024 - strm.avail_out;
             ancienne_taille := résultat.taille;
             tableau_redimensionne(*résultat, ancienne_taille + have comme z64);
-            copie_mem_nonsur(src = *tampon[0], dst = résultat.pointeur + ancienne_taille, taille = have comme z64);
+            copie_mem_nonsur(src = tampon.données, dst = résultat.données + ancienne_taille, taille = have comme z64);
         } tantque (strm.avail_out == 0); /* done when inflate() says it's done */
     } tantque (ret != Z_STREAM_END);
 

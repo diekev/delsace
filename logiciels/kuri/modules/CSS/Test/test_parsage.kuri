@@ -41,7 +41,7 @@ charge_cas_parsage :: fonc () -> DonnéesTestParsage
             indice += 1;
 
             cas := tableau_ajoute_élément(*cas_parsage);
-            cas.entrée.pointeur = lignes.pointeur + indice;
+            cas.entrée.données = lignes.données + indice;
             cas.entrée.taille = 1;
             indice += 1;
 
@@ -55,7 +55,7 @@ charge_cas_parsage :: fonc () -> DonnéesTestParsage
                 indice += 1;
             }
 
-            cas.sortie.pointeur = lignes.pointeur + indice;
+            cas.sortie.données = lignes.données + indice;
             cas.sortie.taille = 1;
             indice += 1;
 

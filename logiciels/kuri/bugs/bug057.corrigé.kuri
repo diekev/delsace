@@ -9,7 +9,7 @@ importe Support;
 test_arithmétique_pointeur :: fonc () -> bool
 {
     x: [3]z32;
-    y := *x[0];
+    y := x.données;
 
     mémoire(y) = 1;
     y += 1;
