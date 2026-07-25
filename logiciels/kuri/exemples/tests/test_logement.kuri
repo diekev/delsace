@@ -96,7 +96,7 @@ logement_chaine :: fonc () -> rien
 
     déloge(*chnr);
 
-    imprime("Chaîne délogée : %\n", chnr.pointeur);
+    imprime("Chaîne délogée : %\n", chnr.caractères);
     imprime("Taille chaîne  : %\n", chnr.taille);
 }
 

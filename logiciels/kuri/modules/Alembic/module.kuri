@@ -17,7 +17,7 @@ ABC_crée_lectrice_cache :: fonc (ctx_kuri: *ContexteKuri, archive: *ArchiveCach
 
 vers_abc_string :: fonc (chn: chaine) -> Abc_String
 {
-    retourne Abc_String(chn.pointeur, chn.taille comme n64);
+    retourne Abc_String(chn.caractères, chn.taille comme n64);
 }
 
 vers_kuri :: fonc (chn: Abc_String) -> chaine

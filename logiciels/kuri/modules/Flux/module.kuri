@@ -195,7 +195,7 @@ lis_chaine_nul_terminée :: fonc (flux: *FluxOctetsMémoire) -> chaine
     résultat: chaine;
 
     si flux.curseur.taille {
-        résultat.pointeur = flux.curseur.données comme *z8;
+        résultat.caractères = flux.curseur.données comme *z8;
 
         curseur := flux.curseur.données;
         fin := curseur + flux.curseur.taille;

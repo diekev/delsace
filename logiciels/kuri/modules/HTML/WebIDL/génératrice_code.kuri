@@ -1193,9 +1193,9 @@ donne_info_erreur_pour_lexème :: fonc (parseuse: *ParseuseInterface, lexème: c
     résultat: InfoErreur;
     résultat.numéro_ligne = 1;
 
-    début_texte := parseuse.texte.pointeur;
-    fin_texte := parseuse.texte.pointeur + parseuse.texte.taille;
-    début_lexème := lexème.pointeur;
+    début_texte := parseuse.texte.caractères;
+    fin_texte := parseuse.texte.caractères + parseuse.texte.taille;
+    début_lexème := lexème.caractères;
 
     it := début_texte;
     pos_dernière_ligne := début_texte;
@@ -1234,8 +1234,8 @@ ParseuseInterface :: struct {
 crée_parseuse :: fonc (chemin: CheminFichier, texte: chaine) -> ParseuseInterface
 {
     résultat : ParseuseInterface = ---;
-    résultat.début = texte.pointeur;
-    résultat.fin = texte.pointeur + texte.taille;
+    résultat.début = texte.caractères;
+    résultat.fin = texte.caractères + texte.taille;
     résultat.chemin = chemin;
     résultat.texte = texte;
     retourne résultat;

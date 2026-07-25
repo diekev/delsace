@@ -290,8 +290,8 @@ donne_glyphes :: fonc (fonte: *Fonte, texte: chaine) -> []*texture_glyph_t
 {
     fonte.glyphes.taille = 0;
 
-    début := texte.pointeur;
-    fin := texte.pointeur + texte.taille;
+    début := texte.caractères;
+    fin := texte.caractères + texte.taille;
 
     tantque début < fin {
         n := nombre_octets_utf8_rapide(début);

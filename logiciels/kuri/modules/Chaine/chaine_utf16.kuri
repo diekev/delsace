@@ -704,7 +704,7 @@ ajoute :: fonc (enchaineuse: *EnchaineuseUTF16, rune: rune16)
 
 ajoute :: fonc (enchaineuse: *EnchaineuseUTF16, chn: chaine)
 {
-    ptr_source := chn.pointeur;
+    ptr_source := chn.caractères;
     curseur := 0;
     tantque curseur < chn.taille {
         no := nombre_octets_utf8_rapide(*ptr_source[curseur]);
@@ -833,7 +833,7 @@ crée_flux_sortie :: fonc (enchaineuse: *Enchaineuse) -> FluxSortie
         taille := point_de_code_vers_utf8(point_de_code, séquence.données);
 
         chn: chaine = ---;
-        chn.pointeur = séquence.données comme *z8;
+        chn.caractères = séquence.données comme *z8;
         chn.taille = taille;
 
         ajoute_au_tampon(enchaineuse_, chn);

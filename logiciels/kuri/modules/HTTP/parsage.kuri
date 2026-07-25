@@ -25,7 +25,7 @@ taille_position :: fonc (position: PositionChaine) -> z32
 
 sous_chaine :: fonc (chn: chaine, position: PositionChaine) -> chaine
 {
-    retourne chaine(chn.pointeur + position.début, position.fin - position.début);
+    retourne chaine(chn.caractères + position.début, position.fin - position.début);
 }
 
 // ----------------------------------------------------
@@ -150,7 +150,7 @@ donne_données_après_message :: fonc (parseuse: *ParseuseHTTP) -> []octet
     résultat: []octet;
     taille_contenu := parseuse.parseuse_chaine.chn.taille - parseuse.parseuse_chaine.curseur;
     si taille_contenu != 0 {
-        résultat.données = (parseuse.données.pointeur + parseuse.données.taille - taille_contenu) comme *octet;
+        résultat.données = (parseuse.données.caractères + parseuse.données.taille - taille_contenu) comme *octet;
         résultat.taille = taille_contenu;
     }
     retourne résultat;

@@ -48,7 +48,7 @@ parse_ligne :: fonc (parseuse: *Parseuse, ligne: chaine)
     initialise_pour_ligne(parseuse, ligne);
 
     indentation := compte_indentation(parseuse);
-    ligne.pointeur += indentation;
+    ligne.caractères += indentation;
     ligne.taille -= indentation;
 
     si parseuse.bloc.indentation == -1 {
@@ -456,8 +456,8 @@ Parseuse :: struct {
 initialise_pour_ligne :: fonc (parseuse: *Parseuse, ligne: chaine)
 {
     parseuse.ligne_courante = ligne;
-    parseuse.début = ligne.pointeur;
-    parseuse.fin = ligne.pointeur + ligne.taille;
+    parseuse.début = ligne.caractères;
+    parseuse.fin = ligne.caractères + ligne.taille;
 }
 
 crée_instruction :: fonc (parseuse: *Parseuse, ligne: chaine, $T: type_de_données) -> *T

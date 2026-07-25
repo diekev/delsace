@@ -74,7 +74,7 @@ crée_chaine_utf32 :: fonc (chn: chaine, résultat: *ChaineUTF32)
 {
     tableau_réserve(*résultat.points_de_code, chn.taille);
 
-    ptr_source := chn.pointeur;
+    ptr_source := chn.caractères;
     curseur := 0;
 
     ptr_résultat := résultat.points_de_code.données;
@@ -130,7 +130,7 @@ opérateur == :: (chn_utf32: ChaineUTF32, chn_native: chaine) -> bool
     curseur_chn_native := 0;
     curseur_chn_utf32 := 0;
 
-    ptr_natif := chn_native.pointeur;
+    ptr_natif := chn_native.caractères;
 
     tantque curseur_chn_native < chn_native.taille {
         si curseur_chn_utf32 >= chn_utf32.taille() {

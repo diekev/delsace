@@ -544,7 +544,7 @@ système_chemin_courant :: fonc (chemin: CheminFichier) -> Optionnel(ErreurFichi
 système_donne_chemin_exécutable :: fonc (tampon_chemin: *TamponChemin, imprime_erreur: bool) -> bool
 {
     résultat := vrai;
-    len := readlink(ChaineC("/proc/self/exe".pointeur), tampon_chemin.données.données, TAILLE_MAX_CHEMIN comme n64);
+    len := readlink(ChaineC("/proc/self/exe".caractères), tampon_chemin.données.données, TAILLE_MAX_CHEMIN comme n64);
     si len < 0 {
         si imprime_erreur {
             imprimeln("impossible de déterminer le chemin de l'exécutable");
@@ -891,13 +891,13 @@ système_chemin_exécutable :: fonc () -> Résultat(CheminFichier, ErreurFichier
     TAILLE_TAMPON_READLINK :: 1024;
     tampon : [TAILLE_TAMPON_READLINK]z8 = ---;
 
-    lus := readlink(ChaineC("/proc/self/exe".pointeur), tampon.données, TAILLE_TAMPON_READLINK comme n64);
+    lus := readlink(ChaineC("/proc/self/exe".caractères), tampon.données, TAILLE_TAMPON_READLINK comme n64);
     si lus < 0 {
         retourne convertis_errno_en_erreur_fichier();
     }
 
     chn := loge_chaine(lus);
-    copie_mem_nonsur(src = tampon.données, dst = chn.pointeur, taille = lus);
+    copie_mem_nonsur(src = tampon.données, dst = chn.caractères, taille = lus);
 
     résultat.chn = chn;
 

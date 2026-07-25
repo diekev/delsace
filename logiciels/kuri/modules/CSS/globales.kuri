@@ -177,16 +177,16 @@ donne_chemin_fonte :: fonc (ctx: *GlobalesDessin, famille: CSSOMString, style: c
     chaine_c_famille := crée_chaine_c(chn_famille);
     diffère détruit_chaine_c(*chaine_c_famille);
 
-    _ := FcPatternAddString(pattern, FC_FAMILY.pointeur, chaine_c_famille comme *z8 comme *FcChar8);
+    _ := FcPatternAddString(pattern, FC_FAMILY.caractères, chaine_c_famille comme *z8 comme *FcChar8);
 
     si style == "italic" {
-        _ := FcPatternAddInteger(pattern, FC_SLANT.pointeur, FC_SLANT_ITALIC);
+        _ := FcPatternAddInteger(pattern, FC_SLANT.caractères, FC_SLANT_ITALIC);
     }
     sinon {
         assert(style == "normal");
     }
 
-    _ := FcPatternAddInteger(pattern, FC_WEIGHT.pointeur, donne_fontconfig_weight(graisse));
+    _ := FcPatternAddInteger(pattern, FC_WEIGHT.caractères, donne_fontconfig_weight(graisse));
 
     _ := FcConfigSubstitute(ctx.fontconfig, pattern, FcMatchKind.FcMatchPattern);
     FcDefaultSubstitute(pattern);
@@ -199,7 +199,7 @@ donne_chemin_fonte :: fonc (ctx: *GlobalesDessin, famille: CSSOMString, style: c
     diffère FcPatternDestroy(match);
 
     value: FcValue;
-    résultat := FcPatternGet(match, FC_FILE.pointeur, 0, *value);
+    résultat := FcPatternGet(match, FC_FILE.caractères, 0, *value);
     si résultat == FcResult.FcResultMatch {
         chemin := convertis_chaine_c(ChaineC(value.u.f comme *z8));
         retourne copie_chaine(chemin);

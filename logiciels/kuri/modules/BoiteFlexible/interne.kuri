@@ -756,7 +756,7 @@ donne_boite_sous_souris :: fonc (emboiteuse: *Emboiteuse, ignore_boite: *Boite_D
 
 fragmente_texte :: fonc (emboiteuse: *Emboiteuse, boite: *Boite_Flexible)
 {
-    début := boite.texte.pointeur;
+    début := boite.texte.caractères;
     fin := début + boite.texte.taille;
 
     premier_fragment := emboiteuse.fragments.taille comme n32;
@@ -768,7 +768,7 @@ fragmente_texte :: fonc (emboiteuse: *Emboiteuse, boite: *Boite_Flexible)
             fragment := chaine(début, courant - début);
             dernier_fragment = ajoute_fragment(emboiteuse, fragment, faux);
 
-            fragment.pointeur = courant;
+            fragment.caractères = courant;
             fragment.taille = 1;
             dernier_fragment = ajoute_fragment(emboiteuse, fragment, vrai);
 

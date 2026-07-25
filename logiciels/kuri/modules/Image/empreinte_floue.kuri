@@ -370,7 +370,7 @@ decodeToInt :: fonc (empreinte: chaine, start: z32, end: z32) -> z32
 {
     résultat := 0;
 
-    chn := chaine(empreinte.pointeur + start, end - start);
+    chn := chaine(empreinte.caractères + start, end - start);
 
     table := donne_table_caractères_empreinte_floue();
     pour chn {

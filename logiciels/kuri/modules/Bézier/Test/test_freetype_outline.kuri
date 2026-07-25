@@ -39,8 +39,8 @@ principale :: fonc ()
             }
 
             si it.type == TypeÉvènement.Clavier && it.touche_pressée && it.texte {
-                n := nombre_octets_utf8_rapide(it.texte.pointeur);
-                point_de_code := convertis_utf8_utf32(it.texte.pointeur, n) comme n32;
+                n := nombre_octets_utf8_rapide(it.texte.caractères);
+                point_de_code := convertis_utf8_utf32(it.texte.caractères, n) comme n32;
                 _ := charge_chemin_depuis_caractètre(chemin_fonte, point_de_code, *chemin);
             }
         }
@@ -80,7 +80,7 @@ charge_chemin_depuis_caractètre :: fonc (chemin_fonte: chaine, point_de_code: n
     diffère _ := FT_Done_FreeType(library);
 
     face: FT_Face;
-    error = FT_New_Face(library, chemin_fonte.pointeur, 0, *face);
+    error = FT_New_Face(library, chemin_fonte.caractères, 0, *face);
     si error {
         imprime_erreur_freetype(error);
         exit(1);

@@ -386,7 +386,7 @@ Typeuse::Typeuse(kuri::Synchrone<GrapheDépendance> &g) : graphe_(g)
     calcule_taille_type_composé(type_eini, false, 0);
 
     auto rubriques_chaine = kuri::tableau<RubriqueTypeComposé, int>();
-    rubriques_chaine.ajoute({nullptr, type_ptr_z8, ID::pointeur});
+    rubriques_chaine.ajoute({nullptr, type_ptr_z8, ID::caractères});
     rubriques_chaine.ajoute({nullptr, type_z64, ID::taille});
     type_chaine = alloc->m_noeuds_type_chaine.ajoute_élément();
     type_chaine->ident = ID::chaine;

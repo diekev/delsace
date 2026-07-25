@@ -477,7 +477,7 @@ crée_contexte_opengl_x11 :: fonc (display: *Display, id_écran: z32) -> (*XVisu
 
     /* Création du contexte OpenGL. */
     glXCreateContextAttribsARBProc :: fonc (display: *Display, config: GLXFBConfig, context: GLXContext, cond: Bool, attributs: *z32) -> GLXContext;
-    glXCreateContextAttribsARB := glXGetProcAddressARB("glXCreateContextAttribsARB".pointeur comme *GLubyte) comme adresse_fonction comme glXCreateContextAttribsARBProc;
+    glXCreateContextAttribsARB := glXGetProcAddressARB("glXCreateContextAttribsARB".caractères comme *GLubyte) comme adresse_fonction comme glXCreateContextAttribsARBProc;
 
     context_attribs : []GLenum = [
         GLX_CONTEXT_MAJOR_VERSION_ARB, 3,

@@ -68,7 +68,7 @@ vers_kuri :: fonc (chn: QT_Chaine) -> chaine #enligne
 
 vers_qt :: fonc (chn: chaine) -> QT_Chaine
 {
-    retourne QT_Chaine(chn.pointeur, chn.taille);
+    retourne QT_Chaine(chn.caractères, chn.taille);
 }
 
 QT_crée_label :: fonc (texte: chaine, parent: QT_Generic_Widget) -> *QT_Label

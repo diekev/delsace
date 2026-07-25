@@ -156,13 +156,13 @@ détruit :: fonc (hacheuse: **HACHEUSE)
 
 ajourne :: fonc (hacheuse: *HACHEUSE, message: chaine)
 {
-    KRYPTO_HACHEUSE_ajourne(hacheuse, message.pointeur, message.taille comme n64);
+    KRYPTO_HACHEUSE_ajourne(hacheuse, message.caractères, message.taille comme n64);
 }
 
 ajourne :: fonc (hacheuse: *HACHEUSE, message: $T)
 {
     c := chaine(*message comme *z8, taille_de(T) comme z64);
-    KRYPTO_HACHEUSE_ajourne(hacheuse, c.pointeur, c.taille comme n64);
+    KRYPTO_HACHEUSE_ajourne(hacheuse, c.caractères, c.taille comme n64);
 }
 
 réinitialise :: fonc (hacheuse: *HACHEUSE)
@@ -186,7 +186,7 @@ donne_condensat :: fonc (hacheuse: *HACHEUSE, résultat: *Condensat)
 donne_condensat_hex :: fonc (hacheuse: *HACHEUSE) -> chaine
 {
     résultat := loge_chaine(2 * taille_condensat(hacheuse));
-    KRYPTO_HACHEUSE_condensat_hex(hacheuse, résultat.pointeur);
+    KRYPTO_HACHEUSE_condensat_hex(hacheuse, résultat.caractères);
     retourne résultat;
 }
 

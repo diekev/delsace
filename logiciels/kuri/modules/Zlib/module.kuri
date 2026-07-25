@@ -63,12 +63,12 @@ Z_NULL :: 0;  /* for initializing zalloc, zfree, opaque */
 
 deflateInit :: fonc (strm: z_streamp, level: z32) -> z32
 {
-    retourne deflateInit_(strm, level, ZLIB_VERSION.pointeur, taille_de(z_stream) comme z32);
+    retourne deflateInit_(strm, level, ZLIB_VERSION.caractères, taille_de(z_stream) comme z32);
 }
 
 inflateInit :: fonc (strm: z_streamp) -> z32
 {
-    retourne inflateInit_(strm, ZLIB_VERSION.pointeur, taille_de(z_stream) comme z32);
+    retourne inflateInit_(strm, ZLIB_VERSION.caractères, taille_de(z_stream) comme z32);
 }
 
 deflateInit2 :: fonc (strm: z_streamp, level: z32, method: z32, windowBits: z32, memLevel: z32, strategy: z32) -> z32

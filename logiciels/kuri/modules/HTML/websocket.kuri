@@ -140,7 +140,7 @@ send :: fonc (web_socket: *WebSocket, data: DOMString)
 
     chaine_native := convertis_vers_chaine(data.donne_chaine_utf16());
     données: [..]octet;
-    données.données = chaine_native.pointeur;
+    données.données = chaine_native.caractères;
     données.taille = chaine_native.taille;
     données.capacité = données.taille;
 

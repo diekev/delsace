@@ -271,10 +271,10 @@ nombre_itérations_plage :: fonc (début: z32, fin: z32) -> z32
 test_fonction_externe :: fonc ()
 {
     chn := "\x1b[34mFR\x1b[mAN\x1b[31mCE\x1b[m\n";
-    taille := write(1, chn.pointeur, chn.taille);
+    taille := write(1, chn.caractères, chn.taille);
 
     chn = "\x1b[32mIT\x1b[mAL\x1b[31mIE\x1b[m\n";
-    taille = write(1, chn.pointeur, chn.taille);
+    taille = write(1, chn.caractères, chn.taille);
 }
 
 #exécute test_fonction_externe();

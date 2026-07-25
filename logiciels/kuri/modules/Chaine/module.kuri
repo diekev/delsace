@@ -206,7 +206,7 @@ chaine_ajoute :: fonc (chn: *chaine, donnée: chaine)
     taille := chn.taille;
     reloge_chaine(*tmp, taille + donnée.taille);
 
-    copie_mem_nonsur(src = donnée.pointeur, dst = tmp.pointeur + taille, taille = donnée.taille);
+    copie_mem_nonsur(src = donnée.caractères, dst = tmp.caractères + taille, taille = donnée.taille);
 
     mémoire(chn) = tmp;
 }
@@ -223,7 +223,7 @@ copie_chaine :: fonc (chn: chaine) -> chaine
     }
 
     nchn := loge_chaine(chn.taille);
-    copie_mem_nonsur(src = chn.pointeur, dst = nchn.pointeur, taille = chn.taille);
+    copie_mem_nonsur(src = chn.caractères, dst = nchn.caractères, taille = chn.taille);
     retourne nchn;
 }
 
@@ -267,12 +267,12 @@ avance :: fonc (ligne: chaine, compte: z64) -> chaine
     si compte > ligne.taille {
         retourne "";
     }
-    retourne chaine(ligne.pointeur + compte, ligne.taille - compte);
+    retourne chaine(ligne.caractères + compte, ligne.taille - compte);
 }
 
 recule :: fonc (ligne: chaine, compte: z64) -> chaine
 {
-    retourne chaine(ligne.pointeur, ligne.taille - compte);
+    retourne chaine(ligne.caractères, ligne.taille - compte);
 }
 
 est_espace_blanche :: fonc (c: z8) -> bool
@@ -356,7 +356,7 @@ commence_par :: fonc (ligne: chaine, motif: chaine) -> bool
         retourne faux;
     }
 
-    tmp := chaine(ligne.pointeur, motif.taille);
+    tmp := chaine(ligne.caractères, motif.taille);
 
     retourne tmp == motif;
 }
@@ -378,7 +378,7 @@ fini_par :: fonc (ligne: chaine, motif: chaine) -> bool
         retourne faux;
     }
 
-    tmp := chaine(ligne.pointeur + ligne.taille - motif.taille, motif.taille);
+    tmp := chaine(ligne.caractères + ligne.taille - motif.taille, motif.taille);
 
     retourne tmp == motif;
 }
@@ -516,9 +516,9 @@ sous_chaine :: fonc (chn: chaine, pos_début: z64, pos_fin: z64) -> chaine #enli
 
 est_sous_chaine :: fonc (a: chaine, b: chaine) -> bool
 {
-    début_a := a.pointeur;
+    début_a := a.caractères;
     fin_a := début_a + a.taille;
-    début_b := b.pointeur;
+    début_b := b.caractères;
     fin_b := début_b + b.taille;
 
     retourne début_a <= début_b <= fin_a && début_a <= fin_b <= fin_a;
@@ -526,9 +526,9 @@ est_sous_chaine :: fonc (a: chaine, b: chaine) -> bool
 
 donne_ligne_contenant_mot :: fonc (texte: chaine, mot: chaine) -> chaine
 {
-    début := texte.pointeur;
-    fin := texte.pointeur + texte.taille;
-    ptr_position := mot.pointeur;
+    début := texte.caractères;
+    fin := texte.caractères + texte.taille;
+    ptr_position := mot.caractères;
 
     saufsi début <= ptr_position < fin {
         retourne "";
@@ -737,7 +737,7 @@ recule_si :: fonc (chn: chaine, condition: fonc (caractère: z8) -> bool) -> cha
         début -= 1;
     }
 
-    retourne chaine(chn.pointeur, début + 1);
+    retourne chaine(chn.caractères, début + 1);
 }
 
 apparie_chaine :: fonc (chn1: chaine, chn2: chaine, n: z64) -> bool
@@ -1042,7 +1042,7 @@ point_de_code_suivant :: fonc (empl itératrice: *ItératricePointsDeCodeChaine)
 {
     point_de_code: n32;
     
-    ptr_source := chn.pointeur + itératrice.curseur;
+    ptr_source := chn.caractères + itératrice.curseur;
 
     no := nombre_octets_utf8_rapide(ptr_source);
     si no == 0 {

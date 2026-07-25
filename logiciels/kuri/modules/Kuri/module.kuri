@@ -246,9 +246,9 @@ loge_chaine :: fonc (taille: z64, pos := #position_code_source) -> chaine
 
 reloge_chaine :: fonc (chn: *chaine, nouvelle_taille: z64, pos := #position_code_source)
 {
-    ptr := reloge_mémoire(chn.taille, nouvelle_taille, chn.pointeur, info_de(chaine), pos);
+    ptr := reloge_mémoire(chn.taille, nouvelle_taille, chn.caractères, info_de(chaine), pos);
 
-    chn.pointeur = ptr;
+    chn.caractères = ptr;
     chn.taille = nouvelle_taille;
 }
 
@@ -257,15 +257,15 @@ déloge :: fonc (chn: *chaine, pos := #position_code_source)
     /* Les chaines nulles peuvent avoir un pointeur valide car elles pointent
      * vers une chaine ne contenant qu'un caractère nul. */
     si chn.taille != 0 {
-        déloge_mémoire(chn.taille, chn.pointeur, info_de(chaine), pos);
+        déloge_mémoire(chn.taille, chn.caractères, info_de(chaine), pos);
         init_de(chaine)(chn);
     }
 }
 
 déloge_si_logée :: fonc (chn: *chaine, pos := #position_code_source)
 {
-    saufsi intrinsèque_est_adresse_données_constantes(chn.pointeur) {
-        déloge_mémoire(chn.taille, chn.pointeur, info_de(chaine), pos);
+    saufsi intrinsèque_est_adresse_données_constantes(chn.caractères) {
+        déloge_mémoire(chn.taille, chn.caractères, info_de(chaine), pos);
     }
     init_de(chaine)(chn);
 }
@@ -806,7 +806,7 @@ arguments_ligne_commande :: fonc () -> []chaine
 
         pour __arguments_ligne_commande {
             chn: chaine;
-            chn.pointeur = it;
+            chn.caractères = it;
             chn.taille = POSIX.strlen(it) comme z64;
             tableau_ajoute(*tabl_args, chn);
         }

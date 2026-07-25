@@ -229,7 +229,7 @@ imprime_date_http :: fonc (enchaineuse: *Enchaineuse, date: DateHTTP)
     ajoute(*tampon, 'T');
 
     chn: chaine = ---;
-    chn.pointeur = tampon.données.données;
+    chn.caractères = tampon.données.données;
     chn.taille = tampon.curseur;
 
     ajoute_au_tampon(enchaineuse, chn);

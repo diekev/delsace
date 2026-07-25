@@ -47,7 +47,7 @@ test_logement_chaine :: fonc ()
 
     chn := loge_chaine(10);
 
-    imprime("chn.pointeur : %\n", chn.pointeur);
+    imprime("chn.pointeur : %\n", chn.caractères);
     imprime("chn.taille   : %\n", chn.taille);
 
     chn[0] = 'k';
@@ -61,7 +61,7 @@ test_logement_chaine :: fonc ()
 
     reloge_chaine(*chn, 20);
 
-    imprime("chn.pointeur : %\n", chn.pointeur);
+    imprime("chn.pointeur : %\n", chn.caractères);
     imprime("chn.taille   : %\n", chn.taille);
 
     pour chn {
@@ -70,7 +70,7 @@ test_logement_chaine :: fonc ()
 
     déloge(*chn);
 
-    imprime("chn.pointeur : %\n", chn.pointeur);
+    imprime("chn.pointeur : %\n", chn.caractères);
     imprime("chn.taille   : %\n", chn.taille);
 
     imprime("\n");

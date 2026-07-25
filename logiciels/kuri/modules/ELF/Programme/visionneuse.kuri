@@ -1362,7 +1362,7 @@ donne_tabuleuse_note :: fonc (fichier: *Fichier_Ouvert, fonte: *Fonte, tabuleuse
 
                 si note.n_type == NT_GNU_BUILD_ID {
                     condensat: Condensat;
-                    condensat.données.données = desc.pointeur;
+                    condensat.données.données = desc.caractères;
                     condensat.données.taille = desc.taille;
 
                     desc = donne_chaine_hex(condensat);
@@ -1372,7 +1372,7 @@ donne_tabuleuse_note :: fonc (fichier: *Fichier_Ouvert, fonte: *Fonte, tabuleuse
                     initialise_enchaineuse(*enchaineuse);
 
                     mots: []n32;
-                    mots.données = desc.pointeur comme *n32;
+                    mots.données = desc.caractères comme *n32;
                     mots.taille = 4;
 
                     si mots[0] == GNU_PROPERTY_X86_ISA_1_USED {
@@ -1481,7 +1481,7 @@ donne_tabuleuse_données_hex :: fonc (fichier: *Fichier_Ouvert, fonte: *Fonte, t
                 }
 
                 texte_données: chaine = ---;
-                texte_données.pointeur = tampon_texte_données.données.données;
+                texte_données.caractères = tampon_texte_données.données.données;
                 texte_données.taille = tampon_texte_données.curseur;
 
                 ajoute_ligne(tabuleuse, décalage, copie_chaine(texte_données), texte);

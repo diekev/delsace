@@ -48,7 +48,7 @@ est_ligne_originelle :: fonc (données: *DonnéesFichier, ligne: chaine) -> bool
     fin_contenu := début_contenu + données.contenu.taille;
     /* fin_contenu se trouve un octet après la fin du contenu, donc nous devons
      * faire une comparaison strictement inférieure. */
-    retourne début_contenu <= ligne.pointeur < fin_contenu;
+    retourne début_contenu <= ligne.caractères < fin_contenu;
 }
 
 remplace_lignes :: fonc (données: *DonnéesFichier, nouvelles_lignes: [..]chaine)

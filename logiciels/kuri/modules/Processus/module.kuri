@@ -333,7 +333,7 @@ exécute_commande_externe :: fonc (commande: chaine) -> bool
     commande_non_suffixé := recule(commande, 1);
     imprimeln("Exécution de : %", commande_non_suffixé);
 
-    si system(ChaineC(commande.pointeur)) != 0 {
+    si system(ChaineC(commande.caractères)) != 0 {
         retourne faux;
     }
 

@@ -202,8 +202,8 @@ initialise_lexeuse_pour_texte :: fonc (lexeuse: *SimpleLexeuse, texte: chaine)
 
 définis_texte_courant :: fonc (lexeuse: *SimpleLexeuse, texte: chaine)
 {
-    lexeuse.début = texte.pointeur;
-    lexeuse.fin = texte.pointeur + texte.taille;
+    lexeuse.début = texte.caractères;
+    lexeuse.fin = texte.caractères + texte.taille;
     lexeuse.texte = texte;
 }
 
@@ -391,9 +391,9 @@ donne_mot_clé :: fonc (lexeuse: *SimpleLexeuse, texte: chaine) -> Lexème
 
 reprends_depuis_lexème :: fonc (lexeuse: *SimpleLexeuse, lexème: Lexème)
 {
-    assert(lexème.début >= lexeuse.texte.pointeur);
+    assert(lexème.début >= lexeuse.texte.caractères);
     assert(lexème.début < lexeuse.fin);
-    assert(lexème.fin >= lexeuse.texte.pointeur);
+    assert(lexème.fin >= lexeuse.texte.caractères);
     assert(lexème.fin <= lexeuse.fin);
 
     lexeuse.début = lexème.début;
@@ -483,11 +483,11 @@ rapporte_erreur :: fonc (lexeuse: *SimpleLexeuse, lexème: Lexème, voulu: chain
 {
     lexeuse.possède_erreur = vrai;
 
-    lexeuse.début = lexème.donne_texte().pointeur;
+    lexeuse.début = lexème.donne_texte().caractères;
     ligne := donne_ligne_pour_erreur(lexeuse);
 
     diagnostique: Simple_Diagnostique;
-    diagnostique.décalage = lexeuse.début - lexeuse.texte.pointeur;
+    diagnostique.décalage = lexeuse.début - lexeuse.texte.caractères;
     diagnostique.texte_ligne = ligne.texte;
     diagnostique.message = imprime_chaine("Attendu '%', obtenu '%'", voulu, lexème.donne_texte());
 
