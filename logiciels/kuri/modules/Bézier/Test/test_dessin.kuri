@@ -40,7 +40,7 @@ LARGEUR_POINT :: 10.0;
 #assert type_de(ajourne_application) == type_de(TYPE_ajourne_application);
 ajourne_application :: fonc (mémoire_app: *MémoireApplication, entrée: *EntréeApplication) #racine #sansbroyage #exporte
 {
-    empl état_app := mémoire_app.données.pointeur comme *ÉtatApplication;
+    empl état_app := mémoire_app.données.données comme *ÉtatApplication;
 
     saufsi état_app.est_initialisé {
         fonte = donne_fonte("Alegreya-Regular", 20.0);

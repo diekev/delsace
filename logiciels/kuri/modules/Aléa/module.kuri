@@ -70,9 +70,9 @@ mélange_tableau :: fonc (gna: *GNA, tableau: []$T)
             continue;
         }
 
-        tmp := tableau.pointeur[indice_it];
-        tableau.pointeur[indice_it] = tableau.pointeur[nouvel_index];
-        tableau.pointeur[nouvel_index] = tmp;
+        tmp := tableau.données[indice_it];
+        tableau.données[indice_it] = tableau.données[nouvel_index];
+        tableau.données[nouvel_index] = tmp;
     }
 }
 
@@ -100,7 +100,7 @@ génère_données_aléatoires :: fonc (génératrice: *GénératriceDonnéesAlé
         }
 
         tampon: []octet;
-        tampon.pointeur = (*résultat comme *z8 + it.décalage);
+        tampon.données = (*résultat comme *z8 + it.décalage);
         tampon.taille = it.id.taille_en_octet comme z64;
 
         // fonction_parsage.rappel ajournera le ptr_résultat via le tampon
@@ -351,7 +351,7 @@ génère_fonction_enveloppe :: fonc (enchaineuse: *Enchaineuse, données: Donné
     enchaineuse.ajoute_au_tampon(nom_enveloppe, " :: fonc (génératrice: *Aléa.GénératriceDonnéesAléatoire, valeur: eini)\n");
     enchaineuse.ajoute_au_tampon("{\n");
     /* Rappel : le type de la fonction doit être un pointeur, mais l'eini stocke un pointeur vers celui-ci. */
-    enchaineuse.ajoute_au_tampon("\tptr := mémoire(valeur.pointeur comme **");
+    enchaineuse.ajoute_au_tampon("\tptr := mémoire(valeur.données comme **");
     imprime_type(enchaineuse, données.info_type, nom_module);
     enchaineuse.ajoute_au_tampon(");\n");
     ajoute_au_tampon(enchaineuse, "\t");

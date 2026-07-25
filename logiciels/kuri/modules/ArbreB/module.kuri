@@ -484,7 +484,7 @@ supprime :: fonc (arbre: *ArbreB(C = $C), k: C) -> rien
     supprime(arbre.racine, k);
 
     si arbre.racine.n == 0 {
-        tmp := arbre.racine;
+        //tmp := arbre.racine;
 
         si arbre.racine.est_feuille {
             arbre.racine = nul;

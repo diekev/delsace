@@ -293,10 +293,6 @@ static inline bool est_expression_convertible_en_bool(NoeudExpression const *exp
         }
     }
 
-    while (expression->est_parenthèse()) {
-        expression = expression->comme_parenthèse()->expression;
-    }
-
     return est_type_booléen_implicite(type) ||
            expression->possède_drapeau(DrapeauxNoeud::ACCES_EST_ENUM_DRAPEAU);
 }
@@ -1292,13 +1288,6 @@ RésultatValidation Sémanticienne::valide_sémantique_noeud(NoeudExpression *no
         {
             auto inst = noeud->comme_discr();
             return valide_discrimination(inst);
-        }
-        case GenreNoeud::EXPRESSION_PARENTHÈSE:
-        {
-            auto expr = noeud->comme_parenthèse();
-            noeud->type = expr->expression->type;
-            noeud->genre_valeur = expr->expression->genre_valeur;
-            break;
         }
         case GenreNoeud::INSTRUCTION_POUSSE_CONTEXTE:
         {
@@ -5441,14 +5430,6 @@ void Sémanticienne::crée_transtypage_implicite_au_besoin(NoeudExpression *&exp
     expression = noeud_comme;
 }
 
-static bool est_accès_énum_drapeau(NoeudExpression const *expression)
-{
-    while (expression->est_parenthèse()) {
-        expression = expression->comme_parenthèse()->expression;
-    }
-    return expression->possède_drapeau(DrapeauxNoeud::ACCES_EST_ENUM_DRAPEAU);
-}
-
 RésultatValidation Sémanticienne::valide_opérateur_binaire(NoeudExpressionBinaire *expr)
 {
     CHRONO_TYPAGE(m_stats_typage.opérateurs_binaire, OPERATEUR_BINAIRE__VALIDATION);
@@ -5464,15 +5445,18 @@ RésultatValidation Sémanticienne::valide_opérateur_binaire(NoeudExpressionBin
     auto type_op = expr->lexème->genre;
 
     /* détecte a comp b comp c */
-    if (est_opérateur_comparaison(type_op) && est_opérateur_comparaison(gauche->lexème->genre)) {
+    if (est_opérateur_comparaison(type_op) && est_opérateur_comparaison(gauche->lexème->genre) &&
+        !gauche->possède_drapeau(DrapeauxNoeud::EST_ENTRE_PARENTHÈSE)) {
         return valide_opérateur_binaire_chaine(expr);
     }
 
-    if (est_accès_énum_drapeau(gauche) && droite->est_littérale_bool()) {
+    if (gauche->possède_drapeau(DrapeauxNoeud::ACCES_EST_ENUM_DRAPEAU) &&
+        droite->est_littérale_bool()) {
         return valide_comparaison_énum_drapeau_bool(expr, gauche, droite->comme_littérale_bool());
     }
 
-    if (est_accès_énum_drapeau(droite) && gauche->est_littérale_bool()) {
+    if (droite->possède_drapeau(DrapeauxNoeud::ACCES_EST_ENUM_DRAPEAU) &&
+        gauche->est_littérale_bool()) {
         return valide_comparaison_énum_drapeau_bool(expr, droite, gauche->comme_littérale_bool());
     }
 
@@ -5891,7 +5875,8 @@ RésultatValidation Sémanticienne::valide_expression_logique(NoeudExpressionLog
     /* Les expressions de types a && b || c ou a || b && c ne sont pas valides
      * car nous ne pouvons déterminer le bon ordre d'exécution. */
     if (logique->lexème->genre == GenreLexème::BARRE_BARRE) {
-        if (opérande_gauche->lexème->genre == GenreLexème::ESP_ESP) {
+        if (opérande_gauche->lexème->genre == GenreLexème::ESP_ESP &&
+            !opérande_gauche->possède_drapeau(DrapeauxNoeud::EST_ENTRE_PARENTHÈSE)) {
             m_espace
                 ->rapporte_erreur(opérande_gauche,
                                   "Utilisation ambigüe de l'opérateur « && » à gauche de « || » !")
@@ -5900,7 +5885,8 @@ RésultatValidation Sémanticienne::valide_expression_logique(NoeudExpressionLog
             return CodeRetourValidation::Erreur;
         }
 
-        if (opérande_droite->lexème->genre == GenreLexème::ESP_ESP) {
+        if (opérande_droite->lexème->genre == GenreLexème::ESP_ESP &&
+            !opérande_droite->possède_drapeau(DrapeauxNoeud::EST_ENTRE_PARENTHÈSE)) {
             m_espace
                 ->rapporte_erreur(opérande_droite,
                                   "Utilisation ambigüe de l'opérateur « && » à droite de « || » !")

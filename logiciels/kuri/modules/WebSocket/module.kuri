@@ -430,7 +430,7 @@ ajoute_données :: fonc (parseuse: *ParseuseFrame, données: []octet, doit_être
         imprime("parseuse.curseur %, parseuse.données.taille %, frames %, frame.taille_données % frame.état %\n", parseuse.curseur, parseuse.données.taille, parseuse.frames.taille, frame.taille_données, frame.état);
 
         données_frame := parseuse.données;
-        données_frame.pointeur += parseuse.curseur;
+        données_frame.données += parseuse.curseur;
         données_frame.taille -= parseuse.curseur;
 
         état := lis_frame(parseuse, frame, données_frame, doit_être_masquée);
@@ -457,7 +457,7 @@ donne_frame_courante :: fonc (parseuse: *ParseuseFrame) -> *Frame
 donne_données_frame :: fonc (parseuse: *ParseuseFrame, frame: *Frame) -> []octet
 {
     résultat: []octet;
-    résultat.pointeur = parseuse.données.pointeur + frame.décalage_données;
+    résultat.données = parseuse.données.données + frame.décalage_données;
     résultat.taille = frame.taille_données comme z64;
     retourne résultat;
 }
@@ -525,7 +525,7 @@ ajoute_frame :: fonc (message: *Message, frame: *Frame, données: []octet) -> bo
     }
 
     séquence := message.données;
-    séquence.pointeur += message.décalage_validation_utf8;
+    séquence.données += message.décalage_validation_utf8;
     séquence.taille -= message.décalage_validation_utf8;
 
     est_valide, taille_consommée := contenu_est_utf8_valide(séquence, frame.est_fin);
@@ -608,7 +608,7 @@ donne_status_code :: fonc (frame: *Frame, parseuse: *ParseuseFrame) -> StatusCod
         retourne StatusCode.Invalide;
     }
 
-    code := mémoire(données.pointeur comme *n16);
+    code := mémoire(données.données comme *n16);
     commute_boutisme(*code);
 
     si code < 1000 {
@@ -746,8 +746,8 @@ lis_entête :: fonc (frame: *Frame, données: []octet, doit_être_masquée: bool
         retourne ÉtatDonnéesFrame.DonnéesIncomplètes;
     }
 
-    ptr := données.pointeur comme *n8;
-    fin := données.pointeur + données.taille;
+    ptr := données.données comme *n8;
+    fin := données.données + données.taille;
     c := mémoire(ptr);
     ptr += 1;
     frame.est_fin = (c & 0b1000_0000) != 0;
@@ -813,7 +813,7 @@ lis_entête :: fonc (frame: *Frame, données: []octet, doit_être_masquée: bool
         ptr += 4;
     }
 
-    frame.décalage_données = ptr - données.pointeur;
+    frame.décalage_données = ptr - données.données;
 
     // imprime("frame.décalage_données : %\n", frame.décalage_données)
 
@@ -841,7 +841,7 @@ contenu_est_utf8_valide :: fonc (frame: *Frame, données: []octet) -> bool
             retourne vrai;
         }
 
-        données.pointeur += 2;
+        données.données += 2;
         données.taille -= 2;
     }
 
@@ -882,7 +882,7 @@ contenu_est_utf8_valide :: fonc (données: []octet, est_frame_finale: bool) -> (
         }
 
         séquence.taille -= taille;
-        séquence.pointeur += taille;
+        séquence.données += taille;
         taille_consommée += taille;
     }
 
@@ -923,7 +923,7 @@ crée_message_websocket_réponse :: fonc (op_code: OpCode, message: []octet, doi
     résultat: [..]octet;
     tableau_redimensionne(*résultat, taille_résultat);
 
-    ptr := résultat.pointeur;
+    ptr := résultat.données;
     mémoire(ptr) = 0b1000_0000 | op_code comme n8 comme octet;
     ptr += 1;
 
@@ -952,7 +952,7 @@ crée_message_websocket_réponse :: fonc (op_code: OpCode, message: []octet, doi
     }
 
     saufsi doit_masquer {
-        copie_mem_nonsur(src = message.pointeur, dst = ptr, taille = message.taille);
+        copie_mem_nonsur(src = message.données, dst = ptr, taille = message.taille);
     }
     sinon {
         masque : z32 = 0xdeadbeef;
@@ -961,10 +961,10 @@ crée_message_websocket_réponse :: fonc (op_code: OpCode, message: []octet, doi
         mémoire(ptr comme *z32) = masque;
         ptr += 4;
 
-        copie_mem_nonsur(src = message.pointeur, dst = ptr, taille = message.taille);
+        copie_mem_nonsur(src = message.données, dst = ptr, taille = message.taille);
 
         données: []octet;
-        données.pointeur = ptr;
+        données.données = ptr;
         données.taille = message.taille;
         applique_masque(données, masque);
     }

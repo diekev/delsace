@@ -25,7 +25,7 @@ PriseSSL :: struct {
     données_ssl_boucle.prise_ssl = prise;
     // données_ssl_boucle.msg_more = msg_more
     // données_ssl_boucle.last_write_was_msg_more = 0
-    octets_écris := SSL_write(prise.ssl, données.pointeur, données.taille comme z32);
+    octets_écris := SSL_write(prise.ssl, données.caractères, données.taille comme z32);
     // données_ssl_boucle.msg_more = 0;
 
     // À FAIRE

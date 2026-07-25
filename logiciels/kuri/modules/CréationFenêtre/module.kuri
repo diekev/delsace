@@ -371,7 +371,7 @@ fenêtre_ajoute_au_presse_papier :: fonc (fenêtre: Port_Fenêtre_Native, donné
 {
     si fenêtre.système == SystèmeFenêtre.QT {
         mimedata := QT_cree_mimedata();
-        QT_mimedata_definis_donnee(mimedata, vers_qt(données_mime.type), données_mime.données.pointeur comme *n8, données_mime.données.taille comme n64);
+        QT_mimedata_definis_donnee(mimedata, vers_qt(données_mime.type), données_mime.données.caractères comme *n8, données_mime.données.taille comme n64);
 
         presse_papier := QT_application_donne_clipboard();
         QT_clipboard_definis_mimedata(presse_papier, mimedata, QT_Clipboard_Mode.Clipboard);
@@ -440,7 +440,7 @@ qt_crée_fenêtre :: fonc (empl options: *Options_Création_Fenêtre, parent: *P
         arguments := arguments_ligne_commande();
         __taille_arguments_qt = arguments.taille comme z32;
         /* Jamais détruite. */
-        __application_qt = QT_cree_application(*__taille_arguments_qt, __arguments_ligne_commande.pointeur);
+        __application_qt = QT_cree_application(*__taille_arguments_qt, __arguments_ligne_commande.données);
     }
 
     window_parent: *QT_Window;
@@ -863,12 +863,12 @@ rappels_window_sur_évènement :: fonc (base: *QT_Rappels_Window, event: QT_Gene
         données: [..]octet;
         tableau_redimensionne(*données, taille_données);
 
-        QT_mimedata_exporte_donnees(mimedata, données.pointeur comme *n8, données.taille, tailles.pointeur, tailles.taille);
+        QT_mimedata_exporte_donnees(mimedata, données.données comme *n8, données.taille, tailles.données, tailles.taille);
 
         mimes: [..]DonnéesMime;
         tableau_réserve(*mimes, nombre_de_formats);
 
-        pointeur_données := données.pointeur;
+        pointeur_données := données.données;
         pour tailles.taille / 2 {
             taille_type_mime := tailles[indice_it * 2 + 0];
             taille_données_mime := tailles[indice_it * 2 + 1];
@@ -982,41 +982,41 @@ x11_donne_système :: fonc () -> *Système_X11
 
 initialise_système_x11 :: fonc (empl système: *Système_X11)
 {
-    wm_delete_window = XInternAtom(display, "WM_DELETE_WINDOW".pointeur, False);
-    wm_take_focus = XInternAtom(display, "WM_TAKE_FOCUS".pointeur, False);
+    wm_delete_window = XInternAtom(display, "WM_DELETE_WINDOW".caractères, False);
+    wm_take_focus = XInternAtom(display, "WM_TAKE_FOCUS".caractères, False);
 
-    NET_WM_WINDOW_OPACITY = XInternAtom(display, "_NET_WM_WINDOW_OPACITY".pointeur, False);
+    NET_WM_WINDOW_OPACITY = XInternAtom(display, "_NET_WM_WINDOW_OPACITY".caractères, False);
 
     /* https://specifications.freedesktop.org/wm-spec/1.3/ar01s05.html */
-    _NET_WM_STATE = XInternAtom(display, "_NET_WM_STATE".pointeur, False);
-    _NET_WM_STATE_MAXIMIZED_HORZ = XInternAtom(display, "_NET_WM_STATE_MAXIMIZED_HORZ".pointeur, False);
-    _NET_WM_STATE_MAXIMIZED_VERT = XInternAtom(display, "_NET_WM_STATE_MAXIMIZED_VERT".pointeur, False);
-    _NET_WM_STATE_FULLSCREEN = XInternAtom(display, "_NET_WM_STATE_FULLSCREEN".pointeur, False);
-    _MOTIF_WM_HINTS = XInternAtom(display, "_MOTIF_WM_HINTS".pointeur, False);
+    _NET_WM_STATE = XInternAtom(display, "_NET_WM_STATE".caractères, False);
+    _NET_WM_STATE_MAXIMIZED_HORZ = XInternAtom(display, "_NET_WM_STATE_MAXIMIZED_HORZ".caractères, False);
+    _NET_WM_STATE_MAXIMIZED_VERT = XInternAtom(display, "_NET_WM_STATE_MAXIMIZED_VERT".caractères, False);
+    _NET_WM_STATE_FULLSCREEN = XInternAtom(display, "_NET_WM_STATE_FULLSCREEN".caractères, False);
+    _MOTIF_WM_HINTS = XInternAtom(display, "_MOTIF_WM_HINTS".caractères, False);
 
     /* fetching data */
-    XdndTypeList = XInternAtom(display, "XdndTypeList".pointeur, False);
-    XdndSelection = XInternAtom(display, "XdndSelection".pointeur, False);
+    XdndTypeList = XInternAtom(display, "XdndTypeList".caractères, False);
+    XdndSelection = XInternAtom(display, "XdndSelection".caractères, False);
 
     /* client messages */
-    XdndEnter = XInternAtom(display, "XdndEnter".pointeur, False);
-    XdndPosition = XInternAtom(display, "XdndPosition".pointeur, False);
-    XdndStatus = XInternAtom(display, "XdndStatus".pointeur, False);
-    XdndLeave = XInternAtom(display, "XdndLeave".pointeur, False);    
-    XdndDrop = XInternAtom(display, "XdndDrop".pointeur, False);  
-    XdndFinished = XInternAtom(display, "XdndFinished".pointeur, False);
+    XdndEnter = XInternAtom(display, "XdndEnter".caractères, False);
+    XdndPosition = XInternAtom(display, "XdndPosition".caractères, False);
+    XdndStatus = XInternAtom(display, "XdndStatus".caractères, False);
+    XdndLeave = XInternAtom(display, "XdndLeave".caractères, False);    
+    XdndDrop = XInternAtom(display, "XdndDrop".caractères, False);  
+    XdndFinished = XInternAtom(display, "XdndFinished".caractères, False);
 
     /* actions */
-    XdndActionCopy = XInternAtom(display, "XdndActionCopy".pointeur, False);
-    XdndActionMove = XInternAtom(display, "XdndActionMove".pointeur, False);
-    XdndActionLink = XInternAtom(display, "XdndActionLink".pointeur, False);
-    XdndActionAsk = XInternAtom(display, "XdndActionAsk".pointeur, False);
-    XdndActionPrivate = XInternAtom(display, "XdndActionPrivate".pointeur, False);
+    XdndActionCopy = XInternAtom(display, "XdndActionCopy".caractères, False);
+    XdndActionMove = XInternAtom(display, "XdndActionMove".caractères, False);
+    XdndActionLink = XInternAtom(display, "XdndActionLink".caractères, False);
+    XdndActionAsk = XInternAtom(display, "XdndActionAsk".caractères, False);
+    XdndActionPrivate = XInternAtom(display, "XdndActionPrivate".caractères, False);
 
-    XtextUriList = XInternAtom(display, "text/uri-list".pointeur, False); 
-    XtextPlain = XInternAtom(display, "text/plain".pointeur, False);
+    XtextUriList = XInternAtom(display, "text/uri-list".caractères, False); 
+    XtextPlain = XInternAtom(display, "text/plain".caractères, False);
 
-    XdndAware = XInternAtom(display, "XdndAware".pointeur, False);
+    XdndAware = XInternAtom(display, "XdndAware".caractères, False);
 }
 
 x11_ferme_display :: fonc ()
@@ -1085,7 +1085,7 @@ x11_crée_fenêtre :: fonc (empl options: *Options_Création_Fenêtre, port_pare
 
     {
         atoms := [système.wm_delete_window, système.wm_take_focus];
-        _ := XSetWMProtocols(display, window, *atoms[0], 2);
+        _ := XSetWMProtocols(display, window, atoms.données, 2);
     }
 
     /* Set the window hints */
@@ -1100,13 +1100,13 @@ x11_crée_fenêtre :: fonc (empl options: *Options_Création_Fenêtre, port_pare
 
     /* set the process ID (_NET_WM_PID) */
     {
-        _NET_WM_PID := XInternAtom(display, "_NET_WM_PID".pointeur, False);
+        _NET_WM_PID := XInternAtom(display, "_NET_WM_PID".caractères, False);
         pid := getpid();
         _ := XChangeProperty(
             display, window, _NET_WM_PID, XA_CARDINAL, 32, PropModeReplace, *pid comme *n8, 1);
     }
 
-    _ := XSetLocaleModifiers("".pointeur);
+    _ := XSetLocaleModifiers("".caractères);
 
     chaine_c_titre := crée_chaine_c(titre);
     diffère détruit_chaine_c(*chaine_c_titre);
@@ -1131,15 +1131,15 @@ x11_crée_fenêtre :: fonc (empl options: *Options_Création_Fenêtre, port_pare
         // destroy.callback = (XICProc)destroyICCallback;
         // destroy.client_data = (XPointer)&xic_;
         xic = XCreateIC(xim,
-                        XNClientWindow.pointeur,
+                        XNClientWindow.caractères,
                         window,
-                        XNFocusWindow.pointeur,
+                        XNFocusWindow.caractères,
                         window,
-                        XNInputStyle.pointeur,
+                        XNInputStyle.caractères,
                         XIMPreeditNothing | XIMStatusNothing,
-                        XNResourceName.pointeur,
+                        XNResourceName.caractères,
                         ressource_name,
-                        XNResourceClass.pointeur,
+                        XNResourceClass.caractères,
                         ressource_class,
                         // XNDestroyCallback,
                         // &destroy,
@@ -1193,13 +1193,13 @@ x11_crée_fenêtre :: fonc (empl options: *Options_Création_Fenêtre, port_pare
                              XA_ATOM,
                              32,
                              PropModeReplace,
-                             *atoms[0] comme *n8,
+                             atoms.données comme *n8,
                              atoms.taille comme z32);
     }
 
     si options.genre_fenêtre == Genre_Fenêtre.MENU {
-        type_atom := XInternAtom(display, "_NET_WM_WINDOW_TYPE_DROPDOWN_MENU".pointeur, False);
-        wt_atom := XInternAtom(display, "_NET_WM_WINDOW_TYPE".pointeur, False);
+        type_atom := XInternAtom(display, "_NET_WM_WINDOW_TYPE_DROPDOWN_MENU".caractères, False);
+        wt_atom := XInternAtom(display, "_NET_WM_WINDOW_TYPE".caractères, False);
 
         si type_atom != None comme n64 && wt_atom != None comme n64 {
             _ := XChangeProperty(display, window, wt_atom, XA_ATOM, 32, PropModeReplace, *type_atom comme *n8, 1);
@@ -1262,10 +1262,10 @@ x11_définis_titre_fenêtre :: fonc (display: *Display, window: Window, titre: c
     chaine_c_titre := crée_chaine_c(titre);
     diffère détruit_chaine_c(*chaine_c_titre);
 
-    name := XInternAtom(display, "_NET_WM_NAME".pointeur, False);
-    utf8str := XInternAtom(display, "UTF8_STRING".pointeur, False);
+    name := XInternAtom(display, "_NET_WM_NAME".caractères, False);
+    utf8str := XInternAtom(display, "UTF8_STRING".caractères, False);
     
-    _ := XChangeProperty(display, window, name, utf8str, 8, PropModeReplace, titre.pointeur comme *n8, titre.taille comme z32);
+    _ := XChangeProperty(display, window, name, utf8str, 8, PropModeReplace, titre.caractères comme *n8, titre.taille comme z32);
 
     _ := XStoreName(display, window, chaine_c_titre);
 
@@ -1284,7 +1284,7 @@ x11_définis_curseur :: fonc (fenêtre: Port_Fenêtre_Native, curseur: TypeCurse
       */
 
     nom_curseur := cursorfont_donne_nom_curseur(curseur);
-    cursor := XcursorLibraryLoadCursor(fenêtre.données_x11.display, nom_curseur.pointeur);
+    cursor := XcursorLibraryLoadCursor(fenêtre.données_x11.display, nom_curseur.caractères);
     _ := XDefineCursor(fenêtre.données_x11.display, fenêtre.données_x11.window, cursor);
 }
 
@@ -1418,7 +1418,7 @@ x11_ajourne_évènements_fenêtre :: fonc (fenêtre: Port_Fenêtre_Native)
                 tampon_utf8: [16 * 6]z8; // 16 caractères UTF-8
                 status: Status;
                 key_sym := évènement.clé_virtuelle_native comme KeySym;
-                len := Xutf8LookupString(xic, *event.xkey, *tampon_utf8[0], tampon_utf8.taille comme z32, *key_sym, *status);
+                len := Xutf8LookupString(xic, *event.xkey, tampon_utf8.données, tampon_utf8.taille comme z32, *key_sym, *status);
 
                 assert(status != XBufferOverflow);
                 // si status == XBufferOverflow {
@@ -1426,7 +1426,7 @@ x11_ajourne_évènements_fenêtre :: fonc (fenêtre: Port_Fenêtre_Native)
                 //     len = Xutf8LookupString(xic, xke, *tampon_utf8, tampon_utf8.taille, *key_sym, *status)
                 // }
 
-                chaine_touche := chaine(*tampon_utf8[0], len);
+                chaine_touche := chaine(tampon_utf8.données, len);
 
                 si status == XLookupChars || status == XLookupBoth {
                     /* Testons les caractères de controle ASCII.
@@ -1656,7 +1656,7 @@ x11_gère_entrée_glissage :: fonc (xclient_event: *XClientMessageEvent, empl do
                 compte += 1;
             }
 
-            formats = *formats_réel[0];
+            formats = formats_réel.données;
         }
 
         pour compte {
