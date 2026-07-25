@@ -69,7 +69,7 @@ vérifie_compilation :: fonc (id_nuanceur: n32) -> bool
 
     si longueur_info_log > 0 {
         message_erreur := loge_chaine(longueur_info_log + 1);
-        glGetShaderInfoLog(id_nuanceur, longueur_info_log, nul, message_erreur.pointeur);
+        glGetShaderInfoLog(id_nuanceur, longueur_info_log, nul, message_erreur.caractères);
 
         imprime("!!!!! Erreur de compilation du nuanceur OpenGL :\n%\n", message_erreur);
 
@@ -93,7 +93,7 @@ vérifie_liaison :: fonc (id_programme: n32) -> bool
 
     si longueur_info_log > 0 {
         message_erreur := loge_chaine(longueur_info_log + 1);
-        glGetProgramInfoLog(id_programme, longueur_info_log, nul, message_erreur.pointeur);
+        glGetProgramInfoLog(id_programme, longueur_info_log, nul, message_erreur.caractères);
 
         imprime("!!!!! Erreur de liaison du programme OpenGL :\n%\n", message_erreur);
 
@@ -115,7 +115,7 @@ compile_source_nuanceur :: fonc (source: chaine, type: n32) -> Optionnel(n32)
     }
 
     taille_src_vertex := source.taille comme z32;
-    glShaderSource(résultat, 1, *source.pointeur, *taille_src_vertex);
+    glShaderSource(résultat, 1, *source.caractères, *taille_src_vertex);
     glCompileShader(résultat);
 
     saufsi vérifie_compilation(résultat) {
@@ -205,21 +205,21 @@ définis_uniforme :: fonc (adresse: z32, valeur: r32)
 définis_uniforme :: fonc (adresse: z32, valeur: [..]z32)
 {
     si adresse != -1 {
-        glUniform1iv(adresse, valeur.taille comme GLsizei, valeur.pointeur);
+        glUniform1iv(adresse, valeur.taille comme GLsizei, valeur.données);
     }
 }
 
 définis_uniforme :: fonc (adresse: z32, valeur: [..]n32)
 {
     si adresse != -1 {
-        glUniform1uiv(adresse, valeur.taille comme GLsizei, valeur.pointeur);
+        glUniform1uiv(adresse, valeur.taille comme GLsizei, valeur.données);
     }
 }
 
 définis_uniforme :: fonc (adresse: z32, valeur: [..]r32)
 {
     si adresse != -1 {
-        glUniform1fv(adresse, valeur.taille comme GLsizei, valeur.pointeur);
+        glUniform1fv(adresse, valeur.taille comme GLsizei, valeur.données);
     }
 }
 
@@ -254,7 +254,7 @@ définis_uniforme :: fonc (adresse: z32, valeur: CouleurRVBA)
 définis_uniforme :: fonc (adresse: z32, mat: Mat4r)
 {
     si adresse != -1 {
-        glUniformMatrix4fv(adresse, 1, GL_FALSE comme GLboolean, *mat.m[0][0]);
+        glUniformMatrix4fv(adresse, 1, GL_FALSE comme GLboolean, mat.m[0].données);
     }
 }
 

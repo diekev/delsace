@@ -129,7 +129,7 @@ importe PeintureInterface;
 dessine_commandes_id :: fonc (peintre: *Peintre, commandes: *CommandesDeRendu, tampon_id: *TamponID)
 {
     tampon_image: TamponImageGrise32Bit = ---;
-    tampon_image.données = tampon_id.données.pointeur;
+    tampon_image.données = tampon_id.données.données;
     tampon_image.largeur = tampon_id.largeur;
     tampon_image.hauteur = tampon_id.hauteur;
 

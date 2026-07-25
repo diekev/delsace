@@ -52,7 +52,7 @@ std::ostream &operator<<(std::ostream &os, DrapeauxNoeud const drapeaux)
     SI_DRAPEAU_UTILISE(DECLARATION_TYPE_POLYMORPHIQUE)
     SI_DRAPEAU_UTILISE(DECLARATION_FUT_VALIDEE)
     SI_DRAPEAU_UTILISE(RI_FUT_GENEREE)
-    SI_DRAPEAU_UTILISE(CODE_BINAIRE_FUT_GENERE)
+    SI_DRAPEAU_UTILISE(EST_ENTRE_PARENTHÈSE)
     SI_DRAPEAU_UTILISE(TRANSTYPAGE_IMPLICITE)
     SI_DRAPEAU_UTILISE(EST_PARAMETRE)
     SI_DRAPEAU_UTILISE(EST_VALEUR_POLYMORPHIQUE)
@@ -719,7 +719,6 @@ static void aplatis_arbre(NoeudExpression *racine,
         }
         case GenreNoeud::EXPRESSION_CONSTRUCTION_TABLEAU:
         case GenreNoeud::EXPRESSION_MÉMOIRE:
-        case GenreNoeud::EXPRESSION_PARENTHÈSE:
         case GenreNoeud::OPÉRATEUR_UNAIRE:
         case GenreNoeud::EXPRESSION_TAILLE_DE:
         case GenreNoeud::EXPANSION_VARIADIQUE:
@@ -1305,11 +1304,6 @@ NoeudExpression const *trouve_expression_non_constante(NoeudExpression const *ex
 
             return référence_rubrique;
         }
-        case GenreNoeud::EXPRESSION_PARENTHÈSE:
-        {
-            auto op = expression->comme_parenthèse();
-            return trouve_expression_non_constante(op->expression);
-        }
         case GenreNoeud::EXPRESSION_CONSTRUCTION_TABLEAU:
         {
             auto op = expression->comme_construction_tableau();
@@ -1456,11 +1450,6 @@ bool peut_être_utilisée_pour_initialisation_constante_globale(NoeudExpression 
             auto prise_adresse = expression->comme_prise_adresse();
             return peut_être_utilisée_pour_initialisation_constante_globale(
                 prise_adresse->opérande);
-        }
-        case GenreNoeud::EXPRESSION_PARENTHÈSE:
-        {
-            auto op = expression->comme_parenthèse();
-            return peut_être_utilisée_pour_initialisation_constante_globale(op->expression);
         }
         case GenreNoeud::EXPRESSION_CONSTRUCTION_TABLEAU:
         {

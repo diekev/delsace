@@ -232,8 +232,8 @@ initialise :: fonc (mt: *MersenneTwister, graine: n32)
 {
     // Initialise l'état du génération avec une simple graine.
 	// Voir Knuth TAOCP Vol 2, 3rd Ed, p.106 pour le multiplicande.
-	s := *mt.état[0];
-	r := *mt.état[0];
+	s := mt.état.données;
+	r := mt.état.données;
 
 	mémoire(s) = graine & 0xffffffff;
     s += 1;
@@ -251,7 +251,7 @@ recharge :: fonc (mt: *MersenneTwister)
 {
 	// Génère N nouvelles valeurs dans l'état.
 	// Simplifier et optimiser par Matthew Bellew (matthew.bellew@home.com)
-	p := *mt.état[0];
+	p := mt.état.données;
 
     pour MersenneTwister.N - MersenneTwister.M {
         mémoire(p) = twist(p[MersenneTwister.M], p[0], p[1]);
@@ -266,5 +266,5 @@ recharge :: fonc (mt: *MersenneTwister)
     mémoire(p) = twist(mémoire(p + MersenneTwister.M - MersenneTwister.N), p[0], mt.état[0]);
 
     mt.restant = MersenneTwister.N;
-    mt.p_suivant = *mt.état[0];
+    mt.p_suivant = mt.état.données;
 }

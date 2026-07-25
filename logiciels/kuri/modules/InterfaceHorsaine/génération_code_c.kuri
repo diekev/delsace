@@ -519,7 +519,7 @@ class Chaine : public %_Chaine {
 public:
     Chaine(%_Chaine chaine)
     {
-        this->pointeur = chaine.pointeur;
+        this->pointeur = chaine.caractères;
         this->taille = chaine.taille;
     }
 
@@ -1610,13 +1610,13 @@ convertis_variable_type_kuri_vers_type_c :: fonc (enchaineuse: *Enchaineuse, typ
         }
         CHAINE {
             ajoute_au_tampon(enchaineuse, "    ", nom_nouvelle_variable, " : ChaineIPA\n");
-            ajoute_au_tampon(enchaineuse, "    ", nom_nouvelle_variable, ".pointeur = ", nom_variable, ".pointeur\n");
+            ajoute_au_tampon(enchaineuse, "    ", nom_nouvelle_variable, ".caractères = ", nom_variable, ".caractères\n");
             ajoute_au_tampon(enchaineuse, "    ", nom_nouvelle_variable, ".taille = ", nom_variable, ".taille\n");
             retourne nom_nouvelle_variable;
         }
         TABLEAU {
             ajoute_au_tampon(enchaineuse, "    ", nom_nouvelle_variable, " : TableauGénériqueIPA\n");
-            ajoute_au_tampon(enchaineuse, "    ", nom_nouvelle_variable, ".pointeur = ", nom_variable, ".pointeur comme *rien\n");
+            ajoute_au_tampon(enchaineuse, "    ", nom_nouvelle_variable, ".données = ", nom_variable, ".données comme *rien\n");
             ajoute_au_tampon(enchaineuse, "    ", nom_nouvelle_variable, ".taille = ", nom_variable, ".taille\n");
             retourne nom_nouvelle_variable;
         }
@@ -1626,7 +1626,7 @@ convertis_variable_type_kuri_vers_type_c :: fonc (enchaineuse: *Enchaineuse, typ
         }
         TRANCHE {
             ajoute_au_tampon(enchaineuse, "    ", nom_nouvelle_variable, " : TableauGénériqueIPA\n");
-            ajoute_au_tampon(enchaineuse, "    ", nom_nouvelle_variable, ".pointeur = ", nom_variable, ".pointeur comme *rien\n");
+            ajoute_au_tampon(enchaineuse, "    ", nom_nouvelle_variable, ".données = ", nom_variable, ".données comme *rien\n");
             ajoute_au_tampon(enchaineuse, "    ", nom_nouvelle_variable, ".taille = ", nom_variable, ".taille\n");
             retourne nom_nouvelle_variable;
         }
@@ -1677,14 +1677,14 @@ convertis_variable_type_c_vers_type_kuri :: fonc (enchaineuse: *Enchaineuse, typ
         }
         CHAINE {
             ajoute_au_tampon(enchaineuse, "    ", nom_variable, "_kuri : chaine\n");
-            ajoute_au_tampon(enchaineuse, "    ", nom_variable, "_kuri.pointeur = ", nom_variable, ".pointeur\n");
+            ajoute_au_tampon(enchaineuse, "    ", nom_variable, "_kuri.caractères = ", nom_variable, ".caractères\n");
             ajoute_au_tampon(enchaineuse, "    ", nom_variable, "_kuri.taille = ", nom_variable, ".taille\n");
         }
         TABLEAU {
             ajoute_au_tampon(enchaineuse, "    ", nom_variable, "_kuri : ");
             imprime_type(enchaineuse, type_kuri);
             ajoute_au_tampon(enchaineuse, "\n");
-            ajoute_au_tampon(enchaineuse, "    ", nom_variable, "_kuri.pointeur = ", nom_variable, ".pointeur\n");
+            ajoute_au_tampon(enchaineuse, "    ", nom_variable, "_kuri.données = ", nom_variable, ".données\n");
             ajoute_au_tampon(enchaineuse, "    ", nom_variable, "_kuri.taille = ", nom_variable, ".taille\n");
         }
         TABLEAU_FIXE {
@@ -1694,7 +1694,7 @@ convertis_variable_type_c_vers_type_kuri :: fonc (enchaineuse: *Enchaineuse, typ
             ajoute_au_tampon(enchaineuse, "    ", nom_variable, "_kuri : ");
             imprime_type(enchaineuse, type_kuri);
             ajoute_au_tampon(enchaineuse, "\n");
-            ajoute_au_tampon(enchaineuse, "    ", nom_variable, "_kuri.pointeur = ", nom_variable, ".pointeur\n");
+            ajoute_au_tampon(enchaineuse, "    ", nom_variable, "_kuri.données = ", nom_variable, ".données\n");
             ajoute_au_tampon(enchaineuse, "    ", nom_variable, "_kuri.taille = ", nom_variable, ".taille\n");
         }
         ADRESSE_FONCTION {

@@ -235,7 +235,7 @@ time_end :: fonc (console: *Console, interpréteuse: *Interpréteuse, nom: ECMAS
         valeur_chn_temps := Valeur(String = crée_chaine(interpréteuse.donne_tas_de_mémoire(), crée_chaine_utf16_unique(chn_temps)));
 
         arguments: []Valeur;
-        arguments.pointeur = *valeur_chn_temps;
+        arguments.données = *valeur_chn_temps;
         arguments.taille = 1;
 
         résultat = printer(console, interpréteuse, LogLevel.TIME_END, arguments);
@@ -284,7 +284,7 @@ count :: fonc (console: *Console, interpréteuse: *Interpréteuse, nom: ECMAStri
 
     // 5. Perform Logger("count", « concat »).
     arguments: []Valeur;
-    arguments.pointeur = *valeur_concat;
+    arguments.données = *valeur_concat;
     arguments.taille = 1;
 
     _ := printer(console, interpréteuse, LogLevel.COUNT, arguments);
@@ -314,7 +314,7 @@ count_reset :: fonc (console: *Console, interpréteuse: *Interpréteuse, nom: EC
 
     // 2. Perform Logger("countReset", « message »);
     arguments: []Valeur;
-    arguments.pointeur = *valeur_message;
+    arguments.données = *valeur_message;
     arguments.taille = 1;
 
     _ := printer(console, interpréteuse, LogLevel.COUNT_RESET, arguments);
@@ -376,7 +376,7 @@ initialise_console :: fonc (console: *Console)
 
         condition := to_boolean(params.donne_argument(0));
 
-        arguments.pointeur += 1;
+        arguments.données += 1;
         arguments.taille -= 1;
 
         retourne console_assert(console, interpréteuse, condition, arguments);
