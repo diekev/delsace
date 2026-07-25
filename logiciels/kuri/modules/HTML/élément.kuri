@@ -1633,13 +1633,13 @@ parse_a_legacy_font_size :: fonc (attribute_value: DOMString) -> Optionnel(CSS.C
     input := attribute_value.donne_chaine_utf16();
 
     // 2. Let position be a pointer into input, initially pointing at the start of the string.
-    position := PositionVariable(input.unités.pointeur);
+    position := PositionVariable(input.unités.données);
 
     // 3. Skip ASCII whitespace within input given position.
     skip_ascii_whitespace(input, *position);
 
     // 4. If position is past the end of input, there is no presentational hint. Return.
-    fin := input.unités.pointeur + input.taille();
+    fin := input.unités.données + input.taille();
     si position.position >= fin {
         retourne;
     }
@@ -3084,7 +3084,7 @@ translate_a_potential_destination :: fonc (potential_destination_: DOMString) ->
             // À FAIRE(langage) : erreur de compilation
             // retourne donne_eini_valeur_énum_indice(info_destination_type, indice_it) comme Request.DestinationType
             résultat := donne_eini_valeur_énum_indice(info_destination_type, indice_it);
-            retourne mémoire(résultat.pointeur comme *Request.DestinationType);
+            retourne mémoire(résultat.données comme *Request.DestinationType);
         }
     }
 
@@ -4186,7 +4186,7 @@ fetch_a_classic_script :: fonc (user_agent: *UserAgent, url: *URL, settings_obje
 
         // 5. Let sourceText be the result of decoding bodyBytes to Unicode, using encoding as the fallback encoding.
         bytes := null_or_bytes.Quelque;
-        contenu := chaine(bytes.pointeur comme *z8, bytes.taille);
+        contenu := chaine(bytes.données comme *z8, bytes.taille);
 
         // 6. Let mutedErrors be true if response was CORS-cross-origin, and false otherwise.
 

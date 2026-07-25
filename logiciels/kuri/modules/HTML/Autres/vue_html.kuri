@@ -292,7 +292,7 @@ donne_image_avec_taille :: fonc (avoirs: *Avoirs, nom_court: chaine, largeur: n3
     _, contenu := contenu_fichier_binaire(CheminFichier(chemin));
     diffère déloge(*contenu);
 
-    chaine_c := crée_chaine_c(chaine(contenu.pointeur comme *z8, contenu.taille));
+    chaine_c := crée_chaine_c(chaine(contenu.données comme *z8, contenu.taille));
     diffère détruit_chaine_c(*chaine_c);
 
     image_svg: SVGImage;

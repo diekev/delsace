@@ -35,7 +35,7 @@ valeur_curseur :: fonc (curseur: *Curseur) -> []octet
     décalage_ligne := indice_ligne % table.lignes_par_page;
     décalage_octet := décalage_ligne * table.taille_octet_ligne;
 
-    page.pointeur += décalage_octet;
+    page.données += décalage_octet;
     page.taille = table.taille_octet_ligne;
 
     retourne page;

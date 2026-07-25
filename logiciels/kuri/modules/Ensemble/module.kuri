@@ -23,7 +23,7 @@ ensemble_ne_fut_pas_ajouté :: fonc (ensemble: *[..]$T, données: T) -> bool
 ensemble_ajoute_retourne_adresse :: fonc (ensemble: *[..]$T, donnée: T) -> *T
 {
     indice_d_insertion := ensemble_ajoute_retourne_indice(ensemble, donnée);
-    retourne *ensemble.pointeur[indice_d_insertion];
+    retourne *ensemble.données[indice_d_insertion];
 }
 
 ensemble_ajoute_retourne_indice :: fonc (ensemble: *[..]$T, donnée: T) -> z64
@@ -33,7 +33,7 @@ ensemble_ajoute_retourne_indice :: fonc (ensemble: *[..]$T, donnée: T) -> z64
         retourne 0;
     }
 
-    début := ensemble.pointeur;
+    début := ensemble.données;
     fin := début + ensemble.taille;
 
     limite := limite_basse(début, fin, donnée);
@@ -77,7 +77,7 @@ ensemble_possède_retourne_indice :: fonc (ensemble: []$T, donnée: T) -> z64
         retourne -1;
     }
 
-    début := ensemble.pointeur;
+    début := ensemble.données;
     fin := début + ensemble.taille;
 
     limite := limite_basse(début, fin, donnée);
@@ -115,7 +115,7 @@ ensemble_possède_rappel_si_possible :: fonc (ensemble: []$T, donnée: T, rappel
         retourne résultat;
     }
 
-    début := ensemble.pointeur;
+    début := ensemble.données;
     fin := début + ensemble.taille;
 
     limite := limite_basse(début, fin, donnée);

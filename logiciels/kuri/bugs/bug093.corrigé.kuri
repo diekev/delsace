@@ -32,11 +32,11 @@ principale :: fonc ()
     tabl_dyn_2 := vole_données_(*tabl_dyn);
     diffère déloge(*tabl_dyn_2);
 
-    assert(tabl_dyn.pointeur == nul);
+    assert(tabl_dyn.données == nul);
     assert(tabl_dyn.taille == 0);
     assert(tabl_dyn.capacité == 0);
 
-    assert(tabl_dyn_2.pointeur != nul);
+    assert(tabl_dyn_2.données != nul);
     assert(tabl_dyn_2.taille == 5);
     assert(tabl_dyn_2.capacité == 5);
 }

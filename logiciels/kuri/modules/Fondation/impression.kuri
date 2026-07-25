@@ -65,7 +65,7 @@ chaine_depuis_enchaineuse :: fonc (enchaineuse: *Enchaineuse, réinitialise := v
 
     tantque tampon_courant != nul {
         taille_tampon : z64 = tampon_courant.occupé;
-        src := *tampon_courant.données[0];
+        src := tampon_courant.données.données;
         dst := *chn[curseur];
 
         copie_mem_nonsur(src = src, dst = dst, taille = taille_tampon);
@@ -87,7 +87,7 @@ copie_enchaineuse_fichier :: fonc (enchaineuse: *Enchaineuse, fichier: *Fichier)
 
     tantque tampon_courant != nul {
         taille_tampon := tampon_courant.occupé;
-        src := *tampon_courant.données[0];
+        src := tampon_courant.données.données;
 
         _ := tente système_écris(fichier.desc, src, taille_tampon) piège err {
             retourne err;
@@ -137,7 +137,7 @@ imprime_dans_enchaineuse :: fonc (enchaineuse: *Enchaineuse, format: chaine, arg
 {
     indice_caractère : z64 = 0;
     indice_argument : z64 = 0;
-    pointeur := format.pointeur;
+    pointeur := format.caractères;
 
     début_mot_courant : z64 = 0;
     taille_mot_courant : z64 = 0;
@@ -212,7 +212,7 @@ ajoute_au_tampon :: fonc (enchaineuse: *Enchaineuse, chn: chaine) -> rien
 
     si (tampon.occupé + chn.taille) > TAILLE_TAMPON_ENCHAINEUSE {
         taille := TAILLE_TAMPON_ENCHAINEUSE - tampon.occupé;
-        src := chn.pointeur;
+        src := chn.caractères;
         dst := *tampon.données[tampon.occupé];
         tampon.occupé += taille;
 
@@ -224,7 +224,7 @@ ajoute_au_tampon :: fonc (enchaineuse: *Enchaineuse, chn: chaine) -> rien
             tampon = ajoute_tampon(enchaineuse);
 
             src = *chn[chn.taille - delta];
-            dst = *tampon.données[0];
+            dst = tampon.données.données;
 
             taille = TAILLE_TAMPON_ENCHAINEUSE;
 
@@ -240,7 +240,7 @@ ajoute_au_tampon :: fonc (enchaineuse: *Enchaineuse, chn: chaine) -> rien
         }
     }
     sinon {
-        src := chn.pointeur;
+        src := chn.caractères;
         dst := *tampon.données[tampon.occupé];
         taille := chn.taille;
 
@@ -336,7 +336,7 @@ imprime_nombre_décimal_haute_précision :: fonc (enchaineuse: *Enchaineuse, f: 
     } tantque !est_zéro(*part_entière);
 
     tableau_inverse(chn_part_entière);
-    chn_part_entière_ := chaine(chn_part_entière.pointeur, chn_part_entière.taille);
+    chn_part_entière_ := chaine(chn_part_entière.caractères, chn_part_entière.taille);
     ajoute_au_tampon(enchaineuse, chn_part_entière_);
 
     // Ajout le point décimal.
@@ -406,7 +406,7 @@ imprime_n64_base_n :: fonc (enchaineuse: *Enchaineuse, v: n64, format: FormatEnt
 imprime_nombre_entier :: fonc (enchaineuse: *Enchaineuse, format: FormatEntier) -> rien
 {
     info := format.valeur.info comme *InfoTypeEntier;
-    pointeur := format.valeur.pointeur;
+    pointeur := format.valeur.données;
 
     valeur: n64;
 
@@ -456,7 +456,7 @@ n64_depuis_pointeur :: fonc (pointeur: *z8, taille: n32) -> n64
 r32_depuis_eini :: fonc (e: eini) -> r32
 {
     info := e.info;
-    pointeur := e.pointeur;
+    pointeur := e.données;
 
     f: r32;
 
@@ -581,7 +581,7 @@ donne_chaine_indentation :: fonc (profondeur: z32) -> chaine
     }
 
     taille_chaine := profondeur * 4;
-    chaine_indentation := chaine(*__chaine_indentation[0], __chaine_indentation.taille);
+    chaine_indentation := chaine(__chaine_indentation.données, __chaine_indentation.taille);
     retourne chaine_indentation.sous_chaine(0, taille_chaine);
 }
 
@@ -595,7 +595,7 @@ imprime_valeur :: fonc (enchaineuse: *Enchaineuse, valeur: eini, échappe_chn: b
 
     discr valeur.info.id {
         OCTET {
-            x := mémoire(valeur.pointeur comme *octet);
+            x := mémoire(valeur.données comme *octet);
             imprime_nombre_entier(enchaineuse, donne_format_entier_contexte_pour_base(x comme n8, 16));
         }
         ENTIER {
@@ -654,7 +654,7 @@ imprime_valeur :: fonc (enchaineuse: *Enchaineuse, valeur: eini, échappe_chn: b
                 décalage := rubrique.décalage;
 
                 valeur_rubrique : eini = ---;
-                valeur_rubrique.pointeur = valeur.pointeur + décalage;
+                valeur_rubrique.données = valeur.données + décalage;
                 valeur_rubrique.info = rubrique.id;
 
                 imprime_valeur(enchaineuse, valeur_rubrique, vrai, profondeur + 1);
@@ -669,25 +669,25 @@ imprime_valeur :: fonc (enchaineuse: *Enchaineuse, valeur: eini, échappe_chn: b
         }
         POINTEUR {
             // Ne pas oublier qu'il y a un niveau d'indirection.
-            x := mémoire(valeur.pointeur comme **z8);
+            x := mémoire(valeur.données comme **z8);
             fmt := FormatEntier(valeur = x comme n64, base = 16);
             imprime_nombre_entier(enchaineuse, fmt);
         }
         FONCTION {
             // Ne pas oublier qu'il y a un niveau d'indirection.
-            x := mémoire(valeur.pointeur comme **z8);
+            x := mémoire(valeur.données comme **z8);
             imprime_nombre_entier(enchaineuse, donne_format_entier_contexte_pour_base(x comme n64, 16));
         }
         ADRESSE_FONCTION {
             // Ne pas oublier qu'il y a un niveau d'indirection.
-            x := mémoire(valeur.pointeur comme **z8);
+            x := mémoire(valeur.données comme **z8);
             imprime_nombre_entier(enchaineuse, donne_format_entier_contexte_pour_base(x comme n64, 16));
         }
         EINI {
-            x := mémoire(valeur.pointeur comme *eini);
+            x := mémoire(valeur.données comme *eini);
 
             ajoute_au_tampon(enchaineuse, "eini { ptr = ");
-            fmt := donne_format_entier_contexte_pour_base(x.pointeur comme n64, 16);
+            fmt := donne_format_entier_contexte_pour_base(x.données comme n64, 16);
             imprime_nombre_entier(enchaineuse, fmt);
             ajoute_au_tampon(enchaineuse, ", info = ");
             fmt = donne_format_entier_contexte_pour_base(x.info comme n64, 16);
@@ -711,7 +711,7 @@ imprime_valeur :: fonc (enchaineuse: *Enchaineuse, valeur: eini, échappe_chn: b
         }
         TYPE_DE_DONNÉES {
             // XXX - ceci est un hack, il faudra plutôt imprimer le nom du type via une table de types
-            x := mémoire(valeur.pointeur comme *type_de_données);
+            x := mémoire(valeur.données comme *type_de_données);
             infos_x := x comme *InfoType;
             imprime_dans_enchaineuse(enchaineuse, "%", infos_x.id);
             ajoute_au_tampon(enchaineuse, " (");
@@ -725,7 +725,7 @@ imprime_valeur :: fonc (enchaineuse: *Enchaineuse, valeur: eini, échappe_chn: b
             ajoute_au_tampon(enchaineuse, " { ");
 
             si info_arg.est_sûre {
-                pointeur_indice := (valeur.pointeur + info_arg.décalage_indice) comme *z32;
+                pointeur_indice := (valeur.données + info_arg.décalage_indice) comme *z32;
                 indice := mémoire(pointeur_indice);
 
                 // note la rubrique_active est l'indice de la rubrique + 1, 0 étant une valeur montrant que l'union est invalide
@@ -739,7 +739,7 @@ imprime_valeur :: fonc (enchaineuse: *Enchaineuse, valeur: eini, échappe_chn: b
                     ajoute_au_tampon(enchaineuse, " = ");
 
                     valeur_rubrique : eini = ---;
-                    valeur_rubrique.pointeur = valeur.pointeur;
+                    valeur_rubrique.données = valeur.données;
                     valeur_rubrique.info = rubrique.id;
 
                     imprime_valeur(enchaineuse, valeur_rubrique, vrai, profondeur + 1);
@@ -1193,8 +1193,8 @@ fmt_consomme :: fonc (format: chaine) -> (extraction: chaine, reste: chaine, ind
 
     indice = -1;
 
-    ptr := format.pointeur;
-    fin := format.pointeur + format.taille;
+    ptr := format.caractères;
+    fin := format.caractères + format.taille;
 
     tantque ptr < fin {
         si reste.commence_par("\\(") {
@@ -1221,7 +1221,7 @@ fmt_consomme :: fonc (format: chaine) -> (extraction: chaine, reste: chaine, ind
             si nombre_de_chiffres == 0 {
                 reste = sauvegarde_reste;
                 extraction.taille += 1;
-                reste.pointeur += 1;
+                reste.caractères += 1;
                 reste.taille -= 1;
                 ptr += 1;
                 indice = -1;
@@ -1233,7 +1233,7 @@ fmt_consomme :: fonc (format: chaine) -> (extraction: chaine, reste: chaine, ind
             si reste.taille == 0 || reste[0] != ')' {
                 reste = sauvegarde_reste;
                 extraction.taille += 1;
-                reste.pointeur += 1;
+                reste.caractères += 1;
                 reste.taille -= 1;
                 ptr += 1;
                 indice = -1;
@@ -1246,7 +1246,7 @@ fmt_consomme :: fonc (format: chaine) -> (extraction: chaine, reste: chaine, ind
 
         extraction.taille += 1;
 
-        reste.pointeur += 1;
+        reste.caractères += 1;
         reste.taille -= 1;
 
         ptr += 1;
@@ -1388,7 +1388,7 @@ génère_fonction_enveloppe :: fonc (enchaineuse: *Enchaineuse, espace: EspaceDe
 
     ajoute_au_tampon(enchaineuse, nom_enveloppe, " :: fonc (enchaineuse: *Fondation.Enchaineuse, e: eini)\n");
     ajoute_au_tampon(enchaineuse, "{\n");
-    ajoute_au_tampon(enchaineuse, "\tvaleur := e.pointeur comme *");
+    ajoute_au_tampon(enchaineuse, "\tvaleur := e.données comme *");
 
     module := compilatrice_module_pour_code(espace, données.fonction);
     nom_module := compilatrice_nom_module(module);

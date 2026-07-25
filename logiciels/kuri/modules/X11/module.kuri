@@ -2117,7 +2117,7 @@ load_x11_auth_token :: fonc () -> Optionnel(AuthToken)
             continue;
         }
 
-        auth_token := mémoire(auth_entry.auth_data.pointeur comme *AuthToken);
+        auth_token := mémoire(auth_entry.auth_data.données comme *AuthToken);
         retourne auth_token;
 	}
 }
@@ -2134,7 +2134,7 @@ read_x11_auth_entry :: fonc (tampon: []octet) -> (AuthEntry, []octet)
     taille_adresse, tampon = lis_grand_boutisme(tampon, n16);
 
     adresse: []octet;
-    adresse.pointeur = tampon.pointeur;
+    adresse.données = tampon.données;
     adresse.taille = taille_adresse comme z64;
     tampon = avance(tampon, taille_adresse comme z64);
 
@@ -2144,7 +2144,7 @@ read_x11_auth_entry :: fonc (tampon: []octet) -> (AuthEntry, []octet)
     taille_display_number, tampon = lis_grand_boutisme(tampon, n16);
 
     display_number: []octet;
-    display_number.pointeur = tampon.pointeur;
+    display_number.données = tampon.données;
     display_number.taille = taille_display_number comme z64;
     tampon = avance(tampon, taille_display_number comme z64);
 
@@ -2152,7 +2152,7 @@ read_x11_auth_entry :: fonc (tampon: []octet) -> (AuthEntry, []octet)
     taille_auth_name, tampon = lis_grand_boutisme(tampon, n16);
 
     auth_name: []octet;
-    auth_name.pointeur = tampon.pointeur;
+    auth_name.données = tampon.données;
     auth_name.taille = taille_auth_name comme z64;
     tampon = avance(tampon, taille_auth_name comme z64);
 
@@ -2162,7 +2162,7 @@ read_x11_auth_entry :: fonc (tampon: []octet) -> (AuthEntry, []octet)
     taille_auth_data, tampon = lis_grand_boutisme(tampon, n16);
 
     auth_data: []octet;
-    auth_data.pointeur = tampon.pointeur;
+    auth_data.données = tampon.données;
     auth_data.taille = taille_auth_data comme z64;
     tampon = avance(tampon, taille_auth_data comme z64);
 
