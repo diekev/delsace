@@ -185,12 +185,6 @@ convertis_code_glsl :: fonc (espace: EspaceDeTravail, enchaineuse: *Enchaineuse,
             ident := code comme *NoeudCodeRéférenceDéclaration;
             ajoute_au_tampon(enchaineuse, ident.nom);
         }
-        EXPRESSION_PARENTHÈSE {
-            paren := code comme *NoeudCodeParenthèse;
-            ajoute_au_tampon(enchaineuse, "(");
-            convertis_code_glsl(espace, enchaineuse, paren.expression, profondeur);
-            ajoute_au_tampon(enchaineuse, ")");
-        }
         EXPRESSION_APPEL {
             appel := code comme *NoeudCodeAppel;
 

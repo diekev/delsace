@@ -114,7 +114,7 @@ opérateur == :: (chn: ChaineUTF16, chaine_native: chaine) -> bool
 chaine_ajoute :: fonc (chn: *ChaineUTF16, point_de_code: rune32)
 {
     unités: [2]n16;
-    taille := utf16_depuis_point_de_code(point_de_code, *unités[0]);
+    taille := utf16_depuis_point_de_code(point_de_code, unités.données);
 
     chn.ajoute(unités[0]);
     si taille == 2 {
@@ -162,15 +162,15 @@ divise_chaine :: fonc (chn: ChaineUTF16, délimiteur: n32) -> [..]ChaineUTF16
 
     répète {
         token: ChaineUTF16;
-        token.unités.pointeur = chn.unités.pointeur + position;
+        token.unités.données = chn.unités.données + position;
         token.unités.taille = 0;
 
-        tantque position < chn.taille() && chn.unités.pointeur[position] != délimiteur {
+        tantque position < chn.taille() && chn.unités.données[position] != délimiteur {
             token.unités.taille += 1;
             position += 1;
         }
 
-        // assert(chn.unités.pointeur[position] == délimiteur)
+        // assert(chn.unités.données[position] == délimiteur)
         tableau_ajoute(*résultat, token);
         position += 1;
     } tantque position < chn.taille();
@@ -312,7 +312,7 @@ opérateur > :: (a: ChaineUTF16, b: ChaineUTF16) -> bool
 avance :: fonc (chn: ChaineUTF16, pas: z64) -> ChaineUTF16 #enligne
 {
     résultat := chn;
-    résultat.unités.pointeur += pas;
+    résultat.unités.données += pas;
     résultat.unités.taille -= pas;
     retourne résultat;
 }
@@ -377,8 +377,8 @@ donne_sous_chaine_entre_espace_blanches :: fonc (chn: ChaineUTF16) -> ChaineUTF1
 
 supprime_espace_blanches_autour_en_place :: fonc (chn: *ChaineUTF16)
 {
-    ptr_début := chn.unités.pointeur;
-    ptr_fin := chn.unités.pointeur + chn.unités.taille;
+    ptr_début := chn.unités.données;
+    ptr_fin := chn.unités.données + chn.unités.taille;
 
     tantque ptr_début < ptr_fin {
         saufsi est_caractère_espace_blanc(mémoire(ptr_début)) {
@@ -387,7 +387,7 @@ supprime_espace_blanches_autour_en_place :: fonc (chn: *ChaineUTF16)
         ptr_début += 1;
     }
 
-    insertion := chn.unités.pointeur;
+    insertion := chn.unités.données;
 
     tantque ptr_début < ptr_fin {
         si est_caractère_espace_blanc(mémoire(ptr_début)) {
@@ -400,14 +400,14 @@ supprime_espace_blanches_autour_en_place :: fonc (chn: *ChaineUTF16)
         insertion += 1;
     }
 
-    chn.unités.taille = (insertion - chn.unités.pointeur);
+    chn.unités.taille = (insertion - chn.unités.données);
 }
 
 /* https://infra.spec.whatwg.org/#strip-newlines */
 supprime_nouvelles_lignes_en_place :: fonc (chn: *ChaineUTF16)
 {
-    début := chn.unités.pointeur;
-    fin := chn.unités.pointeur + chn.unités.taille;
+    début := chn.unités.données;
+    fin := chn.unités.données + chn.unités.taille;
 
     insertion := début;
     taille_finale := chn.unités.taille;
@@ -472,7 +472,7 @@ donne_sous_chaine_entre :: fonc (chn: ChaineUTF16, prédicat: fonc (point_de_cod
 {
     résultat := chn;
 
-    début := résultat.unités.pointeur;
+    début := résultat.unités.données;
     fin := début + résultat.unités.taille;
 
     tantque début < fin {
@@ -483,7 +483,7 @@ donne_sous_chaine_entre :: fonc (chn: ChaineUTF16, prédicat: fonc (point_de_cod
         début += 1;
     }
 
-    résultat.unités.pointeur = début;
+    résultat.unités.données = début;
     
     taille: z64;
 
@@ -509,7 +509,7 @@ sous_chaine :: fonc (chn: ChaineUTF16, début: z64, fin: z64) -> ChaineUTF16
     assert(fin < chn.taille());
 
     résultat: ChaineUTF16;
-    résultat.unités.pointeur = chn.unités.pointeur + début;
+    résultat.unités.données = chn.unités.données + début;
     résultat.unités.taille = (fin - début) + 1;
     retourne résultat;
 }
@@ -566,7 +566,7 @@ divise_sur_espaces_blanches_ascii :: fonc (chn: ChaineUTF16) -> [..]ChaineUTF16
     tokens: [..]ChaineUTF16;
 
     // 3. Skip ASCII whitespace within input given position.
-    tantque position < chn.taille() && est_ascii_espace_blanche(chn.unités.pointeur[position]) {
+    tantque position < chn.taille() && est_ascii_espace_blanche(chn.unités.données[position]) {
         position += 1;
     }
 
@@ -574,10 +574,10 @@ divise_sur_espaces_blanches_ascii :: fonc (chn: ChaineUTF16) -> [..]ChaineUTF16
     tantque position < chn.taille() {
         // 1. Let token be the result of collecting a sequence of code points that are not ASCII whitespace from input, given position.
         token: ChaineUTF16;
-        token.unités.pointeur = chn.unités.pointeur + position;
+        token.unités.données = chn.unités.données + position;
         token.unités.taille = 0;
 
-        tantque position < chn.taille() && !est_ascii_espace_blanche(chn.unités.pointeur[position]) {
+        tantque position < chn.taille() && !est_ascii_espace_blanche(chn.unités.données[position]) {
             token.unités.taille += 1;
             position += 1;
         }
@@ -586,7 +586,7 @@ divise_sur_espaces_blanches_ascii :: fonc (chn: ChaineUTF16) -> [..]ChaineUTF16
         tableau_ajoute(*tokens, token);
 
         // 3. Skip ASCII whitespace within input given position.
-        tantque position < chn.taille() && est_ascii_espace_blanche(chn.unités.pointeur[position]) {
+        tantque position < chn.taille() && est_ascii_espace_blanche(chn.unités.données[position]) {
             position += 1;
         }
     }
@@ -704,7 +704,7 @@ ajoute :: fonc (enchaineuse: *EnchaineuseUTF16, rune: rune16)
 
 ajoute :: fonc (enchaineuse: *EnchaineuseUTF16, chn: chaine)
 {
-    ptr_source := chn.pointeur;
+    ptr_source := chn.caractères;
     curseur := 0;
     tantque curseur < chn.taille {
         no := nombre_octets_utf8_rapide(*ptr_source[curseur]);
@@ -734,7 +734,7 @@ ajoute :: fonc (enchaineuse: *EnchaineuseUTF16, chn: ChaineUTF16)
 ajoute :: fonc (enchaineuse: *EnchaineuseUTF16, rune: rune32)
 {
     unités: [2]n16;
-    taille := utf16_depuis_point_de_code(rune, *unités[0]);
+    taille := utf16_depuis_point_de_code(rune, unités.données);
 
     enchaineuse.ajoute(unités[0]);
     si taille == 2 {
@@ -759,8 +759,8 @@ chaine_depuis_enchaineuse :: fonc (enchaineuse: *EnchaineuseUTF16, réinitialise
     tampon := *enchaineuse.tampon;
 
     tantque tampon != nul {
-        src := *tampon.données[0];
-        dst := résultat.unités.pointeur + curseur;
+        src := tampon.données.données;
+        dst := résultat.unités.données + curseur;
         taille_mémoire := tampon.occupés * 2; // 2 octets par unités
 
         copie_mem_nonsur(src = src, dst = dst, taille = taille_mémoire);
@@ -830,10 +830,10 @@ crée_flux_sortie :: fonc (enchaineuse: *Enchaineuse) -> FluxSortie
         enchaineuse_ := flux_sortie.données comme *Enchaineuse;
 
         séquence: [4]n8;
-        taille := point_de_code_vers_utf8(point_de_code, *séquence[0]);
+        taille := point_de_code_vers_utf8(point_de_code, séquence.données);
 
-        chn: chaine;
-        chn.pointeur = *séquence[0] comme *z8;
+        chn: chaine = ---;
+        chn.caractères = séquence.données comme *z8;
         chn.taille = taille;
 
         ajoute_au_tampon(enchaineuse_, chn);

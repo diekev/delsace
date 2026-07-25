@@ -77,7 +77,7 @@ donne_sous_tampon :: fonc (tampon: TamponAudio, début_seconde: z32, fin_seconde
     début := donne_taille_données_pour_une_seconde(résultat.format) * début_seconde;
     fin   := donne_taille_données_pour_une_seconde(résultat.format) * fin_seconde;
 
-    résultat.données.pointeur += début;
+    résultat.données.données += début;
     résultat.données.taille = fin - début;
     retourne résultat;
 }
@@ -127,7 +127,7 @@ remplis_avec_onde_sinusoïdal :: fonc (tampon: TamponAudioStatique, temps_sinus:
     assert(tampon.format.format_échantillon == FormatÉchantillon.ENTIER_RELATIF_16_BIT);
 
     données: []z16;
-    données.pointeur = tampon.données.pointeur comme *z16;
+    données.données = tampon.données.données comme *z16;
     données.taille = tampon.données.taille / 2;
 
     remplis_avec_onde_sinusoïdal(données, format.nombre_de_canaux, format.échantillons_par_seconde comme n64, temps_sinus, fréquence, facteur_amplitude);
@@ -146,7 +146,7 @@ remplis_avec_onde_carrée :: fonc (tampon: TamponAudioStatique, décalage_échan
     assert(tampon.format.format_échantillon == FormatÉchantillon.ENTIER_RELATIF_16_BIT);
 
     données: []z16;
-    données.pointeur = tampon.données.pointeur comme *z16;
+    données.données = tampon.données.données comme *z16;
     données.taille = tampon.données.taille / 2;
 
     remplis_avec_onde_carrée(données, format.nombre_de_canaux, format.échantillons_par_seconde comme n64, décalage_échantillon, fréquence, facteur_amplitude);
@@ -165,7 +165,7 @@ remplis_avec_onde_sinusoïdal :: fonc (données: []z16, nombre_de_canaux: z32, t
     facteur_amplitude = restreint(facteur_amplitude, 0.0, 1.0);
     amplitude := (facteur_amplitude * 32768);
 
-    échantillon := données.pointeur;
+    échantillon := données.données;
 
     t_sinus := mémoire(temps_sinus);
 
@@ -193,7 +193,7 @@ remplis_avec_onde_carrée :: fonc (données: []z16, nombre_de_canaux: z32, taux_
     facteur_amplitude = restreint(facteur_amplitude, 0.0, 1.0);
     tonalité := (facteur_amplitude * 32768) comme z16;
 
-    échantillon := données.pointeur;
+    échantillon := données.données;
 
     pour nombre_échantillons_par_canal {
         valeur := si (décalage_échantillon / période) % 2 == 0 {
@@ -234,7 +234,7 @@ remplis_avec_onde_carrée :: fonc (données: []z16, nombre_de_canaux: z32, taux_
     format.bits_moyens_par_secondes = calcule_bits_moyens_par_secondes(format);
 
     données: []z16;
-    données.pointeur = tampon.données.pointeur comme *z16;
+    données.données = tampon.données.données comme *z16;
     données.taille = tampon.données.taille / 2;
 
     chunk_données: ChunkDonnéesWave;

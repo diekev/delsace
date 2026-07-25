@@ -121,7 +121,7 @@ finalise_chaine :: fonc (lexème: *Lexème) -> bool
     }
 
     si lexème.valeur[0] == '"' && lexème.valeur[lexème.valeur.taille - 1] == '"' {
-        lexème.valeur.pointeur += 1;
+        lexème.valeur.caractères += 1;
         lexème.valeur.taille -= 2;
         lexème.genre = GenreLexème.CHAINE;
 
@@ -129,7 +129,7 @@ finalise_chaine :: fonc (lexème: *Lexème) -> bool
     }
 
     si lexème.valeur[0] == '\'' && lexème.valeur[lexème.valeur.taille - 1] == '\'' {
-        lexème.valeur.pointeur += 1;
+        lexème.valeur.caractères += 1;
         lexème.valeur.taille -= 2;
         lexème.genre = GenreLexème.CHAINE;
 

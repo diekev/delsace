@@ -284,9 +284,9 @@ fusionne_couleurs :: fonc (base: []CouleurRVBA, source: []CouleurRVBA, opacité:
 {
     assert(base.taille == source.taille);
 
-    ptr_source := source.pointeur;
-    ptr_base := base.pointeur;
-    ptr_dest := base.pointeur;
+    ptr_source := source.données;
+    ptr_base := base.données;
+    ptr_dest := base.données;
 
     fonction_de_mélange := fonctions_de_mélange[mode_de_fusion];
 
