@@ -77,7 +77,7 @@ imprime_traceback :: fonc (enchaineuse: *Enchaineuse, realm: *Realm)
                 lexème := it.noeud_exécuté_courant.lexème;
                 texte := donne_ligne_pour_lexème(*it.script_or_module.source, lexème);
 
-                ligne_pour_erreur := donne_ligne_pour_erreur(texte, lexème.texte.pointeur - texte.pointeur);
+                ligne_pour_erreur := donne_ligne_pour_erreur(texte, lexème.texte.caractères - texte.caractères);
 
                 ajoute_au_tampon(enchaineuse, "    at '", ligne_pour_erreur, "'\n");
                 continue;
@@ -98,17 +98,17 @@ imprime_traceback :: fonc (enchaineuse: *Enchaineuse, realm: *Realm)
 
 donne_ligne_pour_lexème :: fonc (source: *TexteSource, lexème: *Lexème) -> chaine
 {
-    premier_lexème := source.lexèmes.pointeur;
-    dernier_lexème := source.lexèmes.pointeur + source.lexèmes.taille;
+    premier_lexème := source.lexèmes.données;
+    dernier_lexème := source.lexèmes.données + source.lexèmes.taille;
 
     saufsi premier_lexème <= lexème < dernier_lexème {
         retourne "le lexème ne vient pas du script";
     }
 
-    début_source := source.texte.pointeur;
+    début_source := source.texte.caractères;
     fin_source := début_source + source.texte.taille;
 
-    curseur := lexème.texte.pointeur;
+    curseur := lexème.texte.caractères;
     tantque curseur >= début_source {
         si mémoire(curseur) == '\n' {
             curseur += 1;
@@ -118,9 +118,9 @@ donne_ligne_pour_lexème :: fonc (source: *TexteSource, lexème: *Lexème) -> ch
         curseur -= 1;
     }
 
-    résultat := chaine(curseur, lexème.texte.pointeur - curseur);
+    résultat := chaine(curseur, lexème.texte.caractères - curseur);
 
-    curseur = lexème.texte.pointeur;
+    curseur = lexème.texte.caractères;
     tantque curseur < fin_source {
         si mémoire(curseur) == '\n' {
             arrête;

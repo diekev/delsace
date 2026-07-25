@@ -45,7 +45,6 @@
     case GenreNoeud::EXPRESSION_MÉMOIRE:                                                          \
     case GenreNoeud::EXPRESSION_NÉGATION_LOGIQUE:                                                 \
     case GenreNoeud::EXPRESSION_PAIRE_DISCRIMINATION:                                             \
-    case GenreNoeud::EXPRESSION_PARENTHÈSE:                                                       \
     case GenreNoeud::EXPRESSION_PLAGE:                                                            \
     case GenreNoeud::EXPRESSION_PRISE_ADRESSE:                                                    \
     case GenreNoeud::EXPRESSION_RÉFÉRENCE_DÉCLARATION:                                            \

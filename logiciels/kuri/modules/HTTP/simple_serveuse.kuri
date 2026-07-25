@@ -74,7 +74,7 @@ crée_simple_serveuse :: fonc (adresse: chaine) -> (succès: bool, serveuse: *Si
 
     err := bind(prise, *mon_addresse comme *sockaddr, taille_de(sockaddr) comme n64);
     si err == -1 {
-        perror(ChaineC("bind".pointeur));
+        perror(ChaineC("bind".caractères));
         imprimeln("erreur lors de la liaison");
         retourne faux, nul;
     }
@@ -124,8 +124,8 @@ répond :: fonc (requête: *Requête, réponse: *Réponse)
     chaine_message := chaine_pour_message_serveuse(réponse.message);
     // imprimeln("%", chaine_message)
 
-    si send(requête.prise, chaine_message.pointeur, chaine_message.taille comme n64, 0) == -1 {
-        perror(ChaineC("send".pointeur));
+    si send(requête.prise, chaine_message.caractères, chaine_message.taille comme n64, 0) == -1 {
+        perror(ChaineC("send".caractères));
     }
 
     déloge(*chaine_message);
@@ -194,7 +194,7 @@ opérateur pour :: (requêtes: RequêtesEntrantes) -> Requête
     boucle {
         prise := accept(serveuse.prise, *mon_addresse comme *sockaddr, *sin_size);
         si prise == -1 {
-            perror(ChaineC("accept".pointeur));
+            perror(ChaineC("accept".caractères));
             continue;
         }
 

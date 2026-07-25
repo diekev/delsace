@@ -502,7 +502,7 @@ private_set :: fonc (O: *Object, P: PrivateName, value: Valeur)
 
         // d. Perform ? Call(setter, O, « value »).
         argument: []Valeur;
-        argument.pointeur = *value;
+        argument.données = *value;
         argument.taille = 1;
 
         mv := O.donne_tas_de_mémoire().donne_mv();

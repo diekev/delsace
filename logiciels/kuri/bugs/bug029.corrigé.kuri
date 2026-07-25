@@ -4,7 +4,7 @@
 
 passe_eini :: fonc (e: eini) -> bool
 {
-    a : *z32 = mémoire(e.pointeur comme **z32);
+    a : *z32 = mémoire(e.données comme **z32);
     retourne (mémoire(a) == 127);
 }
 
