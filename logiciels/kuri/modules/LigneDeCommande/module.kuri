@@ -409,8 +409,8 @@ donne_nom_pour_argument :: fonc (info: *InfoTypeRubriqueStructure) -> chaine
 
 consomme :: fonc (tableau: *[]$T) -> T
 {
-    résultat := tableau.pointeur[0];
-    tableau.pointeur += 1;
+    résultat := tableau.données[0];
+    tableau.données += 1;
     tableau.taille -= 1;
     retourne résultat;
 }

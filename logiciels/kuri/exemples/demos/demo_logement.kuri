@@ -7,7 +7,7 @@ test_logement_tableau :: fonc ()
 
     tableau := loge_tableau(z32, 10);
 
-    imprime("tableau.pointeur : %\n", tableau.pointeur);
+    imprime("tableau.pointeur : %\n", tableau.données);
     imprime("tableau.capacité : %\n", tableau.capacité);
     imprime("tableau.taille   : %\n", tableau.taille);
 
@@ -23,7 +23,7 @@ test_logement_tableau :: fonc ()
 
     reloge_tableau(*tableau, 20);
 
-    imprime("tableau.pointeur : %\n", tableau.pointeur);
+    imprime("tableau.pointeur : %\n", tableau.données);
     imprime("tableau.capacité : %\n", tableau.capacité);
     imprime("tableau.taille   : %\n", tableau.taille);
 
@@ -33,7 +33,7 @@ test_logement_tableau :: fonc ()
 
     déloge(*tableau);
 
-    imprime("tableau.pointeur : %\n", tableau.pointeur);
+    imprime("tableau.pointeur : %\n", tableau.données);
     imprime("tableau.capacité : %\n", tableau.capacité);
     imprime("tableau.taille   : %\n", tableau.taille);
 

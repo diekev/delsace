@@ -504,7 +504,7 @@ exécute :: fonc (pilote: *PiloteMySQL, requête: chaine, $T: type_de_données, 
             chn := colonne_suivante(*curseur);
 
             tampon: []octet;
-            tampon.pointeur = valeur_rubrique.données comme *z8;
+            tampon.données = valeur_rubrique.données comme *z8;
             tampon.taille = rubrique.id.taille_en_octet comme z64;
 
             saufsi fonction.rappel(chn, tampon) {

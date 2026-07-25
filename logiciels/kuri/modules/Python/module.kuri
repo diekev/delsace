@@ -615,7 +615,7 @@ format_tampon_pour_info_type :: fonc (info: *InfoType) -> chaine
 
 remplis_champs_requis_py_buffer_générique :: fonc (view: *Py_buffer, tableau: []$T)
 {
-    view.buf = tableau.pointeur;
+    view.buf = tableau.données;
     view.itemsize = taille_de(T) comme Py_ssize_t;
     view.len = (tableau.taille comme n32 * taille_de(T)) comme Py_ssize_t;
     view.format = format_tampon_pour_info_type(info_de(T)).pointeur;
@@ -1228,7 +1228,7 @@ PyConfig_AddModuleSearchPath :: fonc (config: *PyConfig, chemin: chaine)
     /* Ajout terminateur nul. */
     chaine_ajoute(*chemin_recherche, 0);
 
-    _ := PyWideStringList_Append(*config.module_search_paths, chemin_recherche.points_de_code.pointeur);
+    _ := PyWideStringList_Append(*config.module_search_paths, chemin_recherche.points_de_code.données);
     config.module_search_paths_set = 1;
 }
 

@@ -469,7 +469,7 @@ crée_chemin_sortie_cellules :: fonc (empl constructrice: *ConstructriceMéthode
 copie_ligne_vers_labyrinthe :: fonc (empl constructrice: *ConstructriceMéthodeEller, indice_ligne: z32)
 {
     /* Chacune de nos cellule compte pour 2 cellule du labyrinthe de sortie. */
-    données_sortie := labyrinthe.données.pointeur + labyrinthe.taille_x * (indice_ligne * 2 + 1);
+    données_sortie := labyrinthe.données.données + labyrinthe.taille_x * (indice_ligne * 2 + 1);
 
     pour ligne_courante {
         /* Chacune de nos cellule compte pour 2 cellule du labyrinthe de sortie. */

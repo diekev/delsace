@@ -62,7 +62,7 @@ logement_tableau :: fonc () -> rien
 
     tabl := loge_tableau(r32, 32);
 
-    imprime("Tableau logé à l'addresse : %\n", tabl.pointeur);
+    imprime("Tableau logé à l'addresse : %\n", tabl.données);
     imprime("Taille tableau : %\n", tabl.taille);
 
     debut := 1.0;
@@ -76,7 +76,7 @@ logement_tableau :: fonc () -> rien
 
     déloge(*tabl);
 
-    imprime("Tableau délogé : %\n", tabl.pointeur);
+    imprime("Tableau délogé : %\n", tabl.données);
     imprime("Taille tableau : %\n", tabl.taille);
 
     imprime_tableau(tabl);

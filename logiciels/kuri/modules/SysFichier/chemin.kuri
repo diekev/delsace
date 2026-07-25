@@ -126,7 +126,7 @@ chemin_normalisé :: fonc (tampon_chemin: *TamponChemin, pile: *Pile(chaine), ch
 
     pile_secondaire: Pile(chaine);
     si utilise_tampon {
-        pile_secondaire.données.pointeur = tampon.données;
+        pile_secondaire.données.données = tampon.données;
         pile_secondaire.données.capacité = 16;
     }
 

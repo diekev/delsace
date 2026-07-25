@@ -119,7 +119,7 @@ compresse :: fonc (entrée: []octet, niveau: z32) -> (z32, [..]octet)
 
     /* Compresse jusqu'à la fin du flux d'entrée. */
     strm.avail_in = entrée.taille comme n32;
-    strm.next_in = entrée.pointeur comme *n8;
+    strm.next_in = entrée.données comme *n8;
 
     tampon: [1024]n8;
 
@@ -135,7 +135,7 @@ compresse :: fonc (entrée: []octet, niveau: z32) -> (z32, [..]octet)
 
         ancienne_taille := résultat.taille;
         tableau_redimensionne(*résultat, résultat.taille + have comme z64);
-        copie_mem_nonsur(src = tampon.données, dst = résultat.pointeur + ancienne_taille, taille = have comme z64);
+        copie_mem_nonsur(src = tampon.données, dst = résultat.données + ancienne_taille, taille = have comme z64);
     } tantque (strm.avail_out == 0);
 
     assert(strm.avail_in == 0); /* all input will be used */
@@ -169,10 +169,10 @@ décompresse :: fonc (entrée: []octet) -> (z32, [..]octet)
         }
 
         entrée.taille -= entrée_courante.taille;
-        entrée.pointeur += entrée_courante.taille;
+        entrée.données += entrée_courante.taille;
 
         strm.avail_in = entrée_courante.taille comme n32;
-        strm.next_in = entrée_courante.pointeur comme *n8;
+        strm.next_in = entrée_courante.données comme *n8;
         si strm.avail_in == 0 {
             arrête;
         }
@@ -195,7 +195,7 @@ décompresse :: fonc (entrée: []octet) -> (z32, [..]octet)
             have := 1024 - strm.avail_out;
             ancienne_taille := résultat.taille;
             tableau_redimensionne(*résultat, ancienne_taille + have comme z64);
-            copie_mem_nonsur(src = tampon.données, dst = résultat.pointeur + ancienne_taille, taille = have comme z64);
+            copie_mem_nonsur(src = tampon.données, dst = résultat.données + ancienne_taille, taille = have comme z64);
         } tantque (strm.avail_out == 0); /* done when inflate() says it's done */
     } tantque (ret != Z_STREAM_END);
 

@@ -100,7 +100,7 @@ donne_nom_fichier :: fonc (archive: *Archive_Ar, fichier: *Fichier_Archivé) -> 
     fichier_index := archive.fichiers[1];
     assert(fichier_index.identifiant == "//");
 
-    texte_fichier_index := chaine(fichier_index.données.pointeur comme *z8, fichier_index.données.taille);
+    texte_fichier_index := chaine(fichier_index.données.données comme *z8, fichier_index.données.taille);
 
     résultat: chaine;
 
@@ -212,7 +212,7 @@ parse_rubrique_entête :: fonc (données: []octet, taille: n32) -> (chaine, []oc
         retourne "", données;
     }
 
-    résultat := chaine(données.pointeur comme *z8, taille comme z64);
+    résultat := chaine(données.données comme *z8, taille comme z64);
     reste := tableau_avance(données, taille comme z64);
     retourne résultat, reste;
 }
@@ -223,7 +223,7 @@ est_archive_ar :: fonc (données: []octet) -> bool
         retourne faux;
     }
 
-    chn_données := chaine(données.pointeur comme *z8, magique_archive.taille);
+    chn_données := chaine(données.données comme *z8, magique_archive.taille);
     retourne chn_données == magique_archive;
 }
 

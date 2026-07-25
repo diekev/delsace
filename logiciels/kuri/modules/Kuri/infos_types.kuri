@@ -291,7 +291,7 @@ donne_eini_valeur_énum_indice :: fonc (info: *InfoTypeÉnum, indice: z64) -> ei
 donne_valeurs_typées :: fonc (info: *InfoTypeÉnum, $T: type_de_données) -> []T
 {
     résultat : []T = ---;
-    résultat.pointeur = info.valeurs.pointeur comme *T;
+    résultat.données = info.valeurs.données comme *T;
     résultat.taille = info.valeurs.taille / (info.taille_en_octet comme z64);
     retourne résultat;
 }

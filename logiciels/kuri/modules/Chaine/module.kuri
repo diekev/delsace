@@ -229,7 +229,7 @@ copie_chaine :: fonc (chn: chaine) -> chaine
 
 chaine_depuis_tranche_octets :: fonc (données: []octet) -> chaine
 {
-    retourne chaine(données.pointeur comme *z8, données.taille);
+    retourne chaine(données.données comme *z8, données.taille);
 }
 
 // execute une fonction pour chaque ligne du texte d'entrée

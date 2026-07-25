@@ -440,7 +440,7 @@ qt_crée_fenêtre :: fonc (empl options: *Options_Création_Fenêtre, parent: *P
         arguments := arguments_ligne_commande();
         __taille_arguments_qt = arguments.taille comme z32;
         /* Jamais détruite. */
-        __application_qt = QT_cree_application(*__taille_arguments_qt, __arguments_ligne_commande.pointeur);
+        __application_qt = QT_cree_application(*__taille_arguments_qt, __arguments_ligne_commande.données);
     }
 
     window_parent: *QT_Window;
@@ -863,12 +863,12 @@ rappels_window_sur_évènement :: fonc (base: *QT_Rappels_Window, event: QT_Gene
         données: [..]octet;
         tableau_redimensionne(*données, taille_données);
 
-        QT_mimedata_exporte_donnees(mimedata, données.pointeur comme *n8, données.taille, tailles.pointeur, tailles.taille);
+        QT_mimedata_exporte_donnees(mimedata, données.données comme *n8, données.taille, tailles.données, tailles.taille);
 
         mimes: [..]DonnéesMime;
         tableau_réserve(*mimes, nombre_de_formats);
 
-        pointeur_données := données.pointeur;
+        pointeur_données := données.données;
         pour tailles.taille / 2 {
             taille_type_mime := tailles[indice_it * 2 + 0];
             taille_données_mime := tailles[indice_it * 2 + 1];

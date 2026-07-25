@@ -624,7 +624,7 @@ TypeTableauDynamique *Typeuse::type_tableau_dynamique(Type *type_pointe, bool in
     }
 
     auto rubriques = kuri::tableau<RubriqueTypeComposé, int>();
-    rubriques.ajoute({nullptr, type_pointeur_pour(type_pointe), ID::pointeur});
+    rubriques.ajoute({nullptr, type_pointeur_pour(type_pointe), ID::données});
     rubriques.ajoute({nullptr, type_z64, ID::taille});
     rubriques.ajoute({nullptr, type_z64, ID::capacité});
 
@@ -655,7 +655,7 @@ NoeudDéclarationTypeTranche *Typeuse::crée_type_tranche(Type *type_élément,
     }
 
     auto rubriques = kuri::tableau<RubriqueTypeComposé, int>();
-    rubriques.ajoute({nullptr, type_pointeur_pour(type_élément), ID::pointeur});
+    rubriques.ajoute({nullptr, type_pointeur_pour(type_élément), ID::données});
     rubriques.ajoute({nullptr, type_z64, ID::taille});
 
     auto type = alloc->m_noeuds_type_tranche.ajoute_élément();
@@ -682,7 +682,7 @@ TypeVariadique *Typeuse::type_variadique(Type *type_pointe)
     }
 
     auto rubriques = kuri::tableau<RubriqueTypeComposé, int>();
-    rubriques.ajoute({nullptr, type_pointeur_pour(type_pointe), ID::pointeur});
+    rubriques.ajoute({nullptr, type_pointeur_pour(type_pointe), ID::données});
     rubriques.ajoute({nullptr, type_z64, ID::taille});
 
     auto type = alloc->m_noeuds_type_variadique.ajoute_élément();

@@ -395,7 +395,7 @@ eini_depuis_info_rubrique :: fonc (structure: eini, info_rubrique: *InfoTypeRubr
 tampon_pour_eini :: fonc (e: eini) -> []octet #enligne
 {
     tampon : []octet = ---;
-    tampon.pointeur = e.données comme *z8;
+    tampon.données = e.données comme *z8;
     tampon.taille = e.info.taille_en_octet comme z64;
     retourne tampon;
 }
@@ -504,7 +504,7 @@ crée_itératrice_tableau :: fonc (valeur: eini) -> ItératriceTableau
 
         info_tableau := valeur.info comme *InfoTypeTableau;
 
-        itératrice.pointeur = x.pointeur;
+        itératrice.pointeur = x.données;
         itératrice.taille = x.taille;
         itératrice.type_pointé = info_tableau.type_pointé;
         itératrice.décalage = info_tableau.type_pointé.taille_en_octet comme z32;
@@ -530,7 +530,7 @@ crée_itératrice_tableau_tranche :: fonc (valeur: eini) -> ItératriceTableau
     décalage := type_élément.taille_en_octet comme z32;
 
     x := mémoire(valeur.données comme *[]z8);
-    itératrice.pointeur = x.pointeur;
+    itératrice.pointeur = x.données;
     itératrice.taille = x.taille;
 
     itératrice.valeur = valeur;
@@ -702,7 +702,7 @@ parse_n8 :: fonc (texte: chaine, tampon: []octet) -> bool
         retourne faux;
     };
 
-    copie_mem_nonsur(src = *v, dst = tampon.pointeur, taille = tampon.taille);
+    copie_mem_nonsur(src = *v, dst = tampon.données, taille = tampon.taille);
     retourne vrai;
 }
 
@@ -712,7 +712,7 @@ parse_n16 :: fonc (texte: chaine, tampon: []octet) -> bool
         retourne faux;
     };
 
-    copie_mem_nonsur(src = *v, dst = tampon.pointeur, taille = tampon.taille);
+    copie_mem_nonsur(src = *v, dst = tampon.données, taille = tampon.taille);
     retourne vrai;
 }
 
@@ -722,7 +722,7 @@ parse_n32 :: fonc (texte: chaine, tampon: []octet) -> bool
         retourne faux;
     };
 
-    copie_mem_nonsur(src = *v, dst = tampon.pointeur, taille = tampon.taille);
+    copie_mem_nonsur(src = *v, dst = tampon.données, taille = tampon.taille);
     retourne vrai;
 }
 
@@ -732,7 +732,7 @@ parse_n64 :: fonc (texte: chaine, tampon: []octet) -> bool
         retourne faux;
     };
 
-    copie_mem_nonsur(src = *v, dst = tampon.pointeur, taille = tampon.taille);
+    copie_mem_nonsur(src = *v, dst = tampon.données, taille = tampon.taille);
     retourne vrai;
 }
 
@@ -742,7 +742,7 @@ parse_z8 :: fonc (texte: chaine, tampon: []octet) -> bool
         retourne faux;
     };
 
-    copie_mem_nonsur(src = *v, dst = tampon.pointeur, taille = tampon.taille);
+    copie_mem_nonsur(src = *v, dst = tampon.données, taille = tampon.taille);
     retourne vrai;
 }
 
@@ -752,7 +752,7 @@ parse_z16 :: fonc (texte: chaine, tampon: []octet) -> bool
         retourne faux;
     };
 
-    copie_mem_nonsur(src = *v, dst = tampon.pointeur, taille = tampon.taille);
+    copie_mem_nonsur(src = *v, dst = tampon.données, taille = tampon.taille);
     retourne vrai;
 }
 
@@ -762,7 +762,7 @@ parse_z32 :: fonc (texte: chaine, tampon: []octet) -> bool
         retourne faux;
     };
 
-    copie_mem_nonsur(src = *v, dst = tampon.pointeur, taille = tampon.taille);
+    copie_mem_nonsur(src = *v, dst = tampon.données, taille = tampon.taille);
     retourne vrai;
 }
 
@@ -772,7 +772,7 @@ parse_z64 :: fonc (texte: chaine, tampon: []octet) -> bool
         retourne faux;
     };
 
-    copie_mem_nonsur(src = *v, dst = tampon.pointeur, taille = tampon.taille);
+    copie_mem_nonsur(src = *v, dst = tampon.données, taille = tampon.taille);
     retourne vrai;
 }
 
@@ -782,7 +782,7 @@ parse_r16 :: fonc (texte: chaine, tampon: []octet) -> bool
         retourne faux;
     };
 
-    copie_mem_nonsur(src = *v, dst = tampon.pointeur, taille = tampon.taille);
+    copie_mem_nonsur(src = *v, dst = tampon.données, taille = tampon.taille);
     retourne vrai;
 }
 
@@ -792,7 +792,7 @@ parse_r32 :: fonc (texte: chaine, tampon: []octet) -> bool
         retourne faux;
     };
 
-    copie_mem_nonsur(src = *v, dst = tampon.pointeur, taille = tampon.taille);
+    copie_mem_nonsur(src = *v, dst = tampon.données, taille = tampon.taille);
     retourne vrai;
 }
 
@@ -802,7 +802,7 @@ parse_r64 :: fonc (texte: chaine, tampon: []octet) -> bool
         retourne faux;
     };
 
-    copie_mem_nonsur(src = *v, dst = tampon.pointeur, taille = tampon.taille);
+    copie_mem_nonsur(src = *v, dst = tampon.données, taille = tampon.taille);
     retourne vrai;
 }
 

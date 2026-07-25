@@ -98,8 +98,8 @@ imprime_traceback :: fonc (enchaineuse: *Enchaineuse, realm: *Realm)
 
 donne_ligne_pour_lexème :: fonc (source: *TexteSource, lexème: *Lexème) -> chaine
 {
-    premier_lexème := source.lexèmes.pointeur;
-    dernier_lexème := source.lexèmes.pointeur + source.lexèmes.taille;
+    premier_lexème := source.lexèmes.données;
+    dernier_lexème := source.lexèmes.données + source.lexèmes.taille;
 
     saufsi premier_lexème <= lexème < dernier_lexème {
         retourne "le lexème ne vient pas du script";

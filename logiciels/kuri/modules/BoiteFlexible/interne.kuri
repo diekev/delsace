@@ -815,8 +815,8 @@ calcule_cotation_sur_direction :: fonc (boite: *Boite_Flexible, direction: Direc
 
             largeur_min := 0.0;
 
-            premier_fragment := boite.emboiteuse.fragments.pointeur + boite.premier_fragment;
-            dernier_fragment := boite.emboiteuse.fragments.pointeur + boite.dernier_fragment + 1;
+            premier_fragment := boite.emboiteuse.fragments.données + boite.premier_fragment;
+            dernier_fragment := boite.emboiteuse.fragments.données + boite.dernier_fragment + 1;
 
             tantque premier_fragment < dernier_fragment {
                 largeur_fragment := donne_largeur_texte(boite.config_texte.fonte, premier_fragment.texte);
@@ -1054,8 +1054,8 @@ résoud_cotation_croissante_sur_direction_impl :: fonc (boite: *Boite_Flexible, 
 fragmente_texte :: fonc (boite: *Boite_Flexible)
 {
     si boite.type == Boite_Flexible.Type.Texte {
-        premier_fragment := boite.emboiteuse.fragments.pointeur + boite.premier_fragment;
-        dernier_fragment := boite.emboiteuse.fragments.pointeur + boite.dernier_fragment + 1;
+        premier_fragment := boite.emboiteuse.fragments.données + boite.premier_fragment;
+        dernier_fragment := boite.emboiteuse.fragments.données + boite.dernier_fragment + 1;
 
         si boite.largeur >= boite.largeur_texte || boite.config_texte.drapeaux.SANS_FRAGMENTS {
             premier_fragment.texte = boite.texte;
@@ -1309,8 +1309,8 @@ génère_commandes :: fonc (emboiteuse: *Emboiteuse)
                             rect_texte.x += delta;
                         }
 
-                        premier_fragment := boite.emboiteuse.fragments.pointeur + boite.premier_fragment;
-                        dernier_fragment := boite.emboiteuse.fragments.pointeur + boite.dernier_fragment + 1;
+                        premier_fragment := boite.emboiteuse.fragments.données + boite.premier_fragment;
+                        dernier_fragment := boite.emboiteuse.fragments.données + boite.dernier_fragment + 1;
                         métriques := boite.config_texte.fonte.donne_métriques_fonte();
 
                         rect_texte.hauteur = métriques.donne_hauteur_ligne();

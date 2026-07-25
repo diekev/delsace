@@ -70,9 +70,9 @@ mélange_tableau :: fonc (gna: *GNA, tableau: []$T)
             continue;
         }
 
-        tmp := tableau.pointeur[indice_it];
-        tableau.pointeur[indice_it] = tableau.pointeur[nouvel_index];
-        tableau.pointeur[nouvel_index] = tmp;
+        tmp := tableau.données[indice_it];
+        tableau.données[indice_it] = tableau.données[nouvel_index];
+        tableau.données[nouvel_index] = tmp;
     }
 }
 

@@ -35,7 +35,7 @@ dessine_glyphes :: fonc (tampon_de_rendu: *TamponDeRendu, glyphes: []*texture_gl
         retourne;
     }
 
-    source_atlas := fonte.atlas.data.pointeur comme *n8;
+    source_atlas := fonte.atlas.data.données comme *n8;
 
     décalage_x := rect.x comme r32;
     début_effets := décalage_x;
@@ -70,7 +70,7 @@ dessine_glyphe :: fonc (tampon_de_rendu: *TamponDeRendu, fonte: *Fonte, glyph: *
     décalage_y := rect_sauf.y - rect_glyphe.y;
 
     enjambée_dest := tampon_de_rendu.rect.largeur;
-    ligne_dest := tampon_de_rendu.données.pointeur + rect_sauf.y * enjambée_dest + rect_sauf.x;
+    ligne_dest := tampon_de_rendu.données.données + rect_sauf.y * enjambée_dest + rect_sauf.x;
 
     enjambée_source := fonte.atlas.width comme z32;
     x0_glyphe := (fonte.atlas.width comme r32 * glyph.s0) comme z32;

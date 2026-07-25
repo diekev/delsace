@@ -386,7 +386,7 @@ copie_trace_appel :: fonc (racine: *TraceAppel, tableau: [..]TraceAppel)
         copie: TraceAppel;
         copie.info_appel = trace.info_appel;
         copie.info_fonction = trace.info_fonction;
-        tableau.pointeur[indice] = copie;
+        tableau.données[indice] = copie;
         indice += 1;
         trace = trace.précédente;
     }
@@ -400,7 +400,7 @@ enregistre_liste_trace_appels :: fonc (racine: *TraceAppel) -> [..]TraceAppel
     t := POSIX.malloc(taille_de(TraceAppel) * n comme n64);
 
     tableau_traces: [..]TraceAppel;
-    tableau_traces.pointeur = t;
+    tableau_traces.données = t;
     tableau_traces.taille = n;
     copie_trace_appel(racine, tableau_traces);
     retourne tableau_traces;
@@ -419,7 +419,7 @@ imprime_trace :: fonc (tableau: [..]TraceAppel, enchaineuse: *Enchaineuse)
 
 détruit_liste_trace_appels :: fonc (tableau_traces: [..]TraceAppel)
 {
-    POSIX.free(tableau_traces.pointeur);
+    POSIX.free(tableau_traces.données);
 }
 
 /* ------------------------------------------------------------------------- */
@@ -848,7 +848,7 @@ contexte :: fonc () -> ContexteProgramme #horsligne
 __init_contexte_kuri :: fonc (argc: z32, argv: **z8) -> *ContexteProgramme #sanstrace
 {
     __arguments_ligne_commande.taille = argc;
-    __arguments_ligne_commande.pointeur = argv;
+    __arguments_ligne_commande.données = argv;
 
     ctx := *__contexte_fil_principal;
     init_de(ContexteProgramme)(ctx);
@@ -883,7 +883,7 @@ __initialise_contexte_extra :: fonc (ctx: *ContexteProgramme, trace_appel: *Trac
     stockage_temporaire.taille = __tampon_stockage_tamporaire.taille comme z32;
     stockage_temporaire.occupé = 0;
     stockage_temporaire.occupation_maximale = 0;
-    stockage_temporaire.mémoire_débordante.pointeur = nul;
+    stockage_temporaire.mémoire_débordante.données = nul;
     stockage_temporaire.mémoire_débordante.taille = 0;
     stockage_temporaire.mémoire_débordante.capacité = 0;
     ctx.stockage_temporaire = stockage_temporaire;

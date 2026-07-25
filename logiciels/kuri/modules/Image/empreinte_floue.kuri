@@ -297,7 +297,7 @@ décode_empreinte_floue :: fonc (empreinte: chaine, largeur: z32, hauteur: z32, 
     colors.taille = colors.capacité;
     diffère déloge(*colors);
 
-    ptr_colors := colors.pointeur;
+    ptr_colors := colors.données;
 
     pour colors_size {
         si it == 0 {

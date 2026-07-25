@@ -164,7 +164,7 @@ lis_fichier_binaire_entier :: fonc (chemin: chaine, permissions := Permissions_F
     si taille != 0 {
         tableau_redimensionne(*résultat, taille);
 
-        octets_lus := tente système_lis(fichier.desc, résultat.pointeur comme *z8, résultat.taille) piège err {
+        octets_lus := tente système_lis(fichier.desc, résultat.données comme *z8, résultat.taille) piège err {
             déloge(*résultat);
             imprimeln("Impossible d'ouvrir le fichier % : %", chemin, err);
             retourne faux, résultat;
@@ -188,7 +188,7 @@ lis_fichier_binaire_entier :: fonc (chemin: CheminFichier, permissions := Permis
 lis_fichier_texte_entier :: fonc (chemin: chaine, permissions := Permissions_Fichier_Défaut) -> (succès: bool, résultat: chaine)
 {
     succès_lecture, octets := lis_fichier_binaire_entier(chemin, permissions);
-    retourne succès_lecture, chaine(octets.pointeur comme *z8, octets.taille);
+    retourne succès_lecture, chaine(octets.données comme *z8, octets.taille);
 }
 
 lis_fichier_texte_entier :: fonc (chemin: CheminFichier, permissions := Permissions_Fichier_Défaut) -> (succès: bool, résultat: chaine)
@@ -324,7 +324,7 @@ ajoute_au_fichier :: fonc (chemin: chaine, enchaineuse: *Enchaineuse) -> bool
 
     tantque tampon_courant != nul {
         contenu: []octet = ---;
-        contenu.pointeur = tampon_courant.données.données;
+        contenu.données = tampon_courant.données.données;
         contenu.taille = tampon_courant.occupé;
 
         octets_écris := tente écris(*fichier, contenu) piège err {

@@ -64,10 +64,10 @@ encode_base64 :: fonc (src: []octet, dst: []octet)
 {
     assert(dst.taille == donne_taille_base64(src));
 
-    ptr_src := src.pointeur;
-    fin_src := src.pointeur + src.taille;
+    ptr_src := src.données;
+    fin_src := src.données + src.taille;
 
-    ptr_dst := dst.pointeur;
+    ptr_dst := dst.données;
 
     char_array_3: [3]n8;
 

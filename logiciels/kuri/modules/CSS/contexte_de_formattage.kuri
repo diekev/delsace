@@ -2100,7 +2100,7 @@ collect_flex_items_into_flex_lines :: fonc (ctx: *ContexteDeFormattageFlex)
     espace_disponible := ctx.donne_inner_main_size();
 
     ligne_courante := tableau_ajoute_élément(*ctx.lignes);
-    ligne_courante.items.pointeur = ctx.items.pointeur;
+    ligne_courante.items.données = ctx.items.données;
 
     plusieurs_lignes := !est_nowrap(ctx);
 
@@ -2109,7 +2109,7 @@ collect_flex_items_into_flex_lines :: fonc (ctx: *ContexteDeFormattageFlex)
 
         si plusieurs_lignes && (ligne_courante.main_size + main_size) > espace_disponible {
             ligne_courante = tableau_ajoute_élément(*ctx.lignes);
-            ligne_courante.items.pointeur = ctx.items.pointeur + indice_it;
+            ligne_courante.items.données = ctx.items.données + indice_it;
         }
 
         ligne_courante.main_size += main_size;
@@ -2854,7 +2854,7 @@ LigneDeCellules :: struct {
 donne_cellules :: fonc (ligne: *LigneDeCellules, ctx: *ContexteDeFormattageTable) -> []DonnéesCellule
 {
     résultat: []DonnéesCellule;
-    résultat.pointeur = ctx.cellules.pointeur + ligne.index_première_cellule;
+    résultat.données = ctx.cellules.données + ligne.index_première_cellule;
     résultat.taille = ligne.nombre_de_cellules;
     retourne résultat;
 }
@@ -2868,7 +2868,7 @@ GroupeDeLignes :: struct {
 donne_lignes :: fonc (groupe: *GroupeDeLignes, ctx: *ContexteDeFormattageTable) -> []LigneDeCellules
 {
     résultat: []LigneDeCellules;
-    résultat.pointeur = ctx.lignes.pointeur + groupe.index_première_ligne;
+    résultat.données = ctx.lignes.données + groupe.index_première_ligne;
     résultat.taille = groupe.nombre_de_lignes;
     retourne résultat;
 }

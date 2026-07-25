@@ -28,10 +28,10 @@ avance :: fonc (chn: ChaineUTF32, n: z32) -> ChaineUTF32
 {
     assert(chn.taille() >= n);
     résultat := chn;
-    résultat.points_de_code.pointeur += n;
+    résultat.points_de_code.données += n;
     résultat.points_de_code.taille -= n;
     si résultat.points_de_code.taille <= 0 {
-        résultat.points_de_code.pointeur = nul;
+        résultat.points_de_code.données = nul;
         résultat.points_de_code.taille = 0;
     }
     retourne résultat;
@@ -77,7 +77,7 @@ crée_chaine_utf32 :: fonc (chn: chaine, résultat: *ChaineUTF32)
     ptr_source := chn.pointeur;
     curseur := 0;
 
-    ptr_résultat := résultat.points_de_code.pointeur;
+    ptr_résultat := résultat.points_de_code.données;
     taille : z64 = 0;
 
     tantque curseur < chn.taille {

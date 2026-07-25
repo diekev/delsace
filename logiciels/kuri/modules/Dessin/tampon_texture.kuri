@@ -122,7 +122,7 @@ donne_paramètres_texture_pour_tampon_de_rendu :: fonc (données: TamponDeRendu)
     résultat: ParamètresTexture2D;
     résultat.largeur = données.rect.largeur;
     résultat.hauteur = données.rect.hauteur;
-    résultat.données = données.données.pointeur;
+    résultat.données = données.données.données;
     résultat.bordure = 0;
     résultat.type = GL_UNSIGNED_BYTE;
     résultat.format = GL_RGBA;

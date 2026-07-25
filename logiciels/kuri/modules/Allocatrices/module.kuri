@@ -97,7 +97,7 @@ Arène_Mémoire :: struct {
 
 initialise_arène :: fonc (arène: *Arène_Mémoire, avec_mémoire: []octet)
 {
-    initialise_arène(arène, avec_mémoire.pointeur, avec_mémoire.taille comme IndiceMémoire);
+    initialise_arène(arène, avec_mémoire.données, avec_mémoire.taille comme IndiceMémoire);
 }
 
 initialise_arène :: fonc (arène: *Arène_Mémoire, base: *octet, taille: IndiceMémoire)
@@ -152,7 +152,7 @@ loge_tableau :: fonc (arène: *Arène_Mémoire, nombre_d_éléments: n64, $T: ty
     taille := taille_de(T) * nombre_d_éléments comme n32;
 
     résultat: []T = ---;
-    résultat.pointeur = loge_mémoire(arène, taille, alignement) comme *T;
+    résultat.données = loge_mémoire(arène, taille, alignement) comme *T;
     résultat.taille = nombre_d_éléments comme z64;
     retourne résultat;
 }

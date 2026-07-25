@@ -5823,7 +5823,7 @@ class_definition_evaluation :: fonc (interpréteuse: *InterprèteArbre, class_he
                 }
 
                 // 4. Replace pe in container with combined.
-                container.pointeur[indice_it] = combined;
+                container.données[indice_it] = combined;
 
                 arrête;
             }

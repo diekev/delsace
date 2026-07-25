@@ -340,7 +340,7 @@ donne_texte_sélectionné :: fonc (curseur: *CurseurTexte) -> chaine
         ligne := donne_ligne_courante(curseur);
 
         sous_chaine: ChaineUTF32 = ---;
-        sous_chaine.points_de_code.pointeur = ligne.points_de_code.pointeur + curseur.début;
+        sous_chaine.points_de_code.données = ligne.points_de_code.données + curseur.début;
         sous_chaine.points_de_code.taille = curseur.fin - curseur.début;
         retourne convertis_vers_chaine(sous_chaine);
     }

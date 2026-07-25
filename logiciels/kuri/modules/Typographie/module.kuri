@@ -712,7 +712,7 @@ texture_font_load_face :: fonc (self: *Fonte, taille: r32, library: *FT_Library,
             error = FT_New_Face(mémoire(library), chaine_c, 0, face);
         }
         Mémoire(mem) {
-            error = FT_New_Memory_Face(mémoire(library), mem.pointeur comme *n8, mem.taille, 0, face);
+            error = FT_New_Memory_Face(mémoire(library), mem.données comme *n8, mem.taille, 0, face);
         }
         sinon {
             retourne faux;
@@ -992,7 +992,7 @@ texture_font_load_glyph :: fonc (self: *Fonte, codepoint: n32) -> bool
 
     tampon := texture_atlas_get_glyph_buffer(self.atlas, tgt_w, tgt_h);
 
-    dst_ptr := tampon.pointeur + (padding.top comme n64 * tgt_w + padding.left comme n64) * self.atlas.depth;
+    dst_ptr := tampon.données + (padding.top comme n64 * tgt_w + padding.left comme n64) * self.atlas.depth;
     src_ptr := ft_bitmap.buffer;
 
     pour src_h {
@@ -1201,7 +1201,7 @@ texture_atlas_new :: fonc (width: n64, height: n64, depth: n64) -> *texture_atla
     }
 
     tableau_redimensionne(*self.data, (width * height * depth) comme z64);
-    si self.data.pointeur == nul {
+    si self.data.données == nul {
         panique("impossible de loger une instance de texture_atlas_t");
     }
  
@@ -1250,8 +1250,8 @@ texture_atlas_set_region :: fonc (self: *texture_atlas_t,
 
     depth := self.depth;
     pour height {
-        copie_mem_nonsur(dst = self.data.pointeur + ((y + it) * self.width + x) * depth,
-                         src = data.pointeur + (it * stride),
+        copie_mem_nonsur(dst = self.data.données + ((y + it) * self.width + x) * depth,
+                         src = data.données + (it * stride),
                          taille = (width * depth) comme z64);
     }
 

@@ -47,7 +47,7 @@ aplatis_fichier :: fonc (fichier: FichierPaginéMémoire) -> [..]octet
     résultat: [..]octet;
     tableau_redimensionne(*résultat, taille_octet);
 
-    dst := résultat.pointeur;
+    dst := résultat.données;
 
     page := fichier.première_page;
     tantque page != nul {
@@ -204,7 +204,7 @@ sérialise :: fonc (sérialiseuse: *SérialiseuseFichier, valeur: []octet)
     décalage : z64 = 0;
 
     tantque taille_à_écrire != 0 {
-        valeur.pointeur += décalage;
+        valeur.données += décalage;
         valeur.taille = min(taille_sure, taille_à_écrire);
 
         écris_données_au_curseur(sérialiseuse, valeur);
@@ -221,7 +221,7 @@ sérialise :: fonc (sérialiseuse: *SérialiseuseFichier, valeur: []octet)
 
 écris_données_au_curseur :: fonc (sérialiseuse: *SérialiseuseFichier, données: []octet)
 {
-    copie_mem_nonsur(src = données.pointeur, dst = sérialiseuse.curseur, taille = données.taille);
+    copie_mem_nonsur(src = données.données, dst = sérialiseuse.curseur, taille = données.taille);
 
     /* Ajourne la quantité de données occupés dans la page.
      * Nous n'utilisons pas la position finale car nous pouvons revenir en

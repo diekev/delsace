@@ -940,7 +940,7 @@ replace_all :: fonc (node: *Node, parent: *Node)
     }
     // 4. Otherwise, if node is non-null, set addedNodes to « node ».
     sinon si node != nul {
-        added_nodes.pointeur = *node;
+        added_nodes.données = *node;
         added_nodes.taille = 1;
     }
 
