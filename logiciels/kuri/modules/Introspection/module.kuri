@@ -52,7 +52,7 @@ donne_indice_rubrique_active :: fonc (u: $TypeUnion) -> z32
 
 est_valide :: fonc (valeur: eini) -> bool
 {
-    retourne valeur.pointeur != nul;
+    retourne valeur.données != nul;
 }
 
 /* Enquête sur l'InfoType de l'eini. */
@@ -197,174 +197,174 @@ est_rien :: fonc (valeur: eini) -> bool
 assigne_z8 :: fonc (valeur: eini, v: z8)
 {
     // assert(valeur.est_z8())
-    mémoire(valeur.pointeur comme *z8) = v;
+    mémoire(valeur.données comme *z8) = v;
 }
 
 assigne_z16 :: fonc (valeur: eini, v: z16)
 {
     // assert(valeur.est_z16())
-    mémoire(valeur.pointeur comme *z16) = v;
+    mémoire(valeur.données comme *z16) = v;
 }
 
 assigne_z32 :: fonc (valeur: eini, v: z32)
 {
     // assert(valeur.est_z32())
-    mémoire(valeur.pointeur comme *z32) = v;
+    mémoire(valeur.données comme *z32) = v;
 }
 
 assigne_z64 :: fonc (valeur: eini, v: z64)
 {
     // assert(valeur.est_z64())
-    mémoire(valeur.pointeur comme *z64) = v;
+    mémoire(valeur.données comme *z64) = v;
 }
 
 assigne_n8 :: fonc (valeur: eini, v: n8)
 {
     // assert(valeur.est_n8())
-    mémoire(valeur.pointeur comme *n8) = v;
+    mémoire(valeur.données comme *n8) = v;
 }
 
 assigne_n16 :: fonc (valeur: eini, v: n16)
 {
     // assert(valeur.est_n16())
-    mémoire(valeur.pointeur comme *n16) = v;
+    mémoire(valeur.données comme *n16) = v;
 }
 
 assigne_n32 :: fonc (valeur: eini, v: n32)
 {
     // assert(valeur.est_n32())
-    mémoire(valeur.pointeur comme *n32) = v;
+    mémoire(valeur.données comme *n32) = v;
 }
 
 assigne_n64 :: fonc (valeur: eini, v: n64)
 {
     // assert(valeur.est_n64())
-    mémoire(valeur.pointeur comme *n64) = v;
+    mémoire(valeur.données comme *n64) = v;
 }
 
 assigne_r16 :: fonc (valeur: eini, v: r16)
 {
     // assert(valeur.est_r16())
-    mémoire(valeur.pointeur comme *r16) = v;
+    mémoire(valeur.données comme *r16) = v;
 }
 
 assigne_r32 :: fonc (valeur: eini, v: r32)
 {
     // assert(valeur.est_r32())
-    mémoire(valeur.pointeur comme *r32) = v;
+    mémoire(valeur.données comme *r32) = v;
 }
 
 assigne_r64 :: fonc (valeur: eini, v: r64)
 {
     // assert(valeur.est_r64())
-    mémoire(valeur.pointeur comme *r64) = v;
+    mémoire(valeur.données comme *r64) = v;
 }
 
 assigne_bool :: fonc (valeur: eini, v: bool)
 {
     // assert(valeur.est_bool())
-    mémoire(valeur.pointeur comme *bool) = v;
+    mémoire(valeur.données comme *bool) = v;
 }
 
 assigne_octet :: fonc (valeur: eini, v: octet)
 {
     // assert(valeur.est_octet())
-    mémoire(valeur.pointeur comme *octet) = v;
+    mémoire(valeur.données comme *octet) = v;
 }
 
 assigne_type_de_données :: fonc (valeur: eini, v: type_de_données)
 {
     // assert(valeur.est_type_de_données())
-    mémoire(valeur.pointeur comme *type_de_données) = v;
+    mémoire(valeur.données comme *type_de_données) = v;
 }
 
 assigne_chaine :: fonc (valeur: eini, v: chaine)
 {
     // assert(valeur.est_chaine())
-    mémoire(valeur.pointeur comme *chaine) = v;
+    mémoire(valeur.données comme *chaine) = v;
 }
 
 assigne_pointeur :: fonc (valeur: eini, v: *rien)
 {
     // assert(valeur.est_pointeur())
-    mémoire(valeur.pointeur comme **z8) = v;
+    mémoire(valeur.données comme **z8) = v;
 }
 
 /* Extraction d'une valeur depuis l'eini, seuls les types de bases sont supportés. */
 
 comme_bool :: fonc (valeur: eini) -> bool
 {
-    retourne mémoire(valeur.pointeur comme *bool);
+    retourne mémoire(valeur.données comme *bool);
 }
 
 comme_chaine :: fonc (valeur: eini) -> chaine
 {
-    retourne mémoire(valeur.pointeur comme *chaine);
+    retourne mémoire(valeur.données comme *chaine);
 }
 
 comme_octet :: fonc (valeur: eini) -> octet
 {
-    retourne mémoire(valeur.pointeur comme *octet);
+    retourne mémoire(valeur.données comme *octet);
 }
 
 comme_type_de_données :: fonc (valeur: eini) -> type_de_données
 {
-    retourne mémoire(valeur.pointeur comme *type_de_données);
+    retourne mémoire(valeur.données comme *type_de_données);
 }
 
 comme_z8 :: fonc (valeur: eini) -> z8
 {
-    retourne mémoire(valeur.pointeur comme *z8);
+    retourne mémoire(valeur.données comme *z8);
 }
 
 comme_z16 :: fonc (valeur: eini) -> z16
 {
-    retourne mémoire(valeur.pointeur comme *z16);
+    retourne mémoire(valeur.données comme *z16);
 }
 
 comme_z32 :: fonc (valeur: eini) -> z32
 {
-    retourne mémoire(valeur.pointeur comme *z32);
+    retourne mémoire(valeur.données comme *z32);
 }
 
 comme_z64 :: fonc (valeur: eini) -> z64
 {
-    retourne mémoire(valeur.pointeur comme *z64);
+    retourne mémoire(valeur.données comme *z64);
 }
 
 comme_n8 :: fonc (valeur: eini) -> n8
 {
-    retourne mémoire(valeur.pointeur comme *n8);
+    retourne mémoire(valeur.données comme *n8);
 }
 
 comme_n16 :: fonc (valeur: eini) -> n16
 {
-    retourne mémoire(valeur.pointeur comme *n16);
+    retourne mémoire(valeur.données comme *n16);
 }
 
 comme_n32 :: fonc (valeur: eini) -> n32
 {
-    retourne mémoire(valeur.pointeur comme *n32);
+    retourne mémoire(valeur.données comme *n32);
 }
 
 comme_n64 :: fonc (valeur: eini) -> n64
 {
-    retourne mémoire(valeur.pointeur comme *n64);
+    retourne mémoire(valeur.données comme *n64);
 }
 
 comme_r16 :: fonc (valeur: eini) -> r16
 {
-    retourne mémoire(valeur.pointeur comme *r16);
+    retourne mémoire(valeur.données comme *r16);
 }
 
 comme_r32 :: fonc (valeur: eini) -> r32
 {
-    retourne mémoire(valeur.pointeur comme *r32);
+    retourne mémoire(valeur.données comme *r32);
 }
 
 comme_r64 :: fonc (valeur: eini) -> r64
 {
-    retourne mémoire(valeur.pointeur comme *r64);
+    retourne mémoire(valeur.données comme *r64);
 }
 
 /* Enquête sur les rubriques d'un eini pour une structure quelconque. */
@@ -386,7 +386,7 @@ possède_rubrique :: fonc (info: *InfoTypeStructure, nom: chaine) -> bool
 eini_depuis_info_rubrique :: fonc (structure: eini, info_rubrique: *InfoTypeRubriqueStructure) -> eini
 {
     e: eini;
-    e.pointeur = structure.pointeur + info_rubrique.décalage;
+    e.données = structure.données + info_rubrique.décalage;
     e.info = info_rubrique.id;
 
     retourne e;
@@ -395,7 +395,7 @@ eini_depuis_info_rubrique :: fonc (structure: eini, info_rubrique: *InfoTypeRubr
 tampon_pour_eini :: fonc (e: eini) -> []octet #enligne
 {
     tampon : []octet = ---;
-    tampon.pointeur = e.pointeur comme *z8;
+    tampon.données = e.données comme *z8;
     tampon.taille = e.info.taille_en_octet comme z64;
     retourne tampon;
 }
@@ -449,7 +449,7 @@ trouve_valeur_rubrique :: fonc (valeur: eini, nom_rubrique: chaine) -> eini
 
     si valeur.est_chaine() {
         si nom_rubrique == "taille" {
-            résultat.pointeur = valeur.pointeur + 8;
+            résultat.données = valeur.données + 8;
             résultat.info = info_de(z64);
             retourne résultat;
         }
@@ -494,17 +494,17 @@ crée_itératrice_tableau :: fonc (valeur: eini) -> ItératriceTableau
     si valeur.est_tableau_fixe() {
         info_tableau := valeur.info comme *InfoTypeTableauFixe;
 
-        itératrice.pointeur = valeur.pointeur;
+        itératrice.pointeur = valeur.données;
         itératrice.taille = info_tableau.nombre_éléments comme z32;
         itératrice.type_pointé = info_tableau.type_pointé;
         itératrice.décalage = info_tableau.type_pointé.taille_en_octet comme z32;
     }
     sinon {
-        x := mémoire(valeur.pointeur comme *[..]z8);
+        x := mémoire(valeur.données comme *[..]z8);
 
         info_tableau := valeur.info comme *InfoTypeTableau;
 
-        itératrice.pointeur = x.pointeur;
+        itératrice.pointeur = x.données;
         itératrice.taille = x.taille;
         itératrice.type_pointé = info_tableau.type_pointé;
         itératrice.décalage = info_tableau.type_pointé.taille_en_octet comme z32;
@@ -529,8 +529,8 @@ crée_itératrice_tableau_tranche :: fonc (valeur: eini) -> ItératriceTableau
     type_élément := info_tableau.type_élément;
     décalage := type_élément.taille_en_octet comme z32;
 
-    x := mémoire(valeur.pointeur comme *[]z8);
-    itératrice.pointeur = x.pointeur;
+    x := mémoire(valeur.données comme *[]z8);
+    itératrice.pointeur = x.données;
     itératrice.taille = x.taille;
 
     itératrice.valeur = valeur;
@@ -548,7 +548,7 @@ valeur_suivante :: fonc (itératrice: *ItératriceTableau) -> eini
         retourne résultat;
     }
 
-    résultat.pointeur = itératrice.pointeur + itératrice.décalage * itératrice.position;
+    résultat.données = itératrice.pointeur + itératrice.décalage * itératrice.position;
     résultat.info = itératrice.type_pointé;
 
     itératrice.position += 1;
@@ -600,7 +600,7 @@ rubrique_suivante :: fonc (itératrice: *ItératriceRubriqueStructure) -> (eini,
             continue;
         }
 
-        résultat.pointeur = itératrice.valeur.pointeur + rubrique.décalage;
+        résultat.données = itératrice.valeur.données + rubrique.décalage;
         résultat.info = rubrique.id;
 
         nom = rubrique.nom;
@@ -692,7 +692,7 @@ initalise_types_base :: fonc (fonctions: *[..]FonctionParsage)
  * aucune copie n'en est faite, nous supposons que le texte est toujours valide. */
 parse_chaine :: fonc (texte: chaine, tampon: []octet) -> bool
 {
-    copie_mem_nonsur(src = *texte, dst = tampon.pointeur, taille = tampon.taille);
+    copie_mem_nonsur(src = *texte, dst = tampon.données, taille = tampon.taille);
     retourne vrai;
 }
 
@@ -702,7 +702,7 @@ parse_n8 :: fonc (texte: chaine, tampon: []octet) -> bool
         retourne faux;
     };
 
-    copie_mem_nonsur(src = *v, dst = tampon.pointeur, taille = tampon.taille);
+    copie_mem_nonsur(src = *v, dst = tampon.données, taille = tampon.taille);
     retourne vrai;
 }
 
@@ -712,7 +712,7 @@ parse_n16 :: fonc (texte: chaine, tampon: []octet) -> bool
         retourne faux;
     };
 
-    copie_mem_nonsur(src = *v, dst = tampon.pointeur, taille = tampon.taille);
+    copie_mem_nonsur(src = *v, dst = tampon.données, taille = tampon.taille);
     retourne vrai;
 }
 
@@ -722,7 +722,7 @@ parse_n32 :: fonc (texte: chaine, tampon: []octet) -> bool
         retourne faux;
     };
 
-    copie_mem_nonsur(src = *v, dst = tampon.pointeur, taille = tampon.taille);
+    copie_mem_nonsur(src = *v, dst = tampon.données, taille = tampon.taille);
     retourne vrai;
 }
 
@@ -732,7 +732,7 @@ parse_n64 :: fonc (texte: chaine, tampon: []octet) -> bool
         retourne faux;
     };
 
-    copie_mem_nonsur(src = *v, dst = tampon.pointeur, taille = tampon.taille);
+    copie_mem_nonsur(src = *v, dst = tampon.données, taille = tampon.taille);
     retourne vrai;
 }
 
@@ -742,7 +742,7 @@ parse_z8 :: fonc (texte: chaine, tampon: []octet) -> bool
         retourne faux;
     };
 
-    copie_mem_nonsur(src = *v, dst = tampon.pointeur, taille = tampon.taille);
+    copie_mem_nonsur(src = *v, dst = tampon.données, taille = tampon.taille);
     retourne vrai;
 }
 
@@ -752,7 +752,7 @@ parse_z16 :: fonc (texte: chaine, tampon: []octet) -> bool
         retourne faux;
     };
 
-    copie_mem_nonsur(src = *v, dst = tampon.pointeur, taille = tampon.taille);
+    copie_mem_nonsur(src = *v, dst = tampon.données, taille = tampon.taille);
     retourne vrai;
 }
 
@@ -762,7 +762,7 @@ parse_z32 :: fonc (texte: chaine, tampon: []octet) -> bool
         retourne faux;
     };
 
-    copie_mem_nonsur(src = *v, dst = tampon.pointeur, taille = tampon.taille);
+    copie_mem_nonsur(src = *v, dst = tampon.données, taille = tampon.taille);
     retourne vrai;
 }
 
@@ -772,7 +772,7 @@ parse_z64 :: fonc (texte: chaine, tampon: []octet) -> bool
         retourne faux;
     };
 
-    copie_mem_nonsur(src = *v, dst = tampon.pointeur, taille = tampon.taille);
+    copie_mem_nonsur(src = *v, dst = tampon.données, taille = tampon.taille);
     retourne vrai;
 }
 
@@ -782,7 +782,7 @@ parse_r16 :: fonc (texte: chaine, tampon: []octet) -> bool
         retourne faux;
     };
 
-    copie_mem_nonsur(src = *v, dst = tampon.pointeur, taille = tampon.taille);
+    copie_mem_nonsur(src = *v, dst = tampon.données, taille = tampon.taille);
     retourne vrai;
 }
 
@@ -792,7 +792,7 @@ parse_r32 :: fonc (texte: chaine, tampon: []octet) -> bool
         retourne faux;
     };
 
-    copie_mem_nonsur(src = *v, dst = tampon.pointeur, taille = tampon.taille);
+    copie_mem_nonsur(src = *v, dst = tampon.données, taille = tampon.taille);
     retourne vrai;
 }
 
@@ -802,7 +802,7 @@ parse_r64 :: fonc (texte: chaine, tampon: []octet) -> bool
         retourne faux;
     };
 
-    copie_mem_nonsur(src = *v, dst = tampon.pointeur, taille = tampon.taille);
+    copie_mem_nonsur(src = *v, dst = tampon.données, taille = tampon.taille);
     retourne vrai;
 }
 
@@ -1019,7 +1019,7 @@ génère_enveloppe_fonction_parsage_octets :: fonc (enchaineuse: *Enchaineuse, d
     }
     ajoute_au_tampon(enchaineuse, données.fonction.nom, "(chn);\n");
     ajoute_au_tampon(enchaineuse, "\tsaufsi succès {\n\t\tretourne faux;\n\t}\n");
-    ajoute_au_tampon(enchaineuse, "\tFondation.copie_mem_nonsur(src = *valeur, dst = tampon.pointeur, taille = tampon.taille);\n");
+    ajoute_au_tampon(enchaineuse, "\tFondation.copie_mem_nonsur(src = *valeur, dst = tampon.données, taille = tampon.taille);\n");
     ajoute_au_tampon(enchaineuse, "\tretourne vrai;\n");
     ajoute_au_tampon(enchaineuse, "}\n");
 
@@ -1170,7 +1170,7 @@ visite_noeud :: fonc (visiteuse: *VisiteuseArbre($T), racine: *T)
         }
 
         valeur_eini : eini = ---;
-        valeur_eini.pointeur = racine;
+        valeur_eini.données = racine;
         valeur_eini.info = infos;
 
         traverse_structure(visiteuse, valeur_eini, *traversée);
@@ -1185,7 +1185,7 @@ donne_info_pour_type_noeud :: fonc (racine: *$T) -> *InfoTypeStructure
     infos := info_de(T);
 
     eini_racine: eini = ---;
-    eini_racine.pointeur = racine;
+    eini_racine.données = racine;
     eini_racine.info = infos;
 
     type: type_de_données;
@@ -1213,7 +1213,7 @@ traverse_structure :: fonc (visiteuse: *VisiteuseArbre($T), valeur_eini: eini, t
     pour > info.rubriques {
         si est_type_adresse_noeud_syntaxique(it.id, info_de(T)) {
             rubrique := eini_depuis_info_rubrique(valeur_eini, it);
-            noeud := mémoire(rubrique.pointeur comme **T);
+            noeud := mémoire(rubrique.données comme **T);
             si noeud == nul {
                 continue;
             }
@@ -1231,7 +1231,7 @@ traverse_structure :: fonc (visiteuse: *VisiteuseArbre($T), valeur_eini: eini, t
         si est_type_adresse_tableau_noeud_syntaxique(it.id, info_de(T)) {
             rubrique := eini_depuis_info_rubrique(valeur_eini, it);
 
-            tableau := mémoire(rubrique.pointeur comme *[..]*T);
+            tableau := mémoire(rubrique.données comme *[..]*T);
 
             saufsi possède_annotation(it, "NeVisitePas") {
                 pour > noeud dans tableau {

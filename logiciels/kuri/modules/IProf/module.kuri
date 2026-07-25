@@ -278,7 +278,7 @@ zone_hash_count: z64;
 
 initialise_iprof :: fonc ()
 {
-    zone_hash.pointeur = init_hash.pointeur;
+    zone_hash.données = init_hash.données;
     zone_hash_count = 1;
     zone_hash.taille = 1;
     zone_hash.capacité = 1;
@@ -347,7 +347,7 @@ init_zone_hash :: fonc (size: z64)
     zone_hash_count = 0;
     zone_hash_mask  = (size comme z32) - 1;
     pour zone_hash.capacité {
-        zone_hash.pointeur[it] = *Prof_dummy;
+        zone_hash.données[it] = *Prof_dummy;
     }
 }
 

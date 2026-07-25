@@ -1269,10 +1269,10 @@ function_prototype_call :: fonc (empl params: *ParamètresObjectCall) -> Valeur
     this_arg := params.donne_argument(0);
 
     nouveaux_arguments := arguments;
-    nouveaux_arguments.pointeur += 1;
+    nouveaux_arguments.données += 1;
     nouveaux_arguments.taille -= 1;
     si nouveaux_arguments.taille <= 0 {
-        nouveaux_arguments.pointeur = nul;
+        nouveaux_arguments.données = nul;
         nouveaux_arguments.taille = 0;
     }
 

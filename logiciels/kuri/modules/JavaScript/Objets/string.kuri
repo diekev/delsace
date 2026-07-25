@@ -165,7 +165,7 @@ string_prototype_substring :: fonc (empl params: *ParamètresObjectCall) -> Vale
     S16 := S.texte.donne_chaine_utf16();
 
     substring: ChaineUTF16;
-    substring.unités.pointeur = S16.unités.pointeur + from;
+    substring.unités.données = S16.unités.données + from;
     substring.unités.taille = to - from;
 
     résultat := crée_chaine_utf16_unique(*substring);
@@ -227,7 +227,7 @@ string_index_of :: fonc (string: ECMAString, search_value: ECMAString, from_inde
     indice_final := len - search_len;
 
     candidate: ChaineUTF16;
-    candidate.unités.pointeur = string_utf16.unités.pointeur + from_index;
+    candidate.unités.données = string_utf16.unités.données + from_index;
     candidate.unités.taille = search_len;
 
     tantque index <= indice_final {
@@ -237,7 +237,7 @@ string_index_of :: fonc (string: ECMAString, search_value: ECMAString, from_inde
             retourne index;
         }
 
-        candidate.unités.pointeur += 1;
+        candidate.unités.données += 1;
         index += 1;
     }
 

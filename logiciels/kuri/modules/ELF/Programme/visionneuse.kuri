@@ -45,8 +45,8 @@ principale :: fonc ()
     visionneuse: VisionneuseELF;
     diffère détruit_données(*visionneuse);
 
-    mémoire_arène_permanente := mémoire_application.pointeur;
-    mémoire_arène_transiente := mémoire_application.pointeur + TAILLE_ARÈNE_PERMANENTE;
+    mémoire_arène_permanente := mémoire_application.données;
+    mémoire_arène_transiente := mémoire_application.données + TAILLE_ARÈNE_PERMANENTE;
     initialise_arène(*visionneuse.arène, mémoire_arène_permanente, TAILLE_ARÈNE_PERMANENTE comme n64);
     initialise_arène(*visionneuse.arène_transiente, mémoire_arène_transiente, TAILLE_ARÈNE_TRANSIENTE comme n64);
 
@@ -243,7 +243,7 @@ donne_image_visualisation_binaire :: fonc (visionneuse: *VisionneuseELF, onglet:
         tableau_remplis_avec(pixels, 0);
 
         onglet.image_binaire.desc = desc;
-        onglet.image_binaire.données = pixels.pointeur;
+        onglet.image_binaire.données = pixels.données;
         onglet.image_binaire.source_données = SourceDonnéesImage.Externe;
 
         mémoire_temporaire := commence_mémoire_temporaire(*visionneuse.arène_transiente);
@@ -253,7 +253,7 @@ donne_image_visualisation_binaire :: fonc (visionneuse: *VisionneuseELF, onglet:
         tableau_remplis_avec(compteurs, 0);
         compteur_max : n32 = 0;
 
-        ptr_octet1 := données.pointeur;
+        ptr_octet1 := données.données;
         ptr_octet2 := ptr_octet1 + 1;
 
         pour données.taille - 1 {
@@ -782,7 +782,7 @@ dessine_tabuleuse :: fonc (visionneuse: *VisionneuseELF, tabuleuse: *Tabuleuse, 
     }
 
     lignes_visibles: []LigneTabuleuse;
-    lignes_visibles.pointeur = lignes.pointeur + première_ligne_visible;
+    lignes_visibles.données = lignes.données + première_ligne_visible;
     lignes_visibles.taille = (dernière_ligne_visible - première_ligne_visible) comme z64;
 
     espace_avant_première_ligne := hauteur_de_ligne * première_ligne_visible comme r32;
@@ -1277,7 +1277,7 @@ donne_tabuleuse_comment :: fonc (fichier: *Fichier_Ouvert, fonte: *Fonte, tabule
             initialise_tabuleuse(tabuleuse, "Valeur");
 
             données_section := donne_données_section(fichier.fichier, section);
-            chn_données := chaine(données_section.pointeur comme *z8, données_section.taille);
+            chn_données := chaine(données_section.données comme *z8, données_section.taille);
 
             chns := divise(chn_données, '\0');
             diffère déloge(*chns);
@@ -1345,9 +1345,9 @@ donne_tabuleuse_note :: fonc (fichier: *Fichier_Ouvert, fonte: *Fonte, tabuleuse
 
             initialise_tabuleuse(tabuleuse, "Nom", "Description", "Type");
 
-            curseur := données.pointeur;
+            curseur := données.données;
 
-            tantque curseur < (données.pointeur + données.taille) {
+            tantque curseur < (données.données + données.taille) {
                 note := curseur comme *Elf64_Nhdr;
                 curseur += taille_de(Elf64_Nhdr);
 
@@ -1362,7 +1362,7 @@ donne_tabuleuse_note :: fonc (fichier: *Fichier_Ouvert, fonte: *Fonte, tabuleuse
 
                 si note.n_type == NT_GNU_BUILD_ID {
                     condensat: Condensat;
-                    condensat.données.pointeur = desc.pointeur;
+                    condensat.données.données = desc.caractères;
                     condensat.données.taille = desc.taille;
 
                     desc = donne_chaine_hex(condensat);
@@ -1372,7 +1372,7 @@ donne_tabuleuse_note :: fonc (fichier: *Fichier_Ouvert, fonte: *Fonte, tabuleuse
                     initialise_enchaineuse(*enchaineuse);
 
                     mots: []n32;
-                    mots.pointeur = desc.pointeur comme *n32;
+                    mots.données = desc.caractères comme *n32;
                     mots.taille = 4;
 
                     si mots[0] == GNU_PROPERTY_X86_ISA_1_USED {
@@ -1439,9 +1439,9 @@ donne_tabuleuse_données_hex :: fonc (fichier: *Fichier_Ouvert, fonte: *Fonte, t
             initialise_tabuleuse(tabuleuse, "Décalage", "Données", "Texte");
             tabuleuse.alignements[0] = Alignement.Fin;
 
-            curseur := données.pointeur;
+            curseur := données.données;
             début := curseur;
-            fin := (données.pointeur + données.taille);
+            fin := (données.données + données.taille);
 
             hex_depuis_char :: fonc (hex: z8) -> z8
             {
@@ -1480,8 +1480,8 @@ donne_tabuleuse_données_hex :: fonc (fichier: *Fichier_Ouvert, fonte: *Fonte, t
                     }
                 }
 
-                texte_données: chaine;
-                texte_données.pointeur = *tampon_texte_données.données[0];
+                texte_données: chaine = ---;
+                texte_données.caractères = tampon_texte_données.données.données;
                 texte_données.taille = tampon_texte_données.curseur;
 
                 ajoute_ligne(tabuleuse, décalage, copie_chaine(texte_données), texte);
@@ -1511,7 +1511,7 @@ donne_tabuleuse_table_chaines :: fonc (fichier: *Fichier_Ouvert, fonte: *Fonte, 
 
             initialise_tabuleuse(tabuleuse, "Texte");
 
-            texte := chaine(données.pointeur comme *z8, données.taille);
+            texte := chaine(données.données comme *z8, données.taille);
 
             chaines := divise(texte, '\0');
             diffère déloge(*chaines);

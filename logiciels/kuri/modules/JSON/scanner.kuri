@@ -681,7 +681,7 @@ lis_tableau :: fonc (scanner: *ScannerJSON, tableau: eini) -> LexèmeJSON
     si tableau.est_tableau_fixe() {
         info := tableau.info comme *InfoTypeTableauFixe;
         type_pointé := info.type_pointé;
-        pointeur := tableau.pointeur;
+        pointeur := tableau.données;
         indice := 0;
 
         tantque !scanner.fini() {
@@ -699,7 +699,7 @@ lis_tableau :: fonc (scanner: *ScannerJSON, tableau: eini) -> LexèmeJSON
             tampon := pointeur + type_pointé.taille_en_octet comme z32 * indice;
 
             valeur : eini = ---;
-            valeur.pointeur = tampon;
+            valeur.données = tampon;
             valeur.info = type_pointé;
 
             scanner.empile(valeur);
@@ -738,10 +738,10 @@ lis_tableau :: fonc (scanner: *ScannerJSON, tableau: eini) -> LexèmeJSON
             nouvelle_taille := tampon_tableau.taille + type_pointé.taille_en_octet comme z64;
             tableau_redimensionne(*tampon_tableau, nouvelle_taille);
 
-            tampon := tampon_tableau.pointeur + type_pointé.taille_en_octet comme z32 * indice;
+            tampon := tampon_tableau.données + type_pointé.taille_en_octet comme z32 * indice;
 
             valeur : eini = ---;
-            valeur.pointeur = tampon;
+            valeur.données = tampon;
             valeur.info = type_pointé;
 
             scanner.empile(valeur);
@@ -759,13 +759,13 @@ lis_tableau :: fonc (scanner: *ScannerJSON, tableau: eini) -> LexèmeJSON
             }
         }
 
-        ptr := tableau.pointeur;
-        mémoire(ptr comme **octet) = tampon_tableau.pointeur;
+        ptr := tableau.données;
+        mémoire(ptr comme **octet) = tampon_tableau.données;
 
-        ptr_taille := tableau.pointeur + 8;
+        ptr_taille := tableau.données + 8;
         mémoire(ptr_taille comme *z64) = tampon_tableau.taille / type_pointé.taille_en_octet comme z64;
 
-        ptr_capacité := tableau.pointeur + 16;
+        ptr_capacité := tableau.données + 16;
         mémoire(ptr_capacité comme *z64) = tampon_tableau.capacité / type_pointé.taille_en_octet comme z64;
     }
 

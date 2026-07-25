@@ -78,7 +78,7 @@ initialise_opengl :: fonc () -> bool
 sauvegarde_glviewport_temporaire :: fonc () #développe
 {
     ancien_viewport: [4]GLint;
-    glGetIntegerv(GL_VIEWPORT, *ancien_viewport[0]);
+    glGetIntegerv(GL_VIEWPORT, ancien_viewport.données);
     diffère glViewport(ancien_viewport[0], ancien_viewport[1], ancien_viewport[2], ancien_viewport[3]);
 }
 
@@ -430,7 +430,7 @@ crée_contexte_opengl_x11 :: fonc (display: *Display, id_écran: z32) -> (*XVisu
     ];
 
     nombre_de_tampons_de_frame: z32;
-    configs_tampon_de_frame := glXChooseFBConfig(display, id_écran, attributs_glx.pointeur comme *GLint, *nombre_de_tampons_de_frame);
+    configs_tampon_de_frame := glXChooseFBConfig(display, id_écran, attributs_glx.données comme *GLint, *nombre_de_tampons_de_frame);
     si configs_tampon_de_frame == nul {
         imprimeln("Impossible d'obtenir un tampon de frame");
         exit(1);
@@ -477,7 +477,7 @@ crée_contexte_opengl_x11 :: fonc (display: *Display, id_écran: z32) -> (*XVisu
 
     /* Création du contexte OpenGL. */
     glXCreateContextAttribsARBProc :: fonc (display: *Display, config: GLXFBConfig, context: GLXContext, cond: Bool, attributs: *z32) -> GLXContext;
-    glXCreateContextAttribsARB := glXGetProcAddressARB("glXCreateContextAttribsARB".pointeur comme *GLubyte) comme adresse_fonction comme glXCreateContextAttribsARBProc;
+    glXCreateContextAttribsARB := glXGetProcAddressARB("glXCreateContextAttribsARB".caractères comme *GLubyte) comme adresse_fonction comme glXCreateContextAttribsARBProc;
 
     context_attribs : []GLenum = [
         GLX_CONTEXT_MAJOR_VERSION_ARB, 3,
@@ -495,7 +495,7 @@ crée_contexte_opengl_x11 :: fonc (display: *Display, id_écran: z32) -> (*XVisu
         context = glXCreateNewContext(display, meilleur_tampon, GLX_RGBA_TYPE comme z32, nul, True);
     }
     sinon {
-        context = glXCreateContextAttribsARB(display, meilleur_tampon, nul, 1, context_attribs.pointeur comme *z32);
+        context = glXCreateContextAttribsARB(display, meilleur_tampon, nul, 1, context_attribs.données comme *z32);
     }
     _ := XSync(display, False);
 

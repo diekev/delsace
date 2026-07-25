@@ -126,7 +126,7 @@ donne_nom_snake_case :: fonc (chn: chaine, griffonier: *Griffonier) -> chaine
         curseur += 1;
     }
 
-    retourne chaine(*griffonier.données[0], griffonier.curseur);
+    retourne chaine(griffonier.données.données, griffonier.curseur);
 }
 
 NomEtIndice :: struct {
@@ -388,7 +388,7 @@ génère_création_prototype :: fonc (enchaineuse: *Enchaineuse, interfaces: []I
         adresse_nom_et_indice_parent := ensemble_possède_retourne_indice(noms_et_indice_parents, nom_et_indice_parent);
         assert(adresse_nom_et_indice_parent != -1);
 
-        parent := *interfaces[noms_et_indice_parents.pointeur[adresse_nom_et_indice_parent].indice];
+        parent := *interfaces[noms_et_indice_parents.données[adresse_nom_et_indice_parent].indice];
 
         génère_création_prototype(enchaineuse, interfaces, parent, noms_et_indice_parents);
     }
@@ -456,7 +456,7 @@ Interface :: struct {
 donne_paramètres :: fonc (interface: *Interface, fonction: *Fonction) -> []Paramètre
 {
     résultat: []Paramètre;
-    résultat.pointeur = interface.paramètres.pointeur + fonction.premier_paramètre;
+    résultat.données = interface.paramètres.données + fonction.premier_paramètre;
     résultat.taille = fonction.dernier_paramètre - fonction.premier_paramètre;
     retourne résultat;
 }
@@ -1193,9 +1193,9 @@ donne_info_erreur_pour_lexème :: fonc (parseuse: *ParseuseInterface, lexème: c
     résultat: InfoErreur;
     résultat.numéro_ligne = 1;
 
-    début_texte := parseuse.texte.pointeur;
-    fin_texte := parseuse.texte.pointeur + parseuse.texte.taille;
-    début_lexème := lexème.pointeur;
+    début_texte := parseuse.texte.caractères;
+    fin_texte := parseuse.texte.caractères + parseuse.texte.taille;
+    début_lexème := lexème.caractères;
 
     it := début_texte;
     pos_dernière_ligne := début_texte;
@@ -1234,8 +1234,8 @@ ParseuseInterface :: struct {
 crée_parseuse :: fonc (chemin: CheminFichier, texte: chaine) -> ParseuseInterface
 {
     résultat : ParseuseInterface = ---;
-    résultat.début = texte.pointeur;
-    résultat.fin = texte.pointeur + texte.taille;
+    résultat.début = texte.caractères;
+    résultat.fin = texte.caractères + texte.taille;
     résultat.chemin = chemin;
     résultat.texte = texte;
     retourne résultat;
