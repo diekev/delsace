@@ -281,7 +281,7 @@ parse_part_locale :: fonc (parseuse: *ParseuseAdresseCourriel) -> bool
     taille_part_locale : z64 = 0;
 
     diffère {
-        parseuse.part_locale.pointeur = parseuse.chn.pointeur + position;
+        parseuse.part_locale.caractères = parseuse.chn.caractères + position;
         parseuse.part_locale.taille = taille_part_locale;
     }
 
@@ -398,7 +398,7 @@ parse_part_domaine :: fonc (parseuse: *ParseuseAdresseCourriel) -> bool
     taille_domaine : z64 = 0;
 
     diffère {
-        parseuse.part_domaine.pointeur = parseuse.chn.pointeur + position;
+        parseuse.part_domaine.caractères = parseuse.chn.caractères + position;
         parseuse.part_domaine.taille = taille_domaine;
     }
 
@@ -426,7 +426,7 @@ parse_part_locale_html :: fonc (parseuse: *ParseuseAdresseCourriel) -> bool
     taille_part_locale : z64 = 0;
 
     diffère {
-        parseuse.part_locale.pointeur = parseuse.chn.pointeur + position;
+        parseuse.part_locale.caractères = parseuse.chn.caractères + position;
         parseuse.part_locale.taille = taille_part_locale;
     }
 
@@ -491,7 +491,7 @@ parse_part_domaine_html :: fonc (parseuse: *ParseuseAdresseCourriel) -> bool
         retourne faux;
     }
 
-    parseuse.part_domaine.pointeur = parseuse.chn.pointeur + position;
+    parseuse.part_domaine.caractères = parseuse.chn.caractères + position;
     parseuse.part_domaine.taille = taille_domaine;
     retourne taille_domaine != 0;
 }

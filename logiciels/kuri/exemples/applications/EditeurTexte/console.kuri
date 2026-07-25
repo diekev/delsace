@@ -153,7 +153,7 @@ rappel_recherche :: fonc (requête: chaine @inutilisée, clé: CléConsole) -> r
 
     requête := console_affiche_prompt("Recherche (Echap pour annuler) : ", rappel_recherche);
 
-    si requête.pointeur != nul {
+    si requête.caractères != nul {
         déloge(*requête);
     }
     sinon {

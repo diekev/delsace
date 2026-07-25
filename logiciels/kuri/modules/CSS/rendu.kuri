@@ -319,7 +319,7 @@ inline_box_sur_dessin_fragment :: fonc (base: *Box, fragment: *Fragment, lignes_
             border_radius_bottom_left := propriétés.donne_valeur_utilisée(IDPropriété.BorderBottomLeftRadius).donne_pixels() comme r32;
 
             premier_fragment := fragment;
-            dernier_fragment := lignes_tenante.fragments.pointeur + lignes_tenante.fragments.taille;
+            dernier_fragment := lignes_tenante.fragments.données + lignes_tenante.fragments.taille;
             tantque fragment != dernier_fragment {
                 rect_box := ctx.donne_rectangle_corrigé(fragment.donne_rectangle());
                 rect_box.y -= padding_top;
@@ -599,7 +599,7 @@ canvas_box_sur_dessin :: fonc (base: *Box, ctx: *ContexteDessin)
     tampon_de_rendu := HTML.donne_tampon_de_rendu(élément);
 
     image: TamponImageRVBA8Bit;
-    image.données = tampon_de_rendu.données.pointeur;
+    image.données = tampon_de_rendu.données.données;
     image.largeur = tampon_de_rendu.rect.largeur;
     image.hauteur = tampon_de_rendu.rect.hauteur;
     

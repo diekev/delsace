@@ -110,8 +110,8 @@ est_en_fin_de_ligne :: fonc (parseuse: *Parseuse, référence: *Lexème) -> bool
     assert(lexème != référence);
     assert(lexème == référence + 1);
 
-    fin_référence := référence.texte.pointeur + référence.texte.taille;
-    texte := chaine(fin_référence, lexème.texte.pointeur - fin_référence);
+    fin_référence := référence.texte.caractères + référence.texte.taille;
+    texte := chaine(fin_référence, lexème.texte.caractères - fin_référence);
 
     pour texte {
         si it == '\n' {
@@ -1095,8 +1095,8 @@ crée_chaine_échappement_résolu :: fonc (chn: chaine) -> ECMAString
     enchaineuse: Enchaineuse;
     initialise_enchaineuse(*enchaineuse);
 
-    début := chn.pointeur;
-    fin := chn.pointeur + chn.taille;
+    début := chn.caractères;
+    fin := chn.caractères + chn.taille;
 
     tantque début < fin {
         caractère := mémoire(début);
@@ -1498,7 +1498,7 @@ parse_expression_primaire :: fonc (parseuse: *Parseuse) -> *Expression
             lexeuse: Lexeuse;
             lexeuse.realm = parseuse.realm;
             initialise_lexeuse_depuis_source(*lexeuse, parseuse.source_text);
-            lexeuse.début_source = lexème.texte.pointeur;
+            lexeuse.début_source = lexème.texte.caractères;
 
             lexème_regex_literal := lèxe_regex_littérale(*lexeuse);
 

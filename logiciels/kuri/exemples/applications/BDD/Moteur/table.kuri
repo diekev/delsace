@@ -152,7 +152,7 @@ ferme_base_de_données :: fonc (table: *Table) -> rien
     nombre_de_pages_pleines := table.nombre_de_lignes / table.taille_octet_ligne;
 
     pour i dans 0 ... nombre_de_pages_pleines - 1 {
-        si paginatrice.pages[i].pointeur == nul {
+        si paginatrice.pages[i].données == nul {
             continue;
         }
 
@@ -170,7 +170,7 @@ ferme_base_de_données :: fonc (table: *Table) -> rien
     si nombre_de_lignes_additionnelles > 0 {
         indice_page := nombre_de_pages_pleines;
 
-        si paginatrice.pages[indice_page].pointeur != nul {
+        si paginatrice.pages[indice_page].données != nul {
             si paginatrice.utilise_stockage_disque {
                 flush_paginatrice(paginatrice, indice_page);
             }
@@ -187,7 +187,7 @@ ferme_base_de_données :: fonc (table: *Table) -> rien
     }
 
     pour * page dans paginatrice.pages {
-        si page.pointeur != nul {
+        si page.données != nul {
             déloge(*mémoire(page));
         }
     }

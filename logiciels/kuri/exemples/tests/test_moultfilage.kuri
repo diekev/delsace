@@ -72,7 +72,7 @@ fn_clients :: fonc (p_data: *rien) -> *rien #sanstrace #cliche ri_finale
         store.stock = store.stock - val;
 
         imprime("Client % prend % du stock, reste % en stock !\n", nb, val, store.stock);
-        //printf("-- pthread_self() : %d\n".pointeur, pthread_getthreadid_np())
+        //printf("-- pthread_self() : %d\n".caractères, pthread_getthreadid_np())
 
         _ := pthread_mutex_unlock(*store.mutex);
     }

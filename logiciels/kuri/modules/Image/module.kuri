@@ -104,7 +104,7 @@ crée_image :: fonc (desc: *DescriptriceImage) -> NouvelleImage
     données := loge_tableau(octet, taille_données);
 
     résultat: NouvelleImage;
-    résultat.données = données.pointeur;
+    résultat.données = données.données;
     résultat.desc = mémoire(desc);
     résultat.source_données = SourceDonnéesImage.Interne;
     retourne résultat;
@@ -192,7 +192,7 @@ détruit_données_image :: fonc (image: *NouvelleImage)
 
     taille_données := donne_taille_données(*image.desc);
     données: [..]octet;
-    données.pointeur = image.données;
+    données.données = image.données;
     données.capacité = taille_données;
 
     déloge(*données);
@@ -223,7 +223,7 @@ décode_image :: fonc (données: []octet, type_mime: chaine, chemin := "") -> (b
     }
 
     si type_mime == "image/webp" {
-        data := données.pointeur comme *n8;
+        data := données.données comme *n8;
         data_size := données.taille comme n64;
 
         hauteur: z32;
@@ -236,7 +236,7 @@ décode_image :: fonc (données: []octet, type_mime: chaine, chemin := "") -> (b
 
         tampon := loge_tableau(octet, hauteur comme z64 * largeur comme z64 * 4);
 
-        output_buffer := tampon.pointeur comme *n8;
+        output_buffer := tampon.données comme *n8;
         output_buffer_size := tampon.capacité comme n64;
 
         résultat_décodage := WebPDecodeRGBAInto(data, data_size, output_buffer, output_buffer_size, largeur * 4);
@@ -250,7 +250,7 @@ décode_image :: fonc (données: []octet, type_mime: chaine, chemin := "") -> (b
         résultat.desc.hauteur = hauteur comme n32;
         résultat.desc.largeur = largeur comme n32;
         résultat.desc.format = FormatPixel.RVBA_8;
-        résultat.données = tampon.pointeur;
+        résultat.données = tampon.données;
         retourne vrai, résultat;
     }
 
@@ -264,7 +264,7 @@ décode_image :: fonc (données: []octet, type_mime: chaine, chemin := "") -> (b
     }
 
     si type_mime == MIME_image_svg {
-        chaine_c := crée_chaine_c(chaine(données.pointeur comme *z8, données.taille));
+        chaine_c := crée_chaine_c(chaine(données.données comme *z8, données.taille));
         diffère détruit_chaine_c(*chaine_c);
 
         image_svg: SVGImage;
@@ -295,7 +295,7 @@ décode_image :: fonc (données: []octet, type_mime: chaine, chemin := "") -> (b
         }
     }
 
-    proxy_image := IMG_cree_proxy_memoire(données.pointeur, données.taille comme n64);
+    proxy_image := IMG_cree_proxy_memoire(données.données, données.taille comme n64);
     diffère IMG_detruit_proxy(proxy_image);
 
     chn_c_chemin := crée_chaine_c(chemin);
@@ -342,7 +342,7 @@ décode_image :: fonc (données: []octet, type_mime: chaine, chemin := "") -> (b
 pixels_comme :: fonc (image: NouvelleImage, $T: type_de_données) -> []T
 {
     tableau : []T = ---;
-    tableau.pointeur = image.données comme *T;
+    tableau.données = image.données comme *T;
     tableau.taille = image.hauteur * image.largeur;
     retourne tableau;
 }

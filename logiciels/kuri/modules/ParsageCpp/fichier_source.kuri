@@ -49,7 +49,7 @@ donne_sous_chaine_source :: fonc (flux: *FluxSource, données: DonnéesSousChain
 construis_tableau_runes :: fonc (flux: *FluxSource)
 {
     indice : z64 = 0;
-    pointeur_source := flux.source.pointeur;
+    pointeur_source := flux.source.caractères;
 
     tantque indice < flux.source.taille {
         taille_rune := nombre_octets_utf8(pointeur_source);

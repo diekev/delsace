@@ -36,11 +36,11 @@ principale :: fonc ()
 
     gc_défaut := DefaultGC(d, s);
 
-    wm_delete_window := XInternAtom(d, "WM_DELETE_WINDOW".pointeur, False);
+    wm_delete_window := XInternAtom(d, "WM_DELETE_WINDOW".caractères, False);
     _ := XSetWMProtocols(d, w, *wm_delete_window, 1);
 
-    _NET_WM_XAPP_PROGRESS := XInternAtom(d, "_NET_WM_XAPP_PROGRESS".pointeur, False);
-    _NET_WM_XAPP_PROGRESS_PULSE := XInternAtom(d, "_NET_WM_XAPP_PROGRESS_PULSE".pointeur, False);
+    _NET_WM_XAPP_PROGRESS := XInternAtom(d, "_NET_WM_XAPP_PROGRESS".caractères, False);
+    _NET_WM_XAPP_PROGRESS_PULSE := XInternAtom(d, "_NET_WM_XAPP_PROGRESS_PULSE".caractères, False);
 
     progrès := 0;
 
@@ -50,7 +50,7 @@ principale :: fonc ()
 
         si e.type == Expose {
             _ := XFillRectangle(d, w, gc_défaut, 20, 20, 10, 10);
-            _ := XDrawString(d, w, gc_défaut, 10, 50, msg.pointeur, msg.taille comme z32);
+            _ := XDrawString(d, w, gc_défaut, 10, 50, msg.caractères, msg.taille comme z32);
         }
         sinon si e.type == ClientMessage {
             data := e.xclient.data.l;

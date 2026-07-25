@@ -28,10 +28,10 @@ avance :: fonc (chn: ChaineUTF32, n: z32) -> ChaineUTF32
 {
     assert(chn.taille() >= n);
     résultat := chn;
-    résultat.points_de_code.pointeur += n;
+    résultat.points_de_code.données += n;
     résultat.points_de_code.taille -= n;
     si résultat.points_de_code.taille <= 0 {
-        résultat.points_de_code.pointeur = nul;
+        résultat.points_de_code.données = nul;
         résultat.points_de_code.taille = 0;
     }
     retourne résultat;
@@ -55,9 +55,9 @@ convertis_vers_chaine :: fonc (chn: ChaineUTF32) -> chaine
     initialise_enchaineuse(*enchaineuse);
     séquence: [4]n8;
     pour chn.points_de_code {
-        taille := point_de_code_vers_utf8(it, *séquence[0]);
+        taille := point_de_code_vers_utf8(it, séquence.données);
 
-        tmp  := chaine(*séquence[0] comme *z8, taille);
+        tmp  := chaine(séquence.données comme *z8, taille);
         ajoute_au_tampon(*enchaineuse, tmp);
     }
     retourne chaine_depuis_enchaineuse(*enchaineuse);
@@ -74,10 +74,10 @@ crée_chaine_utf32 :: fonc (chn: chaine, résultat: *ChaineUTF32)
 {
     tableau_réserve(*résultat.points_de_code, chn.taille);
 
-    ptr_source := chn.pointeur;
+    ptr_source := chn.caractères;
     curseur := 0;
 
-    ptr_résultat := résultat.points_de_code.pointeur;
+    ptr_résultat := résultat.points_de_code.données;
     taille : z64 = 0;
 
     tantque curseur < chn.taille {
@@ -130,7 +130,7 @@ opérateur == :: (chn_utf32: ChaineUTF32, chn_native: chaine) -> bool
     curseur_chn_native := 0;
     curseur_chn_utf32 := 0;
 
-    ptr_natif := chn_native.pointeur;
+    ptr_natif := chn_native.caractères;
 
     tantque curseur_chn_native < chn_native.taille {
         si curseur_chn_utf32 >= chn_utf32.taille() {
@@ -180,9 +180,9 @@ imprime_chaine_utf32 :: fonc (enchaineuse: *Enchaineuse, chn: *ChaineUTF32)
 
     séquence: [4]n8;
     pour chn.points_de_code {
-        taille := point_de_code_vers_utf8(it, *séquence[0]);
+        taille := point_de_code_vers_utf8(it, séquence.données);
 
-        tmp  := chaine(*séquence[0] comme *z8, taille);
+        tmp  := chaine(séquence.données comme *z8, taille);
         ajoute_au_tampon(enchaineuse, tmp);
     }
 } @FormattageImpression
@@ -195,7 +195,7 @@ sous_chaine :: fonc (chn: ChaineUTF32, début: z64, fin: z64) -> ChaineUTF32
     assert(fin < chn.taille());
 
     résultat: ChaineUTF32;
-    résultat.points_de_code.pointeur = chn.points_de_code.pointeur + début;
+    résultat.points_de_code.données = chn.points_de_code.données + début;
     résultat.points_de_code.taille = (fin - début) + 1;
     retourne résultat;
 }
