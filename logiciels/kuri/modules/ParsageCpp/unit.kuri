@@ -80,7 +80,7 @@ résoud_plage_source :: fonc (unit: *TranslationUnit, plage_source: PlageSource)
 
     assert(plage_source.début.fichier == plage_source.fin.fichier);
 
-    texte_lexème := chaine(fichier.contenu_prétaité.pointeur + plage_source.début.décalage, plage_source.fin.décalage - plage_source.début.décalage);
+    texte_lexème := chaine(fichier.contenu_prétaité.caractères + plage_source.début.décalage, plage_source.fin.décalage - plage_source.début.décalage);
     texte_ligne := donne_ligne_contenant_mot(fichier.contenu_prétaité, texte_lexème);
 
     résultat: PlageSourceRésolue;
@@ -90,8 +90,8 @@ résoud_plage_source :: fonc (unit: *TranslationUnit, plage_source: PlageSource)
         résultat.texte_ligne = texte_ligne;
         résultat.numéro_ligne = 1;
 
-        début := fichier.contenu_prétaité.pointeur;
-        fin := texte_ligne.pointeur;
+        début := fichier.contenu_prétaité.caractères;
+        fin := texte_ligne.caractères;
 
         tantque début < fin {
             si mémoire(début) == '\n' {
@@ -100,7 +100,7 @@ résoud_plage_source :: fonc (unit: *TranslationUnit, plage_source: PlageSource)
             début += 1;
         }
 
-        résultat.numéro_colonne = (texte_lexème.pointeur - texte_ligne.pointeur) comme n64 + 1;
+        résultat.numéro_colonne = (texte_lexème.caractères - texte_ligne.caractères) comme n64 + 1;
         résultat.numéro_colonne_fin = résultat.numéro_colonne + texte_lexème.taille comme n64;
     }
 

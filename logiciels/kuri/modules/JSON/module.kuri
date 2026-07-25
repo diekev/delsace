@@ -48,9 +48,9 @@ donne_ligne_pour_erreur :: fonc (e: *Erreur, script: chaine) -> LignePourErreur
     assert(e.position >= 0);
     assert(e.position < script.taille);
 
-    mot := chaine(script.pointeur + e.position, 0);
+    mot := chaine(script.caractères + e.position, 0);
     texte := donne_ligne_contenant_mot(script, mot);
-    décalage := mot.pointeur - texte.pointeur;
+    décalage := mot.caractères - texte.caractères;
     assert(décalage >= 0);
     retourne LignePourErreur(texte, décalage);
 }

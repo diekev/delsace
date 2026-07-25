@@ -283,7 +283,7 @@ crée_local_server :: fonc (serveuse: *Serveuse, window: *QT_Window)
     résultat.sur_connexion = local_server_sur_connection;
     résultat.sur_lecture = local_server_sur_lecture;
 
-    si remove(ChaineC(CHEMIN_SOCKET.pointeur)) == -1 && lis_errno() != ENOENT {
+    si remove(ChaineC(CHEMIN_SOCKET.caractères)) == -1 && lis_errno() != ENOENT {
         imprime("Impossible de supprimer le fichier : '%'\n", CHEMIN_SOCKET);
         exit(1);
     }
@@ -319,7 +319,7 @@ local_server_sur_lecture :: fonc (rappels_server: *RappelsLocalServer, connexion
 
         ancienne_taille := serveuse.données_reçues.taille;
         tableau_redimensionne(*serveuse.données_reçues, serveuse.données_reçues.taille + taille_lue);
-        copie_mem_nonsur(src = *tampon[0], dst = serveuse.données_reçues.pointeur + ancienne_taille, taille = taille_lue);
+        copie_mem_nonsur(src = *tampon[0], dst = serveuse.données_reçues.données + ancienne_taille, taille = taille_lue);
     }
 
     si serveuse.données_reçues {
@@ -332,7 +332,7 @@ local_server_sur_lecture :: fonc (rappels_server: *RappelsLocalServer, connexion
 
             taille_lue := désérialise_type(message, données);
             ajoute_message(*serveuse.état_mémoire, message);
-            données.pointeur += taille_lue;
+            données.données += taille_lue;
             données.taille -= taille_lue;
         }
 

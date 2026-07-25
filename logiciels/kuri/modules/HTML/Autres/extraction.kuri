@@ -204,7 +204,7 @@ principale :: fonc ()
         noeud := enlève_dernier_élément(*traversée);
         assert(ensemble_possède(noeuds_à_garder, noeud));
 
-        nouveaux_enfants := noeud.enfants.pointeur;
+        nouveaux_enfants := noeud.enfants.données;
         nombre_nouveaux_enfants: z64;
 
         pour noeud.enfants {

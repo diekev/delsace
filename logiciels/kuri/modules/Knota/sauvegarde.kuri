@@ -141,7 +141,7 @@ sauvegarde_paramètres :: fonc (sauvegardeuse: *Sauvegardeuse, table_paramètres
                 /* Écris la valeur.
                  * À FAIRE : courbes et rampes. */
                 octets: []octet;
-                octets.pointeur = it.valeur.pointeur;
+                octets.données = it.valeur.données;
                 octets.taille = infos.taille_en_octet comme z64;
 
                 sérialise(*sauvegardeuse.sérialiseuse, octets);
@@ -563,7 +563,7 @@ lis_paramètres :: fonc (lectrice: *Lectrice_Graphe, noeud: *Noeud)
             }
             sinon {
                 src := lectrice.curseur;
-                dst := param.valeur.pointeur;
+                dst := param.valeur.données;
                 taille := taille_en_octet comme z64;
 
                 saufsi comp_mem(src, dst, taille) {

@@ -62,7 +62,7 @@ logement_tableau :: fonc () -> rien
 
     tabl := loge_tableau(r32, 32);
 
-    imprime("Tableau logé à l'addresse : %\n", tabl.pointeur);
+    imprime("Tableau logé à l'addresse : %\n", tabl.données);
     imprime("Taille tableau : %\n", tabl.taille);
 
     debut := 1.0;
@@ -76,7 +76,7 @@ logement_tableau :: fonc () -> rien
 
     déloge(*tabl);
 
-    imprime("Tableau délogé : %\n", tabl.pointeur);
+    imprime("Tableau délogé : %\n", tabl.données);
     imprime("Taille tableau : %\n", tabl.taille);
 
     imprime_tableau(tabl);
@@ -96,7 +96,7 @@ logement_chaine :: fonc () -> rien
 
     déloge(*chnr);
 
-    imprime("Chaîne délogée : %\n", chnr.pointeur);
+    imprime("Chaîne délogée : %\n", chnr.caractères);
     imprime("Taille chaîne  : %\n", chnr.taille);
 }
 
@@ -108,7 +108,7 @@ test_fichier :: fonc () -> rien
     chemin := "/home/kevin/test.kuri";
 
     nonsûr {
-        res := open(chemin.pointeur, 0);
+        res := open(chemin.caractères, 0);
 
         si res == -1 {
             imprime("Erreur lors de l'ouverture du fichier !\n");
@@ -120,8 +120,7 @@ test_fichier :: fonc () -> rien
 
         imprime("Lu ", nread, " octets\n");
 
-        // À FAIRE : prend pointeur automatiquement
-        chn := chaine(*tpn[0], nread comme z64);
+        chn := chaine(tpn.données, nread comme z64);
 
         imprime(chn, "\n");
 

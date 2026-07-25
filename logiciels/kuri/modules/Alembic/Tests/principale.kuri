@@ -23,7 +23,7 @@ accède_chemin_calque :: fonc (ctx: *ContexteOuvertureArchive, indice: n64, poin
 
     calque := fichier.calques[indice];
 
-    mémoire(pointeur_chemin) = calque.chemin.pointeur;
+    mémoire(pointeur_chemin) = calque.chemin.caractères;
     mémoire(taille_chemin) = calque.chemin.taille comme n64;
 }
 
@@ -180,7 +180,7 @@ principale :: fonc ()
 
         donne_chemins_du_dossier_récursif(chemin, *chemins, ".abc");
 
-        applications_et_descriptions: [..]Application_Et_Description;
+        // applications_et_descriptions: [..]Application_Et_Description;
 
         pour chemins {
             imprime_informations_subd(it);

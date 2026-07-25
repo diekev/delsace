@@ -181,7 +181,7 @@ cherche_mem :: fonc (source: []octet, valeur: z8, taille: z64) -> []octet
 
     pour i dans 0 ... t - 1 {
         si source[i] == valeur comme octet {
-            ret.pointeur = *source[i];
+            ret.données = *source[i];
             ret.taille = t - i;
             arrête;
         }
