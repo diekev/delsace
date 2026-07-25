@@ -163,14 +163,14 @@ flux_octets_mémoire_positionne :: fonc (flux: *FluxOctetsMémoire, position: Po
     }
 
     si flux.curseur.taille <= 0 {
-        flux.curseur.pointeur = nul;
+        flux.curseur.données = nul;
         flux.curseur.taille = 0;
     }
 }
 
 flux_octets_mémoire_donne_position :: fonc (flux: *FluxOctetsMémoire) -> PositionFichier
 {
-    delta := flux.curseur.pointeur - flux.octets.pointeur;
+    delta := flux.curseur.données - flux.octets.données;
     retourne PositionDébut(delta);
 }
 
@@ -183,7 +183,7 @@ flux_octets_mémoire_lis :: fonc (base: *FluxOctets, tampon: []octet) -> z64
         taille_à_lire = flux.curseur.taille;
     }
 
-    copie_mem_nonsur(src = flux.curseur.pointeur, dst = tampon.pointeur, taille = taille_à_lire);
+    copie_mem_nonsur(src = flux.curseur.données, dst = tampon.données, taille = taille_à_lire);
 
     flux.curseur = tableau_avance(flux.curseur, taille_à_lire);
 
@@ -195,9 +195,9 @@ lis_chaine_nul_terminée :: fonc (flux: *FluxOctetsMémoire) -> chaine
     résultat: chaine;
 
     si flux.curseur.taille {
-        résultat.pointeur = flux.curseur.pointeur comme *z8;
+        résultat.caractères = flux.curseur.données comme *z8;
 
-        curseur := flux.curseur.pointeur;
+        curseur := flux.curseur.données;
         fin := curseur + flux.curseur.taille;
 
         tantque curseur < fin && mémoire(curseur) {

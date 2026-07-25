@@ -18,7 +18,7 @@ donne_permutation_casse :: fonc (table: []PermutationCasse, rune: Rune) -> *Perm
 {
     r := rune comme n32;
     n := table.taille;
-    f := table.pointeur;
+    f := table.données;
     ef := f + n;
 
     // Binary search for entry containing r.
@@ -26,8 +26,8 @@ donne_permutation_casse :: fonc (table: []PermutationCasse, rune: Rune) -> *Perm
         m := n / 2;
 
         si f[m].min <= r <= f[m].max {
-            dist := distance(table.pointeur, *f[m]);
-            retourne *table.pointeur[dist];
+            dist := distance(table.données, *f[m]);
+            retourne *table.données[dist];
         }
 
         si r < f[m].min {

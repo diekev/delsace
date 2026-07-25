@@ -182,7 +182,7 @@ Lexeuse :: struct {
 
 initialise_lexeuse_depuis_source :: fonc (lexeuse: *Lexeuse, source: *TexteSource)
 {
-    début_source := source.texte.pointeur;
+    début_source := source.texte.caractères;
     fin_source := début_source + source.texte.taille;
 
     lexeuse.source = source;
@@ -1180,14 +1180,14 @@ rapporte_erreur :: fonc (lexeuse: *Lexeuse, message: chaine)
 
     position: PositionSource;
     
-    curseur := lexeuse.source.texte.pointeur;
-    position.texte_ligne.pointeur = curseur;
+    curseur := lexeuse.source.texte.caractères;
+    position.texte_ligne.caractères = curseur;
     début_source := lexeuse.début_source;
     tantque curseur < début_source {
         si mémoire(curseur) == '\n' {
             position.ligne += 1;
             position.colonne = 0;
-            position.texte_ligne.pointeur = curseur + 1;
+            position.texte_ligne.caractères = curseur + 1;
             position.texte_ligne.taille = 0;
             curseur += 1;
             continue;

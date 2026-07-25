@@ -47,11 +47,11 @@ aplatis_fichier :: fonc (fichier: FichierPaginéMémoire) -> [..]octet
     résultat: [..]octet;
     tableau_redimensionne(*résultat, taille_octet);
 
-    dst := résultat.pointeur;
+    dst := résultat.données;
 
     page := fichier.première_page;
     tantque page != nul {
-        src := *page.données[0];
+        src := page.données.données;
 
         copie_mem_nonsur(src = src, dst = dst, taille = page.occupé);
 
@@ -204,7 +204,7 @@ sérialise :: fonc (sérialiseuse: *SérialiseuseFichier, valeur: []octet)
     décalage : z64 = 0;
 
     tantque taille_à_écrire != 0 {
-        valeur.pointeur += décalage;
+        valeur.données += décalage;
         valeur.taille = min(taille_sure, taille_à_écrire);
 
         écris_données_au_curseur(sérialiseuse, valeur);
@@ -221,7 +221,7 @@ sérialise :: fonc (sérialiseuse: *SérialiseuseFichier, valeur: []octet)
 
 écris_données_au_curseur :: fonc (sérialiseuse: *SérialiseuseFichier, données: []octet)
 {
-    copie_mem_nonsur(src = données.pointeur, dst = sérialiseuse.curseur, taille = données.taille);
+    copie_mem_nonsur(src = données.données, dst = sérialiseuse.curseur, taille = données.taille);
 
     /* Ajourne la quantité de données occupés dans la page.
      * Nous n'utilisons pas la position finale car nous pouvons revenir en
@@ -230,7 +230,7 @@ sérialise :: fonc (sérialiseuse: *SérialiseuseFichier, valeur: []octet)
      * de l'écrire, ou l'adresse où se trouvera une donnée dans le fichier). */
     page := sérialiseuse.page_courante;
     position_fin_écriture := sérialiseuse.curseur + données.taille;
-    position_fin_dans_page := (position_fin_écriture - (*page.données[0] comme z64)) comme z64;
+    position_fin_dans_page := (position_fin_écriture - (page.données.données comme z64)) comme z64;
 
     si page.occupé < position_fin_dans_page {
         page.occupé = position_fin_dans_page comme z16;
@@ -252,13 +252,13 @@ espace_libre_page_courante :: fonc (sérialiseuse: *SérialiseuseFichier) -> z64
         ajoute_une_page(sérialiseuse);
     }
 
-    retourne TAILLE_PAGE - (sérialiseuse.curseur - *sérialiseuse.page_courante.données[0]);
+    retourne TAILLE_PAGE - (sérialiseuse.curseur - sérialiseuse.page_courante.données.données);
 }
 
 ajoute_une_page :: fonc (sérialiseuse: *SérialiseuseFichier)
 {
     page := ajoute_page(sérialiseuse.fichier);
-    sérialiseuse.curseur = *page.données[0];
+    sérialiseuse.curseur = page.données.données;
     sérialiseuse.page_courante = page;
 }
 
@@ -273,7 +273,7 @@ va_sur_page_suivante :: fonc (sérialiseuse: *SérialiseuseFichier)
     }
 
     page := sérialiseuse.page_courante.page_suivante;
-    sérialiseuse.curseur = *page.données[0];
+    sérialiseuse.curseur = page.données.données;
     sérialiseuse.page_courante = page;
 }
 

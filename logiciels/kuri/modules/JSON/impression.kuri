@@ -46,7 +46,7 @@ imprime_valeur_json :: fonc (enchaineuse: *Enchaineuse, valeur: eini) -> rien
                 ajoute_au_tampon(enchaineuse, "\"", nom, "\":");
 
                 valeur_rubrique : eini = ---;
-                valeur_rubrique.pointeur = valeur.pointeur + décalage;
+                valeur_rubrique.données = valeur.données + décalage;
                 valeur_rubrique.info = rubrique.id;
 
                 imprime_valeur_json(enchaineuse, valeur_rubrique);

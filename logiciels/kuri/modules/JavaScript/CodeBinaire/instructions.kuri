@@ -25,7 +25,7 @@ opérateur pour :: (itératrice: ItéractriceInstruction) -> *Instruction
 {
     assert(itératrice.flux != nul);
 
-    début := itératrice.flux.instructions.pointeur;
+    début := itératrice.flux.instructions.données;
     fin := début + itératrice.flux.instructions.taille;
 
     indice : z64 = 0;
@@ -422,7 +422,7 @@ InstructionAppel :: struct {
 donne_arguments :: fonc (appel: *InstructionAppel) -> []Registre
 {
     résultat: []Registre;
-    résultat.pointeur = ((appel + 1) comme *octet) comme *Registre;
+    résultat.données = ((appel + 1) comme *octet) comme *Registre;
     résultat.taille = appel.nombre_arguments;
     retourne résultat;
 }
@@ -439,7 +439,7 @@ InstructionAppelEval :: struct {
 donne_arguments :: fonc (appel: *InstructionAppelEval) -> []Registre
 {
     résultat: []Registre;
-    résultat.pointeur = ((appel + 1) comme *octet) comme *Registre;
+    résultat.données = ((appel + 1) comme *octet) comme *Registre;
     résultat.taille = appel.nombre_arguments;
     retourne résultat;
 }
@@ -455,7 +455,7 @@ InstructionNew :: struct {
 donne_arguments :: fonc (appel: *InstructionNew) -> []Registre
 {
     résultat: []Registre;
-    résultat.pointeur = ((appel + 1) comme *octet) comme *Registre;
+    résultat.données = ((appel + 1) comme *octet) comme *Registre;
     résultat.taille = appel.nombre_arguments;
     retourne résultat;
 }
@@ -762,7 +762,7 @@ exécute_code_binaire :: fonc (base: *Interpréteuse, noeud: *NoeudSyntaxique) -
     empile(*interprète.environments_catch, nul);
     diffère interprète.environments_catch.données.taille = nombre_environnements;
 
-    début := flux.instructions.pointeur;
+    début := flux.instructions.données;
     courant := début;
     fin := début + flux.instructions.taille;
 

@@ -123,7 +123,7 @@ vide_données_lecture :: fonc (prise: *Prise)
     tampon : [TAILLE_MAX]z8 = ---;
 
     boucle {
-        octets_lus := tente système_lis(prise.fichier.desc, *tampon[0], TAILLE_MAX) piège _ {
+        octets_lus := tente système_lis(prise.fichier.desc, tampon.données, TAILLE_MAX) piège _ {
             retourne;
         };
 
