@@ -58,7 +58,7 @@ principale :: fonc ()
     imprimeln("GL Version %", gl_donne_chaine(GL_VERSION));
     imprimeln("GL Shading Language %", gl_donne_chaine(GL_SHADING_LANGUAGE_VERSION));
 
-    wm_delete_window := XInternAtom(display, "WM_DELETE_WINDOW".pointeur, False);
+    wm_delete_window := XInternAtom(display, "WM_DELETE_WINDOW".caractères, False);
     _ := XSetWMProtocols(display, window, *wm_delete_window, 1);
 
     /* Montre la fenêtre. */

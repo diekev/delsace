@@ -121,11 +121,11 @@ opérateur + :: (p1: Probabilité, p2: Probabilité) -> Probabilité
     si p2.chiffres.taille < p1.chiffres.taille {
         taille_commune = p2.chiffres.taille;
 
-        nombres_après_taille_commune.pointeur = p1.chiffres.pointeur + taille_commune;
+        nombres_après_taille_commune.données = p1.chiffres.données + taille_commune;
         nombres_après_taille_commune.taille = p1.chiffres.taille - taille_commune;
     }
     sinon si p1.chiffres.taille < p2.chiffres.taille {
-        nombres_après_taille_commune.pointeur = p2.chiffres.pointeur + taille_commune;
+        nombres_après_taille_commune.données = p2.chiffres.données + taille_commune;
         nombres_après_taille_commune.taille = p2.chiffres.taille - taille_commune;
     }
 

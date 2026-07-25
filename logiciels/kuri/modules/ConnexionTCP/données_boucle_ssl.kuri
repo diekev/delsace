@@ -103,7 +103,7 @@ crée_données_ssl_boucle :: fonc () -> *DonnéesSSLBoucle
     données_ssl_boucle := loge(DonnéesSSLBoucle);
     données_ssl_boucle.ssl_read_output = loge_mémoire(TAILLE_TAMPON_RÉCEPTION_DONNÉES + MARGE_TAMPON_RÉCEPTION * 2, info_de(*octet), #position_code_source);
 
-    méthode_bio_mémoire := BIO_meth_new(BIO_TYPE_MEM, ChaineC("BIO ConnexionTCP\0".pointeur));
+    méthode_bio_mémoire := BIO_meth_new(BIO_TYPE_MEM, ChaineC("BIO ConnexionTCP\0".caractères));
     BIO_meth_set_create(méthode_bio_mémoire, rappel_personnalisé_création_bio);
     BIO_meth_set_write(méthode_bio_mémoire, rappel_personnalisé_écriture_bio);
     BIO_meth_set_read(méthode_bio_mémoire, rappel_personnalisé_lecture_bio);

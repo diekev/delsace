@@ -28,7 +28,7 @@ principale :: fonc ()
         exit(1);
     }
 
-    si x.tabl.pointeur != nul {
+    si x.tabl.données != nul {
         exit(1);
     }
 

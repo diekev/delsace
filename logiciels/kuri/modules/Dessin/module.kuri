@@ -43,14 +43,14 @@ définis_rect_ciseau :: fonc (tampon: *TamponDeRendu, rect: RectanglePosDim(z32)
 
 donne_nouvelle_image_depuis_données :: fonc (tampon: *TamponDeRendu) -> NouvelleImage
 {
-    retourne crée_image_pour_données_externe(tampon.données.pointeur, tampon.rect.largeur comme n32, tampon.rect.hauteur comme n32, FormatPixel.RVBA_8, DirectionImage.BasEnHaut);
+    retourne crée_image_pour_données_externe(tampon.données.données, tampon.rect.largeur comme n32, tampon.rect.hauteur comme n32, FormatPixel.RVBA_8, DirectionImage.BasEnHaut);
 }
 
 /* Ceci remplis inconditionnellement le tampon avec la couleur (pas de fusion, etc.).
  * Cette fonction est à utiliser pour réinitialiser le tampon. */
 remplis_avec :: fonc (tampon: *TamponDeRendu, couleur: CouleurRVBAN8)
 {
-    pointeur := tampon.données.pointeur;
+    pointeur := tampon.données.données;
     taille := tampon.données.taille;
 
     /* Déroulage manuel. */
@@ -183,7 +183,7 @@ dessine_ligne :: fonc (tampon_de_rendu: *TamponDeRendu, ligne: Ligne(z32), coule
             permute(*y_min, *y_max);
         }
 
-        dest := tampon_de_rendu.données.pointeur + y_min * tampon_de_rendu.rect.largeur + x_min;
+        dest := tampon_de_rendu.données.données + y_min * tampon_de_rendu.rect.largeur + x_min;
 
         tantque y_min < y_max {
             fusionne_pixels(couleur, dest);
@@ -197,7 +197,7 @@ dessine_ligne :: fonc (tampon_de_rendu: *TamponDeRendu, ligne: Ligne(z32), coule
             permute(*x_min, *x_max);
         }
 
-        dest := tampon_de_rendu.données.pointeur + y_min * tampon_de_rendu.rect.largeur + x_min;
+        dest := tampon_de_rendu.données.données + y_min * tampon_de_rendu.rect.largeur + x_min;
 
         tantque x_min < x_max {
             fusionne_pixels(couleur, dest);
@@ -240,7 +240,7 @@ dessine_ligne_bresenham :: fonc (
     i := 0;
     enjambée_i := enjambée comme z32;
 
-    dest := tampon_de_rendu.données.pointeur;
+    dest := tampon_de_rendu.données.données;
     enjambée_dest := tampon_de_rendu.rect.largeur;
 
     tantque i < enjambée_i {
@@ -304,7 +304,7 @@ remplis_rectangle :: fonc (tampon_de_rendu: *TamponDeRendu, rect: RectanglePosDi
     }
 
     enjambée_dest := tampon_de_rendu.rect.largeur;
-    ligne_dest := tampon_de_rendu.données.pointeur + rect_sauf.y * enjambée_dest + rect_sauf.x;
+    ligne_dest := tampon_de_rendu.données.données + rect_sauf.y * enjambée_dest + rect_sauf.x;
 
     pour _ dans rect_sauf.y ... rect_sauf.y + rect_sauf.hauteur - 1 {
         pixel_dest := ligne_dest;
@@ -321,7 +321,7 @@ remplis_rectangle :: fonc (tampon_de_rendu: *TamponDeRendu, rect: RectanglePosDi
 remplis_rectangle_couleur_opaque :: fonc (tampon_de_rendu: *TamponDeRendu, rect: RectanglePosDim(z32), couleur: CouleurRVBAN8)
 {
     enjambée_dest := tampon_de_rendu.rect.largeur;
-    ligne_dest := tampon_de_rendu.données.pointeur + rect.y * enjambée_dest + rect.x;
+    ligne_dest := tampon_de_rendu.données.données + rect.y * enjambée_dest + rect.x;
 
     pour _ dans rect.y ... rect.y + rect.hauteur - 1 {
         pixel_dest := ligne_dest;
@@ -451,7 +451,7 @@ dessine_cercle :: fonc (tampon_de_rendu: *TamponDeRendu, cercle: Cercle(z32), co
         retourne;
     }
 
-    pointeur_source := tampon_de_rendu.données.pointeur;
+    pointeur_source := tampon_de_rendu.données.données;
     largeur_source := tampon_de_rendu.rect.largeur;
     index_centre_cercle := cy * largeur_source + cx;
 
@@ -524,7 +524,7 @@ remplis_cercle :: fonc (tampon_de_rendu: *TamponDeRendu, cercle: Cercle(z32), co
         retourne;
     }
 
-    pointeur_source := tampon_de_rendu.données.pointeur;
+    pointeur_source := tampon_de_rendu.données.données;
     largeur_source := tampon_de_rendu.rect.largeur;
     index_centre_cercle := cy * largeur_source + cx;
 
@@ -592,7 +592,7 @@ dessine_image :: fonc (tampon_de_rendu: *TamponDeRendu, image: TamponImageGrise8
     décalage_y := rect_sauf.y - rect.y;
 
     enjambée_dest := tampon_de_rendu.rect.largeur;
-    ligne_dest := tampon_de_rendu.données.pointeur + rect_sauf.y * enjambée_dest + rect_sauf.x;
+    ligne_dest := tampon_de_rendu.données.données + rect_sauf.y * enjambée_dest + rect_sauf.x;
 
     /* Dessine l'image du bas vers le haut. */
     enjambée_source := image.largeur;
@@ -634,7 +634,7 @@ dessine_image :: fonc (tampon_de_rendu: *TamponDeRendu, image: TamponImageRVBA8B
     décalage_y := rect_sauf.y - rect.y;
 
     enjambée_dest := tampon_de_rendu.rect.largeur;
-    ligne_dest := tampon_de_rendu.données.pointeur + rect_sauf.y * enjambée_dest + rect_sauf.x;
+    ligne_dest := tampon_de_rendu.données.données + rect_sauf.y * enjambée_dest + rect_sauf.x;
 
     /* Dessine l'image du bas vers le haut. */
     enjambée_source := image.largeur;
@@ -739,7 +739,7 @@ dessine_image_rvb_8 :: fonc (tampon_de_rendu: *TamponDeRendu, image: *NouvelleIm
     ratio_largeur := image.desc.largeur comme r32 / rect.largeur comme r32;
     ratio_hauteur := image.desc.hauteur comme r32 / rect.hauteur comme r32;
 
-    dest := tampon_de_rendu.données.pointeur;
+    dest := tampon_de_rendu.données.données;
     enjambée_dest := tampon_de_rendu.rect.largeur;
 
     début_dest := dest;
@@ -797,7 +797,7 @@ dessine_image_rvba :: fonc (tampon_de_rendu: *TamponDeRendu, image: ImageIO, rec
     décalage_x := rect_sauf.x - rect.x;
     décalage_y := rect_sauf.y - rect.y;
 
-    dest := tampon_de_rendu.données.pointeur;
+    dest := tampon_de_rendu.données.données;
     enjambée_dest := tampon_de_rendu.rect.largeur;
 
     source := image.donnees;
@@ -821,7 +821,7 @@ dessine_image_rvba_à_l_échelle :: fonc (tampon_de_rendu: *TamponDeRendu, image
     ratio_largeur := image.largeur comme r32 / rect.largeur comme r32;
     ratio_hauteur := image.hauteur comme r32 / rect.hauteur comme r32;
 
-    dest := tampon_de_rendu.données.pointeur;
+    dest := tampon_de_rendu.données.données;
     enjambée_dest := tampon_de_rendu.rect.largeur;
 
     source := image.donnees;
@@ -842,7 +842,7 @@ dessine_image_rvb :: fonc (tampon_de_rendu: *TamponDeRendu, image: ImageIO, rect
     décalage_x := rect_sauf.x - rect.x;
     décalage_y := rect_sauf.y - rect.y;
 
-    dest := tampon_de_rendu.données.pointeur;
+    dest := tampon_de_rendu.données.données;
     enjambée_dest := tampon_de_rendu.rect.largeur;
 
     source := image.donnees;
@@ -863,7 +863,7 @@ dessine_image_rvb_à_l_échelle :: fonc (tampon_de_rendu: *TamponDeRendu, image:
     ratio_largeur := image.largeur comme r32 / rect.largeur comme r32;
     ratio_hauteur := image.hauteur comme r32 / rect.hauteur comme r32;
 
-    dest := tampon_de_rendu.données.pointeur;
+    dest := tampon_de_rendu.données.données;
     enjambée_dest := tampon_de_rendu.rect.largeur;
 
     source := image.donnees;
