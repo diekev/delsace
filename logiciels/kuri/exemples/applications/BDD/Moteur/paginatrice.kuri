@@ -37,7 +37,7 @@ trouve_page :: fonc (paginatrice: *Paginatrice, indice_page: z32) -> []octet
 
     page := paginatrice.pages[indice_page];
 
-    si page.pointeur == nul {
+    si page.données == nul {
         // Cache miss
         page = loge_tableau(octet, TAILLE_PAGE);
 
@@ -72,7 +72,7 @@ trouve_page :: fonc (paginatrice: *Paginatrice, indice_page: z32) -> []octet
 // nous pourrions également éviter d'écrire des pages qui n'ont pas changées
 flush_paginatrice :: fonc (paginatrice: *Paginatrice, indice_page: z32) -> rien
 {
-    si paginatrice.pages[indice_page].pointeur == nul {
+    si paginatrice.pages[indice_page].données == nul {
         panique("Tentativer de flusher une page nulle !");
     }
 

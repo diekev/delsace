@@ -879,7 +879,7 @@ dispatch :: fonc (event: *Event, target: *EventTarget, legacy_target_override : 
 invoke :: fonc (struct_: *Event.Path, event: *Event, phase: chaine, legacy_output_did_listeners_throw : *bool = nul)
 {
     // 1. Set event’s target to the shadow-adjusted target of the last struct in event’s path, that is either struct or preceding struct, whose shadow-adjusted target is non-null.
-    indice_struct := (struct_ - event.path.pointeur);
+    indice_struct := (struct_ - event.path.données);
     assert(indice_struct >= 0);
     assert(indice_struct < event.path.taille);
 
@@ -959,7 +959,7 @@ inner_invoke :: fonc (event: *Event, listeners: []EventTarget.EventListenerEntry
 {
     argument := JS.Valeur(Object = event);
     arguments: []JS.Valeur;
-    arguments.pointeur = *argument;
+    arguments.données = *argument;
     arguments.taille = 1;
 
     // 1. Let found be false.

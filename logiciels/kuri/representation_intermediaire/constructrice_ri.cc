@@ -1953,7 +1953,6 @@ void CompilatriceRI::génère_ri_pour_noeud(NoeudExpression *noeud, Atome *place
             });
             break;
         }
-        case GenreNoeud::EXPRESSION_PARENTHÈSE:
         case GenreNoeud::EXPRESSION_TYPE_DE:
         case GenreNoeud::INSTRUCTION_DISCR:
         case GenreNoeud::INSTRUCTION_DISCR_ÉNUM:
@@ -3988,10 +3987,6 @@ void CompilatriceRI::génère_ri_pour_condition(NoeudExpression const *condition
     }
     else if (genre_lexème == GenreLexème::FAUX) {
         m_constructrice.crée_branche(condition, label_si_faux);
-    }
-    else if (condition->genre == GenreNoeud::EXPRESSION_PARENTHÈSE) {
-        auto expr_unaire = condition->comme_parenthèse();
-        génère_ri_pour_condition(expr_unaire->expression, label_si_vrai, label_si_faux);
     }
     else {
         génère_ri_pour_condition_implicite(condition, label_si_vrai, label_si_faux);

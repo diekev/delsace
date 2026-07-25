@@ -7,14 +7,14 @@ importe Math;
 abc_donne_descripteurs_attributs :: fonc () -> []Abc_Attribute_Type_Descriptor
 {
     résultat: []Abc_Attribute_Type_Descriptor;
-    résultat.pointeur = abc_get_attribute_type_descriptors(*résultat.taille comme *n64);
+    résultat.données = abc_get_attribute_type_descriptors(*résultat.taille comme *n64);
     retourne résultat;
 }
 
 abc_donne_descripteurs_pod :: fonc () -> []Abc_Attribute_Type_Descriptor
 {
     résultat: []Abc_Attribute_Type_Descriptor;
-    résultat.pointeur = abc_get_pod_type_descriptors(*résultat.taille comme *n64);
+    résultat.données = abc_get_pod_type_descriptors(*résultat.taille comme *n64);
     retourne résultat;
 }
 

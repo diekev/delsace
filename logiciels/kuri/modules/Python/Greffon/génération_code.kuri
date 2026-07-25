@@ -100,7 +100,7 @@ génère_méthodes_getset_pour_type :: fonc (enchaineuse: *Enchaineuse, type: *T
     enchaineuse.imprime_dans_enchaineuse("% := [\n", nom_globale);
 
     pour type.rubriques {
-        enchaineuse.imprime_dans_enchaineuse("    PyGetSetDef(name = ChaineC(\"%\".pointeur), ", it.nom);
+        enchaineuse.imprime_dans_enchaineuse("    PyGetSetDef(name = ChaineC(\"%\".caractères), ", it.nom);
         enchaineuse.imprime_dans_enchaineuse("get = get_%_%, ", type.nom_sauf, it.nom);
         si it.confidentialité == ConfidentialitéType.MUTABLE {
             enchaineuse.imprime_dans_enchaineuse("set = set_%_%, ", type.nom_sauf, it.nom);
@@ -549,11 +549,11 @@ génère_déclaration_type_python :: fonc (enchaineuse: *Enchaineuse, module: *M
     enchaineuse.ajoute_au_tampon("    ob_refcnt = 1,\n");
     enchaineuse.ajoute_au_tampon("    ob_size = 0,\n");
     enchaineuse.ajoute_au_tampon("    tp_basicsize = taille_de(", type.nom_sauf, "PourPython) comme Py_ssize_t,\n");
-    enchaineuse.ajoute_au_tampon("    tp_name = ChaineC(\"", tp_name, "\".pointeur),\n");
+    enchaineuse.ajoute_au_tampon("    tp_name = ChaineC(\"", tp_name, "\".caractères),\n");
     enchaineuse.ajoute_au_tampon("    tp_flags = 1 << 10 | 1 << 18,\n");
 
     si type.méthodes {
-        enchaineuse.ajoute_au_tampon("    tp_methods = *méthodes_", type.nom_sauf, "[0],\n");
+        enchaineuse.ajoute_au_tampon("    tp_methods = méthodes_", type.nom_sauf, ".données,\n");
     }
 
     si fonction_new {
@@ -582,7 +582,7 @@ génère_déclaration_type_python :: fonc (enchaineuse: *Enchaineuse, module: *M
     }
 
     si globale_getset {
-        enchaineuse.ajoute_au_tampon("    tp_getset = *", globale_getset, "[0],\n");
+        enchaineuse.ajoute_au_tampon("    tp_getset = ", globale_getset, ".données,\n");
     }
 
     si type.base {
@@ -642,7 +642,7 @@ génère_déclaration_fonctions_pour_python :: fonc (enchaineuse: *Enchaineuse, 
     enchaineuse.ajoute_au_tampon(type.fonctions.pour_construction, "_générique :: fonc (valeur: eini) -> *PyObject\n");
     enchaineuse.ajoute_au_tampon("{\n");
     enchaineuse.ajoute_au_tampon("    assert(valeur.info == info_de(", symbole_pointeur, type.nom_type_kuri, "));\n");
-    enchaineuse.ajoute_au_tampon("    retourne ", type.fonctions.pour_construction, "(mémoire(valeur.pointeur comme *", symbole_pointeur, type.nom_type_kuri, "));\n");
+    enchaineuse.ajoute_au_tampon("    retourne ", type.fonctions.pour_construction, "(mémoire(valeur.données comme *", symbole_pointeur, type.nom_type_kuri, "));\n");
     enchaineuse.ajoute_au_tampon("}\n");
 }
 
@@ -853,7 +853,7 @@ génère_parsage_args_tuple :: fonc (enchaineuse: *Enchaineuse, méthode: *Méth
         }
         enchaineuse.ajoute_au_tampon("O");
     }
-    enchaineuse.ajoute_au_tampon("\".pointeur);\n");
+    enchaineuse.ajoute_au_tampon("\".caractères);\n");
 
     enchaineuse.ajoute_au_tampon("    saufsi PyArg_ParseTuple(args, chn_objets");
     virgule := ", ";
@@ -1001,7 +1001,7 @@ génère_tableaux_méthodes :: fonc (enchaineuse: *Enchaineuse, méthodes: []Mé
             "METH_NOARGS";
         };
 
-        enchaineuse.imprime_dans_enchaineuse("    PyMethodDef(ml_name = ChaineC(\"%\".pointeur), ml_meth = %, ml_flags = %, ml_doc = ChaineC(nul)),\n", it.nom, it.nom_enveloppe, drapeaux_méthode);
+        enchaineuse.imprime_dans_enchaineuse("    PyMethodDef(ml_name = ChaineC(\"%\".caractères), ml_meth = %, ml_flags = %, ml_doc = ChaineC(nul)),\n", it.nom, it.nom_enveloppe, drapeaux_méthode);
     }
 
     /* Sentinelle */
@@ -1019,7 +1019,7 @@ ajoute_type_à_la_liste :: fonc (enchaineuse: *Enchaineuse, type: *TypePython)
         ajoute_type_à_la_liste(enchaineuse, type.base);
     }
 
-    enchaineuse.ajoute_au_tampon("        DonnéesAjoutType(*", type.nom_globale_type, ", ChaineC(\"", type.nom, "\".pointeur)),\n");
+    enchaineuse.ajoute_au_tampon("        DonnéesAjoutType(*", type.nom_globale_type, ", ChaineC(\"", type.nom, "\".caractères)),\n");
     type.code_pour_init_module_fut_généré = vrai;
 }
 
@@ -1032,7 +1032,7 @@ génère_initialisation_module :: fonc (enchaineuse: *Enchaineuse, module: *Modu
     /* Déclaration de la globale pour la définition du module. */
     enchaineuse.ajoute_au_tampon("définition_module := PyModuleDef(\n");
 
-    enchaineuse.imprime_dans_enchaineuse("    m_name = ChaineC(\"%\".pointeur),\n", module.nom);
+    enchaineuse.imprime_dans_enchaineuse("    m_name = ChaineC(\"%\".caractères),\n", module.nom);
     enchaineuse.ajoute_au_tampon("    m_doc = ChaineC(nul),\n");
     enchaineuse.ajoute_au_tampon("    m_size = -1,\n");
     enchaineuse.ajoute_au_tampon("    m_methods = *méthodes_du_module[0],\n");
@@ -1047,13 +1047,13 @@ génère_initialisation_module :: fonc (enchaineuse: *Enchaineuse, module: *Modu
     enchaineuse.ajoute_au_tampon("    module_pyobject := PyModule_Create2(*définition_module, PYTHON_API_VERSION);\n");
 
     pour module.constantes_nombre_entier {
-        enchaineuse.imprime_dans_enchaineuse("    si PyModule_AddIntConstant(module_pyobject, ChaineC(\"%\".pointeur), %) == -1 {\n", it.nom, it.valeur);
+        enchaineuse.imprime_dans_enchaineuse("    si PyModule_AddIntConstant(module_pyobject, ChaineC(\"%\".caractères), %) == -1 {\n", it.nom, it.valeur);
         enchaineuse.ajoute_au_tampon("        retourne python_retourne_rien();\n");
         enchaineuse.ajoute_au_tampon("    }\n");
     }
 
     pour module.constantes_chaine {
-        enchaineuse.imprime_dans_enchaineuse("    si PyModule_AddStringConstant(module_pyobject, ChaineC(\"%\".pointeur), ChaineC(\"%\".pointeur)) == -1 {\n", it.nom, it.valeur);
+        enchaineuse.imprime_dans_enchaineuse("    si PyModule_AddStringConstant(module_pyobject, ChaineC(\"%\".caractères), ChaineC(\"%\".caractères)) == -1 {\n", it.nom, it.valeur);
         enchaineuse.ajoute_au_tampon("        retourne python_retourne_rien();\n");
         enchaineuse.ajoute_au_tampon("    }\n");
     }
@@ -1072,7 +1072,7 @@ génère_initialisation_module :: fonc (enchaineuse: *Enchaineuse, module: *Modu
     }
     /* Type itérateur info type. */
     si itérateur_info_type_est_requis {
-        enchaineuse.ajoute_au_tampon("         DonnéesAjoutType(*PyTypeItérateurPourInfoType, ChaineC(\"ItérateurPourInfoType\".pointeur)),\n");
+        enchaineuse.ajoute_au_tampon("         DonnéesAjoutType(*PyTypeItérateurPourInfoType, ChaineC(\"ItérateurPourInfoType\".caractères)),\n");
     }
     /* Sentinelle pour simplifier la génération de code pour les virgules. */
     enchaineuse.ajoute_au_tampon("         DonnéesAjoutType(nul, ChaineC(nul));\n");

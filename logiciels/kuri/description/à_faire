@@ -43,8 +43,7 @@ adressage relatif :
 permet de définir des tableaux plus petits que la taille du type annoncé (remplis le reste avec des zéros).
     x: [7]z32 = [1, 2, 3]
 
-crash 
-    a = (b, c, d)
+noeud code : passe le drapeau EST_ENTRE_PARENTHÈSE
 
 typage des indices selon le type itéré
 
@@ -426,9 +425,6 @@ partage entre types
 
 // ----------------------------------------------------------------------------
 // Bas Fruitage
-
-ajout d'une propriété "pointeur" aux tableaux fixes pour obtenir le pointeur vers le premier élément (au lien de @x[0])
-   -- mention dans test_logement.kuri
 
 ajout de tranches pour les tableaux et les chaines
 

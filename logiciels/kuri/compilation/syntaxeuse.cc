@@ -1378,7 +1378,14 @@ NoeudExpression *Syntaxeuse::analyse_expression_primaire()
 
             consomme(GenreLexème::PARENTHESE_FERMANTE, "attendu une parenthèse fermante");
 
-            return m_contexte->assembleuse->crée_parenthèse(lexème, expression);
+            if (expression) {
+                expression->drapeaux |= DrapeauxNoeud::EST_ENTRE_PARENTHÈSE;
+            }
+            else {
+                rapporte_erreur("attendu une expression");
+            }
+
+            return expression;
         }
         case GenreLexème::TAILLE_DE:
         {
