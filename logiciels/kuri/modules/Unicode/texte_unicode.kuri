@@ -271,7 +271,7 @@ rune_depuis_pointeur :: fonc (ptr: *z8) -> Rune
 
 est_chaine_utf8_valide :: fonc (chn: chaine) -> bool
 {
-    ptr := chn.pointeur;
+    ptr := chn.caractères;
     pour i dans 0 ... chn.taille - 1 {
         n := nombre_octets_utf8(ptr);
 
@@ -301,7 +301,7 @@ crée_texte_unicode :: fonc (chn: chaine) -> TexteUnicode
 // À FAIRE : référence
 opérateur [] :: (texte: TexteUnicode, indice: z64) -> Rune
 {
-    ptr := texte.chn.pointeur;
+    ptr := texte.chn.caractères;
 
     si texte.index_sauvegardé == -1 || texte.index_sauvegardé > indice {
         texte.index_sauvegardé = 0;
@@ -341,7 +341,7 @@ crée_itératrice_utf8 :: fonc (chn: chaine)
 
 rune_suivante :: fonc (itératrice: *ItératriceUTF8) -> Rune
 {
-    ptr := itératrice.chn.pointeur + itératrice.position;
+    ptr := itératrice.chn.caractères + itératrice.position;
     itératrice.position += nombre_octets_utf8(ptr);
     retourne rune_depuis_pointeur(ptr);
 }
@@ -356,7 +356,7 @@ valide :: fonc (itératrice: *ItératriceUTF8) -> bool
 
     expansion_pour :: fonc (texte: *TexteUnicode) -> Rune #macro
     {
-        ptr := texte.chn.pointeur
+        ptr := texte.chn.caractères
 
         pour i dans 0 ... texte.chn.taille - 1 {
 

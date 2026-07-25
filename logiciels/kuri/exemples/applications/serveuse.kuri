@@ -85,7 +85,7 @@ démarre :: fonc (serveuse: *Serveuse) -> rien
         prise := accept(serveuse.prise, *mon_addresse comme *sockaddr, *sin_size);
 
         si prise == -1 {
-            perror(ChaineC("accept".pointeur));
+            perror(ChaineC("accept".caractères));
             continue;
         }
 
@@ -112,8 +112,8 @@ démarre :: fonc (serveuse: *Serveuse) -> rien
 
             //chaine_reponse = construis_reponse(reponse)
 
-            si send(prise, chaine_reponse.pointeur, chaine_reponse.taille comme n64, 0) == -1 {
-                perror(ChaineC("send".pointeur));
+            si send(prise, chaine_reponse.caractères, chaine_reponse.taille comme n64, 0) == -1 {
+                perror(ChaineC("send".caractères));
             }
 
             déloge(*chaine_reponse);

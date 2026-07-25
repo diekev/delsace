@@ -406,7 +406,7 @@ dessine_commandes :: fonc (peintre: *Peintre, commandes: *CommandesDeRendu, inve
 
     // active_gl_debug()
 
-    début := commandes.commandes.pointeur;
+    début := commandes.commandes.données;
     fin := début + commandes.commandes.taille;
 
     hauteur_vue := peintre.donne_taille_canevas().hauteur comme z32 comme r32;
@@ -532,7 +532,7 @@ dessine_commandes_id :: fonc (peintre: *Peintre @inutilisée, commandes: *Comman
     glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_RENDERBUFFER, render_buf);
     vérifie_erreur("glFramebufferRenderbuffer");
 
-    début := commandes.commandes.pointeur;
+    début := commandes.commandes.données;
     fin := début + commandes.commandes.taille;
 
     IGUMI.commence_immédiat_id(IGUMI.ModeImmédiat.TRIANGLES);

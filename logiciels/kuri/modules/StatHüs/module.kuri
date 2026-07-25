@@ -84,12 +84,12 @@ envoie_message :: fonc (extrémité: *Extrémité(vrai), message: MessageInfoAll
     tampon_à_écrire := tampon;
 
     tantque tampon_à_écrire.taille > 0 {
-        num_écris := write(extrémité.prise, tampon_à_écrire.pointeur comme *z8, tampon_à_écrire.taille);
+        num_écris := write(extrémité.prise, tampon_à_écrire.données comme *z8, tampon_à_écrire.taille);
         si num_écris == -1 {
             extrémité.nous_ne_pouvons_pas_parler_au_serveur = vrai;
             arrête;
         }
-        tampon_à_écrire.pointeur += num_écris;
+        tampon_à_écrire.données += num_écris;
         tampon_à_écrire.taille -= num_écris;
     }
 }
@@ -265,7 +265,7 @@ crée_prise_unix_pour_clientèle :: fonc (chemin_socket: chaine, doit_bloquer :=
         retourne -1;
     }
     addr.sun_family = AF_UNIX comme n16;
-    copie_mem_nonsur(src = chemin_socket.pointeur, dst = *addr.sun_path[0], taille = chemin_socket.taille);
+    copie_mem_nonsur(src = chemin_socket.caractères, dst = *addr.sun_path[0], taille = chemin_socket.taille);
 
     si connect(sfd, *addr comme *sockaddr, taille_de(sockaddr_un) comme z64) == -1 {
         imprime("connect : %\n", lis_errno());
@@ -303,7 +303,7 @@ crée_prise_unix_pour_service :: fonc (chemin_socket: chaine, doit_bloquer := vr
     }
 
     addr.sun_family = AF_UNIX comme n16;
-    copie_mem_nonsur(src = chemin_socket.pointeur, dst = *addr.sun_path[0], taille = chemin_socket.taille);
+    copie_mem_nonsur(src = chemin_socket.caractères, dst = *addr.sun_path[0], taille = chemin_socket.taille);
 
     si bind(sfd, *addr comme *sockaddr, taille_de(sockaddr_un)) == -1 {
         imprime("bind : %\n", lis_errno());
@@ -357,7 +357,7 @@ ajoute_taille_type :: fonc (infos: *InfosSérialisation, valeur: eini)
                 ajoute_taille(infos, info_type.taille_en_octet comme z64);
             }
             CHAINE {
-                chn := mémoire(valeur_courante.pointeur comme *chaine);
+                chn := mémoire(valeur_courante.données comme *chaine);
                 ajoute_taille(infos, taille_de(z64) comme z64);
                 ajoute_taille(infos, chn.taille);
             }
@@ -445,16 +445,16 @@ sérialise_type :: fonc (valeur: eini, infos_séritalisation: InfosSérialisatio
             RÉEL,
             ÉNUM,
             BOOLÉEN {
-                copie_mem_nonsur(src = valeur_courante.pointeur, dst = résultat.pointeur + curseur, taille = info_type.taille_en_octet comme z64);
+                copie_mem_nonsur(src = valeur_courante.données, dst = résultat.données + curseur, taille = info_type.taille_en_octet comme z64);
                 curseur += info_type.taille_en_octet comme z64;
             }
             CHAINE {
-                chn := mémoire(valeur_courante.pointeur comme *chaine);
+                chn := mémoire(valeur_courante.données comme *chaine);
 
-                mémoire((résultat.pointeur + curseur) comme *z64) = chn.taille;
+                mémoire((résultat.données + curseur) comme *z64) = chn.taille;
                 curseur += taille_de(z64) comme z64;
 
-                copie_mem_nonsur(src = chn.pointeur, dst = résultat.pointeur + curseur, taille = chn.taille);
+                copie_mem_nonsur(src = chn.caractères, dst = résultat.données + curseur, taille = chn.taille);
                 curseur += chn.taille;
             }
             STRUCTURE {
@@ -470,7 +470,7 @@ sérialise_type :: fonc (valeur: eini, infos_séritalisation: InfosSérialisatio
             TABLEAU_FIXE {
                 itératrice := crée_itératrice_tableau(valeur_courante);
 
-                mémoire((résultat.pointeur + curseur) comme *z64) = itératrice.taille;
+                mémoire((résultat.données + curseur) comme *z64) = itératrice.taille;
                 curseur += taille_de(z64) comme z64;
 
                 taille_courante := traversée.taille;
@@ -483,7 +483,7 @@ sérialise_type :: fonc (valeur: eini, infos_séritalisation: InfosSérialisatio
             TRANCHE {
                 itératrice := crée_itératrice_tableau_tranche(valeur_courante);
 
-                mémoire((résultat.pointeur + curseur) comme *z64) = itératrice.taille;
+                mémoire((résultat.données + curseur) comme *z64) = itératrice.taille;
                 curseur += taille_de(z64) comme z64;
 
                 taille_courante := traversée.taille;
@@ -538,15 +538,15 @@ désérialise_type :: fonc (résultat: eini, données: []octet) -> z64
             RÉEL,
             ÉNUM,
             BOOLÉEN {
-                copie_mem_nonsur(src = données.pointeur + curseur, dst = valeur_courante.pointeur, taille = info_type.taille_en_octet comme z64);
+                copie_mem_nonsur(src = données.données + curseur, dst = valeur_courante.données, taille = info_type.taille_en_octet comme z64);
                 curseur += info_type.taille_en_octet comme z64;
             }
             CHAINE {
-                chn := valeur_courante.pointeur comme *chaine;
-                chn.taille = mémoire((données.pointeur + curseur) comme *z64);
+                chn := valeur_courante.données comme *chaine;
+                chn.taille = mémoire((données.données + curseur) comme *z64);
                 assert(chn.taille >= 0);
                 curseur += taille_de(z64) comme z64;
-                chn.pointeur = (données.pointeur + curseur) comme *z8;
+                chn.caractères = (données.données + curseur) comme *z8;
                 curseur += chn.taille;
             }
             STRUCTURE {
@@ -559,7 +559,7 @@ désérialise_type :: fonc (résultat: eini, données: []octet) -> z64
                 }
             }
             TABLEAU {
-                taille_tableau := mémoire((données.pointeur + curseur) comme *z64);
+                taille_tableau := mémoire((données.données + curseur) comme *z64);
                 assert(taille_tableau >= 0);
                 curseur += taille_de(z64) comme z64;
 
@@ -579,7 +579,7 @@ désérialise_type :: fonc (résultat: eini, données: []octet) -> z64
                 données_tableau.taille = taille_tableau;
                 données_tableau.capacité = taille_tableau;
 
-                mémoire(valeur_courante.pointeur comme *[..]octet) = données_tableau;
+                mémoire(valeur_courante.données comme *[..]octet) = données_tableau;
 
                 itératrice := crée_itératrice_tableau(valeur_courante);
                 assert(itératrice.taille == taille_tableau);
@@ -594,7 +594,7 @@ désérialise_type :: fonc (résultat: eini, données: []octet) -> z64
             TABLEAU_FIXE {
                 itératrice := crée_itératrice_tableau(valeur_courante);
 
-                taille_tableau := mémoire((données.pointeur + curseur) comme *z64);
+                taille_tableau := mémoire((données.données + curseur) comme *z64);
                 curseur += taille_de(z64) comme z64;
                 assert(taille_tableau == itératrice.taille);
 

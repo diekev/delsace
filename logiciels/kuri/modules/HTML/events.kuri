@@ -313,7 +313,7 @@ process_event_handler :: fonc (event_target: *EventTarget, nom: DOMString, event
         arg_event := JS.Valeur(Object = event);
 
         args: []JS.Valeur;
-        args.pointeur = *arg_event;
+        args.données = *arg_event;
         args.taille = 1;
 
         this_value := JS.Valeur(Object = event.current_target);

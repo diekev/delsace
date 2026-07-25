@@ -68,7 +68,7 @@ vers_kuri :: fonc (chn: QT_Chaine) -> chaine #enligne
 
 vers_qt :: fonc (chn: chaine) -> QT_Chaine
 {
-    retourne QT_Chaine(chn.pointeur, chn.taille);
+    retourne QT_Chaine(chn.caractères, chn.taille);
 }
 
 QT_crée_label :: fonc (texte: chaine, parent: QT_Generic_Widget) -> *QT_Label
@@ -192,7 +192,7 @@ définis_valeur :: fonc (variant: *QT_Variant, valeur: $T)
             sinon {
                 valeur_eini : eini = ---;
                 valeur_eini.info = infos;
-                valeur_eini.pointeur = *valeur;
+                valeur_eini.données = *valeur;
                 nom := donne_nom_énum_pour_valeur(valeur_eini);
                 variant.definis_chaine(variant, vers_qt(nom));
             }

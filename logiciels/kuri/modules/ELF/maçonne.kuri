@@ -273,8 +273,8 @@ donne_indice_symbole :: fonc (fichier: *Maçonne_ELF64, symbole: *Elf64_Sym) -> 
     symtab := donne_section(fichier, ".symtab");
 
     pour symtab.fichier.pages {
-        début := it.données.pointeur;
-        fin := it.données.pointeur + it.données.taille;
+        début := it.données.données;
+        fin := it.données.données + it.données.taille;
 
         si début <= symbole < fin {
             décalage := symbole - début;
@@ -467,7 +467,7 @@ donne_données_typées :: fonc (page: Fichier_Pagé.Page, $T: type_de_données) 
     assert(page.occupé % taille_de(T) == 0);
 
     résultat: []T = ---;
-    résultat.pointeur = page.données.pointeur comme *T;
+    résultat.données = page.données.données comme *T;
     résultat.taille = (page.occupé / taille_de(T)) comme z64;
     retourne résultat;
 }
@@ -476,7 +476,7 @@ loge_en_un_seul_morceau :: fonc (empl fichier: *Fichier_Pagé, $T: type_de_donn�
 {
     page := donne_page_courante(fichier);
     assert(page.occupé + taille_de(T) < TAILLE_PAGE);
-    résultat := (page.données.pointeur + page.occupé) comme *T;
+    résultat := (page.données.données + page.occupé) comme *T;
     page.occupé += taille_de(T);
     init_de(T)(résultat);
     retourne résultat;
@@ -496,7 +496,7 @@ loge_en_un_seul_morceau :: fonc (empl fichier: *Fichier_Pagé, $T: type_de_donn�
     taille_données := données.taille comme n64;
 
     page := donne_page_courante(fichier);
-    source := données.pointeur;
+    source := données.données;
     tantque taille_données != 0 {
         taille_restante := TAILLE_PAGE - page.occupé;
         si taille_restante == 0 {
@@ -506,7 +506,7 @@ loge_en_un_seul_morceau :: fonc (empl fichier: *Fichier_Pagé, $T: type_de_donn�
         }
 
         taille_à_écrire := min(taille_données, taille_restante);
-        copie_mem_nonsur(dst = page.données.pointeur + page.occupé, src = source, taille = taille_à_écrire comme z64);
+        copie_mem_nonsur(dst = page.données.données + page.occupé, src = source, taille = taille_à_écrire comme z64);
 
         page.occupé += taille_à_écrire;
         source += taille_à_écrire;
@@ -531,7 +531,7 @@ loge_en_un_seul_morceau :: fonc (empl fichier: *Fichier_Pagé, $T: type_de_donn�
     taille_données := données.taille comme n64;
 
     page := *fichier.pages[adresse.indice];
-    source := données.pointeur;
+    source := données.données;
     tantque taille_données != 0 {
         taille_restante := TAILLE_PAGE - adresse.décalage;
         si taille_restante == 0 {
@@ -540,7 +540,7 @@ loge_en_un_seul_morceau :: fonc (empl fichier: *Fichier_Pagé, $T: type_de_donn�
         }
 
         taille_à_écrire := min(taille_données, taille_restante);
-        copie_mem_nonsur(dst = page.données.pointeur + adresse.décalage, src = source, taille = taille_à_écrire comme z64);
+        copie_mem_nonsur(dst = page.données.données + adresse.décalage, src = source, taille = taille_à_écrire comme z64);
 
         page.occupé = max(page.occupé, adresse.décalage + taille_à_écrire);
         adresse.décalage += taille_à_écrire;

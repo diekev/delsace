@@ -278,7 +278,7 @@ est_fin_de_fichier :: fonc (fichier: *Fichier) -> bool
 
 lis :: fonc (fichier: *Fichier, tampon: []octet) -> RésultatOpérationFichier
 {
-    octets_lus := tente système_lis(fichier.desc, tampon.pointeur comme *z8, tampon.taille) piège err {
+    octets_lus := tente système_lis(fichier.desc, tampon.données comme *z8, tampon.taille) piège err {
         retourne err;
     };
 
@@ -374,7 +374,7 @@ lis_tout :: fonc (fichier: *Fichier, résultat: *[..]octet) -> ErreurFichier
     résultat.taille = 0;
 
     boucle {
-        octets_lus := tente système_lis(fichier.desc, *tampon[0], TAILLE_MAX) piège err {
+        octets_lus := tente système_lis(fichier.desc, tampon.données, TAILLE_MAX) piège err {
             déloge(résultat);
             retourne err;
         };
@@ -382,7 +382,7 @@ lis_tout :: fonc (fichier: *Fichier, résultat: *[..]octet) -> ErreurFichier
         si octets_lus > 0 {
             ancienne_taille := résultat.taille;
             tableau_redimensionne_sans_init(résultat, résultat.taille + octets_lus);
-            copie_mem_nonsur(src = *tampon[0], dst = *résultat.pointeur[ancienne_taille], taille = octets_lus);
+            copie_mem_nonsur(src = tampon.données, dst = *résultat.données[ancienne_taille], taille = octets_lus);
 
             si octets_lus < TAILLE_MAX {
                 arrête;
@@ -440,7 +440,7 @@ lis_tout_depuis_fichier :: fonc (fichier: *Fichier) -> ChaineOuErreurFichier
 
     résultat := loge_chaine(taille_fichier);
 
-    octets_lus := tente système_lis(fichier.desc, résultat.pointeur, résultat.taille) piège err {
+    octets_lus := tente système_lis(fichier.desc, résultat.caractères, résultat.taille) piège err {
         déloge(*résultat);
         retourne err;
     };
@@ -455,12 +455,12 @@ lis_tout_depuis_fichier :: fonc (fichier: *Fichier) -> ChaineOuErreurFichier
 // écris_fin
 écris :: fonc (fichier: *Fichier, chn: chaine) -> RésultatOpérationFichier
 {
-    retourne système_écris(fichier.desc, chn.pointeur, chn.taille);
+    retourne système_écris(fichier.desc, chn.caractères, chn.taille);
 }
 
 écris :: fonc (fichier: *Fichier, octets: []octet) -> RésultatOpérationFichier
 {
-    retourne système_écris(fichier.desc, octets.pointeur comme *z8, octets.taille);
+    retourne système_écris(fichier.desc, octets.données comme *z8, octets.taille);
 }
 
 // -----------------------------------------------------------------------

@@ -2604,7 +2604,7 @@ clear_the_forward_session_history :: fonc (user_agent: *UserAgent, navigable: *T
 
         // 1. Remove every session history entry from entryList that has a step greater than step.
         pour entry_list.taille {
-            entry := entry_list.pointeur[it];
+            entry := entry_list.données[it];
 
             si entry.step > step {
                 tableau_supprime_indice(entry_list, it);
@@ -2615,7 +2615,7 @@ clear_the_forward_session_history :: fonc (user_agent: *UserAgent, navigable: *T
 
         // 2. For each entry of entryList:
         pour entry_list.taille {
-            entry := entry_list.pointeur[it];
+            entry := entry_list.données[it];
             // 1. For each nestedHistory of entry's document state's nested histories, append nestedHistory's entries list to entryLists.
 
             pour * nested_history dans entry.document_state.nested_histories {

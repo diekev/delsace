@@ -400,7 +400,7 @@ number_to_string :: fonc (realm: *Realm, valeur: Valeur, radix_mv: n32) -> Valeu
         }
     }
 
-    chn := chaine(caractères.pointeur, caractères.taille);
+    chn := chaine(caractères.données, caractères.taille);
     résultat := crée_chaine_utf16_unique(chn);
     retourne crée_chaine(realm, résultat);
 }

@@ -22,7 +22,7 @@ importe GreffeMétaprogramme;
     indice_arg := 0;
     tantque indice_arg < arguments.taille {
         /* Inclus le "nom" du métaprogramme dans la liste d'arguments. */
-        arguments_greffon.pointeur = arguments.pointeur + indice_arg;
+        arguments_greffon.données = arguments.données + indice_arg;
         arguments_greffon.taille = 1;
 
         argument := arguments[indice_arg];

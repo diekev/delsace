@@ -123,28 +123,28 @@ valeur_défaut_réel :: fonc (valeur: eini) -> Valeur_Défaut_Paramètre
 
 valeur_défaut_bool :: fonc (valeur: eini) -> Valeur_Défaut_Paramètre
 {
-    retourne mémoire(valeur.pointeur comme *bool);
+    retourne mémoire(valeur.données comme *bool);
 }
 
 valeur_défaut_chaine :: fonc (valeur: eini) -> Valeur_Défaut_Paramètre
 {
-    chn := mémoire(valeur.pointeur comme *chaine);
+    chn := mémoire(valeur.données comme *chaine);
     retourne copie_chaine(chn);
 }
 
 valeur_défaut_vec2 :: fonc (valeur: eini) -> Valeur_Défaut_Paramètre
 {
-    retourne mémoire(valeur.pointeur comme *Vec2);
+    retourne mémoire(valeur.données comme *Vec2);
 }
 
 valeur_défaut_vec3 :: fonc (valeur: eini) -> Valeur_Défaut_Paramètre
 {
-    retourne mémoire(valeur.pointeur comme *Vec3);
+    retourne mémoire(valeur.données comme *Vec3);
 }
 
 valeur_défaut_couleur :: fonc (valeur: eini) -> Valeur_Défaut_Paramètre
 {
-    retourne mémoire(valeur.pointeur comme *CouleurRVBA);
+    retourne mémoire(valeur.données comme *CouleurRVBA);
 }
 
 valeur_défaut_énum :: fonc (valeur: eini) -> Valeur_Défaut_Paramètre
@@ -155,7 +155,7 @@ valeur_défaut_énum :: fonc (valeur: eini) -> Valeur_Défaut_Paramètre
 
 valeur_défaut_bouton :: fonc (valeur: eini) -> Valeur_Défaut_Paramètre
 {
-    retourne mémoire(valeur.pointeur comme *Paramètre_Bouton);
+    retourne mémoire(valeur.données comme *Paramètre_Bouton);
 }
 
 /* ------------------------------------------------------------------------- */
@@ -439,7 +439,7 @@ crée_table_paramètres :: fonc (paramètres: *Paramètres_Noeud, infos: *InfoTy
     résultat.struct_paramètres = paramètres;
 
     valeur_struct : eini = ---;
-    valeur_struct.pointeur = paramètres;
+    valeur_struct.données = paramètres;
     valeur_struct.info = infos;
 
     pour infos.rubriques {
@@ -498,7 +498,7 @@ détruit_table_paramètres :: fonc (table: *Table_Paramètres)
 
     pour table.paramètres {
         si est_type_valeur_chaine(it) {
-            valeur_courante := mémoire(it.valeur.pointeur comme *chaine);
+            valeur_courante := mémoire(it.valeur.données comme *chaine);
             déloge_si_logée(*valeur_courante);
             discr it.valeur_défaut {
                 Chaine(c) {
@@ -571,27 +571,27 @@ crée_valeur_pour_paramètre :: fonc (type: Type_Paramètre) -> eini
 
     discr type {
         VALEUR_BOOLÉENNE {
-            résultat.pointeur = loge(bool);
+            résultat.données = loge(bool);
             résultat.info = info_de(bool);
         }
         NOMBRE_RÉEL {
-            résultat.pointeur = loge(r32);
+            résultat.données = loge(r32);
             résultat.info = info_de(r32);
         }
         NOMBRE_ENTIER {
-            résultat.pointeur = loge(z32);
+            résultat.données = loge(z32);
             résultat.info = info_de(z32);
         }
         VEC2 {
-            résultat.pointeur = loge(Vec2);
+            résultat.données = loge(Vec2);
             résultat.info = info_de(Vec2);
         }
         VEC3 {
-            résultat.pointeur = loge(Vec3);
+            résultat.données = loge(Vec3);
             résultat.info = info_de(Vec3);
         }
         BOUTON {
-            résultat.pointeur = nul;
+            résultat.données = nul;
             résultat.info = nul;
         }
         CHAINE,
@@ -599,15 +599,15 @@ crée_valeur_pour_paramètre :: fonc (type: Type_Paramètre) -> eini
         CHEMIN_FICHIER_ENTRÉE,
         CHEMIN_FICHIER_SORTIE,
         DOSSIER {
-            résultat.pointeur = loge(chaine);
+            résultat.données = loge(chaine);
             résultat.info = info_de(chaine);
         }
         COULEUR {
-            résultat.pointeur = loge(CouleurRVBA);
+            résultat.données = loge(CouleurRVBA);
             résultat.info = info_de(CouleurRVBA);
         }
         ÉNUMÉRATION {
-            résultat.pointeur = loge(z32);
+            résultat.données = loge(z32);
             résultat.info = info_de(z32);
         }
     }
@@ -617,7 +617,7 @@ crée_valeur_pour_paramètre :: fonc (type: Type_Paramètre) -> eini
 
 détruit_valeur_paramètre :: fonc (valeur: eini)
 {
-    déloge_mémoire(valeur.info.taille_en_octet comme z64, valeur.pointeur, valeur.info, #position_code_source);
+    déloge_mémoire(valeur.info.taille_en_octet comme z64, valeur.données, valeur.info, #position_code_source);
 }
 
 /* ------------------------------------------------------------------------- */
@@ -674,7 +674,7 @@ noms_valeurs_énum :: fonc (param: *Table_Paramètres.Paramètre) -> []chaine
 
 définis_valeur :: fonc (param: *Table_Paramètres.Paramètre, valeur: $T)
 {
-    mémoire(param.valeur.pointeur comme *T) = valeur;
+    mémoire(param.valeur.données comme *T) = valeur;
 }
 
 définis_valeur_entier_ex :: fonc (param: *Table_Paramètres.Paramètre, info_type: *InfoType, valeur: z32)
@@ -732,7 +732,7 @@ définis_valeur_bool :: fonc (param: *Table_Paramètres.Paramètre, valeur: bool
 
 définis_valeur_chaine :: fonc (param: *Table_Paramètres.Paramètre, valeur: chaine)
 {
-    valeur_courante := mémoire(param.valeur.pointeur comme *chaine);
+    valeur_courante := mémoire(param.valeur.données comme *chaine);
     déloge_si_logée(*valeur_courante);
     définis_valeur(param, copie_chaine(valeur));
 }
@@ -809,32 +809,32 @@ lis_valeur_réel :: fonc (param: *Table_Paramètres.Paramètre) -> r32
 lis_valeur_bool :: fonc (param: *Table_Paramètres.Paramètre) -> bool
 {
     valeur := param.valeur;
-    retourne mémoire(valeur.pointeur comme *bool);
+    retourne mémoire(valeur.données comme *bool);
 }
 
 lis_valeur_chaine :: fonc (param: *Table_Paramètres.Paramètre) -> chaine
 {
     valeur := param.valeur;
-    chn := mémoire(valeur.pointeur comme *chaine);
+    chn := mémoire(valeur.données comme *chaine);
     retourne chn;
 }
 
 lis_valeur_vec2 :: fonc (param: *Table_Paramètres.Paramètre) -> Vec2
 {
     valeur := param.valeur;
-    retourne mémoire(valeur.pointeur comme *Vec2);
+    retourne mémoire(valeur.données comme *Vec2);
 }
 
 lis_valeur_vec3 :: fonc (param: *Table_Paramètres.Paramètre) -> Vec3
 {
     valeur := param.valeur;
-    retourne mémoire(valeur.pointeur comme *Vec3);
+    retourne mémoire(valeur.données comme *Vec3);
 }
 
 lis_valeur_couleur :: fonc (param: *Table_Paramètres.Paramètre) -> CouleurRVBA
 {
     valeur := param.valeur;
-    retourne mémoire(valeur.pointeur comme *CouleurRVBA);
+    retourne mémoire(valeur.données comme *CouleurRVBA);
 }
 
 lis_valeur_énum :: fonc (param: *Table_Paramètres.Paramètre) -> chaine
@@ -1015,13 +1015,13 @@ réinitialise_valeur_défaut :: fonc (noeud: *Noeud, param: *Table_Paramètres.P
 donne_bouton :: fonc (param: *Table_Paramètres.Paramètre) -> Paramètre_Bouton
 {
     assert(param.type == Type_Paramètre.BOUTON);
-    retourne mémoire(param.valeur.pointeur comme *Paramètre_Bouton);
+    retourne mémoire(param.valeur.données comme *Paramètre_Bouton);
 }
 
 sur_pression :: fonc (noeud: *Noeud, param: *Table_Paramètres.Paramètre)
 {
     assert(param.type == Type_Paramètre.BOUTON);
-    bouton := mémoire(param.valeur.pointeur comme *Paramètre_Bouton);
+    bouton := mémoire(param.valeur.données comme *Paramètre_Bouton);
     saufsi bouton.rappel {
         retourne;
     }

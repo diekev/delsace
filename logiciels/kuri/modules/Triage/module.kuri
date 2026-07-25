@@ -21,7 +21,7 @@ tri_par_sélection :: fonc (éléments: []$T, comparaison: fonc (a: T, b: T) -> 
 
 tri_rapide :: fonc (éléments: []$T, $Comparaison: fonc (a: T, b: T) -> z32)
 {
-    premier := éléments.pointeur;
+    premier := éléments.données;
     dernier := premier + éléments.taille;
 
     tri_rapide(premier, dernier, Comparaison);
@@ -84,7 +84,7 @@ tri_rapide :: fonc (indices: []$I, éléments: []$T, $Comparaison: fonc (a: T, b
 {
     assert(indices.taille == éléments.taille);
 
-    premier_indice := indices.pointeur;
+    premier_indice := indices.données;
     dernier_indice := premier_indice + indices.taille;
 
     tri_rapide(premier_indice, dernier_indice, éléments, Comparaison);

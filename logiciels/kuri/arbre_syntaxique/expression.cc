@@ -524,11 +524,6 @@ RésultatExpression évalue_expression(const EspaceDeTravail *espace,
             }
             return res;
         }
-        case GenreNoeud::EXPRESSION_PARENTHÈSE:
-        {
-            auto inst = b->comme_parenthèse();
-            return évalue_expression(espace, bloc, inst->expression);
-        }
         case GenreNoeud::EXPRESSION_COMME:
         {
             auto inst = b->comme_comme();
