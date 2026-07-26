@@ -176,7 +176,7 @@ ChainesParsées :: struct ($T: type_de_données) #corps_texte {
         si it.drapeaux.EST_CONSTANTE || it.drapeaux.EST_IMPLICITE {
             continue;
         }
-        ajoute_au_tampon(*enchaineuse, it.nom, ": chaine\n");
+        ajoute_au_tampon(*enchaineuse, it.nom, ": chaine;\n");
     }
 
     retourne chaine_depuis_enchaineuse(*enchaineuse);
@@ -221,7 +221,7 @@ parse_texte_format_url2 :: fonc (texte: chaine, $T: type_de_données) -> (Résul
         }
 
         nom := sous_chaine_jusque_indice(*parseuse, pos);
-        résoud_échappement_url_localement(nom);
+        résoud_échappement_url_localement(*nom);
 
         positionne(*parseuse, pos + 1);
 
@@ -236,7 +236,7 @@ parse_texte_format_url2 :: fonc (texte: chaine, $T: type_de_données) -> (Résul
         }
 
         valeur := sous_chaine_jusque_indice(*parseuse, pos);
-        résoud_échappement_url_localement(valeur);
+        résoud_échappement_url_localement(*valeur);
 
         positionne(*parseuse, pos + 1);
 

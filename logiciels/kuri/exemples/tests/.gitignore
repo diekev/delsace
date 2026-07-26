@@ -4,6 +4,7 @@ test_assignation_logique
 test_boucle_pour
 test_chaines_littérales
 test_compilatrice_exécute
+test_code_mort
 test_corps_texte
 test_cuisson
 test_couleur_terminal
@@ -13,6 +14,7 @@ test_emploi
 test_énum
 test_énum_drapeau
 test_erreur
+test_erreur_compilation
 test_insère
 test_logement
 test_macros
@@ -28,11 +30,17 @@ test_plage_boucle
 test_polymorphisme
 test_pousse_contexte
 test_ppm
+test_retours_multiple
 test_si_statique
 test_structure_anonyme
 test_structure_poly
 test_sys_fichier
 test_tableaux
+test_table_hachage
+test_transtypage_implicite
+test_types_opaques
+test_union
 test_valeur_polymorphique_fonction
 test_variables_multiples
+test_virgule
 tous_les_modules

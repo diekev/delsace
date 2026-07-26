@@ -1,3 +1,4 @@
+importe Chaine;
 importe Fondation;
 
 taille_symbole :: fonc (symbole: *chaine) -> z32
