@@ -46,7 +46,7 @@ principale :: fonc ()
                 arrête;
             }
 
-            gère_évènement(*serveuse.emboiteuse, it);
+            gère_évènement(*serveuse.emboiteuse, *it);
         }
 
         dessine_fenêtre(*serveuse, largeur, hauteur);
@@ -253,7 +253,7 @@ donne_trace_pour_message :: fonc (état: *ÉtatMémoire, message: MessageInfoAll
 donne_condensat :: fonc (message: MessageInfoAllocations) -> Condensat
 {
     sha256 := crée_sha256();
-    diffère détruit(sha256);
+    diffère détruit(*sha256);
 
     pour * message.traces {
         ajourne(sha256, it.nom);
@@ -387,7 +387,7 @@ dessine_état_mémoire :: fonc (serveuse: *Serveuse)
         }
         sinon {
             imprime_chaine_temp("% message reçu", serveuse.état_mémoire.messages.taille);
-        }
+        };
         dispose_texte(texte, ConfigurationTexte(serveuse.petite_fonte, PEAU_OMBRE));
 
         nombre_d_allocations := serveuse.état_mémoire.allocations.taille;
@@ -396,7 +396,7 @@ dessine_état_mémoire :: fonc (serveuse: *Serveuse)
         }
         sinon {
             imprime_chaine_temp("% allocation", nombre_d_allocations);
-        }
+        };
         dispose_texte(texte, ConfigurationTexte(serveuse.petite_fonte, PEAU_OMBRE));
 
         texte = imprime_chaine_temp("mémoire utilisée % octets", serveuse.état_mémoire.mémoire_utilisée);
@@ -421,7 +421,7 @@ dessine_état_mémoire :: fonc (serveuse: *Serveuse)
     dispose_rectangle();
     {
         définis_disposition(cotation = Cotation(hauteur = CROISSANTE()), direction = Direction.Verticale, rembourrage = RembourrageUniforme(8.0), séparation_enfant = 8.0);
-        ajoute_défilage(ConfigurationDéfilage(vertical = vrai));
+        ajoute_défilage(ConfigurationDéfilage(vertical = Type_Défilage.AUTOMATIQUE));
 
         si serveuse.dessine_allocations {
             pour > * serveuse.état_mémoire.allocations {
@@ -501,7 +501,7 @@ dessine_trace :: fonc (serveuse: *Serveuse, trace: *InfoTraceAllocation, condens
     dispose_rectangle(id = "Vue Traces");
     {
         définis_disposition(cotation = Cotation(hauteur = CROISSANTE()), direction = Direction.Verticale, rembourrage = RembourrageUniforme(8.0), séparation_enfant = 8.0);
-        ajoute_défilage(ConfigurationDéfilage(vertical = vrai));
+        ajoute_défilage(ConfigurationDéfilage(vertical = Type_Défilage.AUTOMATIQUE));
 
         hex := condensat.donne_chaine_hex();
         dispose_texte(imprime_chaine_temp("Condensat : %", hex), ConfigurationTexte(serveuse.petite_fonte, PEAU_OMBRE));
@@ -512,7 +512,7 @@ dessine_trace :: fonc (serveuse: *Serveuse, trace: *InfoTraceAllocation, condens
             dispose_texte(it.texte, ConfigurationTexte(serveuse.petite_fonte, PEAU_OMBRE));
         }
     }
-    termine_rectangle()   
+    termine_rectangle();
 }
 
 dispose_bouton :: fonc (serveuse: *Serveuse, texte: chaine, rappel_sur_clic: TypeRappelSouris, indice: z32)
