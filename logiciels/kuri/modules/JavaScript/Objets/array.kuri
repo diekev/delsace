@@ -16,7 +16,7 @@ ArrayObject :: struct {
 
 array_instance_crée :: fonc (realm: *Realm) -> *Object
 {
-    retourne donne_tas_de_mémoire(realm).alloue(ArrayObject);
+    retourne alloue(donne_tas_de_mémoire(realm), ArrayObject);
 }
 
 crée_array :: fonc (tas_de_mémoire: *TasDeMémoire, array_prototype: *ArrayPrototype, nombre_éléments: z64) -> *ArrayObject
@@ -279,7 +279,7 @@ array_constructor_call_or_construct :: fonc (empl params: *ParamètresCallOrCons
     }
 
     // 2. Let proto be ? GetPrototypeFromConstructor(newTarget, "%Array.prototype%").
-    proto := get_prototype_from_constructor(realm, donne_objet(new_target).vérifie_comme(Function), realm.intrinsics.array_prototype);
+    proto := get_prototype_from_constructor(realm, vérifie_comme(donne_objet(new_target), Function), realm.intrinsics.array_prototype);
     si possède_exception(interpréteuse) {
         retourne js_undefined;
     }
@@ -675,7 +675,7 @@ ArrayIterator :: struct {
 
 array_iterator_instance_crée :: fonc (realm: *Realm) -> *Object
 {
-    retourne donne_tas_de_mémoire(realm).alloue(ArrayIterator);
+    retourne alloue(donne_tas_de_mémoire(realm), ArrayIterator);
 }
 
 /* 23.1.5.1 CreateArrayIterator ( array, kind )

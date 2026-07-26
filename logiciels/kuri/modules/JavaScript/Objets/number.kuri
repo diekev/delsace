@@ -78,7 +78,7 @@ this_number_value :: fonc (interpréteuse: *Interpréteuse, value: Valeur) -> Va
     }
 
     // 2. If value is an Object and value has a [[NumberData]] internal slot, then
-    si est_object(value) && donne_objet(value).donne_classe() == NumberObject {
+    si est_object(value) && donne_classe(donne_objet(value)) == NumberObject {
         // a. Let n be value.[[NumberData]].
         // b. Assert: n is a Number.
         // c. Return n.

@@ -870,7 +870,7 @@ donne_ajournement_pour_changement_style :: fonc (résolveuse: *RésolveuseStyle,
     diffère détruit_propriétés(nouvelles_propriétés);
 
     /* Vérifie si "display: none" reste "display: none". */
-    display := donne_valeur_calculée(nouvelles_propriétés, IDPropriété.Display).donne_display();
+    display := donne_display(donne_valeur_calculée(nouvelles_propriétés, IDPropriété.Display));
     si display.outer_type == Display.Type.None {
         si box == nul {
             /* Nous restons sur "display: none". */
@@ -1232,7 +1232,7 @@ calcule_display_final :: fonc (propriétés: *PropriétésDeStyle)
      * of an element generating a flex container is an inline-level value, it computes to its block-level
      * equivalent. (See CSS2.1§9.7 [CSS21] and CSS Display [CSS3-DISPLAY] for details on this type of
      * display value conversion.) */
-    display_parent := donne_valeur_calculée(propriétés.parent, IDPropriété.Display).donne_display();
+    display_parent := donne_display(donne_valeur_calculée(propriétés.parent, IDPropriété.Display));
     si display_parent.inner_type == Display.Type.Flex {
         nouveau_display := crée_valeur_display(blocify_display(display));
         définis_valeur_calculée(propriétés, IDPropriété.Display, nouveau_display);
@@ -1488,7 +1488,7 @@ crée_box_pour_élément :: fonc (empl créatrice: *CréatriceArbre, parent: *Bo
 
     propriétés := résoud_style(résolveuse, élément, nul, propriétés_parent);
 
-    display := donne_valeur_calculée(propriétés, IDPropriété.Display).donne_display();
+    display := donne_display(donne_valeur_calculée(propriétés, IDPropriété.Display));
     si display.outer_type == Display.Type.None {
         détruit_propriétés(propriétés);
         retourne;
@@ -1694,7 +1694,7 @@ crée_box_pour_pseudo_élément :: fonc (empl créatrice: *CréatriceArbre, pare
         retourne;
     }
 
-    display := donne_valeur_calculée(propriétés_pseudo, IDPropriété.Display).donne_display();
+    display := donne_display(donne_valeur_calculée(propriétés_pseudo, IDPropriété.Display));
     si display.outer_type == Display.Type.None {
         détruit_propriétés(propriétés_pseudo);
         retourne;
@@ -1720,7 +1720,7 @@ crée_box_pour_pseudo_élément :: fonc (empl créatrice: *CréatriceArbre, pare
     ajoute_enfant(parent, box);
 
     si est_string(content) {
-        crée_box_pour_texte(créatrice, box comme *BlockBox, donne_string(content).donne_chaine_utf16(), nul);
+        crée_box_pour_texte(créatrice, box comme *BlockBox, donne_chaine_utf16(donne_string(content)), nul);
     }
 }
 
@@ -2022,12 +2022,12 @@ détermine_fonte :: fonc (box: *Box, globales: *GlobalesDessin) -> *Fonte
 détermine_fonte :: fonc (propriétés: *PropriétésDeStyle, globales: *GlobalesDessin) -> *Fonte
 {
     style := "normal";
-    taille_fonte := donne_valeur_utilisée(propriétés, IDPropriété.FontSize).donne_pixels() comme r32;
+    taille_fonte := donne_pixels(donne_valeur_utilisée(propriétés, IDPropriété.FontSize)) comme r32;
 
-    font_weight := donne_valeur_utilisée(propriétés, IDPropriété.FontWeight).donne_number();
+    font_weight := donne_number(donne_valeur_utilisée(propriétés, IDPropriété.FontWeight));
     graisse := donne_graisse_fonte_depuis_poids(font_weight);
 
-    font_style := donne_valeur_utilisée(propriétés, IDPropriété.FontStyle).donne_mot_clé();
+    font_style := donne_mot_clé(donne_valeur_utilisée(propriétés, IDPropriété.FontStyle));
     si font_style == PROP_italic {
         style = "italic";
     }
@@ -2138,7 +2138,7 @@ est_block_container :: fonc (box: *Box) -> bool
 donne_display :: fonc (box: *Box) -> Display
 {
     assert(box.propriétés != nul);
-    retourne donne_valeur_utilisée(box.propriétés, IDPropriété.Display).donne_display();
+    retourne donne_display(donne_valeur_utilisée(box.propriétés, IDPropriété.Display));
 }
 
 donne_line_height :: fonc (box: *Box, ctx: *ContexteDeFormattage) -> r32
@@ -2371,7 +2371,7 @@ donne_curseur :: fonc (box: *Box) -> CursorType
     saufsi box.propriétés {
         retourne CursorType.auto;
     }
-    retourne donne_valeur_utilisée(box.propriétés, IDPropriété.Cursor).donne_cursor_type();
+    retourne donne_cursor_type(donne_valeur_utilisée(box.propriétés, IDPropriété.Cursor));
 }
 
 divise_en_lignes :: fonc (box: *Box, enligneuse: *Enligneuse, mode: ModeDeFormattage)
@@ -3133,10 +3133,10 @@ inline_box_sur_divise_en_lignes :: fonc (base: *Box, enligneuse: *Enligneuse, mo
 
     propriétés := box.propriétés;
 
-    margin_left := donne_valeur_utilisée(propriétés, IDPropriété.MarginLeft).donne_pixels() comme r32;
-    padding_left := donne_valeur_utilisée(propriétés, IDPropriété.PaddingLeft).donne_pixels() comme r32;
-    padding_right := donne_valeur_utilisée(propriétés, IDPropriété.PaddingRight).donne_pixels() comme r32;
-    margin_right := donne_valeur_utilisée(propriétés, IDPropriété.MarginRight).donne_pixels() comme r32;
+    margin_left := donne_pixels(donne_valeur_utilisée(propriétés, IDPropriété.MarginLeft)) comme r32;
+    padding_left := donne_pixels(donne_valeur_utilisée(propriétés, IDPropriété.PaddingLeft)) comme r32;
+    padding_right := donne_pixels(donne_valeur_utilisée(propriétés, IDPropriété.PaddingRight)) comme r32;
+    margin_right := donne_pixels(donne_valeur_utilisée(propriétés, IDPropriété.MarginRight)) comme r32;
 
     fragment_marge_début := ajoute_fragment(enligneuse, box, 0.0, margin_left, Fragment.Type.MargeDébut);
     fragment_rembourrage_début := ajoute_fragment(enligneuse, box, 0.0, padding_left, Fragment.Type.RembourrageDébut);
@@ -3387,7 +3387,7 @@ traite_espaces_blanches :: fonc (box: *TextBox)
     fragmente_texte_avec_espaces_blanches_ascii(box.texte, *box.fragments);
 
     propriétés := donne_propriétés(box);
-    white_space := donne_valeur_utilisée(propriétés, IDPropriété.WhiteSpace).donne_mot_clé();
+    white_space := donne_mot_clé(donne_valeur_utilisée(propriétés, IDPropriété.WhiteSpace));
 
     si white_space == PROP_normal || white_space == PROP_nowrap || white_space == PROP_pre_line {
         // 1. Any sequence of collapsible spaces and tabs immediately preceding or following a segment
@@ -4224,7 +4224,7 @@ table_wrapper_box_sur_mesure :: fonc (base: *Box, ctx: *ContexteDeFormattage, mo
 
     height := donne_valeur_calculée(box.propriétés, IDPropriété.Height);
     si est_auto(height) {
-        hauteur_finale := crée_outrepas_pour_coter_contenu(donne_valeur_utilisée(box.table.propriétés, IDPropriété.Height).donne_pixels());
+        hauteur_finale := crée_outrepas_pour_coter_contenu(donne_pixels(donne_valeur_utilisée(box.table.propriétés, IDPropriété.Height)));
         personnalisation_ := personnalisation;
         personnalisation_.outrepas_hauteur = *hauteur_finale;
         args = crée_arguments_dimensionnement_hauteur(ctx, box, *containing_block, personnalisation_);

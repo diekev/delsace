@@ -223,7 +223,7 @@ objet_html_sur_création_enveloppe :: fonc (base: *Enveloppable @inutilisée, en
             retourne lance_type_error(interpréteuse, "ouvre_document requiers 1 argument");
         }
 
-        saufsi donne_argument(params, 0).est_chaine() {
+        saufsi est_chaine(donne_argument(params, 0)) {
             retourne lance_type_error(interpréteuse, "argument n'est pas une chaine");
         }
 

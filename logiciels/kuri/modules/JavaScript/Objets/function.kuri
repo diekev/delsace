@@ -148,7 +148,7 @@ ECMAScriptFunction :: struct {
 
 ecma_script_function_instance_crée :: fonc (realm: *Realm) -> *Object
 {
-    retourne donne_tas_de_mémoire(realm).alloue(ECMAScriptFunction);
+    retourne alloue(donne_tas_de_mémoire(realm), ECMAScriptFunction);
 }
 
 ecma_script_function_sur_destruction :: fonc (cellule: *Cellule)
@@ -413,7 +413,7 @@ sur_construct_fonction_ecma :: fonc (empl params: *ParamètresObjectConstruct) -
     this_argument: Valeur;
     si kind == ConstructorKind.Base {
         // a. Let thisArgument be ? OrdinaryCreateFromConstructor(newTarget, "%Object.prototype%").
-        new_target_func := donne_objet(new_target).vérifie_comme(Function);
+        new_target_func := vérifie_comme(donne_objet(new_target), Function);
         this_argument = ordinary_create_from_constructor(realm, new_target_func, realm.intrinsics.object_prototype, object_instance_crée);
         si possède_exception(realm) {
             retourne js_undefined;

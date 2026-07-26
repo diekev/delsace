@@ -130,13 +130,13 @@ ajourne_boite_pour_calcul_largeur :: fonc (box: *Box)
 {
     propriétés := box.propriétés;
 
-    margin_left := donne_valeur_utilisée(propriétés, IDPropriété.MarginLeft).donne_pixels_ou_zéro_si_auto() comme r32;
-    border_left_width := donne_valeur_utilisée(propriétés, IDPropriété.BorderWidthLeft).donne_pixels() comme r32;
-    padding_left := donne_valeur_utilisée(propriétés, IDPropriété.PaddingLeft).donne_pixels() comme r32;
-    width := donne_valeur_utilisée(propriétés, IDPropriété.Width).donne_pixels() comme r32;
-    padding_right := donne_valeur_utilisée(propriétés, IDPropriété.PaddingRight).donne_pixels() comme r32;
-    border_right_width := donne_valeur_utilisée(propriétés, IDPropriété.BorderWidthRight).donne_pixels() comme r32;
-    margin_right := donne_valeur_utilisée(propriétés, IDPropriété.MarginRight).donne_pixels_ou_zéro_si_auto() comme r32;
+    margin_left := donne_pixels_ou_zéro_si_auto(donne_valeur_utilisée(propriétés, IDPropriété.MarginLeft)) comme r32;
+    border_left_width := donne_pixels(donne_valeur_utilisée(propriétés, IDPropriété.BorderWidthLeft)) comme r32;
+    padding_left := donne_pixels(donne_valeur_utilisée(propriétés, IDPropriété.PaddingLeft)) comme r32;
+    width := donne_pixels(donne_valeur_utilisée(propriétés, IDPropriété.Width)) comme r32;
+    padding_right := donne_pixels(donne_valeur_utilisée(propriétés, IDPropriété.PaddingRight)) comme r32;
+    border_right_width := donne_pixels(donne_valeur_utilisée(propriétés, IDPropriété.BorderWidthRight)) comme r32;
+    margin_right := donne_pixels_ou_zéro_si_auto(donne_valeur_utilisée(propriétés, IDPropriété.MarginRight)) comme r32;
 
     x := box.modèle_de_boite.marge.x;
 
@@ -157,13 +157,13 @@ ajourne_boite_pour_calcul_hauteur :: fonc (box: *Box)
 {
     propriétés := box.propriétés;
 
-    margin_top := donne_valeur_utilisée(propriétés, IDPropriété.MarginTop).donne_pixels() comme r32;
-    border_top_width := donne_valeur_utilisée(propriétés, IDPropriété.BorderWidthTop).donne_pixels() comme r32;
-    padding_top := donne_valeur_utilisée(propriétés, IDPropriété.PaddingTop).donne_pixels() comme r32;
-    height := donne_valeur_utilisée(propriétés, IDPropriété.Height).donne_pixels() comme r32;
-    padding_bottom := donne_valeur_utilisée(propriétés, IDPropriété.PaddingBottom).donne_pixels() comme r32;
-    border_bottom_width := donne_valeur_utilisée(propriétés, IDPropriété.BorderWidthBottom).donne_pixels() comme r32;
-    margin_bottom := donne_valeur_utilisée(propriétés, IDPropriété.MarginBottom).donne_pixels() comme r32;
+    margin_top := donne_pixels(donne_valeur_utilisée(propriétés, IDPropriété.MarginTop)) comme r32;
+    border_top_width := donne_pixels(donne_valeur_utilisée(propriétés, IDPropriété.BorderWidthTop)) comme r32;
+    padding_top := donne_pixels(donne_valeur_utilisée(propriétés, IDPropriété.PaddingTop)) comme r32;
+    height := donne_pixels(donne_valeur_utilisée(propriétés, IDPropriété.Height)) comme r32;
+    padding_bottom := donne_pixels(donne_valeur_utilisée(propriétés, IDPropriété.PaddingBottom)) comme r32;
+    border_bottom_width := donne_pixels(donne_valeur_utilisée(propriétés, IDPropriété.BorderWidthBottom)) comme r32;
+    margin_bottom := donne_pixels(donne_valeur_utilisée(propriétés, IDPropriété.MarginBottom)) comme r32;
 
     y := box.modèle_de_boite.marge.y;
 
@@ -186,9 +186,9 @@ ajourne_boite_pour_calcul_hauteur_auto :: fonc (box: *Box)
 {
     propriétés := box.propriétés;
 
-    margin_top := donne_valeur_utilisée(propriétés, IDPropriété.MarginTop).donne_pixels() comme r32;
-    border_top_width := donne_valeur_utilisée(propriétés, IDPropriété.BorderWidthTop).donne_pixels() comme r32;
-    padding_top := donne_valeur_utilisée(propriétés, IDPropriété.PaddingTop).donne_pixels() comme r32;
+    margin_top := donne_pixels(donne_valeur_utilisée(propriétés, IDPropriété.MarginTop)) comme r32;
+    border_top_width := donne_pixels(donne_valeur_utilisée(propriétés, IDPropriété.BorderWidthTop)) comme r32;
+    padding_top := donne_pixels(donne_valeur_utilisée(propriétés, IDPropriété.PaddingTop)) comme r32;
 
     y := box.modèle_de_boite.marge.y;
 
@@ -276,7 +276,7 @@ calcule_auto_height_racine_contexte_de_formattage :: fonc (box: *BlockBox) -> r6
         min_y_it := modèle_de_boite.marge.y;
         max_y_it := modèle_de_boite.marge.y + modèle_de_boite.marge.hauteur;
 
-        si donne_valeur_calculée(it.propriétés, IDPropriété.Position).est_mot_clé(PROP_relative) {
+        si est_mot_clé(donne_valeur_calculée(it.propriétés, IDPropriété.Position), PROP_relative) {
             décalage := donne_décalage_top_pour_relative(it);
             min_y_it -= décalage;
             max_y_it -= décalage;
@@ -416,15 +416,15 @@ calcule_largeur_et_marges :: fonc (empl args: *ArgumentsDimensionnement, fonctio
     résoud_pourcentage_insets(box, ctx);
 
     pl : PropriétésLargeur = ---;
-    pl.left = donne_valeur_calculée(propriétés, IDPropriété.Left).calcule_pourcentage(ctx.ctx_calcul_style, width_of_containing_block);
-    pl.margin_left = donne_valeur_calculée(propriétés, IDPropriété.MarginLeft).calcule_pourcentage(ctx.ctx_calcul_style, width_of_containing_block);
-    pl.border_left_width = donne_valeur_calculée(propriétés, IDPropriété.BorderWidthLeft).calcule_pourcentage(ctx.ctx_calcul_style, width_of_containing_block);
-    pl.padding_left = donne_valeur_calculée(propriétés, IDPropriété.PaddingLeft).calcule_pourcentage(ctx.ctx_calcul_style, width_of_containing_block);
-    pl.width = donne_valeur_calculée(propriétés, IDPropriété.Width).calcule_pourcentage(ctx.ctx_calcul_style, width_of_containing_block);
-    pl.padding_right = donne_valeur_calculée(propriétés, IDPropriété.PaddingRight).calcule_pourcentage(ctx.ctx_calcul_style, width_of_containing_block);
-    pl.border_right_width = donne_valeur_calculée(propriétés, IDPropriété.BorderWidthRight).calcule_pourcentage(ctx.ctx_calcul_style, width_of_containing_block);
-    pl.margin_right = donne_valeur_calculée(propriétés, IDPropriété.MarginRight).calcule_pourcentage(ctx.ctx_calcul_style, width_of_containing_block);
-    pl.right = donne_valeur_calculée(propriétés, IDPropriété.Right).calcule_pourcentage(ctx.ctx_calcul_style, width_of_containing_block);
+    pl.left = calcule_pourcentage(donne_valeur_calculée(propriétés, IDPropriété.Left), ctx.ctx_calcul_style, width_of_containing_block);
+    pl.margin_left = calcule_pourcentage(donne_valeur_calculée(propriétés, IDPropriété.MarginLeft), ctx.ctx_calcul_style, width_of_containing_block);
+    pl.border_left_width = calcule_pourcentage(donne_valeur_calculée(propriétés, IDPropriété.BorderWidthLeft), ctx.ctx_calcul_style, width_of_containing_block);
+    pl.padding_left = calcule_pourcentage(donne_valeur_calculée(propriétés, IDPropriété.PaddingLeft), ctx.ctx_calcul_style, width_of_containing_block);
+    pl.width = calcule_pourcentage(donne_valeur_calculée(propriétés, IDPropriété.Width), ctx.ctx_calcul_style, width_of_containing_block);
+    pl.padding_right = calcule_pourcentage(donne_valeur_calculée(propriétés, IDPropriété.PaddingRight), ctx.ctx_calcul_style, width_of_containing_block);
+    pl.border_right_width = calcule_pourcentage(donne_valeur_calculée(propriétés, IDPropriété.BorderWidthRight), ctx.ctx_calcul_style, width_of_containing_block);
+    pl.margin_right = calcule_pourcentage(donne_valeur_calculée(propriétés, IDPropriété.MarginRight), ctx.ctx_calcul_style, width_of_containing_block);
+    pl.right = calcule_pourcentage(donne_valeur_calculée(propriétés, IDPropriété.Right), ctx.ctx_calcul_style, width_of_containing_block);
 
     si possède_valeur(outrepas_largeur) {
         pl.width = outrepas_largeur.Quelque.valeur;
@@ -452,7 +452,7 @@ calcule_largeur_et_marges :: fonc (empl args: *ArgumentsDimensionnement, fonctio
 donne_fonction_calcul_largeur_et_marges :: fonc (box: *Box) -> TypeFonctionCalculLargeur
 {
     propriétés := box.propriétés;
-    display := donne_valeur_calculée(propriétés, IDPropriété.Display).donne_display();
+    display := donne_display(donne_valeur_calculée(propriétés, IDPropriété.Display));
     float := donne_valeur_utilisée(propriétés, IDPropriété.Float);
     position := donne_valeur_utilisée(propriétés, IDPropriété.Position);
 
@@ -718,7 +718,7 @@ calcule_hauteur_et_marges :: fonc (empl args: *ArgumentsDimensionnement, fonctio
 donne_fonction_calcul_hauteur_et_marges :: fonc (box: *Box) -> TypeFonctionCalculHauteur
 {
     propriétés := box.propriétés;
-    display := donne_valeur_calculée(propriétés, IDPropriété.Display).donne_display();
+    display := donne_display(donne_valeur_calculée(propriétés, IDPropriété.Display));
     position := donne_valeur_utilisée(propriétés, IDPropriété.Position);
 
     si box.table_virtuelle.type == ReplacedBox {
@@ -817,7 +817,7 @@ calcule_hauteur_et_marges_block_level_normal_flow :: fonc (empl args: *Arguments
                 // 3. the bottom border edge of the last in-flow child whose top margin doesn't collapse with the element's bottom margin
 
                 position_bord_bas_fragment := enfant.modèle_de_boite.marge.y + enfant.modèle_de_boite.marge.hauteur;
-                si donne_valeur_calculée(enfant.propriétés, IDPropriété.Position).est_mot_clé(PROP_relative) {
+                si est_mot_clé(donne_valeur_calculée(enfant.propriétés, IDPropriété.Position), PROP_relative) {
                     position_bord_bas_fragment -= donne_décalage_top_pour_relative(enfant);
                 }
                 height = crée_valeur_pixels(position_bord_bas_fragment - position_bord_haut_contenu);
@@ -1755,7 +1755,7 @@ calcule_min_content_width :: fonc (ctx: *ContexteDeFormattage, box: *Box) -> r64
     available.height = crée_indefinite_size();
 
     formatte_intérieur(box comme *BlockBox, ctx, ModeDeFormattage.ToutesLesBrisuresDeLigne, available);
-    résultat := donne_valeur_utilisée(box.propriétés, IDPropriété.Width).donne_pixels();
+    résultat := donne_pixels(donne_valeur_utilisée(box.propriétés, IDPropriété.Width));
     box.mémoire_vive.min_content_width = résultat;
     retourne résultat;
 }
@@ -1773,7 +1773,7 @@ calcule_max_content_width :: fonc (ctx: *ContexteDeFormattage, box: *Box) -> r64
 
     /* À FAIRE : ceci peut allouer de l'espace pour un des éléments vides via les espaces blanches interéléments. */
     formatte_intérieur(box comme *BlockBox, ctx, ModeDeFormattage.BrisureDeLigneExplicite, available);
-    résultat := donne_valeur_utilisée(box.propriétés, IDPropriété.Width).donne_pixels();
+    résultat := donne_pixels(donne_valeur_utilisée(box.propriétés, IDPropriété.Width));
     box.mémoire_vive.max_content_width = résultat;
     retourne résultat;
 }

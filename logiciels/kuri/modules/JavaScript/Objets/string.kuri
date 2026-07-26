@@ -198,7 +198,7 @@ crée_chaine :: fonc (tas_de_mémoire: *TasDeMémoire, string_prototype: *String
     résultat.prototype = string_prototype;
     résultat.chn = chn;
 
-    ajoute_propriété(résultat, STR_length, Valeur(Number = donne_chaine_utf16(chn.texte).taille() comme r64), DrapeauxPropriété.zéro);
+    ajoute_propriété(résultat, STR_length, Valeur(Number = taille(donne_chaine_utf16(chn.texte)) comme r64), DrapeauxPropriété.zéro);
     ajoute_propriété(résultat, STR_prototype, Valeur(Object = string_prototype), DrapeauxPropriété.zéro);
 
     retourne résultat;

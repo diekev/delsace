@@ -2391,7 +2391,7 @@ crée_shadow_root_pour_édition :: fonc (input: *HTMLInputElement)
     noeud_texte := crée_noeud_texte(input.document);
     ajoute_enfant(shadow_root, noeud_texte);
 
-    value := donne_attribut_ou_chaine_vide(input, ATTR_value).donne_chaine_utf16();
+    value := donne_chaine_utf16(donne_attribut_ou_chaine_vide(input, ATTR_value));
     noeud_texte.données = copie_chaine(value);
 
     input.shadow_root = shadow_root;

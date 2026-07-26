@@ -754,7 +754,7 @@ evaluate_a_javascript_url :: fonc (user_agent: *UserAgent, target_navigable: *Na
     script_source := encoded_script_source;
 
     // 4. Let settings be targetNavigable's active document's relevant settings object.
-    settings := donne_active_document(target_navigable).donne_relevant_settings_object();
+    settings := donne_relevant_settings_object(donne_active_document(target_navigable));
 
     // 5. Let baseURL be settings's API base URL.
     base_url := donne_api_base_url(settings);
@@ -1518,7 +1518,7 @@ create_navigation_params_by_fetching :: fonc (user_agent: *UserAgent,
             // 3. If navigable is not a top-level traversable, then:
             saufsi est_top_level_traversable(navigable) {
                 // 1. Let parentEnvironment be navigable's parent's active document's relevant settings object.
-                parent_environment := donne_active_document(navigable.parent).donne_relevant_settings_object();
+                parent_environment := donne_relevant_settings_object(donne_active_document(navigable.parent));
 
                 // 2. Set topLevelCreationURL to parentEnvironment's top-level creation URL.
                 top_level_creation_url = parent_environment.top_level_creation_url;
@@ -2131,7 +2131,7 @@ after_potential_unloads :: fonc (params: *AfterPotentialUnloadsParams)
     sinon {
         // À FAIRE : relevant global object
         tâche := crée_algorithm_pour_fonction(*document_update_params, update_document_for_history_step_application);
-        queue_a_global_task(params.user_agent, Task_Source.NavigationEtTraversée, donne_document(target_entry).donne_relevant_global_object(),  tâche);
+        queue_a_global_task(params.user_agent, Task_Source.NavigationEtTraversée, donne_relevant_global_object(donne_document(target_entry)),  tâche);
     }
 
     // 5. Increment completedChangeJobs.
@@ -3444,7 +3444,7 @@ unload_a_document :: fonc (user_agent: *UserAgent, old_document: *Document @inut
 unload_a_document_and_its_descendants :: fonc (user_agent: *UserAgent, document: *Document, new_document : *Document = nul, after_all_unloads : *Algorithm = nul, fire_page_swap_steps : *Algorithm = nul)
 {
     // 1. Assert: this is running within document's node navigable's traversable navigable's session history traversal queue.
-    traversable := donne_node_navigable(document).donne_traversable_navigable();
+    traversable := donne_traversable_navigable(donne_node_navigable(document));
     assert(est_exécuté_sur_file_parallèle(user_agent, traversable));
 
     // 2. Let childNavigables be document's child navigables.

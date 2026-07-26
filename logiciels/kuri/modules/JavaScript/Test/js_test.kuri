@@ -102,7 +102,7 @@ détruit_données_stats :: fonc (stats: *StatistiquesTests)
         prop_tests_éffectués := trouve_propriété(realm.global_object, crée_chaine_utf16_unique("tests_éffectués"));
 
         prop_capte_erreur := trouve_propriété(realm.global_object, crée_chaine_utf16_unique("capte_erreur"));
-        capte_erreur := donne_objet(prop_capte_erreur.valeur).vérifie_comme(CapteErreur);
+        capte_erreur := vérifie_comme(donne_objet(prop_capte_erreur.valeur), CapteErreur);
 
         pour capte_erreur.erreurs {
             erreur_captée := tableau_ajoute_élément(*stats.erreurs_captées);
@@ -192,7 +192,7 @@ capte_erreur_sur_destruction :: fonc (base: *Cellule)
 
 capte_erreur_ajoute_erreur :: fonc (empl params: *ParamètresObjectCall) -> Valeur
 {
-    capte_erreur := donne_objet(this_value).vérifie_comme(CapteErreur);
+    capte_erreur := vérifie_comme(donne_objet(this_value), CapteErreur);
 
     cas := to_string(interpréteuse, donne_argument(params, 0));
     si possède_exception(interpréteuse) {

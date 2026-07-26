@@ -426,7 +426,7 @@ ordinary_get :: fonc (object: *Object, property_key: PropertyKey, receiver: Vale
     }
 
     // 7. Return ? Call(getter, Receiver).
-    mv := donne_objet(receiver).donne_tas_de_mémoire().donne_mv();
+    mv := donne_tas_de_mémoire(donne_objet(receiver)).donne_mv();
     retourne call(mv, getter.Quelque, receiver);
 }
 
@@ -484,7 +484,7 @@ ordinary_set_with_own_descriptor :: fonc (object: *Object, property_key: Propert
 
         // c. Let existingDescriptor be ? Receiver.[[GetOwnProperty]](P).
         opt_existing_descriptor := internal_get_own_property(donne_objet(receiver), property_key);
-        si donne_objet(receiver).possède_exception() {
+        si possède_exception(donne_objet(receiver)) {
             retourne faux;
         }
 
@@ -529,7 +529,7 @@ ordinary_set_with_own_descriptor :: fonc (object: *Object, property_key: Propert
     }
 
     // 6. Perform ? Call(setter, Receiver, « V »).
-    mv := donne_objet(receiver).donne_tas_de_mémoire().donne_mv();
+    mv := donne_tas_de_mémoire(donne_objet(receiver)).donne_mv();
 
     arguments: []Valeur;
     arguments.données = *valeur;

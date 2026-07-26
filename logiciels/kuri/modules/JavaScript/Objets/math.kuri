@@ -20,7 +20,7 @@ table_virtuelle_math := TableVirtuelleObject(classe = MathObject);
 
 crée_math_object :: fonc (object_prototype: *ObjectPrototype) -> *MathObject
 {
-    résultat := donne_tas_de_mémoire(object_prototype).alloue(MathObject);
+    résultat := alloue(donne_tas_de_mémoire(object_prototype), MathObject);
     résultat.prototype = object_prototype;
 
     constantes: Math.Constantes(r64);
@@ -356,7 +356,7 @@ math_pow :: fonc (empl params: *ParamètresObjectCall) -> Valeur
  * https://tc39.es/ecma262/multipage/numbers-and-dates.html#sec-math.random */
 math_random :: fonc (empl params: *ParamètresObjectCall) -> Valeur
 {
-    math := donne_objet(this_value).vérifie_comme(MathObject);
+    math := vérifie_comme(donne_objet(this_value), MathObject);
     résultat := aléatoire_unilatérale(*math.entropie);
     retourne résultat comme r64;
 }

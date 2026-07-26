@@ -265,7 +265,7 @@ insère_caractère :: fonc (parseuse: *Parseuse, point_de_code: n32)
 
     noeud_texte : *Text = nul;
 
-    si possède_enfants(position_ajustée_d_insertion) && dernier_enfant(position_ajustée_d_insertion).est_texte() {
+    si possède_enfants(position_ajustée_d_insertion) && est_texte(dernier_enfant(position_ajustée_d_insertion)) {
         noeud_texte = dernier_enfant(position_ajustée_d_insertion) comme *Text;
     }
     sinon {

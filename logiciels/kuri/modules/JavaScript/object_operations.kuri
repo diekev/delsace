@@ -458,7 +458,7 @@ private_get :: fonc (O: *Object, P: PrivateName) -> Valeur
     getter := entry.get;
 
     // 7. Return ? Call(getter, O).
-    mv := donne_tas_de_mémoire(O).donne_mv();
+    mv := donne_mv(donne_tas_de_mémoire(O));
     retourne call(mv, getter, O);
 }
 
@@ -505,7 +505,7 @@ private_set :: fonc (O: *Object, P: PrivateName, value: Valeur)
         argument.données = *value;
         argument.taille = 1;
 
-        mv := donne_tas_de_mémoire(O).donne_mv();
+        mv := donne_mv(donne_tas_de_mémoire(O));
         _ := call(mv, setter, O, argument);
     }
 

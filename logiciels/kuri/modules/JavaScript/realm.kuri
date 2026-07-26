@@ -235,7 +235,7 @@ realm_sur_destruction :: fonc (base: *Cellule)
 
 donne_mv :: fonc (realm: *Realm) -> *MachineVirtuelle
 {
-    retourne donne_tas_de_mémoire(realm).donne_mv();
+    retourne donne_mv(donne_tas_de_mémoire(realm));
 }
 
 /* 9.3.1 InitializeHostDefinedRealm ( )

@@ -103,7 +103,7 @@ requiers_contexte_de_formattage_indépendant :: fonc (box: *Box) -> bool
 
     // elements with display: inline-block
     // elements with display: flow-root or display: flow-root list-item
-    display := donne_valeur_calculée(box.propriétés, IDPropriété.Display).donne_display();
+    display := donne_display(donne_valeur_calculée(box.propriétés, IDPropriété.Display));
     si display.inner_type == Display.Type.FlowRoot {
         retourne vrai;
     }
@@ -497,7 +497,7 @@ ajoute_marge :: fonc (ctx: *ContexteDeFormattageBloc, box: *Box, id: IDPropriét
 {
     assert(id == IDPropriété.MarginTop || id == IDPropriété.MarginBottom);
 
-    taille := donne_valeur_utilisée(box.propriétés, id).donne_pixels() comme r32;
+    taille := donne_pixels(donne_valeur_utilisée(box.propriétés, id)) comme r32;
     si taille == 0.0 && est_espace_blanche_document(box) {
         retourne;
     }
@@ -1549,7 +1549,7 @@ CROSS_INDEX :: 1;
 
 est_nowrap :: fonc (ctx: *ContexteDeFormattageFlex) -> bool
 {
-    flex_wrap := donne_valeur_utilisée(ctx.contenant.propriétés, IDPropriété.FlexWrap).donne_mot_clé();
+    flex_wrap := donne_mot_clé(donne_valeur_utilisée(ctx.contenant.propriétés, IDPropriété.FlexWrap));
     retourne flex_wrap == PROP_nowrap;
 }
 
@@ -1686,7 +1686,7 @@ donne_used_outer_main_size :: fonc (ctx: *ContexteDeFormattageFlex, box: *Box) -
 
 donne_used_cross_size :: fonc (ctx: *ContexteDeFormattageFlex, box: *Box) -> r64
 {
-    retourne donne_valeur_utilisée(box.propriétés, ctx.ids_props[CROSS_INDEX].size).donne_pixels();
+    retourne donne_pixels(donne_valeur_utilisée(box.propriétés, ctx.ids_props[CROSS_INDEX].size));
 }
 
 donne_main_size_prop :: fonc (ctx: *ContexteDeFormattageFlex, box: *Box) -> *ValeurDeStyle
@@ -1799,7 +1799,7 @@ contexte_formattage_flex_sur_formatte :: fonc (base: *ContexteDeFormattage, box:
         déloge(*ctx.lignes);
     }
 
-    direction := donne_valeur_calculée(box.propriétés, IDPropriété.FlexDirection).donne_mot_clé();
+    direction := donne_mot_clé(donne_valeur_calculée(box.propriétés, IDPropriété.FlexDirection));
     ctx.est_direction_row = direction == PROP_row || direction == PROP_row_reverse;
     si ctx.est_direction_row {
         ctx.main_axis = DirectionFlex.Horizontale;
@@ -1828,7 +1828,7 @@ flex_layout_algorithm :: fonc (ctx: *ContexteDeFormattageFlex, box: *BlockBox, m
 
     initialise_id_propriétés(ctx);
 
-    saufsi donne_valeur_calculée(box.propriétés, ctx.ids_props[CROSS_INDEX].size).est_auto() {
+    saufsi est_auto(donne_valeur_calculée(box.propriétés, ctx.ids_props[CROSS_INDEX].size)) {
         si ctx.cross_axis == DirectionFlex.Verticale {
             ctx.cross_size.Definite = box.modèle_de_boite.marge.hauteur;
             ctx.inner_cross_size.Definite = box.modèle_de_boite.contenu.hauteur;
@@ -2203,7 +2203,7 @@ resolve_flexible_lengths :: fonc (ctx: *ContexteDeFormattageFlex, ligne: *LigneF
             si it.frozen {
                 continue;
             }
-            somme_flex_factors += donne_valeur_utilisée(it.box.propriétés, used_flex_factor).donne_number();
+            somme_flex_factors += donne_number(donne_valeur_utilisée(it.box.propriétés, used_flex_factor));
         }
 
         si somme_flex_factors < 1.0 {
@@ -2221,7 +2221,7 @@ resolve_flexible_lengths :: fonc (ctx: *ContexteDeFormattageFlex, ligne: *LigneF
                 // items on the line. Set the item’s target main size to its flex base size plus a fraction of the
                 // remaining free space proportional to the ratio.
                 pour * ligne.items {
-                    flex_factor := donne_valeur_utilisée(it.box.propriétés, used_flex_factor).donne_number();
+                    flex_factor := donne_number(donne_valeur_utilisée(it.box.propriétés, used_flex_factor));
                     ratio := flex_factor / somme_flex_factors;
                     it.target_main_size = it.flex_base_size + remaining_free_space * ratio;
                 }
@@ -2241,7 +2241,7 @@ resolve_flexible_lengths :: fonc (ctx: *ContexteDeFormattageFlex, ligne: *LigneF
                         continue;
                     }
 
-                    flex_factor := donne_valeur_utilisée(it.box.propriétés, used_flex_factor).donne_number();
+                    flex_factor := donne_number(donne_valeur_utilisée(it.box.propriétés, used_flex_factor));
                     it.scaled_flex_shrink_factor = donne_inner_flex_base_size(it) * flex_factor;
                     somme_scaled_flex_shrink_factors += it.scaled_flex_shrink_factor;
                 }
@@ -2366,7 +2366,7 @@ handle_align_content_stretch :: fonc (ctx: *ContexteDeFormattageFlex)
         retourne;
     }
 
-    align_content := donne_valeur_utilisée(ctx.contenant.propriétés, IDPropriété.AlignContent).donne_mot_clé();
+    align_content := donne_mot_clé(donne_valeur_utilisée(ctx.contenant.propriétés, IDPropriété.AlignContent));
     saufsi align_content == PROP_stretch {
         retourne;
     }
@@ -2391,7 +2391,7 @@ handle_align_content_stretch :: fonc (ctx: *ContexteDeFormattageFlex)
 /* https://drafts.csswg.org/css-flexbox-1/#algo-stretch */
 determine_the_used_cross_size_of_each_flex_item :: fonc (ctx: *ContexteDeFormattageFlex)
 {
-    align_items := donne_valeur_utilisée(ctx.contenant.propriétés, IDPropriété.AlignItems).donne_mot_clé();
+    align_items := donne_mot_clé(donne_valeur_utilisée(ctx.contenant.propriétés, IDPropriété.AlignItems));
 
     pour * ligne dans ctx.lignes {
         pour * ctx.items {
@@ -2399,7 +2399,7 @@ determine_the_used_cross_size_of_each_flex_item :: fonc (ctx: *ContexteDeFormatt
             // and neither of its cross-axis margins are auto, the used outer cross size is the
             // used cross size of its flex line, clamped according to the item’s used min and max
             // cross sizes. Otherwise, the used cross size is the item’s hypothetical cross size.
-            align_self := donne_valeur_utilisée(it.box.propriétés, IDPropriété.AlignSelf).donne_mot_clé();
+            align_self := donne_mot_clé(donne_valeur_utilisée(it.box.propriétés, IDPropriété.AlignSelf));
             si align_self == PROP_auto {
                 align_self = align_items;
             }
@@ -2446,7 +2446,7 @@ distribute_any_remaining_free_space :: fonc (ctx: *ContexteDeFormattageFlex)
     décalages[DirectionFlex.Horizontale] = ctx.contenant.modèle_de_boite.contenu.x;
     décalages[DirectionFlex.Verticale] = ctx.contenant.modèle_de_boite.contenu.y;
 
-    justify_content := donne_valeur_utilisée(ctx.contenant.propriétés, IDPropriété.JustifyContent).donne_mot_clé();
+    justify_content := donne_mot_clé(donne_valeur_utilisée(ctx.contenant.propriétés, IDPropriété.JustifyContent));
 
     // For each flex line:
     pour * ctx.lignes {
@@ -2585,7 +2585,7 @@ resolve_cross_axis_auto_margins :: fonc (ctx: *ContexteDeFormattageFlex)
 /* https://drafts.csswg.org/css-flexbox-1/#algo-cross-align */
 align_all_flex_items_along_the_cross_axis :: fonc (ctx: *ContexteDeFormattageFlex)
 {
-    align_items := donne_valeur_utilisée(ctx.contenant.propriétés, IDPropriété.AlignItems).donne_mot_clé();
+    align_items := donne_mot_clé(donne_valeur_utilisée(ctx.contenant.propriétés, IDPropriété.AlignItems));
 
     /* Align all flex items along the cross-axis per align-self, if neither of the item’s cross-axis margins are auto. */
     pour * ctx.lignes {
@@ -2601,7 +2601,7 @@ align_all_flex_items_along_the_cross_axis :: fonc (ctx: *ContexteDeFormattageFle
                 continue;
             }
 
-            align_self := donne_valeur_utilisée(item.box.propriétés, IDPropriété.AlignSelf).donne_mot_clé();
+            align_self := donne_mot_clé(donne_valeur_utilisée(item.box.propriétés, IDPropriété.AlignSelf));
             si align_self == PROP_auto {
                 align_self = align_items;
             }
@@ -2678,7 +2678,7 @@ align_all_flex_lines_per_align_content :: fonc (ctx: *ContexteDeFormattageFlex)
         retourne;
     }
 
-    align_content := donne_valeur_utilisée(ctx.contenant.propriétés, IDPropriété.AlignContent).donne_mot_clé();
+    align_content := donne_mot_clé(donne_valeur_utilisée(ctx.contenant.propriétés, IDPropriété.AlignContent));
 
     espace_disponible := donne_inner_cross_size(ctx);
 
@@ -3019,7 +3019,7 @@ formatte_table :: fonc (ctx: *ContexteDeFormattageTable, table: *TableBox, avail
     largeur := calcule_largeur_table(ctx, table);
     largeur_du_contenu := largeur;
 
-    border_spacing := donne_valeur_calculée(table.propriétés, IDPropriété.BorderSpacing).donne_pixels();
+    border_spacing := donne_pixels(donne_valeur_calculée(table.propriétés, IDPropriété.BorderSpacing));
     border_collapse := donne_valeur_calculée(table.propriétés, IDPropriété.BorderCollapse);
 
     utilise_border_spacing := est_mot_clé(border_collapse, PROP_separate);

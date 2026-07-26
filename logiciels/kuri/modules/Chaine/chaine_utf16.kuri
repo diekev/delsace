@@ -1000,7 +1000,7 @@ est_caractère_ascii :: fonc (chn: ChaineUTF16Unique) -> bool #enligne
 
 taille :: fonc (chn: ChaineUTF16Unique) -> z64 #enligne
 {
-    retourne donne_chaine_utf16(chn).taille();
+    retourne taille(donne_chaine_utf16(chn));
 }
 
 opérateur == :: (chn1: ChaineUTF16Unique, chn2: ChaineUTF16Unique) -> bool

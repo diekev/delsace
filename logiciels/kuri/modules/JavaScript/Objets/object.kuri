@@ -153,7 +153,7 @@ crée_objet :: fonc (tas_de_mémoire: *TasDeMémoire, prototype: *Object) -> *Ob
 
 object_instance_crée :: fonc (realm: *Realm) -> *Object
 {
-    retourne donne_tas_de_mémoire(realm).alloue(Object);
+    retourne alloue(donne_tas_de_mémoire(realm), Object);
 }
 
 sur_destruction_objet :: fonc (base: *Cellule)
@@ -569,7 +569,7 @@ object_constructor_call_or_construct :: fonc (empl params: *ParamètresCallOrCon
     // 1. If NewTarget is neither undefined nor the active function object, then
     si !est_undefined(new_target) && !(est_object(new_target) && donne_objet(new_target) == donne_active_function_object(interpréteuse)) {
         // a. Return ? OrdinaryCreateFromConstructor(NewTarget, "%Object.prototype%").
-        func_new_target := donne_objet(new_target).vérifie_comme(Function);
+        func_new_target := vérifie_comme(donne_objet(new_target), Function);
         retourne ordinary_create_from_constructor(realm, func_new_target, realm.intrinsics.object_prototype, object_instance_crée);
     }
 

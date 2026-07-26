@@ -211,7 +211,7 @@ error_constructor_sur_call_or_construct :: fonc (empl params: *ParamètresCallOr
     }
 
     // 2. Let O be ? OrdinaryCreateFromConstructor(newTarget, "%NativeError.prototype%", « [[ErrorData]] »).
-    new_target_object := donne_objet(new_target).vérifie_comme(Function);
+    new_target_object := vérifie_comme(donne_objet(new_target), Function);
     O := ordinary_create_from_constructor(realm, new_target_object, native_error_prototype, rappel_allocation_objet);
     si possède_exception(interpréteuse) {
         retourne js_undefined;

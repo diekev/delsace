@@ -391,7 +391,7 @@ ordinary_to_primitive :: fonc (realm: *Realm, object: *Object, hint: TypePréfé
         // b. If IsCallable(method) is true, then
         si is_callable(method) {
             // i. Let result be ? Call(method, O).
-            mv := donne_tas_de_mémoire(realm).donne_mv();
+            mv := donne_mv(donne_tas_de_mémoire(realm));
             result := call(mv, method, object);
             si possède_exception(realm) {
                 retourne js_undefined;

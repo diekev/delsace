@@ -361,7 +361,7 @@ avance :: fonc (parseuse: *Parseuse($T))
 consomme_espaces_blanches :: fonc (parseuse: *Parseuse($T))
 {
     tantque !fini(parseuse) {
-        si lexème_courant(parseuse).est_lexème_de_genre(GenreLexème.Whitespace) {
+        si est_lexème_de_genre(lexème_courant(parseuse), GenreLexème.Whitespace) {
             avance(parseuse);
             continue;
         }
@@ -372,7 +372,7 @@ consomme_espaces_blanches :: fonc (parseuse: *Parseuse($T))
 
 apparie_lexème_ident :: fonc (parseuse: *Parseuse($T)) -> bool #enligne
 {
-    retourne lexème_courant(parseuse).est_lexème_de_genre(GenreLexème.Ident);
+    retourne est_lexème_de_genre(lexème_courant(parseuse), GenreLexème.Ident);
 }
 
 fini :: fonc (parseuse: *Parseuse($T)) -> bool
@@ -395,7 +395,7 @@ rapporte_erreur :: fonc (parseuse: *Parseuse($T) @inutilisée, message: chaine)
 parse_according_to_a_css_grammar :: fonc (input: CSSOMString, grammar: fonc (value: []ComponentValue) -> Optionnel(*ValeurDeStyle)) -> Optionnel(*ValeurDeStyle)
 {
     // 1. Normalize input, and set input to the result.
-    chn_input := donne_chaine_utf16(input).convertis_vers_chaine();
+    chn_input := convertis_vers_chaine(donne_chaine_utf16(input));
     diffère déloge(*chn_input);
 
     retourne parse_according_to_a_css_grammar(chn_input, grammar);
@@ -621,7 +621,7 @@ consomme_une_liste_de_règles :: fonc (parseuse: *Parseuse($T), top_level: bool)
 consomme_une_règle_arobase :: fonc (parseuse: *Parseuse($T)) -> *ParsedAtRule
 {
     résultat := loge(ParsedAtRule);
-    résultat.name = lexème_courant(parseuse).donne_texte();
+    résultat.name = donne_texte(lexème_courant(parseuse));
 
     _ := consomme_le_lexème_en_entrée_suivant(parseuse);
 
@@ -861,7 +861,7 @@ consomme_une_déclaration :: fonc (parseuse: *Parseuse($T)) -> Optionnel(ParsedD
 
     // 2. If the next input token is anything other than a <colon-token>, this is a parse error. Return nothing.
     //    Otherwise, consume the next input token.
-    saufsi lexème_courant(parseuse).est_lexème_de_genre(GenreLexème.Colon) {
+    saufsi est_lexème_de_genre(lexème_courant(parseuse), GenreLexème.Colon) {
         retourne;
     }
     avance(parseuse);
@@ -1121,7 +1121,7 @@ parse_complex_selector_list :: fonc (parseuse: *ParseuseSelector, list: *Selecto
 
         tableau_ajoute(*list.complex_selectors, complex);
 
-        saufsi lexème_courant(parseuse).est_lexème_de_genre(GenreLexème.Comma) {
+        saufsi est_lexème_de_genre(lexème_courant(parseuse), GenreLexème.Comma) {
             arrête;
         }
 
@@ -1325,16 +1325,16 @@ parse_ns_prefix :: fonc (parseuse: *ParseuseSelector) -> Optionnel(NSPrefix)
         résultat.espace = lexème_courant(parseuse).lexème.valeur;
         avance(parseuse);
     }
-    sinon si lexème_courant(parseuse).est_lexème_fois() {
+    sinon si est_lexème_fois(lexème_courant(parseuse)) {
         résultat.espace = ChaineUTF16Unique('*' comme n32);
         avance(parseuse);
     }
 
-    si lexème_courant(parseuse).est_lexème_pipe() {
+    si est_lexème_pipe(lexème_courant(parseuse)) {
         avance(parseuse);
 
         /* Ignorons les appariements d'attibuts avec |=. */
-        si lexème_courant(parseuse).est_lexème_égal() {
+        si est_lexème_égal(lexème_courant(parseuse)) {
             retourne;
         }
 
@@ -1377,7 +1377,7 @@ parse_id_selector :: fonc (parseuse: *ParseuseSelector, résultat: *SimpleSelect
         retourne ÉtatParsage.EssaieEncore;
     }
 
-    si donne_chaine_utf16(lexème.lexème.valeur).taille() == 0 {
+    si taille(donne_chaine_utf16(lexème.lexème.valeur)) == 0 {
         retourne ÉtatParsage.Erreur;
     }
 
@@ -1414,7 +1414,7 @@ parse_class_selector :: fonc (parseuse: *ParseuseSelector, résultat: *SimpleSel
  * <attr-modifier> = i | s */
 parse_attribute_selector :: fonc (parseuse: *ParseuseSelector, résultat: *SimpleSelector) -> ÉtatParsage
 {
-    saufsi lexème_courant(parseuse).est_simple_bloc_de_genre(GenreLexème.Open_Square_Bracket) {
+    saufsi est_simple_bloc_de_genre(lexème_courant(parseuse), GenreLexème.Open_Square_Bracket) {
         retourne ÉtatParsage.EssaieEncore;
     }
 
@@ -1790,7 +1790,7 @@ parse_combinateur :: fonc (parseuse: *ParseuseSelector, résultat: *Combinator) 
 
     combinateur: Optionnel(Combinator);
 
-    si lexème_courant(parseuse).est_lexème_de_genre(GenreLexème.Whitespace) {
+    si est_lexème_de_genre(lexème_courant(parseuse), GenreLexème.Whitespace) {
         /* À FAIRE : nouvelle ligne ? */
         combinateur = Combinator.DESCENDANT;
     }
@@ -3448,7 +3448,7 @@ parse_valeur_couleur :: fonc (parseuse: *Parseuse(ComponentValue)) -> Optionnel(
 
     /* https://www.w3.org/TR/css-color-4/#typedef-hex-color */
     si est_lexème_de_genre(lexème, GenreLexème.Hash) {
-        valeur := donne_texte(lexème).donne_chaine_utf16();
+        valeur := donne_chaine_utf16(donne_texte(lexème));
 
         pour valeur.unités {
             saufsi est_chiffre_hexadecimal_ascii(it) {

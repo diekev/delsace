@@ -1637,7 +1637,7 @@ initialise_métriques_fonte :: fonc (longueurs: *LongueursRelativesFonte, fonte:
         longueurs.ic = longueurs.em;
     }
 
-    longueurs.lh = donne_métriques_fonte(fonte).donne_hauteur_ligne();
+    longueurs.lh = donne_hauteur_ligne(donne_métriques_fonte(fonte));
 }
 
 ContexteCalculStyle :: struct {
@@ -2419,7 +2419,7 @@ calcule_valeur_propriété_générique :: fonc (valeur: *ValeurDeStyle, genre_va
             si m == PROP_bolder {
                 graisse_parent : r64 = 400.0;
                 si ctx.propriétés.parent {
-                    graisse_parent = donne_valeur_calculée(ctx.propriétés.parent, IDPropriété.FontWeight).donne_number();
+                    graisse_parent = donne_number(donne_valeur_calculée(ctx.propriétés.parent, IDPropriété.FontWeight));
                 }
 
                 si graisse_parent < 100.0 {
@@ -2447,7 +2447,7 @@ calcule_valeur_propriété_générique :: fonc (valeur: *ValeurDeStyle, genre_va
             si m == PROP_lighter {
                 graisse_parent : r64 = 400.0;
                 si ctx.propriétés.parent {
-                    graisse_parent = donne_valeur_calculée(ctx.propriétés.parent, IDPropriété.FontWeight).donne_number();
+                    graisse_parent = donne_number(donne_valeur_calculée(ctx.propriétés.parent, IDPropriété.FontWeight));
                 }
 
                 si graisse_parent < 100.0 {

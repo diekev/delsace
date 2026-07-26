@@ -25,7 +25,7 @@ array_buffer_sur_destruction :: fonc (base: *Cellule)
 
 crée_array_buffer :: fonc (realm: *Realm, bytes: [..]octet) -> *ArrayBuffer
 {
-    résultat := donne_tas_de_mémoire(realm).alloue(ArrayBuffer);
+    résultat := alloue(donne_tas_de_mémoire(realm), ArrayBuffer);
     résultat.bytes = bytes;
     retourne résultat;
 }

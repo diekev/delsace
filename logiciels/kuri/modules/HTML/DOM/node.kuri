@@ -472,7 +472,7 @@ is_shadow_tree :: fonc (node: *Node) -> bool
 /* https://dom.spec.whatwg.org/#connected */
 est_connecté :: fonc (noeud: *Node) -> bool
 {
-    retourne donne_racine_shadow_including(noeud).est_document();
+    retourne est_document(donne_racine_shadow_including(noeud));
 }
 
 /* 4.2.2.1. Slots
