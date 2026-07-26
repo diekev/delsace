@@ -2,6 +2,7 @@ entropisation
 extraction
 formattage
 minification
+parse_entite
 stats_parsage
 vue_html
 vérification
