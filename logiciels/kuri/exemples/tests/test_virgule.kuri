@@ -13,5 +13,5 @@ principale :: fonc ()
         imprime("%\n", it);
     }
 
-    ajoute(ajoute(ajoute(0.0, 5.0), 2.5), 3.75);
+    _ := ajoute(ajoute(ajoute(0.0, 5.0), 2.5), 3.75);
 }

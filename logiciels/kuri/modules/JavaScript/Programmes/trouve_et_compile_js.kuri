@@ -39,8 +39,8 @@ appel_programme_et_donne_sortie :: fonc (programme: chaine, args: ...chaine) -> 
 {
     discr ouvre_canal_de_communication(programme, ...args) {
         Quelque(canal) {
-            canal.ferme_écriture();
-            retourne canal.lis();
+            ferme_écriture(*canal);
+            retourne lis(*canal);
         }
         sinon {
             retourne "";
