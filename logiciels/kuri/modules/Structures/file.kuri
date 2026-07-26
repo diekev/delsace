@@ -40,7 +40,7 @@ nombre_éléments :: fonc (file: *File(T = $T)) -> z32 #enligne
 /*
 importe Fondation
 
-principale :: fonc ()
+test :: fonc ()
 {
     file: File(T = z32)
 
