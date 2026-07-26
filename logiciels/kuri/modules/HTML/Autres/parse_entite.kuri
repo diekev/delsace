@@ -1,6 +1,7 @@
 // script utilisé pour générer entités.kuri depuis les données JSON de :
 // https://html.spec.whatwg.org/multipage/named-characters.html#named-character-references
 
+importe Chaine;
 importe Fondation;
 importe Numérique;
 importe SysFichier;
