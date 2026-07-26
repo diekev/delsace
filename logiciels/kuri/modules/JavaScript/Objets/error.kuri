@@ -328,23 +328,23 @@ table_virtuelle_\\(1)_prototype := TableVirtuelleObject(classe = \\(0)Prototype)
 
 lance_\\(1) :: fonc (interpréteuse: *Interpréteuse, message: chaine) -> Valeur
 {
-    retourne lance_\\(1)(interpréteuse.donne_realm(), message);
+    retourne lance_\\(1)(donne_realm(interpréteuse), message);
 }
 
 lance_\\(1) :: fonc (realm: *Realm, message: chaine) -> Valeur
 {
-    tas_de_mémoire := realm.donne_tas_de_mémoire();
-    résultat := tas_de_mémoire.alloue(\\(0));
+    tas_de_mémoire := donne_tas_de_mémoire(realm);
+    résultat := alloue(tas_de_mémoire, \\(0));
     résultat.prototype = realm.intrinsics.\\(1)_prototype;
     résultat.message = crée_chaine(realm, crée_chaine_utf16_unique(message));
     initialise_error_object(realm, résultat, STR_\\(0), message);
-    tas_de_mémoire.mv.définis_exception(résultat);
+    définis_exception(tas_de_mémoire.mv, résultat);
     retourne js_undefined;
 }
 
 lance_\\(1) :: fonc (cellule: *Cellule, message: chaine) -> Valeur
 {
-    mv := cellule.donne_tas_de_mémoire().mv;
+    mv := donne_tas_de_mémoire(cellule).mv;
     running_execution_context := donne_running_execution_context(mv);
     realm := running_execution_context.realm;
     retourne lance_\\(1)(realm, message);
@@ -357,7 +357,7 @@ lance_\\(1) :: fonc (cellule: *Cellule, message: chaine) -> Valeur
 
 crée_\\(1)_prototype :: fonc (tas_de_mémoire: *TasDeMémoire, prototype: *ErrorPrototype) -> *\\(0)Prototype
 {
-    résultat := tas_de_mémoire.alloue(\\(0)Prototype);
+    résultat := alloue(tas_de_mémoire, \\(0)Prototype);
     résultat.prototype = prototype;
     retourne résultat;
 }
@@ -373,13 +373,13 @@ crée_\\(1)_prototype :: fonc (tas_de_mémoire: *TasDeMémoire, prototype: *Erro
 crée_\\(1)_constructor :: fonc (realm: *Realm, function_prototype: *FunctionPrototype, prototype: *Object) -> *\\(0)Constructor
 {
     assert(prototype == realm.intrinsics.\\(1)_prototype);
-    tas_de_mémoire := realm.donne_tas_de_mémoire();
-    résultat := tas_de_mémoire.alloue(\\(0)Constructor);
+    tas_de_mémoire := donne_tas_de_mémoire(realm);
+    résultat := alloue(tas_de_mémoire, \\(0)Constructor);
     create_builtin_function(résultat, 1, STR_\\(0), realm, function_prototype);
 
-    résultat.ajoute_propriété(STR_prototype, Valeur(Object = prototype), DrapeauxPropriété.zéro);
+    ajoute_propriété(résultat, STR_prototype, Valeur(Object = prototype), DrapeauxPropriété.zéro);
 
-    prototype.ajoute_propriété(STR_constructor, Valeur(Object = résultat), DrapeauxPropriété.zéro);
+    ajoute_propriété(prototype, STR_constructor, Valeur(Object = résultat), DrapeauxPropriété.zéro);
 
     retourne résultat;
 }
@@ -390,12 +390,12 @@ table_virtuelle_\\(1)_constructor := TableVirtuelleBuiltinFunction(classe = \\(0
 
 crée_\\(1)_instance :: fonc (realm: *Realm) -> *Object
 {
-    retourne realm.donne_tas_de_mémoire().alloue(\\(0));
+    retourne alloue(donne_tas_de_mémoire(realm), \\(0));
 }
 
 \\(1)_call_or_construct :: fonc (params: *ParamètresCallOrConstruct) -> Valeur
 {
-    realm := params.interpréteuse.donne_realm();
+    realm := donne_realm(params.interpréteuse);
     retourne error_constructor_sur_call_or_construct(params, realm.intrinsics.\\(1)_prototype, crée_\\(1)_instance);
 }
 »;

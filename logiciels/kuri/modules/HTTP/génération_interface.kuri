@@ -154,8 +154,8 @@ construis_interface :: fonc (enchaineuse: *Enchaineuse, paramètres: *Paramètre
     ajoute_au_tampon(enchaineuse, "{\n");
 
     // extrait les données de la prise
-    imprime_dans_enchaineuse(enchaineuse, "\t% := prise.contexte_.données_utilisateur(%);\n", paramètres.nom_serveuse, paramètres.type_serveuse);
-    ajoute_au_tampon(enchaineuse, "\tdonnées_prise := prise.données_utilisateur(", paramètres.type_données_prise, ");\n");
+    imprime_dans_enchaineuse(enchaineuse, "\t% := données_utilisateur(prise.contexte_, %);\n", paramètres.nom_serveuse, paramètres.type_serveuse);
+    ajoute_au_tampon(enchaineuse, "\tdonnées_prise := données_utilisateur(prise, ", paramètres.type_données_prise, ");\n");
     nouvelle_ligne(enchaineuse);
 
     ajoute_au_tampon(enchaineuse, "\tinitialise_données_connexion_depuis_message(", paramètres.nom_serveuse, ", données_prise, message);\n");
