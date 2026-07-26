@@ -627,27 +627,27 @@ _O_WRONLY := 1;
 
 FILE :: struct #externe ;
 
-umask :: fonc (m : z32) -> rien #externe;
-link :: fonc (a : *z8, b : *z8) -> z32 #externe;
+umask :: fonc (m : z32) -> rien #externe libc;
+link :: fonc (a : *z8, b : *z8) -> z32 #externe libc;
 
 _stderr := 0;
 
 principale :: fonc ()
 {
-    fn_chn = "test_file";
-    fn = fn_chn.caractères;
+    fn_chn := "test_file";
+    fn := fn_chn.caractères;
 
-    linkFn_chn = "test_file.link";
-    linkFn = linkFn_chn.caractères;
+    linkFn_chn := "test_file.link";
+    linkFn := linkFn_chn.caractères;
 
     r : z32; // result codes
     f : z32; // file descriptor
 
     F : *FILE;
 
-    allMask = 0o777;
-    userMask = 0o600;
-    myUmask = 0;
+    allMask := 0o777;
+    userMask := 0o600;
+    myUmask := 0;
 
     curStat : struct_stat;
     prevStat : struct_stat;
@@ -655,8 +655,8 @@ principale :: fonc ()
     curMask : n32;
     correctMask : n32;
 
-    data_chn = "0123456789";
-    data = data_chn.caractères;
+    data_chn := "0123456789";
+    data := data_chn.caractères;
     n : z64;
 
     // no umask
@@ -985,6 +985,6 @@ principale :: fonc ()
     //************************************************************************
     // success
 
-    exit(0;);
+    exit(0);
 }
 

@@ -72,7 +72,7 @@ renverse :: fonc (pile: *Pile(T = $T))
 }
 
 /*
-principale :: fonc ()
+test :: fonc ()
 {
     pile : Pile(T = z32)
 

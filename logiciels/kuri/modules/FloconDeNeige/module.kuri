@@ -72,7 +72,7 @@ jusque_prochaine_millis :: fonc (dernier_horodotage: z64) -> z64
 }
 
 /*
-principale :: fonc ()
+test :: fonc ()
 {
     paramètres : ParamètresFlocon
 
