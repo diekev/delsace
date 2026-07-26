@@ -121,7 +121,7 @@ répond :: fonc (requête: *Requête, réponse: *Réponse)
         ajoute_entête(*réponse.message, "Server", "SimpleServeuse");
     }
 
-    chaine_message := chaine_pour_message_serveuse(réponse.message);
+    chaine_message := chaine_pour_message_serveuse(*réponse.message);
     // imprimeln("%", chaine_message)
 
     si send(requête.prise, chaine_message.caractères, chaine_message.taille comme n64, 0) == -1 {
@@ -199,7 +199,7 @@ opérateur pour :: (requêtes: RequêtesEntrantes) -> Requête
         }
 
         tantque !message_prêt_pour_finalisation(*parseuse) {
-            requete := charge_donnees_requete(prise, mon_addresse);
+            requete := charge_donnees_requete(prise, *mon_addresse);
             ajourne_données(*parseuse, requete);
             déloge(*requete);
         }

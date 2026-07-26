@@ -865,34 +865,34 @@ génère_code_pilote_client :: fonc (paramètres: *ParamètresGénérationInterf
         ajoute_au_tampon(enchaineuse, "{\n");
 
         /* Construction de l'uri. */
-        ajoute_au_tampon(enchaineuse, "    uri := pilote.uri_serveur\n");
+        ajoute_au_tampon(enchaineuse, "    uri := pilote.uri_serveur;\n");
 
         si type_paramètres_route {
-            ajoute_au_tampon(enchaineuse, "    uri.chemin = crée_chemin_uri_depuis_paramètres_routage(\"", it.chemin, "\", paramètres_routage)\n");
+            ajoute_au_tampon(enchaineuse, "    uri.chemin = crée_chemin_uri_depuis_paramètres_routage(\"", it.chemin, "\", paramètres_routage);\n");
         }
         sinon {
-            ajoute_au_tampon(enchaineuse, "    uri.chemin = \"", it.chemin, "\"\n");
+            ajoute_au_tampon(enchaineuse, "    uri.chemin = \"", it.chemin, "\";\n");
         }
 
         si type_paramètre_requête {
-            ajoute_au_tampon(enchaineuse, "    uri.requête = encode_format_url(paramètres_requête)\n");
+            ajoute_au_tampon(enchaineuse, "    uri.requête = encode_format_url(paramètres_requête);\n");
         }
 
         /* Construction de la requête. */
         si type_formulaire {
-            ajoute_au_tampon(enchaineuse, "    requête := pilote.débute_requête(MéthodeHTTP.POST, uri)\n");
+            ajoute_au_tampon(enchaineuse, "    requête := pilote.débute_requête(MéthodeHTTP.POST, uri);\n");
         }
         sinon {
-            ajoute_au_tampon(enchaineuse, "    requête := pilote.débute_requête(MéthodeHTTP.GET, uri)\n");
+            ajoute_au_tampon(enchaineuse, "    requête := pilote.débute_requête(MéthodeHTTP.GET, uri);\n");
         }
-        ajoute_au_tampon(enchaineuse, "    diffère détruit_message(*requête)\n");
+        ajoute_au_tampon(enchaineuse, "    diffère détruit_message(*requête);\n");
 
         si type_formulaire {
-            ajoute_au_tampon(enchaineuse, "    formulaire ajoute_contenu_depuis_formulaire(*requête, formulaire)\n");
+            ajoute_au_tampon(enchaineuse, "    ajoute_contenu_depuis_formulaire(*requête, formulaire);\n");
         }
 
         /* Valeur de retour. */
-        ajoute_au_tampon(enchaineuse, "    retourne pilote.envoie_requête_et_traite_réponse(requête)\n");
+        ajoute_au_tampon(enchaineuse, "    retourne pilote.envoie_requête_et_traite_réponse(requête);\n");
         ajoute_au_tampon(enchaineuse, "}\n\n");
     }
 }
