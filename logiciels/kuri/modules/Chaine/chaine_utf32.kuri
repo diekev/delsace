@@ -215,7 +215,7 @@ en_majuscule_sur_place :: fonc (chn: *ChaineUTF32)
 }
 
 /*
-principale :: fonc ()
+test :: fonc ()
 {
     diffère imprime("Mémoire utilisée : %\n", mémoire_utilisée())
     diffère détruit_chaines_internées()

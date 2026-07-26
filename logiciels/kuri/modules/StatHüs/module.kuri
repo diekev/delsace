@@ -74,7 +74,7 @@ détruit_extrémité :: fonc (extrémité: Extrémité($est_cliente))
 envoie_message :: fonc (extrémité: *Extrémité(vrai), message: MessageInfoAllocations)
 {
     infos_séritalisation: InfosSérialisation;
-    ajoute_taille_type(infos_séritalisation, message);
+    ajoute_taille_type(*infos_séritalisation, message);
 
     message.entête.taille_message = infos_séritalisation.taille_courante comme z32;
 
@@ -379,7 +379,7 @@ ajoute_taille_type :: fonc (infos: *InfosSérialisation, valeur: eini)
                 tableau_redimensionne(*traversée, taille_courante + itératrice.taille);
 
                 pour > itératrice.taille {
-                    traversée[taille_courante + it] = itératrice.valeur_suivante();
+                    traversée[taille_courante + it] = valeur_suivante(*itératrice);
                 }
             }
             TRANCHE {
@@ -390,7 +390,7 @@ ajoute_taille_type :: fonc (infos: *InfosSérialisation, valeur: eini)
                 tableau_redimensionne(*traversée, taille_courante + itératrice.taille);
 
                 pour > itératrice.taille {
-                    traversée[taille_courante + it] = itératrice.valeur_suivante();
+                    traversée[taille_courante + it] = valeur_suivante(*itératrice);
                 }
             }
             POINTEUR,
@@ -477,7 +477,7 @@ sérialise_type :: fonc (valeur: eini, infos_séritalisation: InfosSérialisatio
                 tableau_redimensionne(*traversée, taille_courante + itératrice.taille);
 
                 pour > itératrice.taille {
-                    traversée[taille_courante + it] = itératrice.valeur_suivante();
+                    traversée[taille_courante + it] = valeur_suivante(*itératrice);
                 }
             }
             TRANCHE {
@@ -490,7 +490,7 @@ sérialise_type :: fonc (valeur: eini, infos_séritalisation: InfosSérialisatio
                 tableau_redimensionne(*traversée, taille_courante + itératrice.taille);
 
                 pour > itératrice.taille {
-                    traversée[taille_courante + it] = itératrice.valeur_suivante();
+                    traversée[taille_courante + it] = valeur_suivante(*itératrice);
                 }
             }
             POINTEUR,
@@ -588,7 +588,7 @@ désérialise_type :: fonc (résultat: eini, données: []octet) -> z64
                 tableau_redimensionne(*traversée, taille_courante + itératrice.taille);
 
                 pour > itératrice.taille {
-                    traversée[taille_courante + it] = itératrice.valeur_suivante();
+                    traversée[taille_courante + it] = valeur_suivante(*itératrice);
                 }
             }
             TABLEAU_FIXE {
@@ -602,7 +602,7 @@ désérialise_type :: fonc (résultat: eini, données: []octet) -> z64
                 tableau_redimensionne(*traversée, taille_courante + itératrice.taille);
 
                 pour > itératrice.taille {
-                    traversée[taille_courante + it] = itératrice.valeur_suivante();
+                    traversée[taille_courante + it] = valeur_suivante(*itératrice);
                 }
             }
             TRANCHE,
