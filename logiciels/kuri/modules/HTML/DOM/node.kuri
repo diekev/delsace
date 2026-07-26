@@ -183,28 +183,28 @@ ajoute_enfant :: fonc (parent: *Node, enfant: *Node)
     enfant.parent = parent;
     tableau_ajoute(*parent.enfants, enfant);
 
-    si enfant.est_élément() {
+    si est_élément(enfant) {
         premier_élément_rencontré := faux;
 
         pour parent.enfants {
-            saufsi it.est_élément() {
+            saufsi est_élément(it) {
                 continue;
             }
 
             élément := it comme *Element;
             saufsi premier_élément_rencontré {
                 premier_élément_rencontré = vrai;
-                élément.ajoute_pseudo_classe(CSS.PseudoClasses.FirstChild);
+                ajoute_pseudo_classe(élément, CSS.PseudoClasses.FirstChild);
             }
             sinon {
-                élément.enlève_pseudo_classe(CSS.PseudoClasses.FirstChild);
+                enlève_pseudo_classe(élément, CSS.PseudoClasses.FirstChild);
             }
 
-            élément.enlève_pseudo_classe(CSS.PseudoClasses.LastChild);
+            enlève_pseudo_classe(élément, CSS.PseudoClasses.LastChild);
         }
 
         élément := enfant comme *Element;
-        élément.ajoute_pseudo_classe(CSS.PseudoClasses.LastChild);
+        ajoute_pseudo_classe(élément, CSS.PseudoClasses.LastChild);
     }
 
     table := enfant.table comme *TableVirtuelleNoeud;
@@ -212,7 +212,7 @@ ajoute_enfant :: fonc (parent: *Node, enfant: *Node)
         si table.sur_insertion {
             table.sur_insertion(enfant);
         }
-        si table.sur_connexion && enfant.est_connecté() {
+        si table.sur_connexion && est_connecté(enfant) {
             table.sur_connexion(enfant);
         }
     }
@@ -331,7 +331,7 @@ donne_racine :: fonc (noeud: *Node) -> *Node
 rassemble_texte_noeud :: fonc (noeud: *Node, rappel_pour_texte: fonc (texte: *Text, données: eini), données: eini)
 {
     pour noeud.enfants {
-        si it.est_texte() {
+        si est_texte(it) {
             texte := it comme *Text;
             rappel_pour_texte(texte, données);
         }
@@ -352,7 +352,7 @@ extrait_texte_noeud :: fonc (noeud: *Node) -> chaine
     {
         extractrice := mémoire(données.données comme **ExtractriceTexte);
 
-        tableau_réserve(*extractrice.texte.unités, noeud_texte.données.taille());
+        tableau_réserve(*extractrice.texte.unités, taille(noeud_texte.données));
 
         pour noeud_texte.données.unités {
             tableau_ajoute(*extractrice.texte.unités, it);
@@ -390,7 +390,7 @@ donne_contenu_texte_descandants :: fonc (noeud: *Node) -> ChaineUTF16
 {
     rappel_pour_extraction_texte_descandants :: fonc (noeud: *Node, enchaineuse: *EnchaineuseUTF16) -> DécisionTraversée
     {
-        si noeud.est_texte() {
+        si est_texte(noeud) {
             texte := noeud comme *Text;
             ajoute(enchaineuse, texte.données);
         }
@@ -439,9 +439,9 @@ get_element_by_id :: fonc (noeud: *Node, chn: DOMString) -> *Element
 
 get_element_by_id_recursive :: fonc (noeud: *Node, chn: DOMString) -> *Element
 {
-    si noeud.est_élément() {
-        valeur := noeud.donne_attribut(ATTR_id);
-        si valeur.possède_valeur() && valeur.Quelque == chn {
+    si est_élément(noeud) {
+        valeur := donne_attribut(noeud, ATTR_id);
+        si possède_valeur(valeur) && valeur.Quelque == chn {
             retourne noeud comme *Element;
         }
     }
@@ -472,7 +472,7 @@ is_shadow_tree :: fonc (node: *Node) -> bool
 /* https://dom.spec.whatwg.org/#connected */
 est_connecté :: fonc (noeud: *Node) -> bool
 {
-    retourne noeud.donne_racine_shadow_including().est_document();
+    retourne donne_racine_shadow_including(noeud).est_document();
 }
 
 /* 4.2.2.1. Slots
@@ -494,24 +494,24 @@ is_slot :: fonc (element: *Element) -> bool
 slot_sur_changement_attribut :: fonc (element: *Element, local_name: DOMString, old_value: *DOMString, value: *DOMString, namespace: Optionnel(DOMString)) -> bool
 {
     // 1. If element is a slot, localName is name, and namespace is null:
-    si is_slot(element) && local_name == ATTR_name && !namespace.possède_valeur() {
+    si is_slot(element) && local_name == ATTR_name && !possède_valeur(namespace) {
         // 1. If value is oldValue, then return.
         si old_value && value && mémoire(old_value) == mémoire(value) {
             retourne vrai;
         }
 
         // 2. If value is null and oldValue is the empty string, then return.
-        si value == nul && mémoire(old_value).est_vide() {
+        si value == nul && est_vide(mémoire(old_value)) {
             retourne vrai;
         }
 
         // 3. If value is the empty string and oldValue is null, then return.
-        si value && mémoire(value).est_vide() && old_value == nul {
+        si value && est_vide(mémoire(value)) && old_value == nul {
             retourne vrai;
         }
 
         // 4. If value is null or the empty string, then set element’s name to the empty string.
-        si value == nul || mémoire(value).est_vide() {
+        si value == nul || est_vide(mémoire(value)) {
             element.name = crée_chaine_utf16_unique_vide();
         }
         // 5. Otherwise, set element’s name to value.
@@ -550,24 +550,24 @@ is_assigned :: fonc (node: *Node) -> bool
 slottable_sur_changement_attribut :: fonc (element: *Element, local_name: DOMString, old_value: *DOMString, value: *DOMString, namespace: Optionnel(DOMString)) -> bool
 {
     // 1. If localName is slot and namespace is null:
-    si local_name == ATTR_slot && !namespace.possède_valeur() {
+    si local_name == ATTR_slot && !possède_valeur(namespace) {
         // 1. If value is oldValue, then return.
         si old_value && value && mémoire(old_value) == mémoire(value) {
             retourne vrai;
         }
 
         // 2. If value is null and oldValue is the empty string, then return.
-        si value == nul && mémoire(old_value).est_vide() {
+        si value == nul && est_vide(mémoire(old_value)) {
             retourne vrai;
         }
 
         // 3. If value is the empty string and oldValue is null, then return.
-        si value && mémoire(value).est_vide() && old_value == nul {
+        si value && est_vide(mémoire(value)) && old_value == nul {
             retourne vrai;
         }
 
         // 4. If value is null or the empty string, then set element’s name to the empty string.
-        si value == nul || mémoire(value).est_vide() {
+        si value == nul || est_vide(mémoire(value)) {
             element.name = crée_chaine_utf16_unique_vide();
         }
         // 5. Otherwise, set element’s name to value.
@@ -1290,7 +1290,7 @@ possède_puiné_de_genre :: fonc (node: *Node, genre: GenreNoeud) -> bool
 /* https://dom.spec.whatwg.org/#in-a-document-tree */
 is_in_a_document_tree :: fonc (node: *Node) -> bool
 {
-    root := node.donne_racine();
+    root := donne_racine(node);
     si root {
         retourne root.genre == GenreNoeud.Document;
     }
@@ -1317,7 +1317,7 @@ Attr :: struct {
 
 crée_noeud_attr :: fonc (document: *Document, nom: DOMString, valeur: DOMString) -> *Attr
 {
-    résultat := crée_platform_object(document.donne_tas_de_mémoire(), document.realm, Attr);
+    résultat := crée_platform_object(donne_tas_de_mémoire(document), document.realm, Attr);
     résultat.document = document;
     résultat.genre = GenreNoeud.Attr;
     résultat.local_name = nom;

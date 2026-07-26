@@ -16,12 +16,12 @@ NumberPrototype :: struct {
 
 crée_number_prototype :: fonc (realm: *Realm, prototype: *ObjectPrototype) -> *NumberPrototype
 {
-    tas_de_mémoire := realm.donne_tas_de_mémoire();
-    résultat := tas_de_mémoire.alloue(NumberPrototype);
+    tas_de_mémoire := donne_tas_de_mémoire(realm);
+    résultat := alloue(tas_de_mémoire, NumberPrototype);
     résultat.prototype = prototype;
 
-    résultat.ajoute_fonction_native(STR_toString, number_prototype_to_string, 1);
-    résultat.ajoute_fonction_native(STR_valueOf, number_prototype_value_of, 1);
+    ajoute_fonction_native(résultat, STR_toString, number_prototype_to_string, 1);
+    ajoute_fonction_native(résultat, STR_valueOf, number_prototype_value_of, 1);
 
     retourne résultat;
 }
@@ -34,7 +34,7 @@ number_prototype_to_string :: fonc (empl params: *ParamètresObjectCall) -> Vale
 {
     // 1. Let x be ? ThisNumberValue(this value).
     x := this_number_value(interpréteuse, this_value);
-    si interpréteuse.possède_exception() {
+    si possède_exception(interpréteuse) {
         retourne js_undefined;
     }
 
@@ -42,10 +42,10 @@ number_prototype_to_string :: fonc (empl params: *ParamètresObjectCall) -> Vale
     // 3. Else, let radixMV be ? ToIntegerOrInfinity(radix).
     radix : n32 = 10;
 
-    radix_arg := params.donne_argument(0);
-    saufsi radix_arg.est_undefined() {
+    radix_arg := donne_argument(params, 0);
+    saufsi est_undefined(radix_arg) {
         radix_mv := to_integer_or_infinity(interpréteuse, radix_arg);
-        si interpréteuse.possède_exception() {
+        si possède_exception(interpréteuse) {
             retourne js_undefined;
         }
         radix = radix_mv comme n32;
@@ -57,7 +57,7 @@ number_prototype_to_string :: fonc (empl params: *ParamètresObjectCall) -> Vale
     }
 
     // 5. Return Number::toString(x, radixMV).
-    retourne number_to_string(interpréteuse.donne_realm(), x, radix);
+    retourne number_to_string(donne_realm(interpréteuse), x, radix);
 }
 
 /* 21.1.3.7 Number.prototype.valueOf ( )
@@ -73,16 +73,16 @@ number_prototype_value_of :: fonc (empl params: *ParamètresObjectCall) -> Valeu
 this_number_value :: fonc (interpréteuse: *Interpréteuse, value: Valeur) -> Valeur
 {
     // 1. If value is a Number, return value.
-    si value.est_nombre() {
+    si est_nombre(value) {
         retourne value;
     }
 
     // 2. If value is an Object and value has a [[NumberData]] internal slot, then
-    si value.est_object() && value.donne_objet().donne_classe() == NumberObject {
+    si est_object(value) && donne_objet(value).donne_classe() == NumberObject {
         // a. Let n be value.[[NumberData]].
         // b. Assert: n is a Number.
         // c. Return n.
-        value.Number = (value.donne_objet() comme *NumberObject).number_value;
+        value.Number = (donne_objet(value) comme *NumberObject).number_value;
         retourne value;
     }
 
@@ -112,7 +112,7 @@ NumberObject :: struct {
 
 crée_number_object :: fonc (tas_de_mémoire: *TasDeMémoire, number_prototype: *NumberPrototype, valeur: r64) -> *NumberObject
 {
-    résultat := tas_de_mémoire.alloue(NumberObject);
+    résultat := alloue(tas_de_mémoire, NumberObject);
     résultat.prototype = number_prototype;
     résultat.number_value = valeur;
     retourne résultat;
@@ -140,13 +140,13 @@ NumberConstructor :: struct {
 
 crée_number_constructor :: fonc (realm: *Realm, function_prototype: *FunctionPrototype, number_prototype: *NumberPrototype) -> *NumberConstructor
 {
-    tas_de_mémoire := realm.donne_tas_de_mémoire();
-    résultat := tas_de_mémoire.alloue(NumberConstructor);
+    tas_de_mémoire := donne_tas_de_mémoire(realm);
+    résultat := alloue(tas_de_mémoire, NumberConstructor);
     create_builtin_function(résultat, 1, STR_Number, realm, function_prototype);
 
-    résultat.ajoute_propriété(STR_prototype, Valeur(Object = number_prototype), DrapeauxPropriété.zéro);
+    ajoute_propriété(résultat, STR_prototype, Valeur(Object = number_prototype), DrapeauxPropriété.zéro);
 
-    number_prototype.ajoute_propriété(STR_constructor, Valeur(Object = résultat), DrapeauxPropriété.zéro);
+    ajoute_propriété(number_prototype, STR_constructor, Valeur(Object = résultat), DrapeauxPropriété.zéro);
 
     retourne résultat;
 }

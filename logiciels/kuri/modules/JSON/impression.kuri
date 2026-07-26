@@ -13,7 +13,7 @@ imprime_valeur_json :: fonc (enchaineuse: *Enchaineuse, valeur: eini) -> rien
             imprime_nombre_réel(enchaineuse, FormatRéel(valeur = valeur));
         }
         BOOLÉEN {
-            valeur_ := valeur.comme_bool();
+            valeur_ := comme_bool(valeur);
 
             si valeur_ {
                 ajoute_au_tampon(enchaineuse, "true");
@@ -23,7 +23,7 @@ imprime_valeur_json :: fonc (enchaineuse: *Enchaineuse, valeur: eini) -> rien
             }
         }
         CHAINE {
-            ajoute_au_tampon(enchaineuse, "\"", valeur.comme_chaine(), "\"");
+            ajoute_au_tampon(enchaineuse, "\"", comme_chaine(valeur), "\"");
         }
         STRUCTURE {
             info_arg := valeur.info comme *InfoTypeStructure;
@@ -66,7 +66,7 @@ imprime_valeur_json :: fonc (enchaineuse: *Enchaineuse, valeur: eini) -> rien
             boucle {
                 valeur_ := valeur_suivante(*itératrice);
 
-                saufsi valeur_.est_valide() {
+                saufsi est_valide(valeur_) {
                     arrête;
                 }
 

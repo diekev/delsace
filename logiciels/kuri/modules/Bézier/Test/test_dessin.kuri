@@ -81,7 +81,7 @@ ajourne_application :: fonc (mémoire_app: *MémoireApplication, entrée: *Entr�
             p0 := plume_de_forme_libre.points[it];
             p1 := plume_de_forme_libre.points[it + 1];
 
-            peintre.dessine_segment(p0, p1, CouleurRVBA(0.1, 0.2, 0.9, 1.0));
+            dessine_segment(peintre, p0, p1, CouleurRVBA(0.1, 0.2, 0.9, 1.0));
         }
 
         dessine_chemin(peintre, plume_de_forme_libre.chemin);

@@ -20,27 +20,27 @@ table_virtuelle_math := TableVirtuelleObject(classe = MathObject);
 
 crée_math_object :: fonc (object_prototype: *ObjectPrototype) -> *MathObject
 {
-    résultat := object_prototype.donne_tas_de_mémoire().alloue(MathObject);
+    résultat := donne_tas_de_mémoire(object_prototype).alloue(MathObject);
     résultat.prototype = object_prototype;
 
     constantes: Math.Constantes(r64);
 
-    résultat.ajoute_propriété(STR_LN2, Valeur(Number = 0.6931471805599453), DrapeauxPropriété.zéro);
-    résultat.ajoute_propriété(STR_PI, Valeur(Number = constantes.PI), DrapeauxPropriété.zéro);
+    ajoute_propriété(résultat, STR_LN2, Valeur(Number = 0.6931471805599453), DrapeauxPropriété.zéro);
+    ajoute_propriété(résultat, STR_PI, Valeur(Number = constantes.PI), DrapeauxPropriété.zéro);
 
-    résultat.ajoute_fonction_native(STR_abs, math_abs);
-    résultat.ajoute_fonction_native(STR_ceil, math_ceil);
-    résultat.ajoute_fonction_native(STR_cos, math_cos);
-    résultat.ajoute_fonction_native(STR_exp, math_exp);
-    résultat.ajoute_fonction_native(STR_floor, math_floor);
-    résultat.ajoute_fonction_native(STR_log, math_log);
-    résultat.ajoute_fonction_native(STR_max, math_max);
-    résultat.ajoute_fonction_native(STR_min, math_min);
-    résultat.ajoute_fonction_native(STR_pow, math_pow);
-    résultat.ajoute_fonction_native(STR_random, math_random);
-    résultat.ajoute_fonction_native(STR_round, math_round);
-    résultat.ajoute_fonction_native(STR_sin, math_sin);
-    résultat.ajoute_fonction_native(STR_sqrt, math_sqrt);
+    ajoute_fonction_native(résultat, STR_abs, math_abs);
+    ajoute_fonction_native(résultat, STR_ceil, math_ceil);
+    ajoute_fonction_native(résultat, STR_cos, math_cos);
+    ajoute_fonction_native(résultat, STR_exp, math_exp);
+    ajoute_fonction_native(résultat, STR_floor, math_floor);
+    ajoute_fonction_native(résultat, STR_log, math_log);
+    ajoute_fonction_native(résultat, STR_max, math_max);
+    ajoute_fonction_native(résultat, STR_min, math_min);
+    ajoute_fonction_native(résultat, STR_pow, math_pow);
+    ajoute_fonction_native(résultat, STR_random, math_random);
+    ajoute_fonction_native(résultat, STR_round, math_round);
+    ajoute_fonction_native(résultat, STR_sin, math_sin);
+    ajoute_fonction_native(résultat, STR_sqrt, math_sqrt);
 
     /* Chaque realm doit avoir sa propre série. */
     graine := object_prototype comme n64 comme n32;
@@ -58,10 +58,10 @@ R64_INFINITÉ_NÉGATIVE : r64 : 0rfff0000000000000;
  * https://tc39.es/ecma262/multipage/numbers-and-dates.html#sec-math.abs */
 math_abs :: fonc (empl params: *ParamètresObjectCall) -> Valeur
 {
-    x := params.donne_argument(0);
+    x := donne_argument(params, 0);
     // 1. Let n be ? ToNumber(x).
     n := to_number(interpréteuse, x);
-    si interpréteuse.possède_exception() {
+    si possède_exception(interpréteuse) {
         retourne js_undefined;
     }
 
@@ -93,11 +93,11 @@ math_abs :: fonc (empl params: *ParamètresObjectCall) -> Valeur
  * https://tc39.es/ecma262/multipage/numbers-and-dates.html#sec-math.ceil */
 math_ceil :: fonc (empl params: *ParamètresObjectCall) -> Valeur
 {
-    x := params.donne_argument(0);
+    x := donne_argument(params, 0);
 
     // 1. Let n be ? ToNumber(x).
     n := to_number(interpréteuse, x);
-    si interpréteuse.possède_exception() {
+    si possède_exception(interpréteuse) {
         retourne js_undefined;
     }
 
@@ -125,8 +125,8 @@ math_ceil :: fonc (empl params: *ParamètresObjectCall) -> Valeur
 math_cos :: fonc (empl params: *ParamètresObjectCall) -> Valeur
 {
     // 1. Let n be ? ToNumber(x).
-    n := to_number(interpréteuse, params.donne_argument(0));
-    si interpréteuse.possède_exception() {
+    n := to_number(interpréteuse, donne_argument(params, 0));
+    si possède_exception(interpréteuse) {
         retourne js_undefined;
     }
 
@@ -149,8 +149,8 @@ math_cos :: fonc (empl params: *ParamètresObjectCall) -> Valeur
 math_exp :: fonc (empl params: *ParamètresObjectCall) -> Valeur
 {
     // 1. Let n be ? ToNumber(x).
-    n := to_number(interpréteuse, params.donne_argument(0));
-    si interpréteuse.possède_exception() {
+    n := to_number(interpréteuse, donne_argument(params, 0));
+    si possède_exception(interpréteuse) {
         retourne js_undefined;
     }
 
@@ -177,11 +177,11 @@ math_exp :: fonc (empl params: *ParamètresObjectCall) -> Valeur
  * https://tc39.es/ecma262/multipage/numbers-and-dates.html#sec-math.floor */
 math_floor :: fonc (empl params: *ParamètresObjectCall) -> Valeur
 {
-    x := params.donne_argument(0);
+    x := donne_argument(params, 0);
 
     // 1. Let n be ? ToNumber(x).
     n := to_number(interpréteuse, x);
-    si interpréteuse.possède_exception() {
+    si possède_exception(interpréteuse) {
         retourne js_undefined;
     }
 
@@ -208,11 +208,11 @@ math_floor :: fonc (empl params: *ParamètresObjectCall) -> Valeur
  * https://tc39.es/ecma262/multipage/numbers-and-dates.html#sec-math.log */
 math_log :: fonc (empl params: *ParamètresObjectCall) -> Valeur
 {
-    x := params.donne_argument(0);
+    x := donne_argument(params, 0);
 
     // 1. Let n be ? ToNumber(x).
     n := to_number(interpréteuse, x);
-    si interpréteuse.possède_exception() {
+    si possède_exception(interpréteuse) {
         retourne js_undefined;
     }
 
@@ -252,7 +252,7 @@ math_max :: fonc (empl params: *ParamètresObjectCall) -> Valeur
     pour arguments {
         // a. Let n be ? ToNumber(arg).
         n := to_number(interpréteuse, it);
-        si interpréteuse.possède_exception() {
+        si possède_exception(interpréteuse) {
             retourne js_undefined;
         }
 
@@ -298,7 +298,7 @@ math_min :: fonc (empl params: *ParamètresObjectCall) -> Valeur
     pour arguments {
         // a. Let n be ? ToNumber(arg).
         n := to_number(interpréteuse, it);
-        si interpréteuse.possède_exception() {
+        si possède_exception(interpréteuse) {
             retourne js_undefined;
         }
 
@@ -337,14 +337,14 @@ math_min :: fonc (empl params: *ParamètresObjectCall) -> Valeur
 math_pow :: fonc (empl params: *ParamètresObjectCall) -> Valeur
 {
     // 1. Set base to ? ToNumber(base).
-    base := to_number(interpréteuse, params.donne_argument(0));
-    si interpréteuse.possède_exception() {
+    base := to_number(interpréteuse, donne_argument(params, 0));
+    si possède_exception(interpréteuse) {
         retourne js_undefined;
     }
 
     // 2. Set exponent to ? ToNumber(exponent).
-    exponent := to_number(interpréteuse, params.donne_argument(1));
-    si interpréteuse.possède_exception() {
+    exponent := to_number(interpréteuse, donne_argument(params, 1));
+    si possède_exception(interpréteuse) {
         retourne js_undefined;
     }
 
@@ -356,7 +356,7 @@ math_pow :: fonc (empl params: *ParamètresObjectCall) -> Valeur
  * https://tc39.es/ecma262/multipage/numbers-and-dates.html#sec-math.random */
 math_random :: fonc (empl params: *ParamètresObjectCall) -> Valeur
 {
-    math := this_value.donne_objet().vérifie_comme(MathObject);
+    math := donne_objet(this_value).vérifie_comme(MathObject);
     résultat := aléatoire_unilatérale(*math.entropie);
     retourne résultat comme r64;
 }
@@ -366,8 +366,8 @@ math_random :: fonc (empl params: *ParamètresObjectCall) -> Valeur
 math_round :: fonc (empl params: *ParamètresObjectCall) -> Valeur
 {
     // 1. Let n be ? ToNumber(x).
-    n := to_number(interpréteuse, params.donne_argument(0));
-    si interpréteuse.possède_exception() {
+    n := to_number(interpréteuse, donne_argument(params, 0));
+    si possède_exception(interpréteuse) {
         retourne js_undefined;
     }
 
@@ -395,8 +395,8 @@ math_round :: fonc (empl params: *ParamètresObjectCall) -> Valeur
 math_sin :: fonc (empl params: *ParamètresObjectCall) -> Valeur
 {
     // 1. Let n be ? ToNumber(x).
-    n := to_number(interpréteuse, params.donne_argument(0));
-    si interpréteuse.possède_exception() {
+    n := to_number(interpréteuse, donne_argument(params, 0));
+    si possède_exception(interpréteuse) {
         retourne js_undefined;
     }
 
@@ -419,8 +419,8 @@ math_sin :: fonc (empl params: *ParamètresObjectCall) -> Valeur
 math_sqrt :: fonc (empl params: *ParamètresObjectCall) -> Valeur
 {
     // 1. Let n be ? ToNumber(x).
-    n := to_number(interpréteuse, params.donne_argument(0));
-    si interpréteuse.possède_exception() {
+    n := to_number(interpréteuse, donne_argument(params, 0));
+    si possède_exception(interpréteuse) {
         retourne js_undefined;
     }
 

@@ -17,8 +17,8 @@ Function :: struct {
 
 crée_fonction :: fonc (function_prototype: *FunctionPrototype) -> *Function
 {
-    tas_de_mémoire := function_prototype.donne_tas_de_mémoire();
-    résultat := tas_de_mémoire.alloue(Function);
+    tas_de_mémoire := donne_tas_de_mémoire(function_prototype);
+    résultat := alloue(tas_de_mémoire, Function);
     résultat.prototype = function_prototype;
     retourne résultat;
 }
@@ -148,13 +148,13 @@ ECMAScriptFunction :: struct {
 
 ecma_script_function_instance_crée :: fonc (realm: *Realm) -> *Object
 {
-    retourne realm.donne_tas_de_mémoire().alloue(ECMAScriptFunction);
+    retourne donne_tas_de_mémoire(realm).alloue(ECMAScriptFunction);
 }
 
 ecma_script_function_sur_destruction :: fonc (cellule: *Cellule)
 {
     sur_destruction_objet(cellule);
-    function := cellule.vérifie_comme(ECMAScriptFunction);
+    function := vérifie_comme(cellule, ECMAScriptFunction);
     déloge(*function.fields);
     déloge(*function.private_methods);
 }
@@ -163,27 +163,27 @@ ecma_script_function_sur_destruction :: fonc (cellule: *Cellule)
  * https://tc39.es/ecma262/multipage/ordinary-and-exotic-objects-behaviours.html#sec-ecmascript-function-objects-call-thisargument-argumentslist */
 sur_appel_fonction_ecma :: fonc (empl params: *ParamètresObjectCall) -> Valeur
 {
-    assert(object.donne_classe() == ECMAScriptFunction);
+    assert(donne_classe(object) == ECMAScriptFunction);
     F := object comme *ECMAScriptFunction;
 
     mv := interpréteuse.mv;
 
     // 1. Let callerContext be the running execution context.
-    caller_context := interpréteuse.donne_running_execution_context();
+    caller_context := donne_running_execution_context(interpréteuse);
 
     // 2. Let calleeContext be PrepareForOrdinaryCall(F, undefined).
     callee_context := prepare_for_ordinary_call(interpréteuse, F, js_undefined);
 
     // 3. Assert: calleeContext is now the running execution context.
-    assert(callee_context == interpréteuse.donne_running_execution_context());
+    assert(callee_context == donne_running_execution_context(interpréteuse));
 
     // 4. If F.[[IsClassConstructor]] is true, then
     si F.is_class_constructor {
         // a. Let error be a newly created TypeError object.
         // b. NOTE: error is created in calleeContext with F's associated Realm Record.
         // c. Remove calleeContext from the execution context stack and restore callerContext as the running execution context.
-        mv.dépile_execution_context();
-        assert(caller_context == mv.donne_running_execution_context());
+        dépile_execution_context(mv);
+        assert(caller_context == donne_running_execution_context(mv));
 
         // d. Return ThrowCompletion(error).
         panique("[[Call]] sur class constructor non-implémenté");
@@ -196,17 +196,17 @@ sur_appel_fonction_ecma :: fonc (empl params: *ParamètresObjectCall) -> Valeur
     result := ordinary_call_evaluate_body(interpréteuse, F, arguments);
 
     // 7. Remove calleeContext from the execution context stack and restore callerContext as the running execution context.
-    mv.dépile_execution_context();
-    assert(caller_context == mv.donne_running_execution_context());
+    dépile_execution_context(mv);
+    assert(caller_context == donne_running_execution_context(mv));
 
     // 8. If result is a return completion, return result.[[Value]].
-    si result.est_return() {
+    si est_return(result) {
         retourne result.valeur;
     }
 
     // 9. ReturnIfAbrupt(result).
-    si result.est_throw() {
-        interpréteuse.définis_exception(result);
+    si est_throw(result) {
+        définis_exception(interpréteuse, result);
         retourne js_undefined;
     }
 
@@ -219,10 +219,10 @@ sur_appel_fonction_ecma :: fonc (empl params: *ParamètresObjectCall) -> Valeur
 prepare_for_ordinary_call :: fonc (interpréteuse: *Interpréteuse, F: *ECMAScriptFunction, new_target: Valeur) -> *ExecutionContext
 {
     // 1. Let callerContext be the running execution context.
-    caller_context := interpréteuse.donne_running_execution_context();
+    caller_context := donne_running_execution_context(interpréteuse);
 
     // 2. Let calleeContext be a new ECMAScript code execution context.
-    callee_context := crée_execution_context(interpréteuse.donne_tas_de_mémoire());
+    callee_context := crée_execution_context(donne_tas_de_mémoire(interpréteuse));
 
     // 3. Set the Function of calleeContext to F.
     callee_context.function = F;
@@ -249,11 +249,11 @@ prepare_for_ordinary_call :: fonc (interpréteuse: *Interpréteuse, F: *ECMAScri
     callee_context.private_environment = F.private_environment;
 
     // 11. If callerContext is not already suspended, suspend callerContext.
-    caller_context.suspend();
+    suspend(caller_context);
 
     // 12. Push calleeContext onto the execution context stack; calleeContext is now the running execution context.
     mv := interpréteuse.mv;
-    mv.empile_execution_context(callee_context);
+    empile_execution_context(mv, callee_context);
 
     // 13. NOTE: Any exception objects produced after this point are associated with calleeRealm.
 
@@ -288,12 +288,12 @@ ordinary_call_bind_this :: fonc (F: *ECMAScriptFunction, callee_context: *Execut
     // 6. Else,
     sinon {
         // a. If thisArgument is either undefined or null, then
-        si this_argument.est_undefined() || this_argument.est_nulle() {
+        si est_undefined(this_argument) || est_nulle(this_argument) {
             // i. Let globalEnv be calleeRealm.[[GlobalEnv]].
             global_env := callee_realm.global_environment;
 
             // ii. Assert: globalEnv is a Global Environment Record.
-            assert(global_env.donne_classe() == GlobalEnvironment);
+            assert(donne_classe(global_env) == GlobalEnvironment);
 
             // iii. Let thisValue be globalEnv.[[GlobalThisValue]].
             this_value = global_env.global_this_value;
@@ -307,7 +307,7 @@ ordinary_call_bind_this :: fonc (F: *ECMAScriptFunction, callee_context: *Execut
     }
 
     // 7. Assert: localEnv is a Function Environment Record.
-    assert(local_env.donne_classe() == FunctionEnvironment);
+    assert(donne_classe(local_env) == FunctionEnvironment);
 
     // 8. Assert: The next step never returns an abrupt completion because localEnv.[[ThisBindingStatus]] is not INITIALIZED.
     // 9. Perform ! localEnv.BindThisValue(thisValue).
@@ -340,7 +340,7 @@ evaluate_body :: fonc (interpréteuse: *Interpréteuse, function_object: *ECMASc
         retourne evaluate_concise_body(interpréteuse, function_object, arguments_list);
     }
 
-    si function_object.class_field_initializer_name.possède_valeur() {
+    si possède_valeur(function_object.class_field_initializer_name) {
         // Initializer : = AssignmentExpression
 
         // 1. Assert: argumentsList is empty.
@@ -354,7 +354,7 @@ evaluate_body :: fonc (interpréteuse: *Interpréteuse, function_object: *ECMASc
         si is_anonymous_function_definition(body) {
             // a. Let value be ? NamedEvaluation of Initializer with argument functionObject.[[ClassFieldInitializerName]].
             completion := named_evaluation(interpréteuse, body, function_object.class_field_initializer_name.Quelque);
-            saufsi completion.est_normal() {
+            saufsi est_normal(completion) {
                 retourne completion;
             }
             value = completion.valeur.V;
@@ -366,15 +366,15 @@ evaluate_body :: fonc (interpréteuse: *Interpréteuse, function_object: *ECMASc
 
             // a. Let rhs be ? Evaluation of AssignmentExpression.
             completion := exécute_noeud(body, interprète);
-            saufsi completion.est_normal() {
+            saufsi est_normal(completion) {
                 retourne completion;
             }
             rhs := completion.valeur;
             
             // b. Let value be ? GetValue(rhs).
             value = get_value(interprète, rhs);
-            si interprète.possède_exception() {
-                retourne throw_completion(interprète.donne_exception());
+            si possède_exception(interprète) {
+                retourne throw_completion(donne_exception(interprète));
             }
         }
 
@@ -397,14 +397,14 @@ ordinary_call_evaluate_body :: fonc (interpréteuse: *Interpréteuse, F: *ECMASc
  * https://tc39.es/ecma262/#sec-ecmascript-function-objects-construct-argumentslist-newtarget */
 sur_construct_fonction_ecma :: fonc (empl params: *ParamètresObjectConstruct) -> Valeur
 {
-    assert(object.donne_classe() == ECMAScriptFunction);
+    assert(donne_classe(object) == ECMAScriptFunction);
     F := object comme *ECMAScriptFunction;
 
     mv := interpréteuse.mv;
-    realm := interpréteuse.donne_realm();
+    realm := donne_realm(interpréteuse);
 
     // 1. Let callerContext be the running execution context.
-    caller_context := interpréteuse.donne_running_execution_context();
+    caller_context := donne_running_execution_context(interpréteuse);
 
     // 2. Let kind be F.[[ConstructorKind]].
     kind := F.constructor_kind;
@@ -413,9 +413,9 @@ sur_construct_fonction_ecma :: fonc (empl params: *ParamètresObjectConstruct) -
     this_argument: Valeur;
     si kind == ConstructorKind.Base {
         // a. Let thisArgument be ? OrdinaryCreateFromConstructor(newTarget, "%Object.prototype%").
-        new_target_func := new_target.donne_objet().vérifie_comme(Function);
+        new_target_func := donne_objet(new_target).vérifie_comme(Function);
         this_argument = ordinary_create_from_constructor(realm, new_target_func, realm.intrinsics.object_prototype, object_instance_crée);
-        si realm.possède_exception() {
+        si possède_exception(realm) {
             retourne js_undefined;
         }
     }
@@ -424,7 +424,7 @@ sur_construct_fonction_ecma :: fonc (empl params: *ParamètresObjectConstruct) -
     callee_context := prepare_for_ordinary_call(interpréteuse, F, new_target);
 
     // 5. Assert: calleeContext is now the running execution context.
-    assert(mv.donne_running_execution_context() == callee_context);
+    assert(donne_running_execution_context(mv) == callee_context);
 
     // 6. If kind is base, then
     si kind == ConstructorKind.Base {
@@ -435,10 +435,10 @@ sur_construct_fonction_ecma :: fonc (empl params: *ParamètresObjectConstruct) -
         initialize_instance_elements(interpréteuse, this_argument, F);
 
         // c. If initializeResult is an abrupt completion, then
-        si interpréteuse.possède_exception() {
+        si possède_exception(interpréteuse) {
             // i. Remove calleeContext from the execution context stack and restore callerContext as the running execution context.
-            mv.dépile_execution_context();
-            assert(mv.donne_running_execution_context() == caller_context);
+            dépile_execution_context(mv);
+            assert(donne_running_execution_context(mv) == caller_context);
 
             // ii. Return ? initializeResult.
             retourne js_undefined;
@@ -452,15 +452,15 @@ sur_construct_fonction_ecma :: fonc (empl params: *ParamètresObjectConstruct) -
     result := ordinary_call_evaluate_body(interpréteuse, F, arguments);
 
     // 9. Remove calleeContext from the execution context stack and restore callerContext as the running execution context.
-    mv.dépile_execution_context();
-    assert(mv.donne_running_execution_context() == caller_context);
+    dépile_execution_context(mv);
+    assert(donne_running_execution_context(mv) == caller_context);
     
     // 10. If result is a return completion, then
-    si result.est_return() {
+    si est_return(result) {
         result_value := result.valeur.V;
 
         // a. If result.[[Value]] is an Object, return result.[[Value]].
-        si result_value.est_object() {
+        si est_object(result_value) {
             retourne result_value;
         }
 
@@ -470,25 +470,25 @@ sur_construct_fonction_ecma :: fonc (empl params: *ParamètresObjectConstruct) -
         }
 
         // c. If result.[[Value]] is not undefined, throw a TypeError exception.
-        saufsi result_value.est_undefined() {
+        saufsi est_undefined(result_value) {
             retourne lance_type_error(interpréteuse, "unexpected return value from constructor");
         }
     }
     // 11. Else,
-    sinon si result.est_abrupt() {
+    sinon si est_abrupt(result) {
         // a. ReturnIfAbrupt(result).
-        interpréteuse.définis_exception(result);
+        définis_exception(interpréteuse, result);
         retourne js_undefined;
     }
 
     // 12. Let thisBinding be ? constructorEnv.GetThisBinding().
-    this_binding := constructor_env.get_this_binding(interpréteuse.donne_realm());
-    si interpréteuse.possède_exception() {
+    this_binding := get_this_binding(constructor_env, donne_realm(interpréteuse));
+    si possède_exception(interpréteuse) {
         retourne js_undefined;
     }
 
     // 13. Assert: thisBinding is an Object.
-    assert(this_binding.est_object());
+    assert(est_object(this_binding));
     
     // 14. Return thisBinding.
     retourne this_binding;
@@ -544,7 +544,7 @@ ordinary_function_create :: fonc (realm: *Realm, function_prototype: *Object, so
     F.private_environment = private_env;
 
     // 15. Set F.[[ScriptOrModule]] to GetActiveScriptOrModule().
-    F.script_or_module = get_active_script_or_module(realm.donne_mv());
+    F.script_or_module = get_active_script_or_module(donne_mv(realm));
 
     // 16. Set F.[[Realm]] to the current Realm Record.
     F.realm = realm;
@@ -581,7 +581,7 @@ make_constructor :: fonc (realm: *Realm, F: *Function, opt_writable_prototype : 
     }
 
     // 3. Set F.[[ConstructorKind]] to base.
-    F.définis_constructor_kind(ConstructorKind.Base);
+    définis_constructor_kind(F, ConstructorKind.Base);
 
     // 4. If writablePrototype is not present, set writablePrototype to true.
     writable_prototype := vrai;
@@ -642,7 +642,7 @@ define_method_property :: fonc (home_object: *Object, key: FieldName, closure: *
     // 1. À FAIRE : Assert: homeObject is an ordinary, extensible object.
 
     // 2. If key is a Private Name, then
-    si key.est_private_name() {
+    si est_private_name(key) {
         // a. Return PrivateElement { [[Key]]: key, [[Kind]]: method, [[Value]]: closure }.
         retourne PrivateElement(key.PrivateName, PrivateElement.Kind.METHOD, Valeur(Function = closure));
     }
@@ -671,12 +671,12 @@ set_function_name :: fonc (realm: *Realm, F: *Object, name: FieldName, prefix :=
     assert(has_own_property(F, STR_name) == faux);
 
     // 2. If name is a Symbol, then
-    si name.est_symbol() {
+    si est_symbol(name) {
         // a. Let description be name's [[Description]] value.
         description := name.Symbol.description;
 
         // b. If description is undefined, set name to the empty String.
-        saufsi description.possède_valeur() {
+        saufsi possède_valeur(description) {
             name = crée_chaine_utf16_unique_vide();
         }
         // c. Else, set name to the string-concatenation of "[", description, and "]".
@@ -688,7 +688,7 @@ set_function_name :: fonc (realm: *Realm, F: *Object, name: FieldName, prefix :=
         }
     }
     // 3. Else if name is a Private Name, then
-    sinon si name.est_private_name() {
+    sinon si est_private_name(name) {
         // a. Set name to name.[[Description]].
         name = name.PrivateName.description;
     }
@@ -707,7 +707,7 @@ set_function_name :: fonc (realm: *Realm, F: *Object, name: FieldName, prefix :=
         desc.value = Valeur(String = crée_chaine(realm, name.String));
     }
     sinon {
-        desc.value = Valeur(String = crée_chaine(F.donne_tas_de_mémoire(), name.String));
+        desc.value = Valeur(String = crée_chaine(donne_tas_de_mémoire(F), name.String));
     }
     desc.configurable = vrai;
     define_property_or_throw(F, STR_name, *desc);
@@ -740,7 +740,7 @@ function_declaration_instantiation :: fonc (interpréteuse: *Interpréteuse, fun
     // À FAIRE
 
     // 1. Let calleeContext be the running execution context.
-    callee_context := interpréteuse.donne_running_execution_context();
+    callee_context := donne_running_execution_context(interpréteuse);
 
     // 2. Let code be func.[[ECMAScriptCode]].
     code := func.corps;
@@ -840,14 +840,14 @@ function_declaration_instantiation :: fonc (interpréteuse: *Interpréteuse, fun
     // 21. For each String paramName of parameterNames, do
     pour param_name dans parameter_names {
         // a. Let alreadyDeclared be ! env.HasBinding(paramName).
-        already_declared := env.has_binding(param_name);
+        already_declared := has_binding(env, param_name);
 
         // b. NOTE: Early errors ensure that duplicate parameter names can only occur in non-strict functions that do not have parameter default values or rest parameters.
 
         // c. If alreadyDeclared is false, then
-        si already_declared.est_false() {
+        si est_false(already_declared) {
             // i. Perform ! env.CreateMutableBinding(paramName, false).
-            env.create_mutable_binding(interpréteuse.donne_realm(), param_name, faux);
+            create_mutable_binding(env, donne_realm(interpréteuse), param_name, faux);
 
             // ii. If hasDuplicates is true, then
                 // 1. Perform ! env.InitializeBinding(paramName, undefined).
@@ -883,7 +883,7 @@ function_declaration_instantiation :: fonc (interpréteuse: *Interpréteuse, fun
             arguments_list[indice_it];
         };
 
-        env.initialize_binding(it, valeur);
+        initialize_binding(env, it, valeur);
     }
 
     var_env: *Environment;
@@ -906,9 +906,9 @@ function_declaration_instantiation :: fonc (interpréteuse: *Interpréteuse, fun
                 // 1. Append n to instantiatedVarNames.
                 ensemble_ajoute(*instantiated_names, it);
                 // 2. Perform ! env.CreateMutableBinding(n, false).
-                env.create_mutable_binding(interpréteuse.donne_realm(), it, faux);
+                create_mutable_binding(env, donne_realm(interpréteuse), it, faux);
                 // 3. Perform ! env.InitializeBinding(n, undefined).
-                env.initialize_binding(it, js_undefined);
+                initialize_binding(env, it, js_undefined);
             }
         }
 
@@ -940,7 +940,7 @@ function_declaration_instantiation :: fonc (interpréteuse: *Interpréteuse, fun
     lex_env: *Environment;
     si strict == faux {
         // a. Let lexEnv be NewDeclarativeEnvironment(varEnv).
-        lex_env = new_declarative_environment(func.donne_tas_de_mémoire(), var_env);
+        lex_env = new_declarative_environment(donne_tas_de_mémoire(func), var_env);
         // b. NOTE: Non-strict functions use a separate Environment Record for top-level lexical declarations so that a direct eval can determine whether any var scoped declarations introduced by the eval code conflict with pre-existing top-level lexically scoped declarations. This is not needed for strict functions because a strict direct eval always places all declarations into a new Environment Record.
     }
     // 31. Else,
@@ -971,12 +971,12 @@ function_declaration_instantiation :: fonc (interpréteuse: *Interpréteuse, fun
             // i. If IsConstantDeclaration of d is true, then
             si is_constant_declaration(it) {
                 // 1. Perform ! lexEnv.CreateImmutableBinding(dn, true).
-                _ := lex_env.create_immutable_binding(interpréteuse.donne_realm(), dn, vrai);
+                _ := create_immutable_binding(lex_env, donne_realm(interpréteuse), dn, vrai);
             }
             // ii. Else,
             sinon {
                 // 1. Perform ! lexEnv.CreateMutableBinding(dn, false).
-                lex_env.create_mutable_binding(interpréteuse.donne_realm(), dn, faux);
+                create_mutable_binding(lex_env, donne_realm(interpréteuse), dn, faux);
             }
         }
     }
@@ -994,11 +994,11 @@ function_declaration_instantiation :: fonc (interpréteuse: *Interpréteuse, fun
         fn := function.id.nom;
 
         // b. Let fo be InstantiateFunctionObject of f with arguments lexEnv and privateEnv.
-        fo := instantiate_function_object(interpréteuse.donne_realm(), function, lex_env, private_env);
+        fo := instantiate_function_object(donne_realm(interpréteuse), function, lex_env, private_env);
     
         // c. Perform ! varEnv.SetMutableBinding(fn, fo, false).
-        var_env.set_mutable_binding(interpréteuse.donne_realm(), fn, Valeur(Object = fo), faux);
-        assert(!interpréteuse.possède_exception());
+        set_mutable_binding(var_env, donne_realm(interpréteuse), fn, Valeur(Object = fo), faux);
+        assert(!possède_exception(interpréteuse));
     }
 
     // 37. Return UNUSED.
@@ -1070,7 +1070,7 @@ BuiltInFunction :: struct {
 builtin_function_sur_call :: fonc (empl params: *ParamètresObjectCall) -> Valeur
 {
     // 1. Return ? BuiltinCallOrConstruct(F, thisArgument, argumentsList, undefined).
-    retourne builtin_call_or_construct(object.vérifie_comme(BuiltInFunction), interpréteuse, this_value, arguments, js_undefined);
+    retourne builtin_call_or_construct(vérifie_comme(object, BuiltInFunction), interpréteuse, this_value, arguments, js_undefined);
 }
 
 /* 10.3.2 [[Construct]] ( argumentsList, newTarget )
@@ -1078,7 +1078,7 @@ builtin_function_sur_call :: fonc (empl params: *ParamètresObjectCall) -> Valeu
 builtin_function_sur_construct :: fonc (empl params: *ParamètresObjectConstruct) -> Valeur
 {
     // 1. Return ? BuiltinCallOrConstruct(F, uninitialized, argumentsList, newTarget).
-    retourne builtin_call_or_construct(object.vérifie_comme(BuiltInFunction), interpréteuse, js_undefined, arguments, new_target);
+    retourne builtin_call_or_construct(vérifie_comme(object, BuiltInFunction), interpréteuse, js_undefined, arguments, new_target);
 }
 
 /* 10.3.3 BuiltinCallOrConstruct ( F, thisArgument, argumentsList, newTarget ) */
@@ -1087,13 +1087,13 @@ builtin_call_or_construct :: fonc (F: *BuiltInFunction, interpréteuse: *Interpr
     mv := interpréteuse.mv;
 
     // 1. Let callerContext be the running execution context.
-    caller_context := mv.donne_running_execution_context();
+    caller_context := donne_running_execution_context(mv);
 
     // 2. If callerContext is not already suspended, suspend callerContext.
     suspend(caller_context);
 
     // 3. Let calleeContext be a new execution context.
-    callee_context := crée_execution_context(interpréteuse.donne_tas_de_mémoire());
+    callee_context := crée_execution_context(donne_tas_de_mémoire(interpréteuse));
 
     // 4. Set the Function of calleeContext to F.
     callee_context.function = F;
@@ -1110,7 +1110,7 @@ builtin_call_or_construct :: fonc (F: *BuiltInFunction, interpréteuse: *Interpr
     // 8. Perform any necessary implementation-defined initialization of calleeContext.
 
     // 9. Push calleeContext onto the execution context stack; calleeContext is now the running execution context.
-    mv.empile_execution_context(callee_context);
+    empile_execution_context(mv, callee_context);
 
     // 10. Let result be the Completion Record that is the result of evaluating F in a manner that conforms to the specification of F. If thisArgument is uninitialized, the this value is uninitialized; otherwise, thisArgument provides the this value. argumentsList provides the named parameters. newTarget provides the NewTarget value.
     // 11. NOTE: If F is defined in this document, “the specification of F” is the behaviour specified for it via algorithm steps or other means.
@@ -1124,8 +1124,8 @@ builtin_call_or_construct :: fonc (F: *BuiltInFunction, interpréteuse: *Interpr
     result := F.sur_call_or_construct(*params);
 
     // 12. Remove calleeContext from the execution context stack and restore callerContext as the running execution context.
-    mv.dépile_execution_context();
-    assert(mv.donne_running_execution_context() == caller_context);
+    dépile_execution_context(mv);
+    assert(donne_running_execution_context(mv) == caller_context);
 
     // 13. Return ? result.
     retourne result;
@@ -1166,7 +1166,7 @@ create_builtin_function :: fonc (func: *BuiltInFunction, length: r64, name: ECMA
     set_function_length(func, length);
 
     // 11. If prefix is not present, then
-    si prefix.est_vide() {
+    si est_vide(prefix) {
         // a. Perform SetFunctionName(func, name).
         set_function_name(realm, func, name);
     }
@@ -1201,13 +1201,13 @@ FunctionConstructor :: struct {
 
 crée_function_constructor :: fonc (realm: *Realm, function_prototype: *FunctionPrototype) -> *FunctionConstructor
 {
-    tas_de_mémoire := realm.donne_tas_de_mémoire();
-    résultat := tas_de_mémoire.alloue(FunctionConstructor);
+    tas_de_mémoire := donne_tas_de_mémoire(realm);
+    résultat := alloue(tas_de_mémoire, FunctionConstructor);
     create_builtin_function(résultat, 1, STR_Function, realm, function_prototype);
 
-    résultat.ajoute_propriété(STR_prototype, Valeur(Object = function_prototype), DrapeauxPropriété.zéro);
+    ajoute_propriété(résultat, STR_prototype, Valeur(Object = function_prototype), DrapeauxPropriété.zéro);
 
-    function_prototype.ajoute_propriété(STR_constructor, Valeur(Object = résultat), DrapeauxPropriété.zéro);
+    ajoute_propriété(function_prototype, STR_constructor, Valeur(Object = résultat), DrapeauxPropriété.zéro);
 
     retourne résultat;
 }
@@ -1232,13 +1232,13 @@ FunctionPrototype :: struct {
 
 crée_function_prototype :: fonc (realm: *Realm, prototype: *ObjectPrototype) -> *FunctionPrototype
 {
-    tas_de_mémoire := realm.donne_tas_de_mémoire();
-    résultat := tas_de_mémoire.alloue(FunctionPrototype);
+    tas_de_mémoire := donne_tas_de_mémoire(realm);
+    résultat := alloue(tas_de_mémoire, FunctionPrototype);
     résultat.prototype = prototype;
-    résultat.ajoute_propriété(STR_length, Valeur(Number = 0.0), DrapeauxPropriété.zéro);
-    résultat.ajoute_propriété(STR_name, Valeur(String = crée_chaine(realm, crée_chaine_utf16_unique(""))), DrapeauxPropriété.zéro);
+    ajoute_propriété(résultat, STR_length, Valeur(Number = 0.0), DrapeauxPropriété.zéro);
+    ajoute_propriété(résultat, STR_name, Valeur(String = crée_chaine(realm, crée_chaine_utf16_unique(""))), DrapeauxPropriété.zéro);
 
-    résultat.ajoute_fonction_native(STR_call, function_prototype_call);
+    ajoute_fonction_native(résultat, STR_call, function_prototype_call);
 
     retourne résultat;
 }
@@ -1266,7 +1266,7 @@ function_prototype_call :: fonc (empl params: *ParamètresObjectCall) -> Valeur
     prepare_for_tail_call(interpréteuse);
 
     // 4. Return ? Call(func, thisArg, args).
-    this_arg := params.donne_argument(0);
+    this_arg := donne_argument(params, 0);
 
     nouveaux_arguments := arguments;
     nouveaux_arguments.données += 1;
@@ -1289,7 +1289,7 @@ function_prototype_call :: fonc (empl params: *ParamètresObjectCall) -> Valeur
 
 fonction_native_sur_appel :: fonc (params: *ParamètresObjectCall) -> Valeur
 {
-    function_native := params.object.vérifie_comme(FunctionNative);
+    function_native := vérifie_comme(params.object, FunctionNative);
     retourne function_native.sur_appel(params);
 }
 
@@ -1306,7 +1306,7 @@ FunctionNative :: struct {
 
 crée_fonction_native :: fonc (tas_de_mémoire: *TasDeMémoire, nom: PropertyKey, sur_appel: TypeFonctionObjectCall, length: z64) -> *FunctionNative
 {
-    résultat := tas_de_mémoire.alloue(FunctionNative);
+    résultat := alloue(tas_de_mémoire, FunctionNative);
     set_function_name(nul, résultat, donne_field_name(nom));
     set_function_length(résultat, length comme r64);
     résultat.sur_appel = sur_appel;
@@ -1315,7 +1315,7 @@ crée_fonction_native :: fonc (tas_de_mémoire: *TasDeMémoire, nom: PropertyKey
 
 ajoute_fonction_native :: fonc (objet: *Object, nom: PropertyKey, sur_appel: TypeFonctionObjectCall, length := 0)
 {
-    tas_de_mémoire := objet.donne_tas_de_mémoire();
+    tas_de_mémoire := donne_tas_de_mémoire(objet);
     fonction := crée_fonction_native(tas_de_mémoire, nom, sur_appel, length);
     ajoute_propriété(objet, nom, Valeur(Function = fonction), DrapeauxPropriété.zéro);
 }

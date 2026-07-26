@@ -247,7 +247,7 @@ crée_type_python_pour :: fonc (système: *SystèmeType, info: *InfoType, nom: c
 
 crée_type_python_pour_basique :: fonc (système: *SystèmeType, info: *InfoType, nom: chaine, fonction_init: fonc (arg: *FonctionsTypePython)) -> *TypePython
 {
-    résultat := système.crée_type_python_pour(info, nom);
+    résultat := crée_type_python_pour(système, info, nom);
     résultat.est_basique = vrai;
     fonction_init(*résultat.fonctions);
     retourne résultat;
@@ -266,7 +266,7 @@ trouve_type :: fonc (système: *SystèmeType, info: *InfoType) -> *TypePython
 
 convertis_vers_type_python :: fonc (système: *SystèmeType, info: *InfoType) -> *TypePython
 {
-    type_python := système.trouve_type(info);
+    type_python := trouve_type(système, info);
     si type_python {
         si info.id == GenreInfoType.STRUCTURE {
             info_struct := info comme *InfoTypeStructure;
@@ -284,56 +284,56 @@ convertis_vers_type_python :: fonc (système: *SystèmeType, info: *InfoType) ->
 
             si info_entier.est_signé {
                 si info.taille_en_octet == 1 {
-                    type_python = système.crée_type_python_pour_basique(info, "z8", init_fonctions_type_z8);
+                    type_python = crée_type_python_pour_basique(système, info, "z8", init_fonctions_type_z8);
                 }
                 sinon si info.taille_en_octet == 2 {
-                    type_python = système.crée_type_python_pour_basique(info, "z16", init_fonctions_type_z16);
+                    type_python = crée_type_python_pour_basique(système, info, "z16", init_fonctions_type_z16);
                 }
                 sinon si info.taille_en_octet == 4 {
-                    type_python = système.crée_type_python_pour_basique(info, "z32", init_fonctions_type_z32);
+                    type_python = crée_type_python_pour_basique(système, info, "z32", init_fonctions_type_z32);
                 }
                 sinon si info.taille_en_octet == 8 {
-                    type_python = système.crée_type_python_pour_basique(info, "z64", init_fonctions_type_z64);
+                    type_python = crée_type_python_pour_basique(système, info, "z64", init_fonctions_type_z64);
                 }
             }
             sinon {
                 si info.taille_en_octet == 1 {
-                    type_python = système.crée_type_python_pour_basique(info, "n8", init_fonctions_type_n8);
+                    type_python = crée_type_python_pour_basique(système, info, "n8", init_fonctions_type_n8);
                 }
                 sinon si info.taille_en_octet == 2 {
-                    type_python = système.crée_type_python_pour_basique(info, "n16", init_fonctions_type_n16);
+                    type_python = crée_type_python_pour_basique(système, info, "n16", init_fonctions_type_n16);
                 }
                 sinon si info.taille_en_octet == 4 {
-                    type_python = système.crée_type_python_pour_basique(info, "n32", init_fonctions_type_n32);
+                    type_python = crée_type_python_pour_basique(système, info, "n32", init_fonctions_type_n32);
                 }
                 sinon si info.taille_en_octet == 8 {
-                    type_python = système.crée_type_python_pour_basique(info, "n64", init_fonctions_type_n64);
+                    type_python = crée_type_python_pour_basique(système, info, "n64", init_fonctions_type_n64);
                 }
             }
         }
         RÉEL {
             si info.taille_en_octet == 2 {
-                type_python = système.crée_type_python_pour_basique(info, "r16", init_fonctions_type_r16);
+                type_python = crée_type_python_pour_basique(système, info, "r16", init_fonctions_type_r16);
             }
             sinon si info.taille_en_octet == 4 {
-                type_python = système.crée_type_python_pour_basique(info, "r32", init_fonctions_type_r32);
+                type_python = crée_type_python_pour_basique(système, info, "r32", init_fonctions_type_r32);
             }
             sinon {
-                type_python = système.crée_type_python_pour_basique(info, "r64", init_fonctions_type_r64);
+                type_python = crée_type_python_pour_basique(système, info, "r64", init_fonctions_type_r64);
             }
         }
         BOOLÉEN {
-            type_python = système.crée_type_python_pour_basique(info, "bool", init_fonctions_type_bool);
+            type_python = crée_type_python_pour_basique(système, info, "bool", init_fonctions_type_bool);
         }
         OCTET {
-            type_python = système.crée_type_python_pour_basique(info, "n8", init_fonctions_type_n8);
+            type_python = crée_type_python_pour_basique(système, info, "n8", init_fonctions_type_n8);
         }
         CHAINE {
-            type_python = système.crée_type_python_pour_basique(info, "*z8", init_fonctions_type_chaine);
+            type_python = crée_type_python_pour_basique(système, info, "*z8", init_fonctions_type_chaine);
         }
         STRUCTURE {
             info_struct := info comme *InfoTypeStructure;
-            type_python = système.crée_type_python_pour(info, info_struct.nom);
+            type_python = crée_type_python_pour(système, info, info_struct.nom);
             init_fonctions_type_structure(*type_python.fonctions, type_python.nom_sauf);
 
             si possède_annotation(info_struct, "ToujoursPointeur") {
@@ -341,7 +341,7 @@ convertis_vers_type_python :: fonc (système: *SystèmeType, info: *InfoType) ->
             }
 
             si info_struct.structs_employées {
-                type_base := système.convertis_vers_type_python(info_struct.structs_employées[0]);
+                type_base := convertis_vers_type_python(système, info_struct.structs_employées[0]);
                 type_python.base = type_base;
                 si type_base.drapeaux.TOUJOURS_COMME_POINTEUR {
                     type_python.drapeaux.TOUJOURS_COMME_POINTEUR = vrai;
@@ -358,14 +358,14 @@ convertis_vers_type_python :: fonc (système: *SystèmeType, info: *InfoType) ->
                 rubrique: RubriqueType;
                 rubrique.nom = it.nom;
                 rubrique.confidentialité = confidentialité;
-                rubrique.type = système.convertis_vers_type_python(it.id);
+                rubrique.type = convertis_vers_type_python(système, it.id);
 
                 tableau_ajoute(*type_python.rubriques, rubrique);
             }
         }
         UNION {
             info_union := info comme *InfoTypeUnion;
-            type_python = système.crée_type_python_pour(info, info_union.nom);
+            type_python = crée_type_python_pour(système, info, info_union.nom);
             init_fonctions_type_structure(*type_python.fonctions, type_python.nom_sauf);
             type_python.drapeaux.TYPE_EST_UNION = vrai;
 
@@ -392,7 +392,7 @@ convertis_vers_type_python :: fonc (système: *SystèmeType, info: *InfoType) ->
                 rubrique: RubriqueType;
                 rubrique.nom = it.nom;
                 rubrique.confidentialité = confidentialité;
-                rubrique.type = système.convertis_vers_type_python(it.id);
+                rubrique.type = convertis_vers_type_python(système, it.id);
 
                 tableau_ajoute(*type_python.rubriques, rubrique);
             }
@@ -418,13 +418,13 @@ convertis_vers_type_python :: fonc (système: *SystèmeType, info: *InfoType) ->
 
             nom := enchaine("Tableau_", type_élément.nom);
             remplace_sans_copie(*nom, '.', '_');
-            type_python = système.crée_type_python_pour(info, nom);
+            type_python = crée_type_python_pour(système, info, nom);
             type_python.drapeaux.TYPE_EST_TABLEAU = vrai;
             type_python.type_élément = type_élément;
             init_fonctions_type_structure(*type_python.fonctions, type_python.nom_sauf);
 
             /* Crée un type itérateur pour ce type. */
-            type_itérateur := système.crée_type_python_pour(info, enchaine("ItérateurPour", type_python.nom));
+            type_itérateur := crée_type_python_pour(système, info, enchaine("ItérateurPour", type_python.nom));
             type_itérateur.drapeaux.TYPE_EST_ITÉRATEUR = vrai;
             type_itérateur.type_itéré = type_python;
             init_fonctions_type_structure(*type_itérateur.fonctions, type_itérateur.nom);
@@ -442,13 +442,13 @@ convertis_vers_type_python :: fonc (système: *SystèmeType, info: *InfoType) ->
 
             nom := enchaine("Tranche_", type_élément.nom);
             remplace_sans_copie(*nom, '.', '_');
-            type_python = système.crée_type_python_pour(info, nom);
+            type_python = crée_type_python_pour(système, info, nom);
             type_python.drapeaux.TYPE_EST_TABLEAU = vrai;
             type_python.type_élément = type_élément;
             init_fonctions_type_structure(*type_python.fonctions, type_python.nom_sauf);
 
             /* Crée un type itérateur pour ce type. */
-            type_itérateur := système.crée_type_python_pour(info, enchaine("ItérateurPour", type_python.nom));
+            type_itérateur := crée_type_python_pour(système, info, enchaine("ItérateurPour", type_python.nom));
             type_itérateur.drapeaux.TYPE_EST_ITÉRATEUR = vrai;
             type_itérateur.type_itéré = type_python;
             init_fonctions_type_structure(*type_itérateur.fonctions, type_itérateur.nom);
@@ -464,7 +464,7 @@ convertis_vers_type_python :: fonc (système: *SystèmeType, info: *InfoType) ->
         }
         ÉNUM {
             info_énum := info comme *InfoTypeÉnum;
-            type_python = système.crée_type_python_pour(info, info_énum.nom);
+            type_python = crée_type_python_pour(système, info, info_énum.nom);
             init_fonctions_type_énum(*type_python.fonctions, type_python.nom_sauf, info_énum);
             type_python.drapeaux.TYPE_EST_ÉNUM = vrai;
         }
@@ -599,7 +599,7 @@ ajoute_fonction_pour_méthode :: fonc (compilatrice: *CompilatriceModulePython, 
     ajoute_module_kuri(compilatrice, compilatrice_module_pour_code(compilatrice.espace, fonction));
     type_paramètre := type_premier_paramètre(fonction);
     type_python := convertis_vers_type_python(*compilatrice.système_type, type_paramètre);
-    type_python.ajoute_méthode(*compilatrice.système_type, fonction);
+    ajoute_méthode(type_python, *compilatrice.système_type, fonction);
 }
 
 /* Ajoute une fonction clé pour un type (__init__, __repr__, etc.).
@@ -617,7 +617,7 @@ ajoute_fonction_type :: fonc (compilatrice: *CompilatriceModulePython, code_erre
 
     type_python := trouve_type(*compilatrice.système_type, type_structure);
     saufsi type_python {
-        compilatrice.ajoute_type(type_structure);
+        ajoute_type(compilatrice, type_structure);
         type_python = trouve_type(*compilatrice.système_type, type_structure);
     }
 
@@ -627,7 +627,7 @@ ajoute_fonction_type :: fonc (compilatrice: *CompilatriceModulePython, code_erre
             retourne;
         }
 
-        type_python.ajoute_méthode_init(*compilatrice.système_type, fonction);
+        ajoute_méthode_init(type_python, *compilatrice.système_type, fonction);
     }
     sinon si code_erreur == CodeErreurCompilationPython.FONCTION_NEW_REQUIERS_STRUCTURE {
         si fonction.params_sorties.taille != 1 || fonction.params_sorties[0].type.id != GenreInfoType.BOOLÉEN {
@@ -635,7 +635,7 @@ ajoute_fonction_type :: fonc (compilatrice: *CompilatriceModulePython, code_erre
             retourne;
         }
 
-        type_python.ajoute_méthode_new(*compilatrice.système_type, fonction);
+        ajoute_méthode_new(type_python, *compilatrice.système_type, fonction);
     }
     sinon si code_erreur == CodeErreurCompilationPython.FONCTION_REPR_REQUIERS_STRUCTURE {
         saufsi fonction_n_a_qu_un_seul_paramètre(fonction) {
@@ -648,7 +648,7 @@ ajoute_fonction_type :: fonc (compilatrice: *CompilatriceModulePython, code_erre
             retourne;
         }
 
-        type_python.ajoute_méthode_repr(*compilatrice.système_type, fonction);
+        ajoute_méthode_repr(type_python, *compilatrice.système_type, fonction);
     }
     sinon si code_erreur == CodeErreurCompilationPython.FONCTION_STR_REQUIERS_STRUCTURE {
         saufsi fonction_n_a_qu_un_seul_paramètre(fonction) {
@@ -661,7 +661,7 @@ ajoute_fonction_type :: fonc (compilatrice: *CompilatriceModulePython, code_erre
             retourne;
         }
 
-        type_python.ajoute_méthode_str(*compilatrice.système_type, fonction);
+        ajoute_méthode_str(type_python, *compilatrice.système_type, fonction);
     }
     sinon si code_erreur == CodeErreurCompilationPython.FONCTION_HASH_REQUIERS_STRUCTURE {
         saufsi fonction_n_a_qu_un_seul_paramètre(fonction) {
@@ -674,7 +674,7 @@ ajoute_fonction_type :: fonc (compilatrice: *CompilatriceModulePython, code_erre
             retourne;
         }
 
-        type_python.ajoute_méthode_hash(*compilatrice.système_type, fonction);
+        ajoute_méthode_hash(type_python, *compilatrice.système_type, fonction);
     }
 
     ajoute_module_kuri(compilatrice, compilatrice_module_pour_code(compilatrice.espace, fonction));
@@ -707,7 +707,7 @@ génère_interface_python :: fonc (compilatrice: *CompilatriceModulePython, ench
     /* Garantie la présence des modules pour les types, puisque certains types ne sont inclus que via des rubriques d'autres types. */
     pour compilatrice.système_type.types {
         module := compilatrice_module_pour_type(compilatrice.espace, it.type_kuri);
-        compilatrice.ajoute_module_kuri(module);
+        ajoute_module_kuri(compilatrice, module);
     }
 
     ajoute_au_tampon(enchaineuse, "importe Chaine;\n");
@@ -746,7 +746,7 @@ génère_interface_python :: fonc (compilatrice: *CompilatriceModulePython, ench
 
 génère_code :: fonc (compilatrice: *CompilatriceModulePython)
 {
-    discr compilatrice.génère_interface_python() {
+    discr génère_interface_python(compilatrice) {
         Quelque(source) {
             diffère déloge(*source);
             ajoute_chaine_à_la_compilation(compilatrice.espace, source);

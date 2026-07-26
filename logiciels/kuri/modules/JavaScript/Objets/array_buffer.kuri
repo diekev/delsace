@@ -25,7 +25,7 @@ array_buffer_sur_destruction :: fonc (base: *Cellule)
 
 crée_array_buffer :: fonc (realm: *Realm, bytes: [..]octet) -> *ArrayBuffer
 {
-    résultat := realm.donne_tas_de_mémoire().alloue(ArrayBuffer);
+    résultat := donne_tas_de_mémoire(realm).alloue(ArrayBuffer);
     résultat.bytes = bytes;
     retourne résultat;
 }
@@ -33,11 +33,11 @@ crée_array_buffer :: fonc (realm: *Realm, bytes: [..]octet) -> *ArrayBuffer
 /* Cette fonction n'est utilisé que par HTML pour WebIDL */
 to_array_buffer :: fonc (interpréteuse: *Interpréteuse, valeur: Valeur) -> *ArrayBuffer
 {
-    saufsi valeur.est_object() && valeur.donne_objet().table.classe == ArrayBuffer {
+    saufsi est_object(valeur) && donne_objet(valeur).table.classe == ArrayBuffer {
         _ := lance_type_error(interpréteuse, "object is not an ArrayBuffer");
         retourne nul;
     }
-    retourne valeur.donne_objet() comme *ArrayBuffer;
+    retourne donne_objet(valeur) comme *ArrayBuffer;
 }
 
 /** \} */

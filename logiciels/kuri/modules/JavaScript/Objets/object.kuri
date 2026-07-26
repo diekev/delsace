@@ -121,7 +121,7 @@ garantis_taille_tableau_élément_pour_indice :: fonc (object: *Object, indice: 
             object.éléments_indexés[it].valeur = js_undefined;
         }
 
-        si object.donne_classe() == ArrayObject {
+        si donne_classe(object) == ArrayObject {
             array := object comme *ArrayObject;
             array_set_length(array, indice + 1);
         }
@@ -146,19 +146,19 @@ is_accessor_propery :: fonc (propriété: *Object.Propriété) -> bool
 // À FAIRE : supprime
 crée_objet :: fonc (tas_de_mémoire: *TasDeMémoire, prototype: *Object) -> *Object
 {
-    résultat := tas_de_mémoire.alloue(Object);
+    résultat := alloue(tas_de_mémoire, Object);
     résultat.prototype = prototype;
     retourne résultat;
 }
 
 object_instance_crée :: fonc (realm: *Realm) -> *Object
 {
-    retourne realm.donne_tas_de_mémoire().alloue(Object);
+    retourne donne_tas_de_mémoire(realm).alloue(Object);
 }
 
 sur_destruction_objet :: fonc (base: *Cellule)
 {
-    objet := base.vérifie_comme(Object);
+    objet := vérifie_comme(base, Object);
     déloge(*objet.propriétés);
     déloge(*objet.indice_propriétés);
     déloge(*objet.éléments_indexés);
@@ -181,10 +181,10 @@ ajoute_propriété :: fonc (objet: *Object, nom: PropertyKey, get: TypeFonctionO
     getter: *Object;
     setter: *Object;
     si get {
-        getter = crée_fonction_native(objet.donne_tas_de_mémoire(), crée_chaine_utf16_unique_vide(), get, 0);
+        getter = crée_fonction_native(donne_tas_de_mémoire(objet), crée_chaine_utf16_unique_vide(), get, 0);
     }
     si set {
-        setter = crée_fonction_native(objet.donne_tas_de_mémoire(), crée_chaine_utf16_unique_vide(), set, 0);
+        setter = crée_fonction_native(donne_tas_de_mémoire(objet), crée_chaine_utf16_unique_vide(), set, 0);
     }
 
     ajoute_propriété(objet, nom, getter, setter, drapeaux);
@@ -244,19 +244,19 @@ possède_slot :: fonc (object: *Object, nom: chaine) -> bool
 /* [[GetPrototypeOf]] */
 internal_get_prototype_of :: fonc (object: *Object) -> *Object
 {
-    retourne object.donne_table().sur_get_prototype_of(object);
+    retourne donne_table(object).sur_get_prototype_of(object);
 }
 
 /* [[SetPrototypeOf]] */
 internal_set_prototype_of :: fonc (object: *Object, valeur: Valeur) -> bool
 {
-    retourne object.donne_table().sur_set_prototype_of(object, valeur);
+    retourne donne_table(object).sur_set_prototype_of(object, valeur);
 }
 
 /* [[GetOwnProperty]] */
 internal_get_own_property :: fonc (object: *Object, property_key: PropertyKey) -> Optionnel(PropertyDescriptor)
 {
-    retourne object.donne_table().sur_get_own_property(object, property_key);
+    retourne donne_table(object).sur_get_own_property(object, property_key);
 }
 
 /* [[DefineOwnProperty]] */
@@ -267,7 +267,7 @@ internal_define_own_property :: fonc (object: *Object, property_key: PropertyKey
         retourne internal_define_own_property_by_index(object, indice, desc);
     }
 
-    retourne object.donne_table().sur_define_own_property(object, property_key, desc);
+    retourne donne_table(object).sur_define_own_property(object, property_key, desc);
 }
 
 internal_define_own_property_by_index :: fonc (object: *Object, indice: n32, desc: *PropertyDescriptor) -> bool
@@ -286,19 +286,19 @@ internal_delete :: fonc (object: *Object, P: PropertyKey) -> bool
 /* [[OwnPropertyKeys]] */
 internal_own_property_keys :: fonc (object: *Object) -> [..]PropertyKey
 {
-    retourne object.donne_table().sur_own_property_keys(object);
+    retourne donne_table(object).sur_own_property_keys(object);
 }
 
 /* [[HasProperty]] */
 internal_has_property :: fonc (object: *Object, property_key: PropertyKey) -> bool
 {
-    retourne object.donne_table().sur_has_property(object, property_key);
+    retourne donne_table(object).sur_has_property(object, property_key);
 }
 
 /* [[Get]] */
 internal_get :: fonc (object: *Object, property_key: PropertyKey, receiver: Valeur) -> Valeur
 {
-    retourne object.donne_table().sur_get(object, property_key, receiver);
+    retourne donne_table(object).sur_get(object, property_key, receiver);
 }
 
 internal_get_by_index :: fonc (object: *Object, indice: n32, receiver: Valeur @inutilisée) -> Valeur
@@ -313,7 +313,7 @@ internal_get_by_index :: fonc (object: *Object, indice: n32, receiver: Valeur @i
 /* [[Set]] */
 internal_set :: fonc (object: *Object, property_key: PropertyKey, valeur: Valeur, receiver: Valeur) -> bool
 {
-    retourne object.donne_table().sur_set(object, property_key, valeur, receiver);
+    retourne donne_table(object).sur_set(object, property_key, valeur, receiver);
 }
 
 internal_set_by_index :: fonc (object: *Object, indice: n32, valeur: Valeur, receiver: Valeur @inutilisée) -> bool
@@ -331,7 +331,7 @@ internal_call :: fonc (object: *Object, interpréteuse: *Interpréteuse, this_va
     params.arguments = arguments;
     params.this_value = this_value;
     params.interpréteuse = interpréteuse;
-    retourne object.donne_table().sur_call(*params);
+    retourne donne_table(object).sur_call(*params);
 }
 
 /* [[Construct]] */
@@ -342,7 +342,7 @@ internal_construct :: fonc (object: *Object, interpréteuse: *Interpréteuse, ar
     params.arguments = arguments;
     params.new_target = new_target;
     params.interpréteuse = interpréteuse;
-    retourne object.donne_table().sur_construct(*params);
+    retourne donne_table(object).sur_construct(*params);
 }
 
 trouve_propriété :: fonc (objet: *Object, nom: PropertyKey) -> *Object.Propriété
@@ -377,10 +377,10 @@ ObjectPrototype :: struct {
 
 crée_object_prototype :: fonc (tas_de_mémoire: *TasDeMémoire) -> *ObjectPrototype
 {
-    résultat := tas_de_mémoire.alloue(ObjectPrototype);
-    résultat.ajoute_fonction_native(STR_hasOwnProperty, object_prototype_has_own_property);
-    résultat.ajoute_fonction_native(STR_toString, object_prototype_to_string);
-    résultat.ajoute_propriété(STR___proto__, object_prototype_proto_get, object_prototype_proto_set, Configurable);
+    résultat := alloue(tas_de_mémoire, ObjectPrototype);
+    ajoute_fonction_native(résultat, STR_hasOwnProperty, object_prototype_has_own_property);
+    ajoute_fonction_native(résultat, STR_toString, object_prototype_to_string);
+    ajoute_propriété(résultat, STR___proto__, object_prototype_proto_get, object_prototype_proto_set, Configurable);
     retourne résultat;
 }
 
@@ -389,14 +389,14 @@ crée_object_prototype :: fonc (tas_de_mémoire: *TasDeMémoire) -> *ObjectProto
 object_prototype_has_own_property :: fonc (empl params: *ParamètresObjectCall) -> Valeur
 {
     // 1. Let P be ? ToPropertyKey(V).
-    nom := to_property_key(interpréteuse, params.donne_argument(0));
-    si interpréteuse.possède_exception() {
+    nom := to_property_key(interpréteuse, donne_argument(params, 0));
+    si possède_exception(interpréteuse) {
         retourne js_undefined;
     }
 
     // 2. Let O be ? ToObject(this value).
-    obj := to_object(interpréteuse.donne_realm(), this_value);
-    si interpréteuse.possède_exception() {
+    obj := to_object(donne_realm(interpréteuse), this_value);
+    si possède_exception(interpréteuse) {
         retourne js_undefined;
     }
 
@@ -409,49 +409,49 @@ object_prototype_has_own_property :: fonc (empl params: *ParamètresObjectCall) 
 object_prototype_to_string :: fonc (empl params: *ParamètresObjectCall) -> Valeur
 {
     // 1. If the this value is undefined, return "[object Undefined]".
-    si this_value.est_undefined() {
-        retourne crée_chaine(interpréteuse.donne_realm(), crée_chaine_utf16_unique("[object Undefined]"));
+    si est_undefined(this_value) {
+        retourne crée_chaine(donne_realm(interpréteuse), crée_chaine_utf16_unique("[object Undefined]"));
     }
 
     // 2. If the this value is null, return "[object Null]".
-    si this_value.est_nulle() {
-        retourne crée_chaine(interpréteuse.donne_realm(), crée_chaine_utf16_unique("[object Null]"));
+    si est_nulle(this_value) {
+        retourne crée_chaine(donne_realm(interpréteuse), crée_chaine_utf16_unique("[object Null]"));
     }
 
     // 3. Let O be ! ToObject(this value).
-    O := to_object(interpréteuse.donne_realm(), this_value);
+    O := to_object(donne_realm(interpréteuse), this_value);
 
     // À FAIRE : 4. Let isArray be ? IsArray(O).
 
     builtin_tag: chaine;
 
     // 5. If isArray is true, let builtinTag be "Array".
-    si O.donne_classe() == ArrayObject {
+    si donne_classe(O) == ArrayObject {
         builtin_tag = "Array";
     }
     // À FAIRE : 6. Else if O has a [[ParameterMap]] internal slot, let builtinTag be "Arguments".
     // 7. Else if O has a [[Call]] internal method, let builtinTag be "Function".
-    sinon si O.donne_table().sur_call {
+    sinon si donne_table(O).sur_call {
         builtin_tag = "Function";
     }
     // 8. Else if O has an [[ErrorData]] internal slot, let builtinTag be "Error".
-    sinon si O.possède_slot("[[ErrorData]]") {
+    sinon si possède_slot(O, "[[ErrorData]]") {
         builtin_tag = "Error";
     }
     // 9. Else if O has a [[BooleanData]] internal slot, let builtinTag be "Boolean".
-    sinon si O.donne_classe() == BooleanObject {
+    sinon si donne_classe(O) == BooleanObject {
         builtin_tag = "Boolean";
     }
     // 10. Else if O has a [[NumberData]] internal slot, let builtinTag be "Number".
-    sinon si O.donne_classe() == NumberObject {
+    sinon si donne_classe(O) == NumberObject {
         builtin_tag = "Number";
     }
     // 11. Else if O has a [[StringData]] internal slot, let builtinTag be "String".
-    sinon si O.donne_classe() == StringObject {
+    sinon si donne_classe(O) == StringObject {
         builtin_tag = "String";
     }
     // 12. Else if O has a [[DateValue]] internal slot, let builtinTag be "Date".
-    sinon si O.donne_classe() == DateObject {
+    sinon si donne_classe(O) == DateObject {
         builtin_tag = "Date";
     }
     // À FAIRE : 13. Else if O has a [[RegExpMatcher]] internal slot, let builtinTag be "RegExp".
@@ -467,7 +467,7 @@ object_prototype_to_string :: fonc (empl params: *ParamètresObjectCall) -> Vale
     // 17. Return the string-concatenation of "[object ", tag, and "]".
     résultat := enchaine("[object ", tag, "]");
     diffère déloge(*résultat);
-    retourne crée_chaine(interpréteuse.donne_realm(), crée_chaine_utf16_unique(résultat));
+    retourne crée_chaine(donne_realm(interpréteuse), crée_chaine_utf16_unique(résultat));
 }
 
 /* 20.1.3.8 Object.prototype.__proto__
@@ -475,8 +475,8 @@ object_prototype_to_string :: fonc (empl params: *ParamètresObjectCall) -> Vale
 object_prototype_proto_get :: fonc (empl params: *ParamètresObjectCall) -> Valeur
 {
     // 1. Let O be ? ToObject(this value).
-    O := to_object(interpréteuse.donne_realm(), this_value);
-    si interpréteuse.possède_exception() {
+    O := to_object(donne_realm(interpréteuse), this_value);
+    si possède_exception(interpréteuse) {
         retourne js_undefined;
     }
 
@@ -487,31 +487,31 @@ object_prototype_proto_get :: fonc (empl params: *ParamètresObjectCall) -> Vale
 object_prototype_proto_set :: fonc (empl params: *ParamètresObjectCall) -> Valeur
 {
     // 1. Let O be ? RequireObjectCoercible(this value).
-    O := require_object_coercible(interpréteuse.donne_realm(), this_value);
-    si interpréteuse.possède_exception() {
+    O := require_object_coercible(donne_realm(interpréteuse), this_value);
+    si possède_exception(interpréteuse) {
         retourne js_undefined;
     }
 
     // 2. If proto is not an Object and proto is not null, return undefined.
-    proto := params.donne_argument(0);
-    saufsi proto.est_object() || proto.est_nulle() {
+    proto := donne_argument(params, 0);
+    saufsi est_object(proto) || est_nulle(proto) {
         retourne js_undefined;
     }
 
     // 3. If O is not an Object, return undefined.
-    saufsi O.est_object() {
+    saufsi est_object(O) {
         retourne js_undefined;
     }
 
     // 4. Let status be ? O.[[SetPrototypeOf]](proto).
-    status := internal_set_prototype_of(O.donne_objet(), proto);
-    si interpréteuse.possède_exception() {
+    status := internal_set_prototype_of(donne_objet(O), proto);
+    si possède_exception(interpréteuse) {
         retourne js_undefined;
     }
 
     // 5. If status is false, throw a TypeError exception.
     saufsi status {
-        retourne lance_type_error(interpréteuse.donne_realm(), "Object does not accept prototype");
+        retourne lance_type_error(donne_realm(interpréteuse), "Object does not accept prototype");
     }
 
     // 6. Return undefined.
@@ -542,17 +542,17 @@ ObjectConstructor :: struct {
 
 crée_object_constructor :: fonc (realm: *Realm, function_prototype: *FunctionPrototype, object_prototype: *ObjectPrototype) -> *ObjectConstructor
 {
-    tas_de_mémoire := realm.donne_tas_de_mémoire();
-    résultat := tas_de_mémoire.alloue(ObjectConstructor);
+    tas_de_mémoire := donne_tas_de_mémoire(realm);
+    résultat := alloue(tas_de_mémoire, ObjectConstructor);
     create_builtin_function(résultat, 1, STR_Object, realm, function_prototype);
 
-    résultat.ajoute_propriété(STR_prototype, Valeur(Object = object_prototype), DrapeauxPropriété.zéro);
+    ajoute_propriété(résultat, STR_prototype, Valeur(Object = object_prototype), DrapeauxPropriété.zéro);
 
-    résultat.ajoute_fonction_native(STR_getPrototypeOf, object_get_prototype_of, 1);
-    résultat.ajoute_fonction_native(STR_setPrototypeOf, object_set_prototype_of, 1);
-    résultat.ajoute_fonction_native(STR_create, object_create, 1);
+    ajoute_fonction_native(résultat, STR_getPrototypeOf, object_get_prototype_of, 1);
+    ajoute_fonction_native(résultat, STR_setPrototypeOf, object_set_prototype_of, 1);
+    ajoute_fonction_native(résultat, STR_create, object_create, 1);
 
-    object_prototype.ajoute_propriété(STR_constructor, Valeur(Object = résultat), DrapeauxPropriété.zéro);
+    ajoute_propriété(object_prototype, STR_constructor, Valeur(Object = résultat), DrapeauxPropriété.zéro);
 
     retourne résultat;
 }
@@ -564,18 +564,18 @@ crée_object_constructor :: fonc (realm: *Realm, function_prototype: *FunctionPr
  * À FAIRE : tests */
 object_constructor_call_or_construct :: fonc (empl params: *ParamètresCallOrConstruct) -> Valeur
 {
-    realm := interpréteuse.donne_realm();
+    realm := donne_realm(interpréteuse);
 
     // 1. If NewTarget is neither undefined nor the active function object, then
-    si !new_target.est_undefined() && !(new_target.est_object() && new_target.donne_objet() == interpréteuse.donne_active_function_object()) {
+    si !est_undefined(new_target) && !(est_object(new_target) && donne_objet(new_target) == donne_active_function_object(interpréteuse)) {
         // a. Return ? OrdinaryCreateFromConstructor(NewTarget, "%Object.prototype%").
-        func_new_target := new_target.donne_objet().vérifie_comme(Function);
+        func_new_target := donne_objet(new_target).vérifie_comme(Function);
         retourne ordinary_create_from_constructor(realm, func_new_target, realm.intrinsics.object_prototype, object_instance_crée);
     }
 
     // 2. If value is either undefined or null, return OrdinaryObjectCreate(%Object.prototype%).
-    value := params.donne_argument(0);
-    si value.est_undefined() || value.est_nulle() {
+    value := donne_argument(params, 0);
+    si est_undefined(value) || est_nulle(value) {
         résultat := ordinary_object_create(realm, realm.intrinsics.object_prototype, object_instance_crée);
         retourne résultat;
     }
@@ -590,15 +590,15 @@ object_constructor_call_or_construct :: fonc (empl params: *ParamètresCallOrCon
 object_create :: fonc (empl params: *ParamètresObjectCall) -> Valeur
 {
     // 1. If O is not an Object and O is not null, throw a TypeError exception.
-    O := params.donne_argument(0);
-    saufsi O.est_object() || O.est_nulle() {
+    O := donne_argument(params, 0);
+    saufsi est_object(O) || est_nulle(O) {
         message := imprime_chaine("'%' is not an Object", O);
         retourne lance_type_error(interpréteuse, message);
     }
 
     // 2. Let obj be OrdinaryObjectCreate(O).
-    realm := interpréteuse.donne_realm();
-    obj := ordinary_object_create(realm, O.donne_objet(), object_instance_crée);
+    realm := donne_realm(interpréteuse);
+    obj := ordinary_object_create(realm, donne_objet(O), object_instance_crée);
 
     // À FAIRE : 3. If Properties is not undefined, then
     //    a. Return ? ObjectDefineProperties(obj, Properties).
@@ -611,11 +611,11 @@ object_create :: fonc (empl params: *ParamètresObjectCall) -> Valeur
  * https://tc39.es/ecma262/multipage/fundamental-objects.html#sec-object.getprototypeof */
 object_get_prototype_of :: fonc (empl params: *ParamètresObjectCall) -> Valeur
 {
-    O := params.donne_argument(0);
+    O := donne_argument(params, 0);
 
     // 1. Let obj be ? ToObject(O).
-    obj := to_object(interpréteuse.donne_realm(), O);
-    si interpréteuse.possède_exception() {
+    obj := to_object(donne_realm(interpréteuse), O);
+    si possède_exception(interpréteuse) {
         retourne js_undefined;
     }
 
@@ -627,34 +627,34 @@ object_get_prototype_of :: fonc (empl params: *ParamètresObjectCall) -> Valeur
  * https://tc39.es/ecma262/multipage/fundamental-objects.html#sec-object.setprototypeof */
 object_set_prototype_of :: fonc (empl params: *ParamètresObjectCall) -> Valeur
 {
-    O := params.donne_argument(0);
+    O := donne_argument(params, 0);
 
     // 1. Set O to ? RequireObjectCoercible(O).
-    O = require_object_coercible(interpréteuse.donne_realm(), O);
-    si interpréteuse.possède_exception() {
+    O = require_object_coercible(donne_realm(interpréteuse), O);
+    si possède_exception(interpréteuse) {
         retourne js_undefined;
     }
 
     // 2. If proto is not an Object and proto is not null, throw a TypeError exception.
-    proto := params.donne_argument(1);
-    saufsi proto.est_object() || proto.est_nulle() {
-        retourne lance_type_error(interpréteuse.donne_realm(), "prototype is not an Object");
+    proto := donne_argument(params, 1);
+    saufsi est_object(proto) || est_nulle(proto) {
+        retourne lance_type_error(donne_realm(interpréteuse), "prototype is not an Object");
     }
 
     // 3. If O is not an Object, return O.
-    saufsi O.est_object() {
+    saufsi est_object(O) {
         retourne O;
     }
 
     // 4. Let status be ? O.[[SetPrototypeOf]](proto).
-    status := internal_set_prototype_of(O.donne_objet(), proto);
-    si interpréteuse.possède_exception() {
+    status := internal_set_prototype_of(donne_objet(O), proto);
+    si possède_exception(interpréteuse) {
         retourne js_undefined;
     }
 
     // 5. If status is false, throw a TypeError exception.
     saufsi status {
-        retourne lance_type_error(interpréteuse.donne_realm(), "Object does not accept prototype");
+        retourne lance_type_error(donne_realm(interpréteuse), "Object does not accept prototype");
     }
 
     // 6. Return O.

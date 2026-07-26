@@ -18,15 +18,15 @@ StringPrototype :: struct {
 
 crée_string_prototype :: fonc (realm: *Realm, prototype: *ObjectPrototype) -> *StringPrototype
 {
-    tas_de_mémoire := realm.donne_tas_de_mémoire();
-    résultat := tas_de_mémoire.alloue(StringPrototype);
+    tas_de_mémoire := donne_tas_de_mémoire(realm);
+    résultat := alloue(tas_de_mémoire, StringPrototype);
     résultat.prototype = prototype;
     résultat.string_data = crée_chaine(realm, crée_chaine_utf16_unique(""));
-    résultat.ajoute_propriété(STR_length, Valeur(Number = 0.0), DrapeauxPropriété.zéro);
+    ajoute_propriété(résultat, STR_length, Valeur(Number = 0.0), DrapeauxPropriété.zéro);
 
-    résultat.ajoute_fonction_native(STR_indexOf, string_prototype_index_of, 1);
-    résultat.ajoute_fonction_native(STR_replace, string_prototype_replace, 3);
-    résultat.ajoute_fonction_native(STR_substring, string_prototype_substring, 2);
+    ajoute_fonction_native(résultat, STR_indexOf, string_prototype_index_of, 1);
+    ajoute_fonction_native(résultat, STR_replace, string_prototype_replace, 3);
+    ajoute_fonction_native(résultat, STR_substring, string_prototype_substring, 2);
 
     retourne résultat;
 }
@@ -38,35 +38,35 @@ crée_string_prototype :: fonc (realm: *Realm, prototype: *ObjectPrototype) -> *
 string_prototype_index_of :: fonc (empl params: *ParamètresObjectCall) -> Valeur
 {
     // 1. Let O be ? RequireObjectCoercible(this value).
-    O := require_object_coercible(interpréteuse.donne_realm(), this_value);
-    si interpréteuse.possède_exception() {
+    O := require_object_coercible(donne_realm(interpréteuse), this_value);
+    si possède_exception(interpréteuse) {
         retourne js_undefined;
     }
 
     // 2. Let S be ? ToString(O).
     S := to_string(interpréteuse, O);
-    si interpréteuse.possède_exception() {
+    si possède_exception(interpréteuse) {
         retourne js_undefined;
     }
 
     // 3. Let searchStr be ? ToString(searchString).
-    search_str := to_string(interpréteuse, params.donne_argument(0));
-    si interpréteuse.possède_exception() {
+    search_str := to_string(interpréteuse, donne_argument(params, 0));
+    si possède_exception(interpréteuse) {
         retourne js_undefined;
     }
 
     // 4. Let pos be ? ToIntegerOrInfinity(position).
-    position := params.donne_argument(1);
+    position := donne_argument(params, 1);
     pos := to_integer_or_infinity(interpréteuse, position);
-    si interpréteuse.possède_exception() {
+    si possède_exception(interpréteuse) {
         retourne js_undefined;
     }
 
     // 5. Assert: If position is undefined, then pos is 0.
-    assert(!position.est_undefined() || pos == 0.0);
+    assert(!est_undefined(position) || pos == 0.0);
 
     // 6. Let len be the length of S.
-    len := S.texte.taille();
+    len := taille(S.texte);
 
     // 7. Let start be the result of clamping pos between 0 and len.
     start := pos;
@@ -90,8 +90,8 @@ string_prototype_index_of :: fonc (empl params: *ParamètresObjectCall) -> Valeu
 string_prototype_replace :: fonc (empl params: *ParamètresObjectCall) -> Valeur
 {
     // À FAIRE : implémente
-    O := require_object_coercible(interpréteuse.donne_realm(), this_value);
-    si interpréteuse.possède_exception() {
+    O := require_object_coercible(donne_realm(interpréteuse), this_value);
+    si possède_exception(interpréteuse) {
         retourne js_undefined;
     }
 
@@ -104,35 +104,35 @@ string_prototype_replace :: fonc (empl params: *ParamètresObjectCall) -> Valeur
 string_prototype_substring :: fonc (empl params: *ParamètresObjectCall) -> Valeur
 {
     // 1. Let O be ? RequireObjectCoercible(this value).
-    O := require_object_coercible(interpréteuse.donne_realm(), this_value);
-    si interpréteuse.possède_exception() {
+    O := require_object_coercible(donne_realm(interpréteuse), this_value);
+    si possède_exception(interpréteuse) {
         retourne js_undefined;
     }
 
     // 2. Let S be ? ToString(O).
     S := to_string(interpréteuse, O);
-    si interpréteuse.possède_exception() {
+    si possède_exception(interpréteuse) {
         retourne js_undefined;
     }
 
     // 3. Let len be the length of S.
-    len := S.texte.taille();
+    len := taille(S.texte);
 
     // 4. Let intStart be ? ToIntegerOrInfinity(start).
-    int_start := to_integer_or_infinity(interpréteuse, params.donne_argument(0));
-    si interpréteuse.possède_exception() {
+    int_start := to_integer_or_infinity(interpréteuse, donne_argument(params, 0));
+    si possède_exception(interpréteuse) {
         retourne js_undefined;
     }
 
     // 5. If end is undefined, let intEnd be len; else let intEnd be ? ToIntegerOrInfinity(end).
-    end := params.donne_argument(1);
+    end := donne_argument(params, 1);
     int_end: z64;
-    si end.est_undefined() {
+    si est_undefined(end) {
         int_end = len;
     }
     sinon {
         int_end = to_integer_or_infinity(interpréteuse, end) comme z64;
-        si interpréteuse.possède_exception() {
+        si possède_exception(interpréteuse) {
             retourne js_undefined;
         }
     }
@@ -162,14 +162,14 @@ string_prototype_substring :: fonc (empl params: *ParamètresObjectCall) -> Vale
     to := max(final_start, final_end comme r64) comme z64;
 
     // 10. Return the substring of S from from to to.
-    S16 := S.texte.donne_chaine_utf16();
+    S16 := donne_chaine_utf16(S.texte);
 
     substring: ChaineUTF16;
     substring.unités.données = S16.unités.données + from;
     substring.unités.taille = to - from;
 
     résultat := crée_chaine_utf16_unique(*substring);
-    retourne crée_chaine(interpréteuse.donne_realm(), résultat);
+    retourne crée_chaine(donne_realm(interpréteuse), résultat);
 }
 
 /** \} */
@@ -194,12 +194,12 @@ StringObject :: struct {
 
 crée_chaine :: fonc (tas_de_mémoire: *TasDeMémoire, string_prototype: *StringPrototype, chn: *PrimitiveChaine) -> *StringObject
 {
-    résultat := tas_de_mémoire.alloue(StringObject);
+    résultat := alloue(tas_de_mémoire, StringObject);
     résultat.prototype = string_prototype;
     résultat.chn = chn;
 
-    résultat.ajoute_propriété(STR_length, Valeur(Number = chn.texte.donne_chaine_utf16().taille() comme r64), DrapeauxPropriété.zéro);
-    résultat.ajoute_propriété(STR_prototype, Valeur(Object = string_prototype), DrapeauxPropriété.zéro);
+    ajoute_propriété(résultat, STR_length, Valeur(Number = donne_chaine_utf16(chn.texte).taille() comme r64), DrapeauxPropriété.zéro);
+    ajoute_propriété(résultat, STR_prototype, Valeur(Object = string_prototype), DrapeauxPropriété.zéro);
 
     retourne résultat;
 }
@@ -209,19 +209,19 @@ crée_chaine :: fonc (tas_de_mémoire: *TasDeMémoire, string_prototype: *String
 string_index_of :: fonc (string: ECMAString, search_value: ECMAString, from_index: z64) -> z64
 {
     // 1. Let len be the length of string.
-    len := string.taille();
+    len := taille(string);
 
     // 2. If searchValue is the empty String and fromIndex ≤ len, return fromIndex.
-    si search_value.est_vide() && from_index <= len {
+    si est_vide(search_value) && from_index <= len {
         retourne from_index;
     }
 
     // 3. Let searchLen be the length of searchValue.
-    search_len := search_value.taille();
+    search_len := taille(search_value);
 
     // 4. For each integer i such that fromIndex ≤ i ≤ len - searchLen, in ascending order, do
-    string_utf16 := string.donne_chaine_utf16();
-    search_value_utf16 := search_value.donne_chaine_utf16();
+    string_utf16 := donne_chaine_utf16(string);
+    search_value_utf16 := donne_chaine_utf16(search_value);
 
     index := from_index;
     indice_final := len - search_len;
@@ -267,13 +267,13 @@ StringConstructor :: struct {
 
 crée_string_constructor :: fonc (realm: *Realm, function_prototype: *FunctionPrototype, string_prototype: *StringPrototype) -> *StringConstructor
 {
-    tas_de_mémoire := realm.donne_tas_de_mémoire();
-    résultat := tas_de_mémoire.alloue(StringConstructor);
+    tas_de_mémoire := donne_tas_de_mémoire(realm);
+    résultat := alloue(tas_de_mémoire, StringConstructor);
     create_builtin_function(résultat, 1, STR_String, realm, function_prototype);
 
-    résultat.ajoute_propriété(STR_prototype, Valeur(Object = string_prototype), DrapeauxPropriété.zéro);
+    ajoute_propriété(résultat, STR_prototype, Valeur(Object = string_prototype), DrapeauxPropriété.zéro);
 
-    string_prototype.ajoute_propriété(STR_constructor, Valeur(Object = résultat), DrapeauxPropriété.zéro);
+    ajoute_propriété(string_prototype, STR_constructor, Valeur(Object = résultat), DrapeauxPropriété.zéro);
 
     retourne résultat;
 }

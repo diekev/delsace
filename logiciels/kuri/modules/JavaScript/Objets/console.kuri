@@ -73,7 +73,7 @@ Console :: struct {
 
 crée_console :: fonc (tas_de_mémoire: *TasDeMémoire, flux_sortie: *FluxSortieConsole, prototype: *ObjectPrototype) -> *Console
 {
-    résultat := tas_de_mémoire.alloue(Console);
+    résultat := alloue(tas_de_mémoire, Console);
     initialise_console(résultat);
     résultat.flux_sortie = flux_sortie;
     résultat.prototype = prototype;
@@ -84,7 +84,7 @@ crée_console :: fonc (tas_de_mémoire: *TasDeMémoire, flux_sortie: *FluxSortie
 
 console_sur_destruction :: fonc (base: *Cellule)
 {
-    console := base.vérifie_comme(Console);
+    console := vérifie_comme(base, Console);
     sur_destruction_objet(console);
     flux_sortie_détruit(console.flux_sortie);
     déloge(*console.chronomètres);
@@ -115,11 +115,11 @@ console_assert :: fonc (console: *Console, interpréteuse: *Interpréteuse, cond
     diffère déloge(*nouveaux_arguments);
 
     si arguments.taille == 0 {
-        chn_message := crée_chaine(interpréteuse.donne_tas_de_mémoire(), crée_chaine_utf16_unique("Assertion failed"));
+        chn_message := crée_chaine(donne_tas_de_mémoire(interpréteuse), crée_chaine_utf16_unique("Assertion failed"));
         tableau_ajoute(*nouveaux_arguments, Valeur(String = chn_message));
     }
     sinon {
-        chn_message := crée_chaine(interpréteuse.donne_tas_de_mémoire(), crée_chaine_utf16_unique("Assertion failed:"));
+        chn_message := crée_chaine(donne_tas_de_mémoire(interpréteuse), crée_chaine_utf16_unique("Assertion failed:"));
         tableau_ajoute(*nouveaux_arguments, Valeur(String = chn_message));
 
         pour arguments {
@@ -144,7 +144,7 @@ printer :: fonc (console: *Console, interpréteuse: *Interpréteuse, log_level: 
     pour arguments {
         ajoute_au_tampon(*enchaineuse, virgule);
         imprime_valeur_récursif(interpréteuse, *enchaineuse, it);
-        si interpréteuse.possède_exception() {
+        si possède_exception(interpréteuse) {
             retourne js_undefined;
         }
         virgule = " ";
@@ -160,16 +160,16 @@ printer :: fonc (console: *Console, interpréteuse: *Interpréteuse, log_level: 
 
 imprime_valeur_récursif :: fonc (interpréteuse: *Interpréteuse, enchaineuse: *Enchaineuse, valeur: Valeur)
 {
-    saufsi valeur.est_object() {
+    saufsi est_object(valeur) {
         S := to_string(interpréteuse, valeur);
-        si interpréteuse.possède_exception() {
+        si possède_exception(interpréteuse) {
             retourne;
         }
-        ajoute_au_tampon(enchaineuse, S.texte.donne_chaine_utf16());
+        ajoute_au_tampon(enchaineuse, donne_chaine_utf16(S.texte));
         retourne;
     }
 
-    objet := valeur.donne_objet();
+    objet := donne_objet(valeur);
 
     ajoute_au_tampon(enchaineuse, "{ ");
 
@@ -178,20 +178,20 @@ imprime_valeur_récursif :: fonc (interpréteuse: *Interpréteuse, enchaineuse: 
     pour prop dans objet.propriétés {
         ajoute_au_tampon(enchaineuse, virgule, prop.nom, ": ");
         imprime_valeur_récursif(interpréteuse, enchaineuse, prop.valeur);
-        si interpréteuse.possède_exception() {
+        si possède_exception(interpréteuse) {
             retourne;
         }
         virgule = ", ";
     }
 
     pour prop, indice_prop dans objet.éléments_indexés {
-        si prop.valeur.est_undefined() {
+        si est_undefined(prop.valeur) {
             continue;
         }
 
         ajoute_au_tampon(enchaineuse, virgule, indice_prop, ": ");
         imprime_valeur_récursif(interpréteuse, enchaineuse, prop.valeur);
-        si interpréteuse.possède_exception() {
+        si possède_exception(interpréteuse) {
             retourne;
         }
         virgule = ", ";
@@ -228,18 +228,18 @@ time_end :: fonc (console: *Console, interpréteuse: *Interpréteuse, nom: ECMAS
             continue;
         }
 
-        temps := it.début.temps_écoulé_millisecondes();
+        temps := temps_écoulé_millisecondes(it.début);
 
         chn_temps := imprime_chaine("%: % ms", nom, temps);
 
-        valeur_chn_temps := Valeur(String = crée_chaine(interpréteuse.donne_tas_de_mémoire(), crée_chaine_utf16_unique(chn_temps)));
+        valeur_chn_temps := Valeur(String = crée_chaine(donne_tas_de_mémoire(interpréteuse), crée_chaine_utf16_unique(chn_temps)));
 
         arguments: []Valeur;
         arguments.données = *valeur_chn_temps;
         arguments.taille = 1;
 
         résultat = printer(console, interpréteuse, LogLevel.TIME_END, arguments);
-        si interpréteuse.possède_exception() {
+        si possède_exception(interpréteuse) {
             retourne js_undefined;
         }
         indice_chronomètre = indice_it;
@@ -280,7 +280,7 @@ count :: fonc (console: *Console, interpréteuse: *Interpréteuse, nom: ECMAStri
     concat := imprime_chaine("%: %", nom, compteuse.compte);
     diffère déloge(*concat);
 
-    valeur_concat := Valeur(String = crée_chaine(interpréteuse.donne_tas_de_mémoire(), crée_chaine_utf16_unique(concat)));
+    valeur_concat := Valeur(String = crée_chaine(donne_tas_de_mémoire(interpréteuse), crée_chaine_utf16_unique(concat)));
 
     // 5. Perform Logger("count", « concat »).
     arguments: []Valeur;
@@ -310,7 +310,7 @@ count_reset :: fonc (console: *Console, interpréteuse: *Interpréteuse, nom: EC
     diffère déloge(*message);
 
     chn_message := crée_chaine_utf16_unique(message);
-    valeur_message := Valeur(String = crée_chaine(interpréteuse.donne_tas_de_mémoire(), chn_message));
+    valeur_message := Valeur(String = crée_chaine(donne_tas_de_mémoire(interpréteuse), chn_message));
 
     // 2. Perform Logger("countReset", « message »);
     arguments: []Valeur;
@@ -325,42 +325,42 @@ initialise_console :: fonc (console: *Console)
     /* https://console.spec.whatwg.org/#log */
     fonction_native_log :: fonc (empl params: *ParamètresObjectCall) -> Valeur
     {
-        console := this_value.donne_objet().vérifie_comme(Console);
+        console := donne_objet(this_value).vérifie_comme(Console);
         retourne logger(console, interpréteuse, LogLevel.LOG, arguments);
     }
 
     /* https://console.spec.whatwg.org/#warn */
     fonction_native_warn :: fonc (empl params: *ParamètresObjectCall) -> Valeur
     {
-        console := this_value.donne_objet().vérifie_comme(Console);
+        console := donne_objet(this_value).vérifie_comme(Console);
         retourne logger(console, interpréteuse, LogLevel.WARN, arguments);
     }
 
     /* https://console.spec.whatwg.org/#debug */
     fonction_native_debug :: fonc (empl params: *ParamètresObjectCall) -> Valeur
     {
-        console := this_value.donne_objet().vérifie_comme(Console);
+        console := donne_objet(this_value).vérifie_comme(Console);
         retourne logger(console, interpréteuse, LogLevel.DEBUG, arguments);
     }
 
     /* https://console.spec.whatwg.org/#info */
     fonction_native_info :: fonc (empl params: *ParamètresObjectCall) -> Valeur
     {
-        console := this_value.donne_objet().vérifie_comme(Console);
+        console := donne_objet(this_value).vérifie_comme(Console);
         retourne logger(console, interpréteuse, LogLevel.INFO, arguments);
     }
 
     /* https://console.spec.whatwg.org/#error */
     fonction_native_error :: fonc (empl params: *ParamètresObjectCall) -> Valeur
     {
-        console := this_value.donne_objet().vérifie_comme(Console);
+        console := donne_objet(this_value).vérifie_comme(Console);
         retourne logger(console, interpréteuse, LogLevel.ERROR, arguments);
     }
 
     /* https://console.spec.whatwg.org/#clear */
     fonction_native_clear :: fonc (empl params: *ParamètresObjectCall) -> Valeur
     {
-        console := this_value.donne_objet().vérifie_comme(Console);
+        console := donne_objet(this_value).vérifie_comme(Console);
         flux_sortie_efface(console.flux_sortie);
         retourne js_undefined;
     }
@@ -368,13 +368,13 @@ initialise_console :: fonc (console: *Console)
     /* https://console.spec.whatwg.org/#assert */
     fonction_native_assert :: fonc (empl params: *ParamètresObjectCall) -> Valeur
     {
-        console := this_value.donne_objet().vérifie_comme(Console);
+        console := donne_objet(this_value).vérifie_comme(Console);
 
         si arguments.taille == 0 {
             retourne js_undefined;
         }
 
-        condition := to_boolean(params.donne_argument(0));
+        condition := to_boolean(donne_argument(params, 0));
 
         arguments.données += 1;
         arguments.taille -= 1;
@@ -384,83 +384,83 @@ initialise_console :: fonc (console: *Console)
 
     fonction_native_time :: fonc (empl params: *ParamètresObjectCall) -> Valeur
     {
-        console := this_value.donne_objet().vérifie_comme(Console);
+        console := donne_objet(this_value).vérifie_comme(Console);
 
         si arguments.taille == 0 {
             retourne js_undefined;
         }
 
-        S := to_string(interpréteuse, params.donne_argument(0));
-        si interpréteuse.possède_exception() {
+        S := to_string(interpréteuse, donne_argument(params, 0));
+        si possède_exception(interpréteuse) {
             retourne js_undefined;
         }
 
-        console.time(S.texte);
+        time(console, S.texte);
 
         retourne js_undefined;
     }
 
     fonction_native_time_end :: fonc (empl params: *ParamètresObjectCall) -> Valeur
     {
-        console := this_value.donne_objet().vérifie_comme(Console);
+        console := donne_objet(this_value).vérifie_comme(Console);
 
         si arguments.taille == 0 {
             retourne js_undefined;
         }
 
-        S := to_string(interpréteuse, params.donne_argument(0));
-        si interpréteuse.possède_exception() {
+        S := to_string(interpréteuse, donne_argument(params, 0));
+        si possède_exception(interpréteuse) {
             retourne js_undefined;
         }
 
-        retourne console.time_end(interpréteuse, S.texte);
+        retourne time_end(console, interpréteuse, S.texte);
     }
 
     fonction_native_count :: fonc (empl params: *ParamètresObjectCall) -> Valeur
     {
-        console := this_value.donne_objet().vérifie_comme(Console);
+        console := donne_objet(this_value).vérifie_comme(Console);
 
         si arguments.taille == 0 {
             retourne js_undefined;
         }
 
-        S := to_string(interpréteuse, params.donne_argument(0));
-        si interpréteuse.possède_exception() {
+        S := to_string(interpréteuse, donne_argument(params, 0));
+        si possède_exception(interpréteuse) {
             retourne js_undefined;
         }
 
-        console.count(interpréteuse, S.texte);
+        count(console, interpréteuse, S.texte);
         retourne js_undefined;
     }
 
     fonction_native_count_reset :: fonc (empl params: *ParamètresObjectCall) -> Valeur
     {
-        console := this_value.donne_objet().vérifie_comme(Console);
+        console := donne_objet(this_value).vérifie_comme(Console);
 
         si arguments.taille == 0 {
             retourne js_undefined;
         }
 
-        S := to_string(interpréteuse, params.donne_argument(0));
-        si interpréteuse.possède_exception() {
+        S := to_string(interpréteuse, donne_argument(params, 0));
+        si possède_exception(interpréteuse) {
             retourne js_undefined;
         }
 
-        console.count_reset(interpréteuse, S.texte);
+        count_reset(console, interpréteuse, S.texte);
         retourne js_undefined;
     }
 
-    console.ajoute_fonction_native("log", fonction_native_log);
-    console.ajoute_fonction_native("warn", fonction_native_warn);
-    console.ajoute_fonction_native("debug", fonction_native_debug);
-    console.ajoute_fonction_native("info", fonction_native_info);
-    console.ajoute_fonction_native("error", fonction_native_error);
-    console.ajoute_fonction_native("clear", fonction_native_clear);
-    console.ajoute_fonction_native("assert", fonction_native_assert);
-    console.ajoute_fonction_native("time", fonction_native_time);
-    console.ajoute_fonction_native("timeEnd", fonction_native_time_end);
-    console.ajoute_fonction_native("count", fonction_native_count);
-    console.ajoute_fonction_native("countReset", fonction_native_count_reset);
+    ajoute_fonction_native(console, "log", fonction_native_log);
+    ajoute_fonction_native(console, "warn", fonction_native_warn);
+    ajoute_fonction_native(console, "debug", fonction_native_debug);
+    ajoute_fonction_native(console, "info", fonction_native_info);
+    ajoute_fonction_native(console, "error", fonction_native_error);
+    ajoute_fonction_native(console, "clear", fonction_native_clear);
+    ajoute_fonction_native(console, "assert", fonction_native_assert);
+    ajoute_fonction_native(console, "time", fonction_native_time);
+    ajoute_fonction_native(console, "timeEnd", fonction_native_time_end);
+    ajoute_fonction_native(console, "count", fonction_native_count);
+    ajoute_fonction_native(console, "countReset", fonction_native_count_reset);
 }
 
 /** \} */

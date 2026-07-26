@@ -49,16 +49,16 @@ html_element_sur_changement_attribut :: fonc (élément: *Element, local_name: D
     si local_name == TAG_style {
         CSS.détruit_style_declaration(élément.style);
 
-        si valeur == nul || mémoire(valeur).est_vide() {
+        si valeur == nul || est_vide(mémoire(valeur)) {
             élément.style = nul;
         }
         sinon si rendu_css_est_requis(élément) {
-            valeur_texte := mémoire(valeur).donne_chaine_utf16();
+            valeur_texte := donne_chaine_utf16(mémoire(valeur));
             élément.style = CSS.parse_attribut_style(valeur_texte);
             élément.style.owner_node = élément;
         }
 
-        élément.document.invalide_style_depuis_élément(élément);
+        invalide_style_depuis_élément(élément.document, élément);
         retourne vrai;
     }
 
@@ -67,7 +67,7 @@ html_element_sur_changement_attribut :: fonc (élément: *Element, local_name: D
         // 1. À FAIRE : If element does not include HTMLOrSVGElement, then return.
 
         // 2. If localName is not nonce or namespace is not null, then return.
-        si espace_de_nom.possède_valeur() {
+        si possède_valeur(espace_de_nom) {
             retourne vrai;
         }
 
@@ -103,7 +103,7 @@ gère_changement_attribut_event_handler :: fonc (élément: *Element, local_name
     }
 
     // 1. If namespace is not null, or localName is not the name of an event handler content attribute on element, then return.
-    si espace_de_nom.possède_valeur() || !is_event_handler_content_attribute_name(local_name) {
+    si possède_valeur(espace_de_nom) || !is_event_handler_content_attribute_name(local_name) {
         retourne faux;
     }
 
@@ -122,7 +122,7 @@ gère_changement_attribut_event_handler :: fonc (élément: *Element, local_name
     // 5. Otherwise:
     sinon {
         // 1. If the Should element's inline behavior be blocked by Content Security Policy? algorithm returns "Blocked" when executed upon element, "script attribute", and value, then return. [CSP]
-        valeur_chaine := convertis_vers_chaine(mémoire(valeur).donne_chaine_utf16());
+        valeur_chaine := convertis_vers_chaine(donne_chaine_utf16(mémoire(valeur)));
         diffère déloge(*valeur_chaine);
 
         bloqué := should_element_s_inline_behavior_be_blocked(élément, "script attribute", valeur_chaine);
@@ -210,8 +210,8 @@ est_compatible_html5 :: fonc (élément: *Element) -> bool
 
 donne_referrerpolicy_content_attribute_state :: fonc (élément: *Element) -> ReferrerPolicy
 {
-    referrer_policy := élément.donne_attribut_ou_chaine_vide(ATTR_referrerpolicy);
-    chn_referrer_policy := convertis_vers_chaine(referrer_policy.donne_chaine_utf16());
+    referrer_policy := donne_attribut_ou_chaine_vide(élément, ATTR_referrerpolicy);
+    chn_referrer_policy := convertis_vers_chaine(donne_chaine_utf16(referrer_policy));
     diffère déloge(*chn_referrer_policy);
 
     si compare_ascii_insensible_à_la_casse(chn_referrer_policy, "no-referrer") {
@@ -258,12 +258,12 @@ CORSAttributeState :: énum n8 {
 
 donne_cross_origin_content_attribute_state :: fonc (élément: *Element) -> CORSAttributeState
 {
-    crossorigin := élément.donne_attribut_ou_chaine_vide(ATTR_crossorigin);
-    si crossorigin.est_vide() {
+    crossorigin := donne_attribut_ou_chaine_vide(élément, ATTR_crossorigin);
+    si est_vide(crossorigin) {
         retourne CORSAttributeState.NO_CORS;
     }
 
-    chn_crossorigin := convertis_vers_chaine(crossorigin.donne_chaine_utf16());
+    chn_crossorigin := convertis_vers_chaine(donne_chaine_utf16(crossorigin));
     diffère déloge(*chn_crossorigin);
 
     si compare_ascii_insensible_à_la_casse(chn_crossorigin, "anonymous") {
@@ -285,12 +285,12 @@ FetchPriorityState :: énum n8 {
 
 donne_fetch_priority_content_attribute_state :: fonc (élément: *Element) -> FetchPriorityState
 {
-    fetchpriority := élément.donne_attribut_ou_chaine_vide(ATTR_fetchpriority);
-    si fetchpriority.est_vide() {
+    fetchpriority := donne_attribut_ou_chaine_vide(élément, ATTR_fetchpriority);
+    si est_vide(fetchpriority) {
         retourne FetchPriorityState.Auto;
     }
 
-    chn_fetchpriority := convertis_vers_chaine(fetchpriority.donne_chaine_utf16());
+    chn_fetchpriority := convertis_vers_chaine(donne_chaine_utf16(fetchpriority));
     diffère déloge(*chn_fetchpriority);
 
     si compare_ascii_insensible_à_la_casse(chn_fetchpriority, "high") {
@@ -380,7 +380,7 @@ ajoute_pseudo_classe :: fonc (élément: *Element, pseudo_classe: CSS.PseudoClas
 
     élément.pseudo_classes |= pseudo_classe;
     assert(élément.document != nul);
-    élément.document.invalide_style(élément, pseudo_classe);
+    invalide_style(élément.document, élément, pseudo_classe);
 }
 
 enlève_pseudo_classe :: fonc (élément: *Element, pseudo_classe: CSS.PseudoClasses)
@@ -391,7 +391,7 @@ enlève_pseudo_classe :: fonc (élément: *Element, pseudo_classe: CSS.PseudoCla
 
     élément.pseudo_classes &= ~pseudo_classe;
     assert(élément.document != nul);
-    élément.document.invalide_style(élément, pseudo_classe);
+    invalide_style(élément.document, élément, pseudo_classe);
 }
 
 est_en_train_d_être_activé :: fonc (élément: *Element, ouinon: bool)
@@ -399,10 +399,10 @@ est_en_train_d_être_activé :: fonc (élément: *Element, ouinon: bool)
     /* À FAIRE : gère tous les cas/différencie les niveaux d'activation ?
      * https://html.spec.whatwg.org/multipage/semantics-other.html#concept-selector-active */
     si ouinon {
-        élément.ajoute_pseudo_classe(CSS.PseudoClasses.Active);
+        ajoute_pseudo_classe(élément, CSS.PseudoClasses.Active);
     }
     sinon {
-        élément.enlève_pseudo_classe(CSS.PseudoClasses.Active);
+        enlève_pseudo_classe(élément, CSS.PseudoClasses.Active);
     }
 }
 
@@ -435,7 +435,7 @@ allows_adding_render_blocking_elements :: fonc (document: *Document) -> bool
 is_render_blocked :: fonc (document: *Document) -> bool
 {
     // document's render-blocking element set is non-empty, or document allows adding render-blocking elements.
-    si document.render_blocking_elements.taille != 0 || document.allows_adding_render_blocking_elements() {
+    si document.render_blocking_elements.taille != 0 || allows_adding_render_blocking_elements(document) {
         retourne vrai;
     }
 
@@ -457,7 +457,7 @@ block_rendering_on :: fonc (el: *Element)
 
     // 2. If document allows adding render-blocking elements,
     //    then append el to document's render-blocking element set.
-    si document.allows_adding_render_blocking_elements() {
+    si allows_adding_render_blocking_elements(document) {
         tableau_ajoute(*document.render_blocking_elements, el);
     }
 }
@@ -565,7 +565,7 @@ donne_inner_html :: fonc (élément: *Element) -> ChaineUTF16
 définis_inner_html :: fonc (élément: *Element, texte: DOMString)
 {
     // À FAIRE : 1. Let compliantString be the result of invoking the Get Trusted Type compliant string algorithm with TrustedHTML, this's relevant global object, the given value, "Element innerHTML", and "script".
-    compliant_string := texte.donne_chaine_utf16();
+    compliant_string := donne_chaine_utf16(texte);
 
     // 2. Let context be this.
     context : *Node = élément;
@@ -582,7 +582,7 @@ définis_inner_html :: fonc (élément: *Element, texte: DOMString)
     replace_all(fragment, context);
 
     // À FAIRE : reconstruction partielle de l'arbre
-    élément.document.invalide_style();
+    invalide_style(élément.document);
 }
 
 /** \} */
@@ -755,8 +755,8 @@ is_valid_custom_element_name :: fonc (name: DOMString) -> bool
         retourne faux;
     }
 
-    chn := name.donne_chaine_utf16();
-    assert(chn.taille() != 0);
+    chn := donne_chaine_utf16(name);
+    assert(taille(chn) != 0);
 
     // name's 0th code point is an ASCII lower alpha;
     saufsi est_lettre_minuscule_ascii(chn.unités[0]) {
@@ -839,11 +839,11 @@ anchor_element_sur_changement_attribut :: fonc (base: *Element, local_name: DOMS
     anchor := base comme *HTMLAnchorElement;
 
     si local_name == ATTR_href {
-        si valeur == nul || mémoire(valeur).est_vide() {
-            anchor.enlève_pseudo_classe(CSS.PseudoClasses.Link);
+        si valeur == nul || est_vide(mémoire(valeur)) {
+            enlève_pseudo_classe(anchor, CSS.PseudoClasses.Link);
         }
         sinon {
-            anchor.ajoute_pseudo_classe(CSS.PseudoClasses.Link);
+            ajoute_pseudo_classe(anchor, CSS.PseudoClasses.Link);
         }
 
         retourne vrai;
@@ -919,12 +919,12 @@ donne_user_navigation_involvement :: fonc (event: *Event) -> UserNavigationInvol
 cannot_navigate :: fonc (element: *Element) -> bool
 {
     // element's node document is not fully active; or
-    saufsi element.document.est_fully_active() {
+    saufsi est_fully_active(element.document) {
         retourne vrai;
     }
 
     // element is not an a element and is not connected.
-    si element.local_name != TAG_a && !element.est_connecté() {
+    si element.local_name != TAG_a && !est_connecté(element) {
         retourne vrai;
     }
 
@@ -987,18 +987,18 @@ follow_the_hyperlink :: fonc (subject: *Element, hyperlink_suffix := crée_chain
     }
 
     // 8. Let urlString be the result of encoding-parsing-and-serializing a URL given subject's href attribute value, relative to subject's node document.
-    chn_href := subject.donne_attribut_ou_chaine_vide(ATTR_href);
+    chn_href := donne_attribut_ou_chaine_vide(subject, ATTR_href);
     opt_url_string := encoding_parse_and_serialize_a_url(chn_href, subject.document);
 
     // 9. If urlString is failure, then return.
-    saufsi opt_url_string.possède_valeur() {
+    saufsi possède_valeur(opt_url_string) {
         retourne;
     }
     url_string := opt_url_string.Quelque;
 
     // 10. If hyperlinkSuffix is non-null, then append it to urlString.
-    saufsi hyperlink_suffix.est_vide() {
-        chn_hyperlink_suffix := convertis_vers_chaine(hyperlink_suffix.donne_chaine_utf16());
+    saufsi est_vide(hyperlink_suffix) {
+        chn_hyperlink_suffix := convertis_vers_chaine(donne_chaine_utf16(hyperlink_suffix));
         chaine_ajoute(*url_string, chn_hyperlink_suffix);
     }
 
@@ -1015,7 +1015,7 @@ follow_the_hyperlink :: fonc (subject: *Element, hyperlink_suffix := crée_chain
 
     // 13. Navigate targetNavigable to urlString using subject's node document, with referrerPolicy set to referrerPolicy and userInvolvement set to userInvolvement.
     source_document := subject.document;
-    user_agent := source_document.donne_user_agent();
+    user_agent := donne_user_agent(source_document);
     url := url_parser(user_agent, url_string);
 
     params: ParamètresNavigationNavigable;
@@ -1030,19 +1030,19 @@ follow_the_hyperlink :: fonc (subject: *Element, hyperlink_suffix := crée_chain
 get_an_element_s_target :: fonc (element: *Element, target := crée_chaine_utf16_unique_vide()) -> DOMString
 {
     // 1. If target is null, then:
-    si target.est_vide() {
+    si est_vide(target) {
         // 1. If element has a target attribute, then set target to that attribute's value.
-        attr_target := element.donne_attribut(ATTR_target);
-        si attr_target.possède_valeur() {
+        attr_target := donne_attribut(element, ATTR_target);
+        si possède_valeur(attr_target) {
             target = attr_target.Quelque;
         }
         // À FAIRE : 2. Otherwise, if element's node document contains a base element with a target attribute, set target to the value of the target attribute of the first such base element.
     }
 
     // 2. If target is not null, and contains an ASCII tab or newline and a U+003C (<), then set target to "_blank".
-    saufsi target.est_vide() {
-        chn_target := target.donne_chaine_utf16();
-        si chn_target.taille() == 2 && (chn_target.unités[0] == '\t' comme n8 || chn_target.unités[0] == '\n' comme n8) && chn_target.unités[1] == '<' comme n8 {
+    saufsi est_vide(target) {
+        chn_target := donne_chaine_utf16(target);
+        si taille(chn_target) == 2 && (chn_target.unités[0] == '\t' comme n8 || chn_target.unités[0] == '\n' comme n8) && chn_target.unités[1] == '<' comme n8 {
             target = ATTR__blank;
         }
     }
@@ -1057,7 +1057,7 @@ encoding_parse_and_serialize_a_url :: fonc (url: DOMString, document: *Document)
     // À FAIRE : standardise
     base_url := donne_base_url(document);
 
-    url_src := url_parser(document.donne_user_agent(), url.donne_chaine_utf16(), base = base_url);
+    url_src := url_parser(donne_user_agent(document), donne_chaine_utf16(url), base = base_url);
     diffère détruit_url(url_src);
     saufsi url_src {
         retourne;
@@ -1068,20 +1068,20 @@ encoding_parse_and_serialize_a_url :: fonc (url: DOMString, document: *Document)
 
 encoding_parse_a_url :: fonc (url: DOMString, document: *Document) -> *URL
 {
-    retourne encoding_parse_a_url(url.donne_chaine_utf16(), document);
+    retourne encoding_parse_a_url(donne_chaine_utf16(url), document);
 }
 
 encoding_parse_a_url :: fonc (url: ChaineUTF16, document: *Document) -> *URL
 {
     // À FAIRE : standardise
     base_url := donne_base_url(document);
-    retourne url_parser(document.donne_user_agent(), url, base = base_url);
+    retourne url_parser(donne_user_agent(document), url, base = base_url);
 }
 
 encoding_parse_a_url :: fonc (user_agent: *UserAgent, url: DOMString, base_url: *URL) -> *URL
 {
     // À FAIRE : standardise
-    retourne url_parser(user_agent, url.donne_chaine_utf16(), base = base_url);
+    retourne url_parser(user_agent, donne_chaine_utf16(url), base = base_url);
 }
 
 /** \} */
@@ -1093,7 +1093,7 @@ encoding_parse_a_url :: fonc (user_agent: *UserAgent, url: DOMString, base_url: 
 
 donne_link_types :: fonc (element: *Element) -> [..]DOMString
 {
-    rel := element.donne_attribut_ou_chaine_vide(ATTR_rel);
+    rel := donne_attribut_ou_chaine_vide(element, ATTR_rel);
     retourne run_ordered_set_parser(rel);
 }
 
@@ -1146,8 +1146,8 @@ body_element_sur_applique_presentational_hints :: fonc (base: *Element, résolve
 
 ajoute_propriété_pour_legacy_colour_value :: fonc (résolveuse: *CSS.RésolveuseStyle, élément: *Element, nom_attribut: DOMString, nom_propriété: CSS.CSSOMString)
 {
-    opt_attribut := élément.donne_attribut(nom_attribut);
-    si opt_attribut.possède_valeur() {
+    opt_attribut := donne_attribut(élément, nom_attribut);
+    si possède_valeur(opt_attribut) {
         ajoute_propriété_pour_couleur(résolveuse, nom_propriété, opt_attribut.Quelque);
     }
 }
@@ -1155,7 +1155,7 @@ ajoute_propriété_pour_legacy_colour_value :: fonc (résolveuse: *CSS.Résolveu
 ajoute_propriété_pour_couleur :: fonc (résolveuse: *CSS.RésolveuseStyle, nom_propriété: CSS.CSSOMString, texte: DOMString)
 {
     opt_couleur := parse_a_legacy_colour_value(texte);
-    saufsi opt_couleur.possède_valeur() {
+    saufsi possède_valeur(opt_couleur) {
         retourne;
     }
 
@@ -1169,10 +1169,10 @@ ajoute_propriété_pour_mot_clé :: fonc (résolveuse: *CSS.RésolveuseStyle, no
 
 ajoute_propriété_pour_dimension :: fonc (résolveuse: *CSS.RésolveuseStyle, élément: *Element, nom_attribut: DOMString, nom_propriété: CSS.CSSOMString)
 {
-    opt_attribut := élément.donne_attribut(nom_attribut);
-    si opt_attribut.possède_valeur() {
+    opt_attribut := donne_attribut(élément, nom_attribut);
+    si possède_valeur(opt_attribut) {
         valeur := parse_a_dimension_value(opt_attribut.Quelque);
-        si valeur.possède_valeur() {
+        si possède_valeur(valeur) {
             ajoute_propriété_pour_dimension(résolveuse, nom_propriété, valeur.Quelque);
         }
     }
@@ -1180,10 +1180,10 @@ ajoute_propriété_pour_dimension :: fonc (résolveuse: *CSS.RésolveuseStyle, �
 
 ajoute_propriété_pour_pixel_length :: fonc (résolveuse: *CSS.RésolveuseStyle, élément: *Element, nom_attribut: DOMString, nom_propriété: CSS.CSSOMString)
 {
-    opt_attribut := élément.donne_attribut(nom_attribut);
-    si opt_attribut.possède_valeur() {
+    opt_attribut := donne_attribut(élément, nom_attribut);
+    si possède_valeur(opt_attribut) {
         valeur := parse_a_non_negative_integer(opt_attribut.Quelque);
-        si valeur.possède_valeur() {
+        si possède_valeur(valeur) {
             CSS.ajoute_presentational_hint(résolveuse, nom_propriété, CSS.crée_valeur_pixels(valeur.Quelque comme r64));
         }
     }
@@ -1191,10 +1191,10 @@ ajoute_propriété_pour_pixel_length :: fonc (résolveuse: *CSS.RésolveuseStyle
 
 ajoute_propriété_pour_non_zero_dimension :: fonc (résolveuse: *CSS.RésolveuseStyle, élément: *Element, nom_attribut: DOMString, nom_propriété: CSS.CSSOMString)
 {
-    opt_attribut := élément.donne_attribut(nom_attribut);
-    si opt_attribut.possède_valeur() {
+    opt_attribut := donne_attribut(élément, nom_attribut);
+    si possède_valeur(opt_attribut) {
         valeur := parse_a_non_zero_dimension(opt_attribut.Quelque);
-        si valeur.possède_valeur() {
+        si possède_valeur(valeur) {
             ajoute_propriété_pour_dimension(résolveuse, nom_propriété, valeur.Quelque);
         }
     }
@@ -1447,7 +1447,7 @@ donne_button_element_state :: fonc (button: *HTMLButtonElement) -> ButtonElement
     résultat := ButtonElementState.AUTO;
 
     opt_attr := donne_attribut(button, ATTR_type);
-    si opt_attr.possède_valeur() {
+    si possède_valeur(opt_attr) {
         attr := opt_attr.Quelque;
 
         si attr == ATTR_submit {
@@ -1505,7 +1505,7 @@ get_context :: fonc (canvas: *HTMLCanvasElement, context_id: DOMString) -> *Rend
         retourne canvas.ctx;
     }
 
-    si context_id.donne_chaine_utf16() == "2d" {
+    si donne_chaine_utf16(context_id) == "2d" {
         résultat := crée_canvas_rendering_context_2d(canvas);
         canvas.ctx = résultat;
         canvas.context_id = context_id;
@@ -1517,10 +1517,10 @@ get_context :: fonc (canvas: *HTMLCanvasElement, context_id: DOMString) -> *Rend
 
 donne_largeur_intrinsèque :: fonc (canvas: *HTMLCanvasElement) -> r64
 {
-    opt_attribut := canvas.donne_attribut(ATTR_width);
-    si opt_attribut.possède_valeur() {
+    opt_attribut := donne_attribut(canvas, ATTR_width);
+    si possède_valeur(opt_attribut) {
         valeur := parse_a_non_zero_dimension(opt_attribut.Quelque);
-        si valeur.possède_valeur() {
+        si possède_valeur(valeur) {
             retourne valeur.Quelque.Length;
         }
     }
@@ -1530,10 +1530,10 @@ donne_largeur_intrinsèque :: fonc (canvas: *HTMLCanvasElement) -> r64
 
 donne_hauteur_intrinsèque :: fonc (canvas: *HTMLCanvasElement) -> r64
 {
-    opt_attribut := canvas.donne_attribut(ATTR_height);
-    si opt_attribut.possède_valeur() {
+    opt_attribut := donne_attribut(canvas, ATTR_height);
+    si possède_valeur(opt_attribut) {
         valeur := parse_a_non_zero_dimension(opt_attribut.Quelque);
-        si valeur.possède_valeur() {
+        si possède_valeur(valeur) {
             retourne valeur.Quelque.Length;
         }
     }
@@ -1543,8 +1543,8 @@ donne_hauteur_intrinsèque :: fonc (canvas: *HTMLCanvasElement) -> r64
 
 donne_tampon_de_rendu :: fonc (canvas: *HTMLCanvasElement) -> TamponDeRendu
 {
-    hauteur := canvas.donne_hauteur_intrinsèque();
-    largeur := canvas.donne_largeur_intrinsèque();
+    hauteur := donne_hauteur_intrinsèque(canvas);
+    largeur := donne_largeur_intrinsèque(canvas);
     rect: RectanglePosDim(z32);
     rect.hauteur = hauteur comme z32;
     rect.largeur = largeur comme z32;
@@ -1560,7 +1560,7 @@ donne_tampon_de_rendu :: fonc (canvas: *HTMLCanvasElement) -> TamponDeRendu
 // À FAIRE : [Reflect]
 donne_width :: fonc (canvas: *HTMLCanvasElement) -> n32
 {
-    retourne canvas.donne_largeur_intrinsèque() comme n32;
+    retourne donne_largeur_intrinsèque(canvas) comme n32;
 }
 définis_width :: fonc (canvas: *HTMLCanvasElement, valeur: n32)
 {
@@ -1571,7 +1571,7 @@ définis_width :: fonc (canvas: *HTMLCanvasElement, valeur: n32)
 }
 donne_height :: fonc (canvas: *HTMLCanvasElement) -> n32
 {
-    retourne canvas.donne_hauteur_intrinsèque() comme n32;
+    retourne donne_hauteur_intrinsèque(canvas) comme n32;
 }
 définis_height :: fonc (canvas: *HTMLCanvasElement, valeur: n32)
 {
@@ -1610,15 +1610,15 @@ font_element_sur_applique_presentational_hints :: fonc (base: *Element, résolve
     font := base comme *HTMLFontElement;
 
     opt_color := donne_attribut(font, ATTR_color);
-    si opt_color.possède_valeur() {
+    si possède_valeur(opt_color) {
         color := opt_color.Quelque;
         ajoute_propriété_pour_couleur(résolveuse, CSS.PROP_color, color);
     }
 
     opt_size := donne_attribut(font, ATTR_size);
-    si opt_size.possède_valeur() {
+    si possède_valeur(opt_size) {
         opt_font_size := parse_a_legacy_font_size(opt_size.Quelque);
-        si opt_font_size.possède_valeur() {
+        si possède_valeur(opt_font_size) {
             ajoute_propriété_pour_mot_clé(résolveuse, CSS.PROP_font_size, opt_font_size.Quelque);
         }
     }
@@ -1630,7 +1630,7 @@ font_element_sur_applique_presentational_hints :: fonc (base: *Element, résolve
 parse_a_legacy_font_size :: fonc (attribute_value: DOMString) -> Optionnel(CSS.CSSOMString)
 {
     // 1. Let input be the attribute's value.
-    input := attribute_value.donne_chaine_utf16();
+    input := donne_chaine_utf16(attribute_value);
 
     // 2. Let position be a pointer into input, initially pointing at the start of the string.
     position := PositionVariable(input.unités.données);
@@ -1639,7 +1639,7 @@ parse_a_legacy_font_size :: fonc (attribute_value: DOMString) -> Optionnel(CSS.C
     skip_ascii_whitespace(input, *position);
 
     // 4. If position is past the end of input, there is no presentational hint. Return.
-    fin := input.unités.données + input.taille();
+    fin := input.unités.données + taille(input);
     si position.position >= fin {
         retourne;
     }
@@ -1667,7 +1667,7 @@ parse_a_legacy_font_size :: fonc (attribute_value: DOMString) -> Optionnel(CSS.C
     digits := collect_a_sequence_of_code_points(input, *position, est_chiffre_ascii_n16);
 
     // 7. If digits is the empty string, there is no presentational hint. Return.
-    si digits.est_vide() {
+    si est_vide(digits) {
         retourne;
     }
 
@@ -1747,7 +1747,7 @@ donne_submittable_elements :: fonc (form: *HTMLFormElement) -> [..]*Element
         noeud := traversée[traversée.taille - 1];
         traversée.taille -= 1;
 
-        si noeud.est_élément() && is_submittable_element(noeud comme *Element) {
+        si est_élément(noeud) && is_submittable_element(noeud comme *Element) {
             élément := noeud comme *Element;
             form_owner := donne_form_owner(élément);
             si form_owner == form {
@@ -1936,13 +1936,13 @@ donne_représentation_image :: fonc (img: *HTMLImageElement) -> ReprésentationI
     attr_src := cherche_attribut(img, ATTR_src);
     attr_alt := cherche_attribut(img, ATTR_alt);
 
-    si attr_src && !attr_src.valeur.est_vide() {
+    si attr_src && !est_vide(attr_src.valeur) {
         si img.image_data.données {
             retourne ReprésentationImage.IMAGE;
         }
     }
     
-    si attr_alt && !attr_alt.valeur.est_vide() {
+    si attr_alt && !est_vide(attr_alt.valeur) {
         retourne ReprésentationImage.TEXTE_ALT;
     }
 
@@ -1992,7 +1992,7 @@ update_image_data :: fonc (image: *HTMLImageElement)
 {
     // À FAIRE : standardise
     document := image.document;
-    user_agent := document.donne_user_agent();
+    user_agent := donne_user_agent(document);
     saufsi user_agent {
         retourne;
     }
@@ -2000,25 +2000,25 @@ update_image_data :: fonc (image: *HTMLImageElement)
     détruit_données_image(*image.image_data);
     image.image_data = NouvelleImage();
 
-    src := image.donne_src();
-    si src.est_vide() {
-        document.invalide_style();
+    src := donne_src(image);
+    si est_vide(src) {
+        invalide_style(document);
         retourne;
     }
 
     base_url := donne_base_url(document);
 
-    url_src := url_parser(user_agent, src.donne_chaine_utf16(), base = base_url);
+    url_src := url_parser(user_agent, donne_chaine_utf16(src), base = base_url);
     saufsi url_src {
         retourne;
     }
 
     request := loge(Request);
-    request.client = image.donne_relevant_settings_object();
+    request.client = donne_relevant_settings_object(image);
     request.destination = Request.DestinationType.Image;
     request.mode = Request.Mode.No_CORS;
     request.redirect_mode = Request.RedirectMode.Follow;
-    request.définis_url(url_src);
+    définis_url(request, url_src);
 
     RappelProcessResponse :: struct {
         empl base: BaseProcessResponse;
@@ -2141,7 +2141,7 @@ HTMLInputElement :: struct {
 donne_state :: fonc (input: *HTMLInputElement) -> HTMLInputElement.State
 {
     opt_type := donne_attribut(input, ATTR_type);
-    saufsi opt_type.possède_valeur() {
+    saufsi possède_valeur(opt_type) {
         /* "The attribute's missing value default and invalid value default are both the Text state."
          * https://html.spec.whatwg.org/multipage/input.html#attr-input-type
          *
@@ -2278,7 +2278,7 @@ donne_checked :: fonc (input: *HTMLInputElement) -> bool
 
 définis_checked :: fonc (input: *HTMLInputElement, valeur: bool)
 {
-    input.définis_checkedness(valeur);
+    définis_checkedness(input, valeur);
     input.dirty_checkedness = vrai;
 }
 
@@ -2286,7 +2286,7 @@ définis_checkedness :: fonc (input: *HTMLInputElement, valeur: bool)
 {
     input.checkedness = valeur;
 
-    si input.checkedness && input.is_radio_button_widget() {
+    si input.checkedness && is_radio_button_widget(input) {
         réinitialise_checkedness_radio_button_group(input);
     }
 }
@@ -2321,7 +2321,7 @@ réinitialise_checkedness_radio_button_group :: fonc (racine: *HTMLInputElement)
 sont_dans_même_radio_button_group :: fonc (a: *HTMLInputElement, b: *HTMLInputElement) -> bool
 {
     // The input element b's type attribute is in the Radio Button state.
-    saufsi b.is_radio_button_widget() {
+    saufsi is_radio_button_widget(b) {
         retourne faux;
     }
 
@@ -2336,14 +2336,14 @@ sont_dans_même_radio_button_group :: fonc (a: *HTMLInputElement, b: *HTMLInputE
 
     // They both have a name attribute, their name attributes are not empty, and
     //  the value of a's name attribute equals the value of b's name attribute.
-    name_a := a.donne_attribut_ou_chaine_vide(ATTR_name);
-    name_b := b.donne_attribut_ou_chaine_vide(ATTR_name);
+    name_a := donne_attribut_ou_chaine_vide(a, ATTR_name);
+    name_b := donne_attribut_ou_chaine_vide(b, ATTR_name);
 
     si name_a != name_b {
         retourne faux;
     }
 
-    si name_a.est_vide() {
+    si est_vide(name_a) {
         retourne faux;
     }
 
@@ -2358,9 +2358,9 @@ définis_value :: fonc (input: *HTMLInputElement, value: DOMString)
 
     // 2. Set the element's value to the new value.
     crée_shadow_root_pour_édition(input);
-    noeud_texte := input.donne_noeud_texte_value();
+    noeud_texte := donne_noeud_texte_value(input);
     détruit_chaine(*noeud_texte.données);
-    noeud_texte.données = copie_chaine(value.donne_chaine_utf16());
+    noeud_texte.données = copie_chaine(donne_chaine_utf16(value));
 
     // 3. Set the element's dirty value flag to true.
     input.dirty_value = vrai;
@@ -2374,11 +2374,11 @@ définis_value :: fonc (input: *HTMLInputElement, value: DOMString)
 donne_value :: fonc (input: *HTMLInputElement) -> ChaineUTF16
 {
     si input.shadow_root {
-        noeud_texte := input.donne_noeud_texte_value();
+        noeud_texte := donne_noeud_texte_value(input);
         retourne noeud_texte.données;
     }
 
-    retourne donne_attribut_ou_chaine_vide(input, ATTR_value).donne_chaine_utf16();
+    retourne donne_chaine_utf16(donne_attribut_ou_chaine_vide(input, ATTR_value));
 }
 
 crée_shadow_root_pour_édition :: fonc (input: *HTMLInputElement)
@@ -2389,9 +2389,9 @@ crée_shadow_root_pour_édition :: fonc (input: *HTMLInputElement)
 
     shadow_root := crée_shadow_root(input.document);
     noeud_texte := crée_noeud_texte(input.document);
-    shadow_root.ajoute_enfant(noeud_texte);
+    ajoute_enfant(shadow_root, noeud_texte);
 
-    value := input.donne_attribut_ou_chaine_vide(ATTR_value).donne_chaine_utf16();
+    value := donne_attribut_ou_chaine_vide(input, ATTR_value).donne_chaine_utf16();
     noeud_texte.données = copie_chaine(value);
 
     input.shadow_root = shadow_root;
@@ -2450,12 +2450,12 @@ input_element_sur_changement_attribut :: fonc (base: *Element, local_name: DOMSt
          * https://html.spec.whatwg.org/multipage/input.html#attr-input-checked */
         si valeur != nul {
             saufsi input.dirty_checkedness {
-                input.définis_checkedness(vrai);
+                définis_checkedness(input, vrai);
             }
         }
         sinon {
             saufsi input.dirty_checkedness {
-                input.définis_checkedness(faux);
+                définis_checkedness(input, faux);
             }
         }
         retourne vrai;
@@ -2465,10 +2465,10 @@ input_element_sur_changement_attribut :: fonc (base: *Element, local_name: DOMSt
         /* https://html.spec.whatwg.org/multipage/input.html#attr-input-value */
         saufsi input.dirty_value {
             si input.shadow_root {
-                noeud_texte := input.donne_noeud_texte_value();
+                noeud_texte := donne_noeud_texte_value(input);
                 détruit_chaine(*noeud_texte.données);
                 si valeur {
-                    noeud_texte.données = copie_chaine(mémoire(valeur).donne_chaine_utf16());
+                    noeud_texte.données = copie_chaine(donne_chaine_utf16(mémoire(valeur)));
                     run_value_sanitization_algorithm(input);
                 }
             }
@@ -2525,7 +2525,7 @@ run_input_activation_behavior :: fonc (input: *HTMLInputElement, event: *Event)
         }
 
         // 2. If the element's node document is not fully active, then return.
-        saufsi input.document.est_fully_active() {
+        saufsi est_fully_active(input.document) {
             imprime("[%] document non fully active\n", #nom_de_cette_fonction);
             retourne;
         }
@@ -2545,13 +2545,13 @@ run_value_sanitization_algorithm :: fonc (input: *HTMLInputElement)
     state := donne_state(input);
 
     si state == HTMLInputElement.State.Text || state == HTMLInputElement.State.Search || state == HTMLInputElement.State.Telephone || state == HTMLInputElement.State.Password {
-        noeud_texte := input.donne_noeud_texte_value();
+        noeud_texte := donne_noeud_texte_value(input);
         supprime_nouvelles_lignes_en_place(*noeud_texte.données);
         retourne;
     }
 
     si state == HTMLInputElement.State.URL || state == HTMLInputElement.State.Email {
-        noeud_texte := input.donne_noeud_texte_value();
+        noeud_texte := donne_noeud_texte_value(input);
         supprime_nouvelles_lignes_en_place(*noeud_texte.données);
         supprime_espace_blanches_autour_en_place(*noeud_texte.données);
         retourne;
@@ -2613,15 +2613,15 @@ donne_labeled_control :: fonc (label: *HTMLLabelElement) -> *Element
     traversée: [..]*Node;
     diffère déloge(*traversée);
 
-    for := label.donne_attribut_ou_chaine_vide(ATTR_for);
-    saufsi for.est_vide() {
+    for := donne_attribut_ou_chaine_vide(label, ATTR_for);
+    saufsi est_vide(for) {
         tableau_ajoute(*traversée, label.document);
 
         tantque traversée.taille != 0 {
             noeud := traversée[traversée.taille - 1];
             traversée.taille -= 1;
 
-            si noeud.est_élément() {
+            si est_élément(noeud) {
                 élément := noeud comme *Element;
                 si is_labelable_element(élément) && élément.id == for {
                     retourne élément;
@@ -2644,7 +2644,7 @@ donne_labeled_control :: fonc (label: *HTMLLabelElement) -> *Element
         noeud := traversée[traversée.taille - 1];
         traversée.taille -= 1;
 
-        si noeud.est_élément() && is_labelable_element(noeud comme *Element) {
+        si est_élément(noeud) && is_labelable_element(noeud comme *Element) {
             retourne noeud comme *Element;
         }
 
@@ -2785,20 +2785,20 @@ link_element_sur_changement_attribut :: fonc (base: *Element, local_name: DOMStr
 process_link_element :: fonc (link: *HTMLLinkElement)
 {
     document := link.document;
-    user_agent := document.donne_user_agent();
+    user_agent := donne_user_agent(document);
     saufsi user_agent {
         retourne;
     }
 
-    rel := link.donne_rel();
-    si rel.est_vide() {
-        link.document.supprime_feuille_de_style_associée(link);
+    rel := donne_rel(link);
+    si est_vide(rel) {
+        supprime_feuille_de_style_associée(link.document, link);
         retourne;
     }
 
-    href := link.donne_href();
-    si href.est_vide() {
-        link.document.supprime_feuille_de_style_associée(link);
+    href := donne_href(link);
+    si est_vide(href) {
+        supprime_feuille_de_style_associée(link.document, link);
         retourne;
     }
 
@@ -2814,7 +2814,7 @@ process_link_element :: fonc (link: *HTMLLinkElement)
         }
     }
 
-    fetch_and_process_linked_ressource(link.document.donne_user_agent(), link);
+    fetch_and_process_linked_ressource(donne_user_agent(link.document), link);
 }
 
 /* https://html.spec.whatwg.org/multipage/semantics.html#fetch-and-process-the-linked-resource */
@@ -2866,7 +2866,7 @@ fetch_and_process_linked_ressource_default :: fonc (user_agent: *UserAgent, el: 
         diffère détruit_response(réponse);
 
         body_bytes: chaine;
-        si réponse.body_info && réponse.body.possède_valeur() {
+        si réponse.body_info && possède_valeur(réponse.body) {
             body_bytes = réponse.body.Quelque;
         }
 
@@ -2908,10 +2908,10 @@ fetch_and_process_linked_ressource_default :: fonc (user_agent: *UserAgent, el: 
 create_link_request :: fonc (user_agent: *UserAgent, options: *LinkProcessingOptions) -> *Request
 {
     // 1. Assert: options's href is not the empty string.
-    assert(!options.href.est_vide());
+    assert(!est_vide(options.href));
 
     // 2. If options's destination is null, then return null.
-    saufsi options.destination.possède_valeur() {
+    saufsi possède_valeur(options.destination) {
         retourne nul;
     }
 
@@ -2974,7 +2974,7 @@ create_a_potential_cors_request :: fonc (url: *URL, destination: Request.Destina
 
     // 5. Return a new request whose URL is url, destination is destination, mode is mode, credentials mode is credentialsMode, and whose use-URL-credentials flag is set.
     request := loge(Request);
-    request.définis_url(url);
+    définis_url(request, url);
     request.mode = mode;
     request.destination = destination;
     request.credentials_mode = credentials_mode;
@@ -3008,23 +3008,23 @@ create_link_options :: fonc (el: *HTMLLinkElement) -> LinkProcessingOptions
     // 2. Let options be a new link processing options with
     options: LinkProcessingOptions;
     // destination                  -> the result of translating the state of el's as attribute.
-    si el.possède_attribut(ATTR_as) {
-        options.destination = translate_a_preload_destination(el.donne_attribut_ou_chaine_vide(ATTR_as)); // XXX - state
+    si possède_attribut(el, ATTR_as) {
+        options.destination = translate_a_preload_destination(donne_attribut_ou_chaine_vide(el, ATTR_as)); // XXX - state
     }
     sinon {
         options.destination = Request.DestinationType.EmptyString;
     }
     // crossorigin                  -> the state of el's crossorigin content attribute
-    options.crossorigin = el.donne_cross_origin_content_attribute_state();
+    options.crossorigin = donne_cross_origin_content_attribute_state(el);
     // referrer policy              -> the state of el's referrerpolicy content attribute
-    options.referrer_policy = el.donne_referrerpolicy_content_attribute_state();
+    options.referrer_policy = donne_referrerpolicy_content_attribute_state(el);
     // À FAIRE source set                   -> el's source set
     // base URL                     -> document's document base URL
-    options.base_url = document.donne_base_url();
+    options.base_url = donne_base_url(document);
     // origin                       -> document's origin
     options.origin = document.origin;
     // environment                  -> document's relevant settings object
-    options.environment = document.donne_relevant_settings_object();
+    options.environment = donne_relevant_settings_object(document);
     // policy container             -> document's policy container
     options.policy_container = clone(document.policy_container); // @spec-bug ?
     // document                     -> document
@@ -3032,16 +3032,16 @@ create_link_options :: fonc (el: *HTMLLinkElement) -> LinkProcessingOptions
     // cryptographic nonce metadata -> The current value of el's [[CryptographicNonce]] internal slot
     options.cryptographic_nonce = el.cryptographic_nonce;
     // fetch priority               -> the state of el's fetchpriority content attribute
-    options.fetch_priority = el.donne_fetch_priority_content_attribute_state();
+    options.fetch_priority = donne_fetch_priority_content_attribute_state(el);
 
     // 3. If el has an href attribute, then set options's href to the value of el's href attribute.
-    options.href = el.donne_attribut_ou_chaine_vide(ATTR_href);
+    options.href = donne_attribut_ou_chaine_vide(el, ATTR_href);
 
     // 4. If el has an integrity attribute, then set options's integrity to the value of el's integrity content attribute.
-    options.integrity = el.donne_attribut_ou_chaine_vide(ATTR_integrity);
+    options.integrity = donne_attribut_ou_chaine_vide(el, ATTR_integrity);
 
     // 5. If el has a type attribute, then set options's type to the value of el's type attribute.
-    options.type = el.donne_attribut_ou_chaine_vide(ATTR_type);
+    options.type = donne_attribut_ou_chaine_vide(el, ATTR_type);
 
     // 6. Assert: options's href is not the empty string, or options's source set is not null.
     //    A link element with neither an href or an imagesrcset does not represent a link.
@@ -3053,7 +3053,7 @@ create_link_options :: fonc (el: *HTMLLinkElement) -> LinkProcessingOptions
 /* https://html.spec.whatwg.org/multipage/links.html#translate-a-preload-destination */
 translate_a_preload_destination :: fonc (destination_: DOMString) -> Optionnel(Request.DestinationType)
 {
-    destination := convertis_vers_chaine(destination_.donne_chaine_utf16());
+    destination := convertis_vers_chaine(donne_chaine_utf16(destination_));
     diffère déloge(*destination);
 
     // 1. If destination is not "fetch", "font", "image", "script", "style", or "track", then return null.
@@ -3068,7 +3068,7 @@ translate_a_preload_destination :: fonc (destination_: DOMString) -> Optionnel(R
 /* https://fetch.spec.whatwg.org/#concept-potential-destination-translate */
 translate_a_potential_destination :: fonc (potential_destination_: DOMString) -> Request.DestinationType
 {
-    potential_destination := convertis_vers_chaine(potential_destination_.donne_chaine_utf16());
+    potential_destination := convertis_vers_chaine(donne_chaine_utf16(potential_destination_));
     diffère déloge(*potential_destination);
 
     // 1. If potentialDestination is "fetch", then return the empty string.
@@ -3119,7 +3119,7 @@ linked_resource_fetch_setup_stylesheet :: fonc (el: *HTMLLinkElement, request: *
     }
 
     // À FAIRE(media) 3. If el's media attribute's value matches the environment and el is potentially render-blocking, then block rendering on el.
-    si el.is_potentially_render_blocking() {
+    si is_potentially_render_blocking(el) {
         block_rendering_on(el);
     }
 
@@ -3157,7 +3157,7 @@ process_the_linked_resource_stylesheet :: fonc (el: *HTMLLinkElement, success: b
     }
 
     // 3. If el has an associated CSS style sheet, remove the CSS style sheet.
-    el.document.supprime_feuille_de_style_associée(el);
+    supprime_feuille_de_style_associée(el.document, el);
 
     // 4. If success is true, then:
     si success {
@@ -3173,7 +3173,7 @@ process_the_linked_resource_stylesheet :: fonc (el: *HTMLLinkElement, success: b
         // À FAIRE media                  -> The media attribute of el.
         // title                  -> The title attribute of el, if el is in a document tree, or the empty string otherwise.
         si is_in_a_document_tree(el) {
-            feuille_de_style.title = el.donne_attribut_ou_chaine_vide(ATTR_title);
+            feuille_de_style.title = donne_attribut_ou_chaine_vide(el, ATTR_title);
         }
 
         // À FAIRE alternate flag         -> Set if the link is an alternative style sheet and el's explicitly enabled is false; unset otherwise.
@@ -3191,7 +3191,7 @@ process_the_linked_resource_stylesheet :: fonc (el: *HTMLLinkElement, success: b
         diffère CSS.détruit_données_contexte(*ctx);
         CSS.parse_style_rules(*ctx, feuille_de_style, body_bytes);
         CSS.rapporte_propriétés_non_supportées(*ctx, #nom_de_cette_fonction);
-        el.document.ajoute_feuille_de_style(feuille_de_style);
+        ajoute_feuille_de_style(el.document, feuille_de_style);
 
         // À FAIRE : The CSS environment encoding is the result of running the following steps: [CSSSYNTAX]
             // 1. If el has a charset attribute, get an encoding from that attribute's value. If that succeeds, return the resulting encoding. [ENCODING]
@@ -3379,7 +3379,7 @@ object_element_sur_changement_attribut :: fonc (base: *Element, local_name: DOMS
 object_element_ajourne :: fonc (object: *HTMLObjectElement)
 {
     document := object.document;
-    user_agent := document.donne_user_agent();
+    user_agent := donne_user_agent(document);
     saufsi user_agent {
         retourne;
     }
@@ -3399,7 +3399,7 @@ object_element_ajourne :: fonc (object: *HTMLObjectElement)
     tâche.object = object;
 
     document.things_that_delay_the_load_event += 1;
-    user_agent.queue_an_element_task(Task_Source.ManipulationDOM, object, tâche);
+    queue_an_element_task(user_agent, Task_Source.ManipulationDOM, object, tâche);
 }
 
 détermine_ce_que_object_représente :: fonc (object: *HTMLObjectElement)
@@ -3414,7 +3414,7 @@ détermine_ce_que_object_représente :: fonc (object: *HTMLObjectElement)
     //    or if the element is not in a document whose browsing context is non-null,
 
     //    or if the element's node document is not fully active,
-    si object.document && !object.document.est_fully_active() {
+    si object.document && !est_fully_active(object.document) {
         object_représente_fallback(object);
         retourne;
     }
@@ -3428,7 +3428,7 @@ détermine_ce_que_object_représente :: fonc (object: *HTMLObjectElement)
     //    or if the element is not being rendered, then jump to the step below labeled fallback.
 
     // 3. If the data attribute is present and its value is not the empty string, then:
-    si possède_attribut(object, ATTR_data) && !donne_attribut_ou_chaine_vide(object, ATTR_data).est_vide() {
+    si possède_attribut(object, ATTR_data) && !est_vide(donne_attribut_ou_chaine_vide(object, ATTR_data)) {
         object_représente_data(object, nul);
         retourne;
     }
@@ -3440,7 +3440,7 @@ détermine_ce_que_object_représente :: fonc (object: *HTMLObjectElement)
 définis_chose_représentée :: fonc (object: *HTMLObjectElement, chose: ChoseReprésentée)
 {
     object.chose_représentée = chose;
-    object.document.invalide_style();
+    invalide_style(object.document);
 }
 
 object_représente_fallback :: fonc (object: *HTMLObjectElement)
@@ -3450,7 +3450,7 @@ object_représente_fallback :: fonc (object: *HTMLObjectElement)
 
     // The object element represents the element's children. This is the element's fallback content. Destroy a child navigable given the element.
     object.document.things_that_delay_the_load_event -= 1;
-    object.définis_chose_représentée(ChoseReprésentée.DESCENDANTS);
+    définis_chose_représentée(object, ChoseReprésentée.DESCENDANTS);
 }
 
 object_représente_data :: fonc (object: *HTMLObjectElement, réponse: *Response)
@@ -3468,7 +3468,7 @@ object_représente_data :: fonc (object: *HTMLObjectElement, réponse: *Response
         // 3. If url is failure, then fire an event named error at the element and
         //    jump to the step below labeled fallback.
         si is_failure(url) {
-            queue_a_task_to_fire_error_at_element(object.document.donne_user_agent(), object);
+            queue_a_task_to_fire_error_at_element(donne_user_agent(object.document), object);
             object_représente_fallback(object);
             retourne;
         }
@@ -3478,13 +3478,13 @@ object_représente_data :: fonc (object: *HTMLObjectElement, réponse: *Response
         //    credentials mode is "include", mode is "navigate", initiator type is
         //    "object", and whose use-URL-credentials flag is set.
         request := loge(Request);
-        request.client = object.document.donne_relevant_settings_object();
+        request.client = donne_relevant_settings_object(object.document);
         request.destination = Request.DestinationType.Object;
         request.credentials_mode = Request.CredentialsMode.Include;
         request.mode = Request.Mode.Navigate;
         request.initiator_type = Request.InitiatorType.Object;
         request.drapeaux.USE_URL_CREDENTIALS = vrai;
-        request.définis_url(url);
+        définis_url(request, url);
 
         // 5. Fetch request.
         //    Fetching the resource must delay the load event of the element's node
@@ -3517,7 +3517,7 @@ object_représente_data :: fonc (object: *HTMLObjectElement, réponse: *Response
         process_response.sur_rappel = sur_rappel_process_response;
         process_response.sur_destruction = sur_destruction_process_response;
 
-        fetch_controller := fetch(object.document.donne_user_agent(), request, process_response = process_response);
+        fetch_controller := fetch(donne_user_agent(object.document), request, process_response = process_response);
         diffère détruit_fetch_controller(fetch_controller);
 
         object.document.things_that_delay_the_load_event += 1;
@@ -3538,7 +3538,7 @@ object_représente_data :: fonc (object: *HTMLObjectElement, réponse: *Response
     //    error), fire an event named error at the element, then jump to the step
     //    below labeled fallback.
     si réponse.status != 200 {
-        queue_a_task_to_fire_error_at_element(object.document.donne_user_agent(), object);
+        queue_a_task_to_fire_error_at_element(donne_user_agent(object.document), object);
         object_représente_fallback(object);
         retourne;
     }
@@ -3560,7 +3560,7 @@ object_représente_data :: fonc (object: *HTMLObjectElement, réponse: *Response
 
     _ := décode_image(contenu, content_type, *object.image_data);
 
-    object.définis_chose_représentée(ChoseReprésentée.DONNÉES);
+    définis_chose_représentée(object, ChoseReprésentée.DONNÉES);
     object.document.things_that_delay_the_load_event -= 1;
 }
 
@@ -3678,7 +3678,7 @@ prépare :: fonc (el: *HTMLScriptElement)
     el.document_parseur = nul;
 
     /* 4. */
-    si document_parseur != nul && !el.possède_attribut(ATTR_async) {
+    si document_parseur != nul && !possède_attribut(el, ATTR_async) {
         el.force_async = vrai;
     }
 
@@ -3687,13 +3687,13 @@ prépare :: fonc (el: *HTMLScriptElement)
     diffère déloge(*texte_source);
 
     /* 6. */
-    possède_attr_src := el.possède_attribut(ATTR_src);
+    possède_attr_src := possède_attribut(el, ATTR_src);
     si !possède_attr_src && texte_source == "" {
         retourne;
     }
 
     /* 7. */
-    saufsi el.est_connecté() {
+    saufsi est_connecté(el) {
         retourne;
     }
 
@@ -3735,12 +3735,12 @@ prépare :: fonc (el: *HTMLScriptElement)
     }
 
     /* 17. */
-    si el.scripting_est_désactivé() {
+    si scripting_est_désactivé(el) {
         retourne;
     }
 
     /* 18. */
-    si el.possède_attribut(ATTR_nomodule) && el.type == TypeScript.CLASSIC {
+    si possède_attribut(el, ATTR_nomodule) && el.type == TypeScript.CLASSIC {
         retourne;
     }
 
@@ -3753,9 +3753,9 @@ prépare :: fonc (el: *HTMLScriptElement)
     }
 
     /* 20. */
-    si el.type == TypeScript.CLASSIC && el.possède_attribut(ATTR_for) && el.possède_attribut(ATTR_event) {
-        valeur_for := el.donne_attribut(ATTR_for).Quelque;
-        valeur_event := el.donne_attribut(ATTR_event).Quelque;
+    si el.type == TypeScript.CLASSIC && possède_attribut(el, ATTR_for) && possède_attribut(el, ATTR_event) {
+        valeur_for := donne_attribut(el, ATTR_for).Quelque;
+        valeur_event := donne_attribut(el, ATTR_event).Quelque;
 
         valeur_event = supprime_espace_blanches_autour(valeur_event);
         valeur_for = supprime_espace_blanches_autour(valeur_for);
@@ -3790,7 +3790,7 @@ prépare :: fonc (el: *HTMLScriptElement)
     fetch_priority := donne_fetch_priority_content_attribute_state(el);
 
     /* 28. */
-    métadonnée_parseuse := si el.est_inséré_par_parseuse() {
+    métadonnée_parseuse := si est_inséré_par_parseuse(el) {
         Request.ParserMetadata.Parser_Inserted;
     }
     sinon {
@@ -3809,7 +3809,7 @@ prépare :: fonc (el: *HTMLScriptElement)
     /* 30. settings object */
     settings_object := donne_relevant_settings_object(el.document);
 
-    user_agent := el.document.donne_user_agent();
+    user_agent := donne_user_agent(el.document);
 
     /* 31. */
     si possède_attr_src {
@@ -3820,10 +3820,10 @@ prépare :: fonc (el: *HTMLScriptElement)
         }
 
         // 2. Let src be the value of el's src attribute.
-        src := el.donne_src();
+        src := donne_src(el);
 
         // 3. If src is the empty string, then queue an element task on the DOM manipulation task source given el to fire an event named error at el, and return.
-        si src.est_vide() {
+        si est_vide(src) {
             queue_a_task_to_fire_error_at_element(user_agent, el);
             retourne;
         }
@@ -3882,7 +3882,7 @@ prépare :: fonc (el: *HTMLScriptElement)
     /* 32. */
     sinon {
         // 1. Let base URL be el's node document's document base URL.
-        base_url := el.document.donne_base_url();
+        base_url := donne_base_url(el.document);
 
         // 2. Switch on el's type:
         discr el.type {
@@ -3905,7 +3905,7 @@ prépare :: fonc (el: *HTMLScriptElement)
         assert(el.result == nul);
 
         // 2. If el has an async attribute or el's force async is true:
-        si el.possède_attribut(ATTR_async) || el.force_async {
+        si possède_attribut(el, ATTR_async) || el.force_async {
             // 1. Let scripts be el's preparation-time document's set of scripts that will execute as soon as possible.
             scripts := *el.document_du_temps_de_préparation.scripts_that_will_execute_as_soon_as_possible;
 
@@ -3931,7 +3931,7 @@ prépare :: fonc (el: *HTMLScriptElement)
             el.steps_to_run_when_the_result_is_ready = steps_to_run_when_the_result_is_ready;
         }
         // 3. Otherwise, if el is not parser-inserted:
-        sinon saufsi el.est_inséré_par_parseuse() {
+        sinon saufsi est_inséré_par_parseuse(el) {
             panique("saufsi el.est_inséré_par_parseuse()\n");
             // 1. Let scripts be el's preparation-time document's list of scripts that will execute in order as soon as possible.
 
@@ -3948,7 +3948,7 @@ prépare :: fonc (el: *HTMLScriptElement)
                     // 2. Remove scripts[0].
         }
         // 4. Otherwise, if el has a defer attribute or el's type is "module":
-        sinon si el.possède_attribut(ATTR_defer) || el.type == TypeScript.MODULE {
+        sinon si possède_attribut(el, ATTR_defer) || el.type == TypeScript.MODULE {
             // 1. Append el to its parser document's list of scripts that will execute when the document has finished parsing.
             tableau_ajoute(*el.document.scripts_that_will_execute_when_the_document_has_finished_parsing, el);
 
@@ -4001,11 +4001,11 @@ mark_script_as_ready_to_be_parser_executed :: fonc (script: *HTMLScriptElement)
 
 détermine_type_block_script :: fonc (script: *HTMLScriptElement) -> DOMString
 {
-    attr_type := script.cherche_attribut(ATTR_type);
-    attr_language := script.cherche_attribut(ATTR_language);
+    attr_type := cherche_attribut(script, ATTR_type);
+    attr_language := cherche_attribut(script, ATTR_language);
 
-    si (attr_type != nul && attr_type.valeur.est_vide()) ||
-         (attr_type == nul && attr_language != nul && attr_language.valeur.est_vide()) ||
+    si (attr_type != nul && est_vide(attr_type.valeur)) ||
+         (attr_type == nul && attr_language != nul && est_vide(attr_language.valeur)) ||
          (attr_type == nul && attr_language == nul) {
         retourne crée_chaine_utf16_unique(MIME_text_javascript);
     }
@@ -4169,14 +4169,14 @@ fetch_a_classic_script :: fonc (user_agent: *UserAgent, url: *URL, settings_obje
         diffère détruit_response(response);
 
         // 1. Set response to response's unsafe response.
-        response = response.donne_unsafe_response();
+        response = donne_unsafe_response(response);
 
         // 2. If any of the following are true:
         //    bodyBytes is null or failure; or
         //    response's status is not an ok status,
-        si !null_or_bytes.possède_valeur() || !is_ok_status(response.status) {
+        si !possède_valeur(null_or_bytes) || !is_ok_status(response.status) {
             // then run onComplete given null, and abort these steps.
-            rappel.on_complete.run(nul);
+            run(rappel.on_complete, nul);
             retourne;
         }
 
@@ -4191,11 +4191,11 @@ fetch_a_classic_script :: fonc (user_agent: *UserAgent, url: *URL, settings_obje
         // 6. Let mutedErrors be true if response was CORS-cross-origin, and false otherwise.
 
         // 7. Let script be the result of creating a classic script given sourceText, settingsObject, response's URL, options, mutedErrors, and url.
-        url := copie_url(rappel.request.donne_url_courant());
+        url := copie_url(donne_url_courant(rappel.request));
         script := create_a_classic_script(rappel.user_agent, contenu, rappel.settings_object, url, *rappel.options);
 
         // 8. Run onComplete given script.
-        rappel.on_complete.run(script);
+        run(rappel.on_complete, script);
     }
 
     sur_destruction_process_response :: fonc (base: *BaseProcessResponseConsumeBody)
@@ -4351,10 +4351,10 @@ ajourne_style_block :: fonc (style: *HTMLStyleElement)
     // 2. If element has an associated CSS style sheet, remove the CSS style sheet
     //    in question.
     document := element.document;
-    document.supprime_feuille_de_style_associée(element);
+    supprime_feuille_de_style_associée(document, element);
 
     // 3. If element is not connected, then return.
-    saufsi element.est_connecté() {
+    saufsi est_connecté(element) {
         retourne;
     }
 
@@ -4363,8 +4363,8 @@ ajourne_style_block :: fonc (style: *HTMLStyleElement)
     //    return.
     mime_css := crée_chaine_utf16_unique(MIME_text_css);
 
-    attr_type := element.cherche_attribut(ATTR_type);
-    si attr_type && !(attr_type.valeur.est_vide() || compare_ascii_insensible_à_la_casse(attr_type.valeur, mime_css)) {
+    attr_type := cherche_attribut(element, ATTR_type);
+    si attr_type && !(est_vide(attr_type.valeur) || compare_ascii_insensible_à_la_casse(attr_type.valeur, mime_css)) {
         retourne;
     }
 
@@ -4387,7 +4387,7 @@ ajourne_style_block :: fonc (style: *HTMLStyleElement)
     // À FAIRE : media = The media attribute of element.
     // title = The title attribute of element, if element is in a document tree, or the empty string otherwise.
     si is_in_a_document_tree(element) {
-        feuille_de_style.title = element.donne_attribut_ou_chaine_vide(ATTR_title);
+        feuille_de_style.title = donne_attribut_ou_chaine_vide(element, ATTR_title);
     }
     feuille_de_style.alternate = faux;
     feuille_de_style.origin_clean = vrai;
@@ -4408,7 +4408,7 @@ ajourne_style_block :: fonc (style: *HTMLStyleElement)
     diffère CSS.détruit_données_contexte(*ctx);
     CSS.parse_style_rules(*ctx, feuille_de_style, texte_source);
     CSS.rapporte_propriétés_non_supportées(*ctx, #nom_de_cette_fonction);
-    document.ajoute_feuille_de_style(feuille_de_style);
+    ajoute_feuille_de_style(document, feuille_de_style);
 
     // À FAIRE : implémente la finalisation
 }
@@ -4445,11 +4445,11 @@ table_element_sur_applique_presentational_hints :: fonc (base: *Element, résolv
     ajoute_propriété_pour_pixel_length(résolveuse, base, ATTR_cellspacing, CSS.PROP_border_spacing);
 
     border := donne_attribut_ou_chaine_vide(base, ATTR_border);
-    saufsi border.est_vide() {
+    saufsi est_vide(border) {
         valeur := parse_a_non_negative_integer(border);
         valeur_border : r64 = 0.0;
 
-        si valeur.possède_valeur() {
+        si possède_valeur(valeur) {
             valeur_border = valeur.Quelque comme r64;
         }
         sinon {
@@ -4472,9 +4472,9 @@ table_element_sur_applique_presentational_hints :: fonc (base: *Element, résolv
     }
 
     border_color := donne_attribut_ou_chaine_vide(base, ATTR_bordercolor);
-    saufsi border_color.est_vide() {
+    saufsi est_vide(border_color) {
         valeur := parse_a_legacy_colour_value(border_color);
-        si valeur.possède_valeur() {
+        si possède_valeur(valeur) {
             valeur_de_style := CSS.crée_valeur_couleur(valeur.Quelque);
             CSS.ajoute_presentational_hint(résolveuse, CSS.PROP_border_top_color, valeur_de_style);
             CSS.ajoute_presentational_hint(résolveuse, CSS.PROP_border_right_color, CSS.copie_valeur(valeur_de_style));
@@ -4521,12 +4521,12 @@ table_cell_element_sur_applique_presentational_hints :: fonc (base: *Element, r�
 donne_colspan :: fonc (élément: *Element) -> n32
 {
     attr := donne_attribut_ou_chaine_vide(élément, ATTR_colspan);
-    si attr.est_vide() {
+    si est_vide(attr) {
         retourne 1;
     }
 
     opt_résultat := parse_a_non_negative_integer(attr);
-    saufsi opt_résultat.possède_valeur() {
+    saufsi possède_valeur(opt_résultat) {
         retourne 1;
     }
 
@@ -4682,9 +4682,9 @@ HTMLTextAreaElement :: struct {
 donne_cols :: fonc (textarea: *HTMLTextAreaElement) -> n32
 {
     cols := donne_attribut_ou_chaine_vide(textarea, ATTR_cols);
-    saufsi cols.est_vide() {
+    saufsi est_vide(cols) {
         opt_valeur := parse_a_non_negative_integer(cols);
-        si opt_valeur.possède_valeur() && opt_valeur.Quelque > 0 {
+        si possède_valeur(opt_valeur) && opt_valeur.Quelque > 0 {
             retourne opt_valeur.Quelque;
         }
     }
@@ -4700,9 +4700,9 @@ donne_character_width :: fonc (textarea: *HTMLTextAreaElement) -> n32
 donne_rows :: fonc (textarea: *HTMLTextAreaElement) -> n32
 {
     rows := donne_attribut_ou_chaine_vide(textarea, ATTR_rows);
-    saufsi rows.est_vide() {
+    saufsi est_vide(rows) {
         opt_valeur := parse_a_non_negative_integer(rows);
-        si opt_valeur.possède_valeur() && opt_valeur.Quelque > 0 {
+        si possède_valeur(opt_valeur) && opt_valeur.Quelque > 0 {
             retourne opt_valeur.Quelque;
         }
     }

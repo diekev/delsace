@@ -139,7 +139,7 @@ détruit_arbre :: fonc (arbre: *ArbreDeDisposition)
             détruit_propriétés(it.propriétés);
         }
 
-        élément := it.donne_élément();
+        élément := donne_élément(it);
         si élément {
             élément.box = nul;
         }
@@ -284,7 +284,7 @@ donne_taille_en_octet_boxes :: fonc (arbre: *ArbreDeDisposition) -> n32
 donne_élément_pour_position :: fonc (arbre: *ArbreDeDisposition, x: z32, y: z32) -> *HTML.Element
 {
     indice := donne_indice_pour_position(*arbre.tampon_id, x, y);
-    saufsi indice.possède_valeur() {
+    saufsi possède_valeur(indice) {
         retourne nul;
     }
 
@@ -292,7 +292,7 @@ donne_élément_pour_position :: fonc (arbre: *ArbreDeDisposition, x: z32, y: z3
     saufsi box {
         retourne nul;
     }
-    retourne box.donne_élément_récursif();
+    retourne donne_élément_récursif(box);
 }
 
 imprime_statistiques :: fonc (arbre: *ArbreDeDisposition)
@@ -340,7 +340,7 @@ imprime_arbre :: fonc (enchaineuse: *Enchaineuse, racine: *Box, profondeur: n32)
 {
     indentation := donne_chaine_indentation(profondeur comme z32);
 
-    nom_classe := racine.donne_nom_classe_sans_suffixe();
+    nom_classe := donne_nom_classe_sans_suffixe(racine);
 
     imprime_dans_enchaineuse(enchaineuse, "%%", indentation, nom_classe);
 
@@ -348,12 +348,12 @@ imprime_arbre :: fonc (enchaineuse: *Enchaineuse, racine: *Box, profondeur: n32)
     si élément {
         imprime_dans_enchaineuse(enchaineuse, " <%", élément.local_name);
 
-        saufsi élément.id.est_vide() {
+        saufsi est_vide(élément.id) {
             ajoute_au_tampon(enchaineuse, "#", élément.id);
         }
 
         classe := HTML.donne_attribut_ou_chaine_vide(élément, HTML.ATTR_class);
-        saufsi classe.est_vide() {
+        saufsi est_vide(classe) {
             ajoute_au_tampon(enchaineuse, ".", classe);
         }
 
@@ -402,7 +402,7 @@ imprime_fragments :: fonc (enchaineuse: *Enchaineuse, box: *Box, profondeur: n32
 
     pour bloc.lignes_tenante.fragments {
         ajoute_au_tampon(enchaineuse, indentation);
-        nom_classe := it.box.donne_nom_classe_sans_suffixe();
+        nom_classe := donne_nom_classe_sans_suffixe(it.box);
         imprime_dans_enchaineuse(enchaineuse, "frag % % de % début % fin % rect (%,% %x%)", indice_it, it.type, nom_classe, it.indice_début, it.indice_fin, it.x, it.y, it.largeur, it.hauteur);
 
         si it.box.table_virtuelle.type == TextBox {
@@ -598,7 +598,7 @@ ajoute_règle_aux_caches :: fonc (résolveuse: *RésolveuseStyle, règle_de_styl
             }
         }
 
-        si dernière_classe.possède_valeur() {
+        si possède_valeur(dernière_classe) {
             ajoute_règle_pour_classe(résolveuse, dernière_classe.Quelque, règle_appariée);
         }
         sinon saufsi règle_ajoutée {
@@ -701,7 +701,7 @@ possède_règle_avec_pseudo_classe :: fonc (résolveuse: *RésolveuseStyle, pseu
 
 possède_règle_avec_id :: fonc (résolveuse: *RésolveuseStyle, id: CSSOMString) -> bool
 {
-    si id.est_vide() {
+    si est_vide(id) {
         /* Si l'id est la chaine vide, nous devons vérifier que toutes les règles
          * s'appliquent, donc pas de court-circuitage. */
         retourne vrai;
@@ -712,7 +712,7 @@ possède_règle_avec_id :: fonc (résolveuse: *RésolveuseStyle, id: CSSOMString
 
 possède_règle_avec_attribut :: fonc (résolveuse: *RésolveuseStyle, attr: CSSOMString) -> bool
 {
-    si attr.est_vide() {
+    si est_vide(attr) {
         /* Si l'attribut est la chaine vide, nous devons vérifier que toutes les règles
          * s'appliquent, donc pas de court-circuitage. */
         retourne vrai;
@@ -870,7 +870,7 @@ donne_ajournement_pour_changement_style :: fonc (résolveuse: *RésolveuseStyle,
     diffère détruit_propriétés(nouvelles_propriétés);
 
     /* Vérifie si "display: none" reste "display: none". */
-    display := nouvelles_propriétés.donne_valeur_calculée(IDPropriété.Display).donne_display();
+    display := donne_valeur_calculée(nouvelles_propriétés, IDPropriété.Display).donne_display();
     si display.outer_type == Display.Type.None {
         si box == nul {
             /* Nous restons sur "display: none". */
@@ -917,8 +917,8 @@ donne_ajournement_pour_changement_style :: fonc (résolveuse: *RésolveuseStyle,
 
 donne_ajournement_pour_différence_propriétés :: fonc (nouvelles_propriétés: *PropriétésDeStyle, anciennes_propriétés: *PropriétésDeStyle, info: *InfoTypePropriété) -> AjournementArbre
 {
-    nouvelle := nouvelles_propriétés.donne_déclaration(info.nom);
-    ancienne := anciennes_propriétés.donne_déclaration(info.nom);
+    nouvelle := donne_déclaration(nouvelles_propriétés, info.nom);
+    ancienne := donne_déclaration(anciennes_propriétés, info.nom);
 
     si nouvelle == nul && ancienne == nul {
         retourne AjournementArbre.zéro;
@@ -1093,17 +1093,17 @@ développe_variables :: fonc (propriétés: *PropriétésDeStyle, value: []Compo
 {
     résultat: [..]ComponentValue;
     pour value {
-        saufsi it.est_fonction(PROP_var) {
+        saufsi est_fonction(it, PROP_var) {
             tableau_ajoute(*résultat, it);
             continue;
         }
 
         parseuse := initialise_une_parseuse(it.function.value);
         opt_variable := parse_variables_depuis_arguments(*parseuse);
-        saufsi opt_variable.possède_valeur() {
+        saufsi possède_valeur(opt_variable) {
             continue;
         }
-        variable := opt_variable.Quelque.donne_variable();
+        variable := donne_variable(opt_variable.Quelque);
 
         déclaration := donne_déclaration_propriété_personnalisée(propriétés, variable.nom);
         saufsi déclaration {
@@ -1185,10 +1185,10 @@ calcule_valeur_propriété :: fonc (ctx: *ContexteCalculStyle, info: *InfoTypePr
  * https://www.w3.org/TR/2011/REC-CSS2-20110607/visuren.html#dis-pos-flo */
 calcule_display_final :: fonc (propriétés: *PropriétésDeStyle)
 {
-    prop_display := propriétés.donne_valeur_calculée(IDPropriété.Display) comme *ValeurDisplay;
-    display := prop_display.donne_display();
-    position := propriétés.donne_valeur_calculée(IDPropriété.Position);
-    float := propriétés.donne_valeur_calculée(IDPropriété.Float);
+    prop_display := donne_valeur_calculée(propriétés, IDPropriété.Display) comme *ValeurDisplay;
+    display := donne_display(prop_display);
+    position := donne_valeur_calculée(propriétés, IDPropriété.Position);
+    float := donne_valeur_calculée(propriétés, IDPropriété.Float);
 
     // 1. If 'display' has the value 'none', then 'position' and 'float' do not apply. In this case,
     // the element generates no box.
@@ -1200,18 +1200,18 @@ calcule_display_final :: fonc (propriétés: *PropriétésDeStyle)
     // the computed value of 'float' is 'none', and display is set according to the table below.
     // The position of the box will be determined by the 'top', 'right', 'bottom' and 'left' properties
     // and the box's containing block.
-    si position.est_mot_clé(PROP_absolute) || position.est_mot_clé(PROP_fixed) {
-        propriétés.définis_valeur_calculée(IDPropriété.Float, donne_valeur_none());
+    si est_mot_clé(position, PROP_absolute) || est_mot_clé(position, PROP_fixed) {
+        définis_valeur_calculée(propriétés, IDPropriété.Float, donne_valeur_none());
         nouveau_display := crée_valeur_display(convertis_display_pour_position_ou_float(display));
-        propriétés.définis_valeur_calculée(IDPropriété.Display, nouveau_display);
+        définis_valeur_calculée(propriétés, IDPropriété.Display, nouveau_display);
         retourne;
     }
 
     // 3. Otherwise, if 'float' has a value other than 'none', the box is floated and 'display' is set
     // according to the table below.
-    saufsi float.est_none() {
+    saufsi est_none(float) {
         nouveau_display := crée_valeur_display(convertis_display_pour_position_ou_float(display));
-        propriétés.définis_valeur_calculée(IDPropriété.Display, nouveau_display);
+        définis_valeur_calculée(propriétés, IDPropriété.Display, nouveau_display);
         retourne;
     }
 
@@ -1222,7 +1222,7 @@ calcule_display_final :: fonc (propriétés: *PropriétésDeStyle)
     // À FAIRE : list-item.
     saufsi propriétés.parent {
         nouveau_display := crée_valeur_display(convertis_display_pour_position_ou_float(display));
-        propriétés.définis_valeur_calculée(IDPropriété.Display, nouveau_display);
+        définis_valeur_calculée(propriétés, IDPropriété.Display, nouveau_display);
         retourne;
     }
 
@@ -1232,10 +1232,10 @@ calcule_display_final :: fonc (propriétés: *PropriétésDeStyle)
      * of an element generating a flex container is an inline-level value, it computes to its block-level
      * equivalent. (See CSS2.1§9.7 [CSS21] and CSS Display [CSS3-DISPLAY] for details on this type of
      * display value conversion.) */
-    display_parent := propriétés.parent.donne_valeur_calculée(IDPropriété.Display).donne_display();
+    display_parent := donne_valeur_calculée(propriétés.parent, IDPropriété.Display).donne_display();
     si display_parent.inner_type == Display.Type.Flex {
         nouveau_display := crée_valeur_display(blocify_display(display));
-        propriétés.définis_valeur_calculée(IDPropriété.Display, nouveau_display);
+        définis_valeur_calculée(propriétés, IDPropriété.Display, nouveau_display);
     }
 }
 
@@ -1375,13 +1375,13 @@ dispose_arbre :: fonc (globales: *GlobalesDessin, arbre: *ArbreDeDisposition, la
             continue;
         }
 
-        float := it.propriétés.donne_valeur_calculée(IDPropriété.Float);
-        saufsi float.est_none() {
+        float := donne_valeur_calculée(it.propriétés, IDPropriété.Float);
+        saufsi est_none(float) {
             arbre.boxes_position_float += 1;
         }
 
-        position := it.propriétés.donne_valeur_calculée(IDPropriété.Position);
-        si position.est_mot_clé(PROP_absolute) || position.est_mot_clé(PROP_fixed) {
+        position := donne_valeur_calculée(it.propriétés, IDPropriété.Position);
+        si est_mot_clé(position, PROP_absolute) || est_mot_clé(position, PROP_fixed) {
             arbre.boxes_position_absolue += 1;
         }
     }
@@ -1426,8 +1426,8 @@ dispose_arbre :: fonc (globales: *GlobalesDessin, arbre: *ArbreDeDisposition, la
             arbre.défilement_vertical = crée_barre_de_défilement(largeur comme r32, hauteur comme r32, hauteur_descendants);
         }
 
-        overflow := arbre.racine.propriétés.donne_valeur_utilisée(IDPropriété.OverflowY);
-        arbre.défilement_vertical.est_visible = overflow.est_mot_clé(PROP_visible) || overflow.est_mot_clé(PROP_scroll);
+        overflow := donne_valeur_utilisée(arbre.racine.propriétés, IDPropriété.OverflowY);
+        arbre.défilement_vertical.est_visible = est_mot_clé(overflow, PROP_visible) || est_mot_clé(overflow, PROP_scroll);
     }
     sinon {
         détruit(arbre.défilement_vertical);
@@ -1488,7 +1488,7 @@ crée_box_pour_élément :: fonc (empl créatrice: *CréatriceArbre, parent: *Bo
 
     propriétés := résoud_style(résolveuse, élément, nul, propriétés_parent);
 
-    display := propriétés.donne_valeur_calculée(IDPropriété.Display).donne_display();
+    display := donne_valeur_calculée(propriétés, IDPropriété.Display).donne_display();
     si display.outer_type == Display.Type.None {
         détruit_propriétés(propriétés);
         retourne;
@@ -1508,7 +1508,7 @@ crée_box_pour_élément :: fonc (empl créatrice: *CréatriceArbre, parent: *Bo
 
         si représentation_image == HTML.ReprésentationImage.TEXTE_ALT {
             résultat = crée_box_pour_display(arbre, display, élément);
-            crée_box_pour_texte(créatrice, résultat comme *BlockBox, HTML.donne_attribut(img, HTML.ATTR_alt).donne_chaine_utf16(), nul);
+            crée_box_pour_texte(créatrice, résultat comme *BlockBox, donne_chaine_utf16(HTML.donne_attribut(img, HTML.ATTR_alt)), nul);
         }
         sinon {
             résultat = crée_image_box(arbre, img);
@@ -1573,12 +1573,12 @@ crée_box_pour_élément :: fonc (empl créatrice: *CréatriceArbre, parent: *Bo
         ];
 
         pour ids {
-            table.propriétés.définis_valeur_calculée(it, résolveuse.valeurs_initiales.valeurs[it]);
+            définis_valeur_calculée(table.propriétés, it, résolveuse.valeurs_initiales.valeurs[it]);
         }
     }
 
     si parent {
-        parent.ajoute_enfant(résultat);
+        ajoute_enfant(parent, résultat);
     }
 
     si ignore_enfants {
@@ -1604,84 +1604,84 @@ crée_box_pour_élément :: fonc (empl créatrice: *CréatriceArbre, parent: *Bo
 crée_box_pour_texte :: fonc (empl créatrice: *CréatriceArbre, parent: *BlockBox, texte_original: ChaineUTF16, noeud: *HTML.Text)
 {
     /* Les textes doivent une boite inline anonyme autour d'eux. */
-    résultat := arbre.crée_box(InlineBox);
+    résultat := crée_box(arbre, InlineBox);
     résultat.est_boite_anonyme_pour_texte = vrai;
     crée_style_pour_bloc_anonyme(résolveuse, résultat, parent, Display.Type.Inline);
-    parent.ajoute_enfant(résultat);
+    ajoute_enfant(parent, résultat);
 
-    texte := arbre.crée_box(TextBox);
+    texte := crée_box(arbre, TextBox);
     texte.texte_original = texte_original;
     texte.noeud = noeud;
     si noeud {
         noeud.box = texte;
     }
-    résultat.ajoute_enfant(texte);
+    ajoute_enfant(résultat, texte);
 }
 
 crée_box_pour_display :: fonc (arbre: *ArbreDeDisposition, display: Display, élément: *HTML.Element) -> *Box
 {
     si display.inner_type == Display.Type.Table {
-        wrapper_box := arbre.crée_box(TableWrapperBox);
+        wrapper_box := crée_box(arbre, TableWrapperBox);
         wrapper_box.noeud = élément;
 
-        box := arbre.crée_box(TableBox);
+        box := crée_box(arbre, TableBox);
         wrapper_box.table = box;
 
-        wrapper_box.ajoute_enfant(box);
+        ajoute_enfant(wrapper_box, box);
         retourne wrapper_box;
     }
     si display.inner_type == Display.Type.TableCaption {
-        box := arbre.crée_box(CaptionBox);
+        box := crée_box(arbre, CaptionBox);
         box.noeud = élément;
         retourne box;
     }
     si display.inner_type == Display.Type.TableColumn {
-        box := arbre.crée_box(TableColumnBox);
+        box := crée_box(arbre, TableColumnBox);
         box.noeud = élément;
         retourne box;
     }
     si display.inner_type == Display.Type.TableColumnGroup {
-        box := arbre.crée_box(TableColumnGroupBox);
+        box := crée_box(arbre, TableColumnGroupBox);
         box.noeud = élément;
         retourne box;
     }
     si display.inner_type == Display.Type.TableCell {
-        box := arbre.crée_box(TableCellBox);
+        box := crée_box(arbre, TableCellBox);
         box.noeud = élément;
         retourne box;
     }
     si display.inner_type == Display.Type.TableRow {
-        box := arbre.crée_box(TableRowBox);
+        box := crée_box(arbre, TableRowBox);
         box.noeud = élément;
         retourne box;
     }
     si display.inner_type == Display.Type.TableFooterGroup {
-        box := arbre.crée_box(TableFooterGroupBox);
+        box := crée_box(arbre, TableFooterGroupBox);
         box.noeud = élément;
         retourne box;
     }
     si display.inner_type == Display.Type.TableHeaderGroup {
-        box := arbre.crée_box(TableHeaderGroupBox);
+        box := crée_box(arbre, TableHeaderGroupBox);
         box.noeud = élément;
         retourne box;
     }
     si display.inner_type == Display.Type.TableRowGroup {
-        box := arbre.crée_box(TableRowGroupBox);
+        box := crée_box(arbre, TableRowGroupBox);
         box.noeud = élément;
         retourne box;
     }
     si display.outer_type == Display.Type.Block || display.inner_type == Display.Type.Flex {
-        bloc := arbre.crée_box(BlockBox);
+        bloc := crée_box(arbre, BlockBox);
         bloc.noeud = élément;
         retourne bloc;
     }
     si élément && élément.local_name == HTML.TAG_br {
-        bris := arbre.crée_box(BreakBox);
+        bris := crée_box(arbre, BreakBox);
         bris.noeud = élément;
         retourne bris;
     }
 
-    inline := arbre.crée_box(InlineBox);
+    inline := crée_box(arbre, InlineBox);
     inline.noeud = élément;
     retourne inline;
 }
@@ -1694,15 +1694,15 @@ crée_box_pour_pseudo_élément :: fonc (empl créatrice: *CréatriceArbre, pare
         retourne;
     }
 
-    display := propriétés_pseudo.donne_valeur_calculée(IDPropriété.Display).donne_display();
+    display := donne_valeur_calculée(propriétés_pseudo, IDPropriété.Display).donne_display();
     si display.outer_type == Display.Type.None {
         détruit_propriétés(propriétés_pseudo);
         retourne;
     }
 
-    content := propriétés_pseudo.donne_valeur_calculée(IDPropriété.Content);
+    content := donne_valeur_calculée(propriétés_pseudo, IDPropriété.Content);
     si ident_pseudo_element == PROP_before || ident_pseudo_element == PROP_after {
-        si content.est_mot_clé(PROP_none) || content.est_mot_clé(PROP_normal) {
+        si est_mot_clé(content, PROP_none) || est_mot_clé(content, PROP_normal) {
             détruit_propriétés(propriétés_pseudo);
             retourne;
         }
@@ -1719,8 +1719,8 @@ crée_box_pour_pseudo_élément :: fonc (empl créatrice: *CréatriceArbre, pare
 
     ajoute_enfant(parent, box);
 
-    si content.est_string() {
-        crée_box_pour_texte(créatrice, box comme *BlockBox, content.donne_string().donne_chaine_utf16(), nul);
+    si est_string(content) {
+        crée_box_pour_texte(créatrice, box comme *BlockBox, donne_string(content).donne_chaine_utf16(), nul);
     }
 }
 
@@ -2005,7 +2005,7 @@ détermine_fonte :: fonc (box: *Box, ctx: *ContexteDeFormattage) -> *Fonte
 
 détermine_fonte :: fonc (box: *Box, globales: *GlobalesDessin) -> *Fonte
 {
-    propriétés := box.donne_propriétés();
+    propriétés := donne_propriétés(box);
 
     résultat := détermine_fonte(propriétés, globales);
     si box.table_virtuelle.type == TextBox {
@@ -2022,40 +2022,40 @@ détermine_fonte :: fonc (box: *Box, globales: *GlobalesDessin) -> *Fonte
 détermine_fonte :: fonc (propriétés: *PropriétésDeStyle, globales: *GlobalesDessin) -> *Fonte
 {
     style := "normal";
-    taille_fonte := propriétés.donne_valeur_utilisée(IDPropriété.FontSize).donne_pixels() comme r32;
+    taille_fonte := donne_valeur_utilisée(propriétés, IDPropriété.FontSize).donne_pixels() comme r32;
 
-    font_weight := propriétés.donne_valeur_utilisée(IDPropriété.FontWeight).donne_number();
+    font_weight := donne_valeur_utilisée(propriétés, IDPropriété.FontWeight).donne_number();
     graisse := donne_graisse_fonte_depuis_poids(font_weight);
 
-    font_style := propriétés.donne_valeur_utilisée(IDPropriété.FontStyle).donne_mot_clé();
+    font_style := donne_valeur_utilisée(propriétés, IDPropriété.FontStyle).donne_mot_clé();
     si font_style == PROP_italic {
         style = "italic";
     }
 
-    prop_font_family := propriétés.donne_valeur_utilisée(IDPropriété.FontFamily);
+    prop_font_family := donne_valeur_utilisée(propriétés, IDPropriété.FontFamily);
 
-    si prop_font_family.est_mot_clé() {
-        font_family := prop_font_family.donne_mot_clé();
-        retourne globales.donne_fonte(font_family, style, graisse, taille_fonte);
+    si est_mot_clé(prop_font_family) {
+        font_family := donne_mot_clé(prop_font_family);
+        retourne donne_fonte(globales, font_family, style, graisse, taille_fonte);
     }
     
-    si prop_font_family.est_string() {
-        font_family := prop_font_family.donne_string();
-        retourne globales.donne_fonte(font_family, style, graisse, taille_fonte);
+    si est_string(prop_font_family) {
+        font_family := donne_string(prop_font_family);
+        retourne donne_fonte(globales, font_family, style, graisse, taille_fonte);
     }
 
-    assert(prop_font_family.est_liste());
-    liste_fontes := prop_font_family.donne_liste();
+    assert(est_liste(prop_font_family));
+    liste_fontes := donne_liste(prop_font_family);
 
     pour liste_fontes {
-        font_family := it.donne_string();
-        fonte := globales.donne_fonte(font_family, style, graisse, taille_fonte, faux);
+        font_family := donne_string(it);
+        fonte := donne_fonte(globales, font_family, style, graisse, taille_fonte, faux);
         si fonte {
             retourne fonte;
         }
     }
 
-    retourne globales.donne_fonte(PROP_serif, style, graisse, taille_fonte);
+    retourne donne_fonte(globales, PROP_serif, style, graisse, taille_fonte);
 }
 
 donne_rectangle_rembourrage :: fonc (box: *Box) -> RectanglePosDim(r32)
@@ -2109,13 +2109,13 @@ est_inline_block :: fonc (box: *Box) -> bool
 
 est_in_flow :: fonc (box: *Box) -> bool
 {
-    position := box.propriétés.donne_valeur_calculée(IDPropriété.Position);
-    si position.est_mot_clé(PROP_absolute) || position.est_mot_clé(PROP_fixed) {
+    position := donne_valeur_calculée(box.propriétés, IDPropriété.Position);
+    si est_mot_clé(position, PROP_absolute) || est_mot_clé(position, PROP_fixed) {
         retourne faux;
     }
 
-    float := box.propriétés.donne_valeur_calculée(IDPropriété.Float);
-    saufsi float.est_none() {
+    float := donne_valeur_calculée(box.propriétés, IDPropriété.Float);
+    saufsi est_none(float) {
         retourne faux;
     }
 
@@ -2128,7 +2128,7 @@ est_block_container :: fonc (box: *Box) -> bool
         retourne vrai;
     }
 
-    si box.est_inline_block() {
+    si est_inline_block(box) {
         retourne vrai;
     }
 
@@ -2138,7 +2138,7 @@ est_block_container :: fonc (box: *Box) -> bool
 donne_display :: fonc (box: *Box) -> Display
 {
     assert(box.propriétés != nul);
-    retourne box.propriétés.donne_valeur_utilisée(IDPropriété.Display).donne_display();
+    retourne donne_valeur_utilisée(box.propriétés, IDPropriété.Display).donne_display();
 }
 
 donne_line_height :: fonc (box: *Box, ctx: *ContexteDeFormattage) -> r32
@@ -2149,58 +2149,58 @@ donne_line_height :: fonc (box: *Box, ctx: *ContexteDeFormattage) -> r32
 
 donne_line_height :: fonc (propriétés: *PropriétésDeStyle, fonte: *Fonte) -> r32
 {
-    line_height := propriétés.donne_valeur_utilisée(IDPropriété.LineHeight);
-    si line_height.est_pixels() {
-        retourne line_height.donne_pixels() comme r32;
+    line_height := donne_valeur_utilisée(propriétés, IDPropriété.LineHeight);
+    si est_pixels(line_height) {
+        retourne donne_pixels(line_height) comme r32;
     }
 
-    métriques := fonte.donne_métriques_fonte();
+    métriques := donne_métriques_fonte(fonte);
 
-    si line_height.est_number() {
-        retourne line_height.donne_number() comme r32 * métriques.donne_hauteur_ligne();
+    si est_number(line_height) {
+        retourne donne_number(line_height) comme r32 * donne_hauteur_ligne(métriques);
     }
 
-    assert(line_height.est_mot_clé(PROP_normal));
-    retourne métriques.donne_hauteur_ligne();
+    assert(est_mot_clé(line_height, PROP_normal));
+    retourne donne_hauteur_ligne(métriques);
 }
 
 donne_décalage_top_pour_relative :: fonc (box: *Box) -> r32
 {
-    top := box.propriétés.donne_valeur_utilisée(IDPropriété.Top);
-    bottom := box.propriétés.donne_valeur_utilisée(IDPropriété.Bottom);
+    top := donne_valeur_utilisée(box.propriétés, IDPropriété.Top);
+    bottom := donne_valeur_utilisée(box.propriétés, IDPropriété.Bottom);
 
-    si top.est_auto() && bottom.est_auto() {
+    si est_auto(top) && est_auto(bottom) {
         retourne 0.0;
     }
 
-    si top.est_auto() {
-        retourne -bottom.donne_pixels() comme r32;
+    si est_auto(top) {
+        retourne -donne_pixels(bottom) comme r32;
     }
 
-    retourne top.donne_pixels() comme r32;
+    retourne donne_pixels(top) comme r32;
 }
 
 donne_décalage_left_pour_relative :: fonc (box: *Box) -> r32
 {
-    left := box.propriétés.donne_valeur_utilisée(IDPropriété.Left);
-    right := box.propriétés.donne_valeur_utilisée(IDPropriété.Right);
+    left := donne_valeur_utilisée(box.propriétés, IDPropriété.Left);
+    right := donne_valeur_utilisée(box.propriétés, IDPropriété.Right);
 
-    si left.est_auto() && right.est_auto() {
+    si est_auto(left) && est_auto(right) {
         retourne 0.0;
     }
     
-    si left.est_auto() {
-        retourne -right.donne_pixels() comme r32;
+    si est_auto(left) {
+        retourne -donne_pixels(right) comme r32;
     }
 
-    retourne left.donne_pixels() comme r32;
+    retourne donne_pixels(left) comme r32;
 }
 
 donne_baseline :: fonc (box: *Box) -> Optionnel(InfoLigneDeBase)
 {
     si box.table_virtuelle.sur_donne_baseline {
         résultat := box.table_virtuelle.sur_donne_baseline(box);
-        si résultat.possède_valeur() {
+        si possède_valeur(résultat) {
             retourne résultat;
         }
 
@@ -2232,7 +2232,7 @@ donne_élément_récursif :: fonc (box: *Box) -> *HTML.Element
     box_courant := box;
 
     tantque box_courant != nul {
-        élément := box_courant.donne_élément();
+        élément := donne_élément(box_courant);
         si élément {
             retourne élément;
         }
@@ -2256,10 +2256,10 @@ imprime_élément :: fonc (box: *Box, message := "", récursif := faux)
 imprime_élément :: fonc (enchaineuse: *Enchaineuse, box: *Box, message: chaine, récursif := faux)
 {
     élément := si récursif {
-        box.donne_élément_récursif();
+        donne_élément_récursif(box);
     }
     sinon {
-        box.donne_élément();
+        donne_élément(box);
     };
 
     si message {
@@ -2274,12 +2274,12 @@ imprime_élément :: fonc (enchaineuse: *Enchaineuse, box: *Box, message: chaine
     ajoute_au_tampon(enchaineuse, élément.local_name);
 
     id := élément.id;
-    saufsi id.est_vide() {
+    saufsi est_vide(id) {
         ajoute_au_tampon(enchaineuse, "#", id);
     }
 
     classes := HTML.donne_attribut_ou_chaine_vide(élément, HTML.ATTR_class);
-    saufsi classes.est_vide() {
+    saufsi est_vide(classes) {
         ajoute_au_tampon(enchaineuse, ".", classes);
     }
 
@@ -2311,7 +2311,7 @@ décale :: fonc (box: *Box, x: r32, y: r32)
 décale_contenu :: fonc (box: *Box, x: r32, y: r32)
 {
     pour box.enfants {
-        it.décale(x, y);
+        décale(it, x, y);
     }
 
     si box.table_virtuelle.type == BlockBox || box.table_virtuelle.type == InlineBox || box.table_virtuelle.type == TableCellBox {
@@ -2340,9 +2340,9 @@ donne_taille_en_octet :: fonc (box: *Box) -> n32
 
 donne_nom_classe_sans_suffixe :: fonc (box: *Box) -> chaine
 {
-    résultat := box.donne_nom_classe();
+    résultat := donne_nom_classe(box);
     suffixe :: "Box";
-    si résultat.fini_par(suffixe) {
+    si fini_par(résultat, suffixe) {
         résultat = recule(résultat, suffixe.taille);
     }
     retourne résultat;
@@ -2371,12 +2371,12 @@ donne_curseur :: fonc (box: *Box) -> CursorType
     saufsi box.propriétés {
         retourne CursorType.auto;
     }
-    retourne box.propriétés.donne_valeur_utilisée(IDPropriété.Cursor).donne_cursor_type();
+    retourne donne_valeur_utilisée(box.propriétés, IDPropriété.Cursor).donne_cursor_type();
 }
 
 divise_en_lignes :: fonc (box: *Box, enligneuse: *Enligneuse, mode: ModeDeFormattage)
 {
-    si (box.table_virtuelle.type == TextBox || box.donne_display().inner_type == Display.Type.Flow) {
+    si (box.table_virtuelle.type == TextBox || donne_display(box).inner_type == Display.Type.Flow) {
         si box.table_virtuelle.sur_divise_en_lignes {
             box.table_virtuelle.sur_divise_en_lignes(box, enligneuse, mode);
             retourne;
@@ -2393,8 +2393,8 @@ divise_en_lignes :: fonc (box: *Box, enligneuse: *Enligneuse, mode: ModeDeFormat
     available : AvailableSpace = ---;
     available.width = crée_min_content_size();
     available.height = crée_indefinite_size();
-    box.mesure(enligneuse.ctx, mode, PersonnalisationCotation(), available);
-    _ := enligneuse.ajoute_fragment(box, box.modèle_de_boite.marge.hauteur, box.modèle_de_boite.marge.largeur, Fragment.Type.InlineBlock);
+    mesure(box, enligneuse.ctx, mode, PersonnalisationCotation(), available);
+    _ := ajoute_fragment(enligneuse, box, box.modèle_de_boite.marge.hauteur, box.modèle_de_boite.marge.largeur, Fragment.Type.InlineBlock);
 }
 
 corrige_hiérarchie :: fonc (box: *Box, créatrice: *CréatriceArbre)
@@ -2461,14 +2461,14 @@ donne_containing_block :: fonc (box: *Box, ctx: *ContexteDeFormattage) -> Contai
     // it is the page area for paged media.
     // The 'direction' property of the initial containing block is the same as for the root element.
     si box.parent == nul {
-        retourne ctx.donne_initial_containing_block();
+        retourne donne_initial_containing_block(ctx);
     }
 
     // 2. For other elements, if the element's position is 'relative' or 'static',
     // the containing block is formed by the content edge of the nearest block
     // container ancestor box.
-    position := box.propriétés.donne_valeur_utilisée(IDPropriété.Position);
-    si position.est_mot_clé(PROP_relative) || position.est_mot_clé(PROP_static) {
+    position := donne_valeur_utilisée(box.propriétés, IDPropriété.Position);
+    si est_mot_clé(position, PROP_relative) || est_mot_clé(position, PROP_static) {
         parent := box.parent;
 
         tantque parent != nul {
@@ -2481,17 +2481,17 @@ donne_containing_block :: fonc (box: *Box, ctx: *ContexteDeFormattage) -> Contai
     }
     // 3. If the element has 'position: fixed', the containing block is established by the viewport
     // in the case of continuous media or the page area in the case of paged media.
-    sinon si position.est_mot_clé(PROP_fixed) {
-        retourne ctx.donne_initial_containing_block();
+    sinon si est_mot_clé(position, PROP_fixed) {
+        retourne donne_initial_containing_block(ctx);
     }
     // 4. If the element has 'position: absolute', the containing block is established by the nearest
     // ancestor with a 'position' of 'absolute', 'relative' or 'fixed', in the following way:
-    sinon si position.est_mot_clé(PROP_absolute) {
+    sinon si est_mot_clé(position, PROP_absolute) {
         ancêtre := box.parent;
 
         tantque ancêtre != nul {
-            position_parent := ancêtre.propriétés.donne_valeur_utilisée(IDPropriété.Position);
-            si position_parent.est_mot_clé(PROP_relative) || position_parent.est_mot_clé(PROP_absolute) || position_parent.est_mot_clé(PROP_fixed) {
+            position_parent := donne_valeur_utilisée(ancêtre.propriétés, IDPropriété.Position);
+            si est_mot_clé(position_parent, PROP_relative) || est_mot_clé(position_parent, PROP_absolute) || est_mot_clé(position_parent, PROP_fixed) {
                 arrête;
             }
 
@@ -2509,7 +2509,7 @@ donne_containing_block :: fonc (box: *Box, ctx: *ContexteDeFormattage) -> Contai
     }
 
     // If there is no such ancestor, the containing block is the initial containing block.
-    retourne ctx.donne_initial_containing_block();
+    retourne donne_initial_containing_block(ctx);
 }
 
 /** \} */
@@ -2738,9 +2738,9 @@ ajoute_fragment :: fonc (empl enligneuse: *Enligneuse, box: *Box, indice_début:
 {
     lignes_tenante := enligneuse.bloc_contenant.lignes_tenante;
 
-    ligne_courante = lignes_tenante.donne_ligne_courante(ctx);
-    si mode_de_formattage == ModeDeFormattage.Normal && !ligne_courante.peut_ajouter_fragment(largeur) {
-        ligne_courante = lignes_tenante.ajoute_ligne(ctx);
+    ligne_courante = donne_ligne_courante(lignes_tenante, ctx);
+    si mode_de_formattage == ModeDeFormattage.Normal && !peut_ajouter_fragment(ligne_courante, largeur) {
+        ligne_courante = ajoute_ligne(lignes_tenante, ctx);
     }
 
     fragment: Fragment;
@@ -2754,14 +2754,14 @@ ajoute_fragment :: fonc (empl enligneuse: *Enligneuse, box: *Box, indice_début:
     fragment.type = type;
 
     ligne_courante.largeur_courante += largeur;
-    ligne_courante.garantis_hauteur_minimale(hauteur);
+    garantis_hauteur_minimale(ligne_courante, hauteur);
 
     ligne_courante.dernier_fragment = ajoute_fragment(lignes_tenante, *fragment);
 
     résultat := ligne_courante.dernier_fragment;
 
     si fragment.type == Fragment.Type.NouvelleLigne {
-        _ := lignes_tenante.ajoute_ligne(ctx);
+        _ := ajoute_ligne(lignes_tenante, ctx);
     }
 
     retourne résultat;
@@ -2814,7 +2814,7 @@ BlockBox :: struct {
 réinitialise_lignes :: fonc (box: *BlockBox, arbre: *ArbreDeDisposition)
 {
     saufsi box.lignes_tenante {
-        box.lignes_tenante = arbre.crée_lignes_tenante();
+        box.lignes_tenante = crée_lignes_tenante(arbre);
     }
 
     réinitialise(box.lignes_tenante);
@@ -2822,7 +2822,7 @@ réinitialise_lignes :: fonc (box: *BlockBox, arbre: *ArbreDeDisposition)
 
 détermine_disposition_interne :: fonc (box: *BlockBox)
 {
-    si box.enfants.taille == 0 || box.est_inline_block() {
+    si box.enfants.taille == 0 || est_inline_block(box) {
         box.est_disposition_inline = faux;
         retourne;
     }
@@ -2833,7 +2833,7 @@ détermine_disposition_interne :: fonc (box: *BlockBox)
     doit_formatter_en_blocs := faux;
 
     pour box.enfants {
-        si it.est_block_level() {
+        si est_block_level(it) {
             doit_formatter_en_blocs = vrai;
             arrête;
         }
@@ -2852,7 +2852,7 @@ MéthodeDeFormattage :: énum {
 donne_méthode_de_formattage_intérieur :: fonc (box: *Box) -> MéthodeDeFormattage
 {
     si box.table_virtuelle.type == InlineBox {
-        si box.est_inline_block() {
+        si est_inline_block(box) {
             retourne MéthodeDeFormattage.Bloc;
         }
         retourne MéthodeDeFormattage.Inline;
@@ -2865,11 +2865,11 @@ donne_méthode_de_formattage_intérieur :: fonc (box: *Box) -> MéthodeDeFormatt
         }
     }
 
-    si box.donne_display().inner_type == Display.Type.Flex {
+    si donne_display(box).inner_type == Display.Type.Flex {
         retourne MéthodeDeFormattage.Flex;
     }
 
-    si box.requiers_contexte_de_formattage_indépendant() {
+    si requiers_contexte_de_formattage_indépendant(box) {
         retourne MéthodeDeFormattage.Bloc;
     }
 
@@ -2887,7 +2887,7 @@ formatte_intérieur :: fonc (box: *BlockBox, ctx: *ContexteDeFormattage, mode: M
              * afin que les boites flottantes de ce dernier n'influencent pas nos lignes.
              * (Ceci peut arriver quand un boite flottante établis un contexte de 
              * formattage inline.) */
-            si box.requiers_contexte_de_formattage_indépendant() {
+            si requiers_contexte_de_formattage_indépendant(box) {
                 ctx_local.parent = nul;
             }
 
@@ -2931,7 +2931,7 @@ est_élément_avec_attribut_alignement_spécial :: fonc (élément: *HTML.Elemen
 
 donne_alignement_descendants :: fonc (box: *BlockBox) -> Optionnel(AlignementTexte)
 {
-    élément := box.donne_élément();
+    élément := donne_élément(box);
     saufsi élément {
         retourne;
     }
@@ -2942,7 +2942,7 @@ donne_alignement_descendants :: fonc (box: *BlockBox) -> Optionnel(AlignementTex
 
     si est_élément_avec_attribut_alignement_spécial(élément) {
         attribut_align := HTML.donne_attribut(élément, HTML.ATTR_align);
-        saufsi attribut_align.possède_valeur() {
+        saufsi possède_valeur(attribut_align) {
             retourne;
         }
 
@@ -2981,7 +2981,7 @@ block_box_sur_mesure :: fonc (base: *Box, ctx: *ContexteDeFormattage, mode: Mode
 
     doit_aligner_les_descendants := ctx.doit_aligner_les_descendants;
     alignement := donne_alignement_descendants(box);
-    si alignement.possède_valeur() {
+    si possède_valeur(alignement) {
         ctx.doit_aligner_les_descendants = alignement;
     }
 
@@ -2995,7 +2995,7 @@ block_box_sur_mesure :: fonc (base: *Box, ctx: *ContexteDeFormattage, mode: Mode
     ctx.doit_aligner_les_descendants = doit_aligner_les_descendants;
 
     si mode == ModeDeFormattage.Normal && ctx.type != ContexteDeFormattageFlex {
-        ctx.dispose_les_boites_absolues(box);
+        dispose_les_boites_absolues(ctx, box);
     }
 }
 
@@ -3012,21 +3012,21 @@ block_box_corrige_hiérarchie :: fonc (base: *Box, créatrice: *CréatriceArbre)
 
     bloc_anonyme_courant: *BlockBox;
     pour box.enfants {
-        si it.est_block_level() {
+        si est_block_level(it) {
             tableau_ajoute(*nouveaux_enfants, it);
             bloc_anonyme_courant = nul;
             continue;
         }
 
         si bloc_anonyme_courant == nul {
-            bloc_anonyme_courant = créatrice.arbre.crée_box(BlockBox);
+            bloc_anonyme_courant = crée_box(créatrice.arbre, BlockBox);
             bloc_anonyme_courant.parent = box;
             bloc_anonyme_courant.est_disposition_inline = vrai;
             crée_style_pour_bloc_anonyme(créatrice.résolveuse, bloc_anonyme_courant, box, Display.Type.Block);
             tableau_ajoute(*nouveaux_enfants, bloc_anonyme_courant);
         }
 
-        bloc_anonyme_courant.ajoute_enfant(it);
+        ajoute_enfant(bloc_anonyme_courant, it);
     }
 
     déloge(*box.enfants);
@@ -3042,8 +3042,8 @@ block_box_donne_baseline :: fonc (base: *Box) -> Optionnel(InfoLigneDeBase)
     // value other than 'visible', in which case the baseline is the bottom margin edge.
     // https://www.w3.org/TR/2011/REC-CSS2-20110607/visudet.html#propdef-vertical-align
     si est_inline_block(bloc) {
-        overflow := bloc.propriétés.donne_valeur_utilisée(IDPropriété.OverflowY);
-        si !overflow.est_mot_clé(PROP_visible) || bloc.lignes_tenante == nul {
+        overflow := donne_valeur_utilisée(bloc.propriétés, IDPropriété.OverflowY);
+        si !est_mot_clé(overflow, PROP_visible) || bloc.lignes_tenante == nul {
             retourne donne_ligne_de_base_marge(bloc.modèle_de_boite);
         }
 
@@ -3052,7 +3052,7 @@ block_box_donne_baseline :: fonc (base: *Box) -> Optionnel(InfoLigneDeBase)
         }
 
         indice_ligne := bloc.lignes_tenante.lignes.taille - 1;
-        retourne bloc.lignes_tenante.donne_baseline(indice_ligne);
+        retourne donne_baseline(bloc.lignes_tenante, indice_ligne);
     }
 
     si bloc.lignes_tenante {
@@ -3060,7 +3060,7 @@ block_box_donne_baseline :: fonc (base: *Box) -> Optionnel(InfoLigneDeBase)
             retourne;
         }
 
-        retourne bloc.lignes_tenante.donne_baseline(0);
+        retourne donne_baseline(bloc.lignes_tenante, 0);
     }
 
     pour bloc.enfants {
@@ -3073,7 +3073,7 @@ block_box_donne_baseline :: fonc (base: *Box) -> Optionnel(InfoLigneDeBase)
         }
 
         résultat := donne_baseline(it);
-        si résultat.possède_valeur() {
+        si possède_valeur(résultat) {
             retourne résultat;
         }
     }
@@ -3133,22 +3133,22 @@ inline_box_sur_divise_en_lignes :: fonc (base: *Box, enligneuse: *Enligneuse, mo
 
     propriétés := box.propriétés;
 
-    margin_left := propriétés.donne_valeur_utilisée(IDPropriété.MarginLeft).donne_pixels() comme r32;
-    padding_left := propriétés.donne_valeur_utilisée(IDPropriété.PaddingLeft).donne_pixels() comme r32;
-    padding_right := propriétés.donne_valeur_utilisée(IDPropriété.PaddingRight).donne_pixels() comme r32;
-    margin_right := propriétés.donne_valeur_utilisée(IDPropriété.MarginRight).donne_pixels() comme r32;
+    margin_left := donne_valeur_utilisée(propriétés, IDPropriété.MarginLeft).donne_pixels() comme r32;
+    padding_left := donne_valeur_utilisée(propriétés, IDPropriété.PaddingLeft).donne_pixels() comme r32;
+    padding_right := donne_valeur_utilisée(propriétés, IDPropriété.PaddingRight).donne_pixels() comme r32;
+    margin_right := donne_valeur_utilisée(propriétés, IDPropriété.MarginRight).donne_pixels() comme r32;
 
-    fragment_marge_début := enligneuse.ajoute_fragment(box, 0.0, margin_left, Fragment.Type.MargeDébut);
-    fragment_rembourrage_début := enligneuse.ajoute_fragment(box, 0.0, padding_left, Fragment.Type.RembourrageDébut);
+    fragment_marge_début := ajoute_fragment(enligneuse, box, 0.0, margin_left, Fragment.Type.MargeDébut);
+    fragment_rembourrage_début := ajoute_fragment(enligneuse, box, 0.0, padding_left, Fragment.Type.RembourrageDébut);
 
     pour box.enfants {
         divise_en_lignes(it, enligneuse, mode);
     }
 
-    fragment_rembourrage_fin := enligneuse.ajoute_fragment(box, 0.0, padding_right, Fragment.Type.RembourrageFin);
-    fragment_marge_fin := enligneuse.ajoute_fragment(box, 0.0, margin_right, Fragment.Type.MargeFin);
+    fragment_rembourrage_fin := ajoute_fragment(enligneuse, box, 0.0, padding_right, Fragment.Type.RembourrageFin);
+    fragment_marge_fin := ajoute_fragment(enligneuse, box, 0.0, margin_right, Fragment.Type.MargeFin);
 
-    lignes_tenante := enligneuse.donne_lignes_tenante();
+    lignes_tenante := donne_lignes_tenante(enligneuse);
 
     hauteur := 0.0;
     pour fragment_rembourrage_début + 1 ... fragment_rembourrage_fin - 1 {
@@ -3168,7 +3168,7 @@ inline_box_corrige_hiérarchie :: fonc (base: *Box, créatrice: *CréatriceArbre
     box := base comme *InlineBox;
     détermine_disposition_interne(box);
 
-    si box.est_inline_block() {
+    si est_inline_block(box) {
         block_box_corrige_hiérarchie(box, créatrice);
         retourne;
     }
@@ -3200,21 +3200,21 @@ inline_box_corrige_hiérarchie :: fonc (base: *Box, créatrice: *CréatriceArbre
     init_de([..]*Box)(*inline_box_courant.enfants);
 
     pour anciens_enfants {
-        si it.est_block_level() {
-            box.parent.ajoute_enfant(it);
+        si est_block_level(it) {
+            ajoute_enfant(box.parent, it);
             inline_box_courant = nul;
             continue;
         }
 
         si inline_box_courant == nul {
-            inline_box_courant = créatrice.arbre.crée_box(InlineBox);
+            inline_box_courant = crée_box(créatrice.arbre, InlineBox);
             inline_box_courant.parent = box;
             inline_box_courant.est_disposition_inline = vrai;
             crée_style_pour_bloc_anonyme(créatrice.résolveuse, inline_box_courant, box, Display.Type.Inline);
-            box.parent.ajoute_enfant(inline_box_courant);
+            ajoute_enfant(box.parent, inline_box_courant);
         }
 
-        inline_box_courant.ajoute_enfant(it);
+        ajoute_enfant(inline_box_courant, it);
     }
 }
 
@@ -3241,7 +3241,7 @@ break_box_sur_divise_en_lignes :: fonc (base: *Box, enligneuse: *Enligneuse, mod
 {
     line_height := donne_line_height(base, enligneuse.ctx);
 
-    base.propriétés.définis_valeur_utilisée(IDPropriété.Height, crée_valeur_pixels(line_height));
+    définis_valeur_utilisée(base.propriétés, IDPropriété.Height, crée_valeur_pixels(line_height));
 
     ids_propriétés := [
         IDPropriété.BorderWidthLeft, IDPropriété.BorderWidthRight, IDPropriété.BorderWidthTop, IDPropriété.BorderWidthBottom,
@@ -3251,13 +3251,13 @@ break_box_sur_divise_en_lignes :: fonc (base: *Box, enligneuse: *Enligneuse, mod
     ];
 
     pour ids_propriétés {
-        base.propriétés.définis_valeur_utilisée(it, donne_valeur_pixels_zéro());
+        définis_valeur_utilisée(base.propriétés, it, donne_valeur_pixels_zéro());
     }
 
     ajourne_boite_pour_calcul_largeur(base);
     ajourne_boite_pour_calcul_hauteur(base);
 
-    _ := enligneuse.ajoute_fragment(base, line_height, 0.0, Fragment.Type.NouvelleLigne);
+    _ := ajoute_fragment(enligneuse, base, line_height, 0.0, Fragment.Type.NouvelleLigne);
 }
 
 /** \} */
@@ -3311,11 +3311,11 @@ text_box_sur_divise_en_lignes :: fonc (base: *Box, enligneuse: *Enligneuse, mode
 
     propriétés := donne_propriétés(box);
 
-    text_transform := propriétés.donne_valeur_utilisée(IDPropriété.TextTransform);
-    si text_transform.est_mot_clé(PROP_uppercase) {
+    text_transform := donne_valeur_utilisée(propriétés, IDPropriété.TextTransform);
+    si est_mot_clé(text_transform, PROP_uppercase) {
         box.texte = transforme_texte_en_majuscule(box.texte_original);
     }
-    sinon si text_transform.est_mot_clé(PROP_lowercase) {
+    sinon si est_mot_clé(text_transform, PROP_lowercase) {
         box.texte = transforme_texte_en_minuscule(box.texte_original);
     }
     sinon {
@@ -3325,9 +3325,9 @@ text_box_sur_divise_en_lignes :: fonc (base: *Box, enligneuse: *Enligneuse, mode
     traite_espaces_blanches(box);
 
     fonte := détermine_fonte(box, ctx);
-    métriques := fonte.donne_métriques_fonte();
+    métriques := donne_métriques_fonte(fonte);
 
-    définis_hauteur_contenu(*box.modèle_de_boite, métriques.donne_hauteur_ligne());
+    définis_hauteur_contenu(*box.modèle_de_boite, donne_hauteur_ligne(métriques));
 
     /* "On a non-replaced inline element, line-height specifies the height that is used
      * in the calculation of the line box height."
@@ -3346,35 +3346,35 @@ text_box_sur_divise_en_lignes :: fonc (base: *Box, enligneuse: *Enligneuse, mode
         }
 
         si it.est_espace_blanche && it.texte.unités[0] == 0x0A {
-            ligne := enligneuse.ajoute_ligne();
-            ligne.garantis_hauteur_minimale(hauteur_texte);
+            ligne := ajoute_ligne(enligneuse);
+            garantis_hauteur_minimale(ligne, hauteur_texte);
             continue;
         }
 
-        largeur_morceau := fonte.donne_largeur_texte(it.texte);
+        largeur_morceau := donne_largeur_texte(fonte, it.texte);
 
         discr mode {
             Normal {
-                si it.est_espace_blanche && enligneuse.peut_ignorer_espace_blanche_en_début_de_ligne() {
+                si it.est_espace_blanche && peut_ignorer_espace_blanche_en_début_de_ligne(enligneuse) {
                     continue;
                 }
 
-                _ := enligneuse.ajoute_fragment(box, indice_it, indice_it + 1, hauteur_texte, largeur_morceau);
+                _ := ajoute_fragment(enligneuse, box, indice_it, indice_it + 1, hauteur_texte, largeur_morceau);
             }
             ToutesLesBrisuresDeLigne {
                 saufsi it.est_espace_blanche {
-                    _ := enligneuse.ajoute_fragment(box, indice_it, indice_it + 1, hauteur_texte, largeur_morceau);
+                    _ := ajoute_fragment(enligneuse, box, indice_it, indice_it + 1, hauteur_texte, largeur_morceau);
                 }
 
-                ligne := enligneuse.ajoute_ligne();
-                ligne.garantis_hauteur_minimale(hauteur_texte);
+                ligne := ajoute_ligne(enligneuse);
+                garantis_hauteur_minimale(ligne, hauteur_texte);
             }
             BrisureDeLigneExplicite {
-                si it.est_espace_blanche && enligneuse.peut_ignorer_espace_blanche_en_début_de_ligne() {
+                si it.est_espace_blanche && peut_ignorer_espace_blanche_en_début_de_ligne(enligneuse) {
                     continue;
                 }
 
-                _ := enligneuse.ajoute_fragment(box, indice_it, indice_it + 1, hauteur_texte, largeur_morceau);
+                _ := ajoute_fragment(enligneuse, box, indice_it, indice_it + 1, hauteur_texte, largeur_morceau);
             }
         }
     }
@@ -3387,7 +3387,7 @@ traite_espaces_blanches :: fonc (box: *TextBox)
     fragmente_texte_avec_espaces_blanches_ascii(box.texte, *box.fragments);
 
     propriétés := donne_propriétés(box);
-    white_space := propriétés.donne_valeur_utilisée(IDPropriété.WhiteSpace).donne_mot_clé();
+    white_space := donne_valeur_utilisée(propriétés, IDPropriété.WhiteSpace).donne_mot_clé();
 
     si white_space == PROP_normal || white_space == PROP_nowrap || white_space == PROP_pre_line {
         // 1. Any sequence of collapsible spaces and tabs immediately preceding or following a segment
@@ -3426,7 +3426,7 @@ fragmente_texte_avec_espaces_blanches_ascii :: fonc (chn: ChaineUTF16, fragments
 
     texte: ChaineUTF16;
 
-    tantque position < chn.taille() && est_ascii_espace_blanche(chn.unités.données[position]) {
+    tantque position < taille(chn) && est_ascii_espace_blanche(chn.unités.données[position]) {
         texte.unités.données = chn.unités.données + position;
         texte.unités.taille = 1;
         tableau_ajoute(fragments, FragmentTexte(texte, vrai));
@@ -3434,23 +3434,23 @@ fragmente_texte_avec_espaces_blanches_ascii :: fonc (chn: ChaineUTF16, fragments
         position += 1;
     }
 
-    tantque position < chn.taille() {
+    tantque position < taille(chn) {
         texte.unités.données = chn.unités.données + position;
         texte.unités.taille = 0;
 
-        tantque position < chn.taille() && !est_ascii_espace_blanche(chn.unités.données[position]) {
+        tantque position < taille(chn) && !est_ascii_espace_blanche(chn.unités.données[position]) {
             texte.unités.taille += 1;
             position += 1;
         }
 
-        si texte.taille() != 0 {
+        si taille(texte) != 0 {
             tableau_ajoute(fragments, FragmentTexte(texte, faux));
         }
 
         texte.unités.données = chn.unités.données + position;
         texte.unités.taille = 0;
 
-        tantque position < chn.taille() && est_ascii_espace_blanche(chn.unités.données[position]) {
+        tantque position < taille(chn) && est_ascii_espace_blanche(chn.unités.données[position]) {
             texte.unités.données = chn.unités.données + position;
             texte.unités.taille = 1;
             tableau_ajoute(fragments, FragmentTexte(texte, vrai));
@@ -3542,7 +3542,7 @@ collapse_bris_segments :: fonc (fragments: *[..]FragmentTexte, white_space: CSSO
     // 2. Then any remaining segment break is either transformed into a space (U+0020)
     // or removed depending on the context before and after the break.
     // The rules for this operation are UA-defined in this level.
-    chn_espace := crée_chaine_utf16_unique(" ").donne_chaine_utf16();
+    chn_espace := donne_chaine_utf16(crée_chaine_utf16_unique(" "));
 
     début = fragments.données;
     tantque début < fin {
@@ -3555,7 +3555,7 @@ collapse_bris_segments :: fonc (fragments: *[..]FragmentTexte, white_space: CSSO
 
 convertis_tabulations_en_espaces :: fonc (fragments: *[..]FragmentTexte)
 {
-    chn_espace := crée_chaine_utf16_unique(" ").donne_chaine_utf16();
+    chn_espace := donne_chaine_utf16(crée_chaine_utf16_unique(" "));
     début := fragments.données;
     fin := fragments.données + fragments.taille;
 
@@ -3622,17 +3622,17 @@ ReplacedBox :: struct {
 
 possède_ratio_intrinsèque :: fonc (box: *ReplacedBox) -> bool
 {
-    retourne box.ratio_intrinsèque.possède_valeur();
+    retourne possède_valeur(box.ratio_intrinsèque);
 }
 
 possède_largeur_intrinsèque :: fonc (box: *ReplacedBox) -> bool
 {
-    retourne box.largeur_intrinsèque.possède_valeur();
+    retourne possède_valeur(box.largeur_intrinsèque);
 }
 
 possède_hauteur_intrinsèque :: fonc (box: *ReplacedBox) -> bool
 {
-    retourne box.hauteur_intrinsèque.possède_valeur();
+    retourne possède_valeur(box.hauteur_intrinsèque);
 }
 
 donne_ratio_intrinsèque :: fonc (box: *ReplacedBox) -> r32
@@ -3658,20 +3658,20 @@ replaced_box_sur_mesure :: fonc (base: *Box, ctx: *ContexteDeFormattage, mode: M
 
     containing_block := donne_containing_block(box, ctx);
 
-    width := box.propriétés.donne_valeur_calculée(IDPropriété.Width);
-    height := box.propriétés.donne_valeur_calculée(IDPropriété.Height);
+    width := donne_valeur_calculée(box.propriétés, IDPropriété.Width);
+    height := donne_valeur_calculée(box.propriétés, IDPropriété.Height);
 
     personnalisation_boite: PersonnalisationCotation;
     outrepas_largeur: OutrepasCotation;
     outrepas_hauteur: OutrepasCotation;
 
-    si (available.width.est_max_content() || available.width.est_min_content()) && box.possède_largeur_intrinsèque() && !width.est_pixels() {
-        outrepas_largeur = crée_outrepas_pour_coter_contenu(box.donne_largeur_intrinsèque());
+    si (est_max_content(available.width) || est_min_content(available.width)) && possède_largeur_intrinsèque(box) && !est_pixels(width) {
+        outrepas_largeur = crée_outrepas_pour_coter_contenu(donne_largeur_intrinsèque(box));
         personnalisation_boite.outrepas_largeur = *outrepas_largeur;
     }
 
-    si (available.height.est_max_content() || available.height.est_min_content()) && box.possède_hauteur_intrinsèque() && !height.est_pixels() {
-        outrepas_hauteur = crée_outrepas_pour_coter_contenu(box.donne_hauteur_intrinsèque());
+    si (est_max_content(available.height) || est_min_content(available.height)) && possède_hauteur_intrinsèque(box) && !est_pixels(height) {
+        outrepas_hauteur = crée_outrepas_pour_coter_contenu(donne_hauteur_intrinsèque(box));
         personnalisation_boite.outrepas_hauteur = *outrepas_hauteur;
     }
 
@@ -3689,7 +3689,7 @@ replaced_box_sur_divise_en_lignes :: fonc (base: *Box, enligneuse: *Enligneuse, 
     largeur := box.modèle_de_boite.marge.largeur;
     hauteur := box.modèle_de_boite.marge.hauteur;
 
-    _ := enligneuse.ajoute_fragment(box, 0, 0, hauteur, largeur, Fragment.Type.InlineBlock);
+    _ := ajoute_fragment(enligneuse, box, 0, 0, hauteur, largeur, Fragment.Type.InlineBlock);
 }
 
 /** \} */
@@ -3710,7 +3710,7 @@ __table_image_box := TableVirtuelleBox(
 
 crée_image_box :: fonc (arbre: *ArbreDeDisposition, élément: *HTML.HTMLImageElement) -> *ReplacedBox
 {
-    résultat := arbre.crée_box(ReplacedBox);
+    résultat := crée_box(arbre, ReplacedBox);
     résultat.table_virtuelle = *__table_image_box;
     résultat.noeud = élément;
     résultat.sur_calcul_dimensions_intrinsèques = image_box_calcul_dimensions_intrinsèques;
@@ -3719,7 +3719,7 @@ crée_image_box :: fonc (arbre: *ArbreDeDisposition, élément: *HTML.HTMLImageE
 
 image_box_calcul_dimensions_intrinsèques :: fonc (box: *ReplacedBox, ctx: *ContexteDeFormattage @inutilisée)
 {
-    élément := box.donne_élément() comme *HTML.HTMLImageElement;
+    élément := donne_élément(box) comme *HTML.HTMLImageElement;
     assert(élément.local_name == HTML.TAG_img);
 
     si élément.image_data.données {
@@ -3747,7 +3747,7 @@ __table_object_box := TableVirtuelleBox(
 
 crée_object_box :: fonc (arbre: *ArbreDeDisposition, élément: *HTML.HTMLObjectElement) -> *ReplacedBox
 {
-    résultat := arbre.crée_box(ReplacedBox);
+    résultat := crée_box(arbre, ReplacedBox);
     résultat.table_virtuelle = *__table_object_box;
     résultat.noeud = élément;
     résultat.sur_calcul_dimensions_intrinsèques = object_box_calcul_dimensions_intrinsèques;
@@ -3756,7 +3756,7 @@ crée_object_box :: fonc (arbre: *ArbreDeDisposition, élément: *HTML.HTMLObjec
 
 object_box_calcul_dimensions_intrinsèques :: fonc (box: *ReplacedBox, ctx: *ContexteDeFormattage @inutilisée)
 {
-    élément := box.donne_élément() comme *HTML.HTMLObjectElement;
+    élément := donne_élément(box) comme *HTML.HTMLObjectElement;
     assert(élément.local_name == HTML.TAG_object);
 
     si élément.image_data.données {
@@ -3784,7 +3784,7 @@ __table_text_input_box := TableVirtuelleBox(
 
 crée_text_input_box :: fonc (arbre: *ArbreDeDisposition, élément: *HTML.HTMLInputElement) -> *ReplacedBox
 {
-    résultat := arbre.crée_box(ReplacedBox);
+    résultat := crée_box(arbre, ReplacedBox);
     résultat.table_virtuelle = *__table_text_input_box;
     résultat.noeud = élément;
     résultat.sur_calcul_dimensions_intrinsèques = text_input_box_dimensions_intrinsèques;
@@ -3793,18 +3793,18 @@ crée_text_input_box :: fonc (arbre: *ArbreDeDisposition, élément: *HTML.HTMLI
 
 text_input_box_dimensions_intrinsèques :: fonc (box: *ReplacedBox, ctx: *ContexteDeFormattage)
 {
-    assert(box.donne_élément().local_name == HTML.TAG_input);
+    assert(donne_élément(box).local_name == HTML.TAG_input);
 
     box.fonte = détermine_fonte(box, ctx);
-    métriques := box.fonte.donne_métriques_fonte();
-    hauteur_ligne := métriques.donne_hauteur_ligne();
+    métriques := donne_métriques_fonte(box.fonte);
+    hauteur_ligne := donne_hauteur_ligne(métriques);
 
     line_height := donne_line_height(box, ctx);
 
     /* For input elements whose type attribute is in one of the above states, the used value of the 'line-height'
      * property must be a length value that is no smaller than what the used value would be for 'line-height: normal'. */
     si line_height < hauteur_ligne {
-        box.propriétés.définis_valeur_utilisée(IDPropriété.LineHeight, crée_valeur_pixels(hauteur_ligne));
+        définis_valeur_utilisée(box.propriétés, IDPropriété.LineHeight, crée_valeur_pixels(hauteur_ligne));
         line_height = hauteur_ligne;
     }
 
@@ -3815,7 +3815,7 @@ text_input_box_dimensions_intrinsèques :: fonc (box: *ReplacedBox, ctx: *Contex
 /* https://html.spec.whatwg.org/multipage/rendering.html#the-input-element-as-a-text-entry-widget */
 donne_inline_size_pour_text_input :: fonc (box: *ReplacedBox) -> r32
 {
-    métriques := box.fonte.donne_métriques_fonte();
+    métriques := donne_métriques_fonte(box.fonte);
 
     // À FAIRE : 1. If the 'field-sizing' property on the element has a computed value of 'content',
     // the inline size is determined by the text which the element shows. The text is either
@@ -3826,10 +3826,10 @@ donne_inline_size_pour_text_input :: fonc (box: *ReplacedBox) -> r32
     // rules for parsing non-negative integers doesn't generate an error, return the value
     // obtained from applying the converting a character width to pixels algorithm to the value
     // of the attribute.
-    size := HTML.donne_attribut_ou_chaine_vide(box.donne_élément(), HTML.ATTR_size);
-    saufsi size.est_vide() {
+    size := HTML.donne_attribut_ou_chaine_vide(donne_élément(box), HTML.ATTR_size);
+    saufsi est_vide(size) {
         opt_value := HTML.parse_a_non_negative_integer(size);
-        si opt_value.possède_valeur() {
+        si possède_valeur(opt_value) {
             retourne convert_a_character_width_to_pixels(opt_value.Quelque comme r32, *métriques);
         }
     }
@@ -3863,7 +3863,7 @@ __table_button_input_box := TableVirtuelleBox(
 
 crée_button_box :: fonc (arbre: *ArbreDeDisposition, élément: *HTML.HTMLInputElement) -> *ReplacedBox
 {
-    résultat := arbre.crée_box(ReplacedBox);
+    résultat := crée_box(arbre, ReplacedBox);
     résultat.table_virtuelle = *__table_button_input_box;
     résultat.noeud = élément;
     résultat.sur_calcul_dimensions_intrinsèques = button_input_box_dimensions_intrinsèques;
@@ -3872,10 +3872,10 @@ crée_button_box :: fonc (arbre: *ArbreDeDisposition, élément: *HTML.HTMLInput
 
 button_input_box_dimensions_intrinsèques :: fonc (box: *ReplacedBox, ctx: *ContexteDeFormattage)
 {
-    assert(box.donne_élément().local_name == HTML.TAG_input);
+    assert(donne_élément(box).local_name == HTML.TAG_input);
     box.fonte = détermine_fonte(box, ctx);
     line_height := donne_line_height(box, ctx);
-    value := HTML.donne_attribut_ou_chaine_vide(box.donne_élément(), HTML.ATTR_value);
+    value := HTML.donne_attribut_ou_chaine_vide(donne_élément(box), HTML.ATTR_value);
     box.largeur_intrinsèque = donne_largeur_texte(box.fonte, value);
     box.hauteur_intrinsèque = line_height;
 }
@@ -3898,7 +3898,7 @@ __table_radio_button_box := TableVirtuelleBox(
 
 crée_radio_button_box :: fonc (arbre: *ArbreDeDisposition, élément: *HTML.HTMLInputElement) -> *ReplacedBox
 {
-    résultat := arbre.crée_box(ReplacedBox);
+    résultat := crée_box(arbre, ReplacedBox);
     résultat.table_virtuelle = *__table_radio_button_box;
     résultat.noeud = élément;
     résultat.sur_calcul_dimensions_intrinsèques = radio_button_box_dimensions_intrinsèques;
@@ -3907,7 +3907,7 @@ crée_radio_button_box :: fonc (arbre: *ArbreDeDisposition, élément: *HTML.HTM
 
 radio_button_box_dimensions_intrinsèques :: fonc (box: *ReplacedBox, ctx: *ContexteDeFormattage @inutilisée)
 {
-    assert(box.donne_élément().local_name == HTML.TAG_input);
+    assert(donne_élément(box).local_name == HTML.TAG_input);
     box.largeur_intrinsèque = 14.0;
     box.hauteur_intrinsèque = 14.0;
 }
@@ -3929,7 +3929,7 @@ __table_checkbox_box := TableVirtuelleBox(
 
 crée_checkbox_box :: fonc (arbre: *ArbreDeDisposition, élément: *HTML.HTMLInputElement) -> *ReplacedBox
 {
-    résultat := arbre.crée_box(ReplacedBox);
+    résultat := crée_box(arbre, ReplacedBox);
     résultat.table_virtuelle = *__table_checkbox_box;
     résultat.noeud = élément;
     résultat.sur_calcul_dimensions_intrinsèques = checkbox_box_dimensions_intrinsèques;
@@ -3938,7 +3938,7 @@ crée_checkbox_box :: fonc (arbre: *ArbreDeDisposition, élément: *HTML.HTMLInp
 
 checkbox_box_dimensions_intrinsèques :: fonc (box: *ReplacedBox, ctx: *ContexteDeFormattage @inutilisée)
 {
-    assert(box.donne_élément().local_name == HTML.TAG_input);
+    assert(donne_élément(box).local_name == HTML.TAG_input);
     box.largeur_intrinsèque = 14.0;
     box.hauteur_intrinsèque = 14.0;
 }
@@ -3961,7 +3961,7 @@ __table_textarea_box := TableVirtuelleBox(
 
 crée_textarea_box :: fonc (arbre: *ArbreDeDisposition, élément: *HTML.HTMLTextAreaElement) -> *ReplacedBox
 {
-    résultat := arbre.crée_box(ReplacedBox);
+    résultat := crée_box(arbre, ReplacedBox);
     résultat.table_virtuelle = *__table_textarea_box;
     résultat.noeud = élément;
     résultat.sur_calcul_dimensions_intrinsèques = textarea_box_dimensions_intrinsèques;
@@ -3970,7 +3970,7 @@ crée_textarea_box :: fonc (arbre: *ArbreDeDisposition, élément: *HTML.HTMLTex
 
 textarea_box_dimensions_intrinsèques :: fonc (box: *ReplacedBox, ctx: *ContexteDeFormattage)
 {
-    assert(box.donne_élément().local_name == HTML.TAG_textarea);
+    assert(donne_élément(box).local_name == HTML.TAG_textarea);
     box.fonte = détermine_fonte(box, ctx);
     box.largeur_intrinsèque = donne_textarea_effective_width(box);
     box.hauteur_intrinsèque = donne_textarea_effective_height(box, ctx);
@@ -3981,8 +3981,8 @@ LARGEUR_BARRE_DE_DÉFILEMENT :: 16.0;
 /* https://html.spec.whatwg.org/multipage/rendering.html#textarea-effective-width */
 donne_textarea_effective_width :: fonc (box: *ReplacedBox) -> r32
 {
-    élément := box.donne_élément() comme *HTML.HTMLTextAreaElement;
-    métriques := box.fonte.donne_métriques_fonte();
+    élément := donne_élément(box) comme *HTML.HTMLTextAreaElement;
+    métriques := donne_métriques_fonte(box.fonte);
     character_width := HTML.donne_character_width(élément);
     retourne (character_width comme r32) * métriques.largeur_moyenne + LARGEUR_BARRE_DE_DÉFILEMENT;
 }
@@ -3990,7 +3990,7 @@ donne_textarea_effective_width :: fonc (box: *ReplacedBox) -> r32
 /* https://html.spec.whatwg.org/multipage/rendering.html#textarea-effective-height */
 donne_textarea_effective_height :: fonc (box: *ReplacedBox, ctx: *ContexteDeFormattage) -> r32
 {
-    élément := box.donne_élément() comme *HTML.HTMLTextAreaElement;
+    élément := donne_élément(box) comme *HTML.HTMLTextAreaElement;
     character_height := HTML.donne_character_height(élément);
     line_height := donne_line_height(box, ctx);
     retourne character_height comme r32 * line_height;
@@ -4014,7 +4014,7 @@ __table_canvas_box := TableVirtuelleBox(
 
 crée_canvas_box :: fonc (arbre: *ArbreDeDisposition, élément: *HTML.HTMLCanvasElement) -> *ReplacedBox
 {
-    résultat := arbre.crée_box(ReplacedBox);
+    résultat := crée_box(arbre, ReplacedBox);
     résultat.table_virtuelle = *__table_canvas_box;
     résultat.noeud = élément;
     résultat.sur_calcul_dimensions_intrinsèques = canvas_box_calcul_dimensions_intrinsèques;
@@ -4023,7 +4023,7 @@ crée_canvas_box :: fonc (arbre: *ArbreDeDisposition, élément: *HTML.HTMLCanva
 
 canvas_box_calcul_dimensions_intrinsèques :: fonc (box: *ReplacedBox, ctx: *ContexteDeFormattage @inutilisée)
 {
-    élément := box.donne_élément() comme *HTML.HTMLCanvasElement;
+    élément := donne_élément(box) comme *HTML.HTMLCanvasElement;
     assert(élément.local_name == HTML.TAG_canvas);
     box.largeur_intrinsèque = HTML.donne_largeur_intrinsèque(élément) comme r32;
     box.hauteur_intrinsèque = HTML.donne_hauteur_intrinsèque(élément) comme r32;
@@ -4065,7 +4065,7 @@ réinitialise :: fonc (box: *SelectBox)
 
 crée_select_box :: fonc (arbre: *ArbreDeDisposition, élément: *HTML.HTMLSelectElement) -> *ReplacedBox
 {
-    résultat := arbre.crée_box(SelectBox);
+    résultat := crée_box(arbre, SelectBox);
     résultat.noeud = élément;
     résultat.sur_calcul_dimensions_intrinsèques = select_box_calcul_dimensions_intrinsèques;
     retourne résultat;
@@ -4076,7 +4076,7 @@ donne_select_labels_width :: fonc (box: *SelectBox, ctx: *ContexteDeFormattage) 
 {
     réinitialise(box);
 
-    select := box.donne_élément() comme *HTML.HTMLSelectElement;
+    select := donne_élément(box) comme *HTML.HTMLSelectElement;
 
     option := donne_première_option(select);
     saufsi option {
@@ -4084,7 +4084,7 @@ donne_select_labels_width :: fonc (box: *SelectBox, ctx: *ContexteDeFormattage) 
     }
 
     box.texte = HTML.donne_contenu_texte_descandants(option);
-    si box.texte.taille() == 0 {
+    si taille(box.texte) == 0 {
         retourne 0.0;
     }
 
@@ -4125,7 +4125,7 @@ donne_première_option :: fonc (select: *HTML.HTMLSelectElement) -> *HTML.HTMLOp
 
 select_box_calcul_dimensions_intrinsèques :: fonc (box: *SelectBox, ctx: *ContexteDeFormattage)
 {
-    élément := box.donne_élément() comme *HTML.HTMLSelectElement;
+    élément := donne_élément(box) comme *HTML.HTMLSelectElement;
     assert(élément.local_name == HTML.TAG_select);
     box.largeur_intrinsèque = donne_select_labels_width(box, ctx);
     box.hauteur_intrinsèque = donne_line_height(box, ctx);
@@ -4208,8 +4208,8 @@ table_wrapper_box_sur_mesure :: fonc (base: *Box, ctx: *ContexteDeFormattage, mo
 
     formatte(*ctx_local, box, mode, available);
 
-    width := box.propriétés.donne_valeur_calculée(IDPropriété.Width);
-    si width.est_auto() {
+    width := donne_valeur_calculée(box.propriétés, IDPropriété.Width);
+    si est_auto(width) {
         largeur_final := crée_outrepas_pour_coter_contenu(box.table.modèle_de_boite.contenu.largeur);
         personnalisation_ := personnalisation;
         personnalisation_.outrepas_largeur = *largeur_final;
@@ -4218,13 +4218,13 @@ table_wrapper_box_sur_mesure :: fonc (base: *Box, ctx: *ContexteDeFormattage, mo
 
         /* Si les marges ont changés la position, nous devons décaler les descendants. */
         si box.modèle_de_boite.contenu.x != box.table.modèle_de_boite.marge.x {
-            box.table.décale_vers_position(box.modèle_de_boite.contenu.x, box.table.modèle_de_boite.marge.y);
+            décale_vers_position(box.table, box.modèle_de_boite.contenu.x, box.table.modèle_de_boite.marge.y);
         }
     }
 
-    height := box.propriétés.donne_valeur_calculée(IDPropriété.Height);
-    si height.est_auto() {
-        hauteur_finale := crée_outrepas_pour_coter_contenu(box.table.propriétés.donne_valeur_utilisée(IDPropriété.Height).donne_pixels());
+    height := donne_valeur_calculée(box.propriétés, IDPropriété.Height);
+    si est_auto(height) {
+        hauteur_finale := crée_outrepas_pour_coter_contenu(donne_valeur_utilisée(box.table.propriétés, IDPropriété.Height).donne_pixels());
         personnalisation_ := personnalisation;
         personnalisation_.outrepas_hauteur = *hauteur_finale;
         args = crée_arguments_dimensionnement_hauteur(ctx, box, *containing_block, personnalisation_);
@@ -4403,7 +4403,7 @@ generate_missing_child_wrappers :: fonc (box: *Box, créatrice: *CréatriceArbre
                 continue;
             }
 
-            table_row_box := créatrice.arbre.crée_box(TableRowBox);
+            table_row_box := crée_box(créatrice.arbre, TableRowBox);
             crée_style_pour_bloc_anonyme(créatrice.résolveuse, table_row_box, table, Display.Type.TableRow);
             table_row_box.est_pseudo_element = mémoire(premier).est_pseudo_element;
 
@@ -4434,7 +4434,7 @@ generate_missing_child_wrappers :: fonc (box: *Box, créatrice: *CréatriceArbre
 
         pour table_row_group.enfants {
             si it.table_virtuelle.type != TableRowBox {
-                table_row_box := créatrice.arbre.crée_box(TableRowBox);
+                table_row_box := crée_box(créatrice.arbre, TableRowBox);
                 crée_style_pour_bloc_anonyme(créatrice.résolveuse, table_row_box, table_row_group, Display.Type.TableRow);
                 table_row_box.est_pseudo_element = it.est_pseudo_element;
                 ajoute_enfant(table_row_box, it);
@@ -4468,7 +4468,7 @@ generate_missing_child_wrappers :: fonc (box: *Box, créatrice: *CréatriceArbre
                 continue;
             }
 
-            table_cell := créatrice.arbre.crée_box(TableCellBox);
+            table_cell := crée_box(créatrice.arbre, TableCellBox);
             crée_style_pour_bloc_anonyme(créatrice.résolveuse, table_cell, table_row_box, Display.Type.TableCell);
             table_cell.est_pseudo_element = mémoire(premier).est_pseudo_element;
 
@@ -4687,10 +4687,10 @@ donne_largeur_contenu :: fonc (box: *TableCellBox, largeur_disponible: r64) -> r
     ids_propriétés := [IDPropriété.BorderWidthLeft, IDPropriété.BorderWidthRight, IDPropriété.PaddingLeft, IDPropriété.PaddingRight];
 
     pour ids_propriétés {
-        prop := propriétés.donne_valeur_calculée(it);
+        prop := donne_valeur_calculée(propriétés, it);
 
-        si prop.est_pixels() {
-            largeur_disponible -= prop.donne_pixels();
+        si est_pixels(prop) {
+            largeur_disponible -= donne_pixels(prop);
         }
     }
 
@@ -4702,7 +4702,7 @@ table_cell_box_donne_baseline :: fonc (base: *Box) -> Optionnel(InfoLigneDeBase)
     // À FAIRE : The baseline of a cell is the baseline of the first in-flow line box in the cell,
     // or the first in-flow table-row in the cell, whichever comes first.
     résultat := block_box_donne_baseline(base);
-    si résultat.possède_valeur() {
+    si possède_valeur(résultat) {
         info := résultat.Quelque;
         si info.position != info.origine {
             /* Nous pouvons avoir une ligne de base nulle à cause de la logique de block_box_donne_baseline (p.e. un enfant in-flow n'ayant pas été dûment coté).

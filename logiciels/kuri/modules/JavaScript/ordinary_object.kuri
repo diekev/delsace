@@ -19,7 +19,7 @@ ordinary_set_prototype_of :: fonc (object: *Object, valeur: Valeur) -> bool
     current := object.prototype;
 
     // 2. If SameValue(V, current) is true, return true.
-    si same_value(valeur, current).est_true() {
+    si est_true(same_value(valeur, current)) {
         retourne vrai;
     }
 
@@ -33,8 +33,8 @@ ordinary_set_prototype_of :: fonc (object: *Object, valeur: Valeur) -> bool
 
     // 5. Let p be V.
     p : *Object;
-    saufsi valeur.est_nulle() {
-        p = valeur.donne_objet();
+    saufsi est_nulle(valeur) {
+        p = donne_objet(valeur);
     }
 
     // 6. Let done be false.
@@ -48,14 +48,14 @@ ordinary_set_prototype_of :: fonc (object: *Object, valeur: Valeur) -> bool
             done = vrai;
         }
         // b. Else if SameValue(p, O) is true, then
-        sinon si same_value(p, object).est_true() {
+        sinon si est_true(same_value(p, object)) {
             // i. Return false.
             retourne faux;
         }
         // c. Else,
         sinon {
             // i. If p.[[GetPrototypeOf]] is not the ordinary object internal method defined in 10.1.1, set done to true.
-            si p.donne_table().sur_get_prototype_of != ordinary_get_prototype_of {
+            si donne_table(p).sur_get_prototype_of != ordinary_get_prototype_of {
                 done = vrai;
             }
             // ii. Else, set p to p.[[Prototype]].
@@ -66,12 +66,12 @@ ordinary_set_prototype_of :: fonc (object: *Object, valeur: Valeur) -> bool
     }
 
     // 8. Set O.[[Prototype]] to V.
-    si valeur.est_nulle() {
+    si est_nulle(valeur) {
         object.prototype = nul;
     }
     sinon {
-        assert(valeur.est_object());
-        object.prototype = valeur.donne_objet();
+        assert(est_object(valeur));
+        object.prototype = donne_objet(valeur);
     }
 
     // 9. Return true.
@@ -82,7 +82,7 @@ ordinary_set_prototype_of :: fonc (object: *Object, valeur: Valeur) -> bool
  * https://tc39.es/ecma262/multipage/ordinary-and-exotic-objects-behaviours.html#sec-ordinarygetownproperty */
 ordinary_get_own_property :: fonc (object: *Object, property_key: PropertyKey) -> Optionnel(PropertyDescriptor)
 {
-    propriété := object.trouve_propriété(property_key);
+    propriété := trouve_propriété(object, property_key);
 
     // 1. If O does not have an own property with key P, return undefined.
     saufsi propriété {
@@ -156,7 +156,7 @@ validate_and_apply_property_descriptor :: fonc (object: *Object, property_key: P
     // 1. Assert: P is a property key.
 
     // 2. If current is undefined, then
-    saufsi opt_current.possède_valeur() {
+    saufsi possède_valeur(opt_current) {
         // a. If extensible is false, return false.
         saufsi extensible {
             retourne faux;
@@ -171,12 +171,12 @@ validate_and_apply_property_descriptor :: fonc (object: *Object, property_key: P
         si is_accessor_descriptor(desc) {
             // i. Create an own accessor property named P of object O whose [[Get]], [[Set]], [[Enumerable]], and [[Configurable]] attributes are set to the value of the corresponding field in Desc if Desc has that field, or to the attribute's default value otherwise.
             get: *Object;
-            si desc.get.possède_valeur() {
+            si possède_valeur(desc.get) {
                 get = desc.get.Quelque;
             }
 
             set: *Object;
-            si desc.set.possède_valeur() {
+            si possède_valeur(desc.set) {
                 set = desc.set.Quelque;
             }
 
@@ -188,7 +188,7 @@ validate_and_apply_property_descriptor :: fonc (object: *Object, property_key: P
         sinon {
             // i. Create an own data property named P of object O whose [[Value]], [[Writable]], [[Enumerable]], and [[Configurable]] attributes are set to the value of the corresponding field in Desc if Desc has that field, or to the attribute's default value otherwise.
             valeur := js_undefined;
-            si desc.value.possède_valeur() {
+            si possède_valeur(desc.value) {
                 valeur = desc.value.Quelque;
             }
             drapeaux := donne_drapeaux_propriétés(desc);
@@ -210,12 +210,12 @@ validate_and_apply_property_descriptor :: fonc (object: *Object, property_key: P
     // 5. If current.[[Configurable]] is false, then
     si current.configurable.Quelque == faux {
         // a. If Desc has a [[Configurable]] field and Desc.[[Configurable]] is true, return false.
-        si desc.configurable.possède_valeur() && desc.configurable.Quelque == vrai {
+        si possède_valeur(desc.configurable) && desc.configurable.Quelque == vrai {
             retourne faux;
         }
 
         // b. If Desc has an [[Enumerable]] field and Desc.[[Enumerable]] is not current.[[Enumerable]], return false.
-        si desc.enumerable.possède_valeur() && desc.enumerable.Quelque != current.enumerable.Quelque {
+        si possède_valeur(desc.enumerable) && desc.enumerable.Quelque != current.enumerable.Quelque {
             retourne faux;
         }
 
@@ -227,27 +227,27 @@ validate_and_apply_property_descriptor :: fonc (object: *Object, property_key: P
         // d. If IsAccessorDescriptor(current) is true, then
         si is_accessor_descriptor(*current) {
             // i. If Desc has a [[Get]] field and SameValue(Desc.[[Get]], current.[[Get]]) is false, return false.
-            si desc.get.possède_valeur() && same_value(desc.get.Quelque, current.get.Quelque).est_false() {
+            si possède_valeur(desc.get) && est_false(same_value(desc.get.Quelque, current.get.Quelque)) {
                 retourne faux;
             }
 
             // ii. If Desc has a [[Set]] field and SameValue(Desc.[[Set]], current.[[Set]]) is false, return false.
-            si desc.set.possède_valeur() && same_value(desc.set.Quelque, current.set.Quelque).est_false() {
+            si possède_valeur(desc.set) && est_false(same_value(desc.set.Quelque, current.set.Quelque)) {
                 retourne faux;
             }
         }
         // e. Else if current.[[Writable]] is false, then
         sinon si current.writable.Quelque == faux {
             // i. If Desc has a [[Writable]] field and Desc.[[Writable]] is true, return false.
-            si desc.writable.possède_valeur() && desc.writable.Quelque == vrai {
+            si possède_valeur(desc.writable) && desc.writable.Quelque == vrai {
                 retourne faux;
             }
 
             // ii. NOTE: SameValue returns true for NaN values which may be distinguishable by other means. Returning here ensures that any existing property of O remains unmodified.
 
             // iii. If Desc has a [[Value]] field, return SameValue(Desc.[[Value]], current.[[Value]]).
-            si desc.value.possède_valeur() {
-                retourne same_value(desc.value.Quelque, current.value.Quelque).est_true();
+            si possède_valeur(desc.value) {
+                retourne est_true(same_value(desc.value.Quelque, current.value.Quelque));
             }
         }
     }
@@ -258,7 +258,7 @@ validate_and_apply_property_descriptor :: fonc (object: *Object, property_key: P
         si is_data_descriptor(*current) && is_accessor_descriptor(desc) {
             // i. If Desc has a [[Configurable]] field, let configurable be Desc.[[Configurable]];
             //    else let configurable be current.[[Configurable]].
-            configurable := si desc.configurable.possède_valeur() {
+            configurable := si possède_valeur(desc.configurable) {
                 desc.configurable.Quelque;
             }
             sinon {
@@ -267,7 +267,7 @@ validate_and_apply_property_descriptor :: fonc (object: *Object, property_key: P
 
             // ii. If Desc has a [[Enumerable]] field, let enumerable be Desc.[[Enumerable]];
             //     else let enumerable be current.[[Enumerable]].
-            enumerable := si desc.enumerable.possède_valeur() {
+            enumerable := si possède_valeur(desc.enumerable) {
                 desc.enumerable.Quelque;
             }
             sinon {
@@ -280,10 +280,10 @@ validate_and_apply_property_descriptor :: fonc (object: *Object, property_key: P
             //      in Desc if Desc has that field, or to the attribute's default value otherwise.
             propriété := trouve_propriété(object, property_key);
             mémoire(propriété) = Object.Propriété();
-            si desc.get.possède_valeur() {
+            si possède_valeur(desc.get) {
                 propriété.get = desc.get.Quelque;
             }
-            si desc.set.possède_valeur() {
+            si possède_valeur(desc.set) {
                 propriété.set = desc.set.Quelque;
             }
             propriété.drapeaux.CONFIGURABLE = configurable;
@@ -293,7 +293,7 @@ validate_and_apply_property_descriptor :: fonc (object: *Object, property_key: P
         sinon si is_accessor_descriptor(*current) && is_data_descriptor(desc) {
             // i. If Desc has a [[Configurable]] field, let configurable be Desc.[[Configurable]];
             //    else let configurable be current.[[Configurable]].
-            configurable := si desc.configurable.possède_valeur() {
+            configurable := si possède_valeur(desc.configurable) {
                 desc.configurable.Quelque;
             }
             sinon {
@@ -302,7 +302,7 @@ validate_and_apply_property_descriptor :: fonc (object: *Object, property_key: P
 
             // ii. If Desc has a [[Enumerable]] field, let enumerable be Desc.[[Enumerable]];
             //     else let enumerable be current.[[Enumerable]].
-            enumerable := si desc.enumerable.possède_valeur() {
+            enumerable := si possède_valeur(desc.enumerable) {
                 desc.enumerable.Quelque;
             }
             sinon {
@@ -315,10 +315,10 @@ validate_and_apply_property_descriptor :: fonc (object: *Object, property_key: P
             //      field in Desc if Desc has that field, or to the attribute's default value otherwise.
             propriété := trouve_propriété(object, property_key);
             mémoire(propriété) = Object.Propriété();
-            si desc.value.possède_valeur() {
+            si possède_valeur(desc.value) {
                 propriété.valeur = desc.value.Quelque;
             }
-            si desc.writable.possède_valeur() {
+            si possède_valeur(desc.writable) {
                 propriété.drapeaux.WRITABLE = desc.writable.Quelque;
             }
             propriété.drapeaux.CONFIGURABLE = configurable;
@@ -330,22 +330,22 @@ validate_and_apply_property_descriptor :: fonc (object: *Object, property_key: P
             // of object O to the value of the field.
             propriété := trouve_propriété(object, property_key);
             // mémoire(propriété) = Object.Propriété()
-            si desc.value.possède_valeur() {
+            si possède_valeur(desc.value) {
                 propriété.valeur = desc.value.Quelque;
             }
-            si desc.get.possède_valeur() {
+            si possède_valeur(desc.get) {
                 propriété.get = desc.get.Quelque;
             }
-            si desc.set.possède_valeur() {
+            si possède_valeur(desc.set) {
                 propriété.set = desc.set.Quelque;
             }
-            si desc.writable.possède_valeur() {
+            si possède_valeur(desc.writable) {
                 propriété.drapeaux.WRITABLE = desc.writable.Quelque;
             }
-            si desc.enumerable.possède_valeur() {
+            si possède_valeur(desc.enumerable) {
                 propriété.drapeaux.ENUMERABLE = desc.enumerable.Quelque;
             }
-            si desc.configurable.possède_valeur() {
+            si possède_valeur(desc.configurable) {
                 propriété.drapeaux.CONFIGURABLE = desc.configurable.Quelque;
             }
         }
@@ -361,12 +361,12 @@ ordinary_has_property :: fonc (object: *Object, property_key: PropertyKey) -> bo
 {
     // 1. Let hasOwn be ? O.[[GetOwnProperty]](P).
     has_own := internal_get_own_property(object, property_key);
-    si object.possède_exception() {
+    si possède_exception(object) {
         retourne faux;
     }
 
     // 2. If hasOwn is not undefined, return true.
-    si has_own.possède_valeur() {
+    si possède_valeur(has_own) {
         retourne vrai;
     }
 
@@ -389,12 +389,12 @@ ordinary_get :: fonc (object: *Object, property_key: PropertyKey, receiver: Vale
 {
     // 1. Let desc be ? O.[[GetOwnProperty]](P).
     opt_desc := internal_get_own_property(object, property_key);
-    si object.possède_exception() {
+    si possède_exception(object) {
         retourne js_undefined;
     }
 
     // 2. If desc is undefined, then
-    saufsi opt_desc.possède_valeur() {
+    saufsi possède_valeur(opt_desc) {
         // a. Let parent be ? O.[[GetPrototypeOf]]().
         parent := internal_get_prototype_of(object);
 
@@ -404,7 +404,7 @@ ordinary_get :: fonc (object: *Object, property_key: PropertyKey, receiver: Vale
         }
 
         // c. Return ? parent.[[Get]](P, Receiver).
-        retourne parent.internal_get(property_key, receiver);
+        retourne internal_get(parent, property_key, receiver);
     }
 
     desc := opt_desc.Quelque;
@@ -421,12 +421,12 @@ ordinary_get :: fonc (object: *Object, property_key: PropertyKey, receiver: Vale
     getter := desc.get;
 
     // 6. If getter is undefined, return undefined.
-    saufsi getter.possède_valeur() {
+    saufsi possède_valeur(getter) {
         retourne js_undefined;
     }
 
     // 7. Return ? Call(getter, Receiver).
-    mv := receiver.donne_objet().donne_tas_de_mémoire().donne_mv();
+    mv := donne_objet(receiver).donne_tas_de_mémoire().donne_mv();
     retourne call(mv, getter.Quelque, receiver);
 }
 
@@ -436,7 +436,7 @@ ordinary_set :: fonc (object: *Object, property_key: PropertyKey, valeur: Valeur
 {
     // 1. Let ownDesc be ? O.[[GetOwnProperty]](P).
     own_desc := internal_get_own_property(object, property_key);
-    si object.possède_exception() {
+    si possède_exception(object) {
         retourne faux;
     }
 
@@ -451,7 +451,7 @@ ordinary_set_with_own_descriptor :: fonc (object: *Object, property_key: Propert
     own_desc: PropertyDescriptor;
 
     // 1. If ownDesc is undefined, then
-    saufsi opt_own_desc.possède_valeur() {
+    saufsi possède_valeur(opt_own_desc) {
         // a. Let parent be ? O.[[GetPrototypeOf]]().
         parent := internal_get_prototype_of(object);
 
@@ -478,18 +478,18 @@ ordinary_set_with_own_descriptor :: fonc (object: *Object, property_key: Propert
         }
 
         // b. If Receiver is not an Object, return false.
-        saufsi receiver.est_object() {
+        saufsi est_object(receiver) {
             retourne faux;
         }
 
         // c. Let existingDescriptor be ? Receiver.[[GetOwnProperty]](P).
-        opt_existing_descriptor := internal_get_own_property(receiver.donne_objet(), property_key);
-        si receiver.donne_objet().possède_exception() {
+        opt_existing_descriptor := internal_get_own_property(donne_objet(receiver), property_key);
+        si donne_objet(receiver).possède_exception() {
             retourne faux;
         }
 
         // d. If existingDescriptor is not undefined, then
-        si opt_existing_descriptor.possède_valeur() {
+        si possède_valeur(opt_existing_descriptor) {
             existing_descriptor := opt_existing_descriptor.Quelque;
 
             // i. If IsAccessorDescriptor(existingDescriptor) is true, return false.
@@ -506,14 +506,14 @@ ordinary_set_with_own_descriptor :: fonc (object: *Object, property_key: Propert
             value_desc := PropertyDescriptor(value = valeur);
 
             // iv. Return ? Receiver.[[DefineOwnProperty]](P, valueDesc).
-            retourne internal_define_own_property(receiver.donne_objet(), property_key, *value_desc);
+            retourne internal_define_own_property(donne_objet(receiver), property_key, *value_desc);
         }
         // e. Else,
         sinon {
             // À FAIRE : i. Assert: Receiver does not currently have a property P.
 
             // ii. Return ? CreateDataProperty(Receiver, P, V).
-            retourne create_data_property(receiver.donne_objet(), property_key, valeur);
+            retourne create_data_property(donne_objet(receiver), property_key, valeur);
         }
     }
 
@@ -524,19 +524,19 @@ ordinary_set_with_own_descriptor :: fonc (object: *Object, property_key: Propert
     setter := own_desc.set;
 
     // 5. If setter is undefined, return false.
-    saufsi setter.possède_valeur() {
+    saufsi possède_valeur(setter) {
         retourne faux;
     }
 
     // 6. Perform ? Call(setter, Receiver, « V »).
-    mv := receiver.donne_objet().donne_tas_de_mémoire().donne_mv();
+    mv := donne_objet(receiver).donne_tas_de_mémoire().donne_mv();
 
     arguments: []Valeur;
     arguments.données = *valeur;
     arguments.taille = 1;
 
     _ := call(mv, setter.Quelque, receiver, arguments);
-    si mv.interpréteuse.possède_exception() {
+    si possède_exception(mv.interpréteuse) {
         retourne faux;
     }
 
@@ -550,12 +550,12 @@ ordinary_delete :: fonc (O: *Object, P: PropertyKey) -> bool
 {
     // 1. Let desc be ? O.[[GetOwnProperty]](P).
     opt_desc := internal_get_own_property(O, P);
-    si O.possède_exception() {
+    si possède_exception(O) {
         retourne faux;
     }
 
     // 2. If desc is undefined, return true.
-    saufsi opt_desc.possède_valeur() {
+    saufsi possède_valeur(opt_desc) {
         retourne vrai;
     }
 
@@ -563,7 +563,7 @@ ordinary_delete :: fonc (O: *Object, P: PropertyKey) -> bool
 
     // 3. If desc.[[Configurable]] is true, then
     configurable := desc.configurable;
-    si configurable.possède_valeur() && configurable.Quelque == vrai {
+    si possède_valeur(configurable) && configurable.Quelque == vrai {
         // a. Remove the own property with name P from O.
         supprime_propriété(O, P);
 
@@ -646,7 +646,7 @@ ordinary_create_from_constructor :: fonc (realm: *Realm, constructor: *Function,
 
     // 2. Let proto be ? GetPrototypeFromConstructor(constructor, intrinsicDefaultProto).
     proto := get_prototype_from_constructor(realm, constructor, intrinsic_default_proto);
-    si realm.possède_exception() {
+    si possède_exception(realm) {
         retourne nul;
     }
 
@@ -668,19 +668,19 @@ get_prototype_from_constructor :: fonc (realm: *Realm, constructor: *Function, i
 
     // 2. Let proto be ? Get(constructor, "prototype").
     proto := get(constructor, STR_prototype);
-    si realm.possède_exception() {
+    si possède_exception(realm) {
         retourne nul;
     }
 
     // 3. If proto is not an Object, then
-    saufsi proto.est_object() {
+    saufsi est_object(proto) {
         // À FAIRE : a. Let realm be ? GetFunctionRealm(constructor).
         // b. Set proto to realm's intrinsic object named intrinsicDefaultProto.
         proto.Object = intrinsic_default_proto;
     }
 
     // 4. Return proto.
-    retourne proto.donne_objet();
+    retourne donne_objet(proto);
 }
 
 /** \} */

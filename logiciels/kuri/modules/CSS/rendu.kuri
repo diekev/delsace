@@ -39,7 +39,7 @@ donne_rectangle_corrigé :: fonc (ctx: *ContexteDessin, rect: RectanglePosDim(r3
 dessine :: fonc (arbre: *ArbreDeDisposition, ctx: *ContexteDessin) -> *CommandesDeRendu
 {
     ctx.arbre = arbre;
-    ctx.commandes = arbre.donne_commandes_de_rendu();
+    ctx.commandes = donne_commandes_de_rendu(arbre);
     réinitialise(ctx.commandes);
 
     dessine_stacking_context(arbre.stacking_context, ctx);
@@ -71,7 +71,7 @@ dessine :: fonc (arbre: *ArbreDeDisposition, ctx: *ContexteDessin) -> *Commandes
 dessine_tampon_id_couleur :: fonc (arbre: *ArbreDeDisposition, ctx: *ContexteDessin) -> *CommandesDeRendu
 {
     ctx.arbre = arbre;
-    ctx.commandes = arbre.donne_commandes_de_rendu();
+    ctx.commandes = donne_commandes_de_rendu(arbre);
     réinitialise(ctx.commandes);
 
     ctx.tampon_id_couleur = vrai;
@@ -88,7 +88,7 @@ dessine_tampon_id :: fonc (arbre: *ArbreDeDisposition, ctx: *ContexteDessin) -> 
     assert(ctx.tampon_id_couleur == faux);
 
     ctx.arbre = arbre;
-    ctx.commandes = arbre.donne_commandes_de_rendu();
+    ctx.commandes = donne_commandes_de_rendu(arbre);
     réinitialise(ctx.commandes);
 
     dessine_stacking_context_tampon_id(arbre.stacking_context, ctx);
@@ -115,7 +115,7 @@ dessine_fragment :: fonc (box: *Box, fragment: *Fragment, lignes_tenante: *Ligne
         box.table_virtuelle.sur_dessin_fragment(box, fragment, lignes_tenante, ctx);
     }
     sinon {
-        box.dessine(ctx);
+        dessine(box, ctx);
     }
 }
 
@@ -133,10 +133,10 @@ dessine_tampon_id :: fonc (box: *Box, ctx: *ContexteDessin)
 dessine_fragment_tampon_id :: fonc (box: *Box, fragment: *Fragment, ctx: *ContexteDessin)
 {
     saufsi box.table_virtuelle.sur_dessin_fragment_tampon_id {
-        ctx.remplis_rectangle_id(box, fragment.donne_rectangle());
+        remplis_rectangle_id(ctx, box, donne_rectangle(fragment));
 
         pour box.enfants {
-            box.dessine_tampon_id(ctx);
+            dessine_tampon_id(box, ctx);
         }
 
         retourne;
@@ -147,67 +147,67 @@ dessine_fragment_tampon_id :: fonc (box: *Box, fragment: *Fragment, ctx: *Contex
 
 dessine_enfants_block :: fonc (box: *BlockBox, ctx: *ContexteDessin)
 {
-    overflow_x := box.propriétés.donne_valeur_utilisée(IDPropriété.OverflowX);
-    overflow_y := box.propriétés.donne_valeur_utilisée(IDPropriété.OverflowX);
+    overflow_x := donne_valeur_utilisée(box.propriétés, IDPropriété.OverflowX);
+    overflow_y := donne_valeur_utilisée(box.propriétés, IDPropriété.OverflowX);
 
-    saufsi overflow_x.est_mot_clé(PROP_visible) && overflow_y.est_mot_clé(PROP_visible) {
-        rect := ctx.donne_rectangle_corrigé(box.donne_rectangle_rembourrage());
-        ctx.commandes.débute_ciselage(rect);
+    saufsi est_mot_clé(overflow_x, PROP_visible) && est_mot_clé(overflow_y, PROP_visible) {
+        rect := donne_rectangle_corrigé(ctx, donne_rectangle_rembourrage(box));
+        débute_ciselage(ctx.commandes, rect);
     }
 
     pour box.enfants {
-        position := it.propriétés.donne_valeur_utilisée(IDPropriété.Position);
-        saufsi position.est_mot_clé(PROP_static) {
+        position := donne_valeur_utilisée(it.propriétés, IDPropriété.Position);
+        saufsi est_mot_clé(position, PROP_static) {
             continue;
         }
-        float := it.propriétés.donne_valeur_utilisée(IDPropriété.Float);
-        saufsi float.est_none() {
+        float := donne_valeur_utilisée(it.propriétés, IDPropriété.Float);
+        saufsi est_none(float) {
             continue;
         }
         dessine(it, ctx);
     }
 
     pour box.enfants {
-        position := it.propriétés.donne_valeur_utilisée(IDPropriété.Position);
-        si position.est_mot_clé(PROP_static) {
+        position := donne_valeur_utilisée(it.propriétés, IDPropriété.Position);
+        si est_mot_clé(position, PROP_static) {
             continue;
         }
-        float := it.propriétés.donne_valeur_utilisée(IDPropriété.Float);
-        saufsi float.est_none() {
+        float := donne_valeur_utilisée(it.propriétés, IDPropriété.Float);
+        saufsi est_none(float) {
             continue;
         }
         dessine(it, ctx);
     }
 
     pour box.enfants {
-        float := it.propriétés.donne_valeur_utilisée(IDPropriété.Float);
-        si float.est_none() {
+        float := donne_valeur_utilisée(it.propriétés, IDPropriété.Float);
+        si est_none(float) {
             continue;
         }
         dessine(it, ctx);
     }
 
-    saufsi overflow_x.est_mot_clé(PROP_visible) && overflow_y.est_mot_clé(PROP_visible) {
-        ctx.commandes.termine_ciselage();
+    saufsi est_mot_clé(overflow_x, PROP_visible) && est_mot_clé(overflow_y, PROP_visible) {
+        termine_ciselage(ctx.commandes);
     }
 }
 
 dessine_tampon_id_enfants_block :: fonc (box: *BlockBox, ctx: *ContexteDessin)
 {
-    overflow_x := box.propriétés.donne_valeur_utilisée(IDPropriété.OverflowX);
-    overflow_y := box.propriétés.donne_valeur_utilisée(IDPropriété.OverflowX);
+    overflow_x := donne_valeur_utilisée(box.propriétés, IDPropriété.OverflowX);
+    overflow_y := donne_valeur_utilisée(box.propriétés, IDPropriété.OverflowX);
 
-    saufsi overflow_x.est_mot_clé(PROP_visible) && overflow_y.est_mot_clé(PROP_visible) {
-        rect := ctx.donne_rectangle_corrigé(box.donne_rectangle_rembourrage());
-        ctx.commandes.débute_ciselage(rect);
+    saufsi est_mot_clé(overflow_x, PROP_visible) && est_mot_clé(overflow_y, PROP_visible) {
+        rect := donne_rectangle_corrigé(ctx, donne_rectangle_rembourrage(box));
+        débute_ciselage(ctx.commandes, rect);
     }
 
     pour box.enfants {
         dessine_tampon_id(it, ctx);
     }
 
-    saufsi overflow_x.est_mot_clé(PROP_visible) && overflow_y.est_mot_clé(PROP_visible) {
-        ctx.commandes.termine_ciselage();
+    saufsi est_mot_clé(overflow_x, PROP_visible) && est_mot_clé(overflow_y, PROP_visible) {
+        termine_ciselage(ctx.commandes);
     }
 }
 
@@ -217,20 +217,20 @@ dessine_enfants_inline :: fonc (box: *BlockBox, ctx: *ContexteDessin)
         retourne;
     }
 
-    overflow_x := box.propriétés.donne_valeur_utilisée(IDPropriété.OverflowX);
-    overflow_y := box.propriétés.donne_valeur_utilisée(IDPropriété.OverflowX);
+    overflow_x := donne_valeur_utilisée(box.propriétés, IDPropriété.OverflowX);
+    overflow_y := donne_valeur_utilisée(box.propriétés, IDPropriété.OverflowX);
 
-    saufsi overflow_x.est_mot_clé(PROP_visible) && overflow_y.est_mot_clé(PROP_visible) {
-        rect := ctx.donne_rectangle_corrigé(box.donne_rectangle_rembourrage());
-        ctx.commandes.débute_ciselage(rect);
+    saufsi est_mot_clé(overflow_x, PROP_visible) && est_mot_clé(overflow_y, PROP_visible) {
+        rect := donne_rectangle_corrigé(ctx, donne_rectangle_rembourrage(box));
+        débute_ciselage(ctx.commandes, rect);
     }
 
     pour * box.lignes_tenante.fragments {
         dessine_fragment(it.box, it, box.lignes_tenante, ctx);
     }
 
-    saufsi overflow_x.est_mot_clé(PROP_visible) && overflow_y.est_mot_clé(PROP_visible) {
-        ctx.commandes.termine_ciselage();
+    saufsi est_mot_clé(overflow_x, PROP_visible) && est_mot_clé(overflow_y, PROP_visible) {
+        termine_ciselage(ctx.commandes);
     }
 }
 
@@ -240,20 +240,20 @@ dessine_tampon_id_enfants_inline :: fonc (box: *BlockBox, ctx: *ContexteDessin)
         retourne;
     }
 
-    overflow_x := box.propriétés.donne_valeur_utilisée(IDPropriété.OverflowX);
-    overflow_y := box.propriétés.donne_valeur_utilisée(IDPropriété.OverflowX);
+    overflow_x := donne_valeur_utilisée(box.propriétés, IDPropriété.OverflowX);
+    overflow_y := donne_valeur_utilisée(box.propriétés, IDPropriété.OverflowX);
 
-    saufsi overflow_x.est_mot_clé(PROP_visible) && overflow_y.est_mot_clé(PROP_visible) {
-        rect := ctx.donne_rectangle_corrigé(box.donne_rectangle_rembourrage());
-        ctx.commandes.débute_ciselage(rect);
+    saufsi est_mot_clé(overflow_x, PROP_visible) && est_mot_clé(overflow_y, PROP_visible) {
+        rect := donne_rectangle_corrigé(ctx, donne_rectangle_rembourrage(box));
+        débute_ciselage(ctx.commandes, rect);
     }
 
     pour * box.lignes_tenante.fragments {
         dessine_fragment_tampon_id(it.box, it, ctx);
     }
 
-    saufsi overflow_x.est_mot_clé(PROP_visible) && overflow_y.est_mot_clé(PROP_visible) {
-        ctx.commandes.termine_ciselage();
+    saufsi est_mot_clé(overflow_x, PROP_visible) && est_mot_clé(overflow_y, PROP_visible) {
+        termine_ciselage(ctx.commandes);
     }
 }
 
@@ -267,7 +267,7 @@ block_box_sur_dessin :: fonc (base: *Box, ctx: *ContexteDessin)
 {
     box := base comme *BlockBox;
 
-    si box.est_box_non_anonyme() || box.est_pseudo_element {
+    si est_box_non_anonyme(box) || box.est_pseudo_element {
         dessine_arrière_plan(ctx, box);
         dessine_bordure(ctx, box);
     }
@@ -284,7 +284,7 @@ inline_box_sur_dessin :: fonc (base: *Box, ctx: *ContexteDessin)
 {
     box := base comme *InlineBox;
 
-    si box.est_inline_block() {
+    si est_inline_block(box) {
         block_box_sur_dessin(box, ctx);
         retourne;
     }
@@ -306,22 +306,22 @@ inline_box_sur_dessin_fragment :: fonc (base: *Box, fragment: *Fragment, lignes_
     si fragment.type == Fragment.Type.RembourrageDébut {
         propriétés := base.propriétés;
 
-        background_color := propriétés.donne_valeur_utilisée(IDPropriété.BackgroundColor).donne_couleur();
+        background_color := donne_valeur_utilisée(propriétés, IDPropriété.BackgroundColor).donne_couleur();
 
         /* Le rembourrage vertical n'affecte pas la taille mais doit être inclus dans le dessin. */
-        padding_top := propriétés.donne_valeur_utilisée(IDPropriété.PaddingTop).donne_pixels() comme r32;
-        padding_bottom := propriétés.donne_valeur_utilisée(IDPropriété.PaddingBottom).donne_pixels() comme r32;
+        padding_top := donne_valeur_utilisée(propriétés, IDPropriété.PaddingTop).donne_pixels() comme r32;
+        padding_bottom := donne_valeur_utilisée(propriétés, IDPropriété.PaddingBottom).donne_pixels() comme r32;
 
         si background_color.a != 0 {
-            border_radius_top_left := propriétés.donne_valeur_utilisée(IDPropriété.BorderTopLeftRadius).donne_pixels() comme r32;
-            border_radius_top_right := propriétés.donne_valeur_utilisée(IDPropriété.BorderTopRightRadius).donne_pixels() comme r32;
-            border_radius_bottom_right := propriétés.donne_valeur_utilisée(IDPropriété.BorderBottomRightRadius).donne_pixels() comme r32;
-            border_radius_bottom_left := propriétés.donne_valeur_utilisée(IDPropriété.BorderBottomLeftRadius).donne_pixels() comme r32;
+            border_radius_top_left := donne_valeur_utilisée(propriétés, IDPropriété.BorderTopLeftRadius).donne_pixels() comme r32;
+            border_radius_top_right := donne_valeur_utilisée(propriétés, IDPropriété.BorderTopRightRadius).donne_pixels() comme r32;
+            border_radius_bottom_right := donne_valeur_utilisée(propriétés, IDPropriété.BorderBottomRightRadius).donne_pixels() comme r32;
+            border_radius_bottom_left := donne_valeur_utilisée(propriétés, IDPropriété.BorderBottomLeftRadius).donne_pixels() comme r32;
 
             premier_fragment := fragment;
             dernier_fragment := lignes_tenante.fragments.données + lignes_tenante.fragments.taille;
             tantque fragment != dernier_fragment {
-                rect_box := ctx.donne_rectangle_corrigé(fragment.donne_rectangle());
+                rect_box := donne_rectangle_corrigé(ctx, donne_rectangle(fragment));
                 rect_box.y -= padding_top;
                 rect_box.hauteur += padding_top + padding_bottom;
 
@@ -332,16 +332,16 @@ inline_box_sur_dessin_fragment :: fonc (base: *Box, fragment: *Fragment, lignes_
                     rayons: RayonsRectangle;
                     rayons.haut_gauche = border_radius_top_left;
                     rayons.bas_gauche =  border_radius_bottom_left;
-                    ctx.commandes.remplis_rectangle_arrondi(rect_box, rayons, background_color);
+                    remplis_rectangle_arrondi(ctx.commandes, rect_box, rayons, background_color);
                 }
                 sinon si est_dernier_fragment {
                     rayons: RayonsRectangle;
                     rayons.haut_droite = border_radius_top_right;
                     rayons.bas_droite = border_radius_bottom_right;
-                    ctx.commandes.remplis_rectangle_arrondi(rect_box, rayons, background_color);
+                    remplis_rectangle_arrondi(ctx.commandes, rect_box, rayons, background_color);
                 }
                 sinon {
-                    ctx.commandes.remplis_rectangle(rect_box, background_color);
+                    remplis_rectangle(ctx.commandes, rect_box, background_color);
                 }
 
                 si est_dernier_fragment {
@@ -362,10 +362,10 @@ text_box_sur_dessin_fragment :: fonc (base: *Box, fragment: *Fragment, lignes_te
 
     effets: EffetsTexte;
 
-    line := propriétés.donne_valeur_utilisée(IDPropriété.TextDecorationLine);
-    saufsi line.est_mot_clé(PROP_none) {
-        decoration := line.donne_text_decoration_line();
-        couleur := vers_couleur_rvba(propriétés.donne_valeur_utilisée(IDPropriété.TextDecorationColor).donne_couleur());
+    line := donne_valeur_utilisée(propriétés, IDPropriété.TextDecorationLine);
+    saufsi est_mot_clé(line, PROP_none) {
+        decoration := donne_text_decoration_line(line);
+        couleur := vers_couleur_rvba(donne_valeur_utilisée(propriétés, IDPropriété.TextDecorationColor).donne_couleur());
 
         si decoration.UNDERLINE {
             effets.souslignage = vrai;
@@ -385,13 +385,13 @@ text_box_sur_dessin_fragment :: fonc (base: *Box, fragment: *Fragment, lignes_te
     fonte := box.fonte;
     assert(fonte != nul);
 
-    couleur := propriétés.donne_valeur_utilisée(IDPropriété.Color).donne_couleur();
+    couleur := donne_valeur_utilisée(propriétés, IDPropriété.Color).donne_couleur();
 
-    rect := ctx.donne_rectangle_corrigé(fragment.donne_rectangle());
+    rect := donne_rectangle_corrigé(ctx, donne_rectangle(fragment));
 
     texte := box.fragments[fragment.indice_début].texte;
 
-    commandes.dessine_texte(fonte, texte, rect, couleur, *effets);
+    dessine_texte(commandes, fonte, texte, rect, couleur, *effets);
 }
 
 replaced_box_sur_dessin_fragment :: fonc (base: *Box, fragment: *Fragment @inutilisée, lignes_tenante: *LignesTenante @inutilisée, ctx: *ContexteDessin)
@@ -404,9 +404,9 @@ image_box_sur_dessin :: fonc (base: *Box, ctx: *ContexteDessin)
     dessine_arrière_plan(ctx, base);
     dessine_bordure(ctx, base);
     box := base comme *ReplacedBox;
-    assert(box.donne_élément().local_name == HTML.TAG_img);
-    image := box.donne_élément() comme *HTML.HTMLImageElement;
-    dessine_image(ctx, image.image_data, box.donne_rectangle_contenu());
+    assert(donne_élément(box).local_name == HTML.TAG_img);
+    image := donne_élément(box) comme *HTML.HTMLImageElement;
+    dessine_image(ctx, image.image_data, donne_rectangle_contenu(box));
 }
 
 object_box_sur_dessin :: fonc (base: *Box, ctx: *ContexteDessin)
@@ -414,43 +414,43 @@ object_box_sur_dessin :: fonc (base: *Box, ctx: *ContexteDessin)
     dessine_arrière_plan(ctx, base);
     dessine_bordure(ctx, base);
     box := base comme *ReplacedBox;
-    assert(box.donne_élément().local_name == HTML.TAG_object);
-    object := box.donne_élément() comme *HTML.HTMLObjectElement;
-    dessine_image(ctx, object.image_data, box.donne_rectangle_contenu());
+    assert(donne_élément(box).local_name == HTML.TAG_object);
+    object := donne_élément(box) comme *HTML.HTMLObjectElement;
+    dessine_image(ctx, object.image_data, donne_rectangle_contenu(box));
 }
 
 text_input_box_sur_dessin :: fonc (base: *Box, ctx: *ContexteDessin)
 {
     box := base comme *ReplacedBox;
-    assert(box.donne_élément().local_name == HTML.TAG_input);
+    assert(donne_élément(box).local_name == HTML.TAG_input);
 
     dessine_arrière_plan(ctx, box);
     dessine_bordure(ctx, box);
 
-    élément := box.donne_élément() comme *HTML.HTMLInputElement;
-    couleur := box.propriétés.donne_valeur_utilisée(IDPropriété.Color).donne_couleur();
+    élément := donne_élément(box) comme *HTML.HTMLInputElement;
+    couleur := donne_valeur_utilisée(box.propriétés, IDPropriété.Color).donne_couleur();
     value := HTML.donne_value(élément);
     state := HTML.donne_state(élément);
 
-    si value.est_vide() {
-        value = HTML.donne_attribut_ou_chaine_vide(élément, HTML.ATTR_placeholder).donne_chaine_utf16();
+    si est_vide(value) {
+        value = donne_chaine_utf16(HTML.donne_attribut_ou_chaine_vide(élément, HTML.ATTR_placeholder));
         couleur.a = 128;
     }
     sinon si state == HTML.HTMLInputElement.State.Password {
         /* U+002A ASTERISK (*) or U+25CF BLACK CIRCLE (●) */
         élément.texte_mot_de_passe.unités.taille = 0;
 
-        pour value.taille() {
+        pour taille(value) {
             tableau_ajoute(*élément.texte_mot_de_passe.unités, 0x25CF);
         }
 
         value = élément.texte_mot_de_passe;
     }
 
-    saufsi value.est_vide() {
+    saufsi est_vide(value) {
         rect_texte := donne_rect_texte_pour_input(box);
-        rect_texte = ctx.donne_rectangle_corrigé(rect_texte);
-        ctx.commandes.dessine_texte(box.fonte, value, rect_texte, couleur, nul);
+        rect_texte = donne_rectangle_corrigé(ctx, rect_texte);
+        dessine_texte(ctx.commandes, box.fonte, value, rect_texte, couleur, nul);
     }
 
     éditrice := élément.éditrice;
@@ -461,45 +461,45 @@ text_input_box_sur_dessin :: fonc (base: *Box, ctx: *ContexteDessin)
         si state == HTML.HTMLInputElement.State.Password {
             texte_avant_curseur := value;
             texte_avant_curseur.unités.taille = éditrice.curseur.fin;
-            curseur_x = éditrice.fonte.donne_largeur_texte(texte_avant_curseur);
+            curseur_x = donne_largeur_texte(éditrice.fonte, texte_avant_curseur);
         }
         sinon {
             texte_avant_curseur := éditrice.texte_à_éditer;
             texte_avant_curseur.points_de_code.taille = éditrice.curseur.fin;
-            curseur_x = éditrice.fonte.donne_largeur_texte(texte_avant_curseur);
+            curseur_x = donne_largeur_texte(éditrice.fonte, texte_avant_curseur);
         }
 
         rect_curseur.x = rect_curseur.x + curseur_x;
         rect_curseur.largeur = 1.0;
 
-        rect_curseur = ctx.donne_rectangle_corrigé(rect_curseur);
+        rect_curseur = donne_rectangle_corrigé(ctx, rect_curseur);
 
-        ctx.commandes.remplis_rectangle(rect_curseur, CouleurRVBAN8(0, 0, 0, 255));
+        remplis_rectangle(ctx.commandes, rect_curseur, CouleurRVBAN8(0, 0, 0, 255));
     }
 }
 
 button_input_box_sur_dessin :: fonc (base: *Box, ctx: *ContexteDessin)
 {
     box := base comme *ReplacedBox;
-    assert(box.donne_élément().local_name == HTML.TAG_input);
+    assert(donne_élément(box).local_name == HTML.TAG_input);
 
     dessine_arrière_plan(ctx, box);
     dessine_bordure(ctx, box);
 
-    élément := box.donne_élément() comme *HTML.HTMLInputElement;
-    couleur := box.propriétés.donne_valeur_utilisée(IDPropriété.Color).donne_couleur();
-    value := HTML.donne_attribut_ou_chaine_vide(élément, HTML.ATTR_value).donne_chaine_utf16();
+    élément := donne_élément(box) comme *HTML.HTMLInputElement;
+    couleur := donne_valeur_utilisée(box.propriétés, IDPropriété.Color).donne_couleur();
+    value := donne_chaine_utf16(HTML.donne_attribut_ou_chaine_vide(élément, HTML.ATTR_value));
 
-    saufsi value.est_vide() {
+    saufsi est_vide(value) {
         rect_texte := donne_rect_texte_pour_input(box);
-        rect_texte = ctx.donne_rectangle_corrigé(rect_texte);
-        ctx.commandes.dessine_texte(box.fonte, value, rect_texte, couleur, nul);
+        rect_texte = donne_rectangle_corrigé(ctx, rect_texte);
+        dessine_texte(ctx.commandes, box.fonte, value, rect_texte, couleur, nul);
     }
 }
 
 donne_rect_texte_pour_input :: fonc (box: *ReplacedBox) -> RectanglePosDim(r32)
 {
-    rect_texte := box.donne_rectangle_contenu();
+    rect_texte := donne_rectangle_contenu(box);
     
     /* Centre le texte dans le rectangle. Le centrage se fait en centrant les minuscules. */
     métriques := donne_métriques_fonte(box.fonte);
@@ -512,18 +512,18 @@ donne_rect_texte_pour_input :: fonc (box: *ReplacedBox) -> RectanglePosDim(r32)
     position_y := position_y_ligne_de_base - métriques.jambage_supérieur;
 
     rect_texte.y = position_y;
-    rect_texte.hauteur = métriques.donne_hauteur_ligne();
+    rect_texte.hauteur = donne_hauteur_ligne(métriques);
     retourne rect_texte;
 }
 
 radio_button_box_sur_dessin :: fonc (base: *Box, ctx: *ContexteDessin)
 {
     box := base comme *ReplacedBox;
-    assert(box.donne_élément().local_name == HTML.TAG_input);
+    assert(donne_élément(box).local_name == HTML.TAG_input);
 
-    input := box.donne_élément() comme *HTML.HTMLInputElement;
+    input := donne_élément(box) comme *HTML.HTMLInputElement;
 
-    rect := ctx.donne_rectangle_corrigé(box.donne_rectangle_contenu());
+    rect := donne_rectangle_corrigé(ctx, donne_rectangle_contenu(box));
 
     remplis_cercle(ctx.commandes, rect, CouleurRVBAN8(255, 255, 255, 255));
 
@@ -545,11 +545,11 @@ radio_button_box_sur_dessin :: fonc (base: *Box, ctx: *ContexteDessin)
 checkbox_box_sur_dessin :: fonc (base: *Box, ctx: *ContexteDessin)
 {
     box := base comme *ReplacedBox;
-    assert(box.donne_élément().local_name == HTML.TAG_input);
+    assert(donne_élément(box).local_name == HTML.TAG_input);
 
-    input := box.donne_élément() comme *HTML.HTMLInputElement;
+    input := donne_élément(box) comme *HTML.HTMLInputElement;
 
-    rect := ctx.donne_rectangle_corrigé(box.donne_rectangle_contenu());
+    rect := donne_rectangle_corrigé(ctx, donne_rectangle_contenu(box));
 
     remplis_rectangle(ctx.commandes, rect, CouleurRVBAN8(255, 255, 255, 255));
     dessine_rectangle(ctx.commandes, rect, CouleurRVBAN8(0x8f, 0x8f, 0x9d, 255));
@@ -567,31 +567,31 @@ checkbox_box_sur_dessin :: fonc (base: *Box, ctx: *ContexteDessin)
 textarea_box_sur_dessin :: fonc (base: *Box, ctx: *ContexteDessin)
 {
     box := base comme *ReplacedBox;
-    assert(box.donne_élément().local_name == HTML.TAG_textarea);
+    assert(donne_élément(box).local_name == HTML.TAG_textarea);
 
     dessine_arrière_plan(ctx, box);
     dessine_bordure(ctx, box);
 
-    élément := box.donne_élément() comme *HTML.HTMLTextAreaElement;
-    couleur := box.propriétés.donne_valeur_utilisée(IDPropriété.Color).donne_couleur();
-    value := HTML.donne_attribut_ou_chaine_vide(élément, HTML.ATTR_value).donne_chaine_utf16();
+    élément := donne_élément(box) comme *HTML.HTMLTextAreaElement;
+    couleur := donne_valeur_utilisée(box.propriétés, IDPropriété.Color).donne_couleur();
+    value := donne_chaine_utf16(HTML.donne_attribut_ou_chaine_vide(élément, HTML.ATTR_value));
 
-    si value.est_vide() {
-        value = HTML.donne_attribut_ou_chaine_vide(élément, HTML.ATTR_placeholder).donne_chaine_utf16();
+    si est_vide(value) {
+        value = donne_chaine_utf16(HTML.donne_attribut_ou_chaine_vide(élément, HTML.ATTR_placeholder));
         couleur.a = 128;
     }
 
-    saufsi value.est_vide() {
-        rect_texte := ctx.donne_rectangle_corrigé(box.donne_rectangle_contenu());
-        ctx.commandes.dessine_texte(box.fonte, value, rect_texte, couleur, nul);
+    saufsi est_vide(value) {
+        rect_texte := donne_rectangle_corrigé(ctx, donne_rectangle_contenu(box));
+        dessine_texte(ctx.commandes, box.fonte, value, rect_texte, couleur, nul);
     }
 }
 
 canvas_box_sur_dessin :: fonc (base: *Box, ctx: *ContexteDessin)
 {
     box := base comme *ReplacedBox;
-    élément := box.donne_élément() comme *HTML.HTMLCanvasElement;
-    assert(box.donne_élément().local_name == HTML.TAG_canvas);
+    élément := donne_élément(box) comme *HTML.HTMLCanvasElement;
+    assert(donne_élément(box).local_name == HTML.TAG_canvas);
 
     dessine_arrière_plan(ctx, box);
     dessine_bordure(ctx, box);
@@ -603,8 +603,8 @@ canvas_box_sur_dessin :: fonc (base: *Box, ctx: *ContexteDessin)
     image.largeur = tampon_de_rendu.rect.largeur;
     image.hauteur = tampon_de_rendu.rect.hauteur;
     
-    rect := ctx.donne_rectangle_corrigé(box.donne_rectangle_contenu());
-    ctx.commandes.dessine_image(image, rect);
+    rect := donne_rectangle_corrigé(ctx, donne_rectangle_contenu(box));
+    dessine_image(ctx.commandes, image, rect);
 }
 
 select_box_sur_dessin :: fonc (base: *Box, ctx: *ContexteDessin)
@@ -616,12 +616,12 @@ select_box_sur_dessin :: fonc (base: *Box, ctx: *ContexteDessin)
     fonte := box.fonte;
     assert(fonte != nul);
 
-    couleur := box.propriétés.donne_valeur_utilisée(IDPropriété.Color).donne_couleur();
+    couleur := donne_valeur_utilisée(box.propriétés, IDPropriété.Color).donne_couleur();
 
-    rect := ctx.donne_rectangle_corrigé(box.donne_rectangle_contenu());
+    rect := donne_rectangle_corrigé(ctx, donne_rectangle_contenu(box));
 
     pour box.fragments {
-        commandes.dessine_texte(fonte, it.texte, rect, couleur, nul);
+        dessine_texte(commandes, fonte, it.texte, rect, couleur, nul);
 
         rect.x += donne_largeur_texte(fonte, it.texte);
     }
@@ -684,7 +684,7 @@ block_box_sur_dessin_tampon_id :: fonc (base: *Box, ctx: *ContexteDessin)
 {
     box := base comme *BlockBox;
 
-    ctx.remplis_rectangle_id(box);
+    remplis_rectangle_id(ctx, box);
 
     saufsi box.est_disposition_inline {
         dessine_tampon_id_enfants_block(box, ctx);
@@ -697,8 +697,8 @@ block_box_sur_dessin_tampon_id :: fonc (base: *Box, ctx: *ContexteDessin)
 inline_box_sur_dessin_tampon_id :: fonc (base: *Box, ctx: *ContexteDessin)
 {
     box := base comme *InlineBox;
-    ctx.remplis_rectangle_id(box);
-    si box.est_inline_block() {
+    remplis_rectangle_id(ctx, box);
+    si est_inline_block(box) {
         dessine_tampon_id_enfants_block(box, ctx);
     }
     sinon {
@@ -717,14 +717,14 @@ inline_box_sur_dessin_fragment_id :: fonc (base: *Box, fragment: *Fragment, ctx:
         retourne;
     }
 
-    rect_box := ctx.donne_rectangle_corrigé(fragment.donne_rectangle());
-    ctx.remplis_rectangle_id(base, rect_box);
+    rect_box := donne_rectangle_corrigé(ctx, donne_rectangle(fragment));
+    remplis_rectangle_id(ctx, base, rect_box);
 }
 
 replaced_box_sur_dessin_tampon_id :: fonc (base: *Box, ctx: *ContexteDessin)
 {
     box := base comme *ReplacedBox;
-    ctx.remplis_rectangle_id(box);
+    remplis_rectangle_id(ctx, box);
 }
 
 /** \} */
@@ -735,13 +735,13 @@ replaced_box_sur_dessin_tampon_id :: fonc (base: *Box, ctx: *ContexteDessin)
 
 remplis_rectangle_id :: fonc (ctx: *ContexteDessin, box: *Box)
 {
-    remplis_rectangle_id(ctx, box, box.donne_rectangle_bordure());
+    remplis_rectangle_id(ctx, box, donne_rectangle_bordure(box));
 }
 
 remplis_rectangle_id :: fonc (ctx: *ContexteDessin, box: *Box, rect: RectanglePosDim(r32))
 {
     commandes := ctx.commandes;
-    rect = ctx.donne_rectangle_corrigé(rect);
+    rect = donne_rectangle_corrigé(ctx, rect);
 
     si ctx.tampon_id_couleur {
         entropie := graine_aléatoire(box.id + 1);
@@ -751,24 +751,24 @@ remplis_rectangle_id :: fonc (ctx: *ContexteDessin, box: *Box, rect: RectanglePo
         couleur.v = aléatoire_unilatérale(*entropie);
         couleur.b = aléatoire_unilatérale(*entropie);
         couleur.a = 1.0;
-        commandes.remplis_rectangle(rect, couleur);
+        remplis_rectangle(commandes, rect, couleur);
         retourne;
     }
 
-    commandes.remplis_rectangle_id(rect, box.id);
+    remplis_rectangle_id(commandes, rect, box.id);
 }
 
 dessine_image :: fonc (ctx: *ContexteDessin, image: NouvelleImage, rect: RectanglePosDim(r32))
 {
-    rect = ctx.donne_rectangle_corrigé(rect);
+    rect = donne_rectangle_corrigé(ctx, rect);
     commandes := ctx.commandes;
 
     si image.données {
-        commandes.dessine_image(image, rect);
+        dessine_image(commandes, image, rect);
     }
     sinon {
         /* À FAIRE : image nulle */
-        commandes.remplis_rectangle(rect, CouleurRVBA(1.0, 0.0, 1.0, 1.0));
+        remplis_rectangle(commandes, rect, CouleurRVBA(1.0, 0.0, 1.0, 1.0));
     }
 }
 
@@ -776,7 +776,7 @@ dessine_arrière_plan :: fonc (ctx: *ContexteDessin, box: *Box)
 {
     commandes := ctx.commandes;
 
-    background_color := box.propriétés.donne_valeur_utilisée(IDPropriété.BackgroundColor).donne_couleur();
+    background_color := donne_valeur_utilisée(box.propriétés, IDPropriété.BackgroundColor).donne_couleur();
     si background_color.a != 0 {
         rect_box: RectanglePosDim(r32);
         si box.parent == nul {
@@ -785,13 +785,13 @@ dessine_arrière_plan :: fonc (ctx: *ContexteDessin, box: *Box)
             rect_box.largeur = ctx.largeur_vue comme r32;
         }
         sinon {
-            rect_box = ctx.donne_rectangle_corrigé(box.donne_rectangle_bordure());
+            rect_box = donne_rectangle_corrigé(ctx, donne_rectangle_bordure(box));
         }
 
-        border_radius_top_left := box.propriétés.donne_valeur_utilisée(IDPropriété.BorderTopLeftRadius).donne_pixels() comme r32;
-        border_radius_top_right := box.propriétés.donne_valeur_utilisée(IDPropriété.BorderTopRightRadius).donne_pixels() comme r32;
-        border_radius_bottom_right := box.propriétés.donne_valeur_utilisée(IDPropriété.BorderBottomRightRadius).donne_pixels() comme r32;
-        border_radius_bottom_left := box.propriétés.donne_valeur_utilisée(IDPropriété.BorderBottomLeftRadius).donne_pixels() comme r32;
+        border_radius_top_left := donne_valeur_utilisée(box.propriétés, IDPropriété.BorderTopLeftRadius).donne_pixels() comme r32;
+        border_radius_top_right := donne_valeur_utilisée(box.propriétés, IDPropriété.BorderTopRightRadius).donne_pixels() comme r32;
+        border_radius_bottom_right := donne_valeur_utilisée(box.propriétés, IDPropriété.BorderBottomRightRadius).donne_pixels() comme r32;
+        border_radius_bottom_left := donne_valeur_utilisée(box.propriétés, IDPropriété.BorderBottomLeftRadius).donne_pixels() comme r32;
 
         rayons: RayonsRectangle = ---;
         rayons.haut_gauche = border_radius_top_left;
@@ -799,29 +799,29 @@ dessine_arrière_plan :: fonc (ctx: *ContexteDessin, box: *Box)
         rayons.haut_droite = border_radius_top_right;
         rayons.bas_droite = border_radius_bottom_right;
 
-        commandes.remplis_rectangle_arrondi(rect_box, rayons, background_color);
+        remplis_rectangle_arrondi(commandes, rect_box, rayons, background_color);
     }
     sinon si box.parent == nul {
         dessine_arrière_plan_racine_html(ctx, box);
     }
 
-    image := box.propriétés.donne_valeur_utilisée(IDPropriété.BackgroundImage);
-    si image.est_none() {
+    image := donne_valeur_utilisée(box.propriétés, IDPropriété.BackgroundImage);
+    si est_none(image) {
         retourne;
     }
 
-    opt_image_data := ctx.donne_image_pour_url(image.donne_url_absolu());
-    saufsi opt_image_data.possède_valeur() {
+    opt_image_data := donne_image_pour_url(ctx, donne_url_absolu(image));
+    saufsi possède_valeur(opt_image_data) {
         retourne;
     }
 
-    background_attachment := box.propriétés.donne_valeur_calculée(IDPropriété.BackgroundAttachment);
-    si background_attachment.est_mot_clé(PROP_fixed) {
+    background_attachment := donne_valeur_calculée(box.propriétés, IDPropriété.BackgroundAttachment);
+    si est_mot_clé(background_attachment, PROP_fixed) {
         /* À FAIRE : dessine l'image mais avec des ciseaux pour le rect. */
         retourne;
     }
 
-    background_repeat := box.propriétés.donne_valeur_calculée(IDPropriété.BackgroundRepeat).donne_background_repeat();
+    background_repeat := donne_valeur_calculée(box.propriétés, IDPropriété.BackgroundRepeat).donne_background_repeat();
     // imprime("background_repeat : %\n", background_repeat)
     paramètres: ParamètresRenduImage;
     paramètres.répétition.x = convertis_genre_répétition_image(background_repeat.horizontal);
@@ -829,30 +829,30 @@ dessine_arrière_plan :: fonc (ctx: *ContexteDessin, box: *Box)
 
     image_data := opt_image_data.Quelque;
     /* À FAIRE : background-clip */
-    rect := box.donne_rectangle_bordure();
+    rect := donne_rectangle_bordure(box);
 
     rect_image := rect;
     rect_image.largeur = image_data.desc.largeur comme r32;
     rect_image.hauteur = image_data.desc.hauteur comme r32;
 
-    position := box.propriétés.donne_valeur_calculée(IDPropriété.BackgroundPosition).donne_background_position();
+    position := donne_valeur_calculée(box.propriétés, IDPropriété.BackgroundPosition).donne_background_position();
 
     // À FAIRE : pourcentages, mots-clés
-    si position.décalage_horizontal.est_pixels() {
-        rect_image.x += position.décalage_horizontal.donne_pixels() comme r32;
+    si est_pixels(position.décalage_horizontal) {
+        rect_image.x += donne_pixels(position.décalage_horizontal) comme r32;
     }
-    si position.décalage_vertical.est_pixels() {
-        rect_image.y += position.décalage_vertical.donne_pixels() comme r32;
+    si est_pixels(position.décalage_vertical) {
+        rect_image.y += donne_pixels(position.décalage_vertical) comme r32;
     }
 
-    rect = ctx.donne_rectangle_corrigé(rect);
-    rect_image = ctx.donne_rectangle_corrigé(rect_image);
-    commandes.dessine_image(image_data, rect_image, rect, paramètres);
+    rect = donne_rectangle_corrigé(ctx, rect);
+    rect_image = donne_rectangle_corrigé(ctx, rect_image);
+    dessine_image(commandes, image_data, rect_image, rect, paramètres);
 }
 
 dessine_arrière_plan_racine_html :: fonc (ctx: *ContexteDessin, box: *Box)
 {
-    élément := box.donne_élément();
+    élément := donne_élément(box);
     saufsi élément {
         retourne;
     }
@@ -868,13 +868,13 @@ dessine_arrière_plan_racine_html :: fonc (ctx: *ContexteDessin, box: *Box)
         retourne;
     }
 
-    background_color := body.box.propriétés.donne_valeur_utilisée(IDPropriété.BackgroundColor).donne_couleur();
+    background_color := donne_valeur_utilisée(body.box.propriétés, IDPropriété.BackgroundColor).donne_couleur();
     si background_color.a != 0 {
         /* À FAIRE : ne peint pas l'arrière-plan du "body" dans ce cas. */
         rect_box: RectanglePosDim(r32);
         rect_box.hauteur = ctx.hauteur_vue comme r32;
         rect_box.largeur = ctx.largeur_vue comme r32;
-        ctx.commandes.remplis_rectangle(rect_box, background_color);
+        remplis_rectangle(ctx.commandes, rect_box, background_color);
     }
 }
 
@@ -931,15 +931,15 @@ dessine_bordure :: fonc (ctx: *ContexteDessin, box: *Box)
         sinon {
             /* À FAIRE : ce n'est pas calculé pour css_testsuites/chapter_08_-_box_model/border-bottom-width-092.html */
             couleur_bordure := bordure.color[coté];
-            si couleur_bordure.est_mot_clé(PROP_currentColor) {
-                couleur = box.propriétés.donne_valeur_utilisée(IDPropriété.Color).donne_couleur();
+            si est_mot_clé(couleur_bordure, PROP_currentColor) {
+                couleur = donne_valeur_utilisée(box.propriétés, IDPropriété.Color).donne_couleur();
             }
             sinon {
-                couleur = bordure.color[coté].donne_couleur();
+                couleur = donne_couleur(bordure.color[coté]);
             }
         }
 
-        largeur := bordure.width[coté].donne_pixels() comme r32;
+        largeur := donne_pixels(bordure.width[coté]) comme r32;
 
         couleurs[coté] = couleur;
         largeurs[coté] = largeur;
@@ -957,8 +957,8 @@ dessine_bordure :: fonc (ctx: *ContexteDessin, box: *Box)
 
     couleurs_bordure := crée_couleurs_bordure_rectangle(couleurs[BorderEdge.Top], couleurs[BorderEdge.Bottom], couleurs[BorderEdge.Left], couleurs[BorderEdge.Right]);
 
-    rect := ctx.donne_rectangle_corrigé(box.donne_rectangle_bordure());
-    ctx.commandes.dessine_bordure(rect, largeurs_bordure, couleurs_bordure);
+    rect := donne_rectangle_corrigé(ctx, donne_rectangle_bordure(box));
+    dessine_bordure(ctx.commandes, rect, largeurs_bordure, couleurs_bordure);
 }
 
 /** \} */

@@ -148,7 +148,7 @@ imprime_dans_enchaineuse :: fonc (enchaineuse: *Enchaineuse, format: chaine, arg
         si c == '%' && indice_argument < args.taille {
             si taille_mot_courant != 0 {
                 mot := chaine(*pointeur[début_mot_courant], taille_mot_courant);
-                enchaineuse.ajoute_au_tampon(mot);
+                ajoute_au_tampon(enchaineuse, mot);
             }
 
             taille_mot_courant = 0;
@@ -167,7 +167,7 @@ imprime_dans_enchaineuse :: fonc (enchaineuse: *Enchaineuse, format: chaine, arg
 
     si taille_mot_courant != 0 {
         mot := chaine(*pointeur[début_mot_courant], taille_mot_courant);
-        enchaineuse.ajoute_au_tampon(mot);
+        ajoute_au_tampon(enchaineuse, mot);
     }
 } @Imprimeuse
 
@@ -483,14 +483,14 @@ imprime_nombre_réel :: fonc (enchaineuse: *Enchaineuse, format: FormatRéel) ->
     num := construis_entier_ou_décimal(f);
 
     // Défini le caractère pour le signe
-    si num.est_négatif() {
+    si est_négatif(num) {
         ajoute_au_tampon(enchaineuse, '-');
     }
 
     // Vérifie si NaN ou infinité
-    si num.exposant_cru() == 255 {
+    si exposant_cru(num) == 255 {
         // Vérifie si infinité
-        si num.mantisse_crue() == 0 {
+        si mantisse_crue(num) == 0 {
             ajoute_au_tampon(enchaineuse, "inf");
             retourne;
         }
@@ -582,7 +582,7 @@ donne_chaine_indentation :: fonc (profondeur: z32) -> chaine
 
     taille_chaine := profondeur * 4;
     chaine_indentation := chaine(__chaine_indentation.données, __chaine_indentation.taille);
-    retourne chaine_indentation.sous_chaine(0, taille_chaine);
+    retourne sous_chaine(chaine_indentation, 0, taille_chaine);
 }
 
 imprime_valeur :: fonc (enchaineuse: *Enchaineuse, valeur: eini, échappe_chn: bool, profondeur := 0) -> rien
@@ -605,7 +605,7 @@ imprime_valeur :: fonc (enchaineuse: *Enchaineuse, valeur: eini, échappe_chn: b
             imprime_nombre_réel(enchaineuse, donne_format_réel_contexte(valeur));
         }
         BOOLÉEN {
-            x := valeur.comme_bool();
+            x := comme_bool(valeur);
 
             si x {
                 ajoute_au_tampon(enchaineuse, "vrai");
@@ -615,7 +615,7 @@ imprime_valeur :: fonc (enchaineuse: *Enchaineuse, valeur: eini, échappe_chn: b
             }
         }
         CHAINE {
-            x := valeur.comme_chaine();
+            x := comme_chaine(valeur);
 
             si échappe_chn {
                 ajoute_au_tampon(enchaineuse, '"');
@@ -769,19 +769,19 @@ imprime_valeur_énum :: fonc (enchaineuse: *Enchaineuse, valeur: eini)
 
     si info_arg.est_drapeau {
         si type_sous_jacent.taille_en_octet == 1 {
-            valeur_énum := valeur.comme_n8();
+            valeur_énum := comme_n8(valeur);
             imprime_valeur_énum_drapeau(enchaineuse, info_arg, valeur_énum);
         }
         sinon si type_sous_jacent.taille_en_octet == 2 {
-            valeur_énum := valeur.comme_n16();
+            valeur_énum := comme_n16(valeur);
             imprime_valeur_énum_drapeau(enchaineuse, info_arg, valeur_énum);
         }
         sinon si type_sous_jacent.taille_en_octet == 4 {
-            valeur_énum := valeur.comme_n32();
+            valeur_énum := comme_n32(valeur);
             imprime_valeur_énum_drapeau(enchaineuse, info_arg, valeur_énum);
         }
         sinon {
-            valeur_énum := valeur.comme_n64();
+            valeur_énum := comme_n64(valeur);
             imprime_valeur_énum_drapeau(enchaineuse, info_arg, valeur_énum);
         }
     }
@@ -830,9 +830,9 @@ imprime_valeurs_tableau :: fonc (enchaineuse: *Enchaineuse, itératrice: *Itéra
     ajoute_au_tampon(enchaineuse, "[");
 
     boucle {
-        valeur_ := itératrice.valeur_suivante();
+        valeur_ := valeur_suivante(itératrice);
 
-        saufsi valeur_.est_valide() {
+        saufsi est_valide(valeur_) {
             arrête;
         }
 
@@ -1197,7 +1197,7 @@ fmt_consomme :: fonc (format: chaine) -> (extraction: chaine, reste: chaine, ind
     fin := format.caractères + format.taille;
 
     tantque ptr < fin {
-        si reste.commence_par("\\(") {
+        si commence_par(reste, "\\(") {
             sauvegarde_reste := reste;
 
             reste = avance(reste, 2);

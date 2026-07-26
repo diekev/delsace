@@ -113,8 +113,8 @@ dessine_fenêtre :: fonc (empl application: *Application, largeur: z32, hauteur:
         peintre = crée_peintre_igumi(taille_canevas);
     }
 
-    peintre.définis_taille_canevas(taille_canevas);
-    peintre.efface_cible_rendu(CouleurRVBA(1.0, 1.0, 1.0, 1.0));
+    définis_taille_canevas(peintre, taille_canevas);
+    efface_cible_rendu(peintre, CouleurRVBA(1.0, 1.0, 1.0, 1.0));
 
     commandes := crée_interface(application, largeur, hauteur);
     dessine_commandes(peintre, *commandes);
@@ -223,25 +223,25 @@ objet_html_sur_création_enveloppe :: fonc (base: *Enveloppable @inutilisée, en
             retourne lance_type_error(interpréteuse, "ouvre_document requiers 1 argument");
         }
 
-        saufsi params.donne_argument(0).est_chaine() {
+        saufsi donne_argument(params, 0).est_chaine() {
             retourne lance_type_error(interpréteuse, "argument n'est pas une chaine");
         }
 
-        valeur_arg := params.donne_argument(0).String.texte;
-        valeur_arg_utf16 := valeur_arg.donne_chaine_utf16();
+        valeur_arg := donne_argument(params, 0).String.texte;
+        valeur_arg_utf16 := donne_chaine_utf16(valeur_arg);
         chemin := imprime_chaine("%", valeur_arg_utf16);
         diffère déloge(*chemin);
 
         _, contenu := contenu_fichier_texte(chemin);
         diffère déloge(*contenu);
 
-        parsat := HTML.parse_document(interpréteuse.donne_realm(), contenu);
+        parsat := HTML.parse_document(donne_realm(interpréteuse), contenu);
         diffère HTML.détruit(*parsat);
 
         retourne parsat.document;
     }
 
-    enveloppe.ajoute_fonction_native("ouvre_document", fonction_native_ouvre_document);
+    ajoute_fonction_native(enveloppe, "ouvre_document", fonction_native_ouvre_document);
 }
 
 /** \} */
@@ -289,11 +289,11 @@ crée_propriétés_hôte_objet_global :: fonc (base: *ConfigurationRealm, global
     flux.sur_log = flux_sortie_sur_log;
     flux.sur_efface = flux_sortie_sur_efface;
 
-    console := crée_console(global.donne_tas_de_mémoire(), flux, nul);
+    console := crée_console(donne_tas_de_mémoire(global), flux, nul);
 
-    global.ajoute_fonction_native("rm", fonction_native_éboue);
-    global.ajoute_propriété(crée_chaine_utf16_unique("console"), Valeur(Object = console), Enumerable | Configurable | Writable);
-    global.ajoute_objet_natif("html", *configuration.html);
+    ajoute_fonction_native(global, "rm", fonction_native_éboue);
+    ajoute_propriété(global, crée_chaine_utf16_unique("console"), Valeur(Object = console), Enumerable | Configurable | Writable);
+    ajoute_objet_natif(global, "html", *configuration.html);
 }
 
 sauvegarde_texte :: fonc (application: *Application)
@@ -336,5 +336,5 @@ sauvegarde_texte :: fonc (application: *Application)
 
     résultat := script_evaluation(script);
 
-    application.sortie = imprime_chaine("%\n\nTemps d'exécution : % ms\n", get_value(realm, résultat.valeur), début.temps_écoulé_millisecondes());
+    application.sortie = imprime_chaine("%\n\nTemps d'exécution : % ms\n", get_value(realm, résultat.valeur), temps_écoulé_millisecondes(début));
 }

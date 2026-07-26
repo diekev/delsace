@@ -41,8 +41,8 @@ relative_high_resolution_time :: fonc (coarse_time: Moment, global: *PlatformObj
     /* The relative high resolution coarse time given a moment from the
      * monotonic clock coarseTime and a global object global, is the duration
      * from global's relevant settings object's time origin to coarseTime. */
-    settings := global.donne_relevant_settings_object();
-    retourne duration_from(Moment(settings.donne_time_origin()), coarse_time);
+    settings := donne_relevant_settings_object(global);
+    retourne duration_from(Moment(donne_time_origin(settings)), coarse_time);
 }
 
 /* https://w3c.github.io/hr-time/#dfn-current-high-resolution-time */
@@ -54,7 +54,7 @@ current_high_resolution_time :: fonc (current_global: *PlatformObject) -> DOMHig
 /* https://w3c.github.io/hr-time/#dfn-unsafe-shared-current-time */
 unsafe_shared_current_time :: fonc () -> Moment
 {
-    retourne Moment(maintenant().millisecondes() comme r64);
+    retourne Moment(millisecondes(maintenant()) comme r64);
 }
 
 /** \} */

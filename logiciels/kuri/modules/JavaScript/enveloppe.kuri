@@ -38,7 +38,7 @@ crée_enveloppe :: fonc (tas_de_mémoire: *TasDeMémoire, objet: *Enveloppable) 
         retourne objet.enveloppe;
     }
 
-    résultat := tas_de_mémoire.alloue(Enveloppe);
+    résultat := alloue(tas_de_mémoire, Enveloppe);
     objet.enveloppe = résultat;
     résultat.enveloppable = objet;
 
@@ -51,14 +51,14 @@ crée_enveloppe :: fonc (tas_de_mémoire: *TasDeMémoire, objet: *Enveloppable) 
 
 enveloppe_sur_destruction :: fonc (base: *Cellule)
 {
-    enveloppe := base.vérifie_comme(Enveloppe);
+    enveloppe := vérifie_comme(base, Enveloppe);
     sur_destruction_objet(enveloppe);
     enveloppe.enveloppable.enveloppe = nul;
 }
 
 ajoute_objet_natif :: fonc (object: *Object, nom: ECMAString, enveloppable: *Enveloppable)
 {
-    tas_de_mémoire := object.donne_tas_de_mémoire();
+    tas_de_mémoire := donne_tas_de_mémoire(object);
     enveloppe := crée_enveloppe(tas_de_mémoire, enveloppable);
     ajoute_propriété(object, nom, Valeur(Object = enveloppe), DrapeauxPropriété.zéro);
 }

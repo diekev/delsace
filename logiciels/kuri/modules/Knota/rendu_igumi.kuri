@@ -143,8 +143,8 @@ dessine_graphe_igumi :: fonc (graphe: *Graphe, thème: *Thème_Graphe, fonte: *F
             rectangle_prise := prise.rectangle;
             rectangle_lien := connexion.prise_sortie.rectangle;
 
-            p1 := rectangle_prise.donne_point_central();
-            p2 := rectangle_lien.donne_point_central();
+            p1 := donne_point_central(rectangle_prise);
+            p2 := donne_point_central(rectangle_lien);
 
             // À FAIRE : IGUMI, taille des lignes
             // width := 2.0;
@@ -186,7 +186,7 @@ dessine_noeud_générique_igumi :: fonc (thème: *Thème_Graphe, fonte: *Fonte, 
 {
     ajourne_rectangles_noeuds(noeud);
 
-    rect_noeud := noeud.rectangle();
+    rect_noeud := rectangle(noeud);
 
     // Géométrie noeud
     couleur_contour := donne_couleur_contour_noeud(est_sélectionné);
@@ -254,11 +254,11 @@ dessine_connexion_interactive_igumi :: fonc (graphe: *Graphe, thème: *Thème_Gr
 
     p1 := si connexion.prise_entrée != nul {
         prise_entrée := connexion.prise_entrée;
-        prise_entrée.rectangle.donne_point_central();
+        donne_point_central(prise_entrée.rectangle);
     }
     sinon {
         prise_sortie := connexion.prise_sortie;
-        prise_sortie.rectangle.donne_point_central();
+        donne_point_central(prise_sortie.rectangle);
     };
 
     p2 := Point2D(r32)(connexion.x, connexion.y);
@@ -319,15 +319,15 @@ dessine_outil_sélection_igumi :: fonc (graphe: *Graphe)
     }
 
     sélection := graphe.sélection;
-    chemin := sélection.donne_chemin_sélection();
+    chemin := donne_chemin_sélection(sélection);
 
-    opt_ancre := chemin.donne_ancre();
-    saufsi opt_ancre.possède_valeur() {
+    opt_ancre := donne_ancre(chemin);
+    saufsi possède_valeur(opt_ancre) {
         retourne;
     }
 
-    opt_fin_active := chemin.donne_fin_active();
-    saufsi opt_fin_active.possède_valeur() {
+    opt_fin_active := donne_fin_active(chemin);
+    saufsi possède_valeur(opt_fin_active) {
         retourne;
     }
 

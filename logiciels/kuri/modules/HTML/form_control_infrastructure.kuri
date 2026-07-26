@@ -31,14 +31,14 @@ donne_form_owner :: fonc (élément: *Element) -> *HTMLFormElement
 donne_method :: fonc (élément: *Element) -> DOMString
 {
     résultat := donne_attribut_ou_chaine_vide(élément, ATTR_formmethod);
-    si résultat.est_vide() {
+    si est_vide(résultat) {
         form_owner := donne_form_owner(élément);
         assert(form_owner != nul);
         résultat = donne_attribut_ou_chaine_vide(form_owner, ATTR_method);
     }
 
     /* https://html.spec.whatwg.org/multipage/form-control-infrastructure.html#attr-fs-method */
-    si résultat.est_vide() {
+    si est_vide(résultat) {
         retourne ATTR_get;
     }
 
@@ -71,7 +71,7 @@ is_disabled :: fonc (element: *Element) -> bool
 donne_action :: fonc (élément: *Element) -> DOMString
 {
     résultat := donne_attribut_ou_chaine_vide(élément, ATTR_formaction);
-    si résultat.est_vide() {
+    si est_vide(résultat) {
         form_owner := donne_form_owner(élément);
         assert(form_owner != nul);
         résultat = donne_attribut_ou_chaine_vide(form_owner, ATTR_action);
@@ -286,11 +286,11 @@ submit :: fonc (form: *HTMLFormElement, submitter: *Element, submitted_from_subm
     }
 
     // 12. Let action be the submitter element's action.
-    action := copie_chaine(donne_action(submitter).donne_chaine_utf16());
+    action := copie_chaine(donne_chaine_utf16(donne_action(submitter)));
     diffère détruit_chaine(*action);
 
     // 13. If action is the empty string, let action be the URL of the form document.
-    si action.est_vide() {
+    si est_vide(action) {
         chn_action := url_serializer(form.document.url);
         action = crée_chaine_utf16(chn_action);
         déloge(*chn_action);
@@ -317,12 +317,12 @@ submit :: fonc (form: *HTMLFormElement, submitter: *Element, submitted_from_subm
     // 20. Let target be the result of getting an element's target given submitter's form owner and formTarget.
     target := get_an_element_s_target(donne_form_owner(submitter), form_target);
     // si ce n'est pas vide il faut implémenter les deux étapes suivantes
-    assert(target.est_vide());
+    assert(est_vide(target));
 
     // 21. Let noopener be the result of getting an element's noopener with form, parsed action, and target.
 
     // 22. Let targetNavigable be the first return value of applying the rules for choosing a navigable given target, form's node navigable, and noopener.
-    target_navigable := form.donne_node_navigable();
+    target_navigable := donne_node_navigable(form);
 
     // 23. If targetNavigable is null, then return.
     saufsi target_navigable {
@@ -419,7 +419,7 @@ plan_to_navigate :: fonc (form: *HTMLFormElement, target_navigable: *Navigable, 
         //    with historyHandling set to historyHandling, userInvolvement set to userInvolvement,
         //    sourceElement set to submitter, referrerPolicy set to referrerPolicy,
         //    documentResource set to postResource, and formDataEntryList set to entry list.
-        navigate(params.source_document.donne_user_agent(), target_navigable, params);
+        navigate(donne_user_agent(params.source_document), target_navigable, params);
     }
 
     tâche := crée_algorithm(sur_run, Tâche);
@@ -427,8 +427,8 @@ plan_to_navigate :: fonc (form: *HTMLFormElement, target_navigable: *Navigable, 
     tâche.target_navigable = target_navigable;
     tâche.params = params;
 
-    user_agent := params.source_document.donne_user_agent();
-    user_agent.queue_an_element_task(Task_Source.ManipulationDOM, form, tâche);
+    user_agent := donne_user_agent(params.source_document);
+    queue_an_element_task(user_agent, Task_Source.ManipulationDOM, form, tâche);
 
     // 5. Set the form's planned navigation to the just-queued task.
     form.planned_navigation = tâche;
@@ -478,10 +478,10 @@ construct_the_entry_list :: fonc (form: *HTMLFormElement, submitter : *Element =
     // 5. For each element field in controls, in tree order:
     pour field dans controls {
         si field.table.classe == HTMLInputElement {
-            name := field.donne_attribut_ou_chaine_vide(ATTR_name);
-            saufsi name.est_vide() {
+            name := donne_attribut_ou_chaine_vide(field, ATTR_name);
+            saufsi est_vide(name) {
                 entry := tableau_ajoute_élément(*entry_list.entries);
-                entry.name = convertis_vers_chaine(name.donne_chaine_utf16());
+                entry.name = convertis_vers_chaine(donne_chaine_utf16(name));
                 entry.value = convertis_vers_chaine(donne_value(field comme *HTMLInputElement));
             }
         }

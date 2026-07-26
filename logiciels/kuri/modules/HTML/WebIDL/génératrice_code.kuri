@@ -232,7 +232,7 @@ ajoute_mixins_aux_interfaces :: fonc (interfaces: *Interfaces)
         }
 
         pour nom_mixin dans it.mixins {
-            mixin := interfaces.donne_interface(nom_mixin);
+            mixin := donne_interface(interfaces, nom_mixin);
             saufsi mixin {
                 message_erreur := imprime_chaine("mixin '%' inconnu pour '%'", nom_mixin, it.nom);
                 compilatrice_rapporte_erreur(message_erreur);
@@ -262,7 +262,7 @@ compile_interfaces_idl :: fonc () -> chaine
     ajoute_au_tampon(*enchaineuse, "#portée_module\n");
 
     chemin_fichier := CheminFichier(#chemin_de_ce_fichier);
-    chemin_parent := chemin_fichier.chemin_parent();
+    chemin_parent := chemin_parent(chemin_fichier);
     diffère détruit_chemin(*chemin_parent);
     chemin := crée_chemin_absolu(chemin_parent, CheminFichier("fichiers"));
     diffère détruit_chemin(*chemin);
@@ -272,7 +272,7 @@ compile_interfaces_idl :: fonc () -> chaine
 
     pour chemins {
         chm := CheminFichier(it);
-        saufsi chm.extension() == ".idl" {
+        saufsi extension(chm) == ".idl" {
             continue;
         }
 
@@ -554,7 +554,7 @@ génère_création_prototype :: fonc (enchaineuse: *Enchaineuse, interface: *Int
 
 génère_enveloppe_javascript :: fonc (enchaineuse: *Enchaineuse, interface: *Interface, fonction: *Fonction, griffonier: *Griffonier)
 {
-    paramètres := interface.donne_paramètres(fonction);
+    paramètres := donne_paramètres(interface, fonction);
 
     ajoute_au_tampon(enchaineuse, interface.nom, "_", fonction.nom, " :: fonc (empl params: *JS.ParamètresObjectCall) -> JS.Valeur\n");
     ajoute_au_tampon(enchaineuse, "{\n");
@@ -707,7 +707,7 @@ table_virtuelle_\\(1)_constructor := JS.TableVirtuelleBuiltinFunction(classe = \
     constructor := *interface.constructors[0];
 
     // Conversion des paramètres
-    paramètres := interface.donne_paramètres(constructor);
+    paramètres := donne_paramètres(interface, constructor);
     pour paramètres {
         ajoute_au_tampon(enchaineuse, "    valeur_", it.nom, " := JS.donne_argument(params, ", indice_it, ");\n");
         génère_code_conversion_argument(enchaineuse, it.nom, indice_it, it.type);
@@ -993,7 +993,7 @@ parse_interface :: fonc (parseuse: *ParseuseInterface, interfaces: *Interfaces)
         lexème = donne_lexème_suivant(parseuse);
     }
 
-    résultat := interfaces.crée_interface(lexème);
+    résultat := crée_interface(interfaces, lexème);
     résultat.est_mixin = est_mixin;
 
     si consomme_caractère(parseuse, ':') {
@@ -1007,7 +1007,7 @@ parse_interface :: fonc (parseuse: *ParseuseInterface, interfaces: *Interfaces)
     tantque parseuse.début < parseuse.fin {
         si consomme_caractère(parseuse, '}') {
             saufsi consomme_caractère(parseuse, ';') {
-                rapporte_erreur(parseuse, "attendu ';'", parseuse.donne_lexème_suivant());
+                rapporte_erreur(parseuse, "attendu ';'", donne_lexème_suivant(parseuse));
             }
             arrête;
         }
@@ -1025,18 +1025,18 @@ parse_une_fonction :: fonc (parseuse: *ParseuseInterface, interface: *Interface)
 {
     résultat: Fonction;
 
-    si parseuse.apparie("getter") {
+    si apparie(parseuse, "getter") {
         résultat.est_getter = vrai;
         _ := donne_lexème_suivant(parseuse);
     }
-    sinon si parseuse.apparie("setter") {
+    sinon si apparie(parseuse, "setter") {
         _ := donne_lexème_suivant(parseuse);
     }
 
     est_constructor := faux;
-    si parseuse.apparie("constructor") {
+    si apparie(parseuse, "constructor") {
         est_constructor = vrai;
-        _ := parseuse.donne_lexème_suivant();
+        _ := donne_lexème_suivant(parseuse);
     }
     sinon {
         résultat.type_retour = parse_type(parseuse);
@@ -1086,7 +1086,7 @@ parse_un_attribut :: fonc (parseuse: *ParseuseInterface, interface: *Interface)
 {
     résultat: Attribut;
 
-    si parseuse.consomme_caractère('[') {
+    si consomme_caractère(parseuse, '[') {
         lexème := donne_lexème_suivant(parseuse);
         si lexème == "Reflect" {
             résultat.reflect = vrai;
@@ -1101,12 +1101,12 @@ parse_un_attribut :: fonc (parseuse: *ParseuseInterface, interface: *Interface)
             rapporte_erreur(parseuse, "attribut inconnu", lexème);
         }
 
-        si parseuse.consomme_caractère('=') {
-            résultat.attribut_réfléchis = parseuse.donne_lexème_suivant();
+        si consomme_caractère(parseuse, '=') {
+            résultat.attribut_réfléchis = donne_lexème_suivant(parseuse);
         }
 
-        saufsi parseuse.consomme_caractère(']') {
-            rapporte_erreur(parseuse, "attendu ']'", parseuse.donne_lexème_suivant());
+        saufsi consomme_caractère(parseuse, ']') {
+            rapporte_erreur(parseuse, "attendu ']'", donne_lexème_suivant(parseuse));
         }
     }
 
@@ -1147,7 +1147,7 @@ parse_énum :: fonc (parseuse: *ParseuseInterface)
         }
 
         /* Nous utilisons les InfoTypes du langage pour ça. */
-        _ := parseuse.donne_lexème_suivant();
+        _ := donne_lexème_suivant(parseuse);
 
         saufsi consomme_caractère(parseuse, '"') {
             rapporte_erreur(parseuse, "attendu '\"'");
@@ -1268,7 +1268,7 @@ apparie :: fonc (parseuse: *ParseuseInterface, c: z8) -> bool
 
 parse_type :: fonc (parseuse: *ParseuseInterface) -> *Type
 {
-    si parseuse.consomme_caractère('(') {
+    si consomme_caractère(parseuse, '(') {
         retourne parse_type_union(parseuse);
     }
 
@@ -1281,23 +1281,23 @@ parse_type_union :: fonc (parseuse: *ParseuseInterface) -> *Type
     résultat.est_union = vrai;
 
     tantque parseuse.début < parseuse.fin {
-        si parseuse.consomme_caractère(')') {
+        si consomme_caractère(parseuse, ')') {
             arrête;
         }
 
         type := parse_type_simple(parseuse);
         tableau_ajoute(*résultat.types_rubriques_union, type);
 
-        parseuse.consomme_espaces_blanches();
+        consomme_espaces_blanches(parseuse);
 
-        si parseuse.apparie("or") {
+        si apparie(parseuse, "or") {
             _ := donne_lexème_suivant(parseuse);
-            parseuse.consomme_espaces_blanches();
+            consomme_espaces_blanches(parseuse);
             continue;
         }
 
-        saufsi parseuse.consomme_caractère(')') {
-            rapporte_erreur(parseuse, "attendu ')", parseuse.donne_lexème_suivant());
+        saufsi consomme_caractère(parseuse, ')') {
+            rapporte_erreur(parseuse, "attendu ')", donne_lexème_suivant(parseuse));
         }
 
         arrête;
@@ -1392,7 +1392,7 @@ consomme_espaces_blanches :: fonc (parseuse: *ParseuseInterface)
 
         chn := chaine(parseuse.début, parseuse.fin - parseuse.début);
 
-        si chn.commence_par("//") {
+        si commence_par(chn, "//") {
             parseuse.début += 2;
             tantque parseuse.début < parseuse.fin {
                 si mémoire(parseuse.début) == '\n' {
@@ -1405,11 +1405,11 @@ consomme_espaces_blanches :: fonc (parseuse: *ParseuseInterface)
             continue;
         }
 
-        si chn.commence_par("/*") {
+        si commence_par(chn, "/*") {
             parseuse.début += 2;
             chn = avance(chn, 2);
             tantque parseuse.début < parseuse.fin {
-                si chn.commence_par("*/") {
+                si commence_par(chn, "*/") {
                     chn = avance(chn, 2);
                     parseuse.début += 2;
                     arrête;

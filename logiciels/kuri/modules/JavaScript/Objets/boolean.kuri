@@ -16,8 +16,8 @@ BooleanPrototype :: struct {
 
 crée_boolean_prototype :: fonc (realm: *Realm, prototype: *ObjectPrototype) -> *BooleanPrototype
 {
-    tas_de_mémoire := realm.donne_tas_de_mémoire();
-    résultat := tas_de_mémoire.alloue(BooleanPrototype);
+    tas_de_mémoire := donne_tas_de_mémoire(realm);
+    résultat := alloue(tas_de_mémoire, BooleanPrototype);
     résultat.prototype = prototype;
 
     retourne résultat;
@@ -45,12 +45,12 @@ BooleanObject :: struct {
 
 boolean_instance_crée :: fonc (realm: *Realm) -> *Object
 {
-    retourne realm.donne_tas_de_mémoire().alloue(BooleanObject);
+    retourne donne_tas_de_mémoire(realm).alloue(BooleanObject);
 }
 
 crée_boolean_object :: fonc (realm: *Realm, valeur: bool) -> *BooleanObject
 {
-    résultat := ordinary_object_create(realm, realm.intrinsics.boolean_prototype, boolean_instance_crée).vérifie_comme(BooleanObject);
+    résultat := vérifie_comme(ordinary_object_create(realm, realm.intrinsics.boolean_prototype, boolean_instance_crée), BooleanObject);
     résultat.boolean_value = valeur;
     retourne résultat;
 }
@@ -77,13 +77,13 @@ BooleanConstructor :: struct {
 
 crée_boolean_constructor :: fonc (realm: *Realm, function_prototype: *FunctionPrototype, boolean_prototype: *BooleanPrototype) -> *BooleanConstructor
 {
-    tas_de_mémoire := realm.donne_tas_de_mémoire();
-    résultat := tas_de_mémoire.alloue(BooleanConstructor);
+    tas_de_mémoire := donne_tas_de_mémoire(realm);
+    résultat := alloue(tas_de_mémoire, BooleanConstructor);
     create_builtin_function(résultat, 1, STR_Boolean, realm, function_prototype);
 
-    résultat.ajoute_propriété(STR_prototype, Valeur(Object = boolean_prototype), DrapeauxPropriété.zéro);
+    ajoute_propriété(résultat, STR_prototype, Valeur(Object = boolean_prototype), DrapeauxPropriété.zéro);
 
-    boolean_prototype.ajoute_propriété(STR_constructor, Valeur(Object = résultat), DrapeauxPropriété.zéro);
+    ajoute_propriété(boolean_prototype, STR_constructor, Valeur(Object = résultat), DrapeauxPropriété.zéro);
 
     retourne résultat;
 }

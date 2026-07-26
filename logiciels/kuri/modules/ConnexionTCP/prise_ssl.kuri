@@ -10,7 +10,7 @@ PriseSSL :: struct {
 
 écris :: fonc (prise: *PriseSSL, données: chaine /* msg_more: bool */) -> z32
 {
-    si prise.est_fermée() /* || us_internal_ssl_socket_is_shut_down(s))*/ {
+    si est_fermée(prise) /* || us_internal_ssl_socket_is_shut_down(s))*/ {
         retourne 0;
     }
 
