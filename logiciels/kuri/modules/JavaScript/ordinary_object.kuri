@@ -426,7 +426,7 @@ ordinary_get :: fonc (object: *Object, property_key: PropertyKey, receiver: Vale
     }
 
     // 7. Return ? Call(getter, Receiver).
-    mv := donne_tas_de_mémoire(donne_objet(receiver)).donne_mv();
+    mv := donne_mv(donne_tas_de_mémoire(donne_objet(receiver)));
     retourne call(mv, getter.Quelque, receiver);
 }
 
@@ -529,7 +529,7 @@ ordinary_set_with_own_descriptor :: fonc (object: *Object, property_key: Propert
     }
 
     // 6. Perform ? Call(setter, Receiver, « V »).
-    mv := donne_tas_de_mémoire(donne_objet(receiver)).donne_mv();
+    mv := donne_mv(donne_tas_de_mémoire(donne_objet(receiver)));
 
     arguments: []Valeur;
     arguments.données = *valeur;
