@@ -3,7 +3,7 @@ importe Fondation;
 
 rapporte_erreur :: fonc ()
 {
-    options: OptionsCompilation;
+    options: OptionsDeCompilation;
     options.continue_si_erreur = vrai;
 
     espace := démarre_un_espace_de_travail("test", *options);
