@@ -9,45 +9,43 @@ donne_date_républicaine :: fonc (moment: Date) -> Date
 {
     raisin := Date(jour = 22, mois = 9, année = 1792);
 
-    adjMoment := temps_millis_depuis_époque(moment) - temps_millis_depuis_époque(raisin);
-    // imprime("adj_moment : %\n", adjMoment)
+    moment_relatif := temps_millis_depuis_époque(moment) - temps_millis_depuis_époque(raisin);
 
-    d := Constantes(z64).MILLISECONDES_PAR_JOUR;
-    quantité_leap :: 20925216;
-    début_équinoxe :: 34284216;
+    millisecondes_par_jour :: Constantes(z64).MILLISECONDES_PAR_JOUR;
+    QUANTITÉ_INTERCALÉE :: 20925216;
+    DÉBUT_ÉQUINOXE :: 34284216;
 
-    this: Date;
+    résultat: Date;
 
-    now := (adjMoment % d) comme z32;
-    this.heure = now / (60 * 60 * 1000);
-    this.minute = (now - this.heure * (60 * 60 * 1000)) / (60 * 1000);
-    this.seconde = (now - this.heure * (60 * 60 * 1000) - this.minute * (60 * 1000)) / 1000;
+    maintenant := (moment_relatif % millisecondes_par_jour) comme z32;
+    résultat.heure = maintenant / (60 * 60 * 1000);
+    résultat.minute = (maintenant - résultat.heure * (60 * 60 * 1000)) / (60 * 1000);
+    résultat.seconde = (maintenant - résultat.heure * (60 * 60 * 1000) - résultat.minute * (60 * 1000)) / 1000;
 
-    days := adjMoment / d;
-    yesterdays := days - 1;
-    unadjYears := days / 365;
-    leapYears := ((quantité_leap * unadjYears) + début_équinoxe) / d;
-    yesterdayLeapYears := ((quantité_leap * yesterdays / 365) + début_équinoxe) / d;
-    isLeapDay := yesterdayLeapYears != leapYears;
-    this.année = ((days - leapYears) / 365) comme z32;
+    jours := moment_relatif / millisecondes_par_jour;
+    jours_passés := jours - 1;
+    années_non_ajustées := jours / 365;
+    années_bissextiles := ((QUANTITÉ_INTERCALÉE * années_non_ajustées) + DÉBUT_ÉQUINOXE) / millisecondes_par_jour;
+    années_bissextiles_passées := ((QUANTITÉ_INTERCALÉE * jours_passés / 365) + DÉBUT_ÉQUINOXE) / millisecondes_par_jour;
+    est_jour_intercalaire := années_bissextiles_passées != années_bissextiles;
+    résultat.année = ((jours - années_bissextiles) / 365) comme z32;
 
-    // this.yeardays
-    yeardays := (days - leapYears) % 365;
-    si isLeapDay {
-        yeardays += 1;
+    jours_année := (jours - années_bissextiles) % 365;
+    si est_jour_intercalaire {
+        jours_année += 1;
     }
 
-    this.année += 1; // year starts as year 1
-    this.jour = ((yeardays % 30) + 1) comme z32; // calendar starts on day 1
-    this.mois = (yeardays / 30) comme z32;
+    résultat.année += 1; // L'année démarre à l'an 1
+    résultat.jour = ((jours_année % 30) + 1) comme z32; // Le calendrier commence au jour 1
+    résultat.mois = (jours_année / 30) comme z32;
 
-    // imprime("date républicaine : %\n", this)
-
-    retourne this;
+    retourne résultat;
 }
 
 chaine_chiffre_romain :: fonc (n: z32) -> chaine
 {
+    assert(n >= 0 && n < 1000);
+
     chn_unités := [ "I", "II", "III", "IV", "V", "VI", "VII", "VIII", "IX" ];
     chn_dizaines := [ "X", "XX", "XXX", "XL", "L", "LX", "LXX", "LXXX", "XC" ];
     chn_centaines := [ "C", "CC", "CCC", "CD", "D", "DC", "DCC", "DCCC", "CM" ];
