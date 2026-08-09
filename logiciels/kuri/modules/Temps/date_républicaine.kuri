@@ -62,7 +62,7 @@ chaine_chiffre_romain :: fonc (n: z32) -> chaine
 donne_chaine_date_républicaine :: fonc (date: Date) -> chaine
 {
     chn_jour := [ "Primidi", "Duodi", "Tridi", "Quartidi", "Quintidi", "Sextidi", "Septidi", "Octidi", "Nonidi", "Décadi" ];
-    chn_mois := [ "Vendémiaire", "Brumaire", "Frimaire", "Nivôse", "Pluviôse", "Ventôse", "Germinal", "Floréal", "Prairial", "Messidor", "Thermido", "Fructidor" ];
+    chn_mois := [ "Vendémiaire", "Brumaire", "Frimaire", "Nivôse", "Pluviôse", "Ventôse", "Germinal", "Floréal", "Prairial", "Messidor", "Thermidor", "Fructidor" ];
 
     chaine_année := chaine_chiffre_romain(date.année);
     diffère déloge(*chaine_année);
