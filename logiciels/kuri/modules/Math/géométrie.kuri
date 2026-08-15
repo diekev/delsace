@@ -636,10 +636,7 @@ contient :: fonc (rect: RectanglePosDim($T), point: Point2D(T)) -> bool
     retourne contient(rect, point.x, point.y);
 }
 
-/* À FAIRE(langage) : les polymorphes ne font pas partie des fonctions_parsées
- * de la compilatrice. Quand nous représenterons les types dans l'arbre syntaxique
- * il faudra avoir un système pour passer les fonctions/types polymorphiques aux
- * métaprogrammes. */
+/* À FAIRE : permet d'utiliser la fonction polymorphique au dessus dans la génération de l'IPA Python. */
 contient :: fonc (rect: RectanglePosDim(r32), point: Point2D(r32)) -> bool
 {
     retourne contient(rect, point.x, point.y);
