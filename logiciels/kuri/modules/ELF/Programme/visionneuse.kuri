@@ -278,8 +278,7 @@ donne_image_visualisation_binaire :: fonc (visionneuse: *VisionneuseELF, onglet:
             pour compteurs {
                 si it >= 1 {
                     valeur := log(it comme r32) / log_compteur_max;
-                    // À FAIRE(langage) : permet de convertir r32 vers octet
-                    pixels[indice_it] = (valeur * 255.0 + 0.5) comme n8 comme octet;
+                    pixels[indice_it] = (valeur * 255.0 + 0.5) comme octet;
                 }
             }
         }
