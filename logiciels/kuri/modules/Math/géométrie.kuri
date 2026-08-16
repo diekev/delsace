@@ -865,7 +865,6 @@ RectanglePur :: struct ($T: type_de_données) {
     bas: T;
 }
 
-/* À FAIRE(langage) : les fonctions ne sont pas sélectionnées si nous n'avons pas de références. */
 donne_largeur :: fonc (rect: RectanglePur($T)) -> T
 {
     retourne rect.droite - rect.gauche;
