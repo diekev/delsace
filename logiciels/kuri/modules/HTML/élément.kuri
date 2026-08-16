@@ -3081,10 +3081,7 @@ translate_a_potential_destination :: fonc (potential_destination_: DOMString) ->
     pour info_destination_type.noms {
         si compare_ascii_insensible_à_la_casse(it, potential_destination) {
             // 3. Return potentialDestination.
-            // À FAIRE(langage) : erreur de compilation
-            // retourne donne_eini_valeur_énum_indice(info_destination_type, indice_it) comme Request.DestinationType
-            résultat := donne_eini_valeur_énum_indice(info_destination_type, indice_it);
-            retourne mémoire(résultat.données comme *Request.DestinationType);
+            retourne donne_eini_valeur_énum_indice(info_destination_type, indice_it) comme Request.DestinationType;
         }
     }
 
